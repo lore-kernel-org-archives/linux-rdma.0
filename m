@@ -1,18 +1,18 @@
-Received: from invmail4.hynix.com (exvmail4.skhynix.com [166.125.252.92])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id AA5921E5B7E;
-	Fri, 20 Jun 2025 04:12:36 +0000 (UTC)
+Received: from invmail4.hynix.com (exvmail4.hynix.com [166.125.252.92])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id CE2C11FDA94;
+	Fri, 20 Jun 2025 04:12:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=166.125.252.92
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750392760; cv=none; b=phH8at+2qiiPs20rCphAMVG2M+MTHQhOGtVZ7okN7DR3i5kekzgj77ko8DIlIjhhh/McYTXWhBDTw/zU53wOIPuBtfXIOzLnM7Y44mmDBxBFOeASxL8Nrx+DhI/9RVllZ4cYAWjR/X0YRs7XzAtrRyYPQLQBFa5dPEYfdgZpJkk=
+	t=1750392761; cv=none; b=lNX8ikdtZlOsLNP+Ixs4QUEY0TJxgLhnOzPtkrs0+XMDMrraONamE7XUiW69RBS32hGTUbNg90bKPqayKLiL0mmGfqV3h3wXXkiG9h7oOplt4kVsYcGYD/gH3GnpgfyfWWEYQ5OoRlsmuR4v0WA3bBoLtMdmcWbmxAuVwq6DljQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750392760; c=relaxed/simple;
-	bh=Vc9KZAZEagVw40jqBa3hCAzI3J3o9xAy+bTxXwdJbnk=;
+	s=arc-20240116; t=1750392761; c=relaxed/simple;
+	bh=OX7su+A2+XxOGEYJv11FdVH8w8M7m/9/3b1Kym7xqMo=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=u3ln8pEtquv2WqaKCrWABLq9soWC81wJHq7xsefUTe7Vjqnj49FBtGo8yRGsZSg/0GhDlvfG/EaP9gouBVpkWDh/acezdxCq4ZAxMy7ih5ccrvWyOcPB8wRi8Le++X3tPMSIEb2MkzBz9pOsrqOuMVRHjCrPeOxBUzkGIPglAmY=
+	 MIME-Version:Content-Type; b=XYjK3PNNPyZKLuYYnIO5xh1kYaKWQ3yJiGMYfEmM/eC6QYBPTgH56KNs3UBCDzkz5mFEFKc6hOzc/VZRWnt8v36lY9fxNfAiWaQ1Fitu1cKA1AfhykF/txwJwBdFDaFO4iHWOOaG7YTajjI2aIRwA4kwFW6onQUg3cio4PcNczA=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=sk.com; spf=pass smtp.mailfrom=sk.com; arc=none smtp.client-ip=166.125.252.92
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=sk.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=sk.com
-X-AuditID: a67dfc5b-669ff7000002311f-81-6854dfb20d59
+X-AuditID: a67dfc5b-669ff7000002311f-97-6854dfb383b2
 From: Byungchul Park <byungchul@sk.com>
 To: willy@infradead.org,
 	netdev@vger.kernel.org
@@ -51,9 +51,9 @@ Cc: linux-kernel@vger.kernel.org,
 	hannes@cmpxchg.org,
 	ziy@nvidia.com,
 	jackmanb@google.com
-Subject: [PATCH net-next v6 5/9] netmem: use _Generic to cover const casting for page_to_netmem()
-Date: Fri, 20 Jun 2025 13:12:20 +0900
-Message-Id: <20250620041224.46646-6-byungchul@sk.com>
+Subject: [PATCH net-next v6 7/9] page_pool: make page_pool_get_dma_addr() just wrap page_pool_get_dma_addr_netmem()
+Date: Fri, 20 Jun 2025 13:12:22 +0900
+Message-Id: <20250620041224.46646-8-byungchul@sk.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20250620041224.46646-1-byungchul@sk.com>
 References: <20250620041224.46646-1-byungchul@sk.com>
@@ -65,69 +65,71 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-X-Brightmail-Tracker: H4sIAAAAAAAAA02Sa0hTYRjHe/e+O+e4HByX1NsFonUjwUth9URRGQQHoggKpCRq6Mmt5rRN
-	TYvAat0ktdQop9XMNG+xmqazG7aWlxK0hbVuKpbSxRRdDXVFbUbktx/P8/z+/y8PhxUF0lmc
-	Rpcs6nUqrZKREdm3wOLQmu7t6ojCAQJFlmoGqkbT4EaPTQpFlXUIvo+9ZcHtaGagpNiDoajd
-	SOCHZRxDX1MvC1XWzdBd1k/g/ql6DL05LQxkGb0YHowNsnDMVi6BjrpsKeSPl2Koz+hh4cXd
-	Iga6qn9Lod+eRaDVVEGgO3s9NJmng+fZAAKHpV4CnrOXGchzmhn4YOxG4HzcS6DwaDYCy0OX
-	FLyjvozCJ13s+gXC44EhLNRWvJYIDab3rGC2pgg15SFCpsuJBWvlGUawjuSywruX9xmh5ZKX
-	CA02t0TIOj7ICMN9b4gw9LCTESy1nURoMzvYrUE7ZWviRK0mVdSHr90jU9e9MkuSSgLSnnr6
-	cQbqZzNRAEf5SHqiuBT/41+tnyeY4RdTl2tsgoP5pdTd20wykYzD/E2GOqrfTsjTeBXNf2qU
-	+JnwC2mN04MyEcfJ+eW00pr4N3MurbrVOJETwK+gw8fuMX5W+E5GrxmlfpbzQbS14CPxq9jX
-	a7mi8I+xTz1+pxD7aylfy1HvmQL0N3MmfVTuIucQb5qkm/7rpkm6GeFKpNDoUhNUGm1kmDpd
-	p0kLi01MsCLfw5Qd+RljQyMd2+yI55AyUG77vk2tkKpSDekJdkQ5rAyWl7RsUSvkcar0Q6I+
-	cbc+RSsa7Gg2R5Qz5Ms8B+MUfLwqWdwvikmi/t9WwgXMykD5U3ZFZTjZq3PCP0ZvCUu7/Zls
-	PBB5au/zvkVVBoUyyN1xPvzm3iXKtXkR8RcGyOn9Fy07opd3rFjchtbF9rzZRwenrvsUXD9t
-	fkjwV05uN6F5Jx0FoUm516mucWXqhvzVXwwjOXVDOe4YXbt3vPGw98OGfRHaVa0zN6mjSp4k
-	zA1TEoNatTQE6w2qP8oEOWIsAwAA
-X-Brightmail-Tracker: H4sIAAAAAAAAA02Sa0hTYRjHec97ds7ZaHVaow4GCqMIpCwp44Ei/OaxSISKIII61aENdcam
-	pl3Ay0iz1Ew/6Jw2W5pOYzFN57rJtNwaZijVuqmYSoFpNpu3bpsR+e3H8/z+/+fLw2DFIhnG
-	aLRpok4rJKsoGSlL2JW3xT50UL2t9/F2MNmaKWiay4Tbww4JmKxtCGbm39Hg7+6hwFIbwGDq
-	M5Dw3baAYezpCA1N9v0wVD9OwoP8dgwjJW4KigyLGB7OT9KQ62ggoKvaI4EXbcUSKF+ow9Ce
-	PUzDgNNEwWDzbwmMu4pI8BgbSRgqjoWn5rUQ8E4g6La1ExC4Wk1BWb+Zgo+GIQT9XSMkVOUU
-	I7A98klgcS7YUfVkkI7dyHdNTGG+tfENwXcYP9C82Z7OtzRE8oW+fszbrZcp3v7tOs2/f/WA
-	4t0ViyTf4fATfFHeJMVPj70l+alHLyne8ukrwdtaX5KJiiOy3afEZE2GqNu657hM3fbaTJyx
-	SDOfBcZxNhqnC5GU4dgd3E/PZxxiit3E+XzzS6xkozn/SA9ZiGQMZu9QXHfzu6XAGlbgyp8Z
-	iBCT7EaupT+AChHDyNkYzmpP/dsZwTXd7VzqkbI7uenc+1SIFUFl7qZBEmI5u5rzVI6SoSgO
-	3rXVKEJjHIzm3avC15DcuMwy/reMyywzwlak1GgzUgRNckyUPkmdpdVkRp1MTbGj4EvUX/xR
-	6kAzA3EuxDJItULumDmgVkiEDH1WigtxDFYp5RZ3glohPyVknRN1qcd06cmi3oXWM6RqnXzv
-	YfG4gj0tpIlJonhG1P3bEow0LBs9X0ekbPbObtoVXVqS62TxlfoEK4qP8vf+kn1sbJJ7Knrs
-	7pZViUImNbpW+rA13JJfe7mT7vNWFsT7rngbciI7hlcOKhsG6/w19cpDxJejUze6so8WnHDW
-	ZMCWTmfSeZO7rKd4dsGbFhGjvUDeuulq9BD75sPPXnLG1ZVuYFSkXi1ER2KdXvgDgdot6Q4D
-	AAA=
+X-Brightmail-Tracker: H4sIAAAAAAAAA02Sa0hTYRjHe/eenXO2XJxm1Ek/COtGdwuLJ4joU50PFYVBUHQ55aENtymb
+	rhlEpoPI8rIuYNuq1SqXGpO1dGZJzZUTjczSlmtOtILANLNMnV02Jerbn+f5/37Pl4fG8nJx
+	Eq3S5gg6La9WkFJC+jnh+sp7kd3K1HP+WWBzVZNQNWaEil6vGGyVtQi+jYcoGPE3k+C4PorB
+	9sJEwHfXBIYPz/ooqHJvh8jtjwQ8PF2Hoa80QEKxKYrh0fggBQVepwjaa0vEcHHiFoa6/F4K
+	Xj2wkdBT/VsMH33FBLRY7hAQKdkMz+xzYbR1AIHfVSeC0XNXSLjQYSeh3xRB0NHUR4D1VAkC
+	V2NQDNGxmMP6tIfavJBrGhjCnOfOWxFXbwlTnN2dy91zLuOKgh2Yc1eeITn31/MU967rIckF
+	yqMEV+8dEXHFhYMkN/yhm+CGGjtJzuXpJLg2u5/aOXuvdGOGoFYZBN3qTYekSuuXN6LsEqnR
+	9wvyUZguQhKaZdJYm6uN/JvPNjlRPJPMEjYYHMfxPIdZw470NRNFSEpj5i7J+qtDVBGi6URG
+	z5o+TbEEs4htD7WI4lnGrGO7BxvQtDOFrap5POWRMOvZ4YKGqb481hm7YRJP92ezLZffE3El
+	jt11XZXHxziGFt634vhZlvHQ7I9oOZ52zmefOINEGWIs/+GWf7jlP9yOcCWSq7QGDa9Sp61S
+	5mlVxlVHsjRuFPuX2ycm93nR1/Z0H2JopEiQeb+lK+Vi3qDP0/gQS2PFHJkjsEMpl2XweccF
+	XdZBXa5a0PtQMk0o5snWjh7LkDNH+RwhUxCyBd3frYiWJOWjFM82yVXJgQWHM2tOnt1DpS8O
+	h2rw8qWFM7Y0a7rNFdvaKm5MtqS6bypI7UIq19y0wi7fmjxQcMn48nur9nXZT7w/Yg4Y8p47
+	AgeubTDnDNnTQ4qjHjNfqu5NzniRUjhQK3Xy2TMnG4+z87qywgmOjbsSulr3k4lrKUe/Ndyt
+	IPRKfs0yrNPzfwD/hsCVKwMAAA==
+X-Brightmail-Tracker: H4sIAAAAAAAAA02Sa0hTcRiH+++cnXMcrk5r1EExcSGBoDXK8UJRfetgJFJKdNVTHdryVpuZ
+	BtHSQeRlXQnbZkxnNS+xmKYzTWKabkVkk8y0OVkZFeUlTVxatiVR33687/M+75cfhUkCeASl
+	ysnj1TlclowQ4aLkTcXxjb5U5XprKphsDQTUzxbA3RGHEEx1zQimA0MkTHX1EGCpmsHA9EKH
+	w3fbDwxGu/0k1Nt3gu/OBxzaL7Rg4L/kIqBcN4fBo8AYCUUOqwA6K91C6G3WC+H6j9sYtGhH
+	SOh7aCJguGFBCB+c5Ti4DbU4+PTboNu8EmaefUHQZWsRwExZJQHXPGYC3ul8CDydfhyM5/UI
+	bB0DQpibDTqMT4bJbbFs55dxjG2qfSNgWw1ekjXbT7GN1ji2ZMCDsfa6iwRr/3aVZN/2txOs
+	q2IOZ1sdUwK2vHiMYCdHB3F2vOMVwVo+TghYW9MrPEWyT7T5KJ+lyufV67ZkiJTGideCE3pR
+	gfMXaJGXKkFhFENvZEo7rSiUCXotMzAQwEJZSsuZKX8PXoJEFEbfI5iuhiGyBFHUClrD6D4R
+	IQanY5neIbcglMV0IjM41oYWndFM/f3HfzxhtIKZLGr7w0uCzGy1TrjIL2fcN9/jISUW/Gu7
+	JQmNseBp8QMjdhmJDf9Rhn+U4T/KjLA6JFXl5GdzqqzEBE2msjBHVZBwJDfbjoKFuHN2/ooD
+	TfdtdyKaQrJwsWN6t1Ii5PI1hdlOxFCYTCq2uJKVEvFRrvAMr85NV5/K4jVOFEnhslXipD18
+	hoQ+xuXxmTx/glf/3QqosAgtqrBWpwe+LZtfsqD3y0+nkVGRSdKYg77C+LSvUdTHNfjwp9Yj
+	uc8+J3dxkSc9Nc/lW59PSFxxW+b61tZsdStSUemNtA0R+/u9o9qY1T9HdE9Ld/SanIcijw9O
+	Hj6TfSDl667KPO/ZTO7c9rG9ioToA2WKQd5WdU9zcWl4ntFbZHkpwzVKTh6HqTXcb4JAdcIM
+	AwAA
 X-CFilter-Loop: Reflected
 
-The current page_to_netmem() doesn't cover const casting resulting in
-trying to cast const struct page * to const netmem_ref fails.
+The page pool members in struct page cannot be removed unless it's not
+allowed to access any of them via struct page.
 
-To cover the case, change page_to_netmem() to use macro and _Generic.
+Do not access 'page->dma_addr' directly in page_pool_get_dma_addr() but
+just wrap page_pool_get_dma_addr_netmem() safely.
 
 Signed-off-by: Byungchul Park <byungchul@sk.com>
 Reviewed-by: Mina Almasry <almasrymina@google.com>
+Reviewed-by: Ilias Apalodimas <ilias.apalodimas@linaro.org>
 Reviewed-by: Toke Høiland-Jørgensen <toke@redhat.com>
 Reviewed-by: Pavel Begunkov <asml.silence@gmail.com>
 ---
- include/net/netmem.h | 7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ include/net/page_pool/helpers.h | 7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
-diff --git a/include/net/netmem.h b/include/net/netmem.h
-index e0aa67aca9bb..e27ed0b9c82e 100644
---- a/include/net/netmem.h
-+++ b/include/net/netmem.h
-@@ -191,10 +191,9 @@ static inline netmem_ref net_iov_to_netmem(struct net_iov *niov)
- 	return (__force netmem_ref)((unsigned long)niov | NET_IOV);
+diff --git a/include/net/page_pool/helpers.h b/include/net/page_pool/helpers.h
+index 773fc65780b5..db180626be06 100644
+--- a/include/net/page_pool/helpers.h
++++ b/include/net/page_pool/helpers.h
+@@ -444,12 +444,7 @@ static inline dma_addr_t page_pool_get_dma_addr_netmem(netmem_ref netmem)
+  */
+ static inline dma_addr_t page_pool_get_dma_addr(const struct page *page)
+ {
+-	dma_addr_t ret = page->dma_addr;
+-
+-	if (PAGE_POOL_32BIT_ARCH_WITH_64BIT_DMA)
+-		ret <<= PAGE_SHIFT;
+-
+-	return ret;
++	return page_pool_get_dma_addr_netmem(page_to_netmem(page));
  }
  
--static inline netmem_ref page_to_netmem(const struct page *page)
--{
--	return (__force netmem_ref)page;
--}
-+#define page_to_netmem(p)	(_Generic((p),			\
-+	const struct page * :	(__force const netmem_ref)(p),	\
-+	struct page * :		(__force netmem_ref)(p)))
- 
- /**
-  * virt_to_netmem - convert virtual memory pointer to a netmem reference
+ static inline void __page_pool_dma_sync_for_cpu(const struct page_pool *pool,
 -- 
 2.17.1
 
