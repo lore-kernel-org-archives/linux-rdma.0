@@ -1,18 +1,18 @@
-Received: from invmail4.hynix.com (exvmail4.hynix.com [166.125.252.92])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id BBABF1E25E8;
-	Fri, 20 Jun 2025 04:12:35 +0000 (UTC)
+Received: from invmail4.hynix.com (exvmail4.skhynix.com [166.125.252.92])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id AA5921E5B7E;
+	Fri, 20 Jun 2025 04:12:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=166.125.252.92
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750392759; cv=none; b=DSM4WvOK3hsDTYmLyFzxBfZ+XNPH4zNDOOZvj/oYFof1XsHtiIGLvRBR2Pk2Nb2fFioUaHtHyYx7I/NBY0yVB9+++R0Z1MCp51Z+lKlJ20i+AEdUzmmWZJWIYAlGfa3pXz4SeF9tjkJsvfDPjADOWlHr0RU+Zk4EtIl3Lo06zNE=
+	t=1750392760; cv=none; b=phH8at+2qiiPs20rCphAMVG2M+MTHQhOGtVZ7okN7DR3i5kekzgj77ko8DIlIjhhh/McYTXWhBDTw/zU53wOIPuBtfXIOzLnM7Y44mmDBxBFOeASxL8Nrx+DhI/9RVllZ4cYAWjR/X0YRs7XzAtrRyYPQLQBFa5dPEYfdgZpJkk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750392759; c=relaxed/simple;
-	bh=u0Epei8ZPF+Ot4HQSjUH7Nttos+q9QG8Q4ljT+2pBw4=;
+	s=arc-20240116; t=1750392760; c=relaxed/simple;
+	bh=Vc9KZAZEagVw40jqBa3hCAzI3J3o9xAy+bTxXwdJbnk=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=d4I/QlOpN+I0OMcl1lna3XUPtoQo9HUi2SMT/Io20TJ8ODEjG5BA1nPprlmvKuvfpIgdeNZECToYT9sJwK14XCZU+JbXkS04/xQw3nMMkojXyWu2o0LGHKLQpmVeGV8IkjEwQOAHda92aD5oimVyvWsgi0sUy+Fc5ATTBsKrZYk=
+	 MIME-Version:Content-Type; b=u3ln8pEtquv2WqaKCrWABLq9soWC81wJHq7xsefUTe7Vjqnj49FBtGo8yRGsZSg/0GhDlvfG/EaP9gouBVpkWDh/acezdxCq4ZAxMy7ih5ccrvWyOcPB8wRi8Le++X3tPMSIEb2MkzBz9pOsrqOuMVRHjCrPeOxBUzkGIPglAmY=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=sk.com; spf=pass smtp.mailfrom=sk.com; arc=none smtp.client-ip=166.125.252.92
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=sk.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=sk.com
-X-AuditID: a67dfc5b-669ff7000002311f-6a-6854dfb2541b
+X-AuditID: a67dfc5b-669ff7000002311f-81-6854dfb20d59
 From: Byungchul Park <byungchul@sk.com>
 To: willy@infradead.org,
 	netdev@vger.kernel.org
@@ -51,9 +51,9 @@ Cc: linux-kernel@vger.kernel.org,
 	hannes@cmpxchg.org,
 	ziy@nvidia.com,
 	jackmanb@google.com
-Subject: [PATCH net-next v6 3/9] page_pool: rename __page_pool_release_page_dma() to __page_pool_release_netmem_dma()
-Date: Fri, 20 Jun 2025 13:12:18 +0900
-Message-Id: <20250620041224.46646-4-byungchul@sk.com>
+Subject: [PATCH net-next v6 5/9] netmem: use _Generic to cover const casting for page_to_netmem()
+Date: Fri, 20 Jun 2025 13:12:20 +0900
+Message-Id: <20250620041224.46646-6-byungchul@sk.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20250620041224.46646-1-byungchul@sk.com>
 References: <20250620041224.46646-1-byungchul@sk.com>
@@ -65,84 +65,69 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-X-Brightmail-Tracker: H4sIAAAAAAAAA02Sa0hTYRjHe3fevec4XJ2W6MkLwTKim2ZpPFCJH4pOQTfsU/dTHtpoXtp0
-	aRfwspRG2sWinFYzy8xZi3VxWobp8laRmMXMarHSIpaW2vAS1FZEffvxPL////nyMJTirDSU
-	Uaeki9oUQaMkMiz7Eli+wObapFrYfTIOyqw1BCyjmXD1nV0KZdV3EYyM9dIw7GglUFHupaDs
-	mQHDd+s4BX0tbhostrXgquzHcL+glgL38TYChYYJChrGBmjItVdJoPNukRROj1+hoDb7HQ3P
-	68sIvK35KYX+pkIM7aZrGFxFCdBiDgbvYw8Ch7VWAt5j5wkUd5kJvDe4EHQ1uzGU5hQhsD5w
-	SmFi1NdR+ugtnRDJN3sGKf72tR4JX2d6Q/NmWwZ/q2oub3R2Ubyt+ijhbUOnaP71y/uEbzs3
-	gfk6+7CEL8wbIPy3vleYH3zwgvDW2y8w/8TsoDdM3SxbliRq1HpRGx2/U6bq8ZagtIHJmXkl
-	/TgbtQQaEcNwbCz3oXzOX/zUt9yIAhjCzuaczjHKz0FsDDfsbsVGJGMo9jrhHDW9tN+fxmZw
-	jR9T/Q5mZ3EXHxuxn+VsHJc74vnNHDuDs9xs/N0TwC7hvuXeI35W+JzRSwbpH38q117yAfsr
-	Kd9d6wWFf0z5onl3Sin/WY61M1zx5x7yp3M697DKiU8g1vRf3PQvbvovbkZUNVKoU/TJgloT
-	G6XKSlFnRu1OTbYh37tUHv6xxY6GOhObEMsgZaDcPpKoUkgFvS4ruQlxDKUMkle0rVMp5ElC
-	1gFRm7pDm6ERdU0ojMHKEPki7/4kBbtHSBf3imKaqP27lTABodkovnia/syU3g0GyfOv4S3C
-	vob16vR5ujtbGwocCSuEybGK45VHInVJLrpvldCZf3A+ypnTcfFyd3dHffBMy7mY6xFke/ik
-	8LGI9R4menOFJSiuZ+H7/HHHy5Ara0J3tR6qH0zYFqEP+WqZVLM67AbReDaGB4zULV6SvNKd
-	F7L06TajEutUQsxcSqsTfgEbdLEqKgMAAA==
-X-Brightmail-Tracker: H4sIAAAAAAAAA02Sa0hTYRjHfXfenZ2NTU5L6lBQMLBIyDKynshC+tIpUqSESAJbemjDOWNT
-	c0Jkm1CNtOuHnDNN826tpuUsJ97yglDDMLZuGystQzTbmpdltRWR3348z+/5P1/+FCFdxGso
-	pTqX06jlKhkpwqLk3YbNVneqYusN5wYwW1pIaJ4vgHqPjQ/mpscI/AtvBODrHySh5k6AAPOL
-	YgzfLYsEjA94BdBsTQJ33QSGzgvtBHivDJFQUhwkwL4wLQC9rYEHfRXDfHA8LuXDzcVaAtqL
-	PAJ4+cRMwvuWX3yY6C3BMGxqxOAuTYSBqlUQGJlC0G9p50HgcgUJN0arSPhQ7EYw2ufFUH6+
-	FIGly8mH4Hwoo/zZe0FiNNs3NUOwbY0uHttheidgq6x5bGtDDGt0jhKstekSyVq/XRewb191
-	kuzQrSBmO2w+HltimCbZ2fHXmJ3pGiPZms9feaylbQynSNNECZmcSpnPabbsPSFSuAJl6PR0
-	ZIGhbAIXoQGxEVEUQ29nPo/vMSIhRdIbGadzgQhzFB3H+LyD2IhEFEHfI5n+ljeCsL+SzmO6
-	P+WEHUxHM5UjRhxmCR3P6P1Tf5ih1zPND7r/5AjpHcys/ikZZmnIma8u5v/1VzDDZR9xOJII
-	/bXclobHROjU8KicuIokpmWW6b9lWmZVIaIJRSnV+dlypSo+Vpul0KmVBbEZOdlWFGpE3dkf
-	12zI/3J/L6IpJBNLbP4jCilfnq/VZfcihiJkUZKaoWSFVJIp1xVympx0TZ6K0/aitRSWrZYc
-	PMqdkNKn5LlcFsed5jT/tjxKuKYIFT6fWbTINmUc63CRHnH1/JcPP5NBlJuYuus7WX3GY30Y
-	ETe3b53GcfxVWoT9pMq+kJEkzq1VfdW7TtUcELdm1vm2efd1F6p3Lh1cSpiLqtDNYsmL1Rc/
-	1j+ovJu+/35DnuPSIV2jzxG5V9l6bbInxXou/nDB5JjB7ukJCvPNJhnWKuRxMYRGK/8NAkkI
-	4A0DAAA=
+X-Brightmail-Tracker: H4sIAAAAAAAAA02Sa0hTYRjHe/e+O+e4HByX1NsFonUjwUth9URRGQQHoggKpCRq6Mmt5rRN
+	TYvAat0ktdQop9XMNG+xmqazG7aWlxK0hbVuKpbSxRRdDXVFbUbktx/P8/z+/y8PhxUF0lmc
+	Rpcs6nUqrZKREdm3wOLQmu7t6ojCAQJFlmoGqkbT4EaPTQpFlXUIvo+9ZcHtaGagpNiDoajd
+	SOCHZRxDX1MvC1XWzdBd1k/g/ql6DL05LQxkGb0YHowNsnDMVi6BjrpsKeSPl2Koz+hh4cXd
+	Iga6qn9Lod+eRaDVVEGgO3s9NJmng+fZAAKHpV4CnrOXGchzmhn4YOxG4HzcS6DwaDYCy0OX
+	FLyjvozCJ13s+gXC44EhLNRWvJYIDab3rGC2pgg15SFCpsuJBWvlGUawjuSywruX9xmh5ZKX
+	CA02t0TIOj7ICMN9b4gw9LCTESy1nURoMzvYrUE7ZWviRK0mVdSHr90jU9e9MkuSSgLSnnr6
+	cQbqZzNRAEf5SHqiuBT/41+tnyeY4RdTl2tsgoP5pdTd20wykYzD/E2GOqrfTsjTeBXNf2qU
+	+JnwC2mN04MyEcfJ+eW00pr4N3MurbrVOJETwK+gw8fuMX5W+E5GrxmlfpbzQbS14CPxq9jX
+	a7mi8I+xTz1+pxD7aylfy1HvmQL0N3MmfVTuIucQb5qkm/7rpkm6GeFKpNDoUhNUGm1kmDpd
+	p0kLi01MsCLfw5Qd+RljQyMd2+yI55AyUG77vk2tkKpSDekJdkQ5rAyWl7RsUSvkcar0Q6I+
+	cbc+RSsa7Gg2R5Qz5Ms8B+MUfLwqWdwvikmi/t9WwgXMykD5U3ZFZTjZq3PCP0ZvCUu7/Zls
+	PBB5au/zvkVVBoUyyN1xPvzm3iXKtXkR8RcGyOn9Fy07opd3rFjchtbF9rzZRwenrvsUXD9t
+	fkjwV05uN6F5Jx0FoUm516mucWXqhvzVXwwjOXVDOe4YXbt3vPGw98OGfRHaVa0zN6mjSp4k
+	zA1TEoNatTQE6w2qP8oEOWIsAwAA
+X-Brightmail-Tracker: H4sIAAAAAAAAA02Sa0hTYRjHec97ds7ZaHVaow4GCqMIpCwp44Ei/OaxSISKIII61aENdcam
+	pl3Ay0iz1Ew/6Jw2W5pOYzFN57rJtNwaZijVuqmYSoFpNpu3bpsR+e3H8/z+/+fLw2DFIhnG
+	aLRpok4rJKsoGSlL2JW3xT50UL2t9/F2MNmaKWiay4Tbww4JmKxtCGbm39Hg7+6hwFIbwGDq
+	M5Dw3baAYezpCA1N9v0wVD9OwoP8dgwjJW4KigyLGB7OT9KQ62ggoKvaI4EXbcUSKF+ow9Ce
+	PUzDgNNEwWDzbwmMu4pI8BgbSRgqjoWn5rUQ8E4g6La1ExC4Wk1BWb+Zgo+GIQT9XSMkVOUU
+	I7A98klgcS7YUfVkkI7dyHdNTGG+tfENwXcYP9C82Z7OtzRE8oW+fszbrZcp3v7tOs2/f/WA
+	4t0ViyTf4fATfFHeJMVPj70l+alHLyne8ukrwdtaX5KJiiOy3afEZE2GqNu657hM3fbaTJyx
+	SDOfBcZxNhqnC5GU4dgd3E/PZxxiit3E+XzzS6xkozn/SA9ZiGQMZu9QXHfzu6XAGlbgyp8Z
+	iBCT7EaupT+AChHDyNkYzmpP/dsZwTXd7VzqkbI7uenc+1SIFUFl7qZBEmI5u5rzVI6SoSgO
+	3rXVKEJjHIzm3avC15DcuMwy/reMyywzwlak1GgzUgRNckyUPkmdpdVkRp1MTbGj4EvUX/xR
+	6kAzA3EuxDJItULumDmgVkiEDH1WigtxDFYp5RZ3glohPyVknRN1qcd06cmi3oXWM6RqnXzv
+	YfG4gj0tpIlJonhG1P3bEow0LBs9X0ekbPbObtoVXVqS62TxlfoEK4qP8vf+kn1sbJJ7Knrs
+	7pZViUImNbpW+rA13JJfe7mT7vNWFsT7rngbciI7hlcOKhsG6/w19cpDxJejUze6so8WnHDW
+	ZMCWTmfSeZO7rKd4dsGbFhGjvUDeuulq9BD75sPPXnLG1ZVuYFSkXi1ER2KdXvgDgdot6Q4D
+	AAA=
 X-CFilter-Loop: Reflected
 
-Now that __page_pool_release_page_dma() is for releasing netmem, not
-struct page, rename it to __page_pool_release_netmem_dma() to reflect
-what it does.
+The current page_to_netmem() doesn't cover const casting resulting in
+trying to cast const struct page * to const netmem_ref fails.
+
+To cover the case, change page_to_netmem() to use macro and _Generic.
 
 Signed-off-by: Byungchul Park <byungchul@sk.com>
 Reviewed-by: Mina Almasry <almasrymina@google.com>
 Reviewed-by: Toke Høiland-Jørgensen <toke@redhat.com>
 Reviewed-by: Pavel Begunkov <asml.silence@gmail.com>
-Reviewed-by: Ilias Apalodimas <ilias.apalodimas@linaro.org>
 ---
- net/core/page_pool.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ include/net/netmem.h | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff --git a/net/core/page_pool.c b/net/core/page_pool.c
-index 3bf25e554f96..95ffa48c7c67 100644
---- a/net/core/page_pool.c
-+++ b/net/core/page_pool.c
-@@ -673,8 +673,8 @@ void page_pool_clear_pp_info(netmem_ref netmem)
- 	netmem_set_pp(netmem, NULL);
+diff --git a/include/net/netmem.h b/include/net/netmem.h
+index e0aa67aca9bb..e27ed0b9c82e 100644
+--- a/include/net/netmem.h
++++ b/include/net/netmem.h
+@@ -191,10 +191,9 @@ static inline netmem_ref net_iov_to_netmem(struct net_iov *niov)
+ 	return (__force netmem_ref)((unsigned long)niov | NET_IOV);
  }
  
--static __always_inline void __page_pool_release_page_dma(struct page_pool *pool,
--							 netmem_ref netmem)
-+static __always_inline void __page_pool_release_netmem_dma(struct page_pool *pool,
-+							   netmem_ref netmem)
- {
- 	struct page *old, *page = netmem_to_page(netmem);
- 	unsigned long id;
-@@ -721,7 +721,7 @@ static void page_pool_return_netmem(struct page_pool *pool, netmem_ref netmem)
- 	if (static_branch_unlikely(&page_pool_mem_providers) && pool->mp_ops)
- 		put = pool->mp_ops->release_netmem(pool, netmem);
- 	else
--		__page_pool_release_page_dma(pool, netmem);
-+		__page_pool_release_netmem_dma(pool, netmem);
+-static inline netmem_ref page_to_netmem(const struct page *page)
+-{
+-	return (__force netmem_ref)page;
+-}
++#define page_to_netmem(p)	(_Generic((p),			\
++	const struct page * :	(__force const netmem_ref)(p),	\
++	struct page * :		(__force netmem_ref)(p)))
  
- 	/* This may be the last page returned, releasing the pool, so
- 	 * it is not safe to reference pool afterwards.
-@@ -1136,7 +1136,7 @@ static void page_pool_scrub(struct page_pool *pool)
- 		}
- 
- 		xa_for_each(&pool->dma_mapped, id, ptr)
--			__page_pool_release_page_dma(pool, page_to_netmem(ptr));
-+			__page_pool_release_netmem_dma(pool, page_to_netmem((struct page *)ptr));
- 	}
- 
- 	/* No more consumers should exist, but producers could still
+ /**
+  * virt_to_netmem - convert virtual memory pointer to a netmem reference
 -- 
 2.17.1
 
