@@ -1,98 +1,135 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-io1-f79.google.com (mail-io1-f79.google.com [209.85.166.79])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED4091F3BB5
-	for <linux-rdma@vger.kernel.org>; Thu, 26 Jun 2025 18:59:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CE5D425E452
+	for <linux-rdma@vger.kernel.org>; Thu, 26 Jun 2025 20:55:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.79
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750964352; cv=none; b=Tqdm9dzjovp2xw1ZMHR6U2vaCVrGqBuwZOEsvdkWwfS0T7RhgXvoyrACoSatSvKIo60+ZKgbOujZVOesQ/n9jgJmy5QTyusH0sAT5+fO44c9O3Wc8zswoce9LgwYyCRLNvBnKh2h+w5ShbbvPfBe4Xizbd5/0Mq3BQmz9NkZxE8=
+	t=1750971329; cv=none; b=iPVGuvhw/RqMeMhebW0iaUtu5MpLKjNnYfyQs4EGXsxjpfK0VQ2CUNyj7vMk2hVlkn4gtn1Uw7WZX8Xg7nhpS26XotmcTnkk2reRz0mAQLboZQldrH6e2lUla9n+0DMP/i6MKidxCLnSvIZev6ai7Q1e0pxQyxAiu2zf/rfcK60=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750964352; c=relaxed/simple;
-	bh=vuLRLozxWhiz9+/1VGkvgufHVEV8/5j8Pr2+w75/D2U=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=bSjAgYUVwFvtglXQblOs3++r8lpBA8WzmP6swcPfYYAmlU79K5OD+8gHSWYy/HynwR8UE5LT/1mtDM3l/yazv/3NRWWdpPic/jL3GadlXJtKC/MlMH7bpXP+h+4pok7Yy7snGLSI1A6nYAmKDH03us17ToIwO6EBkMbpmD8Wpq4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=CMvFi2s2; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="CMvFi2s2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A5D24C4CEEF;
-	Thu, 26 Jun 2025 18:59:10 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1750964351;
-	bh=vuLRLozxWhiz9+/1VGkvgufHVEV8/5j8Pr2+w75/D2U=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=CMvFi2s2OzKGDEutwbBg4AT2jIrbAbF7uMsldHFVb+FTJO9hDjWgKsEDWPRaVkLN+
-	 9FDkrpUyDkboSHCs9TSwKqCnnf4K0k1XGeF4v9NzBBOlJ9gpMoBBzHCs3lHQi9SD+l
-	 5k4WXX/FkZROYZ6VAZAqUXgHk5OoqM7nLT9p2SG/nI8tg1peTOUyWW/kJiawPmtjEb
-	 DctnjCgTojF+fIvw87hgHKpFPc1BhEIRbl9EzM5C0VFDAvX00W+ad/haDXtjEOSA3C
-	 6SUoX09Mnu46M2WvQoZuoa61cQGt1jZou7Dx2T091p8HDtV/2YYHtNOz1tCBVaC6Jc
-	 9v7KpedMfSbLg==
-From: Leon Romanovsky <leon@kernel.org>
-To: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Parav Pandit <parav@nvidia.com>,
-	"Eric W . Biederman" <ebiederm@xmission.com>,
-	linux-rdma@vger.kernel.org,
-	Mark Bloch <mbloch@nvidia.com>
-Subject: [PATCH rdma-next v2 8/9] RDMA/nldev: Check CAP_NET_RAW in user namespace for QP modify
-Date: Thu, 26 Jun 2025 21:58:11 +0300
-Message-ID: <099eb263622ccdd27014db7e02fec824a3307829.1750963874.git.leon@kernel.org>
-X-Mailer: git-send-email 2.49.0
-In-Reply-To: <cover.1750963874.git.leon@kernel.org>
-References: <cover.1750963874.git.leon@kernel.org>
+	s=arc-20240116; t=1750971329; c=relaxed/simple;
+	bh=DrSPOyV/POsH8rX1hSYd3/aYqgtogZHAxI+rNlaQkoM=;
+	h=MIME-Version:Date:In-Reply-To:Message-ID:Subject:From:To:
+	 Content-Type; b=de1vmW3ufRiHtRNjRqRW7crBgDw4wFcd/njLDHzt6RJf8VNyMXMIiGt08Lds6yG5SE68b7FUHbLn+b2c10RqYFG70qv5x1TsGyy4zM56iX6QSej2w+Glw/mJ3Hq6opMEWNVu2nxf2WYSGUfDS2Hh+tPPtgvO3ReseVOi3ljANeY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.79
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
+Received: by mail-io1-f79.google.com with SMTP id ca18e2360f4ac-8730ca8143eso239294739f.0
+        for <linux-rdma@vger.kernel.org>; Thu, 26 Jun 2025 13:55:27 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1750971327; x=1751576127;
+        h=to:from:subject:message-id:in-reply-to:date:mime-version
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=JHtxFtI1Syh8FHyE/pqQBMY+Qsf1mxpj3c9hSFJZEOs=;
+        b=EvUxipwTw22qGRcsgHqaxlPpZmOZflVWmyqn360JFgJsTuu49COtHX8KuVtpYehNrB
+         KquYMpgatnoZIx8METkcs1zDQ4/N+9BbETIx0q8DWst+eyUp0sET8Itlmv2VqMancPMR
+         uSFdlsXFh3y6q62hyAk8YXBVFtNJDh/qT6B5ljMzfbSqkda41WaWlT6iAy4SJYM7qr5o
+         Fcg6hzg38k5JvDY3TbHhvpDsHmbgncN13Sk49ahQF+SlY1ItmMX1wZOVxocndkXWuU+c
+         HjWgxmDwzHcYjWFgyX25drOb4lrjD0M05wQtEoua0QhOr/4CkkQqlHWU7mkZQDA0stMl
+         S6pg==
+X-Forwarded-Encrypted: i=1; AJvYcCWFjFiBjN/3e9T1CeR8iRrxxmiiCJnZMo2yIRlKTbEdJrV0EgH2E8k63tchyVQFw0HOGv8I+e3KR2LA@vger.kernel.org
+X-Gm-Message-State: AOJu0Yx/cI8qGeH9iVDdJyLSfo6BojrD+njhKZeB/p6/42qTgMp2mA1j
+	OhF0/dkNat2UWFxTgoYepSVXQX/CvO5pd4xlSXvaS6FdV8oslbAV4ZCxF5/ehOgYTviYVNiUdeT
+	u1nOyGj4KT7btnLofHqLmlWOy86jmbtaO1O905iDqX781sr36x4cQR7SxsQ0=
+X-Google-Smtp-Source: AGHT+IFfh2Ukyb1WIL+6c2CkQ6RBeFrTOlS7UVK+Z/LALlC83igYkplchQKoNOLPNlYpoeMuO4KiftHeAUQAsAlTqqeHoQ7TID4S
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-Received: by 2002:a05:6e02:3708:b0:3dd:f02d:2d26 with SMTP id
+ e9e14a558f8ab-3df4b3b6f61mr9695615ab.2.1750971326937; Thu, 26 Jun 2025
+ 13:55:26 -0700 (PDT)
+Date: Thu, 26 Jun 2025 13:55:26 -0700
+In-Reply-To: <6813a531.050a0220.14dd7d.0018.GAE@google.com>
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <685db3be.a00a0220.2e5631.0362.GAE@google.com>
+Subject: Re: [syzbot] [rdma?] WARNING in rxe_skb_tx_dtor
+From: syzbot <syzbot+8425ccfb599521edb153@syzkaller.appspotmail.com>
+To: jgg@ziepe.ca, leon@kernel.org, linux-kernel@vger.kernel.org, 
+	linux-rdma@vger.kernel.org, syzkaller-bugs@googlegroups.com, 
+	yanjun.zhu@linux.dev, zyjzyj2000@gmail.com
+Content-Type: text/plain; charset="UTF-8"
 
-From: Parav Pandit <parav@nvidia.com>
+syzbot has found a reproducer for the following issue on:
 
-Currently, the capability check is done in the default
-init_user_ns user namespace. When a process runs in a
-non default user namespace, such check fails. Due to this
-when a process is running using Podman, it fails to modify
-the QP.
+HEAD commit:    ee88bddf7f2f Merge tag 'bpf-fixes' of git://git.kernel.org..
+git tree:       upstream
+console output: https://syzkaller.appspot.com/x/log.txt?x=14367182580000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=79da270cec5ffd65
+dashboard link: https://syzkaller.appspot.com/bug?extid=8425ccfb599521edb153
+compiler:       Debian clang version 20.1.6 (++20250514063057+1e4d39e07757-1~exp1~20250514183223.118), Debian LLD 20.1.6
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=10e9008c580000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=10c12f0c580000
 
-Since the RDMA device is a resource within a network namespace,
-use the network namespace associated with the RDMA device to
-determine its owning user namespace.
+Downloadable assets:
+disk image (non-bootable): https://storage.googleapis.com/syzbot-assets/d900f083ada3/non_bootable_disk-ee88bddf.raw.xz
+vmlinux: https://storage.googleapis.com/syzbot-assets/258fe65055ba/vmlinux-ee88bddf.xz
+kernel image: https://storage.googleapis.com/syzbot-assets/06b784a6d799/bzImage-ee88bddf.xz
+mounted in repro: https://storage.googleapis.com/syzbot-assets/59084afab8b5/mount_2.gz
 
-Fixes: 0cadb4db79e1 ("RDMA/uverbs: Restrict usage of privileged QKEYs")
-Signed-off-by: Parav Pandit <parav@nvidia.com>
-Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+IMPORTANT: if you fix the issue, please add the following tag to the commit:
+Reported-by: syzbot+8425ccfb599521edb153@syzkaller.appspotmail.com
+
+------------[ cut here ]------------
+WARNING: CPU: 0 PID: 1088 at drivers/infiniband/sw/rxe/rxe_net.c:357 rxe_skb_tx_dtor+0x8b/0x2a0 drivers/infiniband/sw/rxe/rxe_net.c:357
+Modules linked in:
+CPU: 0 UID: 0 PID: 1088 Comm: kworker/u4:9 Not tainted 6.16.0-rc3-syzkaller-00072-gee88bddf7f2f #0 PREEMPT(full) 
+Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.16.3-debian-1.16.3-2~bpo12+1 04/01/2014
+Workqueue: rxe_wq do_work
+RIP: 0010:rxe_skb_tx_dtor+0x8b/0x2a0 drivers/infiniband/sw/rxe/rxe_net.c:357
+Code: 80 3c 20 00 74 08 4c 89 ff e8 61 65 81 f9 4d 8b 37 44 89 f6 83 e6 01 31 ff e8 71 e6 1d f9 41 f6 c6 01 75 0e e8 86 e1 1d f9 90 <0f> 0b 90 e9 b4 01 00 00 4c 89 ff e8 75 89 fd 01 48 89 c7 be 0e 00
+RSP: 0018:ffffc900000079e8 EFLAGS: 00010246
+RAX: ffffffff88a26cea RBX: ffff888048886000 RCX: ffff8880330b4880
+RDX: 0000000000000100 RSI: 0000000000000000 RDI: 0000000000000000
+RBP: 0000000000000000 R08: 0000000000000000 R09: ffffffff887bc1c4
+R10: dffffc0000000000 R11: ffffffff88a26c60 R12: dffffc0000000000
+R13: 1ffff11009110c0b R14: 0000000000025820 R15: ffff888033430000
+FS:  0000000000000000(0000) GS:ffff88808d251000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007ffd7005cfa8 CR3: 0000000047588000 CR4: 0000000000352ef0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <IRQ>
+ skb_release_head_state+0xfe/0x250 net/core/skbuff.c:1139
+ napi_consume_skb+0xd2/0x1e0 net/core/skbuff.c:-1
+ e1000_unmap_and_free_tx_resource drivers/net/ethernet/intel/e1000/e1000_main.c:1972 [inline]
+ e1000_clean_tx_irq drivers/net/ethernet/intel/e1000/e1000_main.c:3864 [inline]
+ e1000_clean+0x49d/0x2b00 drivers/net/ethernet/intel/e1000/e1000_main.c:3805
+ __napi_poll+0xc4/0x480 net/core/dev.c:7414
+ napi_poll net/core/dev.c:7478 [inline]
+ net_rx_action+0x707/0xe30 net/core/dev.c:7605
+ handle_softirqs+0x286/0x870 kernel/softirq.c:579
+ do_softirq+0xec/0x180 kernel/softirq.c:480
+ </IRQ>
+ <TASK>
+ __local_bh_enable_ip+0x17d/0x1c0 kernel/softirq.c:407
+ local_bh_enable include/linux/bottom_half.h:33 [inline]
+ rcu_read_unlock_bh include/linux/rcupdate.h:910 [inline]
+ __dev_queue_xmit+0x1cd7/0x3a70 net/core/dev.c:4740
+ neigh_output include/net/neighbour.h:539 [inline]
+ ip6_finish_output2+0x11fb/0x16a0 net/ipv6/ip6_output.c:141
+ __ip6_finish_output net/ipv6/ip6_output.c:-1 [inline]
+ ip6_finish_output+0x234/0x7d0 net/ipv6/ip6_output.c:226
+ rxe_send drivers/infiniband/sw/rxe/rxe_net.c:391 [inline]
+ rxe_xmit_packet+0x79e/0xa30 drivers/infiniband/sw/rxe/rxe_net.c:450
+ rxe_requester+0x1fea/0x3d20 drivers/infiniband/sw/rxe/rxe_req.c:805
+ rxe_sender+0x16/0x50 drivers/infiniband/sw/rxe/rxe_req.c:839
+ do_task drivers/infiniband/sw/rxe/rxe_task.c:127 [inline]
+ do_work+0x1b1/0x6c0 drivers/infiniband/sw/rxe/rxe_task.c:187
+ process_one_work kernel/workqueue.c:3238 [inline]
+ process_scheduled_works+0xae1/0x17b0 kernel/workqueue.c:3321
+ worker_thread+0x8a0/0xda0 kernel/workqueue.c:3402
+ kthread+0x70e/0x8a0 kernel/kthread.c:464
+ ret_from_fork+0x3fc/0x770 arch/x86/kernel/process.c:148
+ ret_from_fork_asm+0x1a/0x30 arch/x86/entry/entry_64.S:245
+ </TASK>
+
+
 ---
- drivers/infiniband/core/nldev.c      | 2 +-
- drivers/infiniband/core/uverbs_cmd.c | 3 ++-
- 2 files changed, 3 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
-index e9b7a6419291..2220a2dfab24 100644
---- a/drivers/infiniband/core/nldev.c
-+++ b/drivers/infiniband/core/nldev.c
-@@ -255,7 +255,7 @@ EXPORT_SYMBOL(rdma_nl_put_driver_u64_hex);
- 
- bool rdma_nl_get_privileged_qkey(void)
- {
--	return privileged_qkey || capable(CAP_NET_RAW);
-+	return privileged_qkey;
- }
- EXPORT_SYMBOL(rdma_nl_get_privileged_qkey);
- 
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index deb9f3370db7..dfaaf161d3f2 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -1876,7 +1876,8 @@ static int modify_qp(struct uverbs_attr_bundle *attrs,
- 		attr->path_mig_state = cmd->base.path_mig_state;
- 	if (cmd->base.attr_mask & IB_QP_QKEY) {
- 		if (cmd->base.qkey & IB_QP_SET_QKEY &&
--		    !rdma_nl_get_privileged_qkey()) {
-+		    !(rdma_nl_get_privileged_qkey() ||
-+		      rdma_uattrs_has_raw_cap(attrs))) {
- 			ret = -EPERM;
- 			goto release_qp;
- 		}
--- 
-2.49.0
-
+If you want syzbot to run the reproducer, reply with:
+#syz test: git://repo/address.git branch-or-commit-hash
+If you attach or paste a git patch, syzbot will apply it before testing.
