@@ -1,45 +1,45 @@
 Received: from mailtransmit05.runbox.com (mailtransmit05.runbox.com [185.226.149.38])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CBF5A2949F0;
-	Thu, 26 Jun 2025 08:34:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 71B662BEC35
+	for <linux-rdma@vger.kernel.org>; Thu, 26 Jun 2025 08:34:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.226.149.38
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750926871; cv=none; b=UKSRvfTCGbwwuNODJA8eCtXLFy9QLdKdrRvbhq68qGFDItvCZltzG5iHIM/J8V84yHeuLuV7hEO6omeYaAOG1JbSH9gyEBmTO3JX+Je5J6hYBGVhivdSGmeLguZRSas8PSrULKO+G/lcRypdce5iEVyEMWB+54+/ah5hqCsNnUI=
+	t=1750926873; cv=none; b=iBWW0RwmD6NC6wDJWBsUDEX//k+HKDwJZ7W3bEMg1qy/A+NcrfccWrmnWl5aYBlREWVmegEW+Mddhg4pFl3OkQ2BbGFf0W8PWjYSiktsdH8krm7QLN4MMkzitK+jtHrjMLE49StGLhLcebLTwraDBBic0fbBe5qsNhepNcuCaWQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750926871; c=relaxed/simple;
-	bh=I5NwMU/UkVWamqyeUyAIs0m2ELLcQVTl3pqCth/6nic=;
+	s=arc-20240116; t=1750926873; c=relaxed/simple;
+	bh=k9kLg0my+SBsSInDXplaBISLqMsAK7HUk3GpJuDl9K0=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=K9RaNtugofte2SJBa78FuSR2sz487vrsYl5GFSEjjz52P/wCTZoNbahvSSrjlyI3IsKkvz1CXrjXYRpYIilM5lK+JTjRjtOMdNCPOzL7G7rRKUgua2JArsqobSQTd519tgCv06ypQp8nNewaWePLaX4D3Sff0QMcqoMXMMdlLj4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=rbox.co; spf=pass smtp.mailfrom=rbox.co; dkim=pass (2048-bit key) header.d=rbox.co header.i=@rbox.co header.b=Mc14B1Vy; arc=none smtp.client-ip=185.226.149.38
+	 In-Reply-To:To:Cc; b=Ri5ecDEDjcIcKH83Sf+2XOSnrRA6+bsL3aHlJnpOZvYQ6KfVVuPG38dPHKiaewJlZGns8dvb8mngVLcWvO0zmJHWPyy/sKMjgMk70rxj7fOZ1K817IUCAIDND48IkzNvVD60oTGIsc6QWRDJz9zI4T8rua+1+7HnPvX/LJXMPEk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=rbox.co; spf=pass smtp.mailfrom=rbox.co; dkim=pass (2048-bit key) header.d=rbox.co header.i=@rbox.co header.b=UO5XhiNE; arc=none smtp.client-ip=185.226.149.38
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=rbox.co
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=rbox.co
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=rbox.co header.i=@rbox.co header.b="Mc14B1Vy"
+	dkim=pass (2048-bit key) header.d=rbox.co header.i=@rbox.co header.b="UO5XhiNE"
 Received: from mailtransmit02.runbox ([10.9.9.162] helo=aibo.runbox.com)
 	by mailtransmit05.runbox.com with esmtps  (TLS1.2) tls TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
 	(Exim 4.93)
 	(envelope-from <mhal@rbox.co>)
-	id 1uUi3s-00GcGI-H0; Thu, 26 Jun 2025 10:34:24 +0200
+	id 1uUi3t-00GcGa-Oo; Thu, 26 Jun 2025 10:34:25 +0200
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=rbox.co;
 	s=selector2; h=Cc:To:In-Reply-To:References:Message-Id:
 	Content-Transfer-Encoding:Content-Type:MIME-Version:Subject:Date:From;
-	bh=PfnmbZl5iKr6rFeTS80a4NnfW2jlSVKr3NNDNbGzVI0=; b=Mc14B1Vyr3b42PbsywcyYWVoQD
-	XSK/D+nCe5WuismACds54L4v9+VqnIY2ORtk0BHj9y/1QHMCZ/4oGBNYAUWhBDsSjTI0Rvnpuvp9P
-	6i/eSBbxXl8n+GOeMDgAj0+lqkPsM3wwhCInKZO94s6M8gHqDaz5RQhwmeYKR3lfC3oDjlGNqjX3y
-	ARo36zzKcEfG1JxKbIn5e0qhmcjgZbFSoruWNqWp6P1gtgJej5aAr/nfiMVdRGV/p1MR7jiNEYnco
-	/XgxgJiBgoEn+sZd/v8TP4J+lsIUQNK3qsaGCaBOcwSVMSyDeWqUP6SAijZe2P14ClCVEsiVtRBKc
-	TQT+ChgQ==;
+	bh=SCfBbusasJKzDLebDsTeT38r5oZHC/MzfWn9UUtl8yU=; b=UO5XhiNEgg+aosti5hbqtkXzXJ
+	6y6vRo19fKIpEbfQffGTuwXurrKbk/9VjIOIPEJnhHddahpT2fAPtatd+jPdKanx/kpACB5gie+Hv
+	2as5aq/uCbQndjiQtmxPq19FGUnJm4R/c+VcQljooyR7ApxO/9DfuVZqk7vPNCuqZ6hqR8+AjIoBz
+	VYfMhaAvufjnn8qGJEcPV33BeCJtYVqxXqyJNGLO40hcIm54YSiI5CwIFQJmJeEXlzqh3+qENU++I
+	s/Gc9B8J7znk20ipsnEzim9aIgI8bRIxPkzebqyYX3REVSTZvX0bXcs5AsfRXHa6ABUz0OU1Gax9O
+	piKRICjQ==;
 Received: from [10.9.9.73] (helo=submission02.runbox)
 	by mailtransmit02.runbox with esmtp (Exim 4.86_2)
 	(envelope-from <mhal@rbox.co>)
-	id 1uUi3s-0002Hs-1g; Thu, 26 Jun 2025 10:34:24 +0200
+	id 1uUi3t-0002I1-9K; Thu, 26 Jun 2025 10:34:25 +0200
 Received: by submission02.runbox with esmtpsa  [Authenticated ID (604044)]  (TLS1.2:ECDHE_SECP256R1__RSA_PSS_RSAE_SHA256__AES_256_GCM:256)
 	(Exim 4.93)
-	id 1uUi3L-009Fh5-9r; Thu, 26 Jun 2025 10:33:51 +0200
+	id 1uUi3N-009Fh5-9S; Thu, 26 Jun 2025 10:33:53 +0200
 From: Michal Luczaj <mhal@rbox.co>
-Date: Thu, 26 Jun 2025 10:33:34 +0200
-Subject: [PATCH net-next v2 1/9] net: splice: Drop unused @pipe
+Date: Thu, 26 Jun 2025 10:33:36 +0200
+Subject: [PATCH net-next v2 3/9] tcp: Drop tcp_splice_state::flags
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -48,7 +48,7 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20250626-splice-drop-unused-v2-1-3268fac1af89@rbox.co>
+Message-Id: <20250626-splice-drop-unused-v2-3-3268fac1af89@rbox.co>
 References: <20250626-splice-drop-unused-v2-0-3268fac1af89@rbox.co>
 In-Reply-To: <20250626-splice-drop-unused-v2-0-3268fac1af89@rbox.co>
 To: "David S. Miller" <davem@davemloft.net>, 
@@ -66,86 +66,37 @@ Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
  Michal Luczaj <mhal@rbox.co>
 X-Mailer: b4 0.14.2
 
-Since commit 41c73a0d44c9 ("net: speedup skb_splice_bits()"),
-__splice_segment() and spd_fill_page() do not use the @pipe argument. Drop
-it.
+Since skb_splice_bits() does not accept @flags anymore, struct's field
+became unused. Remove it.
 
-While adapting the callers, move one line to enforce reverse xmas tree
-order.
-
-No functional change intended.
+No functional change indented.
 
 Reviewed-by: Simon Horman <horms@kernel.org>
 Signed-off-by: Michal Luczaj <mhal@rbox.co>
 ---
- net/core/skbuff.c | 18 +++++++-----------
- 1 file changed, 7 insertions(+), 11 deletions(-)
+ net/ipv4/tcp.c | 2 --
+ 1 file changed, 2 deletions(-)
 
-diff --git a/net/core/skbuff.c b/net/core/skbuff.c
-index d6420b74ea9c6a9c53a7c16634cce82a1cd1bbd3..ae0f1aae3c91d914020c64e0703732b9c6cd8511 100644
---- a/net/core/skbuff.c
-+++ b/net/core/skbuff.c
-@@ -3060,10 +3060,8 @@ static bool spd_can_coalesce(const struct splice_pipe_desc *spd,
+diff --git a/net/ipv4/tcp.c b/net/ipv4/tcp.c
+index 46997793d87ab40dcd1e1dd041e4641e287e1b7e..b6285fb1369d32541b9f7d660ca33389b7e4da61 100644
+--- a/net/ipv4/tcp.c
++++ b/net/ipv4/tcp.c
+@@ -324,7 +324,6 @@ EXPORT_IPV6_MOD(tcp_sockets_allocated);
+ struct tcp_splice_state {
+ 	struct pipe_inode_info *pipe;
+ 	size_t len;
+-	unsigned int flags;
+ };
+ 
  /*
-  * Fill page/offset/length into spd, if it can hold more pages.
-  */
--static bool spd_fill_page(struct splice_pipe_desc *spd,
--			  struct pipe_inode_info *pipe, struct page *page,
--			  unsigned int *len, unsigned int offset,
--			  bool linear,
-+static bool spd_fill_page(struct splice_pipe_desc *spd, struct page *page,
-+			  unsigned int *len, unsigned int offset, bool linear,
- 			  struct sock *sk)
- {
- 	if (unlikely(spd->nr_pages == MAX_SKB_FRAGS))
-@@ -3091,8 +3089,7 @@ static bool __splice_segment(struct page *page, unsigned int poff,
- 			     unsigned int plen, unsigned int *off,
- 			     unsigned int *len,
- 			     struct splice_pipe_desc *spd, bool linear,
--			     struct sock *sk,
--			     struct pipe_inode_info *pipe)
-+			     struct sock *sk)
- {
- 	if (!*len)
- 		return true;
-@@ -3111,8 +3108,7 @@ static bool __splice_segment(struct page *page, unsigned int poff,
- 	do {
- 		unsigned int flen = min(*len, plen);
- 
--		if (spd_fill_page(spd, pipe, page, &flen, poff,
--				  linear, sk))
-+		if (spd_fill_page(spd, page, &flen, poff, linear, sk))
- 			return true;
- 		poff += flen;
- 		plen -= flen;
-@@ -3130,8 +3126,8 @@ static bool __skb_splice_bits(struct sk_buff *skb, struct pipe_inode_info *pipe,
- 			      unsigned int *offset, unsigned int *len,
- 			      struct splice_pipe_desc *spd, struct sock *sk)
- {
--	int seg;
- 	struct sk_buff *iter;
-+	int seg;
- 
- 	/* map the linear part :
- 	 * If skb->head_frag is set, this 'linear' part is backed by a
-@@ -3143,7 +3139,7 @@ static bool __skb_splice_bits(struct sk_buff *skb, struct pipe_inode_info *pipe,
- 			     skb_headlen(skb),
- 			     offset, len, spd,
- 			     skb_head_is_locked(skb),
--			     sk, pipe))
-+			     sk))
- 		return true;
- 
- 	/*
-@@ -3160,7 +3156,7 @@ static bool __skb_splice_bits(struct sk_buff *skb, struct pipe_inode_info *pipe,
- 
- 		if (__splice_segment(skb_frag_page(f),
- 				     skb_frag_off(f), skb_frag_size(f),
--				     offset, len, spd, false, sk, pipe))
-+				     offset, len, spd, false, sk))
- 			return true;
- 	}
- 
+@@ -803,7 +802,6 @@ ssize_t tcp_splice_read(struct socket *sock, loff_t *ppos,
+ 	struct tcp_splice_state tss = {
+ 		.pipe = pipe,
+ 		.len = len,
+-		.flags = flags,
+ 	};
+ 	long timeo;
+ 	ssize_t spliced;
 
 -- 
 2.49.0
