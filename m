@@ -1,40 +1,40 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 76BDD1F3BB5
-	for <linux-rdma@vger.kernel.org>; Thu, 26 Jun 2025 18:59:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED4091F3BB5
+	for <linux-rdma@vger.kernel.org>; Thu, 26 Jun 2025 18:59:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750964347; cv=none; b=UdsQQxYCFTpzGfGcUy+a5ZO8EozMKlEisWMWut8uvIJcxOuE6u9Ci8+GhWLCMceSekNNVOr7rSS9xwimE3CqyGqast3Ql4pp2ZIuGfEBY+CaiyyDgfDyP/jR5V977USju4bNmo2cTnnXveyR03DJ5Z3C+fu4ItsbNVjBLKodFhY=
+	t=1750964352; cv=none; b=Tqdm9dzjovp2xw1ZMHR6U2vaCVrGqBuwZOEsvdkWwfS0T7RhgXvoyrACoSatSvKIo60+ZKgbOujZVOesQ/n9jgJmy5QTyusH0sAT5+fO44c9O3Wc8zswoce9LgwYyCRLNvBnKh2h+w5ShbbvPfBe4Xizbd5/0Mq3BQmz9NkZxE8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750964347; c=relaxed/simple;
-	bh=CPlITQZ6cl1nml5/WV7PXh/Jwjy8/62phWPsbFmMcWI=;
+	s=arc-20240116; t=1750964352; c=relaxed/simple;
+	bh=vuLRLozxWhiz9+/1VGkvgufHVEV8/5j8Pr2+w75/D2U=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=msLVy5eLemB9WHc/D1JebM+tJwlgvmvhsY/uLdkCP6BYTZCgZzSDSD2noEBvQEN1UrI8GpAUW0G4JkqSKwfj5WhFOS2qOPOW6UD38hWMFuGQNhhey95dhvbVm/NAmqxzgfc5uBUvl+JF/1AmxYqW9AcrzmFfvZb6f3KEEjUhpyw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=tDM1QOO8; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=bSjAgYUVwFvtglXQblOs3++r8lpBA8WzmP6swcPfYYAmlU79K5OD+8gHSWYy/HynwR8UE5LT/1mtDM3l/yazv/3NRWWdpPic/jL3GadlXJtKC/MlMH7bpXP+h+4pok7Yy7snGLSI1A6nYAmKDH03us17ToIwO6EBkMbpmD8Wpq4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=CMvFi2s2; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="tDM1QOO8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D6EF6C4CEEB;
-	Thu, 26 Jun 2025 18:59:06 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="CMvFi2s2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A5D24C4CEEF;
+	Thu, 26 Jun 2025 18:59:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1750964347;
-	bh=CPlITQZ6cl1nml5/WV7PXh/Jwjy8/62phWPsbFmMcWI=;
+	s=k20201202; t=1750964351;
+	bh=vuLRLozxWhiz9+/1VGkvgufHVEV8/5j8Pr2+w75/D2U=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=tDM1QOO8PzvPMYkz7sRPDhyv8vLISKWcckRDHJ+8GSVuDffgmdXw31N+DSUk2ySnS
-	 geHnLYgyZTKNrWOD0LMxZArtDOFWLeIIrGd1uiBZIRF1LhESfvVtb6Qu0tfiqmcZxk
-	 DEb4brU0KSWObqkqLrNMZjSl5MoLTPCy46Ot77nqrp7Ran8/lyUB9IlWjAsuxC+e4P
-	 B6B044QI9Xmyzg0Eq75QO/Si5OOe3sblId6LBIScWkNBjWFPYJv7AoxyfCNMsJXhwA
-	 Wm9n8Grlk7AmWuzdcBOnkHY9hzVUY65cVPRWuN16YK2zpWMP4rEcVqxQFbrI9TQvx1
-	 40wcrfQR76Yqg==
+	b=CMvFi2s2OzKGDEutwbBg4AT2jIrbAbF7uMsldHFVb+FTJO9hDjWgKsEDWPRaVkLN+
+	 9FDkrpUyDkboSHCs9TSwKqCnnf4K0k1XGeF4v9NzBBOlJ9gpMoBBzHCs3lHQi9SD+l
+	 5k4WXX/FkZROYZ6VAZAqUXgHk5OoqM7nLT9p2SG/nI8tg1peTOUyWW/kJiawPmtjEb
+	 DctnjCgTojF+fIvw87hgHKpFPc1BhEIRbl9EzM5C0VFDAvX00W+ad/haDXtjEOSA3C
+	 6SUoX09Mnu46M2WvQoZuoa61cQGt1jZou7Dx2T091p8HDtV/2YYHtNOz1tCBVaC6Jc
+	 9v7KpedMfSbLg==
 From: Leon Romanovsky <leon@kernel.org>
 To: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Parav Pandit <parav@nvidia.com>,
 	"Eric W . Biederman" <ebiederm@xmission.com>,
 	linux-rdma@vger.kernel.org,
 	Mark Bloch <mbloch@nvidia.com>
-Subject: [PATCH rdma-next v2 9/9] RDMA/counter: Check CAP_NET_RAW check in user namespace for RDMA counters
-Date: Thu, 26 Jun 2025 21:58:12 +0300
-Message-ID: <68e2064e72e94558a576fdbbb987681a64f6fea8.1750963874.git.leon@kernel.org>
+Subject: [PATCH rdma-next v2 8/9] RDMA/nldev: Check CAP_NET_RAW in user namespace for QP modify
+Date: Thu, 26 Jun 2025 21:58:11 +0300
+Message-ID: <099eb263622ccdd27014db7e02fec824a3307829.1750963874.git.leon@kernel.org>
 X-Mailer: git-send-email 2.49.0
 In-Reply-To: <cover.1750963874.git.leon@kernel.org>
 References: <cover.1750963874.git.leon@kernel.org>
@@ -50,32 +50,49 @@ From: Parav Pandit <parav@nvidia.com>
 
 Currently, the capability check is done in the default
 init_user_ns user namespace. When a process runs in a
-non default user namespace, such check fails.
+non default user namespace, such check fails. Due to this
+when a process is running using Podman, it fails to modify
+the QP.
 
 Since the RDMA device is a resource within a network namespace,
 use the network namespace associated with the RDMA device to
 determine its owning user namespace.
 
-Fixes: 1bd8e0a9d0fd ("RDMA/counter: Allow manual mode configuration support")
+Fixes: 0cadb4db79e1 ("RDMA/uverbs: Restrict usage of privileged QKEYs")
 Signed-off-by: Parav Pandit <parav@nvidia.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/core/counters.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/core/nldev.c      | 2 +-
+ drivers/infiniband/core/uverbs_cmd.c | 3 ++-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/core/counters.c b/drivers/infiniband/core/counters.c
-index e6ec7b7a40af..c3aa6d7fc66b 100644
---- a/drivers/infiniband/core/counters.c
-+++ b/drivers/infiniband/core/counters.c
-@@ -461,7 +461,7 @@ static struct ib_qp *rdma_counter_get_qp(struct ib_device *dev, u32 qp_num)
- 		return NULL;
+diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
+index e9b7a6419291..2220a2dfab24 100644
+--- a/drivers/infiniband/core/nldev.c
++++ b/drivers/infiniband/core/nldev.c
+@@ -255,7 +255,7 @@ EXPORT_SYMBOL(rdma_nl_put_driver_u64_hex);
  
- 	qp = container_of(res, struct ib_qp, res);
--	if (qp->qp_type == IB_QPT_RAW_PACKET && !capable(CAP_NET_RAW))
-+	if (qp->qp_type == IB_QPT_RAW_PACKET && !rdma_dev_has_raw_cap(dev))
- 		goto err;
+ bool rdma_nl_get_privileged_qkey(void)
+ {
+-	return privileged_qkey || capable(CAP_NET_RAW);
++	return privileged_qkey;
+ }
+ EXPORT_SYMBOL(rdma_nl_get_privileged_qkey);
  
- 	return qp;
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index deb9f3370db7..dfaaf161d3f2 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -1876,7 +1876,8 @@ static int modify_qp(struct uverbs_attr_bundle *attrs,
+ 		attr->path_mig_state = cmd->base.path_mig_state;
+ 	if (cmd->base.attr_mask & IB_QP_QKEY) {
+ 		if (cmd->base.qkey & IB_QP_SET_QKEY &&
+-		    !rdma_nl_get_privileged_qkey()) {
++		    !(rdma_nl_get_privileged_qkey() ||
++		      rdma_uattrs_has_raw_cap(attrs))) {
+ 			ret = -EPERM;
+ 			goto release_qp;
+ 		}
 -- 
 2.49.0
 
