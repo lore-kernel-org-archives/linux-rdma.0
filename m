@@ -1,122 +1,104 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mailtransmit05.runbox.com (mailtransmit05.runbox.com [185.226.149.38])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 93F941A8F94;
-	Thu, 26 Jun 2025 07:26:58 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7AB21290BCD;
+	Thu, 26 Jun 2025 08:34:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.226.149.38
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750922818; cv=none; b=Ow5eSJTP1wgS6h5j9QZsXdQ9oKsivcEeiTKw+G4zU6ME6kTJXuOxC3uJCBqWUoER71A0QuYCbDH1XMNpsJjq39DWpHxp3TXUqv7mbTF9i+mqOFvBeXyi08y6f0Qlp16v9xTrLw29TCI0nzgM/+kNGmjK04XrBeEbOwMQdkQSLiU=
+	t=1750926857; cv=none; b=O8n6SEvvzj0J8huO1SHa0SOLgYCzGQJyHhtlGOcHQBN7TRIl0wSh59UQBXdebgE4nde6hyKTvwVYyQSFtsDq+B8FNUoRPtmU6E5mP7JxZZDOIzG4txoKjVZ4FohS9mtl4P6ZAby4FuGGtluoZH4awZYiyHS2iZXBjoj919UgM90=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750922818; c=relaxed/simple;
-	bh=kh8PTnqwdXVM33XrWSHg6xtxFJcL8XC9586i9CBGYu0=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=JeGlRv2z3fjCGB2rkkmJ4jGe9GX18VRNdzLqnS/6dxSEnfGZ1umCBd6/Z0PuHiGwcJSykKsThyhVBCPUjjTKmSDDuZxobSN4w1lvKr0hwlHkYwzNumltUNd/la5IeCpmduE8k8/20NeXaP8q8cik3lRBGRRhLRf+35oTPPDJ140=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=OFJcrwcH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1750926857; c=relaxed/simple;
+	bh=fhLUUYVAyb1uDBHiiFLUBKdkZ0mPXVVyAvNzmr4SGO0=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
+	 In-Reply-To:To:Cc; b=R5XRjaBF7trPAyLlS+brv56uLA7QLIEYbi2nHPV9uWUwpTlV8CRw+T0w+xQmVOLoD0ZuWsW/i+vkof6AuI2Vblni4pH7lcvJRXw5oafqybAAIxBEc1kvcFtHNGOjm6InCZcM/ymYtfMcgC7KJxyxlHc01wncP01tlMJ+5aUGaO4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=rbox.co; spf=pass smtp.mailfrom=rbox.co; dkim=pass (2048-bit key) header.d=rbox.co header.i=@rbox.co header.b=up9is5AR; arc=none smtp.client-ip=185.226.149.38
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=rbox.co
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=rbox.co
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="OFJcrwcH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4D4ADC4CEEB;
-	Thu, 26 Jun 2025 07:26:57 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1750922818;
-	bh=kh8PTnqwdXVM33XrWSHg6xtxFJcL8XC9586i9CBGYu0=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=OFJcrwcHsR3vRlPb5zeQb0wmJV97Y0VzvDRKVWvGRvXqemb3qwG7lgO65EHa9dnWv
-	 Yd6PSiLKll8Tg2LCOQQmUvbHZwMrMGSstGEBcnUi5aa6LvoA/cBB4y+5snQNwG7+O4
-	 U/uyxpH7T7wkvkLjULDufr8wdCnRmHdbIja+TflMrNrU4+dkHX5O4PGWNC0Yn1ZAQu
-	 clVmgL1xPgPi6M4EAgPP6+TWiEVYz8Vbb/PIQJUMyAId/LItwXUKLgmj8MqZcTwpcs
-	 SvoHM9Dl/9nZLau8ArZdCRdouyZaNMiBAP8Hwd430OOUvkh5blvSsCPz3+VJ+waSVv
-	 J5PtZ7MWVsM7A==
-Date: Thu, 26 Jun 2025 10:26:53 +0300
-From: Leon Romanovsky <leon@kernel.org>
-To: Abhijit Gangurde <abhijit.gangurde@amd.com>
-Cc: shannon.nelson@amd.com, brett.creeley@amd.com, davem@davemloft.net,
-	edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
-	corbet@lwn.net, jgg@ziepe.ca, andrew+netdev@lunn.ch,
-	allen.hubbe@amd.com, nikhil.agarwal@amd.com,
-	linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Andrew Boyer <andrew.boyer@amd.com>
-Subject: Re: [PATCH v3 08/14] RDMA/ionic: Register auxiliary module for ionic
- ethernet adapter
-Message-ID: <20250626072653.GI17401@unreal>
-References: <20250624121315.739049-1-abhijit.gangurde@amd.com>
- <20250624121315.739049-9-abhijit.gangurde@amd.com>
+	dkim=pass (2048-bit key) header.d=rbox.co header.i=@rbox.co header.b="up9is5AR"
+Received: from mailtransmit03.runbox ([10.9.9.163] helo=aibo.runbox.com)
+	by mailtransmit05.runbox.com with esmtps  (TLS1.2) tls TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+	(Exim 4.93)
+	(envelope-from <mhal@rbox.co>)
+	id 1uUi3X-00GcBO-Oq; Thu, 26 Jun 2025 10:34:03 +0200
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=rbox.co;
+	s=selector2; h=Cc:To:In-Reply-To:References:Message-Id:
+	Content-Transfer-Encoding:Content-Type:MIME-Version:Subject:Date:From;
+	bh=k/l0z57m3ZEaN2DhDCC8Xr3psOdIVksIU8zRLih/bxY=; b=up9is5ARxksILixaAI6Lh3hlTr
+	wbDXGEfPUcS0QfVyR+qXwyD7LrDfZD6gC4sAmbL4cF95uwGIQaN4s65AXkrfisnhZhFw98qIMCLCJ
+	HPajsm3Hh8NdZLPRZlsSvbEe2MnKA+Prgla4oz1LxUbPDz54OEEcbnQkH79ZkUiOcRjhnqasdeZSb
+	ZCWPCR7sAUseSSUCQfhYMmm2zkDK3g6uA1h6upzsBeOrb/QuKFqRX1RQFeOmU7Ts0UcHvTqUWI8JJ
+	agxBtXvcc6PNMbZWVgRzCTXGz5XC5AWlL4dm3+6k6yZYAbl0BwWG7I8ixLNgNBTbYXUHwVigLvdKi
+	n999ofUA==;
+Received: from [10.9.9.73] (helo=submission02.runbox)
+	by mailtransmit03.runbox with esmtp (Exim 4.86_2)
+	(envelope-from <mhal@rbox.co>)
+	id 1uUi3W-0004pt-2f; Thu, 26 Jun 2025 10:34:02 +0200
+Received: by submission02.runbox with esmtpsa  [Authenticated ID (604044)]  (TLS1.2:ECDHE_SECP256R1__RSA_PSS_RSAE_SHA256__AES_256_GCM:256)
+	(Exim 4.93)
+	id 1uUi3O-009Fh5-9n; Thu, 26 Jun 2025 10:33:54 +0200
+From: Michal Luczaj <mhal@rbox.co>
+Date: Thu, 26 Jun 2025 10:33:37 +0200
+Subject: [PATCH net-next v2 4/9] af_unix: Drop
+ unix_stream_read_state::splice_flags
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20250624121315.739049-9-abhijit.gangurde@amd.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <20250626-splice-drop-unused-v2-4-3268fac1af89@rbox.co>
+References: <20250626-splice-drop-unused-v2-0-3268fac1af89@rbox.co>
+In-Reply-To: <20250626-splice-drop-unused-v2-0-3268fac1af89@rbox.co>
+To: "David S. Miller" <davem@davemloft.net>, 
+ Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, 
+ Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>, 
+ Neal Cardwell <ncardwell@google.com>, Kuniyuki Iwashima <kuniyu@google.com>, 
+ David Ahern <dsahern@kernel.org>, Boris Pismenny <borisp@nvidia.com>, 
+ John Fastabend <john.fastabend@gmail.com>, 
+ Ayush Sawal <ayush.sawal@chelsio.com>, Andrew Lunn <andrew+netdev@lunn.ch>, 
+ Wenjia Zhang <wenjia@linux.ibm.com>, Jan Karcher <jaka@linux.ibm.com>, 
+ "D. Wythe" <alibuda@linux.alibaba.com>, Tony Lu <tonylu@linux.alibaba.com>, 
+ Wen Gu <guwen@linux.alibaba.com>
+Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org, 
+ linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org, 
+ Michal Luczaj <mhal@rbox.co>
+X-Mailer: b4 0.14.2
 
-On Tue, Jun 24, 2025 at 05:43:09PM +0530, Abhijit Gangurde wrote:
-> Register auxiliary module to create ibdevice for ionic
-> ethernet adapter.
-> 
-> Co-developed-by: Andrew Boyer <andrew.boyer@amd.com>
-> Signed-off-by: Andrew Boyer <andrew.boyer@amd.com>
-> Co-developed-by: Allen Hubbe <allen.hubbe@amd.com>
-> Signed-off-by: Allen Hubbe <allen.hubbe@amd.com>
-> Signed-off-by: Abhijit Gangurde <abhijit.gangurde@amd.com>
-> ---
-> v1->v2
->   - Removed netdev references from ionic RDMA driver
->   - Moved to ionic_lif* instead of void* to convey information between
->     aux devices and drivers.
-> 
->  drivers/infiniband/hw/ionic/ionic_ibdev.c   | 133 ++++++++++++++++++++
->  drivers/infiniband/hw/ionic/ionic_ibdev.h   |  21 ++++
->  drivers/infiniband/hw/ionic/ionic_lif_cfg.c | 118 +++++++++++++++++
->  drivers/infiniband/hw/ionic/ionic_lif_cfg.h |  65 ++++++++++
->  4 files changed, 337 insertions(+)
->  create mode 100644 drivers/infiniband/hw/ionic/ionic_ibdev.c
->  create mode 100644 drivers/infiniband/hw/ionic/ionic_ibdev.h
->  create mode 100644 drivers/infiniband/hw/ionic/ionic_lif_cfg.c
->  create mode 100644 drivers/infiniband/hw/ionic/ionic_lif_cfg.h
+Since skb_splice_bits() does not accept the @flags argument anymore,
+struct's field became unused. Remove it.
 
-<...>
+No functional change indented.
 
-> +	rc = ionic_version_check(&ionic_adev->adev.dev, ionic_adev->lif);
-> +	if (rc)
-> +		return ERR_PTR(rc);
+Reviewed-by: Simon Horman <horms@kernel.org>
+Signed-off-by: Michal Luczaj <mhal@rbox.co>
+---
+ net/unix/af_unix.c | 2 --
+ 1 file changed, 2 deletions(-)
 
-<...>
+diff --git a/net/unix/af_unix.c b/net/unix/af_unix.c
+index 235319a045a1238cf27791dfefa9e61b4a593551..1e3a4db1a96a57c84c199e30c164f66409b04be4 100644
+--- a/net/unix/af_unix.c
++++ b/net/unix/af_unix.c
+@@ -2674,7 +2674,6 @@ struct unix_stream_read_state {
+ 	struct pipe_inode_info *pipe;
+ 	size_t size;
+ 	int flags;
+-	unsigned int splice_flags;
+ };
+ 
+ #if IS_ENABLED(CONFIG_AF_UNIX_OOB)
+@@ -3082,7 +3081,6 @@ static ssize_t unix_stream_splice_read(struct socket *sock,  loff_t *ppos,
+ 		.socket = sock,
+ 		.pipe = pipe,
+ 		.size = size,
+-		.splice_flags = flags,
+ 	};
+ 
+ 	if (unlikely(*ppos))
 
-> +struct net_device *ionic_lif_netdev(struct ionic_lif *lif)
-> +{
-> +	return lif->netdev;
-> +}
+-- 
+2.49.0
 
-Why do you need to store netdev pointer?
-Why can't you use existing ib_device_get_netdev/ib_device_set_netdev?
-
-> +
-> +int ionic_version_check(const struct device *dev, struct ionic_lif *lif)
-> +{
-> +	union ionic_lif_identity *ident = &lif->ionic->ident.lif;
-> +
-> +	if (ident->rdma.version < IONIC_MIN_RDMA_VERSION ||
-> +	    ident->rdma.version > IONIC_MAX_RDMA_VERSION) {
-> +		dev_err_probe(dev, -EINVAL,
-> +			      "ionic_rdma: incompatible version, fw ver %u\n",
-> +			      ident->rdma.version);
-> +		dev_err_probe(dev, -EINVAL,
-> +			      "ionic_rdma: Driver Min Version %u\n",
-> +			      IONIC_MIN_RDMA_VERSION);
-> +		dev_err_probe(dev, -EINVAL,
-> +			      "ionic_rdma: Driver Max Version %u\n",
-> +			      IONIC_MAX_RDMA_VERSION);
-> +	}
-> +
-> +	return 0;
-> +}
-
-Upstream code has all subsystems in sync, and RDMA driver is always
-compatible with its netdev counterpart. Please remove this part.
-
-This is not full review yet, please wait till next week, so we will
-review more deeply.
-
-Thanks
