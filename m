@@ -1,81 +1,65 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9DF8D72635
-	for <linux-rdma@vger.kernel.org>; Thu, 26 Jun 2025 12:07:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 08EF520FABC;
+	Thu, 26 Jun 2025 12:14:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750939623; cv=none; b=g4ijRWoQO0SFdk+mJ+UqwtTh38P19XevcqVmJqqGos7ARNsBjK4/xn/Z7mIiUFbUzsWmxlipid8wxeCLX0EDiD2+EwpeHsxYg/Cr8ol5WOBTOcLzv6xpaAVqOSVXMYW1uFXcr4z4Pg8fQJ7WH/amCsLG561mDFzaTqmKbhsSLas=
+	t=1750940067; cv=none; b=UlQYePpCtagB3LvEeVxX6rFkvPgTJljClcTi2aJzoESf9RoRWGu7PXv/+uivnqE+3Gg+EijB66ie5/nvIffUtFp4hyj1epu2Lp7X6CEOUr5JgNiStrdD6XWuklXJU9/EGlqTzOprDLxj43AyX85428Q3PPAAQSsOuQBj8vXt8tU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750939623; c=relaxed/simple;
-	bh=CPlITQZ6cl1nml5/WV7PXh/Jwjy8/62phWPsbFmMcWI=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=o49wd5FJhxyngRqjPPtc/FtBf+i881tETvD5LZVH6Jc3oe3dxsFg0FO4FoOjk8aR3fh5sQ48FhUC+/pJDnJJXuRNeADwognrRNt9lWaAlRqAWyaEk54ktDZfI9zRjM6vHvTuoH8gOCjtI3+HDghIki5nzLgGmWg3urnC8IEKOM8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=FU9hYivu; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1750940067; c=relaxed/simple;
+	bh=cYyYCDjMKo1YFR4zdTqShC1KN41JtZ+W5+ZKJ2+q91M=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
+	 MIME-Version:Content-Type; b=JYi/PtyaeZzoLalwkmPt/9Y4kkPwaD/e+3B/ZBUx3iRxf7s3uVNTFABDVXmjo/8vSDKp8LjDgJ5KkEhqOHTytmSVobwzPGt6skWA7415EL0S7SlaYwcmZgCxLExSGhoQjWP/Nl3WcRsKtLJ7UranPztcVKhikIHoHJ9oWqQ5E/c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=RcfrZAhW; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="FU9hYivu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9B582C4CEEE;
-	Thu, 26 Jun 2025 12:07:02 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="RcfrZAhW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 39F2EC4CEEB;
+	Thu, 26 Jun 2025 12:14:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1750939623;
-	bh=CPlITQZ6cl1nml5/WV7PXh/Jwjy8/62phWPsbFmMcWI=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=FU9hYivu5RjOQlN0IphdC92KqoomYKbxu2Vx87XJ9Jj2ZBrx7DiDcMCp2BNWdOf+o
-	 8x40jlLl0TiSzO+8qml1ARdJN8JzJnqjXQymgqip7S1B9ZlMSwmAbNA+MzblrTJee9
-	 Lg5HoYhBXnYmqTfjDjJQbPAV2mtG46mNnqYiqMna2XiLkyR0BehMmlSisxIgWW/77P
-	 RJQWHpZU5L0GU8h8cuuwVwS/QGxImJ0bUqJu5t0megukHwl2SxGIOQH1vxq/QUCISg
-	 fi48MVQ9C0U2SjGcAp7X4MDtX2xU0VaMU3simo2aK5eRNLELif+nVYdAds/V9ZvRO2
-	 p/7fgJNhaOvPA==
+	s=k20201202; t=1750940066;
+	bh=cYyYCDjMKo1YFR4zdTqShC1KN41JtZ+W5+ZKJ2+q91M=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Date:From;
+	b=RcfrZAhW4RNTimmfr+W3NqCrIUMFTAZBNJoivl4cZs3hiQqCt6+Hi7PNbPpX+ypvL
+	 oedNJxKj9Ltc1MMBQWVLUe74FsUNDre6hwFmSejQ1eirw1v1l+vQb9hknDmfuJi+Lq
+	 yf352DZk+9IyarvY6N2gcxxpxJ0pbtarV0A4c/ETJaU3bzzMrBczddEaJVTiv63gNG
+	 DDUWO2LjfaphBr/0q7DImM1DvKVDDV4EMWWyErP3eBee8AiISsDLzLwlIT3GBcx0qR
+	 y5KU/sStgz4YxjtEfBsioAiqUUlKpFSyMIku8wnLLdx14s5n3roKjjUzYzSX7+1YVO
+	 WQNu7TBf1e5Sw==
 From: Leon Romanovsky <leon@kernel.org>
-To: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Parav Pandit <parav@nvidia.com>,
-	"Eric W . Biederman" <ebiederm@xmission.com>,
-	linux-rdma@vger.kernel.org,
-	Mark Bloch <mbloch@nvidia.com>
-Subject: [PATCH rdma-next v1 6/7] RDMA/counter: Check CAP_NET_RAW check in user namespace for RDMA counters
-Date: Thu, 26 Jun 2025 15:05:57 +0300
-Message-ID: <3ab2abdfadc70fa8908246ed81d7342b136f435e.1750938869.git.leon@kernel.org>
-X-Mailer: git-send-email 2.49.0
-In-Reply-To: <cover.1750938869.git.leon@kernel.org>
-References: <cover.1750938869.git.leon@kernel.org>
+To: Zhu Yanjun <zyjzyj2000@gmail.com>, 
+ Dan Carpenter <dan.carpenter@linaro.org>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>, Daisuke Matsuda <dskmtsd@gmail.com>, 
+ linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, 
+ kernel-janitors@vger.kernel.org
+In-Reply-To: <685c1430.050a0220.18b0ef.da83@mx.google.com>
+References: <685c1430.050a0220.18b0ef.da83@mx.google.com>
+Subject: Re: [PATCH] RDMA/rxe: Fix a couple IS_ERR() vs NULL bugs
+Message-Id: <175094006339.824609.2290263451460503052.b4-ty@kernel.org>
+Date: Thu, 26 Jun 2025 08:14:23 -0400
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-Mailer: b4 0.15-dev-37811
 
-From: Parav Pandit <parav@nvidia.com>
 
-Currently, the capability check is done in the default
-init_user_ns user namespace. When a process runs in a
-non default user namespace, such check fails.
+On Wed, 25 Jun 2025 10:22:23 -0500, Dan Carpenter wrote:
+> The lookup_mr() function returns NULL on error.  It never returns error
+> pointers.
+> 
+> 
 
-Since the RDMA device is a resource within a network namespace,
-use the network namespace associated with the RDMA device to
-determine its owning user namespace.
+Applied, thanks!
 
-Fixes: 1bd8e0a9d0fd ("RDMA/counter: Allow manual mode configuration support")
-Signed-off-by: Parav Pandit <parav@nvidia.com>
-Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
----
- drivers/infiniband/core/counters.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+[1/1] RDMA/rxe: Fix a couple IS_ERR() vs NULL bugs
+      https://git.kernel.org/rdma/rdma/c/19564a8576ac84
 
-diff --git a/drivers/infiniband/core/counters.c b/drivers/infiniband/core/counters.c
-index e6ec7b7a40af..c3aa6d7fc66b 100644
---- a/drivers/infiniband/core/counters.c
-+++ b/drivers/infiniband/core/counters.c
-@@ -461,7 +461,7 @@ static struct ib_qp *rdma_counter_get_qp(struct ib_device *dev, u32 qp_num)
- 		return NULL;
- 
- 	qp = container_of(res, struct ib_qp, res);
--	if (qp->qp_type == IB_QPT_RAW_PACKET && !capable(CAP_NET_RAW))
-+	if (qp->qp_type == IB_QPT_RAW_PACKET && !rdma_dev_has_raw_cap(dev))
- 		goto err;
- 
- 	return qp;
+Best regards,
 -- 
-2.49.0
+Leon Romanovsky <leon@kernel.org>
 
