@@ -1,40 +1,40 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B5402F1FEC
-	for <linux-rdma@vger.kernel.org>; Thu, 26 Jun 2025 12:06:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1463E17BA1
+	for <linux-rdma@vger.kernel.org>; Thu, 26 Jun 2025 12:06:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750939593; cv=none; b=uXftEeHnpiiHlkUrzO5eRQTfUnr1ahgn8ZSNEhN6MPZ1u2KWfRthlfNt1PV8Sodj+iAo1amWfII9GDouqpp+iVSrm0TscHU9Egy/Ff/b9AZaVRUgdyClfE7f+HBRy7yvoJsS2cAWaQ6srWaUe/VlmF3whpepgNGrmQelvOg7ECw=
+	t=1750939598; cv=none; b=QFZIgK7LqV0cdLiZGL8QwnJLMlz4+iEF4mUiVDkKS2PjazI7812/1s1cGlj3Eq9Ra4MYZpyYeecckOlklIo8DbW6AKCcXI0LiZjN5ymlvD1W4fOxYVq06/9f0PMVwlld1KYHVjH0vwEyM+lBeA5LqiRkp4qS34d8xJJZoq6VA5Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750939593; c=relaxed/simple;
-	bh=a1kEFaEZ/yywk/TZOJ44qo859jl8kLNWfJfkXbM8TdU=;
+	s=arc-20240116; t=1750939598; c=relaxed/simple;
+	bh=AcinQbaI/052kyFiQJevWZC97XUo0S/Tc2WZ6+5uJTs=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=TRr0/5563REdm30vwIfgbGLy8pb8MZiggHAee1rNxdPH+++i/cHmlqBBP9ezLukS8yb2xJRPVC3C6z59Nt+ZRDb8O7/qNkVB3keGblWBF85oTykUPOtSksQ4hrG94lyv8gQz4Rk2fJZtf81wPCotqC68WRryr5XpBpBfAHX+ovs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=oN+EmNZ1; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=fjiYJTEE6InbpozdR70nT62fcAYfI3aOHV7lGc8c2cLdkxoaTWLfIHxTqTRHy1qEp36K76ZUJLqEme8cqHDmS4jT4QTe8RhFZEW4esa0QA9wLZCixx4n9oaJZJ/muLfdqtnD6ZOwhDdqvHj+mkBmxQzZpXV6JF8pN4zd5QR6ZIU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ijH+1dgk; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="oN+EmNZ1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7ABE6C4CEEB;
-	Thu, 26 Jun 2025 12:06:32 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ijH+1dgk"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 36F3DC4CEEB;
+	Thu, 26 Jun 2025 12:06:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1750939593;
-	bh=a1kEFaEZ/yywk/TZOJ44qo859jl8kLNWfJfkXbM8TdU=;
+	s=k20201202; t=1750939597;
+	bh=AcinQbaI/052kyFiQJevWZC97XUo0S/Tc2WZ6+5uJTs=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=oN+EmNZ1NjfvCXnLIQ4CrHT1oOHELjX1epjG8GUFY94MzepmTJMLh7AM55gbBCQWY
-	 c8pVL+2UkEOb0a8U4TPpB2OYu0Z5P3D3BgBd1/o/ZaErUBxiTTYM01smysJZsSLRMD
-	 j6+gwdL1Rt6kpXPSO0TDo9rklEcKGmNLUCXvw3DK6tvNW+mKBVVKKO6d+DGD1lLBbo
-	 ihyq07DX3xZUlkQbAKclzgUGoVorwkRvFXZ8DNYsjXTsrueKAp5FS/y+W4/SQgXwH/
-	 uH5V/qNgTk3S0GXMyJD8/vXiwc7oWB0JST/Ur7G0UpP2s3JXyYa8egddFlUFsQ9VXu
-	 Zrj+w3IZNRhNA==
+	b=ijH+1dgkJWVhyQpSQz/zQ1UlL1sM3WIVSNleUnNVBisgtW9rOrdkVhCh+NPi5NlL+
+	 Re5W+W61j1bNWDVLqL+PlRljcmDpCQl6FPqIWxeGiduRUOfeykGQHgUDgKQSb7gExN
+	 0/mEsEzWCiN3yrhjq1S4xh6POYP17e4wvzosECoVMmuTnqpE/VcVTrGj7GSa4eMMmF
+	 9cwmFCA5agItOaRE2oylEkT598GH7DVq/JCRPWRfcC9F1YffAzfqPUAEhvsXfmeClB
+	 YZ4hTP1riJAMX5aBQ+euLPp8Bt0sUp0Ewx/pip9oX8oEnEzfE5Ulex6SY8gtygjvC3
+	 JB103wMlL0Vgw==
 From: Leon Romanovsky <leon@kernel.org>
 To: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Parav Pandit <parav@nvidia.com>,
 	"Eric W . Biederman" <ebiederm@xmission.com>,
 	linux-rdma@vger.kernel.org,
 	Mark Bloch <mbloch@nvidia.com>
-Subject: [PATCH rdma-next v1 2/7] RDMA/uverbs: Check CAP_NET_RAW in user namespace for QP create
-Date: Thu, 26 Jun 2025 15:05:53 +0300
-Message-ID: <57bee7a9d1831a43124323a29549ecf44efa5362.1750938869.git.leon@kernel.org>
+Subject: [PATCH rdma-next v1 5/7] RDMA/mlx5: Check CAP_NET_RAW in user namespace for devx create
+Date: Thu, 26 Jun 2025 15:05:56 +0300
+Message-ID: <7a1f2295de05e62274be997632f508259e2eee41.1750938869.git.leon@kernel.org>
 X-Mailer: git-send-email 2.49.0
 In-Reply-To: <cover.1750938869.git.leon@kernel.org>
 References: <cover.1750938869.git.leon@kernel.org>
@@ -52,70 +52,32 @@ Currently, the capability check is done in the default
 init_user_ns user namespace. When a process runs in a
 non default user namespace, such check fails. Due to this
 when a process is running using podman, it fails to create
-the QP.
+the devx object.
 
 Since the RDMA device is a resource within a network namespace,
 use the network namespace associated with the RDMA device to
 determine its owning user namespace.
 
-Fixes: 2dee0e545894 ("IB/uverbs: Enable QP creation with a given source QP number")
-Fixes: 6d1e7ba241e9 ("IB/uverbs: Introduce create/destroy QP commands over ioctl")
+Fixes: a8b92ca1b0e5 ("IB/mlx5: Introduce DEVX")
 Signed-off-by: Parav Pandit <parav@nvidia.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/core/uverbs_cmd.c          | 11 +++++++----
- drivers/infiniband/core/uverbs_std_types_qp.c |  2 +-
- 2 files changed, 8 insertions(+), 5 deletions(-)
+ drivers/infiniband/hw/mlx5/devx.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index 08a738a2a1ff..84f9bbc781d3 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -1312,9 +1312,6 @@ static int create_qp(struct uverbs_attr_bundle *attrs,
- 
- 	switch (cmd->qp_type) {
- 	case IB_QPT_RAW_PACKET:
--		if (!capable(CAP_NET_RAW))
--			return -EPERM;
--		break;
- 	case IB_QPT_RC:
- 	case IB_QPT_UC:
- 	case IB_QPT_UD:
-@@ -1330,6 +1327,12 @@ static int create_qp(struct uverbs_attr_bundle *attrs,
- 						 &ib_dev);
- 	if (IS_ERR(obj))
- 		return PTR_ERR(obj);
-+
-+	if (cmd->qp_type == IB_QPT_RAW_PACKET) {
-+		if (!rdma_dev_has_raw_cap(ib_dev))
-+			return -EPERM;
-+	}
-+
- 	obj->uxrcd = NULL;
- 	obj->uevent.uobject.user_handle = cmd->user_handle;
- 	mutex_init(&obj->mcast_lock);
-@@ -1451,7 +1454,7 @@ static int create_qp(struct uverbs_attr_bundle *attrs,
- 	}
- 
- 	if (attr.create_flags & IB_QP_CREATE_SOURCE_QPN) {
--		if (!capable(CAP_NET_RAW)) {
-+		if (!rdma_dev_has_raw_cap(device)) {
- 			ret = -EPERM;
- 			goto err_put;
- 		}
-diff --git a/drivers/infiniband/core/uverbs_std_types_qp.c b/drivers/infiniband/core/uverbs_std_types_qp.c
-index 7b4773fa4bc0..3f7bd5702fe4 100644
---- a/drivers/infiniband/core/uverbs_std_types_qp.c
-+++ b/drivers/infiniband/core/uverbs_std_types_qp.c
-@@ -133,7 +133,7 @@ static int UVERBS_HANDLER(UVERBS_METHOD_QP_CREATE)(
- 		device = xrcd->device;
- 		break;
- 	case IB_UVERBS_QPT_RAW_PACKET:
--		if (!capable(CAP_NET_RAW))
-+		if (!rdma_dev_has_raw_cap(attrs->context->device))
- 			return -EPERM;
- 		fallthrough;
- 	case IB_UVERBS_QPT_RC:
+diff --git a/drivers/infiniband/hw/mlx5/devx.c b/drivers/infiniband/hw/mlx5/devx.c
+index e5551736ee14..44b4521619c4 100644
+--- a/drivers/infiniband/hw/mlx5/devx.c
++++ b/drivers/infiniband/hw/mlx5/devx.c
+@@ -159,7 +159,7 @@ int mlx5_ib_devx_create(struct mlx5_ib_dev *dev, bool is_user, u64 req_ucaps)
+ 	uctx = MLX5_ADDR_OF(create_uctx_in, in, uctx);
+ 	if (is_user &&
+ 	    (MLX5_CAP_GEN(dev->mdev, uctx_cap) & MLX5_UCTX_CAP_RAW_TX) &&
+-	    capable(CAP_NET_RAW))
++	    rdma_dev_has_raw_cap(&dev->ib_dev))
+ 		cap |= MLX5_UCTX_CAP_RAW_TX;
+ 	if (is_user &&
+ 	    (MLX5_CAP_GEN(dev->mdev, uctx_cap) &
 -- 
 2.49.0
 
