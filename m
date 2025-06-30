@@ -1,47 +1,47 @@
-Received: from NAM10-DM6-obe.outbound.protection.outlook.com (mail-dm6nam10on2115.outbound.protection.outlook.com [40.107.93.115])
+Received: from NAM11-DM6-obe.outbound.protection.outlook.com (mail-dm6nam11on2100.outbound.protection.outlook.com [40.107.223.100])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8B8862BE7D1
-	for <linux-rdma@vger.kernel.org>; Mon, 30 Jun 2025 17:58:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.93.115
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1B0F92E54B3
+	for <linux-rdma@vger.kernel.org>; Mon, 30 Jun 2025 17:58:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.223.100
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751306302; cv=fail; b=b/xr8joPv4aCPFqauh02/Yi9ulCoi1wRH4PCHTYEWeF8mKdWR+Y1UtDiKEDCK03TNQRblefR//x1P7uHo5fw3bYzLSXRLewevEM1HQbOLtdxR0hWSUq4Zjmobn35qfy1NO1VGDPF+7j6pZRqzp1TOpuuW9ugy4nhNL2U8Wbc0lw=
+	t=1751306303; cv=fail; b=M0yIlJml6jS5y3GxlYqZ8G75olMsONtbH5PmQUqteB2x83SFH5sG8ZKLHNQO13v4YCSPFBYSzfZF/QlUyDc3QVjjisSeA9IoQUg4f+hdFlfHvrF9kgvVBZ0JJM9d3ya8lUPUg6PWNnBjcoGc9WL1DC1v2Zy1C1Qftdil4cyj+wo=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751306302; c=relaxed/simple;
-	bh=G9SwVKY4dxBpC9+RXFBxcF1Zw8wDm+In2PhtoSAH2HU=;
+	s=arc-20240116; t=1751306303; c=relaxed/simple;
+	bh=9wV2ssvc4qipCqZptwaKUqEfg1USVGL1aM6XUQo9TQM=;
 	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=QRX9r9OmkHo0mHx8KOfRy8SjsFk6GFlrgLSoxyidzdTuJiepTCM7EJsogFqEfL3I2OobDgXT+JZt2zALFtsp5ikr0IM7n/pWybKDv4/GHJKR+SGZKURgQGnVcA6DnSNkz9NE3g71O6TnhVmitkpik2b0shPxwEbviN+EBQ/neB8=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cornelisnetworks.com; spf=pass smtp.mailfrom=cornelisnetworks.com; dkim=pass (2048-bit key) header.d=cornelisnetworks.com header.i=@cornelisnetworks.com header.b=SX1zvyMX; arc=fail smtp.client-ip=40.107.93.115
+	 MIME-Version:Content-Type; b=sM7yEahslGkI/QCXio6SwTxQnJJ+JtsWyiqBFDa4zj5bjGl+GsppATAUBwRwSGV7i3zMJP6kBPTN61SOKPzKqyr+mZcU/Vv8L2WLbdzw+7Wj434LV+iE3epH51a0hSOy0tdvjGqO4hmsxzg+t5acxFJmxOxp7qPbsLxTYAijVQ8=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cornelisnetworks.com; spf=pass smtp.mailfrom=cornelisnetworks.com; dkim=pass (2048-bit key) header.d=cornelisnetworks.com header.i=@cornelisnetworks.com header.b=bC5WFfni; arc=fail smtp.client-ip=40.107.223.100
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cornelisnetworks.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=cornelisnetworks.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=cornelisnetworks.com header.i=@cornelisnetworks.com header.b="SX1zvyMX"
+	dkim=pass (2048-bit key) header.d=cornelisnetworks.com header.i=@cornelisnetworks.com header.b="bC5WFfni"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=dGXCKy3afp7li7yfswSxM0unVu1m3TTZKidkB2NZ0TUfqnFDTZTcbxihs+J+t47stRJb56hJqF5ugpnp18L6wIeKkbsad86ikApejoWBTHuYP+Ql9azmpVgo8V+YLMFaHkbyKtTmrM+Hi4VOYQikzFCL3TnNXjak09Wu6h8PycwmsxhoLJw1ERvYzwQ8ufK5P5tBqclm5bjwgd9eLOPxcnwkHnzqLyLGvoKNN8/AukvXmMktfGwVnj5f3MWrZ7SmNmLcoO4LgrOfZphHL2KuC7N2hG2as/qsS0lny+hnbLKUlIdvV/ADXBd0OhVnpEytjJsBLbrVpi16C1Y+NYcj+g==
+ b=FqMieHLYYJ210QeMcoBUumlN6dcmip9iojJYNEFCfrPHU/4MvsnMB+Gq9SrIhH+ArEFWfaK+ClBRtb5wAn5hF99bbWIi39I+nG0zvbiCn7xzVnssrcEBIr2hQVj8T0sP5PIOTaUT+QV/MOExonh8cJV9xdm914tjKpqOO+vwxbbsQjhm0yJutnZQr6zdpwBySX7Tjy7VZKw+kgYIKEaohDoXovgUJOY/rmBNnrA3Wr2n0pEXqvYAQiIbRuhXrCY+c7sgtM+2Z/bm8JhR5EBO7cFKgy3wBfCAVWB8eR4PnoQSTEDuiXkfRtohPXknexUIFBmwlx4Km+5hfFtJfB2FQg==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=y/20H3x/GC+qBLF681vZH5LOjXE8PLrMyW1485MnPvk=;
- b=RxLHW3xetrKq9y6+gFE2GiGnpq/FZFF7HNq/5muTLSmkP5OOYq5XKiQ2uJ6y14Skm1AYr9WRyYwos8u3rC8AfTO5YbvRGjksnrvBWv38CPdcafBzas/gBrucOB4cWP66ilbLKIVvHdpcMP/vZJ3ll6oct4gbmQosQOEGBJ3XuOgy84zaxiFN+v2sHDxTQk0yqaQOtxR4B0Pg7lUEmYObnock5ZIqlfqComhKZWnYQw+tkVYsBqBvZJAlSdz/jEf1QWoHvexKegNLD8gjyvcYLFo1F3Yqy4Zg9+DTBEIHHfZvZe6nbECQEKE0NqB7ZuCSAu949tK3ir4mvbW3Nbl32w==
+ bh=PSAxS6tDMgUK4r6YCO+827TG2NeRQxRzmAyHALx1n1g=;
+ b=tP81WTEpAsqqsMFWR3MQ0rD/tEMoChrPg5RxMzk9ly0M3eYnNYo6YC1jqgKV+T/uiOfEKnrnLQ9AT7ZoDgKbVzn9pK+Sodfe61stmJmO7CzoFTjj+CO11s63pk3trKbZWZt29mwolTmp/FwuZiI/O7EQzDFTP332igw91w0S6SAZi9/an/WsFMRfOceyie9SsMbNo4D3Xid72N8ZgJcs3S2K1p2RSbM6GGtBMsRcud+8SwYkN9u5Tbop9OEaISy8oiH9p60PL46f1B0oUUrAunRxr0LjsN3pn6SQ85edvyH1boYTved7FBTKzUmo5GvBqL2nmb1hS/SxbdxEpZtB7g==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 208.255.156.42) smtp.rcpttodomain=kernel.org
+ 208.255.156.42) smtp.rcpttodomain=cornelisnetworks.com
  smtp.mailfrom=cornelisnetworks.com; dmarc=pass (p=none sp=none pct=100)
  action=none header.from=cornelisnetworks.com; dkim=none (message not signed);
  arc=none (0)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cornelisnetworks.com;
  s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=y/20H3x/GC+qBLF681vZH5LOjXE8PLrMyW1485MnPvk=;
- b=SX1zvyMXfCkqvasqYAlaBYKo5SOPw5Gw48h8jmUv9RMymIBzqU0OIozkqJxXNKcosYw/6Dl2+EDaTryk+sZFbauhpZWTHIUu8YfGKhjKiVm1NZPlycunAVkiJcPnrEBfXvZwr/87KAamOOSyalCyiI5TpfZQjqQkyLNMiyI5P8xAKh7uA9i9Tfvqj4/ZxtuQzVWwVcJv9tP8EFPQosP4p/ijWnxjiSpK8u1vYMQPlqAU4qOpRS20mRH5I2M1zfA3b19fqfVcNcgpRnOJEXOIYj4v8dnR6otL5ngA9z7WOH0Pb0pw2ldEvvvg9GWDMcra4RtO6ljkKOSI1s1BQAisow==
-Received: from MW4PR04CA0103.namprd04.prod.outlook.com (2603:10b6:303:83::18)
- by SA1PR01MB9106.prod.exchangelabs.com (2603:10b6:806:45b::17) with Microsoft
+ bh=PSAxS6tDMgUK4r6YCO+827TG2NeRQxRzmAyHALx1n1g=;
+ b=bC5WFfnizflE9oNzFa6TEQFkzbsixKS3BZT67m8KaMPahGjMPVYSzVeg9rvaUICZvpTUrWwq1dw9Pqi4ODFXmtOcvO6aLRMG6BFPZKjTMVWdQLdOQ254BMtENNrjTOzRPO1XX/g5lbK88aolRKMse1gR/smUtb4NI1PhAuc6MzcRDZ9KhZ8UZIidr99MAwf2iJn5174vRRl3BRUC7H5f6wdUghWryx0kFxPSgBnkJdexHq/n/n0ue8DNyLD/jqn3FgxkLeiMkGSCuzJaHry845j3RXumsrjbwbgH8aKbaDQo2abUpxbon1qvdsFb1NOjt5uDjqwPDIk6PcLvK8B4XA==
+Received: from SN1PR12CA0088.namprd12.prod.outlook.com (2603:10b6:802:21::23)
+ by SA1PR01MB8670.prod.exchangelabs.com (2603:10b6:806:3a7::10) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.8880.32; Mon, 30 Jun 2025 17:58:09 +0000
-Received: from CY4PEPF0000E9DB.namprd05.prod.outlook.com
- (2603:10b6:303:83:cafe::16) by MW4PR04CA0103.outlook.office365.com
- (2603:10b6:303:83::18) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.20.8880.32 via Frontend Transport; Mon,
- 30 Jun 2025 17:58:09 +0000
+ 15.20.8880.17; Mon, 30 Jun 2025 17:58:11 +0000
+Received: from SN1PEPF000252A2.namprd05.prod.outlook.com
+ (2603:10b6:802:21:cafe::4f) by SN1PR12CA0088.outlook.office365.com
+ (2603:10b6:802:21::23) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.20.8880.31 via Frontend Transport; Mon,
+ 30 Jun 2025 17:58:11 +0000
 X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 208.255.156.42)
  smtp.mailfrom=cornelisnetworks.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=cornelisnetworks.com;
@@ -50,22 +50,24 @@ Received-SPF: Pass (protection.outlook.com: domain of cornelisnetworks.com
  receiver=protection.outlook.com; client-ip=208.255.156.42;
  helo=cn-mailer-00.localdomain; pr=C
 Received: from cn-mailer-00.localdomain (208.255.156.42) by
- CY4PEPF0000E9DB.mail.protection.outlook.com (10.167.241.74) with Microsoft
+ SN1PEPF000252A2.mail.protection.outlook.com (10.167.242.9) with Microsoft
  SMTP Server (version=TLS1_3, cipher=TLS_AES_256_GCM_SHA384) id 15.20.8901.15
- via Frontend Transport; Mon, 30 Jun 2025 17:58:07 +0000
+ via Frontend Transport; Mon, 30 Jun 2025 17:58:10 +0000
 Received: from awdrv-04.localdomain (awdrv-04.cornelisnetworks.com [10.228.212.218])
-	by cn-mailer-00.localdomain (Postfix) with ESMTPS id BAD7514D71A;
+	by cn-mailer-00.localdomain (Postfix) with ESMTPS id E189B14D731;
 	Mon, 30 Jun 2025 13:58:06 -0400 (EDT)
 Received: from awdrv-04.cornelisnetworks.com (localhost [IPv6:::1])
-	by awdrv-04.localdomain (Postfix) with ESMTP id F0DC91811CE73;
-	Mon, 30 Jun 2025 11:30:17 -0400 (EDT)
-Subject: [PATCH for-next 06/23] RDMA/hfi1: Remove opa_vnic
+	by awdrv-04.localdomain (Postfix) with ESMTP id ACAD71848B5DB;
+	Mon, 30 Jun 2025 11:31:13 -0400 (EDT)
+Subject: [PATCH for-next 17/23] RDMA/hfi2: Add IO related headers
 From: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
 To: jgg@ziepe.ca, leon@kernel.org
-Cc: linux-rdma@vger.kernel.org
-Date: Mon, 30 Jun 2025 11:30:17 -0400
+Cc: Dean Luick <dean.luick@cornelisnetworks.com>,
+ Breandan Cunningham <brendan.cunningham@cornelisnetworks.com>,
+ Douglas Miller <doug.miller@cornelisnetworks.com>, linux-rdma@vger.kernel.org
+Date: Mon, 30 Jun 2025 11:31:13 -0400
 Message-ID:
- <175129741787.1859400.7033099190800356659.stgit@awdrv-04.cornelisnetworks.com>
+ <175129747365.1859400.10435766274074444526.stgit@awdrv-04.cornelisnetworks.com>
 In-Reply-To:
  <175129726945.1859400.4492277779101226937.stgit@awdrv-04.cornelisnetworks.com>
 References:
@@ -78,5407 +80,4720 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: CY4PEPF0000E9DB:EE_|SA1PR01MB9106:EE_
-X-MS-Office365-Filtering-Correlation-Id: 41aa25b2-c16c-4e11-31b9-08ddb7ffab65
+X-MS-TrafficTypeDiagnostic: SN1PEPF000252A2:EE_|SA1PR01MB8670:EE_
+X-MS-Office365-Filtering-Correlation-Id: 1a68ae43-196a-4bd7-fb29-08ddb7ffad70
 X-MS-Exchange-AtpMessageProperties: SA
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|36860700013|1800799024|82310400026|376014;
+	BCL:0;ARA:13230040|376014|82310400026|36860700013|1800799024;
 X-Microsoft-Antispam-Message-Info:
-	=?utf-8?B?cDkvRDZBcjVFL1d0RUV5SUpoZlNYeXhCZ0ZlM3NHcnpBMkhzSTVkOHBDblNa?=
- =?utf-8?B?NzVKTUdiY1pvZmxzYmQxUUFzcy9MTnoyZFExQU9XUFJ2c2lha2NSb3hYczAr?=
- =?utf-8?B?aTVnRit5WEtEdUJPRjhmdjZMcnVmYzZwNUNLNjhsVnJnTW1BSXVyREVjNGdH?=
- =?utf-8?B?T1ZCclZpb0lTbWEvdVJoV0lRVkdnUW9aRi9ZY3ozWkFoT2ZXMDB1RCtmNVZD?=
- =?utf-8?B?QTgyZkpTTFdSZ3JBbzdBNHozdUlRVEk5azljNUxuQkRoL2VUN1F2S280TGFv?=
- =?utf-8?B?eUFVZlBqcDEycUV1c0dEOU0xT3JlcTQwQXdMTkxpS3Q5amR4LzMvVkJlMWRy?=
- =?utf-8?B?NGZLMG9DdE1FOHJtcVVXZUtxZzh2c3h3YVBacTNXcm00NmlFUW9yOWpyUWFw?=
- =?utf-8?B?NUFxN25ZRnA3QlUyd2FEd1FZUzAveGpLbnZxRmx3c0xybTFBYVY1TkhkcWJV?=
- =?utf-8?B?K3RrbEVMVXZlc2NCMi9LOUo4eDNPQ1luL2tXSTQ4Vk1OM2FSVXRvWmZEUXh2?=
- =?utf-8?B?UnNTT256Q1pMb1RRZk5FbDhrUTNuUE9ZTWlScGgxMlBKcVBNNWVXd01iK3lK?=
- =?utf-8?B?NEQwKzdzQk1OcmhSVWxNcUtOVlNCRWE5ZDBhL3hIQW1SN2hyQmFiNUJQUmFS?=
- =?utf-8?B?QUhNeGVES2U4ZzlFUjZIL2pZVU5ERjFicUQxY0lnRkdoeUxKRkZWS0szRm9B?=
- =?utf-8?B?MXBCR2s1ZTMzS1BMR1hnYnZPSjRBTmFTNmVhYUREVzVTK0VlOXh6Z0tVZFNX?=
- =?utf-8?B?RGFaQnBkdHM3VE5DSk1TeEVVU2Y1aUJKVEhMVWJ3UitOTzk0MW16YkttR3kw?=
- =?utf-8?B?L1B1LzkvdndueE1sZ29OdktscVk0UVIzZUFDaFpSSXl0VGErdlhNYS9DSi9E?=
- =?utf-8?B?ZzJYUFUxdGhKZDJWZ0t5aHd6bFpVZWw3V1BWR2ZETkVmaDdsMDhqY1ZmL1RB?=
- =?utf-8?B?MC92aTRoWFFOQ1RpcnVwdXZiTkxPNVEwWmJNRVlHalpQNWpxTmtaYitROGxt?=
- =?utf-8?B?UXFza05NTkZ4VDJOSXZpU3NFeEpWQUFmYXlyYnRiVGtjbzExZTlqYStEVnZw?=
- =?utf-8?B?bG9JRlRwZEUrNWVYdjJQOTBnNjhDUUpQMnZwTkQ4ZXJoNGV6bEdMT1dxeFJv?=
- =?utf-8?B?Nm8xdGl0Q2RVZHVDaGc2UGNVQXJ5U0NFU1JTS0xJU09vN2hxbEUwUEx0L2lU?=
- =?utf-8?B?WHpYRXNaSXd2WFZ6VWJaZ0xycDRqU0FkQnpxdnVVa2N5NXZjaTlTRThsY0JH?=
- =?utf-8?B?NzcxSFRGTWh3VXRZNUV6NkdsVldrdUR6VGUzM2JNQWZZMTdBbzVJenJSZHJ1?=
- =?utf-8?B?T0RjZUc3aVB6REpPWTd3dnZ4dU1KUGVHTWQ1QW1CTzJvamI1TGIvV3dnRU40?=
- =?utf-8?B?QkxaVERnTEZ3MDZreUs1U0JKVzdDaFcwUjdkc3VaUFl1Qk1hQmp6QUNZRnp6?=
- =?utf-8?B?QjRDQjZUUkpZYmk4OTVnS0hIOTJWL1NMbFZHNEV3ZlEvUEQ2M0Yrc04vbWNk?=
- =?utf-8?B?RjUzdTduZGNGS3hma0xYekowTS9hV2xKUmIxY0RNQVo2UUc3K2haMDFpbVdi?=
- =?utf-8?B?RExBRkJ2bmhESGlpOHB1WUlRK1hvTjF1eE9MN1VTOTdwNGEvSHI5SWx2NzQ3?=
- =?utf-8?B?L0hsMzJNanJHMGpoNWNhUlUrdWc3Y01zUXpDQ3hRWVNaTFY0WUcvMFpOZXl4?=
- =?utf-8?B?Z1k5alErODBwWlFRZEljd2g2Tlc3WE9yTXgrK1VlSGNKNW44VWNKaDNzMUd6?=
- =?utf-8?B?bmdXcEZEblVqUEFxOGdDVm5zRGR3T3duVUxGLzFQcEhLdHlKb0psZGZHQXVa?=
- =?utf-8?B?QXFrMHV2R3o5R2pSdUdvY1d2SlZJdFNGSnRzL3VGRno5U1ptZHMyU1gyZWZI?=
- =?utf-8?B?V29Mak1oMG9CRHIzU1lGZlpjVE1kL0hsQ3ZzQVAydlBMbGNzbnJIK2NVQkxq?=
- =?utf-8?B?SWk4bXJSWlJGRTc4ZHBEaE5HbVZVemNSb2FlVzl4NWtBRjA1cUFDNjNaYXRI?=
- =?utf-8?B?UVZQYnJaZERZWjRzRU8wVStJaTg1Z2g1bC9FaGdmVHF6NW9GM2o1bGZMNk5V?=
- =?utf-8?Q?kuvtpu?=
+	=?utf-8?B?eDV5VCtheGcyQUoydFp0UzVUZ1lpLzBOV3hNT3hOUVVnQ3VMZ056cWdxenVi?=
+ =?utf-8?B?OVkwUmpaSTIxaTNSblN1UlBEdnhCY3RJK3V3M081MjFUamhpaWFXYk5GRUxm?=
+ =?utf-8?B?am96bXBCQUR3NWpYa0s5L3R5UGZib1FxZzFtZG5jRmNBaDlRQjRuUXZBMDNt?=
+ =?utf-8?B?UGhvUlJSMERRdEtQdTY1RUh0Zlk4NThha2w0ZUxENjBJejgyQ1ZIOVFvN3Zn?=
+ =?utf-8?B?d1FhQ2xGdHR0Vm1EeGE0Q0dGVHJrcXF5ZHRzSjQwSUx2aTdtZ1pIWHhhTkRU?=
+ =?utf-8?B?b0NWMW9QMDhaVlZuaWI2bVZ3MkZHRHprNFpGajNjYlQyL3hSbUZqNlFobGxB?=
+ =?utf-8?B?b0tYd1U1NnVyalpCSjB3S0lPWklxTk5MdlBkSk1CMVNsRHBZMWZQNlNuT0ha?=
+ =?utf-8?B?eldtTlpFaFRuT0xjQUFwMHRsSmJhVzkxNStZSDRqUXJsVEp1MDY3dEpNcXE1?=
+ =?utf-8?B?MzVGd1FZNk9paGVjcXlGZ1pPYXVVNjJzaXBydVVEV3d1RlVHelhQbTBpUlV6?=
+ =?utf-8?B?MUw2MlBWbjdjMVpoVjI2b0NkTVpEMTMzQzBtRUtrc2JxeFJlVnNPSGhMdnZR?=
+ =?utf-8?B?eWFtZUIraTQ0K21sK0pyYTBQZ0Y3K1FSUVJGK0o0Y2FybjlnUGRRM1hWRlFJ?=
+ =?utf-8?B?dnJac0hKelZoblNSUnJJcWh3VmtFR3pKUGsyVEpwNm1FV3VuK3h1cEJ4LzZH?=
+ =?utf-8?B?K1c3YkloRmU2VlpqSTM0anJlb3JUQ1pDaStyV2RybXdKRkFmcStBMmpEVWVX?=
+ =?utf-8?B?b0h5T0dkVUNrcTJmaWl4N2E5czV1Ri9pQXFycEV0M0ZqQTY0TG9KQ2x0RVdk?=
+ =?utf-8?B?Zngzczl3WmFGbUlkTGVPTVUrVlN5TW8xSzVVTittMFdxWGNIMm5YZTIwenNy?=
+ =?utf-8?B?SVFqaVpESkV4Y0pFMmVaMjhMd05od0taS3QvWWZWbDlOMzJhT0lBUHp1d0R3?=
+ =?utf-8?B?V3FKU3A0dDdCL1lLblNicjZaZmw5djB4MU54MkZaR21hZERrSFJvWjkxeStl?=
+ =?utf-8?B?bUxZb2UzNWpTRTlNYWJmd0ErRUxBMUJOS01uS2h2Ym90YWFqV2RCeDl1cmRJ?=
+ =?utf-8?B?WWlTZ0NLZVNUekVlV29FL3Z5MG1vQnBlanZkTUVuS2dEVTl6ZHNvVWEwcjRi?=
+ =?utf-8?B?MGpkaXNUclNOZ3cxZ21VMUFiOVJWNmVvcHJocllZTm1GVmpQVG5YM2VJUEdH?=
+ =?utf-8?B?ZHZmR2Y1WG9ObExsSk1mNlFZOG9CSEtzQVBvMGR2Z1ZGVGVEWnRTcnhMbDYr?=
+ =?utf-8?B?N3ozS2JTNElDSXk1NGhsd3VkaGt1a1ZndC81WWZTSklrTjJCN1Uyd1pNRjJL?=
+ =?utf-8?B?NXI3blNYTTc0U3VUK0VwQXpqY3FJQjhpNHRwbG1jSWN5OU5xRmxkdi8ya2ps?=
+ =?utf-8?B?VkhwY1V5dDhQQy8xS0VqbEhyOVhqR0FuQVgrV0JJSUkrRnNYUzRVS05wOWIy?=
+ =?utf-8?B?U3dOdEZtemNVMEVia0Mwa1BwQ25KVXRYV012RTA1OTh6RHNVRGtWdGl5NUg1?=
+ =?utf-8?B?S09yK2hwTjQxOWJWUUFZelg5VHVBcythenFmVVBESzZac2VNaWtuaStIZ3RD?=
+ =?utf-8?B?dG1tWDliME5DalVXV3RsOW1OMHZoR1VnSmFBWFEwUnR3a1djcC85T2N1QmZx?=
+ =?utf-8?B?VXV4ZGE1Wlp5aGx4MFV0bmxXUTVYcFVwTlRMUGp5d29KL3d0d21hdmhCQ2Na?=
+ =?utf-8?B?VTNWQlB2eml6Mk5uTkRzTWtMUHpYdWhpV09EMVZmRy8yVzQ4YjBCaXlsTFNW?=
+ =?utf-8?B?MndFeXNMcy9iMWhwQXNMVjZCOGNaREpTemw3OG03NEF2U1VlYnF2cTZVVU9U?=
+ =?utf-8?B?ckFRUnpJT0Y1cFpFWmtQdmgxTnJQSU5zNW5icFQ3WWlXKzVXRXRoU2ZQTk1x?=
+ =?utf-8?B?QUVsbG1oaUhtT3gxNXUzZ0VoazY3MmZnZVRmSVZBSDE2TUROZElkRHByemww?=
+ =?utf-8?B?ZE9wQmJ0bGV3Yzl1eHk1cHpRY1FlUWVxRmV5SGF2T00ydGNxNFl5SExBL3Er?=
+ =?utf-8?B?aXBPVXBneTZOMS80ZGlOQ3Q4TkJrWnJMS1BuY04vTG0yR0FUNDNTNGp3Zmxt?=
+ =?utf-8?Q?6/3JSd?=
 X-Forefront-Antispam-Report:
-	CIP:208.255.156.42;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:cn-mailer-00.localdomain;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(36860700013)(1800799024)(82310400026)(376014);DIR:OUT;SFP:1102;
+	CIP:208.255.156.42;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:cn-mailer-00.localdomain;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(376014)(82310400026)(36860700013)(1800799024);DIR:OUT;SFP:1102;
 X-OriginatorOrg: cornelisnetworks.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 30 Jun 2025 17:58:07.4634
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 30 Jun 2025 17:58:10.9177
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 41aa25b2-c16c-4e11-31b9-08ddb7ffab65
+X-MS-Exchange-CrossTenant-Network-Message-Id: 1a68ae43-196a-4bd7-fb29-08ddb7ffad70
 X-MS-Exchange-CrossTenant-Id: 4dbdb7da-74ee-4b45-8747-ef5ce5ebe68a
 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=4dbdb7da-74ee-4b45-8747-ef5ce5ebe68a;Ip=[208.255.156.42];Helo=[cn-mailer-00.localdomain]
 X-MS-Exchange-CrossTenant-AuthSource:
-	CY4PEPF0000E9DB.namprd05.prod.outlook.com
+	SN1PEPF000252A2.namprd05.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA1PR01MB9106
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA1PR01MB8670
 
-OPA Vnic has been abandoned and left to rot. Time to excise.
+The hfi2 driver will continue to support verbs, and libfabric. However
+unlike hfi1 there is no private cdev and user operations are managed
+through the ib core cdev and passed to the driver.
 
+Co-developed-by: Dean Luick <dean.luick@cornelisnetworks.com>
+Signed-off-by: Dean Luick <dean.luick@cornelisnetworks.com>
+Co-developed-by: Bendan Cunningham <brendan.cunningham@cornelisnetworks.com>
+Signed-off-by: Breandan Cunningham <brendan.cunningham@cornelisnetworks.com>
+Co-developed-by: Douglas Miller <doug.miller@cornelisnetworks.com>
+Signed-off-by: Douglas Miller <doug.miller@cornelisnetworks.com>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
 ---
- Documentation/infiniband/opa_vnic.rst              |  159 ---
- .../translations/zh_CN/infiniband/opa_vnic.rst     |  156 ---
- MAINTAINERS                                        |    6 
- drivers/infiniband/Kconfig                         |    2 
- drivers/infiniband/hw/hfi1/Makefile                |    4 
- drivers/infiniband/hw/hfi1/aspm.c                  |    2 
- drivers/infiniband/hw/hfi1/chip.c                  |   54 -
- drivers/infiniband/hw/hfi1/chip.h                  |    2 
- drivers/infiniband/hw/hfi1/driver.c                |   13 
- drivers/infiniband/hw/hfi1/hfi.h                   |   20 
- drivers/infiniband/hw/hfi1/init.c                  |    4 
- drivers/infiniband/hw/hfi1/mad.c                   |    1 
- drivers/infiniband/hw/hfi1/msix.c                  |    4 
- drivers/infiniband/hw/hfi1/netdev.h                |    8 
- drivers/infiniband/hw/hfi1/netdev_rx.c             |    3 
- drivers/infiniband/hw/hfi1/verbs.c                 |    2 
- drivers/infiniband/hw/hfi1/vnic.h                  |  126 --
- drivers/infiniband/hw/hfi1/vnic_main.c             |  615 ------------
- drivers/infiniband/hw/hfi1/vnic_sdma.c             |  282 -----
- drivers/infiniband/ulp/Makefile                    |    1 
- drivers/infiniband/ulp/opa_vnic/Kconfig            |    9 
- drivers/infiniband/ulp/opa_vnic/Makefile           |    9 
- drivers/infiniband/ulp/opa_vnic/opa_vnic_encap.c   |  513 ----------
- drivers/infiniband/ulp/opa_vnic/opa_vnic_encap.h   |  524 ----------
- drivers/infiniband/ulp/opa_vnic/opa_vnic_ethtool.c |  183 ---
- .../infiniband/ulp/opa_vnic/opa_vnic_internal.h    |  329 ------
- drivers/infiniband/ulp/opa_vnic/opa_vnic_netdev.c  |  400 --------
- drivers/infiniband/ulp/opa_vnic/opa_vnic_vema.c    | 1056 --------------------
- .../infiniband/ulp/opa_vnic/opa_vnic_vema_iface.c  |  390 -------
- 29 files changed, 20 insertions(+), 4857 deletions(-)
- delete mode 100644 Documentation/infiniband/opa_vnic.rst
- delete mode 100644 Documentation/translations/zh_CN/infiniband/opa_vnic.rst
- delete mode 100644 drivers/infiniband/hw/hfi1/vnic.h
- delete mode 100644 drivers/infiniband/hw/hfi1/vnic_main.c
- delete mode 100644 drivers/infiniband/hw/hfi1/vnic_sdma.c
- delete mode 100644 drivers/infiniband/ulp/opa_vnic/Kconfig
- delete mode 100644 drivers/infiniband/ulp/opa_vnic/Makefile
- delete mode 100644 drivers/infiniband/ulp/opa_vnic/opa_vnic_encap.c
- delete mode 100644 drivers/infiniband/ulp/opa_vnic/opa_vnic_encap.h
- delete mode 100644 drivers/infiniband/ulp/opa_vnic/opa_vnic_ethtool.c
- delete mode 100644 drivers/infiniband/ulp/opa_vnic/opa_vnic_internal.h
- delete mode 100644 drivers/infiniband/ulp/opa_vnic/opa_vnic_netdev.c
- delete mode 100644 drivers/infiniband/ulp/opa_vnic/opa_vnic_vema.c
- delete mode 100644 drivers/infiniband/ulp/opa_vnic/opa_vnic_vema_iface.c
+ drivers/infiniband/hw/hfi2/exp_rcv.h      |  156 ++++
+ drivers/infiniband/hw/hfi2/file_ops.h     |   46 +
+ drivers/infiniband/hw/hfi2/iowait.h       |  457 +++++++++++
+ drivers/infiniband/hw/hfi2/ipoib.h        |  172 ++++
+ drivers/infiniband/hw/hfi2/netdev.h       |   99 ++
+ drivers/infiniband/hw/hfi2/pinning.h      |   74 ++
+ drivers/infiniband/hw/hfi2/pio.h          |  305 +++++++
+ drivers/infiniband/hw/hfi2/qp.h           |  107 +++
+ drivers/infiniband/hw/hfi2/rc.h           |   59 +
+ drivers/infiniband/hw/hfi2/sdma.h         | 1212 +++++++++++++++++++++++++++++
+ drivers/infiniband/hw/hfi2/sdma_defs.h    |  116 +++
+ drivers/infiniband/hw/hfi2/sdma_txreq.h   |  104 ++
+ drivers/infiniband/hw/hfi2/tid_rdma.h     |  320 ++++++++
+ drivers/infiniband/hw/hfi2/user_exp_rcv.h |  404 ++++++++++
+ drivers/infiniband/hw/hfi2/user_sdma.h    |  262 ++++++
+ drivers/infiniband/hw/hfi2/uverbs.h       |   19 
+ drivers/infiniband/hw/hfi2/verbs.h        |  488 ++++++++++++
+ drivers/infiniband/hw/hfi2/verbs_txreq.h  |   97 ++
+ 18 files changed, 4497 insertions(+)
+ create mode 100644 drivers/infiniband/hw/hfi2/exp_rcv.h
+ create mode 100644 drivers/infiniband/hw/hfi2/file_ops.h
+ create mode 100644 drivers/infiniband/hw/hfi2/iowait.h
+ create mode 100644 drivers/infiniband/hw/hfi2/ipoib.h
+ create mode 100644 drivers/infiniband/hw/hfi2/netdev.h
+ create mode 100644 drivers/infiniband/hw/hfi2/pinning.h
+ create mode 100644 drivers/infiniband/hw/hfi2/pio.h
+ create mode 100644 drivers/infiniband/hw/hfi2/qp.h
+ create mode 100644 drivers/infiniband/hw/hfi2/rc.h
+ create mode 100644 drivers/infiniband/hw/hfi2/sdma.h
+ create mode 100644 drivers/infiniband/hw/hfi2/sdma_defs.h
+ create mode 100644 drivers/infiniband/hw/hfi2/sdma_txreq.h
+ create mode 100644 drivers/infiniband/hw/hfi2/tid_rdma.h
+ create mode 100644 drivers/infiniband/hw/hfi2/user_exp_rcv.h
+ create mode 100644 drivers/infiniband/hw/hfi2/user_sdma.h
+ create mode 100644 drivers/infiniband/hw/hfi2/uverbs.h
+ create mode 100644 drivers/infiniband/hw/hfi2/verbs.h
+ create mode 100644 drivers/infiniband/hw/hfi2/verbs_txreq.h
 
-diff --git a/Documentation/infiniband/opa_vnic.rst b/Documentation/infiniband/opa_vnic.rst
-deleted file mode 100644
-index 2f888d9ffec0..000000000000
---- a/Documentation/infiniband/opa_vnic.rst
-+++ /dev/null
-@@ -1,159 +0,0 @@
--=================================================================
--Intel Omni-Path (OPA) Virtual Network Interface Controller (VNIC)
--=================================================================
--
--Intel Omni-Path (OPA) Virtual Network Interface Controller (VNIC) feature
--supports Ethernet functionality over Omni-Path fabric by encapsulating
--the Ethernet packets between HFI nodes.
--
--Architecture
--=============
--The patterns of exchanges of Omni-Path encapsulated Ethernet packets
--involves one or more virtual Ethernet switches overlaid on the Omni-Path
--fabric topology. A subset of HFI nodes on the Omni-Path fabric are
--permitted to exchange encapsulated Ethernet packets across a particular
--virtual Ethernet switch. The virtual Ethernet switches are logical
--abstractions achieved by configuring the HFI nodes on the fabric for
--header generation and processing. In the simplest configuration all HFI
--nodes across the fabric exchange encapsulated Ethernet packets over a
--single virtual Ethernet switch. A virtual Ethernet switch, is effectively
--an independent Ethernet network. The configuration is performed by an
--Ethernet Manager (EM) which is part of the trusted Fabric Manager (FM)
--application. HFI nodes can have multiple VNICs each connected to a
--different virtual Ethernet switch. The below diagram presents a case
--of two virtual Ethernet switches with two HFI nodes::
--
--                               +-------------------+
--                               |      Subnet/      |
--                               |     Ethernet      |
--                               |      Manager      |
--                               +-------------------+
--                                  /          /
--                                /           /
--                              /            /
--                            /             /
--  +-----------------------------+  +------------------------------+
--  |  Virtual Ethernet Switch    |  |  Virtual Ethernet Switch     |
--  |  +---------+    +---------+ |  | +---------+    +---------+   |
--  |  | VPORT   |    |  VPORT  | |  | |  VPORT  |    |  VPORT  |   |
--  +--+---------+----+---------+-+  +-+---------+----+---------+---+
--           |                 \        /                 |
--           |                   \    /                   |
--           |                     \/                     |
--           |                    /  \                    |
--           |                  /      \                  |
--       +-----------+------------+  +-----------+------------+
--       |   VNIC    |    VNIC    |  |    VNIC   |    VNIC    |
--       +-----------+------------+  +-----------+------------+
--       |          HFI           |  |          HFI           |
--       +------------------------+  +------------------------+
--
--
--The Omni-Path encapsulated Ethernet packet format is as described below.
--
--==================== ================================
--Bits                 Field
--==================== ================================
--Quad Word 0:
--0-19                 SLID (lower 20 bits)
--20-30                Length (in Quad Words)
--31                   BECN bit
--32-51                DLID (lower 20 bits)
--52-56                SC (Service Class)
--57-59                RC (Routing Control)
--60                   FECN bit
--61-62                L2 (=10, 16B format)
--63                   LT (=1, Link Transfer Head Flit)
--
--Quad Word 1:
--0-7                  L4 type (=0x78 ETHERNET)
--8-11                 SLID[23:20]
--12-15                DLID[23:20]
--16-31                PKEY
--32-47                Entropy
--48-63                Reserved
--
--Quad Word 2:
--0-15                 Reserved
--16-31                L4 header
--32-63                Ethernet Packet
--
--Quad Words 3 to N-1:
--0-63                 Ethernet packet (pad extended)
--
--Quad Word N (last):
--0-23                 Ethernet packet (pad extended)
--24-55                ICRC
--56-61                Tail
--62-63                LT (=01, Link Transfer Tail Flit)
--==================== ================================
--
--Ethernet packet is padded on the transmit side to ensure that the VNIC OPA
--packet is quad word aligned. The 'Tail' field contains the number of bytes
--padded. On the receive side the 'Tail' field is read and the padding is
--removed (along with ICRC, Tail and OPA header) before passing packet up
--the network stack.
--
--The L4 header field contains the virtual Ethernet switch id the VNIC port
--belongs to. On the receive side, this field is used to de-multiplex the
--received VNIC packets to different VNIC ports.
--
--Driver Design
--==============
--Intel OPA VNIC software design is presented in the below diagram.
--OPA VNIC functionality has a HW dependent component and a HW
--independent component.
--
--The support has been added for IB device to allocate and free the RDMA
--netdev devices. The RDMA netdev supports interfacing with the network
--stack thus creating standard network interfaces. OPA_VNIC is an RDMA
--netdev device type.
--
--The HW dependent VNIC functionality is part of the HFI1 driver. It
--implements the verbs to allocate and free the OPA_VNIC RDMA netdev.
--It involves HW resource allocation/management for VNIC functionality.
--It interfaces with the network stack and implements the required
--net_device_ops functions. It expects Omni-Path encapsulated Ethernet
--packets in the transmit path and provides HW access to them. It strips
--the Omni-Path header from the received packets before passing them up
--the network stack. It also implements the RDMA netdev control operations.
--
--The OPA VNIC module implements the HW independent VNIC functionality.
--It consists of two parts. The VNIC Ethernet Management Agent (VEMA)
--registers itself with IB core as an IB client and interfaces with the
--IB MAD stack. It exchanges the management information with the Ethernet
--Manager (EM) and the VNIC netdev. The VNIC netdev part allocates and frees
--the OPA_VNIC RDMA netdev devices. It overrides the net_device_ops functions
--set by HW dependent VNIC driver where required to accommodate any control
--operation. It also handles the encapsulation of Ethernet packets with an
--Omni-Path header in the transmit path. For each VNIC interface, the
--information required for encapsulation is configured by the EM via VEMA MAD
--interface. It also passes any control information to the HW dependent driver
--by invoking the RDMA netdev control operations::
--
--        +-------------------+ +----------------------+
--        |                   | |       Linux          |
--        |     IB MAD        | |      Network         |
--        |                   | |       Stack          |
--        +-------------------+ +----------------------+
--                 |               |          |
--                 |               |          |
--        +----------------------------+      |
--        |                            |      |
--        |      OPA VNIC Module       |      |
--        |  (OPA VNIC RDMA Netdev     |      |
--        |     & EMA functions)       |      |
--        |                            |      |
--        +----------------------------+      |
--                    |                       |
--                    |                       |
--           +------------------+             |
--           |     IB core      |             |
--           +------------------+             |
--                    |                       |
--                    |                       |
--        +--------------------------------------------+
--        |                                            |
--        |      HFI1 Driver with VNIC support         |
--        |                                            |
--        +--------------------------------------------+
-diff --git a/Documentation/translations/zh_CN/infiniband/opa_vnic.rst b/Documentation/translations/zh_CN/infiniband/opa_vnic.rst
-deleted file mode 100644
-index 12b147fbf792..000000000000
---- a/Documentation/translations/zh_CN/infiniband/opa_vnic.rst
-+++ /dev/null
-@@ -1,156 +0,0 @@
--.. include:: ../disclaimer-zh_CN.rst
--
--:Original: Documentation/infiniband/opa_vnic.rst
--
--:翻译:
--
-- 司延腾 Yanteng Si <siyanteng@loongson.cn>
--
--:校译:
--
-- 王普宇 Puyu Wang <realpuyuwang@gmail.com>
-- 时奎亮 Alex Shi <alexs@kernel.org>
--
--.. _cn_infiniband_opa_vnic:
--
--=============================================
--英特尔全路径（OPA）虚拟网络接口控制器（VNIC）
--=============================================
--
--英特尔全路径（OPA）虚拟网络接口控制器（VNIC）功能通过封装HFI节点之间的以
--太网数据包，支持Omni-Path结构上的以太网功能。
--
--体系结构
--========
--
--Omni-Path封装的以太网数据包的交换模式涉及Omni-Path结构拓扑上覆盖的一个或
--多个虚拟以太网交换机。Omni-Path结构上的HFI节点的一个子集被允许在特定的虚
--拟以太网交换机上交换封装的以太网数据包。虚拟以太网交换机是通过配置结构上的
--HFI节点实现的逻辑抽象，用于生成和处理报头。在最简单的配置中，整个结构的所有
--HFI节点通过一个虚拟以太网交换机交换封装的以太网数据包。一个虚拟以太网交换机，
--实际上是一个独立的以太网网络。该配置由以太网管理器（EM）执行，它是可信的结
--构管理器（FM）应用程序的一部分。HFI节点可以有多个VNIC，每个连接到不同的虚
--拟以太网交换机。下图介绍了两个虚拟以太网交换机与两个HFI节点的情况::
--
--                               +-------------------+
--                               |      子网/        |
--                               |     以太网        |
--                               |      管理         |
--                               +-------------------+
--                                  /          /
--                                /           /
--                              /            /
--                            /             /
--  +-----------------------------+  +------------------------------+
--  |     虚拟以太网切换          |  |      虚拟以太网切换          |
--  |  +---------+    +---------+ |  | +---------+    +---------+   |
--  |  | VPORT   |    |  VPORT  | |  | |  VPORT  |    |  VPORT  |   |
--  +--+---------+----+---------+-+  +-+---------+----+---------+---+
--           |                 \        /                 |
--           |                   \    /                   |
--           |                     \/                     |
--           |                    /  \                    |
--           |                  /      \                  |
--       +-----------+------------+  +-----------+------------+
--       |   VNIC    |    VNIC    |  |    VNIC   |    VNIC    |
--       +-----------+------------+  +-----------+------------+
--       |          HFI           |  |          HFI           |
--       +------------------------+  +------------------------+
--
--
--Omni-Path封装的以太网数据包格式如下所述。
--
--==================== ================================
--位                   域
--==================== ================================
--Quad Word 0:
--0-19                 SLID (低20位)
--20-30                长度 (以四字为单位)
--31                   BECN 位
--32-51                DLID (低20位)
--52-56                SC (服务级别)
--57-59                RC (路由控制)
--60                   FECN 位
--61-62                L2 (=10, 16B 格式)
--63                   LT (=1, 链路传输头 Flit)
--
--Quad Word 1:
--0-7                  L4 type (=0x78 ETHERNET)
--8-11                 SLID[23:20]
--12-15                DLID[23:20]
--16-31                PKEY
--32-47                熵
--48-63                保留
--
--Quad Word 2:
--0-15                 保留
--16-31                L4 头
--32-63                以太网数据包
--
--Quad Words 3 to N-1:
--0-63                 以太网数据包 (pad拓展)
--
--Quad Word N (last):
--0-23                 以太网数据包 (pad拓展)
--24-55                ICRC
--56-61                尾
--62-63                LT (=01, 链路传输尾 Flit)
--==================== ================================
--
--以太网数据包在传输端被填充，以确保VNIC OPA数据包是四字对齐的。“尾”字段
--包含填充的字节数。在接收端，“尾”字段被读取，在将数据包向上传递到网络堆
--栈之前，填充物被移除（与ICRC、尾和OPA头一起）。
--
--L4头字段包含VNIC端口所属的虚拟以太网交换机ID。在接收端，该字段用于将收
--到的VNIC数据包去多路复用到不同的VNIC端口。
--
--驱动设计
--========
--
--英特尔OPA VNIC的软件设计如下图所示。OPA VNIC功能有一个依赖于硬件的部分
--和一个独立于硬件的部分。
--
--对IB设备分配和释放RDMA netdev设备的支持已经被加入。RDMA netdev支持与
--网络堆栈的对接，从而创建标准的网络接口。OPA_VNIC是一个RDMA netdev设备
--类型。
--
--依赖于HW的VNIC功能是HFI1驱动的一部分。它实现了分配和释放OPA_VNIC RDMA
--netdev的动作。它涉及VNIC功能的HW资源分配/管理。它与网络堆栈接口并实现所
--需的net_device_ops功能。它在传输路径中期待Omni-Path封装的以太网数据包，
--并提供对它们的HW访问。在将数据包向上传递到网络堆栈之前，它把Omni-Path头
--从接收的数据包中剥离。它还实现了RDMA netdev控制操作。
--
--OPA VNIC模块实现了独立于硬件的VNIC功能。它由两部分组成。VNIC以太网管理
--代理（VEMA）作为一个IB客户端向IB核心注册，并与IB MAD栈接口。它与以太网
--管理器（EM）和VNIC netdev交换管理信息。VNIC netdev部分分配和释放OPA_VNIC
--RDMA netdev设备。它在需要时覆盖由依赖HW的VNIC驱动设置的net_device_ops函数，
--以适应任何控制操作。它还处理以太网数据包的封装，在传输路径中使用Omni-Path头。
--对于每个VNIC接口，封装所需的信息是由EM通过VEMA MAD接口配置的。它还通过调用
--RDMA netdev控制操作将任何控制信息传递给依赖于HW的驱动程序::
--
--        +-------------------+ +----------------------+
--        |                   | |       Linux          |
--        |     IB MAD        | |       网络           |
--        |                   | |       栈             |
--        +-------------------+ +----------------------+
--                 |               |          |
--                 |               |          |
--        +----------------------------+      |
--        |                            |      |
--        |      OPA VNIC 模块         |      |
--        |  (OPA VNIC RDMA Netdev     |      |
--        |     & EMA 函数)            |      |
--        |                            |      |
--        +----------------------------+      |
--                    |                       |
--                    |                       |
--           +------------------+             |
--           |     IB 核心      |             |
--           +------------------+             |
--                    |                       |
--                    |                       |
--        +--------------------------------------------+
--        |                                            |
--        |      HFI1 驱动和 VNIC 支持                 |
--        |                                            |
--        +--------------------------------------------+
-diff --git a/MAINTAINERS b/MAINTAINERS
-index dd844ac8d910..c95f54b45fc3 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -18263,12 +18263,6 @@ L:	linux-rtc@vger.kernel.org
- S:	Maintained
- F:	drivers/rtc/rtc-optee.c
- 
--OPA-VNIC DRIVER
--M:	Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
--L:	linux-rdma@vger.kernel.org
--S:	Supported
--F:	drivers/infiniband/ulp/opa_vnic
--
- OPEN ALLIANCE 10BASE-T1S MACPHY SERIAL INTERFACE FRAMEWORK
- M:	Parthiban Veerasooran <parthiban.veerasooran@microchip.com>
- L:	netdev@vger.kernel.org
-diff --git a/drivers/infiniband/Kconfig b/drivers/infiniband/Kconfig
-index a5827d11e934..abf8fd114a2c 100644
---- a/drivers/infiniband/Kconfig
-+++ b/drivers/infiniband/Kconfig
-@@ -110,6 +110,4 @@ source "drivers/infiniband/ulp/iser/Kconfig"
- source "drivers/infiniband/ulp/isert/Kconfig"
- source "drivers/infiniband/ulp/rtrs/Kconfig"
- 
--source "drivers/infiniband/ulp/opa_vnic/Kconfig"
--
- endif # INFINIBAND
-diff --git a/drivers/infiniband/hw/hfi1/Makefile b/drivers/infiniband/hw/hfi1/Makefile
-index 5d977f363684..b5551bd4703b 100644
---- a/drivers/infiniband/hw/hfi1/Makefile
-+++ b/drivers/infiniband/hw/hfi1/Makefile
-@@ -49,9 +49,7 @@ hfi1-y := \
- 	user_pages.o \
- 	user_sdma.o \
- 	verbs.o \
--	verbs_txreq.o \
--	vnic_main.o \
--	vnic_sdma.o
-+	verbs_txreq.o
- 
- ifdef CONFIG_DEBUG_FS
- hfi1-y += debugfs.o
-diff --git a/drivers/infiniband/hw/hfi1/aspm.c b/drivers/infiniband/hw/hfi1/aspm.c
-index 9b508eaf441d..4b64a338d0d6 100644
---- a/drivers/infiniband/hw/hfi1/aspm.c
-+++ b/drivers/infiniband/hw/hfi1/aspm.c
-@@ -179,7 +179,7 @@ static  void aspm_ctx_timer_function(struct timer_list *t)
- }
- 
- /*
-- * Disable interrupt processing for verbs contexts when PSM or VNIC contexts
-+ * Disable interrupt processing for verbs contexts when PSM contexts
-  * are open.
-  */
- void aspm_disable_all(struct hfi1_devdata *dd)
-diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
-index e908f529335d..b63650ba8946 100644
---- a/drivers/infiniband/hw/hfi1/chip.c
-+++ b/drivers/infiniband/hw/hfi1/chip.c
-@@ -85,12 +85,12 @@ struct flag_table {
- /*
-  * RSM instance allocation
-  *   0 - User Fecn Handling
-- *   1 - Vnic
-+ *   1 - Deprecated
-  *   2 - AIP
-  *   3 - Verbs
-  */
- #define RSM_INS_FECN              0
--#define RSM_INS_VNIC              1
-+#define RSM_INS_DEPRECATED        1
- #define RSM_INS_AIP               2
- #define RSM_INS_VERBS             3
- 
-@@ -152,15 +152,6 @@ struct flag_table {
- #define DETH_AIP_SQPN_SELECT_OFFSET \
- 	DETH_AIP_SQPN_OFFSET(DETH_AIP_SQPN_BIT_OFFSET)
- 
--/* RSM fields for Vnic */
--/* L2_TYPE: QW 0, OFFSET 61 - for match */
--#define L2_TYPE_QW             0ull
--#define L2_TYPE_BIT_OFFSET     61ull
--#define L2_TYPE_OFFSET(off)    ((L2_TYPE_QW << QW_SHIFT) | (off))
--#define L2_TYPE_MATCH_OFFSET   L2_TYPE_OFFSET(L2_TYPE_BIT_OFFSET)
--#define L2_TYPE_MASK           3ull
--#define L2_16B_VALUE           2ull
--
- /* L4_TYPE QW 1, OFFSET 0 - for match */
- #define L4_TYPE_QW              1ull
- #define L4_TYPE_BIT_OFFSET      0ull
-@@ -6844,9 +6835,9 @@ static void rxe_kernel_unfreeze(struct hfi1_devdata *dd)
- 	for (i = 0; i < dd->num_rcv_contexts; i++) {
- 		rcd = hfi1_rcd_get_by_index(dd, i);
- 
--		/* Ensure all non-user contexts(including vnic) are enabled */
-+		/* Ensure all non-user contexts are enabled */
- 		if (!rcd ||
--		    (i >= dd->first_dyn_alloc_ctxt && !rcd->is_vnic)) {
-+		    (i >= dd->first_dyn_alloc_ctxt )) {
- 			hfi1_rcd_put(rcd);
- 			continue;
- 		}
-@@ -8467,7 +8458,7 @@ int hfi1_netdev_rx_napi(struct napi_struct *napi, int budget)
- 	return work_done;
- }
- 
--/* Receive packet napi handler for netdevs VNIC and AIP  */
-+/* Receive packet napi handler for netdevs AIP  */
- irqreturn_t receive_context_interrupt_napi(int irq, void *data)
- {
- 	struct hfi1_ctxtdata *rcd = data;
-@@ -14506,7 +14497,7 @@ static bool hfi1_netdev_update_rmt(struct hfi1_devdata *dd)
- 	int ctxt_count = hfi1_netdev_ctxt_count(dd);
- 
- 	/* We already have contexts mapped in RMT */
--	if (has_rsm_rule(dd, RSM_INS_VNIC) || has_rsm_rule(dd, RSM_INS_AIP)) {
-+	if (has_rsm_rule(dd, RSM_INS_AIP)) {
- 		dd_dev_info(dd, "Contexts are already mapped in RMT\n");
- 		return true;
- 	}
-@@ -14587,37 +14578,6 @@ void hfi1_init_aip_rsm(struct hfi1_devdata *dd)
- 	}
- }
- 
--/* Initialize RSM for VNIC */
--void hfi1_init_vnic_rsm(struct hfi1_devdata *dd)
--{
--	int rmt_start = hfi1_netdev_get_free_rmt_idx(dd);
--	struct rsm_rule_data rrd = {
--		/* Add rule for vnic */
--		.offset = rmt_start,
--		.pkt_type = 4,
--		/* Match 16B packets */
--		.field1_off = L2_TYPE_MATCH_OFFSET,
--		.mask1 = L2_TYPE_MASK,
--		.value1 = L2_16B_VALUE,
--		/* Match ETH L4 packets */
--		.field2_off = L4_TYPE_MATCH_OFFSET,
--		.mask2 = L4_16B_TYPE_MASK,
--		.value2 = L4_16B_ETH_VALUE,
--		/* Calc context from veswid and entropy */
--		.index1_off = L4_16B_HDR_VESWID_OFFSET,
--		.index1_width = ilog2(NUM_NETDEV_MAP_ENTRIES),
--		.index2_off = L2_16B_ENTROPY_OFFSET,
--		.index2_width = ilog2(NUM_NETDEV_MAP_ENTRIES)
--	};
--
--	hfi1_enable_rsm_rule(dd, RSM_INS_VNIC, &rrd);
--}
--
--void hfi1_deinit_vnic_rsm(struct hfi1_devdata *dd)
--{
--	clear_rsm_rule(dd, RSM_INS_VNIC);
--}
--
- void hfi1_deinit_aip_rsm(struct hfi1_devdata *dd)
- {
- 	/* only actually clear the rule if it's the last user asking to do so */
-@@ -15195,7 +15155,7 @@ int hfi1_init_dd(struct hfi1_devdata *dd)
- 		 (dd->revision >> CCE_REVISION_SW_SHIFT)
- 		    & CCE_REVISION_SW_MASK);
- 
--	/* alloc VNIC/AIP rx data */
-+	/* alloc AIP rx data */
- 	ret = hfi1_alloc_rx(dd);
- 	if (ret)
- 		goto bail_cleanup;
-diff --git a/drivers/infiniband/hw/hfi1/chip.h b/drivers/infiniband/hw/hfi1/chip.h
-index 6992f6d40255..56e03d486ace 100644
---- a/drivers/infiniband/hw/hfi1/chip.h
-+++ b/drivers/infiniband/hw/hfi1/chip.h
-@@ -1392,8 +1392,6 @@ int hfi1_set_ctxt_pkey(struct hfi1_devdata *dd, struct hfi1_ctxtdata *ctxt,
- 		       u16 pkey);
- int hfi1_clear_ctxt_pkey(struct hfi1_devdata *dd, struct hfi1_ctxtdata *ctxt);
- void hfi1_read_link_quality(struct hfi1_devdata *dd, u8 *link_quality);
--void hfi1_init_vnic_rsm(struct hfi1_devdata *dd);
--void hfi1_deinit_vnic_rsm(struct hfi1_devdata *dd);
- 
- irqreturn_t general_interrupt(int irq, void *data);
- irqreturn_t sdma_interrupt(int irq, void *data);
-diff --git a/drivers/infiniband/hw/hfi1/driver.c b/drivers/infiniband/hw/hfi1/driver.c
-index 3da90f2eb8e7..01943571a153 100644
---- a/drivers/infiniband/hw/hfi1/driver.c
-+++ b/drivers/infiniband/hw/hfi1/driver.c
-@@ -20,7 +20,6 @@
- #include "qp.h"
- #include "sdma.h"
- #include "debugfs.h"
--#include "vnic.h"
- #include "fault.h"
- 
- #include "ipoib.h"
-@@ -909,11 +908,11 @@ static void set_all_fastpath(struct hfi1_devdata *dd, struct hfi1_ctxtdata *rcd)
- 	u16 i;
- 
- 	/*
--	 * For dynamically allocated kernel contexts (like vnic) switch
-+	 * For dynamically allocated kernel contexts switch
- 	 * interrupt handler only for that context. Otherwise, switch
- 	 * interrupt handler for all statically allocated kernel contexts.
- 	 */
--	if (rcd->ctxt >= dd->first_dyn_alloc_ctxt && !rcd->is_vnic) {
-+	if (rcd->ctxt >= dd->first_dyn_alloc_ctxt) {
- 		hfi1_rcd_get(rcd);
- 		hfi1_set_fast(rcd);
- 		hfi1_rcd_put(rcd);
-@@ -922,7 +921,7 @@ static void set_all_fastpath(struct hfi1_devdata *dd, struct hfi1_ctxtdata *rcd)
- 
- 	for (i = HFI1_CTRL_CTXT + 1; i < dd->num_rcv_contexts; i++) {
- 		rcd = hfi1_rcd_get_by_index(dd, i);
--		if (rcd && (i < dd->first_dyn_alloc_ctxt || rcd->is_vnic))
-+		if (rcd && (i < dd->first_dyn_alloc_ctxt))
- 			hfi1_set_fast(rcd);
- 		hfi1_rcd_put(rcd);
- 	}
-@@ -938,7 +937,7 @@ void set_all_slowpath(struct hfi1_devdata *dd)
- 		rcd = hfi1_rcd_get_by_index(dd, i);
- 		if (!rcd)
- 			continue;
--		if (i < dd->first_dyn_alloc_ctxt || rcd->is_vnic)
-+		if (i < dd->first_dyn_alloc_ctxt)
- 			rcd->do_interrupt = rcd->slow_handler;
- 
- 		hfi1_rcd_put(rcd);
-@@ -1399,7 +1398,7 @@ int hfi1_reset_device(int unit)
- 		goto bail;
- 	}
- 
--	/* If there are any user/vnic contexts, we cannot reset */
-+	/* If there are any user contexts, we cannot reset */
- 	mutex_lock(&hfi1_mutex);
- 	if (dd->rcd)
- 		if (hfi1_stats.sps_ctxts) {
-@@ -1898,7 +1897,7 @@ const rhf_rcv_function_ptr netdev_rhf_rcv_functions[] = {
- 	[RHF_RCV_TYPE_EAGER] = process_receive_invalid,
- 	[RHF_RCV_TYPE_IB] = hfi1_ipoib_ib_rcv,
- 	[RHF_RCV_TYPE_ERROR] = process_receive_error,
--	[RHF_RCV_TYPE_BYPASS] = hfi1_vnic_bypass_rcv,
-+	[RHF_RCV_TYPE_BYPASS] = process_receive_invalid,
- 	[RHF_RCV_TYPE_INVALID5] = process_receive_invalid,
- 	[RHF_RCV_TYPE_INVALID6] = process_receive_invalid,
- 	[RHF_RCV_TYPE_INVALID7] = process_receive_invalid,
-diff --git a/drivers/infiniband/hw/hfi1/hfi.h b/drivers/infiniband/hw/hfi1/hfi.h
-index cb630551cf1a..5a0310f758dc 100644
---- a/drivers/infiniband/hw/hfi1/hfi.h
-+++ b/drivers/infiniband/hw/hfi1/hfi.h
-@@ -212,10 +212,6 @@ struct hfi1_ctxtdata {
- 	u8 rhf_offset;
- 	/* dynamic receive available interrupt timeout */
- 	u8 rcvavail_timeout;
--	/* Indicates that this is vnic context */
--	bool is_vnic;
--	/* vnic queue index this context is mapped to */
--	u8 vnic_q_idx;
- 	/* Is ASPM interrupt supported for this context */
- 	bool aspm_intr_supported;
- 	/* ASPM state (enabled/disabled) for this context */
-@@ -402,7 +398,6 @@ struct hfi1_packet {
- #define OPA_16B_L4_FM		0x08
- #define OPA_16B_L4_IB_LOCAL	0x09
- #define OPA_16B_L4_IB_GLOBAL	0x0A
--#define OPA_16B_L4_ETHR		OPA_VNIC_L4_ETHR
- 
- /*
-  * OPA 16B Management
-@@ -997,14 +992,6 @@ struct hfi1_asic_data {
- #define NUM_MAP_ENTRIES	 256
- #define NUM_MAP_REGS      32
- 
--/* Virtual NIC information */
--struct hfi1_vnic_data {
--	struct kmem_cache *txreq_cache;
--	u8 num_vports;
--};
--
--struct hfi1_vnic_vport_info;
--
- /* device data struct now contains only "general per-device" info.
-  * fields related to a physical IB port are in a hfi1_pportdata struct.
-  */
-@@ -1298,9 +1285,6 @@ struct hfi1_devdata {
- 	send_routine process_dma_send;
- 	void (*pio_inline_send)(struct hfi1_devdata *dd, struct pio_buf *pbuf,
- 				u64 pbc, const void *from, size_t count);
--	int (*process_vnic_dma_send)(struct hfi1_devdata *dd, u8 q_idx,
--				     struct hfi1_vnic_vport_info *vinfo,
--				     struct sk_buff *skb, u64 pbc, u8 plen);
- 	/* hfi1_pportdata, points to array of (physical) port-specific
- 	 * data structs, indexed by pidx (0..n-1)
- 	 */
-@@ -1314,7 +1298,6 @@ struct hfi1_devdata {
- 	u16 flags;
- 	/* Number of physical ports available */
- 	u8 num_pports;
--	/* Lowest context number which can be used by user processes or VNIC */
- 	u8 first_dyn_alloc_ctxt;
- 	/* adding a new field here would make it part of this cacheline */
- 
-@@ -1353,11 +1336,8 @@ struct hfi1_devdata {
- 	bool aspm_enabled;	/* ASPM state: enabled/disabled */
- 	struct rhashtable *sdma_rht;
- 
--	/* vnic data */
--	struct hfi1_vnic_data vnic;
- 	/* Lock to protect IRQ SRC register access */
- 	spinlock_t irq_src_lock;
--	int vnic_num_vports;
- 	struct hfi1_netdev_rx *netdev_rx;
- 	struct hfi1_affinity_node *affinity_entry;
- 
-diff --git a/drivers/infiniband/hw/hfi1/init.c b/drivers/infiniband/hw/hfi1/init.c
-index b35f92e7d865..1eae00fdd439 100644
---- a/drivers/infiniband/hw/hfi1/init.c
-+++ b/drivers/infiniband/hw/hfi1/init.c
-@@ -26,7 +26,6 @@
- #include "verbs.h"
- #include "aspm.h"
- #include "affinity.h"
--#include "vnic.h"
- #include "exp_rcv.h"
- #include "netdev.h"
- 
-@@ -349,7 +348,7 @@ int hfi1_create_ctxtdata(struct hfi1_pportdata *ppd, int numa,
- 		 * We do this here because we have to take into account all
- 		 * the RcvArray entries that previous context would have
- 		 * taken and we have to account for any extra groups assigned
--		 * to the static (kernel) or dynamic (vnic/user) contexts.
-+		 * to the static (kernel) or dynamic (user) contexts.
- 		 */
- 		if (ctxt < dd->first_dyn_alloc_ctxt) {
- 			if (ctxt < kctxt_ngroups) {
-@@ -851,7 +850,6 @@ int hfi1_init(struct hfi1_devdata *dd, int reinit)
- 	dd->process_pio_send = hfi1_verbs_send_pio;
- 	dd->process_dma_send = hfi1_verbs_send_dma;
- 	dd->pio_inline_send = pio_copy;
--	dd->process_vnic_dma_send = hfi1_vnic_send_dma;
- 
- 	if (is_ax(dd)) {
- 		atomic_set(&dd->drop_packet, DROP_PACKET_ON);
-diff --git a/drivers/infiniband/hw/hfi1/mad.c b/drivers/infiniband/hw/hfi1/mad.c
-index b39f63ce6dfc..de2dfd59cede 100644
---- a/drivers/infiniband/hw/hfi1/mad.c
-+++ b/drivers/infiniband/hw/hfi1/mad.c
-@@ -12,7 +12,6 @@
- #include "mad.h"
- #include "trace.h"
- #include "qp.h"
--#include "vnic.h"
- 
- /* the reset value from the FM is supposed to be 0xffff, handle both */
- #define OPA_LINK_WIDTH_RESET_OLD 0x0fff
-diff --git a/drivers/infiniband/hw/hfi1/msix.c b/drivers/infiniband/hw/hfi1/msix.c
-index 77d2ece9a9cb..cc57c7e39337 100644
---- a/drivers/infiniband/hw/hfi1/msix.c
-+++ b/drivers/infiniband/hw/hfi1/msix.c
-@@ -24,7 +24,6 @@ int msix_initialize(struct hfi1_devdata *dd)
- 	 *	one for the general, "slow path" interrupt
- 	 *	one per used SDMA engine
- 	 *	one per kernel receive context
--	 *	one for each VNIC context
- 	 *      ...any new IRQs should be added here.
- 	 */
- 	total = 1 + dd->num_sdma + dd->n_krcv_queues + dd->num_netdev_contexts;
-@@ -128,8 +127,7 @@ static int msix_request_rcd_irq_common(struct hfi1_ctxtdata *rcd,
- 				       irq_handler_t thread,
- 				       const char *name)
- {
--	int nr = msix_request_irq(rcd->dd, rcd, handler, thread,
--				  rcd->is_vnic ? IRQ_NETDEVCTXT : IRQ_RCVCTXT,
-+	int nr = msix_request_irq(rcd->dd, rcd, handler, thread, IRQ_RCVCTXT,
- 				  name);
- 	if (nr < 0)
- 		return nr;
-diff --git a/drivers/infiniband/hw/hfi1/netdev.h b/drivers/infiniband/hw/hfi1/netdev.h
-index 07c8f77c9181..c6440bd07d2e 100644
---- a/drivers/infiniband/hw/hfi1/netdev.h
-+++ b/drivers/infiniband/hw/hfi1/netdev.h
-@@ -14,7 +14,7 @@
- 
- /**
-  * struct hfi1_netdev_rxq - Receive Queue for HFI
-- * Both IPoIB and VNIC netdevices will be working on the rx abstraction.
+diff --git a/drivers/infiniband/hw/hfi2/exp_rcv.h b/drivers/infiniband/hw/hfi2/exp_rcv.h
+new file mode 100644
+index 000000000000..76c422646626
+--- /dev/null
++++ b/drivers/infiniband/hw/hfi2/exp_rcv.h
+@@ -0,0 +1,156 @@
++/* SPDX-License-Identifier: GPL-2.0 OR BSD-3-Clause */
++/*
++ * Copyright(c) 2017 Intel Corporation.
++ */
++
++#ifndef _HFI2_EXP_RCV_H
++#define _HFI2_EXP_RCV_H
++#include "hfi2.h"
++
++#define EXP_TID_SET_EMPTY(set) (set.count == 0 && list_empty(&set.list))
++
++#define EXP_TID_TIDLEN_MASK   0x7FFULL
++#define EXP_TID_TIDLEN_SHIFT  0
++#define EXP_TID_TIDCTRL_MASK  0x3ULL
++#define EXP_TID_TIDCTRL_SHIFT 20
++#define EXP_TID_TIDIDX_MASK   0x3FFULL
++#define EXP_TID_TIDIDX_SHIFT  22
++
++/* Expected buffer entry (TID) addressing supported by the hardware */
++#define EXP_TID_ADDR_SHIFT    12
++#define EXP_TID_ADDR_SIZE     BIT(EXP_TID_ADDR_SHIFT)
++
++#define EXP_TID_GET(tid, field)	\
++	(((tid) >> EXP_TID_TID##field##_SHIFT) & EXP_TID_TID##field##_MASK)
++
++#define EXP_TID_SET(field, value)			\
++	(((value) & EXP_TID_TID##field##_MASK) <<	\
++	 EXP_TID_TID##field##_SHIFT)
++#define EXP_TID_CLEAR(tid, field) ({					\
++		(tid) &= ~(EXP_TID_TID##field##_MASK <<			\
++			   EXP_TID_TID##field##_SHIFT);			\
++		})
++#define EXP_TID_RESET(tid, field, value) do {				\
++		EXP_TID_CLEAR(tid, field);				\
++		(tid) |= EXP_TID_SET(field, (value));			\
++	} while (0)
++
++/*
++ * Define fields in the KDETH header so we can update the header
++ * template.
++ */
++#define KDETH_OFFSET_SHIFT        0
++#define KDETH_OFFSET_MASK         0x7fff
++#define KDETH_OM_SHIFT            15
++#define KDETH_OM_MASK             0x1
++#define KDETH_TID_SHIFT           16
++#define KDETH_TID_MASK            0x3ff
++#define KDETH_TIDCTRL_SHIFT       26
++#define KDETH_TIDCTRL_MASK        0x3
++#define KDETH_INTR_SHIFT          28
++#define KDETH_INTR_MASK           0x1
++#define KDETH_SH_SHIFT            29
++#define KDETH_SH_MASK             0x1
++#define KDETH_KVER_SHIFT          30
++#define KDETH_KVER_MASK           0x3
++#define KDETH_JKEY_SHIFT          0x0
++#define KDETH_JKEY_MASK           0xff
++#define KDETH_HCRC_UPPER_SHIFT    16
++#define KDETH_HCRC_UPPER_MASK     0xff
++#define KDETH_HCRC_LOWER_SHIFT    24
++#define KDETH_HCRC_LOWER_MASK     0xff
++
++#define KDETH_GET(val, field)						\
++	(((le32_to_cpu((val))) >> KDETH_##field##_SHIFT) & KDETH_##field##_MASK)
++#define KDETH_SET(dw, field, val) do {					\
++		u32 dwval = le32_to_cpu(dw);				\
++		dwval &= ~(KDETH_##field##_MASK << KDETH_##field##_SHIFT); \
++		dwval |= (((val) & KDETH_##field##_MASK) << \
++			  KDETH_##field##_SHIFT);			\
++		dw = cpu_to_le32(dwval);				\
++	} while (0)
++
++#define KDETH_RESET(dw, field, val) ({ dw = 0; KDETH_SET(dw, field, val); })
++
++/* KDETH OM multipliers and switch over point */
++#define KDETH_OM_SMALL     4
++#define KDETH_OM_SMALL_SHIFT     2
++#define KDETH_OM_LARGE     64
++#define KDETH_OM_LARGE_SHIFT     6
++#define KDETH_OM_MAX_SIZE  (1 << ((KDETH_OM_LARGE / KDETH_OM_SMALL) + 1))
++
++struct tid_group {
++	struct list_head list;
++	u32 base;
++	u8 size;
++	u8 used;
++	u8 map;
++};
++
++static inline void tid_group_add_tail(struct tid_group *grp,
++				      struct exp_tid_set *set)
++{
++	list_add_tail(&grp->list, &set->list);
++	set->count++;
++}
++
++static inline void tid_group_remove(struct tid_group *grp,
++				    struct exp_tid_set *set)
++{
++	list_del_init(&grp->list);
++	set->count--;
++}
++
++static inline void tid_group_move(struct tid_group *group,
++				  struct exp_tid_set *s1,
++				  struct exp_tid_set *s2)
++{
++	tid_group_remove(group, s1);
++	tid_group_add_tail(group, s2);
++}
++
++static inline struct tid_group *tid_group_pop(struct exp_tid_set *set)
++{
++	struct tid_group *grp =
++		list_first_entry(&set->list, struct tid_group, list);
++	list_del_init(&grp->list);
++	set->count--;
++	return grp;
++}
++
++static inline u32 create_tid(u32 rcventry, u32 npages)
++{
++	u32 pair = rcventry & ~0x1;
++
++	return EXP_TID_SET(IDX, pair >> 1) |
++		EXP_TID_SET(CTRL, 1 << (rcventry - pair)) |
++		EXP_TID_SET(LEN, npages);
++}
++
++/**
++ * hfi2_tid_group_to_idx - convert an index to a group
++ * @rcd - the receive context
++ * @grp - the group pointer
++ */
++static inline u16
++hfi2_tid_group_to_idx(struct hfi2_ctxtdata *rcd, struct tid_group *grp)
++{
++	return grp - &rcd->groups[0];
++}
++
++/**
++ * hfi2_idx_to_tid_group - convert a group to an index
++ * @rcd - the receive context
++ * @idx - the index
++ */
++static inline struct tid_group *
++hfi2_idx_to_tid_group(struct hfi2_ctxtdata *rcd, u16 idx)
++{
++	return &rcd->groups[idx];
++}
++
++int hfi2_alloc_ctxt_rcv_groups(struct hfi2_ctxtdata *rcd);
++void hfi2_free_ctxt_rcv_groups(struct hfi2_ctxtdata *rcd);
++void hfi2_exp_tid_group_init(struct hfi2_ctxtdata *rcd);
++
++#endif /* _HFI2_EXP_RCV_H */
+diff --git a/drivers/infiniband/hw/hfi2/file_ops.h b/drivers/infiniband/hw/hfi2/file_ops.h
+new file mode 100644
+index 000000000000..f03ea6d21ad0
+--- /dev/null
++++ b/drivers/infiniband/hw/hfi2/file_ops.h
+@@ -0,0 +1,46 @@
++/* SPDX-License-Identifier: GPL-2.0 or BSD-3-Clause */
++/*
++ * Copyright(c) 2024 Cornelis Networks, Inc.
++ */
++
++#ifndef _HFI2_FILE_OPS_H
++#define _HFI2_FILE_OPS_H
++
++#include "hfi2.h"
++
++int hfi2_set_uevent_bits(struct hfi2_pportdata *ppd, const int evtbit);
++struct hfi2_filedata *hfi2_alloc_filedata(struct hfi2_devdata *dd);
++void hfi2_dealloc_filedata(struct hfi2_filedata *fdata);
++int hfi2_do_assign_ctxt(struct hfi2_filedata *fd,
++			const struct hfi2_assign_ctxt_cmd *uinfo);
++int manage_rcvq(struct hfi2_ctxtdata *uctxt, u16 subctxt, int start_stop);
++int user_event_ack(struct hfi2_ctxtdata *uctxt, u16 subctxt,
++		   unsigned long events);
++int set_ctxt_pkey(struct hfi2_ctxtdata *uctxt, u16 pkey);
++int ctxt_reset(struct hfi2_ctxtdata *uctxt);
++int hfi2_get_pinning_stats(struct hfi2_filedata *fd,
++			   struct hfi2_pin_stats *stats);
++int hfi2_do_mmap(struct hfi2_filedata *fd, u8 type, struct vm_area_struct *vma);
++ssize_t hfi2_do_write_iter(struct hfi2_filedata *fd, struct iov_iter *from);
++
++/*
++ * Types of memories mapped into user processes' space
++ */
++enum mmap_types {
++	PIO_BUFS = 1,
++	PIO_BUFS_SOP,
++	PIO_CRED,
++	RCV_HDRQ,
++	RCV_EGRBUF,
++	UREGS,
++	EVENTS,
++	STATUS,
++	RTAIL,
++	SUBCTXT_UREGS,
++	SUBCTXT_RCV_HDRQ,
++	SUBCTXT_EGRBUF,
++	SDMA_COMP,
++	RCV_RHEQ,
++};
++
++#endif /* _HFI2_FILE_OPS_H */
+diff --git a/drivers/infiniband/hw/hfi2/iowait.h b/drivers/infiniband/hw/hfi2/iowait.h
+new file mode 100644
+index 000000000000..23e5d6600064
+--- /dev/null
++++ b/drivers/infiniband/hw/hfi2/iowait.h
+@@ -0,0 +1,457 @@
++/* SPDX-License-Identifier: GPL-2.0 OR BSD-3-Clause */
++/*
++ * Copyright(c) 2015 - 2018 Intel Corporation.
++ */
++
++#ifndef _HFI2_IOWAIT_H
++#define _HFI2_IOWAIT_H
++
++#include <linux/list.h>
++#include <linux/workqueue.h>
++#include <linux/wait.h>
++#include <linux/sched.h>
++
++#include "sdma_txreq.h"
++
++/*
++ * typedef (*restart_t)() - restart callback
++ * @work: pointer to work structure
++ */
++typedef void (*restart_t)(struct work_struct *work);
++
++#define IOWAIT_PENDING_IB  0x0
++#define IOWAIT_PENDING_TID 0x1
++
++/*
++ * A QP can have multiple Send Engines (SEs).
++ *
++ * The current use case is for supporting a TID RDMA
++ * packet build/xmit mechanism independent from verbs.
++ */
++#define IOWAIT_SES 2
++#define IOWAIT_IB_SE 0
++#define IOWAIT_TID_SE 1
++
++struct sdma_txreq;
++struct sdma_engine;
++/**
++ * @iowork: the work struct
++ * @tx_head: list of prebuilt packets
++ * @iow: the parent iowait structure
++ *
++ * This structure is the work item (process) specific
++ * details associated with the each of the two SEs of the
++ * QP.
++ *
++ * The workstruct and the queued TXs are unique to each
++ * SE.
++ */
++struct iowait;
++struct iowait_work {
++	struct work_struct iowork;
++	struct list_head tx_head;
++	struct iowait *iow;
++};
++
++/**
++ * @list: used to add/insert into QP/PQ wait lists
++ * @tx_head: overflow list of sdma_txreq's
++ * @sleep: no space callback
++ * @wakeup: space callback wakeup
++ * @sdma_drained: sdma count drained
++ * @init_priority: callback to manipulate priority
++ * @lock: lock protected head of wait queue
++ * @iowork: workqueue overhead
++ * @wait_dma: wait for sdma_busy == 0
++ * @wait_pio: wait for pio_busy == 0
++ * @sdma_busy: # of packets in flight
++ * @count: total number of descriptors in tx_head'ed list
++ * @tx_limit: limit for overflow queuing
++ * @tx_count: number of tx entry's in tx_head'ed list
++ * @flags: wait flags (one per QP)
++ * @wait: SE array for multiple legs
++ *
++ * This is to be embedded in user's state structure
++ * (QP or PQ).
++ *
++ * The sleep and wakeup members are a
++ * bit misnamed.   They do not strictly
++ * speaking sleep or wake up, but they
++ * are callbacks for the ULP to implement
++ * what ever queuing/dequeuing of
++ * the embedded iowait and its containing struct
++ * when a resource shortage like SDMA ring space
++ * or PIO credit space is seen.
++ *
++ * Both potentially have locks help
++ * so sleeping is not allowed and it is not
++ * supported to submit txreqs from the wakeup
++ * call directly because of lock conflicts.
++ *
++ * The wait_dma member along with the iow
++ *
++ * The lock field is used by waiters to record
++ * the seqlock_t that guards the list head.
++ * Waiters explicitly know that, but the destroy
++ * code that unwaits QPs does not.
++ */
++struct iowait {
++	struct list_head list;
++	int (*sleep)(
++		struct sdma_engine *sde,
++		struct iowait_work *wait,
++		struct sdma_txreq *tx,
++		uint seq,
++		bool pkts_sent
++		);
++	void (*wakeup)(struct iowait *wait, int reason);
++	void (*sdma_drained)(struct iowait *wait);
++	void (*init_priority)(struct iowait *wait);
++	seqlock_t *lock;
++	wait_queue_head_t wait_dma;
++	wait_queue_head_t wait_pio;
++	atomic_t sdma_busy;
++	atomic_t pio_busy;
++	u32 count;
++	u32 tx_limit;
++	u32 tx_count;
++	u8 starved_cnt;
++	u8 priority;
++	unsigned long flags;
++	struct iowait_work wait[IOWAIT_SES];
++};
++
++#define SDMA_AVAIL_REASON 0
++
++void iowait_set_flag(struct iowait *wait, u32 flag);
++bool iowait_flag_set(struct iowait *wait, u32 flag);
++void iowait_clear_flag(struct iowait *wait, u32 flag);
++
++void iowait_init(struct iowait *wait, u32 tx_limit,
++		 void (*func)(struct work_struct *work),
++		 void (*tidfunc)(struct work_struct *work),
++		 int (*sleep)(struct sdma_engine *sde,
++			      struct iowait_work *wait,
++			      struct sdma_txreq *tx,
++			      uint seq,
++			      bool pkts_sent),
++		 void (*wakeup)(struct iowait *wait, int reason),
++		 void (*sdma_drained)(struct iowait *wait),
++		 void (*init_priority)(struct iowait *wait));
++
++/**
++ * iowait_schedule() - schedule the default send engine work
++ * @wait: wait struct to schedule
++ * @wq: workqueue for schedule
++ * @cpu: cpu
++ */
++static inline bool iowait_schedule(struct iowait *wait,
++				   struct workqueue_struct *wq, int cpu)
++{
++	return !!queue_work_on(cpu, wq, &wait->wait[IOWAIT_IB_SE].iowork);
++}
++
++/**
++ * iowait_tid_schedule - schedule the tid SE
++ * @wait: the iowait structure
++ * @wq: the work queue
++ * @cpu: the cpu
++ */
++static inline bool iowait_tid_schedule(struct iowait *wait,
++				       struct workqueue_struct *wq, int cpu)
++{
++	return !!queue_work_on(cpu, wq, &wait->wait[IOWAIT_TID_SE].iowork);
++}
++
++/**
++ * iowait_sdma_drain() - wait for DMAs to drain
++ *
++ * @wait: iowait structure
++ *
++ * This will delay until the iowait sdmas have
++ * completed.
++ */
++static inline void iowait_sdma_drain(struct iowait *wait)
++{
++	wait_event(wait->wait_dma, !atomic_read(&wait->sdma_busy));
++}
++
++/**
++ * iowait_sdma_pending() - return sdma pending count
++ *
++ * @wait: iowait structure
++ *
++ */
++static inline int iowait_sdma_pending(struct iowait *wait)
++{
++	return atomic_read(&wait->sdma_busy);
++}
++
++/**
++ * iowait_sdma_inc - note sdma io pending
++ * @wait: iowait structure
++ */
++static inline void iowait_sdma_inc(struct iowait *wait)
++{
++	atomic_inc(&wait->sdma_busy);
++}
++
++/**
++ * iowait_sdma_add - add count to pending
++ * @wait: iowait structure
++ */
++static inline void iowait_sdma_add(struct iowait *wait, int count)
++{
++	atomic_add(count, &wait->sdma_busy);
++}
++
++/**
++ * iowait_sdma_dec - note sdma complete
++ * @wait: iowait structure
++ */
++static inline int iowait_sdma_dec(struct iowait *wait)
++{
++	if (!wait)
++		return 0;
++	return atomic_dec_and_test(&wait->sdma_busy);
++}
++
++/**
++ * iowait_pio_drain() - wait for pios to drain
++ *
++ * @wait: iowait structure
++ *
++ * This will delay until the iowait pios have
++ * completed.
++ */
++static inline void iowait_pio_drain(struct iowait *wait)
++{
++	wait_event_timeout(wait->wait_pio,
++			   !atomic_read(&wait->pio_busy),
++			   HZ);
++}
++
++/**
++ * iowait_pio_pending() - return pio pending count
++ *
++ * @wait: iowait structure
++ *
++ */
++static inline int iowait_pio_pending(struct iowait *wait)
++{
++	return atomic_read(&wait->pio_busy);
++}
++
++/**
++ * iowait_pio_inc - note pio pending
++ * @wait: iowait structure
++ */
++static inline void iowait_pio_inc(struct iowait *wait)
++{
++	atomic_inc(&wait->pio_busy);
++}
++
++/**
++ * iowait_pio_dec - note pio complete
++ * @wait: iowait structure
++ */
++static inline int iowait_pio_dec(struct iowait *wait)
++{
++	if (!wait)
++		return 0;
++	return atomic_dec_and_test(&wait->pio_busy);
++}
++
++/**
++ * iowait_drain_wakeup() - trigger iowait_drain() waiter
++ *
++ * @wait: iowait structure
++ *
++ * This will trigger any waiters.
++ */
++static inline void iowait_drain_wakeup(struct iowait *wait)
++{
++	wake_up(&wait->wait_dma);
++	wake_up(&wait->wait_pio);
++	if (wait->sdma_drained)
++		wait->sdma_drained(wait);
++}
++
++/**
++ * iowait_get_txhead() - get packet off of iowait list
++ *
++ * @wait: iowait_work structure
++ */
++static inline struct sdma_txreq *iowait_get_txhead(struct iowait_work *wait)
++{
++	struct sdma_txreq *tx = NULL;
++
++	if (!list_empty(&wait->tx_head)) {
++		tx = list_first_entry(
++			&wait->tx_head,
++			struct sdma_txreq,
++			list);
++		list_del_init(&tx->list);
++	}
++	return tx;
++}
++
++static inline u16 iowait_get_desc(struct iowait_work *w)
++{
++	u16 num_desc = 0;
++	struct sdma_txreq *tx = NULL;
++
++	if (!list_empty(&w->tx_head)) {
++		tx = list_first_entry(&w->tx_head, struct sdma_txreq,
++				      list);
++		num_desc = tx->num_desc;
++		if (tx->flags & SDMA_TXREQ_F_VIP)
++			w->iow->priority++;
++	}
++	return num_desc;
++}
++
++static inline u32 iowait_get_all_desc(struct iowait *w)
++{
++	u32 num_desc = 0;
++
++	num_desc = iowait_get_desc(&w->wait[IOWAIT_IB_SE]);
++	num_desc += iowait_get_desc(&w->wait[IOWAIT_TID_SE]);
++	return num_desc;
++}
++
++static inline void iowait_update_priority(struct iowait_work *w)
++{
++	struct sdma_txreq *tx = NULL;
++
++	if (!list_empty(&w->tx_head)) {
++		tx = list_first_entry(&w->tx_head, struct sdma_txreq,
++				      list);
++		if (tx->flags & SDMA_TXREQ_F_VIP)
++			w->iow->priority++;
++	}
++}
++
++static inline void iowait_update_all_priority(struct iowait *w)
++{
++	iowait_update_priority(&w->wait[IOWAIT_IB_SE]);
++	iowait_update_priority(&w->wait[IOWAIT_TID_SE]);
++}
++
++static inline void iowait_init_priority(struct iowait *w)
++{
++	w->priority = 0;
++	if (w->init_priority)
++		w->init_priority(w);
++}
++
++static inline void iowait_get_priority(struct iowait *w)
++{
++	iowait_init_priority(w);
++	iowait_update_all_priority(w);
++}
++
++/**
++ * iowait_queue - Put the iowait on a wait queue
++ * @pkts_sent: have some packets been sent before queuing?
++ * @w: the iowait struct
++ * @wait_head: the wait queue
++ *
++ * This function is called to insert an iowait struct into a
++ * wait queue after a resource (eg, sdma descriptor or pio
++ * buffer) is run out.
++ */
++static inline void iowait_queue(bool pkts_sent, struct iowait *w,
++				struct list_head *wait_head)
++{
++	/*
++	 * To play fair, insert the iowait at the tail of the wait queue if it
++	 * has already sent some packets; Otherwise, put it at the head.
++	 * However, if it has priority packets to send, also put it at the
++	 * head.
++	 */
++	if (pkts_sent)
++		w->starved_cnt = 0;
++	else
++		w->starved_cnt++;
++
++	if (w->priority > 0 || !pkts_sent)
++		list_add(&w->list, wait_head);
++	else
++		list_add_tail(&w->list, wait_head);
++}
++
++/**
++ * iowait_starve_clear - clear the wait queue's starve count
++ * @pkts_sent: have some packets been sent?
++ * @w: the iowait struct
++ *
++ * This function is called to clear the starve count. If no
++ * packets have been sent, the starve count will not be cleared.
++ */
++static inline void iowait_starve_clear(bool pkts_sent, struct iowait *w)
++{
++	if (pkts_sent)
++		w->starved_cnt = 0;
++}
++
++/* Update the top priority index */
++uint iowait_priority_update_top(struct iowait *w,
++				struct iowait *top,
++				uint idx, uint top_idx);
++
++/**
++ * iowait_packet_queued() - determine if a packet is queued
++ * @wait: the iowait_work structure
++ */
++static inline bool iowait_packet_queued(struct iowait_work *wait)
++{
++	return !list_empty(&wait->tx_head);
++}
++
++/**
++ * inc_wait_count - increment wait counts
++ * @w: the log work struct
++ * @n: the count
++ */
++static inline void iowait_inc_wait_count(struct iowait_work *w, u16 n)
++{
++	if (!w)
++		return;
++	w->iow->tx_count++;
++	w->iow->count += n;
++}
++
++/**
++ * iowait_get_tid_work - return iowait_work for tid SE
++ * @w: the iowait struct
++ */
++static inline struct iowait_work *iowait_get_tid_work(struct iowait *w)
++{
++	return &w->wait[IOWAIT_TID_SE];
++}
++
++/**
++ * iowait_get_ib_work - return iowait_work for ib SE
++ * @w: the iowait struct
++ */
++static inline struct iowait_work *iowait_get_ib_work(struct iowait *w)
++{
++	return &w->wait[IOWAIT_IB_SE];
++}
++
++/**
++ * iowait_ioww_to_iow - return iowait given iowait_work
++ * @w: the iowait_work struct
++ */
++static inline struct iowait *iowait_ioww_to_iow(struct iowait_work *w)
++{
++	if (likely(w))
++		return w->iow;
++	return NULL;
++}
++
++void iowait_cancel_work(struct iowait *w);
++int iowait_set_work_flag(struct iowait_work *w);
++
++#endif
+diff --git a/drivers/infiniband/hw/hfi2/ipoib.h b/drivers/infiniband/hw/hfi2/ipoib.h
+new file mode 100644
+index 000000000000..ad62b223fa9b
+--- /dev/null
++++ b/drivers/infiniband/hw/hfi2/ipoib.h
+@@ -0,0 +1,172 @@
++/* SPDX-License-Identifier: (GPL-2.0 OR BSD-3-Clause) */
++/*
++ * Copyright(c) 2020 Intel Corporation.
++ *
++ */
++
++/*
++ * This file contains HFI2 support for IPOIB functionality
++ */
++
++#ifndef HFI2_IPOIB_H
++#define HFI2_IPOIB_H
++
++#include <linux/types.h>
++#include <linux/stddef.h>
++#include <linux/atomic.h>
++#include <linux/netdevice.h>
++#include <linux/slab.h>
++#include <linux/skbuff.h>
++#include <linux/list.h>
++#include <linux/if_infiniband.h>
++
++#include "hfi2.h"
++#include "iowait.h"
++#include "netdev.h"
++
++#include <rdma/ib_verbs.h>
++
++#define HFI2_IPOIB_ENTROPY_SHIFT   24
++
++#define HFI2_IPOIB_TXREQ_NAME_LEN   32
++
++#define HFI2_IPOIB_PSEUDO_LEN 20
++#define HFI2_IPOIB_ENCAP_LEN 4
++
++struct hfi2_ipoib_dev_priv;
++
++union hfi2_ipoib_flow {
++	u16 as_int;
++	struct {
++		u8 tx_queue;
++		u8 sc5;
++	} __attribute__((__packed__));
++};
++
++/**
++ * struct ipoib_txreq - IPOIB transmit descriptor
++ * @txreq: sdma transmit request
++ * @sdma_hdr: 9b ib headers
++ * @sdma_status: status returned by sdma engine
++ * @complete: non-zero implies complete
++ * @priv: ipoib netdev private data
++ * @txq: txq on which skb was output
++ * @skb: skb to send
++ */
++struct ipoib_txreq {
++	struct sdma_txreq           txreq;
++	struct hfi2_sdma_header     *sdma_hdr;
++	int                         sdma_status;
++	int                         complete;
++	struct hfi2_ipoib_dev_priv *priv;
++	struct hfi2_ipoib_txq      *txq;
++	struct sk_buff             *skb;
++};
++
++/**
++ * struct hfi2_ipoib_circ_buf - List of items to be processed
++ * @items: ring of items each a power of two size
++ * @max_items: max items + 1 that the ring can contain
++ * @shift: log2 of size for getting txreq
++ * @sent_txreqs: count of txreqs posted to sdma
++ * @tail: ring tail
++ * @stops: count of stops of queue
++ * @ring_full: ring has been filled
++ * @no_desc: descriptor shortage seen
++ * @complete_txreqs: count of txreqs completed by sdma
++ * @head: ring head
++ */
++struct hfi2_ipoib_circ_buf {
++	void *items;
++	u32 max_items;
++	u32 shift;
++	/* consumer cache line */
++	u64 ____cacheline_aligned_in_smp sent_txreqs;
++	u32 avail;
++	u32 tail;
++	atomic_t stops;
++	atomic_t ring_full;
++	atomic_t no_desc;
++	/* producer cache line */
++	u64 ____cacheline_aligned_in_smp complete_txreqs;
++	u32 head;
++};
++
++/**
++ * struct hfi2_ipoib_txq - IPOIB per Tx queue information
++ * @priv: private pointer
++ * @sde: sdma engine
++ * @tx_list: tx request list
++ * @sent_txreqs: count of txreqs posted to sdma
++ * @flow: tracks when list needs to be flushed for a flow change
++ * @q_idx: ipoib Tx queue index
++ * @pkts_sent: indicator packets have been sent from this queue
++ * @wait: iowait structure
++ * @napi: pointer to tx napi interface
++ * @tx_ring: ring of ipoib txreqs to be reaped by napi callback
++ */
++struct hfi2_ipoib_txq {
++	struct napi_struct napi;
++	struct hfi2_ipoib_dev_priv *priv;
++	struct sdma_engine *sde;
++	struct list_head tx_list;
++	union hfi2_ipoib_flow flow;
++	u8 q_idx;
++	bool pkts_sent;
++	struct iowait wait;
++
++	struct hfi2_ipoib_circ_buf ____cacheline_aligned_in_smp tx_ring;
++};
++
++struct hfi2_ipoib_dev_priv {
++	struct hfi2_devdata *dd;
++	struct hfi2_pportdata *ppd;
++	struct net_device   *netdev;
++	struct ib_device    *device;
++	struct hfi2_ipoib_txq *txqs;
++	const struct net_device_ops *netdev_ops;
++	struct rvt_qp *qp;
++	u32 qkey;
++	u16 pkey;
++	u16 pkey_index;
++	u8 port_num;
++};
++
++/* hfi2 ipoib rdma netdev's private data structure */
++struct hfi2_ipoib_rdma_netdev {
++	struct rdma_netdev rn;  /* keep this first */
++	/* followed by device private data */
++	struct hfi2_ipoib_dev_priv dev_priv;
++};
++
++static inline struct hfi2_ipoib_dev_priv *
++hfi2_ipoib_priv(const struct net_device *dev)
++{
++	return &((struct hfi2_ipoib_rdma_netdev *)netdev_priv(dev))->dev_priv;
++}
++
++int hfi2_ipoib_send(struct net_device *dev,
++		    struct sk_buff *skb,
++		    struct ib_ah *address,
++		    u32 dqpn);
++
++int hfi2_ipoib_txreq_init(struct hfi2_ipoib_dev_priv *priv);
++void hfi2_ipoib_txreq_deinit(struct hfi2_ipoib_dev_priv *priv);
++
++int hfi2_ipoib_rxq_init(struct net_device *dev);
++void hfi2_ipoib_rxq_deinit(struct net_device *dev);
++
++void hfi2_ipoib_napi_tx_enable(struct net_device *dev);
++void hfi2_ipoib_napi_tx_disable(struct net_device *dev);
++
++struct sk_buff *hfi2_ipoib_prepare_skb(struct hfi2_netdev_rxq *rxq,
++				       int size, void *data);
++
++int hfi2_ipoib_rn_get_params(struct ib_device *device,
++			     u32 port_num,
++			     enum rdma_netdev_t type,
++			     struct rdma_netdev_alloc_params *params);
++
++void hfi2_ipoib_tx_timeout(struct net_device *dev, unsigned int q);
++
++#endif /* _IPOIB_H */
+diff --git a/drivers/infiniband/hw/hfi2/netdev.h b/drivers/infiniband/hw/hfi2/netdev.h
+new file mode 100644
+index 000000000000..f5b698eafa5c
+--- /dev/null
++++ b/drivers/infiniband/hw/hfi2/netdev.h
+@@ -0,0 +1,99 @@
++/* SPDX-License-Identifier: (GPL-2.0 OR BSD-3-Clause) */
++/*
++ * Copyright(c) 2020 Intel Corporation.
++ *
++ */
++
++#ifndef HFI2_NETDEV_H
++#define HFI2_NETDEV_H
++
++#include "hfi2.h"
++
++#include <linux/netdevice.h>
++#include <linux/xarray.h>
++
++/**
++ * struct hfi2_netdev_rxq - Receive Queue for HFI
 + * IPoIB netdevices will be working on the rx abstraction.
-  * @napi: napi object
-  * @rx: ptr to netdev_rx
-  * @rcd:  ptr to receive context data
-@@ -25,10 +25,6 @@ struct hfi1_netdev_rxq {
- 	struct hfi1_ctxtdata *rcd;
- };
- 
--/*
-- * Number of netdev contexts used. Ensure it is less than or equal to
-- * max queues supported by VNIC (HFI1_VNIC_MAX_QUEUE).
-- */
- #define HFI1_MAX_NETDEV_CTXTS   8
- 
- /* Number of NETDEV RSM entries */
-@@ -42,7 +38,7 @@ struct hfi1_netdev_rxq {
-  * @num_rx_q:	number of receive queues
-  * @rmt_index:	first free index in RMT Array
-  * @msix_start: first free MSI-X interrupt vector.
-- * @dev_tbl:	netdev table for unique identifier VNIC and IPoIb VLANs.
++ * @napi: napi object
++ * @rx: ptr to netdev_rx
++ * @rcd:  ptr to receive context data
++ */
++struct hfi2_netdev_rxq {
++	struct napi_struct napi;
++	struct hfi2_netdev_rx *rx;
++	struct hfi2_ctxtdata *rcd;
++};
++
++/*
++ * Number of netdev contexts used. Ensure it is less than or equal to
++ * max queues supported.
++ */
++#define HFI2_MAX_NETDEV_CTXTS   8
++
++/* Number of NETDEV RSM entries */
++#define NUM_NETDEV_MAP_ENTRIES HFI2_MAX_NETDEV_CTXTS
++
++/**
++ * struct hfi2_netdev_rx: data required to setup and run HFI netdev.
++ * @rx_napi:	the dummy netdevice to support "polling" the receive contexts
++ * @dd:		hfi2_devdata
++ * @ppd:	hfi2_pportdata
++ * @rxq:	pointer to dummy netdev receive queues.
++ * @num_rx_q:	number of receive queues
++ * @rmt_start:	first allocated index in the RMT
 + * @dev_tbl:	netdev table for unique identifier IPoIb VLANs.
-  * @enabled:	atomic counter of netdevs enabling receive queues.
-  *		When 0 NAPI will be disabled.
-  * @netdevs:	atomic counter of netdevs using dummy netdev.
-diff --git a/drivers/infiniband/hw/hfi1/netdev_rx.c b/drivers/infiniband/hw/hfi1/netdev_rx.c
-index 8608044203bb..ca2ae52b21e3 100644
---- a/drivers/infiniband/hw/hfi1/netdev_rx.c
-+++ b/drivers/infiniband/hw/hfi1/netdev_rx.c
-@@ -78,7 +78,6 @@ static int hfi1_netdev_allocate_ctxt(struct hfi1_devdata *dd,
- 	uctxt->fast_handler = handle_receive_interrupt_napi_fp;
- 	uctxt->slow_handler = handle_receive_interrupt_napi_sp;
- 	hfi1_set_seq_cnt(uctxt, 1);
--	uctxt->is_vnic = true;
- 
- 	hfi1_stats.sps_ctxts++;
- 
-@@ -427,7 +426,7 @@ void hfi1_netdev_disable_queues(struct hfi1_devdata *dd)
- 
- /**
-  * hfi1_netdev_add_data - Registers data with unique identifier
-- * to be requested later this is needed for VNIC and IPoIB VLANs
-+ * to be requested later this is needed for IPoIB VLANs
-  * implementations.
-  * This call is protected by mutex idr_lock.
-  *
-diff --git a/drivers/infiniband/hw/hfi1/verbs.c b/drivers/infiniband/hw/hfi1/verbs.c
-index 49e0f79b950c..9f318928ac65 100644
---- a/drivers/infiniband/hw/hfi1/verbs.c
-+++ b/drivers/infiniband/hw/hfi1/verbs.c
-@@ -21,7 +21,6 @@
- #include "qp.h"
- #include "verbs_txreq.h"
- #include "debugfs.h"
--#include "vnic.h"
- #include "fault.h"
- #include "affinity.h"
- #include "ipoib.h"
-@@ -1729,7 +1728,6 @@ static const struct ib_device_ops hfi1_dev_ops = {
- 
- 	.alloc_hw_device_stats = hfi1_alloc_hw_device_stats,
- 	.alloc_hw_port_stats = hfi_alloc_hw_port_stats,
--	.alloc_rdma_netdev = hfi1_vnic_alloc_rn,
- 	.device_group = &ib_hfi1_attr_group,
- 	.get_dev_fw_str = hfi1_get_dev_fw_str,
- 	.get_hw_stats = get_hw_stats,
-diff --git a/drivers/infiniband/hw/hfi1/vnic.h b/drivers/infiniband/hw/hfi1/vnic.h
-deleted file mode 100644
-index bbafeb5fc0ec..000000000000
---- a/drivers/infiniband/hw/hfi1/vnic.h
-+++ /dev/null
-@@ -1,126 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 OR BSD-3-Clause */
--/*
-- * Copyright(c) 2017 - 2020 Intel Corporation.
-- */
--
--#ifndef _HFI1_VNIC_H
--#define _HFI1_VNIC_H
--#include <rdma/opa_vnic.h>
--#include "hfi.h"
--#include "sdma.h"
--
--#define HFI1_VNIC_MAX_TXQ     16
--#define HFI1_VNIC_MAX_PAD     12
--
--/* L4 header definitions */
--#define HFI1_VNIC_L4_HDR_OFFSET  OPA_VNIC_L2_HDR_LEN
--
--#define HFI1_VNIC_GET_L4_HDR(data)   \
--	(*((u16 *)((u8 *)(data) + HFI1_VNIC_L4_HDR_OFFSET)))
--
--#define HFI1_VNIC_GET_VESWID(data)   \
--	(HFI1_VNIC_GET_L4_HDR(data) & 0xFFF)
--
--/* Service class */
--#define HFI1_VNIC_SC_OFFSET_LOW 6
--#define HFI1_VNIC_SC_OFFSET_HI  7
--#define HFI1_VNIC_SC_SHIFT      4
--
--#define HFI1_VNIC_MAX_QUEUE 16
--#define HFI1_NUM_VNIC_CTXT 8
--
--/**
-- * struct hfi1_vnic_sdma - VNIC per Tx ring SDMA information
-- * @dd - device data pointer
-- * @sde - sdma engine
-- * @vinfo - vnic info pointer
-- * @wait - iowait structure
-- * @stx - sdma tx request
-- * @state - vnic Tx ring SDMA state
-- * @q_idx - vnic Tx queue index
-- */
--struct hfi1_vnic_sdma {
--	struct hfi1_devdata *dd;
--	struct sdma_engine  *sde;
--	struct hfi1_vnic_vport_info *vinfo;
--	struct iowait wait;
--	struct sdma_txreq stx;
--	unsigned int state;
--	u8 q_idx;
--	bool pkts_sent;
--};
--
--/**
-- * struct hfi1_vnic_rx_queue - HFI1 VNIC receive queue
-- * @idx: queue index
-- * @vinfo: pointer to vport information
-- * @netdev: network device
-- * @napi: netdev napi structure
-- * @skbq: queue of received socket buffers
-- */
--struct hfi1_vnic_rx_queue {
--	u8                           idx;
--	struct hfi1_vnic_vport_info *vinfo;
--	struct net_device           *netdev;
--	struct napi_struct           napi;
--};
--
--/**
-- * struct hfi1_vnic_vport_info - HFI1 VNIC virtual port information
-- * @dd: device data pointer
-- * @netdev: net device pointer
-- * @flags: state flags
-- * @lock: vport lock
-- * @num_tx_q: number of transmit queues
-- * @num_rx_q: number of receive queues
-- * @vesw_id: virtual switch id
-- * @rxq: Array of receive queues
-- * @stats: per queue stats
-- * @sdma: VNIC SDMA structure per TXQ
-- */
--struct hfi1_vnic_vport_info {
--	struct hfi1_devdata *dd;
--	struct net_device   *netdev;
--	unsigned long        flags;
--
--	/* Lock used around state updates */
--	struct mutex         lock;
--
--	u8  num_tx_q;
--	u8  num_rx_q;
--	u16 vesw_id;
--	struct hfi1_vnic_rx_queue rxq[HFI1_NUM_VNIC_CTXT];
--
--	struct opa_vnic_stats  stats[HFI1_VNIC_MAX_QUEUE];
--	struct hfi1_vnic_sdma  sdma[HFI1_VNIC_MAX_TXQ];
--};
--
--#define v_dbg(format, arg...) \
--	netdev_dbg(vinfo->netdev, format, ## arg)
--#define v_err(format, arg...) \
--	netdev_err(vinfo->netdev, format, ## arg)
--#define v_info(format, arg...) \
--	netdev_info(vinfo->netdev, format, ## arg)
--
--/* vnic hfi1 internal functions */
--void hfi1_vnic_setup(struct hfi1_devdata *dd);
--int hfi1_vnic_txreq_init(struct hfi1_devdata *dd);
--void hfi1_vnic_txreq_deinit(struct hfi1_devdata *dd);
--
--void hfi1_vnic_bypass_rcv(struct hfi1_packet *packet);
--void hfi1_vnic_sdma_init(struct hfi1_vnic_vport_info *vinfo);
--bool hfi1_vnic_sdma_write_avail(struct hfi1_vnic_vport_info *vinfo,
--				u8 q_idx);
--
--/* vnic rdma netdev operations */
--struct net_device *hfi1_vnic_alloc_rn(struct ib_device *device,
--				      u32 port_num,
--				      enum rdma_netdev_t type,
--				      const char *name,
--				      unsigned char name_assign_type,
--				      void (*setup)(struct net_device *));
--int hfi1_vnic_send_dma(struct hfi1_devdata *dd, u8 q_idx,
--		       struct hfi1_vnic_vport_info *vinfo,
--		       struct sk_buff *skb, u64 pbc, u8 plen);
--
--#endif /* _HFI1_VNIC_H */
-diff --git a/drivers/infiniband/hw/hfi1/vnic_main.c b/drivers/infiniband/hw/hfi1/vnic_main.c
-deleted file mode 100644
-index 16a4c297a897..000000000000
---- a/drivers/infiniband/hw/hfi1/vnic_main.c
-+++ /dev/null
-@@ -1,615 +0,0 @@
--// SPDX-License-Identifier: GPL-2.0 OR BSD-3-Clause
--/*
-- * Copyright(c) 2017 - 2020 Intel Corporation.
-- */
--
--/*
-- * This file contains HFI1 support for VNIC functionality
-- */
--
--#include <linux/io.h>
--#include <linux/if_vlan.h>
--
--#include "vnic.h"
--#include "netdev.h"
--
--#define HFI_TX_TIMEOUT_MS 1000
--
--#define HFI1_VNIC_RCV_Q_SIZE   1024
--
--#define HFI1_VNIC_UP 0
--
--static DEFINE_SPINLOCK(vport_cntr_lock);
--
--#define SUM_GRP_COUNTERS(stats, qstats, x_grp) do {            \
--		u64 *src64, *dst64;                            \
--		for (src64 = &qstats->x_grp.unicast,           \
--			dst64 = &stats->x_grp.unicast;         \
--			dst64 <= &stats->x_grp.s_1519_max;) {  \
--			*dst64++ += *src64++;                  \
--		}                                              \
--	} while (0)
--
--#define VNIC_MASK (0xFF)
--#define VNIC_ID(val) ((1ull << 24) | ((val) & VNIC_MASK))
--
--/* hfi1_vnic_update_stats - update statistics */
--static void hfi1_vnic_update_stats(struct hfi1_vnic_vport_info *vinfo,
--				   struct opa_vnic_stats *stats)
--{
--	struct net_device *netdev = vinfo->netdev;
--	u8 i;
--
--	/* add tx counters on different queues */
--	for (i = 0; i < vinfo->num_tx_q; i++) {
--		struct opa_vnic_stats *qstats = &vinfo->stats[i];
--		struct rtnl_link_stats64 *qnstats = &vinfo->stats[i].netstats;
--
--		stats->netstats.tx_fifo_errors += qnstats->tx_fifo_errors;
--		stats->netstats.tx_carrier_errors += qnstats->tx_carrier_errors;
--		stats->tx_drop_state += qstats->tx_drop_state;
--		stats->tx_dlid_zero += qstats->tx_dlid_zero;
--
--		SUM_GRP_COUNTERS(stats, qstats, tx_grp);
--		stats->netstats.tx_packets += qnstats->tx_packets;
--		stats->netstats.tx_bytes += qnstats->tx_bytes;
--	}
--
--	/* add rx counters on different queues */
--	for (i = 0; i < vinfo->num_rx_q; i++) {
--		struct opa_vnic_stats *qstats = &vinfo->stats[i];
--		struct rtnl_link_stats64 *qnstats = &vinfo->stats[i].netstats;
--
--		stats->netstats.rx_fifo_errors += qnstats->rx_fifo_errors;
--		stats->netstats.rx_nohandler += qnstats->rx_nohandler;
--		stats->rx_drop_state += qstats->rx_drop_state;
--		stats->rx_oversize += qstats->rx_oversize;
--		stats->rx_runt += qstats->rx_runt;
--
--		SUM_GRP_COUNTERS(stats, qstats, rx_grp);
--		stats->netstats.rx_packets += qnstats->rx_packets;
--		stats->netstats.rx_bytes += qnstats->rx_bytes;
--	}
--
--	stats->netstats.tx_errors = stats->netstats.tx_fifo_errors +
--				    stats->netstats.tx_carrier_errors +
--				    stats->tx_drop_state + stats->tx_dlid_zero;
--	stats->netstats.tx_dropped = stats->netstats.tx_errors;
--
--	stats->netstats.rx_errors = stats->netstats.rx_fifo_errors +
--				    stats->netstats.rx_nohandler +
--				    stats->rx_drop_state + stats->rx_oversize +
--				    stats->rx_runt;
--	stats->netstats.rx_dropped = stats->netstats.rx_errors;
--
--	netdev->stats.tx_packets = stats->netstats.tx_packets;
--	netdev->stats.tx_bytes = stats->netstats.tx_bytes;
--	netdev->stats.tx_fifo_errors = stats->netstats.tx_fifo_errors;
--	netdev->stats.tx_carrier_errors = stats->netstats.tx_carrier_errors;
--	netdev->stats.tx_errors = stats->netstats.tx_errors;
--	netdev->stats.tx_dropped = stats->netstats.tx_dropped;
--
--	netdev->stats.rx_packets = stats->netstats.rx_packets;
--	netdev->stats.rx_bytes = stats->netstats.rx_bytes;
--	netdev->stats.rx_fifo_errors = stats->netstats.rx_fifo_errors;
--	netdev->stats.multicast = stats->rx_grp.mcastbcast;
--	netdev->stats.rx_length_errors = stats->rx_oversize + stats->rx_runt;
--	netdev->stats.rx_errors = stats->netstats.rx_errors;
--	netdev->stats.rx_dropped = stats->netstats.rx_dropped;
--}
--
--/* update_len_counters - update pkt's len histogram counters */
--static inline void update_len_counters(struct opa_vnic_grp_stats *grp,
--				       int len)
--{
--	/* account for 4 byte FCS */
--	if (len >= 1515)
--		grp->s_1519_max++;
--	else if (len >= 1020)
--		grp->s_1024_1518++;
--	else if (len >= 508)
--		grp->s_512_1023++;
--	else if (len >= 252)
--		grp->s_256_511++;
--	else if (len >= 124)
--		grp->s_128_255++;
--	else if (len >= 61)
--		grp->s_65_127++;
--	else
--		grp->s_64++;
--}
--
--/* hfi1_vnic_update_tx_counters - update transmit counters */
--static void hfi1_vnic_update_tx_counters(struct hfi1_vnic_vport_info *vinfo,
--					 u8 q_idx, struct sk_buff *skb, int err)
--{
--	struct ethhdr *mac_hdr = (struct ethhdr *)skb_mac_header(skb);
--	struct opa_vnic_stats *stats = &vinfo->stats[q_idx];
--	struct opa_vnic_grp_stats *tx_grp = &stats->tx_grp;
--	u16 vlan_tci;
--
--	stats->netstats.tx_packets++;
--	stats->netstats.tx_bytes += skb->len + ETH_FCS_LEN;
--
--	update_len_counters(tx_grp, skb->len);
--
--	/* rest of the counts are for good packets only */
--	if (unlikely(err))
--		return;
--
--	if (is_multicast_ether_addr(mac_hdr->h_dest))
--		tx_grp->mcastbcast++;
--	else
--		tx_grp->unicast++;
--
--	if (!__vlan_get_tag(skb, &vlan_tci))
--		tx_grp->vlan++;
--	else
--		tx_grp->untagged++;
--}
--
--/* hfi1_vnic_update_rx_counters - update receive counters */
--static void hfi1_vnic_update_rx_counters(struct hfi1_vnic_vport_info *vinfo,
--					 u8 q_idx, struct sk_buff *skb, int err)
--{
--	struct ethhdr *mac_hdr = (struct ethhdr *)skb->data;
--	struct opa_vnic_stats *stats = &vinfo->stats[q_idx];
--	struct opa_vnic_grp_stats *rx_grp = &stats->rx_grp;
--	u16 vlan_tci;
--
--	stats->netstats.rx_packets++;
--	stats->netstats.rx_bytes += skb->len + ETH_FCS_LEN;
--
--	update_len_counters(rx_grp, skb->len);
--
--	/* rest of the counts are for good packets only */
--	if (unlikely(err))
--		return;
--
--	if (is_multicast_ether_addr(mac_hdr->h_dest))
--		rx_grp->mcastbcast++;
--	else
--		rx_grp->unicast++;
--
--	if (!__vlan_get_tag(skb, &vlan_tci))
--		rx_grp->vlan++;
--	else
--		rx_grp->untagged++;
--}
--
--/* This function is overloaded for opa_vnic specific implementation */
--static void hfi1_vnic_get_stats64(struct net_device *netdev,
--				  struct rtnl_link_stats64 *stats)
--{
--	struct opa_vnic_stats *vstats = (struct opa_vnic_stats *)stats;
--	struct hfi1_vnic_vport_info *vinfo = opa_vnic_dev_priv(netdev);
--
--	hfi1_vnic_update_stats(vinfo, vstats);
--}
--
--static u64 create_bypass_pbc(u32 vl, u32 dw_len)
--{
--	u64 pbc;
--
--	pbc = ((u64)PBC_IHCRC_NONE << PBC_INSERT_HCRC_SHIFT)
--		| PBC_INSERT_BYPASS_ICRC | PBC_CREDIT_RETURN
--		| PBC_PACKET_BYPASS
--		| ((vl & PBC_VL_MASK) << PBC_VL_SHIFT)
--		| (dw_len & PBC_LENGTH_DWS_MASK) << PBC_LENGTH_DWS_SHIFT;
--
--	return pbc;
--}
--
--/* hfi1_vnic_maybe_stop_tx - stop tx queue if required */
--static void hfi1_vnic_maybe_stop_tx(struct hfi1_vnic_vport_info *vinfo,
--				    u8 q_idx)
--{
--	netif_stop_subqueue(vinfo->netdev, q_idx);
--	if (!hfi1_vnic_sdma_write_avail(vinfo, q_idx))
--		return;
--
--	netif_start_subqueue(vinfo->netdev, q_idx);
--}
--
--static netdev_tx_t hfi1_netdev_start_xmit(struct sk_buff *skb,
--					  struct net_device *netdev)
--{
--	struct hfi1_vnic_vport_info *vinfo = opa_vnic_dev_priv(netdev);
--	u8 pad_len, q_idx = skb->queue_mapping;
--	struct hfi1_devdata *dd = vinfo->dd;
--	struct opa_vnic_skb_mdata *mdata;
--	u32 pkt_len, total_len;
--	int err = -EINVAL;
--	u64 pbc;
--
--	v_dbg("xmit: queue %d skb len %d\n", q_idx, skb->len);
--	if (unlikely(!netif_oper_up(netdev))) {
--		vinfo->stats[q_idx].tx_drop_state++;
--		goto tx_finish;
--	}
--
--	/* take out meta data */
--	mdata = (struct opa_vnic_skb_mdata *)skb->data;
--	skb_pull(skb, sizeof(*mdata));
--	if (unlikely(mdata->flags & OPA_VNIC_SKB_MDATA_ENCAP_ERR)) {
--		vinfo->stats[q_idx].tx_dlid_zero++;
--		goto tx_finish;
--	}
--
--	/* add tail padding (for 8 bytes size alignment) and icrc */
--	pad_len = -(skb->len + OPA_VNIC_ICRC_TAIL_LEN) & 0x7;
--	pad_len += OPA_VNIC_ICRC_TAIL_LEN;
--
--	/*
--	 * pkt_len is how much data we have to write, includes header and data.
--	 * total_len is length of the packet in Dwords plus the PBC should not
--	 * include the CRC.
--	 */
--	pkt_len = (skb->len + pad_len) >> 2;
--	total_len = pkt_len + 2; /* PBC + packet */
--
--	pbc = create_bypass_pbc(mdata->vl, total_len);
--
--	skb_get(skb);
--	v_dbg("pbc 0x%016llX len %d pad_len %d\n", pbc, skb->len, pad_len);
--	err = dd->process_vnic_dma_send(dd, q_idx, vinfo, skb, pbc, pad_len);
--	if (unlikely(err)) {
--		if (err == -ENOMEM)
--			vinfo->stats[q_idx].netstats.tx_fifo_errors++;
--		else if (err != -EBUSY)
--			vinfo->stats[q_idx].netstats.tx_carrier_errors++;
--	}
--	/* remove the header before updating tx counters */
--	skb_pull(skb, OPA_VNIC_HDR_LEN);
--
--	if (unlikely(err == -EBUSY)) {
--		hfi1_vnic_maybe_stop_tx(vinfo, q_idx);
--		dev_kfree_skb_any(skb);
--		return NETDEV_TX_BUSY;
--	}
--
--tx_finish:
--	/* update tx counters */
--	hfi1_vnic_update_tx_counters(vinfo, q_idx, skb, err);
--	dev_kfree_skb_any(skb);
--	return NETDEV_TX_OK;
--}
--
--static u16 hfi1_vnic_select_queue(struct net_device *netdev,
--				  struct sk_buff *skb,
--				  struct net_device *sb_dev)
--{
--	struct hfi1_vnic_vport_info *vinfo = opa_vnic_dev_priv(netdev);
--	struct opa_vnic_skb_mdata *mdata;
--	struct sdma_engine *sde;
--
--	mdata = (struct opa_vnic_skb_mdata *)skb->data;
--	sde = sdma_select_engine_vl(vinfo->dd, mdata->entropy, mdata->vl);
--	return sde->this_idx;
--}
--
--/* hfi1_vnic_decap_skb - strip OPA header from the skb (ethernet) packet */
--static inline int hfi1_vnic_decap_skb(struct hfi1_vnic_rx_queue *rxq,
--				      struct sk_buff *skb)
--{
--	struct hfi1_vnic_vport_info *vinfo = rxq->vinfo;
--	int max_len = vinfo->netdev->mtu + VLAN_ETH_HLEN;
--	int rc = -EFAULT;
--
--	skb_pull(skb, OPA_VNIC_HDR_LEN);
--
--	/* Validate Packet length */
--	if (unlikely(skb->len > max_len))
--		vinfo->stats[rxq->idx].rx_oversize++;
--	else if (unlikely(skb->len < ETH_ZLEN))
--		vinfo->stats[rxq->idx].rx_runt++;
--	else
--		rc = 0;
--	return rc;
--}
--
--static struct hfi1_vnic_vport_info *get_vnic_port(struct hfi1_devdata *dd,
--						  int vesw_id)
--{
--	int vnic_id = VNIC_ID(vesw_id);
--
--	return hfi1_netdev_get_data(dd, vnic_id);
--}
--
--static struct hfi1_vnic_vport_info *get_first_vnic_port(struct hfi1_devdata *dd)
--{
--	struct hfi1_vnic_vport_info *vinfo;
--	int next_id = VNIC_ID(0);
--
--	vinfo = hfi1_netdev_get_first_data(dd, &next_id);
--
--	if (next_id > VNIC_ID(VNIC_MASK))
--		return NULL;
--
--	return vinfo;
--}
--
--void hfi1_vnic_bypass_rcv(struct hfi1_packet *packet)
--{
--	struct hfi1_devdata *dd = packet->rcd->dd;
--	struct hfi1_vnic_vport_info *vinfo = NULL;
--	struct hfi1_vnic_rx_queue *rxq;
--	struct sk_buff *skb;
--	int l4_type, vesw_id = -1, rc;
--	u8 q_idx;
--	unsigned char *pad_info;
--
--	l4_type = hfi1_16B_get_l4(packet->ebuf);
--	if (likely(l4_type == OPA_16B_L4_ETHR)) {
--		vesw_id = HFI1_VNIC_GET_VESWID(packet->ebuf);
--		vinfo = get_vnic_port(dd, vesw_id);
--
--		/*
--		 * In case of invalid vesw id, count the error on
--		 * the first available vport.
--		 */
--		if (unlikely(!vinfo)) {
--			struct hfi1_vnic_vport_info *vinfo_tmp;
--
--			vinfo_tmp = get_first_vnic_port(dd);
--			if (vinfo_tmp) {
--				spin_lock(&vport_cntr_lock);
--				vinfo_tmp->stats[0].netstats.rx_nohandler++;
--				spin_unlock(&vport_cntr_lock);
--			}
--		}
--	}
--
--	if (unlikely(!vinfo)) {
--		dd_dev_warn(dd, "vnic rcv err: l4 %d vesw id %d ctx %d\n",
--			    l4_type, vesw_id, packet->rcd->ctxt);
--		return;
--	}
--
--	q_idx = packet->rcd->vnic_q_idx;
--	rxq = &vinfo->rxq[q_idx];
--	if (unlikely(!netif_oper_up(vinfo->netdev))) {
--		vinfo->stats[q_idx].rx_drop_state++;
--		return;
--	}
--
--	skb = netdev_alloc_skb(vinfo->netdev, packet->tlen);
--	if (unlikely(!skb)) {
--		vinfo->stats[q_idx].netstats.rx_fifo_errors++;
--		return;
--	}
--
--	memcpy(skb->data, packet->ebuf, packet->tlen);
--	skb_put(skb, packet->tlen);
--
--	pad_info = skb->data + skb->len - 1;
--	skb_trim(skb, (skb->len - OPA_VNIC_ICRC_TAIL_LEN -
--		       ((*pad_info) & 0x7)));
--
--	rc = hfi1_vnic_decap_skb(rxq, skb);
--
--	/* update rx counters */
--	hfi1_vnic_update_rx_counters(vinfo, rxq->idx, skb, rc);
--	if (unlikely(rc)) {
--		dev_kfree_skb_any(skb);
--		return;
--	}
--
--	skb_checksum_none_assert(skb);
--	skb->protocol = eth_type_trans(skb, rxq->netdev);
--
--	napi_gro_receive(&rxq->napi, skb);
--}
--
--static int hfi1_vnic_up(struct hfi1_vnic_vport_info *vinfo)
--{
--	struct hfi1_devdata *dd = vinfo->dd;
--	struct net_device *netdev = vinfo->netdev;
--	int rc;
--
--	/* ensure virtual eth switch id is valid */
--	if (!vinfo->vesw_id)
--		return -EINVAL;
--
--	rc = hfi1_netdev_add_data(dd, VNIC_ID(vinfo->vesw_id), vinfo);
--	if (rc < 0)
--		return rc;
--
--	rc = hfi1_netdev_rx_init(dd);
--	if (rc)
--		goto err_remove;
--
--	netif_carrier_on(netdev);
--	netif_tx_start_all_queues(netdev);
--	set_bit(HFI1_VNIC_UP, &vinfo->flags);
--
--	return 0;
--
--err_remove:
--	hfi1_netdev_remove_data(dd, VNIC_ID(vinfo->vesw_id));
--	return rc;
--}
--
--static void hfi1_vnic_down(struct hfi1_vnic_vport_info *vinfo)
--{
--	struct hfi1_devdata *dd = vinfo->dd;
--
--	clear_bit(HFI1_VNIC_UP, &vinfo->flags);
--	netif_carrier_off(vinfo->netdev);
--	netif_tx_disable(vinfo->netdev);
--	hfi1_netdev_remove_data(dd, VNIC_ID(vinfo->vesw_id));
--
--	hfi1_netdev_rx_destroy(dd);
--}
--
--static int hfi1_netdev_open(struct net_device *netdev)
--{
--	struct hfi1_vnic_vport_info *vinfo = opa_vnic_dev_priv(netdev);
--	int rc;
--
--	mutex_lock(&vinfo->lock);
--	rc = hfi1_vnic_up(vinfo);
--	mutex_unlock(&vinfo->lock);
--	return rc;
--}
--
--static int hfi1_netdev_close(struct net_device *netdev)
--{
--	struct hfi1_vnic_vport_info *vinfo = opa_vnic_dev_priv(netdev);
--
--	mutex_lock(&vinfo->lock);
--	if (test_bit(HFI1_VNIC_UP, &vinfo->flags))
--		hfi1_vnic_down(vinfo);
--	mutex_unlock(&vinfo->lock);
--	return 0;
--}
--
--static int hfi1_vnic_init(struct hfi1_vnic_vport_info *vinfo)
--{
--	struct hfi1_devdata *dd = vinfo->dd;
--	int rc = 0;
--
--	mutex_lock(&hfi1_mutex);
--	if (!dd->vnic_num_vports) {
--		rc = hfi1_vnic_txreq_init(dd);
--		if (rc)
--			goto txreq_fail;
--	}
--
--	rc = hfi1_netdev_rx_init(dd);
--	if (rc) {
--		dd_dev_err(dd, "Unable to initialize netdev contexts\n");
--		goto alloc_fail;
--	}
--
--	hfi1_init_vnic_rsm(dd);
--
--	dd->vnic_num_vports++;
--	hfi1_vnic_sdma_init(vinfo);
--
--alloc_fail:
--	if (!dd->vnic_num_vports)
--		hfi1_vnic_txreq_deinit(dd);
--txreq_fail:
--	mutex_unlock(&hfi1_mutex);
--	return rc;
--}
--
--static void hfi1_vnic_deinit(struct hfi1_vnic_vport_info *vinfo)
--{
--	struct hfi1_devdata *dd = vinfo->dd;
--
--	mutex_lock(&hfi1_mutex);
--	if (--dd->vnic_num_vports == 0) {
--		hfi1_deinit_vnic_rsm(dd);
--		hfi1_vnic_txreq_deinit(dd);
--	}
--	mutex_unlock(&hfi1_mutex);
--	hfi1_netdev_rx_destroy(dd);
--}
--
--static void hfi1_vnic_set_vesw_id(struct net_device *netdev, int id)
--{
--	struct hfi1_vnic_vport_info *vinfo = opa_vnic_dev_priv(netdev);
--	bool reopen = false;
--
--	/*
--	 * If vesw_id is being changed, and if the vnic port is up,
--	 * reset the vnic port to ensure new vesw_id gets picked up
--	 */
--	if (id != vinfo->vesw_id) {
--		mutex_lock(&vinfo->lock);
--		if (test_bit(HFI1_VNIC_UP, &vinfo->flags)) {
--			hfi1_vnic_down(vinfo);
--			reopen = true;
--		}
--
--		vinfo->vesw_id = id;
--		if (reopen)
--			hfi1_vnic_up(vinfo);
--
--		mutex_unlock(&vinfo->lock);
--	}
--}
--
--/* netdev ops */
--static const struct net_device_ops hfi1_netdev_ops = {
--	.ndo_open = hfi1_netdev_open,
--	.ndo_stop = hfi1_netdev_close,
--	.ndo_start_xmit = hfi1_netdev_start_xmit,
--	.ndo_select_queue = hfi1_vnic_select_queue,
--	.ndo_get_stats64 = hfi1_vnic_get_stats64,
--};
--
--static void hfi1_vnic_free_rn(struct net_device *netdev)
--{
--	struct hfi1_vnic_vport_info *vinfo = opa_vnic_dev_priv(netdev);
--
--	hfi1_vnic_deinit(vinfo);
--	mutex_destroy(&vinfo->lock);
--	free_netdev(netdev);
--}
--
--struct net_device *hfi1_vnic_alloc_rn(struct ib_device *device,
--				      u32 port_num,
--				      enum rdma_netdev_t type,
--				      const char *name,
--				      unsigned char name_assign_type,
--				      void (*setup)(struct net_device *))
--{
--	struct hfi1_devdata *dd = dd_from_ibdev(device);
--	struct hfi1_vnic_vport_info *vinfo;
--	struct net_device *netdev;
--	struct rdma_netdev *rn;
--	int i, size, rc;
--
--	if (!dd->num_netdev_contexts)
--		return ERR_PTR(-ENOMEM);
--
--	if (!port_num || (port_num > dd->num_pports))
--		return ERR_PTR(-EINVAL);
--
--	if (type != RDMA_NETDEV_OPA_VNIC)
--		return ERR_PTR(-EOPNOTSUPP);
--
--	size = sizeof(struct opa_vnic_rdma_netdev) + sizeof(*vinfo);
--	netdev = alloc_netdev_mqs(size, name, name_assign_type, setup,
--				  chip_sdma_engines(dd),
--				  dd->num_netdev_contexts);
--	if (!netdev)
--		return ERR_PTR(-ENOMEM);
--
--	rn = netdev_priv(netdev);
--	vinfo = opa_vnic_dev_priv(netdev);
--	vinfo->dd = dd;
--	vinfo->num_tx_q = chip_sdma_engines(dd);
--	vinfo->num_rx_q = dd->num_netdev_contexts;
--	vinfo->netdev = netdev;
--	rn->free_rdma_netdev = hfi1_vnic_free_rn;
--	rn->set_id = hfi1_vnic_set_vesw_id;
--
--	netdev->features = NETIF_F_HIGHDMA | NETIF_F_SG;
--	netdev->hw_features = netdev->features;
--	netdev->vlan_features = netdev->features;
--	netdev->watchdog_timeo = msecs_to_jiffies(HFI_TX_TIMEOUT_MS);
--	netdev->netdev_ops = &hfi1_netdev_ops;
--	mutex_init(&vinfo->lock);
--
--	for (i = 0; i < vinfo->num_rx_q; i++) {
--		struct hfi1_vnic_rx_queue *rxq = &vinfo->rxq[i];
--
--		rxq->idx = i;
--		rxq->vinfo = vinfo;
--		rxq->netdev = netdev;
--	}
--
--	rc = hfi1_vnic_init(vinfo);
--	if (rc)
--		goto init_fail;
--
--	return netdev;
--init_fail:
--	mutex_destroy(&vinfo->lock);
--	free_netdev(netdev);
--	return ERR_PTR(rc);
--}
-diff --git a/drivers/infiniband/hw/hfi1/vnic_sdma.c b/drivers/infiniband/hw/hfi1/vnic_sdma.c
-deleted file mode 100644
-index 6caf01ba0bca..000000000000
---- a/drivers/infiniband/hw/hfi1/vnic_sdma.c
-+++ /dev/null
-@@ -1,282 +0,0 @@
--// SPDX-License-Identifier: GPL-2.0 OR BSD-3-Clause
--/*
-- * Copyright(c) 2017 - 2018 Intel Corporation.
-- */
--
--/*
-- * This file contains HFI1 support for VNIC SDMA functionality
-- */
--
--#include "sdma.h"
--#include "vnic.h"
--
--#define HFI1_VNIC_SDMA_Q_ACTIVE   BIT(0)
--#define HFI1_VNIC_SDMA_Q_DEFERRED BIT(1)
--
--#define HFI1_VNIC_TXREQ_NAME_LEN   32
--#define HFI1_VNIC_SDMA_DESC_WTRMRK 64
--
--/*
-- * struct vnic_txreq - VNIC transmit descriptor
-- * @txreq: sdma transmit request
-- * @sdma: vnic sdma pointer
-- * @skb: skb to send
-- * @pad: pad buffer
-- * @plen: pad length
-- * @pbc_val: pbc value
-- */
--struct vnic_txreq {
--	struct sdma_txreq       txreq;
--	struct hfi1_vnic_sdma   *sdma;
--
--	struct sk_buff         *skb;
--	unsigned char           pad[HFI1_VNIC_MAX_PAD];
--	u16                     plen;
--	__le64                  pbc_val;
--};
--
--static void vnic_sdma_complete(struct sdma_txreq *txreq,
--			       int status)
--{
--	struct vnic_txreq *tx = container_of(txreq, struct vnic_txreq, txreq);
--	struct hfi1_vnic_sdma *vnic_sdma = tx->sdma;
--
--	sdma_txclean(vnic_sdma->dd, txreq);
--	dev_kfree_skb_any(tx->skb);
--	kmem_cache_free(vnic_sdma->dd->vnic.txreq_cache, tx);
--}
--
--static noinline int build_vnic_ulp_payload(struct sdma_engine *sde,
--					   struct vnic_txreq *tx)
--{
--	int i, ret = 0;
--
--	ret = sdma_txadd_kvaddr(
--		sde->dd,
--		&tx->txreq,
--		tx->skb->data,
--		skb_headlen(tx->skb));
--	if (unlikely(ret))
--		goto bail_txadd;
--
--	for (i = 0; i < skb_shinfo(tx->skb)->nr_frags; i++) {
--		skb_frag_t *frag = &skb_shinfo(tx->skb)->frags[i];
--
--		/* combine physically continuous fragments later? */
--		ret = sdma_txadd_page(sde->dd,
--				      &tx->txreq,
--				      skb_frag_page(frag),
--				      skb_frag_off(frag),
--				      skb_frag_size(frag),
--				      NULL, NULL, NULL);
--		if (unlikely(ret))
--			goto bail_txadd;
--	}
--
--	if (tx->plen)
--		ret = sdma_txadd_kvaddr(sde->dd, &tx->txreq,
--					tx->pad + HFI1_VNIC_MAX_PAD - tx->plen,
--					tx->plen);
--
--bail_txadd:
--	return ret;
--}
--
--static int build_vnic_tx_desc(struct sdma_engine *sde,
--			      struct vnic_txreq *tx,
--			      u64 pbc)
--{
--	int ret = 0;
--	u16 hdrbytes = 2 << 2;  /* PBC */
--
--	ret = sdma_txinit_ahg(
--		&tx->txreq,
--		0,
--		hdrbytes + tx->skb->len + tx->plen,
--		0,
--		0,
--		NULL,
--		0,
--		vnic_sdma_complete);
--	if (unlikely(ret))
--		goto bail_txadd;
--
--	/* add pbc */
--	tx->pbc_val = cpu_to_le64(pbc);
--	ret = sdma_txadd_kvaddr(
--		sde->dd,
--		&tx->txreq,
--		&tx->pbc_val,
--		hdrbytes);
--	if (unlikely(ret))
--		goto bail_txadd;
--
--	/* add the ulp payload */
--	ret = build_vnic_ulp_payload(sde, tx);
--bail_txadd:
--	return ret;
--}
--
--/* setup the last plen bypes of pad */
--static inline void hfi1_vnic_update_pad(unsigned char *pad, u8 plen)
--{
--	pad[HFI1_VNIC_MAX_PAD - 1] = plen - OPA_VNIC_ICRC_TAIL_LEN;
--}
--
--int hfi1_vnic_send_dma(struct hfi1_devdata *dd, u8 q_idx,
--		       struct hfi1_vnic_vport_info *vinfo,
--		       struct sk_buff *skb, u64 pbc, u8 plen)
--{
--	struct hfi1_vnic_sdma *vnic_sdma = &vinfo->sdma[q_idx];
--	struct sdma_engine *sde = vnic_sdma->sde;
--	struct vnic_txreq *tx;
--	int ret = -ECOMM;
--
--	if (unlikely(READ_ONCE(vnic_sdma->state) != HFI1_VNIC_SDMA_Q_ACTIVE))
--		goto tx_err;
--
--	if (unlikely(!sde || !sdma_running(sde)))
--		goto tx_err;
--
--	tx = kmem_cache_alloc(dd->vnic.txreq_cache, GFP_ATOMIC);
--	if (unlikely(!tx)) {
--		ret = -ENOMEM;
--		goto tx_err;
--	}
--
--	tx->sdma = vnic_sdma;
--	tx->skb = skb;
--	hfi1_vnic_update_pad(tx->pad, plen);
--	tx->plen = plen;
--	ret = build_vnic_tx_desc(sde, tx, pbc);
--	if (unlikely(ret))
--		goto free_desc;
--
--	ret = sdma_send_txreq(sde, iowait_get_ib_work(&vnic_sdma->wait),
--			      &tx->txreq, vnic_sdma->pkts_sent);
--	/* When -ECOMM, sdma callback will be called with ABORT status */
--	if (unlikely(ret && unlikely(ret != -ECOMM)))
--		goto free_desc;
--
--	if (!ret) {
--		vnic_sdma->pkts_sent = true;
--		iowait_starve_clear(vnic_sdma->pkts_sent, &vnic_sdma->wait);
--	}
--	return ret;
--
--free_desc:
--	sdma_txclean(dd, &tx->txreq);
--	kmem_cache_free(dd->vnic.txreq_cache, tx);
--tx_err:
--	if (ret != -EBUSY)
--		dev_kfree_skb_any(skb);
--	else
--		vnic_sdma->pkts_sent = false;
--	return ret;
--}
--
--/*
-- * hfi1_vnic_sdma_sleep - vnic sdma sleep function
-- *
-- * This function gets called from sdma_send_txreq() when there are not enough
-- * sdma descriptors available to send the packet. It adds Tx queue's wait
-- * structure to sdma engine's dmawait list to be woken up when descriptors
-- * become available.
-- */
--static int hfi1_vnic_sdma_sleep(struct sdma_engine *sde,
--				struct iowait_work *wait,
--				struct sdma_txreq *txreq,
--				uint seq,
--				bool pkts_sent)
--{
--	struct hfi1_vnic_sdma *vnic_sdma =
--		container_of(wait->iow, struct hfi1_vnic_sdma, wait);
--
--	write_seqlock(&sde->waitlock);
--	if (sdma_progress(sde, seq, txreq)) {
--		write_sequnlock(&sde->waitlock);
--		return -EAGAIN;
--	}
--
--	vnic_sdma->state = HFI1_VNIC_SDMA_Q_DEFERRED;
--	if (list_empty(&vnic_sdma->wait.list)) {
--		iowait_get_priority(wait->iow);
--		iowait_queue(pkts_sent, wait->iow, &sde->dmawait);
--	}
--	write_sequnlock(&sde->waitlock);
--	return -EBUSY;
--}
--
--/*
-- * hfi1_vnic_sdma_wakeup - vnic sdma wakeup function
-- *
-- * This function gets called when SDMA descriptors becomes available and Tx
-- * queue's wait structure was previously added to sdma engine's dmawait list.
-- * It notifies the upper driver about Tx queue wakeup.
-- */
--static void hfi1_vnic_sdma_wakeup(struct iowait *wait, int reason)
--{
--	struct hfi1_vnic_sdma *vnic_sdma =
--		container_of(wait, struct hfi1_vnic_sdma, wait);
--	struct hfi1_vnic_vport_info *vinfo = vnic_sdma->vinfo;
--
--	vnic_sdma->state = HFI1_VNIC_SDMA_Q_ACTIVE;
--	if (__netif_subqueue_stopped(vinfo->netdev, vnic_sdma->q_idx))
--		netif_wake_subqueue(vinfo->netdev, vnic_sdma->q_idx);
--};
--
--inline bool hfi1_vnic_sdma_write_avail(struct hfi1_vnic_vport_info *vinfo,
--				       u8 q_idx)
--{
--	struct hfi1_vnic_sdma *vnic_sdma = &vinfo->sdma[q_idx];
--
--	return (READ_ONCE(vnic_sdma->state) == HFI1_VNIC_SDMA_Q_ACTIVE);
--}
--
--void hfi1_vnic_sdma_init(struct hfi1_vnic_vport_info *vinfo)
--{
--	int i;
--
--	for (i = 0; i < vinfo->num_tx_q; i++) {
--		struct hfi1_vnic_sdma *vnic_sdma = &vinfo->sdma[i];
--
--		iowait_init(&vnic_sdma->wait, 0, NULL, NULL,
--			    hfi1_vnic_sdma_sleep,
--			    hfi1_vnic_sdma_wakeup, NULL, NULL);
--		vnic_sdma->sde = &vinfo->dd->per_sdma[i];
--		vnic_sdma->dd = vinfo->dd;
--		vnic_sdma->vinfo = vinfo;
--		vnic_sdma->q_idx = i;
--		vnic_sdma->state = HFI1_VNIC_SDMA_Q_ACTIVE;
--
--		/* Add a free descriptor watermark for wakeups */
--		if (vnic_sdma->sde->descq_cnt > HFI1_VNIC_SDMA_DESC_WTRMRK) {
--			struct iowait_work *work;
--
--			INIT_LIST_HEAD(&vnic_sdma->stx.list);
--			vnic_sdma->stx.num_desc = HFI1_VNIC_SDMA_DESC_WTRMRK;
--			work = iowait_get_ib_work(&vnic_sdma->wait);
--			list_add_tail(&vnic_sdma->stx.list, &work->tx_head);
--		}
--	}
--}
--
--int hfi1_vnic_txreq_init(struct hfi1_devdata *dd)
--{
--	char buf[HFI1_VNIC_TXREQ_NAME_LEN];
--
--	snprintf(buf, sizeof(buf), "hfi1_%u_vnic_txreq_cache", dd->unit);
--	dd->vnic.txreq_cache = kmem_cache_create(buf,
--						 sizeof(struct vnic_txreq),
--						 0, SLAB_HWCACHE_ALIGN,
--						 NULL);
--	if (!dd->vnic.txreq_cache)
--		return -ENOMEM;
--	return 0;
--}
--
--void hfi1_vnic_txreq_deinit(struct hfi1_devdata *dd)
--{
--	kmem_cache_destroy(dd->vnic.txreq_cache);
--	dd->vnic.txreq_cache = NULL;
--}
-diff --git a/drivers/infiniband/ulp/Makefile b/drivers/infiniband/ulp/Makefile
-index 4d0004b58377..51b0d41699b8 100644
---- a/drivers/infiniband/ulp/Makefile
-+++ b/drivers/infiniband/ulp/Makefile
-@@ -4,5 +4,4 @@ obj-$(CONFIG_INFINIBAND_SRP)		+= srp/
- obj-$(CONFIG_INFINIBAND_SRPT)		+= srpt/
- obj-$(CONFIG_INFINIBAND_ISER)		+= iser/
- obj-$(CONFIG_INFINIBAND_ISERT)		+= isert/
--obj-$(CONFIG_INFINIBAND_OPA_VNIC)	+= opa_vnic/
- obj-$(CONFIG_INFINIBAND_RTRS)		+= rtrs/
-diff --git a/drivers/infiniband/ulp/opa_vnic/Kconfig b/drivers/infiniband/ulp/opa_vnic/Kconfig
-deleted file mode 100644
-index 4d43d055fa8e..000000000000
---- a/drivers/infiniband/ulp/opa_vnic/Kconfig
-+++ /dev/null
-@@ -1,9 +0,0 @@
--# SPDX-License-Identifier: GPL-2.0-only
--config INFINIBAND_OPA_VNIC
--	tristate "Cornelis OPX VNIC support"
--	depends on X86_64 && INFINIBAND
--	help
--	This is Omni-Path Express (OPX) Virtual Network Interface Controller (VNIC)
--	driver for Ethernet over Omni-Path feature. It implements the HW
--	independent VNIC functionality. It interfaces with Linux stack for
--	data path and IB MAD for the control path.
-diff --git a/drivers/infiniband/ulp/opa_vnic/Makefile b/drivers/infiniband/ulp/opa_vnic/Makefile
-deleted file mode 100644
-index 196183817cdc..000000000000
---- a/drivers/infiniband/ulp/opa_vnic/Makefile
-+++ /dev/null
-@@ -1,9 +0,0 @@
--# SPDX-License-Identifier: GPL-2.0-only
--# Makefile - Cornelis Omni-Path Express Virtual Network Controller driver
--# Copyright(c) 2017, Intel Corporation.
--# Copyright(c) 2021, Cornelis Networks.
--#
--obj-$(CONFIG_INFINIBAND_OPA_VNIC) += opa_vnic.o
--
--opa_vnic-y := opa_vnic_netdev.o opa_vnic_encap.o opa_vnic_ethtool.o \
--              opa_vnic_vema.o opa_vnic_vema_iface.o
-diff --git a/drivers/infiniband/ulp/opa_vnic/opa_vnic_encap.c b/drivers/infiniband/ulp/opa_vnic/opa_vnic_encap.c
-deleted file mode 100644
-index 31cd361416ac..000000000000
---- a/drivers/infiniband/ulp/opa_vnic/opa_vnic_encap.c
-+++ /dev/null
-@@ -1,513 +0,0 @@
--/*
-- * Copyright(c) 2017 Intel Corporation.
-- *
-- * This file is provided under a dual BSD/GPLv2 license.  When using or
-- * redistributing this file, you may do so under either license.
-- *
-- * GPL LICENSE SUMMARY
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of version 2 of the GNU General Public License as
-- * published by the Free Software Foundation.
-- *
-- * This program is distributed in the hope that it will be useful, but
-- * WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-- * General Public License for more details.
-- *
-- * BSD LICENSE
-- *
-- * Redistribution and use in source and binary forms, with or without
-- * modification, are permitted provided that the following conditions
-- * are met:
-- *
-- *  - Redistributions of source code must retain the above copyright
-- *    notice, this list of conditions and the following disclaimer.
-- *  - Redistributions in binary form must reproduce the above copyright
-- *    notice, this list of conditions and the following disclaimer in
-- *    the documentation and/or other materials provided with the
-- *    distribution.
-- *  - Neither the name of Intel Corporation nor the names of its
-- *    contributors may be used to endorse or promote products derived
-- *    from this software without specific prior written permission.
-- *
-- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-- * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-- * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-- *
-- */
--
--/*
-- * This file contains OPA VNIC encapsulation/decapsulation function.
-- */
--
--#include <linux/if_ether.h>
--#include <linux/if_vlan.h>
--
--#include "opa_vnic_internal.h"
--
--/* OPA 16B Header fields */
--#define OPA_16B_LID_MASK        0xFFFFFull
--#define OPA_16B_SLID_HIGH_SHFT  8
--#define OPA_16B_SLID_MASK       0xF00ull
--#define OPA_16B_DLID_MASK       0xF000ull
--#define OPA_16B_DLID_HIGH_SHFT  12
--#define OPA_16B_LEN_SHFT        20
--#define OPA_16B_SC_SHFT         20
--#define OPA_16B_RC_SHFT         25
--#define OPA_16B_PKEY_SHFT       16
--
--#define OPA_VNIC_L4_HDR_SHFT    16
--
--/* L2+L4 hdr len is 20 bytes (5 quad words) */
--#define OPA_VNIC_HDR_QW_LEN   5
--
--static inline void opa_vnic_make_header(u8 *hdr, u32 slid, u32 dlid, u16 len,
--					u16 pkey, u16 entropy, u8 sc, u8 rc,
--					u8 l4_type, u16 l4_hdr)
--{
--	/* h[1]: LT=1, 16B L2=10 */
--	u32 h[OPA_VNIC_HDR_QW_LEN] = {0, 0xc0000000, 0, 0, 0};
--
--	h[2] = l4_type;
--	h[3] = entropy;
--	h[4] = l4_hdr << OPA_VNIC_L4_HDR_SHFT;
--
--	/* Extract and set 4 upper bits and 20 lower bits of the lids */
--	h[0] |= (slid & OPA_16B_LID_MASK);
--	h[2] |= ((slid >> (20 - OPA_16B_SLID_HIGH_SHFT)) & OPA_16B_SLID_MASK);
--
--	h[1] |= (dlid & OPA_16B_LID_MASK);
--	h[2] |= ((dlid >> (20 - OPA_16B_DLID_HIGH_SHFT)) & OPA_16B_DLID_MASK);
--
--	h[0] |= (len << OPA_16B_LEN_SHFT);
--	h[1] |= (rc << OPA_16B_RC_SHFT);
--	h[1] |= (sc << OPA_16B_SC_SHFT);
--	h[2] |= ((u32)pkey << OPA_16B_PKEY_SHFT);
--
--	memcpy(hdr, h, OPA_VNIC_HDR_LEN);
--}
--
--/*
-- * Using a simple hash table for mac table implementation with the last octet
-- * of mac address as a key.
-- */
--static void opa_vnic_free_mac_tbl(struct hlist_head *mactbl)
--{
--	struct opa_vnic_mac_tbl_node *node;
--	struct hlist_node *tmp;
--	int bkt;
--
--	if (!mactbl)
--		return;
--
--	vnic_hash_for_each_safe(mactbl, bkt, tmp, node, hlist) {
--		hash_del(&node->hlist);
--		kfree(node);
--	}
--	kfree(mactbl);
--}
--
--static struct hlist_head *opa_vnic_alloc_mac_tbl(void)
--{
--	u32 size = sizeof(struct hlist_head) * OPA_VNIC_MAC_TBL_SIZE;
--	struct hlist_head *mactbl;
--
--	mactbl = kzalloc(size, GFP_KERNEL);
--	if (!mactbl)
--		return ERR_PTR(-ENOMEM);
--
--	vnic_hash_init(mactbl);
--	return mactbl;
--}
--
--/* opa_vnic_release_mac_tbl - empty and free the mac table */
--void opa_vnic_release_mac_tbl(struct opa_vnic_adapter *adapter)
--{
--	struct hlist_head *mactbl;
--
--	mutex_lock(&adapter->mactbl_lock);
--	mactbl = rcu_access_pointer(adapter->mactbl);
--	rcu_assign_pointer(adapter->mactbl, NULL);
--	synchronize_rcu();
--	opa_vnic_free_mac_tbl(mactbl);
--	adapter->info.vport.mac_tbl_digest = 0;
--	mutex_unlock(&adapter->mactbl_lock);
--}
--
--/*
-- * opa_vnic_query_mac_tbl - query the mac table for a section
-- *
-- * This function implements query of specific function of the mac table.
-- * The function also expects the requested range to be valid.
-- */
--void opa_vnic_query_mac_tbl(struct opa_vnic_adapter *adapter,
--			    struct opa_veswport_mactable *tbl)
--{
--	struct opa_vnic_mac_tbl_node *node;
--	struct hlist_head *mactbl;
--	int bkt;
--	u16 loffset, lnum_entries;
--
--	rcu_read_lock();
--	mactbl = rcu_dereference(adapter->mactbl);
--	if (!mactbl)
--		goto get_mac_done;
--
--	loffset = be16_to_cpu(tbl->offset);
--	lnum_entries = be16_to_cpu(tbl->num_entries);
--
--	vnic_hash_for_each(mactbl, bkt, node, hlist) {
--		struct __opa_vnic_mactable_entry *nentry = &node->entry;
--		struct opa_veswport_mactable_entry *entry;
--
--		if ((node->index < loffset) ||
--		    (node->index >= (loffset + lnum_entries)))
--			continue;
--
--		/* populate entry in the tbl corresponding to the index */
--		entry = &tbl->tbl_entries[node->index - loffset];
--		memcpy(entry->mac_addr, nentry->mac_addr,
--		       ARRAY_SIZE(entry->mac_addr));
--		memcpy(entry->mac_addr_mask, nentry->mac_addr_mask,
--		       ARRAY_SIZE(entry->mac_addr_mask));
--		entry->dlid_sd = cpu_to_be32(nentry->dlid_sd);
--	}
--	tbl->mac_tbl_digest = cpu_to_be32(adapter->info.vport.mac_tbl_digest);
--get_mac_done:
--	rcu_read_unlock();
--}
--
--/*
-- * opa_vnic_update_mac_tbl - update mac table section
-- *
-- * This function updates the specified section of the mac table.
-- * The procedure includes following steps.
-- *  - Allocate a new mac (hash) table.
-- *  - Add the specified entries to the new table.
-- *    (except the ones that are requested to be deleted).
-- *  - Add all the other entries from the old mac table.
-- *  - If there is a failure, free the new table and return.
-- *  - Switch to the new table.
-- *  - Free the old table and return.
-- *
-- * The function also expects the requested range to be valid.
-- */
--int opa_vnic_update_mac_tbl(struct opa_vnic_adapter *adapter,
--			    struct opa_veswport_mactable *tbl)
--{
--	struct opa_vnic_mac_tbl_node *node, *new_node;
--	struct hlist_head *new_mactbl, *old_mactbl;
--	int i, bkt, rc = 0;
--	u8 key;
--	u16 loffset, lnum_entries;
--
--	mutex_lock(&adapter->mactbl_lock);
--	/* allocate new mac table */
--	new_mactbl = opa_vnic_alloc_mac_tbl();
--	if (IS_ERR(new_mactbl)) {
--		mutex_unlock(&adapter->mactbl_lock);
--		return PTR_ERR(new_mactbl);
--	}
--
--	loffset = be16_to_cpu(tbl->offset);
--	lnum_entries = be16_to_cpu(tbl->num_entries);
--
--	/* add updated entries to the new mac table */
--	for (i = 0; i < lnum_entries; i++) {
--		struct __opa_vnic_mactable_entry *nentry;
--		struct opa_veswport_mactable_entry *entry =
--							&tbl->tbl_entries[i];
--		u8 *mac_addr = entry->mac_addr;
--		u8 empty_mac[ETH_ALEN] = { 0 };
--
--		v_dbg("new mac entry %4d: %02x:%02x:%02x:%02x:%02x:%02x %x\n",
--		      loffset + i, mac_addr[0], mac_addr[1], mac_addr[2],
--		      mac_addr[3], mac_addr[4], mac_addr[5],
--		      entry->dlid_sd);
--
--		/* if the entry is being removed, do not add it */
--		if (!memcmp(mac_addr, empty_mac, ARRAY_SIZE(empty_mac)))
--			continue;
--
--		node = kzalloc(sizeof(*node), GFP_KERNEL);
--		if (!node) {
--			rc = -ENOMEM;
--			goto updt_done;
--		}
--
--		node->index = loffset + i;
--		nentry = &node->entry;
--		memcpy(nentry->mac_addr, entry->mac_addr,
--		       ARRAY_SIZE(nentry->mac_addr));
--		memcpy(nentry->mac_addr_mask, entry->mac_addr_mask,
--		       ARRAY_SIZE(nentry->mac_addr_mask));
--		nentry->dlid_sd = be32_to_cpu(entry->dlid_sd);
--		key = node->entry.mac_addr[OPA_VNIC_MAC_HASH_IDX];
--		vnic_hash_add(new_mactbl, &node->hlist, key);
--	}
--
--	/* add other entries from current mac table to new mac table */
--	old_mactbl = rcu_access_pointer(adapter->mactbl);
--	if (!old_mactbl)
--		goto switch_tbl;
--
--	vnic_hash_for_each(old_mactbl, bkt, node, hlist) {
--		if ((node->index >= loffset) &&
--		    (node->index < (loffset + lnum_entries)))
--			continue;
--
--		new_node = kzalloc(sizeof(*new_node), GFP_KERNEL);
--		if (!new_node) {
--			rc = -ENOMEM;
--			goto updt_done;
--		}
--
--		new_node->index = node->index;
--		memcpy(&new_node->entry, &node->entry, sizeof(node->entry));
--		key = new_node->entry.mac_addr[OPA_VNIC_MAC_HASH_IDX];
--		vnic_hash_add(new_mactbl, &new_node->hlist, key);
--	}
--
--switch_tbl:
--	/* switch to new table */
--	rcu_assign_pointer(adapter->mactbl, new_mactbl);
--	synchronize_rcu();
--
--	adapter->info.vport.mac_tbl_digest = be32_to_cpu(tbl->mac_tbl_digest);
--updt_done:
--	/* upon failure, free the new table; otherwise, free the old table */
--	if (rc)
--		opa_vnic_free_mac_tbl(new_mactbl);
--	else
--		opa_vnic_free_mac_tbl(old_mactbl);
--
--	mutex_unlock(&adapter->mactbl_lock);
--	return rc;
--}
--
--/* opa_vnic_chk_mac_tbl - check mac table for dlid */
--static uint32_t opa_vnic_chk_mac_tbl(struct opa_vnic_adapter *adapter,
--				     struct ethhdr *mac_hdr)
--{
--	struct opa_vnic_mac_tbl_node *node;
--	struct hlist_head *mactbl;
--	u32 dlid = 0;
--	u8 key;
--
--	rcu_read_lock();
--	mactbl = rcu_dereference(adapter->mactbl);
--	if (unlikely(!mactbl))
--		goto chk_done;
--
--	key = mac_hdr->h_dest[OPA_VNIC_MAC_HASH_IDX];
--	vnic_hash_for_each_possible(mactbl, node, hlist, key) {
--		struct __opa_vnic_mactable_entry *entry = &node->entry;
--
--		/* if related to source mac, skip */
--		if (unlikely(OPA_VNIC_DLID_SD_IS_SRC_MAC(entry->dlid_sd)))
--			continue;
--
--		if (!memcmp(node->entry.mac_addr, mac_hdr->h_dest,
--			    ARRAY_SIZE(node->entry.mac_addr))) {
--			/* mac address found */
--			dlid = OPA_VNIC_DLID_SD_GET_DLID(node->entry.dlid_sd);
--			break;
--		}
--	}
--
--chk_done:
--	rcu_read_unlock();
--	return dlid;
--}
--
--/* opa_vnic_get_dlid - find and return the DLID */
--static uint32_t opa_vnic_get_dlid(struct opa_vnic_adapter *adapter,
--				  struct sk_buff *skb, u8 def_port)
--{
--	struct __opa_veswport_info *info = &adapter->info;
--	struct ethhdr *mac_hdr = (struct ethhdr *)skb_mac_header(skb);
--	u32 dlid;
--
--	dlid = opa_vnic_chk_mac_tbl(adapter, mac_hdr);
--	if (dlid)
--		return dlid;
--
--	if (is_multicast_ether_addr(mac_hdr->h_dest)) {
--		dlid = info->vesw.u_mcast_dlid;
--	} else {
--		if (is_local_ether_addr(mac_hdr->h_dest)) {
--			dlid = ((uint32_t)mac_hdr->h_dest[5] << 16) |
--				((uint32_t)mac_hdr->h_dest[4] << 8)  |
--				mac_hdr->h_dest[3];
--			if (unlikely(!dlid))
--				v_warn("Null dlid in MAC address\n");
--		} else if (def_port != OPA_VNIC_INVALID_PORT) {
--			if (def_port < OPA_VESW_MAX_NUM_DEF_PORT)
--				dlid = info->vesw.u_ucast_dlid[def_port];
--		}
--	}
--
--	return dlid;
--}
--
--/* opa_vnic_get_sc - return the service class */
--static u8 opa_vnic_get_sc(struct __opa_veswport_info *info,
--			  struct sk_buff *skb)
--{
--	struct ethhdr *mac_hdr = (struct ethhdr *)skb_mac_header(skb);
--	u16 vlan_tci;
--	u8 sc;
--
--	if (!__vlan_get_tag(skb, &vlan_tci)) {
--		u8 pcp = OPA_VNIC_VLAN_PCP(vlan_tci);
--
--		if (is_multicast_ether_addr(mac_hdr->h_dest))
--			sc = info->vport.pcp_to_sc_mc[pcp];
--		else
--			sc = info->vport.pcp_to_sc_uc[pcp];
--	} else {
--		if (is_multicast_ether_addr(mac_hdr->h_dest))
--			sc = info->vport.non_vlan_sc_mc;
--		else
--			sc = info->vport.non_vlan_sc_uc;
--	}
--
--	return sc;
--}
--
--u8 opa_vnic_get_vl(struct opa_vnic_adapter *adapter, struct sk_buff *skb)
--{
--	struct ethhdr *mac_hdr = (struct ethhdr *)skb_mac_header(skb);
--	struct __opa_veswport_info *info = &adapter->info;
--	u8 vl;
--
--	if (skb_vlan_tag_present(skb)) {
--		u8 pcp = skb_vlan_tag_get(skb) >> VLAN_PRIO_SHIFT;
--
--		if (is_multicast_ether_addr(mac_hdr->h_dest))
--			vl = info->vport.pcp_to_vl_mc[pcp];
--		else
--			vl = info->vport.pcp_to_vl_uc[pcp];
--	} else {
--		if (is_multicast_ether_addr(mac_hdr->h_dest))
--			vl = info->vport.non_vlan_vl_mc;
--		else
--			vl = info->vport.non_vlan_vl_uc;
--	}
--
--	return vl;
--}
--
--/* opa_vnic_get_rc - return the routing control */
--static u8 opa_vnic_get_rc(struct __opa_veswport_info *info,
--			  struct sk_buff *skb)
--{
--	u8 proto, rout_ctrl;
--
--	switch (vlan_get_protocol(skb)) {
--	case htons(ETH_P_IPV6):
--		proto = ipv6_hdr(skb)->nexthdr;
--		if (proto == IPPROTO_TCP)
--			rout_ctrl = OPA_VNIC_ENCAP_RC_EXT(info->vesw.rc,
--							  IPV6_TCP);
--		else if (proto == IPPROTO_UDP)
--			rout_ctrl = OPA_VNIC_ENCAP_RC_EXT(info->vesw.rc,
--							  IPV6_UDP);
--		else
--			rout_ctrl = OPA_VNIC_ENCAP_RC_EXT(info->vesw.rc, IPV6);
--		break;
--	case htons(ETH_P_IP):
--		proto = ip_hdr(skb)->protocol;
--		if (proto == IPPROTO_TCP)
--			rout_ctrl = OPA_VNIC_ENCAP_RC_EXT(info->vesw.rc,
--							  IPV4_TCP);
--		else if (proto == IPPROTO_UDP)
--			rout_ctrl = OPA_VNIC_ENCAP_RC_EXT(info->vesw.rc,
--							  IPV4_UDP);
--		else
--			rout_ctrl = OPA_VNIC_ENCAP_RC_EXT(info->vesw.rc, IPV4);
--		break;
--	default:
--		rout_ctrl = OPA_VNIC_ENCAP_RC_EXT(info->vesw.rc, DEFAULT);
--	}
--
--	return rout_ctrl;
--}
--
--/* opa_vnic_calc_entropy - calculate the packet entropy */
--u8 opa_vnic_calc_entropy(struct sk_buff *skb)
--{
--	u32 hash = skb_get_hash(skb);
--
--	/* store XOR of all bytes in lower 8 bits */
--	hash ^= hash >> 8;
--	hash ^= hash >> 16;
--
--	/* return lower 8 bits as entropy */
--	return (u8)(hash & 0xFF);
--}
--
--/* opa_vnic_get_def_port - get default port based on entropy */
--static inline u8 opa_vnic_get_def_port(struct opa_vnic_adapter *adapter,
--				       u8 entropy)
--{
--	u8 flow_id;
--
--	/* Add the upper and lower 4-bits of entropy to get the flow id */
--	flow_id = ((entropy & 0xf) + (entropy >> 4));
--	return adapter->flow_tbl[flow_id & (OPA_VNIC_FLOW_TBL_SIZE - 1)];
--}
--
--/* Calculate packet length including OPA header, crc and padding */
--static inline int opa_vnic_wire_length(struct sk_buff *skb)
--{
--	u32 pad_len;
--
--	/* padding for 8 bytes size alignment */
--	pad_len = -(skb->len + OPA_VNIC_ICRC_TAIL_LEN) & 0x7;
--	pad_len += OPA_VNIC_ICRC_TAIL_LEN;
--
--	return (skb->len + pad_len) >> 3;
--}
--
--/* opa_vnic_encap_skb - encapsulate skb packet with OPA header and meta data */
--void opa_vnic_encap_skb(struct opa_vnic_adapter *adapter, struct sk_buff *skb)
--{
--	struct __opa_veswport_info *info = &adapter->info;
--	struct opa_vnic_skb_mdata *mdata;
--	u8 def_port, sc, rc, entropy, *hdr;
--	u16 len, l4_hdr;
--	u32 dlid;
--
--	hdr = skb_push(skb, OPA_VNIC_HDR_LEN);
--
--	entropy = opa_vnic_calc_entropy(skb);
--	def_port = opa_vnic_get_def_port(adapter, entropy);
--	len = opa_vnic_wire_length(skb);
--	dlid = opa_vnic_get_dlid(adapter, skb, def_port);
--	sc = opa_vnic_get_sc(info, skb);
--	rc = opa_vnic_get_rc(info, skb);
--	l4_hdr = info->vesw.vesw_id;
--
--	mdata = skb_push(skb, sizeof(*mdata));
--	mdata->vl = opa_vnic_get_vl(adapter, skb);
--	mdata->entropy = entropy;
--	mdata->flags = 0;
--	if (unlikely(!dlid)) {
--		mdata->flags = OPA_VNIC_SKB_MDATA_ENCAP_ERR;
--		return;
--	}
--
--	opa_vnic_make_header(hdr, info->vport.encap_slid, dlid, len,
--			     info->vesw.pkey, entropy, sc, rc,
--			     OPA_VNIC_L4_ETHR, l4_hdr);
--}
-diff --git a/drivers/infiniband/ulp/opa_vnic/opa_vnic_encap.h b/drivers/infiniband/ulp/opa_vnic/opa_vnic_encap.h
-deleted file mode 100644
-index 012fc27c5c93..000000000000
---- a/drivers/infiniband/ulp/opa_vnic/opa_vnic_encap.h
-+++ /dev/null
-@@ -1,524 +0,0 @@
--#ifndef _OPA_VNIC_ENCAP_H
--#define _OPA_VNIC_ENCAP_H
--/*
-- * Copyright(c) 2017 Intel Corporation.
-- *
-- * This file is provided under a dual BSD/GPLv2 license.  When using or
-- * redistributing this file, you may do so under either license.
-- *
-- * GPL LICENSE SUMMARY
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of version 2 of the GNU General Public License as
-- * published by the Free Software Foundation.
-- *
-- * This program is distributed in the hope that it will be useful, but
-- * WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-- * General Public License for more details.
-- *
-- * BSD LICENSE
-- *
-- * Redistribution and use in source and binary forms, with or without
-- * modification, are permitted provided that the following conditions
-- * are met:
-- *
-- *  - Redistributions of source code must retain the above copyright
-- *    notice, this list of conditions and the following disclaimer.
-- *  - Redistributions in binary form must reproduce the above copyright
-- *    notice, this list of conditions and the following disclaimer in
-- *    the documentation and/or other materials provided with the
-- *    distribution.
-- *  - Neither the name of Intel Corporation nor the names of its
-- *    contributors may be used to endorse or promote products derived
-- *    from this software without specific prior written permission.
-- *
-- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-- * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-- * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-- *
-- */
--
--/*
-- * This file contains all OPA VNIC declaration required for encapsulation
-- * and decapsulation of Ethernet packets
-- */
--
--#include <linux/types.h>
--#include <rdma/ib_mad.h>
--
--/* EMA class version */
--#define OPA_EMA_CLASS_VERSION               0x80
--
--/*
-- * Define the Intel vendor management class for OPA
-- * ETHERNET MANAGEMENT
-- */
--#define OPA_MGMT_CLASS_INTEL_EMA            0x34
--
--/* EM attribute IDs */
--#define OPA_EM_ATTR_CLASS_PORT_INFO                 0x0001
--#define OPA_EM_ATTR_VESWPORT_INFO                   0x0011
--#define OPA_EM_ATTR_VESWPORT_MAC_ENTRIES            0x0012
--#define OPA_EM_ATTR_IFACE_UCAST_MACS                0x0013
--#define OPA_EM_ATTR_IFACE_MCAST_MACS                0x0014
--#define OPA_EM_ATTR_DELETE_VESW                     0x0015
--#define OPA_EM_ATTR_VESWPORT_SUMMARY_COUNTERS       0x0020
--#define OPA_EM_ATTR_VESWPORT_ERROR_COUNTERS         0x0022
--
--/* VNIC configured and operational state values */
--#define OPA_VNIC_STATE_DROP_ALL        0x1
--#define OPA_VNIC_STATE_FORWARDING      0x3
--
--#define OPA_VESW_MAX_NUM_DEF_PORT   16
--#define OPA_VNIC_MAX_NUM_PCP        8
--
--#define OPA_VNIC_EMA_DATA    (OPA_MGMT_MAD_SIZE - IB_MGMT_VENDOR_HDR)
--
--/* Defines for vendor specific notice(trap) attributes */
--#define OPA_INTEL_EMA_NOTICE_TYPE_INFO 0x04
--
--/* INTEL OUI */
--#define INTEL_OUI_1 0x00
--#define INTEL_OUI_2 0x06
--#define INTEL_OUI_3 0x6a
--
--/* Trap opcodes sent from VNIC */
--#define OPA_VESWPORT_TRAP_IFACE_UCAST_MAC_CHANGE 0x1
--#define OPA_VESWPORT_TRAP_IFACE_MCAST_MAC_CHANGE 0x2
--#define OPA_VESWPORT_TRAP_ETH_LINK_STATUS_CHANGE 0x3
--
--#define OPA_VNIC_DLID_SD_IS_SRC_MAC(dlid_sd)  (!!((dlid_sd) & 0x20))
--#define OPA_VNIC_DLID_SD_GET_DLID(dlid_sd)    ((dlid_sd) >> 8)
--
--/* VNIC Ethernet link status */
--#define OPA_VNIC_ETH_LINK_UP     1
--#define OPA_VNIC_ETH_LINK_DOWN   2
--
--/* routing control */
--#define OPA_VNIC_ENCAP_RC_DEFAULT   0
--#define OPA_VNIC_ENCAP_RC_IPV4      4
--#define OPA_VNIC_ENCAP_RC_IPV4_UDP  8
--#define OPA_VNIC_ENCAP_RC_IPV4_TCP  12
--#define OPA_VNIC_ENCAP_RC_IPV6      16
--#define OPA_VNIC_ENCAP_RC_IPV6_TCP  20
--#define OPA_VNIC_ENCAP_RC_IPV6_UDP  24
--
--#define OPA_VNIC_ENCAP_RC_EXT(w, b) (((w) >> OPA_VNIC_ENCAP_RC_ ## b) & 0x7)
--
--/**
-- * struct opa_vesw_info - OPA vnic switch information
-- * @fabric_id: 10-bit fabric id
-- * @vesw_id: 12-bit virtual ethernet switch id
-- * @rsvd0: reserved bytes
-- * @def_port_mask: bitmask of default ports
-- * @rsvd1: reserved bytes
-- * @pkey: partition key
-- * @rsvd2: reserved bytes
-- * @u_mcast_dlid: unknown multicast dlid
-- * @u_ucast_dlid: array of unknown unicast dlids
-- * @rsvd3: reserved bytes
-- * @rc: routing control
-- * @eth_mtu: Ethernet MTU
-- * @rsvd4: reserved bytes
-- */
--struct opa_vesw_info {
--	__be16  fabric_id;
--	__be16  vesw_id;
--
--	u8      rsvd0[6];
--	__be16  def_port_mask;
--
--	u8      rsvd1[2];
--	__be16  pkey;
--
--	u8      rsvd2[4];
--	__be32  u_mcast_dlid;
--	__be32  u_ucast_dlid[OPA_VESW_MAX_NUM_DEF_PORT];
--
--	__be32  rc;
--
--	u8      rsvd3[56];
--	__be16  eth_mtu;
--	u8      rsvd4[2];
--} __packed;
--
--/**
-- * struct opa_per_veswport_info - OPA vnic per port information
-- * @port_num: port number
-- * @eth_link_status: current ethernet link state
-- * @rsvd0: reserved bytes
-- * @base_mac_addr: base mac address
-- * @config_state: configured port state
-- * @oper_state: operational port state
-- * @max_mac_tbl_ent: max number of mac table entries
-- * @max_smac_ent: max smac entries in mac table
-- * @mac_tbl_digest: mac table digest
-- * @rsvd1: reserved bytes
-- * @encap_slid: base slid for the port
-- * @pcp_to_sc_uc: sc by pcp index for unicast ethernet packets
-- * @pcp_to_vl_uc: vl by pcp index for unicast ethernet packets
-- * @pcp_to_sc_mc: sc by pcp index for multicast ethernet packets
-- * @pcp_to_vl_mc: vl by pcp index for multicast ethernet packets
-- * @non_vlan_sc_uc: sc for non-vlan unicast ethernet packets
-- * @non_vlan_vl_uc: vl for non-vlan unicast ethernet packets
-- * @non_vlan_sc_mc: sc for non-vlan multicast ethernet packets
-- * @non_vlan_vl_mc: vl for non-vlan multicast ethernet packets
-- * @rsvd2: reserved bytes
-- * @uc_macs_gen_count: generation count for unicast macs list
-- * @mc_macs_gen_count: generation count for multicast macs list
-- * @rsvd3: reserved bytes
-- */
--struct opa_per_veswport_info {
--	__be32  port_num;
--
--	u8      eth_link_status;
--	u8      rsvd0[3];
--
--	u8      base_mac_addr[ETH_ALEN];
--	u8      config_state;
--	u8      oper_state;
--
--	__be16  max_mac_tbl_ent;
--	__be16  max_smac_ent;
--	__be32  mac_tbl_digest;
--	u8      rsvd1[4];
--
--	__be32  encap_slid;
--
--	u8      pcp_to_sc_uc[OPA_VNIC_MAX_NUM_PCP];
--	u8      pcp_to_vl_uc[OPA_VNIC_MAX_NUM_PCP];
--	u8      pcp_to_sc_mc[OPA_VNIC_MAX_NUM_PCP];
--	u8      pcp_to_vl_mc[OPA_VNIC_MAX_NUM_PCP];
--
--	u8      non_vlan_sc_uc;
--	u8      non_vlan_vl_uc;
--	u8      non_vlan_sc_mc;
--	u8      non_vlan_vl_mc;
--
--	u8      rsvd2[48];
--
--	__be16  uc_macs_gen_count;
--	__be16  mc_macs_gen_count;
--
--	u8      rsvd3[8];
--} __packed;
--
--/**
-- * struct opa_veswport_info - OPA vnic port information
-- * @vesw: OPA vnic switch information
-- * @vport: OPA vnic per port information
-- *
-- * On host, each of the virtual ethernet ports belongs
-- * to a different virtual ethernet switches.
-- */
--struct opa_veswport_info {
--	struct opa_vesw_info          vesw;
--	struct opa_per_veswport_info  vport;
--};
--
--/**
-- * struct opa_veswport_mactable_entry - single entry in the forwarding table
-- * @mac_addr: MAC address
-- * @mac_addr_mask: MAC address bit mask
-- * @dlid_sd: Matching DLID and side data
-- *
-- * On the host each virtual ethernet port will have
-- * a forwarding table. These tables are used to
-- * map a MAC to a LID and other data. For more
-- * details see struct opa_veswport_mactable_entries.
-- * This is the structure of a single mactable entry
-- */
--struct opa_veswport_mactable_entry {
--	u8      mac_addr[ETH_ALEN];
--	u8      mac_addr_mask[ETH_ALEN];
--	__be32  dlid_sd;
--} __packed;
--
--/**
-- * struct opa_veswport_mactable - Forwarding table array
-- * @offset: mac table starting offset
-- * @num_entries: Number of entries to get or set
-- * @mac_tbl_digest: mac table digest
-- * @tbl_entries: Array of table entries
-- *
-- * The EM sends down this structure in a MAD indicating
-- * the starting offset in the forwarding table that this
-- * entry is to be loaded into and the number of entries
-- * that that this MAD instance contains
-- * The mac_tbl_digest has been added to this MAD structure. It will be set by
-- * the EM and it will be used by the EM to check if there are any
-- * discrepancies with this value and the value
-- * maintained by the EM in the case of VNIC port being deleted or unloaded
-- * A new instantiation of a VNIC will always have a value of zero.
-- * This value is stored as part of the vnic adapter structure and will be
-- * accessed by the GET and SET routines for both the mactable entries and the
-- * veswport info.
-- */
--struct opa_veswport_mactable {
--	__be16                              offset;
--	__be16                              num_entries;
--	__be32                              mac_tbl_digest;
--	struct opa_veswport_mactable_entry  tbl_entries[];
--} __packed;
--
--/**
-- * struct opa_veswport_summary_counters - summary counters
-- * @vp_instance: vport instance on the OPA port
-- * @vesw_id: virtual ethernet switch id
-- * @veswport_num: virtual ethernet switch port number
-- * @tx_errors: transmit errors
-- * @rx_errors: receive errors
-- * @tx_packets: transmit packets
-- * @rx_packets: receive packets
-- * @tx_bytes: transmit bytes
-- * @rx_bytes: receive bytes
-- * @tx_unicast: unicast packets transmitted
-- * @tx_mcastbcast: multicast/broadcast packets transmitted
-- * @tx_untagged: non-vlan packets transmitted
-- * @tx_vlan: vlan packets transmitted
-- * @tx_64_size: transmit packet length is 64 bytes
-- * @tx_65_127: transmit packet length is >=65 and < 127 bytes
-- * @tx_128_255: transmit packet length is >=128 and < 255 bytes
-- * @tx_256_511: transmit packet length is >=256 and < 511 bytes
-- * @tx_512_1023: transmit packet length is >=512 and < 1023 bytes
-- * @tx_1024_1518: transmit packet length is >=1024 and < 1518 bytes
-- * @tx_1519_max: transmit packet length >= 1519 bytes
-- * @rx_unicast: unicast packets received
-- * @rx_mcastbcast: multicast/broadcast packets received
-- * @rx_untagged: non-vlan packets received
-- * @rx_vlan: vlan packets received
-- * @rx_64_size: received packet length is 64 bytes
-- * @rx_65_127: received packet length is >=65 and < 127 bytes
-- * @rx_128_255: received packet length is >=128 and < 255 bytes
-- * @rx_256_511: received packet length is >=256 and < 511 bytes
-- * @rx_512_1023: received packet length is >=512 and < 1023 bytes
-- * @rx_1024_1518: received packet length is >=1024 and < 1518 bytes
-- * @rx_1519_max: received packet length >= 1519 bytes
-- * @reserved: reserved bytes
-- *
-- * All the above are counters of corresponding conditions.
-- */
--struct opa_veswport_summary_counters {
--	__be16  vp_instance;
--	__be16  vesw_id;
--	__be32  veswport_num;
--
--	__be64  tx_errors;
--	__be64  rx_errors;
--	__be64  tx_packets;
--	__be64  rx_packets;
--	__be64  tx_bytes;
--	__be64  rx_bytes;
--
--	__be64  tx_unicast;
--	__be64  tx_mcastbcast;
--
--	__be64  tx_untagged;
--	__be64  tx_vlan;
--
--	__be64  tx_64_size;
--	__be64  tx_65_127;
--	__be64  tx_128_255;
--	__be64  tx_256_511;
--	__be64  tx_512_1023;
--	__be64  tx_1024_1518;
--	__be64  tx_1519_max;
--
--	__be64  rx_unicast;
--	__be64  rx_mcastbcast;
--
--	__be64  rx_untagged;
--	__be64  rx_vlan;
--
--	__be64  rx_64_size;
--	__be64  rx_65_127;
--	__be64  rx_128_255;
--	__be64  rx_256_511;
--	__be64  rx_512_1023;
--	__be64  rx_1024_1518;
--	__be64  rx_1519_max;
--
--	__be64  reserved[16];
--} __packed;
--
--/**
-- * struct opa_veswport_error_counters - error counters
-- * @vp_instance: vport instance on the OPA port
-- * @vesw_id: virtual ethernet switch id
-- * @veswport_num: virtual ethernet switch port number
-- * @tx_errors: transmit errors
-- * @rx_errors: receive errors
-- * @rsvd0: reserved bytes
-- * @tx_smac_filt: smac filter errors
-- * @rsvd1: reserved bytes
-- * @rsvd2: reserved bytes
-- * @rsvd3: reserved bytes
-- * @tx_dlid_zero: transmit packets with invalid dlid
-- * @rsvd4: reserved bytes
-- * @tx_logic: other transmit errors
-- * @rsvd5: reserved bytes
-- * @tx_drop_state: packet tansmission in non-forward port state
-- * @rx_bad_veswid: received packet with invalid vesw id
-- * @rsvd6: reserved bytes
-- * @rx_runt: received ethernet packet with length < 64 bytes
-- * @rx_oversize: received ethernet packet with length > MTU size
-- * @rsvd7: reserved bytes
-- * @rx_eth_down: received packets when interface is down
-- * @rx_drop_state: received packets in non-forwarding port state
-- * @rx_logic: other receive errors
-- * @rsvd8: reserved bytes
-- * @rsvd9: reserved bytes
-- *
-- * All the above are counters of corresponding error conditions.
-- */
--struct opa_veswport_error_counters {
--	__be16  vp_instance;
--	__be16  vesw_id;
--	__be32  veswport_num;
--
--	__be64  tx_errors;
--	__be64  rx_errors;
--
--	__be64  rsvd0;
--	__be64  tx_smac_filt;
--	__be64  rsvd1;
--	__be64  rsvd2;
--	__be64  rsvd3;
--	__be64  tx_dlid_zero;
--	__be64  rsvd4;
--	__be64  tx_logic;
--	__be64  rsvd5;
--	__be64  tx_drop_state;
--
--	__be64  rx_bad_veswid;
--	__be64  rsvd6;
--	__be64  rx_runt;
--	__be64  rx_oversize;
--	__be64  rsvd7;
--	__be64  rx_eth_down;
--	__be64  rx_drop_state;
--	__be64  rx_logic;
--	__be64  rsvd8;
--
--	__be64  rsvd9[16];
--} __packed;
--
--/**
-- * struct opa_veswport_trap - Trap message sent to EM by VNIC
-- * @fabric_id: 10 bit fabric id
-- * @veswid: 12 bit virtual ethernet switch id
-- * @veswportnum: logical port number on the Virtual switch
-- * @opaportnum: physical port num (redundant on host)
-- * @veswportindex: switch port index on opa port 0 based
-- * @opcode: operation
-- * @reserved: 32 bit for alignment
-- *
-- * The VNIC will send trap messages to the Ethernet manager to
-- * inform it about changes to the VNIC config, behaviour etc.
-- * This is the format of the trap payload.
-- */
--struct opa_veswport_trap {
--	__be16  fabric_id;
--	__be16  veswid;
--	__be32  veswportnum;
--	__be16  opaportnum;
--	u8      veswportindex;
--	u8      opcode;
--	__be32  reserved;
--} __packed;
--
--/**
-- * struct opa_vnic_iface_mac_entry - single entry in the mac list
-- * @mac_addr: MAC address
-- */
--struct opa_vnic_iface_mac_entry {
--	u8 mac_addr[ETH_ALEN];
--};
--
--/**
-- * struct opa_veswport_iface_macs - Msg to set globally administered MAC
-- * @start_idx: position of first entry (0 based)
-- * @num_macs_in_msg: number of MACs in this message
-- * @tot_macs_in_lst: The total number of MACs the agent has
-- * @gen_count: gen_count to indicate change
-- * @entry: The mac list entry
-- *
-- * Same attribute IDS and attribute modifiers as in locally administered
-- * addresses used to set globally administered addresses
-- */
--struct opa_veswport_iface_macs {
--	__be16 start_idx;
--	__be16 num_macs_in_msg;
--	__be16 tot_macs_in_lst;
--	__be16 gen_count;
--	struct opa_vnic_iface_mac_entry entry[];
--} __packed;
--
--/**
-- * struct opa_vnic_vema_mad - Generic VEMA MAD
-- * @mad_hdr: Generic MAD header
-- * @rmpp_hdr: RMPP header for vendor specific MADs
-- * @reserved: reserved bytes
-- * @oui: Unique org identifier
-- * @data: MAD data
-- */
--struct opa_vnic_vema_mad {
--	struct ib_mad_hdr  mad_hdr;
--	struct ib_rmpp_hdr rmpp_hdr;
--	u8                 reserved;
--	u8                 oui[3];
--	u8                 data[OPA_VNIC_EMA_DATA];
--};
--
--/**
-- * struct opa_vnic_notice_attr - Generic Notice MAD
-- * @gen_type: Generic/Specific bit and type of notice
-- * @oui_1: Vendor ID byte 1
-- * @oui_2: Vendor ID byte 2
-- * @oui_3: Vendor ID byte 3
-- * @trap_num: Trap number
-- * @toggle_count: Notice toggle bit and count value
-- * @issuer_lid: Trap issuer's lid
-- * @reserved: reserved bytes
-- * @issuer_gid: Issuer GID (only if Report method)
-- * @raw_data: Trap message body
-- */
--struct opa_vnic_notice_attr {
--	u8     gen_type;
--	u8     oui_1;
--	u8     oui_2;
--	u8     oui_3;
--	__be16 trap_num;
--	__be16 toggle_count;
--	__be32 issuer_lid;
--	__be32 reserved;
--	u8     issuer_gid[16];
--	u8     raw_data[64];
--} __packed;
--
--/**
-- * struct opa_vnic_vema_mad_trap - Generic VEMA MAD Trap
-- * @mad_hdr: Generic MAD header
-- * @rmpp_hdr: RMPP header for vendor specific MADs
-- * @reserved: reserved bytes
-- * @oui: Unique org identifier
-- * @notice: Notice structure
-- */
--struct opa_vnic_vema_mad_trap {
--	struct ib_mad_hdr            mad_hdr;
--	struct ib_rmpp_hdr           rmpp_hdr;
--	u8                           reserved;
--	u8                           oui[3];
--	struct opa_vnic_notice_attr  notice;
--};
--
--#endif /* _OPA_VNIC_ENCAP_H */
-diff --git a/drivers/infiniband/ulp/opa_vnic/opa_vnic_ethtool.c b/drivers/infiniband/ulp/opa_vnic/opa_vnic_ethtool.c
-deleted file mode 100644
-index 316959940d2f..000000000000
---- a/drivers/infiniband/ulp/opa_vnic/opa_vnic_ethtool.c
-+++ /dev/null
-@@ -1,183 +0,0 @@
--/*
-- * Copyright(c) 2017 Intel Corporation.
-- *
-- * This file is provided under a dual BSD/GPLv2 license.  When using or
-- * redistributing this file, you may do so under either license.
-- *
-- * GPL LICENSE SUMMARY
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of version 2 of the GNU General Public License as
-- * published by the Free Software Foundation.
-- *
-- * This program is distributed in the hope that it will be useful, but
-- * WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-- * General Public License for more details.
-- *
-- * BSD LICENSE
-- *
-- * Redistribution and use in source and binary forms, with or without
-- * modification, are permitted provided that the following conditions
-- * are met:
-- *
-- *  - Redistributions of source code must retain the above copyright
-- *    notice, this list of conditions and the following disclaimer.
-- *  - Redistributions in binary form must reproduce the above copyright
-- *    notice, this list of conditions and the following disclaimer in
-- *    the documentation and/or other materials provided with the
-- *    distribution.
-- *  - Neither the name of Intel Corporation nor the names of its
-- *    contributors may be used to endorse or promote products derived
-- *    from this software without specific prior written permission.
-- *
-- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-- * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-- * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-- *
-- */
--
--/*
-- * This file contains OPA VNIC ethtool functions
-- */
--
--#include <linux/ethtool.h>
--
--#include "opa_vnic_internal.h"
--
--enum {NETDEV_STATS, VNIC_STATS};
--
--struct vnic_stats {
--	char stat_string[ETH_GSTRING_LEN];
--	struct {
--		int sizeof_stat;
--		int stat_offset;
--	};
--};
--
--#define VNIC_STAT(m)            { sizeof_field(struct opa_vnic_stats, m),   \
--				  offsetof(struct opa_vnic_stats, m) }
--
--static struct vnic_stats vnic_gstrings_stats[] = {
--	/* NETDEV stats */
--	{"rx_packets", VNIC_STAT(netstats.rx_packets)},
--	{"tx_packets", VNIC_STAT(netstats.tx_packets)},
--	{"rx_bytes", VNIC_STAT(netstats.rx_bytes)},
--	{"tx_bytes", VNIC_STAT(netstats.tx_bytes)},
--	{"rx_errors", VNIC_STAT(netstats.rx_errors)},
--	{"tx_errors", VNIC_STAT(netstats.tx_errors)},
--	{"rx_dropped", VNIC_STAT(netstats.rx_dropped)},
--	{"tx_dropped", VNIC_STAT(netstats.tx_dropped)},
--
--	/* SUMMARY counters */
--	{"tx_unicast", VNIC_STAT(tx_grp.unicast)},
--	{"tx_mcastbcast", VNIC_STAT(tx_grp.mcastbcast)},
--	{"tx_untagged", VNIC_STAT(tx_grp.untagged)},
--	{"tx_vlan", VNIC_STAT(tx_grp.vlan)},
--
--	{"tx_64_size", VNIC_STAT(tx_grp.s_64)},
--	{"tx_65_127", VNIC_STAT(tx_grp.s_65_127)},
--	{"tx_128_255", VNIC_STAT(tx_grp.s_128_255)},
--	{"tx_256_511", VNIC_STAT(tx_grp.s_256_511)},
--	{"tx_512_1023", VNIC_STAT(tx_grp.s_512_1023)},
--	{"tx_1024_1518", VNIC_STAT(tx_grp.s_1024_1518)},
--	{"tx_1519_max", VNIC_STAT(tx_grp.s_1519_max)},
--
--	{"rx_unicast", VNIC_STAT(rx_grp.unicast)},
--	{"rx_mcastbcast", VNIC_STAT(rx_grp.mcastbcast)},
--	{"rx_untagged", VNIC_STAT(rx_grp.untagged)},
--	{"rx_vlan", VNIC_STAT(rx_grp.vlan)},
--
--	{"rx_64_size", VNIC_STAT(rx_grp.s_64)},
--	{"rx_65_127", VNIC_STAT(rx_grp.s_65_127)},
--	{"rx_128_255", VNIC_STAT(rx_grp.s_128_255)},
--	{"rx_256_511", VNIC_STAT(rx_grp.s_256_511)},
--	{"rx_512_1023", VNIC_STAT(rx_grp.s_512_1023)},
--	{"rx_1024_1518", VNIC_STAT(rx_grp.s_1024_1518)},
--	{"rx_1519_max", VNIC_STAT(rx_grp.s_1519_max)},
--
--	/* ERROR counters */
--	{"rx_fifo_errors", VNIC_STAT(netstats.rx_fifo_errors)},
--	{"rx_length_errors", VNIC_STAT(netstats.rx_length_errors)},
--
--	{"tx_fifo_errors", VNIC_STAT(netstats.tx_fifo_errors)},
--	{"tx_carrier_errors", VNIC_STAT(netstats.tx_carrier_errors)},
--
--	{"tx_dlid_zero", VNIC_STAT(tx_dlid_zero)},
--	{"tx_drop_state", VNIC_STAT(tx_drop_state)},
--	{"rx_drop_state", VNIC_STAT(rx_drop_state)},
--	{"rx_oversize", VNIC_STAT(rx_oversize)},
--	{"rx_runt", VNIC_STAT(rx_runt)},
--};
--
--#define VNIC_STATS_LEN  ARRAY_SIZE(vnic_gstrings_stats)
--
--/* vnic_get_drvinfo - get driver info */
--static void vnic_get_drvinfo(struct net_device *netdev,
--			     struct ethtool_drvinfo *drvinfo)
--{
--	strscpy(drvinfo->driver, opa_vnic_driver_name, sizeof(drvinfo->driver));
--	strscpy(drvinfo->bus_info, dev_name(netdev->dev.parent),
--		sizeof(drvinfo->bus_info));
--}
--
--/* vnic_get_sset_count - get string set count */
--static int vnic_get_sset_count(struct net_device *netdev, int sset)
--{
--	return (sset == ETH_SS_STATS) ? VNIC_STATS_LEN : -EOPNOTSUPP;
--}
--
--/* vnic_get_ethtool_stats - get statistics */
--static void vnic_get_ethtool_stats(struct net_device *netdev,
--				   struct ethtool_stats *stats, u64 *data)
--{
--	struct opa_vnic_adapter *adapter = opa_vnic_priv(netdev);
--	struct opa_vnic_stats vstats;
--	int i;
--
--	memset(&vstats, 0, sizeof(vstats));
--	spin_lock(&adapter->stats_lock);
--	adapter->rn_ops->ndo_get_stats64(netdev, &vstats.netstats);
--	spin_unlock(&adapter->stats_lock);
--	for (i = 0; i < VNIC_STATS_LEN; i++) {
--		char *p = (char *)&vstats + vnic_gstrings_stats[i].stat_offset;
--
--		data[i] = (vnic_gstrings_stats[i].sizeof_stat ==
--			   sizeof(u64)) ? *(u64 *)p : *(u32 *)p;
--	}
--}
--
--/* vnic_get_strings - get strings */
--static void vnic_get_strings(struct net_device *netdev, u32 stringset, u8 *data)
--{
--	int i;
--
--	if (stringset != ETH_SS_STATS)
--		return;
--
--	for (i = 0; i < VNIC_STATS_LEN; i++)
--		ethtool_puts(&data, vnic_gstrings_stats[i].stat_string);
--}
--
--/* ethtool ops */
--static const struct ethtool_ops opa_vnic_ethtool_ops = {
--	.get_drvinfo = vnic_get_drvinfo,
--	.get_link = ethtool_op_get_link,
--	.get_strings = vnic_get_strings,
--	.get_sset_count = vnic_get_sset_count,
--	.get_ethtool_stats = vnic_get_ethtool_stats,
--};
--
--/* opa_vnic_set_ethtool_ops - set ethtool ops */
--void opa_vnic_set_ethtool_ops(struct net_device *netdev)
--{
--	netdev->ethtool_ops = &opa_vnic_ethtool_ops;
--}
-diff --git a/drivers/infiniband/ulp/opa_vnic/opa_vnic_internal.h b/drivers/infiniband/ulp/opa_vnic/opa_vnic_internal.h
-deleted file mode 100644
-index dd942dd642bd..000000000000
---- a/drivers/infiniband/ulp/opa_vnic/opa_vnic_internal.h
-+++ /dev/null
-@@ -1,329 +0,0 @@
--#ifndef _OPA_VNIC_INTERNAL_H
--#define _OPA_VNIC_INTERNAL_H
--/*
-- * Copyright(c) 2017 Intel Corporation.
-- *
-- * This file is provided under a dual BSD/GPLv2 license.  When using or
-- * redistributing this file, you may do so under either license.
-- *
-- * GPL LICENSE SUMMARY
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of version 2 of the GNU General Public License as
-- * published by the Free Software Foundation.
-- *
-- * This program is distributed in the hope that it will be useful, but
-- * WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-- * General Public License for more details.
-- *
-- * BSD LICENSE
-- *
-- * Redistribution and use in source and binary forms, with or without
-- * modification, are permitted provided that the following conditions
-- * are met:
-- *
-- *  - Redistributions of source code must retain the above copyright
-- *    notice, this list of conditions and the following disclaimer.
-- *  - Redistributions in binary form must reproduce the above copyright
-- *    notice, this list of conditions and the following disclaimer in
-- *    the documentation and/or other materials provided with the
-- *    distribution.
-- *  - Neither the name of Intel Corporation nor the names of its
-- *    contributors may be used to endorse or promote products derived
-- *    from this software without specific prior written permission.
-- *
-- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-- * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-- * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-- *
-- */
--
--/*
-- * This file contains OPA VNIC driver internal declarations
-- */
--
--#include <linux/bitops.h>
--#include <linux/etherdevice.h>
--#include <linux/hashtable.h>
--#include <linux/sizes.h>
--#include <rdma/opa_vnic.h>
--
--#include "opa_vnic_encap.h"
--
--#define OPA_VNIC_VLAN_PCP(vlan_tci)  \
--			(((vlan_tci) & VLAN_PRIO_MASK) >> VLAN_PRIO_SHIFT)
--
--/* Flow to default port redirection table size */
--#define OPA_VNIC_FLOW_TBL_SIZE    32
--
--/* Invalid port number */
--#define OPA_VNIC_INVALID_PORT     0xff
--
--struct opa_vnic_adapter;
--
--/*
-- * struct __opa_vesw_info - OPA vnic virtual switch info
-- *
-- * Same as opa_vesw_info without bitwise attribute.
-- */
--struct __opa_vesw_info {
--	u16  fabric_id;
--	u16  vesw_id;
--
--	u8   rsvd0[6];
--	u16  def_port_mask;
--
--	u8   rsvd1[2];
--	u16  pkey;
--
--	u8   rsvd2[4];
--	u32  u_mcast_dlid;
--	u32  u_ucast_dlid[OPA_VESW_MAX_NUM_DEF_PORT];
--
--	u32  rc;
--
--	u8   rsvd3[56];
--	u16  eth_mtu;
--	u8   rsvd4[2];
--} __packed;
--
--/*
-- * struct __opa_per_veswport_info - OPA vnic per port info
-- *
-- * Same as opa_per_veswport_info without bitwise attribute.
-- */
--struct __opa_per_veswport_info {
--	u32  port_num;
--
--	u8   eth_link_status;
--	u8   rsvd0[3];
--
--	u8   base_mac_addr[ETH_ALEN];
--	u8   config_state;
--	u8   oper_state;
--
--	u16  max_mac_tbl_ent;
--	u16  max_smac_ent;
--	u32  mac_tbl_digest;
--	u8   rsvd1[4];
--
--	u32  encap_slid;
--
--	u8   pcp_to_sc_uc[OPA_VNIC_MAX_NUM_PCP];
--	u8   pcp_to_vl_uc[OPA_VNIC_MAX_NUM_PCP];
--	u8   pcp_to_sc_mc[OPA_VNIC_MAX_NUM_PCP];
--	u8   pcp_to_vl_mc[OPA_VNIC_MAX_NUM_PCP];
--
--	u8   non_vlan_sc_uc;
--	u8   non_vlan_vl_uc;
--	u8   non_vlan_sc_mc;
--	u8   non_vlan_vl_mc;
--
--	u8   rsvd2[48];
--
--	u16  uc_macs_gen_count;
--	u16  mc_macs_gen_count;
--
--	u8   rsvd3[8];
--} __packed;
--
--/*
-- * struct __opa_veswport_info - OPA vnic port info
-- *
-- * Same as opa_veswport_info without bitwise attribute.
-- */
--struct __opa_veswport_info {
--	struct __opa_vesw_info            vesw;
--	struct __opa_per_veswport_info    vport;
--};
--
--/*
-- * struct __opa_veswport_trap - OPA vnic trap info
-- *
-- * Same as opa_veswport_trap without bitwise attribute.
-- */
--struct __opa_veswport_trap {
--	u16	fabric_id;
--	u16	veswid;
--	u32	veswportnum;
--	u16	opaportnum;
--	u8	veswportindex;
--	u8	opcode;
--	u32	reserved;
--} __packed;
--
--/**
-- * struct opa_vnic_ctrl_port - OPA virtual NIC control port
-- * @ibdev: pointer to ib device
-- * @ops: opa vnic control operations
-- * @num_ports: number of opa ports
-- */
--struct opa_vnic_ctrl_port {
--	struct ib_device           *ibdev;
--	struct opa_vnic_ctrl_ops   *ops;
--	u8                          num_ports;
--};
--
--/**
-- * struct opa_vnic_adapter - OPA VNIC netdev private data structure
-- * @netdev: pointer to associated netdev
-- * @ibdev: ib device
-- * @cport: pointer to opa vnic control port
-- * @rn_ops: rdma netdev's net_device_ops
-- * @port_num: OPA port number
-- * @vport_num: vesw port number
-- * @lock: adapter lock
-- * @info: virtual ethernet switch port information
-- * @vema_mac_addr: mac address configured by vema
-- * @umac_hash: unicast maclist hash
-- * @mmac_hash: multicast maclist hash
-- * @mactbl: hash table of MAC entries
-- * @mactbl_lock: mac table lock
-- * @stats_lock: statistics lock
-- * @flow_tbl: flow to default port redirection table
-- * @trap_timeout: trap timeout
-- * @trap_count: no. of traps allowed within timeout period
-- */
--struct opa_vnic_adapter {
--	struct net_device             *netdev;
--	struct ib_device              *ibdev;
--	struct opa_vnic_ctrl_port     *cport;
--	const struct net_device_ops   *rn_ops;
--
--	u8 port_num;
--	u8 vport_num;
--
--	/* Lock used around concurrent updates to netdev */
--	struct mutex lock;
--
--	struct __opa_veswport_info  info;
--	u8                          vema_mac_addr[ETH_ALEN];
--	u32                         umac_hash;
--	u32                         mmac_hash;
--	struct hlist_head  __rcu   *mactbl;
--
--	/* Lock used to protect updates to mac table */
--	struct mutex mactbl_lock;
--
--	/* Lock used to protect access to vnic counters */
--	spinlock_t stats_lock;
--
--	u8 flow_tbl[OPA_VNIC_FLOW_TBL_SIZE];
--
--	unsigned long trap_timeout;
--	u8            trap_count;
--};
--
--/* Same as opa_veswport_mactable_entry, but without bitwise attribute */
--struct __opa_vnic_mactable_entry {
--	u8  mac_addr[ETH_ALEN];
--	u8  mac_addr_mask[ETH_ALEN];
--	u32 dlid_sd;
--} __packed;
--
--/**
-- * struct opa_vnic_mac_tbl_node - OPA VNIC mac table node
-- * @hlist: hash list handle
-- * @index: index of entry in the mac table
-- * @entry: entry in the table
-- */
--struct opa_vnic_mac_tbl_node {
--	struct hlist_node                    hlist;
--	u16                                  index;
--	struct __opa_vnic_mactable_entry     entry;
--};
--
--#define v_dbg(format, arg...) \
--	netdev_dbg(adapter->netdev, format, ## arg)
--#define v_err(format, arg...) \
--	netdev_err(adapter->netdev, format, ## arg)
--#define v_info(format, arg...) \
--	netdev_info(adapter->netdev, format, ## arg)
--#define v_warn(format, arg...) \
--	netdev_warn(adapter->netdev, format, ## arg)
--
--#define c_err(format, arg...) \
--	dev_err(&cport->ibdev->dev, format, ## arg)
--#define c_info(format, arg...) \
--	dev_info(&cport->ibdev->dev, format, ## arg)
--#define c_dbg(format, arg...) \
--	dev_dbg(&cport->ibdev->dev, format, ## arg)
--
--/* The maximum allowed entries in the mac table */
--#define OPA_VNIC_MAC_TBL_MAX_ENTRIES  2048
--/* Limit of smac entries in mac table */
--#define OPA_VNIC_MAX_SMAC_LIMIT       256
--
--/* The last octet of the MAC address is used as the key to the hash table */
--#define OPA_VNIC_MAC_HASH_IDX         5
--
--/* The VNIC MAC hash table is of size 2^8 */
--#define OPA_VNIC_MAC_TBL_HASH_BITS    8
--#define OPA_VNIC_MAC_TBL_SIZE  BIT(OPA_VNIC_MAC_TBL_HASH_BITS)
--
--/* VNIC HASH MACROS */
--#define vnic_hash_init(hashtable) __hash_init(hashtable, OPA_VNIC_MAC_TBL_SIZE)
--
--#define vnic_hash_add(hashtable, node, key)                                   \
--	hlist_add_head(node,                                                  \
--		&hashtable[hash_min(key, ilog2(OPA_VNIC_MAC_TBL_SIZE))])
--
--#define vnic_hash_for_each_safe(name, bkt, tmp, obj, member)                  \
--	for ((bkt) = 0, obj = NULL;                                           \
--		    !obj && (bkt) < OPA_VNIC_MAC_TBL_SIZE; (bkt)++)           \
--		hlist_for_each_entry_safe(obj, tmp, &name[bkt], member)
--
--#define vnic_hash_for_each_possible(name, obj, member, key)                   \
--	hlist_for_each_entry(obj,                                             \
--		&name[hash_min(key, ilog2(OPA_VNIC_MAC_TBL_SIZE))], member)
--
--#define vnic_hash_for_each(name, bkt, obj, member)                            \
--	for ((bkt) = 0, obj = NULL;                                           \
--		    !obj && (bkt) < OPA_VNIC_MAC_TBL_SIZE; (bkt)++)           \
--		hlist_for_each_entry(obj, &name[bkt], member)
--
--extern char opa_vnic_driver_name[];
--
--struct opa_vnic_adapter *opa_vnic_add_netdev(struct ib_device *ibdev,
--					     u8 port_num, u8 vport_num);
--void opa_vnic_rem_netdev(struct opa_vnic_adapter *adapter);
--void opa_vnic_encap_skb(struct opa_vnic_adapter *adapter, struct sk_buff *skb);
--u8 opa_vnic_get_vl(struct opa_vnic_adapter *adapter, struct sk_buff *skb);
--u8 opa_vnic_calc_entropy(struct sk_buff *skb);
--void opa_vnic_process_vema_config(struct opa_vnic_adapter *adapter);
--void opa_vnic_release_mac_tbl(struct opa_vnic_adapter *adapter);
--void opa_vnic_query_mac_tbl(struct opa_vnic_adapter *adapter,
--			    struct opa_veswport_mactable *tbl);
--int opa_vnic_update_mac_tbl(struct opa_vnic_adapter *adapter,
--			    struct opa_veswport_mactable *tbl);
--void opa_vnic_query_ucast_macs(struct opa_vnic_adapter *adapter,
--			       struct opa_veswport_iface_macs *macs);
--void opa_vnic_query_mcast_macs(struct opa_vnic_adapter *adapter,
--			       struct opa_veswport_iface_macs *macs);
--void opa_vnic_get_summary_counters(struct opa_vnic_adapter *adapter,
--				   struct opa_veswport_summary_counters *cntrs);
--void opa_vnic_get_error_counters(struct opa_vnic_adapter *adapter,
--				 struct opa_veswport_error_counters *cntrs);
--void opa_vnic_get_vesw_info(struct opa_vnic_adapter *adapter,
--			    struct opa_vesw_info *info);
--void opa_vnic_set_vesw_info(struct opa_vnic_adapter *adapter,
--			    struct opa_vesw_info *info);
--void opa_vnic_get_per_veswport_info(struct opa_vnic_adapter *adapter,
--				    struct opa_per_veswport_info *info);
--void opa_vnic_set_per_veswport_info(struct opa_vnic_adapter *adapter,
--				    struct opa_per_veswport_info *info);
--void opa_vnic_vema_report_event(struct opa_vnic_adapter *adapter, u8 event);
--void opa_vnic_set_ethtool_ops(struct net_device *netdev);
--void opa_vnic_vema_send_trap(struct opa_vnic_adapter *adapter,
--			     struct __opa_veswport_trap *data, u32 lid);
--
--#endif /* _OPA_VNIC_INTERNAL_H */
-diff --git a/drivers/infiniband/ulp/opa_vnic/opa_vnic_netdev.c b/drivers/infiniband/ulp/opa_vnic/opa_vnic_netdev.c
-deleted file mode 100644
-index 071f35711468..000000000000
---- a/drivers/infiniband/ulp/opa_vnic/opa_vnic_netdev.c
-+++ /dev/null
-@@ -1,400 +0,0 @@
--/*
-- * Copyright(c) 2017 Intel Corporation.
-- *
-- * This file is provided under a dual BSD/GPLv2 license.  When using or
-- * redistributing this file, you may do so under either license.
-- *
-- * GPL LICENSE SUMMARY
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of version 2 of the GNU General Public License as
-- * published by the Free Software Foundation.
-- *
-- * This program is distributed in the hope that it will be useful, but
-- * WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-- * General Public License for more details.
-- *
-- * BSD LICENSE
-- *
-- * Redistribution and use in source and binary forms, with or without
-- * modification, are permitted provided that the following conditions
-- * are met:
-- *
-- *  - Redistributions of source code must retain the above copyright
-- *    notice, this list of conditions and the following disclaimer.
-- *  - Redistributions in binary form must reproduce the above copyright
-- *    notice, this list of conditions and the following disclaimer in
-- *    the documentation and/or other materials provided with the
-- *    distribution.
-- *  - Neither the name of Intel Corporation nor the names of its
-- *    contributors may be used to endorse or promote products derived
-- *    from this software without specific prior written permission.
-- *
-- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-- * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-- * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-- *
-- */
--
--/*
-- * This file contains OPA Virtual Network Interface Controller (VNIC) driver
-- * netdev functionality.
-- */
--
--#include <linux/if_vlan.h>
--#include <linux/crc32.h>
--
--#include "opa_vnic_internal.h"
--
--#define OPA_TX_TIMEOUT_MS 1000
--
--#define OPA_VNIC_SKB_HEADROOM  \
--			ALIGN((OPA_VNIC_HDR_LEN + OPA_VNIC_SKB_MDATA_LEN), 8)
--
--/* This function is overloaded for opa_vnic specific implementation */
--static void opa_vnic_get_stats64(struct net_device *netdev,
--				 struct rtnl_link_stats64 *stats)
--{
--	struct opa_vnic_adapter *adapter = opa_vnic_priv(netdev);
--	struct opa_vnic_stats vstats;
--
--	memset(&vstats, 0, sizeof(vstats));
--	spin_lock(&adapter->stats_lock);
--	adapter->rn_ops->ndo_get_stats64(netdev, &vstats.netstats);
--	spin_unlock(&adapter->stats_lock);
--	memcpy(stats, &vstats.netstats, sizeof(*stats));
--}
--
--/* opa_netdev_start_xmit - transmit function */
--static netdev_tx_t opa_netdev_start_xmit(struct sk_buff *skb,
--					 struct net_device *netdev)
--{
--	struct opa_vnic_adapter *adapter = opa_vnic_priv(netdev);
--
--	v_dbg("xmit: queue %d skb len %d\n", skb->queue_mapping, skb->len);
--	/* pad to ensure mininum ethernet packet length */
--	if (unlikely(skb->len < ETH_ZLEN)) {
--		if (skb_padto(skb, ETH_ZLEN))
--			return NETDEV_TX_OK;
--
--		skb_put(skb, ETH_ZLEN - skb->len);
--	}
--
--	opa_vnic_encap_skb(adapter, skb);
--	return adapter->rn_ops->ndo_start_xmit(skb, netdev);
--}
--
--static u16 opa_vnic_select_queue(struct net_device *netdev, struct sk_buff *skb,
--				 struct net_device *sb_dev)
--{
--	struct opa_vnic_adapter *adapter = opa_vnic_priv(netdev);
--	struct opa_vnic_skb_mdata *mdata;
--	int rc;
--
--	/* pass entropy and vl as metadata in skb */
--	mdata = skb_push(skb, sizeof(*mdata));
--	mdata->entropy = opa_vnic_calc_entropy(skb);
--	mdata->vl = opa_vnic_get_vl(adapter, skb);
--	rc = adapter->rn_ops->ndo_select_queue(netdev, skb, sb_dev);
--	skb_pull(skb, sizeof(*mdata));
--	return rc;
--}
--
--static void opa_vnic_update_state(struct opa_vnic_adapter *adapter, bool up)
--{
--	struct __opa_veswport_info *info = &adapter->info;
--
--	mutex_lock(&adapter->lock);
--	/* Operational state can only be DROP_ALL or FORWARDING */
--	if ((info->vport.config_state == OPA_VNIC_STATE_FORWARDING) && up) {
--		info->vport.oper_state = OPA_VNIC_STATE_FORWARDING;
--		info->vport.eth_link_status = OPA_VNIC_ETH_LINK_UP;
--	} else {
--		info->vport.oper_state = OPA_VNIC_STATE_DROP_ALL;
--		info->vport.eth_link_status = OPA_VNIC_ETH_LINK_DOWN;
--	}
--
--	if (info->vport.config_state == OPA_VNIC_STATE_FORWARDING)
--		netif_dormant_off(adapter->netdev);
--	else
--		netif_dormant_on(adapter->netdev);
--	mutex_unlock(&adapter->lock);
--}
--
--/* opa_vnic_process_vema_config - process vema configuration updates */
--void opa_vnic_process_vema_config(struct opa_vnic_adapter *adapter)
--{
--	struct __opa_veswport_info *info = &adapter->info;
--	struct rdma_netdev *rn = netdev_priv(adapter->netdev);
--	u8 port_num[OPA_VESW_MAX_NUM_DEF_PORT] = { 0 };
--	struct net_device *netdev = adapter->netdev;
--	u8 i, port_count = 0;
--	u16 port_mask;
--
--	/* If the base_mac_addr is changed, update the interface mac address */
--	if (memcmp(info->vport.base_mac_addr, adapter->vema_mac_addr,
--		   ARRAY_SIZE(info->vport.base_mac_addr))) {
--		struct sockaddr saddr;
--
--		memcpy(saddr.sa_data, info->vport.base_mac_addr,
--		       ARRAY_SIZE(info->vport.base_mac_addr));
--		mutex_lock(&adapter->lock);
--		eth_commit_mac_addr_change(netdev, &saddr);
--		memcpy(adapter->vema_mac_addr,
--		       info->vport.base_mac_addr, ETH_ALEN);
--		mutex_unlock(&adapter->lock);
--	}
--
--	rn->set_id(netdev, info->vesw.vesw_id);
--
--	/* Handle MTU limit change */
--	rtnl_lock();
--	netdev->max_mtu = max_t(unsigned int, info->vesw.eth_mtu,
--				netdev->min_mtu);
--	if (netdev->mtu > netdev->max_mtu)
--		dev_set_mtu(netdev, netdev->max_mtu);
--	rtnl_unlock();
--
--	/* Update flow to default port redirection table */
--	port_mask = info->vesw.def_port_mask;
--	for (i = 0; i < OPA_VESW_MAX_NUM_DEF_PORT; i++) {
--		if (port_mask & 1)
--			port_num[port_count++] = i;
--		port_mask >>= 1;
--	}
--
--	/*
--	 * Build the flow table. Flow table is required when destination LID
--	 * is not available. Up to OPA_VNIC_FLOW_TBL_SIZE flows supported.
--	 * Each flow need a default port number to get its dlid from the
--	 * u_ucast_dlid array.
--	 */
--	for (i = 0; i < OPA_VNIC_FLOW_TBL_SIZE; i++)
--		adapter->flow_tbl[i] = port_count ? port_num[i % port_count] :
--						    OPA_VNIC_INVALID_PORT;
--
--	/* update state */
--	opa_vnic_update_state(adapter, !!(netdev->flags & IFF_UP));
--}
--
--/*
-- * Set the power on default values in adapter's vema interface structure.
-- */
--static inline void opa_vnic_set_pod_values(struct opa_vnic_adapter *adapter)
--{
--	adapter->info.vport.max_mac_tbl_ent = OPA_VNIC_MAC_TBL_MAX_ENTRIES;
--	adapter->info.vport.max_smac_ent = OPA_VNIC_MAX_SMAC_LIMIT;
--	adapter->info.vport.config_state = OPA_VNIC_STATE_DROP_ALL;
--	adapter->info.vport.eth_link_status = OPA_VNIC_ETH_LINK_DOWN;
--	adapter->info.vesw.eth_mtu = ETH_DATA_LEN;
--}
--
--/* opa_vnic_set_mac_addr - change mac address */
--static int opa_vnic_set_mac_addr(struct net_device *netdev, void *addr)
--{
--	struct opa_vnic_adapter *adapter = opa_vnic_priv(netdev);
--	struct sockaddr *sa = addr;
--	int rc;
--
--	if (!memcmp(netdev->dev_addr, sa->sa_data, ETH_ALEN))
--		return 0;
--
--	mutex_lock(&adapter->lock);
--	rc = eth_mac_addr(netdev, addr);
--	mutex_unlock(&adapter->lock);
--	if (rc)
--		return rc;
--
--	adapter->info.vport.uc_macs_gen_count++;
--	opa_vnic_vema_report_event(adapter,
--				   OPA_VESWPORT_TRAP_IFACE_UCAST_MAC_CHANGE);
--	return 0;
--}
--
--/*
-- * opa_vnic_mac_send_event - post event on possible mac list exchange
-- *  Send trap when digest from uc/mc mac list differs from previous run.
-- *  Digest is evaluated similar to how cksum does.
-- */
--static void opa_vnic_mac_send_event(struct net_device *netdev, u8 event)
--{
--	struct opa_vnic_adapter *adapter = opa_vnic_priv(netdev);
--	struct netdev_hw_addr *ha;
--	struct netdev_hw_addr_list *hw_list;
--	u32 *ref_crc;
--	u32 l, crc = 0;
--
--	switch (event) {
--	case OPA_VESWPORT_TRAP_IFACE_UCAST_MAC_CHANGE:
--		hw_list = &netdev->uc;
--		adapter->info.vport.uc_macs_gen_count++;
--		ref_crc = &adapter->umac_hash;
--		break;
--	case OPA_VESWPORT_TRAP_IFACE_MCAST_MAC_CHANGE:
--		hw_list = &netdev->mc;
--		adapter->info.vport.mc_macs_gen_count++;
--		ref_crc = &adapter->mmac_hash;
--		break;
--	default:
--		return;
--	}
--	netdev_hw_addr_list_for_each(ha, hw_list) {
--		crc = crc32_le(crc, ha->addr, ETH_ALEN);
--	}
--	l = netdev_hw_addr_list_count(hw_list) * ETH_ALEN;
--	crc = ~crc32_le(crc, (void *)&l, sizeof(l));
--
--	if (crc != *ref_crc) {
--		*ref_crc = crc;
--		opa_vnic_vema_report_event(adapter, event);
--	}
--}
--
--/* opa_vnic_set_rx_mode - handle uc/mc mac list change */
--static void opa_vnic_set_rx_mode(struct net_device *netdev)
--{
--	opa_vnic_mac_send_event(netdev,
--				OPA_VESWPORT_TRAP_IFACE_UCAST_MAC_CHANGE);
--
--	opa_vnic_mac_send_event(netdev,
--				OPA_VESWPORT_TRAP_IFACE_MCAST_MAC_CHANGE);
--}
--
--/* opa_netdev_open - activate network interface */
--static int opa_netdev_open(struct net_device *netdev)
--{
--	struct opa_vnic_adapter *adapter = opa_vnic_priv(netdev);
--	int rc;
--
--	rc = adapter->rn_ops->ndo_open(adapter->netdev);
--	if (rc) {
--		v_dbg("open failed %d\n", rc);
--		return rc;
--	}
--
--	/* Update status and send trap */
--	opa_vnic_update_state(adapter, true);
--	opa_vnic_vema_report_event(adapter,
--				   OPA_VESWPORT_TRAP_ETH_LINK_STATUS_CHANGE);
--	return 0;
--}
--
--/* opa_netdev_close - disable network interface */
--static int opa_netdev_close(struct net_device *netdev)
--{
--	struct opa_vnic_adapter *adapter = opa_vnic_priv(netdev);
--	int rc;
--
--	rc = adapter->rn_ops->ndo_stop(adapter->netdev);
--	if (rc) {
--		v_dbg("close failed %d\n", rc);
--		return rc;
--	}
--
--	/* Update status and send trap */
--	opa_vnic_update_state(adapter, false);
--	opa_vnic_vema_report_event(adapter,
--				   OPA_VESWPORT_TRAP_ETH_LINK_STATUS_CHANGE);
--	return 0;
--}
--
--/* netdev ops */
--static const struct net_device_ops opa_netdev_ops = {
--	.ndo_open = opa_netdev_open,
--	.ndo_stop = opa_netdev_close,
--	.ndo_start_xmit = opa_netdev_start_xmit,
--	.ndo_get_stats64 = opa_vnic_get_stats64,
--	.ndo_set_rx_mode = opa_vnic_set_rx_mode,
--	.ndo_select_queue = opa_vnic_select_queue,
--	.ndo_set_mac_address = opa_vnic_set_mac_addr,
--};
--
--/* opa_vnic_add_netdev - create vnic netdev interface */
--struct opa_vnic_adapter *opa_vnic_add_netdev(struct ib_device *ibdev,
--					     u8 port_num, u8 vport_num)
--{
--	struct opa_vnic_adapter *adapter;
--	struct net_device *netdev;
--	struct rdma_netdev *rn;
--	int rc;
--
--	netdev = ibdev->ops.alloc_rdma_netdev(ibdev, port_num,
--					      RDMA_NETDEV_OPA_VNIC,
--					      "veth%d", NET_NAME_UNKNOWN,
--					      ether_setup);
--	if (!netdev)
--		return ERR_PTR(-ENOMEM);
--	else if (IS_ERR(netdev))
--		return ERR_CAST(netdev);
--
--	rn = netdev_priv(netdev);
--	adapter = kzalloc(sizeof(*adapter), GFP_KERNEL);
--	if (!adapter) {
--		rc = -ENOMEM;
--		goto adapter_err;
--	}
--
--	rn->clnt_priv = adapter;
--	rn->hca = ibdev;
--	rn->port_num = port_num;
--	adapter->netdev = netdev;
--	adapter->ibdev = ibdev;
--	adapter->port_num = port_num;
--	adapter->vport_num = vport_num;
--	adapter->rn_ops = netdev->netdev_ops;
--
--	netdev->netdev_ops = &opa_netdev_ops;
--	netdev->priv_flags |= IFF_LIVE_ADDR_CHANGE;
--	netdev->hard_header_len += OPA_VNIC_SKB_HEADROOM;
--	mutex_init(&adapter->lock);
--	mutex_init(&adapter->mactbl_lock);
--	spin_lock_init(&adapter->stats_lock);
--
--	SET_NETDEV_DEV(netdev, ibdev->dev.parent);
--
--	opa_vnic_set_ethtool_ops(netdev);
--
--	opa_vnic_set_pod_values(adapter);
--
--	rc = register_netdev(netdev);
--	if (rc)
--		goto netdev_err;
--
--	netif_carrier_off(netdev);
--	netif_dormant_on(netdev);
--	v_info("initialized\n");
--
--	return adapter;
--netdev_err:
--	mutex_destroy(&adapter->lock);
--	mutex_destroy(&adapter->mactbl_lock);
--	kfree(adapter);
--adapter_err:
--	rn->free_rdma_netdev(netdev);
--
--	return ERR_PTR(rc);
--}
--
--/* opa_vnic_rem_netdev - remove vnic netdev interface */
--void opa_vnic_rem_netdev(struct opa_vnic_adapter *adapter)
--{
--	struct net_device *netdev = adapter->netdev;
--	struct rdma_netdev *rn = netdev_priv(netdev);
--
--	v_info("removing\n");
--	unregister_netdev(netdev);
--	opa_vnic_release_mac_tbl(adapter);
--	mutex_destroy(&adapter->lock);
--	mutex_destroy(&adapter->mactbl_lock);
--	kfree(adapter);
--	rn->free_rdma_netdev(netdev);
--}
-diff --git a/drivers/infiniband/ulp/opa_vnic/opa_vnic_vema.c b/drivers/infiniband/ulp/opa_vnic/opa_vnic_vema.c
-deleted file mode 100644
-index 21c6cea8b1db..000000000000
---- a/drivers/infiniband/ulp/opa_vnic/opa_vnic_vema.c
-+++ /dev/null
-@@ -1,1056 +0,0 @@
--/*
-- * Copyright(c) 2017 Intel Corporation.
-- * Copyright(c) 2021 Cornelis Networks.
-- *
-- * This file is provided under a dual BSD/GPLv2 license.  When using or
-- * redistributing this file, you may do so under either license.
-- *
-- * GPL LICENSE SUMMARY
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of version 2 of the GNU General Public License as
-- * published by the Free Software Foundation.
-- *
-- * This program is distributed in the hope that it will be useful, but
-- * WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-- * General Public License for more details.
-- *
-- * BSD LICENSE
-- *
-- * Redistribution and use in source and binary forms, with or without
-- * modification, are permitted provided that the following conditions
-- * are met:
-- *
-- *  - Redistributions of source code must retain the above copyright
-- *    notice, this list of conditions and the following disclaimer.
-- *  - Redistributions in binary form must reproduce the above copyright
-- *    notice, this list of conditions and the following disclaimer in
-- *    the documentation and/or other materials provided with the
-- *    distribution.
-- *  - Neither the name of Intel Corporation nor the names of its
-- *    contributors may be used to endorse or promote products derived
-- *    from this software without specific prior written permission.
-- *
-- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-- * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-- * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-- *
-- */
--
--/*
-- * This file contains OPX Virtual Network Interface Controller (VNIC)
-- * Ethernet Management Agent (EMA) driver
-- */
--
--#include <linux/module.h>
--#include <linux/xarray.h>
--#include <rdma/ib_addr.h>
--#include <rdma/ib_verbs.h>
--#include <rdma/opa_smi.h>
--#include <rdma/opa_port_info.h>
--
--#include "opa_vnic_internal.h"
--
--char opa_vnic_driver_name[] = "opa_vnic";
--
--/*
-- * The trap service level is kept in bits 3 to 7 in the trap_sl_rsvd
-- * field in the class port info MAD.
-- */
--#define GET_TRAP_SL_FROM_CLASS_PORT_INFO(x)  (((x) >> 3) & 0x1f)
--
--/* Cap trap bursts to a reasonable limit good for normal cases */
--#define OPA_VNIC_TRAP_BURST_LIMIT 4
--
--/*
-- * VNIC trap limit timeout.
-- * Inverse of cap2_mask response time out (1.0737 secs) = 0.9
-- * secs approx IB spec 13.4.6.2.1 PortInfoSubnetTimeout and
-- * 13.4.9 Traps.
-- */
--#define OPA_VNIC_TRAP_TIMEOUT  ((4096 * (1UL << 18)) / 1000)
--
--#define OPA_VNIC_UNSUP_ATTR  \
--		cpu_to_be16(IB_MGMT_MAD_STATUS_UNSUPPORTED_METHOD_ATTRIB)
--
--#define OPA_VNIC_INVAL_ATTR  \
--		cpu_to_be16(IB_MGMT_MAD_STATUS_INVALID_ATTRIB_VALUE)
--
--#define OPA_VNIC_CLASS_CAP_TRAP   0x1
--
--/* Maximum number of VNIC ports supported */
--#define OPA_VNIC_MAX_NUM_VPORT    255
--
--/**
-- * struct opa_vnic_vema_port -- VNIC VEMA port details
-- * @cport: pointer to port
-- * @mad_agent: pointer to mad agent for port
-- * @class_port_info: Class port info information.
-- * @tid: Transaction id
-- * @port_num: OPA port number
-- * @vports: vnic ports
-- * @event_handler: ib event handler
-- * @lock: adapter interface lock
-- */
--struct opa_vnic_vema_port {
--	struct opa_vnic_ctrl_port      *cport;
--	struct ib_mad_agent            *mad_agent;
--	struct opa_class_port_info      class_port_info;
--	u64                             tid;
--	u8                              port_num;
--	struct xarray                   vports;
--	struct ib_event_handler         event_handler;
--
--	/* Lock to query/update network adapter */
--	struct mutex                    lock;
--};
--
--static int opa_vnic_vema_add_one(struct ib_device *device);
--static void opa_vnic_vema_rem_one(struct ib_device *device,
--				  void *client_data);
--
--static struct ib_client opa_vnic_client = {
--	.name   = opa_vnic_driver_name,
--	.add    = opa_vnic_vema_add_one,
--	.remove = opa_vnic_vema_rem_one,
--};
--
--/**
-- * vema_get_vport_num -- Get the vnic from the mad
-- * @recvd_mad:  Received mad
-- *
-- * Return: returns value of the vnic port number
-- */
--static inline u8 vema_get_vport_num(struct opa_vnic_vema_mad *recvd_mad)
--{
--	return be32_to_cpu(recvd_mad->mad_hdr.attr_mod) & 0xff;
--}
--
--/**
-- * vema_get_vport_adapter -- Get vnic port adapter from recvd mad
-- * @recvd_mad: received mad
-- * @port: ptr to port struct on which MAD was recvd
-- *
-- * Return: vnic adapter
-- */
--static inline struct opa_vnic_adapter *
--vema_get_vport_adapter(struct opa_vnic_vema_mad *recvd_mad,
--		       struct opa_vnic_vema_port *port)
--{
--	u8 vport_num = vema_get_vport_num(recvd_mad);
--
--	return xa_load(&port->vports, vport_num);
--}
--
--/**
-- * vema_mac_tbl_req_ok -- Check if mac request has correct values
-- * @mac_tbl: mac table
-- *
-- * This function checks for the validity of the offset and number of
-- * entries required.
-- *
-- * Return: true if offset and num_entries are valid
-- */
--static inline bool vema_mac_tbl_req_ok(struct opa_veswport_mactable *mac_tbl)
--{
--	u16 offset, num_entries;
--	u16 req_entries = ((OPA_VNIC_EMA_DATA - sizeof(*mac_tbl)) /
--			   sizeof(mac_tbl->tbl_entries[0]));
--
--	offset = be16_to_cpu(mac_tbl->offset);
--	num_entries = be16_to_cpu(mac_tbl->num_entries);
--
--	return ((num_entries <= req_entries) &&
--		(offset + num_entries <= OPA_VNIC_MAC_TBL_MAX_ENTRIES));
--}
--
--/*
-- * Return the power on default values in the port info structure
-- * in big endian format as required by MAD.
-- */
--static inline void vema_get_pod_values(struct opa_veswport_info *port_info)
--{
--	memset(port_info, 0, sizeof(*port_info));
--	port_info->vport.max_mac_tbl_ent =
--		cpu_to_be16(OPA_VNIC_MAC_TBL_MAX_ENTRIES);
--	port_info->vport.max_smac_ent =
--		cpu_to_be16(OPA_VNIC_MAX_SMAC_LIMIT);
--	port_info->vport.oper_state = OPA_VNIC_STATE_DROP_ALL;
--	port_info->vport.config_state = OPA_VNIC_STATE_DROP_ALL;
--	port_info->vesw.eth_mtu = cpu_to_be16(ETH_DATA_LEN);
--}
--
--/**
-- * vema_add_vport -- Add a new vnic port
-- * @port: ptr to opa_vnic_vema_port struct
-- * @vport_num: vnic port number (to be added)
-- *
-- * Return a pointer to the vnic adapter structure
-- */
--static struct opa_vnic_adapter *vema_add_vport(struct opa_vnic_vema_port *port,
--					       u8 vport_num)
--{
--	struct opa_vnic_ctrl_port *cport = port->cport;
--	struct opa_vnic_adapter *adapter;
--
--	adapter = opa_vnic_add_netdev(cport->ibdev, port->port_num, vport_num);
--	if (!IS_ERR(adapter)) {
--		int rc;
--
--		adapter->cport = cport;
--		rc = xa_insert(&port->vports, vport_num, adapter, GFP_KERNEL);
--		if (rc < 0) {
--			opa_vnic_rem_netdev(adapter);
--			adapter = ERR_PTR(rc);
--		}
--	}
--
--	return adapter;
--}
--
--/**
-- * vema_get_class_port_info -- Get class info for port
-- * @port:  Port on whic MAD was received
-- * @recvd_mad: pointer to the received mad
-- * @rsp_mad:   pointer to respose mad
-- *
-- * This function copies the latest class port info value set for the
-- * port and stores it for generating traps
-- */
--static void vema_get_class_port_info(struct opa_vnic_vema_port *port,
--				     struct opa_vnic_vema_mad *recvd_mad,
--				     struct opa_vnic_vema_mad *rsp_mad)
--{
--	struct opa_class_port_info *port_info;
--
--	port_info = (struct opa_class_port_info *)rsp_mad->data;
--	memcpy(port_info, &port->class_port_info, sizeof(*port_info));
--	port_info->base_version = OPA_MGMT_BASE_VERSION;
--	port_info->class_version = OPA_EMA_CLASS_VERSION;
--
--	/*
--	 * Set capability mask bit indicating agent generates traps,
--	 * and set the maximum number of VNIC ports supported.
--	 */
--	port_info->cap_mask = cpu_to_be16((OPA_VNIC_CLASS_CAP_TRAP |
--					   (OPA_VNIC_MAX_NUM_VPORT << 8)));
--
--	/*
--	 * Since a get routine is always sent by the EM first we
--	 * set the expected response time to
--	 * 4.096 usec * 2^18 == 1.0737 sec here.
--	 */
--	port_info->cap_mask2_resp_time = cpu_to_be32(18);
--}
--
--/**
-- * vema_set_class_port_info -- Get class info for port
-- * @port:  Port on whic MAD was received
-- * @recvd_mad: pointer to the received mad
-- * @rsp_mad:   pointer to respose mad
-- *
-- * This function updates the port class info for the specific vnic
-- * and sets up the response mad data
-- */
--static void vema_set_class_port_info(struct opa_vnic_vema_port *port,
--				     struct opa_vnic_vema_mad *recvd_mad,
--				     struct opa_vnic_vema_mad *rsp_mad)
--{
--	memcpy(&port->class_port_info, recvd_mad->data,
--	       sizeof(port->class_port_info));
--
--	vema_get_class_port_info(port, recvd_mad, rsp_mad);
--}
--
--/**
-- * vema_get_veswport_info -- Get veswport info
-- * @port:      source port on which MAD was received
-- * @recvd_mad: pointer to the received mad
-- * @rsp_mad:   pointer to respose mad
-- */
--static void vema_get_veswport_info(struct opa_vnic_vema_port *port,
--				   struct opa_vnic_vema_mad *recvd_mad,
--				   struct opa_vnic_vema_mad *rsp_mad)
--{
--	struct opa_veswport_info *port_info =
--				  (struct opa_veswport_info *)rsp_mad->data;
--	struct opa_vnic_adapter *adapter;
--
--	adapter = vema_get_vport_adapter(recvd_mad, port);
--	if (adapter) {
--		memset(port_info, 0, sizeof(*port_info));
--		opa_vnic_get_vesw_info(adapter, &port_info->vesw);
--		opa_vnic_get_per_veswport_info(adapter,
--					       &port_info->vport);
--	} else {
--		vema_get_pod_values(port_info);
--	}
--}
--
--/**
-- * vema_set_veswport_info -- Set veswport info
-- * @port:      source port on which MAD was received
-- * @recvd_mad: pointer to the received mad
-- * @rsp_mad:   pointer to respose mad
-- *
-- * This function gets the port class infor for vnic
-- */
--static void vema_set_veswport_info(struct opa_vnic_vema_port *port,
--				   struct opa_vnic_vema_mad *recvd_mad,
--				   struct opa_vnic_vema_mad *rsp_mad)
--{
--	struct opa_vnic_ctrl_port *cport = port->cport;
--	struct opa_veswport_info *port_info;
--	struct opa_vnic_adapter *adapter;
--	u8 vport_num;
--
--	vport_num = vema_get_vport_num(recvd_mad);
--
--	adapter = vema_get_vport_adapter(recvd_mad, port);
--	if (!adapter) {
--		adapter = vema_add_vport(port, vport_num);
--		if (IS_ERR(adapter)) {
--			c_err("failed to add vport %d: %ld\n",
--			      vport_num, PTR_ERR(adapter));
--			goto err_exit;
--		}
--	}
--
--	port_info = (struct opa_veswport_info *)recvd_mad->data;
--	opa_vnic_set_vesw_info(adapter, &port_info->vesw);
--	opa_vnic_set_per_veswport_info(adapter, &port_info->vport);
--
--	/* Process the new config settings */
--	opa_vnic_process_vema_config(adapter);
--
--	vema_get_veswport_info(port, recvd_mad, rsp_mad);
--	return;
--
--err_exit:
--	rsp_mad->mad_hdr.status = OPA_VNIC_INVAL_ATTR;
--}
--
--/**
-- * vema_get_mac_entries -- Get MAC entries in VNIC MAC table
-- * @port:      source port on which MAD was received
-- * @recvd_mad: pointer to the received mad
-- * @rsp_mad:   pointer to respose mad
-- *
-- * This function gets the MAC entries that are programmed into
-- * the VNIC MAC forwarding table. It checks for the validity of
-- * the index into the MAC table and the number of entries that
-- * are to be retrieved.
-- */
--static void vema_get_mac_entries(struct opa_vnic_vema_port *port,
--				 struct opa_vnic_vema_mad *recvd_mad,
--				 struct opa_vnic_vema_mad *rsp_mad)
--{
--	struct opa_veswport_mactable *mac_tbl_in, *mac_tbl_out;
--	struct opa_vnic_adapter *adapter;
--
--	adapter = vema_get_vport_adapter(recvd_mad, port);
--	if (!adapter) {
--		rsp_mad->mad_hdr.status = OPA_VNIC_INVAL_ATTR;
--		return;
--	}
--
--	mac_tbl_in = (struct opa_veswport_mactable *)recvd_mad->data;
--	mac_tbl_out = (struct opa_veswport_mactable *)rsp_mad->data;
--
--	if (vema_mac_tbl_req_ok(mac_tbl_in)) {
--		mac_tbl_out->offset = mac_tbl_in->offset;
--		mac_tbl_out->num_entries = mac_tbl_in->num_entries;
--		opa_vnic_query_mac_tbl(adapter, mac_tbl_out);
--	} else {
--		rsp_mad->mad_hdr.status = OPA_VNIC_INVAL_ATTR;
--	}
--}
--
--/**
-- * vema_set_mac_entries -- Set MAC entries in VNIC MAC table
-- * @port:      source port on which MAD was received
-- * @recvd_mad: pointer to the received mad
-- * @rsp_mad:   pointer to respose mad
-- *
-- * This function sets the MAC entries in the VNIC forwarding table
-- * It checks for the validity of the index and the number of forwarding
-- * table entries to be programmed.
-- */
--static void vema_set_mac_entries(struct opa_vnic_vema_port *port,
--				 struct opa_vnic_vema_mad *recvd_mad,
--				 struct opa_vnic_vema_mad *rsp_mad)
--{
--	struct opa_veswport_mactable *mac_tbl;
--	struct opa_vnic_adapter *adapter;
--
--	adapter = vema_get_vport_adapter(recvd_mad, port);
--	if (!adapter) {
--		rsp_mad->mad_hdr.status = OPA_VNIC_INVAL_ATTR;
--		return;
--	}
--
--	mac_tbl = (struct opa_veswport_mactable *)recvd_mad->data;
--	if (vema_mac_tbl_req_ok(mac_tbl)) {
--		if (opa_vnic_update_mac_tbl(adapter, mac_tbl))
--			rsp_mad->mad_hdr.status = OPA_VNIC_UNSUP_ATTR;
--	} else {
--		rsp_mad->mad_hdr.status = OPA_VNIC_UNSUP_ATTR;
--	}
--	vema_get_mac_entries(port, recvd_mad, rsp_mad);
--}
--
--/**
-- * vema_set_delete_vesw -- Reset VESW info to POD values
-- * @port:      source port on which MAD was received
-- * @recvd_mad: pointer to the received mad
-- * @rsp_mad:   pointer to respose mad
-- *
-- * This function clears all the fields of veswport info for the requested vesw
-- * and sets them back to the power-on default values. It does not delete the
-- * vesw.
-- */
--static void vema_set_delete_vesw(struct opa_vnic_vema_port *port,
--				 struct opa_vnic_vema_mad *recvd_mad,
--				 struct opa_vnic_vema_mad *rsp_mad)
--{
--	struct opa_veswport_info *port_info =
--				  (struct opa_veswport_info *)rsp_mad->data;
--	struct opa_vnic_adapter *adapter;
--
--	adapter = vema_get_vport_adapter(recvd_mad, port);
--	if (!adapter) {
--		rsp_mad->mad_hdr.status = OPA_VNIC_INVAL_ATTR;
--		return;
--	}
--
--	vema_get_pod_values(port_info);
--	opa_vnic_set_vesw_info(adapter, &port_info->vesw);
--	opa_vnic_set_per_veswport_info(adapter, &port_info->vport);
--
--	/* Process the new config settings */
--	opa_vnic_process_vema_config(adapter);
--
--	opa_vnic_release_mac_tbl(adapter);
--
--	vema_get_veswport_info(port, recvd_mad, rsp_mad);
--}
--
--/**
-- * vema_get_mac_list -- Get the unicast/multicast macs.
-- * @port:      source port on which MAD was received
-- * @recvd_mad: Received mad contains fields to set vnic parameters
-- * @rsp_mad:   Response mad to be built
-- * @attr_id:   Attribute ID indicating multicast or unicast mac list
-- */
--static void vema_get_mac_list(struct opa_vnic_vema_port *port,
--			      struct opa_vnic_vema_mad *recvd_mad,
--			      struct opa_vnic_vema_mad *rsp_mad,
--			      u16 attr_id)
--{
--	struct opa_veswport_iface_macs *macs_in, *macs_out;
--	int max_entries = (OPA_VNIC_EMA_DATA - sizeof(*macs_out)) / ETH_ALEN;
--	struct opa_vnic_adapter *adapter;
--
--	adapter = vema_get_vport_adapter(recvd_mad, port);
--	if (!adapter) {
--		rsp_mad->mad_hdr.status = OPA_VNIC_INVAL_ATTR;
--		return;
--	}
--
--	macs_in = (struct opa_veswport_iface_macs *)recvd_mad->data;
--	macs_out = (struct opa_veswport_iface_macs *)rsp_mad->data;
--
--	macs_out->start_idx = macs_in->start_idx;
--	if (macs_in->num_macs_in_msg)
--		macs_out->num_macs_in_msg = macs_in->num_macs_in_msg;
--	else
--		macs_out->num_macs_in_msg = cpu_to_be16(max_entries);
--
--	if (attr_id == OPA_EM_ATTR_IFACE_MCAST_MACS)
--		opa_vnic_query_mcast_macs(adapter, macs_out);
--	else
--		opa_vnic_query_ucast_macs(adapter, macs_out);
--}
--
--/**
-- * vema_get_summary_counters -- Gets summary counters.
-- * @port:      source port on which MAD was received
-- * @recvd_mad: Received mad contains fields to set vnic parameters
-- * @rsp_mad:   Response mad to be built
-- */
--static void vema_get_summary_counters(struct opa_vnic_vema_port *port,
--				      struct opa_vnic_vema_mad *recvd_mad,
--				      struct opa_vnic_vema_mad *rsp_mad)
--{
--	struct opa_veswport_summary_counters *cntrs;
--	struct opa_vnic_adapter *adapter;
--
--	adapter = vema_get_vport_adapter(recvd_mad, port);
--	if (adapter) {
--		cntrs = (struct opa_veswport_summary_counters *)rsp_mad->data;
--		opa_vnic_get_summary_counters(adapter, cntrs);
--	} else {
--		rsp_mad->mad_hdr.status = OPA_VNIC_INVAL_ATTR;
--	}
--}
--
--/**
-- * vema_get_error_counters -- Gets summary counters.
-- * @port:      source port on which MAD was received
-- * @recvd_mad: Received mad contains fields to set vnic parameters
-- * @rsp_mad:   Response mad to be built
-- */
--static void vema_get_error_counters(struct opa_vnic_vema_port *port,
--				    struct opa_vnic_vema_mad *recvd_mad,
--				    struct opa_vnic_vema_mad *rsp_mad)
--{
--	struct opa_veswport_error_counters *cntrs;
--	struct opa_vnic_adapter *adapter;
--
--	adapter = vema_get_vport_adapter(recvd_mad, port);
--	if (adapter) {
--		cntrs = (struct opa_veswport_error_counters *)rsp_mad->data;
--		opa_vnic_get_error_counters(adapter, cntrs);
--	} else {
--		rsp_mad->mad_hdr.status = OPA_VNIC_INVAL_ATTR;
--	}
--}
--
--/**
-- * vema_get -- Process received get MAD
-- * @port:      source port on which MAD was received
-- * @recvd_mad: Received mad
-- * @rsp_mad:   Response mad to be built
-- */
--static void vema_get(struct opa_vnic_vema_port *port,
--		     struct opa_vnic_vema_mad *recvd_mad,
--		     struct opa_vnic_vema_mad *rsp_mad)
--{
--	u16 attr_id = be16_to_cpu(recvd_mad->mad_hdr.attr_id);
--
--	switch (attr_id) {
--	case OPA_EM_ATTR_CLASS_PORT_INFO:
--		vema_get_class_port_info(port, recvd_mad, rsp_mad);
--		break;
--	case OPA_EM_ATTR_VESWPORT_INFO:
--		vema_get_veswport_info(port, recvd_mad, rsp_mad);
--		break;
--	case OPA_EM_ATTR_VESWPORT_MAC_ENTRIES:
--		vema_get_mac_entries(port, recvd_mad, rsp_mad);
--		break;
--	case OPA_EM_ATTR_IFACE_UCAST_MACS:
--	case OPA_EM_ATTR_IFACE_MCAST_MACS:
--		vema_get_mac_list(port, recvd_mad, rsp_mad, attr_id);
--		break;
--	case OPA_EM_ATTR_VESWPORT_SUMMARY_COUNTERS:
--		vema_get_summary_counters(port, recvd_mad, rsp_mad);
--		break;
--	case OPA_EM_ATTR_VESWPORT_ERROR_COUNTERS:
--		vema_get_error_counters(port, recvd_mad, rsp_mad);
--		break;
--	default:
--		rsp_mad->mad_hdr.status = OPA_VNIC_UNSUP_ATTR;
--		break;
--	}
--}
--
--/**
-- * vema_set -- Process received set MAD
-- * @port:      source port on which MAD was received
-- * @recvd_mad: Received mad contains fields to set vnic parameters
-- * @rsp_mad:   Response mad to be built
-- */
--static void vema_set(struct opa_vnic_vema_port *port,
--		     struct opa_vnic_vema_mad *recvd_mad,
--		     struct opa_vnic_vema_mad *rsp_mad)
--{
--	u16 attr_id = be16_to_cpu(recvd_mad->mad_hdr.attr_id);
--
--	switch (attr_id) {
--	case OPA_EM_ATTR_CLASS_PORT_INFO:
--		vema_set_class_port_info(port, recvd_mad, rsp_mad);
--		break;
--	case OPA_EM_ATTR_VESWPORT_INFO:
--		vema_set_veswport_info(port, recvd_mad, rsp_mad);
--		break;
--	case OPA_EM_ATTR_VESWPORT_MAC_ENTRIES:
--		vema_set_mac_entries(port, recvd_mad, rsp_mad);
--		break;
--	case OPA_EM_ATTR_DELETE_VESW:
--		vema_set_delete_vesw(port, recvd_mad, rsp_mad);
--		break;
--	default:
--		rsp_mad->mad_hdr.status = OPA_VNIC_UNSUP_ATTR;
--		break;
--	}
--}
--
--/**
-- * vema_send -- Send handler for VEMA MAD agent
-- * @mad_agent: pointer to the mad agent
-- * @mad_wc:    pointer to mad send work completion information
-- *
-- * Free all the data structures associated with the sent MAD
-- */
--static void vema_send(struct ib_mad_agent *mad_agent,
--		      struct ib_mad_send_wc *mad_wc)
--{
--	rdma_destroy_ah(mad_wc->send_buf->ah, RDMA_DESTROY_AH_SLEEPABLE);
--	ib_free_send_mad(mad_wc->send_buf);
--}
--
--/**
-- * vema_recv -- Recv handler for VEMA MAD agent
-- * @mad_agent: pointer to the mad agent
-- * @send_buf: Send buffer if found, else NULL
-- * @mad_wc:    pointer to mad send work completion information
-- *
-- * Handle only set and get methods and respond to other methods
-- * as unsupported. Allocate response buffer and address handle
-- * for the response MAD.
-- */
--static void vema_recv(struct ib_mad_agent *mad_agent,
--		      struct ib_mad_send_buf *send_buf,
--		      struct ib_mad_recv_wc *mad_wc)
--{
--	struct opa_vnic_vema_port *port;
--	struct ib_ah              *ah;
--	struct ib_mad_send_buf    *rsp;
--	struct opa_vnic_vema_mad  *vema_mad;
--
--	if (!mad_wc || !mad_wc->recv_buf.mad)
--		return;
--
--	port = mad_agent->context;
--	ah = ib_create_ah_from_wc(mad_agent->qp->pd, mad_wc->wc,
--				  mad_wc->recv_buf.grh, mad_agent->port_num);
--	if (IS_ERR(ah))
--		goto free_recv_mad;
--
--	rsp = ib_create_send_mad(mad_agent, mad_wc->wc->src_qp,
--				 mad_wc->wc->pkey_index, 0,
--				 IB_MGMT_VENDOR_HDR, OPA_VNIC_EMA_DATA,
--				 GFP_KERNEL, OPA_MGMT_BASE_VERSION);
--	if (IS_ERR(rsp))
--		goto err_rsp;
--
--	rsp->ah = ah;
--	vema_mad = rsp->mad;
--	memcpy(vema_mad, mad_wc->recv_buf.mad, IB_MGMT_VENDOR_HDR);
--	vema_mad->mad_hdr.method = IB_MGMT_METHOD_GET_RESP;
--	vema_mad->mad_hdr.status = 0;
--
--	/* Lock ensures network adapter is not removed */
--	mutex_lock(&port->lock);
--
--	switch (mad_wc->recv_buf.mad->mad_hdr.method) {
--	case IB_MGMT_METHOD_GET:
--		vema_get(port, (struct opa_vnic_vema_mad *)mad_wc->recv_buf.mad,
--			 vema_mad);
--		break;
--	case IB_MGMT_METHOD_SET:
--		vema_set(port, (struct opa_vnic_vema_mad *)mad_wc->recv_buf.mad,
--			 vema_mad);
--		break;
--	default:
--		vema_mad->mad_hdr.status = OPA_VNIC_UNSUP_ATTR;
--		break;
--	}
--	mutex_unlock(&port->lock);
--
--	if (!ib_post_send_mad(rsp, NULL)) {
--		/*
--		 * with post send successful ah and send mad
--		 * will be destroyed in send handler
--		 */
--		goto free_recv_mad;
--	}
--
--	ib_free_send_mad(rsp);
--
--err_rsp:
--	rdma_destroy_ah(ah, RDMA_DESTROY_AH_SLEEPABLE);
--free_recv_mad:
--	ib_free_recv_mad(mad_wc);
--}
--
--/**
-- * vema_get_port -- Gets the opa_vnic_vema_port
-- * @cport: pointer to control dev
-- * @port_num: Port number
-- *
-- * This function loops through the ports and returns
-- * the opa_vnic_vema port structure that is associated
-- * with the OPA port number
-- *
-- * Return: ptr to requested opa_vnic_vema_port strucure
-- *         if success, NULL if not
-- */
--static struct opa_vnic_vema_port *
--vema_get_port(struct opa_vnic_ctrl_port *cport, u8 port_num)
--{
--	struct opa_vnic_vema_port *port = (void *)cport + sizeof(*cport);
--
--	if (port_num > cport->num_ports)
--		return NULL;
--
--	return port + (port_num - 1);
--}
--
--/**
-- * opa_vnic_vema_send_trap -- This function sends a trap to the EM
-- * @adapter: pointer to vnic adapter
-- * @data: pointer to trap data filled by calling function
-- * @lid:  issuers lid (encap_slid from vesw_port_info)
-- *
-- * This function is called from the VNIC driver to send a trap if there
-- * is somethng the EM should be notified about. These events currently
-- * are
-- * 1) UNICAST INTERFACE MACADDRESS changes
-- * 2) MULTICAST INTERFACE MACADDRESS changes
-- * 3) ETHERNET LINK STATUS changes
-- * While allocating the send mad the remote site qpn used is 1
-- * as this is the well known QP.
-- *
-- */
--void opa_vnic_vema_send_trap(struct opa_vnic_adapter *adapter,
--			     struct __opa_veswport_trap *data, u32 lid)
--{
--	struct opa_vnic_ctrl_port *cport = adapter->cport;
--	struct ib_mad_send_buf *send_buf;
--	struct opa_vnic_vema_port *port;
--	struct ib_device *ibp;
--	struct opa_vnic_vema_mad_trap *trap_mad;
--	struct opa_class_port_info *class;
--	struct rdma_ah_attr ah_attr;
--	struct ib_ah *ah;
--	struct opa_veswport_trap *trap;
--	u32 trap_lid;
--	u16 pkey_idx;
--
--	if (!cport)
--		goto err_exit;
--	ibp = cport->ibdev;
--	port = vema_get_port(cport, data->opaportnum);
--	if (!port || !port->mad_agent)
--		goto err_exit;
--
--	if (time_before(jiffies, adapter->trap_timeout)) {
--		if (adapter->trap_count == OPA_VNIC_TRAP_BURST_LIMIT) {
--			v_warn("Trap rate exceeded\n");
--			goto err_exit;
--		} else {
--			adapter->trap_count++;
--		}
--	} else {
--		adapter->trap_count = 0;
--	}
--
--	class = &port->class_port_info;
--	/* Set up address handle */
--	memset(&ah_attr, 0, sizeof(ah_attr));
--	ah_attr.type = rdma_ah_find_type(ibp, port->port_num);
--	rdma_ah_set_sl(&ah_attr,
--		       GET_TRAP_SL_FROM_CLASS_PORT_INFO(class->trap_sl_rsvd));
--	rdma_ah_set_port_num(&ah_attr, port->port_num);
--	trap_lid = be32_to_cpu(class->trap_lid);
--	/*
--	 * check for trap lid validity, must not be zero
--	 * The trap sink could change after we fashion the MAD but since traps
--	 * are not guaranteed we won't use a lock as anyway the change will take
--	 * place even with locking.
--	 */
--	if (!trap_lid) {
--		c_err("%s: Invalid dlid\n", __func__);
--		goto err_exit;
--	}
--
--	rdma_ah_set_dlid(&ah_attr, trap_lid);
--	ah = rdma_create_ah(port->mad_agent->qp->pd, &ah_attr, 0);
--	if (IS_ERR(ah)) {
--		c_err("%s:Couldn't create new AH = %p\n", __func__, ah);
--		c_err("%s:dlid = %d, sl = %d, port = %d\n", __func__,
--		      rdma_ah_get_dlid(&ah_attr), rdma_ah_get_sl(&ah_attr),
--		      rdma_ah_get_port_num(&ah_attr));
--		goto err_exit;
--	}
--
--	if (ib_find_pkey(ibp, data->opaportnum, IB_DEFAULT_PKEY_FULL,
--			 &pkey_idx) < 0) {
--		c_err("%s:full key not found, defaulting to partial\n",
--		      __func__);
--		if (ib_find_pkey(ibp, data->opaportnum, IB_DEFAULT_PKEY_PARTIAL,
--				 &pkey_idx) < 0)
--			pkey_idx = 1;
--	}
--
--	send_buf = ib_create_send_mad(port->mad_agent, 1, pkey_idx, 0,
--				      IB_MGMT_VENDOR_HDR, IB_MGMT_MAD_DATA,
--				      GFP_ATOMIC, OPA_MGMT_BASE_VERSION);
--	if (IS_ERR(send_buf)) {
--		c_err("%s:Couldn't allocate send buf\n", __func__);
--		goto err_sndbuf;
--	}
--
--	send_buf->ah = ah;
--
--	/* Set up common MAD hdr */
--	trap_mad = send_buf->mad;
--	trap_mad->mad_hdr.base_version = OPA_MGMT_BASE_VERSION;
--	trap_mad->mad_hdr.mgmt_class = OPA_MGMT_CLASS_INTEL_EMA;
--	trap_mad->mad_hdr.class_version = OPA_EMA_CLASS_VERSION;
--	trap_mad->mad_hdr.method = IB_MGMT_METHOD_TRAP;
--	port->tid++;
--	trap_mad->mad_hdr.tid = cpu_to_be64(port->tid);
--	trap_mad->mad_hdr.attr_id = IB_SMP_ATTR_NOTICE;
--
--	/* Set up vendor OUI */
--	trap_mad->oui[0] = INTEL_OUI_1;
--	trap_mad->oui[1] = INTEL_OUI_2;
--	trap_mad->oui[2] = INTEL_OUI_3;
--
--	/* Setup notice attribute portion */
--	trap_mad->notice.gen_type = OPA_INTEL_EMA_NOTICE_TYPE_INFO << 1;
--	trap_mad->notice.oui_1 = INTEL_OUI_1;
--	trap_mad->notice.oui_2 = INTEL_OUI_2;
--	trap_mad->notice.oui_3 = INTEL_OUI_3;
--	trap_mad->notice.issuer_lid = cpu_to_be32(lid);
--
--	/* copy the actual trap data */
--	trap = (struct opa_veswport_trap *)trap_mad->notice.raw_data;
--	trap->fabric_id = cpu_to_be16(data->fabric_id);
--	trap->veswid = cpu_to_be16(data->veswid);
--	trap->veswportnum = cpu_to_be32(data->veswportnum);
--	trap->opaportnum = cpu_to_be16(data->opaportnum);
--	trap->veswportindex = data->veswportindex;
--	trap->opcode = data->opcode;
--
--	/* If successful send set up rate limit timeout else bail */
--	if (ib_post_send_mad(send_buf, NULL)) {
--		ib_free_send_mad(send_buf);
--	} else {
--		if (adapter->trap_count)
--			return;
--		adapter->trap_timeout = jiffies +
--					usecs_to_jiffies(OPA_VNIC_TRAP_TIMEOUT);
--		return;
--	}
--
--err_sndbuf:
--	rdma_destroy_ah(ah, 0);
--err_exit:
--	v_err("Aborting trap\n");
--}
--
--static void opa_vnic_event(struct ib_event_handler *handler,
--			   struct ib_event *record)
--{
--	struct opa_vnic_vema_port *port =
--		container_of(handler, struct opa_vnic_vema_port, event_handler);
--	struct opa_vnic_ctrl_port *cport = port->cport;
--	struct opa_vnic_adapter *adapter;
--	unsigned long index;
--
--	if (record->element.port_num != port->port_num)
--		return;
--
--	c_dbg("OPA_VNIC received event %d on device %s port %d\n",
--	      record->event, dev_name(&record->device->dev),
--	      record->element.port_num);
--
--	if (record->event != IB_EVENT_PORT_ERR &&
--	    record->event != IB_EVENT_PORT_ACTIVE)
--		return;
--
--	xa_for_each(&port->vports, index, adapter) {
--		if (record->event == IB_EVENT_PORT_ACTIVE)
--			netif_carrier_on(adapter->netdev);
--		else
--			netif_carrier_off(adapter->netdev);
--	}
--}
--
--/**
-- * vema_unregister -- Unregisters agent
-- * @cport: pointer to control port
-- *
-- * This deletes the registration by VEMA for MADs
-- */
--static void vema_unregister(struct opa_vnic_ctrl_port *cport)
--{
--	struct opa_vnic_adapter *adapter;
--	unsigned long index;
--	int i;
--
--	for (i = 1; i <= cport->num_ports; i++) {
--		struct opa_vnic_vema_port *port = vema_get_port(cport, i);
--
--		if (!port->mad_agent)
--			continue;
--
--		/* Lock ensures no MAD is being processed */
--		mutex_lock(&port->lock);
--		xa_for_each(&port->vports, index, adapter)
--			opa_vnic_rem_netdev(adapter);
--		mutex_unlock(&port->lock);
--
--		ib_unregister_mad_agent(port->mad_agent);
--		port->mad_agent = NULL;
--		mutex_destroy(&port->lock);
--		xa_destroy(&port->vports);
--		ib_unregister_event_handler(&port->event_handler);
--	}
--}
--
--/**
-- * vema_register -- Registers agent
-- * @cport: pointer to control port
-- *
-- * This function registers the handlers for the VEMA MADs
-- *
-- * Return: returns 0 on success. non zero otherwise
-- */
--static int vema_register(struct opa_vnic_ctrl_port *cport)
--{
--	struct ib_mad_reg_req reg_req = {
--		.mgmt_class = OPA_MGMT_CLASS_INTEL_EMA,
--		.mgmt_class_version = OPA_MGMT_BASE_VERSION,
--		.oui = { INTEL_OUI_1, INTEL_OUI_2, INTEL_OUI_3 }
--	};
--	int i;
--
--	set_bit(IB_MGMT_METHOD_GET, reg_req.method_mask);
--	set_bit(IB_MGMT_METHOD_SET, reg_req.method_mask);
--
--	/* register ib event handler and mad agent for each port on dev */
--	for (i = 1; i <= cport->num_ports; i++) {
--		struct opa_vnic_vema_port *port = vema_get_port(cport, i);
--		int ret;
--
--		port->cport = cport;
--		port->port_num = i;
--
--		INIT_IB_EVENT_HANDLER(&port->event_handler,
--				      cport->ibdev, opa_vnic_event);
--		ib_register_event_handler(&port->event_handler);
--
--		xa_init(&port->vports);
--		mutex_init(&port->lock);
--		port->mad_agent = ib_register_mad_agent(cport->ibdev, i,
--							IB_QPT_GSI, &reg_req,
--							IB_MGMT_RMPP_VERSION,
--							vema_send, vema_recv,
--							port, 0);
--		if (IS_ERR(port->mad_agent)) {
--			ret = PTR_ERR(port->mad_agent);
--			port->mad_agent = NULL;
--			mutex_destroy(&port->lock);
--			vema_unregister(cport);
--			return ret;
--		}
--	}
--
--	return 0;
--}
--
--/**
-- * opa_vnic_ctrl_config_dev -- This function sends a trap to the EM
-- * by way of ib_modify_port to indicate support for ethernet on the
-- * fabric.
-- * @cport: pointer to control port
-- * @en: enable or disable ethernet on fabric support
-- */
--static void opa_vnic_ctrl_config_dev(struct opa_vnic_ctrl_port *cport, bool en)
--{
--	struct ib_port_modify pm = { 0 };
--	int i;
--
--	if (en)
--		pm.set_port_cap_mask = OPA_CAP_MASK3_IsEthOnFabricSupported;
--	else
--		pm.clr_port_cap_mask = OPA_CAP_MASK3_IsEthOnFabricSupported;
--
--	for (i = 1; i <= cport->num_ports; i++)
--		ib_modify_port(cport->ibdev, i, IB_PORT_OPA_MASK_CHG, &pm);
--}
--
--/**
-- * opa_vnic_vema_add_one -- Handle new ib device
-- * @device: ib device pointer
-- *
-- * Allocate the vnic control port and initialize it.
-- */
--static int opa_vnic_vema_add_one(struct ib_device *device)
--{
--	struct opa_vnic_ctrl_port *cport;
--	int rc, size = sizeof(*cport);
--
--	if (!rdma_cap_opa_vnic(device))
--		return -EOPNOTSUPP;
--
--	size += device->phys_port_cnt * sizeof(struct opa_vnic_vema_port);
--	cport = kzalloc(size, GFP_KERNEL);
--	if (!cport)
--		return -ENOMEM;
--
--	cport->num_ports = device->phys_port_cnt;
--	cport->ibdev = device;
--
--	/* Initialize opa vnic management agent (vema) */
--	rc = vema_register(cport);
--	if (!rc)
--		c_info("VNIC client initialized\n");
--
--	ib_set_client_data(device, &opa_vnic_client, cport);
--	opa_vnic_ctrl_config_dev(cport, true);
--	return 0;
--}
--
--/**
-- * opa_vnic_vema_rem_one -- Handle ib device removal
-- * @device: ib device pointer
-- * @client_data: ib client data
-- *
-- * Uninitialize and free the vnic control port.
-- */
--static void opa_vnic_vema_rem_one(struct ib_device *device,
--				  void *client_data)
--{
--	struct opa_vnic_ctrl_port *cport = client_data;
--
--	c_info("removing VNIC client\n");
--	opa_vnic_ctrl_config_dev(cport, false);
--	vema_unregister(cport);
--	kfree(cport);
--}
--
--static int __init opa_vnic_init(void)
--{
--	int rc;
--
--	rc = ib_register_client(&opa_vnic_client);
--	if (rc)
--		pr_err("VNIC driver register failed %d\n", rc);
--
--	return rc;
--}
--module_init(opa_vnic_init);
--
--static void opa_vnic_deinit(void)
--{
--	ib_unregister_client(&opa_vnic_client);
--}
--module_exit(opa_vnic_deinit);
--
--MODULE_LICENSE("Dual BSD/GPL");
--MODULE_AUTHOR("Cornelis Networks");
--MODULE_DESCRIPTION("Cornelis OPX Virtual Network driver");
-diff --git a/drivers/infiniband/ulp/opa_vnic/opa_vnic_vema_iface.c b/drivers/infiniband/ulp/opa_vnic/opa_vnic_vema_iface.c
-deleted file mode 100644
-index 292c037aa239..000000000000
---- a/drivers/infiniband/ulp/opa_vnic/opa_vnic_vema_iface.c
-+++ /dev/null
-@@ -1,390 +0,0 @@
--/*
-- * Copyright(c) 2017 Intel Corporation.
-- *
-- * This file is provided under a dual BSD/GPLv2 license.  When using or
-- * redistributing this file, you may do so under either license.
-- *
-- * GPL LICENSE SUMMARY
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of version 2 of the GNU General Public License as
-- * published by the Free Software Foundation.
-- *
-- * This program is distributed in the hope that it will be useful, but
-- * WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-- * General Public License for more details.
-- *
-- * BSD LICENSE
-- *
-- * Redistribution and use in source and binary forms, with or without
-- * modification, are permitted provided that the following conditions
-- * are met:
-- *
-- *  - Redistributions of source code must retain the above copyright
-- *    notice, this list of conditions and the following disclaimer.
-- *  - Redistributions in binary form must reproduce the above copyright
-- *    notice, this list of conditions and the following disclaimer in
-- *    the documentation and/or other materials provided with the
-- *    distribution.
-- *  - Neither the name of Intel Corporation nor the names of its
-- *    contributors may be used to endorse or promote products derived
-- *    from this software without specific prior written permission.
-- *
-- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-- * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-- * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-- *
-- */
--
--/*
-- * This file contains OPA VNIC EMA Interface functions.
-- */
--
--#include "opa_vnic_internal.h"
--
--/**
-- * opa_vnic_vema_report_event - sent trap to report the specified event
-- * @adapter: vnic port adapter
-- * @event: event to be reported
-- *
-- * This function calls vema api to sent a trap for the given event.
-- */
--void opa_vnic_vema_report_event(struct opa_vnic_adapter *adapter, u8 event)
--{
--	struct __opa_veswport_info *info = &adapter->info;
--	struct __opa_veswport_trap trap_data;
--
--	trap_data.fabric_id = info->vesw.fabric_id;
--	trap_data.veswid = info->vesw.vesw_id;
--	trap_data.veswportnum = info->vport.port_num;
--	trap_data.opaportnum = adapter->port_num;
--	trap_data.veswportindex = adapter->vport_num;
--	trap_data.opcode = event;
--
--	opa_vnic_vema_send_trap(adapter, &trap_data, info->vport.encap_slid);
--}
--
--/**
-- * opa_vnic_get_summary_counters - get summary counters
-- * @adapter: vnic port adapter
-- * @cntrs: pointer to destination summary counters structure
-- *
-- * This function populates the summary counters that is maintained by the
-- * given adapter to destination address provided.
-- */
--void opa_vnic_get_summary_counters(struct opa_vnic_adapter *adapter,
--				   struct opa_veswport_summary_counters *cntrs)
--{
--	struct opa_vnic_stats vstats;
--	__be64 *dst;
--	u64 *src;
--
--	memset(&vstats, 0, sizeof(vstats));
--	spin_lock(&adapter->stats_lock);
--	adapter->rn_ops->ndo_get_stats64(adapter->netdev, &vstats.netstats);
--	spin_unlock(&adapter->stats_lock);
--
--	cntrs->vp_instance = cpu_to_be16(adapter->vport_num);
--	cntrs->vesw_id = cpu_to_be16(adapter->info.vesw.vesw_id);
--	cntrs->veswport_num = cpu_to_be32(adapter->port_num);
--
--	cntrs->tx_errors = cpu_to_be64(vstats.netstats.tx_errors);
--	cntrs->rx_errors = cpu_to_be64(vstats.netstats.rx_errors);
--	cntrs->tx_packets = cpu_to_be64(vstats.netstats.tx_packets);
--	cntrs->rx_packets = cpu_to_be64(vstats.netstats.rx_packets);
--	cntrs->tx_bytes = cpu_to_be64(vstats.netstats.tx_bytes);
--	cntrs->rx_bytes = cpu_to_be64(vstats.netstats.rx_bytes);
--
--	/*
--	 * This loop depends on layout of
--	 * opa_veswport_summary_counters opa_vnic_stats structures.
--	 */
--	for (dst = &cntrs->tx_unicast, src = &vstats.tx_grp.unicast;
--	     dst < &cntrs->reserved[0]; dst++, src++) {
--		*dst = cpu_to_be64(*src);
--	}
--}
--
--/**
-- * opa_vnic_get_error_counters - get error counters
-- * @adapter: vnic port adapter
-- * @cntrs: pointer to destination error counters structure
-- *
-- * This function populates the error counters that is maintained by the
-- * given adapter to destination address provided.
-- */
--void opa_vnic_get_error_counters(struct opa_vnic_adapter *adapter,
--				 struct opa_veswport_error_counters *cntrs)
--{
--	struct opa_vnic_stats vstats;
--
--	memset(&vstats, 0, sizeof(vstats));
--	spin_lock(&adapter->stats_lock);
--	adapter->rn_ops->ndo_get_stats64(adapter->netdev, &vstats.netstats);
--	spin_unlock(&adapter->stats_lock);
--
--	cntrs->vp_instance = cpu_to_be16(adapter->vport_num);
--	cntrs->vesw_id = cpu_to_be16(adapter->info.vesw.vesw_id);
--	cntrs->veswport_num = cpu_to_be32(adapter->port_num);
--
--	cntrs->tx_errors = cpu_to_be64(vstats.netstats.tx_errors);
--	cntrs->rx_errors = cpu_to_be64(vstats.netstats.rx_errors);
--	cntrs->tx_dlid_zero = cpu_to_be64(vstats.tx_dlid_zero);
--	cntrs->tx_drop_state = cpu_to_be64(vstats.tx_drop_state);
--	cntrs->tx_logic = cpu_to_be64(vstats.netstats.tx_fifo_errors +
--				      vstats.netstats.tx_carrier_errors);
--
--	cntrs->rx_bad_veswid = cpu_to_be64(vstats.netstats.rx_nohandler);
--	cntrs->rx_runt = cpu_to_be64(vstats.rx_runt);
--	cntrs->rx_oversize = cpu_to_be64(vstats.rx_oversize);
--	cntrs->rx_drop_state = cpu_to_be64(vstats.rx_drop_state);
--	cntrs->rx_logic = cpu_to_be64(vstats.netstats.rx_fifo_errors);
--}
--
--/**
-- * opa_vnic_get_vesw_info -- Get the vesw information
-- * @adapter: vnic port adapter
-- * @info: pointer to destination vesw info structure
-- *
-- * This function copies the vesw info that is maintained by the
-- * given adapter to destination address provided.
-- */
--void opa_vnic_get_vesw_info(struct opa_vnic_adapter *adapter,
--			    struct opa_vesw_info *info)
--{
--	struct __opa_vesw_info *src = &adapter->info.vesw;
--	int i;
--
--	info->fabric_id = cpu_to_be16(src->fabric_id);
--	info->vesw_id = cpu_to_be16(src->vesw_id);
--	memcpy(info->rsvd0, src->rsvd0, ARRAY_SIZE(src->rsvd0));
--	info->def_port_mask = cpu_to_be16(src->def_port_mask);
--	memcpy(info->rsvd1, src->rsvd1, ARRAY_SIZE(src->rsvd1));
--	info->pkey = cpu_to_be16(src->pkey);
--
--	memcpy(info->rsvd2, src->rsvd2, ARRAY_SIZE(src->rsvd2));
--	info->u_mcast_dlid = cpu_to_be32(src->u_mcast_dlid);
--	for (i = 0; i < OPA_VESW_MAX_NUM_DEF_PORT; i++)
--		info->u_ucast_dlid[i] = cpu_to_be32(src->u_ucast_dlid[i]);
--
--	info->rc = cpu_to_be32(src->rc);
--
--	memcpy(info->rsvd3, src->rsvd3, ARRAY_SIZE(src->rsvd3));
--	info->eth_mtu = cpu_to_be16(src->eth_mtu);
--	memcpy(info->rsvd4, src->rsvd4, ARRAY_SIZE(src->rsvd4));
--}
--
--/**
-- * opa_vnic_set_vesw_info -- Set the vesw information
-- * @adapter: vnic port adapter
-- * @info: pointer to vesw info structure
-- *
-- * This function updates the vesw info that is maintained by the
-- * given adapter with vesw info provided. Reserved fields are stored
-- * and returned back to EM as is.
-- */
--void opa_vnic_set_vesw_info(struct opa_vnic_adapter *adapter,
--			    struct opa_vesw_info *info)
--{
--	struct __opa_vesw_info *dst = &adapter->info.vesw;
--	int i;
--
--	dst->fabric_id = be16_to_cpu(info->fabric_id);
--	dst->vesw_id = be16_to_cpu(info->vesw_id);
--	memcpy(dst->rsvd0, info->rsvd0, ARRAY_SIZE(info->rsvd0));
--	dst->def_port_mask = be16_to_cpu(info->def_port_mask);
--	memcpy(dst->rsvd1, info->rsvd1, ARRAY_SIZE(info->rsvd1));
--	dst->pkey = be16_to_cpu(info->pkey);
--
--	memcpy(dst->rsvd2, info->rsvd2, ARRAY_SIZE(info->rsvd2));
--	dst->u_mcast_dlid = be32_to_cpu(info->u_mcast_dlid);
--	for (i = 0; i < OPA_VESW_MAX_NUM_DEF_PORT; i++)
--		dst->u_ucast_dlid[i] = be32_to_cpu(info->u_ucast_dlid[i]);
--
--	dst->rc = be32_to_cpu(info->rc);
--
--	memcpy(dst->rsvd3, info->rsvd3, ARRAY_SIZE(info->rsvd3));
--	dst->eth_mtu = be16_to_cpu(info->eth_mtu);
--	memcpy(dst->rsvd4, info->rsvd4, ARRAY_SIZE(info->rsvd4));
--}
--
--/**
-- * opa_vnic_get_per_veswport_info -- Get the vesw per port information
-- * @adapter: vnic port adapter
-- * @info: pointer to destination vport info structure
-- *
-- * This function copies the vesw per port info that is maintained by the
-- * given adapter to destination address provided.
-- * Note that the read only fields are not copied.
-- */
--void opa_vnic_get_per_veswport_info(struct opa_vnic_adapter *adapter,
--				    struct opa_per_veswport_info *info)
--{
--	struct __opa_per_veswport_info *src = &adapter->info.vport;
--
--	info->port_num = cpu_to_be32(src->port_num);
--	info->eth_link_status = src->eth_link_status;
--	memcpy(info->rsvd0, src->rsvd0, ARRAY_SIZE(src->rsvd0));
--
--	memcpy(info->base_mac_addr, src->base_mac_addr,
--	       ARRAY_SIZE(info->base_mac_addr));
--	info->config_state = src->config_state;
--	info->oper_state = src->oper_state;
--	info->max_mac_tbl_ent = cpu_to_be16(src->max_mac_tbl_ent);
--	info->max_smac_ent = cpu_to_be16(src->max_smac_ent);
--	info->mac_tbl_digest = cpu_to_be32(src->mac_tbl_digest);
--	memcpy(info->rsvd1, src->rsvd1, ARRAY_SIZE(src->rsvd1));
--
--	info->encap_slid = cpu_to_be32(src->encap_slid);
--	memcpy(info->pcp_to_sc_uc, src->pcp_to_sc_uc,
--	       ARRAY_SIZE(info->pcp_to_sc_uc));
--	memcpy(info->pcp_to_vl_uc, src->pcp_to_vl_uc,
--	       ARRAY_SIZE(info->pcp_to_vl_uc));
--	memcpy(info->pcp_to_sc_mc, src->pcp_to_sc_mc,
--	       ARRAY_SIZE(info->pcp_to_sc_mc));
--	memcpy(info->pcp_to_vl_mc, src->pcp_to_vl_mc,
--	       ARRAY_SIZE(info->pcp_to_vl_mc));
--	info->non_vlan_sc_uc = src->non_vlan_sc_uc;
--	info->non_vlan_vl_uc = src->non_vlan_vl_uc;
--	info->non_vlan_sc_mc = src->non_vlan_sc_mc;
--	info->non_vlan_vl_mc = src->non_vlan_vl_mc;
--	memcpy(info->rsvd2, src->rsvd2, ARRAY_SIZE(src->rsvd2));
--
--	info->uc_macs_gen_count = cpu_to_be16(src->uc_macs_gen_count);
--	info->mc_macs_gen_count = cpu_to_be16(src->mc_macs_gen_count);
--	memcpy(info->rsvd3, src->rsvd3, ARRAY_SIZE(src->rsvd3));
--}
--
--/**
-- * opa_vnic_set_per_veswport_info -- Set vesw per port information
-- * @adapter: vnic port adapter
-- * @info: pointer to vport info structure
-- *
-- * This function updates the vesw per port info that is maintained by the
-- * given adapter with vesw per port info provided. Reserved fields are
-- * stored and returned back to EM as is.
-- */
--void opa_vnic_set_per_veswport_info(struct opa_vnic_adapter *adapter,
--				    struct opa_per_veswport_info *info)
--{
--	struct __opa_per_veswport_info *dst = &adapter->info.vport;
--
--	dst->port_num = be32_to_cpu(info->port_num);
--	memcpy(dst->rsvd0, info->rsvd0, ARRAY_SIZE(info->rsvd0));
--
--	memcpy(dst->base_mac_addr, info->base_mac_addr,
--	       ARRAY_SIZE(dst->base_mac_addr));
--	dst->config_state = info->config_state;
--	memcpy(dst->rsvd1, info->rsvd1, ARRAY_SIZE(info->rsvd1));
--
--	dst->encap_slid = be32_to_cpu(info->encap_slid);
--	memcpy(dst->pcp_to_sc_uc, info->pcp_to_sc_uc,
--	       ARRAY_SIZE(dst->pcp_to_sc_uc));
--	memcpy(dst->pcp_to_vl_uc, info->pcp_to_vl_uc,
--	       ARRAY_SIZE(dst->pcp_to_vl_uc));
--	memcpy(dst->pcp_to_sc_mc, info->pcp_to_sc_mc,
--	       ARRAY_SIZE(dst->pcp_to_sc_mc));
--	memcpy(dst->pcp_to_vl_mc, info->pcp_to_vl_mc,
--	       ARRAY_SIZE(dst->pcp_to_vl_mc));
--	dst->non_vlan_sc_uc = info->non_vlan_sc_uc;
--	dst->non_vlan_vl_uc = info->non_vlan_vl_uc;
--	dst->non_vlan_sc_mc = info->non_vlan_sc_mc;
--	dst->non_vlan_vl_mc = info->non_vlan_vl_mc;
--	memcpy(dst->rsvd2, info->rsvd2, ARRAY_SIZE(info->rsvd2));
--	memcpy(dst->rsvd3, info->rsvd3, ARRAY_SIZE(info->rsvd3));
--}
--
--/**
-- * opa_vnic_query_mcast_macs - query multicast mac list
-- * @adapter: vnic port adapter
-- * @macs: pointer mac list
-- *
-- * This function populates the provided mac list with the configured
-- * multicast addresses in the adapter.
-- */
--void opa_vnic_query_mcast_macs(struct opa_vnic_adapter *adapter,
--			       struct opa_veswport_iface_macs *macs)
--{
--	u16 start_idx, num_macs, idx = 0, count = 0;
--	struct netdev_hw_addr *ha;
--
--	start_idx = be16_to_cpu(macs->start_idx);
--	num_macs = be16_to_cpu(macs->num_macs_in_msg);
--	netdev_for_each_mc_addr(ha, adapter->netdev) {
--		struct opa_vnic_iface_mac_entry *entry = &macs->entry[count];
--
--		if (start_idx > idx++)
--			continue;
--		else if (num_macs == count)
--			break;
--		memcpy(entry, ha->addr, sizeof(*entry));
--		count++;
--	}
--
--	macs->tot_macs_in_lst = cpu_to_be16(netdev_mc_count(adapter->netdev));
--	macs->num_macs_in_msg = cpu_to_be16(count);
--	macs->gen_count = cpu_to_be16(adapter->info.vport.mc_macs_gen_count);
--}
--
--/**
-- * opa_vnic_query_ucast_macs - query unicast mac list
-- * @adapter: vnic port adapter
-- * @macs: pointer mac list
-- *
-- * This function populates the provided mac list with the configured
-- * unicast addresses in the adapter.
-- */
--void opa_vnic_query_ucast_macs(struct opa_vnic_adapter *adapter,
--			       struct opa_veswport_iface_macs *macs)
--{
--	u16 start_idx, tot_macs, num_macs, idx = 0, count = 0, em_macs = 0;
--	struct netdev_hw_addr *ha;
--
--	start_idx = be16_to_cpu(macs->start_idx);
--	num_macs = be16_to_cpu(macs->num_macs_in_msg);
--	/* loop through dev_addrs list first */
--	for_each_dev_addr(adapter->netdev, ha) {
--		struct opa_vnic_iface_mac_entry *entry = &macs->entry[count];
--
--		/* Do not include EM specified MAC address */
--		if (!memcmp(adapter->info.vport.base_mac_addr, ha->addr,
--			    ARRAY_SIZE(adapter->info.vport.base_mac_addr))) {
--			em_macs++;
--			continue;
--		}
--
--		if (start_idx > idx++)
--			continue;
--		else if (num_macs == count)
--			break;
--		memcpy(entry, ha->addr, sizeof(*entry));
--		count++;
--	}
--
--	/* loop through uc list */
--	netdev_for_each_uc_addr(ha, adapter->netdev) {
--		struct opa_vnic_iface_mac_entry *entry = &macs->entry[count];
--
--		if (start_idx > idx++)
--			continue;
--		else if (num_macs == count)
--			break;
--		memcpy(entry, ha->addr, sizeof(*entry));
--		count++;
--	}
--
--	tot_macs = netdev_hw_addr_list_count(&adapter->netdev->dev_addrs) +
--		   netdev_uc_count(adapter->netdev) - em_macs;
--	macs->tot_macs_in_lst = cpu_to_be16(tot_macs);
--	macs->num_macs_in_msg = cpu_to_be16(count);
--	macs->gen_count = cpu_to_be16(adapter->info.vport.uc_macs_gen_count);
--}
++ * @enabled:	atomic counter of netdevs enabling receive queues.
++ *		When 0 NAPI will be disabled.
++ * @netdevs:	count of netdev_rx users, protected by hfi2_mutex.
++ *		When 0 receive queues will be freed.
++ */
++struct hfi2_netdev_rx {
++	struct net_device *rx_napi;
++	struct hfi2_devdata *dd;
++	struct hfi2_pportdata *ppd;
++	struct hfi2_netdev_rxq *rxq;
++	int num_rx_q;
++	int rmt_start;
++	struct xarray dev_tbl;
++	/* count of enabled napi polls */
++	atomic_t enabled;
++	int netdevs;
++};
++
++static inline
++int hfi2_netdev_ctxt_count(struct hfi2_pportdata *ppd)
++{
++	return ppd->netdev_rx->num_rx_q;
++}
++
++static inline
++struct hfi2_ctxtdata *hfi2_netdev_get_ctxt(struct hfi2_pportdata *ppd, int ctxt)
++{
++	return ppd->netdev_rx->rxq[ctxt].rcd;
++}
++
++static inline
++int hfi2_netdev_get_free_rmt_idx(struct hfi2_pportdata *ppd)
++{
++	return ppd->netdev_rx->rmt_start;
++}
++
++u32 hfi2_num_netdev_contexts(struct hfi2_devdata *dd, u32 available_contexts,
++			     struct cpumask *cpu_mask);
++
++void hfi2_netdev_enable_queues(struct hfi2_pportdata *ppd);
++void hfi2_netdev_disable_queues(struct hfi2_pportdata *ppd);
++int hfi2_netdev_rx_init(struct hfi2_pportdata *ppd);
++int hfi2_netdev_rx_destroy(struct hfi2_pportdata *ppd);
++int hfi2_alloc_rx(struct hfi2_devdata *dd);
++void hfi2_free_rx(struct hfi2_devdata *dd);
++int hfi2_netdev_add_data(struct hfi2_pportdata *ppd, int id, void *data);
++void *hfi2_netdev_remove_data(struct hfi2_pportdata *ppd, int id);
++void *hfi2_netdev_get_data(struct hfi2_pportdata *ppd, int id);
++void *hfi2_netdev_get_first_data(struct hfi2_pportdata *ppd, int *start_id);
++
++/* chip.c  */
++int hfi2_netdev_rx_napi(struct napi_struct *napi, int budget);
++
++#endif /* HFI2_NETDEV_H */
+diff --git a/drivers/infiniband/hw/hfi2/pinning.h b/drivers/infiniband/hw/hfi2/pinning.h
+new file mode 100644
+index 000000000000..f924cc2d67ad
+--- /dev/null
++++ b/drivers/infiniband/hw/hfi2/pinning.h
+@@ -0,0 +1,74 @@
++/* SPDX-License-Identifier: GPL-2.0 or BSD-3-Clause */
++/*
++ * Copyright(c) 2023 Cornelis Networks, Inc.
++ */
++#ifndef _HFI2_PINNING_H
++#define _HFI2_PINNING_H
++
++#include <rdma/hfi2-abi.h>
++
++struct hfi2_user_sdma_pkt_q;
++struct user_sdma_request;
++struct user_sdma_txreq;
++struct user_sdma_iovec;
++
++struct pinning_interface {
++	int (*init)(struct hfi2_user_sdma_pkt_q *pq);
++	void (*free)(struct hfi2_user_sdma_pkt_q *pq);
++
++	/*
++	 * Add up to pkt_data_remaining bytes to the txreq, starting at the
++	 * current offset in the given iovec entry and continuing until all
++	 * data has been added to the iovec or the iovec entry type changes.
++	 * On success, prior to returning, the implementation must adjust
++	 * pkt_data_remaining, req->iov_idx, and the offset value in
++	 * req->iov[req->iov_idx] to reflect the data that has been
++	 * consumed.
++	 */
++	int (*add_to_sdma_packet)(struct user_sdma_request *req,
++				  struct user_sdma_txreq *tx,
++				  struct user_sdma_iovec *iovec,
++				  u32 *pkt_data_remaining);
++
++	int (*get_stats)(struct hfi2_user_sdma_pkt_q *pq, int index,
++			 struct hfi2_pin_stats *stats);
++	void (*put)(void *ptr);
++};
++
++#define PINNING_MAX_INTERFACES BIT(HFI2_MEMINFO_TYPE_ENTRY_BITS)
++
++struct pinning_state {
++	void *interface[PINNING_MAX_INTERFACES];
++};
++
++#define PINNING_STATE(pq, i) ((pq)->pinning_state.interface[(i)])
++
++extern struct pinning_interface pinning_interfaces[PINNING_MAX_INTERFACES];
++
++void register_pinning_interface(unsigned int type,
++				struct pinning_interface *interface);
++void deregister_pinning_interface(unsigned int type);
++
++void register_system_pinning_interface(void);
++void deregister_system_pinning_interface(void);
++
++int init_pinning_interfaces(struct hfi2_user_sdma_pkt_q *pq);
++void free_pinning_interfaces(struct hfi2_user_sdma_pkt_q *pq);
++
++static inline bool pinning_type_supported(unsigned int type)
++{
++	return (type < PINNING_MAX_INTERFACES &&
++		pinning_interfaces[type].add_to_sdma_packet);
++}
++
++static inline int add_to_sdma_packet(unsigned int type,
++				     struct user_sdma_request *req,
++				     struct user_sdma_txreq *tx,
++				     struct user_sdma_iovec *iovec,
++				     u32 *rem)
++{
++	return pinning_interfaces[type].add_to_sdma_packet(req, tx, iovec,
++							   rem);
++}
++
++#endif /* _HFI2_PINNING_H */
+diff --git a/drivers/infiniband/hw/hfi2/pio.h b/drivers/infiniband/hw/hfi2/pio.h
+new file mode 100644
+index 000000000000..43636e02ffee
+--- /dev/null
++++ b/drivers/infiniband/hw/hfi2/pio.h
+@@ -0,0 +1,305 @@
++/* SPDX-License-Identifier: GPL-2.0 OR BSD-3-Clause */
++/*
++ * Copyright(c) 2015-2017 Intel Corporation.
++ */
++
++#ifndef _PIO_H
++#define _PIO_H
++/* send context types */
++#define SC_KERNEL 0
++#define SC_VL15   1
++#define SC_ACK    2
++#define SC_USER   3	/* must be the last one: it may take all left */
++#define SC_MAX    4	/* count of send context types */
++
++/* invalid send context index */
++#define INVALID_SCI 0xff
++
++/* PIO buffer release callback function */
++typedef void (*pio_release_cb)(void *arg, int code);
++
++/* PIO release codes - in bits, as there could more than one that apply */
++#define PRC_OK		0	/* no known error */
++#define PRC_STATUS_ERR	0x01	/* credit return due to status error */
++#define PRC_PBC		0x02	/* credit return due to PBC */
++#define PRC_THRESHOLD	0x04	/* credit return due to threshold */
++#define PRC_FILL_ERR	0x08	/* credit return due fill error */
++#define PRC_FORCE	0x10	/* credit return due credit force */
++#define PRC_SC_DISABLE	0x20	/* clean-up after a context disable */
++
++/* byte helper */
++union mix {
++	u64 val64;
++	u32 val32[2];
++	u8  val8[8];
++};
++
++/* an allocated PIO buffer */
++struct pio_buf {
++	struct send_context *sc;/* back pointer to owning send context */
++	pio_release_cb cb;	/* called when the buffer is released */
++	void *arg;		/* argument for cb */
++	void __iomem *start;	/* buffer start address */
++	void __iomem *end;	/* context end address */
++	unsigned long sent_at;	/* buffer is sent when <= free */
++	union mix carry;	/* pending unwritten bytes */
++	u16 qw_written;		/* QW written so far */
++	u8 carry_bytes;	/* number of valid bytes in carry */
++};
++
++/* cache line aligned pio buffer array */
++union pio_shadow_ring {
++	struct pio_buf pbuf;
++} ____cacheline_aligned;
++
++/* per-NUMA send context */
++struct send_context {
++	/* read-only after init */
++	struct hfi2_devdata *dd;	/* device */
++	struct hfi2_pportdata *ppd;	/* port */
++	union pio_shadow_ring *sr;	/* shadow ring */
++	void __iomem *base_addr;	/* start of PIO memory */
++	u32 __percpu *buffers_allocated;/* count of buffers allocated */
++	u32 size;			/* context size, in bytes */
++
++	int node;			/* context home node */
++	u32 sr_size;			/* size of the shadow ring */
++	u16 flags;			/* flags */
++	u16 sw_index;			/* software index number */
++	u16 hw_context;			/* hardware context number */
++	u8  type;			/* context type */
++	u8  group;			/* credit return group */
++
++	/* allocator fields */
++	spinlock_t alloc_lock ____cacheline_aligned_in_smp;
++	u32 sr_head;			/* shadow ring head */
++	unsigned long fill;		/* official alloc count */
++	unsigned long alloc_free;	/* copy of free (less cache thrash) */
++	u32 fill_wrap;			/* tracks fill within ring */
++	u32 credits;			/* number of blocks in context */
++	/* adding a new field here would make it part of this cacheline */
++
++	/* releaser fields */
++	spinlock_t release_lock ____cacheline_aligned_in_smp;
++	u32 sr_tail;			/* shadow ring tail */
++	unsigned long free;		/* official free count */
++	volatile __le64 *hw_free;	/* HW free counter */
++	/* list for PIO waiters */
++	struct list_head piowait  ____cacheline_aligned_in_smp;
++	seqlock_t waitlock;
++
++	spinlock_t credit_ctrl_lock ____cacheline_aligned_in_smp;
++	u32 credit_intr_count;		/* count of credit intr users */
++	u64 credit_ctrl;		/* cache for credit control */
++	wait_queue_head_t halt_wait;    /* wait until kernel sees interrupt */
++	struct work_struct halt_work;	/* halted context work queue entry */
++};
++
++/* send context flags */
++#define SCF_ENABLED 0x01
++#define SCF_IN_FREE 0x02
++#define SCF_HALTED  0x04
++#define SCF_FROZEN  0x08
++#define SCF_LINK_DOWN 0x10
++
++struct send_context_info {
++	struct send_context *sc;	/* allocated working context */
++	u16 allocated;			/* has this been allocated? */
++	u16 type;			/* context type */
++	u16 base;			/* base in PIO array */
++	u16 credits;			/* size in PIO array */
++};
++
++/* DMA credit return, index is always (context & 0x7) */
++struct credit_return {
++	volatile __le64 cr[8];
++};
++
++/* NUMA indexed credit return array */
++struct credit_return_base {
++	struct credit_return *va;
++	dma_addr_t dma;
++};
++
++/* send context configuration sizes (one per type) */
++struct sc_config_sizes {
++	short int size;
++	short int count;
++};
++
++/*
++ * The diagram below details layout of pio_map, which is used to quickly select
++ * a kernel send context given a vl and a selector (fuzz).
++ *
++ * sc = pio_map->map[vl & map_mask]->ksc[selector & elem_mask]
++ *
++ * The map allows for non-uniform send contexts per vl.
++ *
++ * Where:
++ * nactual = num_kernel_send_contexts / num_vls
++ * vl_scontexts[vl] = nactual + extra
++ *
++ *	Extra is an evenly distributed modulo of remaining send contexts.
++ *
++ * svl[vl] = 1 + sum vl_scontexts[0..vl-1]
++ *
++ * n = roundup to next highest power of 2 of vl_scontexts[vl]
++ *
++ * When n > vl_scontexts[vl], the send contexts are assigned in a round robin
++ * fashion wrapping back to the first send context for a particular vl.
++ *
++ *              ppd->pio_map
++ *                    |                                  pio_map_elem[0]
++ *                    |                               +------------------------+
++ *                    v                               |       mask             |
++ *               pio_vl_map                           |------------------------|
++ *      +--------------------------+                  | ksc[0] -> svl[0]       |
++ *      |    list (RCU)            |                  |------------------------|
++ *      |--------------------------|                ->| ksc[1] -> svl[0]+1     |
++ *      |    mask                  |              -/  |------------------------|
++ *      |--------------------------|            -/    |        *               |
++ *      |    actual_vls (max 8)    |          -/      |------------------------|
++ *      |--------------------------|       --/        | ksc[n-1] -> svl[0]+n-1 |
++ *      |    vls (max 8)           |     -/           +------------------------+
++ *      |--------------------------|  --/
++ *      |    map[0]                |-/
++ *      |--------------------------|                  +------------------------+
++ *      |    map[1]                |---               |       mask             |
++ *      |--------------------------|   \----          |------------------------|
++ *      |           *              |        \--       | ksc[0] -> svl[1]       |
++ *      |           *              |           \---   |------------------------|
++ *      |           *              |               \->| ksc[1] -> svl[1]+1     |
++ *      |--------------------------|                  |------------------------|
++ *      |   map[vls - 1]           |-                 |         *              |
++ *      +--------------------------+ \-               |------------------------|
++ *                                     \-             | ksc[n-1] -> svl[1]+n-1 |
++ *                                       \            +------------------------+
++ *                                        \-
++ *                                          \
++ *                                           \-       +------------------------+
++ *                                             \-     |       mask             |
++ *                                               \    |------------------------|
++ *                                                \-  | ksc[x] -> svl[x]       |
++ *                                                  \ |------------------------|
++ *                                                   >| ksc[x] -> svl[x]+1     |
++ *                                                    |------------------------|
++ *                                                    |         *              |
++ *                                                    |------------------------|
++ *                                                    | ksc[n-1] -> svl[x]+n-1 |
++ *                                                    +------------------------+
++ *
++ */
++
++/* Initial number of send contexts per VL */
++#define INIT_SC_PER_VL 2
++
++/*
++ * struct pio_map_elem - mapping for a vl
++ * @mask - selector mask
++ * @ksc - array of kernel send contexts for this vl
++ *
++ * The mask is used to "mod" the selector to
++ * produce index into the trailing array of
++ * kscs
++ */
++struct pio_map_elem {
++	u32 mask;
++	struct send_context *ksc[];
++};
++
++/*
++ * struct pio_vl_map - mapping for a vl
++ * @list - rcu head for free callback
++ * @mask - vl mask to "mod" the vl to produce an index to map array
++ * @actual_vls - number of vls
++ * @vls - numbers of vls rounded to next power of 2
++ * @map - array of pio_map_elem entries
++ *
++ * This is the parent mapping structure. The trailing members of the
++ * struct point to pio_map_elem entries, which in turn point to an
++ * array of kscs for that vl.
++ */
++struct pio_vl_map {
++	struct rcu_head list;
++	u32 mask;
++	u8 actual_vls;
++	u8 vls;
++	struct pio_map_elem *map[];
++};
++
++int pio_map_init(struct hfi2_pportdata *ppd, u8 num_vls);
++void free_pio_map(struct hfi2_devdata *dd);
++struct send_context *pio_select_send_context_vl(struct hfi2_pportdata *ppd,
++						u32 selector, u8 vl);
++struct send_context *pio_select_send_context_sc(struct hfi2_pportdata *ppd,
++						u32 selector, u8 sc5);
++
++/* send context functions */
++int init_credit_return(struct hfi2_devdata *dd);
++void free_credit_return(struct hfi2_devdata *dd);
++int init_sc_pools_and_sizes(struct hfi2_devdata *dd);
++int init_send_contexts(struct hfi2_devdata *dd);
++int init_pervl_scs(struct hfi2_pportdata *ppd);
++struct send_context *sc_alloc(struct hfi2_pportdata *ppd, int type,
++			      uint hdrqentsize, int numa);
++void sc_free(struct send_context *sc);
++int sc_enable(struct send_context *sc);
++void sc_disable(struct send_context *sc);
++int sc_restart(struct send_context *sc);
++void sc_return_credits(struct send_context *sc);
++void sc_flush(struct send_context *sc);
++void sc_drop(struct send_context *sc);
++void sc_stop(struct send_context *sc, int bit);
++struct pio_buf *sc_buffer_alloc(struct send_context *sc, u32 dw_len,
++				pio_release_cb cb, void *arg);
++void sc_release_update(struct send_context *sc);
++void sc_group_release_update(struct hfi2_devdata *dd, u32 hw_context);
++void sc_add_credit_return_intr(struct send_context *sc);
++void sc_del_credit_return_intr(struct send_context *sc);
++void sc_set_cr_threshold(struct send_context *sc, u32 new_threshold);
++u32 sc_percent_to_threshold(struct send_context *sc, u32 percent);
++u32 sc_mtu_to_threshold(struct send_context *sc, u32 mtu, u32 hdrqentsize);
++void hfi2_sc_wantpiobuf_intr(struct send_context *sc, u32 needint);
++void sc_wait(struct hfi2_devdata *dd);
++
++/* commands for set_pio_integrity() */
++enum spi_cmds {
++	SPI_DEFAULT,
++	SPI_INIT,
++	SPI_SET_JKEY,
++	SPI_CLEAR_JKEY,
++	SPI_SET_PKEY,
++	SPI_CLEAR_PKEY,
++};
++void wfr_set_pio_integrity(struct send_context *sc, enum spi_cmds cmd);
++
++/* support functions */
++void pio_reset_all(struct hfi2_devdata *dd);
++void pio_freeze(struct hfi2_devdata *dd);
++void pio_kernel_unfreeze(struct hfi2_devdata *dd);
++void pio_kernel_linkup(struct hfi2_pportdata *ppd);
++
++/* global PIO send control operations */
++#define PSC_GLOBAL_ENABLE 0
++#define PSC_GLOBAL_DISABLE 1
++#define PSC_GLOBAL_VLARB_ENABLE 2
++#define PSC_GLOBAL_VLARB_DISABLE 3
++#define PSC_CM_RESET 4
++#define PSC_DATA_VL_ENABLE 5
++#define PSC_DATA_VL_DISABLE 6
++
++void __cm_reset(struct hfi2_pportdata *ppd, u64 sendctrl);
++void pio_send_control(struct hfi2_pportdata *ppd, int op);
++
++/* PIO copy routines */
++void pio_copy(struct hfi2_devdata *dd, struct pio_buf *pbuf, u64 pbc,
++	      const void *from, size_t count);
++void seg_pio_copy_start(struct pio_buf *pbuf, u64 pbc,
++			const void *from, size_t nbytes);
++void seg_pio_copy_mid(struct pio_buf *pbuf, const void *from, size_t nbytes);
++void seg_pio_copy_end(struct pio_buf *pbuf);
++
++void seqfile_dump_sci(struct seq_file *s, u32 i,
++		      struct send_context_info *sci);
++
++#endif /* _PIO_H */
+diff --git a/drivers/infiniband/hw/hfi2/qp.h b/drivers/infiniband/hw/hfi2/qp.h
+new file mode 100644
+index 000000000000..5e5b275e4e64
+--- /dev/null
++++ b/drivers/infiniband/hw/hfi2/qp.h
+@@ -0,0 +1,107 @@
++/* SPDX-License-Identifier: GPL-2.0 OR BSD-3-Clause */
++/*
++ * Copyright(c) 2015 - 2018 Intel Corporation.
++ */
++
++#ifndef _QP_H
++#define _QP_H
++#include <linux/hash.h>
++#include <rdma/rdmavt_qp.h>
++#include "verbs.h"
++#include "sdma.h"
++#include "verbs_txreq.h"
++
++extern unsigned int hfi2_qp_table_size;
++
++extern const struct rvt_operation_params hfi2_post_parms[];
++
++/*
++ * Driver specific s_flags starting at bit 31 down to HFI2_S_MIN_BIT_MASK
++ *
++ * HFI2_S_AHG_VALID - ahg header valid on chip
++ * HFI2_S_AHG_CLEAR - have send engine clear ahg state
++ * HFI2_S_WAIT_PIO_DRAIN - qp waiting for PIOs to drain
++ * HFI2_S_WAIT_TID_SPACE - a QP is waiting for TID resource
++ * HFI2_S_WAIT_TID_RESP - waiting for a TID RDMA WRITE response
++ * HFI2_S_WAIT_HALT - halt the first leg send engine
++ * HFI2_S_MIN_BIT_MASK - the lowest bit that can be used by hfi2
++ */
++#define HFI2_S_AHG_VALID         0x80000000
++#define HFI2_S_AHG_CLEAR         0x40000000
++#define HFI2_S_WAIT_PIO_DRAIN    0x20000000
++#define HFI2_S_WAIT_TID_SPACE    0x10000000
++#define HFI2_S_WAIT_TID_RESP     0x08000000
++#define HFI2_S_WAIT_HALT         0x04000000
++#define HFI2_S_MIN_BIT_MASK      0x01000000
++
++/*
++ * overload wait defines
++ */
++
++#define HFI2_S_ANY_WAIT_IO (RVT_S_ANY_WAIT_IO | HFI2_S_WAIT_PIO_DRAIN)
++#define HFI2_S_ANY_WAIT (HFI2_S_ANY_WAIT_IO | RVT_S_ANY_WAIT_SEND)
++#define HFI2_S_ANY_TID_WAIT_SEND (RVT_S_WAIT_SSN_CREDIT | RVT_S_WAIT_DMA)
++
++/*
++ * Send if not busy or waiting for I/O and either
++ * a RC response is pending or we can process send work requests.
++ */
++static inline int hfi2_send_ok(struct rvt_qp *qp)
++{
++	struct hfi2_qp_priv *priv = qp->priv;
++
++	return !(qp->s_flags & (RVT_S_BUSY | HFI2_S_ANY_WAIT_IO)) &&
++		(verbs_txreq_queued(iowait_get_ib_work(&priv->s_iowait)) ||
++		(qp->s_flags & RVT_S_RESP_PENDING) ||
++		 !(qp->s_flags & RVT_S_ANY_WAIT_SEND));
++}
++
++/*
++ * free_ahg - clear ahg from QP
++ */
++static inline void clear_ahg(struct rvt_qp *qp)
++{
++	struct hfi2_qp_priv *priv = qp->priv;
++
++	priv->s_ahg->ahgcount = 0;
++	qp->s_flags &= ~(HFI2_S_AHG_VALID | HFI2_S_AHG_CLEAR);
++	if (priv->s_sde && qp->s_ahgidx >= 0)
++		sdma_ahg_free(priv->s_sde, qp->s_ahgidx);
++	qp->s_ahgidx = -1;
++}
++
++/**
++ * hfi2_qp_wakeup - wake up on the indicated event
++ * @qp: the QP
++ * @flag: flag the qp on which the qp is stalled
++ */
++void hfi2_qp_wakeup(struct rvt_qp *qp, u32 flag);
++
++struct sdma_engine *qp_to_sdma_engine(struct rvt_qp *qp, u8 sc5);
++struct send_context *qp_to_send_context(struct rvt_qp *qp, u8 sc5);
++
++void qp_iter_print(struct seq_file *s, struct rvt_qp_iter *iter);
++
++bool _hfi2_schedule_send(struct rvt_qp *qp);
++bool hfi2_schedule_send(struct rvt_qp *qp);
++
++void hfi2_migrate_qp(struct rvt_qp *qp);
++
++/*
++ * Functions provided by hfi2 driver for rdmavt to use
++ */
++void *qp_priv_alloc(struct rvt_dev_info *rdi, struct rvt_qp *qp);
++void qp_priv_free(struct rvt_dev_info *rdi, struct rvt_qp *qp);
++unsigned free_all_qps(struct rvt_dev_info *rdi);
++void notify_qp_reset(struct rvt_qp *qp);
++int get_pmtu_from_attr(struct rvt_dev_info *rdi, struct rvt_qp *qp,
++		       struct ib_qp_attr *attr);
++void flush_qp_waiters(struct rvt_qp *qp);
++void notify_error_qp(struct rvt_qp *qp);
++void stop_send_queue(struct rvt_qp *qp);
++void quiesce_qp(struct rvt_qp *qp);
++u32 mtu_from_qp(struct rvt_dev_info *rdi, struct rvt_qp *qp, u32 pmtu);
++int mtu_to_path_mtu(u32 mtu);
++void hfi2_error_port_qps(struct hfi2_ibport *ibp, u8 sl);
++void hfi2_qp_unbusy(struct rvt_qp *qp, struct iowait_work *wait);
++#endif /* _QP_H */
+diff --git a/drivers/infiniband/hw/hfi2/rc.h b/drivers/infiniband/hw/hfi2/rc.h
+new file mode 100644
+index 000000000000..0291e36e5f57
+--- /dev/null
++++ b/drivers/infiniband/hw/hfi2/rc.h
+@@ -0,0 +1,59 @@
++/* SPDX-License-Identifier: (GPL-2.0 OR BSD-3-Clause) */
++/*
++ * Copyright(c) 2018 Intel Corporation.
++ *
++ */
++
++#ifndef HFI2_RC_H
++#define HFI2_RC_H
++
++/* cut down ridiculously long IB macro names */
++#define OP(x) IB_OPCODE_RC_##x
++
++static inline void update_ack_queue(struct rvt_qp *qp, unsigned int n)
++{
++	unsigned int next;
++
++	next = n + 1;
++	if (next > rvt_size_atomic(ib_to_rvt(qp->ibqp.device)))
++		next = 0;
++	qp->s_tail_ack_queue = next;
++	qp->s_acked_ack_queue = next;
++	qp->s_ack_state = OP(ACKNOWLEDGE);
++}
++
++static inline void rc_defered_ack(struct hfi2_ctxtdata *rcd,
++				  struct rvt_qp *qp)
++{
++	if (list_empty(&qp->rspwait)) {
++		qp->r_flags |= RVT_R_RSP_NAK;
++		rvt_get_qp(qp);
++		list_add_tail(&qp->rspwait, &rcd->qp_wait_list);
++	}
++}
++
++static inline u32 restart_sge(struct rvt_sge_state *ss, struct rvt_swqe *wqe,
++			      u32 psn, u32 pmtu)
++{
++	u32 len;
++
++	len = delta_psn(psn, wqe->psn) * pmtu;
++	return rvt_restart_sge(ss, wqe, len);
++}
++
++static inline void release_rdma_sge_mr(struct rvt_ack_entry *e)
++{
++	if (e->rdma_sge.mr) {
++		rvt_put_mr(e->rdma_sge.mr);
++		e->rdma_sge.mr = NULL;
++	}
++}
++
++struct rvt_ack_entry *find_prev_entry(struct rvt_qp *qp, u32 psn, u8 *prev,
++				      u8 *prev_ack, bool *scheduled);
++int do_rc_ack(struct rvt_qp *qp, u32 aeth, u32 psn, int opcode, u64 val,
++	      struct hfi2_ctxtdata *rcd);
++struct rvt_swqe *do_rc_completion(struct rvt_qp *qp, struct rvt_swqe *wqe,
++				  struct hfi2_ibport *ibp);
++
++#endif /* HFI2_RC_H */
+diff --git a/drivers/infiniband/hw/hfi2/sdma.h b/drivers/infiniband/hw/hfi2/sdma.h
+new file mode 100644
+index 000000000000..77d285283cb9
+--- /dev/null
++++ b/drivers/infiniband/hw/hfi2/sdma.h
+@@ -0,0 +1,1212 @@
++/* SPDX-License-Identifier: GPL-2.0 OR BSD-3-Clause */
++/*
++ * Copyright(c) 2015 - 2018 Intel Corporation.
++ */
++
++#ifndef _HFI2_SDMA_H
++#define _HFI2_SDMA_H
++
++#include <linux/types.h>
++#include <linux/list.h>
++#include <asm/byteorder.h>
++#include <linux/workqueue.h>
++#include <linux/rculist.h>
++
++#include "sdma_defs.h"
++#include "hfi2.h"
++#include "verbs.h"
++#include "sdma_txreq.h"
++
++static inline bool wfr_sdma_qw_get_first_desc(u64 *qw)
++{
++	return !!(qw[0] & WFR_SDMA_DESC0_FIRST_DESC_FLAG);
++}
++
++static inline void wfr_sdma_qw_set_first_desc(u64 *qw)
++{
++	qw[0] |= WFR_SDMA_DESC0_FIRST_DESC_FLAG;
++}
++
++static inline bool wfr_sdma_qw_get_last_desc(u64 *qw)
++{
++	return !!(qw[0] & WFR_SDMA_DESC0_LAST_DESC_FLAG);
++}
++
++static inline void wfr_sdma_qw_set_last_desc(u64 *qw)
++{
++	qw[0] |= WFR_SDMA_DESC0_LAST_DESC_FLAG;
++}
++
++static inline u32 wfr_sdma_qw_get_byte_count(u64 *qw)
++{
++	return (qw[0] >> WFR_SDMA_DESC0_BYTE_COUNT_SHIFT) &
++		WFR_SDMA_DESC0_BYTE_COUNT_MASK;
++}
++
++/* assumes starting field is zero */
++static inline void wfr_sdma_qw_set_byte_count(u64 *qw, u32 bytes)
++{
++	qw[0] |= ((u64)bytes & WFR_SDMA_DESC0_BYTE_COUNT_MASK) <<
++			WFR_SDMA_DESC0_BYTE_COUNT_SHIFT;
++}
++
++static inline u64 wfr_sdma_qw_get_phy_addr(u64 *qw)
++{
++	return (qw[0] >> WFR_SDMA_DESC0_PHY_ADDR_SHIFT) &
++		WFR_SDMA_DESC0_PHY_ADDR_MASK;
++}
++
++/* assumes starting field is zero */
++static inline void wfr_sdma_qw_set_phy_addr(u64 *qw, u64 phy_addr)
++{
++	qw[0] |= (phy_addr & WFR_SDMA_DESC0_PHY_ADDR_MASK) <<
++			WFR_SDMA_DESC0_PHY_ADDR_SHIFT;
++}
++
++static inline bool jkr_sdma_qw_get_first_desc(u64 *qw)
++{
++	return !!(qw[1] & JKR_SDMA_DESC1_FIRST_DESC_FLAG);
++}
++
++static inline void jkr_sdma_qw_set_first_desc(u64 *qw)
++{
++	qw[1] |= JKR_SDMA_DESC1_FIRST_DESC_FLAG;
++}
++
++static inline bool jkr_sdma_qw_get_last_desc(u64 *qw)
++{
++	return !!(qw[1] & JKR_SDMA_DESC1_LAST_DESC_FLAG);
++}
++
++static inline void jkr_sdma_qw_set_last_desc(u64 *qw)
++{
++	qw[1] |= JKR_SDMA_DESC1_LAST_DESC_FLAG;
++}
++
++static inline u32 jkr_sdma_qw_get_byte_count(u64 *qw)
++{
++	return (qw[1] >> JKR_SDMA_DESC1_BYTE_COUNT_SHIFT) &
++		JKR_SDMA_DESC1_BYTE_COUNT_MASK;
++}
++
++/* assumes starting field is zero */
++static inline void jkr_sdma_qw_set_byte_count(u64 *qw, u32 bytes)
++{
++	qw[1] |= ((u64)bytes & JKR_SDMA_DESC1_BYTE_COUNT_MASK) <<
++			JKR_SDMA_DESC1_BYTE_COUNT_SHIFT;
++}
++
++static inline u64 jkr_sdma_qw_get_phy_addr(u64 *qw)
++{
++	return (qw[0] >> JKR_SDMA_DESC0_PHY_ADDR_SHIFT) &
++		JKR_SDMA_DESC0_PHY_ADDR_MASK;
++}
++
++/* assumes starting field is zero */
++static inline void jkr_sdma_qw_set_phy_addr(u64 *qw, u64 phy_addr)
++{
++	qw[0] |= (phy_addr & JKR_SDMA_DESC0_PHY_ADDR_MASK) <<
++			JKR_SDMA_DESC0_PHY_ADDR_SHIFT;
++}
++
++/* Per-chip setter inlining wrapper */
++#define sdma_qw_set(dd, field, ...) do { \
++	if ((dd)->params->chip_type == CHIP_WFR) \
++		wfr_sdma_qw_set_##field(__VA_ARGS__); \
++	else if ((dd)->params->chip_type == CHIP_JKR) \
++		jkr_sdma_qw_set_##field(__VA_ARGS__); \
++	else \
++		WARN_ONCE(1, "Unsupported chip type %u", \
++			  (dd)->params->chip_type); \
++} while (0)
++
++/* Per-chip getter inlining wrapper */
++#define sdma_qw_get(dd, fn, p) \
++	((dd)->params->chip_type == CHIP_WFR ?  wfr_sdma_qw_get_##fn((p)) : \
++	 ((dd)->params->chip_type == CHIP_JKR ? jkr_sdma_qw_get_##fn((p)) : 0))
++
++enum sdma_states {
++	sdma_state_s00_hw_down,
++	sdma_state_s10_hw_start_up_halt_wait,
++	sdma_state_s15_hw_start_up_clean_wait,
++	sdma_state_s20_idle,
++	sdma_state_s30_sw_clean_up_wait,
++	sdma_state_s40_hw_clean_up_wait,
++	sdma_state_s50_hw_halt_wait,
++	sdma_state_s60_idle_halt_wait,
++	sdma_state_s80_hw_freeze,
++	sdma_state_s82_freeze_sw_clean,
++	sdma_state_s99_running,
++};
++
++enum sdma_events {
++	sdma_event_e00_go_hw_down,
++	sdma_event_e10_go_hw_start,
++	sdma_event_e15_hw_halt_done,
++	sdma_event_e25_hw_clean_up_done,
++	sdma_event_e30_go_running,
++	sdma_event_e40_sw_cleaned,
++	sdma_event_e50_hw_cleaned,
++	sdma_event_e60_hw_halted,
++	sdma_event_e70_go_idle,
++	sdma_event_e80_hw_freeze,
++	sdma_event_e81_hw_frozen,
++	sdma_event_e82_hw_unfreeze,
++	sdma_event_e85_link_down,
++	sdma_event_e90_sw_halted,
++};
++
++struct sdma_set_state_action {
++	unsigned op_enable:1;
++	unsigned op_intenable:1;
++	unsigned op_halt:1;
++	unsigned op_cleanup:1;
++	unsigned go_s99_running_tofalse:1;
++	unsigned go_s99_running_totrue:1;
++};
++
++struct sdma_state {
++	struct kref          kref;
++	struct completion    comp;
++	enum sdma_states current_state;
++	unsigned             current_op;
++	unsigned             go_s99_running;
++	/* debugging/development */
++	enum sdma_states previous_state;
++	unsigned             previous_op;
++	enum sdma_events last_event;
++};
++
++/**
++ * DOC: sdma exported routines
++ *
++ * These sdma routines fit into three categories:
++ * - The SDMA API for building and submitting packets
++ *   to the ring
++ *
++ * - Initialization and tear down routines to buildup
++ *   and tear down SDMA
++ *
++ * - ISR entrances to handle interrupts, state changes
++ *   and errors
++ */
++
++/**
++ * DOC: sdma PSM/verbs API
++ *
++ * The sdma API is designed to be used by both PSM
++ * and verbs to supply packets to the SDMA ring.
++ *
++ * The usage of the API is as follows:
++ *
++ * Embed a struct iowait in the QP or
++ * PQ.  The iowait should be initialized with a
++ * call to iowait_init().
++ *
++ * The user of the API should create an allocation method
++ * for their version of the txreq. slabs, pre-allocated lists,
++ * and dma pools can be used.  Once the user's overload of
++ * the sdma_txreq has been allocated, the sdma_txreq member
++ * must be initialized with sdma_txinit() or sdma_txinit_ahg().
++ *
++ * The txreq must be declared with the sdma_txreq first.
++ *
++ * The tx request, once initialized,  is manipulated with calls to
++ * sdma_txadd_daddr(), sdma_txadd_page(), or sdma_txadd_kvaddr()
++ * for each disjoint memory location.  It is the user's responsibility
++ * to understand the packet boundaries and page boundaries to do the
++ * appropriate number of sdma_txadd_* calls..  The user
++ * must be prepared to deal with failures from these routines due to
++ * either memory allocation or dma_mapping failures.
++ *
++ * The mapping specifics for each memory location are recorded
++ * in the tx. Memory locations added with sdma_txadd_page()
++ * and sdma_txadd_kvaddr() are automatically mapped when added
++ * to the tx and nmapped as part of the progress processing in the
++ * SDMA interrupt handling.
++ *
++ * sdma_txadd_daddr() is used to add an dma_addr_t memory to the
++ * tx.   An example of a use case would be a pre-allocated
++ * set of headers allocated via dma_pool_alloc() or
++ * dma_alloc_coherent().  For these memory locations, it
++ * is the responsibility of the user to handle that unmapping.
++ * (This would usually be at an unload or job termination.)
++ *
++ * The routine sdma_send_txreq() is used to submit
++ * a tx to the ring after the appropriate number of
++ * sdma_txadd_* have been done.
++ *
++ * If it is desired to send a burst of sdma_txreqs, sdma_send_txlist()
++ * can be used to submit a list of packets.
++ *
++ * The user is free to use the link overhead in the struct sdma_txreq as
++ * long as the tx isn't in flight.
++ *
++ * The extreme degenerate case of the number of descriptors
++ * exceeding the ring size is automatically handled as
++ * memory locations are added.  An overflow of the descriptor
++ * array that is part of the sdma_txreq is also automatically
++ * handled.
++ *
++ */
++
++/**
++ * DOC: Infrastructure calls
++ *
++ * sdma_init() is used to initialize data structures and
++ * CSRs for the desired number of SDMA engines.
++ *
++ * sdma_start() is used to kick the SDMA engines initialized
++ * with sdma_init().   Interrupts must be enabled at this
++ * point since aspects of the state machine are interrupt
++ * driven.
++ *
++ * sdma_engine_error() and sdma_engine_interrupt() are
++ * entrances for interrupts.
++ *
++ * sdma_map_init() is for the management of the mapping
++ * table when the number of vls is changed.
++ *
++ */
++
++/*
++ * struct hw_sdma_desc - raw 128 bit SDMA descriptor
++ *
++ * This is the raw descriptor in the SDMA ring
++ */
++struct hw_sdma_desc {
++	/* private:  don't use directly */
++	__le64 qw[2];
++};
++
++/**
++ * struct sdma_engine - Data pertaining to each SDMA engine.
++ * @dd: a back-pointer to the device data
++ * @ppd: per port back-pointer
++ * @imask: mask for irq manipulation
++ * @idle_mask: mask for determining if an interrupt is due to sdma_idle
++ *
++ * This structure has the state for each sdma_engine.
++ *
++ * Accessing to non public fields are not supported
++ * since the private members are subject to change.
++ */
++struct sdma_engine {
++	/* read mostly */
++	struct hfi2_devdata *dd;
++	/* private: */
++	void __iomem *tail_csr;
++	u64 imask;			/* clear interrupt mask */
++	u64 idle_mask;
++	u64 progress_mask;
++	u64 int_mask;
++	/* private: */
++	volatile __le64      *head_dma; /* DMA'ed by chip */
++	/* private: */
++	dma_addr_t            head_phys;
++	/* private: */
++	struct hw_sdma_desc *descq;
++	/* private: */
++	unsigned descq_full_count;
++	struct sdma_txreq **tx_ring;
++	/* private: */
++	dma_addr_t            descq_phys;
++	/* private */
++	u32 sdma_mask;
++	/* private */
++	struct sdma_state state;
++	/* private */
++	int cpu;
++	/* private: */
++	u8 sdma_shift;
++	/* private: */
++	u8 this_idx; /* zero relative engine */
++	/* protect changes to senddmactrl shadow */
++	spinlock_t senddmactrl_lock;
++	/* private: */
++	u64 p_senddmactrl;		/* shadow per-engine SendDmaCtrl */
++
++	/* read/write using tail_lock */
++	spinlock_t            tail_lock ____cacheline_aligned_in_smp;
++#ifdef CONFIG_HFI2_DEBUG_SDMA_ORDER
++	/* private: */
++	u64                   tail_sn;
++#endif
++	/* private: */
++	u32                   descq_tail;
++	/* private: */
++	unsigned long         ahg_bits;
++	/* private: */
++	u16                   desc_avail;
++	/* private: */
++	u16                   tx_tail;
++	/* private: */
++	u16 descq_cnt;
++
++	/* read/write using head_lock */
++	/* private: */
++	seqlock_t            head_lock ____cacheline_aligned_in_smp;
++#ifdef CONFIG_HFI2_DEBUG_SDMA_ORDER
++	/* private: */
++	u64                   head_sn;
++#endif
++	/* private: */
++	u32                   descq_head;
++	/* private: */
++	u16                   tx_head;
++	/* private: */
++	u64                   last_status;
++	/* private */
++	u64                     err_cnt;
++	/* private */
++	u64                     sdma_int_cnt;
++	u64                     idle_int_cnt;
++	u64                     progress_int_cnt;
++
++	/* private: */
++	seqlock_t            waitlock;
++	struct list_head      dmawait;
++
++	/* CONFIG SDMA for now, just blindly duplicate */
++	/* private: */
++	struct work_struct sdma_hw_clean_up_work;
++	struct work_struct sdma_sw_clean_up_work;
++
++	/* private: */
++	struct work_struct err_halt_worker;
++	/* private */
++	struct timer_list     err_progress_check_timer;
++	u32                   progress_check_head;
++	/* private: */
++	struct work_struct flush_worker;
++	/* protect flush list */
++	spinlock_t flushlist_lock;
++	/* private: */
++	struct list_head flushlist;
++	struct cpumask cpu_mask;
++	struct kobject kobj;
++	u32 msix_intr;
++};
++
++int sdma_init(struct hfi2_devdata *dd);
++void sdma_start(struct hfi2_devdata *dd);
++void sdma_exit(struct hfi2_devdata *dd);
++void sdma_clean(struct hfi2_devdata *dd, size_t num_engines);
++void sdma_all_running(struct hfi2_devdata *dd);
++void sdma_all_idle(struct hfi2_devdata *dd);
++void sdma_freeze_notify(struct hfi2_devdata *dd, int go_idle);
++void sdma_freeze(struct hfi2_devdata *dd);
++void sdma_unfreeze(struct hfi2_devdata *dd);
++void sdma_wait(struct hfi2_devdata *dd);
++
++/**
++ * sdma_empty() - idle engine test
++ * @engine: sdma engine
++ *
++ * Currently used by verbs as a latency optimization.
++ *
++ * Return:
++ * 1 - empty, 0 - non-empty
++ */
++static inline int sdma_empty(struct sdma_engine *sde)
++{
++	return sde->descq_tail == sde->descq_head;
++}
++
++/*
++ * Return the number of descriptors in use.  Expects descq_cnt is a
++ * power-of-two.  See sdma_get_descq_cnt().
++ */
++static inline u16 sdma_descq_inprocess(struct sdma_engine *sde)
++{
++	return (sde->descq_cnt + sde->descq_tail - READ_ONCE(sde->descq_head))
++		& (sde->descq_cnt - 1);
++}
++
++/* return the number of descriptors available */
++static inline u16 sdma_descq_freecnt(struct sdma_engine *sde)
++{
++	return sde->descq_cnt - 1 - sdma_descq_inprocess(sde);
++}
++
++/*
++ * Either head_lock or tail lock required to see
++ * a steady state.
++ */
++static inline int __sdma_running(struct sdma_engine *engine)
++{
++	return engine->state.current_state == sdma_state_s99_running;
++}
++
++/**
++ * sdma_running() - state suitability test
++ * @engine: sdma engine
++ *
++ * sdma_running probes the internal state to determine if it is suitable
++ * for submitting packets.
++ *
++ * Return:
++ * 1 - ok to submit, 0 - not ok to submit
++ *
++ */
++static inline int sdma_running(struct sdma_engine *engine)
++{
++	unsigned long flags;
++	int ret;
++
++	spin_lock_irqsave(&engine->tail_lock, flags);
++	ret = __sdma_running(engine);
++	spin_unlock_irqrestore(&engine->tail_lock, flags);
++	return ret;
++}
++
++void _sdma_txreq_ahgadd(
++	struct sdma_txreq *tx,
++	u8 num_ahg,
++	u8 ahg_entry,
++	u32 *ahg,
++	u8 ahg_hlen);
++
++/*
++ * Padding is needed if the data is not a multiple of 4 bytes.  This will
++ * only possibly be true for 9B packets.  The packet_len for 16B packets will
++ * already be padded to a multiple of 8 bytes.
++ */
++static inline int needs_pad(u16 packet_len)
++{
++	return (packet_len & 0x3) != 0;
++}
++
++/* return the number of bytes needed to pad to a multiple of 4 */
++static inline int pad_length(struct sdma_txreq *tx)
++{
++	return (4 - (tx->packet_len & 0x3)) & 0x3;
++}
++
++#define ALIGN_NONE          0
++#define ALIGN_256_ALL       1
++#define ALIGN_256_HEAD_TAIL 2
++#define ALIGN_256_TAIL      3
++
++/* return the max number of descriptors a segment might need */
++static inline int calc_num_desc(struct hfi2_devdata *dd, u16 packet_len)
++{
++	if (dd->sdma_align == ALIGN_256_HEAD_TAIL)
++		return 3; /* head, mid, tail */
++	if (dd->sdma_align == ALIGN_NONE)
++		return 1; /* all */
++	if (dd->sdma_align == ALIGN_256_TAIL)
++		return 2; /* head+mid, tail */
++	/*
++	 * Conservative ALIGN_ALL case - split on every 256 byte fetch
++	 * boundary.  The returned number must be the same for the whole
++	 * packet - not just the current segment.
++	 *
++	 * A 10240 sized packet could have at most 41 descriptors.
++	 */
++	return (round_up(packet_len, 256) >> 8) + 1;
++}
++
++/**
++ * sdma_txinit_ahg() - initialize an sdma_txreq struct with AHG
++ * @dd: device data
++ * @tx: tx request to initialize
++ * @flags: flags to key last descriptor additions
++ * @tlen: total packet length (pbc + headers + data)
++ * @ahg_entry: ahg entry to use  (0 - 31)
++ * @num_ahg: ahg descriptor for first descriptor (0 - 9)
++ * @ahg: array of AHG descriptors (up to 9 entries)
++ * @ahg_hlen: number of bytes from ASIC entry to use
++ * @cb: callback
++ *
++ * The allocation of the sdma_txreq and it enclosing structure is user
++ * dependent.  This routine must be called to initialize the user independent
++ * fields.
++ *
++ * The currently supported flags are SDMA_TXREQ_F_URGENT,
++ * SDMA_TXREQ_F_AHG_COPY, and SDMA_TXREQ_F_USE_AHG.
++ *
++ * SDMA_TXREQ_F_URGENT is used for latency sensitive situations where the
++ * completion is desired as soon as possible.
++ *
++ * SDMA_TXREQ_F_AHG_COPY causes the header in the first descriptor to be
++ * copied to chip entry. SDMA_TXREQ_F_USE_AHG causes the code to add in
++ * the AHG descriptors into the first 1 to 3 descriptors.
++ *
++ * Completions of submitted requests can be gotten on selected
++ * txreqs by giving a completion routine callback to sdma_txinit() or
++ * sdma_txinit_ahg().  The environment in which the callback runs
++ * can be from an ISR, a tasklet, or a thread, so no sleeping
++ * kernel routines can be used.   Aspects of the sdma ring may
++ * be locked so care should be taken with locking.
++ *
++ * The callback pointer can be NULL to avoid any callback for the packet
++ * being submitted. The callback will be provided this tx, a status, and a flag.
++ *
++ * The status will be one of SDMA_TXREQ_S_OK, SDMA_TXREQ_S_SENDERROR,
++ * SDMA_TXREQ_S_ABORTED, or SDMA_TXREQ_S_SHUTDOWN.
++ *
++ * The flag, if the is the iowait had been used, indicates the iowait
++ * sdma_busy count has reached zero.
++ *
++ * user data portion of tlen should be precise.   The sdma_txadd_* entrances
++ * will pad with a descriptor references 1 - 3 bytes when the number of bytes
++ * specified in tlen have been supplied to the sdma_txreq.
++ *
++ * ahg_hlen is used to determine the number of on-chip entry bytes to
++ * use as the header.   This is for cases where the stored header is
++ * larger than the header to be used in a packet.  This is typical
++ * for verbs where an RDMA_WRITE_FIRST is larger than the packet in
++ * and RDMA_WRITE_MIDDLE.
++ *
++ */
++static inline int sdma_txinit_ahg(struct hfi2_devdata *dd,
++				  struct sdma_txreq *tx,
++				  u16 flags,
++				  u16 tlen,
++				  u8 ahg_entry,
++				  u8 num_ahg,
++				  u32 *ahg,
++				  u8 ahg_hlen,
++				  void (*cb)(struct sdma_txreq *, int))
++{
++	if (tlen == 0)
++		return -ENODATA;
++	if (tlen > MAX_SDMA_PKT_SIZE)
++		return -EMSGSIZE;
++	tx->desc_limit = ARRAY_SIZE(tx->descs);
++	tx->descp = &tx->descs[0];
++	INIT_LIST_HEAD(&tx->list);
++	tx->num_desc = 0;
++	tx->flags = flags;
++	tx->complete = cb;
++	tx->coalesce_buf = NULL;
++	tx->wait = NULL;
++	tx->packet_len = tlen;
++	tx->tlen = tx->packet_len;
++	tx->desc_margin = calc_num_desc(dd, tx->packet_len) + needs_pad(tx->packet_len);
++	tx->descs[0].qw[0] = 0;
++	tx->descs[0].qw[1] = 0;
++	/*
++	 * Do not bother with initializing .map_type; sdma_set_map_type()
++	 * should overwrite per-desc bits. sdma_get_map_type() should not be
++	 * called for per-desc bits that haven't been set with
++	 * sdma_set_map_type().
++	 */
++	sdma_qw_set(dd, first_desc, tx->descs[0].qw);
++	if (flags & SDMA_TXREQ_F_AHG_COPY)
++		tx->descs[0].qw[1] |=
++			(((u64)ahg_entry & SDMA_DESC1_HEADER_INDEX_MASK)
++				<< SDMA_DESC1_HEADER_INDEX_SHIFT) |
++			(((u64)SDMA_AHG_COPY & SDMA_DESC1_HEADER_MODE_MASK)
++				<< SDMA_DESC1_HEADER_MODE_SHIFT);
++	else if (flags & SDMA_TXREQ_F_USE_AHG && num_ahg)
++		_sdma_txreq_ahgadd(tx, num_ahg, ahg_entry, ahg, ahg_hlen);
++	return 0;
++}
++
++/**
++ * sdma_txinit() - initialize an sdma_txreq struct (no AHG)
++ * @dd: device data
++ * @tx: tx request to initialize
++ * @flags: flags to key last descriptor additions
++ * @tlen: total packet length (pbc + headers + data)
++ * @cb: callback pointer
++ *
++ * The allocation of the sdma_txreq and it enclosing structure is user
++ * dependent.  This routine must be called to initialize the user
++ * independent fields.
++ *
++ * The currently supported flags is SDMA_TXREQ_F_URGENT.
++ *
++ * SDMA_TXREQ_F_URGENT is used for latency sensitive situations where the
++ * completion is desired as soon as possible.
++ *
++ * Completions of submitted requests can be gotten on selected
++ * txreqs by giving a completion routine callback to sdma_txinit() or
++ * sdma_txinit_ahg().  The environment in which the callback runs
++ * can be from an ISR, a tasklet, or a thread, so no sleeping
++ * kernel routines can be used.   The head size of the sdma ring may
++ * be locked so care should be taken with locking.
++ *
++ * The callback pointer can be NULL to avoid any callback for the packet
++ * being submitted.
++ *
++ * The callback, if non-NULL,  will be provided this tx and a status.  The
++ * status will be one of SDMA_TXREQ_S_OK, SDMA_TXREQ_S_SENDERROR,
++ * SDMA_TXREQ_S_ABORTED, or SDMA_TXREQ_S_SHUTDOWN.
++ *
++ */
++static inline int sdma_txinit(struct hfi2_devdata *dd,
++			      struct sdma_txreq *tx,
++			      u16 flags,
++			      u16 tlen,
++			      void (*cb)(struct sdma_txreq *, int))
++{
++	return sdma_txinit_ahg(dd, tx, flags, tlen, 0, 0, NULL, 0, cb);
++}
++
++static inline size_t sdma_mapping_len(struct hfi2_devdata *dd,
++				      struct sdma_desc *d)
++{
++	return sdma_qw_get(dd, byte_count, d->qw);
++}
++
++static inline dma_addr_t sdma_mapping_addr(struct hfi2_devdata *dd,
++					   struct sdma_desc *d)
++{
++	return sdma_qw_get(dd, phy_addr, d->qw);
++}
++
++static inline void sdma_set_map_type(struct sdma_txreq *tx,
++				     u8 i, u8 type)
++{
++	int w = BIT_WORD(i * SDMA_MAP_BITS);
++	int offset = (i * SDMA_MAP_BITS) % BITS_PER_LONG;
++	unsigned long shftmask = SDMA_MAP_MASK << offset;
++	unsigned long *mw = &tx->map_type[w];
++	unsigned long new = type << offset;
++
++	/* Per-desc SDMA_MAP_BITS-sized field must never cross word boundary */
++	static_assert(BITS_PER_LONG % SDMA_MAP_BITS == 0);
++	bitmap_replace(mw, mw, &new, &shftmask, SDMA_MAP_BITS);
++}
++
++static inline u8 sdma_get_map_type(struct sdma_txreq *tx, u8 i)
++{
++	int idx = i * SDMA_MAP_BITS;
++
++	/* Per-desc field must always fit in u8 */
++	static_assert(SDMA_MAP_BITS <= 8);
++	return bitmap_get_value8(tx->map_type, idx) & SDMA_MAP_MASK;
++}
++
++/* do the work, caller is responsible for all checking */
++static inline void _make_tx_sdma_desc(struct hfi2_devdata *dd,
++				      struct sdma_txreq *tx,
++				      int type,
++				      dma_addr_t addr,
++				      size_t len)
++{
++	struct sdma_desc *desc = &tx->descp[tx->num_desc];
++
++	sdma_set_map_type(tx, tx->num_desc, type);
++	if (!tx->num_desc) {
++		/* qw[0] zero; qw[1] first, ahg mode already in from init */
++	} else {
++		desc->qw[0] = 0;
++		desc->qw[1] = 0;
++	}
++
++	sdma_qw_set(dd, phy_addr, desc->qw, addr);
++	sdma_qw_set(dd, byte_count, desc->qw, len);
++	tx->num_desc++;
++}
++
++
++/*
++ * Create one or more descriptors to fetch len bytes.  Enough descriptor room
++ * is guaranteed by the time this function is called.
++ */
++static inline void make_tx_sdma_desc(struct hfi2_devdata *dd,
++				     struct sdma_txreq *tx,
++				     int type,
++				     dma_addr_t addr,
++				     size_t len)
++{
++#define ALIGN_SIZE 256
++#define ALIGN_MASK (ALIGN_SIZE - 1)
++	switch (dd->sdma_align) {
++	case ALIGN_256_ALL:
++		/* align head */
++		if (addr & ALIGN_MASK) {
++			size_t clen = ALIGN_SIZE - (addr & ALIGN_MASK);
++
++			if (clen > len)
++				clen = len;
++			_make_tx_sdma_desc(dd, tx, type, addr, clen);
++			len -= clen;
++			addr += clen;
++		}
++		/* now aligned, split into full sized chunks */
++		while (len >= ALIGN_SIZE) {
++			_make_tx_sdma_desc(dd, tx, type, addr, ALIGN_SIZE);
++			len -= ALIGN_SIZE;
++			addr += ALIGN_SIZE;
++		}
++		/* tail overhang */
++		if (len) {
++			_make_tx_sdma_desc(dd, tx, type, addr, len);
++		}
++		break;
++
++	case ALIGN_256_HEAD_TAIL: {
++		size_t clen;
++
++		/* align head */
++		if (addr & ALIGN_MASK) {
++			clen = ALIGN_SIZE - (addr & ALIGN_MASK);
++			if (clen > len)
++				clen = len;
++			_make_tx_sdma_desc(dd, tx, type, addr, clen);
++			len -= clen;
++			addr += clen;
++		}
++		/* aligned start to aligned tail */
++		clen = len & ~ALIGN_MASK;
++		if (clen) {
++			_make_tx_sdma_desc(dd, tx, type, addr, clen);
++			len -= clen;
++			addr += clen;
++		}
++		/* tail overhang */
++		if (len) {
++			_make_tx_sdma_desc(dd, tx, type, addr, len);
++		}
++		break;
++	}
++
++	case ALIGN_256_TAIL: {
++		dma_addr_t end = addr + len;
++		bool same = (addr & ~ALIGN_MASK) == (end & ~ALIGN_MASK);
++		size_t tail_len = end & ALIGN_MASK;
++		size_t clen = len - tail_len;
++
++		/* start to aligned tail */
++		if (clen && !same) {
++			_make_tx_sdma_desc(dd, tx, type, addr, clen);
++			len -= clen;
++			addr += clen;
++		}
++		/* tail overhang */
++		if (len) {
++			_make_tx_sdma_desc(dd, tx, type, addr, len);
++		}
++		break;
++	}
++
++	default:
++		_make_tx_sdma_desc(dd, tx, type, addr, len);
++		break;
++	}
++#undef ALIGN_SIZE
++#undef ALIGN_MASK
++}
++
++void __sdma_txclean(struct hfi2_devdata *, struct sdma_txreq *);
++
++static inline void sdma_txclean(struct hfi2_devdata *dd, struct sdma_txreq *tx)
++{
++	if (tx->num_desc)
++		__sdma_txclean(dd, tx);
++}
++
++/* calculate the number of no-op descriptors to add */
++static inline int sdma_desc_pad_count(struct hfi2_devdata *dd,
++				      struct sdma_txreq *tx)
++{
++	if (dd->pad_sdma_desc)
++		return round_up(tx->num_desc, dd->pad_sdma_desc) - tx->num_desc;
++	return 0;
++}
++
++/* helpers used by public routines */
++static inline void _sdma_close_tx(struct hfi2_devdata *dd,
++				  struct sdma_txreq *tx)
++{
++	u16 last_desc = tx->num_desc - 1;
++
++	sdma_qw_set(dd, last_desc, tx->descp[last_desc].qw);
++	tx->descp[last_desc].qw[1] |= dd->default_desc1;
++	if (tx->flags & SDMA_TXREQ_F_URGENT)
++		tx->descp[last_desc].qw[1] |= (SDMA_DESC1_HEAD_TO_HOST_FLAG |
++					       SDMA_DESC1_INT_REQ_FLAG);
++	tx->num_pad = sdma_desc_pad_count(dd, tx);
++}
++
++/* return true if the current buffer must coalesce */
++static inline bool must_coalesce(struct sdma_txreq *tx)
++{
++	return tx->num_desc + tx->desc_margin >= MAX_DESC;
++}
++
++/* return true if the current buffer forces an extension */
++static inline bool need_desc_extension(struct sdma_txreq *tx)
++{
++	return (tx->desc_limit == ARRAY_SIZE(tx->descs)) &&
++	       (tx->num_desc + tx->desc_margin >= ARRAY_SIZE(tx->descs));
++}
++int _extend_sdma_tx_descs(struct hfi2_devdata *dd, struct sdma_txreq *tx);
++
++static inline int _sdma_txadd_daddr(struct hfi2_devdata *dd,
++				    int type,
++				    struct sdma_txreq *tx,
++				    dma_addr_t addr,
++				    u16 len)
++{
++	int rval;
++
++	WARN_ON(len > tx->tlen);
++	if (need_desc_extension(tx)) {
++		rval = _extend_sdma_tx_descs(dd, tx);
++		if (rval)
++			return rval;
++	}
++
++	make_tx_sdma_desc(dd, tx, type, addr, len);
++	tx->tlen -= len;
++
++	/* special case for last */
++	if (!tx->tlen) {
++		int pad_len = pad_length(tx);
++
++		if (pad_len) {
++			make_tx_sdma_desc(dd, tx, SDMA_MAP_NONE,
++					  dd->sdma_pad_phys, pad_len);
++		}
++		_sdma_close_tx(dd, tx);
++	}
++	return 0;
++}
++
++int do_coalesce(struct hfi2_devdata *dd, struct sdma_txreq *tx,
++		int type, void *kvaddr, struct page *page,
++		unsigned long offset, u16 len);
++
++/**
++ * sdma_txadd_page() - add a page to the sdma_txreq
++ * @dd: the device to use for mapping
++ * @tx: tx request to which the page is added
++ * @page: page to map
++ * @offset: offset within the page
++ * @len: length in bytes
++ *
++ * This is used to add a page/offset/length descriptor.
++ *
++ * The mapping/unmapping of the page/offset/len is automatically handled.
++ *
++ * Return:
++ * 0 - success, -ENOSPC - mapping fail, -ENOMEM - couldn't
++ * extend/coalesce descriptor array
++ */
++static inline int sdma_txadd_page(
++	struct hfi2_devdata *dd,
++	struct sdma_txreq *tx,
++	struct page *page,
++	unsigned long offset,
++	u16 len)
++{
++	dma_addr_t addr;
++
++	if (unlikely(must_coalesce(tx)))
++		return do_coalesce(dd, tx, SDMA_MAP_PAGE,
++				   NULL, page, offset, len);
++
++	addr = dma_map_page(
++		       &dd->pcidev->dev,
++		       page,
++		       offset,
++		       len,
++		       DMA_TO_DEVICE);
++
++	if (unlikely(dma_mapping_error(&dd->pcidev->dev, addr))) {
++		__sdma_txclean(dd, tx);
++		return -ENOSPC;
++	}
++
++	return _sdma_txadd_daddr(dd, SDMA_MAP_PAGE, tx, addr, len);
++}
++
++/**
++ * sdma_txadd_daddr() - add a dma address to the sdma_txreq
++ * @dd: the device to use for mapping
++ * @tx: sdma_txreq to which the page is added
++ * @addr: dma address mapped by caller
++ * @len: length in bytes
++ *
++ * This is used to add a descriptor for memory that is already dma mapped.
++ *
++ * In this case, there is no unmapping as part of the progress processing for
++ * this memory location.
++ *
++ * Return:
++ * 0 - success, -ENOMEM - couldn't extend descriptor array
++ */
++
++static inline int sdma_txadd_daddr(
++	struct hfi2_devdata *dd,
++	struct sdma_txreq *tx,
++	dma_addr_t addr,
++	u16 len)
++{
++	if (unlikely(must_coalesce(tx)))
++		return do_coalesce(dd, tx, SDMA_MAP_NONE,
++				   NULL, NULL, 0, 0);
++
++	return _sdma_txadd_daddr(dd, SDMA_MAP_NONE, tx, addr, len);
++}
++
++/**
++ * sdma_txadd_kvaddr() - add a kernel virtual address to sdma_txreq
++ * @dd: the device to use for mapping
++ * @tx: sdma_txreq to which the page is added
++ * @kvaddr: the kernel virtual address
++ * @len: length in bytes
++ *
++ * This is used to add a descriptor referenced by the indicated kvaddr and
++ * len.
++ *
++ * The mapping/unmapping of the kvaddr and len is automatically handled.
++ *
++ * Return:
++ * 0 - success, -ENOSPC - mapping fail, -ENOMEM - couldn't extend/coalesce
++ * descriptor array
++ */
++static inline int sdma_txadd_kvaddr(
++	struct hfi2_devdata *dd,
++	struct sdma_txreq *tx,
++	void *kvaddr,
++	u16 len)
++{
++	dma_addr_t addr;
++
++	if (unlikely(must_coalesce(tx)))
++		return do_coalesce(dd, tx, SDMA_MAP_SINGLE,
++				   kvaddr, NULL, 0, len);
++
++	addr = dma_map_single(
++		       &dd->pcidev->dev,
++		       kvaddr,
++		       len,
++		       DMA_TO_DEVICE);
++
++	if (unlikely(dma_mapping_error(&dd->pcidev->dev, addr))) {
++		__sdma_txclean(dd, tx);
++		return -ENOSPC;
++	}
++
++	return _sdma_txadd_daddr(dd, SDMA_MAP_SINGLE, tx, addr, len);
++}
++
++struct iowait_work;
++
++int sdma_send_txreq(struct sdma_engine *sde,
++		    struct iowait_work *wait,
++		    struct sdma_txreq *tx,
++		    bool pkts_sent);
++int sdma_send_txlist(struct sdma_engine *sde,
++		     struct iowait_work *wait,
++		     struct list_head *tx_list,
++		     u16 *count_out);
++
++int sdma_ahg_alloc(struct sdma_engine *sde);
++void sdma_ahg_free(struct sdma_engine *sde, int ahg_index);
++
++/**
++ * sdma_build_ahg - build ahg descriptor
++ * @data
++ * @dwindex
++ * @startbit
++ * @bits
++ *
++ * Build and return a 32 bit descriptor.
++ */
++static inline u32 sdma_build_ahg_descriptor(
++	u16 data,
++	u8 dwindex,
++	u8 startbit,
++	u8 bits)
++{
++	return (u32)(1UL << SDMA_AHG_UPDATE_ENABLE_SHIFT |
++		((startbit & SDMA_AHG_FIELD_START_MASK) <<
++		SDMA_AHG_FIELD_START_SHIFT) |
++		((bits & SDMA_AHG_FIELD_LEN_MASK) <<
++		SDMA_AHG_FIELD_LEN_SHIFT) |
++		((dwindex & SDMA_AHG_INDEX_MASK) <<
++		SDMA_AHG_INDEX_SHIFT) |
++		((data & SDMA_AHG_VALUE_MASK) <<
++		SDMA_AHG_VALUE_SHIFT));
++}
++
++/**
++ * sdma_progress - use seq number of detect head progress
++ * @sde: sdma_engine to check
++ * @seq: base seq count
++ * @tx: txreq for which we need to check descriptor availability
++ *
++ * This is used in the appropriate spot in the sleep routine
++ * to check for potential ring progress.  This routine gets the
++ * seqcount before queuing the iowait structure for progress.
++ *
++ * If the seqcount indicates that progress needs to be checked,
++ * re-submission is detected by checking whether the descriptor
++ * queue has enough descriptor for the txreq.
++ */
++static inline unsigned sdma_progress(struct sdma_engine *sde, unsigned seq,
++				     struct sdma_txreq *tx)
++{
++	if (read_seqretry(&sde->head_lock, seq)) {
++		sde->desc_avail = sdma_descq_freecnt(sde);
++		if (tx->num_desc + tx->num_pad > sde->desc_avail)
++			return 0;
++		return 1;
++	}
++	return 0;
++}
++
++/* for use by interrupt handling */
++void sdma_engine_error(struct sdma_engine *sde, u64 status);
++void sdma_engine_interrupt(struct sdma_engine *sde, u64 status);
++bool sdma_work_pending(struct sdma_engine *sde);
++
++/*
++ *
++ * The diagram below details the relationship of the mapping structures
++ *
++ * Since the mapping now allows for non-uniform engines per vl, the
++ * number of engines for a vl is either the vl_engines[vl] or
++ * a computation based on num_sdma/num_vls:
++ *
++ * For example:
++ * nactual = vl_engines ? vl_engines[vl] : num_sdma/num_vls
++ *
++ * n = roundup to next highest power of 2 using nactual
++ *
++ * In the case where there are num_sdma/num_vls doesn't divide
++ * evenly, the extras are added from the last vl downward.
++ *
++ * For the case where n > nactual, the engines are assigned
++ * in a round robin fashion wrapping back to the first engine
++ * for a particular vl.
++ *
++ *               dd->sdma_map
++ *                    |                                   sdma_map_elem[0]
++ *                    |                                +--------------------+
++ *                    v                                |       mask         |
++ *               sdma_vl_map                           |--------------------|
++ *      +--------------------------+                   | sde[0] -> eng 1    |
++ *      |    list (RCU)            |                   |--------------------|
++ *      |--------------------------|                 ->| sde[1] -> eng 2    |
++ *      |    mask                  |              --/  |--------------------|
++ *      |--------------------------|            -/     |        *           |
++ *      |    actual_vls (max 8)    |          -/       |--------------------|
++ *      |--------------------------|       --/         | sde[n-1] -> eng n  |
++ *      |    vls (max 8)           |     -/            +--------------------+
++ *      |--------------------------|  --/
++ *      |    map[0]                |-/
++ *      |--------------------------|                   +---------------------+
++ *      |    map[1]                |---                |       mask          |
++ *      |--------------------------|   \----           |---------------------|
++ *      |           *              |        \--        | sde[0] -> eng 1+n   |
++ *      |           *              |           \----   |---------------------|
++ *      |           *              |                \->| sde[1] -> eng 2+n   |
++ *      |--------------------------|                   |---------------------|
++ *      |   map[vls - 1]           |-                  |         *           |
++ *      +--------------------------+ \-                |---------------------|
++ *                                     \-              | sde[m-1] -> eng m+n |
++ *                                       \             +---------------------+
++ *                                        \-
++ *                                          \
++ *                                           \-        +----------------------+
++ *                                             \-      |       mask           |
++ *                                               \     |----------------------|
++ *                                                \-   | sde[0] -> eng 1+m+n  |
++ *                                                  \- |----------------------|
++ *                                                    >| sde[1] -> eng 2+m+n  |
++ *                                                     |----------------------|
++ *                                                     |         *            |
++ *                                                     |----------------------|
++ *                                                     | sde[o-1] -> eng o+m+n|
++ *                                                     +----------------------+
++ *
++ */
++
++/**
++ * struct sdma_map_elem - mapping for a vl
++ * @mask - selector mask
++ * @sde - array of engines for this vl
++ *
++ * The mask is used to "mod" the selector
++ * to produce index into the trailing
++ * array of sdes.
++ */
++struct sdma_map_elem {
++	u32 mask;
++	struct sdma_engine *sde[];
++};
++
++/**
++ * struct sdma_map_el - mapping for a vl
++ * @engine_to_vl - map of an engine to a vl
++ * @list - rcu head for free callback
++ * @mask - vl mask to "mod" the vl to produce an index to map array
++ * @actual_vls - number of vls
++ * @vls - number of vls rounded to next power of 2
++ * @map - array of sdma_map_elem entries
++ *
++ * This is the parent mapping structure.  The trailing
++ * members of the struct point to sdma_map_elem entries, which
++ * in turn point to an array of sde's for that vl.
++ */
++struct sdma_vl_map {
++	s8 engine_to_vl[TXE_NUM_SDMA_ENGINES];
++	struct rcu_head list;
++	u32 mask;
++	u8 actual_vls;
++	u8 vls;
++	struct sdma_map_elem *map[];
++};
++
++int sdma_map_init(struct hfi2_pportdata *ppd, u8 num_vls, u8 *vl_engines);
++
++/* slow path */
++void _sdma_engine_progress_schedule(struct sdma_engine *sde);
++
++/**
++ * sdma_engine_progress_schedule() - schedule progress on engine
++ * @sde: sdma_engine to schedule progress
++ *
++ * This is the fast path.
++ *
++ */
++static inline void sdma_engine_progress_schedule(
++	struct sdma_engine *sde)
++{
++	if (!sde || sdma_descq_inprocess(sde) < (sde->descq_cnt / 8))
++		return;
++	_sdma_engine_progress_schedule(sde);
++}
++
++struct sdma_engine *sdma_select_engine_sc(struct hfi2_pportdata *ppd,
++					  u32 selector, u8 sc5);
++struct sdma_engine *sdma_select_engine_vl(struct hfi2_pportdata *ppd,
++					  u32 selector, u8 vl);
++struct sdma_engine *sdma_select_user_engine(struct hfi2_pportdata *ppd,
++					    u32 selector, u8 vl);
++ssize_t sdma_get_cpu_to_sde_map(struct sdma_engine *sde, char *buf);
++ssize_t sdma_set_cpu_to_sde_map(struct sdma_engine *sde, const char *buf,
++				size_t count);
++int sdma_engine_get_vl(struct hfi2_pportdata *ppd, struct sdma_engine *sde);
++void sdma_seqfile_dump_sde(struct seq_file *s, struct sdma_engine *);
++void sdma_seqfile_dump_cpu_list(struct seq_file *s, struct hfi2_devdata *dd,
++				unsigned long cpuid);
++
++#ifdef CONFIG_SDMA_VERBOSITY
++void sdma_dumpstate(struct sdma_engine *);
++#endif
++static inline char *slashstrip(char *s)
++{
++	char *r = s;
++
++	while (*s)
++		if (*s++ == '/')
++			r = s;
++	return r;
++}
++
++u16 sdma_get_descq_cnt(void);
++
++extern uint mod_num_sdma;
++
++void sdma_update_lmc(struct hfi2_devdata *dd, u64 mask, u32 lid);
++#endif
+diff --git a/drivers/infiniband/hw/hfi2/sdma_defs.h b/drivers/infiniband/hw/hfi2/sdma_defs.h
+new file mode 100644
+index 000000000000..4e1c7d23851a
+--- /dev/null
++++ b/drivers/infiniband/hw/hfi2/sdma_defs.h
+@@ -0,0 +1,116 @@
++/* SPDX-License-Identifier: GPL-2.0 or BSD-3-Clause */
++/*
++ * Copyright(c) 2025 Cornelis Networks, Inc.
++ * Copyright(c) 2015 - 2018 Intel Corporation.
++ */
++
++#ifndef _HFI2_SDMA_DEFS_H
++#define _HFI2_SMDA_DEFS_H
++
++/* Hardware limit */
++#define MAX_DESC 64
++/* Hardware limit for SDMA packet size */
++#define MAX_SDMA_PKT_SIZE ((16 * 1024) - 1)
++
++#define SDMA_MAP_NONE          0
++#define SDMA_MAP_SINGLE        1
++#define SDMA_MAP_PAGE          2
++
++#define SDMA_MAP_BITS          2
++#define SDMA_MAP_MASK          ((1ull << SDMA_MAP_BITS) - 1)
++
++#define SDMA_AHG_VALUE_MASK          0xffff
++#define SDMA_AHG_VALUE_SHIFT         0
++#define SDMA_AHG_INDEX_MASK          0xf
++#define SDMA_AHG_INDEX_SHIFT         16
++#define SDMA_AHG_FIELD_LEN_MASK      0xf
++#define SDMA_AHG_FIELD_LEN_SHIFT     20
++#define SDMA_AHG_FIELD_START_MASK    0x1f
++#define SDMA_AHG_FIELD_START_SHIFT   24
++#define SDMA_AHG_UPDATE_ENABLE_MASK  0x1
++#define SDMA_AHG_UPDATE_ENABLE_SHIFT 31
++
++/* AHG modes */
++
++/*
++ * Be aware the ordering and values
++ * for SDMA_AHG_APPLY_UPDATE[123]
++ * are assumed in generating a skip
++ * count in submit_tx() in sdma.c
++ */
++#define SDMA_AHG_NO_AHG              0
++#define SDMA_AHG_COPY                1
++#define SDMA_AHG_APPLY_UPDATE1       2
++#define SDMA_AHG_APPLY_UPDATE2       3
++#define SDMA_AHG_APPLY_UPDATE3       4
++
++/*
++ * Bits defined in the send DMA descriptor.
++ */
++/* WFR SDMA header fields */
++#define WFR_SDMA_DESC0_FIRST_DESC_FLAG      BIT_ULL(63)
++#define WFR_SDMA_DESC0_LAST_DESC_FLAG       BIT_ULL(62)
++#define WFR_SDMA_DESC0_BYTE_COUNT_SHIFT     48
++#define WFR_SDMA_DESC0_BYTE_COUNT_WIDTH     14
++#define WFR_SDMA_DESC0_BYTE_COUNT_MASK \
++	((1ULL << WFR_SDMA_DESC0_BYTE_COUNT_WIDTH) - 1)
++#define WFR_SDMA_DESC0_BYTE_COUNT_SMASK \
++	(WFR_SDMA_DESC0_BYTE_COUNT_MASK << WFR_SDMA_DESC0_BYTE_COUNT_SHIFT)
++#define WFR_SDMA_DESC0_PHY_ADDR_SHIFT       0
++#define WFR_SDMA_DESC0_PHY_ADDR_WIDTH       48
++#define WFR_SDMA_DESC0_PHY_ADDR_MASK \
++	((1ULL << WFR_SDMA_DESC0_PHY_ADDR_WIDTH) - 1)
++#define WFR_SDMA_DESC0_PHY_ADDR_SMASK \
++	(WFR_SDMA_DESC0_PHY_ADDR_MASK << WFR_SDMA_DESC0_PHY_ADDR_SHIFT)
++
++/* JKR SDMA header fields */
++#define JKR_SDMA_DESC0_PHY_ADDR_SHIFT       0
++#define JKR_SDMA_DESC0_PHY_ADDR_WIDTH       58
++#define JKR_SDMA_DESC0_PHY_ADDR_MASK \
++	((1ULL << JKR_SDMA_DESC0_PHY_ADDR_WIDTH) - 1)
++#define JKR_SDMA_DESC0_PHY_ADDR_SMASK \
++	(JKR_SDMA_DESC0_PHY_ADDR_MASK << JKR_SDMA_DESC0_PHY_ADDR_SHIFT)
++
++#define JKR_SDMA_DESC1_FIRST_DESC_FLAG      BIT_ULL(31)
++#define JKR_SDMA_DESC1_LAST_DESC_FLAG       BIT_ULL(30)
++#define JKR_SDMA_DESC1_BYTE_COUNT_SHIFT     16
++#define JKR_SDMA_DESC1_BYTE_COUNT_WIDTH     14
++#define JKR_SDMA_DESC1_BYTE_COUNT_MASK \
++	((1ULL << JKR_SDMA_DESC1_BYTE_COUNT_WIDTH) - 1)
++#define JKR_SDMA_DESC1_BYTE_COUNT_SMASK \
++	(JKR_SDMA_DESC1_BYTE_COUNT_MASK << JKR_SDMA_DESC1_BYTE_COUNT_SHIFT)
++
++/* common SDMA header fields */
++#define SDMA_DESC1_HEADER_UPDATE1_SHIFT 32
++#define SDMA_DESC1_HEADER_UPDATE1_WIDTH 32
++#define SDMA_DESC1_HEADER_UPDATE1_MASK \
++	((1ULL << SDMA_DESC1_HEADER_UPDATE1_WIDTH) - 1)
++#define SDMA_DESC1_HEADER_UPDATE1_SMASK \
++	(SDMA_DESC1_HEADER_UPDATE1_MASK << SDMA_DESC1_HEADER_UPDATE1_SHIFT)
++#define SDMA_DESC1_HEADER_MODE_SHIFT    13
++#define SDMA_DESC1_HEADER_MODE_WIDTH    3
++#define SDMA_DESC1_HEADER_MODE_MASK \
++	((1ULL << SDMA_DESC1_HEADER_MODE_WIDTH) - 1)
++#define SDMA_DESC1_HEADER_MODE_SMASK \
++	(SDMA_DESC1_HEADER_MODE_MASK << SDMA_DESC1_HEADER_MODE_SHIFT)
++#define SDMA_DESC1_HEADER_INDEX_SHIFT   8
++#define SDMA_DESC1_HEADER_INDEX_WIDTH   5
++#define SDMA_DESC1_HEADER_INDEX_MASK \
++	((1ULL << SDMA_DESC1_HEADER_INDEX_WIDTH) - 1)
++#define SDMA_DESC1_HEADER_INDEX_SMASK \
++	(SDMA_DESC1_HEADER_INDEX_MASK << SDMA_DESC1_HEADER_INDEX_SHIFT)
++#define SDMA_DESC1_HEADER_DWS_SHIFT     4
++#define SDMA_DESC1_HEADER_DWS_WIDTH     4
++#define SDMA_DESC1_HEADER_DWS_MASK \
++	((1ULL << SDMA_DESC1_HEADER_DWS_WIDTH) - 1)
++#define SDMA_DESC1_HEADER_DWS_SMASK \
++	(SDMA_DESC1_HEADER_DWS_MASK << SDMA_DESC1_HEADER_DWS_SHIFT)
++#define SDMA_DESC1_GENERATION_SHIFT     2
++#define SDMA_DESC1_GENERATION_WIDTH     2
++#define SDMA_DESC1_GENERATION_MASK \
++	((1ULL << SDMA_DESC1_GENERATION_WIDTH) - 1)
++#define SDMA_DESC1_GENERATION_SMASK \
++	(SDMA_DESC1_GENERATION_MASK << SDMA_DESC1_GENERATION_SHIFT)
++#define SDMA_DESC1_INT_REQ_FLAG         BIT_ULL(1)
++#define SDMA_DESC1_HEAD_TO_HOST_FLAG    BIT_ULL(0)
++#endif /* _HFI2_SDMA_H */
+diff --git a/drivers/infiniband/hw/hfi2/sdma_txreq.h b/drivers/infiniband/hw/hfi2/sdma_txreq.h
+new file mode 100644
+index 000000000000..8e56d94eead5
+--- /dev/null
++++ b/drivers/infiniband/hw/hfi2/sdma_txreq.h
+@@ -0,0 +1,104 @@
++/* SPDX-License-Identifier: GPL-2.0 OR BSD-3-Clause */
++/*
++ * Copyright(c) 2016 Intel Corporation.
++ */
++
++#ifndef HFI2_SDMA_TXREQ_H
++#define HFI2_SDMA_TXREQ_H
++
++#include "sdma_defs.h"
++
++/* nominal descriptor count with expected padding */
++#define NUM_DESC 6
++
++/*
++ * struct sdma_desc - canonical fragment descriptor
++ *
++ * This is the descriptor carried in the tx request
++ * corresponding to each fragment.
++ *
++ */
++struct sdma_desc {
++	/* private:  don't use directly */
++	u64 qw[2];
++};
++
++/**
++ * struct sdma_txreq - the sdma_txreq structure (one per packet)
++ * @list: for use by user and by queuing for wait
++ *
++ * This is the representation of a packet which consists of some
++ * number of fragments.   Storage is provided to within the structure.
++ * for all fragments.
++ *
++ * The storage for the descriptors are automatically extended as needed
++ * when the currently allocation is exceeded.
++ *
++ * The user (Verbs or PSM) may overload this structure with fields
++ * specific to their use by putting this struct first in their struct.
++ * The method of allocation of the overloaded structure is user dependent
++ *
++ * The list is the only public field in the structure.
++ *
++ */
++
++#define SDMA_TXREQ_S_OK        0
++#define SDMA_TXREQ_S_SENDERROR 1
++#define SDMA_TXREQ_S_ABORTED   2
++#define SDMA_TXREQ_S_SHUTDOWN  3
++
++/* flags bits */
++#define SDMA_TXREQ_F_URGENT       0x0001
++#define SDMA_TXREQ_F_AHG_COPY     0x0002
++#define SDMA_TXREQ_F_USE_AHG      0x0004
++#define SDMA_TXREQ_F_VIP          0x0010
++
++struct sdma_txreq;
++typedef void (*callback_t)(struct sdma_txreq *, int);
++
++struct iowait;
++struct sdma_txreq {
++	struct list_head list;
++	/* private: */
++	struct sdma_desc *descp;
++	/* private: */
++	void *coalesce_buf;
++	/* private: */
++	struct iowait *wait;
++	/* private: */
++	callback_t                  complete;
++#ifdef CONFIG_HFI2_DEBUG_SDMA_ORDER
++	u64 sn;
++#endif
++	/* private: - used in coalesce/pad processing */
++	u16                         packet_len;
++	/* private: - down-counted to trigger last */
++	u16                         tlen;
++	/* private: */
++	u16                         num_desc;
++	/* private: */
++	u16                         desc_limit;
++	/* private: */
++	u16                         next_descq_idx;
++	/* private: */
++	u16 coalesce_idx;
++	/* private: flags */
++	u16                         flags;
++	/* number of no-op descriptors to add */
++	u8 num_pad;
++	/* number avail descriptors needed before coalesce or expansion */
++	u8 desc_margin;
++	/* packed bitfield with enough space for SDMA_MAP_* values
++	 * for up to 64 descriptors at 2 bits per descriptor
++	 */
++	DECLARE_BITMAP(map_type, SDMA_MAP_BITS * MAX_DESC);
++	/* private: */
++	struct sdma_desc descs[NUM_DESC];
++};
++
++static inline int sdma_txreq_built(struct sdma_txreq *tx)
++{
++	return tx->num_desc;
++}
++
++#endif                          /* HFI2_SDMA_TXREQ_H */
+diff --git a/drivers/infiniband/hw/hfi2/tid_rdma.h b/drivers/infiniband/hw/hfi2/tid_rdma.h
+new file mode 100644
+index 000000000000..f3d55faa0277
+--- /dev/null
++++ b/drivers/infiniband/hw/hfi2/tid_rdma.h
+@@ -0,0 +1,320 @@
++/* SPDX-License-Identifier: (GPL-2.0 OR BSD-3-Clause) */
++/*
++ * Copyright(c) 2018 Intel Corporation.
++ *
++ */
++#ifndef HFI2_TID_RDMA_H
++#define HFI2_TID_RDMA_H
++
++#include <linux/circ_buf.h>
++#include "common.h"
++
++/* Add a convenience helper */
++#define CIRC_ADD(val, add, size) (((val) + (add)) & ((size) - 1))
++#define CIRC_NEXT(val, size) CIRC_ADD(val, 1, size)
++#define CIRC_PREV(val, size) CIRC_ADD(val, -1, size)
++
++#define TID_RDMA_MIN_SEGMENT_SIZE       BIT(18)   /* 256 KiB (for now) */
++#define TID_RDMA_MAX_SEGMENT_SIZE       BIT(18)   /* 256 KiB (for now) */
++#define TID_RDMA_MAX_PAGES              (BIT(18) >> PAGE_SHIFT)
++#define TID_RDMA_SEGMENT_SHIFT		18
++
++/*
++ * Bit definitions for priv->s_flags.
++ * These bit flags overload the bit flags defined for the QP's s_flags.
++ * Due to the fact that these bit fields are used only for the QP priv
++ * s_flags, there are no collisions.
++ *
++ * HFI2_S_TID_WAIT_INTERLCK - QP is waiting for requester interlock
++ * HFI2_R_TID_WAIT_INTERLCK - QP is waiting for responder interlock
++ */
++#define HFI2_S_TID_BUSY_SET       BIT(0)
++/* BIT(1) reserved for RVT_S_BUSY. */
++#define HFI2_R_TID_RSC_TIMER      BIT(2)
++/* BIT(3) reserved for RVT_S_RESP_PENDING. */
++/* BIT(4) reserved for RVT_S_ACK_PENDING. */
++#define HFI2_S_TID_WAIT_INTERLCK  BIT(5)
++#define HFI2_R_TID_WAIT_INTERLCK  BIT(6)
++/* BIT(7) - BIT(15) reserved for RVT_S_WAIT_*. */
++/* BIT(16) reserved for RVT_S_SEND_ONE */
++#define HFI2_S_TID_RETRY_TIMER    BIT(17)
++/* BIT(18) reserved for RVT_S_ECN. */
++#define HFI2_R_TID_SW_PSN         BIT(19)
++/* BIT(26) reserved for HFI2_S_WAIT_HALT */
++/* BIT(27) reserved for HFI2_S_WAIT_TID_RESP */
++/* BIT(28) reserved for HFI2_S_WAIT_TID_SPACE */
++
++/*
++ * Unlike regular IB RDMA VERBS, which do not require an entry
++ * in the s_ack_queue, TID RDMA WRITE requests do because they
++ * generate responses.
++ * Therefore, the s_ack_queue needs to be extended by a certain
++ * amount. The key point is that the queue needs to be extended
++ * without letting the "user" know so they user doesn't end up
++ * using these extra entries.
++ */
++#define HFI2_TID_RDMA_WRITE_CNT 8
++
++struct tid_rdma_params {
++	struct rcu_head rcu_head;
++	u32 qp;
++	u32 max_len;
++	u16 jkey;
++	u8 max_read;
++	u8 max_write;
++	u8 timeout;
++	u8 urg;
++	u8 version;
++};
++
++struct tid_rdma_qp_params {
++	struct work_struct trigger_work;
++	struct tid_rdma_params local;
++	struct tid_rdma_params __rcu *remote;
++};
++
++/* Track state for each hardware flow */
++struct tid_flow_state {
++	u32 generation;
++	u32 psn;
++	u8 index;
++	u8 last_index;
++};
++
++enum tid_rdma_req_state {
++	TID_REQUEST_INACTIVE = 0,
++	TID_REQUEST_INIT,
++	TID_REQUEST_INIT_RESEND,
++	TID_REQUEST_ACTIVE,
++	TID_REQUEST_RESEND,
++	TID_REQUEST_RESEND_ACTIVE,
++	TID_REQUEST_QUEUED,
++	TID_REQUEST_SYNC,
++	TID_REQUEST_RNR_NAK,
++	TID_REQUEST_COMPLETE,
++};
++
++struct tid_rdma_request {
++	struct rvt_qp *qp;
++	struct hfi2_ctxtdata *rcd;
++	union {
++		struct rvt_swqe *swqe;
++		struct rvt_ack_entry *ack;
++	} e;
++
++	struct tid_rdma_flow *flows;	/* array of tid flows */
++	struct rvt_sge_state ss; /* SGE state for TID RDMA requests */
++	u16 n_flows;		/* size of the flow buffer window */
++	u16 setup_head;		/* flow index we are setting up */
++	u16 clear_tail;		/* flow index we are clearing */
++	u16 flow_idx;		/* flow index most recently set up */
++	u16 acked_tail;
++
++	u32 seg_len;
++	u32 total_len;
++	u32 r_ack_psn;          /* next expected ack PSN */
++	u32 r_flow_psn;         /* IB PSN of next segment start */
++	u32 r_last_acked;       /* IB PSN of last ACK'ed packet */
++	u32 s_next_psn;		/* IB PSN of next segment start for read */
++
++	u32 total_segs;		/* segments required to complete a request */
++	u32 cur_seg;		/* index of current segment */
++	u32 comp_seg;           /* index of last completed segment */
++	u32 ack_seg;            /* index of last ack'ed segment */
++	u32 alloc_seg;          /* index of next segment to be allocated */
++	u32 isge;		/* index of "current" sge */
++	u32 ack_pending;        /* num acks pending for this request */
++
++	enum tid_rdma_req_state state;
++};
++
++/*
++ * When header suppression is used, PSNs associated with a "flow" are
++ * relevant (and not the PSNs maintained by verbs). Track per-flow
++ * PSNs here for a TID RDMA segment.
++ *
++ */
++struct flow_state {
++	u32 flags;
++	u32 resp_ib_psn;     /* The IB PSN of the response for this flow */
++	u32 generation;      /* generation of flow */
++	u32 spsn;            /* starting PSN in TID space */
++	u32 lpsn;            /* last PSN in TID space */
++	u32 r_next_psn;      /* next PSN to be received (in TID space) */
++
++	/* For tid rdma read */
++	u32 ib_spsn;         /* starting PSN in Verbs space */
++	u32 ib_lpsn;         /* last PSn in Verbs space */
++};
++
++struct tid_rdma_pageset {
++	dma_addr_t addr : 48; /* Only needed for the first page */
++	u8 idx: 8;
++	u8 count : 7;
++	u8 mapped: 1;
++};
++
++/**
++ * kern_tid_node - used for managing TID's in TID groups
++ *
++ * @grp_idx: rcd relative index to tid_group
++ * @map: grp->map captured prior to programming this TID group in HW
++ * @cnt: Only @cnt of available group entries are actually programmed
++ */
++struct kern_tid_node {
++	struct tid_group *grp;
++	u8 map;
++	u8 cnt;
++};
++
++/* Overall info for a TID RDMA segment */
++struct tid_rdma_flow {
++	/*
++	 * While a TID RDMA segment is being transferred, it uses a QP number
++	 * from the "KDETH section of QP numbers" (which is different from the
++	 * QP number that originated the request). Bits 11-15 of these QP
++	 * numbers identify the "TID flow" for the segment.
++	 */
++	struct flow_state flow_state;
++	struct tid_rdma_request *req;
++	u32 tid_qpn;
++	u32 tid_offset;
++	u32 length;
++	u32 sent;
++	u8 tnode_cnt;
++	u8 tidcnt;
++	u8 tid_idx;
++	u8 idx;
++	u8 npagesets;
++	u8 npkts;
++	u8 pkt;
++	u8 resync_npkts;
++	struct kern_tid_node tnode[TID_RDMA_MAX_PAGES];
++	struct tid_rdma_pageset pagesets[TID_RDMA_MAX_PAGES];
++	u32 tid_entry[TID_RDMA_MAX_PAGES];
++};
++
++enum tid_rnr_nak_state {
++	TID_RNR_NAK_INIT = 0,
++	TID_RNR_NAK_SEND,
++	TID_RNR_NAK_SENT,
++};
++
++bool tid_rdma_conn_req(struct rvt_qp *qp, u64 *data);
++bool tid_rdma_conn_reply(struct rvt_qp *qp, u64 data);
++bool tid_rdma_conn_resp(struct rvt_qp *qp, u64 *data);
++void tid_rdma_conn_error(struct rvt_qp *qp);
++void tid_rdma_opfn_init(struct rvt_qp *qp, struct tid_rdma_params *p);
++
++int hfi2_kern_exp_rcv_init(struct hfi2_ctxtdata *rcd, int reinit);
++int hfi2_kern_exp_rcv_setup(struct tid_rdma_request *req,
++			    struct rvt_sge_state *ss, bool *last);
++int hfi2_kern_exp_rcv_clear(struct tid_rdma_request *req);
++void hfi2_kern_exp_rcv_clear_all(struct tid_rdma_request *req);
++void __trdma_clean_swqe(struct rvt_qp *qp, struct rvt_swqe *wqe);
++
++/**
++ * trdma_clean_swqe - clean flows for swqe if large send queue
++ * @qp: the qp
++ * @wqe: the send wqe
++ */
++static inline void trdma_clean_swqe(struct rvt_qp *qp, struct rvt_swqe *wqe)
++{
++	if (!wqe->priv)
++		return;
++	__trdma_clean_swqe(qp, wqe);
++}
++
++void hfi2_kern_read_tid_flow_free(struct rvt_qp *qp);
++
++struct hfi2_ctxtdata *qp_to_rcd(struct rvt_qp *qp);
++int hfi2_qp_priv_init(struct rvt_dev_info *rdi, struct rvt_qp *qp,
++		      struct ib_qp_init_attr *init_attr);
++void hfi2_qp_priv_tid_free(struct rvt_dev_info *rdi, struct rvt_qp *qp);
++
++void hfi2_tid_rdma_flush_wait(struct rvt_qp *qp);
++
++int hfi2_kern_setup_hw_flow(struct hfi2_ctxtdata *rcd, struct rvt_qp *qp);
++void hfi2_kern_clear_hw_flow(struct hfi2_ctxtdata *rcd, struct rvt_qp *qp);
++void hfi2_kern_init_ctxt_generations(struct hfi2_ctxtdata *rcd);
++
++struct cntr_entry;
++u64 hfi2_access_sw_tid_wait(const struct cntr_entry *entry,
++			    void *context, int vl, int mode, u64 data);
++
++u32 hfi2_build_tid_rdma_read_packet(struct rvt_swqe *wqe,
++				    struct ib_other_headers *ohdr,
++				    u32 *bth1, u32 *bth2, u32 *len);
++u32 hfi2_build_tid_rdma_read_req(struct rvt_qp *qp, struct rvt_swqe *wqe,
++				 struct ib_other_headers *ohdr, u32 *bth1,
++				 u32 *bth2, u32 *len);
++void hfi2_rc_rcv_tid_rdma_read_req(struct hfi2_packet *packet);
++u32 hfi2_build_tid_rdma_read_resp(struct rvt_qp *qp, struct rvt_ack_entry *e,
++				  struct ib_other_headers *ohdr, u32 *bth0,
++				  u32 *bth1, u32 *bth2, u32 *len, bool *last);
++void hfi2_rc_rcv_tid_rdma_read_resp(struct hfi2_packet *packet);
++bool hfi2_handle_kdeth_eflags(struct hfi2_ctxtdata *rcd,
++			      struct hfi2_pportdata *ppd,
++			      struct hfi2_packet *packet);
++void hfi2_tid_rdma_restart_req(struct rvt_qp *qp, struct rvt_swqe *wqe,
++			       u32 *bth2);
++void hfi2_qp_kern_exp_rcv_clear_all(struct rvt_qp *qp);
++bool hfi2_tid_rdma_wqe_interlock(struct rvt_qp *qp, struct rvt_swqe *wqe);
++
++void setup_tid_rdma_wqe(struct rvt_qp *qp, struct rvt_swqe *wqe);
++static inline void hfi2_setup_tid_rdma_wqe(struct rvt_qp *qp,
++					   struct rvt_swqe *wqe)
++{
++	if (wqe->priv &&
++	    (wqe->wr.opcode == IB_WR_RDMA_READ ||
++	     wqe->wr.opcode == IB_WR_RDMA_WRITE) &&
++	    wqe->length >= TID_RDMA_MIN_SEGMENT_SIZE)
++		setup_tid_rdma_wqe(qp, wqe);
++}
++
++u32 hfi2_build_tid_rdma_write_req(struct rvt_qp *qp, struct rvt_swqe *wqe,
++				  struct ib_other_headers *ohdr,
++				  u32 *bth1, u32 *bth2, u32 *len);
++
++void hfi2_rc_rcv_tid_rdma_write_req(struct hfi2_packet *packet);
++
++u32 hfi2_build_tid_rdma_write_resp(struct rvt_qp *qp, struct rvt_ack_entry *e,
++				   struct ib_other_headers *ohdr, u32 *bth1,
++				   u32 bth2, u32 *len,
++				   struct rvt_sge_state **ss);
++
++void hfi2_del_tid_reap_timer(struct rvt_qp *qp);
++
++void hfi2_rc_rcv_tid_rdma_write_resp(struct hfi2_packet *packet);
++
++bool hfi2_build_tid_rdma_packet(struct rvt_swqe *wqe,
++				struct ib_other_headers *ohdr,
++				u32 *bth1, u32 *bth2, u32 *len);
++
++void hfi2_rc_rcv_tid_rdma_write_data(struct hfi2_packet *packet);
++
++u32 hfi2_build_tid_rdma_write_ack(struct rvt_qp *qp, struct rvt_ack_entry *e,
++				  struct ib_other_headers *ohdr, u16 iflow,
++				  u32 *bth1, u32 *bth2);
++
++void hfi2_rc_rcv_tid_rdma_ack(struct hfi2_packet *packet);
++
++void hfi2_add_tid_retry_timer(struct rvt_qp *qp);
++void hfi2_del_tid_retry_timer(struct rvt_qp *qp);
++
++u32 hfi2_build_tid_rdma_resync(struct rvt_qp *qp, struct rvt_swqe *wqe,
++			       struct ib_other_headers *ohdr, u32 *bth1,
++			       u32 *bth2, u16 fidx);
++
++void hfi2_rc_rcv_tid_rdma_resync(struct hfi2_packet *packet);
++
++struct hfi2_pkt_state;
++int hfi2_make_tid_rdma_pkt(struct rvt_qp *qp, struct hfi2_pkt_state *ps);
++
++void _hfi2_do_tid_send(struct work_struct *work);
++
++bool hfi2_schedule_tid_send(struct rvt_qp *qp);
++
++bool hfi2_tid_rdma_ack_interlock(struct rvt_qp *qp, struct rvt_ack_entry *e);
++
++#endif /* HFI2_TID_RDMA_H */
+diff --git a/drivers/infiniband/hw/hfi2/user_exp_rcv.h b/drivers/infiniband/hw/hfi2/user_exp_rcv.h
+new file mode 100644
+index 000000000000..c4f0dab6e7b6
+--- /dev/null
++++ b/drivers/infiniband/hw/hfi2/user_exp_rcv.h
+@@ -0,0 +1,404 @@
++/* SPDX-License-Identifier: GPL-2.0 OR BSD-3-Clause */
++/*
++ * Copyright(c) 2020-2024 Cornelis Networks, Inc.
++ * Copyright(c) 2015 - 2017 Intel Corporation.
++ */
++
++#ifndef _HFI2_USER_EXP_RCV_H
++#define _HFI2_USER_EXP_RCV_H
++
++#include "hfi2.h"
++#include "exp_rcv.h"
++
++struct hfi2_page_iter_ops;
++
++/**
++ * Base type for iterating over sets of pinned-page ranges (pagesets).
++ *
++ * Depending on implementation, pages may also already be DMA-mapped.
++ */
++struct hfi2_page_iter {
++	struct hfi2_page_iter_ops *ops;
++};
++
++struct hfi2_page_iter_ops {
++	/**
++	 * Advance iterator to next pageset.
++	 *
++	 * Implementation must construct TID-compatible pagesets. TID-compatible means:
++	 * - starting address is 4KiB-aligned.
++	 * - size in range of [4KiB,2MiB].
++	 * - size is a power-of-two.
++	 *
++	 * @return > 0 on successful advancement, 0 when iterator is at last
++	 * element, < 0 on error. It is an error to call .next() after it
++	 * returns 0.
++	 */
++	int (*next)(struct hfi2_page_iter *iter);
++
++	void (*free)(struct hfi2_page_iter *iter);
++};
++
++struct tid_user_buf;
++
++/*
++ * hfi2_page_iter implementation for tid_system.
++ *
++ * Built around struct tid_user_buf->{psets,n_psets}.
++ */
++struct page_array_iter {
++	struct hfi2_page_iter common;
++	struct tid_user_buf *tbuf;
++	unsigned int setidx;
++};
++
++/*
++ * structs tid_pageset, tid_user_buf, tid_rb_node, tid_user_buf_ops,
++ * tid_node_ops - Generic memory-pinning and DMA-mapping datastructures and
++ * interfaces for user expected receive.
++ *
++ * Here's a high-level flow of how generic device user expected receive works:
++ * 1. Available memory implementations are registered at driver load.
++ * 2. When TID_UPDATE with memory type information is received,
++ *    struct tid_user_buf_ops* for memory type is looked up.
++ * 3. struct tid_user_buf 'tbuf' is created using tid_user_buf_ops.init(),
++ *    passing in the virtual address range from userspace.
++ * 4. Pages are pinned using tid_user_buf_ops.pin_pages(tbuf).
++ * 5. tid_user_buf_ops.find_phys_blocks() produces an array of sets
++ *    (struct tid_pageset[]) of physically contiguous pages.
++ * 6. struct tid_node_ops* for memory type is looked up.
++ * 7. For each set of physically contiguous pinned pages:
++ *    7.1 A struct tid_rb_node is created using tid_node_ops.init(). It stores
++ *        its memory type for later lookup.
++ *    7.2 tid_node_ops.init() DMA-maps the physically-contiguous page range.
++ *    7.3 An expected RcvArray entry (TID) is programmed with the DMA address.
++ *    7.4 The tid_rb_node* is stored in struct hfi2_filedata.entry_to_rb[].
++ * 8. The tid_user_buf is no longer needed and is destroyed.
++ * 9. When a TID is to be unmapped or the receive memory the TID is programmed
++ *    for is invalidated, the struct tid_rb_node* for the TID or receive memory
++ *    is found, the struct tid_node_ops looked up, and
++ *    tid_node_ops.dma_unmap(node) and tid_node_ops.free(node) called.
++ *
++ * This is an overview. See struct tid_user_buf_ops and struct tid_node_ops for
++ * the methods and their semantics that an implementation must provide.
++ */
++
++struct tid_pageset {
++	u16 idx;
++	u16 count;
++};
++
++struct tid_node_ops;
++struct tid_user_buf_ops;
++
++struct tid_user_buf {
++	unsigned long vaddr;
++	unsigned long length;
++	struct tid_pageset *psets;
++	struct tid_user_buf_ops *ops;
++	unsigned int n_psets;
++	bool use_mn;
++	u16 type; /* Implementation must set to HFI2_MEMINFO_TYPE* in tid_user_buf_ops.init() */
++};
++
++int tid_user_buf_init(u16 pset_size, unsigned long vaddr, unsigned long length, bool notify,
++		      struct tid_user_buf_ops *ops, u16 type, struct tid_user_buf *tbuf);
++void tid_user_buf_free(struct tid_user_buf *tbuf);
++
++struct tid_rb_node {
++	struct hfi2_filedata *fdata;
++	struct mutex invalidate_mutex; /* covers hw removal */
++	/* Only used for debug and tracing */
++	unsigned long phys;
++	struct tid_group *grp;
++	struct tid_node_ops *ops;
++	dma_addr_t dma_addr;
++	/* Starting virtual address for this node's page range */
++	unsigned long vaddr;
++	/* Number of pages, implementation-sized */
++	unsigned int npages;
++	/* Implementation page-size shift */
++	unsigned int page_shift;
++	u32 rcventry;
++	bool use_mn;
++	bool freed;
++	/* Implementation must set to HFI2_MEMINFO_TYPE* in tid_node_ops.init() */
++	u16 type;
++};
++
++/**
++ * User expected receive requires @vaddr from userspace be aligned on a page
++ * boundary.
++ *
++ * User expected receive requires this because it cannot communicate the offset
++ * between @vaddr and the page start.
++ *
++ * TID memory implementation must check that @vaddr is aligned on a page
++ * boundary but may delay this check until as late as .pin_pages().
++ *
++ * This allows for implementations where the page size is not known until the
++ * pages are pinned.
++ */
++struct tid_user_buf_ops {
++	/**
++	 * Allocate and initialize @*tbuf.
++	 *
++	 * Implementation must initialize:
++	 *   - vaddr
++	 *   - length
++	 *   - psets
++	 *   - ops
++	 *   - type
++	 *
++	 * @expected_count
++	 * @notify when false, implementation may use invalidation callback
++	 *   underneath.
++	 *
++	 *   When true, implementation must use invalidation callback
++	 *   underneath.
++	 *
++	 *   If true and implementation does not have an invalidation callback,
++	 *   must return an error.
++	 * @vaddr
++	 * @length
++	 * @allow_unaligned when true, implementation may, but is not required
++	 *   to, handle unaligned @vaddr. When false, implementation must return
++	 *   -EINVAL for unaligned @vaddr.
++	 * @tbuf [out] allocated tid_user_buf
++	 *
++	 * @return 0 on success, non-zero on error.
++	 *
++	 * Errors including but not limited to:
++	 * - Number of pages based on @length too long for @expected_count
++	 * - @vaddr is not suitably aligned
++	 * - @length invalid for implementation
++	 * - @notify is true but implementation does not support
++	 *   memory-invalidation notification
++	 */
++	int (*init)(u16 expected_count,
++		    bool notify,
++		    unsigned long vaddr,
++		    unsigned long length,
++		    bool allow_unaligned,
++		    struct tid_user_buf **tbuf);
++
++	/**
++	 * Free @tbuf.
++	 */
++	void (*free)(struct tid_user_buf *tbuf);
++
++	/**
++	 * Pin pages for @tbuf based on (@vaddr,@length) passed into
++	 * @tid_user_buf_ops.init().
++	 *
++	 * Implementation may also DMA-map pages at this time.
++	 *
++	 * Implementation may store @fd at this time.
++	 *
++	 * @fd
++	 * @tbuf
++	 *
++	 * @return > 0 number of pages pinned on success, < 0 error value on
++	 *   failure. 0 is treated as a failure but not an error value.
++	 */
++	int (*pin_pages)(struct hfi2_filedata *fd, struct tid_user_buf *tbuf);
++
++	/**
++	 * Get page size of @tbuf's pinned pages.
++	 *
++	 * Caller should not assume that page size is known until after
++	 * pin_pages(fd, @tbuf).
++	 *
++	 * @tbuf
++	 *
++	 * @return page size. No way to tell if error.
++	 */
++	unsigned int (*page_size)(struct tid_user_buf *tbuf);
++
++	/**
++	 * Unpin only @npages starting at @idx.
++	 *
++	 * Implementation may implement partial unpinning.
++	 *
++	 * If not, implementation must ensure that pages are unmapped and
++	 * unpinned when last reference to them is released.
++	 *
++	 * @fd Same fd as given in tid_user_buf_ops.pin_pages() call
++	 * @tbuf
++	 * @idx
++	 * @npages
++	 */
++	void (*unpin_pages)(struct hfi2_filedata *fd,
++			    struct tid_user_buf *tbuf,
++			    unsigned int idx,
++			    unsigned int npages);
++
++	/**
++	 * Optional; implementation must either implement find_phys_blocks() or
++	 * ensure that iter_begin() will return a valid iterator after
++	 * .pin_pages().
++	 *
++	 * Implementation must program @tbuf->psets elements such that:
++	 * 1. All pages in a pageset are physically contiguous
++	 * 2. All pages in all pagesets have the same page size
++	 * 3. The total size of a pageset is a power-of-two in the range
++	 *    [4KiB, 2MiB]
++	 *
++	 * Implementation must set @tbuf->n_psets to number of page sets
++	 * programmed.
++	 *
++	 * @tbuf TID user buf to set (@tbuf->psets,@tbuf->n_psets) on.
++	 * @npages limit on number of pages to process into page sets before
++	 *         stopping.
++	 *
++	 * @return 0 on success, non-zero on error
++	 */
++	int (*find_phys_blocks)(struct tid_user_buf *tbuf,
++				unsigned int npages);
++
++	/**
++	 * @return true when:
++	 * - @tbuf's virtual->physical mapping has been invalidated
++	 * - @tbuf's physical pages have been released
++	 */
++	bool (*invalidated)(struct tid_user_buf *tbuf);
++
++	/**
++	 * Unregister memory-invalidation callback registered in struct
++	 * tid_user_buf_ops.init() implementation.
++	 */
++	void (*unnotify)(struct tid_user_buf *tbuf);
++
++	/**
++	 * Optional. Get pageset iterator. Pages in pageset must be pinned and
++	 * physically-contiguous. Whether pages are also DMA-mapped at the time
++	 * this method is called is implementation-dependent.
++	 *
++	 * Implementation must return iterator only if there is at least one
++	 * pageset to iterate over. I.e. it is an error if implementation
++	 * cannot return an iterator over at least one pageset.
++	 *
++	 * Returned iterator must be freed with @hfi2_page_iter->ops->free().
++	 *
++	 * @return pointer on success, ERR_PTR() on error.
++	 */
++	struct hfi2_page_iter *(*iter_begin)(struct tid_user_buf *tbuf);
++};
++
++struct tid_node_ops {
++	/**
++	 * Create tid_rb_node for pageset given by @iter.
++	 *
++	 * .init() implementation must initialize the following
++	 *   - fdata
++	 *   - invalidate_mutex
++	 *   - phys
++	 *   - grp
++	 *   - ops
++	 *   - dma_addr
++	 *   - vaddr
++	 *   - npages
++	 *   - page_shift: may not be less than EXP_TID_ADDR_SHIFT
++	 *   - rcventry
++	 *   - use_mn
++	 *   - freed
++	 *   - type: one of the HFI2_MEMINFO_TYPE* defines
++	 *
++	 * Pages in pageset given by @iter must be TID-ready: pinned, physically contiguous,
++	 * 4KiB <= size <= 2MiB, starting address is power-of-two.
++	 *
++	 * Implementation must DMA-map the pages given by @iter if they are not DMA-mapped
++	 * already.
++	 *
++	 * If @fd->use_mn is true and memory implementation does not support
++	 * invalidation callbacks, .init() must return an error.
++	 *
++	 * @fd
++	 * @tbuf Contains larger memory pinning to create TID entry from
++	 * @rcventry
++	 * @grp
++	 * @iter
++	 *
++	 * @return allocated node on success, ERR_PTR() on error.
++	 */
++	struct tid_rb_node *(*init)(struct hfi2_filedata *fd,
++				    struct tid_user_buf *tbuf,
++				    u32 rcventry,
++				    struct tid_group *grp,
++				    struct hfi2_page_iter *iter);
++
++	/**
++	 * Free @node.
++	 */
++	void (*free)(struct tid_rb_node *node);
++
++	/**
++	 * Register for memory invalidation callback. Implementation should
++	 * only register for notification on @node's page-range.
++	 *
++	 * When @node->fdata->use_mn is true, invalidation callback must call
++	 * hfi2_user_exp_rcv_invalidate(@node).
++	 *
++	 * When @node->fdata->use_mn is false, invalidation callback may call
++	 * hfi2_user_exp_rcv_invalidate(@node).
++	 *
++	 * Should be no-op when implementation does not support partial
++	 * unpinning.
++	 *
++	 * @return 0 on success, non-zero on failure.
++	 */
++	int (*register_notify)(struct tid_rb_node *node);
++
++	/**
++	 * Unregister from memory-invalidation callback in anticipation of
++	 * unprogramming TID.
++	 *
++	 * Should be no-op when implementation does not support partial
++	 * unpinning.
++	 *
++	 * Not safe to call more than once per register_notify() call.
++	 */
++	void (*unregister_notify)(struct tid_rb_node *node);
++
++	/**
++	 * DMA-unmap mapped memory for @node.
++	 *
++	 * Should be no-op when implementation does not support partial
++	 * unmapping.
++	 */
++	void (*dma_unmap)(struct tid_rb_node *node);
++
++	/**
++	 * Unpin pages covered by @node.
++	 *
++	 * user_exp_rcv will call this function under node->invalidate_mutex.
++	 * user_exp_rcv will only call this function once per node.
++	 *
++	 * Should be no-op when implementation does not support partial
++	 * unpinning.
++	 */
++	void (*unpin_pages)(struct hfi2_filedata *fd, struct tid_rb_node *node);
++};
++
++int register_tid_ops(u16 type, struct tid_user_buf_ops *op, struct tid_node_ops *nops);
++void deregister_tid_ops(u16 type);
++
++int register_system_tid_ops(void);
++void deregister_system_tid_ops(void);
++
++void hfi2_user_exp_rcv_invalidate(struct tid_rb_node *node);
++
++int hfi2_user_exp_rcv_init(struct hfi2_filedata *fd,
++			   struct hfi2_ctxtdata *uctxt);
++void hfi2_user_exp_rcv_free(struct hfi2_filedata *fd);
++int hfi2_user_exp_rcv_setup(struct hfi2_filedata *fd,
++			    struct hfi2_tid_info *tinfo,
++			    bool allow_unaligned,
++			    bool do_tidcnt_check);
++int hfi2_user_exp_rcv_clear(struct hfi2_filedata *fd,
++			    struct hfi1_tid_info *tinfo);
++int hfi2_user_exp_rcv_invalid(struct hfi2_filedata *fd,
++			      struct hfi1_tid_info *tinfo,
++			      bool do_tidcnt_check);
++
++#endif /* _HFI2_USER_EXP_RCV_H */
+diff --git a/drivers/infiniband/hw/hfi2/user_sdma.h b/drivers/infiniband/hw/hfi2/user_sdma.h
+new file mode 100644
+index 000000000000..971b574a0b47
+--- /dev/null
++++ b/drivers/infiniband/hw/hfi2/user_sdma.h
+@@ -0,0 +1,262 @@
++/* SPDX-License-Identifier: GPL-2.0 OR BSD-3-Clause */
++/*
++ * Copyright(c) 2023 - Cornelis Networks, Inc.
++ * Copyright(c) 2015 - 2018 Intel Corporation.
++ */
++#ifndef _HFI2_USER_SDMA_H
++#define _HFI2_USER_SDMA_H
++
++#include <linux/device.h>
++#include <linux/wait.h>
++
++#include "common.h"
++#include "iowait.h"
++#include "user_exp_rcv.h"
++#include "mmu_rb.h"
++#include "pinning.h"
++#include "sdma.h"
++
++/* The maximum number of Data io vectors per message/request */
++#define MAX_VECTORS_PER_REQ 8
++static_assert(MAX_VECTORS_PER_REQ <= HFI2_MAX_MEMINFO_ENTRIES);
++
++/*
++ * Maximum number of packet to send from each message/request
++ * before moving to the next one.
++ */
++#define MAX_PKTS_PER_QUEUE 16
++
++#define num_pages(x) (1 + ((((x) - 1) & PAGE_MASK) >> PAGE_SHIFT))
++
++#define req_opcode(x) \
++	(((x) >> HFI2_SDMA_REQ_OPCODE_SHIFT) & HFI2_SDMA_REQ_OPCODE_MASK)
++#define req_version(x) \
++	(((x) >> HFI2_SDMA_REQ_VERSION_SHIFT) & HFI2_SDMA_REQ_OPCODE_MASK)
++#define req_iovcnt(x) \
++	(((x) >> HFI2_SDMA_REQ_IOVCNT_SHIFT) & HFI2_SDMA_REQ_IOVCNT_MASK)
++#define req_has_meminfo(x) \
++	(((x) >> HFI2_SDMA_REQ_MEMINFO_SHIFT) & HFI2_SDMA_REQ_MEMINFO_MASK)
++
++/* Number of BTH.PSN bits used for sequence number in expected rcvs */
++#define BTH_SEQ_MASK 0x7ffull
++
++#define AHG_KDETH_INTR_SHIFT 12
++#define AHG_KDETH_SH_SHIFT   13
++#define AHG_KDETH_ARRAY_SIZE  9
++
++/**
++ * Build an SDMA AHG header update descriptor and save it to an array.
++ * @arr        - Array to save the descriptor to.
++ * @idx        - Index of the array at which the descriptor will be saved.
++ * @array_size - Size of the array arr.
++ * @dw         - Update index into the header in DWs.
++ * @bit        - Start bit.
++ * @width      - Field width.
++ * @value      - 16 bits of immediate data to write into the field.
++ * Returns -ERANGE if idx is invalid. If successful, returns the next index
++ * (idx + 1) of the array to be used for the next descriptor.
++ */
++static inline int ahg_header_set(u32 *arr, int idx, size_t array_size,
++				 u8 dw, u8 bit, u8 width, u16 value)
++{
++	if ((size_t)idx >= array_size)
++		return -ERANGE;
++	arr[idx++] = sdma_build_ahg_descriptor(value, dw, bit, width);
++	return idx;
++}
++
++/* Tx request flag bits */
++#define TXREQ_FLAGS_REQ_ACK   BIT(0)      /* Set the ACK bit in the header */
++#define TXREQ_FLAGS_REQ_DISABLE_SH BIT(1) /* Disable header suppression */
++
++enum pkt_q_sdma_state {
++	SDMA_PKT_Q_ACTIVE,
++	SDMA_PKT_Q_DEFERRED,
++};
++
++#define SDMA_IOWAIT_TIMEOUT 1000 /* in milliseconds */
++
++#define SDMA_DBG(req, fmt, ...)				     \
++	hfi2_cdbg(SDMA, "[%u:%u:%u:%u] " fmt, (req)->pq->dd->unit, \
++		 (req)->pq->ctxt, (req)->pq->subctxt, (req)->info.comp_idx, \
++		 ##__VA_ARGS__)
++
++struct hfi2_user_sdma_pkt_q {
++	u16 ctxt;
++	u16 subctxt;
++	u16 n_max_reqs;
++	atomic_t n_reqs;
++	struct hfi2_devdata *dd;
++	struct kmem_cache *txreq_cache;
++	struct user_sdma_request *reqs;
++	unsigned long *req_in_use;
++	struct iowait busy;
++	enum pkt_q_sdma_state state;
++	wait_queue_head_t wait;
++	unsigned long unpinned;
++	struct pinning_state pinning_state;
++	atomic_t n_locked;
++};
++
++struct hfi2_user_sdma_comp_q {
++	u16 nentries;
++	struct hfi2_sdma_comp_entry *comps;
++};
++
++struct user_sdma_iovec {
++	struct iovec iov;
++	/* memory type for this vector */
++	unsigned int type;
++	/* memory type context for this vector */
++	u64 context;
++	/*
++	 * offset into the virtual address space of the vector at
++	 * which we last left off.
++	 */
++	u64 offset;
++};
++
++/* evict operation argument */
++struct evict_data {
++	u32 cleared;	/* count evicted so far */
++	u32 target;	/* target count to evict */
++};
++
++/*
++ * User 16B header.  Differences between this and struct hfi2_pkt_hdr:
++ * o LRH size: 16 bytes vs 8 bytes
++ * o LRH byte ordering: LE vs BE
++ * o LRH units: 32 bits vs 16 bits
++ */
++struct hfi2_pkt_header16b {
++	__le16 pbc[4];
++	__le32 lrh[4];
++	__be32 bth[3];
++	struct hfi2_kdeth_header kdeth;
++} __packed;
++
++union user_pkt_header {
++	__le16 pbc[4];
++	struct hfi2_pkt_header hdr9b;
++	struct hfi2_pkt_header16b hdr16b;
++};
++
++/* Pinning-cache entry reference type */
++struct user_sdma_pinref {
++	void *ptr;
++	u16 memtype;
++	/** Used for determining eviction eligibility; set from &user_sdma_request.seqnum */
++	u16 req_seqnum;
++	/** Used for determining most-recently used; set from &user_sdma_request.pinrefs_seqnum */
++	u16 pinref_seqnum;
++};
++
++#define PINREF_ENTRIES 7
++
++struct user_sdma_request {
++	/* This is the original header from user space */
++	union user_pkt_header h;
++	unsigned long hsize;
++	u32 lrh_len_bytes;
++	u32 pad_mask;
++
++	/* Memory type information for each data iovec entry. */
++	struct sdma_req_meminfo meminfo;
++
++	/* Read mostly fields */
++	struct hfi2_user_sdma_pkt_q *pq ____cacheline_aligned_in_smp;
++	struct hfi2_user_sdma_comp_q *cq;
++	/*
++	 * Pointer to the SDMA engine for this request.
++	 * Since different request could be on different VLs,
++	 * each request will need it's own engine pointer.
++	 */
++	struct sdma_engine *sde;
++	struct sdma_req_info info;
++	/* TID array values copied from the tid_iov vector */
++	u32 *tids;
++	/* total length of the data in the request */
++	u32 data_len;
++	/* number of elements copied to the tids array */
++	u16 n_tids;
++	/*
++	 * We copy the iovs for this request (based on
++	 * info.iovcnt). These are only the data vectors
++	 */
++	u8 data_iovs;
++	s8 ahg_idx;
++
++	/* Writeable fields shared with interrupt */
++	u16 seqcomp ____cacheline_aligned_in_smp;
++	u16 seqsubmitted;
++
++	/* Send side fields */
++	struct list_head txps ____cacheline_aligned_in_smp;
++	u16 seqnum;
++	/*
++	 * KDETH.OFFSET (TID) field
++	 * The offset can cover multiple packets, depending on the
++	 * size of the TID entry.
++	 */
++	u32 tidoffset;
++	/*
++	 * KDETH.Offset (Eager) field
++	 * We need to remember the initial value so the headers
++	 * can be updated properly.
++	 */
++	u32 koffset;
++	u32 sent;
++	/* TID index copied from the tid_iov vector */
++	u16 tididx;
++	/* progress index moving along the iovs array */
++	u8 iov_idx;
++	u8 has_error;
++	/* possible appended bytes (16B ICRC QW) */
++	u8 tailsize;
++	/* true if this is a 16B request */
++	bool is16b;
++
++	u16 n_pinrefs;
++	/*
++	 * Since regular .seqnum is only incremented per-txreq, need separate
++	 * .pinref_seqnum to distinguish age of pinrefs within a txreq.
++	 */
++	u32 pinref_seqnum;
++	/* Shared space for storing pin_* cacherefs */
++	struct user_sdma_pinref pinrefs[PINREF_ENTRIES];
++
++	struct user_sdma_iovec iovs[MAX_VECTORS_PER_REQ];
++} ____cacheline_aligned_in_smp;
++
++/*
++ * A single txreq could span up to 3 physical pages when the MTU
++ * is sufficiently large (> 4K). Each of the IOV pointers also
++ * needs it's own set of flags so the vector has been handled
++ * independently of each other.
++ */
++struct user_sdma_txreq {
++	/* Packet header for the txreq */
++	union user_pkt_header h;
++	struct sdma_txreq txreq;
++	struct user_sdma_request *req;
++	struct user_sdma_pinref *pinrefs;
++	u16 n_pinrefs;
++	u16 flags;
++	u16 seqnum;
++};
++
++int hfi2_user_sdma_add_ref(struct user_sdma_txreq *tx, void *ptr,
++			   u16 memtype);
++struct user_sdma_pinref *hfi2_user_sdma_mru_ref(struct user_sdma_txreq *tx,
++						u16 memtype);
++void hfi2_user_sdma_touch_ref(struct user_sdma_txreq *tx,
++			      struct user_sdma_pinref *d);
++
++int hfi2_user_sdma_alloc_queues(struct hfi2_ctxtdata *uctxt,
++				struct hfi2_filedata *fd);
++int hfi2_user_sdma_free_queues(struct hfi2_filedata *fd,
++			       struct hfi2_ctxtdata *uctxt);
++int hfi2_user_sdma_process_request(struct hfi2_filedata *fd,
++				   struct iovec *iovec, unsigned long dim,
++				   unsigned long *count);
++#endif /* _HFI2_USER_SDMA_H */
+diff --git a/drivers/infiniband/hw/hfi2/uverbs.h b/drivers/infiniband/hw/hfi2/uverbs.h
+new file mode 100644
+index 000000000000..684a0b311420
+--- /dev/null
++++ b/drivers/infiniband/hw/hfi2/uverbs.h
+@@ -0,0 +1,19 @@
++/* SPDX-License-Identifier: GPL-2.0 or BSD-3-Clause */
++/*
++ * Copyright(c) 2024 Cornelis Networks, Inc.
++ */
++
++#ifndef HFI2_UVERBS_H
++#define HFI2_UVERBS_H
++
++#include <rdma/uverbs_ioctl.h>
++
++int hfi2_alloc_ucontext(struct ib_ucontext *ucontext, struct ib_udata *udata);
++void hfi2_dealloc_ucontext(struct ib_ucontext *ucontext);
++int hfi2_rdma_mmap(struct ib_ucontext *ucontext, struct vm_area_struct *vma);
++ssize_t hfi2_uverbs_write_iter(struct ib_ucontext *ucontext,
++			       struct iov_iter *from);
++
++extern const struct uapi_definition hfi2_ib_defs[];
++
++#endif /* HFI2_UVERBS_H */
+diff --git a/drivers/infiniband/hw/hfi2/verbs.h b/drivers/infiniband/hw/hfi2/verbs.h
+new file mode 100644
+index 000000000000..b94d8c70377d
+--- /dev/null
++++ b/drivers/infiniband/hw/hfi2/verbs.h
+@@ -0,0 +1,488 @@
++/* SPDX-License-Identifier: GPL-2.0 OR BSD-3-Clause */
++/*
++ * Copyright(c) 2015 - 2018 Intel Corporation.
++ */
++
++#ifndef HFI2_VERBS_H
++#define HFI2_VERBS_H
++
++#include <linux/types.h>
++#include <linux/seqlock.h>
++#include <linux/kernel.h>
++#include <linux/interrupt.h>
++#include <linux/kref.h>
++#include <linux/workqueue.h>
++#include <linux/kthread.h>
++#include <linux/completion.h>
++#include <linux/slab.h>
++#include <rdma/ib_pack.h>
++#include <rdma/ib_user_verbs.h>
++#include <rdma/ib_mad.h>
++#include <rdma/ib_hdrs.h>
++#include <rdma/rdma_vt.h>
++#include <rdma/rdmavt_qp.h>
++#include <rdma/rdmavt_cq.h>
++
++struct hfi2_ctxtdata;
++struct hfi2_pportdata;
++struct hfi2_devdata;
++struct hfi2_packet;
++
++#include "iowait.h"
++#include "tid_rdma.h"
++#include "opfn.h"
++
++#define HFI2_MAX_RDMA_ATOMIC     16
++
++/*
++ * Increment this value if any changes that break userspace ABI
++ * compatibility are made.
++ */
++#define HFI2_UVERBS_ABI_VERSION       2
++
++/* IB Performance Manager status values */
++#define IB_PMA_SAMPLE_STATUS_DONE       0x00
++#define IB_PMA_SAMPLE_STATUS_STARTED    0x01
++#define IB_PMA_SAMPLE_STATUS_RUNNING    0x02
++
++/* Mandatory IB performance counter select values. */
++#define IB_PMA_PORT_XMIT_DATA   cpu_to_be16(0x0001)
++#define IB_PMA_PORT_RCV_DATA    cpu_to_be16(0x0002)
++#define IB_PMA_PORT_XMIT_PKTS   cpu_to_be16(0x0003)
++#define IB_PMA_PORT_RCV_PKTS    cpu_to_be16(0x0004)
++#define IB_PMA_PORT_XMIT_WAIT   cpu_to_be16(0x0005)
++
++#define HFI2_VENDOR_IPG		cpu_to_be16(0xFFA0)
++
++#define IB_DEFAULT_GID_PREFIX	cpu_to_be64(0xfe80000000000000ULL)
++#define OPA_BTH_MIG_REQ		BIT(31)
++
++#define RC_OP(x) IB_OPCODE_RC_##x
++#define UC_OP(x) IB_OPCODE_UC_##x
++
++/* flags passed by hfi2_ib_rcv() */
++enum {
++	HFI2_HAS_GRH = (1 << 0),
++};
++
++#define LRH_16B_BYTES (sizeof_field(struct hfi2_16b_header, lrh))
++#define LRH_16B_DWORDS (LRH_16B_BYTES / sizeof(u32))
++#define LRH_9B_BYTES (sizeof_field(struct ib_header, lrh))
++#define LRH_9B_DWORDS (LRH_9B_BYTES / sizeof(u32))
++
++/* 24Bits for qpn, upper 8Bits reserved */
++struct opa_16b_mgmt {
++	__be32 dest_qpn;
++	__be32 src_qpn;
++};
++
++struct hfi2_16b_header {
++	u32 lrh[4];
++	union {
++		struct {
++			struct ib_grh grh;
++			struct ib_other_headers oth;
++		} l;
++		struct ib_other_headers oth;
++		struct opa_16b_mgmt mgmt;
++	} u;
++} __packed;
++
++struct hfi2_opa_header {
++	union {
++		struct ib_header ibh; /* 9B header */
++		struct hfi2_16b_header opah; /* 16B header */
++	};
++	u8 hdr_type; /* 9B or 16B */
++} __packed;
++
++struct hfi2_ahg_info {
++	u32 ahgdesc[2];
++	u16 tx_flags;
++	u8 ahgcount;
++	u8 ahgidx;
++};
++
++struct hfi2_sdma_header {
++	__le64 pbc;
++	struct hfi2_opa_header hdr;
++} __packed;
++
++/*
++ * hfi2 specific data structures that will be hidden from rvt after the queue
++ * pair is made common
++ */
++struct hfi2_qp_priv {
++	struct hfi2_ahg_info *s_ahg;              /* ahg info for next header */
++	struct sdma_engine *s_sde;                /* current sde */
++	struct send_context *s_sendcontext;       /* current sendcontext */
++	struct hfi2_ctxtdata *rcd;                /* QP's receive context */
++	struct page **pages;                      /* for TID page scan */
++	u32 tid_enqueue;                          /* saved when tid waited */
++	u8 s_sc;		                  /* SC[0..4] for next packet */
++	struct iowait s_iowait;
++	struct timer_list s_tid_timer;            /* for timing tid wait */
++	struct timer_list s_tid_retry_timer;      /* for timing tid ack */
++	struct list_head tid_wait;                /* for queueing tid space */
++	struct hfi2_opfn_data opfn;
++	struct tid_flow_state flow_state;
++	struct tid_rdma_qp_params tid_rdma;
++	struct rvt_qp *owner;
++	u16 s_running_pkt_size;
++	u8 hdr_type; /* 9B or 16B */
++	struct rvt_sge_state tid_ss;       /* SGE state pointer for 2nd leg */
++	atomic_t n_requests;               /* # of TID RDMA requests in the */
++					   /* queue */
++	atomic_t n_tid_requests;            /* # of sent TID RDMA requests */
++	unsigned long tid_timer_timeout_jiffies;
++	unsigned long tid_retry_timeout_jiffies;
++
++	/* variables for the TID RDMA SE state machine */
++	u8 s_state;
++	u8 s_retry;
++	u8 rnr_nak_state;       /* RNR NAK state */
++	u8 s_nak_state;
++	u32 s_nak_psn;
++	u32 s_flags;
++	u32 s_tid_cur;
++	u32 s_tid_head;
++	u32 s_tid_tail;
++	u32 r_tid_head;     /* Most recently added TID RDMA request */
++	u32 r_tid_tail;     /* the last completed TID RDMA request */
++	u32 r_tid_ack;      /* the TID RDMA request to be ACK'ed */
++	u32 r_tid_alloc;    /* Request for which we are allocating resources */
++	u32 pending_tid_w_segs; /* Num of pending tid write segments */
++	u32 pending_tid_w_resp; /* Num of pending tid write responses */
++	u32 alloc_w_segs;       /* Number of segments for which write */
++			       /* resources have been allocated for this QP */
++
++	/* For TID RDMA READ */
++	u32 tid_r_reqs;         /* Num of tid reads requested */
++	u32 tid_r_comp;         /* Num of tid reads completed */
++	u32 pending_tid_r_segs; /* Num of pending tid read segments */
++	u16 pkts_ps;            /* packets per segment */
++	u8 timeout_shift;       /* account for number of packets per segment */
++
++	u32 r_next_psn_kdeth;
++	u32 r_next_psn_kdeth_save;
++	u32 s_resync_psn;
++	u8 sync_pt;           /* Set when QP reaches sync point */
++	u8 resync;
++};
++
++#define HFI2_QP_WQE_INVALID   ((u32)-1)
++
++struct hfi2_swqe_priv {
++	struct tid_rdma_request tid_req;
++	struct rvt_sge_state ss;  /* Used for TID RDMA READ Request */
++};
++
++struct hfi2_ack_priv {
++	struct rvt_sge_state ss;               /* used for TID WRITE RESP */
++	struct tid_rdma_request tid_req;
++};
++
++/*
++ * This structure is used to hold commonly lookedup and computed values during
++ * the send engine progress.
++ */
++struct iowait_work;
++struct hfi2_pkt_state {
++	struct hfi2_ibdev *dev;
++	struct hfi2_ibport *ibp;
++	struct hfi2_pportdata *ppd;
++	struct verbs_txreq *s_txreq;
++	struct iowait_work *wait;
++	unsigned long flags;
++	unsigned long timeout;
++	unsigned long timeout_int;
++	int cpu;
++	u8 opcode;
++	bool in_thread;
++	bool pkts_sent;
++};
++
++#define HFI2_PSN_CREDIT  16
++
++struct hfi2_opcode_stats {
++	u64 n_packets;          /* number of packets */
++	u64 n_bytes;            /* total number of bytes */
++};
++
++struct hfi2_opcode_stats_perctx {
++	struct hfi2_opcode_stats stats[256];
++};
++
++static inline void inc_opstats(
++	u32 tlen,
++	struct hfi2_opcode_stats *stats)
++{
++#ifdef CONFIG_DEBUG_FS
++	stats->n_bytes += tlen;
++	stats->n_packets++;
++#endif
++}
++
++struct hfi2_ibport {
++	struct rvt_qp __rcu *qp[2];
++	struct rvt_ibport rvp;
++
++	/* the first 16 entries are sl_to_vl for !OPA */
++	u8 sl_to_sc[32];
++	u8 sc_to_sl[32];
++};
++
++struct hfi2_ibdev {
++	struct rvt_dev_info rdi; /* Must be first */
++
++	/* QP numbers are shared by all IB ports */
++	/* protect txwait list */
++	seqlock_t txwait_lock ____cacheline_aligned_in_smp;
++	struct list_head txwait;        /* list for wait verbs_txreq */
++	struct list_head memwait;       /* list for wait kernel memory */
++	struct kmem_cache *verbs_txreq_cache;
++	u64 n_txwait;
++	u64 n_kmem_wait;
++	u64 n_tidwait;
++
++	/* protect iowait lists */
++	seqlock_t iowait_lock ____cacheline_aligned_in_smp;
++	u64 n_piowait;
++	u64 n_piodrain;
++	struct timer_list mem_timer;
++
++#ifdef CONFIG_DEBUG_FS
++	/* per HFI debugfs */
++	struct dentry *hfi2_ibdev_dbg;
++	/* per HFI symlinks to above */
++	struct dentry *hfi2_ibdev_link;
++#ifdef CONFIG_FAULT_INJECTION
++	struct fault *fault;
++#endif
++#endif
++};
++
++static inline struct hfi2_ibdev *to_idev(struct ib_device *ibdev)
++{
++	struct rvt_dev_info *rdi;
++
++	rdi = container_of(ibdev, struct rvt_dev_info, ibdev);
++	return container_of(rdi, struct hfi2_ibdev, rdi);
++}
++
++static inline struct rvt_qp *iowait_to_qp(struct iowait *s_iowait)
++{
++	struct hfi2_qp_priv *priv;
++
++	priv = container_of(s_iowait, struct hfi2_qp_priv, s_iowait);
++	return priv->owner;
++}
++
++/*
++ * This must be called with s_lock held.
++ */
++void hfi2_bad_pkey(struct hfi2_ibport *ibp, u32 key, u32 sl,
++		   u32 qp1, u32 qp2, u32 lid1, u32 lid2);
++void hfi2_cap_mask_chg(struct rvt_dev_info *rdi, u32 port_num);
++void hfi2_sys_guid_chg(struct hfi2_ibport *ibp);
++void hfi2_node_desc_chg(struct hfi2_ibport *ibp);
++int hfi2_process_mad(struct ib_device *ibdev, int mad_flags, u32 port,
++		     const struct ib_wc *in_wc, const struct ib_grh *in_grh,
++		     const struct ib_mad *in_mad, struct ib_mad *out_mad,
++		     size_t *out_mad_size, u16 *out_mad_pkey_index);
++int cport_process_mad(struct ib_device *ibdev, int mad_flags, u32 port,
++		      const struct ib_wc *in_wc, const struct ib_grh *in_grh,
++		      const struct ib_mad *in_mad, struct ib_mad *out_mad,
++		      size_t *out_mad_size, u16 *out_mad_pkey_index);
++
++/*
++ * The PSN_MASK and PSN_SHIFT allow for
++ * 1) comparing two PSNs
++ * 2) returning the PSN with any upper bits masked
++ * 3) returning the difference between to PSNs
++ *
++ * The number of significant bits in the PSN must
++ * necessarily be at least one bit less than
++ * the container holding the PSN.
++ */
++#define PSN_MASK 0x7FFFFFFF
++#define PSN_SHIFT 1
++#define PSN_MODIFY_MASK 0xFFFFFF
++
++/*
++ * Compare two PSNs
++ * Returns an integer <, ==, or > than zero.
++ */
++static inline int cmp_psn(u32 a, u32 b)
++{
++	return (((int)a) - ((int)b)) << PSN_SHIFT;
++}
++
++/*
++ * Return masked PSN
++ */
++static inline u32 mask_psn(u32 a)
++{
++	return a & PSN_MASK;
++}
++
++/*
++ * Return delta between two PSNs
++ */
++static inline u32 delta_psn(u32 a, u32 b)
++{
++	return (((int)a - (int)b) << PSN_SHIFT) >> PSN_SHIFT;
++}
++
++static inline struct tid_rdma_request *wqe_to_tid_req(struct rvt_swqe *wqe)
++{
++	return &((struct hfi2_swqe_priv *)wqe->priv)->tid_req;
++}
++
++static inline struct tid_rdma_request *ack_to_tid_req(struct rvt_ack_entry *e)
++{
++	return &((struct hfi2_ack_priv *)e->priv)->tid_req;
++}
++
++/*
++ * Look through all the active flows for a TID RDMA request and find
++ * the one (if it exists) that contains the specified PSN.
++ */
++static inline u32 __full_flow_psn(struct flow_state *state, u32 psn)
++{
++	return mask_psn((state->generation << HFI2_KDETH_BTH_SEQ_SHIFT) |
++			(psn & HFI2_KDETH_BTH_SEQ_MASK));
++}
++
++static inline u32 full_flow_psn(struct tid_rdma_flow *flow, u32 psn)
++{
++	return __full_flow_psn(&flow->flow_state, psn);
++}
++
++int hfi2_verbs_send(struct rvt_qp *qp, struct hfi2_pkt_state *ps);
++
++void hfi2_cnp_rcv(struct hfi2_packet *packet);
++
++void hfi2_uc_rcv(struct hfi2_packet *packet);
++
++void hfi2_rc_rcv(struct hfi2_packet *packet);
++
++void hfi2_rc_hdrerr(
++	struct hfi2_ctxtdata *rcd,
++	struct hfi2_packet *packet,
++	struct rvt_qp *qp);
++
++u8 ah_to_sc(struct ib_device *ibdev, struct rdma_ah_attr *ah_attr);
++
++void hfi2_rc_verbs_aborted(struct rvt_qp *qp, struct hfi2_opa_header *opah);
++void hfi2_rc_send_complete(struct rvt_qp *qp, struct hfi2_opa_header *opah);
++
++void hfi2_ud_rcv(struct hfi2_packet *packet);
++
++int hfi2_lookup_pkey_idx(struct hfi2_ibport *ibp, u16 pkey);
++
++void hfi2_migrate_qp(struct rvt_qp *qp);
++
++int hfi2_check_modify_qp(struct rvt_qp *qp, struct ib_qp_attr *attr,
++			 int attr_mask, struct ib_udata *udata);
++
++void hfi2_modify_qp(struct rvt_qp *qp, struct ib_qp_attr *attr,
++		    int attr_mask, struct ib_udata *udata);
++void hfi2_restart_rc(struct rvt_qp *qp, u32 psn, int wait);
++int hfi2_setup_wqe(struct rvt_qp *qp, struct rvt_swqe *wqe,
++		   bool *call_send);
++
++int hfi2_ruc_check_hdr(struct hfi2_ibport *ibp, struct hfi2_packet *packet);
++
++u32 hfi2_make_grh(struct hfi2_ibport *ibp, struct ib_grh *hdr,
++		  const struct ib_global_route *grh, u32 hwords, u32 nwords);
++
++void hfi2_make_ruc_header(struct rvt_qp *qp, struct ib_other_headers *ohdr,
++			  u32 bth0, u32 bth1, u32 bth2, int middle,
++			  struct hfi2_pkt_state *ps);
++
++bool hfi2_schedule_send_yield(struct rvt_qp *qp, struct hfi2_pkt_state *ps,
++			      bool tid);
++
++void _hfi2_do_send(struct work_struct *work);
++
++void hfi2_do_send_from_rvt(struct rvt_qp *qp);
++
++void hfi2_do_send(struct rvt_qp *qp, bool in_thread);
++
++void hfi2_send_rc_ack(struct hfi2_packet *packet, bool is_fecn);
++
++int hfi2_make_rc_req(struct rvt_qp *qp, struct hfi2_pkt_state *ps);
++
++int hfi2_make_uc_req(struct rvt_qp *qp, struct hfi2_pkt_state *ps);
++
++int hfi2_make_ud_req(struct rvt_qp *qp, struct hfi2_pkt_state *ps);
++
++int hfi2_register_ib_device(struct hfi2_devdata *);
++
++void hfi2_unregister_ib_device(struct hfi2_devdata *);
++
++void hfi2_kdeth_eager_rcv(struct hfi2_packet *packet);
++
++void hfi2_kdeth_expected_rcv(struct hfi2_packet *packet);
++
++void hfi2_ib_rcv(struct hfi2_packet *packet);
++
++void hfi2_16B_rcv(struct hfi2_packet *packet);
++
++unsigned int hfi2_get_npkeys(struct hfi2_devdata *);
++
++int hfi2_verbs_send_dma(struct rvt_qp *qp, struct hfi2_pkt_state *ps,
++			u64 pbc);
++
++int hfi2_verbs_send_pio(struct rvt_qp *qp, struct hfi2_pkt_state *ps,
++			u64 pbc);
++
++static inline bool opa_bth_is_migration(struct ib_other_headers *ohdr)
++{
++	return ohdr->bth[1] & cpu_to_be32(OPA_BTH_MIG_REQ);
++}
++
++void hfi2_wait_kmem(struct rvt_qp *qp);
++
++static inline void hfi2_trdma_send_complete(struct rvt_qp *qp,
++					    struct rvt_swqe *wqe,
++					    enum ib_wc_status status)
++{
++	trdma_clean_swqe(qp, wqe);
++	rvt_send_complete(qp, wqe, status);
++}
++
++extern const enum ib_wc_opcode ib_hfi2_wc_opcode[];
++
++extern const u8 hdr_len_by_opcode[];
++
++extern const int ib_rvt_state_ops[];
++
++extern __be64 ib_hfi2_sys_image_guid;    /* in network order */
++
++extern unsigned int hfi2_max_cqes;
++
++extern unsigned int hfi2_max_cqs;
++
++extern unsigned int hfi2_max_qp_wrs;
++
++extern unsigned int hfi2_max_qps;
++
++extern unsigned int hfi2_max_sges;
++
++extern unsigned int hfi2_max_mcast_grps;
++
++extern unsigned int hfi2_max_mcast_qp_attached;
++
++extern unsigned int hfi2_max_srqs;
++
++extern unsigned int hfi2_max_srq_sges;
++
++extern unsigned int hfi2_max_srq_wrs;
++
++extern unsigned short piothreshold;
++
++extern const u32 ib_hfi2_rnr_table[];
++
++#endif                          /* HFI2_VERBS_H */
+diff --git a/drivers/infiniband/hw/hfi2/verbs_txreq.h b/drivers/infiniband/hw/hfi2/verbs_txreq.h
+new file mode 100644
+index 000000000000..b267771b643a
+--- /dev/null
++++ b/drivers/infiniband/hw/hfi2/verbs_txreq.h
+@@ -0,0 +1,97 @@
++/* SPDX-License-Identifier: GPL-2.0 OR BSD-3-Clause */
++/*
++ * Copyright(c) 2016 - 2018 Intel Corporation.
++ */
++
++#ifndef HFI2_VERBS_TXREQ_H
++#define HFI2_VERBS_TXREQ_H
++
++#include <linux/types.h>
++#include <linux/slab.h>
++
++#include "verbs.h"
++#include "sdma_txreq.h"
++#include "iowait.h"
++
++struct verbs_txreq {
++	struct hfi2_sdma_header	phdr;
++	struct sdma_txreq       txreq;
++	struct rvt_qp           *qp;
++	struct rvt_swqe         *wqe;
++	struct rvt_mregion	*mr;
++	struct rvt_sge_state    *ss;
++	struct sdma_engine     *sde;
++	struct send_context     *psc;
++	struct kref		ref;
++	u16                     hdr_dwords;
++	u16			s_cur_size;
++};
++
++struct hfi2_ibdev;
++struct verbs_txreq *__get_txreq(struct hfi2_ibdev *dev,
++				struct rvt_qp *qp);
++
++#define VERBS_TXREQ_GFP (GFP_ATOMIC | __GFP_NOWARN)
++static inline struct verbs_txreq *alloc_txreq(struct hfi2_ibdev *dev,
++					      struct rvt_qp *qp)
++	__must_hold(&qp->slock)
++{
++	struct verbs_txreq *tx;
++	struct hfi2_qp_priv *priv = qp->priv;
++
++	tx = kmem_cache_alloc(dev->verbs_txreq_cache, VERBS_TXREQ_GFP);
++	if (unlikely(!tx)) {
++		/* call slow path to get the lock */
++		tx = __get_txreq(dev, qp);
++		if (!tx)
++			return tx;
++	}
++	tx->qp = qp;
++	tx->mr = NULL;
++	tx->sde = priv->s_sde;
++	tx->psc = priv->s_sendcontext;
++	/* so that we can test if the sdma descriptors are there */
++	tx->txreq.num_desc = 0;
++	/* Set the header type */
++	tx->phdr.hdr.hdr_type = priv->hdr_type;
++	tx->txreq.flags = 0;
++	kref_init(&tx->ref);
++	return tx;
++}
++
++static inline struct verbs_txreq *get_waiting_verbs_txreq(struct iowait_work *w)
++{
++	struct sdma_txreq *stx;
++
++	stx = iowait_get_txhead(w);
++	if (stx)
++		return container_of(stx, struct verbs_txreq, txreq);
++	return NULL;
++}
++
++static inline bool verbs_txreq_queued(struct iowait_work *w)
++{
++	return iowait_packet_queued(w);
++}
++
++void dealloc_txreq(struct kref *ref);
++
++/*
++ * There are no locks to enforce ordering between hfi2_get_txreq() and
++ * hfi2_put_txreq().  The caller of hfi2_get_txreq() must be currently
++ * holding a reference to avoid any race with hfi2_put_txreq().
++ */
++static inline void hfi2_get_txreq(struct verbs_txreq *tx)
++{
++	kref_get(&tx->ref);
++}
++
++static inline void hfi2_put_txreq(struct verbs_txreq *tx)
++{
++	kref_put(&tx->ref, dealloc_txreq);
++}
++
++int verbs_txreq_init(struct hfi2_ibdev *dev);
++void verbs_txreq_exit(struct hfi2_ibdev *dev);
++
++#endif                         /* HFI2_VERBS_TXREQ_H */
 
 
