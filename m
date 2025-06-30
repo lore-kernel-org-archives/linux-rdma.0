@@ -1,28 +1,28 @@
-Received: from NAM11-CO1-obe.outbound.protection.outlook.com (mail-co1nam11on2122.outbound.protection.outlook.com [40.107.220.122])
+Received: from NAM11-DM6-obe.outbound.protection.outlook.com (mail-dm6nam11on2114.outbound.protection.outlook.com [40.107.223.114])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C1C32E6D2F
-	for <linux-rdma@vger.kernel.org>; Mon, 30 Jun 2025 17:58:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.220.122
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C13F2E6D2C
+	for <linux-rdma@vger.kernel.org>; Mon, 30 Jun 2025 17:58:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.223.114
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751306306; cv=fail; b=PgS+493Fl6tmMHlwhG/XrI65uY494H+t4WnCCrSU3SSlTMWgWxd2EqgvY4ADSbzNW1T/wKIGAOHlays33oDcG3XenUQU58FryxjHR+sFtKF2duuHCGndiHSgI8jcRFVTgbxUPGT0OmI9Cim/nrdI5FneyWNctvHVbsAxGizv5gc=
+	t=1751306307; cv=fail; b=R2qaupAUExmCNT+NKozk2jjF4g6Stp/uWhZBoyx0WpgalTmBLY5maLQw2EwB7l5OjF5ybb5cr4Nkc3Dvi1oE2V7rxyn5m+c7MY+Qxqdf5+UvUof66AAZ0fHOSXvETmWOuYLyiwQEN5j0sGNJGNU225bjqAHdifdcHEfpYxqiqmY=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751306306; c=relaxed/simple;
-	bh=aMevXhfkBtmxkkTAoxzjgQwhtrL0PjZYRXhHwGbvS1g=;
+	s=arc-20240116; t=1751306307; c=relaxed/simple;
+	bh=PTik6weB87fky4cjn6VztT6v6KJaeWgVse0D0kNzpE4=;
 	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=ggq5r2xzRvHzsIFYClpBlFlGJ0N0Yn0I4o35oGMC6K/GocS/9WNeRAYNI/iDiENwlVk/66o2JOfKDSQbmWuButbcSk27qZ4YRpgCO8P92iY6jNmpBEahgsvv0wx/YJR3/Onn5a+ZmxhA98KlP/oKwAsWYlN0sH1KAYlxIOQv4Ck=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cornelisnetworks.com; spf=pass smtp.mailfrom=cornelisnetworks.com; dkim=pass (2048-bit key) header.d=cornelisnetworks.com header.i=@cornelisnetworks.com header.b=jV9bV7/t; arc=fail smtp.client-ip=40.107.220.122
+	 MIME-Version:Content-Type; b=WJ/wQ/gUNOdibK3+xYHo9Q9NnVmH8U48gq1bafIFQEJh8CgOvdjVsTC+WKcEntTaWge6J6tbgD9gUetL+45ZffHGL/oEEYLveyl2GQgcsgQpLHifKTPRoDBncnao3WMSswReFDJr5O8DP+ybxqcp3sIwq2reKlmFwBAwb+pzH3I=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cornelisnetworks.com; spf=pass smtp.mailfrom=cornelisnetworks.com; dkim=pass (2048-bit key) header.d=cornelisnetworks.com header.i=@cornelisnetworks.com header.b=gR/NfXXJ; arc=fail smtp.client-ip=40.107.223.114
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cornelisnetworks.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=cornelisnetworks.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=cornelisnetworks.com header.i=@cornelisnetworks.com header.b="jV9bV7/t"
+	dkim=pass (2048-bit key) header.d=cornelisnetworks.com header.i=@cornelisnetworks.com header.b="gR/NfXXJ"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=jUdaUSFpSgeyuV3GsRziIYwK7GxvTtZH6RbaEvPPZ95REtz2e62o0bqKfDCKBSzCptZw6x0K+toLqi331Ye71bs/mDCLLU8x2png1lSestWiEZKxyXxCqn17ol4qR/O4M+k/KmCj/JFdcsa79gcisV0vVC0MtIy6XbHF3VV95ov/fmVJOKLp9KFLnXdvGEigptRJBuyuqNvsEBRpHe4B4CEQHQjdly1KqYCXfnszm6NdhlPGtJMjxbHUteSIl/LoKyTG8BWfFp858lRN1LhxdzkTNpSYv4wFSKhTEdWfmmTovGpslmc9S5w/sV5uq3kjRHGWc533k82JTU97SL9ZKg==
+ b=OamELLu9G/6mP1qAUv3tBtSIDQBkBWcm5U042+AD2k7gPVudWyRaVGo52jZytWFr/577HI8Yrfhfm/+8Ma5Fzyo9Qz74cZYA6TC6F48I8Wm5tvZx6NrLQVKEEfJtwKDTFX4KzzsyysZZrkplYruK16SqMOREGiky1bs+ZM4Re8nWHULNDq3GjgbQ5o/wxOCovW/5jt0q4MiotMIwaOSP8KcZyD+CsaAfu9/mUg4j3Nh70m5IDxrfmz8LPzWxJJDVRZQZz80A5RjOGofFqxpD7Nfc7SLybIz7mPQI38ZOY/FywAsDFNLDQZqhn5rksiChsD5yVNyC1463rXg5nKUdiA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=lDeRllD7OC/67/LcCu8adUlLNu2f1uNmkCOF+hu2DPE=;
- b=mq9LAutVJtkQIKsBLG0gB9BfGv6c9UMR5NJ9lSkg4CM9mx39BBzCknIVTNo7sAqoRTbozZMWSGPIjGBQxAllOy7Z4svl6BIksmmu1Q4VE9QmnCcqwIJ5/0YAz5Nj5mZBdqVPGVO0l20s1kBN0VU4eSX8qsZhF1O3xwJFNDjDe9qJRrYpf6IUBWIyRL0EufZj4oWk7jNFOMmfMAsKStvHupwNOTuLY8jwbek2aVudEU/xT+AFrR8jVk76rk9qc2znON47mmFHeOA1OIPEn+Ke1y4QvPyTm4au7RsXTjmgJZOWNGosxpfiuH4MtyUCou+SfKfkUrPPxKokdUSewQ5jsQ==
+ bh=p7pMpzrAQjb4aywJZeJal+nI4kMlLsw6u9aJ6/6D3Co=;
+ b=cgk0jjmqkHF4CR/BEKqxttgTWDOunxyvZt84q84712I9vUij83fdZfe9CC7KmXu6TtO/zqeC3OVTDzCCLgRstaChtah2kT2bTx/yoOLzXkn4LtVwOnIFobPjA56xjVoimn8/iAAv55exSJL0kuE36CThFkAJSuWDlryCkNKLXPTAF6O7Cfg6cXwhD7NlFcjI+mBuRsqfPzDSeEzu4bCC1+58oUvipqq0tYyywxRBOiYdzuPbHWQ0u0S051iET3oYBQkZHc7bQ5vny+dNZsu7IRm+9XlNt4uV4yjlQAeVy99Mu+JIvkR6Yig5WMpWeCgNjB9K6/6jRU7z3h21JMicAw==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
  208.255.156.42) smtp.rcpttodomain=cornelisnetworks.com
  smtp.mailfrom=cornelisnetworks.com; dmarc=pass (p=none sp=none pct=100)
@@ -31,17 +31,17 @@ ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cornelisnetworks.com;
  s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=lDeRllD7OC/67/LcCu8adUlLNu2f1uNmkCOF+hu2DPE=;
- b=jV9bV7/teAFdc7Vfo/mTwawE2I9riA5Ns+qIHuiouJmjaVOqWDAVbq1Tqs/W78hcPbEVZO4Fhxhd1CsMdBV1VnYTw0W4Am3Oz83WXIk5LXIgjP2Wq1UcwQrTINkinpk8AWyS8PQ3w7esIBQbZ0XS/xtQnvPWyD3MAA30YLd+NrU7miQOolca8p5VBxiepVGriQ8Mw6RC8gxeuOFw7W9hgB0c7hNM8rMzBGamxatk62ZFq/z7iWvTtnxcsD7JwfoYBtMz13YlaSQ3jevwHap3Cpphste39dffuMC4DBcUPvToL9L8SASchtJEFoWgRF7XBrKG+QUACjJ0vyxzyCdBpg==
-Received: from MW4PR04CA0094.namprd04.prod.outlook.com (2603:10b6:303:83::9)
- by LV5PR01MB9441.prod.exchangelabs.com (2603:10b6:408:2b7::10) with Microsoft
+ bh=p7pMpzrAQjb4aywJZeJal+nI4kMlLsw6u9aJ6/6D3Co=;
+ b=gR/NfXXJryc9ZAB6ud3hTDQfbEvEsODc3Ih2ECGTmeUyEeqczahVwgbbwjQULg5pg6L1I8v1zfWxIVVvsfG148ZvRXr9VW3dsaGtFABRFZVWSo7FnHiqtrlzGPTwfkY/mnz0lE/rhT77Mk2dpJfvQznoQFfo2k6fGiEACDg/Z5dB9MO0HVz1UfDJN+ZFm6Zvzc63zh9cwHNHTFljM9nSMDvWuflTNBvDLyyIbMekIu3ZaQEaXX/OpvzbZK/bVFvPXDbQ/RdgetlqPGiPfJ/t/ojwqS4rOPwz1R/SbjW0ffOZDcJLcOY7y+g59UdQI6dGsSDu2Sm/Sba9zCRANgjqNQ==
+Received: from BL0PR05CA0005.namprd05.prod.outlook.com (2603:10b6:208:91::15)
+ by SJ2PR01MB8052.prod.exchangelabs.com (2603:10b6:a03:4c7::7) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.8880.24; Mon, 30 Jun 2025 17:58:12 +0000
-Received: from CY4PEPF0000E9DB.namprd05.prod.outlook.com
- (2603:10b6:303:83:cafe::fc) by MW4PR04CA0094.outlook.office365.com
- (2603:10b6:303:83::9) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.20.8880.31 via Frontend Transport; Mon,
- 30 Jun 2025 17:58:11 +0000
+ 15.20.8880.21; Mon, 30 Jun 2025 17:58:12 +0000
+Received: from BN1PEPF0000468A.namprd05.prod.outlook.com
+ (2603:10b6:208:91:cafe::46) by BL0PR05CA0005.outlook.office365.com
+ (2603:10b6:208:91::15) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.20.8901.18 via Frontend Transport; Mon,
+ 30 Jun 2025 17:58:10 +0000
 X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 208.255.156.42)
  smtp.mailfrom=cornelisnetworks.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=cornelisnetworks.com;
@@ -50,23 +50,23 @@ Received-SPF: Pass (protection.outlook.com: domain of cornelisnetworks.com
  receiver=protection.outlook.com; client-ip=208.255.156.42;
  helo=cn-mailer-00.localdomain; pr=C
 Received: from cn-mailer-00.localdomain (208.255.156.42) by
- CY4PEPF0000E9DB.mail.protection.outlook.com (10.167.241.74) with Microsoft
+ BN1PEPF0000468A.mail.protection.outlook.com (10.167.243.135) with Microsoft
  SMTP Server (version=TLS1_3, cipher=TLS_AES_256_GCM_SHA384) id 15.20.8901.15
- via Frontend Transport; Mon, 30 Jun 2025 17:58:11 +0000
+ via Frontend Transport; Mon, 30 Jun 2025 17:58:10 +0000
 Received: from awdrv-04.localdomain (awdrv-04.cornelisnetworks.com [10.228.212.218])
-	by cn-mailer-00.localdomain (Postfix) with ESMTPS id E419214D733;
+	by cn-mailer-00.localdomain (Postfix) with ESMTPS id D9A3514D72D;
 	Mon, 30 Jun 2025 13:58:06 -0400 (EDT)
 Received: from awdrv-04.cornelisnetworks.com (localhost [IPv6:::1])
-	by awdrv-04.localdomain (Postfix) with ESMTP id 1683E1848B5E2;
-	Mon, 30 Jun 2025 11:31:39 -0400 (EDT)
-Subject: [PATCH for-next 22/23] RDMA/hfi2: Add the rest of the driver
+	by awdrv-04.localdomain (Postfix) with ESMTP id 9C86E1848B5DA;
+	Mon, 30 Jun 2025 11:31:08 -0400 (EDT)
+Subject: [PATCH for-next 16/23] RDMA/hfi2: Implement MAD handling
 From: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
 To: jgg@ziepe.ca, leon@kernel.org
 Cc: Dean Luick <dean.luick@cornelisnetworks.com>,
  Douglas Miller <doug.miller@cornelisnetworks.com>, linux-rdma@vger.kernel.org
-Date: Mon, 30 Jun 2025 11:31:39 -0400
+Date: Mon, 30 Jun 2025 11:31:08 -0400
 Message-ID:
- <175129749901.1859400.6207688298626649438.stgit@awdrv-04.cornelisnetworks.com>
+ <175129746858.1859400.1938866052847807284.stgit@awdrv-04.cornelisnetworks.com>
 In-Reply-To:
  <175129726945.1859400.4492277779101226937.stgit@awdrv-04.cornelisnetworks.com>
 References:
@@ -82,65 +82,65 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: CY4PEPF0000E9DB:EE_|LV5PR01MB9441:EE_
-X-MS-Office365-Filtering-Correlation-Id: 3477aeef-d71e-4e93-d495-08ddb7ffada4
+X-MS-TrafficTypeDiagnostic: BN1PEPF0000468A:EE_|SJ2PR01MB8052:EE_
+X-MS-Office365-Filtering-Correlation-Id: 01bb3c94-645d-42c2-7d56-08ddb7ffad18
 X-MS-Exchange-AtpMessageProperties: SA
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|376014|82310400026|36860700013|1800799024;
+	BCL:0;ARA:13230040|82310400026|376014|36860700013|1800799024;
 X-Microsoft-Antispam-Message-Info:
-	=?utf-8?B?RTlHdGV0THhVL29EOFJQam83YnJ0bS81UkFxQ2NkMUFJNWtNc215Q0EyMTZM?=
- =?utf-8?B?Y0cyZWN5Vmh1R29ZcnZLVE1oc2srVUFHc1FBZW8vRjlKcHZyS2VkeVppMElj?=
- =?utf-8?B?Vk1WcFhjcW1RcWFZcnRNNjV2VnFZdERKbGpzWnI1RzJ6UWtKMnRqTGxUeUxw?=
- =?utf-8?B?cm1rQkYwZkhON2pnOWVibWczallUVE93bGZKTGdBeG1yK1hoN2dqL2JET3JN?=
- =?utf-8?B?Wm42Tmc2azBvMEZZVWNQQUZ6WGl0bWxpV0FlSHliWWJ2cDVONXplbVA0R0Iz?=
- =?utf-8?B?eHRmcW9Hc3VKZUlBOENwQUZPdEhiNDJiQmxHMWRxTTUxb2FNUE1zZkVja2lL?=
- =?utf-8?B?SXVHa0ZvQjlkQjNtS3Fmb2F5c1AxZUY2aWRNUmFndWZ5bzlUS3ZRSVd6ZHd3?=
- =?utf-8?B?QXBrOE83RERxQ2poNEsrc1lWRUNBR1lSc0xQNmZkcWpPMm15R2tETHlIN1Iw?=
- =?utf-8?B?b0hBdXEyUWpReEFEN21Hd2hDTU5MSEc0bGQ0ZHd4VndTbC8rQmx6Z0lzMFIw?=
- =?utf-8?B?RVhiK213N1dTY2NSZ1BrT1FtN0I2cVYwLzUzZUkxTURCVGJLK0lSdXVRWlF6?=
- =?utf-8?B?ZlZpVHFSMzdNUU1GQlhWbWw5NitLY0I1M0pQQ25uM242R1ovREdZekoxenJI?=
- =?utf-8?B?MG41NzdWQVVmYkVHRzdqRDB5MklLdTZYUnM1TEk4cUdKQ2wyVEt2YTZmeXRY?=
- =?utf-8?B?YWFxdUxwWkxwLzdEaTBvZVBaRDQ2OXdWS2lhRGZJcUtpVmVNalJ2TlJBcmFq?=
- =?utf-8?B?NUIrNWp0VVJTT2YrdXlncUFGcUkzUEg4KzRVLzhLaVVLOVBVcTVoMkhNSWx5?=
- =?utf-8?B?V2ZlbjNMdFlpelhBMnFiV2Z5Wld0Y3FyWDJMUlhPZ1pYVWlHa29HU2lqS005?=
- =?utf-8?B?WVNIRk5sczJIMEx2dWx3T2dzYm5Ga2hJWWJVSC9LcU9GMVZVc3NlVFFmODI2?=
- =?utf-8?B?YmM5YzdtemtWU3djcFJGS01hYU5XNzFKKzgvbDhzalcxR2hKNUh0SjRhME1W?=
- =?utf-8?B?bDlWS09WTzFQdkQ2LzRrblJQTThmTENNN0VCSjdMTHNUSjA4UStMNGVXdm8r?=
- =?utf-8?B?c21hT3FkSjVoaFpKcWFmRmhhMGE1eWhwVHJnTFBxQkN3TEErNmI0ejNTcVM5?=
- =?utf-8?B?MWI1ME5KNW4wY05HMlhqdCtBM3Jpajk2Y00zUGZPdUxMK0xpTFlwcXFjdzRS?=
- =?utf-8?B?T2Z0TXd4azhyVVRXaUJvdTBXTEtjdHFYNEZra1dDa1hKSm5MdldMU3oxcVNu?=
- =?utf-8?B?c0RaM2hFMVA1VFBDeklpMG9sVityYmxTUzZ0c1B1bXNBTmQwRHpmUEJZcVJQ?=
- =?utf-8?B?czY0UGRRMi9WcW9WUjJKd2x1cVpTbTBYVVFjSGpuUHBBN0hUZ0FZS0RESWxo?=
- =?utf-8?B?cEtpdzAxWWd0WUR2RDZqa1A0ajF3MWJ2NXdoTmlZRGVjaGFLclFpYldDb3o3?=
- =?utf-8?B?Z1hESDBHR3o2UGVXUmthWVZ1ZEt4K2ZJb0prcWJxdnk5NlRwVnRJeWJzOVpE?=
- =?utf-8?B?Q0RRdGhFdThtOEMwNW1HWm8zaFI2cmJXVGR4cjFXc3lQcDJkMlFXdUxEUHgx?=
- =?utf-8?B?UXJxK08xMExTTEQ5TFdZdEZuZ0d1SkU0RXhHOEJ0WjdDTS9aT2FmRkNJUjA3?=
- =?utf-8?B?VktjQ0ttWHpNZ3pnRldqSU91VDBDcTdPVFROQWs3NDU0UTg4RzZjMVYvV1FW?=
- =?utf-8?B?aERYZWU1NURwM1A1RnNQLzN4eFdsZExYRS9WQnpHNnVIYVV1UUJ5VTJVaVJy?=
- =?utf-8?B?SnhHSTRWaHVTeTdLb0xzSmt3NnhZRjd2N1JUQzVoRElDYlgvYjZDSEFGc3lV?=
- =?utf-8?B?bE9QYjN6dzdvSWl2Z2VIWlBoWDh5Sm5MMllCUS90VTVkSFhWOThhN2lJQWpC?=
- =?utf-8?B?N1Q0MjcvQ1g4WTJlTjh0SXB0SnEvWHZwcC9pa3Rmb0hnRHBnMjBNWnpLazl1?=
- =?utf-8?B?OHYrWE9VR3ptcDM5YURuWlIvTHFURWdXeUdNRitVSnBQbWRzdWl5bTUxNkJv?=
- =?utf-8?B?enZvaTJPemVRN1pvNzJmcDdDOXozNHBHSkJpdVcwUThwNVVLaTkrZ240Tng2?=
- =?utf-8?Q?ay/QGK?=
+	=?utf-8?B?RjdCcTJWVkhlT3RPaWcwdGNTaU8wNG9HZXpERkxkTng0ejI4UXNBcTNkSitq?=
+ =?utf-8?B?WE9FS0tCQkhqbVdTblRSa0wrS2doMjh3cXZLVFpRRGJ3WkVZZWRKd3ZOVXEr?=
+ =?utf-8?B?b2hOTnJueFlMT0JMeGtOejExUXFSRVVlV0x5aUlpWU1UL3UzeUVQeFA5QmVu?=
+ =?utf-8?B?VFdsbHU1Ny9aVjB3dTREdm1tby9ML0RFbFRDNjNLcVFZY0wxc2lFQXV2eUpQ?=
+ =?utf-8?B?TG4zaVU2WW4zQjRNWkxxTVI1ait5RktoelMxK2VWZlloeDFEbkJoc1RHYUdK?=
+ =?utf-8?B?MG03ZW5kb05yZzQ1Mzh5QmRYZXoreW5iMFJ6c1QyUXBQWkhmeGFVSGtJQmZp?=
+ =?utf-8?B?NkhVZjV5eTFWRjhyWEMzb3hqNURldE5TbTZZdmZ6K0owSXZWNm5RUkRLdFcy?=
+ =?utf-8?B?OVlXalM1YlpoWWZGL1hoMEVCN3NLVnRheHRNYW9iTkp6cGdRcnFIdGpVYjdF?=
+ =?utf-8?B?TzZkcFFydkpVc25SblhyWUhtbnVsOXl0enNzSkJYSGlPayt4M09qbU9oQVNN?=
+ =?utf-8?B?N1VFWjBxQUNDTWMyZjFhbXo3TXJySVdDNFNKU2pxL29UYUFTeStHcTBid09M?=
+ =?utf-8?B?U2czTnZyRjJEd3pCbmtJSkpralhHVnVqSTllYi9KejZVcmczZFBhWTBrQTRY?=
+ =?utf-8?B?NzNhV2t2a3llZGF5cEZ5WmVCdjV0R1RXOXhIN2FzV05mZDU0bmRhN2RWY2Z4?=
+ =?utf-8?B?TmVSdVJvdWFON0VLL25oeUZGMWR6azZpcTQ4bzNJbVdXVXlBT3FrbWorYkpq?=
+ =?utf-8?B?MVJiZ0VjQ2kreGVJdisrU0VlSEt4UXJOUC8rNWd0Zm5iL09zbW9URnJOaDVP?=
+ =?utf-8?B?clhZeG9oUzh2czVYczFzU2Z2R1M2dlZzSHBSc0dGUGpzZ2NyUnE4b2xmTktx?=
+ =?utf-8?B?RVNnQjZVdjZweUJQaWRmYWNPejB2UG9ZTUpxV0RYYWQzdU9UV2ZCdHN6eHo2?=
+ =?utf-8?B?empxTEJJbEpib1FObUpNVnZPK1IyendNMldoK0lIT3lFYmdmMG96NVFvQ1dn?=
+ =?utf-8?B?eFIxaW5wdThZRlBNbTBHRFlXMWtDU1hSbVBicmNjcGdCL0hzeVJxVy9FVzV0?=
+ =?utf-8?B?ZnpuYTJraWl5dkVNZklXaFMySUtaN2pWc3FNU0RjdWJ6cXU2dGpCeGJML3d3?=
+ =?utf-8?B?UlVTKzBsMnRMaW54VG5sbXhMb3N0Q0lENVErZy8vZVhCNis3RGIyTnVkSWNs?=
+ =?utf-8?B?dXpRcmxTRjQwNUdJa2xNV0FuWnVQT0VuVmF2QXlzSEdOa2U3amxwUWpxRGgv?=
+ =?utf-8?B?ek56RWJyQzRFcHBkVlljdVUrdnRYWUdESHZjV0hPM3oxOUxidnJsSStkZk4v?=
+ =?utf-8?B?QndNeTdWSU5LVGl3VGpvRkpLMHEzQkp1UlpVMWYyV2RoVXJiTjJ2Q3lrbjFL?=
+ =?utf-8?B?OHdvdjVvTTA4bkVZMTc5TDBqbW5aMFltOFcwdUFGNTU3eXhMdGRmYUN5TFVz?=
+ =?utf-8?B?alBjaU12cWcxNjlKUGx5TFliV1hlOGdkMzNRUWJ1bmpKWXJyRElQZ3BKcnJH?=
+ =?utf-8?B?QVljbnNicVhWMDVNS3praU55STQrUFdXdHBmdnFHa0tKNWo0TlMzbHhFdTFT?=
+ =?utf-8?B?Q1pZV0wyeENlZThFK3hNT2VRMHZuWWVWb3o2NDVSVmFkTFhMV1M3dkk3L1Ft?=
+ =?utf-8?B?aUUzUnM3WmtlSlltMnJjekxlTXlRQnJ4bG5ONG9SQS85YmZWK3BDUmlIUVdj?=
+ =?utf-8?B?eDhlc3dwaUxBeThEbSttR3NwOUhlQ0VNVENaaGN4d0hRSEx5T3JEaWxhcEo1?=
+ =?utf-8?B?U2hGL04wLzBFYkZGT0VHcjNqY3ZBV0tnanNNeHhGZ0VIekhWUTl1b0RqcTN6?=
+ =?utf-8?B?SUQrcDFNQTNJalVycm1qb1IreDE1TzdxZ3NhRVludVBFNHhFU1E5cjZhZ1pG?=
+ =?utf-8?B?ZjdpOCs3azVzSlV0VlpsNVl5Qm15VERuSVU3SlYxTmM0MS8vUGVSSldCMUNO?=
+ =?utf-8?B?Rnp5SUozVWZBZm9aWnNwOHlsQWVyY21MRDhVSkdJSVRsWkhySVBXUU5TdUtt?=
+ =?utf-8?B?a0dhZEhNbGJZeStFVlBKTmZzSzFma2tVVHBWMFBMMFN6a3hMNmx4cHlOaUxT?=
+ =?utf-8?Q?FF7r/B?=
 X-Forefront-Antispam-Report:
-	CIP:208.255.156.42;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:cn-mailer-00.localdomain;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(376014)(82310400026)(36860700013)(1800799024);DIR:OUT;SFP:1102;
+	CIP:208.255.156.42;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:cn-mailer-00.localdomain;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(82310400026)(376014)(36860700013)(1800799024);DIR:OUT;SFP:1102;
 X-OriginatorOrg: cornelisnetworks.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 30 Jun 2025 17:58:11.2861
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 30 Jun 2025 17:58:10.4460
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 3477aeef-d71e-4e93-d495-08ddb7ffada4
+X-MS-Exchange-CrossTenant-Network-Message-Id: 01bb3c94-645d-42c2-7d56-08ddb7ffad18
 X-MS-Exchange-CrossTenant-Id: 4dbdb7da-74ee-4b45-8747-ef5ce5ebe68a
 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=4dbdb7da-74ee-4b45-8747-ef5ce5ebe68a;Ip=[208.255.156.42];Helo=[cn-mailer-00.localdomain]
 X-MS-Exchange-CrossTenant-AuthSource:
-	CY4PEPF0000E9DB.namprd05.prod.outlook.com
+	BN1PEPF0000468A.namprd05.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: LV5PR01MB9441
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ2PR01MB8052
 
-There are a few other C files left after adding all the major topics adding
-them in one go.
+Add the handling for MAD processing and communicating with the embedded
+micro on the new chip.
 
 Co-developed-by: Dean Luick <dean.luick@cornelisnetworks.com>
 Signed-off-by: Dean Luick <dean.luick@cornelisnetworks.com>
@@ -148,6380 +148,6824 @@ Co-developed-by: Douglas Miller <doug.miller@cornelisnetworks.com>
 Signed-off-by: Douglas Miller <doug.miller@cornelisnetworks.com>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
 ---
- drivers/infiniband/hw/hfi2/debugfs.c  | 1578 +++++++++++++++++++++++++++++++++
- drivers/infiniband/hw/hfi2/eprom.c    |  450 +++++++++
- drivers/infiniband/hw/hfi2/fault.c    |  335 +++++++
- drivers/infiniband/hw/hfi2/pcie.c     | 1380 +++++++++++++++++++++++++++++
- drivers/infiniband/hw/hfi2/platform.c | 1035 ++++++++++++++++++++++
- drivers/infiniband/hw/hfi2/qsfp.c     |  787 ++++++++++++++++
- drivers/infiniband/hw/hfi2/sysfs.c    |  752 ++++++++++++++++
- 7 files changed, 6317 insertions(+)
- create mode 100644 drivers/infiniband/hw/hfi2/debugfs.c
- create mode 100644 drivers/infiniband/hw/hfi2/eprom.c
- create mode 100644 drivers/infiniband/hw/hfi2/fault.c
- create mode 100644 drivers/infiniband/hw/hfi2/pcie.c
- create mode 100644 drivers/infiniband/hw/hfi2/platform.c
- create mode 100644 drivers/infiniband/hw/hfi2/qsfp.c
- create mode 100644 drivers/infiniband/hw/hfi2/sysfs.c
+ drivers/infiniband/hw/hfi2/cport.c |  746 ++++
+ drivers/infiniband/hw/hfi2/mad.c   | 6055 ++++++++++++++++++++++++++++++++++++
+ 2 files changed, 6801 insertions(+)
+ create mode 100644 drivers/infiniband/hw/hfi2/cport.c
+ create mode 100644 drivers/infiniband/hw/hfi2/mad.c
 
-diff --git a/drivers/infiniband/hw/hfi2/debugfs.c b/drivers/infiniband/hw/hfi2/debugfs.c
+diff --git a/drivers/infiniband/hw/hfi2/cport.c b/drivers/infiniband/hw/hfi2/cport.c
 new file mode 100644
-index 000000000000..b30be9c11e6a
+index 000000000000..918476c39847
 --- /dev/null
-+++ b/drivers/infiniband/hw/hfi2/debugfs.c
-@@ -0,0 +1,1578 @@
++++ b/drivers/infiniband/hw/hfi2/cport.c
+@@ -0,0 +1,746 @@
++// SPDX-License-Identifier: GPL-2.0 or BSD-3-Clause
++/*
++ * Copyright(c) 2023 Cornelis Networks.
++ */
++
++/*
++ * Implementation details of CPORT communications.
++ */
++
++#include <linux/semaphore.h>
++#include <linux/io.h>
++
++#include "hfi2.h"
++#include "chip_jkr.h"
++#include "cport.h"
++
++static void cport_send_req_fn(struct work_struct *work);
++static void cport_send_rsp_fn(struct work_struct *work);
++
++/*
++ * This limit needs to balance memory consuption against
++ * the need to ensure tids don't repeat during periods of
++ * CPORT stall and message timeout.
++ *
++ * Also note that the limit parameter passed to xa_alloc*()
++ * gets modified, so we cannot use a static structure here.
++ */
++#define cport_tid_limit	XA_LIMIT(0, 255)
++
++/*
++ * The "header" (first qword) of a message to/from CPORT.
++ */
++union cport_header {
++	struct {
++		u64 len:15;
++		u64 _resv1:1;
++		u64 is_req:1;
++		u64 no_rsp:1;
++		u64 seq_no:6;
++		u64 sts:8;
++		u64 tid:16;
++		u64 sideband:8;
++		u64 op_code:8;
++	};
++	u64 qw;
++};
++
++#define CPORT_SEQNO_MASK 0x3f
++
++#define CPORT_HDR_DEF	0x0000007ec0000000ul
++#define CPORT_HDR_LEN	48	/* bit position of length in CPORT_HDR_DEF */
++
++#define CPORT_IN_SCRATCH	(JKR_ASIC_CFG_SCRATCH + 0)
++#define CPORT_OUT_SCRATCH	(JKR_ASIC_CFG_SCRATCH + sizeof(u64))
++
++/*
++ * Assignment of bits in JKR_MCTXT_CPORT_INT_STATUS and
++ * JKR_MCTXT_PF0_INT_STATUS.
++ */
++#define JKR_MCTXT_INT_OUTBOX_EMPTY	0b00000001
++#define JKR_MCTXT_INT_INBOX_FULL	0b00000010
++
++/*
++ * The remainder is private to the host driver.
++ * CPORT firmware has no need of this interface.
++ */
++
++/*
++ * How the MCTXT CSRs are interpreted.
++ */
++union mctxt_mem {
++	union cport_header hdr;
++	u64 qw[JKR_C_MCTXT_MEM_SIZE_IN_QWORDS];
++};
++
++/*
++ * The maximum length of a CPORT message payload (cport_header.len).
++ * The MCTXT is 2K each direction, and payload length excludes header.
++ */
++#define CH_LEN_MAX	(sizeof(union mctxt_mem) - sizeof(union cport_header))
++
++/*
++ * The common structure used to implement CPORT messages in hfi2.
++ */
++struct cport_work {
++	struct work_struct work;
++	struct kref kref;
++	int flags;
++	long timeout;
++	struct semaphore *sem; /* only valid in send, if request w/response */
++	struct hfi2_devdata *dd; /* only valid in recv context */
++	union mctxt_mem req;
++	union mctxt_mem rsp;	/* only used for request w/response */
++};
++
++#define CW_FLAG_SEND		0x01	/* struct originated in send */
++#define CW_FLAG_RECV		0x02	/* struct originated in receive */
++#define CW_FLAG_RQ_ALLOC	0x04	/* request payload was kalloc'ed */
++#define CW_FLAG_RS_ALLOC	0x08	/* response payload was kalloc'ed */
++
++/*
++ * Acquire a reference to the message structure
++ */
++static inline void cwget(struct cport_work *cw)
++{
++	kref_get(&cw->kref);
++}
++
++/*
++ * Locate and remove the 'id' message in the xarray and atomically
++ * acquire a reference to the message structure.
++ */
++static inline struct cport_work *cwget_xa(struct hfi2_devdata *dd, u32 id)
++{
++	struct cport_work *cw;
++
++	xa_lock(&dd->cport->tid_xa);
++	cw = __xa_erase(&dd->cport->tid_xa, id);
++	if (cw)
++		cwget(cw);
++	xa_unlock(&dd->cport->tid_xa);
++	return cw;
++}
++
++static void cwrelease(struct kref *kref)
++{
++	struct cport_work *cw = container_of(kref, struct cport_work, kref);
++
++	kfree(cw);
++}
++
++static void cwput(struct cport_work *cw)
++{
++	kref_put(&cw->kref, cwrelease);
++}
++
++static struct cport_work *cwalloc(int flag)
++{
++	struct cport_work *cw = kzalloc(sizeof(*cw), GFP_KERNEL);
++
++	if (!cw)
++		return NULL;
++	cw->flags = flag;
++	kref_init(&cw->kref);
++	return cw;
++}
++
++/* set "external" (non-alloc) response payload */
++static void pld_rsp_set(struct cport_work *cw, void *pld, int len)
++{
++	if (len > CH_LEN_MAX)
++		len = CH_LEN_MAX;
++	memcpy(&cw->rsp.qw[1], pld, len);
++	cw->rsp.hdr.len = len + sizeof(cw->rsp.hdr);
++}
++
++/*
++ * Send request, non-blocking, with timeout for OUTBOX_EMPTY wait.
++ * Caller must watch 'wait' semaphore for completion, and
++ * then call cport_send_comp() or cport_send_cancel() to finalize everything.
++ * Returns handle for cport_send_comp()/_cancel(), or ERR_PTR().
++ *
++ * See cport_send_req() for example usage.
++ */
++void *cport_send_req_nb(struct hfi2_devdata *dd, u8 op, u8 sideband, void *payload,
++			int len, struct semaphore *wait, long timeout)
++{
++	int ret;
++	struct cport_work *msg;
++	u32 idx;
++
++	if (!dd->cport || len > CH_LEN_MAX)
++		return ERR_PTR(-EINVAL);
++
++	msg = cwalloc(CW_FLAG_SEND);
++	if (!msg)
++		return ERR_PTR(-ENOMEM);
++	msg->dd = dd;
++	msg->timeout = timeout;
++	memcpy(&msg->req.qw[1], payload, len);
++	ret = xa_alloc_cyclic(&dd->cport->tid_xa, &idx, msg, cport_tid_limit,
++			      &dd->cport->tid_next, GFP_KERNEL);
++	if (ret < 0) {
++		cwput(msg);
++		return ERR_PTR(ret);
++	}
++	msg->req.hdr.op_code = op;
++	msg->req.hdr.sideband = sideband;
++	msg->req.hdr.is_req = 1;
++	msg->req.hdr.no_rsp = 0;
++	msg->req.hdr.tid = idx;
++	msg->req.hdr.len = len + sizeof(msg->req.hdr);
++	msg->sem = wait;
++	cwget(msg);	/* extra ref so not freed after send */
++	INIT_WORK(&msg->work, cport_send_req_fn);
++	queue_work(dd->hfi2_wq, &msg->work);
++	return msg;
++}
++
++/*
++ * Extract results from response and drop (last) reference to structure.
++ * Returns status from response header.
++ * Must never be called twice for the same message (message has been freed).
++ * Must never be called on a message that has not received response (up'ed wait).
++ */
++int cport_send_comp(struct hfi2_devdata *dd, void *handle,
++		    void **rsp_pld, int *rsp_len)
++{
++	struct cport_work *msg = handle;
++	void *ptr;
++	int ret;
++	int len;
++
++	*rsp_len = len = msg->rsp.hdr.len - sizeof(msg->rsp.hdr);
++	if (rsp_pld) {
++		ptr = kzalloc(len, GFP_KERNEL);
++		if (!ptr)
++			return -ENOMEM;
++		memcpy(ptr, &msg->rsp.qw[1], len);
++		*rsp_pld = ptr;
++	}
++	ret = msg->rsp.hdr.sts;
++	cwput(msg);
++	return ret;
++}
++
++/*
++ * Cleanup aborted wait for response.
++ * Only called for requests w/responses.
++ * Must never be called twice for the same message (message has been freed).
++ */
++void cport_send_cancel(struct hfi2_devdata *dd, void *handle)
++{
++	struct cport_work *msg = handle;
++
++	cancel_work(&msg->work);	/* cport_send() drops ref on all paths */
++	xa_erase(&dd->cport->tid_xa, msg->req.hdr.tid);
++	cwput(msg);
++}
++
++/*
++ * Send request and wait for response, with timeout.
++ * Caller must be able to sleep.
++ * Returns status from response header, and response payload data, on success.
++ * Response payload was from k[z]alloc() and caller must kfree().
++ * On error, returns -errno (response status is always 0-15).
++ */
++int cport_send_req(struct hfi2_devdata *dd, u8 op, u8 sideband, void *payload, int len,
++		   void **rsp_pld, int *rsp_len, long timeout)
++{
++	int ret;
++	struct cport_work *msg;
++	DEFINE_SEMAPHORE(comp, 0);
++
++	might_sleep();
++
++	msg = cport_send_req_nb(dd, op, sideband, payload, len, &comp, timeout);
++	if (IS_ERR(msg))
++		return PTR_ERR(msg);
++	if (timeout > 0 && timeout != MAX_SCHEDULE_TIMEOUT)
++		ret = down_timeout(&comp, timeout);
++	else
++		ret = down_killable(&comp);
++	if (ret) {
++		dd_dev_err(dd, "CPORT request wait interrupted %016llx (%d)\n",
++			   msg->req.hdr.qw, ret);
++		cport_send_cancel(dd, msg);
++		return ret;
++	}
++	return cport_send_comp(dd, msg, rsp_pld, rsp_len);
++}
++
++int cport_send_notif(struct hfi2_devdata *dd, u8 op, u8 sideband, void *payload, int len)
++{
++	struct cport_work *msg;
++
++	if (!dd->cport || len > CH_LEN_MAX)
++		return -EINVAL;
++
++	msg = cwalloc(CW_FLAG_SEND);
++	if (!msg)
++		return -ENOMEM;
++	msg->dd = dd;
++	memcpy(&msg->req.qw[1], payload, len);
++	msg->req.hdr.len = len + sizeof(msg->req.hdr);
++	msg->req.hdr.op_code = op;
++	msg->req.hdr.sideband = sideband;
++	msg->req.hdr.is_req = 1;
++	msg->req.hdr.no_rsp = 1;
++	INIT_WORK(&msg->work, cport_send_req_fn);
++	queue_work(dd->hfi2_wq, &msg->work);
++	return 0;
++}
++
++/*
++ ********************************************************************
++ * Internal routines.
++ */
++
++/*
++ * Send a response to CPORT's request.
++ *
++ * Re-uses message structure from request. Queues to send workqueue.
++ */
++static int cport_send_rsp(struct cport_work *msg, int sts)
++{
++	struct hfi2_devdata *dd = msg->dd;
++
++	/* rsp.hdr.len and rsp.qw[1..] already setup, also rsp.op_code/rsp.tid */
++	msg->rsp.hdr.is_req = 0;
++	msg->rsp.hdr.sts = sts;
++	INIT_WORK(&msg->work, cport_send_rsp_fn);
++	queue_work(dd->hfi2_wq, &msg->work);
++	return 0;
++}
++
++static void cport_send(struct cport_work *msg, bool req)
++{
++	int len;
++	u64 *ptr;
++	u32 i;
++	int ret;
++	struct hfi2_devdata *dd = msg->dd;
++	union mctxt_mem *mc = req ? &msg->req : &msg->rsp;
++
++	/* sleep until OutboxEmpty... */
++	if (msg->timeout > 0 && msg->timeout != MAX_SCHEDULE_TIMEOUT)
++		ret = down_timeout(&dd->cport->outbox, msg->timeout);
++	else
++		ret = down_killable(&dd->cport->outbox);
++	if (ret) {
++		dd_dev_err(dd, "CPORT Send OUTBOX_EMPTY killed %016llx (%d)\n",
++			   msg->req.hdr.qw, ret);
++		cwput(msg);
++		return;	/* no way to report error to caller */
++	}
++	mc->hdr.seq_no = atomic_fetch_inc(&dd->cport->seqno);
++	len = mc->hdr.len; /* msg len == pkt len, >= sizeof(u64) */
++	ptr = &mc->qw[0];
++	/* NOTE: "CPORT IN" is our output */
++	i = JKR_MCTXT_CPORT_IN;
++	write_csr(dd, CPORT_IN_SCRATCH, CPORT_HDR_DEF | ((u64)len << CPORT_HDR_LEN));
++	/* since buffer is full MCTXT, last bytes can be sent as qword. */
++	while (len > 0) {
++		write_csr(dd, i, *ptr++);
++		i += sizeof(u64);
++		len -= sizeof(u64);
++	}
++	write_csr(dd, JKR_MCTXT_CPORT_INT_STATUS, JKR_MCTXT_INT_INBOX_FULL);
++	cwput(msg); /* may or may not free memory */
++}
++
++/*
++ * Low-level send to CPORT via MCTXT.
++ *
++ * Interfaces with MCTXT.
++ */
++static void cport_send_req_fn(struct work_struct *work)
++{
++	struct cport_work *msg = container_of(work, struct cport_work, work);
++
++	cport_send(msg, true);
++}
++
++static void cport_send_rsp_fn(struct work_struct *work)
++{
++	struct cport_work *msg = container_of(work, struct cport_work, work);
++
++	cport_send(msg, false);
++}
++
++static int echo_req(struct hfi2_devdata *dd, u8 op, u8 sideband,
++		    void *pld, int pll, void *handle)
++{
++	struct cport_work *msg = handle;
++
++	dd_dev_info(msg->dd, "cport ping %02x (%d)\n", sideband, pll);
++	/* Leave payload in-tact (echo). */
++	pld_rsp_set(msg, pld, pll);
++	return MSG_RSP_STATUS_OK;
++}
++
++static int inval_req(struct hfi2_devdata *dd, u8 op, u8 sideband,
++		     void *pld, int pll, void *handle)
++{
++	return MSG_RSP_STATUS_OPCODE_UNSUPPORTED;
++}
++
++/*
++ * Process a request from CPORT.
++ *
++ * May be dispatched to external function from handlers[].
++ */
++static void cport_req_fn(struct work_struct *work)
++{
++	struct cport_work *msg = container_of(work, struct cport_work, work);
++	cport_handler func;
++	int ret = MSG_RSP_STATUS_OK;
++	void *pld;
++	int pll;
++
++	pll = msg->req.hdr.len - sizeof(msg->req.hdr);
++	pld = &msg->req.qw[1];
++	msg->rsp.hdr.qw = msg->req.hdr.qw;
++	/* default to no payload in response (if any) */
++	msg->rsp.hdr.len = sizeof(msg->req.hdr);
++	func = msg->dd->cport->handlers[msg->req.hdr.op_code];
++	if (func)
++		ret = func(msg->dd, msg->req.hdr.op_code, msg->req.hdr.sideband,
++			   pld, pll, msg);
++	else
++		ret = inval_req(msg->dd, msg->req.hdr.op_code, msg->req.hdr.sideband,
++				pld, pll, msg);
++	if (msg->req.hdr.no_rsp) {
++		cwput(msg);
++		if (ret)
++			dd_dev_err(msg->dd, "Op %d %02x failed (%d)\n",
++				   msg->req.hdr.op_code, msg->req.hdr.sideband, ret);
++	} else {
++		/* msg->rsp.qw[*] and msg->rsp.hdr.len have been updated */
++		ret = cport_send_rsp(msg, ret);
++		if (ret)
++			dd_dev_err(msg->dd, "Response send failed (%d)\n", ret);
++	}
++}
++
++/*
++ * Handler for MCTXT Inbox Full interrupt.
++ *
++ * Only one can be queued/run until JKR_MCTXT_INT_OUTBOX_EMPTY is cleared.
++ * Run in a workqueue (not interrupt context).
++ */
++static void cport_mctxt_fn(struct work_struct *work)
++{
++	struct hfi2_cport *cport = container_of(work, struct hfi2_cport, mctxt_work);
++	struct hfi2_devdata *dd = cport->dd;
++	int ret = 0;
++	int len;
++	u64 *ptr;
++	u32 i;
++	struct cport_work *msg;
++	union cport_header hdr;
++
++	/*
++	 * CPORT output MCTXT is our input.
++	 */
++	i = JKR_MCTXT_CPORT_OUT;
++	/*
++	 * This header ignored:
++	 * mhdr = read_csr(dd, CPORT_OUT_SCRATCH);
++	 * assert(mhdr.PKT_LEN_BYTES == hdr.len);
++	 */
++	hdr.qw = read_csr(dd, i);
++	i += sizeof(u64);
++	/* No need for atomics here, we are single threaded */
++	if (hdr.seq_no != cport->rseqno) {
++		dd_dev_info(dd, "Recv out of sequence: %d -> %d\n", cport->rseqno, hdr.seq_no);
++		cport->rseqno = hdr.seq_no;
++	}
++	cport->rseqno = (cport->rseqno + 1) & CPORT_SEQNO_MASK;
++	if (hdr.is_req) {
++		/* Request from CPORT, has no existing message context */
++		msg = cwalloc(CW_FLAG_RECV);
++		if (!msg) {
++			ret = -ENOMEM;
++			goto fail; /* drop message, with error */
++		}
++		ptr = &msg->req.qw[0];
++	} else {
++		/*
++		 * Responses already have a 'msg', extra ref was already taken.
++		 * Take an additional ref against possible race with timeout
++		 * (cport_send_cancel()) between here and the up().
++		 */
++		msg = cwget_xa(dd, hdr.tid);
++		if (!msg) {
++			ret = -ESRCH;
++			goto fail; /* drop message, with error */
++		}
++		ptr = &msg->rsp.qw[0];
++		/* assert msg->req.hdr ~= hdr */
++	}
++	*ptr++ = hdr.qw;
++	/* now copy payload into chosen buffer */
++	len = hdr.len - sizeof(hdr);
++	while (len > 0) {
++		*ptr++ = read_csr(dd, i);
++		i += sizeof(u64);
++		len -= sizeof(u64);
++	}
++	/*
++	 * We are finished with the dd->cport->mctxt_work struct,
++	 * and the MCTXT, so it can all be re-used now.
++	 */
++	write_csr(dd, JKR_MCTXT_CPORT_INT_STATUS, JKR_MCTXT_INT_OUTBOX_EMPTY);
++
++	/* responses don't require any more work here - just wakeup requester */
++	if (!hdr.is_req) {
++		up(msg->sem);
++		cwput(msg);
++		return;
++	}
++	msg->dd = dd;
++	/* dispatch 'msg' request */
++	INIT_WORK(&msg->work, cport_req_fn);
++	/* don't care about locality */
++	queue_work(dd->hfi2_wq, &msg->work);
++	return;
++fail:
++	write_csr(dd, JKR_MCTXT_CPORT_INT_STATUS, JKR_MCTXT_INT_OUTBOX_EMPTY);
++	dd_dev_err(dd, "Dropping incoming CPORT message %016llx (%d)\n", hdr.qw, ret);
++}
++
++/*
++ * Handler for PF0 MCTXT interrupts.
++ *
++ * Called when one of the enabled MCTXT_PF0 conditions occurs.
++ * 'source' is always 0. Called in interrupt context.
++ *
++ * Since this interrupt is exclusive to MCTXT, there is no doubt
++ * about which transport to use (always is MCTXT).
++ */
++void is_cport_int(struct hfi2_devdata *dd, unsigned int source)
++{
++	u64 ints;
++
++	if (!dd->cport)
++		return;
++
++#ifdef CONFIG_HFI_CPORT_POLLING
++	ints = read_csr(dd, JKR_MCTXT_PF0_INT_STATUS);
++#else
++	ints = read_csr(dd, JKR_MCTXT_PF0_INT_STATUS_ENABLED);
++#endif
++	if (!ints) {
++		dd_dev_warn(dd, "MCTXT interrupt, but no status bits set\n");
++		return;
++	}
++	write_csr(dd, JKR_MCTXT_PF0_INT_ACK, ints);
++	if (ints & JKR_MCTXT_INT_INBOX_FULL)
++		queue_work(dd->hfi2_wq, &dd->cport->mctxt_work);
++	if (ints & JKR_MCTXT_INT_OUTBOX_EMPTY)
++		up(&dd->cport->outbox);
++}
++
++/***************************************************
++ * API for handling notifications from CPORT
++ */
++
++void *cport_resp_alloc(void *handle, int len)
++{
++	struct cport_work *msg = handle;
++
++	if (!msg || len <= 0 || len > CH_LEN_MAX)
++		return NULL;
++	msg->rsp.hdr.len = len + sizeof(msg->rsp.hdr);
++	return &msg->rsp.qw[1];
++}
++
++int cport_resp_set(void *handle, void *payload, int len)
++{
++	struct cport_work *msg = handle;
++
++	if (!msg || !payload || len <= 0 || len > CH_LEN_MAX)
++		return -EINVAL;
++	msg->rsp.hdr.len = len + sizeof(msg->rsp.hdr);
++	memcpy(&msg->rsp.qw[1], payload, len);
++	return 0;
++}
++
++int cport_register_cb(struct hfi2_devdata *dd, u8 op_start, u8 op_end, cport_handler func)
++{
++	int x;
++
++	if (op_start > op_end || op_start < 0 || op_end >= 256)
++		return -ERANGE;
++	if (!dd->cport)
++		return -EINVAL;
++
++	/* 'func' may be NULL, to unregister */
++	for (x = op_start; x <= op_end; ++x) {
++		dd->cport->handlers[x] = func;
++	}
++	return 0;
++}
++
++static int cport_ping(void *data)
++{
++	struct hfi2_devdata *dd = data;
++	char buf[16];
++	int len;
++	unsigned int num;
++	void *rspbuf;
++	int rsplen;
++	int rc;
++
++	while (!kthread_should_stop() && (num = atomic_read(&dd->cport->nping)) > 0) {
++		len = snprintf(buf, sizeof(buf), "ping %u", num);
++		rspbuf = NULL;
++		rc = cport_send_req(dd, CH_OP_PING, 0, buf, len,
++				    &rspbuf, &rsplen, MAX_SCHEDULE_TIMEOUT);
++		if (rc < 0) {
++			dd_dev_info(dd, "CPORT \"%s\" error %d\n", buf, rc);
++			break;
++		}
++		dd_dev_info(dd, "CPORT \"%s\" -> %d \"%.*s\"\n",
++			    buf, rc, rsplen, (char *)rspbuf);
++		kfree(rspbuf);
++		atomic_dec(&dd->cport->nping);
++	}
++	dd->cport->ping_th = NULL;
++	atomic_set(&dd->cport->nping, 0);
++	return 0;
++}
++
++int cport_ping_start(struct hfi2_devdata *dd, unsigned int count)
++{
++	int rc;
++
++	if (!count) {
++		if (dd->cport->ping_th)
++			kthread_stop(dd->cport->ping_th);
++			/* kthread will zero count when exiting */
++		else
++			atomic_set(&dd->cport->nping, 0);
++		return 0;
++	}
++	atomic_set(&dd->cport->nping, count);
++	if (dd->cport->ping_th)
++		return 0;
++
++	dd->cport->ping_th = kthread_create_on_node(cport_ping, dd, dd->node, "cport_ping");
++	if (IS_ERR(dd->cport->ping_th)) {
++		rc = PTR_ERR(dd->cport->ping_th);
++		dd->cport->ping_th = NULL;
++		dd_dev_err(dd, "Failed to create CPORT ping thread %d\n", rc);
++		return rc;
++	}
++	wake_up_process(dd->cport->ping_th);
++	return 0;
++}
++
++#ifdef CONFIG_HFI_CPORT_POLLING
++static int cport_poll(void *data)
++{
++	struct hfi2_devdata *dd = data;
++	u64 v;
++
++	while (!kthread_should_stop()) {
++		v = read_csr(dd, JKR_MCTXT_PF0_INT_STATUS);
++		if (v & 0xff)
++			is_cport_int(dd, 0);
++		fsleep(30);
++	}
++	return 0;
++}
++#endif
++
++/*
++ * Initialization/setup of MCTXT CPORT communications channel.
++ */
++int cport_init(struct hfi2_devdata *dd)
++{
++	struct hfi2_cport *cport;
++
++	if (dd->params->chip_type == CHIP_WFR)
++		return 0;
++
++	cport = kzalloc(sizeof(*cport), GFP_KERNEL);
++	if (!cport)
++		goto err1;
++
++	INIT_WORK(&cport->mctxt_work, cport_mctxt_fn);
++	xa_init_flags(&cport->tid_xa, XA_FLAGS_ALLOC);
++	xa_init_flags(&cport->trap_xa, XA_FLAGS_ALLOC);
++
++	/*
++	 * Setting initial state can be problematic.
++	 * We require that CPORT set JKR_MCTXT_INT_OUTBOX_EMPTY in
++	 * JKR_MCTXT_PF0_INT_STATUS or we will never start sending.
++	 * We also require that CPORT never set JKR_MCTXT_INT_OUTBOX_EMPTY
++	 * gratuitously, or we get a semaphore count > 1 and will
++	 * start overrunning MCTXT. Essentially, CPORT must set this
++	 * exactly once when entering the "ready to receive" state
++	 * (initially and after processing each message).
++	 */
++	sema_init(&cport->outbox, 0);
++
++	cport->dd = dd;
++	dd->cport = cport;
++
++	cport_register_cb(dd, CH_OP_PING, CH_OP_PING, echo_req);
++
++#ifdef CONFIG_HFI_CPORT_POLLING
++	cport->poll_th = kthread_create_on_node(cport_poll, dd, dd->node, "cport_poll");
++	if (!cport->poll_th)
++		dd_dev_err(dd, "Failed to create CPORT polling thread\n");
++	else
++		wake_up_process(dd->cport->poll_th);
++#else
++	/* Enable intr source for MCTXT from CPORT (to PF0) */
++	write_csr(dd, JKR_MCTXT_PF0_INT_ENABLE,
++		  JKR_MCTXT_INT_INBOX_FULL | JKR_MCTXT_INT_OUTBOX_EMPTY);
++	set_intr_bits(dd, JKR_MCTXT_CPORT_TO_PCIE_INT, JKR_MCTXT_CPORT_TO_PCIE_INT, true);
++#endif
++
++	/*
++	 * Must reset/resync sequence numbers as CPORT is strictly enforcing
++	 * sequence number order.
++	 */
++	cport_send_notif(dd, CH_OP_PING, 0, NULL, 0);
++	return 0;
++
++err1:
++	return -ENOMEM;
++}
++
++/*
++ * Deinitialization of MCTXT CPORT communications channel.
++ */
++int cport_exit(struct hfi2_devdata *dd)
++{
++	if (!dd->cport)
++		return 0;
++
++	/* Disable intr source for MCTXT from CPORT (to PF0) */
++	set_intr_bits(dd, JKR_MCTXT_CPORT_TO_PCIE_INT, JKR_MCTXT_CPORT_TO_PCIE_INT, false);
++	write_csr(dd, JKR_MCTXT_PF0_INT_ENABLE, 0);
++	/* leave JKR_MCTXT_INT_OUTBOX_EMPTY set so that future users are ready-to-go */
++	write_csr(dd, JKR_MCTXT_PF0_INT_STATUS, JKR_MCTXT_INT_OUTBOX_EMPTY);
++#ifdef CONFIG_HFI_CPORT_POLLING
++	if (dd->cport->poll_th)
++		kthread_stop(dd->cport->poll_th);
++#endif
++	if (dd->cport->ping_th)
++		kthread_stop(dd->cport->ping_th);
++
++	cancel_work(&dd->cport->mctxt_work);
++
++	xa_destroy(&dd->cport->tid_xa);
++	xa_destroy(&dd->cport->trap_xa);
++	kfree(dd->cport);
++	dd->cport = NULL;
++
++	return 0;
++}
+diff --git a/drivers/infiniband/hw/hfi2/mad.c b/drivers/infiniband/hw/hfi2/mad.c
+new file mode 100644
+index 000000000000..1a43c624429d
+--- /dev/null
++++ b/drivers/infiniband/hw/hfi2/mad.c
+@@ -0,0 +1,6055 @@
 +// SPDX-License-Identifier: GPL-2.0 OR BSD-3-Clause
 +/*
 + * Copyright(c) 2015-2018 Intel Corporation.
 + */
 +
-+#include <linux/debugfs.h>
-+#include <linux/seq_file.h>
-+#include <linux/kernel.h>
-+#include <linux/export.h>
-+#include <linux/string.h>
-+#include <linux/types.h>
-+#include <linux/ratelimit.h>
-+#include <linux/fault-inject.h>
++#include <linux/net.h>
++#include <rdma/opa_addr.h>
++#define OPA_NUM_PKEY_BLOCKS_PER_SMP (OPA_SMP_DR_DATA_SIZE \
++			/ (OPA_PARTITION_TABLE_BLK_SIZE * sizeof(u16)))
 +
 +#include "hfi2.h"
++#include "file_ops.h"
++#include "chip_gen.h"
++#include "mad.h"
 +#include "trace.h"
-+#include "debugfs.h"
-+#include "device.h"
 +#include "qp.h"
-+#include "sdma.h"
-+#include "fault.h"
-+#include "cport.h"
++#include "rdma/ib_sa.h"
 +
-+static struct dentry *hfi2_dbg_root;
++int cport_mad_to = 1;
++module_param_named(cport_mad_to, cport_mad_to, int, 0644);
++MODULE_PARM_DESC(cport_mad_to, "Timout for MADs to CPORT, seconds, default 1 (-1 = infinite)");
 +
-+/* wrappers to enforce srcu in seq file */
-+ssize_t hfi2_seq_read(struct file *file, char __user *buf, size_t size,
-+		      loff_t *ppos)
++/* offset from start of packet for the MAD header */
++#define MAD_9B_OFFSET		(8 + 12 + 8)	/* 9B LRH, BTH, DETH */
++#define MAD_16B_FM_OFFSET	(16 + 8)	/* 16B LRH, Mgmt L4 */
++#define MAD_16B_IB_OFFSET	(16 + 12 + 8)	/* 16B LRH, BTH, DETH */
++
++/* the reset value from the FM is supposed to be 0xffff, handle both */
++#define OPA_LINK_WIDTH_RESET_OLD 0x0fff
++#define OPA_LINK_WIDTH_RESET 0xffff
++
++struct trap_node {
++	struct list_head list;
++	struct opa_mad_notice_attr data;
++	__be64 tid;
++	int len;
++	u32 retry;
++	u8 in_use;
++	u8 repress;
++};
++
++static int smp_length_check(u32 data_size, u32 request_len)
 +{
-+	struct dentry *d = file->f_path.dentry;
-+	ssize_t r;
-+
-+	r = debugfs_file_get(d);
-+	if (unlikely(r))
-+		return r;
-+	r = seq_read(file, buf, size, ppos);
-+	debugfs_file_put(d);
-+	return r;
-+}
-+
-+loff_t hfi2_seq_lseek(struct file *file, loff_t offset, int whence)
-+{
-+	struct dentry *d = file->f_path.dentry;
-+	loff_t r;
-+
-+	r = debugfs_file_get(d);
-+	if (unlikely(r))
-+		return r;
-+	r = seq_lseek(file, offset, whence);
-+	debugfs_file_put(d);
-+	return r;
-+}
-+
-+#define private2dd(file) (file_inode(file)->i_private)
-+#define private2ppd(file) (file_inode(file)->i_private)
-+
-+static void *_opcode_stats_seq_start(struct seq_file *s, loff_t *pos)
-+{
-+	struct hfi2_opcode_stats_perctx *opstats;
-+
-+	if (*pos >= ARRAY_SIZE(opstats->stats))
-+		return NULL;
-+	return pos;
-+}
-+
-+static void *_opcode_stats_seq_next(struct seq_file *s, void *v, loff_t *pos)
-+{
-+	struct hfi2_opcode_stats_perctx *opstats;
-+
-+	++*pos;
-+	if (*pos >= ARRAY_SIZE(opstats->stats))
-+		return NULL;
-+	return pos;
-+}
-+
-+static void _opcode_stats_seq_stop(struct seq_file *s, void *v)
-+{
-+}
-+
-+static int opcode_stats_show(struct seq_file *s, u8 i, u64 packets, u64 bytes)
-+{
-+	if (!packets && !bytes)
-+		return SEQ_SKIP;
-+	seq_printf(s, "%02x %llu/%llu\n", i,
-+		   (unsigned long long)packets,
-+		   (unsigned long long)bytes);
++	if (unlikely(request_len < data_size))
++		return -EINVAL;
 +
 +	return 0;
 +}
 +
-+static int _opcode_stats_seq_show(struct seq_file *s, void *v)
++static int reply(struct ib_mad_hdr *smp)
 +{
-+	loff_t *spos = v;
-+	loff_t i = *spos, j;
-+	u64 n_packets = 0, n_bytes = 0;
-+	struct hfi2_ibdev *ibd = (struct hfi2_ibdev *)s->private;
-+	struct hfi2_devdata *dd = dd_from_dev(ibd);
-+	struct hfi2_ctxtdata *rcd;
-+	int pidx;
-+
-+	for (pidx = 0; pidx < dd->num_pports; pidx++) {
-+		for (j = 0; j < dd->pport[pidx].n_krcv_queues; j++) {
-+			u16 ctxt = dd->pport[pidx].rcv_context_base + j;
-+
-+			rcd = hfi2_rcd_get_by_index(dd, ctxt);
-+			if (rcd) {
-+				n_packets += rcd->opstats->stats[i].n_packets;
-+				n_bytes += rcd->opstats->stats[i].n_bytes;
-+			}
-+			hfi2_rcd_put(rcd);
-+		}
-+	}
-+	return opcode_stats_show(s, i, n_packets, n_bytes);
++	/*
++	 * The verbs framework will handle the directed/LID route
++	 * packet changes.
++	 */
++	smp->method = IB_MGMT_METHOD_GET_RESP;
++	if (smp->mgmt_class == IB_MGMT_CLASS_SUBN_DIRECTED_ROUTE)
++		smp->status |= IB_SMP_DIRECTION;
++	return IB_MAD_RESULT_SUCCESS | IB_MAD_RESULT_REPLY;
 +}
 +
-+DEBUGFS_SEQ_FILE_OPS(opcode_stats);
-+DEBUGFS_SEQ_FILE_OPEN(opcode_stats)
-+DEBUGFS_FILE_OPS(opcode_stats);
-+
-+static void *_tx_opcode_stats_seq_start(struct seq_file *s, loff_t *pos)
++static inline void clear_opa_smp_data(struct opa_smp *smp)
 +{
-+	return _opcode_stats_seq_start(s, pos);
++	void *data = opa_get_smp_data(smp);
++	size_t size = opa_get_smp_data_size(smp);
++
++	memset(data, 0, size);
 +}
 +
-+static void *_tx_opcode_stats_seq_next(struct seq_file *s, void *v, loff_t *pos)
++static u16 hfi2_lookup_pkey_value(struct hfi2_ibport *ibp, int pkey_idx)
 +{
-+	return _opcode_stats_seq_next(s, v, pos);
-+}
++	struct hfi2_pportdata *ppd = ppd_from_ibp(ibp);
 +
-+static void _tx_opcode_stats_seq_stop(struct seq_file *s, void *v)
-+{
-+}
-+
-+static int _tx_opcode_stats_seq_show(struct seq_file *s, void *v)
-+{
-+	loff_t *spos = v;
-+	loff_t i = *spos;
-+	int j;
-+	u64 n_packets = 0, n_bytes = 0;
-+	struct hfi2_ibdev *ibd = (struct hfi2_ibdev *)s->private;
-+	struct hfi2_devdata *dd = dd_from_dev(ibd);
-+
-+	for_each_possible_cpu(j) {
-+		struct hfi2_opcode_stats_perctx *s =
-+			per_cpu_ptr(dd->tx_opstats, j);
-+		n_packets += s->stats[i].n_packets;
-+		n_bytes += s->stats[i].n_bytes;
-+	}
-+	return opcode_stats_show(s, i, n_packets, n_bytes);
-+}
-+
-+DEBUGFS_SEQ_FILE_OPS(tx_opcode_stats);
-+DEBUGFS_SEQ_FILE_OPEN(tx_opcode_stats)
-+DEBUGFS_FILE_OPS(tx_opcode_stats);
-+
-+static void *_ctx_stats_seq_start(struct seq_file *s, loff_t *pos)
-+{
-+	struct hfi2_ibdev *ibd = (struct hfi2_ibdev *)s->private;
-+	struct hfi2_devdata *dd = dd_from_dev(ibd);
-+
-+	/* plan: iterate through all rcds, looking for kernel contexts */
-+
-+	/* starting point must be in range */
-+	if (*pos >= dd->num_rcd)
-+		return NULL;
-+
-+	return pos;
-+}
-+
-+static void *_ctx_stats_seq_next(struct seq_file *s, void *v, loff_t *pos)
-+{
-+	struct hfi2_ibdev *ibd = (struct hfi2_ibdev *)s->private;
-+	struct hfi2_devdata *dd = dd_from_dev(ibd);
-+
-+	++*pos;
-+	if (*pos >= dd->num_rcd)
-+		return NULL;
-+
-+	return pos;
-+}
-+
-+static void _ctx_stats_seq_stop(struct seq_file *s, void *v)
-+{
-+	/* nothing allocated */
-+}
-+
-+static int _ctx_stats_seq_show(struct seq_file *s, void *v)
-+{
-+	loff_t *spos;
-+	loff_t i, j;
-+	u64 n_packets = 0;
-+	struct hfi2_ibdev *ibd = (struct hfi2_ibdev *)s->private;
-+	struct hfi2_devdata *dd = dd_from_dev(ibd);
-+	struct hfi2_ctxtdata *rcd;
-+
-+	spos = v;
-+	i = *spos;
-+
-+	if (i == 0)
-+		seq_puts(s, "Ctx:npkts\n");
-+
-+	rcd = hfi2_rcd_get_by_index(dd, i);
-+	if (!rcd)
-+		return 0;
-+
-+	/* only kernel contexts have opstats */
-+	if (rcd->opstats) {
-+		for (j = 0; j < ARRAY_SIZE(rcd->opstats->stats); j++)
-+			n_packets += rcd->opstats->stats[j].n_packets;
-+	}
-+
-+	hfi2_rcd_put(rcd);
-+
-+	if (!n_packets)
-+		return 0;
-+
-+	seq_printf(s, "  %llu:%llu\n", i, n_packets);
-+	return 0;
-+}
-+
-+DEBUGFS_SEQ_FILE_OPS(ctx_stats);
-+DEBUGFS_SEQ_FILE_OPEN(ctx_stats)
-+DEBUGFS_FILE_OPS(ctx_stats);
-+
-+static void *_qp_stats_seq_start(struct seq_file *s, loff_t *pos)
-+	__acquires(RCU)
-+{
-+	struct rvt_qp_iter *iter;
-+	loff_t n = *pos;
-+
-+	iter = rvt_qp_iter_init(s->private, 0, NULL);
-+
-+	/* stop calls rcu_read_unlock */
-+	rcu_read_lock();
-+
-+	if (!iter)
-+		return NULL;
-+
-+	do {
-+		if (rvt_qp_iter_next(iter)) {
-+			kfree(iter);
-+			return NULL;
-+		}
-+	} while (n--);
-+
-+	return iter;
-+}
-+
-+static void *_qp_stats_seq_next(struct seq_file *s, void *iter_ptr,
-+				loff_t *pos)
-+	__must_hold(RCU)
-+{
-+	struct rvt_qp_iter *iter = iter_ptr;
-+
-+	(*pos)++;
-+
-+	if (rvt_qp_iter_next(iter)) {
-+		kfree(iter);
-+		return NULL;
-+	}
-+
-+	return iter;
-+}
-+
-+static void _qp_stats_seq_stop(struct seq_file *s, void *iter_ptr)
-+	__releases(RCU)
-+{
-+	rcu_read_unlock();
-+}
-+
-+static int _qp_stats_seq_show(struct seq_file *s, void *iter_ptr)
-+{
-+	struct rvt_qp_iter *iter = iter_ptr;
-+
-+	if (!iter)
-+		return 0;
-+
-+	qp_iter_print(s, iter);
++	if (pkey_idx < ppd->dd->params->pkey_table_size)
++		return ppd->pkeys[pkey_idx];
 +
 +	return 0;
 +}
 +
-+DEBUGFS_SEQ_FILE_OPS(qp_stats);
-+DEBUGFS_SEQ_FILE_OPEN(qp_stats)
-+DEBUGFS_FILE_OPS(qp_stats);
-+
-+static void *_sdes_seq_start(struct seq_file *s, loff_t *pos)
++void hfi2_event_pkey_change(struct hfi2_devdata *dd, u32 port)
 +{
-+	struct hfi2_ibdev *ibd;
-+	struct hfi2_devdata *dd;
++	struct ib_event event;
 +
-+	ibd = (struct hfi2_ibdev *)s->private;
-+	dd = dd_from_dev(ibd);
-+	if (!dd->per_sdma || *pos >= dd->num_sdma)
-+		return NULL;
-+	return pos;
++	event.event = IB_EVENT_PKEY_CHANGE;
++	event.device = &dd->verbs_dev.rdi.ibdev;
++	event.element.port_num = port;
++	ib_dispatch_event(&event);
 +}
 +
-+static void *_sdes_seq_next(struct seq_file *s, void *v, loff_t *pos)
++/*
++ * If the port is down, clean up all pending traps.  We need to be careful
++ * with the given trap, because it may be queued.
++ */
++static void cleanup_traps(struct hfi2_ibport *ibp, struct trap_node *trap)
 +{
-+	struct hfi2_ibdev *ibd = (struct hfi2_ibdev *)s->private;
-+	struct hfi2_devdata *dd = dd_from_dev(ibd);
-+
-+	++*pos;
-+	if (!dd->per_sdma || *pos >= dd->num_sdma)
-+		return NULL;
-+	return pos;
-+}
-+
-+static void _sdes_seq_stop(struct seq_file *s, void *v)
-+{
-+}
-+
-+static int _sdes_seq_show(struct seq_file *s, void *v)
-+{
-+	struct hfi2_ibdev *ibd = (struct hfi2_ibdev *)s->private;
-+	struct hfi2_devdata *dd = dd_from_dev(ibd);
-+	loff_t *spos = v;
-+	loff_t i = *spos;
-+
-+	sdma_seqfile_dump_sde(s, &dd->per_sdma[i]);
-+	return 0;
-+}
-+
-+DEBUGFS_SEQ_FILE_OPS(sdes);
-+DEBUGFS_SEQ_FILE_OPEN(sdes)
-+DEBUGFS_FILE_OPS(sdes);
-+
-+static void *_rcds_seq_start(struct seq_file *s, loff_t *pos)
-+{
-+	struct hfi2_ibdev *ibd;
-+	struct hfi2_devdata *dd;
-+
-+	ibd = (struct hfi2_ibdev *)s->private;
-+	dd = dd_from_dev(ibd);
-+	if (!dd->rcd || *pos >= dd->num_rcd)
-+		return NULL;
-+	return pos;
-+}
-+
-+static void *_rcds_seq_next(struct seq_file *s, void *v, loff_t *pos)
-+{
-+	struct hfi2_ibdev *ibd = (struct hfi2_ibdev *)s->private;
-+	struct hfi2_devdata *dd = dd_from_dev(ibd);
-+
-+	++*pos;
-+	if (!dd->rcd || *pos >= dd->num_rcd)
-+		return NULL;
-+	return pos;
-+}
-+
-+static void _rcds_seq_stop(struct seq_file *s, void *v)
-+{
-+}
-+
-+static int _rcds_seq_show(struct seq_file *s, void *v)
-+{
-+	struct hfi2_ibdev *ibd = (struct hfi2_ibdev *)s->private;
-+	struct hfi2_devdata *dd = dd_from_dev(ibd);
-+	struct hfi2_ctxtdata *rcd;
-+	loff_t *spos = v;
-+	loff_t i = *spos;
-+
-+	rcd = hfi2_rcd_get_by_index(dd, i);
-+	if (rcd)
-+		seqfile_dump_rcd(s, rcd);
-+	hfi2_rcd_put(rcd);
-+	return 0;
-+}
-+
-+DEBUGFS_SEQ_FILE_OPS(rcds);
-+DEBUGFS_SEQ_FILE_OPEN(rcds)
-+DEBUGFS_FILE_OPS(rcds);
-+
-+static void *_pios_seq_start(struct seq_file *s, loff_t *pos)
-+{
-+	struct hfi2_ibdev *ibd;
-+	struct hfi2_devdata *dd;
-+
-+	ibd = (struct hfi2_ibdev *)s->private;
-+	dd = dd_from_dev(ibd);
-+	if (!dd->send_contexts || *pos >= dd->num_send_contexts)
-+		return NULL;
-+	return pos;
-+}
-+
-+static void *_pios_seq_next(struct seq_file *s, void *v, loff_t *pos)
-+{
-+	struct hfi2_ibdev *ibd = (struct hfi2_ibdev *)s->private;
-+	struct hfi2_devdata *dd = dd_from_dev(ibd);
-+
-+	++*pos;
-+	if (!dd->send_contexts || *pos >= dd->num_send_contexts)
-+		return NULL;
-+	return pos;
-+}
-+
-+static void _pios_seq_stop(struct seq_file *s, void *v)
-+{
-+}
-+
-+static int _pios_seq_show(struct seq_file *s, void *v)
-+{
-+	struct hfi2_ibdev *ibd = (struct hfi2_ibdev *)s->private;
-+	struct hfi2_devdata *dd = dd_from_dev(ibd);
-+	struct send_context_info *sci;
-+	loff_t *spos = v;
-+	loff_t i = *spos;
++	struct trap_node *node, *q;
 +	unsigned long flags;
++	struct list_head trap_list;
++	int i;
 +
-+	spin_lock_irqsave(&dd->sc_lock, flags);
-+	sci = &dd->send_contexts[i];
-+	if (sci && sci->type != SC_USER && sci->allocated && sci->sc)
-+		seqfile_dump_sci(s, i, sci);
-+	spin_unlock_irqrestore(&dd->sc_lock, flags);
++	for (i = 0; i < RVT_MAX_TRAP_LISTS; i++) {
++		spin_lock_irqsave(&ibp->rvp.lock, flags);
++		list_replace_init(&ibp->rvp.trap_lists[i].list, &trap_list);
++		ibp->rvp.trap_lists[i].list_len = 0;
++		spin_unlock_irqrestore(&ibp->rvp.lock, flags);
++
++		/*
++		 * Remove all items from the list, freeing all the non-given
++		 * traps.
++		 */
++		list_for_each_entry_safe(node, q, &trap_list, list) {
++			list_del(&node->list);
++			if (node != trap)
++				kfree(node);
++		}
++	}
++
++	/*
++	 * If this wasn't on one of the lists it would not be freed.  If it
++	 * was on the list, it is now safe to free.
++	 */
++	kfree(trap);
++}
++
++static struct trap_node *check_and_add_trap(struct hfi2_ibport *ibp,
++					    struct trap_node *trap)
++{
++	struct trap_node *node;
++	struct trap_list *trap_list;
++	unsigned long flags;
++	unsigned long timeout;
++	int found = 0;
++	unsigned int queue_id;
++	static int trap_count;
++
++	queue_id = trap->data.generic_type & 0x0F;
++	if (queue_id >= RVT_MAX_TRAP_LISTS) {
++		trap_count++;
++		pr_err_ratelimited("hfi2: Invalid trap 0x%0x dropped. Total dropped: %d\n",
++				   trap->data.generic_type, trap_count);
++		kfree(trap);
++		return NULL;
++	}
++
++	/*
++	 * Since the retry (handle timeout) does not remove a trap request
++	 * from the list, all we have to do is compare the node.
++	 */
++	spin_lock_irqsave(&ibp->rvp.lock, flags);
++	trap_list = &ibp->rvp.trap_lists[queue_id];
++
++	list_for_each_entry(node, &trap_list->list, list) {
++		if (node == trap) {
++			node->retry++;
++			found = 1;
++			break;
++		}
++	}
++
++	/* If it is not on the list, add it, limited to RVT-MAX_TRAP_LEN. */
++	if (!found) {
++		if (trap_list->list_len < RVT_MAX_TRAP_LEN) {
++			trap_list->list_len++;
++			list_add_tail(&trap->list, &trap_list->list);
++		} else {
++			pr_warn_ratelimited("hfi2: Maximum trap limit reached for 0x%0x traps\n",
++					    trap->data.generic_type);
++			kfree(trap);
++		}
++	}
++
++	/*
++	 * Next check to see if there is a timer pending.  If not, set it up
++	 * and get the first trap from the list.
++	 */
++	node = NULL;
++	if (!timer_pending(&ibp->rvp.trap_timer)) {
++		/*
++		 * o14-2
++		 * If the time out is set we have to wait until it expires
++		 * before the trap can be sent.
++		 * This should be > RVT_TRAP_TIMEOUT
++		 */
++		timeout = (RVT_TRAP_TIMEOUT *
++			   (1UL << ibp->rvp.subnet_timeout)) / 1000;
++		mod_timer(&ibp->rvp.trap_timer,
++			  jiffies + usecs_to_jiffies(timeout));
++		node = list_first_entry(&trap_list->list, struct trap_node,
++					list);
++		node->in_use = 1;
++	}
++	spin_unlock_irqrestore(&ibp->rvp.lock, flags);
++
++	return node;
++}
++
++static void subn_handle_opa_trap_repress(struct hfi2_ibport *ibp,
++					 struct opa_smp *smp)
++{
++	struct trap_list *trap_list;
++	struct trap_node *trap;
++	unsigned long flags;
++	int i;
++
++	if (smp->attr_id != IB_SMP_ATTR_NOTICE)
++		return;
++
++	spin_lock_irqsave(&ibp->rvp.lock, flags);
++	for (i = 0; i < RVT_MAX_TRAP_LISTS; i++) {
++		trap_list = &ibp->rvp.trap_lists[i];
++		trap = list_first_entry_or_null(&trap_list->list,
++						struct trap_node, list);
++		if (trap && trap->tid == smp->tid) {
++			if (trap->in_use) {
++				trap->repress = 1;
++			} else {
++				trap_list->list_len--;
++				list_del(&trap->list);
++				kfree(trap);
++			}
++			break;
++		}
++	}
++	spin_unlock_irqrestore(&ibp->rvp.lock, flags);
++}
++
++static void hfi2_update_sm_ah_attr(struct hfi2_ibport *ibp,
++				   struct rdma_ah_attr *attr, u32 dlid)
++{
++	rdma_ah_set_dlid(attr, dlid);
++	rdma_ah_set_port_num(attr, ppd_from_ibp(ibp)->port);
++	if (dlid >= be16_to_cpu(IB_MULTICAST_LID_BASE)) {
++		struct ib_global_route *grh = rdma_ah_retrieve_grh(attr);
++
++		rdma_ah_set_ah_flags(attr, IB_AH_GRH);
++		grh->sgid_index = 0;
++		grh->hop_limit = 1;
++		grh->dgid.global.subnet_prefix =
++			ibp->rvp.gid_prefix;
++		grh->dgid.global.interface_id = OPA_MAKE_ID(dlid);
++	}
++}
++
++static int hfi2_modify_qp0_ah(struct hfi2_ibport *ibp,
++			      struct rvt_ah *ah, u32 dlid)
++{
++	struct rdma_ah_attr attr;
++	struct rvt_qp *qp0;
++	int ret = -EINVAL;
++
++	memset(&attr, 0, sizeof(attr));
++	attr.type = ah->ibah.type;
++	hfi2_update_sm_ah_attr(ibp, &attr, dlid);
++	rcu_read_lock();
++	qp0 = rcu_dereference(ibp->rvp.qp[0]);
++	if (qp0)
++		ret = rdma_modify_ah(&ah->ibah, &attr);
++	rcu_read_unlock();
++	return ret;
++}
++
++static struct ib_ah *hfi2_create_qp0_ah(struct hfi2_ibport *ibp, u32 dlid)
++{
++	struct rdma_ah_attr attr;
++	struct ib_ah *ah = ERR_PTR(-EINVAL);
++	struct rvt_qp *qp0;
++	struct hfi2_pportdata *ppd = ppd_from_ibp(ibp);
++	struct hfi2_devdata *dd = dd_from_ppd(ppd);
++	u32 port_num = ppd->port;
++
++	memset(&attr, 0, sizeof(attr));
++	attr.type = rdma_ah_find_type(&dd->verbs_dev.rdi.ibdev, port_num);
++	hfi2_update_sm_ah_attr(ibp, &attr, dlid);
++	rcu_read_lock();
++	qp0 = rcu_dereference(ibp->rvp.qp[0]);
++	if (qp0)
++		ah = rdma_create_ah(qp0->ibqp.pd, &attr, 0);
++	rcu_read_unlock();
++	return ah;
++}
++
++static void send_trap(struct hfi2_ibport *ibp, struct trap_node *trap)
++{
++	struct ib_mad_send_buf *send_buf;
++	struct ib_mad_agent *agent;
++	struct opa_smp *smp;
++	unsigned long flags;
++	int pkey_idx;
++	u32 qpn = ppd_from_ibp(ibp)->sm_trap_qp;
++
++	agent = ibp->rvp.send_agent;
++	if (!agent) {
++		cleanup_traps(ibp, trap);
++		return;
++	}
++
++	/* o14-3.2.1 */
++	if (driver_lstate(ppd_from_ibp(ibp)) != IB_PORT_ACTIVE) {
++		cleanup_traps(ibp, trap);
++		return;
++	}
++
++	/* Add the trap to the list if necessary and see if we can send it */
++	trap = check_and_add_trap(ibp, trap);
++	if (!trap)
++		return;
++
++	pkey_idx = hfi2_lookup_pkey_idx(ibp, LIM_MGMT_P_KEY);
++	if (pkey_idx < 0) {
++		pr_warn("%s: failed to find limited mgmt pkey, defaulting 0x%x\n",
++			__func__, hfi2_get_pkey(ibp, 1));
++		pkey_idx = 1;
++	}
++
++	send_buf = ib_create_send_mad(agent, qpn, pkey_idx, 0,
++				      IB_MGMT_MAD_HDR, IB_MGMT_MAD_DATA,
++				      GFP_ATOMIC, IB_MGMT_BASE_VERSION);
++	if (IS_ERR(send_buf))
++		return;
++
++	smp = send_buf->mad;
++	smp->base_version = OPA_MGMT_BASE_VERSION;
++	smp->mgmt_class = IB_MGMT_CLASS_SUBN_LID_ROUTED;
++	smp->class_version = OPA_SM_CLASS_VERSION;
++	smp->method = IB_MGMT_METHOD_TRAP;
++
++	/* Only update the transaction ID for new traps (o13-5). */
++	if (trap->tid == 0) {
++		ibp->rvp.tid++;
++		/* make sure that tid != 0 */
++		if (ibp->rvp.tid == 0)
++			ibp->rvp.tid++;
++		trap->tid = cpu_to_be64(ibp->rvp.tid);
++	}
++	smp->tid = trap->tid;
++
++	smp->attr_id = IB_SMP_ATTR_NOTICE;
++	/* o14-1: smp->mkey = 0; */
++
++	memcpy(smp->route.lid.data, &trap->data, trap->len);
++
++	spin_lock_irqsave(&ibp->rvp.lock, flags);
++	if (!ibp->rvp.sm_ah) {
++		if (ibp->rvp.sm_lid != be16_to_cpu(IB_LID_PERMISSIVE)) {
++			struct ib_ah *ah;
++
++			ah = hfi2_create_qp0_ah(ibp, ibp->rvp.sm_lid);
++			if (IS_ERR(ah)) {
++				spin_unlock_irqrestore(&ibp->rvp.lock, flags);
++				return;
++			}
++			send_buf->ah = ah;
++			ibp->rvp.sm_ah = ibah_to_rvtah(ah);
++		} else {
++			spin_unlock_irqrestore(&ibp->rvp.lock, flags);
++			return;
++		}
++	} else {
++		send_buf->ah = &ibp->rvp.sm_ah->ibah;
++	}
++
++	/*
++	 * If the trap was repressed while things were getting set up, don't
++	 * bother sending it. This could happen for a retry.
++	 */
++	if (trap->repress) {
++		list_del(&trap->list);
++		spin_unlock_irqrestore(&ibp->rvp.lock, flags);
++		kfree(trap);
++		ib_free_send_mad(send_buf);
++		return;
++	}
++
++	trap->in_use = 0;
++	spin_unlock_irqrestore(&ibp->rvp.lock, flags);
++
++	if (ib_post_send_mad(send_buf, NULL))
++		ib_free_send_mad(send_buf);
++}
++
++void hfi2_handle_trap_timer(struct timer_list *t)
++{
++	struct hfi2_ibport *ibp = from_timer(ibp, t, rvp.trap_timer);
++	struct trap_node *trap = NULL;
++	unsigned long flags;
++	int i;
++
++	/* Find the trap with the highest priority */
++	spin_lock_irqsave(&ibp->rvp.lock, flags);
++	for (i = 0; !trap && i < RVT_MAX_TRAP_LISTS; i++) {
++		trap = list_first_entry_or_null(&ibp->rvp.trap_lists[i].list,
++						struct trap_node, list);
++	}
++	spin_unlock_irqrestore(&ibp->rvp.lock, flags);
++
++	if (trap)
++		send_trap(ibp, trap);
++}
++
++static struct trap_node *create_trap_node(u8 type, __be16 trap_num, u32 lid)
++{
++	struct trap_node *trap;
++
++	trap = kzalloc(sizeof(*trap), GFP_ATOMIC);
++	if (!trap)
++		return NULL;
++
++	INIT_LIST_HEAD(&trap->list);
++	trap->data.generic_type = type;
++	trap->data.prod_type_lsb = IB_NOTICE_PROD_CA;
++	trap->data.trap_num = trap_num;
++	trap->data.issuer_lid = cpu_to_be32(lid);
++
++	return trap;
++}
++
++/*
++ * Send a bad P_Key trap (ch. 14.3.8).
++ */
++void hfi2_bad_pkey(struct hfi2_ibport *ibp, u32 key, u32 sl,
++		   u32 qp1, u32 qp2, u32 lid1, u32 lid2)
++{
++	struct trap_node *trap;
++	u32 lid = ppd_from_ibp(ibp)->lid;
++
++	ibp->rvp.n_pkt_drops++;
++	ibp->rvp.pkey_violations++;
++
++	trap = create_trap_node(IB_NOTICE_TYPE_SECURITY, OPA_TRAP_BAD_P_KEY,
++				lid);
++	if (!trap)
++		return;
++
++	/* Send violation trap */
++	trap->data.ntc_257_258.lid1 = cpu_to_be32(lid1);
++	trap->data.ntc_257_258.lid2 = cpu_to_be32(lid2);
++	trap->data.ntc_257_258.key = cpu_to_be32(key);
++	trap->data.ntc_257_258.sl = sl << 3;
++	trap->data.ntc_257_258.qp1 = cpu_to_be32(qp1);
++	trap->data.ntc_257_258.qp2 = cpu_to_be32(qp2);
++
++	trap->len = sizeof(trap->data);
++	send_trap(ibp, trap);
++}
++
++/*
++ * Send a bad M_Key trap (ch. 14.3.9).
++ */
++static void bad_mkey(struct hfi2_ibport *ibp, struct ib_mad_hdr *mad,
++		     __be64 mkey, __be32 dr_slid, u8 return_path[], u8 hop_cnt)
++{
++	struct trap_node *trap;
++	u32 lid = ppd_from_ibp(ibp)->lid;
++
++	trap = create_trap_node(IB_NOTICE_TYPE_SECURITY, OPA_TRAP_BAD_M_KEY,
++				lid);
++	if (!trap)
++		return;
++
++	/* Send violation trap */
++	trap->data.ntc_256.lid = trap->data.issuer_lid;
++	trap->data.ntc_256.method = mad->method;
++	trap->data.ntc_256.attr_id = mad->attr_id;
++	trap->data.ntc_256.attr_mod = mad->attr_mod;
++	trap->data.ntc_256.mkey = mkey;
++	if (mad->mgmt_class == IB_MGMT_CLASS_SUBN_DIRECTED_ROUTE) {
++		trap->data.ntc_256.dr_slid = dr_slid;
++		trap->data.ntc_256.dr_trunc_hop = IB_NOTICE_TRAP_DR_NOTICE;
++		if (hop_cnt > ARRAY_SIZE(trap->data.ntc_256.dr_rtn_path)) {
++			trap->data.ntc_256.dr_trunc_hop |=
++				IB_NOTICE_TRAP_DR_TRUNC;
++			hop_cnt = ARRAY_SIZE(trap->data.ntc_256.dr_rtn_path);
++		}
++		trap->data.ntc_256.dr_trunc_hop |= hop_cnt;
++		memcpy(trap->data.ntc_256.dr_rtn_path, return_path,
++		       hop_cnt);
++	}
++
++	trap->len = sizeof(trap->data);
++
++	send_trap(ibp, trap);
++}
++
++/*
++ * Send a Port Capability Mask Changed trap (ch. 14.3.11).
++ */
++void hfi2_cap_mask_chg(struct rvt_dev_info *rdi, u32 port_num)
++{
++	struct trap_node *trap;
++	struct hfi2_ibdev *verbs_dev = dev_from_rdi(rdi);
++	struct hfi2_devdata *dd = dd_from_dev(verbs_dev);
++	struct hfi2_ibport *ibp = &dd->pport[port_num - 1].ibport_data;
++	u32 lid = ppd_from_ibp(ibp)->lid;
++
++	trap = create_trap_node(IB_NOTICE_TYPE_INFO,
++				OPA_TRAP_CHANGE_CAPABILITY,
++				lid);
++	if (!trap)
++		return;
++
++	trap->data.ntc_144.lid = trap->data.issuer_lid;
++	trap->data.ntc_144.new_cap_mask = cpu_to_be32(ibp->rvp.port_cap_flags);
++	trap->data.ntc_144.cap_mask3 = cpu_to_be16(ibp->rvp.port_cap3_flags);
++
++	trap->len = sizeof(trap->data);
++	send_trap(ibp, trap);
++}
++
++/*
++ * Send a System Image GUID Changed trap (ch. 14.3.12).
++ */
++void hfi2_sys_guid_chg(struct hfi2_ibport *ibp)
++{
++	struct trap_node *trap;
++	u32 lid = ppd_from_ibp(ibp)->lid;
++
++	trap = create_trap_node(IB_NOTICE_TYPE_INFO, OPA_TRAP_CHANGE_SYSGUID,
++				lid);
++	if (!trap)
++		return;
++
++	trap->data.ntc_145.new_sys_guid = ib_hfi2_sys_image_guid;
++	trap->data.ntc_145.lid = trap->data.issuer_lid;
++
++	trap->len = sizeof(trap->data);
++	send_trap(ibp, trap);
++}
++
++/*
++ * Send a Node Description Changed trap (ch. 14.3.13).
++ */
++void hfi2_node_desc_chg(struct hfi2_ibport *ibp)
++{
++	struct trap_node *trap;
++	u32 lid = ppd_from_ibp(ibp)->lid;
++
++	trap = create_trap_node(IB_NOTICE_TYPE_INFO,
++				OPA_TRAP_CHANGE_CAPABILITY,
++				lid);
++	if (!trap)
++		return;
++
++	trap->data.ntc_144.lid = trap->data.issuer_lid;
++	trap->data.ntc_144.change_flags =
++		cpu_to_be16(OPA_NOTICE_TRAP_NODE_DESC_CHG);
++
++	trap->len = sizeof(trap->data);
++	send_trap(ibp, trap);
++}
++
++static int __subn_get_opa_nodedesc(struct opa_smp *smp, u32 am,
++				   u8 *data, struct ib_device *ibdev,
++				   u32 port, u32 *resp_len, u32 max_len)
++{
++	struct opa_node_description *nd;
++
++	if (am || smp_length_check(sizeof(*nd), max_len)) {
++		smp->status |= IB_SMP_INVALID_FIELD;
++		return reply((struct ib_mad_hdr *)smp);
++	}
++
++	nd = (struct opa_node_description *)data;
++
++	memcpy(nd->data, ibdev->node_desc, sizeof(nd->data));
++
++	if (resp_len)
++		*resp_len += sizeof(*nd);
++
++	return reply((struct ib_mad_hdr *)smp);
++}
++
++static int __subn_get_opa_nodeinfo(struct opa_smp *smp, u32 am, u8 *data,
++				   struct ib_device *ibdev, u32 port,
++				   u32 *resp_len, u32 max_len)
++{
++	struct opa_node_info *ni;
++	struct hfi2_devdata *dd = dd_from_ibdev(ibdev);
++	u32 pidx = port - 1; /* IB number port from 1, hw from 0 */
++
++	ni = (struct opa_node_info *)data;
++
++	/* GUID 0 is illegal */
++	if (am || pidx >= dd->num_pports || ibdev->node_guid == 0 ||
++	    smp_length_check(sizeof(*ni), max_len) ||
++	    get_sguid(to_iport(ibdev, port), HFI2_PORT_GUID_INDEX) == 0) {
++		smp->status |= IB_SMP_INVALID_FIELD;
++		return reply((struct ib_mad_hdr *)smp);
++	}
++
++	ni->port_guid = get_sguid(to_iport(ibdev, port), HFI2_PORT_GUID_INDEX);
++	ni->base_version = OPA_MGMT_BASE_VERSION;
++	ni->class_version = OPA_SM_CLASS_VERSION;
++	ni->node_type = 1;     /* channel adapter */
++	ni->num_ports = ibdev->phys_port_cnt;
++	/* This is already in network order */
++	ni->system_image_guid = ib_hfi2_sys_image_guid;
++	ni->node_guid = ibdev->node_guid;
++	ni->partition_cap = cpu_to_be16(hfi2_get_npkeys(dd));
++	ni->device_id = cpu_to_be16(dd->pcidev->device);
++	ni->revision = cpu_to_be32(dd->minrev);
++	ni->local_port_num = port;
++	ni->vendor_id[0] = dd->oui1;
++	ni->vendor_id[1] = dd->oui2;
++	ni->vendor_id[2] = dd->oui3;
++
++	if (resp_len)
++		*resp_len += sizeof(*ni);
++
++	return reply((struct ib_mad_hdr *)smp);
++}
++
++static int subn_get_nodeinfo(struct ib_smp *smp, struct ib_device *ibdev,
++			     u32 port)
++{
++	struct ib_node_info *nip = (struct ib_node_info *)&smp->data;
++	struct hfi2_devdata *dd = dd_from_ibdev(ibdev);
++	u32 pidx = port - 1; /* IB number port from 1, hw from 0 */
++
++	/* GUID 0 is illegal */
++	if (smp->attr_mod || pidx >= dd->num_pports ||
++	    ibdev->node_guid == 0 ||
++	    get_sguid(to_iport(ibdev, port), HFI2_PORT_GUID_INDEX) == 0) {
++		smp->status |= IB_SMP_INVALID_FIELD;
++		return reply((struct ib_mad_hdr *)smp);
++	}
++
++	nip->port_guid = get_sguid(to_iport(ibdev, port), HFI2_PORT_GUID_INDEX);
++	nip->base_version = OPA_MGMT_BASE_VERSION;
++	nip->class_version = OPA_SM_CLASS_VERSION;
++	nip->node_type = 1;     /* channel adapter */
++	nip->num_ports = ibdev->phys_port_cnt;
++	/* This is already in network order */
++	nip->sys_guid = ib_hfi2_sys_image_guid;
++	nip->node_guid = ibdev->node_guid;
++	nip->partition_cap = cpu_to_be16(hfi2_get_npkeys(dd));
++	nip->device_id = cpu_to_be16(dd->pcidev->device);
++	nip->revision = cpu_to_be32(dd->minrev);
++	nip->local_port_num = port;
++	nip->vendor_id[0] = dd->oui1;
++	nip->vendor_id[1] = dd->oui2;
++	nip->vendor_id[2] = dd->oui3;
++
++	return reply((struct ib_mad_hdr *)smp);
++}
++
++static void set_link_width_enabled(struct hfi2_pportdata *ppd, u32 w)
++{
++	(void)hfi2_set_ib_cfg(ppd, HFI2_IB_CFG_LWID_ENB, w);
++}
++
++static void set_link_width_downgrade_enabled(struct hfi2_pportdata *ppd, u32 w)
++{
++	(void)hfi2_set_ib_cfg(ppd, HFI2_IB_CFG_LWID_DG_ENB, w);
++}
++
++static void set_link_speed_enabled(struct hfi2_pportdata *ppd, u32 s)
++{
++	(void)hfi2_set_ib_cfg(ppd, HFI2_IB_CFG_SPD_ENB, s);
++}
++
++static int check_mkey(struct hfi2_ibport *ibp, struct ib_mad_hdr *mad,
++		      int mad_flags, __be64 mkey, __be32 dr_slid,
++		      u8 return_path[], u8 hop_cnt)
++{
++	int valid_mkey = 0;
++	int ret = 0;
++
++	/* Is the mkey in the process of expiring? */
++	if (ibp->rvp.mkey_lease_timeout &&
++	    time_after_eq(jiffies, ibp->rvp.mkey_lease_timeout)) {
++		/* Clear timeout and mkey protection field. */
++		ibp->rvp.mkey_lease_timeout = 0;
++		ibp->rvp.mkeyprot = 0;
++	}
++
++	if ((mad_flags & IB_MAD_IGNORE_MKEY) ||  ibp->rvp.mkey == 0 ||
++	    ibp->rvp.mkey == mkey)
++		valid_mkey = 1;
++
++	/* Unset lease timeout on any valid Get/Set/TrapRepress */
++	if (valid_mkey && ibp->rvp.mkey_lease_timeout &&
++	    (mad->method == IB_MGMT_METHOD_GET ||
++	     mad->method == IB_MGMT_METHOD_SET ||
++	     mad->method == IB_MGMT_METHOD_TRAP_REPRESS))
++		ibp->rvp.mkey_lease_timeout = 0;
++
++	if (!valid_mkey) {
++		switch (mad->method) {
++		case IB_MGMT_METHOD_GET:
++			/* Bad mkey not a violation below level 2 */
++			if (ibp->rvp.mkeyprot < 2)
++				break;
++			fallthrough;
++		case IB_MGMT_METHOD_SET:
++		case IB_MGMT_METHOD_TRAP_REPRESS:
++			if (ibp->rvp.mkey_violations != 0xFFFF)
++				++ibp->rvp.mkey_violations;
++			if (!ibp->rvp.mkey_lease_timeout &&
++			    ibp->rvp.mkey_lease_period)
++				ibp->rvp.mkey_lease_timeout = jiffies +
++					ibp->rvp.mkey_lease_period * HZ;
++			/* Generate a trap notice. */
++			bad_mkey(ibp, mad, mkey, dr_slid, return_path,
++				 hop_cnt);
++			ret = 1;
++		}
++	}
++
++	return ret;
++}
++
++static int __subn_get_opa_portinfo(struct opa_smp *smp, u32 am, u8 *data,
++				   struct ib_device *ibdev, u32 port,
++				   u32 *resp_len, u32 max_len)
++{
++	int i;
++	struct hfi2_devdata *dd;
++	struct hfi2_pportdata *ppd;
++	struct hfi2_ibport *ibp;
++	struct opa_port_info *pi = (struct opa_port_info *)data;
++	u8 mtu;
++	u8 credit_rate;
++	u8 is_beaconing_active;
++	u32 state;
++	u32 num_ports = OPA_AM_NPORT(am);
++	u32 start_of_sm_config = OPA_AM_START_SM_CFG(am);
++	u32 buffer_units;
++	u64 tmp = 0;
++
++	if (num_ports != 1 || smp_length_check(sizeof(*pi), max_len)) {
++		smp->status |= IB_SMP_INVALID_FIELD;
++		return reply((struct ib_mad_hdr *)smp);
++	}
++
++	dd = dd_from_ibdev(ibdev);
++	/* IB numbers ports from 1, hw from 0 */
++	ppd = dd->pport + (port - 1);
++	ibp = &ppd->ibport_data;
++
++	if (ppd->vls_supported / 2 > ARRAY_SIZE(pi->neigh_mtu.pvlx_to_mtu) ||
++	    ppd->vls_supported > ARRAY_SIZE(ppd->vld)) {
++		smp->status |= IB_SMP_INVALID_FIELD;
++		return reply((struct ib_mad_hdr *)smp);
++	}
++
++	pi->lid = cpu_to_be32(ppd->lid);
++
++	/* Only return the mkey if the protection field allows it. */
++	if (!(smp->method == IB_MGMT_METHOD_GET &&
++	      ibp->rvp.mkey != smp->mkey &&
++	      ibp->rvp.mkeyprot == 1))
++		pi->mkey = ibp->rvp.mkey;
++
++	pi->subnet_prefix = ibp->rvp.gid_prefix;
++	pi->sm_lid = cpu_to_be32(ibp->rvp.sm_lid);
++	pi->ib_cap_mask = cpu_to_be32(ibp->rvp.port_cap_flags);
++	pi->mkey_lease_period = cpu_to_be16(ibp->rvp.mkey_lease_period);
++	pi->sm_trap_qp = cpu_to_be32(ppd->sm_trap_qp);
++	pi->sa_qp = cpu_to_be32(ppd->sa_qp);
++
++	pi->link_width.enabled = cpu_to_be16(ppd->link_width_enabled);
++	pi->link_width.supported = cpu_to_be16(ppd->link_width_supported);
++	pi->link_width.active = cpu_to_be16(ppd->link_width_active);
++
++	pi->link_width_downgrade.supported =
++			cpu_to_be16(ppd->link_width_downgrade_supported);
++	pi->link_width_downgrade.enabled =
++			cpu_to_be16(ppd->link_width_downgrade_enabled);
++	pi->link_width_downgrade.tx_active =
++			cpu_to_be16(ppd->link_width_downgrade_tx_active);
++	pi->link_width_downgrade.rx_active =
++			cpu_to_be16(ppd->link_width_downgrade_rx_active);
++
++	pi->link_speed.supported = cpu_to_be16(ppd->link_speed_supported);
++	pi->link_speed.active = cpu_to_be16(ppd->link_speed_active);
++	pi->link_speed.enabled = cpu_to_be16(ppd->link_speed_enabled);
++
++	state = driver_lstate(ppd);
++
++	if (start_of_sm_config && (state == IB_PORT_INIT))
++		ppd->is_sm_config_started = 1;
++
++	pi->port_phys_conf = (ppd->port_type & 0xf);
++
++	pi->port_states.ledenable_offlinereason = ppd->neighbor_normal << 4;
++	pi->port_states.ledenable_offlinereason |=
++		ppd->is_sm_config_started << 5;
++	/*
++	 * This pairs with the memory barrier in hfi2_start_led_override to
++	 * ensure that we read the correct state of LED beaconing represented
++	 * by led_override_timer_active
++	 */
++	smp_rmb();
++	is_beaconing_active = !!atomic_read(&ppd->led_override_timer_active);
++	pi->port_states.ledenable_offlinereason |= is_beaconing_active << 6;
++	pi->port_states.ledenable_offlinereason |=
++		ppd->offline_disabled_reason;
++
++	pi->port_states.portphysstate_portstate =
++		(driver_pstate(ppd) << 4) | state;
++
++	pi->mkeyprotect_lmc = (ibp->rvp.mkeyprot << 6) | ppd->lmc;
++
++	memset(pi->neigh_mtu.pvlx_to_mtu, 0, sizeof(pi->neigh_mtu.pvlx_to_mtu));
++	for (i = 0; i < ppd->vls_supported; i++) {
++		mtu = mtu_to_enum(ppd->vld[i].mtu, HFI2_DEFAULT_ACTIVE_MTU);
++		if ((i % 2) == 0)
++			pi->neigh_mtu.pvlx_to_mtu[i / 2] |= (mtu << 4);
++		else
++			pi->neigh_mtu.pvlx_to_mtu[i / 2] |= mtu;
++	}
++	/* don't forget VL 15 */
++	mtu = mtu_to_enum(ppd->vld[15].mtu, 2048);
++	pi->neigh_mtu.pvlx_to_mtu[15 / 2] |= mtu;
++	pi->smsl = ibp->rvp.sm_sl & OPA_PI_MASK_SMSL;
++	pi->operational_vls = hfi2_get_ib_cfg(ppd, HFI2_IB_CFG_OP_VLS);
++	pi->partenforce_filterraw |=
++		(ppd->linkinit_reason & OPA_PI_MASK_LINKINIT_REASON);
++	if (ppd->part_enforce & HFI2_PART_ENFORCE_IN)
++		pi->partenforce_filterraw |= OPA_PI_MASK_PARTITION_ENFORCE_IN;
++	if (ppd->part_enforce & HFI2_PART_ENFORCE_OUT)
++		pi->partenforce_filterraw |= OPA_PI_MASK_PARTITION_ENFORCE_OUT;
++	pi->mkey_violations = cpu_to_be16(ibp->rvp.mkey_violations);
++	/* P_KeyViolations are counted by hardware. */
++	pi->pkey_violations = cpu_to_be16(ibp->rvp.pkey_violations);
++	pi->qkey_violations = cpu_to_be16(ibp->rvp.qkey_violations);
++
++	pi->vl.cap = ppd->vls_supported;
++	pi->vl.high_limit = cpu_to_be16(ibp->rvp.vl_high_limit);
++	pi->vl.arb_high_cap = (u8)hfi2_get_ib_cfg(ppd, HFI2_IB_CFG_VL_HIGH_CAP);
++	pi->vl.arb_low_cap = (u8)hfi2_get_ib_cfg(ppd, HFI2_IB_CFG_VL_LOW_CAP);
++
++	pi->clientrereg_subnettimeout = ibp->rvp.subnet_timeout;
++
++	pi->port_link_mode  = cpu_to_be16(OPA_PORT_LINK_MODE_OPA << 10 |
++					  OPA_PORT_LINK_MODE_OPA << 5 |
++					  OPA_PORT_LINK_MODE_OPA);
++
++	pi->port_ltp_crc_mode = cpu_to_be16(ppd->port_ltp_crc_mode);
++
++	pi->port_mode = cpu_to_be16(
++				ppd->is_active_optimize_enabled ?
++					OPA_PI_MASK_PORT_ACTIVE_OPTOMIZE : 0);
++
++	pi->port_packet_format.supported =
++		cpu_to_be16(OPA_PORT_PACKET_FORMAT_9B |
++			    OPA_PORT_PACKET_FORMAT_16B);
++	pi->port_packet_format.enabled =
++		cpu_to_be16(OPA_PORT_PACKET_FORMAT_9B |
++			    OPA_PORT_PACKET_FORMAT_16B);
++
++	/* flit_control.interleave is (OPA V1, version .76):
++	 * bits		use
++	 * ----		---
++	 * 2		res
++	 * 2		DistanceSupported
++	 * 2		DistanceEnabled
++	 * 5		MaxNextLevelTxEnabled
++	 * 5		MaxNestLevelRxSupported
++	 *
++	 * HFI supports only "distance mode 1" (see OPA V1, version .76,
++	 * section 9.6.2), so set DistanceSupported, DistanceEnabled
++	 * to 0x1.
++	 */
++	pi->flit_control.interleave = cpu_to_be16(0x1400);
++
++	pi->link_down_reason = ppd->local_link_down_reason.sma;
++	pi->neigh_link_down_reason = ppd->neigh_link_down_reason.sma;
++	pi->port_error_action = cpu_to_be32(ppd->port_error_action);
++	pi->mtucap = mtu_to_enum(hfi2_max_mtu, IB_MTU_4096);
++
++	/* 32.768 usec. response time (guessing) */
++	pi->resptimevalue = 3;
++
++	pi->local_port_num = port;
++
++	/* buffer info for FM */
++	pi->overall_buffer_space = cpu_to_be16(dd->link_credits);
++
++	pi->neigh_node_guid = cpu_to_be64(ppd->neighbor_guid);
++	pi->neigh_port_num = ppd->neighbor_port_number;
++	pi->port_neigh_mode =
++		(ppd->neighbor_type & OPA_PI_MASK_NEIGH_NODE_TYPE) |
++		(ppd->mgmt_allowed ? OPA_PI_MASK_NEIGH_MGMT_ALLOWED : 0) |
++		(ppd->neighbor_fm_security ?
++			OPA_PI_MASK_NEIGH_FW_AUTH_BYPASS : 0);
++
++	/* HFIs shall always return VL15 credits to their
++	 * neighbor in a timely manner, without any credit return pacing.
++	 */
++	credit_rate = 0;
++	buffer_units  = (dd->vau) & OPA_PI_MASK_BUF_UNIT_BUF_ALLOC;
++	buffer_units |= (dd->vcu << 3) & OPA_PI_MASK_BUF_UNIT_CREDIT_ACK;
++	buffer_units |= (credit_rate << 6) &
++				OPA_PI_MASK_BUF_UNIT_VL15_CREDIT_RATE;
++	buffer_units |= (dd->vl15_init << 11) & OPA_PI_MASK_BUF_UNIT_VL15_INIT;
++	pi->buffer_units = cpu_to_be32(buffer_units);
++
++	pi->opa_cap_mask = cpu_to_be16(ibp->rvp.port_cap3_flags);
++	pi->collectivemask_multicastmask = ((OPA_COLLECTIVE_NR & 0x7)
++					    << 3 | (OPA_MCAST_NR & 0x7));
++
++	/* HFI supports a replay buffer 128 LTPs in size */
++	pi->replay_depth.buffer = 0x80;
++	/* use the cached round trip count */
++	tmp = ppd->link_ltp_rtt;
++
++	/*
++	 * this counter is 16 bits wide, but the replay_depth.wire
++	 * variable is only 8 bits
++	 */
++	if (tmp > 0xff)
++		tmp = 0xff;
++	pi->replay_depth.wire = tmp;
++
++	if (resp_len)
++		*resp_len += sizeof(struct opa_port_info);
++
++	return reply((struct ib_mad_hdr *)smp);
++}
++
++/**
++ * get_pkeys - return the PKEY table for any block
++ * @dd: the hfi2_ib device
++ * @port: the IB port number
++ * @start_block: starting block to read
++ * @num_blocks: number of blocks to read
++ * @pkeys: the pkey table is placed here
++ *
++ * Copy out the pkeys - the keys are endianized for the host.
++ */
++static int get_pkeys(struct hfi2_devdata *dd, u32 port, u32 start_block,
++		     u32 num_blocks, u16 *pkeys)
++{
++	struct hfi2_pportdata *ppd = dd->pport + (port - 1);
++	u32 start_index;
++	u32 end_index;
++
++	/* calculate the indices affected */
++	start_index = start_block * OPA_PARTITION_TABLE_BLK_SIZE;
++	end_index = min_t(u32, dd->params->pkey_table_size,
++			  start_index + (num_blocks * OPA_PARTITION_TABLE_BLK_SIZE));
++
++	memcpy(pkeys, &ppd->pkeys[start_index],
++	       (end_index - start_index) * sizeof(ppd->pkeys[0]));
++
 +	return 0;
 +}
 +
-+DEBUGFS_SEQ_FILE_OPS(pios);
-+DEBUGFS_SEQ_FILE_OPEN(pios)
-+DEBUGFS_FILE_OPS(pios);
-+
-+/* read the per-device counters */
-+static ssize_t dev_counters_read(struct file *file, char __user *buf,
-+				 size_t count, loff_t *ppos)
++static int __subn_get_opa_pkeytable(struct opa_smp *smp, u32 am, u8 *data,
++				    struct ib_device *ibdev, u32 port,
++				    u32 *resp_len, u32 max_len)
 +{
-+	u64 *counters;
-+	size_t avail;
-+	struct hfi2_devdata *dd;
-+	ssize_t rval;
++	struct hfi2_devdata *dd = dd_from_ibdev(ibdev);
++	u32 n_blocks_req = OPA_AM_NBLK(am);
++	u32 start_block = am & 0x7ff;
++	__be16 *p;
++	u16 *q;
++	int i;
++	u32 n_blocks_avail;
++	u32 npkeys = hfi2_get_npkeys(dd);
++	u32 num_req_keys;
++	size_t size;
 +
-+	dd = private2dd(file);
-+	avail = hfi2_read_cntrs(dd, NULL, &counters);
-+	rval =  simple_read_from_buffer(buf, count, ppos, counters, avail);
-+	return rval;
++	if (n_blocks_req == 0) {
++		pr_warn("OPA Get PKey AM Invalid : P = %d; B = 0x%x; N = 0x%x\n",
++			port, start_block, n_blocks_req);
++		smp->status |= IB_SMP_INVALID_FIELD;
++		return reply((struct ib_mad_hdr *)smp);
++	}
++
++	n_blocks_avail = DIV_ROUND_UP(npkeys, OPA_PARTITION_TABLE_BLK_SIZE);
++
++	num_req_keys = n_blocks_req * OPA_PARTITION_TABLE_BLK_SIZE;
++	size = num_req_keys * sizeof(u16);
++
++	if (smp_length_check(size, max_len)) {
++		smp->status |= IB_SMP_INVALID_FIELD;
++		return reply((struct ib_mad_hdr *)smp);
++	}
++
++	if (start_block + n_blocks_req > n_blocks_avail ||
++	    n_blocks_req > OPA_NUM_PKEY_BLOCKS_PER_SMP) {
++		pr_warn("OPA Get PKey AM Invalid : s 0x%x; req 0x%x; "
++			"avail 0x%x; blk/smp 0x%lx\n",
++			start_block, n_blocks_req, n_blocks_avail,
++			OPA_NUM_PKEY_BLOCKS_PER_SMP);
++		smp->status |= IB_SMP_INVALID_FIELD;
++		return reply((struct ib_mad_hdr *)smp);
++	}
++
++	p = (__be16 *)data;
++	q = (u16 *)data;
++	/* get the current pkeys */
++	get_pkeys(dd, port, start_block, n_blocks_req, q);
++	/* make keys big endian */
++	for (i = 0; i < num_req_keys; i++)
++		p[i] = cpu_to_be16(q[i]);
++	if (resp_len)
++		*resp_len += size;
++
++	return reply((struct ib_mad_hdr *)smp);
 +}
 +
-+/* read the per-device counters */
-+static ssize_t dev_names_read(struct file *file, char __user *buf,
-+			      size_t count, loff_t *ppos)
-+{
-+	char *names;
-+	size_t avail;
-+	struct hfi2_devdata *dd;
-+	ssize_t rval;
-+
-+	dd = private2dd(file);
-+	avail = hfi2_read_cntrs(dd, &names, NULL);
-+	rval =  simple_read_from_buffer(buf, count, ppos, names, avail);
-+	return rval;
-+}
-+
-+struct counter_info {
-+	char *name;
-+	const struct file_operations ops;
++enum {
++	HFI_TRANSITION_DISALLOWED,
++	HFI_TRANSITION_IGNORED,
++	HFI_TRANSITION_ALLOWED,
++	HFI_TRANSITION_UNDEFINED,
 +};
 +
 +/*
-+ * Could use file_inode(file)->i_ino to figure out which file,
-+ * instead of separate routine for each, but for now, this works...
++ * Use shortened names to improve readability of
++ * {logical,physical}_state_transitions
++ */
++enum {
++	__D = HFI_TRANSITION_DISALLOWED,
++	__I = HFI_TRANSITION_IGNORED,
++	__A = HFI_TRANSITION_ALLOWED,
++	__U = HFI_TRANSITION_UNDEFINED,
++};
++
++/*
++ * IB_PORTPHYSSTATE_POLLING (2) through OPA_PORTPHYSSTATE_MAX (11) are
++ * represented in physical_state_transitions.
++ */
++#define __N_PHYSTATES (OPA_PORTPHYSSTATE_MAX - IB_PORTPHYSSTATE_POLLING + 1)
++
++/*
++ * Within physical_state_transitions, rows represent "old" states,
++ * columns "new" states, and physical_state_transitions.allowed[old][new]
++ * indicates if the transition from old state to new state is legal (see
++ * OPAg1v1, Table 6-4).
++ */
++static const struct {
++	u8 allowed[__N_PHYSTATES][__N_PHYSTATES];
++} physical_state_transitions = {
++	{
++		/* 2    3    4    5    6    7    8    9   10   11 */
++	/* 2 */	{ __A, __A, __D, __D, __D, __D, __D, __D, __D, __D },
++	/* 3 */	{ __A, __I, __D, __D, __D, __D, __D, __D, __D, __A },
++	/* 4 */	{ __U, __U, __U, __U, __U, __U, __U, __U, __U, __U },
++	/* 5 */	{ __A, __A, __D, __I, __D, __D, __D, __D, __D, __D },
++	/* 6 */	{ __U, __U, __U, __U, __U, __U, __U, __U, __U, __U },
++	/* 7 */	{ __D, __A, __D, __D, __D, __I, __D, __D, __D, __D },
++	/* 8 */	{ __U, __U, __U, __U, __U, __U, __U, __U, __U, __U },
++	/* 9 */	{ __I, __A, __D, __D, __D, __D, __D, __I, __D, __D },
++	/*10 */	{ __U, __U, __U, __U, __U, __U, __U, __U, __U, __U },
++	/*11 */	{ __D, __A, __D, __D, __D, __D, __D, __D, __D, __I },
++	}
++};
++
++/*
++ * IB_PORT_DOWN (1) through IB_PORT_ACTIVE_DEFER (5) are represented
++ * logical_state_transitions
 + */
 +
-+/* read the per-port names (same for each port) */
-+static ssize_t portnames_read(struct file *file, char __user *buf,
-+			      size_t count, loff_t *ppos)
-+{
-+	char *names;
-+	size_t avail;
-+	struct hfi2_devdata *dd;
-+	ssize_t rval;
++#define __N_LOGICAL_STATES (IB_PORT_ACTIVE_DEFER - IB_PORT_DOWN + 1)
 +
-+	dd = private2dd(file);
-+	avail = hfi2_read_portcntrs(dd->pport, &names, NULL);
-+	rval = simple_read_from_buffer(buf, count, ppos, names, avail);
-+	return rval;
-+}
-+
-+/* read the per-port counters */
-+static ssize_t portcntrs_debugfs_read(struct file *file, char __user *buf,
-+				      size_t count, loff_t *ppos)
-+{
-+	u64 *counters;
-+	size_t avail;
-+	struct hfi2_pportdata *ppd;
-+	ssize_t rval;
-+
-+	ppd = private2ppd(file);
-+	avail = hfi2_read_portcntrs(ppd, NULL, &counters);
-+	rval = simple_read_from_buffer(buf, count, ppos, counters, avail);
-+	return rval;
-+}
-+
-+static void check_dyn_flag(u64 scratch0, char *p, int size, int *used,
-+			   int this_hfi, int hfi, u32 flag, const char *what)
-+{
-+	u32 mask;
-+
-+	mask = flag << (hfi ? CR_DYN_SHIFT : 0);
-+	if (scratch0 & mask) {
-+		*used += scnprintf(p + *used, size - *used,
-+				   "  0x%08x - HFI%d %s in use, %s device\n",
-+				   mask, hfi, what,
-+				   this_hfi == hfi ? "this" : "other");
++/*
++ * Within logical_state_transitions rows represent "old" states,
++ * columns "new" states, and logical_state_transitions.allowed[old][new]
++ * indicates if the transition from old state to new state is legal (see
++ * OPAg1v1, Table 9-12).
++ */
++static const struct {
++	u8 allowed[__N_LOGICAL_STATES][__N_LOGICAL_STATES];
++} logical_state_transitions = {
++	{
++		/* 1    2    3    4    5 */
++	/* 1 */	{ __I, __D, __D, __D, __U},
++	/* 2 */	{ __D, __I, __A, __D, __U},
++	/* 3 */	{ __D, __D, __I, __A, __U},
++	/* 4 */	{ __D, __D, __I, __I, __U},
++	/* 5 */	{ __U, __U, __U, __U, __U},
 +	}
-+}
++};
 +
-+static ssize_t asic_flags_read(struct file *file, char __user *buf,
-+			       size_t count, loff_t *ppos)
++static int logical_transition_allowed(int old, int new)
 +{
-+	struct hfi2_devdata *dd;
-+	u64 scratch0;
-+	char *tmp;
-+	int ret = 0;
-+	int size;
-+	int used;
-+	int i;
-+
-+	dd = private2dd(file);
-+	size = PAGE_SIZE;
-+	used = 0;
-+	tmp = kmalloc(size, GFP_KERNEL);
-+	if (!tmp)
-+		return -ENOMEM;
-+
-+	scratch0 = read_csr(dd, ASIC_CFG_SCRATCH);
-+	used += scnprintf(tmp + used, size - used,
-+			  "Resource flags: 0x%016llx\n", scratch0);
-+
-+	/* check permanent flag */
-+	if (scratch0 & CR_THERM_INIT) {
-+		used += scnprintf(tmp + used, size - used,
-+				  "  0x%08x - thermal monitoring initialized\n",
-+				  (u32)CR_THERM_INIT);
++	if (old < IB_PORT_NOP || old > IB_PORT_ACTIVE_DEFER ||
++	    new < IB_PORT_NOP || new > IB_PORT_ACTIVE_DEFER) {
++		pr_warn("invalid logical state(s) (old %d new %d)\n",
++			old, new);
++		return HFI_TRANSITION_UNDEFINED;
 +	}
 +
-+	/* check each dynamic flag on each HFI */
-+	for (i = 0; i < 2; i++) {
-+		check_dyn_flag(scratch0, tmp, size, &used, dd->hfi2_id, i,
-+			       CR_SBUS, "SBus");
-+		check_dyn_flag(scratch0, tmp, size, &used, dd->hfi2_id, i,
-+			       CR_EPROM, "EPROM");
-+		check_dyn_flag(scratch0, tmp, size, &used, dd->hfi2_id, i,
-+			       CR_I2C1, "i2c chain 1");
-+		check_dyn_flag(scratch0, tmp, size, &used, dd->hfi2_id, i,
-+			       CR_I2C2, "i2c chain 2");
++	if (new == IB_PORT_NOP)
++		return HFI_TRANSITION_ALLOWED; /* always allowed */
++
++	/* adjust states for indexing into logical_state_transitions */
++	old -= IB_PORT_DOWN;
++	new -= IB_PORT_DOWN;
++
++	if (old < 0 || new < 0)
++		return HFI_TRANSITION_UNDEFINED;
++	return logical_state_transitions.allowed[old][new];
++}
++
++static int physical_transition_allowed(int old, int new)
++{
++	if (old < IB_PORTPHYSSTATE_NOP || old > OPA_PORTPHYSSTATE_MAX ||
++	    new < IB_PORTPHYSSTATE_NOP || new > OPA_PORTPHYSSTATE_MAX) {
++		pr_warn("invalid physical state(s) (old %d new %d)\n",
++			old, new);
++		return HFI_TRANSITION_UNDEFINED;
 +	}
-+	used += scnprintf(tmp + used, size - used, "Write bits to clear\n");
 +
-+	ret = simple_read_from_buffer(buf, count, ppos, tmp, used);
-+	kfree(tmp);
-+	return ret;
++	if (new == IB_PORTPHYSSTATE_NOP)
++		return HFI_TRANSITION_ALLOWED; /* always allowed */
++
++	/* adjust states for indexing into physical_state_transitions */
++	old -= IB_PORTPHYSSTATE_POLLING;
++	new -= IB_PORTPHYSSTATE_POLLING;
++
++	if (old < 0 || new < 0)
++		return HFI_TRANSITION_UNDEFINED;
++	return physical_state_transitions.allowed[old][new];
 +}
 +
-+static ssize_t asic_flags_write(struct file *file, const char __user *buf,
-+				size_t count, loff_t *ppos)
++static int port_states_transition_allowed(struct hfi2_pportdata *ppd,
++					  u32 logical_new, u32 physical_new)
 +{
-+	struct hfi2_devdata *dd;
-+	char *buff;
-+	int ret;
-+	unsigned long long value;
-+	u64 scratch0;
-+	u64 clear;
++	u32 physical_old = driver_pstate(ppd);
++	u32 logical_old = driver_lstate(ppd);
++	int ret, logical_allowed, physical_allowed;
 +
-+	dd = private2dd(file);
++	ret = logical_transition_allowed(logical_old, logical_new);
++	logical_allowed = ret;
 +
-+	if (!dd->asic_data)
-+		return -EINVAL;
++	if (ret == HFI_TRANSITION_DISALLOWED ||
++	    ret == HFI_TRANSITION_UNDEFINED) {
++		ppd_dev_warn(ppd, "invalid logical state transition %s -> %s\n",
++			     ib_port_state_to_str(logical_old),
++			     ib_port_state_to_str(logical_new));
++		return ret;
++	}
 +
-+	/* zero terminate and read the expected integer */
-+	buff = memdup_user_nul(buf, count);
-+	if (IS_ERR(buff))
-+		return PTR_ERR(buff);
++	ret = physical_transition_allowed(physical_old, physical_new);
++	physical_allowed = ret;
 +
-+	ret = kstrtoull(buff, 0, &value);
-+	if (ret)
-+		goto do_free;
-+	clear = value;
++	if (ret == HFI_TRANSITION_DISALLOWED ||
++	    ret == HFI_TRANSITION_UNDEFINED) {
++		ppd_dev_warn(ppd, "invalid physical state transition %s -> %s\n",
++			     opa_pstate_name(physical_old),
++			     opa_pstate_name(physical_new));
++		return ret;
++	}
 +
-+	/* obtain exclusive access */
-+	mutex_lock(&dd->asic_data->asic_resource_mutex);
-+	acquire_hw_mutex(dd);
-+
-+	scratch0 = read_csr(dd, ASIC_CFG_SCRATCH);
-+	scratch0 &= ~clear;
-+	write_csr(dd, ASIC_CFG_SCRATCH, scratch0);
-+	/* force write to be visible to other HFI on another OS */
-+	(void)read_csr(dd, ASIC_CFG_SCRATCH);
-+
-+	release_hw_mutex(dd);
-+	mutex_unlock(&dd->asic_data->asic_resource_mutex);
-+
-+	/* return the number of bytes written */
-+	ret = count;
-+
-+ do_free:
-+	kfree(buff);
-+	return ret;
-+}
-+
-+/* read the dc8051 memory */
-+static ssize_t dc8051_memory_read(struct file *file, char __user *buf,
-+				  size_t count, loff_t *ppos)
-+{
-+	struct hfi2_pportdata *ppd = private2ppd(file);
-+	ssize_t rval;
-+	void *tmp;
-+	loff_t start, end;
-+
-+	/* the checks below expect the position to be positive */
-+	if (*ppos < 0)
-+		return -EINVAL;
-+
-+	tmp = kzalloc(DC8051_DATA_MEM_SIZE, GFP_KERNEL);
-+	if (!tmp)
-+		return -ENOMEM;
++	if (logical_allowed == HFI_TRANSITION_IGNORED &&
++	    physical_allowed == HFI_TRANSITION_IGNORED)
++		return HFI_TRANSITION_IGNORED;
 +
 +	/*
-+	 * Fill in the requested portion of the temporary buffer from the
-+	 * 8051 memory.  The 8051 memory read is done in terms of 8 bytes.
-+	 * Adjust start and end to fit.  Skip reading anything if out of
-+	 * range.
++	 * A change request of Physical Port State from
++	 * 'Offline' to 'Polling' should be ignored.
 +	 */
-+	start = *ppos & ~0x7;	/* round down */
-+	if (start < DC8051_DATA_MEM_SIZE) {
-+		end = (*ppos + count + 7) & ~0x7; /* round up */
-+		if (end > DC8051_DATA_MEM_SIZE)
-+			end = DC8051_DATA_MEM_SIZE;
-+		rval = read_8051_data(ppd->dd, start, end - start,
-+				      (u64 *)(tmp + start));
-+		if (rval)
-+			goto done;
-+	}
++	if ((physical_old == OPA_PORTPHYSSTATE_OFFLINE) &&
++	    (physical_new == IB_PORTPHYSSTATE_POLLING))
++		return HFI_TRANSITION_IGNORED;
 +
-+	rval = simple_read_from_buffer(buf, count, ppos, tmp,
-+				       DC8051_DATA_MEM_SIZE);
-+done:
-+	kfree(tmp);
-+	return rval;
++	/*
++	 * Either physical_allowed or logical_allowed is
++	 * HFI_TRANSITION_ALLOWED.
++	 */
++	return HFI_TRANSITION_ALLOWED;
 +}
 +
-+static ssize_t debugfs_lcb_read(struct file *file, char __user *buf,
-+				size_t count, loff_t *ppos)
++static int set_port_states(struct hfi2_pportdata *ppd, struct opa_smp *smp,
++			   u32 logical_state, u32 phys_state, int local_mad)
 +{
-+	struct hfi2_pportdata *ppd = private2ppd(file);
-+	unsigned long total, csr_off;
-+	u64 data;
++	struct hfi2_devdata *dd = ppd->dd;
++	u32 link_state;
++	int ret;
 +
-+	if (*ppos < 0)
-+		return -EINVAL;
-+	/* only read 8 byte quantities */
-+	if ((count % 8) != 0)
-+		return -EINVAL;
-+	/* offset must be 8-byte aligned */
-+	if ((*ppos % 8) != 0)
-+		return -EINVAL;
-+	/* do nothing if out of range or zero count */
-+	if (*ppos >= (LCB_END - LCB_START) || !count)
++	ret = port_states_transition_allowed(ppd, logical_state, phys_state);
++	if (ret == HFI_TRANSITION_DISALLOWED ||
++	    ret == HFI_TRANSITION_UNDEFINED) {
++		/* error message emitted above */
++		smp->status |= IB_SMP_INVALID_FIELD;
 +		return 0;
-+	/* reduce count if needed */
-+	if (*ppos + count > LCB_END - LCB_START)
-+		count = (LCB_END - LCB_START) - *ppos;
-+
-+	csr_off = LCB_START + *ppos;
-+	for (total = 0; total < count; total += 8, csr_off += 8) {
-+		if (read_lcb_csr(ppd, csr_off, (u64 *)&data))
-+			break; /* failed */
-+		if (put_user(data, (unsigned long __user *)(buf + total)))
-+			break;
 +	}
-+	*ppos += total;
-+	return total;
-+}
 +
-+static ssize_t debugfs_lcb_write(struct file *file, const char __user *buf,
-+				 size_t count, loff_t *ppos)
-+{
-+	struct hfi2_pportdata *ppd = private2ppd(file);
-+	unsigned long total, csr_off, data;
-+
-+	if (*ppos < 0)
-+		return -EINVAL;
-+	/* only write 8 byte quantities */
-+	if ((count % 8) != 0)
-+		return -EINVAL;
-+	/* offset must be 8-byte aligned */
-+	if ((*ppos % 8) != 0)
-+		return -EINVAL;
-+	/* do nothing if out of range or zero count */
-+	if (*ppos >= (LCB_END - LCB_START) || !count)
++	if (ret == HFI_TRANSITION_IGNORED)
 +		return 0;
-+	/* reduce count if needed */
-+	if (*ppos + count > LCB_END - LCB_START)
-+		count = (LCB_END - LCB_START) - *ppos;
 +
-+	csr_off = LCB_START + *ppos;
-+	for (total = 0; total < count; total += 8, csr_off += 8) {
-+		if (get_user(data, (unsigned long __user *)(buf + total)))
-+			break;
-+		if (write_lcb_csr(ppd, csr_off, data))
-+			break; /* failed */
++	if ((phys_state != IB_PORTPHYSSTATE_NOP) &&
++	    !(logical_state == IB_PORT_DOWN ||
++	      logical_state == IB_PORT_NOP)){
++		ppd_dev_warn(ppd, "SubnSet(OPA_PortInfo) port state invalid: logical_state 0x%x physical_state 0x%x\n",
++			     logical_state, phys_state);
++		smp->status |= IB_SMP_INVALID_FIELD;
 +	}
-+	*ppos += total;
-+	return total;
++
++	/*
++	 * Logical state changes are summarized in OPAv1g1 spec.,
++	 * Table 9-12; physical state changes are summarized in
++	 * OPAv1g1 spec., Table 6.4.
++	 */
++	switch (logical_state) {
++	case IB_PORT_NOP:
++		if (phys_state == IB_PORTPHYSSTATE_NOP)
++			break;
++		fallthrough;
++	case IB_PORT_DOWN:
++		if (phys_state == IB_PORTPHYSSTATE_NOP) {
++			link_state = HLS_DN_DOWNDEF;
++		} else if (phys_state == IB_PORTPHYSSTATE_POLLING) {
++			link_state = HLS_DN_POLL;
++			set_link_down_reason(ppd, OPA_LINKDOWN_REASON_FM_BOUNCE,
++					     0, OPA_LINKDOWN_REASON_FM_BOUNCE);
++		} else if (phys_state == IB_PORTPHYSSTATE_DISABLED) {
++			link_state = HLS_DN_DISABLE;
++		} else {
++			ppd_dev_warn(ppd, "SubnSet(OPA_PortInfo) invalid physical state 0x%x\n",
++				     phys_state);
++			smp->status |= IB_SMP_INVALID_FIELD;
++			break;
++		}
++
++		if ((link_state == HLS_DN_POLL ||
++		     link_state == HLS_DN_DOWNDEF)) {
++			/*
++			 * Going to poll.  No matter what the current state,
++			 * always move offline first, then tune and start the
++			 * link.  This correctly handles a FM link bounce and
++			 * a link enable.  Going offline is a no-op if already
++			 * offline.
++			 */
++			set_link_state(ppd, HLS_DN_OFFLINE);
++			start_link(ppd);
++		} else {
++			set_link_state(ppd, link_state);
++		}
++		if (link_state == HLS_DN_DISABLE &&
++		    (ppd->offline_disabled_reason >
++		     HFI2_ODR_MASK(OPA_LINKDOWN_REASON_SMA_DISABLED) ||
++		     ppd->offline_disabled_reason ==
++		     HFI2_ODR_MASK(OPA_LINKDOWN_REASON_NONE)))
++			ppd->offline_disabled_reason =
++			HFI2_ODR_MASK(OPA_LINKDOWN_REASON_SMA_DISABLED);
++		/*
++		 * Don't send a reply if the response would be sent
++		 * through the disabled port.
++		 */
++		if (link_state == HLS_DN_DISABLE && !local_mad)
++			return IB_MAD_RESULT_SUCCESS | IB_MAD_RESULT_CONSUMED;
++		break;
++	case IB_PORT_ARMED:
++		ret = set_link_state(ppd, HLS_UP_ARMED);
++		if (!ret)
++			send_idle_sma(dd, SMA_IDLE_ARM);
++		break;
++	case IB_PORT_ACTIVE:
++		if (ppd->neighbor_normal) {
++			ret = set_link_state(ppd, HLS_UP_ACTIVE);
++			if (ret == 0)
++				send_idle_sma(dd, SMA_IDLE_ACTIVE);
++		} else {
++			ppd_dev_warn(ppd, "SubnSet(OPA_PortInfo) Cannot move to Active with NeighborNormal 0\n");
++			smp->status |= IB_SMP_INVALID_FIELD;
++		}
++		break;
++	default:
++		ppd_dev_warn(ppd, "SubnSet(OPA_PortInfo) invalid logical state 0x%x\n",
++			     logical_state);
++		smp->status |= IB_SMP_INVALID_FIELD;
++	}
++
++	return 0;
 +}
 +
 +/*
-+ * read the per-port QSFP data for ppd
++ * Clone of set_port_states() that only updates device structures, does
++ * not touch hardware. For adapters with a CPORT that handles the hardware.
++ * The CPORT is never expected to send bad information.
++ *
++ * Note that intermediate states may be skipped, depending on how/when CPORT
++ * notifies the driver.
 + */
-+static ssize_t qsfp_debugfs_dump(struct file *file, char __user *buf,
-+				 size_t count, loff_t *ppos)
++static void cport_set_port_states(struct hfi2_pportdata *ppd, struct opa_port_info *pi,
++				  u32 logical_state, u32 phys_state)
 +{
-+	struct hfi2_pportdata *ppd;
-+	char *tmp;
++	u32 link_state;
 +	int ret;
++	u32 cur_lstate;
 +
-+	ppd = private2ppd(file);
-+	tmp = kmalloc(PAGE_SIZE, GFP_KERNEL);
-+	if (!tmp)
-+		return -ENOMEM;
++	ret = port_states_transition_allowed(ppd, logical_state, phys_state);
 +
-+	ret = qsfp_dump(ppd, tmp, PAGE_SIZE);
-+	if (ret > 0)
-+		ret = simple_read_from_buffer(buf, count, ppos, tmp, ret);
-+	kfree(tmp);
-+	return ret;
++	/*
++	 * Logical state changes are summarized in OPAv1g1 spec.,
++	 * Table 9-12; physical state changes are summarized in
++	 * OPAv1g1 spec., Table 6.4.
++	 */
++	if (logical_state < IB_PORT_INIT) {
++		/* this must be the new state, so do not ever skip processing */
++		if (logical_state == IB_PORT_NOP && phys_state == IB_PORTPHYSSTATE_NOP) {
++			link_state = HLS_DN_OFFLINE;
++		} else if (phys_state == IB_PORTPHYSSTATE_NOP) {
++			link_state = HLS_DN_DOWNDEF;
++		} else if (phys_state == IB_PORTPHYSSTATE_POLLING) {
++			link_state = HLS_DN_POLL;
++			set_link_down_reason(ppd, OPA_LINKDOWN_REASON_FM_BOUNCE,
++					     0, OPA_LINKDOWN_REASON_FM_BOUNCE);
++		} else if (phys_state == IB_PORTPHYSSTATE_DISABLED) {
++			link_state = HLS_DN_DISABLE;
++		} else {
++			/* invalid - not possible? pick something */
++			link_state = HLS_DN_DOWNDEF;
++		}
++
++		if ((link_state == HLS_DN_POLL ||
++		     link_state == HLS_DN_DOWNDEF)) {
++			/*
++			 * Going to poll.  No matter what the current state,
++			 * always move offline first, then tune and start the
++			 * link.  This correctly handles a FM link bounce and
++			 * a link enable.  Going offline is a no-op if already
++			 * offline.
++			 */
++			cport_set_link_state(ppd, pi, HLS_DN_OFFLINE);
++			cport_start_link(ppd, pi);
++		} else {
++			cport_set_link_state(ppd, pi, link_state);
++		}
++		if (link_state == HLS_DN_DISABLE &&
++		    (ppd->offline_disabled_reason >
++		     HFI2_ODR_MASK(OPA_LINKDOWN_REASON_SMA_DISABLED) ||
++		     ppd->offline_disabled_reason ==
++		     HFI2_ODR_MASK(OPA_LINKDOWN_REASON_NONE)))
++			ppd->offline_disabled_reason =
++				HFI2_ODR_MASK(OPA_LINKDOWN_REASON_SMA_DISABLED);
++		goto done;
++	}
++	cur_lstate = driver_lstate(ppd);
++	if (logical_state > IB_PORT_ACTIVE) {
++		ppd_dev_warn(ppd, "%s: SubnSet(OPA_PortInfo) invalid logical state 0x%x\n",
++			     __func__, logical_state);
++		goto done;
++	}
++	/* make certain all intermediate states are executed */
++	if (logical_state < cur_lstate) {
++		ppd_dev_warn(ppd, "%s: attempted move to lower LinkUp state\n", __func__);
++		goto done;
++	}
++	if (logical_state >= IB_PORT_INIT && cur_lstate < IB_PORT_INIT) {
++		ret = cport_set_link_state(ppd, pi, HLS_UP_INIT);
++		if (ret)
++			ppd_dev_warn(ppd, "%s: cport_set_link_state INIT failed %d\n", __func__, ret);
++	}
++	if (logical_state >= IB_PORT_ARMED && cur_lstate < IB_PORT_ARMED) {
++		ret = cport_set_link_state(ppd, pi, HLS_UP_ARMED);
++		if (ret)
++			ppd_dev_warn(ppd, "%s: cport_set_link_state ARMED failed %d\n", __func__, ret);
++	}
++	if (logical_state >= IB_PORT_ACTIVE && cur_lstate < IB_PORT_ACTIVE) {
++		if (!ppd->neighbor_normal)
++			ppd_dev_warn(ppd, "%s: Should not move to Active with NeighborNormal 0?\n",
++				__func__);
++		ret = cport_set_link_state(ppd, pi, HLS_UP_ACTIVE);
++		if (ret)
++			ppd_dev_warn(ppd, "%s: cport_set_link_state ACTIVE failed %d\n", __func__, ret);
++	}
++done:
++	;
 +}
 +
-+/* Do an i2c write operation on the chain for the given HFI. */
-+static ssize_t __i2c_debugfs_write(struct file *file, const char __user *buf,
-+				   size_t count, loff_t *ppos, u32 target)
++/*
++ * subn_set_opa_portinfo - set port information
++ * @smp: the incoming SM packet
++ * @ibdev: the infiniband device
++ * @port: the port on the device
++ *
++ */
++static int __subn_set_opa_portinfo(struct opa_smp *smp, u32 am, u8 *data,
++				   struct ib_device *ibdev, u32 port,
++				   u32 *resp_len, u32 max_len, int local_mad)
 +{
++	struct opa_port_info *pi = (struct opa_port_info *)data;
++	struct ib_event event;
++	struct hfi2_devdata *dd;
 +	struct hfi2_pportdata *ppd;
-+	char *buff;
-+	int ret;
-+	int i2c_addr;
-+	int offset;
-+	int total_written;
++	struct hfi2_ibport *ibp;
++	u8 clientrereg;
++	unsigned long flags;
++	u32 smlid;
++	u32 lid;
++	u8 ls_old, ls_new, ps_new;
++	u8 vls;
++	u8 msl;
++	u8 crc_enabled;
++	u16 lse, lwe, mtu;
++	u32 num_ports = OPA_AM_NPORT(am);
++	u32 start_of_sm_config = OPA_AM_START_SM_CFG(am);
++	int ret, i, invalid = 0, call_set_mtu = 0;
++	int call_link_downgrade_policy = 0;
 +
-+	ppd = private2ppd(file);
-+
-+	/* byte offset format: [offsetSize][i2cAddr][offsetHigh][offsetLow] */
-+	i2c_addr = (*ppos >> 16) & 0xffff;
-+	offset = *ppos & 0xffff;
-+
-+	/* explicitly reject invalid address 0 to catch cp and cat */
-+	if (i2c_addr == 0)
-+		return -EINVAL;
-+
-+	buff = memdup_user(buf, count);
-+	if (IS_ERR(buff))
-+		return PTR_ERR(buff);
-+
-+	total_written = i2c_write(ppd, target, i2c_addr, offset, buff, count);
-+	if (total_written < 0) {
-+		ret = total_written;
-+		goto _free;
++	if (num_ports != 1 ||
++	    smp_length_check(sizeof(*pi), max_len)) {
++		smp->status |= IB_SMP_INVALID_FIELD;
++		return reply((struct ib_mad_hdr *)smp);
 +	}
 +
-+	*ppos += total_written;
-+
-+	ret = total_written;
-+
-+ _free:
-+	kfree(buff);
-+	return ret;
-+}
-+
-+/* Do an i2c write operation on chain for HFI 0. */
-+static ssize_t i2c1_debugfs_write(struct file *file, const char __user *buf,
-+				  size_t count, loff_t *ppos)
-+{
-+	return __i2c_debugfs_write(file, buf, count, ppos, 0);
-+}
-+
-+/* Do an i2c write operation on chain for HFI 1. */
-+static ssize_t i2c2_debugfs_write(struct file *file, const char __user *buf,
-+				  size_t count, loff_t *ppos)
-+{
-+	return __i2c_debugfs_write(file, buf, count, ppos, 1);
-+}
-+
-+/* Do an i2c read operation on the chain for the given HFI. */
-+static ssize_t __i2c_debugfs_read(struct file *file, char __user *buf,
-+				  size_t count, loff_t *ppos, u32 target)
-+{
-+	struct hfi2_pportdata *ppd;
-+	char *buff;
-+	int ret;
-+	int i2c_addr;
-+	int offset;
-+	int total_read;
-+
-+	ppd = private2ppd(file);
-+
-+	/* byte offset format: [offsetSize][i2cAddr][offsetHigh][offsetLow] */
-+	i2c_addr = (*ppos >> 16) & 0xffff;
-+	offset = *ppos & 0xffff;
-+
-+	/* explicitly reject invalid address 0 to catch cp and cat */
-+	if (i2c_addr == 0)
-+		return -EINVAL;
-+
-+	buff = kmalloc(count, GFP_KERNEL);
-+	if (!buff)
-+		return -ENOMEM;
-+
-+	total_read = i2c_read(ppd, target, i2c_addr, offset, buff, count);
-+	if (total_read < 0) {
-+		ret = total_read;
-+		goto _free;
++	lid = be32_to_cpu(pi->lid);
++	if (lid & 0xFF000000) {
++		pr_warn("OPA_PortInfo lid out of range: %X\n", lid);
++		smp->status |= IB_SMP_INVALID_FIELD;
++		goto get_only;
 +	}
 +
-+	*ppos += total_read;
 +
-+	ret = copy_to_user(buf, buff, total_read);
-+	if (ret > 0) {
-+		ret = -EFAULT;
-+		goto _free;
++	smlid = be32_to_cpu(pi->sm_lid);
++	if (smlid & 0xFF000000) {
++		pr_warn("OPA_PortInfo SM lid out of range: %X\n", smlid);
++		smp->status |= IB_SMP_INVALID_FIELD;
++		goto get_only;
 +	}
 +
-+	ret = total_read;
++	clientrereg = (pi->clientrereg_subnettimeout &
++			OPA_PI_MASK_CLIENT_REREGISTER);
 +
-+ _free:
-+	kfree(buff);
-+	return ret;
-+}
++	dd = dd_from_ibdev(ibdev);
++	/* IB numbers ports from 1, hw from 0 */
++	ppd = dd->pport + (port - 1);
++	ibp = &ppd->ibport_data;
++	event.device = ibdev;
++	event.element.port_num = port;
 +
-+/* Do an i2c read operation on chain for HFI 0. */
-+static ssize_t i2c1_debugfs_read(struct file *file, char __user *buf,
-+				 size_t count, loff_t *ppos)
-+{
-+	return __i2c_debugfs_read(file, buf, count, ppos, 0);
-+}
++	ls_old = driver_lstate(ppd);
 +
-+/* Do an i2c read operation on chain for HFI 1. */
-+static ssize_t i2c2_debugfs_read(struct file *file, char __user *buf,
-+				 size_t count, loff_t *ppos)
-+{
-+	return __i2c_debugfs_read(file, buf, count, ppos, 1);
-+}
++	ibp->rvp.mkey = pi->mkey;
++	if (ibp->rvp.gid_prefix != pi->subnet_prefix) {
++		ibp->rvp.gid_prefix = pi->subnet_prefix;
++		event.event = IB_EVENT_GID_CHANGE;
++		ib_dispatch_event(&event);
++	}
++	ibp->rvp.mkey_lease_period = be16_to_cpu(pi->mkey_lease_period);
 +
-+/* Do a QSFP write operation on the i2c chain for the given HFI. */
-+static ssize_t __qsfp_debugfs_write(struct file *file, const char __user *buf,
-+				    size_t count, loff_t *ppos, u32 target)
-+{
-+	struct hfi2_pportdata *ppd;
-+	char *buff;
-+	int ret;
-+	int total_written;
++	/* Must be a valid unicast LID address. */
++	if ((lid == 0 && ls_old > IB_PORT_INIT) ||
++	     (hfi2_is_16B_mcast(lid))) {
++		smp->status |= IB_SMP_INVALID_FIELD;
++		ppd_dev_warn(ppd, "SubnSet(OPA_PortInfo) lid invalid 0x%x\n", lid);
++	} else if (ppd->lid != lid ||
++		 ppd->lmc != (pi->mkeyprotect_lmc & OPA_PI_MASK_LMC)) {
++		if (ppd->lid != lid)
++			hfi2_set_uevent_bits(ppd, _HFI2_EVENT_LID_CHANGE_BIT);
++		if (ppd->lmc != (pi->mkeyprotect_lmc & OPA_PI_MASK_LMC))
++			hfi2_set_uevent_bits(ppd, _HFI2_EVENT_LMC_CHANGE_BIT);
++		hfi2_set_lid(ppd, lid, pi->mkeyprotect_lmc & OPA_PI_MASK_LMC);
++		event.event = IB_EVENT_LID_CHANGE;
++		ib_dispatch_event(&event);
 +
-+	if (*ppos + count > QSFP_PAGESIZE * 4) /* base page + page00-page03 */
-+		return -EINVAL;
-+
-+	ppd = private2ppd(file);
-+
-+	buff = memdup_user(buf, count);
-+	if (IS_ERR(buff))
-+		return PTR_ERR(buff);
-+
-+	total_written = qsfp_write(ppd, target, *ppos, buff, count);
-+	if (total_written < 0) {
-+		ret = total_written;
-+		goto _free;
++		if (HFI2_PORT_GUID_INDEX + 1 < HFI2_GUIDS_PER_PORT) {
++			/* Manufacture GID from LID to support extended
++			 * addresses
++			 */
++			ppd->guids[HFI2_PORT_GUID_INDEX + 1] =
++				be64_to_cpu(OPA_MAKE_ID(lid));
++			event.event = IB_EVENT_GID_CHANGE;
++			ib_dispatch_event(&event);
++		}
 +	}
 +
-+	*ppos += total_written;
++	msl = pi->smsl & OPA_PI_MASK_SMSL;
++	if (pi->partenforce_filterraw & OPA_PI_MASK_LINKINIT_REASON)
++		ppd->linkinit_reason =
++			(pi->partenforce_filterraw &
++			 OPA_PI_MASK_LINKINIT_REASON);
 +
-+	ret = total_written;
-+
-+ _free:
-+	kfree(buff);
-+	return ret;
-+}
-+
-+/* Do a QSFP write operation on i2c chain for HFI 0. */
-+static ssize_t qsfp1_debugfs_write(struct file *file, const char __user *buf,
-+				   size_t count, loff_t *ppos)
-+{
-+	return __qsfp_debugfs_write(file, buf, count, ppos, 0);
-+}
-+
-+/* Do a QSFP write operation on i2c chain for HFI 1. */
-+static ssize_t qsfp2_debugfs_write(struct file *file, const char __user *buf,
-+				   size_t count, loff_t *ppos)
-+{
-+	return __qsfp_debugfs_write(file, buf, count, ppos, 1);
-+}
-+
-+/* Do a QSFP read operation on the i2c chain for the given HFI. */
-+static ssize_t __qsfp_debugfs_read(struct file *file, char __user *buf,
-+				   size_t count, loff_t *ppos, u32 target)
-+{
-+	struct hfi2_pportdata *ppd;
-+	char *buff;
-+	int ret;
-+	int total_read;
-+
-+	if (*ppos + count > QSFP_PAGESIZE * 4) { /* base page + page00-page03 */
-+		ret = -EINVAL;
-+		goto _return;
++	/* Must be a valid unicast LID address. */
++	if ((smlid == 0 && ls_old > IB_PORT_INIT) ||
++	     (hfi2_is_16B_mcast(smlid))) {
++		smp->status |= IB_SMP_INVALID_FIELD;
++		ppd_dev_warn(ppd, "SubnSet(OPA_PortInfo) smlid invalid 0x%x\n", smlid);
++	} else if (smlid != ibp->rvp.sm_lid || msl != ibp->rvp.sm_sl) {
++		ppd_dev_warn(ppd, "SubnSet(OPA_PortInfo) smlid 0x%x\n", smlid);
++		spin_lock_irqsave(&ibp->rvp.lock, flags);
++		if (ibp->rvp.sm_ah) {
++			if (smlid != ibp->rvp.sm_lid)
++				hfi2_modify_qp0_ah(ibp, ibp->rvp.sm_ah, smlid);
++			if (msl != ibp->rvp.sm_sl)
++				rdma_ah_set_sl(&ibp->rvp.sm_ah->attr, msl);
++		}
++		spin_unlock_irqrestore(&ibp->rvp.lock, flags);
++		if (smlid != ibp->rvp.sm_lid)
++			ibp->rvp.sm_lid = smlid;
++		if (msl != ibp->rvp.sm_sl)
++			ibp->rvp.sm_sl = msl;
++		event.event = IB_EVENT_SM_CHANGE;
++		ib_dispatch_event(&event);
 +	}
 +
-+	ppd = private2ppd(file);
-+
-+	buff = kmalloc(count, GFP_KERNEL);
-+	if (!buff) {
-+		ret = -ENOMEM;
-+		goto _return;
++	if (pi->link_down_reason == 0) {
++		ppd->local_link_down_reason.sma = 0;
++		ppd->local_link_down_reason.latest = 0;
 +	}
 +
-+	total_read = qsfp_read(ppd, target, *ppos, buff, count);
-+	if (total_read < 0) {
-+		ret = total_read;
-+		goto _free;
++	if (pi->neigh_link_down_reason == 0) {
++		ppd->neigh_link_down_reason.sma = 0;
++		ppd->neigh_link_down_reason.latest = 0;
 +	}
 +
-+	*ppos += total_read;
++	ppd->sm_trap_qp = be32_to_cpu(pi->sm_trap_qp);
++	ppd->sa_qp = be32_to_cpu(pi->sa_qp);
 +
-+	ret = copy_to_user(buf, buff, total_read);
-+	if (ret > 0) {
-+		ret = -EFAULT;
-+		goto _free;
++	ppd->port_error_action = be32_to_cpu(pi->port_error_action);
++	lwe = be16_to_cpu(pi->link_width.enabled);
++	if (lwe) {
++		if (lwe == OPA_LINK_WIDTH_RESET ||
++		    lwe == OPA_LINK_WIDTH_RESET_OLD)
++			set_link_width_enabled(ppd, ppd->link_width_supported);
++		else if ((lwe & ~ppd->link_width_supported) == 0)
++			set_link_width_enabled(ppd, lwe);
++		else
++			smp->status |= IB_SMP_INVALID_FIELD;
 +	}
-+
-+	ret = total_read;
-+
-+ _free:
-+	kfree(buff);
-+ _return:
-+	return ret;
-+}
-+
-+/* Do a QSFP read operation on i2c chain for HFI 0. */
-+static ssize_t qsfp1_debugfs_read(struct file *file, char __user *buf,
-+				  size_t count, loff_t *ppos)
-+{
-+	return __qsfp_debugfs_read(file, buf, count, ppos, 0);
-+}
-+
-+/* Do a QSFP read operation on i2c chain for HFI 1. */
-+static ssize_t qsfp2_debugfs_read(struct file *file, char __user *buf,
-+				  size_t count, loff_t *ppos)
-+{
-+	return __qsfp_debugfs_read(file, buf, count, ppos, 1);
-+}
-+
-+static int __i2c_debugfs_open(struct inode *in, struct file *fp, u32 target)
-+{
-+	struct hfi2_pportdata *ppd;
-+
-+	ppd = private2ppd(fp);
-+
-+	return acquire_chip_resource(ppd->dd, i2c_target(target), 0);
-+}
-+
-+static int i2c1_debugfs_open(struct inode *in, struct file *fp)
-+{
-+	return __i2c_debugfs_open(in, fp, 0);
-+}
-+
-+static int i2c2_debugfs_open(struct inode *in, struct file *fp)
-+{
-+	return __i2c_debugfs_open(in, fp, 1);
-+}
-+
-+static int __i2c_debugfs_release(struct inode *in, struct file *fp, u32 target)
-+{
-+	struct hfi2_pportdata *ppd;
-+
-+	ppd = private2ppd(fp);
-+
-+	release_chip_resource(ppd->dd, i2c_target(target));
-+
-+	return 0;
-+}
-+
-+static int i2c1_debugfs_release(struct inode *in, struct file *fp)
-+{
-+	return __i2c_debugfs_release(in, fp, 0);
-+}
-+
-+static int i2c2_debugfs_release(struct inode *in, struct file *fp)
-+{
-+	return __i2c_debugfs_release(in, fp, 1);
-+}
-+
-+static int __qsfp_debugfs_open(struct inode *in, struct file *fp, u32 target)
-+{
-+	struct hfi2_pportdata *ppd;
-+
-+	ppd = private2ppd(fp);
-+
-+	return acquire_chip_resource(ppd->dd, i2c_target(target), 0);
-+}
-+
-+static int qsfp1_debugfs_open(struct inode *in, struct file *fp)
-+{
-+	return __qsfp_debugfs_open(in, fp, 0);
-+}
-+
-+static int qsfp2_debugfs_open(struct inode *in, struct file *fp)
-+{
-+	return __qsfp_debugfs_open(in, fp, 1);
-+}
-+
-+static int __qsfp_debugfs_release(struct inode *in, struct file *fp, u32 target)
-+{
-+	struct hfi2_pportdata *ppd;
-+
-+	ppd = private2ppd(fp);
-+
-+	release_chip_resource(ppd->dd, i2c_target(target));
-+
-+	return 0;
-+}
-+
-+static int qsfp1_debugfs_release(struct inode *in, struct file *fp)
-+{
-+	return __qsfp_debugfs_release(in, fp, 0);
-+}
-+
-+static int qsfp2_debugfs_release(struct inode *in, struct file *fp)
-+{
-+	return __qsfp_debugfs_release(in, fp, 1);
-+}
-+
-+#define EXPROM_WRITE_ENABLE BIT_ULL(14)
-+
-+static bool exprom_wp_disabled;
-+
-+static int exprom_wp_set(struct hfi2_devdata *dd, bool disable)
-+{
-+	u64 gpio_val = 0;
-+
-+	if (disable) {
-+		gpio_val = EXPROM_WRITE_ENABLE;
-+		exprom_wp_disabled = true;
-+		dd_dev_info(dd, "Disable Expansion ROM Write Protection\n");
++	lwe = be16_to_cpu(pi->link_width_downgrade.enabled);
++	/* LWD.E is always applied - 0 means "disabled" */
++	if (lwe == OPA_LINK_WIDTH_RESET ||
++	    lwe == OPA_LINK_WIDTH_RESET_OLD) {
++		set_link_width_downgrade_enabled(ppd,
++						 ppd->
++						 link_width_downgrade_supported
++						 );
++	} else if ((lwe & ~ppd->link_width_downgrade_supported) == 0) {
++		/* only set and apply if something changed */
++		if (lwe != ppd->link_width_downgrade_enabled) {
++			set_link_width_downgrade_enabled(ppd, lwe);
++			call_link_downgrade_policy = 1;
++		}
 +	} else {
-+		exprom_wp_disabled = false;
-+		dd_dev_info(dd, "Enable Expansion ROM Write Protection\n");
++		smp->status |= IB_SMP_INVALID_FIELD;
++	}
++	lse = be16_to_cpu(pi->link_speed.enabled);
++	if (lse) {
++		if (lse & be16_to_cpu(pi->link_speed.supported))
++			set_link_speed_enabled(ppd, lse);
++		else
++			smp->status |= IB_SMP_INVALID_FIELD;
 +	}
 +
-+	write_csr(dd, ASIC_GPIO_OUT, gpio_val);
-+	write_csr(dd, ASIC_GPIO_OE, gpio_val);
++	ibp->rvp.mkeyprot =
++		(pi->mkeyprotect_lmc & OPA_PI_MASK_MKEY_PROT_BIT) >> 6;
++	ibp->rvp.vl_high_limit = be16_to_cpu(pi->vl.high_limit) & 0xFF;
++	(void)hfi2_set_ib_cfg(ppd, HFI2_IB_CFG_VL_HIGH_LIMIT,
++				    ibp->rvp.vl_high_limit);
++
++	if (ppd->vls_supported / 2 > ARRAY_SIZE(pi->neigh_mtu.pvlx_to_mtu) ||
++	    ppd->vls_supported > ARRAY_SIZE(ppd->vld)) {
++		smp->status |= IB_SMP_INVALID_FIELD;
++		return reply((struct ib_mad_hdr *)smp);
++	}
++	for (i = 0; i < ppd->vls_supported; i++) {
++		if ((i % 2) == 0)
++			mtu = enum_to_mtu((pi->neigh_mtu.pvlx_to_mtu[i / 2] >>
++					   4) & 0xF);
++		else
++			mtu = enum_to_mtu(pi->neigh_mtu.pvlx_to_mtu[i / 2] &
++					  0xF);
++		if (mtu == 0xffff) {
++			ppd_dev_warn(ppd, "SubnSet(OPA_PortInfo) mtu invalid %d (0x%x)\n",
++				mtu,
++				(pi->neigh_mtu.pvlx_to_mtu[0] >> 4) & 0xF);
++			smp->status |= IB_SMP_INVALID_FIELD;
++			mtu = hfi2_max_mtu; /* use a valid MTU */
++		}
++		if (ppd->vld[i].mtu != mtu) {
++			ppd_dev_info(ppd,
++				     "MTU change on vl %d from %d to %d\n",
++				     i, ppd->vld[i].mtu, mtu);
++			ppd->vld[i].mtu = mtu;
++			call_set_mtu++;
++		}
++	}
++	/* As per OPAV1 spec: VL15 must support and be configured
++	 * for operation with a 2048 or larger MTU.
++	 */
++	mtu = enum_to_mtu(pi->neigh_mtu.pvlx_to_mtu[15 / 2] & 0xF);
++	if (mtu < 2048 || mtu == 0xffff)
++		mtu = 2048;
++	if (ppd->vld[15].mtu != mtu) {
++		dd_dev_info(dd,
++			    "MTU change on vl 15 from %d to %d\n",
++			    ppd->vld[15].mtu, mtu);
++		ppd->vld[15].mtu = mtu;
++		call_set_mtu++;
++	}
++	if (call_set_mtu)
++		set_mtu(ppd);
++
++	/* Set operational VLs */
++	vls = pi->operational_vls & OPA_PI_MASK_OPERATIONAL_VL;
++	if (vls) {
++		if (vls > ppd->vls_supported) {
++			ppd_dev_warn(ppd, "SubnSet(OPA_PortInfo) VL's supported invalid %d\n",
++				pi->operational_vls);
++			smp->status |= IB_SMP_INVALID_FIELD;
++		} else {
++			if (hfi2_set_ib_cfg(ppd, HFI2_IB_CFG_OP_VLS,
++					    vls) == -EINVAL)
++				smp->status |= IB_SMP_INVALID_FIELD;
++		}
++	}
++
++	if (pi->mkey_violations == 0)
++		ibp->rvp.mkey_violations = 0;
++
++	if (pi->pkey_violations == 0)
++		ibp->rvp.pkey_violations = 0;
++
++	if (pi->qkey_violations == 0)
++		ibp->rvp.qkey_violations = 0;
++
++	ibp->rvp.subnet_timeout =
++		pi->clientrereg_subnettimeout & OPA_PI_MASK_SUBNET_TIMEOUT;
++
++	crc_enabled = be16_to_cpu(pi->port_ltp_crc_mode);
++	crc_enabled >>= 4;
++	crc_enabled &= 0xf;
++
++	if (crc_enabled != 0)
++		ppd->port_crc_mode_enabled = port_ltp_to_cap(crc_enabled);
++
++	ppd->is_active_optimize_enabled =
++			!!(be16_to_cpu(pi->port_mode)
++					& OPA_PI_MASK_PORT_ACTIVE_OPTOMIZE);
++
++	ls_new = pi->port_states.portphysstate_portstate &
++			OPA_PI_MASK_PORT_STATE;
++	ps_new = (pi->port_states.portphysstate_portstate &
++			OPA_PI_MASK_PORT_PHYSICAL_STATE) >> 4;
++
++	if (ls_old == IB_PORT_INIT) {
++		if (start_of_sm_config) {
++			if (ls_new == ls_old || (ls_new == IB_PORT_ARMED))
++				ppd->is_sm_config_started = 1;
++		} else if (ls_new == IB_PORT_ARMED) {
++			if (ppd->is_sm_config_started == 0) {
++				invalid = 1;
++				smp->status |= IB_SMP_INVALID_FIELD;
++			}
++		}
++	}
++
++	/* Handle CLIENT_REREGISTER event b/c SM asked us for it */
++	if (clientrereg) {
++		event.event = IB_EVENT_CLIENT_REREGISTER;
++		ib_dispatch_event(&event);
++	}
++
++	/*
++	 * Do the port state change now that the other link parameters
++	 * have been set.
++	 * Changing the port physical state only makes sense if the link
++	 * is down or is being set to down.
++	 */
++
++	if (!invalid) {
++		ret = set_port_states(ppd, smp, ls_new, ps_new, local_mad);
++		if (ret)
++			return ret;
++	}
++
++	ret = __subn_get_opa_portinfo(smp, am, data, ibdev, port, resp_len,
++				      max_len);
++
++	/* restore re-reg bit per o14-12.2.1 */
++	pi->clientrereg_subnettimeout |= clientrereg;
++
++	/*
++	 * Apply the new link downgrade policy.  This may result in a link
++	 * bounce.  Do this after everything else so things are settled.
++	 * Possible problem: if setting the port state above fails, then
++	 * the policy change is not applied.
++	 */
++	if (call_link_downgrade_policy)
++		apply_link_downgrade_policy(ppd, 0);
++
++	return ret;
++
++get_only:
++	return __subn_get_opa_portinfo(smp, am, data, ibdev, port, resp_len,
++				       max_len);
++}
++
++/**
++ * set_pkeys - set the PKEY table for any block
++ * @dd: the hfi2_ib device
++ * @port: the IB port number
++ * @start_block: starting block to modify
++ * @num_blocks: number of blocks to modify
++ * @pkeys: the PKEY table
++ *
++ * It is expected that the incoming pkeys are endianized for the host.
++ * Return 0 on success, non-zero on error.
++ */
++static int set_pkeys(struct hfi2_devdata *dd, u32 port, u32 start_block,
++		     u32 num_blocks, u16 *pkeys)
++{
++	struct hfi2_pportdata *ppd = dd->pport + (port - 1);
++	int i;
++	int changed = 0;
++	int update_includes_mgmt_partition = 0;
++	u32 start_index;
++	u32 end_index;
++
++	/* calculate the indices affected */
++	start_index = start_block * OPA_PARTITION_TABLE_BLK_SIZE;
++	end_index = min_t(u32, dd->params->pkey_table_size,
++			  start_index + (num_blocks * OPA_PARTITION_TABLE_BLK_SIZE));
++
++	/*
++	 * Block 0 must always contain the limited management key.
++	 */
++	if (start_block == 0) {
++		int b0_end_index = min_t(int, OPA_PARTITION_TABLE_BLK_SIZE,
++					 dd->params->pkey_table_size);
++
++		for (i = 0; i < b0_end_index; i++) {
++			if (pkeys[i] == LIM_MGMT_P_KEY) {
++				update_includes_mgmt_partition = 1;
++				break;
++			}
++		}
++
++		if (!update_includes_mgmt_partition)
++			return 1;
++	}
++
++	for (i = start_index; i < end_index; i++) {
++		u16 key = pkeys[i - start_index];
++		u16 okey = ppd->pkeys[i];
++
++		if (key == okey)
++			continue;
++		/*
++		 * The SM gives us the complete PKey table. We have
++		 * to ensure that we put the PKeys in the matching
++		 * slots.
++		 */
++		ppd->pkeys[i] = key;
++		changed = 1;
++	}
++
++	if (changed) {
++		(void)hfi2_set_ib_cfg(ppd, HFI2_IB_CFG_PKEYS, 0);
++		hfi2_event_pkey_change(dd, port);
++	}
 +
 +	return 0;
 +}
 +
-+static ssize_t exprom_wp_debugfs_read(struct file *file, char __user *buf,
-+				      size_t count, loff_t *ppos)
++static int __subn_set_opa_pkeytable(struct opa_smp *smp, u32 am, u8 *data,
++				    struct ib_device *ibdev, u32 port,
++				    u32 *resp_len, u32 max_len)
 +{
++	struct hfi2_devdata *dd = dd_from_ibdev(ibdev);
++	u32 n_blocks_sent = OPA_AM_NBLK(am);
++	u32 start_block = am & 0x7ff;
++	u16 *p = (u16 *)data;
++	__be16 *q = (__be16 *)data;
++	int i;
++	u32 n_blocks_avail;
++	u32 npkeys = hfi2_get_npkeys(dd);
++	u32 size = 0;
++
++	if (n_blocks_sent == 0) {
++		pr_warn("OPA Get PKey AM Invalid : P = %u; B = 0x%x; N = 0x%x\n",
++			port, start_block, n_blocks_sent);
++		smp->status |= IB_SMP_INVALID_FIELD;
++		return reply((struct ib_mad_hdr *)smp);
++	}
++
++	n_blocks_avail = DIV_ROUND_UP(npkeys, OPA_PARTITION_TABLE_BLK_SIZE);
++
++	size = sizeof(u16) * (n_blocks_sent * OPA_PARTITION_TABLE_BLK_SIZE);
++
++	if (smp_length_check(size, max_len)) {
++		smp->status |= IB_SMP_INVALID_FIELD;
++		return reply((struct ib_mad_hdr *)smp);
++	}
++
++	if (start_block + n_blocks_sent > n_blocks_avail ||
++	    n_blocks_sent > OPA_NUM_PKEY_BLOCKS_PER_SMP) {
++		pr_warn("OPA Set PKey AM Invalid : s 0x%x; req 0x%x; avail 0x%x; blk/smp 0x%lx\n",
++			start_block, n_blocks_sent, n_blocks_avail,
++			OPA_NUM_PKEY_BLOCKS_PER_SMP);
++		smp->status |= IB_SMP_INVALID_FIELD;
++		return reply((struct ib_mad_hdr *)smp);
++	}
++
++	for (i = 0; i < n_blocks_sent * OPA_PARTITION_TABLE_BLK_SIZE; i++)
++		p[i] = be16_to_cpu(q[i]);
++
++	if (set_pkeys(dd, port, start_block, n_blocks_sent, p) != 0) {
++		smp->status |= IB_SMP_INVALID_FIELD;
++		return reply((struct ib_mad_hdr *)smp);
++	}
++
++	return __subn_get_opa_pkeytable(smp, am, data, ibdev, port, resp_len,
++					max_len);
++}
++
++#define ILLEGAL_VL 12
++/*
++ * filter_sc2vlt changes mappings to VL15 to ILLEGAL_VL (except
++ * for SC15, which must map to VL15). If we don't remap things this
++ * way it is possible for VL15 counters to increment when we try to
++ * send on a SC which is mapped to an invalid VL.
++ * When getting the table convert ILLEGAL_VL back to VL15.
++ */
++static void filter_sc2vlt(void *data, bool set)
++{
++	int i;
++	u8 *pd = data;
++
++	for (i = 0; i < OPA_MAX_SCS; i++) {
++		if (i == 15)
++			continue;
++
++		if (set) {
++			if ((pd[i] & 0x1f) == 0xf)
++				pd[i] = ILLEGAL_VL;
++		} else {
++			if ((pd[i] & 0x1f) == ILLEGAL_VL)
++				pd[i] = 0xf;
++		}
++	}
++}
++
++static int set_sc2vlt_tables(struct hfi2_pportdata *ppd, void *data)
++{
++	struct hfi2_devdata *dd = ppd->dd;
++	u64 *val = data;
++	int pidx = ppd->hw_pidx;
++
++	filter_sc2vlt(data, true);
++
++	write_eport_csr(dd, pidx, dd->params->send_sc2vlt0_reg, *val++);
++	write_eport_csr(dd, pidx, dd->params->send_sc2vlt1_reg, *val++);
++	write_eport_csr(dd, pidx, dd->params->send_sc2vlt2_reg, *val++);
++	write_eport_csr(dd, pidx, dd->params->send_sc2vlt3_reg, *val++);
++	write_seqlock_irq(&ppd->sc2vl_lock);
++	memcpy(ppd->sc2vl, data, sizeof(ppd->sc2vl));
++	write_sequnlock_irq(&ppd->sc2vl_lock);
 +	return 0;
 +}
 +
-+static ssize_t exprom_wp_debugfs_write(struct file *file,
-+				       const char __user *buf, size_t count,
-+				       loff_t *ppos)
++int get_sc2vlt_tables(struct hfi2_pportdata *ppd, void *data)
 +{
-+	struct hfi2_pportdata *ppd = private2ppd(file);
-+	char cdata;
++	struct hfi2_devdata *dd = ppd->dd;
++	u64 *val = (u64 *)data;
++	int pidx = ppd->hw_pidx;
 +
-+	if (count != 1)
-+		return -EINVAL;
-+	if (get_user(cdata, buf))
-+		return -EFAULT;
-+	if (cdata == '0')
-+		exprom_wp_set(ppd->dd, false);
-+	else if (cdata == '1')
-+		exprom_wp_set(ppd->dd, true);
++	*val++ = read_eport_csr(dd, pidx, dd->params->send_sc2vlt0_reg);
++	*val++ = read_eport_csr(dd, pidx, dd->params->send_sc2vlt1_reg);
++	*val++ = read_eport_csr(dd, pidx, dd->params->send_sc2vlt2_reg);
++	*val++ = read_eport_csr(dd, pidx, dd->params->send_sc2vlt3_reg);
++
++	filter_sc2vlt((u64 *)data, false);
++	return 0;
++}
++
++static int __subn_get_opa_sl_to_sc(struct opa_smp *smp, u32 am, u8 *data,
++				   struct ib_device *ibdev, u32 port,
++				   u32 *resp_len, u32 max_len)
++{
++	struct hfi2_ibport *ibp = to_iport(ibdev, port);
++	u8 *p = data;
++	size_t size = ARRAY_SIZE(ibp->sl_to_sc); /* == 32 */
++	unsigned i;
++
++	if (am || smp_length_check(size, max_len)) {
++		smp->status |= IB_SMP_INVALID_FIELD;
++		return reply((struct ib_mad_hdr *)smp);
++	}
++
++	for (i = 0; i < ARRAY_SIZE(ibp->sl_to_sc); i++)
++		*p++ = ibp->sl_to_sc[i];
++
++	if (resp_len)
++		*resp_len += size;
++
++	return reply((struct ib_mad_hdr *)smp);
++}
++
++static int __subn_set_opa_sl_to_sc(struct opa_smp *smp, u32 am, u8 *data,
++				   struct ib_device *ibdev, u32 port,
++				   u32 *resp_len, u32 max_len)
++{
++	struct hfi2_ibport *ibp = to_iport(ibdev, port);
++	u8 *p = data;
++	size_t size = ARRAY_SIZE(ibp->sl_to_sc);
++	int i;
++	u8 sc;
++
++	if (am || smp_length_check(size, max_len)) {
++		smp->status |= IB_SMP_INVALID_FIELD;
++		return reply((struct ib_mad_hdr *)smp);
++	}
++
++	for (i = 0; i <  ARRAY_SIZE(ibp->sl_to_sc); i++) {
++		sc = *p++;
++		if (ibp->sl_to_sc[i] != sc) {
++			ibp->sl_to_sc[i] = sc;
++
++			/* Put all stale qps into error state */
++			hfi2_error_port_qps(ibp, i);
++		}
++	}
++
++	return __subn_get_opa_sl_to_sc(smp, am, data, ibdev, port, resp_len,
++				       max_len);
++}
++
++static int __subn_get_opa_sc_to_sl(struct opa_smp *smp, u32 am, u8 *data,
++				   struct ib_device *ibdev, u32 port,
++				   u32 *resp_len, u32 max_len)
++{
++	struct hfi2_ibport *ibp = to_iport(ibdev, port);
++	u8 *p = data;
++	size_t size = ARRAY_SIZE(ibp->sc_to_sl); /* == 32 */
++	unsigned i;
++
++	if (am || smp_length_check(size, max_len)) {
++		smp->status |= IB_SMP_INVALID_FIELD;
++		return reply((struct ib_mad_hdr *)smp);
++	}
++
++	for (i = 0; i < ARRAY_SIZE(ibp->sc_to_sl); i++)
++		*p++ = ibp->sc_to_sl[i];
++
++	if (resp_len)
++		*resp_len += size;
++
++	return reply((struct ib_mad_hdr *)smp);
++}
++
++static int __subn_set_opa_sc_to_sl(struct opa_smp *smp, u32 am, u8 *data,
++				   struct ib_device *ibdev, u32 port,
++				   u32 *resp_len, u32 max_len)
++{
++	struct hfi2_ibport *ibp = to_iport(ibdev, port);
++	size_t size = ARRAY_SIZE(ibp->sc_to_sl);
++	u8 *p = data;
++	int i;
++
++	if (am || smp_length_check(size, max_len)) {
++		smp->status |= IB_SMP_INVALID_FIELD;
++		return reply((struct ib_mad_hdr *)smp);
++	}
++
++	for (i = 0; i < ARRAY_SIZE(ibp->sc_to_sl); i++)
++		ibp->sc_to_sl[i] = *p++;
++
++	return __subn_get_opa_sc_to_sl(smp, am, data, ibdev, port, resp_len,
++				       max_len);
++}
++
++static int __subn_get_opa_sc_to_vlt(struct opa_smp *smp, u32 am, u8 *data,
++				    struct ib_device *ibdev, u32 port,
++				    u32 *resp_len, u32 max_len)
++{
++	u32 n_blocks = OPA_AM_NBLK(am);
++	struct hfi2_devdata *dd = dd_from_ibdev(ibdev);
++	struct hfi2_pportdata *ppd = &dd->pport[port - 1];
++	void *vp = (void *)data;
++	size_t size = 4 * sizeof(u64);
++
++	if (n_blocks != 1 || smp_length_check(size, max_len)) {
++		smp->status |= IB_SMP_INVALID_FIELD;
++		return reply((struct ib_mad_hdr *)smp);
++	}
++
++	get_sc2vlt_tables(ppd, vp);
++
++	if (resp_len)
++		*resp_len += size;
++
++	return reply((struct ib_mad_hdr *)smp);
++}
++
++static int __subn_set_opa_sc_to_vlt(struct opa_smp *smp, u32 am, u8 *data,
++				    struct ib_device *ibdev, u32 port,
++				    u32 *resp_len, u32 max_len)
++{
++	u32 n_blocks = OPA_AM_NBLK(am);
++	int async_update = OPA_AM_ASYNC(am);
++	struct hfi2_devdata *dd = dd_from_ibdev(ibdev);
++	void *vp = (void *)data;
++	struct hfi2_pportdata *ppd;
++	int lstate;
++	/*
++	 * set_sc2vlt_tables writes the information contained in *data
++	 * to four 64-bit registers SendSC2VLt[0-3]. We need to make
++	 * sure *max_len is not greater than the total size of the four
++	 * SendSC2VLt[0-3] registers.
++	 */
++	size_t size = 4 * sizeof(u64);
++
++	if (n_blocks != 1 || async_update || smp_length_check(size, max_len)) {
++		smp->status |= IB_SMP_INVALID_FIELD;
++		return reply((struct ib_mad_hdr *)smp);
++	}
++
++	/* IB numbers ports from 1, hw from 0 */
++	ppd = dd->pport + (port - 1);
++	lstate = driver_lstate(ppd);
++	/*
++	 * it's known that async_update is 0 by this point, but include
++	 * the explicit check for clarity
++	 */
++	if (!async_update &&
++	    (lstate == IB_PORT_ARMED || lstate == IB_PORT_ACTIVE)) {
++		smp->status |= IB_SMP_INVALID_FIELD;
++		return reply((struct ib_mad_hdr *)smp);
++	}
++
++	set_sc2vlt_tables(ppd, vp);
++
++	return __subn_get_opa_sc_to_vlt(smp, am, data, ibdev, port, resp_len,
++					max_len);
++}
++
++static int __subn_get_opa_sc_to_vlnt(struct opa_smp *smp, u32 am, u8 *data,
++				     struct ib_device *ibdev, u32 port,
++				     u32 *resp_len, u32 max_len)
++{
++	u32 n_blocks = OPA_AM_NPORT(am);
++	struct hfi2_devdata *dd = dd_from_ibdev(ibdev);
++	struct hfi2_pportdata *ppd;
++	void *vp = (void *)data;
++	int size = sizeof(struct sc2vlnt);
++
++	if (n_blocks != 1 || smp_length_check(size, max_len)) {
++		smp->status |= IB_SMP_INVALID_FIELD;
++		return reply((struct ib_mad_hdr *)smp);
++	}
++
++	ppd = dd->pport + (port - 1);
++
++	fm_get_table(ppd, FM_TBL_SC2VLNT, vp);
++
++	if (resp_len)
++		*resp_len += size;
++
++	return reply((struct ib_mad_hdr *)smp);
++}
++
++static int __subn_set_opa_sc_to_vlnt(struct opa_smp *smp, u32 am, u8 *data,
++				     struct ib_device *ibdev, u32 port,
++				     u32 *resp_len, u32 max_len)
++{
++	u32 n_blocks = OPA_AM_NPORT(am);
++	struct hfi2_devdata *dd = dd_from_ibdev(ibdev);
++	struct hfi2_pportdata *ppd;
++	void *vp = (void *)data;
++	int lstate;
++	int size = sizeof(struct sc2vlnt);
++
++	if (n_blocks != 1 || smp_length_check(size, max_len)) {
++		smp->status |= IB_SMP_INVALID_FIELD;
++		return reply((struct ib_mad_hdr *)smp);
++	}
++
++	/* IB numbers ports from 1, hw from 0 */
++	ppd = dd->pport + (port - 1);
++	lstate = driver_lstate(ppd);
++	if (lstate == IB_PORT_ARMED || lstate == IB_PORT_ACTIVE) {
++		smp->status |= IB_SMP_INVALID_FIELD;
++		return reply((struct ib_mad_hdr *)smp);
++	}
++
++	ppd = dd->pport + (port - 1);
++
++	fm_set_table(ppd, FM_TBL_SC2VLNT, vp);
++
++	return __subn_get_opa_sc_to_vlnt(smp, am, data, ibdev, port,
++					 resp_len, max_len);
++}
++
++static int __subn_get_opa_psi(struct opa_smp *smp, u32 am, u8 *data,
++			      struct ib_device *ibdev, u32 port,
++			      u32 *resp_len, u32 max_len)
++{
++	u32 nports = OPA_AM_NPORT(am);
++	u32 start_of_sm_config = OPA_AM_START_SM_CFG(am);
++	u32 lstate;
++	struct hfi2_ibport *ibp;
++	struct hfi2_pportdata *ppd;
++	struct opa_port_state_info *psi = (struct opa_port_state_info *)data;
++
++	if (nports != 1 || smp_length_check(sizeof(*psi), max_len)) {
++		smp->status |= IB_SMP_INVALID_FIELD;
++		return reply((struct ib_mad_hdr *)smp);
++	}
++
++	ibp = to_iport(ibdev, port);
++	ppd = ppd_from_ibp(ibp);
++
++	lstate = driver_lstate(ppd);
++
++	if (start_of_sm_config && (lstate == IB_PORT_INIT))
++		ppd->is_sm_config_started = 1;
++
++	psi->port_states.ledenable_offlinereason = ppd->neighbor_normal << 4;
++	psi->port_states.ledenable_offlinereason |=
++		ppd->is_sm_config_started << 5;
++	psi->port_states.ledenable_offlinereason |=
++		ppd->offline_disabled_reason;
++
++	psi->port_states.portphysstate_portstate =
++		(driver_pstate(ppd) << 4) | (lstate & 0xf);
++	psi->link_width_downgrade_tx_active =
++		cpu_to_be16(ppd->link_width_downgrade_tx_active);
++	psi->link_width_downgrade_rx_active =
++		cpu_to_be16(ppd->link_width_downgrade_rx_active);
++	if (resp_len)
++		*resp_len += sizeof(struct opa_port_state_info);
++
++	return reply((struct ib_mad_hdr *)smp);
++}
++
++static int __subn_set_opa_psi(struct opa_smp *smp, u32 am, u8 *data,
++			      struct ib_device *ibdev, u32 port,
++			      u32 *resp_len, u32 max_len, int local_mad)
++{
++	u32 nports = OPA_AM_NPORT(am);
++	u32 start_of_sm_config = OPA_AM_START_SM_CFG(am);
++	u32 ls_old;
++	u8 ls_new, ps_new;
++	struct hfi2_ibport *ibp;
++	struct hfi2_pportdata *ppd;
++	struct opa_port_state_info *psi = (struct opa_port_state_info *)data;
++	int ret, invalid = 0;
++
++	if (nports != 1 || smp_length_check(sizeof(*psi), max_len)) {
++		smp->status |= IB_SMP_INVALID_FIELD;
++		return reply((struct ib_mad_hdr *)smp);
++	}
++
++	ibp = to_iport(ibdev, port);
++	ppd = ppd_from_ibp(ibp);
++
++	ls_old = driver_lstate(ppd);
++
++	ls_new = port_states_to_logical_state(&psi->port_states);
++	ps_new = port_states_to_phys_state(&psi->port_states);
++
++	if (ls_old == IB_PORT_INIT) {
++		if (start_of_sm_config) {
++			if (ls_new == ls_old || (ls_new == IB_PORT_ARMED))
++				ppd->is_sm_config_started = 1;
++		} else if (ls_new == IB_PORT_ARMED) {
++			if (ppd->is_sm_config_started == 0) {
++				invalid = 1;
++				smp->status |= IB_SMP_INVALID_FIELD;
++			}
++		}
++	}
++
++	if (!invalid) {
++		ret = set_port_states(ppd, smp, ls_new, ps_new, local_mad);
++		if (ret)
++			return ret;
++	}
++
++	return __subn_get_opa_psi(smp, am, data, ibdev, port, resp_len,
++				  max_len);
++}
++
++static int __subn_get_opa_cable_info(struct opa_smp *smp, u32 am, u8 *data,
++				     struct ib_device *ibdev, u32 port,
++				     u32 *resp_len, u32 max_len)
++{
++	struct hfi2_devdata *dd = dd_from_ibdev(ibdev);
++	struct hfi2_pportdata *ppd = dd->pport + (port - 1);
++	u32 addr = OPA_AM_CI_ADDR(am);
++	u32 len = OPA_AM_CI_LEN(am) + 1;
++	int ret;
++
++	if (ppd->port_type != PORT_TYPE_QSFP ||
++	    smp_length_check(len, max_len)) {
++		smp->status |= IB_SMP_INVALID_FIELD;
++		return reply((struct ib_mad_hdr *)smp);
++	}
++
++#define __CI_PAGE_SIZE BIT(7) /* 128 bytes */
++#define __CI_PAGE_MASK ~(__CI_PAGE_SIZE - 1)
++#define __CI_PAGE_NUM(a) ((a) & __CI_PAGE_MASK)
++
++	/*
++	 * check that addr is within spec, and
++	 * addr and (addr + len - 1) are on the same "page"
++	 */
++	if (addr >= 4096 ||
++	    (__CI_PAGE_NUM(addr) != __CI_PAGE_NUM(addr + len - 1))) {
++		smp->status |= IB_SMP_INVALID_FIELD;
++		return reply((struct ib_mad_hdr *)smp);
++	}
++
++	ret = get_cable_info(ppd, addr, len, data);
++
++	if (ret == -ENODEV) {
++		smp->status |= IB_SMP_UNSUP_METH_ATTR;
++		return reply((struct ib_mad_hdr *)smp);
++	}
++
++	/* The address range for the CableInfo SMA query is wider than the
++	 * memory available on the QSFP cable. We want to return a valid
++	 * response, albeit zeroed out, for address ranges beyond available
++	 * memory but that are within the CableInfo query spec
++	 */
++	if (ret < 0 && ret != -ERANGE) {
++		smp->status |= IB_SMP_INVALID_FIELD;
++		return reply((struct ib_mad_hdr *)smp);
++	}
++
++	if (resp_len)
++		*resp_len += len;
++
++	return reply((struct ib_mad_hdr *)smp);
++}
++
++static int __subn_get_opa_bct(struct opa_smp *smp, u32 am, u8 *data,
++			      struct ib_device *ibdev, u32 port, u32 *resp_len,
++			      u32 max_len)
++{
++	u32 num_ports = OPA_AM_NPORT(am);
++	struct hfi2_devdata *dd = dd_from_ibdev(ibdev);
++	struct hfi2_pportdata *ppd;
++	struct buffer_control *p = (struct buffer_control *)data;
++	int size = sizeof(struct buffer_control);
++
++	if (num_ports != 1 || smp_length_check(size, max_len)) {
++		smp->status |= IB_SMP_INVALID_FIELD;
++		return reply((struct ib_mad_hdr *)smp);
++	}
++
++	ppd = dd->pport + (port - 1);
++	fm_get_table(ppd, FM_TBL_BUFFER_CONTROL, p);
++	trace_bct_get(dd, p);
++	if (resp_len)
++		*resp_len += size;
++
++	return reply((struct ib_mad_hdr *)smp);
++}
++
++static int __subn_set_opa_bct(struct opa_smp *smp, u32 am, u8 *data,
++			      struct ib_device *ibdev, u32 port, u32 *resp_len,
++			      u32 max_len)
++{
++	u32 num_ports = OPA_AM_NPORT(am);
++	struct hfi2_devdata *dd = dd_from_ibdev(ibdev);
++	struct hfi2_pportdata *ppd;
++	struct buffer_control *p = (struct buffer_control *)data;
++
++	if (num_ports != 1 || smp_length_check(sizeof(*p), max_len)) {
++		smp->status |= IB_SMP_INVALID_FIELD;
++		return reply((struct ib_mad_hdr *)smp);
++	}
++	ppd = dd->pport + (port - 1);
++	trace_bct_set(dd, p);
++	if (fm_set_table(ppd, FM_TBL_BUFFER_CONTROL, p) < 0) {
++		smp->status |= IB_SMP_INVALID_FIELD;
++		return reply((struct ib_mad_hdr *)smp);
++	}
++
++	return __subn_get_opa_bct(smp, am, data, ibdev, port, resp_len,
++				  max_len);
++}
++
++static int __subn_get_opa_vl_arb(struct opa_smp *smp, u32 am, u8 *data,
++				 struct ib_device *ibdev, u32 port,
++				 u32 *resp_len, u32 max_len)
++{
++	struct hfi2_pportdata *ppd = ppd_from_ibp(to_iport(ibdev, port));
++	u32 num_ports = OPA_AM_NPORT(am);
++	u8 section = (am & 0x00ff0000) >> 16;
++	u8 *p = data;
++	int size = 256;
++
++	if (num_ports != 1 || smp_length_check(size, max_len)) {
++		smp->status |= IB_SMP_INVALID_FIELD;
++		return reply((struct ib_mad_hdr *)smp);
++	}
++
++	switch (section) {
++	case OPA_VLARB_LOW_ELEMENTS:
++		fm_get_table(ppd, FM_TBL_VL_LOW_ARB, p);
++		break;
++	case OPA_VLARB_HIGH_ELEMENTS:
++		fm_get_table(ppd, FM_TBL_VL_HIGH_ARB, p);
++		break;
++	case OPA_VLARB_PREEMPT_ELEMENTS:
++		fm_get_table(ppd, FM_TBL_VL_PREEMPT_ELEMS, p);
++		break;
++	case OPA_VLARB_PREEMPT_MATRIX:
++		fm_get_table(ppd, FM_TBL_VL_PREEMPT_MATRIX, p);
++		break;
++	default:
++		ppd_dev_warn(ppd, "OPA SubnGet(VL Arb) AM Invalid : 0x%x\n",
++			     be32_to_cpu(smp->attr_mod));
++		smp->status |= IB_SMP_INVALID_FIELD;
++		size = 0;
++		break;
++	}
++
++	if (size > 0 && resp_len)
++		*resp_len += size;
++
++	return reply((struct ib_mad_hdr *)smp);
++}
++
++static int __subn_set_opa_vl_arb(struct opa_smp *smp, u32 am, u8 *data,
++				 struct ib_device *ibdev, u32 port,
++				 u32 *resp_len, u32 max_len)
++{
++	struct hfi2_pportdata *ppd = ppd_from_ibp(to_iport(ibdev, port));
++	u32 num_ports = OPA_AM_NPORT(am);
++	u8 section = (am & 0x00ff0000) >> 16;
++	u8 *p = data;
++	int size = 256;
++
++	if (num_ports != 1 || smp_length_check(size, max_len)) {
++		smp->status |= IB_SMP_INVALID_FIELD;
++		return reply((struct ib_mad_hdr *)smp);
++	}
++
++	switch (section) {
++	case OPA_VLARB_LOW_ELEMENTS:
++		(void)fm_set_table(ppd, FM_TBL_VL_LOW_ARB, p);
++		break;
++	case OPA_VLARB_HIGH_ELEMENTS:
++		(void)fm_set_table(ppd, FM_TBL_VL_HIGH_ARB, p);
++		break;
++	/*
++	 * neither OPA_VLARB_PREEMPT_ELEMENTS, or OPA_VLARB_PREEMPT_MATRIX
++	 * can be changed from the default values
++	 */
++	case OPA_VLARB_PREEMPT_ELEMENTS:
++	case OPA_VLARB_PREEMPT_MATRIX:
++		smp->status |= IB_SMP_UNSUP_METH_ATTR;
++		break;
++	default:
++		ppd_dev_warn(ppd, "OPA SubnSet(VL Arb) AM Invalid : 0x%x\n",
++			     be32_to_cpu(smp->attr_mod));
++		smp->status |= IB_SMP_INVALID_FIELD;
++		break;
++	}
++
++	return __subn_get_opa_vl_arb(smp, am, data, ibdev, port, resp_len,
++				     max_len);
++}
++
++struct opa_pma_mad {
++	struct ib_mad_hdr mad_hdr;
++	u8 data[2024];
++} __packed;
++
++struct opa_port_status_req {
++	__u8 port_num;
++	__u8 reserved[3];
++	__be32 vl_select_mask;
++};
++
++#define VL_MASK_ALL		0x00000000000080ffUL
++
++struct opa_port_status_rsp {
++	__u8 port_num;
++	__u8 reserved[3];
++	__be32  vl_select_mask;
++
++	/* Data counters */
++	__be64 port_xmit_data;
++	__be64 port_rcv_data;
++	__be64 port_xmit_pkts;
++	__be64 port_rcv_pkts;
++	__be64 port_multicast_xmit_pkts;
++	__be64 port_multicast_rcv_pkts;
++	__be64 port_xmit_wait;
++	__be64 sw_port_congestion;
++	__be64 port_rcv_fecn;
++	__be64 port_rcv_becn;
++	__be64 port_xmit_time_cong;
++	__be64 port_xmit_wasted_bw;
++	__be64 port_xmit_wait_data;
++	__be64 port_rcv_bubble;
++	__be64 port_mark_fecn;
++	/* Error counters */
++	__be64 port_rcv_constraint_errors;
++	__be64 port_rcv_switch_relay_errors;
++	__be64 port_xmit_discards;
++	__be64 port_xmit_constraint_errors;
++	__be64 port_rcv_remote_physical_errors;
++	__be64 local_link_integrity_errors;
++	__be64 port_rcv_errors;
++	__be64 excessive_buffer_overruns;
++	__be64 fm_config_errors;
++	__be32 link_error_recovery;
++	__be32 link_downed;
++	u8 uncorrectable_errors;
++
++	u8 link_quality_indicator; /* 5res, 3bit */
++	u8 res2[6];
++	struct _vls_pctrs {
++		/* per-VL Data counters */
++		__be64 port_vl_xmit_data;
++		__be64 port_vl_rcv_data;
++		__be64 port_vl_xmit_pkts;
++		__be64 port_vl_rcv_pkts;
++		__be64 port_vl_xmit_wait;
++		__be64 sw_port_vl_congestion;
++		__be64 port_vl_rcv_fecn;
++		__be64 port_vl_rcv_becn;
++		__be64 port_xmit_time_cong;
++		__be64 port_vl_xmit_wasted_bw;
++		__be64 port_vl_xmit_wait_data;
++		__be64 port_vl_rcv_bubble;
++		__be64 port_vl_mark_fecn;
++		__be64 port_vl_xmit_discards;
++	} vls[]; /* real array size defined by # bits set in vl_select_mask */
++};
++
++enum counter_selects {
++	CS_PORT_XMIT_DATA			= (1 << 31),
++	CS_PORT_RCV_DATA			= (1 << 30),
++	CS_PORT_XMIT_PKTS			= (1 << 29),
++	CS_PORT_RCV_PKTS			= (1 << 28),
++	CS_PORT_MCAST_XMIT_PKTS			= (1 << 27),
++	CS_PORT_MCAST_RCV_PKTS			= (1 << 26),
++	CS_PORT_XMIT_WAIT			= (1 << 25),
++	CS_SW_PORT_CONGESTION			= (1 << 24),
++	CS_PORT_RCV_FECN			= (1 << 23),
++	CS_PORT_RCV_BECN			= (1 << 22),
++	CS_PORT_XMIT_TIME_CONG			= (1 << 21),
++	CS_PORT_XMIT_WASTED_BW			= (1 << 20),
++	CS_PORT_XMIT_WAIT_DATA			= (1 << 19),
++	CS_PORT_RCV_BUBBLE			= (1 << 18),
++	CS_PORT_MARK_FECN			= (1 << 17),
++	CS_PORT_RCV_CONSTRAINT_ERRORS		= (1 << 16),
++	CS_PORT_RCV_SWITCH_RELAY_ERRORS		= (1 << 15),
++	CS_PORT_XMIT_DISCARDS			= (1 << 14),
++	CS_PORT_XMIT_CONSTRAINT_ERRORS		= (1 << 13),
++	CS_PORT_RCV_REMOTE_PHYSICAL_ERRORS	= (1 << 12),
++	CS_LOCAL_LINK_INTEGRITY_ERRORS		= (1 << 11),
++	CS_PORT_RCV_ERRORS			= (1 << 10),
++	CS_EXCESSIVE_BUFFER_OVERRUNS		= (1 << 9),
++	CS_FM_CONFIG_ERRORS			= (1 << 8),
++	CS_LINK_ERROR_RECOVERY			= (1 << 7),
++	CS_LINK_DOWNED				= (1 << 6),
++	CS_UNCORRECTABLE_ERRORS			= (1 << 5),
++};
++
++struct opa_clear_port_status {
++	__be64 port_select_mask[4];
++	__be32 counter_select_mask;
++};
++
++struct opa_aggregate {
++	__be16 attr_id;
++	__be16 err_reqlength;	/* 1 bit, 8 res, 7 bit */
++	__be32 attr_mod;
++	u8 data[];
++};
++
++#define MSK_LLI 0x000000f0
++#define MSK_LLI_SFT 4
++#define MSK_LER 0x0000000f
++#define MSK_LER_SFT 0
++#define ADD_LLI 8
++#define ADD_LER 2
++
++/* Request contains first three fields, response contains those plus the rest */
++struct opa_port_data_counters_msg {
++	__be64 port_select_mask[4];
++	__be32 vl_select_mask;
++	__be32 resolution;
++
++	/* Response fields follow */
++	struct _port_dctrs {
++		u8 port_number;
++		u8 reserved2[3];
++		__be32 link_quality_indicator; /* 29res, 3bit */
++
++		/* Data counters */
++		__be64 port_xmit_data;
++		__be64 port_rcv_data;
++		__be64 port_xmit_pkts;
++		__be64 port_rcv_pkts;
++		__be64 port_multicast_xmit_pkts;
++		__be64 port_multicast_rcv_pkts;
++		__be64 port_xmit_wait;
++		__be64 sw_port_congestion;
++		__be64 port_rcv_fecn;
++		__be64 port_rcv_becn;
++		__be64 port_xmit_time_cong;
++		__be64 port_xmit_wasted_bw;
++		__be64 port_xmit_wait_data;
++		__be64 port_rcv_bubble;
++		__be64 port_mark_fecn;
++
++		__be64 port_error_counter_summary;
++		/* Sum of error counts/port */
++
++		struct _vls_dctrs {
++			/* per-VL Data counters */
++			__be64 port_vl_xmit_data;
++			__be64 port_vl_rcv_data;
++			__be64 port_vl_xmit_pkts;
++			__be64 port_vl_rcv_pkts;
++			__be64 port_vl_xmit_wait;
++			__be64 sw_port_vl_congestion;
++			__be64 port_vl_rcv_fecn;
++			__be64 port_vl_rcv_becn;
++			__be64 port_xmit_time_cong;
++			__be64 port_vl_xmit_wasted_bw;
++			__be64 port_vl_xmit_wait_data;
++			__be64 port_vl_rcv_bubble;
++			__be64 port_vl_mark_fecn;
++		} vls[];
++		/* array size defined by #bits set in vl_select_mask*/
++	} port;
++};
++
++struct opa_port_error_counters64_msg {
++	/*
++	 * Request contains first two fields, response contains the
++	 * whole magilla
++	 */
++	__be64 port_select_mask[4];
++	__be32 vl_select_mask;
++
++	/* Response-only fields follow */
++	__be32 reserved1;
++	struct _port_ectrs {
++		u8 port_number;
++		u8 reserved2[7];
++		__be64 port_rcv_constraint_errors;
++		__be64 port_rcv_switch_relay_errors;
++		__be64 port_xmit_discards;
++		__be64 port_xmit_constraint_errors;
++		__be64 port_rcv_remote_physical_errors;
++		__be64 local_link_integrity_errors;
++		__be64 port_rcv_errors;
++		__be64 excessive_buffer_overruns;
++		__be64 fm_config_errors;
++		__be32 link_error_recovery;
++		__be32 link_downed;
++		u8 uncorrectable_errors;
++		u8 reserved3[7];
++		struct _vls_ectrs {
++			__be64 port_vl_xmit_discards;
++		} vls[];
++		/* array size defined by #bits set in vl_select_mask */
++	} port;
++};
++
++struct opa_port_error_info_msg {
++	__be64 port_select_mask[4];
++	__be32 error_info_select_mask;
++	__be32 reserved1;
++	struct _port_ei {
++		u8 port_number;
++		u8 reserved2[7];
++
++		/* PortRcvErrorInfo */
++		struct {
++			u8 status_and_code;
++			union {
++				u8 raw[17];
++				struct {
++					/* EI1to12 format */
++					u8 packet_flit1[8];
++					u8 packet_flit2[8];
++					u8 remaining_flit_bits12;
++				} ei1to12;
++				struct {
++					u8 packet_bytes[8];
++					u8 remaining_flit_bits;
++				} ei13;
++			} ei;
++			u8 reserved3[6];
++		} __packed port_rcv_ei;
++
++		/* ExcessiveBufferOverrunInfo */
++		struct {
++			u8 status_and_sc;
++			u8 reserved4[7];
++		} __packed excessive_buffer_overrun_ei;
++
++		/* PortXmitConstraintErrorInfo */
++		struct {
++			u8 status;
++			u8 reserved5;
++			__be16 pkey;
++			__be32 slid;
++		} __packed port_xmit_constraint_ei;
++
++		/* PortRcvConstraintErrorInfo */
++		struct {
++			u8 status;
++			u8 reserved6;
++			__be16 pkey;
++			__be32 slid;
++		} __packed port_rcv_constraint_ei;
++
++		/* PortRcvSwitchRelayErrorInfo */
++		struct {
++			u8 status_and_code;
++			u8 reserved7[3];
++			__u32 error_info;
++		} __packed port_rcv_switch_relay_ei;
++
++		/* UncorrectableErrorInfo */
++		struct {
++			u8 status_and_code;
++			u8 reserved8;
++		} __packed uncorrectable_ei;
++
++		/* FMConfigErrorInfo */
++		struct {
++			u8 status_and_code;
++			u8 error_info;
++		} __packed fm_config_ei;
++		__u32 reserved9;
++	} port;
++};
++
++/* opa_port_error_info_msg error_info_select_mask bit definitions */
++enum error_info_selects {
++	ES_PORT_RCV_ERROR_INFO			= (1 << 31),
++	ES_EXCESSIVE_BUFFER_OVERRUN_INFO	= (1 << 30),
++	ES_PORT_XMIT_CONSTRAINT_ERROR_INFO	= (1 << 29),
++	ES_PORT_RCV_CONSTRAINT_ERROR_INFO	= (1 << 28),
++	ES_PORT_RCV_SWITCH_RELAY_ERROR_INFO	= (1 << 27),
++	ES_UNCORRECTABLE_ERROR_INFO		= (1 << 26),
++	ES_FM_CONFIG_ERROR_INFO			= (1 << 25)
++};
++
++static int pma_get_opa_classportinfo(struct opa_pma_mad *pmp,
++				     struct ib_device *ibdev, u32 *resp_len)
++{
++	struct opa_class_port_info *p =
++		(struct opa_class_port_info *)pmp->data;
++
++	memset(pmp->data, 0, sizeof(pmp->data));
++
++	if (pmp->mad_hdr.attr_mod != 0)
++		pmp->mad_hdr.status |= IB_SMP_INVALID_FIELD;
++
++	p->base_version = OPA_MGMT_BASE_VERSION;
++	p->class_version = OPA_SM_CLASS_VERSION;
++	/*
++	 * Expected response time is 4.096 usec. * 2^18 == 1.073741824 sec.
++	 */
++	p->cap_mask2_resp_time = cpu_to_be32(18);
++
++	if (resp_len)
++		*resp_len += sizeof(*p);
++
++	return reply((struct ib_mad_hdr *)pmp);
++}
++
++static void a0_portstatus(struct hfi2_pportdata *ppd,
++			  struct opa_port_status_rsp *rsp)
++{
++	if (!is_bx(ppd->dd)) {
++		unsigned long vl;
++		u64 sum_vl_xmit_wait = 0;
++		unsigned long vl_all_mask = VL_MASK_ALL;
++
++		for_each_set_bit(vl, &vl_all_mask, BITS_PER_LONG) {
++			u64 tmp = sum_vl_xmit_wait +
++				  read_port_cntr(ppd, C_TX_WAIT_VL,
++						 idx_from_vl(vl));
++			if (tmp < sum_vl_xmit_wait) {
++				/* we wrapped */
++				sum_vl_xmit_wait = (u64)~0;
++				break;
++			}
++			sum_vl_xmit_wait = tmp;
++		}
++		if (be64_to_cpu(rsp->port_xmit_wait) > sum_vl_xmit_wait)
++			rsp->port_xmit_wait = cpu_to_be64(sum_vl_xmit_wait);
++	}
++}
++
++/**
++ * tx_link_width - convert link width bitmask to integer
++ * value representing actual link width.
++ * @link_width: width of active link
++ * @return: return index of the bit set in link_width var
++ *
++ * The function convert and return the index of bit set
++ * that indicate the current link width.
++ */
++u16 tx_link_width(u16 link_width)
++{
++	int n = LINK_WIDTH_DEFAULT;
++	u16 tx_width = n;
++
++	while (link_width && n) {
++		if (link_width & (1 << (n - 1))) {
++			tx_width = n;
++			break;
++		}
++		n--;
++	}
++
++	return tx_width;
++}
++
++/**
++ * get_xmit_wait_counters - Convert HFI 's SendWaitCnt/SendWaitVlCnt
++ * counter in unit of TXE cycle times to flit times.
++ * @ppd: info of physical Hfi port
++ * @link_width: width of active link
++ * @link_speed: speed of active link
++ * @vl: represent VL0-VL7, VL15 for PortVLXmitWait counters request
++ * and if vl value is C_VL_COUNT, it represent SendWaitCnt
++ * counter request
++ * @return: return SendWaitCnt/SendWaitVlCnt counter value per vl.
++ *
++ * Convert SendWaitCnt/SendWaitVlCnt counter from TXE cycle times to
++ * flit times. Call this function to samples these counters. This
++ * function will calculate for previous state transition and update
++ * current state at end of function using ppd->prev_link_width and
++ * ppd->port_vl_xmit_wait_last to port_vl_xmit_wait_curr and link_width.
++ */
++u64 get_xmit_wait_counters(struct hfi2_pportdata *ppd,
++			   u16 link_width, u16 link_speed, int vl)
++{
++	u64 port_vl_xmit_wait_curr;
++	u64 delta_vl_xmit_wait;
++	u64 xmit_wait_val;
++
++	if (vl > C_VL_COUNT)
++		return  0;
++	if (vl < C_VL_COUNT)
++		port_vl_xmit_wait_curr =
++			read_port_cntr(ppd, C_TX_WAIT_VL, vl);
 +	else
-+		return -EINVAL;
++		port_vl_xmit_wait_curr =
++			read_port_cntr(ppd, C_TX_WAIT, CNTR_INVALID_VL);
 +
++	xmit_wait_val =
++		port_vl_xmit_wait_curr -
++		ppd->port_vl_xmit_wait_last[vl];
++	delta_vl_xmit_wait =
++		convert_xmit_counter(xmit_wait_val,
++				     ppd->prev_link_width,
++				     link_speed);
++
++	ppd->vl_xmit_flit_cnt[vl] += delta_vl_xmit_wait;
++	ppd->port_vl_xmit_wait_last[vl] = port_vl_xmit_wait_curr;
++	ppd->prev_link_width = link_width;
++
++	return ppd->vl_xmit_flit_cnt[vl];
++}
++
++static int pma_get_opa_portstatus(struct opa_pma_mad *pmp,
++				  struct ib_device *ibdev,
++				  u32 port, u32 *resp_len)
++{
++	struct opa_port_status_req *req =
++		(struct opa_port_status_req *)pmp->data;
++	struct hfi2_devdata *dd = dd_from_ibdev(ibdev);
++	struct opa_port_status_rsp *rsp;
++	unsigned long vl_select_mask = be32_to_cpu(req->vl_select_mask);
++	unsigned long vl;
++	size_t response_data_size;
++	u32 nports = be32_to_cpu(pmp->mad_hdr.attr_mod) >> 24;
++	u32 port_num = req->port_num;
++	u8 num_vls = hweight64(vl_select_mask);
++	struct _vls_pctrs *vlinfo;
++	struct hfi2_ibport *ibp = to_iport(ibdev, port);
++	struct hfi2_pportdata *ppd = ppd_from_ibp(ibp);
++	int vfi;
++	u64 tmp, tmp2;
++	u16 link_width;
++	u16 link_speed;
++
++	response_data_size = struct_size(rsp, vls, num_vls);
++	if (response_data_size > sizeof(pmp->data)) {
++		pmp->mad_hdr.status |= OPA_PM_STATUS_REQUEST_TOO_LARGE;
++		return reply((struct ib_mad_hdr *)pmp);
++	}
++
++	if (nports != 1 || (port_num && port_num != port) ||
++	    num_vls > OPA_MAX_VLS || (vl_select_mask & ~VL_MASK_ALL)) {
++		pmp->mad_hdr.status |= IB_SMP_INVALID_FIELD;
++		return reply((struct ib_mad_hdr *)pmp);
++	}
++
++	memset(pmp->data, 0, sizeof(pmp->data));
++
++	rsp = (struct opa_port_status_rsp *)pmp->data;
++	if (port_num)
++		rsp->port_num = port_num;
++	else
++		rsp->port_num = port;
++
++	rsp->port_rcv_constraint_errors =
++		cpu_to_be64(read_port_cntr(ppd, C_SW_RCV_CSTR_ERR,
++					   CNTR_INVALID_VL));
++
++	dd->params->read_link_quality(ppd, &rsp->link_quality_indicator);
++
++	rsp->vl_select_mask = cpu_to_be32((u32)vl_select_mask);
++	rsp->port_xmit_data = cpu_to_be64(read_dev_cntr(dd, C_DC_XMIT_FLITS,
++					  CNTR_INVALID_VL));
++	rsp->port_rcv_data = cpu_to_be64(read_dev_cntr(dd, C_DC_RCV_FLITS,
++					 CNTR_INVALID_VL));
++	rsp->port_xmit_pkts = cpu_to_be64(read_dev_cntr(dd, C_DC_XMIT_PKTS,
++					  CNTR_INVALID_VL));
++	rsp->port_rcv_pkts = cpu_to_be64(read_dev_cntr(dd, C_DC_RCV_PKTS,
++					 CNTR_INVALID_VL));
++	rsp->port_multicast_xmit_pkts =
++		cpu_to_be64(read_dev_cntr(dd, C_DC_MC_XMIT_PKTS,
++					  CNTR_INVALID_VL));
++	rsp->port_multicast_rcv_pkts =
++		cpu_to_be64(read_dev_cntr(dd, C_DC_MC_RCV_PKTS,
++					  CNTR_INVALID_VL));
++	/*
++	 * Convert PortXmitWait counter from TXE cycle times
++	 * to flit times.
++	 */
++	link_width =
++		tx_link_width(ppd->link_width_downgrade_tx_active);
++	link_speed = get_link_speed(ppd->link_speed_active);
++	rsp->port_xmit_wait =
++		cpu_to_be64(get_xmit_wait_counters(ppd, link_width,
++						   link_speed, C_VL_COUNT));
++	rsp->port_rcv_fecn =
++		cpu_to_be64(read_dev_cntr(dd, C_DC_RCV_FCN, CNTR_INVALID_VL));
++	rsp->port_rcv_becn =
++		cpu_to_be64(read_dev_cntr(dd, C_DC_RCV_BCN, CNTR_INVALID_VL));
++	rsp->port_xmit_discards =
++		cpu_to_be64(read_port_cntr(ppd, C_SW_XMIT_DSCD,
++					   CNTR_INVALID_VL));
++	rsp->port_xmit_constraint_errors =
++		cpu_to_be64(read_port_cntr(ppd, C_SW_XMIT_CSTR_ERR,
++					   CNTR_INVALID_VL));
++	rsp->port_rcv_remote_physical_errors =
++		cpu_to_be64(read_dev_cntr(dd, C_DC_RMT_PHY_ERR,
++					  CNTR_INVALID_VL));
++	rsp->local_link_integrity_errors =
++		cpu_to_be64(read_dev_cntr(dd, C_DC_RX_REPLAY,
++					  CNTR_INVALID_VL));
++	tmp = read_dev_cntr(dd, C_DC_SEQ_CRC_CNT, CNTR_INVALID_VL);
++	tmp2 = tmp + read_dev_cntr(dd, C_DC_REINIT_FROM_PEER_CNT,
++				   CNTR_INVALID_VL);
++	if (tmp2 > (u32)UINT_MAX || tmp2 < tmp) {
++		/* overflow/wrapped */
++		rsp->link_error_recovery = cpu_to_be32(~0);
++	} else {
++		rsp->link_error_recovery = cpu_to_be32(tmp2);
++	}
++	rsp->port_rcv_errors =
++		cpu_to_be64(read_dev_cntr(dd, C_DC_RCV_ERR, CNTR_INVALID_VL));
++	rsp->excessive_buffer_overruns =
++		cpu_to_be64(read_port_cntr(ppd, C_RCV_OVF, CNTR_INVALID_VL));
++	rsp->fm_config_errors =
++		cpu_to_be64(read_dev_cntr(dd, C_DC_FM_CFG_ERR,
++					  CNTR_INVALID_VL));
++	rsp->link_downed = cpu_to_be32(read_port_cntr(ppd, C_SW_LINK_DOWN,
++						      CNTR_INVALID_VL));
++
++	/* rsp->uncorrectable_errors is 8 bits wide, and it pegs at 0xff */
++	tmp = read_dev_cntr(dd, C_DC_UNC_ERR, CNTR_INVALID_VL);
++	rsp->uncorrectable_errors = tmp < 0x100 ? (tmp & 0xff) : 0xff;
++
++	vlinfo = &rsp->vls[0];
++	vfi = 0;
++	/* The vl_select_mask has been checked above, and we know
++	 * that it contains only entries which represent valid VLs.
++	 * So in the for_each_set_bit() loop below, we don't need
++	 * any additional checks for vl.
++	 */
++	for_each_set_bit(vl, &vl_select_mask, BITS_PER_LONG) {
++		memset(vlinfo, 0, sizeof(*vlinfo));
++
++		tmp = read_dev_cntr(dd, C_DC_RX_FLIT_VL, idx_from_vl(vl));
++		rsp->vls[vfi].port_vl_rcv_data = cpu_to_be64(tmp);
++
++		rsp->vls[vfi].port_vl_rcv_pkts =
++			cpu_to_be64(read_dev_cntr(dd, C_DC_RX_PKT_VL,
++						  idx_from_vl(vl)));
++
++		rsp->vls[vfi].port_vl_xmit_data =
++			cpu_to_be64(read_port_cntr(ppd, C_TX_FLIT_VL,
++						   idx_from_vl(vl)));
++
++		rsp->vls[vfi].port_vl_xmit_pkts =
++			cpu_to_be64(read_port_cntr(ppd, C_TX_PKT_VL,
++						   idx_from_vl(vl)));
++		/*
++		 * Convert PortVlXmitWait counter from TXE cycle
++		 * times to flit times.
++		 */
++		rsp->vls[vfi].port_vl_xmit_wait =
++			cpu_to_be64(get_xmit_wait_counters(ppd, link_width,
++							   link_speed,
++							   idx_from_vl(vl)));
++
++		rsp->vls[vfi].port_vl_rcv_fecn =
++			cpu_to_be64(read_dev_cntr(dd, C_DC_RCV_FCN_VL,
++						  idx_from_vl(vl)));
++
++		rsp->vls[vfi].port_vl_rcv_becn =
++			cpu_to_be64(read_dev_cntr(dd, C_DC_RCV_BCN_VL,
++						  idx_from_vl(vl)));
++
++		rsp->vls[vfi].port_vl_xmit_discards =
++			cpu_to_be64(read_port_cntr(ppd, C_SW_XMIT_DSCD_VL,
++						   idx_from_vl(vl)));
++		vlinfo++;
++		vfi++;
++	}
++
++	a0_portstatus(ppd, rsp);
++
++	if (resp_len)
++		*resp_len += response_data_size;
++
++	return reply((struct ib_mad_hdr *)pmp);
++}
++
++static u64 get_error_counter_summary(struct ib_device *ibdev, u32 port,
++				     u8 res_lli, u8 res_ler)
++{
++	struct hfi2_devdata *dd = dd_from_ibdev(ibdev);
++	struct hfi2_ibport *ibp = to_iport(ibdev, port);
++	struct hfi2_pportdata *ppd = ppd_from_ibp(ibp);
++	u64 error_counter_summary = 0, tmp;
++
++	error_counter_summary += read_port_cntr(ppd, C_SW_RCV_CSTR_ERR,
++						CNTR_INVALID_VL);
++	/* port_rcv_switch_relay_errors is 0 for HFIs */
++	error_counter_summary += read_port_cntr(ppd, C_SW_XMIT_DSCD,
++						CNTR_INVALID_VL);
++	error_counter_summary += read_port_cntr(ppd, C_SW_XMIT_CSTR_ERR,
++						CNTR_INVALID_VL);
++	error_counter_summary += read_dev_cntr(dd, C_DC_RMT_PHY_ERR,
++					       CNTR_INVALID_VL);
++	/* local link integrity must be right-shifted by the lli resolution */
++	error_counter_summary += (read_dev_cntr(dd, C_DC_RX_REPLAY,
++						CNTR_INVALID_VL) >> res_lli);
++	/* link error recovery must b right-shifted by the ler resolution */
++	tmp = read_dev_cntr(dd, C_DC_SEQ_CRC_CNT, CNTR_INVALID_VL);
++	tmp += read_dev_cntr(dd, C_DC_REINIT_FROM_PEER_CNT, CNTR_INVALID_VL);
++	error_counter_summary += (tmp >> res_ler);
++	error_counter_summary += read_dev_cntr(dd, C_DC_RCV_ERR,
++					       CNTR_INVALID_VL);
++	error_counter_summary += read_port_cntr(ppd, C_RCV_OVF, CNTR_INVALID_VL);
++	error_counter_summary += read_dev_cntr(dd, C_DC_FM_CFG_ERR,
++					       CNTR_INVALID_VL);
++	/* ppd->link_downed is a 32-bit value */
++	error_counter_summary += read_port_cntr(ppd, C_SW_LINK_DOWN,
++						CNTR_INVALID_VL);
++	tmp = read_dev_cntr(dd, C_DC_UNC_ERR, CNTR_INVALID_VL);
++	/* this is an 8-bit quantity */
++	error_counter_summary += tmp < 0x100 ? (tmp & 0xff) : 0xff;
++
++	return error_counter_summary;
++}
++
++static void a0_datacounters(struct hfi2_pportdata *ppd, struct _port_dctrs *rsp)
++{
++	if (!is_bx(ppd->dd)) {
++		unsigned long vl;
++		u64 sum_vl_xmit_wait = 0;
++		unsigned long vl_all_mask = VL_MASK_ALL;
++
++		for_each_set_bit(vl, &vl_all_mask, BITS_PER_LONG) {
++			u64 tmp = sum_vl_xmit_wait +
++				  read_port_cntr(ppd, C_TX_WAIT_VL,
++						 idx_from_vl(vl));
++			if (tmp < sum_vl_xmit_wait) {
++				/* we wrapped */
++				sum_vl_xmit_wait = (u64)~0;
++				break;
++			}
++			sum_vl_xmit_wait = tmp;
++		}
++		if (be64_to_cpu(rsp->port_xmit_wait) > sum_vl_xmit_wait)
++			rsp->port_xmit_wait = cpu_to_be64(sum_vl_xmit_wait);
++	}
++}
++
++static void pma_get_opa_port_dctrs(struct ib_device *ibdev,
++				   struct _port_dctrs *rsp)
++{
++	struct hfi2_devdata *dd = dd_from_ibdev(ibdev);
++
++	rsp->port_xmit_data = cpu_to_be64(read_dev_cntr(dd, C_DC_XMIT_FLITS,
++						CNTR_INVALID_VL));
++	rsp->port_rcv_data = cpu_to_be64(read_dev_cntr(dd, C_DC_RCV_FLITS,
++						CNTR_INVALID_VL));
++	rsp->port_xmit_pkts = cpu_to_be64(read_dev_cntr(dd, C_DC_XMIT_PKTS,
++						CNTR_INVALID_VL));
++	rsp->port_rcv_pkts = cpu_to_be64(read_dev_cntr(dd, C_DC_RCV_PKTS,
++						CNTR_INVALID_VL));
++	rsp->port_multicast_xmit_pkts =
++		cpu_to_be64(read_dev_cntr(dd, C_DC_MC_XMIT_PKTS,
++					  CNTR_INVALID_VL));
++	rsp->port_multicast_rcv_pkts =
++		cpu_to_be64(read_dev_cntr(dd, C_DC_MC_RCV_PKTS,
++					  CNTR_INVALID_VL));
++}
++
++static int pma_get_opa_datacounters(struct opa_pma_mad *pmp,
++				    struct ib_device *ibdev,
++				    u32 port, u32 *resp_len)
++{
++	struct opa_port_data_counters_msg *req =
++		(struct opa_port_data_counters_msg *)pmp->data;
++	struct hfi2_devdata *dd = dd_from_ibdev(ibdev);
++	struct hfi2_ibport *ibp = to_iport(ibdev, port);
++	struct hfi2_pportdata *ppd = ppd_from_ibp(ibp);
++	struct _port_dctrs *rsp;
++	struct _vls_dctrs *vlinfo;
++	size_t response_data_size;
++	u32 num_ports;
++	u8 lq, num_vls;
++	u8 res_lli, res_ler;
++	u64 port_mask;
++	u32 port_num;
++	unsigned long vl;
++	unsigned long vl_select_mask;
++	int vfi;
++	u16 link_width;
++	u16 link_speed;
++
++	num_ports = be32_to_cpu(pmp->mad_hdr.attr_mod) >> 24;
++	num_vls = hweight32(be32_to_cpu(req->vl_select_mask));
++	vl_select_mask = be32_to_cpu(req->vl_select_mask);
++	res_lli = (u8)(be32_to_cpu(req->resolution) & MSK_LLI) >> MSK_LLI_SFT;
++	res_lli = res_lli ? res_lli + ADD_LLI : 0;
++	res_ler = (u8)(be32_to_cpu(req->resolution) & MSK_LER) >> MSK_LER_SFT;
++	res_ler = res_ler ? res_ler + ADD_LER : 0;
++
++	if (num_ports != 1 || (vl_select_mask & ~VL_MASK_ALL)) {
++		pmp->mad_hdr.status |= IB_SMP_INVALID_FIELD;
++		return reply((struct ib_mad_hdr *)pmp);
++	}
++
++	/* Sanity check */
++	response_data_size = struct_size(req, port.vls, num_vls);
++
++	if (response_data_size > sizeof(pmp->data)) {
++		pmp->mad_hdr.status |= IB_SMP_INVALID_FIELD;
++		return reply((struct ib_mad_hdr *)pmp);
++	}
++
++	/*
++	 * The bit set in the mask needs to be consistent with the
++	 * port the request came in on.
++	 */
++	port_mask = be64_to_cpu(req->port_select_mask[3]);
++	port_num = find_first_bit((unsigned long *)&port_mask,
++				  sizeof(port_mask) * 8);
++
++	if (port_num != port) {
++		pmp->mad_hdr.status |= IB_SMP_INVALID_FIELD;
++		return reply((struct ib_mad_hdr *)pmp);
++	}
++
++	rsp = &req->port;
++	memset(rsp, 0, sizeof(*rsp));
++
++	rsp->port_number = port;
++	/*
++	 * Note that link_quality_indicator is a 32 bit quantity in
++	 * 'datacounters' queries (as opposed to 'portinfo' queries,
++	 * where it's a byte).
++	 */
++	dd->params->read_link_quality(ppd, &lq);
++	rsp->link_quality_indicator = cpu_to_be32((u32)lq);
++	pma_get_opa_port_dctrs(ibdev, rsp);
++
++	/*
++	 * Convert PortXmitWait counter from TXE
++	 * cycle times to flit times.
++	 */
++	link_width =
++		tx_link_width(ppd->link_width_downgrade_tx_active);
++	link_speed = get_link_speed(ppd->link_speed_active);
++	rsp->port_xmit_wait =
++		cpu_to_be64(get_xmit_wait_counters(ppd, link_width,
++						   link_speed, C_VL_COUNT));
++	rsp->port_rcv_fecn =
++		cpu_to_be64(read_dev_cntr(dd, C_DC_RCV_FCN, CNTR_INVALID_VL));
++	rsp->port_rcv_becn =
++		cpu_to_be64(read_dev_cntr(dd, C_DC_RCV_BCN, CNTR_INVALID_VL));
++	rsp->port_error_counter_summary =
++		cpu_to_be64(get_error_counter_summary(ibdev, port,
++						      res_lli, res_ler));
++
++	vlinfo = &rsp->vls[0];
++	vfi = 0;
++	/* The vl_select_mask has been checked above, and we know
++	 * that it contains only entries which represent valid VLs.
++	 * So in the for_each_set_bit() loop below, we don't need
++	 * any additional checks for vl.
++	 */
++	for_each_set_bit(vl, &vl_select_mask, BITS_PER_LONG) {
++		memset(vlinfo, 0, sizeof(*vlinfo));
++
++		rsp->vls[vfi].port_vl_xmit_data =
++			cpu_to_be64(read_port_cntr(ppd, C_TX_FLIT_VL,
++						   idx_from_vl(vl)));
++
++		rsp->vls[vfi].port_vl_rcv_data =
++			cpu_to_be64(read_dev_cntr(dd, C_DC_RX_FLIT_VL,
++						  idx_from_vl(vl)));
++
++		rsp->vls[vfi].port_vl_xmit_pkts =
++			cpu_to_be64(read_port_cntr(ppd, C_TX_PKT_VL,
++						   idx_from_vl(vl)));
++
++		rsp->vls[vfi].port_vl_rcv_pkts =
++			cpu_to_be64(read_dev_cntr(dd, C_DC_RX_PKT_VL,
++						  idx_from_vl(vl)));
++
++		/*
++		 * Convert PortVlXmitWait counter from TXE
++		 * cycle times to flit times.
++		 */
++		rsp->vls[vfi].port_vl_xmit_wait =
++			cpu_to_be64(get_xmit_wait_counters(ppd, link_width,
++							   link_speed,
++							   idx_from_vl(vl)));
++
++		rsp->vls[vfi].port_vl_rcv_fecn =
++			cpu_to_be64(read_dev_cntr(dd, C_DC_RCV_FCN_VL,
++						  idx_from_vl(vl)));
++		rsp->vls[vfi].port_vl_rcv_becn =
++			cpu_to_be64(read_dev_cntr(dd, C_DC_RCV_BCN_VL,
++						  idx_from_vl(vl)));
++
++		/* rsp->port_vl_xmit_time_cong is 0 for HFIs */
++		/* rsp->port_vl_xmit_wasted_bw ??? */
++		/* port_vl_xmit_wait_data - TXE (table 13-9 HFI spec) ???
++		 * does this differ from rsp->vls[vfi].port_vl_xmit_wait
++		 */
++		/*rsp->vls[vfi].port_vl_mark_fecn =
++		 *	cpu_to_be64(read_csr(dd, DCC_PRF_PORT_VL_MARK_FECN_CNT
++		 *		+ offset));
++		 */
++		vlinfo++;
++		vfi++;
++	}
++
++	a0_datacounters(ppd, rsp);
++
++	if (resp_len)
++		*resp_len += response_data_size;
++
++	return reply((struct ib_mad_hdr *)pmp);
++}
++
++static int pma_get_ib_portcounters_ext(struct ib_pma_mad *pmp,
++				       struct ib_device *ibdev, u32 port)
++{
++	struct ib_pma_portcounters_ext *p = (struct ib_pma_portcounters_ext *)
++						pmp->data;
++	struct _port_dctrs rsp;
++
++	if (pmp->mad_hdr.attr_mod != 0 || p->port_select != port) {
++		pmp->mad_hdr.status |= IB_SMP_INVALID_FIELD;
++		goto bail;
++	}
++
++	memset(&rsp, 0, sizeof(rsp));
++	pma_get_opa_port_dctrs(ibdev, &rsp);
++
++	p->port_xmit_data = rsp.port_xmit_data;
++	p->port_rcv_data = rsp.port_rcv_data;
++	p->port_xmit_packets = rsp.port_xmit_pkts;
++	p->port_rcv_packets = rsp.port_rcv_pkts;
++	p->port_unicast_xmit_packets = 0;
++	p->port_unicast_rcv_packets =  0;
++	p->port_multicast_xmit_packets = rsp.port_multicast_xmit_pkts;
++	p->port_multicast_rcv_packets = rsp.port_multicast_rcv_pkts;
++
++bail:
++	return reply((struct ib_mad_hdr *)pmp);
++}
++
++static void pma_get_opa_port_ectrs(struct ib_device *ibdev,
++				   struct _port_ectrs *rsp, u32 port)
++{
++	u64 tmp, tmp2;
++	struct hfi2_devdata *dd = dd_from_ibdev(ibdev);
++	struct hfi2_ibport *ibp = to_iport(ibdev, port);
++	struct hfi2_pportdata *ppd = ppd_from_ibp(ibp);
++
++	tmp = read_dev_cntr(dd, C_DC_SEQ_CRC_CNT, CNTR_INVALID_VL);
++	tmp2 = tmp + read_dev_cntr(dd, C_DC_REINIT_FROM_PEER_CNT,
++					CNTR_INVALID_VL);
++	if (tmp2 > (u32)UINT_MAX || tmp2 < tmp) {
++		/* overflow/wrapped */
++		rsp->link_error_recovery = cpu_to_be32(~0);
++	} else {
++		rsp->link_error_recovery = cpu_to_be32(tmp2);
++	}
++
++	rsp->link_downed = cpu_to_be32(read_port_cntr(ppd, C_SW_LINK_DOWN,
++						CNTR_INVALID_VL));
++	rsp->port_rcv_errors =
++		cpu_to_be64(read_dev_cntr(dd, C_DC_RCV_ERR, CNTR_INVALID_VL));
++	rsp->port_rcv_remote_physical_errors =
++		cpu_to_be64(read_dev_cntr(dd, C_DC_RMT_PHY_ERR,
++					  CNTR_INVALID_VL));
++	rsp->port_rcv_switch_relay_errors = 0;
++	rsp->port_xmit_discards =
++		cpu_to_be64(read_port_cntr(ppd, C_SW_XMIT_DSCD,
++					   CNTR_INVALID_VL));
++	rsp->port_xmit_constraint_errors =
++		cpu_to_be64(read_port_cntr(ppd, C_SW_XMIT_CSTR_ERR,
++					   CNTR_INVALID_VL));
++	rsp->port_rcv_constraint_errors =
++		cpu_to_be64(read_port_cntr(ppd, C_SW_RCV_CSTR_ERR,
++					   CNTR_INVALID_VL));
++	rsp->local_link_integrity_errors =
++		cpu_to_be64(read_dev_cntr(dd, C_DC_RX_REPLAY,
++					  CNTR_INVALID_VL));
++	rsp->excessive_buffer_overruns =
++		cpu_to_be64(read_port_cntr(ppd, C_RCV_OVF, CNTR_INVALID_VL));
++}
++
++static int pma_get_opa_porterrors(struct opa_pma_mad *pmp,
++				  struct ib_device *ibdev,
++				  u32 port, u32 *resp_len)
++{
++	size_t response_data_size;
++	struct _port_ectrs *rsp;
++	u32 port_num;
++	struct opa_port_error_counters64_msg *req;
++	struct hfi2_devdata *dd = dd_from_ibdev(ibdev);
++	u32 num_ports;
++	u8 num_pslm;
++	u8 num_vls;
++	struct hfi2_ibport *ibp;
++	struct hfi2_pportdata *ppd;
++	struct _vls_ectrs *vlinfo;
++	unsigned long vl;
++	u64 port_mask, tmp;
++	unsigned long vl_select_mask;
++	int vfi;
++
++	req = (struct opa_port_error_counters64_msg *)pmp->data;
++
++	num_ports = be32_to_cpu(pmp->mad_hdr.attr_mod) >> 24;
++
++	num_pslm = hweight64(be64_to_cpu(req->port_select_mask[3]));
++	num_vls = hweight32(be32_to_cpu(req->vl_select_mask));
++
++	if (num_ports != 1 || num_ports != num_pslm) {
++		pmp->mad_hdr.status |= IB_SMP_INVALID_FIELD;
++		return reply((struct ib_mad_hdr *)pmp);
++	}
++
++	response_data_size = struct_size(req, port.vls, num_vls);
++
++	if (response_data_size > sizeof(pmp->data)) {
++		pmp->mad_hdr.status |= IB_SMP_INVALID_FIELD;
++		return reply((struct ib_mad_hdr *)pmp);
++	}
++	/*
++	 * The bit set in the mask needs to be consistent with the
++	 * port the request came in on.
++	 */
++	port_mask = be64_to_cpu(req->port_select_mask[3]);
++	port_num = find_first_bit((unsigned long *)&port_mask,
++				  sizeof(port_mask) * 8);
++
++	if (port_num != port) {
++		pmp->mad_hdr.status |= IB_SMP_INVALID_FIELD;
++		return reply((struct ib_mad_hdr *)pmp);
++	}
++
++	rsp = &req->port;
++
++	ibp = to_iport(ibdev, port_num);
++	ppd = ppd_from_ibp(ibp);
++
++	memset(rsp, 0, sizeof(*rsp));
++	rsp->port_number = port_num;
++
++	pma_get_opa_port_ectrs(ibdev, rsp, port_num);
++
++	rsp->port_rcv_remote_physical_errors =
++		cpu_to_be64(read_dev_cntr(dd, C_DC_RMT_PHY_ERR,
++					  CNTR_INVALID_VL));
++	rsp->fm_config_errors =
++		cpu_to_be64(read_dev_cntr(dd, C_DC_FM_CFG_ERR,
++					  CNTR_INVALID_VL));
++	tmp = read_dev_cntr(dd, C_DC_UNC_ERR, CNTR_INVALID_VL);
++
++	rsp->uncorrectable_errors = tmp < 0x100 ? (tmp & 0xff) : 0xff;
++	rsp->port_rcv_errors =
++		cpu_to_be64(read_dev_cntr(dd, C_DC_RCV_ERR, CNTR_INVALID_VL));
++	vlinfo = &rsp->vls[0];
++	vfi = 0;
++	vl_select_mask = be32_to_cpu(req->vl_select_mask);
++	for_each_set_bit(vl, &vl_select_mask, BITS_PER_LONG) {
++		memset(vlinfo, 0, sizeof(*vlinfo));
++		rsp->vls[vfi].port_vl_xmit_discards =
++			cpu_to_be64(read_port_cntr(ppd, C_SW_XMIT_DSCD_VL,
++						   idx_from_vl(vl)));
++		vlinfo += 1;
++		vfi++;
++	}
++
++	if (resp_len)
++		*resp_len += response_data_size;
++
++	return reply((struct ib_mad_hdr *)pmp);
++}
++
++static int pma_get_ib_portcounters(struct ib_pma_mad *pmp,
++				   struct ib_device *ibdev, u32 port)
++{
++	struct ib_pma_portcounters *p = (struct ib_pma_portcounters *)
++		pmp->data;
++	struct _port_ectrs rsp;
++	u64 temp_link_overrun_errors;
++	u64 temp_64;
++	u32 temp_32;
++
++	memset(&rsp, 0, sizeof(rsp));
++	pma_get_opa_port_ectrs(ibdev, &rsp, port);
++
++	if (pmp->mad_hdr.attr_mod != 0 || p->port_select != port) {
++		pmp->mad_hdr.status |= IB_SMP_INVALID_FIELD;
++		goto bail;
++	}
++
++	p->symbol_error_counter = 0; /* N/A for OPA */
++
++	temp_32 = be32_to_cpu(rsp.link_error_recovery);
++	if (temp_32 > 0xFFUL)
++		p->link_error_recovery_counter = 0xFF;
++	else
++		p->link_error_recovery_counter = (u8)temp_32;
++
++	temp_32 = be32_to_cpu(rsp.link_downed);
++	if (temp_32 > 0xFFUL)
++		p->link_downed_counter = 0xFF;
++	else
++		p->link_downed_counter = (u8)temp_32;
++
++	temp_64 = be64_to_cpu(rsp.port_rcv_errors);
++	if (temp_64 > 0xFFFFUL)
++		p->port_rcv_errors = cpu_to_be16(0xFFFF);
++	else
++		p->port_rcv_errors = cpu_to_be16((u16)temp_64);
++
++	temp_64 = be64_to_cpu(rsp.port_rcv_remote_physical_errors);
++	if (temp_64 > 0xFFFFUL)
++		p->port_rcv_remphys_errors = cpu_to_be16(0xFFFF);
++	else
++		p->port_rcv_remphys_errors = cpu_to_be16((u16)temp_64);
++
++	temp_64 = be64_to_cpu(rsp.port_rcv_switch_relay_errors);
++	p->port_rcv_switch_relay_errors = cpu_to_be16((u16)temp_64);
++
++	temp_64 = be64_to_cpu(rsp.port_xmit_discards);
++	if (temp_64 > 0xFFFFUL)
++		p->port_xmit_discards = cpu_to_be16(0xFFFF);
++	else
++		p->port_xmit_discards = cpu_to_be16((u16)temp_64);
++
++	temp_64 = be64_to_cpu(rsp.port_xmit_constraint_errors);
++	if (temp_64 > 0xFFUL)
++		p->port_xmit_constraint_errors = 0xFF;
++	else
++		p->port_xmit_constraint_errors = (u8)temp_64;
++
++	temp_64 = be64_to_cpu(rsp.port_rcv_constraint_errors);
++	if (temp_64 > 0xFFUL)
++		p->port_rcv_constraint_errors = 0xFFUL;
++	else
++		p->port_rcv_constraint_errors = (u8)temp_64;
++
++	/* LocalLink: 7:4, BufferOverrun: 3:0 */
++	temp_64 = be64_to_cpu(rsp.local_link_integrity_errors);
++	if (temp_64 > 0xFUL)
++		temp_64 = 0xFUL;
++
++	temp_link_overrun_errors = temp_64 << 4;
++
++	temp_64 = be64_to_cpu(rsp.excessive_buffer_overruns);
++	if (temp_64 > 0xFUL)
++		temp_64 = 0xFUL;
++	temp_link_overrun_errors |= temp_64;
++
++	p->link_overrun_errors = (u8)temp_link_overrun_errors;
++
++	p->vl15_dropped = 0; /* N/A for OPA */
++
++bail:
++	return reply((struct ib_mad_hdr *)pmp);
++}
++
++static int pma_get_opa_errorinfo(struct opa_pma_mad *pmp,
++				 struct ib_device *ibdev,
++				 u32 port, u32 *resp_len)
++{
++	size_t response_data_size;
++	struct _port_ei *rsp;
++	struct opa_port_error_info_msg *req;
++	struct hfi2_devdata *dd = dd_from_ibdev(ibdev);
++	struct hfi2_ibport *ibp = to_iport(ibdev, port);
++	struct hfi2_pportdata *ppd = ppd_from_ibp(ibp);
++	u64 port_mask;
++	u32 num_ports;
++	u32 port_num;
++	u8 num_pslm;
++	u64 reg;
++
++	req = (struct opa_port_error_info_msg *)pmp->data;
++	rsp = &req->port;
++
++	num_ports = OPA_AM_NPORT(be32_to_cpu(pmp->mad_hdr.attr_mod));
++	num_pslm = hweight64(be64_to_cpu(req->port_select_mask[3]));
++
++	memset(rsp, 0, sizeof(*rsp));
++
++	if (num_ports != 1 || num_ports != num_pslm) {
++		pmp->mad_hdr.status |= IB_SMP_INVALID_FIELD;
++		return reply((struct ib_mad_hdr *)pmp);
++	}
++
++	/* Sanity check */
++	response_data_size = sizeof(struct opa_port_error_info_msg);
++
++	if (response_data_size > sizeof(pmp->data)) {
++		pmp->mad_hdr.status |= IB_SMP_INVALID_FIELD;
++		return reply((struct ib_mad_hdr *)pmp);
++	}
++
++	/*
++	 * The bit set in the mask needs to be consistent with the port
++	 * the request came in on.
++	 */
++	port_mask = be64_to_cpu(req->port_select_mask[3]);
++	port_num = find_first_bit((unsigned long *)&port_mask,
++				  sizeof(port_mask) * 8);
++
++	if (port_num != port) {
++		pmp->mad_hdr.status |= IB_SMP_INVALID_FIELD;
++		return reply((struct ib_mad_hdr *)pmp);
++	}
++	rsp->port_number = port;
++
++	/* PortRcvErrorInfo */
++	rsp->port_rcv_ei.status_and_code =
++		dd->err_info_rcvport.status_and_code;
++	memcpy(&rsp->port_rcv_ei.ei.ei1to12.packet_flit1,
++	       &dd->err_info_rcvport.packet_flit1, sizeof(u64));
++	memcpy(&rsp->port_rcv_ei.ei.ei1to12.packet_flit2,
++	       &dd->err_info_rcvport.packet_flit2, sizeof(u64));
++
++	/* ExcessiverBufferOverrunInfo */
++	reg = read_iport_csr(dd, ppd->hw_pidx, dd->params->rcv_err_info_reg);
++	if (reg & RCV_ERR_INFO_RCV_EXCESS_BUFFER_OVERRUN_SMASK) {
++		/*
++		 * if the RcvExcessBufferOverrun bit is set, save SC of
++		 * first pkt that encountered an excess buffer overrun
++		 */
++		u8 tmp = (u8)reg;
++
++		tmp &=  RCV_ERR_INFO_RCV_EXCESS_BUFFER_OVERRUN_SC_SMASK;
++		tmp <<= 2;
++		rsp->excessive_buffer_overrun_ei.status_and_sc = tmp;
++		/* set the status bit */
++		rsp->excessive_buffer_overrun_ei.status_and_sc |= 0x80;
++	}
++
++	rsp->port_xmit_constraint_ei.status =
++		dd->err_info_xmit_constraint.status;
++	rsp->port_xmit_constraint_ei.pkey =
++		cpu_to_be16(dd->err_info_xmit_constraint.pkey);
++	rsp->port_xmit_constraint_ei.slid =
++		cpu_to_be32(dd->err_info_xmit_constraint.slid);
++
++	rsp->port_rcv_constraint_ei.status =
++		dd->err_info_rcv_constraint.status;
++	rsp->port_rcv_constraint_ei.pkey =
++		cpu_to_be16(dd->err_info_rcv_constraint.pkey);
++	rsp->port_rcv_constraint_ei.slid =
++		cpu_to_be32(dd->err_info_rcv_constraint.slid);
++
++	/* UncorrectableErrorInfo */
++	rsp->uncorrectable_ei.status_and_code = dd->err_info_uncorrectable;
++
++	/* FMConfigErrorInfo */
++	rsp->fm_config_ei.status_and_code = dd->err_info_fmconfig;
++
++	if (resp_len)
++		*resp_len += response_data_size;
++
++	return reply((struct ib_mad_hdr *)pmp);
++}
++
++static int pma_set_opa_portstatus(struct opa_pma_mad *pmp,
++				  struct ib_device *ibdev,
++				  u32 port, u32 *resp_len)
++{
++	struct opa_clear_port_status *req =
++		(struct opa_clear_port_status *)pmp->data;
++	struct hfi2_devdata *dd = dd_from_ibdev(ibdev);
++	struct hfi2_ibport *ibp = to_iport(ibdev, port);
++	struct hfi2_pportdata *ppd = ppd_from_ibp(ibp);
++	u32 nports = be32_to_cpu(pmp->mad_hdr.attr_mod) >> 24;
++	u64 portn = be64_to_cpu(req->port_select_mask[3]);
++	u32 counter_select = be32_to_cpu(req->counter_select_mask);
++	unsigned long vl_select_mask = VL_MASK_ALL; /* clear all per-vl cnts */
++	unsigned long vl;
++
++	if ((nports != 1) || (portn != 1 << port)) {
++		pmp->mad_hdr.status |= IB_SMP_INVALID_FIELD;
++		return reply((struct ib_mad_hdr *)pmp);
++	}
++	/*
++	 * only counters returned by pma_get_opa_portstatus() are
++	 * handled, so when pma_get_opa_portstatus() gets a fix,
++	 * the corresponding change should be made here as well.
++	 */
++
++	if (counter_select & CS_PORT_XMIT_DATA)
++		write_dev_cntr(dd, C_DC_XMIT_FLITS, CNTR_INVALID_VL, 0);
++
++	if (counter_select & CS_PORT_RCV_DATA)
++		write_dev_cntr(dd, C_DC_RCV_FLITS, CNTR_INVALID_VL, 0);
++
++	if (counter_select & CS_PORT_XMIT_PKTS)
++		write_dev_cntr(dd, C_DC_XMIT_PKTS, CNTR_INVALID_VL, 0);
++
++	if (counter_select & CS_PORT_RCV_PKTS)
++		write_dev_cntr(dd, C_DC_RCV_PKTS, CNTR_INVALID_VL, 0);
++
++	if (counter_select & CS_PORT_MCAST_XMIT_PKTS)
++		write_dev_cntr(dd, C_DC_MC_XMIT_PKTS, CNTR_INVALID_VL, 0);
++
++	if (counter_select & CS_PORT_MCAST_RCV_PKTS)
++		write_dev_cntr(dd, C_DC_MC_RCV_PKTS, CNTR_INVALID_VL, 0);
++
++	if (counter_select & CS_PORT_XMIT_WAIT) {
++		write_port_cntr(ppd, C_TX_WAIT, CNTR_INVALID_VL, 0);
++		ppd->port_vl_xmit_wait_last[C_VL_COUNT] = 0;
++		ppd->vl_xmit_flit_cnt[C_VL_COUNT] = 0;
++	}
++	/* ignore cs_sw_portCongestion for HFIs */
++
++	if (counter_select & CS_PORT_RCV_FECN)
++		write_dev_cntr(dd, C_DC_RCV_FCN, CNTR_INVALID_VL, 0);
++
++	if (counter_select & CS_PORT_RCV_BECN)
++		write_dev_cntr(dd, C_DC_RCV_BCN, CNTR_INVALID_VL, 0);
++
++	/* ignore cs_port_xmit_time_cong for HFIs */
++	/* ignore cs_port_xmit_wasted_bw for now */
++	/* ignore cs_port_xmit_wait_data for now */
++	if (counter_select & CS_PORT_RCV_BUBBLE)
++		write_dev_cntr(dd, C_DC_RCV_BBL, CNTR_INVALID_VL, 0);
++
++	/* Only applicable for switch */
++	/* if (counter_select & CS_PORT_MARK_FECN)
++	 *	write_csr(dd, DCC_PRF_PORT_MARK_FECN_CNT, 0);
++	 */
++
++	if (counter_select & CS_PORT_RCV_CONSTRAINT_ERRORS)
++		write_port_cntr(ppd, C_SW_RCV_CSTR_ERR, CNTR_INVALID_VL, 0);
++
++	/* ignore cs_port_rcv_switch_relay_errors for HFIs */
++	if (counter_select & CS_PORT_XMIT_DISCARDS)
++		write_port_cntr(ppd, C_SW_XMIT_DSCD, CNTR_INVALID_VL, 0);
++
++	if (counter_select & CS_PORT_XMIT_CONSTRAINT_ERRORS)
++		write_port_cntr(ppd, C_SW_XMIT_CSTR_ERR, CNTR_INVALID_VL, 0);
++
++	if (counter_select & CS_PORT_RCV_REMOTE_PHYSICAL_ERRORS)
++		write_dev_cntr(dd, C_DC_RMT_PHY_ERR, CNTR_INVALID_VL, 0);
++
++	if (counter_select & CS_LOCAL_LINK_INTEGRITY_ERRORS)
++		write_dev_cntr(dd, C_DC_RX_REPLAY, CNTR_INVALID_VL, 0);
++
++	if (counter_select & CS_LINK_ERROR_RECOVERY) {
++		write_dev_cntr(dd, C_DC_SEQ_CRC_CNT, CNTR_INVALID_VL, 0);
++		write_dev_cntr(dd, C_DC_REINIT_FROM_PEER_CNT,
++			       CNTR_INVALID_VL, 0);
++	}
++
++	if (counter_select & CS_PORT_RCV_ERRORS)
++		write_dev_cntr(dd, C_DC_RCV_ERR, CNTR_INVALID_VL, 0);
++
++	if (counter_select & CS_EXCESSIVE_BUFFER_OVERRUNS) {
++		write_port_cntr(ppd, C_RCV_OVF, CNTR_INVALID_VL, 0);
++		ppd->rcv_ovfl_cnt = 0;
++	}
++
++	if (counter_select & CS_FM_CONFIG_ERRORS)
++		write_dev_cntr(dd, C_DC_FM_CFG_ERR, CNTR_INVALID_VL, 0);
++
++	if (counter_select & CS_LINK_DOWNED)
++		write_port_cntr(ppd, C_SW_LINK_DOWN, CNTR_INVALID_VL, 0);
++
++	if (counter_select & CS_UNCORRECTABLE_ERRORS)
++		write_dev_cntr(dd, C_DC_UNC_ERR, CNTR_INVALID_VL, 0);
++
++	for_each_set_bit(vl, &vl_select_mask, BITS_PER_LONG) {
++		if (counter_select & CS_PORT_XMIT_DATA)
++			write_port_cntr(ppd, C_TX_FLIT_VL, idx_from_vl(vl), 0);
++
++		if (counter_select & CS_PORT_RCV_DATA)
++			write_dev_cntr(dd, C_DC_RX_FLIT_VL, idx_from_vl(vl), 0);
++
++		if (counter_select & CS_PORT_XMIT_PKTS)
++			write_port_cntr(ppd, C_TX_PKT_VL, idx_from_vl(vl), 0);
++
++		if (counter_select & CS_PORT_RCV_PKTS)
++			write_dev_cntr(dd, C_DC_RX_PKT_VL, idx_from_vl(vl), 0);
++
++		if (counter_select & CS_PORT_XMIT_WAIT) {
++			write_port_cntr(ppd, C_TX_WAIT_VL, idx_from_vl(vl), 0);
++			ppd->port_vl_xmit_wait_last[idx_from_vl(vl)] = 0;
++			ppd->vl_xmit_flit_cnt[idx_from_vl(vl)] = 0;
++		}
++
++		/* sw_port_vl_congestion is 0 for HFIs */
++		if (counter_select & CS_PORT_RCV_FECN)
++			write_dev_cntr(dd, C_DC_RCV_FCN_VL, idx_from_vl(vl), 0);
++
++		if (counter_select & CS_PORT_RCV_BECN)
++			write_dev_cntr(dd, C_DC_RCV_BCN_VL, idx_from_vl(vl), 0);
++
++		/* port_vl_xmit_time_cong is 0 for HFIs */
++		/* port_vl_xmit_wasted_bw ??? */
++		/* port_vl_xmit_wait_data - TXE (table 13-9 HFI spec) ??? */
++		if (counter_select & CS_PORT_RCV_BUBBLE)
++			write_dev_cntr(dd, C_DC_RCV_BBL_VL, idx_from_vl(vl), 0);
++
++		/* if (counter_select & CS_PORT_MARK_FECN)
++		 *     write_csr(dd, DCC_PRF_PORT_VL_MARK_FECN_CNT + offset, 0);
++		 */
++		if (counter_select & C_SW_XMIT_DSCD_VL)
++			write_port_cntr(ppd, C_SW_XMIT_DSCD_VL,
++					idx_from_vl(vl), 0);
++	}
++
++	if (resp_len)
++		*resp_len += sizeof(*req);
++
++	return reply((struct ib_mad_hdr *)pmp);
++}
++
++static int pma_set_opa_errorinfo(struct opa_pma_mad *pmp,
++				 struct ib_device *ibdev,
++				 u32 port, u32 *resp_len)
++{
++	struct _port_ei *rsp;
++	struct opa_port_error_info_msg *req;
++	struct hfi2_devdata *dd = dd_from_ibdev(ibdev);
++	struct hfi2_ibport *ibp = to_iport(ibdev, port);
++	struct hfi2_pportdata *ppd = ppd_from_ibp(ibp);
++	u64 port_mask;
++	u32 num_ports;
++	u32 port_num;
++	u8 num_pslm;
++	u32 error_info_select;
++
++	req = (struct opa_port_error_info_msg *)pmp->data;
++	rsp = &req->port;
++
++	num_ports = OPA_AM_NPORT(be32_to_cpu(pmp->mad_hdr.attr_mod));
++	num_pslm = hweight64(be64_to_cpu(req->port_select_mask[3]));
++
++	memset(rsp, 0, sizeof(*rsp));
++
++	if (num_ports != 1 || num_ports != num_pslm) {
++		pmp->mad_hdr.status |= IB_SMP_INVALID_FIELD;
++		return reply((struct ib_mad_hdr *)pmp);
++	}
++
++	/*
++	 * The bit set in the mask needs to be consistent with the port
++	 * the request came in on.
++	 */
++	port_mask = be64_to_cpu(req->port_select_mask[3]);
++	port_num = find_first_bit((unsigned long *)&port_mask,
++				  sizeof(port_mask) * 8);
++
++	if (port_num != port) {
++		pmp->mad_hdr.status |= IB_SMP_INVALID_FIELD;
++		return reply((struct ib_mad_hdr *)pmp);
++	}
++
++	error_info_select = be32_to_cpu(req->error_info_select_mask);
++
++	/* PortRcvErrorInfo */
++	if (error_info_select & ES_PORT_RCV_ERROR_INFO)
++		/* turn off status bit */
++		dd->err_info_rcvport.status_and_code &= ~OPA_EI_STATUS_SMASK;
++
++	/* ExcessiverBufferOverrunInfo */
++	if (error_info_select & ES_EXCESSIVE_BUFFER_OVERRUN_INFO)
++		/*
++		 * status bit is essentially kept in the h/w - bit 5 of
++		 * RCV_ERR_INFO
++		 */
++		write_iport_csr(dd, ppd->hw_pidx, dd->params->rcv_err_info_reg,
++				RCV_ERR_INFO_RCV_EXCESS_BUFFER_OVERRUN_SMASK);
++
++	if (error_info_select & ES_PORT_XMIT_CONSTRAINT_ERROR_INFO)
++		dd->err_info_xmit_constraint.status &= ~OPA_EI_STATUS_SMASK;
++
++	if (error_info_select & ES_PORT_RCV_CONSTRAINT_ERROR_INFO)
++		dd->err_info_rcv_constraint.status &= ~OPA_EI_STATUS_SMASK;
++
++	/* UncorrectableErrorInfo */
++	if (error_info_select & ES_UNCORRECTABLE_ERROR_INFO)
++		/* turn off status bit */
++		dd->err_info_uncorrectable &= ~OPA_EI_STATUS_SMASK;
++
++	/* FMConfigErrorInfo */
++	if (error_info_select & ES_FM_CONFIG_ERROR_INFO)
++		/* turn off status bit */
++		dd->err_info_fmconfig &= ~OPA_EI_STATUS_SMASK;
++
++	if (resp_len)
++		*resp_len += sizeof(*req);
++
++	return reply((struct ib_mad_hdr *)pmp);
++}
++
++struct opa_congestion_info_attr {
++	__be16 congestion_info;
++	u8 control_table_cap;	/* Multiple of 64 entry unit CCTs */
++	u8 congestion_log_length;
++} __packed;
++
++static int __subn_get_opa_cong_info(struct opa_smp *smp, u32 am, u8 *data,
++				    struct ib_device *ibdev, u32 port,
++				    u32 *resp_len, u32 max_len)
++{
++	struct opa_congestion_info_attr *p =
++		(struct opa_congestion_info_attr *)data;
++	struct hfi2_ibport *ibp = to_iport(ibdev, port);
++	struct hfi2_pportdata *ppd = ppd_from_ibp(ibp);
++
++	if (smp_length_check(sizeof(*p), max_len)) {
++		smp->status |= IB_SMP_INVALID_FIELD;
++		return reply((struct ib_mad_hdr *)smp);
++	}
++
++	p->congestion_info = 0;
++	p->control_table_cap = ppd->cc_max_table_entries;
++	p->congestion_log_length = OPA_CONG_LOG_ELEMS;
++
++	if (resp_len)
++		*resp_len += sizeof(*p);
++
++	return reply((struct ib_mad_hdr *)smp);
++}
++
++static int __subn_get_opa_cong_setting(struct opa_smp *smp, u32 am,
++				       u8 *data, struct ib_device *ibdev,
++				       u32 port, u32 *resp_len, u32 max_len)
++{
++	int i;
++	struct opa_congestion_setting_attr *p =
++		(struct opa_congestion_setting_attr *)data;
++	struct hfi2_ibport *ibp = to_iport(ibdev, port);
++	struct hfi2_pportdata *ppd = ppd_from_ibp(ibp);
++	struct opa_congestion_setting_entry_shadow *entries;
++	struct cc_state *cc_state;
++
++	if (smp_length_check(sizeof(*p), max_len)) {
++		smp->status |= IB_SMP_INVALID_FIELD;
++		return reply((struct ib_mad_hdr *)smp);
++	}
++
++	rcu_read_lock();
++
++	cc_state = get_cc_state(ppd);
++
++	if (!cc_state) {
++		rcu_read_unlock();
++		return reply((struct ib_mad_hdr *)smp);
++	}
++
++	entries = cc_state->cong_setting.entries;
++	p->port_control = cpu_to_be16(cc_state->cong_setting.port_control);
++	p->control_map = cpu_to_be32(cc_state->cong_setting.control_map);
++	for (i = 0; i < OPA_MAX_SLS; i++) {
++		p->entries[i].ccti_increase = entries[i].ccti_increase;
++		p->entries[i].ccti_timer = cpu_to_be16(entries[i].ccti_timer);
++		p->entries[i].trigger_threshold =
++			entries[i].trigger_threshold;
++		p->entries[i].ccti_min = entries[i].ccti_min;
++	}
++
++	rcu_read_unlock();
++
++	if (resp_len)
++		*resp_len += sizeof(*p);
++
++	return reply((struct ib_mad_hdr *)smp);
++}
++
++/*
++ * Apply congestion control information stored in the ppd to the
++ * active structure.
++ */
++static void apply_cc_state(struct hfi2_pportdata *ppd)
++{
++	struct cc_state *old_cc_state, *new_cc_state;
++
++	new_cc_state = kzalloc(sizeof(*new_cc_state), GFP_KERNEL);
++	if (!new_cc_state)
++		return;
++
++	/*
++	 * Hold the lock for updating *and* to prevent ppd information
++	 * from changing during the update.
++	 */
++	spin_lock(&ppd->cc_state_lock);
++
++	old_cc_state = get_cc_state_protected(ppd);
++	if (!old_cc_state) {
++		/* never active, or shutting down */
++		spin_unlock(&ppd->cc_state_lock);
++		kfree(new_cc_state);
++		return;
++	}
++
++	*new_cc_state = *old_cc_state;
++
++	if (ppd->total_cct_entry)
++		new_cc_state->cct.ccti_limit = ppd->total_cct_entry - 1;
++	else
++		new_cc_state->cct.ccti_limit = 0;
++
++	memcpy(new_cc_state->cct.entries, ppd->ccti_entries,
++	       ppd->total_cct_entry * sizeof(struct ib_cc_table_entry));
++
++	new_cc_state->cong_setting.port_control = IB_CC_CCS_PC_SL_BASED;
++	new_cc_state->cong_setting.control_map = ppd->cc_sl_control_map;
++	memcpy(new_cc_state->cong_setting.entries, ppd->congestion_entries,
++	       OPA_MAX_SLS * sizeof(struct opa_congestion_setting_entry));
++
++	rcu_assign_pointer(ppd->cc_state, new_cc_state);
++
++	spin_unlock(&ppd->cc_state_lock);
++
++	kfree_rcu(old_cc_state, rcu);
++}
++
++static int __subn_set_opa_cong_setting(struct opa_smp *smp, u32 am, u8 *data,
++				       struct ib_device *ibdev, u32 port,
++				       u32 *resp_len, u32 max_len)
++{
++	struct opa_congestion_setting_attr *p =
++		(struct opa_congestion_setting_attr *)data;
++	struct hfi2_ibport *ibp = to_iport(ibdev, port);
++	struct hfi2_pportdata *ppd = ppd_from_ibp(ibp);
++	struct opa_congestion_setting_entry_shadow *entries;
++	int i;
++
++	if (smp_length_check(sizeof(*p), max_len)) {
++		smp->status |= IB_SMP_INVALID_FIELD;
++		return reply((struct ib_mad_hdr *)smp);
++	}
++
++	/*
++	 * Save details from packet into the ppd.  Hold the cc_state_lock so
++	 * our information is consistent with anyone trying to apply the state.
++	 */
++	spin_lock(&ppd->cc_state_lock);
++	ppd->cc_sl_control_map = be32_to_cpu(p->control_map);
++
++	entries = ppd->congestion_entries;
++	for (i = 0; i < OPA_MAX_SLS; i++) {
++		entries[i].ccti_increase = p->entries[i].ccti_increase;
++		entries[i].ccti_timer = be16_to_cpu(p->entries[i].ccti_timer);
++		entries[i].trigger_threshold =
++			p->entries[i].trigger_threshold;
++		entries[i].ccti_min = p->entries[i].ccti_min;
++	}
++	spin_unlock(&ppd->cc_state_lock);
++
++	/* now apply the information */
++	apply_cc_state(ppd);
++
++	return __subn_get_opa_cong_setting(smp, am, data, ibdev, port,
++					   resp_len, max_len);
++}
++
++static int __subn_get_opa_hfi2_cong_log(struct opa_smp *smp, u32 am,
++					u8 *data, struct ib_device *ibdev,
++					u32 port, u32 *resp_len, u32 max_len)
++{
++	struct hfi2_ibport *ibp = to_iport(ibdev, port);
++	struct hfi2_pportdata *ppd = ppd_from_ibp(ibp);
++	struct opa_hfi2_cong_log *cong_log = (struct opa_hfi2_cong_log *)data;
++	u64 ts;
++	int i;
++
++	if (am || smp_length_check(sizeof(*cong_log), max_len)) {
++		smp->status |= IB_SMP_INVALID_FIELD;
++		return reply((struct ib_mad_hdr *)smp);
++	}
++
++	spin_lock_irq(&ppd->cc_log_lock);
++
++	cong_log->log_type = OPA_CC_LOG_TYPE_HFI;
++	cong_log->congestion_flags = 0;
++	cong_log->threshold_event_counter =
++		cpu_to_be16(ppd->threshold_event_counter);
++	memcpy(cong_log->threshold_cong_event_map,
++	       ppd->threshold_cong_event_map,
++	       sizeof(cong_log->threshold_cong_event_map));
++	/* keep timestamp in units of 1.024 usec */
++	ts = ktime_get_ns() / 1024;
++	cong_log->current_time_stamp = cpu_to_be32(ts);
++	for (i = 0; i < OPA_CONG_LOG_ELEMS; i++) {
++		struct opa_hfi2_cong_log_event_internal *cce =
++			&ppd->cc_events[ppd->cc_mad_idx++];
++		if (ppd->cc_mad_idx == OPA_CONG_LOG_ELEMS)
++			ppd->cc_mad_idx = 0;
++		/*
++		 * Entries which are older than twice the time
++		 * required to wrap the counter are supposed to
++		 * be zeroed (CA10-49 IBTA, release 1.2.1, V1).
++		 */
++		if ((ts - cce->timestamp) / 2 > U32_MAX)
++			continue;
++		memcpy(cong_log->events[i].local_qp_cn_entry, &cce->lqpn, 3);
++		memcpy(cong_log->events[i].remote_qp_number_cn_entry,
++		       &cce->rqpn, 3);
++		cong_log->events[i].sl_svc_type_cn_entry =
++			((cce->sl & 0x1f) << 3) | (cce->svc_type & 0x7);
++		cong_log->events[i].remote_lid_cn_entry =
++			cpu_to_be32(cce->rlid);
++		cong_log->events[i].timestamp_cn_entry =
++			cpu_to_be32(cce->timestamp);
++	}
++
++	/*
++	 * Reset threshold_cong_event_map, and threshold_event_counter
++	 * to 0 when log is read.
++	 */
++	memset(ppd->threshold_cong_event_map, 0x0,
++	       sizeof(ppd->threshold_cong_event_map));
++	ppd->threshold_event_counter = 0;
++
++	spin_unlock_irq(&ppd->cc_log_lock);
++
++	if (resp_len)
++		*resp_len += sizeof(struct opa_hfi2_cong_log);
++
++	return reply((struct ib_mad_hdr *)smp);
++}
++
++static int __subn_get_opa_cc_table(struct opa_smp *smp, u32 am, u8 *data,
++				   struct ib_device *ibdev, u32 port,
++				   u32 *resp_len, u32 max_len)
++{
++	struct ib_cc_table_attr *cc_table_attr =
++		(struct ib_cc_table_attr *)data;
++	struct hfi2_ibport *ibp = to_iport(ibdev, port);
++	struct hfi2_pportdata *ppd = ppd_from_ibp(ibp);
++	u32 start_block = OPA_AM_START_BLK(am);
++	u32 n_blocks = OPA_AM_NBLK(am);
++	struct ib_cc_table_entry_shadow *entries;
++	int i, j;
++	u32 sentry, eentry;
++	struct cc_state *cc_state;
++	u32 size = sizeof(u16) * (IB_CCT_ENTRIES * n_blocks + 1);
++
++	/* sanity check n_blocks, start_block */
++	if (n_blocks == 0 || smp_length_check(size, max_len) ||
++	    start_block + n_blocks > ppd->cc_max_table_entries) {
++		smp->status |= IB_SMP_INVALID_FIELD;
++		return reply((struct ib_mad_hdr *)smp);
++	}
++
++	rcu_read_lock();
++
++	cc_state = get_cc_state(ppd);
++
++	if (!cc_state) {
++		rcu_read_unlock();
++		return reply((struct ib_mad_hdr *)smp);
++	}
++
++	sentry = start_block * IB_CCT_ENTRIES;
++	eentry = sentry + (IB_CCT_ENTRIES * n_blocks);
++
++	cc_table_attr->ccti_limit = cpu_to_be16(cc_state->cct.ccti_limit);
++
++	entries = cc_state->cct.entries;
++
++	/* return n_blocks, though the last block may not be full */
++	for (j = 0, i = sentry; i < eentry; j++, i++)
++		cc_table_attr->ccti_entries[j].entry =
++			cpu_to_be16(entries[i].entry);
++
++	rcu_read_unlock();
++
++	if (resp_len)
++		*resp_len += size;
++
++	return reply((struct ib_mad_hdr *)smp);
++}
++
++static int __subn_set_opa_cc_table(struct opa_smp *smp, u32 am, u8 *data,
++				   struct ib_device *ibdev, u32 port,
++				   u32 *resp_len, u32 max_len)
++{
++	struct ib_cc_table_attr *p = (struct ib_cc_table_attr *)data;
++	struct hfi2_ibport *ibp = to_iport(ibdev, port);
++	struct hfi2_pportdata *ppd = ppd_from_ibp(ibp);
++	u32 start_block = OPA_AM_START_BLK(am);
++	u32 n_blocks = OPA_AM_NBLK(am);
++	struct ib_cc_table_entry_shadow *entries;
++	int i, j;
++	u32 sentry, eentry;
++	u16 ccti_limit;
++	u32 size = sizeof(u16) * (IB_CCT_ENTRIES * n_blocks + 1);
++
++	/* sanity check n_blocks, start_block */
++	if (n_blocks == 0 || smp_length_check(size, max_len) ||
++	    start_block + n_blocks > ppd->cc_max_table_entries) {
++		smp->status |= IB_SMP_INVALID_FIELD;
++		return reply((struct ib_mad_hdr *)smp);
++	}
++
++	sentry = start_block * IB_CCT_ENTRIES;
++	eentry = sentry + ((n_blocks - 1) * IB_CCT_ENTRIES) +
++		 (be16_to_cpu(p->ccti_limit)) % IB_CCT_ENTRIES + 1;
++
++	/* sanity check ccti_limit */
++	ccti_limit = be16_to_cpu(p->ccti_limit);
++	if (ccti_limit + 1 > eentry) {
++		smp->status |= IB_SMP_INVALID_FIELD;
++		return reply((struct ib_mad_hdr *)smp);
++	}
++
++	/*
++	 * Save details from packet into the ppd.  Hold the cc_state_lock so
++	 * our information is consistent with anyone trying to apply the state.
++	 */
++	spin_lock(&ppd->cc_state_lock);
++	ppd->total_cct_entry = ccti_limit + 1;
++	entries = ppd->ccti_entries;
++	for (j = 0, i = sentry; i < eentry; j++, i++)
++		entries[i].entry = be16_to_cpu(p->ccti_entries[j].entry);
++	spin_unlock(&ppd->cc_state_lock);
++
++	/* now apply the information */
++	apply_cc_state(ppd);
++
++	return __subn_get_opa_cc_table(smp, am, data, ibdev, port, resp_len,
++				       max_len);
++}
++
++struct opa_led_info {
++	__be32 rsvd_led_mask;
++	__be32 rsvd;
++};
++
++#define OPA_LED_SHIFT	31
++#define OPA_LED_MASK	BIT(OPA_LED_SHIFT)
++
++static int __subn_get_opa_led_info(struct opa_smp *smp, u32 am, u8 *data,
++				   struct ib_device *ibdev, u32 port,
++				   u32 *resp_len, u32 max_len)
++{
++	struct hfi2_devdata *dd = dd_from_ibdev(ibdev);
++	struct hfi2_pportdata *ppd = &dd->pport[port - 1];
++	struct opa_led_info *p = (struct opa_led_info *)data;
++	u32 nport = OPA_AM_NPORT(am);
++	u32 is_beaconing_active;
++
++	if (nport != 1 || smp_length_check(sizeof(*p), max_len)) {
++		smp->status |= IB_SMP_INVALID_FIELD;
++		return reply((struct ib_mad_hdr *)smp);
++	}
++
++	/*
++	 * This pairs with the memory barrier in hfi2_start_led_override to
++	 * ensure that we read the correct state of LED beaconing represented
++	 * by led_override_timer_active
++	 */
++	smp_rmb();
++	is_beaconing_active = !!atomic_read(&ppd->led_override_timer_active);
++	p->rsvd_led_mask = cpu_to_be32(is_beaconing_active << OPA_LED_SHIFT);
++
++	if (resp_len)
++		*resp_len += sizeof(struct opa_led_info);
++
++	return reply((struct ib_mad_hdr *)smp);
++}
++
++static int __subn_set_opa_led_info(struct opa_smp *smp, u32 am, u8 *data,
++				   struct ib_device *ibdev, u32 port,
++				   u32 *resp_len, u32 max_len)
++{
++	struct hfi2_devdata *dd = dd_from_ibdev(ibdev);
++	struct hfi2_pportdata *ppd = &dd->pport[port - 1];
++	struct opa_led_info *p = (struct opa_led_info *)data;
++	u32 nport = OPA_AM_NPORT(am);
++	int on = !!(be32_to_cpu(p->rsvd_led_mask) & OPA_LED_MASK);
++
++	if (nport != 1 || smp_length_check(sizeof(*p), max_len)) {
++		smp->status |= IB_SMP_INVALID_FIELD;
++		return reply((struct ib_mad_hdr *)smp);
++	}
++
++	if (on)
++		dd->params->start_led_override(ppd, 2000, 1500);
++	else
++		dd->params->shutdown_led_override(ppd);
++
++	return __subn_get_opa_led_info(smp, am, data, ibdev, port, resp_len,
++				       max_len);
++}
++
++static int subn_get_opa_sma(__be16 attr_id, struct opa_smp *smp, u32 am,
++			    u8 *data, struct ib_device *ibdev, u32 port,
++			    u32 *resp_len, u32 max_len)
++{
++	int ret;
++	struct hfi2_ibport *ibp = to_iport(ibdev, port);
++
++	switch (attr_id) {
++	case IB_SMP_ATTR_NODE_DESC:
++		ret = __subn_get_opa_nodedesc(smp, am, data, ibdev, port,
++					      resp_len, max_len);
++		break;
++	case IB_SMP_ATTR_NODE_INFO:
++		ret = __subn_get_opa_nodeinfo(smp, am, data, ibdev, port,
++					      resp_len, max_len);
++		break;
++	case IB_SMP_ATTR_PORT_INFO:
++		ret = __subn_get_opa_portinfo(smp, am, data, ibdev, port,
++					      resp_len, max_len);
++		break;
++	case IB_SMP_ATTR_PKEY_TABLE:
++		ret = __subn_get_opa_pkeytable(smp, am, data, ibdev, port,
++					       resp_len, max_len);
++		break;
++	case OPA_ATTRIB_ID_SL_TO_SC_MAP:
++		ret = __subn_get_opa_sl_to_sc(smp, am, data, ibdev, port,
++					      resp_len, max_len);
++		break;
++	case OPA_ATTRIB_ID_SC_TO_SL_MAP:
++		ret = __subn_get_opa_sc_to_sl(smp, am, data, ibdev, port,
++					      resp_len, max_len);
++		break;
++	case OPA_ATTRIB_ID_SC_TO_VLT_MAP:
++		ret = __subn_get_opa_sc_to_vlt(smp, am, data, ibdev, port,
++					       resp_len, max_len);
++		break;
++	case OPA_ATTRIB_ID_SC_TO_VLNT_MAP:
++		ret = __subn_get_opa_sc_to_vlnt(smp, am, data, ibdev, port,
++						resp_len, max_len);
++		break;
++	case OPA_ATTRIB_ID_PORT_STATE_INFO:
++		ret = __subn_get_opa_psi(smp, am, data, ibdev, port,
++					 resp_len, max_len);
++		break;
++	case OPA_ATTRIB_ID_BUFFER_CONTROL_TABLE:
++		ret = __subn_get_opa_bct(smp, am, data, ibdev, port,
++					 resp_len, max_len);
++		break;
++	case OPA_ATTRIB_ID_CABLE_INFO:
++		ret = __subn_get_opa_cable_info(smp, am, data, ibdev, port,
++						resp_len, max_len);
++		break;
++	case IB_SMP_ATTR_VL_ARB_TABLE:
++		ret = __subn_get_opa_vl_arb(smp, am, data, ibdev, port,
++					    resp_len, max_len);
++		break;
++	case OPA_ATTRIB_ID_CONGESTION_INFO:
++		ret = __subn_get_opa_cong_info(smp, am, data, ibdev, port,
++					       resp_len, max_len);
++		break;
++	case OPA_ATTRIB_ID_HFI_CONGESTION_SETTING:
++		ret = __subn_get_opa_cong_setting(smp, am, data, ibdev,
++						  port, resp_len, max_len);
++		break;
++	case OPA_ATTRIB_ID_HFI_CONGESTION_LOG:
++		ret = __subn_get_opa_hfi2_cong_log(smp, am, data, ibdev,
++						   port, resp_len, max_len);
++		break;
++	case OPA_ATTRIB_ID_CONGESTION_CONTROL_TABLE:
++		ret = __subn_get_opa_cc_table(smp, am, data, ibdev, port,
++					      resp_len, max_len);
++		break;
++	case IB_SMP_ATTR_LED_INFO:
++		ret = __subn_get_opa_led_info(smp, am, data, ibdev, port,
++					      resp_len, max_len);
++		break;
++	case IB_SMP_ATTR_SM_INFO:
++		if (ibp->rvp.port_cap_flags & IB_PORT_SM_DISABLED)
++			return IB_MAD_RESULT_SUCCESS | IB_MAD_RESULT_CONSUMED;
++		if (ibp->rvp.port_cap_flags & IB_PORT_SM)
++			return IB_MAD_RESULT_SUCCESS;
++		fallthrough;
++	default:
++		smp->status |= IB_SMP_UNSUP_METH_ATTR;
++		ret = reply((struct ib_mad_hdr *)smp);
++		break;
++	}
++	return ret;
++}
++
++static int subn_set_opa_sma(__be16 attr_id, struct opa_smp *smp, u32 am,
++			    u8 *data, struct ib_device *ibdev, u32 port,
++			    u32 *resp_len, u32 max_len, int local_mad)
++{
++	int ret;
++	struct hfi2_ibport *ibp = to_iport(ibdev, port);
++
++	switch (attr_id) {
++	case IB_SMP_ATTR_PORT_INFO:
++		ret = __subn_set_opa_portinfo(smp, am, data, ibdev, port,
++					      resp_len, max_len, local_mad);
++		break;
++	case IB_SMP_ATTR_PKEY_TABLE:
++		ret = __subn_set_opa_pkeytable(smp, am, data, ibdev, port,
++					       resp_len, max_len);
++		break;
++	case OPA_ATTRIB_ID_SL_TO_SC_MAP:
++		ret = __subn_set_opa_sl_to_sc(smp, am, data, ibdev, port,
++					      resp_len, max_len);
++		break;
++	case OPA_ATTRIB_ID_SC_TO_SL_MAP:
++		ret = __subn_set_opa_sc_to_sl(smp, am, data, ibdev, port,
++					      resp_len, max_len);
++		break;
++	case OPA_ATTRIB_ID_SC_TO_VLT_MAP:
++		ret = __subn_set_opa_sc_to_vlt(smp, am, data, ibdev, port,
++					       resp_len, max_len);
++		break;
++	case OPA_ATTRIB_ID_SC_TO_VLNT_MAP:
++		ret = __subn_set_opa_sc_to_vlnt(smp, am, data, ibdev, port,
++						resp_len, max_len);
++		break;
++	case OPA_ATTRIB_ID_PORT_STATE_INFO:
++		ret = __subn_set_opa_psi(smp, am, data, ibdev, port,
++					 resp_len, max_len, local_mad);
++		break;
++	case OPA_ATTRIB_ID_BUFFER_CONTROL_TABLE:
++		ret = __subn_set_opa_bct(smp, am, data, ibdev, port,
++					 resp_len, max_len);
++		break;
++	case IB_SMP_ATTR_VL_ARB_TABLE:
++		ret = __subn_set_opa_vl_arb(smp, am, data, ibdev, port,
++					    resp_len, max_len);
++		break;
++	case OPA_ATTRIB_ID_HFI_CONGESTION_SETTING:
++		ret = __subn_set_opa_cong_setting(smp, am, data, ibdev,
++						  port, resp_len, max_len);
++		break;
++	case OPA_ATTRIB_ID_CONGESTION_CONTROL_TABLE:
++		ret = __subn_set_opa_cc_table(smp, am, data, ibdev, port,
++					      resp_len, max_len);
++		break;
++	case IB_SMP_ATTR_LED_INFO:
++		ret = __subn_set_opa_led_info(smp, am, data, ibdev, port,
++					      resp_len, max_len);
++		break;
++	case IB_SMP_ATTR_SM_INFO:
++		if (ibp->rvp.port_cap_flags & IB_PORT_SM_DISABLED)
++			return IB_MAD_RESULT_SUCCESS | IB_MAD_RESULT_CONSUMED;
++		if (ibp->rvp.port_cap_flags & IB_PORT_SM)
++			return IB_MAD_RESULT_SUCCESS;
++		fallthrough;
++	default:
++		smp->status |= IB_SMP_UNSUP_METH_ATTR;
++		ret = reply((struct ib_mad_hdr *)smp);
++		break;
++	}
++	return ret;
++}
++
++static inline void set_aggr_error(struct opa_aggregate *ag)
++{
++	ag->err_reqlength |= cpu_to_be16(0x8000);
++}
++
++static int subn_get_opa_aggregate(struct opa_smp *smp,
++				  struct ib_device *ibdev, u32 port,
++				  u32 *resp_len)
++{
++	int i;
++	u32 num_attr = be32_to_cpu(smp->attr_mod) & 0x000000ff;
++	u8 *next_smp = opa_get_smp_data(smp);
++
++	if (num_attr < 1 || num_attr > 117) {
++		smp->status |= IB_SMP_INVALID_FIELD;
++		return reply((struct ib_mad_hdr *)smp);
++	}
++
++	for (i = 0; i < num_attr; i++) {
++		struct opa_aggregate *agg;
++		size_t agg_data_len;
++		size_t agg_size;
++		u32 am;
++
++		agg = (struct opa_aggregate *)next_smp;
++		agg_data_len = (be16_to_cpu(agg->err_reqlength) & 0x007f) * 8;
++		agg_size = sizeof(*agg) + agg_data_len;
++		am = be32_to_cpu(agg->attr_mod);
++
++		*resp_len += agg_size;
++
++		if (next_smp + agg_size > ((u8 *)smp) + sizeof(*smp)) {
++			smp->status |= IB_SMP_INVALID_FIELD;
++			return reply((struct ib_mad_hdr *)smp);
++		}
++
++		/* zero the payload for this segment */
++		memset(next_smp + sizeof(*agg), 0, agg_data_len);
++
++		(void)subn_get_opa_sma(agg->attr_id, smp, am, agg->data,
++				       ibdev, port, NULL, (u32)agg_data_len);
++
++		if (smp->status & IB_SMP_INVALID_FIELD)
++			break;
++		if (smp->status & ~IB_SMP_DIRECTION) {
++			set_aggr_error(agg);
++			return reply((struct ib_mad_hdr *)smp);
++		}
++		next_smp += agg_size;
++	}
++
++	return reply((struct ib_mad_hdr *)smp);
++}
++
++static int subn_set_opa_aggregate(struct opa_smp *smp,
++				  struct ib_device *ibdev, u32 port,
++				  u32 *resp_len, int local_mad)
++{
++	int i;
++	u32 num_attr = be32_to_cpu(smp->attr_mod) & 0x000000ff;
++	u8 *next_smp = opa_get_smp_data(smp);
++
++	if (num_attr < 1 || num_attr > 117) {
++		smp->status |= IB_SMP_INVALID_FIELD;
++		return reply((struct ib_mad_hdr *)smp);
++	}
++
++	for (i = 0; i < num_attr; i++) {
++		struct opa_aggregate *agg;
++		size_t agg_data_len;
++		size_t agg_size;
++		u32 am;
++
++		agg = (struct opa_aggregate *)next_smp;
++		agg_data_len = (be16_to_cpu(agg->err_reqlength) & 0x007f) * 8;
++		agg_size = sizeof(*agg) + agg_data_len;
++		am = be32_to_cpu(agg->attr_mod);
++
++		*resp_len += agg_size;
++
++		if (next_smp + agg_size > ((u8 *)smp) + sizeof(*smp)) {
++			smp->status |= IB_SMP_INVALID_FIELD;
++			return reply((struct ib_mad_hdr *)smp);
++		}
++
++		(void)subn_set_opa_sma(agg->attr_id, smp, am, agg->data,
++				       ibdev, port, NULL, (u32)agg_data_len,
++				       local_mad);
++
++		if (smp->status & IB_SMP_INVALID_FIELD)
++			break;
++		if (smp->status & ~IB_SMP_DIRECTION) {
++			set_aggr_error(agg);
++			return reply((struct ib_mad_hdr *)smp);
++		}
++		next_smp += agg_size;
++	}
++
++	return reply((struct ib_mad_hdr *)smp);
++}
++
++/*
++ * OPAv1 specifies that, on the transition to link up, these counters
++ * are cleared:
++ *   PortRcvErrors [*]
++ *   LinkErrorRecovery
++ *   LocalLinkIntegrityErrors
++ *   ExcessiveBufferOverruns [*]
++ *
++ * [*] Error info associated with these counters is retained, but the
++ * error info status is reset to 0.
++ */
++void clear_linkup_counters(struct hfi2_pportdata *ppd)
++{
++	struct hfi2_devdata *dd = ppd->dd;
++
++	/* PortRcvErrors */
++	write_dev_cntr(dd, C_DC_RCV_ERR, CNTR_INVALID_VL, 0);
++	dd->err_info_rcvport.status_and_code &= ~OPA_EI_STATUS_SMASK;
++	/* LinkErrorRecovery */
++	write_dev_cntr(dd, C_DC_SEQ_CRC_CNT, CNTR_INVALID_VL, 0);
++	write_dev_cntr(dd, C_DC_REINIT_FROM_PEER_CNT, CNTR_INVALID_VL, 0);
++	/* LocalLinkIntegrityErrors */
++	write_dev_cntr(dd, C_DC_RX_REPLAY, CNTR_INVALID_VL, 0);
++	/* ExcessiveBufferOverruns */
++	write_port_cntr(ppd, C_RCV_OVF, CNTR_INVALID_VL, 0);
++	ppd->rcv_ovfl_cnt = 0;
++	dd->err_info_xmit_constraint.status &= ~OPA_EI_STATUS_SMASK;
++}
++
++static int is_full_mgmt_pkey_in_table(struct hfi2_ibport *ibp)
++{
++	unsigned int i;
++	struct hfi2_pportdata *ppd = ppd_from_ibp(ibp);
++
++	for (i = 0; i < ppd->dd->params->pkey_table_size; ++i)
++		if (ppd->pkeys[i] == FULL_MGMT_P_KEY)
++			return 1;
++
++	return 0;
++}
++
++/*
++ * is_local_mad() returns 1 if 'mad' is sent from, and destined to the
++ * local node, 0 otherwise.
++ */
++static int is_local_mad(struct hfi2_ibport *ibp, const struct opa_mad *mad,
++			const struct ib_wc *in_wc)
++{
++	struct hfi2_pportdata *ppd = ppd_from_ibp(ibp);
++	const struct opa_smp *smp = (const struct opa_smp *)mad;
++
++	if (smp->mgmt_class == IB_MGMT_CLASS_SUBN_DIRECTED_ROUTE) {
++		return (smp->hop_cnt == 0 &&
++			smp->route.dr.dr_slid == OPA_LID_PERMISSIVE &&
++			smp->route.dr.dr_dlid == OPA_LID_PERMISSIVE);
++	}
++
++	return (in_wc->slid == ppd->lid);
++}
++
++/*
++ * opa_local_smp_check() should only be called on MADs for which
++ * is_local_mad() returns true. It applies the SMP checks that are
++ * specific to SMPs which are sent from, and destined to this node.
++ * opa_local_smp_check() returns 0 if the SMP passes its checks, 1
++ * otherwise.
++ *
++ * SMPs which arrive from other nodes are instead checked by
++ * opa_smp_check().
++ */
++static int opa_local_smp_check(struct hfi2_ibport *ibp,
++			       const struct ib_wc *in_wc)
++{
++	struct hfi2_pportdata *ppd = ppd_from_ibp(ibp);
++	u16 pkey;
++
++	if (in_wc->pkey_index >= ppd->dd->params->pkey_table_size)
++		return 1;
++
++	pkey = ppd->pkeys[in_wc->pkey_index];
++	/*
++	 * We need to do the "node-local" checks specified in OPAv1,
++	 * rev 0.90, section 9.10.26, which are:
++	 *   - pkey is 0x7fff, or 0xffff
++	 *   - Source QPN == 0 || Destination QPN == 0
++	 *   - the MAD header's management class is either
++	 *     IB_MGMT_CLASS_SUBN_DIRECTED_ROUTE or
++	 *     IB_MGMT_CLASS_SUBN_LID_ROUTED
++	 *   - SLID != 0
++	 *
++	 * However, we know (and so don't need to check again) that,
++	 * for local SMPs, the MAD stack passes MADs with:
++	 *   - Source QPN of 0
++	 *   - MAD mgmt_class is IB_MGMT_CLASS_SUBN_DIRECTED_ROUTE
++	 *   - SLID is either: OPA_LID_PERMISSIVE (0xFFFFFFFF), or
++	 *     our own port's lid
++	 *
++	 */
++	if (pkey == LIM_MGMT_P_KEY || pkey == FULL_MGMT_P_KEY)
++		return 0;
++	ingress_pkey_table_fail(ppd, pkey, in_wc->slid);
 +	return 1;
 +}
 +
-+static unsigned long exprom_in_use;
-+
-+static int exprom_wp_debugfs_open(struct inode *in, struct file *fp)
++/**
++ * hfi2_pkey_validation_pma - It validates PKEYs for incoming PMA MAD packets.
++ * @ibp: IB port data
++ * @in_mad: MAD packet with header and data
++ * @in_wc: Work completion data such as source LID, port number, etc.
++ *
++ * These are all the possible logic rules for validating a pkey:
++ *
++ * a) If pkey neither FULL_MGMT_P_KEY nor LIM_MGMT_P_KEY,
++ *    and NOT self-originated packet:
++ *     Drop MAD packet as it should always be part of the
++ *     management partition unless it's a self-originated packet.
++ *
++ * b) If pkey_index -> FULL_MGMT_P_KEY, and LIM_MGMT_P_KEY in pkey table:
++ *     The packet is coming from a management node and the receiving node
++ *     is also a management node, so it is safe for the packet to go through.
++ *
++ * c) If pkey_index -> FULL_MGMT_P_KEY, and LIM_MGMT_P_KEY is NOT in pkey table:
++ *     Drop the packet as LIM_MGMT_P_KEY should always be in the pkey table.
++ *     It could be an FM misconfiguration.
++ *
++ * d) If pkey_index -> LIM_MGMT_P_KEY and FULL_MGMT_P_KEY is NOT in pkey table:
++ *     It is safe for the packet to go through since a non-management node is
++ *     talking to another non-management node.
++ *
++ * e) If pkey_index -> LIM_MGMT_P_KEY and FULL_MGMT_P_KEY in pkey table:
++ *     Drop the packet because a non-management node is talking to a
++ *     management node, and it could be an attack.
++ *
++ * For the implementation, these rules can be simplied to only checking
++ * for (a) and (e). There's no need to check for rule (b) as
++ * the packet doesn't need to be dropped. Rule (c) is not possible in
++ * the driver as LIM_MGMT_P_KEY is always in the pkey table.
++ *
++ * Return:
++ * 0 - pkey is okay, -EINVAL it's a bad pkey
++ */
++static int hfi2_pkey_validation_pma(struct hfi2_ibport *ibp,
++				    const struct opa_mad *in_mad,
++				    const struct ib_wc *in_wc)
 +{
-+	if (test_and_set_bit(0, &exprom_in_use))
-+		return -EBUSY;
++	u16 pkey_value = hfi2_lookup_pkey_value(ibp, in_wc->pkey_index);
 +
-+	return 0;
-+}
-+
-+static int exprom_wp_debugfs_release(struct inode *in, struct file *fp)
-+{
-+	struct hfi2_pportdata *ppd = private2ppd(fp);
-+
-+	if (exprom_wp_disabled)
-+		exprom_wp_set(ppd->dd, false);
-+	clear_bit(0, &exprom_in_use);
-+
-+	return 0;
-+}
-+
-+#define DEBUGFS_OPS(nm, readroutine, writeroutine)	\
-+{ \
-+	.name = nm, \
-+	.ops = { \
-+		.owner = THIS_MODULE, \
-+		.read = readroutine, \
-+		.write = writeroutine, \
-+		.llseek = generic_file_llseek, \
-+	}, \
-+}
-+
-+#define DEBUGFS_XOPS(nm, readf, writef, openf, releasef) \
-+{ \
-+	.name = nm, \
-+	.ops = { \
-+		.owner = THIS_MODULE, \
-+		.read = readf, \
-+		.write = writef, \
-+		.llseek = generic_file_llseek, \
-+		.open = openf, \
-+		.release = releasef \
-+	}, \
-+}
-+
-+static const struct counter_info cntr_ops[] = {
-+	DEBUGFS_OPS("counter_names", dev_names_read, NULL),
-+	DEBUGFS_OPS("counters", dev_counters_read, NULL),
-+	DEBUGFS_OPS("portcounter_names", portnames_read, NULL),
-+};
-+
-+static const struct counter_info wfr_cntr_ops[] = {
-+	DEBUGFS_OPS("asic_flags", asic_flags_read, asic_flags_write),
-+};
-+
-+static const struct counter_info port_cntr_ops[] = {
-+	DEBUGFS_OPS("port%dcounters", portcntrs_debugfs_read, NULL),
-+};
-+
-+static const struct counter_info wfr_port_cntr_ops[] = {
-+	DEBUGFS_XOPS("i2c1", i2c1_debugfs_read, i2c1_debugfs_write,
-+		     i2c1_debugfs_open, i2c1_debugfs_release),
-+	DEBUGFS_XOPS("i2c2", i2c2_debugfs_read, i2c2_debugfs_write,
-+		     i2c2_debugfs_open, i2c2_debugfs_release),
-+	DEBUGFS_OPS("qsfp_dump%d", qsfp_debugfs_dump, NULL),
-+	DEBUGFS_XOPS("qsfp1", qsfp1_debugfs_read, qsfp1_debugfs_write,
-+		     qsfp1_debugfs_open, qsfp1_debugfs_release),
-+	DEBUGFS_XOPS("qsfp2", qsfp2_debugfs_read, qsfp2_debugfs_write,
-+		     qsfp2_debugfs_open, qsfp2_debugfs_release),
-+	DEBUGFS_XOPS("exprom_wp", exprom_wp_debugfs_read,
-+		     exprom_wp_debugfs_write, exprom_wp_debugfs_open,
-+		     exprom_wp_debugfs_release),
-+	DEBUGFS_OPS("dc8051_memory", dc8051_memory_read, NULL),
-+	DEBUGFS_OPS("lcb", debugfs_lcb_read, debugfs_lcb_write),
-+};
-+
-+static void *_sdma_cpu_list_seq_start(struct seq_file *s, loff_t *pos)
-+{
-+	if (*pos >= num_online_cpus())
-+		return NULL;
-+
-+	return pos;
-+}
-+
-+static void *_sdma_cpu_list_seq_next(struct seq_file *s, void *v, loff_t *pos)
-+{
-+	++*pos;
-+	if (*pos >= num_online_cpus())
-+		return NULL;
-+
-+	return pos;
-+}
-+
-+static void _sdma_cpu_list_seq_stop(struct seq_file *s, void *v)
-+{
-+	/* nothing allocated */
-+}
-+
-+static int _sdma_cpu_list_seq_show(struct seq_file *s, void *v)
-+{
-+	struct hfi2_ibdev *ibd = (struct hfi2_ibdev *)s->private;
-+	struct hfi2_devdata *dd = dd_from_dev(ibd);
-+	loff_t *spos = v;
-+	loff_t i = *spos;
-+
-+	sdma_seqfile_dump_cpu_list(s, dd, (unsigned long)i);
-+	return 0;
-+}
-+
-+DEBUGFS_SEQ_FILE_OPS(sdma_cpu_list);
-+DEBUGFS_SEQ_FILE_OPEN(sdma_cpu_list)
-+DEBUGFS_FILE_OPS(sdma_cpu_list);
-+
-+static ssize_t link_debug_read(struct file *file,
-+			       char __user *user_buf, size_t count,
-+			       loff_t *ppos)
-+{
-+	//struct hfi2_devdata *dd = file->private_data;
-+	return 0;
-+}
-+
-+static void fake_linkup(struct hfi2_devdata *dd, int pidx)
-+{
-+	struct hfi2_pportdata *ppd;
-+
-+	if (pidx < 0 || pidx >= dd->num_pports) {
-+		printk("%s: invalid port index %d\n", __func__, pidx);
-+		return;
-+	}
-+	ppd = &dd->pport[pidx];
-+
-+	printk("%s: fake linkup port index %d\n", __func__, pidx);
-+	ppd->host_link_state = HLS_UP_INIT;
-+	handle_linkup_change(ppd, 1);
-+}
-+
-+static void fake_linkdown(struct hfi2_devdata *dd, int pidx)
-+{
-+	struct hfi2_pportdata *ppd;
-+
-+	if (pidx < 0 || pidx >= dd->num_pports) {
-+		printk("%s: invalid port index %d\n", __func__, pidx);
-+		return;
-+	}
-+	ppd = &dd->pport[pidx];
-+
-+	printk("%s: fake linkdown port index %d\n", __func__, pidx);
-+	ppd->host_link_state = HLS_DN_OFFLINE;
-+	handle_linkup_change(ppd, 0);
-+}
-+
-+static void fake_active(struct hfi2_devdata *dd, int pidx)
-+{
-+	struct hfi2_pportdata *ppd;
-+	struct ib_event event = { 0 };
-+	u32 lid;
-+	u8 lmc;
-+
-+	if (pidx < 0 || pidx >= dd->num_pports) {
-+		printk("%s: invalid port index %d\n", __func__, pidx);
-+		return;
-+	}
-+	ppd = &dd->pport[pidx];
-+
-+	/* IB Port 1 = LID 1, IB Port 2 = LID 2 */
-+	lid = pidx + 1;
-+	lmc = 0x0;	// only allow 1
-+
-+	printk("%s: fake active port index %d, lid %d (with set_mtu call)\n",
-+		__func__, pidx, lid);
-+
-+	/*
-+	 * From __subn_set_opa_portinfo().  In there, this comes after
-+	 * call to hfi2_set_lid().
-+	 *
-+	 * Need to set SendCtxtCreditCtrl.  Can be set after setting
-+	 * host_link_state, but it may be simpler to do it before.
-+	 */
-+	set_mtu(ppd);
-+
-+	// swiped from __subn_set_opa_portinfo()
-+	hfi2_set_lid(ppd, lid, lmc);
-+
-+	ppd->host_link_state = HLS_UP_ACTIVE;
-+
-+	event.device = &dd->verbs_dev.rdi.ibdev;
-+	event.element.port_num = pidx + 1;
-+	event.event = IB_EVENT_LID_CHANGE;
-+	ib_dispatch_event(&event);
-+	ppd->guids[HFI2_PORT_GUID_INDEX + 1] = be64_to_cpu(OPA_MAKE_ID(lid));
-+	event.event = IB_EVENT_GID_CHANGE;
-+	ib_dispatch_event(&event);
-+
-+	// swiped from set_link_state - sorta.  go_port_active() is new in this
-+	// stack of patches
-+	//can't call update_statusp() - static to chip.c, but may be needed
-+	//for faking user libraries
-+	//update_statusp(ppd, IB_PORT_ACTIVE);
-+	go_port_active(ppd);
-+}
-+
-+static ssize_t link_debug_write(struct file *file,
-+				const char __user *user_buf,
-+				size_t count, loff_t *ppos)
-+{
-+	struct hfi2_devdata *dd = file->private_data;
-+	char buf[128];
-+	size_t buf_size;
-+
-+	buf_size = min(count, (sizeof(buf) - 1));
-+	if (copy_from_user(buf, user_buf, buf_size))
-+		return -EFAULT;
-+	buf[buf_size] = 0;
-+
-+	if (strcmp(buf, "linkup0\n") == 0) {
-+		fake_linkup(dd, 0);
-+	} else if (strcmp(buf, "linkup1\n") == 0) {
-+		fake_linkup(dd, 1);
-+	} else if (strcmp(buf, "linkdown0\n") == 0) {
-+		fake_linkdown(dd, 0);
-+	} else if (strcmp(buf, "linkdown1\n") == 0) {
-+		fake_linkdown(dd, 1);
-+	} else if (strcmp(buf, "active0\n") == 0) {
-+		fake_active(dd, 0);
-+	} else if (strcmp(buf, "active1\n") == 0) {
-+		fake_active(dd, 1);
-+	} else {
-+		printk("%s: unknown command \"%s\"\n", __func__, buf);
-+	}
-+
-+	return count;
-+}
-+
-+static const struct file_operations _link_debug_ops = {
-+	.open = simple_open,
-+	.read = link_debug_read,
-+	.write = link_debug_write,
-+	.llseek = default_llseek,
-+};
-+
-+static ssize_t cport_ping_read(struct file *file,
-+			       char __user *user_buf, size_t count,
-+			       loff_t *ppos)
-+{
-+	struct hfi2_devdata *dd = file->private_data;
-+	char buf[16];
-+	loff_t pos = *ppos;
-+	int len;
-+
-+	if (pos < 0 || !count)
++	/* Rule (a) from above */
++	if (!is_local_mad(ibp, in_mad, in_wc) &&
++	    pkey_value != LIM_MGMT_P_KEY &&
++	    pkey_value != FULL_MGMT_P_KEY)
 +		return -EINVAL;
 +
-+	len = snprintf(buf, sizeof(buf), "%u", atomic_read(&dd->cport->nping));
-+	if (pos >= len)
-+		return 0;
-+	if (count > len - pos)
-+		count = len - pos;
-+	if (copy_to_user(user_buf, buf + *ppos, count))
-+		return -EFAULT;
-+
-+	*ppos += count;
-+	return count;
-+}
-+
-+static ssize_t cport_ping_write(struct file *file,
-+				const char __user *user_buf,
-+				size_t count, loff_t *ppos)
-+{
-+	struct hfi2_devdata *dd = file->private_data;
-+	char buf[16];
-+	char *start = buf;
-+	size_t buf_size;
-+	unsigned int value;
-+	int rc;
-+
-+	buf_size = min(count, (sizeof(buf) - 1));
-+	if (copy_from_user(buf, user_buf, buf_size))
-+		return -EFAULT;
-+	buf[buf_size] = 0;
-+	while (*start == ' ')
-+		start++;
-+
-+	rc = kstrtouint(start, 0, &value);
-+	if (rc)
++	/* Rule (e) from above */
++	if (pkey_value == LIM_MGMT_P_KEY &&
++	    is_full_mgmt_pkey_in_table(ibp))
 +		return -EINVAL;
 +
-+	rc = cport_ping_start(dd, value);
-+	if (rc)
-+		return rc;
-+	return count;
-+}
-+
-+static const struct file_operations _cport_ping_ops = {
-+	.open = simple_open,
-+	.read = cport_ping_read,
-+	.write = cport_ping_write,
-+	.llseek = default_llseek,
-+};
-+
-+static void add_port_files(struct dentry *root, struct hfi2_pportdata *ppd,
-+		      const struct counter_info *port_ops, int num_ops)
-+{
-+	char name[64];
-+	int i;
-+
-+	for (i = 0; i < num_ops; i++) {
-+		snprintf(name, sizeof(name), port_ops[i].name, ppd->port);
-+		debugfs_create_file(name, !port_ops[i].ops.write ? 0444 : 0644,
-+				    root, ppd, &port_ops[i].ops);
-+	}
-+}
-+
-+void hfi2_dbg_ibdev_init(struct hfi2_ibdev *ibd)
-+{
-+	char name[sizeof("port0counters") + 1];
-+	char link[10];
-+	struct hfi2_devdata *dd = dd_from_dev(ibd);
-+	struct hfi2_pportdata *ppd;
-+	struct dentry *root;
-+	int unit = dd->unit;
-+	int i;
-+
-+	if (!hfi2_dbg_root)
-+		return;
-+	snprintf(name, sizeof(name), "%s_%d", "hfi2", unit);
-+	snprintf(link, sizeof(link), "%d", unit);
-+	root = debugfs_create_dir(name, hfi2_dbg_root);
-+	ibd->hfi2_ibdev_dbg = root;
-+
-+	ibd->hfi2_ibdev_link =
-+		debugfs_create_symlink(link, hfi2_dbg_root, name);
-+
-+	debugfs_create_file("opcode_stats", 0444, root, ibd,
-+			    &_opcode_stats_file_ops);
-+	debugfs_create_file("tx_opcode_stats", 0444, root, ibd,
-+			    &_tx_opcode_stats_file_ops);
-+	debugfs_create_file("ctx_stats", 0444, root, ibd, &_ctx_stats_file_ops);
-+	debugfs_create_file("qp_stats", 0444, root, ibd, &_qp_stats_file_ops);
-+	debugfs_create_file("sdes", 0444, root, ibd, &_sdes_file_ops);
-+	debugfs_create_file("rcds", 0444, root, ibd, &_rcds_file_ops);
-+	debugfs_create_file("pios", 0444, root, ibd, &_pios_file_ops);
-+	debugfs_create_file("sdma_cpu_list", 0444, root, ibd,
-+			    &_sdma_cpu_list_file_ops);
-+	if (dd->cport)
-+		debugfs_create_file("cport_ping", 0644, root, dd, &_cport_ping_ops);
-+	debugfs_create_file("link_debug", 0644, root, dd, &_link_debug_ops);
-+
-+	/* dev counter files */
-+	for (i = 0; i < ARRAY_SIZE(cntr_ops); i++)
-+		debugfs_create_file(cntr_ops[i].name, 0444, root, dd,
-+				    &cntr_ops[i].ops);
-+
-+	if (dd->params->chip_type == CHIP_WFR) {
-+		for (i = 0; i < ARRAY_SIZE(wfr_cntr_ops); i++) {
-+			debugfs_create_file(wfr_cntr_ops[i].name, 0444, root,
-+					    dd, &wfr_cntr_ops[i].ops);
-+		}
-+	}
-+
-+	/* per port files */
-+	for (ppd = dd->pport, i = 0; i < dd->num_pports; i++, ppd++) {
-+		add_port_files(root, ppd, port_cntr_ops,
-+			       ARRAY_SIZE(port_cntr_ops));
-+		if (dd->params->chip_type == CHIP_WFR) {
-+			add_port_files(root, ppd, wfr_port_cntr_ops,
-+				       ARRAY_SIZE(wfr_port_cntr_ops));
-+		}
-+	}
-+
-+	hfi2_fault_init_debugfs(ibd);
-+}
-+
-+void hfi2_dbg_ibdev_exit(struct hfi2_ibdev *ibd)
-+{
-+	if (!hfi2_dbg_root)
-+		goto out;
-+	hfi2_fault_exit_debugfs(ibd);
-+	debugfs_remove(ibd->hfi2_ibdev_link);
-+	debugfs_remove_recursive(ibd->hfi2_ibdev_dbg);
-+out:
-+	ibd->hfi2_ibdev_dbg = NULL;
-+}
-+
-+/*
-+ * driver stats field names, one line per stat, single string.  Used by
-+ * programs like hfistats to print the stats in a way which works for
-+ * different versions of drivers, without changing program source.
-+ * if hfi2_ib_stats changes, this needs to change.  Names need to be
-+ * 12 chars or less (w/o newline), for proper display by hfistats utility.
-+ */
-+static const char * const hfi2_statnames[] = {
-+	/* must be element 0*/
-+	"KernIntr",
-+	"ErrorIntr",
-+	"Tx_Errs",
-+	"Rcv_Errs",
-+	"H/W_Errs",
-+	"NoPIOBufs",
-+	"CtxtsOpen",
-+	"RcvLen_Errs",
-+	"EgrBufFull",
-+	"EgrHdrFull"
-+};
-+
-+static void *_driver_stats_names_seq_start(struct seq_file *s, loff_t *pos)
-+{
-+	if (*pos >= ARRAY_SIZE(hfi2_statnames))
-+		return NULL;
-+	return pos;
-+}
-+
-+static void *_driver_stats_names_seq_next(
-+	struct seq_file *s,
-+	void *v,
-+	loff_t *pos)
-+{
-+	++*pos;
-+	if (*pos >= ARRAY_SIZE(hfi2_statnames))
-+		return NULL;
-+	return pos;
-+}
-+
-+static void _driver_stats_names_seq_stop(struct seq_file *s, void *v)
-+{
-+}
-+
-+static int _driver_stats_names_seq_show(struct seq_file *s, void *v)
-+{
-+	loff_t *spos = v;
-+
-+	seq_printf(s, "%s\n", hfi2_statnames[*spos]);
 +	return 0;
 +}
 +
-+DEBUGFS_SEQ_FILE_OPS(driver_stats_names);
-+DEBUGFS_SEQ_FILE_OPEN(driver_stats_names)
-+DEBUGFS_FILE_OPS(driver_stats_names);
-+
-+static void *_driver_stats_seq_start(struct seq_file *s, loff_t *pos)
++static int process_subn_opa(struct ib_device *ibdev, int mad_flags,
++			    u32 port, const struct opa_mad *in_mad,
++			    struct opa_mad *out_mad,
++			    u32 *resp_len, int local_mad)
 +{
-+	if (*pos >= ARRAY_SIZE(hfi2_statnames))
-+		return NULL;
-+	return pos;
-+}
-+
-+static void *_driver_stats_seq_next(struct seq_file *s, void *v, loff_t *pos)
-+{
-+	++*pos;
-+	if (*pos >= ARRAY_SIZE(hfi2_statnames))
-+		return NULL;
-+	return pos;
-+}
-+
-+static void _driver_stats_seq_stop(struct seq_file *s, void *v)
-+{
-+}
-+
-+static void hfi2_sps_show_ints(struct seq_file *s)
-+{
-+	unsigned long index, flags;
-+	struct hfi2_devdata *dd;
-+	u64 sps_ints = 0;
-+
-+	xa_lock_irqsave(&hfi2_dev_table, flags);
-+	xa_for_each(&hfi2_dev_table, index, dd) {
-+		sps_ints += get_all_cpu_total(dd->int_counter);
-+	}
-+	xa_unlock_irqrestore(&hfi2_dev_table, flags);
-+	seq_write(s, &sps_ints, sizeof(u64));
-+}
-+
-+static int _driver_stats_seq_show(struct seq_file *s, void *v)
-+{
-+	loff_t *spos = v;
-+	u64 *stats = (u64 *)&hfi2_stats;
-+
-+	/* special case for interrupts */
-+	if (*spos == 0)
-+		hfi2_sps_show_ints(s);
-+	else
-+		seq_write(s, stats + *spos, sizeof(u64));
-+	return 0;
-+}
-+
-+DEBUGFS_SEQ_FILE_OPS(driver_stats);
-+DEBUGFS_SEQ_FILE_OPEN(driver_stats)
-+DEBUGFS_FILE_OPS(driver_stats);
-+
-+void hfi2_dbg_init(void)
-+{
-+	hfi2_dbg_root  = debugfs_create_dir(DRIVER_NAME, NULL);
-+	debugfs_create_file("driver_stats_names", 0444, hfi2_dbg_root, NULL,
-+			    &_driver_stats_names_file_ops);
-+	debugfs_create_file("driver_stats", 0444, hfi2_dbg_root, NULL,
-+			    &_driver_stats_file_ops);
-+}
-+
-+void hfi2_dbg_exit(void)
-+{
-+	debugfs_remove_recursive(hfi2_dbg_root);
-+	hfi2_dbg_root = NULL;
-+}
-diff --git a/drivers/infiniband/hw/hfi2/eprom.c b/drivers/infiniband/hw/hfi2/eprom.c
-new file mode 100644
-index 000000000000..1d84663aca38
---- /dev/null
-+++ b/drivers/infiniband/hw/hfi2/eprom.c
-@@ -0,0 +1,450 @@
-+// SPDX-License-Identifier: GPL-2.0 OR BSD-3-Clause
-+/*
-+ * Copyright(c) 2015, 2016 Intel Corporation.
-+ */
-+
-+#include <linux/delay.h>
-+#include "hfi2.h"
-+#include "common.h"
-+#include "eprom.h"
-+
-+/*
-+ * The EPROM is logically divided into three partitions:
-+ *	partition 0: the first 128K, visible from PCI ROM BAR
-+ *	partition 1: 4K config file (sector size)
-+ *	partition 2: the rest
-+ */
-+#define P0_SIZE (128 * 1024)
-+#define P1_SIZE   (4 * 1024)
-+#define P1_START P0_SIZE
-+#define P2_START (P0_SIZE + P1_SIZE)
-+
-+/* controller page size, in bytes */
-+#define EP_PAGE_SIZE 256
-+#define EP_PAGE_MASK (EP_PAGE_SIZE - 1)
-+#define EP_PAGE_DWORDS (EP_PAGE_SIZE / sizeof(u32))
-+
-+/* controller commands */
-+#define CMD_SHIFT 24
-+#define CMD_NOP			    (0)
-+#define CMD_READ_DATA(addr)	    ((0x03 << CMD_SHIFT) | addr)
-+#define CMD_RELEASE_POWERDOWN_NOID  ((0xab << CMD_SHIFT))
-+
-+/* controller interface speeds */
-+#define EP_SPEED_FULL 0x2	/* full speed */
-+
-+/*
-+ * How long to wait for the EPROM to become available, in ms.
-+ * The spec 32 Mb EPROM takes around 40s to erase then write.
-+ * Double it for safety.
-+ */
-+#define EPROM_TIMEOUT 80000 /* ms */
-+
-+/*
-+ * Read a 256 byte (64 dword) EPROM page.
-+ * All callers have verified the offset is at a page boundary.
-+ */
-+static void read_page(struct hfi2_devdata *dd, u32 offset, u32 *result)
-+{
-+	int i;
-+
-+	write_csr(dd, ASIC_EEP_ADDR_CMD, CMD_READ_DATA(offset));
-+	for (i = 0; i < EP_PAGE_DWORDS; i++)
-+		result[i] = (u32)read_csr(dd, ASIC_EEP_DATA);
-+	write_csr(dd, ASIC_EEP_ADDR_CMD, CMD_NOP); /* close open page */
-+}
-+
-+/*
-+ * Read length bytes starting at offset from the start of the EPROM.
-+ */
-+static int read_length(struct hfi2_devdata *dd, u32 start, u32 len, void *dest)
-+{
-+	u32 buffer[EP_PAGE_DWORDS];
-+	u32 end;
-+	u32 start_offset;
-+	u32 read_start;
-+	u32 bytes;
-+
-+	if (len == 0)
-+		return 0;
-+
-+	end = start + len;
-+
-+	/*
-+	 * Make sure the read range is not outside of the controller read
-+	 * command address range.  Note that '>' is correct below - the end
-+	 * of the range is OK if it stops at the limit, but no higher.
-+	 */
-+	if (end > (1 << CMD_SHIFT))
-+		return -EINVAL;
-+
-+	/* read the first partial page */
-+	start_offset = start & EP_PAGE_MASK;
-+	if (start_offset) {
-+		/* partial starting page */
-+
-+		/* align and read the page that contains the start */
-+		read_start = start & ~EP_PAGE_MASK;
-+		read_page(dd, read_start, buffer);
-+
-+		/* the rest of the page is available data */
-+		bytes = EP_PAGE_SIZE - start_offset;
-+
-+		if (len <= bytes) {
-+			/* end is within this page */
-+			memcpy(dest, (u8 *)buffer + start_offset, len);
-+			return 0;
-+		}
-+
-+		memcpy(dest, (u8 *)buffer + start_offset, bytes);
-+
-+		start += bytes;
-+		len -= bytes;
-+		dest += bytes;
-+	}
-+	/* start is now page aligned */
-+
-+	/* read whole pages */
-+	while (len >= EP_PAGE_SIZE) {
-+		read_page(dd, start, buffer);
-+		memcpy(dest, buffer, EP_PAGE_SIZE);
-+
-+		start += EP_PAGE_SIZE;
-+		len -= EP_PAGE_SIZE;
-+		dest += EP_PAGE_SIZE;
-+	}
-+
-+	/* read the last partial page */
-+	if (len) {
-+		read_page(dd, start, buffer);
-+		memcpy(dest, buffer, len);
-+	}
-+
-+	return 0;
-+}
-+
-+/*
-+ * Initialize the EPROM handler.
-+ */
-+int eprom_init(struct hfi2_devdata *dd)
-+{
-+	int ret = 0;
-+
-+	/* only the discrete chip has an EPROM */
-+	if (dd->pcidev->device != PCI_DEVICE_ID_INTEL0)
-+		return 0;
-+
-+	/*
-+	 * It is OK if both HFIs reset the EPROM as long as they don't
-+	 * do it at the same time.
-+	 */
-+	ret = acquire_chip_resource(dd, CR_EPROM, EPROM_TIMEOUT);
-+	if (ret) {
-+		dd_dev_err(dd,
-+			   "%s: unable to acquire EPROM resource, no EPROM support\n",
-+			   __func__);
-+		goto done_asic;
-+	}
-+
-+	/* reset EPROM to be sure it is in a good state */
-+
-+	/* set reset */
-+	write_csr(dd, ASIC_EEP_CTL_STAT, ASIC_EEP_CTL_STAT_EP_RESET_SMASK);
-+	/* clear reset, set speed */
-+	write_csr(dd, ASIC_EEP_CTL_STAT,
-+		  EP_SPEED_FULL << ASIC_EEP_CTL_STAT_RATE_SPI_SHIFT);
-+
-+	/* wake the device with command "release powerdown NoID" */
-+	write_csr(dd, ASIC_EEP_ADDR_CMD, CMD_RELEASE_POWERDOWN_NOID);
-+
-+	dd->eprom_available = true;
-+	release_chip_resource(dd, CR_EPROM);
-+done_asic:
-+	return ret;
-+}
-+
-+/* magic character sequence that begins an image */
-+#define IMAGE_START_MAGIC "APO="
-+
-+/* magic character sequence that might trail an image */
-+#define IMAGE_TRAIL_MAGIC "egamiAPO"
-+
-+/* EPROM file types */
-+#define HFI2_EFT_PLATFORM_CONFIG 2
-+
-+/* segment size - 128 KiB */
-+#define SEG_SIZE (128 * 1024)
-+
-+struct hfi2_eprom_footer {
-+	u32 oprom_size;		/* size of the oprom, in bytes */
-+	u16 num_table_entries;
-+	u16 version;		/* version of this footer */
-+	u32 magic;		/* must be last */
-+};
-+
-+struct hfi2_eprom_table_entry {
-+	u32 type;		/* file type */
-+	u32 offset;		/* file offset from start of EPROM */
-+	u32 size;		/* file size, in bytes */
-+};
-+
-+/*
-+ * Calculate the max number of table entries that will fit within a directory
-+ * buffer of size 'dir_size'.
-+ */
-+#define MAX_TABLE_ENTRIES(dir_size) \
-+	(((dir_size) - sizeof(struct hfi2_eprom_footer)) / \
-+		sizeof(struct hfi2_eprom_table_entry))
-+
-+#define DIRECTORY_SIZE(n) (sizeof(struct hfi2_eprom_footer) + \
-+	(sizeof(struct hfi2_eprom_table_entry) * (n)))
-+
-+#define MAGIC4(a, b, c, d) ((d) << 24 | (c) << 16 | (b) << 8 | (a))
-+#define FOOTER_MAGIC MAGIC4('e', 'p', 'r', 'm')
-+#define FOOTER_VERSION 1
-+
-+/*
-+ * Read all of partition 1.  The actual file is at the front.  Adjust
-+ * the returned size if a trailing image magic is found.
-+ */
-+static int read_partition_platform_config(struct hfi2_devdata *dd, void **data,
-+					  u32 *size)
-+{
-+	void *buffer;
-+	void *p;
-+	u32 length;
++	struct opa_smp *smp = (struct opa_smp *)out_mad;
++	struct hfi2_ibport *ibp = to_iport(ibdev, port);
++	u8 *data;
++	u32 am, data_size;
++	__be16 attr_id;
 +	int ret;
 +
-+	buffer = kmalloc(P1_SIZE, GFP_KERNEL);
-+	if (!buffer)
-+		return -ENOMEM;
++	*out_mad = *in_mad;
++	data = opa_get_smp_data(smp);
++	data_size = (u32)opa_get_smp_data_size(smp);
 +
-+	ret = read_length(dd, P1_START, P1_SIZE, buffer);
++	am = be32_to_cpu(smp->attr_mod);
++	attr_id = smp->attr_id;
++	if (smp->class_version != OPA_SM_CLASS_VERSION) {
++		smp->status |= IB_SMP_UNSUP_VERSION;
++		ret = reply((struct ib_mad_hdr *)smp);
++		return ret;
++	}
++	ret = check_mkey(ibp, (struct ib_mad_hdr *)smp, mad_flags, smp->mkey,
++			 smp->route.dr.dr_slid, smp->route.dr.return_path,
++			 smp->hop_cnt);
 +	if (ret) {
-+		kfree(buffer);
++		u32 port_num = be32_to_cpu(smp->attr_mod);
++
++		/*
++		 * If this is a get/set portinfo, we already check the
++		 * M_Key if the MAD is for another port and the M_Key
++		 * is OK on the receiving port. This check is needed
++		 * to increment the error counters when the M_Key
++		 * fails to match on *both* ports.
++		 */
++		if (attr_id == IB_SMP_ATTR_PORT_INFO &&
++		    (smp->method == IB_MGMT_METHOD_GET ||
++		     smp->method == IB_MGMT_METHOD_SET) &&
++		    port_num && port_num <= ibdev->phys_port_cnt &&
++		    port != port_num)
++			(void)check_mkey(to_iport(ibdev, port_num),
++					  (struct ib_mad_hdr *)smp, 0,
++					  smp->mkey, smp->route.dr.dr_slid,
++					  smp->route.dr.return_path,
++					  smp->hop_cnt);
++		ret = IB_MAD_RESULT_FAILURE;
 +		return ret;
 +	}
 +
-+	/* config partition is valid only if it starts with IMAGE_START_MAGIC */
-+	if (memcmp(buffer, IMAGE_START_MAGIC, strlen(IMAGE_START_MAGIC))) {
-+		kfree(buffer);
-+		return -ENOENT;
-+	}
++	*resp_len = opa_get_smp_header_size(smp);
 +
-+	/* scan for image magic that may trail the actual data */
-+	p = strnstr(buffer, IMAGE_TRAIL_MAGIC, P1_SIZE);
-+	if (p)
-+		length = p - buffer;
-+	else
-+		length = P1_SIZE;
-+
-+	*data = buffer;
-+	*size = length;
-+	return 0;
-+}
-+
-+/*
-+ * The segment magic has been checked.  There is a footer and table of
-+ * contents present.
-+ *
-+ * directory is a u32 aligned buffer of size EP_PAGE_SIZE.
-+ */
-+static int read_segment_platform_config(struct hfi2_devdata *dd,
-+					void *directory, void **data, u32 *size)
-+{
-+	struct hfi2_eprom_footer *footer;
-+	struct hfi2_eprom_table_entry *table;
-+	struct hfi2_eprom_table_entry *entry;
-+	void *buffer = NULL;
-+	void *table_buffer = NULL;
-+	int ret, i;
-+	u32 directory_size;
-+	u32 seg_base, seg_offset;
-+	u32 bytes_available, ncopied, to_copy;
-+
-+	/* the footer is at the end of the directory */
-+	footer = (struct hfi2_eprom_footer *)
-+			(directory + EP_PAGE_SIZE - sizeof(*footer));
-+
-+	/* make sure the structure version is supported */
-+	if (footer->version != FOOTER_VERSION)
-+		return -EINVAL;
-+
-+	/* oprom size cannot be larger than a segment */
-+	if (footer->oprom_size >= SEG_SIZE)
-+		return -EINVAL;
-+
-+	/* the file table must fit in a segment with the oprom */
-+	if (footer->num_table_entries >
-+			MAX_TABLE_ENTRIES(SEG_SIZE - footer->oprom_size))
-+		return -EINVAL;
-+
-+	/* find the file table start, which precedes the footer */
-+	directory_size = DIRECTORY_SIZE(footer->num_table_entries);
-+	if (directory_size <= EP_PAGE_SIZE) {
-+		/* the file table fits into the directory buffer handed in */
-+		table = (struct hfi2_eprom_table_entry *)
-+				(directory + EP_PAGE_SIZE - directory_size);
-+	} else {
-+		/* need to allocate and read more */
-+		table_buffer = kmalloc(directory_size, GFP_KERNEL);
-+		if (!table_buffer)
-+			return -ENOMEM;
-+		ret = read_length(dd, SEG_SIZE - directory_size,
-+				  directory_size, table_buffer);
-+		if (ret)
-+			goto done;
-+		table = table_buffer;
-+	}
-+
-+	/* look for the platform configuration file in the table */
-+	for (entry = NULL, i = 0; i < footer->num_table_entries; i++) {
-+		if (table[i].type == HFI2_EFT_PLATFORM_CONFIG) {
-+			entry = &table[i];
++	switch (smp->method) {
++	case IB_MGMT_METHOD_GET:
++		switch (attr_id) {
++		default:
++			clear_opa_smp_data(smp);
++			ret = subn_get_opa_sma(attr_id, smp, am, data,
++					       ibdev, port, resp_len,
++					       data_size);
++			break;
++		case OPA_ATTRIB_ID_AGGREGATE:
++			ret = subn_get_opa_aggregate(smp, ibdev, port,
++						     resp_len);
 +			break;
 +		}
-+	}
-+	if (!entry) {
-+		ret = -ENOENT;
-+		goto done;
-+	}
-+
-+	/*
-+	 * Sanity check on the configuration file size - it should never
-+	 * be larger than 4 KiB.
-+	 */
-+	if (entry->size > (4 * 1024)) {
-+		dd_dev_err(dd, "Bad configuration file size 0x%x\n",
-+			   entry->size);
-+		ret = -EINVAL;
-+		goto done;
-+	}
-+
-+	/* check for bogus offset and size that wrap when added together */
-+	if (entry->offset + entry->size < entry->offset) {
-+		dd_dev_err(dd,
-+			   "Bad configuration file start + size 0x%x+0x%x\n",
-+			   entry->offset, entry->size);
-+		ret = -EINVAL;
-+		goto done;
-+	}
-+
-+	/* allocate the buffer to return */
-+	buffer = kmalloc(entry->size, GFP_KERNEL);
-+	if (!buffer) {
-+		ret = -ENOMEM;
-+		goto done;
-+	}
-+
-+	/*
-+	 * Extract the file by looping over segments until it is fully read.
-+	 */
-+	seg_offset = entry->offset % SEG_SIZE;
-+	seg_base = entry->offset - seg_offset;
-+	ncopied = 0;
-+	while (ncopied < entry->size) {
-+		/* calculate data bytes available in this segment */
-+
-+		/* start with the bytes from the current offset to the end */
-+		bytes_available = SEG_SIZE - seg_offset;
-+		/* subtract off footer and table from segment 0 */
-+		if (seg_base == 0) {
-+			/*
-+			 * Sanity check: should not have a starting point
-+			 * at or within the directory.
-+			 */
-+			if (bytes_available <= directory_size) {
-+				dd_dev_err(dd,
-+					   "Bad configuration file - offset 0x%x within footer+table\n",
-+					   entry->offset);
-+				ret = -EINVAL;
-+				goto done;
-+			}
-+			bytes_available -= directory_size;
++		break;
++	case IB_MGMT_METHOD_SET:
++		switch (attr_id) {
++		default:
++			ret = subn_set_opa_sma(attr_id, smp, am, data,
++					       ibdev, port, resp_len,
++					       data_size, local_mad);
++			break;
++		case OPA_ATTRIB_ID_AGGREGATE:
++			ret = subn_set_opa_aggregate(smp, ibdev, port,
++						     resp_len, local_mad);
++			break;
 +		}
-+
-+		/* calculate bytes wanted */
-+		to_copy = entry->size - ncopied;
-+
-+		/* max out at the available bytes in this segment */
-+		if (to_copy > bytes_available)
-+			to_copy = bytes_available;
-+
++		break;
++	case IB_MGMT_METHOD_TRAP:
++	case IB_MGMT_METHOD_REPORT:
++	case IB_MGMT_METHOD_REPORT_RESP:
++	case IB_MGMT_METHOD_GET_RESP:
 +		/*
-+		 * Read from the EPROM.
-+		 *
-+		 * The sanity check for entry->offset is done in read_length().
-+		 * The EPROM offset is validated against what the hardware
-+		 * addressing supports.  In addition, if the offset is larger
-+		 * than the actual EPROM, it silently wraps.  It will work
-+		 * fine, though the reader may not get what they expected
-+		 * from the EPROM.
++		 * The ib_mad module will call us to process responses
++		 * before checking for other consumers.
++		 * Just tell the caller to process it normally.
 +		 */
-+		ret = read_length(dd, seg_base + seg_offset, to_copy,
-+				  buffer + ncopied);
-+		if (ret)
-+			goto done;
-+
-+		ncopied += to_copy;
-+
-+		/* set up for next segment */
-+		seg_offset = footer->oprom_size;
-+		seg_base += SEG_SIZE;
++		ret = IB_MAD_RESULT_SUCCESS;
++		break;
++	case IB_MGMT_METHOD_TRAP_REPRESS:
++		subn_handle_opa_trap_repress(ibp, smp);
++		/* Always successful */
++		ret = IB_MAD_RESULT_SUCCESS;
++		break;
++	default:
++		smp->status |= IB_SMP_UNSUP_METHOD;
++		ret = reply((struct ib_mad_hdr *)smp);
++		break;
 +	}
 +
-+	/* success */
-+	ret = 0;
-+	*data = buffer;
-+	*size = entry->size;
-+
-+done:
-+	kfree(table_buffer);
-+	if (ret)
-+		kfree(buffer);
 +	return ret;
 +}
 +
-+/*
-+ * Read the platform configuration file from the EPROM.
-+ *
-+ * On success, an allocated buffer containing the data and its size are
-+ * returned.  It is up to the caller to free this buffer.
-+ *
-+ * Return value:
-+ *   0	      - success
-+ *   -ENXIO   - no EPROM is available
-+ *   -EBUSY   - not able to acquire access to the EPROM
-+ *   -ENOENT  - no recognizable file written
-+ *   -ENOMEM  - buffer could not be allocated
-+ *   -EINVAL  - invalid EPROM contentents found
-+ */
-+int eprom_read_platform_config(struct hfi2_devdata *dd, void **data, u32 *size)
++static int process_subn(struct ib_device *ibdev, int mad_flags,
++			u32 port, const struct ib_mad *in_mad,
++			struct ib_mad *out_mad)
 +{
-+	u32 directory[EP_PAGE_DWORDS]; /* aligned buffer */
++	struct ib_smp *smp = (struct ib_smp *)out_mad;
++	struct hfi2_ibport *ibp = to_iport(ibdev, port);
 +	int ret;
 +
-+	if (!dd->eprom_available)
-+		return -ENXIO;
-+
-+	ret = acquire_chip_resource(dd, CR_EPROM, EPROM_TIMEOUT);
-+	if (ret)
-+		return -EBUSY;
-+
-+	/* read the last page of the segment for the EPROM format magic */
-+	ret = read_length(dd, SEG_SIZE - EP_PAGE_SIZE, EP_PAGE_SIZE, directory);
-+	if (ret)
-+		goto done;
-+
-+	/* last dword of the segment contains a magic value */
-+	if (directory[EP_PAGE_DWORDS - 1] == FOOTER_MAGIC) {
-+		/* segment format */
-+		ret = read_segment_platform_config(dd, directory, data, size);
-+	} else {
-+		/* partition format */
-+		ret = read_partition_platform_config(dd, data, size);
-+	}
-+
-+done:
-+	release_chip_resource(dd, CR_EPROM);
-+	return ret;
-+}
-diff --git a/drivers/infiniband/hw/hfi2/fault.c b/drivers/infiniband/hw/hfi2/fault.c
-new file mode 100644
-index 000000000000..b6986b75f345
---- /dev/null
-+++ b/drivers/infiniband/hw/hfi2/fault.c
-@@ -0,0 +1,335 @@
-+// SPDX-License-Identifier: GPL-2.0 OR BSD-3-Clause
-+/*
-+ * Copyright(c) 2018 Intel Corporation.
-+ */
-+
-+#include <linux/debugfs.h>
-+#include <linux/seq_file.h>
-+#include <linux/kernel.h>
-+#include <linux/types.h>
-+#include <linux/bitmap.h>
-+
-+#include "debugfs.h"
-+#include "fault.h"
-+#include "trace.h"
-+
-+#define HFI2_FAULT_DIR_TX   BIT(0)
-+#define HFI2_FAULT_DIR_RX   BIT(1)
-+#define HFI2_FAULT_DIR_TXRX (HFI2_FAULT_DIR_TX | HFI2_FAULT_DIR_RX)
-+
-+static void *_fault_stats_seq_start(struct seq_file *s, loff_t *pos)
-+{
-+	struct hfi2_opcode_stats_perctx *opstats;
-+
-+	if (*pos >= ARRAY_SIZE(opstats->stats))
-+		return NULL;
-+	return pos;
-+}
-+
-+static void *_fault_stats_seq_next(struct seq_file *s, void *v, loff_t *pos)
-+{
-+	struct hfi2_opcode_stats_perctx *opstats;
-+
-+	++*pos;
-+	if (*pos >= ARRAY_SIZE(opstats->stats))
-+		return NULL;
-+	return pos;
-+}
-+
-+static void _fault_stats_seq_stop(struct seq_file *s, void *v)
-+{
-+}
-+
-+static int _fault_stats_seq_show(struct seq_file *s, void *v)
-+{
-+	loff_t *spos = v;
-+	loff_t i = *spos, j;
-+	u64 n_packets = 0, n_bytes = 0;
-+	struct hfi2_ibdev *ibd = (struct hfi2_ibdev *)s->private;
-+	struct hfi2_devdata *dd = dd_from_dev(ibd);
-+	struct hfi2_ctxtdata *rcd;
-+	int pidx;
-+
-+	for (pidx = 0; pidx < dd->num_pports; pidx++) {
-+		struct hfi2_pportdata *ppd = dd->pport + pidx;
-+
-+		for (j = ppd->rcv_context_base;
-+		     j < ppd->first_dyn_alloc_ctxt;
-+		     j++) {
-+			rcd = hfi2_rcd_get_by_index(dd, j);
-+			if (rcd) {
-+				n_packets += rcd->opstats->stats[i].n_packets;
-+				n_bytes += rcd->opstats->stats[i].n_bytes;
-+			}
-+			hfi2_rcd_put(rcd);
-+		}
-+	}
-+	for_each_possible_cpu(j) {
-+		struct hfi2_opcode_stats_perctx *sp =
-+			per_cpu_ptr(dd->tx_opstats, j);
-+
-+		n_packets += sp->stats[i].n_packets;
-+		n_bytes += sp->stats[i].n_bytes;
-+	}
-+	if (!n_packets && !n_bytes)
-+		return SEQ_SKIP;
-+	if (!ibd->fault->n_rxfaults[i] && !ibd->fault->n_txfaults[i])
-+		return SEQ_SKIP;
-+	seq_printf(s, "%02llx %llu/%llu (faults rx:%llu faults: tx:%llu)\n", i,
-+		   (unsigned long long)n_packets,
-+		   (unsigned long long)n_bytes,
-+		   (unsigned long long)ibd->fault->n_rxfaults[i],
-+		   (unsigned long long)ibd->fault->n_txfaults[i]);
-+	return 0;
-+}
-+
-+DEBUGFS_SEQ_FILE_OPS(fault_stats);
-+DEBUGFS_SEQ_FILE_OPEN(fault_stats);
-+DEBUGFS_FILE_OPS(fault_stats);
-+
-+static int fault_opcodes_open(struct inode *inode, struct file *file)
-+{
-+	file->private_data = inode->i_private;
-+	return nonseekable_open(inode, file);
-+}
-+
-+static ssize_t fault_opcodes_write(struct file *file, const char __user *buf,
-+				   size_t len, loff_t *pos)
-+{
-+	ssize_t ret = 0;
-+	/* 1280 = 256 opcodes * 4 chars/opcode + 255 commas + NULL */
-+	size_t copy, datalen = 1280;
-+	char *data, *token, *ptr, *end;
-+	struct fault *fault = file->private_data;
-+
-+	data = kcalloc(datalen, sizeof(*data), GFP_KERNEL);
-+	if (!data)
-+		return -ENOMEM;
-+	copy = min(len, datalen - 1);
-+	if (copy_from_user(data, buf, copy)) {
-+		ret = -EFAULT;
-+		goto free_data;
-+	}
-+
-+	ret = debugfs_file_get(file->f_path.dentry);
-+	if (unlikely(ret))
-+		goto free_data;
-+	ptr = data;
-+	token = ptr;
-+	for (ptr = data; *ptr; ptr = end + 1, token = ptr) {
-+		char *dash;
-+		unsigned long range_start, range_end, i;
-+		bool remove = false;
-+		unsigned long bound = 1U << BITS_PER_BYTE;
-+
-+		end = strchr(ptr, ',');
-+		if (end)
-+			*end = '\0';
-+		if (token[0] == '-') {
-+			remove = true;
-+			token++;
-+		}
-+		dash = strchr(token, '-');
-+		if (dash)
-+			*dash = '\0';
-+		if (kstrtoul(token, 0, &range_start))
-+			break;
-+		if (dash) {
-+			token = dash + 1;
-+			if (kstrtoul(token, 0, &range_end))
-+				break;
-+		} else {
-+			range_end = range_start;
-+		}
-+		if (range_start == range_end && range_start == -1UL) {
-+			bitmap_zero(fault->opcodes, sizeof(fault->opcodes) *
-+				    BITS_PER_BYTE);
-+			break;
-+		}
-+		/* Check the inputs */
-+		if (range_start >= bound || range_end >= bound)
-+			break;
-+
-+		for (i = range_start; i <= range_end; i++) {
-+			if (remove)
-+				clear_bit(i, fault->opcodes);
-+			else
-+				set_bit(i, fault->opcodes);
-+		}
-+		if (!end)
-+			break;
-+	}
-+	ret = len;
-+
-+	debugfs_file_put(file->f_path.dentry);
-+free_data:
-+	kfree(data);
-+	return ret;
-+}
-+
-+static ssize_t fault_opcodes_read(struct file *file, char __user *buf,
-+				  size_t len, loff_t *pos)
-+{
-+	ssize_t ret = 0;
-+	char *data;
-+	size_t datalen = 1280, size = 0; /* see fault_opcodes_write() */
-+	unsigned long bit = 0, zero = 0;
-+	struct fault *fault = file->private_data;
-+	size_t bitsize = sizeof(fault->opcodes) * BITS_PER_BYTE;
-+
-+	data = kcalloc(datalen, sizeof(*data), GFP_KERNEL);
-+	if (!data)
-+		return -ENOMEM;
-+	ret = debugfs_file_get(file->f_path.dentry);
-+	if (unlikely(ret))
-+		goto free_data;
-+	bit = find_first_bit(fault->opcodes, bitsize);
-+	while (bit < bitsize) {
-+		zero = find_next_zero_bit(fault->opcodes, bitsize, bit);
-+		if (zero - 1 != bit)
-+			size += scnprintf(data + size,
-+					 datalen - size - 1,
-+					 "0x%lx-0x%lx,", bit, zero - 1);
-+		else
-+			size += scnprintf(data + size,
-+					 datalen - size - 1, "0x%lx,",
-+					 bit);
-+		bit = find_next_bit(fault->opcodes, bitsize, zero);
-+	}
-+	debugfs_file_put(file->f_path.dentry);
-+	data[size - 1] = '\n';
-+	data[size] = '\0';
-+	ret = simple_read_from_buffer(buf, len, pos, data, size);
-+free_data:
-+	kfree(data);
-+	return ret;
-+}
-+
-+static const struct file_operations __fault_opcodes_fops = {
-+	.owner = THIS_MODULE,
-+	.open = fault_opcodes_open,
-+	.read = fault_opcodes_read,
-+	.write = fault_opcodes_write,
-+};
-+
-+void hfi2_fault_exit_debugfs(struct hfi2_ibdev *ibd)
-+{
-+	if (ibd->fault)
-+		debugfs_remove_recursive(ibd->fault->dir);
-+	kfree(ibd->fault);
-+	ibd->fault = NULL;
-+}
-+
-+int hfi2_fault_init_debugfs(struct hfi2_ibdev *ibd)
-+{
-+	struct dentry *parent = ibd->hfi2_ibdev_dbg;
-+	struct dentry *fault_dir;
-+
-+	ibd->fault = kzalloc(sizeof(*ibd->fault), GFP_KERNEL);
-+	if (!ibd->fault)
-+		return -ENOMEM;
-+
-+	ibd->fault->attr.interval = 1;
-+	ibd->fault->attr.require_end = ULONG_MAX;
-+	ibd->fault->attr.stacktrace_depth = 32;
-+	ibd->fault->attr.dname = NULL;
-+	ibd->fault->attr.verbose = 0;
-+	ibd->fault->enable = false;
-+	ibd->fault->opcode = false;
-+	ibd->fault->fault_skip = 0;
-+	ibd->fault->skip = 0;
-+	ibd->fault->direction = HFI2_FAULT_DIR_TXRX;
-+	ibd->fault->suppress_err = false;
-+	bitmap_zero(ibd->fault->opcodes,
-+		    sizeof(ibd->fault->opcodes) * BITS_PER_BYTE);
-+
-+	fault_dir =
-+		fault_create_debugfs_attr("fault", parent, &ibd->fault->attr);
-+	if (IS_ERR(fault_dir)) {
-+		kfree(ibd->fault);
-+		ibd->fault = NULL;
-+		return -ENOENT;
-+	}
-+	ibd->fault->dir = fault_dir;
-+
-+	debugfs_create_file("fault_stats", 0444, fault_dir, ibd,
-+			    &_fault_stats_file_ops);
-+	debugfs_create_bool("enable", 0600, fault_dir, &ibd->fault->enable);
-+	debugfs_create_bool("suppress_err", 0600, fault_dir,
-+			    &ibd->fault->suppress_err);
-+	debugfs_create_bool("opcode_mode", 0600, fault_dir,
-+			    &ibd->fault->opcode);
-+	debugfs_create_file("opcodes", 0600, fault_dir, ibd->fault,
-+			    &__fault_opcodes_fops);
-+	debugfs_create_u64("skip_pkts", 0600, fault_dir,
-+			   &ibd->fault->fault_skip);
-+	debugfs_create_u64("skip_usec", 0600, fault_dir,
-+			   &ibd->fault->fault_skip_usec);
-+	debugfs_create_u8("direction", 0600, fault_dir, &ibd->fault->direction);
-+
-+	return 0;
-+}
-+
-+bool hfi2_dbg_fault_suppress_err(struct hfi2_ibdev *ibd)
-+{
-+	if (ibd->fault)
-+		return ibd->fault->suppress_err;
-+	return false;
-+}
-+
-+static bool __hfi2_should_fault(struct hfi2_ibdev *ibd, u32 opcode,
-+				u8 direction)
-+{
-+	bool ret = false;
-+
-+	if (!ibd->fault || !ibd->fault->enable)
-+		return false;
-+	if (!(ibd->fault->direction & direction))
-+		return false;
-+	if (ibd->fault->opcode) {
-+		if (bitmap_empty(ibd->fault->opcodes,
-+				 (sizeof(ibd->fault->opcodes) *
-+				  BITS_PER_BYTE)))
-+			return false;
-+		if (!(test_bit(opcode, ibd->fault->opcodes)))
-+			return false;
-+	}
-+	if (ibd->fault->fault_skip_usec &&
-+	    time_before(jiffies, ibd->fault->skip_usec))
-+		return false;
-+	if (ibd->fault->fault_skip && ibd->fault->skip) {
-+		ibd->fault->skip--;
-+		return false;
-+	}
-+	ret = should_fail(&ibd->fault->attr, 1);
-+	if (ret) {
-+		ibd->fault->skip = ibd->fault->fault_skip;
-+		ibd->fault->skip_usec = jiffies +
-+			usecs_to_jiffies(ibd->fault->fault_skip_usec);
-+	}
-+	return ret;
-+}
-+
-+bool hfi2_dbg_should_fault_tx(struct rvt_qp *qp, u32 opcode)
-+{
-+	struct hfi2_ibdev *ibd = to_idev(qp->ibqp.device);
-+
-+	if (__hfi2_should_fault(ibd, opcode, HFI2_FAULT_DIR_TX)) {
-+		trace_hfi2_fault_opcode(qp, opcode);
-+		ibd->fault->n_txfaults[opcode]++;
-+		return true;
-+	}
-+	return false;
-+}
-+
-+bool hfi2_dbg_should_fault_rx(struct hfi2_packet *packet)
-+{
-+	struct hfi2_ibdev *ibd = &packet->rcd->dd->verbs_dev;
-+
-+	if (__hfi2_should_fault(ibd, packet->opcode, HFI2_FAULT_DIR_RX)) {
-+		trace_hfi2_fault_packet(packet);
-+		ibd->fault->n_rxfaults[packet->opcode]++;
-+		return true;
-+	}
-+	return false;
-+}
-diff --git a/drivers/infiniband/hw/hfi2/pcie.c b/drivers/infiniband/hw/hfi2/pcie.c
-new file mode 100644
-index 000000000000..d33acd689785
---- /dev/null
-+++ b/drivers/infiniband/hw/hfi2/pcie.c
-@@ -0,0 +1,1380 @@
-+// SPDX-License-Identifier: GPL-2.0 OR BSD-3-Clause
-+/*
-+ * Copyright(c) 2015 - 2019 Intel Corporation.
-+ */
-+
-+#include <linux/bitfield.h>
-+#include <linux/pci.h>
-+#include <linux/io.h>
-+#include <linux/delay.h>
-+#include <linux/vmalloc.h>
-+#include <linux/module.h>
-+
-+#include "hfi2.h"
-+#include "chip_registers.h"
-+#include "aspm.h"
-+
-+/*
-+ * This file contains PCIe utility routines.
-+ */
-+
-+/*
-+ * Do all the common PCIe setup and initialization.
-+ */
-+int hfi2_pcie_init(struct hfi2_devdata *dd)
-+{
-+	int ret;
-+	struct pci_dev *pdev = dd->pcidev;
-+
-+	ret = pci_enable_device(pdev);
-+	if (ret) {
-+		/*
-+		 * This can happen (in theory) iff:
-+		 * We did a chip reset, and then failed to reprogram the
-+		 * BAR, or the chip reset due to an internal error.  We then
-+		 * unloaded the driver and reloaded it.
-+		 *
-+		 * Both reset cases set the BAR back to initial state.  For
-+		 * the latter case, the AER sticky error bit at offset 0x718
-+		 * should be set, but the Linux kernel doesn't yet know
-+		 * about that, it appears.  If the original BAR was retained
-+		 * in the kernel data structures, this may be OK.
-+		 */
-+		dd_dev_err(dd, "pci enable failed: error %d\n", -ret);
++	*out_mad = *in_mad;
++	if (smp->class_version != 1) {
++		smp->status |= IB_SMP_UNSUP_VERSION;
++		ret = reply((struct ib_mad_hdr *)smp);
 +		return ret;
 +	}
 +
-+	ret = pci_request_regions(pdev, DRIVER_NAME);
++	ret = check_mkey(ibp, (struct ib_mad_hdr *)smp, mad_flags,
++			 smp->mkey, (__force __be32)smp->dr_slid,
++			 smp->return_path, smp->hop_cnt);
 +	if (ret) {
-+		dd_dev_err(dd, "pci_request_regions fails: err %d\n", -ret);
++		u32 port_num = be32_to_cpu(smp->attr_mod);
++
++		/*
++		 * If this is a get/set portinfo, we already check the
++		 * M_Key if the MAD is for another port and the M_Key
++		 * is OK on the receiving port. This check is needed
++		 * to increment the error counters when the M_Key
++		 * fails to match on *both* ports.
++		 */
++		if (in_mad->mad_hdr.attr_id == IB_SMP_ATTR_PORT_INFO &&
++		    (smp->method == IB_MGMT_METHOD_GET ||
++		     smp->method == IB_MGMT_METHOD_SET) &&
++		    port_num && port_num <= ibdev->phys_port_cnt &&
++		    port != port_num)
++			(void)check_mkey(to_iport(ibdev, port_num),
++					 (struct ib_mad_hdr *)smp, 0,
++					 smp->mkey,
++					 (__force __be32)smp->dr_slid,
++					 smp->return_path, smp->hop_cnt);
++		ret = IB_MAD_RESULT_FAILURE;
++		return ret;
++	}
++
++	switch (smp->method) {
++	case IB_MGMT_METHOD_GET:
++		switch (smp->attr_id) {
++		case IB_SMP_ATTR_NODE_INFO:
++			ret = subn_get_nodeinfo(smp, ibdev, port);
++			break;
++		default:
++			smp->status |= IB_SMP_UNSUP_METH_ATTR;
++			ret = reply((struct ib_mad_hdr *)smp);
++			break;
++		}
++		break;
++	}
++
++	return ret;
++}
++
++static int process_perf(struct ib_device *ibdev, u32 port,
++			const struct ib_mad *in_mad,
++			struct ib_mad *out_mad)
++{
++	struct ib_pma_mad *pmp = (struct ib_pma_mad *)out_mad;
++	struct ib_class_port_info *cpi = (struct ib_class_port_info *)
++						&pmp->data;
++	int ret = IB_MAD_RESULT_FAILURE;
++
++	*out_mad = *in_mad;
++	if (pmp->mad_hdr.class_version != 1) {
++		pmp->mad_hdr.status |= IB_SMP_UNSUP_VERSION;
++		ret = reply((struct ib_mad_hdr *)pmp);
++		return ret;
++	}
++
++	switch (pmp->mad_hdr.method) {
++	case IB_MGMT_METHOD_GET:
++		switch (pmp->mad_hdr.attr_id) {
++		case IB_PMA_PORT_COUNTERS:
++			ret = pma_get_ib_portcounters(pmp, ibdev, port);
++			break;
++		case IB_PMA_PORT_COUNTERS_EXT:
++			ret = pma_get_ib_portcounters_ext(pmp, ibdev, port);
++			break;
++		case IB_PMA_CLASS_PORT_INFO:
++			cpi->capability_mask = IB_PMA_CLASS_CAP_EXT_WIDTH;
++			ret = reply((struct ib_mad_hdr *)pmp);
++			break;
++		default:
++			pmp->mad_hdr.status |= IB_SMP_UNSUP_METH_ATTR;
++			ret = reply((struct ib_mad_hdr *)pmp);
++			break;
++		}
++		break;
++
++	case IB_MGMT_METHOD_SET:
++		if (pmp->mad_hdr.attr_id) {
++			pmp->mad_hdr.status |= IB_SMP_UNSUP_METH_ATTR;
++			ret = reply((struct ib_mad_hdr *)pmp);
++		}
++		break;
++
++	case IB_MGMT_METHOD_TRAP:
++	case IB_MGMT_METHOD_GET_RESP:
++		/*
++		 * The ib_mad module will call us to process responses
++		 * before checking for other consumers.
++		 * Just tell the caller to process it normally.
++		 */
++		ret = IB_MAD_RESULT_SUCCESS;
++		break;
++
++	default:
++		pmp->mad_hdr.status |= IB_SMP_UNSUP_METHOD;
++		ret = reply((struct ib_mad_hdr *)pmp);
++		break;
++	}
++
++	return ret;
++}
++
++static int process_perf_opa(struct ib_device *ibdev, u32 port,
++			    const struct opa_mad *in_mad,
++			    struct opa_mad *out_mad, u32 *resp_len)
++{
++	struct opa_pma_mad *pmp = (struct opa_pma_mad *)out_mad;
++	int ret;
++
++	*out_mad = *in_mad;
++
++	if (pmp->mad_hdr.class_version != OPA_SM_CLASS_VERSION) {
++		pmp->mad_hdr.status |= IB_SMP_UNSUP_VERSION;
++		return reply((struct ib_mad_hdr *)pmp);
++	}
++
++	*resp_len = sizeof(pmp->mad_hdr);
++
++	switch (pmp->mad_hdr.method) {
++	case IB_MGMT_METHOD_GET:
++		switch (pmp->mad_hdr.attr_id) {
++		case IB_PMA_CLASS_PORT_INFO:
++			ret = pma_get_opa_classportinfo(pmp, ibdev, resp_len);
++			break;
++		case OPA_PM_ATTRIB_ID_PORT_STATUS:
++			ret = pma_get_opa_portstatus(pmp, ibdev, port,
++						     resp_len);
++			break;
++		case OPA_PM_ATTRIB_ID_DATA_PORT_COUNTERS:
++			ret = pma_get_opa_datacounters(pmp, ibdev, port,
++						       resp_len);
++			break;
++		case OPA_PM_ATTRIB_ID_ERROR_PORT_COUNTERS:
++			ret = pma_get_opa_porterrors(pmp, ibdev, port,
++						     resp_len);
++			break;
++		case OPA_PM_ATTRIB_ID_ERROR_INFO:
++			ret = pma_get_opa_errorinfo(pmp, ibdev, port,
++						    resp_len);
++			break;
++		default:
++			pmp->mad_hdr.status |= IB_SMP_UNSUP_METH_ATTR;
++			ret = reply((struct ib_mad_hdr *)pmp);
++			break;
++		}
++		break;
++
++	case IB_MGMT_METHOD_SET:
++		switch (pmp->mad_hdr.attr_id) {
++		case OPA_PM_ATTRIB_ID_CLEAR_PORT_STATUS:
++			ret = pma_set_opa_portstatus(pmp, ibdev, port,
++						     resp_len);
++			break;
++		case OPA_PM_ATTRIB_ID_ERROR_INFO:
++			ret = pma_set_opa_errorinfo(pmp, ibdev, port,
++						    resp_len);
++			break;
++		default:
++			pmp->mad_hdr.status |= IB_SMP_UNSUP_METH_ATTR;
++			ret = reply((struct ib_mad_hdr *)pmp);
++			break;
++		}
++		break;
++
++	case IB_MGMT_METHOD_TRAP:
++	case IB_MGMT_METHOD_GET_RESP:
++		/*
++		 * The ib_mad module will call us to process responses
++		 * before checking for other consumers.
++		 * Just tell the caller to process it normally.
++		 */
++		ret = IB_MAD_RESULT_SUCCESS;
++		break;
++
++	default:
++		pmp->mad_hdr.status |= IB_SMP_UNSUP_METHOD;
++		ret = reply((struct ib_mad_hdr *)pmp);
++		break;
++	}
++
++	return ret;
++}
++
++static int hfi2_process_opa_mad(struct ib_device *ibdev, int mad_flags,
++				u32 port, const struct ib_wc *in_wc,
++				const struct ib_grh *in_grh,
++				const struct opa_mad *in_mad,
++				struct opa_mad *out_mad, size_t *out_mad_size,
++				u16 *out_mad_pkey_index)
++{
++	int ret;
++	int pkey_idx;
++	int local_mad = 0;
++	u32 resp_len = in_wc->byte_len - sizeof(*in_grh);
++	struct hfi2_ibport *ibp = to_iport(ibdev, port);
++
++	pkey_idx = hfi2_lookup_pkey_idx(ibp, LIM_MGMT_P_KEY);
++	if (pkey_idx < 0) {
++		pr_warn("failed to find limited mgmt pkey, defaulting 0x%x\n",
++			hfi2_get_pkey(ibp, 1));
++		pkey_idx = 1;
++	}
++	*out_mad_pkey_index = (u16)pkey_idx;
++
++	switch (in_mad->mad_hdr.mgmt_class) {
++	case IB_MGMT_CLASS_SUBN_DIRECTED_ROUTE:
++	case IB_MGMT_CLASS_SUBN_LID_ROUTED:
++		local_mad = is_local_mad(ibp, in_mad, in_wc);
++		if (local_mad) {
++			ret = opa_local_smp_check(ibp, in_wc);
++			if (ret)
++				return IB_MAD_RESULT_FAILURE;
++		}
++		ret = process_subn_opa(ibdev, mad_flags, port, in_mad,
++				       out_mad, &resp_len, local_mad);
 +		goto bail;
-+	}
++	case IB_MGMT_CLASS_PERF_MGMT:
++		ret = hfi2_pkey_validation_pma(ibp, in_mad, in_wc);
++		if (ret)
++			return IB_MAD_RESULT_FAILURE;
 +
-+	ret = dma_set_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(64));
-+	if (ret) {
-+		/*
-+		 * If the 64 bit setup fails, try 32 bit.  Some systems
-+		 * do not setup 64 bit maps on systems with 2GB or less
-+		 * memory installed.
-+		 */
-+		ret = dma_set_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(32));
-+		if (ret) {
-+			dd_dev_err(dd, "Unable to set DMA mask: %d\n", ret);
-+			goto bail;
-+		}
-+	}
++		ret = process_perf_opa(ibdev, port, in_mad, out_mad, &resp_len);
++		goto bail;
 +
-+	pci_set_master(pdev);
-+	return 0;
++	default:
++		ret = IB_MAD_RESULT_SUCCESS;
++	}
 +
 +bail:
-+	hfi2_pcie_cleanup(pdev);
++	if (ret & IB_MAD_RESULT_REPLY)
++		*out_mad_size = round_up(resp_len, 8);
++	else if (ret & IB_MAD_RESULT_SUCCESS)
++		*out_mad_size = in_wc->byte_len - sizeof(struct ib_grh);
++
 +	return ret;
 +}
 +
-+/*
-+ * Clean what was done in hfi2_pcie_init()
-+ */
-+void hfi2_pcie_cleanup(struct pci_dev *pdev)
++static int hfi2_process_ib_mad(struct ib_device *ibdev, int mad_flags, u32 port,
++			       const struct ib_wc *in_wc,
++			       const struct ib_grh *in_grh,
++			       const struct ib_mad *in_mad,
++			       struct ib_mad *out_mad)
 +{
-+	pci_disable_device(pdev);
-+	/*
-+	 * Release regions should be called after the disable. OK to
-+	 * call if request regions has not been called or failed.
-+	 */
-+	pci_release_regions(pdev);
-+}
++	int ret;
 +
-+/*
-+ * Do remaining PCIe setup, once dd is allocated, and save away
-+ * fields required to re-initialize after a chip reset, or for
-+ * various other purposes
-+ */
-+int hfi2_pcie_ddinit(struct hfi2_devdata *dd, struct pci_dev *pdev)
-+{
-+	unsigned long len;
-+	resource_size_t addr;
-+	int ret = 0;
-+
-+	addr = pci_resource_start(pdev, 0);
-+	len = pci_resource_len(pdev, 0);
-+
-+	/*
-+	 * The TXE PIO buffers are at the tail end of the chip space.
-+	 * Cut them off and map them separately.
-+	 */
-+
-+	/* sanity check vs expectations */
-+	if (len != dd->params->bar0_size) {
-+		dd_dev_err(dd, "chip BAR0 size does not match\n");
-+		return -EINVAL;
++	switch (in_mad->mad_hdr.mgmt_class) {
++	case IB_MGMT_CLASS_SUBN_DIRECTED_ROUTE:
++	case IB_MGMT_CLASS_SUBN_LID_ROUTED:
++		ret = process_subn(ibdev, mad_flags, port, in_mad, out_mad);
++		break;
++	case IB_MGMT_CLASS_PERF_MGMT:
++		ret = process_perf(ibdev, port, in_mad, out_mad);
++		break;
++	default:
++		ret = IB_MAD_RESULT_SUCCESS;
++		break;
 +	}
 +
-+	dd->kregbase1 = ioremap(addr, dd->params->kreg1_size);
-+	if (!dd->kregbase1) {
-+		dd_dev_err(dd, "UC mapping of kregbase1 failed\n");
++	return ret;
++}
++
++
++#define OPA_ATTRIB_ID_MCTP_OVER_MAD	cpu_to_be16(0xff30)
++#define OPA_ATTRIB_MOD_MCTP_INCOMING	cpu_to_be32(0x0001)
++#define CH_LEN_MAX (2048 - 8) 
++/*
++ * Send a MAD to CPORT over MCTXT as a pass-through.
++ * We always use 9B for now.
++ */
++static int cport_send_only_mad(struct hfi2_devdata *dd, u8 sb, const void *mad, int len)
++{
++	u8 *buf;
++	int size = len + MAD_9B_OFFSET;
++	int ret;
++
++	if (size > CH_LEN_MAX) {
++		/* too big for MCTXT - truncate */
++		return -EFBIG;
++	}
++	buf = kzalloc(size, GFP_KERNEL);
++	if (!buf)
 +		return -ENOMEM;
-+	}
-+	dd_dev_info(dd, "UC base1: %p for %x\n", dd->kregbase1,
-+		    dd->params->kreg1_size);
-+
-+	/* verify that reads actually work, save revision for reset check */
-+	dd->revision = readq(dd->kregbase1 + CCE_REVISION);
-+	if (dd->revision == ~(u64)0) {
-+		dd_dev_err(dd, "Cannot read chip CSRs\n");
-+		goto nomem;
-+	}
-+
-+	dd->base2_start = dd->params->kreg2_offset;
-+
-+	dd->kregbase2 = ioremap(addr + dd->base2_start,
-+				dd->params->kreg2_size);
-+	if (!dd->kregbase2) {
-+		dd_dev_err(dd, "UC mapping of kregbase2 failed\n");
-+		goto nomem;
-+	}
-+	dd_dev_info(dd, "UC base2: %p for %x\n", dd->kregbase2,
-+		    dd->params->kreg2_size);
-+
-+	dd->piobase = ioremap_wc(addr + TXE_PIO_SEND, TXE_PIO_SIZE);
-+	if (!dd->piobase) {
-+		dd_dev_err(dd, "WC mapping of send buffers failed\n");
-+		goto nomem;
-+	}
-+	dd_dev_info(dd, "WC piobase: %p for %x\n", dd->piobase, TXE_PIO_SIZE);
-+
-+	dd->physaddr = addr;        /* used for io_remap, etc. */
-+
-+	/*
-+	 * Map the chip's RcvArray as write-combining to allow us
-+	 * to write an entire cacheline worth of entries in one shot.
-+	 */
-+	dd->rcvarray_wc = ioremap_wc(addr + dd->params->rcv_array_offset,
-+				     dd->params->rcv_array_size);
-+	if (!dd->rcvarray_wc) {
-+		dd_dev_err(dd, "WC mapping of receive array failed\n");
-+		goto nomem;
-+	}
-+	dd_dev_info(dd, "WC RcvArray: %p for %x\n",
-+		    dd->rcvarray_wc, dd->params->rcv_array_size);
-+
-+	dd->flags |= HFI2_PRESENT;	/* chip.c CSR routines now work */
-+	return 0;
-+nomem:
-+	ret = -ENOMEM;
-+	hfi2_pcie_ddcleanup(dd);
++	memcpy(buf + MAD_9B_OFFSET, mad, size - MAD_9B_OFFSET);
++	((struct ib_header *)buf)->u.oth.u.ud.deth[1] = cpu_to_be32(2);
++	ret = cport_send_notif(dd, CH_OP_MAD_9B, sb, buf, size);
++	kfree(buf);
 +	return ret;
 +}
 +
 +/*
-+ * Do PCIe cleanup related to dd, after chip-specific cleanup, etc.  Just prior
-+ * to releasing the dd memory.
-+ * Void because all of the core pcie cleanup functions are void.
++ * Send a MAD to CPORT over MCTXT and wait for response.
++ * We always use 9B.
 + */
-+void hfi2_pcie_ddcleanup(struct hfi2_devdata *dd)
++int cport_send_recv_mad(struct hfi2_devdata *dd, u8 sb,
++			const void *mad, int len,
++			void *omad, size_t *omad_len)
 +{
-+	dd->flags &= ~HFI2_PRESENT;
-+	if (dd->kregbase1)
-+		iounmap(dd->kregbase1);
-+	dd->kregbase1 = NULL;
-+	if (dd->kregbase2)
-+		iounmap(dd->kregbase2);
-+	dd->kregbase2 = NULL;
-+	if (dd->rcvarray_wc)
-+		iounmap(dd->rcvarray_wc);
-+	dd->rcvarray_wc = NULL;
-+	if (dd->piobase)
-+		iounmap(dd->piobase);
-+	dd->piobase = NULL;
-+}
-+
-+/* return the PCIe link speed from the given link status */
-+static u32 extract_speed(u16 linkstat)
-+{
-+	u32 speed;
-+
-+	switch (linkstat & PCI_EXP_LNKSTA_CLS) {
-+	default: /* not defined, assume Gen1 */
-+	case PCI_EXP_LNKSTA_CLS_2_5GB:
-+		speed = 2500; /* Gen 1, 2.5GHz */
-+		break;
-+	case PCI_EXP_LNKSTA_CLS_5_0GB:
-+		speed = 5000; /* Gen 2, 5GHz */
-+		break;
-+	case PCI_EXP_LNKSTA_CLS_8_0GB:
-+		speed = 8000; /* Gen 3, 8GHz */
-+		break;
-+	}
-+	return speed;
-+}
-+
-+/* read the link status and set dd->{lbus_width,lbus_speed,lbus_info} */
-+static void update_lbus_info(struct hfi2_devdata *dd)
-+{
-+	u16 linkstat;
++	u8 *buf;
++	int size = len + MAD_9B_OFFSET;
 +	int ret;
++	void *rsp = NULL;
++	int rsp_len = 0;
++	long to;
 +
-+	ret = pcie_capability_read_word(dd->pcidev, PCI_EXP_LNKSTA, &linkstat);
-+	if (ret) {
-+		dd_dev_err(dd, "Unable to read from PCI config\n");
-+		return;
++	to = cport_mad_to <= 0 ? MAX_SCHEDULE_TIMEOUT : cport_mad_to * HZ;
++	if (size > CH_LEN_MAX) {
++		/* too big for MCTXT - truncate */
++		size = CH_LEN_MAX;
 +	}
 +
-+	dd->lbus_width = FIELD_GET(PCI_EXP_LNKSTA_NLW, linkstat);
-+	dd->lbus_speed = extract_speed(linkstat);
-+	snprintf(dd->lbus_info, sizeof(dd->lbus_info),
-+		 "PCIe,%uMHz,x%u", dd->lbus_speed, dd->lbus_width);
++	buf = kzalloc(size, GFP_KERNEL);
++	if (!buf)
++		return -ENOMEM;
++	memcpy(buf + MAD_9B_OFFSET, mad, size - MAD_9B_OFFSET);
++	((struct ib_header *)buf)->u.oth.u.ud.deth[1] = cpu_to_be32(2);
++
++	ret = cport_send_req(dd, CH_OP_MAD_9B, sb, buf, size, &rsp, &rsp_len, to);
++	kfree(buf);
++	if (ret)
++		goto out;
++	if (rsp_len < MAD_9B_OFFSET) {
++		ret = -EINVAL;
++		goto out;
++	}
++	rsp_len -= MAD_9B_OFFSET;
++	if (rsp_len > *omad_len) {
++		dd_dev_warn(dd, "CPORT response length 0x%x > 0x%lx, truncating\n",
++			    rsp_len, *omad_len);
++		rsp_len = *omad_len;
++	}
++	memcpy(omad, rsp + MAD_9B_OFFSET, rsp_len);
++	*omad_len = rsp_len;
++out:
++	kfree(rsp);
++	return ret;
 +}
-+
-+/*
-+ * Read in the current PCIe link width and speed.  Find if the link is
-+ * Gen3 capable.
-+ */
-+int pcie_speeds(struct hfi2_devdata *dd)
-+{
-+	u32 linkcap;
-+	struct pci_dev *parent = dd->pcidev->bus->self;
-+	int ret;
-+
-+	if (!pci_is_pcie(dd->pcidev)) {
-+		dd_dev_err(dd, "Can't find PCI Express capability!\n");
-+		return -EINVAL;
-+	}
-+
-+	/* find if our max speed is Gen3 and parent supports Gen3 speeds */
-+	dd->link_gen3_capable = 1;
-+
-+	ret = pcie_capability_read_dword(dd->pcidev, PCI_EXP_LNKCAP, &linkcap);
-+	if (ret) {
-+		dd_dev_err(dd, "Unable to read from PCI config\n");
-+		return pcibios_err_to_errno(ret);
-+	}
-+
-+	if ((linkcap & PCI_EXP_LNKCAP_SLS) != PCI_EXP_LNKCAP_SLS_8_0GB) {
-+		dd_dev_info(dd,
-+			    "This HFI is not Gen3 capable, max speed 0x%x, need 0x3\n",
-+			    linkcap & PCI_EXP_LNKCAP_SLS);
-+		dd->link_gen3_capable = 0;
-+	}
-+
-+	/*
-+	 * bus->max_bus_speed is set from the bridge's linkcap Max Link Speed
-+	 */
-+	if (parent &&
-+	    (dd->pcidev->bus->max_bus_speed == PCIE_SPEED_2_5GT ||
-+	     dd->pcidev->bus->max_bus_speed == PCIE_SPEED_5_0GT)) {
-+		dd_dev_info(dd, "Parent PCIe bridge does not support Gen3\n");
-+		dd->link_gen3_capable = 0;
-+	}
-+
-+	/* obtain the link width and current speed */
-+	update_lbus_info(dd);
-+
-+	dd_dev_info(dd, "%s\n", dd->lbus_info);
-+
-+	return 0;
-+}
-+
-+/*
-+ * Restore command and BARs after a reset has wiped them out
-+ *
-+ * Returns 0 on success, otherwise a negative error value
-+ */
-+int restore_pci_variables(struct hfi2_devdata *dd)
-+{
-+	int ret;
-+
-+	ret = pci_write_config_word(dd->pcidev, PCI_COMMAND, dd->pci_command);
-+	if (ret)
-+		goto error;
-+
-+	ret = pci_write_config_dword(dd->pcidev, PCI_BASE_ADDRESS_0,
-+				     dd->pcibar0);
-+	if (ret)
-+		goto error;
-+
-+	ret = pci_write_config_dword(dd->pcidev, PCI_BASE_ADDRESS_1,
-+				     dd->pcibar1);
-+	if (ret)
-+		goto error;
-+
-+	ret = pci_write_config_dword(dd->pcidev, PCI_ROM_ADDRESS, dd->pci_rom);
-+	if (ret)
-+		goto error;
-+
-+	ret = pcie_capability_write_word(dd->pcidev, PCI_EXP_DEVCTL,
-+					 dd->pcie_devctl);
-+	if (ret)
-+		goto error;
-+
-+	ret = pcie_capability_write_word(dd->pcidev, PCI_EXP_LNKCTL,
-+					 dd->pcie_lnkctl);
-+	if (ret)
-+		goto error;
-+
-+	ret = pcie_capability_write_word(dd->pcidev, PCI_EXP_DEVCTL2,
-+					 dd->pcie_devctl2);
-+	if (ret)
-+		goto error;
-+
-+	ret = pci_write_config_dword(dd->pcidev, PCI_CFG_MSIX0, dd->pci_msix0);
-+	if (ret)
-+		goto error;
-+
-+	if (pci_find_ext_capability(dd->pcidev, PCI_EXT_CAP_ID_TPH)) {
-+		ret = pci_write_config_dword(dd->pcidev, PCIE_CFG_TPH2,
-+					     dd->pci_tph2);
-+		if (ret)
-+			goto error;
-+	}
-+	return 0;
-+
-+error:
-+	dd_dev_err(dd, "Unable to write to PCI config\n");
-+	return pcibios_err_to_errno(ret);
-+}
-+
-+/*
-+ * Save BARs and command to rewrite after device reset
-+ *
-+ * Returns 0 on success, otherwise a negative error value
-+ */
-+int save_pci_variables(struct hfi2_devdata *dd)
-+{
-+	int ret;
-+
-+	ret = pci_read_config_dword(dd->pcidev, PCI_BASE_ADDRESS_0,
-+				    &dd->pcibar0);
-+	if (ret)
-+		goto error;
-+
-+	ret = pci_read_config_dword(dd->pcidev, PCI_BASE_ADDRESS_1,
-+				    &dd->pcibar1);
-+	if (ret)
-+		goto error;
-+
-+	ret = pci_read_config_dword(dd->pcidev, PCI_ROM_ADDRESS, &dd->pci_rom);
-+	if (ret)
-+		goto error;
-+
-+	ret = pci_read_config_word(dd->pcidev, PCI_COMMAND, &dd->pci_command);
-+	if (ret)
-+		goto error;
-+
-+	ret = pcie_capability_read_word(dd->pcidev, PCI_EXP_DEVCTL,
-+					&dd->pcie_devctl);
-+	if (ret)
-+		goto error;
-+
-+	ret = pcie_capability_read_word(dd->pcidev, PCI_EXP_LNKCTL,
-+					&dd->pcie_lnkctl);
-+	if (ret)
-+		goto error;
-+
-+	ret = pcie_capability_read_word(dd->pcidev, PCI_EXP_DEVCTL2,
-+					&dd->pcie_devctl2);
-+	if (ret)
-+		goto error;
-+
-+	ret = pci_read_config_dword(dd->pcidev, PCI_CFG_MSIX0, &dd->pci_msix0);
-+	if (ret)
-+		goto error;
-+
-+	if (pci_find_ext_capability(dd->pcidev, PCI_EXT_CAP_ID_TPH)) {
-+		ret = pci_read_config_dword(dd->pcidev, PCIE_CFG_TPH2,
-+					    &dd->pci_tph2);
-+		if (ret)
-+			goto error;
-+	}
-+	return 0;
-+
-+error:
-+	dd_dev_err(dd, "Unable to read from PCI config\n");
-+	return pcibios_err_to_errno(ret);
-+}
-+
-+/*
-+ * BIOS may not set PCIe bus-utilization parameters for best performance.
-+ * Check and optionally adjust them to maximize our throughput.
-+ */
-+static int hfi2_pcie_caps;
-+module_param_named(pcie_caps, hfi2_pcie_caps, int, 0444);
-+MODULE_PARM_DESC(pcie_caps, "Max PCIe tuning: Payload (0..3), ReadReq (4..7)");
 +
 +/**
-+ * tune_pcie_caps() - Code to adjust PCIe capabilities.
-+ * @dd: Valid device data structure
-+ *
++ * cport_process_mad - redirect an incoming MAD packet to CPORT for processing
++ * @ibdev: the infiniband device this packet came in on
++ * @mad_flags: MAD flags
++ * @port: the port number this packet came in on
++ * @in_wc: the work completion entry for this packet
++ * @in_grh: the global route header for this packet
++ * @in_mad: the incoming MAD
++ * @out_mad: any outgoing MAD reply
++ * @out_mad_size: size of the outgoing MAD reply
++ * @out_mad_pkey_index: used to apss back the packet key index
 + */
-+void tune_pcie_caps(struct hfi2_devdata *dd)
++int cport_process_mad(struct ib_device *ibdev, int mad_flags, u32 port,
++		      const struct ib_wc *in_wc, const struct ib_grh *in_grh,
++		      const struct ib_mad *in_mad, struct ib_mad *out_mad,
++		      size_t *out_mad_size, u16 *out_mad_pkey_index)
 +{
-+	struct pci_dev *parent;
-+	u16 rc_mpss, rc_mps, ep_mpss, ep_mps;
-+	u16 rc_mrrs, ep_mrrs, max_mrrs, ectl;
++	struct hfi2_devdata *dd = dd_from_ibdev(ibdev);
++	u8 sb = port; /* 1.. */
++	int mad_len;
 +	int ret;
++	bool pass = false;
++	int mad_result;
 +
++	switch (in_mad->mad_hdr.mgmt_class) {
++	case IB_MGMT_CLASS_SUBN_LID_ROUTED:
++	case IB_MGMT_CLASS_SUBN_DIRECTED_ROUTE:
++		if (in_mad->mad_hdr.base_version == OPA_MGMT_BASE_VERSION) {
++			if (in_mad->mad_hdr.attr_id == OPA_ATTRIB_ID_MCTP_OVER_MAD) {
++				if (in_mad->mad_hdr.attr_mod & OPA_ATTRIB_MOD_MCTP_INCOMING) {
++					mad_result = IB_MAD_RESULT_SUCCESS;
++					goto done;
++				}
++				pass = (in_mad->mad_hdr.method == IB_MGMT_METHOD_GET_RESP);
++				goto pass_thru;
++			}
++			if (in_mad->mad_hdr.method == IB_MGMT_METHOD_TRAP ||
++			    in_mad->mad_hdr.method == IB_MGMT_METHOD_REPORT ||
++			    in_mad->mad_hdr.method == IB_MGMT_METHOD_REPORT_RESP ||
++			    in_mad->mad_hdr.method == IB_MGMT_METHOD_GET_RESP) {
++				mad_result = IB_MAD_RESULT_SUCCESS;
++				goto done;
++			}
++			if (in_mad->mad_hdr.method == IB_MGMT_METHOD_TRAP_REPRESS) {
++				/* Need this to prevent TRAP storms */
++				return hfi2_process_mad(ibdev, mad_flags, port,
++							in_wc, in_grh,
++							in_mad, out_mad, out_mad_size,
++							out_mad_pkey_index);
++			}
++		}
++		break;	/* pass to CPORT */
++	case IB_MGMT_CLASS_PERF_MGMT:
++		break; /* pass to CPORT */
++	default:
++		mad_result = IB_MAD_RESULT_SUCCESS;
++		goto done;
++	}
++	/* short-circuit all responses - no processing needed */
++	if (ib_response_mad(&in_mad->mad_hdr)) {
++		/*
++		 * The ib_mad module will call us to process responses before
++		 * checking for other consumers.  Tell the caller to process
++		 * it normally.
++		 */
++		mad_result = IB_MAD_RESULT_SUCCESS;
++		goto done;
++	}
++pass_thru:
 +	/*
-+	 * Turn on extended tags in DevCtl in case the BIOS has turned it off
-+	 * to improve WFR SDMA bandwidth
++	 * in order to pass a MAD over MCTXT, we will need to
++	 * construct a "fake" header. We don't know what minimal
++	 * data is required by CPORT, if any, in this header. See
++	 * DN0823 sections 3.8 and 3.9.
++	 *
++	 * The alternative is to pass the MAD to CPORT using a loopback
++	 * port.
++	 *
++	 * Can this routine sleep? Regardless of which method passes
++	 * the MAD to CPORT, we need to wait for the response.
 +	 */
-+	ret = pcie_capability_read_word(dd->pcidev, PCI_EXP_DEVCTL, &ectl);
-+	if ((!ret) && !(ectl & PCI_EXP_DEVCTL_EXT_TAG)) {
-+		dd_dev_info(dd, "Enabling PCIe extended tags\n");
-+		ectl |= PCI_EXP_DEVCTL_EXT_TAG;
-+		ret = pcie_capability_write_word(dd->pcidev,
-+						 PCI_EXP_DEVCTL, ectl);
++	if (in_mad->mad_hdr.base_version == OPA_MGMT_BASE_VERSION)
++		mad_len = in_wc ? in_wc->byte_len : sizeof(struct opa_mad);
++	else
++		mad_len = sizeof(struct ib_mad);
++
++	if (pass) {
++		mad_result = IB_MAD_RESULT_SUCCESS;
++		ret = cport_send_only_mad(dd, sb, in_mad, mad_len);
 +		if (ret)
-+			dd_dev_info(dd, "Unable to write to PCI config\n");
++			mad_result = IB_MAD_RESULT_FAILURE;
++		return mad_result;
 +	}
-+	/* Find out supported and configured values for parent (root) */
-+	parent = dd->pcidev->bus->self;
-+	/*
-+	 * The driver cannot perform the tuning if it does not have
-+	 * access to the upstream component.
-+	 */
-+	if (!parent) {
-+		dd_dev_info(dd, "Parent not found\n");
-+		return;
++	ret = cport_send_recv_mad(dd, sb, in_mad, mad_len, out_mad, out_mad_size);
++	if (ret) {
++		mad_result = IB_MAD_RESULT_FAILURE;
++		goto done;
 +	}
-+	if (!pci_is_root_bus(parent->bus)) {
-+		dd_dev_info(dd, "Parent not root\n");
-+		return;
++	if (*out_mad_size > 0) {
++		mad_result = IB_MAD_RESULT_SUCCESS | IB_MAD_RESULT_REPLY;
++	} else {
++		mad_result = IB_MAD_RESULT_SUCCESS;
 +	}
-+	if (!pci_is_pcie(parent)) {
-+		dd_dev_info(dd, "Parent is not PCI Express capable\n");
-+		return;
-+	}
-+	if (!pci_is_pcie(dd->pcidev)) {
-+		dd_dev_info(dd, "PCI device is not PCI Express capable\n");
-+		return;
-+	}
-+	rc_mpss = parent->pcie_mpss;
-+	rc_mps = ffs(pcie_get_mps(parent)) - 8;
-+	/* Find out supported and configured values for endpoint (us) */
-+	ep_mpss = dd->pcidev->pcie_mpss;
-+	ep_mps = ffs(pcie_get_mps(dd->pcidev)) - 8;
-+
-+	/* Find max payload supported by root, endpoint */
-+	if (rc_mpss > ep_mpss)
-+		rc_mpss = ep_mpss;
-+
-+	/* If Supported greater than limit in module param, limit it */
-+	if (rc_mpss > (hfi2_pcie_caps & 7))
-+		rc_mpss = hfi2_pcie_caps & 7;
-+	/* If less than (allowed, supported), bump root payload */
-+	if (rc_mpss > rc_mps) {
-+		rc_mps = rc_mpss;
-+		pcie_set_mps(parent, 128 << rc_mps);
-+	}
-+	/* If less than (allowed, supported), bump endpoint payload */
-+	if (rc_mpss > ep_mps) {
-+		ep_mps = rc_mpss;
-+		pcie_set_mps(dd->pcidev, 128 << ep_mps);
-+	}
-+
-+	/*
-+	 * Now the Read Request size.
-+	 * No field for max supported, but PCIe spec limits it to 4096,
-+	 * which is code '5' (log2(4096) - 7)
-+	 */
-+	max_mrrs = 5;
-+	if (max_mrrs > ((hfi2_pcie_caps >> 4) & 7))
-+		max_mrrs = (hfi2_pcie_caps >> 4) & 7;
-+
-+	max_mrrs = 128 << max_mrrs;
-+	rc_mrrs = pcie_get_readrq(parent);
-+	ep_mrrs = pcie_get_readrq(dd->pcidev);
-+
-+	if (max_mrrs > rc_mrrs) {
-+		rc_mrrs = max_mrrs;
-+		pcie_set_readrq(parent, rc_mrrs);
-+	}
-+	if (max_mrrs > ep_mrrs) {
-+		ep_mrrs = max_mrrs;
-+		pcie_set_readrq(dd->pcidev, ep_mrrs);
-+	}
++done:
++	return mad_result;
 +}
 +
-+/* End of PCIe capability tuning */
-+
-+/*
-+ * From here through hfi2_pci_err_handler definition is invoked via
-+ * PCI error infrastructure, registered via pci
++/**
++ * hfi2_process_mad - process an incoming MAD packet
++ * @ibdev: the infiniband device this packet came in on
++ * @mad_flags: MAD flags
++ * @port: the port number this packet came in on
++ * @in_wc: the work completion entry for this packet
++ * @in_grh: the global route header for this packet
++ * @in_mad: the incoming MAD
++ * @out_mad: any outgoing MAD reply
++ * @out_mad_size: size of the outgoing MAD reply
++ * @out_mad_pkey_index: used to apss back the packet key index
++ *
++ * Returns IB_MAD_RESULT_SUCCESS if this is a MAD that we are not
++ * interested in processing.
++ *
++ * Note that the verbs framework has already done the MAD sanity checks,
++ * and hop count/pointer updating for IB_MGMT_CLASS_SUBN_DIRECTED_ROUTE
++ * MADs.
++ *
++ * This is called by the ib_mad module.
 + */
-+static pci_ers_result_t
-+pci_error_detected(struct pci_dev *pdev, pci_channel_state_t state)
++int hfi2_process_mad(struct ib_device *ibdev, int mad_flags, u32 port,
++		     const struct ib_wc *in_wc, const struct ib_grh *in_grh,
++		     const struct ib_mad *in_mad, struct ib_mad *out_mad,
++		     size_t *out_mad_size, u16 *out_mad_pkey_index)
 +{
-+	struct hfi2_devdata *dd = pci_get_drvdata(pdev);
-+	pci_ers_result_t ret = PCI_ERS_RESULT_RECOVERED;
++	int ret;
 +
-+	switch (state) {
-+	case pci_channel_io_normal:
-+		dd_dev_info(dd, "State Normal, ignoring\n");
++	switch (in_mad->mad_hdr.base_version) {
++	case OPA_MGMT_BASE_VERSION:
++		ret = hfi2_process_opa_mad(ibdev, mad_flags, port,
++					   in_wc, in_grh,
++					   (struct opa_mad *)in_mad,
++					   (struct opa_mad *)out_mad,
++					   out_mad_size,
++					   out_mad_pkey_index);
 +		break;
-+
-+	case pci_channel_io_frozen:
-+		dd_dev_info(dd, "State Frozen, requesting reset\n");
-+		pci_disable_device(pdev);
-+		ret = PCI_ERS_RESULT_NEED_RESET;
++	case IB_MGMT_BASE_VERSION:
++		ret = hfi2_process_ib_mad(ibdev, mad_flags, port, in_wc,
++					  in_grh, in_mad, out_mad);
 +		break;
-+
-+	case pci_channel_io_perm_failure:
-+		if (dd) {
-+			dd_dev_info(dd, "State Permanent Failure, disabling\n");
-+			/* no more register accesses! */
-+			dd->flags &= ~HFI2_PRESENT;
-+			hfi2_disable_after_error(dd);
-+		}
-+		 /* else early, or other problem */
-+		ret =  PCI_ERS_RESULT_DISCONNECT;
-+		break;
-+
-+	default: /* shouldn't happen */
-+		dd_dev_info(dd, "HFI2 PCI errors detected (state %d)\n",
-+			    state);
++	default:
++		ret = IB_MAD_RESULT_FAILURE;
 +		break;
 +	}
++
 +	return ret;
 +}
 +
-+static pci_ers_result_t
-+pci_mmio_enabled(struct pci_dev *pdev)
-+{
-+	u64 rev;
-+	struct hfi2_devdata *dd = pci_get_drvdata(pdev);
-+	pci_ers_result_t ret = PCI_ERS_RESULT_RECOVERED;
-+
-+	if (dd) {
-+		/* test read a device register */
-+		rev = read_csr(dd, CCE_REVISION);
-+		if (rev == ~0ULL)
-+			ret = PCI_ERS_RESULT_NEED_RESET;
-+		dd_dev_info(dd,
-+			    "HFI2 mmio_enabled function called, read revision 0x%llx, returning %d\n",
-+			    rev, ret);
-+	}
-+	return  ret;
-+}
-+
-+static pci_ers_result_t
-+pci_slot_reset(struct pci_dev *pdev)
-+{
-+	struct hfi2_devdata *dd = pci_get_drvdata(pdev);
-+
-+	dd_dev_info(dd, "HFI2 slot_reset function called, ignored\n");
-+	return PCI_ERS_RESULT_CAN_RECOVER;
-+}
-+
-+static void
-+pci_resume(struct pci_dev *pdev)
-+{
-+	struct hfi2_devdata *dd = pci_get_drvdata(pdev);
-+
-+	dd_dev_info(dd, "HFI2 resume function called\n");
-+	/*
-+	 * Running jobs will fail, since it's asynchronous
-+	 * unlike sysfs-requested reset.   Better than
-+	 * doing nothing.
-+	 */
-+	hfi2_init(dd, 1); /* same as re-init after reset */
-+}
-+
-+const struct pci_error_handlers hfi2_pci_err_handler = {
-+	.error_detected = pci_error_detected,
-+	.mmio_enabled = pci_mmio_enabled,
-+	.slot_reset = pci_slot_reset,
-+	.resume = pci_resume,
-+};
-+
-+/*============================================================================*/
-+/* PCIe Gen3 support */
-+
 +/*
-+ * This code is separated out because it is expected to be removed in the
-+ * final shipping product.  If not, then it will be revisited and items
-+ * will be moved to more standard locations.
++ * The driver received a GET or SET NODE_DESC from CPORT.
++ * Currently, we only tell CPORT what the NodedDescription should be,
++ * according to the IB device. We don't allow anyone to change that.
 + */
-+
-+/* ASIC_PCI_SD_HOST_STATUS.FW_DNLD_STS field values */
-+#define DL_STATUS_HFI0 0x1	/* hfi0 firmware download complete */
-+#define DL_STATUS_HFI2 0x2	/* hfi2 firmware download complete */
-+#define DL_STATUS_BOTH 0x3	/* hfi0 and hfi2 firmware download complete */
-+
-+/* ASIC_PCI_SD_HOST_STATUS.FW_DNLD_ERR field values */
-+#define DL_ERR_NONE		0x0	/* no error */
-+#define DL_ERR_SWAP_PARITY	0x1	/* parity error in SerDes interrupt */
-+					/*   or response data */
-+#define DL_ERR_DISABLED	0x2	/* hfi disabled */
-+#define DL_ERR_SECURITY	0x3	/* security check failed */
-+#define DL_ERR_SBUS		0x4	/* SBus status error */
-+#define DL_ERR_XFR_PARITY	0x5	/* parity error during ROM transfer*/
-+
-+/* gasket block secondary bus reset delay */
-+#define SBR_DELAY_US 200000	/* 200ms */
-+
-+static uint pcie_target = 3;
-+module_param(pcie_target, uint, S_IRUGO);
-+MODULE_PARM_DESC(pcie_target, "PCIe target speed (0 skip, 1-3 Gen1-3)");
-+
-+static uint pcie_force;
-+module_param(pcie_force, uint, S_IRUGO);
-+MODULE_PARM_DESC(pcie_force, "Force driver to do a PCIe firmware download even if already at target speed");
-+
-+static uint pcie_retry = 5;
-+module_param(pcie_retry, uint, S_IRUGO);
-+MODULE_PARM_DESC(pcie_retry, "Driver will try this many times to reach requested speed");
-+
-+#define UNSET_PSET 255
-+#define DEFAULT_DISCRETE_PSET 2	/* discrete HFI */
-+#define DEFAULT_MCP_PSET 6	/* MCP HFI */
-+static uint pcie_pset = UNSET_PSET;
-+module_param(pcie_pset, uint, S_IRUGO);
-+MODULE_PARM_DESC(pcie_pset, "PCIe Eq Pset value to use, range is 0-10");
-+
-+static uint pcie_ctle = 3; /* discrete on, integrated on */
-+module_param(pcie_ctle, uint, S_IRUGO);
-+MODULE_PARM_DESC(pcie_ctle, "PCIe static CTLE mode, bit 0 - discrete on/off, bit 1 - integrated on/off");
-+
-+/* equalization columns */
-+#define PREC 0
-+#define ATTN 1
-+#define POST 2
-+
-+/* discrete silicon preliminary equalization values */
-+static const u8 discrete_preliminary_eq[11][3] = {
-+	/* prec   attn   post */
-+	{  0x00,  0x00,  0x12 },	/* p0 */
-+	{  0x00,  0x00,  0x0c },	/* p1 */
-+	{  0x00,  0x00,  0x0f },	/* p2 */
-+	{  0x00,  0x00,  0x09 },	/* p3 */
-+	{  0x00,  0x00,  0x00 },	/* p4 */
-+	{  0x06,  0x00,  0x00 },	/* p5 */
-+	{  0x09,  0x00,  0x00 },	/* p6 */
-+	{  0x06,  0x00,  0x0f },	/* p7 */
-+	{  0x09,  0x00,  0x09 },	/* p8 */
-+	{  0x0c,  0x00,  0x00 },	/* p9 */
-+	{  0x00,  0x00,  0x18 },	/* p10 */
-+};
-+
-+/* integrated silicon preliminary equalization values */
-+static const u8 integrated_preliminary_eq[11][3] = {
-+	/* prec   attn   post */
-+	{  0x00,  0x1e,  0x07 },	/* p0 */
-+	{  0x00,  0x1e,  0x05 },	/* p1 */
-+	{  0x00,  0x1e,  0x06 },	/* p2 */
-+	{  0x00,  0x1e,  0x04 },	/* p3 */
-+	{  0x00,  0x1e,  0x00 },	/* p4 */
-+	{  0x03,  0x1e,  0x00 },	/* p5 */
-+	{  0x04,  0x1e,  0x00 },	/* p6 */
-+	{  0x03,  0x1e,  0x06 },	/* p7 */
-+	{  0x03,  0x1e,  0x04 },	/* p8 */
-+	{  0x05,  0x1e,  0x00 },	/* p9 */
-+	{  0x00,  0x1e,  0x0a },	/* p10 */
-+};
-+
-+static const u8 discrete_ctle_tunings[11][4] = {
-+	/* DC     LF     HF     BW */
-+	{  0x48,  0x0b,  0x04,  0x04 },	/* p0 */
-+	{  0x60,  0x05,  0x0f,  0x0a },	/* p1 */
-+	{  0x50,  0x09,  0x06,  0x06 },	/* p2 */
-+	{  0x68,  0x05,  0x0f,  0x0a },	/* p3 */
-+	{  0x80,  0x05,  0x0f,  0x0a },	/* p4 */
-+	{  0x70,  0x05,  0x0f,  0x0a },	/* p5 */
-+	{  0x68,  0x05,  0x0f,  0x0a },	/* p6 */
-+	{  0x38,  0x0f,  0x00,  0x00 },	/* p7 */
-+	{  0x48,  0x09,  0x06,  0x06 },	/* p8 */
-+	{  0x60,  0x05,  0x0f,  0x0a },	/* p9 */
-+	{  0x38,  0x0f,  0x00,  0x00 },	/* p10 */
-+};
-+
-+static const u8 integrated_ctle_tunings[11][4] = {
-+	/* DC     LF     HF     BW */
-+	{  0x38,  0x0f,  0x00,  0x00 },	/* p0 */
-+	{  0x38,  0x0f,  0x00,  0x00 },	/* p1 */
-+	{  0x38,  0x0f,  0x00,  0x00 },	/* p2 */
-+	{  0x38,  0x0f,  0x00,  0x00 },	/* p3 */
-+	{  0x58,  0x0a,  0x05,  0x05 },	/* p4 */
-+	{  0x48,  0x0a,  0x05,  0x05 },	/* p5 */
-+	{  0x40,  0x0a,  0x05,  0x05 },	/* p6 */
-+	{  0x38,  0x0f,  0x00,  0x00 },	/* p7 */
-+	{  0x38,  0x0f,  0x00,  0x00 },	/* p8 */
-+	{  0x38,  0x09,  0x06,  0x06 },	/* p9 */
-+	{  0x38,  0x0e,  0x01,  0x01 },	/* p10 */
-+};
-+
-+/* helper to format the value to write to hardware */
-+#define eq_value(pre, curr, post) \
-+	((((u32)(pre)) << \
-+			PCIE_CFG_REG_PL102_GEN3_EQ_PRE_CURSOR_PSET_SHIFT) \
-+	| (((u32)(curr)) << PCIE_CFG_REG_PL102_GEN3_EQ_CURSOR_PSET_SHIFT) \
-+	| (((u32)(post)) << \
-+		PCIE_CFG_REG_PL102_GEN3_EQ_POST_CURSOR_PSET_SHIFT))
-+
-+/*
-+ * Load the given EQ preset table into the PCIe hardware.
-+ */
-+static int load_eq_table(struct hfi2_devdata *dd, const u8 eq[11][3], u8 fs,
-+			 u8 div)
++static int cport_do_opa_nodedesc(struct hfi2_pportdata *ppd,
++				 struct opa_smp *smp,
++				 u8 *data)
 +{
-+	struct pci_dev *pdev = dd->pcidev;
-+	u32 hit_error = 0;
-+	u32 violation;
-+	u32 i;
-+	u8 c_minus1, c0, c_plus1;
-+	int ret;
++	struct hfi2_devdata *dd = ppd->dd;
++	struct opa_node_description *nd = (struct opa_node_description *)data;
++	struct hfi2_ibdev *dev = &dd->verbs_dev;
++	struct ib_device *ibdev = &dev->rdi.ibdev;
 +
-+	for (i = 0; i < 11; i++) {
-+		/* set index */
-+		pci_write_config_dword(pdev, PCIE_CFG_REG_PL103, i);
-+		/* write the value */
-+		c_minus1 = eq[i][PREC] / div;
-+		c0 = fs - (eq[i][PREC] / div) - (eq[i][POST] / div);
-+		c_plus1 = eq[i][POST] / div;
-+		pci_write_config_dword(pdev, PCIE_CFG_REG_PL102,
-+				       eq_value(c_minus1, c0, c_plus1));
-+		/* check if these coefficients violate EQ rules */
-+		ret = pci_read_config_dword(dd->pcidev,
-+					    PCIE_CFG_REG_PL105, &violation);
-+		if (ret) {
-+			dd_dev_err(dd, "Unable to read from PCI config\n");
-+			hit_error = 1;
-+			break;
-+		}
++	memcpy(nd->data, ibdev->node_desc, sizeof(nd->data));
++	return 0;
++}
 +
-+		if (violation
-+		    & PCIE_CFG_REG_PL105_GEN3_EQ_VIOLATE_COEF_RULES_SMASK){
-+			if (hit_error == 0) {
-+				dd_dev_err(dd,
-+					   "Gen3 EQ Table Coefficient rule violations\n");
-+				dd_dev_err(dd, "         prec   attn   post\n");
-+			}
-+			dd_dev_err(dd, "   p%02d:   %02x     %02x     %02x\n",
-+				   i, (u32)eq[i][0], (u32)eq[i][1],
-+				   (u32)eq[i][2]);
-+			dd_dev_err(dd, "            %02x     %02x     %02x\n",
-+				   (u32)c_minus1, (u32)c0, (u32)c_plus1);
-+			hit_error = 1;
-+		}
-+	}
-+	if (hit_error)
-+		return -EINVAL;
++static int cport_set_opa_nodeinfo(struct hfi2_pportdata *ppd,
++				  struct opa_smp *smp,
++				  u8 *data)
++{
++	struct opa_node_info *ni = (struct opa_node_info *)data;
++
++	ni->system_image_guid = ib_hfi2_sys_image_guid;
 +	return 0;
 +}
 +
 +/*
-+ * Steps to be done after the PCIe firmware is downloaded and
-+ * before the SBR for the Pcie Gen3.
-+ * The SBus resource is already being held.
++ * Take a GET_RESP PORT_INFO MAD and use it to update the hfi2 device data structures.
++ * The entire MAD is referenced through 'smp'.
 + */
-+static void pcie_post_steps(struct hfi2_devdata *dd)
++int update_from_opa_portinfo(struct hfi2_pportdata *ppd,
++			     struct opa_smp *smp,
++			     struct opa_port_info *pi)
 +{
++	struct hfi2_devdata *dd = ppd->dd;
++	struct ib_device *ibdev = &dd->verbs_dev.rdi.ibdev;
++	struct ib_event event;
++	struct hfi2_ibport *ibp = &ppd->ibport_data;
++	u32 smlid;
++	u32 lid;
++	u8 ls_old, ls_new, ps_new;
++	u8 lmc;
++	u8 clientrereg;
++	u8 vls;
++	u8 msl;
++	u8 crc_enabled;
++	unsigned long flags;
++	int i;
++	u16 lse, lwe, mtu;
++	u32 am = be32_to_cpu(smp->attr_mod);
++	u32 start_of_sm_config = OPA_AM_START_SM_CFG(am);
++
++	/*
++	 * This code is modeled after __subn_set_opa_portinfo(), eliminating
++	 * things that attempt to manipulate hardware or are otherwise handled
++	 * by CPORT now. This routine DOES NOT change the port state in
++	 * hardware or on the fabric, it simply makes the driver "view"
++	 * match what CPORT tells us via an OPA_ATTRIB_ID_PORT_INFO MAD.
++	 * It also implicitly trusts the information provided by CPORT.
++	 */
++
++	lid = be32_to_cpu(pi->lid);
++	smlid = be32_to_cpu(pi->sm_lid);
++	ls_old = driver_lstate(ppd);
++	clientrereg = (pi->clientrereg_subnettimeout &
++			OPA_PI_MASK_CLIENT_REREGISTER);
++
++	event.device = ibdev;
++	event.element.port_num = ppd->port;
++
++	ibp->rvp.mkey = pi->mkey;
++	if (ibp->rvp.gid_prefix != pi->subnet_prefix) {
++		ibp->rvp.gid_prefix = pi->subnet_prefix;
++		event.event = IB_EVENT_GID_CHANGE;
++		ib_dispatch_event(&event);
++
++		/* Refresh ipoib with new subnet prefixes from updated ib_gid_table */
++		event.event = IB_EVENT_CLIENT_REREGISTER;
++		ib_dispatch_event(&event);
++	}
++	ibp->rvp.mkey_lease_period = be16_to_cpu(pi->mkey_lease_period);
++
++	lmc = pi->mkeyprotect_lmc & OPA_PI_MASK_LMC;
++	if (ppd->lid != lid || ppd->lmc != lmc) {
++		ppd_dev_info(ppd, "port %d: setting LID/LMC 0x%x/0x%x\n",
++			     ppd->port, lid, lmc);
++		if (ppd->lid != lid)
++			hfi2_set_uevent_bits(ppd, _HFI2_EVENT_LID_CHANGE_BIT);
++		if (ppd->lmc != (pi->mkeyprotect_lmc & OPA_PI_MASK_LMC))
++			hfi2_set_uevent_bits(ppd, _HFI2_EVENT_LMC_CHANGE_BIT);
++		/* relevant parts of hfi2_set_lid() */
++		ppd->lid = lid;
++		ppd->lmc = lmc;
++		sdma_update_lmc(dd, ~((1U << lmc) - 1),
++				lid >= be16_to_cpu(IB_MULTICAST_LID_BASE) ? 0 : lid);
++		/* ppd_dev_info(ppd, "got a lid: 0x%x\n", lid); */
++		event.event = IB_EVENT_LID_CHANGE;
++		ib_dispatch_event(&event);
++
++		if (HFI2_PORT_GUID_INDEX + 1 < HFI2_GUIDS_PER_PORT) {
++			/* Manufacture GID from LID to support extended
++			 * addresses
++			 */
++			ppd->guids[HFI2_PORT_GUID_INDEX + 1] =
++				be64_to_cpu(OPA_MAKE_ID(lid));
++			event.event = IB_EVENT_GID_CHANGE;
++			ib_dispatch_event(&event);
++		}
++	}
++
++	msl = pi->smsl & OPA_PI_MASK_SMSL;
++	if (pi->partenforce_filterraw & OPA_PI_MASK_LINKINIT_REASON)
++		ppd->linkinit_reason =
++			(pi->partenforce_filterraw & OPA_PI_MASK_LINKINIT_REASON);
++
++	if (smlid != ibp->rvp.sm_lid || msl != ibp->rvp.sm_sl) {
++		ppd_dev_warn(ppd, "SubnSet(OPA_PortInfo cport) smlid 0x%x\n",
++			     smlid);
++		spin_lock_irqsave(&ibp->rvp.lock, flags);
++		if (ibp->rvp.sm_ah) {
++			if (smlid != ibp->rvp.sm_lid)
++				hfi2_modify_qp0_ah(ibp, ibp->rvp.sm_ah, smlid);
++			if (msl != ibp->rvp.sm_sl)
++				rdma_ah_set_sl(&ibp->rvp.sm_ah->attr, msl);
++		}
++		spin_unlock_irqrestore(&ibp->rvp.lock, flags);
++		if (smlid != ibp->rvp.sm_lid)
++			ibp->rvp.sm_lid = smlid;
++		if (msl != ibp->rvp.sm_sl)
++			ibp->rvp.sm_sl = msl;
++		event.event = IB_EVENT_SM_CHANGE;
++		ib_dispatch_event(&event);
++	}
++
++	if (pi->link_down_reason == 0) {
++		ppd->local_link_down_reason.sma = 0;
++		ppd->local_link_down_reason.latest = 0;
++	}
++
++	if (pi->neigh_link_down_reason == 0) {
++		ppd->neigh_link_down_reason.sma = 0;
++		ppd->neigh_link_down_reason.latest = 0;
++	}
++
++	ppd->sm_trap_qp = be32_to_cpu(pi->sm_trap_qp);
++	ppd->sa_qp = be32_to_cpu(pi->sa_qp);
++
++	ppd->port_error_action = be32_to_cpu(pi->port_error_action);
++
++	lwe = be16_to_cpu(pi->link_width.enabled);
++	if (lwe) {
++		if (lwe == OPA_LINK_WIDTH_RESET ||
++		    lwe == OPA_LINK_WIDTH_RESET_OLD)
++			set_link_width_enabled(ppd, ppd->link_width_supported);
++		else if ((lwe & ~ppd->link_width_supported) == 0)
++			set_link_width_enabled(ppd, lwe);
++	}
++	lwe = be16_to_cpu(pi->link_width_downgrade.enabled);
++	if (lwe == OPA_LINK_WIDTH_RESET ||
++	    lwe == OPA_LINK_WIDTH_RESET_OLD) {
++		set_link_width_downgrade_enabled(ppd,
++						 ppd->link_width_downgrade_supported);
++	} else if ((lwe & ~ppd->link_width_downgrade_supported) == 0) {
++		if (lwe != ppd->link_width_downgrade_enabled)
++			set_link_width_downgrade_enabled(ppd, lwe);
++	}
++	lse = be16_to_cpu(pi->link_speed.enabled);
++	if (lse)
++		set_link_speed_enabled(ppd, lse);
++
++	ibp->rvp.mkeyprot =
++		(pi->mkeyprotect_lmc & OPA_PI_MASK_MKEY_PROT_BIT) >> 6;
++	ibp->rvp.vl_high_limit = be16_to_cpu(pi->vl.high_limit) & 0xFF;
++
++	/*
++	 * The only part of set_mtu() that's required here is to
++	 * determine the maximum MTU (ppd->ibmtu) and resulting maximum length
++	 * (ppd->ibmaxlen). Do that here as we check every MTU.
++	 */
++	ppd->ibmtu = 0;
++	for (i = 0; i < ppd->vls_supported; i++) {
++		mtu = pi->neigh_mtu.pvlx_to_mtu[i / 2];
++		if ((i % 2) == 0)
++			mtu >>= 4;
++		mtu = enum_to_mtu(mtu & 0xF);
++		if (mtu == 0xffff) {
++			ppd_dev_warn(ppd, "%s: mtu invalid %d (0x%x)\n",
++				     __func__, mtu,
++				     (pi->neigh_mtu.pvlx_to_mtu[0] >> 4) & 0xF);
++			mtu = hfi2_max_mtu; /* use a valid MTU */
++		}
++		if (ppd->ibmtu < mtu)
++			ppd->ibmtu = mtu;
++		if (ppd->vld[i].mtu != mtu) {
++			ppd_dev_info(ppd, "MTU change on vl %d from %d to %d\n",
++				     i, ppd->vld[i].mtu, mtu);
++			ppd->vld[i].mtu = mtu;
++		}
++	}
++	/* As per OPAV1 spec: VL15 must support and be configured
++	 * for operation with a 2048 or larger MTU.
++	 */
++	mtu = enum_to_mtu(pi->neigh_mtu.pvlx_to_mtu[15 / 2] & 0xF);
++	if (mtu < 2048 || mtu == 0xffff)
++		mtu = 2048;
++	if (ppd->ibmtu < mtu)
++		ppd->ibmtu = mtu;
++	if (ppd->vld[15].mtu != mtu) {
++		ppd_dev_info(ppd, "MTU change on vl 15 from %d to %d\n",
++			     ppd->vld[15].mtu, mtu);
++		ppd->vld[15].mtu = mtu;
++	}
++	ppd->ibmaxlen = ppd->ibmtu + lrh_max_header_bytes(ppd);
++
++	vls = pi->operational_vls & OPA_PI_MASK_OPERATIONAL_VL;
++	/* hfi2_set_ib_cfg(HFI2_IB_CFG_OP_VLS) is hardware-neutral */
++	if (vls)
++		hfi2_set_ib_cfg(ppd, HFI2_IB_CFG_OP_VLS, vls);
++
++	if (pi->mkey_violations == 0)
++		ibp->rvp.mkey_violations = 0;
++
++	if (pi->pkey_violations == 0)
++		ibp->rvp.pkey_violations = 0;
++
++	if (pi->qkey_violations == 0)
++		ibp->rvp.qkey_violations = 0;
++
++	ibp->rvp.subnet_timeout =
++		pi->clientrereg_subnettimeout & OPA_PI_MASK_SUBNET_TIMEOUT;
++
++	crc_enabled = be16_to_cpu(pi->port_ltp_crc_mode);
++	crc_enabled >>= 4;
++	crc_enabled &= 0xf;
++	if (crc_enabled)
++		ppd->port_crc_mode_enabled = port_ltp_to_cap(crc_enabled);
++
++	ppd->is_active_optimize_enabled =
++		!!(be16_to_cpu(pi->port_mode) & OPA_PI_MASK_PORT_ACTIVE_OPTOMIZE);
++
++	ls_new = port_states_to_logical_state(&pi->port_states);
++	ps_new = port_states_to_phys_state(&pi->port_states);
++	if (ls_old == IB_PORT_INIT) {
++		if (start_of_sm_config) {
++			if (ls_new == ls_old || ls_new == IB_PORT_ARMED)
++				ppd->is_sm_config_started = 1;
++		}
++	}
++
++	if (clientrereg) {
++		event.event = IB_EVENT_CLIENT_REREGISTER;
++		ib_dispatch_event(&event);
++	}
++
++	ppd->neighbor_normal = (pi->port_states.ledenable_offlinereason >> 4) & 1;
++
++	/* Finally, perform "safe" version of set_port_states() */
++	cport_set_port_states(ppd, pi, ls_new, ps_new);
++
++	return 0;
++}
++
++/*
++ * When snooping MADs between FM and CPORT, the following will be seen:
++ * (FM typically observes the port in INIT when it starts)
++ * FM sends a SET PortInfo MAD with the designated state. The driver
++ * sees the GET response generated by the CPORT, and the state in this
++ * response is not necessarily the state requested by the FM (if the
++ * transition takes time, it may not be reflected in the MAD response).
++ * The following focuses on the logical port state, with the physical
++ * port state when applicable.
++ *
++ * current   FM sends    driver sees    new state
++ * -------   --------    -----------    ---------
++ * INIT      ARMED       ???            ARMED
++ * ARMED     ACTIVE      ???            ACTIVE
++ * ACTIVE    (nothing sent)             ACTIVE
++ *
++ * (*FM bounces port*)
++ * (prev)    NOP/POLL    (prev)         INIT (eventually)
++ *
++ * (*FM changes LID*)
++ * (prev)    ---?        (prev)         (prev)
++ */
++static int cport_set_opa_portinfo(struct hfi2_pportdata *ppd,
++				  struct opa_smp *smp,
++				  u8 *data)
++{
++	struct opa_port_info *pi = (struct opa_port_info *)data;
++	int ret = 0;
++
++	/* Note: what we have here is actually a GET_RESP, in spite of
++	 * appearing to be a SET.
++	 */
++	ret = update_from_opa_portinfo(ppd, smp, pi);
++	return ret;
++}
++
++static int cport_set_opa_pkeytbl(struct hfi2_pportdata *ppd,
++				 struct opa_smp *smp,
++				 u8 *data)
++{
++	struct hfi2_devdata *dd = ppd->dd;
++	u32 am = be32_to_cpu(smp->attr_mod);
++	u32 n_blocks_sent = OPA_AM_NBLK(am);
++	int npk_sent = n_blocks_sent * OPA_PARTITION_TABLE_BLK_SIZE;
++	u32 start_block = am & 0x7ff;
++	u16 *p = (u16 *)data;
++	__be16 *q = (__be16 *)data;
++	int i;
++	u32 n_blocks_avail;
++	u32 npkeys = hfi2_get_npkeys(dd);
++	u32 size = 0;
++	u32 max_len = (u32)opa_get_smp_data_size(smp);
++	int sts = MSG_RSP_STATUS_INVALID_STATE;
++
++	if (n_blocks_sent == 0)
++		goto out;
++	n_blocks_avail = DIV_ROUND_UP(npkeys, OPA_PARTITION_TABLE_BLK_SIZE);
++	size = sizeof(u16) * npk_sent;
++	if (smp_length_check(size, max_len))
++		goto out;
++	if (start_block + n_blocks_sent > n_blocks_avail ||
++	    n_blocks_sent > OPA_NUM_PKEY_BLOCKS_PER_SMP)
++		goto out;
++
++	/* must convert to little-endian for set_pkeys() */
++	for (i = 0; i < npk_sent; i++)
++		p[i] = be16_to_cpu(q[i]);
++	if (set_pkeys(dd, ppd->port, start_block, n_blocks_sent, p) == 0)
++		sts = 0;
++	/* must convert back to big-endian for response */
++	for (i = 0; i < npk_sent; i++)
++		q[i] = cpu_to_be16(p[i]);
++out:
++	return sts;
++}
++
++static int cport_set_opa_slsc(struct hfi2_pportdata *ppd, struct opa_smp *smp,
++			      u8 *data)
++{
++	struct hfi2_ibport *ibp = &ppd->ibport_data;
++	u8 *p = data;
 +	int i;
 +
-+	set_sbus_fast_mode(dd);
-+	/*
-+	 * Write to the PCIe PCSes to set the G3_LOCKED_NEXT bits to 1.
-+	 * This avoids a spurious framing error that can otherwise be
-+	 * generated by the MAC layer.
-+	 *
-+	 * Use individual addresses since no broadcast is set up.
-+	 */
-+	for (i = 0; i < NUM_PCIE_SERDES; i++) {
-+		sbus_request(dd, pcie_pcs_addrs[dd->hfi2_id][i],
-+			     0x03, WRITE_SBUS_RECEIVER, 0x00022132);
-+	}
++	/* always update driver tables with CPORT contents */
++	for (i = 0; i < ARRAY_SIZE(ibp->sl_to_sc); i++)
++		ibp->sl_to_sc[i] = *p++;
 +
-+	clear_sbus_fast_mode(dd);
++	return 0;
 +}
 +
-+/*
-+ * Trigger a secondary bus reset (SBR) on ourselves using our parent.
-+ *
-+ * Based on pci_parent_bus_reset() which is not exported by the
-+ * kernel core.
-+ */
-+static int trigger_sbr(struct hfi2_devdata *dd)
++static int cport_set_opa_vlarb(struct hfi2_pportdata *ppd, struct opa_smp *smp,
++			       u8 *data)
 +{
-+	struct pci_dev *dev = dd->pcidev;
-+	struct pci_dev *pdev;
++	u32 am = be32_to_cpu(smp->attr_mod);
++	u32 num_ports = OPA_AM_NPORT(am);
++	u8 section = (am & 0x00ff0000) >> 16;
++	u8 *p = data;
++	u32 max_len = (u32)opa_get_smp_data_size(smp);
++	int size = 256;
++	int sts = MSG_RSP_STATUS_INVALID_STATE;
 +
-+	/* need a parent */
-+	if (!dev->bus->self) {
-+		dd_dev_err(dd, "%s: no parent device\n", __func__);
-+		return -ENOTTY;
++	if (num_ports != 1 || smp_length_check(size, max_len))
++		goto out;
++
++	switch (section) {
++	case OPA_VLARB_LOW_ELEMENTS:
++		(void)fm_set_table(ppd, FM_TBL_VL_LOW_ARB, p);
++		sts = 0;
++		break;
++	case OPA_VLARB_HIGH_ELEMENTS:
++		(void)fm_set_table(ppd, FM_TBL_VL_HIGH_ARB, p);
++		sts = 0;
++		break;
++	case OPA_VLARB_PREEMPT_ELEMENTS:
++	case OPA_VLARB_PREEMPT_MATRIX:
++	default:
++		break;
 +	}
++out:
++	return sts;
++}
 +
-+	/* should not be anyone else on the bus */
-+	list_for_each_entry(pdev, &dev->bus->devices, bus_list)
-+		if (pdev != dev) {
-+			dd_dev_err(dd,
-+				   "%s: another device is on the same bus\n",
-+				   __func__);
-+			return -ENOTTY;
++static int cport_set_opa_scsl(struct hfi2_pportdata *ppd, struct opa_smp *smp,
++			      u8 *data)
++{
++	struct hfi2_ibport *ibp = &ppd->ibport_data;
++	u8 *p = data;
++	int i;
++
++	/* always update driver tables with CPORT contents */
++	for (i = 0; i < ARRAY_SIZE(ibp->sc_to_sl); i++)
++		ibp->sc_to_sl[i] = *p++;
++
++	return 0;
++}
++
++static int cport_set_opa_scvlr(struct hfi2_pportdata *ppd, struct opa_smp *smp,
++			       u8 *data)
++{
++	int sts = MSG_RSP_STATUS_INVALID_STATE;
++
++	sts = 0;
++	return sts;
++}
++
++static int cport_set_opa_scvlt(struct hfi2_pportdata *ppd, struct opa_smp *smp,
++			       u8 *data)
++{
++	u32 am = be32_to_cpu(smp->attr_mod);
++	u32 n_blocks = OPA_AM_NBLK(am);
++	int async_update = OPA_AM_ASYNC(am);
++	int lstate;
++	size_t size = 4 * sizeof(u64);	/* see __subn_set_opa_sc_to_vlt() */
++	u32 max_len = (u32)opa_get_smp_data_size(smp);
++	int sts = MSG_RSP_STATUS_INVALID_STATE;
++
++	if (n_blocks != 1 || async_update || smp_length_check(size, max_len))
++		goto out;
++	lstate = driver_lstate(ppd);
++	if (!async_update &&
++	    (lstate == IB_PORT_ARMED || lstate == IB_PORT_ACTIVE))
++		goto out;
++
++	/*
++	 * set_sc2vlt_tables() writes CSRs, and CPORT now maintains those.
++	 * Also, need to avoid altering (filter_sc2vlt()) the MAD data since
++	 * it needs to be sent back to requesting node.
++	 */
++	write_seqlock_irq(&ppd->sc2vl_lock);
++	memcpy(ppd->sc2vl, data, sizeof(ppd->sc2vl));
++	filter_sc2vlt(ppd->sc2vl, true);
++	write_sequnlock_irq(&ppd->sc2vl_lock);
++	sts = 0;
++out:
++	return sts;
++}
++
++static int cport_set_opa_scvlnt(struct hfi2_pportdata *ppd, struct opa_smp *smp,
++				u8 *data)
++{
++	u32 am = be32_to_cpu(smp->attr_mod);
++	u32 n_blocks = OPA_AM_NPORT(am);
++	int lstate;
++	int size = sizeof(struct sc2vlnt);
++	u32 max_len = (u32)opa_get_smp_data_size(smp);
++	int sts = MSG_RSP_STATUS_INVALID_STATE;
++
++	if (n_blocks != 1 || smp_length_check(size, max_len))
++		goto out;
++	lstate = driver_lstate(ppd);
++	if (lstate == IB_PORT_ARMED || lstate == IB_PORT_ACTIVE)
++		goto out;
++
++	/* CPORT controls sc2vlnt */
++	sts = 0;
++
++out:
++	return sts;
++}
++
++static int cport_set_opa_bufctl(struct hfi2_pportdata *ppd, struct opa_smp *smp,
++				u8 *data)
++{
++	u32 am = be32_to_cpu(smp->attr_mod);
++	u32 num_ports = OPA_AM_NPORT(am);
++	u32 max_len = (u32)opa_get_smp_data_size(smp);
++	struct buffer_control *p = (struct buffer_control *)data;
++	int sts = MSG_RSP_STATUS_INVALID_STATE;
++
++	if (num_ports != 1 || smp_length_check(sizeof(*p), max_len))
++		goto out;
++
++	sts = 0;
++out:
++	return sts;
++}
++
++static int cport_set_opa_aggr(struct hfi2_pportdata *ppd, struct opa_smp *smp)
++{
++	return 0;
++}
++
++static int cport_subn_set_opa(struct hfi2_pportdata *ppd, struct opa_smp *smp)
++{
++	int sts = MSG_RSP_STATUS_INVALID_STATE;
++	u8 *data = opa_get_smp_data(smp);
++
++	switch (smp->attr_id) {
++	case IB_SMP_ATTR_NODE_DESC:
++		sts = cport_do_opa_nodedesc(ppd, smp, data);
++		break;
++	case IB_SMP_ATTR_NODE_INFO:
++		sts = cport_set_opa_nodeinfo(ppd, smp, data);
++		break;
++	case OPA_ATTRIB_ID_PORT_INFO:
++		sts = cport_set_opa_portinfo(ppd, smp, data);
++		break;
++	case IB_SMP_ATTR_PKEY_TABLE:
++		sts = cport_set_opa_pkeytbl(ppd, smp, data);
++		break;
++	case OPA_ATTRIB_ID_SL_TO_SC_MAP:
++		sts = cport_set_opa_slsc(ppd, smp, data);
++		break;
++	case IB_SMP_ATTR_VL_ARB_TABLE:
++		sts = cport_set_opa_vlarb(ppd, smp, data);
++		break;
++	case OPA_ATTRIB_ID_SC_TO_SL_MAP:
++		sts = cport_set_opa_scsl(ppd, smp, data);
++		break;
++	case OPA_ATTRIB_ID_SC_TO_VLR_MAP:
++		sts = cport_set_opa_scvlr(ppd, smp, data);
++		break;
++	case OPA_ATTRIB_ID_SC_TO_VLT_MAP:
++		sts = cport_set_opa_scvlt(ppd, smp, data);
++		break;
++	case OPA_ATTRIB_ID_SC_TO_VLNT_MAP:
++		sts = cport_set_opa_scvlnt(ppd, smp, data);
++		break;
++	case OPA_ATTRIB_ID_BUFFER_CONTROL_TABLE:
++		sts = cport_set_opa_bufctl(ppd, smp, data);
++		break;
++	case OPA_ATTRIB_ID_CONGESTION_INFO:
++		break;
++	case OPA_ATTRIB_ID_HFI_CONGESTION_LOG:
++		break;
++	case OPA_ATTRIB_ID_HFI_CONGESTION_SETTING:
++		sts = 0; /* accept, nothing to do */
++		break;
++	case OPA_ATTRIB_ID_CONGESTION_CONTROL_TABLE:
++		break;
++	case IB_SMP_ATTR_NOTICE:
++		break;
++	case IB_SMP_ATTR_SM_INFO:
++		break;
++	case IB_SMP_ATTR_LED_INFO:
++		break;
++	case OPA_ATTRIB_ID_CABLE_INFO:
++		break;
++	case OPA_ATTRIB_ID_AGGREGATE:
++		sts = cport_set_opa_aggr(ppd, smp);
++		break;
++	default:
++		break;
++	}
++	return sts;
++}
++
++static int cport_subn_opa(struct hfi2_pportdata *ppd, struct opa_mad *mad)
++{
++	struct opa_smp *smp = (struct opa_smp *)mad;
++	int sts = MSG_RSP_STATUS_INVALID_STATE;
++
++	if (smp->class_version != OPA_SM_CLASS_VERSION) {
++		smp->status |= IB_SMP_UNSUP_VERSION;
++		goto out;
++	}
++	switch (smp->method) {
++	case IB_MGMT_METHOD_SET:
++		sts = cport_subn_set_opa(ppd, smp);
++		break;
++	case IB_MGMT_METHOD_GET:
++		if (smp->attr_id == IB_SMP_ATTR_NODE_DESC) {
++			sts = cport_do_opa_nodedesc(ppd, smp, opa_get_smp_data(smp));
++			break;
++		}
++		sts = 0;
++		break;
++	default:
++		break;
++	}
++out:
++	return sts;
++}
++
++static int hfi2_opa_mad_cport(struct hfi2_pportdata *ppd, struct opa_mad *mad)
++{
++	int sts = MSG_RSP_STATUS_INVALID_STATE;
++
++	switch (mad->mad_hdr.mgmt_class) {
++	case IB_MGMT_CLASS_SUBN_DIRECTED_ROUTE:
++	case IB_MGMT_CLASS_SUBN_LID_ROUTED:
++		sts = cport_subn_opa(ppd, mad);
++		break;
++	case IB_MGMT_CLASS_PERF_MGMT:
++		sts = 0; /* accept, nothing to do */
++		break;
++	default:
++		break;
++	}
++	return sts;
++}
++
++static int cport_get_ib_nodeinfo(struct hfi2_pportdata *ppd, struct ib_smp *smp)
++{
++	return 0;
++}
++
++static int cport_subn_get_ib(struct hfi2_pportdata *ppd, struct ib_smp *smp)
++{
++	int sts = MSG_RSP_STATUS_INVALID_STATE;
++
++	switch (smp->attr_id) {
++	case IB_SMP_ATTR_NODE_INFO:
++		sts = cport_get_ib_nodeinfo(ppd, smp);
++		break;
++	default:
++		smp->status |= IB_SMP_UNSUP_METH_ATTR;
++		break;
++	}
++	if (sts)
++		ppd_dev_err(ppd, "%s: ret %d\n", __func__, sts);
++	return sts;
++}
++
++static int cport_subn_ib(struct hfi2_pportdata *ppd, struct ib_mad *mad)
++{
++	struct ib_smp *smp = (struct ib_smp *)mad;
++	int sts = MSG_RSP_STATUS_INVALID_STATE;
++
++	if (smp->class_version != 1) {
++		smp->status |= IB_SMP_UNSUP_VERSION;
++		goto out;
++	}
++	switch (smp->method) {
++	case IB_MGMT_METHOD_GET:
++		sts = cport_subn_get_ib(ppd, smp);
++		break;
++	default:
++		smp->status |= IB_SMP_UNSUP_METHOD;
++		break;
++	}
++out:
++	if (sts)
++		ppd_dev_err(ppd, "%s: ret %d\n", __func__, sts);
++	return sts;
++}
++
++static int hfi2_ib_mad_cport(struct hfi2_pportdata *ppd, struct ib_mad *mad)
++{
++	int sts = MSG_RSP_STATUS_INVALID_STATE;
++
++	switch (mad->mad_hdr.mgmt_class) {
++	case IB_MGMT_CLASS_SUBN_DIRECTED_ROUTE:
++	case IB_MGMT_CLASS_SUBN_LID_ROUTED:
++		sts = cport_subn_ib(ppd, mad);
++		break;
++	case IB_MGMT_CLASS_PERF_MGMT:
++		sts = 0; /* accept, nothing to do */
++		break;
++	}
++	if (sts)
++		ppd_dev_err(ppd, "%s: ret %d\n", __func__, sts);
++	return sts;
++}
++
++static inline int get_mad_offset(void *hdr, bool is16B)
++{
++	if (is16B) {
++		/* 16B header - look at the L4 type */
++		switch (hfi2_16B_get_l4(hdr)) {
++		case OPA_16B_L4_FM:
++			return MAD_16B_FM_OFFSET;
++		case OPA_16B_L4_IB_LOCAL:
++			return MAD_16B_IB_OFFSET;
++		default:
++			/* can't determine MAD header offset */
++			return -1;
 +		}
 +
-+	/*
-+	 * This is an end around to do an SBR during probe time. A new API needs
-+	 * to be implemented to have cleaner interface but this fixes the
-+	 * current brokenness
-+	 */
-+	return pci_bridge_secondary_bus_reset(dev->bus->self);
-+}
-+
-+/*
-+ * Write the given gasket interrupt register.
-+ */
-+static void write_gasket_interrupt(struct hfi2_devdata *dd, int index,
-+				   u16 code, u16 data)
-+{
-+	write_csr(dd, ASIC_PCIE_SD_INTRPT_LIST + (index * 8),
-+		  (((u64)code << ASIC_PCIE_SD_INTRPT_LIST_INTRPT_CODE_SHIFT) |
-+		   ((u64)data << ASIC_PCIE_SD_INTRPT_LIST_INTRPT_DATA_SHIFT)));
-+}
-+
-+/*
-+ * Tell the gasket logic how to react to the reset.
-+ */
-+static void arm_gasket_logic(struct hfi2_devdata *dd)
-+{
-+	u64 reg;
-+
-+	reg = (((u64)1 << dd->hfi2_id) <<
-+	       ASIC_PCIE_SD_HOST_CMD_INTRPT_CMD_SHIFT) |
-+	      ((u64)pcie_serdes_broadcast[dd->hfi2_id] <<
-+	       ASIC_PCIE_SD_HOST_CMD_SBUS_RCVR_ADDR_SHIFT |
-+	       ASIC_PCIE_SD_HOST_CMD_SBR_MODE_SMASK |
-+	       ((u64)SBR_DELAY_US & ASIC_PCIE_SD_HOST_CMD_TIMER_MASK) <<
-+	       ASIC_PCIE_SD_HOST_CMD_TIMER_SHIFT);
-+	write_csr(dd, ASIC_PCIE_SD_HOST_CMD, reg);
-+	/* read back to push the write */
-+	read_csr(dd, ASIC_PCIE_SD_HOST_CMD);
-+}
-+
-+/*
-+ * CCE_PCIE_CTRL long name helpers
-+ * We redefine these shorter macros to use in the code while leaving
-+ * chip_registers.h to be autogenerated from the hardware spec.
-+ */
-+#define LANE_BUNDLE_MASK              CCE_PCIE_CTRL_PCIE_LANE_BUNDLE_MASK
-+#define LANE_BUNDLE_SHIFT             CCE_PCIE_CTRL_PCIE_LANE_BUNDLE_SHIFT
-+#define LANE_DELAY_MASK               CCE_PCIE_CTRL_PCIE_LANE_DELAY_MASK
-+#define LANE_DELAY_SHIFT              CCE_PCIE_CTRL_PCIE_LANE_DELAY_SHIFT
-+#define MARGIN_OVERWRITE_ENABLE_SHIFT CCE_PCIE_CTRL_XMT_MARGIN_OVERWRITE_ENABLE_SHIFT
-+#define MARGIN_SHIFT                  CCE_PCIE_CTRL_XMT_MARGIN_SHIFT
-+#define MARGIN_G1_G2_OVERWRITE_MASK   CCE_PCIE_CTRL_XMT_MARGIN_GEN1_GEN2_OVERWRITE_ENABLE_MASK
-+#define MARGIN_G1_G2_OVERWRITE_SHIFT  CCE_PCIE_CTRL_XMT_MARGIN_GEN1_GEN2_OVERWRITE_ENABLE_SHIFT
-+#define MARGIN_GEN1_GEN2_MASK         CCE_PCIE_CTRL_XMT_MARGIN_GEN1_GEN2_MASK
-+#define MARGIN_GEN1_GEN2_SHIFT        CCE_PCIE_CTRL_XMT_MARGIN_GEN1_GEN2_SHIFT
-+
-+ /*
-+  * Write xmt_margin for full-swing (WFR-B) or half-swing (WFR-C).
-+  */
-+static void write_xmt_margin(struct hfi2_devdata *dd, const char *fname)
-+{
-+	u64 pcie_ctrl;
-+	u64 xmt_margin;
-+	u64 xmt_margin_oe;
-+	u64 lane_delay;
-+	u64 lane_bundle;
-+
-+	pcie_ctrl = read_csr(dd, CCE_PCIE_CTRL);
-+
-+	/*
-+	 * For Discrete, use full-swing.
-+	 *  - PCIe TX defaults to full-swing.
-+	 *    Leave this register as default.
-+	 * For Integrated, use half-swing
-+	 *  - Copy xmt_margin and xmt_margin_oe
-+	 *    from Gen1/Gen2 to Gen3.
-+	 */
-+	if (dd->pcidev->device == PCI_DEVICE_ID_INTEL1) { /* integrated */
-+		/* extract initial fields */
-+		xmt_margin = (pcie_ctrl >> MARGIN_GEN1_GEN2_SHIFT)
-+			      & MARGIN_GEN1_GEN2_MASK;
-+		xmt_margin_oe = (pcie_ctrl >> MARGIN_G1_G2_OVERWRITE_SHIFT)
-+				 & MARGIN_G1_G2_OVERWRITE_MASK;
-+		lane_delay = (pcie_ctrl >> LANE_DELAY_SHIFT) & LANE_DELAY_MASK;
-+		lane_bundle = (pcie_ctrl >> LANE_BUNDLE_SHIFT)
-+			       & LANE_BUNDLE_MASK;
-+
-+		/*
-+		 * For A0, EFUSE values are not set.  Override with the
-+		 * correct values.
-+		 */
-+		if (is_ax(dd)) {
-+			/*
-+			 * xmt_margin and OverwiteEnabel should be the
-+			 * same for Gen1/Gen2 and Gen3
-+			 */
-+			xmt_margin = 0x5;
-+			xmt_margin_oe = 0x1;
-+			lane_delay = 0xF; /* Delay 240ns. */
-+			lane_bundle = 0x0; /* Set to 1 lane. */
-+		}
-+
-+		/* overwrite existing values */
-+		pcie_ctrl = (xmt_margin << MARGIN_GEN1_GEN2_SHIFT)
-+			| (xmt_margin_oe << MARGIN_G1_G2_OVERWRITE_SHIFT)
-+			| (xmt_margin << MARGIN_SHIFT)
-+			| (xmt_margin_oe << MARGIN_OVERWRITE_ENABLE_SHIFT)
-+			| (lane_delay << LANE_DELAY_SHIFT)
-+			| (lane_bundle << LANE_BUNDLE_SHIFT);
-+
-+		write_csr(dd, CCE_PCIE_CTRL, pcie_ctrl);
-+	}
-+
-+	dd_dev_dbg(dd, "%s: program XMT margin, CcePcieCtrl 0x%llx\n",
-+		   fname, pcie_ctrl);
-+}
-+
-+/*
-+ * Do all the steps needed to transition the PCIe link to Gen3 speed.
-+ */
-+int do_pcie_gen3_transition(struct hfi2_devdata *dd)
-+{
-+	struct pci_dev *parent = dd->pcidev->bus->self;
-+	u64 fw_ctrl;
-+	u64 reg, therm;
-+	u32 reg32, fs, lf;
-+	u32 status, err;
-+	int ret;
-+	int do_retry, retry_count = 0;
-+	int intnum = 0;
-+	uint default_pset;
-+	uint pset = pcie_pset;
-+	u16 target_vector, target_speed;
-+	u16 lnkctl2, vendor;
-+	u8 div;
-+	const u8 (*eq)[3];
-+	const u8 (*ctle_tunings)[4];
-+	uint static_ctle_mode;
-+	int return_error = 0;
-+	u32 target_width;
-+
-+	/* PCIe Gen3 is for the ASIC only */
-+	if (dd->icode != ICODE_RTL_SILICON)
-+		return 0;
-+
-+	if (pcie_target == 1) {			/* target Gen1 */
-+		target_vector = PCI_EXP_LNKCTL2_TLS_2_5GT;
-+		target_speed = 2500;
-+	} else if (pcie_target == 2) {		/* target Gen2 */
-+		target_vector = PCI_EXP_LNKCTL2_TLS_5_0GT;
-+		target_speed = 5000;
-+	} else if (pcie_target == 3) {		/* target Gen3 */
-+		target_vector = PCI_EXP_LNKCTL2_TLS_8_0GT;
-+		target_speed = 8000;
 +	} else {
-+		/* off or invalid target - skip */
-+		dd_dev_info(dd, "%s: Skipping PCIe transition\n", __func__);
-+		return 0;
++		/* expect 9B */
++		return MAD_9B_OFFSET;
 +	}
++}
 +
-+	/* if already at target speed, done (unless forced) */
-+	if (dd->lbus_speed == target_speed) {
-+		dd_dev_info(dd, "%s: PCIe already at gen%d, %s\n", __func__,
-+			    pcie_target,
-+			    pcie_force ? "re-doing anyway" : "skipping");
-+		if (!pcie_force)
-+			return 0;
-+	}
++/*
++ * CPORT is communicating with some user-space application using MADs.
++ * We simply forward these MADs to IB verbs to handle as for normal
++ * receives.
++ */
++static int cport_umad_handler(struct hfi2_devdata *dd, u8 op, u8 sideband,
++			      void *payload, int len, void *handle)
++{
++	struct ib_smp *mad;
++	struct hfi2_pportdata *ppd;
++	struct rvt_qp *qp0;
++	struct ib_wc wc;
++	int mad_offset;
++	u32 tlen;
++	int port;
++	int ret = 0;
++	int rc;
 +
-+	/*
-+	 * The driver cannot do the transition if it has no access to the
-+	 * upstream component
++	mad_offset = get_mad_offset(payload, op == CH_OP_UMAD_16B);
++	if (mad_offset < 0)
++		return MSG_RSP_STATUS_INVALID_STATE;
++	mad = payload + mad_offset;
++
++	/* This MAD really must be IB_MGMT_CLASS_SUBN_DIRECTED_ROUTE,
++	 * but this routine doesn't care.
 +	 */
-+	if (!parent) {
-+		dd_dev_info(dd, "%s: No upstream, Can't do gen3 transition\n",
-+			    __func__);
-+		return 0;
++
++	port = sideband & 0x7;
++	if (!port)
++		port = 1;
++	if (port > dd->num_pports) {
++		port -= dd->num_pports;
++		if (port > dd->num_pports)
++			port = 1;
++	}
++	ppd = &dd->pport[port - 1];
++	rcu_read_lock();
++	qp0 = rcu_dereference(ppd->ibport_data.rvp.qp[0]);
++	if (!qp0) {
++		ppd_dev_err(ppd, "QP0 is NULL\n");
++		ret = MSG_RSP_STATUS_INVALID_STATE;
++		goto out;
 +	}
 +
-+	/* Previous Gen1/Gen2 bus width */
-+	target_width = dd->lbus_width;
++	tlen = len - mad_offset;
 +
-+	/*
-+	 * Do the Gen3 transition.  Steps are those of the PCIe Gen3
-+	 * recipe.
-+	 */
-+
-+	/* step 1: pcie link working in gen1/gen2 */
-+
-+	/* step 2: if either side is not capable of Gen3, done */
-+	if (pcie_target == 3 && !dd->link_gen3_capable) {
-+		dd_dev_err(dd, "The PCIe link is not Gen3 capable\n");
-+		ret = -ENOSYS;
-+		goto done_no_mutex;
++	wc.ex.imm_data = 0;
++	wc.wc_flags = IB_WC_IP_CSUM_OK;
++	wc.byte_len = tlen + sizeof(struct ib_grh);
++	/* Ignore RVT_R_REUSE_SGE here, as done by hfi2_rc_rcv and hfi2_uc_rcv */
++	rc = rvt_get_rwqe(qp0, false);
++	if (rc <= 0) {
++		if (rc < 0)
++			rvt_rc_error(qp0, IB_WC_LOC_QP_OP_ERR);
++		else
++			ppd->ibport_data.rvp.n_vl15_dropped++;
++		ret = MSG_RSP_STATUS_INVALID_STATE;
++		goto out;
++	}
++	rvt_skip_sge(&qp0->r_sge, sizeof(struct ib_grh), true);
++	rvt_copy_sge(qp0, &qp0->r_sge, payload + mad_offset,
++		     wc.byte_len - sizeof(struct ib_grh), true, false);
++	rvt_put_ss(&qp0->r_sge);
++	if (!test_and_clear_bit(RVT_R_WRID_VALID, &qp0->r_aflags)) {
++		/* Something went wrong since rvt_get_rwqe, assume it was transient */
++		ret = MSG_RSP_STATUS_RETRY;
++		goto out;
 +	}
 +
-+	/* hold the SBus resource across the firmware download and SBR */
-+	ret = acquire_chip_resource(dd, CR_SBUS, SBUS_TIMEOUT);
-+	if (ret) {
-+		dd_dev_err(dd, "%s: unable to acquire SBus resource\n",
-+			   __func__);
-+		return ret;
-+	}
++	wc.wr_id = qp0->r_wr_id;
++	wc.status = IB_WC_SUCCESS;
++	wc.opcode = IB_WC_RECV;
++	wc.vendor_err = 0;
++	wc.qp = &qp0->ibqp;
++	wc.src_qp = 0;	/* MCTXT has no QP, so just use 0 */
++	wc.pkey_index = 0;
++	wc.slid = be16_to_cpu(mad->dr_slid);
++	wc.sl = ppd->ibport_data.sc_to_sl[15];
++	wc.dlid_path_bits = be16_to_cpu(mad->dr_dlid) & ((1 << ppd->lmc) - 1);
++	wc.port_num = qp0->port_num;
 +
-+	/* make sure thermal polling is not causing interrupts */
-+	therm = read_csr(dd, ASIC_CFG_THERM_POLL_EN);
-+	if (therm) {
-+		write_csr(dd, ASIC_CFG_THERM_POLL_EN, 0x0);
-+		msleep(100);
-+		dd_dev_info(dd, "%s: Disabled therm polling\n",
-+			    __func__);
-+	}
++	rvt_recv_cq(qp0, &wc, false);
++out:
++	rcu_read_unlock();
++	return ret;
++}
 +
-+retry:
-+	/* the SBus download will reset the spico for thermal */
++/*
++ * CPORT sends us the MAD response, so our only actions are to
++ * modify the response to add more data and/or take note of any
++ * implications of the MAD.
++ */
++static int cport_mad_handler(struct hfi2_devdata *dd, u8 op, u8 sideband,
++			     void *payload, int len, void *handle)
++{
++	struct ib_mad *mad = NULL;
++	struct hfi2_pportdata *ppd = NULL;
++	int sts = MSG_RSP_STATUS_INVALID_STATE;
++	int mad_offset;
++	int port;
 +
-+	/* step 3: download SBus Master firmware */
-+	/* step 4: download PCIe Gen3 SerDes firmware */
-+	dd_dev_info(dd, "%s: downloading firmware\n", __func__);
-+	ret = load_pcie_firmware(dd);
-+	if (ret) {
-+		/* do not proceed if the firmware cannot be downloaded */
-+		return_error = 1;
++	mad_offset = get_mad_offset(payload, op == CH_OP_MAD_16B);
++	if (mad_offset < 0)
 +		goto done;
++	mad = (struct ib_mad *)(payload + mad_offset);
++
++	port = sideband & 0x7;
++	if (!port) {
++		dd_dev_info(dd, "Fudging zero port to 1\n");
++		port = 1;
 +	}
-+
-+	/* step 5: set up device parameter settings */
-+	dd_dev_info(dd, "%s: setting PCIe registers\n", __func__);
-+
-+	/*
-+	 * PcieCfgSpcie1 - Link Control 3
-+	 * Leave at reset value.  No need to set PerfEq - link equalization
-+	 * will be performed automatically after the SBR when the target
-+	 * speed is 8GT/s.
-+	 */
-+
-+	/* clear all 16 per-lane error bits (PCIe: Lane Error Status) */
-+	pci_write_config_dword(dd->pcidev, PCIE_CFG_SPCIE2, 0xffff);
-+
-+	/* step 5a: Set Synopsys Port Logic registers */
-+
-+	/*
-+	 * PcieCfgRegPl2 - Port Force Link
-+	 *
-+	 * Set the low power field to 0x10 to avoid unnecessary power
-+	 * management messages.  All other fields are zero.
-+	 */
-+	reg32 = 0x10ul << PCIE_CFG_REG_PL2_LOW_PWR_ENT_CNT_SHIFT;
-+	pci_write_config_dword(dd->pcidev, PCIE_CFG_REG_PL2, reg32);
-+
-+	/*
-+	 * PcieCfgRegPl100 - Gen3 Control
-+	 *
-+	 * turn off PcieCfgRegPl100.Gen3ZRxDcNonCompl
-+	 * turn on PcieCfgRegPl100.EqEieosCnt
-+	 * Everything else zero.
-+	 */
-+	reg32 = PCIE_CFG_REG_PL100_EQ_EIEOS_CNT_SMASK;
-+	pci_write_config_dword(dd->pcidev, PCIE_CFG_REG_PL100, reg32);
-+
-+	/*
-+	 * PcieCfgRegPl101 - Gen3 EQ FS and LF
-+	 * PcieCfgRegPl102 - Gen3 EQ Presets to Coefficients Mapping
-+	 * PcieCfgRegPl103 - Gen3 EQ Preset Index
-+	 * PcieCfgRegPl105 - Gen3 EQ Status
-+	 *
-+	 * Give initial EQ settings.
-+	 */
-+	if (dd->pcidev->device == PCI_DEVICE_ID_INTEL0) { /* discrete */
-+		/* 1000mV, FS=24, LF = 8 */
-+		fs = 24;
-+		lf = 8;
-+		div = 3;
-+		eq = discrete_preliminary_eq;
-+		default_pset = DEFAULT_DISCRETE_PSET;
-+		ctle_tunings = discrete_ctle_tunings;
-+		/* bit 0 - discrete on/off */
-+		static_ctle_mode = pcie_ctle & 0x1;
-+	} else {
-+		/* 400mV, FS=29, LF = 9 */
-+		fs = 29;
-+		lf = 9;
-+		div = 1;
-+		eq = integrated_preliminary_eq;
-+		default_pset = DEFAULT_MCP_PSET;
-+		ctle_tunings = integrated_ctle_tunings;
-+		/* bit 1 - integrated on/off */
-+		static_ctle_mode = (pcie_ctle >> 1) & 0x1;
++	if (port > 2) {
++		dd_dev_info(dd, "Fudging loopback port %d -> %d\n",
++			    port, port - 2);
++		port = port - 2;
 +	}
-+	pci_write_config_dword(dd->pcidev, PCIE_CFG_REG_PL101,
-+			       (fs <<
-+				PCIE_CFG_REG_PL101_GEN3_EQ_LOCAL_FS_SHIFT) |
-+			       (lf <<
-+				PCIE_CFG_REG_PL101_GEN3_EQ_LOCAL_LF_SHIFT));
-+	ret = load_eq_table(dd, eq, fs, div);
-+	if (ret)
++	if (!port || port > dd->num_pports)
 +		goto done;
++	ppd = &dd->pport[port - 1];
 +
-+	/*
-+	 * PcieCfgRegPl106 - Gen3 EQ Control
-+	 *
-+	 * Set Gen3EqPsetReqVec, leave other fields 0.
-+	 */
-+	if (pset == UNSET_PSET)
-+		pset = default_pset;
-+	if (pset > 10) {	/* valid range is 0-10, inclusive */
-+		dd_dev_err(dd, "%s: Invalid Eq Pset %u, setting to %d\n",
-+			   __func__, pset, default_pset);
-+		pset = default_pset;
-+	}
-+	dd_dev_info(dd, "%s: using EQ Pset %u\n", __func__, pset);
-+	pci_write_config_dword(dd->pcidev, PCIE_CFG_REG_PL106,
-+			       ((1 << pset) <<
-+			PCIE_CFG_REG_PL106_GEN3_EQ_PSET_REQ_VEC_SHIFT) |
-+			PCIE_CFG_REG_PL106_GEN3_EQ_EVAL2MS_DISABLE_SMASK |
-+			PCIE_CFG_REG_PL106_GEN3_EQ_PHASE23_EXIT_MODE_SMASK);
-+
-+	/*
-+	 * step 5b: Do post firmware download steps via SBus
-+	 */
-+	dd_dev_info(dd, "%s: doing pcie post steps\n", __func__);
-+	pcie_post_steps(dd);
-+
-+	/*
-+	 * step 5c: Program gasket interrupts
-+	 */
-+	/* set the Rx Bit Rate to REFCLK ratio */
-+	write_gasket_interrupt(dd, intnum++, 0x0006, 0x0050);
-+	/* disable pCal for PCIe Gen3 RX equalization */
-+	/* select adaptive or static CTLE */
-+	write_gasket_interrupt(dd, intnum++, 0x0026,
-+			       0x5b01 | (static_ctle_mode << 3));
-+	/*
-+	 * Enable iCal for PCIe Gen3 RX equalization, and set which
-+	 * evaluation of RX_EQ_EVAL will launch the iCal procedure.
-+	 */
-+	write_gasket_interrupt(dd, intnum++, 0x0026, 0x5202);
-+
-+	if (static_ctle_mode) {
-+		/* apply static CTLE tunings */
-+		u8 pcie_dc, pcie_lf, pcie_hf, pcie_bw;
-+
-+		pcie_dc = ctle_tunings[pset][0];
-+		pcie_lf = ctle_tunings[pset][1];
-+		pcie_hf = ctle_tunings[pset][2];
-+		pcie_bw = ctle_tunings[pset][3];
-+		write_gasket_interrupt(dd, intnum++, 0x0026, 0x0200 | pcie_dc);
-+		write_gasket_interrupt(dd, intnum++, 0x0026, 0x0100 | pcie_lf);
-+		write_gasket_interrupt(dd, intnum++, 0x0026, 0x0000 | pcie_hf);
-+		write_gasket_interrupt(dd, intnum++, 0x0026, 0x5500 | pcie_bw);
-+	}
-+
-+	/* terminate list */
-+	write_gasket_interrupt(dd, intnum++, 0x0000, 0x0000);
-+
-+	/*
-+	 * step 5d: program XMT margin
-+	 */
-+	write_xmt_margin(dd, __func__);
-+
-+	/*
-+	 * step 5e: disable active state power management (ASPM). It
-+	 * will be enabled if required later
-+	 */
-+	dd_dev_info(dd, "%s: clearing ASPM\n", __func__);
-+	aspm_hw_disable_l1(dd);
-+
-+	/*
-+	 * step 5f: clear DirectSpeedChange
-+	 * PcieCfgRegPl67.DirectSpeedChange must be zero to prevent the
-+	 * change in the speed target from starting before we are ready.
-+	 * This field defaults to 0 and we are not changing it, so nothing
-+	 * needs to be done.
-+	 */
-+
-+	/* step 5g: Set target link speed */
-+	/*
-+	 * Set target link speed to be target on both device and parent.
-+	 * On setting the parent: Some system BIOSs "helpfully" set the
-+	 * parent target speed to Gen2 to match the ASIC's initial speed.
-+	 * We can set the target Gen3 because we have already checked
-+	 * that it is Gen3 capable earlier.
-+	 */
-+	dd_dev_info(dd, "%s: setting parent target link speed\n", __func__);
-+	ret = pcie_capability_read_word(parent, PCI_EXP_LNKCTL2, &lnkctl2);
-+	if (ret) {
-+		dd_dev_err(dd, "Unable to read from PCI config\n");
-+		return_error = 1;
-+		goto done;
-+	}
-+
-+	dd_dev_info(dd, "%s: ..old link control2: 0x%x\n", __func__,
-+		    (u32)lnkctl2);
-+	/* only write to parent if target is not as high as ours */
-+	if ((lnkctl2 & PCI_EXP_LNKCTL2_TLS) < target_vector) {
-+		ret = pcie_capability_clear_and_set_word(parent, PCI_EXP_LNKCTL2,
-+							 PCI_EXP_LNKCTL2_TLS,
-+							 target_vector);
-+		if (ret) {
-+			dd_dev_err(dd, "Unable to change parent PCI target speed\n");
-+			return_error = 1;
-+			goto done;
-+		}
-+	} else {
-+		dd_dev_info(dd, "%s: ..target speed is OK\n", __func__);
-+	}
-+
-+	dd_dev_info(dd, "%s: setting target link speed\n", __func__);
-+	ret = pcie_capability_clear_and_set_word(dd->pcidev, PCI_EXP_LNKCTL2,
-+						 PCI_EXP_LNKCTL2_TLS,
-+						 target_vector);
-+	if (ret) {
-+		dd_dev_err(dd, "Unable to change device PCI target speed\n");
-+		return_error = 1;
-+		goto done;
-+	}
-+
-+	/* step 5h: arm gasket logic */
-+	/* hold DC in reset across the SBR */
-+	write_csr(dd, CCE_DC_CTRL, CCE_DC_CTRL_DC_RESET_SMASK);
-+	(void)read_csr(dd, CCE_DC_CTRL); /* DC reset hold */
-+	/* save firmware control across the SBR */
-+	fw_ctrl = read_csr(dd, MISC_CFG_FW_CTRL);
-+
-+	dd_dev_info(dd, "%s: arming gasket logic\n", __func__);
-+	arm_gasket_logic(dd);
-+
-+	/*
-+	 * step 6: quiesce PCIe link
-+	 * The chip has already been reset, so there will be no traffic
-+	 * from the chip.  Linux has no easy way to enforce that it will
-+	 * not try to access the device, so we just need to hope it doesn't
-+	 * do it while we are doing the reset.
-+	 */
-+
-+	/*
-+	 * step 7: initiate the secondary bus reset (SBR)
-+	 * step 8: hardware brings the links back up
-+	 * step 9: wait for link speed transition to be complete
-+	 */
-+	dd_dev_info(dd, "%s: calling trigger_sbr\n", __func__);
-+	ret = trigger_sbr(dd);
-+	if (ret)
-+		goto done;
-+
-+	/* step 10: decide what to do next */
-+
-+	/* check if we can read PCI space */
-+	ret = pci_read_config_word(dd->pcidev, PCI_VENDOR_ID, &vendor);
-+	if (ret) {
-+		dd_dev_info(dd,
-+			    "%s: read of VendorID failed after SBR, err %d\n",
-+			    __func__, ret);
-+		return_error = 1;
-+		goto done;
-+	}
-+	if (vendor == 0xffff) {
-+		dd_dev_info(dd, "%s: VendorID is all 1s after SBR\n", __func__);
-+		return_error = 1;
-+		ret = -EIO;
-+		goto done;
-+	}
-+
-+	/* restore PCI space registers we know were reset */
-+	dd_dev_info(dd, "%s: calling restore_pci_variables\n", __func__);
-+	ret = restore_pci_variables(dd);
-+	if (ret) {
-+		dd_dev_err(dd, "%s: Could not restore PCI variables\n",
-+			   __func__);
-+		return_error = 1;
-+		goto done;
-+	}
-+
-+	/* restore firmware control */
-+	write_csr(dd, MISC_CFG_FW_CTRL, fw_ctrl);
-+
-+	/*
-+	 * Check the gasket block status.
-+	 *
-+	 * This is the first CSR read after the SBR.  If the read returns
-+	 * all 1s (fails), the link did not make it back.
-+	 *
-+	 * Once we're sure we can read and write, clear the DC reset after
-+	 * the SBR.  Then check for any per-lane errors. Then look over
-+	 * the status.
-+	 */
-+	reg = read_csr(dd, ASIC_PCIE_SD_HOST_STATUS);
-+	dd_dev_info(dd, "%s: gasket block status: 0x%llx\n", __func__, reg);
-+	if (reg == ~0ull) {	/* PCIe read failed/timeout */
-+		dd_dev_err(dd, "SBR failed - unable to read from device\n");
-+		return_error = 1;
-+		ret = -ENOSYS;
-+		goto done;
-+	}
-+
-+	/* clear the DC reset */
-+	write_csr(dd, CCE_DC_CTRL, 0);
-+
-+	/* Set the LED off (only 1 port for WFR) */
-+	dd->params->setextled(&dd->pport[0], 0);
-+
-+	/* check for any per-lane errors */
-+	ret = pci_read_config_dword(dd->pcidev, PCIE_CFG_SPCIE2, &reg32);
-+	if (ret) {
-+		dd_dev_err(dd, "Unable to read from PCI config\n");
-+		return_error = 1;
-+		goto done;
-+	}
-+
-+	dd_dev_info(dd, "%s: per-lane errors: 0x%x\n", __func__, reg32);
-+
-+	/* extract status, look for our HFI */
-+	status = (reg >> ASIC_PCIE_SD_HOST_STATUS_FW_DNLD_STS_SHIFT)
-+			& ASIC_PCIE_SD_HOST_STATUS_FW_DNLD_STS_MASK;
-+	if ((status & (1 << dd->hfi2_id)) == 0) {
-+		dd_dev_err(dd,
-+			   "%s: gasket status 0x%x, expecting 0x%x\n",
-+			   __func__, status, 1 << dd->hfi2_id);
-+		ret = -EIO;
-+		goto done;
-+	}
-+
-+	/* extract error */
-+	err = (reg >> ASIC_PCIE_SD_HOST_STATUS_FW_DNLD_ERR_SHIFT)
-+		& ASIC_PCIE_SD_HOST_STATUS_FW_DNLD_ERR_MASK;
-+	if (err) {
-+		dd_dev_err(dd, "%s: gasket error %d\n", __func__, err);
-+		ret = -EIO;
-+		goto done;
-+	}
-+
-+	/* update our link information cache */
-+	update_lbus_info(dd);
-+	dd_dev_info(dd, "%s: new speed and width: %s\n", __func__,
-+		    dd->lbus_info);
-+
-+	if (dd->lbus_speed != target_speed ||
-+	    dd->lbus_width < target_width) { /* not target */
-+		/* maybe retry */
-+		do_retry = retry_count < pcie_retry;
-+		dd_dev_err(dd, "PCIe link speed or width did not match target%s\n",
-+			   do_retry ? ", retrying" : "");
-+		retry_count++;
-+		if (do_retry) {
-+			msleep(100); /* allow time to settle */
-+			goto retry;
-+		}
-+		ret = -EIO;
++	switch (mad->mad_hdr.base_version) {
++	case OPA_MGMT_BASE_VERSION:
++		sts = hfi2_opa_mad_cport(ppd, (struct opa_mad *)mad);
++		break;
++	case IB_MGMT_BASE_VERSION:
++		sts = hfi2_ib_mad_cport(ppd, mad);
++		break;
++	default:
++		break;
 +	}
 +
 +done:
-+	if (therm) {
-+		write_csr(dd, ASIC_CFG_THERM_POLL_EN, 0x1);
-+		msleep(100);
-+		dd_dev_info(dd, "%s: Re-enable therm polling\n",
-+			    __func__);
-+	}
-+	release_chip_resource(dd, CR_SBUS);
-+done_no_mutex:
-+	/* return no error if it is OK to be at current speed */
-+	if (ret && !return_error) {
-+		dd_dev_err(dd, "Proceeding at current speed PCIe speed\n");
-+		ret = 0;
-+	}
++	/* print mad and error before mad_hdr.method is overwritten */
++	if (mad && (sts || (mad->mad_hdr.status & ~IB_SMP_DIRECTION))) {
 +
-+	dd_dev_info(dd, "%s: done\n", __func__);
-+	return ret;
++		if (ppd)
++			ppd_dev_info(ppd, "CPORT MAD error: [%02x] %02x %02x %02x %02x - %04x %04x %08x (%d)\n",
++				     sideband, mad->mad_hdr.base_version,
++				     mad->mad_hdr.mgmt_class,
++				     mad->mad_hdr.class_version,
++				     mad->mad_hdr.method,
++				     be16_to_cpu(mad->mad_hdr.status),
++				     be16_to_cpu(mad->mad_hdr.attr_id),
++				     be32_to_cpu(mad->mad_hdr.attr_mod),
++				     sts);
++		else
++			dd_dev_info(dd, "CPORT MAD error: [%02x] %02x %02x %02x %02x - %04x %04x %08x (%d)\n",
++				    sideband, mad->mad_hdr.base_version,
++				    mad->mad_hdr.mgmt_class,
++				    mad->mad_hdr.class_version,
++				    mad->mad_hdr.method,
++				    be16_to_cpu(mad->mad_hdr.status),
++				    be16_to_cpu(mad->mad_hdr.attr_id),
++				    be32_to_cpu(mad->mad_hdr.attr_mod),
++				    sts);
++	} else if (sts) {
++		if (ppd)
++			ppd_dev_info(ppd, "CPORT MAD error: [%02x] (%d)\n",
++				     sideband, sts);
++		else
++			dd_dev_info(dd, "CPORT MAD error: [%02x] (%d)\n",
++				    sideband, sts);
++	}
++	/*
++	 * Last step before returning MAD to cport: If this was a Get or Set,
++	 * change the MgmtMethod value to a Get Response.
++	 */
++	if (mad && (mad->mad_hdr.method == IB_MGMT_METHOD_GET ||
++		    mad->mad_hdr.method == IB_MGMT_METHOD_SET))
++		mad->mad_hdr.method = IB_MGMT_METHOD_GET_RESP;
++	/*
++	 * Copy (MAD response) payload back into MCTXT response.
++	 * This is done even if sts != 0.
++	 */
++	cport_resp_set(handle, payload, len);
++	return sts;
 +}
-diff --git a/drivers/infiniband/hw/hfi2/platform.c b/drivers/infiniband/hw/hfi2/platform.c
-new file mode 100644
-index 000000000000..8fbd8878432d
---- /dev/null
-+++ b/drivers/infiniband/hw/hfi2/platform.c
-@@ -0,0 +1,1035 @@
-+// SPDX-License-Identifier: GPL-2.0 OR BSD-3-Clause
-+/*
-+ * Copyright(c) 2015, 2016 Intel Corporation.
-+ */
 +
-+#include <linux/firmware.h>
-+
-+#include "hfi2.h"
-+#include "efivar.h"
-+#include "eprom.h"
-+
-+#define DEFAULT_PLATFORM_CONFIG_NAME "hfi2_platform.dat"
-+
-+static int validate_scratch_checksum(struct hfi2_devdata *dd)
++int hfi2_mad_init(struct hfi2_devdata *dd)
 +{
-+	u64 checksum = 0, temp_scratch = 0;
-+	int i, j, version;
++	int ret;
 +
-+	temp_scratch = read_csr(dd, ASIC_CFG_SCRATCH);
-+	version = (temp_scratch & BITMAP_VERSION_SMASK) >> BITMAP_VERSION_SHIFT;
-+
-+	/* Prevent power on default of all zeroes from passing checksum */
-+	if (!version) {
-+		dd_dev_err(dd, "%s: Config bitmap uninitialized\n", __func__);
-+		dd_dev_err(dd,
-+			   "%s: Please update your BIOS to support active channels\n",
-+			   __func__);
++	if (!dd->cport)
 +		return 0;
-+	}
-+
-+	/*
-+	 * ASIC scratch 0 only contains the checksum and bitmap version as
-+	 * fields of interest, both of which are handled separately from the
-+	 * loop below, so skip it
-+	 */
-+	checksum += version;
-+	for (i = 1; i < ASIC_NUM_SCRATCH; i++) {
-+		temp_scratch = read_csr(dd, ASIC_CFG_SCRATCH + (8 * i));
-+		for (j = sizeof(u64); j != 0; j -= 2) {
-+			checksum += (temp_scratch & 0xFFFF);
-+			temp_scratch >>= 16;
-+		}
-+	}
-+
-+	while (checksum >> 16)
-+		checksum = (checksum & CHECKSUM_MASK) + (checksum >> 16);
-+
-+	temp_scratch = read_csr(dd, ASIC_CFG_SCRATCH);
-+	temp_scratch &= CHECKSUM_SMASK;
-+	temp_scratch >>= CHECKSUM_SHIFT;
-+
-+	if (checksum + temp_scratch == 0xFFFF)
-+		return 1;
-+
-+	dd_dev_err(dd, "%s: Configuration bitmap corrupted\n", __func__);
-+	return 0;
-+}
-+
-+static void save_platform_config_fields(struct hfi2_pportdata *ppd)
-+{
-+	struct hfi2_devdata *dd = ppd->dd;
-+	u64 temp_scratch = 0, temp_dest = 0;
-+
-+	temp_scratch = read_csr(dd, ASIC_CFG_SCRATCH_1);
-+
-+	temp_dest = temp_scratch &
-+		    (dd->hfi2_id ? PORT1_PORT_TYPE_SMASK :
-+		     PORT0_PORT_TYPE_SMASK);
-+	ppd->port_type = temp_dest >>
-+			 (dd->hfi2_id ? PORT1_PORT_TYPE_SHIFT :
-+			  PORT0_PORT_TYPE_SHIFT);
-+
-+	temp_dest = temp_scratch &
-+		    (dd->hfi2_id ? PORT1_LOCAL_ATTEN_SMASK :
-+		     PORT0_LOCAL_ATTEN_SMASK);
-+	ppd->local_atten = temp_dest >>
-+			   (dd->hfi2_id ? PORT1_LOCAL_ATTEN_SHIFT :
-+			    PORT0_LOCAL_ATTEN_SHIFT);
-+
-+	temp_dest = temp_scratch &
-+		    (dd->hfi2_id ? PORT1_REMOTE_ATTEN_SMASK :
-+		     PORT0_REMOTE_ATTEN_SMASK);
-+	ppd->remote_atten = temp_dest >>
-+			    (dd->hfi2_id ? PORT1_REMOTE_ATTEN_SHIFT :
-+			     PORT0_REMOTE_ATTEN_SHIFT);
-+
-+	temp_dest = temp_scratch &
-+		    (dd->hfi2_id ? PORT1_DEFAULT_ATTEN_SMASK :
-+		     PORT0_DEFAULT_ATTEN_SMASK);
-+	ppd->default_atten = temp_dest >>
-+			     (dd->hfi2_id ? PORT1_DEFAULT_ATTEN_SHIFT :
-+			      PORT0_DEFAULT_ATTEN_SHIFT);
-+
-+	temp_scratch = read_csr(dd, dd->hfi2_id ? ASIC_CFG_SCRATCH_3 :
-+				ASIC_CFG_SCRATCH_2);
-+
-+	ppd->tx_preset_eq = (temp_scratch & TX_EQ_SMASK) >> TX_EQ_SHIFT;
-+	ppd->tx_preset_noeq = (temp_scratch & TX_NO_EQ_SMASK) >> TX_NO_EQ_SHIFT;
-+	ppd->rx_preset = (temp_scratch & RX_SMASK) >> RX_SHIFT;
-+
-+	ppd->max_power_class = (temp_scratch & QSFP_MAX_POWER_SMASK) >>
-+				QSFP_MAX_POWER_SHIFT;
-+
-+	ppd->config_from_scratch = true;
-+}
-+
-+void get_platform_config(struct hfi2_pportdata *ppd)
-+{
-+	struct hfi2_devdata *dd = ppd->dd;
-+	int ret = 0;
-+	u8 *temp_platform_config = NULL;
-+	u32 esize;
-+	const struct firmware *platform_config_file = NULL;
-+
-+	if (is_integrated(dd)) {
-+		if (validate_scratch_checksum(dd)) {
-+			save_platform_config_fields(ppd);
-+			return;
-+		}
-+	} else {
-+		ret = eprom_read_platform_config(dd,
-+						 (void **)&temp_platform_config,
-+						 &esize);
-+		if (!ret) {
-+			/* success */
-+			dd->platform_config.data = temp_platform_config;
-+			dd->platform_config.size = esize;
-+			return;
-+		}
-+	}
-+	dd_dev_err(dd,
-+		   "%s: Failed to get platform config, falling back to sub-optimal default file\n",
-+		   __func__);
-+
-+	ret = request_firmware(&platform_config_file,
-+			       DEFAULT_PLATFORM_CONFIG_NAME,
-+			       &dd->pcidev->dev);
-+	if (ret) {
-+		dd_dev_err(dd,
-+			   "%s: No default platform config file found\n",
-+			   __func__);
-+		return;
-+	}
-+
-+	/*
-+	 * Allocate separate memory block to store data and free firmware
-+	 * structure. This allows free_platform_config to treat EPROM and
-+	 * fallback configs in the same manner.
-+	 */
-+	dd->platform_config.data = kmemdup(platform_config_file->data,
-+					   platform_config_file->size,
-+					   GFP_KERNEL);
-+	dd->platform_config.size = platform_config_file->size;
-+	release_firmware(platform_config_file);
-+}
-+
-+void free_platform_config(struct hfi2_devdata *dd)
-+{
-+	/* Release memory allocated for eprom or fallback file read. */
-+	kfree(dd->platform_config.data);
-+	dd->platform_config.data = NULL;
-+}
-+
-+void get_port_type(struct hfi2_pportdata *ppd)
-+{
-+	int ret;
-+	u32 temp;
-+
-+	ret = get_platform_config_field(ppd, PLATFORM_CONFIG_PORT_TABLE, 0,
-+					PORT_TABLE_PORT_TYPE, &temp,
-+					4);
-+	if (ret) {
-+		ppd->port_type = PORT_TYPE_UNKNOWN;
-+		return;
-+	}
-+	ppd->port_type = temp;
-+}
-+
-+int set_qsfp_tx(struct hfi2_pportdata *ppd, int on)
-+{
-+	u8 tx_ctrl_byte = on ? 0x0 : 0xF;
-+	int ret = 0;
-+
-+	ret = qsfp_write(ppd, ppd->dd->hfi2_id, QSFP_TX_CTRL_BYTE_OFFS,
-+			 &tx_ctrl_byte, 1);
-+	/* we expected 1, so consider 0 an error */
-+	if (ret == 0)
-+		ret = -EIO;
-+	else if (ret == 1)
-+		ret = 0;
++	ret = cport_register_cb(dd, CH_OP_MAD_9B, CH_OP_MAD_16B, cport_mad_handler);
++	if (ret)
++		dd_dev_warn(dd, "Failed to register for MCTXT MADs (%d)\n", ret);
++	ret = cport_register_cb(dd, CH_OP_UMAD_9B, CH_OP_UMAD_16B, cport_umad_handler);
++	if (ret)
++		dd_dev_warn(dd, "Failed to register for MCTXT UMADs (%d)\n", ret);
 +	return ret;
 +}
 +
-+static int qual_power(struct hfi2_pportdata *ppd)
++int hfi2_mad_deinit(struct hfi2_devdata *dd)
 +{
-+	u32 cable_power_class = 0, power_class_max = 0;
-+	u8 *cache = ppd->qsfp_info.cache;
-+	int ret = 0;
-+
-+	ret = get_platform_config_field(
-+		ppd, PLATFORM_CONFIG_SYSTEM_TABLE, 0,
-+		SYSTEM_TABLE_QSFP_POWER_CLASS_MAX, &power_class_max, 4);
-+	if (ret)
-+		return ret;
-+
-+	cable_power_class = get_qsfp_power_class(cache[QSFP_MOD_PWR_OFFS]);
-+
-+	if (cable_power_class > power_class_max)
-+		ppd->offline_disabled_reason =
-+			HFI2_ODR_MASK(OPA_LINKDOWN_REASON_POWER_POLICY);
-+
-+	if (ppd->offline_disabled_reason ==
-+			HFI2_ODR_MASK(OPA_LINKDOWN_REASON_POWER_POLICY)) {
-+		dd_dev_err(
-+			ppd->dd,
-+			"%s: Port disabled due to system power restrictions\n",
-+			__func__);
-+		ret = -EPERM;
-+	}
-+	return ret;
-+}
-+
-+static int qual_bitrate(struct hfi2_pportdata *ppd)
-+{
-+	u16 lss = ppd->link_speed_supported, lse = ppd->link_speed_enabled;
-+	u8 *cache = ppd->qsfp_info.cache;
-+
-+	if ((lss & OPA_LINK_SPEED_25G) && (lse & OPA_LINK_SPEED_25G) &&
-+	    cache[QSFP_NOM_BIT_RATE_250_OFFS] < 0x64)
-+		ppd->offline_disabled_reason =
-+			   HFI2_ODR_MASK(OPA_LINKDOWN_REASON_LINKSPEED_POLICY);
-+
-+	if ((lss & OPA_LINK_SPEED_12_5G) && (lse & OPA_LINK_SPEED_12_5G) &&
-+	    cache[QSFP_NOM_BIT_RATE_100_OFFS] < 0x7D)
-+		ppd->offline_disabled_reason =
-+			   HFI2_ODR_MASK(OPA_LINKDOWN_REASON_LINKSPEED_POLICY);
-+
-+	if (ppd->offline_disabled_reason ==
-+			HFI2_ODR_MASK(OPA_LINKDOWN_REASON_LINKSPEED_POLICY)) {
-+		dd_dev_err(
-+			ppd->dd,
-+			"%s: Cable failed bitrate check, disabling port\n",
-+			__func__);
-+		return -EPERM;
-+	}
++	if (!dd->cport)
++		return 0;
++	deinit_cport_trap128(dd);
++	cport_register_cb(dd, CH_OP_MAD_9B, CH_OP_MAD_16B, NULL);
++	cport_register_cb(dd, CH_OP_UMAD_9B, CH_OP_UMAD_16B, NULL);
 +	return 0;
-+}
-+
-+static int set_qsfp_high_power(struct hfi2_pportdata *ppd)
-+{
-+	u8 cable_power_class = 0, power_ctrl_byte = 0;
-+	u8 *cache = ppd->qsfp_info.cache;
-+	int ret;
-+
-+	cable_power_class = get_qsfp_power_class(cache[QSFP_MOD_PWR_OFFS]);
-+
-+	if (cable_power_class > QSFP_POWER_CLASS_1) {
-+		power_ctrl_byte = cache[QSFP_PWR_CTRL_BYTE_OFFS];
-+
-+		power_ctrl_byte |= 1;
-+		power_ctrl_byte &= ~(0x2);
-+
-+		ret = qsfp_write(ppd, ppd->dd->hfi2_id,
-+				 QSFP_PWR_CTRL_BYTE_OFFS,
-+				 &power_ctrl_byte, 1);
-+		if (ret != 1)
-+			return -EIO;
-+
-+		if (cable_power_class > QSFP_POWER_CLASS_4) {
-+			power_ctrl_byte |= (1 << 2);
-+			ret = qsfp_write(ppd, ppd->dd->hfi2_id,
-+					 QSFP_PWR_CTRL_BYTE_OFFS,
-+					 &power_ctrl_byte, 1);
-+			if (ret != 1)
-+				return -EIO;
-+		}
-+
-+		/* SFF 8679 rev 1.7 LPMode Deassert time */
-+		msleep(300);
-+	}
-+	return 0;
-+}
-+
-+static void apply_rx_cdr(struct hfi2_pportdata *ppd,
-+			 u32 rx_preset_index,
-+			 u8 *cdr_ctrl_byte)
-+{
-+	u32 rx_preset;
-+	u8 *cache = ppd->qsfp_info.cache;
-+	int cable_power_class;
-+
-+	if (!((cache[QSFP_MOD_PWR_OFFS] & 0x4) &&
-+	      (cache[QSFP_CDR_INFO_OFFS] & 0x40)))
-+		return;
-+
-+	/* RX CDR present, bypass supported */
-+	cable_power_class = get_qsfp_power_class(cache[QSFP_MOD_PWR_OFFS]);
-+
-+	if (cable_power_class <= QSFP_POWER_CLASS_3) {
-+		/* Power class <= 3, ignore config & turn RX CDR on */
-+		*cdr_ctrl_byte |= 0xF;
-+		return;
-+	}
-+
-+	get_platform_config_field(
-+		ppd, PLATFORM_CONFIG_RX_PRESET_TABLE,
-+		rx_preset_index, RX_PRESET_TABLE_QSFP_RX_CDR_APPLY,
-+		&rx_preset, 4);
-+
-+	if (!rx_preset) {
-+		dd_dev_info(
-+			ppd->dd,
-+			"%s: RX_CDR_APPLY is set to disabled\n",
-+			__func__);
-+		return;
-+	}
-+	get_platform_config_field(
-+		ppd, PLATFORM_CONFIG_RX_PRESET_TABLE,
-+		rx_preset_index, RX_PRESET_TABLE_QSFP_RX_CDR,
-+		&rx_preset, 4);
-+
-+	/* Expand cdr setting to all 4 lanes */
-+	rx_preset = (rx_preset | (rx_preset << 1) |
-+			(rx_preset << 2) | (rx_preset << 3));
-+
-+	if (rx_preset) {
-+		*cdr_ctrl_byte |= rx_preset;
-+	} else {
-+		*cdr_ctrl_byte &= rx_preset;
-+		/* Preserve current TX CDR status */
-+		*cdr_ctrl_byte |= (cache[QSFP_CDR_CTRL_BYTE_OFFS] & 0xF0);
-+	}
-+}
-+
-+static void apply_tx_cdr(struct hfi2_pportdata *ppd,
-+			 u32 tx_preset_index,
-+			 u8 *cdr_ctrl_byte)
-+{
-+	u32 tx_preset;
-+	u8 *cache = ppd->qsfp_info.cache;
-+	int cable_power_class;
-+
-+	if (!((cache[QSFP_MOD_PWR_OFFS] & 0x8) &&
-+	      (cache[QSFP_CDR_INFO_OFFS] & 0x80)))
-+		return;
-+
-+	/* TX CDR present, bypass supported */
-+	cable_power_class = get_qsfp_power_class(cache[QSFP_MOD_PWR_OFFS]);
-+
-+	if (cable_power_class <= QSFP_POWER_CLASS_3) {
-+		/* Power class <= 3, ignore config & turn TX CDR on */
-+		*cdr_ctrl_byte |= 0xF0;
-+		return;
-+	}
-+
-+	get_platform_config_field(
-+		ppd,
-+		PLATFORM_CONFIG_TX_PRESET_TABLE, tx_preset_index,
-+		TX_PRESET_TABLE_QSFP_TX_CDR_APPLY, &tx_preset, 4);
-+
-+	if (!tx_preset) {
-+		dd_dev_info(
-+			ppd->dd,
-+			"%s: TX_CDR_APPLY is set to disabled\n",
-+			__func__);
-+		return;
-+	}
-+	get_platform_config_field(
-+		ppd,
-+		PLATFORM_CONFIG_TX_PRESET_TABLE,
-+		tx_preset_index,
-+		TX_PRESET_TABLE_QSFP_TX_CDR, &tx_preset, 4);
-+
-+	/* Expand cdr setting to all 4 lanes */
-+	tx_preset = (tx_preset | (tx_preset << 1) |
-+			(tx_preset << 2) | (tx_preset << 3));
-+
-+	if (tx_preset)
-+		*cdr_ctrl_byte |= (tx_preset << 4);
-+	else
-+		/* Preserve current/determined RX CDR status */
-+		*cdr_ctrl_byte &= ((tx_preset << 4) | 0xF);
-+}
-+
-+static void apply_cdr_settings(
-+		struct hfi2_pportdata *ppd, u32 rx_preset_index,
-+		u32 tx_preset_index)
-+{
-+	u8 *cache = ppd->qsfp_info.cache;
-+	u8 cdr_ctrl_byte = cache[QSFP_CDR_CTRL_BYTE_OFFS];
-+
-+	apply_rx_cdr(ppd, rx_preset_index, &cdr_ctrl_byte);
-+
-+	apply_tx_cdr(ppd, tx_preset_index, &cdr_ctrl_byte);
-+
-+	qsfp_write(ppd, ppd->dd->hfi2_id, QSFP_CDR_CTRL_BYTE_OFFS,
-+		   &cdr_ctrl_byte, 1);
-+}
-+
-+static void apply_tx_eq_auto(struct hfi2_pportdata *ppd)
-+{
-+	u8 *cache = ppd->qsfp_info.cache;
-+	u8 tx_eq;
-+
-+	if (!(cache[QSFP_EQ_INFO_OFFS] & 0x8))
-+		return;
-+	/* Disable adaptive TX EQ if present */
-+	tx_eq = cache[(128 * 3) + 241];
-+	tx_eq &= 0xF0;
-+	qsfp_write(ppd, ppd->dd->hfi2_id, (256 * 3) + 241, &tx_eq, 1);
-+}
-+
-+static void apply_tx_eq_prog(struct hfi2_pportdata *ppd, u32 tx_preset_index)
-+{
-+	u8 *cache = ppd->qsfp_info.cache;
-+	u32 tx_preset;
-+	u8 tx_eq;
-+
-+	if (!(cache[QSFP_EQ_INFO_OFFS] & 0x4))
-+		return;
-+
-+	get_platform_config_field(
-+		ppd, PLATFORM_CONFIG_TX_PRESET_TABLE,
-+		tx_preset_index, TX_PRESET_TABLE_QSFP_TX_EQ_APPLY,
-+		&tx_preset, 4);
-+	if (!tx_preset) {
-+		dd_dev_info(
-+			ppd->dd,
-+			"%s: TX_EQ_APPLY is set to disabled\n",
-+			__func__);
-+		return;
-+	}
-+	get_platform_config_field(
-+			ppd, PLATFORM_CONFIG_TX_PRESET_TABLE,
-+			tx_preset_index, TX_PRESET_TABLE_QSFP_TX_EQ,
-+			&tx_preset, 4);
-+
-+	if (((cache[(128 * 3) + 224] & 0xF0) >> 4) < tx_preset) {
-+		dd_dev_info(
-+			ppd->dd,
-+			"%s: TX EQ %x unsupported\n",
-+			__func__, tx_preset);
-+
-+		dd_dev_info(
-+			ppd->dd,
-+			"%s: Applying EQ %x\n",
-+			__func__, cache[608] & 0xF0);
-+
-+		tx_preset = (cache[608] & 0xF0) >> 4;
-+	}
-+
-+	tx_eq = tx_preset | (tx_preset << 4);
-+	qsfp_write(ppd, ppd->dd->hfi2_id, (256 * 3) + 234, &tx_eq, 1);
-+	qsfp_write(ppd, ppd->dd->hfi2_id, (256 * 3) + 235, &tx_eq, 1);
-+}
-+
-+static void apply_rx_eq_emp(struct hfi2_pportdata *ppd, u32 rx_preset_index)
-+{
-+	u32 rx_preset;
-+	u8 rx_eq, *cache = ppd->qsfp_info.cache;
-+
-+	if (!(cache[QSFP_EQ_INFO_OFFS] & 0x2))
-+		return;
-+	get_platform_config_field(
-+			ppd, PLATFORM_CONFIG_RX_PRESET_TABLE,
-+			rx_preset_index, RX_PRESET_TABLE_QSFP_RX_EMP_APPLY,
-+			&rx_preset, 4);
-+
-+	if (!rx_preset) {
-+		dd_dev_info(
-+			ppd->dd,
-+			"%s: RX_EMP_APPLY is set to disabled\n",
-+			__func__);
-+		return;
-+	}
-+	get_platform_config_field(
-+		ppd, PLATFORM_CONFIG_RX_PRESET_TABLE,
-+		rx_preset_index, RX_PRESET_TABLE_QSFP_RX_EMP,
-+		&rx_preset, 4);
-+
-+	if ((cache[(128 * 3) + 224] & 0xF) < rx_preset) {
-+		dd_dev_info(
-+			ppd->dd,
-+			"%s: Requested RX EMP %x\n",
-+			__func__, rx_preset);
-+
-+		dd_dev_info(
-+			ppd->dd,
-+			"%s: Applying supported EMP %x\n",
-+			__func__, cache[608] & 0xF);
-+
-+		rx_preset = cache[608] & 0xF;
-+	}
-+
-+	rx_eq = rx_preset | (rx_preset << 4);
-+
-+	qsfp_write(ppd, ppd->dd->hfi2_id, (256 * 3) + 236, &rx_eq, 1);
-+	qsfp_write(ppd, ppd->dd->hfi2_id, (256 * 3) + 237, &rx_eq, 1);
-+}
-+
-+static void apply_eq_settings(struct hfi2_pportdata *ppd,
-+			      u32 rx_preset_index, u32 tx_preset_index)
-+{
-+	u8 *cache = ppd->qsfp_info.cache;
-+
-+	/* no point going on w/o a page 3 */
-+	if (cache[2] & 4) {
-+		ppd_dev_info(ppd,
-+			     "%s: Upper page 03 not present\n",
-+			     __func__);
-+		return;
-+	}
-+
-+	apply_tx_eq_auto(ppd);
-+
-+	apply_tx_eq_prog(ppd, tx_preset_index);
-+
-+	apply_rx_eq_emp(ppd, rx_preset_index);
-+}
-+
-+static void apply_rx_amplitude_settings(
-+		struct hfi2_pportdata *ppd, u32 rx_preset_index,
-+		u32 tx_preset_index)
-+{
-+	u32 rx_preset;
-+	u8 rx_amp = 0, i = 0, preferred = 0, *cache = ppd->qsfp_info.cache;
-+
-+	/* no point going on w/o a page 3 */
-+	if (cache[2] & 4) {
-+		ppd_dev_info(ppd,
-+			     "%s: Upper page 03 not present\n",
-+			     __func__);
-+		return;
-+	}
-+	if (!(cache[QSFP_EQ_INFO_OFFS] & 0x1)) {
-+		ppd_dev_info(ppd,
-+			     "%s: RX_AMP_APPLY is set to disabled\n",
-+			     __func__);
-+		return;
-+	}
-+
-+	get_platform_config_field(ppd,
-+				  PLATFORM_CONFIG_RX_PRESET_TABLE,
-+				  rx_preset_index,
-+				  RX_PRESET_TABLE_QSFP_RX_AMP_APPLY,
-+				  &rx_preset, 4);
-+
-+	if (!rx_preset) {
-+		ppd_dev_info(ppd,
-+			     "%s: RX_AMP_APPLY is set to disabled\n",
-+			     __func__);
-+		return;
-+	}
-+	get_platform_config_field(ppd,
-+				  PLATFORM_CONFIG_RX_PRESET_TABLE,
-+				  rx_preset_index,
-+				  RX_PRESET_TABLE_QSFP_RX_AMP,
-+				  &rx_preset, 4);
-+
-+	ppd_dev_info(ppd,
-+		     "%s: Requested RX AMP %x\n",
-+		     __func__,
-+		     rx_preset);
-+
-+	for (i = 0; i < 4; i++) {
-+		if (cache[(128 * 3) + 225] & (1 << i)) {
-+			preferred = i;
-+			if (preferred == rx_preset)
-+				break;
-+		}
-+	}
-+
-+	/*
-+	 * Verify that preferred RX amplitude is not just a
-+	 * fall through of the default
-+	 */
-+	if (!preferred && !(cache[(128 * 3) + 225] & 0x1)) {
-+		ppd_dev_info(ppd, "No supported RX AMP, not applying\n");
-+		return;
-+	}
-+
-+	ppd_dev_info(ppd,
-+		     "%s: Applying RX AMP %x\n", __func__, preferred);
-+
-+	rx_amp = preferred | (preferred << 4);
-+	qsfp_write(ppd, ppd->dd->hfi2_id, (256 * 3) + 238, &rx_amp, 1);
-+	qsfp_write(ppd, ppd->dd->hfi2_id, (256 * 3) + 239, &rx_amp, 1);
-+}
-+
-+#define OPA_INVALID_INDEX 0xFFF
-+
-+static void apply_tx_lanes(struct hfi2_pportdata *ppd, u8 field_id,
-+			   u32 config_data, const char *message)
-+{
-+	u8 i;
-+	int ret;
-+
-+	for (i = 0; i < 4; i++) {
-+		ret = load_8051_config(ppd->dd, field_id, i, config_data);
-+		if (ret != HCMD_SUCCESS) {
-+			dd_dev_err(
-+				ppd->dd,
-+				"%s: %s for lane %u failed\n",
-+				message, __func__, i);
-+		}
-+	}
-+}
-+
-+/*
-+ * Return a special SerDes setting for low power AOC cables.  The power class
-+ * threshold and setting being used were all found by empirical testing.
-+ *
-+ * Summary of the logic:
-+ *
-+ * if (QSFP and QSFP_TYPE == AOC and QSFP_POWER_CLASS < 4)
-+ *     return 0xe
-+ * return 0; // leave at default
-+ */
-+static u8 aoc_low_power_setting(struct hfi2_pportdata *ppd)
-+{
-+	u8 *cache = ppd->qsfp_info.cache;
-+	int power_class;
-+
-+	/* QSFP only */
-+	if (ppd->port_type != PORT_TYPE_QSFP)
-+		return 0; /* leave at default */
-+
-+	/* active optical cables only */
-+	switch ((cache[QSFP_MOD_TECH_OFFS] & 0xF0) >> 4) {
-+	case 0x0 ... 0x9: fallthrough;
-+	case 0xC: fallthrough;
-+	case 0xE:
-+		/* active AOC */
-+		power_class = get_qsfp_power_class(cache[QSFP_MOD_PWR_OFFS]);
-+		if (power_class < QSFP_POWER_CLASS_4)
-+			return 0xe;
-+	}
-+	return 0; /* leave at default */
-+}
-+
-+static void apply_tunings(
-+		struct hfi2_pportdata *ppd, u32 tx_preset_index,
-+		u8 tuning_method, u32 total_atten, u8 limiting_active)
-+{
-+	int ret = 0;
-+	u32 config_data = 0, tx_preset = 0;
-+	u8 precur = 0, attn = 0, postcur = 0, external_device_config = 0;
-+	u8 *cache = ppd->qsfp_info.cache;
-+
-+	/* Pass tuning method to 8051 */
-+	read_8051_config(ppd->dd, LINK_TUNING_PARAMETERS, GENERAL_CONFIG,
-+			 &config_data);
-+	config_data &= ~(0xff << TUNING_METHOD_SHIFT);
-+	config_data |= ((u32)tuning_method << TUNING_METHOD_SHIFT);
-+	ret = load_8051_config(ppd->dd, LINK_TUNING_PARAMETERS, GENERAL_CONFIG,
-+			       config_data);
-+	if (ret != HCMD_SUCCESS)
-+		ppd_dev_err(ppd, "%s: Failed to set tuning method\n",
-+			    __func__);
-+
-+	/* Set same channel loss for both TX and RX */
-+	config_data = 0 | (total_atten << 16) | (total_atten << 24);
-+	apply_tx_lanes(ppd, CHANNEL_LOSS_SETTINGS, config_data,
-+		       "Setting channel loss");
-+
-+	/* Inform 8051 of cable capabilities */
-+	if (ppd->qsfp_info.cache_valid) {
-+		external_device_config =
-+			((cache[QSFP_MOD_PWR_OFFS] & 0x4) << 3) |
-+			((cache[QSFP_MOD_PWR_OFFS] & 0x8) << 2) |
-+			((cache[QSFP_EQ_INFO_OFFS] & 0x2) << 1) |
-+			(cache[QSFP_EQ_INFO_OFFS] & 0x4);
-+		ret = read_8051_config(ppd->dd, DC_HOST_COMM_SETTINGS,
-+				       GENERAL_CONFIG, &config_data);
-+		/* Clear, then set the external device config field */
-+		config_data &= ~(u32)0xFF;
-+		config_data |= external_device_config;
-+		ret = load_8051_config(ppd->dd, DC_HOST_COMM_SETTINGS,
-+				       GENERAL_CONFIG, config_data);
-+		if (ret != HCMD_SUCCESS)
-+			ppd_dev_err(ppd,
-+				    "%s: Failed set ext device config params\n",
-+				    __func__);
-+	}
-+
-+	if (tx_preset_index == OPA_INVALID_INDEX) {
-+		if (ppd->port_type == PORT_TYPE_QSFP && limiting_active)
-+			ppd_dev_err(ppd, "%s: Invalid Tx preset index\n",
-+				    __func__);
-+		return;
-+	}
-+
-+	/* Following for limiting active channels only */
-+	get_platform_config_field(
-+		ppd, PLATFORM_CONFIG_TX_PRESET_TABLE, tx_preset_index,
-+		TX_PRESET_TABLE_PRECUR, &tx_preset, 4);
-+	precur = tx_preset;
-+
-+	get_platform_config_field(
-+		ppd, PLATFORM_CONFIG_TX_PRESET_TABLE,
-+		tx_preset_index, TX_PRESET_TABLE_ATTN, &tx_preset, 4);
-+	attn = tx_preset;
-+
-+	get_platform_config_field(
-+		ppd, PLATFORM_CONFIG_TX_PRESET_TABLE,
-+		tx_preset_index, TX_PRESET_TABLE_POSTCUR, &tx_preset, 4);
-+	postcur = tx_preset;
-+
-+	/*
-+	 * NOTES:
-+	 * o The aoc_low_power_setting is applied to all lanes even
-+	 *   though only lane 0's value is examined by the firmware.
-+	 * o A lingering low power setting after a cable swap does
-+	 *   not occur.  On cable unplug the 8051 is reset and
-+	 *   restarted on cable insert.  This resets all settings to
-+	 *   their default, erasing any previous low power setting.
-+	 */
-+	config_data = precur | (attn << 8) | (postcur << 16) |
-+			(aoc_low_power_setting(ppd) << 24);
-+
-+	apply_tx_lanes(ppd, TX_EQ_SETTINGS, config_data,
-+		       "Applying TX settings");
-+}
-+
-+/* Must be holding the QSFP i2c resource */
-+static int tune_active_qsfp(struct hfi2_pportdata *ppd, u32 *ptr_tx_preset,
-+			    u32 *ptr_rx_preset, u32 *ptr_total_atten)
-+{
-+	int ret;
-+	u16 lss = ppd->link_speed_supported, lse = ppd->link_speed_enabled;
-+	u8 *cache = ppd->qsfp_info.cache;
-+
-+	ppd->qsfp_info.limiting_active = 1;
-+
-+	ret = set_qsfp_tx(ppd, 0);
-+	if (ret)
-+		return ret;
-+
-+	ret = qual_power(ppd);
-+	if (ret)
-+		return ret;
-+
-+	ret = qual_bitrate(ppd);
-+	if (ret)
-+		return ret;
-+
-+	/*
-+	 * We'll change the QSFP memory contents from here on out, thus we set a
-+	 * flag here to remind ourselves to reset the QSFP module. This prevents
-+	 * reuse of stale settings established in our previous pass through.
-+	 */
-+	if (ppd->qsfp_info.reset_needed) {
-+		ret = reset_qsfp(ppd);
-+		if (ret)
-+			return ret;
-+		refresh_qsfp_cache(ppd, &ppd->qsfp_info);
-+	} else {
-+		ppd->qsfp_info.reset_needed = 1;
-+	}
-+
-+	ret = set_qsfp_high_power(ppd);
-+	if (ret)
-+		return ret;
-+
-+	if (cache[QSFP_EQ_INFO_OFFS] & 0x4) {
-+		ret = get_platform_config_field(
-+			ppd,
-+			PLATFORM_CONFIG_PORT_TABLE, 0,
-+			PORT_TABLE_TX_PRESET_IDX_ACTIVE_EQ,
-+			ptr_tx_preset, 4);
-+		if (ret) {
-+			*ptr_tx_preset = OPA_INVALID_INDEX;
-+			return ret;
-+		}
-+	} else {
-+		ret = get_platform_config_field(
-+			ppd,
-+			PLATFORM_CONFIG_PORT_TABLE, 0,
-+			PORT_TABLE_TX_PRESET_IDX_ACTIVE_NO_EQ,
-+			ptr_tx_preset, 4);
-+		if (ret) {
-+			*ptr_tx_preset = OPA_INVALID_INDEX;
-+			return ret;
-+		}
-+	}
-+
-+	ret = get_platform_config_field(
-+		ppd, PLATFORM_CONFIG_PORT_TABLE, 0,
-+		PORT_TABLE_RX_PRESET_IDX, ptr_rx_preset, 4);
-+	if (ret) {
-+		*ptr_rx_preset = OPA_INVALID_INDEX;
-+		return ret;
-+	}
-+
-+	if ((lss & OPA_LINK_SPEED_25G) && (lse & OPA_LINK_SPEED_25G))
-+		get_platform_config_field(
-+			ppd, PLATFORM_CONFIG_PORT_TABLE, 0,
-+			PORT_TABLE_LOCAL_ATTEN_25G, ptr_total_atten, 4);
-+	else if ((lss & OPA_LINK_SPEED_12_5G) && (lse & OPA_LINK_SPEED_12_5G))
-+		get_platform_config_field(
-+			ppd, PLATFORM_CONFIG_PORT_TABLE, 0,
-+			PORT_TABLE_LOCAL_ATTEN_12G, ptr_total_atten, 4);
-+
-+	apply_cdr_settings(ppd, *ptr_rx_preset, *ptr_tx_preset);
-+
-+	apply_eq_settings(ppd, *ptr_rx_preset, *ptr_tx_preset);
-+
-+	apply_rx_amplitude_settings(ppd, *ptr_rx_preset, *ptr_tx_preset);
-+
-+	ret = set_qsfp_tx(ppd, 1);
-+
-+	return ret;
-+}
-+
-+static int tune_qsfp(struct hfi2_pportdata *ppd,
-+		     u32 *ptr_tx_preset, u32 *ptr_rx_preset,
-+		     u8 *ptr_tuning_method, u32 *ptr_total_atten)
-+{
-+	u32 cable_atten = 0, remote_atten = 0, platform_atten = 0;
-+	u16 lss = ppd->link_speed_supported, lse = ppd->link_speed_enabled;
-+	int ret = 0;
-+	u8 *cache = ppd->qsfp_info.cache;
-+
-+	switch ((cache[QSFP_MOD_TECH_OFFS] & 0xF0) >> 4) {
-+	case 0xA ... 0xB:
-+		ret = get_platform_config_field(
-+			ppd,
-+			PLATFORM_CONFIG_PORT_TABLE, 0,
-+			PORT_TABLE_LOCAL_ATTEN_25G,
-+			&platform_atten, 4);
-+		if (ret)
-+			return ret;
-+
-+		if ((lss & OPA_LINK_SPEED_25G) && (lse & OPA_LINK_SPEED_25G))
-+			cable_atten = cache[QSFP_CU_ATTEN_12G_OFFS];
-+		else if ((lss & OPA_LINK_SPEED_12_5G) &&
-+			 (lse & OPA_LINK_SPEED_12_5G))
-+			cable_atten = cache[QSFP_CU_ATTEN_7G_OFFS];
-+
-+		/* Fallback to configured attenuation if cable memory is bad */
-+		if (cable_atten == 0 || cable_atten > 36) {
-+			ret = get_platform_config_field(
-+				ppd,
-+				PLATFORM_CONFIG_SYSTEM_TABLE, 0,
-+				SYSTEM_TABLE_QSFP_ATTENUATION_DEFAULT_25G,
-+				&cable_atten, 4);
-+			if (ret)
-+				return ret;
-+		}
-+
-+		ret = get_platform_config_field(
-+			ppd, PLATFORM_CONFIG_PORT_TABLE, 0,
-+			PORT_TABLE_REMOTE_ATTEN_25G, &remote_atten, 4);
-+		if (ret)
-+			return ret;
-+
-+		*ptr_total_atten = platform_atten + cable_atten + remote_atten;
-+
-+		*ptr_tuning_method = OPA_PASSIVE_TUNING;
-+		break;
-+	case 0x0 ... 0x9: fallthrough;
-+	case 0xC: fallthrough;
-+	case 0xE:
-+		ret = tune_active_qsfp(ppd, ptr_tx_preset, ptr_rx_preset,
-+				       ptr_total_atten);
-+		if (ret)
-+			return ret;
-+
-+		*ptr_tuning_method = OPA_ACTIVE_TUNING;
-+		break;
-+	case 0xD: fallthrough;
-+	case 0xF:
-+	default:
-+		ppd_dev_warn(ppd, "%s: Unknown/unsupported cable\n",
-+			     __func__);
-+		break;
-+	}
-+	return ret;
-+}
-+
-+/*
-+ * This function communicates its success or failure via ppd->driver_link_ready
-+ * Thus, it depends on its association with start_link(...) which checks
-+ * driver_link_ready before proceeding with the link negotiation and
-+ * initialization process.
-+ */
-+void tune_serdes(struct hfi2_pportdata *ppd)
-+{
-+	int ret = 0;
-+	u32 total_atten = 0;
-+	u32 remote_atten = 0, platform_atten = 0;
-+	u32 rx_preset_index, tx_preset_index;
-+	u8 tuning_method = 0, limiting_active = 0;
-+	struct hfi2_devdata *dd = ppd->dd;
-+
-+	rx_preset_index = OPA_INVALID_INDEX;
-+	tx_preset_index = OPA_INVALID_INDEX;
-+
-+	/* the link defaults to enabled */
-+	ppd->link_enabled = 1;
-+	/* the driver link ready state defaults to not ready */
-+	ppd->driver_link_ready = 0;
-+	ppd->offline_disabled_reason = HFI2_ODR_MASK(OPA_LINKDOWN_REASON_NONE);
-+
-+	/* skip tuning when in loopback */
-+	if (loopback != LOOPBACK_NONE) {
-+		ppd->driver_link_ready = 1;
-+
-+		if (qsfp_mod_present(ppd)) {
-+			ret = acquire_chip_resource(ppd->dd,
-+						    qsfp_resource(ppd->dd),
-+						    QSFP_WAIT);
-+			if (ret) {
-+				ppd_dev_err(ppd, "%s: hfi%d: cannot lock i2c chain\n",
-+					    __func__, (int)ppd->dd->hfi2_id);
-+				goto bail;
-+			}
-+
-+			refresh_qsfp_cache(ppd, &ppd->qsfp_info);
-+			release_chip_resource(ppd->dd, qsfp_resource(ppd->dd));
-+		}
-+
-+		return;
-+	}
-+
-+	switch (ppd->port_type) {
-+	case PORT_TYPE_DISCONNECTED:
-+		ppd->offline_disabled_reason =
-+			HFI2_ODR_MASK(OPA_LINKDOWN_REASON_DISCONNECTED);
-+		dd_dev_warn(dd, "%s: Port disconnected, disabling port\n",
-+			    __func__);
-+		goto bail;
-+	case PORT_TYPE_FIXED:
-+		/* platform_atten, remote_atten pre-zeroed to catch error */
-+		get_platform_config_field(
-+			ppd, PLATFORM_CONFIG_PORT_TABLE, 0,
-+			PORT_TABLE_LOCAL_ATTEN_25G, &platform_atten, 4);
-+
-+		get_platform_config_field(
-+			ppd, PLATFORM_CONFIG_PORT_TABLE, 0,
-+			PORT_TABLE_REMOTE_ATTEN_25G, &remote_atten, 4);
-+
-+		total_atten = platform_atten + remote_atten;
-+
-+		tuning_method = OPA_PASSIVE_TUNING;
-+		break;
-+	case PORT_TYPE_VARIABLE:
-+		if (qsfp_mod_present(ppd)) {
-+			/*
-+			 * platform_atten, remote_atten pre-zeroed to
-+			 * catch error
-+			 */
-+			get_platform_config_field(
-+				ppd, PLATFORM_CONFIG_PORT_TABLE, 0,
-+				PORT_TABLE_LOCAL_ATTEN_25G,
-+				&platform_atten, 4);
-+
-+			get_platform_config_field(
-+				ppd, PLATFORM_CONFIG_PORT_TABLE, 0,
-+				PORT_TABLE_REMOTE_ATTEN_25G,
-+				&remote_atten, 4);
-+
-+			total_atten = platform_atten + remote_atten;
-+
-+			tuning_method = OPA_PASSIVE_TUNING;
-+		} else {
-+			ppd->offline_disabled_reason =
-+			     HFI2_ODR_MASK(OPA_LINKDOWN_REASON_CHASSIS_CONFIG);
-+			goto bail;
-+		}
-+		break;
-+	case PORT_TYPE_QSFP:
-+		if (qsfp_mod_present(ppd)) {
-+			ret = acquire_chip_resource(ppd->dd,
-+						    qsfp_resource(ppd->dd),
-+						    QSFP_WAIT);
-+			if (ret) {
-+				ppd_dev_err(ppd, "%s: hfi%d: cannot lock i2c chain\n",
-+					    __func__, (int)ppd->dd->hfi2_id);
-+				goto bail;
-+			}
-+			refresh_qsfp_cache(ppd, &ppd->qsfp_info);
-+
-+			if (ppd->qsfp_info.cache_valid) {
-+				ret = tune_qsfp(ppd,
-+						&tx_preset_index,
-+						&rx_preset_index,
-+						&tuning_method,
-+						&total_atten);
-+
-+				/*
-+				 * We may have modified the QSFP memory, so
-+				 * update the cache to reflect the changes
-+				 */
-+				refresh_qsfp_cache(ppd, &ppd->qsfp_info);
-+				limiting_active =
-+						ppd->qsfp_info.limiting_active;
-+			} else {
-+				dd_dev_err(dd,
-+					   "%s: Reading QSFP memory failed\n",
-+					   __func__);
-+				ret = -EINVAL; /* a fail indication */
-+			}
-+			release_chip_resource(ppd->dd, qsfp_resource(ppd->dd));
-+			if (ret)
-+				goto bail;
-+		} else {
-+			ppd->offline_disabled_reason =
-+			   HFI2_ODR_MASK(
-+				OPA_LINKDOWN_REASON_LOCAL_MEDIA_NOT_INSTALLED);
-+			goto bail;
-+		}
-+		break;
-+	default:
-+		ppd_dev_warn(ppd, "%s: Unknown port type\n", __func__);
-+		ppd->port_type = PORT_TYPE_UNKNOWN;
-+		tuning_method = OPA_UNKNOWN_TUNING;
-+		total_atten = 0;
-+		limiting_active = 0;
-+		tx_preset_index = OPA_INVALID_INDEX;
-+		break;
-+	}
-+
-+	if (ppd->offline_disabled_reason ==
-+			HFI2_ODR_MASK(OPA_LINKDOWN_REASON_NONE))
-+		apply_tunings(ppd, tx_preset_index, tuning_method,
-+			      total_atten, limiting_active);
-+
-+	if (!ret)
-+		ppd->driver_link_ready = 1;
-+
-+	return;
-+bail:
-+	ppd->driver_link_ready = 0;
-+}
-diff --git a/drivers/infiniband/hw/hfi2/qsfp.c b/drivers/infiniband/hw/hfi2/qsfp.c
-new file mode 100644
-index 000000000000..92e7a1259b10
---- /dev/null
-+++ b/drivers/infiniband/hw/hfi2/qsfp.c
-@@ -0,0 +1,787 @@
-+// SPDX-License-Identifier: GPL-2.0 OR BSD-3-Clause
-+/*
-+ * Copyright(c) 2015, 2016 Intel Corporation.
-+ */
-+
-+#include <linux/delay.h>
-+#include <linux/pci.h>
-+#include <linux/vmalloc.h>
-+
-+#include "hfi2.h"
-+
-+/* for the given bus number, return the CSR for reading an i2c line */
-+static inline u32 i2c_in_csr(u32 bus_num)
-+{
-+	return bus_num ? ASIC_QSFP2_IN : ASIC_QSFP1_IN;
-+}
-+
-+/* for the given bus number, return the CSR for writing an i2c line */
-+static inline u32 i2c_oe_csr(u32 bus_num)
-+{
-+	return bus_num ? ASIC_QSFP2_OE : ASIC_QSFP1_OE;
-+}
-+
-+static void hfi2_setsda(void *data, int state)
-+{
-+	struct hfi2_i2c_bus *bus = (struct hfi2_i2c_bus *)data;
-+	struct hfi2_devdata *dd = bus->controlling_dd;
-+	u64 reg;
-+	u32 target_oe;
-+
-+	target_oe = i2c_oe_csr(bus->num);
-+	reg = read_csr(dd, target_oe);
-+	/*
-+	 * The OE bit value is inverted and connected to the pin.  When
-+	 * OE is 0 the pin is left to be pulled up, when the OE is 1
-+	 * the pin is driven low.  This matches the "open drain" or "open
-+	 * collector" convention.
-+	 */
-+	if (state)
-+		reg &= ~QSFP_HFI0_I2CDAT;
-+	else
-+		reg |= QSFP_HFI0_I2CDAT;
-+	write_csr(dd, target_oe, reg);
-+	/* do a read to force the write into the chip */
-+	(void)read_csr(dd, target_oe);
-+}
-+
-+static void hfi2_setscl(void *data, int state)
-+{
-+	struct hfi2_i2c_bus *bus = (struct hfi2_i2c_bus *)data;
-+	struct hfi2_devdata *dd = bus->controlling_dd;
-+	u64 reg;
-+	u32 target_oe;
-+
-+	target_oe = i2c_oe_csr(bus->num);
-+	reg = read_csr(dd, target_oe);
-+	/*
-+	 * The OE bit value is inverted and connected to the pin.  When
-+	 * OE is 0 the pin is left to be pulled up, when the OE is 1
-+	 * the pin is driven low.  This matches the "open drain" or "open
-+	 * collector" convention.
-+	 */
-+	if (state)
-+		reg &= ~QSFP_HFI0_I2CCLK;
-+	else
-+		reg |= QSFP_HFI0_I2CCLK;
-+	write_csr(dd, target_oe, reg);
-+	/* do a read to force the write into the chip */
-+	(void)read_csr(dd, target_oe);
-+}
-+
-+static int hfi2_getsda(void *data)
-+{
-+	struct hfi2_i2c_bus *bus = (struct hfi2_i2c_bus *)data;
-+	u64 reg;
-+	u32 target_in;
-+
-+	hfi2_setsda(data, 1);	/* clear OE so we do not pull line down */
-+	udelay(2);		/* 1us pull up + 250ns hold */
-+
-+	target_in = i2c_in_csr(bus->num);
-+	reg = read_csr(bus->controlling_dd, target_in);
-+	return !!(reg & QSFP_HFI0_I2CDAT);
-+}
-+
-+static int hfi2_getscl(void *data)
-+{
-+	struct hfi2_i2c_bus *bus = (struct hfi2_i2c_bus *)data;
-+	u64 reg;
-+	u32 target_in;
-+
-+	hfi2_setscl(data, 1);	/* clear OE so we do not pull line down */
-+	udelay(2);		/* 1us pull up + 250ns hold */
-+
-+	target_in = i2c_in_csr(bus->num);
-+	reg = read_csr(bus->controlling_dd, target_in);
-+	return !!(reg & QSFP_HFI0_I2CCLK);
-+}
-+
-+/*
-+ * Allocate and initialize the given i2c bus number.
-+ * Returns NULL on failure.
-+ */
-+static struct hfi2_i2c_bus *init_i2c_bus(struct hfi2_devdata *dd,
-+					 struct hfi2_asic_data *ad, int num)
-+{
-+	struct hfi2_i2c_bus *bus;
-+	int ret;
-+
-+	bus = kzalloc(sizeof(*bus), GFP_KERNEL);
-+	if (!bus)
-+		return NULL;
-+
-+	bus->controlling_dd = dd;
-+	bus->num = num;	/* our bus number */
-+
-+	bus->algo.setsda = hfi2_setsda;
-+	bus->algo.setscl = hfi2_setscl;
-+	bus->algo.getsda = hfi2_getsda;
-+	bus->algo.getscl = hfi2_getscl;
-+	bus->algo.udelay = 5;
-+	bus->algo.timeout = usecs_to_jiffies(100000);
-+	bus->algo.data = bus;
-+
-+	bus->adapter.owner = THIS_MODULE;
-+	bus->adapter.algo_data = &bus->algo;
-+	bus->adapter.dev.parent = &dd->pcidev->dev;
-+	snprintf(bus->adapter.name, sizeof(bus->adapter.name),
-+		 "hfi2_i2c%d", num);
-+
-+	ret = i2c_bit_add_bus(&bus->adapter);
-+	if (ret) {
-+		dd_dev_info(dd, "%s: unable to add i2c bus %d, err %d\n",
-+			    __func__, num, ret);
-+		kfree(bus);
-+		return NULL;
-+	}
-+
-+	return bus;
-+}
-+
-+/*
-+ * Initialize i2c buses.
-+ * Return 0 on success, -errno on error.
-+ */
-+int set_up_i2c(struct hfi2_devdata *dd, struct hfi2_asic_data *ad)
-+{
-+	ad->i2c_bus0 = init_i2c_bus(dd, ad, 0);
-+	ad->i2c_bus1 = init_i2c_bus(dd, ad, 1);
-+	if (!ad->i2c_bus0 || !ad->i2c_bus1)
-+		return -ENOMEM;
-+	return 0;
-+};
-+
-+static void clean_i2c_bus(struct hfi2_i2c_bus *bus)
-+{
-+	if (bus) {
-+		i2c_del_adapter(&bus->adapter);
-+		kfree(bus);
-+	}
-+}
-+
-+void clean_up_i2c(struct hfi2_devdata *dd, struct hfi2_asic_data *ad)
-+{
-+	if (!ad)
-+		return;
-+	clean_i2c_bus(ad->i2c_bus0);
-+	ad->i2c_bus0 = NULL;
-+	clean_i2c_bus(ad->i2c_bus1);
-+	ad->i2c_bus1 = NULL;
-+}
-+
-+static int i2c_bus_write(struct hfi2_devdata *dd, struct hfi2_i2c_bus *i2c,
-+			 u8 slave_addr, int offset, int offset_size,
-+			 u8 *data, u16 len)
-+{
-+	int ret;
-+	int num_msgs;
-+	u8 offset_bytes[2];
-+	struct i2c_msg msgs[2];
-+
-+	switch (offset_size) {
-+	case 0:
-+		num_msgs = 1;
-+		msgs[0].addr = slave_addr;
-+		msgs[0].flags = 0;
-+		msgs[0].len = len;
-+		msgs[0].buf = data;
-+		break;
-+	case 2:
-+		offset_bytes[1] = (offset >> 8) & 0xff;
-+		fallthrough;
-+	case 1:
-+		num_msgs = 2;
-+		offset_bytes[0] = offset & 0xff;
-+
-+		msgs[0].addr = slave_addr;
-+		msgs[0].flags = 0;
-+		msgs[0].len = offset_size;
-+		msgs[0].buf = offset_bytes;
-+
-+		msgs[1].addr = slave_addr;
-+		msgs[1].flags = I2C_M_NOSTART;
-+		msgs[1].len = len;
-+		msgs[1].buf = data;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	i2c->controlling_dd = dd;
-+	ret = i2c_transfer(&i2c->adapter, msgs, num_msgs);
-+	if (ret != num_msgs) {
-+		dd_dev_err(dd, "%s: bus %d, i2c slave 0x%x, offset 0x%x, len 0x%x; write failed, ret %d\n",
-+			   __func__, i2c->num, slave_addr, offset, len, ret);
-+		return ret < 0 ? ret : -EIO;
-+	}
-+	return 0;
-+}
-+
-+static int i2c_bus_read(struct hfi2_devdata *dd, struct hfi2_i2c_bus *bus,
-+			u8 slave_addr, int offset, int offset_size,
-+			u8 *data, u16 len)
-+{
-+	int ret;
-+	int num_msgs;
-+	u8 offset_bytes[2];
-+	struct i2c_msg msgs[2];
-+
-+	switch (offset_size) {
-+	case 0:
-+		num_msgs = 1;
-+		msgs[0].addr = slave_addr;
-+		msgs[0].flags = I2C_M_RD;
-+		msgs[0].len = len;
-+		msgs[0].buf = data;
-+		break;
-+	case 2:
-+		offset_bytes[1] = (offset >> 8) & 0xff;
-+		fallthrough;
-+	case 1:
-+		num_msgs = 2;
-+		offset_bytes[0] = offset & 0xff;
-+
-+		msgs[0].addr = slave_addr;
-+		msgs[0].flags = 0;
-+		msgs[0].len = offset_size;
-+		msgs[0].buf = offset_bytes;
-+
-+		msgs[1].addr = slave_addr;
-+		msgs[1].flags = I2C_M_RD;
-+		msgs[1].len = len;
-+		msgs[1].buf = data;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	bus->controlling_dd = dd;
-+	ret = i2c_transfer(&bus->adapter, msgs, num_msgs);
-+	if (ret != num_msgs) {
-+		dd_dev_err(dd, "%s: bus %d, i2c slave 0x%x, offset 0x%x, len 0x%x; read failed, ret %d\n",
-+			   __func__, bus->num, slave_addr, offset, len, ret);
-+		return ret < 0 ? ret : -EIO;
-+	}
-+	return 0;
-+}
-+
-+/*
-+ * Raw i2c write.  No set-up or lock checking.
-+ *
-+ * Return 0 on success, -errno on error.
-+ */
-+static int __i2c_write(struct hfi2_pportdata *ppd, u32 target, int i2c_addr,
-+		       int offset, void *bp, int len)
-+{
-+	struct hfi2_devdata *dd = ppd->dd;
-+	struct hfi2_i2c_bus *bus;
-+	u8 slave_addr;
-+	int offset_size;
-+
-+	bus = target ? dd->asic_data->i2c_bus1 : dd->asic_data->i2c_bus0;
-+	slave_addr = (i2c_addr & 0xff) >> 1; /* convert to 7-bit addr */
-+	offset_size = (i2c_addr >> 8) & 0x3;
-+	return i2c_bus_write(dd, bus, slave_addr, offset, offset_size, bp, len);
-+}
-+
-+/*
-+ * Caller must hold the i2c chain resource.
-+ *
-+ * Return number of bytes written, or -errno.
-+ */
-+int i2c_write(struct hfi2_pportdata *ppd, u32 target, int i2c_addr, int offset,
-+	      void *bp, int len)
-+{
-+	int ret;
-+
-+	if (!check_chip_resource(ppd->dd, i2c_target(target), __func__))
-+		return -EACCES;
-+
-+	ret = __i2c_write(ppd, target, i2c_addr, offset, bp, len);
-+	if (ret)
-+		return ret;
-+
-+	return len;
-+}
-+
-+/*
-+ * Raw i2c read.  No set-up or lock checking.
-+ *
-+ * Return 0 on success, -errno on error.
-+ */
-+static int __i2c_read(struct hfi2_pportdata *ppd, u32 target, int i2c_addr,
-+		      int offset, void *bp, int len)
-+{
-+	struct hfi2_devdata *dd = ppd->dd;
-+	struct hfi2_i2c_bus *bus;
-+	u8 slave_addr;
-+	int offset_size;
-+
-+	bus = target ? dd->asic_data->i2c_bus1 : dd->asic_data->i2c_bus0;
-+	slave_addr = (i2c_addr & 0xff) >> 1; /* convert to 7-bit addr */
-+	offset_size = (i2c_addr >> 8) & 0x3;
-+	return i2c_bus_read(dd, bus, slave_addr, offset, offset_size, bp, len);
-+}
-+
-+/*
-+ * Caller must hold the i2c chain resource.
-+ *
-+ * Return number of bytes read, or -errno.
-+ */
-+int i2c_read(struct hfi2_pportdata *ppd, u32 target, int i2c_addr, int offset,
-+	     void *bp, int len)
-+{
-+	int ret;
-+
-+	if (!check_chip_resource(ppd->dd, i2c_target(target), __func__))
-+		return -EACCES;
-+
-+	ret = __i2c_read(ppd, target, i2c_addr, offset, bp, len);
-+	if (ret)
-+		return ret;
-+
-+	return len;
-+}
-+
-+/*
-+ * Write page n, offset m of QSFP memory as defined by SFF 8636
-+ * by writing @addr = ((256 * n) + m)
-+ *
-+ * Caller must hold the i2c chain resource.
-+ *
-+ * Return number of bytes written or -errno.
-+ */
-+int qsfp_write(struct hfi2_pportdata *ppd, u32 target, int addr, void *bp,
-+	       int len)
-+{
-+	int count = 0;
-+	int offset;
-+	int nwrite;
-+	int ret = 0;
-+	u8 page;
-+
-+	if (!check_chip_resource(ppd->dd, i2c_target(target), __func__))
-+		return -EACCES;
-+
-+	while (count < len) {
-+		/*
-+		 * Set the qsfp page based on a zero-based address
-+		 * and a page size of QSFP_PAGESIZE bytes.
-+		 */
-+		page = (u8)(addr / QSFP_PAGESIZE);
-+
-+		ret = __i2c_write(ppd, target, QSFP_DEV | QSFP_OFFSET_SIZE,
-+				  QSFP_PAGE_SELECT_BYTE_OFFS, &page, 1);
-+		/* QSFPs require a 5-10msec delay after write operations */
-+		mdelay(5);
-+		if (ret) {
-+			hfi2_dev_porterr(ppd->dd, ppd->port,
-+					 "QSFP chain %d can't write QSFP_PAGE_SELECT_BYTE: %d\n",
-+					 target, ret);
-+			break;
-+		}
-+
-+		offset = addr % QSFP_PAGESIZE;
-+		nwrite = len - count;
-+		/* truncate write to boundary if crossing boundary */
-+		if (((addr % QSFP_RW_BOUNDARY) + nwrite) > QSFP_RW_BOUNDARY)
-+			nwrite = QSFP_RW_BOUNDARY - (addr % QSFP_RW_BOUNDARY);
-+
-+		ret = __i2c_write(ppd, target, QSFP_DEV | QSFP_OFFSET_SIZE,
-+				  offset, bp + count, nwrite);
-+		/* QSFPs require a 5-10msec delay after write operations */
-+		mdelay(5);
-+		if (ret)	/* stop on error */
-+			break;
-+
-+		count += nwrite;
-+		addr += nwrite;
-+	}
-+
-+	if (ret < 0)
-+		return ret;
-+	return count;
-+}
-+
-+/*
-+ * Access page n, offset m of QSFP memory as defined by SFF 8636
-+ * by reading @addr = ((256 * n) + m)
-+ *
-+ * Caller must hold the i2c chain resource.
-+ *
-+ * Return the number of bytes read or -errno.
-+ */
-+int qsfp_read(struct hfi2_pportdata *ppd, u32 target, int addr, void *bp,
-+	      int len)
-+{
-+	int count = 0;
-+	int offset;
-+	int nread;
-+	int ret = 0;
-+	u8 page;
-+
-+	if (!check_chip_resource(ppd->dd, i2c_target(target), __func__))
-+		return -EACCES;
-+
-+	while (count < len) {
-+		/*
-+		 * Set the qsfp page based on a zero-based address
-+		 * and a page size of QSFP_PAGESIZE bytes.
-+		 */
-+		page = (u8)(addr / QSFP_PAGESIZE);
-+		ret = __i2c_write(ppd, target, QSFP_DEV | QSFP_OFFSET_SIZE,
-+				  QSFP_PAGE_SELECT_BYTE_OFFS, &page, 1);
-+		/* QSFPs require a 5-10msec delay after write operations */
-+		mdelay(5);
-+		if (ret) {
-+			hfi2_dev_porterr(ppd->dd, ppd->port,
-+					 "QSFP chain %d can't write QSFP_PAGE_SELECT_BYTE: %d\n",
-+					 target, ret);
-+			break;
-+		}
-+
-+		offset = addr % QSFP_PAGESIZE;
-+		nread = len - count;
-+		/* truncate read to boundary if crossing boundary */
-+		if (((addr % QSFP_RW_BOUNDARY) + nread) > QSFP_RW_BOUNDARY)
-+			nread = QSFP_RW_BOUNDARY - (addr % QSFP_RW_BOUNDARY);
-+
-+		ret = __i2c_read(ppd, target, QSFP_DEV | QSFP_OFFSET_SIZE,
-+				 offset, bp + count, nread);
-+		if (ret)	/* stop on error */
-+			break;
-+
-+		count += nread;
-+		addr += nread;
-+	}
-+
-+	if (ret < 0)
-+		return ret;
-+	return count;
-+}
-+
-+/*
-+ * Perform a stand-alone single QSFP read.  Acquire the resource, do the
-+ * read, then release the resource.
-+ */
-+int one_qsfp_read(struct hfi2_pportdata *ppd, u32 target, int addr, void *bp,
-+		  int len)
-+{
-+	struct hfi2_devdata *dd = ppd->dd;
-+	u32 resource = qsfp_resource(dd);
-+	int ret;
-+
-+	ret = acquire_chip_resource(dd, resource, QSFP_WAIT);
-+	if (ret)
-+		return ret;
-+	ret = qsfp_read(ppd, target, addr, bp, len);
-+	release_chip_resource(dd, resource);
-+
-+	return ret;
-+}
-+
-+/*
-+ * This function caches the QSFP memory range in 128 byte chunks.
-+ * As an example, the next byte after address 255 is byte 128 from
-+ * upper page 01H (if existing) rather than byte 0 from lower page 00H.
-+ * Access page n, offset m of QSFP memory as defined by SFF 8636
-+ * in the cache by reading byte ((128 * n) + m)
-+ * The calls to qsfp_{read,write} in this function correctly handle the
-+ * address map difference between this mapping and the mapping implemented
-+ * by those functions
-+ *
-+ * The caller must be holding the QSFP i2c chain resource.
-+ */
-+int refresh_qsfp_cache(struct hfi2_pportdata *ppd, struct qsfp_data *cp)
-+{
-+	u32 target = ppd->dd->hfi2_id;
-+	int ret;
-+	unsigned long flags;
-+	u8 *cache = &cp->cache[0];
-+
-+	/* ensure sane contents on invalid reads, for cable swaps */
-+	memset(cache, 0, (QSFP_MAX_NUM_PAGES * 128));
-+	spin_lock_irqsave(&ppd->qsfp_info.qsfp_lock, flags);
-+	ppd->qsfp_info.cache_valid = 0;
-+	spin_unlock_irqrestore(&ppd->qsfp_info.qsfp_lock, flags);
-+
-+	if (!qsfp_mod_present(ppd)) {
-+		ret = -ENODEV;
-+		goto bail;
-+	}
-+
-+	ret = qsfp_read(ppd, target, 0, cache, QSFP_PAGESIZE);
-+	if (ret != QSFP_PAGESIZE) {
-+		ppd_dev_info(ppd,
-+			     "%s: Page 0 read failed, expected %d, got %d\n",
-+			     __func__, QSFP_PAGESIZE, ret);
-+		goto bail;
-+	}
-+
-+	/* Is paging enabled? */
-+	if (!(cache[2] & 4)) {
-+		/* Paging enabled, page 03 required */
-+		if ((cache[195] & 0xC0) == 0xC0) {
-+			/* all */
-+			ret = qsfp_read(ppd, target, 384, cache + 256, 128);
-+			if (ret <= 0 || ret != 128) {
-+				ppd_dev_info(ppd, "%s failed\n", __func__);
-+				goto bail;
-+			}
-+			ret = qsfp_read(ppd, target, 640, cache + 384, 128);
-+			if (ret <= 0 || ret != 128) {
-+				ppd_dev_info(ppd, "%s failed\n", __func__);
-+				goto bail;
-+			}
-+			ret = qsfp_read(ppd, target, 896, cache + 512, 128);
-+			if (ret <= 0 || ret != 128) {
-+				ppd_dev_info(ppd, "%s failed\n", __func__);
-+				goto bail;
-+			}
-+		} else if ((cache[195] & 0x80) == 0x80) {
-+			/* only page 2 and 3 */
-+			ret = qsfp_read(ppd, target, 640, cache + 384, 128);
-+			if (ret <= 0 || ret != 128) {
-+				ppd_dev_info(ppd, "%s failed\n", __func__);
-+				goto bail;
-+			}
-+			ret = qsfp_read(ppd, target, 896, cache + 512, 128);
-+			if (ret <= 0 || ret != 128) {
-+				ppd_dev_info(ppd, "%s failed\n", __func__);
-+				goto bail;
-+			}
-+		} else if ((cache[195] & 0x40) == 0x40) {
-+			/* only page 1 and 3 */
-+			ret = qsfp_read(ppd, target, 384, cache + 256, 128);
-+			if (ret <= 0 || ret != 128) {
-+				ppd_dev_info(ppd, "%s failed\n", __func__);
-+				goto bail;
-+			}
-+			ret = qsfp_read(ppd, target, 896, cache + 512, 128);
-+			if (ret <= 0 || ret != 128) {
-+				ppd_dev_info(ppd, "%s failed\n", __func__);
-+				goto bail;
-+			}
-+		} else {
-+			/* only page 3 */
-+			ret = qsfp_read(ppd, target, 896, cache + 512, 128);
-+			if (ret <= 0 || ret != 128) {
-+				ppd_dev_info(ppd, "%s failed\n", __func__);
-+				goto bail;
-+			}
-+		}
-+	}
-+
-+	spin_lock_irqsave(&ppd->qsfp_info.qsfp_lock, flags);
-+	ppd->qsfp_info.cache_valid = 1;
-+	ppd->qsfp_info.cache_refresh_required = 0;
-+	spin_unlock_irqrestore(&ppd->qsfp_info.qsfp_lock, flags);
-+
-+	return 0;
-+
-+bail:
-+	memset(cache, 0, (QSFP_MAX_NUM_PAGES * 128));
-+	return ret;
-+}
-+
-+const char * const hfi2_qsfp_devtech[16] = {
-+	"850nm VCSEL", "1310nm VCSEL", "1550nm VCSEL", "1310nm FP",
-+	"1310nm DFB", "1550nm DFB", "1310nm EML", "1550nm EML",
-+	"Cu Misc", "1490nm DFB", "Cu NoEq", "Cu Eq",
-+	"Undef", "Cu Active BothEq", "Cu FarEq", "Cu NearEq"
-+};
-+
-+#define QSFP_DUMP_CHUNK 16 /* Holds longest string */
-+#define QSFP_DEFAULT_HDR_CNT 224
-+
-+#define QSFP_PWR(pbyte) (((pbyte) >> 6) & 3)
-+#define QSFP_HIGH_PWR(pbyte) ((pbyte) & 3)
-+/* For use with QSFP_HIGH_PWR macro */
-+#define QSFP_HIGH_PWR_UNUSED	0 /* Bits [1:0] = 00 implies low power module */
-+
-+/*
-+ * Takes power class byte [Page 00 Byte 129] in SFF 8636
-+ * Returns power class as integer (1 through 7, per SFF 8636 rev 2.4)
-+ */
-+int get_qsfp_power_class(u8 power_byte)
-+{
-+	if (QSFP_HIGH_PWR(power_byte) == QSFP_HIGH_PWR_UNUSED)
-+		/* power classes count from 1, their bit encodings from 0 */
-+		return (QSFP_PWR(power_byte) + 1);
-+	/*
-+	 * 00 in the high power classes stands for unused, bringing
-+	 * balance to the off-by-1 offset above, we add 4 here to
-+	 * account for the difference between the low and high power
-+	 * groups
-+	 */
-+	return (QSFP_HIGH_PWR(power_byte) + 4);
-+}
-+
-+int qsfp_mod_present(struct hfi2_pportdata *ppd)
-+{
-+	struct hfi2_devdata *dd = ppd->dd;
-+	u64 reg;
-+
-+	reg = read_csr(dd, dd->hfi2_id ? ASIC_QSFP2_IN : ASIC_QSFP1_IN);
-+	return !(reg & QSFP_HFI0_MODPRST_N);
-+}
-+
-+/*
-+ * This function maps QSFP memory addresses in 128 byte chunks in the following
-+ * fashion per the CableInfo SMA query definition in the IBA 1.3 spec/OPA Gen 1
-+ * spec
-+ * For addr 000-127, lower page 00h
-+ * For addr 128-255, upper page 00h
-+ * For addr 256-383, upper page 01h
-+ * For addr 384-511, upper page 02h
-+ * For addr 512-639, upper page 03h
-+ *
-+ * For addresses beyond this range, it returns the invalid range of data buffer
-+ * set to 0.
-+ * For upper pages that are optional, if they are not valid, returns the
-+ * particular range of bytes in the data buffer set to 0.
-+ */
-+int get_cable_info(struct hfi2_pportdata *ppd, u32 addr, u32 len, u8 *data)
-+{
-+	struct hfi2_devdata *dd = ppd->dd;
-+	u32 excess_len = len;
-+	int ret = 0, offset = 0;
-+
-+	if (!qsfp_mod_present(ppd)) {
-+		ret = -ENODEV;
-+		goto set_zeroes;
-+	}
-+
-+	if (!ppd->qsfp_info.cache_valid) {
-+		ret = -EINVAL;
-+		goto set_zeroes;
-+	}
-+
-+	if (addr >= (QSFP_MAX_NUM_PAGES * 128)) {
-+		ret = -ERANGE;
-+		goto set_zeroes;
-+	}
-+
-+	if ((addr + len) > (QSFP_MAX_NUM_PAGES * 128)) {
-+		excess_len = (addr + len) - (QSFP_MAX_NUM_PAGES * 128);
-+		memcpy(data, &ppd->qsfp_info.cache[addr], (len - excess_len));
-+		data += (len - excess_len);
-+		goto set_zeroes;
-+	}
-+
-+	memcpy(data, &ppd->qsfp_info.cache[addr], len);
-+
-+	if (addr <= QSFP_MONITOR_VAL_END &&
-+	    (addr + len) >= QSFP_MONITOR_VAL_START) {
-+		/* Overlap with the dynamic channel monitor range */
-+		if (addr < QSFP_MONITOR_VAL_START) {
-+			if (addr + len <= QSFP_MONITOR_VAL_END)
-+				len = addr + len - QSFP_MONITOR_VAL_START;
-+			else
-+				len = QSFP_MONITOR_RANGE;
-+			offset = QSFP_MONITOR_VAL_START - addr;
-+			addr = QSFP_MONITOR_VAL_START;
-+		} else if (addr == QSFP_MONITOR_VAL_START) {
-+			offset = 0;
-+			if (addr + len > QSFP_MONITOR_VAL_END)
-+				len = QSFP_MONITOR_RANGE;
-+		} else {
-+			offset = 0;
-+			if (addr + len > QSFP_MONITOR_VAL_END)
-+				len = QSFP_MONITOR_VAL_END - addr + 1;
-+		}
-+		/* Refresh the values of the dynamic monitors from the cable */
-+		ret = one_qsfp_read(ppd, dd->hfi2_id, addr, data + offset, len);
-+		if (ret != len) {
-+			ret = -EAGAIN;
-+			goto set_zeroes;
-+		}
-+	}
-+
-+	return 0;
-+
-+set_zeroes:
-+	memset(data, 0, excess_len);
-+	return ret;
-+}
-+
-+static const char *pwr_codes[8] = {"N/AW",
-+				  "1.5W",
-+				  "2.0W",
-+				  "2.5W",
-+				  "3.5W",
-+				  "4.0W",
-+				  "4.5W",
-+				  "5.0W"
-+				 };
-+
-+int qsfp_dump(struct hfi2_pportdata *ppd, char *buf, int len)
-+{
-+	u8 *cache = &ppd->qsfp_info.cache[0];
-+	u8 bin_buff[QSFP_DUMP_CHUNK];
-+	char lenstr[6];
-+	int sofar;
-+	int bidx = 0;
-+	u8 *atten = &cache[QSFP_ATTEN_OFFS];
-+	u8 *vendor_oui = &cache[QSFP_VOUI_OFFS];
-+	u8 power_byte = 0;
-+
-+	sofar = 0;
-+	lenstr[0] = ' ';
-+	lenstr[1] = '\0';
-+
-+	if (ppd->qsfp_info.cache_valid) {
-+		if (QSFP_IS_CU(cache[QSFP_MOD_TECH_OFFS]))
-+			snprintf(lenstr, sizeof(lenstr), "%dM ",
-+				 cache[QSFP_MOD_LEN_OFFS]);
-+
-+		power_byte = cache[QSFP_MOD_PWR_OFFS];
-+		sofar += scnprintf(buf + sofar, len - sofar, "PWR:%.3sW\n",
-+				pwr_codes[get_qsfp_power_class(power_byte)]);
-+
-+		sofar += scnprintf(buf + sofar, len - sofar, "TECH:%s%s\n",
-+				lenstr,
-+			hfi2_qsfp_devtech[(cache[QSFP_MOD_TECH_OFFS]) >> 4]);
-+
-+		sofar += scnprintf(buf + sofar, len - sofar, "Vendor:%.*s\n",
-+				   QSFP_VEND_LEN, &cache[QSFP_VEND_OFFS]);
-+
-+		sofar += scnprintf(buf + sofar, len - sofar, "OUI:%06X\n",
-+				   QSFP_OUI(vendor_oui));
-+
-+		sofar += scnprintf(buf + sofar, len - sofar, "Part#:%.*s\n",
-+				   QSFP_PN_LEN, &cache[QSFP_PN_OFFS]);
-+
-+		sofar += scnprintf(buf + sofar, len - sofar, "Rev:%.*s\n",
-+				   QSFP_REV_LEN, &cache[QSFP_REV_OFFS]);
-+
-+		if (QSFP_IS_CU(cache[QSFP_MOD_TECH_OFFS]))
-+			sofar += scnprintf(buf + sofar, len - sofar,
-+				"Atten:%d, %d\n",
-+				QSFP_ATTEN_SDR(atten),
-+				QSFP_ATTEN_DDR(atten));
-+
-+		sofar += scnprintf(buf + sofar, len - sofar, "Serial:%.*s\n",
-+				   QSFP_SN_LEN, &cache[QSFP_SN_OFFS]);
-+
-+		sofar += scnprintf(buf + sofar, len - sofar, "Date:%.*s\n",
-+				   QSFP_DATE_LEN, &cache[QSFP_DATE_OFFS]);
-+
-+		sofar += scnprintf(buf + sofar, len - sofar, "Lot:%.*s\n",
-+				   QSFP_LOT_LEN, &cache[QSFP_LOT_OFFS]);
-+
-+		while (bidx < QSFP_DEFAULT_HDR_CNT) {
-+			int iidx;
-+
-+			memcpy(bin_buff, &cache[bidx], QSFP_DUMP_CHUNK);
-+			for (iidx = 0; iidx < QSFP_DUMP_CHUNK; ++iidx) {
-+				sofar += scnprintf(buf + sofar, len - sofar,
-+					" %02X", bin_buff[iidx]);
-+			}
-+			sofar += scnprintf(buf + sofar, len - sofar, "\n");
-+			bidx += QSFP_DUMP_CHUNK;
-+		}
-+	}
-+	return sofar;
-+}
-diff --git a/drivers/infiniband/hw/hfi2/sysfs.c b/drivers/infiniband/hw/hfi2/sysfs.c
-new file mode 100644
-index 000000000000..1b79d8c061b9
---- /dev/null
-+++ b/drivers/infiniband/hw/hfi2/sysfs.c
-@@ -0,0 +1,752 @@
-+// SPDX-License-Identifier: GPL-2.0 OR BSD-3-Clause
-+/*
-+ * Copyright(c) 2015-2017 Intel Corporation.
-+ */
-+
-+#include <linux/ctype.h>
-+#include <rdma/ib_sysfs.h>
-+
-+#include "hfi2.h"
-+#include "mad.h"
-+#include "trace.h"
-+
-+static struct hfi2_pportdata *hfi2_get_pportdata_kobj(struct kobject *kobj)
-+{
-+	u32 port_num;
-+	struct ib_device *ibdev = ib_port_sysfs_get_ibdev_kobj(kobj, &port_num);
-+	struct hfi2_devdata *dd = dd_from_ibdev(ibdev);
-+
-+	return &dd->pport[port_num - 1];
-+}
-+
-+/*
-+ * Start of per-port congestion control structures and support code
-+ */
-+
-+/*
-+ * Congestion control table size followed by table entries
-+ */
-+static ssize_t cc_table_bin_read(struct file *filp, struct kobject *kobj,
-+				 const struct bin_attribute *bin_attr,
-+				 char *buf, loff_t pos, size_t count)
-+{
-+	int ret;
-+	struct hfi2_pportdata *ppd = hfi2_get_pportdata_kobj(kobj);
-+	struct cc_state *cc_state;
-+
-+	ret = ppd->total_cct_entry * sizeof(struct ib_cc_table_entry_shadow)
-+		 + sizeof(__be16);
-+
-+	if (pos > ret)
-+		return -EINVAL;
-+
-+	if (count > ret - pos)
-+		count = ret - pos;
-+
-+	if (!count)
-+		return count;
-+
-+	rcu_read_lock();
-+	cc_state = get_cc_state(ppd);
-+	if (!cc_state) {
-+		rcu_read_unlock();
-+		return -EINVAL;
-+	}
-+	memcpy(buf, (void *)&cc_state->cct + pos, count);
-+	rcu_read_unlock();
-+
-+	return count;
-+}
-+static const BIN_ATTR_RO(cc_table_bin, PAGE_SIZE);
-+
-+/*
-+ * Congestion settings: port control, control map and an array of 16
-+ * entries for the congestion entries - increase, timer, event log
-+ * trigger threshold and the minimum injection rate delay.
-+ */
-+static ssize_t cc_setting_bin_read(struct file *filp, struct kobject *kobj,
-+				   const struct bin_attribute *bin_attr,
-+				   char *buf, loff_t pos, size_t count)
-+{
-+	struct hfi2_pportdata *ppd = hfi2_get_pportdata_kobj(kobj);
-+	int ret;
-+	struct cc_state *cc_state;
-+
-+	ret = sizeof(struct opa_congestion_setting_attr_shadow);
-+
-+	if (pos > ret)
-+		return -EINVAL;
-+	if (count > ret - pos)
-+		count = ret - pos;
-+
-+	if (!count)
-+		return count;
-+
-+	rcu_read_lock();
-+	cc_state = get_cc_state(ppd);
-+	if (!cc_state) {
-+		rcu_read_unlock();
-+		return -EINVAL;
-+	}
-+	memcpy(buf, (void *)&cc_state->cong_setting + pos, count);
-+	rcu_read_unlock();
-+
-+	return count;
-+}
-+static const BIN_ATTR_RO(cc_setting_bin, PAGE_SIZE);
-+
-+static const struct bin_attribute *const port_cc_bin_attributes[] = {
-+	&bin_attr_cc_setting_bin,
-+	&bin_attr_cc_table_bin,
-+	NULL
-+};
-+
-+static ssize_t cc_prescan_show(struct ib_device *ibdev, u32 port_num,
-+			       struct ib_port_attribute *attr, char *buf)
-+{
-+	struct hfi2_devdata *dd = dd_from_ibdev(ibdev);
-+	struct hfi2_pportdata *ppd = &dd->pport[port_num - 1];
-+
-+	return sysfs_emit(buf, "%s\n", ppd->cc_prescan ? "on" : "off");
-+}
-+
-+static ssize_t cc_prescan_store(struct ib_device *ibdev, u32 port_num,
-+				struct ib_port_attribute *attr, const char *buf,
-+				size_t count)
-+{
-+	struct hfi2_devdata *dd = dd_from_ibdev(ibdev);
-+	struct hfi2_pportdata *ppd = &dd->pport[port_num - 1];
-+
-+	if (!memcmp(buf, "on", 2))
-+		ppd->cc_prescan = true;
-+	else if (!memcmp(buf, "off", 3))
-+		ppd->cc_prescan = false;
-+
-+	return count;
-+}
-+static IB_PORT_ATTR_ADMIN_RW(cc_prescan);
-+
-+static struct attribute *port_cc_attributes[] = {
-+	&ib_port_attr_cc_prescan.attr,
-+	NULL
-+};
-+
-+static const struct attribute_group port_cc_group = {
-+	.name = "CCMgtA",
-+	.attrs = port_cc_attributes,
-+	.bin_attrs_new = port_cc_bin_attributes,
-+};
-+
-+/* Start sc2vl */
-+struct hfi2_sc2vl_attr {
-+	struct ib_port_attribute attr;
-+	int sc;
-+};
-+
-+static ssize_t sc2vl_attr_show(struct ib_device *ibdev, u32 port_num,
-+			       struct ib_port_attribute *attr, char *buf)
-+{
-+	struct hfi2_sc2vl_attr *sattr =
-+		container_of(attr, struct hfi2_sc2vl_attr, attr);
-+	struct hfi2_devdata *dd = dd_from_ibdev(ibdev);
-+	struct hfi2_pportdata *ppd = &dd->pport[port_num - 1];
-+
-+	return sysfs_emit(buf, "%u\n", *((u8 *)ppd->sc2vl + sattr->sc));
-+}
-+
-+#define HFI2_SC2VL_ATTR(N)                                                     \
-+	static struct hfi2_sc2vl_attr hfi2_sc2vl_attr_##N = {                  \
-+		.attr = __ATTR(N, 0444, sc2vl_attr_show, NULL),                \
-+		.sc = N,                                                       \
-+	}
-+
-+HFI2_SC2VL_ATTR(0);
-+HFI2_SC2VL_ATTR(1);
-+HFI2_SC2VL_ATTR(2);
-+HFI2_SC2VL_ATTR(3);
-+HFI2_SC2VL_ATTR(4);
-+HFI2_SC2VL_ATTR(5);
-+HFI2_SC2VL_ATTR(6);
-+HFI2_SC2VL_ATTR(7);
-+HFI2_SC2VL_ATTR(8);
-+HFI2_SC2VL_ATTR(9);
-+HFI2_SC2VL_ATTR(10);
-+HFI2_SC2VL_ATTR(11);
-+HFI2_SC2VL_ATTR(12);
-+HFI2_SC2VL_ATTR(13);
-+HFI2_SC2VL_ATTR(14);
-+HFI2_SC2VL_ATTR(15);
-+HFI2_SC2VL_ATTR(16);
-+HFI2_SC2VL_ATTR(17);
-+HFI2_SC2VL_ATTR(18);
-+HFI2_SC2VL_ATTR(19);
-+HFI2_SC2VL_ATTR(20);
-+HFI2_SC2VL_ATTR(21);
-+HFI2_SC2VL_ATTR(22);
-+HFI2_SC2VL_ATTR(23);
-+HFI2_SC2VL_ATTR(24);
-+HFI2_SC2VL_ATTR(25);
-+HFI2_SC2VL_ATTR(26);
-+HFI2_SC2VL_ATTR(27);
-+HFI2_SC2VL_ATTR(28);
-+HFI2_SC2VL_ATTR(29);
-+HFI2_SC2VL_ATTR(30);
-+HFI2_SC2VL_ATTR(31);
-+
-+static struct attribute *port_sc2vl_attributes[] = {
-+	&hfi2_sc2vl_attr_0.attr.attr,
-+	&hfi2_sc2vl_attr_1.attr.attr,
-+	&hfi2_sc2vl_attr_2.attr.attr,
-+	&hfi2_sc2vl_attr_3.attr.attr,
-+	&hfi2_sc2vl_attr_4.attr.attr,
-+	&hfi2_sc2vl_attr_5.attr.attr,
-+	&hfi2_sc2vl_attr_6.attr.attr,
-+	&hfi2_sc2vl_attr_7.attr.attr,
-+	&hfi2_sc2vl_attr_8.attr.attr,
-+	&hfi2_sc2vl_attr_9.attr.attr,
-+	&hfi2_sc2vl_attr_10.attr.attr,
-+	&hfi2_sc2vl_attr_11.attr.attr,
-+	&hfi2_sc2vl_attr_12.attr.attr,
-+	&hfi2_sc2vl_attr_13.attr.attr,
-+	&hfi2_sc2vl_attr_14.attr.attr,
-+	&hfi2_sc2vl_attr_15.attr.attr,
-+	&hfi2_sc2vl_attr_16.attr.attr,
-+	&hfi2_sc2vl_attr_17.attr.attr,
-+	&hfi2_sc2vl_attr_18.attr.attr,
-+	&hfi2_sc2vl_attr_19.attr.attr,
-+	&hfi2_sc2vl_attr_20.attr.attr,
-+	&hfi2_sc2vl_attr_21.attr.attr,
-+	&hfi2_sc2vl_attr_22.attr.attr,
-+	&hfi2_sc2vl_attr_23.attr.attr,
-+	&hfi2_sc2vl_attr_24.attr.attr,
-+	&hfi2_sc2vl_attr_25.attr.attr,
-+	&hfi2_sc2vl_attr_26.attr.attr,
-+	&hfi2_sc2vl_attr_27.attr.attr,
-+	&hfi2_sc2vl_attr_28.attr.attr,
-+	&hfi2_sc2vl_attr_29.attr.attr,
-+	&hfi2_sc2vl_attr_30.attr.attr,
-+	&hfi2_sc2vl_attr_31.attr.attr,
-+	NULL
-+};
-+
-+static const struct attribute_group port_sc2vl_group = {
-+	.name = "sc2vl",
-+	.attrs = port_sc2vl_attributes,
-+};
-+/* End sc2vl */
-+
-+/* Start sl2sc */
-+struct hfi2_sl2sc_attr {
-+	struct ib_port_attribute attr;
-+	int sl;
-+};
-+
-+static ssize_t sl2sc_attr_show(struct ib_device *ibdev, u32 port_num,
-+			       struct ib_port_attribute *attr, char *buf)
-+{
-+	struct hfi2_sl2sc_attr *sattr =
-+		container_of(attr, struct hfi2_sl2sc_attr, attr);
-+	struct hfi2_devdata *dd = dd_from_ibdev(ibdev);
-+	struct hfi2_ibport *ibp = &dd->pport[port_num - 1].ibport_data;
-+
-+	return sysfs_emit(buf, "%u\n", ibp->sl_to_sc[sattr->sl]);
-+}
-+
-+#define HFI2_SL2SC_ATTR(N)                                                     \
-+	static struct hfi2_sl2sc_attr hfi2_sl2sc_attr_##N = {                  \
-+		.attr = __ATTR(N, 0444, sl2sc_attr_show, NULL), .sl = N        \
-+	}
-+
-+HFI2_SL2SC_ATTR(0);
-+HFI2_SL2SC_ATTR(1);
-+HFI2_SL2SC_ATTR(2);
-+HFI2_SL2SC_ATTR(3);
-+HFI2_SL2SC_ATTR(4);
-+HFI2_SL2SC_ATTR(5);
-+HFI2_SL2SC_ATTR(6);
-+HFI2_SL2SC_ATTR(7);
-+HFI2_SL2SC_ATTR(8);
-+HFI2_SL2SC_ATTR(9);
-+HFI2_SL2SC_ATTR(10);
-+HFI2_SL2SC_ATTR(11);
-+HFI2_SL2SC_ATTR(12);
-+HFI2_SL2SC_ATTR(13);
-+HFI2_SL2SC_ATTR(14);
-+HFI2_SL2SC_ATTR(15);
-+HFI2_SL2SC_ATTR(16);
-+HFI2_SL2SC_ATTR(17);
-+HFI2_SL2SC_ATTR(18);
-+HFI2_SL2SC_ATTR(19);
-+HFI2_SL2SC_ATTR(20);
-+HFI2_SL2SC_ATTR(21);
-+HFI2_SL2SC_ATTR(22);
-+HFI2_SL2SC_ATTR(23);
-+HFI2_SL2SC_ATTR(24);
-+HFI2_SL2SC_ATTR(25);
-+HFI2_SL2SC_ATTR(26);
-+HFI2_SL2SC_ATTR(27);
-+HFI2_SL2SC_ATTR(28);
-+HFI2_SL2SC_ATTR(29);
-+HFI2_SL2SC_ATTR(30);
-+HFI2_SL2SC_ATTR(31);
-+
-+static struct attribute *port_sl2sc_attributes[] = {
-+	&hfi2_sl2sc_attr_0.attr.attr,
-+	&hfi2_sl2sc_attr_1.attr.attr,
-+	&hfi2_sl2sc_attr_2.attr.attr,
-+	&hfi2_sl2sc_attr_3.attr.attr,
-+	&hfi2_sl2sc_attr_4.attr.attr,
-+	&hfi2_sl2sc_attr_5.attr.attr,
-+	&hfi2_sl2sc_attr_6.attr.attr,
-+	&hfi2_sl2sc_attr_7.attr.attr,
-+	&hfi2_sl2sc_attr_8.attr.attr,
-+	&hfi2_sl2sc_attr_9.attr.attr,
-+	&hfi2_sl2sc_attr_10.attr.attr,
-+	&hfi2_sl2sc_attr_11.attr.attr,
-+	&hfi2_sl2sc_attr_12.attr.attr,
-+	&hfi2_sl2sc_attr_13.attr.attr,
-+	&hfi2_sl2sc_attr_14.attr.attr,
-+	&hfi2_sl2sc_attr_15.attr.attr,
-+	&hfi2_sl2sc_attr_16.attr.attr,
-+	&hfi2_sl2sc_attr_17.attr.attr,
-+	&hfi2_sl2sc_attr_18.attr.attr,
-+	&hfi2_sl2sc_attr_19.attr.attr,
-+	&hfi2_sl2sc_attr_20.attr.attr,
-+	&hfi2_sl2sc_attr_21.attr.attr,
-+	&hfi2_sl2sc_attr_22.attr.attr,
-+	&hfi2_sl2sc_attr_23.attr.attr,
-+	&hfi2_sl2sc_attr_24.attr.attr,
-+	&hfi2_sl2sc_attr_25.attr.attr,
-+	&hfi2_sl2sc_attr_26.attr.attr,
-+	&hfi2_sl2sc_attr_27.attr.attr,
-+	&hfi2_sl2sc_attr_28.attr.attr,
-+	&hfi2_sl2sc_attr_29.attr.attr,
-+	&hfi2_sl2sc_attr_30.attr.attr,
-+	&hfi2_sl2sc_attr_31.attr.attr,
-+	NULL
-+};
-+
-+static const struct attribute_group port_sl2sc_group = {
-+	.name = "sl2sc",
-+	.attrs = port_sl2sc_attributes,
-+};
-+
-+/* End sl2sc */
-+
-+/* Start vl2mtu */
-+
-+struct hfi2_vl2mtu_attr {
-+	struct ib_port_attribute attr;
-+	int vl;
-+};
-+
-+static ssize_t vl2mtu_attr_show(struct ib_device *ibdev, u32 port_num,
-+				struct ib_port_attribute *attr, char *buf)
-+{
-+	struct hfi2_vl2mtu_attr *vlattr =
-+		container_of(attr, struct hfi2_vl2mtu_attr, attr);
-+	struct hfi2_devdata *dd = dd_from_ibdev(ibdev);
-+	struct hfi2_pportdata *ppd = &dd->pport[port_num - 1];
-+
-+	return sysfs_emit(buf, "%u\n", ppd->vld[vlattr->vl].mtu);
-+}
-+
-+#define HFI2_VL2MTU_ATTR(N)                                                    \
-+	static struct hfi2_vl2mtu_attr hfi2_vl2mtu_attr_##N = {                \
-+		.attr = __ATTR(N, 0444, vl2mtu_attr_show, NULL),               \
-+		.vl = N,                                                       \
-+	}
-+
-+HFI2_VL2MTU_ATTR(0);
-+HFI2_VL2MTU_ATTR(1);
-+HFI2_VL2MTU_ATTR(2);
-+HFI2_VL2MTU_ATTR(3);
-+HFI2_VL2MTU_ATTR(4);
-+HFI2_VL2MTU_ATTR(5);
-+HFI2_VL2MTU_ATTR(6);
-+HFI2_VL2MTU_ATTR(7);
-+HFI2_VL2MTU_ATTR(8);
-+HFI2_VL2MTU_ATTR(9);
-+HFI2_VL2MTU_ATTR(10);
-+HFI2_VL2MTU_ATTR(11);
-+HFI2_VL2MTU_ATTR(12);
-+HFI2_VL2MTU_ATTR(13);
-+HFI2_VL2MTU_ATTR(14);
-+HFI2_VL2MTU_ATTR(15);
-+
-+static struct attribute *port_vl2mtu_attributes[] = {
-+	&hfi2_vl2mtu_attr_0.attr.attr,
-+	&hfi2_vl2mtu_attr_1.attr.attr,
-+	&hfi2_vl2mtu_attr_2.attr.attr,
-+	&hfi2_vl2mtu_attr_3.attr.attr,
-+	&hfi2_vl2mtu_attr_4.attr.attr,
-+	&hfi2_vl2mtu_attr_5.attr.attr,
-+	&hfi2_vl2mtu_attr_6.attr.attr,
-+	&hfi2_vl2mtu_attr_7.attr.attr,
-+	&hfi2_vl2mtu_attr_8.attr.attr,
-+	&hfi2_vl2mtu_attr_9.attr.attr,
-+	&hfi2_vl2mtu_attr_10.attr.attr,
-+	&hfi2_vl2mtu_attr_11.attr.attr,
-+	&hfi2_vl2mtu_attr_12.attr.attr,
-+	&hfi2_vl2mtu_attr_13.attr.attr,
-+	&hfi2_vl2mtu_attr_14.attr.attr,
-+	&hfi2_vl2mtu_attr_15.attr.attr,
-+	NULL
-+};
-+
-+static const struct attribute_group port_vl2mtu_group = {
-+	.name = "vl2mtu",
-+	.attrs = port_vl2mtu_attributes,
-+};
-+
-+/* start per-port nctxts and freectxts */
-+static ssize_t num_ctxts_show(struct ib_device *ibdev, u32 port_num,
-+			      struct ib_port_attribute *attr, char *buf)
-+{
-+	struct hfi2_devdata *dd = dd_from_ibdev(ibdev);
-+	struct hfi2_pportdata *ppd = &dd->pport[port_num - 1];
-+
-+	return sysfs_emit(buf, "%u\n", ppd->num_user_contexts);
-+}
-+
-+static IB_PORT_ATTR_RO(num_ctxts);
-+
-+static ssize_t num_freectxts_show(struct ib_device *ibdev, u32 port_num,
-+				  struct ib_port_attribute *attr, char *buf)
-+{
-+	struct hfi2_devdata *dd = dd_from_ibdev(ibdev);
-+	struct hfi2_pportdata *ppd = &dd->pport[port_num - 1];
-+
-+	return sysfs_emit(buf, "%u\n", ppd->freectxts);
-+}
-+
-+static IB_PORT_ATTR_RO(num_freectxts);
-+
-+static struct attribute *port_ctxt_attributes[] = {
-+	&ib_port_attr_num_ctxts.attr,
-+	&ib_port_attr_num_freectxts.attr,
-+	NULL,
-+};
-+
-+static struct attribute_group port_ctxt_group = {
-+	.attrs = port_ctxt_attributes,
-+};
-+
-+/* end of per-port file structures and support code */
-+
-+/*
-+ * Start of per-unit (or driver, in some cases, but replicated
-+ * per unit) functions (these get a device *)
-+ */
-+static ssize_t hw_rev_show(struct device *device, struct device_attribute *attr,
-+			   char *buf)
-+{
-+	struct hfi2_ibdev *dev =
-+		rdma_device_to_drv_device(device, struct hfi2_ibdev, rdi.ibdev);
-+
-+	return sysfs_emit(buf, "%x\n", dd_from_dev(dev)->minrev);
-+}
-+static DEVICE_ATTR_RO(hw_rev);
-+
-+static ssize_t board_id_show(struct device *device,
-+			     struct device_attribute *attr, char *buf)
-+{
-+	struct hfi2_ibdev *dev =
-+		rdma_device_to_drv_device(device, struct hfi2_ibdev, rdi.ibdev);
-+	struct hfi2_devdata *dd = dd_from_dev(dev);
-+
-+	if (!dd->boardname)
-+		return -EINVAL;
-+
-+	return sysfs_emit(buf, "%s\n", dd->boardname);
-+}
-+static DEVICE_ATTR_RO(board_id);
-+
-+static ssize_t boardversion_show(struct device *device,
-+				 struct device_attribute *attr, char *buf)
-+{
-+	struct hfi2_ibdev *dev =
-+		rdma_device_to_drv_device(device, struct hfi2_ibdev, rdi.ibdev);
-+	struct hfi2_devdata *dd = dd_from_dev(dev);
-+
-+	/* The string printed here is already newline-terminated. */
-+	return sysfs_emit(buf, "%s", dd->boardversion);
-+}
-+static DEVICE_ATTR_RO(boardversion);
-+
-+static ssize_t nctxts_show(struct device *device,
-+			   struct device_attribute *attr, char *buf)
-+{
-+	struct hfi2_ibdev *dev =
-+		rdma_device_to_drv_device(device, struct hfi2_ibdev, rdi.ibdev);
-+	struct hfi2_devdata *dd = dd_from_dev(dev);
-+	u32 total;
-+	int pidx;
-+
-+	total = 0;
-+	for (pidx = 0; pidx < dd->num_pports; pidx++)
-+		total += dd->pport[pidx].num_user_contexts;
-+
-+	return sysfs_emit(buf, "%u\n", total);
-+}
-+static DEVICE_ATTR_RO(nctxts);
-+
-+static ssize_t nfreectxts_show(struct device *device,
-+			       struct device_attribute *attr, char *buf)
-+{
-+	struct hfi2_ibdev *dev =
-+		rdma_device_to_drv_device(device, struct hfi2_ibdev, rdi.ibdev);
-+	struct hfi2_devdata *dd = dd_from_dev(dev);
-+	u32 total;
-+	int i;
-+
-+	for (total = 0, i = 0; i < dd->num_pports; i++)
-+		total += dd->pport[i].freectxts;
-+
-+	/* Return the number of free user ports (contexts) available. */
-+	return sysfs_emit(buf, "%u\n", total);
-+}
-+static DEVICE_ATTR_RO(nfreectxts);
-+
-+static ssize_t serial_show(struct device *device,
-+			   struct device_attribute *attr, char *buf)
-+{
-+	struct hfi2_ibdev *dev =
-+		rdma_device_to_drv_device(device, struct hfi2_ibdev, rdi.ibdev);
-+	struct hfi2_devdata *dd = dd_from_dev(dev);
-+
-+	/* dd->serial is already newline terminated in chip.c */
-+	return sysfs_emit(buf, "%s", dd->serial);
-+}
-+static DEVICE_ATTR_RO(serial);
-+
-+static ssize_t chip_reset_store(struct device *device,
-+				struct device_attribute *attr, const char *buf,
-+				size_t count)
-+{
-+	struct hfi2_ibdev *dev =
-+		rdma_device_to_drv_device(device, struct hfi2_ibdev, rdi.ibdev);
-+	struct hfi2_devdata *dd = dd_from_dev(dev);
-+	int ret;
-+
-+	if (count < 5 || memcmp(buf, "reset", 5) || !dd->diag_client) {
-+		ret = -EINVAL;
-+		goto bail;
-+	}
-+
-+	ret = hfi2_reset_device(dd->unit);
-+bail:
-+	return ret < 0 ? ret : count;
-+}
-+static DEVICE_ATTR_WO(chip_reset);
-+
-+/*
-+ * Convert the reported temperature from an integer (reported in
-+ * units of 0.25C) to a floating point number.
-+ */
-+#define temp_d(t) ((t) >> 2)
-+#define temp_f(t) (((t)&0x3) * 25u)
-+
-+/*
-+ * Dump tempsense values, in decimal, to ease shell-scripts.
-+ */
-+static ssize_t tempsense_show(struct device *device,
-+			      struct device_attribute *attr, char *buf)
-+{
-+	struct hfi2_ibdev *dev =
-+		rdma_device_to_drv_device(device, struct hfi2_ibdev, rdi.ibdev);
-+	struct hfi2_devdata *dd = dd_from_dev(dev);
-+	struct hfi2_temp temp;
-+	int ret;
-+
-+	ret = hfi2_tempsense_rd(dd, &temp);
-+	if (ret)
-+		return ret;
-+
-+	return sysfs_emit(buf, "%u.%02u %u.%02u %u.%02u %u.%02u %u %u %u\n",
-+			  temp_d(temp.curr), temp_f(temp.curr),
-+			  temp_d(temp.lo_lim), temp_f(temp.lo_lim),
-+			  temp_d(temp.hi_lim), temp_f(temp.hi_lim),
-+			  temp_d(temp.crit_lim), temp_f(temp.crit_lim),
-+			  temp.triggers & 0x1,
-+			  temp.triggers & 0x2,
-+			  temp.triggers & 0x4);
-+}
-+static DEVICE_ATTR_RO(tempsense);
-+
-+/*
-+ * end of per-unit (or driver, in some cases, but replicated
-+ * per unit) functions
-+ */
-+
-+/* start of per-unit file structures and support code */
-+static struct attribute *hfi2_attributes[] = {
-+	&dev_attr_hw_rev.attr,
-+	&dev_attr_board_id.attr,
-+	&dev_attr_nctxts.attr,
-+	&dev_attr_nfreectxts.attr,
-+	&dev_attr_serial.attr,
-+	&dev_attr_boardversion.attr,
-+	&dev_attr_tempsense.attr,
-+	&dev_attr_chip_reset.attr,
-+	NULL,
-+};
-+
-+const struct attribute_group ib_hfi2_attr_group = {
-+	.attrs = hfi2_attributes,
-+};
-+
-+const struct attribute_group *wfr_attr_port_groups[] = {
-+	&port_cc_group,
-+	&port_sc2vl_group,
-+	&port_sl2sc_group,
-+	&port_vl2mtu_group,
-+	&port_ctxt_group,
-+	NULL,
-+};
-+
-+const struct attribute_group *cport_attr_port_groups[] = {
-+	&port_sc2vl_group,
-+	&port_sl2sc_group,
-+	&port_vl2mtu_group,
-+	&port_ctxt_group,
-+	NULL,
-+};
-+
-+struct sde_attribute {
-+	struct attribute attr;
-+	ssize_t (*show)(struct sdma_engine *sde, char *buf);
-+	ssize_t (*store)(struct sdma_engine *sde, const char *buf, size_t cnt);
-+};
-+
-+static ssize_t sde_show(struct kobject *kobj, struct attribute *attr, char *buf)
-+{
-+	struct sde_attribute *sde_attr =
-+		container_of(attr, struct sde_attribute, attr);
-+	struct sdma_engine *sde =
-+		container_of(kobj, struct sdma_engine, kobj);
-+
-+	if (!sde_attr->show)
-+		return -EINVAL;
-+
-+	return sde_attr->show(sde, buf);
-+}
-+
-+static ssize_t sde_store(struct kobject *kobj, struct attribute *attr,
-+			 const char *buf, size_t count)
-+{
-+	struct sde_attribute *sde_attr =
-+		container_of(attr, struct sde_attribute, attr);
-+	struct sdma_engine *sde =
-+		container_of(kobj, struct sdma_engine, kobj);
-+
-+	if (!capable(CAP_SYS_ADMIN))
-+		return -EPERM;
-+
-+	if (!sde_attr->store)
-+		return -EINVAL;
-+
-+	return sde_attr->store(sde, buf, count);
-+}
-+
-+static const struct sysfs_ops sde_sysfs_ops = {
-+	.show = sde_show,
-+	.store = sde_store,
-+};
-+
-+static struct kobj_type sde_ktype = {
-+	.sysfs_ops = &sde_sysfs_ops,
-+};
-+
-+#define SDE_ATTR(_name, _mode, _show, _store) \
-+	struct sde_attribute sde_attr_##_name = \
-+		__ATTR(_name, _mode, _show, _store)
-+
-+static ssize_t sde_show_cpu_to_sde_map(struct sdma_engine *sde, char *buf)
-+{
-+	return sdma_get_cpu_to_sde_map(sde, buf);
-+}
-+
-+static ssize_t sde_store_cpu_to_sde_map(struct sdma_engine *sde,
-+					const char *buf, size_t count)
-+{
-+	return sdma_set_cpu_to_sde_map(sde, buf, count);
-+}
-+
-+static ssize_t sde_show_vl(struct sdma_engine *sde, char *buf)
-+{
-+	struct hfi2_devdata *dd = sde->dd;
-+	ssize_t off = 0;
-+	int vl;
-+	int i;
-+
-+	for (i = 0; i < dd->num_pports; i++) {
-+		vl = sdma_engine_get_vl(&dd->pport[i], sde);
-+		if (vl < 0)
-+			return vl;
-+		if (i != 0)
-+			off += sysfs_emit_at(buf, off, ",");
-+		off += sysfs_emit_at(buf, off, "%d", vl);
-+	}
-+
-+	return off;
-+}
-+
-+static SDE_ATTR(cpu_list, S_IWUSR | S_IRUGO,
-+		sde_show_cpu_to_sde_map,
-+		sde_store_cpu_to_sde_map);
-+static SDE_ATTR(vl, S_IRUGO, sde_show_vl, NULL);
-+
-+static struct sde_attribute *sde_attribs[] = {
-+	&sde_attr_cpu_list,
-+	&sde_attr_vl
-+};
-+
-+/*
-+ * Register and create our files in /sys/class/infiniband.
-+ */
-+int hfi2_verbs_register_sysfs(struct hfi2_devdata *dd)
-+{
-+	struct ib_device *dev = &dd->verbs_dev.rdi.ibdev;
-+	struct device *class_dev = &dev->dev;
-+	int i, j, ret;
-+
-+	for (i = 0; i < dd->num_sdma; i++) {
-+		ret = kobject_init_and_add(&dd->per_sdma[i].kobj,
-+					   &sde_ktype, &class_dev->kobj,
-+					   "sdma%d", i);
-+		if (ret)
-+			goto bail;
-+
-+		for (j = 0; j < ARRAY_SIZE(sde_attribs); j++) {
-+			ret = sysfs_create_file(&dd->per_sdma[i].kobj,
-+						&sde_attribs[j]->attr);
-+			if (ret)
-+				goto bail;
-+		}
-+	}
-+
-+	return 0;
-+bail:
-+	/*
-+	 * The function kobject_put() will call kobject_del() if the kobject
-+	 * has been added successfully. The sysfs files created under the
-+	 * kobject directory will also be removed during the process.
-+	 */
-+	for (; i >= 0; i--)
-+		kobject_put(&dd->per_sdma[i].kobj);
-+
-+	return ret;
-+}
-+
-+/*
-+ * Unregister and remove our files in /sys/class/infiniband.
-+ */
-+void hfi2_verbs_unregister_sysfs(struct hfi2_devdata *dd)
-+{
-+	int i;
-+
-+	/* Unwind operations in hfi2_verbs_register_sysfs() */
-+	for (i = 0; i < dd->num_sdma; i++)
-+		kobject_put(&dd->per_sdma[i].kobj);
 +}
 
 
