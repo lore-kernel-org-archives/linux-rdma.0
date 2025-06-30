@@ -1,28 +1,28 @@
-Received: from NAM10-DM6-obe.outbound.protection.outlook.com (mail-dm6nam10on2093.outbound.protection.outlook.com [40.107.93.93])
+Received: from NAM11-BN8-obe.outbound.protection.outlook.com (mail-bn8nam11on2128.outbound.protection.outlook.com [40.107.236.128])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 88E4C29827B
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3FF18293B5A
 	for <linux-rdma@vger.kernel.org>; Mon, 30 Jun 2025 17:58:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.93.93
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.236.128
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751306295; cv=fail; b=p4QZGP+ikDhJ8dd1x4IVhshsiSBoVwW+oaUPcJsAi5Wx5hewqcsoQY/k4UPfx6WpQB03hg8NacY5LBl1g+VFz6bK0ysFt+lGpIPcpMRbP7SuwRodKjDCNmnSmLixj1TNOYo5sPQ1xSd0Azh9uLvHMJg4GQExsdExFFZcPgHOfLE=
+	t=1751306295; cv=fail; b=rsNS1E28jHwJpKaN45GoK3B/uPCMbjJxEWEhpfnuSB53DADwHS4nY/SM95vziaLXwt0fcuSlGp6BUWnLBmbFOQvvnswRjd9Iq6BbPXUaPEMQ7SUc8py/1AAD08X99ImJnxDuFaYEe397F5vtlHVYiTJ+y20QOQqDSpB/ffmG9Z4=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1751306295; c=relaxed/simple;
-	bh=lVDroHVbHpSjzk8KvWuPl6d6PNK7W/C0sr2IavoFFPY=;
+	bh=16r/4AUgkbszjtqYnidqbTRt/WdYbxcmjPylxNwTjY8=;
 	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=l+0OhlW4Z986zvOlVcZInfciY+fHJEiz5zyRPUU2ItV+3nVlycyKOcZ1c94Eq+sL73YZC3n4sRdhRno297DxADvNOrBusHfk5V3MYB8c21TNKUHTdIwRFOOuDEcitfjT4DkeI4PT09m7MjzTaarMB3dUBjG1F7pK40q7X+56kn0=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cornelisnetworks.com; spf=pass smtp.mailfrom=cornelisnetworks.com; dkim=pass (2048-bit key) header.d=cornelisnetworks.com header.i=@cornelisnetworks.com header.b=FUIQ+HM/; arc=fail smtp.client-ip=40.107.93.93
+	 MIME-Version:Content-Type; b=jUoK+Em6gPTTMspYWgZl0dzRc53mNdMm5yj6Z6nhsLzwLJi0oB2SXv3WE6osKIh+fHXq9yx5shzFCxbbLk15rtxLhnrk16qv53Int35dJy15+EkcPWjy/XxqnvuMdQcgpGsrC5yda4RcvlYcv0/Ew8p/yRktW5PRz9ks40AcV9k=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cornelisnetworks.com; spf=pass smtp.mailfrom=cornelisnetworks.com; dkim=pass (2048-bit key) header.d=cornelisnetworks.com header.i=@cornelisnetworks.com header.b=THLerhqB; arc=fail smtp.client-ip=40.107.236.128
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cornelisnetworks.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=cornelisnetworks.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=cornelisnetworks.com header.i=@cornelisnetworks.com header.b="FUIQ+HM/"
+	dkim=pass (2048-bit key) header.d=cornelisnetworks.com header.i=@cornelisnetworks.com header.b="THLerhqB"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=aYItHdwLzhFTynHHgtwtQRk2bQsGFLApeLbN2UF13X2r9guFk9n+vH+KBC0HU1Jo0FVaK438wP2G65c54+Zt34FzOjYerg3EnueqfC/2N7MkjgJ7VMJ3G1FJ0QFRecEW6ErWPjVPV7NeZDd8f71scbL2BKC6mALRqLMl1LhThaFxySPP3e2bZS5+HFm8Nbzuu+JWyoWOvfCwGHkIV6RoiOdPHej7Pk0jARurlPLNWdeCBd5mPA++JH22N6JhDWvzt6+3YGpL2fNxdhfSWxwkJeyLY5Dtl8IbR23EKY/8g6pBZJ1LOphClI8QmdhzV0os0N1/HKYq9hE8ojLkNK9rLQ==
+ b=x/BGe2vEDQMh3+G0njE6RgO4g2vID+NOSe6eb4aqBp+lVoAIXnpq6Ndli8Ozf6DB5mnMNqDcDZIu0edXCIxXmBsxNQVdkfoP/ZUL70TeKJO8OCcVDBgtUHn65UUTFsc/50soCf/h8rrHLNHRjEhLV5E/YkYwR7S4m4+APpBNmJ2Qq+rY0vrm4KkcF/MxTtgps3SbZHm/D15/iapQC7eRldCzF1MmSptXJ5crAANTLA3Dp0TuiqJXBi/nuAZ3mMxQ4J8vwYrorQ/6heKLBi18zw/OmlJb9G2GQw5/XOO9v3w9NWsZEpzpv2FsEDw0jWGvV6Rj2/OAz9rjIxzv1NFSgQ==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=p/1dPXp+3Ia7VS4Lprro8klfLVswwFWt4Xm45hZMYrQ=;
- b=eAHsn4ijsUCo3E8R3stfjrdFfrIOYrc3/15DSewn6nPbkVuQBwK5W1vqEKTQuhhmDc3Oh/fWzXAY5J7KwS+iX0wTGgNEeDI+Avs78N7ApxSursMbfU4WtLk4noXfK2OEpv2SSn+YAz2v7noE1EORQn9JmXZLiZWnrwsFyeUEiMMdIjLZuu+Ow2wmMN6Zs6rZy9bY58W0hHqJld02xKtGRzMNGQSKhkfHn45/4H4NNvEjEKUIpLVenbg/I+8hGktGXb1u9EKFCQCv+1wp9QuwiGYlMy/95pASxpnIkmIG81x4fu7F8gXyRs7AKijEgDG/5cuOMx0T9OcXwnqCfiAXaA==
+ bh=8r10f4GzA/SgM9ZjKBZJKGPcMwIrCxty/3/6Bh86GIY=;
+ b=i2Dr6LtYbavzSfcmw4UjKzZ2bKE/Qca6HW4MU4BFRpQ0zkTO6imc2wTxyWVyGfAtPj4GyD5oWtmzfZdvaxYBypTNi4/JxagCY1q2T5Cyq1eSDIjfQZ2WQ2fMXRmXh5K+0Xsd5DlJTr5qlSq6UabJyOQl4NSfG6BpKeUuuUkOUGt45EzRloAT+OB4/pkUrNDkGVIUVbE3LroWQ+XihB7V6LnGt2gf08bo5Fm6huOstQb8j/FSj0gYWPJR94GqItT5XU6FQeuPGeiRDBMVO5p1pdntmflG1tE2Trylk7lPYzdrar0VJDu/IZ7Hjblak61xt/kLgzOW3wG33bkc7T/kVA==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
  208.255.156.42) smtp.rcpttodomain=cornelisnetworks.com
  smtp.mailfrom=cornelisnetworks.com; dmarc=pass (p=none sp=none pct=100)
@@ -31,16 +31,16 @@ ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cornelisnetworks.com;
  s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=p/1dPXp+3Ia7VS4Lprro8klfLVswwFWt4Xm45hZMYrQ=;
- b=FUIQ+HM/9MoiBbNWa2shMl5F3xEudufG1VueehiMni0XMEkQwhktgJOuHqRyzqUOFNJV19ov9mVvBHavzNzl2o4Nk3PqFv5kINmuhas35ZFSu86c0ORo57QNh/++xNjJnijenla7VEWGPNI2Qevh/nKlT0jc/TUJwLD8/l7b7n6CDX+f+BkOqi4hsgicxEhepcQbM7iJIXGdjP9xiIKB2birT+7Y8bSxSXNMTCxTWCWXFhPzGnCOGXg6JKMbrpustFFufhnZMuE3D1kDQTn3n1GXXwqWLJzeAEXdtTzMUogHf3kt/hOltyvLhOt/RVtz8EzvpkZBlcnk/1Pxy+6ijA==
-Received: from MN0P221CA0007.NAMP221.PROD.OUTLOOK.COM (2603:10b6:208:52a::10)
- by DS4PR01MB9385.prod.exchangelabs.com (2603:10b6:8:2a6::14) with Microsoft
+ bh=8r10f4GzA/SgM9ZjKBZJKGPcMwIrCxty/3/6Bh86GIY=;
+ b=THLerhqB9GjmaJ16RGrNCRWBPHuNsDnXgRJ0DRlBmmG6MLs5NqyVp4FjNDZ5ndTMF7TcztHEhTsIR7fNAVg9ZnNFlh6zUgf82jScuIgz1v6YlCvLlHoERCQp+JYiTTaz1IYiaI96n9AMXfYU2mohVEKrR7oBB/Jf3+zkdARTzIz8vONTa84ARCGlAOeLmxbe3psVA6EtFv7PaaddVjs8F58+fnX2P6ZB34g6hErodlp+s0KwzDNed0oxEl5s7SdERF3ndJBuFs07rBeVIAGzLoDHfxhBMVinEyeri/0DQgLMhZaNRemmisr0oji1/2hdy0htngeh60bMHdE51PsLcQ==
+Received: from PH7P222CA0017.NAMP222.PROD.OUTLOOK.COM (2603:10b6:510:33a::20)
+ by BY3PR01MB6513.prod.exchangelabs.com (2603:10b6:a03:363::16) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.8880.26; Mon, 30 Jun 2025 17:58:10 +0000
-Received: from BN1PEPF0000468B.namprd05.prod.outlook.com
- (2603:10b6:208:52a:cafe::23) by MN0P221CA0007.outlook.office365.com
- (2603:10b6:208:52a::10) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.20.8880.29 via Frontend Transport; Mon,
+ 15.20.8880.27; Mon, 30 Jun 2025 17:58:10 +0000
+Received: from CY4PEPF0000E9D7.namprd05.prod.outlook.com
+ (2603:10b6:510:33a:cafe::ac) by PH7P222CA0017.outlook.office365.com
+ (2603:10b6:510:33a::20) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.20.8880.31 via Frontend Transport; Mon,
  30 Jun 2025 17:58:10 +0000
 X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 208.255.156.42)
  smtp.mailfrom=cornelisnetworks.com; dkim=none (message not signed)
@@ -50,22 +50,24 @@ Received-SPF: Pass (protection.outlook.com: domain of cornelisnetworks.com
  receiver=protection.outlook.com; client-ip=208.255.156.42;
  helo=cn-mailer-00.localdomain; pr=C
 Received: from cn-mailer-00.localdomain (208.255.156.42) by
- BN1PEPF0000468B.mail.protection.outlook.com (10.167.243.136) with Microsoft
+ CY4PEPF0000E9D7.mail.protection.outlook.com (10.167.241.70) with Microsoft
  SMTP Server (version=TLS1_3, cipher=TLS_AES_256_GCM_SHA384) id 15.20.8901.15
  via Frontend Transport; Mon, 30 Jun 2025 17:58:09 +0000
 Received: from awdrv-04.localdomain (awdrv-04.cornelisnetworks.com [10.228.212.218])
-	by cn-mailer-00.localdomain (Postfix) with ESMTPS id CF48214D726;
+	by cn-mailer-00.localdomain (Postfix) with ESMTPS id CDB9B14D725;
 	Mon, 30 Jun 2025 13:58:06 -0400 (EDT)
 Received: from awdrv-04.cornelisnetworks.com (localhost [IPv6:::1])
-	by awdrv-04.localdomain (Postfix) with ESMTP id B64BB1811CE6C;
-	Mon, 30 Jun 2025 11:30:02 -0400 (EDT)
-Subject: [PATCH for-next 03/23] RDMA/rdmavt: Correct multi-port QP iteration
+	by awdrv-04.localdomain (Postfix) with ESMTP id 6B0F91848B5D6;
+	Mon, 30 Jun 2025 11:30:53 -0400 (EDT)
+Subject: [PATCH for-next 13/23] RDMA/hfi2: Add system core header files
 From: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
 To: jgg@ziepe.ca, leon@kernel.org
-Cc: Dean Luick <dean.luick@cornelisnetworks.com>, linux-rdma@vger.kernel.org
-Date: Mon, 30 Jun 2025 11:30:02 -0400
+Cc: Dean Luick <dean.luick@cornelisnetworks.com>,
+ Breandan Cunningham <brendan.cunningham@cornelisnetworks.com>,
+ linux-rdma@vger.kernel.org
+Date: Mon, 30 Jun 2025 11:30:53 -0400
 Message-ID:
- <175129740268.1859400.1068067040264442447.stgit@awdrv-04.cornelisnetworks.com>
+ <175129745337.1859400.18028867979647760264.stgit@awdrv-04.cornelisnetworks.com>
 In-Reply-To:
  <175129726945.1859400.4492277779101226937.stgit@awdrv-04.cornelisnetworks.com>
 References:
@@ -81,86 +83,396 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: BN1PEPF0000468B:EE_|DS4PR01MB9385:EE_
-X-MS-Office365-Filtering-Correlation-Id: 667f31c8-2e8b-4807-c58f-08ddb7ffac7f
+X-MS-TrafficTypeDiagnostic: CY4PEPF0000E9D7:EE_|BY3PR01MB6513:EE_
+X-MS-Office365-Filtering-Correlation-Id: 8c1e3f0b-34a7-485c-213e-08ddb7ffac88
 X-MS-Exchange-AtpMessageProperties: SA
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|82310400026|36860700013|1800799024|376014;
+	BCL:0;ARA:13230040|82310400026|1800799024|36860700013|376014;
 X-Microsoft-Antispam-Message-Info:
-	=?utf-8?B?YzNuVFpFTzlzUFhoaTFRb1kxR3RISEFmbGJVbmI4ZXQzem4zWEFoVDBTaEha?=
- =?utf-8?B?QTBsTTNoTTNVY1pwRFY1SGNjeE1jdm54Q3Y2Q05RcC9QSnc1Y1lzbEJUczdo?=
- =?utf-8?B?WDJCTXd2SnAzZXZvbEU4VFh6SlVsYzFVNFNkbFc0M2dCM2xWMGJmVGpaZmZH?=
- =?utf-8?B?MUFnSms0ekc0M1F6dWhONndtcWMvK3FpYjFzVElZVXl4WC9XS1RvQnVpcmQ1?=
- =?utf-8?B?TjlFV1hITzNWWm4rNXBjdmNoVzJhSWJKYnlPQ0JMVmtGcUdMWXFXWm5ESU5P?=
- =?utf-8?B?bjF2U1laVHNsZk81WlhZME16V1JENjkrVG9YeEVLUzl1VTZxT0plZXZTc0Ev?=
- =?utf-8?B?NFg1Q0hJU216WXc5MmhVMGU5dy9CLzhQajlQSXRpeTJjWFFSSmJwMGRTYTRU?=
- =?utf-8?B?SjM5bmtvVUZnVlJQWndnZHJYazlHbzRScExpdVJXcm1EMWpYM1lrTUhpUi9M?=
- =?utf-8?B?N2J3OE9vSEkxV2k0SVhIQjBsdGZJWkZvUEY2WWc1SUtPSFM3eU9UU2JlZGxI?=
- =?utf-8?B?dmg2cHF2YmxYblZsdiswRVVaYVVHOEhCUlY0ZE91enlYOXpnRCtpZmtJeUhZ?=
- =?utf-8?B?dTBhL21Mb2ZQbFJjK3IrZ1NBYkRlNlpYakZzYzYrR2EyMUM0bnhkZjBwZHVW?=
- =?utf-8?B?TTVyMmZtVlg0QVBWQ0wwL3BTaklCWTlTd2FGOHMyUldHU082L2QyWGxGQzRk?=
- =?utf-8?B?OTB3SE4xKzBacTg1Z01FRVJWUGxQV0x4ZjRQbzhoSWtyRmVJVUxqWmNlMUhT?=
- =?utf-8?B?UjJkdFBHNDc0YzFtMDljNm9ERDMvWHBqRGR4VzhicXpwcGVUaGFOUHUyV0NT?=
- =?utf-8?B?eWJmakZYajZCMU8wWk53UHJINGRNL1ZtWmpkaWwvRGUyUkJYNnRUNlM1K3lQ?=
- =?utf-8?B?aWhzNDhhbzRZZUFaeERDYWxKNlU3VyswRFJIcG94MGJjdS9tZ2FOdW5WNDht?=
- =?utf-8?B?VmJoL1RSMHNyakNqenhHRjNkck83eWJpSnIveGQwaG50blNiS3VGcEE5Q0lo?=
- =?utf-8?B?SkNDemxOSXU0SEU1bVluWHJMVElWbks0Um5rR3U5RE9scGFtWFhHckJGcnpp?=
- =?utf-8?B?UEZqemc0Y2FDcFBUUk0wYjdrQTR5YXczVzl4d2l0UDRac1F1Q2F0VENsczBW?=
- =?utf-8?B?RW9UNDV5a0YwbU5EM3RwaFBpU0EvWUlKZkpqdGU3TFhOMDFqc05IYnlQN2xP?=
- =?utf-8?B?NnBvTzV0aVNjb2JrWFpYMkhWNHJ1MHllN1BYVzA3ODBuTGFLb0FraEFpRDJ0?=
- =?utf-8?B?L0JwN0g5NEhXeGN3QThia3llNzJmU3Fkdk1zQzVGMk0zK2txaWJaV2VCNVh2?=
- =?utf-8?B?dGVBWlQzcjd0bTZIVWpsZWxrWlN0Y2xqTlk1WVpzZlNTR2RDQ3JMUzZMNzZl?=
- =?utf-8?B?blV4Zk1sQm1ZbmZVT2xDRURUQlFKWjkwQVlxTEJEMy9ZcEhZOUJtaU5IVEoy?=
- =?utf-8?B?WTlBd2p1RjAwNmU1Y3lVWm5yVWxnWG9jNXFPb1BJeGloSm1maE4zTjFUdHFO?=
- =?utf-8?B?ekdnVUJDV3lQRk9RMXpDM1JoNjV3UkVCWU1tRzR0eVQzRVdyWDJPUks4Q0dy?=
- =?utf-8?B?NVl6czVlTmFyZUs1K050UUNSYm8wWlhiejQ4a01PcGlBS0RXU3JkM0RhTlIx?=
- =?utf-8?B?azNoc3hIWDJiVkxkNzY1RTlWb1NUNE5vemlSUXRCTXJFTGVmN2VFblVsZDha?=
- =?utf-8?B?Y2Z3aTlGaEd2TFNOS2VCeGhyNHI0by9YbG9RcjZwOHo5S3owNHFqYWhtTXFP?=
- =?utf-8?B?VDRHZDVDeElHd1cyMTVPWXhseHZvNmsyeDluYmRRTFZmWVlDM2Rqc0JsbHRM?=
- =?utf-8?B?L0dHVkN0TzB4Z2NUai9OVzJBZ3VQRXlVRkNrbjRtVWlQdVdpMXdNYkFnNE1o?=
- =?utf-8?B?SFN4ZXlqV1NxcklEdDhQUDFzYllMUENIVXl4L0J3RkdWTVNQKzNtNHBiK1Nv?=
- =?utf-8?B?dkQvamE1M1p0NnlRekRHVlR0b3ZnMzdrMmswYVh4WmswRnhYNmZzZ0p6WURN?=
- =?utf-8?B?dFZKVWhOY1ZMcVBlSlJUai92R1BXSVRPeStaeDZNRXgrYmlNY0xFcmZxbWw3?=
- =?utf-8?Q?OE9UB3?=
+	=?utf-8?B?ek1XVlZHYklhWUdhYU1CL2NWS0tCSU9la3p5bTZpaHVNZnQ5ckJRMEhSZFRz?=
+ =?utf-8?B?Umk5WDIwNW51VVlVMmZlcjViNDR5cmwwQ3h6QW1IblpvckZYNEx0K3Z6N2RC?=
+ =?utf-8?B?LzBaY0ZucGE5aVRzYzN6cklJcHJxNmZ4dnprcTkxRjB1bDFIYUhuM2MzV3NS?=
+ =?utf-8?B?dG1ndmZzbFJKZHJwbWY5L0pFaGtiekM0UzFOYlJ2K2htM0oydjVOUnI1SVFU?=
+ =?utf-8?B?U0doYld1bVo2M2huOTg5VFVlK0NPcW8xa1RwMld6ai9yRHFBTDJYenJYK2VW?=
+ =?utf-8?B?STRmSEVxQmpKNk9VbVFFVFQwWEpNYVZUWWFTTG1KaDJyZmFGbGY1ek9FOG82?=
+ =?utf-8?B?c093ZGxRTytBQnpSV0xXOGZoWkNXWlFmWURjaUQ3Sm5jRmlGQi93VmpIR2ZZ?=
+ =?utf-8?B?M2pSK0lpemIyVXVxdjZoN2ZFU3UrVTUwS3RZWjJzaDVqbldmaUFnS2xSUTJL?=
+ =?utf-8?B?cldHN2NMZlo5eExXTW1jamF1WUJuQlR6S25xWjgwc3lsN21BOW1Bb2JCaHY3?=
+ =?utf-8?B?OU5YTjFXQzhpUWp1QU03bitmOWR6ZVExWEo1bHB0Q3dvTWZKUXVNeUNEQmx5?=
+ =?utf-8?B?WVhpUjZWdWdQUXRUWDMrS1l5aFhtVDNOcTNqRjFUbUZPNUhjZ3YxMlhLelhF?=
+ =?utf-8?B?QTlJVEF4YnNFL09oZzlMalB2ZmxiVUtuRXI1T3hGK0taZjJOdFowUVh5OGtr?=
+ =?utf-8?B?ZDZrN3lFcUJSSCtMRC9pK0oxVzQ5L29EWXZaTkRJOTR4M1Z0T2Z6Sk5GRlgz?=
+ =?utf-8?B?T294S3NEcWFYNGtaVDBjVWo3cVZtYzFYSzNQMlkvUTUzOHJnc0IzKy9iNitV?=
+ =?utf-8?B?UGlFVVFXOGJ6REt3bVVHNjRXVWUxQktjc0pBcFJuOTF2L2pFRThQVkJUbXdR?=
+ =?utf-8?B?QzdSdXdOLzY3ZEx0TndHcUtpT1NJb0VQcjBvc1kwVlRKYUtUWXVJaU1wdjlj?=
+ =?utf-8?B?d3pRZ09YYnN1cjk5VWVwS1lKaG5KSFROc1ZuQWdiQVVDN2xnWXRrNTUwOVY4?=
+ =?utf-8?B?a0x4bE9UZlBCVkJuNnZzNzR3dWxYQkkyamFDNVQ4OVRRNDJ6Yjkwc3Vwb3ZJ?=
+ =?utf-8?B?RVB2NEVlcFRSWmRDSi9xcEUxa2dnbFhIVnRheE5hQ3R2Q21XMHk3SGZwSUlL?=
+ =?utf-8?B?Uzl5dUhoK2I2a3F4QmE2QitZMndmUFRJS1IwSHFWNUoxWTV4T3lzRkxrZmg1?=
+ =?utf-8?B?TFRhbFdrYnA1eUlGZDBUWDdaVWZ5U0c1WlFJQ3hCSlhwY2JtczBXejAxVi9z?=
+ =?utf-8?B?bFoycjlJbWVta2tkK0cyR29UWjh4dmRtbGlXZXZmbjVlaG16QWRBYm9GRE9u?=
+ =?utf-8?B?UlZYWlc4b0tqNU81emRTbjdnREl4cHZYZjJXZ2F6b1dlbG5nT2tXQkR0QkhH?=
+ =?utf-8?B?V1lhOGd1dWFPaUJuWjdZTFJMWCs0Z3dFSEJmNkt0Rk43Y3Ywbm04WXVsQ1FS?=
+ =?utf-8?B?b2xvYU9ZbTFhZnphZForL3JZRnlYYlhiY1B2ajBtVXVjUzlLbnhuRXBVOVgr?=
+ =?utf-8?B?emtvSmxDUlRBZyt5S0RXQlpYU0IwUUM2Q2kxK3pvWVdYSVg2SWVTci9nU2RU?=
+ =?utf-8?B?STk1L2dsN1MzcXpvbWF3eFI0L0Nvc2FTWFVCdUd6R25XNW5lb0dteXJiaGNr?=
+ =?utf-8?B?Y21xbDdmYmkyamxueGxZRzlHQm5FRGpVbmZpcFBzOUNGYSswdDZTL2d6OFhI?=
+ =?utf-8?B?czQrTms0QkxaTFI4c2ZlV3diWmFWakhFbjl6dVVlQXplNU1JWTJTVERTRk1i?=
+ =?utf-8?B?KzBZYkswN1U5NFI4c2wraGluWExPUDdWSk12TFhvUmNtOEJ2bjlERWxaZHJj?=
+ =?utf-8?B?czJiL0J4L3JrYU5JcnBTRE90VnNQdVo5dWVZUHBTTWY1SWR0d1p6L3VEemVq?=
+ =?utf-8?B?UnlxWEtLdFVNV2JxOUNYRUFKTHV6M0ZxM0VVZ0dIV21GNS8wejAreG9oZFEv?=
+ =?utf-8?B?SlNtTG5zZE5obHhvTUdOeGduaWY5WllGdzlTNkVad1NmUlJqdmJqZ0pRNHlu?=
+ =?utf-8?B?WXIzRmk5WSt5dDh5d05zUW1TSDRRRU8zdUw3T2lhKzJ1VGovM1hhdW9FbFM2?=
+ =?utf-8?Q?Obflly?=
 X-Forefront-Antispam-Report:
-	CIP:208.255.156.42;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:cn-mailer-00.localdomain;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(82310400026)(36860700013)(1800799024)(376014);DIR:OUT;SFP:1102;
+	CIP:208.255.156.42;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:cn-mailer-00.localdomain;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(82310400026)(1800799024)(36860700013)(376014);DIR:OUT;SFP:1102;
 X-OriginatorOrg: cornelisnetworks.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 30 Jun 2025 17:58:09.4341
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 30 Jun 2025 17:58:09.4138
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 667f31c8-2e8b-4807-c58f-08ddb7ffac7f
+X-MS-Exchange-CrossTenant-Network-Message-Id: 8c1e3f0b-34a7-485c-213e-08ddb7ffac88
 X-MS-Exchange-CrossTenant-Id: 4dbdb7da-74ee-4b45-8747-ef5ce5ebe68a
 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=4dbdb7da-74ee-4b45-8747-ef5ce5ebe68a;Ip=[208.255.156.42];Helo=[cn-mailer-00.localdomain]
 X-MS-Exchange-CrossTenant-AuthSource:
-	BN1PEPF0000468B.namprd05.prod.outlook.com
+	CY4PEPF0000E9D7.namprd05.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS4PR01MB9385
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: BY3PR01MB6513
 
-From: Dean Luick <dean.luick@cornelisnetworks.com>
+Add header files for hooking into the core system, things like IRQs and
+affinity.
 
-When finding special QPs, the iterator makes an incorrect port
-index calculation.  Fix the calculation.
-
+Co-developed-by: Dean Luick <dean.luick@cornelisnetworks.com>
 Signed-off-by: Dean Luick <dean.luick@cornelisnetworks.com>
+Co-developed-by: Bendan Cunningham <brendan.cunningham@cornelisnetworks.com>
+Signed-off-by: Breandan Cunningham <brendan.cunningham@cornelisnetworks.com>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
 ---
- drivers/infiniband/sw/rdmavt/qp.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/hw/hfi2/affinity.h |   85 +++++++++++++++++++++++++++++++++
+ drivers/infiniband/hw/hfi2/aspm.h     |   35 ++++++++++++++
+ drivers/infiniband/hw/hfi2/device.h   |   18 +++++++
+ drivers/infiniband/hw/hfi2/efivar.h   |   16 ++++++
+ drivers/infiniband/hw/hfi2/eprom.h    |   10 ++++
+ drivers/infiniband/hw/hfi2/mmu_rb.h   |   77 ++++++++++++++++++++++++++++++
+ drivers/infiniband/hw/hfi2/msix.h     |   26 ++++++++++
+ 7 files changed, 267 insertions(+)
+ create mode 100644 drivers/infiniband/hw/hfi2/affinity.h
+ create mode 100644 drivers/infiniband/hw/hfi2/aspm.h
+ create mode 100644 drivers/infiniband/hw/hfi2/device.h
+ create mode 100644 drivers/infiniband/hw/hfi2/efivar.h
+ create mode 100644 drivers/infiniband/hw/hfi2/eprom.h
+ create mode 100644 drivers/infiniband/hw/hfi2/mmu_rb.h
+ create mode 100644 drivers/infiniband/hw/hfi2/msix.h
 
-diff --git a/drivers/infiniband/sw/rdmavt/qp.c b/drivers/infiniband/sw/rdmavt/qp.c
-index 583debe4b9a2..464005c74750 100644
---- a/drivers/infiniband/sw/rdmavt/qp.c
-+++ b/drivers/infiniband/sw/rdmavt/qp.c
-@@ -2708,7 +2708,7 @@ int rvt_qp_iter_next(struct rvt_qp_iter *iter)
- 				struct rvt_ibport *rvp;
- 				int pidx;
- 
--				pidx = n % rdi->ibdev.phys_port_cnt;
-+				pidx = n / 2; /* QP0 and QP1 */
- 				rvp = rdi->ports[pidx];
- 				qp = rcu_dereference(rvp->qp[n & 1]);
- 			} else {
+diff --git a/drivers/infiniband/hw/hfi2/affinity.h b/drivers/infiniband/hw/hfi2/affinity.h
+new file mode 100644
+index 000000000000..36a55767e324
+--- /dev/null
++++ b/drivers/infiniband/hw/hfi2/affinity.h
+@@ -0,0 +1,85 @@
++/* SPDX-License-Identifier: GPL-2.0 OR BSD-3-Clause */
++/*
++ * Copyright(c) 2015 - 2020 Intel Corporation.
++ */
++
++#ifndef _HFI2_AFFINITY_H
++#define _HFI2_AFFINITY_H
++
++#include "hfi2.h"
++
++enum irq_type {
++	IRQ_SDMA,
++	IRQ_RCVCTXT,
++	IRQ_NETDEVCTXT,
++	IRQ_GENERAL,
++	IRQ_OTHER
++};
++
++/* Can be used for both memory and cpu */
++enum affinity_flags {
++	AFF_AUTO,
++	AFF_NUMA_LOCAL,
++	AFF_DEV_LOCAL,
++	AFF_IRQ_LOCAL
++};
++
++struct cpu_mask_set {
++	struct cpumask mask;
++	struct cpumask used;
++	uint gen;
++};
++
++struct hfi2_msix_entry;
++
++/* Initialize non-HT cpu cores mask */
++void init_real_cpu_mask(void);
++/* Initialize driver affinity data */
++int hfi2_dev_affinity_init(struct hfi2_devdata *dd);
++/*
++ * Set IRQ affinity to a CPU. The function will determine the
++ * CPU and set the affinity to it.
++ */
++int hfi2_get_irq_affinity(struct hfi2_devdata *dd,
++			  struct hfi2_msix_entry *msix);
++/*
++ * Remove the IRQ's CPU affinity. This function also updates
++ * any internal CPU tracking data
++ */
++void hfi2_put_irq_affinity(struct hfi2_devdata *dd,
++			   struct hfi2_msix_entry *msix);
++/*
++ * Determine a CPU affinity for a user process, if the process does not
++ * have an affinity set yet.
++ */
++int hfi2_get_proc_affinity(int node);
++/* Release a CPU used by a user process. */
++void hfi2_put_proc_affinity(int cpu);
++
++struct hfi2_affinity_node {
++	int node;
++	u16 __percpu *comp_vect_affinity;
++	struct cpu_mask_set def_intr;
++	struct cpu_mask_set rcv_intr;
++	struct cpumask general_intr_mask;
++	struct cpumask comp_vect_mask;
++	struct list_head list;
++};
++
++struct hfi2_affinity_node_list {
++	struct list_head list;
++	struct cpumask real_cpu_mask;
++	struct cpu_mask_set proc;
++	int num_possible_nodes;
++	struct mutex lock; /* protects affinity nodes */
++};
++
++int node_affinity_init(void);
++void node_affinity_destroy_all(void);
++extern struct hfi2_affinity_node_list node_affinity;
++void hfi2_dev_affinity_clean_up(struct hfi2_devdata *dd);
++int hfi2_comp_vect_mappings_lookup(struct rvt_dev_info *rdi, int comp_vect);
++int hfi2_comp_vectors_set_up(struct hfi2_devdata *dd);
++void hfi2_comp_vectors_clean_up(struct hfi2_devdata *dd);
++
++#endif /* _HFI2_AFFINITY_H */
+diff --git a/drivers/infiniband/hw/hfi2/aspm.h b/drivers/infiniband/hw/hfi2/aspm.h
+new file mode 100644
+index 000000000000..c62251bbc018
+--- /dev/null
++++ b/drivers/infiniband/hw/hfi2/aspm.h
+@@ -0,0 +1,35 @@
++/* SPDX-License-Identifier: GPL-2.0 OR BSD-3-Clause */
++/*
++ * Copyright(c) 2015-2017 Intel Corporation.
++ */
++
++#ifndef _ASPM_H
++#define _ASPM_H
++
++#include "hfi2.h"
++
++extern uint aspm_mode;
++
++enum aspm_mode {
++	ASPM_MODE_DISABLED = 0,	/* ASPM always disabled, performance mode */
++	ASPM_MODE_ENABLED = 1,	/* ASPM always enabled, power saving mode */
++	ASPM_MODE_DYNAMIC = 2,	/* ASPM enabled/disabled dynamically */
++};
++
++void aspm_init(struct hfi2_devdata *dd);
++void aspm_exit(struct hfi2_devdata *dd);
++void aspm_hw_disable_l1(struct hfi2_devdata *dd);
++void __aspm_ctx_disable(struct hfi2_ctxtdata *rcd);
++void aspm_disable_all(struct hfi2_devdata *dd);
++void aspm_enable_all(struct hfi2_devdata *dd);
++
++static inline void aspm_ctx_disable(struct hfi2_ctxtdata *rcd)
++{
++	/* Quickest exit for minimum impact */
++	if (likely(!rcd->aspm_intr_supported))
++		return;
++
++	__aspm_ctx_disable(rcd);
++}
++
++#endif /* _ASPM_H */
+diff --git a/drivers/infiniband/hw/hfi2/device.h b/drivers/infiniband/hw/hfi2/device.h
+new file mode 100644
+index 000000000000..8948b9a48ac4
+--- /dev/null
++++ b/drivers/infiniband/hw/hfi2/device.h
+@@ -0,0 +1,18 @@
++/* SPDX-License-Identifier: GPL-2.0 OR BSD-3-Clause */
++/*
++ * Copyright(c) 2015, 2016 Intel Corporation.
++ */
++
++#ifndef _HFI2_DEVICE_H
++#define _HFI2_DEVICE_H
++
++int hfi2_cdev_init(int minor, const char *name,
++		   const struct file_operations *fops,
++		   struct cdev *cdev, struct device **devp,
++		   bool user_accessible,
++		   struct kobject *parent);
++void hfi2_cdev_cleanup(struct cdev *cdev, struct device **devp);
++int __init dev_init(void);
++void dev_cleanup(void);
++
++#endif                          /* _HFI2_DEVICE_H */
+diff --git a/drivers/infiniband/hw/hfi2/efivar.h b/drivers/infiniband/hw/hfi2/efivar.h
+new file mode 100644
+index 000000000000..cd252647d229
+--- /dev/null
++++ b/drivers/infiniband/hw/hfi2/efivar.h
+@@ -0,0 +1,16 @@
++/* SPDX-License-Identifier: GPL-2.0 OR BSD-3-Clause */
++/*
++ * Copyright(c) 2015, 2016 Intel Corporation.
++ */
++
++#ifndef _HFI2_EFIVAR_H
++#define _HFI2_EFIVAR_H
++
++#include <linux/efi.h>
++
++#include "hfi2.h"
++
++int read_hfi2_efi_var(struct hfi2_devdata *dd, const char *kind,
++		      unsigned long *size, void **return_data);
++
++#endif /* _HFI2_EFIVAR_H */
+diff --git a/drivers/infiniband/hw/hfi2/eprom.h b/drivers/infiniband/hw/hfi2/eprom.h
+new file mode 100644
+index 000000000000..a3e871e5c6e9
+--- /dev/null
++++ b/drivers/infiniband/hw/hfi2/eprom.h
+@@ -0,0 +1,10 @@
++/* SPDX-License-Identifier: GPL-2.0 OR BSD-3-Clause */
++/*
++ * Copyright(c) 2015, 2016 Intel Corporation.
++ */
++
++struct hfi2_devdata;
++
++int eprom_init(struct hfi2_devdata *dd);
++int eprom_read_platform_config(struct hfi2_devdata *dd, void **buf_ret,
++			       u32 *size_ret);
+diff --git a/drivers/infiniband/hw/hfi2/mmu_rb.h b/drivers/infiniband/hw/hfi2/mmu_rb.h
+new file mode 100644
+index 000000000000..f503ea43640b
+--- /dev/null
++++ b/drivers/infiniband/hw/hfi2/mmu_rb.h
+@@ -0,0 +1,77 @@
++/* SPDX-License-Identifier: GPL-2.0 OR BSD-3-Clause */
++/*
++ * Copyright(c) 2020 Cornelis Networks, Inc.
++ * Copyright(c) 2016 Intel Corporation.
++ */
++
++#ifndef _HFI2_MMU_RB_H
++#define _HFI2_MMU_RB_H
++
++#include "hfi2.h"
++
++struct mmu_rb_node {
++	unsigned long addr;
++	unsigned long len;
++	unsigned long __last;
++	struct rb_node node;
++	struct mmu_rb_handler *handler;
++	struct list_head list;
++	struct kref refcount;
++};
++
++/* filter and evict must not sleep. Only remove is allowed to sleep. */
++struct mmu_rb_ops {
++	bool (*filter)(struct mmu_rb_node *node, unsigned long addr,
++		       unsigned long len);
++	void (*remove)(void *ops_arg, struct mmu_rb_node *mnode);
++	int (*evict)(void *ops_arg, struct mmu_rb_node *mnode,
++		     void *evict_arg, bool *stop);
++};
++
++struct mmu_rb_handler {
++	/*
++	 * struct mmu_notifier is 56 bytes, and spinlock_t is 4 bytes, so
++	 * they fit together in one cache line.  mn is relatively rarely
++	 * accessed, so co-locating the spinlock with it achieves much of
++	 * the cacheline contention reduction of giving the spinlock its own
++	 * cacheline without the overhead of doing so.
++	 */
++	struct mmu_notifier mn;
++	spinlock_t lock;        /* protect the RB tree */
++
++	/* Begin on a new cachline boundary here */
++	struct rb_root_cached root ____cacheline_aligned_in_smp;
++	void *ops_arg;
++	const struct mmu_rb_ops *ops;
++	struct list_head lru_list;
++	struct work_struct del_work;
++	struct list_head del_list;
++	struct workqueue_struct *wq;
++	size_t hits;
++	size_t misses;
++	size_t hint_hits;
++	size_t hint_misses;
++	size_t internal_evictions;
++	size_t external_evictions;
++	void *free_ptr;
++};
++
++int hfi2_mmu_rb_register(void *ops_arg,
++			 const struct mmu_rb_ops *ops,
++			 struct workqueue_struct *wq,
++			 struct mmu_rb_handler **handler);
++void hfi2_mmu_rb_unregister(struct mmu_rb_handler *handler);
++int hfi2_mmu_rb_insert(struct mmu_rb_handler *handler,
++		       struct mmu_rb_node *mnode);
++void hfi2_mmu_rb_release(struct kref *refcount);
++
++void hfi2_mmu_rb_evict(struct mmu_rb_handler *handler, void *evict_arg);
++struct mmu_rb_node *hfi2_mmu_rb_get_first(struct mmu_rb_handler *handler,
++					  unsigned long addr,
++					  unsigned long len);
++unsigned long hfi2_mmu_rb_for_n(struct mmu_rb_handler *handler,
++				unsigned long start, int count,
++				void (*fn)(const struct mmu_rb_node *rb_node, void *),
++				void *arg);
++
++#endif /* _HFI2_MMU_RB_H */
+diff --git a/drivers/infiniband/hw/hfi2/msix.h b/drivers/infiniband/hw/hfi2/msix.h
+new file mode 100644
+index 000000000000..f11a7e6b5fe2
+--- /dev/null
++++ b/drivers/infiniband/hw/hfi2/msix.h
+@@ -0,0 +1,26 @@
++/* SPDX-License-Identifier: (GPL-2.0 OR BSD-3-Clause) */
++/*
++ * Copyright(c) 2018 - 2020 Intel Corporation.
++ */
++
++#ifndef _HFI2_MSIX_H
++#define _HFI2_MSIX_H
++
++#include "hfi2.h"
++
++/* MSIx interface */
++int msix_initialize(struct hfi2_devdata *dd);
++int msix_early_request_irqs(struct hfi2_devdata *dd);
++int msix_request_irqs(struct hfi2_devdata *dd);
++void msix_clean_up_interrupts(struct hfi2_devdata *dd);
++void msix_shut_down_interrupts(struct hfi2_devdata *dd, bool keep_general);
++int msix_request_general_irq(struct hfi2_devdata *dd);
++int msix_request_rcd_irq(struct hfi2_ctxtdata *rcd);
++int msix_request_sdma_irq(struct sdma_engine *sde);
++void msix_free_irq(struct hfi2_devdata *dd, u8 msix_intr);
++
++/* Netdev interface */
++void msix_netdev_synchronize_irq(struct hfi2_pportdata *ppd);
++int msix_netdev_request_rcd_irq(struct hfi2_ctxtdata *rcd);
++
++#endif
 
 
