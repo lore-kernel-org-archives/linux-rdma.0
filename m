@@ -1,47 +1,47 @@
-Received: from NAM04-BN8-obe.outbound.protection.outlook.com (mail-bn8nam04on2091.outbound.protection.outlook.com [40.107.100.91])
+Received: from NAM10-DM6-obe.outbound.protection.outlook.com (mail-dm6nam10on2115.outbound.protection.outlook.com [40.107.93.115])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A8C482E5408
-	for <linux-rdma@vger.kernel.org>; Mon, 30 Jun 2025 17:58:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.100.91
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8B8862BE7D1
+	for <linux-rdma@vger.kernel.org>; Mon, 30 Jun 2025 17:58:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.93.115
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751306302; cv=fail; b=KyHRm1cQ5XNEW9SsCULE3ZDUcjB2PBGUv+hKyvSZCLatcLXh2gLw85IiwvTFYtU+WFjS4AB/nE8s8opresm4yEA2swoEgOIiSEA53ge+1nT9WnF/fi4RCUzq0NOfiGSLP+uliktn/RvK8+IWMVLMfvUySX+0CTAq8Axb6hP41yY=
+	t=1751306302; cv=fail; b=b/xr8joPv4aCPFqauh02/Yi9ulCoi1wRH4PCHTYEWeF8mKdWR+Y1UtDiKEDCK03TNQRblefR//x1P7uHo5fw3bYzLSXRLewevEM1HQbOLtdxR0hWSUq4Zjmobn35qfy1NO1VGDPF+7j6pZRqzp1TOpuuW9ugy4nhNL2U8Wbc0lw=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1751306302; c=relaxed/simple;
-	bh=0B1Rp7zK/aihLCUjQglAQmRMamwA8yixAcnLTQm43zM=;
+	bh=G9SwVKY4dxBpC9+RXFBxcF1Zw8wDm+In2PhtoSAH2HU=;
 	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=D3eAlT5cnbBhnjZK+l1xSqwC5KcUO6v9+xSd9ahdvWCp+b1tOg0k/rkeqLX8YlWXFaOIudlD103IKo2ti9v7f2+Td44impGDQbgNgAQr1L/NOI9YpcnE8BMLshIZRYIScgvAgcsgg1fEd4D2vMHGslzY0aehSOZXS+ibEdUKXwk=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cornelisnetworks.com; spf=pass smtp.mailfrom=cornelisnetworks.com; dkim=pass (2048-bit key) header.d=cornelisnetworks.com header.i=@cornelisnetworks.com header.b=KFs8DQGC; arc=fail smtp.client-ip=40.107.100.91
+	 MIME-Version:Content-Type; b=QRX9r9OmkHo0mHx8KOfRy8SjsFk6GFlrgLSoxyidzdTuJiepTCM7EJsogFqEfL3I2OobDgXT+JZt2zALFtsp5ikr0IM7n/pWybKDv4/GHJKR+SGZKURgQGnVcA6DnSNkz9NE3g71O6TnhVmitkpik2b0shPxwEbviN+EBQ/neB8=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cornelisnetworks.com; spf=pass smtp.mailfrom=cornelisnetworks.com; dkim=pass (2048-bit key) header.d=cornelisnetworks.com header.i=@cornelisnetworks.com header.b=SX1zvyMX; arc=fail smtp.client-ip=40.107.93.115
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cornelisnetworks.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=cornelisnetworks.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=cornelisnetworks.com header.i=@cornelisnetworks.com header.b="KFs8DQGC"
+	dkim=pass (2048-bit key) header.d=cornelisnetworks.com header.i=@cornelisnetworks.com header.b="SX1zvyMX"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=lExwUrGwcbB1BnnOXcWVUHAZWSqO7JUikS/8110Fd1BT/0G3GrgkHbvEuXQlXjTJafouF7VifPw6wNg6ycofEIuzyIqLPHDm7+Ui/A+2z2dG9T7lTCyHJkXiJafpe3wavjItzW694xYoQrvv/JiRtmq9j0CJTvazHLv8NaEIXCpnb7YjbYdLBaOJZy2tp1w59ZMxiCRJ1fbl366BSZEItaUsu/glSvzDjhfQ05ylDnj07c4daLh2dLV3lBbZmMJPf2n1VH44pGok95B+4g+hIKywfDuLT++YvZFsKAekvhmCuYVng/Tw6d5kBXl0uPjhSuu70KKJ5Qq4x0iKV8ik+A==
+ b=dGXCKy3afp7li7yfswSxM0unVu1m3TTZKidkB2NZ0TUfqnFDTZTcbxihs+J+t47stRJb56hJqF5ugpnp18L6wIeKkbsad86ikApejoWBTHuYP+Ql9azmpVgo8V+YLMFaHkbyKtTmrM+Hi4VOYQikzFCL3TnNXjak09Wu6h8PycwmsxhoLJw1ERvYzwQ8ufK5P5tBqclm5bjwgd9eLOPxcnwkHnzqLyLGvoKNN8/AukvXmMktfGwVnj5f3MWrZ7SmNmLcoO4LgrOfZphHL2KuC7N2hG2as/qsS0lny+hnbLKUlIdvV/ADXBd0OhVnpEytjJsBLbrVpi16C1Y+NYcj+g==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=XcB+NYxPEgJw9TCEvI+09mVa0peJ/sqH8yjy7/H/CpQ=;
- b=yiClAglGen0vARbcyY4AfDmSuzhyMOSqYxzem1a4q9uwTgTAwBXx6gD8dNlkVk1LdZ2sePZ0jkAi7IcfU1CMrT1Te1U2Y79Z5H2G0a8DAJBMP+RfAJch7vbsJydpbX/zSQvKuLBgp1WMPORSGn3RRHCAhe9iR0b8TPZL7c82uVioIUPpNS0rvvfsAwVX2L/muUqdi/FXKmZJh4oaduZ0/YELxxH2FlV7n3JESo56di2sBFAtXf40EM9CA4cRBeDW4JeEuTzCCPUfbdhK+JWQlnhRBhr7NPvg/N6PUp2QFDsKLv1tbWKj/IAIm9/a5vXOnMOdKSK6dBvZ9pPfTsBNEA==
+ bh=y/20H3x/GC+qBLF681vZH5LOjXE8PLrMyW1485MnPvk=;
+ b=RxLHW3xetrKq9y6+gFE2GiGnpq/FZFF7HNq/5muTLSmkP5OOYq5XKiQ2uJ6y14Skm1AYr9WRyYwos8u3rC8AfTO5YbvRGjksnrvBWv38CPdcafBzas/gBrucOB4cWP66ilbLKIVvHdpcMP/vZJ3ll6oct4gbmQosQOEGBJ3XuOgy84zaxiFN+v2sHDxTQk0yqaQOtxR4B0Pg7lUEmYObnock5ZIqlfqComhKZWnYQw+tkVYsBqBvZJAlSdz/jEf1QWoHvexKegNLD8gjyvcYLFo1F3Yqy4Zg9+DTBEIHHfZvZe6nbECQEKE0NqB7ZuCSAu949tK3ir4mvbW3Nbl32w==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 208.255.156.42) smtp.rcpttodomain=cornelisnetworks.com
+ 208.255.156.42) smtp.rcpttodomain=kernel.org
  smtp.mailfrom=cornelisnetworks.com; dmarc=pass (p=none sp=none pct=100)
  action=none header.from=cornelisnetworks.com; dkim=none (message not signed);
  arc=none (0)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cornelisnetworks.com;
  s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=XcB+NYxPEgJw9TCEvI+09mVa0peJ/sqH8yjy7/H/CpQ=;
- b=KFs8DQGCr179m7PLVNZBmuK9zIkYtn9V7M616iQpb+RFuE2kJdLlpz3JP3DRpCLuB17cZOVXm5LiDe3SNb2IA36yovCjwniXLHHBEvH7KCX1Cza+5Dkr9OZOCTDFx8C8MrMfbLcTcdk7quQu+L8ZMYIEo6AC/UMvfJX/8IVICxkD6CotRi9x6Cufk01hRon3aPuz4ML56rW6iYy5Fvlvl/dLP0ThVpRXqDYGWH/1J9wYivG0Der2G5h4Rj42rjqfbOixIkb/VI/GnZv1sk8CBj7CDQAGMu2qrsWG786Q2mg4YGZZ37VXSZXtdByykK//DPF9hoH9teavrTYMZdb85Q==
-Received: from SN7P222CA0006.NAMP222.PROD.OUTLOOK.COM (2603:10b6:806:124::19)
- by DS2PR01MB9413.prod.exchangelabs.com (2603:10b6:8:2ad::13) with Microsoft
+ bh=y/20H3x/GC+qBLF681vZH5LOjXE8PLrMyW1485MnPvk=;
+ b=SX1zvyMXfCkqvasqYAlaBYKo5SOPw5Gw48h8jmUv9RMymIBzqU0OIozkqJxXNKcosYw/6Dl2+EDaTryk+sZFbauhpZWTHIUu8YfGKhjKiVm1NZPlycunAVkiJcPnrEBfXvZwr/87KAamOOSyalCyiI5TpfZQjqQkyLNMiyI5P8xAKh7uA9i9Tfvqj4/ZxtuQzVWwVcJv9tP8EFPQosP4p/ijWnxjiSpK8u1vYMQPlqAU4qOpRS20mRH5I2M1zfA3b19fqfVcNcgpRnOJEXOIYj4v8dnR6otL5ngA9z7WOH0Pb0pw2ldEvvvg9GWDMcra4RtO6ljkKOSI1s1BQAisow==
+Received: from MW4PR04CA0103.namprd04.prod.outlook.com (2603:10b6:303:83::18)
+ by SA1PR01MB9106.prod.exchangelabs.com (2603:10b6:806:45b::17) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.8880.30; Mon, 30 Jun 2025 17:58:10 +0000
-Received: from SN1PEPF00036F43.namprd05.prod.outlook.com
- (2603:10b6:806:124:cafe::c0) by SN7P222CA0006.outlook.office365.com
- (2603:10b6:806:124::19) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.20.8880.31 via Frontend Transport; Mon,
- 30 Jun 2025 17:58:10 +0000
+ 15.20.8880.32; Mon, 30 Jun 2025 17:58:09 +0000
+Received: from CY4PEPF0000E9DB.namprd05.prod.outlook.com
+ (2603:10b6:303:83:cafe::16) by MW4PR04CA0103.outlook.office365.com
+ (2603:10b6:303:83::18) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.20.8880.32 via Frontend Transport; Mon,
+ 30 Jun 2025 17:58:09 +0000
 X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 208.255.156.42)
  smtp.mailfrom=cornelisnetworks.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=cornelisnetworks.com;
@@ -50,24 +50,22 @@ Received-SPF: Pass (protection.outlook.com: domain of cornelisnetworks.com
  receiver=protection.outlook.com; client-ip=208.255.156.42;
  helo=cn-mailer-00.localdomain; pr=C
 Received: from cn-mailer-00.localdomain (208.255.156.42) by
- SN1PEPF00036F43.mail.protection.outlook.com (10.167.248.27) with Microsoft
+ CY4PEPF0000E9DB.mail.protection.outlook.com (10.167.241.74) with Microsoft
  SMTP Server (version=TLS1_3, cipher=TLS_AES_256_GCM_SHA384) id 15.20.8901.15
- via Frontend Transport; Mon, 30 Jun 2025 17:58:09 +0000
+ via Frontend Transport; Mon, 30 Jun 2025 17:58:07 +0000
 Received: from awdrv-04.localdomain (awdrv-04.cornelisnetworks.com [10.228.212.218])
-	by cn-mailer-00.localdomain (Postfix) with ESMTPS id D2BF514D729;
+	by cn-mailer-00.localdomain (Postfix) with ESMTPS id BAD7514D71A;
 	Mon, 30 Jun 2025 13:58:06 -0400 (EDT)
 Received: from awdrv-04.cornelisnetworks.com (localhost [IPv6:::1])
-	by awdrv-04.localdomain (Postfix) with ESMTP id 209BC1848B5CD;
-	Mon, 30 Jun 2025 11:30:33 -0400 (EDT)
-Subject: [PATCH for-next 09/23] RDMA/hfi2: Add in HW register definition files
+	by awdrv-04.localdomain (Postfix) with ESMTP id F0DC91811CE73;
+	Mon, 30 Jun 2025 11:30:17 -0400 (EDT)
+Subject: [PATCH for-next 06/23] RDMA/hfi1: Remove opa_vnic
 From: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
 To: jgg@ziepe.ca, leon@kernel.org
-Cc: Dean Luick <dean.luick@cornelisnetworks.com>,
- Breandan Cunningham <brendan.cunningham@cornelisnetworks.com>,
- Douglas Miller <doug.miller@cornelisnetworks.com>, linux-rdma@vger.kernel.org
-Date: Mon, 30 Jun 2025 11:30:33 -0400
+Cc: linux-rdma@vger.kernel.org
+Date: Mon, 30 Jun 2025 11:30:17 -0400
 Message-ID:
- <175129743309.1859400.11138422041598929573.stgit@awdrv-04.cornelisnetworks.com>
+ <175129741787.1859400.7033099190800356659.stgit@awdrv-04.cornelisnetworks.com>
 In-Reply-To:
  <175129726945.1859400.4492277779101226937.stgit@awdrv-04.cornelisnetworks.com>
 References:
@@ -80,3207 +78,5407 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: SN1PEPF00036F43:EE_|DS2PR01MB9413:EE_
-X-MS-Office365-Filtering-Correlation-Id: 84c758d4-1ddc-4535-039a-08ddb7ffacd8
+X-MS-TrafficTypeDiagnostic: CY4PEPF0000E9DB:EE_|SA1PR01MB9106:EE_
+X-MS-Office365-Filtering-Correlation-Id: 41aa25b2-c16c-4e11-31b9-08ddb7ffab65
 X-MS-Exchange-AtpMessageProperties: SA
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|82310400026|1800799024|36860700013|376014;
+	BCL:0;ARA:13230040|36860700013|1800799024|82310400026|376014;
 X-Microsoft-Antispam-Message-Info:
-	=?utf-8?B?c2RQak11R0grRVNIM1dvTzBES2JYT0pJSlNyVzRjMXlIVTdNalB3WDJDU3J4?=
- =?utf-8?B?WTllTEsrZVAyUnI4NXBPekcyNXFFZGM3S3JyUy8vNUNaNjljbVJDRDZ5NDRY?=
- =?utf-8?B?ZTBEMGJwV0ZqcTEvOW1nL29xN1hMRExPaVVvK1JRcVNBQnhKT01NeWRLcWtP?=
- =?utf-8?B?WEU4Ky83MzBwMHVJc0JhRGZCR2UrcElPRk5HbGxIM25mZUNZSkdWS2RzbUpv?=
- =?utf-8?B?STVEOURSdUFCZEFGKysvcm1pbHE0WHI5a2N3czlhZ0w5ZE8xcnM3dFZLb1Zy?=
- =?utf-8?B?SldURmV5Q2NsWXYvSmdkN2RyYkdrbFpkYXZVWndnYXpSMmNySTloSmhlR09i?=
- =?utf-8?B?S1lYUkpKbGxZQUlrc1R6dGZST2l2bk9UdjROdjNoeTdvWWhaWUxqNTYyVkp1?=
- =?utf-8?B?dnB5VER2cHdqT3hIUm1RRjBaV1Frd3pNM2lXZVZZTDlhdkNDNXNtaVpzSnJE?=
- =?utf-8?B?U0JhUkJuWjIzcmMweTNLZkMwTy9POGVDSXFUY0hHeEZPMUhzbSs1WWRwekR5?=
- =?utf-8?B?ejBtSDFRN3F5U0tMUGJ6dmM4NWRUdnVxdlpla29Qc1RFRy9XUzJzSUNrdlZ6?=
- =?utf-8?B?bFdrQWM5VlNlRTZJdE5tQUpCaGtIMDdjQ0h6NDNMYW5UU1JIajV1d05xVzVX?=
- =?utf-8?B?M0EyanJ4UkJ5c2FNZ0ZIQ2xwMWVrSFJoZ0xHMUR2Njk5anJqTk51VUhOM1U1?=
- =?utf-8?B?UlArSVVIRlhjck5uem96ZG9IUXQ2M0RydkthTmFGcWpGenhuaTNSdmNoTFk5?=
- =?utf-8?B?Z0hEdmpIcWxONTk5d0ZEbmtIVTU1NGJmVzM3SVZyKzlSSyt5ZU5jUC92ek5G?=
- =?utf-8?B?ZUR3UGRGOE02dVV3Mi9vNVNrb3M4UTcrSDkvWGEyaUpBSlpJZndmdGRXQ2th?=
- =?utf-8?B?Nm5GUFBUL1drN21uTXB1WlZGMVRJVks0a0VNSjV5TU5ZU2drbVV0dzJJMTZF?=
- =?utf-8?B?QmQ0UkE0d3BCWWt5RmhCaGRjNlk4NmNrQ2l0Zml3Nm1OV0YwN2lOS3ZWczl2?=
- =?utf-8?B?NVFBd2E5ck43ckRkWERYTWhSdHNGWkdYRVNLUWFQZUppMTgwZzFScFNOUkc5?=
- =?utf-8?B?MlppYko2NHRTK2c4cXVCRkRZWm1hMnZDaCtuVmUrdzVnTFhkc1NNUHppcTN5?=
- =?utf-8?B?SVZwa3doNis4ZXl4Tmp6MXZuMmZCd0ZvVFJkM21WSFVhYkFiL1JTYlVlNzNh?=
- =?utf-8?B?VGRPc0JUc2FxSVVZUTBUQWtMVWdhM2tabEp3MnEwN2pKTFhMd0UwZi9SRHRD?=
- =?utf-8?B?b0NUUWJjcjhYdTZiQXFPTURmbmxKWjZkYUtWVEZHOHYrajN5WFJRZWlsWEJz?=
- =?utf-8?B?YjZ0T29wQVptOCtFV2NpR1BsdjlOSGhYZjNyc3MvMGpsaFRIc0NrWTJJSDkr?=
- =?utf-8?B?ZC9vVzllcE41R2JnOGlHcityd2NGYXpjOFdvdTg3aDdJa2lqODcyL3dXTUo5?=
- =?utf-8?B?T2VzOEZrMnpxOGRtN1ZkdnRqdjdsQzVjN1Q5OEMvUzZpeDFYekNQandPUDhQ?=
- =?utf-8?B?NzVsR1grb3p3VWg4d0ZMMWMzeWJ4TTBZOUtKOFcyTE1xTk0zdmZtY0JJZUdY?=
- =?utf-8?B?bitsWEIxNGlrWTJqSnd1S0xIV1NMM3hhN3YzSHhWbEh5VFBVdGthUzJPcUpS?=
- =?utf-8?B?Z2k4cWVwRWgvQmo5bzhNYXJaSjZjUEprR2N4Q3ZiUUxUYTJoOHBxSFRUWGtu?=
- =?utf-8?B?ZURRWWFxZTBTeEljYjRoVFN6TVFNNFdPanBTRzJzMEVMMi9EOEFtd3lSTEFs?=
- =?utf-8?B?alVNUktRWDFsTkZZOFFuQkJPak5aUmQra0M1MnBzTTRHaHBtRnJHc3VRamJW?=
- =?utf-8?B?WEdlbVdWekMyMUtDVFNGYmR6RFVEdkZQTytWNGJnL1Vlbld2YXowdWNUaWdS?=
- =?utf-8?B?cnlSMTJTSjRtaUNsTkZyMUtXTWNDcm5pdTZtNnkwT1VLVUhINGlYUjRXNWJv?=
- =?utf-8?B?R0NzZW04elhCSkZZYmF1dkNYUnV4dndDd1NmY01xaGhrUC9qYTM1ZFlnd282?=
- =?utf-8?B?UElrM3ZuL3lEc0RQc1Fuam1lMllqRDNDRU1EMWt4Ym9aU3Y2cXhDVG9SbzVZ?=
- =?utf-8?Q?QuFPlL?=
+	=?utf-8?B?cDkvRDZBcjVFL1d0RUV5SUpoZlNYeXhCZ0ZlM3NHcnpBMkhzSTVkOHBDblNa?=
+ =?utf-8?B?NzVKTUdiY1pvZmxzYmQxUUFzcy9MTnoyZFExQU9XUFJ2c2lha2NSb3hYczAr?=
+ =?utf-8?B?aTVnRit5WEtEdUJPRjhmdjZMcnVmYzZwNUNLNjhsVnJnTW1BSXVyREVjNGdH?=
+ =?utf-8?B?T1ZCclZpb0lTbWEvdVJoV0lRVkdnUW9aRi9ZY3ozWkFoT2ZXMDB1RCtmNVZD?=
+ =?utf-8?B?QTgyZkpTTFdSZ3JBbzdBNHozdUlRVEk5azljNUxuQkRoL2VUN1F2S280TGFv?=
+ =?utf-8?B?eUFVZlBqcDEycUV1c0dEOU0xT3JlcTQwQXdMTkxpS3Q5amR4LzMvVkJlMWRy?=
+ =?utf-8?B?NGZLMG9DdE1FOHJtcVVXZUtxZzh2c3h3YVBacTNXcm00NmlFUW9yOWpyUWFw?=
+ =?utf-8?B?NUFxN25ZRnA3QlUyd2FEd1FZUzAveGpLbnZxRmx3c0xybTFBYVY1TkhkcWJV?=
+ =?utf-8?B?K3RrbEVMVXZlc2NCMi9LOUo4eDNPQ1luL2tXSTQ4Vk1OM2FSVXRvWmZEUXh2?=
+ =?utf-8?B?UnNTT256Q1pMb1RRZk5FbDhrUTNuUE9ZTWlScGgxMlBKcVBNNWVXd01iK3lK?=
+ =?utf-8?B?NEQwKzdzQk1OcmhSVWxNcUtOVlNCRWE5ZDBhL3hIQW1SN2hyQmFiNUJQUmFS?=
+ =?utf-8?B?QUhNeGVES2U4ZzlFUjZIL2pZVU5ERjFicUQxY0lnRkdoeUxKRkZWS0szRm9B?=
+ =?utf-8?B?MXBCR2s1ZTMzS1BMR1hnYnZPSjRBTmFTNmVhYUREVzVTK0VlOXh6Z0tVZFNX?=
+ =?utf-8?B?RGFaQnBkdHM3VE5DSk1TeEVVU2Y1aUJKVEhMVWJ3UitOTzk0MW16YkttR3kw?=
+ =?utf-8?B?L1B1LzkvdndueE1sZ29OdktscVk0UVIzZUFDaFpSSXl0VGErdlhNYS9DSi9E?=
+ =?utf-8?B?ZzJYUFUxdGhKZDJWZ0t5aHd6bFpVZWw3V1BWR2ZETkVmaDdsMDhqY1ZmL1RB?=
+ =?utf-8?B?MC92aTRoWFFOQ1RpcnVwdXZiTkxPNVEwWmJNRVlHalpQNWpxTmtaYitROGxt?=
+ =?utf-8?B?UXFza05NTkZ4VDJOSXZpU3NFeEpWQUFmYXlyYnRiVGtjbzExZTlqYStEVnZw?=
+ =?utf-8?B?bG9JRlRwZEUrNWVYdjJQOTBnNjhDUUpQMnZwTkQ4ZXJoNGV6bEdMT1dxeFJv?=
+ =?utf-8?B?Nm8xdGl0Q2RVZHVDaGc2UGNVQXJ5U0NFU1JTS0xJU09vN2hxbEUwUEx0L2lU?=
+ =?utf-8?B?WHpYRXNaSXd2WFZ6VWJaZ0xycDRqU0FkQnpxdnVVa2N5NXZjaTlTRThsY0JH?=
+ =?utf-8?B?NzcxSFRGTWh3VXRZNUV6NkdsVldrdUR6VGUzM2JNQWZZMTdBbzVJenJSZHJ1?=
+ =?utf-8?B?T0RjZUc3aVB6REpPWTd3dnZ4dU1KUGVHTWQ1QW1CTzJvamI1TGIvV3dnRU40?=
+ =?utf-8?B?QkxaVERnTEZ3MDZreUs1U0JKVzdDaFcwUjdkc3VaUFl1Qk1hQmp6QUNZRnp6?=
+ =?utf-8?B?QjRDQjZUUkpZYmk4OTVnS0hIOTJWL1NMbFZHNEV3ZlEvUEQ2M0Yrc04vbWNk?=
+ =?utf-8?B?RjUzdTduZGNGS3hma0xYekowTS9hV2xKUmIxY0RNQVo2UUc3K2haMDFpbVdi?=
+ =?utf-8?B?RExBRkJ2bmhESGlpOHB1WUlRK1hvTjF1eE9MN1VTOTdwNGEvSHI5SWx2NzQ3?=
+ =?utf-8?B?L0hsMzJNanJHMGpoNWNhUlUrdWc3Y01zUXpDQ3hRWVNaTFY0WUcvMFpOZXl4?=
+ =?utf-8?B?Z1k5alErODBwWlFRZEljd2g2Tlc3WE9yTXgrK1VlSGNKNW44VWNKaDNzMUd6?=
+ =?utf-8?B?bmdXcEZEblVqUEFxOGdDVm5zRGR3T3duVUxGLzFQcEhLdHlKb0psZGZHQXVa?=
+ =?utf-8?B?QXFrMHV2R3o5R2pSdUdvY1d2SlZJdFNGSnRzL3VGRno5U1ptZHMyU1gyZWZI?=
+ =?utf-8?B?V29Mak1oMG9CRHIzU1lGZlpjVE1kL0hsQ3ZzQVAydlBMbGNzbnJIK2NVQkxq?=
+ =?utf-8?B?SWk4bXJSWlJGRTc4ZHBEaE5HbVZVemNSb2FlVzl4NWtBRjA1cUFDNjNaYXRI?=
+ =?utf-8?B?UVZQYnJaZERZWjRzRU8wVStJaTg1Z2g1bC9FaGdmVHF6NW9GM2o1bGZMNk5V?=
+ =?utf-8?Q?kuvtpu?=
 X-Forefront-Antispam-Report:
-	CIP:208.255.156.42;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:cn-mailer-00.localdomain;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(82310400026)(1800799024)(36860700013)(376014);DIR:OUT;SFP:1102;
+	CIP:208.255.156.42;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:cn-mailer-00.localdomain;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(36860700013)(1800799024)(82310400026)(376014);DIR:OUT;SFP:1102;
 X-OriginatorOrg: cornelisnetworks.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 30 Jun 2025 17:58:09.9125
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 30 Jun 2025 17:58:07.4634
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 84c758d4-1ddc-4535-039a-08ddb7ffacd8
+X-MS-Exchange-CrossTenant-Network-Message-Id: 41aa25b2-c16c-4e11-31b9-08ddb7ffab65
 X-MS-Exchange-CrossTenant-Id: 4dbdb7da-74ee-4b45-8747-ef5ce5ebe68a
 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=4dbdb7da-74ee-4b45-8747-ef5ce5ebe68a;Ip=[208.255.156.42];Helo=[cn-mailer-00.localdomain]
 X-MS-Exchange-CrossTenant-AuthSource:
-	SN1PEPF00036F43.namprd05.prod.outlook.com
+	CY4PEPF0000E9DB.namprd05.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS2PR01MB9413
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA1PR01MB9106
 
-These are the HW registers for both generations of chips currently
-supported.
+OPA Vnic has been abandoned and left to rot. Time to excise.
 
-Co-developed-by: Dean Luick <dean.luick@cornelisnetworks.com>
-Signed-off-by: Dean Luick <dean.luick@cornelisnetworks.com>
-Co-developed-by: Bendan Cunningham <brendan.cunningham@cornelisnetworks.com>
-Signed-off-by: Breandan Cunningham <brendan.cunningham@cornelisnetworks.com>
-Co-developed-by: Douglas Miller <doug.miller@cornelisnetworks.com>
-Signed-off-by: Douglas Miller <doug.miller@cornelisnetworks.com>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
 ---
- drivers/infiniband/hw/hfi2/chip.h               | 1420 +++++++++++++++++++++++
- drivers/infiniband/hw/hfi2/chip_gen.h           |   29 
- drivers/infiniband/hw/hfi2/chip_jkr.h           |  119 ++
- drivers/infiniband/hw/hfi2/chip_registers.h     | 1297 +++++++++++++++++++++
- drivers/infiniband/hw/hfi2/chip_registers_jkr.h |  224 ++++
- 5 files changed, 3089 insertions(+)
- create mode 100644 drivers/infiniband/hw/hfi2/chip.h
- create mode 100644 drivers/infiniband/hw/hfi2/chip_gen.h
- create mode 100644 drivers/infiniband/hw/hfi2/chip_jkr.h
- create mode 100644 drivers/infiniband/hw/hfi2/chip_registers.h
- create mode 100644 drivers/infiniband/hw/hfi2/chip_registers_jkr.h
+ Documentation/infiniband/opa_vnic.rst              |  159 ---
+ .../translations/zh_CN/infiniband/opa_vnic.rst     |  156 ---
+ MAINTAINERS                                        |    6 
+ drivers/infiniband/Kconfig                         |    2 
+ drivers/infiniband/hw/hfi1/Makefile                |    4 
+ drivers/infiniband/hw/hfi1/aspm.c                  |    2 
+ drivers/infiniband/hw/hfi1/chip.c                  |   54 -
+ drivers/infiniband/hw/hfi1/chip.h                  |    2 
+ drivers/infiniband/hw/hfi1/driver.c                |   13 
+ drivers/infiniband/hw/hfi1/hfi.h                   |   20 
+ drivers/infiniband/hw/hfi1/init.c                  |    4 
+ drivers/infiniband/hw/hfi1/mad.c                   |    1 
+ drivers/infiniband/hw/hfi1/msix.c                  |    4 
+ drivers/infiniband/hw/hfi1/netdev.h                |    8 
+ drivers/infiniband/hw/hfi1/netdev_rx.c             |    3 
+ drivers/infiniband/hw/hfi1/verbs.c                 |    2 
+ drivers/infiniband/hw/hfi1/vnic.h                  |  126 --
+ drivers/infiniband/hw/hfi1/vnic_main.c             |  615 ------------
+ drivers/infiniband/hw/hfi1/vnic_sdma.c             |  282 -----
+ drivers/infiniband/ulp/Makefile                    |    1 
+ drivers/infiniband/ulp/opa_vnic/Kconfig            |    9 
+ drivers/infiniband/ulp/opa_vnic/Makefile           |    9 
+ drivers/infiniband/ulp/opa_vnic/opa_vnic_encap.c   |  513 ----------
+ drivers/infiniband/ulp/opa_vnic/opa_vnic_encap.h   |  524 ----------
+ drivers/infiniband/ulp/opa_vnic/opa_vnic_ethtool.c |  183 ---
+ .../infiniband/ulp/opa_vnic/opa_vnic_internal.h    |  329 ------
+ drivers/infiniband/ulp/opa_vnic/opa_vnic_netdev.c  |  400 --------
+ drivers/infiniband/ulp/opa_vnic/opa_vnic_vema.c    | 1056 --------------------
+ .../infiniband/ulp/opa_vnic/opa_vnic_vema_iface.c  |  390 -------
+ 29 files changed, 20 insertions(+), 4857 deletions(-)
+ delete mode 100644 Documentation/infiniband/opa_vnic.rst
+ delete mode 100644 Documentation/translations/zh_CN/infiniband/opa_vnic.rst
+ delete mode 100644 drivers/infiniband/hw/hfi1/vnic.h
+ delete mode 100644 drivers/infiniband/hw/hfi1/vnic_main.c
+ delete mode 100644 drivers/infiniband/hw/hfi1/vnic_sdma.c
+ delete mode 100644 drivers/infiniband/ulp/opa_vnic/Kconfig
+ delete mode 100644 drivers/infiniband/ulp/opa_vnic/Makefile
+ delete mode 100644 drivers/infiniband/ulp/opa_vnic/opa_vnic_encap.c
+ delete mode 100644 drivers/infiniband/ulp/opa_vnic/opa_vnic_encap.h
+ delete mode 100644 drivers/infiniband/ulp/opa_vnic/opa_vnic_ethtool.c
+ delete mode 100644 drivers/infiniband/ulp/opa_vnic/opa_vnic_internal.h
+ delete mode 100644 drivers/infiniband/ulp/opa_vnic/opa_vnic_netdev.c
+ delete mode 100644 drivers/infiniband/ulp/opa_vnic/opa_vnic_vema.c
+ delete mode 100644 drivers/infiniband/ulp/opa_vnic/opa_vnic_vema_iface.c
 
-diff --git a/drivers/infiniband/hw/hfi2/chip.h b/drivers/infiniband/hw/hfi2/chip.h
-new file mode 100644
-index 000000000000..212968371707
---- /dev/null
-+++ b/drivers/infiniband/hw/hfi2/chip.h
-@@ -0,0 +1,1420 @@
-+/* SPDX-License-Identifier: GPL-2.0 OR BSD-3-Clause */
-+/*
-+ * Copyright(c) 2024 Cornelis Networks, Inc.
-+ * Copyright(c) 2015 - 2020 Intel Corporation.
-+ */
-+
-+#ifndef _CHIP_H
-+#define _CHIP_H
-+/*
-+ * This file contains all of the defines that is specific to the chip
-+ */
-+
-+/* sizes */
-+#define BITS_PER_REGISTER (BITS_PER_BYTE * sizeof(u64))
-+#define NUM_INTERRUPT_SOURCES 768
-+#define RXE_NUM_CONTEXTS 160
-+#define RXE_NUM_TID_FLOWS 32
-+#define RXE_NUM_DATA_VL 8
-+#define TXE_NUM_SDMA_ENGINES 16
-+#define NUM_CONTEXTS_PER_SET 8
-+#define VL_ARB_HIGH_PRIO_TABLE_SIZE 16
-+#define VL_ARB_LOW_PRIO_TABLE_SIZE 16
-+#define VL_ARB_TABLE_SIZE 16
-+#define TXE_NUM_32_BIT_COUNTER 7
-+#define TXE_NUM_64_BIT_COUNTER 30
-+#define TXE_NUM_DATA_VL 8
-+#define TXE_PIO_SIZE (32 * 0x100000)	/* 32 MB */
-+#define RCV_ARRAY_SIZE (64 * 1024 * 8)  /* 64K entries of 8 bytes = 512 KB */
-+#define PIO_BLOCK_SIZE 64			/* bytes */
-+#define SDMA_BLOCK_SIZE 64			/* bytes */
-+#define RCV_BUF_BLOCK_SIZE 64               /* bytes */
-+#define PIO_CMASK 0x7ff	/* counter mask for free and fill counters */
-+#define MAX_EAGER_ENTRIES    2048	/* max receive eager entries */
-+#define MAX_TID_PAIR_ENTRIES 1024	/* max receive expected pairs */
-+/*
-+ * Virtual? Allocation Unit, defined as AU = 8*2^vAU, 64 bytes, AU is fixed
-+ * at 64 bytes for all generation one devices
-+ */
-+#define CM_VAU 3
-+/* ink credit count, AKA receive buffer depth (RBUF_DEPTH) */
-+#define CM_GLOBAL_CREDITS 0x880
-+/* Number of PKey entries in the WFR HW */
-+#define WFR_MAX_PKEY_VALUES 16
-+/* number of SendCtxtCtrl.CtxtBase bits in the WFR HW */
-+#define WFR_PIO_BASE_BITS 14
-+
-+#include "chip_registers.h"
-+
-+#define TXE_PIO_SEND (TXE + TXE_PIO_SEND_OFFSET)
-+
-+/* register strides */
-+#define WFR_RXE_IPRC_STRIDE 0x100
-+#define WFR_RXE_RCTXT_STRIDE 0x100
-+#define WFR_RXE_KCTXT_STRIDE 0x100
-+#define WFR_RXE_UCTXT_STRIDE 0x1000
-+#define WFR_TXE_SCTXT_STRIDE 0x100
-+#define WFR_TXE_TCTXT_STRIDE 0x100
-+#define WFR_TXE_SDMA_STRIDE 0x100
-+#define WFR_TXE_SDMACFG_STRIDE 0x100
-+#define WFR_TXE_EPSC_STRIDE 0x100
-+
-+/* PBC flags */
-+#define PBC_INTR		BIT_ULL(31)
-+#define PBC_9B_SC4_SHIFT	(30)	/* aka PBC_DC_INFO */
-+#define PBC_9B_SC4		BIT_ULL(PBC_9B_SC4_SHIFT)
-+#define PBC_TEST_EBP		BIT_ULL(29)
-+#define PBC_PACKET_BYPASS	BIT_ULL(28) /* WFR only */
-+#define PBC_CREDIT_RETURN	BIT_ULL(25)
-+#define PBC_INSERT_BYPASS_ICRC	BIT_ULL(24)
-+#define PBC_TEST_BAD_ICRC	BIT_ULL(23)
-+#define PBC_FECN		BIT_ULL(22)
-+
-+/* return PBC flag for bit sc[4] */
-+static inline u64 pbc_sc4_flag(u16 sc5)
-+{
-+	return (u64)ib_is_sc5(sc5) << PBC_9B_SC4_SHIFT;
-+}
-+
-+/* PBC L2 types */
-+#define PBC_L2_16B 2	/* 16B header */
-+#define PBC_L2_9B  3	/* 9B header */
-+
-+/* PbcInsertHcrc field settings */
-+#define PBC_IHCRC_LKDETH 0x0	/* insert @ local KDETH offset */
-+#define PBC_IHCRC_GKDETH 0x1	/* insert @ global KDETH offset */
-+#define PBC_IHCRC_NONE   0x2	/* no HCRC inserted */
-+
-+/* WFR PBC fields */
-+#define PBC_STATIC_RATE_CONTROL_COUNT_SHIFT 32
-+#define PBC_STATIC_RATE_CONTROL_COUNT_MASK 0xffffull
-+#define PBC_STATIC_RATE_CONTROL_COUNT_SMASK \
-+	(PBC_STATIC_RATE_CONTROL_COUNT_MASK << \
-+	PBC_STATIC_RATE_CONTROL_COUNT_SHIFT)
-+
-+/* JKR and beyond PBC fields */
-+#define PBC_SEND_CTXT_SHIFT 56
-+#define PBC_DLID_SHIFT 32
-+#define PBC_DLID_MASK 0xffffff
-+#define PBC_L2_TYPE_SHIFT 20
-+#define PBC_PORT_IDX_SHIFT 16
-+
-+/* common PBC fields */
-+#define PBC_INSERT_HCRC_SHIFT 26
-+#define PBC_INSERT_HCRC_MASK 0x3ull
-+#define PBC_INSERT_HCRC_SMASK \
-+	(PBC_INSERT_HCRC_MASK << PBC_INSERT_HCRC_SHIFT)
-+
-+#define PBC_VL_SHIFT 12
-+#define PBC_VL_MASK 0xfull
-+#define PBC_VL_SMASK (PBC_VL_MASK << PBC_VL_SHIFT)
-+
-+#define PBC_LENGTH_DWS_SHIFT 0
-+#define PBC_LENGTH_DWS_MASK 0xfffull
-+#define PBC_LENGTH_DWS_SMASK \
-+	(PBC_LENGTH_DWS_MASK << PBC_LENGTH_DWS_SHIFT)
-+
-+/* Credit Return Fields */
-+#define CR_COUNTER_SHIFT 0
-+#define CR_COUNTER_MASK 0x7ffull
-+#define CR_COUNTER_SMASK (CR_COUNTER_MASK << CR_COUNTER_SHIFT)
-+
-+#define CR_STATUS_SHIFT 11
-+#define CR_STATUS_MASK 0x1ull
-+#define CR_STATUS_SMASK (CR_STATUS_MASK << CR_STATUS_SHIFT)
-+
-+#define CR_CREDIT_RETURN_DUE_TO_PBC_SHIFT 12
-+#define CR_CREDIT_RETURN_DUE_TO_PBC_MASK 0x1ull
-+#define CR_CREDIT_RETURN_DUE_TO_PBC_SMASK \
-+	(CR_CREDIT_RETURN_DUE_TO_PBC_MASK << \
-+	CR_CREDIT_RETURN_DUE_TO_PBC_SHIFT)
-+
-+#define CR_CREDIT_RETURN_DUE_TO_THRESHOLD_SHIFT 13
-+#define CR_CREDIT_RETURN_DUE_TO_THRESHOLD_MASK 0x1ull
-+#define CR_CREDIT_RETURN_DUE_TO_THRESHOLD_SMASK \
-+	(CR_CREDIT_RETURN_DUE_TO_THRESHOLD_MASK << \
-+	CR_CREDIT_RETURN_DUE_TO_THRESHOLD_SHIFT)
-+
-+#define CR_CREDIT_RETURN_DUE_TO_ERR_SHIFT 14
-+#define CR_CREDIT_RETURN_DUE_TO_ERR_MASK 0x1ull
-+#define CR_CREDIT_RETURN_DUE_TO_ERR_SMASK \
-+	(CR_CREDIT_RETURN_DUE_TO_ERR_MASK << \
-+	CR_CREDIT_RETURN_DUE_TO_ERR_SHIFT)
-+
-+#define CR_CREDIT_RETURN_DUE_TO_FORCE_SHIFT 15
-+#define CR_CREDIT_RETURN_DUE_TO_FORCE_MASK 0x1ull
-+#define CR_CREDIT_RETURN_DUE_TO_FORCE_SMASK \
-+	(CR_CREDIT_RETURN_DUE_TO_FORCE_MASK << \
-+	CR_CREDIT_RETURN_DUE_TO_FORCE_SHIFT)
-+
-+/* Specific IRQ sources */
-+#define CCE_ERR_INT		  0
-+#define RXE_ERR_INT		  1
-+#define MISC_ERR_INT		  2
-+#define PIO_ERR_INT		  4
-+#define SDMA_ERR_INT		  5
-+#define EGRESS_ERR_INT		  6
-+#define TXE_ERR_INT		  7
-+#define PBC_INT			240
-+#define GPIO_ASSERT_INT		241
-+#define QSFP1_INT		242
-+#define QSFP2_INT		243
-+#define TCRIT_INT		244
-+
-+/* interrupt source ranges */
-+#define IS_GENERAL_ERR_START		  0
-+#define IS_SDMAENG_ERR_START		 16
-+#define IS_SENDCTXT_ERR_START		 32
-+#define IS_SDMA_START			192
-+#define IS_SDMA_PROGRESS_START		208
-+#define IS_SDMA_IDLE_START		224
-+#define IS_VARIOUS_START		240
-+#define IS_DC_START			248
-+#define IS_RCVAVAIL_START		256
-+#define IS_RCVURGENT_START		416
-+#define IS_SENDCREDIT_START		576
-+#define IS_RESERVED_START		736
-+#define IS_LAST_SOURCE			767
-+
-+/* derived interrupt source values */
-+#define IS_GENERAL_ERR_END		15
-+#define IS_SDMAENG_ERR_END		31
-+#define IS_SENDCTXT_ERR_END		191
-+#define IS_SDMA_END                     207
-+#define IS_SDMA_PROGRESS_END            223
-+#define IS_SDMA_IDLE_END		239
-+#define IS_VARIOUS_END			247
-+#define IS_DC_END			255
-+#define IS_RCVAVAIL_END			415
-+#define IS_RCVURGENT_END		575
-+#define IS_SENDCREDIT_END		735
-+#define IS_RESERVED_END			IS_LAST_SOURCE
-+
-+/* DCC_CFG_PORT_CONFIG logical link states */
-+#define LSTATE_DOWN    0x1
-+#define LSTATE_INIT    0x2
-+#define LSTATE_ARMED   0x3
-+#define LSTATE_ACTIVE  0x4
-+
-+/* DCC_CFG_RESET reset states */
-+#define LCB_RX_FPE_TX_FPE_INTO_RESET   (DCC_CFG_RESET_RESET_LCB    | \
-+					DCC_CFG_RESET_RESET_TX_FPE | \
-+					DCC_CFG_RESET_RESET_RX_FPE | \
-+					DCC_CFG_RESET_ENABLE_CCLK_BCC)
-+					/* 0x17 */
-+
-+#define LCB_RX_FPE_TX_FPE_OUT_OF_RESET  DCC_CFG_RESET_ENABLE_CCLK_BCC /* 0x10 */
-+
-+/* DC8051_STS_CUR_STATE port values (physical link states) */
-+#define PLS_DISABLED			   0x30
-+#define PLS_OFFLINE				   0x90
-+#define PLS_OFFLINE_QUIET			   0x90
-+#define PLS_OFFLINE_PLANNED_DOWN_INFORM	   0x91
-+#define PLS_OFFLINE_READY_TO_QUIET_LT	   0x92
-+#define PLS_OFFLINE_REPORT_FAILURE		   0x93
-+#define PLS_OFFLINE_READY_TO_QUIET_BCC	   0x94
-+#define PLS_OFFLINE_QUIET_DURATION	   0x95
-+#define PLS_POLLING				   0x20
-+#define PLS_POLLING_QUIET			   0x20
-+#define PLS_POLLING_ACTIVE			   0x21
-+#define PLS_CONFIGPHY			   0x40
-+#define PLS_CONFIGPHY_DEBOUCE		   0x40
-+#define PLS_CONFIGPHY_ESTCOMM		   0x41
-+#define PLS_CONFIGPHY_ESTCOMM_TXRX_HUNT	   0x42
-+#define PLS_CONFIGPHY_ESTCOMM_LOCAL_COMPLETE   0x43
-+#define PLS_CONFIGPHY_OPTEQ			   0x44
-+#define PLS_CONFIGPHY_OPTEQ_OPTIMIZING	   0x44
-+#define PLS_CONFIGPHY_OPTEQ_LOCAL_COMPLETE	   0x45
-+#define PLS_CONFIGPHY_VERIFYCAP		   0x46
-+#define PLS_CONFIGPHY_VERIFYCAP_EXCHANGE	   0x46
-+#define PLS_CONFIGPHY_VERIFYCAP_LOCAL_COMPLETE 0x47
-+#define PLS_CONFIGLT			   0x48
-+#define PLS_CONFIGLT_CONFIGURE		   0x48
-+#define PLS_CONFIGLT_LINK_TRANSFER_ACTIVE	   0x49
-+#define PLS_LINKUP				   0x50
-+#define PLS_PHYTEST				   0xB0
-+#define PLS_INTERNAL_SERDES_LOOPBACK	   0xe1
-+#define PLS_QUICK_LINKUP			   0xe2
-+
-+/* DC_DC8051_CFG_HOST_CMD_0.REQ_TYPE - 8051 host commands */
-+#define HCMD_LOAD_CONFIG_DATA  0x01
-+#define HCMD_READ_CONFIG_DATA  0x02
-+#define HCMD_CHANGE_PHY_STATE  0x03
-+#define HCMD_SEND_LCB_IDLE_MSG 0x04
-+#define HCMD_MISC		   0x05
-+#define HCMD_READ_LCB_IDLE_MSG 0x06
-+#define HCMD_READ_LCB_CSR      0x07
-+#define HCMD_WRITE_LCB_CSR     0x08
-+#define HCMD_INTERFACE_TEST	   0xff
-+
-+/* DC_DC8051_CFG_HOST_CMD_1.RETURN_CODE - 8051 host command return */
-+#define HCMD_SUCCESS 2
-+
-+/* DC_DC8051_DBG_ERR_INFO_SET_BY_8051.ERROR - error flags */
-+#define SPICO_ROM_FAILED		BIT(0)
-+#define UNKNOWN_FRAME			BIT(1)
-+#define TARGET_BER_NOT_MET		BIT(2)
-+#define FAILED_SERDES_INTERNAL_LOOPBACK	BIT(3)
-+#define FAILED_SERDES_INIT		BIT(4)
-+#define FAILED_LNI_POLLING		BIT(5)
-+#define FAILED_LNI_DEBOUNCE		BIT(6)
-+#define FAILED_LNI_ESTBCOMM		BIT(7)
-+#define FAILED_LNI_OPTEQ		BIT(8)
-+#define FAILED_LNI_VERIFY_CAP1		BIT(9)
-+#define FAILED_LNI_VERIFY_CAP2		BIT(10)
-+#define FAILED_LNI_CONFIGLT		BIT(11)
-+#define HOST_HANDSHAKE_TIMEOUT		BIT(12)
-+#define EXTERNAL_DEVICE_REQ_TIMEOUT	BIT(13)
-+
-+#define FAILED_LNI (FAILED_LNI_POLLING | FAILED_LNI_DEBOUNCE \
-+			| FAILED_LNI_ESTBCOMM | FAILED_LNI_OPTEQ \
-+			| FAILED_LNI_VERIFY_CAP1 \
-+			| FAILED_LNI_VERIFY_CAP2 \
-+			| FAILED_LNI_CONFIGLT | HOST_HANDSHAKE_TIMEOUT \
-+			| EXTERNAL_DEVICE_REQ_TIMEOUT)
-+
-+/* DC_DC8051_DBG_ERR_INFO_SET_BY_8051.HOST_MSG - host message flags */
-+#define HOST_REQ_DONE		BIT(0)
-+#define BC_PWR_MGM_MSG		BIT(1)
-+#define BC_SMA_MSG		BIT(2)
-+#define BC_BCC_UNKNOWN_MSG	BIT(3)
-+#define BC_IDLE_UNKNOWN_MSG	BIT(4)
-+#define EXT_DEVICE_CFG_REQ	BIT(5)
-+#define VERIFY_CAP_FRAME	BIT(6)
-+#define LINKUP_ACHIEVED		BIT(7)
-+#define LINK_GOING_DOWN		BIT(8)
-+#define LINK_WIDTH_DOWNGRADED	BIT(9)
-+
-+/* DC_DC8051_CFG_EXT_DEV_1.REQ_TYPE - 8051 host requests */
-+#define HREQ_LOAD_CONFIG	0x01
-+#define HREQ_SAVE_CONFIG	0x02
-+#define HREQ_READ_CONFIG	0x03
-+#define HREQ_SET_TX_EQ_ABS	0x04
-+#define HREQ_SET_TX_EQ_REL	0x05
-+#define HREQ_ENABLE		0x06
-+#define HREQ_LCB_RESET		0x07
-+#define HREQ_CONFIG_DONE	0xfe
-+#define HREQ_INTERFACE_TEST	0xff
-+
-+/* DC_DC8051_CFG_EXT_DEV_0.RETURN_CODE - 8051 host request return codes */
-+#define HREQ_INVALID		0x01
-+#define HREQ_SUCCESS		0x02
-+#define HREQ_NOT_SUPPORTED		0x03
-+#define HREQ_FEATURE_NOT_SUPPORTED	0x04 /* request specific feature */
-+#define HREQ_REQUEST_REJECTED	0xfe
-+#define HREQ_EXECUTION_ONGOING	0xff
-+
-+/* MISC host command functions */
-+#define HCMD_MISC_REQUEST_LCB_ACCESS 0x1
-+#define HCMD_MISC_GRANT_LCB_ACCESS   0x2
-+
-+/* idle flit message types */
-+#define IDLE_PHYSICAL_LINK_MGMT 0x1
-+#define IDLE_CRU		    0x2
-+#define IDLE_SMA		    0x3
-+#define IDLE_POWER_MGMT	    0x4
-+
-+/* idle flit message send fields (both send and read) */
-+#define IDLE_PAYLOAD_MASK 0xffffffffffull /* 40 bits */
-+#define IDLE_PAYLOAD_SHIFT 8
-+#define IDLE_MSG_TYPE_MASK 0xf
-+#define IDLE_MSG_TYPE_SHIFT 0
-+
-+/* idle flit message read fields */
-+#define READ_IDLE_MSG_TYPE_MASK 0xf
-+#define READ_IDLE_MSG_TYPE_SHIFT 0
-+
-+/* SMA idle flit payload commands */
-+#define SMA_IDLE_ARM	1
-+#define SMA_IDLE_ACTIVE 2
-+
-+/* DC_DC8051_CFG_MODE.GENERAL bits */
-+#define DISABLE_SELF_GUID_CHECK 0x2
-+
-+/* Bad L2 frame error code */
-+#define BAD_L2_ERR      0x6
-+
-+/*
-+ * Eager buffer minimum and maximum sizes supported by the hardware.
-+ * All power-of-two sizes in between are supported as well.
-+ * MAX_EAGER_BUFFER_TOTAL is the maximum size of memory
-+ * allocatable for Eager buffer to a single context. All others
-+ * are limits for the RcvArray entries.
-+ */
-+#define MIN_EAGER_BUFFER       (4 * 1024)
-+#define MAX_EAGER_BUFFER       (256 * 1024)
-+#define MAX_EAGER_BUFFER_TOTAL (64 * (1 << 20)) /* max per ctxt 64MB */
-+#define MAX_EXPECTED_BUFFER    (2048 * 1024)
-+#define HFI2_MIN_HDRQ_EGRBUF_CNT 32
-+#define HFI2_MAX_HDRQ_EGRBUF_CNT 16352
-+
-+/*
-+ * Receive expected base and count and eager base and count increment -
-+ * the CSR fields hold multiples of this value.
-+ */
-+#define RCV_SHIFT 3
-+#define RCV_INCREMENT BIT(RCV_SHIFT)
-+
-+/*
-+ * Receive header queue entry increment - the CSR holds multiples of
-+ * this value.
-+ */
-+#define HDRQ_SIZE_SHIFT 5
-+#define HDRQ_INCREMENT BIT(HDRQ_SIZE_SHIFT)
-+
-+/*
-+ * Freeze handling flags
-+ */
-+#define FREEZE_ABORT     0x01	/* do not do recovery */
-+#define FREEZE_SELF	     0x02	/* initiate the freeze */
-+#define FREEZE_LINK_DOWN 0x04	/* link is down */
-+
-+/*
-+ * Chip implementation codes.
-+ */
-+#define ICODE_RTL_SILICON		0x00
-+#define ICODE_RTL_VCS_SIMULATION	0x01
-+#define ICODE_FPGA_EMULATION	0x02
-+#define ICODE_FUNCTIONAL_SIMULATOR	0x03
-+
-+/*
-+ * 8051 data memory size.
-+ */
-+#define DC8051_DATA_MEM_SIZE 0x1000
-+
-+/*
-+ * 8051 firmware registers
-+ */
-+#define NUM_GENERAL_FIELDS 0x17
-+#define NUM_LANE_FIELDS    0x8
-+
-+/* 8051 general register Field IDs */
-+#define LINK_OPTIMIZATION_SETTINGS   0x00
-+#define LINK_TUNING_PARAMETERS	     0x02
-+#define DC_HOST_COMM_SETTINGS	     0x03
-+#define TX_SETTINGS		     0x06
-+#define VERIFY_CAP_LOCAL_PHY	     0x07
-+#define VERIFY_CAP_LOCAL_FABRIC	     0x08
-+#define VERIFY_CAP_LOCAL_LINK_MODE   0x09
-+#define LOCAL_DEVICE_ID		     0x0a
-+#define RESERVED_REGISTERS	     0x0b
-+#define LOCAL_LNI_INFO		     0x0c
-+#define REMOTE_LNI_INFO              0x0d
-+#define MISC_STATUS		     0x0e
-+#define VERIFY_CAP_REMOTE_PHY	     0x0f
-+#define VERIFY_CAP_REMOTE_FABRIC     0x10
-+#define VERIFY_CAP_REMOTE_LINK_WIDTH 0x11
-+#define LAST_LOCAL_STATE_COMPLETE    0x12
-+#define LAST_REMOTE_STATE_COMPLETE   0x13
-+#define LINK_QUALITY_INFO            0x14
-+#define REMOTE_DEVICE_ID	     0x15
-+#define LINK_DOWN_REASON	     0x16 /* first byte of offset 0x16 */
-+#define VERSION_PATCH		     0x16 /* last byte of offset 0x16 */
-+
-+/* 8051 lane specific register field IDs */
-+#define TX_EQ_SETTINGS		0x00
-+#define CHANNEL_LOSS_SETTINGS	0x05
-+
-+/* Lane ID for general configuration registers */
-+#define GENERAL_CONFIG 4
-+
-+/* LINK_TUNING_PARAMETERS fields */
-+#define TUNING_METHOD_SHIFT 24
-+
-+/* LINK_OPTIMIZATION_SETTINGS fields */
-+#define ENABLE_EXT_DEV_CONFIG_SHIFT 24
-+
-+/* LOAD_DATA 8051 command shifts and fields */
-+#define LOAD_DATA_FIELD_ID_SHIFT 40
-+#define LOAD_DATA_FIELD_ID_MASK 0xfull
-+#define LOAD_DATA_LANE_ID_SHIFT 32
-+#define LOAD_DATA_LANE_ID_MASK 0xfull
-+#define LOAD_DATA_DATA_SHIFT   0x0
-+#define LOAD_DATA_DATA_MASK   0xffffffffull
-+
-+/* READ_DATA 8051 command shifts and fields */
-+#define READ_DATA_FIELD_ID_SHIFT 40
-+#define READ_DATA_FIELD_ID_MASK 0xffull
-+#define READ_DATA_LANE_ID_SHIFT 32
-+#define READ_DATA_LANE_ID_MASK 0xffull
-+#define READ_DATA_DATA_SHIFT   0x0
-+#define READ_DATA_DATA_MASK   0xffffffffull
-+
-+/* TX settings fields */
-+#define ENABLE_LANE_TX_SHIFT		0
-+#define ENABLE_LANE_TX_MASK		0xff
-+#define TX_POLARITY_INVERSION_SHIFT	8
-+#define TX_POLARITY_INVERSION_MASK	0xff
-+#define RX_POLARITY_INVERSION_SHIFT	16
-+#define RX_POLARITY_INVERSION_MASK	0xff
-+#define MAX_RATE_SHIFT			24
-+#define MAX_RATE_MASK			0xff
-+
-+/* verify capability PHY fields */
-+#define CONTINIOUS_REMOTE_UPDATE_SUPPORT_SHIFT	0x4
-+#define CONTINIOUS_REMOTE_UPDATE_SUPPORT_MASK	0x1
-+#define POWER_MANAGEMENT_SHIFT			0x0
-+#define POWER_MANAGEMENT_MASK			0xf
-+
-+/* 8051 lane register Field IDs */
-+#define SPICO_FW_VERSION 0x7	/* SPICO firmware version */
-+
-+/* SPICO firmware version fields */
-+#define SPICO_ROM_VERSION_SHIFT 0
-+#define SPICO_ROM_VERSION_MASK 0xffff
-+#define SPICO_ROM_PROD_ID_SHIFT 16
-+#define SPICO_ROM_PROD_ID_MASK 0xffff
-+
-+/* verify capability fabric fields */
-+#define VAU_SHIFT	0
-+#define VAU_MASK	0x0007
-+#define Z_SHIFT		3
-+#define Z_MASK		0x0001
-+#define VCU_SHIFT	4
-+#define VCU_MASK	0x0007
-+#define VL15BUF_SHIFT	8
-+#define VL15BUF_MASK	0x0fff
-+#define CRC_SIZES_SHIFT 20
-+#define CRC_SIZES_MASK	0x7
-+
-+/* verify capability local link width fields */
-+#define LINK_WIDTH_SHIFT 0		/* also for remote link width */
-+#define LINK_WIDTH_MASK 0xffff		/* also for remote link width */
-+#define LOCAL_FLAG_BITS_SHIFT 16
-+#define LOCAL_FLAG_BITS_MASK 0xff
-+#define MISC_CONFIG_BITS_SHIFT 24
-+#define MISC_CONFIG_BITS_MASK 0xff
-+
-+/* verify capability remote link width fields */
-+#define REMOTE_TX_RATE_SHIFT 16
-+#define REMOTE_TX_RATE_MASK 0xff
-+
-+/* LOCAL_DEVICE_ID fields */
-+#define LOCAL_DEVICE_REV_SHIFT 0
-+#define LOCAL_DEVICE_REV_MASK 0xff
-+#define LOCAL_DEVICE_ID_SHIFT 8
-+#define LOCAL_DEVICE_ID_MASK 0xffff
-+
-+/* REMOTE_DEVICE_ID fields */
-+#define REMOTE_DEVICE_REV_SHIFT 0
-+#define REMOTE_DEVICE_REV_MASK 0xff
-+#define REMOTE_DEVICE_ID_SHIFT 8
-+#define REMOTE_DEVICE_ID_MASK 0xffff
-+
-+/* local LNI link width fields */
-+#define ENABLE_LANE_RX_SHIFT 16
-+#define ENABLE_LANE_RX_MASK  0xff
-+
-+/* mask, shift for reading 'mgmt_enabled' value from REMOTE_LNI_INFO field */
-+#define MGMT_ALLOWED_SHIFT 23
-+#define MGMT_ALLOWED_MASK 0x1
-+
-+/* mask, shift for 'link_quality' within LINK_QUALITY_INFO field */
-+#define LINK_QUALITY_SHIFT 24
-+#define LINK_QUALITY_MASK  0x7
-+
-+/*
-+ * mask, shift for reading 'planned_down_remote_reason_code'
-+ * from LINK_QUALITY_INFO field
-+ */
-+#define DOWN_REMOTE_REASON_SHIFT 16
-+#define DOWN_REMOTE_REASON_MASK  0xff
-+
-+#define HOST_INTERFACE_VERSION 1
-+#define HOST_INTERFACE_VERSION_SHIFT 16
-+#define HOST_INTERFACE_VERSION_MASK  0xff
-+
-+/* verify capability PHY power management bits */
-+#define PWRM_BER_CONTROL	0x1
-+#define PWRM_BANDWIDTH_CONTROL	0x2
-+
-+/* 8051 link down reasons */
-+#define LDR_LINK_TRANSFER_ACTIVE_LOW   0xa
-+#define LDR_RECEIVED_LINKDOWN_IDLE_MSG 0xb
-+#define LDR_RECEIVED_HOST_OFFLINE_REQ  0xc
-+
-+/* verify capability fabric CRC size bits */
-+enum {
-+	CAP_CRC_14B = (1 << 0), /* 14b CRC */
-+	CAP_CRC_48B = (1 << 1), /* 48b CRC */
-+	CAP_CRC_12B_16B_PER_LANE = (1 << 2) /* 12b-16b per lane CRC */
-+};
-+
-+#define SUPPORTED_CRCS (CAP_CRC_14B | CAP_CRC_48B)
-+
-+/* misc status version fields */
-+#define STS_FM_VERSION_MINOR_SHIFT 16
-+#define STS_FM_VERSION_MINOR_MASK  0xff
-+#define STS_FM_VERSION_MAJOR_SHIFT 24
-+#define STS_FM_VERSION_MAJOR_MASK  0xff
-+#define STS_FM_VERSION_PATCH_SHIFT 24
-+#define STS_FM_VERSION_PATCH_MASK  0xff
-+
-+/* LCB_CFG_CRC_MODE TX_VAL and RX_VAL CRC mode values */
-+#define LCB_CRC_16B			0x0	/* 16b CRC */
-+#define LCB_CRC_14B			0x1	/* 14b CRC */
-+#define LCB_CRC_48B			0x2	/* 48b CRC */
-+#define LCB_CRC_12B_16B_PER_LANE	0x3	/* 12b-16b per lane CRC */
-+
-+/*
-+ * the following enum is (almost) a copy/paste of the definition
-+ * in the OPA spec, section 20.2.2.6.8 (PortInfo)
-+ */
-+enum {
-+	PORT_LTP_CRC_MODE_NONE = 0,
-+	PORT_LTP_CRC_MODE_14 = 1, /* 14-bit LTP CRC mode (optional) */
-+	PORT_LTP_CRC_MODE_16 = 2, /* 16-bit LTP CRC mode */
-+	PORT_LTP_CRC_MODE_48 = 4,
-+		/* 48-bit overlapping LTP CRC mode (optional) */
-+	PORT_LTP_CRC_MODE_PER_LANE = 8
-+		/* 12 to 16 bit per lane LTP CRC mode (optional) */
-+};
-+
-+/* timeouts */
-+#define LINK_RESTART_DELAY 1000		/* link restart delay, in ms */
-+#define TIMEOUT_8051_START 5000         /* 8051 start timeout, in ms */
-+#define DC8051_COMMAND_TIMEOUT 1000	/* DC8051 command timeout, in ms */
-+#define FREEZE_STATUS_TIMEOUT 20	/* wait for freeze indicators, in ms */
-+#define VL_STATUS_CLEAR_TIMEOUT 5000	/* per-VL status clear, in ms */
-+#define CCE_STATUS_TIMEOUT 10		/* time to clear CCE Status, in ms */
-+
-+/* cclock tick time, in picoseconds per tick: 1/speed * 10^12  */
-+#define ASIC_CCLOCK_PS  1242	/* 805 MHz */
-+
-+/*
-+ * Mask of enabled MISC errors.  Do not enable the two RSA engine errors -
-+ * see firmware.c:run_rsa() for details.
-+ */
-+#define DRIVER_MISC_MASK \
-+	(~(MISC_ERR_STATUS_MISC_FW_AUTH_FAILED_ERR_SMASK \
-+		| MISC_ERR_STATUS_MISC_KEY_MISMATCH_ERR_SMASK))
-+
-+/* valid values for the loopback module parameter */
-+#define LOOPBACK_NONE	0	/* no loopback - default */
-+#define LOOPBACK_SERDES 1
-+#define LOOPBACK_LCB	2
-+#define LOOPBACK_CABLE	3	/* external cable */
-+
-+/* set up bits in MISC_CONFIG_BITS */
-+#define LOOPBACK_SERDES_CONFIG_BIT_MASK_SHIFT 0
-+#define EXT_CFG_LCB_RESET_SUPPORTED_SHIFT     3
-+
-+/* read and write hardware registers */
-+u64 read_csr(const struct hfi2_devdata *dd, u32 offset);
-+void write_csr(const struct hfi2_devdata *dd, u32 offset, u64 value);
-+
-+int read_lcb_csr(struct hfi2_pportdata *ppd, u32 offset, u64 *data);
-+int write_lcb_csr(struct hfi2_pportdata *ppd, u32 offset, u64 data);
-+
-+void __iomem *get_csr_addr(
-+	const struct hfi2_devdata *dd,
-+	u32 offset);
-+
-+static inline u32 chip_rcv_contexts(struct hfi2_devdata *dd)
-+{
-+	return read_csr(dd, RCV_CONTEXTS);
-+}
-+
-+static inline u32 chip_rcv_array_count(struct hfi2_devdata *dd)
-+{
-+	return read_csr(dd, RCV_ARRAY_CNT);
-+}
-+
-+bool wfr_check_synth_status(struct hfi2_devdata *dd);
-+void wfr_update_synth_status(struct hfi2_devdata *dd);
-+
-+u8 encode_rcv_header_entry_size(u8 size);
-+int hfi2_validate_rcvhdrcnt(struct hfi2_devdata *dd, uint thecnt);
-+void set_hdrq_regs(struct hfi2_pportdata *ppd, u16 ctxt, u8 entsize, u16 hdrcnt,
-+		   u8 kdeth_rcv_hdr);
-+void wfr_update_rcv_hdr_size(struct hfi2_pportdata *ppd, u16 ctxt, u32 size);
-+
-+u64 wfr_create_pbc(struct hfi2_pportdata *ppd, u64 flags, int srate_mbs, u32 vl,
-+		   u32 dw_len, u32 l2, u32 dlid, u32 sctxt);
-+
-+/* firmware.c */
-+#define SBUS_MASTER_BROADCAST 0xfd
-+#define NUM_PCIE_SERDES 16	/* number of PCIe serdes on the SBus */
-+extern const u8 pcie_serdes_broadcast[];
-+extern const u8 pcie_pcs_addrs[2][NUM_PCIE_SERDES];
-+
-+/* SBus commands */
-+#define RESET_SBUS_RECEIVER 0x20
-+#define WRITE_SBUS_RECEIVER 0x21
-+#define READ_SBUS_RECEIVER  0x22
-+void sbus_request(struct hfi2_devdata *dd,
-+		  u8 receiver_addr, u8 data_addr, u8 command, u32 data_in);
-+int sbus_request_slow(struct hfi2_devdata *dd,
-+		      u8 receiver_addr, u8 data_addr, u8 command, u32 data_in);
-+void set_sbus_fast_mode(struct hfi2_devdata *dd);
-+void clear_sbus_fast_mode(struct hfi2_devdata *dd);
-+int hfi2_firmware_init(struct hfi2_devdata *dd);
-+int load_pcie_firmware(struct hfi2_devdata *dd);
-+int load_firmware(struct hfi2_devdata *dd);
-+void dispose_firmware(void);
-+int acquire_hw_mutex(struct hfi2_devdata *dd);
-+void release_hw_mutex(struct hfi2_devdata *dd);
-+
-+/*
-+ * Bitmask of dynamic access for ASIC block chip resources.  Each chip has its
-+ * own range of bits for the resource so it can clear its own bits on
-+ * starting and exiting.  If either device has the resource bit set, the
-+ * resource is in use.  The separate bit ranges are:
-+ *	HFI  bits  7:0
-+ *	HFI2 bits 15:8
-+ */
-+#define CR_SBUS  0x01	/* SBUS, THERM, and PCIE registers */
-+#define CR_EPROM 0x02	/* EEP, GPIO registers */
-+#define CR_I2C1  0x04	/* QSFP1_OE register */
-+#define CR_I2C2  0x08	/* QSFP2_OE register */
-+#define CR_DYN_SHIFT 8	/* dynamic flag shift */
-+#define CR_DYN_MASK  ((1ull << CR_DYN_SHIFT) - 1)
-+
-+/*
-+ * Bitmask of static ASIC states these are outside of the dynamic ASIC
-+ * block chip resources above.  These are to be set once and never cleared.
-+ * Must be holding the SBus dynamic flag when setting.
-+ */
-+#define CR_THERM_INIT	0x010000
-+
-+int acquire_chip_resource(struct hfi2_devdata *dd, u32 resource, u32 mswait);
-+void release_chip_resource(struct hfi2_devdata *dd, u32 resource);
-+bool check_chip_resource(struct hfi2_devdata *dd, u32 resource,
-+			 const char *func);
-+void init_chip_resources(struct hfi2_devdata *dd);
-+void finish_chip_resources(struct hfi2_devdata *dd);
-+
-+/* ms wait time for access to an SBus resoure */
-+#define SBUS_TIMEOUT 4000 /* long enough for a FW download and SBR */
-+
-+/* ms wait time for a qsfp (i2c) chain to become available */
-+#define QSFP_WAIT 20000 /* long enough for FW update to the F4 uc */
-+
-+void fabric_serdes_reset(struct hfi2_devdata *dd);
-+int read_8051_data(struct hfi2_devdata *dd, u32 addr, u32 len, u64 *result);
-+
-+/* wfr specific */
-+int wfr_find_used_resources(struct hfi2_devdata *dd);
-+int wfr_early_per_chip_init(struct hfi2_devdata *dd);
-+int wfr_mid_per_chip_init(struct hfi2_devdata *dd);
-+int wfr_late_per_chip_init(struct hfi2_devdata *dd);
-+void wfr_enable_rcv_context(struct hfi2_pportdata *ppd, u16 ctxt,
-+			    u64 *kctxt_ctrl, bool enable);
-+
-+/* chip.c */
-+void read_misc_status(struct hfi2_devdata *dd, u8 *ver_major, u8 *ver_minor,
-+		      u8 *ver_patch);
-+int write_host_interface_version(struct hfi2_devdata *dd, u8 version);
-+void read_guid(struct hfi2_devdata *dd);
-+int wait_fm_ready(struct hfi2_devdata *dd, u32 mstimeout);
-+void set_link_down_reason(struct hfi2_pportdata *ppd, u8 lcl_reason,
-+			  u8 neigh_reason, u8 rem_reason);
-+int set_link_state(struct hfi2_pportdata *, u32 state);
-+void init_kdeth_qp(struct hfi2_devdata *dd);
-+int port_ltp_to_cap(int port_ltp);
-+void handle_verify_cap(struct work_struct *work);
-+void handle_freeze(struct work_struct *work);
-+void handle_link_up(struct work_struct *work);
-+void handle_link_down(struct work_struct *work);
-+void handle_link_downgrade(struct work_struct *work);
-+void wfr_handle_link_bounce(struct work_struct *work);
-+void handle_start_link(struct work_struct *work);
-+void handle_sma_message(struct work_struct *work);
-+int reset_qsfp(struct hfi2_pportdata *ppd);
-+void qsfp_event(struct work_struct *work);
-+void start_freeze_handling(struct hfi2_devdata *dd, int flags);
-+void start_linkdown_handling(struct hfi2_pportdata *ppd);
-+int send_idle_sma(struct hfi2_devdata *dd, u64 message);
-+int load_8051_config(struct hfi2_devdata *, u8, u8, u32);
-+int read_8051_config(struct hfi2_devdata *, u8, u8, u32 *);
-+int start_link(struct hfi2_pportdata *ppd);
-+int bringup_serdes(struct hfi2_pportdata *ppd);
-+void set_intr_state(struct hfi2_devdata *dd, u32 enable);
-+bool apply_link_downgrade_policy(struct hfi2_pportdata *ppd,
-+				 bool refresh_widths);
-+void update_usrhead(struct hfi2_ctxtdata *rcd, u32 hd, u32 updegr, u32 egrhd,
-+		    u32 intr_adjust, u32 npkts);
-+int stop_drain_data_vls(struct hfi2_pportdata *ppd);
-+int open_fill_data_vls(struct hfi2_pportdata *ppd);
-+u32 ns_to_cclock(struct hfi2_devdata *dd, u32 ns);
-+u32 cclock_to_ns(struct hfi2_devdata *dd, u32 cclock);
-+void get_linkup_link_widths(struct hfi2_pportdata *ppd);
-+void clear_linkup_counters(struct hfi2_pportdata *ppd);
-+u32 hdrqempty(struct hfi2_ctxtdata *rcd);
-+int is_ax(struct hfi2_devdata *dd);
-+int is_bx(struct hfi2_devdata *dd);
-+bool is_urg_masked(struct hfi2_ctxtdata *rcd);
-+u32 read_physical_state(struct hfi2_devdata *dd);
-+u32 chip_to_opa_pstate(struct hfi2_devdata *dd, u32 chip_pstate);
-+const char *opa_pstate_name(u32 pstate);
-+u32 driver_pstate(struct hfi2_pportdata *ppd);
-+u32 driver_lstate(struct hfi2_pportdata *ppd);
-+
-+int acquire_lcb_access(struct hfi2_devdata *dd, int sleep_ok);
-+int release_lcb_access(struct hfi2_devdata *dd, int sleep_ok);
-+#define LCB_START DC_LCB_CSRS
-+#define LCB_END   DC_8051_CSRS /* next block is 8051 */
-+extern uint num_vls;
-+
-+extern uint disable_integrity;
-+u64 read_dev_cntr(struct hfi2_devdata *dd, int index, int vl);
-+u64 write_dev_cntr(struct hfi2_devdata *dd, int index, int vl, u64 data);
-+u64 read_port_cntr(struct hfi2_pportdata *ppd, int index, int vl);
-+u64 write_port_cntr(struct hfi2_pportdata *ppd, int index, int vl, u64 data);
-+u32 read_logical_state(struct hfi2_devdata *dd);
-+void force_recv_intr(struct hfi2_ctxtdata *rcd);
-+
-+/* Per VL indexes */
-+enum {
-+	C_VL_0 = 0,
-+	C_VL_1,
-+	C_VL_2,
-+	C_VL_3,
-+	C_VL_4,
-+	C_VL_5,
-+	C_VL_6,
-+	C_VL_7,
-+	C_VL_15,
-+	C_VL_COUNT
-+};
-+
-+static inline int vl_from_idx(int idx)
-+{
-+	return (idx == C_VL_15 ? 15 : idx);
-+}
-+
-+static inline int idx_from_vl(int vl)
-+{
-+	return (vl == 15 ? C_VL_15 : vl);
-+}
-+
-+/* shared device counter indexes */
-+enum {
-+	C_CCE_PCI_CR_ST,
-+	C_CCE_SDMA_INT,
-+	C_CCE_MISC_INT,
-+	C_CCE_RCV_AV_INT,
-+	C_CCE_RCV_URG_INT,
-+	C_CCE_SEND_CR_INT,
-+	C_SW_CPU_INTR,
-+	C_SW_CPU_RCV_LIM,
-+	C_SW_CTX0_SEQ_DROP,
-+	C_SW_VTX_WAIT,
-+	C_SW_PIO_WAIT,
-+	C_SW_PIO_DRAIN,
-+	C_SW_KMEM_WAIT,
-+	C_SW_TID_WAIT,
-+	C_SW_SEND_SCHED,
-+	C_SDMA_DESC_FETCHED_CNT,
-+	C_SDMA_INT_CNT,
-+	C_SDMA_ERR_CNT,
-+	C_SDMA_IDLE_INT_CNT,
-+	C_SDMA_PROGRESS_INT_CNT,
-+/* MISC_ERR_STATUS */
-+	C_MISC_PLL_LOCK_FAIL_ERR,
-+	C_MISC_MBIST_FAIL_ERR,
-+	C_MISC_INVALID_EEP_CMD_ERR,
-+	C_MISC_EFUSE_DONE_PARITY_ERR,
-+	C_MISC_EFUSE_WRITE_ERR,
-+	C_MISC_EFUSE_READ_BAD_ADDR_ERR,
-+	C_MISC_EFUSE_CSR_PARITY_ERR,
-+	C_MISC_FW_AUTH_FAILED_ERR,
-+	C_MISC_KEY_MISMATCH_ERR,
-+	C_MISC_SBUS_WRITE_FAILED_ERR,
-+	C_MISC_CSR_WRITE_BAD_ADDR_ERR,
-+	C_MISC_CSR_READ_BAD_ADDR_ERR,
-+	C_MISC_CSR_PARITY_ERR,
-+/* CceErrStatus */
-+	/*
-+	* A special counter that is the aggregate count
-+	* of all the cce_err_status errors.  The remainder
-+	* are actual bits in the CceErrStatus register.
-+	*/
-+	C_CCE_ERR_STATUS_AGGREGATED_CNT,
-+	C_CCE_MSIX_CSR_PARITY_ERR,
-+	C_CCE_INT_MAP_UNC_ERR,
-+	C_CCE_INT_MAP_COR_ERR,
-+	C_CCE_MSIX_TABLE_UNC_ERR,
-+	C_CCE_MSIX_TABLE_COR_ERR,
-+	C_CCE_RXDMA_CONV_FIFO_PARITY_ERR,
-+	C_CCE_RCPL_ASYNC_FIFO_PARITY_ERR,
-+	C_CCE_SEG_WRITE_BAD_ADDR_ERR,
-+	C_CCE_SEG_READ_BAD_ADDR_ERR,
-+	C_LA_TRIGGERED,
-+	C_CCE_TRGT_CPL_TIMEOUT_ERR,
-+	C_PCIC_RECEIVE_PARITY_ERR,
-+	C_PCIC_TRANSMIT_BACK_PARITY_ERR,
-+	C_PCIC_TRANSMIT_FRONT_PARITY_ERR,
-+	C_PCIC_CPL_DAT_Q_UNC_ERR,
-+	C_PCIC_CPL_HD_Q_UNC_ERR,
-+	C_PCIC_POST_DAT_Q_UNC_ERR,
-+	C_PCIC_POST_HD_Q_UNC_ERR,
-+	C_PCIC_RETRY_SOT_MEM_UNC_ERR,
-+	C_PCIC_RETRY_MEM_UNC_ERR,
-+	C_PCIC_N_POST_DAT_Q_PARITY_ERR,
-+	C_PCIC_N_POST_H_Q_PARITY_ERR,
-+	C_PCIC_CPL_DAT_Q_COR_ERR,
-+	C_PCIC_CPL_HD_Q_COR_ERR,
-+	C_PCIC_POST_DAT_Q_COR_ERR,
-+	C_PCIC_POST_HD_Q_COR_ERR,
-+	C_PCIC_RETRY_SOT_MEM_COR_ERR,
-+	C_PCIC_RETRY_MEM_COR_ERR,
-+	C_CCE_CLI1_ASYNC_FIFO_DBG_PARITY_ERR,
-+	C_CCE_CLI1_ASYNC_FIFO_RXDMA_PARITY_ERR,
-+	C_CCE_CLI1_ASYNC_FIFO_SDMA_HD_PARITY_ERR,
-+	C_CCE_CLI1_ASYNC_FIFO_PIO_CRDT_PARITY_ERR,
-+	C_CCE_CLI2_ASYNC_FIFO_PARITY_ERR,
-+	C_CCE_CSR_CFG_BUS_PARITY_ERR,
-+	C_CCE_CLI0_ASYNC_FIFO_PARTIY_ERR,
-+	C_CCE_RSPD_DATA_PARITY_ERR,
-+	C_CCE_TRGT_ACCESS_ERR,
-+	C_CCE_TRGT_ASYNC_FIFO_PARITY_ERR,
-+	C_CCE_CSR_WRITE_BAD_ADDR_ERR,
-+	C_CCE_CSR_READ_BAD_ADDR_ERR,
-+	C_CCE_CSR_PARITY_ERR,
-+/* RcvErrStatus */
-+	C_RX_CSR_PARITY_ERR,
-+	C_RX_CSR_WRITE_BAD_ADDR_ERR,
-+	C_RX_CSR_READ_BAD_ADDR_ERR,
-+	C_RX_DMA_CSR_UNC_ERR,
-+	C_RX_DMA_DQ_FSM_ENCODING_ERR,
-+	C_RX_DMA_EQ_FSM_ENCODING_ERR,
-+	C_RX_DMA_CSR_PARITY_ERR,
-+	C_RX_RBUF_DATA_COR_ERR,
-+	C_RX_RBUF_DATA_UNC_ERR,
-+	C_RX_DMA_DATA_FIFO_RD_COR_ERR,
-+	C_RX_DMA_DATA_FIFO_RD_UNC_ERR,
-+	C_RX_DMA_HDR_FIFO_RD_COR_ERR,
-+	C_RX_DMA_HDR_FIFO_RD_UNC_ERR,
-+	C_RX_RBUF_DESC_PART2_COR_ERR,
-+	C_RX_RBUF_DESC_PART2_UNC_ERR,
-+	C_RX_RBUF_DESC_PART1_COR_ERR,
-+	C_RX_RBUF_DESC_PART1_UNC_ERR,
-+	C_RX_HQ_INTR_FSM_ERR,
-+	C_RX_HQ_INTR_CSR_PARITY_ERR,
-+	C_RX_LOOKUP_CSR_PARITY_ERR,
-+	C_RX_LOOKUP_RCV_ARRAY_COR_ERR,
-+	C_RX_LOOKUP_RCV_ARRAY_UNC_ERR,
-+	C_RX_LOOKUP_DES_PART2_PARITY_ERR,
-+	C_RX_LOOKUP_DES_PART1_UNC_COR_ERR,
-+	C_RX_LOOKUP_DES_PART1_UNC_ERR,
-+	C_RX_RBUF_NEXT_FREE_BUF_COR_ERR,
-+	C_RX_RBUF_NEXT_FREE_BUF_UNC_ERR,
-+	C_RX_RBUF_FL_INIT_WR_ADDR_PARITY_ERR,
-+	C_RX_RBUF_FL_INITDONE_PARITY_ERR,
-+	C_RX_RBUF_FL_WRITE_ADDR_PARITY_ERR,
-+	C_RX_RBUF_FL_RD_ADDR_PARITY_ERR,
-+	C_RX_RBUF_EMPTY_ERR,
-+	C_RX_RBUF_FULL_ERR,
-+	C_RX_RBUF_BAD_LOOKUP_ERR,
-+	C_RX_RBUF_CTX_ID_PARITY_ERR,
-+	C_RX_RBUF_CSR_QEOPDW_PARITY_ERR,
-+	C_RX_RBUF_CSR_Q_NUM_OF_PKT_PARITY_ERR,
-+	C_RX_RBUF_CSR_Q_T1_PTR_PARITY_ERR,
-+	C_RX_RBUF_CSR_Q_HD_PTR_PARITY_ERR,
-+	C_RX_RBUF_CSR_Q_VLD_BIT_PARITY_ERR,
-+	C_RX_RBUF_CSR_Q_NEXT_BUF_PARITY_ERR,
-+	C_RX_RBUF_CSR_Q_ENT_CNT_PARITY_ERR,
-+	C_RX_RBUF_CSR_Q_HEAD_BUF_NUM_PARITY_ERR,
-+	C_RX_RBUF_BLOCK_LIST_READ_COR_ERR,
-+	C_RX_RBUF_BLOCK_LIST_READ_UNC_ERR,
-+	C_RX_RBUF_LOOKUP_DES_COR_ERR,
-+	C_RX_RBUF_LOOKUP_DES_UNC_ERR,
-+	C_RX_RBUF_LOOKUP_DES_REG_UNC_COR_ERR,
-+	C_RX_RBUF_LOOKUP_DES_REG_UNC_ERR,
-+	C_RX_RBUF_FREE_LIST_COR_ERR,
-+	C_RX_RBUF_FREE_LIST_UNC_ERR,
-+	C_RX_RCV_FSM_ENCODING_ERR,
-+	C_RX_DMA_FLAG_COR_ERR,
-+	C_RX_DMA_FLAG_UNC_ERR,
-+	C_RX_DC_SOP_EOP_PARITY_ERR,
-+	C_RX_RCV_CSR_PARITY_ERR,
-+	C_RX_RCV_QP_MAP_TABLE_COR_ERR,
-+	C_RX_RCV_QP_MAP_TABLE_UNC_ERR,
-+	C_RX_RCV_DATA_COR_ERR,
-+	C_RX_RCV_DATA_UNC_ERR,
-+	C_RX_RCV_HDR_COR_ERR,
-+	C_RX_RCV_HDR_UNC_ERR,
-+	C_RX_DC_INTF_PARITY_ERR,
-+	C_RX_DMA_CSR_COR_ERR,
-+/* SendPioErrStatus */
-+	C_PIO_PEC_SOP_HEAD_PARITY_ERR,
-+	C_PIO_PCC_SOP_HEAD_PARITY_ERR,
-+	C_PIO_LAST_RETURNED_CNT_PARITY_ERR,
-+	C_PIO_CURRENT_FREE_CNT_PARITY_ERR,
-+	C_PIO_RSVD_31_ERR,
-+	C_PIO_RSVD_30_ERR,
-+	C_PIO_PPMC_SOP_LEN_ERR,
-+	C_PIO_PPMC_BQC_MEM_PARITY_ERR,
-+	C_PIO_VL_FIFO_PARITY_ERR,
-+	C_PIO_VLF_SOP_PARITY_ERR,
-+	C_PIO_VLF_V1_LEN_PARITY_ERR,
-+	C_PIO_BLOCK_QW_COUNT_PARITY_ERR,
-+	C_PIO_WRITE_QW_VALID_PARITY_ERR,
-+	C_PIO_STATE_MACHINE_ERR,
-+	C_PIO_WRITE_DATA_PARITY_ERR,
-+	C_PIO_HOST_ADDR_MEM_COR_ERR,
-+	C_PIO_HOST_ADDR_MEM_UNC_ERR,
-+	C_PIO_PKT_EVICT_SM_OR_ARM_SM_ERR,
-+	C_PIO_INIT_SM_IN_ERR,
-+	C_PIO_PPMC_PBL_FIFO_ERR,
-+	C_PIO_CREDIT_RET_FIFO_PARITY_ERR,
-+	C_PIO_V1_LEN_MEM_BANK1_COR_ERR,
-+	C_PIO_V1_LEN_MEM_BANK0_COR_ERR,
-+	C_PIO_V1_LEN_MEM_BANK1_UNC_ERR,
-+	C_PIO_V1_LEN_MEM_BANK0_UNC_ERR,
-+	C_PIO_SM_PKT_RESET_PARITY_ERR,
-+	C_PIO_PKT_EVICT_FIFO_PARITY_ERR,
-+	C_PIO_SBRDCTRL_CRREL_FIFO_PARITY_ERR,
-+	C_PIO_SBRDCTL_CRREL_PARITY_ERR,
-+	C_PIO_PEC_FIFO_PARITY_ERR,
-+	C_PIO_PCC_FIFO_PARITY_ERR,
-+	C_PIO_SB_MEM_FIFO1_ERR,
-+	C_PIO_SB_MEM_FIFO0_ERR,
-+	C_PIO_CSR_PARITY_ERR,
-+	C_PIO_WRITE_ADDR_PARITY_ERR,
-+	C_PIO_WRITE_BAD_CTXT_ERR,
-+/* SendDmaErrStatus */
-+	C_SDMA_PCIE_REQ_TRACKING_COR_ERR,
-+	C_SDMA_PCIE_REQ_TRACKING_UNC_ERR,
-+	C_SDMA_CSR_PARITY_ERR,
-+	C_SDMA_RPY_TAG_ERR,
-+/* SendEgressErrStatus */
-+	C_TX_READ_PIO_MEMORY_CSR_UNC_ERR,
-+	C_TX_READ_SDMA_MEMORY_CSR_UNC_ERR,
-+	C_TX_EGRESS_FIFO_COR_ERR,
-+	C_TX_READ_PIO_MEMORY_COR_ERR,
-+	C_TX_READ_SDMA_MEMORY_COR_ERR,
-+	C_TX_SB_HDR_COR_ERR,
-+	C_TX_CREDIT_OVERRUN_ERR,
-+	C_TX_LAUNCH_FIFO8_COR_ERR,
-+	C_TX_LAUNCH_FIFO7_COR_ERR,
-+	C_TX_LAUNCH_FIFO6_COR_ERR,
-+	C_TX_LAUNCH_FIFO5_COR_ERR,
-+	C_TX_LAUNCH_FIFO4_COR_ERR,
-+	C_TX_LAUNCH_FIFO3_COR_ERR,
-+	C_TX_LAUNCH_FIFO2_COR_ERR,
-+	C_TX_LAUNCH_FIFO1_COR_ERR,
-+	C_TX_LAUNCH_FIFO0_COR_ERR,
-+	C_TX_CREDIT_RETURN_VL_ERR,
-+	C_TX_HCRC_INSERTION_ERR,
-+	C_TX_EGRESS_FIFI_UNC_ERR,
-+	C_TX_READ_PIO_MEMORY_UNC_ERR,
-+	C_TX_READ_SDMA_MEMORY_UNC_ERR,
-+	C_TX_SB_HDR_UNC_ERR,
-+	C_TX_CREDIT_RETURN_PARITY_ERR,
-+	C_TX_LAUNCH_FIFO8_UNC_OR_PARITY_ERR,
-+	C_TX_LAUNCH_FIFO7_UNC_OR_PARITY_ERR,
-+	C_TX_LAUNCH_FIFO6_UNC_OR_PARITY_ERR,
-+	C_TX_LAUNCH_FIFO5_UNC_OR_PARITY_ERR,
-+	C_TX_LAUNCH_FIFO4_UNC_OR_PARITY_ERR,
-+	C_TX_LAUNCH_FIFO3_UNC_OR_PARITY_ERR,
-+	C_TX_LAUNCH_FIFO2_UNC_OR_PARITY_ERR,
-+	C_TX_LAUNCH_FIFO1_UNC_OR_PARITY_ERR,
-+	C_TX_LAUNCH_FIFO0_UNC_OR_PARITY_ERR,
-+	C_TX_SDMA15_DISALLOWED_PACKET_ERR,
-+	C_TX_SDMA14_DISALLOWED_PACKET_ERR,
-+	C_TX_SDMA13_DISALLOWED_PACKET_ERR,
-+	C_TX_SDMA12_DISALLOWED_PACKET_ERR,
-+	C_TX_SDMA11_DISALLOWED_PACKET_ERR,
-+	C_TX_SDMA10_DISALLOWED_PACKET_ERR,
-+	C_TX_SDMA9_DISALLOWED_PACKET_ERR,
-+	C_TX_SDMA8_DISALLOWED_PACKET_ERR,
-+	C_TX_SDMA7_DISALLOWED_PACKET_ERR,
-+	C_TX_SDMA6_DISALLOWED_PACKET_ERR,
-+	C_TX_SDMA5_DISALLOWED_PACKET_ERR,
-+	C_TX_SDMA4_DISALLOWED_PACKET_ERR,
-+	C_TX_SDMA3_DISALLOWED_PACKET_ERR,
-+	C_TX_SDMA2_DISALLOWED_PACKET_ERR,
-+	C_TX_SDMA1_DISALLOWED_PACKET_ERR,
-+	C_TX_SDMA0_DISALLOWED_PACKET_ERR,
-+	C_TX_CONFIG_PARITY_ERR,
-+	C_TX_SBRD_CTL_CSR_PARITY_ERR,
-+	C_TX_LAUNCH_CSR_PARITY_ERR,
-+	C_TX_ILLEGAL_CL_ERR,
-+	C_TX_SBRD_CTL_STATE_MACHINE_PARITY_ERR,
-+	C_TX_RESERVED_10,
-+	C_TX_RESERVED_9,
-+	C_TX_SDMA_LAUNCH_INTF_PARITY_ERR,
-+	C_TX_PIO_LAUNCH_INTF_PARITY_ERR,
-+	C_TX_RESERVED_6,
-+	C_TX_INCORRECT_LINK_STATE_ERR,
-+	C_TX_LINK_DOWN_ERR,
-+	C_TX_EGRESS_FIFO_UNDERRUN_OR_PARITY_ERR,
-+	C_TX_RESERVED_2,
-+	C_TX_PKT_INTEGRITY_MEM_UNC_ERR,
-+	C_TX_PKT_INTEGRITY_MEM_COR_ERR,
-+/* SendErrStatus */
-+	C_SEND_CSR_WRITE_BAD_ADDR_ERR,
-+	C_SEND_CSR_READ_BAD_ADD_ERR,
-+	C_SEND_CSR_PARITY_ERR,
-+/* SendCtxtErrStatus */
-+	C_PIO_WRITE_OUT_OF_BOUNDS_ERR,
-+	C_PIO_WRITE_OVERFLOW_ERR,
-+	C_PIO_WRITE_CROSSES_BOUNDARY_ERR,
-+	C_PIO_DISALLOWED_PACKET_ERR,
-+	C_PIO_INCONSISTENT_SOP_ERR,
-+/*SendDmaEngErrStatus */
-+	C_SDMA_HEADER_REQUEST_FIFO_COR_ERR,
-+	C_SDMA_HEADER_STORAGE_COR_ERR,
-+	C_SDMA_PACKET_TRACKING_COR_ERR,
-+	C_SDMA_ASSEMBLY_COR_ERR,
-+	C_SDMA_DESC_TABLE_COR_ERR,
-+	C_SDMA_HEADER_REQUEST_FIFO_UNC_ERR,
-+	C_SDMA_HEADER_STORAGE_UNC_ERR,
-+	C_SDMA_PACKET_TRACKING_UNC_ERR,
-+	C_SDMA_ASSEMBLY_UNC_ERR,
-+	C_SDMA_DESC_TABLE_UNC_ERR,
-+	C_SDMA_TIMEOUT_ERR,
-+	C_SDMA_HEADER_LENGTH_ERR,
-+	C_SDMA_HEADER_ADDRESS_ERR,
-+	C_SDMA_HEADER_SELECT_ERR,
-+	C_SMDA_RESERVED_9,
-+	C_SDMA_PACKET_DESC_OVERFLOW_ERR,
-+	C_SDMA_LENGTH_MISMATCH_ERR,
-+	C_SDMA_HALT_ERR,
-+	C_SDMA_MEM_READ_ERR,
-+	C_SDMA_FIRST_DESC_ERR,
-+	C_SDMA_TAIL_OUT_OF_BOUNDS_ERR,
-+	C_SDMA_TOO_LONG_ERR,
-+	C_SDMA_GEN_MISMATCH_ERR,
-+	C_SDMA_WRONG_DW_ERR,
-+	SHARED_DEV_CNTR_LAST  /* keep last */
-+};
-+
-+/* chip specific counter start points - keep a separate range per chip */
-+#define WFR_DEV_CNTR_FIRST 0x200
-+#define JKR_DEV_CNTR_FIRST 0x400
-+#define WFR_PORT_CNTR_FIRST 0x200
-+#define JKR_PORT_CNTR_FIRST 0x400
-+
-+/* WFR device counter indexes */
-+enum {
-+	C_DC_UNC_ERR = WFR_DEV_CNTR_FIRST,
-+	C_DC_RCV_ERR,
-+	C_DC_FM_CFG_ERR,
-+	C_DC_RMT_PHY_ERR,
-+	C_DC_DROPPED_PKT,
-+	C_DC_MC_XMIT_PKTS,
-+	C_DC_MC_RCV_PKTS,
-+	C_DC_XMIT_CERR,
-+	C_DC_RCV_CERR,
-+	C_DC_RCV_FCC,
-+	C_DC_XMIT_FCC,
-+	C_DC_XMIT_FLITS,
-+	C_DC_RCV_FLITS,
-+	C_DC_XMIT_PKTS,
-+	C_DC_RCV_PKTS,
-+	C_DC_RX_FLIT_VL,
-+	C_DC_RX_PKT_VL,
-+	C_DC_RCV_FCN,
-+	C_DC_RCV_FCN_VL,
-+	C_DC_RCV_BCN,
-+	C_DC_RCV_BCN_VL,
-+	C_DC_RCV_BBL,
-+	C_DC_RCV_BBL_VL,
-+	C_DC_MARK_FECN,
-+	C_DC_MARK_FECN_VL,
-+	C_DC_TOTAL_CRC,
-+	C_DC_CRC_LN0,
-+	C_DC_CRC_LN1,
-+	C_DC_CRC_LN2,
-+	C_DC_CRC_LN3,
-+	C_DC_CRC_MULT_LN,
-+	C_DC_TX_REPLAY,
-+	C_DC_RX_REPLAY,
-+	C_DC_SEQ_CRC_CNT,
-+	C_DC_ESC0_ONLY_CNT,
-+	C_DC_ESC0_PLUS1_CNT,
-+	C_DC_ESC0_PLUS2_CNT,
-+	C_DC_REINIT_FROM_PEER_CNT,
-+	C_DC_SBE_CNT,
-+	C_DC_MISC_FLG_CNT,
-+	C_DC_PRF_GOOD_LTP_CNT,
-+	C_DC_PRF_ACCEPTED_LTP_CNT,
-+	C_DC_PRF_RX_FLIT_CNT,
-+	C_DC_PRF_TX_FLIT_CNT,
-+	C_DC_PRF_CLK_CNTR,
-+	C_DC_PG_DBG_FLIT_CRDTS_CNT,
-+	C_DC_PG_STS_PAUSE_COMPLETE_CNT,
-+	C_DC_PG_STS_TX_SBE_CNT,
-+	C_DC_PG_STS_TX_MBE_CNT,
-+	C_CCE_PCI_TR_ST,
-+	C_CCE_PIO_WR_ST,
-+	C_CCE_ERR_INT,
-+	WFR_DEV_CNTR_LAST  /* keep last */
-+};
-+
-+#define WFR_NUM_DEV_CNTRS (WFR_DEV_CNTR_LAST - WFR_DEV_CNTR_FIRST)
-+
-+/* JKR device counter indexes */
-+enum {
-+	C_CCE_RW_ST_BY_R = JKR_DEV_CNTR_FIRST,
-+	C_CCE_OTHER_INT,
-+	C_CCE_PBC_ERR_INT,
-+	C_CCE_PIO_ERR_INT,
-+	C_CCE_SDMA_ERR_INT,
-+	C_CCE_CSR_ERR_INT,
-+	JKR_DEV_CNTR_LAST  /* keep last */
-+};
-+
-+#define JKR_NUM_DEV_CNTRS (JKR_DEV_CNTR_LAST - JKR_DEV_CNTR_FIRST)
-+
-+/* Per port counter indexes */
-+enum {
-+	C_TX_UNSUP_VL = 0,
-+	C_TX_INVAL_LEN,
-+	C_TX_MM_LEN_ERR,
-+	C_TX_UNDERRUN,
-+	C_TX_FLOW_STALL,
-+	C_TX_DROPPED,
-+	C_TX_HDR_ERR,
-+	C_TX_PKT,
-+	C_TX_WORDS,
-+	C_TX_WAIT,
-+	C_TX_FLIT_VL,
-+	C_TX_PKT_VL,
-+	C_TX_WAIT_VL,
-+	C_RCV_OVF,
-+	C_RX_LEN_ERR,
-+	C_RX_SHORT_ERR,
-+	C_RX_ICRC_ERR,
-+	C_RX_EBP,
-+	C_RX_PKEY_MISMATCH,
-+	C_RX_PKT,
-+	C_RX_WORDS,
-+	C_SW_LINK_DOWN,
-+	C_SW_LINK_UP,
-+	C_SW_UNKNOWN_FRAME,
-+	C_SW_XMIT_DSCD,
-+	C_SW_XMIT_DSCD_VL,
-+	C_SW_XMIT_CSTR_ERR,
-+	C_SW_RCV_CSTR_ERR,
-+	C_SW_IBP_LOOP_PKTS,
-+	C_SW_IBP_RC_RESENDS,
-+	C_SW_IBP_RNR_NAKS,
-+	C_SW_IBP_OTHER_NAKS,
-+	C_SW_IBP_RC_TIMEOUTS,
-+	C_SW_IBP_PKT_DROPS,
-+	C_SW_IBP_DMA_WAIT,
-+	C_SW_IBP_RC_SEQNAK,
-+	C_SW_IBP_RC_DUPREQ,
-+	C_SW_IBP_RDMA_SEQ,
-+	C_SW_IBP_UNALIGNED,
-+	C_SW_IBP_SEQ_NAK,
-+	C_SW_IBP_RC_CRWAITS,
-+	C_SW_CPU_RC_ACKS,
-+	C_SW_CPU_RC_QACKS,
-+	C_SW_CPU_RC_DELAYED_COMP,
-+	C_RCV_HDR_OVF,
-+	SHARED_PORT_CNTR_LAST /* Must be kept last */
-+};
-+
-+/* WFR port counter indexes */
-+enum {
-+	C_WFR_RX_DROPPED_PKT = WFR_PORT_CNTR_FIRST,
-+	C_WFR_RX_DROPPED_BYPASS_PKT,
-+	C_WFR_RX_TID_FULL,
-+	C_WFR_RX_TID_INVALID,
-+	C_WFR_RX_TID_FLGMS,
-+	C_WFR_RX_CTX_EGRS,
-+	C_WFR_RCV_TID_FLSMS,
-+	WFR_PORT_CNTR_LAST, /* keep last */
-+};
-+
-+#define WFR_NUM_PORT_CNTRS (WFR_PORT_CNTR_LAST - WFR_PORT_CNTR_FIRST)
-+
-+/* JKR port counter indexes */
-+enum {
-+	C_JKR_RX_L2_TYPE_DISABLED = JKR_PORT_CNTR_FIRST,
-+	C_JKR_RX_DROPPED_PKT_16B,
-+	C_JKR_RX_DROPPED_PKT_9B,
-+	C_JKR_RX_TID_FULL,
-+	C_JKR_RX_TID_INVALID,
-+	C_JKR_RX_TID_FLGMS,
-+	C_JKR_RX_CTX_EGRS,
-+	C_JKR_RCV_TID_FLSMS,
-+	JKR_PORT_CNTR_LAST, /* keep last */
-+};
-+
-+#define JKR_NUM_PORT_CNTRS (JKR_PORT_CNTR_LAST - JKR_PORT_CNTR_FIRST)
-+
-+/* SendEgressErrInfo bits that correspond to a PortXmitDiscard counter */
-+#define WFR_PORT_DISCARD_EGRESS_ERRS \
-+	(SEND_EGRESS_ERR_INFO_TOO_LONG_IB_PACKET_ERR_SMASK \
-+	| SEND_EGRESS_ERR_INFO_VL_MAPPING_ERR_SMASK \
-+	| SEND_EGRESS_ERR_INFO_VL_ERR_SMASK)
-+
-+u64 get_all_cpu_total(u64 __percpu *cntr);
-+void hfi2_start_cleanup(struct hfi2_devdata *dd);
-+void hfi2_clear_tids(struct hfi2_ctxtdata *rcd);
-+void hfi2_init_ctxt(struct send_context *sc);
-+void wfr_init_tids(struct hfi2_devdata *dd);
-+void wfr_put_tid(struct hfi2_ctxtdata *rcd, u32 index,
-+		 u32 type, unsigned long pa, u16 order, bool flush);
-+void wfr_rcv_array_wc_fill(struct hfi2_ctxtdata *rcd, u32 index, u32 type);
-+void wfr_set_port_tid_count(struct hfi2_ctxtdata *rcd);
-+void hfi2_quiet_serdes(struct hfi2_pportdata *ppd);
-+void hfi2_rcvctrl(struct hfi2_devdata *dd, unsigned int op,
-+		  struct hfi2_ctxtdata *rcd);
-+bool is_control_context(struct hfi2_ctxtdata *rcd);
-+bool is_kernel_context(struct hfi2_ctxtdata *rcd);
-+bool is_dynamic_context(struct hfi2_ctxtdata *rcd);
-+bool is_user_context(struct hfi2_ctxtdata *rcd);
-+u32 hfi2_read_cntrs(struct hfi2_devdata *dd, char **namep, u64 **cntrp);
-+u32 hfi2_read_portcntrs(struct hfi2_pportdata *ppd, char **namep, u64 **cntrp);
-+int hfi2_get_ib_cfg(struct hfi2_pportdata *ppd, int which);
-+int hfi2_set_ib_cfg(struct hfi2_pportdata *ppd, int which, u32 val);
-+int hfi2_set_ctxt_jkey(struct hfi2_devdata *dd, struct hfi2_ctxtdata *rcd,
-+		       u16 jkey);
-+int hfi2_clear_ctxt_jkey(struct hfi2_devdata *dd, struct hfi2_ctxtdata *ctxt);
-+int hfi2_set_ctxt_pkey(struct hfi2_devdata *dd, struct hfi2_ctxtdata *ctxt,
-+		       u16 pkey);
-+int hfi2_clear_ctxt_pkey(struct hfi2_devdata *dd, struct hfi2_ctxtdata *ctxt);
-+void wfr_read_link_quality(struct hfi2_pportdata *ppd, u8 *link_quality);
-+
-+irqreturn_t general_interrupt(int irq, void *data);
-+irqreturn_t sdma_interrupt(int irq, void *data);
-+irqreturn_t sdma_interrupt_thr(int irq, void *data);
-+irqreturn_t receive_context_interrupt(int irq, void *data);
-+irqreturn_t receive_context_thread(int irq, void *data);
-+irqreturn_t receive_context_interrupt_napi(int irq, void *data);
-+
-+int set_intr_bits(struct hfi2_devdata *dd, u16 first, u16 last, bool set);
-+void init_qsfp_int(struct hfi2_pportdata *ppd);
-+void remap_intr(struct hfi2_devdata *dd, int isrc, int msix_intr);
-+void remap_sdma_interrupts(struct hfi2_devdata *dd, int engine, int msix_intr);
-+void reset_interrupts(struct hfi2_devdata *dd);
-+u16 hfi2_get_qp_map(struct hfi2_pportdata *ppd, u16 idx);
-+void hfi2_init_aip_rsm(struct hfi2_pportdata *ppd);
-+void hfi2_deinit_aip_rsm(struct hfi2_pportdata *ppd);
-+void init_other(struct hfi2_devdata *dd);
-+void init_early_variables(struct hfi2_devdata *dd);
-+void wfr_set_port_max_mtu(struct hfi2_pportdata *ppd, u32 maxvlmtu);
-+u32 slow_rhf_rcv_seq(struct hfi2_ctxtdata *rcd, u64 rhf);
-+void release_rsm_rules(struct hfi2_devdata *dd);
-+
-+/*
-+ * Interrupt source table.
-+ *
-+ * Each entry is an interrupt source "type".  It is ordered by increasing
-+ * number.
-+ */
-+struct is_table {
-+	int start;	 /* interrupt source type start */
-+	int end;	 /* interrupt source type end */
-+	/* routine that returns the name of the interrupt source */
-+	char *(*is_name)(char *name, size_t size, unsigned int source);
-+	/* routine to call when receiving an interrupt */
-+	void (*is_int)(struct hfi2_devdata *dd, unsigned int source);
-+};
-+
-+extern const struct is_table is_table[];
-+
-+/* table entry for general interrupt enable */
-+struct gi_enable_entry {
-+	u32 start;	/* starting source number */
-+	u32 end;	/* ending source number */
-+};
-+
-+extern const struct gi_enable_entry wfr_gi_enable_table[];
-+
-+/* interrupt clear down register type */
-+enum icd_type {
-+	ICD_NORMAL,	/* non-indexed register */
-+	ICD_SDMA,	/* indexed SDMA register */
-+	ICD_INGRESS,	/* indexed ingress register */
-+	ICD_EGRESS,	/* indexed egress register */
-+};
-+
-+/*
-+ * Error interrupt table entry.  This is used as input to the interrupt
-+ * "clear down" routine used for all second tier error interrupt registers.
-+ * Second tier interrupt registers have a single bit representing them
-+ * in the top-level CceIntStatus.
-+ */
-+struct err_reg_info {
-+	u32 status;		/* status CSR offset */
-+	u32 clear;		/* clear CSR offset */
-+	u32 mask;		/* mask CSR offset */
-+	enum icd_type type;	/* register type */
-+	void (*handler)(struct hfi2_devdata *dd, u32 source, u64 reg);
-+	const char *desc;
-+};
-+
-+/* helpers for filling out struct err_reg_info */
-+#define EE_N(reg, handler, desc) \
-+	{ reg##_STATUS, reg##_CLEAR, reg##_MASK, ICD_NORMAL, handler, desc }
-+
-+#define EE_S(reg, handler, desc) \
-+	{ reg##_STATUS, reg##_CLEAR, reg##_MASK, ICD_SDMA, handler, desc }
-+
-+#define EE_I(reg, handler, desc) \
-+	{ reg##_STATUS, reg##_CLEAR, reg##_MASK, ICD_INGRESS, handler, desc }
-+
-+#define EE_E(reg, handler, desc) \
-+	{ reg##_STATUS, reg##_CLEAR, reg##_MASK, ICD_EGRESS, handler, desc }
-+
-+char *is_sdma_eng_err_name(char *buf, size_t bsize, unsigned int source);
-+char *is_sendctxt_err_name(char *buf, size_t bsize, unsigned int source);
-+char *is_sdma_eng_name(char *buf, size_t bsize, unsigned int source);
-+char *is_rcv_avail_name(char *buf, size_t bsize, unsigned int source);
-+char *is_rcv_urgent_name(char *buf, size_t bsize, unsigned int source);
-+char *is_send_credit_name(char *buf, size_t bsize, unsigned int source);
-+
-+void interrupt_clear_down(struct hfi2_devdata *dd, u32 context,
-+			  const struct err_reg_info *eri);
-+void handle_sdma_eng_err(struct hfi2_devdata *dd, unsigned int context,
-+			 u64 err_status);
-+void is_sdma_eng_int(struct hfi2_devdata *dd, unsigned int source);
-+void is_sendctxt_err_int(struct hfi2_devdata *dd, unsigned int hw_context);
-+void is_rcv_avail_int(struct hfi2_devdata *dd, unsigned int source);
-+void is_rcv_urgent_int(struct hfi2_devdata *dd, unsigned int source);
-+void is_send_credit_int(struct hfi2_devdata *dd, unsigned int source);
-+void handle_temp_err(struct hfi2_devdata *dd);
-+void handle_pio_err(struct hfi2_devdata *dd, u32 unused, u64 reg);
-+void handle_sdma_err(struct hfi2_devdata *dd, u32 unused, u64 reg);
-+void handle_rxe_err(struct hfi2_devdata *dd, u32 pidx, u64 reg);
-+void handle_egress_err(struct hfi2_devdata *dd, u32 pidx, u64 reg);
-+
-+void update_statusp(struct hfi2_pportdata *ppd, u32 state);
-+const char *link_state_name(u32 state);
-+const char *link_state_reason_name(struct hfi2_pportdata *ppd, u32 state);
-+void log_state_transition(struct hfi2_pportdata *ppd, u32 state);
-+void update_xmit_counters(struct hfi2_pportdata *ppd, u16 link_width);
-+
-+struct cntr_entry {
-+	/* counter name */
-+	char *name;
-+	/* csr to read for name (if applicable) */
-+	u64 csr;
-+	/* offset into dd or ppd to store the counter's value */
-+	int offset;
-+	/* flags */
-+	u8 flags;
-+	/* accessor for stat element, context either dd or ppd */
-+	u64 (*rw_cntr)(const struct cntr_entry *, void *context, int vl,
-+		       int mode, u64 data);
-+};
-+
-+extern struct cntr_entry wfr_dev_cntrs[];
-+extern struct cntr_entry jkr_dev_cntrs[];
-+extern struct cntr_entry wfr_port_cntrs[];
-+extern struct cntr_entry jkr_port_cntrs[];
-+
-+struct flag_table {
-+	u64 flag;	/* the flag */
-+	char *str;	/* description string */
-+	u16 extra;	/* extra information */
-+	u16 unused0;
-+	u32 unused1;
-+};
-+
-+struct flag_data {
-+	const struct flag_table *table;
-+	u32 size;
-+};
-+
-+extern const struct flag_data wfr_egress_err_info_data;
-+
-+#endif /* _CHIP_H */
-diff --git a/drivers/infiniband/hw/hfi2/chip_gen.h b/drivers/infiniband/hw/hfi2/chip_gen.h
-new file mode 100644
-index 000000000000..8eb332cb610b
---- /dev/null
-+++ b/drivers/infiniband/hw/hfi2/chip_gen.h
-@@ -0,0 +1,29 @@
-+/* SPDX-License-Identifier: GPL-2.0 or BSD-3-Clause */
-+/*
-+ * Copyright(c) 2023 Cornelis Networks, Inc.
-+ *
-+ * Generalized (parameterized) chip specific declaractions.
-+ */
-+
-+#ifndef _CHIP_GEN_H
-+#define _CHIP_GEN_H
-+
-+void gen_setextled(struct hfi2_pportdata *ppd, u32 on);
-+void gen_start_led_override(struct hfi2_pportdata *ppd, unsigned int timeon,
-+			    unsigned int timeoff);
-+void gen_shutdown_led_override(struct hfi2_pportdata *ppd);
-+void gen_read_guid(struct hfi2_devdata *dd);
-+int gen_late_per_chip_init(struct hfi2_devdata *dd);
-+void gen_start_port(struct hfi2_pportdata *ppd);
-+void gen_stop_port(struct hfi2_pportdata *ppd);
-+void gen_set_port_max_mtu(struct hfi2_pportdata *ppd, u32 maxvlmtu);
-+u64 gen_create_pbc(struct hfi2_pportdata *ppd, u64 flags, int srate_mbs, u32 vl,
-+		   u32 dw_len, u32 l2, u32 dlid, u32 sctxt);
-+
-+int cport_set_link_state(struct hfi2_pportdata *ppd, struct opa_port_info *pi, u32 state);
-+int cport_start_link(struct hfi2_pportdata *ppd, struct opa_port_info *pi);
-+
-+int init_cport_trap128(struct hfi2_devdata *dd);
-+int deinit_cport_trap128(struct hfi2_devdata *dd);
-+
-+#endif /* _CHIP_GEN_H */
-diff --git a/drivers/infiniband/hw/hfi2/chip_jkr.h b/drivers/infiniband/hw/hfi2/chip_jkr.h
-new file mode 100644
-index 000000000000..c3ad10a9717b
---- /dev/null
-+++ b/drivers/infiniband/hw/hfi2/chip_jkr.h
-@@ -0,0 +1,119 @@
-+/* SPDX-License-Identifier: GPL-2.0 or BSD-3-Clause */
-+/*
-+ * Copyright(c) 2023 Cornelis Networks, Inc.
-+ */
-+
-+#ifndef _CHIP_JKR_H
-+#define _CHIP_JKR_H
-+
-+#include "chip_registers_jkr.h"
-+
-+/* items not defined in the generated register file */
-+#define JKR_PIO_SEND (JKR_TXE + JKR_C_TXE_PIO_SEND_OFFSET)
-+#define JKR_RCV_ARRAY JKR_C_RXE_RCV_ARRAY_EGR_BASE
-+
-+/*
-+ * The JKR BAR space is not split up by the RcvArray.  To maintain
-+ * compatibility with WFR, arbitrarily split the BAR space at some
-+ * page-aligned spot. Use JKR_RXE - the start of the RXE block.
-+ */
-+#define JKR_BAR0_SIZE (128 * 1024 * 1024)	/* 128 MB */
-+#define JKR_KREG1_SIZE JKR_RXE
-+#define JKR_KREG2_OFFSET JKR_RXE
-+#define JKR_KREG2_SIZE (JKR_PIO_SEND - JKR_RXE)
-+
-+#define JKR_RCV_ARRAY_SIZE (64 * 1024 * 1024)	/* 64 MB */
-+
-+/* cclock tick time, in picoseconds per tick: 1/speed * 10^12  */
-+#define JKR_ASIC_CCLOCK_PS 602	/* 1660.15625 MHz */
-+
-+/* max number of eager entries per context */
-+#define JKR_MAX_EAGER_ENTRIES 16384
-+
-+/* Number of PKey entries in the JKR HW */
-+#define JKR_MAX_PKEY_VALUES 1024
-+/* number of SendCtxtCtrl.CtxtBase bits in the JKR HW */
-+#define JKR_PIO_BASE_BITS 16
-+
-+/* register strides not derived from the spec */
-+#define JKR_C_RXE_IPRC_STRIDE 8
-+#define JKR_C_TXE_TCTXT_STRIDE 8
-+#define JKR_C_TXE_SDMACFG_STRIDE 8
-+#define JKR_C_TXE_EPSC_STRIDE 8
-+
-+void jkr_init_other(struct hfi2_devdata *dd);
-+
-+/* Specific IRQ sources */
-+#define JKR_ASIC_ERR_INT		2
-+#define JKR_MCTXT_CPORT_TO_PCIE_INT	4	/* part of JKR_IS_GENERAL_ERR_START/END */
-+
-+/* interrupt source starts */
-+#define JKR_IS_GENERAL_ERR_START	   0
-+#define JKR_IS_SDMAENG_ERR_START	  16
-+#define JKR_IS_SENDCTXT_ERR_START	  32
-+#define JKR_IS_SDMA_START		 272
-+#define JKR_IS_SDMA_PROGRESS_START	 288
-+#define JKR_IS_SDMA_IDLE_START		 304
-+#define JKR_IS_VARIOUS_START		 320
-+#define JKR_IS_PORT_START		 324
-+#define JKR_IS_RCVAVAIL_START		 356
-+#define JKR_IS_RCVURGENT_START		 596
-+#define JKR_IS_SENDCREDIT_START		 836
-+#define JKR_IS_PBC_START		1076
-+#define JKR_IS_PIO_ERR_START		1316
-+#define JKR_IS_SDMA_ERR_SI_START	1325
-+#define JKR_IS_CSR_ERR_START		1334
-+#define JKR_IS_RESERVED_START		1343
-+#define JKR_IS_TABLE_NUM		1344
-+
-+/* derived interrupt source values */
-+#define JKR_IS_GENERAL_ERR_END		(JKR_IS_SDMAENG_ERR_START - 1)
-+#define JKR_IS_SDMAENG_ERR_END		(JKR_IS_SENDCTXT_ERR_START - 1)
-+#define JKR_IS_SENDCTXT_ERR_END		(JKR_IS_SDMA_START - 1)
-+#define JKR_IS_SDMA_END			(JKR_IS_SDMA_PROGRESS_START - 1)
-+#define JKR_IS_SDMA_PROGRESS_END	(JKR_IS_SDMA_IDLE_START - 1)
-+#define JKR_IS_SDMA_IDLE_END		(JKR_IS_VARIOUS_START - 1)
-+#define JKR_IS_VARIOUS_END		(JKR_IS_PORT_START - 1)
-+#define JKR_IS_PORT_END			(JKR_IS_RCVAVAIL_START - 1)
-+#define JKR_IS_RCVAVAIL_END		(JKR_IS_RCVURGENT_START - 1)
-+#define JKR_IS_RCVURGENT_END		(JKR_IS_SENDCREDIT_START - 1)
-+#define JKR_IS_SENDCREDIT_END		(JKR_IS_PBC_START - 1)
-+#define JKR_IS_PBC_END			(JKR_IS_PIO_ERR_START - 1)
-+#define JKR_IS_PIO_ERR_END		(JKR_IS_SDMA_ERR_SI_START - 1)
-+#define JKR_IS_SDMA_ERR_SI_END		(JKR_IS_CSR_ERR_START - 1)
-+#define JKR_IS_CSR_ERR_END		(JKR_IS_RESERVED_START - 1)
-+#define JKR_IS_RESERVED_END		(JKR_IS_TABLE_NUM - 1)
-+
-+/* last interrupt */
-+#define JKR_IS_LAST_SOURCE JKR_IS_RESERVED_END
-+
-+extern const struct is_table jkr_is_table[];
-+extern const struct gi_enable_entry jkr_gi_enable_table[];
-+extern const struct flag_data jkr_egress_err_info_data;
-+
-+/* SendEgressErrInfo bits that correspond to a PortXmitDiscard counter */
-+#define JKR_PORT_DISCARD_EGRESS_ERRS \
-+	(JKR_SEND_EGRESS_ERR_INFO_TOO_LONG_PACKET_ERR9B_SMASK \
-+	| JKR_SEND_EGRESS_ERR_INFO_VL_MAPPING_ERR9B_SMASK \
-+	| JKR_SEND_EGRESS_ERR_INFO_VL_ERR9B_SMASK)
-+
-+int jkr_find_used_resources(struct hfi2_devdata *dd);
-+void jkr_read_guid(struct hfi2_devdata *dd);
-+int jkr_early_per_chip_init(struct hfi2_devdata *dd);
-+int jkr_mid_per_chip_init(struct hfi2_devdata *dd);
-+void jkr_init_tids(struct hfi2_devdata *dd);
-+void jkr_put_tid(struct hfi2_ctxtdata *rcd, u32 index,
-+		 u32 type, unsigned long pa, u16 order, bool flush);
-+void jkr_rcv_array_wc_fill(struct hfi2_ctxtdata *rcd, u32 index, u32 type);
-+void jkr_set_port_tid_count(struct hfi2_ctxtdata *rcd);
-+void jkr_update_rcv_hdr_size(struct hfi2_pportdata *ppd, u16 ctxt, u32 size);
-+bool jkr_check_synth_status(struct hfi2_devdata *dd);
-+void jkr_update_synth_status(struct hfi2_devdata *dd);
-+void jkr_set_pio_integrity(struct send_context *sc, enum spi_cmds cmd);
-+void jkr_read_link_quality(struct hfi2_pportdata *ppd, u8 *link_quality);
-+void jkr_set_rheq_addr(struct hfi2_devdata *dd, u16 ctxt, u64 dma_addr);
-+void jkr_handle_link_bounce(struct work_struct *work);
-+void jkr_enable_rcv_context(struct hfi2_pportdata *ppd, u16 ctxt,
-+			    u64 *kctxt_ctrl, bool enable);
-+
-+#endif /* _CHIP_JKR_H */
-diff --git a/drivers/infiniband/hw/hfi2/chip_registers.h b/drivers/infiniband/hw/hfi2/chip_registers.h
-new file mode 100644
-index 000000000000..63934ab6e70b
---- /dev/null
-+++ b/drivers/infiniband/hw/hfi2/chip_registers.h
-@@ -0,0 +1,1297 @@
-+/* SPDX-License-Identifier: GPL-2.0 OR BSD-3-Clause */
-+/*
-+ * Copyright(c) 2015, 2016 Intel Corporation.
-+ */
-+
-+#ifndef DEF_CHIP_REG
-+#define DEF_CHIP_REG
-+
-+#define CORE		0x000000000000
-+#define CCE			(CORE + 0x000000000000)
-+#define ASIC		(CORE + 0x000000400000)
-+#define MISC		(CORE + 0x000000500000)
-+#define DC_TOP_CSRS		(CORE + 0x000000600000)
-+#define CHIP_DEBUG		(CORE + 0x000000700000)
-+#define RXE			(CORE + 0x000001000000)
-+#define TXE			(CORE + 0x000001800000)
-+#define DCC_CSRS		(DC_TOP_CSRS + 0x000000000000)
-+#define DC_LCB_CSRS		(DC_TOP_CSRS + 0x000000001000)
-+#define DC_8051_CSRS		(DC_TOP_CSRS + 0x000000002000)
-+#define PCIE		0
-+
-+#define ASIC_NUM_SCRATCH 4
-+#define WFR_CCE_ERR_INT_CNT 0
-+#define CCE_MISC_INT_CNT 2
-+#define CCE_NUM_32_BIT_COUNTERS 3
-+#define CCE_NUM_32_BIT_INT_COUNTERS 6
-+#define CCE_NUM_INT_CSRS 12
-+#define CCE_NUM_INT_MAP_CSRS 96
-+#define CCE_NUM_MSIX_PBAS 4
-+#define CCE_NUM_MSIX_VECTORS 256
-+#define CCE_NUM_SCRATCH 4
-+#define CCE_PCIE_POSTED_CRDT_STALL_CNT 2
-+#define CCE_PCIE_TRGT_STALL_CNT 0
-+#define CCE_PIO_WR_STALL_CNT 1
-+#define CCE_RCV_AVAIL_INT_CNT 3
-+#define CCE_RCV_URGENT_INT_CNT 4
-+#define CCE_SDMA_INT_CNT 1
-+#define CCE_SEND_CREDIT_INT_CNT 5
-+#define DCC_CFG_LED_CNTRL (DCC_CSRS + 0x000000000040)
-+#define DCC_CFG_LED_CNTRL_LED_CNTRL_SMASK 0x10ull
-+#define DCC_CFG_LED_CNTRL_LED_SW_BLINK_RATE_SHIFT 0
-+#define DCC_CFG_LED_CNTRL_LED_SW_BLINK_RATE_SMASK 0xFull
-+#define DCC_CFG_PORT_CONFIG (DCC_CSRS + 0x000000000008)
-+#define DCC_CFG_PORT_CONFIG1 (DCC_CSRS + 0x000000000010)
-+#define DCC_CFG_PORT_CONFIG1_DLID_MASK_MASK 0xFFFFull
-+#define DCC_CFG_PORT_CONFIG1_DLID_MASK_SHIFT 16
-+#define DCC_CFG_PORT_CONFIG1_DLID_MASK_SMASK 0xFFFF0000ull
-+#define DCC_CFG_PORT_CONFIG1_TARGET_DLID_MASK 0xFFFFull
-+#define DCC_CFG_PORT_CONFIG1_TARGET_DLID_SHIFT 0
-+#define DCC_CFG_PORT_CONFIG1_TARGET_DLID_SMASK 0xFFFFull
-+#define DCC_CFG_PORT_CONFIG_LINK_STATE_MASK 0x7ull
-+#define DCC_CFG_PORT_CONFIG_LINK_STATE_SHIFT 48
-+#define DCC_CFG_PORT_CONFIG_LINK_STATE_SMASK 0x7000000000000ull
-+#define DCC_CFG_PORT_CONFIG_MTU_CAP_MASK 0x7ull
-+#define DCC_CFG_PORT_CONFIG_MTU_CAP_SHIFT 32
-+#define DCC_CFG_PORT_CONFIG_MTU_CAP_SMASK 0x700000000ull
-+#define DCC_CFG_RESET (DCC_CSRS + 0x000000000000)
-+#define DCC_CFG_RESET_RESET_LCB          BIT_ULL(0)
-+#define DCC_CFG_RESET_RESET_TX_FPE       BIT_ULL(1)
-+#define DCC_CFG_RESET_RESET_RX_FPE       BIT_ULL(2)
-+#define DCC_CFG_RESET_RESET_8051         BIT_ULL(3)
-+#define DCC_CFG_RESET_ENABLE_CCLK_BCC    BIT_ULL(4)
-+#define DCC_CFG_SC_VL_TABLE_15_0 (DCC_CSRS + 0x000000000028)
-+#define DCC_CFG_SC_VL_TABLE_15_0_ENTRY0_SHIFT 0
-+#define DCC_CFG_SC_VL_TABLE_15_0_ENTRY10_SHIFT 40
-+#define DCC_CFG_SC_VL_TABLE_15_0_ENTRY11_SHIFT 44
-+#define DCC_CFG_SC_VL_TABLE_15_0_ENTRY12_SHIFT 48
-+#define DCC_CFG_SC_VL_TABLE_15_0_ENTRY13_SHIFT 52
-+#define DCC_CFG_SC_VL_TABLE_15_0_ENTRY14_SHIFT 56
-+#define DCC_CFG_SC_VL_TABLE_15_0_ENTRY15_SHIFT 60
-+#define DCC_CFG_SC_VL_TABLE_15_0_ENTRY1_SHIFT 4
-+#define DCC_CFG_SC_VL_TABLE_15_0_ENTRY2_SHIFT 8
-+#define DCC_CFG_SC_VL_TABLE_15_0_ENTRY3_SHIFT 12
-+#define DCC_CFG_SC_VL_TABLE_15_0_ENTRY4_SHIFT 16
-+#define DCC_CFG_SC_VL_TABLE_15_0_ENTRY5_SHIFT 20
-+#define DCC_CFG_SC_VL_TABLE_15_0_ENTRY6_SHIFT 24
-+#define DCC_CFG_SC_VL_TABLE_15_0_ENTRY7_SHIFT 28
-+#define DCC_CFG_SC_VL_TABLE_15_0_ENTRY8_SHIFT 32
-+#define DCC_CFG_SC_VL_TABLE_15_0_ENTRY9_SHIFT 36
-+#define DCC_CFG_SC_VL_TABLE_31_16 (DCC_CSRS + 0x000000000030)
-+#define DCC_CFG_SC_VL_TABLE_31_16_ENTRY16_SHIFT 0
-+#define DCC_CFG_SC_VL_TABLE_31_16_ENTRY17_SHIFT 4
-+#define DCC_CFG_SC_VL_TABLE_31_16_ENTRY18_SHIFT 8
-+#define DCC_CFG_SC_VL_TABLE_31_16_ENTRY19_SHIFT 12
-+#define DCC_CFG_SC_VL_TABLE_31_16_ENTRY20_SHIFT 16
-+#define DCC_CFG_SC_VL_TABLE_31_16_ENTRY21_SHIFT 20
-+#define DCC_CFG_SC_VL_TABLE_31_16_ENTRY22_SHIFT 24
-+#define DCC_CFG_SC_VL_TABLE_31_16_ENTRY23_SHIFT 28
-+#define DCC_CFG_SC_VL_TABLE_31_16_ENTRY24_SHIFT 32
-+#define DCC_CFG_SC_VL_TABLE_31_16_ENTRY25_SHIFT 36
-+#define DCC_CFG_SC_VL_TABLE_31_16_ENTRY26_SHIFT 40
-+#define DCC_CFG_SC_VL_TABLE_31_16_ENTRY27_SHIFT 44
-+#define DCC_CFG_SC_VL_TABLE_31_16_ENTRY28_SHIFT 48
-+#define DCC_CFG_SC_VL_TABLE_31_16_ENTRY29_SHIFT 52
-+#define DCC_CFG_SC_VL_TABLE_31_16_ENTRY30_SHIFT 56
-+#define DCC_CFG_SC_VL_TABLE_31_16_ENTRY31_SHIFT 60
-+#define DCC_ERR_DROPPED_PKT_CNT (DCC_CSRS + 0x000000000120)
-+#define DCC_ERR_FLG (DCC_CSRS + 0x000000000050)
-+#define DCC_ERR_FLG_BAD_CRDT_ACK_ERR_SMASK 0x4000ull
-+#define DCC_ERR_FLG_BAD_CTRL_DIST_ERR_SMASK 0x200000ull
-+#define DCC_ERR_FLG_BAD_CTRL_FLIT_ERR_SMASK 0x10000ull
-+#define DCC_ERR_FLG_BAD_DLID_TARGET_ERR_SMASK 0x200ull
-+#define DCC_ERR_FLG_BAD_HEAD_DIST_ERR_SMASK 0x800000ull
-+#define DCC_ERR_FLG_BAD_L2_ERR_SMASK 0x2ull
-+#define DCC_ERR_FLG_BAD_LVER_ERR_SMASK 0x400ull
-+#define DCC_ERR_FLG_BAD_MID_TAIL_ERR_SMASK 0x8ull
-+#define DCC_ERR_FLG_BAD_PKT_LENGTH_ERR_SMASK 0x4000000ull
-+#define DCC_ERR_FLG_BAD_PREEMPTION_ERR_SMASK 0x10ull
-+#define DCC_ERR_FLG_BAD_SC_ERR_SMASK 0x4ull
-+#define DCC_ERR_FLG_BAD_TAIL_DIST_ERR_SMASK 0x400000ull
-+#define DCC_ERR_FLG_BAD_VL_MARKER_ERR_SMASK 0x80ull
-+#define DCC_ERR_FLG_CLR (DCC_CSRS + 0x000000000060)
-+#define DCC_ERR_FLG_CSR_ACCESS_BLOCKED_HOST_SMASK 0x8000000000ull
-+#define DCC_ERR_FLG_CSR_ACCESS_BLOCKED_UC_SMASK 0x10000000000ull
-+#define DCC_ERR_FLG_CSR_INVAL_ADDR_SMASK 0x400000000000ull
-+#define DCC_ERR_FLG_CSR_PARITY_ERR_SMASK 0x200000000000ull
-+#define DCC_ERR_FLG_DLID_ZERO_ERR_SMASK 0x40000000ull
-+#define DCC_ERR_FLG_EN (DCC_CSRS + 0x000000000058)
-+#define DCC_ERR_FLG_EN_CSR_ACCESS_BLOCKED_HOST_SMASK 0x8000000000ull
-+#define DCC_ERR_FLG_EN_CSR_ACCESS_BLOCKED_UC_SMASK 0x10000000000ull
-+#define DCC_ERR_FLG_EVENT_CNTR_PARITY_ERR_SMASK 0x20000ull
-+#define DCC_ERR_FLG_EVENT_CNTR_ROLLOVER_ERR_SMASK 0x40000ull
-+#define DCC_ERR_FLG_FMCONFIG_ERR_SMASK 0x40000000000000ull
-+#define DCC_ERR_FLG_FPE_TX_FIFO_OVFLW_ERR_SMASK 0x2000000000ull
-+#define DCC_ERR_FLG_FPE_TX_FIFO_UNFLW_ERR_SMASK 0x4000000000ull
-+#define DCC_ERR_FLG_LATE_EBP_ERR_SMASK 0x1000000000ull
-+#define DCC_ERR_FLG_LATE_LONG_ERR_SMASK 0x800000000ull
-+#define DCC_ERR_FLG_LATE_SHORT_ERR_SMASK 0x400000000ull
-+#define DCC_ERR_FLG_LENGTH_MTU_ERR_SMASK 0x80000000ull
-+#define DCC_ERR_FLG_LINK_ERR_SMASK 0x80000ull
-+#define DCC_ERR_FLG_MISC_CNTR_ROLLOVER_ERR_SMASK 0x100000ull
-+#define DCC_ERR_FLG_NONVL15_STATE_ERR_SMASK 0x1000000ull
-+#define DCC_ERR_FLG_PERM_NVL15_ERR_SMASK 0x10000000ull
-+#define DCC_ERR_FLG_PREEMPTION_ERR_SMASK 0x20ull
-+#define DCC_ERR_FLG_PREEMPTIONVL15_ERR_SMASK 0x40ull
-+#define DCC_ERR_FLG_RCVPORT_ERR_SMASK 0x80000000000000ull
-+#define DCC_ERR_FLG_RX_BYTE_SHFT_PARITY_ERR_SMASK 0x1000000000000ull
-+#define DCC_ERR_FLG_RX_CTRL_PARITY_MBE_ERR_SMASK 0x100000000000ull
-+#define DCC_ERR_FLG_RX_EARLY_DROP_ERR_SMASK 0x200000000ull
-+#define DCC_ERR_FLG_SLID_ZERO_ERR_SMASK 0x20000000ull
-+#define DCC_ERR_FLG_TX_BYTE_SHFT_PARITY_ERR_SMASK 0x800000000000ull
-+#define DCC_ERR_FLG_TX_CTRL_PARITY_ERR_SMASK 0x20000000000ull
-+#define DCC_ERR_FLG_TX_CTRL_PARITY_MBE_ERR_SMASK 0x40000000000ull
-+#define DCC_ERR_FLG_TX_SC_PARITY_ERR_SMASK 0x80000000000ull
-+#define DCC_ERR_FLG_UNCORRECTABLE_ERR_SMASK 0x2000ull
-+#define DCC_ERR_FLG_UNSUP_PKT_TYPE_SMASK 0x8000ull
-+#define DCC_ERR_FLG_UNSUP_VL_ERR_SMASK 0x8000000ull
-+#define DCC_ERR_FLG_VL15_MULTI_ERR_SMASK 0x2000000ull
-+#define DCC_ERR_FMCONFIG_ERR_CNT (DCC_CSRS + 0x000000000110)
-+#define DCC_ERR_INFO_FMCONFIG (DCC_CSRS + 0x000000000090)
-+#define DCC_ERR_INFO_PORTRCV (DCC_CSRS + 0x000000000078)
-+#define DCC_ERR_INFO_PORTRCV_HDR0 (DCC_CSRS + 0x000000000080)
-+#define DCC_ERR_INFO_PORTRCV_HDR1 (DCC_CSRS + 0x000000000088)
-+#define DCC_ERR_INFO_UNCORRECTABLE (DCC_CSRS + 0x000000000098)
-+#define DCC_ERR_PORTRCV_ERR_CNT (DCC_CSRS + 0x000000000108)
-+#define DCC_ERR_RCVREMOTE_PHY_ERR_CNT (DCC_CSRS + 0x000000000118)
-+#define DCC_ERR_UNCORRECTABLE_CNT (DCC_CSRS + 0x000000000100)
-+#define DCC_PRF_PORT_MARK_FECN_CNT (DCC_CSRS + 0x000000000330)
-+#define DCC_PRF_PORT_RCV_BECN_CNT (DCC_CSRS + 0x000000000290)
-+#define DCC_PRF_PORT_RCV_BUBBLE_CNT (DCC_CSRS + 0x0000000002E0)
-+#define DCC_PRF_PORT_RCV_CORRECTABLE_CNT (DCC_CSRS + 0x000000000140)
-+#define DCC_PRF_PORT_RCV_DATA_CNT (DCC_CSRS + 0x000000000198)
-+#define DCC_PRF_PORT_RCV_FECN_CNT (DCC_CSRS + 0x000000000240)
-+#define DCC_PRF_PORT_RCV_MULTICAST_PKT_CNT (DCC_CSRS + 0x000000000130)
-+#define DCC_PRF_PORT_RCV_PKTS_CNT (DCC_CSRS + 0x0000000001A8)
-+#define DCC_PRF_PORT_VL_MARK_FECN_CNT (DCC_CSRS + 0x000000000338)
-+#define DCC_PRF_PORT_VL_RCV_BECN_CNT (DCC_CSRS + 0x000000000298)
-+#define DCC_PRF_PORT_VL_RCV_BUBBLE_CNT (DCC_CSRS + 0x0000000002E8)
-+#define DCC_PRF_PORT_VL_RCV_DATA_CNT (DCC_CSRS + 0x0000000001B0)
-+#define DCC_PRF_PORT_VL_RCV_FECN_CNT (DCC_CSRS + 0x000000000248)
-+#define DCC_PRF_PORT_VL_RCV_PKTS_CNT (DCC_CSRS + 0x0000000001F8)
-+#define DCC_PRF_PORT_XMIT_CORRECTABLE_CNT (DCC_CSRS + 0x000000000138)
-+#define DCC_PRF_PORT_XMIT_DATA_CNT (DCC_CSRS + 0x000000000190)
-+#define DCC_PRF_PORT_XMIT_MULTICAST_CNT (DCC_CSRS + 0x000000000128)
-+#define DCC_PRF_PORT_XMIT_PKTS_CNT (DCC_CSRS + 0x0000000001A0)
-+#define DCC_PRF_RX_FLOW_CRTL_CNT (DCC_CSRS + 0x000000000180)
-+#define DCC_PRF_TX_FLOW_CRTL_CNT (DCC_CSRS + 0x000000000188)
-+#define DC_DC8051_CFG_CSR_ACCESS_SEL (DC_8051_CSRS + 0x000000000110)
-+#define DC_DC8051_CFG_CSR_ACCESS_SEL_DCC_SMASK 0x2ull
-+#define DC_DC8051_CFG_CSR_ACCESS_SEL_LCB_SMASK 0x1ull
-+#define DC_DC8051_CFG_EXT_DEV_0 (DC_8051_CSRS + 0x000000000118)
-+#define DC_DC8051_CFG_EXT_DEV_0_COMPLETED_SMASK 0x1ull
-+#define DC_DC8051_CFG_EXT_DEV_0_RETURN_CODE_SHIFT 8
-+#define DC_DC8051_CFG_EXT_DEV_0_RSP_DATA_SHIFT 16
-+#define DC_DC8051_CFG_EXT_DEV_1 (DC_8051_CSRS + 0x000000000120)
-+#define DC_DC8051_CFG_EXT_DEV_1_REQ_DATA_MASK 0xFFFFull
-+#define DC_DC8051_CFG_EXT_DEV_1_REQ_DATA_SHIFT 16
-+#define DC_DC8051_CFG_EXT_DEV_1_REQ_DATA_SMASK 0xFFFF0000ull
-+#define DC_DC8051_CFG_EXT_DEV_1_REQ_NEW_SMASK 0x1ull
-+#define DC_DC8051_CFG_EXT_DEV_1_REQ_TYPE_MASK 0xFFull
-+#define DC_DC8051_CFG_EXT_DEV_1_REQ_TYPE_SHIFT 8
-+#define DC_DC8051_CFG_HOST_CMD_0 (DC_8051_CSRS + 0x000000000028)
-+#define DC_DC8051_CFG_HOST_CMD_0_REQ_DATA_MASK 0xFFFFFFFFFFFFull
-+#define DC_DC8051_CFG_HOST_CMD_0_REQ_DATA_SHIFT 16
-+#define DC_DC8051_CFG_HOST_CMD_0_REQ_NEW_SMASK 0x1ull
-+#define DC_DC8051_CFG_HOST_CMD_0_REQ_TYPE_MASK 0xFFull
-+#define DC_DC8051_CFG_HOST_CMD_0_REQ_TYPE_SHIFT 8
-+#define DC_DC8051_CFG_HOST_CMD_1 (DC_8051_CSRS + 0x000000000030)
-+#define DC_DC8051_CFG_HOST_CMD_1_COMPLETED_SMASK 0x1ull
-+#define DC_DC8051_CFG_HOST_CMD_1_RETURN_CODE_MASK 0xFFull
-+#define DC_DC8051_CFG_HOST_CMD_1_RETURN_CODE_SHIFT 8
-+#define DC_DC8051_CFG_HOST_CMD_1_RSP_DATA_MASK 0xFFFFFFFFFFFFull
-+#define DC_DC8051_CFG_HOST_CMD_1_RSP_DATA_SHIFT 16
-+#define DC_DC8051_CFG_LOCAL_GUID (DC_8051_CSRS + 0x000000000038)
-+#define DC_DC8051_CFG_MODE (DC_8051_CSRS + 0x000000000070)
-+#define DC_DC8051_CFG_RAM_ACCESS_CTRL (DC_8051_CSRS + 0x000000000008)
-+#define DC_DC8051_CFG_RAM_ACCESS_CTRL_ADDRESS_MASK 0x7FFFull
-+#define DC_DC8051_CFG_RAM_ACCESS_CTRL_ADDRESS_SHIFT 0
-+#define DC_DC8051_CFG_RAM_ACCESS_CTRL_WRITE_ENA_SMASK 0x1000000ull
-+#define DC_DC8051_CFG_RAM_ACCESS_CTRL_READ_ENA_SMASK 0x10000ull
-+#define DC_DC8051_CFG_RAM_ACCESS_SETUP (DC_8051_CSRS + 0x000000000000)
-+#define DC_DC8051_CFG_RAM_ACCESS_SETUP_AUTO_INCR_ADDR_SMASK 0x100ull
-+#define DC_DC8051_CFG_RAM_ACCESS_SETUP_RAM_SEL_SMASK 0x1ull
-+#define DC_DC8051_CFG_RAM_ACCESS_STATUS (DC_8051_CSRS + 0x000000000018)
-+#define DC_DC8051_CFG_RAM_ACCESS_STATUS_ACCESS_COMPLETED_SMASK 0x10000ull
-+#define DC_DC8051_CFG_RAM_ACCESS_WR_DATA (DC_8051_CSRS + 0x000000000010)
-+#define DC_DC8051_CFG_RAM_ACCESS_RD_DATA (DC_8051_CSRS + 0x000000000020)
-+#define DC_DC8051_CFG_RST (DC_8051_CSRS + 0x000000000068)
-+#define DC_DC8051_CFG_RST_CRAM_SMASK 0x2ull
-+#define DC_DC8051_CFG_RST_DRAM_SMASK 0x4ull
-+#define DC_DC8051_CFG_RST_IRAM_SMASK 0x8ull
-+#define DC_DC8051_CFG_RST_M8051W_SMASK 0x1ull
-+#define DC_DC8051_CFG_RST_SFR_SMASK 0x10ull
-+#define DC_DC8051_DBG_ERR_INFO_SET_BY_8051 (DC_8051_CSRS + 0x0000000000D8)
-+#define DC_DC8051_DBG_ERR_INFO_SET_BY_8051_ERROR_MASK 0xFFFFFFFFull
-+#define DC_DC8051_DBG_ERR_INFO_SET_BY_8051_ERROR_SHIFT 16
-+#define DC_DC8051_DBG_ERR_INFO_SET_BY_8051_HOST_MSG_MASK 0xFFFFull
-+#define DC_DC8051_DBG_ERR_INFO_SET_BY_8051_HOST_MSG_SHIFT 0
-+#define DC_DC8051_ERR_CLR (DC_8051_CSRS + 0x0000000000E8)
-+#define DC_DC8051_ERR_EN (DC_8051_CSRS + 0x0000000000F0)
-+#define DC_DC8051_ERR_EN_LOST_8051_HEART_BEAT_SMASK 0x2ull
-+#define DC_DC8051_ERR_FLG (DC_8051_CSRS + 0x0000000000E0)
-+#define DC_DC8051_ERR_FLG_CRAM_MBE_SMASK 0x4ull
-+#define DC_DC8051_ERR_FLG_CRAM_SBE_SMASK 0x8ull
-+#define DC_DC8051_ERR_FLG_DRAM_MBE_SMASK 0x10ull
-+#define DC_DC8051_ERR_FLG_DRAM_SBE_SMASK 0x20ull
-+#define DC_DC8051_ERR_FLG_INVALID_CSR_ADDR_SMASK 0x400ull
-+#define DC_DC8051_ERR_FLG_IRAM_MBE_SMASK 0x40ull
-+#define DC_DC8051_ERR_FLG_IRAM_SBE_SMASK 0x80ull
-+#define DC_DC8051_ERR_FLG_LOST_8051_HEART_BEAT_SMASK 0x2ull
-+#define DC_DC8051_ERR_FLG_SET_BY_8051_SMASK 0x1ull
-+#define DC_DC8051_ERR_FLG_UNMATCHED_SECURE_MSG_ACROSS_BCC_LANES_SMASK 0x100ull
-+#define DC_DC8051_STS_CUR_STATE (DC_8051_CSRS + 0x000000000060)
-+#define DC_DC8051_STS_CUR_STATE_FIRMWARE_MASK 0xFFull
-+#define DC_DC8051_STS_CUR_STATE_FIRMWARE_SHIFT 16
-+#define DC_DC8051_STS_CUR_STATE_PORT_MASK 0xFFull
-+#define DC_DC8051_STS_CUR_STATE_PORT_SHIFT 0
-+#define DC_DC8051_STS_LOCAL_FM_SECURITY (DC_8051_CSRS + 0x000000000050)
-+#define DC_DC8051_STS_LOCAL_FM_SECURITY_DISABLED_MASK 0x1ull
-+#define DC_DC8051_STS_REMOTE_FM_SECURITY (DC_8051_CSRS + 0x000000000058)
-+#define DC_DC8051_STS_REMOTE_GUID (DC_8051_CSRS + 0x000000000040)
-+#define DC_DC8051_STS_REMOTE_NODE_TYPE (DC_8051_CSRS + 0x000000000048)
-+#define DC_DC8051_STS_REMOTE_NODE_TYPE_VAL_MASK 0x3ull
-+#define DC_DC8051_STS_REMOTE_PORT_NO (DC_8051_CSRS + 0x000000000130)
-+#define DC_DC8051_STS_REMOTE_PORT_NO_VAL_SMASK 0xFFull
-+#define DC_LCB_CFG_ALLOW_LINK_UP (DC_LCB_CSRS + 0x000000000128)
-+#define DC_LCB_CFG_ALLOW_LINK_UP_VAL_SHIFT 0
-+#define DC_LCB_CFG_CRC_MODE (DC_LCB_CSRS + 0x000000000058)
-+#define DC_LCB_CFG_CRC_MODE_TX_VAL_SHIFT 0
-+#define DC_LCB_CFG_IGNORE_LOST_RCLK (DC_LCB_CSRS + 0x000000000020)
-+#define DC_LCB_CFG_IGNORE_LOST_RCLK_EN_SMASK 0x1ull
-+#define DC_LCB_CFG_LANE_WIDTH (DC_LCB_CSRS + 0x000000000100)
-+#define DC_LCB_CFG_LINK_KILL_EN (DC_LCB_CSRS + 0x000000000120)
-+#define DC_LCB_CFG_LINK_KILL_EN_FLIT_INPUT_BUF_MBE_SMASK 0x100000ull
-+#define DC_LCB_CFG_LINK_KILL_EN_REPLAY_BUF_MBE_SMASK 0x400000ull
-+#define DC_LCB_CFG_LN_DCLK (DC_LCB_CSRS + 0x000000000060)
-+#define DC_LCB_CFG_LOOPBACK (DC_LCB_CSRS + 0x0000000000F8)
-+#define DC_LCB_CFG_LOOPBACK_VAL_SHIFT 0
-+#define DC_LCB_CFG_RUN (DC_LCB_CSRS + 0x000000000000)
-+#define DC_LCB_CFG_RUN_EN_SHIFT 0
-+#define DC_LCB_CFG_RX_FIFOS_RADR (DC_LCB_CSRS + 0x000000000018)
-+#define DC_LCB_CFG_RX_FIFOS_RADR_DO_NOT_JUMP_VAL_SHIFT 8
-+#define DC_LCB_CFG_RX_FIFOS_RADR_OK_TO_JUMP_VAL_SHIFT 4
-+#define DC_LCB_CFG_RX_FIFOS_RADR_RST_VAL_SHIFT 0
-+#define DC_LCB_CFG_TX_FIFOS_RADR (DC_LCB_CSRS + 0x000000000010)
-+#define DC_LCB_CFG_TX_FIFOS_RADR_RST_VAL_SHIFT 0
-+#define DC_LCB_CFG_TX_FIFOS_RESET (DC_LCB_CSRS + 0x000000000008)
-+#define DC_LCB_CFG_TX_FIFOS_RESET_VAL_SHIFT 0
-+#define DC_LCB_CFG_REINIT_AS_SLAVE (DC_LCB_CSRS + 0x000000000030)
-+#define DC_LCB_CFG_CNT_FOR_SKIP_STALL (DC_LCB_CSRS + 0x000000000040)
-+#define DC_LCB_CFG_CLK_CNTR (DC_LCB_CSRS + 0x000000000110)
-+#define DC_LCB_ERR_CLR (DC_LCB_CSRS + 0x000000000308)
-+#define DC_LCB_ERR_EN (DC_LCB_CSRS + 0x000000000310)
-+#define DC_LCB_ERR_FLG (DC_LCB_CSRS + 0x000000000300)
-+#define DC_LCB_ERR_FLG_REDUNDANT_FLIT_PARITY_ERR_SMASK 0x20000000ull
-+#define DC_LCB_ERR_FLG_NEG_EDGE_LINK_TRANSFER_ACTIVE_SMASK 0x10000000ull
-+#define DC_LCB_ERR_FLG_HOLD_REINIT_SMASK 0x8000000ull
-+#define DC_LCB_ERR_FLG_RST_FOR_INCOMPLT_RND_TRIP_SMASK 0x4000000ull
-+#define DC_LCB_ERR_FLG_RST_FOR_LINK_TIMEOUT_SMASK 0x2000000ull
-+#define DC_LCB_ERR_FLG_CREDIT_RETURN_FLIT_MBE_SMASK 0x1000000ull
-+#define DC_LCB_ERR_FLG_REPLAY_BUF_SBE_SMASK 0x800000ull
-+#define DC_LCB_ERR_FLG_REPLAY_BUF_MBE_SMASK 0x400000ull
-+#define DC_LCB_ERR_FLG_FLIT_INPUT_BUF_SBE_SMASK 0x200000ull
-+#define DC_LCB_ERR_FLG_FLIT_INPUT_BUF_MBE_SMASK 0x100000ull
-+#define DC_LCB_ERR_FLG_VL_ACK_INPUT_WRONG_CRC_MODE_SMASK 0x80000ull
-+#define DC_LCB_ERR_FLG_VL_ACK_INPUT_PARITY_ERR_SMASK 0x40000ull
-+#define DC_LCB_ERR_FLG_VL_ACK_INPUT_BUF_OFLW_SMASK 0x20000ull
-+#define DC_LCB_ERR_FLG_FLIT_INPUT_BUF_OFLW_SMASK 0x10000ull
-+#define DC_LCB_ERR_FLG_ILLEGAL_FLIT_ENCODING_SMASK 0x8000ull
-+#define DC_LCB_ERR_FLG_ILLEGAL_NULL_LTP_SMASK 0x4000ull
-+#define DC_LCB_ERR_FLG_UNEXPECTED_ROUND_TRIP_MARKER_SMASK 0x2000ull
-+#define DC_LCB_ERR_FLG_UNEXPECTED_REPLAY_MARKER_SMASK 0x1000ull
-+#define DC_LCB_ERR_FLG_RCLK_STOPPED_SMASK 0x800ull
-+#define DC_LCB_ERR_FLG_CRC_ERR_CNT_HIT_LIMIT_SMASK 0x400ull
-+#define DC_LCB_ERR_FLG_REINIT_FOR_LN_DEGRADE_SMASK 0x200ull
-+#define DC_LCB_ERR_FLG_REINIT_FROM_PEER_SMASK 0x100ull
-+#define DC_LCB_ERR_FLG_SEQ_CRC_ERR_SMASK 0x80ull
-+#define DC_LCB_ERR_FLG_RX_LESS_THAN_FOUR_LNS_SMASK 0x40ull
-+#define DC_LCB_ERR_FLG_TX_LESS_THAN_FOUR_LNS_SMASK 0x20ull
-+#define DC_LCB_ERR_FLG_LOST_REINIT_STALL_OR_TOS_SMASK 0x10ull
-+#define DC_LCB_ERR_FLG_ALL_LNS_FAILED_REINIT_TEST_SMASK 0x8ull
-+#define DC_LCB_ERR_FLG_RST_FOR_FAILED_DESKEW_SMASK 0x4ull
-+#define DC_LCB_ERR_FLG_INVALID_CSR_ADDR_SMASK 0x2ull
-+#define DC_LCB_ERR_FLG_CSR_PARITY_ERR_SMASK 0x1ull
-+#define DC_LCB_ERR_INFO_CRC_ERR_LN0 (DC_LCB_CSRS + 0x000000000328)
-+#define DC_LCB_ERR_INFO_CRC_ERR_LN1 (DC_LCB_CSRS + 0x000000000330)
-+#define DC_LCB_ERR_INFO_CRC_ERR_LN2 (DC_LCB_CSRS + 0x000000000338)
-+#define DC_LCB_ERR_INFO_CRC_ERR_LN3 (DC_LCB_CSRS + 0x000000000340)
-+#define DC_LCB_ERR_INFO_CRC_ERR_MULTI_LN (DC_LCB_CSRS + 0x000000000348)
-+#define DC_LCB_ERR_INFO_ESCAPE_0_ONLY_CNT (DC_LCB_CSRS + 0x000000000368)
-+#define DC_LCB_ERR_INFO_ESCAPE_0_PLUS1_CNT (DC_LCB_CSRS + 0x000000000370)
-+#define DC_LCB_ERR_INFO_ESCAPE_0_PLUS2_CNT (DC_LCB_CSRS + 0x000000000378)
-+#define DC_LCB_ERR_INFO_MISC_FLG_CNT (DC_LCB_CSRS + 0x000000000390)
-+#define DC_LCB_ERR_INFO_REINIT_FROM_PEER_CNT (DC_LCB_CSRS + 0x000000000380)
-+#define DC_LCB_ERR_INFO_RX_REPLAY_CNT (DC_LCB_CSRS + 0x000000000358)
-+#define DC_LCB_ERR_INFO_SBE_CNT (DC_LCB_CSRS + 0x000000000388)
-+#define DC_LCB_ERR_INFO_SEQ_CRC_CNT (DC_LCB_CSRS + 0x000000000360)
-+#define DC_LCB_ERR_INFO_TOTAL_CRC_ERR (DC_LCB_CSRS + 0x000000000320)
-+#define DC_LCB_ERR_INFO_TX_REPLAY_CNT (DC_LCB_CSRS + 0x000000000350)
-+#define DC_LCB_PG_DBG_FLIT_CRDTS_CNT (DC_LCB_CSRS + 0x000000000580)
-+#define DC_LCB_PG_STS_PAUSE_COMPLETE_CNT (DC_LCB_CSRS + 0x0000000005F8)
-+#define DC_LCB_PG_STS_TX_MBE_CNT (DC_LCB_CSRS + 0x000000000608)
-+#define DC_LCB_PG_STS_TX_SBE_CNT (DC_LCB_CSRS + 0x000000000600)
-+#define DC_LCB_PRF_ACCEPTED_LTP_CNT (DC_LCB_CSRS + 0x000000000408)
-+#define DC_LCB_PRF_CLK_CNTR (DC_LCB_CSRS + 0x000000000420)
-+#define DC_LCB_PRF_GOOD_LTP_CNT (DC_LCB_CSRS + 0x000000000400)
-+#define DC_LCB_PRF_RX_FLIT_CNT (DC_LCB_CSRS + 0x000000000410)
-+#define DC_LCB_PRF_TX_FLIT_CNT (DC_LCB_CSRS + 0x000000000418)
-+#define DC_LCB_STS_LINK_TRANSFER_ACTIVE (DC_LCB_CSRS + 0x000000000468)
-+#define DC_LCB_STS_ROUND_TRIP_LTP_CNT (DC_LCB_CSRS + 0x0000000004B0)
-+#define RCV_LENGTH_ERR_CNT 0
-+#define RCV_SHORT_ERR_CNT 2
-+#define RCV_ICRC_ERR_CNT 6
-+#define RCV_EBP_CNT 9
-+#define RCV_BUF_OVFL_CNT 10
-+#define RCV_PKEY_MISMATCH_CNT 11
-+#define RCV_DROPPED_PKT_CNT 16
-+#define RCV_DROPPED_BYPASS_PKT_CNT 17
-+#define RCV_CONTEXT_EGR_STALL 22
-+#define RCV_DATA_PKT_CNT 0
-+#define RCV_DWORD_CNT 1
-+#define RCV_TID_FLOW_GEN_MISMATCH_CNT 20
-+#define RCV_TID_FLOW_SEQ_MISMATCH_CNT 23
-+#define RCV_TID_FULL_ERR_CNT 18
-+#define RCV_TID_VALID_ERR_CNT 19
-+#define RXE_NUM_32_BIT_COUNTERS 24
-+#define RXE_NUM_64_BIT_COUNTERS 2
-+#define RXE_NUM_RSM_INSTANCES 4
-+#define RXE_NUM_TID_FLOWS 32
-+#define SEND_DATA_PKT_CNT 0
-+#define SEND_DATA_PKT_VL0_CNT 12
-+#define SEND_DATA_VL0_CNT 3
-+#define SEND_DROPPED_PKT_CNT 5
-+#define SEND_DWORD_CNT 1
-+#define SEND_FLOW_STALL_CNT 4
-+#define SEND_HEADERS_ERR_CNT 6
-+#define SEND_LEN_ERR_CNT 1
-+#define SEND_MAX_MIN_LEN_ERR_CNT 2
-+#define SEND_UNDERRUN_CNT 3
-+#define SEND_UNSUP_VL_ERR_CNT 0
-+#define SEND_WAIT_CNT 2
-+#define SEND_WAIT_VL0_CNT 21
-+#define TXE_PIO_SEND_OFFSET 0x0800000
-+#define ASIC_CFG_DRV_STR (ASIC + 0x000000000048)
-+#define ASIC_CFG_MUTEX (ASIC + 0x000000000040)
-+#define ASIC_CFG_SBUS_EXECUTE (ASIC + 0x000000000008)
-+#define ASIC_CFG_SBUS_EXECUTE_EXECUTE_SMASK 0x1ull
-+#define ASIC_CFG_SBUS_EXECUTE_FAST_MODE_SMASK 0x2ull
-+#define ASIC_CFG_SBUS_REQUEST (ASIC + 0x000000000000)
-+#define ASIC_CFG_SBUS_REQUEST_COMMAND_SHIFT 16
-+#define ASIC_CFG_SBUS_REQUEST_DATA_ADDR_SHIFT 8
-+#define ASIC_CFG_SBUS_REQUEST_DATA_IN_SHIFT 32
-+#define ASIC_CFG_SBUS_REQUEST_RECEIVER_ADDR_SHIFT 0
-+#define ASIC_CFG_SCRATCH (ASIC + 0x000000000020)
-+#define ASIC_CFG_SCRATCH_1 (ASIC_CFG_SCRATCH + 0x08)
-+#define ASIC_CFG_SCRATCH_2 (ASIC_CFG_SCRATCH + 0x10)
-+#define ASIC_CFG_SCRATCH_3 (ASIC_CFG_SCRATCH + 0x18)
-+#define ASIC_CFG_THERM_POLL_EN (ASIC + 0x000000000050)
-+#define ASIC_EEP_ADDR_CMD (ASIC + 0x000000000308)
-+#define ASIC_EEP_ADDR_CMD_EP_ADDR_MASK 0xFFFFFFull
-+#define ASIC_EEP_CTL_STAT (ASIC + 0x000000000300)
-+#define ASIC_EEP_CTL_STAT_EP_RESET_SMASK 0x4ull
-+#define ASIC_EEP_CTL_STAT_RATE_SPI_SHIFT 8
-+#define ASIC_EEP_CTL_STAT_RESETCSR 0x0000000083818000ull
-+#define ASIC_EEP_DATA (ASIC + 0x000000000310)
-+#define ASIC_GPIO_CLEAR (ASIC + 0x000000000230)
-+#define ASIC_GPIO_FORCE (ASIC + 0x000000000238)
-+#define ASIC_GPIO_IN (ASIC + 0x000000000200)
-+#define ASIC_GPIO_INVERT (ASIC + 0x000000000210)
-+#define ASIC_GPIO_MASK (ASIC + 0x000000000220)
-+#define ASIC_GPIO_OE (ASIC + 0x000000000208)
-+#define ASIC_GPIO_OUT (ASIC + 0x000000000218)
-+#define ASIC_PCIE_SD_HOST_CMD (ASIC + 0x000000000100)
-+#define ASIC_PCIE_SD_HOST_CMD_INTRPT_CMD_SHIFT 0
-+#define ASIC_PCIE_SD_HOST_CMD_SBR_MODE_SMASK 0x400ull
-+#define ASIC_PCIE_SD_HOST_CMD_SBUS_RCVR_ADDR_SHIFT 2
-+#define ASIC_PCIE_SD_HOST_CMD_TIMER_MASK 0xFFFFFull
-+#define ASIC_PCIE_SD_HOST_CMD_TIMER_SHIFT 12
-+#define ASIC_PCIE_SD_HOST_STATUS (ASIC + 0x000000000108)
-+#define ASIC_PCIE_SD_HOST_STATUS_FW_DNLD_ERR_MASK 0x7ull
-+#define ASIC_PCIE_SD_HOST_STATUS_FW_DNLD_ERR_SHIFT 2
-+#define ASIC_PCIE_SD_HOST_STATUS_FW_DNLD_STS_MASK 0x3ull
-+#define ASIC_PCIE_SD_HOST_STATUS_FW_DNLD_STS_SHIFT 0
-+#define ASIC_PCIE_SD_INTRPT_DATA_CODE (ASIC + 0x000000000110)
-+#define ASIC_PCIE_SD_INTRPT_ENABLE (ASIC + 0x000000000118)
-+#define ASIC_PCIE_SD_INTRPT_LIST (ASIC + 0x000000000180)
-+#define ASIC_PCIE_SD_INTRPT_LIST_INTRPT_CODE_SHIFT 16
-+#define ASIC_PCIE_SD_INTRPT_LIST_INTRPT_DATA_SHIFT 0
-+#define ASIC_PCIE_SD_INTRPT_STATUS (ASIC + 0x000000000128)
-+#define ASIC_QSFP1_CLEAR (ASIC + 0x000000000270)
-+#define ASIC_QSFP1_FORCE (ASIC + 0x000000000278)
-+#define ASIC_QSFP1_IN (ASIC + 0x000000000240)
-+#define ASIC_QSFP1_INVERT (ASIC + 0x000000000250)
-+#define ASIC_QSFP1_MASK (ASIC + 0x000000000260)
-+#define ASIC_QSFP1_OE (ASIC + 0x000000000248)
-+#define ASIC_QSFP1_OUT (ASIC + 0x000000000258)
-+#define ASIC_QSFP1_STATUS (ASIC + 0x000000000268)
-+#define ASIC_QSFP2_CLEAR (ASIC + 0x0000000002B0)
-+#define ASIC_QSFP2_FORCE (ASIC + 0x0000000002B8)
-+#define ASIC_QSFP2_IN (ASIC + 0x000000000280)
-+#define ASIC_QSFP2_INVERT (ASIC + 0x000000000290)
-+#define ASIC_QSFP2_MASK (ASIC + 0x0000000002A0)
-+#define ASIC_QSFP2_OE (ASIC + 0x000000000288)
-+#define ASIC_QSFP2_OUT (ASIC + 0x000000000298)
-+#define ASIC_QSFP2_STATUS (ASIC + 0x0000000002A8)
-+#define ASIC_STS_SBUS_COUNTERS (ASIC + 0x000000000018)
-+#define ASIC_STS_SBUS_COUNTERS_EXECUTE_CNT_MASK 0xFFFFull
-+#define ASIC_STS_SBUS_COUNTERS_EXECUTE_CNT_SHIFT 0
-+#define ASIC_STS_SBUS_COUNTERS_RCV_DATA_VALID_CNT_MASK 0xFFFFull
-+#define ASIC_STS_SBUS_COUNTERS_RCV_DATA_VALID_CNT_SHIFT 16
-+#define ASIC_STS_SBUS_RESULT (ASIC + 0x000000000010)
-+#define ASIC_STS_SBUS_RESULT_DONE_SMASK 0x1ull
-+#define ASIC_STS_SBUS_RESULT_RCV_DATA_VALID_SMASK 0x2ull
-+#define ASIC_STS_SBUS_RESULT_RESULT_CODE_SHIFT 2
-+#define ASIC_STS_SBUS_RESULT_RESULT_CODE_MASK 0x7ull
-+#define ASIC_STS_SBUS_RESULT_DATA_OUT_SHIFT 32
-+#define ASIC_STS_SBUS_RESULT_DATA_OUT_MASK 0xFFFFFFFFull
-+#define ASIC_STS_THERM (ASIC + 0x000000000058)
-+#define ASIC_STS_THERM_CRIT_TEMP_MASK 0x7FFull
-+#define ASIC_STS_THERM_CRIT_TEMP_SHIFT 18
-+#define ASIC_STS_THERM_CURR_TEMP_MASK 0x7FFull
-+#define ASIC_STS_THERM_CURR_TEMP_SHIFT 2
-+#define ASIC_STS_THERM_HI_TEMP_MASK 0x7FFull
-+#define ASIC_STS_THERM_HI_TEMP_SHIFT 50
-+#define ASIC_STS_THERM_LO_TEMP_MASK 0x7FFull
-+#define ASIC_STS_THERM_LO_TEMP_SHIFT 34
-+#define ASIC_STS_THERM_LOW_SHIFT 13
-+#define CCE_COUNTER_ARRAY32 (CCE + 0x000000000060)
-+#define CCE_CTRL (CCE + 0x000000000010)
-+#define CCE_CTRL_RXE_RESUME_SMASK 0x800ull
-+#define CCE_CTRL_SPC_FREEZE_SMASK 0x100ull
-+#define CCE_CTRL_SPC_UNFREEZE_SMASK 0x200ull
-+#define CCE_CTRL_TXE_RESUME_SMASK 0x2000ull
-+#define CCE_DC_CTRL (CCE + 0x0000000000B8)
-+#define CCE_DC_CTRL_DC_RESET_SMASK 0x1ull
-+#define CCE_DC_CTRL_RESETCSR 0x0000000000000001ull
-+#define CCE_ERR_CLEAR (CCE + 0x000000000050)
-+#define CCE_ERR_MASK (CCE + 0x000000000048)
-+#define CCE_ERR_STATUS (CCE + 0x000000000040)
-+#define CCE_ERR_STATUS_CCE_CLI0_ASYNC_FIFO_PARITY_ERR_SMASK 0x40ull
-+#define CCE_ERR_STATUS_CCE_CLI1_ASYNC_FIFO_DBG_PARITY_ERROR_SMASK 0x1000ull
-+#define CCE_ERR_STATUS_CCE_CLI1_ASYNC_FIFO_PIO_CRDT_PARITY_ERR_SMASK \
-+		0x200ull
-+#define CCE_ERR_STATUS_CCE_CLI1_ASYNC_FIFO_RXDMA_PARITY_ERROR_SMASK \
-+		0x800ull
-+#define CCE_ERR_STATUS_CCE_CLI1_ASYNC_FIFO_SDMA_HD_PARITY_ERR_SMASK \
-+		0x400ull
-+#define CCE_ERR_STATUS_CCE_CLI2_ASYNC_FIFO_PARITY_ERR_SMASK 0x100ull
-+#define CCE_ERR_STATUS_CCE_CSR_CFG_BUS_PARITY_ERR_SMASK 0x80ull
-+#define CCE_ERR_STATUS_CCE_CSR_PARITY_ERR_SMASK 0x1ull
-+#define CCE_ERR_STATUS_CCE_CSR_READ_BAD_ADDR_ERR_SMASK 0x2ull
-+#define CCE_ERR_STATUS_CCE_CSR_WRITE_BAD_ADDR_ERR_SMASK 0x4ull
-+#define CCE_ERR_STATUS_CCE_INT_MAP_COR_ERR_SMASK 0x4000000000ull
-+#define CCE_ERR_STATUS_CCE_INT_MAP_UNC_ERR_SMASK 0x8000000000ull
-+#define CCE_ERR_STATUS_CCE_MSIX_CSR_PARITY_ERR_SMASK 0x10000000000ull
-+#define CCE_ERR_STATUS_CCE_MSIX_TABLE_COR_ERR_SMASK 0x1000000000ull
-+#define CCE_ERR_STATUS_CCE_MSIX_TABLE_UNC_ERR_SMASK 0x2000000000ull
-+#define CCE_ERR_STATUS_CCE_RCPL_ASYNC_FIFO_PARITY_ERR_SMASK 0x400000000ull
-+#define CCE_ERR_STATUS_CCE_RSPD_DATA_PARITY_ERR_SMASK 0x20ull
-+#define CCE_ERR_STATUS_CCE_RXDMA_CONV_FIFO_PARITY_ERR_SMASK 0x800000000ull
-+#define CCE_ERR_STATUS_CCE_SEG_READ_BAD_ADDR_ERR_SMASK 0x100000000ull
-+#define CCE_ERR_STATUS_CCE_SEG_WRITE_BAD_ADDR_ERR_SMASK 0x200000000ull
-+#define CCE_ERR_STATUS_CCE_TRGT_ACCESS_ERR_SMASK 0x10ull
-+#define CCE_ERR_STATUS_CCE_TRGT_ASYNC_FIFO_PARITY_ERR_SMASK 0x8ull
-+#define CCE_ERR_STATUS_CCE_TRGT_CPL_TIMEOUT_ERR_SMASK 0x40000000ull
-+#define CCE_ERR_STATUS_LA_TRIGGERED_SMASK 0x80000000ull
-+#define CCE_ERR_STATUS_PCIC_CPL_DAT_QCOR_ERR_SMASK 0x40000ull
-+#define CCE_ERR_STATUS_PCIC_CPL_DAT_QUNC_ERR_SMASK 0x4000000ull
-+#define CCE_ERR_STATUS_PCIC_CPL_HD_QCOR_ERR_SMASK 0x20000ull
-+#define CCE_ERR_STATUS_PCIC_CPL_HD_QUNC_ERR_SMASK 0x2000000ull
-+#define CCE_ERR_STATUS_PCIC_NPOST_DAT_QPARITY_ERR_SMASK 0x100000ull
-+#define CCE_ERR_STATUS_PCIC_NPOST_HQ_PARITY_ERR_SMASK 0x80000ull
-+#define CCE_ERR_STATUS_PCIC_POST_DAT_QCOR_ERR_SMASK 0x10000ull
-+#define CCE_ERR_STATUS_PCIC_POST_DAT_QUNC_ERR_SMASK 0x1000000ull
-+#define CCE_ERR_STATUS_PCIC_POST_HD_QCOR_ERR_SMASK 0x8000ull
-+#define CCE_ERR_STATUS_PCIC_POST_HD_QUNC_ERR_SMASK 0x800000ull
-+#define CCE_ERR_STATUS_PCIC_RECEIVE_PARITY_ERR_SMASK 0x20000000ull
-+#define CCE_ERR_STATUS_PCIC_RETRY_MEM_COR_ERR_SMASK 0x2000ull
-+#define CCE_ERR_STATUS_PCIC_RETRY_MEM_UNC_ERR_SMASK 0x200000ull
-+#define CCE_ERR_STATUS_PCIC_RETRY_SOT_MEM_COR_ERR_SMASK 0x4000ull
-+#define CCE_ERR_STATUS_PCIC_RETRY_SOT_MEM_UNC_ERR_SMASK 0x400000ull
-+#define CCE_ERR_STATUS_PCIC_TRANSMIT_BACK_PARITY_ERR_SMASK 0x10000000ull
-+#define CCE_ERR_STATUS_PCIC_TRANSMIT_FRONT_PARITY_ERR_SMASK 0x8000000ull
-+#define CCE_INT_CLEAR (CCE + 0x000000110A00)
-+#define CCE_INT_COUNTER_ARRAY32 (CCE + 0x000000110D00)
-+#define CCE_INT_FORCE (CCE + 0x000000110B00)
-+#define CCE_INT_MAP (CCE + 0x000000110500)
-+#define CCE_INT_MASK (CCE + 0x000000110900)
-+#define CCE_INT_STATUS (CCE + 0x000000110800)
-+#define CCE_MSIX_INT_GRANTED (CCE + 0x000000110200)
-+#define CCE_MSIX_TABLE_LOWER (CCE + 0x000000100000)
-+#define CCE_MSIX_TABLE_UPPER (CCE + 0x000000100008)
-+#define CCE_MSIX_TABLE_UPPER_RESETCSR 0x0000000100000000ull
-+#define CCE_MSIX_VEC_CLR_WITHOUT_INT (CCE + 0x000000110400)
-+#define CCE_PCIE_CTRL (CCE + 0x0000000000C0)
-+#define CCE_PCIE_CTRL_PCIE_LANE_BUNDLE_MASK 0x3ull
-+#define CCE_PCIE_CTRL_PCIE_LANE_BUNDLE_SHIFT 0
-+#define CCE_PCIE_CTRL_PCIE_LANE_DELAY_MASK 0xFull
-+#define CCE_PCIE_CTRL_PCIE_LANE_DELAY_SHIFT 2
-+#define CCE_PCIE_CTRL_XMT_MARGIN_OVERWRITE_ENABLE_SHIFT 8
-+#define CCE_PCIE_CTRL_XMT_MARGIN_SHIFT 9
-+#define CCE_PCIE_CTRL_XMT_MARGIN_GEN1_GEN2_OVERWRITE_ENABLE_MASK 0x1ull
-+#define CCE_PCIE_CTRL_XMT_MARGIN_GEN1_GEN2_OVERWRITE_ENABLE_SHIFT 12
-+#define CCE_PCIE_CTRL_XMT_MARGIN_GEN1_GEN2_MASK 0x7ull
-+#define CCE_PCIE_CTRL_XMT_MARGIN_GEN1_GEN2_SHIFT 13
-+#define CCE_REVISION (CCE + 0x000000000000)
-+#define CCE_REVISION2 (CCE + 0x000000000008)
-+#define CCE_REVISION2_HFI_ID_MASK 0x1ull
-+#define CCE_REVISION2_HFI_ID_SHIFT 0
-+#define CCE_REVISION2_IMPL_CODE_SHIFT 8
-+#define CCE_REVISION2_IMPL_REVISION_SHIFT 16
-+#define CCE_REVISION_BOARD_ID_LOWER_NIBBLE_MASK 0xFull
-+#define CCE_REVISION_BOARD_ID_LOWER_NIBBLE_SHIFT 32
-+#define CCE_REVISION_CHIP_REV_MAJOR_MASK 0xFFull
-+#define CCE_REVISION_CHIP_REV_MAJOR_SHIFT 8
-+#define CCE_REVISION_CHIP_REV_MINOR_MASK 0xFFull
-+#define CCE_REVISION_CHIP_REV_MINOR_SHIFT 0
-+#define CCE_REVISION_SW_MASK 0xFFull
-+#define CCE_REVISION_SW_SHIFT 24
-+#define CCE_SCRATCH (CCE + 0x000000000020)
-+#define CCE_STATUS (CCE + 0x000000000018)
-+#define CCE_STATUS_RXE_FROZE_SMASK 0x2ull
-+#define CCE_STATUS_RXE_PAUSED_SMASK 0x20ull
-+#define CCE_STATUS_SDMA_FROZE_SMASK 0x1ull
-+#define CCE_STATUS_SDMA_PAUSED_SMASK 0x10ull
-+#define CCE_STATUS_TXE_FROZE_SMASK 0x4ull
-+#define CCE_STATUS_TXE_PAUSED_SMASK 0x40ull
-+#define CCE_STATUS_TXE_PIO_FROZE_SMASK 0x8ull
-+#define CCE_STATUS_TXE_PIO_PAUSED_SMASK 0x80ull
-+#define MISC_CFG_FW_CTRL (MISC + 0x000000001000)
-+#define MISC_CFG_FW_CTRL_FW_8051_LOADED_SMASK 0x2ull
-+#define MISC_CFG_FW_CTRL_RSA_STATUS_SHIFT 2
-+#define MISC_CFG_FW_CTRL_RSA_STATUS_SMASK 0xCull
-+#define MISC_CFG_RSA_CMD (MISC + 0x000000000A08)
-+#define MISC_CFG_RSA_MODULUS (MISC + 0x000000000400)
-+#define MISC_CFG_RSA_MU (MISC + 0x000000000A10)
-+#define MISC_CFG_RSA_R2 (MISC + 0x000000000000)
-+#define MISC_CFG_RSA_SIGNATURE (MISC + 0x000000000200)
-+#define MISC_CFG_SHA_PRELOAD (MISC + 0x000000000A00)
-+#define MISC_ERR_CLEAR (MISC + 0x000000002010)
-+#define MISC_ERR_MASK (MISC + 0x000000002008)
-+#define MISC_ERR_STATUS (MISC + 0x000000002000)
-+#define MISC_ERR_STATUS_MISC_PLL_LOCK_FAIL_ERR_SMASK 0x1000ull
-+#define MISC_ERR_STATUS_MISC_MBIST_FAIL_ERR_SMASK 0x800ull
-+#define MISC_ERR_STATUS_MISC_INVALID_EEP_CMD_ERR_SMASK 0x400ull
-+#define MISC_ERR_STATUS_MISC_EFUSE_DONE_PARITY_ERR_SMASK 0x200ull
-+#define MISC_ERR_STATUS_MISC_EFUSE_WRITE_ERR_SMASK 0x100ull
-+#define MISC_ERR_STATUS_MISC_EFUSE_READ_BAD_ADDR_ERR_SMASK 0x80ull
-+#define MISC_ERR_STATUS_MISC_EFUSE_CSR_PARITY_ERR_SMASK 0x40ull
-+#define MISC_ERR_STATUS_MISC_FW_AUTH_FAILED_ERR_SMASK 0x20ull
-+#define MISC_ERR_STATUS_MISC_KEY_MISMATCH_ERR_SMASK 0x10ull
-+#define MISC_ERR_STATUS_MISC_SBUS_WRITE_FAILED_ERR_SMASK 0x8ull
-+#define MISC_ERR_STATUS_MISC_CSR_WRITE_BAD_ADDR_ERR_SMASK 0x4ull
-+#define MISC_ERR_STATUS_MISC_CSR_READ_BAD_ADDR_ERR_SMASK 0x2ull
-+#define MISC_ERR_STATUS_MISC_CSR_PARITY_ERR_SMASK 0x1ull
-+#define PCI_CFG_MSIX0 (PCIE + 0x0000000000B0)
-+#define PCI_CFG_REG1 (PCIE + 0x000000000004)
-+#define PCI_CFG_REG11 (PCIE + 0x00000000002C)
-+#define PCIE_CFG_SPCIE1 (PCIE + 0x00000000014C)
-+#define PCIE_CFG_SPCIE2 (PCIE + 0x000000000150)
-+#define PCIE_CFG_TPH2 (PCIE + 0x000000000180)
-+#define RCV_ARRAY (RXE + 0x000000200000)
-+#define RCV_ARRAY_CNT (RXE + 0x000000000018)
-+#define RCV_ARRAY_RT_ADDR_MASK 0xFFFFFFFFFull
-+#define RCV_ARRAY_RT_ADDR_SHIFT 0
-+#define RCV_ARRAY_RT_BUF_SIZE_SHIFT 36
-+#define RCV_ARRAY_RT_WRITE_ENABLE_SMASK 0x8000000000000000ull
-+#define RCV_AVAIL_TIME_OUT (RXE + 0x000000100050)
-+#define RCV_AVAIL_TIME_OUT_TIME_OUT_RELOAD_MASK 0xFFull
-+#define RCV_AVAIL_TIME_OUT_TIME_OUT_RELOAD_SHIFT 0
-+#define RCV_BTH_QP (RXE + 0x000000000028)
-+#define RCV_BTH_QP_KDETH_QP_MASK 0xFFull
-+#define RCV_BTH_QP_KDETH_QP_SHIFT 16
-+#define RCV_BYPASS (RXE + 0x000000000038)
-+#define RCV_BYPASS_HDR_SIZE_SHIFT 16
-+#define RCV_BYPASS_HDR_SIZE_MASK 0x1Full
-+#define RCV_BYPASS_HDR_SIZE_SMASK 0x1F0000ull
-+#define RCV_BYPASS_BYPASS_CONTEXT_SHIFT 0
-+#define RCV_BYPASS_BYPASS_CONTEXT_MASK 0xFFull
-+#define RCV_BYPASS_BYPASS_CONTEXT_SMASK 0xFFull
-+#define RCV_CONTEXTS (RXE + 0x000000000010)
-+#define RCV_COUNTER_ARRAY32 (RXE + 0x000000000400)
-+#define RCV_COUNTER_ARRAY64 (RXE + 0x000000000500)
-+#define RCV_CTRL (RXE + 0x000000000000)
-+#define RCV_CTRL_RCV_BYPASS_ENABLE_SMASK 0x10ull
-+#define RCV_CTRL_RCV_EXTENDED_PSN_ENABLE_SMASK 0x40ull
-+#define RCV_CTRL_RCV_PARTITION_KEY_ENABLE_SMASK 0x4ull
-+#define RCV_CTRL_RCV_PORT_ENABLE_SMASK 0x1ull
-+#define RCV_CTRL_RCV_QP_MAP_ENABLE_SMASK 0x2ull
-+#define RCV_CTRL_RCV_RSM_ENABLE_SMASK 0x20ull
-+#define RCV_CTRL_RX_RBUF_INIT_SMASK 0x200ull
-+#define RCV_CTXT_CTRL (RXE + 0x000000100000)
-+#define RCV_CTXT_CTRL_DONT_DROP_EGR_FULL_SMASK 0x4ull
-+#define RCV_CTXT_CTRL_DONT_DROP_RHQ_FULL_SMASK 0x8ull
-+#define RCV_CTXT_CTRL_EGR_BUF_SIZE_MASK 0x7ull
-+#define RCV_CTXT_CTRL_EGR_BUF_SIZE_SHIFT 8
-+#define RCV_CTXT_CTRL_EGR_BUF_SIZE_SMASK 0x700ull
-+#define RCV_CTXT_CTRL_ENABLE_SMASK 0x1ull
-+#define RCV_CTXT_CTRL_INTR_AVAIL_SMASK 0x20ull
-+#define RCV_CTXT_CTRL_ONE_PACKET_PER_EGR_BUFFER_SMASK 0x2ull
-+#define RCV_CTXT_CTRL_TAIL_UPD_SMASK 0x40ull
-+#define RCV_CTXT_CTRL_TID_FLOW_ENABLE_SMASK 0x10ull
-+#define RCV_CTXT_STATUS (RXE + 0x000000100008)
-+#define RCV_EGR_CTRL (RXE + 0x000000100010)
-+#define RCV_EGR_CTRL_EGR_BASE_INDEX_MASK 0x1FFFull
-+#define RCV_EGR_CTRL_EGR_BASE_INDEX_SHIFT 0
-+#define RCV_EGR_CTRL_EGR_CNT_MASK 0x1FFull
-+#define RCV_EGR_CTRL_EGR_CNT_SHIFT 32
-+#define RCV_EGR_INDEX_HEAD (RXE + 0x000000300018)
-+#define RCV_EGR_INDEX_HEAD_HEAD_MASK 0x7FFull
-+#define RCV_EGR_INDEX_HEAD_HEAD_SHIFT 0
-+#define RCV_ERR_CLEAR (RXE + 0x000000000070)
-+#define RCV_ERR_INFO (RXE + 0x000000000050)
-+#define RCV_ERR_INFO_RCV_EXCESS_BUFFER_OVERRUN_SC_SMASK 0x1Full
-+#define RCV_ERR_INFO_RCV_EXCESS_BUFFER_OVERRUN_SMASK 0x20ull
-+#define RCV_ERR_MASK (RXE + 0x000000000068)
-+#define RCV_ERR_STATUS (RXE + 0x000000000060)
-+#define RCV_ERR_STATUS_RX_CSR_PARITY_ERR_SMASK 0x8000000000000000ull
-+#define RCV_ERR_STATUS_RX_CSR_READ_BAD_ADDR_ERR_SMASK 0x2000000000000000ull
-+#define RCV_ERR_STATUS_RX_CSR_WRITE_BAD_ADDR_ERR_SMASK \
-+		0x4000000000000000ull
-+#define RCV_ERR_STATUS_RX_DC_INTF_PARITY_ERR_SMASK 0x2ull
-+#define RCV_ERR_STATUS_RX_DC_SOP_EOP_PARITY_ERR_SMASK 0x200ull
-+#define RCV_ERR_STATUS_RX_DMA_CSR_COR_ERR_SMASK 0x1ull
-+#define RCV_ERR_STATUS_RX_DMA_CSR_PARITY_ERR_SMASK 0x200000000000000ull
-+#define RCV_ERR_STATUS_RX_DMA_CSR_UNC_ERR_SMASK 0x1000000000000000ull
-+#define RCV_ERR_STATUS_RX_DMA_DATA_FIFO_RD_COR_ERR_SMASK \
-+		0x40000000000000ull
-+#define RCV_ERR_STATUS_RX_DMA_DATA_FIFO_RD_UNC_ERR_SMASK \
-+		0x20000000000000ull
-+#define RCV_ERR_STATUS_RX_DMA_DQ_FSM_ENCODING_ERR_SMASK \
-+		0x800000000000000ull
-+#define RCV_ERR_STATUS_RX_DMA_EQ_FSM_ENCODING_ERR_SMASK \
-+		0x400000000000000ull
-+#define RCV_ERR_STATUS_RX_DMA_FLAG_COR_ERR_SMASK 0x800ull
-+#define RCV_ERR_STATUS_RX_DMA_FLAG_UNC_ERR_SMASK 0x400ull
-+#define RCV_ERR_STATUS_RX_DMA_HDR_FIFO_RD_COR_ERR_SMASK 0x10000000000000ull
-+#define RCV_ERR_STATUS_RX_DMA_HDR_FIFO_RD_UNC_ERR_SMASK 0x8000000000000ull
-+#define RCV_ERR_STATUS_RX_HQ_INTR_CSR_PARITY_ERR_SMASK 0x200000000000ull
-+#define RCV_ERR_STATUS_RX_HQ_INTR_FSM_ERR_SMASK 0x400000000000ull
-+#define RCV_ERR_STATUS_RX_LOOKUP_CSR_PARITY_ERR_SMASK 0x100000000000ull
-+#define RCV_ERR_STATUS_RX_LOOKUP_DES_PART1_UNC_COR_ERR_SMASK \
-+		0x10000000000ull
-+#define RCV_ERR_STATUS_RX_LOOKUP_DES_PART1_UNC_ERR_SMASK 0x8000000000ull
-+#define RCV_ERR_STATUS_RX_LOOKUP_DES_PART2_PARITY_ERR_SMASK \
-+		0x20000000000ull
-+#define RCV_ERR_STATUS_RX_LOOKUP_RCV_ARRAY_COR_ERR_SMASK 0x80000000000ull
-+#define RCV_ERR_STATUS_RX_LOOKUP_RCV_ARRAY_UNC_ERR_SMASK 0x40000000000ull
-+#define RCV_ERR_STATUS_RX_RBUF_BAD_LOOKUP_ERR_SMASK 0x40000000ull
-+#define RCV_ERR_STATUS_RX_RBUF_BLOCK_LIST_READ_COR_ERR_SMASK 0x100000ull
-+#define RCV_ERR_STATUS_RX_RBUF_BLOCK_LIST_READ_UNC_ERR_SMASK 0x80000ull
-+#define RCV_ERR_STATUS_RX_RBUF_CSR_QENT_CNT_PARITY_ERR_SMASK 0x400000ull
-+#define RCV_ERR_STATUS_RX_RBUF_CSR_QEOPDW_PARITY_ERR_SMASK 0x10000000ull
-+#define RCV_ERR_STATUS_RX_RBUF_CSR_QHD_PTR_PARITY_ERR_SMASK 0x2000000ull
-+#define RCV_ERR_STATUS_RX_RBUF_CSR_QHEAD_BUF_NUM_PARITY_ERR_SMASK \
-+		0x200000ull
-+#define RCV_ERR_STATUS_RX_RBUF_CSR_QNEXT_BUF_PARITY_ERR_SMASK 0x800000ull
-+#define RCV_ERR_STATUS_RX_RBUF_CSR_QNUM_OF_PKT_PARITY_ERR_SMASK \
-+		0x8000000ull
-+#define RCV_ERR_STATUS_RX_RBUF_CSR_QTL_PTR_PARITY_ERR_SMASK 0x4000000ull
-+#define RCV_ERR_STATUS_RX_RBUF_CSR_QVLD_BIT_PARITY_ERR_SMASK 0x1000000ull
-+#define RCV_ERR_STATUS_RX_RBUF_CTX_ID_PARITY_ERR_SMASK 0x20000000ull
-+#define RCV_ERR_STATUS_RX_RBUF_DATA_COR_ERR_SMASK 0x100000000000000ull
-+#define RCV_ERR_STATUS_RX_RBUF_DATA_UNC_ERR_SMASK 0x80000000000000ull
-+#define RCV_ERR_STATUS_RX_RBUF_DESC_PART1_COR_ERR_SMASK 0x1000000000000ull
-+#define RCV_ERR_STATUS_RX_RBUF_DESC_PART1_UNC_ERR_SMASK 0x800000000000ull
-+#define RCV_ERR_STATUS_RX_RBUF_DESC_PART2_COR_ERR_SMASK 0x4000000000000ull
-+#define RCV_ERR_STATUS_RX_RBUF_DESC_PART2_UNC_ERR_SMASK 0x2000000000000ull
-+#define RCV_ERR_STATUS_RX_RBUF_EMPTY_ERR_SMASK 0x100000000ull
-+#define RCV_ERR_STATUS_RX_RBUF_FL_INITDONE_PARITY_ERR_SMASK 0x800000000ull
-+#define RCV_ERR_STATUS_RX_RBUF_FL_INIT_WR_ADDR_PARITY_ERR_SMASK \
-+		0x1000000000ull
-+#define RCV_ERR_STATUS_RX_RBUF_FL_RD_ADDR_PARITY_ERR_SMASK 0x200000000ull
-+#define RCV_ERR_STATUS_RX_RBUF_FL_WR_ADDR_PARITY_ERR_SMASK 0x400000000ull
-+#define RCV_ERR_STATUS_RX_RBUF_FREE_LIST_COR_ERR_SMASK 0x4000ull
-+#define RCV_ERR_STATUS_RX_RBUF_FREE_LIST_UNC_ERR_SMASK 0x2000ull
-+#define RCV_ERR_STATUS_RX_RBUF_FULL_ERR_SMASK 0x80000000ull
-+#define RCV_ERR_STATUS_RX_RBUF_LOOKUP_DES_COR_ERR_SMASK 0x40000ull
-+#define RCV_ERR_STATUS_RX_RBUF_LOOKUP_DES_REG_UNC_COR_ERR_SMASK 0x10000ull
-+#define RCV_ERR_STATUS_RX_RBUF_LOOKUP_DES_REG_UNC_ERR_SMASK 0x8000ull
-+#define RCV_ERR_STATUS_RX_RBUF_LOOKUP_DES_UNC_ERR_SMASK 0x20000ull
-+#define RCV_ERR_STATUS_RX_RBUF_NEXT_FREE_BUF_COR_ERR_SMASK 0x4000000000ull
-+#define RCV_ERR_STATUS_RX_RBUF_NEXT_FREE_BUF_UNC_ERR_SMASK 0x2000000000ull
-+#define RCV_ERR_STATUS_RX_RCV_CSR_PARITY_ERR_SMASK 0x100ull
-+#define RCV_ERR_STATUS_RX_RCV_DATA_COR_ERR_SMASK 0x20ull
-+#define RCV_ERR_STATUS_RX_RCV_DATA_UNC_ERR_SMASK 0x10ull
-+#define RCV_ERR_STATUS_RX_RCV_FSM_ENCODING_ERR_SMASK 0x1000ull
-+#define RCV_ERR_STATUS_RX_RCV_HDR_COR_ERR_SMASK 0x8ull
-+#define RCV_ERR_STATUS_RX_RCV_HDR_UNC_ERR_SMASK 0x4ull
-+#define RCV_ERR_STATUS_RX_RCV_QP_MAP_TABLE_COR_ERR_SMASK 0x80ull
-+#define RCV_ERR_STATUS_RX_RCV_QP_MAP_TABLE_UNC_ERR_SMASK 0x40ull
-+#define RCV_HDR_ADDR (RXE + 0x000000100028)
-+#define RCV_HDR_CNT (RXE + 0x000000100030)
-+#define RCV_HDR_CNT_CNT_MASK 0x1FFull
-+#define RCV_HDR_CNT_CNT_SHIFT 0
-+#define RCV_HDR_ENT_SIZE (RXE + 0x000000100038)
-+#define RCV_HDR_ENT_SIZE_ENT_SIZE_MASK 0x7ull
-+#define RCV_HDR_ENT_SIZE_ENT_SIZE_SHIFT 0
-+#define RCV_HDR_HEAD (RXE + 0x000000300008)
-+#define RCV_HDR_HEAD_COUNTER_MASK 0xFFull
-+#define RCV_HDR_HEAD_COUNTER_SHIFT 32
-+#define RCV_HDR_HEAD_HEAD_MASK 0x7FFFFull
-+#define RCV_HDR_HEAD_HEAD_SHIFT 0
-+#define RCV_HDR_HEAD_HEAD_SMASK 0x7FFFFull
-+#define RCV_HDR_OVFL_CNT (RXE + 0x000000100058)
-+#define RCV_HDR_SIZE (RXE + 0x000000100040)
-+#define RCV_HDR_SIZE_HDR_SIZE_MASK 0x1Full
-+#define RCV_HDR_SIZE_HDR_SIZE_SHIFT 0
-+#define RCV_HDR_TAIL (RXE + 0x000000300000)
-+#define RCV_HDR_TAIL_ADDR (RXE + 0x000000100048)
-+#define RCV_KEY_CTRL (RXE + 0x000000100020)
-+#define RCV_KEY_CTRL_JOB_KEY_ENABLE_SMASK 0x200000000ull
-+#define RCV_KEY_CTRL_JOB_KEY_VALUE_MASK 0xFFFFull
-+#define RCV_KEY_CTRL_JOB_KEY_VALUE_SHIFT 0
-+#define RCV_MULTICAST (RXE + 0x000000000030)
-+#define RCV_PARTITION_KEY (RXE + 0x000000000200)
-+#define RCV_PARTITION_KEY_PARTITION_KEY_A_MASK 0xFFFFull
-+#define RCV_PARTITION_KEY_PARTITION_KEY_B_SHIFT 16
-+#define RCV_QP_MAP_TABLE (RXE + 0x000000000100)
-+#define RCV_RSM_CFG (RXE + 0x000000000600)
-+#define RCV_RSM_CFG_ENABLE_OR_CHAIN_RSM0_MASK 0x1ull
-+#define RCV_RSM_CFG_ENABLE_OR_CHAIN_RSM0_SHIFT 0
-+#define RCV_RSM_CFG_PACKET_TYPE_SHIFT 60
-+#define RCV_RSM_CFG_OFFSET_SHIFT 32
-+#define RCV_RSM_MAP_TABLE (RXE + 0x000000000900)
-+#define RCV_RSM_MAP_TABLE_RCV_CONTEXT_A_MASK 0xFFull
-+#define RCV_RSM_MATCH (RXE + 0x000000000800)
-+#define RCV_RSM_MATCH_MASK1_SHIFT 0
-+#define RCV_RSM_MATCH_MASK2_SHIFT 16
-+#define RCV_RSM_MATCH_VALUE1_SHIFT 8
-+#define RCV_RSM_MATCH_VALUE2_SHIFT 24
-+#define RCV_RSM_SELECT (RXE + 0x000000000700)
-+#define RCV_RSM_SELECT_FIELD1_OFFSET_SHIFT 0
-+#define RCV_RSM_SELECT_FIELD2_OFFSET_SHIFT 16
-+#define RCV_RSM_SELECT_INDEX1_OFFSET_SHIFT 32
-+#define RCV_RSM_SELECT_INDEX1_WIDTH_SHIFT 44
-+#define RCV_RSM_SELECT_INDEX2_OFFSET_SHIFT 48
-+#define RCV_RSM_SELECT_INDEX2_WIDTH_SHIFT 60
-+#define RCV_STATUS (RXE + 0x000000000008)
-+#define RCV_STATUS_RX_PKT_IN_PROGRESS_SMASK 0x1ull
-+#define RCV_STATUS_RX_RBUF_INIT_DONE_SMASK 0x200ull
-+#define RCV_STATUS_RX_RBUF_PKT_PENDING_SMASK 0x40ull
-+#define RCV_TID_CTRL (RXE + 0x000000100018)
-+#define RCV_TID_CTRL_TID_BASE_INDEX_MASK 0x1FFFull
-+#define RCV_TID_CTRL_TID_BASE_INDEX_SHIFT 0
-+#define RCV_TID_CTRL_TID_PAIR_CNT_MASK 0x1FFull
-+#define RCV_TID_CTRL_TID_PAIR_CNT_SHIFT 32
-+#define RCV_TID_FLOW_TABLE (RXE + 0x000000300800)
-+#define RCV_VL15 (RXE + 0x000000000048)
-+#define SEND_BTH_QP (TXE + 0x0000000000A0)
-+#define SEND_BTH_QP_KDETH_QP_MASK 0xFFull
-+#define SEND_BTH_QP_KDETH_QP_SHIFT 16
-+#define SEND_CM_CREDIT_USED_STATUS (TXE + 0x000000000510)
-+#define SEND_CM_CREDIT_USED_STATUS_VL0_RETURN_CREDIT_STATUS_SMASK \
-+		0x1000000000000ull
-+#define SEND_CM_CREDIT_USED_STATUS_VL15_RETURN_CREDIT_STATUS_SMASK \
-+		0x8000000000000000ull
-+#define SEND_CM_CREDIT_USED_STATUS_VL1_RETURN_CREDIT_STATUS_SMASK \
-+		0x2000000000000ull
-+#define SEND_CM_CREDIT_USED_STATUS_VL2_RETURN_CREDIT_STATUS_SMASK \
-+		0x4000000000000ull
-+#define SEND_CM_CREDIT_USED_STATUS_VL3_RETURN_CREDIT_STATUS_SMASK \
-+		0x8000000000000ull
-+#define SEND_CM_CREDIT_USED_STATUS_VL4_RETURN_CREDIT_STATUS_SMASK \
-+		0x10000000000000ull
-+#define SEND_CM_CREDIT_USED_STATUS_VL5_RETURN_CREDIT_STATUS_SMASK \
-+		0x20000000000000ull
-+#define SEND_CM_CREDIT_USED_STATUS_VL6_RETURN_CREDIT_STATUS_SMASK \
-+		0x40000000000000ull
-+#define SEND_CM_CREDIT_USED_STATUS_VL7_RETURN_CREDIT_STATUS_SMASK \
-+		0x80000000000000ull
-+#define SEND_CM_CREDIT_VL (TXE + 0x000000000600)
-+#define SEND_CM_CREDIT_VL15 (TXE + 0x000000000678)
-+#define SEND_CM_CREDIT_VL15_DEDICATED_LIMIT_VL_SHIFT 0
-+#define SEND_CM_CREDIT_VL_DEDICATED_LIMIT_VL_MASK 0xFFFFull
-+#define SEND_CM_CREDIT_VL_DEDICATED_LIMIT_VL_SHIFT 0
-+#define SEND_CM_CREDIT_VL_DEDICATED_LIMIT_VL_SMASK 0xFFFFull
-+#define SEND_CM_CREDIT_VL_SHARED_LIMIT_VL_MASK 0xFFFFull
-+#define SEND_CM_CREDIT_VL_SHARED_LIMIT_VL_SHIFT 16
-+#define SEND_CM_CREDIT_VL_SHARED_LIMIT_VL_SMASK 0xFFFF0000ull
-+#define SEND_CM_CTRL (TXE + 0x000000000500)
-+#define SEND_CM_CTRL_FORCE_CREDIT_MODE_SMASK 0x8ull
-+#define SEND_CM_CTRL_RESETCSR 0x0000000000000020ull
-+#define SEND_CM_GLOBAL_CREDIT (TXE + 0x000000000508)
-+#define SEND_CM_GLOBAL_CREDIT_AU_MASK 0x7ull
-+#define SEND_CM_GLOBAL_CREDIT_AU_SHIFT 16
-+#define SEND_CM_GLOBAL_CREDIT_AU_SMASK 0x70000ull
-+#define SEND_CM_GLOBAL_CREDIT_RESETCSR 0x0000094000030000ull
-+#define SEND_CM_GLOBAL_CREDIT_SHARED_LIMIT_MASK 0xFFFFull
-+#define SEND_CM_GLOBAL_CREDIT_SHARED_LIMIT_SHIFT 0
-+#define SEND_CM_GLOBAL_CREDIT_SHARED_LIMIT_SMASK 0xFFFFull
-+#define SEND_CM_GLOBAL_CREDIT_TOTAL_CREDIT_LIMIT_MASK 0xFFFFull
-+#define SEND_CM_GLOBAL_CREDIT_TOTAL_CREDIT_LIMIT_SHIFT 32
-+#define SEND_CM_GLOBAL_CREDIT_TOTAL_CREDIT_LIMIT_SMASK 0xFFFF00000000ull
-+#define SEND_CM_LOCAL_AU_TABLE0_TO3 (TXE + 0x000000000520)
-+#define SEND_CM_LOCAL_AU_TABLE0_TO3_LOCAL_AU_TABLE0_SHIFT 0
-+#define SEND_CM_LOCAL_AU_TABLE0_TO3_LOCAL_AU_TABLE1_SHIFT 16
-+#define SEND_CM_LOCAL_AU_TABLE0_TO3_LOCAL_AU_TABLE2_SHIFT 32
-+#define SEND_CM_LOCAL_AU_TABLE0_TO3_LOCAL_AU_TABLE3_SHIFT 48
-+#define SEND_CM_LOCAL_AU_TABLE4_TO7 (TXE + 0x000000000528)
-+#define SEND_CM_LOCAL_AU_TABLE4_TO7_LOCAL_AU_TABLE4_SHIFT 0
-+#define SEND_CM_LOCAL_AU_TABLE4_TO7_LOCAL_AU_TABLE5_SHIFT 16
-+#define SEND_CM_LOCAL_AU_TABLE4_TO7_LOCAL_AU_TABLE6_SHIFT 32
-+#define SEND_CM_LOCAL_AU_TABLE4_TO7_LOCAL_AU_TABLE7_SHIFT 48
-+#define SEND_CM_REMOTE_AU_TABLE0_TO3 (TXE + 0x000000000530)
-+#define SEND_CM_REMOTE_AU_TABLE4_TO7 (TXE + 0x000000000538)
-+#define SEND_CM_TIMER_CTRL (TXE + 0x000000000518)
-+#define SEND_CONTEXTS (TXE + 0x000000000010)
-+#define SEND_CONTEXT_SET_CTRL (TXE + 0x000000000200)
-+#define SEND_COUNTER_ARRAY32 (TXE + 0x000000000300)
-+#define SEND_COUNTER_ARRAY64 (TXE + 0x000000000400)
-+#define SEND_CTRL (TXE + 0x000000000000)
-+#define SEND_CTRL_CM_RESET_SMASK 0x4ull
-+#define SEND_CTRL_SEND_ENABLE_SMASK 0x1ull
-+#define SEND_CTRL_UNSUPPORTED_VL_SHIFT 3
-+#define SEND_CTRL_UNSUPPORTED_VL_MASK 0xFFull
-+#define SEND_CTRL_UNSUPPORTED_VL_SMASK (SEND_CTRL_UNSUPPORTED_VL_MASK \
-+		<< SEND_CTRL_UNSUPPORTED_VL_SHIFT)
-+#define SEND_CTRL_VL_ARBITER_ENABLE_SMASK 0x2ull
-+#define SEND_CTXT_CHECK_ENABLE (TXE + 0x000000100080)
-+#define SEND_CTXT_CHECK_ENABLE_CHECK_BYPASS_VL_MAPPING_SMASK 0x80ull
-+#define SEND_CTXT_CHECK_ENABLE_CHECK_ENABLE_SMASK 0x1ull
-+#define SEND_CTXT_CHECK_ENABLE_CHECK_JOB_KEY_SMASK 0x4ull
-+#define SEND_CTXT_CHECK_ENABLE_CHECK_OPCODE_SMASK 0x20ull
-+#define SEND_CTXT_CHECK_ENABLE_CHECK_PARTITION_KEY_SMASK 0x8ull
-+#define SEND_CTXT_CHECK_ENABLE_CHECK_SLID_SMASK 0x10ull
-+#define SEND_CTXT_CHECK_ENABLE_CHECK_VL_MAPPING_SMASK 0x40ull
-+#define SEND_CTXT_CHECK_ENABLE_CHECK_VL_SMASK 0x2ull
-+#define SEND_CTXT_CHECK_ENABLE_DISALLOW_BAD_PKT_LEN_SMASK 0x20000ull
-+#define SEND_CTXT_CHECK_ENABLE_DISALLOW_BYPASS_BAD_PKT_LEN_SMASK \
-+		0x200000ull
-+#define SEND_CTXT_CHECK_ENABLE_DISALLOW_BYPASS_SMASK 0x800ull
-+#define SEND_CTXT_CHECK_ENABLE_DISALLOW_GRH_SMASK 0x400ull
-+#define SEND_CTXT_CHECK_ENABLE_DISALLOW_KDETH_PACKETS_SMASK 0x1000ull
-+#define SEND_CTXT_CHECK_ENABLE_DISALLOW_NON_KDETH_PACKETS_SMASK 0x2000ull
-+#define SEND_CTXT_CHECK_ENABLE_DISALLOW_PBC_STATIC_RATE_CONTROL_SMASK \
-+		0x100000ull
-+#define SEND_CTXT_CHECK_ENABLE_DISALLOW_PBC_TEST_SMASK 0x10000ull
-+#define SEND_CTXT_CHECK_ENABLE_DISALLOW_RAW_IPV6_SMASK 0x200ull
-+#define SEND_CTXT_CHECK_ENABLE_DISALLOW_RAW_SMASK 0x100ull
-+#define SEND_CTXT_CHECK_ENABLE_DISALLOW_TOO_LONG_BYPASS_PACKETS_SMASK \
-+		0x80000ull
-+#define SEND_CTXT_CHECK_ENABLE_DISALLOW_TOO_LONG_IB_PACKETS_SMASK \
-+		0x40000ull
-+#define SEND_CTXT_CHECK_ENABLE_DISALLOW_TOO_SMALL_BYPASS_PACKETS_SMASK \
-+		0x8000ull
-+#define SEND_CTXT_CHECK_ENABLE_DISALLOW_TOO_SMALL_IB_PACKETS_SMASK \
-+		0x4000ull
-+#define SEND_CTXT_CHECK_JOB_KEY (TXE + 0x000000100090)
-+#define SEND_CTXT_CHECK_JOB_KEY_ALLOW_PERMISSIVE_SMASK 0x100000000ull
-+#define SEND_CTXT_CHECK_JOB_KEY_MASK_SMASK 0xFFFF0000ull
-+#define SEND_CTXT_CHECK_JOB_KEY_VALUE_MASK 0xFFFFull
-+#define SEND_CTXT_CHECK_JOB_KEY_VALUE_SHIFT 0
-+#define SEND_CTXT_CHECK_OPCODE (TXE + 0x0000001000A8)
-+#define SEND_CTXT_CHECK_OPCODE_MASK_SHIFT 8
-+#define SEND_CTXT_CHECK_OPCODE_VALUE_SHIFT 0
-+#define SEND_CTXT_CHECK_PARTITION_KEY (TXE + 0x000000100098)
-+#define SEND_CTXT_CHECK_PARTITION_KEY_VALUE_MASK 0xFFFFull
-+#define SEND_CTXT_CHECK_PARTITION_KEY_VALUE_SHIFT 0
-+#define SEND_CTXT_CHECK_SLID (TXE + 0x0000001000A0)
-+#define SEND_CTXT_CHECK_SLID_MASK_MASK 0xFFFFull
-+#define SEND_CTXT_CHECK_SLID_MASK_SHIFT 16
-+#define SEND_CTXT_CHECK_SLID_VALUE_MASK 0xFFFFull
-+#define SEND_CTXT_CHECK_SLID_VALUE_SHIFT 0
-+#define SEND_CTXT_CHECK_VL (TXE + 0x000000100088)
-+#define SEND_CTXT_CREDIT_CTRL (TXE + 0x000000100010)
-+#define SEND_CTXT_CREDIT_CTRL_CREDIT_INTR_SMASK 0x20000ull
-+#define SEND_CTXT_CREDIT_CTRL_EARLY_RETURN_SMASK 0x10000ull
-+#define SEND_CTXT_CREDIT_CTRL_THRESHOLD_MASK 0x7FFull
-+#define SEND_CTXT_CREDIT_CTRL_THRESHOLD_SHIFT 0
-+#define SEND_CTXT_CREDIT_CTRL_THRESHOLD_SMASK 0x7FFull
-+#define SEND_CTXT_CREDIT_STATUS (TXE + 0x000000100018)
-+#define SEND_CTXT_CREDIT_STATUS_CURRENT_FREE_COUNTER_MASK 0x7FFull
-+#define SEND_CTXT_CREDIT_STATUS_CURRENT_FREE_COUNTER_SHIFT 32
-+#define SEND_CTXT_CREDIT_STATUS_LAST_RETURNED_COUNTER_SMASK 0x7FFull
-+#define SEND_CTXT_CREDIT_FORCE (TXE + 0x000000100028)
-+#define SEND_CTXT_CREDIT_FORCE_FORCE_RETURN_SMASK 0x1ull
-+#define SEND_CTXT_CREDIT_RETURN_ADDR (TXE + 0x000000100020)
-+#define SEND_CTXT_CREDIT_RETURN_ADDR_ADDRESS_SMASK 0xFFFFFFFFFFC0ull
-+#define SEND_CTXT_CTRL (TXE + 0x000000100000)
-+#define SEND_CTXT_CTRL_CTXT_BASE_MASK 0x3FFFull
-+#define SEND_CTXT_CTRL_CTXT_BASE_SHIFT 32
-+#define SEND_CTXT_CTRL_CTXT_DEPTH_MASK 0x7FFull
-+#define SEND_CTXT_CTRL_CTXT_DEPTH_SHIFT 48
-+#define SEND_CTXT_CTRL_CTXT_ENABLE_SMASK 0x1ull
-+#define SEND_CTXT_ERR_CLEAR (TXE + 0x000000100050)
-+#define SEND_CTXT_ERR_MASK (TXE + 0x000000100048)
-+#define SEND_CTXT_ERR_STATUS (TXE + 0x000000100040)
-+#define SEND_CTXT_ERR_STATUS_PIO_DISALLOWED_PACKET_ERR_SMASK 0x2ull
-+#define SEND_CTXT_ERR_STATUS_PIO_INCONSISTENT_SOP_ERR_SMASK 0x1ull
-+#define SEND_CTXT_ERR_STATUS_PIO_WRITE_CROSSES_BOUNDARY_ERR_SMASK 0x4ull
-+#define SEND_CTXT_ERR_STATUS_PIO_WRITE_OUT_OF_BOUNDS_ERR_SMASK 0x10ull
-+#define SEND_CTXT_ERR_STATUS_PIO_WRITE_OVERFLOW_ERR_SMASK 0x8ull
-+#define SEND_CTXT_STATUS (TXE + 0x000000100008)
-+#define SEND_CTXT_STATUS_CTXT_HALTED_SMASK 0x1ull
-+#define SEND_DMA_BASE_ADDR (TXE + 0x000000200010)
-+#define SEND_DMA_CHECK_ENABLE (TXE + 0x000000200080)
-+#define SEND_DMA_CHECK_ENABLE_CHECK_BYPASS_VL_MAPPING_SMASK 0x80ull
-+#define SEND_DMA_CHECK_ENABLE_CHECK_ENABLE_SMASK 0x1ull
-+#define SEND_DMA_CHECK_ENABLE_CHECK_JOB_KEY_SMASK 0x4ull
-+#define SEND_DMA_CHECK_ENABLE_CHECK_OPCODE_SMASK 0x20ull
-+#define SEND_DMA_CHECK_ENABLE_CHECK_PARTITION_KEY_SMASK 0x8ull
-+#define SEND_DMA_CHECK_ENABLE_CHECK_SLID_SMASK 0x10ull
-+#define SEND_DMA_CHECK_ENABLE_CHECK_VL_MAPPING_SMASK 0x40ull
-+#define SEND_DMA_CHECK_ENABLE_CHECK_VL_SMASK 0x2ull
-+#define SEND_DMA_CHECK_ENABLE_DISALLOW_BAD_PKT_LEN_SMASK 0x20000ull
-+#define SEND_DMA_CHECK_ENABLE_DISALLOW_BYPASS_BAD_PKT_LEN_SMASK 0x200000ull
-+#define SEND_DMA_CHECK_ENABLE_DISALLOW_PBC_STATIC_RATE_CONTROL_SMASK \
-+		0x100000ull
-+#define SEND_DMA_CHECK_ENABLE_DISALLOW_RAW_IPV6_SMASK 0x200ull
-+#define SEND_DMA_CHECK_ENABLE_DISALLOW_RAW_SMASK 0x100ull
-+#define SEND_DMA_CHECK_ENABLE_DISALLOW_TOO_LONG_BYPASS_PACKETS_SMASK \
-+		0x80000ull
-+#define SEND_DMA_CHECK_ENABLE_DISALLOW_TOO_LONG_IB_PACKETS_SMASK 0x40000ull
-+#define SEND_DMA_CHECK_ENABLE_DISALLOW_TOO_SMALL_BYPASS_PACKETS_SMASK \
-+		0x8000ull
-+#define SEND_DMA_CHECK_ENABLE_DISALLOW_TOO_SMALL_IB_PACKETS_SMASK 0x4000ull
-+#define SEND_DMA_CHECK_JOB_KEY (TXE + 0x000000200090)
-+#define SEND_DMA_CHECK_OPCODE (TXE + 0x0000002000A8)
-+#define SEND_DMA_CHECK_PARTITION_KEY (TXE + 0x000000200098)
-+#define SEND_DMA_CHECK_SLID (TXE + 0x0000002000A0)
-+#define SEND_DMA_CHECK_SLID_MASK_MASK 0xFFFFull
-+#define SEND_DMA_CHECK_SLID_MASK_SHIFT 16
-+#define SEND_DMA_CHECK_SLID_VALUE_MASK 0xFFFFull
-+#define SEND_DMA_CHECK_SLID_VALUE_SHIFT 0
-+#define SEND_DMA_CHECK_VL (TXE + 0x000000200088)
-+#define SEND_DMA_CTRL (TXE + 0x000000200000)
-+#define SEND_DMA_CTRL_SDMA_CLEANUP_SMASK 0x4ull
-+#define SEND_DMA_CTRL_SDMA_ENABLE_SMASK 0x1ull
-+#define SEND_DMA_CTRL_SDMA_HALT_SMASK 0x2ull
-+#define SEND_DMA_CTRL_SDMA_INT_ENABLE_SMASK 0x8ull
-+#define SEND_DMA_DESC_CNT (TXE + 0x000000200050)
-+#define SEND_DMA_DESC_CNT_CNT_MASK 0xFFFFull
-+#define SEND_DMA_DESC_CNT_CNT_SHIFT 0
-+#define SEND_DMA_ENG_ERR_CLEAR (TXE + 0x000000200070)
-+#define SEND_DMA_ENG_ERR_CLEAR_SDMA_HEADER_REQUEST_FIFO_UNC_ERR_MASK 0x1ull
-+#define SEND_DMA_ENG_ERR_CLEAR_SDMA_HEADER_REQUEST_FIFO_UNC_ERR_SHIFT 18
-+#define SEND_DMA_ENG_ERR_MASK (TXE + 0x000000200068)
-+#define SEND_DMA_ENG_ERR_STATUS (TXE + 0x000000200060)
-+#define SEND_DMA_ENG_ERR_STATUS_SDMA_ASSEMBLY_UNC_ERR_SMASK 0x8000ull
-+#define SEND_DMA_ENG_ERR_STATUS_SDMA_DESC_TABLE_UNC_ERR_SMASK 0x4000ull
-+#define SEND_DMA_ENG_ERR_STATUS_SDMA_FIRST_DESC_ERR_SMASK 0x10ull
-+#define SEND_DMA_ENG_ERR_STATUS_SDMA_GEN_MISMATCH_ERR_SMASK 0x2ull
-+#define SEND_DMA_ENG_ERR_STATUS_SDMA_HALT_ERR_SMASK 0x40ull
-+#define SEND_DMA_ENG_ERR_STATUS_SDMA_HEADER_ADDRESS_ERR_SMASK 0x800ull
-+#define SEND_DMA_ENG_ERR_STATUS_SDMA_HEADER_LENGTH_ERR_SMASK 0x1000ull
-+#define SEND_DMA_ENG_ERR_STATUS_SDMA_HEADER_REQUEST_FIFO_UNC_ERR_SMASK \
-+		0x40000ull
-+#define SEND_DMA_ENG_ERR_STATUS_SDMA_HEADER_SELECT_ERR_SMASK 0x400ull
-+#define SEND_DMA_ENG_ERR_STATUS_SDMA_HEADER_STORAGE_UNC_ERR_SMASK \
-+		0x20000ull
-+#define SEND_DMA_ENG_ERR_STATUS_SDMA_LENGTH_MISMATCH_ERR_SMASK 0x80ull
-+#define SEND_DMA_ENG_ERR_STATUS_SDMA_MEM_READ_ERR_SMASK 0x20ull
-+#define SEND_DMA_ENG_ERR_STATUS_SDMA_PACKET_DESC_OVERFLOW_ERR_SMASK \
-+		0x100ull
-+#define SEND_DMA_ENG_ERR_STATUS_SDMA_PACKET_TRACKING_UNC_ERR_SMASK \
-+		0x10000ull
-+#define SEND_DMA_ENG_ERR_STATUS_SDMA_TAIL_OUT_OF_BOUNDS_ERR_SMASK 0x8ull
-+#define SEND_DMA_ENG_ERR_STATUS_SDMA_TIMEOUT_ERR_SMASK 0x2000ull
-+#define SEND_DMA_ENG_ERR_STATUS_SDMA_TOO_LONG_ERR_SMASK 0x4ull
-+#define SEND_DMA_ENG_ERR_STATUS_SDMA_WRONG_DW_ERR_SMASK 0x1ull
-+#define SEND_DMA_ENGINES (TXE + 0x000000000018)
-+#define SEND_DMA_ERR_CLEAR (TXE + 0x000000000070)
-+#define SEND_DMA_ERR_MASK (TXE + 0x000000000068)
-+#define SEND_DMA_ERR_STATUS (TXE + 0x000000000060)
-+#define SEND_DMA_ERR_STATUS_SDMA_CSR_PARITY_ERR_SMASK 0x2ull
-+#define SEND_DMA_ERR_STATUS_SDMA_PCIE_REQ_TRACKING_COR_ERR_SMASK 0x8ull
-+#define SEND_DMA_ERR_STATUS_SDMA_PCIE_REQ_TRACKING_UNC_ERR_SMASK 0x4ull
-+#define SEND_DMA_ERR_STATUS_SDMA_RPY_TAG_ERR_SMASK 0x1ull
-+#define SEND_DMA_HEAD (TXE + 0x000000200028)
-+#define SEND_DMA_HEAD_ADDR (TXE + 0x000000200030)
-+#define SEND_DMA_LEN_GEN (TXE + 0x000000200018)
-+#define SEND_DMA_LEN_GEN_GENERATION_SHIFT 16
-+#define SEND_DMA_LEN_GEN_LENGTH_SHIFT 6
-+#define SEND_DMA_MEMORY (TXE + 0x0000002000B0)
-+#define SEND_DMA_MEMORY_SDMA_MEMORY_CNT_SHIFT 16
-+#define SEND_DMA_MEMORY_SDMA_MEMORY_INDEX_SHIFT 0
-+#define SEND_DMA_MEM_SIZE (TXE + 0x000000000028)
-+#define SEND_DMA_PRIORITY_THLD (TXE + 0x000000200038)
-+#define SEND_DMA_RELOAD_CNT (TXE + 0x000000200048)
-+#define SEND_DMA_STATUS (TXE + 0x000000200008)
-+#define SEND_DMA_STATUS_ENG_CLEANED_UP_SMASK 0x200000000000000ull
-+#define SEND_DMA_STATUS_ENG_HALTED_SMASK 0x100000000000000ull
-+#define SEND_DMA_TAIL (TXE + 0x000000200020)
-+#define SEND_EGRESS_CTXT_STATUS (TXE + 0x000000000800)
-+#define SEND_EGRESS_CTXT_STATUS_CTXT_EGRESS_HALT_STATUS_SMASK 0x10000ull
-+#define SEND_EGRESS_CTXT_STATUS_CTXT_EGRESS_PACKET_OCCUPANCY_SHIFT 0
-+#define SEND_EGRESS_CTXT_STATUS_CTXT_EGRESS_PACKET_OCCUPANCY_SMASK \
-+		0x3FFFull
-+#define SEND_EGRESS_ERR_CLEAR (TXE + 0x000000000090)
-+#define SEND_EGRESS_ERR_INFO (TXE + 0x000000000F00)
-+#define SEND_EGRESS_ERR_INFO_BAD_PKT_LEN_ERR_SMASK 0x20000ull
-+#define SEND_EGRESS_ERR_INFO_BYPASS_ERR_SMASK 0x800ull
-+#define SEND_EGRESS_ERR_INFO_GRH_ERR_SMASK 0x400ull
-+#define SEND_EGRESS_ERR_INFO_JOB_KEY_ERR_SMASK 0x4ull
-+#define SEND_EGRESS_ERR_INFO_KDETH_PACKETS_ERR_SMASK 0x1000ull
-+#define SEND_EGRESS_ERR_INFO_NON_KDETH_PACKETS_ERR_SMASK 0x2000ull
-+#define SEND_EGRESS_ERR_INFO_OPCODE_ERR_SMASK 0x20ull
-+#define SEND_EGRESS_ERR_INFO_PARTITION_KEY_ERR_SMASK 0x8ull
-+#define SEND_EGRESS_ERR_INFO_PBC_STATIC_RATE_CONTROL_ERR_SMASK 0x100000ull
-+#define SEND_EGRESS_ERR_INFO_PBC_TEST_ERR_SMASK 0x10000ull
-+#define SEND_EGRESS_ERR_INFO_RAW_ERR_SMASK 0x100ull
-+#define SEND_EGRESS_ERR_INFO_RAW_IPV6_ERR_SMASK 0x200ull
-+#define SEND_EGRESS_ERR_INFO_SLID_ERR_SMASK 0x10ull
-+#define SEND_EGRESS_ERR_INFO_TOO_LONG_BYPASS_PACKETS_ERR_SMASK 0x80000ull
-+#define SEND_EGRESS_ERR_INFO_TOO_LONG_IB_PACKET_ERR_SMASK 0x40000ull
-+#define SEND_EGRESS_ERR_INFO_TOO_SMALL_BYPASS_PACKETS_ERR_SMASK 0x8000ull
-+#define SEND_EGRESS_ERR_INFO_TOO_SMALL_IB_PACKETS_ERR_SMASK 0x4000ull
-+#define SEND_EGRESS_ERR_INFO_VL_ERR_SMASK 0x2ull
-+#define SEND_EGRESS_ERR_INFO_VL_MAPPING_ERR_SMASK 0x40ull
-+#define SEND_EGRESS_ERR_MASK (TXE + 0x000000000088)
-+#define SEND_EGRESS_ERR_SOURCE (TXE + 0x000000000F08)
-+#define SEND_EGRESS_ERR_STATUS (TXE + 0x000000000080)
-+#define SEND_EGRESS_ERR_STATUS_TX_CONFIG_PARITY_ERR_SMASK 0x8000ull
-+#define SEND_EGRESS_ERR_STATUS_TX_CREDIT_OVERRUN_ERR_SMASK \
-+		0x200000000000000ull
-+#define SEND_EGRESS_ERR_STATUS_TX_CREDIT_RETURN_PARITY_ERR_SMASK \
-+		0x20000000000ull
-+#define SEND_EGRESS_ERR_STATUS_TX_CREDIT_RETURN_VL_ERR_SMASK \
-+		0x800000000000ull
-+#define SEND_EGRESS_ERR_STATUS_TX_EGRESS_FIFO_COR_ERR_SMASK \
-+		0x2000000000000000ull
-+#define SEND_EGRESS_ERR_STATUS_TX_EGRESS_FIFO_UNC_ERR_SMASK \
-+		0x200000000000ull
-+#define SEND_EGRESS_ERR_STATUS_TX_EGRESS_FIFO_UNDERRUN_OR_PARITY_ERR_SMASK \
-+		0x8ull
-+#define SEND_EGRESS_ERR_STATUS_TX_HCRC_INSERTION_ERR_SMASK \
-+		0x400000000000ull
-+#define SEND_EGRESS_ERR_STATUS_TX_ILLEGAL_VL_ERR_SMASK 0x1000ull
-+#define SEND_EGRESS_ERR_STATUS_TX_INCORRECT_LINK_STATE_ERR_SMASK 0x20ull
-+#define SEND_EGRESS_ERR_STATUS_TX_LAUNCH_CSR_PARITY_ERR_SMASK 0x2000ull
-+#define SEND_EGRESS_ERR_STATUS_TX_LAUNCH_FIFO0_COR_ERR_SMASK \
-+		0x1000000000000ull
-+#define SEND_EGRESS_ERR_STATUS_TX_LAUNCH_FIFO0_UNC_OR_PARITY_ERR_SMASK \
-+		0x100000000ull
-+#define SEND_EGRESS_ERR_STATUS_TX_LAUNCH_FIFO1_COR_ERR_SMASK \
-+		0x2000000000000ull
-+#define SEND_EGRESS_ERR_STATUS_TX_LAUNCH_FIFO1_UNC_OR_PARITY_ERR_SMASK \
-+		0x200000000ull
-+#define SEND_EGRESS_ERR_STATUS_TX_LAUNCH_FIFO2_COR_ERR_SMASK \
-+		0x4000000000000ull
-+#define SEND_EGRESS_ERR_STATUS_TX_LAUNCH_FIFO2_UNC_OR_PARITY_ERR_SMASK \
-+		0x400000000ull
-+#define SEND_EGRESS_ERR_STATUS_TX_LAUNCH_FIFO3_COR_ERR_SMASK \
-+		0x8000000000000ull
-+#define SEND_EGRESS_ERR_STATUS_TX_LAUNCH_FIFO3_UNC_OR_PARITY_ERR_SMASK \
-+		0x800000000ull
-+#define SEND_EGRESS_ERR_STATUS_TX_LAUNCH_FIFO4_COR_ERR_SMASK \
-+		0x10000000000000ull
-+#define SEND_EGRESS_ERR_STATUS_TX_LAUNCH_FIFO4_UNC_OR_PARITY_ERR_SMASK \
-+		0x1000000000ull
-+#define SEND_EGRESS_ERR_STATUS_TX_LAUNCH_FIFO5_COR_ERR_SMASK \
-+		0x20000000000000ull
-+#define SEND_EGRESS_ERR_STATUS_TX_LAUNCH_FIFO5_UNC_OR_PARITY_ERR_SMASK \
-+		0x2000000000ull
-+#define SEND_EGRESS_ERR_STATUS_TX_LAUNCH_FIFO6_COR_ERR_SMASK \
-+		0x40000000000000ull
-+#define SEND_EGRESS_ERR_STATUS_TX_LAUNCH_FIFO6_UNC_OR_PARITY_ERR_SMASK \
-+		0x4000000000ull
-+#define SEND_EGRESS_ERR_STATUS_TX_LAUNCH_FIFO7_COR_ERR_SMASK \
-+		0x80000000000000ull
-+#define SEND_EGRESS_ERR_STATUS_TX_LAUNCH_FIFO7_UNC_OR_PARITY_ERR_SMASK \
-+		0x8000000000ull
-+#define SEND_EGRESS_ERR_STATUS_TX_LAUNCH_FIFO8_COR_ERR_SMASK \
-+		0x100000000000000ull
-+#define SEND_EGRESS_ERR_STATUS_TX_LAUNCH_FIFO8_UNC_OR_PARITY_ERR_SMASK \
-+		0x10000000000ull
-+#define SEND_EGRESS_ERR_STATUS_TX_LINKDOWN_ERR_SMASK 0x10ull
-+#define SEND_EGRESS_ERR_STATUS_TX_PIO_LAUNCH_INTF_PARITY_ERR_SMASK 0x80ull
-+#define SEND_EGRESS_ERR_STATUS_TX_PKT_INTEGRITY_MEM_COR_ERR_SMASK 0x1ull
-+#define SEND_EGRESS_ERR_STATUS_TX_PKT_INTEGRITY_MEM_UNC_ERR_SMASK 0x2ull
-+#define SEND_EGRESS_ERR_STATUS_TX_READ_PIO_MEMORY_COR_ERR_SMASK \
-+		0x1000000000000000ull
-+#define SEND_EGRESS_ERR_STATUS_TX_READ_PIO_MEMORY_CSR_UNC_ERR_SMASK \
-+		0x8000000000000000ull
-+#define SEND_EGRESS_ERR_STATUS_TX_READ_PIO_MEMORY_UNC_ERR_SMASK \
-+		0x100000000000ull
-+#define SEND_EGRESS_ERR_STATUS_TX_READ_SDMA_MEMORY_COR_ERR_SMASK \
-+		0x800000000000000ull
-+#define SEND_EGRESS_ERR_STATUS_TX_READ_SDMA_MEMORY_CSR_UNC_ERR_SMASK \
-+		0x4000000000000000ull
-+#define SEND_EGRESS_ERR_STATUS_TX_READ_SDMA_MEMORY_UNC_ERR_SMASK \
-+		0x80000000000ull
-+#define SEND_EGRESS_ERR_STATUS_TX_SB_HDR_COR_ERR_SMASK 0x400000000000000ull
-+#define SEND_EGRESS_ERR_STATUS_TX_SB_HDR_UNC_ERR_SMASK 0x40000000000ull
-+#define SEND_EGRESS_ERR_STATUS_TX_SBRD_CTL_CSR_PARITY_ERR_SMASK 0x4000ull
-+#define SEND_EGRESS_ERR_STATUS_TX_SBRD_CTL_STATE_MACHINE_PARITY_ERR_SMASK \
-+		0x800ull
-+#define SEND_EGRESS_ERR_STATUS_TX_SDMA0_DISALLOWED_PACKET_ERR_SMASK \
-+		0x10000ull
-+#define SEND_EGRESS_ERR_STATUS_TX_SDMA10_DISALLOWED_PACKET_ERR_SMASK \
-+		0x4000000ull
-+#define SEND_EGRESS_ERR_STATUS_TX_SDMA11_DISALLOWED_PACKET_ERR_SMASK \
-+		0x8000000ull
-+#define SEND_EGRESS_ERR_STATUS_TX_SDMA12_DISALLOWED_PACKET_ERR_SMASK \
-+		0x10000000ull
-+#define SEND_EGRESS_ERR_STATUS_TX_SDMA13_DISALLOWED_PACKET_ERR_SMASK \
-+		0x20000000ull
-+#define SEND_EGRESS_ERR_STATUS_TX_SDMA14_DISALLOWED_PACKET_ERR_SMASK \
-+		0x40000000ull
-+#define SEND_EGRESS_ERR_STATUS_TX_SDMA15_DISALLOWED_PACKET_ERR_SMASK \
-+		0x80000000ull
-+#define SEND_EGRESS_ERR_STATUS_TX_SDMA1_DISALLOWED_PACKET_ERR_SMASK \
-+		0x20000ull
-+#define SEND_EGRESS_ERR_STATUS_TX_SDMA2_DISALLOWED_PACKET_ERR_SMASK \
-+		0x40000ull
-+#define SEND_EGRESS_ERR_STATUS_TX_SDMA3_DISALLOWED_PACKET_ERR_SMASK \
-+		0x80000ull
-+#define SEND_EGRESS_ERR_STATUS_TX_SDMA4_DISALLOWED_PACKET_ERR_SMASK \
-+		0x100000ull
-+#define SEND_EGRESS_ERR_STATUS_TX_SDMA5_DISALLOWED_PACKET_ERR_SMASK \
-+		0x200000ull
-+#define SEND_EGRESS_ERR_STATUS_TX_SDMA6_DISALLOWED_PACKET_ERR_SMASK \
-+		0x400000ull
-+#define SEND_EGRESS_ERR_STATUS_TX_SDMA7_DISALLOWED_PACKET_ERR_SMASK \
-+		0x800000ull
-+#define SEND_EGRESS_ERR_STATUS_TX_SDMA8_DISALLOWED_PACKET_ERR_SMASK \
-+		0x1000000ull
-+#define SEND_EGRESS_ERR_STATUS_TX_SDMA9_DISALLOWED_PACKET_ERR_SMASK \
-+		0x2000000ull
-+#define SEND_EGRESS_ERR_STATUS_TX_SDMA_LAUNCH_INTF_PARITY_ERR_SMASK \
-+		0x100ull
-+#define SEND_EGRESS_SEND_DMA_STATUS (TXE + 0x000000000E00)
-+#define SEND_EGRESS_SEND_DMA_STATUS_SDMA_EGRESS_PACKET_OCCUPANCY_SHIFT 0
-+#define SEND_EGRESS_SEND_DMA_STATUS_SDMA_EGRESS_PACKET_OCCUPANCY_SMASK \
-+		0x3FFFull
-+#define SEND_ERR_CLEAR (TXE + 0x0000000000F0)
-+#define SEND_ERR_MASK (TXE + 0x0000000000E8)
-+#define SEND_ERR_STATUS (TXE + 0x0000000000E0)
-+#define SEND_ERR_STATUS_SEND_CSR_PARITY_ERR_SMASK 0x1ull
-+#define SEND_ERR_STATUS_SEND_CSR_READ_BAD_ADDR_ERR_SMASK 0x2ull
-+#define SEND_ERR_STATUS_SEND_CSR_WRITE_BAD_ADDR_ERR_SMASK 0x4ull
-+#define SEND_HIGH_PRIORITY_LIMIT (TXE + 0x000000000030)
-+#define SEND_HIGH_PRIORITY_LIMIT_LIMIT_MASK 0x3FFFull
-+#define SEND_HIGH_PRIORITY_LIMIT_LIMIT_SHIFT 0
-+#define SEND_HIGH_PRIORITY_LIST (TXE + 0x000000000180)
-+#define SEND_LEN_CHECK0 (TXE + 0x0000000000D0)
-+#define SEND_LEN_CHECK0_LEN_VL0_MASK 0xFFFull
-+#define SEND_LEN_CHECK0_LEN_VL1_SHIFT 12
-+#define SEND_LEN_CHECK1 (TXE + 0x0000000000D8)
-+#define SEND_LEN_CHECK1_LEN_VL15_MASK 0xFFFull
-+#define SEND_LEN_CHECK1_LEN_VL15_SHIFT 48
-+#define SEND_LEN_CHECK1_LEN_VL4_MASK 0xFFFull
-+#define SEND_LEN_CHECK1_LEN_VL5_SHIFT 12
-+#define SEND_LOW_PRIORITY_LIST (TXE + 0x000000000100)
-+#define SEND_LOW_PRIORITY_LIST_VL_MASK 0x7ull
-+#define SEND_LOW_PRIORITY_LIST_VL_SHIFT 16
-+#define SEND_LOW_PRIORITY_LIST_WEIGHT_MASK 0xFFull
-+#define SEND_LOW_PRIORITY_LIST_WEIGHT_SHIFT 0
-+#define SEND_PIO_ERR_CLEAR (TXE + 0x000000000050)
-+#define SEND_PIO_ERR_CLEAR_PIO_INIT_SM_IN_ERR_SMASK 0x20000ull
-+#define SEND_PIO_ERR_MASK (TXE + 0x000000000048)
-+#define SEND_PIO_ERR_STATUS (TXE + 0x000000000040)
-+#define SEND_PIO_ERR_STATUS_PIO_BLOCK_QW_COUNT_PARITY_ERR_SMASK \
-+		0x1000000ull
-+#define SEND_PIO_ERR_STATUS_PIO_CREDIT_RET_FIFO_PARITY_ERR_SMASK 0x8000ull
-+#define SEND_PIO_ERR_STATUS_PIO_CSR_PARITY_ERR_SMASK 0x4ull
-+#define SEND_PIO_ERR_STATUS_PIO_CURRENT_FREE_CNT_PARITY_ERR_SMASK \
-+		0x100000000ull
-+#define SEND_PIO_ERR_STATUS_PIO_HOST_ADDR_MEM_COR_ERR_SMASK 0x100000ull
-+#define SEND_PIO_ERR_STATUS_PIO_HOST_ADDR_MEM_UNC_ERR_SMASK 0x80000ull
-+#define SEND_PIO_ERR_STATUS_PIO_INIT_SM_IN_ERR_SMASK 0x20000ull
-+#define SEND_PIO_ERR_STATUS_PIO_LAST_RETURNED_CNT_PARITY_ERR_SMASK \
-+		0x200000000ull
-+#define SEND_PIO_ERR_STATUS_PIO_PCC_FIFO_PARITY_ERR_SMASK 0x20ull
-+#define SEND_PIO_ERR_STATUS_PIO_PCC_SOP_HEAD_PARITY_ERR_SMASK \
-+		0x400000000ull
-+#define SEND_PIO_ERR_STATUS_PIO_PEC_FIFO_PARITY_ERR_SMASK 0x40ull
-+#define SEND_PIO_ERR_STATUS_PIO_PEC_SOP_HEAD_PARITY_ERR_SMASK \
-+		0x800000000ull
-+#define SEND_PIO_ERR_STATUS_PIO_PKT_EVICT_FIFO_PARITY_ERR_SMASK 0x200ull
-+#define SEND_PIO_ERR_STATUS_PIO_PKT_EVICT_SM_OR_ARB_SM_ERR_SMASK 0x40000ull
-+#define SEND_PIO_ERR_STATUS_PIO_PPMC_BQC_MEM_PARITY_ERR_SMASK 0x10000000ull
-+#define SEND_PIO_ERR_STATUS_PIO_PPMC_PBL_FIFO_ERR_SMASK 0x10000ull
-+#define SEND_PIO_ERR_STATUS_PIO_PPMC_SOP_LEN_ERR_SMASK 0x20000000ull
-+#define SEND_PIO_ERR_STATUS_PIO_SB_MEM_FIFO0_ERR_SMASK 0x8ull
-+#define SEND_PIO_ERR_STATUS_PIO_SB_MEM_FIFO1_ERR_SMASK 0x10ull
-+#define SEND_PIO_ERR_STATUS_PIO_SBRDCTL_CRREL_PARITY_ERR_SMASK 0x80ull
-+#define SEND_PIO_ERR_STATUS_PIO_SBRDCTRL_CRREL_FIFO_PARITY_ERR_SMASK \
-+		0x100ull
-+#define SEND_PIO_ERR_STATUS_PIO_SM_PKT_RESET_PARITY_ERR_SMASK 0x400ull
-+#define SEND_PIO_ERR_STATUS_PIO_STATE_MACHINE_ERR_SMASK 0x400000ull
-+#define SEND_PIO_ERR_STATUS_PIO_VL_FIFO_PARITY_ERR_SMASK 0x8000000ull
-+#define SEND_PIO_ERR_STATUS_PIO_VLF_SOP_PARITY_ERR_SMASK 0x4000000ull
-+#define SEND_PIO_ERR_STATUS_PIO_VLF_VL_LEN_PARITY_ERR_SMASK 0x2000000ull
-+#define SEND_PIO_ERR_STATUS_PIO_VL_LEN_MEM_BANK0_COR_ERR_SMASK 0x2000ull
-+#define SEND_PIO_ERR_STATUS_PIO_VL_LEN_MEM_BANK0_UNC_ERR_SMASK 0x800ull
-+#define SEND_PIO_ERR_STATUS_PIO_VL_LEN_MEM_BANK1_COR_ERR_SMASK 0x4000ull
-+#define SEND_PIO_ERR_STATUS_PIO_VL_LEN_MEM_BANK1_UNC_ERR_SMASK 0x1000ull
-+#define SEND_PIO_ERR_STATUS_PIO_WRITE_ADDR_PARITY_ERR_SMASK 0x2ull
-+#define SEND_PIO_ERR_STATUS_PIO_WRITE_BAD_CTXT_ERR_SMASK 0x1ull
-+#define SEND_PIO_ERR_STATUS_PIO_WRITE_DATA_PARITY_ERR_SMASK 0x200000ull
-+#define SEND_PIO_ERR_STATUS_PIO_WRITE_QW_VALID_PARITY_ERR_SMASK 0x800000ull
-+#define SEND_PIO_INIT_CTXT (TXE + 0x000000000038)
-+#define SEND_PIO_INIT_CTXT_PIO_ALL_CTXT_INIT_SMASK 0x1ull
-+#define SEND_PIO_INIT_CTXT_PIO_CTXT_NUM_MASK 0xFFull
-+#define SEND_PIO_INIT_CTXT_PIO_CTXT_NUM_SHIFT 8
-+#define SEND_PIO_INIT_CTXT_PIO_INIT_ERR_SMASK 0x8ull
-+#define SEND_PIO_INIT_CTXT_PIO_INIT_IN_PROGRESS_SMASK 0x4ull
-+#define SEND_PIO_INIT_CTXT_PIO_SINGLE_CTXT_INIT_SMASK 0x2ull
-+#define SEND_PIO_MEM_SIZE (TXE + 0x000000000020)
-+#define SEND_SC2VLT0 (TXE + 0x0000000000B0)
-+#define SEND_SC2VLT0_SC0_SHIFT 0
-+#define SEND_SC2VLT0_SC1_SHIFT 8
-+#define SEND_SC2VLT0_SC2_SHIFT 16
-+#define SEND_SC2VLT0_SC3_SHIFT 24
-+#define SEND_SC2VLT0_SC4_SHIFT 32
-+#define SEND_SC2VLT0_SC5_SHIFT 40
-+#define SEND_SC2VLT0_SC6_SHIFT 48
-+#define SEND_SC2VLT0_SC7_SHIFT 56
-+#define SEND_SC2VLT1 (TXE + 0x0000000000B8)
-+#define SEND_SC2VLT1_SC10_SHIFT 16
-+#define SEND_SC2VLT1_SC11_SHIFT 24
-+#define SEND_SC2VLT1_SC12_SHIFT 32
-+#define SEND_SC2VLT1_SC13_SHIFT 40
-+#define SEND_SC2VLT1_SC14_SHIFT 48
-+#define SEND_SC2VLT1_SC15_SHIFT 56
-+#define SEND_SC2VLT1_SC8_SHIFT 0
-+#define SEND_SC2VLT1_SC9_SHIFT 8
-+#define SEND_SC2VLT2 (TXE + 0x0000000000C0)
-+#define SEND_SC2VLT2_SC16_SHIFT 0
-+#define SEND_SC2VLT2_SC17_SHIFT 8
-+#define SEND_SC2VLT2_SC18_SHIFT 16
-+#define SEND_SC2VLT2_SC19_SHIFT 24
-+#define SEND_SC2VLT2_SC20_SHIFT 32
-+#define SEND_SC2VLT2_SC21_SHIFT 40
-+#define SEND_SC2VLT2_SC22_SHIFT 48
-+#define SEND_SC2VLT2_SC23_SHIFT 56
-+#define SEND_SC2VLT3 (TXE + 0x0000000000C8)
-+#define SEND_SC2VLT3_SC24_SHIFT 0
-+#define SEND_SC2VLT3_SC25_SHIFT 8
-+#define SEND_SC2VLT3_SC26_SHIFT 16
-+#define SEND_SC2VLT3_SC27_SHIFT 24
-+#define SEND_SC2VLT3_SC28_SHIFT 32
-+#define SEND_SC2VLT3_SC29_SHIFT 40
-+#define SEND_SC2VLT3_SC30_SHIFT 48
-+#define SEND_SC2VLT3_SC31_SHIFT 56
-+#define SEND_STATIC_RATE_CONTROL (TXE + 0x0000000000A8)
-+#define SEND_STATIC_RATE_CONTROL_CSR_SRC_RELOAD_SHIFT 0
-+#define SEND_STATIC_RATE_CONTROL_CSR_SRC_RELOAD_SMASK 0xFFFFull
-+#define PCIE_CFG_REG_PL2 (PCIE + 0x000000000708)
-+#define PCIE_CFG_REG_PL3 (PCIE + 0x00000000070C)
-+#define PCIE_CFG_REG_PL3_L1_ENT_LATENCY_SHIFT 27
-+#define PCIE_CFG_REG_PL3_L1_ENT_LATENCY_SMASK 0x38000000
-+#define PCIE_CFG_REG_PL102 (PCIE + 0x000000000898)
-+#define PCIE_CFG_REG_PL102_GEN3_EQ_POST_CURSOR_PSET_SHIFT 12
-+#define PCIE_CFG_REG_PL102_GEN3_EQ_CURSOR_PSET_SHIFT 6
-+#define PCIE_CFG_REG_PL102_GEN3_EQ_PRE_CURSOR_PSET_SHIFT 0
-+#define PCIE_CFG_REG_PL103 (PCIE + 0x00000000089C)
-+#define PCIE_CFG_REG_PL105 (PCIE + 0x0000000008A4)
-+#define PCIE_CFG_REG_PL105_GEN3_EQ_VIOLATE_COEF_RULES_SMASK 0x1ull
-+#define PCIE_CFG_REG_PL2_LOW_PWR_ENT_CNT_SHIFT 24
-+#define PCIE_CFG_REG_PL100 (PCIE + 0x000000000890)
-+#define PCIE_CFG_REG_PL100_EQ_EIEOS_CNT_SMASK 0x400ull
-+#define PCIE_CFG_REG_PL101 (PCIE + 0x000000000894)
-+#define PCIE_CFG_REG_PL101_GEN3_EQ_LOCAL_FS_SHIFT 6
-+#define PCIE_CFG_REG_PL101_GEN3_EQ_LOCAL_LF_SHIFT 0
-+#define PCIE_CFG_REG_PL106 (PCIE + 0x0000000008A8)
-+#define PCIE_CFG_REG_PL106_GEN3_EQ_PSET_REQ_VEC_SHIFT 8
-+#define PCIE_CFG_REG_PL106_GEN3_EQ_EVAL2MS_DISABLE_SMASK 0x20ull
-+#define PCIE_CFG_REG_PL106_GEN3_EQ_PHASE23_EXIT_MODE_SMASK 0x10ull
-+#define CCE_INT_BLOCKED (CCE + 0x000000110C00)
-+#define SEND_DMA_IDLE_CNT (TXE + 0x000000200040)
-+#define SEND_DMA_DESC_FETCHED_CNT (TXE + 0x000000200058)
-+#define CCE_MSIX_PBA_OFFSET 0X0110000
-+
-+#endif          /* DEF_CHIP_REG */
-diff --git a/drivers/infiniband/hw/hfi2/chip_registers_jkr.h b/drivers/infiniband/hw/hfi2/chip_registers_jkr.h
-new file mode 100644
-index 000000000000..ddc9c12f00c6
---- /dev/null
-+++ b/drivers/infiniband/hw/hfi2/chip_registers_jkr.h
-@@ -0,0 +1,224 @@
-+/* SPDX-License-Identifier: GPL-2.0 or BSD-3-Clause */
-+/*
-+ * Copyright(c) 2023 Cornelis Networks
-+ */
-+
-+#ifndef _CHIP_REGISTERS_JKR_H
-+#define _CHIP_REGISTERS_JKR_H
-+
-+/*
-+ * Definitions in this file were generated from the spec document.
-+ */
-+
-+/* top level block offsets */
-+#define JKR_CCE     0x0000000
-+#define JKR_MCTXT   0x0200000
-+#define JKR_ASIC    0x0400000
-+#define JKR_MISC    0x0500000
-+#define JKR_RXE     0x1000000
-+#define JKR_TXE     0x1800000
-+
-+#define JKR_C_CCE_NUM_INT_CSRS 21
-+#define JKR_C_CCE_NUM_INT_MAP_CSRS 168
-+#define JKR_C_CCE_SI_INT_ENABLES_STRIDE 4096
-+#define JKR_C_CCE_OTHER_INT_CNT 0
-+#define JKR_C_CCE_PBC_ERR_INT_CNT 6
-+#define JKR_C_CCE_PIO_ERR_INT_CNT 7
-+#define JKR_C_CCE_SDMA_ERR_INT_CNT 8
-+#define JKR_C_CCE_CSR_ERR_INT_CNT 9
-+#define JKR_CCE_ERR_STATUS (JKR_CCE + 0x000000000040)
-+#define JKR_CCE_ERR_MASK (JKR_CCE + 0x000000000048)
-+#define JKR_CCE_ERR_CLEAR (JKR_CCE + 0x000000000050)
-+#define JKR_CCE_SPC_FREEZE_INT_STATUS (JKR_CCE + 0x000000000128)
-+#define JKR_CCE_SPC_FREEZE_INT_MASK (JKR_CCE + 0x000000000130)
-+#define JKR_CCE_SPC_FREEZE_INT_CLEAR (JKR_CCE + 0x000000000138)
-+#define JKR_CCE_SI_INT_ENABLES (JKR_CCE + 0x000000080000)
-+#define JKR_CCE_MSIX_INT_MAP_VEC (JKR_CCE + 0x000000120000)
-+#define JKR_SEND_PIO_ERR_STATUS (JKR_CCE + 0x000000110F08)
-+#define JKR_SEND_PIO_ERR_MASK (JKR_CCE + 0x000000110F10)
-+#define JKR_SEND_PIO_ERR_CLEAR (JKR_CCE + 0x000000110F18)
-+#define JKR_SEND_DMA_ERR_STATUS (JKR_CCE + 0x000000110F28)
-+#define JKR_SEND_DMA_ERR_MASK (JKR_CCE + 0x000000110F30)
-+#define JKR_SEND_DMA_ERR_CLEAR (JKR_CCE + 0x000000110F38)
-+#define JKR_CSR_ERR_STATUS (JKR_CCE + 0x000000110F48)
-+#define JKR_CSR_ERR_MASK (JKR_CCE + 0x000000110F50)
-+#define JKR_CSR_ERR_CLEAR (JKR_CCE + 0x000000110F58)
-+#define JKR_C_MCTXT_MEM_SIZE_IN_QWORDS 256
-+#define JKR_MCTXT_CPORT_IN (JKR_MCTXT + 0x000000000000)
-+#define JKR_MCTXT_CPORT_OUT (JKR_MCTXT + 0x000000002000)
-+#define JKR_MCTXT_CPORT_INT_STATUS (JKR_MCTXT + 0x000000004000)
-+#define JKR_MCTXT_CPORT_INT_ACK (JKR_MCTXT + 0x000000004018)
-+#define JKR_MCTXT_PF0_INT_STATUS (JKR_MCTXT + 0x000000004020)
-+#define JKR_MCTXT_PF0_INT_ENABLE (JKR_MCTXT + 0x000000004028)
-+#define JKR_MCTXT_PF0_INT_STATUS_ENABLED (JKR_MCTXT + 0x000000004030)
-+#define JKR_MCTXT_PF0_INT_ACK (JKR_MCTXT + 0x000000004038)
-+#define JKR_ASIC_CFG_SCRATCH (JKR_ASIC + 0x000000000020)
-+#define JKR_ASIC_ERR_STATUS (JKR_ASIC + 0x000000002000)
-+#define JKR_ASIC_ERR_MASK (JKR_ASIC + 0x000000002008)
-+#define JKR_ASIC_ERR_CLEAR (JKR_ASIC + 0x000000002010)
-+#define JKR_C_RXE_RCV_ARRAY_EGR_BASE 67108864
-+#define JKR_C_RXE_UCTXT_STRIDE 8192
-+#define JKR_C_RXE_KCTXT_STRIDE 8192
-+#define JKR_C_RXE_RCTXT_STRIDE 256
-+#define JKR_C_RXE_IPORT_STRIDE 65536
-+#define JKR_C_RXE_NUM_RSM_INSTANCES 32
-+#define JKR_RCV_IPORT_CTRL (JKR_RXE + 0x000000020000)
-+#define JKR_RCV_IPORT_STATUS (JKR_RXE + 0x000000020008)
-+#define JKR_RCV_BTH_QP (JKR_RXE + 0x000000020028)
-+#define JKR_RCV_MULTICAST (JKR_RXE + 0x000000020030)
-+#define JKR_RCV_BYPASS (JKR_RXE + 0x000000020038)
-+#define JKR_RCV_VL15 (JKR_RXE + 0x000000020048)
-+#define JKR_RCV_ERR_INFO (JKR_RXE + 0x000000020050)
-+#define JKR_RCV_ERR_STATUS (JKR_RXE + 0x000000020060)
-+#define JKR_RCV_ERR_MASK (JKR_RXE + 0x000000020068)
-+#define JKR_RCV_ERR_CLEAR (JKR_RXE + 0x000000020070)
-+#define JKR_RCV_QP_MAP_TABLE (JKR_RXE + 0x000000020100)
-+#define JKR_RCV_PARTITION_KEY (JKR_RXE + 0x000000028000)
-+#define JKR_RCV_COUNTER_ARRAY32 (JKR_RXE + 0x000000020400)
-+#define JKR_RCV_COUNTER_ARRAY64 (JKR_RXE + 0x000000020500)
-+#define JKR_RCV_KCTXT_CTRL (JKR_RXE + 0x000000200000)
-+#define JKR_RCV_KCTXT_CTRL_RECEIVE_CUT_THROUGH_DISABLE_SMASK 0x800ull
-+#define JKR_RCV_EGR_CTRL (JKR_RXE + 0x000000010008)
-+#define JKR_RCV_EGR_CTRL_EGR_CNT_SHIFT 32
-+#define JKR_RCV_EGR_CTRL_EGR_CNT_MASK 0xFFFull
-+#define JKR_RCV_EGR_CTRL_EGR_BASE_INDEX_SHIFT 0
-+#define JKR_RCV_EGR_CTRL_EGR_BASE_INDEX_MASK 0x3FFFull
-+#define JKR_RCV_TID_CTRL (JKR_RXE + 0x000000010010)
-+#define JKR_RCV_TID_CTRL_TID_PAIR_CNT_SHIFT 32
-+#define JKR_RCV_TID_CTRL_TID_PAIR_CNT_MASK 0x1FFull
-+#define JKR_RCV_TID_CTRL_TID_BASE_INDEX_SHIFT 0
-+#define JKR_RCV_TID_CTRL_TID_BASE_INDEX_MASK 0x3FFFull
-+#define JKR_RCV_JKEY_CTRL (JKR_RXE + 0x000000023000)
-+#define JKR_RCV_HDR_ADDR (JKR_RXE + 0x000000200028)
-+#define JKR_RCV_HDR_CNT (JKR_RXE + 0x000000200030)
-+#define JKR_RCV_HDR_ENT_SIZE (JKR_RXE + 0x000000200038)
-+#define JKR_RCV_HDR_TAIL_ADDR (JKR_RXE + 0x000000200048)
-+#define JKR_RCV_AVAIL_TIME_OUT (JKR_RXE + 0x000000200050)
-+#define JKR_RCV_HDR_OVFL_CNT (JKR_RXE + 0x000000200058)
-+#define JKR_RCV_ERR_ADDR (JKR_RXE + 0x000000200060)
-+#define JKR_RCV_RCTXT_CTRL (JKR_RXE + 0x000000010000)
-+#define JKR_RCV_SI_IDX (JKR_RXE + 0x000000010030)
-+#define JKR_RCV_PKT_CTRL (JKR_RXE + 0x000000022000)
-+#define JKR_RCV_PKT_CTRL_RCV_PORT_ENABLE_SMASK 0x8000000000000000ull
-+#define JKR_RCV_PKT_CTRL_CONTEXT_ENABLED_SMASK 0x2000000000000000ull
-+#define JKR_RCV_PKT_CTRL_L2_TYPE_ENABLE_MASK_SHIFT 56
-+#define JKR_RCV_PKT_CTRL_L2_TYPE_ENABLE_MASK_SMASK 0xF00000000000000ull
-+#define JKR_RCV_PKT_CTRL_HDR_SIZE_SHIFT 24
-+#define JKR_RCV_PKT_CTRL_HDR_SIZE_SMASK 0x1F000000ull
-+#define JKR_RCV_TID_PAIR_COUNT (JKR_RXE + 0x000000024000)
-+#define JKR_RCV_ARRAY_EGR_RT_BUF_SIZE_SHIFT 46
-+#define JKR_RCV_HDR_TAIL (JKR_RXE + 0x000000600000)
-+#define JKR_RCV_HDR_HEAD (JKR_RXE + 0x000000600008)
-+#define JKR_RCV_EGR_INDEX_HEAD (JKR_RXE + 0x000000600018)
-+#define JKR_RCV_TID_FLOW_TABLE (JKR_RXE + 0x000000600800)
-+#define JKR_RCV_CTXT_STATUS (JKR_RXE + 0x000000600028)
-+#define JKR_C_TXE_EPORT_STRIDE 65536
-+#define JKR_C_TXE_SCTXT_STRIDE 8192
-+#define JKR_C_TXE_SDMA_STRIDE 8192
-+#define JKR_C_TXE_PIO_SEND_OFFSET 8388608
-+#define JKR_SEND_CTRL (JKR_TXE + 0x000000380000)
-+#define JKR_SEND_CTRL_FLUSH_WRONG_LINK_STATE_SMASK 0x8000000000000000ull
-+#define JKR_SEND_CONTEXTS (JKR_TXE + 0x000000300010)
-+#define JKR_SEND_DMA_ENGINES (JKR_TXE + 0x000000300018)
-+#define JKR_SEND_PIO_MEM_SIZE (JKR_TXE + 0x000000300020)
-+#define JKR_SEND_DMA_MEM_SIZE (JKR_TXE + 0x000000300028)
-+#define JKR_SEND_HIGH_PRIORITY_LIMIT (JKR_TXE + 0x000000380008)
-+#define JKR_SEND_PIO_INIT_CTXT (JKR_TXE + 0x000000300038)
-+#define JKR_SEND_EGRESS_ERR_STATUS (JKR_TXE + 0x000000380010)
-+#define JKR_SEND_EGRESS_ERR_MASK (JKR_TXE + 0x000000380018)
-+#define JKR_SEND_EGRESS_ERR_CLEAR (JKR_TXE + 0x000000380020)
-+#define JKR_SEND_BTH_QP (JKR_TXE + 0x000000380030)
-+#define JKR_SEND_STATIC_RATE_CONTROL (JKR_TXE + 0x000000380038)
-+#define JKR_SEND_SC2VLT0 (JKR_TXE + 0x000000380040)
-+#define JKR_SEND_SC2VLT1 (JKR_TXE + 0x000000380048)
-+#define JKR_SEND_SC2VLT2 (JKR_TXE + 0x000000380050)
-+#define JKR_SEND_SC2VLT3 (JKR_TXE + 0x000000380058)
-+#define JKR_SEND_LEN_CHECK0 (JKR_TXE + 0x000000380060)
-+#define JKR_SEND_LEN_CHECK1 (JKR_TXE + 0x000000380068)
-+#define JKR_SEND_LOW_PRIORITY_LIST (JKR_TXE + 0x000000380100)
-+#define JKR_SEND_HIGH_PRIORITY_LIST (JKR_TXE + 0x000000380180)
-+#define JKR_SEND_COUNTER_ARRAY32 (JKR_TXE + 0x000000380300)
-+#define JKR_SEND_COUNTER_ARRAY64 (JKR_TXE + 0x000000380400)
-+#define JKR_SEND_CM_CTRL (JKR_TXE + 0x000000380500)
-+#define JKR_SEND_CM_GLOBAL_CREDIT (JKR_TXE + 0x000000380508)
-+#define JKR_SEND_CM_CREDIT_USED_STATUS (JKR_TXE + 0x000000380510)
-+#define JKR_SEND_CM_TIMER_CTRL (JKR_TXE + 0x000000380518)
-+#define JKR_SEND_CM_LOCAL_AU_TABLE0_TO3 (JKR_TXE + 0x000000380520)
-+#define JKR_SEND_CM_LOCAL_AU_TABLE4_TO7 (JKR_TXE + 0x000000380528)
-+#define JKR_SEND_CM_REMOTE_AU_TABLE0_TO3 (JKR_TXE + 0x000000380530)
-+#define JKR_SEND_CM_REMOTE_AU_TABLE4_TO7 (JKR_TXE + 0x000000380538)
-+#define JKR_SEND_CM_CREDIT_VL (JKR_TXE + 0x000000380600)
-+#define JKR_SEND_CM_CREDIT_VL15 (JKR_TXE + 0x000000380678)
-+#define JKR_SEND_EGRESS_ERR_INFO (JKR_TXE + 0x000000380F00)
-+#define JKR_SEND_EGRESS_ERR_INFO_TOO_LONG_PACKET_ERR9B_SMASK 0x800000000ull
-+#define JKR_SEND_EGRESS_ERR_INFO_VL_MAPPING_ERR9B_SMASK 0x8000000ull
-+#define JKR_SEND_EGRESS_ERR_INFO_VL_ERR9B_SMASK 0x80ull
-+#define JKR_SEND_EGRESS_ERR_SOURCE (JKR_TXE + 0x000000380F08)
-+#define JKR_SEND_CTXT_CTRL (JKR_TXE + 0x000000340000)
-+#define JKR_SEND_CTXT_STATUS (JKR_TXE + 0x000000000008)
-+#define JKR_SEND_CTXT_CREDIT_CTRL (JKR_TXE + 0x000000000010)
-+#define JKR_SEND_CTXT_CREDIT_STATUS (JKR_TXE + 0x000000000018)
-+#define JKR_SEND_CTXT_CREDIT_RETURN_ADDR (JKR_TXE + 0x000000000020)
-+#define JKR_SEND_CTXT_CREDIT_FORCE (JKR_TXE + 0x000000000028)
-+#define JKR_SEND_CTXT_ERR_STATUS (JKR_TXE + 0x000000000030)
-+#define JKR_SEND_CTXT_ERR_MASK (JKR_TXE + 0x000000000038)
-+#define JKR_SEND_CTXT_ERR_CLEAR (JKR_TXE + 0x000000000040)
-+#define JKR_SEND_CTXT_CHECK_ENABLE (JKR_TXE + 0x000000381000)
-+#define JKR_SEND_CTXT_CHECK_ENABLE_DISALLOW9BTOO_LONG_PACKET_SMASK 0x8000000000000000ull
-+#define JKR_SEND_CTXT_CHECK_ENABLE_DISALLOW9BTOO_SMALL_PACKETS_SMASK 0x4000000000000000ull
-+#define JKR_SEND_CTXT_CHECK_ENABLE_DISALLOW9BNON_KDETH_PACKETS_SMASK 0x2000000000000000ull
-+#define JKR_SEND_CTXT_CHECK_ENABLE_DISALLOW9BKDETH_PACKETS_SMASK 0x1000000000000000ull
-+#define JKR_SEND_CTXT_CHECK_ENABLE_DISALLOW9BBAD_PKT_LEN_SMASK 0x800000000000000ull
-+#define JKR_SEND_CTXT_CHECK_ENABLE_DISALLOW9BGRH_SMASK 0x400000000000000ull
-+#define JKR_SEND_CTXT_CHECK_ENABLE_DISALLOW9BRAW_IPV6_SMASK 0x200000000000000ull
-+#define JKR_SEND_CTXT_CHECK_ENABLE_DISALLOW9BRAW_SMASK 0x100000000000000ull
-+#define JKR_SEND_CTXT_CHECK_ENABLE_DISALLOW9BPBC_TEST_SMASK 0x80000000000000ull
-+#define JKR_SEND_CTXT_CHECK_ENABLE_CHECK9BVL_MAPPING_SMASK 0x40000000000000ull
-+#define JKR_SEND_CTXT_CHECK_ENABLE_CHECK9BOPCODE_SMASK 0x20000000000000ull
-+#define JKR_SEND_CTXT_CHECK_ENABLE_CHECK9BSLID_SMASK 0x10000000000000ull
-+#define JKR_SEND_CTXT_CHECK_ENABLE_CHECK9BPARTITION_KEY_SMASK 0x8000000000000ull
-+#define JKR_SEND_CTXT_CHECK_ENABLE_CHECK9BJOB_KEY_SMASK 0x4000000000000ull
-+#define JKR_SEND_CTXT_CHECK_ENABLE_CHECK9BVL_SMASK 0x2000000000000ull
-+#define JKR_SEND_CTXT_CHECK_ENABLE_L2_TYPE9BALLOWED_SMASK 0x1000000000000ull
-+#define JKR_SEND_CTXT_CHECK_ENABLE_DISALLOW16BTOO_LONG_PACKET_SMASK 0x800000000000ull
-+#define JKR_SEND_CTXT_CHECK_ENABLE_DISALLOW16BTOO_SMALL_PACKETS_SMASK 0x400000000000ull
-+#define JKR_SEND_CTXT_CHECK_ENABLE_DISALLOW16BNON_KDETH_PACKETS_SMASK 0x200000000000ull
-+#define JKR_SEND_CTXT_CHECK_ENABLE_DISALLOW16BKDETH_PACKETS_SMASK 0x100000000000ull
-+#define JKR_SEND_CTXT_CHECK_ENABLE_DISALLOW16BBAD_PKT_LEN_SMASK 0x80000000000ull
-+#define JKR_SEND_CTXT_CHECK_ENABLE_DISALLOW16BGRH_SMASK 0x40000000000ull
-+#define JKR_SEND_CTXT_CHECK_ENABLE_DISALLOW16BRAW_IPV6_SMASK 0x20000000000ull
-+#define JKR_SEND_CTXT_CHECK_ENABLE_DISALLOW16BRAW_SMASK 0x10000000000ull
-+#define JKR_SEND_CTXT_CHECK_ENABLE_DISALLOW16BPBC_TEST_SMASK 0x8000000000ull
-+#define JKR_SEND_CTXT_CHECK_ENABLE_CHECK16BVL_MAPPING_SMASK 0x4000000000ull
-+#define JKR_SEND_CTXT_CHECK_ENABLE_CHECK16BOPCODE_SMASK 0x2000000000ull
-+#define JKR_SEND_CTXT_CHECK_ENABLE_CHECK16BSLID_SMASK 0x1000000000ull
-+#define JKR_SEND_CTXT_CHECK_ENABLE_CHECK16BPARTITION_KEY_SMASK 0x800000000ull
-+#define JKR_SEND_CTXT_CHECK_ENABLE_CHECK16BJOB_KEY_SMASK 0x400000000ull
-+#define JKR_SEND_CTXT_CHECK_ENABLE_CHECK16BVL_SMASK 0x200000000ull
-+#define JKR_SEND_CTXT_CHECK_ENABLE_L2_TYPE16BALLOWED_SMASK 0x100000000ull
-+#define JKR_SEND_CTXT_CHECK_VL (JKR_TXE + 0x000000382000)
-+#define JKR_SEND_CTXT_CHECK_JOB_KEY (JKR_TXE + 0x000000383000)
-+#define JKR_SEND_CTXT_CHECK_PARTITION_KEY (JKR_TXE + 0x000000384000)
-+#define JKR_SEND_CTXT_CHECK_SLID (JKR_TXE + 0x000000385000)
-+#define JKR_SEND_CTXT_CHECK_OPCODE (JKR_TXE + 0x000000386000)
-+#define JKR_SEND_CTXT_SI_IDX (JKR_TXE + 0x000000341000)
-+#define JKR_SEND_EGRESS_CTXT_STATUS (JKR_TXE + 0x000000388000)
-+#define JKR_SEND_DMA_CTRL (JKR_TXE + 0x000000200000)
-+#define JKR_SEND_DMA_STATUS (JKR_TXE + 0x000000200008)
-+#define JKR_SEND_DMA_BASE_ADDR (JKR_TXE + 0x000000200010)
-+#define JKR_SEND_DMA_LEN_GEN (JKR_TXE + 0x000000200018)
-+#define JKR_SEND_DMA_TAIL (JKR_TXE + 0x000000200020)
-+#define JKR_SEND_DMA_HEAD (JKR_TXE + 0x000000200028)
-+#define JKR_SEND_DMA_HEAD_ADDR (JKR_TXE + 0x000000200030)
-+#define JKR_SEND_DMA_PRIORITY_THLD (JKR_TXE + 0x000000200038)
-+#define JKR_SEND_DMA_IDLE_CNT (JKR_TXE + 0x000000200040)
-+#define JKR_SEND_DMA_RELOAD_CNT (JKR_TXE + 0x000000200048)
-+#define JKR_SEND_DMA_DESC_CNT (JKR_TXE + 0x000000200050)
-+#define JKR_SEND_DMA_DESC_FETCHED_CNT (JKR_TXE + 0x000000200058)
-+#define JKR_SEND_DMA_ENG_ERR_STATUS (JKR_TXE + 0x000000200060)
-+#define JKR_SEND_DMA_ENG_ERR_MASK (JKR_TXE + 0x000000200068)
-+#define JKR_SEND_DMA_ENG_ERR_CLEAR (JKR_TXE + 0x000000200070)
-+#define JKR_SEND_DMA_CFG_MEMORY (JKR_TXE + 0x000000300B00)
-+#define JKR_SEND_EGRESS_SEND_DMA_STATUS (JKR_TXE + 0x000000389000)
-+
-+#endif /* _CHIP_REGISTERS_JKR_H */
+diff --git a/Documentation/infiniband/opa_vnic.rst b/Documentation/infiniband/opa_vnic.rst
+deleted file mode 100644
+index 2f888d9ffec0..000000000000
+--- a/Documentation/infiniband/opa_vnic.rst
++++ /dev/null
+@@ -1,159 +0,0 @@
+-=================================================================
+-Intel Omni-Path (OPA) Virtual Network Interface Controller (VNIC)
+-=================================================================
+-
+-Intel Omni-Path (OPA) Virtual Network Interface Controller (VNIC) feature
+-supports Ethernet functionality over Omni-Path fabric by encapsulating
+-the Ethernet packets between HFI nodes.
+-
+-Architecture
+-=============
+-The patterns of exchanges of Omni-Path encapsulated Ethernet packets
+-involves one or more virtual Ethernet switches overlaid on the Omni-Path
+-fabric topology. A subset of HFI nodes on the Omni-Path fabric are
+-permitted to exchange encapsulated Ethernet packets across a particular
+-virtual Ethernet switch. The virtual Ethernet switches are logical
+-abstractions achieved by configuring the HFI nodes on the fabric for
+-header generation and processing. In the simplest configuration all HFI
+-nodes across the fabric exchange encapsulated Ethernet packets over a
+-single virtual Ethernet switch. A virtual Ethernet switch, is effectively
+-an independent Ethernet network. The configuration is performed by an
+-Ethernet Manager (EM) which is part of the trusted Fabric Manager (FM)
+-application. HFI nodes can have multiple VNICs each connected to a
+-different virtual Ethernet switch. The below diagram presents a case
+-of two virtual Ethernet switches with two HFI nodes::
+-
+-                               +-------------------+
+-                               |      Subnet/      |
+-                               |     Ethernet      |
+-                               |      Manager      |
+-                               +-------------------+
+-                                  /          /
+-                                /           /
+-                              /            /
+-                            /             /
+-  +-----------------------------+  +------------------------------+
+-  |  Virtual Ethernet Switch    |  |  Virtual Ethernet Switch     |
+-  |  +---------+    +---------+ |  | +---------+    +---------+   |
+-  |  | VPORT   |    |  VPORT  | |  | |  VPORT  |    |  VPORT  |   |
+-  +--+---------+----+---------+-+  +-+---------+----+---------+---+
+-           |                 \        /                 |
+-           |                   \    /                   |
+-           |                     \/                     |
+-           |                    /  \                    |
+-           |                  /      \                  |
+-       +-----------+------------+  +-----------+------------+
+-       |   VNIC    |    VNIC    |  |    VNIC   |    VNIC    |
+-       +-----------+------------+  +-----------+------------+
+-       |          HFI           |  |          HFI           |
+-       +------------------------+  +------------------------+
+-
+-
+-The Omni-Path encapsulated Ethernet packet format is as described below.
+-
+-==================== ================================
+-Bits                 Field
+-==================== ================================
+-Quad Word 0:
+-0-19                 SLID (lower 20 bits)
+-20-30                Length (in Quad Words)
+-31                   BECN bit
+-32-51                DLID (lower 20 bits)
+-52-56                SC (Service Class)
+-57-59                RC (Routing Control)
+-60                   FECN bit
+-61-62                L2 (=10, 16B format)
+-63                   LT (=1, Link Transfer Head Flit)
+-
+-Quad Word 1:
+-0-7                  L4 type (=0x78 ETHERNET)
+-8-11                 SLID[23:20]
+-12-15                DLID[23:20]
+-16-31                PKEY
+-32-47                Entropy
+-48-63                Reserved
+-
+-Quad Word 2:
+-0-15                 Reserved
+-16-31                L4 header
+-32-63                Ethernet Packet
+-
+-Quad Words 3 to N-1:
+-0-63                 Ethernet packet (pad extended)
+-
+-Quad Word N (last):
+-0-23                 Ethernet packet (pad extended)
+-24-55                ICRC
+-56-61                Tail
+-62-63                LT (=01, Link Transfer Tail Flit)
+-==================== ================================
+-
+-Ethernet packet is padded on the transmit side to ensure that the VNIC OPA
+-packet is quad word aligned. The 'Tail' field contains the number of bytes
+-padded. On the receive side the 'Tail' field is read and the padding is
+-removed (along with ICRC, Tail and OPA header) before passing packet up
+-the network stack.
+-
+-The L4 header field contains the virtual Ethernet switch id the VNIC port
+-belongs to. On the receive side, this field is used to de-multiplex the
+-received VNIC packets to different VNIC ports.
+-
+-Driver Design
+-==============
+-Intel OPA VNIC software design is presented in the below diagram.
+-OPA VNIC functionality has a HW dependent component and a HW
+-independent component.
+-
+-The support has been added for IB device to allocate and free the RDMA
+-netdev devices. The RDMA netdev supports interfacing with the network
+-stack thus creating standard network interfaces. OPA_VNIC is an RDMA
+-netdev device type.
+-
+-The HW dependent VNIC functionality is part of the HFI1 driver. It
+-implements the verbs to allocate and free the OPA_VNIC RDMA netdev.
+-It involves HW resource allocation/management for VNIC functionality.
+-It interfaces with the network stack and implements the required
+-net_device_ops functions. It expects Omni-Path encapsulated Ethernet
+-packets in the transmit path and provides HW access to them. It strips
+-the Omni-Path header from the received packets before passing them up
+-the network stack. It also implements the RDMA netdev control operations.
+-
+-The OPA VNIC module implements the HW independent VNIC functionality.
+-It consists of two parts. The VNIC Ethernet Management Agent (VEMA)
+-registers itself with IB core as an IB client and interfaces with the
+-IB MAD stack. It exchanges the management information with the Ethernet
+-Manager (EM) and the VNIC netdev. The VNIC netdev part allocates and frees
+-the OPA_VNIC RDMA netdev devices. It overrides the net_device_ops functions
+-set by HW dependent VNIC driver where required to accommodate any control
+-operation. It also handles the encapsulation of Ethernet packets with an
+-Omni-Path header in the transmit path. For each VNIC interface, the
+-information required for encapsulation is configured by the EM via VEMA MAD
+-interface. It also passes any control information to the HW dependent driver
+-by invoking the RDMA netdev control operations::
+-
+-        +-------------------+ +----------------------+
+-        |                   | |       Linux          |
+-        |     IB MAD        | |      Network         |
+-        |                   | |       Stack          |
+-        +-------------------+ +----------------------+
+-                 |               |          |
+-                 |               |          |
+-        +----------------------------+      |
+-        |                            |      |
+-        |      OPA VNIC Module       |      |
+-        |  (OPA VNIC RDMA Netdev     |      |
+-        |     & EMA functions)       |      |
+-        |                            |      |
+-        +----------------------------+      |
+-                    |                       |
+-                    |                       |
+-           +------------------+             |
+-           |     IB core      |             |
+-           +------------------+             |
+-                    |                       |
+-                    |                       |
+-        +--------------------------------------------+
+-        |                                            |
+-        |      HFI1 Driver with VNIC support         |
+-        |                                            |
+-        +--------------------------------------------+
+diff --git a/Documentation/translations/zh_CN/infiniband/opa_vnic.rst b/Documentation/translations/zh_CN/infiniband/opa_vnic.rst
+deleted file mode 100644
+index 12b147fbf792..000000000000
+--- a/Documentation/translations/zh_CN/infiniband/opa_vnic.rst
++++ /dev/null
+@@ -1,156 +0,0 @@
+-.. include:: ../disclaimer-zh_CN.rst
+-
+-:Original: Documentation/infiniband/opa_vnic.rst
+-
+-:翻译:
+-
+- 司延腾 Yanteng Si <siyanteng@loongson.cn>
+-
+-:校译:
+-
+- 王普宇 Puyu Wang <realpuyuwang@gmail.com>
+- 时奎亮 Alex Shi <alexs@kernel.org>
+-
+-.. _cn_infiniband_opa_vnic:
+-
+-=============================================
+-英特尔全路径（OPA）虚拟网络接口控制器（VNIC）
+-=============================================
+-
+-英特尔全路径（OPA）虚拟网络接口控制器（VNIC）功能通过封装HFI节点之间的以
+-太网数据包，支持Omni-Path结构上的以太网功能。
+-
+-体系结构
+-========
+-
+-Omni-Path封装的以太网数据包的交换模式涉及Omni-Path结构拓扑上覆盖的一个或
+-多个虚拟以太网交换机。Omni-Path结构上的HFI节点的一个子集被允许在特定的虚
+-拟以太网交换机上交换封装的以太网数据包。虚拟以太网交换机是通过配置结构上的
+-HFI节点实现的逻辑抽象，用于生成和处理报头。在最简单的配置中，整个结构的所有
+-HFI节点通过一个虚拟以太网交换机交换封装的以太网数据包。一个虚拟以太网交换机，
+-实际上是一个独立的以太网网络。该配置由以太网管理器（EM）执行，它是可信的结
+-构管理器（FM）应用程序的一部分。HFI节点可以有多个VNIC，每个连接到不同的虚
+-拟以太网交换机。下图介绍了两个虚拟以太网交换机与两个HFI节点的情况::
+-
+-                               +-------------------+
+-                               |      子网/        |
+-                               |     以太网        |
+-                               |      管理         |
+-                               +-------------------+
+-                                  /          /
+-                                /           /
+-                              /            /
+-                            /             /
+-  +-----------------------------+  +------------------------------+
+-  |     虚拟以太网切换          |  |      虚拟以太网切换          |
+-  |  +---------+    +---------+ |  | +---------+    +---------+   |
+-  |  | VPORT   |    |  VPORT  | |  | |  VPORT  |    |  VPORT  |   |
+-  +--+---------+----+---------+-+  +-+---------+----+---------+---+
+-           |                 \        /                 |
+-           |                   \    /                   |
+-           |                     \/                     |
+-           |                    /  \                    |
+-           |                  /      \                  |
+-       +-----------+------------+  +-----------+------------+
+-       |   VNIC    |    VNIC    |  |    VNIC   |    VNIC    |
+-       +-----------+------------+  +-----------+------------+
+-       |          HFI           |  |          HFI           |
+-       +------------------------+  +------------------------+
+-
+-
+-Omni-Path封装的以太网数据包格式如下所述。
+-
+-==================== ================================
+-位                   域
+-==================== ================================
+-Quad Word 0:
+-0-19                 SLID (低20位)
+-20-30                长度 (以四字为单位)
+-31                   BECN 位
+-32-51                DLID (低20位)
+-52-56                SC (服务级别)
+-57-59                RC (路由控制)
+-60                   FECN 位
+-61-62                L2 (=10, 16B 格式)
+-63                   LT (=1, 链路传输头 Flit)
+-
+-Quad Word 1:
+-0-7                  L4 type (=0x78 ETHERNET)
+-8-11                 SLID[23:20]
+-12-15                DLID[23:20]
+-16-31                PKEY
+-32-47                熵
+-48-63                保留
+-
+-Quad Word 2:
+-0-15                 保留
+-16-31                L4 头
+-32-63                以太网数据包
+-
+-Quad Words 3 to N-1:
+-0-63                 以太网数据包 (pad拓展)
+-
+-Quad Word N (last):
+-0-23                 以太网数据包 (pad拓展)
+-24-55                ICRC
+-56-61                尾
+-62-63                LT (=01, 链路传输尾 Flit)
+-==================== ================================
+-
+-以太网数据包在传输端被填充，以确保VNIC OPA数据包是四字对齐的。“尾”字段
+-包含填充的字节数。在接收端，“尾”字段被读取，在将数据包向上传递到网络堆
+-栈之前，填充物被移除（与ICRC、尾和OPA头一起）。
+-
+-L4头字段包含VNIC端口所属的虚拟以太网交换机ID。在接收端，该字段用于将收
+-到的VNIC数据包去多路复用到不同的VNIC端口。
+-
+-驱动设计
+-========
+-
+-英特尔OPA VNIC的软件设计如下图所示。OPA VNIC功能有一个依赖于硬件的部分
+-和一个独立于硬件的部分。
+-
+-对IB设备分配和释放RDMA netdev设备的支持已经被加入。RDMA netdev支持与
+-网络堆栈的对接，从而创建标准的网络接口。OPA_VNIC是一个RDMA netdev设备
+-类型。
+-
+-依赖于HW的VNIC功能是HFI1驱动的一部分。它实现了分配和释放OPA_VNIC RDMA
+-netdev的动作。它涉及VNIC功能的HW资源分配/管理。它与网络堆栈接口并实现所
+-需的net_device_ops功能。它在传输路径中期待Omni-Path封装的以太网数据包，
+-并提供对它们的HW访问。在将数据包向上传递到网络堆栈之前，它把Omni-Path头
+-从接收的数据包中剥离。它还实现了RDMA netdev控制操作。
+-
+-OPA VNIC模块实现了独立于硬件的VNIC功能。它由两部分组成。VNIC以太网管理
+-代理（VEMA）作为一个IB客户端向IB核心注册，并与IB MAD栈接口。它与以太网
+-管理器（EM）和VNIC netdev交换管理信息。VNIC netdev部分分配和释放OPA_VNIC
+-RDMA netdev设备。它在需要时覆盖由依赖HW的VNIC驱动设置的net_device_ops函数，
+-以适应任何控制操作。它还处理以太网数据包的封装，在传输路径中使用Omni-Path头。
+-对于每个VNIC接口，封装所需的信息是由EM通过VEMA MAD接口配置的。它还通过调用
+-RDMA netdev控制操作将任何控制信息传递给依赖于HW的驱动程序::
+-
+-        +-------------------+ +----------------------+
+-        |                   | |       Linux          |
+-        |     IB MAD        | |       网络           |
+-        |                   | |       栈             |
+-        +-------------------+ +----------------------+
+-                 |               |          |
+-                 |               |          |
+-        +----------------------------+      |
+-        |                            |      |
+-        |      OPA VNIC 模块         |      |
+-        |  (OPA VNIC RDMA Netdev     |      |
+-        |     & EMA 函数)            |      |
+-        |                            |      |
+-        +----------------------------+      |
+-                    |                       |
+-                    |                       |
+-           +------------------+             |
+-           |     IB 核心      |             |
+-           +------------------+             |
+-                    |                       |
+-                    |                       |
+-        +--------------------------------------------+
+-        |                                            |
+-        |      HFI1 驱动和 VNIC 支持                 |
+-        |                                            |
+-        +--------------------------------------------+
+diff --git a/MAINTAINERS b/MAINTAINERS
+index dd844ac8d910..c95f54b45fc3 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -18263,12 +18263,6 @@ L:	linux-rtc@vger.kernel.org
+ S:	Maintained
+ F:	drivers/rtc/rtc-optee.c
+ 
+-OPA-VNIC DRIVER
+-M:	Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
+-L:	linux-rdma@vger.kernel.org
+-S:	Supported
+-F:	drivers/infiniband/ulp/opa_vnic
+-
+ OPEN ALLIANCE 10BASE-T1S MACPHY SERIAL INTERFACE FRAMEWORK
+ M:	Parthiban Veerasooran <parthiban.veerasooran@microchip.com>
+ L:	netdev@vger.kernel.org
+diff --git a/drivers/infiniband/Kconfig b/drivers/infiniband/Kconfig
+index a5827d11e934..abf8fd114a2c 100644
+--- a/drivers/infiniband/Kconfig
++++ b/drivers/infiniband/Kconfig
+@@ -110,6 +110,4 @@ source "drivers/infiniband/ulp/iser/Kconfig"
+ source "drivers/infiniband/ulp/isert/Kconfig"
+ source "drivers/infiniband/ulp/rtrs/Kconfig"
+ 
+-source "drivers/infiniband/ulp/opa_vnic/Kconfig"
+-
+ endif # INFINIBAND
+diff --git a/drivers/infiniband/hw/hfi1/Makefile b/drivers/infiniband/hw/hfi1/Makefile
+index 5d977f363684..b5551bd4703b 100644
+--- a/drivers/infiniband/hw/hfi1/Makefile
++++ b/drivers/infiniband/hw/hfi1/Makefile
+@@ -49,9 +49,7 @@ hfi1-y := \
+ 	user_pages.o \
+ 	user_sdma.o \
+ 	verbs.o \
+-	verbs_txreq.o \
+-	vnic_main.o \
+-	vnic_sdma.o
++	verbs_txreq.o
+ 
+ ifdef CONFIG_DEBUG_FS
+ hfi1-y += debugfs.o
+diff --git a/drivers/infiniband/hw/hfi1/aspm.c b/drivers/infiniband/hw/hfi1/aspm.c
+index 9b508eaf441d..4b64a338d0d6 100644
+--- a/drivers/infiniband/hw/hfi1/aspm.c
++++ b/drivers/infiniband/hw/hfi1/aspm.c
+@@ -179,7 +179,7 @@ static  void aspm_ctx_timer_function(struct timer_list *t)
+ }
+ 
+ /*
+- * Disable interrupt processing for verbs contexts when PSM or VNIC contexts
++ * Disable interrupt processing for verbs contexts when PSM contexts
+  * are open.
+  */
+ void aspm_disable_all(struct hfi1_devdata *dd)
+diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
+index e908f529335d..b63650ba8946 100644
+--- a/drivers/infiniband/hw/hfi1/chip.c
++++ b/drivers/infiniband/hw/hfi1/chip.c
+@@ -85,12 +85,12 @@ struct flag_table {
+ /*
+  * RSM instance allocation
+  *   0 - User Fecn Handling
+- *   1 - Vnic
++ *   1 - Deprecated
+  *   2 - AIP
+  *   3 - Verbs
+  */
+ #define RSM_INS_FECN              0
+-#define RSM_INS_VNIC              1
++#define RSM_INS_DEPRECATED        1
+ #define RSM_INS_AIP               2
+ #define RSM_INS_VERBS             3
+ 
+@@ -152,15 +152,6 @@ struct flag_table {
+ #define DETH_AIP_SQPN_SELECT_OFFSET \
+ 	DETH_AIP_SQPN_OFFSET(DETH_AIP_SQPN_BIT_OFFSET)
+ 
+-/* RSM fields for Vnic */
+-/* L2_TYPE: QW 0, OFFSET 61 - for match */
+-#define L2_TYPE_QW             0ull
+-#define L2_TYPE_BIT_OFFSET     61ull
+-#define L2_TYPE_OFFSET(off)    ((L2_TYPE_QW << QW_SHIFT) | (off))
+-#define L2_TYPE_MATCH_OFFSET   L2_TYPE_OFFSET(L2_TYPE_BIT_OFFSET)
+-#define L2_TYPE_MASK           3ull
+-#define L2_16B_VALUE           2ull
+-
+ /* L4_TYPE QW 1, OFFSET 0 - for match */
+ #define L4_TYPE_QW              1ull
+ #define L4_TYPE_BIT_OFFSET      0ull
+@@ -6844,9 +6835,9 @@ static void rxe_kernel_unfreeze(struct hfi1_devdata *dd)
+ 	for (i = 0; i < dd->num_rcv_contexts; i++) {
+ 		rcd = hfi1_rcd_get_by_index(dd, i);
+ 
+-		/* Ensure all non-user contexts(including vnic) are enabled */
++		/* Ensure all non-user contexts are enabled */
+ 		if (!rcd ||
+-		    (i >= dd->first_dyn_alloc_ctxt && !rcd->is_vnic)) {
++		    (i >= dd->first_dyn_alloc_ctxt )) {
+ 			hfi1_rcd_put(rcd);
+ 			continue;
+ 		}
+@@ -8467,7 +8458,7 @@ int hfi1_netdev_rx_napi(struct napi_struct *napi, int budget)
+ 	return work_done;
+ }
+ 
+-/* Receive packet napi handler for netdevs VNIC and AIP  */
++/* Receive packet napi handler for netdevs AIP  */
+ irqreturn_t receive_context_interrupt_napi(int irq, void *data)
+ {
+ 	struct hfi1_ctxtdata *rcd = data;
+@@ -14506,7 +14497,7 @@ static bool hfi1_netdev_update_rmt(struct hfi1_devdata *dd)
+ 	int ctxt_count = hfi1_netdev_ctxt_count(dd);
+ 
+ 	/* We already have contexts mapped in RMT */
+-	if (has_rsm_rule(dd, RSM_INS_VNIC) || has_rsm_rule(dd, RSM_INS_AIP)) {
++	if (has_rsm_rule(dd, RSM_INS_AIP)) {
+ 		dd_dev_info(dd, "Contexts are already mapped in RMT\n");
+ 		return true;
+ 	}
+@@ -14587,37 +14578,6 @@ void hfi1_init_aip_rsm(struct hfi1_devdata *dd)
+ 	}
+ }
+ 
+-/* Initialize RSM for VNIC */
+-void hfi1_init_vnic_rsm(struct hfi1_devdata *dd)
+-{
+-	int rmt_start = hfi1_netdev_get_free_rmt_idx(dd);
+-	struct rsm_rule_data rrd = {
+-		/* Add rule for vnic */
+-		.offset = rmt_start,
+-		.pkt_type = 4,
+-		/* Match 16B packets */
+-		.field1_off = L2_TYPE_MATCH_OFFSET,
+-		.mask1 = L2_TYPE_MASK,
+-		.value1 = L2_16B_VALUE,
+-		/* Match ETH L4 packets */
+-		.field2_off = L4_TYPE_MATCH_OFFSET,
+-		.mask2 = L4_16B_TYPE_MASK,
+-		.value2 = L4_16B_ETH_VALUE,
+-		/* Calc context from veswid and entropy */
+-		.index1_off = L4_16B_HDR_VESWID_OFFSET,
+-		.index1_width = ilog2(NUM_NETDEV_MAP_ENTRIES),
+-		.index2_off = L2_16B_ENTROPY_OFFSET,
+-		.index2_width = ilog2(NUM_NETDEV_MAP_ENTRIES)
+-	};
+-
+-	hfi1_enable_rsm_rule(dd, RSM_INS_VNIC, &rrd);
+-}
+-
+-void hfi1_deinit_vnic_rsm(struct hfi1_devdata *dd)
+-{
+-	clear_rsm_rule(dd, RSM_INS_VNIC);
+-}
+-
+ void hfi1_deinit_aip_rsm(struct hfi1_devdata *dd)
+ {
+ 	/* only actually clear the rule if it's the last user asking to do so */
+@@ -15195,7 +15155,7 @@ int hfi1_init_dd(struct hfi1_devdata *dd)
+ 		 (dd->revision >> CCE_REVISION_SW_SHIFT)
+ 		    & CCE_REVISION_SW_MASK);
+ 
+-	/* alloc VNIC/AIP rx data */
++	/* alloc AIP rx data */
+ 	ret = hfi1_alloc_rx(dd);
+ 	if (ret)
+ 		goto bail_cleanup;
+diff --git a/drivers/infiniband/hw/hfi1/chip.h b/drivers/infiniband/hw/hfi1/chip.h
+index 6992f6d40255..56e03d486ace 100644
+--- a/drivers/infiniband/hw/hfi1/chip.h
++++ b/drivers/infiniband/hw/hfi1/chip.h
+@@ -1392,8 +1392,6 @@ int hfi1_set_ctxt_pkey(struct hfi1_devdata *dd, struct hfi1_ctxtdata *ctxt,
+ 		       u16 pkey);
+ int hfi1_clear_ctxt_pkey(struct hfi1_devdata *dd, struct hfi1_ctxtdata *ctxt);
+ void hfi1_read_link_quality(struct hfi1_devdata *dd, u8 *link_quality);
+-void hfi1_init_vnic_rsm(struct hfi1_devdata *dd);
+-void hfi1_deinit_vnic_rsm(struct hfi1_devdata *dd);
+ 
+ irqreturn_t general_interrupt(int irq, void *data);
+ irqreturn_t sdma_interrupt(int irq, void *data);
+diff --git a/drivers/infiniband/hw/hfi1/driver.c b/drivers/infiniband/hw/hfi1/driver.c
+index 3da90f2eb8e7..01943571a153 100644
+--- a/drivers/infiniband/hw/hfi1/driver.c
++++ b/drivers/infiniband/hw/hfi1/driver.c
+@@ -20,7 +20,6 @@
+ #include "qp.h"
+ #include "sdma.h"
+ #include "debugfs.h"
+-#include "vnic.h"
+ #include "fault.h"
+ 
+ #include "ipoib.h"
+@@ -909,11 +908,11 @@ static void set_all_fastpath(struct hfi1_devdata *dd, struct hfi1_ctxtdata *rcd)
+ 	u16 i;
+ 
+ 	/*
+-	 * For dynamically allocated kernel contexts (like vnic) switch
++	 * For dynamically allocated kernel contexts switch
+ 	 * interrupt handler only for that context. Otherwise, switch
+ 	 * interrupt handler for all statically allocated kernel contexts.
+ 	 */
+-	if (rcd->ctxt >= dd->first_dyn_alloc_ctxt && !rcd->is_vnic) {
++	if (rcd->ctxt >= dd->first_dyn_alloc_ctxt) {
+ 		hfi1_rcd_get(rcd);
+ 		hfi1_set_fast(rcd);
+ 		hfi1_rcd_put(rcd);
+@@ -922,7 +921,7 @@ static void set_all_fastpath(struct hfi1_devdata *dd, struct hfi1_ctxtdata *rcd)
+ 
+ 	for (i = HFI1_CTRL_CTXT + 1; i < dd->num_rcv_contexts; i++) {
+ 		rcd = hfi1_rcd_get_by_index(dd, i);
+-		if (rcd && (i < dd->first_dyn_alloc_ctxt || rcd->is_vnic))
++		if (rcd && (i < dd->first_dyn_alloc_ctxt))
+ 			hfi1_set_fast(rcd);
+ 		hfi1_rcd_put(rcd);
+ 	}
+@@ -938,7 +937,7 @@ void set_all_slowpath(struct hfi1_devdata *dd)
+ 		rcd = hfi1_rcd_get_by_index(dd, i);
+ 		if (!rcd)
+ 			continue;
+-		if (i < dd->first_dyn_alloc_ctxt || rcd->is_vnic)
++		if (i < dd->first_dyn_alloc_ctxt)
+ 			rcd->do_interrupt = rcd->slow_handler;
+ 
+ 		hfi1_rcd_put(rcd);
+@@ -1399,7 +1398,7 @@ int hfi1_reset_device(int unit)
+ 		goto bail;
+ 	}
+ 
+-	/* If there are any user/vnic contexts, we cannot reset */
++	/* If there are any user contexts, we cannot reset */
+ 	mutex_lock(&hfi1_mutex);
+ 	if (dd->rcd)
+ 		if (hfi1_stats.sps_ctxts) {
+@@ -1898,7 +1897,7 @@ const rhf_rcv_function_ptr netdev_rhf_rcv_functions[] = {
+ 	[RHF_RCV_TYPE_EAGER] = process_receive_invalid,
+ 	[RHF_RCV_TYPE_IB] = hfi1_ipoib_ib_rcv,
+ 	[RHF_RCV_TYPE_ERROR] = process_receive_error,
+-	[RHF_RCV_TYPE_BYPASS] = hfi1_vnic_bypass_rcv,
++	[RHF_RCV_TYPE_BYPASS] = process_receive_invalid,
+ 	[RHF_RCV_TYPE_INVALID5] = process_receive_invalid,
+ 	[RHF_RCV_TYPE_INVALID6] = process_receive_invalid,
+ 	[RHF_RCV_TYPE_INVALID7] = process_receive_invalid,
+diff --git a/drivers/infiniband/hw/hfi1/hfi.h b/drivers/infiniband/hw/hfi1/hfi.h
+index cb630551cf1a..5a0310f758dc 100644
+--- a/drivers/infiniband/hw/hfi1/hfi.h
++++ b/drivers/infiniband/hw/hfi1/hfi.h
+@@ -212,10 +212,6 @@ struct hfi1_ctxtdata {
+ 	u8 rhf_offset;
+ 	/* dynamic receive available interrupt timeout */
+ 	u8 rcvavail_timeout;
+-	/* Indicates that this is vnic context */
+-	bool is_vnic;
+-	/* vnic queue index this context is mapped to */
+-	u8 vnic_q_idx;
+ 	/* Is ASPM interrupt supported for this context */
+ 	bool aspm_intr_supported;
+ 	/* ASPM state (enabled/disabled) for this context */
+@@ -402,7 +398,6 @@ struct hfi1_packet {
+ #define OPA_16B_L4_FM		0x08
+ #define OPA_16B_L4_IB_LOCAL	0x09
+ #define OPA_16B_L4_IB_GLOBAL	0x0A
+-#define OPA_16B_L4_ETHR		OPA_VNIC_L4_ETHR
+ 
+ /*
+  * OPA 16B Management
+@@ -997,14 +992,6 @@ struct hfi1_asic_data {
+ #define NUM_MAP_ENTRIES	 256
+ #define NUM_MAP_REGS      32
+ 
+-/* Virtual NIC information */
+-struct hfi1_vnic_data {
+-	struct kmem_cache *txreq_cache;
+-	u8 num_vports;
+-};
+-
+-struct hfi1_vnic_vport_info;
+-
+ /* device data struct now contains only "general per-device" info.
+  * fields related to a physical IB port are in a hfi1_pportdata struct.
+  */
+@@ -1298,9 +1285,6 @@ struct hfi1_devdata {
+ 	send_routine process_dma_send;
+ 	void (*pio_inline_send)(struct hfi1_devdata *dd, struct pio_buf *pbuf,
+ 				u64 pbc, const void *from, size_t count);
+-	int (*process_vnic_dma_send)(struct hfi1_devdata *dd, u8 q_idx,
+-				     struct hfi1_vnic_vport_info *vinfo,
+-				     struct sk_buff *skb, u64 pbc, u8 plen);
+ 	/* hfi1_pportdata, points to array of (physical) port-specific
+ 	 * data structs, indexed by pidx (0..n-1)
+ 	 */
+@@ -1314,7 +1298,6 @@ struct hfi1_devdata {
+ 	u16 flags;
+ 	/* Number of physical ports available */
+ 	u8 num_pports;
+-	/* Lowest context number which can be used by user processes or VNIC */
+ 	u8 first_dyn_alloc_ctxt;
+ 	/* adding a new field here would make it part of this cacheline */
+ 
+@@ -1353,11 +1336,8 @@ struct hfi1_devdata {
+ 	bool aspm_enabled;	/* ASPM state: enabled/disabled */
+ 	struct rhashtable *sdma_rht;
+ 
+-	/* vnic data */
+-	struct hfi1_vnic_data vnic;
+ 	/* Lock to protect IRQ SRC register access */
+ 	spinlock_t irq_src_lock;
+-	int vnic_num_vports;
+ 	struct hfi1_netdev_rx *netdev_rx;
+ 	struct hfi1_affinity_node *affinity_entry;
+ 
+diff --git a/drivers/infiniband/hw/hfi1/init.c b/drivers/infiniband/hw/hfi1/init.c
+index b35f92e7d865..1eae00fdd439 100644
+--- a/drivers/infiniband/hw/hfi1/init.c
++++ b/drivers/infiniband/hw/hfi1/init.c
+@@ -26,7 +26,6 @@
+ #include "verbs.h"
+ #include "aspm.h"
+ #include "affinity.h"
+-#include "vnic.h"
+ #include "exp_rcv.h"
+ #include "netdev.h"
+ 
+@@ -349,7 +348,7 @@ int hfi1_create_ctxtdata(struct hfi1_pportdata *ppd, int numa,
+ 		 * We do this here because we have to take into account all
+ 		 * the RcvArray entries that previous context would have
+ 		 * taken and we have to account for any extra groups assigned
+-		 * to the static (kernel) or dynamic (vnic/user) contexts.
++		 * to the static (kernel) or dynamic (user) contexts.
+ 		 */
+ 		if (ctxt < dd->first_dyn_alloc_ctxt) {
+ 			if (ctxt < kctxt_ngroups) {
+@@ -851,7 +850,6 @@ int hfi1_init(struct hfi1_devdata *dd, int reinit)
+ 	dd->process_pio_send = hfi1_verbs_send_pio;
+ 	dd->process_dma_send = hfi1_verbs_send_dma;
+ 	dd->pio_inline_send = pio_copy;
+-	dd->process_vnic_dma_send = hfi1_vnic_send_dma;
+ 
+ 	if (is_ax(dd)) {
+ 		atomic_set(&dd->drop_packet, DROP_PACKET_ON);
+diff --git a/drivers/infiniband/hw/hfi1/mad.c b/drivers/infiniband/hw/hfi1/mad.c
+index b39f63ce6dfc..de2dfd59cede 100644
+--- a/drivers/infiniband/hw/hfi1/mad.c
++++ b/drivers/infiniband/hw/hfi1/mad.c
+@@ -12,7 +12,6 @@
+ #include "mad.h"
+ #include "trace.h"
+ #include "qp.h"
+-#include "vnic.h"
+ 
+ /* the reset value from the FM is supposed to be 0xffff, handle both */
+ #define OPA_LINK_WIDTH_RESET_OLD 0x0fff
+diff --git a/drivers/infiniband/hw/hfi1/msix.c b/drivers/infiniband/hw/hfi1/msix.c
+index 77d2ece9a9cb..cc57c7e39337 100644
+--- a/drivers/infiniband/hw/hfi1/msix.c
++++ b/drivers/infiniband/hw/hfi1/msix.c
+@@ -24,7 +24,6 @@ int msix_initialize(struct hfi1_devdata *dd)
+ 	 *	one for the general, "slow path" interrupt
+ 	 *	one per used SDMA engine
+ 	 *	one per kernel receive context
+-	 *	one for each VNIC context
+ 	 *      ...any new IRQs should be added here.
+ 	 */
+ 	total = 1 + dd->num_sdma + dd->n_krcv_queues + dd->num_netdev_contexts;
+@@ -128,8 +127,7 @@ static int msix_request_rcd_irq_common(struct hfi1_ctxtdata *rcd,
+ 				       irq_handler_t thread,
+ 				       const char *name)
+ {
+-	int nr = msix_request_irq(rcd->dd, rcd, handler, thread,
+-				  rcd->is_vnic ? IRQ_NETDEVCTXT : IRQ_RCVCTXT,
++	int nr = msix_request_irq(rcd->dd, rcd, handler, thread, IRQ_RCVCTXT,
+ 				  name);
+ 	if (nr < 0)
+ 		return nr;
+diff --git a/drivers/infiniband/hw/hfi1/netdev.h b/drivers/infiniband/hw/hfi1/netdev.h
+index 07c8f77c9181..c6440bd07d2e 100644
+--- a/drivers/infiniband/hw/hfi1/netdev.h
++++ b/drivers/infiniband/hw/hfi1/netdev.h
+@@ -14,7 +14,7 @@
+ 
+ /**
+  * struct hfi1_netdev_rxq - Receive Queue for HFI
+- * Both IPoIB and VNIC netdevices will be working on the rx abstraction.
++ * IPoIB netdevices will be working on the rx abstraction.
+  * @napi: napi object
+  * @rx: ptr to netdev_rx
+  * @rcd:  ptr to receive context data
+@@ -25,10 +25,6 @@ struct hfi1_netdev_rxq {
+ 	struct hfi1_ctxtdata *rcd;
+ };
+ 
+-/*
+- * Number of netdev contexts used. Ensure it is less than or equal to
+- * max queues supported by VNIC (HFI1_VNIC_MAX_QUEUE).
+- */
+ #define HFI1_MAX_NETDEV_CTXTS   8
+ 
+ /* Number of NETDEV RSM entries */
+@@ -42,7 +38,7 @@ struct hfi1_netdev_rxq {
+  * @num_rx_q:	number of receive queues
+  * @rmt_index:	first free index in RMT Array
+  * @msix_start: first free MSI-X interrupt vector.
+- * @dev_tbl:	netdev table for unique identifier VNIC and IPoIb VLANs.
++ * @dev_tbl:	netdev table for unique identifier IPoIb VLANs.
+  * @enabled:	atomic counter of netdevs enabling receive queues.
+  *		When 0 NAPI will be disabled.
+  * @netdevs:	atomic counter of netdevs using dummy netdev.
+diff --git a/drivers/infiniband/hw/hfi1/netdev_rx.c b/drivers/infiniband/hw/hfi1/netdev_rx.c
+index 8608044203bb..ca2ae52b21e3 100644
+--- a/drivers/infiniband/hw/hfi1/netdev_rx.c
++++ b/drivers/infiniband/hw/hfi1/netdev_rx.c
+@@ -78,7 +78,6 @@ static int hfi1_netdev_allocate_ctxt(struct hfi1_devdata *dd,
+ 	uctxt->fast_handler = handle_receive_interrupt_napi_fp;
+ 	uctxt->slow_handler = handle_receive_interrupt_napi_sp;
+ 	hfi1_set_seq_cnt(uctxt, 1);
+-	uctxt->is_vnic = true;
+ 
+ 	hfi1_stats.sps_ctxts++;
+ 
+@@ -427,7 +426,7 @@ void hfi1_netdev_disable_queues(struct hfi1_devdata *dd)
+ 
+ /**
+  * hfi1_netdev_add_data - Registers data with unique identifier
+- * to be requested later this is needed for VNIC and IPoIB VLANs
++ * to be requested later this is needed for IPoIB VLANs
+  * implementations.
+  * This call is protected by mutex idr_lock.
+  *
+diff --git a/drivers/infiniband/hw/hfi1/verbs.c b/drivers/infiniband/hw/hfi1/verbs.c
+index 49e0f79b950c..9f318928ac65 100644
+--- a/drivers/infiniband/hw/hfi1/verbs.c
++++ b/drivers/infiniband/hw/hfi1/verbs.c
+@@ -21,7 +21,6 @@
+ #include "qp.h"
+ #include "verbs_txreq.h"
+ #include "debugfs.h"
+-#include "vnic.h"
+ #include "fault.h"
+ #include "affinity.h"
+ #include "ipoib.h"
+@@ -1729,7 +1728,6 @@ static const struct ib_device_ops hfi1_dev_ops = {
+ 
+ 	.alloc_hw_device_stats = hfi1_alloc_hw_device_stats,
+ 	.alloc_hw_port_stats = hfi_alloc_hw_port_stats,
+-	.alloc_rdma_netdev = hfi1_vnic_alloc_rn,
+ 	.device_group = &ib_hfi1_attr_group,
+ 	.get_dev_fw_str = hfi1_get_dev_fw_str,
+ 	.get_hw_stats = get_hw_stats,
+diff --git a/drivers/infiniband/hw/hfi1/vnic.h b/drivers/infiniband/hw/hfi1/vnic.h
+deleted file mode 100644
+index bbafeb5fc0ec..000000000000
+--- a/drivers/infiniband/hw/hfi1/vnic.h
++++ /dev/null
+@@ -1,126 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0 OR BSD-3-Clause */
+-/*
+- * Copyright(c) 2017 - 2020 Intel Corporation.
+- */
+-
+-#ifndef _HFI1_VNIC_H
+-#define _HFI1_VNIC_H
+-#include <rdma/opa_vnic.h>
+-#include "hfi.h"
+-#include "sdma.h"
+-
+-#define HFI1_VNIC_MAX_TXQ     16
+-#define HFI1_VNIC_MAX_PAD     12
+-
+-/* L4 header definitions */
+-#define HFI1_VNIC_L4_HDR_OFFSET  OPA_VNIC_L2_HDR_LEN
+-
+-#define HFI1_VNIC_GET_L4_HDR(data)   \
+-	(*((u16 *)((u8 *)(data) + HFI1_VNIC_L4_HDR_OFFSET)))
+-
+-#define HFI1_VNIC_GET_VESWID(data)   \
+-	(HFI1_VNIC_GET_L4_HDR(data) & 0xFFF)
+-
+-/* Service class */
+-#define HFI1_VNIC_SC_OFFSET_LOW 6
+-#define HFI1_VNIC_SC_OFFSET_HI  7
+-#define HFI1_VNIC_SC_SHIFT      4
+-
+-#define HFI1_VNIC_MAX_QUEUE 16
+-#define HFI1_NUM_VNIC_CTXT 8
+-
+-/**
+- * struct hfi1_vnic_sdma - VNIC per Tx ring SDMA information
+- * @dd - device data pointer
+- * @sde - sdma engine
+- * @vinfo - vnic info pointer
+- * @wait - iowait structure
+- * @stx - sdma tx request
+- * @state - vnic Tx ring SDMA state
+- * @q_idx - vnic Tx queue index
+- */
+-struct hfi1_vnic_sdma {
+-	struct hfi1_devdata *dd;
+-	struct sdma_engine  *sde;
+-	struct hfi1_vnic_vport_info *vinfo;
+-	struct iowait wait;
+-	struct sdma_txreq stx;
+-	unsigned int state;
+-	u8 q_idx;
+-	bool pkts_sent;
+-};
+-
+-/**
+- * struct hfi1_vnic_rx_queue - HFI1 VNIC receive queue
+- * @idx: queue index
+- * @vinfo: pointer to vport information
+- * @netdev: network device
+- * @napi: netdev napi structure
+- * @skbq: queue of received socket buffers
+- */
+-struct hfi1_vnic_rx_queue {
+-	u8                           idx;
+-	struct hfi1_vnic_vport_info *vinfo;
+-	struct net_device           *netdev;
+-	struct napi_struct           napi;
+-};
+-
+-/**
+- * struct hfi1_vnic_vport_info - HFI1 VNIC virtual port information
+- * @dd: device data pointer
+- * @netdev: net device pointer
+- * @flags: state flags
+- * @lock: vport lock
+- * @num_tx_q: number of transmit queues
+- * @num_rx_q: number of receive queues
+- * @vesw_id: virtual switch id
+- * @rxq: Array of receive queues
+- * @stats: per queue stats
+- * @sdma: VNIC SDMA structure per TXQ
+- */
+-struct hfi1_vnic_vport_info {
+-	struct hfi1_devdata *dd;
+-	struct net_device   *netdev;
+-	unsigned long        flags;
+-
+-	/* Lock used around state updates */
+-	struct mutex         lock;
+-
+-	u8  num_tx_q;
+-	u8  num_rx_q;
+-	u16 vesw_id;
+-	struct hfi1_vnic_rx_queue rxq[HFI1_NUM_VNIC_CTXT];
+-
+-	struct opa_vnic_stats  stats[HFI1_VNIC_MAX_QUEUE];
+-	struct hfi1_vnic_sdma  sdma[HFI1_VNIC_MAX_TXQ];
+-};
+-
+-#define v_dbg(format, arg...) \
+-	netdev_dbg(vinfo->netdev, format, ## arg)
+-#define v_err(format, arg...) \
+-	netdev_err(vinfo->netdev, format, ## arg)
+-#define v_info(format, arg...) \
+-	netdev_info(vinfo->netdev, format, ## arg)
+-
+-/* vnic hfi1 internal functions */
+-void hfi1_vnic_setup(struct hfi1_devdata *dd);
+-int hfi1_vnic_txreq_init(struct hfi1_devdata *dd);
+-void hfi1_vnic_txreq_deinit(struct hfi1_devdata *dd);
+-
+-void hfi1_vnic_bypass_rcv(struct hfi1_packet *packet);
+-void hfi1_vnic_sdma_init(struct hfi1_vnic_vport_info *vinfo);
+-bool hfi1_vnic_sdma_write_avail(struct hfi1_vnic_vport_info *vinfo,
+-				u8 q_idx);
+-
+-/* vnic rdma netdev operations */
+-struct net_device *hfi1_vnic_alloc_rn(struct ib_device *device,
+-				      u32 port_num,
+-				      enum rdma_netdev_t type,
+-				      const char *name,
+-				      unsigned char name_assign_type,
+-				      void (*setup)(struct net_device *));
+-int hfi1_vnic_send_dma(struct hfi1_devdata *dd, u8 q_idx,
+-		       struct hfi1_vnic_vport_info *vinfo,
+-		       struct sk_buff *skb, u64 pbc, u8 plen);
+-
+-#endif /* _HFI1_VNIC_H */
+diff --git a/drivers/infiniband/hw/hfi1/vnic_main.c b/drivers/infiniband/hw/hfi1/vnic_main.c
+deleted file mode 100644
+index 16a4c297a897..000000000000
+--- a/drivers/infiniband/hw/hfi1/vnic_main.c
++++ /dev/null
+@@ -1,615 +0,0 @@
+-// SPDX-License-Identifier: GPL-2.0 OR BSD-3-Clause
+-/*
+- * Copyright(c) 2017 - 2020 Intel Corporation.
+- */
+-
+-/*
+- * This file contains HFI1 support for VNIC functionality
+- */
+-
+-#include <linux/io.h>
+-#include <linux/if_vlan.h>
+-
+-#include "vnic.h"
+-#include "netdev.h"
+-
+-#define HFI_TX_TIMEOUT_MS 1000
+-
+-#define HFI1_VNIC_RCV_Q_SIZE   1024
+-
+-#define HFI1_VNIC_UP 0
+-
+-static DEFINE_SPINLOCK(vport_cntr_lock);
+-
+-#define SUM_GRP_COUNTERS(stats, qstats, x_grp) do {            \
+-		u64 *src64, *dst64;                            \
+-		for (src64 = &qstats->x_grp.unicast,           \
+-			dst64 = &stats->x_grp.unicast;         \
+-			dst64 <= &stats->x_grp.s_1519_max;) {  \
+-			*dst64++ += *src64++;                  \
+-		}                                              \
+-	} while (0)
+-
+-#define VNIC_MASK (0xFF)
+-#define VNIC_ID(val) ((1ull << 24) | ((val) & VNIC_MASK))
+-
+-/* hfi1_vnic_update_stats - update statistics */
+-static void hfi1_vnic_update_stats(struct hfi1_vnic_vport_info *vinfo,
+-				   struct opa_vnic_stats *stats)
+-{
+-	struct net_device *netdev = vinfo->netdev;
+-	u8 i;
+-
+-	/* add tx counters on different queues */
+-	for (i = 0; i < vinfo->num_tx_q; i++) {
+-		struct opa_vnic_stats *qstats = &vinfo->stats[i];
+-		struct rtnl_link_stats64 *qnstats = &vinfo->stats[i].netstats;
+-
+-		stats->netstats.tx_fifo_errors += qnstats->tx_fifo_errors;
+-		stats->netstats.tx_carrier_errors += qnstats->tx_carrier_errors;
+-		stats->tx_drop_state += qstats->tx_drop_state;
+-		stats->tx_dlid_zero += qstats->tx_dlid_zero;
+-
+-		SUM_GRP_COUNTERS(stats, qstats, tx_grp);
+-		stats->netstats.tx_packets += qnstats->tx_packets;
+-		stats->netstats.tx_bytes += qnstats->tx_bytes;
+-	}
+-
+-	/* add rx counters on different queues */
+-	for (i = 0; i < vinfo->num_rx_q; i++) {
+-		struct opa_vnic_stats *qstats = &vinfo->stats[i];
+-		struct rtnl_link_stats64 *qnstats = &vinfo->stats[i].netstats;
+-
+-		stats->netstats.rx_fifo_errors += qnstats->rx_fifo_errors;
+-		stats->netstats.rx_nohandler += qnstats->rx_nohandler;
+-		stats->rx_drop_state += qstats->rx_drop_state;
+-		stats->rx_oversize += qstats->rx_oversize;
+-		stats->rx_runt += qstats->rx_runt;
+-
+-		SUM_GRP_COUNTERS(stats, qstats, rx_grp);
+-		stats->netstats.rx_packets += qnstats->rx_packets;
+-		stats->netstats.rx_bytes += qnstats->rx_bytes;
+-	}
+-
+-	stats->netstats.tx_errors = stats->netstats.tx_fifo_errors +
+-				    stats->netstats.tx_carrier_errors +
+-				    stats->tx_drop_state + stats->tx_dlid_zero;
+-	stats->netstats.tx_dropped = stats->netstats.tx_errors;
+-
+-	stats->netstats.rx_errors = stats->netstats.rx_fifo_errors +
+-				    stats->netstats.rx_nohandler +
+-				    stats->rx_drop_state + stats->rx_oversize +
+-				    stats->rx_runt;
+-	stats->netstats.rx_dropped = stats->netstats.rx_errors;
+-
+-	netdev->stats.tx_packets = stats->netstats.tx_packets;
+-	netdev->stats.tx_bytes = stats->netstats.tx_bytes;
+-	netdev->stats.tx_fifo_errors = stats->netstats.tx_fifo_errors;
+-	netdev->stats.tx_carrier_errors = stats->netstats.tx_carrier_errors;
+-	netdev->stats.tx_errors = stats->netstats.tx_errors;
+-	netdev->stats.tx_dropped = stats->netstats.tx_dropped;
+-
+-	netdev->stats.rx_packets = stats->netstats.rx_packets;
+-	netdev->stats.rx_bytes = stats->netstats.rx_bytes;
+-	netdev->stats.rx_fifo_errors = stats->netstats.rx_fifo_errors;
+-	netdev->stats.multicast = stats->rx_grp.mcastbcast;
+-	netdev->stats.rx_length_errors = stats->rx_oversize + stats->rx_runt;
+-	netdev->stats.rx_errors = stats->netstats.rx_errors;
+-	netdev->stats.rx_dropped = stats->netstats.rx_dropped;
+-}
+-
+-/* update_len_counters - update pkt's len histogram counters */
+-static inline void update_len_counters(struct opa_vnic_grp_stats *grp,
+-				       int len)
+-{
+-	/* account for 4 byte FCS */
+-	if (len >= 1515)
+-		grp->s_1519_max++;
+-	else if (len >= 1020)
+-		grp->s_1024_1518++;
+-	else if (len >= 508)
+-		grp->s_512_1023++;
+-	else if (len >= 252)
+-		grp->s_256_511++;
+-	else if (len >= 124)
+-		grp->s_128_255++;
+-	else if (len >= 61)
+-		grp->s_65_127++;
+-	else
+-		grp->s_64++;
+-}
+-
+-/* hfi1_vnic_update_tx_counters - update transmit counters */
+-static void hfi1_vnic_update_tx_counters(struct hfi1_vnic_vport_info *vinfo,
+-					 u8 q_idx, struct sk_buff *skb, int err)
+-{
+-	struct ethhdr *mac_hdr = (struct ethhdr *)skb_mac_header(skb);
+-	struct opa_vnic_stats *stats = &vinfo->stats[q_idx];
+-	struct opa_vnic_grp_stats *tx_grp = &stats->tx_grp;
+-	u16 vlan_tci;
+-
+-	stats->netstats.tx_packets++;
+-	stats->netstats.tx_bytes += skb->len + ETH_FCS_LEN;
+-
+-	update_len_counters(tx_grp, skb->len);
+-
+-	/* rest of the counts are for good packets only */
+-	if (unlikely(err))
+-		return;
+-
+-	if (is_multicast_ether_addr(mac_hdr->h_dest))
+-		tx_grp->mcastbcast++;
+-	else
+-		tx_grp->unicast++;
+-
+-	if (!__vlan_get_tag(skb, &vlan_tci))
+-		tx_grp->vlan++;
+-	else
+-		tx_grp->untagged++;
+-}
+-
+-/* hfi1_vnic_update_rx_counters - update receive counters */
+-static void hfi1_vnic_update_rx_counters(struct hfi1_vnic_vport_info *vinfo,
+-					 u8 q_idx, struct sk_buff *skb, int err)
+-{
+-	struct ethhdr *mac_hdr = (struct ethhdr *)skb->data;
+-	struct opa_vnic_stats *stats = &vinfo->stats[q_idx];
+-	struct opa_vnic_grp_stats *rx_grp = &stats->rx_grp;
+-	u16 vlan_tci;
+-
+-	stats->netstats.rx_packets++;
+-	stats->netstats.rx_bytes += skb->len + ETH_FCS_LEN;
+-
+-	update_len_counters(rx_grp, skb->len);
+-
+-	/* rest of the counts are for good packets only */
+-	if (unlikely(err))
+-		return;
+-
+-	if (is_multicast_ether_addr(mac_hdr->h_dest))
+-		rx_grp->mcastbcast++;
+-	else
+-		rx_grp->unicast++;
+-
+-	if (!__vlan_get_tag(skb, &vlan_tci))
+-		rx_grp->vlan++;
+-	else
+-		rx_grp->untagged++;
+-}
+-
+-/* This function is overloaded for opa_vnic specific implementation */
+-static void hfi1_vnic_get_stats64(struct net_device *netdev,
+-				  struct rtnl_link_stats64 *stats)
+-{
+-	struct opa_vnic_stats *vstats = (struct opa_vnic_stats *)stats;
+-	struct hfi1_vnic_vport_info *vinfo = opa_vnic_dev_priv(netdev);
+-
+-	hfi1_vnic_update_stats(vinfo, vstats);
+-}
+-
+-static u64 create_bypass_pbc(u32 vl, u32 dw_len)
+-{
+-	u64 pbc;
+-
+-	pbc = ((u64)PBC_IHCRC_NONE << PBC_INSERT_HCRC_SHIFT)
+-		| PBC_INSERT_BYPASS_ICRC | PBC_CREDIT_RETURN
+-		| PBC_PACKET_BYPASS
+-		| ((vl & PBC_VL_MASK) << PBC_VL_SHIFT)
+-		| (dw_len & PBC_LENGTH_DWS_MASK) << PBC_LENGTH_DWS_SHIFT;
+-
+-	return pbc;
+-}
+-
+-/* hfi1_vnic_maybe_stop_tx - stop tx queue if required */
+-static void hfi1_vnic_maybe_stop_tx(struct hfi1_vnic_vport_info *vinfo,
+-				    u8 q_idx)
+-{
+-	netif_stop_subqueue(vinfo->netdev, q_idx);
+-	if (!hfi1_vnic_sdma_write_avail(vinfo, q_idx))
+-		return;
+-
+-	netif_start_subqueue(vinfo->netdev, q_idx);
+-}
+-
+-static netdev_tx_t hfi1_netdev_start_xmit(struct sk_buff *skb,
+-					  struct net_device *netdev)
+-{
+-	struct hfi1_vnic_vport_info *vinfo = opa_vnic_dev_priv(netdev);
+-	u8 pad_len, q_idx = skb->queue_mapping;
+-	struct hfi1_devdata *dd = vinfo->dd;
+-	struct opa_vnic_skb_mdata *mdata;
+-	u32 pkt_len, total_len;
+-	int err = -EINVAL;
+-	u64 pbc;
+-
+-	v_dbg("xmit: queue %d skb len %d\n", q_idx, skb->len);
+-	if (unlikely(!netif_oper_up(netdev))) {
+-		vinfo->stats[q_idx].tx_drop_state++;
+-		goto tx_finish;
+-	}
+-
+-	/* take out meta data */
+-	mdata = (struct opa_vnic_skb_mdata *)skb->data;
+-	skb_pull(skb, sizeof(*mdata));
+-	if (unlikely(mdata->flags & OPA_VNIC_SKB_MDATA_ENCAP_ERR)) {
+-		vinfo->stats[q_idx].tx_dlid_zero++;
+-		goto tx_finish;
+-	}
+-
+-	/* add tail padding (for 8 bytes size alignment) and icrc */
+-	pad_len = -(skb->len + OPA_VNIC_ICRC_TAIL_LEN) & 0x7;
+-	pad_len += OPA_VNIC_ICRC_TAIL_LEN;
+-
+-	/*
+-	 * pkt_len is how much data we have to write, includes header and data.
+-	 * total_len is length of the packet in Dwords plus the PBC should not
+-	 * include the CRC.
+-	 */
+-	pkt_len = (skb->len + pad_len) >> 2;
+-	total_len = pkt_len + 2; /* PBC + packet */
+-
+-	pbc = create_bypass_pbc(mdata->vl, total_len);
+-
+-	skb_get(skb);
+-	v_dbg("pbc 0x%016llX len %d pad_len %d\n", pbc, skb->len, pad_len);
+-	err = dd->process_vnic_dma_send(dd, q_idx, vinfo, skb, pbc, pad_len);
+-	if (unlikely(err)) {
+-		if (err == -ENOMEM)
+-			vinfo->stats[q_idx].netstats.tx_fifo_errors++;
+-		else if (err != -EBUSY)
+-			vinfo->stats[q_idx].netstats.tx_carrier_errors++;
+-	}
+-	/* remove the header before updating tx counters */
+-	skb_pull(skb, OPA_VNIC_HDR_LEN);
+-
+-	if (unlikely(err == -EBUSY)) {
+-		hfi1_vnic_maybe_stop_tx(vinfo, q_idx);
+-		dev_kfree_skb_any(skb);
+-		return NETDEV_TX_BUSY;
+-	}
+-
+-tx_finish:
+-	/* update tx counters */
+-	hfi1_vnic_update_tx_counters(vinfo, q_idx, skb, err);
+-	dev_kfree_skb_any(skb);
+-	return NETDEV_TX_OK;
+-}
+-
+-static u16 hfi1_vnic_select_queue(struct net_device *netdev,
+-				  struct sk_buff *skb,
+-				  struct net_device *sb_dev)
+-{
+-	struct hfi1_vnic_vport_info *vinfo = opa_vnic_dev_priv(netdev);
+-	struct opa_vnic_skb_mdata *mdata;
+-	struct sdma_engine *sde;
+-
+-	mdata = (struct opa_vnic_skb_mdata *)skb->data;
+-	sde = sdma_select_engine_vl(vinfo->dd, mdata->entropy, mdata->vl);
+-	return sde->this_idx;
+-}
+-
+-/* hfi1_vnic_decap_skb - strip OPA header from the skb (ethernet) packet */
+-static inline int hfi1_vnic_decap_skb(struct hfi1_vnic_rx_queue *rxq,
+-				      struct sk_buff *skb)
+-{
+-	struct hfi1_vnic_vport_info *vinfo = rxq->vinfo;
+-	int max_len = vinfo->netdev->mtu + VLAN_ETH_HLEN;
+-	int rc = -EFAULT;
+-
+-	skb_pull(skb, OPA_VNIC_HDR_LEN);
+-
+-	/* Validate Packet length */
+-	if (unlikely(skb->len > max_len))
+-		vinfo->stats[rxq->idx].rx_oversize++;
+-	else if (unlikely(skb->len < ETH_ZLEN))
+-		vinfo->stats[rxq->idx].rx_runt++;
+-	else
+-		rc = 0;
+-	return rc;
+-}
+-
+-static struct hfi1_vnic_vport_info *get_vnic_port(struct hfi1_devdata *dd,
+-						  int vesw_id)
+-{
+-	int vnic_id = VNIC_ID(vesw_id);
+-
+-	return hfi1_netdev_get_data(dd, vnic_id);
+-}
+-
+-static struct hfi1_vnic_vport_info *get_first_vnic_port(struct hfi1_devdata *dd)
+-{
+-	struct hfi1_vnic_vport_info *vinfo;
+-	int next_id = VNIC_ID(0);
+-
+-	vinfo = hfi1_netdev_get_first_data(dd, &next_id);
+-
+-	if (next_id > VNIC_ID(VNIC_MASK))
+-		return NULL;
+-
+-	return vinfo;
+-}
+-
+-void hfi1_vnic_bypass_rcv(struct hfi1_packet *packet)
+-{
+-	struct hfi1_devdata *dd = packet->rcd->dd;
+-	struct hfi1_vnic_vport_info *vinfo = NULL;
+-	struct hfi1_vnic_rx_queue *rxq;
+-	struct sk_buff *skb;
+-	int l4_type, vesw_id = -1, rc;
+-	u8 q_idx;
+-	unsigned char *pad_info;
+-
+-	l4_type = hfi1_16B_get_l4(packet->ebuf);
+-	if (likely(l4_type == OPA_16B_L4_ETHR)) {
+-		vesw_id = HFI1_VNIC_GET_VESWID(packet->ebuf);
+-		vinfo = get_vnic_port(dd, vesw_id);
+-
+-		/*
+-		 * In case of invalid vesw id, count the error on
+-		 * the first available vport.
+-		 */
+-		if (unlikely(!vinfo)) {
+-			struct hfi1_vnic_vport_info *vinfo_tmp;
+-
+-			vinfo_tmp = get_first_vnic_port(dd);
+-			if (vinfo_tmp) {
+-				spin_lock(&vport_cntr_lock);
+-				vinfo_tmp->stats[0].netstats.rx_nohandler++;
+-				spin_unlock(&vport_cntr_lock);
+-			}
+-		}
+-	}
+-
+-	if (unlikely(!vinfo)) {
+-		dd_dev_warn(dd, "vnic rcv err: l4 %d vesw id %d ctx %d\n",
+-			    l4_type, vesw_id, packet->rcd->ctxt);
+-		return;
+-	}
+-
+-	q_idx = packet->rcd->vnic_q_idx;
+-	rxq = &vinfo->rxq[q_idx];
+-	if (unlikely(!netif_oper_up(vinfo->netdev))) {
+-		vinfo->stats[q_idx].rx_drop_state++;
+-		return;
+-	}
+-
+-	skb = netdev_alloc_skb(vinfo->netdev, packet->tlen);
+-	if (unlikely(!skb)) {
+-		vinfo->stats[q_idx].netstats.rx_fifo_errors++;
+-		return;
+-	}
+-
+-	memcpy(skb->data, packet->ebuf, packet->tlen);
+-	skb_put(skb, packet->tlen);
+-
+-	pad_info = skb->data + skb->len - 1;
+-	skb_trim(skb, (skb->len - OPA_VNIC_ICRC_TAIL_LEN -
+-		       ((*pad_info) & 0x7)));
+-
+-	rc = hfi1_vnic_decap_skb(rxq, skb);
+-
+-	/* update rx counters */
+-	hfi1_vnic_update_rx_counters(vinfo, rxq->idx, skb, rc);
+-	if (unlikely(rc)) {
+-		dev_kfree_skb_any(skb);
+-		return;
+-	}
+-
+-	skb_checksum_none_assert(skb);
+-	skb->protocol = eth_type_trans(skb, rxq->netdev);
+-
+-	napi_gro_receive(&rxq->napi, skb);
+-}
+-
+-static int hfi1_vnic_up(struct hfi1_vnic_vport_info *vinfo)
+-{
+-	struct hfi1_devdata *dd = vinfo->dd;
+-	struct net_device *netdev = vinfo->netdev;
+-	int rc;
+-
+-	/* ensure virtual eth switch id is valid */
+-	if (!vinfo->vesw_id)
+-		return -EINVAL;
+-
+-	rc = hfi1_netdev_add_data(dd, VNIC_ID(vinfo->vesw_id), vinfo);
+-	if (rc < 0)
+-		return rc;
+-
+-	rc = hfi1_netdev_rx_init(dd);
+-	if (rc)
+-		goto err_remove;
+-
+-	netif_carrier_on(netdev);
+-	netif_tx_start_all_queues(netdev);
+-	set_bit(HFI1_VNIC_UP, &vinfo->flags);
+-
+-	return 0;
+-
+-err_remove:
+-	hfi1_netdev_remove_data(dd, VNIC_ID(vinfo->vesw_id));
+-	return rc;
+-}
+-
+-static void hfi1_vnic_down(struct hfi1_vnic_vport_info *vinfo)
+-{
+-	struct hfi1_devdata *dd = vinfo->dd;
+-
+-	clear_bit(HFI1_VNIC_UP, &vinfo->flags);
+-	netif_carrier_off(vinfo->netdev);
+-	netif_tx_disable(vinfo->netdev);
+-	hfi1_netdev_remove_data(dd, VNIC_ID(vinfo->vesw_id));
+-
+-	hfi1_netdev_rx_destroy(dd);
+-}
+-
+-static int hfi1_netdev_open(struct net_device *netdev)
+-{
+-	struct hfi1_vnic_vport_info *vinfo = opa_vnic_dev_priv(netdev);
+-	int rc;
+-
+-	mutex_lock(&vinfo->lock);
+-	rc = hfi1_vnic_up(vinfo);
+-	mutex_unlock(&vinfo->lock);
+-	return rc;
+-}
+-
+-static int hfi1_netdev_close(struct net_device *netdev)
+-{
+-	struct hfi1_vnic_vport_info *vinfo = opa_vnic_dev_priv(netdev);
+-
+-	mutex_lock(&vinfo->lock);
+-	if (test_bit(HFI1_VNIC_UP, &vinfo->flags))
+-		hfi1_vnic_down(vinfo);
+-	mutex_unlock(&vinfo->lock);
+-	return 0;
+-}
+-
+-static int hfi1_vnic_init(struct hfi1_vnic_vport_info *vinfo)
+-{
+-	struct hfi1_devdata *dd = vinfo->dd;
+-	int rc = 0;
+-
+-	mutex_lock(&hfi1_mutex);
+-	if (!dd->vnic_num_vports) {
+-		rc = hfi1_vnic_txreq_init(dd);
+-		if (rc)
+-			goto txreq_fail;
+-	}
+-
+-	rc = hfi1_netdev_rx_init(dd);
+-	if (rc) {
+-		dd_dev_err(dd, "Unable to initialize netdev contexts\n");
+-		goto alloc_fail;
+-	}
+-
+-	hfi1_init_vnic_rsm(dd);
+-
+-	dd->vnic_num_vports++;
+-	hfi1_vnic_sdma_init(vinfo);
+-
+-alloc_fail:
+-	if (!dd->vnic_num_vports)
+-		hfi1_vnic_txreq_deinit(dd);
+-txreq_fail:
+-	mutex_unlock(&hfi1_mutex);
+-	return rc;
+-}
+-
+-static void hfi1_vnic_deinit(struct hfi1_vnic_vport_info *vinfo)
+-{
+-	struct hfi1_devdata *dd = vinfo->dd;
+-
+-	mutex_lock(&hfi1_mutex);
+-	if (--dd->vnic_num_vports == 0) {
+-		hfi1_deinit_vnic_rsm(dd);
+-		hfi1_vnic_txreq_deinit(dd);
+-	}
+-	mutex_unlock(&hfi1_mutex);
+-	hfi1_netdev_rx_destroy(dd);
+-}
+-
+-static void hfi1_vnic_set_vesw_id(struct net_device *netdev, int id)
+-{
+-	struct hfi1_vnic_vport_info *vinfo = opa_vnic_dev_priv(netdev);
+-	bool reopen = false;
+-
+-	/*
+-	 * If vesw_id is being changed, and if the vnic port is up,
+-	 * reset the vnic port to ensure new vesw_id gets picked up
+-	 */
+-	if (id != vinfo->vesw_id) {
+-		mutex_lock(&vinfo->lock);
+-		if (test_bit(HFI1_VNIC_UP, &vinfo->flags)) {
+-			hfi1_vnic_down(vinfo);
+-			reopen = true;
+-		}
+-
+-		vinfo->vesw_id = id;
+-		if (reopen)
+-			hfi1_vnic_up(vinfo);
+-
+-		mutex_unlock(&vinfo->lock);
+-	}
+-}
+-
+-/* netdev ops */
+-static const struct net_device_ops hfi1_netdev_ops = {
+-	.ndo_open = hfi1_netdev_open,
+-	.ndo_stop = hfi1_netdev_close,
+-	.ndo_start_xmit = hfi1_netdev_start_xmit,
+-	.ndo_select_queue = hfi1_vnic_select_queue,
+-	.ndo_get_stats64 = hfi1_vnic_get_stats64,
+-};
+-
+-static void hfi1_vnic_free_rn(struct net_device *netdev)
+-{
+-	struct hfi1_vnic_vport_info *vinfo = opa_vnic_dev_priv(netdev);
+-
+-	hfi1_vnic_deinit(vinfo);
+-	mutex_destroy(&vinfo->lock);
+-	free_netdev(netdev);
+-}
+-
+-struct net_device *hfi1_vnic_alloc_rn(struct ib_device *device,
+-				      u32 port_num,
+-				      enum rdma_netdev_t type,
+-				      const char *name,
+-				      unsigned char name_assign_type,
+-				      void (*setup)(struct net_device *))
+-{
+-	struct hfi1_devdata *dd = dd_from_ibdev(device);
+-	struct hfi1_vnic_vport_info *vinfo;
+-	struct net_device *netdev;
+-	struct rdma_netdev *rn;
+-	int i, size, rc;
+-
+-	if (!dd->num_netdev_contexts)
+-		return ERR_PTR(-ENOMEM);
+-
+-	if (!port_num || (port_num > dd->num_pports))
+-		return ERR_PTR(-EINVAL);
+-
+-	if (type != RDMA_NETDEV_OPA_VNIC)
+-		return ERR_PTR(-EOPNOTSUPP);
+-
+-	size = sizeof(struct opa_vnic_rdma_netdev) + sizeof(*vinfo);
+-	netdev = alloc_netdev_mqs(size, name, name_assign_type, setup,
+-				  chip_sdma_engines(dd),
+-				  dd->num_netdev_contexts);
+-	if (!netdev)
+-		return ERR_PTR(-ENOMEM);
+-
+-	rn = netdev_priv(netdev);
+-	vinfo = opa_vnic_dev_priv(netdev);
+-	vinfo->dd = dd;
+-	vinfo->num_tx_q = chip_sdma_engines(dd);
+-	vinfo->num_rx_q = dd->num_netdev_contexts;
+-	vinfo->netdev = netdev;
+-	rn->free_rdma_netdev = hfi1_vnic_free_rn;
+-	rn->set_id = hfi1_vnic_set_vesw_id;
+-
+-	netdev->features = NETIF_F_HIGHDMA | NETIF_F_SG;
+-	netdev->hw_features = netdev->features;
+-	netdev->vlan_features = netdev->features;
+-	netdev->watchdog_timeo = msecs_to_jiffies(HFI_TX_TIMEOUT_MS);
+-	netdev->netdev_ops = &hfi1_netdev_ops;
+-	mutex_init(&vinfo->lock);
+-
+-	for (i = 0; i < vinfo->num_rx_q; i++) {
+-		struct hfi1_vnic_rx_queue *rxq = &vinfo->rxq[i];
+-
+-		rxq->idx = i;
+-		rxq->vinfo = vinfo;
+-		rxq->netdev = netdev;
+-	}
+-
+-	rc = hfi1_vnic_init(vinfo);
+-	if (rc)
+-		goto init_fail;
+-
+-	return netdev;
+-init_fail:
+-	mutex_destroy(&vinfo->lock);
+-	free_netdev(netdev);
+-	return ERR_PTR(rc);
+-}
+diff --git a/drivers/infiniband/hw/hfi1/vnic_sdma.c b/drivers/infiniband/hw/hfi1/vnic_sdma.c
+deleted file mode 100644
+index 6caf01ba0bca..000000000000
+--- a/drivers/infiniband/hw/hfi1/vnic_sdma.c
++++ /dev/null
+@@ -1,282 +0,0 @@
+-// SPDX-License-Identifier: GPL-2.0 OR BSD-3-Clause
+-/*
+- * Copyright(c) 2017 - 2018 Intel Corporation.
+- */
+-
+-/*
+- * This file contains HFI1 support for VNIC SDMA functionality
+- */
+-
+-#include "sdma.h"
+-#include "vnic.h"
+-
+-#define HFI1_VNIC_SDMA_Q_ACTIVE   BIT(0)
+-#define HFI1_VNIC_SDMA_Q_DEFERRED BIT(1)
+-
+-#define HFI1_VNIC_TXREQ_NAME_LEN   32
+-#define HFI1_VNIC_SDMA_DESC_WTRMRK 64
+-
+-/*
+- * struct vnic_txreq - VNIC transmit descriptor
+- * @txreq: sdma transmit request
+- * @sdma: vnic sdma pointer
+- * @skb: skb to send
+- * @pad: pad buffer
+- * @plen: pad length
+- * @pbc_val: pbc value
+- */
+-struct vnic_txreq {
+-	struct sdma_txreq       txreq;
+-	struct hfi1_vnic_sdma   *sdma;
+-
+-	struct sk_buff         *skb;
+-	unsigned char           pad[HFI1_VNIC_MAX_PAD];
+-	u16                     plen;
+-	__le64                  pbc_val;
+-};
+-
+-static void vnic_sdma_complete(struct sdma_txreq *txreq,
+-			       int status)
+-{
+-	struct vnic_txreq *tx = container_of(txreq, struct vnic_txreq, txreq);
+-	struct hfi1_vnic_sdma *vnic_sdma = tx->sdma;
+-
+-	sdma_txclean(vnic_sdma->dd, txreq);
+-	dev_kfree_skb_any(tx->skb);
+-	kmem_cache_free(vnic_sdma->dd->vnic.txreq_cache, tx);
+-}
+-
+-static noinline int build_vnic_ulp_payload(struct sdma_engine *sde,
+-					   struct vnic_txreq *tx)
+-{
+-	int i, ret = 0;
+-
+-	ret = sdma_txadd_kvaddr(
+-		sde->dd,
+-		&tx->txreq,
+-		tx->skb->data,
+-		skb_headlen(tx->skb));
+-	if (unlikely(ret))
+-		goto bail_txadd;
+-
+-	for (i = 0; i < skb_shinfo(tx->skb)->nr_frags; i++) {
+-		skb_frag_t *frag = &skb_shinfo(tx->skb)->frags[i];
+-
+-		/* combine physically continuous fragments later? */
+-		ret = sdma_txadd_page(sde->dd,
+-				      &tx->txreq,
+-				      skb_frag_page(frag),
+-				      skb_frag_off(frag),
+-				      skb_frag_size(frag),
+-				      NULL, NULL, NULL);
+-		if (unlikely(ret))
+-			goto bail_txadd;
+-	}
+-
+-	if (tx->plen)
+-		ret = sdma_txadd_kvaddr(sde->dd, &tx->txreq,
+-					tx->pad + HFI1_VNIC_MAX_PAD - tx->plen,
+-					tx->plen);
+-
+-bail_txadd:
+-	return ret;
+-}
+-
+-static int build_vnic_tx_desc(struct sdma_engine *sde,
+-			      struct vnic_txreq *tx,
+-			      u64 pbc)
+-{
+-	int ret = 0;
+-	u16 hdrbytes = 2 << 2;  /* PBC */
+-
+-	ret = sdma_txinit_ahg(
+-		&tx->txreq,
+-		0,
+-		hdrbytes + tx->skb->len + tx->plen,
+-		0,
+-		0,
+-		NULL,
+-		0,
+-		vnic_sdma_complete);
+-	if (unlikely(ret))
+-		goto bail_txadd;
+-
+-	/* add pbc */
+-	tx->pbc_val = cpu_to_le64(pbc);
+-	ret = sdma_txadd_kvaddr(
+-		sde->dd,
+-		&tx->txreq,
+-		&tx->pbc_val,
+-		hdrbytes);
+-	if (unlikely(ret))
+-		goto bail_txadd;
+-
+-	/* add the ulp payload */
+-	ret = build_vnic_ulp_payload(sde, tx);
+-bail_txadd:
+-	return ret;
+-}
+-
+-/* setup the last plen bypes of pad */
+-static inline void hfi1_vnic_update_pad(unsigned char *pad, u8 plen)
+-{
+-	pad[HFI1_VNIC_MAX_PAD - 1] = plen - OPA_VNIC_ICRC_TAIL_LEN;
+-}
+-
+-int hfi1_vnic_send_dma(struct hfi1_devdata *dd, u8 q_idx,
+-		       struct hfi1_vnic_vport_info *vinfo,
+-		       struct sk_buff *skb, u64 pbc, u8 plen)
+-{
+-	struct hfi1_vnic_sdma *vnic_sdma = &vinfo->sdma[q_idx];
+-	struct sdma_engine *sde = vnic_sdma->sde;
+-	struct vnic_txreq *tx;
+-	int ret = -ECOMM;
+-
+-	if (unlikely(READ_ONCE(vnic_sdma->state) != HFI1_VNIC_SDMA_Q_ACTIVE))
+-		goto tx_err;
+-
+-	if (unlikely(!sde || !sdma_running(sde)))
+-		goto tx_err;
+-
+-	tx = kmem_cache_alloc(dd->vnic.txreq_cache, GFP_ATOMIC);
+-	if (unlikely(!tx)) {
+-		ret = -ENOMEM;
+-		goto tx_err;
+-	}
+-
+-	tx->sdma = vnic_sdma;
+-	tx->skb = skb;
+-	hfi1_vnic_update_pad(tx->pad, plen);
+-	tx->plen = plen;
+-	ret = build_vnic_tx_desc(sde, tx, pbc);
+-	if (unlikely(ret))
+-		goto free_desc;
+-
+-	ret = sdma_send_txreq(sde, iowait_get_ib_work(&vnic_sdma->wait),
+-			      &tx->txreq, vnic_sdma->pkts_sent);
+-	/* When -ECOMM, sdma callback will be called with ABORT status */
+-	if (unlikely(ret && unlikely(ret != -ECOMM)))
+-		goto free_desc;
+-
+-	if (!ret) {
+-		vnic_sdma->pkts_sent = true;
+-		iowait_starve_clear(vnic_sdma->pkts_sent, &vnic_sdma->wait);
+-	}
+-	return ret;
+-
+-free_desc:
+-	sdma_txclean(dd, &tx->txreq);
+-	kmem_cache_free(dd->vnic.txreq_cache, tx);
+-tx_err:
+-	if (ret != -EBUSY)
+-		dev_kfree_skb_any(skb);
+-	else
+-		vnic_sdma->pkts_sent = false;
+-	return ret;
+-}
+-
+-/*
+- * hfi1_vnic_sdma_sleep - vnic sdma sleep function
+- *
+- * This function gets called from sdma_send_txreq() when there are not enough
+- * sdma descriptors available to send the packet. It adds Tx queue's wait
+- * structure to sdma engine's dmawait list to be woken up when descriptors
+- * become available.
+- */
+-static int hfi1_vnic_sdma_sleep(struct sdma_engine *sde,
+-				struct iowait_work *wait,
+-				struct sdma_txreq *txreq,
+-				uint seq,
+-				bool pkts_sent)
+-{
+-	struct hfi1_vnic_sdma *vnic_sdma =
+-		container_of(wait->iow, struct hfi1_vnic_sdma, wait);
+-
+-	write_seqlock(&sde->waitlock);
+-	if (sdma_progress(sde, seq, txreq)) {
+-		write_sequnlock(&sde->waitlock);
+-		return -EAGAIN;
+-	}
+-
+-	vnic_sdma->state = HFI1_VNIC_SDMA_Q_DEFERRED;
+-	if (list_empty(&vnic_sdma->wait.list)) {
+-		iowait_get_priority(wait->iow);
+-		iowait_queue(pkts_sent, wait->iow, &sde->dmawait);
+-	}
+-	write_sequnlock(&sde->waitlock);
+-	return -EBUSY;
+-}
+-
+-/*
+- * hfi1_vnic_sdma_wakeup - vnic sdma wakeup function
+- *
+- * This function gets called when SDMA descriptors becomes available and Tx
+- * queue's wait structure was previously added to sdma engine's dmawait list.
+- * It notifies the upper driver about Tx queue wakeup.
+- */
+-static void hfi1_vnic_sdma_wakeup(struct iowait *wait, int reason)
+-{
+-	struct hfi1_vnic_sdma *vnic_sdma =
+-		container_of(wait, struct hfi1_vnic_sdma, wait);
+-	struct hfi1_vnic_vport_info *vinfo = vnic_sdma->vinfo;
+-
+-	vnic_sdma->state = HFI1_VNIC_SDMA_Q_ACTIVE;
+-	if (__netif_subqueue_stopped(vinfo->netdev, vnic_sdma->q_idx))
+-		netif_wake_subqueue(vinfo->netdev, vnic_sdma->q_idx);
+-};
+-
+-inline bool hfi1_vnic_sdma_write_avail(struct hfi1_vnic_vport_info *vinfo,
+-				       u8 q_idx)
+-{
+-	struct hfi1_vnic_sdma *vnic_sdma = &vinfo->sdma[q_idx];
+-
+-	return (READ_ONCE(vnic_sdma->state) == HFI1_VNIC_SDMA_Q_ACTIVE);
+-}
+-
+-void hfi1_vnic_sdma_init(struct hfi1_vnic_vport_info *vinfo)
+-{
+-	int i;
+-
+-	for (i = 0; i < vinfo->num_tx_q; i++) {
+-		struct hfi1_vnic_sdma *vnic_sdma = &vinfo->sdma[i];
+-
+-		iowait_init(&vnic_sdma->wait, 0, NULL, NULL,
+-			    hfi1_vnic_sdma_sleep,
+-			    hfi1_vnic_sdma_wakeup, NULL, NULL);
+-		vnic_sdma->sde = &vinfo->dd->per_sdma[i];
+-		vnic_sdma->dd = vinfo->dd;
+-		vnic_sdma->vinfo = vinfo;
+-		vnic_sdma->q_idx = i;
+-		vnic_sdma->state = HFI1_VNIC_SDMA_Q_ACTIVE;
+-
+-		/* Add a free descriptor watermark for wakeups */
+-		if (vnic_sdma->sde->descq_cnt > HFI1_VNIC_SDMA_DESC_WTRMRK) {
+-			struct iowait_work *work;
+-
+-			INIT_LIST_HEAD(&vnic_sdma->stx.list);
+-			vnic_sdma->stx.num_desc = HFI1_VNIC_SDMA_DESC_WTRMRK;
+-			work = iowait_get_ib_work(&vnic_sdma->wait);
+-			list_add_tail(&vnic_sdma->stx.list, &work->tx_head);
+-		}
+-	}
+-}
+-
+-int hfi1_vnic_txreq_init(struct hfi1_devdata *dd)
+-{
+-	char buf[HFI1_VNIC_TXREQ_NAME_LEN];
+-
+-	snprintf(buf, sizeof(buf), "hfi1_%u_vnic_txreq_cache", dd->unit);
+-	dd->vnic.txreq_cache = kmem_cache_create(buf,
+-						 sizeof(struct vnic_txreq),
+-						 0, SLAB_HWCACHE_ALIGN,
+-						 NULL);
+-	if (!dd->vnic.txreq_cache)
+-		return -ENOMEM;
+-	return 0;
+-}
+-
+-void hfi1_vnic_txreq_deinit(struct hfi1_devdata *dd)
+-{
+-	kmem_cache_destroy(dd->vnic.txreq_cache);
+-	dd->vnic.txreq_cache = NULL;
+-}
+diff --git a/drivers/infiniband/ulp/Makefile b/drivers/infiniband/ulp/Makefile
+index 4d0004b58377..51b0d41699b8 100644
+--- a/drivers/infiniband/ulp/Makefile
++++ b/drivers/infiniband/ulp/Makefile
+@@ -4,5 +4,4 @@ obj-$(CONFIG_INFINIBAND_SRP)		+= srp/
+ obj-$(CONFIG_INFINIBAND_SRPT)		+= srpt/
+ obj-$(CONFIG_INFINIBAND_ISER)		+= iser/
+ obj-$(CONFIG_INFINIBAND_ISERT)		+= isert/
+-obj-$(CONFIG_INFINIBAND_OPA_VNIC)	+= opa_vnic/
+ obj-$(CONFIG_INFINIBAND_RTRS)		+= rtrs/
+diff --git a/drivers/infiniband/ulp/opa_vnic/Kconfig b/drivers/infiniband/ulp/opa_vnic/Kconfig
+deleted file mode 100644
+index 4d43d055fa8e..000000000000
+--- a/drivers/infiniband/ulp/opa_vnic/Kconfig
++++ /dev/null
+@@ -1,9 +0,0 @@
+-# SPDX-License-Identifier: GPL-2.0-only
+-config INFINIBAND_OPA_VNIC
+-	tristate "Cornelis OPX VNIC support"
+-	depends on X86_64 && INFINIBAND
+-	help
+-	This is Omni-Path Express (OPX) Virtual Network Interface Controller (VNIC)
+-	driver for Ethernet over Omni-Path feature. It implements the HW
+-	independent VNIC functionality. It interfaces with Linux stack for
+-	data path and IB MAD for the control path.
+diff --git a/drivers/infiniband/ulp/opa_vnic/Makefile b/drivers/infiniband/ulp/opa_vnic/Makefile
+deleted file mode 100644
+index 196183817cdc..000000000000
+--- a/drivers/infiniband/ulp/opa_vnic/Makefile
++++ /dev/null
+@@ -1,9 +0,0 @@
+-# SPDX-License-Identifier: GPL-2.0-only
+-# Makefile - Cornelis Omni-Path Express Virtual Network Controller driver
+-# Copyright(c) 2017, Intel Corporation.
+-# Copyright(c) 2021, Cornelis Networks.
+-#
+-obj-$(CONFIG_INFINIBAND_OPA_VNIC) += opa_vnic.o
+-
+-opa_vnic-y := opa_vnic_netdev.o opa_vnic_encap.o opa_vnic_ethtool.o \
+-              opa_vnic_vema.o opa_vnic_vema_iface.o
+diff --git a/drivers/infiniband/ulp/opa_vnic/opa_vnic_encap.c b/drivers/infiniband/ulp/opa_vnic/opa_vnic_encap.c
+deleted file mode 100644
+index 31cd361416ac..000000000000
+--- a/drivers/infiniband/ulp/opa_vnic/opa_vnic_encap.c
++++ /dev/null
+@@ -1,513 +0,0 @@
+-/*
+- * Copyright(c) 2017 Intel Corporation.
+- *
+- * This file is provided under a dual BSD/GPLv2 license.  When using or
+- * redistributing this file, you may do so under either license.
+- *
+- * GPL LICENSE SUMMARY
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of version 2 of the GNU General Public License as
+- * published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope that it will be useful, but
+- * WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+- * General Public License for more details.
+- *
+- * BSD LICENSE
+- *
+- * Redistribution and use in source and binary forms, with or without
+- * modification, are permitted provided that the following conditions
+- * are met:
+- *
+- *  - Redistributions of source code must retain the above copyright
+- *    notice, this list of conditions and the following disclaimer.
+- *  - Redistributions in binary form must reproduce the above copyright
+- *    notice, this list of conditions and the following disclaimer in
+- *    the documentation and/or other materials provided with the
+- *    distribution.
+- *  - Neither the name of Intel Corporation nor the names of its
+- *    contributors may be used to endorse or promote products derived
+- *    from this software without specific prior written permission.
+- *
+- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+- * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+- * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+- *
+- */
+-
+-/*
+- * This file contains OPA VNIC encapsulation/decapsulation function.
+- */
+-
+-#include <linux/if_ether.h>
+-#include <linux/if_vlan.h>
+-
+-#include "opa_vnic_internal.h"
+-
+-/* OPA 16B Header fields */
+-#define OPA_16B_LID_MASK        0xFFFFFull
+-#define OPA_16B_SLID_HIGH_SHFT  8
+-#define OPA_16B_SLID_MASK       0xF00ull
+-#define OPA_16B_DLID_MASK       0xF000ull
+-#define OPA_16B_DLID_HIGH_SHFT  12
+-#define OPA_16B_LEN_SHFT        20
+-#define OPA_16B_SC_SHFT         20
+-#define OPA_16B_RC_SHFT         25
+-#define OPA_16B_PKEY_SHFT       16
+-
+-#define OPA_VNIC_L4_HDR_SHFT    16
+-
+-/* L2+L4 hdr len is 20 bytes (5 quad words) */
+-#define OPA_VNIC_HDR_QW_LEN   5
+-
+-static inline void opa_vnic_make_header(u8 *hdr, u32 slid, u32 dlid, u16 len,
+-					u16 pkey, u16 entropy, u8 sc, u8 rc,
+-					u8 l4_type, u16 l4_hdr)
+-{
+-	/* h[1]: LT=1, 16B L2=10 */
+-	u32 h[OPA_VNIC_HDR_QW_LEN] = {0, 0xc0000000, 0, 0, 0};
+-
+-	h[2] = l4_type;
+-	h[3] = entropy;
+-	h[4] = l4_hdr << OPA_VNIC_L4_HDR_SHFT;
+-
+-	/* Extract and set 4 upper bits and 20 lower bits of the lids */
+-	h[0] |= (slid & OPA_16B_LID_MASK);
+-	h[2] |= ((slid >> (20 - OPA_16B_SLID_HIGH_SHFT)) & OPA_16B_SLID_MASK);
+-
+-	h[1] |= (dlid & OPA_16B_LID_MASK);
+-	h[2] |= ((dlid >> (20 - OPA_16B_DLID_HIGH_SHFT)) & OPA_16B_DLID_MASK);
+-
+-	h[0] |= (len << OPA_16B_LEN_SHFT);
+-	h[1] |= (rc << OPA_16B_RC_SHFT);
+-	h[1] |= (sc << OPA_16B_SC_SHFT);
+-	h[2] |= ((u32)pkey << OPA_16B_PKEY_SHFT);
+-
+-	memcpy(hdr, h, OPA_VNIC_HDR_LEN);
+-}
+-
+-/*
+- * Using a simple hash table for mac table implementation with the last octet
+- * of mac address as a key.
+- */
+-static void opa_vnic_free_mac_tbl(struct hlist_head *mactbl)
+-{
+-	struct opa_vnic_mac_tbl_node *node;
+-	struct hlist_node *tmp;
+-	int bkt;
+-
+-	if (!mactbl)
+-		return;
+-
+-	vnic_hash_for_each_safe(mactbl, bkt, tmp, node, hlist) {
+-		hash_del(&node->hlist);
+-		kfree(node);
+-	}
+-	kfree(mactbl);
+-}
+-
+-static struct hlist_head *opa_vnic_alloc_mac_tbl(void)
+-{
+-	u32 size = sizeof(struct hlist_head) * OPA_VNIC_MAC_TBL_SIZE;
+-	struct hlist_head *mactbl;
+-
+-	mactbl = kzalloc(size, GFP_KERNEL);
+-	if (!mactbl)
+-		return ERR_PTR(-ENOMEM);
+-
+-	vnic_hash_init(mactbl);
+-	return mactbl;
+-}
+-
+-/* opa_vnic_release_mac_tbl - empty and free the mac table */
+-void opa_vnic_release_mac_tbl(struct opa_vnic_adapter *adapter)
+-{
+-	struct hlist_head *mactbl;
+-
+-	mutex_lock(&adapter->mactbl_lock);
+-	mactbl = rcu_access_pointer(adapter->mactbl);
+-	rcu_assign_pointer(adapter->mactbl, NULL);
+-	synchronize_rcu();
+-	opa_vnic_free_mac_tbl(mactbl);
+-	adapter->info.vport.mac_tbl_digest = 0;
+-	mutex_unlock(&adapter->mactbl_lock);
+-}
+-
+-/*
+- * opa_vnic_query_mac_tbl - query the mac table for a section
+- *
+- * This function implements query of specific function of the mac table.
+- * The function also expects the requested range to be valid.
+- */
+-void opa_vnic_query_mac_tbl(struct opa_vnic_adapter *adapter,
+-			    struct opa_veswport_mactable *tbl)
+-{
+-	struct opa_vnic_mac_tbl_node *node;
+-	struct hlist_head *mactbl;
+-	int bkt;
+-	u16 loffset, lnum_entries;
+-
+-	rcu_read_lock();
+-	mactbl = rcu_dereference(adapter->mactbl);
+-	if (!mactbl)
+-		goto get_mac_done;
+-
+-	loffset = be16_to_cpu(tbl->offset);
+-	lnum_entries = be16_to_cpu(tbl->num_entries);
+-
+-	vnic_hash_for_each(mactbl, bkt, node, hlist) {
+-		struct __opa_vnic_mactable_entry *nentry = &node->entry;
+-		struct opa_veswport_mactable_entry *entry;
+-
+-		if ((node->index < loffset) ||
+-		    (node->index >= (loffset + lnum_entries)))
+-			continue;
+-
+-		/* populate entry in the tbl corresponding to the index */
+-		entry = &tbl->tbl_entries[node->index - loffset];
+-		memcpy(entry->mac_addr, nentry->mac_addr,
+-		       ARRAY_SIZE(entry->mac_addr));
+-		memcpy(entry->mac_addr_mask, nentry->mac_addr_mask,
+-		       ARRAY_SIZE(entry->mac_addr_mask));
+-		entry->dlid_sd = cpu_to_be32(nentry->dlid_sd);
+-	}
+-	tbl->mac_tbl_digest = cpu_to_be32(adapter->info.vport.mac_tbl_digest);
+-get_mac_done:
+-	rcu_read_unlock();
+-}
+-
+-/*
+- * opa_vnic_update_mac_tbl - update mac table section
+- *
+- * This function updates the specified section of the mac table.
+- * The procedure includes following steps.
+- *  - Allocate a new mac (hash) table.
+- *  - Add the specified entries to the new table.
+- *    (except the ones that are requested to be deleted).
+- *  - Add all the other entries from the old mac table.
+- *  - If there is a failure, free the new table and return.
+- *  - Switch to the new table.
+- *  - Free the old table and return.
+- *
+- * The function also expects the requested range to be valid.
+- */
+-int opa_vnic_update_mac_tbl(struct opa_vnic_adapter *adapter,
+-			    struct opa_veswport_mactable *tbl)
+-{
+-	struct opa_vnic_mac_tbl_node *node, *new_node;
+-	struct hlist_head *new_mactbl, *old_mactbl;
+-	int i, bkt, rc = 0;
+-	u8 key;
+-	u16 loffset, lnum_entries;
+-
+-	mutex_lock(&adapter->mactbl_lock);
+-	/* allocate new mac table */
+-	new_mactbl = opa_vnic_alloc_mac_tbl();
+-	if (IS_ERR(new_mactbl)) {
+-		mutex_unlock(&adapter->mactbl_lock);
+-		return PTR_ERR(new_mactbl);
+-	}
+-
+-	loffset = be16_to_cpu(tbl->offset);
+-	lnum_entries = be16_to_cpu(tbl->num_entries);
+-
+-	/* add updated entries to the new mac table */
+-	for (i = 0; i < lnum_entries; i++) {
+-		struct __opa_vnic_mactable_entry *nentry;
+-		struct opa_veswport_mactable_entry *entry =
+-							&tbl->tbl_entries[i];
+-		u8 *mac_addr = entry->mac_addr;
+-		u8 empty_mac[ETH_ALEN] = { 0 };
+-
+-		v_dbg("new mac entry %4d: %02x:%02x:%02x:%02x:%02x:%02x %x\n",
+-		      loffset + i, mac_addr[0], mac_addr[1], mac_addr[2],
+-		      mac_addr[3], mac_addr[4], mac_addr[5],
+-		      entry->dlid_sd);
+-
+-		/* if the entry is being removed, do not add it */
+-		if (!memcmp(mac_addr, empty_mac, ARRAY_SIZE(empty_mac)))
+-			continue;
+-
+-		node = kzalloc(sizeof(*node), GFP_KERNEL);
+-		if (!node) {
+-			rc = -ENOMEM;
+-			goto updt_done;
+-		}
+-
+-		node->index = loffset + i;
+-		nentry = &node->entry;
+-		memcpy(nentry->mac_addr, entry->mac_addr,
+-		       ARRAY_SIZE(nentry->mac_addr));
+-		memcpy(nentry->mac_addr_mask, entry->mac_addr_mask,
+-		       ARRAY_SIZE(nentry->mac_addr_mask));
+-		nentry->dlid_sd = be32_to_cpu(entry->dlid_sd);
+-		key = node->entry.mac_addr[OPA_VNIC_MAC_HASH_IDX];
+-		vnic_hash_add(new_mactbl, &node->hlist, key);
+-	}
+-
+-	/* add other entries from current mac table to new mac table */
+-	old_mactbl = rcu_access_pointer(adapter->mactbl);
+-	if (!old_mactbl)
+-		goto switch_tbl;
+-
+-	vnic_hash_for_each(old_mactbl, bkt, node, hlist) {
+-		if ((node->index >= loffset) &&
+-		    (node->index < (loffset + lnum_entries)))
+-			continue;
+-
+-		new_node = kzalloc(sizeof(*new_node), GFP_KERNEL);
+-		if (!new_node) {
+-			rc = -ENOMEM;
+-			goto updt_done;
+-		}
+-
+-		new_node->index = node->index;
+-		memcpy(&new_node->entry, &node->entry, sizeof(node->entry));
+-		key = new_node->entry.mac_addr[OPA_VNIC_MAC_HASH_IDX];
+-		vnic_hash_add(new_mactbl, &new_node->hlist, key);
+-	}
+-
+-switch_tbl:
+-	/* switch to new table */
+-	rcu_assign_pointer(adapter->mactbl, new_mactbl);
+-	synchronize_rcu();
+-
+-	adapter->info.vport.mac_tbl_digest = be32_to_cpu(tbl->mac_tbl_digest);
+-updt_done:
+-	/* upon failure, free the new table; otherwise, free the old table */
+-	if (rc)
+-		opa_vnic_free_mac_tbl(new_mactbl);
+-	else
+-		opa_vnic_free_mac_tbl(old_mactbl);
+-
+-	mutex_unlock(&adapter->mactbl_lock);
+-	return rc;
+-}
+-
+-/* opa_vnic_chk_mac_tbl - check mac table for dlid */
+-static uint32_t opa_vnic_chk_mac_tbl(struct opa_vnic_adapter *adapter,
+-				     struct ethhdr *mac_hdr)
+-{
+-	struct opa_vnic_mac_tbl_node *node;
+-	struct hlist_head *mactbl;
+-	u32 dlid = 0;
+-	u8 key;
+-
+-	rcu_read_lock();
+-	mactbl = rcu_dereference(adapter->mactbl);
+-	if (unlikely(!mactbl))
+-		goto chk_done;
+-
+-	key = mac_hdr->h_dest[OPA_VNIC_MAC_HASH_IDX];
+-	vnic_hash_for_each_possible(mactbl, node, hlist, key) {
+-		struct __opa_vnic_mactable_entry *entry = &node->entry;
+-
+-		/* if related to source mac, skip */
+-		if (unlikely(OPA_VNIC_DLID_SD_IS_SRC_MAC(entry->dlid_sd)))
+-			continue;
+-
+-		if (!memcmp(node->entry.mac_addr, mac_hdr->h_dest,
+-			    ARRAY_SIZE(node->entry.mac_addr))) {
+-			/* mac address found */
+-			dlid = OPA_VNIC_DLID_SD_GET_DLID(node->entry.dlid_sd);
+-			break;
+-		}
+-	}
+-
+-chk_done:
+-	rcu_read_unlock();
+-	return dlid;
+-}
+-
+-/* opa_vnic_get_dlid - find and return the DLID */
+-static uint32_t opa_vnic_get_dlid(struct opa_vnic_adapter *adapter,
+-				  struct sk_buff *skb, u8 def_port)
+-{
+-	struct __opa_veswport_info *info = &adapter->info;
+-	struct ethhdr *mac_hdr = (struct ethhdr *)skb_mac_header(skb);
+-	u32 dlid;
+-
+-	dlid = opa_vnic_chk_mac_tbl(adapter, mac_hdr);
+-	if (dlid)
+-		return dlid;
+-
+-	if (is_multicast_ether_addr(mac_hdr->h_dest)) {
+-		dlid = info->vesw.u_mcast_dlid;
+-	} else {
+-		if (is_local_ether_addr(mac_hdr->h_dest)) {
+-			dlid = ((uint32_t)mac_hdr->h_dest[5] << 16) |
+-				((uint32_t)mac_hdr->h_dest[4] << 8)  |
+-				mac_hdr->h_dest[3];
+-			if (unlikely(!dlid))
+-				v_warn("Null dlid in MAC address\n");
+-		} else if (def_port != OPA_VNIC_INVALID_PORT) {
+-			if (def_port < OPA_VESW_MAX_NUM_DEF_PORT)
+-				dlid = info->vesw.u_ucast_dlid[def_port];
+-		}
+-	}
+-
+-	return dlid;
+-}
+-
+-/* opa_vnic_get_sc - return the service class */
+-static u8 opa_vnic_get_sc(struct __opa_veswport_info *info,
+-			  struct sk_buff *skb)
+-{
+-	struct ethhdr *mac_hdr = (struct ethhdr *)skb_mac_header(skb);
+-	u16 vlan_tci;
+-	u8 sc;
+-
+-	if (!__vlan_get_tag(skb, &vlan_tci)) {
+-		u8 pcp = OPA_VNIC_VLAN_PCP(vlan_tci);
+-
+-		if (is_multicast_ether_addr(mac_hdr->h_dest))
+-			sc = info->vport.pcp_to_sc_mc[pcp];
+-		else
+-			sc = info->vport.pcp_to_sc_uc[pcp];
+-	} else {
+-		if (is_multicast_ether_addr(mac_hdr->h_dest))
+-			sc = info->vport.non_vlan_sc_mc;
+-		else
+-			sc = info->vport.non_vlan_sc_uc;
+-	}
+-
+-	return sc;
+-}
+-
+-u8 opa_vnic_get_vl(struct opa_vnic_adapter *adapter, struct sk_buff *skb)
+-{
+-	struct ethhdr *mac_hdr = (struct ethhdr *)skb_mac_header(skb);
+-	struct __opa_veswport_info *info = &adapter->info;
+-	u8 vl;
+-
+-	if (skb_vlan_tag_present(skb)) {
+-		u8 pcp = skb_vlan_tag_get(skb) >> VLAN_PRIO_SHIFT;
+-
+-		if (is_multicast_ether_addr(mac_hdr->h_dest))
+-			vl = info->vport.pcp_to_vl_mc[pcp];
+-		else
+-			vl = info->vport.pcp_to_vl_uc[pcp];
+-	} else {
+-		if (is_multicast_ether_addr(mac_hdr->h_dest))
+-			vl = info->vport.non_vlan_vl_mc;
+-		else
+-			vl = info->vport.non_vlan_vl_uc;
+-	}
+-
+-	return vl;
+-}
+-
+-/* opa_vnic_get_rc - return the routing control */
+-static u8 opa_vnic_get_rc(struct __opa_veswport_info *info,
+-			  struct sk_buff *skb)
+-{
+-	u8 proto, rout_ctrl;
+-
+-	switch (vlan_get_protocol(skb)) {
+-	case htons(ETH_P_IPV6):
+-		proto = ipv6_hdr(skb)->nexthdr;
+-		if (proto == IPPROTO_TCP)
+-			rout_ctrl = OPA_VNIC_ENCAP_RC_EXT(info->vesw.rc,
+-							  IPV6_TCP);
+-		else if (proto == IPPROTO_UDP)
+-			rout_ctrl = OPA_VNIC_ENCAP_RC_EXT(info->vesw.rc,
+-							  IPV6_UDP);
+-		else
+-			rout_ctrl = OPA_VNIC_ENCAP_RC_EXT(info->vesw.rc, IPV6);
+-		break;
+-	case htons(ETH_P_IP):
+-		proto = ip_hdr(skb)->protocol;
+-		if (proto == IPPROTO_TCP)
+-			rout_ctrl = OPA_VNIC_ENCAP_RC_EXT(info->vesw.rc,
+-							  IPV4_TCP);
+-		else if (proto == IPPROTO_UDP)
+-			rout_ctrl = OPA_VNIC_ENCAP_RC_EXT(info->vesw.rc,
+-							  IPV4_UDP);
+-		else
+-			rout_ctrl = OPA_VNIC_ENCAP_RC_EXT(info->vesw.rc, IPV4);
+-		break;
+-	default:
+-		rout_ctrl = OPA_VNIC_ENCAP_RC_EXT(info->vesw.rc, DEFAULT);
+-	}
+-
+-	return rout_ctrl;
+-}
+-
+-/* opa_vnic_calc_entropy - calculate the packet entropy */
+-u8 opa_vnic_calc_entropy(struct sk_buff *skb)
+-{
+-	u32 hash = skb_get_hash(skb);
+-
+-	/* store XOR of all bytes in lower 8 bits */
+-	hash ^= hash >> 8;
+-	hash ^= hash >> 16;
+-
+-	/* return lower 8 bits as entropy */
+-	return (u8)(hash & 0xFF);
+-}
+-
+-/* opa_vnic_get_def_port - get default port based on entropy */
+-static inline u8 opa_vnic_get_def_port(struct opa_vnic_adapter *adapter,
+-				       u8 entropy)
+-{
+-	u8 flow_id;
+-
+-	/* Add the upper and lower 4-bits of entropy to get the flow id */
+-	flow_id = ((entropy & 0xf) + (entropy >> 4));
+-	return adapter->flow_tbl[flow_id & (OPA_VNIC_FLOW_TBL_SIZE - 1)];
+-}
+-
+-/* Calculate packet length including OPA header, crc and padding */
+-static inline int opa_vnic_wire_length(struct sk_buff *skb)
+-{
+-	u32 pad_len;
+-
+-	/* padding for 8 bytes size alignment */
+-	pad_len = -(skb->len + OPA_VNIC_ICRC_TAIL_LEN) & 0x7;
+-	pad_len += OPA_VNIC_ICRC_TAIL_LEN;
+-
+-	return (skb->len + pad_len) >> 3;
+-}
+-
+-/* opa_vnic_encap_skb - encapsulate skb packet with OPA header and meta data */
+-void opa_vnic_encap_skb(struct opa_vnic_adapter *adapter, struct sk_buff *skb)
+-{
+-	struct __opa_veswport_info *info = &adapter->info;
+-	struct opa_vnic_skb_mdata *mdata;
+-	u8 def_port, sc, rc, entropy, *hdr;
+-	u16 len, l4_hdr;
+-	u32 dlid;
+-
+-	hdr = skb_push(skb, OPA_VNIC_HDR_LEN);
+-
+-	entropy = opa_vnic_calc_entropy(skb);
+-	def_port = opa_vnic_get_def_port(adapter, entropy);
+-	len = opa_vnic_wire_length(skb);
+-	dlid = opa_vnic_get_dlid(adapter, skb, def_port);
+-	sc = opa_vnic_get_sc(info, skb);
+-	rc = opa_vnic_get_rc(info, skb);
+-	l4_hdr = info->vesw.vesw_id;
+-
+-	mdata = skb_push(skb, sizeof(*mdata));
+-	mdata->vl = opa_vnic_get_vl(adapter, skb);
+-	mdata->entropy = entropy;
+-	mdata->flags = 0;
+-	if (unlikely(!dlid)) {
+-		mdata->flags = OPA_VNIC_SKB_MDATA_ENCAP_ERR;
+-		return;
+-	}
+-
+-	opa_vnic_make_header(hdr, info->vport.encap_slid, dlid, len,
+-			     info->vesw.pkey, entropy, sc, rc,
+-			     OPA_VNIC_L4_ETHR, l4_hdr);
+-}
+diff --git a/drivers/infiniband/ulp/opa_vnic/opa_vnic_encap.h b/drivers/infiniband/ulp/opa_vnic/opa_vnic_encap.h
+deleted file mode 100644
+index 012fc27c5c93..000000000000
+--- a/drivers/infiniband/ulp/opa_vnic/opa_vnic_encap.h
++++ /dev/null
+@@ -1,524 +0,0 @@
+-#ifndef _OPA_VNIC_ENCAP_H
+-#define _OPA_VNIC_ENCAP_H
+-/*
+- * Copyright(c) 2017 Intel Corporation.
+- *
+- * This file is provided under a dual BSD/GPLv2 license.  When using or
+- * redistributing this file, you may do so under either license.
+- *
+- * GPL LICENSE SUMMARY
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of version 2 of the GNU General Public License as
+- * published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope that it will be useful, but
+- * WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+- * General Public License for more details.
+- *
+- * BSD LICENSE
+- *
+- * Redistribution and use in source and binary forms, with or without
+- * modification, are permitted provided that the following conditions
+- * are met:
+- *
+- *  - Redistributions of source code must retain the above copyright
+- *    notice, this list of conditions and the following disclaimer.
+- *  - Redistributions in binary form must reproduce the above copyright
+- *    notice, this list of conditions and the following disclaimer in
+- *    the documentation and/or other materials provided with the
+- *    distribution.
+- *  - Neither the name of Intel Corporation nor the names of its
+- *    contributors may be used to endorse or promote products derived
+- *    from this software without specific prior written permission.
+- *
+- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+- * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+- * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+- *
+- */
+-
+-/*
+- * This file contains all OPA VNIC declaration required for encapsulation
+- * and decapsulation of Ethernet packets
+- */
+-
+-#include <linux/types.h>
+-#include <rdma/ib_mad.h>
+-
+-/* EMA class version */
+-#define OPA_EMA_CLASS_VERSION               0x80
+-
+-/*
+- * Define the Intel vendor management class for OPA
+- * ETHERNET MANAGEMENT
+- */
+-#define OPA_MGMT_CLASS_INTEL_EMA            0x34
+-
+-/* EM attribute IDs */
+-#define OPA_EM_ATTR_CLASS_PORT_INFO                 0x0001
+-#define OPA_EM_ATTR_VESWPORT_INFO                   0x0011
+-#define OPA_EM_ATTR_VESWPORT_MAC_ENTRIES            0x0012
+-#define OPA_EM_ATTR_IFACE_UCAST_MACS                0x0013
+-#define OPA_EM_ATTR_IFACE_MCAST_MACS                0x0014
+-#define OPA_EM_ATTR_DELETE_VESW                     0x0015
+-#define OPA_EM_ATTR_VESWPORT_SUMMARY_COUNTERS       0x0020
+-#define OPA_EM_ATTR_VESWPORT_ERROR_COUNTERS         0x0022
+-
+-/* VNIC configured and operational state values */
+-#define OPA_VNIC_STATE_DROP_ALL        0x1
+-#define OPA_VNIC_STATE_FORWARDING      0x3
+-
+-#define OPA_VESW_MAX_NUM_DEF_PORT   16
+-#define OPA_VNIC_MAX_NUM_PCP        8
+-
+-#define OPA_VNIC_EMA_DATA    (OPA_MGMT_MAD_SIZE - IB_MGMT_VENDOR_HDR)
+-
+-/* Defines for vendor specific notice(trap) attributes */
+-#define OPA_INTEL_EMA_NOTICE_TYPE_INFO 0x04
+-
+-/* INTEL OUI */
+-#define INTEL_OUI_1 0x00
+-#define INTEL_OUI_2 0x06
+-#define INTEL_OUI_3 0x6a
+-
+-/* Trap opcodes sent from VNIC */
+-#define OPA_VESWPORT_TRAP_IFACE_UCAST_MAC_CHANGE 0x1
+-#define OPA_VESWPORT_TRAP_IFACE_MCAST_MAC_CHANGE 0x2
+-#define OPA_VESWPORT_TRAP_ETH_LINK_STATUS_CHANGE 0x3
+-
+-#define OPA_VNIC_DLID_SD_IS_SRC_MAC(dlid_sd)  (!!((dlid_sd) & 0x20))
+-#define OPA_VNIC_DLID_SD_GET_DLID(dlid_sd)    ((dlid_sd) >> 8)
+-
+-/* VNIC Ethernet link status */
+-#define OPA_VNIC_ETH_LINK_UP     1
+-#define OPA_VNIC_ETH_LINK_DOWN   2
+-
+-/* routing control */
+-#define OPA_VNIC_ENCAP_RC_DEFAULT   0
+-#define OPA_VNIC_ENCAP_RC_IPV4      4
+-#define OPA_VNIC_ENCAP_RC_IPV4_UDP  8
+-#define OPA_VNIC_ENCAP_RC_IPV4_TCP  12
+-#define OPA_VNIC_ENCAP_RC_IPV6      16
+-#define OPA_VNIC_ENCAP_RC_IPV6_TCP  20
+-#define OPA_VNIC_ENCAP_RC_IPV6_UDP  24
+-
+-#define OPA_VNIC_ENCAP_RC_EXT(w, b) (((w) >> OPA_VNIC_ENCAP_RC_ ## b) & 0x7)
+-
+-/**
+- * struct opa_vesw_info - OPA vnic switch information
+- * @fabric_id: 10-bit fabric id
+- * @vesw_id: 12-bit virtual ethernet switch id
+- * @rsvd0: reserved bytes
+- * @def_port_mask: bitmask of default ports
+- * @rsvd1: reserved bytes
+- * @pkey: partition key
+- * @rsvd2: reserved bytes
+- * @u_mcast_dlid: unknown multicast dlid
+- * @u_ucast_dlid: array of unknown unicast dlids
+- * @rsvd3: reserved bytes
+- * @rc: routing control
+- * @eth_mtu: Ethernet MTU
+- * @rsvd4: reserved bytes
+- */
+-struct opa_vesw_info {
+-	__be16  fabric_id;
+-	__be16  vesw_id;
+-
+-	u8      rsvd0[6];
+-	__be16  def_port_mask;
+-
+-	u8      rsvd1[2];
+-	__be16  pkey;
+-
+-	u8      rsvd2[4];
+-	__be32  u_mcast_dlid;
+-	__be32  u_ucast_dlid[OPA_VESW_MAX_NUM_DEF_PORT];
+-
+-	__be32  rc;
+-
+-	u8      rsvd3[56];
+-	__be16  eth_mtu;
+-	u8      rsvd4[2];
+-} __packed;
+-
+-/**
+- * struct opa_per_veswport_info - OPA vnic per port information
+- * @port_num: port number
+- * @eth_link_status: current ethernet link state
+- * @rsvd0: reserved bytes
+- * @base_mac_addr: base mac address
+- * @config_state: configured port state
+- * @oper_state: operational port state
+- * @max_mac_tbl_ent: max number of mac table entries
+- * @max_smac_ent: max smac entries in mac table
+- * @mac_tbl_digest: mac table digest
+- * @rsvd1: reserved bytes
+- * @encap_slid: base slid for the port
+- * @pcp_to_sc_uc: sc by pcp index for unicast ethernet packets
+- * @pcp_to_vl_uc: vl by pcp index for unicast ethernet packets
+- * @pcp_to_sc_mc: sc by pcp index for multicast ethernet packets
+- * @pcp_to_vl_mc: vl by pcp index for multicast ethernet packets
+- * @non_vlan_sc_uc: sc for non-vlan unicast ethernet packets
+- * @non_vlan_vl_uc: vl for non-vlan unicast ethernet packets
+- * @non_vlan_sc_mc: sc for non-vlan multicast ethernet packets
+- * @non_vlan_vl_mc: vl for non-vlan multicast ethernet packets
+- * @rsvd2: reserved bytes
+- * @uc_macs_gen_count: generation count for unicast macs list
+- * @mc_macs_gen_count: generation count for multicast macs list
+- * @rsvd3: reserved bytes
+- */
+-struct opa_per_veswport_info {
+-	__be32  port_num;
+-
+-	u8      eth_link_status;
+-	u8      rsvd0[3];
+-
+-	u8      base_mac_addr[ETH_ALEN];
+-	u8      config_state;
+-	u8      oper_state;
+-
+-	__be16  max_mac_tbl_ent;
+-	__be16  max_smac_ent;
+-	__be32  mac_tbl_digest;
+-	u8      rsvd1[4];
+-
+-	__be32  encap_slid;
+-
+-	u8      pcp_to_sc_uc[OPA_VNIC_MAX_NUM_PCP];
+-	u8      pcp_to_vl_uc[OPA_VNIC_MAX_NUM_PCP];
+-	u8      pcp_to_sc_mc[OPA_VNIC_MAX_NUM_PCP];
+-	u8      pcp_to_vl_mc[OPA_VNIC_MAX_NUM_PCP];
+-
+-	u8      non_vlan_sc_uc;
+-	u8      non_vlan_vl_uc;
+-	u8      non_vlan_sc_mc;
+-	u8      non_vlan_vl_mc;
+-
+-	u8      rsvd2[48];
+-
+-	__be16  uc_macs_gen_count;
+-	__be16  mc_macs_gen_count;
+-
+-	u8      rsvd3[8];
+-} __packed;
+-
+-/**
+- * struct opa_veswport_info - OPA vnic port information
+- * @vesw: OPA vnic switch information
+- * @vport: OPA vnic per port information
+- *
+- * On host, each of the virtual ethernet ports belongs
+- * to a different virtual ethernet switches.
+- */
+-struct opa_veswport_info {
+-	struct opa_vesw_info          vesw;
+-	struct opa_per_veswport_info  vport;
+-};
+-
+-/**
+- * struct opa_veswport_mactable_entry - single entry in the forwarding table
+- * @mac_addr: MAC address
+- * @mac_addr_mask: MAC address bit mask
+- * @dlid_sd: Matching DLID and side data
+- *
+- * On the host each virtual ethernet port will have
+- * a forwarding table. These tables are used to
+- * map a MAC to a LID and other data. For more
+- * details see struct opa_veswport_mactable_entries.
+- * This is the structure of a single mactable entry
+- */
+-struct opa_veswport_mactable_entry {
+-	u8      mac_addr[ETH_ALEN];
+-	u8      mac_addr_mask[ETH_ALEN];
+-	__be32  dlid_sd;
+-} __packed;
+-
+-/**
+- * struct opa_veswport_mactable - Forwarding table array
+- * @offset: mac table starting offset
+- * @num_entries: Number of entries to get or set
+- * @mac_tbl_digest: mac table digest
+- * @tbl_entries: Array of table entries
+- *
+- * The EM sends down this structure in a MAD indicating
+- * the starting offset in the forwarding table that this
+- * entry is to be loaded into and the number of entries
+- * that that this MAD instance contains
+- * The mac_tbl_digest has been added to this MAD structure. It will be set by
+- * the EM and it will be used by the EM to check if there are any
+- * discrepancies with this value and the value
+- * maintained by the EM in the case of VNIC port being deleted or unloaded
+- * A new instantiation of a VNIC will always have a value of zero.
+- * This value is stored as part of the vnic adapter structure and will be
+- * accessed by the GET and SET routines for both the mactable entries and the
+- * veswport info.
+- */
+-struct opa_veswport_mactable {
+-	__be16                              offset;
+-	__be16                              num_entries;
+-	__be32                              mac_tbl_digest;
+-	struct opa_veswport_mactable_entry  tbl_entries[];
+-} __packed;
+-
+-/**
+- * struct opa_veswport_summary_counters - summary counters
+- * @vp_instance: vport instance on the OPA port
+- * @vesw_id: virtual ethernet switch id
+- * @veswport_num: virtual ethernet switch port number
+- * @tx_errors: transmit errors
+- * @rx_errors: receive errors
+- * @tx_packets: transmit packets
+- * @rx_packets: receive packets
+- * @tx_bytes: transmit bytes
+- * @rx_bytes: receive bytes
+- * @tx_unicast: unicast packets transmitted
+- * @tx_mcastbcast: multicast/broadcast packets transmitted
+- * @tx_untagged: non-vlan packets transmitted
+- * @tx_vlan: vlan packets transmitted
+- * @tx_64_size: transmit packet length is 64 bytes
+- * @tx_65_127: transmit packet length is >=65 and < 127 bytes
+- * @tx_128_255: transmit packet length is >=128 and < 255 bytes
+- * @tx_256_511: transmit packet length is >=256 and < 511 bytes
+- * @tx_512_1023: transmit packet length is >=512 and < 1023 bytes
+- * @tx_1024_1518: transmit packet length is >=1024 and < 1518 bytes
+- * @tx_1519_max: transmit packet length >= 1519 bytes
+- * @rx_unicast: unicast packets received
+- * @rx_mcastbcast: multicast/broadcast packets received
+- * @rx_untagged: non-vlan packets received
+- * @rx_vlan: vlan packets received
+- * @rx_64_size: received packet length is 64 bytes
+- * @rx_65_127: received packet length is >=65 and < 127 bytes
+- * @rx_128_255: received packet length is >=128 and < 255 bytes
+- * @rx_256_511: received packet length is >=256 and < 511 bytes
+- * @rx_512_1023: received packet length is >=512 and < 1023 bytes
+- * @rx_1024_1518: received packet length is >=1024 and < 1518 bytes
+- * @rx_1519_max: received packet length >= 1519 bytes
+- * @reserved: reserved bytes
+- *
+- * All the above are counters of corresponding conditions.
+- */
+-struct opa_veswport_summary_counters {
+-	__be16  vp_instance;
+-	__be16  vesw_id;
+-	__be32  veswport_num;
+-
+-	__be64  tx_errors;
+-	__be64  rx_errors;
+-	__be64  tx_packets;
+-	__be64  rx_packets;
+-	__be64  tx_bytes;
+-	__be64  rx_bytes;
+-
+-	__be64  tx_unicast;
+-	__be64  tx_mcastbcast;
+-
+-	__be64  tx_untagged;
+-	__be64  tx_vlan;
+-
+-	__be64  tx_64_size;
+-	__be64  tx_65_127;
+-	__be64  tx_128_255;
+-	__be64  tx_256_511;
+-	__be64  tx_512_1023;
+-	__be64  tx_1024_1518;
+-	__be64  tx_1519_max;
+-
+-	__be64  rx_unicast;
+-	__be64  rx_mcastbcast;
+-
+-	__be64  rx_untagged;
+-	__be64  rx_vlan;
+-
+-	__be64  rx_64_size;
+-	__be64  rx_65_127;
+-	__be64  rx_128_255;
+-	__be64  rx_256_511;
+-	__be64  rx_512_1023;
+-	__be64  rx_1024_1518;
+-	__be64  rx_1519_max;
+-
+-	__be64  reserved[16];
+-} __packed;
+-
+-/**
+- * struct opa_veswport_error_counters - error counters
+- * @vp_instance: vport instance on the OPA port
+- * @vesw_id: virtual ethernet switch id
+- * @veswport_num: virtual ethernet switch port number
+- * @tx_errors: transmit errors
+- * @rx_errors: receive errors
+- * @rsvd0: reserved bytes
+- * @tx_smac_filt: smac filter errors
+- * @rsvd1: reserved bytes
+- * @rsvd2: reserved bytes
+- * @rsvd3: reserved bytes
+- * @tx_dlid_zero: transmit packets with invalid dlid
+- * @rsvd4: reserved bytes
+- * @tx_logic: other transmit errors
+- * @rsvd5: reserved bytes
+- * @tx_drop_state: packet tansmission in non-forward port state
+- * @rx_bad_veswid: received packet with invalid vesw id
+- * @rsvd6: reserved bytes
+- * @rx_runt: received ethernet packet with length < 64 bytes
+- * @rx_oversize: received ethernet packet with length > MTU size
+- * @rsvd7: reserved bytes
+- * @rx_eth_down: received packets when interface is down
+- * @rx_drop_state: received packets in non-forwarding port state
+- * @rx_logic: other receive errors
+- * @rsvd8: reserved bytes
+- * @rsvd9: reserved bytes
+- *
+- * All the above are counters of corresponding error conditions.
+- */
+-struct opa_veswport_error_counters {
+-	__be16  vp_instance;
+-	__be16  vesw_id;
+-	__be32  veswport_num;
+-
+-	__be64  tx_errors;
+-	__be64  rx_errors;
+-
+-	__be64  rsvd0;
+-	__be64  tx_smac_filt;
+-	__be64  rsvd1;
+-	__be64  rsvd2;
+-	__be64  rsvd3;
+-	__be64  tx_dlid_zero;
+-	__be64  rsvd4;
+-	__be64  tx_logic;
+-	__be64  rsvd5;
+-	__be64  tx_drop_state;
+-
+-	__be64  rx_bad_veswid;
+-	__be64  rsvd6;
+-	__be64  rx_runt;
+-	__be64  rx_oversize;
+-	__be64  rsvd7;
+-	__be64  rx_eth_down;
+-	__be64  rx_drop_state;
+-	__be64  rx_logic;
+-	__be64  rsvd8;
+-
+-	__be64  rsvd9[16];
+-} __packed;
+-
+-/**
+- * struct opa_veswport_trap - Trap message sent to EM by VNIC
+- * @fabric_id: 10 bit fabric id
+- * @veswid: 12 bit virtual ethernet switch id
+- * @veswportnum: logical port number on the Virtual switch
+- * @opaportnum: physical port num (redundant on host)
+- * @veswportindex: switch port index on opa port 0 based
+- * @opcode: operation
+- * @reserved: 32 bit for alignment
+- *
+- * The VNIC will send trap messages to the Ethernet manager to
+- * inform it about changes to the VNIC config, behaviour etc.
+- * This is the format of the trap payload.
+- */
+-struct opa_veswport_trap {
+-	__be16  fabric_id;
+-	__be16  veswid;
+-	__be32  veswportnum;
+-	__be16  opaportnum;
+-	u8      veswportindex;
+-	u8      opcode;
+-	__be32  reserved;
+-} __packed;
+-
+-/**
+- * struct opa_vnic_iface_mac_entry - single entry in the mac list
+- * @mac_addr: MAC address
+- */
+-struct opa_vnic_iface_mac_entry {
+-	u8 mac_addr[ETH_ALEN];
+-};
+-
+-/**
+- * struct opa_veswport_iface_macs - Msg to set globally administered MAC
+- * @start_idx: position of first entry (0 based)
+- * @num_macs_in_msg: number of MACs in this message
+- * @tot_macs_in_lst: The total number of MACs the agent has
+- * @gen_count: gen_count to indicate change
+- * @entry: The mac list entry
+- *
+- * Same attribute IDS and attribute modifiers as in locally administered
+- * addresses used to set globally administered addresses
+- */
+-struct opa_veswport_iface_macs {
+-	__be16 start_idx;
+-	__be16 num_macs_in_msg;
+-	__be16 tot_macs_in_lst;
+-	__be16 gen_count;
+-	struct opa_vnic_iface_mac_entry entry[];
+-} __packed;
+-
+-/**
+- * struct opa_vnic_vema_mad - Generic VEMA MAD
+- * @mad_hdr: Generic MAD header
+- * @rmpp_hdr: RMPP header for vendor specific MADs
+- * @reserved: reserved bytes
+- * @oui: Unique org identifier
+- * @data: MAD data
+- */
+-struct opa_vnic_vema_mad {
+-	struct ib_mad_hdr  mad_hdr;
+-	struct ib_rmpp_hdr rmpp_hdr;
+-	u8                 reserved;
+-	u8                 oui[3];
+-	u8                 data[OPA_VNIC_EMA_DATA];
+-};
+-
+-/**
+- * struct opa_vnic_notice_attr - Generic Notice MAD
+- * @gen_type: Generic/Specific bit and type of notice
+- * @oui_1: Vendor ID byte 1
+- * @oui_2: Vendor ID byte 2
+- * @oui_3: Vendor ID byte 3
+- * @trap_num: Trap number
+- * @toggle_count: Notice toggle bit and count value
+- * @issuer_lid: Trap issuer's lid
+- * @reserved: reserved bytes
+- * @issuer_gid: Issuer GID (only if Report method)
+- * @raw_data: Trap message body
+- */
+-struct opa_vnic_notice_attr {
+-	u8     gen_type;
+-	u8     oui_1;
+-	u8     oui_2;
+-	u8     oui_3;
+-	__be16 trap_num;
+-	__be16 toggle_count;
+-	__be32 issuer_lid;
+-	__be32 reserved;
+-	u8     issuer_gid[16];
+-	u8     raw_data[64];
+-} __packed;
+-
+-/**
+- * struct opa_vnic_vema_mad_trap - Generic VEMA MAD Trap
+- * @mad_hdr: Generic MAD header
+- * @rmpp_hdr: RMPP header for vendor specific MADs
+- * @reserved: reserved bytes
+- * @oui: Unique org identifier
+- * @notice: Notice structure
+- */
+-struct opa_vnic_vema_mad_trap {
+-	struct ib_mad_hdr            mad_hdr;
+-	struct ib_rmpp_hdr           rmpp_hdr;
+-	u8                           reserved;
+-	u8                           oui[3];
+-	struct opa_vnic_notice_attr  notice;
+-};
+-
+-#endif /* _OPA_VNIC_ENCAP_H */
+diff --git a/drivers/infiniband/ulp/opa_vnic/opa_vnic_ethtool.c b/drivers/infiniband/ulp/opa_vnic/opa_vnic_ethtool.c
+deleted file mode 100644
+index 316959940d2f..000000000000
+--- a/drivers/infiniband/ulp/opa_vnic/opa_vnic_ethtool.c
++++ /dev/null
+@@ -1,183 +0,0 @@
+-/*
+- * Copyright(c) 2017 Intel Corporation.
+- *
+- * This file is provided under a dual BSD/GPLv2 license.  When using or
+- * redistributing this file, you may do so under either license.
+- *
+- * GPL LICENSE SUMMARY
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of version 2 of the GNU General Public License as
+- * published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope that it will be useful, but
+- * WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+- * General Public License for more details.
+- *
+- * BSD LICENSE
+- *
+- * Redistribution and use in source and binary forms, with or without
+- * modification, are permitted provided that the following conditions
+- * are met:
+- *
+- *  - Redistributions of source code must retain the above copyright
+- *    notice, this list of conditions and the following disclaimer.
+- *  - Redistributions in binary form must reproduce the above copyright
+- *    notice, this list of conditions and the following disclaimer in
+- *    the documentation and/or other materials provided with the
+- *    distribution.
+- *  - Neither the name of Intel Corporation nor the names of its
+- *    contributors may be used to endorse or promote products derived
+- *    from this software without specific prior written permission.
+- *
+- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+- * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+- * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+- *
+- */
+-
+-/*
+- * This file contains OPA VNIC ethtool functions
+- */
+-
+-#include <linux/ethtool.h>
+-
+-#include "opa_vnic_internal.h"
+-
+-enum {NETDEV_STATS, VNIC_STATS};
+-
+-struct vnic_stats {
+-	char stat_string[ETH_GSTRING_LEN];
+-	struct {
+-		int sizeof_stat;
+-		int stat_offset;
+-	};
+-};
+-
+-#define VNIC_STAT(m)            { sizeof_field(struct opa_vnic_stats, m),   \
+-				  offsetof(struct opa_vnic_stats, m) }
+-
+-static struct vnic_stats vnic_gstrings_stats[] = {
+-	/* NETDEV stats */
+-	{"rx_packets", VNIC_STAT(netstats.rx_packets)},
+-	{"tx_packets", VNIC_STAT(netstats.tx_packets)},
+-	{"rx_bytes", VNIC_STAT(netstats.rx_bytes)},
+-	{"tx_bytes", VNIC_STAT(netstats.tx_bytes)},
+-	{"rx_errors", VNIC_STAT(netstats.rx_errors)},
+-	{"tx_errors", VNIC_STAT(netstats.tx_errors)},
+-	{"rx_dropped", VNIC_STAT(netstats.rx_dropped)},
+-	{"tx_dropped", VNIC_STAT(netstats.tx_dropped)},
+-
+-	/* SUMMARY counters */
+-	{"tx_unicast", VNIC_STAT(tx_grp.unicast)},
+-	{"tx_mcastbcast", VNIC_STAT(tx_grp.mcastbcast)},
+-	{"tx_untagged", VNIC_STAT(tx_grp.untagged)},
+-	{"tx_vlan", VNIC_STAT(tx_grp.vlan)},
+-
+-	{"tx_64_size", VNIC_STAT(tx_grp.s_64)},
+-	{"tx_65_127", VNIC_STAT(tx_grp.s_65_127)},
+-	{"tx_128_255", VNIC_STAT(tx_grp.s_128_255)},
+-	{"tx_256_511", VNIC_STAT(tx_grp.s_256_511)},
+-	{"tx_512_1023", VNIC_STAT(tx_grp.s_512_1023)},
+-	{"tx_1024_1518", VNIC_STAT(tx_grp.s_1024_1518)},
+-	{"tx_1519_max", VNIC_STAT(tx_grp.s_1519_max)},
+-
+-	{"rx_unicast", VNIC_STAT(rx_grp.unicast)},
+-	{"rx_mcastbcast", VNIC_STAT(rx_grp.mcastbcast)},
+-	{"rx_untagged", VNIC_STAT(rx_grp.untagged)},
+-	{"rx_vlan", VNIC_STAT(rx_grp.vlan)},
+-
+-	{"rx_64_size", VNIC_STAT(rx_grp.s_64)},
+-	{"rx_65_127", VNIC_STAT(rx_grp.s_65_127)},
+-	{"rx_128_255", VNIC_STAT(rx_grp.s_128_255)},
+-	{"rx_256_511", VNIC_STAT(rx_grp.s_256_511)},
+-	{"rx_512_1023", VNIC_STAT(rx_grp.s_512_1023)},
+-	{"rx_1024_1518", VNIC_STAT(rx_grp.s_1024_1518)},
+-	{"rx_1519_max", VNIC_STAT(rx_grp.s_1519_max)},
+-
+-	/* ERROR counters */
+-	{"rx_fifo_errors", VNIC_STAT(netstats.rx_fifo_errors)},
+-	{"rx_length_errors", VNIC_STAT(netstats.rx_length_errors)},
+-
+-	{"tx_fifo_errors", VNIC_STAT(netstats.tx_fifo_errors)},
+-	{"tx_carrier_errors", VNIC_STAT(netstats.tx_carrier_errors)},
+-
+-	{"tx_dlid_zero", VNIC_STAT(tx_dlid_zero)},
+-	{"tx_drop_state", VNIC_STAT(tx_drop_state)},
+-	{"rx_drop_state", VNIC_STAT(rx_drop_state)},
+-	{"rx_oversize", VNIC_STAT(rx_oversize)},
+-	{"rx_runt", VNIC_STAT(rx_runt)},
+-};
+-
+-#define VNIC_STATS_LEN  ARRAY_SIZE(vnic_gstrings_stats)
+-
+-/* vnic_get_drvinfo - get driver info */
+-static void vnic_get_drvinfo(struct net_device *netdev,
+-			     struct ethtool_drvinfo *drvinfo)
+-{
+-	strscpy(drvinfo->driver, opa_vnic_driver_name, sizeof(drvinfo->driver));
+-	strscpy(drvinfo->bus_info, dev_name(netdev->dev.parent),
+-		sizeof(drvinfo->bus_info));
+-}
+-
+-/* vnic_get_sset_count - get string set count */
+-static int vnic_get_sset_count(struct net_device *netdev, int sset)
+-{
+-	return (sset == ETH_SS_STATS) ? VNIC_STATS_LEN : -EOPNOTSUPP;
+-}
+-
+-/* vnic_get_ethtool_stats - get statistics */
+-static void vnic_get_ethtool_stats(struct net_device *netdev,
+-				   struct ethtool_stats *stats, u64 *data)
+-{
+-	struct opa_vnic_adapter *adapter = opa_vnic_priv(netdev);
+-	struct opa_vnic_stats vstats;
+-	int i;
+-
+-	memset(&vstats, 0, sizeof(vstats));
+-	spin_lock(&adapter->stats_lock);
+-	adapter->rn_ops->ndo_get_stats64(netdev, &vstats.netstats);
+-	spin_unlock(&adapter->stats_lock);
+-	for (i = 0; i < VNIC_STATS_LEN; i++) {
+-		char *p = (char *)&vstats + vnic_gstrings_stats[i].stat_offset;
+-
+-		data[i] = (vnic_gstrings_stats[i].sizeof_stat ==
+-			   sizeof(u64)) ? *(u64 *)p : *(u32 *)p;
+-	}
+-}
+-
+-/* vnic_get_strings - get strings */
+-static void vnic_get_strings(struct net_device *netdev, u32 stringset, u8 *data)
+-{
+-	int i;
+-
+-	if (stringset != ETH_SS_STATS)
+-		return;
+-
+-	for (i = 0; i < VNIC_STATS_LEN; i++)
+-		ethtool_puts(&data, vnic_gstrings_stats[i].stat_string);
+-}
+-
+-/* ethtool ops */
+-static const struct ethtool_ops opa_vnic_ethtool_ops = {
+-	.get_drvinfo = vnic_get_drvinfo,
+-	.get_link = ethtool_op_get_link,
+-	.get_strings = vnic_get_strings,
+-	.get_sset_count = vnic_get_sset_count,
+-	.get_ethtool_stats = vnic_get_ethtool_stats,
+-};
+-
+-/* opa_vnic_set_ethtool_ops - set ethtool ops */
+-void opa_vnic_set_ethtool_ops(struct net_device *netdev)
+-{
+-	netdev->ethtool_ops = &opa_vnic_ethtool_ops;
+-}
+diff --git a/drivers/infiniband/ulp/opa_vnic/opa_vnic_internal.h b/drivers/infiniband/ulp/opa_vnic/opa_vnic_internal.h
+deleted file mode 100644
+index dd942dd642bd..000000000000
+--- a/drivers/infiniband/ulp/opa_vnic/opa_vnic_internal.h
++++ /dev/null
+@@ -1,329 +0,0 @@
+-#ifndef _OPA_VNIC_INTERNAL_H
+-#define _OPA_VNIC_INTERNAL_H
+-/*
+- * Copyright(c) 2017 Intel Corporation.
+- *
+- * This file is provided under a dual BSD/GPLv2 license.  When using or
+- * redistributing this file, you may do so under either license.
+- *
+- * GPL LICENSE SUMMARY
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of version 2 of the GNU General Public License as
+- * published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope that it will be useful, but
+- * WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+- * General Public License for more details.
+- *
+- * BSD LICENSE
+- *
+- * Redistribution and use in source and binary forms, with or without
+- * modification, are permitted provided that the following conditions
+- * are met:
+- *
+- *  - Redistributions of source code must retain the above copyright
+- *    notice, this list of conditions and the following disclaimer.
+- *  - Redistributions in binary form must reproduce the above copyright
+- *    notice, this list of conditions and the following disclaimer in
+- *    the documentation and/or other materials provided with the
+- *    distribution.
+- *  - Neither the name of Intel Corporation nor the names of its
+- *    contributors may be used to endorse or promote products derived
+- *    from this software without specific prior written permission.
+- *
+- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+- * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+- * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+- *
+- */
+-
+-/*
+- * This file contains OPA VNIC driver internal declarations
+- */
+-
+-#include <linux/bitops.h>
+-#include <linux/etherdevice.h>
+-#include <linux/hashtable.h>
+-#include <linux/sizes.h>
+-#include <rdma/opa_vnic.h>
+-
+-#include "opa_vnic_encap.h"
+-
+-#define OPA_VNIC_VLAN_PCP(vlan_tci)  \
+-			(((vlan_tci) & VLAN_PRIO_MASK) >> VLAN_PRIO_SHIFT)
+-
+-/* Flow to default port redirection table size */
+-#define OPA_VNIC_FLOW_TBL_SIZE    32
+-
+-/* Invalid port number */
+-#define OPA_VNIC_INVALID_PORT     0xff
+-
+-struct opa_vnic_adapter;
+-
+-/*
+- * struct __opa_vesw_info - OPA vnic virtual switch info
+- *
+- * Same as opa_vesw_info without bitwise attribute.
+- */
+-struct __opa_vesw_info {
+-	u16  fabric_id;
+-	u16  vesw_id;
+-
+-	u8   rsvd0[6];
+-	u16  def_port_mask;
+-
+-	u8   rsvd1[2];
+-	u16  pkey;
+-
+-	u8   rsvd2[4];
+-	u32  u_mcast_dlid;
+-	u32  u_ucast_dlid[OPA_VESW_MAX_NUM_DEF_PORT];
+-
+-	u32  rc;
+-
+-	u8   rsvd3[56];
+-	u16  eth_mtu;
+-	u8   rsvd4[2];
+-} __packed;
+-
+-/*
+- * struct __opa_per_veswport_info - OPA vnic per port info
+- *
+- * Same as opa_per_veswport_info without bitwise attribute.
+- */
+-struct __opa_per_veswport_info {
+-	u32  port_num;
+-
+-	u8   eth_link_status;
+-	u8   rsvd0[3];
+-
+-	u8   base_mac_addr[ETH_ALEN];
+-	u8   config_state;
+-	u8   oper_state;
+-
+-	u16  max_mac_tbl_ent;
+-	u16  max_smac_ent;
+-	u32  mac_tbl_digest;
+-	u8   rsvd1[4];
+-
+-	u32  encap_slid;
+-
+-	u8   pcp_to_sc_uc[OPA_VNIC_MAX_NUM_PCP];
+-	u8   pcp_to_vl_uc[OPA_VNIC_MAX_NUM_PCP];
+-	u8   pcp_to_sc_mc[OPA_VNIC_MAX_NUM_PCP];
+-	u8   pcp_to_vl_mc[OPA_VNIC_MAX_NUM_PCP];
+-
+-	u8   non_vlan_sc_uc;
+-	u8   non_vlan_vl_uc;
+-	u8   non_vlan_sc_mc;
+-	u8   non_vlan_vl_mc;
+-
+-	u8   rsvd2[48];
+-
+-	u16  uc_macs_gen_count;
+-	u16  mc_macs_gen_count;
+-
+-	u8   rsvd3[8];
+-} __packed;
+-
+-/*
+- * struct __opa_veswport_info - OPA vnic port info
+- *
+- * Same as opa_veswport_info without bitwise attribute.
+- */
+-struct __opa_veswport_info {
+-	struct __opa_vesw_info            vesw;
+-	struct __opa_per_veswport_info    vport;
+-};
+-
+-/*
+- * struct __opa_veswport_trap - OPA vnic trap info
+- *
+- * Same as opa_veswport_trap without bitwise attribute.
+- */
+-struct __opa_veswport_trap {
+-	u16	fabric_id;
+-	u16	veswid;
+-	u32	veswportnum;
+-	u16	opaportnum;
+-	u8	veswportindex;
+-	u8	opcode;
+-	u32	reserved;
+-} __packed;
+-
+-/**
+- * struct opa_vnic_ctrl_port - OPA virtual NIC control port
+- * @ibdev: pointer to ib device
+- * @ops: opa vnic control operations
+- * @num_ports: number of opa ports
+- */
+-struct opa_vnic_ctrl_port {
+-	struct ib_device           *ibdev;
+-	struct opa_vnic_ctrl_ops   *ops;
+-	u8                          num_ports;
+-};
+-
+-/**
+- * struct opa_vnic_adapter - OPA VNIC netdev private data structure
+- * @netdev: pointer to associated netdev
+- * @ibdev: ib device
+- * @cport: pointer to opa vnic control port
+- * @rn_ops: rdma netdev's net_device_ops
+- * @port_num: OPA port number
+- * @vport_num: vesw port number
+- * @lock: adapter lock
+- * @info: virtual ethernet switch port information
+- * @vema_mac_addr: mac address configured by vema
+- * @umac_hash: unicast maclist hash
+- * @mmac_hash: multicast maclist hash
+- * @mactbl: hash table of MAC entries
+- * @mactbl_lock: mac table lock
+- * @stats_lock: statistics lock
+- * @flow_tbl: flow to default port redirection table
+- * @trap_timeout: trap timeout
+- * @trap_count: no. of traps allowed within timeout period
+- */
+-struct opa_vnic_adapter {
+-	struct net_device             *netdev;
+-	struct ib_device              *ibdev;
+-	struct opa_vnic_ctrl_port     *cport;
+-	const struct net_device_ops   *rn_ops;
+-
+-	u8 port_num;
+-	u8 vport_num;
+-
+-	/* Lock used around concurrent updates to netdev */
+-	struct mutex lock;
+-
+-	struct __opa_veswport_info  info;
+-	u8                          vema_mac_addr[ETH_ALEN];
+-	u32                         umac_hash;
+-	u32                         mmac_hash;
+-	struct hlist_head  __rcu   *mactbl;
+-
+-	/* Lock used to protect updates to mac table */
+-	struct mutex mactbl_lock;
+-
+-	/* Lock used to protect access to vnic counters */
+-	spinlock_t stats_lock;
+-
+-	u8 flow_tbl[OPA_VNIC_FLOW_TBL_SIZE];
+-
+-	unsigned long trap_timeout;
+-	u8            trap_count;
+-};
+-
+-/* Same as opa_veswport_mactable_entry, but without bitwise attribute */
+-struct __opa_vnic_mactable_entry {
+-	u8  mac_addr[ETH_ALEN];
+-	u8  mac_addr_mask[ETH_ALEN];
+-	u32 dlid_sd;
+-} __packed;
+-
+-/**
+- * struct opa_vnic_mac_tbl_node - OPA VNIC mac table node
+- * @hlist: hash list handle
+- * @index: index of entry in the mac table
+- * @entry: entry in the table
+- */
+-struct opa_vnic_mac_tbl_node {
+-	struct hlist_node                    hlist;
+-	u16                                  index;
+-	struct __opa_vnic_mactable_entry     entry;
+-};
+-
+-#define v_dbg(format, arg...) \
+-	netdev_dbg(adapter->netdev, format, ## arg)
+-#define v_err(format, arg...) \
+-	netdev_err(adapter->netdev, format, ## arg)
+-#define v_info(format, arg...) \
+-	netdev_info(adapter->netdev, format, ## arg)
+-#define v_warn(format, arg...) \
+-	netdev_warn(adapter->netdev, format, ## arg)
+-
+-#define c_err(format, arg...) \
+-	dev_err(&cport->ibdev->dev, format, ## arg)
+-#define c_info(format, arg...) \
+-	dev_info(&cport->ibdev->dev, format, ## arg)
+-#define c_dbg(format, arg...) \
+-	dev_dbg(&cport->ibdev->dev, format, ## arg)
+-
+-/* The maximum allowed entries in the mac table */
+-#define OPA_VNIC_MAC_TBL_MAX_ENTRIES  2048
+-/* Limit of smac entries in mac table */
+-#define OPA_VNIC_MAX_SMAC_LIMIT       256
+-
+-/* The last octet of the MAC address is used as the key to the hash table */
+-#define OPA_VNIC_MAC_HASH_IDX         5
+-
+-/* The VNIC MAC hash table is of size 2^8 */
+-#define OPA_VNIC_MAC_TBL_HASH_BITS    8
+-#define OPA_VNIC_MAC_TBL_SIZE  BIT(OPA_VNIC_MAC_TBL_HASH_BITS)
+-
+-/* VNIC HASH MACROS */
+-#define vnic_hash_init(hashtable) __hash_init(hashtable, OPA_VNIC_MAC_TBL_SIZE)
+-
+-#define vnic_hash_add(hashtable, node, key)                                   \
+-	hlist_add_head(node,                                                  \
+-		&hashtable[hash_min(key, ilog2(OPA_VNIC_MAC_TBL_SIZE))])
+-
+-#define vnic_hash_for_each_safe(name, bkt, tmp, obj, member)                  \
+-	for ((bkt) = 0, obj = NULL;                                           \
+-		    !obj && (bkt) < OPA_VNIC_MAC_TBL_SIZE; (bkt)++)           \
+-		hlist_for_each_entry_safe(obj, tmp, &name[bkt], member)
+-
+-#define vnic_hash_for_each_possible(name, obj, member, key)                   \
+-	hlist_for_each_entry(obj,                                             \
+-		&name[hash_min(key, ilog2(OPA_VNIC_MAC_TBL_SIZE))], member)
+-
+-#define vnic_hash_for_each(name, bkt, obj, member)                            \
+-	for ((bkt) = 0, obj = NULL;                                           \
+-		    !obj && (bkt) < OPA_VNIC_MAC_TBL_SIZE; (bkt)++)           \
+-		hlist_for_each_entry(obj, &name[bkt], member)
+-
+-extern char opa_vnic_driver_name[];
+-
+-struct opa_vnic_adapter *opa_vnic_add_netdev(struct ib_device *ibdev,
+-					     u8 port_num, u8 vport_num);
+-void opa_vnic_rem_netdev(struct opa_vnic_adapter *adapter);
+-void opa_vnic_encap_skb(struct opa_vnic_adapter *adapter, struct sk_buff *skb);
+-u8 opa_vnic_get_vl(struct opa_vnic_adapter *adapter, struct sk_buff *skb);
+-u8 opa_vnic_calc_entropy(struct sk_buff *skb);
+-void opa_vnic_process_vema_config(struct opa_vnic_adapter *adapter);
+-void opa_vnic_release_mac_tbl(struct opa_vnic_adapter *adapter);
+-void opa_vnic_query_mac_tbl(struct opa_vnic_adapter *adapter,
+-			    struct opa_veswport_mactable *tbl);
+-int opa_vnic_update_mac_tbl(struct opa_vnic_adapter *adapter,
+-			    struct opa_veswport_mactable *tbl);
+-void opa_vnic_query_ucast_macs(struct opa_vnic_adapter *adapter,
+-			       struct opa_veswport_iface_macs *macs);
+-void opa_vnic_query_mcast_macs(struct opa_vnic_adapter *adapter,
+-			       struct opa_veswport_iface_macs *macs);
+-void opa_vnic_get_summary_counters(struct opa_vnic_adapter *adapter,
+-				   struct opa_veswport_summary_counters *cntrs);
+-void opa_vnic_get_error_counters(struct opa_vnic_adapter *adapter,
+-				 struct opa_veswport_error_counters *cntrs);
+-void opa_vnic_get_vesw_info(struct opa_vnic_adapter *adapter,
+-			    struct opa_vesw_info *info);
+-void opa_vnic_set_vesw_info(struct opa_vnic_adapter *adapter,
+-			    struct opa_vesw_info *info);
+-void opa_vnic_get_per_veswport_info(struct opa_vnic_adapter *adapter,
+-				    struct opa_per_veswport_info *info);
+-void opa_vnic_set_per_veswport_info(struct opa_vnic_adapter *adapter,
+-				    struct opa_per_veswport_info *info);
+-void opa_vnic_vema_report_event(struct opa_vnic_adapter *adapter, u8 event);
+-void opa_vnic_set_ethtool_ops(struct net_device *netdev);
+-void opa_vnic_vema_send_trap(struct opa_vnic_adapter *adapter,
+-			     struct __opa_veswport_trap *data, u32 lid);
+-
+-#endif /* _OPA_VNIC_INTERNAL_H */
+diff --git a/drivers/infiniband/ulp/opa_vnic/opa_vnic_netdev.c b/drivers/infiniband/ulp/opa_vnic/opa_vnic_netdev.c
+deleted file mode 100644
+index 071f35711468..000000000000
+--- a/drivers/infiniband/ulp/opa_vnic/opa_vnic_netdev.c
++++ /dev/null
+@@ -1,400 +0,0 @@
+-/*
+- * Copyright(c) 2017 Intel Corporation.
+- *
+- * This file is provided under a dual BSD/GPLv2 license.  When using or
+- * redistributing this file, you may do so under either license.
+- *
+- * GPL LICENSE SUMMARY
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of version 2 of the GNU General Public License as
+- * published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope that it will be useful, but
+- * WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+- * General Public License for more details.
+- *
+- * BSD LICENSE
+- *
+- * Redistribution and use in source and binary forms, with or without
+- * modification, are permitted provided that the following conditions
+- * are met:
+- *
+- *  - Redistributions of source code must retain the above copyright
+- *    notice, this list of conditions and the following disclaimer.
+- *  - Redistributions in binary form must reproduce the above copyright
+- *    notice, this list of conditions and the following disclaimer in
+- *    the documentation and/or other materials provided with the
+- *    distribution.
+- *  - Neither the name of Intel Corporation nor the names of its
+- *    contributors may be used to endorse or promote products derived
+- *    from this software without specific prior written permission.
+- *
+- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+- * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+- * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+- *
+- */
+-
+-/*
+- * This file contains OPA Virtual Network Interface Controller (VNIC) driver
+- * netdev functionality.
+- */
+-
+-#include <linux/if_vlan.h>
+-#include <linux/crc32.h>
+-
+-#include "opa_vnic_internal.h"
+-
+-#define OPA_TX_TIMEOUT_MS 1000
+-
+-#define OPA_VNIC_SKB_HEADROOM  \
+-			ALIGN((OPA_VNIC_HDR_LEN + OPA_VNIC_SKB_MDATA_LEN), 8)
+-
+-/* This function is overloaded for opa_vnic specific implementation */
+-static void opa_vnic_get_stats64(struct net_device *netdev,
+-				 struct rtnl_link_stats64 *stats)
+-{
+-	struct opa_vnic_adapter *adapter = opa_vnic_priv(netdev);
+-	struct opa_vnic_stats vstats;
+-
+-	memset(&vstats, 0, sizeof(vstats));
+-	spin_lock(&adapter->stats_lock);
+-	adapter->rn_ops->ndo_get_stats64(netdev, &vstats.netstats);
+-	spin_unlock(&adapter->stats_lock);
+-	memcpy(stats, &vstats.netstats, sizeof(*stats));
+-}
+-
+-/* opa_netdev_start_xmit - transmit function */
+-static netdev_tx_t opa_netdev_start_xmit(struct sk_buff *skb,
+-					 struct net_device *netdev)
+-{
+-	struct opa_vnic_adapter *adapter = opa_vnic_priv(netdev);
+-
+-	v_dbg("xmit: queue %d skb len %d\n", skb->queue_mapping, skb->len);
+-	/* pad to ensure mininum ethernet packet length */
+-	if (unlikely(skb->len < ETH_ZLEN)) {
+-		if (skb_padto(skb, ETH_ZLEN))
+-			return NETDEV_TX_OK;
+-
+-		skb_put(skb, ETH_ZLEN - skb->len);
+-	}
+-
+-	opa_vnic_encap_skb(adapter, skb);
+-	return adapter->rn_ops->ndo_start_xmit(skb, netdev);
+-}
+-
+-static u16 opa_vnic_select_queue(struct net_device *netdev, struct sk_buff *skb,
+-				 struct net_device *sb_dev)
+-{
+-	struct opa_vnic_adapter *adapter = opa_vnic_priv(netdev);
+-	struct opa_vnic_skb_mdata *mdata;
+-	int rc;
+-
+-	/* pass entropy and vl as metadata in skb */
+-	mdata = skb_push(skb, sizeof(*mdata));
+-	mdata->entropy = opa_vnic_calc_entropy(skb);
+-	mdata->vl = opa_vnic_get_vl(adapter, skb);
+-	rc = adapter->rn_ops->ndo_select_queue(netdev, skb, sb_dev);
+-	skb_pull(skb, sizeof(*mdata));
+-	return rc;
+-}
+-
+-static void opa_vnic_update_state(struct opa_vnic_adapter *adapter, bool up)
+-{
+-	struct __opa_veswport_info *info = &adapter->info;
+-
+-	mutex_lock(&adapter->lock);
+-	/* Operational state can only be DROP_ALL or FORWARDING */
+-	if ((info->vport.config_state == OPA_VNIC_STATE_FORWARDING) && up) {
+-		info->vport.oper_state = OPA_VNIC_STATE_FORWARDING;
+-		info->vport.eth_link_status = OPA_VNIC_ETH_LINK_UP;
+-	} else {
+-		info->vport.oper_state = OPA_VNIC_STATE_DROP_ALL;
+-		info->vport.eth_link_status = OPA_VNIC_ETH_LINK_DOWN;
+-	}
+-
+-	if (info->vport.config_state == OPA_VNIC_STATE_FORWARDING)
+-		netif_dormant_off(adapter->netdev);
+-	else
+-		netif_dormant_on(adapter->netdev);
+-	mutex_unlock(&adapter->lock);
+-}
+-
+-/* opa_vnic_process_vema_config - process vema configuration updates */
+-void opa_vnic_process_vema_config(struct opa_vnic_adapter *adapter)
+-{
+-	struct __opa_veswport_info *info = &adapter->info;
+-	struct rdma_netdev *rn = netdev_priv(adapter->netdev);
+-	u8 port_num[OPA_VESW_MAX_NUM_DEF_PORT] = { 0 };
+-	struct net_device *netdev = adapter->netdev;
+-	u8 i, port_count = 0;
+-	u16 port_mask;
+-
+-	/* If the base_mac_addr is changed, update the interface mac address */
+-	if (memcmp(info->vport.base_mac_addr, adapter->vema_mac_addr,
+-		   ARRAY_SIZE(info->vport.base_mac_addr))) {
+-		struct sockaddr saddr;
+-
+-		memcpy(saddr.sa_data, info->vport.base_mac_addr,
+-		       ARRAY_SIZE(info->vport.base_mac_addr));
+-		mutex_lock(&adapter->lock);
+-		eth_commit_mac_addr_change(netdev, &saddr);
+-		memcpy(adapter->vema_mac_addr,
+-		       info->vport.base_mac_addr, ETH_ALEN);
+-		mutex_unlock(&adapter->lock);
+-	}
+-
+-	rn->set_id(netdev, info->vesw.vesw_id);
+-
+-	/* Handle MTU limit change */
+-	rtnl_lock();
+-	netdev->max_mtu = max_t(unsigned int, info->vesw.eth_mtu,
+-				netdev->min_mtu);
+-	if (netdev->mtu > netdev->max_mtu)
+-		dev_set_mtu(netdev, netdev->max_mtu);
+-	rtnl_unlock();
+-
+-	/* Update flow to default port redirection table */
+-	port_mask = info->vesw.def_port_mask;
+-	for (i = 0; i < OPA_VESW_MAX_NUM_DEF_PORT; i++) {
+-		if (port_mask & 1)
+-			port_num[port_count++] = i;
+-		port_mask >>= 1;
+-	}
+-
+-	/*
+-	 * Build the flow table. Flow table is required when destination LID
+-	 * is not available. Up to OPA_VNIC_FLOW_TBL_SIZE flows supported.
+-	 * Each flow need a default port number to get its dlid from the
+-	 * u_ucast_dlid array.
+-	 */
+-	for (i = 0; i < OPA_VNIC_FLOW_TBL_SIZE; i++)
+-		adapter->flow_tbl[i] = port_count ? port_num[i % port_count] :
+-						    OPA_VNIC_INVALID_PORT;
+-
+-	/* update state */
+-	opa_vnic_update_state(adapter, !!(netdev->flags & IFF_UP));
+-}
+-
+-/*
+- * Set the power on default values in adapter's vema interface structure.
+- */
+-static inline void opa_vnic_set_pod_values(struct opa_vnic_adapter *adapter)
+-{
+-	adapter->info.vport.max_mac_tbl_ent = OPA_VNIC_MAC_TBL_MAX_ENTRIES;
+-	adapter->info.vport.max_smac_ent = OPA_VNIC_MAX_SMAC_LIMIT;
+-	adapter->info.vport.config_state = OPA_VNIC_STATE_DROP_ALL;
+-	adapter->info.vport.eth_link_status = OPA_VNIC_ETH_LINK_DOWN;
+-	adapter->info.vesw.eth_mtu = ETH_DATA_LEN;
+-}
+-
+-/* opa_vnic_set_mac_addr - change mac address */
+-static int opa_vnic_set_mac_addr(struct net_device *netdev, void *addr)
+-{
+-	struct opa_vnic_adapter *adapter = opa_vnic_priv(netdev);
+-	struct sockaddr *sa = addr;
+-	int rc;
+-
+-	if (!memcmp(netdev->dev_addr, sa->sa_data, ETH_ALEN))
+-		return 0;
+-
+-	mutex_lock(&adapter->lock);
+-	rc = eth_mac_addr(netdev, addr);
+-	mutex_unlock(&adapter->lock);
+-	if (rc)
+-		return rc;
+-
+-	adapter->info.vport.uc_macs_gen_count++;
+-	opa_vnic_vema_report_event(adapter,
+-				   OPA_VESWPORT_TRAP_IFACE_UCAST_MAC_CHANGE);
+-	return 0;
+-}
+-
+-/*
+- * opa_vnic_mac_send_event - post event on possible mac list exchange
+- *  Send trap when digest from uc/mc mac list differs from previous run.
+- *  Digest is evaluated similar to how cksum does.
+- */
+-static void opa_vnic_mac_send_event(struct net_device *netdev, u8 event)
+-{
+-	struct opa_vnic_adapter *adapter = opa_vnic_priv(netdev);
+-	struct netdev_hw_addr *ha;
+-	struct netdev_hw_addr_list *hw_list;
+-	u32 *ref_crc;
+-	u32 l, crc = 0;
+-
+-	switch (event) {
+-	case OPA_VESWPORT_TRAP_IFACE_UCAST_MAC_CHANGE:
+-		hw_list = &netdev->uc;
+-		adapter->info.vport.uc_macs_gen_count++;
+-		ref_crc = &adapter->umac_hash;
+-		break;
+-	case OPA_VESWPORT_TRAP_IFACE_MCAST_MAC_CHANGE:
+-		hw_list = &netdev->mc;
+-		adapter->info.vport.mc_macs_gen_count++;
+-		ref_crc = &adapter->mmac_hash;
+-		break;
+-	default:
+-		return;
+-	}
+-	netdev_hw_addr_list_for_each(ha, hw_list) {
+-		crc = crc32_le(crc, ha->addr, ETH_ALEN);
+-	}
+-	l = netdev_hw_addr_list_count(hw_list) * ETH_ALEN;
+-	crc = ~crc32_le(crc, (void *)&l, sizeof(l));
+-
+-	if (crc != *ref_crc) {
+-		*ref_crc = crc;
+-		opa_vnic_vema_report_event(adapter, event);
+-	}
+-}
+-
+-/* opa_vnic_set_rx_mode - handle uc/mc mac list change */
+-static void opa_vnic_set_rx_mode(struct net_device *netdev)
+-{
+-	opa_vnic_mac_send_event(netdev,
+-				OPA_VESWPORT_TRAP_IFACE_UCAST_MAC_CHANGE);
+-
+-	opa_vnic_mac_send_event(netdev,
+-				OPA_VESWPORT_TRAP_IFACE_MCAST_MAC_CHANGE);
+-}
+-
+-/* opa_netdev_open - activate network interface */
+-static int opa_netdev_open(struct net_device *netdev)
+-{
+-	struct opa_vnic_adapter *adapter = opa_vnic_priv(netdev);
+-	int rc;
+-
+-	rc = adapter->rn_ops->ndo_open(adapter->netdev);
+-	if (rc) {
+-		v_dbg("open failed %d\n", rc);
+-		return rc;
+-	}
+-
+-	/* Update status and send trap */
+-	opa_vnic_update_state(adapter, true);
+-	opa_vnic_vema_report_event(adapter,
+-				   OPA_VESWPORT_TRAP_ETH_LINK_STATUS_CHANGE);
+-	return 0;
+-}
+-
+-/* opa_netdev_close - disable network interface */
+-static int opa_netdev_close(struct net_device *netdev)
+-{
+-	struct opa_vnic_adapter *adapter = opa_vnic_priv(netdev);
+-	int rc;
+-
+-	rc = adapter->rn_ops->ndo_stop(adapter->netdev);
+-	if (rc) {
+-		v_dbg("close failed %d\n", rc);
+-		return rc;
+-	}
+-
+-	/* Update status and send trap */
+-	opa_vnic_update_state(adapter, false);
+-	opa_vnic_vema_report_event(adapter,
+-				   OPA_VESWPORT_TRAP_ETH_LINK_STATUS_CHANGE);
+-	return 0;
+-}
+-
+-/* netdev ops */
+-static const struct net_device_ops opa_netdev_ops = {
+-	.ndo_open = opa_netdev_open,
+-	.ndo_stop = opa_netdev_close,
+-	.ndo_start_xmit = opa_netdev_start_xmit,
+-	.ndo_get_stats64 = opa_vnic_get_stats64,
+-	.ndo_set_rx_mode = opa_vnic_set_rx_mode,
+-	.ndo_select_queue = opa_vnic_select_queue,
+-	.ndo_set_mac_address = opa_vnic_set_mac_addr,
+-};
+-
+-/* opa_vnic_add_netdev - create vnic netdev interface */
+-struct opa_vnic_adapter *opa_vnic_add_netdev(struct ib_device *ibdev,
+-					     u8 port_num, u8 vport_num)
+-{
+-	struct opa_vnic_adapter *adapter;
+-	struct net_device *netdev;
+-	struct rdma_netdev *rn;
+-	int rc;
+-
+-	netdev = ibdev->ops.alloc_rdma_netdev(ibdev, port_num,
+-					      RDMA_NETDEV_OPA_VNIC,
+-					      "veth%d", NET_NAME_UNKNOWN,
+-					      ether_setup);
+-	if (!netdev)
+-		return ERR_PTR(-ENOMEM);
+-	else if (IS_ERR(netdev))
+-		return ERR_CAST(netdev);
+-
+-	rn = netdev_priv(netdev);
+-	adapter = kzalloc(sizeof(*adapter), GFP_KERNEL);
+-	if (!adapter) {
+-		rc = -ENOMEM;
+-		goto adapter_err;
+-	}
+-
+-	rn->clnt_priv = adapter;
+-	rn->hca = ibdev;
+-	rn->port_num = port_num;
+-	adapter->netdev = netdev;
+-	adapter->ibdev = ibdev;
+-	adapter->port_num = port_num;
+-	adapter->vport_num = vport_num;
+-	adapter->rn_ops = netdev->netdev_ops;
+-
+-	netdev->netdev_ops = &opa_netdev_ops;
+-	netdev->priv_flags |= IFF_LIVE_ADDR_CHANGE;
+-	netdev->hard_header_len += OPA_VNIC_SKB_HEADROOM;
+-	mutex_init(&adapter->lock);
+-	mutex_init(&adapter->mactbl_lock);
+-	spin_lock_init(&adapter->stats_lock);
+-
+-	SET_NETDEV_DEV(netdev, ibdev->dev.parent);
+-
+-	opa_vnic_set_ethtool_ops(netdev);
+-
+-	opa_vnic_set_pod_values(adapter);
+-
+-	rc = register_netdev(netdev);
+-	if (rc)
+-		goto netdev_err;
+-
+-	netif_carrier_off(netdev);
+-	netif_dormant_on(netdev);
+-	v_info("initialized\n");
+-
+-	return adapter;
+-netdev_err:
+-	mutex_destroy(&adapter->lock);
+-	mutex_destroy(&adapter->mactbl_lock);
+-	kfree(adapter);
+-adapter_err:
+-	rn->free_rdma_netdev(netdev);
+-
+-	return ERR_PTR(rc);
+-}
+-
+-/* opa_vnic_rem_netdev - remove vnic netdev interface */
+-void opa_vnic_rem_netdev(struct opa_vnic_adapter *adapter)
+-{
+-	struct net_device *netdev = adapter->netdev;
+-	struct rdma_netdev *rn = netdev_priv(netdev);
+-
+-	v_info("removing\n");
+-	unregister_netdev(netdev);
+-	opa_vnic_release_mac_tbl(adapter);
+-	mutex_destroy(&adapter->lock);
+-	mutex_destroy(&adapter->mactbl_lock);
+-	kfree(adapter);
+-	rn->free_rdma_netdev(netdev);
+-}
+diff --git a/drivers/infiniband/ulp/opa_vnic/opa_vnic_vema.c b/drivers/infiniband/ulp/opa_vnic/opa_vnic_vema.c
+deleted file mode 100644
+index 21c6cea8b1db..000000000000
+--- a/drivers/infiniband/ulp/opa_vnic/opa_vnic_vema.c
++++ /dev/null
+@@ -1,1056 +0,0 @@
+-/*
+- * Copyright(c) 2017 Intel Corporation.
+- * Copyright(c) 2021 Cornelis Networks.
+- *
+- * This file is provided under a dual BSD/GPLv2 license.  When using or
+- * redistributing this file, you may do so under either license.
+- *
+- * GPL LICENSE SUMMARY
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of version 2 of the GNU General Public License as
+- * published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope that it will be useful, but
+- * WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+- * General Public License for more details.
+- *
+- * BSD LICENSE
+- *
+- * Redistribution and use in source and binary forms, with or without
+- * modification, are permitted provided that the following conditions
+- * are met:
+- *
+- *  - Redistributions of source code must retain the above copyright
+- *    notice, this list of conditions and the following disclaimer.
+- *  - Redistributions in binary form must reproduce the above copyright
+- *    notice, this list of conditions and the following disclaimer in
+- *    the documentation and/or other materials provided with the
+- *    distribution.
+- *  - Neither the name of Intel Corporation nor the names of its
+- *    contributors may be used to endorse or promote products derived
+- *    from this software without specific prior written permission.
+- *
+- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+- * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+- * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+- *
+- */
+-
+-/*
+- * This file contains OPX Virtual Network Interface Controller (VNIC)
+- * Ethernet Management Agent (EMA) driver
+- */
+-
+-#include <linux/module.h>
+-#include <linux/xarray.h>
+-#include <rdma/ib_addr.h>
+-#include <rdma/ib_verbs.h>
+-#include <rdma/opa_smi.h>
+-#include <rdma/opa_port_info.h>
+-
+-#include "opa_vnic_internal.h"
+-
+-char opa_vnic_driver_name[] = "opa_vnic";
+-
+-/*
+- * The trap service level is kept in bits 3 to 7 in the trap_sl_rsvd
+- * field in the class port info MAD.
+- */
+-#define GET_TRAP_SL_FROM_CLASS_PORT_INFO(x)  (((x) >> 3) & 0x1f)
+-
+-/* Cap trap bursts to a reasonable limit good for normal cases */
+-#define OPA_VNIC_TRAP_BURST_LIMIT 4
+-
+-/*
+- * VNIC trap limit timeout.
+- * Inverse of cap2_mask response time out (1.0737 secs) = 0.9
+- * secs approx IB spec 13.4.6.2.1 PortInfoSubnetTimeout and
+- * 13.4.9 Traps.
+- */
+-#define OPA_VNIC_TRAP_TIMEOUT  ((4096 * (1UL << 18)) / 1000)
+-
+-#define OPA_VNIC_UNSUP_ATTR  \
+-		cpu_to_be16(IB_MGMT_MAD_STATUS_UNSUPPORTED_METHOD_ATTRIB)
+-
+-#define OPA_VNIC_INVAL_ATTR  \
+-		cpu_to_be16(IB_MGMT_MAD_STATUS_INVALID_ATTRIB_VALUE)
+-
+-#define OPA_VNIC_CLASS_CAP_TRAP   0x1
+-
+-/* Maximum number of VNIC ports supported */
+-#define OPA_VNIC_MAX_NUM_VPORT    255
+-
+-/**
+- * struct opa_vnic_vema_port -- VNIC VEMA port details
+- * @cport: pointer to port
+- * @mad_agent: pointer to mad agent for port
+- * @class_port_info: Class port info information.
+- * @tid: Transaction id
+- * @port_num: OPA port number
+- * @vports: vnic ports
+- * @event_handler: ib event handler
+- * @lock: adapter interface lock
+- */
+-struct opa_vnic_vema_port {
+-	struct opa_vnic_ctrl_port      *cport;
+-	struct ib_mad_agent            *mad_agent;
+-	struct opa_class_port_info      class_port_info;
+-	u64                             tid;
+-	u8                              port_num;
+-	struct xarray                   vports;
+-	struct ib_event_handler         event_handler;
+-
+-	/* Lock to query/update network adapter */
+-	struct mutex                    lock;
+-};
+-
+-static int opa_vnic_vema_add_one(struct ib_device *device);
+-static void opa_vnic_vema_rem_one(struct ib_device *device,
+-				  void *client_data);
+-
+-static struct ib_client opa_vnic_client = {
+-	.name   = opa_vnic_driver_name,
+-	.add    = opa_vnic_vema_add_one,
+-	.remove = opa_vnic_vema_rem_one,
+-};
+-
+-/**
+- * vema_get_vport_num -- Get the vnic from the mad
+- * @recvd_mad:  Received mad
+- *
+- * Return: returns value of the vnic port number
+- */
+-static inline u8 vema_get_vport_num(struct opa_vnic_vema_mad *recvd_mad)
+-{
+-	return be32_to_cpu(recvd_mad->mad_hdr.attr_mod) & 0xff;
+-}
+-
+-/**
+- * vema_get_vport_adapter -- Get vnic port adapter from recvd mad
+- * @recvd_mad: received mad
+- * @port: ptr to port struct on which MAD was recvd
+- *
+- * Return: vnic adapter
+- */
+-static inline struct opa_vnic_adapter *
+-vema_get_vport_adapter(struct opa_vnic_vema_mad *recvd_mad,
+-		       struct opa_vnic_vema_port *port)
+-{
+-	u8 vport_num = vema_get_vport_num(recvd_mad);
+-
+-	return xa_load(&port->vports, vport_num);
+-}
+-
+-/**
+- * vema_mac_tbl_req_ok -- Check if mac request has correct values
+- * @mac_tbl: mac table
+- *
+- * This function checks for the validity of the offset and number of
+- * entries required.
+- *
+- * Return: true if offset and num_entries are valid
+- */
+-static inline bool vema_mac_tbl_req_ok(struct opa_veswport_mactable *mac_tbl)
+-{
+-	u16 offset, num_entries;
+-	u16 req_entries = ((OPA_VNIC_EMA_DATA - sizeof(*mac_tbl)) /
+-			   sizeof(mac_tbl->tbl_entries[0]));
+-
+-	offset = be16_to_cpu(mac_tbl->offset);
+-	num_entries = be16_to_cpu(mac_tbl->num_entries);
+-
+-	return ((num_entries <= req_entries) &&
+-		(offset + num_entries <= OPA_VNIC_MAC_TBL_MAX_ENTRIES));
+-}
+-
+-/*
+- * Return the power on default values in the port info structure
+- * in big endian format as required by MAD.
+- */
+-static inline void vema_get_pod_values(struct opa_veswport_info *port_info)
+-{
+-	memset(port_info, 0, sizeof(*port_info));
+-	port_info->vport.max_mac_tbl_ent =
+-		cpu_to_be16(OPA_VNIC_MAC_TBL_MAX_ENTRIES);
+-	port_info->vport.max_smac_ent =
+-		cpu_to_be16(OPA_VNIC_MAX_SMAC_LIMIT);
+-	port_info->vport.oper_state = OPA_VNIC_STATE_DROP_ALL;
+-	port_info->vport.config_state = OPA_VNIC_STATE_DROP_ALL;
+-	port_info->vesw.eth_mtu = cpu_to_be16(ETH_DATA_LEN);
+-}
+-
+-/**
+- * vema_add_vport -- Add a new vnic port
+- * @port: ptr to opa_vnic_vema_port struct
+- * @vport_num: vnic port number (to be added)
+- *
+- * Return a pointer to the vnic adapter structure
+- */
+-static struct opa_vnic_adapter *vema_add_vport(struct opa_vnic_vema_port *port,
+-					       u8 vport_num)
+-{
+-	struct opa_vnic_ctrl_port *cport = port->cport;
+-	struct opa_vnic_adapter *adapter;
+-
+-	adapter = opa_vnic_add_netdev(cport->ibdev, port->port_num, vport_num);
+-	if (!IS_ERR(adapter)) {
+-		int rc;
+-
+-		adapter->cport = cport;
+-		rc = xa_insert(&port->vports, vport_num, adapter, GFP_KERNEL);
+-		if (rc < 0) {
+-			opa_vnic_rem_netdev(adapter);
+-			adapter = ERR_PTR(rc);
+-		}
+-	}
+-
+-	return adapter;
+-}
+-
+-/**
+- * vema_get_class_port_info -- Get class info for port
+- * @port:  Port on whic MAD was received
+- * @recvd_mad: pointer to the received mad
+- * @rsp_mad:   pointer to respose mad
+- *
+- * This function copies the latest class port info value set for the
+- * port and stores it for generating traps
+- */
+-static void vema_get_class_port_info(struct opa_vnic_vema_port *port,
+-				     struct opa_vnic_vema_mad *recvd_mad,
+-				     struct opa_vnic_vema_mad *rsp_mad)
+-{
+-	struct opa_class_port_info *port_info;
+-
+-	port_info = (struct opa_class_port_info *)rsp_mad->data;
+-	memcpy(port_info, &port->class_port_info, sizeof(*port_info));
+-	port_info->base_version = OPA_MGMT_BASE_VERSION;
+-	port_info->class_version = OPA_EMA_CLASS_VERSION;
+-
+-	/*
+-	 * Set capability mask bit indicating agent generates traps,
+-	 * and set the maximum number of VNIC ports supported.
+-	 */
+-	port_info->cap_mask = cpu_to_be16((OPA_VNIC_CLASS_CAP_TRAP |
+-					   (OPA_VNIC_MAX_NUM_VPORT << 8)));
+-
+-	/*
+-	 * Since a get routine is always sent by the EM first we
+-	 * set the expected response time to
+-	 * 4.096 usec * 2^18 == 1.0737 sec here.
+-	 */
+-	port_info->cap_mask2_resp_time = cpu_to_be32(18);
+-}
+-
+-/**
+- * vema_set_class_port_info -- Get class info for port
+- * @port:  Port on whic MAD was received
+- * @recvd_mad: pointer to the received mad
+- * @rsp_mad:   pointer to respose mad
+- *
+- * This function updates the port class info for the specific vnic
+- * and sets up the response mad data
+- */
+-static void vema_set_class_port_info(struct opa_vnic_vema_port *port,
+-				     struct opa_vnic_vema_mad *recvd_mad,
+-				     struct opa_vnic_vema_mad *rsp_mad)
+-{
+-	memcpy(&port->class_port_info, recvd_mad->data,
+-	       sizeof(port->class_port_info));
+-
+-	vema_get_class_port_info(port, recvd_mad, rsp_mad);
+-}
+-
+-/**
+- * vema_get_veswport_info -- Get veswport info
+- * @port:      source port on which MAD was received
+- * @recvd_mad: pointer to the received mad
+- * @rsp_mad:   pointer to respose mad
+- */
+-static void vema_get_veswport_info(struct opa_vnic_vema_port *port,
+-				   struct opa_vnic_vema_mad *recvd_mad,
+-				   struct opa_vnic_vema_mad *rsp_mad)
+-{
+-	struct opa_veswport_info *port_info =
+-				  (struct opa_veswport_info *)rsp_mad->data;
+-	struct opa_vnic_adapter *adapter;
+-
+-	adapter = vema_get_vport_adapter(recvd_mad, port);
+-	if (adapter) {
+-		memset(port_info, 0, sizeof(*port_info));
+-		opa_vnic_get_vesw_info(adapter, &port_info->vesw);
+-		opa_vnic_get_per_veswport_info(adapter,
+-					       &port_info->vport);
+-	} else {
+-		vema_get_pod_values(port_info);
+-	}
+-}
+-
+-/**
+- * vema_set_veswport_info -- Set veswport info
+- * @port:      source port on which MAD was received
+- * @recvd_mad: pointer to the received mad
+- * @rsp_mad:   pointer to respose mad
+- *
+- * This function gets the port class infor for vnic
+- */
+-static void vema_set_veswport_info(struct opa_vnic_vema_port *port,
+-				   struct opa_vnic_vema_mad *recvd_mad,
+-				   struct opa_vnic_vema_mad *rsp_mad)
+-{
+-	struct opa_vnic_ctrl_port *cport = port->cport;
+-	struct opa_veswport_info *port_info;
+-	struct opa_vnic_adapter *adapter;
+-	u8 vport_num;
+-
+-	vport_num = vema_get_vport_num(recvd_mad);
+-
+-	adapter = vema_get_vport_adapter(recvd_mad, port);
+-	if (!adapter) {
+-		adapter = vema_add_vport(port, vport_num);
+-		if (IS_ERR(adapter)) {
+-			c_err("failed to add vport %d: %ld\n",
+-			      vport_num, PTR_ERR(adapter));
+-			goto err_exit;
+-		}
+-	}
+-
+-	port_info = (struct opa_veswport_info *)recvd_mad->data;
+-	opa_vnic_set_vesw_info(adapter, &port_info->vesw);
+-	opa_vnic_set_per_veswport_info(adapter, &port_info->vport);
+-
+-	/* Process the new config settings */
+-	opa_vnic_process_vema_config(adapter);
+-
+-	vema_get_veswport_info(port, recvd_mad, rsp_mad);
+-	return;
+-
+-err_exit:
+-	rsp_mad->mad_hdr.status = OPA_VNIC_INVAL_ATTR;
+-}
+-
+-/**
+- * vema_get_mac_entries -- Get MAC entries in VNIC MAC table
+- * @port:      source port on which MAD was received
+- * @recvd_mad: pointer to the received mad
+- * @rsp_mad:   pointer to respose mad
+- *
+- * This function gets the MAC entries that are programmed into
+- * the VNIC MAC forwarding table. It checks for the validity of
+- * the index into the MAC table and the number of entries that
+- * are to be retrieved.
+- */
+-static void vema_get_mac_entries(struct opa_vnic_vema_port *port,
+-				 struct opa_vnic_vema_mad *recvd_mad,
+-				 struct opa_vnic_vema_mad *rsp_mad)
+-{
+-	struct opa_veswport_mactable *mac_tbl_in, *mac_tbl_out;
+-	struct opa_vnic_adapter *adapter;
+-
+-	adapter = vema_get_vport_adapter(recvd_mad, port);
+-	if (!adapter) {
+-		rsp_mad->mad_hdr.status = OPA_VNIC_INVAL_ATTR;
+-		return;
+-	}
+-
+-	mac_tbl_in = (struct opa_veswport_mactable *)recvd_mad->data;
+-	mac_tbl_out = (struct opa_veswport_mactable *)rsp_mad->data;
+-
+-	if (vema_mac_tbl_req_ok(mac_tbl_in)) {
+-		mac_tbl_out->offset = mac_tbl_in->offset;
+-		mac_tbl_out->num_entries = mac_tbl_in->num_entries;
+-		opa_vnic_query_mac_tbl(adapter, mac_tbl_out);
+-	} else {
+-		rsp_mad->mad_hdr.status = OPA_VNIC_INVAL_ATTR;
+-	}
+-}
+-
+-/**
+- * vema_set_mac_entries -- Set MAC entries in VNIC MAC table
+- * @port:      source port on which MAD was received
+- * @recvd_mad: pointer to the received mad
+- * @rsp_mad:   pointer to respose mad
+- *
+- * This function sets the MAC entries in the VNIC forwarding table
+- * It checks for the validity of the index and the number of forwarding
+- * table entries to be programmed.
+- */
+-static void vema_set_mac_entries(struct opa_vnic_vema_port *port,
+-				 struct opa_vnic_vema_mad *recvd_mad,
+-				 struct opa_vnic_vema_mad *rsp_mad)
+-{
+-	struct opa_veswport_mactable *mac_tbl;
+-	struct opa_vnic_adapter *adapter;
+-
+-	adapter = vema_get_vport_adapter(recvd_mad, port);
+-	if (!adapter) {
+-		rsp_mad->mad_hdr.status = OPA_VNIC_INVAL_ATTR;
+-		return;
+-	}
+-
+-	mac_tbl = (struct opa_veswport_mactable *)recvd_mad->data;
+-	if (vema_mac_tbl_req_ok(mac_tbl)) {
+-		if (opa_vnic_update_mac_tbl(adapter, mac_tbl))
+-			rsp_mad->mad_hdr.status = OPA_VNIC_UNSUP_ATTR;
+-	} else {
+-		rsp_mad->mad_hdr.status = OPA_VNIC_UNSUP_ATTR;
+-	}
+-	vema_get_mac_entries(port, recvd_mad, rsp_mad);
+-}
+-
+-/**
+- * vema_set_delete_vesw -- Reset VESW info to POD values
+- * @port:      source port on which MAD was received
+- * @recvd_mad: pointer to the received mad
+- * @rsp_mad:   pointer to respose mad
+- *
+- * This function clears all the fields of veswport info for the requested vesw
+- * and sets them back to the power-on default values. It does not delete the
+- * vesw.
+- */
+-static void vema_set_delete_vesw(struct opa_vnic_vema_port *port,
+-				 struct opa_vnic_vema_mad *recvd_mad,
+-				 struct opa_vnic_vema_mad *rsp_mad)
+-{
+-	struct opa_veswport_info *port_info =
+-				  (struct opa_veswport_info *)rsp_mad->data;
+-	struct opa_vnic_adapter *adapter;
+-
+-	adapter = vema_get_vport_adapter(recvd_mad, port);
+-	if (!adapter) {
+-		rsp_mad->mad_hdr.status = OPA_VNIC_INVAL_ATTR;
+-		return;
+-	}
+-
+-	vema_get_pod_values(port_info);
+-	opa_vnic_set_vesw_info(adapter, &port_info->vesw);
+-	opa_vnic_set_per_veswport_info(adapter, &port_info->vport);
+-
+-	/* Process the new config settings */
+-	opa_vnic_process_vema_config(adapter);
+-
+-	opa_vnic_release_mac_tbl(adapter);
+-
+-	vema_get_veswport_info(port, recvd_mad, rsp_mad);
+-}
+-
+-/**
+- * vema_get_mac_list -- Get the unicast/multicast macs.
+- * @port:      source port on which MAD was received
+- * @recvd_mad: Received mad contains fields to set vnic parameters
+- * @rsp_mad:   Response mad to be built
+- * @attr_id:   Attribute ID indicating multicast or unicast mac list
+- */
+-static void vema_get_mac_list(struct opa_vnic_vema_port *port,
+-			      struct opa_vnic_vema_mad *recvd_mad,
+-			      struct opa_vnic_vema_mad *rsp_mad,
+-			      u16 attr_id)
+-{
+-	struct opa_veswport_iface_macs *macs_in, *macs_out;
+-	int max_entries = (OPA_VNIC_EMA_DATA - sizeof(*macs_out)) / ETH_ALEN;
+-	struct opa_vnic_adapter *adapter;
+-
+-	adapter = vema_get_vport_adapter(recvd_mad, port);
+-	if (!adapter) {
+-		rsp_mad->mad_hdr.status = OPA_VNIC_INVAL_ATTR;
+-		return;
+-	}
+-
+-	macs_in = (struct opa_veswport_iface_macs *)recvd_mad->data;
+-	macs_out = (struct opa_veswport_iface_macs *)rsp_mad->data;
+-
+-	macs_out->start_idx = macs_in->start_idx;
+-	if (macs_in->num_macs_in_msg)
+-		macs_out->num_macs_in_msg = macs_in->num_macs_in_msg;
+-	else
+-		macs_out->num_macs_in_msg = cpu_to_be16(max_entries);
+-
+-	if (attr_id == OPA_EM_ATTR_IFACE_MCAST_MACS)
+-		opa_vnic_query_mcast_macs(adapter, macs_out);
+-	else
+-		opa_vnic_query_ucast_macs(adapter, macs_out);
+-}
+-
+-/**
+- * vema_get_summary_counters -- Gets summary counters.
+- * @port:      source port on which MAD was received
+- * @recvd_mad: Received mad contains fields to set vnic parameters
+- * @rsp_mad:   Response mad to be built
+- */
+-static void vema_get_summary_counters(struct opa_vnic_vema_port *port,
+-				      struct opa_vnic_vema_mad *recvd_mad,
+-				      struct opa_vnic_vema_mad *rsp_mad)
+-{
+-	struct opa_veswport_summary_counters *cntrs;
+-	struct opa_vnic_adapter *adapter;
+-
+-	adapter = vema_get_vport_adapter(recvd_mad, port);
+-	if (adapter) {
+-		cntrs = (struct opa_veswport_summary_counters *)rsp_mad->data;
+-		opa_vnic_get_summary_counters(adapter, cntrs);
+-	} else {
+-		rsp_mad->mad_hdr.status = OPA_VNIC_INVAL_ATTR;
+-	}
+-}
+-
+-/**
+- * vema_get_error_counters -- Gets summary counters.
+- * @port:      source port on which MAD was received
+- * @recvd_mad: Received mad contains fields to set vnic parameters
+- * @rsp_mad:   Response mad to be built
+- */
+-static void vema_get_error_counters(struct opa_vnic_vema_port *port,
+-				    struct opa_vnic_vema_mad *recvd_mad,
+-				    struct opa_vnic_vema_mad *rsp_mad)
+-{
+-	struct opa_veswport_error_counters *cntrs;
+-	struct opa_vnic_adapter *adapter;
+-
+-	adapter = vema_get_vport_adapter(recvd_mad, port);
+-	if (adapter) {
+-		cntrs = (struct opa_veswport_error_counters *)rsp_mad->data;
+-		opa_vnic_get_error_counters(adapter, cntrs);
+-	} else {
+-		rsp_mad->mad_hdr.status = OPA_VNIC_INVAL_ATTR;
+-	}
+-}
+-
+-/**
+- * vema_get -- Process received get MAD
+- * @port:      source port on which MAD was received
+- * @recvd_mad: Received mad
+- * @rsp_mad:   Response mad to be built
+- */
+-static void vema_get(struct opa_vnic_vema_port *port,
+-		     struct opa_vnic_vema_mad *recvd_mad,
+-		     struct opa_vnic_vema_mad *rsp_mad)
+-{
+-	u16 attr_id = be16_to_cpu(recvd_mad->mad_hdr.attr_id);
+-
+-	switch (attr_id) {
+-	case OPA_EM_ATTR_CLASS_PORT_INFO:
+-		vema_get_class_port_info(port, recvd_mad, rsp_mad);
+-		break;
+-	case OPA_EM_ATTR_VESWPORT_INFO:
+-		vema_get_veswport_info(port, recvd_mad, rsp_mad);
+-		break;
+-	case OPA_EM_ATTR_VESWPORT_MAC_ENTRIES:
+-		vema_get_mac_entries(port, recvd_mad, rsp_mad);
+-		break;
+-	case OPA_EM_ATTR_IFACE_UCAST_MACS:
+-	case OPA_EM_ATTR_IFACE_MCAST_MACS:
+-		vema_get_mac_list(port, recvd_mad, rsp_mad, attr_id);
+-		break;
+-	case OPA_EM_ATTR_VESWPORT_SUMMARY_COUNTERS:
+-		vema_get_summary_counters(port, recvd_mad, rsp_mad);
+-		break;
+-	case OPA_EM_ATTR_VESWPORT_ERROR_COUNTERS:
+-		vema_get_error_counters(port, recvd_mad, rsp_mad);
+-		break;
+-	default:
+-		rsp_mad->mad_hdr.status = OPA_VNIC_UNSUP_ATTR;
+-		break;
+-	}
+-}
+-
+-/**
+- * vema_set -- Process received set MAD
+- * @port:      source port on which MAD was received
+- * @recvd_mad: Received mad contains fields to set vnic parameters
+- * @rsp_mad:   Response mad to be built
+- */
+-static void vema_set(struct opa_vnic_vema_port *port,
+-		     struct opa_vnic_vema_mad *recvd_mad,
+-		     struct opa_vnic_vema_mad *rsp_mad)
+-{
+-	u16 attr_id = be16_to_cpu(recvd_mad->mad_hdr.attr_id);
+-
+-	switch (attr_id) {
+-	case OPA_EM_ATTR_CLASS_PORT_INFO:
+-		vema_set_class_port_info(port, recvd_mad, rsp_mad);
+-		break;
+-	case OPA_EM_ATTR_VESWPORT_INFO:
+-		vema_set_veswport_info(port, recvd_mad, rsp_mad);
+-		break;
+-	case OPA_EM_ATTR_VESWPORT_MAC_ENTRIES:
+-		vema_set_mac_entries(port, recvd_mad, rsp_mad);
+-		break;
+-	case OPA_EM_ATTR_DELETE_VESW:
+-		vema_set_delete_vesw(port, recvd_mad, rsp_mad);
+-		break;
+-	default:
+-		rsp_mad->mad_hdr.status = OPA_VNIC_UNSUP_ATTR;
+-		break;
+-	}
+-}
+-
+-/**
+- * vema_send -- Send handler for VEMA MAD agent
+- * @mad_agent: pointer to the mad agent
+- * @mad_wc:    pointer to mad send work completion information
+- *
+- * Free all the data structures associated with the sent MAD
+- */
+-static void vema_send(struct ib_mad_agent *mad_agent,
+-		      struct ib_mad_send_wc *mad_wc)
+-{
+-	rdma_destroy_ah(mad_wc->send_buf->ah, RDMA_DESTROY_AH_SLEEPABLE);
+-	ib_free_send_mad(mad_wc->send_buf);
+-}
+-
+-/**
+- * vema_recv -- Recv handler for VEMA MAD agent
+- * @mad_agent: pointer to the mad agent
+- * @send_buf: Send buffer if found, else NULL
+- * @mad_wc:    pointer to mad send work completion information
+- *
+- * Handle only set and get methods and respond to other methods
+- * as unsupported. Allocate response buffer and address handle
+- * for the response MAD.
+- */
+-static void vema_recv(struct ib_mad_agent *mad_agent,
+-		      struct ib_mad_send_buf *send_buf,
+-		      struct ib_mad_recv_wc *mad_wc)
+-{
+-	struct opa_vnic_vema_port *port;
+-	struct ib_ah              *ah;
+-	struct ib_mad_send_buf    *rsp;
+-	struct opa_vnic_vema_mad  *vema_mad;
+-
+-	if (!mad_wc || !mad_wc->recv_buf.mad)
+-		return;
+-
+-	port = mad_agent->context;
+-	ah = ib_create_ah_from_wc(mad_agent->qp->pd, mad_wc->wc,
+-				  mad_wc->recv_buf.grh, mad_agent->port_num);
+-	if (IS_ERR(ah))
+-		goto free_recv_mad;
+-
+-	rsp = ib_create_send_mad(mad_agent, mad_wc->wc->src_qp,
+-				 mad_wc->wc->pkey_index, 0,
+-				 IB_MGMT_VENDOR_HDR, OPA_VNIC_EMA_DATA,
+-				 GFP_KERNEL, OPA_MGMT_BASE_VERSION);
+-	if (IS_ERR(rsp))
+-		goto err_rsp;
+-
+-	rsp->ah = ah;
+-	vema_mad = rsp->mad;
+-	memcpy(vema_mad, mad_wc->recv_buf.mad, IB_MGMT_VENDOR_HDR);
+-	vema_mad->mad_hdr.method = IB_MGMT_METHOD_GET_RESP;
+-	vema_mad->mad_hdr.status = 0;
+-
+-	/* Lock ensures network adapter is not removed */
+-	mutex_lock(&port->lock);
+-
+-	switch (mad_wc->recv_buf.mad->mad_hdr.method) {
+-	case IB_MGMT_METHOD_GET:
+-		vema_get(port, (struct opa_vnic_vema_mad *)mad_wc->recv_buf.mad,
+-			 vema_mad);
+-		break;
+-	case IB_MGMT_METHOD_SET:
+-		vema_set(port, (struct opa_vnic_vema_mad *)mad_wc->recv_buf.mad,
+-			 vema_mad);
+-		break;
+-	default:
+-		vema_mad->mad_hdr.status = OPA_VNIC_UNSUP_ATTR;
+-		break;
+-	}
+-	mutex_unlock(&port->lock);
+-
+-	if (!ib_post_send_mad(rsp, NULL)) {
+-		/*
+-		 * with post send successful ah and send mad
+-		 * will be destroyed in send handler
+-		 */
+-		goto free_recv_mad;
+-	}
+-
+-	ib_free_send_mad(rsp);
+-
+-err_rsp:
+-	rdma_destroy_ah(ah, RDMA_DESTROY_AH_SLEEPABLE);
+-free_recv_mad:
+-	ib_free_recv_mad(mad_wc);
+-}
+-
+-/**
+- * vema_get_port -- Gets the opa_vnic_vema_port
+- * @cport: pointer to control dev
+- * @port_num: Port number
+- *
+- * This function loops through the ports and returns
+- * the opa_vnic_vema port structure that is associated
+- * with the OPA port number
+- *
+- * Return: ptr to requested opa_vnic_vema_port strucure
+- *         if success, NULL if not
+- */
+-static struct opa_vnic_vema_port *
+-vema_get_port(struct opa_vnic_ctrl_port *cport, u8 port_num)
+-{
+-	struct opa_vnic_vema_port *port = (void *)cport + sizeof(*cport);
+-
+-	if (port_num > cport->num_ports)
+-		return NULL;
+-
+-	return port + (port_num - 1);
+-}
+-
+-/**
+- * opa_vnic_vema_send_trap -- This function sends a trap to the EM
+- * @adapter: pointer to vnic adapter
+- * @data: pointer to trap data filled by calling function
+- * @lid:  issuers lid (encap_slid from vesw_port_info)
+- *
+- * This function is called from the VNIC driver to send a trap if there
+- * is somethng the EM should be notified about. These events currently
+- * are
+- * 1) UNICAST INTERFACE MACADDRESS changes
+- * 2) MULTICAST INTERFACE MACADDRESS changes
+- * 3) ETHERNET LINK STATUS changes
+- * While allocating the send mad the remote site qpn used is 1
+- * as this is the well known QP.
+- *
+- */
+-void opa_vnic_vema_send_trap(struct opa_vnic_adapter *adapter,
+-			     struct __opa_veswport_trap *data, u32 lid)
+-{
+-	struct opa_vnic_ctrl_port *cport = adapter->cport;
+-	struct ib_mad_send_buf *send_buf;
+-	struct opa_vnic_vema_port *port;
+-	struct ib_device *ibp;
+-	struct opa_vnic_vema_mad_trap *trap_mad;
+-	struct opa_class_port_info *class;
+-	struct rdma_ah_attr ah_attr;
+-	struct ib_ah *ah;
+-	struct opa_veswport_trap *trap;
+-	u32 trap_lid;
+-	u16 pkey_idx;
+-
+-	if (!cport)
+-		goto err_exit;
+-	ibp = cport->ibdev;
+-	port = vema_get_port(cport, data->opaportnum);
+-	if (!port || !port->mad_agent)
+-		goto err_exit;
+-
+-	if (time_before(jiffies, adapter->trap_timeout)) {
+-		if (adapter->trap_count == OPA_VNIC_TRAP_BURST_LIMIT) {
+-			v_warn("Trap rate exceeded\n");
+-			goto err_exit;
+-		} else {
+-			adapter->trap_count++;
+-		}
+-	} else {
+-		adapter->trap_count = 0;
+-	}
+-
+-	class = &port->class_port_info;
+-	/* Set up address handle */
+-	memset(&ah_attr, 0, sizeof(ah_attr));
+-	ah_attr.type = rdma_ah_find_type(ibp, port->port_num);
+-	rdma_ah_set_sl(&ah_attr,
+-		       GET_TRAP_SL_FROM_CLASS_PORT_INFO(class->trap_sl_rsvd));
+-	rdma_ah_set_port_num(&ah_attr, port->port_num);
+-	trap_lid = be32_to_cpu(class->trap_lid);
+-	/*
+-	 * check for trap lid validity, must not be zero
+-	 * The trap sink could change after we fashion the MAD but since traps
+-	 * are not guaranteed we won't use a lock as anyway the change will take
+-	 * place even with locking.
+-	 */
+-	if (!trap_lid) {
+-		c_err("%s: Invalid dlid\n", __func__);
+-		goto err_exit;
+-	}
+-
+-	rdma_ah_set_dlid(&ah_attr, trap_lid);
+-	ah = rdma_create_ah(port->mad_agent->qp->pd, &ah_attr, 0);
+-	if (IS_ERR(ah)) {
+-		c_err("%s:Couldn't create new AH = %p\n", __func__, ah);
+-		c_err("%s:dlid = %d, sl = %d, port = %d\n", __func__,
+-		      rdma_ah_get_dlid(&ah_attr), rdma_ah_get_sl(&ah_attr),
+-		      rdma_ah_get_port_num(&ah_attr));
+-		goto err_exit;
+-	}
+-
+-	if (ib_find_pkey(ibp, data->opaportnum, IB_DEFAULT_PKEY_FULL,
+-			 &pkey_idx) < 0) {
+-		c_err("%s:full key not found, defaulting to partial\n",
+-		      __func__);
+-		if (ib_find_pkey(ibp, data->opaportnum, IB_DEFAULT_PKEY_PARTIAL,
+-				 &pkey_idx) < 0)
+-			pkey_idx = 1;
+-	}
+-
+-	send_buf = ib_create_send_mad(port->mad_agent, 1, pkey_idx, 0,
+-				      IB_MGMT_VENDOR_HDR, IB_MGMT_MAD_DATA,
+-				      GFP_ATOMIC, OPA_MGMT_BASE_VERSION);
+-	if (IS_ERR(send_buf)) {
+-		c_err("%s:Couldn't allocate send buf\n", __func__);
+-		goto err_sndbuf;
+-	}
+-
+-	send_buf->ah = ah;
+-
+-	/* Set up common MAD hdr */
+-	trap_mad = send_buf->mad;
+-	trap_mad->mad_hdr.base_version = OPA_MGMT_BASE_VERSION;
+-	trap_mad->mad_hdr.mgmt_class = OPA_MGMT_CLASS_INTEL_EMA;
+-	trap_mad->mad_hdr.class_version = OPA_EMA_CLASS_VERSION;
+-	trap_mad->mad_hdr.method = IB_MGMT_METHOD_TRAP;
+-	port->tid++;
+-	trap_mad->mad_hdr.tid = cpu_to_be64(port->tid);
+-	trap_mad->mad_hdr.attr_id = IB_SMP_ATTR_NOTICE;
+-
+-	/* Set up vendor OUI */
+-	trap_mad->oui[0] = INTEL_OUI_1;
+-	trap_mad->oui[1] = INTEL_OUI_2;
+-	trap_mad->oui[2] = INTEL_OUI_3;
+-
+-	/* Setup notice attribute portion */
+-	trap_mad->notice.gen_type = OPA_INTEL_EMA_NOTICE_TYPE_INFO << 1;
+-	trap_mad->notice.oui_1 = INTEL_OUI_1;
+-	trap_mad->notice.oui_2 = INTEL_OUI_2;
+-	trap_mad->notice.oui_3 = INTEL_OUI_3;
+-	trap_mad->notice.issuer_lid = cpu_to_be32(lid);
+-
+-	/* copy the actual trap data */
+-	trap = (struct opa_veswport_trap *)trap_mad->notice.raw_data;
+-	trap->fabric_id = cpu_to_be16(data->fabric_id);
+-	trap->veswid = cpu_to_be16(data->veswid);
+-	trap->veswportnum = cpu_to_be32(data->veswportnum);
+-	trap->opaportnum = cpu_to_be16(data->opaportnum);
+-	trap->veswportindex = data->veswportindex;
+-	trap->opcode = data->opcode;
+-
+-	/* If successful send set up rate limit timeout else bail */
+-	if (ib_post_send_mad(send_buf, NULL)) {
+-		ib_free_send_mad(send_buf);
+-	} else {
+-		if (adapter->trap_count)
+-			return;
+-		adapter->trap_timeout = jiffies +
+-					usecs_to_jiffies(OPA_VNIC_TRAP_TIMEOUT);
+-		return;
+-	}
+-
+-err_sndbuf:
+-	rdma_destroy_ah(ah, 0);
+-err_exit:
+-	v_err("Aborting trap\n");
+-}
+-
+-static void opa_vnic_event(struct ib_event_handler *handler,
+-			   struct ib_event *record)
+-{
+-	struct opa_vnic_vema_port *port =
+-		container_of(handler, struct opa_vnic_vema_port, event_handler);
+-	struct opa_vnic_ctrl_port *cport = port->cport;
+-	struct opa_vnic_adapter *adapter;
+-	unsigned long index;
+-
+-	if (record->element.port_num != port->port_num)
+-		return;
+-
+-	c_dbg("OPA_VNIC received event %d on device %s port %d\n",
+-	      record->event, dev_name(&record->device->dev),
+-	      record->element.port_num);
+-
+-	if (record->event != IB_EVENT_PORT_ERR &&
+-	    record->event != IB_EVENT_PORT_ACTIVE)
+-		return;
+-
+-	xa_for_each(&port->vports, index, adapter) {
+-		if (record->event == IB_EVENT_PORT_ACTIVE)
+-			netif_carrier_on(adapter->netdev);
+-		else
+-			netif_carrier_off(adapter->netdev);
+-	}
+-}
+-
+-/**
+- * vema_unregister -- Unregisters agent
+- * @cport: pointer to control port
+- *
+- * This deletes the registration by VEMA for MADs
+- */
+-static void vema_unregister(struct opa_vnic_ctrl_port *cport)
+-{
+-	struct opa_vnic_adapter *adapter;
+-	unsigned long index;
+-	int i;
+-
+-	for (i = 1; i <= cport->num_ports; i++) {
+-		struct opa_vnic_vema_port *port = vema_get_port(cport, i);
+-
+-		if (!port->mad_agent)
+-			continue;
+-
+-		/* Lock ensures no MAD is being processed */
+-		mutex_lock(&port->lock);
+-		xa_for_each(&port->vports, index, adapter)
+-			opa_vnic_rem_netdev(adapter);
+-		mutex_unlock(&port->lock);
+-
+-		ib_unregister_mad_agent(port->mad_agent);
+-		port->mad_agent = NULL;
+-		mutex_destroy(&port->lock);
+-		xa_destroy(&port->vports);
+-		ib_unregister_event_handler(&port->event_handler);
+-	}
+-}
+-
+-/**
+- * vema_register -- Registers agent
+- * @cport: pointer to control port
+- *
+- * This function registers the handlers for the VEMA MADs
+- *
+- * Return: returns 0 on success. non zero otherwise
+- */
+-static int vema_register(struct opa_vnic_ctrl_port *cport)
+-{
+-	struct ib_mad_reg_req reg_req = {
+-		.mgmt_class = OPA_MGMT_CLASS_INTEL_EMA,
+-		.mgmt_class_version = OPA_MGMT_BASE_VERSION,
+-		.oui = { INTEL_OUI_1, INTEL_OUI_2, INTEL_OUI_3 }
+-	};
+-	int i;
+-
+-	set_bit(IB_MGMT_METHOD_GET, reg_req.method_mask);
+-	set_bit(IB_MGMT_METHOD_SET, reg_req.method_mask);
+-
+-	/* register ib event handler and mad agent for each port on dev */
+-	for (i = 1; i <= cport->num_ports; i++) {
+-		struct opa_vnic_vema_port *port = vema_get_port(cport, i);
+-		int ret;
+-
+-		port->cport = cport;
+-		port->port_num = i;
+-
+-		INIT_IB_EVENT_HANDLER(&port->event_handler,
+-				      cport->ibdev, opa_vnic_event);
+-		ib_register_event_handler(&port->event_handler);
+-
+-		xa_init(&port->vports);
+-		mutex_init(&port->lock);
+-		port->mad_agent = ib_register_mad_agent(cport->ibdev, i,
+-							IB_QPT_GSI, &reg_req,
+-							IB_MGMT_RMPP_VERSION,
+-							vema_send, vema_recv,
+-							port, 0);
+-		if (IS_ERR(port->mad_agent)) {
+-			ret = PTR_ERR(port->mad_agent);
+-			port->mad_agent = NULL;
+-			mutex_destroy(&port->lock);
+-			vema_unregister(cport);
+-			return ret;
+-		}
+-	}
+-
+-	return 0;
+-}
+-
+-/**
+- * opa_vnic_ctrl_config_dev -- This function sends a trap to the EM
+- * by way of ib_modify_port to indicate support for ethernet on the
+- * fabric.
+- * @cport: pointer to control port
+- * @en: enable or disable ethernet on fabric support
+- */
+-static void opa_vnic_ctrl_config_dev(struct opa_vnic_ctrl_port *cport, bool en)
+-{
+-	struct ib_port_modify pm = { 0 };
+-	int i;
+-
+-	if (en)
+-		pm.set_port_cap_mask = OPA_CAP_MASK3_IsEthOnFabricSupported;
+-	else
+-		pm.clr_port_cap_mask = OPA_CAP_MASK3_IsEthOnFabricSupported;
+-
+-	for (i = 1; i <= cport->num_ports; i++)
+-		ib_modify_port(cport->ibdev, i, IB_PORT_OPA_MASK_CHG, &pm);
+-}
+-
+-/**
+- * opa_vnic_vema_add_one -- Handle new ib device
+- * @device: ib device pointer
+- *
+- * Allocate the vnic control port and initialize it.
+- */
+-static int opa_vnic_vema_add_one(struct ib_device *device)
+-{
+-	struct opa_vnic_ctrl_port *cport;
+-	int rc, size = sizeof(*cport);
+-
+-	if (!rdma_cap_opa_vnic(device))
+-		return -EOPNOTSUPP;
+-
+-	size += device->phys_port_cnt * sizeof(struct opa_vnic_vema_port);
+-	cport = kzalloc(size, GFP_KERNEL);
+-	if (!cport)
+-		return -ENOMEM;
+-
+-	cport->num_ports = device->phys_port_cnt;
+-	cport->ibdev = device;
+-
+-	/* Initialize opa vnic management agent (vema) */
+-	rc = vema_register(cport);
+-	if (!rc)
+-		c_info("VNIC client initialized\n");
+-
+-	ib_set_client_data(device, &opa_vnic_client, cport);
+-	opa_vnic_ctrl_config_dev(cport, true);
+-	return 0;
+-}
+-
+-/**
+- * opa_vnic_vema_rem_one -- Handle ib device removal
+- * @device: ib device pointer
+- * @client_data: ib client data
+- *
+- * Uninitialize and free the vnic control port.
+- */
+-static void opa_vnic_vema_rem_one(struct ib_device *device,
+-				  void *client_data)
+-{
+-	struct opa_vnic_ctrl_port *cport = client_data;
+-
+-	c_info("removing VNIC client\n");
+-	opa_vnic_ctrl_config_dev(cport, false);
+-	vema_unregister(cport);
+-	kfree(cport);
+-}
+-
+-static int __init opa_vnic_init(void)
+-{
+-	int rc;
+-
+-	rc = ib_register_client(&opa_vnic_client);
+-	if (rc)
+-		pr_err("VNIC driver register failed %d\n", rc);
+-
+-	return rc;
+-}
+-module_init(opa_vnic_init);
+-
+-static void opa_vnic_deinit(void)
+-{
+-	ib_unregister_client(&opa_vnic_client);
+-}
+-module_exit(opa_vnic_deinit);
+-
+-MODULE_LICENSE("Dual BSD/GPL");
+-MODULE_AUTHOR("Cornelis Networks");
+-MODULE_DESCRIPTION("Cornelis OPX Virtual Network driver");
+diff --git a/drivers/infiniband/ulp/opa_vnic/opa_vnic_vema_iface.c b/drivers/infiniband/ulp/opa_vnic/opa_vnic_vema_iface.c
+deleted file mode 100644
+index 292c037aa239..000000000000
+--- a/drivers/infiniband/ulp/opa_vnic/opa_vnic_vema_iface.c
++++ /dev/null
+@@ -1,390 +0,0 @@
+-/*
+- * Copyright(c) 2017 Intel Corporation.
+- *
+- * This file is provided under a dual BSD/GPLv2 license.  When using or
+- * redistributing this file, you may do so under either license.
+- *
+- * GPL LICENSE SUMMARY
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of version 2 of the GNU General Public License as
+- * published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope that it will be useful, but
+- * WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+- * General Public License for more details.
+- *
+- * BSD LICENSE
+- *
+- * Redistribution and use in source and binary forms, with or without
+- * modification, are permitted provided that the following conditions
+- * are met:
+- *
+- *  - Redistributions of source code must retain the above copyright
+- *    notice, this list of conditions and the following disclaimer.
+- *  - Redistributions in binary form must reproduce the above copyright
+- *    notice, this list of conditions and the following disclaimer in
+- *    the documentation and/or other materials provided with the
+- *    distribution.
+- *  - Neither the name of Intel Corporation nor the names of its
+- *    contributors may be used to endorse or promote products derived
+- *    from this software without specific prior written permission.
+- *
+- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+- * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+- * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+- *
+- */
+-
+-/*
+- * This file contains OPA VNIC EMA Interface functions.
+- */
+-
+-#include "opa_vnic_internal.h"
+-
+-/**
+- * opa_vnic_vema_report_event - sent trap to report the specified event
+- * @adapter: vnic port adapter
+- * @event: event to be reported
+- *
+- * This function calls vema api to sent a trap for the given event.
+- */
+-void opa_vnic_vema_report_event(struct opa_vnic_adapter *adapter, u8 event)
+-{
+-	struct __opa_veswport_info *info = &adapter->info;
+-	struct __opa_veswport_trap trap_data;
+-
+-	trap_data.fabric_id = info->vesw.fabric_id;
+-	trap_data.veswid = info->vesw.vesw_id;
+-	trap_data.veswportnum = info->vport.port_num;
+-	trap_data.opaportnum = adapter->port_num;
+-	trap_data.veswportindex = adapter->vport_num;
+-	trap_data.opcode = event;
+-
+-	opa_vnic_vema_send_trap(adapter, &trap_data, info->vport.encap_slid);
+-}
+-
+-/**
+- * opa_vnic_get_summary_counters - get summary counters
+- * @adapter: vnic port adapter
+- * @cntrs: pointer to destination summary counters structure
+- *
+- * This function populates the summary counters that is maintained by the
+- * given adapter to destination address provided.
+- */
+-void opa_vnic_get_summary_counters(struct opa_vnic_adapter *adapter,
+-				   struct opa_veswport_summary_counters *cntrs)
+-{
+-	struct opa_vnic_stats vstats;
+-	__be64 *dst;
+-	u64 *src;
+-
+-	memset(&vstats, 0, sizeof(vstats));
+-	spin_lock(&adapter->stats_lock);
+-	adapter->rn_ops->ndo_get_stats64(adapter->netdev, &vstats.netstats);
+-	spin_unlock(&adapter->stats_lock);
+-
+-	cntrs->vp_instance = cpu_to_be16(adapter->vport_num);
+-	cntrs->vesw_id = cpu_to_be16(adapter->info.vesw.vesw_id);
+-	cntrs->veswport_num = cpu_to_be32(adapter->port_num);
+-
+-	cntrs->tx_errors = cpu_to_be64(vstats.netstats.tx_errors);
+-	cntrs->rx_errors = cpu_to_be64(vstats.netstats.rx_errors);
+-	cntrs->tx_packets = cpu_to_be64(vstats.netstats.tx_packets);
+-	cntrs->rx_packets = cpu_to_be64(vstats.netstats.rx_packets);
+-	cntrs->tx_bytes = cpu_to_be64(vstats.netstats.tx_bytes);
+-	cntrs->rx_bytes = cpu_to_be64(vstats.netstats.rx_bytes);
+-
+-	/*
+-	 * This loop depends on layout of
+-	 * opa_veswport_summary_counters opa_vnic_stats structures.
+-	 */
+-	for (dst = &cntrs->tx_unicast, src = &vstats.tx_grp.unicast;
+-	     dst < &cntrs->reserved[0]; dst++, src++) {
+-		*dst = cpu_to_be64(*src);
+-	}
+-}
+-
+-/**
+- * opa_vnic_get_error_counters - get error counters
+- * @adapter: vnic port adapter
+- * @cntrs: pointer to destination error counters structure
+- *
+- * This function populates the error counters that is maintained by the
+- * given adapter to destination address provided.
+- */
+-void opa_vnic_get_error_counters(struct opa_vnic_adapter *adapter,
+-				 struct opa_veswport_error_counters *cntrs)
+-{
+-	struct opa_vnic_stats vstats;
+-
+-	memset(&vstats, 0, sizeof(vstats));
+-	spin_lock(&adapter->stats_lock);
+-	adapter->rn_ops->ndo_get_stats64(adapter->netdev, &vstats.netstats);
+-	spin_unlock(&adapter->stats_lock);
+-
+-	cntrs->vp_instance = cpu_to_be16(adapter->vport_num);
+-	cntrs->vesw_id = cpu_to_be16(adapter->info.vesw.vesw_id);
+-	cntrs->veswport_num = cpu_to_be32(adapter->port_num);
+-
+-	cntrs->tx_errors = cpu_to_be64(vstats.netstats.tx_errors);
+-	cntrs->rx_errors = cpu_to_be64(vstats.netstats.rx_errors);
+-	cntrs->tx_dlid_zero = cpu_to_be64(vstats.tx_dlid_zero);
+-	cntrs->tx_drop_state = cpu_to_be64(vstats.tx_drop_state);
+-	cntrs->tx_logic = cpu_to_be64(vstats.netstats.tx_fifo_errors +
+-				      vstats.netstats.tx_carrier_errors);
+-
+-	cntrs->rx_bad_veswid = cpu_to_be64(vstats.netstats.rx_nohandler);
+-	cntrs->rx_runt = cpu_to_be64(vstats.rx_runt);
+-	cntrs->rx_oversize = cpu_to_be64(vstats.rx_oversize);
+-	cntrs->rx_drop_state = cpu_to_be64(vstats.rx_drop_state);
+-	cntrs->rx_logic = cpu_to_be64(vstats.netstats.rx_fifo_errors);
+-}
+-
+-/**
+- * opa_vnic_get_vesw_info -- Get the vesw information
+- * @adapter: vnic port adapter
+- * @info: pointer to destination vesw info structure
+- *
+- * This function copies the vesw info that is maintained by the
+- * given adapter to destination address provided.
+- */
+-void opa_vnic_get_vesw_info(struct opa_vnic_adapter *adapter,
+-			    struct opa_vesw_info *info)
+-{
+-	struct __opa_vesw_info *src = &adapter->info.vesw;
+-	int i;
+-
+-	info->fabric_id = cpu_to_be16(src->fabric_id);
+-	info->vesw_id = cpu_to_be16(src->vesw_id);
+-	memcpy(info->rsvd0, src->rsvd0, ARRAY_SIZE(src->rsvd0));
+-	info->def_port_mask = cpu_to_be16(src->def_port_mask);
+-	memcpy(info->rsvd1, src->rsvd1, ARRAY_SIZE(src->rsvd1));
+-	info->pkey = cpu_to_be16(src->pkey);
+-
+-	memcpy(info->rsvd2, src->rsvd2, ARRAY_SIZE(src->rsvd2));
+-	info->u_mcast_dlid = cpu_to_be32(src->u_mcast_dlid);
+-	for (i = 0; i < OPA_VESW_MAX_NUM_DEF_PORT; i++)
+-		info->u_ucast_dlid[i] = cpu_to_be32(src->u_ucast_dlid[i]);
+-
+-	info->rc = cpu_to_be32(src->rc);
+-
+-	memcpy(info->rsvd3, src->rsvd3, ARRAY_SIZE(src->rsvd3));
+-	info->eth_mtu = cpu_to_be16(src->eth_mtu);
+-	memcpy(info->rsvd4, src->rsvd4, ARRAY_SIZE(src->rsvd4));
+-}
+-
+-/**
+- * opa_vnic_set_vesw_info -- Set the vesw information
+- * @adapter: vnic port adapter
+- * @info: pointer to vesw info structure
+- *
+- * This function updates the vesw info that is maintained by the
+- * given adapter with vesw info provided. Reserved fields are stored
+- * and returned back to EM as is.
+- */
+-void opa_vnic_set_vesw_info(struct opa_vnic_adapter *adapter,
+-			    struct opa_vesw_info *info)
+-{
+-	struct __opa_vesw_info *dst = &adapter->info.vesw;
+-	int i;
+-
+-	dst->fabric_id = be16_to_cpu(info->fabric_id);
+-	dst->vesw_id = be16_to_cpu(info->vesw_id);
+-	memcpy(dst->rsvd0, info->rsvd0, ARRAY_SIZE(info->rsvd0));
+-	dst->def_port_mask = be16_to_cpu(info->def_port_mask);
+-	memcpy(dst->rsvd1, info->rsvd1, ARRAY_SIZE(info->rsvd1));
+-	dst->pkey = be16_to_cpu(info->pkey);
+-
+-	memcpy(dst->rsvd2, info->rsvd2, ARRAY_SIZE(info->rsvd2));
+-	dst->u_mcast_dlid = be32_to_cpu(info->u_mcast_dlid);
+-	for (i = 0; i < OPA_VESW_MAX_NUM_DEF_PORT; i++)
+-		dst->u_ucast_dlid[i] = be32_to_cpu(info->u_ucast_dlid[i]);
+-
+-	dst->rc = be32_to_cpu(info->rc);
+-
+-	memcpy(dst->rsvd3, info->rsvd3, ARRAY_SIZE(info->rsvd3));
+-	dst->eth_mtu = be16_to_cpu(info->eth_mtu);
+-	memcpy(dst->rsvd4, info->rsvd4, ARRAY_SIZE(info->rsvd4));
+-}
+-
+-/**
+- * opa_vnic_get_per_veswport_info -- Get the vesw per port information
+- * @adapter: vnic port adapter
+- * @info: pointer to destination vport info structure
+- *
+- * This function copies the vesw per port info that is maintained by the
+- * given adapter to destination address provided.
+- * Note that the read only fields are not copied.
+- */
+-void opa_vnic_get_per_veswport_info(struct opa_vnic_adapter *adapter,
+-				    struct opa_per_veswport_info *info)
+-{
+-	struct __opa_per_veswport_info *src = &adapter->info.vport;
+-
+-	info->port_num = cpu_to_be32(src->port_num);
+-	info->eth_link_status = src->eth_link_status;
+-	memcpy(info->rsvd0, src->rsvd0, ARRAY_SIZE(src->rsvd0));
+-
+-	memcpy(info->base_mac_addr, src->base_mac_addr,
+-	       ARRAY_SIZE(info->base_mac_addr));
+-	info->config_state = src->config_state;
+-	info->oper_state = src->oper_state;
+-	info->max_mac_tbl_ent = cpu_to_be16(src->max_mac_tbl_ent);
+-	info->max_smac_ent = cpu_to_be16(src->max_smac_ent);
+-	info->mac_tbl_digest = cpu_to_be32(src->mac_tbl_digest);
+-	memcpy(info->rsvd1, src->rsvd1, ARRAY_SIZE(src->rsvd1));
+-
+-	info->encap_slid = cpu_to_be32(src->encap_slid);
+-	memcpy(info->pcp_to_sc_uc, src->pcp_to_sc_uc,
+-	       ARRAY_SIZE(info->pcp_to_sc_uc));
+-	memcpy(info->pcp_to_vl_uc, src->pcp_to_vl_uc,
+-	       ARRAY_SIZE(info->pcp_to_vl_uc));
+-	memcpy(info->pcp_to_sc_mc, src->pcp_to_sc_mc,
+-	       ARRAY_SIZE(info->pcp_to_sc_mc));
+-	memcpy(info->pcp_to_vl_mc, src->pcp_to_vl_mc,
+-	       ARRAY_SIZE(info->pcp_to_vl_mc));
+-	info->non_vlan_sc_uc = src->non_vlan_sc_uc;
+-	info->non_vlan_vl_uc = src->non_vlan_vl_uc;
+-	info->non_vlan_sc_mc = src->non_vlan_sc_mc;
+-	info->non_vlan_vl_mc = src->non_vlan_vl_mc;
+-	memcpy(info->rsvd2, src->rsvd2, ARRAY_SIZE(src->rsvd2));
+-
+-	info->uc_macs_gen_count = cpu_to_be16(src->uc_macs_gen_count);
+-	info->mc_macs_gen_count = cpu_to_be16(src->mc_macs_gen_count);
+-	memcpy(info->rsvd3, src->rsvd3, ARRAY_SIZE(src->rsvd3));
+-}
+-
+-/**
+- * opa_vnic_set_per_veswport_info -- Set vesw per port information
+- * @adapter: vnic port adapter
+- * @info: pointer to vport info structure
+- *
+- * This function updates the vesw per port info that is maintained by the
+- * given adapter with vesw per port info provided. Reserved fields are
+- * stored and returned back to EM as is.
+- */
+-void opa_vnic_set_per_veswport_info(struct opa_vnic_adapter *adapter,
+-				    struct opa_per_veswport_info *info)
+-{
+-	struct __opa_per_veswport_info *dst = &adapter->info.vport;
+-
+-	dst->port_num = be32_to_cpu(info->port_num);
+-	memcpy(dst->rsvd0, info->rsvd0, ARRAY_SIZE(info->rsvd0));
+-
+-	memcpy(dst->base_mac_addr, info->base_mac_addr,
+-	       ARRAY_SIZE(dst->base_mac_addr));
+-	dst->config_state = info->config_state;
+-	memcpy(dst->rsvd1, info->rsvd1, ARRAY_SIZE(info->rsvd1));
+-
+-	dst->encap_slid = be32_to_cpu(info->encap_slid);
+-	memcpy(dst->pcp_to_sc_uc, info->pcp_to_sc_uc,
+-	       ARRAY_SIZE(dst->pcp_to_sc_uc));
+-	memcpy(dst->pcp_to_vl_uc, info->pcp_to_vl_uc,
+-	       ARRAY_SIZE(dst->pcp_to_vl_uc));
+-	memcpy(dst->pcp_to_sc_mc, info->pcp_to_sc_mc,
+-	       ARRAY_SIZE(dst->pcp_to_sc_mc));
+-	memcpy(dst->pcp_to_vl_mc, info->pcp_to_vl_mc,
+-	       ARRAY_SIZE(dst->pcp_to_vl_mc));
+-	dst->non_vlan_sc_uc = info->non_vlan_sc_uc;
+-	dst->non_vlan_vl_uc = info->non_vlan_vl_uc;
+-	dst->non_vlan_sc_mc = info->non_vlan_sc_mc;
+-	dst->non_vlan_vl_mc = info->non_vlan_vl_mc;
+-	memcpy(dst->rsvd2, info->rsvd2, ARRAY_SIZE(info->rsvd2));
+-	memcpy(dst->rsvd3, info->rsvd3, ARRAY_SIZE(info->rsvd3));
+-}
+-
+-/**
+- * opa_vnic_query_mcast_macs - query multicast mac list
+- * @adapter: vnic port adapter
+- * @macs: pointer mac list
+- *
+- * This function populates the provided mac list with the configured
+- * multicast addresses in the adapter.
+- */
+-void opa_vnic_query_mcast_macs(struct opa_vnic_adapter *adapter,
+-			       struct opa_veswport_iface_macs *macs)
+-{
+-	u16 start_idx, num_macs, idx = 0, count = 0;
+-	struct netdev_hw_addr *ha;
+-
+-	start_idx = be16_to_cpu(macs->start_idx);
+-	num_macs = be16_to_cpu(macs->num_macs_in_msg);
+-	netdev_for_each_mc_addr(ha, adapter->netdev) {
+-		struct opa_vnic_iface_mac_entry *entry = &macs->entry[count];
+-
+-		if (start_idx > idx++)
+-			continue;
+-		else if (num_macs == count)
+-			break;
+-		memcpy(entry, ha->addr, sizeof(*entry));
+-		count++;
+-	}
+-
+-	macs->tot_macs_in_lst = cpu_to_be16(netdev_mc_count(adapter->netdev));
+-	macs->num_macs_in_msg = cpu_to_be16(count);
+-	macs->gen_count = cpu_to_be16(adapter->info.vport.mc_macs_gen_count);
+-}
+-
+-/**
+- * opa_vnic_query_ucast_macs - query unicast mac list
+- * @adapter: vnic port adapter
+- * @macs: pointer mac list
+- *
+- * This function populates the provided mac list with the configured
+- * unicast addresses in the adapter.
+- */
+-void opa_vnic_query_ucast_macs(struct opa_vnic_adapter *adapter,
+-			       struct opa_veswport_iface_macs *macs)
+-{
+-	u16 start_idx, tot_macs, num_macs, idx = 0, count = 0, em_macs = 0;
+-	struct netdev_hw_addr *ha;
+-
+-	start_idx = be16_to_cpu(macs->start_idx);
+-	num_macs = be16_to_cpu(macs->num_macs_in_msg);
+-	/* loop through dev_addrs list first */
+-	for_each_dev_addr(adapter->netdev, ha) {
+-		struct opa_vnic_iface_mac_entry *entry = &macs->entry[count];
+-
+-		/* Do not include EM specified MAC address */
+-		if (!memcmp(adapter->info.vport.base_mac_addr, ha->addr,
+-			    ARRAY_SIZE(adapter->info.vport.base_mac_addr))) {
+-			em_macs++;
+-			continue;
+-		}
+-
+-		if (start_idx > idx++)
+-			continue;
+-		else if (num_macs == count)
+-			break;
+-		memcpy(entry, ha->addr, sizeof(*entry));
+-		count++;
+-	}
+-
+-	/* loop through uc list */
+-	netdev_for_each_uc_addr(ha, adapter->netdev) {
+-		struct opa_vnic_iface_mac_entry *entry = &macs->entry[count];
+-
+-		if (start_idx > idx++)
+-			continue;
+-		else if (num_macs == count)
+-			break;
+-		memcpy(entry, ha->addr, sizeof(*entry));
+-		count++;
+-	}
+-
+-	tot_macs = netdev_hw_addr_list_count(&adapter->netdev->dev_addrs) +
+-		   netdev_uc_count(adapter->netdev) - em_macs;
+-	macs->tot_macs_in_lst = cpu_to_be16(tot_macs);
+-	macs->num_macs_in_msg = cpu_to_be16(count);
+-	macs->gen_count = cpu_to_be16(adapter->info.vport.uc_macs_gen_count);
+-}
 
 
