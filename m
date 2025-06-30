@@ -1,40 +1,40 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B12884A2B
-	for <linux-rdma@vger.kernel.org>; Mon, 30 Jun 2025 10:52:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA6A8248F55
+	for <linux-rdma@vger.kernel.org>; Mon, 30 Jun 2025 10:53:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751280778; cv=none; b=oHQnS9c79S2EZyGxQYOsBNKbnHxVKhQpKfZQH8KaVQgX9DWemU7U/viQGjZbRPZz+2PmasznONItqGSbQjj4Q+N7wX5EiE9sovJJfUo+EMum4V9WYt0tMddTYokCf+h1uwVKBbgLmhFST4yjCc0IJUxYLburuBlnE632HQX2BA8=
+	t=1751280781; cv=none; b=gs9jxrtu6Tz25sCmtwuId/ZlrBGamr2l7QSxr6Z4TVOsA3q032Xery+7eARzD8Z25reBD42sba/ZUNeP8VDSpKUC4avH8FboRYdzxME2lYxvr0FhmeK91oBY/eqUSRavVXI21kwfQmPz6hNd11bj5zJ3L9Kt/OX4WXGYe1pcMB8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751280778; c=relaxed/simple;
-	bh=8lONfLY7XhWyXjxZJfQ6w+rmtSlSoWHnj6Iyz+rQ5Rw=;
+	s=arc-20240116; t=1751280781; c=relaxed/simple;
+	bh=oWsF2EGHjVyVxk0JicQRr0//THLKt5N0TH6afCh8UjU=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=tw4y3lt92MOgYR3J4zIOMdHP0u6xJnoR+f3fxwCWPs/qOjhKX4agNIkOPZcP23tmJcSNh/w6MWp33Ds2JondtBAPKU3uEDCQqiz9+bSqw2t7zCF2xyoFAP0lJF2sTKLwFDYtBNK0QRnBGuGUQUArSIDtf6QwF5dAS7H2HRkrcbc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Yhl5Vfsi; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=a+gIDVH7OYZJoGR2lY16KDfC1mEnAI3lUw3N7bWcgMbVBEpJIzkjOtTu5tItN1Me4uGJUFiKsbE8ihrdand3z/aNntU/xT2V4NhIxvIDSa0v7sw+HJomMKTg19JuR1T6mxAGAjCF1EMWzPOZ+G8/Z/x4QR5DRxyClEkLsXhezk0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=tp4fOUxd; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Yhl5Vfsi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3E38AC4CEE3;
-	Mon, 30 Jun 2025 10:52:57 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="tp4fOUxd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1C0DAC4CEE3;
+	Mon, 30 Jun 2025 10:53:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1751280778;
-	bh=8lONfLY7XhWyXjxZJfQ6w+rmtSlSoWHnj6Iyz+rQ5Rw=;
+	s=k20201202; t=1751280781;
+	bh=oWsF2EGHjVyVxk0JicQRr0//THLKt5N0TH6afCh8UjU=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=Yhl5VfsiMOEOPPyqRV0179yfMbXQEYpdf0BqB96jamBxQWRl9QbxeKlbdYUtEstU+
-	 vUkzVHqRe041jJB6McyYts8gV33WBG8yllgulC/xXlYh2sW/EUz7NLYFjPHCNT51iw
-	 DhJ67sJkw4K1ChcyIFSiXSQZoFwTnWZkb9EpfGCP5A3U+/pE+0HHkNPkx1EIvPdOcP
-	 YtqBgpS1w+6oNHnZZogsop0s0YcPTZ7R9MUgkDEobWbjfCcz+KLO9GIoXchabWOTQq
-	 SoKxQv3UFcXRVUlXgDavn37NZl+hPAIGFaL3rkCi7vd5KLZmmJvC7Qj04EhmYdIGik
-	 u9b+6/GGNVLfA==
+	b=tp4fOUxdhj/EYILw8ZGlqlJN1Yhr5YGn+RfgRHA28vxnUVPs43dwqNl3TQL83KV2Z
+	 wkkicYSp4xYG2gpZaDdSBW4JsO4hzisDxqybn09G2+z5p+BvlMRUUUdAxucoRdF9TU
+	 /MhraaAuzvvsOberzDGc7gDZz0zs09I0m+Jq4/zrpA+zKLBu5UJQOzSoOHxyVtqiTS
+	 zPbtQKZEJHFtmTe4uhZSJrWmplKVkzqZj90vg6XFKWQzNHGbVhKF+AWViAEgSmu4QI
+	 u7MUo9i9DvuSrQncdB/N+9NV1gIWr74qm7yIiPKw6/4TGwyilbKcZjHZieGQm7pYo9
+	 NHUSsPHhhCJgA==
 From: Leon Romanovsky <leon@kernel.org>
 To: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Mark Zhang <markzhang@nvidia.com>,
 	linux-rdma@vger.kernel.org,
 	Or Har-Toov <ohartoov@nvidia.com>,
 	Vlad Dumitrescu <vdumitrescu@nvidia.com>
-Subject: [PATCH rdma-next 5/5] RDMA/ucma: Support write an event into a CM
-Date: Mon, 30 Jun 2025 13:52:35 +0300
-Message-ID: <fdf49d0b17a45933c5d8c1d90605c9447d9a3c73.1751279794.git.leonro@nvidia.com>
+Subject: [PATCH rdma-next 1/5] RDMA/sa_query: Add RMPP support for SA queries
+Date: Mon, 30 Jun 2025 13:52:31 +0300
+Message-ID: <81dbcb48682e1838dc40f381cdcc0dc63f25f0f1.1751279793.git.leonro@nvidia.com>
 X-Mailer: git-send-email 2.50.0
 In-Reply-To: <cover.1751279793.git.leonro@nvidia.com>
 References: <cover.1751279793.git.leonro@nvidia.com>
@@ -48,158 +48,108 @@ Content-Transfer-Encoding: 8bit
 
 From: Mark Zhang <markzhang@nvidia.com>
 
-Enable user-space to inject an event into a CM through it's event
-channel. Two new events are added and supported: RDMA_CM_EVENT_USER and
-RDMA_CM_EVENT_INTERNAL. With these 2 events a new event parameter "arg"
-is supported, which is passed from sender to receiver transparently.
+Register GSI mad agent with RMPP support and add rmpp_callback for
+SA queries. This is needed for querying more than one service record
+in one query.
 
-With this feature an application is able to write an event into a CM
-channel with a new user-space rdmacm API. For example thread T1 could
-write an event with the API:
-    rdma_write_cm_event(cm_id, RDMA_CM_EVENT_USER, status, arg);
-and thread T2 could receive the event with rdma_get_cm_event().
-
+Signed-off-by: Or Har-Toov <ohartoov@nvidia.com>
 Signed-off-by: Mark Zhang <markzhang@nvidia.com>
 Reviewed-by: Vlad Dumitrescu <vdumitrescu@nvidia.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/core/ucma.c   | 52 +++++++++++++++++++++++++++++++-
- include/rdma/rdma_cm.h           |  5 ++-
- include/uapi/rdma/rdma_user_cm.h | 16 +++++++++-
- 3 files changed, 70 insertions(+), 3 deletions(-)
+ drivers/infiniband/core/sa_query.c | 39 +++++++++++++++++++++---------
+ 1 file changed, 28 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
-index 3b9ca6d7a21b..f86ece701db6 100644
---- a/drivers/infiniband/core/ucma.c
-+++ b/drivers/infiniband/core/ucma.c
-@@ -1745,6 +1745,55 @@ static ssize_t ucma_migrate_id(struct ucma_file *new_file,
- 	return ret;
- }
+diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
+index 53571e6b3162..770e9f18349b 100644
+--- a/drivers/infiniband/core/sa_query.c
++++ b/drivers/infiniband/core/sa_query.c
+@@ -107,6 +107,8 @@ struct ib_sa_device {
+ struct ib_sa_query {
+ 	void (*callback)(struct ib_sa_query *sa_query, int status,
+ 			 struct ib_sa_mad *mad);
++	void (*rmpp_callback)(struct ib_sa_query *sa_query, int status,
++			      struct ib_mad_recv_wc *mad);
+ 	void (*release)(struct ib_sa_query *);
+ 	struct ib_sa_client    *client;
+ 	struct ib_sa_port      *port;
+@@ -1987,23 +1989,29 @@ static void send_handler(struct ib_mad_agent *agent,
+ {
+ 	struct ib_sa_query *query = mad_send_wc->send_buf->context[0];
+ 	unsigned long flags;
++	int status = 0;
  
-+static ssize_t ucma_write_cm_event(struct ucma_file *file,
-+				   const char __user *inbuf, int in_len,
-+				   int out_len)
-+{
-+	struct rdma_ucm_write_cm_event cmd;
-+	struct rdma_cm_event event = {};
-+	struct ucma_event *uevent;
-+	struct ucma_context *ctx;
-+	int ret = 0;
-+
-+	if (copy_from_user(&cmd, inbuf, sizeof(cmd)))
-+		return -EFAULT;
-+
-+	if ((cmd.event != RDMA_CM_EVENT_USER) &&
-+	    (cmd.event != RDMA_CM_EVENT_INTERNAL))
-+		return -EINVAL;
-+
-+	ctx = ucma_get_ctx(file, cmd.id);
-+	if (IS_ERR(ctx))
-+		return PTR_ERR(ctx);
-+
-+	event.event = cmd.event;
-+	event.status = cmd.status;
-+	event.param.arg = cmd.param.arg;
-+
-+	uevent = kzalloc(sizeof(*uevent), GFP_KERNEL);
-+	if (!uevent) {
-+		ret = -ENOMEM;
-+		goto out;
+-	if (query->callback)
++	if (query->callback || query->rmpp_callback) {
+ 		switch (mad_send_wc->status) {
+ 		case IB_WC_SUCCESS:
+ 			/* No callback -- already got recv */
+ 			break;
+ 		case IB_WC_RESP_TIMEOUT_ERR:
+-			query->callback(query, -ETIMEDOUT, NULL);
++			status = -ETIMEDOUT;
+ 			break;
+ 		case IB_WC_WR_FLUSH_ERR:
+-			query->callback(query, -EINTR, NULL);
++			status = -EINTR;
+ 			break;
+ 		default:
+-			query->callback(query, -EIO, NULL);
++			status = -EIO;
+ 			break;
+ 		}
+ 
++		if (status)
++			query->callback ? query->callback(query, status, NULL) :
++				query->rmpp_callback(query, status, NULL);
 +	}
 +
-+	uevent->ctx = ctx;
-+	uevent->resp.uid = ctx->uid;
-+	uevent->resp.id = ctx->id;
-+	uevent->resp.event = event.event;
-+	uevent->resp.status = event.status;
-+	memcpy(uevent->resp.param.arg32, &event.param.arg,
-+	       sizeof(event.param.arg));
+ 	xa_lock_irqsave(&queries, flags);
+ 	__xa_erase(&queries, query->id);
+ 	xa_unlock_irqrestore(&queries, flags);
+@@ -2019,17 +2027,25 @@ static void recv_handler(struct ib_mad_agent *mad_agent,
+ 			 struct ib_mad_recv_wc *mad_recv_wc)
+ {
+ 	struct ib_sa_query *query;
++	struct ib_mad *mad;
 +
-+	mutex_lock(&ctx->file->mut);
-+	list_add_tail(&uevent->list, &ctx->file->event_list);
-+	mutex_unlock(&ctx->file->mut);
-+	wake_up_interruptible(&ctx->file->poll_wait);
-+
-+out:
-+	ucma_put_ctx(ctx);
-+	return ret;
-+}
-+
- static ssize_t (*ucma_cmd_table[])(struct ucma_file *file,
- 				   const char __user *inbuf,
- 				   int in_len, int out_len) = {
-@@ -1771,7 +1820,8 @@ static ssize_t (*ucma_cmd_table[])(struct ucma_file *file,
- 	[RDMA_USER_CM_CMD_BIND]		 = ucma_bind,
- 	[RDMA_USER_CM_CMD_RESOLVE_ADDR]	 = ucma_resolve_addr,
- 	[RDMA_USER_CM_CMD_JOIN_MCAST]	 = ucma_join_multicast,
--	[RDMA_USER_CM_CMD_RESOLVE_IB_SERVICE] = ucma_resolve_ib_service
-+	[RDMA_USER_CM_CMD_RESOLVE_IB_SERVICE] = ucma_resolve_ib_service,
-+	[RDMA_USER_CM_CMD_WRITE_CM_EVENT] = ucma_write_cm_event,
- };
  
- static ssize_t ucma_write(struct file *filp, const char __user *buf,
-diff --git a/include/rdma/rdma_cm.h b/include/rdma/rdma_cm.h
-index 72d1568e4cfb..9bd930a83e6e 100644
---- a/include/rdma/rdma_cm.h
-+++ b/include/rdma/rdma_cm.h
-@@ -35,7 +35,9 @@ enum rdma_cm_event_type {
- 	RDMA_CM_EVENT_ADDR_CHANGE,
- 	RDMA_CM_EVENT_TIMEWAIT_EXIT,
- 	RDMA_CM_EVENT_ADDRINFO_RESOLVED,
--	RDMA_CM_EVENT_ADDRINFO_ERROR
-+	RDMA_CM_EVENT_ADDRINFO_ERROR,
-+	RDMA_CM_EVENT_USER,
-+	RDMA_CM_EVENT_INTERNAL,
- };
+ 	if (!send_buf)
+ 		return;
  
- const char *__attribute_const__ rdma_event_msg(enum rdma_cm_event_type event);
-@@ -98,6 +100,7 @@ struct rdma_cm_event {
- 	union {
- 		struct rdma_conn_param	conn;
- 		struct rdma_ud_param	ud;
-+		u64			arg;
- 	} param;
- 	struct rdma_ucm_ece ece;
- };
-diff --git a/include/uapi/rdma/rdma_user_cm.h b/include/uapi/rdma/rdma_user_cm.h
-index 00501da0567e..5ded174687ee 100644
---- a/include/uapi/rdma/rdma_user_cm.h
-+++ b/include/uapi/rdma/rdma_user_cm.h
-@@ -68,7 +68,8 @@ enum {
- 	RDMA_USER_CM_CMD_BIND,
- 	RDMA_USER_CM_CMD_RESOLVE_ADDR,
- 	RDMA_USER_CM_CMD_JOIN_MCAST,
--	RDMA_USER_CM_CMD_RESOLVE_IB_SERVICE
-+	RDMA_USER_CM_CMD_RESOLVE_IB_SERVICE,
-+	RDMA_USER_CM_CMD_WRITE_CM_EVENT,
- };
- 
- /* See IBTA Annex A11, servies ID bytes 4 & 5 */
-@@ -304,6 +305,7 @@ struct rdma_ucm_event_resp {
- 	union {
- 		struct rdma_ucm_conn_param conn;
- 		struct rdma_ucm_ud_param   ud;
-+		__u32 arg32[2];
- 	} param;
- 	__u32 reserved;
- 	struct rdma_ucm_ece ece;
-@@ -362,4 +364,16 @@ struct rdma_ucm_resolve_ib_service {
- 	__u32 id;
- 	struct rdma_ucm_ib_service ibs;
- };
+ 	query = send_buf->context[0];
+-	if (query->callback) {
++	mad = mad_recv_wc->recv_buf.mad;
 +
-+struct rdma_ucm_write_cm_event {
-+	__u32 id;
-+	__u32 reserved;
-+	__u32 event;
-+	__u32 status;
-+	union {
-+		struct rdma_ucm_conn_param conn;
-+		struct rdma_ucm_ud_param ud;
-+		__u64 arg;
-+	} param;
-+};
- #endif /* RDMA_USER_CM_H */
++	if (query->rmpp_callback) {
++		if (mad_recv_wc->wc->status == IB_WC_SUCCESS)
++			query->rmpp_callback(query, mad->mad_hdr.status ?
++					     -EINVAL : 0, mad_recv_wc);
++		else
++			query->rmpp_callback(query, -EIO, NULL);
++	} else if (query->callback) {
+ 		if (mad_recv_wc->wc->status == IB_WC_SUCCESS)
+-			query->callback(query,
+-					mad_recv_wc->recv_buf.mad->mad_hdr.status ?
+-					-EINVAL : 0,
+-					(struct ib_sa_mad *) mad_recv_wc->recv_buf.mad);
++			query->callback(query, mad->mad_hdr.status ?
++					-EINVAL : 0, (struct ib_sa_mad *)mad);
+ 		else
+ 			query->callback(query, -EIO, NULL);
+ 	}
+@@ -2181,8 +2197,9 @@ static int ib_sa_add_one(struct ib_device *device)
+ 
+ 		sa_dev->port[i].agent =
+ 			ib_register_mad_agent(device, i + s, IB_QPT_GSI,
+-					      NULL, 0, send_handler,
+-					      recv_handler, sa_dev, 0);
++					      NULL, IB_MGMT_RMPP_VERSION,
++					      send_handler, recv_handler,
++					      sa_dev, 0);
+ 		if (IS_ERR(sa_dev->port[i].agent)) {
+ 			ret = PTR_ERR(sa_dev->port[i].agent);
+ 			goto err;
 -- 
 2.50.0
 
