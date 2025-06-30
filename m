@@ -1,28 +1,27 @@
-Received: from BN1PR04CU002.outbound.protection.outlook.com (mail-eastus2azon11020118.outbound.protection.outlook.com [52.101.56.118])
+Received: from DM5PR21CU001.outbound.protection.outlook.com (mail-centralusazon11021107.outbound.protection.outlook.com [52.101.62.107])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 58E272E6D11
-	for <linux-rdma@vger.kernel.org>; Mon, 30 Jun 2025 17:58:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.56.118
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C8FEA292B50
+	for <linux-rdma@vger.kernel.org>; Mon, 30 Jun 2025 17:58:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.62.107
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751306298; cv=fail; b=azfq+T8RibtZzMzfxIeQ06DX7/wHji1oQ0rKW2ijX++7NcqIZ6MSXLQ4E3Ql6EWS2J+iF+xc+8nkjpvsUgSnIKZVNNluhCw92V0DXc2T1s+r4B3++YJLDMlv8hNZkXcb23j/Jxel7e892por4HK+Rw41C122QLosDFlGsTQSaI8=
+	t=1751306299; cv=fail; b=RQPWpiABCWwTF58GOsYtUD2Dulp57zDtLlu4VcSu+Y3kRRw9x29VHVjrqomVI+TfoTfTpFJ4Z5DHuZMDRr0WxglZRwfNc77q6ECKZD/kT5wjVsDPANnCUR0zvaPDHMJXLGoKn7geyqWhu15njzniNKjyCkFDGqSQr3Rpu4znL14=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751306298; c=relaxed/simple;
-	bh=3hyKKMcUSus0Sf4PsVxasXzsU7cUqp7K1CoUSiq7sIY=;
-	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=bImorxzA+BLzkQyf9jQU27esA/HnzAUDkLfNV94a8XIxPlHlLOkYFNXCkEZC9OMukhnWAoAxkGDnP/mxBxtCGX1lmnTC/ceXD8Xhyj+p1sSNINdJDAuD6fUWeDjqvsPnTCC8KbY/bSHWRctW7LbIlGBduQ8rQk2A0n37bZS83Ik=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cornelisnetworks.com; spf=pass smtp.mailfrom=cornelisnetworks.com; dkim=pass (2048-bit key) header.d=cornelisnetworks.com header.i=@cornelisnetworks.com header.b=j5u+Avyu; arc=fail smtp.client-ip=52.101.56.118
+	s=arc-20240116; t=1751306299; c=relaxed/simple;
+	bh=rB+/BB8miiiGMHJr1zrKNn2rf+hb9i0c0AjOlXlcdoA=;
+	h=Subject:From:To:Cc:Date:Message-ID:MIME-Version:Content-Type; b=U4QC1+F/9062zAWDC1lAjVE7eO1H/y0k9HfgteSzVBwU1OM4Bmch86QahGUgpqvsmRDPaHYEKN8gDFAHb8qYaGfJwXhbkJoRdBqlLu4X0xwLBV8kg/69vROMw4gtu4jFzIrZYWg355IHhQIDTMMM47GbCiUAuBwKZDwFSswWGJA=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cornelisnetworks.com; spf=pass smtp.mailfrom=cornelisnetworks.com; dkim=pass (2048-bit key) header.d=cornelisnetworks.com header.i=@cornelisnetworks.com header.b=jWnacdCc; arc=fail smtp.client-ip=52.101.62.107
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cornelisnetworks.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=cornelisnetworks.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=cornelisnetworks.com header.i=@cornelisnetworks.com header.b="j5u+Avyu"
+	dkim=pass (2048-bit key) header.d=cornelisnetworks.com header.i=@cornelisnetworks.com header.b="jWnacdCc"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=cNz14gLBHGu8YcwDNJphj8yhKJCELY+Pmu5xzWVaxhiDS7vRSEYOYqiXu0dDnBpDYT2PDV5QGVU4wtaEEtUnSfWYOXVRl5YFXCgRiDzP8E8tpisC2iULwXrJU65/I48ebFtGpp3NnC2H6p8lrGLJeufpbObBA5vvLqQsd5LPMcg+nOdM2zG7BKf44Nqd3J4nw6WgAH2fSCrGz3zzubKgqDJOjfDCez8QD0KS23lNmr+18OF6DXniMSi12d/uOVMs14wr9eH1W3+TQwjDwOYPLoJihzWvbcEcXEXZfkLgswZckR2cG7kYoTf2pBgSFcKmpHd2DwB0LRtz+XXcctd3bw==
+ b=sJp8zAIifHewGlRYWmkuuZqHJZ54G+bcAChaiDctC6xRVgg/hw3e12HkjtLZat6bpz8xWpjLPP0VmJmyEX9gK2O0LxgUwLUriIfpldS+Zao+GMhrD2A8SPN1UbzBOan3Q+j5SOuihsFEPGQaDOD0ABruP12QrctY1wE3zEGz8sT/ZCu9W1/VjE+Lx1hYKOggLwBmzAyup7lkgfNb8D9mG9gbLj9lm2gCHiC4TY1TyMDFzsrxaBJFDixJv/0oqLqYgA7G4N57DdcOxpNq1wXjdjw+bwJU2F39kE/VwyFK85sW1jxh6OpV471vFRrwnk8EvmVpbe9/kZ9033hWIOPH4g==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=pzeC3QdgVqSRUy2RUI1ImOTsNG1yo+RIkCTho7HnAf8=;
- b=JpPwkAI28TfIWDTlWnleklm2YPok9pQs3U5xDpYdcX9W6YUWut2Am38IubusBHHCteXZVi++SssZK/kK/WSy9jAyzyHEcvdTCopOwgWZSGEPGQMnN19PCIq+9BAtvS7Bd+R42EUmoIS84DxeZa/M+btRIYk/y6cHUk6CYiK/6NOLRG0PQoXltdJmX/27hUsz3+sdTmS/Wtyu8xPFaUQUjRI2DCVEAYF8ojZQishZxVNewtRAjhoUKsDU6a8REoS1aIaVURiSbLaZfyg/gMLevV9pkGkp//refm1u7Yimc/h9uQflN2n3CP1foEu0V52WFK4c1xKAIEzwEVNz0cjldw==
+ bh=EtPz23C//bulweRj2ihxK0II4UhkKsu9pV1SrvXvEKk=;
+ b=gc8jBIyWWhQd4pv5YFbCA3ZwR9vOpR1SXP/g+dPIUt2eORH2+CdPsqgoPiSo3l0xEwdsGS/dth8EOkaR0WZ9fw9y3uAJJDjJGYpoD8BzQvnRBZY3W6XDqJRm70bXeLqExA/02vgeJQ8Sc0bgWtnVXcRvS5GsNM+aL3WqmazYvlPfcF0VqLYrGq70ldRMrpHGOgqPE42Sa07JGBCT+VpMKXhETMa3ngc6aZWp403kFeExrVAVRuSvBD34UgPsKtL/mr3l5MKmB2creqvt/ZRpkl41MOKCM+BduDCnmySE4wdF+Myqwcx3y+c1hXoxMbhAg8lmFn/+aHuTns/OIxz8ew==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
  208.255.156.42) smtp.rcpttodomain=cornelisnetworks.com
  smtp.mailfrom=cornelisnetworks.com; dmarc=pass (p=none sp=none pct=100)
@@ -31,17 +30,17 @@ ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cornelisnetworks.com;
  s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=pzeC3QdgVqSRUy2RUI1ImOTsNG1yo+RIkCTho7HnAf8=;
- b=j5u+AvyuODVfXTfYCqQ6kyhtPKicYXBFe5KPoxr2YyYex3ReAH9+AsZ36DAC3gygI2QIQmAQvnw7NW6tpwi7jfesOMuzOICHFjDyXpk97a1+Qbs36DTM7aV1Q+diI2qdAA85wDoME3S606EbCbjCZoRgpzKIgL26zISAAoo2jzx69zU6sDM0LqKgN2+8ZNzY0YM6hdCGMfl57WYUIST22QF5pSFra+4NtEyK7Rv5aIKKkYxOX4WB2/3ItarQwI6+sSSE7IU2OLOgrgjhwLzy7E2wGIxuI+bytkUaI2btIiWix9HgLU4ssRHRmZ6kP993daz8DrXfNVVwXy7GFCFTTw==
-Received: from MW4PR04CA0116.namprd04.prod.outlook.com (2603:10b6:303:83::31)
- by BY3PR01MB6561.prod.exchangelabs.com (2603:10b6:a03:362::13) with Microsoft
+ bh=EtPz23C//bulweRj2ihxK0II4UhkKsu9pV1SrvXvEKk=;
+ b=jWnacdCcxQOWT5G/EVgOAahEzE4ZnLEJ7nDWBz0eEFRJ7DSZHiElFge94fNtc2dpO40VwBv2rL8totTLVdJkXqD+BXBWidkIw5l1zU4h/ui6DhYRW2RYf+rwSW1YOo4CC5YiryrXHlmjRDP0EoCbgWt9N/oUs4Bs2ij+Mfn8ZwlGiJ6lIGqL2onXEG9SfjJEAbI+TfMftEJfUJFOPgH83rrD8fJcDEd7jr9jwO4alAF6GkQ+z9O83UVyxkRfq8iT+h5etx//Mmq79vqbYXEut5EZGqa5pX6aOt44Z53mzsB4MnY4ahtHWvjUr8gNhb6pjo9oTaXqPGOmsk1DA6t9+g==
+Received: from PH7PR02CA0024.namprd02.prod.outlook.com (2603:10b6:510:33d::10)
+ by CH7PR01MB8932.prod.exchangelabs.com (2603:10b6:610:252::14) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.8880.29; Mon, 30 Jun 2025 17:58:11 +0000
-Received: from CY4PEPF0000E9DB.namprd05.prod.outlook.com
- (2603:10b6:303:83:cafe::33) by MW4PR04CA0116.outlook.office365.com
- (2603:10b6:303:83::31) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.20.8880.29 via Frontend Transport; Mon,
- 30 Jun 2025 17:58:11 +0000
+ 15.20.8880.29; Mon, 30 Jun 2025 17:58:10 +0000
+Received: from CY4PEPF0000E9D5.namprd05.prod.outlook.com
+ (2603:10b6:510:33d:cafe::e6) by PH7PR02CA0024.outlook.office365.com
+ (2603:10b6:510:33d::10) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.20.8880.28 via Frontend Transport; Mon,
+ 30 Jun 2025 17:58:09 +0000
 X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 208.255.156.42)
  smtp.mailfrom=cornelisnetworks.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=cornelisnetworks.com;
@@ -50,27 +49,23 @@ Received-SPF: Pass (protection.outlook.com: domain of cornelisnetworks.com
  receiver=protection.outlook.com; client-ip=208.255.156.42;
  helo=cn-mailer-00.localdomain; pr=C
 Received: from cn-mailer-00.localdomain (208.255.156.42) by
- CY4PEPF0000E9DB.mail.protection.outlook.com (10.167.241.74) with Microsoft
+ CY4PEPF0000E9D5.mail.protection.outlook.com (10.167.241.68) with Microsoft
  SMTP Server (version=TLS1_3, cipher=TLS_AES_256_GCM_SHA384) id 15.20.8901.15
  via Frontend Transport; Mon, 30 Jun 2025 17:58:09 +0000
 Received: from awdrv-04.localdomain (awdrv-04.cornelisnetworks.com [10.228.212.218])
-	by cn-mailer-00.localdomain (Postfix) with ESMTPS id C534D14D722;
+	by cn-mailer-00.localdomain (Postfix) with ESMTPS id C8F1714D723;
 	Mon, 30 Jun 2025 13:58:06 -0400 (EDT)
 Received: from awdrv-04.cornelisnetworks.com (localhost [IPv6:::1])
-	by awdrv-04.localdomain (Postfix) with ESMTP id 58F3F1848B5D1;
-	Mon, 30 Jun 2025 11:30:48 -0400 (EDT)
-Subject: [PATCH for-next 12/23] RDMA/hfi2: Add in trace support
+	by awdrv-04.localdomain (Postfix) with ESMTP id 5CE0B1811AA42;
+	Mon, 30 Jun 2025 11:29:47 -0400 (EDT)
+Subject: [PATCH for-next 00/23] Migrate to hfi2 driver
 From: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
 To: jgg@ziepe.ca, leon@kernel.org
-Cc: Dean Luick <dean.luick@cornelisnetworks.com>,
- Breandan Cunningham <brendan.cunningham@cornelisnetworks.com>,
- linux-rdma@vger.kernel.org
-Date: Mon, 30 Jun 2025 11:30:48 -0400
+Cc: Breandan Cunningham <brendan.cunningham@cornelisnetworks.com>,
+ Douglas Miller <doug.miller@cornelisnetworks.com>,
+ Dean Luick <dean.luick@cornelisnetworks.com>, linux-rdma@vger.kernel.org
+Date: Mon, 30 Jun 2025 11:29:47 -0400
 Message-ID:
- <175129744832.1859400.5445209715015307475.stgit@awdrv-04.cornelisnetworks.com>
-In-Reply-To:
- <175129726945.1859400.4492277779101226937.stgit@awdrv-04.cornelisnetworks.com>
-References:
  <175129726945.1859400.4492277779101226937.stgit@awdrv-04.cornelisnetworks.com>
 User-Agent: StGit/1.5
 Precedence: bulk
@@ -83,615 +78,388 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: CY4PEPF0000E9DB:EE_|BY3PR01MB6561:EE_
-X-MS-Office365-Filtering-Correlation-Id: 8545cf35-8809-4289-63c1-08ddb7ffac92
+X-MS-TrafficTypeDiagnostic: CY4PEPF0000E9D5:EE_|CH7PR01MB8932:EE_
+X-MS-Office365-Filtering-Correlation-Id: 857bccc0-e2f4-40b4-900c-08ddb7ffac79
 X-MS-Exchange-AtpMessageProperties: SA
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|36860700013|1800799024|82310400026|376014;
+	BCL:0;ARA:13230040|82310400026|1800799024|36860700013|376014;
 X-Microsoft-Antispam-Message-Info:
-	=?utf-8?B?Z0p0aG9TTTJkVjFmUFhGRzdsQlEzMUIyeTJPL1o5bnBwWE5rYllHQS8yTWg0?=
- =?utf-8?B?dTNjbWVmc2pYU2NHa3lTajYrOHRxWm51RitGWG9EVEY0VEhrZ3c2ZG1zVmIy?=
- =?utf-8?B?TlozWkxhQ3FWQ0VsU0NwMWFnKzMvaXEyRnVXeFJQQnMxZ0dDamFCaEtFWXN1?=
- =?utf-8?B?Z2Z4eWc0L092VkNsbnhJYWJNeEx4dkFZdk1qcExzVE9mR3FQWkRaSEhvWUM4?=
- =?utf-8?B?NjJlRC9mYVdyOHpicjNXbGUvRWN0U2NhNUtFY0hLVktSellrUUQwZkFzT1F0?=
- =?utf-8?B?NlBCMC9xY2s5YjRhVFBJcHhjTXJibmtLazI4anJQTzFXYWVnNjJYNDRQWTE1?=
- =?utf-8?B?bEp4REozL2JSNG1XUThLd3Zwamc2Qi9MMEhyandwcVpnYWRrVHVLTFZTYzJY?=
- =?utf-8?B?bmRNbmVIMzZPYjhOWm1hak5FUTJocVlUakI1dUxlR1c2MUIzSXlONHIycXNj?=
- =?utf-8?B?SDhZVjVqMlgzclkvQnJrK1ZBZk4vOVU3dkJFR0dOeU1BWGdseUtldWpEdnhN?=
- =?utf-8?B?REE0TmpvRDN1U3NoMGFDc0dvamVoMmp6N1VLVUFqdTZkcDRpdzBFUEVScnFL?=
- =?utf-8?B?WUdKVEw5ZVorZ2RDUHg2Ynd4T2p6OS8zb3ZJMVVMalAralRRYldQMEZ0YW9P?=
- =?utf-8?B?V0JIN3hwMi81VnV2THBIdDlWNlpEcDZyTlVWNSs3enpmWXowQzU3MjdwOVhF?=
- =?utf-8?B?MnlwOXNXQkcvZll2NG9rSW1LbXRjOGFEejNzNno5VlF5MWhhMUpIMEFlOTFK?=
- =?utf-8?B?NVpkV0Jvd0oyR0lvc0tmR2dDT3p4Qm81VGMvRlhBYzkzSS9WUkdvTzVUQmta?=
- =?utf-8?B?Z2JiYUdtbHZMS3U4T282OXFsaC9hYjg3bFVkaEExeFVXbUpITDdGcDhQbHk0?=
- =?utf-8?B?LzFPMjNybFo4S1VnNlpDWVRMVnZIbnRxTDl0WDRkeW0yMXk2V1g5cGsxMk1L?=
- =?utf-8?B?TGQ5Tzg1b01RSkVyWW5zRVB0SUkwbno3TmFUYXhvRmhtRWZybFNTNVcxUU0w?=
- =?utf-8?B?ZGJmQmR6dmhzS3hET3VYNFFxSFhaaGxDTy9iK1U2SDNwelJHdUdDQStnNlU3?=
- =?utf-8?B?blBkbE11SXQvUDd0UjNZVXVFaC9RTFZTeFVlaUV1ckN6SzlsdC9uN3JwZWxM?=
- =?utf-8?B?U2hESTNWRFpZOE5USGlPRGtCS3U0dXVqRFRaL0VwdW9SR3N1a1BoamRvU3Bo?=
- =?utf-8?B?MlU5RHhzUUhEN3JBbmNGd3AzUHp4T0VhbFR1UjJXWVJ0b3NrSXR5T3JsMHA3?=
- =?utf-8?B?VEUzekNtd0RaR0ZHSFlMckdSZnlJaWJ4b1V4SDRSdlN6Rm8zYkFYak9FY042?=
- =?utf-8?B?SzM0M3Rha3cwaGYwYU9DdzVYMU52eFBtR05CQTZGT2RrOHBVa0QwYmdKTkJj?=
- =?utf-8?B?WW1yV3oyay92aThCZkhqazZCbHpvbXhvTjBzRzdWclVjZlk2OWNsWldMM2dk?=
- =?utf-8?B?eUE3cmJDeER6TU5Yb21tVXNpcTF0WjJZTGpLY2Q2VkMySmRtTTM2VUZrdlZq?=
- =?utf-8?B?bmRKQ3lBN2tvQ29DNWEzZEhudHJWU1BLeHR0dVpuMVZIYXcxd3UvUThBSEkz?=
- =?utf-8?B?eFl6UTRXYzA5dWFlT0xzRVFVSERTczRJSm9uVUw0ZXNuMDlLdERsRk9zclFr?=
- =?utf-8?B?QTZtVFRWUzFBVms5TXUyQytiT1BWaVZpdG1RbUJlTEgwaks5Y0svZXJaSEhp?=
- =?utf-8?B?TnFrRFE3Z3JWelUzWlJLVkR4b2o1RmlKMURWb3ZCT0l4aXByUWdwY1RFaVJ0?=
- =?utf-8?B?alY3YlFNbVdqQVBaaE5OcEtoVHNLTHlUUGNWaUMvZ3d4d2puYkpDRGI1SGt0?=
- =?utf-8?B?akZXK3NXeWpsTjNCZnVGcDYvdVp3d2x1VmZ6ZGdicFJuNEpuak85MDEwMTZx?=
- =?utf-8?B?Tk9lS2hlMW00WUowazk0L2QzZEVaTmtZU1g2SjdWdFhKdk53aUQ0bVByWGp2?=
- =?utf-8?B?R0YyZkdKRzVTbDBGU2VlOUxkN2p2U2Mwa0M5NE1lcHorbXNBN0tXd2dIblNk?=
- =?utf-8?B?VWpXWnFFeVRtRGI1Z20wS21kQWpmVGNrMDl6R0VpcUh5cklqTTZiOVVsK3lm?=
- =?utf-8?Q?GieF1x?=
+	=?utf-8?B?NG9lOUx2TmlRbWY3WUtuOU4remVpRW8yTlZrTkd4Tnc4dG5nZ09TOTVKUEJt?=
+ =?utf-8?B?VCtnak4rZUpDakYyakt1WGVmdndyU2VSTG9iOGJJeHh3d0E0NkxremhVaE1a?=
+ =?utf-8?B?aE5aR0RwaXdXY2p2d2pWU2U1anRmZWwyNFIwckNMa2Y1Y2RPYXlIc00wbXBa?=
+ =?utf-8?B?QXoxemNyYkthOE9vRXZHcVloVkFoVkg0bFBLNDFRKzBHNFBVeDlxUWRFN3N2?=
+ =?utf-8?B?UWJRK3pzc0tjcVEvSktnWmV3Sk10cEo4Yyt5RjlhRVJRTUo3d25OU2NLNWs4?=
+ =?utf-8?B?WS9COE9GVXU3QXE1U25zelZiczRQRVRqM20yZXYzVkdHY3R2RlNyNitmeTll?=
+ =?utf-8?B?L0NlS3VTUXhaWUlqeFF4WmN2VmpnTlhudzZ0dVFLMEpFNGwyZjRJbkFLMno5?=
+ =?utf-8?B?ODd4Ry83ckxCNFowUXk2Q0NBSnpWdHc5NVRINE90Qk82Y2F4QXpyQ3NabDRp?=
+ =?utf-8?B?Zjc5djc3N2VOUGhuUG9Qa2kzaW5aQXVaL3o4NnpWZnhEOVpScmt1YmV6WE96?=
+ =?utf-8?B?VDJMNVNic1JaTDZ6KzFMVE9ZMGNlLzFUZUpzYWlBTGhXNWhCbWtZK09oVmU5?=
+ =?utf-8?B?ckVjalhVTDlrWGRVYngxeGJOenVQemZSUG5nUk5aREVVUFNtWFZVQktML2F4?=
+ =?utf-8?B?YmVpVFpuTnppdUN4dWZsOU4zbnpVdjRVTnoyRC8xQTN4VmxjSnJUa1oxRmZ0?=
+ =?utf-8?B?YkdqdzQrM29OcENmc1h6U1Nod3hhV3RQRjBmNFl0dDc0WXYwanEyK2hZWWxi?=
+ =?utf-8?B?bEJvaXI1ZUJpR2ZqUk5pdG9pVXhNaDNweFRxcnlFRkxFMzNqd1Y0c09makFM?=
+ =?utf-8?B?Vm9CV2FiNzljRFk3alQ5L2RaNW1yS2wzV2ZmejVqRnNxOUx1b1l1dFJkaU1t?=
+ =?utf-8?B?M1RyTmd0RHc5Tm0zVVA3YVBOaElldUtIL2RpZGd1aldqemZoNUd5S05na2JV?=
+ =?utf-8?B?U0JmQVN1OUlXUGRmZEl4ZDZhZXBQaWw0REcyQlN4NFFKNThVZFEremFYNitK?=
+ =?utf-8?B?WnhFUFA0MDhsOVNDZkJpUytLeFZZMjFRZjJyVXZmaDJCVDVEYnlFdGdVRkQ1?=
+ =?utf-8?B?QS9JZmFIRXNVcmt1SXY3UXpwMk1DMmpnNE5sdmtpaVZlNmx2Y0owazlia21F?=
+ =?utf-8?B?Zmw0UnRsTTE4NTVvWDRuYUc0SVpUbjdUUXMvMEpOVGxjZDRuYlBnaVFnOXQ0?=
+ =?utf-8?B?ME5pb3RzNnJGTVpXR0lkR25OeXMycWFZTUU4OVlYTzB3c0dqdjlpYkdiLzVu?=
+ =?utf-8?B?NEk3cVdZRzczcTJOTExUUk9XY2Q2NFFtWndwQUlxd3JmdHFyd3F4ejJkbWNk?=
+ =?utf-8?B?M3hUSDNLenJPcFRjK3JGcmxVN0ZwQmhZODVUc0U2UkI5WE1Nc1RycGdESldV?=
+ =?utf-8?B?cVZtZ3BOWTFqMDRPTXJGQUowdTBJQ0VXeGlNUmdla1VuUjhxNFhXSlQ1SWF3?=
+ =?utf-8?B?eTYvY1pEN20vOGxMMnJYUEdKL1FTZzhJcGQ2SXJvNVBzZC9nY1NRelNMVjUy?=
+ =?utf-8?B?WEZSZTIxTW5IL0ROY2dKNitBekpQR3NzclBGWVYyNFFOb3Z5Wll0cmtwS2dK?=
+ =?utf-8?B?VEdTOEJ3WnZuaHpVaXpPMncySW02TW8xRHhjbDJRb3ZRVU5XREtLS1NDN1NR?=
+ =?utf-8?B?WnZIdDBvRnU1b1dHVkhDMGswT3NFVU1OQ1Vkc0ZIVkpMdFBpdzBxUGhxZWJi?=
+ =?utf-8?B?VngrQ2JKZmJ4dnl1K1JwZy94OXdsV0p4R1gzZEl0dDRkcXFITFFBcGYzYVc5?=
+ =?utf-8?B?VnpkVTFKSTFGQmFsTU5jMHVCRCtUVjZxVzJBTW1odC9uTWFzQWVJUklCekxp?=
+ =?utf-8?B?cG15QmdQUWx1bk0zK3MzdG1NRWp5QVZNbkptTGJBNmZGQWhXVUk5R21pWDFj?=
+ =?utf-8?B?ZzNlbElGWUY2UUgrRktLa3lJM09iMFJxVThOQUpRYmVEaFJLSGE5Y004K1Ay?=
+ =?utf-8?B?a203TEMwaDNWY1J4UnorZ1ZKbGpFYTRiYVJ5Q1JsdUgwWHQ5OEdCOFhscUxi?=
+ =?utf-8?B?VmJ1M1pkMHBtOEtodHV0TGpUUFE2ZXV5ZmdleG9ZN2FjY0VjQlNuREFVRFhn?=
+ =?utf-8?Q?Gq6YY8?=
 X-Forefront-Antispam-Report:
-	CIP:208.255.156.42;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:cn-mailer-00.localdomain;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(36860700013)(1800799024)(82310400026)(376014);DIR:OUT;SFP:1102;
+	CIP:208.255.156.42;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:cn-mailer-00.localdomain;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(82310400026)(1800799024)(36860700013)(376014);DIR:OUT;SFP:1102;
 X-OriginatorOrg: cornelisnetworks.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 30 Jun 2025 17:58:09.1249
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 30 Jun 2025 17:58:09.2666
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 8545cf35-8809-4289-63c1-08ddb7ffac92
+X-MS-Exchange-CrossTenant-Network-Message-Id: 857bccc0-e2f4-40b4-900c-08ddb7ffac79
 X-MS-Exchange-CrossTenant-Id: 4dbdb7da-74ee-4b45-8747-ef5ce5ebe68a
 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=4dbdb7da-74ee-4b45-8747-ef5ce5ebe68a;Ip=[208.255.156.42];Helo=[cn-mailer-00.localdomain]
 X-MS-Exchange-CrossTenant-AuthSource:
-	CY4PEPF0000E9DB.namprd05.prod.outlook.com
+	CY4PEPF0000E9D5.namprd05.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: BY3PR01MB6561
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CH7PR01MB8932
 
-Adds the base trace even support for the driver.
+While sharing similar bones the chip for the Cornelis Networks next
+generation fabric technology has some fundamental differences that
+resulted in a near complete re-write of the driver. It also does not use
+the private Cdev interface that the hfi1 driver exposes. After mentioning
+this in an offlist email thread with the RDMA maintainers we have decided
+to go with the approach of moving to a new driver and declaring hfi1
+obsolete.
 
-Co-developed-by: Dean Luick <dean.luick@cornelisnetworks.com>
-Signed-off-by: Dean Luick <dean.luick@cornelisnetworks.com>
-Co-developed-by: Bendan Cunningham <brendan.cunningham@cornelisnetworks.com>
-Signed-off-by: Breandan Cunningham <brendan.cunningham@cornelisnetworks.com>
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
+It is desirable to  keep hfi1 around temporarily to let user APIs catch up
+to support access through the uverbs device rather than the private hfi1
+Cdev.
+
+This driver is designed to support future products as well.
+
+Included in this submission is a couple patches to rdmavt and the IB core
+to allow writev access to the uverbs device.
+
+We are also removing the opa_vnic driver and associated collateral as it
+has no future and has just been languishing in the tree for some time.
+
+This series will be followed up to pick up any changes from hfi1 that
+were not yet incorporated in our internal development tree.
+
+Depending on how the review of this code goes we will either submit
+separately or as a v2 to this series.
+
+We are also open to other ideas on how to submit this and make it more
+consumable for review and feedback.
+
 ---
- drivers/infiniband/hw/hfi2/trace.c |  535 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 535 insertions(+)
+
+Dean Luick (5):
+      RDMA/OPA: Update OPA link speed list
+      RDMA/rdmavt: Add ucontext alloc/dealloc passthrough
+      RDMA/rdmavt: Correct multi-port QP iteration
+      RDMA/rdmavt: Add driver mmap callback
+      RDMA/core: Add writev to uverbs file descriptor
+
+Dennis Dalessandro (18):
+      RDMA/hfi1: Remove opa_vnic
+      RDMA/hfi2: Consolidate ABI files and setup uverbs access
+      RDMA/hfi2: Start hfi2 driver by basing off of hfi1
+      RDMA/hfi2: Add in HW register definition files
+      RDMA/hfi2: Add in HW register access support
+      RDMA/hfi2: Add in trace header files
+      RDMA/hfi2: Add in trace support
+      RDMA/hfi2: Add system core header files
+      RDMA/hfi2: Add system core support
+      RDMA/hfi2: Add in MAD handling related headers
+      RDMA/hfi2: Implement MAD handling
+      RDMA/hfi2: Add IO related headers
+      RDMA/hfi2: Implement data moving infrastructure
+      RDMA/hfi2: Add in support for verbs
+      RDMA/hfi2: Support ipoib
+      RDMA/hfi2: Add misc header files
+      RDMA/hfi2: Add the rest of the driver
+      RDMA/hfi2: Make it build
+
+
+ Documentation/infiniband/opa_vnic.rst         |   159 -
+ .../zh_CN/infiniband/opa_vnic.rst             |   156 -
+ MAINTAINERS                                   |    14 +-
+ drivers/infiniband/Kconfig                    |     3 +-
+ drivers/infiniband/core/device.c              |     1 +
+ drivers/infiniband/core/uverbs_main.c         |    22 +
+ drivers/infiniband/hw/hfi1/Makefile           |     4 +-
+ drivers/infiniband/hw/hfi1/aspm.c             |     2 +-
+ drivers/infiniband/hw/hfi1/chip.c             |    54 +-
+ drivers/infiniband/hw/hfi1/chip.h             |     2 -
+ drivers/infiniband/hw/hfi1/driver.c           |    13 +-
+ drivers/infiniband/hw/hfi1/file_ops.c         |     2 +-
+ drivers/infiniband/hw/hfi1/hfi.h              |    20 -
+ drivers/infiniband/hw/hfi1/init.c             |     4 +-
+ drivers/infiniband/hw/hfi1/mad.c              |     1 -
+ drivers/infiniband/hw/hfi1/msix.c             |     4 +-
+ drivers/infiniband/hw/hfi1/netdev.h           |     8 +-
+ drivers/infiniband/hw/hfi1/netdev_rx.c        |     3 +-
+ drivers/infiniband/hw/hfi1/trace_ctxts.h      |     2 +-
+ drivers/infiniband/hw/hfi1/verbs.c            |     2 -
+ drivers/infiniband/hw/hfi1/vnic.h             |   126 -
+ drivers/infiniband/hw/hfi1/vnic_main.c        |   615 -
+ drivers/infiniband/hw/hfi1/vnic_sdma.c        |   282 -
+ drivers/infiniband/hw/hfi2/Kconfig            |    23 +
+ drivers/infiniband/hw/hfi2/Makefile           |    69 +
+ drivers/infiniband/hw/hfi2/affinity.c         |  1173 ++
+ drivers/infiniband/hw/hfi2/affinity.h         |    85 +
+ drivers/infiniband/hw/hfi2/aspm.c             |   291 +
+ drivers/infiniband/hw/hfi2/aspm.h             |    35 +
+ drivers/infiniband/hw/hfi2/chip.c             | 16345 ++++++++++++++++
+ drivers/infiniband/hw/hfi2/chip.h             |  1420 ++
+ drivers/infiniband/hw/hfi2/chip_gen.c         |   504 +
+ drivers/infiniband/hw/hfi2/chip_gen.h         |    29 +
+ drivers/infiniband/hw/hfi2/chip_jkr.c         |   873 +
+ drivers/infiniband/hw/hfi2/chip_jkr.h         |   119 +
+ drivers/infiniband/hw/hfi2/chip_registers.h   |  1297 ++
+ .../infiniband/hw/hfi2/chip_registers_jkr.h   |   224 +
+ drivers/infiniband/hw/hfi2/common.h           |   335 +
+ drivers/infiniband/hw/hfi2/cport.c            |   746 +
+ drivers/infiniband/hw/hfi2/cport.h            |   247 +
+ drivers/infiniband/hw/hfi2/cport_traps.h      |    43 +
+ drivers/infiniband/hw/hfi2/debugfs.c          |  1578 ++
+ drivers/infiniband/hw/hfi2/debugfs.h          |    70 +
+ drivers/infiniband/hw/hfi2/device.h           |    18 +
+ drivers/infiniband/hw/hfi2/driver.c           |  1959 ++
+ drivers/infiniband/hw/hfi2/efivar.c           |   138 +
+ drivers/infiniband/hw/hfi2/efivar.h           |    16 +
+ drivers/infiniband/hw/hfi2/eprom.c            |   450 +
+ drivers/infiniband/hw/hfi2/eprom.h            |    10 +
+ drivers/infiniband/hw/hfi2/exp_rcv.c          |    78 +
+ drivers/infiniband/hw/hfi2/exp_rcv.h          |   156 +
+ drivers/infiniband/hw/hfi2/fault.c            |   335 +
+ drivers/infiniband/hw/hfi2/fault.h            |    69 +
+ drivers/infiniband/hw/hfi2/file_ops.c         |  1272 ++
+ drivers/infiniband/hw/hfi2/file_ops.h         |    46 +
+ drivers/infiniband/hw/hfi2/firmware.c         |  2266 +++
+ drivers/infiniband/hw/hfi2/hfi2.h             |  3283 ++++
+ drivers/infiniband/hw/hfi2/init.c             |  2729 +++
+ drivers/infiniband/hw/hfi2/intr.c             |   296 +
+ drivers/infiniband/hw/hfi2/iowait.c           |   128 +
+ drivers/infiniband/hw/hfi2/iowait.h           |   457 +
+ drivers/infiniband/hw/hfi2/ipoib.h            |   172 +
+ drivers/infiniband/hw/hfi2/ipoib_main.c       |   253 +
+ drivers/infiniband/hw/hfi2/ipoib_rx.c         |    92 +
+ drivers/infiniband/hw/hfi2/ipoib_tx.c         |   871 +
+ drivers/infiniband/hw/hfi2/mad.c              |  6055 ++++++
+ drivers/infiniband/hw/hfi2/mad.h              |   448 +
+ drivers/infiniband/hw/hfi2/mmu_rb.c           |   334 +
+ drivers/infiniband/hw/hfi2/mmu_rb.h           |    77 +
+ drivers/infiniband/hw/hfi2/msix.c             |   411 +
+ drivers/infiniband/hw/hfi2/msix.h             |    26 +
+ drivers/infiniband/hw/hfi2/netdev.h           |    99 +
+ drivers/infiniband/hw/hfi2/netdev_rx.c        |   494 +
+ drivers/infiniband/hw/hfi2/opa_compat.h       |    86 +
+ drivers/infiniband/hw/hfi2/opfn.c             |   323 +
+ drivers/infiniband/hw/hfi2/opfn.h             |    87 +
+ drivers/infiniband/hw/hfi2/pcie.c             |  1380 ++
+ drivers/infiniband/hw/hfi2/pin_system.c       |   550 +
+ drivers/infiniband/hw/hfi2/pinning.c          |    66 +
+ drivers/infiniband/hw/hfi2/pinning.h          |    74 +
+ drivers/infiniband/hw/hfi2/pio.c              |  2277 +++
+ drivers/infiniband/hw/hfi2/pio.h              |   305 +
+ drivers/infiniband/hw/hfi2/pio_copy.c         |   715 +
+ drivers/infiniband/hw/hfi2/platform.c         |  1035 +
+ drivers/infiniband/hw/hfi2/platform.h         |   371 +
+ drivers/infiniband/hw/hfi2/qp.c               |   949 +
+ drivers/infiniband/hw/hfi2/qp.h               |   107 +
+ drivers/infiniband/hw/hfi2/qsfp.c             |   787 +
+ drivers/infiniband/hw/hfi2/qsfp.h             |   201 +
+ drivers/infiniband/hw/hfi2/rc.c               |  3259 +++
+ drivers/infiniband/hw/hfi2/rc.h               |    59 +
+ drivers/infiniband/hw/hfi2/ruc.c              |   595 +
+ drivers/infiniband/hw/hfi2/sdma.c             |  3971 ++++
+ drivers/infiniband/hw/hfi2/sdma.h             |  1212 ++
+ drivers/infiniband/hw/hfi2/sdma_defs.h        |   116 +
+ drivers/infiniband/hw/hfi2/sdma_txreq.h       |   104 +
+ drivers/infiniband/hw/hfi2/sysfs.c            |   752 +
+ drivers/infiniband/hw/hfi2/tid_rdma.c         |  5538 ++++++
+ drivers/infiniband/hw/hfi2/tid_rdma.h         |   320 +
+ drivers/infiniband/hw/hfi2/tid_system.c       |   476 +
+ drivers/infiniband/hw/hfi2/trace.c            |   535 +
+ drivers/infiniband/hw/hfi2/trace.h            |    25 +
+ drivers/infiniband/hw/hfi2/trace_ctxts.h      |   115 +
+ drivers/infiniband/hw/hfi2/trace_dbg.h        |   118 +
+ drivers/infiniband/hw/hfi2/trace_ibhdrs.h     |   458 +
+ drivers/infiniband/hw/hfi2/trace_iowait.h     |    54 +
+ drivers/infiniband/hw/hfi2/trace_misc.h       |   108 +
+ drivers/infiniband/hw/hfi2/trace_mmu.h        |    72 +
+ drivers/infiniband/hw/hfi2/trace_pin.h        |   201 +
+ drivers/infiniband/hw/hfi2/trace_rc.h         |   125 +
+ drivers/infiniband/hw/hfi2/trace_rx.h         |   171 +
+ drivers/infiniband/hw/hfi2/trace_tid.h        |  1687 ++
+ drivers/infiniband/hw/hfi2/trace_tx.h         |  1186 ++
+ drivers/infiniband/hw/hfi2/uc.c               |   542 +
+ drivers/infiniband/hw/hfi2/ud.c               |  1030 +
+ drivers/infiniband/hw/hfi2/user_exp_rcv.c     |  1012 +
+ drivers/infiniband/hw/hfi2/user_exp_rcv.h     |   404 +
+ drivers/infiniband/hw/hfi2/user_pages.c       |   106 +
+ drivers/infiniband/hw/hfi2/user_sdma.c        |  1671 ++
+ drivers/infiniband/hw/hfi2/user_sdma.h        |   262 +
+ drivers/infiniband/hw/hfi2/uverbs.c           |   598 +
+ drivers/infiniband/hw/hfi2/uverbs.h           |    19 +
+ drivers/infiniband/hw/hfi2/verbs.c            |  2052 ++
+ drivers/infiniband/hw/hfi2/verbs.h            |   488 +
+ drivers/infiniband/hw/hfi2/verbs_txreq.c      |   100 +
+ drivers/infiniband/hw/hfi2/verbs_txreq.h      |    97 +
+ drivers/infiniband/sw/rdmavt/mmap.c           |    22 +-
+ drivers/infiniband/sw/rdmavt/qp.c             |     2 +-
+ drivers/infiniband/sw/rdmavt/vt.c             |     8 +
+ drivers/infiniband/ulp/Makefile               |     1 -
+ drivers/infiniband/ulp/opa_vnic/Kconfig       |     9 -
+ drivers/infiniband/ulp/opa_vnic/Makefile      |     9 -
+ .../infiniband/ulp/opa_vnic/opa_vnic_encap.c  |   513 -
+ .../infiniband/ulp/opa_vnic/opa_vnic_encap.h  |   524 -
+ .../ulp/opa_vnic/opa_vnic_ethtool.c           |   183 -
+ .../ulp/opa_vnic/opa_vnic_internal.h          |   329 -
+ .../infiniband/ulp/opa_vnic/opa_vnic_netdev.c |   400 -
+ .../infiniband/ulp/opa_vnic/opa_vnic_vema.c   |  1056 -
+ .../ulp/opa_vnic/opa_vnic_vema_iface.c        |   390 -
+ include/rdma/ib_verbs.h                       |     2 +
+ include/rdma/opa_port_info.h                  |     8 +-
+ include/rdma/rdma_vt.h                        |    10 +
+ include/uapi/rdma/hfi/hfi1_ioctl.h            |   120 +-
+ include/uapi/rdma/hfi/hfi1_user.h             |   282 +-
+ include/uapi/rdma/hfi2-abi.h                  |   726 +
+ include/uapi/rdma/ib_user_ioctl_verbs.h       |     1 +
+ 146 files changed, 88394 insertions(+), 5195 deletions(-)
+ delete mode 100644 Documentation/infiniband/opa_vnic.rst
+ delete mode 100644 Documentation/translations/zh_CN/infiniband/opa_vnic.rst
+ delete mode 100644 drivers/infiniband/hw/hfi1/vnic.h
+ delete mode 100644 drivers/infiniband/hw/hfi1/vnic_main.c
+ delete mode 100644 drivers/infiniband/hw/hfi1/vnic_sdma.c
+ create mode 100644 drivers/infiniband/hw/hfi2/Kconfig
+ create mode 100644 drivers/infiniband/hw/hfi2/Makefile
+ create mode 100644 drivers/infiniband/hw/hfi2/affinity.c
+ create mode 100644 drivers/infiniband/hw/hfi2/affinity.h
+ create mode 100644 drivers/infiniband/hw/hfi2/aspm.c
+ create mode 100644 drivers/infiniband/hw/hfi2/aspm.h
+ create mode 100644 drivers/infiniband/hw/hfi2/chip.c
+ create mode 100644 drivers/infiniband/hw/hfi2/chip.h
+ create mode 100644 drivers/infiniband/hw/hfi2/chip_gen.c
+ create mode 100644 drivers/infiniband/hw/hfi2/chip_gen.h
+ create mode 100644 drivers/infiniband/hw/hfi2/chip_jkr.c
+ create mode 100644 drivers/infiniband/hw/hfi2/chip_jkr.h
+ create mode 100644 drivers/infiniband/hw/hfi2/chip_registers.h
+ create mode 100644 drivers/infiniband/hw/hfi2/chip_registers_jkr.h
+ create mode 100644 drivers/infiniband/hw/hfi2/common.h
+ create mode 100644 drivers/infiniband/hw/hfi2/cport.c
+ create mode 100644 drivers/infiniband/hw/hfi2/cport.h
+ create mode 100644 drivers/infiniband/hw/hfi2/cport_traps.h
+ create mode 100644 drivers/infiniband/hw/hfi2/debugfs.c
+ create mode 100644 drivers/infiniband/hw/hfi2/debugfs.h
+ create mode 100644 drivers/infiniband/hw/hfi2/device.h
+ create mode 100644 drivers/infiniband/hw/hfi2/driver.c
+ create mode 100644 drivers/infiniband/hw/hfi2/efivar.c
+ create mode 100644 drivers/infiniband/hw/hfi2/efivar.h
+ create mode 100644 drivers/infiniband/hw/hfi2/eprom.c
+ create mode 100644 drivers/infiniband/hw/hfi2/eprom.h
+ create mode 100644 drivers/infiniband/hw/hfi2/exp_rcv.c
+ create mode 100644 drivers/infiniband/hw/hfi2/exp_rcv.h
+ create mode 100644 drivers/infiniband/hw/hfi2/fault.c
+ create mode 100644 drivers/infiniband/hw/hfi2/fault.h
+ create mode 100644 drivers/infiniband/hw/hfi2/file_ops.c
+ create mode 100644 drivers/infiniband/hw/hfi2/file_ops.h
+ create mode 100644 drivers/infiniband/hw/hfi2/firmware.c
+ create mode 100644 drivers/infiniband/hw/hfi2/hfi2.h
+ create mode 100644 drivers/infiniband/hw/hfi2/init.c
+ create mode 100644 drivers/infiniband/hw/hfi2/intr.c
+ create mode 100644 drivers/infiniband/hw/hfi2/iowait.c
+ create mode 100644 drivers/infiniband/hw/hfi2/iowait.h
+ create mode 100644 drivers/infiniband/hw/hfi2/ipoib.h
+ create mode 100644 drivers/infiniband/hw/hfi2/ipoib_main.c
+ create mode 100644 drivers/infiniband/hw/hfi2/ipoib_rx.c
+ create mode 100644 drivers/infiniband/hw/hfi2/ipoib_tx.c
+ create mode 100644 drivers/infiniband/hw/hfi2/mad.c
+ create mode 100644 drivers/infiniband/hw/hfi2/mad.h
+ create mode 100644 drivers/infiniband/hw/hfi2/mmu_rb.c
+ create mode 100644 drivers/infiniband/hw/hfi2/mmu_rb.h
+ create mode 100644 drivers/infiniband/hw/hfi2/msix.c
+ create mode 100644 drivers/infiniband/hw/hfi2/msix.h
+ create mode 100644 drivers/infiniband/hw/hfi2/netdev.h
+ create mode 100644 drivers/infiniband/hw/hfi2/netdev_rx.c
+ create mode 100644 drivers/infiniband/hw/hfi2/opa_compat.h
+ create mode 100644 drivers/infiniband/hw/hfi2/opfn.c
+ create mode 100644 drivers/infiniband/hw/hfi2/opfn.h
+ create mode 100644 drivers/infiniband/hw/hfi2/pcie.c
+ create mode 100644 drivers/infiniband/hw/hfi2/pin_system.c
+ create mode 100644 drivers/infiniband/hw/hfi2/pinning.c
+ create mode 100644 drivers/infiniband/hw/hfi2/pinning.h
+ create mode 100644 drivers/infiniband/hw/hfi2/pio.c
+ create mode 100644 drivers/infiniband/hw/hfi2/pio.h
+ create mode 100644 drivers/infiniband/hw/hfi2/pio_copy.c
+ create mode 100644 drivers/infiniband/hw/hfi2/platform.c
+ create mode 100644 drivers/infiniband/hw/hfi2/platform.h
+ create mode 100644 drivers/infiniband/hw/hfi2/qp.c
+ create mode 100644 drivers/infiniband/hw/hfi2/qp.h
+ create mode 100644 drivers/infiniband/hw/hfi2/qsfp.c
+ create mode 100644 drivers/infiniband/hw/hfi2/qsfp.h
+ create mode 100644 drivers/infiniband/hw/hfi2/rc.c
+ create mode 100644 drivers/infiniband/hw/hfi2/rc.h
+ create mode 100644 drivers/infiniband/hw/hfi2/ruc.c
+ create mode 100644 drivers/infiniband/hw/hfi2/sdma.c
+ create mode 100644 drivers/infiniband/hw/hfi2/sdma.h
+ create mode 100644 drivers/infiniband/hw/hfi2/sdma_defs.h
+ create mode 100644 drivers/infiniband/hw/hfi2/sdma_txreq.h
+ create mode 100644 drivers/infiniband/hw/hfi2/sysfs.c
+ create mode 100644 drivers/infiniband/hw/hfi2/tid_rdma.c
+ create mode 100644 drivers/infiniband/hw/hfi2/tid_rdma.h
+ create mode 100644 drivers/infiniband/hw/hfi2/tid_system.c
  create mode 100644 drivers/infiniband/hw/hfi2/trace.c
+ create mode 100644 drivers/infiniband/hw/hfi2/trace.h
+ create mode 100644 drivers/infiniband/hw/hfi2/trace_ctxts.h
+ create mode 100644 drivers/infiniband/hw/hfi2/trace_dbg.h
+ create mode 100644 drivers/infiniband/hw/hfi2/trace_ibhdrs.h
+ create mode 100644 drivers/infiniband/hw/hfi2/trace_iowait.h
+ create mode 100644 drivers/infiniband/hw/hfi2/trace_misc.h
+ create mode 100644 drivers/infiniband/hw/hfi2/trace_mmu.h
+ create mode 100644 drivers/infiniband/hw/hfi2/trace_pin.h
+ create mode 100644 drivers/infiniband/hw/hfi2/trace_rc.h
+ create mode 100644 drivers/infiniband/hw/hfi2/trace_rx.h
+ create mode 100644 drivers/infiniband/hw/hfi2/trace_tid.h
+ create mode 100644 drivers/infiniband/hw/hfi2/trace_tx.h
+ create mode 100644 drivers/infiniband/hw/hfi2/uc.c
+ create mode 100644 drivers/infiniband/hw/hfi2/ud.c
+ create mode 100644 drivers/infiniband/hw/hfi2/user_exp_rcv.c
+ create mode 100644 drivers/infiniband/hw/hfi2/user_exp_rcv.h
+ create mode 100644 drivers/infiniband/hw/hfi2/user_pages.c
+ create mode 100644 drivers/infiniband/hw/hfi2/user_sdma.c
+ create mode 100644 drivers/infiniband/hw/hfi2/user_sdma.h
+ create mode 100644 drivers/infiniband/hw/hfi2/uverbs.c
+ create mode 100644 drivers/infiniband/hw/hfi2/uverbs.h
+ create mode 100644 drivers/infiniband/hw/hfi2/verbs.c
+ create mode 100644 drivers/infiniband/hw/hfi2/verbs.h
+ create mode 100644 drivers/infiniband/hw/hfi2/verbs_txreq.c
+ create mode 100644 drivers/infiniband/hw/hfi2/verbs_txreq.h
+ delete mode 100644 drivers/infiniband/ulp/opa_vnic/Kconfig
+ delete mode 100644 drivers/infiniband/ulp/opa_vnic/Makefile
+ delete mode 100644 drivers/infiniband/ulp/opa_vnic/opa_vnic_encap.c
+ delete mode 100644 drivers/infiniband/ulp/opa_vnic/opa_vnic_encap.h
+ delete mode 100644 drivers/infiniband/ulp/opa_vnic/opa_vnic_ethtool.c
+ delete mode 100644 drivers/infiniband/ulp/opa_vnic/opa_vnic_internal.h
+ delete mode 100644 drivers/infiniband/ulp/opa_vnic/opa_vnic_netdev.c
+ delete mode 100644 drivers/infiniband/ulp/opa_vnic/opa_vnic_vema.c
+ delete mode 100644 drivers/infiniband/ulp/opa_vnic/opa_vnic_vema_iface.c
+ create mode 100644 include/uapi/rdma/hfi2-abi.h
 
-diff --git a/drivers/infiniband/hw/hfi2/trace.c b/drivers/infiniband/hw/hfi2/trace.c
-new file mode 100644
-index 000000000000..0a117d1692b9
---- /dev/null
-+++ b/drivers/infiniband/hw/hfi2/trace.c
-@@ -0,0 +1,535 @@
-+// SPDX-License-Identifier: GPL-2.0 OR BSD-3-Clause
-+/*
-+ * Copyright(c) 2015 - 2020 Intel Corporation.
-+ */
-+#define CREATE_TRACE_POINTS
-+#include "trace.h"
-+#include "exp_rcv.h"
-+#include "ipoib.h"
-+
-+static u8 __get_ib_hdr_len(struct ib_header *hdr)
-+{
-+	struct ib_other_headers *ohdr;
-+	u8 opcode;
-+
-+	if (ib_get_lnh(hdr) == HFI2_LRH_BTH)
-+		ohdr = &hdr->u.oth;
-+	else
-+		ohdr = &hdr->u.l.oth;
-+	opcode = ib_bth_get_opcode(ohdr);
-+	return hdr_len_by_opcode[opcode] == 0 ?
-+	       0 : hdr_len_by_opcode[opcode] - (12 + 8);
-+}
-+
-+static u8 __get_16b_hdr_len(struct hfi2_16b_header *hdr)
-+{
-+	struct ib_other_headers *ohdr = NULL;
-+	u8 opcode;
-+	u8 l4 = hfi2_16B_get_l4(hdr);
-+
-+	if (l4 == OPA_16B_L4_FM) {
-+		opcode = IB_OPCODE_UD_SEND_ONLY;
-+		return (8 + 8); /* No BTH */
-+	}
-+
-+	if (l4 == OPA_16B_L4_IB_LOCAL)
-+		ohdr = &hdr->u.oth;
-+	else
-+		ohdr = &hdr->u.l.oth;
-+
-+	opcode = ib_bth_get_opcode(ohdr);
-+	return hdr_len_by_opcode[opcode] == 0 ?
-+	       0 : hdr_len_by_opcode[opcode] - (12 + 8 + 8);
-+}
-+
-+u8 hfi2_trace_packet_hdr_len(struct hfi2_packet *packet)
-+{
-+	if (packet->etype != RHF_RCV_TYPE_BYPASS)
-+		return __get_ib_hdr_len(packet->hdr);
-+	else
-+		return __get_16b_hdr_len(packet->hdr);
-+}
-+
-+u8 hfi2_trace_opa_hdr_len(struct hfi2_opa_header *opa_hdr)
-+{
-+	if (!opa_hdr->hdr_type)
-+		return __get_ib_hdr_len(&opa_hdr->ibh);
-+	else
-+		return __get_16b_hdr_len(&opa_hdr->opah);
-+}
-+
-+const char *hfi2_trace_get_packet_l4_str(u8 l4)
-+{
-+	if (l4)
-+		return "16B";
-+	else
-+		return "9B";
-+}
-+
-+const char *hfi2_trace_get_packet_l2_str(u8 l2)
-+{
-+	switch (l2) {
-+	case 0:
-+		return "0";
-+	case 1:
-+		return "1";
-+	case 2:
-+		return "16B";
-+	case 3:
-+		return "9B";
-+	}
-+	return "";
-+}
-+
-+#define IMM_PRN  "imm:%d"
-+#define RETH_PRN "reth vaddr:0x%.16llx rkey:0x%.8x dlen:0x%.8x"
-+#define AETH_PRN "aeth syn:0x%.2x %s msn:0x%.8x"
-+#define DETH_PRN "deth qkey:0x%.8x sqpn:0x%.6x"
-+#define DETH_ENTROPY_PRN "deth qkey:0x%.8x sqpn:0x%.6x entropy:0x%.2x"
-+#define IETH_PRN "ieth rkey:0x%.8x"
-+#define ATOMICACKETH_PRN "origdata:%llx"
-+#define ATOMICETH_PRN "vaddr:0x%llx rkey:0x%.8x sdata:%llx cdata:%llx"
-+#define TID_RDMA_KDETH "kdeth0 0x%x kdeth1 0x%x"
-+#define TID_RDMA_KDETH_DATA "kdeth0 0x%x: kver %u sh %u intr %u tidctrl %u tid %x offset %x kdeth1 0x%x: jkey %x"
-+#define TID_READ_REQ_PRN "tid_flow_psn 0x%x tid_flow_qp 0x%x verbs_qp 0x%x"
-+#define TID_READ_RSP_PRN "verbs_qp 0x%x"
-+#define TID_WRITE_REQ_PRN "original_qp 0x%x"
-+#define TID_WRITE_RSP_PRN "tid_flow_psn 0x%x tid_flow_qp 0x%x verbs_qp 0x%x"
-+#define TID_WRITE_DATA_PRN "verbs_qp 0x%x"
-+#define TID_ACK_PRN "tid_flow_psn 0x%x verbs_psn 0x%x tid_flow_qp 0x%x verbs_qp 0x%x"
-+#define TID_RESYNC_PRN "verbs_qp 0x%x"
-+
-+#define OP(transport, op) IB_OPCODE_## transport ## _ ## op
-+
-+static const char *parse_syndrome(u8 syndrome)
-+{
-+	switch (syndrome >> 5) {
-+	case 0:
-+		return "ACK";
-+	case 1:
-+		return "RNRNAK";
-+	case 3:
-+		return "NAK";
-+	}
-+	return "";
-+}
-+
-+void hfi2_trace_parse_9b_bth(struct ib_other_headers *ohdr,
-+			     u8 *ack, bool *becn, bool *fecn, u8 *mig,
-+			     u8 *se, u8 *pad, u8 *opcode, u8 *tver,
-+			     u16 *pkey, u32 *psn, u32 *qpn)
-+{
-+	*ack = ib_bth_get_ackreq(ohdr);
-+	*becn = ib_bth_get_becn(ohdr);
-+	*fecn = ib_bth_get_fecn(ohdr);
-+	*mig = ib_bth_get_migreq(ohdr);
-+	*se = ib_bth_get_se(ohdr);
-+	*pad = ib_bth_get_pad(ohdr);
-+	*opcode = ib_bth_get_opcode(ohdr);
-+	*tver = ib_bth_get_tver(ohdr);
-+	*pkey = ib_bth_get_pkey(ohdr);
-+	*psn = mask_psn(ib_bth_get_psn(ohdr));
-+	*qpn = ib_bth_get_qpn(ohdr);
-+}
-+
-+void hfi2_trace_parse_16b_bth(struct ib_other_headers *ohdr,
-+			      u8 *ack, u8 *mig, u8 *opcode,
-+			      u8 *pad, u8 *se, u8 *tver,
-+			      u32 *psn, u32 *qpn)
-+{
-+	*ack = ib_bth_get_ackreq(ohdr);
-+	*mig = ib_bth_get_migreq(ohdr);
-+	*opcode = ib_bth_get_opcode(ohdr);
-+	*pad = ib_bth_get_pad(ohdr);
-+	*se = ib_bth_get_se(ohdr);
-+	*tver = ib_bth_get_tver(ohdr);
-+	*psn = mask_psn(ib_bth_get_psn(ohdr));
-+	*qpn = ib_bth_get_qpn(ohdr);
-+}
-+
-+void hfi2_trace_parse_9b_hdr(struct ib_header *hdr, bool sc5,
-+			     u8 *lnh, u8 *lver, u8 *sl, u8 *sc,
-+			     u16 *len, u32 *dlid, u32 *slid)
-+{
-+	*lnh = ib_get_lnh(hdr);
-+	*lver = ib_get_lver(hdr);
-+	*sl = ib_get_sl(hdr);
-+	*sc = ib_get_sc(hdr) | (sc5 << 4);
-+	*len = ib_get_len(hdr);
-+	*dlid = ib_get_dlid(hdr);
-+	*slid = ib_get_slid(hdr);
-+}
-+
-+void hfi2_trace_parse_16b_hdr(struct hfi2_16b_header *hdr,
-+			      u8 *age, bool *becn, bool *fecn,
-+			      u8 *l4, u8 *rc, u8 *sc,
-+			      u16 *entropy, u16 *len, u16 *pkey,
-+			      u32 *dlid, u32 *slid)
-+{
-+	*age = hfi2_16B_get_age(hdr);
-+	*becn = hfi2_16B_get_becn(hdr);
-+	*fecn = hfi2_16B_get_fecn(hdr);
-+	*l4 = hfi2_16B_get_l4(hdr);
-+	*rc = hfi2_16B_get_rc(hdr);
-+	*sc = hfi2_16B_get_sc(hdr);
-+	*entropy = hfi2_16B_get_entropy(hdr);
-+	*len = hfi2_16B_get_len(hdr);
-+	*pkey = hfi2_16B_get_pkey(hdr);
-+	*dlid = hfi2_16B_get_dlid(hdr);
-+	*slid = hfi2_16B_get_slid(hdr);
-+}
-+
-+#define LRH_PRN "len:%d sc:%d dlid:0x%.4x slid:0x%.4x "
-+#define LRH_9B_PRN "lnh:%d,%s lver:%d sl:%d"
-+#define LRH_16B_PRN "age:%d becn:%d fecn:%d l4:%d " \
-+		    "rc:%d sc:%d pkey:0x%.4x entropy:0x%.4x"
-+const char *hfi2_trace_fmt_lrh(struct trace_seq *p, bool bypass,
-+			       u8 age, bool becn, bool fecn, u8 l4,
-+			       u8 lnh, const char *lnh_name, u8 lver,
-+			       u8 rc, u8 sc, u8 sl, u16 entropy,
-+			       u16 len, u16 pkey, u32 dlid, u32 slid)
-+{
-+	const char *ret = trace_seq_buffer_ptr(p);
-+
-+	trace_seq_printf(p, LRH_PRN, len, sc, dlid, slid);
-+
-+	if (bypass)
-+		trace_seq_printf(p, LRH_16B_PRN,
-+				 age, becn, fecn, l4, rc, sc, pkey, entropy);
-+
-+	else
-+		trace_seq_printf(p, LRH_9B_PRN,
-+				 lnh, lnh_name, lver, sl);
-+	trace_seq_putc(p, 0);
-+
-+	return ret;
-+}
-+
-+#define BTH_9B_PRN \
-+	"op:0x%.2x,%s se:%d m:%d pad:%d tver:%d pkey:0x%.4x " \
-+	"f:%d b:%d qpn:0x%.6x a:%d psn:0x%.8x"
-+#define BTH_16B_PRN \
-+	"op:0x%.2x,%s se:%d m:%d pad:%d tver:%d " \
-+	"qpn:0x%.6x a:%d psn:0x%.8x"
-+#define L4_FM_16B_PRN \
-+	"op:0x%.2x,%s dest_qpn:0x%.6x src_qpn:0x%.6x"
-+const char *hfi2_trace_fmt_rest(struct trace_seq *p, bool bypass, u8 l4,
-+				u8 ack, bool becn, bool fecn, u8 mig,
-+				u8 se, u8 pad, u8 opcode, const char *opname,
-+				u8 tver, u16 pkey, u32 psn, u32 qpn,
-+				u32 dest_qpn, u32 src_qpn)
-+{
-+	const char *ret = trace_seq_buffer_ptr(p);
-+
-+	if (bypass)
-+		if (l4 == OPA_16B_L4_FM)
-+			trace_seq_printf(p, L4_FM_16B_PRN,
-+					 opcode, opname, dest_qpn, src_qpn);
-+		else
-+			trace_seq_printf(p, BTH_16B_PRN,
-+					 opcode, opname,
-+					 se, mig, pad, tver, qpn, ack, psn);
-+
-+	else
-+		trace_seq_printf(p, BTH_9B_PRN,
-+				 opcode, opname,
-+				 se, mig, pad, tver, pkey, fecn, becn,
-+				 qpn, ack, psn);
-+	trace_seq_putc(p, 0);
-+
-+	return ret;
-+}
-+
-+const char *parse_everbs_hdrs(
-+	struct trace_seq *p,
-+	u8 opcode, u8 l4, u32 dest_qpn, u32 src_qpn,
-+	void *ehdrs)
-+{
-+	union ib_ehdrs *eh = ehdrs;
-+	const char *ret = trace_seq_buffer_ptr(p);
-+
-+	if (l4 == OPA_16B_L4_FM) {
-+		trace_seq_printf(p, "mgmt pkt");
-+		goto out;
-+	}
-+
-+	switch (opcode) {
-+	/* imm */
-+	case OP(RC, SEND_LAST_WITH_IMMEDIATE):
-+	case OP(UC, SEND_LAST_WITH_IMMEDIATE):
-+	case OP(RC, SEND_ONLY_WITH_IMMEDIATE):
-+	case OP(UC, SEND_ONLY_WITH_IMMEDIATE):
-+	case OP(RC, RDMA_WRITE_LAST_WITH_IMMEDIATE):
-+	case OP(UC, RDMA_WRITE_LAST_WITH_IMMEDIATE):
-+		trace_seq_printf(p, IMM_PRN,
-+				 be32_to_cpu(eh->imm_data));
-+		break;
-+	/* reth + imm */
-+	case OP(RC, RDMA_WRITE_ONLY_WITH_IMMEDIATE):
-+	case OP(UC, RDMA_WRITE_ONLY_WITH_IMMEDIATE):
-+		trace_seq_printf(p, RETH_PRN " " IMM_PRN,
-+				 get_ib_reth_vaddr(&eh->rc.reth),
-+				 be32_to_cpu(eh->rc.reth.rkey),
-+				 be32_to_cpu(eh->rc.reth.length),
-+				 be32_to_cpu(eh->rc.imm_data));
-+		break;
-+	/* reth */
-+	case OP(RC, RDMA_READ_REQUEST):
-+	case OP(RC, RDMA_WRITE_FIRST):
-+	case OP(UC, RDMA_WRITE_FIRST):
-+	case OP(RC, RDMA_WRITE_ONLY):
-+	case OP(UC, RDMA_WRITE_ONLY):
-+		trace_seq_printf(p, RETH_PRN,
-+				 get_ib_reth_vaddr(&eh->rc.reth),
-+				 be32_to_cpu(eh->rc.reth.rkey),
-+				 be32_to_cpu(eh->rc.reth.length));
-+		break;
-+	case OP(RC, RDMA_READ_RESPONSE_FIRST):
-+	case OP(RC, RDMA_READ_RESPONSE_LAST):
-+	case OP(RC, RDMA_READ_RESPONSE_ONLY):
-+	case OP(RC, ACKNOWLEDGE):
-+		trace_seq_printf(p, AETH_PRN, be32_to_cpu(eh->aeth) >> 24,
-+				 parse_syndrome(be32_to_cpu(eh->aeth) >> 24),
-+				 be32_to_cpu(eh->aeth) & IB_MSN_MASK);
-+		break;
-+	case OP(TID_RDMA, WRITE_REQ):
-+		trace_seq_printf(p, TID_RDMA_KDETH " " RETH_PRN " "
-+				 TID_WRITE_REQ_PRN,
-+				 le32_to_cpu(eh->tid_rdma.w_req.kdeth0),
-+				 le32_to_cpu(eh->tid_rdma.w_req.kdeth1),
-+				 ib_u64_get(&eh->tid_rdma.w_req.reth.vaddr),
-+				 be32_to_cpu(eh->tid_rdma.w_req.reth.rkey),
-+				 be32_to_cpu(eh->tid_rdma.w_req.reth.length),
-+				 be32_to_cpu(eh->tid_rdma.w_req.verbs_qp));
-+		break;
-+	case OP(TID_RDMA, WRITE_RESP):
-+		trace_seq_printf(p, TID_RDMA_KDETH " " AETH_PRN " "
-+				 TID_WRITE_RSP_PRN,
-+				 le32_to_cpu(eh->tid_rdma.w_rsp.kdeth0),
-+				 le32_to_cpu(eh->tid_rdma.w_rsp.kdeth1),
-+				 be32_to_cpu(eh->tid_rdma.w_rsp.aeth) >> 24,
-+				 parse_syndrome(/* aeth */
-+					 be32_to_cpu(eh->tid_rdma.w_rsp.aeth)
-+					 >> 24),
-+				 (be32_to_cpu(eh->tid_rdma.w_rsp.aeth) &
-+				  IB_MSN_MASK),
-+				 be32_to_cpu(eh->tid_rdma.w_rsp.tid_flow_psn),
-+				 be32_to_cpu(eh->tid_rdma.w_rsp.tid_flow_qp),
-+				 be32_to_cpu(eh->tid_rdma.w_rsp.verbs_qp));
-+		break;
-+	case OP(TID_RDMA, WRITE_DATA_LAST):
-+	case OP(TID_RDMA, WRITE_DATA):
-+		trace_seq_printf(p, TID_RDMA_KDETH_DATA " " TID_WRITE_DATA_PRN,
-+				 le32_to_cpu(eh->tid_rdma.w_data.kdeth0),
-+				 KDETH_GET(eh->tid_rdma.w_data.kdeth0, KVER),
-+				 KDETH_GET(eh->tid_rdma.w_data.kdeth0, SH),
-+				 KDETH_GET(eh->tid_rdma.w_data.kdeth0, INTR),
-+				 KDETH_GET(eh->tid_rdma.w_data.kdeth0, TIDCTRL),
-+				 KDETH_GET(eh->tid_rdma.w_data.kdeth0, TID),
-+				 KDETH_GET(eh->tid_rdma.w_data.kdeth0, OFFSET),
-+				 le32_to_cpu(eh->tid_rdma.w_data.kdeth1),
-+				 KDETH_GET(eh->tid_rdma.w_data.kdeth1, JKEY),
-+				 be32_to_cpu(eh->tid_rdma.w_data.verbs_qp));
-+		break;
-+	case OP(TID_RDMA, READ_REQ):
-+		trace_seq_printf(p, TID_RDMA_KDETH " " RETH_PRN " "
-+				 TID_READ_REQ_PRN,
-+				 le32_to_cpu(eh->tid_rdma.r_req.kdeth0),
-+				 le32_to_cpu(eh->tid_rdma.r_req.kdeth1),
-+				 ib_u64_get(&eh->tid_rdma.r_req.reth.vaddr),
-+				 be32_to_cpu(eh->tid_rdma.r_req.reth.rkey),
-+				 be32_to_cpu(eh->tid_rdma.r_req.reth.length),
-+				 be32_to_cpu(eh->tid_rdma.r_req.tid_flow_psn),
-+				 be32_to_cpu(eh->tid_rdma.r_req.tid_flow_qp),
-+				 be32_to_cpu(eh->tid_rdma.r_req.verbs_qp));
-+		break;
-+	case OP(TID_RDMA, READ_RESP):
-+		trace_seq_printf(p, TID_RDMA_KDETH_DATA " " AETH_PRN " "
-+				 TID_READ_RSP_PRN,
-+				 le32_to_cpu(eh->tid_rdma.r_rsp.kdeth0),
-+				 KDETH_GET(eh->tid_rdma.r_rsp.kdeth0, KVER),
-+				 KDETH_GET(eh->tid_rdma.r_rsp.kdeth0, SH),
-+				 KDETH_GET(eh->tid_rdma.r_rsp.kdeth0, INTR),
-+				 KDETH_GET(eh->tid_rdma.r_rsp.kdeth0, TIDCTRL),
-+				 KDETH_GET(eh->tid_rdma.r_rsp.kdeth0, TID),
-+				 KDETH_GET(eh->tid_rdma.r_rsp.kdeth0, OFFSET),
-+				 le32_to_cpu(eh->tid_rdma.r_rsp.kdeth1),
-+				 KDETH_GET(eh->tid_rdma.r_rsp.kdeth1, JKEY),
-+				 be32_to_cpu(eh->tid_rdma.r_rsp.aeth) >> 24,
-+				 parse_syndrome(/* aeth */
-+					 be32_to_cpu(eh->tid_rdma.r_rsp.aeth)
-+					 >> 24),
-+				 (be32_to_cpu(eh->tid_rdma.r_rsp.aeth) &
-+				  IB_MSN_MASK),
-+				 be32_to_cpu(eh->tid_rdma.r_rsp.verbs_qp));
-+		break;
-+	case OP(TID_RDMA, ACK):
-+		trace_seq_printf(p, TID_RDMA_KDETH " " AETH_PRN " "
-+				 TID_ACK_PRN,
-+				 le32_to_cpu(eh->tid_rdma.ack.kdeth0),
-+				 le32_to_cpu(eh->tid_rdma.ack.kdeth1),
-+				 be32_to_cpu(eh->tid_rdma.ack.aeth) >> 24,
-+				 parse_syndrome(/* aeth */
-+					 be32_to_cpu(eh->tid_rdma.ack.aeth)
-+					 >> 24),
-+				 (be32_to_cpu(eh->tid_rdma.ack.aeth) &
-+				  IB_MSN_MASK),
-+				 be32_to_cpu(eh->tid_rdma.ack.tid_flow_psn),
-+				 be32_to_cpu(eh->tid_rdma.ack.verbs_psn),
-+				 be32_to_cpu(eh->tid_rdma.ack.tid_flow_qp),
-+				 be32_to_cpu(eh->tid_rdma.ack.verbs_qp));
-+		break;
-+	case OP(TID_RDMA, RESYNC):
-+		trace_seq_printf(p, TID_RDMA_KDETH " " TID_RESYNC_PRN,
-+				 le32_to_cpu(eh->tid_rdma.resync.kdeth0),
-+				 le32_to_cpu(eh->tid_rdma.resync.kdeth1),
-+				 be32_to_cpu(eh->tid_rdma.resync.verbs_qp));
-+		break;
-+	/* aeth + atomicacketh */
-+	case OP(RC, ATOMIC_ACKNOWLEDGE):
-+		trace_seq_printf(p, AETH_PRN " " ATOMICACKETH_PRN,
-+				 be32_to_cpu(eh->at.aeth) >> 24,
-+				 parse_syndrome(be32_to_cpu(eh->at.aeth) >> 24),
-+				 be32_to_cpu(eh->at.aeth) & IB_MSN_MASK,
-+				 ib_u64_get(&eh->at.atomic_ack_eth));
-+		break;
-+	/* atomiceth */
-+	case OP(RC, COMPARE_SWAP):
-+	case OP(RC, FETCH_ADD):
-+		trace_seq_printf(p, ATOMICETH_PRN,
-+				 get_ib_ateth_vaddr(&eh->atomic_eth),
-+				 eh->atomic_eth.rkey,
-+				 get_ib_ateth_swap(&eh->atomic_eth),
-+				 get_ib_ateth_compare(&eh->atomic_eth));
-+		break;
-+	/* deth */
-+	case OP(UD, SEND_ONLY):
-+		trace_seq_printf(p, DETH_ENTROPY_PRN,
-+				 be32_to_cpu(eh->ud.deth[0]),
-+				 be32_to_cpu(eh->ud.deth[1]) & RVT_QPN_MASK,
-+				 be32_to_cpu(eh->ud.deth[1]) >>
-+					     HFI2_IPOIB_ENTROPY_SHIFT);
-+		break;
-+	case OP(UD, SEND_ONLY_WITH_IMMEDIATE):
-+		trace_seq_printf(p, DETH_PRN,
-+				 be32_to_cpu(eh->ud.deth[0]),
-+				 be32_to_cpu(eh->ud.deth[1]) & RVT_QPN_MASK);
-+		break;
-+	/* ieth */
-+	case OP(RC, SEND_LAST_WITH_INVALIDATE):
-+	case OP(RC, SEND_ONLY_WITH_INVALIDATE):
-+		trace_seq_printf(p, IETH_PRN,
-+				 be32_to_cpu(eh->ieth));
-+		break;
-+	}
-+out:
-+	trace_seq_putc(p, 0);
-+	return ret;
-+}
-+
-+const char *parse_sdma_flags(struct trace_seq *p, u64 *qw, u8 first, u8 last)
-+{
-+	const char *ret = trace_seq_buffer_ptr(p);
-+	char flags[5] = { 'x', 'x', 'x', 'x', 0 };
-+
-+	flags[0] = (qw[1] & SDMA_DESC1_INT_REQ_FLAG) ? 'I' : '-';
-+	flags[1] = (qw[1] & SDMA_DESC1_HEAD_TO_HOST_FLAG) ?  'H' : '-';
-+	flags[2] = first ? 'F' : '-';
-+	flags[3] = last ? 'L' : '-';
-+	trace_seq_printf(p, "%s", flags);
-+	if (first)
-+		trace_seq_printf(p, " amode:%u aidx:%u alen:%u",
-+				 (u8)((qw[1] >> SDMA_DESC1_HEADER_MODE_SHIFT) &
-+				      SDMA_DESC1_HEADER_MODE_MASK),
-+				 (u8)((qw[1] >> SDMA_DESC1_HEADER_INDEX_SHIFT) &
-+				      SDMA_DESC1_HEADER_INDEX_MASK),
-+				 (u8)((qw[1] >> SDMA_DESC1_HEADER_DWS_SHIFT) &
-+				      SDMA_DESC1_HEADER_DWS_MASK));
-+	return ret;
-+}
-+
-+const char *print_u32_array(
-+	struct trace_seq *p,
-+	u32 *arr, int len)
-+{
-+	int i;
-+	const char *ret = trace_seq_buffer_ptr(p);
-+
-+	for (i = 0; i < len ; i++)
-+		trace_seq_printf(p, "%s%#x", i == 0 ? "" : " ", arr[i]);
-+	trace_seq_putc(p, 0);
-+	return ret;
-+}
-+
-+u8 hfi2_trace_get_tid_ctrl(u32 ent)
-+{
-+	return EXP_TID_GET(ent, CTRL);
-+}
-+
-+u16 hfi2_trace_get_tid_len(u32 ent)
-+{
-+	return EXP_TID_GET(ent, LEN);
-+}
-+
-+u16 hfi2_trace_get_tid_idx(u32 ent)
-+{
-+	return EXP_TID_GET(ent, IDX);
-+}
-+
-+struct hfi2_ctxt_hist {
-+	atomic_t count;
-+	atomic_t data[255];
-+};
-+
-+static struct hfi2_ctxt_hist hist = {
-+	.count = ATOMIC_INIT(0)
-+};
-+
-+const char *hfi2_trace_print_rsm_hist(struct trace_seq *p, unsigned int ctxt)
-+{
-+	int i, len = ARRAY_SIZE(hist.data);
-+	const char *ret = trace_seq_buffer_ptr(p);
-+	unsigned long packet_count = atomic_fetch_inc(&hist.count);
-+
-+	trace_seq_printf(p, "packet[%lu]", packet_count);
-+	for (i = 0; i < len; ++i) {
-+		unsigned long val;
-+		atomic_t *count = &hist.data[i];
-+
-+		if (ctxt == i)
-+			val = atomic_fetch_inc(count);
-+		else
-+			val = atomic_read(count);
-+
-+		if (val)
-+			trace_seq_printf(p, "(%d:%lu)", i, val);
-+	}
-+	trace_seq_putc(p, 0);
-+	return ret;
-+}
-+
-+const char *hfi2_memtype_str(unsigned int mt)
-+{
-+	switch (mt) {
-+	case HFI2_MEMINFO_TYPE_SYSTEM:
-+		return "System";
-+	}
-+
-+	return "<unknown>";
-+}
-+
-+__hfi2_trace_fn(AFFINITY);
-+__hfi2_trace_fn(PKT);
-+__hfi2_trace_fn(PROC);
-+__hfi2_trace_fn(SDMA);
-+__hfi2_trace_fn(LINKVERB);
-+__hfi2_trace_fn(DEBUG);
-+__hfi2_trace_fn(SNOOP);
-+__hfi2_trace_fn(CNTR);
-+__hfi2_trace_fn(PIO);
-+__hfi2_trace_fn(DC8051);
-+__hfi2_trace_fn(FIRMWARE);
-+__hfi2_trace_fn(RCVCTRL);
-+__hfi2_trace_fn(TID);
-+__hfi2_trace_fn(MMU);
-+__hfi2_trace_fn(IOCTL);
-
+--
+-Denny
 
