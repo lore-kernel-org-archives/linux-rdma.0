@@ -1,28 +1,28 @@
-Received: from NAM10-DM6-obe.outbound.protection.outlook.com (mail-dm6nam10on2102.outbound.protection.outlook.com [40.107.93.102])
+Received: from BN1PR04CU002.outbound.protection.outlook.com (mail-eastus2azon11020118.outbound.protection.outlook.com [52.101.56.118])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D50742E54C2
-	for <linux-rdma@vger.kernel.org>; Mon, 30 Jun 2025 17:58:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.93.102
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 58E272E6D11
+	for <linux-rdma@vger.kernel.org>; Mon, 30 Jun 2025 17:58:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.56.118
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751306297; cv=fail; b=IPOpTCJRlLRwrywwm6tHClcvvjQ+Nfmch8HM9Im0WaZYMzt/Jex1E7xsRuSGRdQ7M+dkPS4WuprRXcJPBZ2NKWLzSKvtvN5+tucrQtib4ptcYQSSB5Ys8qJMTqxQ/tDj84zmj8SYtko5ygIwGDyN41WsVCHyxYmgQYNNExbS9U8=
+	t=1751306298; cv=fail; b=azfq+T8RibtZzMzfxIeQ06DX7/wHji1oQ0rKW2ijX++7NcqIZ6MSXLQ4E3Ql6EWS2J+iF+xc+8nkjpvsUgSnIKZVNNluhCw92V0DXc2T1s+r4B3++YJLDMlv8hNZkXcb23j/Jxel7e892por4HK+Rw41C122QLosDFlGsTQSaI8=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751306297; c=relaxed/simple;
-	bh=vQqohyFqgDKk9/0CjLcKHh6rd3/3xPzA14hZMT0skck=;
+	s=arc-20240116; t=1751306298; c=relaxed/simple;
+	bh=3hyKKMcUSus0Sf4PsVxasXzsU7cUqp7K1CoUSiq7sIY=;
 	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=IUb3utWqpwce3PE6RpbEgOJrmPrEo9MP+5QveeYy1aIPlO5zywZJ3eCSg370KqGTWBriGCnu1hMS3yVrIaGbB9Dl9pQGi+fW4LfTYlsK17o+oYEw94C8FgJmgeZTirP/Pz8AA6Hvm2SRpGCduxvRXyVgMmh1ecxbOstgvRstsa0=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cornelisnetworks.com; spf=pass smtp.mailfrom=cornelisnetworks.com; dkim=pass (2048-bit key) header.d=cornelisnetworks.com header.i=@cornelisnetworks.com header.b=I5AcdGFD; arc=fail smtp.client-ip=40.107.93.102
+	 MIME-Version:Content-Type; b=bImorxzA+BLzkQyf9jQU27esA/HnzAUDkLfNV94a8XIxPlHlLOkYFNXCkEZC9OMukhnWAoAxkGDnP/mxBxtCGX1lmnTC/ceXD8Xhyj+p1sSNINdJDAuD6fUWeDjqvsPnTCC8KbY/bSHWRctW7LbIlGBduQ8rQk2A0n37bZS83Ik=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cornelisnetworks.com; spf=pass smtp.mailfrom=cornelisnetworks.com; dkim=pass (2048-bit key) header.d=cornelisnetworks.com header.i=@cornelisnetworks.com header.b=j5u+Avyu; arc=fail smtp.client-ip=52.101.56.118
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cornelisnetworks.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=cornelisnetworks.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=cornelisnetworks.com header.i=@cornelisnetworks.com header.b="I5AcdGFD"
+	dkim=pass (2048-bit key) header.d=cornelisnetworks.com header.i=@cornelisnetworks.com header.b="j5u+Avyu"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=HQLMFCnhYUN1zSbJA5q2l7FX6DUyTzKw9ewB4+WRYcl41bqf03U7si07MwxaVYk8ta62y+MVC94RzJkXWPYFh01/QOWTNATNeQOc+anWs2oyI+ygpPp8JKrXiL2akoRIGnN5myalL1F32zAD0an/8kyrOSDvvv0KSgKPqkzmFwbWyIgjPzVSPAq9K/wcI6siOlzsVWVGiKiLvcdFQOQJ2/okZk+RbGDtg8uxXZSKJq61EIhvW5rchw3reVSE2tURdcnP2/hHurY+napwd3ZXzXs97KAMjckilITIL0Eyu/V2DYwBspdYBJaJ695QK4xIMHITbAuF56fO81eTA+Salg==
+ b=cNz14gLBHGu8YcwDNJphj8yhKJCELY+Pmu5xzWVaxhiDS7vRSEYOYqiXu0dDnBpDYT2PDV5QGVU4wtaEEtUnSfWYOXVRl5YFXCgRiDzP8E8tpisC2iULwXrJU65/I48ebFtGpp3NnC2H6p8lrGLJeufpbObBA5vvLqQsd5LPMcg+nOdM2zG7BKf44Nqd3J4nw6WgAH2fSCrGz3zzubKgqDJOjfDCez8QD0KS23lNmr+18OF6DXniMSi12d/uOVMs14wr9eH1W3+TQwjDwOYPLoJihzWvbcEcXEXZfkLgswZckR2cG7kYoTf2pBgSFcKmpHd2DwB0LRtz+XXcctd3bw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=xYlnqwiOwHf5LPk2sI0raYeA80eRv1CTcIhU+kv3WHA=;
- b=JyMaBqeHFOy3lDyGx3O2+H2ZZKCteCtTxmlFqF3AUWZ2RIRAyWqfEiRNiY7s2frao56iTDO3YnB6uHe3XzmCKGZuVXhpRkrGCmpKIFKtn+DjYH5JuGLh8s9eQAc3TMM4sVhGuAQlqSOxTiEuqMCUdauuaEZ+Vre7uQJnZ4A2cx0IjdKedjqMQYtOGWOzqinWO7dHXtKAJlElpNVu6tcjZkpNXAdYCY5WQnDeTfWn46gQFO0TkB2nnqUTq7xOtyyp6V1YF9QLzD3V0Y6EFDHkoUcRXRryX7Rat02rWELwlyE/R9iK8QComuV9Gegl+LCPdbBuoES0k+WxKjvvnTO6Mg==
+ bh=pzeC3QdgVqSRUy2RUI1ImOTsNG1yo+RIkCTho7HnAf8=;
+ b=JpPwkAI28TfIWDTlWnleklm2YPok9pQs3U5xDpYdcX9W6YUWut2Am38IubusBHHCteXZVi++SssZK/kK/WSy9jAyzyHEcvdTCopOwgWZSGEPGQMnN19PCIq+9BAtvS7Bd+R42EUmoIS84DxeZa/M+btRIYk/y6cHUk6CYiK/6NOLRG0PQoXltdJmX/27hUsz3+sdTmS/Wtyu8xPFaUQUjRI2DCVEAYF8ojZQishZxVNewtRAjhoUKsDU6a8REoS1aIaVURiSbLaZfyg/gMLevV9pkGkp//refm1u7Yimc/h9uQflN2n3CP1foEu0V52WFK4c1xKAIEzwEVNz0cjldw==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
  208.255.156.42) smtp.rcpttodomain=cornelisnetworks.com
  smtp.mailfrom=cornelisnetworks.com; dmarc=pass (p=none sp=none pct=100)
@@ -31,16 +31,16 @@ ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cornelisnetworks.com;
  s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=xYlnqwiOwHf5LPk2sI0raYeA80eRv1CTcIhU+kv3WHA=;
- b=I5AcdGFDHzEKl7i92G1V2VN+UEnYvSjbBiCnnZKHWyF1MMcYji7sZlmS5hq7ZAUFwGkk9AmFx490mCxs1U92wY8dlr6vZBhtPhQfShZ9UIMomotiI2IH4y3qLmrcFnfBBhTabGNhF4RWxUGnIAFlH9ocQXELFA2h0jp+M+k7YKKb0xHbR0B3inrUWOepRuydZwhxin3W3p6cE0RZB15n9eVhJEn9hZZopUuAwB21czKAyU6EkdJcXLHzZSWHTlC4M/6UALwKFjtupae8OMC7qDwrNYc4IuD0s6cH5FoWr0DnGnSKAYPq0f361J1C3Id7VIRcWduC7xYft9eAsHhZ3g==
-Received: from MW4PR04CA0095.namprd04.prod.outlook.com (2603:10b6:303:83::10)
- by DS2PR01MB9278.prod.exchangelabs.com (2603:10b6:8:27d::5) with Microsoft
+ bh=pzeC3QdgVqSRUy2RUI1ImOTsNG1yo+RIkCTho7HnAf8=;
+ b=j5u+AvyuODVfXTfYCqQ6kyhtPKicYXBFe5KPoxr2YyYex3ReAH9+AsZ36DAC3gygI2QIQmAQvnw7NW6tpwi7jfesOMuzOICHFjDyXpk97a1+Qbs36DTM7aV1Q+diI2qdAA85wDoME3S606EbCbjCZoRgpzKIgL26zISAAoo2jzx69zU6sDM0LqKgN2+8ZNzY0YM6hdCGMfl57WYUIST22QF5pSFra+4NtEyK7Rv5aIKKkYxOX4WB2/3ItarQwI6+sSSE7IU2OLOgrgjhwLzy7E2wGIxuI+bytkUaI2btIiWix9HgLU4ssRHRmZ6kP993daz8DrXfNVVwXy7GFCFTTw==
+Received: from MW4PR04CA0116.namprd04.prod.outlook.com (2603:10b6:303:83::31)
+ by BY3PR01MB6561.prod.exchangelabs.com (2603:10b6:a03:362::13) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.8880.30; Mon, 30 Jun 2025 17:58:11 +0000
+ 15.20.8880.29; Mon, 30 Jun 2025 17:58:11 +0000
 Received: from CY4PEPF0000E9DB.namprd05.prod.outlook.com
- (2603:10b6:303:83:cafe::2d) by MW4PR04CA0095.outlook.office365.com
- (2603:10b6:303:83::10) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.20.8880.32 via Frontend Transport; Mon,
+ (2603:10b6:303:83:cafe::33) by MW4PR04CA0116.outlook.office365.com
+ (2603:10b6:303:83::31) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.20.8880.29 via Frontend Transport; Mon,
  30 Jun 2025 17:58:11 +0000
 X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 208.255.156.42)
  smtp.mailfrom=cornelisnetworks.com; dkim=none (message not signed)
@@ -52,21 +52,22 @@ Received-SPF: Pass (protection.outlook.com: domain of cornelisnetworks.com
 Received: from cn-mailer-00.localdomain (208.255.156.42) by
  CY4PEPF0000E9DB.mail.protection.outlook.com (10.167.241.74) with Microsoft
  SMTP Server (version=TLS1_3, cipher=TLS_AES_256_GCM_SHA384) id 15.20.8901.15
- via Frontend Transport; Mon, 30 Jun 2025 17:58:10 +0000
+ via Frontend Transport; Mon, 30 Jun 2025 17:58:09 +0000
 Received: from awdrv-04.localdomain (awdrv-04.cornelisnetworks.com [10.228.212.218])
-	by cn-mailer-00.localdomain (Postfix) with ESMTPS id DDE6414D72F;
+	by cn-mailer-00.localdomain (Postfix) with ESMTPS id C534D14D722;
 	Mon, 30 Jun 2025 13:58:06 -0400 (EDT)
 Received: from awdrv-04.cornelisnetworks.com (localhost [IPv6:::1])
-	by awdrv-04.localdomain (Postfix) with ESMTP id 8DBEA1848B5D9;
-	Mon, 30 Jun 2025 11:31:03 -0400 (EDT)
-Subject: [PATCH for-next 15/23] RDMA/hfi2: Add in MAD handling related headers
+	by awdrv-04.localdomain (Postfix) with ESMTP id 58F3F1848B5D1;
+	Mon, 30 Jun 2025 11:30:48 -0400 (EDT)
+Subject: [PATCH for-next 12/23] RDMA/hfi2: Add in trace support
 From: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
 To: jgg@ziepe.ca, leon@kernel.org
 Cc: Dean Luick <dean.luick@cornelisnetworks.com>,
- Douglas Miller <doug.miller@cornelisnetworks.com>, linux-rdma@vger.kernel.org
-Date: Mon, 30 Jun 2025 11:31:03 -0400
+ Breandan Cunningham <brendan.cunningham@cornelisnetworks.com>,
+ linux-rdma@vger.kernel.org
+Date: Mon, 30 Jun 2025 11:30:48 -0400
 Message-ID:
- <175129746352.1859400.3502114867739117290.stgit@awdrv-04.cornelisnetworks.com>
+ <175129744832.1859400.5445209715015307475.stgit@awdrv-04.cornelisnetworks.com>
 In-Reply-To:
  <175129726945.1859400.4492277779101226937.stgit@awdrv-04.cornelisnetworks.com>
 References:
@@ -82,837 +83,615 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: CY4PEPF0000E9DB:EE_|DS2PR01MB9278:EE_
-X-MS-Office365-Filtering-Correlation-Id: ea9d5288-8859-447d-d0b7-08ddb7ffad68
+X-MS-TrafficTypeDiagnostic: CY4PEPF0000E9DB:EE_|BY3PR01MB6561:EE_
+X-MS-Office365-Filtering-Correlation-Id: 8545cf35-8809-4289-63c1-08ddb7ffac92
 X-MS-Exchange-AtpMessageProperties: SA
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|82310400026|36860700013|376014|1800799024;
+	BCL:0;ARA:13230040|36860700013|1800799024|82310400026|376014;
 X-Microsoft-Antispam-Message-Info:
-	=?utf-8?B?b1I0YzlDeWJCaHFUZHpQanoySnF3WXU1UlcrR2hnamRUNEZ2ZlZkeUlmUXJS?=
- =?utf-8?B?ZU1oeFFuT0ZTMXptSlUwc29EanhYQUdINktJWVNibmdVcTFzOVNudVM1R0tK?=
- =?utf-8?B?cG1rNmU4MkVvRGd6VVQ3R3NkUTczUXZSazJoeDBNWnZDTUliNVU5M25yQkU5?=
- =?utf-8?B?Y3Bycmd4N2Y4TkhOZWF4d25FMmF3SkZRKzJTVTFCNFYrL2M0SENxWE9yQmZO?=
- =?utf-8?B?Y0owU1A2VjlNVUEvaW96eEc1L3pDWGJ6R3VvVGRoNXBBZ291eWZOM09wZTRX?=
- =?utf-8?B?VmoyMGJOb25mNjNmVWlVcVNTRWFuSHZKbTRicnNLTDcrQmRkTHZtd1lTN0My?=
- =?utf-8?B?dS9aMlE3ZWNYODlvSnBPNHJNYW1xSmkzenFSSGQrSnZyeWFyRGpPWEIzYm9j?=
- =?utf-8?B?cU9HMzl3M1ExMlJGU2oxK2MveXpwYTJXNXNCNFBHdm9HOTNUaGJzMGxLd3F5?=
- =?utf-8?B?V24wNm5hMzAvME9oem1jMkFyaTI3VDVZcE5jUmJ2TXBkeDArOVpPWDdYRUF2?=
- =?utf-8?B?bGVmdWYwS0ZyTkRMQjJTd3Z3eUdWaGV6aG5OdUI3T084azZ4OUhnbjJQTCtU?=
- =?utf-8?B?d09MZmx0UHBnT1pmOENtVXJhZWtsVFgwb1lkTmF3UmI3RC92SDNWalVpTDBl?=
- =?utf-8?B?b2t0V0FDbHpvV1c5OHZmSVltem54aXh1dGx1eWtEZmp1RlgwcU1ObGtJV1V1?=
- =?utf-8?B?N1o2bzQ5NWpKYVl2WFdjS28zTmdkSmM4bFJHRWk2eExweXJqbjN5SG5WdGwy?=
- =?utf-8?B?bk5JWGdIYmJ3dzNSWVNvUHRBekE4MUVxOFNKT1RnbGU3QzMyR012N1ZJSFhC?=
- =?utf-8?B?bUhmWjBrK2lScEZmQ0VCazlvRjdLVFZkZERQOGRDMi9ZdllHYXNKMng0ZHNt?=
- =?utf-8?B?dzBjaDVmOWtkdGlBU21nbkNZY1QzRWlaNWhuM2VodGI1T2VrTnZEQjhORVFr?=
- =?utf-8?B?cGFJSTRxVVFBTTBUbGp5aXVQSnh0Q2RqdGNNV3BZRVpMQmE3ZjBxTmcvaStm?=
- =?utf-8?B?S0kveHZPaDVXVHgvd2lWTUQ0THpUUkpJc0x4OUkvSlNoN2JZa28wNmV3cC85?=
- =?utf-8?B?ZFVTNWx2b0ErOGtlWXliKy82MElnSkdOSlpaV3U1dXlCY2RLWC8wSmxzZ1R4?=
- =?utf-8?B?OTN1REYxR1ovTUpUTGwzTlB6NVFNM2F6OFRUYm5WUVErLzdvNzI4YnlQT1ZZ?=
- =?utf-8?B?SWo3ZWtxK1pycm9raGZ1VnBaNWptUkFqa1pLNmErdjZTeGIxUFBFM2Y3R1J0?=
- =?utf-8?B?ODZKOFNNWHFoRDN2dDFjdEl5SVNQSlMyb2RxREdQc0lMK2tGTDhzT1BaamZv?=
- =?utf-8?B?N25oc0NTVmNkbWxDNytFbkdaSlB2R214WUxYc3J2UDZHbEhMa0xFN3owVDNy?=
- =?utf-8?B?aGJrS3ltZ1NEbXFMSkJuY25yWVZFcFF1TnhGOFYwWkFzam44R1dmTDhMN1dP?=
- =?utf-8?B?WHJ0MU9rRHgxcGorcU1sb01hbmFvVm8vOTdiYVV4TmxMK3o0UEdHdmhuU1RC?=
- =?utf-8?B?bGRTVDBMUWFTZFZiakdMeWM1TWdBME9kMEtUUU1ZZWFZR0c1WFdmM0FsK1Fh?=
- =?utf-8?B?ZDY1d0xRRCtPM2VHdFZmcVpZMzZmemNlT21TL25xOHJ0cmpzeEZlZ1FkLzhv?=
- =?utf-8?B?UDFtRnR3SDdLVVZxS2N1ZW5NQXNyd3lCQnVOU3g5S1NuOWVGUFordGk5N2Jj?=
- =?utf-8?B?aUs0TmludGMxQ1VDNEU5bFEzRGhZTEFOOEE0c0R2WDRUWFJNYllRc3RMR29l?=
- =?utf-8?B?VC9kZFVoaEdGT2p3ZWdOb0J4Q0R3d2JoRy85WmVCelZ6VTZhaEdPWnVGM2tG?=
- =?utf-8?B?QjdqcjlGbkI2RlBCQ1p0KzJDc0hsaXdibWVLeFFZVGI3dEdGRGVxMGo3ZE9H?=
- =?utf-8?B?cFRaSFRmS3ZDSUxRSVI5MkdkRHpVM1lNdXNrdHVybFJ3RkZnRGxoSC9sa0ti?=
- =?utf-8?B?RWdqR0lkcjZiLzg5TmliTDV2bkVvUG5XeS82WTZvaHRRbjU0RXpqWUpaRmlM?=
- =?utf-8?B?NUZvM1dTQXhDajY2R3pjaGVQRDBSME9NSHEwWkN6TVlOV1NaQWhaaWNZN2NM?=
- =?utf-8?Q?EYysTE?=
+	=?utf-8?B?Z0p0aG9TTTJkVjFmUFhGRzdsQlEzMUIyeTJPL1o5bnBwWE5rYllHQS8yTWg0?=
+ =?utf-8?B?dTNjbWVmc2pYU2NHa3lTajYrOHRxWm51RitGWG9EVEY0VEhrZ3c2ZG1zVmIy?=
+ =?utf-8?B?TlozWkxhQ3FWQ0VsU0NwMWFnKzMvaXEyRnVXeFJQQnMxZ0dDamFCaEtFWXN1?=
+ =?utf-8?B?Z2Z4eWc0L092VkNsbnhJYWJNeEx4dkFZdk1qcExzVE9mR3FQWkRaSEhvWUM4?=
+ =?utf-8?B?NjJlRC9mYVdyOHpicjNXbGUvRWN0U2NhNUtFY0hLVktSellrUUQwZkFzT1F0?=
+ =?utf-8?B?NlBCMC9xY2s5YjRhVFBJcHhjTXJibmtLazI4anJQTzFXYWVnNjJYNDRQWTE1?=
+ =?utf-8?B?bEp4REozL2JSNG1XUThLd3Zwamc2Qi9MMEhyandwcVpnYWRrVHVLTFZTYzJY?=
+ =?utf-8?B?bmRNbmVIMzZPYjhOWm1hak5FUTJocVlUakI1dUxlR1c2MUIzSXlONHIycXNj?=
+ =?utf-8?B?SDhZVjVqMlgzclkvQnJrK1ZBZk4vOVU3dkJFR0dOeU1BWGdseUtldWpEdnhN?=
+ =?utf-8?B?REE0TmpvRDN1U3NoMGFDc0dvamVoMmp6N1VLVUFqdTZkcDRpdzBFUEVScnFL?=
+ =?utf-8?B?WUdKVEw5ZVorZ2RDUHg2Ynd4T2p6OS8zb3ZJMVVMalAralRRYldQMEZ0YW9P?=
+ =?utf-8?B?V0JIN3hwMi81VnV2THBIdDlWNlpEcDZyTlVWNSs3enpmWXowQzU3MjdwOVhF?=
+ =?utf-8?B?MnlwOXNXQkcvZll2NG9rSW1LbXRjOGFEejNzNno5VlF5MWhhMUpIMEFlOTFK?=
+ =?utf-8?B?NVpkV0Jvd0oyR0lvc0tmR2dDT3p4Qm81VGMvRlhBYzkzSS9WUkdvTzVUQmta?=
+ =?utf-8?B?Z2JiYUdtbHZMS3U4T282OXFsaC9hYjg3bFVkaEExeFVXbUpITDdGcDhQbHk0?=
+ =?utf-8?B?LzFPMjNybFo4S1VnNlpDWVRMVnZIbnRxTDl0WDRkeW0yMXk2V1g5cGsxMk1L?=
+ =?utf-8?B?TGQ5Tzg1b01RSkVyWW5zRVB0SUkwbno3TmFUYXhvRmhtRWZybFNTNVcxUU0w?=
+ =?utf-8?B?ZGJmQmR6dmhzS3hET3VYNFFxSFhaaGxDTy9iK1U2SDNwelJHdUdDQStnNlU3?=
+ =?utf-8?B?blBkbE11SXQvUDd0UjNZVXVFaC9RTFZTeFVlaUV1ckN6SzlsdC9uN3JwZWxM?=
+ =?utf-8?B?U2hESTNWRFpZOE5USGlPRGtCS3U0dXVqRFRaL0VwdW9SR3N1a1BoamRvU3Bo?=
+ =?utf-8?B?MlU5RHhzUUhEN3JBbmNGd3AzUHp4T0VhbFR1UjJXWVJ0b3NrSXR5T3JsMHA3?=
+ =?utf-8?B?VEUzekNtd0RaR0ZHSFlMckdSZnlJaWJ4b1V4SDRSdlN6Rm8zYkFYak9FY042?=
+ =?utf-8?B?SzM0M3Rha3cwaGYwYU9DdzVYMU52eFBtR05CQTZGT2RrOHBVa0QwYmdKTkJj?=
+ =?utf-8?B?WW1yV3oyay92aThCZkhqazZCbHpvbXhvTjBzRzdWclVjZlk2OWNsWldMM2dk?=
+ =?utf-8?B?eUE3cmJDeER6TU5Yb21tVXNpcTF0WjJZTGpLY2Q2VkMySmRtTTM2VUZrdlZq?=
+ =?utf-8?B?bmRKQ3lBN2tvQ29DNWEzZEhudHJWU1BLeHR0dVpuMVZIYXcxd3UvUThBSEkz?=
+ =?utf-8?B?eFl6UTRXYzA5dWFlT0xzRVFVSERTczRJSm9uVUw0ZXNuMDlLdERsRk9zclFr?=
+ =?utf-8?B?QTZtVFRWUzFBVms5TXUyQytiT1BWaVZpdG1RbUJlTEgwaks5Y0svZXJaSEhp?=
+ =?utf-8?B?TnFrRFE3Z3JWelUzWlJLVkR4b2o1RmlKMURWb3ZCT0l4aXByUWdwY1RFaVJ0?=
+ =?utf-8?B?alY3YlFNbVdqQVBaaE5OcEtoVHNLTHlUUGNWaUMvZ3d4d2puYkpDRGI1SGt0?=
+ =?utf-8?B?akZXK3NXeWpsTjNCZnVGcDYvdVp3d2x1VmZ6ZGdicFJuNEpuak85MDEwMTZx?=
+ =?utf-8?B?Tk9lS2hlMW00WUowazk0L2QzZEVaTmtZU1g2SjdWdFhKdk53aUQ0bVByWGp2?=
+ =?utf-8?B?R0YyZkdKRzVTbDBGU2VlOUxkN2p2U2Mwa0M5NE1lcHorbXNBN0tXd2dIblNk?=
+ =?utf-8?B?VWpXWnFFeVRtRGI1Z20wS21kQWpmVGNrMDl6R0VpcUh5cklqTTZiOVVsK3lm?=
+ =?utf-8?Q?GieF1x?=
 X-Forefront-Antispam-Report:
-	CIP:208.255.156.42;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:cn-mailer-00.localdomain;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(82310400026)(36860700013)(376014)(1800799024);DIR:OUT;SFP:1102;
+	CIP:208.255.156.42;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:cn-mailer-00.localdomain;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(36860700013)(1800799024)(82310400026)(376014);DIR:OUT;SFP:1102;
 X-OriginatorOrg: cornelisnetworks.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 30 Jun 2025 17:58:10.8417
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 30 Jun 2025 17:58:09.1249
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: ea9d5288-8859-447d-d0b7-08ddb7ffad68
+X-MS-Exchange-CrossTenant-Network-Message-Id: 8545cf35-8809-4289-63c1-08ddb7ffac92
 X-MS-Exchange-CrossTenant-Id: 4dbdb7da-74ee-4b45-8747-ef5ce5ebe68a
 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=4dbdb7da-74ee-4b45-8747-ef5ce5ebe68a;Ip=[208.255.156.42];Helo=[cn-mailer-00.localdomain]
 X-MS-Exchange-CrossTenant-AuthSource:
 	CY4PEPF0000E9DB.namprd05.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS2PR01MB9278
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: BY3PR01MB6561
 
-In the new HW there is an embedded micro on the card which manages alot of
-what used to be done in sw as far as the MAD layer is concerned. We do
-still need to support MADs in SW for the older generation HW so those
-definitions move as well.
+Adds the base trace even support for the driver.
 
 Co-developed-by: Dean Luick <dean.luick@cornelisnetworks.com>
 Signed-off-by: Dean Luick <dean.luick@cornelisnetworks.com>
-Co-developed-by: Douglas Miller <doug.miller@cornelisnetworks.com>
-Signed-off-by: Douglas Miller <doug.miller@cornelisnetworks.com>
+Co-developed-by: Bendan Cunningham <brendan.cunningham@cornelisnetworks.com>
+Signed-off-by: Breandan Cunningham <brendan.cunningham@cornelisnetworks.com>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
 ---
- drivers/infiniband/hw/hfi2/cport.h       |  247 +++++++++++++++++
- drivers/infiniband/hw/hfi2/cport_traps.h |   43 +++
- drivers/infiniband/hw/hfi2/mad.h         |  448 ++++++++++++++++++++++++++++++
- 3 files changed, 738 insertions(+)
- create mode 100644 drivers/infiniband/hw/hfi2/cport.h
- create mode 100644 drivers/infiniband/hw/hfi2/cport_traps.h
- create mode 100644 drivers/infiniband/hw/hfi2/mad.h
+ drivers/infiniband/hw/hfi2/trace.c |  535 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 535 insertions(+)
+ create mode 100644 drivers/infiniband/hw/hfi2/trace.c
 
-diff --git a/drivers/infiniband/hw/hfi2/cport.h b/drivers/infiniband/hw/hfi2/cport.h
+diff --git a/drivers/infiniband/hw/hfi2/trace.c b/drivers/infiniband/hw/hfi2/trace.c
 new file mode 100644
-index 000000000000..d08d8e04261d
+index 000000000000..0a117d1692b9
 --- /dev/null
-+++ b/drivers/infiniband/hw/hfi2/cport.h
-@@ -0,0 +1,247 @@
-+/* SPDX-License-Identifier: GPL-2.0 or BSD-3-Clause */
++++ b/drivers/infiniband/hw/hfi2/trace.c
+@@ -0,0 +1,535 @@
++// SPDX-License-Identifier: GPL-2.0 OR BSD-3-Clause
 +/*
-+ * Copyright(c) 2023 Cornelis Networks.
++ * Copyright(c) 2015 - 2020 Intel Corporation.
 + */
-+
-+#ifndef _CPORT_H
-+#define _CPORT_H
-+
-+/*****************************************************
-+ * "Public" software interfaces (inside driver only).
-+ */
-+
-+/*
-+ * Op-codes for requests (and associated responses).
-+ * CPORT firmware must have the same definitions.
-+ */
-+#define CH_OP_PING		0	/* simple ping/echo command */
-+#define CH_OP_WHO		1
-+#define CH_OP_HOW		2
-+#define CH_OP_START		3	/* driver start/options */
-+#define CH_OP_STOP		4	/* driver stop (unload) */
-+#define CH_OP_TRAP		5	/* notification of TRAP condition */
-+#define CH_OP_TRAP_REPRESS	6	/* TRAP acknowledge */
-+#define CH_OP_MAD_9B		7	/* Local MAD packets 9B */
-+#define CH_OP_MAD_16B		8	/* Local MAD packets 16B */
-+#define CH_OP_UMAD_9B		9	/* User MAD packets 9B */
-+#define CH_OP_UMAD_16B		10	/* User MAD packets 16B */
-+
-+/*
-+ * Error codes for responses.
-+ * CPORT firmware must have the same definitions.
-+ */
-+#define MSG_RSP_STATUS_OK			0
-+#define MSG_RSP_STATUS_SEQ_NO_ERROR		1
-+#define MSG_RSP_STATUS_OPCODE_UNSUPPORTED	2
-+#define MSG_RSP_STATUS_INVALID_STATE		3
-+#define MSG_RSP_STATUS_RETRY			4
-+#define MSG_RSP_STATUS_DENIED			5
-+
-+struct cport_options {
-+	u16 bare_metal:1;
-+	u16 gsi:1;
-+	u16 flr:1;
-+	u16 spi_we:1;
-+	u16 local_mad:1;
-+	u16 _resv:11;
-+};
-+
-+struct cport_trap_status {
-+	u32 psc:1;	/* Port State Change */
-+	u32 li:1;	/* Link Integrity */
-+	u32 bo:1;	/* Buffer Overrun */
-+	u32 fw:1;	/* Flow Watchdog */
-+	u32 cc:1;	/* Capability Change */
-+	u32 sic:1;	/* System Image Change */
-+	u32 bmk:1;	/* Bad M Key */
-+	u32 bqk:1;	/* Bad Q Key */
-+	u32 lwc:1;	/* Link Width Change */
-+	u32 qsfp:1;	/* QSFP Fault */
-+	u32 _resv:22;
-+};
-+
-+/* Fields in 4-qword payload of WHO response */
-+struct cport_who_payload {
-+	/* qword 1 */
-+	u16 _resv1:8;
-+	u16 introp:8;	/* interop level */
-+	struct cport_options fixed;
-+	struct cport_options suppt;
-+	u16 max_msg;	/* max cport msg length */
-+	/* qword 2 */
-+	u64 vers_bld:32;
-+	u64 vers_pat:8;
-+	u64 vers_mnt:8;
-+	u64 vers_min:8;
-+	u64 vers_maj:8;
-+	/* qword 3 */
-+	u64 node_guid;
-+	/* qword 4 */
-+	struct cport_trap_status trap_sup;
-+	u16 _resv2;
-+	u16 max_aux;	/* max cport aux length */
-+};
-+
-+/* Fields in 3-qword payload of HOW response */
-+struct cport_how_payload {
-+	/* qword 1 */
-+	u16 pt0_log_st:2;
-+	u16 pt1_log_st:2;
-+	u16 pt2_log_st:2;
-+	u16 pt3_log_st:2;
-+	u16 interop:8;
-+	struct cport_options opts_ena;
-+	u16 pt0_phy_st:8;
-+	u16 pt1_phy_st:8;
-+	u16 pt2_phy_st:8;
-+	u16 pt3_phy_st:8;
-+	/* qword 2 */
-+	struct cport_trap_status trap_ena;
-+	struct cport_trap_status trap_sts;
-+	/* qword 3 */
-+	u64 started:8;
-+	u64 _resv1:56;
-+};
-+
-+/* Fields in 1-qword payload of START request/response */
-+struct cport_start_payload {
-+	u16 sidx:3;
-+	u16 _resv1:5;
-+	u16 interop:8;
-+	struct cport_options opts_ena;
-+	struct cport_trap_status trap_ena;
-+};
-+
-+/* Fields in 1-qword payload of STOP request/response */
-+struct cport_stop_payload {
-+	u64 sidx:3;
-+	u64 _resv1:61;
-+};
-+
-+/* Fields in 1-qword payload of TRAP or TRAP_REPRESS request */
-+struct cport_trap_payload {
-+	struct cport_trap_status trap_sts;
-+	u32 _resv1;
-+};
-+
-+/*
-+ * Non-blocking request interface.
-+ *
-+ * cport_send_req_nb() returns 'handle' (or IS_ERR(handle)).
-+ * Caller supplies 'wait' which will be "upped" when the matching response
-+ * is received.  Caller also supplies a timeout for the OUTBOX_EMPTY wait.
-+ * This is generally needed if the caller will be using a timeout when waiting
-+ * for completion, to ensure that the send kworker also times out and exits.
-+ * Timeouts, etc, use cport_send_cancel() to terminate without receiving response.
-+ *
-+ * Payload is always copied to internal buffer, so caller
-+ * may dispose of their buffer immediately on return.
-+ *
-+ * Timeout value of MAX_SCHEDULE_TIMEOUT causes infinite wait for OUTBOX_EMPTY.
-+ *
-+ * One of cport_send_comp() or cport_send_cancel() must be called in order
-+ * to fully release 'handle'.
-+ *
-+ * Response payload and length is provided in 'rsp_pld' and 'rsp_len',
-+ * which has been kalloc'ed and must be kfree'ed by caller.
-+ *
-+ * cport_send_comp() returns the status (error code) from the response.
-+ */
-+void *cport_send_req_nb(struct hfi2_devdata *dd, u8 op, u8 sideband,
-+			void *payload, int len, struct semaphore *wait, long timeout);
-+int cport_send_comp(struct hfi2_devdata *dd, void *handle,
-+		    void **rsp_pld, int *rsp_len);
-+void cport_send_cancel(struct hfi2_devdata *dd, void *handle);
-+
-+/*
-+ * Blocking request interface with timeout.
-+ *
-+ * The caller may dispose of 'payload' immediately on return.
-+ * Response payload and length is provided in 'rsp_pld' and 'rsp_len',
-+ * which has been kalloc'ed and must be kfree'ed by caller.
-+ *
-+ * Timeout value of MAX_SCHEDULE_TIMEOUT causes infinite wait for response
-+ * and OUTBOX_EMPTY.
-+ *
-+ * Returns the status (error code) from the response.
-+ */
-+int cport_send_req(struct hfi2_devdata *dd, u8 op, u8 sideband, void *payload, int len,
-+		   void **rsp_pld, int *rsp_len, long timeout);
-+
-+/*
-+ * CPORT Notification interface.
-+ *
-+ * A notification is defined as a request that has no response.
-+ * This is implicitly non-blocking.
-+ *
-+ * The caller may dispose of 'payload' immediately on return.
-+ *
-+ * Returns 0 if the request was successfully queued.
-+ */
-+int cport_send_notif(struct hfi2_devdata *dd, u8 op, u8 sideband, void *payload, int len);
-+
-+/**************************************
-+ * API for notifications from CPORT
-+ */
-+
-+/*
-+ * Handler prototype for callbacks.
-+ *
-+ * Returns response status (error) value. Must setup response payload
-+ * if appropriate. Whether or not a response is actually sent depends on
-+ * whether the request asked for one. Default is no payload (0 length).
-+ *
-+ * The semantics for responses are defined by the op-code. Error responses
-+ * may have different payloads than successful responses (or no payload at all).
-+ * Payloads may even be optional.
-+ */
-+typedef int (*cport_handler)(struct hfi2_devdata *dd, u8 op, u8 sideband,
-+			     void *payload, int len, void *handle);
-+
-+/*
-+ * Register a callback for a range of op-codes. Only one callback may be
-+ * registered for a given op-code. Returns 0 on success (valid op-code range).
-+ */
-+int cport_register_cb(struct hfi2_devdata *dd, u8 op_start, u8 op_end, cport_handler func);
-+
-+/*
-+ * Prepare a response payload for 'len' bytes of payload from callback.
-+ *
-+ * Returns NULL on error, including 'len' out of bounds. Returned pointer
-+ * is not disposable directly.
-+ */
-+void *cport_resp_alloc(void *handle, int len);
-+
-+/*
-+ * Set static buffer for response payload of 'len' bytes from callback.
-+ *
-+ * Buffer may be disposed of immediately on return. If 'len' exceeds
-+ * maximum allowed, returns -EINVAL.
-+ */
-+int cport_resp_set(void *handle, void *payload, int len);
-+
-+/*
-+ * Interrupt handler for MctxtCportToPcieInt
-+ */
-+void is_cport_int(struct hfi2_devdata *dd, unsigned int source);
-+
-+/*
-+ * Start a CPORT ping for count iterations.
-+ */
-+int cport_ping_start(struct hfi2_devdata *dd, unsigned int count);
-+
-+/*
-+ * Initialize the CPORT communication facility.
-+ *
-+ * If the device does not have a CPORT, this returns 0.
-+ */
-+int cport_init(struct hfi2_devdata *dd);
-+
-+/*
-+ * Shutdown the CPORT communication facility.
-+ *
-+ * If the device has no CPORT, this does nothing.
-+ */
-+int cport_exit(struct hfi2_devdata *dd);
-+
-+#endif /* _CPORT_H */
-diff --git a/drivers/infiniband/hw/hfi2/cport_traps.h b/drivers/infiniband/hw/hfi2/cport_traps.h
-new file mode 100644
-index 000000000000..cff14649b78a
---- /dev/null
-+++ b/drivers/infiniband/hw/hfi2/cport_traps.h
-@@ -0,0 +1,43 @@
-+/* SPDX-License-Identifier: GPL-2.0 or BSD-3-Clause */
-+/*
-+ * Copyright(c) 2023 Cornelis Networks.
-+ */
-+
-+#ifndef _CPORT_TRAPS_H
-+#define _CPORT_TRAPS_H
-+
-+#include "cport.h"
-+
-+/*
-+ * Facility to handle CPORT "TRAPS".
-+ */
-+
-+/*
-+ * Handler prototype for callbacks.
-+ *
-+ * @traps indicates which traps are being reported, and is not restricted
-+ * to the trap(s) registered to this callback. At least one of the traps
-+ * that was requested will be set.
-+ */
-+typedef void (*cport_trap_handler)(struct hfi2_devdata *dd,
-+				   struct cport_trap_status traps);
-+
-+/*
-+ * Register for a callback when certain CPORT TRAPs occur.
-+ *
-+ * @traps indicates the TRAPs to be detected.
-+ * @func will be called when at least one of @traps is set.
-+ */
-+int register_cport_trap(struct hfi2_devdata *dd, struct cport_trap_status traps,
-+			cport_trap_handler func);
-+
-+/*
-+ * Deregister for a callback on CPORT TRAPs.
-+ *
-+ * @func All registered callbacks using this function will be removed.
-+ *
-+ * On return, @func will not be called for any traps.
-+ */
-+int deregister_cport_trap(struct hfi2_devdata *dd, cport_trap_handler func);
-+
-+#endif /* _CPORT_TRAPS_H */
-diff --git a/drivers/infiniband/hw/hfi2/mad.h b/drivers/infiniband/hw/hfi2/mad.h
-new file mode 100644
-index 000000000000..d599deb8e7ae
---- /dev/null
-+++ b/drivers/infiniband/hw/hfi2/mad.h
-@@ -0,0 +1,448 @@
-+/* SPDX-License-Identifier: GPL-2.0 OR BSD-3-Clause */
-+/*
-+ * Copyright(c) 2015 - 2017 Intel Corporation.
-+ */
-+
-+#ifndef _HFI2_MAD_H
-+#define _HFI2_MAD_H
-+
-+#include <rdma/ib_pma.h>
-+#include <rdma/opa_smi.h>
-+#include <rdma/opa_port_info.h>
-+#include "opa_compat.h"
-+
-+/*
-+ * OPA Traps
-+ */
-+#define OPA_TRAP_GID_NOW_IN_SERVICE             cpu_to_be16(64)
-+#define OPA_TRAP_GID_OUT_OF_SERVICE             cpu_to_be16(65)
-+#define OPA_TRAP_ADD_MULTICAST_GROUP            cpu_to_be16(66)
-+#define OPA_TRAL_DEL_MULTICAST_GROUP            cpu_to_be16(67)
-+#define OPA_TRAP_UNPATH                         cpu_to_be16(68)
-+#define OPA_TRAP_REPATH                         cpu_to_be16(69)
-+#define OPA_TRAP_PORT_CHANGE_STATE              cpu_to_be16(128)
-+#define OPA_TRAP_LINK_INTEGRITY                 cpu_to_be16(129)
-+#define OPA_TRAP_EXCESSIVE_BUFFER_OVERRUN       cpu_to_be16(130)
-+#define OPA_TRAP_FLOW_WATCHDOG                  cpu_to_be16(131)
-+#define OPA_TRAP_CHANGE_CAPABILITY              cpu_to_be16(144)
-+#define OPA_TRAP_CHANGE_SYSGUID                 cpu_to_be16(145)
-+#define OPA_TRAP_BAD_M_KEY                      cpu_to_be16(256)
-+#define OPA_TRAP_BAD_P_KEY                      cpu_to_be16(257)
-+#define OPA_TRAP_BAD_Q_KEY                      cpu_to_be16(258)
-+#define OPA_TRAP_SWITCH_BAD_PKEY                cpu_to_be16(259)
-+#define OPA_SMA_TRAP_DATA_LINK_WIDTH            cpu_to_be16(2048)
-+
-+/*
-+ * Generic trap/notice other local changes flags (trap 144).
-+ */
-+#define	OPA_NOTICE_TRAP_LWDE_CHG        0x08 /* Link Width Downgrade Enable
-+					      * changed
-+					      */
-+#define OPA_NOTICE_TRAP_LSE_CHG         0x04 /* Link Speed Enable changed */
-+#define OPA_NOTICE_TRAP_LWE_CHG         0x02 /* Link Width Enable changed */
-+#define OPA_NOTICE_TRAP_NODE_DESC_CHG   0x01
-+
-+struct opa_mad_notice_attr {
-+	u8 generic_type;
-+	u8 prod_type_msb;
-+	__be16 prod_type_lsb;
-+	__be16 trap_num;
-+	__be16 toggle_count;
-+	__be32 issuer_lid;
-+	__be32 reserved1;
-+	union ib_gid issuer_gid;
-+
-+	union {
-+		struct {
-+			u8	details[64];
-+		} raw_data;
-+
-+		struct {
-+			union ib_gid	gid;
-+		} __packed ntc_64_65_66_67;
-+
-+		struct {
-+			__be32	lid;
-+		} __packed ntc_128;
-+
-+		struct {
-+			__be32	lid;		/* where violation happened */
-+			u8	port_num;	/* where violation happened */
-+		} __packed ntc_129_130_131;
-+
-+		struct {
-+			__be32	lid;		/* LID where change occurred */
-+			__be32	new_cap_mask;	/* new capability mask */
-+			__be16	reserved2;
-+			__be16	cap_mask3;
-+			__be16	change_flags;	/* low 4 bits only */
-+		} __packed ntc_144;
-+
-+		struct {
-+			__be64	new_sys_guid;
-+			__be32	lid;		/* lid where sys guid changed */
-+		} __packed ntc_145;
-+
-+		struct {
-+			__be32	lid;
-+			__be32	dr_slid;
-+			u8	method;
-+			u8	dr_trunc_hop;
-+			__be16	attr_id;
-+			__be32	attr_mod;
-+			__be64	mkey;
-+			u8	dr_rtn_path[30];
-+		} __packed ntc_256;
-+
-+		struct {
-+			__be32		lid1;
-+			__be32		lid2;
-+			__be32		key;
-+			u8		sl;	/* SL: high 5 bits */
-+			u8		reserved3[3];
-+			union ib_gid	gid1;
-+			union ib_gid	gid2;
-+			__be32		qp1;	/* high 8 bits reserved */
-+			__be32		qp2;	/* high 8 bits reserved */
-+		} __packed ntc_257_258;
-+
-+		struct {
-+			__be16		flags;	/* low 8 bits reserved */
-+			__be16		pkey;
-+			__be32		lid1;
-+			__be32		lid2;
-+			u8		sl;	/* SL: high 5 bits */
-+			u8		reserved4[3];
-+			union ib_gid	gid1;
-+			union ib_gid	gid2;
-+			__be32		qp1;	/* high 8 bits reserved */
-+			__be32		qp2;	/* high 8 bits reserved */
-+		} __packed ntc_259;
-+
-+		struct {
-+			__be32	lid;
-+		} __packed ntc_2048;
-+
-+	};
-+	u8	class_data[];
-+};
-+
-+#define IB_VLARB_LOWPRI_0_31    1
-+#define IB_VLARB_LOWPRI_32_63   2
-+#define IB_VLARB_HIGHPRI_0_31   3
-+#define IB_VLARB_HIGHPRI_32_63  4
-+
-+#define OPA_MAX_PREEMPT_CAP         32
-+#define OPA_VLARB_LOW_ELEMENTS       0
-+#define OPA_VLARB_HIGH_ELEMENTS      1
-+#define OPA_VLARB_PREEMPT_ELEMENTS   2
-+#define OPA_VLARB_PREEMPT_MATRIX     3
-+
-+#define IB_PMA_PORT_COUNTERS_CONG       cpu_to_be16(0xFF00)
-+#define LINK_SPEED_25G		1
-+#define LINK_SPEED_12_5G	2
-+#define LINK_WIDTH_DEFAULT	4
-+#define DECIMAL_FACTORING	1000
-+/*
-+ * The default link width is multiplied by 1000
-+ * to get accurate value after division.
-+ */
-+#define FACTOR_LINK_WIDTH	(LINK_WIDTH_DEFAULT * DECIMAL_FACTORING)
-+
-+struct ib_pma_portcounters_cong {
-+	u8 reserved;
-+	u8 reserved1;
-+	__be16 port_check_rate;
-+	__be16 symbol_error_counter;
-+	u8 link_error_recovery_counter;
-+	u8 link_downed_counter;
-+	__be16 port_rcv_errors;
-+	__be16 port_rcv_remphys_errors;
-+	__be16 port_rcv_switch_relay_errors;
-+	__be16 port_xmit_discards;
-+	u8 port_xmit_constraint_errors;
-+	u8 port_rcv_constraint_errors;
-+	u8 reserved2;
-+	u8 link_overrun_errors; /* LocalLink: 7:4, BufferOverrun: 3:0 */
-+	__be16 reserved3;
-+	__be16 vl15_dropped;
-+	__be64 port_xmit_data;
-+	__be64 port_rcv_data;
-+	__be64 port_xmit_packets;
-+	__be64 port_rcv_packets;
-+	__be64 port_xmit_wait;
-+	__be64 port_adr_events;
-+} __packed;
-+
-+#define IB_SMP_UNSUP_VERSION    cpu_to_be16(0x0004)
-+#define IB_SMP_UNSUP_METHOD     cpu_to_be16(0x0008)
-+#define IB_SMP_UNSUP_METH_ATTR  cpu_to_be16(0x000C)
-+#define IB_SMP_INVALID_FIELD    cpu_to_be16(0x001C)
-+
-+#define OPA_MAX_PREEMPT_CAP         32
-+#define OPA_VLARB_LOW_ELEMENTS       0
-+#define OPA_VLARB_HIGH_ELEMENTS      1
-+#define OPA_VLARB_PREEMPT_ELEMENTS   2
-+#define OPA_VLARB_PREEMPT_MATRIX     3
-+
-+#define HFI2_XMIT_RATE_UNSUPPORTED               0x0
-+#define HFI2_XMIT_RATE_PICO                      0x7
-+/* number of 4nsec cycles equaling 2secs */
-+#define HFI2_CONG_TIMER_PSINTERVAL               0x1DCD64EC
-+
-+#define IB_CC_SVCTYPE_RC 0x0
-+#define IB_CC_SVCTYPE_UC 0x1
-+#define IB_CC_SVCTYPE_RD 0x2
-+#define IB_CC_SVCTYPE_UD 0x3
-+
-+/*
-+ * There should be an equivalent IB #define for the following, but
-+ * I cannot find it.
-+ */
-+#define OPA_CC_LOG_TYPE_HFI	2
-+
-+struct opa_hfi2_cong_log_event_internal {
-+	u32 lqpn;
-+	u32 rqpn;
-+	u8 sl;
-+	u8 svc_type;
-+	u32 rlid;
-+	u64 timestamp; /* wider than 32 bits to detect 32 bit rollover */
-+};
-+
-+struct opa_hfi2_cong_log_event {
-+	u8 local_qp_cn_entry[3];
-+	u8 remote_qp_number_cn_entry[3];
-+	u8 sl_svc_type_cn_entry; /* 5 bits SL, 3 bits svc type */
-+	u8 reserved;
-+	__be32 remote_lid_cn_entry;
-+	__be32 timestamp_cn_entry;
-+} __packed;
-+
-+#define OPA_CONG_LOG_ELEMS	96
-+
-+struct opa_hfi2_cong_log {
-+	u8 log_type;
-+	u8 congestion_flags;
-+	__be16 threshold_event_counter;
-+	__be32 current_time_stamp;
-+	u8 threshold_cong_event_map[OPA_MAX_SLS / 8];
-+	struct opa_hfi2_cong_log_event events[OPA_CONG_LOG_ELEMS];
-+} __packed;
-+
-+#define IB_CC_TABLE_CAP_DEFAULT 31
-+
-+/* Port control flags */
-+#define IB_CC_CCS_PC_SL_BASED 0x01
-+
-+struct opa_congestion_setting_entry {
-+	u8 ccti_increase;
-+	u8 reserved;
-+	__be16 ccti_timer;
-+	u8 trigger_threshold;
-+	u8 ccti_min; /* min CCTI for cc table */
-+} __packed;
-+
-+struct opa_congestion_setting_entry_shadow {
-+	u8 ccti_increase;
-+	u8 reserved;
-+	u16 ccti_timer;
-+	u8 trigger_threshold;
-+	u8 ccti_min; /* min CCTI for cc table */
-+} __packed;
-+
-+struct opa_congestion_setting_attr {
-+	__be32 control_map;
-+	__be16 port_control;
-+	struct opa_congestion_setting_entry entries[OPA_MAX_SLS];
-+} __packed;
-+
-+struct opa_congestion_setting_attr_shadow {
-+	u32 control_map;
-+	u16 port_control;
-+	struct opa_congestion_setting_entry_shadow entries[OPA_MAX_SLS];
-+} __packed;
-+
-+#define IB_CC_TABLE_ENTRY_INCREASE_DEFAULT 1
-+#define IB_CC_TABLE_ENTRY_TIMER_DEFAULT 1
-+
-+/* 64 Congestion Control table entries in a single MAD */
-+#define IB_CCT_ENTRIES 64
-+#define IB_CCT_MIN_ENTRIES (IB_CCT_ENTRIES * 2)
-+
-+struct ib_cc_table_entry {
-+	__be16 entry; /* shift:2, multiplier:14 */
-+};
-+
-+struct ib_cc_table_entry_shadow {
-+	u16 entry; /* shift:2, multiplier:14 */
-+};
-+
-+struct ib_cc_table_attr {
-+	__be16 ccti_limit; /* max CCTI for cc table */
-+	struct ib_cc_table_entry ccti_entries[IB_CCT_ENTRIES];
-+} __packed;
-+
-+struct ib_cc_table_attr_shadow {
-+	u16 ccti_limit; /* max CCTI for cc table */
-+	struct ib_cc_table_entry_shadow ccti_entries[IB_CCT_ENTRIES];
-+} __packed;
-+
-+#define CC_TABLE_SHADOW_MAX \
-+	(IB_CC_TABLE_CAP_DEFAULT * IB_CCT_ENTRIES)
-+
-+struct cc_table_shadow {
-+	u16 ccti_limit; /* max CCTI for cc table */
-+	struct ib_cc_table_entry_shadow entries[CC_TABLE_SHADOW_MAX];
-+} __packed;
-+
-+/*
-+ * struct cc_state combines the (active) per-port congestion control
-+ * table, and the (active) per-SL congestion settings. cc_state data
-+ * may need to be read in code paths that we want to be fast, so it
-+ * is an RCU protected structure.
-+ */
-+struct cc_state {
-+	struct rcu_head rcu;
-+	struct cc_table_shadow cct;
-+	struct opa_congestion_setting_attr_shadow cong_setting;
-+};
-+
-+/*
-+ * OPA BufferControl MAD
-+ */
-+
-+/* attribute modifier macros */
-+#define OPA_AM_NPORT_SHIFT	24
-+#define OPA_AM_NPORT_MASK	0xff
-+#define OPA_AM_NPORT_SMASK	(OPA_AM_NPORT_MASK << OPA_AM_NPORT_SHIFT)
-+#define OPA_AM_NPORT(am)	(((am) >> OPA_AM_NPORT_SHIFT) & \
-+					OPA_AM_NPORT_MASK)
-+
-+#define OPA_AM_NBLK_SHIFT	24
-+#define OPA_AM_NBLK_MASK	0xff
-+#define OPA_AM_NBLK_SMASK	(OPA_AM_NBLK_MASK << OPA_AM_NBLK_SHIFT)
-+#define OPA_AM_NBLK(am)		(((am) >> OPA_AM_NBLK_SHIFT) & \
-+					OPA_AM_NBLK_MASK)
-+
-+#define OPA_AM_START_BLK_SHIFT	0
-+#define OPA_AM_START_BLK_MASK	0xff
-+#define OPA_AM_START_BLK_SMASK	(OPA_AM_START_BLK_MASK << \
-+					OPA_AM_START_BLK_SHIFT)
-+#define OPA_AM_START_BLK(am)	(((am) >> OPA_AM_START_BLK_SHIFT) & \
-+					OPA_AM_START_BLK_MASK)
-+
-+#define OPA_AM_PORTNUM_SHIFT	0
-+#define OPA_AM_PORTNUM_MASK	0xff
-+#define OPA_AM_PORTNUM_SMASK	(OPA_AM_PORTNUM_MASK << OPA_AM_PORTNUM_SHIFT)
-+#define OPA_AM_PORTNUM(am)	(((am) >> OPA_AM_PORTNUM_SHIFT) & \
-+					OPA_AM_PORTNUM_MASK)
-+
-+#define OPA_AM_ASYNC_SHIFT	12
-+#define OPA_AM_ASYNC_MASK	0x1
-+#define OPA_AM_ASYNC_SMASK	(OPA_AM_ASYNC_MASK << OPA_AM_ASYNC_SHIFT)
-+#define OPA_AM_ASYNC(am)	(((am) >> OPA_AM_ASYNC_SHIFT) & \
-+					OPA_AM_ASYNC_MASK)
-+
-+#define OPA_AM_START_SM_CFG_SHIFT	9
-+#define OPA_AM_START_SM_CFG_MASK	0x1
-+#define OPA_AM_START_SM_CFG_SMASK	(OPA_AM_START_SM_CFG_MASK << \
-+						OPA_AM_START_SM_CFG_SHIFT)
-+#define OPA_AM_START_SM_CFG(am)		(((am) >> OPA_AM_START_SM_CFG_SHIFT) \
-+						& OPA_AM_START_SM_CFG_MASK)
-+
-+#define OPA_AM_CI_ADDR_SHIFT	19
-+#define OPA_AM_CI_ADDR_MASK	0xfff
-+#define OPA_AM_CI_ADDR_SMASK	(OPA_AM_CI_ADDR_MASK << OPA_CI_ADDR_SHIFT)
-+#define OPA_AM_CI_ADDR(am)	(((am) >> OPA_AM_CI_ADDR_SHIFT) & \
-+					OPA_AM_CI_ADDR_MASK)
-+
-+#define OPA_AM_CI_LEN_SHIFT	13
-+#define OPA_AM_CI_LEN_MASK	0x3f
-+#define OPA_AM_CI_LEN_SMASK	(OPA_AM_CI_LEN_MASK << OPA_CI_LEN_SHIFT)
-+#define OPA_AM_CI_LEN(am)	(((am) >> OPA_AM_CI_LEN_SHIFT) & \
-+					OPA_AM_CI_LEN_MASK)
-+
-+/* error info macros */
-+#define OPA_EI_STATUS_SMASK	0x80
-+#define OPA_EI_CODE_SMASK	0x0f
-+
-+struct vl_limit {
-+	__be16 dedicated;
-+	__be16 shared;
-+};
-+
-+struct buffer_control {
-+	__be16 reserved;
-+	__be16 overall_shared_limit;
-+	struct vl_limit vl[OPA_MAX_VLS];
-+};
-+
-+struct sc2vlnt {
-+	u8 vlnt[32]; /* 5 bit VL, 3 bits reserved */
-+};
-+
-+/*
-+ * The PortSamplesControl.CounterMasks field is an array of 3 bit fields
-+ * which specify the N'th counter's capabilities. See ch. 16.1.3.2.
-+ * We support 5 counters which only count the mandatory quantities.
-+ */
-+#define COUNTER_MASK(q, n) (q << ((9 - n) * 3))
-+#define COUNTER_MASK0_9 \
-+	cpu_to_be32(COUNTER_MASK(1, 0) | \
-+		    COUNTER_MASK(1, 1) | \
-+		    COUNTER_MASK(1, 2) | \
-+		    COUNTER_MASK(1, 3) | \
-+		    COUNTER_MASK(1, 4))
-+
-+void hfi2_event_pkey_change(struct hfi2_devdata *dd, u32 port);
-+void hfi2_handle_trap_timer(struct timer_list *t);
-+u16 tx_link_width(u16 link_width);
-+u64 get_xmit_wait_counters(struct hfi2_pportdata *ppd, u16 link_width,
-+			   u16 link_speed, int vl);
-+int hfi2_mad_init(struct hfi2_devdata *dd);
-+int hfi2_mad_deinit(struct hfi2_devdata *dd);
-+int get_sc2vlt_tables(struct hfi2_pportdata *ppd, void *data);
-+
-+int cport_send_recv_mad(struct hfi2_devdata *dd, u8 sb,
-+			const void *mad, int len,
-+			void *omad, size_t *omad_len);
-+int update_from_opa_portinfo(struct hfi2_pportdata *ppd,
-+			     struct opa_smp *smp,
-+			     struct opa_port_info *pi);
-+
-+/**
-+ * get_link_speed - determine whether 12.5G or 25G speed
-+ * @link_speed: the speed of active link
-+ * @return: Return 2 if link speed identified as 12.5G
-+ * or return 1 if link speed is 25G.
-+ *
-+ * The function indirectly calculate required link speed
-+ * value for convert_xmit_counter function. If the link
-+ * speed is 25G, the function return as 1 as it is required
-+ * by xmit counter conversion formula :-( 25G / link_speed).
-+ * This conversion will provide value 1 if current
-+ * link speed is 25G or 2 if 12.5G.This is done to avoid
-+ * 12.5 float number conversion.
-+ */
-+static inline u16 get_link_speed(u16 link_speed)
++#define CREATE_TRACE_POINTS
++#include "trace.h"
++#include "exp_rcv.h"
++#include "ipoib.h"
++
++static u8 __get_ib_hdr_len(struct ib_header *hdr)
 +{
-+	return (link_speed == 1) ?
-+		 LINK_SPEED_12_5G : LINK_SPEED_25G;
++	struct ib_other_headers *ohdr;
++	u8 opcode;
++
++	if (ib_get_lnh(hdr) == HFI2_LRH_BTH)
++		ohdr = &hdr->u.oth;
++	else
++		ohdr = &hdr->u.l.oth;
++	opcode = ib_bth_get_opcode(ohdr);
++	return hdr_len_by_opcode[opcode] == 0 ?
++	       0 : hdr_len_by_opcode[opcode] - (12 + 8);
 +}
 +
-+/**
-+ * convert_xmit_counter - calculate flit times for given xmit counter
-+ * value
-+ * @xmit_wait_val: current xmit counter value
-+ * @link_width: width of active link
-+ * @link_speed: speed of active link
-+ * @return: return xmit counter value in flit times.
-+ */
-+static inline u64 convert_xmit_counter(u64 xmit_wait_val, u16 link_width,
-+				       u16 link_speed)
++static u8 __get_16b_hdr_len(struct hfi2_16b_header *hdr)
 +{
-+	return (xmit_wait_val * 2 * (FACTOR_LINK_WIDTH / link_width)
-+		 * link_speed) / DECIMAL_FACTORING;
++	struct ib_other_headers *ohdr = NULL;
++	u8 opcode;
++	u8 l4 = hfi2_16B_get_l4(hdr);
++
++	if (l4 == OPA_16B_L4_FM) {
++		opcode = IB_OPCODE_UD_SEND_ONLY;
++		return (8 + 8); /* No BTH */
++	}
++
++	if (l4 == OPA_16B_L4_IB_LOCAL)
++		ohdr = &hdr->u.oth;
++	else
++		ohdr = &hdr->u.l.oth;
++
++	opcode = ib_bth_get_opcode(ohdr);
++	return hdr_len_by_opcode[opcode] == 0 ?
++	       0 : hdr_len_by_opcode[opcode] - (12 + 8 + 8);
 +}
-+#endif				/* _HFI2_MAD_H */
++
++u8 hfi2_trace_packet_hdr_len(struct hfi2_packet *packet)
++{
++	if (packet->etype != RHF_RCV_TYPE_BYPASS)
++		return __get_ib_hdr_len(packet->hdr);
++	else
++		return __get_16b_hdr_len(packet->hdr);
++}
++
++u8 hfi2_trace_opa_hdr_len(struct hfi2_opa_header *opa_hdr)
++{
++	if (!opa_hdr->hdr_type)
++		return __get_ib_hdr_len(&opa_hdr->ibh);
++	else
++		return __get_16b_hdr_len(&opa_hdr->opah);
++}
++
++const char *hfi2_trace_get_packet_l4_str(u8 l4)
++{
++	if (l4)
++		return "16B";
++	else
++		return "9B";
++}
++
++const char *hfi2_trace_get_packet_l2_str(u8 l2)
++{
++	switch (l2) {
++	case 0:
++		return "0";
++	case 1:
++		return "1";
++	case 2:
++		return "16B";
++	case 3:
++		return "9B";
++	}
++	return "";
++}
++
++#define IMM_PRN  "imm:%d"
++#define RETH_PRN "reth vaddr:0x%.16llx rkey:0x%.8x dlen:0x%.8x"
++#define AETH_PRN "aeth syn:0x%.2x %s msn:0x%.8x"
++#define DETH_PRN "deth qkey:0x%.8x sqpn:0x%.6x"
++#define DETH_ENTROPY_PRN "deth qkey:0x%.8x sqpn:0x%.6x entropy:0x%.2x"
++#define IETH_PRN "ieth rkey:0x%.8x"
++#define ATOMICACKETH_PRN "origdata:%llx"
++#define ATOMICETH_PRN "vaddr:0x%llx rkey:0x%.8x sdata:%llx cdata:%llx"
++#define TID_RDMA_KDETH "kdeth0 0x%x kdeth1 0x%x"
++#define TID_RDMA_KDETH_DATA "kdeth0 0x%x: kver %u sh %u intr %u tidctrl %u tid %x offset %x kdeth1 0x%x: jkey %x"
++#define TID_READ_REQ_PRN "tid_flow_psn 0x%x tid_flow_qp 0x%x verbs_qp 0x%x"
++#define TID_READ_RSP_PRN "verbs_qp 0x%x"
++#define TID_WRITE_REQ_PRN "original_qp 0x%x"
++#define TID_WRITE_RSP_PRN "tid_flow_psn 0x%x tid_flow_qp 0x%x verbs_qp 0x%x"
++#define TID_WRITE_DATA_PRN "verbs_qp 0x%x"
++#define TID_ACK_PRN "tid_flow_psn 0x%x verbs_psn 0x%x tid_flow_qp 0x%x verbs_qp 0x%x"
++#define TID_RESYNC_PRN "verbs_qp 0x%x"
++
++#define OP(transport, op) IB_OPCODE_## transport ## _ ## op
++
++static const char *parse_syndrome(u8 syndrome)
++{
++	switch (syndrome >> 5) {
++	case 0:
++		return "ACK";
++	case 1:
++		return "RNRNAK";
++	case 3:
++		return "NAK";
++	}
++	return "";
++}
++
++void hfi2_trace_parse_9b_bth(struct ib_other_headers *ohdr,
++			     u8 *ack, bool *becn, bool *fecn, u8 *mig,
++			     u8 *se, u8 *pad, u8 *opcode, u8 *tver,
++			     u16 *pkey, u32 *psn, u32 *qpn)
++{
++	*ack = ib_bth_get_ackreq(ohdr);
++	*becn = ib_bth_get_becn(ohdr);
++	*fecn = ib_bth_get_fecn(ohdr);
++	*mig = ib_bth_get_migreq(ohdr);
++	*se = ib_bth_get_se(ohdr);
++	*pad = ib_bth_get_pad(ohdr);
++	*opcode = ib_bth_get_opcode(ohdr);
++	*tver = ib_bth_get_tver(ohdr);
++	*pkey = ib_bth_get_pkey(ohdr);
++	*psn = mask_psn(ib_bth_get_psn(ohdr));
++	*qpn = ib_bth_get_qpn(ohdr);
++}
++
++void hfi2_trace_parse_16b_bth(struct ib_other_headers *ohdr,
++			      u8 *ack, u8 *mig, u8 *opcode,
++			      u8 *pad, u8 *se, u8 *tver,
++			      u32 *psn, u32 *qpn)
++{
++	*ack = ib_bth_get_ackreq(ohdr);
++	*mig = ib_bth_get_migreq(ohdr);
++	*opcode = ib_bth_get_opcode(ohdr);
++	*pad = ib_bth_get_pad(ohdr);
++	*se = ib_bth_get_se(ohdr);
++	*tver = ib_bth_get_tver(ohdr);
++	*psn = mask_psn(ib_bth_get_psn(ohdr));
++	*qpn = ib_bth_get_qpn(ohdr);
++}
++
++void hfi2_trace_parse_9b_hdr(struct ib_header *hdr, bool sc5,
++			     u8 *lnh, u8 *lver, u8 *sl, u8 *sc,
++			     u16 *len, u32 *dlid, u32 *slid)
++{
++	*lnh = ib_get_lnh(hdr);
++	*lver = ib_get_lver(hdr);
++	*sl = ib_get_sl(hdr);
++	*sc = ib_get_sc(hdr) | (sc5 << 4);
++	*len = ib_get_len(hdr);
++	*dlid = ib_get_dlid(hdr);
++	*slid = ib_get_slid(hdr);
++}
++
++void hfi2_trace_parse_16b_hdr(struct hfi2_16b_header *hdr,
++			      u8 *age, bool *becn, bool *fecn,
++			      u8 *l4, u8 *rc, u8 *sc,
++			      u16 *entropy, u16 *len, u16 *pkey,
++			      u32 *dlid, u32 *slid)
++{
++	*age = hfi2_16B_get_age(hdr);
++	*becn = hfi2_16B_get_becn(hdr);
++	*fecn = hfi2_16B_get_fecn(hdr);
++	*l4 = hfi2_16B_get_l4(hdr);
++	*rc = hfi2_16B_get_rc(hdr);
++	*sc = hfi2_16B_get_sc(hdr);
++	*entropy = hfi2_16B_get_entropy(hdr);
++	*len = hfi2_16B_get_len(hdr);
++	*pkey = hfi2_16B_get_pkey(hdr);
++	*dlid = hfi2_16B_get_dlid(hdr);
++	*slid = hfi2_16B_get_slid(hdr);
++}
++
++#define LRH_PRN "len:%d sc:%d dlid:0x%.4x slid:0x%.4x "
++#define LRH_9B_PRN "lnh:%d,%s lver:%d sl:%d"
++#define LRH_16B_PRN "age:%d becn:%d fecn:%d l4:%d " \
++		    "rc:%d sc:%d pkey:0x%.4x entropy:0x%.4x"
++const char *hfi2_trace_fmt_lrh(struct trace_seq *p, bool bypass,
++			       u8 age, bool becn, bool fecn, u8 l4,
++			       u8 lnh, const char *lnh_name, u8 lver,
++			       u8 rc, u8 sc, u8 sl, u16 entropy,
++			       u16 len, u16 pkey, u32 dlid, u32 slid)
++{
++	const char *ret = trace_seq_buffer_ptr(p);
++
++	trace_seq_printf(p, LRH_PRN, len, sc, dlid, slid);
++
++	if (bypass)
++		trace_seq_printf(p, LRH_16B_PRN,
++				 age, becn, fecn, l4, rc, sc, pkey, entropy);
++
++	else
++		trace_seq_printf(p, LRH_9B_PRN,
++				 lnh, lnh_name, lver, sl);
++	trace_seq_putc(p, 0);
++
++	return ret;
++}
++
++#define BTH_9B_PRN \
++	"op:0x%.2x,%s se:%d m:%d pad:%d tver:%d pkey:0x%.4x " \
++	"f:%d b:%d qpn:0x%.6x a:%d psn:0x%.8x"
++#define BTH_16B_PRN \
++	"op:0x%.2x,%s se:%d m:%d pad:%d tver:%d " \
++	"qpn:0x%.6x a:%d psn:0x%.8x"
++#define L4_FM_16B_PRN \
++	"op:0x%.2x,%s dest_qpn:0x%.6x src_qpn:0x%.6x"
++const char *hfi2_trace_fmt_rest(struct trace_seq *p, bool bypass, u8 l4,
++				u8 ack, bool becn, bool fecn, u8 mig,
++				u8 se, u8 pad, u8 opcode, const char *opname,
++				u8 tver, u16 pkey, u32 psn, u32 qpn,
++				u32 dest_qpn, u32 src_qpn)
++{
++	const char *ret = trace_seq_buffer_ptr(p);
++
++	if (bypass)
++		if (l4 == OPA_16B_L4_FM)
++			trace_seq_printf(p, L4_FM_16B_PRN,
++					 opcode, opname, dest_qpn, src_qpn);
++		else
++			trace_seq_printf(p, BTH_16B_PRN,
++					 opcode, opname,
++					 se, mig, pad, tver, qpn, ack, psn);
++
++	else
++		trace_seq_printf(p, BTH_9B_PRN,
++				 opcode, opname,
++				 se, mig, pad, tver, pkey, fecn, becn,
++				 qpn, ack, psn);
++	trace_seq_putc(p, 0);
++
++	return ret;
++}
++
++const char *parse_everbs_hdrs(
++	struct trace_seq *p,
++	u8 opcode, u8 l4, u32 dest_qpn, u32 src_qpn,
++	void *ehdrs)
++{
++	union ib_ehdrs *eh = ehdrs;
++	const char *ret = trace_seq_buffer_ptr(p);
++
++	if (l4 == OPA_16B_L4_FM) {
++		trace_seq_printf(p, "mgmt pkt");
++		goto out;
++	}
++
++	switch (opcode) {
++	/* imm */
++	case OP(RC, SEND_LAST_WITH_IMMEDIATE):
++	case OP(UC, SEND_LAST_WITH_IMMEDIATE):
++	case OP(RC, SEND_ONLY_WITH_IMMEDIATE):
++	case OP(UC, SEND_ONLY_WITH_IMMEDIATE):
++	case OP(RC, RDMA_WRITE_LAST_WITH_IMMEDIATE):
++	case OP(UC, RDMA_WRITE_LAST_WITH_IMMEDIATE):
++		trace_seq_printf(p, IMM_PRN,
++				 be32_to_cpu(eh->imm_data));
++		break;
++	/* reth + imm */
++	case OP(RC, RDMA_WRITE_ONLY_WITH_IMMEDIATE):
++	case OP(UC, RDMA_WRITE_ONLY_WITH_IMMEDIATE):
++		trace_seq_printf(p, RETH_PRN " " IMM_PRN,
++				 get_ib_reth_vaddr(&eh->rc.reth),
++				 be32_to_cpu(eh->rc.reth.rkey),
++				 be32_to_cpu(eh->rc.reth.length),
++				 be32_to_cpu(eh->rc.imm_data));
++		break;
++	/* reth */
++	case OP(RC, RDMA_READ_REQUEST):
++	case OP(RC, RDMA_WRITE_FIRST):
++	case OP(UC, RDMA_WRITE_FIRST):
++	case OP(RC, RDMA_WRITE_ONLY):
++	case OP(UC, RDMA_WRITE_ONLY):
++		trace_seq_printf(p, RETH_PRN,
++				 get_ib_reth_vaddr(&eh->rc.reth),
++				 be32_to_cpu(eh->rc.reth.rkey),
++				 be32_to_cpu(eh->rc.reth.length));
++		break;
++	case OP(RC, RDMA_READ_RESPONSE_FIRST):
++	case OP(RC, RDMA_READ_RESPONSE_LAST):
++	case OP(RC, RDMA_READ_RESPONSE_ONLY):
++	case OP(RC, ACKNOWLEDGE):
++		trace_seq_printf(p, AETH_PRN, be32_to_cpu(eh->aeth) >> 24,
++				 parse_syndrome(be32_to_cpu(eh->aeth) >> 24),
++				 be32_to_cpu(eh->aeth) & IB_MSN_MASK);
++		break;
++	case OP(TID_RDMA, WRITE_REQ):
++		trace_seq_printf(p, TID_RDMA_KDETH " " RETH_PRN " "
++				 TID_WRITE_REQ_PRN,
++				 le32_to_cpu(eh->tid_rdma.w_req.kdeth0),
++				 le32_to_cpu(eh->tid_rdma.w_req.kdeth1),
++				 ib_u64_get(&eh->tid_rdma.w_req.reth.vaddr),
++				 be32_to_cpu(eh->tid_rdma.w_req.reth.rkey),
++				 be32_to_cpu(eh->tid_rdma.w_req.reth.length),
++				 be32_to_cpu(eh->tid_rdma.w_req.verbs_qp));
++		break;
++	case OP(TID_RDMA, WRITE_RESP):
++		trace_seq_printf(p, TID_RDMA_KDETH " " AETH_PRN " "
++				 TID_WRITE_RSP_PRN,
++				 le32_to_cpu(eh->tid_rdma.w_rsp.kdeth0),
++				 le32_to_cpu(eh->tid_rdma.w_rsp.kdeth1),
++				 be32_to_cpu(eh->tid_rdma.w_rsp.aeth) >> 24,
++				 parse_syndrome(/* aeth */
++					 be32_to_cpu(eh->tid_rdma.w_rsp.aeth)
++					 >> 24),
++				 (be32_to_cpu(eh->tid_rdma.w_rsp.aeth) &
++				  IB_MSN_MASK),
++				 be32_to_cpu(eh->tid_rdma.w_rsp.tid_flow_psn),
++				 be32_to_cpu(eh->tid_rdma.w_rsp.tid_flow_qp),
++				 be32_to_cpu(eh->tid_rdma.w_rsp.verbs_qp));
++		break;
++	case OP(TID_RDMA, WRITE_DATA_LAST):
++	case OP(TID_RDMA, WRITE_DATA):
++		trace_seq_printf(p, TID_RDMA_KDETH_DATA " " TID_WRITE_DATA_PRN,
++				 le32_to_cpu(eh->tid_rdma.w_data.kdeth0),
++				 KDETH_GET(eh->tid_rdma.w_data.kdeth0, KVER),
++				 KDETH_GET(eh->tid_rdma.w_data.kdeth0, SH),
++				 KDETH_GET(eh->tid_rdma.w_data.kdeth0, INTR),
++				 KDETH_GET(eh->tid_rdma.w_data.kdeth0, TIDCTRL),
++				 KDETH_GET(eh->tid_rdma.w_data.kdeth0, TID),
++				 KDETH_GET(eh->tid_rdma.w_data.kdeth0, OFFSET),
++				 le32_to_cpu(eh->tid_rdma.w_data.kdeth1),
++				 KDETH_GET(eh->tid_rdma.w_data.kdeth1, JKEY),
++				 be32_to_cpu(eh->tid_rdma.w_data.verbs_qp));
++		break;
++	case OP(TID_RDMA, READ_REQ):
++		trace_seq_printf(p, TID_RDMA_KDETH " " RETH_PRN " "
++				 TID_READ_REQ_PRN,
++				 le32_to_cpu(eh->tid_rdma.r_req.kdeth0),
++				 le32_to_cpu(eh->tid_rdma.r_req.kdeth1),
++				 ib_u64_get(&eh->tid_rdma.r_req.reth.vaddr),
++				 be32_to_cpu(eh->tid_rdma.r_req.reth.rkey),
++				 be32_to_cpu(eh->tid_rdma.r_req.reth.length),
++				 be32_to_cpu(eh->tid_rdma.r_req.tid_flow_psn),
++				 be32_to_cpu(eh->tid_rdma.r_req.tid_flow_qp),
++				 be32_to_cpu(eh->tid_rdma.r_req.verbs_qp));
++		break;
++	case OP(TID_RDMA, READ_RESP):
++		trace_seq_printf(p, TID_RDMA_KDETH_DATA " " AETH_PRN " "
++				 TID_READ_RSP_PRN,
++				 le32_to_cpu(eh->tid_rdma.r_rsp.kdeth0),
++				 KDETH_GET(eh->tid_rdma.r_rsp.kdeth0, KVER),
++				 KDETH_GET(eh->tid_rdma.r_rsp.kdeth0, SH),
++				 KDETH_GET(eh->tid_rdma.r_rsp.kdeth0, INTR),
++				 KDETH_GET(eh->tid_rdma.r_rsp.kdeth0, TIDCTRL),
++				 KDETH_GET(eh->tid_rdma.r_rsp.kdeth0, TID),
++				 KDETH_GET(eh->tid_rdma.r_rsp.kdeth0, OFFSET),
++				 le32_to_cpu(eh->tid_rdma.r_rsp.kdeth1),
++				 KDETH_GET(eh->tid_rdma.r_rsp.kdeth1, JKEY),
++				 be32_to_cpu(eh->tid_rdma.r_rsp.aeth) >> 24,
++				 parse_syndrome(/* aeth */
++					 be32_to_cpu(eh->tid_rdma.r_rsp.aeth)
++					 >> 24),
++				 (be32_to_cpu(eh->tid_rdma.r_rsp.aeth) &
++				  IB_MSN_MASK),
++				 be32_to_cpu(eh->tid_rdma.r_rsp.verbs_qp));
++		break;
++	case OP(TID_RDMA, ACK):
++		trace_seq_printf(p, TID_RDMA_KDETH " " AETH_PRN " "
++				 TID_ACK_PRN,
++				 le32_to_cpu(eh->tid_rdma.ack.kdeth0),
++				 le32_to_cpu(eh->tid_rdma.ack.kdeth1),
++				 be32_to_cpu(eh->tid_rdma.ack.aeth) >> 24,
++				 parse_syndrome(/* aeth */
++					 be32_to_cpu(eh->tid_rdma.ack.aeth)
++					 >> 24),
++				 (be32_to_cpu(eh->tid_rdma.ack.aeth) &
++				  IB_MSN_MASK),
++				 be32_to_cpu(eh->tid_rdma.ack.tid_flow_psn),
++				 be32_to_cpu(eh->tid_rdma.ack.verbs_psn),
++				 be32_to_cpu(eh->tid_rdma.ack.tid_flow_qp),
++				 be32_to_cpu(eh->tid_rdma.ack.verbs_qp));
++		break;
++	case OP(TID_RDMA, RESYNC):
++		trace_seq_printf(p, TID_RDMA_KDETH " " TID_RESYNC_PRN,
++				 le32_to_cpu(eh->tid_rdma.resync.kdeth0),
++				 le32_to_cpu(eh->tid_rdma.resync.kdeth1),
++				 be32_to_cpu(eh->tid_rdma.resync.verbs_qp));
++		break;
++	/* aeth + atomicacketh */
++	case OP(RC, ATOMIC_ACKNOWLEDGE):
++		trace_seq_printf(p, AETH_PRN " " ATOMICACKETH_PRN,
++				 be32_to_cpu(eh->at.aeth) >> 24,
++				 parse_syndrome(be32_to_cpu(eh->at.aeth) >> 24),
++				 be32_to_cpu(eh->at.aeth) & IB_MSN_MASK,
++				 ib_u64_get(&eh->at.atomic_ack_eth));
++		break;
++	/* atomiceth */
++	case OP(RC, COMPARE_SWAP):
++	case OP(RC, FETCH_ADD):
++		trace_seq_printf(p, ATOMICETH_PRN,
++				 get_ib_ateth_vaddr(&eh->atomic_eth),
++				 eh->atomic_eth.rkey,
++				 get_ib_ateth_swap(&eh->atomic_eth),
++				 get_ib_ateth_compare(&eh->atomic_eth));
++		break;
++	/* deth */
++	case OP(UD, SEND_ONLY):
++		trace_seq_printf(p, DETH_ENTROPY_PRN,
++				 be32_to_cpu(eh->ud.deth[0]),
++				 be32_to_cpu(eh->ud.deth[1]) & RVT_QPN_MASK,
++				 be32_to_cpu(eh->ud.deth[1]) >>
++					     HFI2_IPOIB_ENTROPY_SHIFT);
++		break;
++	case OP(UD, SEND_ONLY_WITH_IMMEDIATE):
++		trace_seq_printf(p, DETH_PRN,
++				 be32_to_cpu(eh->ud.deth[0]),
++				 be32_to_cpu(eh->ud.deth[1]) & RVT_QPN_MASK);
++		break;
++	/* ieth */
++	case OP(RC, SEND_LAST_WITH_INVALIDATE):
++	case OP(RC, SEND_ONLY_WITH_INVALIDATE):
++		trace_seq_printf(p, IETH_PRN,
++				 be32_to_cpu(eh->ieth));
++		break;
++	}
++out:
++	trace_seq_putc(p, 0);
++	return ret;
++}
++
++const char *parse_sdma_flags(struct trace_seq *p, u64 *qw, u8 first, u8 last)
++{
++	const char *ret = trace_seq_buffer_ptr(p);
++	char flags[5] = { 'x', 'x', 'x', 'x', 0 };
++
++	flags[0] = (qw[1] & SDMA_DESC1_INT_REQ_FLAG) ? 'I' : '-';
++	flags[1] = (qw[1] & SDMA_DESC1_HEAD_TO_HOST_FLAG) ?  'H' : '-';
++	flags[2] = first ? 'F' : '-';
++	flags[3] = last ? 'L' : '-';
++	trace_seq_printf(p, "%s", flags);
++	if (first)
++		trace_seq_printf(p, " amode:%u aidx:%u alen:%u",
++				 (u8)((qw[1] >> SDMA_DESC1_HEADER_MODE_SHIFT) &
++				      SDMA_DESC1_HEADER_MODE_MASK),
++				 (u8)((qw[1] >> SDMA_DESC1_HEADER_INDEX_SHIFT) &
++				      SDMA_DESC1_HEADER_INDEX_MASK),
++				 (u8)((qw[1] >> SDMA_DESC1_HEADER_DWS_SHIFT) &
++				      SDMA_DESC1_HEADER_DWS_MASK));
++	return ret;
++}
++
++const char *print_u32_array(
++	struct trace_seq *p,
++	u32 *arr, int len)
++{
++	int i;
++	const char *ret = trace_seq_buffer_ptr(p);
++
++	for (i = 0; i < len ; i++)
++		trace_seq_printf(p, "%s%#x", i == 0 ? "" : " ", arr[i]);
++	trace_seq_putc(p, 0);
++	return ret;
++}
++
++u8 hfi2_trace_get_tid_ctrl(u32 ent)
++{
++	return EXP_TID_GET(ent, CTRL);
++}
++
++u16 hfi2_trace_get_tid_len(u32 ent)
++{
++	return EXP_TID_GET(ent, LEN);
++}
++
++u16 hfi2_trace_get_tid_idx(u32 ent)
++{
++	return EXP_TID_GET(ent, IDX);
++}
++
++struct hfi2_ctxt_hist {
++	atomic_t count;
++	atomic_t data[255];
++};
++
++static struct hfi2_ctxt_hist hist = {
++	.count = ATOMIC_INIT(0)
++};
++
++const char *hfi2_trace_print_rsm_hist(struct trace_seq *p, unsigned int ctxt)
++{
++	int i, len = ARRAY_SIZE(hist.data);
++	const char *ret = trace_seq_buffer_ptr(p);
++	unsigned long packet_count = atomic_fetch_inc(&hist.count);
++
++	trace_seq_printf(p, "packet[%lu]", packet_count);
++	for (i = 0; i < len; ++i) {
++		unsigned long val;
++		atomic_t *count = &hist.data[i];
++
++		if (ctxt == i)
++			val = atomic_fetch_inc(count);
++		else
++			val = atomic_read(count);
++
++		if (val)
++			trace_seq_printf(p, "(%d:%lu)", i, val);
++	}
++	trace_seq_putc(p, 0);
++	return ret;
++}
++
++const char *hfi2_memtype_str(unsigned int mt)
++{
++	switch (mt) {
++	case HFI2_MEMINFO_TYPE_SYSTEM:
++		return "System";
++	}
++
++	return "<unknown>";
++}
++
++__hfi2_trace_fn(AFFINITY);
++__hfi2_trace_fn(PKT);
++__hfi2_trace_fn(PROC);
++__hfi2_trace_fn(SDMA);
++__hfi2_trace_fn(LINKVERB);
++__hfi2_trace_fn(DEBUG);
++__hfi2_trace_fn(SNOOP);
++__hfi2_trace_fn(CNTR);
++__hfi2_trace_fn(PIO);
++__hfi2_trace_fn(DC8051);
++__hfi2_trace_fn(FIRMWARE);
++__hfi2_trace_fn(RCVCTRL);
++__hfi2_trace_fn(TID);
++__hfi2_trace_fn(MMU);
++__hfi2_trace_fn(IOCTL);
 
 
