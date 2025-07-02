@@ -1,111 +1,150 @@
-Received: from mail-pf1-f177.google.com (mail-pf1-f177.google.com [209.85.210.177])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mailtransmit05.runbox.com (mailtransmit05.runbox.com [185.226.149.38])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BF712DDD3
-	for <linux-rdma@vger.kernel.org>; Wed,  2 Jul 2025 13:18:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.177
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1400F280A51;
+	Wed,  2 Jul 2025 13:38:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.226.149.38
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751462287; cv=none; b=DHZhLojQji9++MOJDc6VL7vNfXaUcTWV2kWq4MoNPnjrDaYj0ivVoGwz3ODRl6TWRNZziYf6zkelFh5ZOzAhZN/np8Lq5O8qF7Tx5OuRtVVKYwCgmqTXpJQmw6/qjHv4Z5IgpDHEsM5LExDumL9B8OLPyBn+BJ3C6dDS8yfsRo4=
+	t=1751463527; cv=none; b=b8EPDpGr0VCbENwmjVIPEZq6HW89tnABAH2rwNvldJuGBCm5I55iFwLqbBzL8fiMtNq4xrLdp/+9JS0nq6MN4vsK3cO6FaZz1L/x5XkEzE4AIPkL8Zkg4QYOs2qkymsmaJ3BG15BmlL7deD84Z6YyneRJWrH5WriBpUsmQKdI1o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751462287; c=relaxed/simple;
-	bh=5kZlihYIZFmatXI4cBGB+TFOdpXZ12A7UPeui5kT3wc=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Ev6ZN/2sHfPCSmkQwV1XAlQwEgWFdqtRn1cHicgJZmMgdcXIHi+ffkBa9GVj1uebstiCGLrQQ2hXylcXo20+HlM/klCDZDvOVPZHFQ973G3Q86OBdhCOZeEbsx9C4/O+FneJGuPg0YcJLEhxrBCCKcNkPpteeQFb7Mu/dxPhuMU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca; spf=pass smtp.mailfrom=ziepe.ca; dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b=OrKKARZv; arc=none smtp.client-ip=209.85.210.177
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ziepe.ca
+	s=arc-20240116; t=1751463527; c=relaxed/simple;
+	bh=I5NwMU/UkVWamqyeUyAIs0m2ELLcQVTl3pqCth/6nic=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
+	 In-Reply-To:To:Cc; b=PrxnwqNgquYzjr3pLZOohQfl7zULSLezTUK4pEcr7tpDWiDC5Z7BOL+Ep9eTNl9krCGV6IVcerWFJT5kPg7ONGuw7SoJsS8qCa9XUEuiuTh5tGPw5amEeXl2berMmzVl/h5EofGbhQbN78nIbttBmwKAUT4f5rhQTSStN1Knfr8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=rbox.co; spf=pass smtp.mailfrom=rbox.co; dkim=pass (2048-bit key) header.d=rbox.co header.i=@rbox.co header.b=IkbAyxGU; arc=none smtp.client-ip=185.226.149.38
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=rbox.co
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=rbox.co
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="OrKKARZv"
-Received: by mail-pf1-f177.google.com with SMTP id d2e1a72fcca58-74b52bf417cso423445b3a.0
-        for <linux-rdma@vger.kernel.org>; Wed, 02 Jul 2025 06:18:05 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google; t=1751462285; x=1752067085; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=Lz23Tyg/+cYmV17yzTrHH8B+H8AlynLVnYk/5oZAsnA=;
-        b=OrKKARZv8psod2z7g4d9SL5QvcXG/puN9MiuhOZ2cR0S7A+s2F+V2qP0eZaFxV2PuQ
-         FMb+s28Yy8kYEsxsmG1ZMb458A+GPuDibC6YXlmnSTJJyWnh0WLUGtsCWrFBffK9/kU/
-         PYgBhFfCHzvNtH5UjNVjfPibwvbqY/b3sGibgVqKGmdR9F8WxaGulbmvnAbkvTGk0qJC
-         z1xkS2TrCOAxGEhdiBK8E7dIKRVN1DV86sozCOXoJ3ZF9h20WNYKL8yreSDnOjbCKQgs
-         ZW1wpRLlBkSt8jwK6NxfsV/SESGY1HUo0XRgg8Arj6amgRKnDLE3wPMjeheWwsjgd2rx
-         JjWQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1751462285; x=1752067085;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=Lz23Tyg/+cYmV17yzTrHH8B+H8AlynLVnYk/5oZAsnA=;
-        b=GDMm6Kwns6WwEIs/uax+pOQ2pLuxv9S3fmqKdKyB9boKw5So9Yco03ZrERUSUmG4xL
-         Xl9Wc1ShKFStwW30Hl/K13GX0m/92JLRgN2w1k2HSNyFttFzWXpvhWYsf6Bg/52TwyNq
-         X8fQJsK+how2cnwUp+/XqIyWuFa5KyELGSpmUEEp7nFmP0Hi3nM8bb7aN4oBPzYHZTS5
-         wc1F9QH8ugoBZi4O4wBrceoY+4CMFTod7L7bLyIY9T1oQBBgQIAG8YrtCuSQ5ld+dne4
-         DXjHTWnRMFUJupS7/UaUtVwFw0bBNTIB79/6CatiZ3+RMY4R8XplBzzi4iQfO8ZwE5/T
-         3vwg==
-X-Forwarded-Encrypted: i=1; AJvYcCXqcO9McoiWZL5bS2K0kvw7GhvR/pTTuuvqODRY2qPVrQNgtaEfP3qCHeS/4QSaWxesguVRwr40jXUi@vger.kernel.org
-X-Gm-Message-State: AOJu0YyRrCx9QRY5NSLMZ/kcfco83gicM6/tYNDRpZHoRFxoW6+es1cW
-	kxOn6KuZU8/RRw41GX989l9lqZ8UOGLUOqLm/NIkqhcRY8dLR45x83tc3Q2btUbUeS4=
-X-Gm-Gg: ASbGncvdRrrybLmbj4VKtpOzxK0eyh9/qg1wck8eiMdb9p38oQW/SYhEh3fZfSdfjAM
-	GlDW8F2ueI0C3jpTkRBs1HS/W3avMqXtq6SlsSt0zKNgU8YTWsPAOqkK4St62nHRwEiX0Q9BJoy
-	H76e0PWe0ZCVHBKEkEfmjSzj2DsKt41S77QCBcQjh6wU12Ks6Ar2s4/VvwAYhO+Ea4XEMuYXsak
-	JQBSCvpcHr9BPrZ6gq0svTU6NcpRWFMyYfgX2w7boq+uuJgSVBOi9A7guglN25KN/EEEampSPSj
-	vOWOCsuB9Ve56R7YF6oCAj/3irxnOL4Oh2a/XNFiD2CuQNc=
-X-Google-Smtp-Source: AGHT+IEGc1zq93nkJMavPRth5ri3c2hUYnAePkxmcp9zyThS7yDUwDvLudNNxEfu++eq0S0smDF4tg==
-X-Received: by 2002:a05:6300:6199:b0:21f:a883:d1dd with SMTP id adf61e73a8af0-222d7defa65mr6135557637.14.1751462285065;
-        Wed, 02 Jul 2025 06:18:05 -0700 (PDT)
-Received: from ziepe.ca ([130.41.10.202])
-        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-b34e300d02bsm12981443a12.6.2025.07.02.06.18.04
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 02 Jul 2025 06:18:04 -0700 (PDT)
-Received: from jgg by wakko with local (Exim 4.97)
-	(envelope-from <jgg@ziepe.ca>)
-	id 1uWxLf-00000004c0r-0w5g;
-	Wed, 02 Jul 2025 10:18:03 -0300
-Date: Wed, 2 Jul 2025 10:18:03 -0300
-From: Jason Gunthorpe <jgg@ziepe.ca>
-To: Leon Romanovsky <leon@kernel.org>
-Cc: Abhijit Gangurde <abhijit.gangurde@amd.com>, shannon.nelson@amd.com,
-	brett.creeley@amd.com, davem@davemloft.net, edumazet@google.com,
-	kuba@kernel.org, pabeni@redhat.com, corbet@lwn.net,
-	andrew+netdev@lunn.ch, allen.hubbe@amd.com, nikhil.agarwal@amd.com,
-	linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Andrew Boyer <andrew.boyer@amd.com>
-Subject: Re: [PATCH v3 10/14] RDMA/ionic: Register device ops for control path
-Message-ID: <20250702131803.GB904431@ziepe.ca>
-References: <20250624121315.739049-1-abhijit.gangurde@amd.com>
- <20250624121315.739049-11-abhijit.gangurde@amd.com>
- <20250701103844.GB118736@unreal>
+	dkim=pass (2048-bit key) header.d=rbox.co header.i=@rbox.co header.b="IkbAyxGU"
+Received: from mailtransmit03.runbox ([10.9.9.163] helo=aibo.runbox.com)
+	by mailtransmit05.runbox.com with esmtps  (TLS1.2) tls TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+	(Exim 4.93)
+	(envelope-from <mhal@rbox.co>)
+	id 1uWxfZ-00GxPT-Mj; Wed, 02 Jul 2025 15:38:37 +0200
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=rbox.co;
+	s=selector2; h=Cc:To:In-Reply-To:References:Message-Id:
+	Content-Transfer-Encoding:Content-Type:MIME-Version:Subject:Date:From;
+	bh=PfnmbZl5iKr6rFeTS80a4NnfW2jlSVKr3NNDNbGzVI0=; b=IkbAyxGUjd7jXvlmFAItytXDdn
+	s+jsvj17ly2lUQBwkk4zXoqkDzTfgSR19GLz+yiDd4I/o/7uEw9MjhjkKaIffz8N/hwqJhj+eHNGF
+	LEkp1n3gObJXZZ64k6DMwXSuNCeY15c1drHNRb3r0IieqhKLDPea6D7+nK81bMGeNZEuVSwcjJuAd
+	DBP6GcoQ9e0A3k9nflTPlvOmycqFKI7Cfxd1It79d3zCHLiRuBXbErXx7Dbb7j6EurC0+t6rN4CSv
+	UbcyUNU6LtH8dl9E7bq8lDs+uYSTpbJN7534f/UWAvEg/F1bnR/L+cJbQZyMbfXXw4JR0GkRHA5xb
+	oLq+IZ6g==;
+Received: from [10.9.9.73] (helo=submission02.runbox)
+	by mailtransmit03.runbox with esmtp (Exim 4.86_2)
+	(envelope-from <mhal@rbox.co>)
+	id 1uWxfZ-0005H0-A7; Wed, 02 Jul 2025 15:38:37 +0200
+Received: by submission02.runbox with esmtpsa  [Authenticated ID (604044)]  (TLS1.2:ECDHE_SECP256R1__RSA_PSS_RSAE_SHA256__AES_256_GCM:256)
+	(Exim 4.93)
+	id 1uWxfD-009LCR-GI; Wed, 02 Jul 2025 15:38:15 +0200
+From: Michal Luczaj <mhal@rbox.co>
+Date: Wed, 02 Jul 2025 15:38:07 +0200
+Subject: [PATCH net-next v3 1/6] net: splice: Drop unused @pipe
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20250701103844.GB118736@unreal>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <20250702-splice-drop-unused-v3-1-55f68b60d2b7@rbox.co>
+References: <20250702-splice-drop-unused-v3-0-55f68b60d2b7@rbox.co>
+In-Reply-To: <20250702-splice-drop-unused-v3-0-55f68b60d2b7@rbox.co>
+To: "David S. Miller" <davem@davemloft.net>, 
+ Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, 
+ Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>, 
+ Ayush Sawal <ayush.sawal@chelsio.com>, Andrew Lunn <andrew+netdev@lunn.ch>, 
+ David Ahern <dsahern@kernel.org>, Neal Cardwell <ncardwell@google.com>, 
+ Kuniyuki Iwashima <kuniyu@google.com>, Wenjia Zhang <wenjia@linux.ibm.com>, 
+ Jan Karcher <jaka@linux.ibm.com>, "D. Wythe" <alibuda@linux.alibaba.com>, 
+ Tony Lu <tonylu@linux.alibaba.com>, Wen Gu <guwen@linux.alibaba.com>
+Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org, 
+ linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org, 
+ Michal Luczaj <mhal@rbox.co>
+X-Mailer: b4 0.14.2
 
-On Tue, Jul 01, 2025 at 01:38:44PM +0300, Leon Romanovsky wrote:
-> > +static void ionic_flush_qs(struct ionic_ibdev *dev)
-> > +{
-> > +	struct ionic_qp *qp, *qp_tmp;
-> > +	struct ionic_cq *cq, *cq_tmp;
-> > +	LIST_HEAD(flush_list);
-> > +	unsigned long index;
-> > +
-> > +	/* Flush qp send and recv */
-> > +	rcu_read_lock();
-> > +	xa_for_each(&dev->qp_tbl, index, qp) {
-> > +		kref_get(&qp->qp_kref);
-> > +		list_add_tail(&qp->ibkill_flush_ent, &flush_list);
-> > +	}
-> > +	rcu_read_unlock();
-> 
-> Same question as for CQ. What does RCU lock protect here?
+Since commit 41c73a0d44c9 ("net: speedup skb_splice_bits()"),
+__splice_segment() and spd_fill_page() do not use the @pipe argument. Drop
+it.
 
-It should protect the kref_get against free of qp. The qp memory must
-be RCU freed.
+While adapting the callers, move one line to enforce reverse xmas tree
+order.
 
-But this pattern requires kref_get_unless_zero()
+No functional change intended.
 
-Jason
+Reviewed-by: Simon Horman <horms@kernel.org>
+Signed-off-by: Michal Luczaj <mhal@rbox.co>
+---
+ net/core/skbuff.c | 18 +++++++-----------
+ 1 file changed, 7 insertions(+), 11 deletions(-)
+
+diff --git a/net/core/skbuff.c b/net/core/skbuff.c
+index d6420b74ea9c6a9c53a7c16634cce82a1cd1bbd3..ae0f1aae3c91d914020c64e0703732b9c6cd8511 100644
+--- a/net/core/skbuff.c
++++ b/net/core/skbuff.c
+@@ -3060,10 +3060,8 @@ static bool spd_can_coalesce(const struct splice_pipe_desc *spd,
+ /*
+  * Fill page/offset/length into spd, if it can hold more pages.
+  */
+-static bool spd_fill_page(struct splice_pipe_desc *spd,
+-			  struct pipe_inode_info *pipe, struct page *page,
+-			  unsigned int *len, unsigned int offset,
+-			  bool linear,
++static bool spd_fill_page(struct splice_pipe_desc *spd, struct page *page,
++			  unsigned int *len, unsigned int offset, bool linear,
+ 			  struct sock *sk)
+ {
+ 	if (unlikely(spd->nr_pages == MAX_SKB_FRAGS))
+@@ -3091,8 +3089,7 @@ static bool __splice_segment(struct page *page, unsigned int poff,
+ 			     unsigned int plen, unsigned int *off,
+ 			     unsigned int *len,
+ 			     struct splice_pipe_desc *spd, bool linear,
+-			     struct sock *sk,
+-			     struct pipe_inode_info *pipe)
++			     struct sock *sk)
+ {
+ 	if (!*len)
+ 		return true;
+@@ -3111,8 +3108,7 @@ static bool __splice_segment(struct page *page, unsigned int poff,
+ 	do {
+ 		unsigned int flen = min(*len, plen);
+ 
+-		if (spd_fill_page(spd, pipe, page, &flen, poff,
+-				  linear, sk))
++		if (spd_fill_page(spd, page, &flen, poff, linear, sk))
+ 			return true;
+ 		poff += flen;
+ 		plen -= flen;
+@@ -3130,8 +3126,8 @@ static bool __skb_splice_bits(struct sk_buff *skb, struct pipe_inode_info *pipe,
+ 			      unsigned int *offset, unsigned int *len,
+ 			      struct splice_pipe_desc *spd, struct sock *sk)
+ {
+-	int seg;
+ 	struct sk_buff *iter;
++	int seg;
+ 
+ 	/* map the linear part :
+ 	 * If skb->head_frag is set, this 'linear' part is backed by a
+@@ -3143,7 +3139,7 @@ static bool __skb_splice_bits(struct sk_buff *skb, struct pipe_inode_info *pipe,
+ 			     skb_headlen(skb),
+ 			     offset, len, spd,
+ 			     skb_head_is_locked(skb),
+-			     sk, pipe))
++			     sk))
+ 		return true;
+ 
+ 	/*
+@@ -3160,7 +3156,7 @@ static bool __skb_splice_bits(struct sk_buff *skb, struct pipe_inode_info *pipe,
+ 
+ 		if (__splice_segment(skb_frag_page(f),
+ 				     skb_frag_off(f), skb_frag_size(f),
+-				     offset, len, spd, false, sk, pipe))
++				     offset, len, spd, false, sk))
+ 			return true;
+ 	}
+ 
+
+-- 
+2.49.0
+
