@@ -1,45 +1,45 @@
-Received: from mailtransmit05.runbox.com (mailtransmit05.runbox.com [185.226.149.38])
+Received: from mailtransmit04.runbox.com (mailtransmit04.runbox.com [185.226.149.37])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EC56F280025;
-	Wed,  2 Jul 2025 13:38:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.226.149.38
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7D5428030C;
+	Wed,  2 Jul 2025 13:38:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.226.149.37
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751463527; cv=none; b=sP7La/pv4CdMEQbo67jpwonHzm+f91m0XZuBmXk0XVy7LAodAfeBdXq3tVts7+ldnPCUdLoyNgnKUD6iNPVRfo3D875rMelPQdaKD6/EV0OYmhPj7iwDAU4jbEWgaF3VmFF7B4oIRJ18w0+TrzGi5b297DWdyKxVenSNUZ7afFE=
+	t=1751463528; cv=none; b=gRxfcSajwxoY862aW/mgXtwI7urpzxD6Lq0i99dkDZ/mrL+4gOm8rV4FjWb1JbjAgkA4qYQ2jaxU4vliDgrqSqFcGHuF+5ItB0Z4GcZdefBUMm0Bth4hemQdHcthNVLP1VUWw9r3Rjk1OzFcJwYeV1SSJB4A42rSDiAIpSIKKTU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751463527; c=relaxed/simple;
-	bh=9UXv6Lv8Mgx5xwLb6Alh24jufOJ2+q7DhT8Nl4HXuvY=;
-	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=eL8mvjIBO/pT8ugQEzO2fKX4IurUqRJXTucp6EKWK1yTWaVKj1J+KvpeUZJ9MNsrDzKoVAzswRgI9ptM/YgXEjP+QRVE0WDd6wsdY5anXp/5nEX6GFRwJlbhyH8n9mufuYUq8XzGBOQKZtkoE5+D5/vR53WhZJO78PmwyOh6vEY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=rbox.co; spf=pass smtp.mailfrom=rbox.co; dkim=pass (2048-bit key) header.d=rbox.co header.i=@rbox.co header.b=uOsqb9wO; arc=none smtp.client-ip=185.226.149.38
+	s=arc-20240116; t=1751463528; c=relaxed/simple;
+	bh=6JXOJDpQtNZ8zItGvQx8hpOPdmVU4HwAecRO1928Ajg=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
+	 In-Reply-To:To:Cc; b=epl7fZTgZuEBEYWfYsCqyRupzZYQ0llSmL/jJBSEF2/tz0sShDLvBBB+ENX2Yv5MmSnOrihnKTRWjomqIAgrsBJx+/9nfX7zMCS/vf51kCgxQ1nde+LOSYuINqu1opx2BKFcRDjDx4Hyk881s8DbKag2yo5YMr4QkvROx2r6S14=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=rbox.co; spf=pass smtp.mailfrom=rbox.co; dkim=pass (2048-bit key) header.d=rbox.co header.i=@rbox.co header.b=HKhubmMf; arc=none smtp.client-ip=185.226.149.37
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=rbox.co
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=rbox.co
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=rbox.co header.i=@rbox.co header.b="uOsqb9wO"
-Received: from mailtransmit02.runbox ([10.9.9.162] helo=aibo.runbox.com)
-	by mailtransmit05.runbox.com with esmtps  (TLS1.2) tls TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+	dkim=pass (2048-bit key) header.d=rbox.co header.i=@rbox.co header.b="HKhubmMf"
+Received: from mailtransmit03.runbox ([10.9.9.163] helo=aibo.runbox.com)
+	by mailtransmit04.runbox.com with esmtps  (TLS1.2) tls TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
 	(Exim 4.93)
 	(envelope-from <mhal@rbox.co>)
-	id 1uWxfV-00GxOo-Ac; Wed, 02 Jul 2025 15:38:33 +0200
+	id 1uWxfW-00GcGn-RV; Wed, 02 Jul 2025 15:38:34 +0200
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=rbox.co;
-	s=selector2; h=Cc:To:Content-Transfer-Encoding:Content-Type:MIME-Version:
-	Message-Id:Date:Subject:From; bh=rLI/a9ECryxZRQ9J4BCJbHJwt0Oclm9wiohMCVJ1XXA=
-	; b=uOsqb9wOvgHeZuau00vHqMtqAy75L00axpt98nL9aqznLT7tk/UllZTTi8Vx4Rcz1+oPLzxVs
-	fcP7sVuf77kt4ektZYfHpFoXJ3u98QpDFVZJjT0egF0xzhusweqXBoMUDRqtK6XTLzTp3o6ZgC4jK
-	ihLtc6Jt5ReVmJ/ktfEH/wUFUhVqalFfhO2/xynWTdNwQN6mQ2kE5As6MCPBdqfpaau3thNFuOAWp
-	g/jHEkaI8rgC4R9cHXlnEnEmOygn7QzbL+WFmlbb7VAq76GS7pndcPvL1oJ0s+6wO3Om5LuKcEUoo
-	v2ZoioVJq1Wy6WRsAPmVM65aio0kR06jgVUT/A==;
+	s=selector2; h=Cc:To:In-Reply-To:References:Message-Id:
+	Content-Transfer-Encoding:Content-Type:MIME-Version:Subject:Date:From;
+	bh=sM+ZIkYQgoYjSyImGT5nQfsb+zR5DT3P9YWgOgmGZQE=; b=HKhubmMfKL7U9cqp0dMh0WOd9s
+	RWjfsza+e4mH8JywvaeQzPnYVqQv3dzd/wQyvfxWx2eJWqQP6SEX2oUDPXy6XtBzo+MqsXlwwBCxV
+	dpgvUlCS9GN6zAZVn1VQqEdhuAcbCYCXfUPgGCh6FMO/J28BhIRNxOcCaXPQ+3cbRVnPuu7BYD4UL
+	2dJZaZoVXuDxga3x1L+GsliVxqc+shcoLiKq92ud65zbkoJH2blEU7juEnomvDgE0xVlmGO6E0yMh
+	HVy7/0x998XfTHqTdOuCKMa9zs5lWqYOpw5ymTGfaPX3Lx243ga6KKqTE0f5RsXpjEjsJTfWyRdev
+	Yv3/dGtg==;
 Received: from [10.9.9.73] (helo=submission02.runbox)
-	by mailtransmit02.runbox with esmtp (Exim 4.86_2)
+	by mailtransmit03.runbox with esmtp (Exim 4.86_2)
 	(envelope-from <mhal@rbox.co>)
-	id 1uWxfT-0006EX-TZ; Wed, 02 Jul 2025 15:38:32 +0200
+	id 1uWxfW-0005Gl-8M; Wed, 02 Jul 2025 15:38:34 +0200
 Received: by submission02.runbox with esmtpsa  [Authenticated ID (604044)]  (TLS1.2:ECDHE_SECP256R1__RSA_PSS_RSAE_SHA256__AES_256_GCM:256)
 	(Exim 4.93)
-	id 1uWxfC-009LCR-Li; Wed, 02 Jul 2025 15:38:14 +0200
+	id 1uWxfG-009LCR-SI; Wed, 02 Jul 2025 15:38:18 +0200
 From: Michal Luczaj <mhal@rbox.co>
-Subject: [PATCH net-next v3 0/6] net: Remove unused function parameters in
- skbuff.c
-Date: Wed, 02 Jul 2025 15:38:06 +0200
-Message-Id: <20250702-splice-drop-unused-v3-0-55f68b60d2b7@rbox.co>
+Date: Wed, 02 Jul 2025 15:38:11 +0200
+Subject: [PATCH net-next v3 5/6] net: skbuff: Drop unused @skb
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -48,11 +48,9 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-X-B4-Tracking: v=1; b=H4sIAD82ZWgC/23OQQ7CIBAF0KuYWYsBioiuvIdxgTBYEgMNtKSm6
- d0luNBFlz8/8/4skDF5zHDZLZCw+OxjqKHb78D0OjyReFszcMqPVDJF8vDyBolNcSBTmDJaQlG
- gVppxqRjUwyGh83NDbxBwJAHnEe616X0eY3q3tcJa/4W52IILI5QYJwXT8iQtFdf0iPPBxIYV/
- g/ITYBXoKt/OW2Ydur8A9Z1/QB6xmzK/QAAAA==
-X-Change-ID: 20250618-splice-drop-unused-0e4ea8a12681
+Message-Id: <20250702-splice-drop-unused-v3-5-55f68b60d2b7@rbox.co>
+References: <20250702-splice-drop-unused-v3-0-55f68b60d2b7@rbox.co>
+In-Reply-To: <20250702-splice-drop-unused-v3-0-55f68b60d2b7@rbox.co>
 To: "David S. Miller" <davem@davemloft.net>, 
  Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, 
  Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>, 
@@ -63,55 +61,54 @@ To: "David S. Miller" <davem@davemloft.net>,
  Tony Lu <tonylu@linux.alibaba.com>, Wen Gu <guwen@linux.alibaba.com>
 Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org, 
  linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org, 
- Michal Luczaj <mhal@rbox.co>, Sidraya Jayagond <sidraya@linux.ibm.com>, 
- Dust Li <dust.li@linux.alibaba.com>
+ Michal Luczaj <mhal@rbox.co>
 X-Mailer: b4 0.14.2
 
-Couple of cleanup patches to get rid of unused function parameters around
-skbuff.c, plus little things spotted along the way.
+Since its introduction in commit ce098da1497c ("skbuff: Introduce
+slab_build_skb()"), __slab_build_skb() never used the @skb argument. Remove
+it and adapt both callers.
 
-Offshoot of my question in [1], but way more contained. Found by adding
-"-Wunused-parameter -Wno-error" to KBUILD_CFLAGS and grepping for specific
-skbuff.c warnings.
+No functional change intended.
 
-[1]: https://lore.kernel.org/netdev/972af569-0c90-4585-9e1f-f2266dab6ec6@rbox.co/
-
+Reviewed-by: Simon Horman <horms@kernel.org>
 Signed-off-by: Michal Luczaj <mhal@rbox.co>
 ---
-Changes in v3:
-- Keep skb_splice_bits() @flags [Jakub, Paolo]
-- Link to v2: https://lore.kernel.org/r/20250626-splice-drop-unused-v2-0-3268fac1af89@rbox.co
+ net/core/skbuff.c | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-Changes in v2:
-- Fix typos in commit messages
-- Remove one more unused parameter in skbuff.c (patch 9)
-- Collect R-b, add a one-line cleanup of smc_rx_splice() (patch 7) [Simon]
-- Link to v1: https://lore.kernel.org/r/20250624-splice-drop-unused-v1-0-cf641a676d04@rbox.co
+diff --git a/net/core/skbuff.c b/net/core/skbuff.c
+index 3041f7a3560d58270dffdf923825758f274c8511..4893350bc80a105e0a2870f0de03a687c1117217 100644
+--- a/net/core/skbuff.c
++++ b/net/core/skbuff.c
+@@ -384,8 +384,7 @@ static inline void __finalize_skb_around(struct sk_buff *skb, void *data,
+ 	skb_set_kcov_handle(skb, kcov_common_handle());
+ }
+ 
+-static inline void *__slab_build_skb(struct sk_buff *skb, void *data,
+-				     unsigned int *size)
++static inline void *__slab_build_skb(void *data, unsigned int *size)
+ {
+ 	void *resized;
+ 
+@@ -418,7 +417,7 @@ struct sk_buff *slab_build_skb(void *data)
+ 		return NULL;
+ 
+ 	memset(skb, 0, offsetof(struct sk_buff, tail));
+-	data = __slab_build_skb(skb, data, &size);
++	data = __slab_build_skb(data, &size);
+ 	__finalize_skb_around(skb, data, size);
+ 
+ 	return skb;
+@@ -435,7 +434,7 @@ static void __build_skb_around(struct sk_buff *skb, void *data,
+ 	 * using slab buffer should use slab_build_skb() instead.
+ 	 */
+ 	if (WARN_ONCE(size == 0, "Use slab_build_skb() instead"))
+-		data = __slab_build_skb(skb, data, &size);
++		data = __slab_build_skb(data, &size);
+ 
+ 	__finalize_skb_around(skb, data, size);
+ }
 
----
-Michal Luczaj (6):
-      net: splice: Drop unused @pipe
-      net: splice: Drop unused @gfp
-      net: splice: Drop nr_pages_max initialization
-      net/smc: Drop nr_pages_max initialization
-      net: skbuff: Drop unused @skb
-      net: skbuff: Drop unused @skb
-
- .../chelsio/inline_crypto/chtls/chtls_io.c         |  3 +-
- include/linux/skbuff.h                             |  2 +-
- net/core/skbuff.c                                  | 34 +++++++++-------------
- net/ipv4/ip_output.c                               |  3 +-
- net/ipv4/tcp.c                                     |  3 +-
- net/ipv6/ip6_output.c                              |  3 +-
- net/kcm/kcmsock.c                                  |  3 +-
- net/smc/smc_rx.c                                   |  1 -
- net/unix/af_unix.c                                 |  3 +-
- 9 files changed, 20 insertions(+), 35 deletions(-)
----
-base-commit: e96ee511c906c59b7c4e6efd9d9b33917730e000
-change-id: 20250618-splice-drop-unused-0e4ea8a12681
-
-Best regards,
 -- 
-Michal Luczaj <mhal@rbox.co>
+2.49.0
 
