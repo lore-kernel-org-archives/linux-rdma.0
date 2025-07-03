@@ -1,36 +1,36 @@
-Received: from szxga05-in.huawei.com (szxga05-in.huawei.com [45.249.212.191])
+Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C861B299930
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B7CAD2874E1
 	for <linux-rdma@vger.kernel.org>; Thu,  3 Jul 2025 11:39:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.191
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.188
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751542752; cv=none; b=S+82jFqbevoRy3fE9FUR+fuds/oN4gslHIzHZLO3muD/27U91x5aAaAAqUCkAzsyb/7QJOLJLF1eJnVtkm2rDdKgMR6mJvWr3L1N0mkYnlfsSjLYoPjkw10clpFI7t5mMFyi7BjbxnsaUeQggJ/cKMYsUSPJKvwqYj0gUPE4t5k=
+	t=1751542753; cv=none; b=OsBNNkm8pgEVD/hN5hqh7Ar36HtNohaBbQYZTGYRoiP4NNbg8phVBMDXAWZSkxNiERApluq6Caa9iR7h7Mux1DDVSxeNIakKqGX9GHazmxFgYHoLyu+aDJT8WxY/2NknmbExAJRUiDonLEcctV0j/IxP86TbdWkAxPk98KhA1/o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751542752; c=relaxed/simple;
-	bh=x+y8TIPkyXqJBxBKdu+kU/m8hCOaBHhyrh5tFvHt1Cw=;
+	s=arc-20240116; t=1751542753; c=relaxed/simple;
+	bh=9obxsBG+3Fl55aDK1e56d1viuxd3ly3Ok1Lghw7RSCY=;
 	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=UaN8ZDVOes1mVt/U07U/IDkq4/GO8srF2s7GZDRKxABRdRQaKLggKr3e1NOXpImLDo3a/jZV65EZ7m5MR8yYUgdF7Cy1fMiMrs6309rXLtv1i3PIsCX+uvdX5Bs/XdIJhAAPhWHsBwT4V23r6AI1Ga5CcdQqJSmRzWTTof+6Zuo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com; spf=pass smtp.mailfrom=hisilicon.com; arc=none smtp.client-ip=45.249.212.191
+	 MIME-Version:Content-Type; b=GiKLwCDn9bfunx2lbuH3u5/a0tmZDtoG9xNm4R8esedWObH9K7JUUw3VkBfa50gxhHSjUIaFSUKp2ybPCwWDBw7vWXpp8oH2eTqxgT1r/cP79L+tdKBDm4tHgEbGuI5gIj3ykOvGjqnc97LyBYnew/S+8fEhl2/XfnLCNNadgwk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com; spf=pass smtp.mailfrom=hisilicon.com; arc=none smtp.client-ip=45.249.212.188
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=hisilicon.com
-Received: from mail.maildlp.com (unknown [172.19.163.17])
-	by szxga05-in.huawei.com (SkyGuard) with ESMTP id 4bXvqS4vsSz1R8g0;
-	Thu,  3 Jul 2025 19:36:36 +0800 (CST)
+Received: from mail.maildlp.com (unknown [172.19.162.254])
+	by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4bXvnK5zKRzWfxS;
+	Thu,  3 Jul 2025 19:34:45 +0800 (CST)
 Received: from kwepemf100018.china.huawei.com (unknown [7.202.181.17])
-	by mail.maildlp.com (Postfix) with ESMTPS id 334BE1A0188;
+	by mail.maildlp.com (Postfix) with ESMTPS id ED0B7180482;
 	Thu,  3 Jul 2025 19:39:08 +0800 (CST)
 Received: from localhost.localdomain (10.50.165.33) by
  kwepemf100018.china.huawei.com (7.202.181.17) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Thu, 3 Jul 2025 19:39:07 +0800
+ 15.2.1544.11; Thu, 3 Jul 2025 19:39:08 +0800
 From: Junxian Huang <huangjunxian6@hisilicon.com>
 To: <jgg@ziepe.ca>, <leon@kernel.org>
 CC: <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
 	<huangjunxian6@hisilicon.com>, <tangchengchang@huawei.com>
-Subject: [PATCH for-rc 4/6] RDMA/hns: Fix accessing uninitialized resources
-Date: Thu, 3 Jul 2025 19:39:03 +0800
-Message-ID: <20250703113905.3597124-5-huangjunxian6@hisilicon.com>
+Subject: [PATCH for-rc 6/6] RDMA/hns: Fix -Wframe-larger-than issue
+Date: Thu, 3 Jul 2025 19:39:05 +0800
+Message-ID: <20250703113905.3597124-7-huangjunxian6@hisilicon.com>
 X-Mailer: git-send-email 2.33.0
 In-Reply-To: <20250703113905.3597124-1-huangjunxian6@hisilicon.com>
 References: <20250703113905.3597124-1-huangjunxian6@hisilicon.com>
@@ -45,58 +45,58 @@ Content-Type: text/plain
 X-ClientProxiedBy: kwepems500002.china.huawei.com (7.221.188.17) To
  kwepemf100018.china.huawei.com (7.202.181.17)
 
-hr_dev->pgdir_list and hr_dev->pgdir_mutex won't be initialized if
-CQ/QP record db are not enabled, but they are also needed when using
-SRQ with SRQ record db enabled. Simplified the logic by always
-initailizing the reosurces.
+Fix -Wframe-larger-than issue by allocating memory for qpc struct
+with kzalloc() instead of using stack memory.
 
-Fixes: c9813b0b9992 ("RDMA/hns: Support SRQ record doorbell")
+Fixes: 606bf89e98ef ("RDMA/hns: Refactor for hns_roce_v2_modify_qp function")
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202506240032.CSgIyFct-lkp@intel.com/
 Signed-off-by: Junxian Huang <huangjunxian6@hisilicon.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_main.c | 16 ++++------------
- 1 file changed, 4 insertions(+), 12 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
-index 427dd700cddc..d50f36f8a110 100644
---- a/drivers/infiniband/hw/hns/hns_roce_main.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_main.c
-@@ -937,10 +937,7 @@ static int hns_roce_init_hem(struct hns_roce_dev *hr_dev)
- static void hns_roce_teardown_hca(struct hns_roce_dev *hr_dev)
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index f15eb6204959..103aea0f51a8 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -5349,11 +5349,10 @@ static int hns_roce_v2_modify_qp(struct ib_qp *ibqp,
  {
- 	hns_roce_cleanup_bitmap(hr_dev);
--
--	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_CQ_RECORD_DB ||
--	    hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_QP_RECORD_DB)
--		mutex_destroy(&hr_dev->pgdir_mutex);
-+	mutex_destroy(&hr_dev->pgdir_mutex);
- }
+ 	struct hns_roce_dev *hr_dev = to_hr_dev(ibqp->device);
+ 	struct hns_roce_qp *hr_qp = to_hr_qp(ibqp);
+-	struct hns_roce_v2_qp_context ctx[2];
+-	struct hns_roce_v2_qp_context *context = ctx;
+-	struct hns_roce_v2_qp_context *qpc_mask = ctx + 1;
++	struct hns_roce_v2_qp_context *context;
++	struct hns_roce_v2_qp_context *qpc_mask;
+ 	struct ib_device *ibdev = &hr_dev->ib_dev;
+-	int ret;
++	int ret = -ENOMEM;
  
- /**
-@@ -958,11 +955,8 @@ static int hns_roce_setup_hca(struct hns_roce_dev *hr_dev)
- 	INIT_LIST_HEAD(&hr_dev->qp_list);
- 	spin_lock_init(&hr_dev->qp_list_lock);
+ 	if (attr_mask & ~IB_QP_ATTR_STANDARD_BITS)
+ 		return -EOPNOTSUPP;
+@@ -5364,7 +5363,11 @@ static int hns_roce_v2_modify_qp(struct ib_qp *ibqp,
+ 	 * we should set all bits of the relevant fields in context mask to
+ 	 * 0 at the same time, else set them to 0x1.
+ 	 */
+-	memset(context, 0, hr_dev->caps.qpc_sz);
++	context = kvzalloc(sizeof(*context), GFP_KERNEL);
++	qpc_mask = kvzalloc(sizeof(*qpc_mask), GFP_KERNEL);
++	if (!context || !qpc_mask)
++		goto out;
++
+ 	memset(qpc_mask, 0xff, hr_dev->caps.qpc_sz);
  
--	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_CQ_RECORD_DB ||
--	    hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_QP_RECORD_DB) {
--		INIT_LIST_HEAD(&hr_dev->pgdir_list);
--		mutex_init(&hr_dev->pgdir_mutex);
--	}
-+	INIT_LIST_HEAD(&hr_dev->pgdir_list);
-+	mutex_init(&hr_dev->pgdir_mutex);
+ 	ret = hns_roce_v2_set_abs_fields(ibqp, attr, attr_mask, cur_state,
+@@ -5406,6 +5409,8 @@ static int hns_roce_v2_modify_qp(struct ib_qp *ibqp,
+ 		clear_qp(hr_qp);
  
- 	hns_roce_init_uar_table(hr_dev);
- 
-@@ -994,9 +988,7 @@ static int hns_roce_setup_hca(struct hns_roce_dev *hr_dev)
- 
- err_uar_table_free:
- 	ida_destroy(&hr_dev->uar_ida.ida);
--	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_CQ_RECORD_DB ||
--	    hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_QP_RECORD_DB)
--		mutex_destroy(&hr_dev->pgdir_mutex);
-+	mutex_destroy(&hr_dev->pgdir_mutex);
- 
+ out:
++	kvfree(qpc_mask);
++	kvfree(context);
  	return ret;
  }
+ 
 -- 
 2.33.0
 
