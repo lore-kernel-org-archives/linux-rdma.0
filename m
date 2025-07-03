@@ -1,39 +1,36 @@
-Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
+Received: from szxga04-in.huawei.com (szxga04-in.huawei.com [45.249.212.190])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B7CAD2874E1
-	for <linux-rdma@vger.kernel.org>; Thu,  3 Jul 2025 11:39:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.188
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DAEDE2571BC
+	for <linux-rdma@vger.kernel.org>; Thu,  3 Jul 2025 11:39:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.190
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751542753; cv=none; b=OsBNNkm8pgEVD/hN5hqh7Ar36HtNohaBbQYZTGYRoiP4NNbg8phVBMDXAWZSkxNiERApluq6Caa9iR7h7Mux1DDVSxeNIakKqGX9GHazmxFgYHoLyu+aDJT8WxY/2NknmbExAJRUiDonLEcctV0j/IxP86TbdWkAxPk98KhA1/o=
+	t=1751542757; cv=none; b=rP4RcOhQhJoLIVkRvwAXADkzUvmp7Qjx0cyPIP6xPJdCiZ40ZP2vdz9OKEmJ+9SVPwJTCiz0Bl4Vp5fO1fKkpL260joJMZyl8zp6/8HKDAoLZFNAHEfGXaJTQbATWHjh5WM1S2D7tuyatNamwz7oW+0gIDmoCQAzszaqzT9b/dE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751542753; c=relaxed/simple;
-	bh=9obxsBG+3Fl55aDK1e56d1viuxd3ly3Ok1Lghw7RSCY=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=GiKLwCDn9bfunx2lbuH3u5/a0tmZDtoG9xNm4R8esedWObH9K7JUUw3VkBfa50gxhHSjUIaFSUKp2ybPCwWDBw7vWXpp8oH2eTqxgT1r/cP79L+tdKBDm4tHgEbGuI5gIj3ykOvGjqnc97LyBYnew/S+8fEhl2/XfnLCNNadgwk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com; spf=pass smtp.mailfrom=hisilicon.com; arc=none smtp.client-ip=45.249.212.188
+	s=arc-20240116; t=1751542757; c=relaxed/simple;
+	bh=ZukxSc8kDnngko5triXJpikxvFdSZB4fVLkzCTcwusU=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=LDbjqWRmmTdvppbLgvL55/gc8jzEIgs+1tsjpSKspjAdB+wAupBwjeWS+JsaEG/NJiB+23ciWK76W2qJfsZKVfi5r6NrXT8N2FVN//n4SMLAFpBxJvudpwuTQ3r7MrQLnm2CNIgeJqh5II29d6uDGGYMrEv4xH3oQ2RHIATSsrc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com; spf=pass smtp.mailfrom=hisilicon.com; arc=none smtp.client-ip=45.249.212.190
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=hisilicon.com
-Received: from mail.maildlp.com (unknown [172.19.162.254])
-	by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4bXvnK5zKRzWfxS;
-	Thu,  3 Jul 2025 19:34:45 +0800 (CST)
+Received: from mail.maildlp.com (unknown [172.19.163.44])
+	by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4bXvrG6npTz2SStf;
+	Thu,  3 Jul 2025 19:37:18 +0800 (CST)
 Received: from kwepemf100018.china.huawei.com (unknown [7.202.181.17])
-	by mail.maildlp.com (Postfix) with ESMTPS id ED0B7180482;
-	Thu,  3 Jul 2025 19:39:08 +0800 (CST)
+	by mail.maildlp.com (Postfix) with ESMTPS id 9F19C140158;
+	Thu,  3 Jul 2025 19:39:06 +0800 (CST)
 Received: from localhost.localdomain (10.50.165.33) by
  kwepemf100018.china.huawei.com (7.202.181.17) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Thu, 3 Jul 2025 19:39:08 +0800
+ 15.2.1544.11; Thu, 3 Jul 2025 19:39:06 +0800
 From: Junxian Huang <huangjunxian6@hisilicon.com>
 To: <jgg@ziepe.ca>, <leon@kernel.org>
 CC: <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
 	<huangjunxian6@hisilicon.com>, <tangchengchang@huawei.com>
-Subject: [PATCH for-rc 6/6] RDMA/hns: Fix -Wframe-larger-than issue
-Date: Thu, 3 Jul 2025 19:39:05 +0800
-Message-ID: <20250703113905.3597124-7-huangjunxian6@hisilicon.com>
+Subject: [PATCH for-rc 0/6] RDMA/hns: Bugfixes and improvements
+Date: Thu, 3 Jul 2025 19:38:59 +0800
+Message-ID: <20250703113905.3597124-1-huangjunxian6@hisilicon.com>
 X-Mailer: git-send-email 2.33.0
-In-Reply-To: <20250703113905.3597124-1-huangjunxian6@hisilicon.com>
-References: <20250703113905.3597124-1-huangjunxian6@hisilicon.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -45,58 +42,25 @@ Content-Type: text/plain
 X-ClientProxiedBy: kwepems500002.china.huawei.com (7.221.188.17) To
  kwepemf100018.china.huawei.com (7.202.181.17)
 
-Fix -Wframe-larger-than issue by allocating memory for qpc struct
-with kzalloc() instead of using stack memory.
+Here are some recent bugfixes and improvements for hns.
 
-Fixes: 606bf89e98ef ("RDMA/hns: Refactor for hns_roce_v2_modify_qp function")
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202506240032.CSgIyFct-lkp@intel.com/
-Signed-off-by: Junxian Huang <huangjunxian6@hisilicon.com>
----
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 15 ++++++++++-----
- 1 file changed, 10 insertions(+), 5 deletions(-)
+Junxian Huang (4):
+  RDMA/hns: Get message length of ack_req from FW
+  RDMA/hns: Fix accessing uninitialized resources
+  RDMA/hns: Drop GFP_NOWARN
+  RDMA/hns: Fix -Wframe-larger-than issue
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index f15eb6204959..103aea0f51a8 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -5349,11 +5349,10 @@ static int hns_roce_v2_modify_qp(struct ib_qp *ibqp,
- {
- 	struct hns_roce_dev *hr_dev = to_hr_dev(ibqp->device);
- 	struct hns_roce_qp *hr_qp = to_hr_qp(ibqp);
--	struct hns_roce_v2_qp_context ctx[2];
--	struct hns_roce_v2_qp_context *context = ctx;
--	struct hns_roce_v2_qp_context *qpc_mask = ctx + 1;
-+	struct hns_roce_v2_qp_context *context;
-+	struct hns_roce_v2_qp_context *qpc_mask;
- 	struct ib_device *ibdev = &hr_dev->ib_dev;
--	int ret;
-+	int ret = -ENOMEM;
- 
- 	if (attr_mask & ~IB_QP_ATTR_STANDARD_BITS)
- 		return -EOPNOTSUPP;
-@@ -5364,7 +5363,11 @@ static int hns_roce_v2_modify_qp(struct ib_qp *ibqp,
- 	 * we should set all bits of the relevant fields in context mask to
- 	 * 0 at the same time, else set them to 0x1.
- 	 */
--	memset(context, 0, hr_dev->caps.qpc_sz);
-+	context = kvzalloc(sizeof(*context), GFP_KERNEL);
-+	qpc_mask = kvzalloc(sizeof(*qpc_mask), GFP_KERNEL);
-+	if (!context || !qpc_mask)
-+		goto out;
-+
- 	memset(qpc_mask, 0xff, hr_dev->caps.qpc_sz);
- 
- 	ret = hns_roce_v2_set_abs_fields(ibqp, attr, attr_mask, cur_state,
-@@ -5406,6 +5409,8 @@ static int hns_roce_v2_modify_qp(struct ib_qp *ibqp,
- 		clear_qp(hr_qp);
- 
- out:
-+	kvfree(qpc_mask);
-+	kvfree(context);
- 	return ret;
- }
- 
--- 
+wenglianfa (2):
+  RDMA/hns: Fix double destruction of rsv_qp
+  RDMA/hns: Fix HW configurations not cleared in error flow
+
+ drivers/infiniband/hw/hns/hns_roce_device.h |  1 +
+ drivers/infiniband/hw/hns/hns_roce_hem.c    | 18 ++---
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 81 +++++++++++++++------
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.h  |  8 +-
+ drivers/infiniband/hw/hns/hns_roce_main.c   | 22 ++----
+ 5 files changed, 77 insertions(+), 53 deletions(-)
+
+--
 2.33.0
 
