@@ -1,34 +1,34 @@
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id B6BAC28BA9D;
-	Mon,  7 Jul 2025 22:03:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 8F3A328BAB9;
+	Mon,  7 Jul 2025 22:03:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751925824; cv=none; b=SXlFd9MN71KObhiixZCQL050Vek5tB8hFGmqsgRoA4LzNIhd/3heNHTUkxkW8998LuwrKyZ4JFzH4AEGjB8dFZ52YYxYijCRJYXU8GxGyREC2bUyo2ON2iRAUL77vRG71OLiIY5dxIvruJOfIGbRfyDHxq++IJtPghA6IgdjLFs=
+	t=1751925824; cv=none; b=S9dmOj+61dR/iEG0XycSbr+GasP2RcvcPkQlu1EnmmbMaScIsdTjghTaaxwZtFG/ftw2FKYb1h1Sa4GXSeW+5PHjuXb5C81yDGNLqzGjld+IEohhVLZ9hkMxtLUT3TCxeGEhXsewP+eKBYazPTArdHpyTFMDZjslnAXGCZAQ/v4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1751925824; c=relaxed/simple;
-	bh=Pv3cdtRYR+8RAzNhg8UHDBTC+Z9xW3JmWHc0M2qgHMs=;
-	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=WC+pDqXsZ2NqK0hKCJagaO9NPIhKqM28eJhjYcjtknOiC3Hjh8dNbTe7FyM8NsGY61sOwcIEqiiWP5hvO11oJE68P6cVZCMNjJhhDWz3zncmH5swB9Qcoh6C3TsHhBdhgkZMdm0h4Mvd6Y3i8JLKwD0MF8IM0oXeyQHTrmKgfQY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=Fkg3HJpF; arc=none smtp.client-ip=13.77.154.182
+	bh=VIoB7qiTLaV7Z1JX5PmXLYanxXX/r8BMP27IJazNm84=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
+	 In-Reply-To:To:Cc; b=T0JkALTgE9JtJo4+zsayPQEDgE7IERPaKn+L7esIgeRbGUTDiZ/in83m8PO8EhYCfJxJDevmgJIcEX0QU9QAVfeXMYiRYfslU9y6H1T2s4NmGJctYTeGRVfCHCYsDqUnALxmoxw/A/BXUTnGh+ZVHO1JjXl9KPYvcY8xZzlunIo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=iUJy5S40; arc=none smtp.client-ip=13.77.154.182
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="Fkg3HJpF"
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="iUJy5S40"
 Received: from easwarh-mobl2. (unknown [20.29.225.195])
-	by linux.microsoft.com (Postfix) with ESMTPSA id 4D9B22054680;
-	Mon,  7 Jul 2025 15:03:41 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 4D9B22054680
+	by linux.microsoft.com (Postfix) with ESMTPSA id 80DEF2054689;
+	Mon,  7 Jul 2025 15:03:42 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 80DEF2054689
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
-	s=default; t=1751925821;
-	bh=xNWC/0DZp7yoXd0DedMxkG7j3oORN78XzbDIgm9XdK8=;
-	h=From:Subject:Date:To:Cc:From;
-	b=Fkg3HJpFQ+oDhLroLbYUEW9qEZwFbYxy7oALwDyhqNw1CuuIltqHEMrQqLCyTbbn1
-	 WWu4Gak8okrtXC9vo/7XmN2kWZEj7hTp5J41T3wGJft04dM70+IrwyG58vWSym84jl
-	 A7eUzam1ws+s/b8AtADkPkWdwnnHpyVg6vxxi6OY=
+	s=default; t=1751925823;
+	bh=ZQBUkjDtvUw42acvYUgd6vDbgxWPxXM2A3fBzrkCpHM=;
+	h=From:Date:Subject:References:In-Reply-To:To:Cc:From;
+	b=iUJy5S402vW9QcG4yGSfhRWs8qDBqFXFp3IkaUFVFzW5hQOyEWnpgi4tW1UbfLlj+
+	 +boa03gPqNmBv5uvN7aWJNvIaDZLz9Hv1+CzGVEk89Jxl+duextke1Xz8uKTQbZ1HS
+	 8foQuORd+bKXJB85V9fjNiD+GRWt+jOvD5OqUNV8=
 From: Easwar Hariharan <eahariha@linux.microsoft.com>
-Subject: [PATCH net-next v2 0/2] Converge on using secs_to_jiffies() part
- two
-Date: Mon, 07 Jul 2025 15:03:31 -0700
-Message-Id: <20250707-netdev-secs-to-jiffies-part-2-v2-0-b7817036342f@linux.microsoft.com>
+Date: Mon, 07 Jul 2025 15:03:33 -0700
+Subject: [PATCH net-next v2 2/2] net: ipconfig: convert timeouts to
+ secs_to_jiffies()
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -37,11 +37,9 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-X-B4-Tracking: v=1; b=H4sIADNEbGgC/4WNTQ6CMBBGr0Jm7ZC2/ARceQ/DAstUxgglbW0wh
- Lvb9AIuv3x57x3gyTF5uBYHOIrs2a5pqEsBeh7XJyFPaYMSqhFSdbhSmCiiJ+0xWHyxMYnHbXQ
- BFXZGTKqpGtG3IyTH5sjwnv13SGjC9wBDemb2wbpvDkeZ/9xQsv/TiBIF6rqrtW6rVsrH7c3rZ
- y8X1s56a0Kp7QLDeZ4/OSsimt4AAAA=
-X-Change-ID: 20250128-netdev-secs-to-jiffies-part-2-8f0d2535096a
+Message-Id: <20250707-netdev-secs-to-jiffies-part-2-v2-2-b7817036342f@linux.microsoft.com>
+References: <20250707-netdev-secs-to-jiffies-part-2-v2-0-b7817036342f@linux.microsoft.com>
+In-Reply-To: <20250707-netdev-secs-to-jiffies-part-2-v2-0-b7817036342f@linux.microsoft.com>
 To: "D. Wythe" <alibuda@linux.alibaba.com>, 
  Dust Li <dust.li@linux.alibaba.com>, 
  Sidraya Jayagond <sidraya@linux.ibm.com>, 
@@ -57,43 +55,56 @@ Cc: Andrew Morton <akpm@linux-foundation.org>, linux-rdma@vger.kernel.org,
  Easwar Hariharan <eahariha@linux.microsoft.com>
 X-Mailer: b4 0.14.2
 
-This is the second series (part 1*) that converts users of msecs_to_jiffies() that
-either use the multiply pattern of either of:
-- msecs_to_jiffies(N*1000) or
-- msecs_to_jiffies(N*MSEC_PER_SEC)
+Commit b35108a51cf7 ("jiffies: Define secs_to_jiffies()") introduced
+secs_to_jiffies().  As the value here is a multiple of 1000, use
+secs_to_jiffies() instead of msecs_to_jiffies to avoid the multiplication.
 
-where N is a constant or an expression, to avoid the multiplication.
+This is converted using scripts/coccinelle/misc/secs_to_jiffies.cocci with
+the following Coccinelle rules:
 
-The conversion is made with Coccinelle with the secs_to_jiffies() script
-in scripts/coccinelle/misc. Attention is paid to what the best change
-can be rather than restricting to what the tool provides.
+@depends on patch@
+expression E;
+@@
 
-This series is based on net-next.
+-msecs_to_jiffies(E * 1000)
++secs_to_jiffies(E)
+
+-msecs_to_jiffies(E * MSEC_PER_SEC)
++secs_to_jiffies(E)
+
+While here, manually convert a couple timeouts denominated in seconds
 
 Signed-off-by: Easwar Hariharan <eahariha@linux.microsoft.com>
-
-* https://lore.kernel.org/all/20241212-netdev-converge-secs-to-jiffies-v4-0-6dac97a6d6ab@linux.microsoft.com/
-
 ---
-Changes in v2:
-- Implemented report mode for the secs_to_jiffies coccicheck script (Jakub), patch has been queued by Andrew Morton in mm-nonmm-unstable
-  - Link: https://web.git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git/commit/?h=mm-nonmm-unstable&id=a01189aaf16e8d8d619067939ea21ea97a279864
-- Drop change to netfilter already merged upstream: https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=f4293c2baf6faa5f1a1638bcce698ed88d0d396e
-- Link to v1: https://lore.kernel.org/r/20250219-netdev-secs-to-jiffies-part-2-v1-0-c484cc63611b@linux.microsoft.com
-
----
-Easwar Hariharan (2):
-      net/smc: convert timeouts to secs_to_jiffies()
-      net: ipconfig: convert timeouts to secs_to_jiffies()
-
  net/ipv4/ipconfig.c | 6 +++---
- net/smc/af_smc.c    | 3 +--
- 2 files changed, 4 insertions(+), 5 deletions(-)
----
-base-commit: 6b9fd8857b9fc4dd62e7cd300327f0e48dd76642
-change-id: 20250128-netdev-secs-to-jiffies-part-2-8f0d2535096a
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-Best regards,
+diff --git a/net/ipv4/ipconfig.c b/net/ipv4/ipconfig.c
+index c56b6fe6f0d771e9275bb66c159d9abb330bdf4c..22a7889876c1cf7d5233fe8a0ee12e134b20c1cd 100644
+--- a/net/ipv4/ipconfig.c
++++ b/net/ipv4/ipconfig.c
+@@ -274,9 +274,9 @@ static int __init ic_open_devs(void)
+ 
+ 	/* wait for a carrier on at least one device */
+ 	start = jiffies;
+-	next_msg = start + msecs_to_jiffies(20000);
++	next_msg = start + secs_to_jiffies(20);
+ 	while (time_before(jiffies, start +
+-			   msecs_to_jiffies(carrier_timeout * 1000))) {
++			   secs_to_jiffies(carrier_timeout))) {
+ 		int wait, elapsed;
+ 
+ 		rtnl_lock();
+@@ -295,7 +295,7 @@ static int __init ic_open_devs(void)
+ 		elapsed = jiffies_to_msecs(jiffies - start);
+ 		wait = (carrier_timeout * 1000 - elapsed + 500) / 1000;
+ 		pr_info("Waiting up to %d more seconds for network.\n", wait);
+-		next_msg = jiffies + msecs_to_jiffies(20000);
++		next_msg = jiffies + secs_to_jiffies(20);
+ 	}
+ have_carrier:
+ 
+
 -- 
-Easwar Hariharan <eahariha@linux.microsoft.com>
+2.43.0
 
