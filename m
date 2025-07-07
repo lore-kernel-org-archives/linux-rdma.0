@@ -1,77 +1,97 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BBF5A25D535;
-	Mon,  7 Jul 2025 18:42:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id B6B36944F;
+	Mon,  7 Jul 2025 22:03:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751913738; cv=none; b=XbIxP0/Xb9IpW1STfx/4YJ+iy3FplBO9DblQQxK+6HidA0Nbsgn9RenB8GtEJJFTbjndLYNrviu6pipt8gyIbuB5izTa0BKGo0N/mMV2ZFv1SOBnoT+f1M0lIJjsXkdkMyROXfKd1AeN6D/pK2y00QxpoKtBVHErCnsWYWYc4js=
+	t=1751925824; cv=none; b=n/kZNRXN++tVB9v0whe5RAj0jJTEF1D69SvoAuPQJAQ214htgEwqb8+khSVPLhuQ1/RfhChAkKra3Lqsmpf/3qlnANqI78Mo3gmANmRt17/pyxW/v3ZFhs6KbEZhTlmImXIoc8a4a9G72qdZSHK6veVVVvvbmBD3xZYLJsPOOfM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751913738; c=relaxed/simple;
-	bh=svufrlSg5VMPdiC2WbZRbSi05zkjM8GgF5LVVHLvPAw=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=M3NE5O9AAnEFQYe35x6If4XKp+FA17tG9DY/C+Y8e85a7Uw8kiBzigzBMGiSlkm6glE0b7EfkVCaLhb6KlBp0TL85otd1n8T4pBvuv3SoKJQf2uBo6wH54/a3ohwiTdd48B7Mf64e6bQbbTeTxkoV26DC8sxYa8NK3qNZk8/lB0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Ayy6TpDX; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1751925824; c=relaxed/simple;
+	bh=+SAM8PoZovijHVxvPUIPN/YnxqQxec5IiQv7Me7VaVQ=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
+	 In-Reply-To:To:Cc; b=DXSVOD8KrjWh8AMqx9Xb0v+znB3SozC82QeqGf2/uyExj+020ne79FrjiLsE2yPitxi0xUw3fsC0QeSGBY3CAzQkHMaSJ/r6HqbiGXLbfXa9K3hZ605dHFFlf4AQXSNpnkxNfGs2B/4yoRxI6bruHqQUQupkTXPgVU7crxmcNNg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=MVEbWS8O; arc=none smtp.client-ip=13.77.154.182
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Ayy6TpDX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4C836C4CEE3;
-	Mon,  7 Jul 2025 18:42:17 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1751913738;
-	bh=svufrlSg5VMPdiC2WbZRbSi05zkjM8GgF5LVVHLvPAw=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=Ayy6TpDXykOXrx9tClyfIoyZblPccvqwQPng1ukaWyYHy7VdrA1h6eTkTX7c5i4RO
-	 4llVxMwpmCENDLtT7l+n6i/e3RKzjMn6JoGyzNX0Zw7Shy8Z1ZNqPrk/JEOjOxkUsv
-	 zpWbSMJyRlVw7s/z0DQ1NoS3qipR5O0XDIihbpyG9zcRtE/VGl7x38TiBCE7dtJ5Ee
-	 5v59IIGw/zPJj17TzZ2qX74Kmkcan652SQJF3pOAeFfQEurULwp2PZiRTjv+7MaHPm
-	 Gztp9/wexVu3FKMI2hOe+fQ5gPIbgPhgE1/gj7HUR+6+TUe4QgDdNtc8P6KrVa8grr
-	 WTOLxBSt6YCDQ==
-Date: Mon, 7 Jul 2025 11:42:16 -0700
-From: Jakub Kicinski <kuba@kernel.org>
-To: Byungchul Park <byungchul@sk.com>
-Cc: Harry Yoo <harry.yoo@oracle.com>, willy@infradead.org,
- netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org,
- kernel_team@skhynix.com, almasrymina@google.com,
- ilias.apalodimas@linaro.org, hawk@kernel.org, akpm@linux-foundation.org,
- davem@davemloft.net, john.fastabend@gmail.com, andrew+netdev@lunn.ch,
- asml.silence@gmail.com, toke@redhat.com, tariqt@nvidia.com,
- edumazet@google.com, pabeni@redhat.com, saeedm@nvidia.com, leon@kernel.org,
- ast@kernel.org, daniel@iogearbox.net, david@redhat.com,
- lorenzo.stoakes@oracle.com, Liam.Howlett@oracle.com, vbabka@suse.cz,
- rppt@kernel.org, surenb@google.com, mhocko@suse.com, horms@kernel.org,
- linux-rdma@vger.kernel.org, bpf@vger.kernel.org, vishal.moola@gmail.com,
- hannes@cmpxchg.org, ziy@nvidia.com, jackmanb@google.com
-Subject: Re: [PATCH net-next v7 1/7] netmem: introduce struct netmem_desc
- mirroring struct page
-Message-ID: <20250707114216.20c24489@kernel.org>
-In-Reply-To: <20250707002141.GA3379@system.software.com>
-References: <20250625043350.7939-1-byungchul@sk.com>
-	<20250625043350.7939-2-byungchul@sk.com>
-	<20250626174904.4a6125c9@kernel.org>
-	<20250627035405.GA4276@system.software.com>
-	<20250627173730.15b25a8c@kernel.org>
-	<aGHNmKRng9H6kTqz@hyeyoo>
-	<20250701164508.0738f00f@kernel.org>
-	<20250707002141.GA3379@system.software.com>
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="MVEbWS8O"
+Received: from easwarh-mobl2. (unknown [20.29.225.195])
+	by linux.microsoft.com (Postfix) with ESMTPSA id DBFCC2033420;
+	Mon,  7 Jul 2025 15:03:41 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com DBFCC2033420
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
+	s=default; t=1751925822;
+	bh=AlFM+M+KNW9QL9luNsE6t5ZUXlN1KrLG3+QvxKi/qa0=;
+	h=From:Date:Subject:References:In-Reply-To:To:Cc:From;
+	b=MVEbWS8OfHuek8rLDdwjP3h5le0g25JP4KEB5179+1a6QX91oJ23DhYThK4l+ttnQ
+	 ZHL4egp/hodlrrssCxfGIaha1Bi3DNsZGnDrtlF8SRydl6KF0iNs6EnqyMh/CkRymP
+	 DfGb96IqNs/3Xc1DElP/1fe4KqH0q/H9rUMCQAJs=
+From: Easwar Hariharan <eahariha@linux.microsoft.com>
+Date: Mon, 07 Jul 2025 15:03:32 -0700
+Subject: [PATCH net-next v2 1/2] net/smc: convert timeouts to
+ secs_to_jiffies()
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
+Message-Id: <20250707-netdev-secs-to-jiffies-part-2-v2-1-b7817036342f@linux.microsoft.com>
+References: <20250707-netdev-secs-to-jiffies-part-2-v2-0-b7817036342f@linux.microsoft.com>
+In-Reply-To: <20250707-netdev-secs-to-jiffies-part-2-v2-0-b7817036342f@linux.microsoft.com>
+To: "D. Wythe" <alibuda@linux.alibaba.com>, 
+ Dust Li <dust.li@linux.alibaba.com>, 
+ Sidraya Jayagond <sidraya@linux.ibm.com>, 
+ Wenjia Zhang <wenjia@linux.ibm.com>, 
+ Mahanta Jambigi <mjambigi@linux.ibm.com>, 
+ Tony Lu <tonylu@linux.alibaba.com>, Wen Gu <guwen@linux.alibaba.com>, 
+ "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, 
+ Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
+ Simon Horman <horms@kernel.org>, David Ahern <dsahern@kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-rdma@vger.kernel.org, 
+ linux-s390@vger.kernel.org, netdev@vger.kernel.org, 
+ linux-kernel@vger.kernel.org, 
+ Easwar Hariharan <eahariha@linux.microsoft.com>
+X-Mailer: b4 0.14.2
 
-On Mon, 7 Jul 2025 09:21:41 +0900 Byungchul Park wrote:
-> > Thanks a lot, this clarifies things for me.
-> > 
-> > Unfortunately, I still think that it's hard to judge patches 1 and 7
-> > in context limited to this series, so let's proceed to reposting just
-> > the "middle 5" patches.  
-> 
-> Just in case, I sent v8 with the "middle 5" last week as you requested.
-> I'm convinced they are non-controversial but lemme know if any.
+Commit b35108a51cf7 ("jiffies: Define secs_to_jiffies()") introduced
+secs_to_jiffies().  As the value here is a multiple of 1000, use
+secs_to_jiffies() instead of msecs_to_jiffies to avoid the multiplication.
 
-Please don't ping maintainers like this.
-It was 4th of July weekend in the US.
-We'll get to your patches when we do.
+This is converted using scripts/coccinelle/misc/secs_to_jiffies.cocci with
+the following Coccinelle rules:
+
+@depends on patch@
+expression E;
+@@
+
+-msecs_to_jiffies(E * 1000)
++secs_to_jiffies(E)
+
+-msecs_to_jiffies(E * MSEC_PER_SEC)
++secs_to_jiffies(E)
+
+Signed-off-by: Easwar Hariharan <eahariha@linux.microsoft.com>
+---
+ net/smc/af_smc.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/net/smc/af_smc.c b/net/smc/af_smc.c
+index 8d56e4db63e041724f156aa3ab30bab745a15bad..bdbaad17f98012c10d0bbc721c80d4c5ae4fb220 100644
+--- a/net/smc/af_smc.c
++++ b/net/smc/af_smc.c
+@@ -2735,8 +2735,7 @@ int smc_accept(struct socket *sock, struct socket *new_sock,
+ 
+ 	if (lsmc->sockopt_defer_accept && !(arg->flags & O_NONBLOCK)) {
+ 		/* wait till data arrives on the socket */
+-		timeo = msecs_to_jiffies(lsmc->sockopt_defer_accept *
+-								MSEC_PER_SEC);
++		timeo = secs_to_jiffies(lsmc->sockopt_defer_accept);
+ 		if (smc_sk(nsk)->use_fallback) {
+ 			struct sock *clcsk = smc_sk(nsk)->clcsock->sk;
+ 
+
+-- 
+2.43.0
+
