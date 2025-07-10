@@ -1,177 +1,189 @@
-Received: from mail-pl1-f175.google.com (mail-pl1-f175.google.com [209.85.214.175])
+Received: from mail-pl1-f169.google.com (mail-pl1-f169.google.com [209.85.214.169])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D02351E8333;
-	Thu, 10 Jul 2025 18:27:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.175
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C17182F0E29
+	for <linux-rdma@vger.kernel.org>; Thu, 10 Jul 2025 18:29:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.169
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752172075; cv=none; b=JAtQ2bC5qfpXqevV1K9DFM9O0eMsxLOQ0AqZItwGfyQc1xbFlNmRtMEVXS9S56wS3qmFOkhgkcAzM9KtnLM8UH0bOFcCO8gb+BPoAjMB0ZwId/b9RW22zhGYIkbTJeiqdP9Oe8MTU04cc8HgeGieuCQvH6b31duv7qNZ6YnbC9c=
+	t=1752172190; cv=none; b=NtahknQl+o2oCOzBaTWUOf6F8f/4GCbM0HlNesPSDzyd6NnqB+7gJ0vxqKty2vijf7x0cX3CxcV4ow0Kfn//hqRdnbx2H2bdPlBnAt2sXKQrK/cnHWN+0Qt7Zm33t+biXGd1rCy6HGRG4eg5PuKzQRmLtl1RRAkeRJ2xxNsq+NE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752172075; c=relaxed/simple;
-	bh=PR+No84tOw4tdZRI+3uKBmwkL10db3H965uEwwfIZRg=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=vBW0NgAvqF9v4iN3U4vLE1Vw+OVzsXHkiuo9Ok03BMImNDY2PA9AVDCaJWhXidD/f5fyr9o4lysSBC/HYfqPULQsv0dd8BfQCIO+xMZZHDgQLROPSdFz96kYnD8CajnEqlAPojSoeevTav/rG/71lEEx8pb0tvaVotVheN68y5I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=YXWpVNoc; arc=none smtp.client-ip=209.85.214.175
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1752172190; c=relaxed/simple;
+	bh=XhzeOVnGG90EuOKlpcIA49U19NvJeJfXJnX6bYAZwwY=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=DOmwRDKm/QkN/niKmyamXtdG31Jit+0bdpmXIE84AXNln50lScs14BE8cB6BtqEpe7tmtpf1azYPTDivuzyHjdEOgiDU/B2pYOWVBr4oZ9zdCgwSM04L4pe35XcIgUnvsGf1ucPMY8vnR690eSRNZqJDhf9cS8B0578U8RGnfKA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=h6TBkXCj; arc=none smtp.client-ip=209.85.214.169
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="YXWpVNoc"
-Received: by mail-pl1-f175.google.com with SMTP id d9443c01a7336-23636167afeso11568775ad.3;
-        Thu, 10 Jul 2025 11:27:53 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="h6TBkXCj"
+Received: by mail-pl1-f169.google.com with SMTP id d9443c01a7336-235e389599fso32375ad.0
+        for <linux-rdma@vger.kernel.org>; Thu, 10 Jul 2025 11:29:48 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1752172073; x=1752776873; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:reply-to:message-id:date
-         :subject:cc:to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=I9pkvpcRCYj5jNTlZhLe3kLxA+RKj6mC3gKL5fzlF0k=;
-        b=YXWpVNoc/Xg++H2hmBky2N/XQuTZJXD1p9sw97j1HUQzhyTxscmVvnj1oBoL9/TgDt
-         soz5o0c4softRqMXSIeiKqZYEU33g2gBZ0enRgRcOh0jRINrPZfLUkOQSlshCtPef8zf
-         i8dGLwtMu43W4TO9de4LvznLwHJfkQoxDfctr7FLr1wFWoVS2ZmJxhTA4MJFW8qAHEDt
-         zlOuxF36qs7FPV7GyfKnQfYQuemrr4lH4ZWmCV3H4OViq0sZDW/kDjjKRw8l8BDM4Qgm
-         Q3Xn8i9eC0o2wokX/AlvnAaeKzKoHiD7Fk1DDthYEufhAOoc2O/h+NAz9qbdsFDSKPcQ
-         vLfA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1752172073; x=1752776873;
-        h=content-transfer-encoding:mime-version:reply-to:message-id:date
-         :subject:cc:to:from:x-gm-message-state:from:to:cc:subject:date
+        d=google.com; s=20230601; t=1752172188; x=1752776988; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=I9pkvpcRCYj5jNTlZhLe3kLxA+RKj6mC3gKL5fzlF0k=;
-        b=QzSi3BlQa3fba66E0/zT3hjDmqVjYRvHMMkkzcr7GOW87tcTHgnT31aASfkDzGVM2G
-         +h8mzSzkOr4HUOZEaZXubJgtmA3O35wfVJa12aGNiemNY9yV7fe1pg3PuvoDDfSJsEPQ
-         HlxCnZ5yi3ZPG4E67WhPKebU6k/3jFZpa+q7uid3QiRHicSjRdxRlbhsEKm04zxPD55O
-         6DQjw+BS6v1S58CjWFcMeLepoxLmd9IDZqGsZI01u3QyJZKze/+DBUrihRmEESzhIZSN
-         kungeGRpkAh8DwaVcPZNnVSS5Ws7lbvfkNHg7ZYxX+avIc/rlwIc0cww73tm/xCtfXfO
-         86lw==
-X-Forwarded-Encrypted: i=1; AJvYcCU4tpaeAmcA4w1byE2wumb3002yZjQsYRwhzxOx309+DuaxCFgm8qB210NwZzDSpVgq/CiUhxJH@vger.kernel.org, AJvYcCVTwP60ssY61/6ZyjPethrr6a3Oa7zVhoHTYonU5VEbdWQkdmSNIO3VfKp2/QFwC6a8mcMLPzOXB8Vk@vger.kernel.org
-X-Gm-Message-State: AOJu0Yxg+14DziwSrBlDCsHR/LzaMS3tKqxRAFJjeEmIOAkAVsRbfcQr
-	8Y6iIvlfcDpDcj/NDLV8zNxXCzpm5wkAjXgFaIKaY3W4nsE6s35YEUa4
-X-Gm-Gg: ASbGncvumBn5kpv1zH2gCw/7J9MWPMuJ8OzThz4ydUDMI1uByV+Ygrqmsk4RMlihN7A
-	ppnu5v/GUGPpiLzjWLCCeZsOFuD3KTjTXV4yT8bh+afE4pXDyjgG24wnjzXnm0mNCaHXmCAI91H
-	upSm+ZjNSt9MqIncg4m5djqE+4WUbd/1RdaIgZHaDNEf0BYAk0Fctt2fUv7FmO1igWFlnIKFXTO
-	w1AbO52W5qqxJv5whDoR0UgACfGDRIheL2HD2nxuRdYxMlV+8e3CLTAXNl1DF+3Y1pW6XRorY2h
-	Q9iykMOWSzrfTrzZrrCn6+qyDt04ssf8o4VRuXipuQUxb8qvZPKVosgEAuJD2LRFC/8RkVcEM6j
-	L7T9BErvIrWqkFFv6
-X-Google-Smtp-Source: AGHT+IENzW1vuCfDnuUd9kZhlk0mviqWsYdNsjB1z6dA47W/5D4HaxfGgX6AsrAaScX7aZ9Bsr6sqQ==
-X-Received: by 2002:a17:903:1c4:b0:234:b430:cea7 with SMTP id d9443c01a7336-23dee1d855bmr2983065ad.22.1752172072885;
-        Thu, 10 Jul 2025 11:27:52 -0700 (PDT)
-Received: from localhost.localdomain ([70.134.61.64])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-31c30068d50sm5908013a91.15.2025.07.10.11.27.51
-        (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
-        Thu, 10 Jul 2025 11:27:52 -0700 (PDT)
-From: christoph.paasch@gmail.com
-X-Google-Original-From: cpaasch@openai.com
-To: Saeed Mahameed <saeedm@nvidia.com>,
-	Tariq Toukan <tariqt@nvidia.com>,
-	Mark Bloch <mbloch@nvidia.com>,
-	Leon Romanovsky <leon@kernel.org>,
-	Andrew Lunn <andrew+netdev@lunn.ch>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Amir Vadai <amirv@mellanox.com>
-Cc: Christoph Paasch <cpaasch@openai.com>,
-	netdev@vger.kernel.org,
-	linux-rdma@vger.kernel.org
-Subject: [PATCH net] net/mlx5: Correctly set gso_size when LRO is used
-Date: Thu, 10 Jul 2025 11:26:29 -0700
-Message-ID: <20250710182629.78456-2-cpaasch@openai.com>
-X-Mailer: git-send-email 2.49.0
-Reply-To: cpaasch@openai.com
+        bh=ro/pNusaSjsWEAeWpTTGWyr6dzux21WEDh0Yp0DuJJc=;
+        b=h6TBkXCjIsIV5dQNID5gQEOPO0lCDvYKZbhkTuLlDQx0Zooy3DR4x9Erf3DpUOV4MJ
+         K+uMuJOnrIQqVyfBpAQKzzuqYH70sJFs7znUg0ApjSN79Gw0vorG3ghvE6TBYl4I8pw+
+         goDouEajQBH1lBPeOqAdRpHlIJ9aKc120R1fmb2eWIoech8A8nes8DBBXWeh6TOA/cPb
+         i5CuA9oG27Rtd/dWQlCBopV9+XsigaDwScnP2oh08ia2/kSrQRA4Y7BZFS6b0YCGGObC
+         UsDtAh0nscLBEPwgD6E1/IoFfoE02Xu1k+TwpkkHDtD/4X7YQYWIxW+FpbfFsiIsRksA
+         4iDw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1752172188; x=1752776988;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=ro/pNusaSjsWEAeWpTTGWyr6dzux21WEDh0Yp0DuJJc=;
+        b=NTGCnMlW3SrhXplgMDM9FNxMIi114tbiceIaj15nG2LTIc5Z9grcZ66iA+0OnN76ME
+         aZMCyUQjppkYpX1vIEkPGQEnX1Xs3ie8IbCHEFm+IPNXXLmyzhMqoNNcLQf/kL4dcbsL
+         GT1VZgJkL4xVrhL1JqYWZAUm3eSQivaMlnwRr2F/jE9HiczxduBHH0itpb5vMVYyH50V
+         +HBcmn18Ufw3Rj9PapXYpmmQn82GSqbyGjPWrg1knCCSDvN4cRgpOfklVmJ6Ln7210s2
+         JghaKShR0TLs22Hw1nCFsdWSxCyDyLYsEKI57OUHg18DeJZWrWizE/EfAMZd9IUae23H
+         Zm7w==
+X-Forwarded-Encrypted: i=1; AJvYcCXJGOtYavEnchqtEGiR1pkupPUkxESSESMWO8G7coIQHKgzJxA6IPrgWVBdJRRWt3y7HzCXul5tUaRX@vger.kernel.org
+X-Gm-Message-State: AOJu0YxxL8YpECa1W7ryUW9QTS9AMgEjUhBJVFXEvV0uXKh7RqFPbNga
+	sY+qa+rho2xvvHB0mN+fJvUyEPl939Ie7GzR0XqpKyaXmIarP4km+0XSsR2JtaMDArN4jc8KrCO
+	FnfEOL62DpSbVTiwmmdUTfBeh5siT3nsqp+MxoCCk
+X-Gm-Gg: ASbGncv3Do/A6po4YIEMbFYXqM3WCdglrgQtEziuxEwytQvtlH0ZFirqK2h/vTukpcu
+	8zEOmY3mPsPoxLGO0s8b5F5w5B+0N9DJKFEw/yUbl4veGl21XBniZXErliYxCfqhXJqElo/u0Ab
+	62TxNfo/bOHf342AEjxiFX32zLCeeWSx4X83cLWmzhomYgI4IM2eRGyhYMiuWoQjFuj9KKcbM=
+X-Google-Smtp-Source: AGHT+IGDUh9i2QR+OkMh4fD77Cn7MdjzQa4MMPj+bj7Pxco//T5atBLGYHjMI7EeJmWwYCLX+z0Vvq1jG9YvLKt6WQc=
+X-Received: by 2002:a17:902:e846:b0:235:e8da:8e1 with SMTP id
+ d9443c01a7336-23dee27d5famr281145ad.18.1752172187759; Thu, 10 Jul 2025
+ 11:29:47 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20250710082807.27402-1-byungchul@sk.com> <20250710082807.27402-7-byungchul@sk.com>
+In-Reply-To: <20250710082807.27402-7-byungchul@sk.com>
+From: Mina Almasry <almasrymina@google.com>
+Date: Thu, 10 Jul 2025 11:29:35 -0700
+X-Gm-Features: Ac12FXzeYcyI9Q9DAscC8V1bkRMOGnCRm09FJHP9wMGxc_EiuS0WSo5wKouz6uY
+Message-ID: <CAHS8izM9FO01kTxFhM8VUOqDFdtA80BbY=5xpKDM=S9fMcd3YA@mail.gmail.com>
+Subject: Re: [PATCH net-next v9 6/8] mlx4: use netmem descriptor and APIs for
+ page pool
+To: Byungchul Park <byungchul@sk.com>
+Cc: willy@infradead.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	linux-mm@kvack.org, kernel_team@skhynix.com, kuba@kernel.org, 
+	ilias.apalodimas@linaro.org, harry.yoo@oracle.com, hawk@kernel.org, 
+	akpm@linux-foundation.org, davem@davemloft.net, john.fastabend@gmail.com, 
+	andrew+netdev@lunn.ch, asml.silence@gmail.com, toke@redhat.com, 
+	tariqt@nvidia.com, edumazet@google.com, pabeni@redhat.com, saeedm@nvidia.com, 
+	leon@kernel.org, ast@kernel.org, daniel@iogearbox.net, david@redhat.com, 
+	lorenzo.stoakes@oracle.com, Liam.Howlett@oracle.com, vbabka@suse.cz, 
+	rppt@kernel.org, surenb@google.com, mhocko@suse.com, horms@kernel.org, 
+	linux-rdma@vger.kernel.org, bpf@vger.kernel.org, vishal.moola@gmail.com, 
+	hannes@cmpxchg.org, ziy@nvidia.com, jackmanb@google.com
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-From: Christoph Paasch <cpaasch@openai.com>
+On Thu, Jul 10, 2025 at 1:28=E2=80=AFAM Byungchul Park <byungchul@sk.com> w=
+rote:
+>
+> To simplify struct page, the effort to separate its own descriptor from
+> struct page is required and the work for page pool is on going.
+>
+> Use netmem descriptor and APIs for page pool in mlx4 code.
+>
+> Signed-off-by: Byungchul Park <byungchul@sk.com>
+> ---
+>  drivers/net/ethernet/mellanox/mlx4/en_rx.c   | 48 +++++++++++---------
+>  drivers/net/ethernet/mellanox/mlx4/en_tx.c   |  8 ++--
+>  drivers/net/ethernet/mellanox/mlx4/mlx4_en.h |  4 +-
+>  3 files changed, 32 insertions(+), 28 deletions(-)
+>
+> diff --git a/drivers/net/ethernet/mellanox/mlx4/en_rx.c b/drivers/net/eth=
+ernet/mellanox/mlx4/en_rx.c
+> index b33285d755b9..7cf0d2dc5011 100644
+> --- a/drivers/net/ethernet/mellanox/mlx4/en_rx.c
+> +++ b/drivers/net/ethernet/mellanox/mlx4/en_rx.c
+> @@ -62,18 +62,18 @@ static int mlx4_en_alloc_frags(struct mlx4_en_priv *p=
+riv,
+>         int i;
+>
+>         for (i =3D 0; i < priv->num_frags; i++, frags++) {
+> -               if (!frags->page) {
+> -                       frags->page =3D page_pool_alloc_pages(ring->pp, g=
+fp);
+> -                       if (!frags->page) {
+> +               if (!frags->netmem) {
+> +                       frags->netmem =3D page_pool_alloc_netmems(ring->p=
+p, gfp);
+> +                       if (!frags->netmem) {
+>                                 ring->alloc_fail++;
+>                                 return -ENOMEM;
+>                         }
+> -                       page_pool_fragment_page(frags->page, 1);
+> +                       page_pool_fragment_netmem(frags->netmem, 1);
+>                         frags->page_offset =3D priv->rx_headroom;
+>
+>                         ring->rx_alloc_pages++;
+>                 }
+> -               dma =3D page_pool_get_dma_addr(frags->page);
+> +               dma =3D page_pool_get_dma_addr_netmem(frags->netmem);
+>                 rx_desc->data[i].addr =3D cpu_to_be64(dma + frags->page_o=
+ffset);
+>         }
+>         return 0;
+> @@ -83,10 +83,10 @@ static void mlx4_en_free_frag(const struct mlx4_en_pr=
+iv *priv,
+>                               struct mlx4_en_rx_ring *ring,
+>                               struct mlx4_en_rx_alloc *frag)
+>  {
+> -       if (frag->page)
+> -               page_pool_put_full_page(ring->pp, frag->page, false);
+> +       if (frag->netmem)
+> +               page_pool_put_full_netmem(ring->pp, frag->netmem, false);
+>         /* We need to clear all fields, otherwise a change of priv->log_r=
+x_info
+> -        * could lead to see garbage later in frag->page.
+> +        * could lead to see garbage later in frag->netmem.
+>          */
+>         memset(frag, 0, sizeof(*frag));
+>  }
+> @@ -440,29 +440,33 @@ static int mlx4_en_complete_rx_desc(struct mlx4_en_=
+priv *priv,
+>         unsigned int truesize =3D 0;
+>         bool release =3D true;
+>         int nr, frag_size;
+> -       struct page *page;
+> +       netmem_ref netmem;
+>         dma_addr_t dma;
+>
+>         /* Collect used fragments while replacing them in the HW descript=
+ors */
+>         for (nr =3D 0;; frags++) {
+>                 frag_size =3D min_t(int, length, frag_info->frag_size);
+>
+> -               page =3D frags->page;
+> -               if (unlikely(!page))
+> +               netmem =3D frags->netmem;
+> +               if (unlikely(!netmem))
+>                         goto fail;
+>
+> -               dma =3D page_pool_get_dma_addr(page);
+> +               dma =3D page_pool_get_dma_addr_netmem(netmem);
+>                 dma_sync_single_range_for_cpu(priv->ddev, dma, frags->pag=
+e_offset,
+>                                               frag_size, priv->dma_dir);
+>
+> -               __skb_fill_page_desc(skb, nr, page, frags->page_offset,
+> -                                    frag_size);
+> +               __skb_fill_netmem_desc(skb, nr, netmem, frags->page_offse=
+t,
+> +                                      frag_size);
+>
+>                 truesize +=3D frag_info->frag_stride;
+>                 if (frag_info->frag_stride =3D=3D PAGE_SIZE / 2) {
+> +                       struct page *page =3D netmem_to_page(netmem);
 
-gso_size is expected by the networking stack to be the size of the
-payload (thus, not including ethernet/IP/TCP-headers). However, cqe_bcnt
-is the full sized frame (including the headers). Dividing cqe_bcnt by
-lro_num_seg will then give incorrect results.
+This cast is not safe, try to use the netmem type directly.
 
-For example, running a bpftrace higher up in the TCP-stack
-(tcp_event_data_recv), we commonly have gso_size set to 1450 or 1451 even
-though in reality the payload was only 1448 bytes.
-
-So, we need to discount the protocol headers from cqe_bcnt so we can
-actually divide the payload by lro_num_seg to get the real gso_size.
-
-Fixes: e586b3b0baee ("net/mlx5: Ethernet Datapath files")
-Signed-off-by: Christoph Paasch <cpaasch@openai.com>
----
- .../net/ethernet/mellanox/mlx5/core/en_rx.c   | 20 +++++++++++++++----
- 1 file changed, 16 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c b/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
-index 84b1ab8233b8..e23bb80b0e0d 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
-@@ -1154,12 +1154,14 @@ static void mlx5e_lro_update_tcp_hdr(struct mlx5_cqe64 *cqe, struct tcphdr *tcp)
- 	}
- }
- 
--static void mlx5e_lro_update_hdr(struct sk_buff *skb, struct mlx5_cqe64 *cqe,
--				 u32 cqe_bcnt)
-+static unsigned int mlx5e_lro_update_hdr(struct sk_buff *skb,
-+					 struct mlx5_cqe64 *cqe,
-+					 u32 cqe_bcnt)
- {
- 	struct ethhdr	*eth = (struct ethhdr *)(skb->data);
- 	struct tcphdr	*tcp;
- 	int network_depth = 0;
-+	unsigned int hdrlen;
- 	__wsum check;
- 	__be16 proto;
- 	u16 tot_len;
-@@ -1169,11 +1171,14 @@ static void mlx5e_lro_update_hdr(struct sk_buff *skb, struct mlx5_cqe64 *cqe,
- 
- 	tot_len = cqe_bcnt - network_depth;
- 	ip_p = skb->data + network_depth;
-+	hdrlen = network_depth;
- 
- 	if (proto == htons(ETH_P_IP)) {
- 		struct iphdr *ipv4 = ip_p;
- 
- 		tcp = ip_p + sizeof(struct iphdr);
-+		hdrlen += sizeof(struct iphdr);
-+
- 		skb_shinfo(skb)->gso_type = SKB_GSO_TCPV4;
- 
- 		ipv4->ttl               = cqe->lro.min_ttl;
-@@ -1193,6 +1198,8 @@ static void mlx5e_lro_update_hdr(struct sk_buff *skb, struct mlx5_cqe64 *cqe,
- 		struct ipv6hdr *ipv6 = ip_p;
- 
- 		tcp = ip_p + sizeof(struct ipv6hdr);
-+		hdrlen += sizeof(struct ipv6hdr);
-+
- 		skb_shinfo(skb)->gso_type = SKB_GSO_TCPV6;
- 
- 		ipv6->hop_limit         = cqe->lro.min_ttl;
-@@ -1205,6 +1212,10 @@ static void mlx5e_lro_update_hdr(struct sk_buff *skb, struct mlx5_cqe64 *cqe,
- 		tcp->check = tcp_v6_check(payload_len, &ipv6->saddr,
- 					  &ipv6->daddr, check);
- 	}
-+
-+	hdrlen += tcp->doff * 4;
-+
-+	return hdrlen;
- }
- 
- static void *mlx5e_shampo_get_packet_hd(struct mlx5e_rq *rq, u16 header_index)
-@@ -1561,8 +1572,9 @@ static inline void mlx5e_build_rx_skb(struct mlx5_cqe64 *cqe,
- 		mlx5e_macsec_offload_handle_rx_skb(netdev, skb, cqe);
- 
- 	if (lro_num_seg > 1) {
--		mlx5e_lro_update_hdr(skb, cqe, cqe_bcnt);
--		skb_shinfo(skb)->gso_size = DIV_ROUND_UP(cqe_bcnt, lro_num_seg);
-+		unsigned int hdrlen = mlx5e_lro_update_hdr(skb, cqe, cqe_bcnt);
-+
-+		skb_shinfo(skb)->gso_size = DIV_ROUND_UP(cqe_bcnt - hdrlen, lro_num_seg);
- 		/* Subtract one since we already counted this as one
- 		 * "regular" packet in mlx5e_complete_rx_cqe()
- 		 */
--- 
-2.49.0
-
+--=20
+Thanks,
+Mina
