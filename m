@@ -1,17 +1,17 @@
 Received: from invmail4.hynix.com (exvmail4.hynix.com [166.125.252.92])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 38E2928C5D5;
-	Thu, 10 Jul 2025 08:28:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 569DA28DEFC;
+	Thu, 10 Jul 2025 08:28:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=166.125.252.92
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752136111; cv=none; b=KjiZgFjjO4b6+ISNdVZt2RpYnPhV+0OO44Krbs4C97RzsivGqAy2z8YKC+4p47XY6yCBPOS6eLnOu6o3jtX8SaznUIeaDnqhcfIM1wC6FrgOLHQVGC6SXuQMojohwoUTosjbhpIRpfdqhZMQz6N/rmmcIzgf6X25X66D5ArgMoU=
+	t=1752136113; cv=none; b=rNSFWl4HW6ZtP190126O2hVk6Jglszb30qlTNRNYQNd2lNMAeRNAwMJaVoOXR4lzNaUNGEbka6aqP9ZIbV/L0R7Aj1nKUDUMcN33B8mgPVtDIW/tYdJlUpTELfB88ODn7z5Y/z05vXeYfImnWvh+WoSYW8f+wEOVZKUsvzl/+bE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752136111; c=relaxed/simple;
-	bh=YdUfE/29Ky1Z1tGPPdQbrNA4czgzbUksqRDAtH+ExeQ=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References; b=X8xjyU02GroI6SEvJbUpTWVBREFbiay2/pbJYbQUIb6uf2XcZ+2nSml+5VqysM1FuYK5ZdSWv9ylXqhT3/WoMGlMHlmZfzP44qMcrZy/uVKyByUGVHHeE5lOkPRK9Ms2ZYNPtrJlR7q4P2fS/dx6Uoz6TfrIFm/4ShhG0vCNSrE=
+	s=arc-20240116; t=1752136113; c=relaxed/simple;
+	bh=QZfgq/uQBZ8IaOShdYr5bExF2zKPxaHWVpJjAClxRnk=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References; b=um9eePsO4bXVfbkIxXYiBUpokFbt3mCsDetvtUVMAuoGG6Q9iyeaOR5iaH6Tp0d3Fdo9wGryY5bAojbfA7bchGfYdrEudzY7WHn7m7TtRsIynbjzVmftiVksQ501SIp1DOahBMPBZINUXYUBQVco2M6/3CJA1OFQAQ7JUXESVjI=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=sk.com; spf=pass smtp.mailfrom=sk.com; arc=none smtp.client-ip=166.125.252.92
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=sk.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=sk.com
-X-AuditID: a67dfc5b-681ff7000002311f-e0-686f79a16ad4
+X-AuditID: a67dfc5b-681ff7000002311f-19-686f79a2591f
 From: Byungchul Park <byungchul@sk.com>
 To: willy@infradead.org,
 	netdev@vger.kernel.org
@@ -50,40 +50,40 @@ Cc: linux-kernel@vger.kernel.org,
 	hannes@cmpxchg.org,
 	ziy@nvidia.com,
 	jackmanb@google.com
-Subject: [PATCH net-next v9 2/8] netmem: introduce utility APIs to use struct netmem_desc
-Date: Thu, 10 Jul 2025 17:28:01 +0900
-Message-Id: <20250710082807.27402-3-byungchul@sk.com>
+Subject: [PATCH net-next v9 7/8] netdevsim: use netmem descriptor and APIs for page pool
+Date: Thu, 10 Jul 2025 17:28:06 +0900
+Message-Id: <20250710082807.27402-8-byungchul@sk.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20250710082807.27402-1-byungchul@sk.com>
 References: <20250710082807.27402-1-byungchul@sk.com>
-X-Brightmail-Tracker: H4sIAAAAAAAAAzWRa0hTcRjG/e+cnXMcLU7T8mSFMRRhqKWYvUIXobBTKRRBdIMceXKjeZRp
-	5oxKa1Iut6IMSifMLl5niyk6u4h5m6KZacbMvKRYfTClrHmZUJvltx/P8+PhhZfCJH24P6Xk
-	0zk1L1dJCREu+r6qJLREk6LYap8PB6PFTEDVfCaUjdmEYKysQ/BrYYiE2VY7AY9KnBgY32px
-	+G1ZxGCyfZyEKms8jJZ+weHl9XoMxm91EKDXujB4tTBNwlVbuQB66wxCKFh8gkF99hgJ/c+N
-	BIyY/wjhS7Meh87CChxGDTHQbloHzq4pBK2WegE484sJuNtnImBCO4qgr2Uch6IcAwJLo0MI
-	rnn3RlHbCBkTyLZMzWBsbcWggG0oHCZZk/U8W1MuY3WOPoy1VuYRrPXnHZL99OElwXbcd+Fs
-	g21WwOqvTRPsj8mPODvTOECwltoBnO02tZKH1pwQ7UjkVMoMTr1lV4JIUfSjmEy955+Z196D
-	slHNWh3yphg6ktE/eINW+MmSnvAwQQczDscC5mFfOpyZHbfjOiSiMLqaYFrNQ6Sn8KGPM/nv
-	XrglisLpIKbtZpYnFtPbmLZXBvLfZgBT9axpWfGmoxjbxEVPLHErrgHd8iRD51LM6/Ku/zes
-	d7MDv43EJuRViSRKPiNZrlRFhik0vDIz7ExKshW5P116aemkDf3sPdKMaApJV4l7k3iFRCjP
-	SNMkNyOGwqS+4vljKoVEnCjXZHHqlNPq8yourRltoHCpnzjCeSFRQifJ07lzHJfKqVdaAeXt
-	n402OhN8dIGPIxYnHJrhvWDcfPBomZ1nEnoo8+chvD2OyHnY3RmkuBZgpJsmQ50DV7bv8ftm
-	nuMnq7sN/K5YmZY/FVw8Zpft7NRGRefe0R0o/OoVerlgrsl1Kb7pxt4QxVJjyNL7fW27+wd1
-	qrhNf448vbV6/+GA4p6zsQHRpJefFE9TyMNlmDpN/hfbDSqI5QIAAA==
-X-Brightmail-Tracker: H4sIAAAAAAAAAzWRfyyUcRzHfe957nket249u6gHyXZNNYsy0adpxh/lWU35T5rJyTN3OUd3
-	x5ymXVjN4Yp+h8WM/NxxzJ3CzG9rkx+jC2EMrYn8zK8mV+u/917v197/vClMVI87UjKFmlMq
-	JHIxIcAF13zT3Is0cdKzfWsukG+oIqByMwneTZn5kF/RgGBta4yE1Y5uAoqLNjDI/5SOw7ph
-	G4PZrmkSKo1BMFk6h0PTIxMG0497CMhO38GgeWuRhFRzGQ/aC3r50N+g58Oz7RIMTNopEobe
-	5xMwUbXHh7m2bBx635TjMKn3h67Cw7DxcQFBh8HEg42sAgKeDhYSMJM+iWCwfRqHvAd6BIYW
-	Cx92Nvc38jonSH9Xtn1hCWPry7/w2MY3X0m20JjA1pW5sTrLIMYaKzII1riSS7LjI00E2/Nq
-	B2cbzas8NjttkWCXZ0dxdqllmGCLv/3ksYb6YTxYdFNwMYqTyxI55Rm/CIE0b7mAjH/umJTR
-	1Ye0qM5eh2wphj7HlOxmE9ZM0CcZi2ULs2Y72pNZne7GdUhAYXQ1wXRUjZHW4hAdymQNfNiX
-	KAqnXZnOzGQrFtLeTGeznvy36cJU1rT+VWxpH8Y8c8+KRfvKzrAOf4IEhcimAtnJFImxEpnc
-	20MVI9UoZEket+NijWj/y9KU3RwzWhsKbEM0hcQHhP3RCqmIL0lUaWLbEENhYjvh5g25VCSM
-	kmiSOWXcLWWCnFO1IScKFx8RXgnhIkR0tETNxXBcPKf83/IoW0ctOnUMDyq9ujtco12zPwrq
-	SwdXjg98P++X48p3koaGtb5YeVt94qGXe/8vx4D1EHsRvFaH9dp4jESVvaQue80XZ5au940v
-	+0dGVf8euWCoEmju+0Z6m2oHgu1HHaThDnfuBo05pzIpkbm1P66r5isMOdq4058bAlfCTYaA
-	dWefPbkYV0klnm6YUiX5A2hTrqPHAgAA
+X-Brightmail-Tracker: H4sIAAAAAAAAAzWRa0hTcRyG+++cnXNcjk5T6mSBMYrA0jJUfh8i7FMnyBIM0oJ05MGt5pTN
+	26xomqIOXVHSxQssS+ctJmvpvOYtL2loijaz1BxakGnepm5BOcNvD+/78nx5KUz0EfeiZIoE
+	TqmQyMWEABf8ci/xLVHHSU8UZLlDkbGagKr1FDBMWfhQVFmLYGVjnITlzm4CXjy3Y1A0kIHD
+	qtGBwUzXNAlVphCYLJvFoSmrDoPp+z0E5GU4MWjemCch3VLOg8FaHR/yHaUY1GmmSBhuKCJg
+	ovovH2bb83DoLajAYVIXDF36PWDvm0PQaazjgT23mIBHQ3oCbBmTCIY6pnEoTNMhMLZY+eBc
+	33QUvpsggw+xHXMLGGuuGOOx9QVfSVZvSmRfl/uwWusQxpoqcwjWtPSQZL+MNhFsz1MnztZb
+	lnls3r15gl2c+YyzCy0jBGs0j+Bsv76TDN19RXAqmpPLkjjl8dNRAukb+xovXuOR0vF4hNSg
+	tl1aRFEMHcB0DR/Yxh/fb2mRG0XQRxirdQNzsSftzyxPd+NaJKAw+hXBdFaPk67Cgw5nGnLe
+	Ei7G6cNMWuXoVi6kAxlj6XvcxQztzVTVtGIuvxsdxFhsW37R5sQ5ot1yMnQmxWRlPyH+7/cx
+	beVW/AES6tGOSiSSKZJiJTJ5gJ9UrZCl+F2PizWhzaPL7vy5akFLg2HtiKaQ2F04GKOQiviS
+	JJU6th0xFCb2FK6Hy6UiYbREncop4yKViXJO1Y72U7h4r/CkPTlaRMdIEribHBfPKbdbHuXm
+	pUE1UTEF2QvnLwZ39RVnHg2aF6eGBfheS19bcIjz+r1tkfLkVXNgjtnwbOyy6u7ZvlxVsjqJ
+	1o8d8zj3MwWc30pubxjaQi41RgzwVwwlM4b0SB/bDVnL7wystxnG8nf2dDDGZbFV3njwzIdP
+	hsUId/OsvLVR+rLlQmhEfKNDVyPGVVKJvw+mVEn+AYDTPCPkAgAA
+X-Brightmail-Tracker: H4sIAAAAAAAAAzWRb0gTcRzG++1ud+dodE3JS6FgIIWROUz5VlYSRGdg1IvSeqEeebnhnLKp
+	qGG4FMKVf7KQ0AkT2dKprKbpNLPa/B+oaZql+WeiCYlmmrkZmBN69+F5Hj5vHgqTNOF+lEKV
+	xqtVnFJKiHDRlTN5x6uyUuTBre5ToLfUE1C3mQnPZ2xC0JubEay7JkhY6+whoLpqAwP9YD4O
+	vy1uDOa7nSTUWaNg2rSAQ/uDFgycxb0EFOZvYfDGtUzCfVuNAByVfUIYai4SwlO3EYOW3BkS
+	Rtr0BEzVbwthwV6IQ195LQ7TRRHQbTgAGx+WEHRaWgSw8aiSgCfDBgLm8qcRDDucOFRoixBY
+	OsaFsLW546jomiIjAljH0grGNtV+EbCt5d9I1mBNZxtrAlnd+DDGWs0FBGv9VUqyk2PtBNv7
+	bAtnW21rArYwb5lgV+e/4uxKxyjBVi/+FLCWplH8quSWKDyBVyoyePWJc/Ei+auNP4LUXO9M
+	R9komYve79MhimLok8zi97s65EUR9BFmfNyFediHljFrzh5ch0QURjcQTGf9BOkpvOkYpq3g
+	LeFhnA5gtOax3VxMhzIWYz/uYYY+zNS9eId5/F50GGOb2/VLdiZbozq8BIkMaI8Z+ShUGcmc
+	QhkapEmSZ6kUmUG3U5KtaOdLU87fxza0PnLJjmgKSfeKhxJVcomQy9BkJdsRQ2FSH/FmjFIu
+	ESdwWdm8OiVOna7kNXbkT+FSX/HlaD5eQidyaXwSz6fy6v+tgPLyy0UXCb87MRp3+sfGudWj
+	8caG4AFzRMV2jv20f4hU0l4eNfz65vZZfunTy+BDIaSsX2E0uUMHpJ9n1ytkUw+75TOcb6zv
+	RGnk1AVh9AOdqkSnahYWF/SVyM5f+3HDFegKDpncvxC3nB3WGN7lmh0KHDQlaiPLKnuujxy8
+	V1Abqz0mxTVyThaIqTXcP7di57nHAgAA
 X-CFilter-Loop: Reflected
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
@@ -91,97 +91,81 @@ List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 
-To eliminate the use of the page pool fields in struct page, the page
-pool code should use netmem descriptor and APIs instead.
+To simplify struct page, the effort to separate its own descriptor from
+struct page is required and the work for page pool is on going.
 
-However, some code e.g. __netmem_to_page() is still used to access the
-page pool fields e.g. ->pp via struct page, which should be changed so
-as to access them via netmem descriptor, struct netmem_desc instead,
-since the fields no longer will be available in struct page.
-
-Introduce utility APIs to make them easy to use struct netmem_desc as
-descriptor.  The APIs are:
-
-   1. __netmem_to_nmdesc(), to convert netmem_ref to struct netmem_desc,
-      but unsafely without checking if it's net_iov or system memory.
-
-   2. netmem_to_nmdesc(), to convert netmem_ref to struct netmem_desc,
-      safely with checking if it's net_iov or system memory.
-
-   3. nmdesc_to_page(), to convert struct netmem_desc to struct page,
-      assuming struct netmem_desc overlays on struct page.
-
-   4. page_to_nmdesc(), to convert struct page to struct netmem_desc,
-      assuming struct netmem_desc overlays on struct page, allowing only
-      head page to be converted.
-
-   5. nmdesc_adress(), to get its virtual address corresponding to the
-      struct netmem_desc.
+Use netmem descriptor and APIs for page pool in netdevsim code.
 
 Signed-off-by: Byungchul Park <byungchul@sk.com>
 ---
- include/net/netmem.h | 41 +++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 41 insertions(+)
+ drivers/net/netdevsim/netdev.c    | 19 ++++++++++---------
+ drivers/net/netdevsim/netdevsim.h |  2 +-
+ 2 files changed, 11 insertions(+), 10 deletions(-)
 
-diff --git a/include/net/netmem.h b/include/net/netmem.h
-index 535cf17b9134..ad9444be229a 100644
---- a/include/net/netmem.h
-+++ b/include/net/netmem.h
-@@ -198,6 +198,32 @@ static inline struct page *netmem_to_page(netmem_ref netmem)
- 	return __netmem_to_page(netmem);
- }
+diff --git a/drivers/net/netdevsim/netdev.c b/drivers/net/netdevsim/netdev.c
+index e36d3e846c2d..ba19870524c5 100644
+--- a/drivers/net/netdevsim/netdev.c
++++ b/drivers/net/netdevsim/netdev.c
+@@ -812,7 +812,7 @@ nsim_pp_hold_read(struct file *file, char __user *data,
+ 	struct netdevsim *ns = file->private_data;
+ 	char buf[3] = "n\n";
  
-+/**
-+ * __netmem_to_nmdesc - unsafely get pointer to the &netmem_desc backing
-+ * @netmem
-+ * @netmem: netmem reference to convert
-+ *
-+ * Unsafe version of netmem_to_nmdesc(). When @netmem is always backed
-+ * by system memory, performs faster and generates smaller object code
-+ * (no check for the LSB, no WARN). When @netmem points to IOV, provokes
-+ * undefined behaviour.
-+ *
-+ * Return: pointer to the &netmem_desc (garbage if @netmem is not backed
-+ * by system memory).
-+ */
-+static inline struct netmem_desc *__netmem_to_nmdesc(netmem_ref netmem)
-+{
-+	return (__force struct netmem_desc *)netmem;
-+}
-+
-+static inline struct netmem_desc *netmem_to_nmdesc(netmem_ref netmem)
-+{
-+	if (WARN_ON_ONCE(netmem_is_net_iov(netmem)))
-+		return NULL;
-+
-+	return __netmem_to_nmdesc(netmem);
-+}
-+
- static inline struct net_iov *netmem_to_net_iov(netmem_ref netmem)
- {
- 	if (netmem_is_net_iov(netmem))
-@@ -314,6 +340,21 @@ static inline netmem_ref netmem_compound_head(netmem_ref netmem)
- 	return page_to_netmem(compound_head(netmem_to_page(netmem)));
- }
+-	if (ns->page)
++	if (ns->netmem)
+ 		buf[0] = 'y';
  
-+#define nmdesc_to_page(nmdesc)		(_Generic((nmdesc),		\
-+	const struct netmem_desc * :	(const struct page *)(nmdesc),	\
-+	struct netmem_desc * :		(struct page *)(nmdesc)))
-+
-+static inline struct netmem_desc *page_to_nmdesc(struct page *page)
-+{
-+	VM_BUG_ON_PAGE(PageTail(page), page);
-+	return (struct netmem_desc *)page;
-+}
-+
-+static inline void *nmdesc_address(struct netmem_desc *nmdesc)
-+{
-+	return page_address(nmdesc_to_page(nmdesc));
-+}
-+
- /**
-  * __netmem_address - unsafely get pointer to the memory backing @netmem
-  * @netmem: netmem reference to get the pointer for
+ 	return simple_read_from_buffer(data, count, ppos, buf, 2);
+@@ -832,18 +832,19 @@ nsim_pp_hold_write(struct file *file, const char __user *data,
+ 
+ 	rtnl_lock();
+ 	ret = count;
+-	if (val == !!ns->page)
++	if (val == !!ns->netmem)
+ 		goto exit;
+ 
+ 	if (!netif_running(ns->netdev) && val) {
+ 		ret = -ENETDOWN;
+ 	} else if (val) {
+-		ns->page = page_pool_dev_alloc_pages(ns->rq[0]->page_pool);
+-		if (!ns->page)
++		ns->netmem = page_pool_alloc_netmems(ns->rq[0]->page_pool,
++						     GFP_ATOMIC | __GFP_NOWARN);
++		if (!ns->netmem)
+ 			ret = -ENOMEM;
+ 	} else {
+-		page_pool_put_full_page(ns->page->pp, ns->page, false);
+-		ns->page = NULL;
++		page_pool_put_full_netmem(netmem_get_pp(ns->netmem), ns->netmem, false);
++		ns->netmem = 0;
+ 	}
+ 
+ exit:
+@@ -1068,9 +1069,9 @@ void nsim_destroy(struct netdevsim *ns)
+ 		nsim_exit_netdevsim(ns);
+ 
+ 	/* Put this intentionally late to exercise the orphaning path */
+-	if (ns->page) {
+-		page_pool_put_full_page(ns->page->pp, ns->page, false);
+-		ns->page = NULL;
++	if (ns->netmem) {
++		page_pool_put_full_netmem(netmem_get_pp(ns->netmem), ns->netmem, false);
++		ns->netmem = 0;
+ 	}
+ 
+ 	free_netdev(dev);
+diff --git a/drivers/net/netdevsim/netdevsim.h b/drivers/net/netdevsim/netdevsim.h
+index 809dd29fc5fe..129e005ef577 100644
+--- a/drivers/net/netdevsim/netdevsim.h
++++ b/drivers/net/netdevsim/netdevsim.h
+@@ -132,7 +132,7 @@ struct netdevsim {
+ 		struct debugfs_u32_array dfs_ports[2];
+ 	} udp_ports;
+ 
+-	struct page *page;
++	netmem_ref netmem;
+ 	struct dentry *pp_dfs;
+ 	struct dentry *qr_dfs;
+ 
 -- 
 2.17.1
 
