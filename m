@@ -1,179 +1,173 @@
-Received: from NAM10-DM6-obe.outbound.protection.outlook.com (mail-dm6nam10on2078.outbound.protection.outlook.com [40.107.93.78])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ej1-f54.google.com (mail-ej1-f54.google.com [209.85.218.54])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C16D120AF67;
-	Mon, 14 Jul 2025 08:24:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.93.78
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752481446; cv=fail; b=MS2O7jqvLSRefxmPm8O7AUz00+uJnMy/9O0Sha3h7ZtXnkjEC5OYZkjUc652ZSzwtL8XO3yYRZKWPHIvhjSeEZZi4oaVOX8rz5Ppb5CqURnzzQu24virUd0tSDCjbOOEyJ75MDySZMkElSWPXXx/BllotzN35SD2nD5ajyThDhQ=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752481446; c=relaxed/simple;
-	bh=1G2WXmuonU3b2nidIsrCknOjUR8EJbTS9WY9RFnAO8c=;
-	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
-	 Content-Type:MIME-Version; b=sxYJjDIWST2ZsusJBPM/TCRqcdi+p1Nl8Hy+pky6PzOV6El+EZu3p2gMcgSMPf8e+QcrKn3dcLDtfCE2eLu5l75DhS/wzCFSxGxU3a2ytK9wCFTR9YUeXR7KjAUJsDOtSZx9CE0FPEUoYD/3BSYYHI8QIJeWkRCTHIwbReGYaXc=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=DtTbhh0a; arc=fail smtp.client-ip=40.107.93.78
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A82D24169E;
+	Mon, 14 Jul 2025 09:42:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.54
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1752486129; cv=none; b=Yg/cUhmUGhFAsjdTCXheryNzRBKt3h2ZIDMifxOaQ/ciL3gukVn/D4ZswHm3rZiC2gJr/qjfbesFIsZVRT9L9/HrNu+3QJ7+mFwmKDSjxkXDBMD2kumkUg5eL33N3uGkn+pJuGvrlF6fIl/RCdHSkpcksDjJUfrOpUsAOkZIWlk=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1752486129; c=relaxed/simple;
+	bh=ACZNz7XObtsYon3XT2mNrIX3BMvWIJPXGcENlDIAxJ4=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=edCnjyOKBIBAXrEbkM8fUTS6WFvSgRZtnfG5rnhzc8+ZSWnbOmEFmjgY1U4x+OnjOXkY58K+nl0ccr5NQD/O7u4tsL/VmpWbOXXbBzJu5KnpEUEO14lx61oTUl1l5WRLZreyH8fCIgmNkvH0eBtvSeA3jzteNyt+cUoLARmCiQA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Quvcn7lA; arc=none smtp.client-ip=209.85.218.54
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="DtTbhh0a"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=VYIcXrFvIdbqek6yeSgHfn9OIDMZ/uPyL8OsHzqrZor2pkDraVzM2VUN1sMrfVo1J3vEEHCF6gWKE77gxlWg+O4dxg+6plM4zizKvsEaVRiUdbIx4c+5BHpkaKcmyk0sFp/VnLnEdYHVuyPcddZ4nF+qqyBuYGC3KKvtWICA8xCDrcnhPc2gQNvOBxQbDwCJvxFP2WtGyRetsUzjdVH8V63mfVfh419AOc91U8M6GHmTbzi+Vwu3zz2fhHFC4mpjcG4HdirCR/Z5rC/86iFpyFR9BklUJUJI6Um2rWhkKe1AeSTQbiPigvd2YOvgIqYDuzlze9JtJujWFkcQ1MKMpg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=0tmedp25F0Iny6XfKY5zROQp++7lpwTe5ceDr5SvfG8=;
- b=mSlcY22GRa0cfw6PnKbxEdzARAauc1xtANjoa+21eWi7pRGAhqOTsvx3W/Ic+jnjv9ApCbeT8vxV9xvy/EmD1n+TWw3yqLbJQEC9QjGENnjvnxyU/oBoOWCSNTeHLxCPlBkpgaCXv4I/tTI0NoxhovVwsXlXktn+JX0BRqApjtC47WRZNLe3BBT7D6SQ6S1pNn/Q2cwfzT4y0lEAzpm9BvLKeEVzEIN7aw2VrLZkNp6NKMgZPNYdEWGqKJGKPDaNGoSYAt3pdm9I4QdDJUjCcN39Za4SjJSNtd7U0dghO1307VlVgfB9UEymGswBn/6MqcLK1cGVae0XxKNB2R+Hbw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=0tmedp25F0Iny6XfKY5zROQp++7lpwTe5ceDr5SvfG8=;
- b=DtTbhh0aTuFUF7DxVXQnFhcSN1TzZY+75WItOepjPkYOJvZG1BjYCKCiomJ4sPSXme2jRLaA2VSzHlrbQmO8qPr0Q8Pa2P9ne6TD4LNBWrqKt941OrbfUU+ewFTbAtoSOQn56aXnlSB15ikHJR1mNlY6N9uXqOxGPUFtChQFUAjnXi4G/EtjsCPXmoWbQ4t4KwxWOXSBBlJGES9WoPBuHlb0VXgy+vyNQZFI5D5SvAHdx+nfe+IC6Q7BPqZabUTyHd+gqntrqdSyWO+y+b8u1vR/RMKhxxUjLFQpQZqjSkrFMgdG8MTi91tOr9OBqNAINz5NKOKnqnFE/UeG6E2DCg==
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from CH3PR12MB7500.namprd12.prod.outlook.com (2603:10b6:610:148::17)
- by SA1PR12MB8743.namprd12.prod.outlook.com (2603:10b6:806:37c::18) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8880.24; Mon, 14 Jul
- 2025 08:24:00 +0000
-Received: from CH3PR12MB7500.namprd12.prod.outlook.com
- ([fe80::7470:5626:d269:2bf2]) by CH3PR12MB7500.namprd12.prod.outlook.com
- ([fe80::7470:5626:d269:2bf2%4]) with mapi id 15.20.8922.023; Mon, 14 Jul 2025
- 08:24:00 +0000
-Message-ID: <3661dbe1-2a17-413b-8353-af12f4f37038@nvidia.com>
-Date: Mon, 14 Jul 2025 11:23:53 +0300
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net] net/mlx5: Correctly set gso_size when LRO is used
-To: cpaasch@openai.com, Saeed Mahameed <saeedm@nvidia.com>,
- Tariq Toukan <tariqt@nvidia.com>, Mark Bloch <mbloch@nvidia.com>,
- Leon Romanovsky <leon@kernel.org>, Andrew Lunn <andrew+netdev@lunn.ch>,
- "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
- Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
- Amir Vadai <amirv@mellanox.com>
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org
-References: <20250710182629.78456-2-cpaasch@openai.com>
-Content-Language: en-US
-From: Gal Pressman <gal@nvidia.com>
-In-Reply-To: <20250710182629.78456-2-cpaasch@openai.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: TL2P290CA0016.ISRP290.PROD.OUTLOOK.COM
- (2603:1096:950:3::18) To CH3PR12MB7500.namprd12.prod.outlook.com
- (2603:10b6:610:148::17)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Quvcn7lA"
+Received: by mail-ej1-f54.google.com with SMTP id a640c23a62f3a-ae6f8d3bcd4so690687466b.1;
+        Mon, 14 Jul 2025 02:42:07 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1752486126; x=1753090926; darn=vger.kernel.org;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=C1z743deKaHEG9b7jO8Cq+3WiEAgoFp/G0Aswapm868=;
+        b=Quvcn7lAERZnWKZtXA2PNY8+4fnE59I/OMHozCB6TigwGqcd3t/TgI8l0+mPn96W20
+         NagTVV5bkKjWl5ofmYVKThgWy+ncYJ5/QF5QfpK1Qm2ib4sFBpvhZPUdxZHkfN8o6WgH
+         Ahr+LQmtzJc/feyFzsZ597vR2n8GAgs488xOA6e22sEcpJ90PtG1ObfpVWsa1fgcgRrg
+         RHk/x+Y0mARlklAW7i9KT9kJl1W2qoELroNTqV5MCwcZy574B7OeVjLy55ZLWVKLGQA+
+         wNTPY2o3rXm/muSaqvgVOEPyWq4wm46sTdBKYilYmS7XBT8FN1QjHLbRs3CaVL2eTWhc
+         Zgrw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1752486126; x=1753090926;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=C1z743deKaHEG9b7jO8Cq+3WiEAgoFp/G0Aswapm868=;
+        b=HzRYpR8lU+8qLCEMqwppNJCwsC5a/ulnszIdVd4GxW7b9vNIKSBEaz8vxIsAPa0ol7
+         2A8CbxrPE201oINBkiadmO8jnNgnh/PUqrm6iml4k0I0cAtdlc4cbznmbZ6EpPdjDpB0
+         rbKgnv1ihBrDAFvrwHKC0uLm7gFkj6UYxLY5RjrLuLryGbobr1B9RdxJ6lwiMzXHSFPA
+         aSQJ15yEo9gvx2s+XZ3/kpu4DxclWmSuFiLSI433s/Fj20fnB3vPDmOSmyzKTPtC1sZV
+         owhvarJYctZVApLJIruZAU2rOxN0EcvNz0aFwBjqIlDQB8vnSwSwrj9VkxYX+o9gPwqL
+         J5Zw==
+X-Forwarded-Encrypted: i=1; AJvYcCUeRUfMhrbUhQoBaWLmspjS4Y9PX3TZHaRo+CBBctJtYxWw0zd4Y2hL40Rgsrgd99DRr94=@vger.kernel.org, AJvYcCVOIJceDcIYv4GVd9JxEHadbT7kl43AtkC9EKQMWQ/IERIypS++nafW4iMJLDi/ZME7LyDLmAYA@vger.kernel.org, AJvYcCVYUbpEyVTga135tp/g7Hgo0sSkL32UCrfKWHjLX0NMUuzAAYKIFsa8YYZa6/ZTxBqeKJrUwpxvIKl71Vto@vger.kernel.org, AJvYcCWmZ4mqt4+9RkYyMZ/rGIwUaFhP4qCjjsmgZWKRtfPNBFPluaga9VqUNpUysgvIhka9wSVm8vOJVMzi1w==@vger.kernel.org
+X-Gm-Message-State: AOJu0YxRKJMYiEJX9Iv5Wm/lvvI3wY+Jj+kpdL4iBOXE/fjFEGY+vOwC
+	kIzE9mA05u2AxPGAkAHVU5HvDO0+nuFBdzW+zi674H5k1iWiDtqSE/ma
+X-Gm-Gg: ASbGnctApeI6cqp6EYnrwnmHZZJAM0skJ7gVi8+jY36H5eaXHe73R3TOm0WzNkTLgmD
+	rGZ4Ngmv6XiNBCFbgMFZMGKVTjP45QirX4z/RbR3zfp4exabwBWGOpyiAQo292CEoS5y7b6kJm4
+	xFpEc6VoWlLwj3eUDaXoKVBA115LhTD9cj6XeNN3hi9qUu++6rrSmGTSrrOYQu0PkOOXxVsDDL9
+	gG7MkifaSZbPjbM/CIgRiBbBthV+0TwkcECjEkQkCddPkFWHyvRyxFfh/0qLxEAlE2tM6l9/S+z
+	dAEzxScZwUgo7sKvTHj8tmYm+mIhP8nRtZ7Al8O1y7MP4Ujof9ADBS6ho2gvbj4996aJugc53YO
+	Xzy0d771l5mbCiUNd4NZZrbi12dRzzbXGB3w=
+X-Google-Smtp-Source: AGHT+IFjHAJ2Ei43qKTDj50O6TlqM/ZbZMAztCWqwW7M1VxgsSk3pdmlTcreKCO23+9PcxpLN0q8YA==
+X-Received: by 2002:a17:907:1b0d:b0:ad5:3a97:8438 with SMTP id a640c23a62f3a-ae7012970d8mr1211045566b.41.1752486126016;
+        Mon, 14 Jul 2025 02:42:06 -0700 (PDT)
+Received: from ?IPV6:2620:10d:c096:325::1ac? ([2620:10d:c092:600::1:f749])
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-ae6e7f2aa1asm795946066b.71.2025.07.14.02.42.04
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 14 Jul 2025 02:42:05 -0700 (PDT)
+Message-ID: <5ee839d6-2734-41c5-b34c-8d686c910bc8@gmail.com>
+Date: Mon, 14 Jul 2025 10:43:35 +0100
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: CH3PR12MB7500:EE_|SA1PR12MB8743:EE_
-X-MS-Office365-Filtering-Correlation-Id: 92efea62-4f97-4acf-4876-08ddc2afc898
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|366016|1800799024|376014|921020|7053199007;
-X-Microsoft-Antispam-Message-Info:
-	=?utf-8?B?TzIzQTRldGwwL3Fnd0k2LzRPZk1TbWswdUF1MWJSMnQzTGhSVkJNaFNBazJO?=
- =?utf-8?B?cUozYU41SUxYYmtoU1plVit1ZkdSMkduRkUvQXM3ZmExS2JhelVIUE9iRVEv?=
- =?utf-8?B?Y3hiR2NpMGNnK0hDK1NDbCtZMmNacWIyYkRYTnNES2pvdTRza083ZVdQUjl0?=
- =?utf-8?B?cUtOTW45UFp3OTBYU2ljRHVFMEJsalBKT2FyWmhhU2lhakF1OTFhU3FGTXR0?=
- =?utf-8?B?UmZNWkJUU2tvTnc1bmUvVWtuYTdkSUZVbWZTNGJTM1FUK3owYXBPUzdScUc5?=
- =?utf-8?B?YlBtWGZUNUZSSyszMWx2S3FJZy8xNXFpM2YzaE05ZXRqTVFlRS9QYWtwVXZ6?=
- =?utf-8?B?U3NvWEM4blBsbEFGQlFlVC9ja2lseEo5aUs3Vmk5emVTOWVxdFBTQXF2UTNJ?=
- =?utf-8?B?cVhyR29oM3N6YVp1TDVtbnluaHZoRDF1V0VMRDNqUmtac3BUd2laOGNOeHRw?=
- =?utf-8?B?MlUxYm9uc0dJTTFCd0ZUTC8vTlN4ZE5PUnU1eEZ0Q3cyK0EzL05MdjhURG5W?=
- =?utf-8?B?OTAvdlNDaHQ1a3U4ZTR4UUl5NURrc1h1V01EMHN3dmNTZ3NtVlJzMktiQnFi?=
- =?utf-8?B?QVlmQ0s0dWNFcHVNMEJWUk5YRkZ3Qk1aZjEzYndmUWZYa1F0ckVmNFpMUVhh?=
- =?utf-8?B?SWJ4UnRqem11bndpbFg4S2N2TDlnUURiVEVmdXZRU3c3UFI3S2lLb0JienNt?=
- =?utf-8?B?U3F5bzRpenhZTmJjekdkekNRYlNhc3RjOFdTOTdQSkVlZi9Ka3JSeDNUN0Q0?=
- =?utf-8?B?OHl1OUFtT3o2aWVLMHdFckttMkFrN0pEYzhvU3Z2bFppY0FTbmFCaE5mWVox?=
- =?utf-8?B?Z3RMVWFzS1VtQ2lMT0ZOeTNBeHppdURBekZUV0VvQmpzSk5oU0hPUTF1OGVN?=
- =?utf-8?B?L2dvYXJPVi94cXl4akVkUFFhcTFvOWRtY0duQUt3bzl3U0RsWThJRlVrdkJV?=
- =?utf-8?B?WkNaaFVDN0ErQXpSOHFUd2pzVStmMEI2VFBDd3ViV091aFVmSUVDMzZjd0FU?=
- =?utf-8?B?TWpFck5mZXg1ZFBvOHppQ205Y0tBWUhMQmJRRTVxOTk1dzRJMzBhQWRva0lz?=
- =?utf-8?B?bGFBbUc0L3M4VFBtdFl4UGMreXg5T3o4TWlPWFB0Zk9ONEtlY1F4a05Yamdy?=
- =?utf-8?B?NDZHanNkVEhGeDJXVEpYTVJFQXN6NlJFbzl5QmJMNGRFMTBRU3ZHZko5WjRN?=
- =?utf-8?B?SUNHZlkyYVgyVm5aekpHMXdJTmNCNC9SUFY5OXpDMk1oaDJYTXZUUzk5QXNj?=
- =?utf-8?B?KzZlWVh0K0FVckJPbWFFWEc2bnZBbWhVOEo4SjlBUEcya3NXTHY5ZzRUdzFk?=
- =?utf-8?B?SnBKWFFCdllobDl2VTVESEk1MlpNMkVRNXVNbzd1b0tkRklRU3dmL1hNNGJm?=
- =?utf-8?B?d2I4VU5CWkZyeENrOGhFMGtSNWhaeGt3cDkwcmRubmJ0N29ibFV6OTlTWXg2?=
- =?utf-8?B?R2FCUDkyZ3ZQRXBjOFNOaVlpcHBNalhFQ2IwT2RxT29iTGFLa0hOellxOTNk?=
- =?utf-8?B?MWY1ZHdHZTdxYjJ6eElZZ1I4ZW93Vm92dXdpbjhveVp6clZ2MnhFOFZLaFlS?=
- =?utf-8?B?MzlWZlBrNFZpRzlQY1YzdGFvT0VReDB2RXBkWnRvM2RIazdaVFdhcGYwbEhB?=
- =?utf-8?B?Q3B5M2F3R3RlYzZLVUVMN2FibWNlN2tVVTRETXV4aHJHWnJKZnVGejNRaHp3?=
- =?utf-8?B?dS9JaEx0RTdlUXJrSloxUWw3eUh0QjVxZGVFMytVaTdqOUFiRm5xTFo4YjVL?=
- =?utf-8?B?QjZYcVkwcmtOUU9NN0toaHd0MWh1NDJRSnZSRDI4QmdlNEtpTnNHTCthSUFG?=
- =?utf-8?B?YzBFbEp6bVBtc3cyYU4yR0p4ZDNQZ2QzbXRlV0FOMGJaN2tKdHp6MzEzdWtX?=
- =?utf-8?B?aVFPSWE0NGFqekJYcEQ3eUw5QklBK08yK2ZGVGV4Z25HYnNtcnJoVUlzM2dE?=
- =?utf-8?B?TUg0aUJNWVc5OEtCZmFJM3R3TGhOWDdvM2RBRWpzOW1VTCtLbHdQLzI2QUZW?=
- =?utf-8?B?L2lzZ3VHR0x3PT0=?=
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CH3PR12MB7500.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(1800799024)(376014)(921020)(7053199007);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?eVVVdk45a3pVWXhJWEVnUmV6ZWJnY3Y4cFJHWFlycG5ycE5hK2VFKzFEZ3Q2?=
- =?utf-8?B?c3FBeDF4Nzg5V3plS1dyclRuYVJ4cldQMW5DTzNLUGxMVnJRcytkZVZxSERq?=
- =?utf-8?B?bjZpSlFNTjQrVkhzL2kzckN4cjk3OTU3cGNqemlUY0UxY3djNXZmYzRBbjB6?=
- =?utf-8?B?RzM5Sml3cmx5d1RkVTFkb3JxelNhbmJZRE5jK2lrSkpYbVJTK3hoTHNtZXhZ?=
- =?utf-8?B?YmVEa1pwVk00a3JLU1B0aEl0c0tkNExWcjhzRjd3SnBNVmticW5oMDVvaTl3?=
- =?utf-8?B?czVHQ2tTTUZCOVpMMUQ0N0tLSHpaSCsyeW56NGFIR0xpMGtocStPVVk4eFJN?=
- =?utf-8?B?WmhoeHIzbTdPb0JkUkdlUUtJci9vaE1DZ0o3ODBhNUJveTNUOHRTVE1Tb1Zr?=
- =?utf-8?B?czdQRXFiQWs4NTRYOGpManNoUzR6TTlhQ0FZT1h5emlFUzNIU1hmL21HNkxS?=
- =?utf-8?B?NitqcXYveUl2YTJhWjhWeUlhMjdKTTRwUVY0ekFRcVhsUXZSQXZ3bHMzd3Vj?=
- =?utf-8?B?UUp0elp6cSswSTVkVG9ZT1Y1UGdLaTRCcEhId0VVY0NHMHRKcU5pVmFMdEJR?=
- =?utf-8?B?QzdNbUxsY2tjdEdlb0o4bnk3R04vQ2F2U25mSjZlajA0c3pxK2RSdTFIZE5H?=
- =?utf-8?B?Y3QvNjlCeUltc2owUEFGWENqYVZKRkhFZWdDNTlvN0gxQmlJUGFIZEswK1Nw?=
- =?utf-8?B?VEFFTEo0YlJ1OTF0TDVjRzJwK3pXQ2xpNm84cjU4YVdNTmF0cmdldzB5a29y?=
- =?utf-8?B?ZEdGM2xCU1F6VHFqdDVsYXVSczQ2Y29QUVk2aktaWktFdWlIS0NocDBJNEVh?=
- =?utf-8?B?YUFzL000SlpCbEJseVd5ZVQxTTlaN210aEhaeGh4U3U5Tmw5UHdtd3VQT2p1?=
- =?utf-8?B?RWk2cHI0UDNVN3N1R0pOUUVVNURXVC83cDJiT09nV1Z6OUJKM0plLzlVaHZo?=
- =?utf-8?B?UlYyNm9zUVBHK3hsZytVRUc1K1lmOGU5eVh1VllnQ3JZZ2hmVlVoYW9DQ1I0?=
- =?utf-8?B?bmRPb2p5TDZJNjB3eHoyK09zdFE2cHYrV2FwUmd3WkdvNTF5MEdERGVKYzZ4?=
- =?utf-8?B?Y3c3UHl4blRCazdkTjNuNEwzRmlzWEJpdmhpOWRwdGphbFBkdGoxbWdGamVV?=
- =?utf-8?B?SFl4Q3FTRWdoZUd3MUdyZC9XNHJVaUd6WURLbm9tcm01VHV6eFNQUFJkVC9M?=
- =?utf-8?B?SFFEZndFcnpPZ0c0ZmRreEJCNzBQODVrYmFXa2IraVhzWlZmWCthaGx0SVl0?=
- =?utf-8?B?VjJ1MC85NVY2ZHVoRm03a04wdE1COTVQa3paTWJDdlZ6cUpKemZmU0pJZkZo?=
- =?utf-8?B?RjY4VEhrN3pWN2dibkZSNkx2ZjZjRVBDMzlFckhvbXJPaGRxWUFRc2FRYnZ4?=
- =?utf-8?B?SzI2YnNRVDBtc25jUTdGZjFpZmZmMTZ2LzF5V1VWZGhLeC9OTG1WanZKd0tv?=
- =?utf-8?B?K3EzUTh2OUVxZElGc3pQWHg4dnl3am1qOEpLcmVVcjU0Z1NZb00xbjNZSFhj?=
- =?utf-8?B?ZUFuRmpBZ2E2bERBQnN6TW9ZUnlhQVNzeGovMFgwUy9UVDFIOEUvUFdicVZs?=
- =?utf-8?B?dTU0dis3L2pIblNNYTRBWVlNZmJvSGJpWXB1eW9aNjlBYkNuQzFSRXcwUjFk?=
- =?utf-8?B?VlU0TkZLTFl4ZThYZHRHZGNlQzJHdTVPZUNadUs3dS9MRFJ0d1VTS2tCbm9W?=
- =?utf-8?B?dVNYR2RxVDRvSmNNY2lZditxTWhPdkNHREdmbHh3Skw5b1JoWGhMZExrb01n?=
- =?utf-8?B?dVJxK2FPNEdxb1JFYVY5UDJFakVUVmlvWmpxUjJqUFZHM004NzRqWFVBcEdM?=
- =?utf-8?B?YW1BTng2VnB4bjlocjd0aGtOSW5rbk1JYWlUWnpOS3o2ZWlXejNYSFRLSU9a?=
- =?utf-8?B?ZnVPWmtTZHgzQlAyckNkNjdhSXpjMzBrOWtlaDgwQll0RUd2WGw0TUhYMzNu?=
- =?utf-8?B?bVE0aGFHVjdPUlFVYlJ1Nmptc0pmMXpFMW5PTkdXNTBsdkVqalY0aDRGbTJ0?=
- =?utf-8?B?UzhMN2VibC90cGdVdDYwZldpSEVxRTFjN2lDRTF5OW1NNk1zQXdOYS9nbHpu?=
- =?utf-8?B?VXg0MWl3NExpbGxRWUYveGYxaW84SFJSWmdPQVlaRlBXdFRCUVhiVXdmQXp2?=
- =?utf-8?Q?EY+36vDuL2nOwMKNtVENYJ454?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 92efea62-4f97-4acf-4876-08ddc2afc898
-X-MS-Exchange-CrossTenant-AuthSource: CH3PR12MB7500.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 14 Jul 2025 08:24:00.0384
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: pkzt0A05tuI0IXkmPy7FSvlujN4sii3eJ2BzMB56UmtwaUk2BBAIzGyUiycUvNCa
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA1PR12MB8743
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH net-next v9 2/8] netmem: introduce utility APIs to use
+ struct netmem_desc
+To: Byungchul Park <byungchul@sk.com>
+Cc: willy@infradead.org, netdev@vger.kernel.org,
+ linux-kernel@vger.kernel.org, linux-mm@kvack.org, kernel_team@skhynix.com,
+ kuba@kernel.org, almasrymina@google.com, ilias.apalodimas@linaro.org,
+ harry.yoo@oracle.com, hawk@kernel.org, akpm@linux-foundation.org,
+ davem@davemloft.net, john.fastabend@gmail.com, andrew+netdev@lunn.ch,
+ toke@redhat.com, tariqt@nvidia.com, edumazet@google.com, pabeni@redhat.com,
+ saeedm@nvidia.com, leon@kernel.org, ast@kernel.org, daniel@iogearbox.net,
+ david@redhat.com, lorenzo.stoakes@oracle.com, Liam.Howlett@oracle.com,
+ vbabka@suse.cz, rppt@kernel.org, surenb@google.com, mhocko@suse.com,
+ horms@kernel.org, linux-rdma@vger.kernel.org, bpf@vger.kernel.org,
+ vishal.moola@gmail.com, hannes@cmpxchg.org, ziy@nvidia.com,
+ jackmanb@google.com
+References: <20250710082807.27402-1-byungchul@sk.com>
+ <20250710082807.27402-3-byungchul@sk.com>
+ <4a8b0a45-b829-462c-a655-af0bda10a246@gmail.com>
+ <20250713230752.GA7758@system.software.com>
+Content-Language: en-US
+From: Pavel Begunkov <asml.silence@gmail.com>
+In-Reply-To: <20250713230752.GA7758@system.software.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Hi Christoph,
+On 7/14/25 00:07, Byungchul Park wrote:
+> On Sat, Jul 12, 2025 at 12:59:34PM +0100, Pavel Begunkov wrote:
+>> On 7/10/25 09:28, Byungchul Park wrote:
+>> ...> +
+>>>    static inline struct net_iov *netmem_to_net_iov(netmem_ref netmem)
+>>>    {
+>>>        if (netmem_is_net_iov(netmem))
+>>> @@ -314,6 +340,21 @@ static inline netmem_ref netmem_compound_head(netmem_ref netmem)
+>>>        return page_to_netmem(compound_head(netmem_to_page(netmem)));
+>>>    }
+>>>
+>>> +#define nmdesc_to_page(nmdesc)               (_Generic((nmdesc),             \
+>>> +     const struct netmem_desc * :    (const struct page *)(nmdesc),  \
+>>> +     struct netmem_desc * :          (struct page *)(nmdesc)))
+>>
+>> Considering that nmdesc is going to be separated from pages and
+>> accessed through indirection, and back reference to the page is
+>> not needed (at least for net/), this helper shouldn't even exist.
+>> And in fact, you don't really use it ...
+>>> +static inline struct netmem_desc *page_to_nmdesc(struct page *page)
+>>> +{
+>>> +     VM_BUG_ON_PAGE(PageTail(page), page);
+>>> +     return (struct netmem_desc *)page;
+>>> +}
+>>> +
+>>> +static inline void *nmdesc_address(struct netmem_desc *nmdesc)
+>>> +{
+>>> +     return page_address(nmdesc_to_page(nmdesc));
+>>> +}
+>>
+>> ... That's the only caller, and nmdesc_address() is not used, so
+>> just nuke both of them. This helper doesn't even make sense.
+>>
+>> Please avoid introducing functions that you don't use as a general
+>> rule.
+> 
+> I'm sorry about making you confused.  I should've included another patch
+> using the helper like the following.
 
-On 10/07/2025 21:26, christoph.paasch@gmail.com wrote:
-> From: Christoph Paasch <cpaasch@openai.com>
-> 
-> gso_size is expected by the networking stack to be the size of the
-> payload (thus, not including ethernet/IP/TCP-headers). However, cqe_bcnt
-> is the full sized frame (including the headers). Dividing cqe_bcnt by
-> lro_num_seg will then give incorrect results.
-> 
-> For example, running a bpftrace higher up in the TCP-stack
-> (tcp_event_data_recv), we commonly have gso_size set to 1450 or 1451 even
-> though in reality the payload was only 1448 bytes.
-Other than introspecting the wrong gso_size value, is there a functional
-breakage that can be observed?
+Ah, I see. And still, it's not a great function. There should be
+no way to extract a page or a page address from a nmdesc.
+
+For the diff below it's same as with the mt76 patch, it's allocating
+a page, expects it to be a page, using it as a page, but for no reason
+keeps it wrapped into netmem. It only adds confusion and overhead.
+A rule of thumb would be only converting to netmem if the new code
+would be able to work with a netmem-wrapped net_iovs.
+
+> diff --git a/drivers/net/ethernet/intel/idpf/idpf_txrx.c b/drivers/net/ethernet/intel/idpf/idpf_txrx.c
+> index cef9dfb877e8..adccc7c8e68f 100644
+> --- a/drivers/net/ethernet/intel/idpf/idpf_txrx.c
+> +++ b/drivers/net/ethernet/intel/idpf/idpf_txrx.c
+> @@ -3266,7 +3266,7 @@ static u32 idpf_rx_hsplit_wa(const struct libeth_fqe *hdr,
+>   			     struct libeth_fqe *buf, u32 data_len)
+>   {
+>   	u32 copy = data_len <= L1_CACHE_BYTES ? data_len : ETH_HLEN;
+> -	struct page *hdr_page, *buf_page;
+> +	struct netmem_desc *hdr_nmdesc, *buf_nmdesc;
+>   	const void *src;
+>   	void *dst;
+>   
+> @@ -3274,10 +3274,10 @@ static u32 idpf_rx_hsplit_wa(const struct libeth_fqe *hdr,
+>   	    !libeth_rx_sync_for_cpu(buf, copy))
+>   		return 0;
+>   
+> -	hdr_page = __netmem_to_page(hdr->netmem);
+> -	buf_page = __netmem_to_page(buf->netmem);
+> -	dst = page_address(hdr_page) + hdr->offset + hdr_page->pp->p.offset;
+> -	src = page_address(buf_page) + buf->offset + buf_page->pp->p.offset;
+> +	hdr_nmdesc = __netmem_to_nmdesc(hdr->netmem);
+> +	buf_nmdesc = __netmem_to_nmdesc(buf->netmem);
+> +	dst = nmdesc_address(hdr_nmdesc) + hdr->offset + hdr_nmdesc->pp->p.offset;
+> +	src = nmdesc_address(buf_nmdesc) + buf->offset + buf_nmdesc->pp->p.offset;
+>   
+>   	memcpy(dst, src, LARGEST_ALIGN(copy));
+>   	buf->offset += copy;
+-- 
+Pavel Begunkov
+
