@@ -1,204 +1,228 @@
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from NAM02-BN1-obe.outbound.protection.outlook.com (mail-bn1nam02on2059.outbound.protection.outlook.com [40.107.212.59])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9AF3424729A
-	for <linux-rdma@vger.kernel.org>; Mon, 14 Jul 2025 13:24:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752499447; cv=none; b=LBjotD37Xw6LejB2/abD7xuhmqKG9d3Yk59CL+EBPRyhZ/JUHJcPu1ikpI3w1+lztgBYz9ZH0Vw/j1ogImce1+QZNbI9ibK2J0ZawqAxIz5wcR0nRF/aMLVlwLmsdtHc7rl44mJ5EeWliP5FO339QgzaZj2Ft8rVpb+K1p1da8E=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752499447; c=relaxed/simple;
-	bh=iUFYrjPTWaorjo8hMNDtqJKBDwwwnfzk4l5oqmb0t8E=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=r7YVd0xaZD0Fgk65pIx25TPDUqjhChUDEkIg3TMzjiS1k9F9Otn/RBve+OkztBmnCxRmxzh0zi0ywcWgC6+H8xFfKjumvf0+Ym7A+0/xUmKPgoqrgbJXSmPt1jYUiybHaveORbIi35gznE5Wt1Myz1XASILaUZ+spWxefrLCY7k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz; spf=pass smtp.mailfrom=suse.cz; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=AWpvA5Mn; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=MORvkYEK; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=AWpvA5Mn; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=MORvkYEK; arc=none smtp.client-ip=195.135.223.131
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.cz
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D664A1EEE0;
+	Mon, 14 Jul 2025 13:59:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.212.59
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1752501565; cv=fail; b=RXE63y8UGNqaXrIM0hP310zdLrreBV4h5yvR1RGjPtum9HZeqtn+ejwHCqdZc00QD0sqeK9sCZf995eKPFzuHGgpTynF2UZEzdkJ1ME0TZDozy+g2j1X5YkODenFQVigNRy8uVVHeDyg0GnyURBpBXWeNB56qOlr4KNdqC1ui5Q=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1752501565; c=relaxed/simple;
+	bh=lMW/e0hemC6kJpDhUwaHHcqCJjaeyWOXBOT+8UFA9sk=;
+	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
+	 Content-Type:MIME-Version; b=IQH0DI//0DC1ppdTXTd58mQrVOiH0xmgyqNyU7Q/c0Ja8ckCeUqYSzKScWYWfwAIlYl+EkK/ke5R34s8aPtPfYZAgSByZBeMLcqikVuaTfTXIiuTlgmPx0ccSHAClcYv8QODwM50tbIU9VW7zIh1MsoRWhRpVNONHLe05A8DbPU=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=DSqk3SQe; arc=fail smtp.client-ip=40.107.212.59
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="AWpvA5Mn";
-	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="MORvkYEK";
-	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="AWpvA5Mn";
-	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="MORvkYEK"
-Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out2.suse.de (Postfix) with ESMTPS id 6CEB51F387;
-	Mon, 14 Jul 2025 13:24:03 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
-	t=1752499443; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-	bh=tKznGN/QHd573gll6YXfcW05c/8J5n9Vq6ijHudJWMI=;
-	b=AWpvA5MnJzaZ9xL1d1wNIVk8DSXFqmfyNWrntuHiRs5SmKxbxDAGyl8YDixporR06ItzOi
-	JqFs+214inopKojRublon68rK4ibwBnoeiCUPTZfUSUX2tG5ORIe9lWNDlroo2CtA4CeHE
-	xNHGjyY+01wPfubV09jQazHiUM793HE=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
-	s=susede2_ed25519; t=1752499443;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-	bh=tKznGN/QHd573gll6YXfcW05c/8J5n9Vq6ijHudJWMI=;
-	b=MORvkYEKhrO5sQZFpofVuk7aeGpJk5GVvpgzIII2yylgtLgr9OQ28bPUFEWAzgG1Nh5znX
-	M7m7v5CwQ1Kv0UDA==
-Authentication-Results: smtp-out2.suse.de;
-	dkim=pass header.d=suse.cz header.s=susede2_rsa header.b=AWpvA5Mn;
-	dkim=pass header.d=suse.cz header.s=susede2_ed25519 header.b=MORvkYEK
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
-	t=1752499443; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-	bh=tKznGN/QHd573gll6YXfcW05c/8J5n9Vq6ijHudJWMI=;
-	b=AWpvA5MnJzaZ9xL1d1wNIVk8DSXFqmfyNWrntuHiRs5SmKxbxDAGyl8YDixporR06ItzOi
-	JqFs+214inopKojRublon68rK4ibwBnoeiCUPTZfUSUX2tG5ORIe9lWNDlroo2CtA4CeHE
-	xNHGjyY+01wPfubV09jQazHiUM793HE=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
-	s=susede2_ed25519; t=1752499443;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-	bh=tKznGN/QHd573gll6YXfcW05c/8J5n9Vq6ijHudJWMI=;
-	b=MORvkYEKhrO5sQZFpofVuk7aeGpJk5GVvpgzIII2yylgtLgr9OQ28bPUFEWAzgG1Nh5znX
-	M7m7v5CwQ1Kv0UDA==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 2C0D8138A1;
-	Mon, 14 Jul 2025 13:24:03 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id qk5dCvMEdWixDQAAD6G6ig
-	(envelope-from <vbabka@suse.cz>); Mon, 14 Jul 2025 13:24:03 +0000
-Message-ID: <92073822-ab60-40ca-9ff5-a41119c0ad3d@suse.cz>
-Date: Mon, 14 Jul 2025 15:24:02 +0200
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="DSqk3SQe"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=Dr9KTHdmgWBEE5dPf2vyPJOuMsteN45s8gTn0v1zhzFLI5x3Fsx0jyAiemZ29NQZ0MMZXmgOTOSir7VdonfQC0Xal2rILq+tNSQ8txKzeeWoGUNC9wrRfGnsocz/aqRBZraKkcmoEq0H/WQWqkZcOLrerwpPel4F5t9KRcvKgIhp1Q4qsL1WE3WqcBQBGhHx/TxWemfpP4ZjAgVGcqvEyoqTdybHqsW7n6p1J6ahP3AUhB53jI85cAps2wDjaFAhZ58BdcGfv289yblDvTF5OBFIt5G5fxqvT4lojOfe+UcjWSbY9W9OX2YQN/9nsZAYgiEK0PeE0ox3ATQUd6BIjg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=Ri9RFYe7JW0OrsrfeNmik9tX22s6vfwXU89H5iuuVH4=;
+ b=JgusirsdxJflIuRnPNKx9wSx9ruKhZWlqKUAh5sXvouJf6RLINSuWg2rSkmz/JU327p2B6VBJRxri3WviwNN8VLf5qkHtmFb9wbdmEsWLsSDNthusWXMRMoN1ahzxGNMfVYs5LrntjkDvHTbl/pnq005YUxLD2BkdyJ3fVv7WtAlQIvUR8PsnDa4j4vLdrADsfIOOqIXUiIH5oHf/H3d0WXBF3n5Hn3ApODX8eLTa1UF4oDqGxp+L9UT8xfOndv/04FulFF/tUDTiVoje3z0yEfqAML/RoQ13RAhpb9GfiYSKeiDoGzObQFBAI5x82r+CQNCbvNXwQllnbfLKU4Q/A==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=Ri9RFYe7JW0OrsrfeNmik9tX22s6vfwXU89H5iuuVH4=;
+ b=DSqk3SQeVZAg73eVRwRwth7p5DR/ku+rI6pt3wLgtRE21qN6BoBsycMoeLGHy1mbhb3craSqXefMFZ1doYFMVPSdVKT1u7wDhUynuEtwAkqN7xR99lajbx+LQarhS2iaqj/CK8wErI8Dy01nGMvpcf2fSkq/t5XTzBPV1cSvnFWFATHrAg1yKCVfGJX+xBBJ6X26g8iRxP6HNniKU6DcTQdN+t1SW04OxTCo1lUzyqGAsXsjJWaiOgHxgb4QbZ75r589V0frL4urM0W/5xEabRs3vAghchN3BCrenudOmCn32BMCTyd6p2t+irJepgxsn26Ak/5JjtkIuJq63bCYvg==
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from CH3PR12MB7500.namprd12.prod.outlook.com (2603:10b6:610:148::17)
+ by LV9PR12MB9830.namprd12.prod.outlook.com (2603:10b6:408:2ec::14) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8922.25; Mon, 14 Jul
+ 2025 13:59:20 +0000
+Received: from CH3PR12MB7500.namprd12.prod.outlook.com
+ ([fe80::7470:5626:d269:2bf2]) by CH3PR12MB7500.namprd12.prod.outlook.com
+ ([fe80::7470:5626:d269:2bf2%4]) with mapi id 15.20.8922.023; Mon, 14 Jul 2025
+ 13:59:20 +0000
+Message-ID: <aad6feb4-f0b2-46b8-bf40-35d54807572d@nvidia.com>
+Date: Mon, 14 Jul 2025 16:59:14 +0300
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH net-next 2/2] net/mlx5: Avoid copying payload to the skb's
+ linear part
+To: cpaasch@openai.com, Saeed Mahameed <saeedm@nvidia.com>,
+ Leon Romanovsky <leon@kernel.org>, Tariq Toukan <tariqt@nvidia.com>,
+ Mark Bloch <mbloch@nvidia.com>, Andrew Lunn <andrew+netdev@lunn.ch>,
+ "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
+ Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>
+Cc: linux-rdma@vger.kernel.org, netdev@vger.kernel.org
+References: <20250713-cpaasch-pf-927-netmlx5-avoid-copying-the-payload-to-the-malloced-area-v1-0-ecaed8c2844e@openai.com>
+ <20250713-cpaasch-pf-927-netmlx5-avoid-copying-the-payload-to-the-malloced-area-v1-2-ecaed8c2844e@openai.com>
+Content-Language: en-US
+From: Gal Pressman <gal@nvidia.com>
+In-Reply-To: <20250713-cpaasch-pf-927-netmlx5-avoid-copying-the-payload-to-the-malloced-area-v1-2-ecaed8c2844e@openai.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: TLZP290CA0011.ISRP290.PROD.OUTLOOK.COM
+ (2603:1096:950:9::19) To CH3PR12MB7500.namprd12.prod.outlook.com
+ (2603:10b6:610:148::17)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net-next v7 1/7] netmem: introduce struct netmem_desc
- mirroring struct page
-Content-Language: en-US
-To: Harry Yoo <harry.yoo@oracle.com>, Jakub Kicinski <kuba@kernel.org>
-Cc: Byungchul Park <byungchul@sk.com>, willy@infradead.org,
- netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org,
- kernel_team@skhynix.com, almasrymina@google.com,
- ilias.apalodimas@linaro.org, hawk@kernel.org, akpm@linux-foundation.org,
- davem@davemloft.net, john.fastabend@gmail.com, andrew+netdev@lunn.ch,
- asml.silence@gmail.com, toke@redhat.com, tariqt@nvidia.com,
- edumazet@google.com, pabeni@redhat.com, saeedm@nvidia.com, leon@kernel.org,
- ast@kernel.org, daniel@iogearbox.net, david@redhat.com,
- lorenzo.stoakes@oracle.com, Liam.Howlett@oracle.com, rppt@kernel.org,
- surenb@google.com, mhocko@suse.com, horms@kernel.org,
- linux-rdma@vger.kernel.org, bpf@vger.kernel.org, vishal.moola@gmail.com,
- hannes@cmpxchg.org, ziy@nvidia.com, jackmanb@google.com
-References: <20250625043350.7939-1-byungchul@sk.com>
- <20250625043350.7939-2-byungchul@sk.com> <20250626174904.4a6125c9@kernel.org>
- <20250627035405.GA4276@system.software.com>
- <20250627173730.15b25a8c@kernel.org> <aGHNmKRng9H6kTqz@hyeyoo>
- <20250701164508.0738f00f@kernel.org> <aHTQrso2Klvcwasf@hyeyoo>
-From: Vlastimil Babka <vbabka@suse.cz>
-Autocrypt: addr=vbabka@suse.cz; keydata=
- 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
- m6M14QORSWTLRg==
-In-Reply-To: <aHTQrso2Klvcwasf@hyeyoo>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-X-Spam-Level: 
-X-Spam-Flag: NO
-X-Rspamd-Queue-Id: 6CEB51F387
-X-Rspamd-Action: no action
-X-Rspamd-Server: rspamd1.dmz-prg2.suse.org
-X-Spamd-Result: default: False [-3.01 / 50.00];
-	BAYES_HAM(-3.00)[99.99%];
-	SUSPICIOUS_RECIPS(1.50)[];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	R_DKIM_ALLOW(-0.20)[suse.cz:s=susede2_rsa,suse.cz:s=susede2_ed25519];
-	NEURAL_HAM_SHORT(-0.20)[-1.000];
-	MIME_GOOD(-0.10)[text/plain];
-	MX_GOOD(-0.01)[];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	DKIM_SIGNED(0.00)[suse.cz:s=susede2_rsa,suse.cz:s=susede2_ed25519];
-	RBL_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:104:10:150:64:97:from];
-	ARC_NA(0.00)[];
-	FUZZY_RATELIMITED(0.00)[rspamd.com];
-	RCPT_COUNT_TWELVE(0.00)[37];
-	MIME_TRACE(0.00)[0:+];
-	FREEMAIL_ENVRCPT(0.00)[gmail.com];
-	RCVD_TLS_ALL(0.00)[];
-	TO_DN_SOME(0.00)[];
-	RCVD_COUNT_TWO(0.00)[2];
-	MID_RHS_MATCH_FROM(0.00)[];
-	FROM_EQ_ENVFROM(0.00)[];
-	FROM_HAS_DN(0.00)[];
-	FREEMAIL_CC(0.00)[sk.com,infradead.org,vger.kernel.org,kvack.org,skhynix.com,google.com,linaro.org,kernel.org,linux-foundation.org,davemloft.net,gmail.com,lunn.ch,redhat.com,nvidia.com,iogearbox.net,oracle.com,suse.com,cmpxchg.org];
-	RECEIVED_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:106:10:150:64:167:received];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	TAGGED_RCPT(0.00)[netdev];
-	DKIM_TRACE(0.00)[suse.cz:+];
-	R_RATELIMIT(0.00)[to_ip_from(RLduzbn1medsdpg3i8igc4rk67)];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:rdns,imap1.dmz-prg2.suse.org:helo,suse.cz:dkim,suse.cz:mid]
-X-Spam-Score: -3.01
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: CH3PR12MB7500:EE_|LV9PR12MB9830:EE_
+X-MS-Office365-Filtering-Correlation-Id: 8709e917-7f3a-46ad-44ac-08ddc2dea12c
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|366016|376014|1800799024|7053199007|921020;
+X-Microsoft-Antispam-Message-Info:
+	=?utf-8?B?SEJ4Rlc5cU9QY1BROTFyamxaSUhOZFFxa2FkSkNyeWp5UjNkMVBTRTRXR1ZU?=
+ =?utf-8?B?b1p2ZGZpTlVZZG52Nzlxei90WEo2SzBTTk85SjM3eFhLK1J2VzRZSVY4d1E5?=
+ =?utf-8?B?b1ZhWEhyRlJHWHlCZHpScE9zK21oVkl6K0oycnE2RTYyK2dwV0ExYTVwWU8r?=
+ =?utf-8?B?anE3dGNnZGZHMlhaR0wxeHVCK2p6MlZPVkY0TWh3QUNYdmNBVXpvTVVqckY3?=
+ =?utf-8?B?clBQeGREaVkxQzBjeVJkYTZ5OU9mN09VZ1dMSE1FM1RTOXRvdkdYYURpSi9R?=
+ =?utf-8?B?QnhrWkZTeVE0TmVseGZIK3VDMXJOTHpTWTE2WUxBRU8xTVZCcTlVQ3BxcnNN?=
+ =?utf-8?B?WTJHeDRZQ0hSNm56U25hM1NQcjNDbVZJOVV6TEcwNFNVNFVteUZUNzZwaVND?=
+ =?utf-8?B?ejE2TWlING56UWNjaUhZNi80RDR2a2tPQzlMeGpaYU4vdWRxUU5ub3RldFlX?=
+ =?utf-8?B?UU1pc1lnc3h3UGc3eEdNVFF2REFoZk9KTTlRWGFtOU5MZHY0U0FoaCt2SWln?=
+ =?utf-8?B?YkxEU0IzdDZ1V2RydjZVUFE1d2ZSaHJ4dDJvemNKZFNEN3lGNkxrSFNxRzJj?=
+ =?utf-8?B?dEVUTHBmVndDbHp3WTZPdFBLcjVuSkNVUmcxRnVKdTdiQW1MT0NWUE5udkhI?=
+ =?utf-8?B?QUJQRXlCTm9oazA1VGcwTWtvUWlBOEdLSlFEMXRuSmNnSkdnc0RTb1AycldQ?=
+ =?utf-8?B?RmF3aGFmS21QcGdLZXhKdzZmVThqM3drdkJOb2VXbVVlU21RZ0IrZ3dWbHps?=
+ =?utf-8?B?VEt5N2RyNGVuMjN6cEY2MTU4MXpOSEdKQmdGWTd5VXEzcndhTW5jenV4ZlNa?=
+ =?utf-8?B?RjZvVVFkOVVSOGpZazBFeU9KckJ1dEtFdjRzSUtZU2VTeVVHMDZKc3VuRDNU?=
+ =?utf-8?B?ZkVOL0ZVMWpPRHB6ZVgwSmNsZVJiSXpLY1FzbUdvK012bzdydVJyVS9PTC8y?=
+ =?utf-8?B?UG9JSVhoZzIyY3ZWVmNwY0RKeWlKVW1PU1ZjdCt2T1dTZkNrQlpmaTZLSTI4?=
+ =?utf-8?B?bzlsZFQ5ckhiN1FNcm1xRll4cG1iVW95M1JkbjROWUpGNVd0YnU1UVdWMVFa?=
+ =?utf-8?B?S0xOTEhzbkw4U0lHWDVwS05LWm5JZ01zWXBvNUQ3KytON3VzUVRVVjhwM1cr?=
+ =?utf-8?B?OXN0YUVjZWdWaEV3M2N5WVdTZHFpbEducGJxVjRLdHZyUUxXRTEzdHAzN1NX?=
+ =?utf-8?B?d1lqMnFySHluOG5mcSs2RHJzLzQ3Nys4NzhCMjBhWFBKdExURlhicUtLN1pu?=
+ =?utf-8?B?d1IzbHpUcTFDL2c2bEwxTXV0WTRneXZLckl2Z2ZNYW42ZTVNUEl5Y2dNRERC?=
+ =?utf-8?B?Y1JSdEFzbTZRbWI4a29ZSFhFcFJ0VkpKTW5qdjhybnlHZVlrbmNCN1FoalJL?=
+ =?utf-8?B?WkNpNDQrT2g2NXJ5UnpRZVNEZlNmR1ZERU9XZXZqM2tIWUt6MnIzWDJuYmx4?=
+ =?utf-8?B?a1Z1RmdxWjd3RHB2UmE4c3ZQYlhJMDBzUnB5a0xiakhRVWVjdEwxdzAvUE96?=
+ =?utf-8?B?NmlPOUlZZUtibTVibGFTeHJUd3FrZlQrTGVjZnpHOWFzM1dscEFHRmVYVG4y?=
+ =?utf-8?B?MFgwdVhZNy9CWFRublBXeHJGbUtCaDZsRTFwVmNyb0xNWGk4WVFGbzdmZngy?=
+ =?utf-8?B?M3NGRW1jYXNiNkZqSGxDQjMxcFR4R3Z6UUlGakExZEV5U3BRMk14Ui90Y2k1?=
+ =?utf-8?B?Tm96elhBaEJ3RzM4U08wZHNDdXVkV2xob1lSZ01qZEFmRnZ3QWZLandURHQr?=
+ =?utf-8?B?U0x2ZmxEMnd4eTZEaXBZRzE3bDBCbHNjTjJrVDIwL3l4ZUdtZVJOc0NuQkVB?=
+ =?utf-8?B?QWpUczlvTXJrTEk1aVc4WFk4aUxKUU51WGcrcnpSVHBycDJDeUZxd3BqNElP?=
+ =?utf-8?B?ellETk9lMnQ2Z1RUTlVpVVhPZkZ0UHdRbnVHcDdnazQ4ZU12bXI2VUl4NmJG?=
+ =?utf-8?B?bk1VN1I1dWtOOHBpcnlWNE83bDAvSVF5aVNCazluVnpjTkZhL1ZnWWMreG5a?=
+ =?utf-8?B?cTlkM0xzWEVRPT0=?=
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CH3PR12MB7500.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(376014)(1800799024)(7053199007)(921020);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?utf-8?B?bzRtWm1rOFJKZjh5dllmVHYzZmdveHJYcUdtSG16czhHT2NYVTJaV1g3K2Jk?=
+ =?utf-8?B?eGdPTUNSNzRnUzJKR0FteWg2NjQvTEpvSHdjcUhpQnNMUHhxMFRkZm44N1Rx?=
+ =?utf-8?B?WnFvL0xOVGtZVXBFdkZ2NU9lUUV0cllWSDlkVlliWFg1QzVmQUJVakJ0cXRF?=
+ =?utf-8?B?bkZLWC9adEZrNkpKdGxEMmttby9jVE15Wk5wei9qdVJ5TFQ4RVpBQnNCNzVk?=
+ =?utf-8?B?Z1dMSmJ4OXUyM0s3U2RDMWJ0TGVyQ2JNVFhKdzd4a0hKVVdCbGVDNTJTbUg3?=
+ =?utf-8?B?U2R2NTB0eHhQLzF2dmhPaHlyd01FZjVKQ1RNQkxFSHRnS1B6aFVORkRxbFkv?=
+ =?utf-8?B?RnRPTG9iQzgrUWlkNmExQTIvWlVzZXh2YklwLzBLV1FYQVlZKysrbDVkQms5?=
+ =?utf-8?B?SHNBL2FvV1hvUTNpNlF4OEJOampEMDRZSlpiOUkya2FxK1V6NVU5SkNMUEJB?=
+ =?utf-8?B?N2pkb0R1QldwM2wyeCtheitSWTQ5Rk0xMmRUZENnMDhaalNrWUl1SzJvSDB5?=
+ =?utf-8?B?RXM0RnQ3aGJmcmx0SFJUSms0L2JJcUJ2bTVuVGw4OVE4N1lsWDYzUjI0a2h4?=
+ =?utf-8?B?Nld4SEZyaVJqVm9rT1ZFWDczWUdncWg0VG1UY2FhT1JTTXpPWDY2VXB2aWxV?=
+ =?utf-8?B?cmJ4WWVHUDJ3aWdiSWRiRm15eGY4R2JBSzQxQWZ3Q3hUem9UV0R6NlFyT3lp?=
+ =?utf-8?B?OG4zM0Zpc3VmeTV1clZHUk83ZExZejI3cGo0amxCWCt2dEhOVlZoQklBbGhS?=
+ =?utf-8?B?dndhN3RoUVRRK2RhTUo0WEdkb2l2blJYL01XZ29zTUVRWXkvb2tEUlhidHNL?=
+ =?utf-8?B?UksycXVrNmY2SjlQakRobktBMDZGbXFJL0Vjc0ZkVkRJRlNzdXE1YURjRzFy?=
+ =?utf-8?B?NWEzaURlYWRjZlVTT1RTYmRnNG92eTk0TThsZ0ZESTVRVW52ejFoU0RFbmlI?=
+ =?utf-8?B?SmVKaW1UZnNJeFRrQmw3ekV5b0tnRmhHUjRRTitUV1lIaS9BbnhPcmxLSmdy?=
+ =?utf-8?B?ME0wTmhNT3pLR1JNNys4NXQzNkNkZlVrODdmTkxNaDVqbTJGY0FuOS9sdTV6?=
+ =?utf-8?B?dC9sM2tWV0RtTG1nQTJDTWVRaXZObUtuTkg1ZVh1MmRrZ0pIOGJuMlFYOFk0?=
+ =?utf-8?B?Qi9KbGl3NmFKYkExRytVbTdQMlRra3hqRytrYnJSSlF3ZnBOK1prMStUZUFS?=
+ =?utf-8?B?Q3QyRjdYa2hqdU82RDdxbEJsRjk4TE9yRHd5NmVwUXNlV09Dd016Yit1Kyt0?=
+ =?utf-8?B?S0ExN2YxOXN3aWZTbmpidFIzNHoxNjdienoyY1o0TWNJZmZveTVNY0I1R3RS?=
+ =?utf-8?B?MGo4RVh0VXJTb1RyQlJwTlRTZ3JHSXBtZU12VmhCR2o5djkwdXJMd1QwUVB2?=
+ =?utf-8?B?QjhUa204Q3Nkd0FHR0NGWDROMWs2SHAwS2FTa25xNmxSWS91Ni9qY1pmUVBN?=
+ =?utf-8?B?dy9mWWpzUENsRGZTVEFvczFFaG9hbGJ6Qys1b1AxeElYeVEza3U4MjNhWCt0?=
+ =?utf-8?B?NGExRVpQRk5IMHlGRmlrWHhURWQrNGVra01BMEVuQmhpSWxOejFGb0VlSVE2?=
+ =?utf-8?B?Y3A2Tk5kT0p5YStpZFpoZ3NqN0ExYmtJVEdLc3BXTjg1NjJBeHBtVDEvK2Nh?=
+ =?utf-8?B?ODNTOE04TDFpWWVJYUtIMmJOUzlrZHNYNGZqV2R1WlV4TlByZ0RZdkMvK0Ez?=
+ =?utf-8?B?ZGJkdWlZL3NpNzhKWDh4ZjBnY0NVUnYxRmxrWE0yKythbW9kejZ3SjJHWTh3?=
+ =?utf-8?B?ZEJPeWR3cndOQ0kzM1paL3BBQWpSeWJxMDNsSGo3a3ZJVEl0QTUwSit6NHdE?=
+ =?utf-8?B?ZHFwMU1ZM28wbDBUTzJDbkRnNDhaZEFDUlNmeVJrZXFiUXp2bnNmZ0gvU3I0?=
+ =?utf-8?B?WHY0N2N2eHQzZTl4RTU0ZFNOS3E5aCtialN3VjA0c0k4cDZWTkFLT3Y3SEZa?=
+ =?utf-8?B?UkVlZlJKUGtaVERsdVlJOFczYlA1aTcrNHg5WlhsUDNGK3YrS1JnSkIyU2t2?=
+ =?utf-8?B?b2x3RGxleTFIQXU4SGdBSnpCNFJpbzYwUmkyRkUxTmE2Z3FmdnB0MWd0Qzh4?=
+ =?utf-8?B?b0dVaHFPSXJZcnFUWVRvbVduakZLM1RYUkxpeURHK0I1UUVpWEluZDJoTmVk?=
+ =?utf-8?Q?Ch5UiDid0m9XiFmeaVMwKniia?=
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 8709e917-7f3a-46ad-44ac-08ddc2dea12c
+X-MS-Exchange-CrossTenant-AuthSource: CH3PR12MB7500.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 14 Jul 2025 13:59:20.2543
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: +a4LiCnMIEoBeNrQoVAaLwd0bVaape/O202JfXonlAalt/0fAW87cK2lvPL4wAgn
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: LV9PR12MB9830
 
-On 7/14/25 11:42, Harry Yoo wrote:
-> On Tue, Jul 01, 2025 at 04:45:08PM -0700, Jakub Kicinski wrote:
->> Thanks a lot, this clarifies things for me.
+On 14/07/2025 2:33, Christoph Paasch via B4 Relay wrote:
+> From: Christoph Paasch <cpaasch@openai.com>
 > 
-> You're welcome :)
+> mlx5e_skb_from_cqe_mpwrq_nonlinear() copies MLX5E_RX_MAX_HEAD (256)
+> bytes from the page-pool to the skb's linear part. Those 256 bytes
+> include part of the payload.
 > 
->> Unfortunately, I still think that it's hard to judge patches 1 and 7 
->> in context limited to this series, so let's proceed to reposting just
->> the "middle 5" patches.
+> When attempting to do GRO in skb_gro_receive, if headlen > data_offset
+> (and skb->head_frag is not set), we end up aggregating packets in the
+> frag_list.
 > 
-> Could you please share your thoughts on why it's hard to judge them and
-> what's missing from the series, such as in the comments, changelog, or
-> the cover letter?
+> This is of course not good when we are CPU-limited. Also causes a worse
+> skb->len/truesize ratio,...
+> 
+> So, let's avoid copying parts of the payload to the linear part. The
+> goal here is to err on the side of caution and prefer to copy too little
+> instead of copying too much (because once it has been copied over, we
+> trigger the above described behavior in skb_gro_receive).
+> 
+> So, we can do a rough estimate of the header-space by looking at
+> cqe_l3/l4_hdr_type and kind of do a lower-bound estimate. This is now
+> done in mlx5e_cqe_get_min_hdr_len(). We always assume that TCP timestamps
+> are present, as that's the most common use-case.
+> 
+> That header-len is then used in mlx5e_skb_from_cqe_mpwrq_nonlinear for
+> the headlen (which defines what is being copied over). We still
+> allocate MLX5E_RX_MAX_HEAD for the skb so that if the networking stack
+> needs to call pskb_may_pull() later on, we don't need to reallocate
+> memory.
+> 
+> This gives a nice throughput increase (ARM Neoverse-V2 with CX-7 NIC and
+> LRO enabled):
+> 
+> BEFORE:
+> =======
+> (netserver pinned to core receiving interrupts)
+> $ netperf -H 10.221.81.118 -T 80,9 -P 0 -l 60 -- -m 256K -M 256K
+>  87380  16384 262144    60.01    32547.82
+> 
+> (netserver pinned to adjacent core receiving interrupts)
+> $ netperf -H 10.221.81.118 -T 80,10 -P 0 -l 60 -- -m 256K -M 256K
+>  87380  16384 262144    60.00    52531.67
+> 
+> AFTER:
+> ======
+> (netserver pinned to core receiving interrupts)
+> $ netperf -H 10.221.81.118 -T 80,9 -P 0 -l 60 -- -m 256K -M 256K
+>  87380  16384 262144    60.00    52896.06
+> 
+> (netserver pinned to adjacent core receiving interrupts)
+>  $ netperf -H 10.221.81.118 -T 80,10 -P 0 -l 60 -- -m 256K -M 256K
+>  87380  16384 262144    60.00    85094.90
+> 
+> Signed-off-by: Christoph Paasch <cpaasch@openai.com>
 
-I think we moved on in the discussion since then? "middle 5" patches are now
-merged, and 1+7 was, along with more patches (that make the context less
-limited hopefully), posted as v9/v10 now?
+Cool change, thanks!
 
+This patch doesn't take encapsulated packets into account, where the
+l3/l4 indications apply for the inner packet, while you assume outer.
 
+Also, for encapsulated packets we will *always* have to pull data into
+the linear part, which might overshadow the improvement you're trying to
+achieve?
