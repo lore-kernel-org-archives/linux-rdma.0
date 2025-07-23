@@ -1,375 +1,103 @@
-Received: from mta-202a.earthlink-vadesecure.net (mta-202b.earthlink-vadesecure.net [51.81.232.241])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 11BA64EB38;
-	Wed, 23 Jul 2025 18:17:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=51.81.232.241
+Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 45EE0224B07;
+	Wed, 23 Jul 2025 18:22:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753294652; cv=none; b=hrm0P5bNhFcaR+Sx/JQHLp4WPsWLBpCOaD5hMS7y3G7RzN4FI0dcANxP8ZeOHqCjJ4QT/8pmbbguuGPNv37u/AQgzl6X7fItS5H70CbCkRoHFBrP93EW81AclXE4ZcfkMm6CpdGDKFpsa8y8/CtgHvBrFRvT9mnkFheYWKdnjLk=
+	t=1753294951; cv=none; b=HhMmaXVDJzo2RePPV5SH1vQv8/Vc4kFgwL2TCzlyY2oHUDSwmc2IgXrdxVOXc3V0xqGQFAbdwLOWonfpGasYFXKOdxv08UXsJvKMM8jVcB3BKIh1jextZ8V20mTb8BwW+Fsi/zGwckX3nh8ercpgT83hmxn4oVZAXD37Jwg/HUQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753294652; c=relaxed/simple;
-	bh=/jQc3j7DJwR5+BiQLNSRZ/dtUWfBfXiQ/+HoNM56VrU=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=bPXz2XWpvCE67WUk9oqskx2XDpU7UPQ+WH9ySxcgC+YavvSKMBJ16ac6xRe+xsSg2uc1qOcgQUoEpOBAWk8lFj0SCCnJyYxV9H9KEg/6eeGmzuORex15wK75JPRBta8pqz8vWhjeH7R0GWVozU63BeQH+7rCULHla8LQ7PgtZxM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=onemain.com; spf=pass smtp.mailfrom=onemain.com; dkim=pass (2048-bit key) header.d=earthlink.net header.i=@earthlink.net header.b=kBeoPSi6; arc=none smtp.client-ip=51.81.232.241
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=onemain.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=onemain.com
+	s=arc-20240116; t=1753294951; c=relaxed/simple;
+	bh=rxt64hmEfXGDpk+90Gt/zaDz2ey8jjpQyAtFOj/qsD0=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=bS5hXj5yxZZ2XLJrv0ZjfyGZj4AwaxpXccL9aBOQVM3OBghiYghZSNb/IGeF1+3UdwATHq8tzHLD7uKfQzqvYTV6b3fEmU2maXojHc4HftBMm9UZumH18MgH37AJY6QDTAaPKZpvA4YKcLsS7C7MJi1vTlDjq3hgCFtpfVa2r04=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=SqOc9gRz; arc=none smtp.client-ip=13.77.154.182
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=earthlink.net header.i=@earthlink.net header.b="kBeoPSi6"
-Authentication-Results: earthlink-vadesecure.net;
- auth=pass smtp.auth=svnelson@teleport.com smtp.mailfrom=sln@onemain.com;
-DKIM-Signature: v=1; a=rsa-sha256; bh=ssjC8MJ/TxjzUiBg9LlMZVnIHlF1CmaJn7A7xV
- Ut2to=; c=relaxed/relaxed; d=earthlink.net; h=from:reply-to:subject:
- date:to:cc:resent-date:resent-from:resent-to:resent-cc:in-reply-to:
- references:list-id:list-help:list-unsubscribe:list-unsubscribe-post:
- list-subscribe:list-post:list-owner:list-archive; q=dns/txt;
- s=dk12062016; t=1753294308; x=1753899108; b=kBeoPSi6hcRFMifGOO2wta/Gp3/
- asIn2Bt4HyNjVOUaDG+QF51WpTHurbWPAPIH18fK5/P/F3ZpbXXks5qrjA96XvTb9nWdDl9
- Z8/7peF4B+7CBBWAmIHcfLNZneKnNmzwHCZZ7Uy6bhyxDolFB0R9aqRwoyovMNBtxAlCWHx
- Yym6SUSySlmfXsDC9rJwV6FHHzZLWBMqbncVuJ9MxQhVIm2GYhVFvS3uK1q4CkjTHzR+hUz
- Eu9K5ZAC6gFUv+7mrQ1WH9/ruNySBdv02By14O3g95nWkoP+WcaJVih0i0qb7T1CDFFY/Zc
- NJ3Ouz4/jk789eYwf6YoJB3PJROEDKg==
-Received: from [192.168.0.23] ([50.47.159.51])
- by vsel2nmtao02p.internal.vadesecure.com with ngmta
- id a5a4b02c-1854f3e1fccff4b7; Wed, 23 Jul 2025 18:11:48 +0000
-Message-ID: <3528db67-86b4-47af-b002-87a75bbdc4df@onemain.com>
-Date: Wed, 23 Jul 2025 11:11:46 -0700
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="SqOc9gRz"
+Received: by linux.microsoft.com (Postfix, from userid 1204)
+	id 528AF202186F; Wed, 23 Jul 2025 11:22:24 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 528AF202186F
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
+	s=default; t=1753294944;
+	bh=97R2aoDUcHgnNx84Rvmur00qbaItR6hrznKaMPHKy9Y=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=SqOc9gRz4MLyhDiCdEu+cqoXt1Dbn/5Mglo1Yvj12hpgclQBcSwtgcNjJk6dAGqUz
+	 Ml2J+2araiRX7EiA1lYQnVb2Ut5nU1LgFw/Bcl2xxh27KnRWos2KcZw5cf6GEB+gih
+	 l5Gf6uG6QOgcKq7KD9DwcjH57h619rrWv3jpEc5I=
+Date: Wed, 23 Jul 2025 11:22:24 -0700
+From: Dipayaan Roy <dipayanroy@linux.microsoft.com>
+To: Jacob Keller <jacob.e.keller@intel.com>
+Cc: kuba@kernel.org, kys@microsoft.com, haiyangz@microsoft.com,
+	wei.liu@kernel.org, decui@microsoft.com, andrew+netdev@lunn.ch,
+	davem@davemloft.net, edumazet@google.com, pabeni@redhat.com,
+	longli@microsoft.com, kotaranov@microsoft.com, horms@kernel.org,
+	ast@kernel.org, daniel@iogearbox.net, hawk@kernel.org,
+	john.fastabend@gmail.com, sdf@fomichev.me, lorenzo@kernel.org,
+	michal.kubiak@intel.com, ernis@linux.microsoft.com,
+	shradhagupta@linux.microsoft.com, shirazsaleem@microsoft.com,
+	rosenp@gmail.com, netdev@vger.kernel.org,
+	linux-hyperv@vger.kernel.org, linux-rdma@vger.kernel.org,
+	bpf@vger.kernel.org
+Subject: Re: [PATCH] net: mana: Use page pool fragments for RX buffers
+ instead of full pages to improve memory efficiency and throughput.
+Message-ID: <20250723182224.GA25631@linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net>
+References: <20250721101417.GA18873@linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net>
+ <1d18f7dc-eca5-4daa-98fb-5c8d20ef6ac4@intel.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v4 01/14] net: ionic: Create an auxiliary device for rdma
- driver
-To: Abhijit Gangurde <abhijit.gangurde@amd.com>, shannon.nelson@amd.com,
- brett.creeley@amd.com, davem@davemloft.net, edumazet@google.com,
- kuba@kernel.org, pabeni@redhat.com, corbet@lwn.net, jgg@ziepe.ca,
- leon@kernel.org, andrew+netdev@lunn.ch
-Cc: allen.hubbe@amd.com, nikhil.agarwal@amd.com, linux-rdma@vger.kernel.org,
- netdev@vger.kernel.org, linux-doc@vger.kernel.org,
- linux-kernel@vger.kernel.org
-References: <20250723173149.2568776-1-abhijit.gangurde@amd.com>
- <20250723173149.2568776-2-abhijit.gangurde@amd.com>
-Content-Language: en-US
-From: Shannon Nelson <sln@onemain.com>
-In-Reply-To: <20250723173149.2568776-2-abhijit.gangurde@amd.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1d18f7dc-eca5-4daa-98fb-5c8d20ef6ac4@intel.com>
+User-Agent: Mutt/1.5.21 (2010-09-15)
 
-On 7/23/25 10:31 AM, Abhijit Gangurde wrote:
-> To support RDMA capable ethernet device, create an auxiliary device in
-> the ionic Ethernet driver. The RDMA device is modeled as an auxiliary
-> device to the Ethernet device.
->
-> Reviewed-by: Shannon Nelson <shannon.nelson@amd.com>
-> Signed-off-by: Abhijit Gangurde <abhijit.gangurde@amd.com>
-> ---
->   drivers/net/ethernet/pensando/Kconfig         |  1 +
->   drivers/net/ethernet/pensando/ionic/Makefile  |  2 +-
->   .../net/ethernet/pensando/ionic/ionic_api.h   | 21 ++++
->   .../net/ethernet/pensando/ionic/ionic_aux.c   | 95 +++++++++++++++++++
->   .../net/ethernet/pensando/ionic/ionic_aux.h   | 10 ++
->   .../ethernet/pensando/ionic/ionic_bus_pci.c   |  5 +
->   .../net/ethernet/pensando/ionic/ionic_lif.c   |  7 ++
->   .../net/ethernet/pensando/ionic/ionic_lif.h   |  3 +
->   8 files changed, 143 insertions(+), 1 deletion(-)
->   create mode 100644 drivers/net/ethernet/pensando/ionic/ionic_api.h
->   create mode 100644 drivers/net/ethernet/pensando/ionic/ionic_aux.c
->   create mode 100644 drivers/net/ethernet/pensando/ionic/ionic_aux.h
+Hi Jacob,
 
-Hi Abhijit,
+Thanks for the review, I tested this patch previously
+for 4kb page size systems. The throughput improvement is around
+10 to 15%. Also sligthly better memory utilization as for
+typical 1500 MTU size we are able to fit 2 Rx buffer in
+a single 4kb page as compared to 1 per page previously.
 
-It occurred to me that there should be some discussion added into the 
-ionic.rst file about this new auxiliary_device support.  You might look 
-in the amd/pds_core.rst and mellanox/mlx5/switchdev.rst files for 
-similar examples.  This perhaps isn't a blocker for this patchset, but 
-should be planned soon, or added if you do another rev for other reasons.
+Thanks
+Dipayaan Roy 
 
-(In a similar vein, the pds_core.rst should be updated for the new 
-pds_core.fwctl auxiliary_device, but that's a different problem)
-
-sln
+On Mon, Jul 21, 2025 at 04:51:10PM -0700, Jacob Keller wrote:
+> 
+> 
+> On 7/21/2025 3:14 AM, Dipayaan Roy wrote:
+> > This patch enhances RX buffer handling in the mana driver by allocating
+> > pages from a page pool and slicing them into MTU-sized fragments, rather
+> > than dedicating a full page per packet. This approach is especially
+> > beneficial on systems with 64KB page sizes.
+> > 
+> > Key improvements:
+> > 
+> > - Proper integration of page pool for RX buffer allocations.
+> > - MTU-sized buffer slicing to improve memory utilization.
+> > - Reduce overall per Rx queue memory footprint.
+> > - Automatic fallback to full-page buffers when:
+> >    * Jumbo frames are enabled (MTU > PAGE_SIZE / 2).
+> >    * The XDP path is active, to avoid complexities with fragment reuse.
+> > - Removal of redundant pre-allocated RX buffers used in scenarios like MTU
+> >   changes, ensuring consistency in RX buffer allocation.
+> > 
+> > Testing on VMs with 64KB pages shows around 200% throughput improvement.
+> > Memory efficiency is significantly improved due to reduced wastage in page
+> > allocations. Example: We are now able to fit 35 Rx buffers in a single 64KB
+> > page for MTU size of 1500, instead of 1 Rx buffer per page previously.
+> > 
+> Nice to see such improvements while also reducing the overall driver
+> code footprint!
+> 
+> Do you happen to have numbers on some of the smaller page sizes? I'm not
+> sure how common 64KB is, but it seems like this would still be quite
+> beneficial even if you had 4K or 8K pages when operating at 1500 MTU.
+> 
+> Reviewed-by: Jacob Keller <jacob.e.keller@intel.com>
 
 
->
-> diff --git a/drivers/net/ethernet/pensando/Kconfig b/drivers/net/ethernet/pensando/Kconfig
-> index 01fe76786f77..c99758adf3ad 100644
-> --- a/drivers/net/ethernet/pensando/Kconfig
-> +++ b/drivers/net/ethernet/pensando/Kconfig
-> @@ -24,6 +24,7 @@ config IONIC
->   	select NET_DEVLINK
->   	select DIMLIB
->   	select PAGE_POOL
-> +	select AUXILIARY_BUS
->   	help
->   	  This enables the support for the Pensando family of Ethernet
->   	  adapters.  More specific information on this driver can be
-> diff --git a/drivers/net/ethernet/pensando/ionic/Makefile b/drivers/net/ethernet/pensando/ionic/Makefile
-> index 4e7642a2d25f..a598972fef41 100644
-> --- a/drivers/net/ethernet/pensando/ionic/Makefile
-> +++ b/drivers/net/ethernet/pensando/ionic/Makefile
-> @@ -5,5 +5,5 @@ obj-$(CONFIG_IONIC) := ionic.o
->   
->   ionic-y := ionic_main.o ionic_bus_pci.o ionic_devlink.o ionic_dev.o \
->   	   ionic_debugfs.o ionic_lif.o ionic_rx_filter.o ionic_ethtool.o \
-> -	   ionic_txrx.o ionic_stats.o ionic_fw.o
-> +	   ionic_txrx.o ionic_stats.o ionic_fw.o ionic_aux.o
->   ionic-$(CONFIG_PTP_1588_CLOCK) += ionic_phc.o
-> diff --git a/drivers/net/ethernet/pensando/ionic/ionic_api.h b/drivers/net/ethernet/pensando/ionic/ionic_api.h
-> new file mode 100644
-> index 000000000000..f9fcd1b67b35
-> --- /dev/null
-> +++ b/drivers/net/ethernet/pensando/ionic/ionic_api.h
-> @@ -0,0 +1,21 @@
-> +/* SPDX-License-Identifier: GPL-2.0 */
-> +/* Copyright (C) 2018-2025, Advanced Micro Devices, Inc. */
-> +
-> +#ifndef _IONIC_API_H_
-> +#define _IONIC_API_H_
-> +
-> +#include <linux/auxiliary_bus.h>
-> +
-> +/**
-> + * struct ionic_aux_dev - Auxiliary device information
-> + * @lif:        Logical interface
-> + * @idx:        Index identifier
-> + * @adev:       Auxiliary device
-> + */
-> +struct ionic_aux_dev {
-> +	struct ionic_lif *lif;
-> +	int idx;
-> +	struct auxiliary_device adev;
-> +};
-> +
-> +#endif /* _IONIC_API_H_ */
-> diff --git a/drivers/net/ethernet/pensando/ionic/ionic_aux.c b/drivers/net/ethernet/pensando/ionic/ionic_aux.c
-> new file mode 100644
-> index 000000000000..781218c3feba
-> --- /dev/null
-> +++ b/drivers/net/ethernet/pensando/ionic/ionic_aux.c
-> @@ -0,0 +1,95 @@
-> +// SPDX-License-Identifier: GPL-2.0
-> +/* Copyright (C) 2018-2025, Advanced Micro Devices, Inc. */
-> +
-> +#include <linux/kernel.h>
-> +#include "ionic.h"
-> +#include "ionic_lif.h"
-> +#include "ionic_aux.h"
-> +
-> +static DEFINE_IDA(aux_ida);
-> +
-> +static void ionic_auxbus_release(struct device *dev)
-> +{
-> +	struct ionic_aux_dev *ionic_adev;
-> +
-> +	ionic_adev = container_of(dev, struct ionic_aux_dev, adev.dev);
-> +	kfree(ionic_adev);
-> +}
-> +
-> +int ionic_auxbus_register(struct ionic_lif *lif)
-> +{
-> +	struct ionic_aux_dev *ionic_adev;
-> +	struct auxiliary_device *aux_dev;
-> +	int err, id;
-> +
-> +	if (!(le64_to_cpu(lif->ionic->ident.lif.capabilities) & IONIC_LIF_CAP_RDMA))
-> +		return 0;
-> +
-> +	ionic_adev = kzalloc(sizeof(*ionic_adev), GFP_KERNEL);
-> +	if (!ionic_adev)
-> +		return -ENOMEM;
-> +
-> +	aux_dev = &ionic_adev->adev;
-> +
-> +	id = ida_alloc_range(&aux_ida, 0, INT_MAX, GFP_KERNEL);
-> +	if (id < 0) {
-> +		dev_err(lif->ionic->dev, "Failed to allocate aux id: %d\n",
-> +			id);
-> +		err = id;
-> +		goto err_adev_free;
-> +	}
-> +
-> +	aux_dev->id = id;
-> +	aux_dev->name = "rdma";
-> +	aux_dev->dev.parent = &lif->ionic->pdev->dev;
-> +	aux_dev->dev.release = ionic_auxbus_release;
-> +	ionic_adev->lif = lif;
-> +	err = auxiliary_device_init(aux_dev);
-> +	if (err) {
-> +		dev_err(lif->ionic->dev, "Failed to initialize %s aux device: %d\n",
-> +			aux_dev->name, err);
-> +		goto err_ida_free;
-> +	}
-> +
-> +	err = auxiliary_device_add(aux_dev);
-> +	if (err) {
-> +		dev_err(lif->ionic->dev, "Failed to add %s aux device: %d\n",
-> +			aux_dev->name, err);
-> +		goto err_aux_uninit;
-> +	}
-> +
-> +	lif->ionic_adev = ionic_adev;
-> +
-> +	return 0;
-> +
-> +err_aux_uninit:
-> +	auxiliary_device_uninit(aux_dev);
-> +err_ida_free:
-> +	ida_free(&aux_ida, id);
-> +err_adev_free:
-> +	kfree(ionic_adev);
-> +
-> +	return err;
-> +}
-> +
-> +void ionic_auxbus_unregister(struct ionic_lif *lif)
-> +{
-> +	struct auxiliary_device *aux_dev;
-> +	int id;
-> +
-> +	mutex_lock(&lif->adev_lock);
-> +	if (!lif->ionic_adev)
-> +		goto out;
-> +
-> +	aux_dev = &lif->ionic_adev->adev;
-> +	id = aux_dev->id;
-> +
-> +	auxiliary_device_delete(aux_dev);
-> +	auxiliary_device_uninit(aux_dev);
-> +	ida_free(&aux_ida, id);
-> +
-> +	lif->ionic_adev = NULL;
-> +
-> +out:
-> +	mutex_unlock(&lif->adev_lock);
-> +}
-> diff --git a/drivers/net/ethernet/pensando/ionic/ionic_aux.h b/drivers/net/ethernet/pensando/ionic/ionic_aux.h
-> new file mode 100644
-> index 000000000000..f5528a9f187d
-> --- /dev/null
-> +++ b/drivers/net/ethernet/pensando/ionic/ionic_aux.h
-> @@ -0,0 +1,10 @@
-> +/* SPDX-License-Identifier: GPL-2.0 */
-> +/* Copyright (C) 2018-2025, Advanced Micro Devices, Inc. */
-> +
-> +#ifndef _IONIC_AUX_H_
-> +#define _IONIC_AUX_H_
-> +
-> +int ionic_auxbus_register(struct ionic_lif *lif);
-> +void ionic_auxbus_unregister(struct ionic_lif *lif);
-> +
-> +#endif /* _IONIC_AUX_H_ */
-> diff --git a/drivers/net/ethernet/pensando/ionic/ionic_bus_pci.c b/drivers/net/ethernet/pensando/ionic/ionic_bus_pci.c
-> index 4c377bdc62c8..bb75044dfb82 100644
-> --- a/drivers/net/ethernet/pensando/ionic/ionic_bus_pci.c
-> +++ b/drivers/net/ethernet/pensando/ionic/ionic_bus_pci.c
-> @@ -9,6 +9,7 @@
->   #include "ionic.h"
->   #include "ionic_bus.h"
->   #include "ionic_lif.h"
-> +#include "ionic_aux.h"
->   #include "ionic_debugfs.h"
->   
->   /* Supported devices */
-> @@ -375,6 +376,8 @@ static int ionic_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
->   		goto err_out_deregister_devlink;
->   	}
->   
-> +	ionic_auxbus_register(ionic->lif);
-> +
->   	mod_timer(&ionic->watchdog_timer,
->   		  round_jiffies(jiffies + ionic->watchdog_period));
->   	ionic_queue_doorbell_check(ionic, IONIC_NAPI_DEADLINE);
-> @@ -415,6 +418,7 @@ static void ionic_remove(struct pci_dev *pdev)
->   
->   		if (ionic->lif->doorbell_wa)
->   			cancel_delayed_work_sync(&ionic->doorbell_check_dwork);
-> +		ionic_auxbus_unregister(ionic->lif);
->   		ionic_lif_unregister(ionic->lif);
->   		ionic_devlink_unregister(ionic);
->   		ionic_lif_deinit(ionic->lif);
-> @@ -444,6 +448,7 @@ static void ionic_reset_prepare(struct pci_dev *pdev)
->   	timer_delete_sync(&ionic->watchdog_timer);
->   	cancel_work_sync(&lif->deferred.work);
->   
-> +	ionic_auxbus_unregister(ionic->lif);
->   	mutex_lock(&lif->queue_lock);
->   	ionic_stop_queues_reconfig(lif);
->   	ionic_txrx_free(lif);
-> diff --git a/drivers/net/ethernet/pensando/ionic/ionic_lif.c b/drivers/net/ethernet/pensando/ionic/ionic_lif.c
-> index 7707a9e53c43..146659f6862a 100644
-> --- a/drivers/net/ethernet/pensando/ionic/ionic_lif.c
-> +++ b/drivers/net/ethernet/pensando/ionic/ionic_lif.c
-> @@ -19,6 +19,7 @@
->   #include "ionic_bus.h"
->   #include "ionic_dev.h"
->   #include "ionic_lif.h"
-> +#include "ionic_aux.h"
->   #include "ionic_txrx.h"
->   #include "ionic_ethtool.h"
->   #include "ionic_debugfs.h"
-> @@ -3293,6 +3294,7 @@ int ionic_lif_alloc(struct ionic *ionic)
->   
->   	mutex_init(&lif->queue_lock);
->   	mutex_init(&lif->config_lock);
-> +	mutex_init(&lif->adev_lock);
->   
->   	spin_lock_init(&lif->adminq_lock);
->   
-> @@ -3349,6 +3351,7 @@ int ionic_lif_alloc(struct ionic *ionic)
->   	lif->info = NULL;
->   	lif->info_pa = 0;
->   err_out_free_mutex:
-> +	mutex_destroy(&lif->adev_lock);
->   	mutex_destroy(&lif->config_lock);
->   	mutex_destroy(&lif->queue_lock);
->   err_out_free_netdev:
-> @@ -3384,6 +3387,7 @@ static void ionic_lif_handle_fw_down(struct ionic_lif *lif)
->   
->   	netif_device_detach(lif->netdev);
->   
-> +	ionic_auxbus_unregister(ionic->lif);
->   	mutex_lock(&lif->queue_lock);
->   	if (test_bit(IONIC_LIF_F_UP, lif->state)) {
->   		dev_info(ionic->dev, "Surprise FW stop, stopping queues\n");
-> @@ -3446,6 +3450,8 @@ int ionic_restart_lif(struct ionic_lif *lif)
->   	netif_device_attach(lif->netdev);
->   	ionic_queue_doorbell_check(ionic, IONIC_NAPI_DEADLINE);
->   
-> +	ionic_auxbus_register(ionic->lif);
-> +
->   	return 0;
->   
->   err_txrx_free:
-> @@ -3532,6 +3538,7 @@ void ionic_lif_free(struct ionic_lif *lif)
->   
->   	mutex_destroy(&lif->config_lock);
->   	mutex_destroy(&lif->queue_lock);
-> +	mutex_destroy(&lif->adev_lock);
->   
->   	/* free netdev & lif */
->   	ionic_debugfs_del_lif(lif);
-> diff --git a/drivers/net/ethernet/pensando/ionic/ionic_lif.h b/drivers/net/ethernet/pensando/ionic/ionic_lif.h
-> index e01756fb7fdd..43bdd0fb8733 100644
-> --- a/drivers/net/ethernet/pensando/ionic/ionic_lif.h
-> +++ b/drivers/net/ethernet/pensando/ionic/ionic_lif.h
-> @@ -10,6 +10,7 @@
->   #include <linux/dim.h>
->   #include <linux/pci.h>
->   #include "ionic_rx_filter.h"
-> +#include "ionic_api.h"
->   
->   #define IONIC_ADMINQ_LENGTH	16	/* must be a power of two */
->   #define IONIC_NOTIFYQ_LENGTH	64	/* must be a power of two */
-> @@ -225,6 +226,8 @@ struct ionic_lif {
->   	dma_addr_t info_pa;
->   	u32 info_sz;
->   	struct ionic_qtype_info qtype_info[IONIC_QTYPE_MAX];
-> +	struct ionic_aux_dev *ionic_adev;
-> +	struct mutex adev_lock;	/* lock for aux_dev actions */
->   
->   	u8 rss_hash_key[IONIC_RSS_HASH_KEY_SIZE];
->   	u8 *rss_ind_tbl;
 
