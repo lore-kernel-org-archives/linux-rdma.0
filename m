@@ -1,37 +1,39 @@
-Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mta-201a.earthlink-vadesecure.net (mta-201a.earthlink-vadesecure.net [51.81.229.180])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8134D2E36F0;
-	Wed, 23 Jul 2025 18:10:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.137.202.133
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B20E4223323;
+	Wed, 23 Jul 2025 18:13:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=51.81.229.180
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753294251; cv=none; b=V+l7k9nj+zF5iNZXe405hrO4HeRdzrAJSGeV3l08fW5I8hfYKDc36xBHuBzLTyAlCFP5TCj9aj+RjHzTM2G1RCGknHSOlgmG6JLW7ss3rmOpwP41lwWBXV0Pie5VxF980LIWE5iXfd/c6xPxDl/ntf/Uy2yZFcwQ+1DuSj1vo00=
+	t=1753294430; cv=none; b=mUWngVo/hm0lmGRuPdm8S9Kcxr5QYU0dCwEylLEjNxWXP+OpywzWPay/8vi7WI+xuNRjjEfXzUTXJEdGYeV+TPpUyr9mOuN0+A0yOzzvJBkaEx3zgFq5fHtAZB7V5bewpFHxrPUPjEVQFuLwcMVdzP+pOjwX1/YrmSfy35B1Zfo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753294251; c=relaxed/simple;
-	bh=tKNJjaAqhMlo0SUQGs+ceDgPqde7WpwhfupbI7Mb4wg=;
+	s=arc-20240116; t=1753294430; c=relaxed/simple;
+	bh=tnjpzqd1Mggmvw8Wggg8wzHg0F7ogxOpOkKC+zxbTJQ=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=WjA8RJXrUS2rBffobb/scxBI2BWfl3QcfxYFHuuxamif/W011tWLHNJKhXzlMFO/rr5RYQkgby13YztErvuUsk+vgA8cp1Qnjyxb7oIFnfm195yUy1Ab+JA7pDFiMVY/7RVMbiSG6HYP1Soclx+S9//1D0GphJ4qjf0rGQfa42o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=O7SH2ghI; arc=none smtp.client-ip=198.137.202.133
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=infradead.org
+	 In-Reply-To:Content-Type; b=Dqcwao1iLrrtmxYsNwoo/vr6nQVbrXLWKaPSfzpAXfnjSaF66D7pD37DJdmO5wllO/zQNqMQNbaQQhv5TZbKv3eUTryrTFlargZqRJfFVkuNlBIfPSA+ESUVuIMXRhM9rlo5VZsyZszNj2UfiVZlnk/6pcRhcOSpUX4qHJYh53w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=onemain.com; spf=pass smtp.mailfrom=onemain.com; dkim=pass (2048-bit key) header.d=earthlink.net header.i=@earthlink.net header.b=jnsO6VBB; arc=none smtp.client-ip=51.81.229.180
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=onemain.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=onemain.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="O7SH2ghI"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
-	Content-Type:In-Reply-To:From:References:Cc:To:Subject:MIME-Version:Date:
-	Message-ID:Sender:Reply-To:Content-ID:Content-Description;
-	bh=e7yAQVKufsGUq0RlWkmXXT76VJ5Jz8/4Modn4AF3l8Y=; b=O7SH2ghIeyJ4J07Wq82Am6kIXg
-	mCZtwEIIPos7eogVB5F4K5ZUsUNFNft08J0nNKY92wMJ5T8msMb5f+Fxyb2zR9WiWXNg93VFKhzF1
-	U1F3SUG0OSdJ5eVblMhR6L910dsJzBHA4SPi3xnoWQDBSzG6FhFKHkB8nLZ3AUtAYtmBD5cyGnZ/T
-	Lhl3eBBKAym8Hd1B+gO7bH9EZwbxDPR0zp0Bhv/NNjlmVRNqdA973OVYO2o9x4vor9H+2JPKuq8Ap
-	l7D+ZM1w9f4ehGy7/X/qD/bzfmN5YUZ3nirX5+kIm25iSEDX9Q0DcYTwrjXi92na9Jm1d8l/0Rrbt
-	PGOtSY3g==;
-Received: from [50.53.25.54] (helo=[192.168.254.17])
-	by bombadil.infradead.org with esmtpsa (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uedvQ-00000005ifW-2wT6;
-	Wed, 23 Jul 2025 18:10:44 +0000
-Message-ID: <62345993-46bb-48d9-853b-09a82b03edaf@infradead.org>
-Date: Wed, 23 Jul 2025 11:10:43 -0700
+	dkim=pass (2048-bit key) header.d=earthlink.net header.i=@earthlink.net header.b="jnsO6VBB"
+Authentication-Results: earthlink-vadesecure.net;
+ auth=pass smtp.auth=svnelson@teleport.com smtp.mailfrom=sln@onemain.com;
+DKIM-Signature: v=1; a=rsa-sha256; bh=TopWGv7yYEm89cmEi+jB4nxn++rXyLPZlZQ0Hz
+ pYEDk=; c=relaxed/relaxed; d=earthlink.net; h=from:reply-to:subject:
+ date:to:cc:resent-date:resent-from:resent-to:resent-cc:in-reply-to:
+ references:list-id:list-help:list-unsubscribe:list-unsubscribe-post:
+ list-subscribe:list-post:list-owner:list-archive; q=dns/txt;
+ s=dk12062016; t=1753294419; x=1753899219; b=jnsO6VBBkNdZLB/t1bpISWlnOU/
+ LVjFlWvHzwuo6RH9EWc3AkvhAhHbykqf9cxMulgGygCsFTRRoj7e961oJHIvRFXRwldeOZc
+ A9nav7otEHwNwV+AGaO26d9/Ol4gRPOztsen3v4MOMgKEMH4J7qhRbPlYJJ/a5AhYIbpWId
+ oh/phJjBszMhxdHnA3/MsKF7KulF60fvogiKUO7yqS26bfj4xGWl8c6hj5L29zosONGOX1X
+ WhCmFoU0tWPk8j1nscL3Mequ2WvHODaR3SXOW/KI4VDNa/S4fvDbcAc6+gyl5XGl4TrWB9v
+ KgRe94c9ELmnsmK/AqigTQfEy3Ozqzg==
+Received: from [192.168.0.23] ([50.47.159.51])
+ by vsel2nmtao01p.internal.vadesecure.com with ngmta
+ id 1f341533-1854f3fbedb751fd; Wed, 23 Jul 2025 18:13:39 +0000
+Message-ID: <086f34bd-12d9-40a4-919d-9c36a4089e8b@onemain.com>
+Date: Wed, 23 Jul 2025 11:13:37 -0700
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -51,37 +53,46 @@ Cc: allen.hubbe@amd.com, nikhil.agarwal@amd.com, linux-rdma@vger.kernel.org,
 References: <20250723173149.2568776-1-abhijit.gangurde@amd.com>
  <20250723173149.2568776-15-abhijit.gangurde@amd.com>
 Content-Language: en-US
-From: Randy Dunlap <rdunlap@infradead.org>
+From: Shannon Nelson <sln@onemain.com>
 In-Reply-To: <20250723173149.2568776-15-abhijit.gangurde@amd.com>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-
-
 
 On 7/23/25 10:31 AM, Abhijit Gangurde wrote:
 > Add ionic to the kernel build environment.
-> 
+>
 > Co-developed-by: Allen Hubbe <allen.hubbe@amd.com>
 > Signed-off-by: Allen Hubbe <allen.hubbe@amd.com>
 > Signed-off-by: Abhijit Gangurde <abhijit.gangurde@amd.com>
 > ---
 > v2->v3
->   - Removed select of ethernet driver
->   - Fixed make htmldocs error
-> 
->  .../device_drivers/ethernet/index.rst         |  1 +
->  .../ethernet/pensando/ionic_rdma.rst          | 43 +++++++++++++++++++
->  MAINTAINERS                                   |  9 ++++
->  drivers/infiniband/Kconfig                    |  1 +
->  drivers/infiniband/hw/Makefile                |  1 +
->  drivers/infiniband/hw/ionic/Kconfig           | 15 +++++++
->  drivers/infiniband/hw/ionic/Makefile          |  9 ++++
->  7 files changed, 79 insertions(+)
->  create mode 100644 Documentation/networking/device_drivers/ethernet/pensando/ionic_rdma.rst
->  create mode 100644 drivers/infiniband/hw/ionic/Kconfig
->  create mode 100644 drivers/infiniband/hw/ionic/Makefile
-> 
-
+>    - Removed select of ethernet driver
+>    - Fixed make htmldocs error
+>
+>   .../device_drivers/ethernet/index.rst         |  1 +
+>   .../ethernet/pensando/ionic_rdma.rst          | 43 +++++++++++++++++++
+>   MAINTAINERS                                   |  9 ++++
+>   drivers/infiniband/Kconfig                    |  1 +
+>   drivers/infiniband/hw/Makefile                |  1 +
+>   drivers/infiniband/hw/ionic/Kconfig           | 15 +++++++
+>   drivers/infiniband/hw/ionic/Makefile          |  9 ++++
+>   7 files changed, 79 insertions(+)
+>   create mode 100644 Documentation/networking/device_drivers/ethernet/pensando/ionic_rdma.rst
+>   create mode 100644 drivers/infiniband/hw/ionic/Kconfig
+>   create mode 100644 drivers/infiniband/hw/ionic/Makefile
+>
+> diff --git a/Documentation/networking/device_drivers/ethernet/index.rst b/Documentation/networking/device_drivers/ethernet/index.rst
+> index 139b4c75a191..4b16ecd289da 100644
+> --- a/Documentation/networking/device_drivers/ethernet/index.rst
+> +++ b/Documentation/networking/device_drivers/ethernet/index.rst
+> @@ -50,6 +50,7 @@ Contents:
+>      neterion/s2io
+>      netronome/nfp
+>      pensando/ionic
+> +   pensando/ionic_rdma
+>      smsc/smc9
+>      stmicro/stmmac
+>      ti/cpsw
 > diff --git a/Documentation/networking/device_drivers/ethernet/pensando/ionic_rdma.rst b/Documentation/networking/device_drivers/ethernet/pensando/ionic_rdma.rst
 > new file mode 100644
 > index 000000000000..80c4d9876d3e
@@ -93,16 +104,6 @@ On 7/23/25 10:31 AM, Abhijit Gangurde wrote:
 > +============================================================
 > +Linux Driver for the AMD Pensando(R) Ethernet adapter family
 > +============================================================
-
-Please try to differentiate the title of this driver from that of
-the Pensando ethernet driver:
-
-========================================================
-Linux Driver for the Pensando(R) Ethernet adapter family
-========================================================
-
-Thanks.
-
 > +
 > +AMD Pensando RDMA driver.
 > +Copyright (C) 2018-2025, Advanced Micro Devices, Inc.
@@ -133,6 +134,14 @@ Thanks.
 > +  -> Device Drivers
 > +    -> InfiniBand support
 > +      -> AMD Pensando DSC RDMA/RoCE Support
+
+Please add some verbage about this being an auxiliary_device dependent 
+on the ionic driver, and that it can be disabled/enab led with a devlink 
+command.
+
+sln
+
+
 > +
 > +Support
 > +=======
@@ -141,8 +150,81 @@ Thanks.
 > +list, which is monitored by AMD Pensando personnel::
 > +
 > +  linux-rdma@vger.kernel.org
-
-
--- 
-~Randy
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index b4f3fa14ddca..f52409bde673 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -1165,6 +1165,15 @@ F:	Documentation/networking/device_drivers/ethernet/amd/pds_core.rst
+>   F:	drivers/net/ethernet/amd/pds_core/
+>   F:	include/linux/pds/
+>   
+> +AMD PENSANDO RDMA DRIVER
+> +M:	Abhijit Gangurde <abhijit.gangurde@amd.com>
+> +M:	Allen Hubbe <allen.hubbe@amd.com>
+> +L:	linux-rdma@vger.kernel.org
+> +S:	Maintained
+> +F:	Documentation/networking/device_drivers/ethernet/pensando/ionic_rdma.rst
+> +F:	drivers/infiniband/hw/ionic/
+> +F:	include/uapi/rdma/ionic-abi.h
+> +
+>   AMD PMC DRIVER
+>   M:	Shyam Sundar S K <Shyam-sundar.S-k@amd.com>
+>   L:	platform-driver-x86@vger.kernel.org
+> diff --git a/drivers/infiniband/Kconfig b/drivers/infiniband/Kconfig
+> index 3a394cd772f6..f0323f1d6f01 100644
+> --- a/drivers/infiniband/Kconfig
+> +++ b/drivers/infiniband/Kconfig
+> @@ -85,6 +85,7 @@ source "drivers/infiniband/hw/efa/Kconfig"
+>   source "drivers/infiniband/hw/erdma/Kconfig"
+>   source "drivers/infiniband/hw/hfi1/Kconfig"
+>   source "drivers/infiniband/hw/hns/Kconfig"
+> +source "drivers/infiniband/hw/ionic/Kconfig"
+>   source "drivers/infiniband/hw/irdma/Kconfig"
+>   source "drivers/infiniband/hw/mana/Kconfig"
+>   source "drivers/infiniband/hw/mlx4/Kconfig"
+> diff --git a/drivers/infiniband/hw/Makefile b/drivers/infiniband/hw/Makefile
+> index df61b2299ec0..b706dc0d0263 100644
+> --- a/drivers/infiniband/hw/Makefile
+> +++ b/drivers/infiniband/hw/Makefile
+> @@ -14,3 +14,4 @@ obj-$(CONFIG_INFINIBAND_HNS_HIP08)	+= hns/
+>   obj-$(CONFIG_INFINIBAND_QEDR)		+= qedr/
+>   obj-$(CONFIG_INFINIBAND_BNXT_RE)	+= bnxt_re/
+>   obj-$(CONFIG_INFINIBAND_ERDMA)		+= erdma/
+> +obj-$(CONFIG_INFINIBAND_IONIC)		+= ionic/
+> diff --git a/drivers/infiniband/hw/ionic/Kconfig b/drivers/infiniband/hw/ionic/Kconfig
+> new file mode 100644
+> index 000000000000..de6f10e9b6e9
+> --- /dev/null
+> +++ b/drivers/infiniband/hw/ionic/Kconfig
+> @@ -0,0 +1,15 @@
+> +# SPDX-License-Identifier: GPL-2.0
+> +# Copyright (C) 2018-2025, Advanced Micro Devices, Inc.
+> +
+> +config INFINIBAND_IONIC
+> +	tristate "AMD Pensando DSC RDMA/RoCE Support"
+> +	depends on NETDEVICES && ETHERNET && PCI && INET && IONIC
+> +	help
+> +	  This enables RDMA/RoCE support for the AMD Pensando family of
+> +	  Distributed Services Cards (DSCs).
+> +
+> +	  To learn more, visit our website at
+> +	  <https://www.amd.com/en/products/accelerators/pensando.html>.
+> +
+> +	  To compile this driver as a module, choose M here. The module
+> +	  will be called ionic_rdma.
+> diff --git a/drivers/infiniband/hw/ionic/Makefile b/drivers/infiniband/hw/ionic/Makefile
+> new file mode 100644
+> index 000000000000..957973742820
+> --- /dev/null
+> +++ b/drivers/infiniband/hw/ionic/Makefile
+> @@ -0,0 +1,9 @@
+> +# SPDX-License-Identifier: GPL-2.0
+> +
+> +ccflags-y :=  -I $(srctree)/drivers/net/ethernet/pensando/ionic
+> +
+> +obj-$(CONFIG_INFINIBAND_IONIC)	+= ionic_rdma.o
+> +
+> +ionic_rdma-y :=	\
+> +	ionic_ibdev.o ionic_lif_cfg.o ionic_queue.o ionic_pgtbl.o ionic_admin.o \
+> +	ionic_controlpath.o ionic_datapath.o ionic_hw_stats.o
 
