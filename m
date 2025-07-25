@@ -1,38 +1,41 @@
-Received: from out30-130.freemail.mail.aliyun.com (out30-130.freemail.mail.aliyun.com [115.124.30.130])
+Received: from out30-112.freemail.mail.aliyun.com (out30-112.freemail.mail.aliyun.com [115.124.30.112])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4763B244666
-	for <linux-rdma@vger.kernel.org>; Fri, 25 Jul 2025 05:54:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.130
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 959A43A1DB
+	for <linux-rdma@vger.kernel.org>; Fri, 25 Jul 2025 05:54:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.112
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753422858; cv=none; b=ZzRgGo7Pljog4yicYsvn1CMSoUxZqCYlMt0vnYF6ftMxYbRWpC/QC8zJyt7Gb9rqeLx2qjZdOtrSgthXZAFLQY+8pF1SOzjepvho+u52NJfcBfnuFHHheG4F6xUqAdXgwQxOGnIvo01lrwOC2lY+Yxlibq6jv1en/PVrc2+yHKc=
+	t=1753422859; cv=none; b=eqIrzINaqhUs8ULgMmNquHvJ6beMMcp54NfEfwEwVWskfQNPs7WuCLVVnuxboHY/4sP1PY7XolN3SBuN3bmKxuJvQKbzwTt4MjR8rXRyQxPbGYwlZgxiUj1JHPfOMGxa3JwMYQWVG+QPsmjlmYFlZV/dQXyI+VgIhWQaorRWbVc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753422858; c=relaxed/simple;
-	bh=l/xqNjjqabCDWdQaWX3v0f44eVWIVr5OL9GPpmgu9f8=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=BOBToFIMCXvgC+ML7UAxq0q7F0TnWg9AyfN4pRJe++utYk2gunpp8u4svtnQitzsAqMRmJ8P35RyypNHyL5gGtOznyEn3444vpASJ4k7+OICoARiaTTMTZ8apjc2YVH/g7cln8yj6h/tMm5dLm1Yq0h/F84DbCw96E+PTK7kqlI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=wskRgTC1; arc=none smtp.client-ip=115.124.30.130
+	s=arc-20240116; t=1753422859; c=relaxed/simple;
+	bh=GkD44Wr81JxSEfnPjKcYmYktxMYvGOrkg2OwZv7d6Ng=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=i3tlPkYgRJyzFpZATrz0W6TcoVWYUZt+G6UQPL32P3yfNH7GNz0Phr67Pr/BsUCwMFEievRMivIosQalowNLuLCkR7LcRiuPwXl1bjnPKh3UbFe+TtnZ9at8xCfZS6c8OpW7SuXr4SbueiB6xAmqFxdpYDbIlL13leSpf/ZHrRQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=rAH2giPO; arc=none smtp.client-ip=115.124.30.112
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="wskRgTC1"
+	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="rAH2giPO"
 DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
 	d=linux.alibaba.com; s=default;
-	t=1753422852; h=From:To:Subject:Date:Message-ID:MIME-Version;
-	bh=wbMlidhSyOFHi/d6dfVjFUlbWqq3yZAdrwKYJicw7VQ=;
-	b=wskRgTC132aK1QpU9rha98ryjW/W7CbeEyBcle1OyTx0tCB2Bb4Qpp7iHnS6OhjwAfDA/nI0DDX/AIzCOi+2Ljqo4CXkalko7Q6e2O+x9ATKPwp/Ej3JiUQwX9FG9Y+L9JHeUD6WfFN4gWJOjCzyhbWLEW6Vh3t/Nj8ix1QkjYY=
-Received: from localhost(mailfrom:boshiyu@linux.alibaba.com fp:SMTPD_---0Wjw1Is6_1753422851 cluster:ay36)
+	t=1753422854; h=From:To:Subject:Date:Message-ID:MIME-Version;
+	bh=D59luFjehK3uAKQ1z3AwdidW09R+N7BjVOnp0Ruiaeo=;
+	b=rAH2giPOFS0nd47ilSRBF3PSJ71Kzt3y/IFIkiSZOXJ6QjSxDJ4L5P8kZr60bvxDeg9J00tOy5pdWm8vWc6T7hkIQoUhr9Wkbbe+223eZ3Pp5rFh8H7NDkU1VrL3C8fGTtyb5evfI7P9CXEnZcRuLdb5paOZAtPXXWCufPu4b/o=
+Received: from localhost(mailfrom:boshiyu@linux.alibaba.com fp:SMTPD_---0WjwB5et_1753422853 cluster:ay36)
           by smtp.aliyun-inc.com;
-          Fri, 25 Jul 2025 13:54:11 +0800
+          Fri, 25 Jul 2025 13:54:13 +0800
 From: Boshi Yu <boshiyu@linux.alibaba.com>
 To: jgg@ziepe.ca,
 	leon@kernel.org
 Cc: linux-rdma@vger.kernel.org,
 	chengyou@linux.alibaba.com,
 	kaishen@linux.alibaba.com
-Subject: [PATCH for-next 0/3] RDMA/erdma: Misc fixes for the erdma driver
-Date: Fri, 25 Jul 2025 13:53:53 +0800
-Message-ID: <20250725055410.67520-1-boshiyu@linux.alibaba.com>
+Subject: [PATCH for-next 3/3] RDMA/erdma: Fix unset QPN of GSI QP
+Date: Fri, 25 Jul 2025 13:53:56 +0800
+Message-ID: <20250725055410.67520-4-boshiyu@linux.alibaba.com>
 X-Mailer: git-send-email 2.46.0
+In-Reply-To: <20250725055410.67520-1-boshiyu@linux.alibaba.com>
+References: <20250725055410.67520-1-boshiyu@linux.alibaba.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -41,26 +44,29 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Hi,
+The QPN of the GSI QP was not set, which may cause issues.
+Set the QPN to 1 when creating the GSI QP.
 
-This series of patches provides several fixes for the erdma driver:
-- #1 uses dma_map_page to map the scatter MTT buffer page by page to avoid
-     merging contiguous physical pages.
-- #2 fixes ignored return value of init_kernel_qp.
-- #3 fixes unset QPN of GSI QP.
+Fixes: 999a0a2e9b87 ("RDMA/erdma: Support UD QPs and UD WRs")
+Reviewed-by: Cheng Xu <chengyou@linux.alibaba.com>
+Signed-off-by: Boshi Yu <boshiyu@linux.alibaba.com>
+---
+ drivers/infiniband/hw/erdma/erdma_verbs.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-Thanks,
-Boshi Yu
-
-Boshi Yu (3):
-  RDMA/erdma: Use dma_map_page to map scatter MTT buffer
-  RDMA/erdma: Fix ignored return value of init_kernel_qp
-  RDMA/erdma: Fix unset QPN of GSI QP
-
- drivers/infiniband/hw/erdma/erdma_verbs.c | 116 ++++++++++++++--------
- drivers/infiniband/hw/erdma/erdma_verbs.h |   4 +-
- 2 files changed, 76 insertions(+), 44 deletions(-)
-
+diff --git a/drivers/infiniband/hw/erdma/erdma_verbs.c b/drivers/infiniband/hw/erdma/erdma_verbs.c
+index 32b11ce228dc..996860f49b2f 100644
+--- a/drivers/infiniband/hw/erdma/erdma_verbs.c
++++ b/drivers/infiniband/hw/erdma/erdma_verbs.c
+@@ -1022,6 +1022,8 @@ int erdma_create_qp(struct ib_qp *ibqp, struct ib_qp_init_attr *attrs,
+ 		old_entry = xa_store(&dev->qp_xa, 1, qp, GFP_KERNEL);
+ 		if (xa_is_err(old_entry))
+ 			ret = xa_err(old_entry);
++		else
++			qp->ibqp.qp_num = 1;
+ 	} else {
+ 		ret = xa_alloc_cyclic(&dev->qp_xa, &qp->ibqp.qp_num, qp,
+ 				      XA_LIMIT(1, dev->attrs.max_qp - 1),
 -- 
 2.46.0
 
