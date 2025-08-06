@@ -1,66 +1,66 @@
 Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D8C142951D0;
-	Wed,  6 Aug 2025 15:41:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B374E295DBC;
+	Wed,  6 Aug 2025 15:41:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.156.1
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754494899; cv=none; b=d1IJzaMlLDZn4nWQxUKa6vSHK0XahifB+OiAAtXNTE0MwNv5ft//Gss0PgYAesTZDxRaG/5s7zapyTdGALpr8Vzga2QCe3dRLjdMh900zBhtUxiwcoFVmtTJOsjXBdiTbN7tyrWUIOLdpVUgYb3V7387g93JT5bQKDTdom2R9XM=
+	t=1754494900; cv=none; b=T+jX7Nz9IHQ2yZgQLoqzsALzYwHaIq4gOpNvVEuuvpBOOk/jjedyMpg53bjSo4egeP2ns7ZhuSdbjQMVuuo9WLIvxrJPCwCAehCx5PAnEc2kExVL+PNYSYY0c4kxmMsxzNQWa+VpVOrl1Ek1nqQALCJepQCc1N47rki4JBbYZx4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754494899; c=relaxed/simple;
-	bh=2iwdPMF5IYmSN5s/EolFOqaYRSt7GTc8QZGHyko4yJI=;
+	s=arc-20240116; t=1754494900; c=relaxed/simple;
+	bh=9SbqzclrPejvHFLsEXizEcHmyu4OIVi4dvqGUvr6Cnc=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=K7aY4gywI9C5kOex1LPB9JfOYyhjDFPdqiK9MDSeLX8qP/Y3kaAnRf2YS5v2IXkyVXdpeN5UgidJSPOMo9PMLKzhZBJ9eRyAKyRaTx6ekgcznIYH8sLaOMWNCoWQ9Aij8d2vyi6v+RiNg2ryAuTQpQ41vJkMgNXWIYyZbOrKgp8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=svzhkw8d; arc=none smtp.client-ip=148.163.156.1
+	 MIME-Version; b=UDfzRy+4sT+CCE9tADUMGoMwhCwhndx8SPhtbH3Uxhqp8l2Eg7mIkw23m/Sk0oaKG22jhjADhuG6GdvZ+Mw38eVkss0COyqvIwz+lpQ3LHUkEPoJ4cYjcGkna/nUF02FQoZiRQ+frr+mTLyMLKuOETPho7oujWVkpHVhR24jsjY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=KuK0hEvZ; arc=none smtp.client-ip=148.163.156.1
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="svzhkw8d"
-Received: from pps.filterd (m0353729.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 5766tDjg019393;
-	Wed, 6 Aug 2025 15:41:29 GMT
+	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="KuK0hEvZ"
+Received: from pps.filterd (m0356517.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 5768cifo021768;
+	Wed, 6 Aug 2025 15:41:30 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
 	:content-transfer-encoding:date:from:in-reply-to:message-id
-	:mime-version:references:subject:to; s=pp1; bh=CP7PE/9mGLM4vK9Du
-	dbNkSY+479u0ZfAuP6ulhYK/eg=; b=svzhkw8dDLVfqWk1a6pCoBWbxjt7kcCws
-	ei3ES+ub7u19gaF+liLcgk1kOdn+Vy0qduN2dFKd/3QoikF5oQKZCfMjOfklfgc7
-	zWXVb5Vhx1YjoSjanmQ68B609FInYondEenZ898XFptywQgmtPkudPdFENSTlvbp
-	w0yHebWlaQgbyWlP01PF7g1Tym8Y5x+NUFIkA3BRgB5JD7bSyif1EXma1vm0OB8A
-	13LMFEQlLl/dVpMQN8YzGtxMtPWip7OCoiDaixYoUxFQxFbBWV0huhRZzCcSDjjm
-	Zk612puBodOdCLNRaXMsbN6eCCw65A4UTQzI51ETUx3L1PmLrpYDQ==
+	:mime-version:references:subject:to; s=pp1; bh=CoCIWr/SW24upbGKy
+	+ulvjzrYAgCOv23ZO1ZGg4tm6A=; b=KuK0hEvZt37fNSsXwpbMcV4cVw8S0empB
+	2w/pBVbU/M4xUj8Z20A5jeZzG7159vLwbsXmnV9Mzg4D/ilxiO5duF7IcNuuNzAi
+	EBCop+8Uc5+9bw3p2Yx7kqe1zA7mRKwkhvQgQeTAXFnHVfLnt5fTHR3UlUZPdeQN
+	YEmQMo0FjPrCYAmO8uaG4MNgk+fcXi17zRCBKUgQAlQh7i8FB1zQSldSBakE2bfM
+	IOS3tMKModkAk5Bflg5Ym6MJK2f01ewBlAdCFfTDEuSsMLpj/dl+5ml9ebuQOcph
+	A1WHpHQ8I6LIbGUW8EpDLByx87L8ESsVW1/iGBDLbmQDzgP1eNLkQ==
 Received: from pps.reinject (localhost [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 48c26ttcmm-1
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 48bq61w1a1-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Wed, 06 Aug 2025 15:41:29 +0000 (GMT)
+Received: from m0356517.ppops.net (m0356517.ppops.net [127.0.0.1])
+	by pps.reinject (8.18.1.12/8.18.0.8) with ESMTP id 576FfSbp016666;
+	Wed, 6 Aug 2025 15:41:29 GMT
+Received: from ppma22.wdc07v.mail.ibm.com (5c.69.3da9.ip4.static.sl-reverse.com [169.61.105.92])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 48bq61w19r-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
 	Wed, 06 Aug 2025 15:41:28 +0000 (GMT)
-Received: from m0353729.ppops.net (m0353729.ppops.net [127.0.0.1])
-	by pps.reinject (8.18.1.12/8.18.0.8) with ESMTP id 576FdZpn030975;
-	Wed, 6 Aug 2025 15:41:28 GMT
-Received: from ppma21.wdc07v.mail.ibm.com (5b.69.3da9.ip4.static.sl-reverse.com [169.61.105.91])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 48c26ttcmc-1
+Received: from pps.filterd (ppma22.wdc07v.mail.ibm.com [127.0.0.1])
+	by ppma22.wdc07v.mail.ibm.com (8.18.1.2/8.18.1.2) with ESMTP id 576CJkfL031345;
+	Wed, 6 Aug 2025 15:41:27 GMT
+Received: from smtprelay06.fra02v.mail.ibm.com ([9.218.2.230])
+	by ppma22.wdc07v.mail.ibm.com (PPS) with ESMTPS id 48bpwnc8tg-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Wed, 06 Aug 2025 15:41:28 +0000 (GMT)
-Received: from pps.filterd (ppma21.wdc07v.mail.ibm.com [127.0.0.1])
-	by ppma21.wdc07v.mail.ibm.com (8.18.1.2/8.18.1.2) with ESMTP id 576CYMFY020606;
-	Wed, 6 Aug 2025 15:41:26 GMT
-Received: from smtprelay03.fra02v.mail.ibm.com ([9.218.2.224])
-	by ppma21.wdc07v.mail.ibm.com (PPS) with ESMTPS id 48bpwmv8vg-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Wed, 06 Aug 2025 15:41:26 +0000
-Received: from smtpav01.fra02v.mail.ibm.com (smtpav01.fra02v.mail.ibm.com [10.20.54.100])
-	by smtprelay03.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 576FfMo85374246
+	Wed, 06 Aug 2025 15:41:27 +0000
+Received: from smtpav04.fra02v.mail.ibm.com (smtpav04.fra02v.mail.ibm.com [10.20.54.103])
+	by smtprelay06.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 576FfNoQ34079232
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
 	Wed, 6 Aug 2025 15:41:23 GMT
-Received: from smtpav01.fra02v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id DA7D22005A;
-	Wed,  6 Aug 2025 15:41:22 +0000 (GMT)
-Received: from smtpav01.fra02v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id C2E9C2004F;
-	Wed,  6 Aug 2025 15:41:22 +0000 (GMT)
+Received: from smtpav04.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 4B2862004B;
+	Wed,  6 Aug 2025 15:41:23 +0000 (GMT)
+Received: from smtpav04.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 2B92120043;
+	Wed,  6 Aug 2025 15:41:23 +0000 (GMT)
 Received: from tuxmaker.boeblingen.de.ibm.com (unknown [9.152.85.9])
-	by smtpav01.fra02v.mail.ibm.com (Postfix) with ESMTPS;
-	Wed,  6 Aug 2025 15:41:22 +0000 (GMT)
+	by smtpav04.fra02v.mail.ibm.com (Postfix) with ESMTPS;
+	Wed,  6 Aug 2025 15:41:23 +0000 (GMT)
 Received: by tuxmaker.boeblingen.de.ibm.com (Postfix, from userid 55271)
-	id 966A6E1277; Wed, 06 Aug 2025 17:41:22 +0200 (CEST)
+	id B8901E12C9; Wed, 06 Aug 2025 17:41:22 +0200 (CEST)
 From: Alexandra Winter <wintera@linux.ibm.com>
 To: David Miller <davem@davemloft.net>, Jakub Kicinski <kuba@kernel.org>,
         Paolo Abeni <pabeni@redhat.com>, Eric Dumazet <edumazet@google.com>,
@@ -80,9 +80,9 @@ Cc: netdev@vger.kernel.org, linux-s390@vger.kernel.org,
         Mahanta Jambigi <mjambigi@linux.ibm.com>,
         Tony Lu <tonylu@linux.alibaba.com>, Wen Gu <guwen@linux.alibaba.com>,
         Halil Pasic <pasic@linux.ibm.com>, linux-rdma@vger.kernel.org
-Subject: [RFC net-next 03/17] net/smc: Remove error handling of unregister_dmb()
-Date: Wed,  6 Aug 2025 17:41:08 +0200
-Message-ID: <20250806154122.3413330-4-wintera@linux.ibm.com>
+Subject: [RFC net-next 14/17] net/dibs: Move vlan support to dibs_dev_ops
+Date: Wed,  6 Aug 2025 17:41:19 +0200
+Message-ID: <20250806154122.3413330-15-wintera@linux.ibm.com>
 X-Mailer: git-send-email 2.48.1
 In-Reply-To: <20250806154122.3413330-1-wintera@linux.ibm.com>
 References: <20250806154122.3413330-1-wintera@linux.ibm.com>
@@ -94,122 +94,289 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-TM-AS-GCONF: 00
-X-Proofpoint-ORIG-GUID: RTMCDwKdgUI5oAcYbMl87oyOfWR5b_aw
-X-Authority-Analysis: v=2.4 cv=F/xXdrhN c=1 sm=1 tr=0 ts=689377a8 cx=c_pps
- a=GFwsV6G8L6GxiO2Y/PsHdQ==:117 a=GFwsV6G8L6GxiO2Y/PsHdQ==:17
- a=2OwXVqhp2XgA:10 a=VnNF1IyMAAAA:8 a=E2BrbLywADzKi2prdkwA:9
-X-Proofpoint-GUID: ccEnzzJH5G9xfwPL0XxE_Vxlh6kyaQ7-
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjUwODA2MDA5NiBTYWx0ZWRfX43UBSqrCUJGR
- dtNuT6wKEb2hWk5nkPdRt2hLf4UNKMuzHSOVIyV/aydIwXfgLFlNbDkLYZEtKD5yQkuSz9r6Ers
- qys3tbTGIPWFdB8fI5ksCQJgCH33MRZafFYB7skAi5VMPOLJ8nmyHKZnj05I29opp2vk0N4bW36
- AiTiM/u4y9rbo+WnEJ5qpK2FZKeliQ2vc/fXTeN8kSr44zdSo/vhyHP2IkcQI1uKh8lTfv2Lxp+
- A1FYNcaqtgyiRxjOEWmWwO+ONHuCbDaXnnriQLNyWayFiU2JpdjKL9BL6Mq7Ga0/YAMXJ1LDZV4
- 5NbYhTb4y51a3MQiYd+WTiQU4wdzr/LIHNGquHN0d0KPJCG1zHoF2RsBtn2Hn8phef/2aDGJsBI
- A8lEHx+ktg0Xg4BGzcY6RFWuyfHAk54XqAMbl8ukZlkWaFG3bBap+GjDJv23N5naCza5lMG0
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjUwODA2MDA5NiBTYWx0ZWRfX1m2gYQsw0HqC
+ 3eO1DwrcuK34r1+YjmGsQQ91HfsFNRu/gh8pW5rQdQVlmEg43SaxBZZX5/Ngpmn80KvzqFxgYqb
+ EVyvN1b/AUKjmcuvDHP6Lx7bqpHjjc1ffca3plW4oaYQdLv3hCwDT0McOqmgxOHi9vTVEyj8Hss
+ kvTLiNJEAgRQtO+QiGA20f+MWZ/WP9j6y84Htf6H3cvoyoZqqJT16UQWIrjZ+vNLOaiHrhBe8m2
+ wSCgEWs2zfkotg84w0eaGt8Bs3VFcKM1R82vB/Yezc+ntEu8+wEE3TVM0/WnX2KJYEkDJmJAfmC
+ s8kYp0CoslMH5y5qaMpZZR2ASj4afcdgmde1VMic6WtK7EjEnSnfp8T+xfbOdgV/FFQF8Kw5wEt
+ UW8g09wSbZ/6c1RVdIRMIAIid5s0HDqt6Pnvl7CAsCDpUw7RJR6WFjQgIOyJM/aP85uEmDS9
+X-Proofpoint-GUID: SBjjtZTGxkPK0Mn6bgCf_sovwsfZU-Mh
+X-Authority-Analysis: v=2.4 cv=BIuzrEQG c=1 sm=1 tr=0 ts=689377a9 cx=c_pps
+ a=5BHTudwdYE3Te8bg5FgnPg==:117 a=5BHTudwdYE3Te8bg5FgnPg==:17
+ a=2OwXVqhp2XgA:10 a=VnNF1IyMAAAA:8 a=z8tP7dbUM_-rWPAmZuAA:9
+X-Proofpoint-ORIG-GUID: xTL2HK3cHJOclfj5F8ZxDTqPz7Q_teQM
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.293,Aquarius:18.0.1099,Hydra:6.1.9,FMLib:17.12.80.40
  definitions=2025-08-06_04,2025-08-06_01,2025-03-28_01
 X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- mlxscore=0 lowpriorityscore=0 priorityscore=1501 impostorscore=0
- clxscore=1015 spamscore=0 bulkscore=0 adultscore=0 mlxlogscore=786
- malwarescore=0 phishscore=0 suspectscore=0 classifier=spam authscore=0
+ mlxscore=0 impostorscore=0 priorityscore=1501 lowpriorityscore=0
+ suspectscore=0 spamscore=0 mlxlogscore=999 adultscore=0 clxscore=1015
+ malwarescore=0 phishscore=0 bulkscore=0 classifier=spam authscore=0
  authtc=n/a authcc= route=outbound adjust=0 reason=mlx scancount=1
  engine=8.19.0-2507300000 definitions=main-2508060096
 
-smcd_buf_free() calls smc_ism_unregister_dmb(lgr->smcd, buf_desc) and
-then unconditionally frees buf_desc.
+It can be debated how much benefit definition of vlan ids for dibs devices
+brings, as the dmbs are accessible only by a single peer anyhow. But ism
+provides vlan support and smcd exploits it, so move it to dibs layer as an
+optional feature.
 
-Remove the cleaning up of fields of buf_desc in
-smc_ism_unregister_dmb(), because it is not helpful.
+smcd_loopback simply ignores all vlan settings, do the same in
+dibs_loopback.
 
-This removes the only usage of ISM_ERROR from the smc module. So move it
-to drivers/s390/net/ism.h.
+SMC-D and ISM have a method to use the invalid VLAN ID 1FFF
+(ISM_RESERVED_VLANID), to indicate that both communication peers support
+routable SMC-Dv2. Tolerate it in dibs, but move it to SMC only.
 
 Signed-off-by: Alexandra Winter <wintera@linux.ibm.com>
-Reviewed-by: Mahanta Jambigi <mjambigi@linux.ibm.com>
 ---
- drivers/s390/net/ism.h |  1 +
- include/net/smc.h      |  2 --
- net/smc/smc_ism.c      | 14 +++++---------
- net/smc/smc_ism.h      |  3 ++-
- 4 files changed, 8 insertions(+), 12 deletions(-)
+ drivers/s390/net/ism_drv.c | 47 +++++---------------------------------
+ include/linux/dibs.h       | 19 +++++++++++++++
+ include/net/smc.h          |  5 ----
+ net/smc/smc_ism.c          | 14 ++++++++----
+ net/smc/smc_loopback.c     |  5 ----
+ 5 files changed, 34 insertions(+), 56 deletions(-)
 
-diff --git a/drivers/s390/net/ism.h b/drivers/s390/net/ism.h
-index 047fa6101555..b5b03db52fce 100644
---- a/drivers/s390/net/ism.h
-+++ b/drivers/s390/net/ism.h
-@@ -10,6 +10,7 @@
- #include <asm/pci_insn.h>
+diff --git a/drivers/s390/net/ism_drv.c b/drivers/s390/net/ism_drv.c
+index 2dbf4ebb6bff..636594b2fab2 100644
+--- a/drivers/s390/net/ism_drv.c
++++ b/drivers/s390/net/ism_drv.c
+@@ -36,7 +36,6 @@ static struct ism_client *clients[MAX_CLIENTS];	/* use an array rather than */
+ 						/* a list for fast mapping  */
+ static u8 max_client;
+ static DEFINE_MUTEX(clients_lock);
+-static bool ism_v2_capable;
+ struct ism_dev_list {
+ 	struct list_head list;
+ 	struct mutex mutex; /* protects ism device list */
+@@ -409,8 +408,9 @@ int ism_unregister_dmb(struct ism_dev *ism, struct ism_dmb *dmb)
+ }
+ EXPORT_SYMBOL_GPL(ism_unregister_dmb);
  
- #define UTIL_STR_LEN	16
-+#define ISM_ERROR	0xFFFF
+-static int ism_add_vlan_id(struct ism_dev *ism, u64 vlan_id)
++static int ism_add_vlan_id(struct dibs_dev *dibs, u64 vlan_id)
+ {
++	struct ism_dev *ism = dibs->drv_priv;
+ 	union ism_set_vlan_id cmd;
  
- /*
-  * Do not use the first word of the DMB bits to ensure 8 byte aligned access.
+ 	memset(&cmd, 0, sizeof(cmd));
+@@ -422,8 +422,9 @@ static int ism_add_vlan_id(struct ism_dev *ism, u64 vlan_id)
+ 	return ism_cmd(ism, &cmd);
+ }
+ 
+-static int ism_del_vlan_id(struct ism_dev *ism, u64 vlan_id)
++static int ism_del_vlan_id(struct dibs_dev *dibs, u64 vlan_id)
+ {
++	struct ism_dev *ism = dibs->drv_priv;
+ 	union ism_set_vlan_id cmd;
+ 
+ 	memset(&cmd, 0, sizeof(cmd));
+@@ -536,6 +537,8 @@ static irqreturn_t ism_handle_irq(int irq, void *data)
+ 
+ static const struct dibs_dev_ops ism_ops = {
+ 	.get_fabric_id = ism_get_chid,
++	.add_vlan_id = ism_add_vlan_id,
++	.del_vlan_id = ism_del_vlan_id,
+ };
+ 
+ static int ism_dev_init(struct ism_dev *ism)
+@@ -565,12 +568,6 @@ static int ism_dev_init(struct ism_dev *ism)
+ 	if (ret)
+ 		goto unreg_sba;
+ 
+-	if (!ism_add_vlan_id(ism, ISM_RESERVED_VLANID))
+-		/* hardware is V2 capable */
+-		ism_v2_capable = true;
+-	else
+-		ism_v2_capable = false;
+-
+ 	mutex_lock(&ism_dev_list.mutex);
+ 	mutex_lock(&clients_lock);
+ 	for (i = 0; i < max_client; ++i) {
+@@ -611,8 +608,6 @@ static void ism_dev_exit(struct ism_dev *ism)
+ 
+ 	mutex_lock(&ism_dev_list.mutex);
+ 
+-	if (ism_v2_capable)
+-		ism_del_vlan_id(ism, ISM_RESERVED_VLANID);
+ 	unregister_ieq(ism);
+ 	unregister_sba(ism);
+ 	free_irq(pci_irq_vector(pdev, 0), ism);
+@@ -791,26 +786,6 @@ static int smcd_unregister_dmb(struct smcd_dev *smcd, struct smcd_dmb *dmb)
+ 	return ism_unregister_dmb(smcd->priv, (struct ism_dmb *)dmb);
+ }
+ 
+-static int smcd_add_vlan_id(struct smcd_dev *smcd, u64 vlan_id)
+-{
+-	return ism_add_vlan_id(smcd->priv, vlan_id);
+-}
+-
+-static int smcd_del_vlan_id(struct smcd_dev *smcd, u64 vlan_id)
+-{
+-	return ism_del_vlan_id(smcd->priv, vlan_id);
+-}
+-
+-static int smcd_set_vlan_required(struct smcd_dev *smcd)
+-{
+-	return ism_cmd_simple(smcd->priv, ISM_SET_VLAN);
+-}
+-
+-static int smcd_reset_vlan_required(struct smcd_dev *smcd)
+-{
+-	return ism_cmd_simple(smcd->priv, ISM_RESET_VLAN);
+-}
+-
+ static int ism_signal_ieq(struct ism_dev *ism, u64 rgid, u32 trigger_irq,
+ 			  u32 event_code, u64 info)
+ {
+@@ -842,22 +817,12 @@ static int smcd_move(struct smcd_dev *smcd, u64 dmb_tok, unsigned int idx,
+ 	return ism_move(smcd->priv, dmb_tok, idx, sf, offset, data, size);
+ }
+ 
+-static int smcd_supports_v2(void)
+-{
+-	return ism_v2_capable;
+-}
+-
+ static const struct smcd_ops ism_smcd_ops = {
+ 	.query_remote_gid = smcd_query_rgid,
+ 	.register_dmb = smcd_register_dmb,
+ 	.unregister_dmb = smcd_unregister_dmb,
+-	.add_vlan_id = smcd_add_vlan_id,
+-	.del_vlan_id = smcd_del_vlan_id,
+-	.set_vlan_required = smcd_set_vlan_required,
+-	.reset_vlan_required = smcd_reset_vlan_required,
+ 	.signal_event = smcd_signal_ieq,
+ 	.move_data = smcd_move,
+-	.supports_v2 = smcd_supports_v2,
+ };
+ 
+ const struct smcd_ops *ism_get_smcd_ops(void)
+diff --git a/include/linux/dibs.h b/include/linux/dibs.h
+index 058dfc14aa5c..10be10ae4660 100644
+--- a/include/linux/dibs.h
++++ b/include/linux/dibs.h
+@@ -133,6 +133,25 @@ struct dibs_dev_ops {
+ 	 * Return: 2 byte dibs fabric id
+ 	 */
+ 	u16 (*get_fabric_id)(struct dibs_dev *dev);
++	/**
++	 * add_vlan_id() - add dibs device to vlan (optional, deprecated)
++	 * @dev: dibs device
++	 * @vlan_id: vlan id
++	 *
++	 * In order to write into a vlan-tagged dmb, the remote device needs
++	 * to belong to the this vlan. A device can belong to more than 1 vlan.
++	 * Any device can access an untagged dmb.
++	 * Deprecated, only supported for backwards compatibility.
++	 * Return: zero on success
++	 */
++	int (*add_vlan_id)(struct dibs_dev *dev, u64 vlan_id);
++	/**
++	 * del_vlan_id() - remove dibs device from vlan (optional, deprecated)
++	 * @dev: dibs device
++	 * @vlan_id: vlan id
++	 * Return: zero on success
++	 */
++	int (*del_vlan_id)(struct dibs_dev *dev, u64 vlan_id);
+ };
+ 
+ struct dibs_dev {
 diff --git a/include/net/smc.h b/include/net/smc.h
-index db84e4e35080..a9c023dd1380 100644
+index 9cb8385bbc6e..51b4aefc106a 100644
 --- a/include/net/smc.h
 +++ b/include/net/smc.h
-@@ -44,8 +44,6 @@ struct smcd_dmb {
+@@ -61,13 +61,8 @@ struct smcd_ops {
+ 	int (*move_data)(struct smcd_dev *dev, u64 dmb_tok, unsigned int idx,
+ 			 bool sf, unsigned int offset, void *data,
+ 			 unsigned int size);
+-	int (*supports_v2)(void);
  
- #define ISM_RESERVED_VLANID	0x1FFF
- 
--#define ISM_ERROR	0xFFFF
--
- struct smcd_dev;
- 
- struct smcd_gid {
+ 	/* optional operations */
+-	int (*add_vlan_id)(struct smcd_dev *dev, u64 vlan_id);
+-	int (*del_vlan_id)(struct smcd_dev *dev, u64 vlan_id);
+-	int (*set_vlan_required)(struct smcd_dev *dev);
+-	int (*reset_vlan_required)(struct smcd_dev *dev);
+ 	int (*signal_event)(struct smcd_dev *dev, struct smcd_gid *rgid,
+ 			    u32 trigger_irq, u32 event_code, u64 info);
+ 	int (*support_dmb_nocopy)(struct smcd_dev *dev);
 diff --git a/net/smc/smc_ism.c b/net/smc/smc_ism.c
-index 84f98e18c7db..a94e1450d095 100644
+index dd46d8000381..ce9d2195e14a 100644
 --- a/net/smc/smc_ism.c
 +++ b/net/smc/smc_ism.c
-@@ -205,13 +205,13 @@ int smc_ism_put_vlan(struct smcd_dev *smcd, unsigned short vlanid)
- 	return rc;
- }
+@@ -140,7 +140,7 @@ int smc_ism_get_vlan(struct smcd_dev *smcd, unsigned short vlanid)
  
--int smc_ism_unregister_dmb(struct smcd_dev *smcd, struct smc_buf_desc *dmb_desc)
-+void smc_ism_unregister_dmb(struct smcd_dev *smcd,
-+			    struct smc_buf_desc *dmb_desc)
- {
- 	struct smcd_dmb dmb;
--	int rc = 0;
+ 	if (!vlanid)			/* No valid vlan id */
+ 		return -EINVAL;
+-	if (!smcd->ops->add_vlan_id)
++	if (!smcd->dibs->ops->add_vlan_id)
+ 		return -EOPNOTSUPP;
  
- 	if (!dmb_desc->dma_addr)
--		return rc;
-+		return;
+ 	/* create new vlan entry, in case we need it */
+@@ -163,7 +163,7 @@ int smc_ism_get_vlan(struct smcd_dev *smcd, unsigned short vlanid)
+ 	/* no existing entry found.
+ 	 * add new entry to device; might fail, e.g., if HW limit reached
+ 	 */
+-	if (smcd->ops->add_vlan_id(smcd, vlanid)) {
++	if (smcd->dibs->ops->add_vlan_id(smcd->dibs, vlanid)) {
+ 		kfree(new_vlan);
+ 		rc = -EIO;
+ 		goto out;
+@@ -187,7 +187,7 @@ int smc_ism_put_vlan(struct smcd_dev *smcd, unsigned short vlanid)
  
- 	memset(&dmb, 0, sizeof(dmb));
- 	dmb.dmb_tok = dmb_desc->token;
-@@ -219,13 +219,9 @@ int smc_ism_unregister_dmb(struct smcd_dev *smcd, struct smc_buf_desc *dmb_desc)
- 	dmb.cpu_addr = dmb_desc->cpu_addr;
- 	dmb.dma_addr = dmb_desc->dma_addr;
- 	dmb.dmb_len = dmb_desc->len;
--	rc = smcd->ops->unregister_dmb(smcd, &dmb);
--	if (!rc || rc == ISM_ERROR) {
--		dmb_desc->cpu_addr = NULL;
--		dmb_desc->dma_addr = 0;
--	}
-+	smcd->ops->unregister_dmb(smcd, &dmb);
+ 	if (!vlanid)			/* No valid vlan id */
+ 		return -EINVAL;
+-	if (!smcd->ops->del_vlan_id)
++	if (!smcd->dibs->ops->del_vlan_id)
+ 		return -EOPNOTSUPP;
  
--	return rc;
-+	return;
- }
+ 	spin_lock_irqsave(&smcd->lock, flags);
+@@ -205,7 +205,7 @@ int smc_ism_put_vlan(struct smcd_dev *smcd, unsigned short vlanid)
+ 	}
  
- int smc_ism_register_dmb(struct smc_link_group *lgr, int dmb_len,
-diff --git a/net/smc/smc_ism.h b/net/smc/smc_ism.h
-index 6763133dd8d0..765aa8fae6fa 100644
---- a/net/smc/smc_ism.h
-+++ b/net/smc/smc_ism.h
-@@ -47,7 +47,8 @@ int smc_ism_get_vlan(struct smcd_dev *dev, unsigned short vlan_id);
- int smc_ism_put_vlan(struct smcd_dev *dev, unsigned short vlan_id);
- int smc_ism_register_dmb(struct smc_link_group *lgr, int buf_size,
- 			 struct smc_buf_desc *dmb_desc);
--int smc_ism_unregister_dmb(struct smcd_dev *dev, struct smc_buf_desc *dmb_desc);
-+void smc_ism_unregister_dmb(struct smcd_dev *dev,
-+			    struct smc_buf_desc *dmb_desc);
- bool smc_ism_support_dmb_nocopy(struct smcd_dev *smcd);
- int smc_ism_attach_dmb(struct smcd_dev *dev, u64 token,
- 		       struct smc_buf_desc *dmb_desc);
+ 	/* Found and the last reference just gone */
+-	if (smcd->ops->del_vlan_id(smcd, vlanid))
++	if (smcd->dibs->ops->del_vlan_id(smcd->dibs, vlanid))
+ 		rc = -EIO;
+ 	list_del(&vlan->list);
+ 	kfree(vlan);
+@@ -536,8 +536,12 @@ static void smcd_register_dev(struct dibs_dev *dibs)
+ 
+ 	smcd->client = &smc_ism_client;
+ 
+-	if (smcd->ops->supports_v2())
++	if (smc_ism_is_loopback(dibs) ||
++	    (dibs->ops->add_vlan_id &&
++	     !dibs->ops->add_vlan_id(dibs, ISM_RESERVED_VLANID))) {
+ 		smc_ism_set_v2_capable();
++	}
++
+ 	mutex_lock(&smcd_dev_list.mutex);
+ 	/* sort list:
+ 	 * - devices without pnetid before devices with pnetid;
+diff --git a/net/smc/smc_loopback.c b/net/smc/smc_loopback.c
+index 454d9d6a6e8f..982a19430313 100644
+--- a/net/smc/smc_loopback.c
++++ b/net/smc/smc_loopback.c
+@@ -20,7 +20,6 @@
+ #include "smc_ism.h"
+ #include "smc_loopback.h"
+ 
+-#define SMC_LO_V2_CAPABLE	0x1 /* loopback-ism acts as ISMv2 */
+ #define SMC_LO_SUPPORT_NOCOPY	0x1
+ #define SMC_DMA_ADDR_INVALID	(~(dma_addr_t)0)
+ 
+@@ -242,10 +241,6 @@ static const struct smcd_ops lo_ops = {
+ 	.support_dmb_nocopy = smc_lo_support_dmb_nocopy,
+ 	.attach_dmb = smc_lo_attach_dmb,
+ 	.detach_dmb = smc_lo_detach_dmb,
+-	.add_vlan_id		= NULL,
+-	.del_vlan_id		= NULL,
+-	.set_vlan_required	= NULL,
+-	.reset_vlan_required	= NULL,
+ 	.signal_event		= NULL,
+ 	.move_data = smc_lo_move_data,
+ };
 -- 
 2.48.1
 
