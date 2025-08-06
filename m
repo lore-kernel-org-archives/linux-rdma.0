@@ -1,73 +1,91 @@
-Received: from mail-ed1-f48.google.com (mail-ed1-f48.google.com [209.85.208.48])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3B28424DCEC
-	for <linux-rdma@vger.kernel.org>; Wed,  6 Aug 2025 12:39:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.48
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D8BAA2951B3;
+	Wed,  6 Aug 2025 15:41:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.156.1
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754483987; cv=none; b=RyGLIRrf1+hMvPKXfksgdwW+WkokJ9ii3+PoJLqB1UF/vgTBx1dY/kuxfdAxYvWzHP7zGhUTDYnWSV5esmzjhowtBUALOB+ruW9gY+G17I+DAZRdF3Dtkl97sNtBK8xKyJv2s/qN9kddnct411wlpT+yp1Zdfao9VT4vd2n7Vok=
+	t=1754494899; cv=none; b=drJugu6VeGdEaeIzfoK4KaBzyhOpVlKw05yxiZ5B5ajRrrb70AVNRCXei08FFTLwTN6hUXXK1WtiFgHHZhOs6PEEq096YxKs5RQc02ngHgeSY8PrzZyYT9xq+bYfvwo2H/M2W+2sMCFp+qzaLyvJZPlmAkjzjK7IUngZ4UppLfI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754483987; c=relaxed/simple;
-	bh=swtQ9dzMq+lUac8jbN4//1GKwwI2KLHQMFCBz7s21c8=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Aef0v2N7s/waexFDBv5o2lsuUWsdLAziCLDo3GwQI6WYZvOuKW79abwS+sJJA1Mxk/syqk+78qgpLpx194jTYl9EAf83NBE4hluutIJyMtVjqt+C0V6Taoyd8bMnINhJ9Cs7c5Oqft8MDHBDl9jvZpjENZb5xLtr+rp8fHfSLPk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linbit.com; spf=pass smtp.mailfrom=linbit.com; dkim=pass (2048-bit key) header.d=linbit-com.20230601.gappssmtp.com header.i=@linbit-com.20230601.gappssmtp.com header.b=avwHcNfJ; arc=none smtp.client-ip=209.85.208.48
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linbit.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linbit.com
+	s=arc-20240116; t=1754494899; c=relaxed/simple;
+	bh=ms8jUoYFODe5gUZXpcG9Jfh2tTzd9g2oLEprlfLQj5E=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=sCQa+r7QCRK8Hv7OKfu3CfZa7i+B1AFzVu6El7lr+cufdvqHCejusPm6EXOLR3Cv1GfgQCJVHzh4Pv2xcw+hcosTecKDMmk5rlVPExL4ueK8I4L5r+WlT8NXUz7/juL+aEGBtM5U7NmqLJJntr5bsIAOAi6Y2n5z4sP6bsF2/Qw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=mWT/PGmD; arc=none smtp.client-ip=148.163.156.1
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linbit-com.20230601.gappssmtp.com header.i=@linbit-com.20230601.gappssmtp.com header.b="avwHcNfJ"
-Received: by mail-ed1-f48.google.com with SMTP id 4fb4d7f45d1cf-615a115f0c0so11557944a12.0
-        for <linux-rdma@vger.kernel.org>; Wed, 06 Aug 2025 05:39:43 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linbit-com.20230601.gappssmtp.com; s=20230601; t=1754483982; x=1755088782; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=wA8sr/HIP4ajt2UgO9mOS4/xSwlrz2Jes7HFAePPJAM=;
-        b=avwHcNfJRrJjS+3qJTdD5sDvNbWUmpbDp9KvVSawD9DNePWtEUyIkcC1SDNwGEWKSv
-         L3w0zhjsJ882Gb24MLe5pVaaDht0UBzcSf8wePx1e2jO7cjYGWkdWXIKhNYn+TOxtser
-         +9cDFLM2edDi22DQEffXSn5uIFvdtiGSJe8eLLwJIBZ2LLwAspzShp6j7gWEbxr3JVOQ
-         s4WwxMDg8B4zRMhl27VjntHKN7kYNF6BBYrspeEeP7Im0163kuy2HV5Lay8W/Oo5jt3P
-         iOAhLOAW75I+IFDPpgRkjLJgqVnEDwCx7cgRhTVcKw7SIUVhDy/Po61wZAbb5ceKz9rg
-         VkWg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1754483982; x=1755088782;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=wA8sr/HIP4ajt2UgO9mOS4/xSwlrz2Jes7HFAePPJAM=;
-        b=adcy+WaJj+MSjYQFN/WJRdOMruaHeZ8wdmeW/gOcqKlX1vL3GpHdL86WqJVtQxYP+a
-         FRtuOAImDU8sIAZaiq3OhHIKDQRp7zVqpeWDuMKTZJqrUzmN+ziMjZXQWDA8txT+wXi3
-         orXZgpTclokuBKD35v4BX6ZOIfCeKDBo2eb10ZgzDaG+8VBjfH6CJd8vy8ahu+9bD6JO
-         wjCPDrHHeI1QN0c3Hd1zvhEJT4624I2874YXVaoAnyjk57IIcoHfiyRvvzKDvoG+4TMf
-         UIbh3rbzM1sW0LI2L8YxuGm2wsgPGNWw5jq98rOzq+FcRt9sDGn4yomLU3MHhE35+BoI
-         txVw==
-X-Forwarded-Encrypted: i=1; AJvYcCXth62nntSWaloOjSBHVCRFUpGLzMWozKOgRGiW4ol7Lll1e9V9RrqWpa7QzX9Q4cNpKnqJvrgvZJhI@vger.kernel.org
-X-Gm-Message-State: AOJu0Ywx6CMndLguBbyDuszvj5oDMtBj8IWmSS8bGOl1V9T1NxhjQEwo
-	Q0DN3niIjJrR71vTKjcFUfBTv5At/bVXGzF78JQnyOnisVVYNnR7ebWgLz0EVzS+4lk=
-X-Gm-Gg: ASbGncup5d9opl/nKJgkV+/auPaSENNemI/MfeTiyOMPJ/1HbDyyrG21MxNpfyPsgXK
-	3Ora9J2dLDjw2RECD9XXlTc/oHqMy42DL5nyEl+I9t6hPAlnbylVxM5sy02grEma22wIGQLAxIP
-	BMx6ZcC0fHVDhvUu7PTzWUO/dKTQM4dOfbSOhJN1lmj/CYPMywYnX/1HuEuP3VeBGzlsulyNLXt
-	nLBjKGOVnwR9qz6p2oMuT2Q2fNqk8SIjqHPU+3k+XrMi6uuxqLm2ywmfqHvzis7tZ1eoC3HIUQb
-	RdGis7lp7SXkc4LWmGf2h5oOnPcOzHrT4ybGLZOxGMXusm2/3FrsYDnJcWwYxXHdSCtIZ510f4l
-	H9ObWiW9twHLPQhqVFZgkV1BeHJ0189rKQlLitU0JF90s0A1YcLG78ZJk1TXMylh3IeRUS5KVBf
-	8V83ybxQ==
-X-Google-Smtp-Source: AGHT+IFjUN+U/CXzt3F4KjP6+H4Vt97KSUjqpR+4ZRuNCgDn+XmAU+werr9tQrf3XjecDNVThvBJYA==
-X-Received: by 2002:a50:9f05:0:b0:615:e3f1:72cd with SMTP id 4fb4d7f45d1cf-617960b2dd3mr1649179a12.4.1754483982478;
-        Wed, 06 Aug 2025 05:39:42 -0700 (PDT)
-Received: from ryzen9.home (194-166-79-38.hdsl.highway.telekom.at. [194.166.79.38])
-        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-615cc38aee5sm8620934a12.3.2025.08.06.05.39.41
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 06 Aug 2025 05:39:41 -0700 (PDT)
-From: Philipp Reisner <philipp.reisner@linbit.com>
-To: Zhu Yanjun <zyjzyj2000@gmail.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>,
-	Leon Romanovsky <leon@kernel.org>,
-	linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Philipp Reisner <philipp.reisner@linbit.com>
-Subject: [PATCH] rdma_rxe: call comp_handler without holding cq->cq_lock
-Date: Wed,  6 Aug 2025 14:39:21 +0200
-Message-ID: <20250806123921.633410-1-philipp.reisner@linbit.com>
-X-Mailer: git-send-email 2.50.1
+	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="mWT/PGmD"
+Received: from pps.filterd (m0356517.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 5768JSGK021831;
+	Wed, 6 Aug 2025 15:41:28 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
+	:content-transfer-encoding:date:from:in-reply-to:message-id
+	:mime-version:references:subject:to; s=pp1; bh=cc9n4QUOR5KsJEJ3Q
+	a0saXIW+DyBSQwFjNVpT8Rsu2k=; b=mWT/PGmDR39blmxZAknIzJGXIwlh0DxQ9
+	hUEIu/ugvDingZ8Kaywq0KPIEO8BsYuQ2TUoqCmZVarz7c7jpyIFQw1Ug+EgY4rk
+	YTa3bGtgbmE3VTeXK3STUAwXRqDOBmSU1q9QtabuBpt2rA6R7ivh1jZ6CsQpXOiN
+	HxoyjrIpSsTnvc9I585SX2co+4zHZuUYTLv3wOLHE00heJU5Stkw2wpg2wLZgRpW
+	I/c98pbC+bm1znFnCoU3d3y0uyRXCvaVIYI+hMvDaHKaZcaZjLvhEXHMW6PW+cx1
+	rS88PLCVvG3NxNw798y4fvSbnbC1kyGVlvirg9y2X67oHGjF1cAZA==
+Received: from pps.reinject (localhost [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 48bq61w19t-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Wed, 06 Aug 2025 15:41:28 +0000 (GMT)
+Received: from m0356517.ppops.net (m0356517.ppops.net [127.0.0.1])
+	by pps.reinject (8.18.1.12/8.18.0.8) with ESMTP id 576FaIeW004349;
+	Wed, 6 Aug 2025 15:41:27 GMT
+Received: from ppma13.dal12v.mail.ibm.com (dd.9e.1632.ip4.static.sl-reverse.com [50.22.158.221])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 48bq61w19h-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Wed, 06 Aug 2025 15:41:27 +0000 (GMT)
+Received: from pps.filterd (ppma13.dal12v.mail.ibm.com [127.0.0.1])
+	by ppma13.dal12v.mail.ibm.com (8.18.1.2/8.18.1.2) with ESMTP id 576CGEZ4001558;
+	Wed, 6 Aug 2025 15:41:26 GMT
+Received: from smtprelay02.fra02v.mail.ibm.com ([9.218.2.226])
+	by ppma13.dal12v.mail.ibm.com (PPS) with ESMTPS id 48bpwqv8k1-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Wed, 06 Aug 2025 15:41:26 +0000
+Received: from smtpav07.fra02v.mail.ibm.com (smtpav07.fra02v.mail.ibm.com [10.20.54.106])
+	by smtprelay02.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 576FfMRD38863228
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Wed, 6 Aug 2025 15:41:23 GMT
+Received: from smtpav07.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id CB9752004B;
+	Wed,  6 Aug 2025 15:41:22 +0000 (GMT)
+Received: from smtpav07.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id B79BD2004E;
+	Wed,  6 Aug 2025 15:41:22 +0000 (GMT)
+Received: from tuxmaker.boeblingen.de.ibm.com (unknown [9.152.85.9])
+	by smtpav07.fra02v.mail.ibm.com (Postfix) with ESMTPS;
+	Wed,  6 Aug 2025 15:41:22 +0000 (GMT)
+Received: by tuxmaker.boeblingen.de.ibm.com (Postfix, from userid 55271)
+	id 907C7E084E; Wed, 06 Aug 2025 17:41:22 +0200 (CEST)
+From: Alexandra Winter <wintera@linux.ibm.com>
+To: David Miller <davem@davemloft.net>, Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>, Eric Dumazet <edumazet@google.com>,
+        Andrew Lunn <andrew+netdev@lunn.ch>,
+        "D. Wythe" <alibuda@linux.alibaba.com>,
+        Dust Li <dust.li@linux.alibaba.com>,
+        Sidraya Jayagond <sidraya@linux.ibm.com>,
+        Wenjia Zhang <wenjia@linux.ibm.com>,
+        Julian Ruess <julianr@linux.ibm.com>
+Cc: netdev@vger.kernel.org, linux-s390@vger.kernel.org,
+        Heiko Carstens <hca@linux.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>,
+        Alexander Gordeev <agordeev@linux.ibm.com>,
+        Christian Borntraeger <borntraeger@linux.ibm.com>,
+        Sven Schnelle <svens@linux.ibm.com>,
+        Thorsten Winkler <twinkler@linux.ibm.com>,
+        Simon Horman <horms@kernel.org>,
+        Mahanta Jambigi <mjambigi@linux.ibm.com>,
+        Tony Lu <tonylu@linux.alibaba.com>, Wen Gu <guwen@linux.alibaba.com>,
+        Halil Pasic <pasic@linux.ibm.com>, linux-rdma@vger.kernel.org
+Subject: [RFC net-next 01/17] net/smc: Remove __init marker from smc_core_init()
+Date: Wed,  6 Aug 2025 17:41:06 +0200
+Message-ID: <20250806154122.3413330-2-wintera@linux.ibm.com>
+X-Mailer: git-send-email 2.48.1
+In-Reply-To: <20250806154122.3413330-1-wintera@linux.ibm.com>
+References: <20250806154122.3413330-1-wintera@linux.ibm.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -75,55 +93,51 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+X-TM-AS-GCONF: 00
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjUwODA2MDA5NiBTYWx0ZWRfXyLzQTfMUzmln
+ +8EU7CTcWztWb+FmL0osoh/xPkBFrt5B2hIZGQvCTvxeE6Y36YEHEAVzgoE7n6h58Z1X/q1eIav
+ s8hiHUYmLkI4g68d0wQ4zUaD8gasCVx5KVIcp5byRiZkOTxNl+tPh72NKmA0MU1D34jNjF0sslh
+ bhw14ogpvlRn4Kd1qnIh8cL+SBz7fBMKmY6+uCF2cCpzShLWxTp2zMz3i3x+35PBpJ96wlZHmvw
+ OSq2klUrn+e/deZGx9jPNJ9d46xsrFT9mDLynGaXw9fOpbNgzOVo4tN4oQTQ6HUVZeRN/4FBmgH
+ QrNCtg185uX/wdA7LjSyF1x2hzj5K67tRAHJxUwqb0sXVLmwcn1DiU19xaKGQWPm72cXVjpttSN
+ TZDE1wmumFCEz1CrO5ALVilPhJbiHbNeYhka62SGwmACzGr7ArDgsZKzewMx6UKvP8cmIyV7
+X-Proofpoint-GUID: puU9SRD1brToUCTL1INiKiWcexP1uD58
+X-Authority-Analysis: v=2.4 cv=BIuzrEQG c=1 sm=1 tr=0 ts=689377a8 cx=c_pps
+ a=AfN7/Ok6k8XGzOShvHwTGQ==:117 a=AfN7/Ok6k8XGzOShvHwTGQ==:17
+ a=2OwXVqhp2XgA:10 a=VnNF1IyMAAAA:8 a=Ghz-T2kl8ok8k3dI31sA:9
+X-Proofpoint-ORIG-GUID: mJkg1irmYo_UgIklfFhqFNF3wM0Uls0w
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1099,Hydra:6.1.9,FMLib:17.12.80.40
+ definitions=2025-08-06_04,2025-08-06_01,2025-03-28_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ mlxscore=0 impostorscore=0 priorityscore=1501 lowpriorityscore=0
+ suspectscore=0 spamscore=0 mlxlogscore=999 adultscore=0 clxscore=1015
+ malwarescore=0 phishscore=0 bulkscore=0 classifier=spam authscore=0
+ authtc=n/a authcc= route=outbound adjust=0 reason=mlx scancount=1
+ engine=8.19.0-2507300000 definitions=main-2508060096
 
-Allow the comp_handler callback implementation to call ib_poll_cq().
-A call to ib_poll_cq() calls rxe_poll_cq() with the rdma_rxe driver.
-And rxe_poll_cq() locks cq->cq_lock. That leads to a spinlock deadlock.
+Remove the __init marker because smc_core_init() is not the
+init function of the smc module and for consistency with
+smc_core_exit() which neither has an __exit marker.
 
-The Mellanox and Intel drivers allow a comp_handler callback
-implementation to call ib_poll_cq().
-
-Avoid the deadlock by calling the comp_handler callback without
-holding cq->cw_lock.
-
-Signed-off-by: Philipp Reisner <philipp.reisner@linbit.com>
+Signed-off-by: Alexandra Winter <wintera@linux.ibm.com>
 ---
- drivers/infiniband/sw/rxe/rxe_cq.c | 12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ net/smc/smc_core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_cq.c b/drivers/infiniband/sw/rxe/rxe_cq.c
-index fffd144d509e..1195e109f89b 100644
---- a/drivers/infiniband/sw/rxe/rxe_cq.c
-+++ b/drivers/infiniband/sw/rxe/rxe_cq.c
-@@ -88,6 +88,7 @@ int rxe_cq_post(struct rxe_cq *cq, struct rxe_cqe *cqe, int solicited)
- 	int full;
- 	void *addr;
- 	unsigned long flags;
-+	u8 notify;
+diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
+index 262746e304dd..67f9e0b83ebc 100644
+--- a/net/smc/smc_core.c
++++ b/net/smc/smc_core.c
+@@ -2758,7 +2758,7 @@ static struct notifier_block smc_reboot_notifier = {
+ 	.notifier_call = smc_core_reboot_event,
+ };
  
- 	spin_lock_irqsave(&cq->cq_lock, flags);
- 
-@@ -110,14 +111,15 @@ int rxe_cq_post(struct rxe_cq *cq, struct rxe_cqe *cqe, int solicited)
- 
- 	queue_advance_producer(cq->queue, QUEUE_TYPE_TO_CLIENT);
- 
--	if ((cq->notify & IB_CQ_NEXT_COMP) ||
--	    (cq->notify & IB_CQ_SOLICITED && solicited)) {
--		cq->notify = 0;
--		cq->ibcq.comp_handler(&cq->ibcq, cq->ibcq.cq_context);
--	}
-+	notify = cq->notify;
-+	cq->notify = 0;
- 
- 	spin_unlock_irqrestore(&cq->cq_lock, flags);
- 
-+	if ((notify & IB_CQ_NEXT_COMP) ||
-+	    (notify & IB_CQ_SOLICITED && solicited))
-+		cq->ibcq.comp_handler(&cq->ibcq, cq->ibcq.cq_context);
-+
- 	return 0;
+-int __init smc_core_init(void)
++int smc_core_init(void)
+ {
+ 	return register_reboot_notifier(&smc_reboot_notifier);
  }
- 
 -- 
-2.50.1
+2.48.1
 
