@@ -1,66 +1,66 @@
 Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D8BAA2951B3;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D8C142951D0;
 	Wed,  6 Aug 2025 15:41:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.156.1
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754494899; cv=none; b=drJugu6VeGdEaeIzfoK4KaBzyhOpVlKw05yxiZ5B5ajRrrb70AVNRCXei08FFTLwTN6hUXXK1WtiFgHHZhOs6PEEq096YxKs5RQc02ngHgeSY8PrzZyYT9xq+bYfvwo2H/M2W+2sMCFp+qzaLyvJZPlmAkjzjK7IUngZ4UppLfI=
+	t=1754494899; cv=none; b=d1IJzaMlLDZn4nWQxUKa6vSHK0XahifB+OiAAtXNTE0MwNv5ft//Gss0PgYAesTZDxRaG/5s7zapyTdGALpr8Vzga2QCe3dRLjdMh900zBhtUxiwcoFVmtTJOsjXBdiTbN7tyrWUIOLdpVUgYb3V7387g93JT5bQKDTdom2R9XM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1754494899; c=relaxed/simple;
-	bh=ms8jUoYFODe5gUZXpcG9Jfh2tTzd9g2oLEprlfLQj5E=;
+	bh=2iwdPMF5IYmSN5s/EolFOqaYRSt7GTc8QZGHyko4yJI=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=sCQa+r7QCRK8Hv7OKfu3CfZa7i+B1AFzVu6El7lr+cufdvqHCejusPm6EXOLR3Cv1GfgQCJVHzh4Pv2xcw+hcosTecKDMmk5rlVPExL4ueK8I4L5r+WlT8NXUz7/juL+aEGBtM5U7NmqLJJntr5bsIAOAi6Y2n5z4sP6bsF2/Qw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=mWT/PGmD; arc=none smtp.client-ip=148.163.156.1
+	 MIME-Version; b=K7aY4gywI9C5kOex1LPB9JfOYyhjDFPdqiK9MDSeLX8qP/Y3kaAnRf2YS5v2IXkyVXdpeN5UgidJSPOMo9PMLKzhZBJ9eRyAKyRaTx6ekgcznIYH8sLaOMWNCoWQ9Aij8d2vyi6v+RiNg2ryAuTQpQ41vJkMgNXWIYyZbOrKgp8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=svzhkw8d; arc=none smtp.client-ip=148.163.156.1
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="mWT/PGmD"
-Received: from pps.filterd (m0356517.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 5768JSGK021831;
-	Wed, 6 Aug 2025 15:41:28 GMT
+	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="svzhkw8d"
+Received: from pps.filterd (m0353729.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 5766tDjg019393;
+	Wed, 6 Aug 2025 15:41:29 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
 	:content-transfer-encoding:date:from:in-reply-to:message-id
-	:mime-version:references:subject:to; s=pp1; bh=cc9n4QUOR5KsJEJ3Q
-	a0saXIW+DyBSQwFjNVpT8Rsu2k=; b=mWT/PGmDR39blmxZAknIzJGXIwlh0DxQ9
-	hUEIu/ugvDingZ8Kaywq0KPIEO8BsYuQ2TUoqCmZVarz7c7jpyIFQw1Ug+EgY4rk
-	YTa3bGtgbmE3VTeXK3STUAwXRqDOBmSU1q9QtabuBpt2rA6R7ivh1jZ6CsQpXOiN
-	HxoyjrIpSsTnvc9I585SX2co+4zHZuUYTLv3wOLHE00heJU5Stkw2wpg2wLZgRpW
-	I/c98pbC+bm1znFnCoU3d3y0uyRXCvaVIYI+hMvDaHKaZcaZjLvhEXHMW6PW+cx1
-	rS88PLCVvG3NxNw798y4fvSbnbC1kyGVlvirg9y2X67oHGjF1cAZA==
+	:mime-version:references:subject:to; s=pp1; bh=CP7PE/9mGLM4vK9Du
+	dbNkSY+479u0ZfAuP6ulhYK/eg=; b=svzhkw8dDLVfqWk1a6pCoBWbxjt7kcCws
+	ei3ES+ub7u19gaF+liLcgk1kOdn+Vy0qduN2dFKd/3QoikF5oQKZCfMjOfklfgc7
+	zWXVb5Vhx1YjoSjanmQ68B609FInYondEenZ898XFptywQgmtPkudPdFENSTlvbp
+	w0yHebWlaQgbyWlP01PF7g1Tym8Y5x+NUFIkA3BRgB5JD7bSyif1EXma1vm0OB8A
+	13LMFEQlLl/dVpMQN8YzGtxMtPWip7OCoiDaixYoUxFQxFbBWV0huhRZzCcSDjjm
+	Zk612puBodOdCLNRaXMsbN6eCCw65A4UTQzI51ETUx3L1PmLrpYDQ==
 Received: from pps.reinject (localhost [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 48bq61w19t-1
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 48c26ttcmm-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
 	Wed, 06 Aug 2025 15:41:28 +0000 (GMT)
-Received: from m0356517.ppops.net (m0356517.ppops.net [127.0.0.1])
-	by pps.reinject (8.18.1.12/8.18.0.8) with ESMTP id 576FaIeW004349;
-	Wed, 6 Aug 2025 15:41:27 GMT
-Received: from ppma13.dal12v.mail.ibm.com (dd.9e.1632.ip4.static.sl-reverse.com [50.22.158.221])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 48bq61w19h-1
+Received: from m0353729.ppops.net (m0353729.ppops.net [127.0.0.1])
+	by pps.reinject (8.18.1.12/8.18.0.8) with ESMTP id 576FdZpn030975;
+	Wed, 6 Aug 2025 15:41:28 GMT
+Received: from ppma21.wdc07v.mail.ibm.com (5b.69.3da9.ip4.static.sl-reverse.com [169.61.105.91])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 48c26ttcmc-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Wed, 06 Aug 2025 15:41:27 +0000 (GMT)
-Received: from pps.filterd (ppma13.dal12v.mail.ibm.com [127.0.0.1])
-	by ppma13.dal12v.mail.ibm.com (8.18.1.2/8.18.1.2) with ESMTP id 576CGEZ4001558;
+	Wed, 06 Aug 2025 15:41:28 +0000 (GMT)
+Received: from pps.filterd (ppma21.wdc07v.mail.ibm.com [127.0.0.1])
+	by ppma21.wdc07v.mail.ibm.com (8.18.1.2/8.18.1.2) with ESMTP id 576CYMFY020606;
 	Wed, 6 Aug 2025 15:41:26 GMT
-Received: from smtprelay02.fra02v.mail.ibm.com ([9.218.2.226])
-	by ppma13.dal12v.mail.ibm.com (PPS) with ESMTPS id 48bpwqv8k1-1
+Received: from smtprelay03.fra02v.mail.ibm.com ([9.218.2.224])
+	by ppma21.wdc07v.mail.ibm.com (PPS) with ESMTPS id 48bpwmv8vg-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
 	Wed, 06 Aug 2025 15:41:26 +0000
-Received: from smtpav07.fra02v.mail.ibm.com (smtpav07.fra02v.mail.ibm.com [10.20.54.106])
-	by smtprelay02.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 576FfMRD38863228
+Received: from smtpav01.fra02v.mail.ibm.com (smtpav01.fra02v.mail.ibm.com [10.20.54.100])
+	by smtprelay03.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 576FfMo85374246
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
 	Wed, 6 Aug 2025 15:41:23 GMT
-Received: from smtpav07.fra02v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id CB9752004B;
+Received: from smtpav01.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id DA7D22005A;
 	Wed,  6 Aug 2025 15:41:22 +0000 (GMT)
-Received: from smtpav07.fra02v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id B79BD2004E;
+Received: from smtpav01.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id C2E9C2004F;
 	Wed,  6 Aug 2025 15:41:22 +0000 (GMT)
 Received: from tuxmaker.boeblingen.de.ibm.com (unknown [9.152.85.9])
-	by smtpav07.fra02v.mail.ibm.com (Postfix) with ESMTPS;
+	by smtpav01.fra02v.mail.ibm.com (Postfix) with ESMTPS;
 	Wed,  6 Aug 2025 15:41:22 +0000 (GMT)
 Received: by tuxmaker.boeblingen.de.ibm.com (Postfix, from userid 55271)
-	id 907C7E084E; Wed, 06 Aug 2025 17:41:22 +0200 (CEST)
+	id 966A6E1277; Wed, 06 Aug 2025 17:41:22 +0200 (CEST)
 From: Alexandra Winter <wintera@linux.ibm.com>
 To: David Miller <davem@davemloft.net>, Jakub Kicinski <kuba@kernel.org>,
         Paolo Abeni <pabeni@redhat.com>, Eric Dumazet <edumazet@google.com>,
@@ -80,9 +80,9 @@ Cc: netdev@vger.kernel.org, linux-s390@vger.kernel.org,
         Mahanta Jambigi <mjambigi@linux.ibm.com>,
         Tony Lu <tonylu@linux.alibaba.com>, Wen Gu <guwen@linux.alibaba.com>,
         Halil Pasic <pasic@linux.ibm.com>, linux-rdma@vger.kernel.org
-Subject: [RFC net-next 01/17] net/smc: Remove __init marker from smc_core_init()
-Date: Wed,  6 Aug 2025 17:41:06 +0200
-Message-ID: <20250806154122.3413330-2-wintera@linux.ibm.com>
+Subject: [RFC net-next 03/17] net/smc: Remove error handling of unregister_dmb()
+Date: Wed,  6 Aug 2025 17:41:08 +0200
+Message-ID: <20250806154122.3413330-4-wintera@linux.ibm.com>
 X-Mailer: git-send-email 2.48.1
 In-Reply-To: <20250806154122.3413330-1-wintera@linux.ibm.com>
 References: <20250806154122.3413330-1-wintera@linux.ibm.com>
@@ -94,50 +94,122 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-TM-AS-GCONF: 00
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjUwODA2MDA5NiBTYWx0ZWRfXyLzQTfMUzmln
- +8EU7CTcWztWb+FmL0osoh/xPkBFrt5B2hIZGQvCTvxeE6Y36YEHEAVzgoE7n6h58Z1X/q1eIav
- s8hiHUYmLkI4g68d0wQ4zUaD8gasCVx5KVIcp5byRiZkOTxNl+tPh72NKmA0MU1D34jNjF0sslh
- bhw14ogpvlRn4Kd1qnIh8cL+SBz7fBMKmY6+uCF2cCpzShLWxTp2zMz3i3x+35PBpJ96wlZHmvw
- OSq2klUrn+e/deZGx9jPNJ9d46xsrFT9mDLynGaXw9fOpbNgzOVo4tN4oQTQ6HUVZeRN/4FBmgH
- QrNCtg185uX/wdA7LjSyF1x2hzj5K67tRAHJxUwqb0sXVLmwcn1DiU19xaKGQWPm72cXVjpttSN
- TZDE1wmumFCEz1CrO5ALVilPhJbiHbNeYhka62SGwmACzGr7ArDgsZKzewMx6UKvP8cmIyV7
-X-Proofpoint-GUID: puU9SRD1brToUCTL1INiKiWcexP1uD58
-X-Authority-Analysis: v=2.4 cv=BIuzrEQG c=1 sm=1 tr=0 ts=689377a8 cx=c_pps
- a=AfN7/Ok6k8XGzOShvHwTGQ==:117 a=AfN7/Ok6k8XGzOShvHwTGQ==:17
- a=2OwXVqhp2XgA:10 a=VnNF1IyMAAAA:8 a=Ghz-T2kl8ok8k3dI31sA:9
-X-Proofpoint-ORIG-GUID: mJkg1irmYo_UgIklfFhqFNF3wM0Uls0w
+X-Proofpoint-ORIG-GUID: RTMCDwKdgUI5oAcYbMl87oyOfWR5b_aw
+X-Authority-Analysis: v=2.4 cv=F/xXdrhN c=1 sm=1 tr=0 ts=689377a8 cx=c_pps
+ a=GFwsV6G8L6GxiO2Y/PsHdQ==:117 a=GFwsV6G8L6GxiO2Y/PsHdQ==:17
+ a=2OwXVqhp2XgA:10 a=VnNF1IyMAAAA:8 a=E2BrbLywADzKi2prdkwA:9
+X-Proofpoint-GUID: ccEnzzJH5G9xfwPL0XxE_Vxlh6kyaQ7-
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjUwODA2MDA5NiBTYWx0ZWRfX43UBSqrCUJGR
+ dtNuT6wKEb2hWk5nkPdRt2hLf4UNKMuzHSOVIyV/aydIwXfgLFlNbDkLYZEtKD5yQkuSz9r6Ers
+ qys3tbTGIPWFdB8fI5ksCQJgCH33MRZafFYB7skAi5VMPOLJ8nmyHKZnj05I29opp2vk0N4bW36
+ AiTiM/u4y9rbo+WnEJ5qpK2FZKeliQ2vc/fXTeN8kSr44zdSo/vhyHP2IkcQI1uKh8lTfv2Lxp+
+ A1FYNcaqtgyiRxjOEWmWwO+ONHuCbDaXnnriQLNyWayFiU2JpdjKL9BL6Mq7Ga0/YAMXJ1LDZV4
+ 5NbYhTb4y51a3MQiYd+WTiQU4wdzr/LIHNGquHN0d0KPJCG1zHoF2RsBtn2Hn8phef/2aDGJsBI
+ A8lEHx+ktg0Xg4BGzcY6RFWuyfHAk54XqAMbl8ukZlkWaFG3bBap+GjDJv23N5naCza5lMG0
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.293,Aquarius:18.0.1099,Hydra:6.1.9,FMLib:17.12.80.40
  definitions=2025-08-06_04,2025-08-06_01,2025-03-28_01
 X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- mlxscore=0 impostorscore=0 priorityscore=1501 lowpriorityscore=0
- suspectscore=0 spamscore=0 mlxlogscore=999 adultscore=0 clxscore=1015
- malwarescore=0 phishscore=0 bulkscore=0 classifier=spam authscore=0
+ mlxscore=0 lowpriorityscore=0 priorityscore=1501 impostorscore=0
+ clxscore=1015 spamscore=0 bulkscore=0 adultscore=0 mlxlogscore=786
+ malwarescore=0 phishscore=0 suspectscore=0 classifier=spam authscore=0
  authtc=n/a authcc= route=outbound adjust=0 reason=mlx scancount=1
  engine=8.19.0-2507300000 definitions=main-2508060096
 
-Remove the __init marker because smc_core_init() is not the
-init function of the smc module and for consistency with
-smc_core_exit() which neither has an __exit marker.
+smcd_buf_free() calls smc_ism_unregister_dmb(lgr->smcd, buf_desc) and
+then unconditionally frees buf_desc.
+
+Remove the cleaning up of fields of buf_desc in
+smc_ism_unregister_dmb(), because it is not helpful.
+
+This removes the only usage of ISM_ERROR from the smc module. So move it
+to drivers/s390/net/ism.h.
 
 Signed-off-by: Alexandra Winter <wintera@linux.ibm.com>
+Reviewed-by: Mahanta Jambigi <mjambigi@linux.ibm.com>
 ---
- net/smc/smc_core.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/s390/net/ism.h |  1 +
+ include/net/smc.h      |  2 --
+ net/smc/smc_ism.c      | 14 +++++---------
+ net/smc/smc_ism.h      |  3 ++-
+ 4 files changed, 8 insertions(+), 12 deletions(-)
 
-diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
-index 262746e304dd..67f9e0b83ebc 100644
---- a/net/smc/smc_core.c
-+++ b/net/smc/smc_core.c
-@@ -2758,7 +2758,7 @@ static struct notifier_block smc_reboot_notifier = {
- 	.notifier_call = smc_core_reboot_event,
- };
+diff --git a/drivers/s390/net/ism.h b/drivers/s390/net/ism.h
+index 047fa6101555..b5b03db52fce 100644
+--- a/drivers/s390/net/ism.h
++++ b/drivers/s390/net/ism.h
+@@ -10,6 +10,7 @@
+ #include <asm/pci_insn.h>
  
--int __init smc_core_init(void)
-+int smc_core_init(void)
- {
- 	return register_reboot_notifier(&smc_reboot_notifier);
+ #define UTIL_STR_LEN	16
++#define ISM_ERROR	0xFFFF
+ 
+ /*
+  * Do not use the first word of the DMB bits to ensure 8 byte aligned access.
+diff --git a/include/net/smc.h b/include/net/smc.h
+index db84e4e35080..a9c023dd1380 100644
+--- a/include/net/smc.h
++++ b/include/net/smc.h
+@@ -44,8 +44,6 @@ struct smcd_dmb {
+ 
+ #define ISM_RESERVED_VLANID	0x1FFF
+ 
+-#define ISM_ERROR	0xFFFF
+-
+ struct smcd_dev;
+ 
+ struct smcd_gid {
+diff --git a/net/smc/smc_ism.c b/net/smc/smc_ism.c
+index 84f98e18c7db..a94e1450d095 100644
+--- a/net/smc/smc_ism.c
++++ b/net/smc/smc_ism.c
+@@ -205,13 +205,13 @@ int smc_ism_put_vlan(struct smcd_dev *smcd, unsigned short vlanid)
+ 	return rc;
  }
+ 
+-int smc_ism_unregister_dmb(struct smcd_dev *smcd, struct smc_buf_desc *dmb_desc)
++void smc_ism_unregister_dmb(struct smcd_dev *smcd,
++			    struct smc_buf_desc *dmb_desc)
+ {
+ 	struct smcd_dmb dmb;
+-	int rc = 0;
+ 
+ 	if (!dmb_desc->dma_addr)
+-		return rc;
++		return;
+ 
+ 	memset(&dmb, 0, sizeof(dmb));
+ 	dmb.dmb_tok = dmb_desc->token;
+@@ -219,13 +219,9 @@ int smc_ism_unregister_dmb(struct smcd_dev *smcd, struct smc_buf_desc *dmb_desc)
+ 	dmb.cpu_addr = dmb_desc->cpu_addr;
+ 	dmb.dma_addr = dmb_desc->dma_addr;
+ 	dmb.dmb_len = dmb_desc->len;
+-	rc = smcd->ops->unregister_dmb(smcd, &dmb);
+-	if (!rc || rc == ISM_ERROR) {
+-		dmb_desc->cpu_addr = NULL;
+-		dmb_desc->dma_addr = 0;
+-	}
++	smcd->ops->unregister_dmb(smcd, &dmb);
+ 
+-	return rc;
++	return;
+ }
+ 
+ int smc_ism_register_dmb(struct smc_link_group *lgr, int dmb_len,
+diff --git a/net/smc/smc_ism.h b/net/smc/smc_ism.h
+index 6763133dd8d0..765aa8fae6fa 100644
+--- a/net/smc/smc_ism.h
++++ b/net/smc/smc_ism.h
+@@ -47,7 +47,8 @@ int smc_ism_get_vlan(struct smcd_dev *dev, unsigned short vlan_id);
+ int smc_ism_put_vlan(struct smcd_dev *dev, unsigned short vlan_id);
+ int smc_ism_register_dmb(struct smc_link_group *lgr, int buf_size,
+ 			 struct smc_buf_desc *dmb_desc);
+-int smc_ism_unregister_dmb(struct smcd_dev *dev, struct smc_buf_desc *dmb_desc);
++void smc_ism_unregister_dmb(struct smcd_dev *dev,
++			    struct smc_buf_desc *dmb_desc);
+ bool smc_ism_support_dmb_nocopy(struct smcd_dev *smcd);
+ int smc_ism_attach_dmb(struct smcd_dev *dev, u64 token,
+ 		       struct smc_buf_desc *dmb_desc);
 -- 
 2.48.1
 
