@@ -1,151 +1,77 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from smtp-relay-services-1.canonical.com (smtp-relay-services-1.canonical.com [185.125.188.251])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 218272C0F83
-	for <linux-rdma@vger.kernel.org>; Wed, 13 Aug 2025 12:41:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A7532DD5E2
+	for <linux-rdma@vger.kernel.org>; Wed, 13 Aug 2025 12:42:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.125.188.251
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755088884; cv=none; b=cNvZCZX5p3POEnJopd+LDjNkywMD6GJ4Ci16ukiTsoE1I1Mg9fh/TiZoKuTff8gf/LZQAZlyysEYkoM0arsXzn8Ai4x2hB66OfllIaDzvI6khIS0FSq8iulT7lwPam2/krnRtu2Hbq+Cx8e/MfDxaufjiRh1V/WHw5RvMUznOA0=
+	t=1755088939; cv=none; b=rECsYF27PlIZzprjXgdmGrUCwqJ21aL9Xw+7EPG06Du61S1FrX3rS9uSoScX85huTe+xVrVUTUl8cozlj0MbPZi+Z3BvkLg2cZwDnS68w2T9Ef6Puw+0SUxUDqJ5BbeHSH3f6v5BjAmbYfwqEr4Bn2+5gz2n1Uhv4oLnVnAwLpw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755088884; c=relaxed/simple;
-	bh=4mLqSmNAHigFA6hhAxFIg0h7rqh4XJ+kd1BeV20nQNk=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=oBoB1V147JTgAxDwXSx/OJrob531QfU4/yott8Q8g5kHUw3aI6T1+eHo/JiHUgo4h6nQx/ERHyI3Nok+pWi5QNCpxkTWYaQqpw5ZzQwi0CHhIkZdiYBg9pQ1WY/3KjrsF3jUwzMMACWfnGoPaC99Z+GuTrBbCn52jJj5M9T3/98=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Zf/qnoPr; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755088939; c=relaxed/simple;
+	bh=qTdz51eo20/MZlbMIiOQxbWGgMzw4/XJ2s3DlZRstIE=;
+	h=Content-Type:MIME-Version:To:From:Subject:Message-Id:Date; b=CQF+2vGE/rDm5fCPzboriUGgbLH2XujrMRRo7MlDfQnLPks5onRtuQ1IDhVTWCfbrFfVh31Kn07GLugdhrHCkOsE9Qm+l6j5AVc5vCwZUEx96tj/xafP1ANo3t1nvmSG/L2sOt/LKpdi7EkSoOPE811CVBM0Cn0FRyHe1DhfGN8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=launchpad.net; spf=pass smtp.mailfrom=launchpad.net; dkim=pass (2048-bit key) header.d=launchpad.net header.i=@launchpad.net header.b=l81Nc8mz; arc=none smtp.client-ip=185.125.188.251
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=launchpad.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=launchpad.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Zf/qnoPr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E5DFC4CEEB;
-	Wed, 13 Aug 2025 12:41:23 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1755088883;
-	bh=4mLqSmNAHigFA6hhAxFIg0h7rqh4XJ+kd1BeV20nQNk=;
-	h=From:To:Cc:Subject:Date:From;
-	b=Zf/qnoPrMw57wW2UOX5cDwVPx21KIarVHkIMC4x/BOgTJ8L7bGE/VVq2AbXgcrdAH
-	 01dDc7nNd5e2b5R6Ju+juYlJnm1BIUbxXbzETfktS5qER/1OnyUWKu3dbJOBsMRc1V
-	 GwrE25Dqyer7x7m2CJ3LehlacSPYNDsnvotPfenHS+vc5fgDnjb1oXHSRJBxTwM0oF
-	 3LTRzyn6RzQPzQW7mlM0u959o34Dpwa8CP2nqurLxeZjTVzntLaSvRHmbrq3YJ7ZMg
-	 tpsY6BU4Pt9DQ97bub6NTY3TpiGkTN49PYbZXMdVoCJJcqLutN1pXKZZBrQW3odP6H
-	 d6UQCIzNnlhCQ==
-From: Leon Romanovsky <leon@kernel.org>
-To: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Patrisious Haddad <phaddad@nvidia.com>,
-	linux-rdma@vger.kernel.org,
-	Mark Bloch <mbloch@nvidia.com>
-Subject: [PATCH rdma-next] RDMA/mlx5: Fix vport loopback forcing for MPV device
-Date: Wed, 13 Aug 2025 15:41:19 +0300
-Message-ID: <cfc6b1f0f99f8100b087483cc14da6025317f901.1755088808.git.leon@kernel.org>
-X-Mailer: git-send-email 2.50.1
+	dkim=pass (2048-bit key) header.d=launchpad.net header.i=@launchpad.net header.b="l81Nc8mz"
+Received: from buildd-manager.lp.internal (buildd-manager.lp.internal [10.131.215.202])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-relay-services-1.canonical.com (Postfix) with ESMTPSA id 152D44BCBD
+	for <linux-rdma@vger.kernel.org>; Wed, 13 Aug 2025 12:32:50 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=launchpad.net;
+	s=20210803; t=1755088370;
+	bh=qTdz51eo20/MZlbMIiOQxbWGgMzw4/XJ2s3DlZRstIE=;
+	h=Content-Type:MIME-Version:To:From:Subject:Message-Id:Date:
+	 Reply-To;
+	b=l81Nc8mzUGd0uarRJLcUWSm43Vem2cBDn3Iq1/d/f6CaPRcvDJhXV9H83GadNhukR
+	 YvNELLz4IuzOuzFXJNNy2dQwA3OBpV2g9wgKgu2SEdvIhzbpJdg+7XHBL/y0+cB8vi
+	 +AjwuVvGWwmf3CaPXUoTo3f+bVZpqDn6QgaM4G6/Zk54+UPXllGacVDO2FuNt9iR77
+	 xsc/JTSThHZ0osmGegT7bhNM4K17A25ZjbvpVNRM59IYYDDHwRCRz8U1J3C8W4r6+y
+	 XiuWV/spKOfQSQuAIkvRLcauLBNAdf1244rXt5VD5UbLFSeI/PPdR5M9mUdEen/GKa
+	 PoOBHmILCtL3A==
+Received: from buildd-manager.lp.internal (localhost [127.0.0.1])
+	by buildd-manager.lp.internal (Postfix) with ESMTP id 00F7E7E6FA
+	for <linux-rdma@vger.kernel.org>; Wed, 13 Aug 2025 12:32:50 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: quoted-printable
+X-Launchpad-Message-Rationale: Requester @linux-rdma
+X-Launchpad-Message-For: linux-rdma
+X-Launchpad-Notification-Type: recipe-build-status
+X-Launchpad-Archive: ~linux-rdma/ubuntu/rdma-core-daily
+X-Launchpad-Build-State: MANUALDEPWAIT
+To: Linux RDMA <linux-rdma@vger.kernel.org>
+From: noreply@launchpad.net
+Subject: [recipe build #3933958] of ~linux-rdma rdma-core-daily in xenial: Dependency wait
+Message-Id: <175508837000.1267249.17107923122638194743.launchpad@buildd-manager.lp.internal>
+Date: Wed, 13 Aug 2025 12:32:50 -0000
+Reply-To: noreply@launchpad.net
+Sender: noreply@launchpad.net
+Errors-To: noreply@launchpad.net
+Precedence: bulk
+X-Generated-By: Launchpad (canonical.com); Revision="2e2dbb502f0ece7c824fee89b47752027cef4ee9"; Instance="launchpad-buildd-manager"
+X-Launchpad-Hash: 071a7ccffaedc99e0840aa12fa45ccf16a3697df
 
-From: Patrisious Haddad <phaddad@nvidia.com>
+ * State: Dependency wait
+ * Recipe: linux-rdma/rdma-core-daily
+ * Archive: ~linux-rdma/ubuntu/rdma-core-daily
+ * Distroseries: xenial
+ * Duration: 2 minutes
+ * Build Log: https://launchpad.net/~linux-rdma/+archive/ubuntu/rdma-core-d=
+aily/+recipebuild/3933958/+files/buildlog.txt.gz
+ * Upload Log:=20
+ * Builder: https://launchpad.net/builders/lcy02-amd64-034
 
-Previously loopback for MPV was supposed to be permanently enabled,
-however other driver flows were able to over-ride that configuration
-and disable it.
-
-Add force_lb parameter that indicates that loopback should always be
-enabled which prevents all other driver flows from disabling it.
-
-Fixes: a9a9e68954f2 ("RDMA/mlx5: Fix vport loopback for MPV device")
-Signed-off-by: Patrisious Haddad <phaddad@nvidia.com>
-Reviewed-by: Mark Bloch <mbloch@nvidia.com>
-Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
----
- drivers/infiniband/hw/mlx5/main.c    | 19 +++++++++++++++----
- drivers/infiniband/hw/mlx5/mlx5_ib.h |  1 +
- 2 files changed, 16 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index de5339170876..1fbc0351063d 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -1839,7 +1839,8 @@ static void deallocate_uars(struct mlx5_ib_dev *dev,
- }
- 
- static int mlx5_ib_enable_lb_mp(struct mlx5_core_dev *master,
--				struct mlx5_core_dev *slave)
-+				struct mlx5_core_dev *slave,
-+				struct mlx5_ib_lb_state *lb_state)
- {
- 	int err;
- 
-@@ -1851,6 +1852,7 @@ static int mlx5_ib_enable_lb_mp(struct mlx5_core_dev *master,
- 	if (err)
- 		goto out;
- 
-+	lb_state->force_enable = true;
- 	return 0;
- 
- out:
-@@ -1859,16 +1861,22 @@ static int mlx5_ib_enable_lb_mp(struct mlx5_core_dev *master,
- }
- 
- static void mlx5_ib_disable_lb_mp(struct mlx5_core_dev *master,
--				  struct mlx5_core_dev *slave)
-+				  struct mlx5_core_dev *slave,
-+				  struct mlx5_ib_lb_state *lb_state)
- {
- 	mlx5_nic_vport_update_local_lb(slave, false);
- 	mlx5_nic_vport_update_local_lb(master, false);
-+
-+	lb_state->force_enable = false;
- }
- 
- int mlx5_ib_enable_lb(struct mlx5_ib_dev *dev, bool td, bool qp)
- {
- 	int err = 0;
- 
-+	if (dev->lb.force_enable)
-+		return 0;
-+
- 	mutex_lock(&dev->lb.mutex);
- 	if (td)
- 		dev->lb.user_td++;
-@@ -1890,6 +1898,9 @@ int mlx5_ib_enable_lb(struct mlx5_ib_dev *dev, bool td, bool qp)
- 
- void mlx5_ib_disable_lb(struct mlx5_ib_dev *dev, bool td, bool qp)
- {
-+	if (dev->lb.force_enable)
-+		return;
-+
- 	mutex_lock(&dev->lb.mutex);
- 	if (td)
- 		dev->lb.user_td--;
-@@ -3597,7 +3608,7 @@ static void mlx5_ib_unbind_slave_port(struct mlx5_ib_dev *ibdev,
- 
- 	lockdep_assert_held(&mlx5_ib_multiport_mutex);
- 
--	mlx5_ib_disable_lb_mp(ibdev->mdev, mpi->mdev);
-+	mlx5_ib_disable_lb_mp(ibdev->mdev, mpi->mdev, &ibdev->lb);
- 
- 	mlx5_core_mp_event_replay(ibdev->mdev,
- 				  MLX5_DRIVER_EVENT_AFFILIATION_REMOVED,
-@@ -3694,7 +3705,7 @@ static bool mlx5_ib_bind_slave_port(struct mlx5_ib_dev *ibdev,
- 				  MLX5_DRIVER_EVENT_AFFILIATION_DONE,
- 				  &key);
- 
--	err = mlx5_ib_enable_lb_mp(ibdev->mdev, mpi->mdev);
-+	err = mlx5_ib_enable_lb_mp(ibdev->mdev, mpi->mdev, &ibdev->lb);
- 	if (err)
- 		goto unbind;
- 
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index a6c83ce2f0ee..4fc2c0ca2af3 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -1111,6 +1111,7 @@ struct mlx5_ib_lb_state {
- 	u32			user_td;
- 	int			qps;
- 	bool			enabled;
-+	bool			force_enable;
- };
- 
- struct mlx5_ib_pf_eq {
--- 
-2.50.1
+--=20
+https://launchpad.net/~linux-rdma/+archive/ubuntu/rdma-core-daily/+recipebu=
+ild/3933958
+Your team Linux RDMA is the requester of the build.
 
