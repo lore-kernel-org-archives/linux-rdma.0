@@ -1,77 +1,84 @@
-Received: from smtp-relay-services-1.canonical.com (smtp-relay-services-1.canonical.com [185.125.188.251])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A7532DD5E2
-	for <linux-rdma@vger.kernel.org>; Wed, 13 Aug 2025 12:42:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.125.188.251
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 60D452E03EA
+	for <linux-rdma@vger.kernel.org>; Wed, 13 Aug 2025 12:43:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755088939; cv=none; b=rECsYF27PlIZzprjXgdmGrUCwqJ21aL9Xw+7EPG06Du61S1FrX3rS9uSoScX85huTe+xVrVUTUl8cozlj0MbPZi+Z3BvkLg2cZwDnS68w2T9Ef6Puw+0SUxUDqJ5BbeHSH3f6v5BjAmbYfwqEr4Bn2+5gz2n1Uhv4oLnVnAwLpw=
+	t=1755089006; cv=none; b=YT72cxbxFUg0CRqm96tx1euUUMIBHKL7c1cR96V80FoMlESJW/EL6EHZ97b3eYmsfvon094Y/CjM62E5woJoDa3sqwCNHSjZ7vSGIL8ShEbYhwuzMLG3eJ05HkMA96JUkLWPXjZ/GV0yxiGMfQKzJC9YqS5aYqLvpjKuZOY6rks=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755088939; c=relaxed/simple;
-	bh=qTdz51eo20/MZlbMIiOQxbWGgMzw4/XJ2s3DlZRstIE=;
-	h=Content-Type:MIME-Version:To:From:Subject:Message-Id:Date; b=CQF+2vGE/rDm5fCPzboriUGgbLH2XujrMRRo7MlDfQnLPks5onRtuQ1IDhVTWCfbrFfVh31Kn07GLugdhrHCkOsE9Qm+l6j5AVc5vCwZUEx96tj/xafP1ANo3t1nvmSG/L2sOt/LKpdi7EkSoOPE811CVBM0Cn0FRyHe1DhfGN8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=launchpad.net; spf=pass smtp.mailfrom=launchpad.net; dkim=pass (2048-bit key) header.d=launchpad.net header.i=@launchpad.net header.b=l81Nc8mz; arc=none smtp.client-ip=185.125.188.251
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=launchpad.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=launchpad.net
+	s=arc-20240116; t=1755089006; c=relaxed/simple;
+	bh=uV8hPAUPtWpCSfsYJiHAobKdqG5TGS9Z2Z9lvxohHWw=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=S0xocNHAZd70FZOeb67qMd2O7qFpFf1IxRnnL3rWMV9TUAGRU1/O5vg0GKrVBrWtmPSG9MjozMYE2w3T1S2cqR6nAbOjEH11Ez6j/IfFF0b8jPTKmsZhgAnizjKZW2aygY4EmQ/IMxvA9l/2yAoJ9F8vq2mtByj8vZ44QNjTkuo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=nXyXOFVG; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=launchpad.net header.i=@launchpad.net header.b="l81Nc8mz"
-Received: from buildd-manager.lp.internal (buildd-manager.lp.internal [10.131.215.202])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-relay-services-1.canonical.com (Postfix) with ESMTPSA id 152D44BCBD
-	for <linux-rdma@vger.kernel.org>; Wed, 13 Aug 2025 12:32:50 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=launchpad.net;
-	s=20210803; t=1755088370;
-	bh=qTdz51eo20/MZlbMIiOQxbWGgMzw4/XJ2s3DlZRstIE=;
-	h=Content-Type:MIME-Version:To:From:Subject:Message-Id:Date:
-	 Reply-To;
-	b=l81Nc8mzUGd0uarRJLcUWSm43Vem2cBDn3Iq1/d/f6CaPRcvDJhXV9H83GadNhukR
-	 YvNELLz4IuzOuzFXJNNy2dQwA3OBpV2g9wgKgu2SEdvIhzbpJdg+7XHBL/y0+cB8vi
-	 +AjwuVvGWwmf3CaPXUoTo3f+bVZpqDn6QgaM4G6/Zk54+UPXllGacVDO2FuNt9iR77
-	 xsc/JTSThHZ0osmGegT7bhNM4K17A25ZjbvpVNRM59IYYDDHwRCRz8U1J3C8W4r6+y
-	 XiuWV/spKOfQSQuAIkvRLcauLBNAdf1244rXt5VD5UbLFSeI/PPdR5M9mUdEen/GKa
-	 PoOBHmILCtL3A==
-Received: from buildd-manager.lp.internal (localhost [127.0.0.1])
-	by buildd-manager.lp.internal (Postfix) with ESMTP id 00F7E7E6FA
-	for <linux-rdma@vger.kernel.org>; Wed, 13 Aug 2025 12:32:50 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="nXyXOFVG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9604FC4CEEB;
+	Wed, 13 Aug 2025 12:43:25 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1755089006;
+	bh=uV8hPAUPtWpCSfsYJiHAobKdqG5TGS9Z2Z9lvxohHWw=;
+	h=From:To:Cc:Subject:Date:From;
+	b=nXyXOFVGv9xHLSxqsiasJxtYa3CRogSm3REomdzYcB18gNvk58vCD2R3dUB/8Pz1J
+	 PBCaPCqlCSkkHfphtOENChZAb072pavBTX9aRqCx7R4O9/73m6bxZ9FwHamur1GWWU
+	 2DlftW4A5+D9EmYJ1CIuGgMGtKdPVN8gecyl1gZmnbi3L911ILy5dYT72axd9+cuxC
+	 AgJOBnyJyQs9h9PCMP8EsbhTPxUn/9Rb8tfMUSxVlhZemhALZol7oM1XsgiTABB9uA
+	 prCi1TzjkbMEXgFcHawZr7XylGaLpwB+mamt909EOY0IJjERCHEhk+kn4aC1yuYccs
+	 vBFjhWiSM42iQ==
+From: Leon Romanovsky <leon@kernel.org>
+To: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Or Har-Toov <ohartoov@nvidia.com>,
+	Edward Srouji <edwards@nvidia.com>,
+	linux-rdma@vger.kernel.org
+Subject: [PATCH rdma-rc] IB/mlx5: Fix obj_type mismatch for SRQ event subscriptions
+Date: Wed, 13 Aug 2025 15:43:20 +0300
+Message-ID: <8f1048e3fdd1fde6b90607ce0ed251afaf8a148c.1755088962.git.leon@kernel.org>
+X-Mailer: git-send-email 2.50.1
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-X-Launchpad-Message-Rationale: Requester @linux-rdma
-X-Launchpad-Message-For: linux-rdma
-X-Launchpad-Notification-Type: recipe-build-status
-X-Launchpad-Archive: ~linux-rdma/ubuntu/rdma-core-daily
-X-Launchpad-Build-State: MANUALDEPWAIT
-To: Linux RDMA <linux-rdma@vger.kernel.org>
-From: noreply@launchpad.net
-Subject: [recipe build #3933958] of ~linux-rdma rdma-core-daily in xenial: Dependency wait
-Message-Id: <175508837000.1267249.17107923122638194743.launchpad@buildd-manager.lp.internal>
-Date: Wed, 13 Aug 2025 12:32:50 -0000
-Reply-To: noreply@launchpad.net
-Sender: noreply@launchpad.net
-Errors-To: noreply@launchpad.net
-Precedence: bulk
-X-Generated-By: Launchpad (canonical.com); Revision="2e2dbb502f0ece7c824fee89b47752027cef4ee9"; Instance="launchpad-buildd-manager"
-X-Launchpad-Hash: 071a7ccffaedc99e0840aa12fa45ccf16a3697df
+Content-Transfer-Encoding: 8bit
 
- * State: Dependency wait
- * Recipe: linux-rdma/rdma-core-daily
- * Archive: ~linux-rdma/ubuntu/rdma-core-daily
- * Distroseries: xenial
- * Duration: 2 minutes
- * Build Log: https://launchpad.net/~linux-rdma/+archive/ubuntu/rdma-core-d=
-aily/+recipebuild/3933958/+files/buildlog.txt.gz
- * Upload Log:=20
- * Builder: https://launchpad.net/builders/lcy02-amd64-034
+From: Or Har-Toov <ohartoov@nvidia.com>
 
---=20
-https://launchpad.net/~linux-rdma/+archive/ubuntu/rdma-core-daily/+recipebu=
-ild/3933958
-Your team Linux RDMA is the requester of the build.
+Fix a bug where the driver's event subscription logic for SRQ-related
+events incorrectly sets obj_type for RMP objects.
+
+When subscribing to SRQ events, get_legacy_obj_type() did not handle
+the MLX5_CMD_OP_CREATE_RMP case, which caused obj_type to be 0
+(default).
+This led to a mismatch between the obj_type used during subscription
+(0) and the value used during notification (1, taken from the event's
+type field). As a result, event mapping for SRQ objects could fail and
+event notification would not be delivered correctly.
+
+This fix adds handling for MLX5_CMD_OP_CREATE_RMP in get_legacy_obj_type,
+returning MLX5_EVENT_QUEUE_TYPE_RQ so obj_type is consistent between
+subscription and notification.
+
+Fixes: 759738537142 ("IB/mlx5: Enable subscription for device events over DEVX")
+Signed-off-by: Or Har-Toov <ohartoov@nvidia.com>
+Reviewed-by: Edward Srouji <edwards@nvidia.com>
+Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+---
+ drivers/infiniband/hw/mlx5/devx.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/infiniband/hw/mlx5/devx.c b/drivers/infiniband/hw/mlx5/devx.c
+index f21c82cb9a15..fad2c6142a8a 100644
+--- a/drivers/infiniband/hw/mlx5/devx.c
++++ b/drivers/infiniband/hw/mlx5/devx.c
+@@ -233,6 +233,7 @@ static u16 get_legacy_obj_type(u16 opcode)
+ {
+ 	switch (opcode) {
+ 	case MLX5_CMD_OP_CREATE_RQ:
++	case MLX5_CMD_OP_CREATE_RMP:
+ 		return MLX5_EVENT_QUEUE_TYPE_RQ;
+ 	case MLX5_CMD_OP_CREATE_QP:
+ 		return MLX5_EVENT_QUEUE_TYPE_QP;
+-- 
+2.50.1
 
