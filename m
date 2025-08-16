@@ -1,154 +1,118 @@
-Received: from mout.web.de (mout.web.de [217.72.192.78])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 22F7A194C75;
-	Sat, 16 Aug 2025 09:26:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.72.192.78
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 95E4617A318;
+	Sat, 16 Aug 2025 15:39:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755336366; cv=none; b=DMe/2UeYU4S+rZQkZD1O+TELZzMD4ARUzzf4NHIbbl1z/h/w+UNHifQChPs22JorjMS87j0sSYdD0TaJGm4vqECY7TvRqsUAtQk4LWP7jzYrVF85IZg4nrvB+f2vJYzYl4og56l2wT4/+Ok8o541KeCTCXJrF+l2qmfyBcfRZP4=
+	t=1755358744; cv=none; b=Z3KIfx+wGLYR8/uWI4jxVH+NCjsyfxQNJ8ag2NjycYj97MVsIVElc0c+umouwVxpqeVZ5+SGhhxz3QBpBOkSsd555rFevKt/86CtF5oi6HhjsFJWphu5goKjo8wG8XKtY8DAxQ/cLBGR1Uef13aWm3CdfbSBUZTrCwNcbM7b38w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755336366; c=relaxed/simple;
-	bh=QvEU6HRO0DARKMydq9orO5i/PFQrv20H+oLTRghpq7w=;
-	h=Message-ID:Date:MIME-Version:To:Cc:References:Subject:From:
-	 In-Reply-To:Content-Type; b=UEOOHei0KKIq9lhfteVY0G0UaH4E4krMzVmUm+I1zoN4y+vDBzyHdvxqkA3nMRaVbjulT0St3wQl7p5ASsNtPvZ1wVMZB7BLn/ceLRduWr3Drb2vYmNK9FEHJy7HihMWDnwud0WyeCCGloZca/4mJKkQH0j4yH3UB8j+c8cPbEA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=web.de; spf=pass smtp.mailfrom=web.de; dkim=pass (2048-bit key) header.d=web.de header.i=markus.elfring@web.de header.b=CGjmAFig; arc=none smtp.client-ip=217.72.192.78
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=web.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=web.de
+	s=arc-20240116; t=1755358744; c=relaxed/simple;
+	bh=W+w5qTpFCswGOMwFQnALt7zcVRGe1Lj/RfZnJo6OC2k=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
+	 In-Reply-To:To:Cc; b=YKhi1NhyzYLUDkKWCNSW6a2QI92L+9eYVu0ZRtHZW6x9umYlKmev7rYKeXmrthkM3lpzYhvgSypRiELFvdtucEMe/GHFlNWbpNATt0NG6DB3Pc4vwdpCWdqFVKRA/aBISu3NaBl+K7oncUFh0uzf4xm+L5p1cUBWmF2v6VDjBtA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=LNswWi+F; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=web.de header.i=markus.elfring@web.de header.b="CGjmAFig"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=web.de;
-	s=s29768273; t=1755336337; x=1755941137; i=markus.elfring@web.de;
-	bh=ygRsKx0lB8Er7OpZFhZCEN79wM6pfvOZNWmfxbSCU/M=;
-	h=X-UI-Sender-Class:Message-ID:Date:MIME-Version:To:Cc:References:
-	 Subject:From:In-Reply-To:Content-Type:Content-Transfer-Encoding:
-	 cc:content-transfer-encoding:content-type:date:from:message-id:
-	 mime-version:reply-to:subject:to;
-	b=CGjmAFigBIOAKV3SK59zAXQtjHvji5NMQ14hTRERTb+NgSzPL10Ej28vedhfmQDX
-	 96evRJVsPBvR2ugYCJ74u+SQUM4RJTd22QCMuNxLh9qkbnzhwE8RUMhBKEYYwH9PV
-	 RPDGjfftCzAubDpStO/TkX7WVHDCCKXhBW4br2l1RylGVeK7R4QGr9++ZoRdNoUrY
-	 OH6iA/pwjhfz9OErB9FjQWd1KtC+skHsGHyWDs2u6P0ag0pahqXI/Ut/uYqFnwX6V
-	 isdsiOzVBXrr3YtjDcvlYPSSj31SgpV9eYAzSlR1poUcBgIXhnUwyqBSJLBCfv6HD
-	 pTf+//vsJ5824b5KMQ==
-X-UI-Sender-Class: 814a7b36-bfc1-4dae-8640-3722d8ec6cd6
-Received: from [192.168.178.29] ([94.31.92.248]) by smtp.web.de (mrweb106
- [213.165.67.124]) with ESMTPSA (Nemesis) id 1MMXxF-1v6f3v3XFv-00J9mY; Sat, 16
- Aug 2025 11:25:36 +0200
-Message-ID: <f9638a40-7927-4456-9b9d-d449c06b1070@web.de>
-Date: Sat, 16 Aug 2025 11:25:31 +0200
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="LNswWi+F"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 42DE0C4CEF1;
+	Sat, 16 Aug 2025 15:39:04 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1755358744;
+	bh=W+w5qTpFCswGOMwFQnALt7zcVRGe1Lj/RfZnJo6OC2k=;
+	h=From:Date:Subject:References:In-Reply-To:To:Cc:Reply-To:From;
+	b=LNswWi+FomulbcdEtqrrw/oHJLv7sQDOK4u2YjWnbIgMbPDHoiI1iKFVfEvGvjbrJ
+	 avQwa1sEQcmK5MXkRW14k2zDXftXo3SbBwt2OWzUXxoHQRTzSTzbI/D9zfv9Dct3dN
+	 Om5+rMKFhzShQoyuObj9jHW5Fzgh2YdcKvEfUimxXiE7pskcpQrd109jTQB7ijlE1I
+	 9gR7u5fU5CdAMFTVLcDYjU+NOAds4nAaRuicza8E1goGZXZCO75oZsWdB9aWaP1Y4N
+	 +js8gTOr08I72GrzRM+aMFsDFL0ErhZLa+SjqMvPDOvWUQq4xxyIPz0h4ofYwbFKzK
+	 luEyrBW7vWaVQ==
+Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 33399CA0EE6;
+	Sat, 16 Aug 2025 15:39:04 +0000 (UTC)
+From: Christoph Paasch via B4 Relay <devnull+cpaasch.openai.com@kernel.org>
+Date: Sat, 16 Aug 2025 08:39:03 -0700
+Subject: [PATCH net-next v2 1/2] net/mlx5: Bring back get_cqe_l3_hdr_type
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-To: Abhijit Gangurde <abhijit.gangurde@amd.com>, linux-rdma@vger.kernel.org,
- netdev@vger.kernel.org
-Cc: linux-doc@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
- Allen Hubbe <allen.hubbe@amd.com>, Andrew Lunn <andrew+netdev@lunn.ch>,
- Brett Creeley <brett.creeley@amd.com>, Jonathan Corbet <corbet@lwn.net>,
- "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
- Jakub Kicinski <kuba@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>,
- Leon Romanovsky <leon@kernel.org>, Nikhil Agarwal <nikhil.agarwal@amd.com>,
- Paolo Abeni <pabeni@redhat.com>, Shannon Nelson <shannon.nelson@amd.com>,
- Shannon Nelson <sln@onemain.com>, Simon Horman <horms@kernel.org>
-References: <20250814053900.1452408-2-abhijit.gangurde@amd.com>
-Subject: Re: [PATCH v5 01/14] net: ionic: Create an auxiliary device for rdma
- driver
-Content-Language: en-GB, de-DE
-From: Markus Elfring <Markus.Elfring@web.de>
-In-Reply-To: <20250814053900.1452408-2-abhijit.gangurde@amd.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-X-Provags-ID: V03:K1:iauRxyQjADelyP2sFys0+KzZgu340c5fR0yRNILaMmNldQTIdsM
- CeEHBC2P0pBAN2+qIPwq5489DZ1b/svSfNPk4fDXoBoJ4wQ9Ze5+lXkYYQAvmGscPG1saVQ
- RiyyjdhktVdWsEJaf3cGI9KSRua3DSP8AwtL4F3mwO2baM6lE+7QHO6NSfK0fB6/GH5cHDZ
- rX4qof1IlRc4xj9MfnMZQ==
-X-Spam-Flag: NO
-UI-OutboundReport: notjunk:1;M01:P0:NQdwOQD4K88=;38XZtlDYX325gzU941eoHYLCE79
- 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
- f5Wq+JLTwVXwpeAzxdkTxxzBbcK9f/i/KzMHq
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <20250816-cpaasch-pf-927-netmlx5-avoid-copying-the-payload-to-the-malloced-area-v2-1-b11b30bc2d10@openai.com>
+References: <20250816-cpaasch-pf-927-netmlx5-avoid-copying-the-payload-to-the-malloced-area-v2-0-b11b30bc2d10@openai.com>
+In-Reply-To: <20250816-cpaasch-pf-927-netmlx5-avoid-copying-the-payload-to-the-malloced-area-v2-0-b11b30bc2d10@openai.com>
+To: Saeed Mahameed <saeedm@nvidia.com>, Leon Romanovsky <leon@kernel.org>, 
+ Tariq Toukan <tariqt@nvidia.com>, Mark Bloch <mbloch@nvidia.com>, 
+ Andrew Lunn <andrew+netdev@lunn.ch>, 
+ "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, 
+ Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
+ Alexander Lobakin <aleksander.lobakin@intel.com>, 
+ Gal Pressman <gal@nvidia.com>
+Cc: linux-rdma@vger.kernel.org, netdev@vger.kernel.org, 
+ Christoph Paasch <cpaasch@openai.com>
+X-Mailer: b4 0.14.2
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1755358743; l=1431;
+ i=cpaasch@openai.com; s=20250712; h=from:subject:message-id;
+ bh=SPLeig1w80KP25Uafa7OhBKZ5EPa50evdyHn8YkXEeM=;
+ b=d/3rnCLWr1OwI8rYTdOd4PRFB/SB4cmuaGZPp3D6p4shYuTPufe/VH/i4/y3erC+rgQYVvstq
+ obsAVc+BRPUDHdZcas/t6MQNeyBOvQmMx18+pymjjvMDmiklQCEFjDM
+X-Developer-Key: i=cpaasch@openai.com; a=ed25519;
+ pk=1HRHZlVUZPziMZvsAQFvP7n5+uEosTDAjXmNXykdxdg=
+X-Endpoint-Received: by B4 Relay for cpaasch@openai.com/20250712 with
+ auth_id=459
+X-Original-From: Christoph Paasch <cpaasch@openai.com>
+Reply-To: cpaasch@openai.com
 
-=E2=80=A6
-> +++ b/drivers/net/ethernet/pensando/ionic/ionic_aux.c
-> @@ -0,0 +1,80 @@
-=E2=80=A6
-> +void ionic_auxbus_unregister(struct ionic_lif *lif)
-> +{
-> +	mutex_lock(&lif->adev_lock);
-> +	if (!lif->ionic_adev)
-=E2=80=A6
-> +out:
-> +	mutex_unlock(&lif->adev_lock);
-> +}
-=E2=80=A6
+From: Christoph Paasch <cpaasch@openai.com>
 
-Under which circumstances would you become interested to apply a call
-like =E2=80=9Cscoped_guard(mutex, &lif->adev_lock)=E2=80=9D?
-https://elixir.bootlin.com/linux/v6.16/source/include/linux/mutex.h#L225
+Commit 66af4fe37119 ("net/mlx5: Remove unused functions") removed
+get_cqe_l3_hdr_type. Let's bring it back.
 
-Regards,
-Markus
+Also, define CQE_L3_HDR_TYPE_* to identify IPv6 and IPv4 packets.
+
+Signed-off-by: Christoph Paasch <cpaasch@openai.com>
+---
+ include/linux/mlx5/device.h | 12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
+
+diff --git a/include/linux/mlx5/device.h b/include/linux/mlx5/device.h
+index 9d2467f982ad4697f0b36f6975b820c3a41fc78a..5e4a03cff0f1d9b11c5f562c23dbf85c3302f681 100644
+--- a/include/linux/mlx5/device.h
++++ b/include/linux/mlx5/device.h
+@@ -927,11 +927,16 @@ static inline u8 get_cqe_lro_tcppsh(struct mlx5_cqe64 *cqe)
+ 	return (cqe->lro.tcppsh_abort_dupack >> 6) & 1;
+ }
+ 
+-static inline u8 get_cqe_l4_hdr_type(struct mlx5_cqe64 *cqe)
++static inline u8 get_cqe_l4_hdr_type(const struct mlx5_cqe64 *cqe)
+ {
+ 	return (cqe->l4_l3_hdr_type >> 4) & 0x7;
+ }
+ 
++static inline u8 get_cqe_l3_hdr_type(const struct mlx5_cqe64 *cqe)
++{
++	return (cqe->l4_l3_hdr_type >> 2) & 0x3;
++}
++
+ static inline bool cqe_is_tunneled(struct mlx5_cqe64 *cqe)
+ {
+ 	return cqe->tls_outer_l3_tunneled & 0x1;
+@@ -1012,6 +1017,11 @@ enum {
+ 	CQE_L4_HDR_TYPE_TCP_ACK_AND_DATA	= 0x4,
+ };
+ 
++enum {
++	CQE_L3_HDR_TYPE_IPV6			= 0x1,
++	CQE_L3_HDR_TYPE_IPV4			= 0x2,
++};
++
+ enum {
+ 	CQE_RSS_HTYPE_IP	= GENMASK(3, 2),
+ 	/* cqe->rss_hash_type[3:2] - IP destination selected for hash
+
+-- 
+2.50.1
+
+
