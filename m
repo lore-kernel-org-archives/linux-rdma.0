@@ -1,76 +1,76 @@
-Received: from mail-yw1-f225.google.com (mail-yw1-f225.google.com [209.85.128.225])
+Received: from mail-pf1-f225.google.com (mail-pf1-f225.google.com [209.85.210.225])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24DAB3164B0
-	for <linux-rdma@vger.kernel.org>; Fri, 29 Aug 2025 12:31:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.225
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 16B5C31A067
+	for <linux-rdma@vger.kernel.org>; Fri, 29 Aug 2025 12:31:47 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.225
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756470705; cv=none; b=ZaSWgkp6n5wQ1uPlSj0lejaP9FgBpH2z6H7O0LfZJfjx670Li3JMh7+wwJ7vOXN0Ym46YKCncNvSQx+KSoQkTpr8waNMyyetCm4FJI5T9V8d1AxMLUDco2u3TYS7ncVVkQh8/GvQO1BVIDOXdvZuoYiigBByyUuQpRYjXNo/OcA=
+	t=1756470709; cv=none; b=E7eNKoiu0p4OegOWsAywaoUMBAwRg6+gzcjzG1mfEulvXkkpsrUYPy9tUWVRimm34PExffJNERSoAqG8pf5XmTiebziWMVVE/y9l8rGAWFu7YoRQ+ydn7KX0rq6bggasXRm+J8cvgDE2Kt6vOH+XORVZr6ipgwLtQiRitJWVGbc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756470705; c=relaxed/simple;
-	bh=sU6fCryzmT3RTTwe3L2/pOAWsMnM+ObY+ACLXtxY4gA=;
+	s=arc-20240116; t=1756470709; c=relaxed/simple;
+	bh=RIFRi3MNJGSSdjQM1Ui6VxpUsWC/b8GxminKx27eVwc=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=jPQkZxwC6FRfPE6Gx6IQoNFU1B+VvE6XvmI+Z2eragGxVO8AvT3wty03m1HMjCaBj0OvBPMNOayadlSNCdIFEi4N/G2KO28lKkJ+ralWzaeidnw6hClecEBe0eXYRHDriGzDCKXER7UHBEGWLotgcqxrt2mjD2rtYopKljVjmZw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=broadcom.com; spf=fail smtp.mailfrom=broadcom.com; dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b=JRpW9UPr; arc=none smtp.client-ip=209.85.128.225
+	 MIME-Version; b=A7iebkV2s3wrSY5FUElaBECb621RZIvBQSWaRJU4vmAtRnE8Ls+rK7oTmCyTEIx/0BAgwGj+SnlpdTF6j5siJFCoJC0ld2aNYv2YQYeWyEKiD2YnkmI0vkzWY3DTqkW3R+Ssp53DOf9pcVfIZR7p2xKwNmEpaavSD3XXylBueOM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=broadcom.com; spf=fail smtp.mailfrom=broadcom.com; dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b=eroPlF02; arc=none smtp.client-ip=209.85.210.225
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=broadcom.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=broadcom.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b="JRpW9UPr"
-Received: by mail-yw1-f225.google.com with SMTP id 00721157ae682-71d603b60cbso17838197b3.1
-        for <linux-rdma@vger.kernel.org>; Fri, 29 Aug 2025 05:31:42 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b="eroPlF02"
+Received: by mail-pf1-f225.google.com with SMTP id d2e1a72fcca58-771fa8e4190so1454277b3a.1
+        for <linux-rdma@vger.kernel.org>; Fri, 29 Aug 2025 05:31:47 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1756470702; x=1757075502;
+        d=1e100.net; s=20230601; t=1756470707; x=1757075507;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:dkim-signature
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=FXBmIMN0RDfRsKyU3sawGYH3xU1muMI9eBI4DVZ9K4M=;
-        b=jmA0+MmZCQtusQwHO4MCTmfqD1kFJ3kPDRWR0GIwmmCeReEW4+ij1PfEojF00Y+PVA
-         t07mMOIeRiyq8Ad0nkrIgmdVjWXbc37Al1ypPGQvxmLFQq1GLderplUOIHJVzz3UA/EO
-         ckUQJlT/Sf4PVOyo0iy4IhgyIerJWISvL5spKnf0XrTLDcVHwF+v2g5+AwuYtja0gwMs
-         JgG11JeZfGTsH53gzkPL3+TB2AfHh9MTgF4Y4nnEWH6q/c2m9+2nXUMxCEaQkN5GD7s8
-         +ROMG8EabCZDlvQ0Lbl0bdr139GsvsE1G+LSjrYzn1ALqVJBCmI/qpgFirO7HjMVcRs9
-         ec7g==
-X-Gm-Message-State: AOJu0YzNd2ThQdqtKHrveO7q6u4AcqVlhi8iqzUhQcx084C+visLj8ER
-	wA/DylVRNHPLoh0EwYfx8JbyVmu5lgJpHGwa5yRZ1874TJag/X1PPnmwwIA1roqnLuq/5PmpdqG
-	r12b+IIsHCv4RVF4FY/03NAtY6toPAvjxUzsu807oulDdSodWSe7LCtjUHCMY6ZaQxIMnf+XjnJ
-	CWjDkUYAjokjfAduwlVPi79a6oE6Jl/GiJj5nYsaQQKlb68RczYYtBaQmkKml2MPNuMDjl3w3VZ
-	7ZFdkCO9A+jz++ASQ==
-X-Gm-Gg: ASbGncvClshpQ3tkrAltNUIAc2pmiK5BzfMsNc8T7QhCRqQdNmxIWxflenbpRicPg8c
-	qGHV5TU7S2nWpSTRjTfB/mT3HAtlFrIVxbqNB/06p9YFitphyP2BiD+W1IisUGJGLeQ9ZMo9jXX
-	9eNmbSCSZWZHPIIG8NWUvi5K9cOIhP7QbfhzO6NEHqXlbAE3qfIMfk3CvF/lPXm7MzEJ1eNVxm9
-	buwgAMfM63jHbNT+Tcxu0ylvLPt/diOlfgeCO2SZHJ1fZI+u/bwkXk7UoX91QihkC9tfgh/XUV+
-	vAwE/QyBfLlBHFPTl0Z07gfKsxxAkXrxIwkToA645RtyAvUu1iiTxq79mGtuOKbjfgA9T5fzG0x
-	NidXbVplxIcJgc9+4AJVLyPY7NiA4NfaEwMvLF7ebWpAL0s+JyRoyeAxplrZOA7114hykCdGctk
-	cj
-X-Google-Smtp-Source: AGHT+IF9NvNj7hedNxGFxt1dAuWMxcjLzpQELgYCVnVUx2IpTjkpDo8IceJpD0UMvnZOf/lFhIGr/5Db5X5j
-X-Received: by 2002:a05:690c:6109:b0:71f:b944:1000 with SMTP id 00721157ae682-71fdc5388bemr304744757b3.51.1756470689807;
-        Fri, 29 Aug 2025 05:31:29 -0700 (PDT)
+        bh=ocs1O7M+XeHOMJsN32xtyWTZCKjfIDggqthostXpTY0=;
+        b=R2jLAGrAFpFRK7O9eEVbygZJa+UMAWvyged9+OIJYURSbAjSNQA3p4Arxurd7HnA2M
+         EF3JUPSfofK/OOl3O8GPfAxZSudzDtT1qGwkg91ixHIAK7Ac5ArSFxfsJ/waYw/mb6Xs
+         Jl7O/33SvErwPs66tmw1pQMCKgKx1hQlqyq8Q7kXWAQ1g4p966MCbe1SAWTClO0bVjbv
+         uOJNfTjyu/gtHAB4wYUhK+DscdfplcP82wOzM+84YUS933R3qVSCOJyKCF07kB7tBib9
+         fDKNEE/bV9lavCWPPObAmVsEMqSs6YqKFoCAma7fcu5K0Dqz/tlGzIbSxnN25Pcmdjo9
+         AIqw==
+X-Gm-Message-State: AOJu0YzOl/QyEbslAg2PmqsBphG2iOml6qthB+anGuz6ESTlyopJ4v13
+	Vh3jeECS/cOyX3QF7wDV97bhuYiiQmgYRyXh2KGBrK/YZ3kY3rIz1/xpSqsfsUqTQ8h1X0bCeuT
+	ecn8i743ipNam+lm7ZT2ck1fcdR2VCFEH5pnhejloFmamiQiTKaxS5YKwp3MazjS1hNKXRy4IJU
+	6ax2qbyv2yUCGDzakdmLrNdj+Rv4pCLaA2Q/xVKgnp44UN8LLZjLwmPmAkbbUosw01NOap4YrTB
+	tDEzYXUm2bl/Q9gVw==
+X-Gm-Gg: ASbGnct5Nx1bA4Kk//mNxfrU9TuMqbeq+5mWLelVvuy5uOlxqeqh+Je/oTj2UIDKiqP
+	7wTjm2jE/FsC61cqQocpGI2DqGSHT+GBPotuW7h2G2d/uzStmuWMTy/kYVh8BgRgE0dqgrGA/F1
+	iE2bLR/zwsp0VFzsuWsSVq1tWqfp9gbQ8GdvHzWNaO5otRJRnLnu3uehlJyL+7c5UrFoVf8wJA5
+	7mgvSKF7SMEJ5NGFzmzp/E/X6qgjw/mjkb7W0ZvlI5HgorC32SupdnXKi3VwY/irTPvlsL0gvhY
+	OSlnP2Q5U+jXbSMFISbwfz/8/4ECHnnKQi/1hpP/QKXI35JsKKOTc73yYeUO/kAlJzR5rsxG9Il
+	YEVkJ1hOjzukMGbWnXyr1+WaL0FKiKGsjSOC2qUyhz5xXBGtfBz5qgpNV7WRk/smjhtBN6UeZtd
+	li
+X-Google-Smtp-Source: AGHT+IGLU/KHGkr3wb8ShYYuGidCnAykApspsWfUe09lWyejol0ydA1TjINeTiNEhEJio1hFT89mLHIaAsZh
+X-Received: by 2002:a05:6a00:230c:b0:770:57c4:e959 with SMTP id d2e1a72fcca58-77057c4ec55mr24936549b3a.9.1756470707358;
+        Fri, 29 Aug 2025 05:31:47 -0700 (PDT)
 Received: from smtp-us-east1-p01-i01-si01.dlp.protect.broadcom.com (address-144-49-247-118.dlp.protect.broadcom.com. [144.49.247.118])
-        by smtp-relay.gmail.com with ESMTPS id 00721157ae682-721ce5ca72dsm1388127b3.34.2025.08.29.05.31.29
+        by smtp-relay.gmail.com with ESMTPS id d2e1a72fcca58-7722a47cf68sm131799b3a.9.2025.08.29.05.31.47
         for <linux-rdma@vger.kernel.org>
         (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Fri, 29 Aug 2025 05:31:29 -0700 (PDT)
+        Fri, 29 Aug 2025 05:31:47 -0700 (PDT)
 X-Relaying-Domain: broadcom.com
 X-CFilter-Loop: Reflected
-Received: by mail-qk1-f198.google.com with SMTP id af79cd13be357-7f674810ddbso507124885a.3
-        for <linux-rdma@vger.kernel.org>; Fri, 29 Aug 2025 05:31:29 -0700 (PDT)
+Received: by mail-qt1-f199.google.com with SMTP id d75a77b69052e-4b109affec8so42242011cf.1
+        for <linux-rdma@vger.kernel.org>; Fri, 29 Aug 2025 05:31:46 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=broadcom.com; s=google; t=1756470689; x=1757075489; darn=vger.kernel.org;
+        d=broadcom.com; s=google; t=1756470706; x=1757075506; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=FXBmIMN0RDfRsKyU3sawGYH3xU1muMI9eBI4DVZ9K4M=;
-        b=JRpW9UPrb221vkiReuWIXi/YXUSTuMCNnpwprXFPIqozmZrgjBBBInsZX7i4SvXm5o
-         UbpELWs/rc+65oZOSanj/+YRjoaruAJ+8qiDpHj4CG+M4TVAvASzOfgcdZ5GOOnlROGA
-         oYpPo+zro9mQrYFNfGpE7j7ihWZTa+uI1RKcU=
-X-Received: by 2002:a05:620a:2943:b0:7fa:725d:832c with SMTP id af79cd13be357-7fa725d880dmr595678585a.76.1756470688391;
-        Fri, 29 Aug 2025 05:31:28 -0700 (PDT)
-X-Received: by 2002:a05:620a:2943:b0:7fa:725d:832c with SMTP id af79cd13be357-7fa725d880dmr595667085a.76.1756470687106;
-        Fri, 29 Aug 2025 05:31:27 -0700 (PDT)
+        bh=ocs1O7M+XeHOMJsN32xtyWTZCKjfIDggqthostXpTY0=;
+        b=eroPlF02U/MdI2GZnv5mTnA1ENp6pVRWbXOViPrbDAHLIYIcWX/wnpShakdlx4nrSB
+         q8wpqQJNuw4c4wtUkqI67WAMypn/Fen28Gb4JTANEuXzC+/umqDXs2RlFUG3DSTLlVlT
+         kGrIzZrz71cqCMxCoFUNd8o1Q33AlpNYhDesc=
+X-Received: by 2002:a05:622a:211:b0:4b2:a07c:d728 with SMTP id d75a77b69052e-4b2aaa2b1d3mr340921461cf.27.1756470706071;
+        Fri, 29 Aug 2025 05:31:46 -0700 (PDT)
+X-Received: by 2002:a05:622a:211:b0:4b2:a07c:d728 with SMTP id d75a77b69052e-4b2aaa2b1d3mr340920941cf.27.1756470705437;
+        Fri, 29 Aug 2025 05:31:45 -0700 (PDT)
 Received: from sjs-csg-thor3-swe-29.lvn.broadcom.net044broadcom.net ([192.19.224.250])
-        by smtp.gmail.com with ESMTPSA id af79cd13be357-7fc16536012sm162384585a.66.2025.08.29.05.31.25
+        by smtp.gmail.com with ESMTPSA id af79cd13be357-7fc16536012sm162384585a.66.2025.08.29.05.31.44
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 29 Aug 2025 05:31:26 -0700 (PDT)
+        Fri, 29 Aug 2025 05:31:45 -0700 (PDT)
 From: Siva Reddy Kallam <siva.kallam@broadcom.com>
 To: leonro@nvidia.com,
 	jgg@nvidia.com
@@ -81,9 +81,9 @@ Cc: linux-rdma@vger.kernel.org,
 	anand.subramanian@broadcom.com,
 	Siva Reddy Kallam <siva.kallam@broadcom.com>,
 	Usman Ansari <usman.ansari@broadcom.com>
-Subject: [PATCH 4/8] RDMA/bng_re: Allocate required memory resources for Firmware channel
-Date: Fri, 29 Aug 2025 12:30:38 +0000
-Message-Id: <20250829123042.44459-5-siva.kallam@broadcom.com>
+Subject: [PATCH 7/8] RDMA/bng_re: Add basic debugfs infrastructure
+Date: Fri, 29 Aug 2025 12:30:41 +0000
+Message-Id: <20250829123042.44459-8-siva.kallam@broadcom.com>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20250829123042.44459-1-siva.kallam@broadcom.com>
 References: <20250829123042.44459-1-siva.kallam@broadcom.com>
@@ -96,629 +96,161 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-DetectorID-Processed: b00c1d49-9d2e-4205-b15f-d015386d3d5e
 
-Allocate required memory resources for Firmware channel.
+Add basic debugfs infrastructure for Broadcom next generation
+controller.
 
 Signed-off-by: Siva Reddy Kallam <siva.kallam@broadcom.com>
 Reviewed-by: Usman Ansari <usman.ansari@broadcom.com>
 ---
- drivers/infiniband/hw/bng_re/Makefile  |   6 +-
- drivers/infiniband/hw/bng_re/bng_dev.c |  32 +++-
- drivers/infiniband/hw/bng_re/bng_fw.c  |  70 +++++++
- drivers/infiniband/hw/bng_re/bng_fw.h  |  69 +++++++
- drivers/infiniband/hw/bng_re/bng_re.h  |   2 +
- drivers/infiniband/hw/bng_re/bng_res.c | 250 +++++++++++++++++++++++++
- drivers/infiniband/hw/bng_re/bng_res.h |  76 ++++++++
- 7 files changed, 495 insertions(+), 10 deletions(-)
- create mode 100644 drivers/infiniband/hw/bng_re/bng_fw.c
- create mode 100644 drivers/infiniband/hw/bng_re/bng_fw.h
- create mode 100644 drivers/infiniband/hw/bng_re/bng_res.c
+ drivers/infiniband/hw/bng_re/Makefile      |  3 +-
+ drivers/infiniband/hw/bng_re/bng_debugfs.c | 39 ++++++++++++++++++++++
+ drivers/infiniband/hw/bng_re/bng_debugfs.h | 12 +++++++
+ drivers/infiniband/hw/bng_re/bng_dev.c     | 12 +++++++
+ drivers/infiniband/hw/bng_re/bng_re.h      |  1 +
+ 5 files changed, 66 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/infiniband/hw/bng_re/bng_debugfs.c
+ create mode 100644 drivers/infiniband/hw/bng_re/bng_debugfs.h
 
 diff --git a/drivers/infiniband/hw/bng_re/Makefile b/drivers/infiniband/hw/bng_re/Makefile
-index f854dae25b1c..1b957defbabc 100644
+index 556b763b43f9..c6aaaf853c77 100644
 --- a/drivers/infiniband/hw/bng_re/Makefile
 +++ b/drivers/infiniband/hw/bng_re/Makefile
-@@ -1,7 +1,7 @@
- # SPDX-License-Identifier: GPL-2.0
--
--ccflags-y := -I $(srctree)/drivers/net/ethernet/broadcom/bnge
-+ccflags-y := -I $(srctree)/drivers/net/ethernet/broadcom/bnge -I $(srctree)/drivers/infiniband/hw/bnxt_re
- 
+@@ -4,4 +4,5 @@ ccflags-y := -I $(srctree)/drivers/net/ethernet/broadcom/bnge -I $(srctree)/driv
  obj-$(CONFIG_INFINIBAND_BNG_RE) += bng_re.o
  
--bng_re-y := bng_dev.o
-+bng_re-y := bng_dev.o bng_fw.o \
-+	    bng_res.o
-diff --git a/drivers/infiniband/hw/bng_re/bng_dev.c b/drivers/infiniband/hw/bng_re/bng_dev.c
-index a9196b765a58..7f44ebbad69e 100644
---- a/drivers/infiniband/hw/bng_re/bng_dev.c
-+++ b/drivers/infiniband/hw/bng_re/bng_dev.c
-@@ -8,6 +8,7 @@
- #include <rdma/ib_verbs.h>
- 
- #include "bng_res.h"
-+#include "bng_fw.h"
- #include "bng_re.h"
- #include "bnge.h"
- #include "bnge_hwrm.h"
-@@ -60,6 +61,9 @@ static void bng_re_destroy_chip_ctx(struct bng_re_dev *rdev)
- 
- 	chip_ctx = rdev->chip_ctx;
- 	rdev->chip_ctx = NULL;
-+	rdev->rcfw.res = NULL;
-+	rdev->bng_res.cctx = NULL;
-+	rdev->bng_res.pdev = NULL;
- 	kfree(chip_ctx);
- }
- 
-@@ -69,7 +73,8 @@ static int bng_re_setup_chip_ctx(struct bng_re_dev *rdev)
- 	struct bnge_auxr_dev *aux_dev;
- 
- 	aux_dev = rdev->aux_dev;
--
-+	rdev->bng_res.pdev = aux_dev->pdev;
-+	rdev->rcfw.res = &rdev->bng_res;
- 	chip_ctx = kzalloc(sizeof(*chip_ctx), GFP_KERNEL);
- 	if (!chip_ctx)
- 		return -ENOMEM;
-@@ -77,6 +82,7 @@ static int bng_re_setup_chip_ctx(struct bng_re_dev *rdev)
- 	chip_ctx->hw_stats_size = aux_dev->hw_ring_stats_size;
- 
- 	rdev->chip_ctx = chip_ctx;
-+	rdev->bng_res.cctx = rdev->chip_ctx;
- 
- 	return 0;
- }
-@@ -135,6 +141,14 @@ static void bng_re_query_hwrm_version(struct bng_re_dev *rdev)
- 		cctx->hwrm_cmd_max_timeout = BNG_ROCE_FW_MAX_TIMEOUT;
- }
- 
-+static void bng_re_dev_uninit(struct bng_re_dev *rdev)
-+{
-+	bng_re_free_rcfw_channel(&rdev->rcfw);
-+	bng_re_destroy_chip_ctx(rdev);
-+	if (test_and_clear_bit(BNG_RE_FLAG_NETDEV_REGISTERED, &rdev->flags))
-+		bnge_unregister_dev(rdev->aux_dev);
-+}
-+
- static int bng_re_dev_init(struct bng_re_dev *rdev)
- {
- 	int rc;
-@@ -170,14 +184,18 @@ static int bng_re_dev_init(struct bng_re_dev *rdev)
- 
- 	bng_re_query_hwrm_version(rdev);
- 
-+	rc = bng_re_alloc_fw_channel(&rdev->bng_res, &rdev->rcfw);
-+	if (rc) {
-+		ibdev_err(&rdev->ibdev,
-+			  "Failed to allocate RCFW Channel: %#x\n", rc);
-+		goto fail;
-+	}
-+
- 	return 0;
--}
- 
--static void bng_re_dev_uninit(struct bng_re_dev *rdev)
--{
--	bng_re_destroy_chip_ctx(rdev);
--	if (test_and_clear_bit(BNG_RE_FLAG_NETDEV_REGISTERED, &rdev->flags))
--		bnge_unregister_dev(rdev->aux_dev);
-+fail:
-+	bng_re_dev_uninit(rdev);
-+	return rc;
- }
- 
- static int bng_re_add_device(struct auxiliary_device *adev)
-diff --git a/drivers/infiniband/hw/bng_re/bng_fw.c b/drivers/infiniband/hw/bng_re/bng_fw.c
+ bng_re-y := bng_dev.o bng_fw.o \
+-	    bng_res.o bng_sp.o
++	    bng_res.o bng_sp.o \
++	    bng_debugfs.o
+diff --git a/drivers/infiniband/hw/bng_re/bng_debugfs.c b/drivers/infiniband/hw/bng_re/bng_debugfs.c
 new file mode 100644
-index 000000000000..bf7bbcf9b56e
+index 000000000000..9ec5a8785250
 --- /dev/null
-+++ b/drivers/infiniband/hw/bng_re/bng_fw.c
-@@ -0,0 +1,70 @@
++++ b/drivers/infiniband/hw/bng_re/bng_debugfs.c
+@@ -0,0 +1,39 @@
 +// SPDX-License-Identifier: GPL-2.0
 +// Copyright (c) 2025 Broadcom.
++#include <linux/debugfs.h>
 +#include <linux/pci.h>
++
++#include <rdma/ib_verbs.h>
 +
 +#include "bng_res.h"
 +#include "bng_fw.h"
++#include "bnge.h"
++#include "bnge_auxr.h"
++#include "bng_re.h"
++#include "bng_debugfs.h"
 +
-+void bng_re_free_rcfw_channel(struct bng_re_rcfw *rcfw)
++static struct dentry *bng_re_debugfs_root;
++
++void bng_re_debugfs_add_pdev(struct bng_re_dev *rdev)
 +{
-+	kfree(rcfw->crsqe_tbl);
-+	bng_re_free_hwq(rcfw->res, &rcfw->cmdq.hwq);
-+	bng_re_free_hwq(rcfw->res, &rcfw->creq.hwq);
-+	rcfw->pdev = NULL;
++	struct pci_dev *pdev = rdev->aux_dev->pdev;
++
++	rdev->dbg_root =
++		debugfs_create_dir(dev_name(&pdev->dev), bng_re_debugfs_root);
 +}
 +
-+int bng_re_alloc_fw_channel(struct bng_re_res *res,
-+			    struct bng_re_rcfw *rcfw)
++void bng_re_debugfs_rem_pdev(struct bng_re_dev *rdev)
 +{
-+	struct bng_re_hwq_attr hwq_attr = {};
-+	struct bng_re_sg_info sginfo = {};
-+	struct bng_re_cmdq_ctx *cmdq;
-+	struct bng_re_creq_ctx *creq;
-+
-+	rcfw->pdev = res->pdev;
-+	cmdq = &rcfw->cmdq;
-+	creq = &rcfw->creq;
-+	rcfw->res = res;
-+
-+	sginfo.pgsize = PAGE_SIZE;
-+	sginfo.pgshft = PAGE_SHIFT;
-+
-+	hwq_attr.sginfo = &sginfo;
-+	hwq_attr.res = rcfw->res;
-+	hwq_attr.depth = BNG_FW_CREQE_MAX_CNT;
-+	hwq_attr.stride = BNG_FW_CREQE_UNITS;
-+	hwq_attr.type = BNG_HWQ_TYPE_QUEUE;
-+
-+	if (bng_re_alloc_init_hwq(&creq->hwq, &hwq_attr)) {
-+		dev_err(&rcfw->pdev->dev,
-+			"HW channel CREQ allocation failed\n");
-+		goto fail;
-+	}
-+
-+	rcfw->cmdq_depth = BNG_FW_CMDQE_MAX_CNT;
-+
-+	sginfo.pgsize = bng_fw_cmdqe_page_size(rcfw->cmdq_depth);
-+	hwq_attr.depth = rcfw->cmdq_depth & 0x7FFFFFFF;
-+	hwq_attr.stride = BNG_FW_CMDQE_UNITS;
-+	hwq_attr.type = BNG_HWQ_TYPE_CTX;
-+	if (bng_re_alloc_init_hwq(&cmdq->hwq, &hwq_attr)) {
-+		dev_err(&rcfw->pdev->dev,
-+			"HW channel CMDQ allocation failed\n");
-+		goto fail;
-+	}
-+
-+	rcfw->crsqe_tbl = kcalloc(cmdq->hwq.max_elements,
-+				  sizeof(*rcfw->crsqe_tbl), GFP_KERNEL);
-+	if (!rcfw->crsqe_tbl)
-+		goto fail;
-+
-+	spin_lock_init(&rcfw->tbl_lock);
-+
-+	rcfw->max_timeout = res->cctx->hwrm_cmd_max_timeout;
-+
-+	return 0;
-+
-+fail:
-+	bng_re_free_rcfw_channel(rcfw);
-+	return -ENOMEM;
++	debugfs_remove_recursive(rdev->dbg_root);
++	rdev->dbg_root = NULL;
 +}
-diff --git a/drivers/infiniband/hw/bng_re/bng_fw.h b/drivers/infiniband/hw/bng_re/bng_fw.h
++
++void bng_re_register_debugfs(void)
++{
++	bng_re_debugfs_root = debugfs_create_dir("bng_re", NULL);
++}
++
++void bng_re_unregister_debugfs(void)
++{
++	debugfs_remove(bng_re_debugfs_root);
++}
+diff --git a/drivers/infiniband/hw/bng_re/bng_debugfs.h b/drivers/infiniband/hw/bng_re/bng_debugfs.h
 new file mode 100644
-index 000000000000..351f73baa9df
+index 000000000000..baef71df4242
 --- /dev/null
-+++ b/drivers/infiniband/hw/bng_re/bng_fw.h
-@@ -0,0 +1,69 @@
++++ b/drivers/infiniband/hw/bng_re/bng_debugfs.h
+@@ -0,0 +1,12 @@
 +/* SPDX-License-Identifier: GPL-2.0 */
 +// Copyright (c) 2025 Broadcom.
 +
-+#ifndef __BNG_FW_H__
-+#define __BNG_FW_H__
++#ifndef __BNG_RE_DEBUGFS__
++#define __BNG_RE_DEBUGFS__
 +
-+/* CREQ */
-+#define BNG_FW_CREQE_MAX_CNT	(64 * 1024)
-+#define BNG_FW_CREQE_UNITS	16
++void bng_re_debugfs_add_pdev(struct bng_re_dev *rdev);
++void bng_re_debugfs_rem_pdev(struct bng_re_dev *rdev);
 +
-+/* CMDQ */
-+struct bng_fw_cmdqe {
-+	u8	data[16];
-+};
-+
-+#define BNG_FW_CMDQE_MAX_CNT		8192
-+#define BNG_FW_CMDQE_UNITS		sizeof(struct bng_fw_cmdqe)
-+#define BNG_FW_CMDQE_BYTES(depth)	((depth) * BNG_FW_CMDQE_UNITS)
-+
-+static inline u32 bng_fw_cmdqe_npages(u32 depth)
-+{
-+	u32 npages;
-+
-+	npages = BNG_FW_CMDQE_BYTES(depth) / PAGE_SIZE;
-+	if (BNG_FW_CMDQE_BYTES(depth) % PAGE_SIZE)
-+		npages++;
-+	return npages;
-+}
-+
-+static inline u32 bng_fw_cmdqe_page_size(u32 depth)
-+{
-+	return (bng_fw_cmdqe_npages(depth) * PAGE_SIZE);
-+}
-+
-+/* HWQ */
-+struct bng_re_cmdq_ctx {
-+	struct bng_re_hwq		hwq;
-+};
-+
-+struct bng_re_creq_ctx {
-+	struct bng_re_hwq		hwq;
-+};
-+
-+struct bng_re_crsqe {
-+	struct creq_qp_event	*resp;
-+	u32			req_size;
-+	/* Free slots at the time of submission */
-+	u32			free_slots;
-+	u8			opcode;
-+};
-+
-+/* RoCE FW Communication Channels */
-+struct bng_re_rcfw {
-+	struct pci_dev		*pdev;
-+	struct bng_re_res	*res;
-+	struct bng_re_cmdq_ctx	cmdq;
-+	struct bng_re_creq_ctx	creq;
-+	struct bng_re_crsqe	*crsqe_tbl;
-+	/* To synchronize the qp-handle hash table */
-+	spinlock_t		tbl_lock;
-+	u32			cmdq_depth;
-+	/* cached from chip cctx for quick reference in slow path */
-+	u16			max_timeout;
-+};
-+
-+void bng_re_free_rcfw_channel(struct bng_re_rcfw *rcfw);
-+int bng_re_alloc_fw_channel(struct bng_re_res *res,
-+			    struct bng_re_rcfw *rcfw);
++void bng_re_register_debugfs(void);
++void bng_re_unregister_debugfs(void);
 +#endif
+diff --git a/drivers/infiniband/hw/bng_re/bng_dev.c b/drivers/infiniband/hw/bng_re/bng_dev.c
+index 9faa64af3047..773121682bbe 100644
+--- a/drivers/infiniband/hw/bng_re/bng_dev.c
++++ b/drivers/infiniband/hw/bng_re/bng_dev.c
+@@ -14,6 +14,7 @@
+ #include "bnge_auxr.h"
+ #include "bng_re.h"
+ #include "bnge_hwrm.h"
++#include "bng_debugfs.h"
+ 
+ static char version[] =
+ 		BNG_RE_DESC "\n";
+@@ -219,6 +220,7 @@ static void bng_re_query_hwrm_version(struct bng_re_dev *rdev)
+ 
+ static void bng_re_dev_uninit(struct bng_re_dev *rdev)
+ {
++	bng_re_debugfs_rem_pdev(rdev);
+ 	bng_re_disable_rcfw_channel(&rdev->rcfw);
+ 	bng_re_net_ring_free(rdev, rdev->rcfw.creq.ring_id,
+ 			     RING_ALLOC_REQ_RING_TYPE_NQ);
+@@ -318,6 +320,9 @@ static int bng_re_dev_init(struct bng_re_dev *rdev)
+ 	rc = bng_re_get_dev_attr(&rdev->rcfw);
+ 	if (rc)
+ 		goto disable_rcfw;
++
++	bng_re_debugfs_add_pdev(rdev);
++
+ 	return 0;
+ disable_rcfw:
+ 	bng_re_disable_rcfw_channel(&rdev->rcfw);
+@@ -424,17 +429,24 @@ static int __init bng_re_mod_init(void)
+ 
+ 	pr_info("%s: %s", BNG_ROCE_DRV_MODULE_NAME, version);
+ 
++	bng_re_register_debugfs();
++
+ 	rc = auxiliary_driver_register(&bng_re_driver);
+ 	if (rc) {
+ 		pr_err("%s: Failed to register auxiliary driver\n",
+ 		       BNG_ROCE_DRV_MODULE_NAME);
++		goto unreg_debugfs;
+ 	}
++	return 0;
++unreg_debugfs:
++	bng_re_unregister_debugfs();
+ 	return rc;
+ }
+ 
+ static void __exit bng_re_mod_exit(void)
+ {
+ 	auxiliary_driver_unregister(&bng_re_driver);
++	bng_re_unregister_debugfs();
+ }
+ 
+ module_init(bng_re_mod_init);
 diff --git a/drivers/infiniband/hw/bng_re/bng_re.h b/drivers/infiniband/hw/bng_re/bng_re.h
-index db692ad8db0e..18f80e2a1a46 100644
+index 7598dd91043b..76837f17f12d 100644
 --- a/drivers/infiniband/hw/bng_re/bng_re.h
 +++ b/drivers/infiniband/hw/bng_re/bng_re.h
-@@ -27,6 +27,8 @@ struct bng_re_dev {
- 	struct bnge_auxr_dev		*aux_dev;
- 	struct bng_re_chip_ctx		*chip_ctx;
- 	int				fn_id;
-+	struct bng_re_res		bng_res;
-+	struct bng_re_rcfw		rcfw;
+@@ -76,6 +76,7 @@ struct bng_re_dev {
+ 	struct bng_re_nq_record		*nqr;
+ 	/* Device Resources */
+ 	struct bng_re_dev_attr		*dev_attr;
++	struct dentry			*dbg_root;
  };
  
- #endif
-diff --git a/drivers/infiniband/hw/bng_re/bng_res.c b/drivers/infiniband/hw/bng_re/bng_res.c
-new file mode 100644
-index 000000000000..2119d1f39b65
---- /dev/null
-+++ b/drivers/infiniband/hw/bng_re/bng_res.c
-@@ -0,0 +1,250 @@
-+// SPDX-License-Identifier: GPL-2.0
-+// Copyright (c) 2025 Broadcom.
-+
-+#include <linux/pci.h>
-+#include <linux/vmalloc.h>
-+#include <rdma/ib_umem.h>
-+
-+#include "bng_res.h"
-+#include "roce_hsi.h"
-+
-+static void bng_free_pbl(struct bng_re_res  *res, struct bng_re_pbl *pbl)
-+{
-+	struct pci_dev *pdev = res->pdev;
-+	int i;
-+
-+	for (i = 0; i < pbl->pg_count; i++) {
-+		if (pbl->pg_arr[i])
-+			dma_free_coherent(&pdev->dev, pbl->pg_size,
-+					  (void *)((unsigned long)
-+					     pbl->pg_arr[i] &
-+						PAGE_MASK),
-+					  pbl->pg_map_arr[i]);
-+		else
-+			dev_warn(&pdev->dev,
-+					"PBL free pg_arr[%d] empty?!\n", i);
-+		pbl->pg_arr[i] = NULL;
-+	}
-+
-+	vfree(pbl->pg_arr);
-+	pbl->pg_arr = NULL;
-+	vfree(pbl->pg_map_arr);
-+	pbl->pg_map_arr = NULL;
-+	pbl->pg_count = 0;
-+	pbl->pg_size = 0;
-+}
-+
-+static int bng_alloc_pbl(struct bng_re_res  *res,
-+			 struct bng_re_pbl *pbl,
-+			 struct bng_re_sg_info *sginfo)
-+{
-+	struct pci_dev *pdev = res->pdev;
-+	u32 pages;
-+	int i;
-+
-+	if (sginfo->nopte)
-+		return 0;
-+	pages = sginfo->npages;
-+
-+	/* page ptr arrays */
-+	pbl->pg_arr = vmalloc_array(pages, sizeof(void *));
-+	if (!pbl->pg_arr)
-+		return -ENOMEM;
-+
-+	pbl->pg_map_arr = vmalloc_array(pages, sizeof(dma_addr_t));
-+	if (!pbl->pg_map_arr) {
-+		vfree(pbl->pg_arr);
-+		pbl->pg_arr = NULL;
-+		return -ENOMEM;
-+	}
-+	pbl->pg_count = 0;
-+	pbl->pg_size = sginfo->pgsize;
-+
-+	for (i = 0; i < pages; i++) {
-+		pbl->pg_arr[i] = dma_alloc_coherent(&pdev->dev,
-+				pbl->pg_size,
-+				&pbl->pg_map_arr[i],
-+				GFP_KERNEL);
-+		if (!pbl->pg_arr[i])
-+			goto fail;
-+		pbl->pg_count++;
-+	}
-+
-+	return 0;
-+fail:
-+	bng_free_pbl(res, pbl);
-+	return -ENOMEM;
-+}
-+
-+void bng_re_free_hwq(struct bng_re_res *res,
-+		     struct bng_re_hwq *hwq)
-+{
-+	int i;
-+
-+	if (!hwq->max_elements)
-+		return;
-+	if (hwq->level >= BNG_PBL_LVL_MAX)
-+		return;
-+
-+	for (i = 0; i < hwq->level + 1; i++)
-+		bng_free_pbl(res, &hwq->pbl[i]);
-+
-+	hwq->level = BNG_PBL_LVL_MAX;
-+	hwq->max_elements = 0;
-+	hwq->element_size = 0;
-+	hwq->prod = 0;
-+	hwq->cons = 0;
-+}
-+
-+/* All HWQs are power of 2 in size */
-+int bng_re_alloc_init_hwq(struct bng_re_hwq *hwq,
-+			  struct bng_re_hwq_attr *hwq_attr)
-+{
-+	u32 npages, pg_size;
-+	struct bng_re_sg_info sginfo = {};
-+	u32 depth, stride, npbl, npde;
-+	dma_addr_t *src_phys_ptr, **dst_virt_ptr;
-+	struct bng_re_res *res;
-+	struct pci_dev *pdev;
-+	int i, rc, lvl;
-+
-+	res = hwq_attr->res;
-+	pdev = res->pdev;
-+	pg_size = hwq_attr->sginfo->pgsize;
-+	hwq->level = BNG_PBL_LVL_MAX;
-+
-+	depth = roundup_pow_of_two(hwq_attr->depth);
-+	stride = roundup_pow_of_two(hwq_attr->stride);
-+
-+	npages = (depth * stride) / pg_size;
-+	if ((depth * stride) % pg_size)
-+		npages++;
-+	if (!npages)
-+		return -EINVAL;
-+	hwq_attr->sginfo->npages = npages;
-+
-+	if (npages == MAX_PBL_LVL_0_PGS && !hwq_attr->sginfo->nopte) {
-+		/* This request is Level 0, map PTE */
-+		rc = bng_alloc_pbl(res, &hwq->pbl[BNG_PBL_LVL_0], hwq_attr->sginfo);
-+		if (rc)
-+			goto fail;
-+		hwq->level = BNG_PBL_LVL_0;
-+		goto done;
-+	}
-+
-+	if (npages >= MAX_PBL_LVL_0_PGS) {
-+		if (npages > MAX_PBL_LVL_1_PGS) {
-+			u32 flag = PTU_PTE_VALID;
-+			/* 2 levels of indirection */
-+			npbl = npages >> MAX_PBL_LVL_1_PGS_SHIFT;
-+			if (npages % BIT(MAX_PBL_LVL_1_PGS_SHIFT))
-+				npbl++;
-+			npde = npbl >> MAX_PDL_LVL_SHIFT;
-+			if (npbl % BIT(MAX_PDL_LVL_SHIFT))
-+				npde++;
-+			/* Alloc PDE pages */
-+			sginfo.pgsize = npde * pg_size;
-+			sginfo.npages = 1;
-+			rc = bng_alloc_pbl(res, &hwq->pbl[BNG_PBL_LVL_0], &sginfo);
-+			if (rc)
-+				goto fail;
-+
-+			/* Alloc PBL pages */
-+			sginfo.npages = npbl;
-+			sginfo.pgsize = PAGE_SIZE;
-+			rc = bng_alloc_pbl(res, &hwq->pbl[BNG_PBL_LVL_1], &sginfo);
-+			if (rc)
-+				goto fail;
-+			/* Fill PDL with PBL page pointers */
-+			dst_virt_ptr =
-+				(dma_addr_t **)hwq->pbl[BNG_PBL_LVL_0].pg_arr;
-+			src_phys_ptr = hwq->pbl[BNG_PBL_LVL_1].pg_map_arr;
-+			for (i = 0; i < hwq->pbl[BNG_PBL_LVL_1].pg_count; i++)
-+				dst_virt_ptr[0][i] = src_phys_ptr[i] | flag;
-+
-+			/* Alloc or init PTEs */
-+			rc = bng_alloc_pbl(res, &hwq->pbl[BNG_PBL_LVL_2],
-+					 hwq_attr->sginfo);
-+			if (rc)
-+				goto fail;
-+			hwq->level = BNG_PBL_LVL_2;
-+			if (hwq_attr->sginfo->nopte)
-+				goto done;
-+			/* Fill PBLs with PTE pointers */
-+			dst_virt_ptr =
-+				(dma_addr_t **)hwq->pbl[BNG_PBL_LVL_1].pg_arr;
-+			src_phys_ptr = hwq->pbl[BNG_PBL_LVL_2].pg_map_arr;
-+			for (i = 0; i < hwq->pbl[BNG_PBL_LVL_2].pg_count; i++) {
-+				dst_virt_ptr[PTR_PG(i)][PTR_IDX(i)] =
-+					src_phys_ptr[i] | PTU_PTE_VALID;
-+			}
-+			if (hwq_attr->type == BNG_HWQ_TYPE_QUEUE) {
-+				/* Find the last pg of the size */
-+				i = hwq->pbl[BNG_PBL_LVL_2].pg_count;
-+				dst_virt_ptr[PTR_PG(i - 1)][PTR_IDX(i - 1)] |=
-+								  PTU_PTE_LAST;
-+				if (i > 1)
-+					dst_virt_ptr[PTR_PG(i - 2)]
-+						    [PTR_IDX(i - 2)] |=
-+						    PTU_PTE_NEXT_TO_LAST;
-+			}
-+		} else { /* pages < 512 npbl = 1, npde = 0 */
-+			u32 flag = PTU_PTE_VALID;
-+
-+			/* 1 level of indirection */
-+			npbl = npages >> MAX_PBL_LVL_1_PGS_SHIFT;
-+			if (npages % BIT(MAX_PBL_LVL_1_PGS_SHIFT))
-+				npbl++;
-+			sginfo.npages = npbl;
-+			sginfo.pgsize = PAGE_SIZE;
-+			/* Alloc PBL page */
-+			rc = bng_alloc_pbl(res, &hwq->pbl[BNG_PBL_LVL_0], &sginfo);
-+			if (rc)
-+				goto fail;
-+			/* Alloc or init  PTEs */
-+			rc = bng_alloc_pbl(res, &hwq->pbl[BNG_PBL_LVL_1],
-+					 hwq_attr->sginfo);
-+			if (rc)
-+				goto fail;
-+			hwq->level = BNG_PBL_LVL_1;
-+			if (hwq_attr->sginfo->nopte)
-+				goto done;
-+			/* Fill PBL with PTE pointers */
-+			dst_virt_ptr =
-+				(dma_addr_t **)hwq->pbl[BNG_PBL_LVL_0].pg_arr;
-+			src_phys_ptr = hwq->pbl[BNG_PBL_LVL_1].pg_map_arr;
-+			for (i = 0; i < hwq->pbl[BNG_PBL_LVL_1].pg_count; i++)
-+				dst_virt_ptr[PTR_PG(i)][PTR_IDX(i)] =
-+					src_phys_ptr[i] | flag;
-+			if (hwq_attr->type == BNG_HWQ_TYPE_QUEUE) {
-+				/* Find the last pg of the size */
-+				i = hwq->pbl[BNG_PBL_LVL_1].pg_count;
-+				dst_virt_ptr[PTR_PG(i - 1)][PTR_IDX(i - 1)] |=
-+								  PTU_PTE_LAST;
-+				if (i > 1)
-+					dst_virt_ptr[PTR_PG(i - 2)]
-+						    [PTR_IDX(i - 2)] |=
-+						    PTU_PTE_NEXT_TO_LAST;
-+			}
-+		}
-+	}
-+done:
-+	hwq->prod = 0;
-+	hwq->cons = 0;
-+	hwq->pdev = pdev;
-+	hwq->depth = hwq_attr->depth;
-+	hwq->max_elements = hwq->depth;
-+	hwq->element_size = stride;
-+	/* For direct access to the elements */
-+	lvl = hwq->level;
-+	if (hwq_attr->sginfo->nopte && hwq->level)
-+		lvl = hwq->level - 1;
-+	hwq->pbl_ptr = hwq->pbl[lvl].pg_arr;
-+	hwq->pbl_dma_ptr = hwq->pbl[lvl].pg_map_arr;
-+	spin_lock_init(&hwq->lock);
-+
-+	return 0;
-+fail:
-+	bng_re_free_hwq(res, hwq);
-+	return -ENOMEM;
-+}
-diff --git a/drivers/infiniband/hw/bng_re/bng_res.h b/drivers/infiniband/hw/bng_re/bng_res.h
-index d64833498e2a..e6123abadfad 100644
---- a/drivers/infiniband/hw/bng_re/bng_res.h
-+++ b/drivers/infiniband/hw/bng_re/bng_res.h
-@@ -6,6 +6,18 @@
- 
- #define BNG_ROCE_FW_MAX_TIMEOUT	60
- 
-+#define PTR_CNT_PER_PG		(PAGE_SIZE / sizeof(void *))
-+#define PTR_MAX_IDX_PER_PG	(PTR_CNT_PER_PG - 1)
-+#define PTR_PG(x)		(((x) & ~PTR_MAX_IDX_PER_PG) / PTR_CNT_PER_PG)
-+#define PTR_IDX(x)		((x) & PTR_MAX_IDX_PER_PG)
-+
-+#define MAX_PBL_LVL_0_PGS		1
-+#define MAX_PBL_LVL_1_PGS		512
-+#define MAX_PBL_LVL_1_PGS_SHIFT		9
-+#define MAX_PBL_LVL_1_PGS_FOR_LVL_2	256
-+#define MAX_PBL_LVL_2_PGS		(256 * 512)
-+#define MAX_PDL_LVL_SHIFT               9
-+
- struct bng_re_chip_ctx {
- 	u16	chip_num;
- 	u16	hw_stats_size;
-@@ -13,4 +25,68 @@ struct bng_re_chip_ctx {
- 	u16	hwrm_cmd_max_timeout;
- };
- 
-+struct bng_re_pbl {
-+	u32		pg_count;
-+	u32		pg_size;
-+	void		**pg_arr;
-+	dma_addr_t	*pg_map_arr;
-+};
-+
-+enum bng_re_pbl_lvl {
-+	BNG_PBL_LVL_0,
-+	BNG_PBL_LVL_1,
-+	BNG_PBL_LVL_2,
-+	BNG_PBL_LVL_MAX
-+};
-+
-+enum bng_re_hwq_type {
-+	BNG_HWQ_TYPE_CTX,
-+	BNG_HWQ_TYPE_QUEUE
-+};
-+
-+struct bng_re_sg_info {
-+	u32	npages;
-+	u32	pgshft;
-+	u32	pgsize;
-+	bool	nopte;
-+};
-+
-+struct bng_re_hwq_attr {
-+	struct bng_re_res		*res;
-+	struct bng_re_sg_info		*sginfo;
-+	enum bng_re_hwq_type		type;
-+	u32				depth;
-+	u32				stride;
-+	u32				aux_stride;
-+	u32				aux_depth;
-+};
-+
-+struct bng_re_hwq {
-+	struct pci_dev			*pdev;
-+	/* lock to protect hwq */
-+	spinlock_t			lock;
-+	struct bng_re_pbl		pbl[BNG_PBL_LVL_MAX + 1];
-+	/* Valid values: 0, 1, 2 */
-+	enum bng_re_pbl_lvl		level;
-+	/* PBL entries */
-+	void				**pbl_ptr;
-+	/* PBL  dma_addr */
-+	dma_addr_t			*pbl_dma_ptr;
-+	u32				max_elements;
-+	u32				depth;
-+	u16				element_size;
-+	u32				prod;
-+	u32				cons;
-+};
-+
-+struct bng_re_res {
-+	struct pci_dev			*pdev;
-+	struct bng_re_chip_ctx		*cctx;
-+};
-+
-+void bng_re_free_hwq(struct bng_re_res *res,
-+		     struct bng_re_hwq *hwq);
-+
-+int bng_re_alloc_init_hwq(struct bng_re_hwq *hwq,
-+			  struct bng_re_hwq_attr *hwq_attr);
  #endif
 -- 
 2.34.1
