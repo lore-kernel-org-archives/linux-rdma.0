@@ -1,66 +1,66 @@
 Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 765E0362092;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 73EF93629AE;
 	Thu, 11 Sep 2025 19:48:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.158.5
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757620131; cv=none; b=dh7O8U67DgyOZvJVN9wACUn/d69x2hb+WTKHd9YK+76O15GYTNhvUKd9YbGFxCCIoDWJtdfkTyl12SW/bS6xNqMr+VamWxrOSPDpYJSYlelIX7QbTgPIaojCcsJ42RDsrPcsgCfDOhKdZQYNSxK6YY7OSgNFYI1koogGQaQWAts=
+	t=1757620132; cv=none; b=OHEZhX8kBlzJfjx0blzUX0z4+ASf/ol3dE2nOOlAWrr9a7OlxgkwNTw0suYaxMlxSi4Cg9uljqUrZOWpg2uJVgNiwcyZCs+dSOZ1FwQFe3lBlsauOEMPqMVE0dpOGE2W2ZXo9lSH1Wq+yv377axXajJiJ69rBjxb6xAaipsjdWw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757620131; c=relaxed/simple;
-	bh=TwepOQRX9JSZ22HSKh2QJiEW1yIXtQYaE+S4nuYPBFo=;
+	s=arc-20240116; t=1757620132; c=relaxed/simple;
+	bh=3gubRYzj3OJFMonQAtG/WHHGPvz0H7ChaAbKaF3IanM=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=l6A+wyUzAgZRFekWbTi7PkbzeYe55Hut+qlEyJC5OVvzUSJZzg2rQmT8xGR1c9tpcI8znVQ1kQrmHsoLSiZUjBx1bvftwP+fz+FMY2PyA0imBcNx7hOM1aZar31GlU1Fy055eYQmmK1//ZZuV4IZHiW/VWAT4jCZVxsYNU/Oq0I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=BU01ErWd; arc=none smtp.client-ip=148.163.158.5
+	 MIME-Version; b=K5OvJyJtD+H5MjjnPZKPLTBEAyVZS8B59UNQy4lhTc/RXIQmtBCCmhV/Xk+XSthanKOboyBQYlt/5f5UY+NtX9Qw1MrjRNV3d6MdO57X9CfHxyWcG8QbASUAUPPIV4BEX/0MJixiKYgnAY6EjC5n+T4qIF/tkZBP3SYJg4eAv58=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=lIpzAgat; arc=none smtp.client-ip=148.163.158.5
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="BU01ErWd"
-Received: from pps.filterd (m0356516.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 58BGSbrj023715;
+	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="lIpzAgat"
+Received: from pps.filterd (m0353725.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 58BEU4Z6017175;
 	Thu, 11 Sep 2025 19:48:34 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
 	:content-transfer-encoding:date:from:in-reply-to:message-id
-	:mime-version:references:subject:to; s=pp1; bh=rHmBTPCwWTePyjTx4
-	EQpwJZknaZrG4afR6vTFyVHQRc=; b=BU01ErWdg1G2x4ALfc1CATTLx71XOip16
-	v1uWB0IWNXaAmQtuZSYrgoR+4oMWjRNNarcif8AgO7zMtEwli9nftvFWXU0Mi5lY
-	bfoGBsChZpnL05lbFNM35bdGjloWukY3hci+a+AI7s8jTPfSdb6nL2z1lORPRxRm
-	3CXWYDBI4ozRT9QO2xEpoejJYm150mS2N10PMtFts3WJLfe91z/cilIDYkD7gniU
-	ZnNjSg1NYw+3zx7FvdJuOqvYuwVmSgG4C4jImqmiuMKvh7c6eAZ4CKB8CJSDqj4S
-	mikfvBb11ucjSMxwXV9T4M4xh+Z6gnnYtcP873Ul8dcjw1Po9s2/g==
+	:mime-version:references:subject:to; s=pp1; bh=zCSSFPaaECu6uojON
+	09LVzvwQ40wV/v1U7U3AlbTCsU=; b=lIpzAgatRIDv5s/3h4iHAXTFUlBARg6Dm
+	KRfOJUGHfqdGGnsTyXsfvvb65ylVApnxuxPO7CpxtvAC/nqleRMA4KnUlRSkmrex
+	FMpnSJEU6RifBb3Xvf+NZcHTQrRzOAps/FPMx9w+iNTma8w7Akb26b6mMSs71awA
+	vfPEqFdP9H3jK7ucbtFphGxN2eNykcP/MEh1+7gH9BAHfhPxmQ0uUlyBHsqNHGAz
+	i0J8ms+tSKgQIa2N2dM3eXhTF0ICPHbJCh8hQUJVe50hX2Sxgta9cpjF5dikXQVM
+	aJedxFMny4sS5uObXqbfouJErQt0SbPk8ebcernDAkknaeeJPcyzg==
 Received: from pps.reinject (localhost [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 490acre7a0-1
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 490bct65kn-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
 	Thu, 11 Sep 2025 19:48:34 +0000 (GMT)
-Received: from m0356516.ppops.net (m0356516.ppops.net [127.0.0.1])
-	by pps.reinject (8.18.1.12/8.18.0.8) with ESMTP id 58BJdgd4028902;
+Received: from m0353725.ppops.net (m0353725.ppops.net [127.0.0.1])
+	by pps.reinject (8.18.1.12/8.18.0.8) with ESMTP id 58BJe34H028939;
 	Thu, 11 Sep 2025 19:48:33 GMT
-Received: from ppma21.wdc07v.mail.ibm.com (5b.69.3da9.ip4.static.sl-reverse.com [169.61.105.91])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 490acre79u-1
+Received: from ppma11.dal12v.mail.ibm.com (db.9e.1632.ip4.static.sl-reverse.com [50.22.158.219])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 490bct65ke-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
 	Thu, 11 Sep 2025 19:48:33 +0000 (GMT)
-Received: from pps.filterd (ppma21.wdc07v.mail.ibm.com [127.0.0.1])
-	by ppma21.wdc07v.mail.ibm.com (8.18.1.2/8.18.1.2) with ESMTP id 58BGrRUq007912;
+Received: from pps.filterd (ppma11.dal12v.mail.ibm.com [127.0.0.1])
+	by ppma11.dal12v.mail.ibm.com (8.18.1.2/8.18.1.2) with ESMTP id 58BIK3ql001163;
 	Thu, 11 Sep 2025 19:48:32 GMT
-Received: from smtprelay02.fra02v.mail.ibm.com ([9.218.2.226])
-	by ppma21.wdc07v.mail.ibm.com (PPS) with ESMTPS id 49109pyg99-1
+Received: from smtprelay01.fra02v.mail.ibm.com ([9.218.2.227])
+	by ppma11.dal12v.mail.ibm.com (PPS) with ESMTPS id 491203q81f-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
 	Thu, 11 Sep 2025 19:48:32 +0000
-Received: from smtpav05.fra02v.mail.ibm.com (smtpav05.fra02v.mail.ibm.com [10.20.54.104])
-	by smtprelay02.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 58BJmScf50528744
+Received: from smtpav06.fra02v.mail.ibm.com (smtpav06.fra02v.mail.ibm.com [10.20.54.105])
+	by smtprelay01.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 58BJmS1N62456150
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
 	Thu, 11 Sep 2025 19:48:28 GMT
-Received: from smtpav05.fra02v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 5154F20043;
+Received: from smtpav06.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 5579E2004D;
 	Thu, 11 Sep 2025 19:48:28 +0000 (GMT)
-Received: from smtpav05.fra02v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 26DBC20040;
+Received: from smtpav06.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 28AFE2004B;
 	Thu, 11 Sep 2025 19:48:28 +0000 (GMT)
 Received: from tuxmaker.boeblingen.de.ibm.com (unknown [9.152.85.9])
-	by smtpav05.fra02v.mail.ibm.com (Postfix) with ESMTPS;
+	by smtpav06.fra02v.mail.ibm.com (Postfix) with ESMTPS;
 	Thu, 11 Sep 2025 19:48:28 +0000 (GMT)
 Received: by tuxmaker.boeblingen.de.ibm.com (Postfix, from userid 55271)
-	id D2961E1303; Thu, 11 Sep 2025 21:48:27 +0200 (CEST)
+	id BC917E12F0; Thu, 11 Sep 2025 21:48:27 +0200 (CEST)
 From: Alexandra Winter <wintera@linux.ibm.com>
 To: "D. Wythe" <alibuda@linux.alibaba.com>,
         Dust Li <dust.li@linux.alibaba.com>,
@@ -84,9 +84,9 @@ Cc: Julian Ruess <julianr@linux.ibm.com>,
         Herbert Xu <herbert@gondor.apana.org.au>,
         Harald Freudenberger <freude@linux.ibm.com>,
         Konstantin Shkolnyy <kshk@linux.ibm.com>
-Subject: [PATCH net-next v2 14/14] dibs: Move event handling to dibs layer
-Date: Thu, 11 Sep 2025 21:48:27 +0200
-Message-ID: <20250911194827.844125-15-wintera@linux.ibm.com>
+Subject: [PATCH net-next v2 08/14] dibs: Move struct device to dibs_dev
+Date: Thu, 11 Sep 2025 21:48:21 +0200
+Message-ID: <20250911194827.844125-9-wintera@linux.ibm.com>
 X-Mailer: git-send-email 2.48.1
 In-Reply-To: <20250911194827.844125-1-wintera@linux.ibm.com>
 References: <20250911194827.844125-1-wintera@linux.ibm.com>
@@ -98,898 +98,565 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-TM-AS-GCONF: 00
-X-Proofpoint-GUID: J3NvVsDCzqQMoCeT-g2EZppkzQHevdgJ
-X-Authority-Analysis: v=2.4 cv=Mp1S63ae c=1 sm=1 tr=0 ts=68c32792 cx=c_pps
- a=GFwsV6G8L6GxiO2Y/PsHdQ==:117 a=GFwsV6G8L6GxiO2Y/PsHdQ==:17
- a=yJojWOMRYYMA:10 a=VnNF1IyMAAAA:8 a=VwQbUJbxAAAA:8 a=vHqs-Pa0AAAA:8
- a=GISX7e9OAAAA:8 a=_UGc_VUiAAAA:8 a=t7m2geA0-EshZtX51MUA:9
- a=iA2nNOD-wZm-3X-XiBKu:22 a=trjoHNCrjGc44O9AaKLZ:22 a=x1x7-7IuMbAoE1UvoNSZ:22
-X-Proofpoint-ORIG-GUID: aSYElD2YmA2HEhu3t5Zi5h_TnAgNzfrh
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjUwOTA2MDAwMCBTYWx0ZWRfX4w6ybPfHAwPt
- E7NPGPfYBck8lj0W5uvmpP6bw4bdXqtq+I4xvNxrjhgHgnNGQsHsN4YFxI95mNP6CoBLwmnNpke
- mi/TOeRPNbSiMowXpvsxynLlZqdsnGTD6J41jwooZIShPWrM7klGFd6Gl9c682QyglCa7ZqSiij
- Kbe3FgaPAKgFs0/dMyfn1pPfpNixk3aOoDuwH3BBOVAMzR9IIt4mwvbuK1RRJE9+VUYBRJ9md0r
- 61/pxDAfnrxCQf7FoFn22AE5NP2vp0hGgCooKeFKB8gr6F00BnqzeX3xl0RbUvz7xckBEZ0dYD3
- yoSDrHAoi9OZpXJJ1NJxG0F9cY9ytuX82e14ruW6vemmSh4zj8BWShZOTHh/X+FxlkfRdr+YOY+
- 1vFQgY/v
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjUwOTA2MDAxMCBTYWx0ZWRfX3k4rdctY4P7p
+ Oto4S+E1h7FpubZg+eW0cl3SNXg1oo9B7E7CRjyXdGJhfbGb8TAW40mIcqaHLm/xWEWMo9eTZZk
+ alJFXKGvAcTDPZ4vqgOLDPQEAPhdfurCFqCcJ70AKYiazHAfkjmoqRVC+Fh1AjqEMCTkatz3UW1
+ 3MZRCi7yuFTmFbuJBQPhyvEay3kSH+3PPy/N0LGDUmRfZDUuEIOKbcP9MAwW2/oh+aWJnXZzxUp
+ 0oj8qxJ3zfVcfrILH7K6KCNlNXTIMUIujwJZoaGZG9Y+NwIVLXyj3CLsKtF7qzEOsfycOGGjylr
+ upOYcOh9ySHbbKAXAPY2cAd9r7YwXaV891exagO7EiYUUTyLBNcsXyjrOrVyCcWo6B0m6naCnCx
+ +YwEAuL5
+X-Authority-Analysis: v=2.4 cv=SKNCVPvH c=1 sm=1 tr=0 ts=68c32792 cx=c_pps
+ a=aDMHemPKRhS1OARIsFnwRA==:117 a=aDMHemPKRhS1OARIsFnwRA==:17
+ a=yJojWOMRYYMA:10 a=VnNF1IyMAAAA:8 a=GsYJ2B-qGPzP3Sa6f2MA:9
+X-Proofpoint-GUID: 99Mrv1v_taOrbh2tbNqORCYtLHOV5Y9u
+X-Proofpoint-ORIG-GUID: aRs6ed6XML-jib83qyq1wkm2hwS4z_dK
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.293,Aquarius:18.0.1117,Hydra:6.1.9,FMLib:17.12.80.40
  definitions=2025-09-11_03,2025-09-11_02,2025-03-28_01
 X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- impostorscore=0 malwarescore=0 clxscore=1015 phishscore=0 spamscore=0
- adultscore=0 priorityscore=1501 bulkscore=0 suspectscore=0
+ clxscore=1015 spamscore=0 priorityscore=1501 bulkscore=0 malwarescore=0
+ adultscore=0 suspectscore=0 impostorscore=0 phishscore=0
  classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
- reason=mlx scancount=1 engine=8.19.0-2507300000 definitions=main-2509060000
+ reason=mlx scancount=1 engine=8.19.0-2507300000 definitions=main-2509060010
 
 From: Julian Ruess <julianr@linux.ibm.com>
 
-Add defines for all event types and subtypes an ism device is known to
-produce as it can be helpful for debugging purposes.
+Move struct device from ism_dev and smc_lo_dev to dibs_dev, and define a
+corresponding release function. Free ism_dev in ism_remove() and smc_lo_dev
+in smc_lo_dev_remove().
 
-Introduces a generic 'struct dibs_event' and adopt ism device driver
-and smc-d client accordingly. Tolerate and ignore other type and subtype
-values to enable future device extensions.
+Replace smcd->ops->get_dev(smcd) by using dibs->dev directly.
 
-SMC-D and ISM are now independent.
-struct ism_dev can be moved to drivers/s390/net/ism.h.
-
-Note that in smc, the term 'ism' is still used. Future patches could
-replace that with 'dibs' or 'smc-d' as appropriate.
+An alternative design would be to embed dibs_dev as a field in ism_dev and
+do the same for other dibs device driver specific structs. However that
+would have the disadvantage that each dibs device driver needs to allocate
+dibs_dev and each dibs device driver needs a different device release
+function. The advantage would be that ism_dev and other device driver
+specific structs would be covered by device reference counts.
 
 Signed-off-by: Julian Ruess <julianr@linux.ibm.com>
 Co-developed-by: Alexandra Winter <wintera@linux.ibm.com>
 Signed-off-by: Alexandra Winter <wintera@linux.ibm.com>
+Reviewed-by: Mahanta Jambigi <mjambigi@linux.ibm.com>
 ---
- MAINTAINERS                       |   2 -
- arch/s390/configs/debug_defconfig |   1 +
- arch/s390/configs/defconfig       |   1 +
- drivers/dibs/dibs_main.c          |   2 +-
- drivers/s390/net/Kconfig          |   1 -
- drivers/s390/net/ism.h            |  42 +++++-
- drivers/s390/net/ism_drv.c        | 221 ++++++++++--------------------
- include/linux/dibs.h              |  62 +++++++++
- include/net/smc.h                 |  15 --
- net/smc/Kconfig                   |   1 -
- net/smc/smc_ism.c                 |  99 +++++--------
- 11 files changed, 208 insertions(+), 239 deletions(-)
+ drivers/dibs/dibs_loopback.c | 15 ++++++------
+ drivers/dibs/dibs_main.c     | 21 +++++++++++++++-
+ drivers/s390/net/ism_drv.c   | 40 +++++++------------------------
+ include/linux/dibs.h         |  1 +
+ include/linux/ism.h          |  1 -
+ include/net/smc.h            |  1 -
+ net/smc/smc_core.c           |  4 ++--
+ net/smc/smc_ism.c            | 46 +++++++++++++++---------------------
+ net/smc/smc_loopback.c       | 21 +---------------
+ net/smc/smc_loopback.h       |  1 -
+ net/smc/smc_pnet.c           | 13 ++++------
+ 11 files changed, 63 insertions(+), 101 deletions(-)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index f2a266fbd611..ca32082cffe2 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -17576,7 +17576,6 @@ F:	include/linux/fddidevice.h
- F:	include/linux/hippidevice.h
- F:	include/linux/if_*
- F:	include/linux/inetdevice.h
--F:	include/linux/ism.h
- F:	include/linux/netdev*
- F:	include/linux/platform_data/wiznet.h
- F:	include/uapi/linux/cn_proc.h
-@@ -22233,7 +22232,6 @@ L:	linux-s390@vger.kernel.org
- L:	netdev@vger.kernel.org
- S:	Supported
- F:	drivers/s390/net/
--F:	include/linux/ism.h
+diff --git a/drivers/dibs/dibs_loopback.c b/drivers/dibs/dibs_loopback.c
+index 215986ae54a4..76e479d5724b 100644
+--- a/drivers/dibs/dibs_loopback.c
++++ b/drivers/dibs/dibs_loopback.c
+@@ -15,6 +15,7 @@
  
- S390 PCI SUBSYSTEM
- M:	Niklas Schnelle <schnelle@linux.ibm.com>
-diff --git a/arch/s390/configs/debug_defconfig b/arch/s390/configs/debug_defconfig
-index a97c8d19f643..fdde8ee0d7bd 100644
---- a/arch/s390/configs/debug_defconfig
-+++ b/arch/s390/configs/debug_defconfig
-@@ -122,6 +122,7 @@ CONFIG_XFRM_USER=m
- CONFIG_NET_KEY=m
- CONFIG_DIBS=y
- CONFIG_DIBS_LO=y
-+CONFIG_SMC=m
- CONFIG_SMC_DIAG=m
- CONFIG_INET=y
- CONFIG_IP_MULTICAST=y
-diff --git a/arch/s390/configs/defconfig b/arch/s390/configs/defconfig
-index 7f7b52d9a33c..bf9e7dbd4a89 100644
---- a/arch/s390/configs/defconfig
-+++ b/arch/s390/configs/defconfig
-@@ -113,6 +113,7 @@ CONFIG_XFRM_USER=m
- CONFIG_NET_KEY=m
- CONFIG_DIBS=y
- CONFIG_DIBS_LO=y
-+CONFIG_SMC=m
- CONFIG_SMC_DIAG=m
- CONFIG_INET=y
- CONFIG_IP_MULTICAST=y
+ #include "dibs_loopback.h"
+ 
++static const char dibs_lo_dev_name[] = "lo";
+ /* global loopback device */
+ static struct dibs_lo_dev *lo_dev;
+ 
+@@ -27,11 +28,6 @@ static const struct dibs_dev_ops dibs_lo_ops = {
+ 	.get_fabric_id = dibs_lo_get_fabric_id,
+ };
+ 
+-static void dibs_lo_dev_exit(struct dibs_lo_dev *ldev)
+-{
+-	dibs_dev_del(ldev->dibs);
+-}
+-
+ static int dibs_lo_dev_probe(void)
+ {
+ 	struct dibs_lo_dev *ldev;
+@@ -52,6 +48,9 @@ static int dibs_lo_dev_probe(void)
+ 	dibs->drv_priv = ldev;
+ 	dibs->ops = &dibs_lo_ops;
+ 
++	dibs->dev.parent = NULL;
++	dev_set_name(&dibs->dev, "%s", dibs_lo_dev_name);
++
+ 	ret = dibs_dev_add(dibs);
+ 	if (ret)
+ 		goto err_reg;
+@@ -60,7 +59,7 @@ static int dibs_lo_dev_probe(void)
+ 
+ err_reg:
+ 	/* pairs with dibs_dev_alloc() */
+-	kfree(dibs);
++	put_device(&dibs->dev);
+ 	kfree(ldev);
+ 
+ 	return ret;
+@@ -71,9 +70,9 @@ static void dibs_lo_dev_remove(void)
+ 	if (!lo_dev)
+ 		return;
+ 
+-	dibs_lo_dev_exit(lo_dev);
++	dibs_dev_del(lo_dev->dibs);
+ 	/* pairs with dibs_dev_alloc() */
+-	kfree(lo_dev->dibs);
++	put_device(&lo_dev->dibs->dev);
+ 	kfree(lo_dev);
+ 	lo_dev = NULL;
+ }
 diff --git a/drivers/dibs/dibs_main.c b/drivers/dibs/dibs_main.c
-index aacb3ea7825a..5425238d5a42 100644
+index f1cfa5849277..610b6c452211 100644
 --- a/drivers/dibs/dibs_main.c
 +++ b/drivers/dibs/dibs_main.c
-@@ -98,7 +98,7 @@ int dibs_unregister_client(struct dibs_client *client)
- 				goto err_reg_dmb;
- 			}
- 		}
--		/* Stop forwarding IRQs */
-+		/* Stop forwarding IRQs and events */
- 		dibs->subs[client->id] = NULL;
- 		spin_unlock_irqrestore(&dibs->lock, flags);
- 		clients[client->id]->ops->del_dev(dibs);
-diff --git a/drivers/s390/net/Kconfig b/drivers/s390/net/Kconfig
-index 92985f595d59..0fd700c5745a 100644
---- a/drivers/s390/net/Kconfig
-+++ b/drivers/s390/net/Kconfig
-@@ -82,7 +82,6 @@ config CCWGROUP
- config ISM
- 	tristate "Support for ISM vPCI Adapter"
- 	depends on PCI && DIBS
--	imply SMC
- 	default n
- 	help
- 	  Select this option if you want to use the Internal Shared Memory
-diff --git a/drivers/s390/net/ism.h b/drivers/s390/net/ism.h
-index 1b9fa14da20c..08d17956cb36 100644
---- a/drivers/s390/net/ism.h
-+++ b/drivers/s390/net/ism.h
-@@ -6,13 +6,13 @@
- #include <linux/types.h>
- #include <linux/pci.h>
- #include <linux/dibs.h>
--#include <linux/ism.h>
--#include <net/smc.h>
- #include <asm/pci_insn.h>
+@@ -88,11 +88,24 @@ int dibs_unregister_client(struct dibs_client *client)
+ }
+ EXPORT_SYMBOL_GPL(dibs_unregister_client);
  
- #define UTIL_STR_LEN	16
- #define ISM_ERROR	0xFFFF
- 
-+#define ISM_NR_DMBS	1920
-+
- /*
-  * Do not use the first word of the DMB bits to ensure 8 byte aligned access.
-  */
-@@ -34,6 +34,23 @@
- #define ISM_UNREG_SBA	0x11
- #define ISM_UNREG_IEQ	0x12
- 
-+enum ism_event_type {
-+	ISM_EVENT_BUF = 0x00,
-+	ISM_EVENT_DEV = 0x01,
-+	ISM_EVENT_SWR = 0x02
-+};
-+
-+enum ism_event_code {
-+	ISM_BUF_DMB_UNREGISTERED = 0x04,
-+	ISM_BUF_USING_ISM_DEV_DISABLED = 0x08,
-+	ISM_BUF_OWNING_ISM_DEV_IN_ERR_STATE = 0x02,
-+	ISM_BUF_USING_ISM_DEV_IN_ERR_STATE = 0x03,
-+	ISM_BUF_VLAN_MISMATCH_WITH_OWNER = 0x05,
-+	ISM_BUF_VLAN_MISMATCH_WITH_USER = 0x06,
-+	ISM_DEV_GID_DISABLED = 0x07,
-+	ISM_DEV_GID_ERR_STATE = 0x01
-+};
-+
- struct ism_req_hdr {
- 	u32 cmd;
- 	u16 : 16;
-@@ -185,6 +202,14 @@ struct ism_eq_header {
- 	u64 : 64;
- };
- 
-+struct ism_event {
-+	u32 type;
-+	u32 code;
-+	u64 tok;
-+	u64 time;
-+	u64 info;
-+};
-+
- struct ism_eq {
- 	struct ism_eq_header header;
- 	struct ism_event entry[15];
-@@ -199,6 +224,19 @@ struct ism_sba {
- 	u16 dmbe_mask[ISM_NR_DMBS];
- };
- 
-+struct ism_dev {
-+	spinlock_t cmd_lock; /* serializes cmds */
++static void dibs_dev_release(struct device *dev)
++{
 +	struct dibs_dev *dibs;
-+	struct pci_dev *pdev;
-+	struct ism_sba *sba;
-+	dma_addr_t sba_dma_addr;
-+	DECLARE_BITMAP(sba_bitmap, ISM_NR_DMBS);
 +
-+	struct ism_eq *ieq;
-+	dma_addr_t ieq_dma_addr;
-+	int ieq_idx;
-+};
++	dibs = container_of(dev, struct dibs_dev, dev);
 +
- #define ISM_CREATE_REQ(dmb, idx, sf, offset)		\
- 	((dmb) | (idx) << 24 | (sf) << 23 | (offset))
++	kfree(dibs);
++}
++
+ struct dibs_dev *dibs_dev_alloc(void)
+ {
+ 	struct dibs_dev *dibs;
+ 
+ 	dibs = kzalloc(sizeof(*dibs), GFP_KERNEL);
++	if (!dibs)
++		return dibs;
++	dibs->dev.release = dibs_dev_release;
++	device_initialize(&dibs->dev);
+ 
+ 	return dibs;
+ }
+@@ -100,7 +113,11 @@ EXPORT_SYMBOL_GPL(dibs_dev_alloc);
+ 
+ int dibs_dev_add(struct dibs_dev *dibs)
+ {
+-	int i;
++	int i, ret;
++
++	ret = device_add(&dibs->dev);
++	if (ret)
++		return ret;
+ 
+ 	mutex_lock(&dibs_dev_list.mutex);
+ 	mutex_lock(&clients_lock);
+@@ -129,6 +146,8 @@ void dibs_dev_del(struct dibs_dev *dibs)
+ 	mutex_unlock(&clients_lock);
+ 	list_del_init(&dibs->list);
+ 	mutex_unlock(&dibs_dev_list.mutex);
++
++	device_del(&dibs->dev);
+ }
+ EXPORT_SYMBOL_GPL(dibs_dev_del);
  
 diff --git a/drivers/s390/net/ism_drv.c b/drivers/s390/net/ism_drv.c
-index 346d1ea8650b..f84aa2e676e9 100644
+index 2bd8f64ebb56..4096ea9faa7e 100644
 --- a/drivers/s390/net/ism_drv.c
 +++ b/drivers/s390/net/ism_drv.c
-@@ -31,86 +31,6 @@ MODULE_DEVICE_TABLE(pci, ism_device_table);
+@@ -602,15 +602,6 @@ static int ism_dev_init(struct ism_dev *ism)
+ 	return ret;
+ }
  
- static debug_info_t *ism_debug_info;
- 
--#define NO_CLIENT		0xff		/* must be >= MAX_CLIENTS */
--static struct ism_client *clients[MAX_CLIENTS];	/* use an array rather than */
--						/* a list for fast mapping  */
--static u8 max_client;
--static DEFINE_MUTEX(clients_lock);
--struct ism_dev_list {
--	struct list_head list;
--	struct mutex mutex; /* protects ism device list */
--};
--
--static struct ism_dev_list ism_dev_list = {
--	.list = LIST_HEAD_INIT(ism_dev_list.list),
--	.mutex = __MUTEX_INITIALIZER(ism_dev_list.mutex),
--};
--
--static void ism_setup_forwarding(struct ism_client *client, struct ism_dev *ism)
--{
--	unsigned long flags;
--
--	spin_lock_irqsave(&ism->lock, flags);
--	ism->subs[client->id] = client;
--	spin_unlock_irqrestore(&ism->lock, flags);
--}
--
--int ism_register_client(struct ism_client *client)
+-static void ism_dev_release(struct device *dev)
 -{
 -	struct ism_dev *ism;
--	int i, rc = -ENOSPC;
 -
--	mutex_lock(&ism_dev_list.mutex);
--	mutex_lock(&clients_lock);
--	for (i = 0; i < MAX_CLIENTS; ++i) {
--		if (!clients[i]) {
--			clients[i] = client;
--			client->id = i;
--			if (i == max_client)
--				max_client++;
--			rc = 0;
--			break;
--		}
--	}
--	mutex_unlock(&clients_lock);
+-	ism = container_of(dev, struct ism_dev, dev);
 -
--	if (i < MAX_CLIENTS) {
--		/* initialize with all devices that we got so far */
--		list_for_each_entry(ism, &ism_dev_list.list, list) {
--			ism->priv[i] = NULL;
--			ism_setup_forwarding(client, ism);
--		}
--	}
--	mutex_unlock(&ism_dev_list.mutex);
--
--	return rc;
+-	kfree(ism);
 -}
--EXPORT_SYMBOL_GPL(ism_register_client);
 -
--int ism_unregister_client(struct ism_client *client)
--{
--	struct ism_dev *ism;
--	unsigned long flags;
--	int rc = 0;
--
--	mutex_lock(&ism_dev_list.mutex);
--	list_for_each_entry(ism, &ism_dev_list.list, list) {
--		spin_lock_irqsave(&ism->lock, flags);
--		/* Stop forwarding IRQs and events */
--		ism->subs[client->id] = NULL;
--		spin_unlock_irqrestore(&ism->lock, flags);
--	}
--	mutex_unlock(&ism_dev_list.mutex);
--
--	mutex_lock(&clients_lock);
--	clients[client->id] = NULL;
--	if (client->id + 1 == max_client)
--		max_client--;
--	mutex_unlock(&clients_lock);
--	return rc;
--}
--EXPORT_SYMBOL_GPL(ism_unregister_client);
--
- static int ism_cmd(struct ism_dev *ism, void *cmd)
- {
- 	struct ism_req_hdr *req = cmd;
-@@ -445,6 +365,24 @@ static int ism_del_vlan_id(struct dibs_dev *dibs, u64 vlan_id)
- 	return ism_cmd(ism, &cmd);
- }
- 
-+static int ism_signal_ieq(struct dibs_dev *dibs, const uuid_t *rgid,
-+			  u32 trigger_irq, u32 event_code, u64 info)
-+{
-+	struct ism_dev *ism = dibs->drv_priv;
-+	union ism_sig_ieq cmd;
-+
-+	memset(&cmd, 0, sizeof(cmd));
-+	cmd.request.hdr.cmd = ISM_SIGNAL_IEQ;
-+	cmd.request.hdr.len = sizeof(cmd.request);
-+
-+	memcpy(&cmd.request.rgid, rgid, sizeof(cmd.request.rgid));
-+	cmd.request.trigger_irq = trigger_irq;
-+	cmd.request.event_code = event_code;
-+	cmd.request.info = info;
-+
-+	return ism_cmd(ism, &cmd);
-+}
-+
- static unsigned int max_bytes(unsigned int start, unsigned int len,
- 			      unsigned int boundary)
- {
-@@ -487,22 +425,68 @@ static u16 ism_get_chid(struct dibs_dev *dibs)
- 	return to_zpci(ism->pdev)->pchid;
- }
- 
-+static int ism_match_event_type(u32 s390_event_type)
-+{
-+	switch (s390_event_type) {
-+	case ISM_EVENT_BUF:
-+		return DIBS_BUF_EVENT;
-+	case ISM_EVENT_DEV:
-+		return DIBS_DEV_EVENT;
-+	case ISM_EVENT_SWR:
-+		return DIBS_SW_EVENT;
-+	default:
-+		return DIBS_OTHER_TYPE;
-+	}
-+}
-+
-+static int ism_match_event_subtype(u32 s390_event_subtype)
-+{
-+	switch (s390_event_subtype) {
-+	case ISM_BUF_DMB_UNREGISTERED:
-+		return DIBS_BUF_UNREGISTERED;
-+	case ISM_DEV_GID_DISABLED:
-+		return DIBS_DEV_DISABLED;
-+	case ISM_DEV_GID_ERR_STATE:
-+		return DIBS_DEV_ERR_STATE;
-+	default:
-+		return DIBS_OTHER_SUBTYPE;
-+	}
-+}
-+
- static void ism_handle_event(struct ism_dev *ism)
- {
-+	struct dibs_dev *dibs = ism->dibs;
-+	struct dibs_event event;
- 	struct ism_event *entry;
--	struct ism_client *clt;
-+	struct dibs_client *clt;
- 	int i;
- 
- 	while ((ism->ieq_idx + 1) != READ_ONCE(ism->ieq->header.idx)) {
--		if (++(ism->ieq_idx) == ARRAY_SIZE(ism->ieq->entry))
-+		if (++ism->ieq_idx == ARRAY_SIZE(ism->ieq->entry))
- 			ism->ieq_idx = 0;
- 
- 		entry = &ism->ieq->entry[ism->ieq_idx];
- 		debug_event(ism_debug_info, 2, entry, sizeof(*entry));
--		for (i = 0; i < max_client; ++i) {
--			clt = ism->subs[i];
-+		__memset(&event, 0, sizeof(event));
-+		event.type = ism_match_event_type(entry->type);
-+		if (event.type == DIBS_SW_EVENT)
-+			event.subtype = entry->code;
-+		else
-+			event.subtype = ism_match_event_subtype(entry->code);
-+		event.time = entry->time;
-+		event.data = entry->info;
-+		switch (event.type) {
-+		case DIBS_BUF_EVENT:
-+			event.buffer_tok = entry->tok;
-+			break;
-+		case DIBS_DEV_EVENT:
-+		case DIBS_SW_EVENT:
-+			memcpy(&event.gid, &entry->tok, sizeof(u64));
-+		}
-+		for (i = 0; i < MAX_DIBS_CLIENTS; ++i) {
-+			clt = dibs->subs[i];
- 			if (clt)
--				clt->handle_event(ism, entry);
-+				clt->ops->handle_event(dibs, &event);
- 		}
- 	}
- }
-@@ -560,12 +544,13 @@ static const struct dibs_dev_ops ism_ops = {
- 	.move_data = ism_move,
- 	.add_vlan_id = ism_add_vlan_id,
- 	.del_vlan_id = ism_del_vlan_id,
-+	.signal_event = ism_signal_ieq,
- };
- 
- static int ism_dev_init(struct ism_dev *ism)
- {
- 	struct pci_dev *pdev = ism->pdev;
--	int i, ret;
-+	int ret;
- 
- 	ret = pci_alloc_irq_vectors(pdev, 1, 1, PCI_IRQ_MSI);
- 	if (ret <= 0)
-@@ -584,18 +569,6 @@ static int ism_dev_init(struct ism_dev *ism)
- 	if (ret)
- 		goto unreg_sba;
- 
--	mutex_lock(&ism_dev_list.mutex);
--	mutex_lock(&clients_lock);
--	for (i = 0; i < max_client; ++i) {
--		if (clients[i]) {
--			ism_setup_forwarding(clients[i], ism);
--		}
--	}
--	mutex_unlock(&clients_lock);
--
--	list_add(&ism->list, &ism_dev_list.list);
--	mutex_unlock(&ism_dev_list.mutex);
--
- 	query_info(ism);
- 	return 0;
- 
-@@ -612,22 +585,11 @@ static int ism_dev_init(struct ism_dev *ism)
  static void ism_dev_exit(struct ism_dev *ism)
  {
  	struct pci_dev *pdev = ism->pdev;
--	unsigned long flags;
--	int i;
--
--	spin_lock_irqsave(&ism->lock, flags);
--	for (i = 0; i < max_client; ++i)
--		ism->subs[i] = NULL;
--	spin_unlock_irqrestore(&ism->lock, flags);
--
--	mutex_lock(&ism_dev_list.mutex);
- 
- 	unregister_ieq(ism);
- 	unregister_sba(ism);
- 	free_irq(pci_irq_vector(pdev, 0), ism);
- 	pci_free_irq_vectors(pdev);
--	list_del_init(&ism->list);
--	mutex_unlock(&ism_dev_list.mutex);
- }
- 
- static int ism_probe(struct pci_dev *pdev, const struct pci_device_id *id)
-@@ -641,7 +603,6 @@ static int ism_probe(struct pci_dev *pdev, const struct pci_device_id *id)
- 	if (!ism)
- 		return -ENOMEM;
- 
--	spin_lock_init(&ism->lock);
+@@ -649,17 +640,10 @@ static int ism_probe(struct pci_dev *pdev, const struct pci_device_id *id)
  	spin_lock_init(&ism->cmd_lock);
  	dev_set_drvdata(&pdev->dev, ism);
  	ism->pdev = pdev;
-@@ -742,8 +703,6 @@ static int __init ism_init(void)
- 	if (!ism_debug_info)
- 		return -ENODEV;
+-	ism->dev.parent = &pdev->dev;
+-	ism->dev.release = ism_dev_release;
+-	device_initialize(&ism->dev);
+-	dev_set_name(&ism->dev, "%s", dev_name(&pdev->dev));
+-	ret = device_add(&ism->dev);
+-	if (ret)
+-		goto err_dev;
  
--	memset(clients, 0, sizeof(clients));
--	max_client = 0;
- 	debug_register_view(ism_debug_info, &debug_hex_ascii_view);
- 	ret = pci_register_driver(&ism_driver);
+ 	ret = pci_enable_device_mem(pdev);
  	if (ret)
-@@ -760,41 +719,3 @@ static void __exit ism_exit(void)
+-		goto err;
++		goto err_dev;
  
- module_init(ism_init);
- module_exit(ism_exit);
--
--/*************************** SMC-D Implementation *****************************/
--
--#if IS_ENABLED(CONFIG_SMC)
--static int ism_signal_ieq(struct ism_dev *ism, u64 rgid, u32 trigger_irq,
--			  u32 event_code, u64 info)
+ 	ret = pci_request_mem_regions(pdev, DRV_NAME);
+ 	if (ret)
+@@ -687,6 +671,9 @@ static int ism_probe(struct pci_dev *pdev, const struct pci_device_id *id)
+ 	if (ret)
+ 		goto err_dibs;
+ 
++	dibs->dev.parent = &pdev->dev;
++	dev_set_name(&dibs->dev, "%s", dev_name(&pdev->dev));
++
+ 	ret = dibs_dev_add(dibs);
+ 	if (ret)
+ 		goto err_ism;
+@@ -697,16 +684,14 @@ static int ism_probe(struct pci_dev *pdev, const struct pci_device_id *id)
+ 	ism_dev_exit(ism);
+ err_dibs:
+ 	/* pairs with dibs_dev_alloc() */
+-	kfree(dibs);
++	put_device(&dibs->dev);
+ err_resource:
+ 	pci_release_mem_regions(pdev);
+ err_disable:
+ 	pci_disable_device(pdev);
+-err:
+-	device_del(&ism->dev);
+ err_dev:
+ 	dev_set_drvdata(&pdev->dev, NULL);
+-	put_device(&ism->dev);
++	kfree(ism);
+ 
+ 	return ret;
+ }
+@@ -719,13 +704,12 @@ static void ism_remove(struct pci_dev *pdev)
+ 	dibs_dev_del(dibs);
+ 	ism_dev_exit(ism);
+ 	/* pairs with dibs_dev_alloc() */
+-	kfree(dibs);
++	put_device(&dibs->dev);
+ 
+ 	pci_release_mem_regions(pdev);
+ 	pci_disable_device(pdev);
+-	device_del(&ism->dev);
+ 	dev_set_drvdata(&pdev->dev, NULL);
+-	put_device(&ism->dev);
++	kfree(ism);
+ }
+ 
+ static struct pci_driver ism_driver = {
+@@ -866,13 +850,6 @@ static void smcd_get_local_gid(struct smcd_dev *smcd,
+ 	smcd_gid->gid_ext = 0;
+ }
+ 
+-static inline struct device *smcd_get_dev(struct smcd_dev *dev)
 -{
--	union ism_sig_ieq cmd;
+-	struct ism_dev *ism = dev->priv;
 -
--	memset(&cmd, 0, sizeof(cmd));
--	cmd.request.hdr.cmd = ISM_SIGNAL_IEQ;
--	cmd.request.hdr.len = sizeof(cmd.request);
--
--	cmd.request.rgid = rgid;
--	cmd.request.trigger_irq = trigger_irq;
--	cmd.request.event_code = event_code;
--	cmd.request.info = info;
--
--	return ism_cmd(ism, &cmd);
+-	return &ism->dev;
 -}
 -
--static int smcd_signal_ieq(struct smcd_dev *smcd, struct smcd_gid *rgid,
--			   u32 trigger_irq, u32 event_code, u64 info)
--{
--	return ism_signal_ieq(smcd->priv, rgid->gid,
--			      trigger_irq, event_code, info);
--}
--
--static const struct smcd_ops ism_smcd_ops = {
--	.signal_event = smcd_signal_ieq,
--};
--
--const struct smcd_ops *ism_get_smcd_ops(void)
--{
--	return &ism_smcd_ops;
--}
--EXPORT_SYMBOL_GPL(ism_get_smcd_ops);
--#endif
+ static const struct smcd_ops ism_smcd_ops = {
+ 	.query_remote_gid = smcd_query_rgid,
+ 	.register_dmb = smcd_register_dmb,
+@@ -885,7 +862,6 @@ static const struct smcd_ops ism_smcd_ops = {
+ 	.move_data = smcd_move,
+ 	.supports_v2 = smcd_supports_v2,
+ 	.get_local_gid = smcd_get_local_gid,
+-	.get_dev = smcd_get_dev,
+ };
+ 
+ const struct smcd_ops *ism_get_smcd_ops(void)
 diff --git a/include/linux/dibs.h b/include/linux/dibs.h
-index be009c614205..c75607f8a5cf 100644
+index 805ab33271b5..793c6e1ece0f 100644
 --- a/include/linux/dibs.h
 +++ b/include/linux/dibs.h
-@@ -67,6 +67,41 @@ struct dibs_dmb {
- 	dma_addr_t dma_addr;
- };
+@@ -135,6 +135,7 @@ struct dibs_dev_ops {
  
-+/* DIBS events
-+ * -----------
-+ * Dibs devices can optionally notify dibs clients about events that happened
-+ * in the fabric or at the remote device or remote dmb.
-+ */
-+enum dibs_event_type {
-+	/* Buffer event, e.g. a remote dmb was unregistered */
-+	DIBS_BUF_EVENT,
-+	/* Device event, e.g. a remote dibs device was disabled */
-+	DIBS_DEV_EVENT,
-+	/* Software event, a dibs client can send an event signal to a
-+	 * remote dibs device.
-+	 */
-+	DIBS_SW_EVENT,
-+	DIBS_OTHER_TYPE };
-+
-+enum dibs_event_subtype {
-+	DIBS_BUF_UNREGISTERED,
-+	DIBS_DEV_DISABLED,
-+	DIBS_DEV_ERR_STATE,
-+	DIBS_OTHER_SUBTYPE
-+};
-+
-+struct dibs_event {
-+	u32 type;
-+	u32 subtype;
-+	/* uuid_null if invalid */
-+	uuid_t gid;
-+	/* zero if invalid */
-+	u64 buffer_tok;
-+	u64 time;
-+	/* additional data or zero */
-+	u64 data;
-+};
-+
- struct dibs_dev;
+ struct dibs_dev {
+ 	struct list_head list;
++	struct device dev;
+ 	/* To be filled by device driver, before calling dibs_dev_add(): */
+ 	const struct dibs_dev_ops *ops;
+ 	/* priv pointer for device driver */
+diff --git a/include/linux/ism.h b/include/linux/ism.h
+index c818a25996db..84f1afb3dded 100644
+--- a/include/linux/ism.h
++++ b/include/linux/ism.h
+@@ -42,7 +42,6 @@ struct ism_dev {
+ 	struct ism_eq *ieq;
+ 	dma_addr_t ieq_dma_addr;
  
- /* DIBS client
-@@ -117,6 +152,15 @@ struct dibs_client_ops {
- 	 */
- 	void (*handle_irq)(struct dibs_dev *dev, unsigned int idx,
- 			   u16 dmbemask);
-+	/**
-+	 * handle_event() - Handle control information sent by device
-+	 * @dev: device reporting the event
-+	 * @event: ism event structure
-+	 *
-+	 * * Context: Called in IRQ context by dibs device driver
-+	 */
-+	void (*handle_event)(struct dibs_dev *dev,
-+			     const struct dibs_event *event);
- };
+-	struct device dev;
+ 	u64 local_gid;
+ 	int ieq_idx;
  
- struct dibs_client {
-@@ -285,6 +329,24 @@ struct dibs_dev_ops {
- 	 * Return: zero on success
- 	 */
- 	int (*del_vlan_id)(struct dibs_dev *dev, u64 vlan_id);
-+	/**
-+	 * signal_event() - trigger an event at a remote dibs device (optional)
-+	 * @dev: local dibs device
-+	 * @rgid: gid of remote dibs device
-+	 * trigger_irq: zero: notification may be coalesced with other events
-+	 *		non-zero: notify immediately
-+	 * @subtype: 4 byte event code, meaning is defined by dibs client
-+	 * @data: 8 bytes of additional information,
-+	 *	  meaning is defined by dibs client
-+	 *
-+	 * dibs devices can offer support for sending a control event of type
-+	 * EVENT_SWR to a remote dibs device.
-+	 * NOTE: handle_event() will be called for all registered dibs clients
-+	 * at the remote device.
-+	 * Return: zero on success
-+	 */
-+	int (*signal_event)(struct dibs_dev *dev, const uuid_t *rgid,
-+			    u32 trigger_irq, u32 event_code, u64 info);
- 	/**
- 	 * support_mmapped_rdmb() - can this device provide memory mapped
- 	 *			    remote dmbs? (optional)
 diff --git a/include/net/smc.h b/include/net/smc.h
-index 8e3debcf7db5..08bee529ed8d 100644
+index e271891b85e6..05faac83371e 100644
 --- a/include/net/smc.h
 +++ b/include/net/smc.h
-@@ -16,7 +16,6 @@
- #include <linux/types.h>
- #include <linux/wait.h>
- #include <linux/dibs.h>
--#include "linux/ism.h"
+@@ -63,7 +63,6 @@ struct smcd_ops {
+ 			 unsigned int size);
+ 	int (*supports_v2)(void);
+ 	void (*get_local_gid)(struct smcd_dev *dev, struct smcd_gid *gid);
+-	struct device* (*get_dev)(struct smcd_dev *dev);
  
- struct sock;
- 
-@@ -28,28 +27,14 @@ struct smc_hashinfo {
- };
- 
- /* SMCD/ISM device driver interface */
--#define ISM_EVENT_DMB	0
--#define ISM_EVENT_GID	1
--#define ISM_EVENT_SWR	2
--
- #define ISM_RESERVED_VLANID	0x1FFF
- 
--struct smcd_dev;
--
- struct smcd_gid {
- 	u64	gid;
- 	u64	gid_ext;
- };
- 
--struct smcd_ops {
--	/* optional operations */
--	int (*signal_event)(struct smcd_dev *dev, struct smcd_gid *rgid,
--			    u32 trigger_irq, u32 event_code, u64 info);
--};
--
- struct smcd_dev {
--	const struct smcd_ops *ops;
--	void *priv;
- 	struct dibs_dev *dibs;
- 	struct list_head list;
- 	spinlock_t lock;
-diff --git a/net/smc/Kconfig b/net/smc/Kconfig
-index 9535d88c2acb..99ecd59d1f4b 100644
---- a/net/smc/Kconfig
-+++ b/net/smc/Kconfig
-@@ -2,7 +2,6 @@
- config SMC
- 	tristate "SMC socket protocol family"
- 	depends on INET && INFINIBAND && DIBS
--	depends on m || ISM != m
- 	help
- 	  SMC-R provides a "sockets over RDMA" solution making use of
- 	  RDMA over Converged Ethernet (RoCE) technology to upgrade
+ 	/* optional operations */
+ 	int (*add_vlan_id)(struct smcd_dev *dev, u64 vlan_id);
+diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
+index 262746e304dd..2b9e2245d586 100644
+--- a/net/smc/smc_core.c
++++ b/net/smc/smc_core.c
+@@ -924,7 +924,7 @@ static int smc_lgr_create(struct smc_sock *smc, struct smc_init_info *ini)
+ 	if (ini->is_smcd) {
+ 		/* SMC-D specific settings */
+ 		smcd = ini->ism_dev[ini->ism_selected];
+-		get_device(smcd->ops->get_dev(smcd));
++		get_device(&smcd->dibs->dev);
+ 		lgr->peer_gid.gid =
+ 			ini->ism_peer_gid[ini->ism_selected].gid;
+ 		lgr->peer_gid.gid_ext =
+@@ -1474,7 +1474,7 @@ static void smc_lgr_free(struct smc_link_group *lgr)
+ 	destroy_workqueue(lgr->tx_wq);
+ 	if (lgr->is_smcd) {
+ 		smc_ism_put_vlan(lgr->smcd, lgr->vlan_id);
+-		put_device(lgr->smcd->ops->get_dev(lgr->smcd));
++		put_device(&lgr->smcd->dibs->dev);
+ 	}
+ 	smc_lgr_put(lgr); /* theoretically last lgr_put */
+ }
 diff --git a/net/smc/smc_ism.c b/net/smc/smc_ism.c
-index 01e49371d23d..7b228ca2f96a 100644
+index 415f03910c91..6a6e7c9641e8 100644
 --- a/net/smc/smc_ism.c
 +++ b/net/smc/smc_ism.c
-@@ -17,7 +17,6 @@
- #include "smc_ism.h"
- #include "smc_pnet.h"
- #include "smc_netlink.h"
--#include "linux/ism.h"
- #include "linux/dibs.h"
- 
- struct smcd_dev_list smcd_dev_list = {
-@@ -30,20 +29,15 @@ static u8 smc_ism_v2_system_eid[SMC_MAX_EID_LEN];
- 
- static void smcd_register_dev(struct dibs_dev *dibs);
- static void smcd_unregister_dev(struct dibs_dev *dibs);
--#if IS_ENABLED(CONFIG_ISM)
--static void smcd_handle_event(struct ism_dev *ism, struct ism_event *event);
--
--static struct ism_client smc_ism_client = {
--	.name = "SMC-D",
--	.handle_event = smcd_handle_event,
--};
--#endif
-+static void smcd_handle_event(struct dibs_dev *dibs,
-+			      const struct dibs_event *event);
- static void smcd_handle_irq(struct dibs_dev *dibs, unsigned int dmbno,
- 			    u16 dmbemask);
- 
- static struct dibs_client_ops smc_client_ops = {
- 	.add_dev = smcd_register_dev,
- 	.del_dev = smcd_unregister_dev,
-+	.handle_event = smcd_handle_event,
- 	.handle_irq = smcd_handle_irq,
- };
- 
-@@ -399,11 +393,10 @@ int smcd_nl_get_device(struct sk_buff *skb, struct netlink_callback *cb)
- 	return skb->len;
- }
- 
--#if IS_ENABLED(CONFIG_ISM)
- struct smc_ism_event_work {
- 	struct work_struct work;
- 	struct smcd_dev *smcd;
--	struct ism_event event;
-+	struct dibs_event event;
- };
- 
- #define ISM_EVENT_REQUEST		0x0001
-@@ -423,25 +416,27 @@ union smcd_sw_event_info {
- 
- static void smcd_handle_sw_event(struct smc_ism_event_work *wrk)
- {
--	struct smcd_gid peer_gid = { .gid = wrk->event.tok,
--				     .gid_ext = 0 };
-+	struct dibs_dev *dibs = wrk->smcd->dibs;
- 	union smcd_sw_event_info ev_info;
-+	struct smcd_gid peer_gid;
-+	uuid_t ism_rgid;
- 
--	ev_info.info = wrk->event.info;
--	switch (wrk->event.code) {
-+	copy_to_smcdgid(&peer_gid, &wrk->event.gid);
-+	ev_info.info = wrk->event.data;
-+	switch (wrk->event.subtype) {
- 	case ISM_EVENT_CODE_SHUTDOWN:	/* Peer shut down DMBs */
- 		smc_smcd_terminate(wrk->smcd, &peer_gid, ev_info.vlan_id);
- 		break;
- 	case ISM_EVENT_CODE_TESTLINK:	/* Activity timer */
- 		if (ev_info.code == ISM_EVENT_REQUEST &&
--		    wrk->smcd->ops->signal_event) {
-+		    dibs->ops->signal_event) {
- 			ev_info.code = ISM_EVENT_RESPONSE;
--			wrk->smcd->ops->signal_event(wrk->smcd,
--						     &peer_gid,
--						     ISM_EVENT_REQUEST_IR,
--						     ISM_EVENT_CODE_TESTLINK,
--						     ev_info.info);
--			}
-+			copy_to_dibsgid(&ism_rgid, &peer_gid);
-+			dibs->ops->signal_event(dibs, &ism_rgid,
-+					       ISM_EVENT_REQUEST_IR,
-+					       ISM_EVENT_CODE_TESTLINK,
-+					       ev_info.info);
-+		}
- 		break;
- 	}
- }
-@@ -451,26 +446,24 @@ static void smc_ism_event_work(struct work_struct *work)
- {
- 	struct smc_ism_event_work *wrk =
- 		container_of(work, struct smc_ism_event_work, work);
--	struct smcd_gid smcd_gid = { .gid = wrk->event.tok,
--				     .gid_ext = 0 };
-+	struct smcd_gid smcd_gid;
-+
-+	copy_to_smcdgid(&smcd_gid, &wrk->event.gid);
- 
- 	switch (wrk->event.type) {
--	case ISM_EVENT_GID:	/* GID event, token is peer GID */
-+	case DIBS_DEV_EVENT: /* GID event, token is peer GID */
- 		smc_smcd_terminate(wrk->smcd, &smcd_gid, VLAN_VID_MASK);
- 		break;
--	case ISM_EVENT_DMB:
-+	case DIBS_BUF_EVENT:
- 		break;
--	case ISM_EVENT_SWR:	/* Software defined event */
-+	case DIBS_SW_EVENT: /* Software defined event */
- 		smcd_handle_sw_event(wrk);
- 		break;
- 	}
- 	kfree(wrk);
- }
--#endif
- 
--static struct smcd_dev *smcd_alloc_dev(const char *name,
--				       const struct smcd_ops *ops,
--				       int max_dmbs)
-+static struct smcd_dev *smcd_alloc_dev(const char *name, int max_dmbs)
- {
- 	struct smcd_dev *smcd;
- 
-@@ -487,8 +480,6 @@ static struct smcd_dev *smcd_alloc_dev(const char *name,
- 	if (!smcd->event_wq)
- 		goto free_conn;
- 
--	smcd->ops = ops;
--
- 	spin_lock_init(&smcd->lock);
- 	spin_lock_init(&smcd->lgr_lock);
- 	INIT_LIST_HEAD(&smcd->vlan);
-@@ -506,36 +497,17 @@ static struct smcd_dev *smcd_alloc_dev(const char *name,
- static void smcd_register_dev(struct dibs_dev *dibs)
- {
- 	struct smcd_dev *smcd, *fentry;
--	const struct smcd_ops *ops;
+@@ -303,12 +303,12 @@ static int smc_nl_handle_smcd_dev(struct smcd_dev *smcd,
+ 	char smc_pnet[SMC_MAX_PNETID_LEN + 1];
+ 	struct smc_pci_dev smc_pci_dev;
+ 	struct nlattr *port_attrs;
++	struct dibs_dev *dibs;
+ 	struct nlattr *attrs;
 -	struct ism_dev *ism;
- 	int max_dmbs;
+ 	int use_cnt = 0;
+ 	void *nlh;
  
- 	max_dmbs = dibs->ops->max_dmbs();
+-	ism = smcd->priv;
++	dibs = smcd->dibs;
+ 	nlh = genlmsg_put(skb, NETLINK_CB(cb->skb).portid, cb->nlh->nlmsg_seq,
+ 			  &smc_gen_nl_family, NLM_F_MULTI,
+ 			  SMC_NETLINK_GET_DEV_SMCD);
+@@ -323,7 +323,7 @@ static int smc_nl_handle_smcd_dev(struct smcd_dev *smcd,
+ 	if (nla_put_u8(skb, SMC_NLA_DEV_IS_CRIT, use_cnt > 0))
+ 		goto errattr;
+ 	memset(&smc_pci_dev, 0, sizeof(smc_pci_dev));
+-	smc_set_pci_values(ism->pdev, &smc_pci_dev);
++	smc_set_pci_values(to_pci_dev(dibs->dev.parent), &smc_pci_dev);
+ 	if (nla_put_u32(skb, SMC_NLA_DEV_PCI_FID, smc_pci_dev.pci_fid))
+ 		goto errattr;
+ 	if (nla_put_u16(skb, SMC_NLA_DEV_PCI_CHID, smc_pci_dev.pci_pchid))
+@@ -509,14 +509,14 @@ static void smcd_register_dev(struct dibs_dev *dibs)
+ 
+ 	if (smc_ism_is_loopback(dibs)) {
+ 		ops = smc_lo_get_smcd_ops();
+-		smcd = smcd_alloc_dev(dev_name(&smc_lo->dev), ops,
++		smcd = smcd_alloc_dev(dev_name(&dibs->dev), ops,
+ 				      SMC_LO_MAX_DMBS);
+ 	} else {
+ 		ism = dibs->drv_priv;
+ #if IS_ENABLED(CONFIG_ISM)
+ 		ops = ism_get_smcd_ops();
+ #endif
+-		smcd = smcd_alloc_dev(dev_name(&ism->pdev->dev), ops,
++		smcd = smcd_alloc_dev(dev_name(&dibs->dev), ops,
+ 				      ISM_NR_DMBS);
+ 	}
+ 	if (!smcd)
+@@ -534,10 +534,11 @@ static void smcd_register_dev(struct dibs_dev *dibs)
+ 		ism_set_priv(ism, &smc_ism_client, smcd);
+ 		smcd->client = &smc_ism_client;
+ #endif
+-		if (smc_pnetid_by_dev_port(&ism->pdev->dev, 0, smcd->pnetid))
+-			smc_pnetid_by_table_smcd(smcd);
+ 	}
+ 
++	if (smc_pnetid_by_dev_port(dibs->dev.parent, 0, smcd->pnetid))
++		smc_pnetid_by_table_smcd(smcd);
++
+ 	if (smc_ism_is_loopback(dibs) || smcd->ops->supports_v2())
+ 		smc_ism_set_v2_capable();
+ 	mutex_lock(&smcd_dev_list.mutex);
+@@ -557,33 +558,24 @@ static void smcd_register_dev(struct dibs_dev *dibs)
+ 	}
+ 	mutex_unlock(&smcd_dev_list.mutex);
  
 -	if (smc_ism_is_loopback(dibs)) {
--		ops = NULL;
+-		pr_warn_ratelimited("smc: adding smcd loopback device\n");
 -	} else {
--		ism = dibs->drv_priv;
--#if IS_ENABLED(CONFIG_ISM)
--		ops = ism_get_smcd_ops();
--#endif
+-		if (smc_pnet_is_pnetid_set(smcd->pnetid))
+-			pr_warn_ratelimited("smc: adding smcd device %s with pnetid %.16s%s\n",
+-					    dev_name(&ism->dev), smcd->pnetid,
+-					    smcd->pnetid_by_user ?
+-							    " (user defined)" :
+-							    "");
+-		else
+-			pr_warn_ratelimited("smc: adding smcd device %s without pnetid\n",
+-					    dev_name(&ism->dev));
 -	}
--	smcd = smcd_alloc_dev(dev_name(&dibs->dev), ops, max_dmbs);
-+	smcd = smcd_alloc_dev(dev_name(&dibs->dev), max_dmbs);
- 	if (!smcd)
++	if (smc_pnet_is_pnetid_set(smcd->pnetid))
++		pr_warn_ratelimited("smc: adding smcd device %s with pnetid %.16s%s\n",
++				    dev_name(&dibs->dev), smcd->pnetid,
++				    smcd->pnetid_by_user ?
++					" (user defined)" :
++					"");
++	else
++		pr_warn_ratelimited("smc: adding smcd device %s without pnetid\n",
++				    dev_name(&dibs->dev));
+ 	return;
+ }
+ 
+ static void smcd_unregister_dev(struct dibs_dev *dibs)
+ {
+ 	struct smcd_dev *smcd = dibs_get_priv(dibs, &smc_dibs_client);
+-	struct ism_dev *ism = dibs->drv_priv;
+ 
+-	if (smc_ism_is_loopback(dibs)) {
+-		pr_warn_ratelimited("smc: removing smcd loopback device\n");
+-	} else {
+-		pr_warn_ratelimited("smc: removing smcd device %s\n",
+-				    dev_name(&ism->dev));
+-	}
++	pr_warn_ratelimited("smc: removing smcd device %s\n",
++			    dev_name(&dibs->dev));
+ 	smcd->going_away = 1;
+ 	smc_smcd_terminate_all(smcd);
+ 	mutex_lock(&smcd_dev_list.mutex);
+diff --git a/net/smc/smc_loopback.c b/net/smc/smc_loopback.c
+index 37d8366419f7..262d0d0df4d0 100644
+--- a/net/smc/smc_loopback.c
++++ b/net/smc/smc_loopback.c
+@@ -23,7 +23,6 @@
+ #define SMC_LO_SUPPORT_NOCOPY	0x1
+ #define SMC_DMA_ADDR_INVALID	(~(dma_addr_t)0)
+ 
+-static const char smc_lo_dev_name[] = "loopback-ism";
+ static struct smc_lo_dev *lo_dev;
+ 
+ static void smc_lo_generate_ids(struct smc_lo_dev *ldev)
+@@ -255,11 +254,6 @@ static void smc_lo_get_local_gid(struct smcd_dev *smcd,
+ 	smcd_gid->gid_ext = ldev->local_gid.gid_ext;
+ }
+ 
+-static struct device *smc_lo_get_dev(struct smcd_dev *smcd)
+-{
+-	return &((struct smc_lo_dev *)smcd->priv)->dev;
+-}
+-
+ static const struct smcd_ops lo_ops = {
+ 	.query_remote_gid = smc_lo_query_rgid,
+ 	.register_dmb = smc_lo_register_dmb,
+@@ -274,7 +268,6 @@ static const struct smcd_ops lo_ops = {
+ 	.signal_event		= NULL,
+ 	.move_data = smc_lo_move_data,
+ 	.get_local_gid = smc_lo_get_local_gid,
+-	.get_dev = smc_lo_get_dev,
+ };
+ 
+ const struct smcd_ops *smc_lo_get_smcd_ops(void)
+@@ -299,14 +292,6 @@ static void smc_lo_dev_exit(struct smc_lo_dev *ldev)
+ 		wait_event(ldev->ldev_release, !atomic_read(&ldev->dmb_cnt));
+ }
+ 
+-static void smc_lo_dev_release(struct device *dev)
+-{
+-	struct smc_lo_dev *ldev =
+-		container_of(dev, struct smc_lo_dev, dev);
+-
+-	kfree(ldev);
+-}
+-
+ static int smc_lo_dev_probe(void)
+ {
+ 	struct smc_lo_dev *ldev;
+@@ -315,10 +300,6 @@ static int smc_lo_dev_probe(void)
+ 	if (!ldev)
+ 		return -ENOMEM;
+ 
+-	ldev->dev.parent = NULL;
+-	ldev->dev.release = smc_lo_dev_release;
+-	device_initialize(&ldev->dev);
+-	dev_set_name(&ldev->dev, smc_lo_dev_name);
+ 	smc_lo_dev_init(ldev);
+ 
+ 	lo_dev = ldev; /* global loopback device */
+@@ -332,7 +313,7 @@ static void smc_lo_dev_remove(void)
  		return;
  
- 	smcd->dibs = dibs;
- 	dibs_set_priv(dibs, &smc_dibs_client, smcd);
- 
--	if (smc_ism_is_loopback(dibs)) {
--		smcd->priv = NULL;
--	} else {
--		smcd->priv = ism;
--#if IS_ENABLED(CONFIG_ISM)
--		ism_set_priv(ism, &smc_ism_client, smcd);
--#endif
--	}
--
- 	if (smc_pnetid_by_dev_port(dibs->dev.parent, 0, smcd->pnetid))
- 		smc_pnetid_by_table_smcd(smcd);
- 
-@@ -590,7 +562,6 @@ static void smcd_unregister_dev(struct dibs_dev *dibs)
- 	kfree(smcd);
+ 	smc_lo_dev_exit(lo_dev);
+-	put_device(&lo_dev->dev); /* device_initialize in smc_lo_dev_probe */
++	kfree(lo_dev);
+ 	lo_dev = NULL;
  }
  
--#if IS_ENABLED(CONFIG_ISM)
- /* SMCD Device event handler. Called from ISM device interrupt handler.
-  * Parameters are ism device pointer,
-  * - event->type (0 --> DMB, 1 --> GID),
-@@ -602,9 +573,10 @@ static void smcd_unregister_dev(struct dibs_dev *dibs)
-  * Context:
-  * - Function called in IRQ context from ISM device driver event handler.
+diff --git a/net/smc/smc_loopback.h b/net/smc/smc_loopback.h
+index 76c62526e2e5..a033bf10890a 100644
+--- a/net/smc/smc_loopback.h
++++ b/net/smc/smc_loopback.h
+@@ -32,7 +32,6 @@ struct smc_lo_dmb_node {
+ 
+ struct smc_lo_dev {
+ 	struct smcd_dev *smcd;
+-	struct device dev;
+ 	struct smcd_gid local_gid;
+ 	atomic_t dmb_cnt;
+ 	rwlock_t dmb_ht_lock;
+diff --git a/net/smc/smc_pnet.c b/net/smc/smc_pnet.c
+index b90337f86e83..653d7dce908a 100644
+--- a/net/smc/smc_pnet.c
++++ b/net/smc/smc_pnet.c
+@@ -169,7 +169,7 @@ static int smc_pnet_remove_by_pnetid(struct net *net, char *pnet_name)
+ 			pr_warn_ratelimited("smc: smcd device %s "
+ 					    "erased user defined pnetid "
+ 					    "%.16s\n",
+-					    dev_name(smcd->ops->get_dev(smcd)),
++					    dev_name(&smcd->dibs->dev),
+ 					    smcd->pnetid);
+ 			memset(smcd->pnetid, 0, SMC_MAX_PNETID_LEN);
+ 			smcd->pnetid_by_user = false;
+@@ -332,7 +332,7 @@ static struct smcd_dev *smc_pnet_find_smcd(char *smcd_name)
+ 
+ 	mutex_lock(&smcd_dev_list.mutex);
+ 	list_for_each_entry(smcd_dev, &smcd_dev_list.list, list) {
+-		if (!strncmp(dev_name(smcd_dev->ops->get_dev(smcd_dev)),
++		if (!strncmp(dev_name(&smcd_dev->dibs->dev),
+ 			     smcd_name, IB_DEVICE_NAME_MAX - 1))
+ 			goto out;
+ 	}
+@@ -413,7 +413,6 @@ static int smc_pnet_add_ib(struct smc_pnettable *pnettable, char *ib_name,
+ 	bool smcddev_applied = true;
+ 	bool ibdev_applied = true;
+ 	struct smcd_dev *smcd;
+-	struct device *dev;
+ 	bool new_ibdev;
+ 
+ 	/* try to apply the pnetid to active devices */
+@@ -431,10 +430,8 @@ static int smc_pnet_add_ib(struct smc_pnettable *pnettable, char *ib_name,
+ 	if (smcd) {
+ 		smcddev_applied = smc_pnet_apply_smcd(smcd, pnet_name);
+ 		if (smcddev_applied) {
+-			dev = smcd->ops->get_dev(smcd);
+-			pr_warn_ratelimited("smc: smcd device %s "
+-					    "applied user defined pnetid "
+-					    "%.16s\n", dev_name(dev),
++			pr_warn_ratelimited("smc: smcd device %s applied user defined pnetid %.16s\n",
++					    dev_name(&smcd->dibs->dev),
+ 					    smcd->pnetid);
+ 		}
+ 	}
+@@ -1192,7 +1189,7 @@ int smc_pnetid_by_table_ib(struct smc_ib_device *smcibdev, u8 ib_port)
   */
--static void smcd_handle_event(struct ism_dev *ism, struct ism_event *event)
-+static void smcd_handle_event(struct dibs_dev *dibs,
-+			      const struct dibs_event *event)
+ int smc_pnetid_by_table_smcd(struct smcd_dev *smcddev)
  {
--	struct smcd_dev *smcd = ism_get_priv(ism, &smc_ism_client);
-+	struct smcd_dev *smcd = dibs_get_priv(dibs, &smc_dibs_client);
- 	struct smc_ism_event_work *wrk;
- 
- 	if (smcd->going_away)
-@@ -618,7 +590,6 @@ static void smcd_handle_event(struct ism_dev *ism, struct ism_event *event)
- 	wrk->event = *event;
- 	queue_work(smcd->event_wq, &wrk->work);
- }
--#endif
- 
- /* SMCD Device interrupt handler. Called from ISM device interrupt handler.
-  * Parameters are the ism device pointer, DMB number, and the DMBE bitmask.
-@@ -644,22 +615,22 @@ static void smcd_handle_irq(struct dibs_dev *dibs, unsigned int dmbno,
- int smc_ism_signal_shutdown(struct smc_link_group *lgr)
- {
- 	int rc = 0;
--#if IS_ENABLED(CONFIG_ISM)
- 	union smcd_sw_event_info ev_info;
-+	uuid_t ism_rgid;
- 
- 	if (lgr->peer_shutdown)
- 		return 0;
--	if (!lgr->smcd->ops->signal_event)
-+	if (!lgr->smcd->dibs->ops->signal_event)
- 		return 0;
- 
- 	memcpy(ev_info.uid, lgr->id, SMC_LGR_ID_SIZE);
- 	ev_info.vlan_id = lgr->vlan_id;
- 	ev_info.code = ISM_EVENT_REQUEST;
--	rc = lgr->smcd->ops->signal_event(lgr->smcd, &lgr->peer_gid,
-+	copy_to_dibsgid(&ism_rgid, &lgr->peer_gid);
-+	rc = lgr->smcd->dibs->ops->signal_event(lgr->smcd->dibs, &ism_rgid,
- 					  ISM_EVENT_REQUEST_IR,
- 					  ISM_EVENT_CODE_SHUTDOWN,
- 					  ev_info.info);
--#endif
- 	return rc;
- }
- 
-@@ -670,9 +641,6 @@ int smc_ism_init(void)
- 	smc_ism_v2_capable = false;
- 	smc_ism_create_system_eid();
- 
--#if IS_ENABLED(CONFIG_ISM)
--	rc = ism_register_client(&smc_ism_client);
--#endif
- 	rc = dibs_register_client(&smc_dibs_client);
- 	return rc;
- }
-@@ -680,7 +648,4 @@ int smc_ism_init(void)
- void smc_ism_exit(void)
- {
- 	dibs_unregister_client(&smc_dibs_client);
--#if IS_ENABLED(CONFIG_ISM)
--	ism_unregister_client(&smc_ism_client);
--#endif
- }
+-	const char *ib_name = dev_name(smcddev->ops->get_dev(smcddev));
++	const char *ib_name = dev_name(&smcddev->dibs->dev);
+ 	struct smc_pnettable *pnettable;
+ 	struct smc_pnetentry *tmp_pe;
+ 	struct smc_net *sn;
 -- 
 2.48.1
 
