@@ -1,65 +1,66 @@
 Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 07AA32676E6;
-	Thu, 11 Sep 2025 19:48:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A4862E7196;
+	Thu, 11 Sep 2025 19:48:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.156.1
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757620125; cv=none; b=PtBrE4g02NZUNy82j76Ryzf1xg4gukwokGC7T/Va6hp4JvE2krxb8F04IezQy16CB+w4PYHbVBpBbv3MVl86GG3b8s+XHPAI+M+HcKWzFI53pf9BL9TYccb5MtrooZLz+xT5Y+fKkV9ORflblyjTSXp7DPofLZctw2QKnSnNCMA=
+	t=1757620126; cv=none; b=OUs8CByP+yCN6nYtADjv8kMMqW2pMs4GhWyc5eqorG/XDT2yk6zhtrTGP8j+nuSYsbq1oPH9S5NORxYabpgBbLAPkQQlsjWcyGpJhxIKwVkDSzak95F5mPEaY5LSQ39XfJivquyg5G8KNlc7mWGDB5oaBG8EmfDAa+rDaTeGBxY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757620125; c=relaxed/simple;
-	bh=zlc1CfvUCVKHyqijo1PhGhYpw6271i8dBA+/OaSZT6I=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=cpEqyoZBnbKO4C5nLWHloGSnXd1f9+uXF08TNSBO/9h+8cCbvuKxyMq1kDpj2oSd7jUUQeWLVDFFOWLvSm4uGxpB785SVeNgFAIUGt7GRoMKClVYb641eTNkd6uq9LGwFZIUnAmVQ/9y1Oq6WOKDH97LLe+U9JVKyBHwidUbCbQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=aV2gdokC; arc=none smtp.client-ip=148.163.156.1
+	s=arc-20240116; t=1757620126; c=relaxed/simple;
+	bh=hJnt9AbSaPVc1Spi/422VJVwGCmd5iSHd4hx1yIkaJc=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=MFi0GPGlnow9M7zj9YcbwMKZctguT5Yq6aRpf/huDnX0mU6zss9jwoYCtGtIb76pa/frgHD4ymQORP4CNXeHdnzfR7XmhS8FGCsAS6f9yBQJuyT1Xbo0O4Ww+EO/7mqnAYmllVbspZEdsCscN65gxPijfWh7MXq7ClH+7C0GCOU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=KKXDv5T1; arc=none smtp.client-ip=148.163.156.1
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="aV2gdokC"
-Received: from pps.filterd (m0356517.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 58BHVSVU030930;
-	Thu, 11 Sep 2025 19:48:33 GMT
+	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="KKXDv5T1"
+Received: from pps.filterd (m0360083.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 58BDAZ6G030018;
+	Thu, 11 Sep 2025 19:48:34 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
-	:content-transfer-encoding:date:from:message-id:mime-version
-	:subject:to; s=pp1; bh=er2C1seonyk5TZRDuh2BpJ+JDMS9v+a8srVOgvdAN
-	t0=; b=aV2gdokCyPEmqWgSxYFsCaBURtr7jq/3nFxxd5aAgrmOBm+2ema0rHgiM
-	kXN+JvJ3K7Knw8Iu4mhCSuxRTgMNZoj36q+2vey+TrPAHeb8kixpystXs88DHFQP
-	7JVR1kF9oTqPOdmthmAZnaZVKyrRkSwkNl6e6zdaiZC2sqVAIc0d/ZcWpgzurF7M
-	/n1ckHozOVb+Fx5YRv3xMEgmKWOpX1CLNzktqfsEVSJ/gV28CD7B1hpI3sMRpFy5
-	5M+1gsDzMNbpAmfJlLLK2sv7G2yZlCBG2zFvgYqLTlUWyDZaH/6LJkz4JfGFr4nG
-	Emuk6b90r2XbX6GH8jNyL9Xcl+5lA==
+	:content-transfer-encoding:date:from:in-reply-to:message-id
+	:mime-version:references:subject:to; s=pp1; bh=SGyiMFHbF3PgmuuFT
+	qfL2QejsmBt8bNqTEHlXTW6Y7I=; b=KKXDv5T1khNBeKxgb8g1Pv2aqZ+NoOcto
+	frXHNQWTbFJnZ1lIM6av41QoKn3JcAQ7xRNWW7ZcTpmx4K4muO6Gn/DTpDdjUNQg
+	NJR8z0M8jPjmld4ge5UElJGrcjw0W6EgfA4Oqi8YgQucIE6NragSeGbEoU8uqXaf
+	bxTEmXIUcgJ/ShhNjj+kzNPrsyxQW+l02aV55msj83l2vspRt4MhjENKhR5JZu5p
+	Tq/gYNp+HwDJGgPiw6OnINSN/HwnHZ0WYVwLw8ETawLU74jft5QUrNcou2iIR8g8
+	LmH4WGel6edXFddtzK67FN7qYuRbhqb4kZeSil7jnVKjK7LBKatRw==
 Received: from pps.reinject (localhost [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 490xydbu95-1
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 490cffq108-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
 	Thu, 11 Sep 2025 19:48:33 +0000 (GMT)
-Received: from m0356517.ppops.net (m0356517.ppops.net [127.0.0.1])
-	by pps.reinject (8.18.1.12/8.18.0.8) with ESMTP id 58BJmWRr015615;
-	Thu, 11 Sep 2025 19:48:32 GMT
-Received: from ppma13.dal12v.mail.ibm.com (dd.9e.1632.ip4.static.sl-reverse.com [50.22.158.221])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 490xydbu8x-1
+Received: from m0360083.ppops.net (m0360083.ppops.net [127.0.0.1])
+	by pps.reinject (8.18.1.12/8.18.0.8) with ESMTP id 58BJmXgW009972;
+	Thu, 11 Sep 2025 19:48:33 GMT
+Received: from ppma11.dal12v.mail.ibm.com (db.9e.1632.ip4.static.sl-reverse.com [50.22.158.219])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 490cffq100-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Thu, 11 Sep 2025 19:48:32 +0000 (GMT)
-Received: from pps.filterd (ppma13.dal12v.mail.ibm.com [127.0.0.1])
-	by ppma13.dal12v.mail.ibm.com (8.18.1.2/8.18.1.2) with ESMTP id 58BI2kFp017181;
-	Thu, 11 Sep 2025 19:48:31 GMT
-Received: from smtprelay07.fra02v.mail.ibm.com ([9.218.2.229])
-	by ppma13.dal12v.mail.ibm.com (PPS) with ESMTPS id 4911gmqa4g-1
+	Thu, 11 Sep 2025 19:48:33 +0000 (GMT)
+Received: from pps.filterd (ppma11.dal12v.mail.ibm.com [127.0.0.1])
+	by ppma11.dal12v.mail.ibm.com (8.18.1.2/8.18.1.2) with ESMTP id 58BIBmoJ001156;
+	Thu, 11 Sep 2025 19:48:32 GMT
+Received: from smtprelay01.fra02v.mail.ibm.com ([9.218.2.227])
+	by ppma11.dal12v.mail.ibm.com (PPS) with ESMTPS id 491203q81d-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
 	Thu, 11 Sep 2025 19:48:31 +0000
-Received: from smtpav04.fra02v.mail.ibm.com (smtpav04.fra02v.mail.ibm.com [10.20.54.103])
-	by smtprelay07.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 58BJmSGF48628100
+Received: from smtpav07.fra02v.mail.ibm.com (smtpav07.fra02v.mail.ibm.com [10.20.54.106])
+	by smtprelay01.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 58BJmSqM62456148
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
 	Thu, 11 Sep 2025 19:48:28 GMT
-Received: from smtpav04.fra02v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id F02022004D;
-	Thu, 11 Sep 2025 19:48:27 +0000 (GMT)
-Received: from smtpav04.fra02v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id CE79920040;
-	Thu, 11 Sep 2025 19:48:27 +0000 (GMT)
+Received: from smtpav07.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 3ADAF2004D;
+	Thu, 11 Sep 2025 19:48:28 +0000 (GMT)
+Received: from smtpav07.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 17B1A20040;
+	Thu, 11 Sep 2025 19:48:28 +0000 (GMT)
 Received: from tuxmaker.boeblingen.de.ibm.com (unknown [9.152.85.9])
-	by smtpav04.fra02v.mail.ibm.com (Postfix) with ESMTPS;
-	Thu, 11 Sep 2025 19:48:27 +0000 (GMT)
+	by smtpav07.fra02v.mail.ibm.com (Postfix) with ESMTPS;
+	Thu, 11 Sep 2025 19:48:28 +0000 (GMT)
 Received: by tuxmaker.boeblingen.de.ibm.com (Postfix, from userid 55271)
-	id A1108E1089; Thu, 11 Sep 2025 21:48:27 +0200 (CEST)
+	id C01F6E12F2; Thu, 11 Sep 2025 21:48:27 +0200 (CEST)
 From: Alexandra Winter <wintera@linux.ibm.com>
 To: "D. Wythe" <alibuda@linux.alibaba.com>,
         Dust Li <dust.li@linux.alibaba.com>,
@@ -83,10 +84,12 @@ Cc: Julian Ruess <julianr@linux.ibm.com>,
         Herbert Xu <herbert@gondor.apana.org.au>,
         Harald Freudenberger <freude@linux.ibm.com>,
         Konstantin Shkolnyy <kshk@linux.ibm.com>
-Subject: [PATCH net-next v2 00/14] dibs - Direct Internal Buffer Sharing
-Date: Thu, 11 Sep 2025 21:48:13 +0200
-Message-ID: <20250911194827.844125-1-wintera@linux.ibm.com>
+Subject: [PATCH net-next v2 09/14] dibs: Create class dibs
+Date: Thu, 11 Sep 2025 21:48:22 +0200
+Message-ID: <20250911194827.844125-10-wintera@linux.ibm.com>
 X-Mailer: git-send-email 2.48.1
+In-Reply-To: <20250911194827.844125-1-wintera@linux.ibm.com>
+References: <20250911194827.844125-1-wintera@linux.ibm.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -95,214 +98,247 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-TM-AS-GCONF: 00
-X-Proofpoint-ORIG-GUID: aRUYOkngFbHfUaxA8MnOWamVTS5v7I2z
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjUwOTA2MDIzNSBTYWx0ZWRfX8UWiwK7c0iQp
- oN0oPiMkdl2PMnX6KcYFyWfrpQUaBC+BAZSkPPzSHHNZxJHD9wEzMQhS1llfmEmyW1olftiixLd
- NuzgGSgbH53LAsCCRQ56SG+8WBCq8tNgjqQ+UCGs+4QVsIzAejHBzyVpC1HqSm/sUURW8Oo+Sp7
- 85bUxL6WheFDu39wHBMmvYOd3Zc0CzBkhRE5LDlvK5A7tCbc/FSHMzP1Z1I/8HmORQg6v9YKCye
- rfUGQEyxMOqPjP43KCAQ80UqGlP9X3Id1yiZ2EerFmG1aas6RYI8YjtRRPW4y04FJHxJ8TTFohF
- Hidpoqk4wdqTKHPN0Mhbia8nQ4vHjalsogzM4ZIihJXPqO7Feu92aa0efMuZ/Gz/GBOWCjFXBdT
- X1s7EfHo
-X-Proofpoint-GUID: s2AWPeo5QM4Yz-hxMUIx6l19TqN74k36
-X-Authority-Analysis: v=2.4 cv=F59XdrhN c=1 sm=1 tr=0 ts=68c32791 cx=c_pps
- a=AfN7/Ok6k8XGzOShvHwTGQ==:117 a=AfN7/Ok6k8XGzOShvHwTGQ==:17
- a=yJojWOMRYYMA:10 a=3nI6nj7hAAAA:8 a=VwQbUJbxAAAA:8 a=SRrdq9N9AAAA:8
- a=mkMtH7XpAAAA:8 a=VnNF1IyMAAAA:8 a=QyXUC8HyAAAA:8 a=RkOrkl1-BjnOTL04EN0A:9
- a=bb6nGAbfQKYA:10 a=PUQwBqpy_9XipHPXVRm3:22 a=I9Slk6e--tAXHahELIuT:22
+X-Proofpoint-ORIG-GUID: GZtug6jMlK3D4KVIEfyEAry4F5gv-0tO
+X-Proofpoint-GUID: CIUAPwDUc6XdolfSJR2xrJGdaq5-JHK2
+X-Authority-Analysis: v=2.4 cv=EYDIQOmC c=1 sm=1 tr=0 ts=68c32791 cx=c_pps
+ a=aDMHemPKRhS1OARIsFnwRA==:117 a=aDMHemPKRhS1OARIsFnwRA==:17
+ a=yJojWOMRYYMA:10 a=VnNF1IyMAAAA:8 a=rhFwxXKG5dtNbWJtHqsA:9
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjUwOTA2MDAyMCBTYWx0ZWRfX5yXnDePif7Po
+ CWERgoAhq2qUNYHaXhLSvEnUS69f7DzOfcmSO3VzInRfQ8aigNYLLv+lxb/oYg8jAebE96nGJfb
+ s0igcLxPh2Ecxwkp6vT+DqbyBZzGSWSeN2vVhe5y1AN8822KwaB7B7kxeOhA4RTg/RVAbvjGKtH
+ CisM2vPp4DVfOZNerNZ1S1k5xmMuuqJy7a/UBkX7F6bWqSfo/eh7pgEAhM3y9SUBWUfDwMaAXVK
+ /nYrPTYDtgetcZfBvMuZZ2hc4wS/GE9iwEslP5DP2cIAF6ehk/ilSa7UAFNHEa58bWhsmd9P9KD
+ VLsZVdS51EdRKK9vKg8ZoK9UzRWqQmcIAC3lOz/AlKpaMTijrsrNj8vZbMlf81MGEHKj5kVdKAS
+ EDwjEI5n
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.293,Aquarius:18.0.1117,Hydra:6.1.9,FMLib:17.12.80.40
  definitions=2025-09-11_03,2025-09-11_02,2025-03-28_01
 X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- priorityscore=1501 malwarescore=0 suspectscore=0 phishscore=0 clxscore=1015
- impostorscore=0 bulkscore=0 adultscore=0 spamscore=0 classifier=typeunknown
- authscore=0 authtc= authcc= route=outbound adjust=0 reason=mlx scancount=1
- engine=8.19.0-2507300000 definitions=main-2509060235
+ malwarescore=0 adultscore=0 suspectscore=0 spamscore=0 impostorscore=0
+ priorityscore=1501 phishscore=0 clxscore=1015 bulkscore=0
+ classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
+ reason=mlx scancount=1 engine=8.19.0-2507300000 definitions=main-2509060020
 
-This series introduces a generic abstraction of existing components like:
-- the s390 specific ISM device (Internal Shared Memory),
-- the SMC-D loopback mechanism (Shared Memory Communication - Direct)
-- the client interface of the SMC-D module to the transport devices
-This generic shim layer can be extended with more devices, more clients and
-more features in the future.
+From: Julian Ruess <julianr@linux.ibm.com>
 
-This layer is called 'dibs' for Direct Internal Buffer Sharing based on the
-common scheme that these mechanisms enable controlled sharing of memory
-buffers within some containing entity such as a hypervisor or a Linux
-instance.
+Create '/sys/class/dibs' to represent multiple kinds of dibs devices in
+sysfs. Show s390/ism devices as well as dibs_loopback devices.
 
-Benefits:
-- Cleaner separation of ISM and SMC-D functionality
-- simpler and less module dependencies
-- Clear interface definition.
-- Extendable for future devices and clients.
+Show attribute fabric_id using dibs_ops.get_fabric_id(). This can help
+users understand which dibs devices are connected to the same fabric in
+different systems and which dibs devices are loopback devices
+(fabric_id 0xffff)
 
-An overview was given at the Netdev 0x19 conference, recordings and slides
-are available [1].
+Instead of using the same name as the pci device, give the ism devices
+their own readable names based on uid or fid from the HW definition.
 
-Background / Status quo:
-------------------------
-Currently s390 hardware provides virtual PCI ISM devices (Internal Shared
-Memory). Their driver is in drivers/s390/net/ism_drv.c. The main user is
-SMC-D (net/smc). The ism driver offers a client interface so other
-users/protocols can also use them, but it is still heavily intermingled
-with the smc code. Namely, the ism module cannot be used without the smc
-module, which feels artificial.
+smc_loopback was never visible in sysfs. dibs_loopback is now represented
+as a virtual device.
 
-There is ongoing work to extend the ISM concept of shared buffers that can
-be accessed directly by another instance on the same hardware: [2] proposed
-a loopback interface (ism_lo), that can be used on non-s390 architectures
-(e.g. between containers or to test SMC-D). A minimal implementation went
-upstream with [3]: ism_lo currently is a part of the smc protocol and
-rather hidden.
+For the SMC feature "software defined pnet-id" either the ib device name or
+the PCI-ID (actually the parent device name) can be used for SMC-R entries.
+Mimic this behaviour for SMC-D, and check the parent device name as well.
+So device name or PCI-ID can be used for ism and device name can be used
+for dibs-loopback. Note that this:
+IB_DEVICE_NAME_MAX - 1 == smc_pnet_policy.[SMC_PNETID_IBNAME].len
+is the length of smcd_name. Future SW-pnetid cleanup patches to could use a
+meaningful define, but that would touch too much unrelated code here.
 
-[4] proposed a virtio definition of ism (ism_virtio) that can be used
-between kvm guests.
+Examples:
+---------
+ism before:
+> ls /sys/bus/pci/devices/0000:00:00.0/0000:00:00.0
+uevent
 
-We will shortly send an RFC for an dibs client that uses dibs as transport
-for TTY.
+ism now:
+> ls /sys/bus/pci/devices/0000:00:00.0/dibs/ism30
+device -> ../../../0000:00:00.0/
+fabric_id
+subsystem -> ../../../../../class/dibs/
+uevent
 
-Concept:
---------
-Create a shim layer in net/dibs that contains common definitions and code
-for all dibs devices and all dibs clients. Any device or client module only
-needs to depend on this dibs layer module and any device or client code
-only needs to include the definitions in include/linux/dibs.h.
+dibs loopback:
+> ls /sys/devices/virtual/dibs/lo/
+fabric_id
+subsystem -> ../../../../class/dibs/
+uevent
 
-The name dibs was chosen to clearly distinguish it from the existing s390
-ism devices. And to emphasize that it is not about sharing whole memory
-regions with anybody, but dedicating single buffers for another system.
+dibs class:
+> ls -l /sys/class/dibs/
+ism30 -> ../../devices/pci0000:00/0000:00:00.0/dibs/ism30/
+lo -> ../../devices/virtual/dibs/lo/
 
-Implementation:
----------------
-The end result of this series is: A dibs shim layer with
-- One dibs client: smc-d
-- Two dibs device drivers: ism and dibs-loopback
-- Everything prepared to add more clients and more device drivers.
+For comparison:
+> ls -l /sys/class/net/
+enc8410 -> ../../devices/qeth/0.0.8410/net/enc8410/
+ens1693 -> ../../devices/pci0001:00/0001:00:00.0/net/ens1693/
+lo -> ../../devices/virtual/net/lo/
 
-Patches 1-2 contain some issues that were found along the way. They make
-sense on their own, but also enable a better structured dibs series.
-
-There are three components that exist today:
-a) smc module (especially SMC-D functionality, which is an ism client today)
-b) ism device driver (supports multiple ism clients today)
-c) smc-loopback (integrated with smc today)
-In order to preserve existing functionality at each step, these are not
-moved to dibs layer by component, instead:
-- the dibs layer is established in parallel to existing code [patches 3-6]
-- then some service functions are moved to the dibs layer [patches 7-12]
-- the actual data movement is moved to the dibs layer [patch 13]
-- and last event handling is moved to the dibs layer [patch 14]
-
-Future:
--------
-Items that are not part of this patchset but can be added later:
-- dynamically add or remove dibs_loopback. That will be allow for simple
-  testing of add_dev()/del_dev()
-- handle_irq(): Call clients without interrupt context. e.g using
-  threaded interrupts. I left this for a follow-on, because it includes
-  conceptual changes for the smcd receive code.
-- Any improvements of locking scopes. I mainly moved some of the the
-  existing locks to dibs layer. I have the feeling there is room for
-  improvements.
-- The device drivers should not loop through the client array
-- dibs_dev_op.*_dmb() functions reveal unnecessary details of the
-  internal dmb struct to the clients
-- Check whether client calls to dibs_dev_ops should be replaced by
-  interface functions that provide additional value
-- Check whether device driver calls to dibs_client_ops should be replaced
-  by interface functions that provide additional value.
-
-Link: [1] https://netdevconf.info/0x19/sessions/talk/communication-via-internal-shared-memory-ism-time-to-open-up.html
-Link: [2] https://lore.kernel.org/netdev/1695568613-125057-1-git-send-email-guwen@linux.alibaba.com/
-Link: [3] https://lore.kernel.org/linux-kernel//20240428060738.60843-1-guwen@linux.alibaba.com/
-Link: [4] https://groups.oasis-open.org/communities/community-home/digestviewer/viewthread?GroupId=3973&MessageKey=c060ecf9-ea1a-49a2-9827-c92f0e6447b2&CommunityKey=2f26be99-3aa1-48f6-93a5-018dce262226&hlmlt=VT
-
+Signed-off-by: Julian Ruess <julianr@linux.ibm.com>
+Co-developed-by: Alexandra Winter <wintera@linux.ibm.com>
+Signed-off-by: Alexandra Winter <wintera@linux.ibm.com>
 ---
-Changes in v2:
-- More fixes of transient scope of IS_ENABLED(CONFIG_ISM) [7,13] (patchwork)
-- Delete obsolete net/smc/smc_loopback.* files [13] (Dust Li)
-- Fix transient usage of supports_v2() after rebase on top of
-  091d019adce0 ("net/smc: remove unused function smc_lo_supports_v2") [7]
-- Fix CC according to get_maintainer.pl (patchwork)
-- Place dibs level code in drivers/dibs/ instead of net/dibs/ (Dust Li, Julian Ruess)
+ drivers/dibs/dibs_main.c   | 40 ++++++++++++++++++++++++++++++++++++++
+ drivers/s390/net/ism_drv.c |  5 ++++-
+ net/smc/smc_pnet.c         | 16 +++++++++++----
+ 3 files changed, 56 insertions(+), 5 deletions(-)
 
-Changes in v1:
-- Don't change __init in smc_core_init() (was [1]) (Dust Li)
-- Split off log message improvements from this series (was [2,5]) (Dust Li)
-- Fix arch/s390/[debug_]defconfig [4,6,7,14]
-- Helptext of dibs/Kconfig [3,6]
-- include linux/slab.h to avoid Wimplicit-function-declaration of
-  kzalloc() and kfree() [5,6] (Simon Horman and
-                             'kernel test robot <lkp@intel.com>')
-- Fix transient use of undefined 'ism' pointer [7] (Simon Horman)
-- Fix transient scope of IS_ENABLED(CONFIG_ISM) [7,13] (Simon Horman)
-- Change position of is_attached in struct smc_buf_desc to reduce gaps [1] (Dust Li)
-- Fix SW-pnetid handling for s390 ism devices [9]
-- use dibs->dev instead of defining dibs_get_dev() [8]
-- add const to uuid_t* parameters [12,14] (Julian Ruess)
-- no log message for module load/unload [3] (Jakub Kicinski)
-- Link: https://lore.kernel.org/netdev/20250905145428.1962105-1-wintera@linux.ibm.com/
-
-RFC:
-- Link: https://lore.kernel.org/netdev/20250806154122.3413330-1-wintera@linux.ibm.com/
+diff --git a/drivers/dibs/dibs_main.c b/drivers/dibs/dibs_main.c
+index 610b6c452211..b3f21805aa59 100644
+--- a/drivers/dibs/dibs_main.c
++++ b/drivers/dibs/dibs_main.c
+@@ -20,6 +20,8 @@
+ MODULE_DESCRIPTION("Direct Internal Buffer Sharing class");
+ MODULE_LICENSE("GPL");
  
-Alexandra Winter (11):
-  net/smc: Remove error handling of unregister_dmb()
-  net/smc: Decouple sf and attached send_buf in smc_loopback
-  dibs: Create drivers/dibs
-  dibs: Register smc as dibs_client
-  dibs: Register ism as dibs device
-  dibs: Define dibs loopback
-  dibs: Define dibs_client_ops and dibs_dev_ops
-  dibs: Local gid for dibs devices
-  dibs: Move vlan support to dibs_dev_ops
-  dibs: Move query_remote_gid() to dibs_dev_ops
-  dibs: Move data path to dibs layer
-
-Julian Ruess (3):
-  dibs: Move struct device to dibs_dev
-  dibs: Create class dibs
-  dibs: Move event handling to dibs layer
-
- MAINTAINERS                       |   9 +-
- arch/s390/configs/debug_defconfig |   4 +-
- arch/s390/configs/defconfig       |   4 +-
- drivers/Makefile                  |   1 +
- drivers/dibs/Kconfig              |  23 ++
- drivers/dibs/Makefile             |   8 +
- drivers/dibs/dibs_loopback.c      | 356 +++++++++++++++++++
- drivers/dibs/dibs_loopback.h      |  57 +++
- drivers/dibs/dibs_main.c          | 278 +++++++++++++++
- drivers/s390/net/Kconfig          |   3 +-
- drivers/s390/net/ism.h            |  53 ++-
- drivers/s390/net/ism_drv.c        | 573 +++++++++++-------------------
- include/linux/dibs.h              | 464 ++++++++++++++++++++++++
- include/linux/ism.h               |  28 +-
- include/net/smc.h                 |  51 +--
- net/Kconfig                       |   1 +
- net/smc/Kconfig                   |  16 +-
- net/smc/Makefile                  |   1 -
- net/smc/af_smc.c                  |  12 +-
- net/smc/smc_clc.c                 |   6 +-
- net/smc/smc_core.c                |   6 +-
- net/smc/smc_core.h                |   5 +
- net/smc/smc_diag.c                |   2 +-
- net/smc/smc_ism.c                 | 224 ++++++------
- net/smc/smc_ism.h                 |  36 +-
- net/smc/smc_loopback.c            | 421 ----------------------
- net/smc/smc_loopback.h            |  60 ----
- net/smc/smc_pnet.c                |  25 +-
- net/smc/smc_tx.c                  |   3 +
- 29 files changed, 1645 insertions(+), 1085 deletions(-)
- create mode 100644 drivers/dibs/Kconfig
- create mode 100644 drivers/dibs/Makefile
- create mode 100644 drivers/dibs/dibs_loopback.c
- create mode 100644 drivers/dibs/dibs_loopback.h
- create mode 100644 drivers/dibs/dibs_main.c
- create mode 100644 include/linux/dibs.h
- delete mode 100644 net/smc/smc_loopback.c
- delete mode 100644 net/smc/smc_loopback.h
-
++static struct class *dibs_class;
++
+ /* use an array rather a list for fast mapping: */
+ static struct dibs_client *clients[MAX_DIBS_CLIENTS];
+ static u8 max_client;
+@@ -105,12 +107,35 @@ struct dibs_dev *dibs_dev_alloc(void)
+ 	if (!dibs)
+ 		return dibs;
+ 	dibs->dev.release = dibs_dev_release;
++	dibs->dev.class = dibs_class;
+ 	device_initialize(&dibs->dev);
+ 
+ 	return dibs;
+ }
+ EXPORT_SYMBOL_GPL(dibs_dev_alloc);
+ 
++static ssize_t fabric_id_show(struct device *dev, struct device_attribute *attr,
++			      char *buf)
++{
++	struct dibs_dev *dibs;
++	u16 fabric_id;
++
++	dibs = container_of(dev, struct dibs_dev, dev);
++	fabric_id = dibs->ops->get_fabric_id(dibs);
++
++	return sysfs_emit(buf, "0x%04x\n", fabric_id);
++}
++static DEVICE_ATTR_RO(fabric_id);
++
++static struct attribute *dibs_dev_attrs[] = {
++	&dev_attr_fabric_id.attr,
++	NULL,
++};
++
++static const struct attribute_group dibs_dev_attr_group = {
++	.attrs = dibs_dev_attrs,
++};
++
+ int dibs_dev_add(struct dibs_dev *dibs)
+ {
+ 	int i, ret;
+@@ -119,6 +144,11 @@ int dibs_dev_add(struct dibs_dev *dibs)
+ 	if (ret)
+ 		return ret;
+ 
++	ret = sysfs_create_group(&dibs->dev.kobj, &dibs_dev_attr_group);
++	if (ret) {
++		dev_err(&dibs->dev, "sysfs_create_group failed for dibs_dev\n");
++		goto err_device_del;
++	}
+ 	mutex_lock(&dibs_dev_list.mutex);
+ 	mutex_lock(&clients_lock);
+ 	for (i = 0; i < max_client; ++i) {
+@@ -130,6 +160,11 @@ int dibs_dev_add(struct dibs_dev *dibs)
+ 	mutex_unlock(&dibs_dev_list.mutex);
+ 
+ 	return 0;
++
++err_device_del:
++	device_del(&dibs->dev);
++	return ret;
++
+ }
+ EXPORT_SYMBOL_GPL(dibs_dev_add);
+ 
+@@ -158,6 +193,10 @@ static int __init dibs_init(void)
+ 	memset(clients, 0, sizeof(clients));
+ 	max_client = 0;
+ 
++	dibs_class = class_create("dibs");
++	if (IS_ERR(&dibs_class))
++		return PTR_ERR(&dibs_class);
++
+ 	rc = dibs_loopback_init();
+ 	if (rc)
+ 		pr_err("%s fails with %d\n", __func__, rc);
+@@ -168,6 +207,7 @@ static int __init dibs_init(void)
+ static void __exit dibs_exit(void)
+ {
+ 	dibs_loopback_exit();
++	class_destroy(dibs_class);
+ }
+ 
+ module_init(dibs_init);
+diff --git a/drivers/s390/net/ism_drv.c b/drivers/s390/net/ism_drv.c
+index 4096ea9faa7e..ab1d61eb3e3b 100644
+--- a/drivers/s390/net/ism_drv.c
++++ b/drivers/s390/net/ism_drv.c
+@@ -629,6 +629,7 @@ static void ism_dev_exit(struct ism_dev *ism)
+ static int ism_probe(struct pci_dev *pdev, const struct pci_device_id *id)
+ {
+ 	struct dibs_dev *dibs;
++	struct zpci_dev *zdev;
+ 	struct ism_dev *ism;
+ 	int ret;
+ 
+@@ -672,7 +673,9 @@ static int ism_probe(struct pci_dev *pdev, const struct pci_device_id *id)
+ 		goto err_dibs;
+ 
+ 	dibs->dev.parent = &pdev->dev;
+-	dev_set_name(&dibs->dev, "%s", dev_name(&pdev->dev));
++
++	zdev = to_zpci(pdev);
++	dev_set_name(&dibs->dev, "ism%x", zdev->uid ? zdev->uid : zdev->fid);
+ 
+ 	ret = dibs_dev_add(dibs);
+ 	if (ret)
+diff --git a/net/smc/smc_pnet.c b/net/smc/smc_pnet.c
+index 653d7dce908a..99246d792631 100644
+--- a/net/smc/smc_pnet.c
++++ b/net/smc/smc_pnet.c
+@@ -332,8 +332,11 @@ static struct smcd_dev *smc_pnet_find_smcd(char *smcd_name)
+ 
+ 	mutex_lock(&smcd_dev_list.mutex);
+ 	list_for_each_entry(smcd_dev, &smcd_dev_list.list, list) {
+-		if (!strncmp(dev_name(&smcd_dev->dibs->dev),
+-			     smcd_name, IB_DEVICE_NAME_MAX - 1))
++		if (!strncmp(dev_name(&smcd_dev->dibs->dev), smcd_name,
++			     IB_DEVICE_NAME_MAX - 1) ||
++		    (smcd_dev->dibs->dev.parent &&
++		     !strncmp(dev_name(smcd_dev->dibs->dev.parent), smcd_name,
++			      IB_DEVICE_NAME_MAX - 1)))
+ 			goto out;
+ 	}
+ 	smcd_dev = NULL;
+@@ -1189,7 +1192,6 @@ int smc_pnetid_by_table_ib(struct smc_ib_device *smcibdev, u8 ib_port)
+  */
+ int smc_pnetid_by_table_smcd(struct smcd_dev *smcddev)
+ {
+-	const char *ib_name = dev_name(&smcddev->dibs->dev);
+ 	struct smc_pnettable *pnettable;
+ 	struct smc_pnetentry *tmp_pe;
+ 	struct smc_net *sn;
+@@ -1202,7 +1204,13 @@ int smc_pnetid_by_table_smcd(struct smcd_dev *smcddev)
+ 	mutex_lock(&pnettable->lock);
+ 	list_for_each_entry(tmp_pe, &pnettable->pnetlist, list) {
+ 		if (tmp_pe->type == SMC_PNET_IB &&
+-		    !strncmp(tmp_pe->ib_name, ib_name, IB_DEVICE_NAME_MAX)) {
++		    (!strncmp(tmp_pe->ib_name,
++			       dev_name(&smcddev->dibs->dev),
++			       sizeof(tmp_pe->ib_name)) ||
++		     (smcddev->dibs->dev.parent &&
++		      !strncmp(tmp_pe->ib_name,
++			       dev_name(smcddev->dibs->dev.parent),
++			       sizeof(tmp_pe->ib_name))))) {
+ 			smc_pnet_apply_smcd(smcddev, tmp_pe->pnet_name);
+ 			rc = 0;
+ 			break;
 -- 
 2.48.1
 
