@@ -1,162 +1,118 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mx0b-00069f02.pphosted.com (mx0b-00069f02.pphosted.com [205.220.177.32])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 736F92D5946;
-	Fri, 12 Sep 2025 08:42:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3311A27B332;
+	Fri, 12 Sep 2025 09:16:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.177.32
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757666559; cv=none; b=n3Fu+LCt/y/i/Pen9p6UWMep0gw7nj7hURSA0WgdgrsKkxfqrPdqNM5/S5a1Z5xXIfXw3/jmnuC0t5QglAriyDNS7Sd6JGghnLcIjZyZQsy2OFexWesFAjI+rWSJzYLoHh7+qJMfV3Xkobn/dEgcse54lbsiG52JZHhp88DmsWU=
+	t=1757668610; cv=none; b=u0ICh9m4yhHW33lcYdoOwLFH8DVwa13t+2Nq4kNCjNkFIaBftIcDG5PJ9KJ3wn9Vd8ZaAXYIYXtRAkf7Q0O7rPpSIWFYfmqtGc5SS+ispxMmyyfcZeSCtgRrOYOsKXOPB4xyojylseP+k/mi1SGf6TV/wR0q8Ln0ulI9g07V+ms=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757666559; c=relaxed/simple;
-	bh=tC164lnju4nlkcKq4HZ43AZm32SxhQ30U+92JK6VOoc=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=IjnXiJuQkEJwR2M6nHd/lB9YliZOIOVpfk2/O0laAioonGkD1nbmKtL4a96wAn0L4og0vThNXk3n5uDCGTeNjCzzwj3dxPeLECA3FGjN0FOfm2gOzTNT4SSwzHl97ZEg1POu/ItYU24iTPZhN+/ITaQE8oGSDb07w2HmxbSYedc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=p6LK9jVB; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757668610; c=relaxed/simple;
+	bh=R6TdoxJTGLt58giAE9c066CGOKBAyKfPk46y8hSTDuc=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=CzgsXVhGMn2SPwYPZ9WEZrP81rSaVx+yJaj4DGUfy5dN3oYt0xCoXoPCyQV/nNP+EeLoF+TbNcx04l1xv75oj80+F02K8uqcR7L4gtB6DqtFmHaXM0noTRbIambGlTXMIANFOSuMtYL0xI9kr37du3FyeTjd2A7WUdZ3jfAbtm0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oracle.com; spf=pass smtp.mailfrom=oracle.com; dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b=LT0kvgcd; arc=none smtp.client-ip=205.220.177.32
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oracle.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oracle.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="p6LK9jVB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 13389C4CEF4;
-	Fri, 12 Sep 2025 08:42:36 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1757666558;
-	bh=tC164lnju4nlkcKq4HZ43AZm32SxhQ30U+92JK6VOoc=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=p6LK9jVBBtGh2HQPAML43tiff6de53N868v8/aC+BfFBwTcGxbtAVMawVuQ2GRDnB
-	 Bum4x/NvOeFlFQjR4YajRU3N0QhkltM+UIThlXSGvWHDAX92G6YW/m6XkKj0iazAlh
-	 TF0kv+hGO0mFMhk+CsgCDzTx0L4zYOEzEJXKpHMml4eMN/c3Nr8WAMTbYALYaJY2Ck
-	 Ml1E5Txm7hjYYP2j/1swR3irtOVq5cwozj8TxALnXriUM+JtGLHX3Kj9Qp2MLoUrV6
-	 uEWRKTbCnR6gX98M6zqyYItVgOPYmpygvZWuxJ0C7Dx6tlkVkKSB9L2To/X3+VfxZ2
-	 VAzb8fIThH3PA==
-Date: Fri, 12 Sep 2025 09:42:34 +0100
-From: Simon Horman <horms@kernel.org>
-To: Siva Reddy Kallam <siva.kallam@broadcom.com>
-Cc: leonro@nvidia.com, jgg@nvidia.com, linux-rdma@vger.kernel.org,
-	netdev@vger.kernel.org, vikas.gupta@broadcom.com,
-	selvin.xavier@broadcom.com, anand.subramanian@broadcom.com,
-	Usman Ansari <usman.ansari@broadcom.com>
-Subject: Re: [PATCH 6/8] RDMA/bng_re: Enable Firmware channel and query
- device attributes
-Message-ID: <20250912084234.GT30363@horms.kernel.org>
-References: <20250829123042.44459-1-siva.kallam@broadcom.com>
- <20250829123042.44459-7-siva.kallam@broadcom.com>
+	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="LT0kvgcd"
+Received: from pps.filterd (m0246631.ppops.net [127.0.0.1])
+	by mx0b-00069f02.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 58C1vv7x019342;
+	Fri, 12 Sep 2025 09:16:38 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=cc
+	:content-transfer-encoding:date:from:message-id:mime-version
+	:subject:to; s=corp-2025-04-25; bh=i6PS96kxqQ3nhDF+Bey3wocVR2JPq
+	/nepgh0WRD2V4Y=; b=LT0kvgcdztN0EXZueELwJzj0vDj35t26BQTXliPkNrfuG
+	GC/XTi1qfa1VT0mpGm6k9En4moQj9qdnfKCkGH7X2VbomclvrYFDWRsKhFGxyvBX
+	Iv1/phbHpSlu5emjjvrL93D4Zh8XZigk+sQWVUlfL2jpizf7D18mZMZaqN15+wDD
+	iEoJXXRR0uhhGWooIw+5goiDVuDvG08iDA3X9yEP2WQeLWO5L7j/wPFcfV3VUR4w
+	SapMifFIQ78OiwjXOadmmJOzBkBBH7UqzAMwiuQPvSjYJETlvv/KZILirNSXtRhP
+	RF4+Jl9sOwN4HpxgAm+2H5wLrnnZAmXH/EnCicanw==
+Received: from phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com (phxpaimrmta01.appoci.oracle.com [138.1.114.2])
+	by mx0b-00069f02.pphosted.com (PPS) with ESMTPS id 49226syw01-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Fri, 12 Sep 2025 09:16:38 +0000 (GMT)
+Received: from pps.filterd (phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com [127.0.0.1])
+	by phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com (8.18.1.2/8.18.1.2) with ESMTP id 58C89Xqo032848;
+	Fri, 12 Sep 2025 09:16:37 GMT
+Received: from pps.reinject (localhost [127.0.0.1])
+	by phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com (PPS) with ESMTPS id 490bdekcbs-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Fri, 12 Sep 2025 09:16:37 +0000
+Received: from phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com (phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com [127.0.0.1])
+	by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 58C9CJW1014831;
+	Fri, 12 Sep 2025 09:16:37 GMT
+Received: from prahar-home.osdevelopmeniad.oraclevcn.com (prahar-home.allregionaliads.osdevelopmeniad.oraclevcn.com [100.100.252.152])
+	by phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com (PPS) with ESMTP id 490bdekcay-1;
+	Fri, 12 Sep 2025 09:16:37 +0000
+From: Pradyumn Rahar <pradyumn.rahar@oracle.com>
+To: linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, jv@jvosburgh.net,
+        andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@google.com,
+        kuba@kernel.org, pabeni@redhat.com, netdev@vger.kernel.org
+Cc: pradyumn.rahar@oracle.com, anand.a.khoje@oracle.com,
+        rama.nichanamatlu@oracle.com, manjunath.b.patil@oracle.com,
+        rajesh.sivaramasubramaniom@oracle.com
+Subject: [PATCH RFC net 1/1] net/bonding: add 0 to the range of arp_missed_max
+Date: Fri, 12 Sep 2025 09:16:35 +0000
+Message-ID: <20250912091635.3577586-1-pradyumn.rahar@oracle.com>
+X-Mailer: git-send-email 2.43.7
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20250829123042.44459-7-siva.kallam@broadcom.com>
+Content-Transfer-Encoding: 8bit
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1117,Hydra:6.1.9,FMLib:17.12.80.40
+ definitions=2025-09-12_03,2025-09-11_02,2025-03-28_01
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 spamscore=0 mlxscore=0 phishscore=0
+ bulkscore=0 mlxlogscore=999 malwarescore=0 adultscore=0 suspectscore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2508110000
+ definitions=main-2509120087
+X-Authority-Analysis: v=2.4 cv=QeRmvtbv c=1 sm=1 tr=0 ts=68c3e4f6 cx=c_pps
+ a=XiAAW1AwiKB2Y8Wsi+sD2Q==:117 a=XiAAW1AwiKB2Y8Wsi+sD2Q==:17
+ a=yJojWOMRYYMA:10 a=yPCof4ZbAAAA:8 a=pX0Wh22Zp09VsyUOIvQA:9
+X-Proofpoint-ORIG-GUID: kiB0TVr1IJRuu_X43Rxpcot7nDFicyfn
+X-Proofpoint-GUID: kiB0TVr1IJRuu_X43Rxpcot7nDFicyfn
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjUwOTA4MDE1OCBTYWx0ZWRfXzWg9fZiTXyMU
+ rx9sIoU1Ljf56RLhgNf28jCsXv1b+GgrG6p70bA1ZmTSkXHMc/cqomBOXp26BEUAeENptP9OAVP
+ rVeCKW8A2YeVF1EiBTo94UIhXGyjX5e3O42GSZ6bQQ5U5AJdA7Oow1OlFdh0k7HmDDzyNYsFn86
+ Lar7k/80dUF6ugHuxQGyb/+5aS4JBi4hNnlUOv2vUh33jIArRhCOmBBrtwXonSDJPJkkBMDrsfx
+ bvIO2rkiGxrQHAg40FbY/fm3FtKV8qExrzdEl5O84za02AgeTFsD2tVIIqu16jHGylsUhBd+JFs
+ QYmEJfmFhQTOT0mKt9uFUpUu8PTh3hsMPXjm5fau/0+9/KWwJFXsufcsN720W8j7quSt/d1O5ui
+ fKVwYezo
 
-On Fri, Aug 29, 2025 at 12:30:40PM +0000, Siva Reddy Kallam wrote:
-> Enable Firmware channel and query device attributes
-> 
-> Signed-off-by: Siva Reddy Kallam <siva.kallam@broadcom.com>
-> Reviewed-by: Usman Ansari <usman.ansari@broadcom.com>
+NetworkManager uses 0 to indicate that the option `arp_missed_max`
+is in unset state as this option is not compatible with 802.3AD,
+balance-tlb and balance-alb modes.
 
-...
+This causes kernel to report errors like this:
 
-> diff --git a/drivers/infiniband/hw/bng_re/bng_sp.c b/drivers/infiniband/hw/bng_re/bng_sp.c
+kernel: backend0: option arp_missed_max: invalid value (0)
+kernel: backend0: option arp_missed_max: allowed values 1 - 255
+NetworkManager[1766]: <error> [1757489103.9525] platform-linux: sysctl: failed to set 'bonding/arp_missed_max' to '0': (22) Invalid argument
+NetworkManager[1766]: <warn>  [1757489103.9525] device (backend0): failed to set bonding attribute 'arp_missed_max' to '0'
 
-...
+when NetworkManager tries to set this value to 0
 
-> +int bng_re_get_dev_attr(struct bng_re_rcfw *rcfw)
-> +{
-> +	struct bng_re_dev_attr *attr = rcfw->res->dattr;
-> +	struct creq_query_func_resp resp = {};
-> +	struct bng_re_cmdqmsg msg = {};
-> +	struct creq_query_func_resp_sb *sb;
-> +	struct bng_re_rcfw_sbuf sbuf;
-> +	struct bng_re_chip_ctx *cctx;
-> +	struct cmdq_query_func req = {};
-> +	u8 *tqm_alloc;
-> +	int i, rc;
-> +	u32 temp;
-> +
-> +	cctx = rcfw->res->cctx;
+Signed-off-by: Pradyumn Rahar <pradyumn.rahar@oracle.com>
+---
+ drivers/net/bonding/bond_options.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Similar to my comment on an earlier patch in this series,
-cctx appears to be initialised but otherwise unused in this function.
+diff --git a/drivers/net/bonding/bond_options.c b/drivers/net/bonding/bond_options.c
+index 3b6f815c55ff..243fde3caecd 100644
+--- a/drivers/net/bonding/bond_options.c
++++ b/drivers/net/bonding/bond_options.c
+@@ -230,7 +230,7 @@ static const struct bond_opt_value bond_ad_user_port_key_tbl[] = {
+ };
+ 
+ static const struct bond_opt_value bond_missed_max_tbl[] = {
+-	{ "minval",	1,	BOND_VALFLAG_MIN},
++	{ "minval",	0,	BOND_VALFLAG_MIN},
+ 	{ "maxval",	255,	BOND_VALFLAG_MAX},
+ 	{ "default",	2,	BOND_VALFLAG_DEFAULT},
+ 	{ NULL,		-1,	0},
+-- 
+2.43.7
 
-
-> +	bng_re_rcfw_cmd_prep((struct cmdq_base *)&req,
-> +			     CMDQ_BASE_OPCODE_QUERY_FUNC,
-> +			     sizeof(req));
-> +
-> +	sbuf.size = ALIGN(sizeof(*sb), BNG_FW_CMDQE_UNITS);
-> +	sbuf.sb = dma_alloc_coherent(&rcfw->pdev->dev, sbuf.size,
-> +				     &sbuf.dma_addr, GFP_KERNEL);
-> +	if (!sbuf.sb)
-> +		return -ENOMEM;
-> +	sb = sbuf.sb;
-> +	req.resp_size = sbuf.size / BNG_FW_CMDQE_UNITS;
-> +	bng_re_fill_cmdqmsg(&msg, &req, &resp, &sbuf, sizeof(req),
-> +			    sizeof(resp), 0);
-> +	rc = bng_re_rcfw_send_message(rcfw, &msg);
-> +	if (rc)
-> +		goto bail;
-> +	/* Extract the context from the side buffer */
-> +	attr->max_qp = le32_to_cpu(sb->max_qp);
-> +	/* max_qp value reported by FW doesn't include the QP1 */
-> +	attr->max_qp += 1;
-> +	attr->max_qp_rd_atom =
-> +		sb->max_qp_rd_atom > BNG_RE_MAX_OUT_RD_ATOM ?
-> +		BNG_RE_MAX_OUT_RD_ATOM : sb->max_qp_rd_atom;
-> +	attr->max_qp_init_rd_atom =
-> +		sb->max_qp_init_rd_atom > BNG_RE_MAX_OUT_RD_ATOM ?
-> +		BNG_RE_MAX_OUT_RD_ATOM : sb->max_qp_init_rd_atom;
-> +	attr->max_qp_wqes = le16_to_cpu(sb->max_qp_wr) - 1;
-> +
-> +	/* Adjust for max_qp_wqes for variable wqe */
-> +	attr->max_qp_wqes = min_t(u32, attr->max_qp_wqes, BNG_VAR_MAX_WQE - 1);
-> +
-> +	attr->max_qp_sges = min_t(u32, sb->max_sge_var_wqe, BNG_VAR_MAX_SGE);
-> +	attr->max_cq = le32_to_cpu(sb->max_cq);
-> +	attr->max_cq_wqes = le32_to_cpu(sb->max_cqe);
-> +	attr->max_cq_sges = attr->max_qp_sges;
-> +	attr->max_mr = le32_to_cpu(sb->max_mr);
-> +	attr->max_mw = le32_to_cpu(sb->max_mw);
-> +
-> +	attr->max_mr_size = le64_to_cpu(sb->max_mr_size);
-> +	attr->max_pd = 64 * 1024;
-> +	attr->max_raw_ethy_qp = le32_to_cpu(sb->max_raw_eth_qp);
-> +	attr->max_ah = le32_to_cpu(sb->max_ah);
-> +
-> +	attr->max_srq = le16_to_cpu(sb->max_srq);
-> +	attr->max_srq_wqes = le32_to_cpu(sb->max_srq_wr) - 1;
-> +	attr->max_srq_sges = sb->max_srq_sge;
-> +	attr->max_pkey = 1;
-> +	attr->max_inline_data = le32_to_cpu(sb->max_inline_data);
-> +	/*
-> +	 * Read the max gid supported by HW.
-> +	 * For each entry in HW  GID in HW table, we consume 2
-> +	 * GID entries in the kernel GID table.  So max_gid reported
-> +	 * to stack can be up to twice the value reported by the HW, up to 256 gids.
-> +	 */
-> +	attr->max_sgid = le32_to_cpu(sb->max_gid);
-> +	attr->max_sgid = min_t(u32, BNG_RE_NUM_GIDS_SUPPORTED, 2 * attr->max_sgid);
-> +	attr->dev_cap_flags = le16_to_cpu(sb->dev_cap_flags);
-> +	attr->dev_cap_flags2 = le16_to_cpu(sb->dev_cap_ext_flags_2);
-> +
-> +	if (_is_max_srq_ext_supported(attr->dev_cap_flags2))
-> +		attr->max_srq += le16_to_cpu(sb->max_srq_ext);
-> +
-> +	bng_re_query_version(rcfw, attr->fw_ver);
-> +	for (i = 0; i < BNG_MAX_TQM_ALLOC_REQ / 4; i++) {
-> +		temp = le32_to_cpu(sb->tqm_alloc_reqs[i]);
-> +		tqm_alloc = (u8 *)&temp;
-> +		attr->tqm_alloc_reqs[i * 4] = *tqm_alloc;
-> +		attr->tqm_alloc_reqs[i * 4 + 1] = *(++tqm_alloc);
-> +		attr->tqm_alloc_reqs[i * 4 + 2] = *(++tqm_alloc);
-> +		attr->tqm_alloc_reqs[i * 4 + 3] = *(++tqm_alloc);
-> +	}
-> +
-> +	attr->max_dpi = le32_to_cpu(sb->max_dpi);
-> +	attr->is_atomic = bng_re_is_atomic_cap(rcfw);
-> +bail:
-> +	dma_free_coherent(&rcfw->pdev->dev, sbuf.size,
-> +			  sbuf.sb, sbuf.dma_addr);
-> +	return rc;
-> +}
-
-...
