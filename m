@@ -1,36 +1,39 @@
 Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 83B9F2E9731
-	for <linux-rdma@vger.kernel.org>; Sat, 13 Sep 2025 09:06:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E4662E974E
+	for <linux-rdma@vger.kernel.org>; Sat, 13 Sep 2025 09:06:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.188
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757754388; cv=none; b=n0OGCgWE1GLQJ78DdM/yl49LKSo6VElGQp7D0bLkk0zRTlg8eQ7pkpuxnl2ur3gj8G6XrIJDyGYbw1qSYH0M1rc+LeHi8X12FxeOWDiRaGCY5nEF+ae7g9jc3lAKhTwx9RpG7T7374A8ylz1Lw/kMQmZGrRAuTNn/29mBQS59yg=
+	t=1757754388; cv=none; b=KwGcj5AASd+eBU5oxB9X8xJvNQ3YXIHIX1WW1Bg8aRkWoKqY/SJw8KdpIvdLs9q5w8u451uMuhYIikmWb5Oy2vd7cGl/x7pywrAfrW8tXy15LVF4amIDuvZUfTCcqhzK8p3W94QAVxuedpZ1mX/gCSJ1GUbj00y4vUnd30xob8Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1757754388; c=relaxed/simple;
-	bh=WHlkCmLxcq/7UITc1pa7RCSfOx0c+fcSRcaCeWvaFcA=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=jCrPmLQldfF01QUc0Q60bBlZ/DA6QB+yhKDBfPixVDPRAUFSiOun3gd5e/F7+qB1hKkhPd8Wu0qV1nGCF3PXmDYi1waJk5Nmhnp2vGGQGD7fia5uXxCmYKPAszDzIAZZ6Se/Wlbs92cTWVsrMB/nIGDoHBR9VTjFZFIJZHzmXYI=
+	bh=Iv+RUm/IMbOR0ZbASDfVgxBkUHJAmm/BPAJnwFtkQj0=;
+	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=Cbyi1UHhHoGjpWo21UpaODJnB2+pl9QJ8oXZsQGv1u6g4O6HskBETr/3qL6zySCNd3olLkurkIdmeInZ5EYuAx+hyK5rtKJKCPPaCxoBJ+G4MXHliFofumEk6wLeYM4LsNW470kJx5JiSI7IOZFgzyVMi2ZwtFGoG0i9kOg0+6g=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com; spf=pass smtp.mailfrom=hisilicon.com; arc=none smtp.client-ip=45.249.212.188
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=hisilicon.com
-Received: from mail.maildlp.com (unknown [172.19.163.48])
-	by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4cP53j3lwmztTXF;
-	Sat, 13 Sep 2025 17:05:21 +0800 (CST)
+Received: from mail.maildlp.com (unknown [172.19.163.174])
+	by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4cP53m1KbHztTXM;
+	Sat, 13 Sep 2025 17:05:24 +0800 (CST)
 Received: from kwepemf100018.china.huawei.com (unknown [7.202.181.17])
-	by mail.maildlp.com (Postfix) with ESMTPS id 287B918006C;
-	Sat, 13 Sep 2025 17:06:16 +0800 (CST)
+	by mail.maildlp.com (Postfix) with ESMTPS id C94B41402DF;
+	Sat, 13 Sep 2025 17:06:18 +0800 (CST)
 Received: from localhost.localdomain (10.50.165.33) by
  kwepemf100018.china.huawei.com (7.202.181.17) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Sat, 13 Sep 2025 17:06:15 +0800
+ 15.2.1544.11; Sat, 13 Sep 2025 17:06:18 +0800
 From: Junxian Huang <huangjunxian6@hisilicon.com>
 To: <jgg@ziepe.ca>, <leon@kernel.org>
 CC: <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
 	<huangjunxian6@hisilicon.com>, <tangchengchang@huawei.com>
-Subject: [PATCH for-next 0/8] RDMA/hns: Support RoCE bonding
-Date: Sat, 13 Sep 2025 17:06:07 +0800
-Message-ID: <20250913090615.212720-1-huangjunxian6@hisilicon.com>
+Subject: [PATCH for-next 8/8] RDMA/hns: Support reset recovery for bond
+Date: Sat, 13 Sep 2025 17:06:15 +0800
+Message-ID: <20250913090615.212720-9-huangjunxian6@hisilicon.com>
 X-Mailer: git-send-email 2.33.0
+In-Reply-To: <20250913090615.212720-1-huangjunxian6@hisilicon.com>
+References: <20250913090615.212720-1-huangjunxian6@hisilicon.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -42,45 +45,56 @@ Content-Type: text/plain
 X-ClientProxiedBy: kwepems200002.china.huawei.com (7.221.188.68) To
  kwepemf100018.china.huawei.com (7.202.181.17)
 
-This series adds support for RoCE bonding. The bond mode is active
-when multiple PF netdevs are enslaved to a bond master while all
-following rules are met:
-  * All the slaves are on the same card, i.e., they share the same
-    bus number.
-  * The bond mode are set to mode 1 (active-backup), 2 (XOR) or
-    4 (802.3ad).
-  * None of the slaves have generated a VF.
+Re-set bond configuration to HW after HW reset.
 
-In bond mode, a bond ibdev "hns_bond_*" is registered instead of the
-regular PF ibdev "hns_*". For RoCE traffic, HW chooses the same active
-port as netdev bonding in mode 1, while in mode 2/4, the port selection
-is determined by the hash algorithm.
+Signed-off-by: Junxian Huang <huangjunxian6@hisilicon.com>
+---
+ drivers/infiniband/hw/hns/hns_roce_bond.c | 20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
-Junxian Huang (8):
-  RDMA/hns: Add helpers to obtain netdev and bus_num from hr_dev
-  RDMA/hns: Initialize bonding resources
-  RDMA/hns: Add bonding event handler
-  RDMA/hns: Add bonding cmds
-  RDMA/hns: Implement bonding init/uninit process
-  RDMA/hns: Add delayed work for bonding
-  RDMA/hns: Support link state reporting for bond
-  RDMA/hns: Support reset recovery for bond
-
- drivers/infiniband/hw/hns/Makefile          |   4 +-
- drivers/infiniband/hw/hns/hns_roce_ah.c     |   1 -
- drivers/infiniband/hw/hns/hns_roce_bond.c   | 996 ++++++++++++++++++++
- drivers/infiniband/hw/hns/hns_roce_bond.h   |  95 ++
- drivers/infiniband/hw/hns/hns_roce_device.h |  16 +-
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 175 +++-
- drivers/infiniband/hw/hns/hns_roce_hw_v2.h  |  20 +
- drivers/infiniband/hw/hns/hns_roce_main.c   | 176 +++-
- drivers/infiniband/hw/hns/hns_roce_pd.c     |   1 -
- drivers/infiniband/hw/hns/hns_roce_qp.c     |   5 +-
- drivers/infiniband/hw/hns/hns_roce_srq.c    |   1 -
- 11 files changed, 1438 insertions(+), 52 deletions(-)
- create mode 100644 drivers/infiniband/hw/hns/hns_roce_bond.c
- create mode 100644 drivers/infiniband/hw/hns/hns_roce_bond.h
-
---
+diff --git a/drivers/infiniband/hw/hns/hns_roce_bond.c b/drivers/infiniband/hw/hns/hns_roce_bond.c
+index dcafb8d9bfff..08e78d016574 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_bond.c
++++ b/drivers/infiniband/hw/hns/hns_roce_bond.c
+@@ -157,6 +157,15 @@ static void hns_roce_bond_get_active_slave(struct hns_roce_bond_group *bond_grp)
+ 	bond_grp->active_slave_map = active_slave_map;
+ }
+ 
++static int hns_roce_recover_bond(struct hns_roce_bond_group *bond_grp,
++				 struct hns_roce_dev *hr_dev)
++{
++	bond_grp->main_hr_dev = hr_dev;
++	hns_roce_bond_get_active_slave(bond_grp);
++
++	return hns_roce_cmd_bond(bond_grp, HNS_ROCE_SET_BOND);
++}
++
+ static void hns_roce_slave_uninit(struct hns_roce_bond_group *bond_grp,
+ 				  u8 func_idx)
+ {
+@@ -902,11 +911,22 @@ void hns_roce_dealloc_bond_grp(void)
+ int hns_roce_bond_init(struct hns_roce_dev *hr_dev)
+ {
+ 	struct net_device *net_dev = get_hr_netdev(hr_dev, 0);
++	struct hns_roce_v2_priv *priv = hr_dev->priv;
+ 	struct hns_roce_bond_group *bond_grp;
+ 	u8 bus_num = get_hr_bus_num(hr_dev);
++	int ret;
+ 
+ 	bond_grp = hns_roce_get_bond_grp(net_dev, bus_num);
+ 
++	if (priv->handle->rinfo.reset_state == HNS_ROCE_STATE_RST_INIT) {
++		ret = hns_roce_recover_bond(bond_grp, hr_dev);
++		if (ret) {
++			dev_err(hr_dev->dev,
++				"failed to recover RoCE bond, ret = %d.\n", ret);
++			return ret;
++		}
++	}
++
+ 	return hns_roce_set_bond_netdev(bond_grp, hr_dev);
+ }
+ 
+-- 
 2.33.0
 
