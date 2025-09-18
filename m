@@ -1,66 +1,66 @@
 Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 248672FCBF4;
-	Thu, 18 Sep 2025 11:05:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 80ABF3016FE;
+	Thu, 18 Sep 2025 11:05:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.158.5
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758193533; cv=none; b=m5VkORu5E1duGVqBh2z9PGHB1YBRkUDIT5CErGPoOh/jPED0IMJJAS6q5DDxF9bTCa/zoUnUjHJfbpG7GsaPWmzDe7CV/1X01P3551ZbW1ef5CwlBft9BHVu0UyOclim7zhibGJ7LH1Tfk4BvLIUScXA9bc1lrhMvAQki67Pc44=
+	t=1758193535; cv=none; b=TsQrANSiCgD02yqPKgiRINjjI7fZK/TdS6jPkReT6p+HpWHG0nJGU+ixjPSuG9NCS8LbJFOTWdMXOONwti76JfGuf4B8mKf5BLcXeE7ppTZCBReZNq7S56TLzeqelJNWHj6KgL+wrS01Uwj9pPNcjQOkjOASEjCuCCRvxsRmKCQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758193533; c=relaxed/simple;
-	bh=WwCnVGbYofUwCrJSTcqVwgX/cBky/z97QuheVNai1/M=;
+	s=arc-20240116; t=1758193535; c=relaxed/simple;
+	bh=bGug2TMrasSwLsQs2f/SL6ty3KSChsn2pPrmiNuGEbU=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=jhmUFgYCaSx2rXXM98I59VR0Ijkfb9Lofl9IwxGiYKHZXD5EyiXurHQ3JsFNb7yyAkJ/v9xjbBqtg+Cml3hCeqgZWEz3SKR/+oo4tt6Nr85cG2UvoZzJ4jO+y+OZIhvLxMcFjPf4OxgS8/em+Dj4LfjeqGLdZ4AEN8mnxTYSTII=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=BZKR4Kwy; arc=none smtp.client-ip=148.163.158.5
+	 MIME-Version; b=J3MZELXcnz25E0Rq3+SeiAfvvWi0Y4Y6RbWCU1rJPpfJ2s5gGrI3+MbVTOJuxA8vEHjCZ8/64Iu342Zraw0jJIcGZCOjxT7ouAr/Kth1Klcuc6msiAdfz6Uxu9buMObMgSm5QUlLSWqrq5bWHxx1MkYuhy1hFQvhRylYXyu/gbk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=d/hhb943; arc=none smtp.client-ip=148.163.158.5
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="BZKR4Kwy"
-Received: from pps.filterd (m0360072.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 58I5wain011014;
-	Thu, 18 Sep 2025 11:05:06 GMT
+	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="d/hhb943"
+Received: from pps.filterd (m0356516.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 58I8GL1R024759;
+	Thu, 18 Sep 2025 11:05:07 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
 	:content-transfer-encoding:date:from:in-reply-to:message-id
-	:mime-version:references:subject:to; s=pp1; bh=J0y8rl3Nel8ETmnqA
-	F2ckgO48YAPmgbb92F8C0os1Fc=; b=BZKR4KwyVw816PNklK5mYqHARnC6to9EK
-	BzsjG6XnJRrDR3RayClaCA5gRswWNXcvdsWZaj6/hznohpgPtTynSVz6p+CEX3Ws
-	ww0HetIw4KxJkWeeNWLX5yM9fGCFDt9E3sMlVeUknonLb52LxHzPVWrMI4edF2QF
-	hB8gwwoY5yf5LIfjiwdWH3Mw8XE/31CYJ2yp9rfW2l9AwPVo5VxeZQzJVhg5yKp4
-	7DRBeirjecN/r0Rvks++X86VNLtqXRvZrRFNBvgSgRcYSliF7kztfrLAE1zpo+iB
-	Xyr2RMkmItwy1etGrIhOusq2cmajdQRillfBUzYwEBD69HlZTBT7g==
+	:mime-version:references:subject:to; s=pp1; bh=1R2FRvqYkTiAFoReC
+	YwD9o49UkijhJ4zipzBvBh2WlA=; b=d/hhb943HKDr4CXtT9SJJefOVuqYj/FiU
+	iVyJRsX/Zk91VbqP7bsU2qRCABpO7E1O5vvrS06RlsnCrq07GNoPDAWQ0q/m6mvE
+	dp3UK7MTLy1Fr5ycFtXLUHvHTgznAFOZYxKfEJ6h+AW25oZaXs5axyy9MmjTqDSR
+	Pb4oJ6NzzHnAcF8EB7XuDUhnqNrxWqbpFOLRQRw7LRL2bzd5Zbp/bdrx9s3/Fiyj
+	2V4ijyWTN036Ws+xKXps9Pn2uQ804AxPAEhkxEjxp6hEr0ntfD76xEUnkSfr/4v/
+	CRyNHREV38So1GmDgUrxJSr4hbmc6PZb42ZHqxNSD4BHh/0rWiFDA==
 Received: from pps.reinject (localhost [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 497g4nhaun-1
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 497g4qs9up-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
 	Thu, 18 Sep 2025 11:05:06 +0000 (GMT)
-Received: from m0360072.ppops.net (m0360072.ppops.net [127.0.0.1])
-	by pps.reinject (8.18.1.12/8.18.0.8) with ESMTP id 58IB56C2024112;
+Received: from m0356516.ppops.net (m0356516.ppops.net [127.0.0.1])
+	by pps.reinject (8.18.1.12/8.18.0.8) with ESMTP id 58IAuq9j011190;
 	Thu, 18 Sep 2025 11:05:06 GMT
-Received: from ppma21.wdc07v.mail.ibm.com (5b.69.3da9.ip4.static.sl-reverse.com [169.61.105.91])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 497g4nhaub-1
+Received: from ppma22.wdc07v.mail.ibm.com (5c.69.3da9.ip4.static.sl-reverse.com [169.61.105.92])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 497g4qs9uc-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
 	Thu, 18 Sep 2025 11:05:06 +0000 (GMT)
-Received: from pps.filterd (ppma21.wdc07v.mail.ibm.com [127.0.0.1])
-	by ppma21.wdc07v.mail.ibm.com (8.18.1.2/8.18.1.2) with ESMTP id 58I9XTu7022297;
+Received: from pps.filterd (ppma22.wdc07v.mail.ibm.com [127.0.0.1])
+	by ppma22.wdc07v.mail.ibm.com (8.18.1.2/8.18.1.2) with ESMTP id 58I9X1YC029514;
 	Thu, 18 Sep 2025 11:05:05 GMT
 Received: from smtprelay05.fra02v.mail.ibm.com ([9.218.2.225])
-	by ppma21.wdc07v.mail.ibm.com (PPS) with ESMTPS id 495kxpx9xq-1
+	by ppma22.wdc07v.mail.ibm.com (PPS) with ESMTPS id 495kb16f4x-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
 	Thu, 18 Sep 2025 11:05:05 +0000
 Received: from smtpav07.fra02v.mail.ibm.com (smtpav07.fra02v.mail.ibm.com [10.20.54.106])
-	by smtprelay05.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 58IB51ka55640484
+	by smtprelay05.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 58IB51nL51511630
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
 	Thu, 18 Sep 2025 11:05:01 GMT
 Received: from smtpav07.fra02v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 51A822005A;
+	by IMSVA (Postfix) with ESMTP id 422002004E;
 	Thu, 18 Sep 2025 11:05:01 +0000 (GMT)
 Received: from smtpav07.fra02v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 2ADB72004D;
+	by IMSVA (Postfix) with ESMTP id 1CD5020040;
 	Thu, 18 Sep 2025 11:05:01 +0000 (GMT)
 Received: from tuxmaker.boeblingen.de.ibm.com (unknown [9.152.85.9])
 	by smtpav07.fra02v.mail.ibm.com (Postfix) with ESMTPS;
 	Thu, 18 Sep 2025 11:05:01 +0000 (GMT)
 Received: by tuxmaker.boeblingen.de.ibm.com (Postfix, from userid 55271)
-	id C0E62E1558; Thu, 18 Sep 2025 13:05:00 +0200 (CEST)
+	id C84ADE156D; Thu, 18 Sep 2025 13:05:00 +0200 (CEST)
 From: Alexandra Winter <wintera@linux.ibm.com>
 To: "D. Wythe" <alibuda@linux.alibaba.com>,
         Dust Li <dust.li@linux.alibaba.com>,
@@ -90,9 +90,9 @@ Cc: Julian Ruess <julianr@linux.ibm.com>,
         Shannon Nelson <sln@onemain.com>,
         Geert Uytterhoeven <geert@linux-m68k.org>,
         Jason Gunthorpe <jgg@ziepe.ca>
-Subject: [PATCH net-next v3 09/14] dibs: Create class dibs
-Date: Thu, 18 Sep 2025 13:04:55 +0200
-Message-ID: <20250918110500.1731261-10-wintera@linux.ibm.com>
+Subject: [PATCH net-next v3 11/14] dibs: Move vlan support to dibs_dev_ops
+Date: Thu, 18 Sep 2025 13:04:57 +0200
+Message-ID: <20250918110500.1731261-12-wintera@linux.ibm.com>
 X-Mailer: git-send-email 2.48.1
 In-Reply-To: <20250918110500.1731261-1-wintera@linux.ibm.com>
 References: <20250918110500.1731261-1-wintera@linux.ibm.com>
@@ -104,247 +104,288 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-TM-AS-GCONF: 00
-X-Authority-Analysis: v=2.4 cv=MN5gmNZl c=1 sm=1 tr=0 ts=68cbe762 cx=c_pps
- a=GFwsV6G8L6GxiO2Y/PsHdQ==:117 a=GFwsV6G8L6GxiO2Y/PsHdQ==:17
- a=yJojWOMRYYMA:10 a=VnNF1IyMAAAA:8 a=rhFwxXKG5dtNbWJtHqsA:9
-X-Proofpoint-GUID: qxl4w2IEL93msTQ_J_BV3oDfLtfMEjdN
-X-Proofpoint-ORIG-GUID: Wxi6DZTFtZytGZZ_f5oHJ60m3D0OSrUf
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjUwOTE2MDIwNCBTYWx0ZWRfX2sAb6V30u3ue
- k5E7MDisF5HLkF5FVp+L+RJ25o0lF9EEPYXKID7Orr9R4uEYd0vn3YMP3SQ6g3VSwtVqkMu6r87
- RTvL2PvbSf6bc4iCcqdlP3M6zFed7bv68DExHN8q4iAopfxgVXLMuCoiK/j/yQlX3geaBXgVAO5
- z+uHi12IZWCM8ONLTt6XU53ZfTVWotQmR54eBYVnFWDuSpiICp8KPBPgng8sT7i8S4bR0Wc9GE6
- lRudSDgoRg7RxjoUezvpEnf7g52pJQOodC1+N6FP5a44FRvlLNtXO2IpGXJlWjddVQXFaY2H3wV
- iLtgiQ3qyDSvFX0X7HVoqKAc348N3ChE2FajPhQRxcaG2/NUCA742odiRN9WFosnyc+B2QUl6H+
- 44cSSF6M
+X-Proofpoint-ORIG-GUID: 2jpzlWMEp_wGCvdnGubBlz6szyAMMhdj
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjUwOTE2MDIwNCBTYWx0ZWRfX4RxHxwLSe/hd
+ kfQIgdoHvV5lZgd9amXV0lkKTMdot5akAbofATj+TSEXdPemxo9R76dUxUqXq3uuvZjXnFrt4bO
+ FYF26eZ4SrqMzYml7b3TB8aBoKaLHc/V1BlDJtt4ZMTShp9GyjmOg5qBzs3bTU1fQWYRfycwra+
+ YV9Yffht04nT09LlZ6Qin4LsZmqJJdhbK4kVj6R7F7QWSj+Y0GpdXsm9d3fpFUnn7CU3qpgNvSg
+ oNOJaQxcHv/X3Ek9WIE0PzR01ICuMShfFUXAGukLiMK8F1RDJ5LSuJbY0ezsvnz5Gui/Su4PTUp
+ lzPj6YF1Jv7duuSXyJgvV2yG9ZifEFhMSqVUd4MAq0HJ24TYZbSUQ2tVaixxQSqaCHzcp2r5J1u
+ 7cwa6Hd3
+X-Authority-Analysis: v=2.4 cv=R8oDGcRX c=1 sm=1 tr=0 ts=68cbe762 cx=c_pps
+ a=5BHTudwdYE3Te8bg5FgnPg==:117 a=5BHTudwdYE3Te8bg5FgnPg==:17
+ a=yJojWOMRYYMA:10 a=VnNF1IyMAAAA:8 a=z8tP7dbUM_-rWPAmZuAA:9
+X-Proofpoint-GUID: FTw7_-k35YIPG7E-rtmJsyqDCO3830wz
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.293,Aquarius:18.0.1117,Hydra:6.1.9,FMLib:17.12.80.40
  definitions=2025-09-17_01,2025-09-18_02,2025-03-28_01
 X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- clxscore=1011 spamscore=0 priorityscore=1501 bulkscore=0 impostorscore=0
- malwarescore=0 adultscore=0 phishscore=0 suspectscore=0
+ clxscore=1015 suspectscore=0 malwarescore=0 bulkscore=0 spamscore=0
+ adultscore=0 impostorscore=0 priorityscore=1501 phishscore=0
  classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
  reason=mlx scancount=1 engine=8.19.0-2507300000 definitions=main-2509160204
 
-From: Julian Ruess <julianr@linux.ibm.com>
+It can be debated how much benefit definition of vlan ids for dibs devices
+brings, as the dmbs are accessible only by a single peer anyhow. But ism
+provides vlan support and smcd exploits it, so move it to dibs layer as an
+optional feature.
 
-Create '/sys/class/dibs' to represent multiple kinds of dibs devices in
-sysfs. Show s390/ism devices as well as dibs_loopback devices.
+smcd_loopback simply ignores all vlan settings, do the same in
+dibs_loopback.
 
-Show attribute fabric_id using dibs_ops.get_fabric_id(). This can help
-users understand which dibs devices are connected to the same fabric in
-different systems and which dibs devices are loopback devices
-(fabric_id 0xffff)
+SMC-D and ISM have a method to use the invalid VLAN ID 1FFF
+(ISM_RESERVED_VLANID), to indicate that both communication peers support
+routable SMC-Dv2. Tolerate it in dibs, but move it to SMC only.
 
-Instead of using the same name as the pci device, give the ism devices
-their own readable names based on uid or fid from the HW definition.
-
-smc_loopback was never visible in sysfs. dibs_loopback is now represented
-as a virtual device.
-
-For the SMC feature "software defined pnet-id" either the ib device name or
-the PCI-ID (actually the parent device name) can be used for SMC-R entries.
-Mimic this behaviour for SMC-D, and check the parent device name as well.
-So device name or PCI-ID can be used for ism and device name can be used
-for dibs-loopback. Note that this:
-IB_DEVICE_NAME_MAX - 1 == smc_pnet_policy.[SMC_PNETID_IBNAME].len
-is the length of smcd_name. Future SW-pnetid cleanup patches to could use a
-meaningful define, but that would touch too much unrelated code here.
-
-Examples:
----------
-ism before:
-> ls /sys/bus/pci/devices/0000:00:00.0/0000:00:00.0
-uevent
-
-ism now:
-> ls /sys/bus/pci/devices/0000:00:00.0/dibs/ism30
-device -> ../../../0000:00:00.0/
-fabric_id
-subsystem -> ../../../../../class/dibs/
-uevent
-
-dibs loopback:
-> ls /sys/devices/virtual/dibs/lo/
-fabric_id
-subsystem -> ../../../../class/dibs/
-uevent
-
-dibs class:
-> ls -l /sys/class/dibs/
-ism30 -> ../../devices/pci0000:00/0000:00:00.0/dibs/ism30/
-lo -> ../../devices/virtual/dibs/lo/
-
-For comparison:
-> ls -l /sys/class/net/
-enc8410 -> ../../devices/qeth/0.0.8410/net/enc8410/
-ens1693 -> ../../devices/pci0001:00/0001:00:00.0/net/ens1693/
-lo -> ../../devices/virtual/net/lo/
-
-Signed-off-by: Julian Ruess <julianr@linux.ibm.com>
-Co-developed-by: Alexandra Winter <wintera@linux.ibm.com>
 Signed-off-by: Alexandra Winter <wintera@linux.ibm.com>
 ---
- drivers/dibs/dibs_main.c   | 40 ++++++++++++++++++++++++++++++++++++++
- drivers/s390/net/ism_drv.c |  5 ++++-
- net/smc/smc_pnet.c         | 16 +++++++++++----
- 3 files changed, 56 insertions(+), 5 deletions(-)
+ drivers/s390/net/ism_drv.c | 47 +++++---------------------------------
+ include/linux/dibs.h       | 19 +++++++++++++++
+ include/net/smc.h          |  5 ----
+ net/smc/smc_ism.c          | 14 ++++++++----
+ net/smc/smc_loopback.c     |  5 ----
+ 5 files changed, 34 insertions(+), 56 deletions(-)
 
-diff --git a/drivers/dibs/dibs_main.c b/drivers/dibs/dibs_main.c
-index 610b6c452211..b3f21805aa59 100644
---- a/drivers/dibs/dibs_main.c
-+++ b/drivers/dibs/dibs_main.c
-@@ -20,6 +20,8 @@
- MODULE_DESCRIPTION("Direct Internal Buffer Sharing class");
- MODULE_LICENSE("GPL");
- 
-+static struct class *dibs_class;
-+
- /* use an array rather a list for fast mapping: */
- static struct dibs_client *clients[MAX_DIBS_CLIENTS];
- static u8 max_client;
-@@ -105,12 +107,35 @@ struct dibs_dev *dibs_dev_alloc(void)
- 	if (!dibs)
- 		return dibs;
- 	dibs->dev.release = dibs_dev_release;
-+	dibs->dev.class = dibs_class;
- 	device_initialize(&dibs->dev);
- 
- 	return dibs;
- }
- EXPORT_SYMBOL_GPL(dibs_dev_alloc);
- 
-+static ssize_t fabric_id_show(struct device *dev, struct device_attribute *attr,
-+			      char *buf)
-+{
-+	struct dibs_dev *dibs;
-+	u16 fabric_id;
-+
-+	dibs = container_of(dev, struct dibs_dev, dev);
-+	fabric_id = dibs->ops->get_fabric_id(dibs);
-+
-+	return sysfs_emit(buf, "0x%04x\n", fabric_id);
-+}
-+static DEVICE_ATTR_RO(fabric_id);
-+
-+static struct attribute *dibs_dev_attrs[] = {
-+	&dev_attr_fabric_id.attr,
-+	NULL,
-+};
-+
-+static const struct attribute_group dibs_dev_attr_group = {
-+	.attrs = dibs_dev_attrs,
-+};
-+
- int dibs_dev_add(struct dibs_dev *dibs)
- {
- 	int i, ret;
-@@ -119,6 +144,11 @@ int dibs_dev_add(struct dibs_dev *dibs)
- 	if (ret)
- 		return ret;
- 
-+	ret = sysfs_create_group(&dibs->dev.kobj, &dibs_dev_attr_group);
-+	if (ret) {
-+		dev_err(&dibs->dev, "sysfs_create_group failed for dibs_dev\n");
-+		goto err_device_del;
-+	}
- 	mutex_lock(&dibs_dev_list.mutex);
- 	mutex_lock(&clients_lock);
- 	for (i = 0; i < max_client; ++i) {
-@@ -130,6 +160,11 @@ int dibs_dev_add(struct dibs_dev *dibs)
- 	mutex_unlock(&dibs_dev_list.mutex);
- 
- 	return 0;
-+
-+err_device_del:
-+	device_del(&dibs->dev);
-+	return ret;
-+
- }
- EXPORT_SYMBOL_GPL(dibs_dev_add);
- 
-@@ -158,6 +193,10 @@ static int __init dibs_init(void)
- 	memset(clients, 0, sizeof(clients));
- 	max_client = 0;
- 
-+	dibs_class = class_create("dibs");
-+	if (IS_ERR(&dibs_class))
-+		return PTR_ERR(&dibs_class);
-+
- 	rc = dibs_loopback_init();
- 	if (rc)
- 		pr_err("%s fails with %d\n", __func__, rc);
-@@ -168,6 +207,7 @@ static int __init dibs_init(void)
- static void __exit dibs_exit(void)
- {
- 	dibs_loopback_exit();
-+	class_destroy(dibs_class);
- }
- 
- module_init(dibs_init);
 diff --git a/drivers/s390/net/ism_drv.c b/drivers/s390/net/ism_drv.c
-index 4096ea9faa7e..ab1d61eb3e3b 100644
+index e58c55fb03c2..ed4c28ca355b 100644
 --- a/drivers/s390/net/ism_drv.c
 +++ b/drivers/s390/net/ism_drv.c
-@@ -629,6 +629,7 @@ static void ism_dev_exit(struct ism_dev *ism)
- static int ism_probe(struct pci_dev *pdev, const struct pci_device_id *id)
+@@ -36,7 +36,6 @@ static struct ism_client *clients[MAX_CLIENTS];	/* use an array rather than */
+ 						/* a list for fast mapping  */
+ static u8 max_client;
+ static DEFINE_MUTEX(clients_lock);
+-static bool ism_v2_capable;
+ struct ism_dev_list {
+ 	struct list_head list;
+ 	struct mutex mutex; /* protects ism device list */
+@@ -409,8 +408,9 @@ int ism_unregister_dmb(struct ism_dev *ism, struct ism_dmb *dmb)
+ }
+ EXPORT_SYMBOL_GPL(ism_unregister_dmb);
+ 
+-static int ism_add_vlan_id(struct ism_dev *ism, u64 vlan_id)
++static int ism_add_vlan_id(struct dibs_dev *dibs, u64 vlan_id)
  {
- 	struct dibs_dev *dibs;
-+	struct zpci_dev *zdev;
- 	struct ism_dev *ism;
- 	int ret;
++	struct ism_dev *ism = dibs->drv_priv;
+ 	union ism_set_vlan_id cmd;
  
-@@ -672,7 +673,9 @@ static int ism_probe(struct pci_dev *pdev, const struct pci_device_id *id)
- 		goto err_dibs;
+ 	memset(&cmd, 0, sizeof(cmd));
+@@ -422,8 +422,9 @@ static int ism_add_vlan_id(struct ism_dev *ism, u64 vlan_id)
+ 	return ism_cmd(ism, &cmd);
+ }
  
- 	dibs->dev.parent = &pdev->dev;
--	dev_set_name(&dibs->dev, "%s", dev_name(&pdev->dev));
-+
-+	zdev = to_zpci(pdev);
-+	dev_set_name(&dibs->dev, "ism%x", zdev->uid ? zdev->uid : zdev->fid);
+-static int ism_del_vlan_id(struct ism_dev *ism, u64 vlan_id)
++static int ism_del_vlan_id(struct dibs_dev *dibs, u64 vlan_id)
+ {
++	struct ism_dev *ism = dibs->drv_priv;
+ 	union ism_set_vlan_id cmd;
  
- 	ret = dibs_dev_add(dibs);
+ 	memset(&cmd, 0, sizeof(cmd));
+@@ -536,6 +537,8 @@ static irqreturn_t ism_handle_irq(int irq, void *data)
+ 
+ static const struct dibs_dev_ops ism_ops = {
+ 	.get_fabric_id = ism_get_chid,
++	.add_vlan_id = ism_add_vlan_id,
++	.del_vlan_id = ism_del_vlan_id,
+ };
+ 
+ static int ism_dev_init(struct ism_dev *ism)
+@@ -565,12 +568,6 @@ static int ism_dev_init(struct ism_dev *ism)
  	if (ret)
-diff --git a/net/smc/smc_pnet.c b/net/smc/smc_pnet.c
-index d0df7f2b03aa..a3a1e1fde8eb 100644
---- a/net/smc/smc_pnet.c
-+++ b/net/smc/smc_pnet.c
-@@ -332,8 +332,11 @@ static struct smcd_dev *smc_pnet_find_smcd(char *smcd_name)
+ 		goto unreg_sba;
  
- 	mutex_lock(&smcd_dev_list.mutex);
- 	list_for_each_entry(smcd_dev, &smcd_dev_list.list, list) {
--		if (!strncmp(dev_name(&smcd_dev->dibs->dev),
--			     smcd_name, IB_DEVICE_NAME_MAX - 1))
-+		if (!strncmp(dev_name(&smcd_dev->dibs->dev), smcd_name,
-+			     IB_DEVICE_NAME_MAX - 1) ||
-+		    (smcd_dev->dibs->dev.parent &&
-+		     !strncmp(dev_name(smcd_dev->dibs->dev.parent), smcd_name,
-+			      IB_DEVICE_NAME_MAX - 1)))
- 			goto out;
- 	}
- 	smcd_dev = NULL;
-@@ -1190,7 +1193,6 @@ int smc_pnetid_by_table_ib(struct smc_ib_device *smcibdev, u8 ib_port)
-  */
- int smc_pnetid_by_table_smcd(struct smcd_dev *smcddev)
+-	if (!ism_add_vlan_id(ism, ISM_RESERVED_VLANID))
+-		/* hardware is V2 capable */
+-		ism_v2_capable = true;
+-	else
+-		ism_v2_capable = false;
+-
+ 	mutex_lock(&ism_dev_list.mutex);
+ 	mutex_lock(&clients_lock);
+ 	for (i = 0; i < max_client; ++i) {
+@@ -611,8 +608,6 @@ static void ism_dev_exit(struct ism_dev *ism)
+ 
+ 	mutex_lock(&ism_dev_list.mutex);
+ 
+-	if (ism_v2_capable)
+-		ism_del_vlan_id(ism, ISM_RESERVED_VLANID);
+ 	unregister_ieq(ism);
+ 	unregister_sba(ism);
+ 	free_irq(pci_irq_vector(pdev, 0), ism);
+@@ -786,26 +781,6 @@ static int smcd_unregister_dmb(struct smcd_dev *smcd, struct smcd_dmb *dmb)
+ 	return ism_unregister_dmb(smcd->priv, (struct ism_dmb *)dmb);
+ }
+ 
+-static int smcd_add_vlan_id(struct smcd_dev *smcd, u64 vlan_id)
+-{
+-	return ism_add_vlan_id(smcd->priv, vlan_id);
+-}
+-
+-static int smcd_del_vlan_id(struct smcd_dev *smcd, u64 vlan_id)
+-{
+-	return ism_del_vlan_id(smcd->priv, vlan_id);
+-}
+-
+-static int smcd_set_vlan_required(struct smcd_dev *smcd)
+-{
+-	return ism_cmd_simple(smcd->priv, ISM_SET_VLAN);
+-}
+-
+-static int smcd_reset_vlan_required(struct smcd_dev *smcd)
+-{
+-	return ism_cmd_simple(smcd->priv, ISM_RESET_VLAN);
+-}
+-
+ static int ism_signal_ieq(struct ism_dev *ism, u64 rgid, u32 trigger_irq,
+ 			  u32 event_code, u64 info)
  {
--	const char *ib_name = dev_name(&smcddev->dibs->dev);
- 	struct smc_pnettable *pnettable;
- 	struct smc_pnetentry *tmp_pe;
- 	struct smc_net *sn;
-@@ -1203,7 +1205,13 @@ int smc_pnetid_by_table_smcd(struct smcd_dev *smcddev)
- 	mutex_lock(&pnettable->lock);
- 	list_for_each_entry(tmp_pe, &pnettable->pnetlist, list) {
- 		if (tmp_pe->type == SMC_PNET_IB &&
--		    !strncmp(tmp_pe->ib_name, ib_name, IB_DEVICE_NAME_MAX)) {
-+		    (!strncmp(tmp_pe->ib_name,
-+			       dev_name(&smcddev->dibs->dev),
-+			       sizeof(tmp_pe->ib_name)) ||
-+		     (smcddev->dibs->dev.parent &&
-+		      !strncmp(tmp_pe->ib_name,
-+			       dev_name(smcddev->dibs->dev.parent),
-+			       sizeof(tmp_pe->ib_name))))) {
- 			smc_pnet_apply_smcd(smcddev, tmp_pe->pnet_name);
- 			rc = 0;
- 			break;
+@@ -837,22 +812,12 @@ static int smcd_move(struct smcd_dev *smcd, u64 dmb_tok, unsigned int idx,
+ 	return ism_move(smcd->priv, dmb_tok, idx, sf, offset, data, size);
+ }
+ 
+-static int smcd_supports_v2(void)
+-{
+-	return ism_v2_capable;
+-}
+-
+ static const struct smcd_ops ism_smcd_ops = {
+ 	.query_remote_gid = smcd_query_rgid,
+ 	.register_dmb = smcd_register_dmb,
+ 	.unregister_dmb = smcd_unregister_dmb,
+-	.add_vlan_id = smcd_add_vlan_id,
+-	.del_vlan_id = smcd_del_vlan_id,
+-	.set_vlan_required = smcd_set_vlan_required,
+-	.reset_vlan_required = smcd_reset_vlan_required,
+ 	.signal_event = smcd_signal_ieq,
+ 	.move_data = smcd_move,
+-	.supports_v2 = smcd_supports_v2,
+ };
+ 
+ const struct smcd_ops *ism_get_smcd_ops(void)
+diff --git a/include/linux/dibs.h b/include/linux/dibs.h
+index 904f37505c27..166148fb8d76 100644
+--- a/include/linux/dibs.h
++++ b/include/linux/dibs.h
+@@ -133,6 +133,25 @@ struct dibs_dev_ops {
+ 	 * Return: 2 byte dibs fabric id
+ 	 */
+ 	u16 (*get_fabric_id)(struct dibs_dev *dev);
++	/**
++	 * add_vlan_id() - add dibs device to vlan (optional, deprecated)
++	 * @dev: dibs device
++	 * @vlan_id: vlan id
++	 *
++	 * In order to write into a vlan-tagged dmb, the remote device needs
++	 * to belong to the this vlan. A device can belong to more than 1 vlan.
++	 * Any device can access an untagged dmb.
++	 * Deprecated, only supported for backwards compatibility.
++	 * Return: zero on success
++	 */
++	int (*add_vlan_id)(struct dibs_dev *dev, u64 vlan_id);
++	/**
++	 * del_vlan_id() - remove dibs device from vlan (optional, deprecated)
++	 * @dev: dibs device
++	 * @vlan_id: vlan id
++	 * Return: zero on success
++	 */
++	int (*del_vlan_id)(struct dibs_dev *dev, u64 vlan_id);
+ };
+ 
+ struct dibs_dev {
+diff --git a/include/net/smc.h b/include/net/smc.h
+index 9cb8385bbc6e..51b4aefc106a 100644
+--- a/include/net/smc.h
++++ b/include/net/smc.h
+@@ -61,13 +61,8 @@ struct smcd_ops {
+ 	int (*move_data)(struct smcd_dev *dev, u64 dmb_tok, unsigned int idx,
+ 			 bool sf, unsigned int offset, void *data,
+ 			 unsigned int size);
+-	int (*supports_v2)(void);
+ 
+ 	/* optional operations */
+-	int (*add_vlan_id)(struct smcd_dev *dev, u64 vlan_id);
+-	int (*del_vlan_id)(struct smcd_dev *dev, u64 vlan_id);
+-	int (*set_vlan_required)(struct smcd_dev *dev);
+-	int (*reset_vlan_required)(struct smcd_dev *dev);
+ 	int (*signal_event)(struct smcd_dev *dev, struct smcd_gid *rgid,
+ 			    u32 trigger_irq, u32 event_code, u64 info);
+ 	int (*support_dmb_nocopy)(struct smcd_dev *dev);
+diff --git a/net/smc/smc_ism.c b/net/smc/smc_ism.c
+index 6a6e7c9641e8..5118441bed18 100644
+--- a/net/smc/smc_ism.c
++++ b/net/smc/smc_ism.c
+@@ -140,7 +140,7 @@ int smc_ism_get_vlan(struct smcd_dev *smcd, unsigned short vlanid)
+ 
+ 	if (!vlanid)			/* No valid vlan id */
+ 		return -EINVAL;
+-	if (!smcd->ops->add_vlan_id)
++	if (!smcd->dibs->ops->add_vlan_id)
+ 		return -EOPNOTSUPP;
+ 
+ 	/* create new vlan entry, in case we need it */
+@@ -163,7 +163,7 @@ int smc_ism_get_vlan(struct smcd_dev *smcd, unsigned short vlanid)
+ 	/* no existing entry found.
+ 	 * add new entry to device; might fail, e.g., if HW limit reached
+ 	 */
+-	if (smcd->ops->add_vlan_id(smcd, vlanid)) {
++	if (smcd->dibs->ops->add_vlan_id(smcd->dibs, vlanid)) {
+ 		kfree(new_vlan);
+ 		rc = -EIO;
+ 		goto out;
+@@ -187,7 +187,7 @@ int smc_ism_put_vlan(struct smcd_dev *smcd, unsigned short vlanid)
+ 
+ 	if (!vlanid)			/* No valid vlan id */
+ 		return -EINVAL;
+-	if (!smcd->ops->del_vlan_id)
++	if (!smcd->dibs->ops->del_vlan_id)
+ 		return -EOPNOTSUPP;
+ 
+ 	spin_lock_irqsave(&smcd->lock, flags);
+@@ -205,7 +205,7 @@ int smc_ism_put_vlan(struct smcd_dev *smcd, unsigned short vlanid)
+ 	}
+ 
+ 	/* Found and the last reference just gone */
+-	if (smcd->ops->del_vlan_id(smcd, vlanid))
++	if (smcd->dibs->ops->del_vlan_id(smcd->dibs, vlanid))
+ 		rc = -EIO;
+ 	list_del(&vlan->list);
+ 	kfree(vlan);
+@@ -539,8 +539,12 @@ static void smcd_register_dev(struct dibs_dev *dibs)
+ 	if (smc_pnetid_by_dev_port(dibs->dev.parent, 0, smcd->pnetid))
+ 		smc_pnetid_by_table_smcd(smcd);
+ 
+-	if (smc_ism_is_loopback(dibs) || smcd->ops->supports_v2())
++	if (smc_ism_is_loopback(dibs) ||
++	    (dibs->ops->add_vlan_id &&
++	     !dibs->ops->add_vlan_id(dibs, ISM_RESERVED_VLANID))) {
+ 		smc_ism_set_v2_capable();
++	}
++
+ 	mutex_lock(&smcd_dev_list.mutex);
+ 	/* sort list:
+ 	 * - devices without pnetid before devices with pnetid;
+diff --git a/net/smc/smc_loopback.c b/net/smc/smc_loopback.c
+index 454d9d6a6e8f..982a19430313 100644
+--- a/net/smc/smc_loopback.c
++++ b/net/smc/smc_loopback.c
+@@ -20,7 +20,6 @@
+ #include "smc_ism.h"
+ #include "smc_loopback.h"
+ 
+-#define SMC_LO_V2_CAPABLE	0x1 /* loopback-ism acts as ISMv2 */
+ #define SMC_LO_SUPPORT_NOCOPY	0x1
+ #define SMC_DMA_ADDR_INVALID	(~(dma_addr_t)0)
+ 
+@@ -242,10 +241,6 @@ static const struct smcd_ops lo_ops = {
+ 	.support_dmb_nocopy = smc_lo_support_dmb_nocopy,
+ 	.attach_dmb = smc_lo_attach_dmb,
+ 	.detach_dmb = smc_lo_detach_dmb,
+-	.add_vlan_id		= NULL,
+-	.del_vlan_id		= NULL,
+-	.set_vlan_required	= NULL,
+-	.reset_vlan_required	= NULL,
+ 	.signal_event		= NULL,
+ 	.move_data = smc_lo_move_data,
+ };
 -- 
 2.48.1
 
