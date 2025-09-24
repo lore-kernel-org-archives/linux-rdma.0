@@ -1,85 +1,83 @@
-Received: from hr2.samba.org (hr2.samba.org [144.76.82.148])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 12C3D27F732;
-	Tue, 23 Sep 2025 21:09:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=144.76.82.148
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C046D78F36;
+	Wed, 24 Sep 2025 00:20:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758661794; cv=none; b=SOtwFolOd+GkLIzd2OnhCrN7ar643xX26O6+PCuviQ9ZHuqeCQxxvKdNEaEQBwWY6TCcI2A27ySAUH5xY7eAAj8QKK5tgStJgA3en8oapxqeiQBFb6IwWn0HsvLZB9UOiqHS6KDY7ODOJEa0zbo6kmbhCi/AiPljTLES3m994VA=
+	t=1758673218; cv=none; b=iGhGPgb2PxVj+E5CYRapUw6YHn/ENZMXYVMgk7Nv8xyaitRGuKmy9uW1ZfgGQUzw0EgdeaQti1PGvxNOJ2oCXnGKWMfCURqHq2R+ExDhmu+OGL+q3vU/Z/YB1lynH166nM9YLh1fls/qQQ9811vbZ372dcRfXq/hyqoM1yYoAgw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758661794; c=relaxed/simple;
-	bh=5fol8pIH1VwzVB/nc+utnngJL5cNP44auAOCngKKyoM=;
-	h=Message-ID:Date:MIME-Version:To:From:Subject:Content-Type; b=COEtKhYyKWnFwldcEQC6iWas6ZtJVIDtRGXKENKGHGge4YeSjWYjdcQgI9rhBtuPhw1flD9M9UY1sL7sR80K5I/P+sFfdZfzysxyO6S6IE+kQVSCHK6X/RsOcDvz11OOhASRE8nkkcWow66C1jNFIA4CzykQgq3w1SHHIRVj1ho=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=samba.org; spf=pass smtp.mailfrom=samba.org; dkim=pass (3072-bit key) header.d=samba.org header.i=@samba.org header.b=G3mlaZ9a; arc=none smtp.client-ip=144.76.82.148
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=samba.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=samba.org
+	s=arc-20240116; t=1758673218; c=relaxed/simple;
+	bh=1auLVJ7s7PzdO1Nyus0vxo6b3G1QtyEqRIbW7qlzRws=;
+	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc; b=mT0I2A82/4Ilng/M3abF5ZMvIU3RUADXChpDGxDkOVaQOevl/9GiL5Dxd/fLowfMBWQxkYNTeYpp2AVGEM2q0ppDmPJJXjCUbsLDRJJu+z+feQB1Etqs4qFmWbxbT5BmqHm5823mzvN3P6IyakRafz2QeVBrf2uXHVK6Iy/l7NA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=SsHl+LM8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (3072-bit key) header.d=samba.org header.i=@samba.org header.b="G3mlaZ9a"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=samba.org;
-	s=42; h=From:To:Date:Message-ID:CC;
-	bh=5fol8pIH1VwzVB/nc+utnngJL5cNP44auAOCngKKyoM=; b=G3mlaZ9aaGOBqyKHjbvkgJOpbr
-	kKIRLKNn6xpbzOfr1ede/IGsCtvAMrDHDDruT3tGKT4uNKhOqU2KucVHnYHh7wmyNqx42uKgvYIKc
-	da26exQvpuW1krgpiRf5WUtaMXHxIspcTyJxXvJfHYDnHih522N53QBy7mPF6S1c0d+q4nHNKncAN
-	onCTHgBIlbnzWp/IC55vuoUxCi5e+ENiirQ9ffv7SQ3DU2rYylWieLTnt1Rf88xypJeSEnH13vs78
-	jbfyIUuQt1u3OwL9sg9+OjCOBJacNStggAyTQoo8TGn36x9MXh2044JAruW6BmmocSX4JlbdLDYdt
-	rxysDtoqRoMaJ1wcLIKPuII2EOZNAxRs4azUyrfeakvsKaMz2fKfXowTwWCjV7j8OcQayBD4JDR2K
-	uCpO/Upd7Pa2Sl5s62Qyp0TE/J+rPjfQJ96Oe4pRX7lg0YRt4RHicQshImiOAPJuuF0Ccd1SLpw7J
-	E3hSYboeNS3baz0rSq+TMSKP;
-Received: from [127.0.0.2] (localhost [127.0.0.1])
-	by hr2.samba.org with esmtpsa (TLS1.3:ECDHE_SECP256R1__RSA_PSS_RSAE_SHA256__CHACHA20_POLY1305:256)
-	(Exim)
-	id 1v1AGj-005d9m-25;
-	Tue, 23 Sep 2025 21:09:49 +0000
-Message-ID: <656eacb1-a39f-4b59-99db-5522d102468a@samba.org>
-Date: Tue, 23 Sep 2025 23:09:48 +0200
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="SsHl+LM8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 95EB2C4CEF5;
+	Wed, 24 Sep 2025 00:20:18 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1758673218;
+	bh=1auLVJ7s7PzdO1Nyus0vxo6b3G1QtyEqRIbW7qlzRws=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+	b=SsHl+LM8HkvmjdRzsf7oNuVZU1m+I6v0cjdV+kzDJxBMelGi88G+PpVM8CDMVTw4g
+	 rwC8J0+RfT/nyvS0bwJ+vK+gTV6yBzT1wSnbIj+ek9kNNC8Sb633axLuIhz/lbz/qu
+	 HQaxvvADtL9ALXFANIbvPfho2bystVBGGiUTuVNpcO4oQd+YZIQXlE27F4EIWX6D7V
+	 Rc7+m+CrmQuCid7pSbLZ0py3Rz99SZ0qJV3UNrnn5020sbf1AJ2fqWg+DIDL23z1yy
+	 P5Aty2wc1U4ZBZrE05D/9COLIDiGc6ivo/YxUEcTFVQycm5LhRMODBn1kGq+O51LBI
+	 pr77g6VxH4cFw==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id ADCF239D0C20;
+	Wed, 24 Sep 2025 00:20:16 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Content-Language: en-US
-To: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
- "linux-cifs@vger.kernel.org" <linux-cifs@vger.kernel.org>
-From: Stefan Metzmacher <metze@samba.org>
-Subject: Does ib_dereg_mr require an additional IB_WR_LOCAL_INV?
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net 0/3] mlx5 misc fixes 2025-09-22
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <175867321524.1971872.14099732111728782116.git-patchwork-notify@kernel.org>
+Date: Wed, 24 Sep 2025 00:20:15 +0000
+References: <1758525094-816583-1-git-send-email-tariqt@nvidia.com>
+In-Reply-To: <1758525094-816583-1-git-send-email-tariqt@nvidia.com>
+To: Tariq Toukan <tariqt@nvidia.com>
+Cc: edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
+ andrew+netdev@lunn.ch, davem@davemloft.net, saeedm@nvidia.com,
+ mbloch@nvidia.com, leon@kernel.org, netdev@vger.kernel.org,
+ linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, gal@nvidia.com,
+ moshe@nvidia.com
 
-Hi,
+Hello:
 
-I'm trying to understand (and hopefully simplify) the code in fs/smb/client/smbdirect.c,
-related to 'struct ib_mr' cleanup on disconnect.
+This series was applied to netdev/net.git (main)
+by Jakub Kicinski <kuba@kernel.org>:
 
-Assume we have the following sequence of calls:
+On Mon, 22 Sep 2025 10:11:31 +0300 you wrote:
+> Hi,
+> 
+> This patchset provides misc bug fixes from the team to the mlx5 Eth
+> and core drivers.
+> 
+> Thanks,
+> Tariq.
+> 
+> [...]
 
-...
-ib_alloc_mr()
-ib_dma_map_sg()
-ib_map_mr_sg()
-ib_post_send(IB_WR_REG_MR)
+Here is the summary with links:
+  - [net,1/3] net/mlx5: fs, fix UAF in flow counter release
+    https://git.kernel.org/netdev/net/c/6043819e707c
+  - [net,2/3] net/mlx5: HWS, ignore flow level for multi-dest table
+    https://git.kernel.org/netdev/net/c/efb877cf27e3
+  - [net,3/3] net/mlx5e: Fix missing FEC RS stats for RS_544_514_INTERLEAVED_QUAD
+    https://git.kernel.org/netdev/net/c/6d0477d0d067
 
-On cleanup we currently us something like this:
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
 
-ib_drain_qp()
-init_completion()
-ib_post_send(IB_WR_LOCAL_INV)
-wait_for_completion()...
-ib_dereg_mr()
-ib_drain_qp() // again
-rdma_destroy_qp();
-ib_destroy_cq(revc_cq)
-ib_destroy_cq(send_cq)
-ib_dealloc_pd()
-rdma_destroy_id()
 
-Now I'm wondering if the following is really required:
-init_completion()
-ib_post_send(IB_WR_LOCAL_INV)
-wait_for_completion()...
-
-It would make things much easier if not...
-
-Thanks for any possible hint :-)
-metze
