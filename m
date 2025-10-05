@@ -1,67 +1,68 @@
-Received: from DM1PR04CU001.outbound.protection.outlook.com (mail-centralusazon11010010.outbound.protection.outlook.com [52.101.61.10])
+Received: from MW6PR02CU001.outbound.protection.outlook.com (mail-westus2azon11012039.outbound.protection.outlook.com [52.101.48.39])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CE689187332;
-	Sun,  5 Oct 2025 08:30:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.61.10
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D54AF1F12F4;
+	Sun,  5 Oct 2025 08:30:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.48.39
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759653052; cv=fail; b=GkQvDFypiHcLMGYjIrz0MD8Tglto7Y1VEypB6bOidXPSbkPvLnUv8bN6r1noYJnwXjac+GmHFsLhM5c9yKxq9NZSsDtYO3gVDKmA1QM0/1ruE2XfXai4C2jYuJ1JJDDT0xyTkvUZ29GLRG61lwFKwk2MdCciwSsIkqGu2BPG/Lc=
+	t=1759653054; cv=fail; b=sn9iYUEpXzKHM1SWhm/s//GCQeeNHlQO+1g0Ysva14dfYCIk43irUt2cqoop+DwXOHWr/SCjuMCczp++BolVfpSTu3deUaj439VwZ27vN8yufh3MHWnINOu06M6cL8Z+QBIzmvKgODIV+5yQJD48wpajq39EBo5KKykS+FjIxM0=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759653052; c=relaxed/simple;
-	bh=4isaCLl6t5TtQ7zzquIwd49+MKEhW/iBHJ+kuEpaanA=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=NB/xJfaOvWhlrmb9+hY5B25eKD0AubmuzCtKV9hPYMpHz2hKqoM7kryFKXcQqFWbIICreFHDHIdMu3z5j9NJLM2PT8VrWw/W2Ee6Q4Acy2WADPvxrAsqm/jPQwHqM9Q5Wg2sF5mDn3Afi8N3k/iRwuB4Futt6T5bA0dWZgu+2yY=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=Wc6DLJ9a; arc=fail smtp.client-ip=52.101.61.10
+	s=arc-20240116; t=1759653054; c=relaxed/simple;
+	bh=j7G0C5fQRd8q7lfNP9ARFkcuPZ8KOPMDfW2kXKKiPPw=;
+	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=kwSkRCDpbKoLrPfYDH5TIwG0h5jcS241PHFaNJZbVEjGX28yBjgZRjLtIkzZwOB465SBCg3iyLGSIK7CEPrHgHLF4tYae+9pVU1YzvLee6ha90wt7KM02Bj5Z1v55SPStvxFmeDH0VCe4hn+v6M0lCqgsGD2eeoZj4yBtm3IWfI=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=uDW4uBh+; arc=fail smtp.client-ip=52.101.48.39
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="Wc6DLJ9a"
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="uDW4uBh+"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=o9SwsjO9CFXVnqM1HAMaJHqEz4Brt+mJD0XvnfT+6fioKdHCNvWyiqsgWhri/U/Cc0AF7PFOm9extnXFevlSZ7SNSDxIOYaDeh1xg4bzN31JgT6+isJByrs2AoheIKbGemUde6OfbXlZr6hjrqb0yfBN3u/6KlrvGXkh56RYZmL6qiTU1QLm0nrGRKnD19VujEcz6QBHeVhxogDztJuOEmZlZY0EYBjuffuKB3za9QcrY8z6rUxtkctGRRI41GsOyvKzdlWxrid6ENprsQrj7roY2Df8CeAHa91dToIXjkXzVSKdI3Xr92fvw9+lIzhmjs1znQyYDpapY23SU7aqIw==
+ b=uCsHo6tiqegz0U8lg9AC49rPiLopcf6xWobZx3wruz/h86PiwbpMBk/fUEXVz0rhVBLqyIGg7Q4p0WYjTOPsjpHmBfzYqXZg8XEB88uXaYukGd9wVtwly8EUHLq9YXTriY6WV1D8JOK4rIWksx38QD33RU28Qin+CtGOe4gPSrf7AY9i6gv904SLAFxFKbx42bOCGqOROxRC6U8XfqXYWL5azUebXxEOUPWRtanbvLNTz/pOL4Sm0D4VxIeGfm+PHD4aPJa8IHjnvxzRQURVJWAen1MR/6tfpWA9x+SjfL80GbE1/zhaEGnALC8siiT4pjVWn6tnMqj5WtxW03a+xg==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=g35MD+I5ubKSKECDCL8h4aoauxxSm5NKYfUYbR7q/vo=;
- b=RDlukUiS55WQjDDGbuUwWvMvm5VpJKwCqS8GBs3ynEy+18Qvya1+/LQhxzJP4T+uogVz6tCcwXQ4Weguumc0AZwmEfkBqxXJOD1kHOZW46IoNkJX4H5xqNKcIVXB0p11T78xxoFulWqDaOOq1QemyOFhxCVbpNs0dJod+vrvVDEtqKnHVczGqjo+tQDZAL9T4DqrQVHgEkc9kKTozfurFGYuFVnjdyjZvU7gMURIrC4oheJQHqEh+e7REU76mjSdGfa96bi43ZlyTnlqR7rsTW8ZA+osNZDU58QOyieN8TUu2osopf/ApFp8ltAVoWlCRYR11BrJj0+YtdBBJOHGbw==
+ bh=P/mBqrkkE4N7HbKA60SQVKwTaU1CH1ORiJ9LZ/P4bZ8=;
+ b=MRcKQqB59R1JZD6YdbcYHY+cMMNEvMGpqJRe9VuMw2ZkYcL3IORkTKB/PQ50A/1Gwh8jHA7j8Jwq+3rgM8CASS48wvu4OYmZ7cFsxe/9Ak++xFnLjUiQTd5JB9mYsJKTrm/kvPN3U33Sb00DcUcpAypxiEKOySxB6Mpd9ZdfRQA1Ec8BQ2JrQKoJ2Ctopxh4x0pmLm0cxZs8ko8EEIpCksne20VZ25XnfISCq5b3oXNpK7BM07XzazK2X+yxKjdZ17bl5nklptzPP5Ui7um4BH5nmMx1O3xTuppvKe4zcrjWcQaN6n2TeXIUrqO7A24mRm45Sle3yDmHnt8jMsrIpA==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.117.160) smtp.rcpttodomain=google.com smtp.mailfrom=nvidia.com;
+ 216.228.117.161) smtp.rcpttodomain=google.com smtp.mailfrom=nvidia.com;
  dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
  dkim=none (message not signed); arc=none (0)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=g35MD+I5ubKSKECDCL8h4aoauxxSm5NKYfUYbR7q/vo=;
- b=Wc6DLJ9amWNNCdX1yECx7ncbcknybXZ1O1yH0lhA46Xpj4OVuYhnF+x7xVq1jKnGyGRvC5MvvUSM94C90HnQEU5jm1nL/dsdiSpguKdfR0mhOxsf/sNW1Mgtwp9mRBmbOpsY1nMrN4HHpRmwgTB3IMDr+7dnjjSRapMHhjlb3lRkRnUCv4rhtFCyXH+p5XM7EhRktv0PgSCjbH6zaNeijaFk4PBCI9orKQCd1dk1eckEMS2hEad0IdDzh14MAboGDT6Dh+CzA+K4+LIPoiuVxy2H87k4WAQEc0PpeBbhRQ1QoByVkVeZQV8OKcUOT8td7fmmXGjHFMqLsNcX72lzDA==
-Received: from SA1P222CA0113.NAMP222.PROD.OUTLOOK.COM (2603:10b6:806:3c5::27)
- by CY3PR12MB9653.namprd12.prod.outlook.com (2603:10b6:930:ff::5) with
+ bh=P/mBqrkkE4N7HbKA60SQVKwTaU1CH1ORiJ9LZ/P4bZ8=;
+ b=uDW4uBh+EMT41Vf1tYYS7fTwN5ILHY7h4SC4Y8ygU7dd2P6Hhn2uXj168QBnKOb/+qjwzqaXSLl4/5PSHQo6T7XyUuDTSl7ZZVRtbtHgeMRaXraBBGAyFJWZ3tMgIDyOG8vxkvLUjbqNGgG6a2h/bh2ticc5gLO1x/sGcvkKSuuBmAHuO8G+QFrWWcGEeYsh2QE7+krsJgwE+24L2NvkWBh6mea8VqA2RW2OE/SBLNR7RkO3bvxD66QggFmY7WsY8uwAzysXmqDG6MoSSPdNFSIFFMRP6iUb2FRy7Esc2FBLwKDi7DZU+QAWF3RGE4WGyB+8vrsAR09aEbxUQOWCsw==
+Received: from BN9PR03CA0558.namprd03.prod.outlook.com (2603:10b6:408:138::23)
+ by LV8PR12MB9450.namprd12.prod.outlook.com (2603:10b6:408:202::13) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9182.18; Sun, 5 Oct
- 2025 08:30:38 +0000
-Received: from SN1PEPF0002636B.namprd02.prod.outlook.com
- (2603:10b6:806:3c5:cafe::e3) by SA1P222CA0113.outlook.office365.com
- (2603:10b6:806:3c5::27) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9137.19; Sun, 5 Oct
+ 2025 08:30:47 +0000
+Received: from BN1PEPF00004682.namprd03.prod.outlook.com
+ (2603:10b6:408:138:cafe::5) by BN9PR03CA0558.outlook.office365.com
+ (2603:10b6:408:138::23) with Microsoft SMTP Server (version=TLS1_3,
  cipher=TLS_AES_256_GCM_SHA384) id 15.20.9182.20 via Frontend Transport; Sun,
- 5 Oct 2025 08:30:38 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.160)
+ 5 Oct 2025 08:30:47 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.161)
  smtp.mailfrom=nvidia.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=nvidia.com;
 Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.117.160 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.117.160; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.117.160) by
- SN1PEPF0002636B.mail.protection.outlook.com (10.167.241.136) with Microsoft
+ 216.228.117.161 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.117.161; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.117.161) by
+ BN1PEPF00004682.mail.protection.outlook.com (10.167.243.88) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.9203.9 via Frontend Transport; Sun, 5 Oct 2025 08:30:37 +0000
-Received: from rnnvmail203.nvidia.com (10.129.68.9) by mail.nvidia.com
- (10.129.200.66) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.34; Sun, 5 Oct
- 2025 01:30:19 -0700
-Received: from rnnvmail203.nvidia.com (10.129.68.9) by rnnvmail203.nvidia.com
- (10.129.68.9) with Microsoft SMTP Server (version=TLS1_2,
+ 15.20.9203.9 via Frontend Transport; Sun, 5 Oct 2025 08:30:47 +0000
+Received: from rnnvmail202.nvidia.com (10.129.68.7) by mail.nvidia.com
+ (10.129.200.67) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.14; Sun, 5 Oct
+ 2025 01:30:26 -0700
+Received: from rnnvmail203.nvidia.com (10.129.68.9) by rnnvmail202.nvidia.com
+ (10.129.68.7) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Sun, 5 Oct
- 2025 01:30:17 -0700
+ 2025 01:30:26 -0700
 Received: from vdi.nvidia.com (10.127.8.10) by mail.nvidia.com (10.129.68.9)
  with Microsoft SMTP Server id 15.2.2562.20 via Frontend Transport; Sun, 5 Oct
- 2025 01:30:13 -0700
+ 2025 01:30:22 -0700
 From: Tariq Toukan <tariqt@nvidia.com>
 To: Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
 	Paolo Abeni <pabeni@redhat.com>, Andrew Lunn <andrew+netdev@lunn.ch>, "David
@@ -69,105 +70,246 @@ To: Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
 CC: Saeed Mahameed <saeedm@nvidia.com>, Leon Romanovsky <leon@kernel.org>,
 	Tariq Toukan <tariqt@nvidia.com>, Mark Bloch <mbloch@nvidia.com>,
 	<netdev@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>, Gal Pressman <gal@nvidia.com>
-Subject: [PATCH net 0/3] mlx5 misc fixes 2025-10-05
-Date: Sun, 5 Oct 2025 11:29:56 +0300
-Message-ID: <1759652999-858513-1-git-send-email-tariqt@nvidia.com>
+	<linux-kernel@vger.kernel.org>, Gal Pressman <gal@nvidia.com>, "Carolina
+ Jubran" <cjubran@nvidia.com>
+Subject: [PATCH net 2/3] net/mlx5e: Prevent tunnel reformat when tunnel mode not allowed
+Date: Sun, 5 Oct 2025 11:29:58 +0300
+Message-ID: <1759652999-858513-3-git-send-email-tariqt@nvidia.com>
 X-Mailer: git-send-email 2.8.0
+In-Reply-To: <1759652999-858513-1-git-send-email-tariqt@nvidia.com>
+References: <1759652999-858513-1-git-send-email-tariqt@nvidia.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 X-NV-OnPremToCloud: ExternallySecured
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: SN1PEPF0002636B:EE_|CY3PR12MB9653:EE_
-X-MS-Office365-Filtering-Correlation-Id: 3c59e9b5-d93b-4c27-b36a-08de03e97659
+X-MS-TrafficTypeDiagnostic: BN1PEPF00004682:EE_|LV8PR12MB9450:EE_
+X-MS-Office365-Filtering-Correlation-Id: 1744d064-fe8b-4f48-b8ab-08de03e97c07
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|1800799024|36860700013|376014|82310400026;
+	BCL:0;ARA:13230040|82310400026|1800799024|36860700013|376014;
 X-Microsoft-Antispam-Message-Info:
-	=?utf-8?B?bytPYmUwbXkyN3c0OFJCcytMdGdQU01LemR2ZzdVdjAyZ1VGTWM2aCt1cDAr?=
- =?utf-8?B?OEFqZFd0TTNhbGR1NktBTHp0TittWjdvOHlzTmVmc3dlSEhhcEpyd0N4dXJH?=
- =?utf-8?B?LzZkaDh1dmZiZk5HbUhrTnRhb0dFTXloZVhHcXhxMEJGOCtFNFIyUjB5ZnRY?=
- =?utf-8?B?WlgycDZ0bS8rL2xIKzZTeWhodUgxNEFkdWRWTW9NQXJqV0FVa3hZQU5kVTk3?=
- =?utf-8?B?eGVMRDlBYk8yc094SVZxZXg4S01NZHlGdHRQVXpxSXdkU2RjUWJiblN6UDdv?=
- =?utf-8?B?aTd3TVFQNi91V0lEcGhsSEMvT3JtZjZ1YWNJRnZJVUJ6ODdrbGl4VTJ5TFk0?=
- =?utf-8?B?eDFGVm1mVDZpeWRyQjdUemx6NTNNakh6UVdEajNDMkdreTExdEMzVHRjV0Zn?=
- =?utf-8?B?VkFWOGluZjZEbUt2Mjk2N203Q2NxeU1QekFlbkwrdCtldkpOZ0FhRFQ1MkJj?=
- =?utf-8?B?Y1FFZi9iNlZpV0JtYlhVZWVmZXk5UzBwZHhMdGRwVEhocVdOZ0FIWHZiRFVF?=
- =?utf-8?B?WFgzSHRPQ2p6cGhlZ1hyTUsxVHJ3WU9VLzdYZHFuN0IxVDNHM2N0eEhSclVW?=
- =?utf-8?B?eGFIUTg1N1lvWCtTMkxWU2pMYTNqTGt2RXo4aDk1aklXMjg0MVoyVVI5THdM?=
- =?utf-8?B?cHJnU082b0FEMjdUaVF1aHVIYVBHRlVSRU1LS3NtNU9FUndGYjZ4SS8wRzAz?=
- =?utf-8?B?MDF6TEZHNGsyMmxlVVNRcVVZMGd0dkVTM2RZeXh6K3BpWTh0ZjFOQkxzcmgx?=
- =?utf-8?B?QUlQY3VHd2RYZTdRY0JRZWVRTE0wSDlYR0xURHNRdXpFVGNidEJmTFlzSSsz?=
- =?utf-8?B?MHpSRW1ubElHOGlob0w3Y3NYblB3dzhMUkJwTlZ0ZHdvQnd3bi9MdWJTL3BY?=
- =?utf-8?B?K0t4WFAveW5ESTMrQTRraTRKcnhkVEdtWTRBaHgrVUJ5b2RtQnI0bHFCeVpK?=
- =?utf-8?B?OW5uZ3RoU2hFSEh4TldSZEpxcTFLaWkrRy9mdnpOV1RqSTVEVk5RZi81WSt1?=
- =?utf-8?B?SmxYRG5sY1cxSkQ1aHVOUHFOb2JrSGxJQTlUZG4yRktMNlU1U3k3dGZucnJO?=
- =?utf-8?B?QUM0akRJOUtYbnRLbTQxOXhOMDVjbXNkTWROcTVTeDQ2eEFpajVhakR0c1ZN?=
- =?utf-8?B?SVU1YzZjeCtEbzcrckRNRHF3dmRoQlhVS0hQa3VLK2hCRzcrODRhTTdOa0Fy?=
- =?utf-8?B?WXBZTlIzYmswOGJXdnp6b3N4Rmp6YlhYYTFhMDVvN05sdHZoTDJGb1o5RHZw?=
- =?utf-8?B?SW9nalN4SkFoNnBBeUlNb1RYSUQ5ZTRQbWh2R3VzWDdPZ1BLZUVtNTBSSmhx?=
- =?utf-8?B?dmo1WWpxc0N2dWwweVFvQ0RwM0F6TUsxOXMwWVpSR0VuZ3BhdGJFN21kYlF3?=
- =?utf-8?B?KytIYXBSOVFjSkthWVlhaGwyTEVPZS9QQ1hLTXdQTlpQZC9QenlIRGNVMFYr?=
- =?utf-8?B?U3dVRXFUcS9vZ0tJSU8ydHFrVFZJelpaVkVWN0FyK3E2cnhMZ05SUUI2VFo4?=
- =?utf-8?B?OHJneXA0WDZxUDNwZEFaOVB1TFFYeXVUdjlPS2JkNHcvMDRnUGI3VW5oNXVH?=
- =?utf-8?B?UW5EZHNOeEQxMXJ4SGwyb0dMdUpIeUpWNmVSMGVONXd6elE5SWZBL2dNOG5p?=
- =?utf-8?B?cHNNVWE2ZERxM1Y3QjZWeUZ4RWEySi9vVldyeWR0QjAvS2E2NnRKUkhEdFNN?=
- =?utf-8?B?L2Z1K0o1VmxTenNic0o5cEpNby9Yc0pMaGhreURObkFpS01sSWJmbmVsNUU1?=
- =?utf-8?B?Rm5hbHgyUHExb3B1TEtXSFJnMy9zV3RUWmpDQlQ0N1g4ZkorK28wS2hEeXFW?=
- =?utf-8?B?SWFGZmlpcEoyNnBTVXBlV2VtUzJ6dTBMVzc4aW9MK2RmREtGZG44dWhNTHFO?=
- =?utf-8?B?MGtqRzExcGd1Q2VEUUVQcXlQTjEydWl5cFdNUUkwMUNPWTFnVzB2NUtRRW1K?=
- =?utf-8?B?RUcyQWpHbnBjVWh1bWNKUjdVNzRQbC9lSWZidmROVTNJeTJxWFRKa3phTStl?=
- =?utf-8?B?V1d4R1RxRzZUc1ViRVFmMFpQUWVmODYzMTd4Ni9UL0ZrUGNHcjUwQTJ3czAv?=
- =?utf-8?B?QzY1Rlh3SXVLdUJ6ekFxKyszdUxRU0lqM3VueC9QR3VJck1DdjRjMTN0NWVU?=
- =?utf-8?Q?NknM=3D?=
+	=?us-ascii?Q?OBElJxCldLJ3z9ol9ZQMjZbwZ1BMJCPvT34TQ8T3qId2nq4g/C7SjZ+9SnIK?=
+ =?us-ascii?Q?QJl0wgfqYi7o/XpYrN0fdksbC9TJ6hDx+fgMNWUTKtCOHz+Asi8aAMs4ia8g?=
+ =?us-ascii?Q?PDWJV/ohNHMx23AdQqanr+g1qj7Q5k0eMDg2TWEiYvJiaQZGlosmvKE8VZAy?=
+ =?us-ascii?Q?g7eRwRWmFPu4S3EFrdwskcH/Uki+fKyoZV77a+xly5BlJ4HH/e8CHGaBCfNp?=
+ =?us-ascii?Q?BGAF3PP3vLaau0JZUA8wsskz04mAsyyE9NL81KSRPXvkhgQqM6dQHMakdEmF?=
+ =?us-ascii?Q?TyXtrZ8M0LAYlQF6yyZDbUBPzu2zWmMo6RkhBygJEOdD0fIXVEiWdWsi9mt5?=
+ =?us-ascii?Q?3RmIaYqYqCgmmQZj3wPiTba+V2ND9lg4FRsyuvqy2mx5488cTp5KM73sv37r?=
+ =?us-ascii?Q?iTwgc7vnhbNpGJvkNVJTJnfD7NJCHZ3hBosqmSyYyzVIyu4MoUzfX0PquRXq?=
+ =?us-ascii?Q?peafocuA9QD2425QPwZIeHKdwXIUv9e2DdpKbitMJl3W3+iTkL9BXinUKVnj?=
+ =?us-ascii?Q?n5qsrA1+0b2+jH2kFRJHk33VH2AP3YfVcaMUSWbfoGcCuIauPRNz5Y+OrLko?=
+ =?us-ascii?Q?X1khYruvNSzZlWR/uztwtCtDzhdmYYWE4/Z/eXuPS6COeCxZWI/LHFTG7L6u?=
+ =?us-ascii?Q?9x48nfLziNO+w6QPUJEF8UOx+8FYw9J1D4voc4UL+NT8uCDS5rEiivicXgBc?=
+ =?us-ascii?Q?mQ8l5VavZuEgi6clDtLbaZm5Vj4zjOQmYsovtt2NlbDJuA8DmqfvXWWrF+tO?=
+ =?us-ascii?Q?TBkG/D6EenPH9pGL3jiI8YySJ3831cw7in9lglA4H8w0G2gFjhgwq2BF++Wj?=
+ =?us-ascii?Q?YeUOxY2HEbYDgYlWBM7mRygnBlLsZbIBJvN0LnrB69SArKmzLaOCHaQpPPPZ?=
+ =?us-ascii?Q?fvbNJyz6CrzGYLtwK9LblviCjFYFUxDzYnDShiMSuYM1DFMridrAQ7wy+lpz?=
+ =?us-ascii?Q?5CN7gSQyayA+ikf6HG9LLLfuMQZMdfqLFCahZZ3hQoMwLNY+MRdNXjw1yJNA?=
+ =?us-ascii?Q?0h5gNb9PcYkMnt0JQPX5RUZrUclxksMaAZ6QdLEi9wGVRymrc2UG+s6bD9YL?=
+ =?us-ascii?Q?OvRnTSnX3zxja/mU5MwZjMGc5MvJzKod797iot7FkYv+tGeF9q4aB/5dFoII?=
+ =?us-ascii?Q?WkecPQAxWVkF++b54/Who7NSHTP9J2MmuiBmHeRcuqbC4+AqGauiatfAH4pa?=
+ =?us-ascii?Q?eyzIFCAvC75gyQJeYI2V9gUv3JOuFYKr9PyHm5bYm4KvhKNYhHnTGZD9tzRh?=
+ =?us-ascii?Q?J4fhL/q0XUDgiWey9JM8hiUuPq8c5td8ApThSTcqRkgmS+7lfGUoYjg3B2SX?=
+ =?us-ascii?Q?RZwnkgF6f3aUoStoQwRt9n6yePjlIRXFdA03UI+9SpaCbNdmy4LaqZtIj/Ri?=
+ =?us-ascii?Q?Y3SD6U0wY7SRlfTqgAPguGFwKfRGZXhBm3QlU9G/uMbpjEtt2wPd6oSp6IrF?=
+ =?us-ascii?Q?5gPEJYHpooqmpcfScmBo7a37aODMFweAPcBYUbcK1TPgUSvG6W5OOxjsWp+U?=
+ =?us-ascii?Q?1FcH3G4stVm7cBwuoFolSZP1d1TBWU5cfG2CLGDMDC4ObN6fBnoVUK446RrF?=
+ =?us-ascii?Q?zWb2ibibU+r9hDYUjaQ=3D?=
 X-Forefront-Antispam-Report:
-	CIP:216.228.117.160;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge1.nvidia.com;CAT:NONE;SFS:(13230040)(1800799024)(36860700013)(376014)(82310400026);DIR:OUT;SFP:1101;
+	CIP:216.228.117.161;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge2.nvidia.com;CAT:NONE;SFS:(13230040)(82310400026)(1800799024)(36860700013)(376014);DIR:OUT;SFP:1101;
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 05 Oct 2025 08:30:37.9867
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 05 Oct 2025 08:30:47.4387
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 3c59e9b5-d93b-4c27-b36a-08de03e97659
+X-MS-Exchange-CrossTenant-Network-Message-Id: 1744d064-fe8b-4f48-b8ab-08de03e97c07
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.160];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.161];Helo=[mail.nvidia.com]
 X-MS-Exchange-CrossTenant-AuthSource:
-	SN1PEPF0002636B.namprd02.prod.outlook.com
+	BN1PEPF00004682.namprd03.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CY3PR12MB9653
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: LV8PR12MB9450
 
-Hi,
+From: Carolina Jubran <cjubran@nvidia.com>
 
-This patchset provides misc bug fixes from the team to the mlx5 core and
-Eth drivers.
+When configuring IPsec packet offload in tunnel mode, the driver tries
+to create tunnel reformat objects unconditionally. This is incorrect,
+because tunnel mode is only permitted under specific encapsulation
+settings, and that decision is already made when the flow table is
+created.
 
-Thanks,
-Tariq.
+The offending commit attempted to block this case in the state add
+path, but the check there happens too late and does not prevent the
+reformat from being configured.
 
-Carolina Jubran (2):
-  net/mlx5: Prevent tunnel mode conflicts between FDB and NIC IPsec
-    tables
-  net/mlx5e: Prevent tunnel reformat when tunnel mode not allowed
+Fix by taking short reservations for both the eswitch mode and the
+encap at the start of state setup. This preserves the block ordering
+(mode --> encap) used later: the mode is blocked during RX/TX get, and
+the encap is blocked during flow-table creation. This lets us fail
+early if either reservation cannot be obtained, it means a mode
+transition is underway or a conflicting configuration already owns
+encap. If both succeed, the flow-table path later takes the ownership
+and the reservations are released on exit.
 
-Cosmin Ratiu (1):
-  net/mlx5e: Do not fail PSP init on missing caps
-
+Fixes: 146c196b60e4 ("net/mlx5e: Create IPsec table with tunnel support only when encap is disabled")
+Signed-off-by: Carolina Jubran <cjubran@nvidia.com>
+Reviewed-by: Jianbo Liu <jianbol@nvidia.com>
+Reviewed-by: Leon Romanovsky <leonro@nvidia.com>
+Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
+---
  .../mellanox/mlx5/core/en_accel/ipsec.c       | 38 +++++++++++++------
  .../mellanox/mlx5/core/en_accel/ipsec.h       |  2 +-
- .../mellanox/mlx5/core/en_accel/ipsec_fs.c    | 32 ++++++++++------
- .../mellanox/mlx5/core/en_accel/psp.c         | 10 ++---
- .../net/ethernet/mellanox/mlx5/core/eswitch.h |  5 ++-
- .../mellanox/mlx5/core/eswitch_offloads.c     | 18 +++++----
- 6 files changed, 67 insertions(+), 38 deletions(-)
+ .../mellanox/mlx5/core/en_accel/ipsec_fs.c    | 24 +++++++-----
+ 3 files changed, 43 insertions(+), 21 deletions(-)
 
-
-base-commit: 1b54b0756f051c11f5a5d0fbc1581e0b9a18e2bc
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec.c b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec.c
+index 00e77c71e201..0a4fb8c92268 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec.c
+@@ -772,6 +772,7 @@ static int mlx5e_xfrm_add_state(struct net_device *dev,
+ 				struct netlink_ext_ack *extack)
+ {
+ 	struct mlx5e_ipsec_sa_entry *sa_entry = NULL;
++	bool allow_tunnel_mode = false;
+ 	struct mlx5e_ipsec *ipsec;
+ 	struct mlx5e_priv *priv;
+ 	gfp_t gfp;
+@@ -803,6 +804,20 @@ static int mlx5e_xfrm_add_state(struct net_device *dev,
+ 		goto err_xfrm;
+ 	}
+ 
++	if (mlx5_eswitch_block_mode(priv->mdev))
++		goto unblock_ipsec;
++
++	if (x->props.mode == XFRM_MODE_TUNNEL &&
++	    x->xso.type == XFRM_DEV_OFFLOAD_PACKET) {
++		allow_tunnel_mode = mlx5e_ipsec_fs_tunnel_allowed(sa_entry);
++		if (!allow_tunnel_mode) {
++			NL_SET_ERR_MSG_MOD(extack,
++					   "Packet offload tunnel mode is disabled due to encap settings");
++			err = -EINVAL;
++			goto unblock_mode;
++		}
++	}
++
+ 	/* check esn */
+ 	if (x->props.flags & XFRM_STATE_ESN)
+ 		mlx5e_ipsec_update_esn_state(sa_entry);
+@@ -817,7 +832,7 @@ static int mlx5e_xfrm_add_state(struct net_device *dev,
+ 
+ 	err = mlx5_ipsec_create_work(sa_entry);
+ 	if (err)
+-		goto unblock_ipsec;
++		goto unblock_encap;
+ 
+ 	err = mlx5e_ipsec_create_dwork(sa_entry);
+ 	if (err)
+@@ -832,14 +847,6 @@ static int mlx5e_xfrm_add_state(struct net_device *dev,
+ 	if (err)
+ 		goto err_hw_ctx;
+ 
+-	if (x->props.mode == XFRM_MODE_TUNNEL &&
+-	    x->xso.type == XFRM_DEV_OFFLOAD_PACKET &&
+-	    !mlx5e_ipsec_fs_tunnel_enabled(sa_entry)) {
+-		NL_SET_ERR_MSG_MOD(extack, "Packet offload tunnel mode is disabled due to encap settings");
+-		err = -EINVAL;
+-		goto err_add_rule;
+-	}
+-
+ 	/* We use *_bh() variant because xfrm_timer_handler(), which runs
+ 	 * in softirq context, can reach our state delete logic and we need
+ 	 * xa_erase_bh() there.
+@@ -855,8 +862,7 @@ static int mlx5e_xfrm_add_state(struct net_device *dev,
+ 		queue_delayed_work(ipsec->wq, &sa_entry->dwork->dwork,
+ 				   MLX5_IPSEC_RESCHED);
+ 
+-	if (x->xso.type == XFRM_DEV_OFFLOAD_PACKET &&
+-	    x->props.mode == XFRM_MODE_TUNNEL) {
++	if (allow_tunnel_mode) {
+ 		xa_lock_bh(&ipsec->sadb);
+ 		__xa_set_mark(&ipsec->sadb, sa_entry->ipsec_obj_id,
+ 			      MLX5E_IPSEC_TUNNEL_SA);
+@@ -865,6 +871,11 @@ static int mlx5e_xfrm_add_state(struct net_device *dev,
+ 
+ out:
+ 	x->xso.offload_handle = (unsigned long)sa_entry;
++	if (allow_tunnel_mode)
++		mlx5_eswitch_unblock_encap(priv->mdev);
++
++	mlx5_eswitch_unblock_mode(priv->mdev);
++
+ 	return 0;
+ 
+ err_add_rule:
+@@ -877,6 +888,11 @@ static int mlx5e_xfrm_add_state(struct net_device *dev,
+ 	if (sa_entry->work)
+ 		kfree(sa_entry->work->data);
+ 	kfree(sa_entry->work);
++unblock_encap:
++	if (allow_tunnel_mode)
++		mlx5_eswitch_unblock_encap(priv->mdev);
++unblock_mode:
++	mlx5_eswitch_unblock_mode(priv->mdev);
+ unblock_ipsec:
+ 	mlx5_eswitch_unblock_ipsec(priv->mdev);
+ err_xfrm:
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec.h b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec.h
+index 23703f28386a..5d7c15abfcaf 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec.h
+@@ -319,7 +319,7 @@ void mlx5e_accel_ipsec_fs_del_rule(struct mlx5e_ipsec_sa_entry *sa_entry);
+ int mlx5e_accel_ipsec_fs_add_pol(struct mlx5e_ipsec_pol_entry *pol_entry);
+ void mlx5e_accel_ipsec_fs_del_pol(struct mlx5e_ipsec_pol_entry *pol_entry);
+ void mlx5e_accel_ipsec_fs_modify(struct mlx5e_ipsec_sa_entry *sa_entry);
+-bool mlx5e_ipsec_fs_tunnel_enabled(struct mlx5e_ipsec_sa_entry *sa_entry);
++bool mlx5e_ipsec_fs_tunnel_allowed(struct mlx5e_ipsec_sa_entry *sa_entry);
+ 
+ int mlx5_ipsec_create_sa_ctx(struct mlx5e_ipsec_sa_entry *sa_entry);
+ void mlx5_ipsec_free_sa_ctx(struct mlx5e_ipsec_sa_entry *sa_entry);
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_fs.c b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_fs.c
+index 0bc080274584..bf1d2769d4f1 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_fs.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_fs.c
+@@ -2850,18 +2850,24 @@ void mlx5e_accel_ipsec_fs_modify(struct mlx5e_ipsec_sa_entry *sa_entry)
+ 	memcpy(sa_entry, &sa_entry_shadow, sizeof(*sa_entry));
+ }
+ 
+-bool mlx5e_ipsec_fs_tunnel_enabled(struct mlx5e_ipsec_sa_entry *sa_entry)
++bool mlx5e_ipsec_fs_tunnel_allowed(struct mlx5e_ipsec_sa_entry *sa_entry)
+ {
+-	struct mlx5_accel_esp_xfrm_attrs *attrs = &sa_entry->attrs;
+-	struct mlx5e_ipsec_rx *rx;
+-	struct mlx5e_ipsec_tx *tx;
++	struct mlx5e_ipsec *ipsec = sa_entry->ipsec;
++	struct xfrm_state *x = sa_entry->x;
++	bool from_fdb;
+ 
+-	rx = ipsec_rx(sa_entry->ipsec, attrs->addrs.family, attrs->type);
+-	tx = ipsec_tx(sa_entry->ipsec, attrs->type);
+-	if (sa_entry->attrs.dir == XFRM_DEV_OFFLOAD_OUT)
+-		return tx->allow_tunnel_mode;
++	if (x->xso.dir == XFRM_DEV_OFFLOAD_OUT) {
++		struct mlx5e_ipsec_tx *tx = ipsec_tx(ipsec, x->xso.type);
++
++		from_fdb = (tx == ipsec->tx_esw);
++	} else {
++		struct mlx5e_ipsec_rx *rx = ipsec_rx(ipsec, x->props.family,
++						     x->xso.type);
++
++		from_fdb = (rx == ipsec->rx_esw);
++	}
+ 
+-	return rx->allow_tunnel_mode;
++	return mlx5_eswitch_block_encap(ipsec->mdev, from_fdb);
+ }
+ 
+ void mlx5e_ipsec_handle_mpv_event(int event, struct mlx5e_priv *slave_priv,
 -- 
 2.31.1
 
