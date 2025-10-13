@@ -1,111 +1,50 @@
-Received: from mail-wr1-f46.google.com (mail-wr1-f46.google.com [209.85.221.46])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B998130BF6B
-	for <linux-rdma@vger.kernel.org>; Mon, 13 Oct 2025 14:54:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.46
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0E5F11F03C9;
+	Mon, 13 Oct 2025 14:58:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760367251; cv=none; b=Gy8SATbWs/fMsithB9S+QgNlekolE1PTHhMM42rCp8KPdNTe7vftyar0XdKfkWSAFASjvEg0m+8jcypYWDS3mk26Zud1dMYLVYWoIAxjOVRi1heTQfii4ieUM6ncxeqffDgn0q2Evc9OEgjkUvS2ltr6MsIY13qXmVQSPN5g3lw=
+	t=1760367500; cv=none; b=plYek6d4c9c3F5cjXo67AWeSK1wZCovSUKk2oMs9TxF7hiVd9mLT1MThrqkcUnMn4lhT52nmCRvQsZwALivLASj98WbcemJ17G4FSoZOkhxET+hsvaRZ3J10XmQpiG41MLdGr0DNGdmKi2tcLmhBnnGJkD0sDuCnPc5xyDA0ap0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760367251; c=relaxed/simple;
-	bh=8nj7s55nWrv3kfW1Lj+b1IRgHimBBeikPlUQlGK/E9g=;
+	s=arc-20240116; t=1760367500; c=relaxed/simple;
+	bh=AcHoyMvXd7YQTNbf4AbjMjuRvwF+rz53tWVME8AfVK4=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=WTGW4thw/OFD0cTZdtzCu0RbRcaRjjjm9FhlNYNLLUyx5ORPdaaYm8x04XTOAGOOwg1PX35IRNcDRLlLEljzmquQHNtgJY1rao133s/HWUc8bh6nn82s8JVSvifgvZZa6Be36/V2vFcltHpp8EJlKKRqUM+IKtymH3YNsHieMAo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=mHPXqlsQ; arc=none smtp.client-ip=209.85.221.46
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	 MIME-Version; b=oGlhJg04axr0T8gvi/w9Wg11FU4YPvGITAjdlFUonCFYH7fcAylYmAXYclsbnH+DMIbqp3k8st3F+HUvpeBx3MXB3jgjf2BALXmCArRktOCU2+C9HRPwMNe50ITGybjPxBRjC618YlJhE+AU2blpbcsx6P3+L4PogXZudS6vwTk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=hlQxfkU+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="mHPXqlsQ"
-Received: by mail-wr1-f46.google.com with SMTP id ffacd0b85a97d-3ee13baf2e1so3175069f8f.3
-        for <linux-rdma@vger.kernel.org>; Mon, 13 Oct 2025 07:54:08 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1760367247; x=1760972047; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=4rMa+hYxMGJABpEUiqAoWqCld8h0vc8bkSgfbD76NHE=;
-        b=mHPXqlsQr4UHdgi+7bVVHaCgbdxiNRDMqkMqr/BWvMoqSRzk/QiVccGwrwMkdh2JIb
-         85/Rmd9DWwgwgrx8tBGG7e+xK3o7AaVxoeL2fJys2W4gBjUY5zZ8pKZlPQZ+V6fbN03W
-         puI7FjVGPDYLGsL3Z92Xf9MNRW3TX7o+G77oqRC4ai4i9CLR6gEvfBDLuu3FyGKJxCK3
-         YerGbQh0sUElOZbyOGL2qrkHw4InlHAH6ilqxu67NG6N3Wl/mEpyVbt7J4ymBlErop9O
-         nhX9IpSMjyAm+Sj6m768qbBj76JFdFcdtUlXmJmItXojiMCm/kDjj5NuzAzC9KUo0c58
-         KvIg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1760367247; x=1760972047;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=4rMa+hYxMGJABpEUiqAoWqCld8h0vc8bkSgfbD76NHE=;
-        b=FbBvt35mjVE79puhlj+gw6q7L2hYRGFRe3G0pWIfoTkv2sd0O3AHUrH1qXZ1Fnrts1
-         rB5Tif+GUuVfZ9j3DejIC0BvmEBsiWeqk2YwP5oQ7FyhFzEnMZzhRH8RO5wnsB3TVRV6
-         V0d+5djiCm1yTcpzb3QiE0I4RBd2Yt0FMhVxyvzGY9kp0gV882McuW1OSCmiRYUkk03a
-         ISSm4RqvCZ90bCsbzfFgh55/irQP83QI2Yc5R9DBjSUHqSjHZY25XeV+npvP7L2YWmJy
-         CjmdAAidEln+/kfh13kH36CgzxLAmxINcLlJJ/f/QKnBgC3FPtUDibSH7f8lmBdGTHP+
-         xscQ==
-X-Forwarded-Encrypted: i=1; AJvYcCX6g9t3V2DxoRDLpGBJqmaVrBIWRF4GcHeK2vZ0QnzDid8R/7wv6WZwf8N2CgUnxVYhB7USMdUoRZLL@vger.kernel.org
-X-Gm-Message-State: AOJu0YzLFMl6MPCoLm58bKKy6tYU3ChHBFR1gSx8s+pZzgB7hi5JylwH
-	JLP0M0a2+TsNuS9FX10BCMQcG+BOHREwKll2LjEOEo2D4h10tfHEPvIp
-X-Gm-Gg: ASbGncsHrlpwfeQ1Hk4SYA222d44vJbpThviKN26S2DQX2vEU8/EKk7DQZquMXCn/nO
-	MnuYz7JOq9hJeqkOt6Vc36K3Gg/difG1K5R6pAWZ96RMjfGw72hXtoKEstvoQVTziNoUhJjsu4a
-	vFDrmGFR14I/jgldlFotyAXcW6dD7HrQEKHKJttM1g4mIxlRJt5rpMyj6pzreRBdlJUT3iSTbji
-	TmTZ3iJdp4g5ue2sBG7FI9IF2KZjB+mQZLa+/Dh7hQJ6PVtZwsYPPhK+9DxsGMrkNu5YjW3QPtR
-	yJ3bF4nZXD1sGbIyacYM1fUBV4k5+bledq1iu4E2iy+pyW0nyqvLViXX7RY2AZohbdxroffj6ch
-	ZWnscIrKfigGq2krKEYx0kuqid1ascGi98eU=
-X-Google-Smtp-Source: AGHT+IEpoY9zZ3UQGIBW1agBnvc5SnHYP477nBEWy4ZfZ4s18JUiHbQP7nwwR40939/5pAfGzkUEsg==
-X-Received: by 2002:a5d:5d02:0:b0:425:7c1b:9344 with SMTP id ffacd0b85a97d-42666ab87c3mr12930214f8f.15.1760367246796;
-        Mon, 13 Oct 2025 07:54:06 -0700 (PDT)
-Received: from 127.com ([2620:10d:c092:600::1:eb09])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-426ce5e0e70sm18641085f8f.40.2025.10.13.07.54.04
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 13 Oct 2025 07:54:05 -0700 (PDT)
-From: Pavel Begunkov <asml.silence@gmail.com>
-To: netdev@vger.kernel.org
-Cc: Andrew Lunn <andrew@lunn.ch>,
-	Jakub Kicinski <kuba@kernel.org>,
-	davem@davemloft.net,
-	Eric Dumazet <edumazet@google.com>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>,
-	Donald Hunter <donald.hunter@gmail.com>,
-	Michael Chan <michael.chan@broadcom.com>,
-	Pavan Chebbi <pavan.chebbi@broadcom.com>,
-	Jesper Dangaard Brouer <hawk@kernel.org>,
-	John Fastabend <john.fastabend@gmail.com>,
-	Stanislav Fomichev <sdf@fomichev.me>,
-	Joshua Washington <joshwash@google.com>,
-	Harshitha Ramamurthy <hramamurthy@google.com>,
-	Jian Shen <shenjian15@huawei.com>,
-	Salil Mehta <salil.mehta@huawei.com>,
-	Jijie Shao <shaojijie@huawei.com>,
-	Sunil Goutham <sgoutham@marvell.com>,
-	Geetha sowjanya <gakula@marvell.com>,
-	Subbaraya Sundeep <sbhatta@marvell.com>,
-	hariprasad <hkelam@marvell.com>,
-	Bharat Bhushan <bbhushan2@marvell.com>,
-	Saeed Mahameed <saeedm@nvidia.com>,
-	Tariq Toukan <tariqt@nvidia.com>,
-	Mark Bloch <mbloch@nvidia.com>,
-	Leon Romanovsky <leon@kernel.org>,
-	Alexander Duyck <alexanderduyck@fb.com>,
-	kernel-team@meta.com,
-	Ilias Apalodimas <ilias.apalodimas@linaro.org>,
-	Joe Damato <joe@dama.to>,
-	David Wei <dw@davidwei.uk>,
-	Willem de Bruijn <willemb@google.com>,
-	Mina Almasry <almasrymina@google.com>,
-	Pavel Begunkov <asml.silence@gmail.com>,
-	Breno Leitao <leitao@debian.org>,
-	Dragos Tatulea <dtatulea@nvidia.com>,
-	linux-kernel@vger.kernel.org,
-	linux-doc@vger.kernel.org,
+	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="hlQxfkU+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 58977C4CEFE;
+	Mon, 13 Oct 2025 14:58:19 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
+	s=korg; t=1760367499;
+	bh=AcHoyMvXd7YQTNbf4AbjMjuRvwF+rz53tWVME8AfVK4=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=hlQxfkU+ZFuQDGYs+tpzDf4i6hDVmt6XxsFbiPqg23l/1rShzVvG8V2/KJQX7LESV
+	 Rlcsue0UeTf3f/EyGOKWVG96fKdf7ciBo43uwmslGw46BvIcsrSo8B/A2RQNUizK58
+	 K7mgueQHaiwRDUg/WZbz7P4XSWvQAAeypjuDzODE=
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To: stable@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	patches@lists.linux.dev,
+	Namjae Jeon <linkinjeon@kernel.org>,
+	Steve French <smfrench@gmail.com>,
+	Tom Talpey <tom@talpey.com>,
+	linux-cifs@vger.kernel.org,
+	samba-technical@lists.samba.org,
 	linux-rdma@vger.kernel.org,
-	Jonathan Corbet <corbet@lwn.net>
-Subject: [PATCH net-next v4 24/24] net: validate driver supports passed qcfg params
-Date: Mon, 13 Oct 2025 15:54:26 +0100
-Message-ID: <bc5737ba2a1e5586408cd0398b2db0f218ed3e89.1760364551.git.asml.silence@gmail.com>
-X-Mailer: git-send-email 2.49.0
-In-Reply-To: <cover.1760364551.git.asml.silence@gmail.com>
-References: <cover.1760364551.git.asml.silence@gmail.com>
+	Stefan Metzmacher <metze@samba.org>,
+	Steve French <stfrench@microsoft.com>,
+	Sasha Levin <sashal@kernel.org>
+Subject: [PATCH 6.6 008/196] smb: server: fix IRD/ORD negotiation with the client
+Date: Mon, 13 Oct 2025 16:43:19 +0200
+Message-ID: <20251013144315.496078826@linuxfoundation.org>
+X-Mailer: git-send-email 2.51.0
+In-Reply-To: <20251013144315.184275491@linuxfoundation.org>
+References: <20251013144315.184275491@linuxfoundation.org>
+User-Agent: quilt/0.69
+X-stable: review
+X-Patchwork-Hint: ignore
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -114,94 +53,196 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-When we pass a qcfg to a driver, make sure it supports the set
-parameters by checking it against ->supported_ring_params.
+6.6-stable review patch.  If anyone has any objections, please let me know.
 
-Suggested-by: Jakub Kicinski <kuba@kernel.org>
-Signed-off-by: Pavel Begunkov <asml.silence@gmail.com>
+------------------
+
+From: Stefan Metzmacher <metze@samba.org>
+
+[ Upstream commit fad988a2158d743da7971884b93482a73735b25e ]
+
+Already do real negotiation in smb_direct_handle_connect_request()
+where we see the requested initiator_depth and responder_resources
+from the client.
+
+We should detect legacy iwarp clients using MPA v1
+with the custom IRD/ORD negotiation.
+
+We need to send the custom IRD/ORD in big endian,
+but we need to try to let clients with broken requests
+using little endian (older cifs.ko) to work.
+
+Note the reason why this uses u8 for
+initiator_depth and responder_resources is
+that the rdma layer also uses it.
+
+Acked-by: Namjae Jeon <linkinjeon@kernel.org>
+Cc: Steve French <smfrench@gmail.com>
+Cc: Tom Talpey <tom@talpey.com>
+Cc: linux-cifs@vger.kernel.org
+Cc: samba-technical@lists.samba.org
+Cc: linux-rdma@vger.kernel.org
+Fixes: 0626e6641f6b ("cifsd: add server handler for central processing and tranport layers")
+Signed-off-by: Stefan Metzmacher <metze@samba.org>
+Signed-off-by: Steve French <stfrench@microsoft.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- net/core/dev.h             |  3 +++
- net/core/netdev_config.c   | 26 ++++++++++++++++++++++++++
- net/core/netdev_rx_queue.c |  8 +++-----
- 3 files changed, 32 insertions(+), 5 deletions(-)
+ fs/smb/server/transport_rdma.c | 99 +++++++++++++++++++++++++++++-----
+ 1 file changed, 85 insertions(+), 14 deletions(-)
 
-diff --git a/net/core/dev.h b/net/core/dev.h
-index 63192dbb1895..96eae1c51328 100644
---- a/net/core/dev.h
-+++ b/net/core/dev.h
-@@ -103,6 +103,9 @@ int netdev_queue_config_revalidate(struct net_device *dev,
- 				   struct netlink_ext_ack *extack);
- void netdev_queue_config_update_cnt(struct net_device *dev, unsigned int txq,
- 				    unsigned int rxq);
-+int netdev_queue_config_validate(struct net_device *dev, int rxq_idx,
-+				 struct netdev_queue_config *qcfg,
-+				 struct netlink_ext_ack *extack);
+diff --git a/fs/smb/server/transport_rdma.c b/fs/smb/server/transport_rdma.c
+index 504e2a1cf33b8..31c1ac256e1be 100644
+--- a/fs/smb/server/transport_rdma.c
++++ b/fs/smb/server/transport_rdma.c
+@@ -152,6 +152,10 @@ struct smb_direct_transport {
+ 	struct work_struct	disconnect_work;
  
- /* netdev management, shared between various uAPI entry points */
- struct netdev_name_node {
-diff --git a/net/core/netdev_config.c b/net/core/netdev_config.c
-index 2c9b06f94e01..99e64d942d44 100644
---- a/net/core/netdev_config.c
-+++ b/net/core/netdev_config.c
-@@ -1,6 +1,7 @@
- // SPDX-License-Identifier: GPL-2.0-only
+ 	bool			negotiation_requested;
++
++	bool			legacy_iwarp;
++	u8			initiator_depth;
++	u8			responder_resources;
+ };
  
- #include <linux/netdevice.h>
-+#include <linux/ethtool.h>
- #include <net/netdev_queues.h>
- #include <net/netdev_rx_queue.h>
+ #define KSMBD_TRANS(t) ((struct ksmbd_transport *)&((t)->transport))
+@@ -346,6 +350,9 @@ static struct smb_direct_transport *alloc_transport(struct rdma_cm_id *cm_id)
+ 	t->cm_id = cm_id;
+ 	cm_id->context = t;
  
-@@ -136,6 +137,31 @@ void netdev_queue_config(struct net_device *dev, int rxq,
- }
- EXPORT_SYMBOL(netdev_queue_config);
++	t->initiator_depth = SMB_DIRECT_CM_INITIATOR_DEPTH;
++	t->responder_resources = 1;
++
+ 	t->status = SMB_DIRECT_CS_NEW;
+ 	init_waitqueue_head(&t->wait_status);
  
-+int netdev_queue_config_validate(struct net_device *dev, int rxq_idx,
-+				 struct netdev_queue_config *qcfg,
-+				 struct netlink_ext_ack *extack)
-+{
-+	const struct netdev_queue_mgmt_ops *qops = dev->queue_mgmt_ops;
-+	int err;
-+
-+	if (WARN_ON_ONCE(!qops))
-+		return -EINVAL;
-+
-+	if (!(qops->supported_ring_params & ETHTOOL_RING_USE_RX_BUF_LEN) &&
-+	    qcfg->rx_buf_len &&
-+	    qcfg->rx_buf_len != dev->cfg_pending->rx_buf_len) {
-+		NL_SET_ERR_MSG_MOD(extack, "changing rx-buf-len not supported");
-+		return -EINVAL;
-+	}
-+
-+	if (qops->ndo_queue_cfg_validate) {
-+		err = qops->ndo_queue_cfg_validate(dev, rxq_idx, qcfg, extack);
-+		if (err)
-+			return err;
-+	}
-+	return 0;
-+}
-+
- int netdev_queue_config_revalidate(struct net_device *dev,
- 				   struct netlink_ext_ack *extack)
+@@ -1623,21 +1630,21 @@ static int smb_direct_send_negotiate_response(struct smb_direct_transport *t,
+ static int smb_direct_accept_client(struct smb_direct_transport *t)
  {
-diff --git a/net/core/netdev_rx_queue.c b/net/core/netdev_rx_queue.c
-index 5ae375a072a1..a157964cf60d 100644
---- a/net/core/netdev_rx_queue.c
-+++ b/net/core/netdev_rx_queue.c
-@@ -46,11 +46,9 @@ int netdev_rx_queue_restart(struct net_device *dev, unsigned int rxq_idx,
+ 	struct rdma_conn_param conn_param;
+-	struct ib_port_immutable port_immutable;
+-	u32 ird_ord_hdr[2];
++	__be32 ird_ord_hdr[2];
+ 	int ret;
  
- 	netdev_queue_config(dev, rxq_idx, &qcfg);
++	/*
++	 * smb_direct_handle_connect_request()
++	 * already negotiated t->initiator_depth
++	 * and t->responder_resources
++	 */
+ 	memset(&conn_param, 0, sizeof(conn_param));
+-	conn_param.initiator_depth = min_t(u8, t->cm_id->device->attrs.max_qp_rd_atom,
+-					   SMB_DIRECT_CM_INITIATOR_DEPTH);
+-	conn_param.responder_resources = 0;
+-
+-	t->cm_id->device->ops.get_port_immutable(t->cm_id->device,
+-						 t->cm_id->port_num,
+-						 &port_immutable);
+-	if (port_immutable.core_cap_flags & RDMA_CORE_PORT_IWARP) {
+-		ird_ord_hdr[0] = conn_param.responder_resources;
+-		ird_ord_hdr[1] = 1;
++	conn_param.initiator_depth = t->initiator_depth;
++	conn_param.responder_resources = t->responder_resources;
++
++	if (t->legacy_iwarp) {
++		ird_ord_hdr[0] = cpu_to_be32(conn_param.responder_resources);
++		ird_ord_hdr[1] = cpu_to_be32(conn_param.initiator_depth);
+ 		conn_param.private_data = ird_ord_hdr;
+ 		conn_param.private_data_len = sizeof(ird_ord_hdr);
+ 	} else {
+@@ -2023,10 +2030,13 @@ static bool rdma_frwr_is_supported(struct ib_device_attr *attrs)
+ 	return true;
+ }
  
--	if (qops->ndo_queue_cfg_validate) {
--		err = qops->ndo_queue_cfg_validate(dev, rxq_idx, &qcfg, extack);
--		if (err)
--			goto err_free_old_mem;
--	}
-+	err = netdev_queue_config_validate(dev, rxq_idx, &qcfg, extack);
-+	if (err)
-+		goto err_free_old_mem;
+-static int smb_direct_handle_connect_request(struct rdma_cm_id *new_cm_id)
++static int smb_direct_handle_connect_request(struct rdma_cm_id *new_cm_id,
++					     struct rdma_cm_event *event)
+ {
+ 	struct smb_direct_transport *t;
+ 	struct task_struct *handler;
++	u8 peer_initiator_depth;
++	u8 peer_responder_resources;
+ 	int ret;
  
- 	err = qops->ndo_queue_mem_alloc(dev, &qcfg, new_mem, rxq_idx);
- 	if (err)
+ 	if (!rdma_frwr_is_supported(&new_cm_id->device->attrs)) {
+@@ -2040,6 +2050,67 @@ static int smb_direct_handle_connect_request(struct rdma_cm_id *new_cm_id)
+ 	if (!t)
+ 		return -ENOMEM;
+ 
++	peer_initiator_depth = event->param.conn.initiator_depth;
++	peer_responder_resources = event->param.conn.responder_resources;
++	if (rdma_protocol_iwarp(new_cm_id->device, new_cm_id->port_num) &&
++	    event->param.conn.private_data_len == 8) {
++		/*
++		 * Legacy clients with only iWarp MPA v1 support
++		 * need a private blob in order to negotiate
++		 * the IRD/ORD values.
++		 */
++		const __be32 *ird_ord_hdr = event->param.conn.private_data;
++		u32 ird32 = be32_to_cpu(ird_ord_hdr[0]);
++		u32 ord32 = be32_to_cpu(ird_ord_hdr[1]);
++
++		/*
++		 * cifs.ko sends the legacy IRD/ORD negotiation
++		 * event if iWarp MPA v2 was used.
++		 *
++		 * Here we check that the values match and only
++		 * mark the client as legacy if they don't match.
++		 */
++		if ((u32)event->param.conn.initiator_depth != ird32 ||
++		    (u32)event->param.conn.responder_resources != ord32) {
++			/*
++			 * There are broken clients (old cifs.ko)
++			 * using little endian and also
++			 * struct rdma_conn_param only uses u8
++			 * for initiator_depth and responder_resources,
++			 * so we truncate the value to U8_MAX.
++			 *
++			 * smb_direct_accept_client() will then
++			 * do the real negotiation in order to
++			 * select the minimum between client and
++			 * server.
++			 */
++			ird32 = min_t(u32, ird32, U8_MAX);
++			ord32 = min_t(u32, ord32, U8_MAX);
++
++			t->legacy_iwarp = true;
++			peer_initiator_depth = (u8)ird32;
++			peer_responder_resources = (u8)ord32;
++		}
++	}
++
++	/*
++	 * First set what the we as server are able to support
++	 */
++	t->initiator_depth = min_t(u8, t->initiator_depth,
++				   new_cm_id->device->attrs.max_qp_rd_atom);
++
++	/*
++	 * negotiate the value by using the minimum
++	 * between client and server if the client provided
++	 * non 0 values.
++	 */
++	if (peer_initiator_depth != 0)
++		t->initiator_depth = min_t(u8, t->initiator_depth,
++					   peer_initiator_depth);
++	if (peer_responder_resources != 0)
++		t->responder_resources = min_t(u8, t->responder_resources,
++					       peer_responder_resources);
++
+ 	ret = smb_direct_connect(t);
+ 	if (ret)
+ 		goto out_err;
+@@ -2064,7 +2135,7 @@ static int smb_direct_listen_handler(struct rdma_cm_id *cm_id,
+ {
+ 	switch (event->event) {
+ 	case RDMA_CM_EVENT_CONNECT_REQUEST: {
+-		int ret = smb_direct_handle_connect_request(cm_id);
++		int ret = smb_direct_handle_connect_request(cm_id, event);
+ 
+ 		if (ret) {
+ 			pr_err("Can't create transport: %d\n", ret);
 -- 
-2.49.0
+2.51.0
+
+
 
