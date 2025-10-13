@@ -1,248 +1,125 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wr1-f42.google.com (mail-wr1-f42.google.com [209.85.221.42])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0E5F11F03C9;
-	Mon, 13 Oct 2025 14:58:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D473271468
+	for <linux-rdma@vger.kernel.org>; Mon, 13 Oct 2025 15:02:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.42
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760367500; cv=none; b=plYek6d4c9c3F5cjXo67AWeSK1wZCovSUKk2oMs9TxF7hiVd9mLT1MThrqkcUnMn4lhT52nmCRvQsZwALivLASj98WbcemJ17G4FSoZOkhxET+hsvaRZ3J10XmQpiG41MLdGr0DNGdmKi2tcLmhBnnGJkD0sDuCnPc5xyDA0ap0=
+	t=1760367749; cv=none; b=aCjNkQTe66tE81QfQWRPPiYfVy1MPK61MH2i0MrhcjtIs41SdjHA+7NN6SG4ahUI35LaMlLzMalitTQEPe0Z0+9YzwEFUNuheUcKKelk3IJxiML25PpKlfqBC1QFS8DrUqD2fV0A6KaSS3Wn/f8h4T2t1K7psfKS4c0AhVyuSEg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760367500; c=relaxed/simple;
-	bh=AcHoyMvXd7YQTNbf4AbjMjuRvwF+rz53tWVME8AfVK4=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=oGlhJg04axr0T8gvi/w9Wg11FU4YPvGITAjdlFUonCFYH7fcAylYmAXYclsbnH+DMIbqp3k8st3F+HUvpeBx3MXB3jgjf2BALXmCArRktOCU2+C9HRPwMNe50ITGybjPxBRjC618YlJhE+AU2blpbcsx6P3+L4PogXZudS6vwTk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=hlQxfkU+; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1760367749; c=relaxed/simple;
+	bh=XZ4lzHryEJQS9jgidvbUbN7osxHnfwhUvb5lDvX5gJM=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=sE9V3RmWDbBjbLohiJDaB1vOyW28huyciMgdiQjpw8Ui/8pwuZLk8itbFznAVvhhbH4KzLCTROFHH7qmNT2VBGNakFl8ijAtwo3pUMfrVTnvAf8V1j92XM0yYuLVgHpF2SbMuYiWWyNlV0q7ovhPi9R/2vkcipjqwInUxDttmxs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Km/+C7xs; arc=none smtp.client-ip=209.85.221.42
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="hlQxfkU+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 58977C4CEFE;
-	Mon, 13 Oct 2025 14:58:19 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-	s=korg; t=1760367499;
-	bh=AcHoyMvXd7YQTNbf4AbjMjuRvwF+rz53tWVME8AfVK4=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=hlQxfkU+ZFuQDGYs+tpzDf4i6hDVmt6XxsFbiPqg23l/1rShzVvG8V2/KJQX7LESV
-	 Rlcsue0UeTf3f/EyGOKWVG96fKdf7ciBo43uwmslGw46BvIcsrSo8B/A2RQNUizK58
-	 K7mgueQHaiwRDUg/WZbz7P4XSWvQAAeypjuDzODE=
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-To: stable@vger.kernel.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	patches@lists.linux.dev,
-	Namjae Jeon <linkinjeon@kernel.org>,
-	Steve French <smfrench@gmail.com>,
-	Tom Talpey <tom@talpey.com>,
-	linux-cifs@vger.kernel.org,
-	samba-technical@lists.samba.org,
-	linux-rdma@vger.kernel.org,
-	Stefan Metzmacher <metze@samba.org>,
-	Steve French <stfrench@microsoft.com>,
-	Sasha Levin <sashal@kernel.org>
-Subject: [PATCH 6.6 008/196] smb: server: fix IRD/ORD negotiation with the client
-Date: Mon, 13 Oct 2025 16:43:19 +0200
-Message-ID: <20251013144315.496078826@linuxfoundation.org>
-X-Mailer: git-send-email 2.51.0
-In-Reply-To: <20251013144315.184275491@linuxfoundation.org>
-References: <20251013144315.184275491@linuxfoundation.org>
-User-Agent: quilt/0.69
-X-stable: review
-X-Patchwork-Hint: ignore
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Km/+C7xs"
+Received: by mail-wr1-f42.google.com with SMTP id ffacd0b85a97d-3ee13baf2e1so3181229f8f.3
+        for <linux-rdma@vger.kernel.org>; Mon, 13 Oct 2025 08:02:27 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1760367746; x=1760972546; darn=vger.kernel.org;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=Yh3tjmmjbgFKGhBWocvc5VFMFhZLywRMRFtzLSkbw0s=;
+        b=Km/+C7xsfZItqUK1cRI41oQudCJQXawtSlxm2Y90QzKe9b1CH9Lue/2I7UhiV9ElL/
+         QbsSPdkyMDOFYhdArM/WwUk4HrRd78V3RT1IKtSrA3tojPLDyJJgw1uFNjhsOatstdjf
+         awHA8HXlg+4SOEZ9oEI0WYufnhqiDxH7H1pDa2kElbVfVK/isv9w6THHMeFYOFdsTzrT
+         4XPM6rT28Dtw7BCO5UlxgNQd6gurCk9yoS6p4GVG3DiwKS/kZXmT1g4FH0o84SKujCvj
+         NNq3v1ken4Lh0yVIZ4HeRdWXMC3yki6pD6VwCI9gK9RKdT3vhvmYDl93+WFdT69sWhcP
+         DVaA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1760367746; x=1760972546;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=Yh3tjmmjbgFKGhBWocvc5VFMFhZLywRMRFtzLSkbw0s=;
+        b=P97dvMOXffAd+4wxraIeKPwTidfbWVFqK4C/7LkghZp6FsCOO4DMLRvda8xN5JrPtU
+         P/EKvDazg2uyVUFoeR575pki3TP0QFVeBZjL7Sv4iHTCUwia1+YznsU7/MJCy9MR7Fof
+         Bid8s7/zGPOim51aU/AiKxOl/Db7UcezLViYeUzA/BqGxUiOVy9dCzlBRa1pKpn5hOtk
+         lDbgz04kkx04JVnpBLMbT8FJBD3nUmGIzVvubdvIyjAuErzhisx9PkZyKOWxhFTNni0A
+         BmeuNf36QscG38vG4755gb82wmgVcPDNe/2kmRz+z9j3bKKExlreHrwf+6j2wv5waBG6
+         y2oA==
+X-Forwarded-Encrypted: i=1; AJvYcCXwqksDXf96VWusyjiDLB1W99QKWOhNebsomFOxJK3AZE3EzMSjOelrWlY8pECK1MC89xLmdYDA8KRb@vger.kernel.org
+X-Gm-Message-State: AOJu0YxDVWudiVbMu6WiRFS9TIviDOJk6NemsiGbeI9f58bq8+D0FrPU
+	vtRmcBdQ94/28JjEpZO3C2wOSo1VhAPUDLmDPDyqjP0VTIIrK4m7QXg1
+X-Gm-Gg: ASbGncskpjyqSNz+1ZVcnDI+rLbWGTH6jSafU0ws+8a9vSKoOn/K46jx9lle3Fl8r2t
+	PULFJj9ZeLGkh5RGGTKiFiRqLgXZ2IYx85zdN+UOUSbeS49DQYag5wVllybzYId87WYQdO05yUN
+	WEJOQY3B/nlPwU0kfYsT1hF3YbxT1F48MQBNLd60eHadJDJ0bIHwNzEpVXo6ABq2ApLSjPu0UNS
+	jCUMDP+nbFfLOjMAEjkENSHF8R1Yx8yb9LYEwlRnEzrpDNT8DWN60SsYmCEs6iE6i29EOnPxW6J
+	bclm6anweHENwIJUllA0xHgDjcZ6k56k9+EZP5AlzCQoORcH1whiz4pNT+K7zYzbL8MZY+NPNcF
+	qXxTs7ywK2LC3LVPTc1qMRgEYyNLjHQPnS+W97lLVZMkAC2pwChNpa5GMluVvsFR43vNGTIwwvO
+	B0jQqE6D/F
+X-Google-Smtp-Source: AGHT+IGNkJ4QbgL7tRzgvPN+I8L7UO5FdEYBSf53xVmGqianIIUKzVvqoD7JkSPO2wQpbIF5bLMK1Q==
+X-Received: by 2002:a05:6000:491e:b0:426:d549:5861 with SMTP id ffacd0b85a97d-426d5495947mr6222761f8f.42.1760367745998;
+        Mon, 13 Oct 2025 08:02:25 -0700 (PDT)
+Received: from ?IPV6:2620:10d:c096:325:77fd:1068:74c8:af87? ([2620:10d:c092:600::1:eb09])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-426ce583664sm18651180f8f.22.2025.10.13.08.02.23
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 13 Oct 2025 08:02:24 -0700 (PDT)
+Message-ID: <f0e40a00-ab13-42dc-b9ca-010fd4b115b8@gmail.com>
+Date: Mon, 13 Oct 2025 16:03:40 +0100
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH net-next v4 00/24][pull request] Queue configs and large
+ buffer providers
+To: netdev@vger.kernel.org
+Cc: Andrew Lunn <andrew@lunn.ch>, Jakub Kicinski <kuba@kernel.org>,
+ davem@davemloft.net, Eric Dumazet <edumazet@google.com>,
+ Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>,
+ Donald Hunter <donald.hunter@gmail.com>,
+ Michael Chan <michael.chan@broadcom.com>,
+ Pavan Chebbi <pavan.chebbi@broadcom.com>,
+ Jesper Dangaard Brouer <hawk@kernel.org>,
+ John Fastabend <john.fastabend@gmail.com>,
+ Stanislav Fomichev <sdf@fomichev.me>, Joshua Washington
+ <joshwash@google.com>, Harshitha Ramamurthy <hramamurthy@google.com>,
+ Jian Shen <shenjian15@huawei.com>, Salil Mehta <salil.mehta@huawei.com>,
+ Jijie Shao <shaojijie@huawei.com>, Sunil Goutham <sgoutham@marvell.com>,
+ Geetha sowjanya <gakula@marvell.com>, Subbaraya Sundeep
+ <sbhatta@marvell.com>, hariprasad <hkelam@marvell.com>,
+ Bharat Bhushan <bbhushan2@marvell.com>, Saeed Mahameed <saeedm@nvidia.com>,
+ Tariq Toukan <tariqt@nvidia.com>, Mark Bloch <mbloch@nvidia.com>,
+ Leon Romanovsky <leon@kernel.org>, Alexander Duyck <alexanderduyck@fb.com>,
+ kernel-team@meta.com, Ilias Apalodimas <ilias.apalodimas@linaro.org>,
+ Joe Damato <joe@dama.to>, David Wei <dw@davidwei.uk>,
+ Willem de Bruijn <willemb@google.com>, Mina Almasry
+ <almasrymina@google.com>, Breno Leitao <leitao@debian.org>,
+ Dragos Tatulea <dtatulea@nvidia.com>, linux-kernel@vger.kernel.org,
+ linux-doc@vger.kernel.org, linux-rdma@vger.kernel.org,
+ Jonathan Corbet <corbet@lwn.net>, io-uring <io-uring@vger.kernel.org>
+References: <cover.1760364551.git.asml.silence@gmail.com>
+Content-Language: en-US
+From: Pavel Begunkov <asml.silence@gmail.com>
+In-Reply-To: <cover.1760364551.git.asml.silence@gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-6.6-stable review patch.  If anyone has any objections, please let me know.
+On 10/13/25 15:54, Pavel Begunkov wrote:
 
-------------------
+Forgot to CC io_uring
 
-From: Stefan Metzmacher <metze@samba.org>
+> Add support for per-queue rx buffer length configuration based on [2]
+> and basic infrastructure for using it in memory providers like
+> io_uring/zcrx. Note, it only includes net/ patches and leaves out
+> zcrx to be merged separately. Large rx buffers can be beneficial with
+> hw-gro enabled cards that can coalesce traffic, which reduces the
+> number of frags traversing the network stack and resuling in larger
+> contiguous chunks of data given to the userspace.
 
-[ Upstream commit fad988a2158d743da7971884b93482a73735b25e ]
+Same note as the last time, not great that it's over the 15 patches,
+but I don't see a good way to shrink it considering that the original
+series [2] is 22 patches long, and I'll somehow need to pull it it
+into the io_uring tree after. Please let me know if there is a strong
+feeling about that, and/or what would the preferred way be.
 
-Already do real negotiation in smb_direct_handle_connect_request()
-where we see the requested initiator_depth and responder_resources
-from the client.
-
-We should detect legacy iwarp clients using MPA v1
-with the custom IRD/ORD negotiation.
-
-We need to send the custom IRD/ORD in big endian,
-but we need to try to let clients with broken requests
-using little endian (older cifs.ko) to work.
-
-Note the reason why this uses u8 for
-initiator_depth and responder_resources is
-that the rdma layer also uses it.
-
-Acked-by: Namjae Jeon <linkinjeon@kernel.org>
-Cc: Steve French <smfrench@gmail.com>
-Cc: Tom Talpey <tom@talpey.com>
-Cc: linux-cifs@vger.kernel.org
-Cc: samba-technical@lists.samba.org
-Cc: linux-rdma@vger.kernel.org
-Fixes: 0626e6641f6b ("cifsd: add server handler for central processing and tranport layers")
-Signed-off-by: Stefan Metzmacher <metze@samba.org>
-Signed-off-by: Steve French <stfrench@microsoft.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- fs/smb/server/transport_rdma.c | 99 +++++++++++++++++++++++++++++-----
- 1 file changed, 85 insertions(+), 14 deletions(-)
-
-diff --git a/fs/smb/server/transport_rdma.c b/fs/smb/server/transport_rdma.c
-index 504e2a1cf33b8..31c1ac256e1be 100644
---- a/fs/smb/server/transport_rdma.c
-+++ b/fs/smb/server/transport_rdma.c
-@@ -152,6 +152,10 @@ struct smb_direct_transport {
- 	struct work_struct	disconnect_work;
- 
- 	bool			negotiation_requested;
-+
-+	bool			legacy_iwarp;
-+	u8			initiator_depth;
-+	u8			responder_resources;
- };
- 
- #define KSMBD_TRANS(t) ((struct ksmbd_transport *)&((t)->transport))
-@@ -346,6 +350,9 @@ static struct smb_direct_transport *alloc_transport(struct rdma_cm_id *cm_id)
- 	t->cm_id = cm_id;
- 	cm_id->context = t;
- 
-+	t->initiator_depth = SMB_DIRECT_CM_INITIATOR_DEPTH;
-+	t->responder_resources = 1;
-+
- 	t->status = SMB_DIRECT_CS_NEW;
- 	init_waitqueue_head(&t->wait_status);
- 
-@@ -1623,21 +1630,21 @@ static int smb_direct_send_negotiate_response(struct smb_direct_transport *t,
- static int smb_direct_accept_client(struct smb_direct_transport *t)
- {
- 	struct rdma_conn_param conn_param;
--	struct ib_port_immutable port_immutable;
--	u32 ird_ord_hdr[2];
-+	__be32 ird_ord_hdr[2];
- 	int ret;
- 
-+	/*
-+	 * smb_direct_handle_connect_request()
-+	 * already negotiated t->initiator_depth
-+	 * and t->responder_resources
-+	 */
- 	memset(&conn_param, 0, sizeof(conn_param));
--	conn_param.initiator_depth = min_t(u8, t->cm_id->device->attrs.max_qp_rd_atom,
--					   SMB_DIRECT_CM_INITIATOR_DEPTH);
--	conn_param.responder_resources = 0;
--
--	t->cm_id->device->ops.get_port_immutable(t->cm_id->device,
--						 t->cm_id->port_num,
--						 &port_immutable);
--	if (port_immutable.core_cap_flags & RDMA_CORE_PORT_IWARP) {
--		ird_ord_hdr[0] = conn_param.responder_resources;
--		ird_ord_hdr[1] = 1;
-+	conn_param.initiator_depth = t->initiator_depth;
-+	conn_param.responder_resources = t->responder_resources;
-+
-+	if (t->legacy_iwarp) {
-+		ird_ord_hdr[0] = cpu_to_be32(conn_param.responder_resources);
-+		ird_ord_hdr[1] = cpu_to_be32(conn_param.initiator_depth);
- 		conn_param.private_data = ird_ord_hdr;
- 		conn_param.private_data_len = sizeof(ird_ord_hdr);
- 	} else {
-@@ -2023,10 +2030,13 @@ static bool rdma_frwr_is_supported(struct ib_device_attr *attrs)
- 	return true;
- }
- 
--static int smb_direct_handle_connect_request(struct rdma_cm_id *new_cm_id)
-+static int smb_direct_handle_connect_request(struct rdma_cm_id *new_cm_id,
-+					     struct rdma_cm_event *event)
- {
- 	struct smb_direct_transport *t;
- 	struct task_struct *handler;
-+	u8 peer_initiator_depth;
-+	u8 peer_responder_resources;
- 	int ret;
- 
- 	if (!rdma_frwr_is_supported(&new_cm_id->device->attrs)) {
-@@ -2040,6 +2050,67 @@ static int smb_direct_handle_connect_request(struct rdma_cm_id *new_cm_id)
- 	if (!t)
- 		return -ENOMEM;
- 
-+	peer_initiator_depth = event->param.conn.initiator_depth;
-+	peer_responder_resources = event->param.conn.responder_resources;
-+	if (rdma_protocol_iwarp(new_cm_id->device, new_cm_id->port_num) &&
-+	    event->param.conn.private_data_len == 8) {
-+		/*
-+		 * Legacy clients with only iWarp MPA v1 support
-+		 * need a private blob in order to negotiate
-+		 * the IRD/ORD values.
-+		 */
-+		const __be32 *ird_ord_hdr = event->param.conn.private_data;
-+		u32 ird32 = be32_to_cpu(ird_ord_hdr[0]);
-+		u32 ord32 = be32_to_cpu(ird_ord_hdr[1]);
-+
-+		/*
-+		 * cifs.ko sends the legacy IRD/ORD negotiation
-+		 * event if iWarp MPA v2 was used.
-+		 *
-+		 * Here we check that the values match and only
-+		 * mark the client as legacy if they don't match.
-+		 */
-+		if ((u32)event->param.conn.initiator_depth != ird32 ||
-+		    (u32)event->param.conn.responder_resources != ord32) {
-+			/*
-+			 * There are broken clients (old cifs.ko)
-+			 * using little endian and also
-+			 * struct rdma_conn_param only uses u8
-+			 * for initiator_depth and responder_resources,
-+			 * so we truncate the value to U8_MAX.
-+			 *
-+			 * smb_direct_accept_client() will then
-+			 * do the real negotiation in order to
-+			 * select the minimum between client and
-+			 * server.
-+			 */
-+			ird32 = min_t(u32, ird32, U8_MAX);
-+			ord32 = min_t(u32, ord32, U8_MAX);
-+
-+			t->legacy_iwarp = true;
-+			peer_initiator_depth = (u8)ird32;
-+			peer_responder_resources = (u8)ord32;
-+		}
-+	}
-+
-+	/*
-+	 * First set what the we as server are able to support
-+	 */
-+	t->initiator_depth = min_t(u8, t->initiator_depth,
-+				   new_cm_id->device->attrs.max_qp_rd_atom);
-+
-+	/*
-+	 * negotiate the value by using the minimum
-+	 * between client and server if the client provided
-+	 * non 0 values.
-+	 */
-+	if (peer_initiator_depth != 0)
-+		t->initiator_depth = min_t(u8, t->initiator_depth,
-+					   peer_initiator_depth);
-+	if (peer_responder_resources != 0)
-+		t->responder_resources = min_t(u8, t->responder_resources,
-+					       peer_responder_resources);
-+
- 	ret = smb_direct_connect(t);
- 	if (ret)
- 		goto out_err;
-@@ -2064,7 +2135,7 @@ static int smb_direct_listen_handler(struct rdma_cm_id *cm_id,
- {
- 	switch (event->event) {
- 	case RDMA_CM_EVENT_CONNECT_REQUEST: {
--		int ret = smb_direct_handle_connect_request(cm_id);
-+		int ret = smb_direct_handle_connect_request(cm_id, event);
- 
- 		if (ret) {
- 			pr_err("Can't create transport: %d\n", ret);
 -- 
-2.51.0
-
-
+Pavel Begunkov
 
