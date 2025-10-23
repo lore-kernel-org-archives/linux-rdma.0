@@ -1,17 +1,17 @@
-Received: from invmail4.hynix.com (exvmail4.skhynix.com [166.125.252.92])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 28DFA2BF011;
-	Thu, 23 Oct 2025 07:44:27 +0000 (UTC)
+Received: from invmail4.hynix.com (exvmail4.hynix.com [166.125.252.92])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 1AED624634F;
+	Thu, 23 Oct 2025 07:44:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=166.125.252.92
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761205474; cv=none; b=qbFJJz/wBxlWt1lUAcwq/e+hNUSrUdDFK59PIo8G+E7cuYeCnHScfz7Ffr6sT0Ko/GoFhsvHT3YMr3xL18DS38ty/xIv3xLV0nr5lvGHg5o/anPtkaRHqWlASc9YJdqgK6F02n3zJ7rkiy64vpqd8JB3QY2phoZhxLJpSwpsNDM=
+	t=1761205501; cv=none; b=NnEDbsIaAHtc8F4Fo38MC/z4X95Mb5aUEHb5NHlWpzYPOhmjjcXYcOVdeVQw1ZqL/XmpTUyF1uRL51z1rxE5aaAAuo6D1fTjFIcPM47GH0tsXkoQpRQUM1wisUcHS+6LmAM/U2Jj1/SG6ct8IMHJ4qvoyTGVQcQlM3E2EYtQ6xQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761205474; c=relaxed/simple;
-	bh=/ievbL36Rs5ZFE2K+CltxLGakEwUPtbnWP2MFWEQ/Vs=;
-	h=From:To:Cc:Subject:Date:Message-Id; b=e1IW17TDnjS/cc6NONcmYpU9UDQa9bY9dq3YWHkcnsOc4QO6gMLHy8P2KpE5cxUxrU+nhA5Vq/6QGnJbckcUKfBbnUPUNpYExS58TrQVqrMW4PJehsNH3DMsMcsaRkofTAexruo9ezihsdc7iBFitgL1CdKt3GT3VmFVA2oRF2A=
+	s=arc-20240116; t=1761205501; c=relaxed/simple;
+	bh=bcO0IIMDLYsyIp56WuxfH+4Zuw9yuTNlc7vmAUjDf2s=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References; b=OXw+BrRO9jA0BLn10RlZy55Grs10CXg910BJatAHU0d6ccygVxEtFNAIl9Hr9cpukh4mZB0DoVsQRVZt53lNQMDustDRgibGgipgIMepfZb6A4SohzDNJbn91Z0/AqjsUxgL1fd+nBY74Qdf+JwNSsXyz5Adyx+r6g8hcBTXOsQ=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=sk.com; spf=pass smtp.mailfrom=sk.com; arc=none smtp.client-ip=166.125.252.92
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=sk.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=sk.com
-X-AuditID: a67dfc5b-c2dff70000001609-4f-68f9dcd425f0
+X-AuditID: a67dfc5b-c2dff70000001609-d6-68f9dcf85542
 From: Byungchul Park <byungchul@sk.com>
 To: linux-mm@kvack.org,
 	netdev@vger.kernel.org
@@ -60,39 +60,42 @@ Cc: linux-kernel@vger.kernel.org,
 	dw@davidwei.uk,
 	ap420073@gmail.com,
 	dtatulea@nvidia.com
-Subject: [RFC mm v4 0/2] mm, page_pool: introduce a new page type for page pool in page type
-Date: Thu, 23 Oct 2025 16:44:08 +0900
-Message-Id: <20251023074410.78650-1-byungchul@sk.com>
+Subject: [RFC mm v4 2/2] mm: introduce a new page type for page pool in page type
+Date: Thu, 23 Oct 2025 16:44:10 +0900
+Message-Id: <20251023074410.78650-3-byungchul@sk.com>
 X-Mailer: git-send-email 2.17.1
-X-Brightmail-Tracker: H4sIAAAAAAAAAzWSa0hTYRjHe885e8/ZanBYVif7kAy6UGkXujxdKIM+vB8qivxgJdTIkxs5
-	J9NsBoKWoGmuq2S6aBXqdAtz5mXizLybUGoZJzI1IwVvxTJzTlzT6NuP/4/n9+nhaNUEE8zp
-	4hJFY5wmVo0VjGJi2ZPQD31e7TbXdQBLmQODfcYExYM1MvA6RiiwlFYhmPJ+ZsHvbkXwq7kN
-	w1iTB8GzJ9M0WN6lM/C7bJYGV+0IgtG85xi+tw6xYHceg4GiYQbqMqppGLrVjiEn3UeD2zvJ
-	wrUaWyBckcpCV5VZBvdnC2moTh1k4X2tBUO/wy+D4cYcBjrySxj4mdtMw4A5HFqtK2G6cxxB
-	c1k1BdM3H2HofVhLQaW7l4V7PVYM39IHEPQ0DTGQO5eJoSDNjMA3E0hO3p6SQUFLPxseRtIk
-	CZOm8R80eVnyiSIf8+4wRKp/QxFX/heWWJ2XSYVtE8mSemjiLL2BidNzlyV9H+swac/zMcT1
-	dS9x1fyiSM71SXxixRnFgWgxVpckGrcePK/QTtzz4/hRpSnb0cmmIq88C8k5gd8pvPK/o/9z
-	RuY4XmDMbxAkybu4B/HbBFvuVIAVHM1nc8Ln+vJFsZyPEp6P/EELzPDrhOwO8yIr+V1CZamP
-	/RddK9hfNCweC3whJ3zrzqL+idXCa5vE3EZLrWhJKVLp4pL0Gl3szjBtcpzOFHbBoHeiwBMU
-	pcydrUGerlONiOeQepkyvG1Gq5JpkhKS9Y1I4Gh1kDLpdGBSRmuSr4pGwznj5VgxoRGt4Rj1
-	KuWO6SvRKj5GkyheEsV40fjfUpw8OBWtnj2kuhgif7vbt8Xa4G9Wt+Nr3ZMW3fyVkBNRVP5M
-	yRgf+iDNVGHpUllM68tP1od0S4Z0d4N/4tlTdcz8Rv3NKb9hT1b1fsNhm+3H41tHT0YeOx62
-	r7cvYly/OeJTYjn9eLjAnFHVmniJjKXUP/IeaYnMkRe7rSbPnxFPvD1YzSRoNds30cYEzV9l
-	YPpMAAMAAA==
-X-Brightmail-Tracker: H4sIAAAAAAAAAzXRa0hTcRjH8f47Z/9zHC0OKnXoQjCLyEi7CY8V4RvpX1FEEFFpNurUhjpl
-	s6FJZbrQNNfFFt5ZROY1a6Vuplabl2lBNbUWVtqiJFtWauacYtPo3YfnB983D0v5v6AXs0pV
-	kqBWyeNkWEJL9mzJWNvzzqNYV9a3AoprqzFUTSTDnQGzGDzVgyIorqxHMObpY2CmuR3BaGsH
-	hm+2EQS3bo5TUPxCR8Pv2kkKLI2DCIbyazB8bncxUGXaDf1lX2hoymygwHXZjiFX56Wg2TPM
-	QLq53Bd+kMaAraRTDC/r9WK4Pnmbgoa0AQa6G4sxfKieEcMXay4NnYUVNPw0tFLQr4+AduNC
-	GH/mRtBa2yCC8UslGHoLGkVQ19zLQJ7DiOGTrh+Bw+aiwTCVhaHovB6Bd8KXHL4yJoaitg9M
-	RCg573RiYnP/oMjDirci8jr/Kk2cLV0iYil8zxCj6RR5UB5Msp0OipgqL2JiGrnGkHevmzCx
-	53tpYvkYTizmURHJzRjGexcekmw9LsQptYI6dNtRieJ73gxOHJIm51Q/Y9KQxy8b+bE8t4nP
-	zHLjWWNuFe90eqhZB3Lr+HLDmM8SluJyWL6v5f7cEMBF8TWDf9CsaW4ln9Opn7OUC+PrKr3M
-	v+hyvureE+oKYo1oXiUKVKq08XJlXFiIJlaRolImhxxLiDch35vLzkxdNaOx7u1WxLFINl8a
-	0TGh8BfLtZqUeCviWUoWKNUe9J2kx+UppwV1Qoz6VJygsaIlLC1bJN15QDjqz52UJwmxgpAo
-	qP+vItZvcRqy17xafTc8svSRMSy6p+rIhjXTwdFB94beT5fq9925kHQ4ypso/bq5pzldPRCC
-	cd2njarURetR0cdf7mVdAU+GYu93fF4w89Qy2huWYGhIfBuZai+tP3fAaD/rutVN+FXcROqu
-	tsmH5oSCG4+fh+7YH6QrP/gm/NzSmJwTngDiyGRltEYhXx9MqTXyv50GY8HiAgAA
+In-Reply-To: <20251023074410.78650-1-byungchul@sk.com>
+References: <20251023074410.78650-1-byungchul@sk.com>
+X-Brightmail-Tracker: H4sIAAAAAAAAAzWSa0hTcRjG+59zds5xuDitzNMNZZaBkV2Y8VoREgXHoJtBURE52sGNdMZm
+	S4NIa1GZmlqG2YSJNE0Nc1q7oGLzXlFzXZiUrmYZaVl4GW5Wtil9+/E8z/v79NK4OEewnFaq
+	Mni1SpYqIYWE8EdoxXrfB59i45VcAejr60ionc6Eqo8WAfjqvmKgr3mCYNL3noLZli4EEx3d
+	JIy2jyOorPDioH+lI2Cq3o+D1fYVwUjpQxK+dHkoqDXtBbdxmIDmq2YcPDd7SMjXzeDQ4huj
+	4JKlOiBuzKbA8aRAALf993EwZ3+k4LVNT8Jg3awAhu35BPSWPSDgV0kHDu6CBOgyLAXv8+8I
+	OurNGHjzykl4e9eGweOWtxTcchpIGNK5ETjbPQSU/L5Gwr2cAgQz0wHlWOGkAO51DlIJsVyO
+	y0Vy7d9/4lzTg36Me1daRHCu1mcYZy0boDiD6SzXWB3D5bqcOGequU5ypvFiivvwrpnkekpn
+	CM76KZ6zWiYwLv/yGHkg7Jhwu5xPVWp59YYdyUJFyVPpmTuJma0vGrBs5NiWi0JolpGyb5rc
+	glxEz/Hfz4eDMcmsZV0uHx7kJcxGtrpkMsBCGmdu0Oz71oa5YjFzkO3vzsOCtwSzhv38JywY
+	i5g4Nsc5gs/rI9jaR21zHMJsYXv/dlJBFgc2jiI/Nb/poFlzT9I8L2OfVruIQiQyoAU1SKxU
+	adNkylRprCJLpcyMPZWeZkKBxzBe+H3cgsYdh+yIoZEkVJTQPa0QC2RaTVaaHbE0Llki0h4N
+	RCK5LOs8r04/qT6bymvsaAVNSMJFm73n5GImRZbBn+b5M7z6f4vRIcuzUZIxnPokpyy98pSU
+	vq74RNlpfPbUosQBaflUpDHakzFUWecdLN/3Mm2nXxkxujU6ovCVTb6waV3R4+uh3pHJsF1R
+	305s9tsaQjoPr99vqDrfE6FS67pL+72rI/OGe/HkRUlRawxtY1O7VxaXsca46dC+basoh1Xy
+	4shFMb2njZAQGoVsUwyu1sj+AaCCXvwUAwAA
+X-Brightmail-Tracker: H4sIAAAAAAAAAzWRf0yMcRzHfZ/nued5Oo5np/LIjN0Ya+uHTfaxrDW/etgYs7EYOjx1R7/c
+	qXVouspwlMJZ0k2Y3HWRLv1ULd1VkpJrtWv9VAlJUWldpVxt/nvt/eufN42L+wk3Wh5+gVeE
+	S0MlpJAQ7vdN8JjssMu8X15fBxm5OSQYJ2PgeU+xAOw5XzHIyC5EMG5vp2CuvAbBmKWWhB/m
+	UQRPH0/gkPExkYA/uVM4lJR+RTCY9oKELzW9FBhN+6A7a4CAsmtFOPTefkdCUuI0DuX2YQri
+	i/WO4fw4Csy6OgE0FSYL4N7UMxyK4nooaC7NIKErZ04AA1VJBNSlGwj4pbXg0J3sDzWZrjBR
+	P4TAkluEwcQtHQktD0oxKChvoeCuNZOEvsRuBFZzLwHameskPFQnI5iedEwOp4wL4GF1F+Xv
+	xaltNpIzD43g3GtDG8a1pqUSnK3iPcaVpHdSXKYpisvXu3MamxXnTNk3SM40eofiOlrLSO5d
+	2jTBlXzeypUUj2FcUsIwecD1qHDbGT5UHs0rvPyChDLt282R9/fEVHzIw+JQk68G0TTLbGZn
+	+w9rkBNNMhtYm82Oz7Mz483qteMOFtI4c5Nm2yvyFozlzEG2rfYWNt8lmPVs/1+XeVnE+LBq
+	6+BChGXWsMZXlQvsxGxh62arqXkWOzJNqVNUChJmokXZyFkeHh0mlYf6eCrPyVTh8hjP0xFh
+	JuT4Pit2JrUYjTcHVCGGRpIlIv/aSZlYII1WqsKqEEvjEmdRdKBDEp2Rqi7yioiTiqhQXlmF
+	VtGEZIVo7xE+SMyESC/w53g+klf8dzHayS0ONQj9zttUszoPTdm6gN2Ww6fEjW25G080XAnu
+	WBbYaF15VX9sR7z657clhp0uvtO7rN/fL2a0eW98nDWV62++PHTZYoidre/sVe0JFvQJDzbv
+	f6PrHth+98naNsG+CLEuZIU5a+mj0d8XF41s7PDoUT/yT398tsAY+On4l4aUUuOxS6slhFIm
+	3eSOK5TSfxAth6D3AgAA
 X-CFilter-Loop: Reflected
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
@@ -100,48 +103,245 @@ List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 
-This patch is supposed to go via the mm tree, but it currently also
-depends on patches in the net-next tree.  For now, this patch is based
-on linux-next, but will apply cleanly (or get rebased) after mm tree was
-rebased.
+->pp_magic field in struct page is current used to identify if a page
+belongs to a page pool.  However, ->pp_magic will be removed and page
+type bit in struct page e.i. PGTY_netpp can be used for that purpose.
 
-Changes from v3:
-	1. Rebase on next-20251023 of linux-next.
-	2. Split into two, mm changes and network changes.
-	3. Improve the comments (feedbacked by Jakub)
+Introduce and use the page type APIs e.g. PageNetpp(), __SetPageNetpp(),
+and __ClearPageNetpp() instead, and remove the existing APIs accessing
+->pp_magic e.g. page_pool_page_is_pp(), netmem_or_pp_magic(), and
+netmem_clear_pp_magic().
 
-Changes from v2:
-	1. Rebase on linux-next as of Jul 29.
-	2. Skip 'niov->pp = NULL' when it's allocated using __GFP_ZERO.
-	3. Change trivial coding style. (feedbacked by Mina)
-	4. Add Co-developed-by, Acked-by, and Reviewed-by properly.
-	   Thanks to all.
+This work was inspired by the following link:
 
-Changes from v1:
-	1. Rebase on linux-next.
-	2. Initialize net_iov->pp = NULL when allocating net_iov in
-	   net_devmem_bind_dmabuf() and io_zcrx_create_area().
-	3. Use ->pp for net_iov to identify if it's pp rather than
-	   always consider net_iov as pp.
-	4. Add Suggested-by: David Hildenbrand <david@redhat.com>.
+[1] https://lore.kernel.org/all/582f41c0-2742-4400-9c81-0d46bf4e8314@gmail.com/
 
-Byungchul Park (2):
-  page_pool: check if nmdesc->pp is !NULL to confirm its usage as pp for
-    net_iov
-  mm: introduce a new page type for page pool in page type
+While at it, move the sanity check for page pool to on free.
 
+Suggested-by: David Hildenbrand <david@redhat.com>
+Co-developed-by: Pavel Begunkov <asml.silence@gmail.com>
+Signed-off-by: Pavel Begunkov <asml.silence@gmail.com>
+Signed-off-by: Byungchul Park <byungchul@sk.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Acked-by: Zi Yan <ziy@nvidia.com>
+---
+Hi Mina,
+
+I dropped your Reviewed-by tag since there are updates on some comments
+in network part.  Can I still keep your Reviewed-by?
+
+	Byungchul
+---
  .../net/ethernet/mellanox/mlx5/core/en/xdp.c  |  2 +-
  include/linux/mm.h                            | 27 +++----------------
  include/linux/page-flags.h                    |  6 +++++
  include/net/netmem.h                          |  2 +-
  mm/page_alloc.c                               |  8 +++---
- net/core/devmem.c                             |  1 +
- net/core/netmem_priv.h                        | 25 +++++++++--------
- net/core/page_pool.c                          | 14 ++++++++--
- 8 files changed, 40 insertions(+), 45 deletions(-)
+ net/core/netmem_priv.h                        | 17 +++---------
+ net/core/page_pool.c                          | 14 +++++-----
+ 7 files changed, 25 insertions(+), 51 deletions(-)
 
-
-base-commit: efb26a23ed5f5dc3554886ab398f559dcb1de96b
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en/xdp.c b/drivers/net/ethernet/mellanox/mlx5/core/en/xdp.c
+index 5d51600935a6..def274f5c1ca 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en/xdp.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en/xdp.c
+@@ -707,7 +707,7 @@ static void mlx5e_free_xdpsq_desc(struct mlx5e_xdpsq *sq,
+ 				xdpi = mlx5e_xdpi_fifo_pop(xdpi_fifo);
+ 				page = xdpi.page.page;
+ 
+-				/* No need to check page_pool_page_is_pp() as we
++				/* No need to check PageNetpp() as we
+ 				 * know this is a page_pool page.
+ 				 */
+ 				page_pool_recycle_direct(pp_page_to_nmdesc(page)->pp,
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index b6fdf3557807..f5155f1c75f5 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -4361,10 +4361,9 @@ int arch_lock_shadow_stack_status(struct task_struct *t, unsigned long status);
+  * DMA mapping IDs for page_pool
+  *
+  * When DMA-mapping a page, page_pool allocates an ID (from an xarray) and
+- * stashes it in the upper bits of page->pp_magic. We always want to be able to
+- * unambiguously identify page pool pages (using page_pool_page_is_pp()). Non-PP
+- * pages can have arbitrary kernel pointers stored in the same field as pp_magic
+- * (since it overlaps with page->lru.next), so we must ensure that we cannot
++ * stashes it in the upper bits of page->pp_magic. Non-PP pages can have
++ * arbitrary kernel pointers stored in the same field as pp_magic (since
++ * it overlaps with page->lru.next), so we must ensure that we cannot
+  * mistake a valid kernel pointer with any of the values we write into this
+  * field.
+  *
+@@ -4399,26 +4398,6 @@ int arch_lock_shadow_stack_status(struct task_struct *t, unsigned long status);
+ #define PP_DMA_INDEX_MASK GENMASK(PP_DMA_INDEX_BITS + PP_DMA_INDEX_SHIFT - 1, \
+ 				  PP_DMA_INDEX_SHIFT)
+ 
+-/* Mask used for checking in page_pool_page_is_pp() below. page->pp_magic is
+- * OR'ed with PP_SIGNATURE after the allocation in order to preserve bit 0 for
+- * the head page of compound page and bit 1 for pfmemalloc page, as well as the
+- * bits used for the DMA index. page_is_pfmemalloc() is checked in
+- * __page_pool_put_page() to avoid recycling the pfmemalloc page.
+- */
+-#define PP_MAGIC_MASK ~(PP_DMA_INDEX_MASK | 0x3UL)
+-
+-#ifdef CONFIG_PAGE_POOL
+-static inline bool page_pool_page_is_pp(const struct page *page)
+-{
+-	return (page->pp_magic & PP_MAGIC_MASK) == PP_SIGNATURE;
+-}
+-#else
+-static inline bool page_pool_page_is_pp(const struct page *page)
+-{
+-	return false;
+-}
+-#endif
+-
+ #define PAGE_SNAPSHOT_FAITHFUL (1 << 0)
+ #define PAGE_SNAPSHOT_PG_BUDDY (1 << 1)
+ #define PAGE_SNAPSHOT_PG_IDLE  (1 << 2)
+diff --git a/include/linux/page-flags.h b/include/linux/page-flags.h
+index 0091ad1986bf..edf5418c91dd 100644
+--- a/include/linux/page-flags.h
++++ b/include/linux/page-flags.h
+@@ -934,6 +934,7 @@ enum pagetype {
+ 	PGTY_zsmalloc		= 0xf6,
+ 	PGTY_unaccepted		= 0xf7,
+ 	PGTY_large_kmalloc	= 0xf8,
++	PGTY_netpp		= 0xf9,
+ 
+ 	PGTY_mapcount_underflow = 0xff
+ };
+@@ -1078,6 +1079,11 @@ PAGE_TYPE_OPS(Zsmalloc, zsmalloc, zsmalloc)
+ PAGE_TYPE_OPS(Unaccepted, unaccepted, unaccepted)
+ FOLIO_TYPE_OPS(large_kmalloc, large_kmalloc)
+ 
++/*
++ * Marks page_pool allocated pages.
++ */
++PAGE_TYPE_OPS(Netpp, netpp, netpp)
++
+ /**
+  * PageHuge - Determine if the page belongs to hugetlbfs
+  * @page: The page to test.
+diff --git a/include/net/netmem.h b/include/net/netmem.h
+index 651e2c62d1dd..0ec4c7561081 100644
+--- a/include/net/netmem.h
++++ b/include/net/netmem.h
+@@ -260,7 +260,7 @@ static inline unsigned long netmem_pfn_trace(netmem_ref netmem)
+  */
+ #define pp_page_to_nmdesc(p)						\
+ ({									\
+-	DEBUG_NET_WARN_ON_ONCE(!page_pool_page_is_pp(p));		\
++	DEBUG_NET_WARN_ON_ONCE(!PageNetpp(p));				\
+ 	__pp_page_to_nmdesc(p);						\
+ })
+ 
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index fb91c566327c..c69ed3741bbc 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -1042,7 +1042,6 @@ static inline bool page_expected_state(struct page *page,
+ #ifdef CONFIG_MEMCG
+ 			page->memcg_data |
+ #endif
+-			page_pool_page_is_pp(page) |
+ 			(page->flags.f & check_flags)))
+ 		return false;
+ 
+@@ -1069,8 +1068,6 @@ static const char *page_bad_reason(struct page *page, unsigned long flags)
+ 	if (unlikely(page->memcg_data))
+ 		bad_reason = "page still charged to cgroup";
+ #endif
+-	if (unlikely(page_pool_page_is_pp(page)))
+-		bad_reason = "page_pool leak";
+ 	return bad_reason;
+ }
+ 
+@@ -1379,9 +1376,12 @@ __always_inline bool free_pages_prepare(struct page *page,
+ 		mod_mthp_stat(order, MTHP_STAT_NR_ANON, -1);
+ 		folio->mapping = NULL;
+ 	}
+-	if (unlikely(page_has_type(page)))
++	if (unlikely(page_has_type(page))) {
++		/* networking expects to clear its page type before releasing */
++		WARN_ON_ONCE(PageNetpp(page));
+ 		/* Reset the page_type (which overlays _mapcount) */
+ 		page->page_type = UINT_MAX;
++	}
+ 
+ 	if (is_check_pages_enabled()) {
+ 		if (free_page_is_bad(page))
+diff --git a/net/core/netmem_priv.h b/net/core/netmem_priv.h
+index 5561fd556bc5..664a9fe87c66 100644
+--- a/net/core/netmem_priv.h
++++ b/net/core/netmem_priv.h
+@@ -8,18 +8,6 @@ static inline unsigned long netmem_get_pp_magic(netmem_ref netmem)
+ 	return netmem_to_nmdesc(netmem)->pp_magic & ~PP_DMA_INDEX_MASK;
+ }
+ 
+-static inline void netmem_or_pp_magic(netmem_ref netmem, unsigned long pp_magic)
+-{
+-	netmem_to_nmdesc(netmem)->pp_magic |= pp_magic;
+-}
+-
+-static inline void netmem_clear_pp_magic(netmem_ref netmem)
+-{
+-	WARN_ON_ONCE(netmem_to_nmdesc(netmem)->pp_magic & PP_DMA_INDEX_MASK);
+-
+-	netmem_to_nmdesc(netmem)->pp_magic = 0;
+-}
+-
+ static inline bool netmem_is_pp(netmem_ref netmem)
+ {
+ 	/* net_iov may be part of a page pool.  For net_iov, ->pp in
+@@ -30,7 +18,10 @@ static inline bool netmem_is_pp(netmem_ref netmem)
+ 	if (netmem_is_net_iov(netmem))
+ 		return !!netmem_to_nmdesc(netmem)->pp;
+ 
+-	return (netmem_get_pp_magic(netmem) & PP_MAGIC_MASK) == PP_SIGNATURE;
++	/* For system memory, page type in struct page can be used to
++	 * determine if the pages belong to a page pool.
++	 */
++	return PageNetpp(__netmem_to_page(netmem));
+ }
+ 
+ static inline void netmem_set_pp(netmem_ref netmem, struct page_pool *pool)
+diff --git a/net/core/page_pool.c b/net/core/page_pool.c
+index 2756b78754b0..c43a0f4479d4 100644
+--- a/net/core/page_pool.c
++++ b/net/core/page_pool.c
+@@ -700,12 +700,11 @@ void page_pool_set_pp_info(struct page_pool *pool, netmem_ref netmem)
+ {
+ 	netmem_set_pp(netmem, pool);
+ 
+-	/* For page-backed, pp_magic is used to identify if it's pp.
+-	 * For net_iov, it's ensured nmdesc->pp is non-NULL if it's pp
+-	 * and nmdesc->pp is NULL if it's not.
++	/* For system memory, page type in struct page is used to
++	 * determine if the pages belong to a page pool.
+ 	 */
+ 	if (!netmem_is_net_iov(netmem))
+-		netmem_or_pp_magic(netmem, PP_SIGNATURE);
++		__SetPageNetpp(__netmem_to_page(netmem));
+ 
+ 	/* Ensuring all pages have been split into one fragment initially:
+ 	 * page_pool_set_pp_info() is only called once for every page when it
+@@ -720,12 +719,11 @@ void page_pool_set_pp_info(struct page_pool *pool, netmem_ref netmem)
+ 
+ void page_pool_clear_pp_info(netmem_ref netmem)
+ {
+-	/* For page-backed, pp_magic is used to identify if it's pp.
+-	 * For net_iov, it's ensured nmdesc->pp is non-NULL if it's pp
+-	 * and nmdesc->pp is NULL if it's not.
++	/* For system memory, page type in struct page is used to
++	 * determine if the pages belong to a page pool.
+ 	 */
+ 	if (!netmem_is_net_iov(netmem))
+-		netmem_clear_pp_magic(netmem);
++		__ClearPageNetpp(__netmem_to_page(netmem));
+ 
+ 	netmem_set_pp(netmem, NULL);
+ }
 -- 
 2.17.1
 
