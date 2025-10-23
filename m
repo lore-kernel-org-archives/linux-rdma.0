@@ -1,89 +1,193 @@
-Received: from mail-io1-f69.google.com (mail-io1-f69.google.com [209.85.166.69])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A849F2BE620
-	for <linux-rdma@vger.kernel.org>; Thu, 23 Oct 2025 07:26:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.69
+Received: from invmail4.hynix.com (exvmail4.skhynix.com [166.125.252.92])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 28D7628489B;
+	Thu, 23 Oct 2025 07:44:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=166.125.252.92
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761204388; cv=none; b=Syjq3L7XlK7lXiKh0t4CHTDBiMq2N08Y3Gb8j2ih9mt2DKW6iBEVbrrBqzZ/km/qjzS4Q6P2VYpqqgUxrau6UAMHLjVmm8B/62RLOK4XGAB0S9dn/khVXhKX/BhIdBqD5+XzAgghEeWM0ofxb5K+aybfMqUUD6QyvLgsOLSRgtA=
+	t=1761205473; cv=none; b=EJcUoj9aJsLZKFx6kpA+QX/Wue90n87vphN6rfaNRlF8Ig0KtZMnSYYiOg30FFDkJp7w+tkXiB7I0eMG+XIna1TTZf7tO9JxG82ajQca+KzCZf0jbI51HAES/vQeDMXOOlm8BS2fGhfvL2Xu6dHs2VeiZsp5fo4c5j0KlKfKqFc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761204388; c=relaxed/simple;
-	bh=072T1hELA4IEXLyNAvTpI1QKo4tu/F09LzG59OgBE/g=;
-	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=pEEuIVLr83nD/oz0RyvBCbM67+ysgGHsac5KTlAgCzMj20qV2HzGAZmoxtVsMPxVCifSjF6JefH9coohzmQdXVKNmZzy+xNU4bU80gVUswGkctCVvwqrbE4jK1WOCGP4wDvF3TxNPIomMKUucyecQtHXKi2dvm4gU2MrvzKid9M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.69
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
-Received: by mail-io1-f69.google.com with SMTP id ca18e2360f4ac-930db3a16c9so35685839f.0
-        for <linux-rdma@vger.kernel.org>; Thu, 23 Oct 2025 00:26:26 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1761204386; x=1761809186;
-        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=Fvf9ZRE92JNWYABHY5d/bObPYmap/MAjRNgVlHVzgxs=;
-        b=IW6Lch8Gihxxk/PvEHhEGhu6U4i3vTOoi8NnkTqtcu4BGQOoBj6G0oFerVCl1TCBup
-         4QA/vmwJpqVPxBsekrgL0u+16eeLMEyrjZipbE8wVpZIGtKuCxXGy8LYZDyMZZB0JIgE
-         tjSMIVKUVgOiYQOFdJ56f0eIyUIT6ba8jykhhfdDZoCGIwP0sDIGJXc2+ark1G4028jd
-         BreIKA60+Skugn3pgOc7R+NVUo9ANnX/UoJCk86DXuW1YlBQLYz7hKnCOO9CGOxRqbcm
-         iISX5bVEgWCHqI0H8rs72EbInnteo6IMTCxEu7wNQzlEoOFdV9mghL/uAT9SaIkml/Sl
-         Idwg==
-X-Forwarded-Encrypted: i=1; AJvYcCVZBVGSflEXbIbpeyPMgHJ7w4AfkP/X7J+Z4FG9R2NE5WNhd7hcoIYjP15uwb+IUReh3iqSqsGhYqN9@vger.kernel.org
-X-Gm-Message-State: AOJu0YwH72rEupnhaGDmkVaqCw3yVcgfavVdumXPkNqxKpokyNJJSpo1
-	1+N7iP005TxSAPTkrNpptdH4d+gsXIMKClMikt5S1shJMmrr5g8z0KCcipx1zOCsZBgAGODaXQa
-	hKlgj5oMlAdLRynSnt+GpeEjf5QBsB99fOEjMk43k91/OALyaAXGqXzrni+E=
-X-Google-Smtp-Source: AGHT+IG2kb+3VHnGMQVwuNQxhL6zzopTu/NOetDQ0IYJeK1D56foFuVk+8IoRsWkHr8VbEZDqSkkljH9Yltq1k42HqeQ8hqGDBHu
+	s=arc-20240116; t=1761205473; c=relaxed/simple;
+	bh=JUNLi/65dgjkw16k+x/1hTCjDaNNWT63HXZ+kModT6Q=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References; b=s1L1vpHR4Gw6wRGZkWfK2JCjdIX5l4HfDcIX2G6+LucwN3+7Rxj1nJS2GKJQtMlJyAFLpbB2PJ9w7NJjfJAnY9cBRF2c4BS3TlI7tROidcAk6ppi9NTkf64rd4xdUixX8Bq6thCKYuzjHqwIPTctA9V1eJ0EreYsf+inDjVcMpc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=sk.com; spf=pass smtp.mailfrom=sk.com; arc=none smtp.client-ip=166.125.252.92
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=sk.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=sk.com
+X-AuditID: a67dfc5b-c2dff70000001609-5a-68f9dcd4f823
+From: Byungchul Park <byungchul@sk.com>
+To: linux-mm@kvack.org,
+	netdev@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org,
+	kernel_team@skhynix.com,
+	harry.yoo@oracle.com,
+	ast@kernel.org,
+	daniel@iogearbox.net,
+	davem@davemloft.net,
+	kuba@kernel.org,
+	hawk@kernel.org,
+	john.fastabend@gmail.com,
+	sdf@fomichev.me,
+	saeedm@nvidia.com,
+	leon@kernel.org,
+	tariqt@nvidia.com,
+	mbloch@nvidia.com,
+	andrew+netdev@lunn.ch,
+	edumazet@google.com,
+	pabeni@redhat.com,
+	akpm@linux-foundation.org,
+	david@redhat.com,
+	lorenzo.stoakes@oracle.com,
+	Liam.Howlett@oracle.com,
+	vbabka@suse.cz,
+	rppt@kernel.org,
+	surenb@google.com,
+	mhocko@suse.com,
+	horms@kernel.org,
+	jackmanb@google.com,
+	hannes@cmpxchg.org,
+	ziy@nvidia.com,
+	ilias.apalodimas@linaro.org,
+	willy@infradead.org,
+	brauner@kernel.org,
+	kas@kernel.org,
+	yuzhao@google.com,
+	usamaarif642@gmail.com,
+	baolin.wang@linux.alibaba.com,
+	almasrymina@google.com,
+	toke@redhat.com,
+	asml.silence@gmail.com,
+	bpf@vger.kernel.org,
+	linux-rdma@vger.kernel.org,
+	sfr@canb.auug.org.au,
+	dw@davidwei.uk,
+	ap420073@gmail.com,
+	dtatulea@nvidia.com
+Subject: [RFC mm v4 1/2] page_pool: check if nmdesc->pp is !NULL to confirm its usage as pp for net_iov
+Date: Thu, 23 Oct 2025 16:44:09 +0900
+Message-Id: <20251023074410.78650-2-byungchul@sk.com>
+X-Mailer: git-send-email 2.17.1
+In-Reply-To: <20251023074410.78650-1-byungchul@sk.com>
+References: <20251023074410.78650-1-byungchul@sk.com>
+X-Brightmail-Tracker: H4sIAAAAAAAAAzWSa0hTcRjG+59zds5xODgts5NFxaICKbMweYNIoYITYQQSdPlQSw9utqlt
+	uTQIpo0uM2/VaM2Jq0iXWtZM3SRXzmWaUWJoC0vNKFsXi2nLqWTbpG8/nvd5fp9eGhcXCmJo
+	edZJXpUlVUhIISH8EXljQ/+7gCy+qZ0Cc0M9CXVTeVAzYhdAoH4MA3NtM4LJwCAFc22dCCbc
+	z0j41uFDcOuGHwfzKx0BvxumcXC0jiH4arxLwqfOUQrqbCkwXP2ZgEfnW3AYLe0ioVg3g0Nb
+	YJyCQrs1KG7UUtDbXCKAq9O3cWjRjlDwutVMwlD9nAA+u4oJ6DbdIeCXwY3DcEkydFqiwd/z
+	HYG7oQUD/6VKEvqvt2LQ1NZPwZU+CwkfdcMI+jpGCTDMXiChoqAEwcxUUDleNimAiqdDVHIc
+	V+DxkFzH95849/DOW4wbMJYTnMf5HOMcpvcUZ7Hlco3WWE7v6cM5W+1FkrP5LlPcu4FHJNdl
+	nCE4x4etnMM+gXHFZ8fJfYsPCbel8wq5hldt3H5UKJvx1lA51pg8r+umQIvci/UogmaZBPaL
+	uRjTIzrMBaV7QjHJrGM9ngAe4igmnrUaJoMspHGmiGYHnQ/Ch0VMBjv36RoV2hLMGvaNJYwi
+	Zgt79aVi3r6Srbv/JNyOYBLZ7r9PqRCLg5Xe8mkqpGQZN8369Oeo+cFStt3qIcqQyIIW1CKx
+	PEujlMoVCXGy/Cx5XlxattKGgp9RfWb2sB35elNdiKGRJFKU/GxKJhZINep8pQuxNC6JEmkO
+	BiNRujT/NK/KPqLKVfBqF1pGE5Ilos3+U+liJkN6kj/O8zm86v8VoyNitGiVlV+/d5RfuEg8
+	UJq04JTR27Ti+OHlurH7E97EQHsV7wxUpuQOKoW743K7iMdVKzOEmWlNS9+mRL/WFja8+qHP
+	7Ks5scOZeuB9oC7ekJjg9aQ0V6qidBWZop6iZhX2h1h7zLT19+rt92L3SU/vX+2Yit5joo1D
+	OyVJIy92bUwSSAi1TLopFleppf8AUtMB3BUDAAA=
+X-Brightmail-Tracker: H4sIAAAAAAAAAzWRbUhTYRiGe3fOzjkOF4eldjCiWGRWpPb99EEZBL0VWlQo9SeHnrbhnLWp
+	qKHMFCzLr1JaqbSSbKmhzspN1GSb5goqrNXKcsvSssQiTZ1GNoX+XTz3dd9/HoaQfCaDGaU6
+	hdeoZSopJSJF0Tty171671VEOG6shcqGegrqptLhjscsBG/9FwFU1j5EMO7to2G2vRvBmP0x
+	Bd9tvxBU35wgoPJ5Hgm/G6YJsLR+QfBNf4+Cwe4BGupMUeCuGSKhLb+FgIHiHgoK82YIaPeO
+	0nDObPQNN+tosFU5hPDiYZEQyqZvE9Ci89DwsrWSgv76WSEMWQtJcFy/S8LPcjsB7qJI6DYE
+	wcTTEQT2hhYBTFyqosB5rVUAD9qdNFzpNVDwKc+NoNc2QEL5n/MUVOQUIZiZ8k2OlowLoaKr
+	n44MxzkuF4VtIz8IfP/uWwF+rS8lsavjiQBbrn+gscGUipuNa3CBq5fAptoLFDb9ukzj96/b
+	KNyjnyGx5eM2bDGPCXBh7ih1OOiEaGcCr1Km8ZrwXXEixczwHfq0MTh92HpLqEP2wALEMBy7
+	icspPliA/BiKXcW5XF5ijgPYCM5YPu5jEUOwFxmur6NpPljEyrnZwav0XJdkV3JvDPMoZjdz
+	Zc9UcwbHLuPqGjvnbT92C+f420XPscSnvCidpkuQyIAW1KIApTotSaZUbQ7TJioy1Mr0sPjk
+	JBPy/b4m60+pGY2/3GdFLIOk/uLIx1MKiVCWps1IsiKOIaQB4rTjvpM4QZaRyWuST2pSVbzW
+	ipYwpHSx+EAsHydh5bIUPpHnT/Oa/6mA8QvWIb4/2vnqTMjW0OYFuz8sXBG7NzA/tKEuwe5M
+	9pzqvFZyIjEl+6xn+5Ri2eTepT9Ln8jHxD3Zi1KP1Jg9bnX0HpzZv0MQIg9ambVcrs92NDYP
+	DW70L9PF921wboiKvfB8tTnma1FMNf9On1U8GWXLb696BL8PHU3dH3DM/bTJIonxSkmtQrZ+
+	DaHRyv4B18DwC/cCAAA=
+X-CFilter-Loop: Reflected
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-X-Received: by 2002:a05:6602:1414:b0:940:d395:fb53 with SMTP id
- ca18e2360f4ac-940d395fcbemr2167628439f.12.1761204385851; Thu, 23 Oct 2025
- 00:26:25 -0700 (PDT)
-Date: Thu, 23 Oct 2025 00:26:25 -0700
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <68f9d8a1.050a0220.346f24.0070.GAE@google.com>
-Subject: [syzbot] Monthly rdma report (Oct 2025)
-From: syzbot <syzbot+list0ee54e0d9d6647c72420@syzkaller.appspotmail.com>
-To: linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, 
-	syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
 
-Hello rdma maintainers/developers,
+->pp_magic field in struct page is current used to identify if a page
+belongs to a page pool.  However, ->pp_magic will be removed and page
+type bit in struct page e.g. PGTY_netpp should be used for that purpose.
 
-This is a 31-day syzbot report for the rdma subsystem.
-All related reports/information can be found at:
-https://syzkaller.appspot.com/upstream/s/rdma
+As a preparation, the check for net_iov, that is not page-backed, should
+avoid using ->pp_magic since net_iov doens't have to do with page type.
+Instead, nmdesc->pp can be used if a net_iov or its nmdesc belongs to a
+page pool, by making sure nmdesc->pp is NULL otherwise.
 
-During the period, 1 new issues were detected and 0 were fixed.
-In total, 8 issues are still open and 66 have already been fixed.
+For page-backed netmem, just leave unchanged as is, while for net_iov,
+make sure nmdesc->pp is initialized to NULL and use nmdesc->pp for the
+check.
 
-Some of the still happening issues:
-
-Ref Crashes Repro Title
-<1> 969     No    INFO: task hung in rdma_dev_change_netns
-                  https://syzkaller.appspot.com/bug?extid=73c5eab674c7e1e7012e
-<2> 546     Yes   WARNING in rxe_pool_cleanup
-                  https://syzkaller.appspot.com/bug?extid=221e213bf17f17e0d6cd
-<3> 100     No    INFO: task hung in rdma_dev_exit_net (6)
-                  https://syzkaller.appspot.com/bug?extid=3658758f38a2f0f062e7
-<4> 94      No    INFO: task hung in add_one_compat_dev (3)
-                  https://syzkaller.appspot.com/bug?extid=6dee15fdb0606ef7b6ba
-<5> 89      Yes   WARNING in gid_table_release_one (3)
-                  https://syzkaller.appspot.com/bug?extid=b0da83a6c0e2e2bddbd4
-<6> 5       Yes   KASAN: slab-use-after-free Read in ucma_create_uevent
-                  https://syzkaller.appspot.com/bug?extid=a6ffe86390c8a6afc818
-
+Signed-off-by: Byungchul Park <byungchul@sk.com>
 ---
-This report is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
+ net/core/devmem.c      |  1 +
+ net/core/netmem_priv.h |  8 ++++++++
+ net/core/page_pool.c   | 16 ++++++++++++++--
+ 3 files changed, 23 insertions(+), 2 deletions(-)
 
-To disable reminders for individual bugs, reply with the following command:
-#syz set <Ref> no-reminders
+diff --git a/net/core/devmem.c b/net/core/devmem.c
+index d9de31a6cc7f..f81b700f1fd1 100644
+--- a/net/core/devmem.c
++++ b/net/core/devmem.c
+@@ -291,6 +291,7 @@ net_devmem_bind_dmabuf(struct net_device *dev,
+ 			niov = &owner->area.niovs[i];
+ 			niov->type = NET_IOV_DMABUF;
+ 			niov->owner = &owner->area;
++			niov->desc.pp = NULL;
+ 			page_pool_set_dma_addr_netmem(net_iov_to_netmem(niov),
+ 						      net_devmem_get_dma_addr(niov));
+ 			if (direction == DMA_TO_DEVICE)
+diff --git a/net/core/netmem_priv.h b/net/core/netmem_priv.h
+index 23175cb2bd86..5561fd556bc5 100644
+--- a/net/core/netmem_priv.h
++++ b/net/core/netmem_priv.h
+@@ -22,6 +22,14 @@ static inline void netmem_clear_pp_magic(netmem_ref netmem)
+ 
+ static inline bool netmem_is_pp(netmem_ref netmem)
+ {
++	/* net_iov may be part of a page pool.  For net_iov, ->pp in
++	 * net_iov.desc can be used to determine if the pages belong to
++	 * a page pool.  Ensure that the ->pp either points to its page
++	 * pool or is set to NULL if it does not.
++	 */
++	if (netmem_is_net_iov(netmem))
++		return !!netmem_to_nmdesc(netmem)->pp;
++
+ 	return (netmem_get_pp_magic(netmem) & PP_MAGIC_MASK) == PP_SIGNATURE;
+ }
+ 
+diff --git a/net/core/page_pool.c b/net/core/page_pool.c
+index 1a5edec485f1..2756b78754b0 100644
+--- a/net/core/page_pool.c
++++ b/net/core/page_pool.c
+@@ -699,7 +699,13 @@ s32 page_pool_inflight(const struct page_pool *pool, bool strict)
+ void page_pool_set_pp_info(struct page_pool *pool, netmem_ref netmem)
+ {
+ 	netmem_set_pp(netmem, pool);
+-	netmem_or_pp_magic(netmem, PP_SIGNATURE);
++
++	/* For page-backed, pp_magic is used to identify if it's pp.
++	 * For net_iov, it's ensured nmdesc->pp is non-NULL if it's pp
++	 * and nmdesc->pp is NULL if it's not.
++	 */
++	if (!netmem_is_net_iov(netmem))
++		netmem_or_pp_magic(netmem, PP_SIGNATURE);
+ 
+ 	/* Ensuring all pages have been split into one fragment initially:
+ 	 * page_pool_set_pp_info() is only called once for every page when it
+@@ -714,7 +720,13 @@ void page_pool_set_pp_info(struct page_pool *pool, netmem_ref netmem)
+ 
+ void page_pool_clear_pp_info(netmem_ref netmem)
+ {
+-	netmem_clear_pp_magic(netmem);
++	/* For page-backed, pp_magic is used to identify if it's pp.
++	 * For net_iov, it's ensured nmdesc->pp is non-NULL if it's pp
++	 * and nmdesc->pp is NULL if it's not.
++	 */
++	if (!netmem_is_net_iov(netmem))
++		netmem_clear_pp_magic(netmem);
++
+ 	netmem_set_pp(netmem, NULL);
+ }
+ 
+-- 
+2.17.1
 
-To change bug's subsystems, reply with:
-#syz set <Ref> subsystems: new-subsystem
-
-You may send multiple commands in a single email message.
