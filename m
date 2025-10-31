@@ -1,58 +1,59 @@
 Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.16])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A85F1ADFFB
-	for <linux-rdma@vger.kernel.org>; Fri, 31 Oct 2025 02:18:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 793332773D2
+	for <linux-rdma@vger.kernel.org>; Fri, 31 Oct 2025 02:18:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.16
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761877090; cv=none; b=JPof3AY7f33Jv2HF8xfNNt9VoI4Zw/cikIev1YidHHei+X//Bh5dvoOAA4l1iXvlcYqD62VYNNCyfjAeofTrXWVOwPKwq/LoVQdAZ2GXDsx+nQvXOLU71uIZtNNcoYzamZO0p6vJ9stE+y2Vy4zkc5kRSFUEJC2wU1dpLfMcVME=
+	t=1761877092; cv=none; b=gGDg5tivB/6W4WkZ2HIR9trdbroQMd7tGk0L9OYdYQKbWA+K8pOzxEi2m+RIETUHqj8yZbG5LM2VhR2lBOwUlnNrHv8AOmHrI7S+oh8KJstWR7eUx0zw3lFOxaqITeHxrQ4jO1NJKrVxR4S9qcmdJPHJ4kxCUNO007/i1485D9Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761877090; c=relaxed/simple;
-	bh=HZPkAUhlqWcFtQnMLOt17NXBUkKLngMSVEMI7ZIq08g=;
+	s=arc-20240116; t=1761877092; c=relaxed/simple;
+	bh=QA1iUIu8e1U+8cRaewz1AhrO1eD4giTr691jfynlwy4=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=MZ4MCqJV7KrXy3wO7o+B3+XH+Oz60auyTB0pLjoDEQKfwASnmiBkrpcyCO/LSw2KhpQHOLmSNcFf6il3rSnF0ylWMLXOtkm4EOyJ1TIQIGSgXcev9DtpUydS65T91tHVPLtnaNepXE4sUFxP2k+nvGolj6PKe4GTkPYf4YV8J8o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=GpmQ9m1Y; arc=none smtp.client-ip=198.175.65.16
+	 MIME-Version; b=AWZjtXp97qcRnidQ9hI2qfvAjobd+lUfprj9oIh2ROQa6chvtmEaq0epmzkdNbCxa2FWo5SUevt4LL6FpZ1/EA8HuMREpfRy+Jkejk65xraEunsYlOcVR5TT3povbgMpgrYVFAs8nj58rTJeVgFaryQYqUbZUd3vsRkkFRo8VlM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=UPwS2ejX; arc=none smtp.client-ip=198.175.65.16
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="GpmQ9m1Y"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="UPwS2ejX"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1761877089; x=1793413089;
+  t=1761877091; x=1793413091;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=HZPkAUhlqWcFtQnMLOt17NXBUkKLngMSVEMI7ZIq08g=;
-  b=GpmQ9m1YSNFXns5PLTd4r6c8+tiX9mOrxnZXSAIlcBAH0zBdM9DS4W/d
-   mahr/2N8nCk0LEYuCQLl37f0Gx5OSJxnQ34GRBZWfQdJX5823CzkF3KZD
-   grZ5bNbFo7mSYor6X9m9wLqg1lNLxWLnGTY5onkb3AbDwYHXs0HhRgXAL
-   E68WqLbgS2dF3agnBYbLM4iutPMpDrK0d8FcSzfjNKGm3QR6yhf0MshiW
-   GEJg6imEvlZF/f2M1h9HG3ZUXg85PryxgY9SXwi3LdNTkTJqMqcp8i08I
-   m4NNIFi514zRvqSWrCr8UlWqzFRaf2fwdlzd8VAbRidbeDablikMLM7Xs
-   A==;
-X-CSE-ConnectionGUID: clquHU5qSqWWVJLm1p1PEg==
-X-CSE-MsgGUID: 3hVmmh/5RhOkld6Pc5BkjQ==
-X-IronPort-AV: E=McAfee;i="6800,10657,11598"; a="64182216"
+  bh=QA1iUIu8e1U+8cRaewz1AhrO1eD4giTr691jfynlwy4=;
+  b=UPwS2ejXVRat2+hNYc14jz7oTelCnZ9EOcyusxkaXAFSW+K0kmF9e8c/
+   AbXn/Cngu3waKBuw1aHOqI6glQrB9y812X2nGWMiHMEUTfr3/dafhsAQi
+   LZabSl2oViqxHIN64nmGpHQGeK2S8YY1qV31hteSjzUMiXrX5JXfgkEFZ
+   C2QXHdrqLU1cYjLxwOg2vo+K32e6tUxyQlfy1MCTCPBKm8ggOlnAKIkWN
+   ZQWSPX5hxw/9U49c7EeX7A0tkg4P0VnboJWCtTd+2uLGpcSj6pYt5cQ0B
+   gnYPzPpGFX7ccXt/MnUHyfMCqCvU4UarbzssZMXVzWFU7x/9/Z8gN4Er6
+   w==;
+X-CSE-ConnectionGUID: C0Z6x5y5TdGiE6bFzcC3PQ==
+X-CSE-MsgGUID: YUiHEX2NQ0CJErxDZgAoeQ==
+X-IronPort-AV: E=McAfee;i="6800,10657,11598"; a="64182221"
 X-IronPort-AV: E=Sophos;i="6.19,268,1754982000"; 
-   d="scan'208";a="64182216"
+   d="scan'208";a="64182221"
 Received: from fmviesa001.fm.intel.com ([10.60.135.141])
-  by orvoesa108.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Oct 2025 19:18:06 -0700
-X-CSE-ConnectionGUID: r4FJ6h3eRneMeS2YlmL8Uw==
-X-CSE-MsgGUID: oDNCs/gvRRm6qDWnhJXMow==
+  by orvoesa108.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Oct 2025 19:18:08 -0700
+X-CSE-ConnectionGUID: 7KXwrDEZSx6rw1R6ohHIlQ==
+X-CSE-MsgGUID: 3PNKhLVDTc6EUA9+y/0sEw==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.19,268,1754982000"; 
-   d="scan'208";a="216950179"
+   d="scan'208";a="216950190"
 Received: from pthorat-mobl.amr.corp.intel.com (HELO soc-PF51RAGT.clients.intel.com) ([10.246.116.180])
-  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Oct 2025 19:18:05 -0700
+  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Oct 2025 19:18:07 -0700
 From: Tatyana Nikolova <tatyana.e.nikolova@intel.com>
 To: jgg@nvidia.com,
 	leon@kernel.org
 Cc: linux-rdma@vger.kernel.org,
 	krzysztof.czurylo@intel.com,
 	Jay Bhat <jay.bhat@intel.com>,
+	Jacob Moroni <jmoroni@google.com>,
 	Tatyana Nikolova <tatyana.e.nikolova@intel.com>
-Subject: [PATCH] RDMA/irdma: CQ size and shadow update changes for GEN3
-Date: Thu, 30 Oct 2025 21:17:23 -0500
-Message-ID: <20251031021726.1003-4-tatyana.e.nikolova@intel.com>
+Subject: [PATCH] RDMA/irdma: Take a lock before moving SRQ tail in poll_cq
+Date: Thu, 30 Oct 2025 21:17:26 -0500
+Message-ID: <20251031021726.1003-7-tatyana.e.nikolova@intel.com>
 X-Mailer: git-send-email 2.45.1
 In-Reply-To: <20251031021726.1003-1-tatyana.e.nikolova@intel.com>
 References: <20251031021726.1003-1-tatyana.e.nikolova@intel.com>
@@ -66,289 +67,66 @@ Content-Transfer-Encoding: 8bit
 
 From: Jay Bhat <jay.bhat@intel.com>
 
-CQ shadow area should not be updated at the end of a page (once every
-64th CQ entry), except when CQ has no more CQEs. SW must also increase
-the requested CQ size by 1 and make sure the CQ is not exactly one page
-in size. This is to address a quirk in the hardware.
+Need to take an SRQ lock in poll_cq before moving SRQ tail.
 
 Signed-off-by: Jay Bhat <jay.bhat@intel.com>
+Reviewed-by: Jacob Moroni <jmoroni@google.com>
 Signed-off-by: Tatyana Nikolova <tatyana.e.nikolova@intel.com>
 ---
- drivers/infiniband/hw/irdma/main.h  |  1 -
- drivers/infiniband/hw/irdma/uk.c    | 26 +++++++++++++--
- drivers/infiniband/hw/irdma/user.h  |  1 +
- drivers/infiniband/hw/irdma/utils.c | 52 ++++++++++-------------------
- drivers/infiniband/hw/irdma/verbs.c | 16 +++++++--
- 5 files changed, 56 insertions(+), 40 deletions(-)
+ drivers/infiniband/hw/irdma/uk.c    | 5 +++++
+ drivers/infiniband/hw/irdma/user.h  | 1 +
+ drivers/infiniband/hw/irdma/verbs.c | 1 +
+ 3 files changed, 7 insertions(+)
 
-diff --git a/drivers/infiniband/hw/irdma/main.h b/drivers/infiniband/hw/irdma/main.h
-index 886b30d..f22b1ee 100644
---- a/drivers/infiniband/hw/irdma/main.h
-+++ b/drivers/infiniband/hw/irdma/main.h
-@@ -564,7 +564,6 @@ int irdma_ah_cqp_op(struct irdma_pci_f *rf, struct irdma_sc_ah *sc_ah, u8 cmd,
- 		    void (*callback_fcn)(struct irdma_cqp_request *cqp_request),
- 		    void *cb_param);
- void irdma_gsi_ud_qp_ah_cb(struct irdma_cqp_request *cqp_request);
--bool irdma_cq_empty(struct irdma_cq *iwcq);
- int irdma_inetaddr_event(struct notifier_block *notifier, unsigned long event,
- 			 void *ptr);
- int irdma_inet6addr_event(struct notifier_block *notifier, unsigned long event,
 diff --git a/drivers/infiniband/hw/irdma/uk.c b/drivers/infiniband/hw/irdma/uk.c
-index ce1ae10..54011bf 100644
+index a006e7365f4d..8a463b3d4c83 100644
 --- a/drivers/infiniband/hw/irdma/uk.c
 +++ b/drivers/infiniband/hw/irdma/uk.c
-@@ -1136,6 +1136,27 @@ void irdma_uk_cq_request_notification(struct irdma_cq_uk *cq,
- 	writel(cq->cq_id, cq->cqe_alloc_db);
- }
+@@ -1309,6 +1309,8 @@ int irdma_uk_cq_poll_cmpl(struct irdma_cq_uk *cq,
+ 	info->op_type = (u8)FIELD_GET(IRDMACQ_OP, qword3);
  
-+/**
-+ * irdma_uk_cq_empty - Check if CQ is empty
-+ * @cq: hw cq
-+ */
-+bool irdma_uk_cq_empty(struct irdma_cq_uk *cq)
-+{
-+	__le64 *cqe;
-+	u8 polarity;
-+	u64 qword3;
+ 	if (info->q_type == IRDMA_CQE_QTYPE_RQ && is_srq) {
++		unsigned long flags;
 +
-+	if (cq->avoid_mem_cflct)
-+		cqe = IRDMA_GET_CURRENT_EXTENDED_CQ_ELEM(cq);
-+	else
-+		cqe = IRDMA_GET_CURRENT_CQ_ELEM(cq);
+ 		srq = qp->srq_uk;
+ 
+ 		get_64bit_val(cqe, 8, &info->wr_id);
+@@ -1321,8 +1323,11 @@ int irdma_uk_cq_poll_cmpl(struct irdma_cq_uk *cq,
+ 		} else {
+ 			info->stag_invalid_set = false;
+ 		}
++		spin_lock_irqsave(srq->lock, flags);
+ 		IRDMA_RING_MOVE_TAIL(srq->srq_ring);
++		spin_unlock_irqrestore(srq->lock, flags);
+ 		pring = &srq->srq_ring;
 +
-+	get_64bit_val(cqe, 24, &qword3);
-+	polarity = (u8)FIELD_GET(IRDMA_CQ_VALID, qword3);
-+
-+	return polarity != cq->polarity;
-+}
-+
- /**
-  * irdma_uk_cq_poll_cmpl - get cq completion info
-  * @cq: hw cq
-@@ -1420,8 +1441,9 @@ exit:
- 		IRDMA_RING_MOVE_TAIL(cq->cq_ring);
- 		if (!cq->avoid_mem_cflct && ext_valid)
- 			IRDMA_RING_MOVE_TAIL(cq->cq_ring);
--		set_64bit_val(cq->shadow_area, 0,
--			      IRDMA_RING_CURRENT_HEAD(cq->cq_ring));
-+		if (IRDMA_RING_CURRENT_HEAD(cq->cq_ring) & 0x3F || irdma_uk_cq_empty(cq))
-+			set_64bit_val(cq->shadow_area, 0,
-+				      IRDMA_RING_CURRENT_HEAD(cq->cq_ring));
- 	} else {
- 		qword3 &= ~IRDMA_CQ_WQEIDX;
- 		qword3 |= FIELD_PREP(IRDMA_CQ_WQEIDX, pring->tail);
+ 	} else if (info->q_type == IRDMA_CQE_QTYPE_RQ && !is_srq) {
+ 		u32 array_idx;
+ 
 diff --git a/drivers/infiniband/hw/irdma/user.h b/drivers/infiniband/hw/irdma/user.h
-index ab57f68..81ae738 100644
+index 6c29fa04e821..3a27cce3c3db 100644
 --- a/drivers/infiniband/hw/irdma/user.h
 +++ b/drivers/infiniband/hw/irdma/user.h
-@@ -429,6 +429,7 @@ struct irdma_wqe_uk_ops {
- 				   struct irdma_bind_window *op_info);
+@@ -466,6 +466,7 @@ struct irdma_srq_uk {
+ 	u8 wqe_size;
+ 	u8 wqe_size_multiplier;
+ 	u8 deferred_flag;
++	spinlock_t *lock;
  };
  
-+bool irdma_uk_cq_empty(struct irdma_cq_uk *cq);
- int irdma_uk_cq_poll_cmpl(struct irdma_cq_uk *cq,
- 			  struct irdma_cq_poll_info *info);
- void irdma_uk_cq_request_notification(struct irdma_cq_uk *cq,
-diff --git a/drivers/infiniband/hw/irdma/utils.c b/drivers/infiniband/hw/irdma/utils.c
-index 8b94d87..ed3186f 100644
---- a/drivers/infiniband/hw/irdma/utils.c
-+++ b/drivers/infiniband/hw/irdma/utils.c
-@@ -2357,24 +2357,6 @@ void irdma_ib_qp_event(struct irdma_qp *iwqp, enum irdma_qp_event_type event)
- 	iwqp->ibqp.event_handler(&ibevent, iwqp->ibqp.qp_context);
- }
- 
--bool irdma_cq_empty(struct irdma_cq *iwcq)
--{
--	struct irdma_cq_uk *ukcq;
--	u64 qword3;
--	__le64 *cqe;
--	u8 polarity;
--
--	ukcq  = &iwcq->sc_cq.cq_uk;
--	if (ukcq->avoid_mem_cflct)
--		cqe = IRDMA_GET_CURRENT_EXTENDED_CQ_ELEM(ukcq);
--	else
--		cqe = IRDMA_GET_CURRENT_CQ_ELEM(ukcq);
--	get_64bit_val(cqe, 24, &qword3);
--	polarity = (u8)FIELD_GET(IRDMA_CQ_VALID, qword3);
--
--	return polarity != ukcq->polarity;
--}
--
- void irdma_remove_cmpls_list(struct irdma_cq *iwcq)
- {
- 	struct irdma_cmpl_gen *cmpl_node;
-@@ -2436,6 +2418,8 @@ void irdma_generate_flush_completions(struct irdma_qp *iwqp)
- 	struct irdma_qp_uk *qp = &iwqp->sc_qp.qp_uk;
- 	struct irdma_ring *sq_ring = &qp->sq_ring;
- 	struct irdma_ring *rq_ring = &qp->rq_ring;
-+	struct irdma_cq *iwscq = iwqp->iwscq;
-+	struct irdma_cq *iwrcq = iwqp->iwrcq;
- 	struct irdma_cmpl_gen *cmpl;
- 	__le64 *sw_wqe;
- 	u64 wqe_qword;
-@@ -2443,8 +2427,8 @@ void irdma_generate_flush_completions(struct irdma_qp *iwqp)
- 	bool compl_generated = false;
- 	unsigned long flags1;
- 
--	spin_lock_irqsave(&iwqp->iwscq->lock, flags1);
--	if (irdma_cq_empty(iwqp->iwscq)) {
-+	spin_lock_irqsave(&iwscq->lock, flags1);
-+	if (irdma_uk_cq_empty(&iwscq->sc_cq.cq_uk)) {
- 		unsigned long flags2;
- 
- 		spin_lock_irqsave(&iwqp->lock, flags2);
-@@ -2452,7 +2436,7 @@ void irdma_generate_flush_completions(struct irdma_qp *iwqp)
- 			cmpl = kzalloc(sizeof(*cmpl), GFP_ATOMIC);
- 			if (!cmpl) {
- 				spin_unlock_irqrestore(&iwqp->lock, flags2);
--				spin_unlock_irqrestore(&iwqp->iwscq->lock, flags1);
-+				spin_unlock_irqrestore(&iwscq->lock, flags1);
- 				return;
- 			}
- 
-@@ -2471,24 +2455,24 @@ void irdma_generate_flush_completions(struct irdma_qp *iwqp)
- 				kfree(cmpl);
- 				continue;
- 			}
--			ibdev_dbg(iwqp->iwscq->ibcq.device,
-+			ibdev_dbg(iwscq->ibcq.device,
- 				  "DEV: %s: adding wr_id = 0x%llx SQ Completion to list qp_id=%d\n",
- 				  __func__, cmpl->cpi.wr_id, qp->qp_id);
--			list_add_tail(&cmpl->list, &iwqp->iwscq->cmpl_generated);
-+			list_add_tail(&cmpl->list, &iwscq->cmpl_generated);
- 			compl_generated = true;
- 		}
- 		spin_unlock_irqrestore(&iwqp->lock, flags2);
--		spin_unlock_irqrestore(&iwqp->iwscq->lock, flags1);
-+		spin_unlock_irqrestore(&iwscq->lock, flags1);
- 		if (compl_generated)
--			irdma_comp_handler(iwqp->iwscq);
-+			irdma_comp_handler(iwscq);
- 	} else {
--		spin_unlock_irqrestore(&iwqp->iwscq->lock, flags1);
-+		spin_unlock_irqrestore(&iwscq->lock, flags1);
- 		mod_delayed_work(iwqp->iwdev->cleanup_wq, &iwqp->dwork_flush,
- 				 msecs_to_jiffies(IRDMA_FLUSH_DELAY_MS));
- 	}
- 
--	spin_lock_irqsave(&iwqp->iwrcq->lock, flags1);
--	if (irdma_cq_empty(iwqp->iwrcq)) {
-+	spin_lock_irqsave(&iwrcq->lock, flags1);
-+	if (irdma_uk_cq_empty(&iwrcq->sc_cq.cq_uk)) {
- 		unsigned long flags2;
- 
- 		spin_lock_irqsave(&iwqp->lock, flags2);
-@@ -2496,7 +2480,7 @@ void irdma_generate_flush_completions(struct irdma_qp *iwqp)
- 			cmpl = kzalloc(sizeof(*cmpl), GFP_ATOMIC);
- 			if (!cmpl) {
- 				spin_unlock_irqrestore(&iwqp->lock, flags2);
--				spin_unlock_irqrestore(&iwqp->iwrcq->lock, flags1);
-+				spin_unlock_irqrestore(&iwrcq->lock, flags1);
- 				return;
- 			}
- 
-@@ -2508,20 +2492,20 @@ void irdma_generate_flush_completions(struct irdma_qp *iwqp)
- 			cmpl->cpi.q_type = IRDMA_CQE_QTYPE_RQ;
- 			/* remove the RQ WR by moving RQ tail */
- 			IRDMA_RING_SET_TAIL(*rq_ring, rq_ring->tail + 1);
--			ibdev_dbg(iwqp->iwrcq->ibcq.device,
-+			ibdev_dbg(iwrcq->ibcq.device,
- 				  "DEV: %s: adding wr_id = 0x%llx RQ Completion to list qp_id=%d, wqe_idx=%d\n",
- 				  __func__, cmpl->cpi.wr_id, qp->qp_id,
- 				  wqe_idx);
--			list_add_tail(&cmpl->list, &iwqp->iwrcq->cmpl_generated);
-+			list_add_tail(&cmpl->list, &iwrcq->cmpl_generated);
- 
- 			compl_generated = true;
- 		}
- 		spin_unlock_irqrestore(&iwqp->lock, flags2);
--		spin_unlock_irqrestore(&iwqp->iwrcq->lock, flags1);
-+		spin_unlock_irqrestore(&iwrcq->lock, flags1);
- 		if (compl_generated)
--			irdma_comp_handler(iwqp->iwrcq);
-+			irdma_comp_handler(iwrcq);
- 	} else {
--		spin_unlock_irqrestore(&iwqp->iwrcq->lock, flags1);
-+		spin_unlock_irqrestore(&iwrcq->lock, flags1);
- 		mod_delayed_work(iwqp->iwdev->cleanup_wq, &iwqp->dwork_flush,
- 				 msecs_to_jiffies(IRDMA_FLUSH_DELAY_MS));
- 	}
+ struct irdma_srq_uk_init_info {
 diff --git a/drivers/infiniband/hw/irdma/verbs.c b/drivers/infiniband/hw/irdma/verbs.c
-index 76ce613..c0a1fca 100644
+index f49b3f38726a..98946dd2c544 100644
 --- a/drivers/infiniband/hw/irdma/verbs.c
 +++ b/drivers/infiniband/hw/irdma/verbs.c
-@@ -2029,6 +2029,7 @@ static int irdma_resize_cq(struct ib_cq *ibcq, int entries,
- 	struct irdma_pci_f *rf;
- 	struct irdma_cq_buf *cq_buf = NULL;
- 	unsigned long flags;
-+	u8 cqe_size;
- 	int ret;
+@@ -2389,6 +2389,7 @@ static int irdma_create_srq(struct ib_srq *ibsrq,
+ 	info.vsi = &iwdev->vsi;
+ 	info.pd = &iwpd->sc_pd;
  
- 	iwdev = to_iwdev(ibcq->device);
-@@ -2045,7 +2046,7 @@ static int irdma_resize_cq(struct ib_cq *ibcq, int entries,
- 		return -EINVAL;
- 
- 	if (!iwcq->user_mode) {
--		entries++;
-+		entries += 2;
- 
- 		if (!iwcq->sc_cq.cq_uk.avoid_mem_cflct &&
- 		    dev->hw_attrs.uk_attrs.hw_rev >= IRDMA_GEN_2)
-@@ -2053,6 +2054,10 @@ static int irdma_resize_cq(struct ib_cq *ibcq, int entries,
- 
- 		if (entries & 1)
- 			entries += 1; /* cq size must be an even number */
-+
-+		cqe_size = iwcq->sc_cq.cq_uk.avoid_mem_cflct ? 64 : 32;
-+		if (entries * cqe_size == IRDMA_HW_PAGE_SIZE)
-+			entries += 2;
- 	}
- 
- 	info.cq_size = max(entries, 4);
-@@ -2483,6 +2488,7 @@ static int irdma_create_cq(struct ib_cq *ibcq,
- 	int err_code;
- 	int entries = attr->cqe;
- 	bool cqe_64byte_ena;
-+	u8 cqe_size;
- 
- 	err_code = cq_validate_flags(attr->flags, dev->hw_attrs.uk_attrs.hw_rev);
++	iwsrq->sc_srq.srq_uk.lock = &iwsrq->lock;
+ 	err_code = irdma_sc_srq_init(&iwsrq->sc_srq, &info);
  	if (err_code)
-@@ -2508,6 +2514,7 @@ static int irdma_create_cq(struct ib_cq *ibcq,
- 	ukinfo->cq_id = cq_num;
- 	cqe_64byte_ena = dev->hw_attrs.uk_attrs.feature_flags & IRDMA_FEATURE_64_BYTE_CQE ?
- 			 true : false;
-+	cqe_size = cqe_64byte_ena ? 64 : 32;
- 	ukinfo->avoid_mem_cflct = cqe_64byte_ena;
- 	iwcq->ibcq.cqe = info.cq_uk_init_info.cq_size;
- 	if (attr->comp_vector < rf->ceqs_count)
-@@ -2580,13 +2587,16 @@ static int irdma_create_cq(struct ib_cq *ibcq,
- 			goto cq_free_rsrc;
- 		}
- 
--		entries++;
-+		entries += 2;
- 		if (!cqe_64byte_ena && dev->hw_attrs.uk_attrs.hw_rev >= IRDMA_GEN_2)
- 			entries *= 2;
- 
- 		if (entries & 1)
- 			entries += 1; /* cq size must be an even number */
- 
-+		if (entries * cqe_size == IRDMA_HW_PAGE_SIZE)
-+			entries += 2;
-+
- 		ukinfo->cq_size = entries;
- 
- 		if (cqe_64byte_ena)
-@@ -4504,7 +4514,7 @@ static int irdma_req_notify_cq(struct ib_cq *ibcq,
- 	}
- 
- 	if ((notify_flags & IB_CQ_REPORT_MISSED_EVENTS) &&
--	    (!irdma_cq_empty(iwcq) || !list_empty(&iwcq->cmpl_generated)))
-+	    (!irdma_uk_cq_empty(ukcq) || !list_empty(&iwcq->cmpl_generated)))
- 		ret = 1;
- 	spin_unlock_irqrestore(&iwcq->lock, flags);
- 
+ 		goto free_dmem;
 -- 
-2.37.3
+2.31.1
 
