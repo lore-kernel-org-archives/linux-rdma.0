@@ -1,74 +1,74 @@
-Received: from mail-qv1-f100.google.com (mail-qv1-f100.google.com [209.85.219.100])
+Received: from mail-il1-f225.google.com (mail-il1-f225.google.com [209.85.166.225])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3EBC2313E21
-	for <linux-rdma@vger.kernel.org>; Mon, 10 Nov 2025 14:50:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.100
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EEAC8199935
+	for <linux-rdma@vger.kernel.org>; Mon, 10 Nov 2025 14:58:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.225
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762786203; cv=none; b=ByaoSWY57rfoTlTeNRIc56E3QBQYznzpfsrTbVnwIsnUC33mZ04gy5egVtenxkCv4MqAxsRgGOvCB3dtSEw+WTrWOrP7D2GdJzsmuLVg84u/XGsCGmGJpd35+Y+aioDXSfAhqz7KFw+0jTqbE+Def14ebCWfdOb3qWkjGvPfi5M=
+	t=1762786741; cv=none; b=AZpO5UKV9cNsLwCrXRd5Z57YQoLPmyz5c6wmDELxud4z0s/eA/76QBA8jJose4wvNo7wU0tPlXDKzZK3WieJ71LesWSjwiRtWkf7q6Z/Xv0NLikyft25fV7mphsoU34N3iOW3HffX3U06sVUyP9aMGY3g5YLOY+aEfiUTOu7HFE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762786203; c=relaxed/simple;
-	bh=Qe28yt/JbhTqU1tybdhgjR2w9n80qVEDS8P47ngLyU8=;
+	s=arc-20240116; t=1762786741; c=relaxed/simple;
+	bh=MLqPQYYnkoH+bIBSKzBib5oQElQVZs/nrGK9BLh1qTc=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=liP9VASeQV5VkHPZv5Cw0SlakqwcdIhue9GCjlN4zbFO0aoHHZzOFhEK8FpROsXcNe5QsKI9HC/yGO6EyrsCQUrrnEujhNpFxzWt/61IEoKpOUKe9ezcm3qGiIm/929F01J1p4k+1ERjJiUwIV7xBa3xk7n6lzGMhn9sHr9eytg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com; spf=fail smtp.mailfrom=broadcom.com; dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b=SOuYQzus; arc=none smtp.client-ip=209.85.219.100
+	 To:Cc:Content-Type; b=gqqL5uO8VxT7wBtC/EM8tLfXngZ3Twop8hEQ91h3wT5pVC43NxKDNAJMRUA24YnDFAsyeghDhPqkbz7FnjQlGys7fNiLVmEZ4WtavebtcJz5P9KqcMWLuYuCsL0eZZFi6FuY37g79pNu4LmMANj3ZPoNcyASs34Tk2q3dP1OOto=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com; spf=fail smtp.mailfrom=broadcom.com; dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b=UAGKaz7X; arc=none smtp.client-ip=209.85.166.225
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=broadcom.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b="SOuYQzus"
-Received: by mail-qv1-f100.google.com with SMTP id 6a1803df08f44-880570bdef8so35819996d6.3
-        for <linux-rdma@vger.kernel.org>; Mon, 10 Nov 2025 06:50:01 -0800 (PST)
+	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b="UAGKaz7X"
+Received: by mail-il1-f225.google.com with SMTP id e9e14a558f8ab-4336f8e97c3so21737005ab.3
+        for <linux-rdma@vger.kernel.org>; Mon, 10 Nov 2025 06:58:59 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1762786200; x=1763391000;
+        d=1e100.net; s=20230601; t=1762786739; x=1763391539;
         h=cc:to:subject:message-id:date:from:in-reply-to:references
          :mime-version:dkim-signature:x-gm-gg:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=vTUr8SEpXWvcIJ4UkgoXqvGoxps8kih5EFaKtH+0NjA=;
-        b=PZ040H+RyUhRzjWdxROmpD1XI3DuLVLSF+jrztcvd0MGkwH3ZISSC7Cfx53u8Z/C3B
-         +GOYjoBDGuTPGtW/pcmzTYef4AZfUB/mZhNhs48anVSdftxbC1KGDasD8UIlihLXMEGU
-         opzBUV2irwe7YgxtK/AxUii5xdwgUvr1zqd8l0z5+HJ5euPdSpVsOgIRjhikiBHi5xUR
-         wq5NAyJGQf13XWwYwG/Eg+l173CLSJqodfw5fB/JkDnx5UXxeyM3wac1bwjMkEnftSVS
-         knvsdaR1qvYM0ZGvSoqZMkeu5l5nnTY+7zavKK6BJbeOKEHU67zhS2CLKdtyO6+6BSPz
-         W7Jw==
-X-Forwarded-Encrypted: i=1; AJvYcCUH07+KpvkANbOd3tN1vIk9HDSzxTrmgbeZfpI9mszybK6CmCZRr3UKpagFlDvLiF7rwgGdOpLe7xX8@vger.kernel.org
-X-Gm-Message-State: AOJu0Ywjy7TLj+ESouPwOJPAts7Nm4MKZvOcWVDgOUgfb9WYKLuKMs72
-	UAMZpsUTi6/zEU/Nj/0uLWsGB+o5jWTAnSoZADBg3IG4G70N1HHOv6XVu99V/rw4c/EUoHSRHJ1
-	34FfFhbhlrA1QgMawniD2Rn+zyqO1yRIwS0VEX7QMFLP9/XIJelyZJ1BKnhWnRilC8rQz+zsLG9
-	G+zbUVPiqOQqko6B3hAJK/3cSo6/ygkaIOZpb4cV3yjxEaxs2q+9QJ7THhUDKXKuqjOBZ9hKy+2
-	y9bU8xVvssAyKqeXYQl6kcSt0i2
-X-Gm-Gg: ASbGncurO39x3AGdDADw8wEZvrrniYyrZnPzHpvflB0O71SNY6Ogd9uWuUBdMGfZ20t
-	iLR5SLzAAPZmSMxscI/LPirMIBLylc8TAft+OESWYlkAPq5qYhwfiZ/TixX5uIW380jdgo5Z0TK
-	d+6sDk1LJBI+6tlGFl20O9DyTRgv5JFfdxqGBFCprSa73FxbJNyL/ymrmLFcW7Gi0+wchOPldOh
-	nlvEzFCF7a3buocQS4DyBzo3H6sofT/OXauvJtkVyl2lm0jTdIA9g0m9cwnfHTP7gntISSk0HHz
-	6l3V8bstOTz8Xqz2qSjnyEzJRxnCvISwcQENwmgw7CoZ1f0odplH1LEt/kF59KL8jX0MG0cG1hd
-	TiwH0t2FPROhzNf9sqpyOz5uAXU48txguab41c/fMilCzr/o/PIIdBFGzcqUEhZCsKYr0w4EfvB
-	5/dkxZIjHEQhZvxdQbqCWq0S0qNgwgkiO3uu4EsxWq7D+Vyw==
-X-Google-Smtp-Source: AGHT+IHD/YlKl9wYTNKUJv/kOV9AkIUKhOYvlMNu9yRa/9sGZG4bW2Yz3UxUxO9GHEQBXpASvVq39AUN7rtF
-X-Received: by 2002:a05:6214:c66:b0:880:6263:fe5a with SMTP id 6a1803df08f44-882385be823mr123367796d6.6.1762786199852;
-        Mon, 10 Nov 2025 06:49:59 -0800 (PST)
-Received: from smtp-us-east1-p01-i01-si01.dlp.protect.broadcom.com (address-144-49-247-14.dlp.protect.broadcom.com. [144.49.247.14])
-        by smtp-relay.gmail.com with ESMTPS id 6a1803df08f44-88238998846sm9181856d6.13.2025.11.10.06.49.59
+        bh=zEV+FV7x6BwxI9epafGpjnGUcl656f8ybqzCCUsn0qE=;
+        b=re/N61TDKwCZNSTZxABQ03xPJGNCHj4wbn1KOKXmTmb/9PZAPamm3DhcFPJaOHyT/n
+         PSuxBT5geHX2rGp2PhGAwBUiD3Fo6hVLDgW6YLc82SGoBk6uliXJxWsMievIZCTO7khE
+         2hhwN5Idw1puKemM47UqNFMa/KJLOgPEiuxjShRLDSIWM92l/7LRJVA1UPqaJ+/zjdCn
+         HLnWVz/5tyFfpOVV1EQtrIThaXpxwA+U2zx7qHS8jRxT81pHXQqmNlJSlGmYMtimZnf/
+         hU5KQMSmfGxtqvjfzv0s0GQbPws/cHYHaVOZrPbmk6jvMXhf3xPjrXBi0nRRvOn/1h4p
+         aPEw==
+X-Forwarded-Encrypted: i=1; AJvYcCVjeu4NkDj7Xisf5NYa9L+oApPC0PKKt2mKqkO3El4TW6vvp3a6sDnRUPUYmMiSJEAHuZCvcZYT/u+x@vger.kernel.org
+X-Gm-Message-State: AOJu0Yy0eHM3pRk2WcXPB9WQE8QxFmcwvpoN1O58qnldGuDKQEK9wm/I
+	epu3rd1WJT7sHQo3EVJVwz5DvB+QciYnTEbmlM9lpGhK3xSYUp5o3UZTkwUp2Q4gteFSbtD7SGx
+	urlBJZlcrn5xW1MMinwYybdhwy4oXq2DTjs7W5fpcSbEJzP70QjUrLm2L2IUmg3zrigE3+MOkvd
+	JL973buDTXg/FfPErBXYU6GMmx2gc69ZDO8hOGTqiPttjgob72IZM6I+raNyPql3iaE8bVBd1Pf
+	Fj1LlSgrKffIYD6Ih2JmFTmqEOc
+X-Gm-Gg: ASbGnctzSbZt6tqkvcE1CVp24FN10QBwBddZoRHif/J03aybtihE538y3Nlw263fZJJ
+	QYBOO3PpMeOtJHvc9HR0nRCJI4FFZAutnTzlZ5Redh/azA7iG8mZ2d7SPqGfgPGWzndf45wZow8
+	R2Fv7DV6Hww7RAsSgCuY8fNp2xSwDrPcqQxL1XLclv/+P+JOtbT1jgpRbfwhrer+CnuB5yK2EKL
+	jmyLAVpGnDQXohyIwZFOOINDXNh/kT3c62jGbV6kt5oLn3BAkQWxyymtAMUFq2lr9gfrgzfJLgw
+	Q/C4Wh7CGDJu1rWLAq8goSBXVkNt9X1GsvHlaM1OasS9d0VHZKSc4Buy4oF6ktqZfuKqvOpCmA3
+	lP7QdKLHPk4MMOyTs2wctS49kV9iHC9S27MXrt/Kw6fKhaRZhVhh4e+09ny+hDNdAdp2Uhi8PK0
+	sU3UTFnVKFsdeIbQC/sMOkyPcersgGlh/eL+OtcG5OAcwDg+aK
+X-Google-Smtp-Source: AGHT+IGGdfwntkUB55QdeGSCABzSV2DWZuG5kouHcKO7oWU4t5dqnqFSFlZOLFj0Ag1aujPVUHll9/DzhS/x
+X-Received: by 2002:a92:ca4c:0:b0:433:2d7e:3076 with SMTP id e9e14a558f8ab-43367e7accdmr117342305ab.18.1762786738881;
+        Mon, 10 Nov 2025 06:58:58 -0800 (PST)
+Received: from smtp-us-east1-p01-i01-si01.dlp.protect.broadcom.com (address-144-49-247-101.dlp.protect.broadcom.com. [144.49.247.101])
+        by smtp-relay.gmail.com with ESMTPS id e9e14a558f8ab-4334f4c683esm11736155ab.31.2025.11.10.06.58.57
         for <linux-rdma@vger.kernel.org>
         (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 10 Nov 2025 06:49:59 -0800 (PST)
+        Mon, 10 Nov 2025 06:58:58 -0800 (PST)
 X-Relaying-Domain: broadcom.com
 X-CFilter-Loop: Reflected
-Received: by mail-wr1-f72.google.com with SMTP id ffacd0b85a97d-42b2ffbba05so841803f8f.0
-        for <linux-rdma@vger.kernel.org>; Mon, 10 Nov 2025 06:49:59 -0800 (PST)
+Received: by mail-wr1-f71.google.com with SMTP id ffacd0b85a97d-40cfb98eddbso1419298f8f.0
+        for <linux-rdma@vger.kernel.org>; Mon, 10 Nov 2025 06:58:57 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=broadcom.com; s=google; t=1762786198; x=1763390998; darn=vger.kernel.org;
+        d=broadcom.com; s=google; t=1762786736; x=1763391536; darn=vger.kernel.org;
         h=cc:to:subject:message-id:date:from:in-reply-to:references
          :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=vTUr8SEpXWvcIJ4UkgoXqvGoxps8kih5EFaKtH+0NjA=;
-        b=SOuYQzusuw5vKmbt49hVDItQhcvYRbBVPAwyaCnfGap/Ckj6D1xUZYmkSjSXl3t1aC
-         0OJM7ptZqZVatFRvIT73Ghz5ptTtLLCBa8tz7iDLOaJizYMQwZHAEG3n/AEsw/O14pQf
-         uUsQAKJaz7CAOOeT2iJgHupPY3Gy1wIq+cyY0=
-X-Forwarded-Encrypted: i=1; AJvYcCWBeaif2UMDfoT9sOmgEHO3zGXtt50noAGGxEGURq9X3Q8BJSpMM84n0Lm5ck+1c66UnJCHJFsbgoQ+@vger.kernel.org
-X-Received: by 2002:a5d:5847:0:b0:427:6c6:4e31 with SMTP id ffacd0b85a97d-42b2dbf1088mr6890303f8f.22.1762786198196;
-        Mon, 10 Nov 2025 06:49:58 -0800 (PST)
-X-Received: by 2002:a5d:5847:0:b0:427:6c6:4e31 with SMTP id
- ffacd0b85a97d-42b2dbf1088mr6890272f8f.22.1762786197794; Mon, 10 Nov 2025
- 06:49:57 -0800 (PST)
+        bh=zEV+FV7x6BwxI9epafGpjnGUcl656f8ybqzCCUsn0qE=;
+        b=UAGKaz7XCaRrjSbZWE5kS6mzQ5jS3CXjMw6ps78fM+q/o33KBJfExX7weRtuMcIBDE
+         JR9KoVhzZjccboa7zXjS9DHTHDaPuVQk5JXgySeWS985RdfIVb5vXv54SVjkcKsJzPUS
+         e3JrEiL1BD5x6r1fjglvMKi1cGqCkuwFHcX/I=
+X-Forwarded-Encrypted: i=1; AJvYcCVoMrn/fI66ijoOeU8p3eSuCOabW8ZcEqFCJpWyFrk82/thqbBvWmGL+K8PHRl/fHHOdv3U6DWjFlck@vger.kernel.org
+X-Received: by 2002:a05:6000:178e:b0:429:d3c9:b8af with SMTP id ffacd0b85a97d-42b2c6941c9mr6849102f8f.25.1762786736251;
+        Mon, 10 Nov 2025 06:58:56 -0800 (PST)
+X-Received: by 2002:a05:6000:178e:b0:429:d3c9:b8af with SMTP id
+ ffacd0b85a97d-42b2c6941c9mr6849082f8f.25.1762786735777; Mon, 10 Nov 2025
+ 06:58:55 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -76,114 +76,167 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 References: <20251104072320.210596-1-sriharsha.basavapatna@broadcom.com>
- <20251104072320.210596-3-sriharsha.basavapatna@broadcom.com> <20251109092143.GG15456@unreal>
-In-Reply-To: <20251109092143.GG15456@unreal>
+ <20251104072320.210596-5-sriharsha.basavapatna@broadcom.com> <20251109094905.GH15456@unreal>
+In-Reply-To: <20251109094905.GH15456@unreal>
 From: Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>
-Date: Mon, 10 Nov 2025 20:19:45 +0530
-X-Gm-Features: AWmQ_bnsrI9GBmyDKNEeHME1z-HBP3Wef2JFf4G0KH7I9Fd5kUQUQYwl9s_wW7k
-Message-ID: <CAHHeUGUtZ9b_sSW6Nsfca8Vj_zrVGKgK8eKg+MD+_NbCM6HWzg@mail.gmail.com>
-Subject: Re: [PATCH rdma-next v2 2/4] RDMA/bnxt_re: Refactor
- bnxt_qplib_create_qp() function
+Date: Mon, 10 Nov 2025 20:28:42 +0530
+X-Gm-Features: AWmQ_bmWX6lwbUQYzS2OnrkbspDN3ppV6LSdGlLE9dZRvAzgeUOtecOtdKTgQcE
+Message-ID: <CAHHeUGUtM8gca8zhnN4oDHOkQybVLAgPUvtfoYXAOvDNbBw6dw@mail.gmail.com>
+Subject: Re: [PATCH rdma-next v2 4/4] RDMA/bnxt_re: Direct Verbs: Support CQ
+ and QP verbs
 To: Leon Romanovsky <leon@kernel.org>
 Cc: jgg@ziepe.ca, linux-rdma@vger.kernel.org, andrew.gospodarek@broadcom.com, 
 	selvin.xavier@broadcom.com, kalesh-anakkur.purayil@broadcom.com, 
 	Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>
 X-DetectorID-Processed: b00c1d49-9d2e-4205-b15f-d015386d3d5e
 Content-Type: multipart/signed; protocol="application/pkcs7-signature"; micalg=sha-256;
-	boundary="000000000000301d9006433ea56a"
+	boundary="00000000000040fc9006433ec5a6"
 
---000000000000301d9006433ea56a
+--00000000000040fc9006433ec5a6
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Sun, Nov 9, 2025 at 2:51=E2=80=AFPM Leon Romanovsky <leon@kernel.org> wr=
+On Sun, Nov 9, 2025 at 3:19=E2=80=AFPM Leon Romanovsky <leon@kernel.org> wr=
 ote:
 >
-> On Tue, Nov 04, 2025 at 12:53:18PM +0530, Sriharsha Basavapatna wrote:
-> > From: Kalesh AP <kalesh-anakkur.purayil@broadcom.com>
+> On Tue, Nov 04, 2025 at 12:53:20PM +0530, Sriharsha Basavapatna wrote:
+> > The following Direct Verb (DV) methods have been implemented in
+> > this patch.
 > >
-> > Inside bnxt_qplib_create_qp(), driver currently is doing
-> > a lot of things like allocating HWQ memory for SQ/RQ/ORRQ/IRRQ,
-> > initializing few of qplib_qp fields etc.
+> > CQ Direct Verbs:
+> > ----------------
+> > - BNXT_RE_METHOD_DV_CREATE_CQ:
+> >   Create a CQ of requested size (cqe). The application must have
+> >   already registered this memory with the driver using DV_UMEM_REG.
+> >   The CQ umem-handle and umem-offset are passed to the driver. The
+> >   driver now maps/pins the CQ user memory and registers it with the
+> >   hardware. The driver returns a CQ-handle to the application.
 > >
-> > Refactored the code such that all memory allocation for HWQs
-> > have been moved to bnxt_re_init_qp_attr() function and inside
-> > bnxt_qplib_create_qp() function just initialize the request
-> > structure and issue the HWRM command to firmware.
+> > - BNXT_RE_METHOD_DV_DESTROY_CQ:
+> >   Destroy the DV_CQ specified by the CQ-handle; unmap the user memory.
 > >
-> > Introduced couple of new functions bnxt_re_setup_qp_hwqs() and
-> > bnxt_re_setup_qp_swqs() moved the hwq and swq memory allocation
-> > logic there.
+> > QP Direct Verbs:
+> > ----------------
+> > - BNXT_RE_METHOD_DV_CREATE_QP:
+> >   Create a QP using specified params (struct bnxt_re_dv_create_qp_req).
+> >   The application must have already registered SQ/RQ memory with the
+> >   driver using DV_UMEM_REG. The SQ/RQ umem-handle and umem-offset are
+> >   passed to the driver. The driver now maps/pins the SQ/RQ user memory
+> >   and registers it with the hardware. The driver returns a QP-handle to
+> >   the application.
 > >
-> > This patch also introduces a change to store the PD id in
-> > bnxt_qplib_qp. Instead of keeping a pointer to "struct
-> > bnxt_qplib_pd", store PD id directly in "struct bnxt_qplib_qp".
-> > This change is needed for a subsequent change in this patch
-> > series. This PD ID value will be used in new DV implementation
-> > for create_qp(). There is no functional change.
+> > - BNXT_RE_METHOD_DV_DESTROY_QP:
+> >   Destroy the DV_QP specified by the QP-handle; unmap SQ/RQ user memory=
+.
 > >
-> > Signed-off-by: Kalesh AP <kalesh-anakkur.purayil@broadcom.com>
-> > Reviewed-by: Selvin Thyparampil Xavier <selvin.xavier@broadcom.com>
+> > - BNXT_RE_METHOD_DV_MODIFY_QP:
+> >   Modify QP attributes for the DV_QP specified by the QP-handle;
+> >   wrapper functions have been implemented to resolve dmac/smac using
+> >   rdma_resolve_ip().
+> >
+> > - BNXT_RE_METHOD_DV_QUERY_QP:
+> >   Return QP attributes for the DV_QP specified by the QP-handle.
+> >
+> > Note:
+> > -----
+> > Some applications might want to allocate memory for all resources of a
+> > given type (CQ/QP) in one big chunk and then register that entire memor=
+y
+> > once using DV_UMEM_REG. At the time of creating each individual
+> > resource, the application would pass a specific offset/length in the
+> > umem registered memory.
+> >
+> > - The DV_UMEM_REG handler (previous patch) only creates a dv_umem objec=
+t
+> >   and saves user memory parameters, but doesn't really map/pin this
+> >   memory.
+> > - The mapping would be done at the time of creating individual objects.
+> > - This actual mapping of specific umem offsets is implemented by the
+> >   function bnxt_re_dv_umem_get(). This function validates the
+> >   umem-offset and size parameters passed during CQ/QP creation. If the
+> >   request is valid, it maps the specified offset/length within the umem
+> >   registered memory.
+> > - The CQ and QP creation DV handlers call bnxt_re_dv_umem_get() to map
+> >   offsets/sizes specific to each individual object. This means each
+> >   object gets its own mapped dv_umem object that is distinct from the
+> >   main dv_umem object created during DV_UMEM_REG.
+> > - The object specific dv_umem is unmapped when the object is destroyed.
+> >
 > > Signed-off-by: Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.co=
 m>
+> > Co-developed-by: Kalesh AP <kalesh-anakkur.purayil@broadcom.com>
+> > Signed-off-by: Kalesh AP <kalesh-anakkur.purayil@broadcom.com>
+> > Co-developed-by: Selvin Xavier <selvin.xavier@broadcom.com>
+> > Signed-off-by: Selvin Xavier <selvin.xavier@broadcom.com>
 > > ---
-> >  drivers/infiniband/hw/bnxt_re/ib_verbs.c  | 207 ++++++++++++--
-> >  drivers/infiniband/hw/bnxt_re/qplib_fp.c  | 311 +++++++---------------
-> >  drivers/infiniband/hw/bnxt_re/qplib_fp.h  |  10 +-
-> >  drivers/infiniband/hw/bnxt_re/qplib_res.h |   6 +
-> >  4 files changed, 304 insertions(+), 230 deletions(-)
+> >  drivers/infiniband/hw/bnxt_re/bnxt_re.h  |   12 +-
+> >  drivers/infiniband/hw/bnxt_re/dv.c       | 1208 ++++++++++++++++++++++
+> >  drivers/infiniband/hw/bnxt_re/ib_verbs.c |   55 +-
+> >  drivers/infiniband/hw/bnxt_re/ib_verbs.h |   12 +
+> >  include/uapi/rdma/bnxt_re-abi.h          |   93 ++
+> >  5 files changed, 1364 insertions(+), 16 deletions(-)
 >
 > <...>
 >
-> > +free_umem:
-> > +     if (uctx)
-> > +             bnxt_re_qp_free_umem(qp);
+> > +             if (IS_ERR(umem_dmabuf)) {
+> > +                     rc =3D PTR_ERR(umem_dmabuf);
+> > +                     dev_err(rdev_to_dev(rdev),
+> > +                             "%s: failed to get umem dmabuf : %d\n",
+> > +                             __func__, rc);
+>
+> All these dev_XXX() lines should go. They can be used before IB device
+> is created, after that you are invited to use ibdev_XXX() helpers.
+Thanks, will change them to ibdev_XXX().
+>
+> > +                     goto free_umem;
 >
 > <...>
 >
-> > +     if (udata)
-> > +             bnxt_re_qp_free_umem(qp);
->
-> <...>
->
-> Do you need to have if (..) here?
-> ib_umem_release() does nothing if pointer is NULL.
-Agreed, no need to have that if() check.
->
->
-> > +     kfree(sq->swq);
-> > +     sq->swq =3D NULL;
->
-> Is this SQ reused?
-SQ is not reused after this clean up, no need to reset the pointer,
-will delete that line.
->
-> > +     return rc;
+> > +static void
+> > +bnxt_re_print_dv_qp_attr(struct bnxt_re_dev *rdev,
+> > +                      struct bnxt_re_cq *send_cq,
+> > +                      struct bnxt_re_cq *recv_cq,
+> > +                      struct  bnxt_re_dv_create_qp_req *req)
+> > +{
+> > +     dev_dbg(rdev_to_dev(rdev), "DV_QP_ATTR:\n");
+> > +     dev_dbg(rdev_to_dev(rdev),
+> > +             "\t qp_type: 0x%x pdid: 0x%x qp_handle: 0x%llx\n",
+> > +             req->qp_type, req->pd_id, req->qp_handle);
+> > +
+> > +     dev_dbg(rdev_to_dev(rdev), "\t SQ ATTR:\n");
+> > +     dev_dbg(rdev_to_dev(rdev),
+> > +             "\t\t max_send_wr: 0x%x max_send_sge: 0x%x\n",
+> > +             req->max_send_wr, req->max_send_sge);
+> > +     dev_dbg(rdev_to_dev(rdev),
+> > +             "\t\t va: 0x%llx len: 0x%x slots: 0x%x wqe_sz: 0x%x\n",
+> > +             req->sq_va, req->sq_len, req->sq_slots, req->sq_wqe_sz);
+> > +     dev_dbg(rdev_to_dev(rdev), "\t\t psn_sz: 0x%x npsn: 0x%x\n",
+> > +             req->sq_psn_sz, req->sq_npsn);
+> > +     dev_dbg(rdev_to_dev(rdev),
+> > +             "\t\t send_cq_id: 0x%x\n", send_cq->qplib_cq.id);
+> > +
+> > +     dev_dbg(rdev_to_dev(rdev), "\t RQ ATTR:\n");
+> > +     dev_dbg(rdev_to_dev(rdev),
+> > +             "\t\t max_recv_wr: 0x%x max_recv_sge: 0x%x\n",
+> > +             req->max_recv_wr, req->max_recv_sge);
+> > +     dev_dbg(rdev_to_dev(rdev),
+> > +             "\t\t va: 0x%llx len: 0x%x slots: 0x%x wqe_sz: 0x%x\n",
+> > +             req->rq_va, req->rq_len, req->rq_slots, req->rq_wqe_sz);
+> > +     dev_dbg(rdev_to_dev(rdev),
+> > +             "\t\t recv_cq_id: 0x%x\n", recv_cq->qplib_cq.id);
 > > +}
 >
-> <...>
->
-> >  struct bnxt_qplib_qp {
-> > -     struct bnxt_qplib_pd            *pd;
-> > +     u32                             pd_id;
-> >       struct bnxt_qplib_dpi           *dpi;
-> >       struct bnxt_qplib_chip_ctx      *cctx;
-> >       u64                             qp_handle;
-> > @@ -279,6 +279,7 @@ struct bnxt_qplib_qp {
-> >       u8                              wqe_mode;
-> >       u8                              state;
-> >       u8                              cur_qp_state;
-> > +     u8                              is_user;
->
-> This is already known to IB/core, use rdma_is_kernel_res().
-This one is used in the qplib (fw interface) layer in the driver where
-we don't have the ib context, so I'd prefer to retain it.
+> And I afraid that you went too far with debug prints in this patch.
+> Please remove ALL of them and leave only minimal number of error prints.
+I'll remove the above function, which was needed during the early dev
+cycle. Also, will reduce both errors and debug prints, and will keep
+only a small set of dbg msgs that we have found to be useful.
 Thanks,
 -Harsha
 >
 > Thanks
 
---000000000000301d9006433ea56a
+--00000000000040fc9006433ec5a6
 Content-Type: application/pkcs7-signature; name="smime.p7s"
 Content-Transfer-Encoding: base64
 Content-Disposition: attachment; filename="smime.p7s"
@@ -277,13 +330,13 @@ AHX5PZra3SpDb7g1p1i1Ax0JVJTkThiCSNDbiauVn7xIJpf+H8HC6O2ddGmtKUxe6NseFnSGJsi6
 d5rOzdIII5FDwKAAqyjHuniYLrP0xIH4L5kWOAy+LudP4PSze7uAxTiCiSJg5AaNBTa5NuwTnSX6
 MYICVzCCAlMCAQEwYjBSMQswCQYDVQQGEwJCRTEZMBcGA1UEChMQR2xvYmFsU2lnbiBudi1zYTEo
 MCYGA1UEAxMfR2xvYmFsU2lnbiBHQ0MgUjYgU01JTUUgQ0EgMjAyMwIMPiCpKhlPGjqoQ++SMA0G
-CWCGSAFlAwQCAQUAoIHHMC8GCSqGSIb3DQEJBDEiBCCilCQ7AP6yKlAGFHq+y4r8JfFmHfo6AzXI
-qmzlcClR7TAYBgkqhkiG9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0yNTExMTAx
-NDQ5NThaMFwGCSqGSIb3DQEJDzFPME0wCwYJYIZIAWUDBAEqMAsGCWCGSAFlAwQBFjALBglghkgB
+CWCGSAFlAwQCAQUAoIHHMC8GCSqGSIb3DQEJBDEiBCCfwUWhAj4w2oAxsMOy7u2MfH80ojyUexuf
+id0pKXy35jAYBgkqhkiG9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0yNTExMTAx
+NDU4NTZaMFwGCSqGSIb3DQEJDzFPME0wCwYJYIZIAWUDBAEqMAsGCWCGSAFlAwQBFjALBglghkgB
 ZQMEAQIwCgYIKoZIhvcNAwcwCwYJKoZIhvcNAQEHMAsGCWCGSAFlAwQCATANBgkqhkiG9w0BAQEF
-AASCAQBMosGmRMh/nr+xNt6XUVkxfJSzlEXYl0c4B2WYv6ckXEuvenbrux+wKlYHV78B/fSmLhdi
-8TJpadLLWrzHzwTMXWtKSn+1cnUSCrACK9jomg2mGdhRoJ3oqfHpL44SeBApRP34CcP+EVeP5Zgg
-10VKfpVhfi/AhvP4Ogg1Rw3Phiydzv9nAnkQXpSgLDe1BqB0VROtg4F4BVDKKYNv8/HkauuT+qWR
-c9U67JYnD6nzK/KJWEN6TNq4MFAYxzjx98qZkyieZpHfpZc0AOaDPzRnf6lS/uyKaHPX/Dy/QRxo
-hezhONMK1VfiFgek32vxh7IbTr+WQfm4Ne9mtly5MsdI
---000000000000301d9006433ea56a--
+AASCAQB6wkm8cxcaFNYsMm0kjmXBrfZMsagAmxUxUZcEjS3GRu/DdHvw/c6SyMqMtV18K8li9UHN
+iFP1wEIVLqXesE364krA70r11u8obXWFtn+9syuPasHt5NitxJd5D5LKFSCTgdKUgyn9ggopjMNc
+/kL3PoW5Mp1uYKpndbfPEQhF/cA4L4uAEP+xPD3TE7jykOZFwzS9gdIiOhCuECSg5wvQ47HuSAs+
+VuPw024wdlpi8FDMoOVQJ/5737cGf6vPzJrMblYpv8CMHgbpU1Frya86Cpu/Ni9d5AlccoeVu5vN
+NbFGWCtypYc7jS7o6XeOCFtNT+hVrqN1rPNUoneZnRDW
+--00000000000040fc9006433ec5a6--
