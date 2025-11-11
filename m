@@ -1,95 +1,181 @@
-Received: from smtp-relay-services-1.canonical.com (smtp-relay-services-1.canonical.com [185.125.188.251])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 29C652DBF73
-	for <linux-rdma@vger.kernel.org>; Tue, 11 Nov 2025 14:17:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.125.188.251
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 313173009F8;
+	Tue, 11 Nov 2025 14:19:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762870658; cv=none; b=A673BBLsLrJVrEJSnS9fQEGOEGKqQSvyrT5WD+VL9rC41C3UZC4NWGtHQdADXPekQ62MjWohaz8UbazyLZMnxR8hT5PCmyxKp9PYFEUMElYNNzP7ER0umQg4GBqnhx4Oo14e7CPZmb6feD5CYUavg5yLmZTKi5OuAhwyQL97VlU=
+	t=1762870790; cv=none; b=TYps8uiXJ4r66Y01Yba+ivbuB6ryzOSPVriduiGQY8SKFpdg65te16jLkp/9RUARvrwwIgrlC4Z9ZzIuN7zcwgY9x/Zjh/UWm0UzrVZSgdInssn6tHgdJedElTVM4NIFc/u4vdZ39pw1DqifYKEFaJdbMsJKeqc4Z7wgCOEWNwk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762870658; c=relaxed/simple;
-	bh=Xvq3wZo1smlBYTtvekcQwQZ3rkKvzwPjv+Q4BFWvilg=;
-	h=Content-Type:MIME-Version:To:From:Subject:Message-Id:Date; b=VwhMrV3SEWQVC76D2GYz9I8mqB9RVpuN06wqOYUWMeoiG2yylgdQ6oNAxpXSlaypRd8ILEcSCQtrUfyqH0GIBHYpmQvu1mn0RnHx193idW+i4+nTqwPdNjW/utCjGj4Iy9OfMM8lenvkHkZuOMSjmbSJ4M7ET4IISjXvlst9fo8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=launchpad.net; spf=pass smtp.mailfrom=launchpad.net; dkim=pass (2048-bit key) header.d=launchpad.net header.i=@launchpad.net header.b=UuCdLzmX; arc=none smtp.client-ip=185.125.188.251
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=launchpad.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=launchpad.net
+	s=arc-20240116; t=1762870790; c=relaxed/simple;
+	bh=F/G18b/qrnGePtXJA8yNc/KyviNlsV6BniqKSGhcuKs=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=DGyXwLN/W5qkXGOLQXvdpoSG7dtmUSVM3+LfhxAkjv9VSPUNIwRFyjC6lRYFuK/M6ijqsAPZnKEIIfT6UR9DoL1vkzEnKd11uKdYQJ0ylodvQWilGo+063cPb2n4oPbvT26L9780ls9X6qOnRMsHzQ5eYTDH5WsHwcHYLjdhsgc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=QZ6D1xUB; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=launchpad.net header.i=@launchpad.net header.b="UuCdLzmX"
-Received: from buildd-manager.lp.internal (buildd-manager.lp.internal [10.131.215.202])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-relay-services-1.canonical.com (Postfix) with ESMTPSA id CEB4C3F26B
-	for <linux-rdma@vger.kernel.org>; Tue, 11 Nov 2025 14:17:09 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=launchpad.net;
-	s=20210803; t=1762870629;
-	bh=Xvq3wZo1smlBYTtvekcQwQZ3rkKvzwPjv+Q4BFWvilg=;
-	h=Content-Type:MIME-Version:To:From:Subject:Message-Id:Date:
-	 Reply-To;
-	b=UuCdLzmXkymjF02KCPiIDaWsIXsaKX1BBc2KapV0Z8BR+YOqAtDVMnZ6rzYK4W0jM
-	 yre3YOw75DDgQ7c/FVhF2P9nMaH0OzaY+CuUHilzIvHzSZcSoI1OVhjdihP6n66Me3
-	 9MEtnFpsa58fQEiMg3h+Du3/hHPj8k8jnkZc/Hh9PZUqK9xZ5w6jHG5qVYqwrEyBNs
-	 zKhECIgSzEN4gz8qA6hdo1rXr5ZCnUkjnKjAk3l72V4dxZ9y+1m0Z7+qUcEwuHgTKC
-	 OgBBbJQk6ImEFRN2tk0i69w6Hp50dhB7sTbN6+Vnzn1bdSMRCPHdIkd1Quv/kkDbCE
-	 o0SjE8xGillmA==
-Received: from buildd-manager.lp.internal (localhost [127.0.0.1])
-	by buildd-manager.lp.internal (Postfix) with ESMTP id AB0227EA42
-	for <linux-rdma@vger.kernel.org>; Tue, 11 Nov 2025 14:17:09 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="QZ6D1xUB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 360C1C4CEF5;
+	Tue, 11 Nov 2025 14:19:49 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1762870789;
+	bh=F/G18b/qrnGePtXJA8yNc/KyviNlsV6BniqKSGhcuKs=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=QZ6D1xUBOHjSqie6c88Lfv8Vjj8UGymIATadTnHoCZU5AZ8TYJoADIMYaXBk3Dcd2
+	 Rghi7mgqwqohPEhy33mfi1ZOEkCErCLSCmHC9t0PLTPATLREkrT1VBsXas7pubbZe0
+	 ilxJcxehrPySNlQ6/sBA3YddzP2VzpAllOjvmYkswi6lBtjMDJko4b7yiIjx7pTfss
+	 whxSASEyVAYV5Pknrc6RDwa1K2yjZ9MrIj+nM6AllROiGgPbskVZ5mdTDCMzitZDL9
+	 2CYVb96vco3QDZ+czSzJXCGOUrRYzWfnGqZFw6OFQYEVeCLjky3FT+xlHSZao8yuRD
+	 ZRVrCFTFfU3dQ==
+Date: Tue, 11 Nov 2025 16:19:45 +0200
+From: Leon Romanovsky <leon@kernel.org>
+To: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+Cc: "Gustavo A. R. Silva" <gustavoars@kernel.org>,
+	Zhu Yanjun <zyjzyj2000@gmail.com>, Jason Gunthorpe <jgg@ziepe.ca>,
+	linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-hardening@vger.kernel.org
+Subject: Re: [PATCH][next] RDMA/rxe: Avoid -Wflex-array-member-not-at-end
+ warnings
+Message-ID: <20251111141945.GQ15456@unreal>
+References: <aRKu5lNV04Sq82IG@kspp>
+ <20251111115621.GO15456@unreal>
+ <a9e5156b-2279-4ddd-992c-ca8ca7ab218a@embeddedor.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-X-Launchpad-Message-Rationale: Creator @linux-rdma
-X-Launchpad-Message-For: linux-rdma
-X-Launchpad-Notification-Type: package-build-status
-X-Launchpad-Archive: ~linux-rdma/ubuntu/rdma-core-daily
-X-Launchpad-Build-State: FAILEDTOBUILD
-X-Launchpad-Build-Component: main
-X-Launchpad-Build-Arch: armhf
-X-Creator-Recipient: linux-rdma@vger.kernel.org
-X-Launchpad-PPA: linux-rdma-rdma-core-daily
-To: Linux RDMA <linux-rdma@vger.kernel.org>
-From: Launchpad Buildd System <noreply@launchpad.net>
-Subject: [Build #31479958] armhf build of rdma-core 61.0~202511110826+git36b662f3~ubuntu18.04.1 in ubuntu bionic RELEASE [~linux-rdma/ubuntu/rdma-core-daily]
-Message-Id: <176287062969.1218157.11145134768265381420.launchpad@buildd-manager.lp.internal>
-Date: Tue, 11 Nov 2025 14:17:09 -0000
-Reply-To: Launchpad Buildd System <noreply@launchpad.net>
-Sender: noreply@launchpad.net
-Errors-To: noreply@launchpad.net
-Precedence: bulk
-X-Generated-By: Launchpad (canonical.com); Revision="1d08ffb47b836b8a4c9a0f11318dfdea7420ab6d"; Instance="launchpad-buildd-manager"
-X-Launchpad-Hash: f0664914dad2be0b8d36da805d04baa0990d4f02
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <a9e5156b-2279-4ddd-992c-ca8ca7ab218a@embeddedor.com>
 
+On Tue, Nov 11, 2025 at 09:14:05PM +0900, Gustavo A. R. Silva wrote:
+> 
+> 
+> On 11/11/25 20:56, Leon Romanovsky wrote:
+> > On Tue, Nov 11, 2025 at 12:35:02PM +0900, Gustavo A. R. Silva wrote:
+> > > -Wflex-array-member-not-at-end was introduced in GCC-14, and we are
+> > > getting ready to enable it, globally.
+> > > 
+> > > Use the new TRAILING_OVERLAP() helper to fix the following warning:
+> > > 
+> > > 21 drivers/infiniband/sw/rxe/rxe_verbs.h:271:33: warning: structure containing a flexible array member is not at the end of another structure [-Wflex-array-member-not-at-end]
+> > > 
+> > > This helper creates a union between a flexible-array member (FAM) and a
+> > > set of MEMBERS that would otherwise follow it.
+> > > 
+> > > This overlays the trailing MEMBER struct ib_sge sge[RXE_MAX_SGE]; onto
+> > > the FAM struct rxe_recv_wqe::dma.sge, while keeping the FAM and the
+> > > start of MEMBER aligned.
+> > > 
+> > > The static_assert() ensures this alignment remains, and it's
+> > > intentionally placed inmediately after the related structure --no
+> > > blank line in between.
+> > > 
+> > > Lastly, move the conflicting declaration struct rxe_resp_info resp;
+> > > to the end of the corresponding structure.
+> > > 
+> > > Signed-off-by: Gustavo A. R. Silva <gustavoars@kernel.org>
+> > > ---
+> > >   drivers/infiniband/sw/rxe/rxe_verbs.h | 18 +++++++++++-------
+> > >   1 file changed, 11 insertions(+), 7 deletions(-)
+> > > 
+> > > diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.h b/drivers/infiniband/sw/rxe/rxe_verbs.h
+> > > index fd48075810dd..6498d61e8956 100644
+> > > --- a/drivers/infiniband/sw/rxe/rxe_verbs.h
+> > > +++ b/drivers/infiniband/sw/rxe/rxe_verbs.h
+> > > @@ -219,12 +219,6 @@ struct rxe_resp_info {
+> > >   	u32			rkey;
+> > >   	u32			length;
+> > > -	/* SRQ only */
+> > > -	struct {
+> > > -		struct rxe_recv_wqe	wqe;
+> > > -		struct ib_sge		sge[RXE_MAX_SGE];
+> > > -	} srq_wqe;
+> > > -
+> > >   	/* Responder resources. It's a circular list where the oldest
+> > >   	 * resource is dropped first.
+> > >   	 */
+> > > @@ -232,7 +226,15 @@ struct rxe_resp_info {
+> > >   	unsigned int		res_head;
+> > >   	unsigned int		res_tail;
+> > >   	struct resp_res		*res;
+> > > +
+> > > +	/* SRQ only */
+> > > +	/* Must be last as it ends in a flexible-array member. */
+> > > +	TRAILING_OVERLAP(struct rxe_recv_wqe, wqe, dma.sge,
+> > > +		struct ib_sge		sge[RXE_MAX_SGE];
+> > > +	) srq_wqe;
+> > 
+> > Will this change be enough?
+> > 
+> > diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.h b/drivers/infiniband/sw/rxe/rxe_verbs.h
+> > index fd48075810dd..9ab11421a585 100644
+> > --- a/drivers/infiniband/sw/rxe/rxe_verbs.h
+> > +++ b/drivers/infiniband/sw/rxe/rxe_verbs.h
+> > @@ -219,12 +219,6 @@ struct rxe_resp_info {
+> >          u32                     rkey;
+> >          u32                     length;
+> > -       /* SRQ only */
+> > -       struct {
+> > -               struct rxe_recv_wqe     wqe;
+> > -               struct ib_sge           sge[RXE_MAX_SGE];
+> > -       } srq_wqe;
+> > -
+> >          /* Responder resources. It's a circular list where the oldest
+> >           * resource is dropped first.
+> >           */
+> > @@ -232,6 +226,12 @@ struct rxe_resp_info {
+> >          unsigned int            res_head;
+> >          unsigned int            res_tail;
+> >          struct resp_res         *res;
+> > +
+> > +       /* SRQ only */
+> > +       struct {
+> > +               struct ib_sge           sge[RXE_MAX_SGE];
+> > +               struct rxe_recv_wqe     wqe;
+> > +       } srq_wqe;
+> >   };
+> 
+> The question is if this is really what you want?
+> 
+> sge[RXE_MAX_SGE] is of the following type:
+> 
+> struct ib_sge {
+>         u64     addr;
+>         u32     length;
+>         u32     lkey;
+> };
+> 
+> and struct rxe_recv_wqe::dma.sge[] is of type:
+> 
+> struct rxe_sge {
+>         __aligned_u64 addr;
+>         __u32   length;
+>         __u32   lkey;
+> };
+> 
+> Both types are basically the same, and the original code looks
+> pretty much like what people do when they want to pre-allocate
+> a number of elements (of the same element type as the flex array)
+> for a flexible-array member.
+> 
+> Based on the above, the change you suggest seems a bit suspicious,
+> and I'm not sure that's actually what you want?
 
- * Source Package: rdma-core
- * Version: 61.0~202511110826+git36b662f3~ubuntu18.04.1
- * Architecture: armhf
- * Archive: ~linux-rdma/ubuntu/rdma-core-daily
- * Component: main
- * State: Failed to build
- * Duration: 5 minutes
- * Build Log: https://launchpad.net/~linux-rdma/+archive/ubuntu/rdma-core-d=
-aily/+build/31479958/+files/buildlog_ubuntu-bionic-armhf.rdma-core_61.0~202=
-511110826+git36b662f3~ubuntu18.04.1_BUILDING.txt.gz
- * Builder: https://launchpad.net/builders/bos03-arm64-056
- * Source: not available
+You wrote about this error: "warning: structure containing a flexible array
+member is not at the end of another structure".
 
+My suggestion was simply to move that flex array to be the last element
+and save us from the need to have some complex, magic macro in RXE.
 
+Thanks
 
-If you want further information about this situation, feel free to
-contact us by asking a question on Launchpad
-(https://answers.launchpad.net/launchpad/+addquestion).
-
---=20
-armhf build of rdma-core 61.0~202511110826+git36b662f3~ubuntu18.04.1 in ubu=
-ntu bionic RELEASE
-https://launchpad.net/~linux-rdma/+archive/ubuntu/rdma-core-daily/+build/31=
-479958
-
-You are receiving this email because you created this version of this
-package.
-
+> 
+> Thanks
+> -Gustavo
+> 
+> 
+> 
+> 
+> 
