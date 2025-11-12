@@ -1,36 +1,36 @@
-Received: from canpmsgout06.his.huawei.com (canpmsgout06.his.huawei.com [113.46.200.221])
+Received: from canpmsgout03.his.huawei.com (canpmsgout03.his.huawei.com [113.46.200.218])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B957F301000
-	for <linux-rdma@vger.kernel.org>; Wed, 12 Nov 2025 09:35:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.221
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D04D2FF17F
+	for <linux-rdma@vger.kernel.org>; Wed, 12 Nov 2025 09:35:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.218
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762940123; cv=none; b=HNqrtQvC5FdSWE0+UOdJKhbZMtuBnawMQglJ9dFajRgokoqKULDhIs9BRetMoDKpfb/hZuke2q1ZiFBbf1e/EddSRqn06e8f5XsjSZgC7MCObupZEGVEMBy876MWb7qIwasOnj94/j/Wtmh3W4+fTcf2CRXWFhGdY6OsgQX3g20=
+	t=1762940123; cv=none; b=RwIwD4l/CzUmBO51l1/AsC2cwN52ENIHsnIJMxOgTv2eQEAX/rZt0IeT+8o914hlSV81NYw99fkHdp9a44/hxrC57sZtNJsUOK/dpBujCGT2v2N/5yjRCdc2KHm5Yc2KmcYEzOPujG+jG3sr3PI/Zb8LZ5/+PV7DwTGWjnGPUS0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1762940123; c=relaxed/simple;
-	bh=6Nwr7ESCyo2k2mF7s+mBmRgUdKhvQfjjSnhNlqjOiSU=;
+	bh=XvQ6TT5xLjYXdFdMjQJG2QXCfKZPdAEhZEQZ/BN7u0Q=;
 	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=iMlcIrhUC5CmCLbAo35orQKw7AA6BaDvixwN9xIbSXFC38KnBcV27xlKmjx8btLzsYJzVpF2gpaW2gVUf4fiXq7WMN8+NA3hF+GZZ2aPr1fOSe1kwyJFojz8rsZIqU1lSnG+OsOjZhT5zcNDpuISxQUPxSwFfwViAiLLn7J8syQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com; spf=pass smtp.mailfrom=hisilicon.com; arc=none smtp.client-ip=113.46.200.221
+	 MIME-Version:Content-Type; b=nBR3OjyRVPLcvrSa8DbszowsM8hY5aEnvEaa00fNyK+jPkoftE+yZjaBPFq5b6Bp57zDGxq/YCbzHC77Xph2Q+ALVH0MDOkzyvciJhOpi3hWuXclNNfK5ujhAHxJMnPCwotjfXqgxlXQgBdMaIAAwJputaGC3l6xZNCulJGm8Po=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com; spf=pass smtp.mailfrom=hisilicon.com; arc=none smtp.client-ip=113.46.200.218
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=hisilicon.com
 Received: from mail.maildlp.com (unknown [172.19.163.252])
-	by canpmsgout06.his.huawei.com (SkyGuard) with ESMTPS id 4d5yrX3TskzRhRd;
-	Wed, 12 Nov 2025 17:33:32 +0800 (CST)
+	by canpmsgout03.his.huawei.com (SkyGuard) with ESMTPS id 4d5yrV49jwzpStk;
+	Wed, 12 Nov 2025 17:33:30 +0800 (CST)
 Received: from kwepemf100018.china.huawei.com (unknown [7.202.181.17])
-	by mail.maildlp.com (Postfix) with ESMTPS id 7BF0F180B50;
-	Wed, 12 Nov 2025 17:35:11 +0800 (CST)
+	by mail.maildlp.com (Postfix) with ESMTPS id 735D4180B50;
+	Wed, 12 Nov 2025 17:35:13 +0800 (CST)
 Received: from localhost.localdomain (10.50.163.32) by
  kwepemf100018.china.huawei.com (7.202.181.17) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Wed, 12 Nov 2025 17:35:11 +0800
+ 15.2.1544.11; Wed, 12 Nov 2025 17:35:12 +0800
 From: Junxian Huang <huangjunxian6@hisilicon.com>
 To: <jgg@ziepe.ca>, <leon@kernel.org>
 CC: <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
 	<huangjunxian6@hisilicon.com>, <tangchengchang@huawei.com>
-Subject: [PATCH v3 for-next 1/8] RDMA/hns: Add helpers to obtain netdev and bus_num from hr_dev
-Date: Wed, 12 Nov 2025 17:35:03 +0800
-Message-ID: <20251112093510.3696363-2-huangjunxian6@hisilicon.com>
+Subject: [PATCH v3 for-next 7/8] RDMA/hns: Support link state reporting for bond
+Date: Wed, 12 Nov 2025 17:35:09 +0800
+Message-ID: <20251112093510.3696363-8-huangjunxian6@hisilicon.com>
 X-Mailer: git-send-email 2.33.0
 In-Reply-To: <20251112093510.3696363-1-huangjunxian6@hisilicon.com>
 References: <20251112093510.3696363-1-huangjunxian6@hisilicon.com>
@@ -45,178 +45,200 @@ Content-Type: text/plain
 X-ClientProxiedBy: kwepems200001.china.huawei.com (7.221.188.67) To
  kwepemf100018.china.huawei.com (7.202.181.17)
 
-Add helpers to obtain netdev and bus_num from hr_dev.
+The link state of bond depends on the upper device. Adapt current
+link state querying flow and ib_event dispatching flow to report
+correct link state of bond.
 
 Signed-off-by: Junxian Huang <huangjunxian6@hisilicon.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_ah.c     |  1 -
- drivers/infiniband/hw/hns/hns_roce_device.h | 12 ++++++++++++
- drivers/infiniband/hw/hns/hns_roce_main.c   | 19 ++++++++++---------
- drivers/infiniband/hw/hns/hns_roce_pd.c     |  1 -
- drivers/infiniband/hw/hns/hns_roce_qp.c     |  5 +++--
- drivers/infiniband/hw/hns/hns_roce_srq.c    |  1 -
- 6 files changed, 25 insertions(+), 14 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c |  8 ++
+ drivers/infiniband/hw/hns/hns_roce_main.c  | 99 ++++++++++++++++------
+ 2 files changed, 83 insertions(+), 24 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_ah.c b/drivers/infiniband/hw/hns/hns_roce_ah.c
-index 307c35888b30..0c1c32d23c88 100644
---- a/drivers/infiniband/hw/hns/hns_roce_ah.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_ah.c
-@@ -30,7 +30,6 @@
-  * SOFTWARE.
-  */
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index a0088ec95281..4da24c639ab0 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -7358,6 +7358,14 @@ static void hns_roce_hw_v2_link_status_change(struct hnae3_handle *handle,
+ 	if (linkup || !hr_dev)
+ 		return;
  
--#include <linux/pci.h>
- #include <rdma/ib_addr.h>
- #include <rdma/ib_cache.h>
- #include "hns_roce_device.h"
-diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
-index 78ee04a48a74..5ae37832059f 100644
---- a/drivers/infiniband/hw/hns/hns_roce_device.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_device.h
-@@ -33,6 +33,7 @@
- #ifndef _HNS_ROCE_DEVICE_H
- #define _HNS_ROCE_DEVICE_H
- 
-+#include <linux/pci.h>
- #include <rdma/ib_verbs.h>
- #include <rdma/hns-abi.h>
- #include "hns_roce_debugfs.h"
-@@ -1165,6 +1166,17 @@ static inline u8 get_tclass(const struct ib_global_route *grh)
- 	       grh->traffic_class >> DSCP_SHIFT : grh->traffic_class;
++	/* For bond device, the link status depends on the upper netdev,
++	 * and the upper device's link status depends on all the slaves'
++	 * netdev but not only one. So bond device cannot get a correct
++	 * link status from this path.
++	 */
++	if (hns_roce_get_bond_grp(netdev, get_hr_bus_num(hr_dev)))
++		return;
++
+ 	ib_dispatch_port_state_event(&hr_dev->ib_dev, netdev);
  }
  
-+static inline struct net_device *get_hr_netdev(struct hns_roce_dev *hr_dev,
-+					       u8 port)
-+{
-+	return hr_dev->iboe.netdevs[port];
-+}
-+
-+static inline u8 get_hr_bus_num(struct hns_roce_dev *hr_dev)
-+{
-+	return hr_dev->pci_dev->bus->number;
-+}
-+
- void hns_roce_init_uar_table(struct hns_roce_dev *dev);
- int hns_roce_uar_alloc(struct hns_roce_dev *dev, struct hns_roce_uar *uar);
- 
 diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
-index d50f36f8a110..8bca0b10c69e 100644
+index 4e8807a04298..fc62efdc45eb 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_main.c
 +++ b/drivers/infiniband/hw/hns/hns_roce_main.c
-@@ -32,7 +32,6 @@
-  */
- #include <linux/acpi.h>
- #include <linux/module.h>
--#include <linux/pci.h>
- #include <rdma/ib_addr.h>
- #include <rdma/ib_smi.h>
- #include <rdma/ib_user_verbs.h>
-@@ -148,12 +147,13 @@ static int hns_roce_netdev_event(struct notifier_block *self,
+@@ -89,30 +89,75 @@ static int hns_roce_del_gid(const struct ib_gid_attr *attr, void **context)
+ 	return ret;
+ }
  
- static int hns_roce_setup_mtu_mac(struct hns_roce_dev *hr_dev)
+-static int handle_en_event(struct hns_roce_dev *hr_dev, u32 port,
+-			   unsigned long event)
++static int hns_roce_get_port_state(struct hns_roce_dev *hr_dev, u32 port_num,
++				   enum ib_port_state *state)
  {
++	struct hns_roce_bond_group *bond_grp;
++	u8 bus_num = get_hr_bus_num(hr_dev);
 +	struct net_device *net_dev;
- 	int ret;
- 	u8 i;
- 
- 	for (i = 0; i < hr_dev->caps.num_ports; i++) {
--		ret = hns_roce_set_mac(hr_dev, i,
--				       hr_dev->iboe.netdevs[i]->dev_addr);
-+		net_dev = get_hr_netdev(hr_dev, i);
-+		ret = hns_roce_set_mac(hr_dev, i, net_dev->dev_addr);
- 		if (ret)
- 			return ret;
- 	}
-@@ -246,7 +246,7 @@ static int hns_roce_query_port(struct ib_device *ib_dev, u32 port_num,
- 
- 	spin_lock_irqsave(&hr_dev->iboe.lock, flags);
- 
--	net_dev = hr_dev->iboe.netdevs[port];
-+	net_dev = get_hr_netdev(hr_dev, port);
- 	if (!net_dev) {
- 		spin_unlock_irqrestore(&hr_dev->iboe.lock, flags);
- 		dev_err(dev, "find netdev %u failed!\n", port);
-@@ -704,11 +704,12 @@ static const struct ib_device_ops hns_roce_dev_restrack_ops = {
- 
- static int hns_roce_register_device(struct hns_roce_dev *hr_dev)
- {
--	int ret;
- 	struct hns_roce_ib_iboe *iboe = NULL;
--	struct ib_device *ib_dev = NULL;
++
++	net_dev = ib_device_get_netdev(&hr_dev->ib_dev, port_num);
++	if (!net_dev)
++		return -ENODEV;
++
++	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_BOND) {
++		bond_grp = hns_roce_get_bond_grp(net_dev, bus_num);
++		if (bond_grp) {
++			*state = ib_get_curr_port_state(bond_grp->upper_dev);
++			goto out;
++		}
++	}
++
++	*state = ib_get_curr_port_state(net_dev);
++out:
++	dev_put(net_dev);
++	return 0;
++}
++
++static int handle_en_event(struct net_device *netdev,
++			   struct hns_roce_dev *hr_dev,
++			   u32 port, unsigned long event)
++{
++	struct ib_device *ibdev = &hr_dev->ib_dev;
  	struct device *dev = hr_dev->dev;
-+	struct ib_device *ib_dev = NULL;
-+	struct net_device *net_dev;
- 	unsigned int i;
-+	int ret;
+-	struct net_device *netdev;
++	enum ib_port_state curr_state;
++	struct ib_event ibevent;
+ 	int ret = 0;
  
- 	iboe = &hr_dev->iboe;
- 	spin_lock_init(&iboe->lock);
-@@ -744,11 +745,11 @@ static int hns_roce_register_device(struct hns_roce_dev *hr_dev)
- 	ib_set_device_ops(ib_dev, &hns_roce_dev_ops);
- 	ib_set_device_ops(ib_dev, &hns_roce_dev_restrack_ops);
- 	for (i = 0; i < hr_dev->caps.num_ports; i++) {
--		if (!hr_dev->iboe.netdevs[i])
-+		net_dev = get_hr_netdev(hr_dev, i);
-+		if (!net_dev)
- 			continue;
- 
--		ret = ib_device_set_netdev(ib_dev, hr_dev->iboe.netdevs[i],
--					   i + 1);
-+		ret = ib_device_set_netdev(ib_dev, net_dev, i + 1);
- 		if (ret)
- 			return ret;
+-	netdev = hr_dev->iboe.netdevs[port];
+ 	if (!netdev) {
+ 		dev_err(dev, "can't find netdev on port(%u)!\n", port);
+ 		return -ENODEV;
  	}
-diff --git a/drivers/infiniband/hw/hns/hns_roce_pd.c b/drivers/infiniband/hw/hns/hns_roce_pd.c
-index d35cf59d0f43..225c3e328e0e 100644
---- a/drivers/infiniband/hw/hns/hns_roce_pd.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_pd.c
-@@ -30,7 +30,6 @@
-  * SOFTWARE.
-  */
  
--#include <linux/pci.h>
- #include "hns_roce_device.h"
- 
- void hns_roce_init_pd_table(struct hns_roce_dev *hr_dev)
-diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
-index 6ff1b8ce580c..e0e28c4ff1ca 100644
---- a/drivers/infiniband/hw/hns/hns_roce_qp.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
-@@ -31,7 +31,6 @@
-  * SOFTWARE.
-  */
- 
--#include <linux/pci.h>
- #include <rdma/ib_addr.h>
- #include <rdma/ib_umem.h>
- #include <rdma/uverbs_ioctl.h>
-@@ -1350,11 +1349,13 @@ static int check_mtu_validate(struct hns_roce_dev *hr_dev,
- 			      struct hns_roce_qp *hr_qp,
- 			      struct ib_qp_attr *attr, int attr_mask)
+ 	switch (event) {
+-	case NETDEV_UP:
+-	case NETDEV_CHANGE:
+ 	case NETDEV_REGISTER:
+ 	case NETDEV_CHANGEADDR:
+ 		ret = hns_roce_set_mac(hr_dev, port, netdev->dev_addr);
+ 		break;
++	case NETDEV_UP:
++	case NETDEV_CHANGE:
++		ret = hns_roce_set_mac(hr_dev, port, netdev->dev_addr);
++		if (ret)
++			return ret;
++		fallthrough;
+ 	case NETDEV_DOWN:
+-		/*
+-		 * In v1 engine, only support all ports closed together.
+-		 */
++		if (!netif_is_lag_master(netdev))
++			break;
++		curr_state = ib_get_curr_port_state(netdev);
++
++		write_lock_irq(&ibdev->cache_lock);
++		if (ibdev->port_data[port].cache.last_port_state == curr_state) {
++			write_unlock_irq(&ibdev->cache_lock);
++			return 0;
++		}
++		ibdev->port_data[port].cache.last_port_state = curr_state;
++		write_unlock_irq(&ibdev->cache_lock);
++
++		ibevent.event = (curr_state == IB_PORT_DOWN) ?
++				IB_EVENT_PORT_ERR : IB_EVENT_PORT_ACTIVE;
++		ibevent.device = ibdev;
++		ibevent.element.port_num = port + 1;
++		ib_dispatch_event(&ibevent);
+ 		break;
+ 	default:
+ 		dev_dbg(dev, "NETDEV event = 0x%x!\n", (u32)(event));
+@@ -126,17 +171,25 @@ static int hns_roce_netdev_event(struct notifier_block *self,
+ 				 unsigned long event, void *ptr)
  {
-+	struct net_device *net_dev;
- 	enum ib_mtu active_mtu;
- 	int p;
+ 	struct net_device *dev = netdev_notifier_info_to_dev(ptr);
++	struct hns_roce_bond_group *bond_grp;
+ 	struct hns_roce_ib_iboe *iboe = NULL;
+ 	struct hns_roce_dev *hr_dev = NULL;
++	struct net_device *upper = NULL;
+ 	int ret;
+ 	u32 port;
  
- 	p = attr_mask & IB_QP_PORT ? (attr->port_num - 1) : hr_qp->port;
--	active_mtu = iboe_get_mtu(hr_dev->iboe.netdevs[p]->mtu);
-+	net_dev = get_hr_netdev(hr_dev, p);
-+	active_mtu = iboe_get_mtu(net_dev->mtu);
+ 	hr_dev = container_of(self, struct hns_roce_dev, iboe.nb);
+ 	iboe = &hr_dev->iboe;
++	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_BOND) {
++		bond_grp = hns_roce_get_bond_grp(get_hr_netdev(hr_dev, 0),
++						 get_hr_bus_num(hr_dev));
++		upper = bond_grp ? bond_grp->upper_dev : NULL;
++	}
  
- 	if ((hr_dev->caps.max_mtu >= IB_MTU_2048 &&
- 	    attr->path_mtu > hr_dev->caps.max_mtu) ||
-diff --git a/drivers/infiniband/hw/hns/hns_roce_srq.c b/drivers/infiniband/hw/hns/hns_roce_srq.c
-index 1090051f493b..8a6efb6b9c9e 100644
---- a/drivers/infiniband/hw/hns/hns_roce_srq.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_srq.c
-@@ -3,7 +3,6 @@
-  * Copyright (c) 2018 Hisilicon Limited.
-  */
+ 	for (port = 0; port < hr_dev->caps.num_ports; port++) {
+-		if (dev == iboe->netdevs[port]) {
+-			ret = handle_en_event(hr_dev, port, event);
++		if ((!upper && dev == iboe->netdevs[port]) ||
++		    (upper && dev == upper)) {
++			ret = handle_en_event(dev, hr_dev, port, event);
+ 			if (ret)
+ 				return NOTIFY_DONE;
+ 			break;
+@@ -222,9 +275,7 @@ static int hns_roce_query_port(struct ib_device *ib_dev, u32 port_num,
+ 			       struct ib_port_attr *props)
+ {
+ 	struct hns_roce_dev *hr_dev = to_hr_dev(ib_dev);
+-	struct device *dev = hr_dev->dev;
+ 	struct net_device *net_dev;
+-	unsigned long flags;
+ 	enum ib_mtu mtu;
+ 	u32 port;
+ 	int ret;
+@@ -245,26 +296,26 @@ static int hns_roce_query_port(struct ib_device *ib_dev, u32 port_num,
+ 	if (ret)
+ 		ibdev_warn(ib_dev, "failed to get speed, ret = %d.\n", ret);
  
--#include <linux/pci.h>
- #include <rdma/ib_umem.h>
- #include <rdma/uverbs_ioctl.h>
- #include "hns_roce_device.h"
+-	spin_lock_irqsave(&hr_dev->iboe.lock, flags);
+-
+-	net_dev = get_hr_netdev(hr_dev, port);
++	net_dev = ib_device_get_netdev(ib_dev, port_num);
+ 	if (!net_dev) {
+-		spin_unlock_irqrestore(&hr_dev->iboe.lock, flags);
+-		dev_err(dev, "find netdev %u failed!\n", port);
++		ibdev_err(ib_dev, "find netdev %u failed!\n", port);
+ 		return -EINVAL;
+ 	}
+ 
+ 	mtu = iboe_get_mtu(net_dev->mtu);
+ 	props->active_mtu = mtu ? min(props->max_mtu, mtu) : IB_MTU_256;
+-	props->state = netif_running(net_dev) && netif_carrier_ok(net_dev) ?
+-			       IB_PORT_ACTIVE :
+-			       IB_PORT_DOWN;
++
++	dev_put(net_dev);
++
++	ret = hns_roce_get_port_state(hr_dev, port_num, &props->state);
++	if (ret) {
++		ibdev_err(ib_dev, "failed to get port state.\n");
++		return ret;
++	}
++
+ 	props->phys_state = props->state == IB_PORT_ACTIVE ?
+ 				    IB_PORT_PHYS_STATE_LINK_UP :
+ 				    IB_PORT_PHYS_STATE_DISABLED;
+-
+-	spin_unlock_irqrestore(&hr_dev->iboe.lock, flags);
+-
+ 	return 0;
+ }
+ 
 -- 
 2.33.0
 
