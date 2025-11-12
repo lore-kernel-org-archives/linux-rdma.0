@@ -1,36 +1,39 @@
-Received: from canpmsgout05.his.huawei.com (canpmsgout05.his.huawei.com [113.46.200.220])
+Received: from canpmsgout10.his.huawei.com (canpmsgout10.his.huawei.com [113.46.200.225])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1884A274B55
-	for <linux-rdma@vger.kernel.org>; Wed, 12 Nov 2025 09:35:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.220
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA95E2FF150
+	for <linux-rdma@vger.kernel.org>; Wed, 12 Nov 2025 09:35:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.225
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762940117; cv=none; b=X0ehwSf6/m5PLAewqaZFJR0q3JDQU93azrp/AVwLGs7LBBONh9OOq39djsLflo7WQ55R5JpSGxfi+CX3EWBhOY2k5Tng6QzyDvd8+cREYmuy3RcEjZXr03GG+SXY1XrttLyVkMxu713bTcci8fDgC97erpwfOTIZZIP8+v2SJxA=
+	t=1762940117; cv=none; b=RCcF7FILT0aEUTBxwzrScsReiaI/w/sK8taGCrp8/FuemzqAo9HfBmgZATp7uJPYQQX+CSDZ1Ok1YpG1Y28xrEcIKJbBAQxTGL9kfk946zIvY8xggsvmfnmVci7edDXTa8z/RCaDWr+m/WaHgOAQIzEfJ32kjMSlOHGahrUB24g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1762940117; c=relaxed/simple;
-	bh=8+qux21HJ4Ug1WDOlFhNjo7ekSlmVYXF51g7CiTwjI8=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=SUtdPQbGUE0wQUmv+Eb50fPIsDf9B+WQwoh+dr1A7c36PC/3i2v5xoOaehdTKTISXaUFmf9YwbeaCM7zWi3k4/ytPGSP15Mn0mdJrobZVizTHD0lOVsHd9uPQHvGBj9qRD5z1izVCgpbZoTlFc5eJrG3jAi+B6aqITUZaTkGoC4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com; spf=pass smtp.mailfrom=hisilicon.com; arc=none smtp.client-ip=113.46.200.220
+	bh=1oGgl76tfV4QXSaUQcfaWtkavDULM2bkgqcQ6NYbTfo=;
+	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=LNdajgZedRgFC/lhbV6J8aKdyej11H2cWEMcxQV8KPpTaJytJfHKa9z+OWL0ebcTtfSpeJSYF5wKWkOpg674EL7xLfsy4sObBP4v53dfITVklatt1LQoCnb1gQgpdBMKttdfTf1f6zhZy4K9CsXczY1HkjhqtipvlcPl0Nno9Ts=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com; spf=pass smtp.mailfrom=hisilicon.com; arc=none smtp.client-ip=113.46.200.225
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=hisilicon.com
-Received: from mail.maildlp.com (unknown [172.19.163.174])
-	by canpmsgout05.his.huawei.com (SkyGuard) with ESMTPS id 4d5yrg4sMjz12LGF;
-	Wed, 12 Nov 2025 17:33:39 +0800 (CST)
+Received: from mail.maildlp.com (unknown [172.19.162.112])
+	by canpmsgout10.his.huawei.com (SkyGuard) with ESMTPS id 4d5yrZ02t5z1K97S;
+	Wed, 12 Nov 2025 17:33:34 +0800 (CST)
 Received: from kwepemf100018.china.huawei.com (unknown [7.202.181.17])
-	by mail.maildlp.com (Postfix) with ESMTPS id 31AE31402EB;
+	by mail.maildlp.com (Postfix) with ESMTPS id D43241401F4;
 	Wed, 12 Nov 2025 17:35:11 +0800 (CST)
 Received: from localhost.localdomain (10.50.163.32) by
  kwepemf100018.china.huawei.com (7.202.181.17) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Wed, 12 Nov 2025 17:35:10 +0800
+ 15.2.1544.11; Wed, 12 Nov 2025 17:35:11 +0800
 From: Junxian Huang <huangjunxian6@hisilicon.com>
 To: <jgg@ziepe.ca>, <leon@kernel.org>
 CC: <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
 	<huangjunxian6@hisilicon.com>, <tangchengchang@huawei.com>
-Subject: [PATCH v3 for-next 0/8] RDMA/hns: Support RoCE bonding
-Date: Wed, 12 Nov 2025 17:35:02 +0800
-Message-ID: <20251112093510.3696363-1-huangjunxian6@hisilicon.com>
+Subject: [PATCH v3 for-next 2/8] RDMA/hns: Initialize bonding resources
+Date: Wed, 12 Nov 2025 17:35:04 +0800
+Message-ID: <20251112093510.3696363-3-huangjunxian6@hisilicon.com>
 X-Mailer: git-send-email 2.33.0
+In-Reply-To: <20251112093510.3696363-1-huangjunxian6@hisilicon.com>
+References: <20251112093510.3696363-1-huangjunxian6@hisilicon.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -42,59 +45,361 @@ Content-Type: text/plain
 X-ClientProxiedBy: kwepems200001.china.huawei.com (7.221.188.67) To
  kwepemf100018.china.huawei.com (7.202.181.17)
 
-This series adds support for RoCE bonding. The bond mode is active
-when multiple PF netdevs are enslaved to a bond master while all
-following rules are met:
-  * All the slaves are on the same card, i.e., they share the same
-    bus number.
-  * The bond mode are set to mode 1 (active-backup), 2 (XOR) or
-    4 (802.3ad).
-  * None of the slaves have generated a VF.
+Allocate bond_grp resources for each card when the first device in
+this card is registered. Block the initialization of VF when its PF
+is a bonded slave, as VF is not supported in this case due to HW
+constraints.
 
-In bond mode, a bond ibdev "hns_bond_*" is registered instead of the
-regular PF ibdev "hns_*". For RoCE traffic, HW chooses the same active
-port as netdev bonding in mode 1, while in mode 2/4, the port selection
-is determined by the hash algorithm.
-
-Changelog:
-v3:
-* Fix unused variables in patch 5 hns_roce_unregister_device() and
-  patch 7 hns_roce_hw_v2_link_status_change().
-* Fix wrong link state in patch 7 hns_roce_query_port() when the device
-  doesn't hold the cap flag of bonding.
-
-v2: https://lore.kernel.org/linux-rdma/20251016132023.3043538-1-huangjunxian6@hisilicon.com/
-* Hold the refcount when returning from hns_roce_get_hrdev_by_netdev()
-  and get_upper_dev_from_ndev().
-* Remove check_vf_support() as we've moved the check into FW now.
-
-v1: https://lore.kernel.org/linux-rdma/20250913090615.212720-1-huangjunxian6@hisilicon.com/T/#t
-
-Junxian Huang (8):
-  RDMA/hns: Add helpers to obtain netdev and bus_num from hr_dev
-  RDMA/hns: Initialize bonding resources
-  RDMA/hns: Add bonding event handler
-  RDMA/hns: Add bonding cmds
-  RDMA/hns: Implement bonding init/uninit process
-  RDMA/hns: Add delayed work for bonding
-  RDMA/hns: Support link state reporting for bond
-  RDMA/hns: Support reset recovery for bond
-
- drivers/infiniband/hw/hns/Makefile          |    4 +-
- drivers/infiniband/hw/hns/hns_roce_ah.c     |    1 -
- drivers/infiniband/hw/hns/hns_roce_bond.c   | 1012 +++++++++++++++++++
- drivers/infiniband/hw/hns/hns_roce_bond.h   |   95 ++
- drivers/infiniband/hw/hns/hns_roce_device.h |   16 +-
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c  |  141 ++-
- drivers/infiniband/hw/hns/hns_roce_hw_v2.h  |   20 +
- drivers/infiniband/hw/hns/hns_roce_main.c   |  185 +++-
- drivers/infiniband/hw/hns/hns_roce_pd.c     |    1 -
- drivers/infiniband/hw/hns/hns_roce_qp.c     |    5 +-
- drivers/infiniband/hw/hns/hns_roce_srq.c    |    1 -
- 11 files changed, 1429 insertions(+), 52 deletions(-)
+Signed-off-by: Junxian Huang <huangjunxian6@hisilicon.com>
+---
+ drivers/infiniband/hw/hns/Makefile          |   4 +-
+ drivers/infiniband/hw/hns/hns_roce_bond.c   | 192 ++++++++++++++++++++
+ drivers/infiniband/hw/hns/hns_roce_bond.h   |  38 ++++
+ drivers/infiniband/hw/hns/hns_roce_device.h |   1 +
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c  |   6 +
+ drivers/infiniband/hw/hns/hns_roce_main.c   |  11 ++
+ 6 files changed, 251 insertions(+), 1 deletion(-)
  create mode 100644 drivers/infiniband/hw/hns/hns_roce_bond.c
  create mode 100644 drivers/infiniband/hw/hns/hns_roce_bond.h
 
---
+diff --git a/drivers/infiniband/hw/hns/Makefile b/drivers/infiniband/hw/hns/Makefile
+index baf592e6f21b..d07ef02c5231 100644
+--- a/drivers/infiniband/hw/hns/Makefile
++++ b/drivers/infiniband/hw/hns/Makefile
+@@ -4,11 +4,13 @@
+ #
+ 
+ ccflags-y :=  -I $(srctree)/drivers/net/ethernet/hisilicon/hns3
++ccflags-y +=  -I $(srctree)/drivers/net/ethernet/hisilicon/hns3/hns3pf
++ccflags-y +=  -I $(srctree)/drivers/net/ethernet/hisilicon/hns3/hns3_common
+ ccflags-y +=  -I $(src)
+ 
+ hns-roce-hw-v2-objs := hns_roce_main.o hns_roce_cmd.o hns_roce_pd.o \
+ 	hns_roce_ah.o hns_roce_hem.o hns_roce_mr.o hns_roce_qp.o \
+ 	hns_roce_cq.o hns_roce_alloc.o hns_roce_db.o hns_roce_srq.o hns_roce_restrack.o \
+-	hns_roce_debugfs.o hns_roce_hw_v2.o
++	hns_roce_debugfs.o hns_roce_hw_v2.o hns_roce_bond.o
+ 
+ obj-$(CONFIG_INFINIBAND_HNS_HIP08) += hns-roce-hw-v2.o
+diff --git a/drivers/infiniband/hw/hns/hns_roce_bond.c b/drivers/infiniband/hw/hns/hns_roce_bond.c
+new file mode 100644
+index 000000000000..918c1382fa65
+--- /dev/null
++++ b/drivers/infiniband/hw/hns/hns_roce_bond.c
+@@ -0,0 +1,192 @@
++// SPDX-License-Identifier: GPL-2.0+
++/*
++ * Copyright (c) 2025 Hisilicon Limited.
++ */
++
++#include "hns_roce_device.h"
++#include "hns_roce_hw_v2.h"
++#include "hns_roce_bond.h"
++
++static DEFINE_XARRAY(roce_bond_xa);
++
++static struct net_device *get_upper_dev_from_ndev(struct net_device *net_dev)
++{
++	struct net_device *upper_dev;
++
++	rcu_read_lock();
++	upper_dev = netdev_master_upper_dev_get_rcu(net_dev);
++	dev_hold(upper_dev);
++	rcu_read_unlock();
++
++	return upper_dev;
++}
++
++static int get_netdev_bond_slave_id(struct net_device *net_dev,
++				    struct hns_roce_bond_group *bond_grp)
++{
++	int i;
++
++	for (i = 0; i < ROCE_BOND_FUNC_MAX; i++)
++		if (net_dev == bond_grp->bond_func_info[i].net_dev)
++			return i;
++
++	return -ENOENT;
++}
++
++struct hns_roce_bond_group *hns_roce_get_bond_grp(struct net_device *net_dev,
++						  u8 bus_num)
++{
++	struct hns_roce_die_info *die_info = xa_load(&roce_bond_xa, bus_num);
++	struct hns_roce_bond_group *bond_grp;
++	struct net_device *upper_dev = NULL;
++	int i;
++
++	if (!die_info)
++		return NULL;
++
++	for (i = 0; i < ROCE_BOND_NUM_MAX; i++) {
++		bond_grp = die_info->bgrps[i];
++		if (!bond_grp)
++			continue;
++		if (get_netdev_bond_slave_id(net_dev, bond_grp) >= 0)
++			return bond_grp;
++		if (bond_grp->upper_dev) {
++			upper_dev = get_upper_dev_from_ndev(net_dev);
++			if (bond_grp->upper_dev == upper_dev) {
++				dev_put(upper_dev);
++				return bond_grp;
++			}
++			dev_put(upper_dev);
++		}
++	}
++
++	return NULL;
++}
++
++static struct hns_roce_die_info *alloc_die_info(int bus_num)
++{
++	struct hns_roce_die_info *die_info;
++	int ret;
++
++	die_info = kzalloc(sizeof(*die_info), GFP_KERNEL);
++	if (!die_info)
++		return NULL;
++
++	ret = xa_err(xa_store(&roce_bond_xa, bus_num, die_info, GFP_KERNEL));
++	if (ret) {
++		kfree(die_info);
++		return NULL;
++	}
++
++	return die_info;
++}
++
++static void dealloc_die_info(struct hns_roce_die_info *die_info, u8 bus_num)
++{
++	xa_erase(&roce_bond_xa, bus_num);
++	kfree(die_info);
++}
++
++static int alloc_bond_id(struct hns_roce_bond_group *bond_grp)
++{
++	u8 bus_num = bond_grp->bus_num;
++	struct hns_roce_die_info *die_info = xa_load(&roce_bond_xa, bus_num);
++	int i;
++
++	if (!die_info) {
++		die_info = alloc_die_info(bus_num);
++		if (!die_info)
++			return -ENOMEM;
++	}
++
++	for (i = 0; i < ROCE_BOND_NUM_MAX; i++) {
++		if (die_info->bond_id_mask & BOND_ID(i))
++			continue;
++
++		die_info->bond_id_mask |= BOND_ID(i);
++		die_info->bgrps[i] = bond_grp;
++		bond_grp->bond_id = i;
++
++		return 0;
++	}
++
++	return -ENOSPC;
++}
++
++static int remove_bond_id(int bus_num, u8 bond_id)
++{
++	struct hns_roce_die_info *die_info = xa_load(&roce_bond_xa, bus_num);
++
++	if (bond_id >= ROCE_BOND_NUM_MAX)
++		return -EINVAL;
++
++	if (!die_info)
++		return -ENODEV;
++
++	die_info->bond_id_mask &= ~BOND_ID(bond_id);
++	die_info->bgrps[bond_id] = NULL;
++	if (!die_info->bond_id_mask)
++		dealloc_die_info(die_info, bus_num);
++
++	return 0;
++}
++
++int hns_roce_alloc_bond_grp(struct hns_roce_dev *hr_dev)
++{
++	struct hns_roce_bond_group *bgrps[ROCE_BOND_NUM_MAX];
++	struct hns_roce_bond_group *bond_grp;
++	u8 bus_num = get_hr_bus_num(hr_dev);
++	int ret;
++	int i;
++
++	if (xa_load(&roce_bond_xa, bus_num))
++		return 0;
++
++	for (i = 0; i < ROCE_BOND_NUM_MAX; i++) {
++		bond_grp = kvzalloc(sizeof(*bond_grp), GFP_KERNEL);
++		if (!bond_grp) {
++			ret = -ENOMEM;
++			goto mem_err;
++		}
++
++		bond_grp->bus_num = bus_num;
++
++		ret = alloc_bond_id(bond_grp);
++		if (ret) {
++			dev_err(hr_dev->dev,
++				"failed to alloc bond ID, ret = %d.\n", ret);
++			goto alloc_id_err;
++		}
++
++		bgrps[i] = bond_grp;
++	}
++
++	return 0;
++
++alloc_id_err:
++	kvfree(bond_grp);
++mem_err:
++	for (i--; i >= 0; i--) {
++		remove_bond_id(bgrps[i]->bus_num, bgrps[i]->bond_id);
++		kvfree(bgrps[i]);
++	}
++	return ret;
++}
++
++void hns_roce_dealloc_bond_grp(void)
++{
++	struct hns_roce_bond_group *bond_grp;
++	struct hns_roce_die_info *die_info;
++	unsigned long id;
++	int i;
++
++	xa_for_each(&roce_bond_xa, id, die_info) {
++		for (i = 0; i < ROCE_BOND_NUM_MAX; i++) {
++			bond_grp = die_info->bgrps[i];
++			if (!bond_grp)
++				continue;
++			remove_bond_id(bond_grp->bus_num, bond_grp->bond_id);
++			kvfree(bond_grp);
++		}
++	}
++}
+diff --git a/drivers/infiniband/hw/hns/hns_roce_bond.h b/drivers/infiniband/hw/hns/hns_roce_bond.h
+new file mode 100644
+index 000000000000..61c52135588e
+--- /dev/null
++++ b/drivers/infiniband/hw/hns/hns_roce_bond.h
+@@ -0,0 +1,38 @@
++/* SPDX-License-Identifier: GPL-2.0+ */
++/*
++ * Copyright (c) 2025 Hisilicon Limited.
++ */
++
++#ifndef _HNS_ROCE_BOND_H
++#define _HNS_ROCE_BOND_H
++
++#include <linux/netdevice.h>
++#include <net/bonding.h>
++
++#define ROCE_BOND_FUNC_MAX 4
++#define ROCE_BOND_NUM_MAX 2
++
++#define BOND_ID(id) BIT(id)
++
++struct hns_roce_func_info {
++	struct net_device *net_dev;
++};
++
++struct hns_roce_bond_group {
++	struct net_device *upper_dev;
++	u8 bond_id;
++	u8 bus_num;
++	struct hns_roce_func_info bond_func_info[ROCE_BOND_FUNC_MAX];
++};
++
++struct hns_roce_die_info {
++	u8 bond_id_mask;
++	struct hns_roce_bond_group *bgrps[ROCE_BOND_NUM_MAX];
++};
++
++struct hns_roce_bond_group *hns_roce_get_bond_grp(struct net_device *net_dev,
++						  u8 bus_num);
++int hns_roce_alloc_bond_grp(struct hns_roce_dev *hr_dev);
++void hns_roce_dealloc_bond_grp(void);
++
++#endif
+diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
+index 5ae37832059f..cc1402fc8943 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_device.h
++++ b/drivers/infiniband/hw/hns/hns_roce_device.h
+@@ -154,6 +154,7 @@ enum {
+ 	HNS_ROCE_CAP_FLAG_SDI_MODE		= BIT(14),
+ 	HNS_ROCE_CAP_FLAG_STASH			= BIT(17),
+ 	HNS_ROCE_CAP_FLAG_CQE_INLINE		= BIT(19),
++	HNS_ROCE_CAP_FLAG_BOND                  = BIT(21),
+ 	HNS_ROCE_CAP_FLAG_SRQ_RECORD_DB         = BIT(22),
+ };
+ 
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index 64bca08f3f1a..786c20aa46a6 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -43,11 +43,13 @@
+ #include <rdma/ib_umem.h>
+ #include <rdma/uverbs_ioctl.h>
+ 
++#include "hclge_main.h"
+ #include "hns_roce_common.h"
+ #include "hns_roce_device.h"
+ #include "hns_roce_cmd.h"
+ #include "hns_roce_hem.h"
+ #include "hns_roce_hw_v2.h"
++#include "hns_roce_bond.h"
+ 
+ #define CREATE_TRACE_POINTS
+ #include "hns_roce_trace.h"
+@@ -2270,6 +2272,9 @@ static int hns_roce_query_caps(struct hns_roce_dev *hr_dev)
+ 	caps->flags |= le16_to_cpu(resp_d->cap_flags_ex) <<
+ 		       HNS_ROCE_CAP_FLAGS_EX_SHIFT;
+ 
++	if (hr_dev->is_vf)
++		caps->flags &= ~HNS_ROCE_CAP_FLAG_BOND;
++
+ 	caps->num_cqs = 1 << hr_reg_read(resp_c, PF_CAPS_C_NUM_CQS);
+ 	caps->gid_table_len[0] = hr_reg_read(resp_c, PF_CAPS_C_MAX_GID);
+ 	caps->max_cqes = 1 << hr_reg_read(resp_c, PF_CAPS_C_CQ_DEPTH);
+@@ -7260,6 +7265,7 @@ static int __init hns_roce_hw_v2_init(void)
+ 
+ static void __exit hns_roce_hw_v2_exit(void)
+ {
++	hns_roce_dealloc_bond_grp();
+ 	hnae3_unregister_client(&hns_roce_hw_v2_client);
+ 	hns_roce_cleanup_debugfs();
+ }
+diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
+index 8bca0b10c69e..7fa25586ccd8 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_main.c
++++ b/drivers/infiniband/hw/hns/hns_roce_main.c
+@@ -40,6 +40,7 @@
+ #include "hns_roce_device.h"
+ #include "hns_roce_hem.h"
+ #include "hns_roce_hw_v2.h"
++#include "hns_roce_bond.h"
+ 
+ static int hns_roce_set_mac(struct hns_roce_dev *hr_dev, u32 port,
+ 			    const u8 *addr)
+@@ -744,6 +745,16 @@ static int hns_roce_register_device(struct hns_roce_dev *hr_dev)
+ 	ib_set_device_ops(ib_dev, hr_dev->hw->hns_roce_dev_ops);
+ 	ib_set_device_ops(ib_dev, &hns_roce_dev_ops);
+ 	ib_set_device_ops(ib_dev, &hns_roce_dev_restrack_ops);
++
++	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_BOND) {
++		ret = hns_roce_alloc_bond_grp(hr_dev);
++		if (ret) {
++			dev_err(dev, "failed to alloc bond_grp for bus %u, ret = %d\n",
++				get_hr_bus_num(hr_dev), ret);
++			return ret;
++		}
++	}
++
+ 	for (i = 0; i < hr_dev->caps.num_ports; i++) {
+ 		net_dev = get_hr_netdev(hr_dev, i);
+ 		if (!net_dev)
+-- 
 2.33.0
 
