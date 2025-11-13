@@ -1,205 +1,122 @@
-Received: from mail-ot1-f48.google.com (mail-ot1-f48.google.com [209.85.210.48])
+Received: from mail-ot1-f42.google.com (mail-ot1-f42.google.com [209.85.210.42])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 28EBC363C6F
-	for <linux-rdma@vger.kernel.org>; Thu, 13 Nov 2025 16:39:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.48
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C5D821D3F3
+	for <linux-rdma@vger.kernel.org>; Thu, 13 Nov 2025 16:46:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.42
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763051996; cv=none; b=fJn4VSgre2WCCD5GrC0qXp9CmPs6AjSxa2iuDc8aNJUBffEsCDC8fO5uBDqkeC3m0yhM9khVfk//iDKEBNU82+NLYj7/0t3u4R7pSdRhCtNPylLhXaILgE/0HI7S97d85LugcB51J8HRubo+Xpwoyyevdve2fyw6wGwuKVrtJUQ=
+	t=1763052376; cv=none; b=nRBgQ74WGFwLEQTrOKGNclnQ3hewjKFKW5XkLOkn4zEyhmiEma7aVZQtzAdSjGgfMrDOanXPJBpTblOuxBAKE4AtOA2HmwP1019EXlmmPYswvmbfscH/tcJbm2K+U8/eztUEfqTS/cZryUgRN5o3qgRhweukYbiz7oJdD5bnnMM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763051996; c=relaxed/simple;
-	bh=cfUyfdfoseBOG/IIFMm69pza3MAGUSwuLoioALnWuqo=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=s9H8AebgKBdLybzqpYgNimjgnt+DTGen7dUS2p+DH8ah6b3HpO2RsJhmFpS5Y9x8Fd2Q1paShO8H0cPdLLSoB7w5M5dtvklFmsviZhc2yRcHphLNq447s7czhohLQ87eoN4+r9J9V2X/Rb1wWy1fRmnnykjBmpwBAc/a5Vt2Znc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=O0RUEn5P; arc=none smtp.client-ip=209.85.210.48
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+	s=arc-20240116; t=1763052376; c=relaxed/simple;
+	bh=VGnC9M5GyCZAIUV5N/UMNwO6x7HUT0IBSW2UW8dHOTs=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=jDs45jjI9bhLUjRXdw9F1y6p9mIXrcTal/RXlTZKne3jdhDpt+nxPHF7RyfO1PrKtlpyXJy9eNn9anmPXMa2NN22qvKqsCW5XNrVtmGkPoOQZ4XHgDUNpLLfKli1gImnm0gSezr7/Sb9AT3yxBhz9oZJzhUmQC2z7Gz0TZfIX24=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=debian.org; spf=pass smtp.mailfrom=gmail.com; arc=none smtp.client-ip=209.85.210.42
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=debian.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="O0RUEn5P"
-Received: by mail-ot1-f48.google.com with SMTP id 46e09a7af769-7c6e815310aso633967a34.0
-        for <linux-rdma@vger.kernel.org>; Thu, 13 Nov 2025 08:39:55 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1763051994; x=1763656794; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=se0BzQfhUIXRIhwOdc92HTHcn3k85Yzr+cc0apDQrn0=;
-        b=O0RUEn5PkjxMqBmYudiMxNpW78ql0jBBMDhwc5ctwN8SjrOF6fcYa88eJzD0NsNn7c
-         dxYy3pYhb/P6K+YhUbenSbTaX23RaxzbbkQAuE9dksC+hcEli+JOC47JIB9REs8OzKej
-         Fg4bkRed4CwgtSjAKT/3LtO5E1L7TK77oNXVimT+A1t69S8JnYu0WdzScTbWIUQytgLV
-         uFRpGOqBbmi24uNc3QkOAWauJip+XT4wyTaJC7Sc4RDmJgTPT3ZP5kgkwciPPImd8efL
-         5n0xLjPa0lzSu77XmfdjuS02Cr3zBRiXtwVCCeWZa5iW67vUsBDMmLEi+b5jTsvVmsVy
-         DHUQ==
+Received: by mail-ot1-f42.google.com with SMTP id 46e09a7af769-7c6ce4f65f7so877171a34.0
+        for <linux-rdma@vger.kernel.org>; Thu, 13 Nov 2025 08:46:13 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1763051994; x=1763656794;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=se0BzQfhUIXRIhwOdc92HTHcn3k85Yzr+cc0apDQrn0=;
-        b=xPundvSwwN9ITmUwBh/5gZk5Q/I/vnfZC7Stw3SBcs9XklflLiPhyB2n+HQmbm9TLe
-         oYfMS53mYfO06njtGIgCrvhVMAfRNZGmaroULDfM0OYwl5Zi3R2qdtEW2rUKXR31wX18
-         GAN6OgehsAjp2aV0jLWS4g7tcVCHpevCn5vo2ux+KnkWyTUYydfx1cswFX11H3most03
-         3J2I21Qub4bB8mrJiQ4YdO7VjMI/quN0HfZLxaDayxBN+bWopexvCp/jeksGzy6qjH4o
-         fTyv1hrfDbh0qC1gxkIePVYE+J7pOjDMsMVVhFMlUNnIO646BboQhul6SH/A5WpKCcIv
-         +Smg==
-X-Forwarded-Encrypted: i=1; AJvYcCVsCqLxQI3A0fU8t+I4Qn1ynw0qnaw1T+YTddiyKHhpH1DJLie9uiSY+hbQh4dSD62u9IKPh09u8raa@vger.kernel.org
-X-Gm-Message-State: AOJu0YwPKa3q8ZhlQ/geg+WYXg7C1iwFasaz7fhoOZbs0E4muqmX+Pze
-	6uouJZROLp5rJcLL3jrwan+PTdLH6UtWyzg9O+4leptoRc1ZWAcjcrTb145Inlr4g7mlVoZq3f3
-	JnjVYLoC8mApnIsbzBVkxgov0Qa0HZkXgYhg/mFV4gA==
-X-Gm-Gg: ASbGnctI5yLot/k2HEGkJLFXCbGoRhrVp6C5S6Spjqedeh5uC6UZmzOxZExNbrT886p
-	FcZoRZ9nQ/dxrW4bHxRtcnwm16PO/WFQg+6eXY+LNADEYzpheQl/gcrGfTWEqhuVLYOpfrXvTrS
-	mzdm6x2m2IFNQCUoxeb5nIgNFjzNDSAVUoMjU6XW4JLiCtMBXzWWXtApqS/XOPXhtoqqhfRup4D
-	estu/gZ3+1i6UlnP3FZaSHY6GPwA0nXE3h+YNC6SDmCyxpqvH0u7BJoNbbzVco=
-X-Google-Smtp-Source: AGHT+IEndtZZsK45bH4jx+1r32khIVU4HA4AkYZe5QPu1pRamSRgdhEW2MVN2FCQBg5hpSOAQD7TbHvZVb3fjT25kIM=
-X-Received: by 2002:a05:6808:2207:b0:441:cabe:907 with SMTP id
- 5614622812f47-450744c0d92mr3066733b6e.14.1763051994189; Thu, 13 Nov 2025
- 08:39:54 -0800 (PST)
+        d=1e100.net; s=20230601; t=1763052373; x=1763657173;
+        h=cc:to:content-transfer-encoding:mime-version:message-id:date
+         :subject:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=Le654lwVo/6yvzyB42yjnqH7EJH3FTtiuiBest9Aydw=;
+        b=mPlCy6YONB5aACX6rCvCaIccZPfj2g5ZkvErs4dZzKyMW3M9Mi+77vP99IQ1cdMCl0
+         UfMCnF9NkQ5Woa7NyfDhgnMBYSH2OUVlBjXvks5TUO95JehSA5f3jBCbPLk+0LC07SaB
+         G/51OdLfPdXlgjg2sHEEOqxokZhvosVQvaidRl2EcXhR7idNE4J8IMwpUFBnhRtTzZ1V
+         9GPlPmS2ZmiND1K9oMvgzNCCrLzvMCokAcOiD/j6W9yHLGfZAMPYt7H20hYtx94gitRV
+         7rqSqdVdsbKjc0rzRNhUt6vsQdPJepH3OwEhFSKLjh+7op6YiO12OYEdkJnHreneEMEp
+         YJCw==
+X-Forwarded-Encrypted: i=1; AJvYcCUkxotrua4MxOUDfsZhmmwliUQRiasH9f1WF8L+VEYI6jKlTCikdmg0HI87LEYXH5al1BZ7Ek+9g9P8@vger.kernel.org
+X-Gm-Message-State: AOJu0YwUjf5BfTQZjq3JTK6YF8dS6REEuKWDyiGY8beoYmXhlALRINGR
+	YQGuLyZ7nf2lhUCcs0LaRrqaJRF+auT2EXm9aqHCRMk5I1DnuDqPlHC85d7aqA==
+X-Gm-Gg: ASbGnct5PZLW3N0tPn20SdAvQPkIh0/cVeEuVzdH7KH11MdwbXLku1nf02QpuySBgDj
+	mHuup0Zf/NxtA2rmc5NZMkMhpI5Id/iKs+V32JDW/0HxGrdTPFCsPqPYPGGZstEuLgErOmVwiQz
+	T7c6t0wWLVQUZR5G03U81DPQkNinEw4rxgSszkmm1XQ8xrlp68qCOn6sgTsFw9fZm9PFpOqMwFR
+	zJ7/DiioQAQRhvK4S8NrawgxgIOaI0VKiEyekjK0h/OmCYqDNgK0LyNdWG2bt+6gI4YK7GFJP/n
+	J9NUw2KDi/Ii/GW2SLnjobnHLTIbZjE3qCmLeiHzFDcLSNQkiv4DVP6NZnexuA0FEI0Dv11RwxQ
+	RkmxBlm9gsH8efM+2IOw90yT2VaUxrljY9ti+nBUgeTyBwzCAu+5CGMc30ByAHPOf/R2zKCHhGv
+	zScg==
+X-Google-Smtp-Source: AGHT+IHMlldWyJC6JRWEYFYT1iL5gomLD7IIC4KMdUcHwaxmTiV3LQSm9YXqc/Il2hpg7iYHwyqiKQ==
+X-Received: by 2002:a05:6830:67da:b0:7ba:8107:d559 with SMTP id 46e09a7af769-7c74454ea64mr121594a34.26.1763052373137;
+        Thu, 13 Nov 2025 08:46:13 -0800 (PST)
+Received: from localhost ([2a03:2880:10ff:1::])
+        by smtp.gmail.com with ESMTPSA id 46e09a7af769-7c73a39310csm1490035a34.21.2025.11.13.08.46.12
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 13 Nov 2025 08:46:12 -0800 (PST)
+From: Breno Leitao <leitao@debian.org>
+Subject: [PATCH 0/2] net: mlx: migrate to new get_rx_ring_count ethtool API
+Date: Thu, 13 Nov 2025 08:46:02 -0800
+Message-Id: <20251113-mlx_grxrings-v1-0-0017f2af7dd0@debian.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20251113093720.20428-1-gaurav.gangalwar@gmail.com> <d3b2e4c8-18ec-4b8f-a05f-42bc00196e1c@oracle.com>
-In-Reply-To: <d3b2e4c8-18ec-4b8f-a05f-42bc00196e1c@oracle.com>
-From: gaurav gangalwar <gaurav.gangalwar@gmail.com>
-Date: Thu, 13 Nov 2025 22:09:43 +0530
-X-Gm-Features: AWmQ_bkSZE-n1DH_iYWgff-3lXgeme6WKnJOSdsAvBVe4POA7_OmdEZ9nK16GD8
-Message-ID: <CAJiE4O=zhEaJKQO7bBc8g9gXCiMoi7G7qSiVbQ5Cq+SwBK8OVw@mail.gmail.com>
-Subject: Re: [PATCH] Make RPCRDMA_MAX_RECV_BATCH configurable.
-To: Chuck Lever <chuck.lever@oracle.com>
-Cc: linux-nfs@vger.kernel.org, Olga Kornievskaia <okorniev@redhat.com>, 
-	Dai Ngo <Dai.Ngo@oracle.com>, Tom Talpey <tom@talpey.com>, neilb@brown.name, 
-	Jeff Layton <jlayton@kernel.org>, 
-	"linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-B4-Tracking: v=1; b=H4sIAEoLFmkC/x3MQQqDMBAF0KsMf20gY5tFcpUiInVMB2osE5CA5
+ O5C3wHehSqmUpHogsmpVY+CRDwQ3p+lZHG6IhFGPwZmfrj92+ZszbTk6jiGNYZNvMQnBsLPZNP
+ 2715T7ze2omJYXgAAAA==
+X-Change-ID: 20251113-mlx_grxrings-195d95fe0e94
+To: Tariq Toukan <tariqt@nvidia.com>, Andrew Lunn <andrew+netdev@lunn.ch>, 
+ "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, 
+ Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
+ Saeed Mahameed <saeedm@nvidia.com>, Mark Bloch <mbloch@nvidia.com>, 
+ Leon Romanovsky <leon@kernel.org>
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, 
+ linux-kernel@vger.kernel.org, Breno Leitao <leitao@debian.org>, 
+ kernel-team@meta.com
+X-Mailer: b4 0.15-dev-a6db3
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1354; i=leitao@debian.org;
+ h=from:subject:message-id; bh=VGnC9M5GyCZAIUV5N/UMNwO6x7HUT0IBSW2UW8dHOTs=;
+ b=owEBbQKS/ZANAwAIATWjk5/8eHdtAcsmYgBpFgtTGtn9i7Py9ec07FVPLZv/6rFQlwLiE6XVC
+ 6+4CuAYJhqJAjMEAAEIAB0WIQSshTmm6PRnAspKQ5s1o5Of/Hh3bQUCaRYLUwAKCRA1o5Of/Hh3
+ bYrZEACULVWobdnQ9efzrcFpilU50BH9Lh3TGK7pgRlVM29ZOju0jvQacwOi19SlHukYZiOnmW8
+ yKgdmIVbPFSYuCgIcHTU6SUQ4W2LDKqDenwbmKJiTNVGgr91vWVhms1+0hT5EOtCfzvPZjmWaIF
+ uv4ZRJiT088YQUbMrVIORBqpOICaKHx8Qm+lN+6uSnd7pfDT05W9PNlBoMaJoMnG0Ds0gTfot4h
+ s2+CsizvYVB2M7ij2zxJh8xIkY0WjFd2VoZXuij8yZK4sXJhDKnIe6FEqTbs/KoTBEhpbpr7ech
+ wvQGJEKIyeoZK5xN9f8gvt4wkOrnsbVi9U8cxelWfeeOPgxX+mnDVEOiPweFUO6N3KXy2dNSbhB
+ j9QQzvR9361xkSpftm2D2A2IloduQSnM7kNT5tbrM8qjR+w69UftVJ5en4VobiHw+4nwFXWxHW5
+ 5r7N3W7m38YKbTgcXfF9cA7lqiyqyJLYDoGrAYPjupKQoqhFCplb3uR7aYShy4HeuioYeo3ZW3x
+ 5Vd0CyLn14g41jd8WTraQpkuAFRE+V4C+qozgMkI21bJwyOcRzrRiBHqrZpVzEfMWxfbZjLR3II
+ /4Uqcgmh/AjJnxOL7tKsLW/dFHTjhxC66B7Gd+UYoDtwbFVczLz7X2CS+/N9JAPHZ7VQ84HpgtI
+ 0IdnQAAKtiQKs0Q==
+X-Developer-Key: i=leitao@debian.org; a=openpgp;
+ fpr=AC8539A6E8F46702CA4A439B35A3939FFC78776D
 
-On Thu, Nov 13, 2025 at 7:49=E2=80=AFPM Chuck Lever <chuck.lever@oracle.com=
-> wrote:
->
-> On 11/13/25 4:37 AM, Gaurav Gangalwar wrote:
-> > Bumped up rpcrdma_max_recv_batch to 64.
-> > Added param to change to it, it becomes handy to use higher value
-> > to avoid hung.
->
-> [ Resend with correct NFSD reviewer email addresses and linux-rdma@ ]
->
-> Hi Gaurav -
->
-> Adding an administrative setting is generally a last resort. First,
-> we want a full root-cause analysis to understand the symptoms you
-> are trying to address. Do you have an RCA or a simple reproducer to
-> share with us?
+This series migrates the mlx4 and mlx5 drivers to use the new
+.get_rx_ring_count() callback introduced in commit 84eaf4359c36 ("net:
+ethtool: add get_rx_ring_count callback to optimize RX ring queries").
 
-Issue found while testing fio workload over RDMA
-Client: Ubuntu 24.04
-Server: Ganesha NFS server
-We have seen intermittent hung on client with buffered IO workload at
-large scale with around 30 RDMA connections, client was under memory
-pressure.
-Ganesha log shows
+Previously, these drivers handled ETHTOOL_GRXRINGS within the
+.get_rxnfc() callback. With the dedicated .get_rx_ring_count() API, this
+handling can be extracted and simplified.
 
-10/11/2025 16:39:12Z : ntnx-10-57-210-224-a-fsvm 1309416[none]
-[0x7f49a6c3fe80] rpc :TIRPC :EVENT :rpc_rdma_cq_event_handler() cq
-completion status: RNR retry counter exceeded (13) rdma_xprt state 5
-opcode 2 cbc 0x7f4996688000 inline 1
+For mlx5, this affects both the ethernet and IPoIB drivers. The
+ETHTOOL_GRXRINGS handling was previously kept in .get_rxnfc() to support
+"ethtool -x" when CONFIG_MLX5_EN_RXNFC=n, but this is no longer
+necessary with the new dedicated callback.
 
-Which points to lack of posted recv buffers on client.
-Once we increased rpcrdma_max_recv_batch to 64, issue was resolved.
+Note: The mlx4 changes are compile-tested only, while mlx5 changes were
+properly tested.
 
->
->
-> > Signed-off-by: Gaurav Gangalwar <gaurav.gangalwar@gmail.com>
-> > ---
-> >  net/sunrpc/xprtrdma/frwr_ops.c           | 2 +-
-> >  net/sunrpc/xprtrdma/module.c             | 6 ++++++
-> >  net/sunrpc/xprtrdma/svc_rdma_transport.c | 2 +-
-> >  net/sunrpc/xprtrdma/verbs.c              | 2 +-
-> >  net/sunrpc/xprtrdma/xprt_rdma.h          | 4 +---
-> >  5 files changed, 10 insertions(+), 6 deletions(-)
-> >
-> > diff --git a/net/sunrpc/xprtrdma/frwr_ops.c b/net/sunrpc/xprtrdma/frwr_=
-ops.c
-> > index 31434aeb8e29..863a0c567915 100644
-> > --- a/net/sunrpc/xprtrdma/frwr_ops.c
-> > +++ b/net/sunrpc/xprtrdma/frwr_ops.c
-> > @@ -246,7 +246,7 @@ int frwr_query_device(struct rpcrdma_ep *ep, const =
-struct ib_device *device)
-> >       ep->re_attr.cap.max_send_wr +=3D 1; /* for ib_drain_sq */
-> >       ep->re_attr.cap.max_recv_wr =3D ep->re_max_requests;
-> >       ep->re_attr.cap.max_recv_wr +=3D RPCRDMA_BACKWARD_WRS;
-> > -     ep->re_attr.cap.max_recv_wr +=3D RPCRDMA_MAX_RECV_BATCH;
-> > +     ep->re_attr.cap.max_recv_wr +=3D rpcrdma_max_recv_batch;
-> >       ep->re_attr.cap.max_recv_wr +=3D 1; /* for ib_drain_rq */
-> >
-> >       ep->re_max_rdma_segs =3D
-> > diff --git a/net/sunrpc/xprtrdma/module.c b/net/sunrpc/xprtrdma/module.=
-c
-> > index 697f571d4c01..afeec5a68151 100644
-> > --- a/net/sunrpc/xprtrdma/module.c
-> > +++ b/net/sunrpc/xprtrdma/module.c
-> > @@ -27,6 +27,12 @@ MODULE_ALIAS("svcrdma");
-> >  MODULE_ALIAS("xprtrdma");
-> >  MODULE_ALIAS("rpcrdma6");
-> >
-> > +unsigned int rpcrdma_max_recv_batch =3D 64;
-> > +module_param_named(max_recv_batch, rpcrdma_max_recv_batch, uint, 0644)=
-;
-> > +MODULE_PARM_DESC(max_recv_batch,
-> > +              "Maximum number of Receive WRs to post in a batch "
-> > +              "(default: 64, set to 0 to disable batching)");
-> > +
-> >  static void __exit rpc_rdma_cleanup(void)
-> >  {
-> >       xprt_rdma_cleanup();
-> > diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprt=
-rdma/svc_rdma_transport.c
-> > index 3d7f1413df02..32a9ceb18389 100644
-> > --- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
-> > +++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
-> > @@ -440,7 +440,7 @@ static struct svc_xprt *svc_rdma_accept(struct svc_=
-xprt *xprt)
-> >       newxprt->sc_max_req_size =3D svcrdma_max_req_size;
-> >       newxprt->sc_max_requests =3D svcrdma_max_requests;
-> >       newxprt->sc_max_bc_requests =3D svcrdma_max_bc_requests;
-> > -     newxprt->sc_recv_batch =3D RPCRDMA_MAX_RECV_BATCH;
-> > +     newxprt->sc_recv_batch =3D rpcrdma_max_recv_batch;
-> >       newxprt->sc_fc_credits =3D cpu_to_be32(newxprt->sc_max_requests);
-> >
-> >       /* Qualify the transport's resource defaults with the
-> > diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-> > index 63262ef0c2e3..7cd0a2c152e6 100644
-> > --- a/net/sunrpc/xprtrdma/verbs.c
-> > +++ b/net/sunrpc/xprtrdma/verbs.c
-> > @@ -1359,7 +1359,7 @@ void rpcrdma_post_recvs(struct rpcrdma_xprt *r_xp=
-rt, int needed)
-> >       if (likely(ep->re_receive_count > needed))
-> >               goto out;
-> >       needed -=3D ep->re_receive_count;
-> > -     needed +=3D RPCRDMA_MAX_RECV_BATCH;
-> > +     needed +=3D rpcrdma_max_recv_batch;
-> >
-> >       if (atomic_inc_return(&ep->re_receiving) > 1)
-> >               goto out;
-> > diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt=
-_rdma.h
-> > index 8147d2b41494..1051aa612f36 100644
-> > --- a/net/sunrpc/xprtrdma/xprt_rdma.h
-> > +++ b/net/sunrpc/xprtrdma/xprt_rdma.h
-> > @@ -216,9 +216,7 @@ struct rpcrdma_rep {
-> >   *
-> >   * Setting this to zero disables Receive post batching.
-> >   */
-> > -enum {
-> > -     RPCRDMA_MAX_RECV_BATCH =3D 7,
-> > -};
-> > +extern unsigned int rpcrdma_max_recv_batch;
-> >
-> >  /* struct rpcrdma_sendctx - DMA mapped SGEs to unmap after Send comple=
-tes
-> >   */
->
->
-> --
-> Chuck Lever
+Signed-off-by: Breno Leitao <leitao@debian.org>
+---
+Breno Leitao (2):
+      mlx4: extract GRXRINGS from .get_rxnfc
+      mlx5: extract GRXRINGS from .get_rxnfc
+
+ drivers/net/ethernet/mellanox/mlx4/en_ethtool.c        | 11 ++++++++---
+ drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c   | 18 ++++++++----------
+ .../net/ethernet/mellanox/mlx5/core/ipoib/ethtool.c    | 18 ++++++++----------
+ 3 files changed, 24 insertions(+), 23 deletions(-)
+---
+base-commit: 9f07af1d274223a4314b5e2e6d395a78166c24c5
+change-id: 20251113-mlx_grxrings-195d95fe0e94
+
+Best regards,
+--  
+Breno Leitao <leitao@debian.org>
+
