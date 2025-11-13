@@ -1,193 +1,163 @@
-Received: from mail-ot1-f44.google.com (mail-ot1-f44.google.com [209.85.210.44])
+Received: from mail-oo1-f47.google.com (mail-oo1-f47.google.com [209.85.161.47])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5953D359FBD
-	for <linux-rdma@vger.kernel.org>; Thu, 13 Nov 2025 16:46:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.44
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 74519225785
+	for <linux-rdma@vger.kernel.org>; Thu, 13 Nov 2025 16:47:47 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.161.47
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763052378; cv=none; b=FvEBBLgvlzMac5ok6W84iOwE26O3C+YPx2eboUP11cOyqMljr+sHigJoJ02k3deeFFtTuzzaQ5oTc0ygMRyWGhx8smWJm7XcTNkTehR9HFfETVk561iUNFX0we0I5MpdhnlHjMuUaudymjBomseqTb+q4NKGoPyFnA1zFvGUwHE=
+	t=1763052469; cv=none; b=rrJNFbbq7uHdNpX3g3t/CoqMh517SLkC51we6+7TZJaaPD7VN+EQzVtru0eN/eBS2Q6HfqIKFILDan9LfV5E+6a6CTi85mUajgdW5O9UHPESq777BUlLb9TpLPK9iEG5eoZwpvgnhtTbBu2qqIM06kt2ivJrEFByp++Fxu70tuw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763052378; c=relaxed/simple;
-	bh=poQ2ltGXAGj/R6azLC8+vFrV6fsBn4x8KuYNyoxOTxE=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=GkjMSaZT/gflhi0MY5P7QTx6YDJ1e+6zB74k4MdJkI0MRzPoS6LSNevVhuCqY5CMgCgLaXz6NhUyR6pC96tL7+GzHvCWccPd7l2WWpXOhT35JdoB9BMEB/anDfhhDQ0LPTc9KVLS2Ln981WgiuArstEW2QFMzPLmAvK+92zdiVg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=debian.org; spf=pass smtp.mailfrom=gmail.com; arc=none smtp.client-ip=209.85.210.44
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=debian.org
+	s=arc-20240116; t=1763052469; c=relaxed/simple;
+	bh=wxr3oyHuw4JBJD6eiR+G0Wyqv+Sl/Us4AF7aWNcwdh8=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=F4v/Rfvk1b35jUIujYxtAdzSrz6ZZr9WDDc1hR7bLesZrRzZh2OAW2PA927+MUDqde4lZer5WNy8fPF+q4htb2jE2GsYF/m2eoTjBr4gKFcPpyOL6zXvNxovA252u5hUFx3UBPq5Bt5iDf+Gr3rSU32Tf6SzNUYCxrKqsui9uIM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=IUzo9MvK; arc=none smtp.client-ip=209.85.161.47
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Received: by mail-ot1-f44.google.com with SMTP id 46e09a7af769-7c70fcc8561so395984a34.0
-        for <linux-rdma@vger.kernel.org>; Thu, 13 Nov 2025 08:46:16 -0800 (PST)
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="IUzo9MvK"
+Received: by mail-oo1-f47.google.com with SMTP id 006d021491bc7-656cb7b20ccso440874eaf.1
+        for <linux-rdma@vger.kernel.org>; Thu, 13 Nov 2025 08:47:47 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1763052466; x=1763657266; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=Xtb1Tg4f0J+buM9U/6muLv9lSlDdspLzgrMc4VoD+Hg=;
+        b=IUzo9MvKPRGPRheJBDerm9SQyRov59M6kF16s+n3bcfO+6oW+OFTmrvaCnzJMklK1u
+         WJcYKugoUFegGkfItRwhvlhGi9saJ5EzjbHfddLkVdasnKDEl2AdlIfylmKLRiEsfswh
+         8FunGBzCCKXFkfzyG1nrseXNzc7JQQeMoYNtsdf9eAbzhvp2krXrENcbKenq/FZmHHE/
+         uy9O1Ehy4G96XNJY1SSeconBBf+cr7L949/KxsN9Av6u7l7pflvipP2ZbrWQzx1XIwXs
+         2SGHNiB5cvJCmeOOBoqsLKSw6YrbDp1CzkzTwSMLOmS91vJI94ylzo3JTFCHbq6UbIqc
+         E2gw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1763052375; x=1763657175;
-        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
-         :mime-version:subject:date:from:x-gm-gg:x-gm-message-state:from:to
-         :cc:subject:date:message-id:reply-to;
-        bh=AMwHal9dzTj8WL52AK+cJ5GudloGhSjkVv/ITspvX8U=;
-        b=Yeadn2zi+bk8P9sVhZ8hgg5Lvf63zBkmwwoVoU6EdQUMpm95jq3uK2YjnGLwt/pC1u
-         aDH663zwpDpeQ/aItqC/yXP/Cbj7oSGZXjQGwEr4ok/6Gxmk+o1ZOweD0odm3uHpe9zD
-         N8dSqPpTDAB4qc9DAp5vIumuIrRm24YqpULbtynpLAZFMk1WDs1F25mafKNoixY27+gh
-         Tu1r1WIoVxlJHUdep5D8v/SpsBqoP371BSW3BnQkIh2cZSVY/pn7Dzv7Iz69/RdSDPev
-         8hA5xi+FSlH+0UpzPXOei3J5QaqVKBKgFsuuOcb8VgBkEhI0agbLaIyI4ADki5o2PlgY
-         AJHw==
-X-Forwarded-Encrypted: i=1; AJvYcCXrn0WoC3jWHR8PRzlxATNf+jg41HwVX5e1wwi9pjfmHBiNvVs5BMtAxpn2oRLZu46tJGXQPOkQDTI1@vger.kernel.org
-X-Gm-Message-State: AOJu0YzU4H7A79CcPpzGHl9/WVoXUl4QJO4moRaNLuKGOx+2WagRpNYt
-	gFanFsslrZz91t2i5ITbGhWxYKk0YqSdbHNZ4iQycn4m+nJ9Ce38lxCJ4iBYTA==
-X-Gm-Gg: ASbGncupDKQe9gf9h7/7RvlDgo0f8c/Z5EIk1JOTArmLiVOGsnCpAefwDhJNxnFSMPX
-	v9ZipKVUYJVs0YADgnBVzjZTwlw8JHy6h7hDDx0VVkZ+TCoJ2dydsXhnLX/MUDKwoqK0Tm9A3y8
-	Rj+iT9XObsM5s0THD29Tgb9NPdgjzPCkubnuUv+soDaoilO3ydv2ckusBLUAMg1CmQg2KdMidKg
-	MxrmVuMCEnay597msCLNOY8rYdN4pqIhGBstf1YhJ1Gusg+2E2okpLjTkaSX5VwiyyW+4r78TO8
-	3p/hFb+GQNgnx13foVp4ptMplFzyndr3R0okLjv+t7SLk+xJ1inKiAk8sdcZLjBMgqGnguzhQ3z
-	p5y4xaKTnv+Px2Ffg9X0N6f3/LHAG8c7OjN0Kbi4bRXeYkyc+78cTavJPCRdSDRcEW+RzIPVdIx
-	C5VXVqHSOLc/w0
-X-Google-Smtp-Source: AGHT+IHwklT+fSAdTS6FhgXRWj9vGB2ajsTuhU7iPf3ZuTDe1HF6NP47ittL43ZGlAOFk7Zre3gEqA==
-X-Received: by 2002:a05:6830:4129:b0:7c7:162:e0c7 with SMTP id 46e09a7af769-7c7442db71dmr128771a34.6.1763052375233;
-        Thu, 13 Nov 2025 08:46:15 -0800 (PST)
-Received: from localhost ([2a03:2880:10ff:5::])
-        by smtp.gmail.com with ESMTPSA id 46e09a7af769-7c73a283a44sm1515045a34.2.2025.11.13.08.46.14
+        d=1e100.net; s=20230601; t=1763052466; x=1763657266;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=Xtb1Tg4f0J+buM9U/6muLv9lSlDdspLzgrMc4VoD+Hg=;
+        b=hli1aSlXZen8+KLAMXOKWk3HP7kAUM1mZhgti08tsIBhkS65DQHtO3ywAVa2DR1/pY
+         TW8+QDTZ64A81bxlYpkG9UUinosZTUHbrsslayvru1nubPV3F42SqJrAgbPoP3VnVGh/
+         XcOqF5yK0iybOwJ2Kw8lYkeSeAxD3E+d97c2Zd1Pudxt0FHvihfONNWHPhCU/VWhJI0t
+         diiOKylBtwIp24kf81F4QEIBLMnL2+EyDRMJ/VaYSKXQ2xPOc4ZzHkk4fhDf5THwplue
+         tsj9Ju68A0Oj+N0QTkMWISo/jdi72Ow8u+7zzfymjWvOFMP0/PGjJ7wkyagZgGf4o8oV
+         AOiA==
+X-Forwarded-Encrypted: i=1; AJvYcCVnq2lbhdodP7nFV9HJliLHUeqC/G4NvqKQEGcRkWy1398bC6++H1L8FwK976uwxLIUe9EW2+B2ujWx@vger.kernel.org
+X-Gm-Message-State: AOJu0Yygfh/bclQm1Q5iB3D2MgEo5ozSppNqpF8YETjy+M9sRsLQqUDT
+	HonuwFABepR2IcOxkqIRgEmbOeiGXjuN68VJrJDVxdvVLi/B4dBxM7n98b3lX0Zr4Bk=
+X-Gm-Gg: ASbGncsuVFXB3mfHORa0gXMEMR/gbic3UkK0cC9tZX9ClGs9Hb53f/1Sx+ftIOJ4sy5
+	gJDrWdnCmzV7w7jcytovp+Z4UAIFRJYNJTOkEZl7m68A2zkLNaHoqwkuziMLC6u/lFH75A3Oszy
+	cGR99F4UNJGDxC+CSfl0a2dqIkd2mMqm4KS0YTWLLdiAGAyZjMZ9oniHJprGJ1lIp8BUt01HMxM
+	IdWrLEB/B72l7enRrp+qyGMpiUKniIqBHdRY+j5JZkwLE+50bRZInujSsPPNeT0fC/bcdu/+IVG
+	7nnYOl7u/8gXBXK7hAN56vnEh1AQAhszjVg7c7nUoSUJvUbnoqPCWg2SLIhU6Zbyx/2J/eihyuF
+	ZBukJIhu01kvoTOJSTAszq+RhMewAq+ueDLARb8Vmk+H1nEAB9eEBWv701c3KwdIdTkqxGXYcN8
+	Yb77FGCWV2LvDMxHPY/74=
+X-Google-Smtp-Source: AGHT+IGFCNQet+BuHm7TrA8WU2G72HMPRvd91sqbtpEJ9RSuQNUwN8KOf9V9uynfETNdHuQJogNZYQ==
+X-Received: by 2002:a05:6820:6487:b0:654:f200:1490 with SMTP id 006d021491bc7-65723304154mr1333715eaf.1.1763052466156;
+        Thu, 13 Nov 2025 08:47:46 -0800 (PST)
+Received: from localhost.localdomain ([192.146.154.240])
+        by smtp.gmail.com with ESMTPSA id 006d021491bc7-65724cfa261sm1227228eaf.5.2025.11.13.08.47.45
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 13 Nov 2025 08:46:14 -0800 (PST)
-From: Breno Leitao <leitao@debian.org>
-Date: Thu, 13 Nov 2025 08:46:04 -0800
-Subject: [PATCH 2/2] mlx5: extract GRXRINGS from .get_rxnfc
+        Thu, 13 Nov 2025 08:47:45 -0800 (PST)
+From: Gaurav Gangalwar <gaurav.gangalwar@gmail.com>
+To: chuck.lever@oracle.com
+Cc: linux-nfs@vger.kernel.org,
+	linux-rdma@vger.kernel.org,
+	Gaurav Gangalwar <gaurav.gangalwar@gmail.com>
+Subject: [PATCH] Make RPCRDMA_MAX_RECV_BATCH configurable.
+Date: Thu, 13 Nov 2025 11:46:48 -0500
+Message-ID: <20251113164648.20774-1-gaurav.gangalwar@gmail.com>
+X-Mailer: git-send-email 2.43.7
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20251113-mlx_grxrings-v1-2-0017f2af7dd0@debian.org>
-References: <20251113-mlx_grxrings-v1-0-0017f2af7dd0@debian.org>
-In-Reply-To: <20251113-mlx_grxrings-v1-0-0017f2af7dd0@debian.org>
-To: Tariq Toukan <tariqt@nvidia.com>, Andrew Lunn <andrew+netdev@lunn.ch>, 
- "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, 
- Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
- Saeed Mahameed <saeedm@nvidia.com>, Mark Bloch <mbloch@nvidia.com>, 
- Leon Romanovsky <leon@kernel.org>
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, 
- linux-kernel@vger.kernel.org, Breno Leitao <leitao@debian.org>, 
- kernel-team@meta.com
-X-Mailer: b4 0.15-dev-a6db3
-X-Developer-Signature: v=1; a=openpgp-sha256; l=4074; i=leitao@debian.org;
- h=from:subject:message-id; bh=poQ2ltGXAGj/R6azLC8+vFrV6fsBn4x8KuYNyoxOTxE=;
- b=owEBbQKS/ZANAwAIATWjk5/8eHdtAcsmYgBpFgtUh28966CZumXyyIbtdUKCDXVJ8AGRMjLUp
- wrz5B/DxWmJAjMEAAEIAB0WIQSshTmm6PRnAspKQ5s1o5Of/Hh3bQUCaRYLVAAKCRA1o5Of/Hh3
- bdFbD/982JwpeO4nF2jB9yp61nX7YvYeLYMRBYZfid29jOZd2WDNUdzO9NVNTaIVbKOZBn5xA1K
- waiTW2l04raQU0qsjerdzgOWGHtn1q9rYnu6WUN5vkXkocZCBfjfFYv9Cuf9UaEHU2NWgWBlbO3
- UQatrdWD3FJmrx8ziHaw5u2Z4rYmrhmk8RVLh7SSAbU2zVatHBuMcyd35GMgduFkavNNMk4wMLS
- 6txW1fGu2VBmEhNbQEJJou+zK7K6jisiFpBqd3jS6k2VRyjCwFoJ+X8zhrQMgwB9YP85IiXTlWH
- JUCpk/ugnrlTbq58FjFjyUAv8AW+c/EB6e1HGLJWWT22MJtt5dmUkG/6rVDAT0vpRtPkYgt1wxG
- L+KtiYVC1kkCJpFlPWKpHCLNkzk+TShPOmo7kNjdUeVKpbDKX7Cw71m5PG8Xd1Eqa42n8Jfz1qG
- 4xTq6TRVw30lZO7oF2ZyHkQHmM8xfVh0pxq/cYgrBQvdWAuMyIMpkrxvhKF3yenZly5Juq5+QH6
- Dn6pZhTcLMRZRfGja6Z5K7I435aXUUlb7TH1h/W4DdN4fmkzMM/LOlIR19/JcSjiQE8SnWkzJnh
- bbQDhhKDvL0w67oZG7T8g7VHZ3QtpsJNXvIyuPMp7k36nRXsbHMiw/qU1N2NoALz4N6xYXxvuHE
- j/fVWMcO1UlhFrw==
-X-Developer-Key: i=leitao@debian.org; a=openpgp;
- fpr=AC8539A6E8F46702CA4A439B35A3939FFC78776D
+Content-Transfer-Encoding: 8bit
 
-Commit 84eaf4359c36 ("net: ethtool: add get_rx_ring_count callback to
-optimize RX ring queries") added specific support for GRXRINGS callback,
-simplifying .get_rxnfc.
+Bumped up rpcrdma_max_recv_batch to 64.
+Added param to change to it, it becomes handy to use higher value
+to avoid hung.
 
-Remove the handling of GRXRINGS in .get_rxnfc() by moving it to the new
-.get_rx_ring_count() for both the mlx5 ethernet and IPoIB drivers.
-
-The ETHTOOL_GRXRINGS handling was previously kept in .get_rxnfc() to
-support "ethtool -x" when CONFIG_MLX5_EN_RXNFC=n. With the new
-dedicated .get_rx_ring_count() callback, this is no longer necessary.
-
-This simplifies the RX ring count retrieval and aligns mlx5 with the new
-ethtool API for querying RX ring parameters.
-
-Signed-off-by: Breno Leitao <leitao@debian.org>
+Signed-off-by: Gaurav Gangalwar <gaurav.gangalwar@gmail.com>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c   | 18 ++++++++----------
- .../net/ethernet/mellanox/mlx5/core/ipoib/ethtool.c    | 18 ++++++++----------
- 2 files changed, 16 insertions(+), 20 deletions(-)
+ net/sunrpc/xprtrdma/frwr_ops.c           | 2 +-
+ net/sunrpc/xprtrdma/module.c             | 6 ++++++
+ net/sunrpc/xprtrdma/svc_rdma_transport.c | 2 +-
+ net/sunrpc/xprtrdma/verbs.c              | 2 +-
+ net/sunrpc/xprtrdma/xprt_rdma.h          | 4 +---
+ 5 files changed, 10 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c b/drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c
-index 01b8f05a23db..939e274779b3 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c
-@@ -2492,21 +2492,18 @@ static int mlx5e_set_rxfh_fields(struct net_device *dev,
- 	return mlx5e_ethtool_set_rxfh_fields(priv, cmd, extack);
- }
+diff --git a/net/sunrpc/xprtrdma/frwr_ops.c b/net/sunrpc/xprtrdma/frwr_ops.c
+index 31434aeb8e29..863a0c567915 100644
+--- a/net/sunrpc/xprtrdma/frwr_ops.c
++++ b/net/sunrpc/xprtrdma/frwr_ops.c
+@@ -246,7 +246,7 @@ int frwr_query_device(struct rpcrdma_ep *ep, const struct ib_device *device)
+ 	ep->re_attr.cap.max_send_wr += 1; /* for ib_drain_sq */
+ 	ep->re_attr.cap.max_recv_wr = ep->re_max_requests;
+ 	ep->re_attr.cap.max_recv_wr += RPCRDMA_BACKWARD_WRS;
+-	ep->re_attr.cap.max_recv_wr += RPCRDMA_MAX_RECV_BATCH;
++	ep->re_attr.cap.max_recv_wr += rpcrdma_max_recv_batch;
+ 	ep->re_attr.cap.max_recv_wr += 1; /* for ib_drain_rq */
  
-+static u32 mlx5e_get_rx_ring_count(struct net_device *dev)
-+{
-+	struct mlx5e_priv *priv = netdev_priv(dev);
+ 	ep->re_max_rdma_segs =
+diff --git a/net/sunrpc/xprtrdma/module.c b/net/sunrpc/xprtrdma/module.c
+index 697f571d4c01..afeec5a68151 100644
+--- a/net/sunrpc/xprtrdma/module.c
++++ b/net/sunrpc/xprtrdma/module.c
+@@ -27,6 +27,12 @@ MODULE_ALIAS("svcrdma");
+ MODULE_ALIAS("xprtrdma");
+ MODULE_ALIAS("rpcrdma6");
+ 
++unsigned int rpcrdma_max_recv_batch = 64;
++module_param_named(max_recv_batch, rpcrdma_max_recv_batch, uint, 0644);
++MODULE_PARM_DESC(max_recv_batch,
++		 "Maximum number of Receive WRs to post in a batch "
++		 "(default: 64, set to 0 to disable batching)");
 +
-+	return priv->channels.params.num_channels;
-+}
-+
- static int mlx5e_get_rxnfc(struct net_device *dev, struct ethtool_rxnfc *info,
- 			   u32 *rule_locs)
+ static void __exit rpc_rdma_cleanup(void)
  {
- 	struct mlx5e_priv *priv = netdev_priv(dev);
+ 	xprt_rdma_cleanup();
+diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+index 3d7f1413df02..32a9ceb18389 100644
+--- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
++++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+@@ -440,7 +440,7 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
+ 	newxprt->sc_max_req_size = svcrdma_max_req_size;
+ 	newxprt->sc_max_requests = svcrdma_max_requests;
+ 	newxprt->sc_max_bc_requests = svcrdma_max_bc_requests;
+-	newxprt->sc_recv_batch = RPCRDMA_MAX_RECV_BATCH;
++	newxprt->sc_recv_batch = rpcrdma_max_recv_batch;
+ 	newxprt->sc_fc_credits = cpu_to_be32(newxprt->sc_max_requests);
  
--	/* ETHTOOL_GRXRINGS is needed by ethtool -x which is not part
--	 * of rxnfc. We keep this logic out of mlx5e_ethtool_get_rxnfc,
--	 * to avoid breaking "ethtool -x" when mlx5e_ethtool_get_rxnfc
--	 * is compiled out via CONFIG_MLX5_EN_RXNFC=n.
--	 */
--	if (info->cmd == ETHTOOL_GRXRINGS) {
--		info->data = priv->channels.params.num_channels;
--		return 0;
--	}
--
- 	return mlx5e_ethtool_get_rxnfc(priv, info, rule_locs);
- }
+ 	/* Qualify the transport's resource defaults with the
+diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
+index 63262ef0c2e3..7cd0a2c152e6 100644
+--- a/net/sunrpc/xprtrdma/verbs.c
++++ b/net/sunrpc/xprtrdma/verbs.c
+@@ -1359,7 +1359,7 @@ void rpcrdma_post_recvs(struct rpcrdma_xprt *r_xprt, int needed)
+ 	if (likely(ep->re_receive_count > needed))
+ 		goto out;
+ 	needed -= ep->re_receive_count;
+-	needed += RPCRDMA_MAX_RECV_BATCH;
++	needed += rpcrdma_max_recv_batch;
  
-@@ -2766,6 +2763,7 @@ const struct ethtool_ops mlx5e_ethtool_ops = {
- 	.remove_rxfh_context	= mlx5e_remove_rxfh_context,
- 	.get_rxnfc         = mlx5e_get_rxnfc,
- 	.set_rxnfc         = mlx5e_set_rxnfc,
-+	.get_rx_ring_count = mlx5e_get_rx_ring_count,
- 	.get_tunable       = mlx5e_get_tunable,
- 	.set_tunable       = mlx5e_set_tunable,
- 	.get_pause_stats   = mlx5e_get_pause_stats,
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/ipoib/ethtool.c b/drivers/net/ethernet/mellanox/mlx5/core/ipoib/ethtool.c
-index 4b3430ac3905..3b2f54ca30a8 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/ipoib/ethtool.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/ipoib/ethtool.c
-@@ -266,21 +266,18 @@ static int mlx5i_set_rxnfc(struct net_device *dev, struct ethtool_rxnfc *cmd)
- 	return mlx5e_ethtool_set_rxnfc(priv, cmd);
- }
+ 	if (atomic_inc_return(&ep->re_receiving) > 1)
+ 		goto out;
+diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
+index 8147d2b41494..1051aa612f36 100644
+--- a/net/sunrpc/xprtrdma/xprt_rdma.h
++++ b/net/sunrpc/xprtrdma/xprt_rdma.h
+@@ -216,9 +216,7 @@ struct rpcrdma_rep {
+  *
+  * Setting this to zero disables Receive post batching.
+  */
+-enum {
+-	RPCRDMA_MAX_RECV_BATCH = 7,
+-};
++extern unsigned int rpcrdma_max_recv_batch;
  
-+static u32 mlx5i_get_rx_ring_count(struct net_device *dev)
-+{
-+	struct mlx5e_priv *priv = mlx5i_epriv(dev);
-+
-+	return priv->channels.params.num_channels;
-+}
-+
- static int mlx5i_get_rxnfc(struct net_device *dev, struct ethtool_rxnfc *info,
- 			   u32 *rule_locs)
- {
- 	struct mlx5e_priv *priv = mlx5i_epriv(dev);
- 
--	/* ETHTOOL_GRXRINGS is needed by ethtool -x which is not part
--	 * of rxnfc. We keep this logic out of mlx5e_ethtool_get_rxnfc,
--	 * to avoid breaking "ethtool -x" when mlx5e_ethtool_get_rxnfc
--	 * is compiled out via CONFIG_MLX5_EN_RXNFC=n.
--	 */
--	if (info->cmd == ETHTOOL_GRXRINGS) {
--		info->data = priv->channels.params.num_channels;
--		return 0;
--	}
--
- 	return mlx5e_ethtool_get_rxnfc(priv, info, rule_locs);
- }
- 
-@@ -304,6 +301,7 @@ const struct ethtool_ops mlx5i_ethtool_ops = {
- 	.set_rxfh_fields    = mlx5i_set_rxfh_fields,
- 	.get_rxnfc          = mlx5i_get_rxnfc,
- 	.set_rxnfc          = mlx5i_set_rxnfc,
-+	.get_rx_ring_count  = mlx5i_get_rx_ring_count,
- 	.get_link_ksettings = mlx5i_get_link_ksettings,
- 	.get_link           = ethtool_op_get_link,
- };
-
+ /* struct rpcrdma_sendctx - DMA mapped SGEs to unmap after Send completes
+  */
 -- 
-2.47.3
+2.43.7
 
