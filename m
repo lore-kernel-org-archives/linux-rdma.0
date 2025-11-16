@@ -1,424 +1,207 @@
-Received: from CH4PR04CU002.outbound.protection.outlook.com (mail-northcentralusazon11013047.outbound.protection.outlook.com [40.107.201.47])
+Received: from CH5PR02CU005.outbound.protection.outlook.com (mail-northcentralusazon11022113.outbound.protection.outlook.com [40.107.200.113])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E6F526C38C;
-	Sun, 16 Nov 2025 20:47:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.201.47
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9DE94D531;
+	Sun, 16 Nov 2025 21:38:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.200.113
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763326056; cv=fail; b=ZHHjarRxO+1ZFyGoBtDsvaBd/gd+UDt82JODU6V5t1Ju+j3Oavjwgvg4lLrSSNG5hwHgz7YK6pypfNp+49+Dy5VPQJOlWCzO62xLX6HjLTrWzDgBVVkGeW9XsfXKLht0+FZdQX/SLvKK2qqA3w08u1+LGVJNjSy6ZOUmPwsIHx8=
+	t=1763329089; cv=fail; b=qGfP++XZK4QBkaTz52FzZ+4/TFnDr4nu2Tp2jzz/1j+7+igp7R1SBFzZseQuQcS1BrJ6gAEr28Pw0ba5xB7aKHs7QIARdmejVwHbtcbTUCRZb4/BazfQRtDFTcjCDn5wRfeXh+DQ1/m3yBOZ9AMeeivaGDkJfM7Im0JuTVr7zFM=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763326056; c=relaxed/simple;
-	bh=IhyIV9lT2Z4IfnqtNNdM6dvLhXJtTJBO1jWIubV8SjI=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=GQyA9/ce7rNfTEk4uWdr7mv4yJXtJwmVC+VADcpAE1pLBqKp0YCtL74rgSd4Pp9HwGzbwM41Tt2pCoEm74k6Rr9w/t7jg/o87Q/wHpov20YJgU2GLJCN3FCae645hCt243Kp7SoCYbxLKKfkyF3SaV3j9P5j64lqtYcJTUKSvHs=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=iSi/Dctc; arc=fail smtp.client-ip=40.107.201.47
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	s=arc-20240116; t=1763329089; c=relaxed/simple;
+	bh=lkjSueA2hlXD8NsSdB4/zrh6nk+fDCt32onwyNXvsrs=;
+	h=From:To:Subject:Date:Message-ID:References:In-Reply-To:
+	 Content-Type:MIME-Version; b=uC25r9qHoBffkVMZPfDAPtru4lamKv72FeoY+gyfvo/7ikcAj2cZqAirJhVWTkkXXverXz/g2cvqQf6Ly8Fuy9vWSndI/ODI70EG/wFe/QrQ6g0o6/6L7mZE/z3Apra+L7ciqFwlZsgn2LrLzZSIKXpgwGccRK1kwkOPlkZkghY=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com; spf=pass smtp.mailfrom=microsoft.com; dkim=pass (1024-bit key) header.d=microsoft.com header.i=@microsoft.com header.b=TdOVby6j; arc=fail smtp.client-ip=40.107.200.113
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="iSi/Dctc"
+	dkim=pass (1024-bit key) header.d=microsoft.com header.i=@microsoft.com header.b="TdOVby6j"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=cR4oZHub4Xaq75+1uTLv7BIk9XRXxGIzyLFOI/DFjGhC9Lp4MgohYrR7vTZX9lmJbzYh4zja26d0iD1+SlOnSc+5lRissWdDHvyXBBuBriD0b4pQi3QNug4KZN9UAeBhWIC2VLf9UcjGo73dv7wjoSMN7SmKsX2Z2yxjPTetm+J+/QsXw6UTkkx0gRwDZvcAfW4tz6XT67GFDQMegMolZgrVuf2N2oOABYHTWOFuccmC87q+GwYgl6QOerYbeSw46WODGkyK/jANEU8YHJ+DHsxn3zhgpoLVFAtfEXPEARf2YsuREl0aA6CFRfbj//Y+H8JlHs0w9HQJTJ3W93jB6w==
+ b=BW3vfVb4aBBxr+PhJmC1nHRbFLh1wSGXDaH8LP3Dcv11zOuGUD5gj8xWCXiWQsSDz7vM8AEVufKsoqZCzAvikVYVVrsLQjZr/hsNfDzCkC6bXqjuddKgEAU8DxW1JyUYbm4ja9Rg7aYThnaCUq/BsZd64WPEh0Hrzbo1iSCY1LttcFx3XJ+3uTXvn3nckoo7dhzzqcSnyiH+2guONDNp/44MzxV8LYXpoSANdBNkEqXT/cdUtFs89gYzm+RKh/XUZf/H3SPH4F6soSnRQAIp3dNlsyFaKlTKjTfarNJ2xWcKsfrkOBoL6HSK/HZTjrCYqbScvyQBglofjPJVfRq9Zg==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=aX/ptg5s/0wChUpwpGX2zmgFvBSoFZ8gaG97I0f+Dlw=;
- b=AphQN22ZQ8F0z4TO8fRoTHUP9YibqZhXHK2wvnJenhq/wYiadtUcZIqurb4eNveHrqaHO922/gjh8SlS70qsz6QOTyzaZDMkTiQ90lvrNws2Tv3wa4mc4rtN7Q279C5QjeDTXS3dbkuplZ1wFY63PPdAFlkfzFUGzync0GPIdMDDKgRNdiUggDGtUGdjr/WjoWBMtDWNH+sCFUJk3wY0CEWDQR3FCqCwFVRthHfQlrn6ZBC70LlvLHdBChEgPunaeFFQMlzQS7qR3cHnJWDUGwdytrXWWLSJes+ptekPKI35aH8W0iBAykXvH1tnX48nYR4yKXjtRAEoK5BRGcKV8A==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.118.232) smtp.rcpttodomain=google.com smtp.mailfrom=nvidia.com;
- dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
- dkim=none (message not signed); arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ bh=lkjSueA2hlXD8NsSdB4/zrh6nk+fDCt32onwyNXvsrs=;
+ b=VBkK5PFzdX1kW/xXNR9rFZx50oxUNOxmUxLNWUx4zBewhEJZF8KswRw5LJwwNW1tuS9pwCAK36RILu/LLsO7JpJGrsi3DDZ5iAiCVPtBettV3gjGVFtpnhc0vUgu1hZ6tijhcM+RdOb8xCrP7Cogf8B+2pD6do18/tzTJto1SM2DYIQEq8wbj54CRkRBcKh/CSJtqcexfJzG8h/GSlIYj+UAzGRJhn+WBhlg0twPyIEmg0wfkbwe/gjSimrNOVid00pPsUixGyVSulKUOricl1PPyd8/u2IatFYX8iYafmze9POrfKE0zaCppZNW2m5oINYBkPqBpia/0rq7x+ptkw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=microsoft.com; dmarc=pass action=none
+ header.from=microsoft.com; dkim=pass header.d=microsoft.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=aX/ptg5s/0wChUpwpGX2zmgFvBSoFZ8gaG97I0f+Dlw=;
- b=iSi/DctciX+lMnJ1sdnLBY6rTo2tk3LCA27tZG+hfmo8JOUvtjI1FWtfAYjiTrl8x+mOZwl+x4I0/FVLrMct2t13WlbVxHM9zPipDQ1GqLYlI3RgXRzuJl5dtS3Id4+dELMAuUYLbgejQY7lM3jhytj+XnFMc/bLeiEevf9omXZ9KZ4zHemxM1JcVb1YDZs6V4IEuh2/49eBpxzoftYB+/4fGtUWNWhvuGRBbNq6gWN2rhztgLUwkc9bsfg13Dh9pAKhRrzGikpgICN8EU0fEXWIZ2BXwbhNLEYaMkBSqZPqMQeIy8f60HRb6RQa/ZAz7zGJAqmP0WlGbcyi12tJgw==
-Received: from MW4PR03CA0174.namprd03.prod.outlook.com (2603:10b6:303:8d::29)
- by DM6PR12MB4337.namprd12.prod.outlook.com (2603:10b6:5:2a9::12) with
+ bh=lkjSueA2hlXD8NsSdB4/zrh6nk+fDCt32onwyNXvsrs=;
+ b=TdOVby6j8tVF1gpWjznweoyQI7e4gprKFAFH8wbl9BLzRgQJxmBxy4QQF5E3jlC6CR4Rmr3QTgWFxGBgSbZfGdS7i+nU5pa9FvJ0/BWv3ZLx1fWLm1HIyPFhhk9qafG1R1l+LXzQRAm+URzsidSRXt5Q54uKCRY8fyNlVMh1DdE=
+Received: from SA3PR21MB3867.namprd21.prod.outlook.com (2603:10b6:806:2fc::15)
+ by SA1PR21MB6803.namprd21.prod.outlook.com (2603:10b6:806:4a5::8) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9320.21; Sun, 16 Nov
- 2025 20:47:27 +0000
-Received: from CO1PEPF000042AE.namprd03.prod.outlook.com
- (2603:10b6:303:8d:cafe::a4) by MW4PR03CA0174.outlook.office365.com
- (2603:10b6:303:8d::29) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.20.9320.19 via Frontend Transport; Sun,
- 16 Nov 2025 20:47:21 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.118.232)
- smtp.mailfrom=nvidia.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=nvidia.com;
-Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.118.232 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.118.232; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.118.232) by
- CO1PEPF000042AE.mail.protection.outlook.com (10.167.243.43) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.9343.9 via Frontend Transport; Sun, 16 Nov 2025 20:47:26 +0000
-Received: from drhqmail201.nvidia.com (10.126.190.180) by mail.nvidia.com
- (10.127.129.5) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Sun, 16 Nov
- 2025 12:47:16 -0800
-Received: from drhqmail202.nvidia.com (10.126.190.181) by
- drhqmail201.nvidia.com (10.126.190.180) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.20; Sun, 16 Nov 2025 12:47:15 -0800
-Received: from vdi.nvidia.com (10.127.8.10) by mail.nvidia.com
- (10.126.190.181) with Microsoft SMTP Server id 15.2.2562.20 via Frontend
- Transport; Sun, 16 Nov 2025 12:47:11 -0800
-From: Tariq Toukan <tariqt@nvidia.com>
-To: Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>, Andrew Lunn <andrew+netdev@lunn.ch>, "David
- S. Miller" <davem@davemloft.net>
-CC: Saeed Mahameed <saeedm@nvidia.com>, Leon Romanovsky <leon@kernel.org>,
-	Tariq Toukan <tariqt@nvidia.com>, Mark Bloch <mbloch@nvidia.com>,
-	<netdev@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>, Gal Pressman <gal@nvidia.com>, Moshe Shemesh
-	<moshe@nvidia.com>, Carolina Jubran <cjubran@nvidia.com>, Cosmin Ratiu
-	<cratiu@nvidia.com>, Jiri Pirko <jiri@nvidia.com>
-Subject: [PATCH net-next 4/6] net/mlx5: Move the SF HW table notifier outside the devlink lock
-Date: Sun, 16 Nov 2025 22:45:38 +0200
-Message-ID: <1763325940-1231508-5-git-send-email-tariqt@nvidia.com>
-X-Mailer: git-send-email 2.8.0
-In-Reply-To: <1763325940-1231508-1-git-send-email-tariqt@nvidia.com>
-References: <1763325940-1231508-1-git-send-email-tariqt@nvidia.com>
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9343.7; Sun, 16 Nov
+ 2025 21:36:52 +0000
+Received: from SA3PR21MB3867.namprd21.prod.outlook.com
+ ([fe80::70ff:4d3:2cb6:92a3]) by SA3PR21MB3867.namprd21.prod.outlook.com
+ ([fe80::70ff:4d3:2cb6:92a3%4]) with mapi id 15.20.9343.006; Sun, 16 Nov 2025
+ 21:36:52 +0000
+From: Haiyang Zhang <haiyangz@microsoft.com>
+To: Aditya Garg <gargaditya@linux.microsoft.com>, KY Srinivasan
+	<kys@microsoft.com>, "wei.liu@kernel.org" <wei.liu@kernel.org>, Dexuan Cui
+	<DECUI@microsoft.com>, "andrew+netdev@lunn.ch" <andrew+netdev@lunn.ch>,
+	"davem@davemloft.net" <davem@davemloft.net>, "edumazet@google.com"
+	<edumazet@google.com>, "kuba@kernel.org" <kuba@kernel.org>,
+	"pabeni@redhat.com" <pabeni@redhat.com>, Long Li <longli@microsoft.com>,
+	Konstantin Taranov <kotaranov@microsoft.com>, "horms@kernel.org"
+	<horms@kernel.org>, "shradhagupta@linux.microsoft.com"
+	<shradhagupta@linux.microsoft.com>, "ssengar@linux.microsoft.com"
+	<ssengar@linux.microsoft.com>, "ernis@linux.microsoft.com"
+	<ernis@linux.microsoft.com>, "dipayanroy@linux.microsoft.com"
+	<dipayanroy@linux.microsoft.com>, Shiraz Saleem <shirazsaleem@microsoft.com>,
+	"leon@kernel.org" <leon@kernel.org>, "mlevitsk@redhat.com"
+	<mlevitsk@redhat.com>, "yury.norov@gmail.com" <yury.norov@gmail.com>,
+	"sbhatta@marvell.com" <sbhatta@marvell.com>, "linux-hyperv@vger.kernel.org"
+	<linux-hyperv@vger.kernel.org>, "netdev@vger.kernel.org"
+	<netdev@vger.kernel.org>, "linux-kernel@vger.kernel.org"
+	<linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org"
+	<linux-rdma@vger.kernel.org>, Aditya Garg <gargaditya@microsoft.com>
+Subject: RE: [PATCH net-next v5 1/2] net: mana: Handle SKB if TX SGEs exceed
+ hardware limit
+Thread-Topic: [PATCH net-next v5 1/2] net: mana: Handle SKB if TX SGEs exceed
+ hardware limit
+Thread-Index: AQHcVaxhCgySp+i1U022+t6JrKe9ubT11q7g
+Date: Sun, 16 Nov 2025 21:36:52 +0000
+Message-ID:
+ <SA3PR21MB38678841F708F1B85DD1E216CAC8A@SA3PR21MB3867.namprd21.prod.outlook.com>
+References: <1763155003-21503-1-git-send-email-gargaditya@linux.microsoft.com>
+ <1763155003-21503-2-git-send-email-gargaditya@linux.microsoft.com>
+In-Reply-To:
+ <1763155003-21503-2-git-send-email-gargaditya@linux.microsoft.com>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach:
+X-MS-TNEF-Correlator:
+msip_labels:
+ MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_ActionId=86cc2f69-77dd-4df8-8ecb-dd3704ef347b;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_ContentBits=0;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_Enabled=true;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_Method=Standard;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_Name=Internal;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_SetDate=2025-11-16T21:36:06Z;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_SiteId=72f988bf-86f1-41af-91ab-2d7cd011db47;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_Tag=10,
+ 3, 0, 1;
+authentication-results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=microsoft.com;
+x-ms-publictraffictype: Email
+x-ms-traffictypediagnostic: SA3PR21MB3867:EE_|SA1PR21MB6803:EE_
+x-ms-office365-filtering-correlation-id: 87c695f8-6fae-49e9-c506-08de255841c7
+x-ms-exchange-senderadcheck: 1
+x-ms-exchange-antispam-relay: 0
+x-microsoft-antispam:
+ BCL:0;ARA:13230040|376014|7416014|366016|1800799024|7053199007|38070700021|921020;
+x-microsoft-antispam-message-info:
+ =?us-ascii?Q?Y0+btaAYOcWmmcAA7BoMtPN5n7wvNKxlpjnhR0z8l3FDg/NZ9xYdB8Z5ZGhv?=
+ =?us-ascii?Q?tc+5r+T3mA6bdcCrd80NCps6o0ZktvTGDODeCS41NTkuMzeeWLqUyXHET7/1?=
+ =?us-ascii?Q?RH05Pa8KQU81Nr0BMR93lYXreU2kfNEKcpFLly3AlBUkl1tcFK869j0Tf38D?=
+ =?us-ascii?Q?Mw4uyosUaBZuIbrw9Y9rYb4mk+k0tStHFvq+J2bd0Y1rhMW1OBhEKqedhhO2?=
+ =?us-ascii?Q?DnjYhf0UrOqvaEF3csr4aktGbRCRqRtFxnI26+uK0NK6aezdb1wu/z3b5vhK?=
+ =?us-ascii?Q?KtKO1DG7oM4r0ezuqHA27KHhqUOUL6Ayqw/3+NBYmozT/33LgaF1KvP8YIgF?=
+ =?us-ascii?Q?oQ5bQpKRTWJQGNM3rCd3boy/GWYVF3E8pO3WxG0SYIkJLCCiiD8oqsHJfN1D?=
+ =?us-ascii?Q?S+85Nqbv+KB1sOH3bruhWpZ0deXD7T9Zc82BJRPwIvZdF/4JLzxis+/CC4nR?=
+ =?us-ascii?Q?Uq0bdVboBc8o9tNSgi76MGi8Q5ZI65kNv3r5uujIImb0g8aOB0r3OZnSJm/r?=
+ =?us-ascii?Q?29r8PhkqjiRKSpH4FS0BhsfbdFrKxoErKwog8nXqe5CDNc5wL5WQ31/A6JkN?=
+ =?us-ascii?Q?NtlPyEXBHs3Fiblo8AGFIVrfv2pUL35LlSrSwPxu9OjzqS+vEyX2JWOqRAZR?=
+ =?us-ascii?Q?KgQnaZIasD9MnwWLECoRNNG6CcAyKZWSRlDGjgKOvUfOWwvOhktzfnB5obnY?=
+ =?us-ascii?Q?cXpX8OrezWFNO+UdG5OMzKQnYMVMJ4h/LnUfMJBeTEsomCEtjv0gevZyS0Bl?=
+ =?us-ascii?Q?6MXNYrb0cY/daAKNC8TOaOzuRpuNKjy3f/m6VeQrYATBWWcjDmSmcT+NXBlW?=
+ =?us-ascii?Q?VmpEpsTWjvzQxHjzXe+T7SV3aUSW0vNFlfJruDhTFcrvA64vAfLbNVbhT0od?=
+ =?us-ascii?Q?FLnKBdU5Jd/ZO7/AH+mNZUJrwqqjCe49TOrulXXuARIRCyqaQvULfmnecWgb?=
+ =?us-ascii?Q?dNUs/ug7oSajVV0NDyv97PAr2+daf2UXiuqTpfsNy7WW3Zv9ED6k9L76ah97?=
+ =?us-ascii?Q?7bSKTtnwJWdxJjANs6Rkx848VJMQRC09hPLvAlsFWEaS7z8LlbPRuUlhsuVy?=
+ =?us-ascii?Q?yzfCHwHTkLyOkH+1EVkXp47jEZqwJg0Z3l+RRFZtFsXxQdzLkO3zJPJ2PB7s?=
+ =?us-ascii?Q?JYLOA1LsANwVn0nRYaarg7juAL7rkRMlv7/C2JuvDr4lDLpa1FeGVYa4/kDB?=
+ =?us-ascii?Q?35AI8C/yWBmuO6Nl2GbbiTVdfiYQzWuM059jckX1sksggs8V1OgpsgPnXjLb?=
+ =?us-ascii?Q?iP0s8tjJy3k4RDucZcLw2vHwoaWWY4us75j6E/6p9wKxp9Xv5bBlm3Nv6o2h?=
+ =?us-ascii?Q?pvETbUL09h3Us3IR3C2Ti5AVHlwTOYLO3FzkJ+j25JtIT9Qol8kHemdtdiiS?=
+ =?us-ascii?Q?SNlTchyLPXKYVviYk+8BdT8pYaRCpeRJWabDPlI0GldZO5l7yfjtCTcxADaK?=
+ =?us-ascii?Q?0uHXBImOXUCSKtm2xQzCmfhXEtAQrALcBblnJCWUuHRnLADcdmVxXDt/PiR2?=
+ =?us-ascii?Q?sbiCKlkj+dfH0qpbNAk6VQ2ub/wxIuY2wDFNvUKYRcKmD8uW7ZKIsIl8Uw?=
+ =?us-ascii?Q?=3D=3D?=
+x-forefront-antispam-report:
+ CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SA3PR21MB3867.namprd21.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(7416014)(366016)(1800799024)(7053199007)(38070700021)(921020);DIR:OUT;SFP:1102;
+x-ms-exchange-antispam-messagedata-chunkcount: 1
+x-ms-exchange-antispam-messagedata-0:
+ =?us-ascii?Q?+109KUV6L4BMTISWA7jXUMWbL+ZBt051ebNnnmtlKib0DE0V2y/eXJhmYygc?=
+ =?us-ascii?Q?F/i3th3nSUwxl6lUNUtu+tNAb6kcc+FZf+ntfszAdiVVgA3vBBxjsextXZXs?=
+ =?us-ascii?Q?4NC5IBAWUdVe3jXgj14cSTwYkk744rkbeQC9XGjTNjRagp2HxEJcp1wnICdG?=
+ =?us-ascii?Q?J5qW7bzjmH1UjTfDPxo6knwZj+glGoDjYvsnmsv7PnMFdM0fWyWZK2S4ikmj?=
+ =?us-ascii?Q?fVG+wHMsEIMEPrT9ON4QPSG9gYy+7a02CZSch7fEeUo4CfqGDOfPE4l6qQ8a?=
+ =?us-ascii?Q?3K8jLe4zz3+4taBf7FMYSLZ2ssoFT475SEiuirw4ZbNbw5Zy0YVvCiR6F1Ne?=
+ =?us-ascii?Q?UwuSO1ZAV8n5PntfniDkFXukqSHP1ZUFVtyZbL8F0HmQPH+KQ1qDuuQAXQ6P?=
+ =?us-ascii?Q?uj3VTpcCytfSx5AueOWDndqr51AP80ml2erLwR3cu1AOdRa/QljG4AuiucWZ?=
+ =?us-ascii?Q?tNuRdTmqdgBxvCHL97wHH9AzUZ1B0/hu1mIKIrGw+jylxlymfa6UHloQUUCA?=
+ =?us-ascii?Q?GWTl2xffMiZLH9Cfr854Q0js+V91PY1LvwDAZ+tIj1bKrNOxVXuCk7C8vE5d?=
+ =?us-ascii?Q?y9MB2EQp1uBs+y/e0X514XZXH47xqa/mULLmZ2aMGKHsSziFJpYHc+vbE3BM?=
+ =?us-ascii?Q?7Jj+YpsrDBWlDdvoLk2+zjaAsHEg5Nb6QUY8mXG4Y7+UiXy33M0TUEJuGZp+?=
+ =?us-ascii?Q?136NNyK/Pnc6yLC2GuXrpYhCghibIFSdUpuwq19EQh6K/jjKrhcjxgFoyWre?=
+ =?us-ascii?Q?a2B5dFmgVtqMk0pgGDnVByhgyxAXExVEmodNtCIjm/Zk4T7MI/t2YELwatL9?=
+ =?us-ascii?Q?6tP1+NVLfkb1leOlonj56QzHlQBqGrDk23yKH9BA0Psv7mz+hujWh/4zQ2Yg?=
+ =?us-ascii?Q?tanu9wsmjO/7A9rdfd3ZSbVXm3JXD9BhTO+oUXng9DBEXs5RCnrv0AEyOzu9?=
+ =?us-ascii?Q?Jx0tecNxUFG/YFpNQO6KhRg+xvWn2RnB3Yx2W/lPt/U4p9zw5yIya5X66Ic0?=
+ =?us-ascii?Q?bYO4DPNpQMtf/0TuKQAgnBgkzJb2qDSXKPKrm3SnUGNZRL71YXnHOnooP8GB?=
+ =?us-ascii?Q?OzEVps3HW2USy5q1SnBPdpvLUgKtsz9y+m9Vj0ywcfq5ZnVVkFh+E3WkFhwk?=
+ =?us-ascii?Q?UTWijdQZ9ueebNVdNOtAscdCKTnCVUBKACaRtCQo1S4EH1hgTS06oubq5NCn?=
+ =?us-ascii?Q?hrPDHMh501zXtKUK9rbX/drdd+kK2yXrim6LcoDFUiscl8/MKOpaNh/RrC86?=
+ =?us-ascii?Q?4YLehtrTuJezEBq5SjZGhxDmodnbmIEhmAoYhRIDx4JrOEr8vAmtpp6XSqII?=
+ =?us-ascii?Q?9d5JcQj8dq5vp6XyjwCkSED9r02bVDyRC5qgE88RW9VEludI4ospccY45aED?=
+ =?us-ascii?Q?5gR3C5t67KrhHYQpFzAQPcOCgD6cAByEEvScRsvkFyvDPz/C5b9pqmgphTyJ?=
+ =?us-ascii?Q?9Jl+Ar9IhGTFWWvaVjSFQJuoQnmb3ZB6HqIBuaAf8nxKMt3LHoDmvgVMmvVO?=
+ =?us-ascii?Q?aCDtAVg33P7xj4Q27liO7OGyo60WC0mtq6WExgXl72r+uEiy1Ay4DVTCZvZo?=
+ =?us-ascii?Q?9Ihbry0QRMhQamoqPERljFnoJutAfD4HjO3wC5oz?=
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain
-X-NV-OnPremToCloud: ExternallySecured
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: CO1PEPF000042AE:EE_|DM6PR12MB4337:EE_
-X-MS-Office365-Filtering-Correlation-Id: e160a4aa-4aaa-45ff-ffba-08de25515a1e
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|36860700013|1800799024|82310400026|376014;
-X-Microsoft-Antispam-Message-Info:
-	=?us-ascii?Q?D9RaEGD8t3pWmseiTl+GPl9JIkFR6GxiiuZYz7SJxkbWZSXO8T8QfUEBev3j?=
- =?us-ascii?Q?8a1L0sZHzRdCHjxkUwcKxJwxb6P91gKQ3e+lyzOUZP0K5rkv1OoB1AlXl/bl?=
- =?us-ascii?Q?d7K6tRktCQtXhAZOGW/ZzGN6dW6EmFkAyH4bCAlhDB3HJ8ETtOaNFb5UnBb3?=
- =?us-ascii?Q?yw4i3eLaRNhstr/BBx5UWYAkkq3+XtoBYor+WXfGlF8Lp1/ie7OoPvtGsc4P?=
- =?us-ascii?Q?ucNQ8RGNTSzZZLpyv/SNE02rd5b0Jv0mmh1RtnreXZLKEZq6kQLFNz4EdLGy?=
- =?us-ascii?Q?0V9EIfBOGS7MSF8xRG5YyYv+XD8iTZW8mHdN8OqbrsWY4pJs8jtuMOfJk35G?=
- =?us-ascii?Q?SvQZ39PLTU2hh5Sz5O/lzFxfgiQ43QkK1uveMqxfuJ4xAR/7XMrTNuEx0w/u?=
- =?us-ascii?Q?WGkvcoj549hCUMEl4WnTa/ytdoIm6JsWfO6nMJdhNw5FKCUFUdSHs0f34/Sh?=
- =?us-ascii?Q?U8sZVrpy+g0IKqGciy2/DdhxEvuHLxTjPb7rZVcOuoz6iSPJOtmgy70AF2t/?=
- =?us-ascii?Q?gLvXlUTw7pkKW5zAhrM0urm/KgeIIl7UYu/LL2IGdnSbN0xdQm9ZP6QPFvEe?=
- =?us-ascii?Q?0DPXK43i8cnyoS5hbaw8Jya8A1DuOAgxxunITswe9o6TWnrLHnX+B1R4yPx9?=
- =?us-ascii?Q?TZR3MQ/gW2JxtQec717n8EoFTnJ31aIfx1UaXQ8z6pVG4HWsuaaVReCxw8MC?=
- =?us-ascii?Q?Y1EAkzqCHcb5/XZL1I/mC6+3SFjd3Y8vEP+ogCqjEibUhVnLoZ3W+nT0o5Me?=
- =?us-ascii?Q?o+MQJG5VpYoamiFF6z/x1ewGCscqq6uLEecA8fTXYEN90L3gWRANEFOKaJc/?=
- =?us-ascii?Q?KDekr79Wf4vmQylq5rY/Cafx72HB6t/UVYHnSYNSVvy3pzM/inRs7lkROK6m?=
- =?us-ascii?Q?WLYMrQ7z4+Fh9OCP6oXD7hsJgQXLxiNdc4gsVc+TWySJhe+aptgk99FGtqlE?=
- =?us-ascii?Q?OH6or2ll4VGS2NJPxPADHc12X12/7kLKi1Lwm2xFfqHPDwZ64Aot2+bwDHxW?=
- =?us-ascii?Q?R6ePszaMFfLP2b7OQg+EDGaTGI+OKGWa5VZsXKd8eKenEJBTPAzWOsghj4fU?=
- =?us-ascii?Q?09QKyiQibG+mhBy6K9Q+Q3IH7hlzzR/lhqOcU1T4np5KxjCI3eGjzpqlOULy?=
- =?us-ascii?Q?cLIwKPBqcokjS6WJ43GsUErokK9RlytKL+k/U1eifNlBXezbzDunDj5Pbuum?=
- =?us-ascii?Q?QiSybqvihFpRK1fuKMQoXrsMsCxjkwY2ts8kufLq+HsOv1+6VaJxvoFpDY1/?=
- =?us-ascii?Q?HiPgz3bKAM3///Dxk3pRLWEMWRZIRkjUlmdR7EeM5Xql9XGkG27sbojTVfgF?=
- =?us-ascii?Q?BsN0gByFKcrnwvsiEpfPsnsacMz0+5rSIMQ/DSiawwr3xZUak+7nElY+D6eM?=
- =?us-ascii?Q?iQNyg6c9DvXj2ZdC2iToSt/ThkxpAY5wSiDU0DtwUpmjPr5SqQjGqLBbzwXT?=
- =?us-ascii?Q?qhT1WOqgvHah+EEMcAHsP6xMytiqJyT48eCAotdsd4SrMm+YOln5wDuexHeW?=
- =?us-ascii?Q?szBJyMsL9uvK/kY0SlmEdEzYAJ/oc6UD+KwYxggcTHHwZuLX14sluLi7jB3o?=
- =?us-ascii?Q?t8RZBeqegOFv1I3FBcU=3D?=
-X-Forefront-Antispam-Report:
-	CIP:216.228.118.232;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc7edge1.nvidia.com;CAT:NONE;SFS:(13230040)(36860700013)(1800799024)(82310400026)(376014);DIR:OUT;SFP:1101;
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 16 Nov 2025 20:47:26.6745
+X-OriginatorOrg: microsoft.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-AuthSource: SA3PR21MB3867.namprd21.prod.outlook.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 87c695f8-6fae-49e9-c506-08de255841c7
+X-MS-Exchange-CrossTenant-originalarrivaltime: 16 Nov 2025 21:36:52.4116
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: e160a4aa-4aaa-45ff-ffba-08de25515a1e
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.118.232];Helo=[mail.nvidia.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	CO1PEPF000042AE.namprd03.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM6PR12MB4337
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: 72f988bf-86f1-41af-91ab-2d7cd011db47
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: wbfyV87XGlU5Ga5PrIoCtS0UoNvJ/KMIz/WMHxD9RAsSJnp4UBG5dCIpiayEo00MYzoU90Rnmbh3xjKlP/uWqA==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA1PR21MB6803
 
-From: Cosmin Ratiu <cratiu@nvidia.com>
 
-Move the SF HW table notifier registration/unregistration outside of
-mlx5_init_one() / mlx5_uninit_one() and into the mlx5_mdev_init() /
-mlx5_mdev_uninit() functions.
 
-This is only done for non-SFs, since SFs do not have a SF HW table
-themselves.
+> -----Original Message-----
+> From: Aditya Garg <gargaditya@linux.microsoft.com>
+> Sent: Friday, November 14, 2025 4:17 PM
+> To: KY Srinivasan <kys@microsoft.com>; Haiyang Zhang
+> <haiyangz@microsoft.com>; wei.liu@kernel.org; Dexuan Cui
+> <DECUI@microsoft.com>; andrew+netdev@lunn.ch; davem@davemloft.net;
+> edumazet@google.com; kuba@kernel.org; pabeni@redhat.com; Long Li
+> <longli@microsoft.com>; Konstantin Taranov <kotaranov@microsoft.com>;
+> horms@kernel.org; shradhagupta@linux.microsoft.com;
+> ssengar@linux.microsoft.com; ernis@linux.microsoft.com;
+> dipayanroy@linux.microsoft.com; Shiraz Saleem
+> <shirazsaleem@microsoft.com>; leon@kernel.org; mlevitsk@redhat.com;
+> yury.norov@gmail.com; sbhatta@marvell.com; linux-hyperv@vger.kernel.org;
+> netdev@vger.kernel.org; linux-kernel@vger.kernel.org; linux-
+> rdma@vger.kernel.org; Aditya Garg <gargaditya@microsoft.com>
+> Cc: Aditya Garg <gargaditya@linux.microsoft.com>
+> Subject: [PATCH net-next v5 1/2] net: mana: Handle SKB if TX SGEs exceed
+> hardware limit
+>=20
+> The MANA hardware supports a maximum of 30 scatter-gather entries (SGEs)
+> per TX WQE. Exceeding this limit can cause TX failures.
+> Add ndo_features_check() callback to validate SKB layout before
+> transmission. For GSO SKBs that would exceed the hardware SGE limit, clea=
+r
+> NETIF_F_GSO_MASK to enforce software segmentation in the stack.
+> Add a fallback in mana_start_xmit() to linearize non-GSO SKBs that still
+> exceed the SGE limit.
+>=20
+> Also, Add ethtool counter for SKBs linearized
+>=20
+> Co-developed-by: Dipayaan Roy <dipayanroy@linux.microsoft.com>
+> Signed-off-by: Dipayaan Roy <dipayanroy@linux.microsoft.com>
+> Signed-off-by: Aditya Garg <gargaditya@linux.microsoft.com>
 
-Signed-off-by: Cosmin Ratiu <cratiu@nvidia.com>
-Reviewed-by: Carolina Jubran <cjubran@nvidia.com>
-Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
----
- .../net/ethernet/mellanox/mlx5/core/main.c    | 17 ++---
- .../ethernet/mellanox/mlx5/core/sf/hw_table.c | 62 +++++++++++--------
- .../net/ethernet/mellanox/mlx5/core/sf/sf.h   |  9 ++-
- include/linux/mlx5/driver.h                   |  1 +
- 4 files changed, 54 insertions(+), 35 deletions(-)
-
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-index 097ba7ab90a4..843ee452239f 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-@@ -1377,12 +1377,6 @@ static int mlx5_load(struct mlx5_core_dev *dev)
- 
- 	mlx5_vhca_event_start(dev);
- 
--	err = mlx5_sf_hw_table_create(dev);
--	if (err) {
--		mlx5_core_err(dev, "sf table create failed %d\n", err);
--		goto err_vhca;
--	}
--
- 	err = mlx5_ec_init(dev);
- 	if (err) {
- 		mlx5_core_err(dev, "Failed to init embedded CPU\n");
-@@ -1411,8 +1405,6 @@ static int mlx5_load(struct mlx5_core_dev *dev)
- 	mlx5_lag_remove_mdev(dev);
- 	mlx5_ec_cleanup(dev);
- err_ec:
--	mlx5_sf_hw_table_destroy(dev);
--err_vhca:
- 	mlx5_vhca_event_stop(dev);
- err_set_hca:
- 	mlx5_fs_core_cleanup(dev);
-@@ -1837,11 +1829,20 @@ static int mlx5_notifiers_init(struct mlx5_core_dev *dev)
- 	BLOCKING_INIT_NOTIFIER_HEAD(&dev->priv.esw_n_head);
- 	mlx5_vhca_state_notifier_init(dev);
- 
-+	err = mlx5_sf_hw_notifier_init(dev);
-+	if (err)
-+		goto err_sf_hw_notifier;
-+
- 	return 0;
-+
-+err_sf_hw_notifier:
-+	mlx5_events_cleanup(dev);
-+	return err;
- }
- 
- static void mlx5_notifiers_cleanup(struct mlx5_core_dev *dev)
- {
-+	mlx5_sf_hw_notifier_cleanup(dev);
- 	mlx5_events_cleanup(dev);
- }
- 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/sf/hw_table.c b/drivers/net/ethernet/mellanox/mlx5/core/sf/hw_table.c
-index a14b1aa5fb5a..bd968f3b3855 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/sf/hw_table.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/sf/hw_table.c
-@@ -30,9 +30,7 @@ enum mlx5_sf_hwc_index {
- };
- 
- struct mlx5_sf_hw_table {
--	struct mlx5_core_dev *dev;
- 	struct mutex table_lock; /* Serializes sf deletion and vhca state change handler. */
--	struct notifier_block vhca_nb;
- 	struct mlx5_sf_hwc_table hwc[MLX5_SF_HWC_MAX];
- };
- 
-@@ -71,14 +69,16 @@ mlx5_sf_table_fn_to_hwc(struct mlx5_sf_hw_table *table, u16 fn_id)
- 	return NULL;
- }
- 
--static int mlx5_sf_hw_table_id_alloc(struct mlx5_sf_hw_table *table, u32 controller,
-+static int mlx5_sf_hw_table_id_alloc(struct mlx5_core_dev *dev,
-+				     struct mlx5_sf_hw_table *table,
-+				     u32 controller,
- 				     u32 usr_sfnum)
- {
- 	struct mlx5_sf_hwc_table *hwc;
- 	int free_idx = -1;
- 	int i;
- 
--	hwc = mlx5_sf_controller_to_hwc(table->dev, controller);
-+	hwc = mlx5_sf_controller_to_hwc(dev, controller);
- 	if (!hwc->sfs)
- 		return -ENOSPC;
- 
-@@ -100,11 +100,13 @@ static int mlx5_sf_hw_table_id_alloc(struct mlx5_sf_hw_table *table, u32 control
- 	return free_idx;
- }
- 
--static void mlx5_sf_hw_table_id_free(struct mlx5_sf_hw_table *table, u32 controller, int id)
-+static void mlx5_sf_hw_table_id_free(struct mlx5_core_dev *dev,
-+				     struct mlx5_sf_hw_table *table,
-+				     u32 controller, int id)
- {
- 	struct mlx5_sf_hwc_table *hwc;
- 
--	hwc = mlx5_sf_controller_to_hwc(table->dev, controller);
-+	hwc = mlx5_sf_controller_to_hwc(dev, controller);
- 	hwc->sfs[id].allocated = false;
- 	hwc->sfs[id].pending_delete = false;
- }
-@@ -120,7 +122,7 @@ int mlx5_sf_hw_table_sf_alloc(struct mlx5_core_dev *dev, u32 controller, u32 usr
- 		return -EOPNOTSUPP;
- 
- 	mutex_lock(&table->table_lock);
--	sw_id = mlx5_sf_hw_table_id_alloc(table, controller, usr_sfnum);
-+	sw_id = mlx5_sf_hw_table_id_alloc(dev, table, controller, usr_sfnum);
- 	if (sw_id < 0) {
- 		err = sw_id;
- 		goto exist_err;
-@@ -151,7 +153,7 @@ int mlx5_sf_hw_table_sf_alloc(struct mlx5_core_dev *dev, u32 controller, u32 usr
- vhca_err:
- 	mlx5_cmd_dealloc_sf(dev, hw_fn_id);
- err:
--	mlx5_sf_hw_table_id_free(table, controller, sw_id);
-+	mlx5_sf_hw_table_id_free(dev, table, controller, sw_id);
- exist_err:
- 	mutex_unlock(&table->table_lock);
- 	return err;
-@@ -165,7 +167,7 @@ void mlx5_sf_hw_table_sf_free(struct mlx5_core_dev *dev, u32 controller, u16 id)
- 	mutex_lock(&table->table_lock);
- 	hw_fn_id = mlx5_sf_sw_to_hw_id(dev, controller, id);
- 	mlx5_cmd_dealloc_sf(dev, hw_fn_id);
--	mlx5_sf_hw_table_id_free(table, controller, id);
-+	mlx5_sf_hw_table_id_free(dev, table, controller, id);
- 	mutex_unlock(&table->table_lock);
- }
- 
-@@ -216,10 +218,12 @@ static void mlx5_sf_hw_table_hwc_dealloc_all(struct mlx5_core_dev *dev,
- 	}
- }
- 
--static void mlx5_sf_hw_table_dealloc_all(struct mlx5_sf_hw_table *table)
-+static void mlx5_sf_hw_table_dealloc_all(struct mlx5_core_dev *dev,
-+					 struct mlx5_sf_hw_table *table)
- {
--	mlx5_sf_hw_table_hwc_dealloc_all(table->dev, &table->hwc[MLX5_SF_HWC_EXTERNAL]);
--	mlx5_sf_hw_table_hwc_dealloc_all(table->dev, &table->hwc[MLX5_SF_HWC_LOCAL]);
-+	mlx5_sf_hw_table_hwc_dealloc_all(dev,
-+					 &table->hwc[MLX5_SF_HWC_EXTERNAL]);
-+	mlx5_sf_hw_table_hwc_dealloc_all(dev, &table->hwc[MLX5_SF_HWC_LOCAL]);
- }
- 
- static int mlx5_sf_hw_table_hwc_init(struct mlx5_sf_hwc_table *hwc, u16 max_fn, u16 base_id)
-@@ -301,7 +305,6 @@ int mlx5_sf_hw_table_init(struct mlx5_core_dev *dev)
- 	}
- 
- 	mutex_init(&table->table_lock);
--	table->dev = dev;
- 	dev->priv.sf_hw_table = table;
- 
- 	base_id = mlx5_sf_start_function_id(dev);
-@@ -338,19 +341,22 @@ void mlx5_sf_hw_table_cleanup(struct mlx5_core_dev *dev)
- 	mlx5_sf_hw_table_hwc_cleanup(&table->hwc[MLX5_SF_HWC_LOCAL]);
- 	mutex_destroy(&table->table_lock);
- 	kfree(table);
-+	dev->priv.sf_hw_table = NULL;
- res_unregister:
- 	mlx5_sf_hw_table_res_unregister(dev);
- }
- 
- static int mlx5_sf_hw_vhca_event(struct notifier_block *nb, unsigned long opcode, void *data)
- {
--	struct mlx5_sf_hw_table *table = container_of(nb, struct mlx5_sf_hw_table, vhca_nb);
-+	struct mlx5_core_dev *dev = container_of(nb, struct mlx5_core_dev,
-+						 priv.sf_hw_table_vhca_nb);
-+	struct mlx5_sf_hw_table *table = dev->priv.sf_hw_table;
- 	const struct mlx5_vhca_state_event *event = data;
- 	struct mlx5_sf_hwc_table *hwc;
- 	struct mlx5_sf_hw *sf_hw;
- 	u16 sw_id;
- 
--	if (event->new_vhca_state != MLX5_VHCA_STATE_ALLOCATED)
-+	if (!table || event->new_vhca_state != MLX5_VHCA_STATE_ALLOCATED)
- 		return 0;
- 
- 	hwc = mlx5_sf_table_fn_to_hwc(table, event->function_id);
-@@ -365,20 +371,28 @@ static int mlx5_sf_hw_vhca_event(struct notifier_block *nb, unsigned long opcode
- 	 * Hence recycle the sf hardware id for reuse.
- 	 */
- 	if (sf_hw->allocated && sf_hw->pending_delete)
--		mlx5_sf_hw_table_hwc_sf_free(table->dev, hwc, sw_id);
-+		mlx5_sf_hw_table_hwc_sf_free(dev, hwc, sw_id);
- 	mutex_unlock(&table->table_lock);
- 	return 0;
- }
- 
--int mlx5_sf_hw_table_create(struct mlx5_core_dev *dev)
-+int mlx5_sf_hw_notifier_init(struct mlx5_core_dev *dev)
- {
--	struct mlx5_sf_hw_table *table = dev->priv.sf_hw_table;
--
--	if (!table)
-+	if (mlx5_core_is_sf(dev))
- 		return 0;
- 
--	table->vhca_nb.notifier_call = mlx5_sf_hw_vhca_event;
--	return mlx5_vhca_event_notifier_register(dev, &table->vhca_nb);
-+	dev->priv.sf_hw_table_vhca_nb.notifier_call = mlx5_sf_hw_vhca_event;
-+	return mlx5_vhca_event_notifier_register(dev,
-+						 &dev->priv.sf_hw_table_vhca_nb);
-+}
-+
-+void mlx5_sf_hw_notifier_cleanup(struct mlx5_core_dev *dev)
-+{
-+	if (mlx5_core_is_sf(dev))
-+		return;
-+
-+	mlx5_vhca_event_notifier_unregister(dev,
-+					    &dev->priv.sf_hw_table_vhca_nb);
- }
- 
- void mlx5_sf_hw_table_destroy(struct mlx5_core_dev *dev)
-@@ -388,10 +402,8 @@ void mlx5_sf_hw_table_destroy(struct mlx5_core_dev *dev)
- 	if (!table)
- 		return;
- 
--	mlx5_vhca_event_notifier_unregister(dev, &table->vhca_nb);
--
- 	/* Dealloc SFs whose firmware event has been missed. */
--	mlx5_sf_hw_table_dealloc_all(table);
-+	mlx5_sf_hw_table_dealloc_all(dev, table);
- }
- 
- bool mlx5_sf_hw_table_supported(const struct mlx5_core_dev *dev)
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/sf/sf.h b/drivers/net/ethernet/mellanox/mlx5/core/sf/sf.h
-index 89559a37997a..3922dacffae8 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/sf/sf.h
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/sf/sf.h
-@@ -12,7 +12,8 @@
- int mlx5_sf_hw_table_init(struct mlx5_core_dev *dev);
- void mlx5_sf_hw_table_cleanup(struct mlx5_core_dev *dev);
- 
--int mlx5_sf_hw_table_create(struct mlx5_core_dev *dev);
-+int mlx5_sf_hw_notifier_init(struct mlx5_core_dev *dev);
-+void mlx5_sf_hw_notifier_cleanup(struct mlx5_core_dev *dev);
- void mlx5_sf_hw_table_destroy(struct mlx5_core_dev *dev);
- 
- int mlx5_sf_table_init(struct mlx5_core_dev *dev);
-@@ -44,11 +45,15 @@ static inline void mlx5_sf_hw_table_cleanup(struct mlx5_core_dev *dev)
- {
- }
- 
--static inline int mlx5_sf_hw_table_create(struct mlx5_core_dev *dev)
-+static inline int mlx5_sf_hw_notifier_init(struct mlx5_core_dev *dev)
- {
- 	return 0;
- }
- 
-+static inline void mlx5_sf_hw_notifier_cleanup(struct mlx5_core_dev *dev)
-+{
-+}
-+
- static inline void mlx5_sf_hw_table_destroy(struct mlx5_core_dev *dev)
- {
- }
-diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
-index 57368db0a5b7..a51bea44d57c 100644
---- a/include/linux/mlx5/driver.h
-+++ b/include/linux/mlx5/driver.h
-@@ -620,6 +620,7 @@ struct mlx5_priv {
- 	struct mlx5_core_dev *parent_mdev;
- #endif
- #ifdef CONFIG_MLX5_SF_MANAGER
-+	struct notifier_block sf_hw_table_vhca_nb;
- 	struct mlx5_sf_hw_table *sf_hw_table;
- 	struct mlx5_sf_table *sf_table;
- #endif
--- 
-2.31.1
+Reviewed-by: Haiyang Zhang <haiyangz@microsoft.com>
 
