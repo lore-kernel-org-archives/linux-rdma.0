@@ -1,27 +1,28 @@
-Received: from CH1PR05CU001.outbound.protection.outlook.com (mail-northcentralusazon11010031.outbound.protection.outlook.com [52.101.193.31])
+Received: from CY7PR03CU001.outbound.protection.outlook.com (mail-westcentralusazon11010053.outbound.protection.outlook.com [40.93.198.53])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7CD4D2DC78E;
-	Wed, 19 Nov 2025 20:49:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.193.31
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 881CC34D4F6;
+	Wed, 19 Nov 2025 20:49:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.198.53
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763585352; cv=fail; b=qYVHV8hcoEtWNLA+TdaNr8yjAQKGkkDEFa0+2NtRxsz9enrFYba7ZLVTLlahTxJ2ylNUOkz8ho8dN3v6N+lo9Qtd4oyW0i2Wj4/a+B9Aqmk3HCQQvwEIXUPzhX6xmuohI/M1cdUX1babynCc67Tg8xrcwxYrjbTKF2Rddpp81rs=
+	t=1763585360; cv=fail; b=OE9Inr+sEQoMnaw4bzRolvpdcqndL13vGPe4n/Xxg5669PFbnW4upzTbN2FfIiI28sDcFt12C6y5T0HTH0ZqD6FwmgAIFV1XrtGSAceMU5hPBKUTf6vr6zhv3Ky6WUChchmBYfhs9DLhj0Rn2lpJg0L4ksl2Ml4csnKZaWq4Fkw=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763585352; c=relaxed/simple;
-	bh=QUch7ow0tEAVEqbm4mGGPVMRP+OWV2CmbcjbP84gm7M=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=kVUetN6vsjdIJ2vGvYXbfzosWKQ8VmrAX+Wzwap/NyzN54dYBF3Ls5eAFOV9rnIvgDNc5snLfPbGIsi51fRjWiO7yL8tYOS57t128/m/0PNyS2TzR2heKTyxJ+lA5SLaYFXhKU/kH3I5oZ4qQubp2rFOTSFdj/ZPwS7iXWCA1Ng=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=tbo0PmlO; arc=fail smtp.client-ip=52.101.193.31
+	s=arc-20240116; t=1763585360; c=relaxed/simple;
+	bh=Pf16QcSJWOdZAPOHQIIu1FcTltrTbLN2LbnDoL8QYpc=;
+	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=ZsnOajIUXnHBCtR08YVmLpQ68a9D9irDX3y66NLnBuOF7wBmBWEvMg4olIu82T/lpaUmmKawF2wwLPC6dme301cBZf/sq9YweUyF+lQJpn9phuOkUnVQMFGo/BOpUTIwkrnrIHp+oG74Ng4MoztqZBsuqioJHm0gIKW8amosiXM=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=Z13GU3HS; arc=fail smtp.client-ip=40.93.198.53
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="tbo0PmlO"
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="Z13GU3HS"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=YrNLLm6OTOTwDqS+JDDdFAjLMSbR9m3jbH2rs63stivo8Q0JU0SMLTAv1/CSudUN5nMahQm927vTG6fSp1plIUqQ9tcVY8SO8IeDgQtKqmAMkv39Mshj1pMFjebSJZIjwTtlZIOOq+iz56ubKJN0oOX+ODMP8Vc+HAsWgG2n18vRTFxh+tdJKGkZDBlf5P46kIrCkxaUu2YB2ud7jKbFNlIFT3aEc6WuIWNHYvHcUvdB1lQwbcbmpT7Ex1tu4RuXtkED3bFPjiswVW5IAJMBUA79SrA5o6xYlBwg2JJz/x5HnWq9EyTT1bhV/p5avw8KAPI24mUG06t43sNH7dkvkQ==
+ b=n9eoF0nHXZe6Yj8JXug240WQKGNNC8JQGW4sBsjBd+ogIHd1Wb79MHssK8Y7X0UtlsNU/o9neSJSM2RpwTFJ/1Wt+qzmE0BULJHj2x3ENqYbgllBOU6EFYu3s9JCrBlJhPHS75iNuH72cEBv1GauiXxL+TcnStdhdFCQcqIAkgE60SmNEQkSeb6MhMQ7tPPLoG988t9D8pBvvB78l48/gzNP+Kwc2D0ZUd6h327ePPEml/za0CkvKYTwywEPRpjjXDX/KpYHLL5QQ4f1/TmgxD3+XOXwB7I+SGsC61PBzgzasZTmHrQTRHryFKCk6Jo3KwxTpDfYVkTxQwXspV4uzg==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=U+t7ceFnLgkqB+NEe1NRx7JJMsyMs5WrDSZ0jQ3y4t0=;
- b=Ersu0gl9PO8aXLrBMaczd0SW8wdC7eg4bY7MkkGjncOnPmezNDj5HLXV2JOVPK+GUplG7BZV30ofKI9NMnCsf5xrpMnAWXtUU0MONK7+Rfx5D63ZpUz7n7TF8vmAZiTkUAOVZ4HiEKRJ5dzWXHMOX3vsBH2QMYdzp690NJCgcXE9oUCwEUzopaf9+XwuS16NMhEGv0+TarZRAj4iJkMqTdPh9gI4zL9eDbUnmcY6SdZJM/y6JGwlr7diRhcHHnEHU423+bJGwKQy2bYRzqxX0dBhIAc4qxEthGHu5554AhGfhklN7nAeNxygBT+Va3Er0LFNcxtgq5iN1qk10AXDEw==
+ bh=vWkyx/v4Wlm5lKp/m8ffXWetGH5ykWDjIz/3LRW7Qg4=;
+ b=UuIlwITFZxUx75rxe1T1EeGRk3wQJrlE2o8NHaSxA7eUekx8BKP7amOG6lHGFIimg63UIZpUApcooAhDEsXzvtJyP1fHOOaCLoGq1L+Mf3/A5oUNKJazNfr8Fl2CojBCXPSIbyStn4g3gRTH0Z8DWYt90bon8TCHm7zH1Bdfs8O8agPLNlCz7je/7CxM5pGbg+7VDOio+4SsoyuWPK69A3et68XI4X4qkqVhHi+inhU9za6mUqLxFvQNU7Dca/oL5IM42nJmVCqhIm5jN/ONlgIz9z94MS56yVROvLLlpeMCW9c8MqTscEjAE9NinT8JrIzdX3JnBCoIbx7XIZJDuQ==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
  216.228.117.160) smtp.rcpttodomain=google.com smtp.mailfrom=nvidia.com;
  dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
@@ -29,18 +30,18 @@ ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=U+t7ceFnLgkqB+NEe1NRx7JJMsyMs5WrDSZ0jQ3y4t0=;
- b=tbo0PmlOnZ7QBtBKKEFvgsN3RHECuu+yguRCpmS3zu8TGXporwDyIK9KIBfm6YytDqp3+2fDs1xzRXIFNl4t3BHlgMcu8pImwMc7peceDboc5lY7tuLhfgK76Ee1/TL3Pk0053trrDWle016tAzKNrgGCPMKiDBkZUIORpvKcWeLkQaoB7nKFLwCHLxkE/HYFwKlWdbCPhLuwhJH88hVVQdqVkWo242AOBP26r3ZHLTMuttblg+NhWoZUxdY7P4W3WWeGRv9gR2BVBlVR7T3b9WWR/Vj24obDiKL19Rx0YXPaUihTfRfl0SB8iU1zXvBhW0NT+9X269LGXXK50JkhA==
-Received: from BN9PR03CA0046.namprd03.prod.outlook.com (2603:10b6:408:fb::21)
- by IA1PR12MB6556.namprd12.prod.outlook.com (2603:10b6:208:3a0::14) with
+ bh=vWkyx/v4Wlm5lKp/m8ffXWetGH5ykWDjIz/3LRW7Qg4=;
+ b=Z13GU3HSLTQoxh4p3CHCYv/tGGy/IAsSlnnpS+vwuuz6o/0RStmfbBIXPMpGyzri4x0gb6g8watV/gW3Emd/UUOd/ulP0lruSvcZE/prmVuXFkELqocnGH0SmvsJ/fJktUCwZIkmz9REqrdMKGYuCl/D+j8vlJHpIELKLSZPbHqxRUVBFIs1baUmPV29pu3CFKroa9rO+XVdLWcr8MK4rQ1boYR/xGUly/jsMFC+3nunHiSmSzLEvcsy/FaZGw+fy9umvuvLgXo/FxefEvOxVZJOX9ZaJua2tb1Pg3pUfmxkEEZAkB9YO7+HC4n2oe3UW3H7GqcaGp3n01FSYisIrA==
+Received: from BN9PR03CA0237.namprd03.prod.outlook.com (2603:10b6:408:f8::32)
+ by LV8PR12MB9713.namprd12.prod.outlook.com (2603:10b6:408:2a1::11) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9343.10; Wed, 19 Nov
- 2025 20:48:57 +0000
-Received: from BN1PEPF00004680.namprd03.prod.outlook.com
- (2603:10b6:408:fb:cafe::39) by BN9PR03CA0046.outlook.office365.com
- (2603:10b6:408:fb::21) with Microsoft SMTP Server (version=TLS1_3,
+ 2025 20:49:10 +0000
+Received: from BN1PEPF00004684.namprd03.prod.outlook.com
+ (2603:10b6:408:f8:cafe::fd) by BN9PR03CA0237.outlook.office365.com
+ (2603:10b6:408:f8::32) with Microsoft SMTP Server (version=TLS1_3,
  cipher=TLS_AES_256_GCM_SHA384) id 15.20.9343.10 via Frontend Transport; Wed,
- 19 Nov 2025 20:48:53 +0000
+ 19 Nov 2025 20:49:08 +0000
 X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.160)
  smtp.mailfrom=nvidia.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=nvidia.com;
@@ -48,20 +49,20 @@ Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
  216.228.117.160 as permitted sender) receiver=protection.outlook.com;
  client-ip=216.228.117.160; helo=mail.nvidia.com; pr=C
 Received: from mail.nvidia.com (216.228.117.160) by
- BN1PEPF00004680.mail.protection.outlook.com (10.167.243.85) with Microsoft
+ BN1PEPF00004684.mail.protection.outlook.com (10.167.243.90) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.9343.9 via Frontend Transport; Wed, 19 Nov 2025 20:48:53 +0000
+ 15.20.9343.9 via Frontend Transport; Wed, 19 Nov 2025 20:49:08 +0000
 Received: from rnnvmail203.nvidia.com (10.129.68.9) by mail.nvidia.com
  (10.129.200.66) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Wed, 19 Nov
- 2025 12:48:36 -0800
+ 2025 12:48:50 -0800
 Received: from rnnvmail201.nvidia.com (10.129.68.8) by rnnvmail203.nvidia.com
  (10.129.68.9) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Wed, 19 Nov
- 2025 12:48:33 -0800
+ 2025 12:48:50 -0800
 Received: from vdi.nvidia.com (10.127.8.10) by mail.nvidia.com (10.129.68.8)
  with Microsoft SMTP Server id 15.2.2562.20 via Frontend Transport; Wed, 19
- Nov 2025 12:48:29 -0800
+ Nov 2025 12:48:45 -0800
 From: Tariq Toukan <tariqt@nvidia.com>
 To: Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
 	Paolo Abeni <pabeni@redhat.com>, Andrew Lunn <andrew+netdev@lunn.ch>, "David
@@ -74,10 +75,12 @@ CC: Jay Vosburgh <jv@jvosburgh.net>, Saeed Mahameed <saeedm@nvidia.com>,
 	<moshe@nvidia.com>, Shahar Shitrit <shshitrit@nvidia.com>, Yael Chemla
 	<ychemla@nvidia.com>, Dragos Tatulea <dtatulea@nvidia.com>, Maxime Chevallier
 	<maxime.chevallier@bootlin.com>
-Subject: [PATCH net-next V2 0/3] net: Add 1600Gbps (1.6T) link mode support
-Date: Wed, 19 Nov 2025 22:48:14 +0200
-Message-ID: <1763585297-1243980-1-git-send-email-tariqt@nvidia.com>
+Subject: [PATCH net-next V2 3/3] bonding: 3ad: Add support for 1600G speed
+Date: Wed, 19 Nov 2025 22:48:17 +0200
+Message-ID: <1763585297-1243980-4-git-send-email-tariqt@nvidia.com>
 X-Mailer: git-send-email 2.8.0
+In-Reply-To: <1763585297-1243980-1-git-send-email-tariqt@nvidia.com>
+References: <1763585297-1243980-1-git-send-email-tariqt@nvidia.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -88,109 +91,107 @@ Content-Type: text/plain
 X-NV-OnPremToCloud: ExternallySecured
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: BN1PEPF00004680:EE_|IA1PR12MB6556:EE_
-X-MS-Office365-Filtering-Correlation-Id: db0b5c66-3f16-4395-2771-08de27ad0d32
+X-MS-TrafficTypeDiagnostic: BN1PEPF00004684:EE_|LV8PR12MB9713:EE_
+X-MS-Office365-Filtering-Correlation-Id: bf3ca0e4-7395-40a4-be00-08de27ad1605
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|36860700013|1800799024|7416014|376014|82310400026;
+	BCL:0;ARA:13230040|376014|7416014|1800799024|36860700013|82310400026;
 X-Microsoft-Antispam-Message-Info:
-	=?us-ascii?Q?A8noJ2txdHNqeA2m0aaEJk1BikxV/HB0FgFETmFXC14lB0ySbJB4k4Ofs0jl?=
- =?us-ascii?Q?kV3WK/A0XhqXKzL6R/v09pJQuTl53BnhsAra+gFE7wfB5BSqhKPxllZnZrTH?=
- =?us-ascii?Q?K9kkqPDLkRA8cXn6G/aeMqJyVDPbffFxBMz2QG5UFbXCOO0Zj/RdCAVQ1LRG?=
- =?us-ascii?Q?CSed6FuhdBcqRWG+M9GBW0bKjN8ZZdO8wRS0lbmjskNltfJfsIzIXIAWkAtE?=
- =?us-ascii?Q?QpsZUqWkBoEyq5Sc2pd26LXFQTGHON0F6GPCokzTBXs1d1+FJHQGdsxz1Uzn?=
- =?us-ascii?Q?Ai5bQxdXw7DqvjNit0MOilMN05WrCKdlsqCXe6W1xA34C9o5utYvd5Wgnqu/?=
- =?us-ascii?Q?ZQbCkBRMNomwy9N0UcZd/UUFAtsH1dnrSploiIr+uLiHaDyg4oColn4aMSbK?=
- =?us-ascii?Q?8qvVL0hWnrLfUoEQR5eSWGc0QWfJwQaQaSk1NGdQfdaj2kQCHUUbGjAQcFZi?=
- =?us-ascii?Q?dURc1YaUZY8X5UJ2a1g2gg9v+Xt+uxsK1w2rwAUPsfJXrzwf2GKnsxA2bnpC?=
- =?us-ascii?Q?Sl9f3/Hx44AC/BMVYRm5Y3Y8Wety5gPdDYeG6Nj2SQ2NlvZaQdtGaohPpXlE?=
- =?us-ascii?Q?oIc0laDR8Q89EmzSmg8+or4+r8x/5Avtjbvm+iFsAO45WdxwitBs7y0iuWdU?=
- =?us-ascii?Q?zlsRzYgJXeaBml/hyE5WSNVG4I0NErlK8iNuLA7kDsRul7/0YxaoVGfzdfpj?=
- =?us-ascii?Q?t8Os/+VtWbKD0nn5TAiek0fAKFzns5bKhnAol2D2/IhisISUXFFdr2A3IyKg?=
- =?us-ascii?Q?wx/+iRLP5jV0P0n+UeMUlmmNu101D1g8hskseYzQqTZIm1RUXjxnSVPpHVp6?=
- =?us-ascii?Q?XbK1J2rnbzSbVyT711QIOBZ1yspvHFv7x+YhxMII4Mt76aD+UQ0RbRzG4nrR?=
- =?us-ascii?Q?Cpf+vbQnFIlZd7wx5CLOkK4JY2+7uyLf1AZtMjkzW3Bilf7AV4poDQFt6tWA?=
- =?us-ascii?Q?8QFULHorf1nOA+Tba3yJmOzohczisbWeqbvjAD4++GMETI/afHjelXeh6TXK?=
- =?us-ascii?Q?3jdaJqVkjbI/ivJw3TfE32EpCaPMkivSEVQpqDNf3FLUwUYsbBlFQkN+XbLr?=
- =?us-ascii?Q?XxwmWJVaI5ym0Kgx5MqzIGEk0BW4z1UYEkkAr1xNgnh8J38nVIbI3GNve1FL?=
- =?us-ascii?Q?TsfMgfujL2MTQTY5pcKGfOV85dLQjY7M6DgQuOFlHrohrRs/iZ05cac4rniJ?=
- =?us-ascii?Q?G7fWsa6YjnkMV31Qh3LLgRMC++5JCJnIcywxySszgvY35mklPVTITxAVfRyf?=
- =?us-ascii?Q?3qEY3vfeZ/lrxvvMLUXH50gwJPS80LnH53TNcAqb/IcMnOXZYF7JKJNp8Nvi?=
- =?us-ascii?Q?MaaBEX4IJ9SVDAsyZbjn7KThCiCLG0Xn+3cNQVVkOrXIrCLZ7DcoELDgy1/p?=
- =?us-ascii?Q?mhs7HQAzuMXE7NeD+N7aKlX00ZAyOUG+FdUiI+1a8wHzgBIpzslnJvwDoPqJ?=
- =?us-ascii?Q?h8g4lBf9vpwUnGxt5iD3/W5FYeXJ/ElzGbm9E0+Jjds8ij2VfbgExyG0sdRX?=
- =?us-ascii?Q?aGGDEH4sjpmZkw3pCZUzWKsNF718U1FrZcxC57UJjjN99ZN1nDhWNzi25Nlh?=
- =?us-ascii?Q?Y836h6iRAiFFcRNXZOw=3D?=
+	=?us-ascii?Q?HXj19oCotGGHdcTDf0I5v7m1Q9Poa20c4HAcWHiotQh/LgwBw84Ct1K6nac3?=
+ =?us-ascii?Q?ag9ewUhik/G9r3WWftB8AJYEtGeoKdFVlTrzPsY9mar0FfsX7kr4e0x9z5R8?=
+ =?us-ascii?Q?HXQVS3hWh98OzYCFMXB8SUTkHblELobRonONRNEaI5dQS+W+1AmD0MTbz2PE?=
+ =?us-ascii?Q?+Uh234b3tKHI9xAz3p9N/6NAiMPaIfPRzlp7xWzut1HV0jpgK6904+V7655P?=
+ =?us-ascii?Q?APMVVXuIis7Mdj56oqRuO3Rxv3xrsY5jXbgk8TJfZFSp04dzz0OhF5GB6IwQ?=
+ =?us-ascii?Q?9AlchG05IN4Qwy41RetPDque8Xh/6Mmg68/ERbQc8fjjC4b2Y66XD5FFYLVT?=
+ =?us-ascii?Q?m7P8gC/VATESMUaVv/AL7FZfQvZ+BqtrOdYnJ/aYopQ5AMqe+BKWCFECPiht?=
+ =?us-ascii?Q?2598JDuB7eQmKUBv2I8kCSgCb39jUpHJ3pDwu45qN1lAQ59kNcMrtOHW/2MM?=
+ =?us-ascii?Q?Qa3Pj1bsmvIUo31n8VHZ9HQj0Ow6dSTGAX4g+hbV7ul5MB24+R/OgX4smC9h?=
+ =?us-ascii?Q?/x1Vf1BnLT54YIVPMIYzVDJOryfw9W8VeJlAkuyBl4BUQCPFPdfrJxiKMXIB?=
+ =?us-ascii?Q?8ub6TMZom5FVmkdX4uCylG363XYeecKdTP5HxveM5aI4TDTAytl8M6zKgnWF?=
+ =?us-ascii?Q?s1Q5/F/mwIih8S0cSPVdAZAdIsLaSqJUhRqE7cH8viAM4XWPi/Lc+rWuKhJ2?=
+ =?us-ascii?Q?HiU0/uC0JHJeBIG6JyYbaQGIMUlL/uxLT3K7nk9mMQbhsTz6nviI+RpAQ4E8?=
+ =?us-ascii?Q?+qQc+FLMKp7qlsO/LAlrj11sdCA4HOXSJHIjhzuBNPx2TuRYTL0kE/cNO+NY?=
+ =?us-ascii?Q?IoBuI94JWp1+bRX0myKT5TYhL8eLIbDjyedw6yW7PFR2x/ZePPs0lDYqxg/2?=
+ =?us-ascii?Q?+JFmB1fifrnM/5E6B1kjJlPAamY6OWB70MUffBlVVkN3A11G+bZljwKay2dp?=
+ =?us-ascii?Q?dAlgQseImJhf32TgTJ5XooqlXIezVwKU09oPRAivIx9w9vNruBi3IOANYO8z?=
+ =?us-ascii?Q?/SoJAb67W9/MslMN6oQxDCFGB9f42NjXKezBTpJihJ+/Lyk2YGEHg4EKinjP?=
+ =?us-ascii?Q?R6qBe9GvjaFR+Rd0Rdxoyad8SzTXXxpGB5wg+imoXfPGQ1RuM7v54hZ7VH5W?=
+ =?us-ascii?Q?He0rbtlgPZddN8D9S/irULGnU3EUTTVC98gXhCoF2Lrk1KatxCi6mCmYQ0UC?=
+ =?us-ascii?Q?h3K7ljMQJIwvRO8WPkL473emuykydr4PALA5bqx3ZjDOUj8aGaRWICPFloCH?=
+ =?us-ascii?Q?ussbDs8hrH+hhjz3ax+RVQdIX8EjAIwOYQ2/+IWxYfuQnR3zrO4HNFf3sxEG?=
+ =?us-ascii?Q?dnlPIv0KdTjxd5unM+okRi42HUT62JymrP8gXLryyF4eVDfcWoeFLxSsxz4q?=
+ =?us-ascii?Q?g9UsnZhixrD2Uch2Y6cCq2KZ1EnYLvrtFXn/uZdtXbYpMwFT4WV4lEPhpYZY?=
+ =?us-ascii?Q?uAvWzEyAU5I4fP2I5Fmcda/QQFf0CNx1+RIc3DxABH2EP26WvviG+Tlyqr5Y?=
+ =?us-ascii?Q?eZsvcbl3FEfcKMT19UUmzwMmKcBsQBXfL1WIPcgVv0rKvz80ZKude6UC4JLf?=
+ =?us-ascii?Q?c3X+7ubroUjQlZpdMbw=3D?=
 X-Forefront-Antispam-Report:
-	CIP:216.228.117.160;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge1.nvidia.com;CAT:NONE;SFS:(13230040)(36860700013)(1800799024)(7416014)(376014)(82310400026);DIR:OUT;SFP:1101;
+	CIP:216.228.117.160;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge1.nvidia.com;CAT:NONE;SFS:(13230040)(376014)(7416014)(1800799024)(36860700013)(82310400026);DIR:OUT;SFP:1101;
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 19 Nov 2025 20:48:53.5467
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 19 Nov 2025 20:49:08.2396
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: db0b5c66-3f16-4395-2771-08de27ad0d32
+X-MS-Exchange-CrossTenant-Network-Message-Id: bf3ca0e4-7395-40a4-be00-08de27ad1605
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.160];Helo=[mail.nvidia.com]
 X-MS-Exchange-CrossTenant-AuthSource:
-	BN1PEPF00004680.namprd03.prod.outlook.com
+	BN1PEPF00004684.namprd03.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA1PR12MB6556
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: LV8PR12MB9713
 
-This series by Yael adds 1600Gbps (1.6T) link mode support.
-See detailed description by Yael below.
+From: Yael Chemla <ychemla@nvidia.com>
 
-Regards,
-Tariq
+Add support for 1600Gbps speed to allow using 3ad mode with 1600G
+devices.
 
+Signed-off-by: Yael Chemla <ychemla@nvidia.com>
+Reviewed-by: Shahar Shitrit <shshitrit@nvidia.com>
+Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
+---
+ drivers/net/bonding/bond_3ad.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-This series adds 1600Gbps (1.6T) link mode support end-to-end.
-- Introduces 1600Gbps ethtool link modes based on 200Gbps-per-lane
-  signaling from IEEE 802.3dj, including KR8/CR8/DR8/DR8-2 PMDs.
-- Wires up mlx5e to advertise and handle the new modes (8 lanes x
-  200Gbps).
-- Extends bonding 802.3ad to accept and operate with 1600Gbps links.
-
-User-visible effects:
-- ethtool will report and advertise 1600Gbps modes and PMDs where
-  supported.
-- mlx5 devices capable of 8x200Gbps lanes will expose 1600Gbps.
-- LACP (bonding 3ad) will accept and utilize 1600Gbps partner links.
-
-Compatibility:
-- UAPI additions only; existing users are unaffected.
-- The new link modes/PMDs are additive and aligned with IEEE 802.3dj
-  200G/lane definitions.
-
-Testing:
-- Verified ethtool reporting/advertisement and 1600Gbps link bring-up
-  using simulated mlx5 hardware.
-- No regressions observed at lower speeds.
-
-References:
-[1] https://www.ieee802.org/3/dj/public/23_03/opsasnick_3dj_01a_2303.pdf
-[2] https://www.ieee802.org/3/dj/projdoc/objectives_P802d3dj_240314.pdf
-
-
-V2:
-- Update drivers/net/phy/phy_caps.[ch] (Maxime)
-
-Yael Chemla (3):
-  net: ethtool: Add support for 1600Gbps speed
-  net/mlx5e: Add 1600Gbps link modes
-  bonding: 3ad: Add support for 1600G speed
-
- drivers/net/bonding/bond_3ad.c                       | 9 +++++++++
- drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c | 5 +++++
- drivers/net/ethernet/mellanox/mlx5/core/port.c       | 1 +
- drivers/net/phy/phy-caps.h                           | 1 +
- drivers/net/phy/phy-core.c                           | 4 +++-
- drivers/net/phy/phy_caps.c                           | 2 ++
- include/uapi/linux/ethtool.h                         | 5 +++++
- net/ethtool/common.c                                 | 8 ++++++++
- 8 files changed, 34 insertions(+), 1 deletion(-)
-
-
-base-commit: 865a5d1a29be48875ff68c6ba7e8377180ab8e33
+diff --git a/drivers/net/bonding/bond_3ad.c b/drivers/net/bonding/bond_3ad.c
+index 49717b7b82a2..1a8de2bf8655 100644
+--- a/drivers/net/bonding/bond_3ad.c
++++ b/drivers/net/bonding/bond_3ad.c
+@@ -76,6 +76,7 @@ enum ad_link_speed_type {
+ 	AD_LINK_SPEED_200000MBPS,
+ 	AD_LINK_SPEED_400000MBPS,
+ 	AD_LINK_SPEED_800000MBPS,
++	AD_LINK_SPEED_1600000MBPS,
+ };
+ 
+ /* compare MAC addresses */
+@@ -300,6 +301,7 @@ static inline int __check_agg_selection_timer(struct port *port)
+  *     %AD_LINK_SPEED_200000MBPS
+  *     %AD_LINK_SPEED_400000MBPS
+  *     %AD_LINK_SPEED_800000MBPS
++ *     %AD_LINK_SPEED_1600000MBPS
+  */
+ static u16 __get_link_speed(struct port *port)
+ {
+@@ -379,6 +381,10 @@ static u16 __get_link_speed(struct port *port)
+ 			speed = AD_LINK_SPEED_800000MBPS;
+ 			break;
+ 
++		case SPEED_1600000:
++			speed = AD_LINK_SPEED_1600000MBPS;
++			break;
++
+ 		default:
+ 			/* unknown speed value from ethtool. shouldn't happen */
+ 			if (slave->speed != SPEED_UNKNOWN)
+@@ -822,6 +828,9 @@ static u32 __get_agg_bandwidth(struct aggregator *aggregator)
+ 		case AD_LINK_SPEED_800000MBPS:
+ 			bandwidth = nports * 800000;
+ 			break;
++		case AD_LINK_SPEED_1600000MBPS:
++			bandwidth = nports * 1600000;
++			break;
+ 		default:
+ 			bandwidth = 0; /* to silence the compiler */
+ 		}
 -- 
 2.31.1
 
