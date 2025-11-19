@@ -1,64 +1,64 @@
-Received: from mail-yw1-f182.google.com (mail-yw1-f182.google.com [209.85.128.182])
+Received: from mail-yx1-f51.google.com (mail-yx1-f51.google.com [74.125.224.51])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 06CA12D373F
-	for <linux-rdma@vger.kernel.org>; Wed, 19 Nov 2025 02:50:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.182
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E1BA29E10B
+	for <linux-rdma@vger.kernel.org>; Wed, 19 Nov 2025 02:50:46 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.224.51
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763520646; cv=none; b=qGp8yigaVOKqjl22sfvPeoa1culJO12FfjUGZbGr4hazYBGWydjlHTvryR+PKM3pPkpt3wS+u4tOS+3SEavqKW++uVs2AOEz6aIvS/kGoNKubaJ3lWWDjnWEKUSzXjuHaTlv9pT67QhlyRP6ppgDM45P3OJQRTIr3FoZf3VhMa4=
+	t=1763520648; cv=none; b=XpUGpqC3PJ+GzfZAUogM+sUtkdbK4lKS2/e1wEjHr/y1lHjdffL7yU5XZG9C2pY8BflmPLUlQbqh3JeljpQknFqGFbEHBM8LtcmaesP32aPq/SsS7NAkOiPpTszr5cAFMmkNIWDBHsVGY8TU+y5OBSlWIP6QlzVZYQ9rEzQUEns=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763520646; c=relaxed/simple;
-	bh=4cgTaRxKtGkZAKZwbeJ8NAIt/cTYm/k1KsiufklS4Bc=;
+	s=arc-20240116; t=1763520648; c=relaxed/simple;
+	bh=l/PApn1G/c4u9BEsPG1poIW4K3XiIGRyssMDc+QqiBM=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=LfYZp+rGwUZw8odkQg9/Kn7NQ3udN7BPknvZdoXxr7kPm41Byj1LvXtI0RNy56MLpEvw+UBA0NhhHNe1jLEn3dUCTmXqCdUevkqe4jGbgxJ4Z3yAaTfdbAgWVTXtOQkD6IcAaCDGPdDdKRSuSttXgAbPp0Bs9d/N6H74k3ggu5g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=SUKNAQgB; arc=none smtp.client-ip=209.85.128.182
+	 MIME-Version; b=FX0+yqOgyQXg16QmVrRtVjCB3Hkq49AFdp1tn7qI1KG021fBOKIT4Xv6VAgdoL6QNfYRHJoayrsyzygDXSc4cte+uDohrp+8Iub2jAle/BGFfmlZkqMkPPOIdL6JP5o6y2GnijFYKbl0Kq+rx7eW1ffUq1aJ8PLL/GUsSV+ivPI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=mliOOtzB; arc=none smtp.client-ip=74.125.224.51
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="SUKNAQgB"
-Received: by mail-yw1-f182.google.com with SMTP id 00721157ae682-78a6c7ac3caso4520287b3.0
-        for <linux-rdma@vger.kernel.org>; Tue, 18 Nov 2025 18:50:43 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="mliOOtzB"
+Received: by mail-yx1-f51.google.com with SMTP id 956f58d0204a3-63e19642764so5275382d50.1
+        for <linux-rdma@vger.kernel.org>; Tue, 18 Nov 2025 18:50:46 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1763520643; x=1764125443; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1763520645; x=1764125445; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=rWqq/E7zKQnXcP2xpT7tq8xivBl/Olaq+LqX0F7uMsg=;
-        b=SUKNAQgB46uljJCvmF3J3RnB6ErNYb8rOVIFfrDr9n6fgCnNLTGAZoMPKmTFF2Sa7/
-         CN10apBURrK9FBIrrh6PZ6lx3lz0CeSpjAJw+qCqfNhysu0AgKeNd4d0WGXv/2Xl4MRm
-         mIVLz3LRE6KOGJu1QCkif8SZndu6pcyOqYuQXRka+Oga759SlCT2efjF6mvQ8kgXOOsx
-         Y9fukIieOkQGwMxQye8RvJsowKNQHqrOWTq2wtsaMlhxrfJTB1dEWMaVaXekfJb4W9aR
-         6tLHqHmG3jMfOvQG5SfDYGXxmJ3ZVOsIJLKNW6cCosUd9CN/U1JZISlgUk0Wld8WdUUT
-         JK4g==
+        bh=SfMYKL1MowanU+ydcWrbRX5x+m+UA3104k+MyV8UJCU=;
+        b=mliOOtzBJ34BZeVHA3TxaQTLNzsoWolk7hMB2EGCh1bvYTprwMwxtKXQQn3+9LadLc
+         1sdSkciwdi6k/EGBDzW/skQMBgyoxzAqPcqpeorbgkCH9UAIv5AQN2xab7TrN/NqvQxT
+         PT1L8k45eL2hqwestEfrocTONhBVTAuGIijieLoBhZe8gCKUJIpBvSDh/CwuSzp6nC2a
+         UyLm8A9uXcyQh0LUdl18OIVXBnvjtOVK8rLXHvB6eD+R9ZLVZrk6lARb0l04UI7yz/wV
+         ysBgBmApz6uLfSgl42SyVcwAuFiq3e01lOHRBxZSLj0nSFXFJ8OCwG/u9fEfjHbUAEeM
+         YPkQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1763520643; x=1764125443;
+        d=1e100.net; s=20230601; t=1763520645; x=1764125445;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=rWqq/E7zKQnXcP2xpT7tq8xivBl/Olaq+LqX0F7uMsg=;
-        b=EICSQNK1OtMoxoErMrR7nlIbKsmxWx+b0NgC2K/9kBvNTk2Ox6Rj+7cLmYTTs7KhZF
-         p2edGD0uAyrQqh+UNV7/v3NX+w/xp1O5BqeVFVf4quZn5cGEEipnofv2FYrRXt0HgHUd
-         9+Gs83dfD5CqfLi0h+wi6ERakPWKkDPTuGWBKxJ+wT9QlJZarWT5m50itfotg4eAWxAh
-         7hLvfDamvo1+wFED9Cuqp481PlEhVc+DdQuUyyp5oDCBgd3OpORTtPjpm5962/OVJ+Qv
-         aZMaTV6ixODPLs8nunVZO7DhYrQb9a+F4bSWG2JixmgAfxz9lE/zwccq77C8ZLVCNU1P
-         kY2A==
-X-Forwarded-Encrypted: i=1; AJvYcCWT+oXCVaDUnenQjuf0Ou41gXFdVgdgRfBpAGDWbgV4Um3D3X4XgriJXiOsIY9LM6yLg2eP8L6jbQlP@vger.kernel.org
-X-Gm-Message-State: AOJu0Yy3Haoj35tUF1PYqBwwZJv5e3f6tlhTeaumLkcmITD+hOfHT7jS
-	e4owjdnkQXqnxbDW+Wla+eGTZy5ymgwfLQiHU+L79HcEYIlZ9j51Q45M
-X-Gm-Gg: ASbGncu1n33nAXzLtcuvCJk3sP1WhKdBbY6pQ1Cj/VvR35PYI5k8yfqowRSsbMCnUfz
-	hc7WRwduhsCrmOZoEz36vByJugVYfRYlCoLV8M24TscH2XfzfXvvCMhBs8Cux2OoV/UhXaOgFTo
-	qOAX9lI6xEex36IlZt4ZkZpqn0yxGKiQHFsAuxjPFH9D2xlXdM+0tt1TCl8Xp3ZUZwiJGww4xUa
-	UPY3xP0Z3qk/WzNKPKqOsg/scrtfSOp+pi0LPWbPuNA5VeG25EFlHQ1DpUVIBodhYbUQNdVRB/O
-	a9vb7LYVvRmkH+1zRT+BPmCQgb1JzMD8pgAa0HvT3b8T7AtVNHs8YR5t7Ug9kAzL+4rowcw5hy6
-	BfPscJC7UQLYspHfLbkPXviGH7+od2tr1nyGzwStQJ3SPzAsG2EMcOmlfMoo48UDOVhtW23GAjK
-	wWDkvYIynWm6yrQzSvhjNYXu9adEWENog=
-X-Google-Smtp-Source: AGHT+IFmJAqifV/A5UXV/0xqOw6dq2zPQ0xWVJeUY3fRhlPvrQlZtONh0DZWyIugqJIc+x8XrxDcyw==
-X-Received: by 2002:a05:690c:6f8e:b0:786:a3fa:cb92 with SMTP id 00721157ae682-78929e25fcbmr161185787b3.9.1763520642967;
-        Tue, 18 Nov 2025 18:50:42 -0800 (PST)
-Received: from localhost ([2a03:2880:25ff:48::])
-        by smtp.gmail.com with ESMTPSA id 00721157ae682-78821e3d526sm58572647b3.21.2025.11.18.18.50.42
+        bh=SfMYKL1MowanU+ydcWrbRX5x+m+UA3104k+MyV8UJCU=;
+        b=YoyzjjEBsmQbgyL0OEDCIqt/uEEzF77wRaN8SYRumXq2kd322oU48F/jnmA8orjnuj
+         TS16DDb8RAiSt40ngoZXJaUDD5ON6SEN4D29ao6ppauC89XfNRmfwuVpjI7DqOH9i5Cf
+         01YvARGZBQk2a9vP+PAP6imBIUGelLbeYPfBZrDWeQwS/LmGUGjo72l6NKPn1DAVaTaI
+         RMSU/CL1kXs589PMh+Czy1papKUoYl64qNvOMq50eIQspUbw94cSVURWgqvEC640SnGQ
+         zBtNqaaXSz0YvgXCoWQ4wes2WN3bOg8pxdwv9Bia8b2yZ6iWepa/LOz5ssdFYnyxifWk
+         /P5w==
+X-Forwarded-Encrypted: i=1; AJvYcCU0R0ab9FiboPSKfX1g3zlBcDbe1q2ygII6F2owWQiTIoowKhYAK9H4aU1qX8h0yIaPCS3ifzVGSD14@vger.kernel.org
+X-Gm-Message-State: AOJu0Ywbgaf8Z4cM7e2z14P0rcj1FsLCWM2l9EVcWjiqSoBzB8uWBDvQ
+	Aa4lqueOlcVaYoH3JZL89taz5PzUrvjxgKCCoPw5iky+VB1rNQGRJAQg
+X-Gm-Gg: ASbGncv4LTzJyBrHu5cIcO9xQKnEk0Kf2eeqy49TljYL2N/pe0OanDilvsZq0u5HUBw
+	QHZ5/JCrnjl4yfrAnUocLuNYi8QD1tueOXR4Vy4npAEev95b/q8X4UNxQSXyDaI/wQE5L0InArD
+	k8gITCog98AdFa4qflnjhoeyF57VZ6WuS9Liegm7noEZCrdXQiefd2C0UaXJHzN34B8A/89wDcA
+	1Mq/mZr42tm3UyIT1JCmF9egiJodZNR1pVjum9qmmxkZAwneu+DZkdzoS3cnm3kTBqCT9BEHeNi
+	wZjt4m2qcys+MQmC+kyOtcg5ytkWsX4Tw5N0UufF9H1tdg1kE+yUAwRcFmdd5q+Pm1Bo66Y8owE
+	r4y+oAxsMgrtCEg4JK+kcUO3e8OIiSSbDGca5ASzhB6fG8mCC3lF5a9V0ddgUKcL0KX7QHIqDMl
+	y0i1X1Bu1kD2P4qeOgEz40EUuqFtRmOc0=
+X-Google-Smtp-Source: AGHT+IH0Fq/B03G5Ni+5EL+C2Zjoi3HIOENrIEn4SmPL1fIk2tuLkPEZkquimopS4n2FAt0wQw4oUQ==
+X-Received: by 2002:a53:c052:0:20b0:63f:b922:ed79 with SMTP id 956f58d0204a3-641e755565amr13345889d50.14.1763520645166;
+        Tue, 18 Nov 2025 18:50:45 -0800 (PST)
+Received: from localhost ([2a03:2880:25ff:5a::])
+        by smtp.gmail.com with ESMTPSA id 956f58d0204a3-6410eabb46esm6540895d50.17.2025.11.18.18.50.44
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 18 Nov 2025 18:50:42 -0800 (PST)
+        Tue, 18 Nov 2025 18:50:44 -0800 (PST)
 From: Daniel Zahka <daniel.zahka@gmail.com>
 To: Jiri Pirko <jiri@resnulli.us>,
 	"David S. Miller" <davem@davemloft.net>,
@@ -107,9 +107,9 @@ To: Jiri Pirko <jiri@resnulli.us>,
 Cc: netdev@vger.kernel.org,
 	linux-doc@vger.kernel.org,
 	linux-rdma@vger.kernel.org
-Subject: [PATCH net-next v5 3/6] devlink: support default values for param-get and param-set
-Date: Tue, 18 Nov 2025 18:50:33 -0800
-Message-ID: <20251119025038.651131-4-daniel.zahka@gmail.com>
+Subject: [PATCH net-next v5 5/6] netdevsim: register a new devlink param with default value interface
+Date: Tue, 18 Nov 2025 18:50:35 -0800
+Message-ID: <20251119025038.651131-6-daniel.zahka@gmail.com>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20251119025038.651131-1-daniel.zahka@gmail.com>
 References: <20251119025038.651131-1-daniel.zahka@gmail.com>
@@ -121,411 +121,124 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Support querying and resetting to default param values.
+Create a new devlink param, test2, that supports default param actions
+via the devlink_param::get_default() and
+devlink_param::reset_default() functions.
 
-Introduce two new devlink netlink attrs:
-DEVLINK_ATTR_PARAM_VALUE_DEFAULT and
-DEVLINK_ATTR_PARAM_RESET_DEFAULT. The former is used to contain an
-optional parameter value inside of the param_value nested
-attribute. The latter is used in param-set requests from userspace to
-indicate that the driver should reset the param to its default value.
-
-To implement this, two new functions are added to the devlink driver
-api: devlink_param::get_default() and
-devlink_param::reset_default(). These callbacks allow drivers to
-implement default param actions for runtime and permanent cmodes. For
-driverinit params, the core latches the last value set by a driver via
-devl_param_driverinit_value_set(), and uses that as the default value
-for a param.
-
-Because default parameter values are optional, it would be impossible
-to discern whether or not a param of type bool has default value of
-false or not provided if the default value is encoded using a netlink
-flag type. For this reason, when a DEVLINK_PARAM_TYPE_BOOL has an
-associated default value, the default value is encoded using a u8
-type.
-
+Reviewed-by: Aleksandr Loktionov <aleksandr.loktionov@intel.com>
 Signed-off-by: Daniel Zahka <daniel.zahka@gmail.com>
 ---
- Documentation/netlink/specs/devlink.yaml      |   9 ++
- .../networking/devlink/devlink-params.rst     |  10 ++
- include/net/devlink.h                         |  42 +++++++
- include/uapi/linux/devlink.h                  |   3 +
- net/devlink/netlink_gen.c                     |   5 +-
- net/devlink/param.c                           | 105 ++++++++++++++++--
- 6 files changed, 160 insertions(+), 14 deletions(-)
 
-diff --git a/Documentation/netlink/specs/devlink.yaml b/Documentation/netlink/specs/devlink.yaml
-index 426d5aa7d955..837112da6738 100644
---- a/Documentation/netlink/specs/devlink.yaml
-+++ b/Documentation/netlink/specs/devlink.yaml
-@@ -859,6 +859,14 @@ attribute-sets:
-         name: health-reporter-burst-period
-         type: u64
-         doc: Time (in msec) for recoveries before starting the grace period.
-+
-+      # TODO: fill in the attributes in between
-+
-+      -
-+        name: param-reset-default
-+        type: flag
-+        doc: Request restoring parameter to its default value.
-+        value: 183
-   -
-     name: dl-dev-stats
-     subset-of: devlink
-@@ -1793,6 +1801,7 @@ operations:
-             - param-type
-             # param-value-data is missing here as the type is variable
-             - param-value-cmode
-+            - param-reset-default
- 
-     -
-       name: region-get
-diff --git a/Documentation/networking/devlink/devlink-params.rst b/Documentation/networking/devlink/devlink-params.rst
-index c0597d456641..ea17756dcda6 100644
---- a/Documentation/networking/devlink/devlink-params.rst
-+++ b/Documentation/networking/devlink/devlink-params.rst
-@@ -41,6 +41,16 @@ In order for ``driverinit`` parameters to take effect, the driver must
- support reloading via the ``devlink-reload`` command. This command will
- request a reload of the device driver.
- 
-+Default parameter values
-+=========================
-+
-+Drivers may optionally export default values for parameters of cmode
-+``runtime`` and ``permanent``. For ``driverinit`` parameters, the last
-+value set by the driver will be used as the default value. Drivers can
-+also support resetting params with cmode ``runtime`` and ``permanent``
-+to their default values. Resetting ``driverinit`` params is supported
-+by devlink core without additional driver support needed.
-+
- .. _devlink_params_generic:
- 
- Generic configuration parameters
-diff --git a/include/net/devlink.h b/include/net/devlink.h
-index 5f479227144d..cb839e0435a1 100644
---- a/include/net/devlink.h
-+++ b/include/net/devlink.h
-@@ -479,6 +479,10 @@ struct devlink_flash_notify {
-  * @set: set parameter value, used for runtime and permanent
-  *       configuration modes
-  * @validate: validate input value is applicable (within value range, etc.)
-+ * @get_default: get parameter default value, used for runtime and permanent
-+ *               configuration modes
-+ * @reset_default: reset parameter to default value, used for runtime and permanent
-+ *                 configuration modes
-  *
-  * This struct should be used by the driver to fill the data for
-  * a parameter it registers.
-@@ -498,6 +502,12 @@ struct devlink_param {
- 	int (*validate)(struct devlink *devlink, u32 id,
- 			union devlink_param_value val,
- 			struct netlink_ext_ack *extack);
-+	int (*get_default)(struct devlink *devlink, u32 id,
-+			   struct devlink_param_gset_ctx *ctx,
-+			   struct netlink_ext_ack *extack);
-+	int (*reset_default)(struct devlink *devlink, u32 id,
-+			     enum devlink_param_cmode cmode,
-+			     struct netlink_ext_ack *extack);
+Notes:
+    v5:
+     - don't use magic value in get_default() reset_default()
+
+ drivers/net/netdevsim/dev.c       | 56 +++++++++++++++++++++++++++++++
+ drivers/net/netdevsim/netdevsim.h |  1 +
+ 2 files changed, 57 insertions(+)
+
+diff --git a/drivers/net/netdevsim/dev.c b/drivers/net/netdevsim/dev.c
+index 95f66c1f59db..2683a989873e 100644
+--- a/drivers/net/netdevsim/dev.c
++++ b/drivers/net/netdevsim/dev.c
+@@ -320,6 +320,8 @@ static int nsim_dev_debugfs_init(struct nsim_dev *nsim_dev)
+ 			   &nsim_dev->max_macs);
+ 	debugfs_create_bool("test1", 0600, nsim_dev->ddir,
+ 			    &nsim_dev->test1);
++	debugfs_create_u32("test2", 0600, nsim_dev->ddir,
++			   &nsim_dev->test2);
+ 	nsim_dev->take_snapshot = debugfs_create_file("take_snapshot",
+ 						      0200,
+ 						      nsim_dev->ddir,
+@@ -521,8 +523,53 @@ static int nsim_dev_resources_register(struct devlink *devlink)
+ enum nsim_devlink_param_id {
+ 	NSIM_DEVLINK_PARAM_ID_BASE = DEVLINK_PARAM_GENERIC_ID_MAX,
+ 	NSIM_DEVLINK_PARAM_ID_TEST1,
++	NSIM_DEVLINK_PARAM_ID_TEST2,
  };
  
- struct devlink_param_item {
-@@ -509,6 +519,7 @@ struct devlink_param_item {
- 							 * until reload.
- 							 */
- 	bool driverinit_value_new_valid;
-+	union devlink_param_value driverinit_default;
- };
- 
- enum devlink_param_generic_id {
-@@ -630,6 +641,37 @@ enum devlink_param_generic_id {
- 	.validate = _validate,						\
- }
- 
-+#define DEVLINK_PARAM_GENERIC_WITH_DEFAULTS(_id, _cmodes, _get, _set,	      \
-+					    _validate, _get_default,	      \
-+					    _reset_default)		      \
-+{									      \
-+	.id = DEVLINK_PARAM_GENERIC_ID_##_id,				      \
-+	.name = DEVLINK_PARAM_GENERIC_##_id##_NAME,			      \
-+	.type = DEVLINK_PARAM_GENERIC_##_id##_TYPE,			      \
-+	.generic = true,						      \
-+	.supported_cmodes = _cmodes,					      \
-+	.get = _get,							      \
-+	.set = _set,							      \
-+	.validate = _validate,						      \
-+	.get_default = _get_default,					      \
-+	.reset_default = _reset_default,				      \
++static int
++nsim_devlink_param_test2_get(struct devlink *devlink, u32 id,
++			     struct devlink_param_gset_ctx *ctx,
++			     struct netlink_ext_ack *extack)
++{
++	struct nsim_dev *nsim_dev = devlink_priv(devlink);
++
++	ctx->val.vu32 = nsim_dev->test2;
++	return 0;
 +}
 +
-+#define DEVLINK_PARAM_DRIVER_WITH_DEFAULTS(_id, _name, _type, _cmodes,	      \
-+					   _get, _set, _validate,	      \
-+					   _get_default, _reset_default)      \
-+{									      \
-+	.id = _id,							      \
-+	.name = _name,							      \
-+	.type = _type,							      \
-+	.supported_cmodes = _cmodes,					      \
-+	.get = _get,							      \
-+	.set = _set,							      \
-+	.validate = _validate,						      \
-+	.get_default = _get_default,					      \
-+	.reset_default = _reset_default,				      \
++static int
++nsim_devlink_param_test2_set(struct devlink *devlink, u32 id,
++			     struct devlink_param_gset_ctx *ctx,
++			     struct netlink_ext_ack *extack)
++{
++	struct nsim_dev *nsim_dev = devlink_priv(devlink);
++
++	nsim_dev->test2 = ctx->val.vu32;
++	return 0;
 +}
 +
- /* Identifier of board design */
- #define DEVLINK_INFO_VERSION_GENERIC_BOARD_ID	"board.id"
- /* Revision of board design */
-diff --git a/include/uapi/linux/devlink.h b/include/uapi/linux/devlink.h
-index 157f11d3fb72..e7d6b6d13470 100644
---- a/include/uapi/linux/devlink.h
-+++ b/include/uapi/linux/devlink.h
-@@ -639,6 +639,9 @@ enum devlink_attr {
- 
- 	DEVLINK_ATTR_HEALTH_REPORTER_BURST_PERIOD,	/* u64 */
- 
-+	DEVLINK_ATTR_PARAM_VALUE_DEFAULT,	/* dynamic */
-+	DEVLINK_ATTR_PARAM_RESET_DEFAULT,	/* flag */
++#define NSIM_DEV_TEST2_DEFAULT 1234
 +
- 	/* Add new attributes above here, update the spec in
- 	 * Documentation/netlink/specs/devlink.yaml and re-generate
- 	 * net/devlink/netlink_gen.c.
-diff --git a/net/devlink/netlink_gen.c b/net/devlink/netlink_gen.c
-index 5ad435aee29d..580985025f49 100644
---- a/net/devlink/netlink_gen.c
-+++ b/net/devlink/netlink_gen.c
-@@ -301,12 +301,13 @@ static const struct nla_policy devlink_param_get_dump_nl_policy[DEVLINK_ATTR_DEV
- };
- 
- /* DEVLINK_CMD_PARAM_SET - do */
--static const struct nla_policy devlink_param_set_nl_policy[DEVLINK_ATTR_PARAM_VALUE_CMODE + 1] = {
-+static const struct nla_policy devlink_param_set_nl_policy[DEVLINK_ATTR_PARAM_RESET_DEFAULT + 1] = {
- 	[DEVLINK_ATTR_BUS_NAME] = { .type = NLA_NUL_STRING, },
- 	[DEVLINK_ATTR_DEV_NAME] = { .type = NLA_NUL_STRING, },
- 	[DEVLINK_ATTR_PARAM_NAME] = { .type = NLA_NUL_STRING, },
- 	[DEVLINK_ATTR_PARAM_TYPE] = NLA_POLICY_VALIDATE_FN(NLA_U8, &devlink_attr_param_type_validate),
- 	[DEVLINK_ATTR_PARAM_VALUE_CMODE] = NLA_POLICY_MAX(NLA_U8, 2),
-+	[DEVLINK_ATTR_PARAM_RESET_DEFAULT] = { .type = NLA_FLAG, },
- };
- 
- /* DEVLINK_CMD_REGION_GET - do */
-@@ -919,7 +920,7 @@ const struct genl_split_ops devlink_nl_ops[74] = {
- 		.doit		= devlink_nl_param_set_doit,
- 		.post_doit	= devlink_nl_post_doit,
- 		.policy		= devlink_param_set_nl_policy,
--		.maxattr	= DEVLINK_ATTR_PARAM_VALUE_CMODE,
-+		.maxattr	= DEVLINK_ATTR_PARAM_RESET_DEFAULT,
- 		.flags		= GENL_ADMIN_PERM | GENL_CMD_CAP_DO,
- 	},
- 	{
-diff --git a/net/devlink/param.c b/net/devlink/param.c
-index 3aa14ef345f0..e0ea93eded43 100644
---- a/net/devlink/param.c
-+++ b/net/devlink/param.c
-@@ -192,9 +192,32 @@ static int devlink_param_set(struct devlink *devlink,
- 	return param->set(devlink, param->id, ctx, extack);
- }
- 
-+static int devlink_param_get_default(struct devlink *devlink,
-+				     const struct devlink_param *param,
++static int
++nsim_devlink_param_test2_get_default(struct devlink *devlink, u32 id,
 +				     struct devlink_param_gset_ctx *ctx,
 +				     struct netlink_ext_ack *extack)
 +{
-+	if (!param->get_default)
-+		return -EOPNOTSUPP;
-+
-+	return param->get_default(devlink, param->id, ctx, extack);
++	ctx->val.vu32 = NSIM_DEV_TEST2_DEFAULT;
++	return 0;
 +}
 +
-+static int devlink_param_reset_default(struct devlink *devlink,
-+				       const struct devlink_param *param,
++static int
++nsim_devlink_param_test2_reset_default(struct devlink *devlink, u32 id,
 +				       enum devlink_param_cmode cmode,
 +				       struct netlink_ext_ack *extack)
 +{
-+	if (!param->reset_default)
-+		return -EOPNOTSUPP;
++	struct nsim_dev *nsim_dev = devlink_priv(devlink);
 +
-+	return param->reset_default(devlink, param->id, cmode, extack);
++	nsim_dev->test2 = NSIM_DEV_TEST2_DEFAULT;
++	return 0;
 +}
 +
- static int
- devlink_nl_param_value_put(struct sk_buff *msg, enum devlink_param_type type,
--			   int nla_type, union devlink_param_value val)
-+			   int nla_type, union devlink_param_value val,
-+			   bool flag_as_u8)
- {
- 	switch (type) {
- 	case DEVLINK_PARAM_TYPE_U8:
-@@ -218,8 +241,16 @@ devlink_nl_param_value_put(struct sk_buff *msg, enum devlink_param_type type,
- 			return -EMSGSIZE;
- 		break;
- 	case DEVLINK_PARAM_TYPE_BOOL:
--		if (val.vbool && nla_put_flag(msg, nla_type))
--			return -EMSGSIZE;
-+		/* default values of type bool are encoded with u8, so that
-+		 * false can be distinguished from not present
-+		 */
-+		if (flag_as_u8) {
-+			if (nla_put_u8(msg, nla_type, val.vbool))
-+				return -EMSGSIZE;
-+		} else {
-+			if (val.vbool && nla_put_flag(msg, nla_type))
-+				return -EMSGSIZE;
-+		}
- 		break;
- 	}
- 	return 0;
-@@ -229,7 +260,9 @@ static int
- devlink_nl_param_value_fill_one(struct sk_buff *msg,
- 				enum devlink_param_type type,
- 				enum devlink_param_cmode cmode,
--				union devlink_param_value val)
-+				union devlink_param_value val,
-+				union devlink_param_value default_val,
-+				bool has_default)
- {
- 	struct nlattr *param_value_attr;
- 	int err = -EMSGSIZE;
-@@ -243,10 +276,19 @@ devlink_nl_param_value_fill_one(struct sk_buff *msg,
- 		goto value_nest_cancel;
+ static const struct devlink_param nsim_devlink_params[] = {
+ 	DEVLINK_PARAM_GENERIC(MAX_MACS,
+ 			      BIT(DEVLINK_PARAM_CMODE_DRIVERINIT),
+@@ -531,6 +578,14 @@ static const struct devlink_param nsim_devlink_params[] = {
+ 			     "test1", DEVLINK_PARAM_TYPE_BOOL,
+ 			     BIT(DEVLINK_PARAM_CMODE_DRIVERINIT),
+ 			     NULL, NULL, NULL),
++	DEVLINK_PARAM_DRIVER_WITH_DEFAULTS(NSIM_DEVLINK_PARAM_ID_TEST2,
++					   "test2", DEVLINK_PARAM_TYPE_U32,
++					   BIT(DEVLINK_PARAM_CMODE_RUNTIME),
++					   nsim_devlink_param_test2_get,
++					   nsim_devlink_param_test2_set,
++					   NULL,
++					   nsim_devlink_param_test2_get_default,
++					   nsim_devlink_param_test2_reset_default),
+ };
  
- 	err = devlink_nl_param_value_put(msg, type,
--					 DEVLINK_ATTR_PARAM_VALUE_DATA, val);
-+					 DEVLINK_ATTR_PARAM_VALUE_DATA,
-+					 val, false);
- 	if (err)
- 		goto value_nest_cancel;
+ static void nsim_devlink_set_params_init_values(struct nsim_dev *nsim_dev,
+@@ -1590,6 +1645,7 @@ int nsim_drv_probe(struct nsim_bus_dev *nsim_bus_dev)
+ 	nsim_dev->fw_update_flash_chunk_time_ms = NSIM_DEV_FLASH_CHUNK_TIME_MS_DEFAULT;
+ 	nsim_dev->max_macs = NSIM_DEV_MAX_MACS_DEFAULT;
+ 	nsim_dev->test1 = NSIM_DEV_TEST1_DEFAULT;
++	nsim_dev->test2 = NSIM_DEV_TEST2_DEFAULT;
+ 	spin_lock_init(&nsim_dev->fa_cookie_lock);
  
-+	if (has_default) {
-+		err = devlink_nl_param_value_put(msg, type,
-+						 DEVLINK_ATTR_PARAM_VALUE_DEFAULT,
-+						 default_val, true);
-+		if (err)
-+			goto value_nest_cancel;
-+	}
-+
- 	nla_nest_end(msg, param_value_attr);
- 	return 0;
- 
-@@ -262,7 +304,9 @@ static int devlink_nl_param_fill(struct sk_buff *msg, struct devlink *devlink,
- 				 u32 portid, u32 seq, int flags,
- 				 struct netlink_ext_ack *extack)
- {
-+	union devlink_param_value default_value[DEVLINK_PARAM_CMODE_MAX + 1];
- 	union devlink_param_value param_value[DEVLINK_PARAM_CMODE_MAX + 1];
-+	bool default_value_set[DEVLINK_PARAM_CMODE_MAX + 1] = {};
- 	bool param_value_set[DEVLINK_PARAM_CMODE_MAX + 1] = {};
- 	const struct devlink_param *param = param_item->param;
- 	struct devlink_param_gset_ctx ctx;
-@@ -283,12 +327,26 @@ static int devlink_nl_param_fill(struct sk_buff *msg, struct devlink *devlink,
- 				param_value[i] = param_item->driverinit_value;
- 			else
- 				return -EOPNOTSUPP;
-+
-+			if (param_item->driverinit_value_valid) {
-+				default_value[i] = param_item->driverinit_default;
-+				default_value_set[i] = true;
-+			}
- 		} else {
- 			ctx.cmode = i;
- 			err = devlink_param_get(devlink, param, &ctx, extack);
- 			if (err)
- 				return err;
- 			param_value[i] = ctx.val;
-+
-+			err = devlink_param_get_default(devlink, param, &ctx,
-+							extack);
-+			if (!err) {
-+				default_value[i] = ctx.val;
-+				default_value_set[i] = true;
-+			} else if (err != -EOPNOTSUPP) {
-+				return err;
-+			}
- 		}
- 		param_value_set[i] = true;
- 	}
-@@ -325,7 +383,9 @@ static int devlink_nl_param_fill(struct sk_buff *msg, struct devlink *devlink,
- 		if (!param_value_set[i])
- 			continue;
- 		err = devlink_nl_param_value_fill_one(msg, param->type,
--						      i, param_value[i]);
-+						      i, param_value[i],
-+						      default_value[i],
-+						      default_value_set[i]);
- 		if (err)
- 			goto values_list_nest_cancel;
- 	}
-@@ -542,6 +602,7 @@ static int __devlink_nl_cmd_param_set_doit(struct devlink *devlink,
- 	struct devlink_param_item *param_item;
- 	const struct devlink_param *param;
- 	union devlink_param_value value;
-+	bool reset_default;
- 	int err = 0;
- 
- 	param_item = devlink_param_get_from_info(params, info);
-@@ -553,13 +614,18 @@ static int __devlink_nl_cmd_param_set_doit(struct devlink *devlink,
- 		return err;
- 	if (param_type != param->type)
- 		return -EINVAL;
--	err = devlink_param_value_get_from_info(param, info, &value);
--	if (err)
--		return err;
--	if (param->validate) {
--		err = param->validate(devlink, param->id, value, info->extack);
-+
-+	reset_default = info->attrs[DEVLINK_ATTR_PARAM_RESET_DEFAULT];
-+	if (!reset_default) {
-+		err = devlink_param_value_get_from_info(param, info, &value);
- 		if (err)
- 			return err;
-+		if (param->validate) {
-+			err = param->validate(devlink, param->id, value,
-+					      info->extack);
-+			if (err)
-+				return err;
-+		}
- 	}
- 
- 	if (GENL_REQ_ATTR_CHECK(info, DEVLINK_ATTR_PARAM_VALUE_CMODE))
-@@ -569,6 +635,15 @@ static int __devlink_nl_cmd_param_set_doit(struct devlink *devlink,
- 		return -EOPNOTSUPP;
- 
- 	if (cmode == DEVLINK_PARAM_CMODE_DRIVERINIT) {
-+		if (reset_default) {
-+			if (!param_item->driverinit_value_valid) {
-+				NL_SET_ERR_MSG(info->extack,
-+					       "Default value not available");
-+				return -EOPNOTSUPP;
-+			}
-+			value = param_item->driverinit_default;
-+		}
-+
- 		param_item->driverinit_value_new = value;
- 		param_item->driverinit_value_new_valid = true;
- 	} else {
-@@ -576,7 +651,12 @@ static int __devlink_nl_cmd_param_set_doit(struct devlink *devlink,
- 			return -EOPNOTSUPP;
- 		ctx.val = value;
- 		ctx.cmode = cmode;
--		err = devlink_param_set(devlink, param, &ctx, info->extack);
-+		if (reset_default)
-+			err = devlink_param_reset_default(devlink, param, cmode,
-+							  info->extack);
-+		else
-+			err = devlink_param_set(devlink, param, &ctx,
-+						info->extack);
- 		if (err)
- 			return err;
- 	}
-@@ -824,6 +904,7 @@ void devl_param_driverinit_value_set(struct devlink *devlink, u32 param_id,
- 
- 	param_item->driverinit_value = init_val;
- 	param_item->driverinit_value_valid = true;
-+	param_item->driverinit_default = init_val;
- 
- 	devlink_param_notify(devlink, 0, param_item, DEVLINK_CMD_PARAM_NEW);
- }
+ 	dev_set_drvdata(&nsim_bus_dev->dev, nsim_dev);
+diff --git a/drivers/net/netdevsim/netdevsim.h b/drivers/net/netdevsim/netdevsim.h
+index af6fcfcda8ba..d1a941e2b18f 100644
+--- a/drivers/net/netdevsim/netdevsim.h
++++ b/drivers/net/netdevsim/netdevsim.h
+@@ -331,6 +331,7 @@ struct nsim_dev {
+ 	u32 fw_update_flash_chunk_time_ms;
+ 	u32 max_macs;
+ 	bool test1;
++	u32 test2;
+ 	bool dont_allow_reload;
+ 	bool fail_reload;
+ 	struct devlink_region *dummy_region;
 -- 
 2.47.3
 
