@@ -1,153 +1,157 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qv1-f50.google.com (mail-qv1-f50.google.com [209.85.219.50])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 56E2232FA0B
-	for <linux-rdma@vger.kernel.org>; Thu, 20 Nov 2025 11:11:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD14633A00C
+	for <linux-rdma@vger.kernel.org>; Thu, 20 Nov 2025 13:11:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.50
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763637090; cv=none; b=B1+zA446ZK36z5EgbRIfnoZORM/pbwCi8iYclGRismf1YKQ8DLn6Sl+ukFb8/9mMAbFgY7nQ5Dk8Dz97RKzh6oFwuJM6UDtlC9VUYr3a4zd7Z16qE19+U8EKdTkInjo5+1noyj+/Acy8v8YMFQeE+BWPg8nllfvAlGIjyWzw7tg=
+	t=1763644304; cv=none; b=rpG5QgiZnJXjph+H8/Fl4/fF5dmd0PqeZcgmJo0Tve5op9nob9djkznZ6draCh4bEp8czNjt5pPydtEmqykzffsbqBPeQNbxu88QNKKS3dTk9HSeZogdEkDA/RvzRbXBm83ht/f5MtaxkXBke9NYomgFiNj4MaZUsHXC2rT7MIM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763637090; c=relaxed/simple;
-	bh=4w94fCVl14EEV0Zihb71NNS/ooZ/eDdAuYJP2GMD/70=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=HOaUMuSa15dlHK29g+DWP65I0/oT4zmd7ILjaDJyaNxY4+x4obkxvCA7gnOadsT6hZJ1oViOr/RbM72DkZM/GY9amdLDz3n+1jORpcOuhgUA+dzLUFIZAaqGZRxuRYjHrtuiiGbvlSe0AwsA1/a1QHmifJxqozUKyFeQR5io7a8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=g1P4utE2; dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b=CScb18ra; arc=none smtp.client-ip=170.10.133.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	s=arc-20240116; t=1763644304; c=relaxed/simple;
+	bh=z7r4WHxVUtr1NMbU5nNm8Tdf6q2L60iSUkYRUyKe6jA=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=MvI4M3VVu6W5PYoNk3e0NhVX6lkJQYiPDJQ7hRb17OHXQOoCuLjtEN2YcYIZQeBnAI7+U3Fba2VpHkRFY0nXp4m2UDXRFWq6IXN9t8Do/UUNWJzU65xDiM4FiamtQxl8eT236GJk4UVda5EoXnJR9Uh7H9RWh8CGoFhddlVIB5k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca; spf=pass smtp.mailfrom=ziepe.ca; dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b=fSkyQJNl; arc=none smtp.client-ip=209.85.219.50
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ziepe.ca
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="g1P4utE2";
-	dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b="CScb18ra"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1763637087;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=VMS34UwrZ8S2nle8FVRzl8w579va+uy0VBnhRljJShQ=;
-	b=g1P4utE2Rf4IQKEV5SF5hNdWAKgNWyzhPnzE4VXdIM6aBq+mfZp+S7CFGBGJwIJG29EhfV
-	GpaHq/QaO6yHGyLOqScXcUymNCbreKijl+09MiFBUm4WakSrXkLq1tGTN/3djwxbNlCHlc
-	h66V0MVO1fODIASU9jM1ju6vraogEm4=
-Received: from mail-wm1-f69.google.com (mail-wm1-f69.google.com
- [209.85.128.69]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-36-78Q3mEXpOha4MtfNdhgS2A-1; Thu, 20 Nov 2025 06:11:25 -0500
-X-MC-Unique: 78Q3mEXpOha4MtfNdhgS2A-1
-X-Mimecast-MFC-AGG-ID: 78Q3mEXpOha4MtfNdhgS2A_1763637085
-Received: by mail-wm1-f69.google.com with SMTP id 5b1f17b1804b1-47754e6bddbso5218505e9.3
-        for <linux-rdma@vger.kernel.org>; Thu, 20 Nov 2025 03:11:25 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="fSkyQJNl"
+Received: by mail-qv1-f50.google.com with SMTP id 6a1803df08f44-882475d8851so8990156d6.2
+        for <linux-rdma@vger.kernel.org>; Thu, 20 Nov 2025 05:11:42 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=redhat.com; s=google; t=1763637084; x=1764241884; darn=vger.kernel.org;
-        h=content-transfer-encoding:in-reply-to:from:content-language
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=VMS34UwrZ8S2nle8FVRzl8w579va+uy0VBnhRljJShQ=;
-        b=CScb18raWHf2CQJLRDUi+l8B51BmVrX63VFmtLeUAtYlhRak/R/TCDgO+VJp69KXqo
-         Y+itwfjb52IW8k7ojUeCy0Aj8yU0lSf7S7RVZ/joHObbAWxw1HRG/5tLAzOzVH1Uf5UD
-         484OCGFvuf8vrABUtbgzrk0y7DLCNZX+oRgsukkc3N2OW2TfrbvRYJcnym7ycGwTOcgr
-         W5SPH8Q0eHi1RMl3Zt9stGiFjnP2V03ZcFycwGt8GYTPuEU6U4SzlhOx/mbKOpm0z0Lo
-         FyALlrXpRTFN7PdDP33mq3Z4p3bWNaDp1ZQD+PYmFGuhoiG1ZjiqfHiRzC+L2ED/ZVgh
-         sKug==
+        d=ziepe.ca; s=google; t=1763644302; x=1764249102; darn=vger.kernel.org;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :mime-version:references:message-id:subject:cc:to:from:date:from:to
+         :cc:subject:date:message-id:reply-to;
+        bh=JES5bgPJDV47VcKGaFXyOFEoQxZuffh7DW8c1ztEko4=;
+        b=fSkyQJNl7ijr+/2cmkTH4oSH1Gk+I0/iZWQxyxueqVY1n2pabSRgdaOFyHi/LrsTm5
+         0PFDEBNdqb8yhg53t/T+VVZYtOaYsZWTUo6sbfZVduSrx18ngYao68rW0/9G2IHZ2zVF
+         9dfvD+czAy1IAhkhGGKI6vhI5xjrj3JIKARmVHPriediBH8J7hWb5+92+a0tqqW8fhsg
+         +jW5XKoFh19C/nGIE83d7oMi0MNv7OtTlZQoGwhIUvTaUW14NoZKEJmk968v+M7I/B/P
+         PLggMmokqAd6e4HUC9Oup2ma72kuxV+32LDYvVOf492shbjEyxXXKWPqa9y04VXDSrEb
+         HYvQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1763637084; x=1764241884;
-        h=content-transfer-encoding:in-reply-to:from:content-language
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=VMS34UwrZ8S2nle8FVRzl8w579va+uy0VBnhRljJShQ=;
-        b=jF/HqOnnjvTWRme+evStDkMSVUydfCvfJ12H8fHbrIA3Ycai7BGjUrpPr/JcxsaSu8
-         92SKiK8DTcDb5EPttovt8IxrhRbKqOmxrlpkQI65LCzsZQ2rEpq48q3DVTL24Zp90tAj
-         rWLUsm9FC6fLpWhLBFJoXQRqk7SWcIJ9Y3e4q5eceRVQK2R/1trc/KXkk/IJDosBft2A
-         rG++XAsrC2Ps9UHNRaZkj/kBeHgahLuabJv+fBfNxTKEX0oW2wt4PjlkTf2fycm01VZe
-         zAY2qu5pyKcim5LJcOY0RmriMu+g3EJ8+eqhABiIL37GlAX0Ulq3/SPcVrIvARj7Ffcl
-         jAjA==
-X-Forwarded-Encrypted: i=1; AJvYcCXe4i46imfahEFVsP1nBvNUK0L0UsH0AUP9tF+Nf9LWQErLng5nZrxX/xjS+JgSbH7zoE9J+tQ1yuwz@vger.kernel.org
-X-Gm-Message-State: AOJu0YzWaGZA4ULBr1RFVxAHxr9nOFWuwJARuKCCtEbDdtB7wi6kt3pv
-	I9xcF6bSLFAoYPrGmkI02zV+gMcXfhFqkUW4AlZ6FFgLFKF7ssRUpcEkEEWFBR3IrAcHdsmN07k
-	7lIzT/myn/tvrdtygeICUEw4G7VOx88dyO09XLYPSmipNZwMzt/rDvwUJ1ibPeRA=
-X-Gm-Gg: ASbGncsrihFMHrXN4YsFhV1N3YVCVJ2/i7N6aVJBxTbf0L0ti4Gv/DwBWjx5X1USSu3
-	U1ZuyvS7BaLWgpmUSRaMzIbQ3aHz+PJ7+6XhNJXrgEQhjg47zJi3TZy0c01f5usdQS6Jl4q3Coo
-	0Ik7rNrzx9FDUfsNOJPGNY2QYMnvyZoeGM4oE+pRYTzExJOIVndpFTGGEOZ/YkK2ZekCItrxAE0
-	/JdtB2+Zf3nUg9MneVH3Xo3oq2GD7lfkBW1Uc5uwfap5sFMsl8tvGEuONUYSAJUxOmqzBWYizXW
-	2FJsmFFUNaRDuehPUx08O6806DME3+qArzqKc6TV/eSgHqp2N7E76ajE90kDIxZdcWtzHglcWnY
-	z47oj8KF4+am/
-X-Received: by 2002:a05:600c:21d6:b0:470:fe3c:a3b7 with SMTP id 5b1f17b1804b1-477b9ea4d28mr16744265e9.5.1763637084533;
-        Thu, 20 Nov 2025 03:11:24 -0800 (PST)
-X-Google-Smtp-Source: AGHT+IE/fUTeDI0WH8NPmq3GHHJh/IHPYx2tPHiKQdM9TuqaRUB2LyRCR8etaEIrIUjerN5jw8l6jg==
-X-Received: by 2002:a05:600c:21d6:b0:470:fe3c:a3b7 with SMTP id 5b1f17b1804b1-477b9ea4d28mr16743945e9.5.1763637084152;
-        Thu, 20 Nov 2025 03:11:24 -0800 (PST)
-Received: from [192.168.88.32] ([212.105.155.41])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-477a9ddef38sm63385435e9.3.2025.11.20.03.11.22
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 20 Nov 2025 03:11:23 -0800 (PST)
-Message-ID: <7d835eb1-f111-46e5-8834-a1fafb53bd8f@redhat.com>
-Date: Thu, 20 Nov 2025 12:11:21 +0100
+        d=1e100.net; s=20230601; t=1763644302; x=1764249102;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :mime-version:references:message-id:subject:cc:to:from:date:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=JES5bgPJDV47VcKGaFXyOFEoQxZuffh7DW8c1ztEko4=;
+        b=QEiC1dV7ns6u6I5wljROghalnvBw4R3ofehyuUPOq2tMJl/eyOJKhY74XjGD+9eH+m
+         /98mPIDM6fJIEK6qtcxbWr+mU0rB3T6teZS1XRDdMpxWwN8pHur2yYF9O9saewrQbOIp
+         ejG1KnW/uONEVxTEv20ZtmpGaCZ7KPlx+NRG4k0d9GIrGdvfDo4ngmkAXLRveyfAbfiC
+         LinADvaVu7ChAE1rjOLXBrPBkkxLr6j9P6hyd9Ui882LxV62GAm/RJOqs4m+tw7td7Jc
+         9knQmmy2aHPfry6XKOpYSnkFwvX0S3TyHALk1L2wjPJtkNYyvdIH8btOL5+ICaWEASqN
+         sJPQ==
+X-Forwarded-Encrypted: i=1; AJvYcCU4eLPHymh2yW2zgnh5P4O4SJwt7pO2bFJmzGdm/rzHiIe7hAfjbAWGF0PtfbtHBv2CglPaoay5YmUv@vger.kernel.org
+X-Gm-Message-State: AOJu0YzVS2fxZTq9qJiOlbqlBuTO13MW01ujsZaqXbWrIvEmE2zpf8T1
+	g3BN1ZfHoJYdTEjl1yGseh5dIEz/srukoCTwxPOBLYqFLO61fM4v5y76NPBITZxvM4A=
+X-Gm-Gg: ASbGncvHm88spDnJKNAjCTnf+gkvTqalVfS36TjAuNNPRMdYJ4Dmrhn8kI8E/AtBpuC
+	zRGKpM+7U2Q3yDuRIXUSKHPH/zw0rxUJ0+HDmovEpugrV7lcgY7oP5hI0qYhN5bmft68io9Ap1A
+	33N4W6cXWPCzzISuHv+ACofSXp/dxEo0baZGOgNsnwzwOXog95Jtd1mAhDtwdWjr6saZJBKsomv
+	ipcJ/CIHAePaEYjtuHWjlB/k60FZb1Uz4GytwDMSsQ8U7zwmh4dw3A3p05MCxLW+dyQBBDJl4Gi
+	ZaDXZrX/4kYlfurf04DcD8XiwAP81LISsMmP/lyXJoEpprZ3u0zWYkaXrfqEKxf4W66+XiofqBN
+	faKJDKVYdT9ifDCJRvULhqCAphxksepke8BbDGocI4ODNuhO7czpuEwFVDpVM99+Tx0yR9KT8LP
+	nNnC7SjRNkOkUbmUGdF+ObxQcjKGy+oXhN0Uz0hX/WplbqyjfWCTbLmYpk
+X-Google-Smtp-Source: AGHT+IHUyj9QWoo5TmaUnG9IBAR+U26ffxDmpit7Q/yb1e+2MliI7nWwHpoJvZBywyonblLVVSOP9A==
+X-Received: by 2002:a05:6214:caf:b0:880:8a77:55b7 with SMTP id 6a1803df08f44-884718809a2mr24532376d6.58.1763644301536;
+        Thu, 20 Nov 2025 05:11:41 -0800 (PST)
+Received: from ziepe.ca (hlfxns017vw-47-55-120-4.dhcp-dynamic.fibreop.ns.bellaliant.net. [47.55.120.4])
+        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-8846e59ee34sm16797466d6.54.2025.11.20.05.11.40
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 20 Nov 2025 05:11:40 -0800 (PST)
+Received: from jgg by wakko with local (Exim 4.97)
+	(envelope-from <jgg@ziepe.ca>)
+	id 1vM4Ro-00000000gIW-0Mnj;
+	Thu, 20 Nov 2025 09:11:40 -0400
+Date: Thu, 20 Nov 2025 09:11:40 -0400
+From: Jason Gunthorpe <jgg@ziepe.ca>
+To: Zhiping Zhang <zhipingz@meta.com>
+Cc: Leon Romanovsky <leon@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>,
+	linux-rdma@vger.kernel.org, linux-pci@vger.kernel.org,
+	netdev@vger.kernel.org, Keith Busch <kbusch@kernel.org>,
+	Yochai Cohen <yochai@nvidia.com>, Yishai Hadas <yishaih@nvidia.com>
+Subject: Re: [RFC 2/2] Set steering-tag directly for PCIe P2P memory access
+Message-ID: <20251120131140.GT17968@ziepe.ca>
+References: <20251117160028.GA17968@ziepe.ca>
+ <20251120072442.2292818-1-zhipingz@meta.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [Patch net-next v2] net: mana: Handle hardware recovery events
- when probing the device
-To: longli@linux.microsoft.com, "K. Y. Srinivasan" <kys@microsoft.com>,
- Haiyang Zhang <haiyangz@microsoft.com>, Wei Liu <wei.liu@kernel.org>,
- Dexuan Cui <decui@microsoft.com>, "David S. Miller" <davem@davemloft.net>,
- Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
- Shradha Gupta <shradhagupta@linux.microsoft.com>,
- Simon Horman <horms@kernel.org>, Konstantin Taranov
- <kotaranov@microsoft.com>,
- Souradeep Chakrabarti <schakrabarti@linux.microsoft.com>,
- Erick Archer <erick.archer@outlook.com>, linux-hyperv@vger.kernel.org,
- netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-rdma@vger.kernel.org
-Cc: Long Li <longli@microsoft.com>
-References: <1763430724-24719-1-git-send-email-longli@linux.microsoft.com>
-Content-Language: en-US
-From: Paolo Abeni <pabeni@redhat.com>
-In-Reply-To: <1763430724-24719-1-git-send-email-longli@linux.microsoft.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20251120072442.2292818-1-zhipingz@meta.com>
 
-On 11/18/25 2:52 AM, longli@linux.microsoft.com wrote:
-> From: Long Li <longli@microsoft.com>
+On Wed, Nov 19, 2025 at 11:24:40PM -0800, Zhiping Zhang wrote:
+> On Monday, November 17, 2025 at 8:00 AM, Jason Gunthorpe wrote:
+> > Re: [RFC 2/2] Set steering-tag directly for PCIe P2P memory access
+> >
+> > On Thu, Nov 13, 2025 at 01:37:12PM -0800, Zhiping Zhang wrote:
+> > > RDMA: Set steering-tag value directly in DMAH struct for DMABUF MR
+> > >
+> > > This patch enables construction of a dma handler (DMAH) with the P2P memory type
+> > > and a direct steering-tag value. It can be used to register a RDMA memory
+> > > region with DMABUF for the RDMA NIC to access the other device's memory via P2P.
+> > >
+> > > Signed-off-by: Zhiping Zhang <zhipingz@meta.com>
+> > > ---
+> > > .../infiniband/core/uverbs_std_types_dmah.c   | 28 +++++++++++++++++++
+> > > drivers/infiniband/core/uverbs_std_types_mr.c |  3 ++
+> > > drivers/infiniband/hw/mlx5/dmah.c             |  5 ++--
+> > > .../net/ethernet/mellanox/mlx5/core/lib/st.c  | 12 +++++---
+> > > include/linux/mlx5/driver.h                   |  4 +--
+> > > include/rdma/ib_verbs.h                       |  2 ++
+> > > include/uapi/rdma/ib_user_ioctl_cmds.h        |  1 +
+> > > 7 files changed, 46 insertions(+), 9 deletions(-)
+> > >
+> > > diff --git a/drivers/infiniband/core/uverbs_std_types_dmah.c b/drivers/infiniband/core/uverbs_std_types_dmah.c
+> > > index 453ce656c6f2..1ef400f96965 100644
+> > > --- a/drivers/infiniband/core/uverbs_std_types_dmah.c
+> > > +++ b/drivers/infiniband/core/uverbs_std_types_dmah.c
+> > > @@ -61,6 +61,27 @@ static int UVERBS_HANDLER(UVERBS_METHOD_DMAH_ALLOC)(
+> > >               dmah->valid_fields |= BIT(IB_DMAH_MEM_TYPE_EXISTS);
+> > >       }
+> > >
+> > > +     if (uverbs_attr_is_valid(attrs, UVERBS_ATTR_ALLOC_DMAH_DIRECT_ST_VAL)) {
+> > > +             ret = uverbs_copy_from(&dmah->direct_st_val, attrs,
+> > > +                                    UVERBS_ATTR_ALLOC_DMAH_DIRECT_ST_VAL);
+> > > +             if (ret)
+> > > +                     goto err;
+> >
+> > This should not come from userspace, the dmabuf exporter should
+> > provide any TPH hints as part of the attachment process.
+> > 
+> > We are trying not to allow userspace raw access to the TPH values, so
+> > this is not a desirable UAPI here.
 > 
-> When MANA is being probed, it's possible that hardware is in recovery
-> mode and the device may get GDMA_EQE_HWC_RESET_REQUEST over HWC in the
-> middle of the probe. Detect such condition and go through the recovery
-> service procedure.
+> Thanks for your feedback!
 > 
-> Fixes: fbe346ce9d62 ("net: mana: Handle Reset Request from MANA NIC")
-> Signed-off-by: Long Li <longli@microsoft.com>
+> I understand the concern about not exposing raw TPH values to
+> userspace.  To clarify, would it be acceptable to use an index-based
+> mapping table, where userspace provides an index and the kernel
+> translates it to the appropriate TPH value? Given that the PCIe spec
+> allows up to 16-bit TPH values, this could require a mapping table
+> of up to 128KB. Do you see this as a reasonable approach, or is
+> there a preferred alternative?
 
-Does not apply cleanly anymore due to commit
-934fa943b53795339486cc0026b3ab7ad39dc600, please rebase and repost.
+?
 
-> +static void mana_recovery_delayed_func(struct work_struct *w)
-> +{
-> +	struct mana_dev_recovery_work *work;
-> +	struct mana_dev_recovery *dev, *tmp;
-> +	unsigned long flags;
-> +
-> +	work = container_of(w, struct mana_dev_recovery_work, work.work);
-> +
-> +	spin_lock_irqsave(&work->lock, flags);
-> +
-> +	list_for_each_entry_safe(dev, tmp, &work->dev_list, list) {
-> +		list_del(&dev->list);
+The issue here is to secure the TPH. The kernel driver that owns the
+exporting device should control what TPH values an importing driver
+will use.
 
-Minor nit: here and in similar code below I find sligly more readable
-something alike:
+I don't see how an indirection table helps anything, you need to add
+an API to DMABUF to retrieve the tph.
 
-	while (!list_empty(&work->dev_list)) {
-		dev = list_first_entry(&work->dev_list);
-		list_del(dev);
-		//...
+> Additionally, in cases where the dmabuf exporter device can handle all possible 16-bit
+> TPH values  (i.e., it has its own internal mapping logic or table), should this still be
+> entirely abstracted away from userspace?
 
-as it's more clear that releasing the lock will not causes races, but no
-strong opinion against the current style.
+I imagine the exporting device provides the raw on the wire TPH value
+it wants the importing device to use and the importing device is
+responsible to program it using whatever scheme it has.
 
-/P
-
-/P
-
+Jason
