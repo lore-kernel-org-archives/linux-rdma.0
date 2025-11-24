@@ -1,95 +1,91 @@
-Received: from smtp-relay-services-0.canonical.com (smtp-relay-services-0.canonical.com [185.125.188.250])
+Received: from cdmsr1.hinet.net (210-65-1-144.hinet-ip.hinet.net [210.65.1.144])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EBDB74A35
-	for <linux-rdma@vger.kernel.org>; Sun, 23 Nov 2025 19:42:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.125.188.250
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2754B2C08C5
+	for <linux-rdma@vger.kernel.org>; Mon, 24 Nov 2025 04:57:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=210.65.1.144
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763926967; cv=none; b=UZorGPzwX2hs8ASy540UyTB4Bo9TDRMCSZDcO51N5F9H2Mc5eKAlI3rVzcYOZqUMf9kDY6igY3Y8WxhUD0aIa6WP+CW+2WoPsbLWgqtAVxb0o8R7I4DVQnY2HZ6iNb+5n3pWuz57evq3fKnLulmKrJW61qH3MOikT1/Txni7Y4E=
+	t=1763960256; cv=none; b=q4aKEXF8d+8qR8WK7YZ79cjE70mZ9l/wZAfEf0CiK0jtzmVj2IGBkU286FbHolkqabDeP5nzdpqL1UDamQS1kg0K/XRaDcy6kog+GqyofUnca16Xiw3D3Z4gyo/mblmDIkp7Mvm72CJ+Ri2546qthxmOOKv2FA466hP9Xe2rrPY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763926967; c=relaxed/simple;
-	bh=05XO9OgV5lhgdpvjEMK7I03nZCntHxCWngH8FzmyUFs=;
-	h=Content-Type:MIME-Version:To:From:Subject:Message-Id:Date; b=OXeV5jWS0JT3N4/WQvQxk7BqM0SIedVVf5KvFF0wOnAHrYyRIJO920Cj/USafmCGdvJRbOFefSNiclzFKhcUfhMfhHAUQROlp2BjR21DqeZssQeEyAJiNv75eJXZt9P8aGHHIHshkOEnCAhb2g3SgTg1+BPhVtNwQG1KayJrLME=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=launchpad.net; spf=pass smtp.mailfrom=launchpad.net; dkim=pass (2048-bit key) header.d=launchpad.net header.i=@launchpad.net header.b=U7qurinH; arc=none smtp.client-ip=185.125.188.250
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=launchpad.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=launchpad.net
+	s=arc-20240116; t=1763960256; c=relaxed/simple;
+	bh=VLosyOHhHv+fY+Z2k6xI1M+FDOqDm1FHnO3v96JBROY=;
+	h=From:To:Subject:Message-ID:Date:MIME-Version:Content-Type; b=Xvgt+xg8Id/nK2gz1bPTjpx6HcVpoC834tWf+ZJ911ETmwPjayc104r21FGiiw+8z2z3J8W7fmEEL6jHTkOKylNZDF6rVV8lTwgFLb5jj5O/dSX79FRn0mmzFb8kXZzM9ahbg8+PnME7hCkJ1u4uaZ+okfGXwpfvqnPFgDES+oo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=msa.hinet.net; spf=pass smtp.mailfrom=msa.hinet.net; dkim=pass (1024-bit key) header.d=msa.hinet.net header.i=@msa.hinet.net header.b=AGpRnynZ; arc=none smtp.client-ip=210.65.1.144
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=msa.hinet.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=msa.hinet.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=launchpad.net header.i=@launchpad.net header.b="U7qurinH"
-Received: from buildd-manager.lp.internal (buildd-manager.lp.internal [10.131.215.202])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-relay-services-0.canonical.com (Postfix) with ESMTPSA id 5AC493F8F8
-	for <linux-rdma@vger.kernel.org>; Sun, 23 Nov 2025 19:36:49 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=launchpad.net;
-	s=20210803; t=1763926609;
-	bh=05XO9OgV5lhgdpvjEMK7I03nZCntHxCWngH8FzmyUFs=;
-	h=Content-Type:MIME-Version:To:From:Subject:Message-Id:Date:
-	 Reply-To;
-	b=U7qurinHr+YPnRUa0K4PlPLWy9MZKeEpVQdUepWsb6GDBhOQS8GjW2vOJAT6Eo4yK
-	 5kXIYoJQcrs4u+zjapixX6/LBe0wAM347StNNZsSyL98hbzfM9+eMOy0ueT6Dnk/Jy
-	 Z4f9kRnShKtHIpHKch9RIPOsEtQR9BLcb3RdLGYmP4ot7rftepPs01YIGurmILE0ba
-	 fPBfpaFRHrx3yjVWaHQfG6OBF0/U1sR59R64LDjC8hE8SjHU264KnZVCPqd+AVf3uj
-	 jPqzn9W8eMdgpUu3MSViEJuSkJM0sEVAUBnstAtpdFaxJbnWl53XRm2/pOG9W7gPzb
-	 zkUTvU49LqBiA==
-Received: from buildd-manager.lp.internal (localhost [127.0.0.1])
-	by buildd-manager.lp.internal (Postfix) with ESMTP id 50CF77E7DC
-	for <linux-rdma@vger.kernel.org>; Sun, 23 Nov 2025 19:36:49 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	dkim=pass (1024-bit key) header.d=msa.hinet.net header.i=@msa.hinet.net header.b="AGpRnynZ"
+Received: from cmsr1.hinet.net ([10.199.216.80])
+	by cdmsr1.hinet.net (8.15.2/8.15.2) with ESMTPS id 5AO4aZee369230
+	(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NO)
+	for <linux-rdma@vger.kernel.org>; Mon, 24 Nov 2025 12:36:37 +0800
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=msa.hinet.net;
+	s=default; t=1763958997; bh=bJ5DQIyY6Z3BFJwQf5q3deRZ9f4=;
+	h=From:To:Subject:Date;
+	b=AGpRnynZAsNBQUq/U48Fi9CND55KZlT1c8bmqC6bJf3uF6JgzGUwYrPmCiu3ucvTe
+	 hwqqjnJhp1fpoHAX6L25JSK0u9F0HMwdtWYdBEX0Mw7ga/WYIffp9DBHaFBS+L9zer
+	 Flk9M9tOESsBz77futJ1kj7i+cPz5Lu5wpThX6xs=
+Received: from [127.0.0.1] (1-169-85-226.dynamic-ip.hinet.net [1.169.85.226])
+	by cmsr1.hinet.net (8.15.2/8.15.2) with ESMTPS id 5AO4XUf6576433
+	(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NO)
+	for <linux-rdma@vger.kernel.org>; Mon, 24 Nov 2025 12:34:01 +0800
+From: Schaden Inc <Linux-rdma65808@msa.hinet.net>
+To: linux-rdma@vger.kernel.org
+Reply-To: Procurement <sb199047@gmail.com>
+Subject: =?UTF-8?B?TFBPIDQxMDY1IE1vbmRheSwgTm92ZW1iZXIgMjQsIDIwMjUgYXQgMDU6MzM6NTkgQU0=?=
+Message-ID: <a77927a3-e47a-3ecc-dc60-33ae35af4d37@msa.hinet.net>
+Content-Transfer-Encoding: quoted-printable
+Date: Mon, 24 Nov 2025 04:34:01 +0000
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-X-Launchpad-Message-Rationale: Creator @linux-rdma
-X-Launchpad-Message-For: linux-rdma
-X-Launchpad-Notification-Type: package-build-status
-X-Launchpad-Archive: ~linux-rdma/ubuntu/rdma-core-daily
-X-Launchpad-Build-State: FAILEDTOBUILD
-X-Launchpad-Build-Component: main
-X-Launchpad-Build-Arch: armhf
-X-Creator-Recipient: linux-rdma@vger.kernel.org
-X-Launchpad-PPA: linux-rdma-rdma-core-daily
-To: Linux RDMA <linux-rdma@vger.kernel.org>
-From: Launchpad Buildd System <noreply@launchpad.net>
-Subject: [Build #31516380] armhf build of rdma-core 61.0~202511231620+git89fecd94~ubuntu18.04.1 in ubuntu bionic RELEASE [~linux-rdma/ubuntu/rdma-core-daily]
-Message-Id: <176392660932.791410.17501627878452132658.launchpad@buildd-manager.lp.internal>
-Date: Sun, 23 Nov 2025 19:36:49 -0000
-Reply-To: Launchpad Buildd System <noreply@launchpad.net>
-Sender: noreply@launchpad.net
-Errors-To: noreply@launchpad.net
-Precedence: bulk
-X-Generated-By: Launchpad (canonical.com); Revision="1d08ffb47b836b8a4c9a0f11318dfdea7420ab6d"; Instance="launchpad-buildd-manager"
-X-Launchpad-Hash: 53f8bb151f6959bf272a8408df0d6f91270c56e6
+Content-Type: text/plain; charset=utf-8
+X-HiNet-Brightmail: Spam
+X-CMAE-Score: 100
+X-CMAE-Analysis: v=2.4 cv=dagj3mXe c=0 sm=1 tr=0 ts=6923e03a
+	p=86hzbzkIsB4A:10 a=UcUcU7s1EgWnEcYWYql99g==:117
 
+Dear Linux-rdma,
 
- * Source Package: rdma-core
- * Version: 61.0~202511231620+git89fecd94~ubuntu18.04.1
- * Architecture: armhf
- * Archive: ~linux-rdma/ubuntu/rdma-core-daily
- * Component: main
- * State: Failed to build
- * Duration: 4 minutes
- * Build Log: https://launchpad.net/~linux-rdma/+archive/ubuntu/rdma-core-d=
-aily/+build/31516380/+files/buildlog_ubuntu-bionic-armhf.rdma-core_61.0~202=
-511231620+git89fecd94~ubuntu18.04.1_BUILDING.txt.gz
- * Builder: https://launchpad.net/builders/bos03-arm64-033
- * Source: not available
+I hope this message finds you well. I am reaching out to follow up =
+regarding the products listed in the attached document, as I am currently =
+gathering the necessary information to move forward with our evaluation and=
+ procurement process. Your insights and clarification will be greatly =
+appreciated.
 
+To better understand your offerings, could you please provide more detailed=
+ information on the following:
 
+Pricing structure for each product, including any volume discounts or =
+tiered pricing options.
 
-If you want further information about this situation, feel free to
-contact us by asking a question on Launchpad
-(https://answers.launchpad.net/launchpad/+addquestion).
+Availability and stock levels, especially for high-demand items or products=
+ with known lead times.
 
---=20
-armhf build of rdma-core 61.0~202511231620+git89fecd94~ubuntu18.04.1 in ubu=
-ntu bionic RELEASE
-https://launchpad.net/~linux-rdma/+archive/ubuntu/rdma-core-daily/+build/31=
-516380
+Technical specifications, features, and product variations, so we can =
+accurately assess compatibility with our needs.
 
-You are receiving this email because you created this version of this
-package.
+Current promotions, special offers, or bundled packages that may apply to =
+this order.
 
+Shipping and logistics details, including available carriers, estimated =
+delivery timelines, and any additional fees we should be aware of.
+
+If there are catalogs, brochures, or updated product sheets available, =
+please feel free to include them as well. Any additional insight you can =
+share regarding after-sales support, warranty terms, or return policies =
+would also be helpful as we work toward a final decision.
+
+Due to the timelines of our internal review, I would greatly appreciate =
+your prompt response at your earliest convenience. Your assistance plays a =
+vital role in helping us move forward efficiently and confidently.
+
+Thank you again for your time, cooperation, and support. I look forward to =
+hearing from you soon and continuing our discussion.
+
+Warm regards,
+Terry Halvorson
+Head of Procurement
