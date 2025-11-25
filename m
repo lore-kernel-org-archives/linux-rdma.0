@@ -1,68 +1,68 @@
-Received: from CY3PR05CU001.outbound.protection.outlook.com (mail-westcentralusazon11013059.outbound.protection.outlook.com [40.93.201.59])
+Received: from SN4PR0501CU005.outbound.protection.outlook.com (mail-southcentralusazon11011018.outbound.protection.outlook.com [40.93.194.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B9DD934217C;
-	Tue, 25 Nov 2025 20:08:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.201.59
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF3CB341ACA;
+	Tue, 25 Nov 2025 20:08:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.194.18
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764101308; cv=fail; b=bIzjNerTLIhuPYaqGWU2t9kUhpba/7ollNC7MN1qMo79a36PLMbrBftE4A5C4BaVwwvXsuGrBs0Wfqr8ddnqHhurUapHimLHF6p5D9oyxUVZZhuzXD2if0Zpus33g3B4iUMBJGb8rLdspanLOy8CiQO0nlDKibYJ61PHnOm9TWI=
+	t=1764101309; cv=fail; b=fM7TAi5M+nqgdz6vDJtQnHA8WgNdhTsXh1kD6XFRAwGfZgnTXjQOJku3UQzPNYUkaTh6AEhH7zXS8pQiTEDWvOcSKfC5KD0rTbo1DYgrZZ6vopExldRJ9cSVrBBZzZlnzBXxfhYpKk/hR9RSBBLInrWUzkYg1XKzggdiAxsmjVU=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764101308; c=relaxed/simple;
-	bh=U36XFRQKma578uT1QkEf2v87DJbed/6ShXc7asbeyP8=;
+	s=arc-20240116; t=1764101309; c=relaxed/simple;
+	bh=akdES0X+iKGn4rltOupcPwz7Jf/mU/JyeskXjIgx3P4=;
 	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=O8q/JEs44NtRoJcCLUa54C3edxskecSBkt0MQOi48SjhJRTBtpQutNr8EgH4+ut0VJ1Iu/oI61l74ia/W9omSr2S7RPpwaEgucWk+72v4x7P+j2PRlV1KZRGcIid37bvRiNJDLRjlhoAxulHZ82r0iQYMnBKIRx7duHhis/WodU=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=H/LKUFWM; arc=fail smtp.client-ip=40.93.201.59
+	 MIME-Version:Content-Type; b=jRaBaxusDT6ByZJW71KBHLF7nkAGtKbviblywjHX8ChvZpO3Xps5tU7EM1g5twng59GOLqGyzEiHM5mCGHR5A4LUZZrbeq3KWaMUG6d5vYHQObXLiBsc9u6FmPWDohO1QXpdmQXUmm52O8Bx6nXp3+sUWBMjoJn0g36MA81jhNU=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=KbuedpPP; arc=fail smtp.client-ip=40.93.194.18
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="H/LKUFWM"
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="KbuedpPP"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=PJRaJUOuzSsOs48f/ddIs5lXpIB2iELLz1d0mOEcPEHDfeKjZYxdZJ8vVKw4yg5ZAY/s729VHbnmyWU1sv9DTnDT40aPNla5HXP1qd7ivb9+Xv+VpjDAaXm7xE7rXA2KW55p+j6/GKPjsCGGX11yLy2DnEW5UXjViR1qoOoM++9tudWy+MqQfdjshdBMEPGK0Nv7JCGnUa2WHdKfXW6qmWhVat/X9EXQa027A/EKtAKuOxALhbM0xwUPVbOPXgIzkui7/zFUR0+ifgJo0annv8/1m5VoBdjbSwHeszfzjG/tmfBSqkAWQXAapbMeK1KeLfO4hUnj4wdPUv8l8gyU4g==
+ b=q527NzDMfC2G4ArGu3gyx6WqmKfrguk0daGMItM5KXYtgtSvhBfraTGTH5ZmD5ePNIJ+HbKsKSQuJdvvwr9wZZO1J2GHxP/BAOg78Jmw9Gz9WCPWNs74CBH3QGXiy8givCcAG6oU+a62oMHXyoExL3aTsEqdJYEuU/I5E1KjUf5E/psPLv75pTOvefBBkOEPjPo1DEwfY4QR0HemrhUz0FQLaZ8hrW2NH5lC8fme5PULP3s2bfstBON6v2LiBGVr4vDLOC64mm59RAygc8/LmjB8k+vtw0zwYLW86DyjMjNPXAt6rnQ5a7HH0C8dHwmLS/cLtXOeH96ZSAnNm00dUA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=AkAo1WA+IHZyE4a32jxwkjwBJAj50MNSpTK0tDiJPFs=;
- b=BIbcCL/0a6N6eU/ludNGbkjdoQmc5rFNQgSY9JQHfD1ZhwgeXLPegB3KhIko45wMkZXki62adGfjXaka0BYpl23F1UL6g68Kr/H6w50PkDJ3w9oM/g5jkMSGZ6/GWlwnjPDyvBCLxZK/rdu8pN2DxPC4QOEWhmhzJ2wXV5OkqdoEcFK4CE8nSQj3+TI1B+Jr5WIUU8ywLH93I824gWEnBxtv6goBFKu7LZZpBK3MhgnXg+o+zzMqXwqiIncuC284skpypuWsV92SG2a2wDvhZCjLW+ptPD0mgMRBqwyucb1y08XxRARz7Ra0mT85agU9i6OjDbP2tAuNBJTzl+qqTg==
+ bh=CTEHFT1VQ+M5GMuB3KgAYIkobtSsghZZ7vtK9OdaRq4=;
+ b=OwjyDdjOwx4h0nxmQydQtTX6lO9yQgEGcblSykSfcOrNK4HehXmWm31SSwjctZ/tlmLI7gLN7AE57odgBEd3Ndobr6/Dk81NzD4MyeElHrnCXH0B5u0tA9gHPFbKqQuPmKrzqYxF3JCWDb+p/8bfzXt+ZPVwjuf7wL4iZTMqCW1ORnK0b9if+3cRijYVsB5i21ZguJxQh4RpZASWPWBzzDQWwZtDru7G8SR5el+BFaXGCj6fIuK8wH2l0GXXbwVQQYk1X4AeZ/PAJvFau0Ov5vFhJzUe79OOPdNRDBUbyl/0Z/LuDay6j9Bybft5BOFU5E9FWDw0sEaCNM21TnvCHQ==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.117.160) smtp.rcpttodomain=google.com smtp.mailfrom=nvidia.com;
+ 216.228.117.161) smtp.rcpttodomain=google.com smtp.mailfrom=nvidia.com;
  dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
  dkim=none (message not signed); arc=none (0)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=AkAo1WA+IHZyE4a32jxwkjwBJAj50MNSpTK0tDiJPFs=;
- b=H/LKUFWMbx3Gog9F2Exz3mAPJmcA/7gz3SIoxZdxH6I1Zu7IkFYuSU5P98XGS2NeDfNg36Df9ZHuz8Qh15/BQDhvTK0fpo//rc/lI52dZkyv2rsyK6CmA7kZKkavPnZ5F+uynNBtJK6i6CWW01y44BKqhNT0XFXHRibcdv7R9NDTKbA9rxPRazsH5Q/95L2EHr1R7fpvIPb5bGhWED3aN5y67azJ7uNPARhsDGnSlu06AHkKkUj4NFMMrGI8U8ojqezktzQotO7r+iIkfX51k3t2z0TQFDhHXKyy7ypAO3Y/LVk1L95UE3mXf4YxUgYGIobSTXKZpBWfg3rfD92Lgw==
-Received: from SJ0PR03CA0173.namprd03.prod.outlook.com (2603:10b6:a03:338::28)
- by IA1PR12MB6436.namprd12.prod.outlook.com (2603:10b6:208:3ac::12) with
+ bh=CTEHFT1VQ+M5GMuB3KgAYIkobtSsghZZ7vtK9OdaRq4=;
+ b=KbuedpPPwHsQc9sJEaTuO2VoOTNIWld3VE7J1tqtR3NHhLEIlpyPESMn5BsY8R2w6R7J4PB7Mgksj+1VcU62tE93rwMCmXzGDDvir1AzU3/nlylx+lPkB2DHHOCDl+j6C/FD2J9rcz8p+m2sbNZrs6oIRh7LCqqTGm1Q4gZnigsPIINdz2uB8E6arbBM6xSH1AsLflk1p1QAoCxJag5K6pkpWVDcAdn3GRZTKSpggp1L/iUAMXVRNKZjBCEUOAhQ10j4hs/HWiC1uN7bkRDKjEpxnshmETSUBYJrBbueAlsDEI73zYOdtoqf5qlEa0yIArMl1kOgPA0JcpAj64qW4g==
+Received: from BYAPR11CA0068.namprd11.prod.outlook.com (2603:10b6:a03:80::45)
+ by SJ1PR12MB6244.namprd12.prod.outlook.com (2603:10b6:a03:455::18) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9343.11; Tue, 25 Nov
- 2025 20:08:12 +0000
-Received: from MWH0EPF000989E7.namprd02.prod.outlook.com
- (2603:10b6:a03:338:cafe::d0) by SJ0PR03CA0173.outlook.office365.com
- (2603:10b6:a03:338::28) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.20.9366.12 via Frontend Transport; Tue,
- 25 Nov 2025 20:08:12 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.160)
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9366.11; Tue, 25 Nov
+ 2025 20:08:24 +0000
+Received: from SJ1PEPF00001CE2.namprd05.prod.outlook.com
+ (2603:10b6:a03:80:cafe::d9) by BYAPR11CA0068.outlook.office365.com
+ (2603:10b6:a03:80::45) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.20.9366.11 via Frontend Transport; Tue,
+ 25 Nov 2025 20:08:22 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.161)
  smtp.mailfrom=nvidia.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=nvidia.com;
 Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.117.160 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.117.160; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.117.160) by
- MWH0EPF000989E7.mail.protection.outlook.com (10.167.241.134) with Microsoft
+ 216.228.117.161 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.117.161; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.117.161) by
+ SJ1PEPF00001CE2.mail.protection.outlook.com (10.167.242.10) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.9366.7 via Frontend Transport; Tue, 25 Nov 2025 20:08:11 +0000
+ 15.20.9366.7 via Frontend Transport; Tue, 25 Nov 2025 20:08:22 +0000
 Received: from rnnvmail204.nvidia.com (10.129.68.6) by mail.nvidia.com
- (10.129.200.66) with Microsoft SMTP Server (version=TLS1_2,
+ (10.129.200.67) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Tue, 25 Nov
- 2025 12:07:45 -0800
+ 2025 12:07:57 -0800
 Received: from rnnvmail205.nvidia.com (10.129.68.10) by rnnvmail204.nvidia.com
  (10.129.68.6) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Tue, 25 Nov
- 2025 12:07:45 -0800
+ 2025 12:07:56 -0800
 Received: from vdi.nvidia.com (10.127.8.10) by mail.nvidia.com (10.129.68.10)
  with Microsoft SMTP Server id 15.2.2562.20 via Frontend Transport; Tue, 25
- Nov 2025 12:07:40 -0800
+ Nov 2025 12:07:51 -0800
 From: Tariq Toukan <tariqt@nvidia.com>
 To: Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
 	Paolo Abeni <pabeni@redhat.com>, Andrew Lunn <andrew+netdev@lunn.ch>, "David
@@ -76,9 +76,9 @@ CC: Donald Hunter <donald.hunter@gmail.com>, Jiri Pirko <jiri@resnulli.us>,
 	<moshe@nvidia.com>, Carolina Jubran <cjubran@nvidia.com>, Cosmin Ratiu
 	<cratiu@nvidia.com>, Jiri Pirko <jiri@nvidia.com>, Randy Dunlap
 	<rdunlap@infradead.org>
-Subject: [PATCH net-next V4 12/14] net/mlx5: qos: Support cross-device tx scheduling
-Date: Tue, 25 Nov 2025 22:06:11 +0200
-Message-ID: <1764101173-1312171-13-git-send-email-tariqt@nvidia.com>
+Subject: [PATCH net-next V4 14/14] net/mlx5: Document devlink rates
+Date: Tue, 25 Nov 2025 22:06:13 +0200
+Message-ID: <1764101173-1312171-15-git-send-email-tariqt@nvidia.com>
 X-Mailer: git-send-email 2.8.0
 In-Reply-To: <1764101173-1312171-1-git-send-email-tariqt@nvidia.com>
 References: <1764101173-1312171-1-git-send-email-tariqt@nvidia.com>
@@ -92,271 +92,108 @@ Content-Type: text/plain
 X-NV-OnPremToCloud: ExternallySecured
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: MWH0EPF000989E7:EE_|IA1PR12MB6436:EE_
-X-MS-Office365-Filtering-Correlation-Id: 20f36976-33f5-406e-2bee-08de2c5e5c53
+X-MS-TrafficTypeDiagnostic: SJ1PEPF00001CE2:EE_|SJ1PR12MB6244:EE_
+X-MS-Office365-Filtering-Correlation-Id: 7fe961fe-5fd8-4ad0-6cbe-08de2c5e628f
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|36860700013|376014|82310400026|1800799024|7416014;
+	BCL:0;ARA:13230040|1800799024|7416014|82310400026|376014|36860700013;
 X-Microsoft-Antispam-Message-Info:
-	=?us-ascii?Q?kXDsSpipAyGpTe1lYTmwZI++4tRstOQQd6MKb3j6aPFswM9xIyENJqARM6tS?=
- =?us-ascii?Q?F4K0r/xZC3IMB3dfFOeUSISTviov+HAjJoQh/QpvtwdLdULBWVXCWlr7pPSN?=
- =?us-ascii?Q?KGkV+sRpUzsDN5sqQ11yq2OH9k4iIC+dBpONROGEKOQdJqUsrbCUlunuMz3i?=
- =?us-ascii?Q?6hDWucgIdUSFk2V36uArOVI6tPj0al6pHLxwbqcQJlGqbZoSOEMX2QsNfQQP?=
- =?us-ascii?Q?Pr0jNIEW9KN4rHLnEjyGiq81fbw4YDoJ5eI8pjBeUXbL3YQhkpW8WOSxIial?=
- =?us-ascii?Q?/XWzj4+yHMf2l0zG/g+io9oDxSqoLQ20+926fgp1s0h0QhAE38XhvjfXlkaF?=
- =?us-ascii?Q?TA8eN3g1hHFAqy7ujg/wBC08Yrnrb9SyMO7zIM7nPl1Qc8TUUyacHjvR7Myq?=
- =?us-ascii?Q?r4A/ylPhH9o6Pj/TTguOoABbvPhkRKf/zAuSXPamTLcmOnHduyZXx33ojU47?=
- =?us-ascii?Q?/zPcENb5gloDUeZzGoNqqN7zj76Zadt1qEPSiLu03Qe22lpO4vBnHoBKo/xN?=
- =?us-ascii?Q?BktRHyHBshyCWAiJbaaVj8oFgV5swUffx5m5BxTomz1QNznSUitvRbpKGi6N?=
- =?us-ascii?Q?+HlNUKQnY+lG8udHm/bd0UHCBFmtmtFR2V669aJ05QBQdadfYcV9Bp4AFlMH?=
- =?us-ascii?Q?WeyLK94N5RBh19UJ/6zhXVXIgdVFQAQCt1crQ8Ey9/q8hphY1TwIUlaDb6v3?=
- =?us-ascii?Q?keIWaAEH/5LJEE43RfOg+S4S0dXqU4cQ97P4z3rnMlgTRKhFQZX3EqNrW18r?=
- =?us-ascii?Q?V60GtYkz5L2qPZ99w0nQCYspcgP0frRINDDnJ6OSyeBAr+POHOtYobRq9O92?=
- =?us-ascii?Q?N4ZAhZNsk6IpDD1x2AUCkvQ2Fs7Pt0Ei5YTVlG87QyvfhiYhYK5XQ8gLnLZ3?=
- =?us-ascii?Q?miJ5ATNPLCoGtz+HacQ5ekeqTCfbEDwUGXuIRB3CcsOczEAdlnIrdD7+SkWC?=
- =?us-ascii?Q?KhEApKoecFpdJsMbXQrCfmjZ+c/2ZRuVw3lBtFokV4JjMrYhpfadKRiWkETd?=
- =?us-ascii?Q?Iwbca1JsNSEszbzQUE4LNvtLRHs7N1LghRVT1SapI/OrsH3CYYzzkiE1riEO?=
- =?us-ascii?Q?DUQrgULHsgFWyHNbUMw72RpbC05j1Y6rFxcLcYvn1HwiXi5XaPA56cFa3Oso?=
- =?us-ascii?Q?Nup8qvti8XRy3JJOJH/HIXDyVssP1H1p3IBL7wtCY+U5j1VMTQz2do0pcmss?=
- =?us-ascii?Q?OREPCCHHUX6N9iEqQOyUy9RvJ0yF+tZwkhVDBCjV4NtDabbbOXPcy120phj6?=
- =?us-ascii?Q?K2dFIlrJHYo1P3e3rmJ6S2rv5NJYzeB/H7djJTVmxp1AOSuMzZ03YY1aIsyD?=
- =?us-ascii?Q?VJzqQH2LS/E0N1Nbhaa+K71CCImGDei8uUnwT8O9llxci0R1vVNxnco+oDPc?=
- =?us-ascii?Q?aiu7GdscwcBo1CG0T8fJvMGimUfEStXF1ez2O6M9b0a2u/9atuZ5azUHEWv2?=
- =?us-ascii?Q?5myRnj04mwGv4rKklr2pUP7dqQciVlU1DUGvYJc81rlPH0mXhv6x6PZ8oBYK?=
- =?us-ascii?Q?kR48nblm215lN2WY2XuLZSNUS56ooeckUd5VpfDToMeRWjYGur4PYu1FxTH9?=
- =?us-ascii?Q?+wqU5rUjUsdpB6P8qqU=3D?=
+	=?us-ascii?Q?VMBTZMJ/nFsodT+BaLUKQcXdKq7F4O4d5fDlDG07Xa219d2h9gP21hqXqoBf?=
+ =?us-ascii?Q?DMIN9++tQvtfNdGggMRSUNN8uh+83B9XyJ4Zo9j1Sh6GqeFEJDUt3jQWdxes?=
+ =?us-ascii?Q?QcjgbgngPZmJJ0oK+smFgg8YGJA15TR4XyfTJhUACmJUxhgxcJdNMAPqOABg?=
+ =?us-ascii?Q?do8/rEI32yGFBvv3Yh1aVg03qU5ZS+hcuP92t4e822BIby8ocznfWzCXwMS2?=
+ =?us-ascii?Q?qfHMymQtbBhPv3+Vh3/rGu0belVibY0jyyqzIlE7b9JampqYRAMOvVXramwK?=
+ =?us-ascii?Q?FwNHvlTBY1drmttC93Ek6hCBFBAPPpzD7MswWNwVeQgszMglpUMI4Afy+ZOQ?=
+ =?us-ascii?Q?4//S6K2GQaIP1RRZ1D/VbPB1qejmyqN8taRAldLzhSxUxmSIzDQ23HDX+XNQ?=
+ =?us-ascii?Q?jRjlRNCAxhFnLq+exk6U8LC85OLW4Su436f5S4Oo6Ldi8hCUAOraCHxJGiZV?=
+ =?us-ascii?Q?0SUKw7FcVIpcTdj511zjyTV2qmKW0VTrHgHT4Gv+80+FgB8xprzuaNfQR1/V?=
+ =?us-ascii?Q?KDH7tefn2VXt2U57U6trKU4bkSqrfF8ktx72K7sXV+O5AS2m+UmCLpcQWPy7?=
+ =?us-ascii?Q?wv9Qf7/IcTTBR1Nn6nHYrwKSpk0lyPGL/mzjx12n879kPXhGMEwnlIqEWOr8?=
+ =?us-ascii?Q?m6Z7rwK/1BWIMQYI2ISCKLkXdamuS6eSjLu86GxS+fsoR5P5AhedOpERWJVx?=
+ =?us-ascii?Q?ID+y9hKqGHrrHEw5TJYNcgvHRAHlnzqB5iz+5mJOfcuLLf4V5RdhlDgMv6k8?=
+ =?us-ascii?Q?62MsliaLvmFkiAMGDjMrrbd+VapAs1uTsmjAiJhOVk8e/2a0pPLXnB40HRuU?=
+ =?us-ascii?Q?/twtr4Zwnt+7xtNRQyF2EwmX9Y7GOn4VYdDG5mWdOhtMKbYQqWoIfaNJuV/B?=
+ =?us-ascii?Q?0NL0alaMDVLCXbjKHowZJiGho0iClldsxEwcsq263JMgh18NmPAZIwN9rs4l?=
+ =?us-ascii?Q?GLpETRRA+/7wmmQv3OeZk/kPAR6RxVD3XHcGuvM7t+DrympfvyoOIJDOQwyI?=
+ =?us-ascii?Q?ezekt6aSZjlhkv0ImsM2bpfmzyiowOBiGeKCwn3UIyNI7VIfkdYwPUOs7NCT?=
+ =?us-ascii?Q?eodoQkYua6UeLTSi2rkGcw/5xFCo8zVdFI42wQdW1Q0mGP5R6zWpXgEgKbYt?=
+ =?us-ascii?Q?LmMnxoZPSXN7Dp7PWgy1upM0bbB3+rkwTqCh0+yk4U5/pdhS5YcQsg+k6KCt?=
+ =?us-ascii?Q?f1PW9SmNW+ZeYyVR2JwIWaT35HVIMzWSTXeOBQMqnOQy6vXaZpujCtttrg1B?=
+ =?us-ascii?Q?zOzM81BFQty1Uykm7CbUAmHa0LpVIYIrWnrUPFoRwi9fv9HsfUR/PIETcwiN?=
+ =?us-ascii?Q?EWocfjk8AsyBX5DD6cm2bOhJUs5XeElnk1AUF3CydL9Sn3vfjH+DIPzyttL1?=
+ =?us-ascii?Q?Fewtyt2YVyNhTJfw2Ff65fCA6Jh2PF3K5s5a1/kty20nGZlUDqqV2dz1JHgq?=
+ =?us-ascii?Q?SErBS0vapIQcivSjgoz2PQj4gi/795UOSdSx4mwDor4oXYiZlFX4EPs1ObXt?=
+ =?us-ascii?Q?l7NOwgeceP2xLxsblgtGMac/HSkZX3L3rFNEap2DUeG8rzaTNTxK7ibdeHVw?=
+ =?us-ascii?Q?GG35B9O1ZAPFhUjIKtM=3D?=
 X-Forefront-Antispam-Report:
-	CIP:216.228.117.160;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge1.nvidia.com;CAT:NONE;SFS:(13230040)(36860700013)(376014)(82310400026)(1800799024)(7416014);DIR:OUT;SFP:1101;
+	CIP:216.228.117.161;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge2.nvidia.com;CAT:NONE;SFS:(13230040)(1800799024)(7416014)(82310400026)(376014)(36860700013);DIR:OUT;SFP:1101;
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 25 Nov 2025 20:08:11.9252
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 25 Nov 2025 20:08:22.3924
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 20f36976-33f5-406e-2bee-08de2c5e5c53
+X-MS-Exchange-CrossTenant-Network-Message-Id: 7fe961fe-5fd8-4ad0-6cbe-08de2c5e628f
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.160];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.161];Helo=[mail.nvidia.com]
 X-MS-Exchange-CrossTenant-AuthSource:
-	MWH0EPF000989E7.namprd02.prod.outlook.com
+	SJ1PEPF00001CE2.namprd05.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA1PR12MB6436
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ1PR12MB6244
 
 From: Cosmin Ratiu <cratiu@nvidia.com>
 
-Up to now, rate groups could only contain vports from the same E-Switch.
-This patch relaxes that restriction if the device supports it
-(HCA_CAP.esw_cross_esw_sched == true) and the right conditions are met:
-- Link Aggregation (LAG) is enabled.
-- The E-Switches are from the same shared devlink device.
-
-This patch does not yet enable cross-esw scheduling, it's just the last
-preparatory patch.
+It seems rates were not documented in the mlx5-specific file, so add
+examples on how to limit VFs and groups and also provide an example of
+the intended way to achieve cross-esw scheduling.
 
 Signed-off-by: Cosmin Ratiu <cratiu@nvidia.com>
 Reviewed-by: Carolina Jubran <cjubran@nvidia.com>
 Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
 ---
- .../net/ethernet/mellanox/mlx5/core/esw/qos.c | 114 +++++++++++++-----
- 1 file changed, 81 insertions(+), 33 deletions(-)
+ Documentation/networking/devlink/mlx5.rst | 33 +++++++++++++++++++++++
+ 1 file changed, 33 insertions(+)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/esw/qos.c b/drivers/net/ethernet/mellanox/mlx5/core/esw/qos.c
-index f86d7c50db42..3c8716b0644b 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/esw/qos.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/esw/qos.c
-@@ -50,7 +50,9 @@ struct mlx5_esw_sched_node {
- 	enum sched_node_type type;
- 	/* The eswitch this node belongs to. */
- 	struct mlx5_eswitch *esw;
--	/* The children nodes of this node, empty list for leaf nodes. */
-+	/* The children nodes of this node, empty list for leaf nodes.
-+	 * Can be from multiple E-Switches.
-+	 */
- 	struct list_head children;
- 	/* Valid only if this node is associated with a vport. */
- 	struct mlx5_vport *vport;
-@@ -419,6 +421,7 @@ esw_qos_vport_create_sched_element(struct mlx5_esw_sched_node *vport_node,
- 	struct mlx5_esw_sched_node *parent = vport_node->parent;
- 	u32 sched_ctx[MLX5_ST_SZ_DW(scheduling_context)] = {};
- 	struct mlx5_core_dev *dev = vport_node->esw->dev;
-+	struct mlx5_vport *vport = vport_node->vport;
- 	void *attr;
+diff --git a/Documentation/networking/devlink/mlx5.rst b/Documentation/networking/devlink/mlx5.rst
+index 4bba4d780a4a..62c4d7bf0877 100644
+--- a/Documentation/networking/devlink/mlx5.rst
++++ b/Documentation/networking/devlink/mlx5.rst
+@@ -419,3 +419,36 @@ User commands examples:
  
- 	if (!mlx5_qos_element_type_supported(
-@@ -430,11 +433,18 @@ esw_qos_vport_create_sched_element(struct mlx5_esw_sched_node *vport_node,
- 	MLX5_SET(scheduling_context, sched_ctx, element_type,
- 		 SCHEDULING_CONTEXT_ELEMENT_TYPE_VPORT);
- 	attr = MLX5_ADDR_OF(scheduling_context, sched_ctx, element_attributes);
--	MLX5_SET(vport_element, attr, vport_number, vport_node->vport->vport);
-+	MLX5_SET(vport_element, attr, vport_number, vport->vport);
- 	MLX5_SET(scheduling_context, sched_ctx, parent_element_id,
- 		 parent ? parent->ix : vport_node->esw->qos.root_tsar_ix);
- 	MLX5_SET(scheduling_context, sched_ctx, max_average_bw,
- 		 vport_node->max_rate);
-+	if (vport->dev != dev) {
-+		/* The port is assigned to a node on another eswitch. */
-+		MLX5_SET(vport_element, attr, eswitch_owner_vhca_id_valid,
-+			 true);
-+		MLX5_SET(vport_element, attr, eswitch_owner_vhca_id,
-+			 MLX5_CAP_GEN(vport->dev, vhca_id));
-+	}
- 
- 	return esw_qos_node_create_sched_element(vport_node, sched_ctx, extack);
- }
-@@ -446,6 +456,7 @@ esw_qos_vport_tc_create_sched_element(struct mlx5_esw_sched_node *vport_tc_node,
- {
- 	u32 sched_ctx[MLX5_ST_SZ_DW(scheduling_context)] = {};
- 	struct mlx5_core_dev *dev = vport_tc_node->esw->dev;
-+	struct mlx5_vport *vport = vport_tc_node->vport;
- 	void *attr;
- 
- 	if (!mlx5_qos_element_type_supported(
-@@ -457,8 +468,7 @@ esw_qos_vport_tc_create_sched_element(struct mlx5_esw_sched_node *vport_tc_node,
- 	MLX5_SET(scheduling_context, sched_ctx, element_type,
- 		 SCHEDULING_CONTEXT_ELEMENT_TYPE_VPORT_TC);
- 	attr = MLX5_ADDR_OF(scheduling_context, sched_ctx, element_attributes);
--	MLX5_SET(vport_tc_element, attr, vport_number,
--		 vport_tc_node->vport->vport);
-+	MLX5_SET(vport_tc_element, attr, vport_number, vport->vport);
- 	MLX5_SET(vport_tc_element, attr, traffic_class, vport_tc_node->tc);
- 	MLX5_SET(scheduling_context, sched_ctx, max_bw_obj_id,
- 		 rate_limit_elem_ix);
-@@ -466,6 +476,13 @@ esw_qos_vport_tc_create_sched_element(struct mlx5_esw_sched_node *vport_tc_node,
- 		 vport_tc_node->parent->ix);
- 	MLX5_SET(scheduling_context, sched_ctx, bw_share,
- 		 vport_tc_node->bw_share);
-+	if (vport->dev != dev) {
-+		/* The port is assigned to a node on another eswitch. */
-+		MLX5_SET(vport_tc_element, attr, eswitch_owner_vhca_id_valid,
-+			 true);
-+		MLX5_SET(vport_tc_element, attr, eswitch_owner_vhca_id,
-+			 MLX5_CAP_GEN(vport->dev, vhca_id));
-+	}
- 
- 	return esw_qos_node_create_sched_element(vport_tc_node, sched_ctx,
- 						 extack);
-@@ -1194,6 +1211,29 @@ static int esw_qos_vport_tc_check_type(enum sched_node_type curr_type,
- 	return 0;
- }
- 
-+static bool esw_qos_validate_unsupported_tc_bw(struct mlx5_eswitch *esw,
-+					       u32 *tc_bw)
-+{
-+	int i, num_tcs = esw_qos_num_tcs(esw->dev);
+ .. note::
+    This command can run over all interfaces such as PF/VF and representor ports.
 +
-+	for (i = num_tcs; i < DEVLINK_RATE_TCS_MAX; i++)
-+		if (tc_bw[i])
-+			return false;
++Rates
++=====
 +
-+	return true;
-+}
++mlx5 devices can limit transmission of individual VFs or a group of them via
++the devlink-rate API in switchdev mode.
 +
-+static bool esw_qos_vport_validate_unsupported_tc_bw(struct mlx5_vport *vport,
-+						     u32 *tc_bw)
-+{
-+	struct mlx5_esw_sched_node *node = vport->qos.sched_node;
-+	struct mlx5_eswitch *esw = vport->dev->priv.eswitch;
++User commands examples:
 +
-+	esw = (node && node->parent) ? node->parent->esw : esw;
++- Print the existing rates::
 +
-+	return esw_qos_validate_unsupported_tc_bw(esw, tc_bw);
-+}
++    $ devlink port function rate show
 +
- static int esw_qos_vport_update(struct mlx5_vport *vport,
- 				enum sched_node_type type,
- 				struct mlx5_esw_sched_node *parent,
-@@ -1227,6 +1267,12 @@ static int esw_qos_vport_update(struct mlx5_vport *vport,
- 	if (curr_type == SCHED_NODE_TYPE_TC_ARBITER_TSAR && curr_type == type) {
- 		esw_qos_set_tc_arbiter_bw_shares(vport_node, curr_tc_bw,
- 						 extack);
-+		if (!esw_qos_validate_unsupported_tc_bw(parent->esw,
-+							curr_tc_bw)) {
-+			NL_SET_ERR_MSG_MOD(extack,
-+					   "Unsupported traffic classes on the new device");
-+			return -EOPNOTSUPP;
-+		}
- 	}
- 
- 	return err;
-@@ -1575,30 +1621,6 @@ static int esw_qos_devlink_rate_to_mbps(struct mlx5_core_dev *mdev, const char *
- 	return 0;
- }
- 
--static bool esw_qos_validate_unsupported_tc_bw(struct mlx5_eswitch *esw,
--					       u32 *tc_bw)
--{
--	int i, num_tcs = esw_qos_num_tcs(esw->dev);
--
--	for (i = num_tcs; i < DEVLINK_RATE_TCS_MAX; i++) {
--		if (tc_bw[i])
--			return false;
--	}
--
--	return true;
--}
--
--static bool esw_qos_vport_validate_unsupported_tc_bw(struct mlx5_vport *vport,
--						     u32 *tc_bw)
--{
--	struct mlx5_esw_sched_node *node = vport->qos.sched_node;
--	struct mlx5_eswitch *esw = vport->dev->priv.eswitch;
--
--	esw = (node && node->parent) ? node->parent->esw : esw;
--
--	return esw_qos_validate_unsupported_tc_bw(esw, tc_bw);
--}
--
- static bool esw_qos_tc_bw_disabled(u32 *tc_bw)
- {
- 	int i;
-@@ -1803,18 +1825,44 @@ int mlx5_esw_devlink_rate_node_del(struct devlink_rate *rate_node, void *priv,
- 	return 0;
- }
- 
-+static int
-+mlx5_esw_validate_cross_esw_scheduling(struct mlx5_eswitch *esw,
-+				       struct mlx5_esw_sched_node *parent,
-+				       struct netlink_ext_ack *extack)
-+{
-+	if (!parent || esw == parent->esw)
-+		return 0;
++- Set a max tx limit on traffic from VF0::
 +
-+	if (!MLX5_CAP_QOS(esw->dev, esw_cross_esw_sched)) {
-+		NL_SET_ERR_MSG_MOD(extack,
-+				   "Cross E-Switch scheduling is not supported");
-+		return -EOPNOTSUPP;
-+	}
-+	if (esw->dev->shd != parent->esw->dev->shd) {
-+		NL_SET_ERR_MSG_MOD(extack,
-+				   "Cannot add vport to a parent belonging to a different device");
-+		return -EOPNOTSUPP;
-+	}
-+	if (!mlx5_lag_is_active(esw->dev)) {
-+		NL_SET_ERR_MSG_MOD(extack,
-+				   "Cross E-Switch scheduling requires LAG to be activated");
-+		return -EOPNOTSUPP;
-+	}
++    $ devlink port function rate set pci/0000:82:00.0/1 tx_max 10Gbit
 +
-+	return 0;
-+}
++- Create a rate group with a max tx limit and adding two VFs to it::
 +
- static int
- mlx5_esw_qos_vport_update_parent(struct mlx5_vport *vport,
- 				 struct mlx5_esw_sched_node *parent,
- 				 struct netlink_ext_ack *extack)
- {
- 	struct mlx5_eswitch *esw = vport->dev->priv.eswitch;
--	int err = 0;
-+	int err;
- 
--	if (parent && parent->esw != esw) {
--		NL_SET_ERR_MSG_MOD(extack, "Cross E-Switch scheduling is not supported");
--		return -EOPNOTSUPP;
--	}
-+	err = mlx5_esw_validate_cross_esw_scheduling(esw, parent, extack);
-+	if (err)
-+		return err;
- 
- 	if (!vport->qos.sched_node && parent) {
- 		enum sched_node_type type;
++    $ devlink port function rate add pci/0000:82:00.0/group1 tx_max 10Gbit
++    $ devlink port function rate set pci/0000:82:00.0/1 parent group1
++    $ devlink port function rate set pci/0000:82:00.0/2 parent group1
++
++- Same scenario, with a min guarantee of 20% of the bandwidth for the first VFs::
++
++    $ devlink port function rate add pci/0000:82:00.0/group1 tx_max 10Gbit
++    $ devlink port function rate set pci/0000:82:00.0/1 parent group1 tx_share 2Gbit
++    $ devlink port function rate set pci/0000:82:00.0/2 parent group1
++
++- Cross-device scheduling::
++
++    $ devlink port function rate add pci/0000:82:00.0/group1 tx_max 10Gbit
++    $ devlink port function rate set pci/0000:82:00.1/32769 parent pci/0000:82:00.0/group1
 -- 
 2.31.1
 
