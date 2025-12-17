@@ -1,95 +1,136 @@
-Received: from smtp-relay-services-1.canonical.com (smtp-relay-services-1.canonical.com [185.125.188.251])
+Received: from out30-101.freemail.mail.aliyun.com (out30-101.freemail.mail.aliyun.com [115.124.30.101])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F216433B97F
-	for <linux-rdma@vger.kernel.org>; Wed, 17 Dec 2025 15:01:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.125.188.251
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4763634BA33;
+	Wed, 17 Dec 2025 15:25:47 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.101
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765983722; cv=none; b=bqm4CuYnDyCDk/xHk/QKroXXW57qZci6oOniphmPfKE4G0pkeJZB1JtOu/lovvd6ZowtMHzc9eydJvJ++ZaylO7BTKZ9xU+s0fgZnRB2wVKWxCWW7bzQYMvjdNGvLydH7iCQgzOyIySjkDaJhAlZrwueAFeN2i9cUYXJlnZVxYY=
+	t=1765985153; cv=none; b=OuXw4pETCT6GYSMrfl76ta1MYxZ41Pn4+g8v1PEXGO1DjVb/TrE/CBOb1lKqZuyAd0o5pDdNLPrUMnvpi6U54mUWKhg6/A6oPfjbiE4j7vvHAMs6uCZjOqRd6a5+LRZxNvzkBqxcA/uTL8OoU0nfy0LZHd72R2iPzF+EiGyVBFU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765983722; c=relaxed/simple;
-	bh=T4DrC6AfUrMKClWJv7mWRbHlH4C1UqzyWZDIXGdc7pk=;
-	h=Content-Type:MIME-Version:To:From:Subject:Message-Id:Date; b=MvMqKIAOX79ztsPxy5NBW9ejsdHEy6BYmmhGtU9Yu0XenmlO6jzVV7Am5WCmQRPkFDLL1rUXMu1Sqb7UU0EW2Tg5DJntLAfmLFIn8/tqH22BAjvOKAC05Sj0+KHMXGzSLb8GQV9SALxzWHvCs7mNI5k/79slM8HD3XZsTHYUCec=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=launchpad.net; spf=pass smtp.mailfrom=launchpad.net; dkim=pass (2048-bit key) header.d=launchpad.net header.i=@launchpad.net header.b=TsGQWqeW; arc=none smtp.client-ip=185.125.188.251
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=launchpad.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=launchpad.net
+	s=arc-20240116; t=1765985153; c=relaxed/simple;
+	bh=JzAqeIxs9Y6eBR9vCupjOxU9CmPAR2zoqEEi7a1kSh0=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=au6ahKQGkBZsjP6voMGpkQPrykaVl4u+niZalfFkaK0Q1C3WN95dtVk7aNVIX7vEjkOBBAgYR4yErT+58F04DU4rybdNpoGRRC0YfbNYM91fZNUsv/uDE8R0IbnS29Tb6qwwfUCG6ut2/z/N+kgkMUf8RPQ2Elt1ik2OuPENdvA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=wyGjkeW5; arc=none smtp.client-ip=115.124.30.101
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=launchpad.net header.i=@launchpad.net header.b="TsGQWqeW"
-Received: from buildd-manager.lp.internal (buildd-manager.lp.internal [10.131.215.202])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-relay-services-1.canonical.com (Postfix) with ESMTPSA id 632EC47F45
-	for <linux-rdma@vger.kernel.org>; Wed, 17 Dec 2025 14:55:56 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=launchpad.net;
-	s=20210803; t=1765983356;
-	bh=T4DrC6AfUrMKClWJv7mWRbHlH4C1UqzyWZDIXGdc7pk=;
-	h=Content-Type:MIME-Version:To:From:Subject:Message-Id:Date:
-	 Reply-To;
-	b=TsGQWqeWzKC9p4SFx8p7xc6SIYLGGfYiG0MncmhK8kOF1pksgVh7LonXBhC27uaFU
-	 DY5hOupVoV7pFLknGiZdR1mnE+WPsIie4t+NSjcLT6PlnH/TTGbfIk1rZ/Nwccfdwe
-	 /JeIAld8Oy23lR9OpwZJyRnmYzDvYwSBz0vY+E+T+QvQo6ueB14BLIUKnVU9EIw3zO
-	 cgR4c63LYtFT0LveHhbXfEyVmTtUIAdQBJ9mNC7PtCZbqRfDnLwaxolcJ/JhXjo+Z5
-	 wP3IoWVJjXeOfeH9auYePX21xz+POvkH5sZjcS55hXnqs4QUeq9zoL2UA5qHPP2rK6
-	 OuJu2vPtZNC3w==
-Received: from buildd-manager.lp.internal (localhost [127.0.0.1])
-	by buildd-manager.lp.internal (Postfix) with ESMTP id 525F27E7A8
-	for <linux-rdma@vger.kernel.org>; Wed, 17 Dec 2025 14:55:56 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="wyGjkeW5"
+DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux.alibaba.com; s=default;
+	t=1765985140; h=Date:From:To:Subject:Message-ID:MIME-Version:Content-Type;
+	bh=cSksazZjc+dILXEOFoB5Haajr6WS5BPannyIPcOlz1I=;
+	b=wyGjkeW58YIAmWEsdkLAApd7R+aVzlCC9yeeur2y54vS/kztINU9Sa640530Bn3G6y2KT7wn+U0YW90ctUadnKS+ZRn5bizEY7NSHeKp0hrHUhwAUl4KBln8mBoo71gDHG1sBUQ23GUGErgk3oXhLJzaQ0Q1o0WDrx4ov+Ih49k=
+Received: from localhost(mailfrom:dust.li@linux.alibaba.com fp:SMTPD_---0Wv4AG96_1765985139 cluster:ay36)
+          by smtp.aliyun-inc.com;
+          Wed, 17 Dec 2025 23:25:39 +0800
+Date: Wed, 17 Dec 2025 23:25:38 +0800
+From: Dust Li <dust.li@linux.alibaba.com>
+To: Alexandra Winter <wintera@linux.ibm.com>,
+	David Miller <davem@davemloft.net>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Eric Dumazet <edumazet@google.com>,
+	Andrew Lunn <andrew+netdev@lunn.ch>,
+	"D. Wythe" <alibuda@linux.alibaba.com>,
+	Sidraya Jayagond <sidraya@linux.ibm.com>,
+	Wenjia Zhang <wenjia@linux.ibm.com>
+Cc: netdev@vger.kernel.org, linux-s390@vger.kernel.org,
+	Aswin Karuvally <aswin@linux.ibm.com>,
+	Heiko Carstens <hca@linux.ibm.com>,
+	Vasily Gorbik <gor@linux.ibm.com>,
+	Alexander Gordeev <agordeev@linux.ibm.com>,
+	Christian Borntraeger <borntraeger@linux.ibm.com>,
+	Sven Schnelle <svens@linux.ibm.com>,
+	Simon Horman <horms@kernel.org>,
+	Mahanta Jambigi <mjambigi@linux.ibm.com>,
+	Tony Lu <tonylu@linux.alibaba.com>,
+	Wen Gu <guwen@linux.alibaba.com>, linux-rdma@vger.kernel.org,
+	stable@vger.kernel.org,
+	syzbot+f69bfae0a4eb29976e44@syzkaller.appspotmail.com
+Subject: Re: [PATCH net] net/smc: Initialize smc hashtables before
+ registering users
+Message-ID: <aULLcudhF10_sZO6@linux.alibaba.com>
+Reply-To: dust.li@linux.alibaba.com
+References: <20251217114819.2725882-1-wintera@linux.ibm.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-X-Launchpad-Message-Rationale: Creator @linux-rdma
-X-Launchpad-Message-For: linux-rdma
-X-Launchpad-Notification-Type: package-build-status
-X-Launchpad-Archive: ~linux-rdma/ubuntu/rdma-core-daily
-X-Launchpad-Build-State: FAILEDTOBUILD
-X-Launchpad-Build-Component: main
-X-Launchpad-Build-Arch: armhf
-X-Creator-Recipient: linux-rdma@vger.kernel.org
-X-Launchpad-PPA: linux-rdma-rdma-core-daily
-To: Linux RDMA <linux-rdma@vger.kernel.org>
-From: Launchpad Buildd System <noreply@launchpad.net>
-Subject: [Build #31662576] armhf build of rdma-core 61.0~202512170735+gitd74af53e~ubuntu20.04.1 in ubuntu focal RELEASE [~linux-rdma/ubuntu/rdma-core-daily]
-Message-Id: <176598335631.2912269.12090647092906327471.launchpad@buildd-manager.lp.internal>
-Date: Wed, 17 Dec 2025 14:55:56 -0000
-Reply-To: Launchpad Buildd System <noreply@launchpad.net>
-Sender: noreply@launchpad.net
-Errors-To: noreply@launchpad.net
-Precedence: bulk
-X-Generated-By: Launchpad (canonical.com); Revision="99c00f518760bdd50fc6e353e7736d2fff8fba4a"; Instance="launchpad-buildd-manager"
-X-Launchpad-Hash: bdb8303d3bbd22b4f2ed06cb236bd99de8a1ac53
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20251217114819.2725882-1-wintera@linux.ibm.com>
+
+On 2025-12-17 12:48:19, Alexandra Winter wrote:
+>During initialisation of the SMC module initialize smc_v4/6_hashinfo before
+>calling smc_nl_init(), proto_register() or sock_register(), to avoid a race
+>that can cause use of an uninitialised pointer in case an smc protocol is
+>called before the module is done initialising.
+>
+>syzbot report:
+>KASAN: null-ptr-deref in range [0x0000000000000008-0x000000000000000f]
+>Call Trace:
+> <TASK>
+> smc_diag_dump+0x59/0xa0 net/smc/smc_diag.c:236
+> netlink_dump+0x647/0xd80 net/netlink/af_netlink.c:2325
+> __netlink_dump_start+0x59f/0x780 net/netlink/af_netlink.c:2440
+> netlink_dump_start include/linux/netlink.h:339 [inline]
+> smc_diag_handler_dump+0x1ab/0x250 net/smc/smc_diag.c:251
+> sock_diag_rcv_msg+0x3dc/0x5f0
+> netlink_rcv_skb+0x1e3/0x430 net/netlink/af_netlink.c:2550
+> netlink_unicast_kernel net/netlink/af_netlink.c:1331 [inline]
+> netlink_unicast+0x7f0/0x990 net/netlink/af_netlink.c:1357
+> netlink_sendmsg+0x8e4/0xcb0 net/netlink/af_netlink.c:1901
 
 
- * Source Package: rdma-core
- * Version: 61.0~202512170735+gitd74af53e~ubuntu20.04.1
- * Architecture: armhf
- * Archive: ~linux-rdma/ubuntu/rdma-core-daily
- * Component: main
- * State: Failed to build
- * Duration: 5 minutes
- * Build Log: https://launchpad.net/~linux-rdma/+archive/ubuntu/rdma-core-d=
-aily/+build/31662576/+files/buildlog_ubuntu-focal-armhf.rdma-core_61.0~2025=
-12170735+gitd74af53e~ubuntu20.04.1_BUILDING.txt.gz
- * Builder: https://launchpad.net/builders/bos03-arm64-010
- * Source: not available
+I don't think this is related to smc_nl_init().
 
+Here the calltrace is smc_diag_dump(), which was registered in
+sock_diag_register(&smc_diag_handler).
 
+But smc_nl_init() is registering the general netlink in SMC,
+which is unrelated to smc_diag_dump().
 
-If you want further information about this situation, feel free to
-contact us by asking a question on Launchpad
-(https://answers.launchpad.net/launchpad/+addquestion).
+I think the root cause should be related to the initializing between
+smc_diag.ko and smc_v4/6_hashinfo.ht.
+The change in your previous patch 'dibs: Register smc as dibs_client'
+may change the possiblity to this bug.
 
---=20
-armhf build of rdma-core 61.0~202512170735+gitd74af53e~ubuntu20.04.1 in ubu=
-ntu focal RELEASE
-https://launchpad.net/~linux-rdma/+archive/ubuntu/rdma-core-daily/+build/31=
-662576
+Best regards,
+Dust
 
-You are receiving this email because you created this version of this
-package.
-
+>
+>Fixes: f16a7dd5cf27 ("smc: netlink interface for SMC sockets")
+>Reported-by: syzbot+f69bfae0a4eb29976e44@syzkaller.appspotmail.com
+>Closes: https://syzkaller.appspot.com/bug?extid=f69bfae0a4eb29976e44
+>Signed-off-by: Alexandra Winter <wintera@linux.ibm.com>
+>---
+> net/smc/af_smc.c | 5 +++--
+> 1 file changed, 3 insertions(+), 2 deletions(-)
+>
+>diff --git a/net/smc/af_smc.c b/net/smc/af_smc.c
+>index f97f77b041d9..b0f4405fb714 100644
+>--- a/net/smc/af_smc.c
+>+++ b/net/smc/af_smc.c
+>@@ -3524,6 +3524,9 @@ static int __init smc_init(void)
+> 		goto out_pernet_subsys_stat;
+> 	smc_clc_init();
+> 
+>+	INIT_HLIST_HEAD(&smc_v4_hashinfo.ht);
+>+	INIT_HLIST_HEAD(&smc_v6_hashinfo.ht);
+>+
+> 	rc = smc_nl_init();
+> 	if (rc)
+> 		goto out_ism;
+>@@ -3581,8 +3584,6 @@ static int __init smc_init(void)
+> 		pr_err("%s: sock_register fails with %d\n", __func__, rc);
+> 		goto out_proto6;
+> 	}
+>-	INIT_HLIST_HEAD(&smc_v4_hashinfo.ht);
+>-	INIT_HLIST_HEAD(&smc_v6_hashinfo.ht);
+> 
+> 	rc = smc_ib_register_client();
+> 	if (rc) {
+>-- 
+>2.51.0
