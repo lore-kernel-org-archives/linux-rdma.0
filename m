@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EA7D4274B42;
-	Sun,  4 Jan 2026 13:52:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D2C07238159;
+	Sun,  4 Jan 2026 13:52:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767534722; cv=none; b=ck6N4a5ngPakEItb1PqKL1+qHmlcO7hcHvp5JGB3IfvYeIyiWkN+9rM6SEv3kOixKDxB6C2I+do9ib6TG2EuYF0pnhxZAtNQMOLfSNOlp9J5KLsP4YQaCYqcfZlyL1BIJe5IBtq+dMlDEz6D1CSCTcRB3wz9/jLAgNxEi5HmRLA=
+	t=1767534728; cv=none; b=TZbT3q11LUTZxUMd6Rg9fRIux5Gn741UkYEc1wLM81P8+fiUgiNRw/j5VLIFfWWbITOLsCjG3ILtUkNTgylzoj+09h4T6Zm0Tf6oUGcQ4mf3OcAk6xZS9BB38tZrWAcSvFmMBgW5RBF5P9AEE1+KFXmN7sc2FXSkTz5B0lihu10=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767534722; c=relaxed/simple;
-	bh=08SYnLgqHKSF/4Y/EkzfgqxzPfpsQUrQNyDNPrDhd9k=;
+	s=arc-20240116; t=1767534728; c=relaxed/simple;
+	bh=Sqsm7E4FnC30GhaI3axA8ZSOLdQDpG9lmUCjOyWWT5c=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=dT2U6BWqP5LDBmPp4Uci4w1n6xN/MrqWvBCPLrMdv8IWVTeKOCXCYjupYMwvCU7mJHA4j4OrfWaX8RcHgL9jCcTPVG4nlg5lyO+vJQ+2XXiijetqoiI26ENShSlEuw2MnQaEt+JTbT5JwFGtnL5LetilOHoDdmXk4/HK1sjnvKg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ZWX5g01G; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version:Content-Type; b=Hg28kL+zNbTBcfRVikPKHD1RJFgC5hV9klm/TVlyVbNtZua8kZehTzDE0aW8exCPwTVRnoRcIg8TohesDkXoDpQwKJRhpaIuEUAZjffRYuIiLLLYWP/PxWjDIIvuu5cdp10lBhx38Nc+fO0Mz4iGvJg/idBi4PgqVnktkGqiMMY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=J6BDGzwS; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ZWX5g01G"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F3E25C19423;
-	Sun,  4 Jan 2026 13:52:00 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="J6BDGzwS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BFB89C19422;
+	Sun,  4 Jan 2026 13:52:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1767534721;
-	bh=08SYnLgqHKSF/4Y/EkzfgqxzPfpsQUrQNyDNPrDhd9k=;
+	s=k20201202; t=1767534725;
+	bh=Sqsm7E4FnC30GhaI3axA8ZSOLdQDpG9lmUCjOyWWT5c=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=ZWX5g01GzZsZeTb4mzKUQknxgOFFfsmbOsnkfXfhiJCuG+uPsGrRvTSbcEt87TGnz
-	 0Q4KESys5m8DQvWCPZXDY9gKTweR5+oY+8eUVEN7hAL1byODTTO/Vdb3DjC+ac92B8
-	 9f2UAVW4aFnvYQDKH1oy6CXxfq9VglpEPwWmQYeoQydVzuGMvTFXgSPc5L75JvFooG
-	 z2VKEJgcXHU3WE6jy0T9LYXza4Cr8FuOG1ctxUmAM046Xw7wiZvKfTI2i6YYnKeQTn
-	 Hofxt9ObHeXWf7mH542LmEVIUhzSjFOayrB0HeS/F0ewZaOfHoyGsp7IHOJFmpCO8s
-	 NvcdjjLdLp1hw==
+	b=J6BDGzwSXiyN63U+jblrpW7KqdC4QKxBCmYJGo0tMn/FR9F91qDY0i7m2itqhNeP3
+	 bNRMxQNG7+bAzaxDLnCQRaw78sQRSsdD2OOE8SU72XuZKuQhY5sEXEsD5jndiOvUvx
+	 v8qqjpHCN1hCAbBTb5vt9pWkLU6t87RKbXwi47bAk9gXPhqm9iHckc9RjOEmyXo/Iv
+	 TfU4vERYrb1yVlqsw+Wvq3JnXAf5Vmh/wGzrPGmohjsHmONiik0OPqrciMDXNj9bAk
+	 JvyLHkvaH4DbPN/cai9/DJk7bnOHpKMW7/tOoYln1G2AYkMdCum7+MfmcEXeSuFVDe
+	 rc5eaJr+XJvhQ==
 From: Leon Romanovsky <leon@kernel.org>
 To: Jason Gunthorpe <jgg@ziepe.ca>,
 	Leon Romanovsky <leon@kernel.org>,
@@ -34,10 +34,11 @@ To: Jason Gunthorpe <jgg@ziepe.ca>,
 	Michal Kalderon <mkalderon@marvell.com>,
 	Selvin Xavier <selvin.xavier@broadcom.com>
 Cc: linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH rdma-next 4/6] RDMA/mlx5: Avoid direct access to DMA device pointer
-Date: Sun,  4 Jan 2026 15:51:36 +0200
-Message-ID: <20260104-ib-core-misc-v1-4-00367f77f3a8@nvidia.com>
+	linux-kernel@vger.kernel.org,
+	Parav Pandit <parav@nvidia.com>
+Subject: [PATCH rdma-next 2/6] RDMA/core: Avoid exporting module local functions and remove not-used ones
+Date: Sun,  4 Jan 2026 15:51:34 +0200
+Message-ID: <20260104-ib-core-misc-v1-2-00367f77f3a8@nvidia.com>
 X-Mailer: git-send-email 2.52.0
 In-Reply-To: <20260104-ib-core-misc-v1-0-00367f77f3a8@nvidia.com>
 References: <20260104-ib-core-misc-v1-0-00367f77f3a8@nvidia.com>
@@ -51,48 +52,87 @@ Content-Type: text/plain; charset="utf-8"
 X-Mailer: b4 0.15-dev-a6db3
 Content-Transfer-Encoding: 8bit
 
-From: Leon Romanovsky <leonro@nvidia.com>
+From: Parav Pandit <parav@nvidia.com>
 
-The dma_device field is marked as internal and must not be accessed by
-drivers or ULPs. Remove all direct mlx5 references to this field.
+Some of the functions are local to the module and some are not used
+starting from commit 36783dec8d79 ("RDMA/rxe: Delete deprecated module
+parameters interface"). Delete and avoid exporting them.
 
+Signed-off-by: Parav Pandit <parav@nvidia.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/hw/mlx5/mr.c | 11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ drivers/infiniband/core/device.c | 30 ------------------------------
+ include/rdma/ib_verbs.h          |  2 --
+ 2 files changed, 32 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
-index 325fa04cbe8a..a7b37e3df072 100644
---- a/drivers/infiniband/hw/mlx5/mr.c
-+++ b/drivers/infiniband/hw/mlx5/mr.c
-@@ -1646,10 +1646,13 @@ reg_user_mr_dmabuf(struct ib_pd *pd, struct device *dma_device,
- 						 offset, length, fd,
- 						 access_flags,
- 						 &mlx5_ib_dmabuf_attach_ops);
--	else
-+	else if (dma_device)
- 		umem_dmabuf = ib_umem_dmabuf_get_pinned_with_dma_device(&dev->ib_dev,
- 				dma_device, offset, length,
- 				fd, access_flags);
-+	else
-+		umem_dmabuf = ib_umem_dmabuf_get_pinned(
-+			&dev->ib_dev, offset, length, fd, access_flags);
- 
- 	if (IS_ERR(umem_dmabuf)) {
- 		mlx5_ib_dbg(dev, "umem_dmabuf get failed (%pe)\n", umem_dmabuf);
-@@ -1782,10 +1785,8 @@ struct ib_mr *mlx5_ib_reg_user_mr_dmabuf(struct ib_pd *pd, u64 offset,
- 		return reg_user_mr_dmabuf_by_data_direct(pd, offset, length, virt_addr,
- 							 fd, access_flags);
- 
--	return reg_user_mr_dmabuf(pd, pd->device->dma_device,
--				  offset, length, virt_addr,
--				  fd, access_flags, MLX5_MKC_ACCESS_MODE_MTT,
--				  dmah);
-+	return reg_user_mr_dmabuf(pd, NULL, offset, length, virt_addr, fd,
-+				  access_flags, MLX5_MKC_ACCESS_MODE_MTT, dmah);
+diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
+index 13e8a1714bbd..0b0efa9d93aa 100644
+--- a/drivers/infiniband/core/device.c
++++ b/drivers/infiniband/core/device.c
+@@ -361,34 +361,6 @@ static struct ib_device *__ib_device_get_by_name(const char *name)
+ 	return NULL;
  }
  
- /*
+-/**
+- * ib_device_get_by_name - Find an IB device by name
+- * @name: The name to look for
+- * @driver_id: The driver ID that must match (RDMA_DRIVER_UNKNOWN matches all)
+- *
+- * Find and hold an ib_device by its name. The caller must call
+- * ib_device_put() on the returned pointer.
+- */
+-struct ib_device *ib_device_get_by_name(const char *name,
+-					enum rdma_driver_id driver_id)
+-{
+-	struct ib_device *device;
+-
+-	down_read(&devices_rwsem);
+-	device = __ib_device_get_by_name(name);
+-	if (device && driver_id != RDMA_DRIVER_UNKNOWN &&
+-	    device->ops.driver_id != driver_id)
+-		device = NULL;
+-
+-	if (device) {
+-		if (!ib_device_try_get(device))
+-			device = NULL;
+-	}
+-	up_read(&devices_rwsem);
+-	return device;
+-}
+-EXPORT_SYMBOL(ib_device_get_by_name);
+-
+ static int rename_compat_devs(struct ib_device *device)
+ {
+ 	struct ib_core_device *cdev;
+@@ -2875,7 +2847,6 @@ int ib_add_sub_device(struct ib_device *parent,
+ 
+ 	return ret;
+ }
+-EXPORT_SYMBOL(ib_add_sub_device);
+ 
+ int ib_del_sub_device_and_put(struct ib_device *sub)
+ {
+@@ -2894,7 +2865,6 @@ int ib_del_sub_device_and_put(struct ib_device *sub)
+ 
+ 	return 0;
+ }
+-EXPORT_SYMBOL(ib_del_sub_device_and_put);
+ 
+ #ifdef CONFIG_INFINIBAND_VIRT_DMA
+ int ib_dma_virt_map_sg(struct ib_device *dev, struct scatterlist *sg, int nents)
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 6aad66bc5dd7..e92bf2e44fd8 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -4545,8 +4545,6 @@ static inline bool ib_device_try_get(struct ib_device *dev)
+ void ib_device_put(struct ib_device *device);
+ struct ib_device *ib_device_get_by_netdev(struct net_device *ndev,
+ 					  enum rdma_driver_id driver_id);
+-struct ib_device *ib_device_get_by_name(const char *name,
+-					enum rdma_driver_id driver_id);
+ struct net_device *ib_get_net_dev_by_params(struct ib_device *dev, u32 port,
+ 					    u16 pkey, const union ib_gid *gid,
+ 					    const struct sockaddr *addr);
 
 -- 
 2.52.0
