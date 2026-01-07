@@ -1,65 +1,65 @@
-Received: from mail-ed1-f68.google.com (mail-ed1-f68.google.com [209.85.208.68])
+Received: from mail-ed1-f53.google.com (mail-ed1-f53.google.com [209.85.208.53])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE50A1FCFEF
-	for <linux-rdma@vger.kernel.org>; Wed,  7 Jan 2026 16:15:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.68
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B7CC834DCCF
+	for <linux-rdma@vger.kernel.org>; Wed,  7 Jan 2026 16:15:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.53
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767802539; cv=none; b=foYXdArK0fwtwBrh6415B8M8hDqV41u0em3uj+8Q0MfWUyIuI6TZCDhqVo1MChLxSASY9bEWunjztnkBfedj1GltyovE3o6oNcezAKrFVCh1BOeCpycAvbtE2Sb+7SBlPRta9Nj2Gz7YS+7Y4gAgmM50C84+/wkggS5WiJFqSyA=
+	t=1767802537; cv=none; b=VShsP9X0XTCIDR809oT/QVZjX2gopPpMtmrLycTrz8cT5jyD4V5SOLhM6XcJspMCuUhtVWqFmljY4N+5xTppZQAY9vjjEi1HqgniZvrXZUsyo5yWXw8ILAd8wWAv20TxI5O0MehfPBRUX+yTLuE70xsVFgc4ALzftZ9Jpka6WMY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767802539; c=relaxed/simple;
-	bh=V3BBKkmfnBkdyaCY39U2ZJJl6WfMXXaDLxlj5GWZ7aY=;
+	s=arc-20240116; t=1767802537; c=relaxed/simple;
+	bh=DK82sq0YRZo4I5tAWysebNR04APRa5cQa1GanigY60M=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=l3WzvAC31H8WSdI9PDPxwSAPoF1ZOh33DdmwMmN8+X19SIM9zIBnERFNUlMVVIYCWWn6o0MUu14/XWBVjBHS+5kHNTlvOBScZU9UbDArgJDEkG0wS9QzP3+La28v7hFkYS8ow7UXBmsVcrNBTCpyYUCNeBHmqPVNpvPfYIiXpXM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ionos.com; spf=pass smtp.mailfrom=ionos.com; dkim=pass (2048-bit key) header.d=ionos.com header.i=@ionos.com header.b=Y+zcpwjM; arc=none smtp.client-ip=209.85.208.68
+	 MIME-Version; b=aoWAm8UBz+mEMdESOEa/7Rtg8L8TqYUGjjJGk2u4SsmnjtSejGsRcgGrJXlOFmJwJR3dpadcZsNNzEuKiYRCjRByzVfg6DWLDOZCii8R9o3gEsiW0cFEF4ZUyL8+XRLEp1B8uTnGjBdFDRjQx/JKv3xIq1NLzx1TMsL3lvB8z4A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ionos.com; spf=pass smtp.mailfrom=ionos.com; dkim=pass (2048-bit key) header.d=ionos.com header.i=@ionos.com header.b=U3x1jH8s; arc=none smtp.client-ip=209.85.208.53
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ionos.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ionos.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ionos.com header.i=@ionos.com header.b="Y+zcpwjM"
-Received: by mail-ed1-f68.google.com with SMTP id 4fb4d7f45d1cf-64b9dfc146fso1980521a12.0
-        for <linux-rdma@vger.kernel.org>; Wed, 07 Jan 2026 08:15:29 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=ionos.com header.i=@ionos.com header.b="U3x1jH8s"
+Received: by mail-ed1-f53.google.com with SMTP id 4fb4d7f45d1cf-6505cbe47d8so3592268a12.1
+        for <linux-rdma@vger.kernel.org>; Wed, 07 Jan 2026 08:15:28 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ionos.com; s=google; t=1767802526; x=1768407326; darn=vger.kernel.org;
+        d=ionos.com; s=google; t=1767802525; x=1768407325; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=9k1NTv2UoowQVsXGv69jvwWJ7AaBviNCdCwteUJOS4M=;
-        b=Y+zcpwjMipxnTGtA2JjMSMDtq7Gb5Afg4E+aXhyN2R/4cxNmNSfmoLmStWM8y1ch/C
-         wyYKqtIxqDtSA5S0csD+mqf++ws59OhnRP8dfbnXaOrdbXSQS1EW09mApn0ddmtCE36v
-         a1TTUUYUPjDMctQnKgC/Leqhf4/5OMqinoxW7fvcHpbedTb1rTfi4Cj82JcoYFcLDviW
-         g2ZRqoP/xBVBbyzAkEAqG6oHfoiGBfholKEzTgQ2tZUrqiKqcN/OuhzoPIVDwwsoY6dX
-         Jnk/tX70LV2JkTjwyWALbGyE+kKBQZ4TvmSjkSyjqcuCRZEHTnBf5K8gII6WhuW75Z2W
-         9HtA==
+        bh=qmK4ukXEO2k1OkIznCc8rzjpQm/5o1nT/zdBVsjdN4w=;
+        b=U3x1jH8sYdCM+Hgz+4spo8DWkdO5xktrAzyL/wCkUCh9pMvZaYlj49kvUiMqfF2fSl
+         eX3SEQTSlpEtHG2NkjyBBpr/fhH7sx9pSVmlYqrJdhgX2soV2mZeejtpyldHidC/s5o1
+         B8yc15dmj0JL28bLWLE6tFqYspqrt0GY2sXvO9zr57T1uCAE/sLwwNkzoKZqB/ZCSSQW
+         gTKk0J8Gn8+N+ddwVoZRdofiWuJTJPJ4qLY+dnCyF7SbH7USNC8WTClZI59Fvnq5EQqU
+         Fzau/vg/L1hx/sEnOB44yQn3eWPj/Ta4ZnbkMi5q4uCE2HoKg0q/EB9Deil7z9plQp5s
+         iYVw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1767802526; x=1768407326;
+        d=1e100.net; s=20230601; t=1767802525; x=1768407325;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=9k1NTv2UoowQVsXGv69jvwWJ7AaBviNCdCwteUJOS4M=;
-        b=jAD+v6ZGkDFB0SW2h1YPEL1KFoLz97rW5B8jV5mxWZ+624pMzOcBgJUkHqGXor/M6J
-         H9fYT6aznr88TQNvyOUObUA5baTuQrYjXYJ96V22FQUWJeFdxIqVjE8ldQtb7WUD1E35
-         WiV/TqyifrvNjaXU7qbBe1VgrMFRuqLW9anSZHf4IMSGuKTDE/xFNVHsgSFrP//Lxfz4
-         6YyYJxmTgfomTaUvtxf9g6l0VLvIc/swcebvo6XXEjT0skUAZfsEZDQM9o86JnPFDndT
-         cJWDBwVbDiwCMZbluJA/PEv5Xm6dd9Izt//H8lN6SLHp23hPWBroS51k5GajA5qRJ7g7
-         LOxg==
-X-Gm-Message-State: AOJu0YxuA1jGVkot4pc7mUsAz0k6Yu6oHZpWYD6Od3ypgX4YfVrAO8m2
-	xhF2m8d2XhzQjwGqd6oTYAa3oQc6DHJU3pBo2LCRqBnwbhJXNHJLThFzDIs64uy9n2dofGvmIua
-	PHIo39p8=
-X-Gm-Gg: AY/fxX57HQkZjjHgyxz2ns0A+bI4221c0kQzqZP+qPy3qfK4RZPDscR7QLuHQE0693y
-	X52bLmG7YsU/FyiYgkPkfyjT/i5uBSm+CNj50HbTkkS5TezxHpN1VxZxPMhu2Mdez2mK/+olKcI
-	iphzzZtFPtX3LVhD/pjR+AG/E548WSsM75ZFOqLDyhwVRp0ACGF3xwYTDQpwJkuvCN3YAUpHnFN
-	fyLaENuTz2lOzpAxNhQchZRgNfWSEyqBUzM7/+fr/VV6RxTilOi7g8ZvU9bOelRCPLJA6gq1c3l
-	NFAPzNTj4ZHFSZ1p1lfjtA4Fb/KOf1ANNW854tFPYWqOuuVRLlbsnM1YbUYuDOk8pUtcovx+0qK
-	yiKEdqW4oMgZLVEq/E3iD2IgvXxUMt1jpUHoTWSUip1FKDst+V5m7BwiRqH3acQNSqQaf01TDJP
-	eUrRmQlGfYqS+EOB/SKdb4qmt/1ZOY0ohykUGLwpQmRPDbpBviHNtEWcnRyKaSkFtSZbEzQNoH2
-	PzzhrA8jhfhFmQ8Za0ZXjE=
-X-Google-Smtp-Source: AGHT+IHhTuG7foO0/3uBColi0fL9RdVLc8pdf/0wAjzY7zovpYeAxQlLfIE1cZCLsCOJr7aPu4T7cw==
-X-Received: by 2002:a05:6402:3551:b0:647:94e1:800f with SMTP id 4fb4d7f45d1cf-65097b99f05mr3377433a12.8.1767802525739;
+        bh=qmK4ukXEO2k1OkIznCc8rzjpQm/5o1nT/zdBVsjdN4w=;
+        b=FkRjHzYf4/Syvvv8le0o5zojIpGh6K5dn4aj9CSoXpdveO6CXI++9NuY+ufN5/N1lQ
+         QmHdpTPiNfDo5JUqN8ECtuTWRAue5tK8/tczdInwAxg8oFYc7UoCXOfxxKOriRQe3tWn
+         skGF4F+K6T12NidSyY1RRWa1YG2QhDS6g0Bu9c4WVbgd97WqD9FcSTXklNSSEb0wmQcx
+         aRT8FPQ5RWSQ0tScTYt0FqGRrYZoEiu3F8+CUSX2NovNIktzuJ8bAPcJi9Dojpcyo8ia
+         diIBR3ggOvXfhSJcx2OSgaS38qeKdErnU+jaM8iiKwQE/AeoRhTNZ0upsF1w/nFJDWn1
+         mkjw==
+X-Gm-Message-State: AOJu0YyO0hLE7Wks+1LE0IGUUuvsd2LieGTB3GxJfBwFATC/camh0WWa
+	knhnFSOtkJrivihVlVzA2JVdqszU5OCxK7aHt+PvHlj9HUg047PpF4tqwWPzZ8BUFTkCrYllSrd
+	SxMEw
+X-Gm-Gg: AY/fxX7Z+oJszBj3K8qhCfYzzL1nZoyYq94ay42CCtwezMZ9TMQoyKnkAMiPYVgUCZ0
+	Wu1fzREIrbQ4vZr5Gh4u56I7hSBCk04D/nOdgjrBODxDWnxKLSx3PrO8AgUgsNkne6g1Uz02q2m
+	RcmcovJowaSgKFlV0dbjzB2DdilJ/V87gGLbKEw7cmKzOPSVKAxiQPl/y3aY4HnKNV1rpg4SfGC
+	rsrD6kDel5Pj0/DP+jqkv8QD157VTAcs7Hr0fMxTDc3Jz9/mGM6Uz2NaoXdyI2DbwR944QwrXp/
+	Rs8FQylnzlEqQPdfaBxljI1amltlxxyS3yJ0F8cp4HhKNBvmWTGhixEyGAFKLjvWcEAYC4rORTY
+	AvddJAleyl7AHZLnPX4RQeBA5yHWZf5+YWSccBTuK/efrsyqZAITkhV9MoKQqB1P35y9Y16vLkj
+	SGGbmT9zq2bNMV6wF2bwgwrFpnsTTVfZwyuFwHMIPkwmJxk7Csaim2u6KEZ7P9CwT/5hUuagNFx
+	IA61h2zQHFCx/Tf+6KYoVg=
+X-Google-Smtp-Source: AGHT+IF0nSXB9cfWcpsBvybyHoPksyTY/hIXcDSgg5UixgB/9sfsmD671zDuW0HD7upiZVgqcsf1Ow==
+X-Received: by 2002:a05:6402:26c5:b0:64d:498b:aefd with SMTP id 4fb4d7f45d1cf-65097dcdce6mr2724803a12.5.1767802525113;
         Wed, 07 Jan 2026 08:15:25 -0800 (PST)
 Received: from lb03189.fkb.profitbricks.net ([212.227.34.98])
-        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-6507b9d4c89sm4864773a12.10.2026.01.07.08.15.25
+        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-6507b9d4c89sm4864773a12.10.2026.01.07.08.15.24
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 07 Jan 2026 08:15:25 -0800 (PST)
+        Wed, 07 Jan 2026 08:15:24 -0800 (PST)
 From: Md Haris Iqbal <haris.iqbal@ionos.com>
 To: linux-rdma@vger.kernel.org
 Cc: bvanassche@acm.org,
@@ -69,9 +69,9 @@ Cc: bvanassche@acm.org,
 	jinpu.wang@ionos.com,
 	grzegorz.prajsner@ionos.com,
 	Kim Zhu <zhu.yanjun@ionos.com>
-Subject: [PATCH v2 08/10] RDMA/rtrs: Extend log message when a port fails
-Date: Wed,  7 Jan 2026 17:15:15 +0100
-Message-ID: <20260107161517.56357-9-haris.iqbal@ionos.com>
+Subject: [PATCH v2 07/10] RDMA/rtrs-srv: Rate-limit I/O path error logging
+Date: Wed,  7 Jan 2026 17:15:14 +0100
+Message-ID: <20260107161517.56357-8-haris.iqbal@ionos.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20260107161517.56357-1-haris.iqbal@ionos.com>
 References: <20260107161517.56357-1-haris.iqbal@ionos.com>
@@ -85,60 +85,29 @@ Content-Transfer-Encoding: 8bit
 
 From: Kim Zhu <zhu.yanjun@ionos.com>
 
-Add HCA name and port of this HCA.
-This would help with analysing and debugging the logs.
-
-The logs would looks something like this,
-
-rtrs_server L2516: Handling event: port error (10).
-		   HCA name: mlx4_0, port num: 2
-rtrs_client L3326: Handling event: port error (10).
-		   HCA name: mlx4_0, port num: 1
+Excessive error logging is making it difficult to identify the root
+cause of issues. Implement rate limiting to improve log clarity.
 
 Signed-off-by: Kim Zhu <zhu.yanjun@ionos.com>
-Signed-off-by: Md Haris Iqbal <haris.iqbal@ionos.com>
+Signed-off-by: Jack Wang <jinpu.wang@ionos.com>
 Signed-off-by: Grzegorz Prajsner <grzegorz.prajsner@ionos.com>
 ---
- drivers/infiniband/ulp/rtrs/rtrs-clt.c | 7 +++++--
- drivers/infiniband/ulp/rtrs/rtrs-srv.c | 7 +++++--
- 2 files changed, 10 insertions(+), 4 deletions(-)
+ drivers/infiniband/ulp/rtrs/rtrs-srv.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/ulp/rtrs/rtrs-clt.c b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
-index 393b5f35ff38..5e9f2153936d 100644
---- a/drivers/infiniband/ulp/rtrs/rtrs-clt.c
-+++ b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
-@@ -3179,8 +3179,11 @@ int rtrs_clt_create_path_from_sysfs(struct rtrs_clt_sess *clt,
- void rtrs_clt_ib_event_handler(struct ib_event_handler *handler,
- 			       struct ib_event *ibevent)
- {
--	pr_info("Handling event: %s (%d).\n", ib_event_msg(ibevent->event),
--		ibevent->event);
-+	struct ib_device *idev = ibevent->device;
-+	u32 port_num = ibevent->element.port_num;
-+
-+	pr_info("Handling event: %s (%d). HCA name: %s, port num: %u\n",
-+			ib_event_msg(ibevent->event), ibevent->event, idev->name, port_num);
- }
- 
- 
 diff --git a/drivers/infiniband/ulp/rtrs/rtrs-srv.c b/drivers/infiniband/ulp/rtrs/rtrs-srv.c
-index d5189f12d2f7..09f4a16b4403 100644
+index 4e49c15fa970..d5189f12d2f7 100644
 --- a/drivers/infiniband/ulp/rtrs/rtrs-srv.c
 +++ b/drivers/infiniband/ulp/rtrs/rtrs-srv.c
-@@ -2342,8 +2342,11 @@ static int check_module_params(void)
- void rtrs_srv_ib_event_handler(struct ib_event_handler *handler,
- 			       struct ib_event *ibevent)
- {
--	pr_info("Handling event: %s (%d).\n", ib_event_msg(ibevent->event),
--		ibevent->event);
-+	struct ib_device *idev = ibevent->device;
-+	u32 port_num = ibevent->element.port_num;
-+
-+	pr_info("Handling event: %s (%d). HCA name: %s, port num: %u\n",
-+			ib_event_msg(ibevent->event), ibevent->event, idev->name, port_num);
- }
+@@ -184,7 +184,7 @@ static void rtrs_srv_reg_mr_done(struct ib_cq *cq, struct ib_wc *wc)
+ 	struct rtrs_srv_path *srv_path = to_srv_path(s);
  
- static int rtrs_srv_ib_dev_init(struct rtrs_ib_dev *dev)
+ 	if (wc->status != IB_WC_SUCCESS) {
+-		rtrs_err(s, "REG MR failed: %s\n",
++		rtrs_err_rl(s, "REG MR failed: %s\n",
+ 			  ib_wc_status_msg(wc->status));
+ 		close_path(srv_path);
+ 		return;
 -- 
 2.43.0
 
