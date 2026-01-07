@@ -1,65 +1,65 @@
-Received: from mail-ed1-f52.google.com (mail-ed1-f52.google.com [209.85.208.52])
+Received: from mail-ed1-f43.google.com (mail-ed1-f43.google.com [209.85.208.43])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8929D34C9A1
-	for <linux-rdma@vger.kernel.org>; Wed,  7 Jan 2026 16:15:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.52
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0DDDE271464
+	for <linux-rdma@vger.kernel.org>; Wed,  7 Jan 2026 16:15:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.43
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767802541; cv=none; b=Hqs85VslLy3bTNrgriXbeqLenoUGIb7qYIYOsjI3nqAzOqm+h6FqlNVcF6+vPRunSLBME8SudF0ZFTdYKuYFyPcKCOmolp9WbocrpKwfBmrSTJ1GZw5IPcp7JqfXyESZys17b4tk4xg7SHOoWS+YkUtHDy2ltIAJmdKldL+np5w=
+	t=1767802551; cv=none; b=DqgLviDx6S341fiJ6EgZK8mi0ZkdY1A2f6AMNusZJsZK9cDqMS5AGiB7b/J2VEcE9BqZo21EhCQkp/zNO2cBwXDS6JizKsxOfzKB/+B/Rh1TA5SKx3BgtJ4kSow1vooAkefT+BM1SDT0FQi0pVD8Ack6WliswaMu3Nges9027WY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767802541; c=relaxed/simple;
-	bh=KmQ+lTlSSyeiabGk18iSez5dhQAma8Uy8aFtqhbjpEE=;
+	s=arc-20240116; t=1767802551; c=relaxed/simple;
+	bh=gj9fJlfCTB46jAlnfIXI/OwDQ7+x7bnJ0leFDVz68xU=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=cgCLbnk6NAMIV2mxZhxo+sr01U3kRWVVapxD487gB9Zkm4RjqoOxQ5xsHFz78KQDf8wB632w0oojCdVowegpuoLbk5hEyEqeaiszv3Kc0MKTbK1880G+7Ht8YtbdDdmlZ7U3K03jBwD5KXqD6OrEsSJ4JPDEKDSR8DreesJ3bAE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ionos.com; spf=pass smtp.mailfrom=ionos.com; dkim=pass (2048-bit key) header.d=ionos.com header.i=@ionos.com header.b=I5CkLsJM; arc=none smtp.client-ip=209.85.208.52
+	 MIME-Version; b=hWpxaRfKzGh6yHuXJ2jdyWQinfCqnIczqql1dZ0IC/kQxocOKJ9yOhvZjgDDIVKBckFpi4uR/lfviZ+DolY8d+6m3HzTmqDz5k3qVwt8a/gVjfGXAX2aUBPV2w1HOxoAQE1WLEe5Asbj/oqzJH5m6aqQXabq813Zh9IIFDCHbn0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ionos.com; spf=pass smtp.mailfrom=ionos.com; dkim=pass (2048-bit key) header.d=ionos.com header.i=@ionos.com header.b=Qncy5INL; arc=none smtp.client-ip=209.85.208.43
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ionos.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ionos.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ionos.com header.i=@ionos.com header.b="I5CkLsJM"
-Received: by mail-ed1-f52.google.com with SMTP id 4fb4d7f45d1cf-64d0d41404cso3320332a12.0
-        for <linux-rdma@vger.kernel.org>; Wed, 07 Jan 2026 08:15:28 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=ionos.com header.i=@ionos.com header.b="Qncy5INL"
+Received: by mail-ed1-f43.google.com with SMTP id 4fb4d7f45d1cf-64d30dc4ed7so4301347a12.0
+        for <linux-rdma@vger.kernel.org>; Wed, 07 Jan 2026 08:15:36 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ionos.com; s=google; t=1767802524; x=1768407324; darn=vger.kernel.org;
+        d=ionos.com; s=google; t=1767802531; x=1768407331; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=pEayMUcFMUX1WuUmum18FhEKvHb122sNv3VZ9V0g3Z4=;
-        b=I5CkLsJM86whIdGgQHA2EAIzwG7yicr/RG/1v7phlHnjFR4dzyWsZYuFXJrmJufvte
-         rvWoILM/8PKgUOjp1DAkJh1LF04Bl3TMWNIDDHdLbt3JWDOB1DdDREzSC75MRsMkurxJ
-         de3OTQLdCiCF6Wp0wRQD44+XOOJnCdBca9+D2Bmhvh2iN/Qigt3FLH2VStFM5Bb5fRGI
-         /UelAFHgqJk8Wwm9NmLcE7erJjhk6yTgg5kvuX+EjCV/z5cknA10/zqicYSCerJuqa1a
-         PMU28sQ0nNd1xQnCeCczzrEtt02WNRa5d0doahaTYiiURaKjjbq1ADKd6JCu9Ipksfcz
-         zMSw==
+        bh=LMZksOEA6H7PfEJByCySNf4Rt/aposMosQA5cuQ5QnE=;
+        b=Qncy5INLKxXzZlHQ9QgXGQSHozRaljFliwsQ+MlgsusQE12B4dGn1mXn+zIPRbrEqp
+         4enK/LY/k96u6OyMGqsyFNAtpELq1HNwltoGEDkgs6gfJNkvPlVMt3BRs5n6XL/tfXG2
+         myre0izfB5rY7cq5Zy1Q6K0Dv9jpvwqVsxvdo+/Kyvr10VgYC1Cfunxju45RgYnPfjhK
+         U5iqSDJGDwcoKeCZIaLNNMcQ/ndUedMqGAp6V7S44oN8cETsst2Pg+DsM9s/QSopi2cF
+         K/YiR20tqPdV0/Ezw3HSLMgPf5hD/9v+I/mYAnkCQRGXD7J8l4lGX5ovo48YNYTU47/r
+         LNcQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1767802524; x=1768407324;
+        d=1e100.net; s=20230601; t=1767802531; x=1768407331;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=pEayMUcFMUX1WuUmum18FhEKvHb122sNv3VZ9V0g3Z4=;
-        b=HurOwa6xwRwQlBYofYhd/hvnSCx2/ziceaoz5rBbyAoRHNFVhQjp2ETOimQZPBMeVP
-         s3jHufB0RE7qyc5Ay2h6f+4M2JbrSL2hwmUOc16RNFby03KHugpN2IYwzBtgu74T8Krk
-         wkWbqzZTjY/2VlpBbFzx1UrgJhKgzh+wdsj09X4MwpKHMscafeTKa167nXbmJOWplNzn
-         2N/wJJUSThayANnU1HsJl3xHqjWK9/hr6sn3KX9OhhNG5UUGrgKnZ1ykR9gU6zFwYsRe
-         yaqWj5fHli/HM6mRXnEnyHOH8A1kJyok3pwzckY9PcU8N6kg7dUKFTujWrNSIVF/XOoS
-         Xv2w==
-X-Gm-Message-State: AOJu0YxG/S1zscsFW5qRRn7BAFcS1HW/0ZVU0CW4vQnoN/ZHmEHH4z7e
-	Y8a0HQ1Yq11P7H4Z+oks8TcogyabpukDVaKstKH4AeGFYtRZIWfmBnu0Ti73Gmh6CERseqHCK2p
-	sfwhE
-X-Gm-Gg: AY/fxX4psZi4pMf5IwMMbdYWTAAAelCr2izkWuTn6vngfLLyGWNJEhVYA7G66QHgl1X
-	EimiPeNRY7oxa0gEdQs1w8GkfoDK/BRFWjUZu4Xk7pXJ/XTWqK6YIGr+pGo8lOV4xAAWsYS7PJZ
-	9m+wC1bHyDfxJZ/7KlJ1RHrpeGg9h6vdoEGutKE5iERtbA46S2QLbdKHBQt244/918nS2MdU47S
-	D/LMXblUrAOMIqn8KhvuPXiB3DAZj757PtQLOD6+sUs9NooMMItWweYAW+hvgibGkB9AwgXIQYH
-	EKP/TMMziuZ7IC2CK+y5vAsN5S4XRNcB/qe5Jyf8FrHjHev4Ci7mLFHQ6DGWDdBnyweWKq4BiL6
-	ZkGPFCcn/7SGTOoUfvUT3EYr27j0RmFA2JottVPLKGT9JR0dUJcY7nnUGJX8KlhyLhFaAGeKB7T
-	WW5oCc/B9vvfeHTWMQ/8bXm6/J4BnADHDDZrumEmAjLOGojcyJaZALrhFXLgSdZbH4oYj24RUyF
-	OYYEs5nKrVP2Kf5LgFllzs=
-X-Google-Smtp-Source: AGHT+IEnF92/LqxSd2EIfroink3kDgqrOi1ckeu9CXIywuvq/ldfEBjnemUn80WFlgTYBU+1zPR7VA==
-X-Received: by 2002:a05:6402:358c:b0:64d:16ba:b1c4 with SMTP id 4fb4d7f45d1cf-65097e46b58mr2749167a12.19.1767802523794;
-        Wed, 07 Jan 2026 08:15:23 -0800 (PST)
+        bh=LMZksOEA6H7PfEJByCySNf4Rt/aposMosQA5cuQ5QnE=;
+        b=wTb+UAo2WhkrMndKcf4oWyHQBiIP9d4gNoOZwg69WmqlNhiMVL0LhZszxN+if2sYJu
+         X7hU9vPX4lifqfCY66ebLBmfAGf8oExx7xXYaIZKdpPbaqjXdkPaqy1KdstaYLFXoM5C
+         ufpZ0bQYFS7RD9NPH9wWT+/NSKF8Wc5RdgGRflZMmcfu/Pp9hp5jRgdiTzNQBMcp0TO3
+         tMoA1YWIfEe/bbRiD8tSwotoUh5f2WvVrCv+rA9ez3tT2MyzfIuY9eUNiC5pPopuXaDN
+         +u1fiGgMwIdxzxR91XRPe+Dg2wGcfae3TImSPskVqxS35UPdWfRgMllX7Ll/OuFFTR9G
+         LLpA==
+X-Gm-Message-State: AOJu0YwHm4xq0F0FestNK7QY45lq5elJA0HhL6XtQowEJRpVutjFLOwg
+	gDF7VO1WZsvmEUaIY3pIXT83HE7vLz7WzVW9VnuF0K/j/oyJ267JBmlz3C0tP2FbOmX50e95seY
+	7DsIt
+X-Gm-Gg: AY/fxX4Cowc3v64ujEDeIaVVRz/UVAi8P+vT2hYlJD/AiOO4K2GhD0vCqOrmwZ7FXTL
+	OzSdLyJe51MvTWW9MAOXpdrMPDhTwYc1iJO+xa93PNZZ5d3nUwwR5geSGUMUS4rhoAoxMaAPDyB
+	aftOtUv3QCNpkFHBLLY40yIzfd8ZYSeypGatACPeTnXjtXlrXt5nFiNMkhaaT2yFRWrR3L4sPDS
+	zlbBHUbPoDmfEfIYdtMQXj8/BnqgbrBuxM+HA9XmjnDW1XurJVl0A2FCbEt3cyrALt3BJyq1yUZ
+	pfw7U1c9t7bAVQj8dCwx390iEVLEiovZ3EO5QmbyrQuQRzK40lxsSY1W9C3EYP9ND38ChHCsEjG
+	HJiWLS1wlEMGVF1wGDUJc6qrlEYZscal6B6/eS0IIGNEaCUfCQlIl9Lzm1TokSlyMVLqWvfxDhr
+	GSbXtrjOzXfvedI4UKA4h6Z88aGwS7FlUjANm3OuITvw99SxNZEq7a0GY6voGWcIHV0gBpx9jxY
+	mjEsbMScsAHlgTMdqyqMBs=
+X-Google-Smtp-Source: AGHT+IEqiRx+60KP72cSaA//Xi//24S+znE7iXyFLtStBwYiSVHKsRMzecqvirhU9Z4wY4wS+qQ36w==
+X-Received: by 2002:a05:6402:1469:b0:640:edb3:90b5 with SMTP id 4fb4d7f45d1cf-65097dcdd08mr3094102a12.7.1767802526447;
+        Wed, 07 Jan 2026 08:15:26 -0800 (PST)
 Received: from lb03189.fkb.profitbricks.net ([212.227.34.98])
-        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-6507b9d4c89sm4864773a12.10.2026.01.07.08.15.23
+        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-6507b9d4c89sm4864773a12.10.2026.01.07.08.15.25
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 07 Jan 2026 08:15:23 -0800 (PST)
+        Wed, 07 Jan 2026 08:15:26 -0800 (PST)
 From: Md Haris Iqbal <haris.iqbal@ionos.com>
 To: linux-rdma@vger.kernel.org
 Cc: bvanassche@acm.org,
@@ -68,9 +68,9 @@ Cc: bvanassche@acm.org,
 	haris.iqbal@ionos.com,
 	jinpu.wang@ionos.com,
 	grzegorz.prajsner@ionos.com
-Subject: [PATCH v2 05/10] RDMA/rtrs-clt: Remove unused members in rtrs_clt_io_req
-Date: Wed,  7 Jan 2026 17:15:12 +0100
-Message-ID: <20260107161517.56357-6-haris.iqbal@ionos.com>
+Subject: [PATCH v2 09/10] RDMA/rtrs-clt.c: For conn rejection use actual err number
+Date: Wed,  7 Jan 2026 17:15:16 +0100
+Message-ID: <20260107161517.56357-10-haris.iqbal@ionos.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20260107161517.56357-1-haris.iqbal@ionos.com>
 References: <20260107161517.56357-1-haris.iqbal@ionos.com>
@@ -82,44 +82,38 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Jack Wang <jinpu.wang@ionos.com>
+When the connection establishment request is rejected from the server
+side, then the actual error number sent back should be used.
 
-Remove unused members from rtrs_clt_io_req.
-
-Signed-off-by: Jack Wang <jinpu.wang@ionos.com>
-Signed-off-by: Grzegorz Prajsner <grzegorz.prajsner@ionos.com>
+Signed-off-by: Md Haris Iqbal <haris.iqbal@ionos.com>
+Reviewed-by: Grzegorz Prajsner <grzegorz.prajsner@ionos.com>
+Reviewed-by: Jack Wang <jinpu.wang@ionos.com>
 ---
-v2:
-- Addressed comment to remove additional unused members.
+ drivers/infiniband/ulp/rtrs/rtrs-clt.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
- drivers/infiniband/ulp/rtrs/rtrs-clt.h | 3 ---
- 1 file changed, 3 deletions(-)
-
-diff --git a/drivers/infiniband/ulp/rtrs/rtrs-clt.h b/drivers/infiniband/ulp/rtrs/rtrs-clt.h
-index 0f57759b3080..986239ed2d3b 100644
---- a/drivers/infiniband/ulp/rtrs/rtrs-clt.h
-+++ b/drivers/infiniband/ulp/rtrs/rtrs-clt.h
-@@ -92,7 +92,6 @@ struct rtrs_permit {
-  * rtrs_clt_io_req - describes one inflight IO request
-  */
- struct rtrs_clt_io_req {
--	struct list_head        list;
- 	struct rtrs_iu		*iu;
- 	struct scatterlist	*sglist; /* list holding user data */
- 	unsigned int		sg_cnt;
-@@ -103,12 +102,10 @@ struct rtrs_clt_io_req {
- 	bool			in_use;
- 	enum rtrs_mp_policy     mp_policy;
- 	struct rtrs_clt_con	*con;
--	struct rtrs_sg_desc	*desc;
- 	struct ib_sge		*sge;
- 	struct rtrs_permit	*permit;
- 	enum dma_data_direction dir;
- 	void			(*conf)(void *priv, int errno);
--	unsigned long		start_jiffies;
+diff --git a/drivers/infiniband/ulp/rtrs/rtrs-clt.c b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
+index 5e9f2153936d..59e30640f94a 100644
+--- a/drivers/infiniband/ulp/rtrs/rtrs-clt.c
++++ b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
+@@ -1929,7 +1929,7 @@ static int rtrs_rdma_conn_rejected(struct rtrs_clt_con *con,
+ 	struct rtrs_path *s = con->c.path;
+ 	const struct rtrs_msg_conn_rsp *msg;
+ 	const char *rej_msg;
+-	int status, errno;
++	int status, errno = -ECONNRESET;
+ 	u8 data_len;
  
- 	struct ib_mr		*mr;
- 	struct ib_cqe		inv_cqe;
+ 	status = ev->status;
+@@ -1951,7 +1951,7 @@ static int rtrs_rdma_conn_rejected(struct rtrs_clt_con *con,
+ 			  status, rej_msg);
+ 	}
+ 
+-	return -ECONNRESET;
++	return errno;
+ }
+ 
+ void rtrs_clt_close_conns(struct rtrs_clt_path *clt_path, bool wait)
 -- 
 2.43.0
 
