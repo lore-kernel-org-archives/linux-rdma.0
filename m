@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 74602334C05;
-	Sun, 11 Jan 2026 10:37:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A6CA336EC7;
+	Sun, 11 Jan 2026 10:37:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768127852; cv=none; b=qtCACYNHHibQml3bCSi/WFwMqYHYn4vdIhRJKqAXPv6sSBAklG0CNStH3KUWFKeIzZYgBU8co/T1wqNxG8q4TRzlaf/Y3PsOSxB3BK10KuKjJqWuPHLRRkK3TSMCC2BqPJGIaQxctmHVm6L4w9aqBgEGWlTRXzwy9JpVN7wxPZM=
+	t=1768127856; cv=none; b=n5D8wutvXIqUjoGF/Vgitag+Xe2BhrCthJidJP9CVf55mx0YWuDq+YWUNAiIHLpvz6l4Jl1KdumwOnSDFuRxQ3lws02skb8P+hmYb61Xf+6VJp3lTZVqJNcW/Txve8bmUR9YAdyydirnvSdWwCQv//i/eKG1rMA80k4fdAP+680=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768127852; c=relaxed/simple;
-	bh=EB9u2XyG8hOfqiXwLDjNViUG+l4zFMBtygFVUbtOvI0=;
+	s=arc-20240116; t=1768127856; c=relaxed/simple;
+	bh=vKVJahwFDp2BgaIk7FWtQz247pzEh1oOdaEn5cwav6g=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=QY39eOVpvnnMXkWxbJ929vydB1GeAEi+WEmhbVurh2y2iAolw76tPMLgWUEJ9kLDmvEdsRd45cEamBzf7mk7A9j7ph1jW9+Yr7Nr/hJN4mw9bSP9KhSXqvEDoCXzhkGKeFkIeFS06qnA1ajjzB/UlqRvSLwRkUaHZwoWvePZKpI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=PC42vNtx; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version:Content-Type; b=dgpBJwWe4hdmCnkt7KOWw6qhs8jZpM29k6bu6JNNUjOoShpDsB1DwW4bLiZL63hl2Rz4ZsEHKVGV/B4cuR4FKww+zzDltpEF7wJtAaSnFfGwtfaXso+zSeweiYr993PzHuavOEGAQWi/rxuRbe5s6BSCBsGnDp8+UPksxunWS7g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=eYaAAEaP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="PC42vNtx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 765CFC4CEF7;
-	Sun, 11 Jan 2026 10:37:31 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="eYaAAEaP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 581CCC19423;
+	Sun, 11 Jan 2026 10:37:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1768127852;
-	bh=EB9u2XyG8hOfqiXwLDjNViUG+l4zFMBtygFVUbtOvI0=;
+	s=k20201202; t=1768127855;
+	bh=vKVJahwFDp2BgaIk7FWtQz247pzEh1oOdaEn5cwav6g=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=PC42vNtxB+Qd9ZpYwFqWTPv1WbKwV1tsnlIUQNxK5JuKhr9Vc21PG2xz4+W9kyClA
-	 WoqlZgKqI0PHqeEVkRivzUP8XZ7SshOloidqrN0ZZpsj9ZrTgDPJS85qXdFv3JhHmW
-	 V3Mci8NLX4GRg06Z5m8BGmdBHQtXs1x6NBs3gmZL7ktD1DExEQnQHmhRJQWJIRL/Ju
-	 t6UqhjElh0DIHKDFKNojNutSZWoEXYBCOhFvDNxy23odPoV4+h75gMGrHOfd5mMoPv
-	 7KTB07gzSHWC3i+YtyvnLIahfUBEybflkhhjM+7s8cnjj5DtJYiuZHsGu7uGBh/dXf
-	 vGneu5dryOpgw==
+	b=eYaAAEaPsCa1kqPN5BEZNCK+/0r801KkCRoagdgFGgTu/MPFWYrWFsb6P8kJdHfdv
+	 OWnIq4rhH6DvN/5hmUU8DxZS4aTKYm9KUiEKE5vtDEQz4A9xH+wJkCLVoqOUWr/Lx1
+	 fM5k3prC+f3spxNqGYmpqPWELXaF/TNm7MtAY9SHlWijhuUcWm4+RMKQVjgXEW78U+
+	 3aCbkQDz2qFSLte+JLouW22VDt/ZxquxvaJuwTKrsN4A50UTg023gMO1GgBO7+UvYB
+	 7S3BVmDmmmDvr7n5VN3BgaptpNjylBWo3U1qPBcdNDO1p/L4eDJjJvnjPidlgCEWfc
+	 Z0xUNukhUxIIA==
 From: Leon Romanovsky <leon@kernel.org>
 To: Jason Gunthorpe <jgg@ziepe.ca>,
 	Leon Romanovsky <leon@kernel.org>,
@@ -43,9 +43,9 @@ Cc: linux-rdma@vger.kernel.org,
 	linaro-mm-sig@lists.linaro.org,
 	kvm@vger.kernel.org,
 	iommu@lists.linux.dev
-Subject: [PATCH 4/4] iommufd/selftest: Reuse dma-buf revoke semantics
-Date: Sun, 11 Jan 2026 12:37:11 +0200
-Message-ID: <20260111-dmabuf-revoke-v1-4-fb4bcc8c259b@nvidia.com>
+Subject: [PATCH 2/4] vfio: Use dma-buf revoke semantics
+Date: Sun, 11 Jan 2026 12:37:09 +0200
+Message-ID: <20260111-dmabuf-revoke-v1-2-fb4bcc8c259b@nvidia.com>
 X-Mailer: git-send-email 2.52.0
 In-Reply-To: <20260111-dmabuf-revoke-v1-0-fb4bcc8c259b@nvidia.com>
 References: <20260111-dmabuf-revoke-v1-0-fb4bcc8c259b@nvidia.com>
@@ -61,58 +61,111 @@ Content-Transfer-Encoding: 8bit
 
 From: Leon Romanovsky <leonro@nvidia.com>
 
-Test iommufd_test_dmabuf_revoke() with dma-buf revoke primitives.
+Remove open-code variant of revoked semantics and reuse existing
+dma_buf_move_notify() and newly introduced dma_buf_mark_valid()
+primitives.
 
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/iommu/iommufd/selftest.c | 12 ++++--------
- 1 file changed, 4 insertions(+), 8 deletions(-)
+ drivers/vfio/pci/vfio_pci_dmabuf.c | 27 ++++++---------------------
+ 1 file changed, 6 insertions(+), 21 deletions(-)
 
-diff --git a/drivers/iommu/iommufd/selftest.c b/drivers/iommu/iommufd/selftest.c
-index 550ff36dec3a..523dfac44ff8 100644
---- a/drivers/iommu/iommufd/selftest.c
-+++ b/drivers/iommu/iommufd/selftest.c
-@@ -1958,7 +1958,6 @@ void iommufd_selftest_destroy(struct iommufd_object *obj)
- struct iommufd_test_dma_buf {
- 	void *memory;
- 	size_t length;
--	bool revoked;
+diff --git a/drivers/vfio/pci/vfio_pci_dmabuf.c b/drivers/vfio/pci/vfio_pci_dmabuf.c
+index d4d0f7d08c53..d953bd4cd118 100644
+--- a/drivers/vfio/pci/vfio_pci_dmabuf.c
++++ b/drivers/vfio/pci/vfio_pci_dmabuf.c
+@@ -17,20 +17,14 @@ struct vfio_pci_dma_buf {
+ 	struct dma_buf_phys_vec *phys_vec;
+ 	struct p2pdma_provider *provider;
+ 	u32 nr_ranges;
+-	u8 revoked : 1;
  };
  
- static int iommufd_test_dma_buf_attach(struct dma_buf *dmabuf,
-@@ -2011,9 +2010,6 @@ int iommufd_test_dma_buf_iommufd_map(struct dma_buf_attachment *attachment,
- 	if (attachment->dmabuf->ops != &iommufd_test_dmabuf_ops)
+ static int vfio_pci_dma_buf_attach(struct dma_buf *dmabuf,
+ 				   struct dma_buf_attachment *attachment)
+ {
+-	struct vfio_pci_dma_buf *priv = dmabuf->priv;
+-
+ 	if (!attachment->peer2peer)
  		return -EOPNOTSUPP;
  
 -	if (priv->revoked)
 -		return -ENODEV;
 -
- 	phys->paddr = virt_to_phys(priv->memory);
- 	phys->len = priv->length;
  	return 0;
-@@ -2065,7 +2061,6 @@ static int iommufd_test_dmabuf_get(struct iommufd_ucmd *ucmd,
- static int iommufd_test_dmabuf_revoke(struct iommufd_ucmd *ucmd, int fd,
- 				      bool revoked)
- {
--	struct iommufd_test_dma_buf *priv;
- 	struct dma_buf *dmabuf;
- 	int rc = 0;
+ }
  
-@@ -2078,10 +2073,11 @@ static int iommufd_test_dmabuf_revoke(struct iommufd_ucmd *ucmd, int fd,
- 		goto err_put;
+@@ -42,9 +36,6 @@ vfio_pci_dma_buf_map(struct dma_buf_attachment *attachment,
+ 
+ 	dma_resv_assert_held(priv->dmabuf->resv);
+ 
+-	if (priv->revoked)
+-		return ERR_PTR(-ENODEV);
+-
+ 	return dma_buf_phys_vec_to_sgt(attachment, priv->provider,
+ 				       priv->phys_vec, priv->nr_ranges,
+ 				       priv->size, dir);
+@@ -90,8 +81,6 @@ static const struct dma_buf_ops vfio_pci_dmabuf_ops = {
+  *
+  * If this function succeeds the following are true:
+  *  - There is one physical range and it is pointing to MMIO
+- *  - When move_notify is called it means revoke, not move, vfio_dma_buf_map
+- *    will fail if it is currently revoked
+  */
+ int vfio_pci_dma_buf_iommufd_map(struct dma_buf_attachment *attachment,
+ 				 struct dma_buf_phys_vec *phys)
+@@ -104,9 +93,6 @@ int vfio_pci_dma_buf_iommufd_map(struct dma_buf_attachment *attachment,
+ 		return -EOPNOTSUPP;
+ 
+ 	priv = attachment->dmabuf->priv;
+-	if (priv->revoked)
+-		return -ENODEV;
+-
+ 	/* More than one range to iommufd will require proper DMABUF support */
+ 	if (priv->nr_ranges != 1)
+ 		return -EOPNOTSUPP;
+@@ -268,6 +254,7 @@ int vfio_pci_core_feature_dma_buf(struct vfio_pci_core_device *vdev, u32 flags,
+ 	exp_info.size = priv->size;
+ 	exp_info.flags = get_dma_buf.open_flags;
+ 	exp_info.priv = priv;
++	exp_info.revoke_semantics = true;
+ 
+ 	priv->dmabuf = dma_buf_export(&exp_info);
+ 	if (IS_ERR(priv->dmabuf)) {
+@@ -279,7 +266,6 @@ int vfio_pci_core_feature_dma_buf(struct vfio_pci_core_device *vdev, u32 flags,
+ 	INIT_LIST_HEAD(&priv->dmabufs_elm);
+ 	down_write(&vdev->memory_lock);
+ 	dma_resv_lock(priv->dmabuf->resv, NULL);
+-	priv->revoked = !__vfio_pci_memory_enabled(vdev);
+ 	list_add_tail(&priv->dmabufs_elm, &vdev->dmabufs);
+ 	dma_resv_unlock(priv->dmabuf->resv);
+ 	up_write(&vdev->memory_lock);
+@@ -317,12 +303,12 @@ void vfio_pci_dma_buf_move(struct vfio_pci_core_device *vdev, bool revoked)
+ 		if (!get_file_active(&priv->dmabuf->file))
+ 			continue;
+ 
+-		if (priv->revoked != revoked) {
+-			dma_resv_lock(priv->dmabuf->resv, NULL);
+-			priv->revoked = revoked;
++		dma_resv_lock(priv->dmabuf->resv, NULL);
++		if (revoked)
+ 			dma_buf_move_notify(priv->dmabuf);
+-			dma_resv_unlock(priv->dmabuf->resv);
+-		}
++		else
++			dma_buf_mark_valid(priv->dmabuf);
++		dma_resv_unlock(priv->dmabuf->resv);
+ 		fput(priv->dmabuf->file);
  	}
- 
--	priv = dmabuf->priv;
- 	dma_resv_lock(dmabuf->resv, NULL);
--	priv->revoked = revoked;
--	dma_buf_move_notify(dmabuf);
-+	if (revoked)
-+		dma_buf_move_notify(dmabuf);
-+	else
-+		dma_buf_mark_valid(dmabuf);
- 	dma_resv_unlock(dmabuf->resv);
- 
- err_put:
+ }
+@@ -340,7 +326,6 @@ void vfio_pci_dma_buf_cleanup(struct vfio_pci_core_device *vdev)
+ 		dma_resv_lock(priv->dmabuf->resv, NULL);
+ 		list_del_init(&priv->dmabufs_elm);
+ 		priv->vdev = NULL;
+-		priv->revoked = true;
+ 		dma_buf_move_notify(priv->dmabuf);
+ 		dma_resv_unlock(priv->dmabuf->resv);
+ 		vfio_device_put_registration(&vdev->vdev);
 
 -- 
 2.52.0
