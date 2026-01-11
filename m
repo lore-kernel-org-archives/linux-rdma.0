@@ -1,172 +1,169 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A6CA336EC7;
-	Sun, 11 Jan 2026 10:37:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7A33C14F70
+	for <linux-rdma@vger.kernel.org>; Sun, 11 Jan 2026 13:23:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768127856; cv=none; b=n5D8wutvXIqUjoGF/Vgitag+Xe2BhrCthJidJP9CVf55mx0YWuDq+YWUNAiIHLpvz6l4Jl1KdumwOnSDFuRxQ3lws02skb8P+hmYb61Xf+6VJp3lTZVqJNcW/Txve8bmUR9YAdyydirnvSdWwCQv//i/eKG1rMA80k4fdAP+680=
+	t=1768137782; cv=none; b=Lf3DkDKfoLSUrdp87ZCsiPIqKRaclc14XxE66sLyPywaAoOj6KSdTtHPSpZvQZJ0e6RRmHW25AausUae6PDIzwFWpUqJJhNHGR3pEf5lIkNVjU/nMDLcMEctBpfkR7S1+SV7ONq8HduVgU+fxINkNn67KqR6SrIojpjZBcGrWW4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768127856; c=relaxed/simple;
-	bh=vKVJahwFDp2BgaIk7FWtQz247pzEh1oOdaEn5cwav6g=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=dgpBJwWe4hdmCnkt7KOWw6qhs8jZpM29k6bu6JNNUjOoShpDsB1DwW4bLiZL63hl2Rz4ZsEHKVGV/B4cuR4FKww+zzDltpEF7wJtAaSnFfGwtfaXso+zSeweiYr993PzHuavOEGAQWi/rxuRbe5s6BSCBsGnDp8+UPksxunWS7g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=eYaAAEaP; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768137782; c=relaxed/simple;
+	bh=j9BQpkRe4mmr5UY3vF5OEp81SlkDXz3Q+XOlsZlHfac=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=ccEpwoS4KKNEgaA+IEhdtqYHZq8GWPlERH3VwBfGinRN5rWS3ifBrLpEt8EfS5khMdeyEybjHR264TKjltmc1UQmTRSd0IGTVgJVaosnpjy3iNUW9WM2G24av8uj1S4YwG94/Aaakm3fcFw3Pg9ol5+hsa64Cs8E2ld+E7Yc74U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=IpyEDGyL; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="eYaAAEaP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 581CCC19423;
-	Sun, 11 Jan 2026 10:37:35 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="IpyEDGyL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B9752C4CEF7;
+	Sun, 11 Jan 2026 13:23:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1768127855;
-	bh=vKVJahwFDp2BgaIk7FWtQz247pzEh1oOdaEn5cwav6g=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=eYaAAEaPsCa1kqPN5BEZNCK+/0r801KkCRoagdgFGgTu/MPFWYrWFsb6P8kJdHfdv
-	 OWnIq4rhH6DvN/5hmUU8DxZS4aTKYm9KUiEKE5vtDEQz4A9xH+wJkCLVoqOUWr/Lx1
-	 fM5k3prC+f3spxNqGYmpqPWELXaF/TNm7MtAY9SHlWijhuUcWm4+RMKQVjgXEW78U+
-	 3aCbkQDz2qFSLte+JLouW22VDt/ZxquxvaJuwTKrsN4A50UTg023gMO1GgBO7+UvYB
-	 7S3BVmDmmmDvr7n5VN3BgaptpNjylBWo3U1qPBcdNDO1p/L4eDJjJvnjPidlgCEWfc
-	 Z0xUNukhUxIIA==
+	s=k20201202; t=1768137782;
+	bh=j9BQpkRe4mmr5UY3vF5OEp81SlkDXz3Q+XOlsZlHfac=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=IpyEDGyLkF6vHJcAnHsU4N+AV5RWjj1EtCp3ir0Aj90WR2da+cUzoWcMq3nW+UahI
+	 DmiUN4VF6Bsbu/8JYOj7B46URLK6TVPdc75KQyFPJ7vqRE8voQKP8RsFOaL2LLjZ8s
+	 imN/JPLzA0bMoYAS9yH1UKad2u8pW5QWLLR0lBG0kADesyklSeShHKO7H67ERX6SSS
+	 VFKLNHqCF9Sr+hr6w8Q1DwbEfQGl/O/6r6hDipfrtGM9BHbVzEeEqY2bd01ud2DtFZ
+	 wqa4nYPpZmdFBF9kdo7wHfkoU2YlTNGR6Pf6dQ0oqo9H/A5S90V0gYNlmBZi7jEuXu
+	 nbC02qqO/XpTQ==
+Date: Sun, 11 Jan 2026 15:22:55 +0200
 From: Leon Romanovsky <leon@kernel.org>
-To: Jason Gunthorpe <jgg@ziepe.ca>,
-	Leon Romanovsky <leon@kernel.org>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	=?utf-8?q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>,
-	Alex Williamson <alex@shazbot.org>,
-	Kevin Tian <kevin.tian@intel.com>,
-	Joerg Roedel <joro@8bytes.org>,
-	Will Deacon <will@kernel.org>,
-	Robin Murphy <robin.murphy@arm.com>
-Cc: linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	dri-devel@lists.freedesktop.org,
-	linaro-mm-sig@lists.linaro.org,
-	kvm@vger.kernel.org,
-	iommu@lists.linux.dev
-Subject: [PATCH 2/4] vfio: Use dma-buf revoke semantics
-Date: Sun, 11 Jan 2026 12:37:09 +0200
-Message-ID: <20260111-dmabuf-revoke-v1-2-fb4bcc8c259b@nvidia.com>
-X-Mailer: git-send-email 2.52.0
-In-Reply-To: <20260111-dmabuf-revoke-v1-0-fb4bcc8c259b@nvidia.com>
-References: <20260111-dmabuf-revoke-v1-0-fb4bcc8c259b@nvidia.com>
+To: Siva Reddy Kallam <siva.kallam@broadcom.com>
+Cc: jgg@nvidia.com, linux-rdma@vger.kernel.org, usman.ansari@broadcom.com,
+	Simon Horman <horms@kernel.org>, kernel test robot <lkp@intel.com>,
+	Dan Carpenter <error27@gmail.com>
+Subject: Re: [PATCH] RDMA/bng_re: Unwind bng_re_dev_init properly and remove
+ unnecessary rdev check
+Message-ID: <20260111132255.GA14378@unreal>
+References: <20260107091607.104468-1-siva.kallam@broadcom.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-X-Mailer: b4 0.15-dev-a6db3
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260107091607.104468-1-siva.kallam@broadcom.com>
 
-From: Leon Romanovsky <leonro@nvidia.com>
+On Wed, Jan 07, 2026 at 09:16:07AM +0000, Siva Reddy Kallam wrote:
+> Fix below smatch warnings:
+> drivers/infiniband/hw/bng_re/bng_dev.c:113
+> bng_re_net_ring_free() warn: variable dereferenced before check 'rdev'
+> (see line 107)
+> drivers/infiniband/hw/bng_re/bng_dev.c:270
+> bng_re_dev_init() warn: missing unwind goto?
 
-Remove open-code variant of revoked semantics and reuse existing
-dma_buf_move_notify() and newly introduced dma_buf_mark_valid()
-primitives.
+Please provide commit message.
 
-Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
----
- drivers/vfio/pci/vfio_pci_dmabuf.c | 27 ++++++---------------------
- 1 file changed, 6 insertions(+), 21 deletions(-)
+> 
+> Fixes: 4f830cd8d7fe ("RDMA/bng_re: Add infrastructure for enabling Firmware channel")
+> Reported-by: Simon Horman <horms@kernel.org>
+> Reported-by: kernel test robot <lkp@intel.com>
+> Reported-by: Dan Carpenter <error27@gmail.com>
+> Closes: https://lore.kernel.org/r/202601010413.sWadrQel-lkp@intel.com/
+> Signed-off-by: Siva Reddy Kallam <siva.kallam@broadcom.com>
+> Reviewed-by: Usman Ansari <usman.ansari@broadcom.com>
+> ---
+>  drivers/infiniband/hw/bng_re/bng_dev.c | 33 +++++++++++++-------------
+>  1 file changed, 16 insertions(+), 17 deletions(-)
+> 
+> diff --git a/drivers/infiniband/hw/bng_re/bng_dev.c b/drivers/infiniband/hw/bng_re/bng_dev.c
+> index d8f8d7f7075f..e2dd2c8eb6d2 100644
+> --- a/drivers/infiniband/hw/bng_re/bng_dev.c
+> +++ b/drivers/infiniband/hw/bng_re/bng_dev.c
+> @@ -124,9 +124,6 @@ static int bng_re_net_ring_free(struct bng_re_dev *rdev,
+>  	struct bnge_fw_msg fw_msg = {};
+>  	int rc = -EINVAL;
+>  
+> -	if (!rdev)
 
-diff --git a/drivers/vfio/pci/vfio_pci_dmabuf.c b/drivers/vfio/pci/vfio_pci_dmabuf.c
-index d4d0f7d08c53..d953bd4cd118 100644
---- a/drivers/vfio/pci/vfio_pci_dmabuf.c
-+++ b/drivers/vfio/pci/vfio_pci_dmabuf.c
-@@ -17,20 +17,14 @@ struct vfio_pci_dma_buf {
- 	struct dma_buf_phys_vec *phys_vec;
- 	struct p2pdma_provider *provider;
- 	u32 nr_ranges;
--	u8 revoked : 1;
- };
- 
- static int vfio_pci_dma_buf_attach(struct dma_buf *dmabuf,
- 				   struct dma_buf_attachment *attachment)
- {
--	struct vfio_pci_dma_buf *priv = dmabuf->priv;
--
- 	if (!attachment->peer2peer)
- 		return -EOPNOTSUPP;
- 
--	if (priv->revoked)
--		return -ENODEV;
--
- 	return 0;
- }
- 
-@@ -42,9 +36,6 @@ vfio_pci_dma_buf_map(struct dma_buf_attachment *attachment,
- 
- 	dma_resv_assert_held(priv->dmabuf->resv);
- 
--	if (priv->revoked)
--		return ERR_PTR(-ENODEV);
--
- 	return dma_buf_phys_vec_to_sgt(attachment, priv->provider,
- 				       priv->phys_vec, priv->nr_ranges,
- 				       priv->size, dir);
-@@ -90,8 +81,6 @@ static const struct dma_buf_ops vfio_pci_dmabuf_ops = {
-  *
-  * If this function succeeds the following are true:
-  *  - There is one physical range and it is pointing to MMIO
-- *  - When move_notify is called it means revoke, not move, vfio_dma_buf_map
-- *    will fail if it is currently revoked
-  */
- int vfio_pci_dma_buf_iommufd_map(struct dma_buf_attachment *attachment,
- 				 struct dma_buf_phys_vec *phys)
-@@ -104,9 +93,6 @@ int vfio_pci_dma_buf_iommufd_map(struct dma_buf_attachment *attachment,
- 		return -EOPNOTSUPP;
- 
- 	priv = attachment->dmabuf->priv;
--	if (priv->revoked)
--		return -ENODEV;
--
- 	/* More than one range to iommufd will require proper DMABUF support */
- 	if (priv->nr_ranges != 1)
- 		return -EOPNOTSUPP;
-@@ -268,6 +254,7 @@ int vfio_pci_core_feature_dma_buf(struct vfio_pci_core_device *vdev, u32 flags,
- 	exp_info.size = priv->size;
- 	exp_info.flags = get_dma_buf.open_flags;
- 	exp_info.priv = priv;
-+	exp_info.revoke_semantics = true;
- 
- 	priv->dmabuf = dma_buf_export(&exp_info);
- 	if (IS_ERR(priv->dmabuf)) {
-@@ -279,7 +266,6 @@ int vfio_pci_core_feature_dma_buf(struct vfio_pci_core_device *vdev, u32 flags,
- 	INIT_LIST_HEAD(&priv->dmabufs_elm);
- 	down_write(&vdev->memory_lock);
- 	dma_resv_lock(priv->dmabuf->resv, NULL);
--	priv->revoked = !__vfio_pci_memory_enabled(vdev);
- 	list_add_tail(&priv->dmabufs_elm, &vdev->dmabufs);
- 	dma_resv_unlock(priv->dmabuf->resv);
- 	up_write(&vdev->memory_lock);
-@@ -317,12 +303,12 @@ void vfio_pci_dma_buf_move(struct vfio_pci_core_device *vdev, bool revoked)
- 		if (!get_file_active(&priv->dmabuf->file))
- 			continue;
- 
--		if (priv->revoked != revoked) {
--			dma_resv_lock(priv->dmabuf->resv, NULL);
--			priv->revoked = revoked;
-+		dma_resv_lock(priv->dmabuf->resv, NULL);
-+		if (revoked)
- 			dma_buf_move_notify(priv->dmabuf);
--			dma_resv_unlock(priv->dmabuf->resv);
--		}
-+		else
-+			dma_buf_mark_valid(priv->dmabuf);
-+		dma_resv_unlock(priv->dmabuf->resv);
- 		fput(priv->dmabuf->file);
- 	}
- }
-@@ -340,7 +326,6 @@ void vfio_pci_dma_buf_cleanup(struct vfio_pci_core_device *vdev)
- 		dma_resv_lock(priv->dmabuf->resv, NULL);
- 		list_del_init(&priv->dmabufs_elm);
- 		priv->vdev = NULL;
--		priv->revoked = true;
- 		dma_buf_move_notify(priv->dmabuf);
- 		dma_resv_unlock(priv->dmabuf->resv);
- 		vfio_device_put_registration(&vdev->vdev);
+You have other places with impossible "if (rdev)" check in this path which you should
+delete as well.
 
--- 
-2.52.0
+> -		return rc;
+> -
+>  	if (!aux_dev)
 
+You should remove this check too.
+
+>  		return rc;
+>  
+> @@ -303,7 +300,7 @@ static int bng_re_dev_init(struct bng_re_dev *rdev)
+>  	if (rc) {
+>  		ibdev_err(&rdev->ibdev,
+>  				"Failed to register with netedev: %#x\n", rc);
+> -		return -EINVAL;
+> +		goto reg_netdev_fail;
+>  	}
+>  
+>  	set_bit(BNG_RE_FLAG_NETDEV_REGISTERED, &rdev->flags);
+> @@ -312,19 +309,16 @@ static int bng_re_dev_init(struct bng_re_dev *rdev)
+>  		ibdev_err(&rdev->ibdev,
+>  			  "RoCE requires minimum 2 MSI-X vectors, but only %d reserved\n",
+>  			  rdev->aux_dev->auxr_info->msix_requested);
+> -		bnge_unregister_dev(rdev->aux_dev);
+> -		clear_bit(BNG_RE_FLAG_NETDEV_REGISTERED, &rdev->flags);
+> -		return -EINVAL;
+> +		rc = -EINVAL;
+> +		goto msix_ctx_fail;
+>  	}
+>  	ibdev_dbg(&rdev->ibdev, "Got %d MSI-X vectors\n",
+>  		  rdev->aux_dev->auxr_info->msix_requested);
+>  
+>  	rc = bng_re_setup_chip_ctx(rdev);
+>  	if (rc) {
+> -		bnge_unregister_dev(rdev->aux_dev);
+> -		clear_bit(BNG_RE_FLAG_NETDEV_REGISTERED, &rdev->flags);
+>  		ibdev_err(&rdev->ibdev, "Failed to get chip context\n");
+> -		return -EINVAL;
+> +		goto msix_ctx_fail;
+>  	}
+>  
+>  	bng_re_query_hwrm_version(rdev);
+> @@ -333,16 +327,14 @@ static int bng_re_dev_init(struct bng_re_dev *rdev)
+>  	if (rc) {
+>  		ibdev_err(&rdev->ibdev,
+>  			  "Failed to allocate RCFW Channel: %#x\n", rc);
+> -		goto fail;
+> +		goto alloc_fw_chl_fail;
+>  	}
+>  
+>  	/* Allocate nq record memory */
+>  	rdev->nqr = kzalloc(sizeof(*rdev->nqr), GFP_KERNEL);
+>  	if (!rdev->nqr) {
+> -		bng_re_destroy_chip_ctx(rdev);
+> -		bnge_unregister_dev(rdev->aux_dev);
+> -		clear_bit(BNG_RE_FLAG_NETDEV_REGISTERED, &rdev->flags);
+> -		return -ENOMEM;
+> +		rc = -ENOMEM;
+> +		goto nq_alloc_fail;
+>  	}
+>  
+>  	rdev->nqr->num_msix = rdev->aux_dev->auxr_info->msix_requested;
+> @@ -411,9 +403,16 @@ static int bng_re_dev_init(struct bng_re_dev *rdev)
+>  free_ring:
+>  	bng_re_net_ring_free(rdev, rdev->rcfw.creq.ring_id, type);
+>  free_rcfw:
+> +	kfree(rdev->nqr);
+> +	rdev->nqr = NULL;
+
+Why do you need to set NULL here?
+
+> +nq_alloc_fail:
+>  	bng_re_free_rcfw_channel(&rdev->rcfw);
+> -fail:
+> -	bng_re_dev_uninit(rdev);
+> +alloc_fw_chl_fail:
+> +	bng_re_destroy_chip_ctx(rdev);
+> +msix_ctx_fail:
+> +	bnge_unregister_dev(rdev->aux_dev);
+> +	clear_bit(BNG_RE_FLAG_NETDEV_REGISTERED, &rdev->flags);
+> +reg_netdev_fail:
+>  	return rc;
+>  }
+>  
+> -- 
+> 2.25.1
+> 
+> 
