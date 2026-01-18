@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F218932B998;
-	Sun, 18 Jan 2026 12:09:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 65BE027FD75;
+	Sun, 18 Jan 2026 12:09:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768738152; cv=none; b=UpkyiStMW8F/erjjT6wMQtzdZvcN4L91C61O6Mr64GmFDKlaqeIzH2WMzMLRjAAXV7dCZhvZfZfGP1uFN5EeSw6YRpRAMlhxsqvqGsLbmqzeNiu0vX4qOUU8fSSWXHnPfnwjDUIJZ+3bRco07qjHcLAbivVg6GsUvt+WXs2hVvE=
+	t=1768738159; cv=none; b=DkYX3N7lVdxoYLakuHvNyK8nvxtisRiSwBEasQjOG+Xf/q3oYB6IC2qTnyJxl68rYnIvhbN51nP6PROWCCd/NFRcRltu5mVV3TbHWfZPQUplZ7Y3xMEsFwe3efTzf3q48gFLyIQ+ReAtGJpJ0rbANgTrvh3cqNF/Cy/NlzWObnE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768738152; c=relaxed/simple;
-	bh=lFp92L2u8Fi3C1r4wz7ICZZY29W6l9NNfEn6EJZj7GA=;
+	s=arc-20240116; t=1768738159; c=relaxed/simple;
+	bh=zoYsMrm1rjNa0PY8BZkc8G3M4wgcf/AwcE0GTUAFzBg=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=lkXRufJdRAfpwhWdIU9mcYyECjkozBEQILm/GKFdHKHt7RmVdlax3yT7d062aBfsCfZZQIf10g2BleIXot+Cilg8N5e6q+jKf1O2+CRHx/J+OWNKG6UYwCTBN+B7/gT/+GkZC3nxyvcgIKcWKRqfpm4AZt/GEjQeNeVDuRGG/v0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=b57lGzkE; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version:Content-Type; b=RvcOngG4Mg3A0IdFjFekoR/mSIa8/9ak/68+oi0Ep035KnTmX4dw5yJUByiO5Z69Sl/ehEX22g2pZ+AjPF8QehdUijyz+i8BO/h0kYy1WGBHPU+u7ty/yys9nzJenkvO37PSjapD6rVxmTK/C7/qEQFOW15r8uBCB8xchkeawSI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=qmFx0xYr; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="b57lGzkE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E27A2C2BC86;
-	Sun, 18 Jan 2026 12:09:08 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="qmFx0xYr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 670ACC116D0;
+	Sun, 18 Jan 2026 12:09:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1768738149;
-	bh=lFp92L2u8Fi3C1r4wz7ICZZY29W6l9NNfEn6EJZj7GA=;
+	s=k20201202; t=1768738153;
+	bh=zoYsMrm1rjNa0PY8BZkc8G3M4wgcf/AwcE0GTUAFzBg=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=b57lGzkEObf4t2IQTf/DJYle2Vi+wmkenWL8JiZcUXMFG32RI5QLPPJvEQbZNmUVu
-	 tVm9SQkuRLXsV+VARTyTJ0ctKEAh36t9OF36xOHzMKHdzrqQIUN+wCKowPjw2OfZCq
-	 uTMmw9GjLJOlRA/x9vlNTo9600EoOlZ5fJuR5yabUCBsAqvyrwoWDAdpO0SdPcxQzn
-	 fmRvtiPmspxW0vLun5hT89R8Sl29pf9lU45i5p0t62erSJena939KfeGaNSbhd6Kjo
-	 PB+o9YyRlIiDI8/OKCEyXgL3nGXjyaFi1GkzNHDkMORYewY4EEZiBeSpWeQYfoARox
-	 VmHDCcvdgPMdg==
+	b=qmFx0xYrLhiCoTyr27YOjREc26M9s0f9UnpkBsDc5PYOT/t7lnouVm8sM8UhPobW3
+	 GGspx43c9S9cMWUTDtYZaTGpzTIwOSQ6HFiloRqxoH1GyxbwrkLl8QY3fT0ANwBLnk
+	 mnHPOB5ynxhv3SI9MbskUQ2uFktlq1ldP3K1hzBjsG/XAkFyfG7YvLvUF4J/PQmCcR
+	 u0kEC4y8iQNC9pZRJuqAITvFazRttA5hZmm4quyQqXcFzT6VtfWlM9f1FKwTW64Wr/
+	 5Ib8uJQhX+8/zM4l/M3BaKXf09VpjopHkwJdRyv6CSk3Lpen4DFAh+sZRhLlRUDOfz
+	 duIHSuBnBQFCA==
 From: Leon Romanovsky <leon@kernel.org>
 To: Sumit Semwal <sumit.semwal@linaro.org>,
 	=?utf-8?q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>,
@@ -59,9 +59,9 @@ Cc: linux-media@vger.kernel.org,
 	linux-rdma@vger.kernel.org,
 	iommu@lists.linux.dev,
 	kvm@vger.kernel.org
-Subject: [PATCH v2 2/4] dma-buf: Document revoke semantics
-Date: Sun, 18 Jan 2026 14:08:46 +0200
-Message-ID: <20260118-dmabuf-revoke-v2-2-a03bb27c0875@nvidia.com>
+Subject: [PATCH v2 4/4] vfio: Add pinned interface to perform revoke semantics
+Date: Sun, 18 Jan 2026 14:08:48 +0200
+Message-ID: <20260118-dmabuf-revoke-v2-4-a03bb27c0875@nvidia.com>
 X-Mailer: git-send-email 2.52.0
 In-Reply-To: <20260118-dmabuf-revoke-v2-0-a03bb27c0875@nvidia.com>
 References: <20260118-dmabuf-revoke-v2-0-a03bb27c0875@nvidia.com>
@@ -77,55 +77,49 @@ Content-Transfer-Encoding: 8bit
 
 From: Leon Romanovsky <leonro@nvidia.com>
 
-Document a DMA-buf revoke mechanism that allows an exporter to explicitly
-invalidate ("kill") a shared buffer after it has been handed out to
-importers. Once revoked, all further CPU and device access is blocked, and
-importers consistently observe failure.
-
-This requires both importers and exporters to honor the revoke contract.
-
-For importers, this means implementing .invalidate_mappings() and calling
-dma_buf_pin() after the DMA‑buf is attached to verify the exporter’s support
-for revocation.
-
-For exporters, this means implementing the .pin() callback, which checks
-the DMA‑buf attachment for a valid revoke implementation.
+DMABUF ->pin() interface is called when the DMABUF importer perform
+its DMA mapping, so let's use this opportunity to check if DMABUF
+exporter revoked its buffer or not.
 
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- include/linux/dma-buf.h | 19 +++++++++++++++++++
- 1 file changed, 19 insertions(+)
+ drivers/vfio/pci/vfio_pci_dmabuf.c | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
-diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
-index 1b397635c793..e0bc0b7119f5 100644
---- a/include/linux/dma-buf.h
-+++ b/include/linux/dma-buf.h
-@@ -579,6 +579,25 @@ static inline bool dma_buf_is_dynamic(struct dma_buf *dmabuf)
- 	return !!dmabuf->ops->pin;
- }
+diff --git a/drivers/vfio/pci/vfio_pci_dmabuf.c b/drivers/vfio/pci/vfio_pci_dmabuf.c
+index d4d0f7d08c53..af9c315ddf71 100644
+--- a/drivers/vfio/pci/vfio_pci_dmabuf.c
++++ b/drivers/vfio/pci/vfio_pci_dmabuf.c
+@@ -20,6 +20,20 @@ struct vfio_pci_dma_buf {
+ 	u8 revoked : 1;
+ };
  
-+/**
-+ * dma_buf_attachment_is_revoke - check if a DMA-buf importer implements
-+ * revoke semantics.
-+ * @attach: the DMA-buf attachment to check
-+ *
-+ * Returns true if DMA-buf importer honors revoke semantics, which is
-+ * negotiated with the exporter, by making sure that importer implements
-+ * .invalidate_mappings() callback and calls to dma_buf_pin() after
-+ * DMA-buf attach.
-+ */
-+static inline bool
-+dma_buf_attachment_is_revoke(struct dma_buf_attachment *attach)
++static int vfio_pci_dma_buf_pin(struct dma_buf_attachment *attachment)
 +{
-+	return IS_ENABLED(CONFIG_DMABUF_MOVE_NOTIFY) &&
-+	       dma_buf_is_dynamic(attach->dmabuf) &&
-+	       (attach->importer_ops &&
-+		attach->importer_ops->invalidate_mappings);
++	struct vfio_pci_dma_buf *priv = attachment->dmabuf->priv;
++
++	dma_resv_assert_held(priv->dmabuf->resv);
++
++	return dma_buf_attachment_is_revoke(attachment) ? 0 : -EOPNOTSUPP;
 +}
 +
- struct dma_buf_attachment *dma_buf_attach(struct dma_buf *dmabuf,
- 					  struct device *dev);
- struct dma_buf_attachment *
++static void vfio_pci_dma_buf_unpin(struct dma_buf_attachment *attachment)
++{
++	/* Do nothing */
++}
++
+ static int vfio_pci_dma_buf_attach(struct dma_buf *dmabuf,
+ 				   struct dma_buf_attachment *attachment)
+ {
+@@ -76,6 +90,8 @@ static void vfio_pci_dma_buf_release(struct dma_buf *dmabuf)
+ }
+ 
+ static const struct dma_buf_ops vfio_pci_dmabuf_ops = {
++	.pin = vfio_pci_dma_buf_pin,
++	.unpin = vfio_pci_dma_buf_unpin,
+ 	.attach = vfio_pci_dma_buf_attach,
+ 	.map_dma_buf = vfio_pci_dma_buf_map,
+ 	.unmap_dma_buf = vfio_pci_dma_buf_unmap,
 
 -- 
 2.52.0
