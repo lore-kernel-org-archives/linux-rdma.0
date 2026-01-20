@@ -1,107 +1,99 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B106344BC8F;
-	Tue, 20 Jan 2026 14:07:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 36ADC4418EB;
+	Tue, 20 Jan 2026 14:31:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768918064; cv=none; b=Gv5P1wgIT73jG2ny/lW5O+4cuGnZVmejezEYP/ph9oQbG4eV4Pbs21ULU4t1zNSwccQhuaAGX2IwRA+fNq8oBYJTySY85mV46hPLLtJAW8j7yYDbGpgDTSWApdbM//65rS/nzuJlze1O0sMtMGpNGS5kWCpNMu2PeUqAI6hFhQI=
+	t=1768919489; cv=none; b=l1Z/Jo/jo8USVZ3tRoKwoY6Wze1Q4lvPYY3VhNyVt6QDQ0EnJrnT/KqkMfO+R6g2hwwLqVaMXnBS77UamYRAsMC8ashgkLzUQsSdAMIvH4IysTXbf2iNxOLMQr1HSoVmhVcuECpgc1K9ykEKLfkItnUOiaPHnzpHdfh0PDmYpTE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768918064; c=relaxed/simple;
-	bh=+j0ekknPQd/d3gRAxiqnNNnfw0hqFAwwAjsZYhI192Y=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=n9IuiPqazEo4QYwDyoPvwMdwEs0KDvUm54u6F38pHnZ4aiIO/PU/VvDeM9NzIz3HUDAx4qw+MBWDG+FsYmeP9ryuFH/Uay7Uf3FWD2JTRVX8VdF6IZMRYISxjCnaaxYrXFTZK8++K81//XqUreY/NEplZulDCXdyE80ATrUVsa8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ijj/wO77; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768919489; c=relaxed/simple;
+	bh=yWe2BiAKmz1nnP+ELvTTO/qvhoUwBLk1saPmV7jBgmA=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=DGI389qSRVmKQWivJdeBmqHFPUOQnKamI4i1D21GPDbdvP1N41sfEe+UnmExfnVSkkv2hICDhjogcLz1ZSB6jnP7POlsCRYcl+cM8n88M9im56xMgbzcmkk55YRE5e60ctL1d2gyPssomWFBIs7mndV+Jvppi9uZRTw1VOKwQVQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=m0kjyW6g; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ijj/wO77"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A92D6C16AAE;
-	Tue, 20 Jan 2026 14:07:43 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="m0kjyW6g"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5447C16AAE;
+	Tue, 20 Jan 2026 14:31:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1768918064;
-	bh=+j0ekknPQd/d3gRAxiqnNNnfw0hqFAwwAjsZYhI192Y=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=ijj/wO771lycS6FKxtpygkeK/BYUHKt2nUSEqMQc/fe3SpJqqJcZ/BWCkpIQHgiev
-	 S+Mf1rPln8yu+F+l0oxZG17ZYhJVhUmOOaXGRiQiIBKGtLNc0IgMJWG2CRJYDmkieP
-	 5a/VPKZauZJfX0w5M94s+0B+uQ1I4TbxB1ftUo/dLav7fV9nfxwwD7OdKnSh9ZF6iI
-	 /6dB5AHN3tBpnq0H+i2vDN0zwB0+7FapFUTpuAq/16it37Dv+DIWjBTSnV+vXDMZEJ
-	 wa4KiwHpfHeh/NIPj1cnYuRyh73tj+UYbl1afb2guZsXGQRwLqiccEkTVLl9YVBg3w
-	 6Da43ktVUa1LQ==
-From: Leon Romanovsky <leon@kernel.org>
-To: Sumit Semwal <sumit.semwal@linaro.org>,
-	=?utf-8?q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>,
-	Alex Deucher <alexander.deucher@amd.com>,
-	David Airlie <airlied@gmail.com>,
-	Simona Vetter <simona@ffwll.ch>,
-	Gerd Hoffmann <kraxel@redhat.com>,
-	Dmitry Osipenko <dmitry.osipenko@collabora.com>,
-	Gurchetan Singh <gurchetansingh@chromium.org>,
-	Chia-I Wu <olvaffe@gmail.com>,
-	Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
-	Maxime Ripard <mripard@kernel.org>,
-	Thomas Zimmermann <tzimmermann@suse.de>,
-	Lucas De Marchi <lucas.demarchi@intel.com>,
-	=?utf-8?q?Thomas_Hellstr=C3=B6m?= <thomas.hellstrom@linux.intel.com>,
-	Rodrigo Vivi <rodrigo.vivi@intel.com>,
-	Jason Gunthorpe <jgg@ziepe.ca>,
+	s=k20201202; t=1768919488;
+	bh=yWe2BiAKmz1nnP+ELvTTO/qvhoUwBLk1saPmV7jBgmA=;
+	h=From:To:Cc:Subject:Date:From;
+	b=m0kjyW6gRdBJr8dpzKP3BqDIOSmIP15IkWuwG0z8y6UHtdmeuXQSn8n+C01uUcrMx
+	 L6CpFzRy8taZXwhkn6AHML9BqZka+Pm+lnnc6ciZ/m48gK1+Y6GKMUne6aOQi1tr94
+	 iisX44WCrzHz3LAuJ98ds/JUfRDu2mtkdxXG8m1tLVMmyNHF9mS7fxi8xw8NSprGVH
+	 eqZH/23TyIgihjHic5TVW9tHneUHO2ofL85CHS//amj+TwOByCk89s4jG4DJrU5Jfm
+	 5VPRkL9VzQnlU9XQKlud54iikf9akMSX3UOTfl/Z6SvYJ6Smk/LxMxIJNprKK271bR
+	 XONU/ouAW5C+g==
+From: Chuck Lever <cel@kernel.org>
+To: Jason Gunthorpe <jgg@nvidia.com>,
 	Leon Romanovsky <leon@kernel.org>,
-	Kevin Tian <kevin.tian@intel.com>,
-	Joerg Roedel <joro@8bytes.org>,
-	Will Deacon <will@kernel.org>,
-	Robin Murphy <robin.murphy@arm.com>,
-	Felix Kuehling <Felix.Kuehling@amd.com>,
-	Alex Williamson <alex@shazbot.org>,
-	Ankit Agrawal <ankita@nvidia.com>,
-	Vivek Kasireddy <vivek.kasireddy@intel.com>
-Cc: linux-media@vger.kernel.org,
-	dri-devel@lists.freedesktop.org,
-	linaro-mm-sig@lists.linaro.org,
-	linux-kernel@vger.kernel.org,
-	amd-gfx@lists.freedesktop.org,
-	virtualization@lists.linux.dev,
-	intel-xe@lists.freedesktop.org,
-	linux-rdma@vger.kernel.org,
-	iommu@lists.linux.dev,
-	kvm@vger.kernel.org
-Subject: [PATCH v3 7/7] vfio: Validate dma-buf revocation semantics
-Date: Tue, 20 Jan 2026 16:07:07 +0200
-Message-ID: <20260120-dmabuf-revoke-v3-7-b7e0b07b8214@nvidia.com>
+	Christoph Hellwig <hch@lst.de>
+Cc: NeilBrown <neilb@ownmail.net>,
+	Jeff Layton <jlayton@kernel.org>,
+	Olga Kornievskaia <okorniev@redhat.com>,
+	Dai Ngo <dai.ngo@oracle.com>,
+	Tom Talpey <tom@talpey.com>,
+	<linux-rdma@vger.kernel.org>,
+	<linux-nfs@vger.kernel.org>,
+	Chuck Lever <chuck.lever@oracle.com>
+Subject: [PATCH v2 0/4] Add a bio_vec based API to core/rw.c
+Date: Tue, 20 Jan 2026 09:31:20 -0500
+Message-ID: <20260120143124.1822121-1-cel@kernel.org>
 X-Mailer: git-send-email 2.52.0
-In-Reply-To: <20260120-dmabuf-revoke-v3-0-b7e0b07b8214@nvidia.com>
-References: <20260120-dmabuf-revoke-v3-0-b7e0b07b8214@nvidia.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-X-Mailer: b4 0.15-dev-a6db3
 Content-Transfer-Encoding: 8bit
 
-From: Leon Romanovsky <leonro@nvidia.com>
+From: Chuck Lever <chuck.lever@oracle.com>
 
-Use the new dma_buf_attach_revocable() helper to restrict attachments to
-importers that support mapping invalidation.
+This series introduces a bio_vec based API for RDMA read and write
+operations in the RDMA core, eliminating unnecessary scatterlist
+conversions for callers that already work with bvecs.
 
-Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+Current users of rdma_rw_ctx_init() must convert their native data
+structures into scatterlists. For subsystems like svcrdma that
+maintain data in bvec format, this conversion adds overhead both in
+CPU cycles and memory footprint. The new API accepts bvec arrays
+directly.
+
+For hardware RDMA devices, the implementation uses the IOVA-based
+DMA mapping API to reduce IOTLB synchronization overhead from O(n)
+per-page syncs to a single O(1) sync after all mappings complete.
+Software RDMA devices (rxe, siw) continue using virtual addressing.
+
+The series includes MR registration support for bvec arrays,
+enabling iWARP devices and the force_mr debug parameter. The MR
+path reuses existing ib_map_mr_sg() infrastructure by constructing
+a synthetic scatterlist from the bvec DMA addresses.
+
+The final patch adds the first consumer for the new API: svcrdma.
+
+Based on v6.19-rc6.
+
 ---
- drivers/vfio/pci/vfio_pci_dmabuf.c | 3 +++
- 1 file changed, 3 insertions(+)
 
-diff --git a/drivers/vfio/pci/vfio_pci_dmabuf.c b/drivers/vfio/pci/vfio_pci_dmabuf.c
-index 33bc6a1909dd..0c7782a51912 100644
---- a/drivers/vfio/pci/vfio_pci_dmabuf.c
-+++ b/drivers/vfio/pci/vfio_pci_dmabuf.c
-@@ -31,6 +31,9 @@ static int vfio_pci_dma_buf_attach(struct dma_buf *dmabuf,
- 	if (priv->revoked)
- 		return -ENODEV;
- 
-+	if (!dma_buf_attach_revocable(attachment))
-+		return -EOPNOTSUPP;
-+
- 	return 0;
- }
- 
+Changes since v1:
+- Simplify rw.c by using bvec iters internally
+- IOVA mapping produces a contiguous DMA address range
+- Clarify the comment that documents struct svc_rdma_rw_ctxt
+- svcrdma now uses pre-allocated bio_vec arrays
+
+Chuck Lever (4):
+  RDMA/core: add bio_vec based RDMA read/write API
+  RDMA/core: use IOVA-based DMA mapping for bvec RDMA operations
+  RDMA/core: add MR support for bvec-based RDMA operations
+  svcrdma: use bvec-based RDMA read/write API
+
+ drivers/infiniband/core/rw.c      | 463 ++++++++++++++++++++++++++++++
+ include/rdma/ib_verbs.h           |  42 +++
+ include/rdma/rw.h                 |  26 ++
+ net/sunrpc/xprtrdma/svc_rdma_rw.c | 136 +++++----
+ 4 files changed, 605 insertions(+), 62 deletions(-)
 
 -- 
 2.52.0
