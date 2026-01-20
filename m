@@ -1,82 +1,80 @@
-Received: from mail-qk1-f171.google.com (mail-qk1-f171.google.com [209.85.222.171])
+Received: from mail-qt1-f173.google.com (mail-qt1-f173.google.com [209.85.160.173])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A40A9320A05
-	for <linux-rdma@vger.kernel.org>; Tue, 20 Jan 2026 16:44:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.171
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F84E36656D
+	for <linux-rdma@vger.kernel.org>; Tue, 20 Jan 2026 18:15:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.173
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768927482; cv=none; b=tnGCEe9EyxR/vsBycgCwwdzXuboxL3/U7vm4s2teHqpxrU/ckgqq96nq+TB1LyGrOyKQYSo8fMqY56Vo2j0P3hzWCwGd956d8HHtkUadfK4an5GIftWuFbRUJkErc15qYVDzSiejB6LBDEsLl8peRpE0vC6Ue3tNW+1n0Sq7EC4=
+	t=1768932927; cv=none; b=BEi4m2Q8u50gOzP9NBNqZthS5y41keURafKT8aeABSTBI6LfpFN/pJKoaXuGadM5eWAShgvd9G0S1dpr9E2zohAaxYsnZ9xeTmEKGbWqfc5iBmkCPkuCJKPfL/bjmLaIbRKPB1SXNrxNWFZMmHi+Z4WmPMVNxMq5YsuH38fJsSU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768927482; c=relaxed/simple;
-	bh=aUDhPKL0hM8JEgf53e07so1yz09QTsbUMmEPM++MMC4=;
+	s=arc-20240116; t=1768932927; c=relaxed/simple;
+	bh=P7+NPENiCb9v28BZGi63qLThR+z5AOm6e7zj6+AnwGU=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=dRC/FdlYBuPwhK5/rmYrKeudxsVkpjSkH+hTctZBQPEQjp2xMTo7snBD08gp5c8Np1MlXsLzQ/Dv4alRCfjMvp3bSFp9dmQUnqecR7nEdRSGuY/H7G/lHqQNdY5iXYjTImPZNGQQG/jksq1iGxntZzzGKFZfgUGaBRoVzRv/cV4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca; spf=pass smtp.mailfrom=ziepe.ca; dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b=enorTZHH; arc=none smtp.client-ip=209.85.222.171
+	 Content-Type:Content-Disposition:In-Reply-To; b=FgHeZujPyqJvWkY58W7NHd3i9tRBNaoLKHufhsmU3q6OrUnsMGz+FQ0mcYI+ZEoEONJC/KU3Iw1ovlmGJqLK3oqKVWatzHuj/6g7psE4khTgx2MI8eP37r9lD6DcpzR7UNhIVzL+tj+mTHHWsejViiU07Cw96NPHfq5x/JeHGwU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca; spf=pass smtp.mailfrom=ziepe.ca; dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b=Qf3mD8Yx; arc=none smtp.client-ip=209.85.160.173
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ziepe.ca
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="enorTZHH"
-Received: by mail-qk1-f171.google.com with SMTP id af79cd13be357-8c52c1d2a7bso1844085a.0
-        for <linux-rdma@vger.kernel.org>; Tue, 20 Jan 2026 08:44:40 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="Qf3mD8Yx"
+Received: by mail-qt1-f173.google.com with SMTP id d75a77b69052e-4ffbea7fdf1so46756251cf.1
+        for <linux-rdma@vger.kernel.org>; Tue, 20 Jan 2026 10:15:23 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google; t=1768927479; x=1769532279; darn=vger.kernel.org;
+        d=ziepe.ca; s=google; t=1768932922; x=1769537722; darn=vger.kernel.org;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=byK9CbCzUXPvYH8hMBYCGjlZe3ysbsipoknrt4q5MYA=;
-        b=enorTZHHb2rEovvaqsHlJudTAyqhy1O+b6Wb9hMirBr3bEDZcElB++EhFMTigB6DNN
-         g/5LhzI3JIgnahlwdRTRt4XxSlT1UHF7t0P7XiGBm4w296ImJAO3juGTZH1hiWQsVERe
-         Hs7hs0ESDrEo3XIH757I+XTnWNoN3QMlMOLXsKa110lwqqOJeojAC+9bzc15VrPQ9Bst
-         Nt9II4GuZja6VvAjbE0pNFpsGIXcG9aQJqiii62oK/+nQ9dAMlXfPc5hhvkWEtaGDVXO
-         IBiT40k7MZs4mDeMIIWqaqZ9CwpO/sYnK9wG52P5SoSVI89RnqLH2qCxElydmideAxh2
-         YGrg==
+        bh=u+h0EX6bJ4UpFAOqOLmeekiIIdrOYR0BoNDz6Hm/Icw=;
+        b=Qf3mD8YxOwKMTiG29U6iQQXI2ObmVH9wgHx0GBbfjzqKpT2nf0x3iEzQ4f0yyjNftw
+         /WgfkZIIP/ephlI6Yqq8i4lgMuXjflnlXT+IUnKLPE0hKyRC2CrEoDNzR6p8AvOuyIIW
+         jTaPOMxobi9kA4h/PBRjkGMxuhpbU6DdLTHvbBLtyWweAi0xdMQjMWaXWmTF5E3Ac7BE
+         AQr76Odj/l15XIF5xtglisnivdQn5hI2xtQogUmb56FviICrm5VDVNwcE4K4gMxbaqYp
+         QTc1pawAnB6uPlNS15JMRCwB9z/lV0mJziI4XxfwxwOaQ8d+mVrz1c9EUnR3EkiylN+N
+         u16w==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1768927479; x=1769532279;
+        d=1e100.net; s=20230601; t=1768932922; x=1769537722;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=byK9CbCzUXPvYH8hMBYCGjlZe3ysbsipoknrt4q5MYA=;
-        b=YlqwavXWvo7eSxydCvbaVJXyS3QxFEraRpms3Sao8asXZ+/62BeVeTDYtYkxbpKaRP
-         KS4sTK3IfHJvsKOufz5Azj/NYxsXtcpRHjSSIOvEIMQJrdBjvr+r0q4zyKnpHt6YScS0
-         f5nMViGVWI9xeLfNx8J8oLg6z/CsS/yBURGibGuQUZhQYAUYeAcDgSNHLZLmCT/RBZ5w
-         Y3qWf+yMJojWs/P14wGocPp3tVhmiLZLfelvhokSWhaA5oAsMu4CBiiNABYaQu5lL449
-         evhSQHuWcYQk0rkfnDOwZMmYWvT5ghfs/EmR5u1NkGFOUC1B9aeEw19heRBU7RzgpGDy
-         VFrg==
-X-Forwarded-Encrypted: i=1; AJvYcCV396wdGXToGQPdiUrn+dgHfBES06EhQNFyHpDEfAWTQ20EskwXYYN38MIrKrzQurhhCMqPBPZJPQS2@vger.kernel.org
-X-Gm-Message-State: AOJu0YzTZVV10MfGshMKapQ+orKKtqhQ84Wxv4ao+An6U9sRVR+AeQWE
-	WbR6hKGrErIBgypiHNHQIPPif8p8T2RRJ52f0Yp9t5XQzjVqI5j6RfIVZeRJc/B0h1w=
-X-Gm-Gg: AY/fxX7WY3q4E3rEndxW5bZxVncuGqwNLR2nHBR3/i+7YQx8GAMxLtz2MhAnYiHP1RG
-	9rUYGpUXjI9GEblKwTRkuHbzCx9qtRoIO/EbJjV9cOrMVhEUvC7PkY7xGiQw0eGZlcHXn5M+m2t
-	Rj7oSTquODuu2TPba9jvXdhrDPaVlPD5uOJlcU9uBWDOTDdc+jzJ5D77MfXBxobFpWuiApSyQvf
-	uFAJODqabwecjFQHSzpVw8SfQmnVzBLKe2OMJXVj7TrAVDiTuQWZsZf08W/lbrmIn4h1tamGuVV
-	OpRO/ZYJIAu0KRlPocKzNy8s85wHnPq7ERfVCOLeKgXZdUrt5FPKN0aoNFwXnBZ+XGgT9hQMLaG
-	Crj6X0GasG6cMG1jHQNzLJVjBpThlolr0PyU4tfjHwLEz78KjHls9usn+NdQQhBqecFZY7EerRj
-	bm4W1dBQWLQP3uZsWA4QueaGNNDcPNc56jiktDlR5UpAlXlUGasNnDIxXa43i89FEN24U=
-X-Received: by 2002:a05:620a:4011:b0:89f:cc73:386 with SMTP id af79cd13be357-8c6a6479374mr2212242085a.13.1768927479473;
-        Tue, 20 Jan 2026 08:44:39 -0800 (PST)
+        bh=u+h0EX6bJ4UpFAOqOLmeekiIIdrOYR0BoNDz6Hm/Icw=;
+        b=AjNJejp5a90FScTHUIB2DdD4067idbO6OV37E2cGhEKTvCrJvJBjPcApo3is/eQCDo
+         jFNgotTZcnQVCtv3xa50KrUNgE4CWrvoFNL9rCLVDeZPSPKKqropF37Q4TZB3Blrsju3
+         tB7Ah8l31qgth1jKYPdL4oMi7IrEp5/9HYi4slvpJRW8hMBKosVQ7TwUskjUH5axSuxK
+         ZlnNoiXkXI0enSbASbZ86k94dwHvFpOkcVLu4eYLBSqnrpnAGdURzJcmX+758T0HU6kg
+         Ksa7v1bo3YsK1/+aRcnjw6eqBG5ZmV6G+Kr38Sdg87xJ8Vl/hVEwzifi+6ZVjV0QISgE
+         vONg==
+X-Forwarded-Encrypted: i=1; AJvYcCVTZRFKR6ew3miePOa9mChdAU8Ev/gBv5KZwTcrzGNJNCUfJ2SOEIzufQdmbDov+102H3JH2IDcr3HQ@vger.kernel.org
+X-Gm-Message-State: AOJu0YwD/eR8ZdmuxvO+KXVWx7SinlMiBwd120KW36ce1E1mbP2J1MC0
+	MaBOUV70LNe9cptQAVUAmWU9FkkladixUmA0aVk3w3CKQVASOopdQz9O8c3JDjyu5yY=
+X-Gm-Gg: AY/fxX4RFumJ9/V0MXEIoZACZZzRt60SVO/PMVsq5atKkD0Ni98EbsOrLoEgB34aESI
+	eLWrSPX3Y2cZr3KT15rR2xkXC2rbxcoghO0rdR6UBtZrI8GuuI4EPxQKgwL4xXvtZhL///KMNdp
+	DKVMnJNDqcWjpacmXiEYba8Rx/k7THSuet3jehYe2gOh3I6NvO7iJ+zCKmjTUiGiCFsrGSEqAqP
+	WWxFTFGaLD6+XsukkYpqAz89c6jxPw1V4E1EJfe+zIg0NmWQYBcY/TydTEMHTxk8A455kGX685A
+	CnyFP4HUhkqzxyJt+T1QcGONUSsJn5lyXgrmUXoa15qG1V0pViygvjHUpg4VDqqUOMwIvpVbNpf
+	rFvM+OKEN8QcaDbeG/eBBAccDwcpKPa9rHD6shGgD/pss89Kl+LStfKXl2KFhefZP90Kw5UOcLu
+	C7mkK7fhdk4paLS9iM17mdNwiYZetsicTjj9/2aqrVYxc9Kd/WO3jJ
+X-Received: by 2002:a05:622a:1447:b0:501:3ccd:cb3e with SMTP id d75a77b69052e-502a1f7105fmr227831511cf.66.1768932921973;
+        Tue, 20 Jan 2026 10:15:21 -0800 (PST)
 Received: from ziepe.ca (hlfxns017vw-142-162-112-119.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.162.112.119])
-        by smtp.gmail.com with ESMTPSA id af79cd13be357-8c6a72507d5sm1084693385a.32.2026.01.20.08.44.38
+        by smtp.gmail.com with ESMTPSA id d75a77b69052e-502a1d6e670sm99756901cf.1.2026.01.20.10.15.21
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 20 Jan 2026 08:44:38 -0800 (PST)
+        Tue, 20 Jan 2026 10:15:21 -0800 (PST)
 Received: from jgg by wakko with local (Exim 4.97)
 	(envelope-from <jgg@ziepe.ca>)
-	id 1viEqM-00000005YT2-14LN;
-	Tue, 20 Jan 2026 12:44:38 -0400
-Date: Tue, 20 Jan 2026 12:44:38 -0400
+	id 1viGG8-00000005aY4-3tNU;
+	Tue, 20 Jan 2026 14:15:20 -0400
+Date: Tue, 20 Jan 2026 14:15:20 -0400
 From: Jason Gunthorpe <jgg@ziepe.ca>
 To: Edward Srouji <edwards@nvidia.com>
-Cc: Leon Romanovsky <leon@kernel.org>, Saeed Mahameed <saeedm@nvidia.com>,
-	Tariq Toukan <tariqt@nvidia.com>, Mark Bloch <mbloch@nvidia.com>,
-	Andrew Lunn <andrew+netdev@lunn.ch>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+Cc: Leon Romanovsky <leon@kernel.org>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	Christian =?utf-8?B?S8O2bmln?= <christian.koenig@amd.com>,
 	linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
-	netdev@vger.kernel.org, Michael Guralnik <michaelgur@nvidia.com>,
-	Yishai Hadas <yishaih@nvidia.com>
-Subject: Re: [PATCH rdma-next v2 02/11] IB/core: Introduce FRMR pools
-Message-ID: <20260120164438.GR961572@ziepe.ca>
-References: <20251222-frmr_pools-v2-0-f06a99caa538@nvidia.com>
- <20251222-frmr_pools-v2-2-f06a99caa538@nvidia.com>
+	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linaro-mm-sig@lists.linaro.org, Yishai Hadas <yishaih@nvidia.com>
+Subject: Re: [PATCH rdma-next 1/2] RDMA/uverbs: Add DMABUF object type and
+ operations
+Message-ID: <20260120181520.GS961572@ziepe.ca>
+References: <20260108-dmabuf-export-v1-0-6d47d46580d3@nvidia.com>
+ <20260108-dmabuf-export-v1-1-6d47d46580d3@nvidia.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -85,96 +83,112 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20251222-frmr_pools-v2-2-f06a99caa538@nvidia.com>
+In-Reply-To: <20260108-dmabuf-export-v1-1-6d47d46580d3@nvidia.com>
 
-On Mon, Dec 22, 2025 at 02:40:37PM +0200, Edward Srouji wrote:
-> +static int compare_keys(struct ib_frmr_key *key1, struct ib_frmr_key *key2)
-> +{
-> +	int res;
+On Thu, Jan 08, 2026 at 01:11:14PM +0200, Edward Srouji wrote:
+>  void rdma_user_mmap_entry_remove(struct rdma_user_mmap_entry *entry)
+>  {
+> +	struct ib_uverbs_dmabuf_file *uverbs_dmabuf, *tmp;
 > +
-> +	res = key1->ats - key2->ats;
-> +	if (res)
-> +		return res;
-> +
-> +	res = key1->access_flags - key2->access_flags;
-> +	if (res)
-> +		return res;
-> +
-> +	res = key1->vendor_key - key2->vendor_key;
-> +	if (res)
-> +		return res;
-> +
-> +	res = key1->kernel_vendor_key - key2->kernel_vendor_key;
-> +	if (res)
-> +		return res;
+>  	if (!entry)
+>  		return;
+>  
+> +	mutex_lock(&entry->dmabufs_lock);
+>  	xa_lock(&entry->ucontext->mmap_xa);
+>  	entry->driver_removed = true;
+>  	xa_unlock(&entry->ucontext->mmap_xa);
+> +	list_for_each_entry_safe(uverbs_dmabuf, tmp, &entry->dmabufs, dmabufs_elm) {
+> +		dma_resv_lock(uverbs_dmabuf->dmabuf->resv, NULL);
+> +		list_del(&uverbs_dmabuf->dmabufs_elm);
+> +		uverbs_dmabuf->revoked = true;
+> +		dma_buf_move_notify(uverbs_dmabuf->dmabuf);
+> +		dma_resv_unlock(uverbs_dmabuf->dmabuf->resv);
 
-This stuff should be using cmp_int().
+This will need the same wait that Christian pointed out for VFIO..
 
-> +static struct ib_frmr_pool *ib_frmr_pool_find(struct ib_frmr_pools *pools,
-> +					      struct ib_frmr_key *key)
-> +{
-> +	struct rb_node *node = pools->rb_root.rb_node;
-> +	struct ib_frmr_pool *pool;
-> +	int cmp;
-> +
-> +	/* find operation is done under read lock for performance reasons.
-> +	 * The case of threads failing to find the same pool and creating it
-> +	 * is handled by the create_frmr_pool function.
-> +	 */
-> +	read_lock(&pools->rb_lock);
-> +	while (node) {
-> +		pool = rb_entry(node, struct ib_frmr_pool, node);
-> +		cmp = compare_keys(&pool->key, key);
-> +		if (cmp < 0) {
-> +			node = node->rb_right;
-> +		} else if (cmp > 0) {
-> +			node = node->rb_left;
-> +		} else {
-> +			read_unlock(&pools->rb_lock);
-> +			return pool;
+
+> diff --git a/drivers/infiniband/core/rdma_core.c b/drivers/infiniband/core/rdma_core.c
+> index 18918f463361..3e0a8b9cd288 100644
+> --- a/drivers/infiniband/core/rdma_core.c
+> +++ b/drivers/infiniband/core/rdma_core.c
+> @@ -465,7 +465,7 @@ alloc_begin_fd_uobject(const struct uverbs_api_object *obj,
+>  
+>  	fd_type =
+>  		container_of(obj->type_attrs, struct uverbs_obj_fd_type, type);
+> -	if (WARN_ON(fd_type->fops->release != &uverbs_uobject_fd_release &&
+> +	if (WARN_ON(fd_type->fops && fd_type->fops->release != &uverbs_uobject_fd_release &&
+>  		    fd_type->fops->release != &uverbs_async_event_release)) {
+>  		ret = ERR_PTR(-EINVAL);
+>  		goto err_fd;
+> @@ -477,14 +477,16 @@ alloc_begin_fd_uobject(const struct uverbs_api_object *obj,
+>  		goto err_fd;
+>  	}
+>  
+> -	/* Note that uverbs_uobject_fd_release() is called during abort */
+> -	filp = anon_inode_getfile(fd_type->name, fd_type->fops, NULL,
+> -				  fd_type->flags);
+> -	if (IS_ERR(filp)) {
+> -		ret = ERR_CAST(filp);
+> -		goto err_getfile;
+> +	if (fd_type->fops) {
+> +		/* Note that uverbs_uobject_fd_release() is called during abort */
+> +		filp = anon_inode_getfile(fd_type->name, fd_type->fops, NULL,
+> +					  fd_type->flags);
+> +		if (IS_ERR(filp)) {
+> +			ret = ERR_CAST(filp);
+> +			goto err_getfile;
 > +		}
+> +		uobj->object = filp;
+>  	}
+> -	uobj->object = filp;
+>  
+>  	uobj->id = new_fd;
+>  	return uobj;
+> @@ -561,7 +563,9 @@ static void alloc_abort_fd_uobject(struct ib_uobject *uobj)
+>  {
+>  	struct file *filp = uobj->object;
+>  
+> -	fput(filp);
+> +	if (filp)
+> +		fput(filp);
+> +
+>  	put_unused_fd(uobj->id);
 
-Use the rb_find() helper
+This stuff changing hw the uobjects work should probably be in its own
+patch with its own explanation about creating a uobject that wrappers
+an externally allocated file descriptor vs this automatic internal
+allocation.
 
-> +static struct ib_frmr_pool *create_frmr_pool(struct ib_device *device,
-> +					     struct ib_frmr_key *key)
+> index 797e2fcc8072..66287e8e7ad7 100644
+> --- a/drivers/infiniband/core/uverbs.h
+> +++ b/drivers/infiniband/core/uverbs.h
+> @@ -133,6 +133,16 @@ struct ib_uverbs_completion_event_file {
+>  	struct ib_uverbs_event_queue		ev_queue;
+>  };
+>  
+> +struct ib_uverbs_dmabuf_file {
+> +	struct ib_uobject uobj;
+> +	struct dma_buf *dmabuf;
+> +	struct list_head dmabufs_elm;
+> +	struct rdma_user_mmap_entry *mmap_entry;
+> +	struct dma_buf_phys_vec phys_vec;
+
+Oh, are we going to have weird merge conflicts with this Leon?
+
+> +static int uverbs_dmabuf_attach(struct dma_buf *dmabuf,
+> +				struct dma_buf_attachment *attachment)
 > +{
-> +	struct rb_node **new = &device->frmr_pools->rb_root.rb_node,
-> +		       *parent = NULL;
-> +	struct ib_frmr_pools *pools = device->frmr_pools;
-> +	struct ib_frmr_pool *pool;
-> +	int cmp;
+> +	struct ib_uverbs_dmabuf_file *priv = dmabuf->priv;
 > +
-> +	pool = kzalloc(sizeof(*pool), GFP_KERNEL);
-> +	if (!pool)
-> +		return ERR_PTR(-ENOMEM);
+> +	if (!attachment->peer2peer)
+> +		return -EOPNOTSUPP;
 > +
-> +	memcpy(&pool->key, key, sizeof(*key));
-> +	INIT_LIST_HEAD(&pool->queue.pages_list);
-> +	spin_lock_init(&pool->lock);
-> +
-> +	write_lock(&pools->rb_lock);
-> +	while (*new) {
-> +		parent = *new;
-> +		cmp = compare_keys(
-> +			&rb_entry(parent, struct ib_frmr_pool, node)->key, key);
-> +		if (cmp < 0)
-> +			new = &((*new)->rb_left);
-> +		else
-> +			new = &((*new)->rb_right);
-> +		/* If a different thread has already created the pool, return
-> +		 * it. The insert operation is done under the write lock so we
-> +		 * are sure that the pool is not inserted twice.
-> +		 */
-> +		if (cmp == 0) {
-> +			write_unlock(&pools->rb_lock);
-> +			kfree(pool);
-> +			return rb_entry(parent, struct ib_frmr_pool, node);
-> +		}
-> +	}
-> +
-> +	rb_link_node(&pool->node, parent, new);
+> +	if (priv->revoked)
+> +		return -ENODEV;
 
-I think this is rb_find_add() ?
+This should only be checked in map
+
+This should also eventually call the new revoke testing function Leon
+is adding
 
 Jason
