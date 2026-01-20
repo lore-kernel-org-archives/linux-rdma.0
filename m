@@ -1,79 +1,78 @@
 Received: from mail-qv1-f50.google.com (mail-qv1-f50.google.com [209.85.219.50])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 19BAE44CACB
-	for <linux-rdma@vger.kernel.org>; Tue, 20 Jan 2026 18:18:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8DE414266BA
+	for <linux-rdma@vger.kernel.org>; Tue, 20 Jan 2026 18:54:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.50
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768933103; cv=none; b=Dc+UOaguZwUoZ7w+269+IIE4RjWNZR1jbK3AmiT0bn1JDZQDFB0KmoqgUUP3xrTAc9bFW5liIDBAsxcHsqtD3vqqQ8M41Ovhzztmd7g7KRZeMCQI4gjEDUWMUDzRmzyQ8ay0I4mud4Qx8nEawfcopnc99bnBdSxBedn/9Il5hjo=
+	t=1768935266; cv=none; b=mzWoad0YY9mG61R4SR6AC+u4A7rB2hZUbDnB+pxSgjP8UJE2YSgo54vGTsWhJhImPFJeOh/2B+LASkcLu6u4EdnVrV2EP+mspgSr2NYMBQpYJF1D2PxczVFazr/NcaRouNFQfLYj5Xv162R7Sc8q2UQMtehOMj29ezHcl2dTSBA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768933103; c=relaxed/simple;
-	bh=1L7c8BdoqxZUQDENcVXtZThUOiLDYDJQMPX7ZV7N9xw=;
+	s=arc-20240116; t=1768935266; c=relaxed/simple;
+	bh=mTjqkO7SZ9s0C9b5MXyurBFvCsOi/oO13CO7sE9gc90=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=VxOMBQ9ynuz/HpP3FFeHJyzsenscRILES/Or6CIKAXCf0oWKvEnJFj0pMkHDMh4rae0dwi81LVErVNtZnuvrwn0UZjP1DZbRQ+DqfI6Etv3/2wsSMWdAk8BthE+nWdgcrUdE5AN+osNQi9kLikxRXm4e6t6ii31tovGdM36195Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca; spf=pass smtp.mailfrom=ziepe.ca; dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b=avpr/md1; arc=none smtp.client-ip=209.85.219.50
+	 Content-Type:Content-Disposition:In-Reply-To; b=Pv/Os1hggsunbYbstDP6jnxtSFXGnIMGPWT1TaPURo7bCntbXGbQ0TR9M9CHgYt0mIYekgXtTUbLLpIuiJ7LjuYrF2Tj8xxtjKLrKylnP0Q5E2qRe6YXtvWQOKLsR6BXSLDgvwP3BYkvhNlYekCpUfEcVEPksgcH/lyVMX9l/wM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca; spf=pass smtp.mailfrom=ziepe.ca; dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b=Ht/NWfNg; arc=none smtp.client-ip=209.85.219.50
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ziepe.ca
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="avpr/md1"
-Received: by mail-qv1-f50.google.com with SMTP id 6a1803df08f44-89469143ebcso5356516d6.1
-        for <linux-rdma@vger.kernel.org>; Tue, 20 Jan 2026 10:18:21 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="Ht/NWfNg"
+Received: by mail-qv1-f50.google.com with SMTP id 6a1803df08f44-88a3d2f3299so58081566d6.2
+        for <linux-rdma@vger.kernel.org>; Tue, 20 Jan 2026 10:54:21 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google; t=1768933101; x=1769537901; darn=vger.kernel.org;
+        d=ziepe.ca; s=google; t=1768935260; x=1769540060; darn=vger.kernel.org;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=UjKhtF6uFrGGz9QpG86rUrUwPRn2VxIJfZmcip97T7s=;
-        b=avpr/md1vuSh2XL2Y1i36eqW+S83q+obfD0emf4zuMUEOWTKUhGkHKL1kBuO/4AA4f
-         W9QufuzqG/TYMXy3og4z2kGtwGKV6nxnJ599X4VsETaXHkxFuSyJeAJPy26BrRWxaYVH
-         2XIWwSgQ7fawTZyHicTOzhS5EVRGiuoLmnZtDhzqtv8DWHSTgohszhgj4n1+u72Lh4lw
-         McOIfV4bDsOfoP/QwKkT9K+9HEZb4y97ZRuhH17MhsjemlTigU+kSy0f7hP8/HTCALEV
-         aFeOFilo/nvQBPaZQGrgLZ67PtGeO2rVh+hM9q1PGU4SW9YhZQR2tif19DBqz2VAN6Hb
-         s+tA==
+        bh=6aY2QAOdBNoJG+ebTfd1NC2n8f/LC3Nk2RXuH9wo8GY=;
+        b=Ht/NWfNgSAuTNox1qnV8hAF2aaTT0QPED6L/oUqhmwzs0M0Mrz0czMkwrfmChe+pGg
+         6XpZtxsg+OeYoxwq9VakoNVpOcQNyKvHoT+/Qa3knuy3HysA8XNnYETI6JSEEFWE9lhG
+         cmVQQvCAA86g1x5QhJmX6sRUqsg8940z0MM9RD2mMAuOznFgnj+QI+bMiL9CTBRUmX9W
+         8L05ESQaqgJJ3SMtOlaqSTZ8uXEYZtvmJuMR62+sFgP2UPQlPTo6HtIRHIVwRsFcEqK4
+         s/KGMCo/D87qCYQ/XR2HhVP0+HonlXMMxrh2+gN0nj30WTDDtrViR4uZhPp5QAzR8egG
+         0iQQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1768933101; x=1769537901;
+        d=1e100.net; s=20230601; t=1768935260; x=1769540060;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=UjKhtF6uFrGGz9QpG86rUrUwPRn2VxIJfZmcip97T7s=;
-        b=jRV4fPq1osExGUNdE/beRRVNafjjEHn5Muz54uc8ClUiYXFEgWtM6RUVwvxBIcdDJA
-         lzge9NQJxMK/t/YSOBHWvWKTKbVg2iVXhVT4oNRI/PffL9gsoHHT+xQ8NwgRP/3EOfyZ
-         BY0N86/QTS4WrC92Bh1F+/+PLVTRMOcYQVm79NgSrGw6EX5MyZd9EotRJxN99Qx+C0N4
-         vZkjUm5N0xej9oJDS9U+GNaTk263cv438MYR/3fSSbLE96+/x3Zo7IN6IaGFVjnhOQM6
-         lj1ckSPpmRp04MyiWszobbSgkKw7yIYuUoKqSKqNu9xFRJaec2t77e4TsMwuLc9EBTj2
-         Yzeg==
-X-Forwarded-Encrypted: i=1; AJvYcCW/qs0k2Pk6GqyeJn8XRylK71ysSC7Unpryhk/3LrBMuvUugJhSFTajbVwHCs1pATCbvrT/36mIyEnv@vger.kernel.org
-X-Gm-Message-State: AOJu0Yya5WHoM6t6rUtHz47bVU2YEF/ToweFr74lkvwK7mbzMuwEy+El
-	Tb3KFXyu7MxP+Cz6E6DwjTXeoXMNZ5yz1+MmSOVhOb59evRcuMEdhxj6pMnVZkUGlLg=
-X-Gm-Gg: AZuq6aKMdzSNqeP6bidti+NqVM5+xT471Pw5Fw0kpBPV2HQH1rV8SzbtHrHgPmK3Pjc
-	TLpeJUl/2cAYgJRDtJ45CYcx485QCf75+bqfaV/RAfWNFSlc6Yb+D/1MX400pZmT8H036U65T+y
-	GYYRgkJ+AyWqbxZudDQVPpPJ5zPBIZOr8N8CMKeY5fnnCJJoYQ89BIyO0DBniXG4TdM62bP8pHG
-	RxDrdsEh+LexZ6p/8dTJKe8vN6rIlXiHMxtlDL0dm3T/sk83bGT3iDWTpllfFARQaVy1cwSWgpc
-	xfVaUya6nyXgeLKxts1a4IEZEtR3F6cJNe+4GrUtFCXHzSn2N1fn1hnIHGzhhe80Sx2jWfiMe05
-	n30euJfgWxJcoM9jb4lWx8TjlghzQgnyTAp0WDzcdkiVcCky1T5S15tT18s/esO2svk9Mv3n65+
-	9RH650UHxF25HlH0nD83QlmHob0sCBOYWZb0m8mIf7wFc7/4sugRk50ghNgnRBL6MfVCM=
-X-Received: by 2002:a05:6214:1301:b0:88e:6db7:f999 with SMTP id 6a1803df08f44-8942e0c342cmr235499176d6.6.1768933100910;
-        Tue, 20 Jan 2026 10:18:20 -0800 (PST)
+        bh=6aY2QAOdBNoJG+ebTfd1NC2n8f/LC3Nk2RXuH9wo8GY=;
+        b=p/1IlfZalbfjZJO5wVa0HfZwRlSIjARPZNJiFvULOzK3YgkuESpQqvOiUlqlhlgS31
+         ij6h1ktYrIoOjQ5IPNaJN2UEQGqNlsjO8jf9ucz713ta/DuNEVDpsCXlu6yrsAodTscv
+         sLdt7Gwx2Qobvv6Mg4iP6p8JqFD/bm3DN5E+P840EAst/iCX6PPMklZ1iBoDXaNJGvkR
+         1MEgyXZ+3oQGB+t+J39QgRW6YG3RINergCiertvqzKblqm5YUsdQDKQ6/Cy/6Ma+F/jD
+         or/0gcp9g5qittNk3MHZkpEcFiO3TJsBs5KyZJnLU6MT98g9z32xu9YUyt5LhqfP9Rx4
+         0Ocg==
+X-Forwarded-Encrypted: i=1; AJvYcCUqyDf7wmE+e5lNUin1d5yK8PPCxLnvFjVi0AP0eK1MBreakEKIlzmxK/cgG1c+aWUlDYDKAlDWJRBr@vger.kernel.org
+X-Gm-Message-State: AOJu0YwmzilHhoNLIA7OCJeHKQaBxQg64cBYVFVaAtWXBfbg7PwdU4Nz
+	mcpivzes/5pctDdxlLi6nL484kTCa5yP6o8aEMxy3J/FGZ2Ump1O083emViD3/8RHIk=
+X-Gm-Gg: AZuq6aIfjltenI6A02Y2E4sVmUaOVGMFUuSfo1S8Plqvy2Sb25Vz54+a2+zjs+q8kBk
+	EhZmeRuevsP0fwFd2WQZDtowldo56K41x1TdHMYMQKAyyCWZgAKGce6XQmWALZ/blBeb8M7vnLo
+	zlAiLDuMI0Gk4t0g1YyGrZ3/gyIo3GUSSUR3HXDxSxQ/ZvjMfCSDbYJgv9P368U3L3vtIDQM+Oy
+	I1qPHCVeAxScKCzsx1K762eSS+gwiDrBrJvRbDXgyDO8WYOLWaOebTB6HgBiMbZN9tlAS1smq7H
+	3HCB5ukPgMAscGdPpRJBOm2Q7og7GBoudCfIG4ni2MvjKiUwsFibmbr68V1tdVjrOQCAqwEnEgS
+	PDCFZS9RZ9ZpP/1PbnAl6iQf6W+1f7gXXncYOpqSYT1cba9fRKnDWZCA/FwoRjXte/UcxZfbzyS
+	o8N4jyUD2wy5VcBt6vEePcblmFHQqyFCc0eG9+uiqIu554mO41EFDvFw4HKXtRNR1k/NZE/D67I
+	3Cyzw==
+X-Received: by 2002:a0c:f087:0:10b0:894:5cfc:92a2 with SMTP id 6a1803df08f44-8945cfc92dcmr54946486d6.56.1768935260210;
+        Tue, 20 Jan 2026 10:54:20 -0800 (PST)
 Received: from ziepe.ca (hlfxns017vw-142-162-112-119.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.162.112.119])
-        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-8942e5e535dsm114108506d6.4.2026.01.20.10.18.20
+        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-8942e6ad6ffsm108996396d6.27.2026.01.20.10.54.19
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 20 Jan 2026 10:18:20 -0800 (PST)
+        Tue, 20 Jan 2026 10:54:19 -0800 (PST)
 Received: from jgg by wakko with local (Exim 4.97)
 	(envelope-from <jgg@ziepe.ca>)
-	id 1viGJ1-00000005aZS-41Vi;
-	Tue, 20 Jan 2026 14:18:19 -0400
-Date: Tue, 20 Jan 2026 14:18:19 -0400
+	id 1viGrr-00000005bGU-0ncJ;
+	Tue, 20 Jan 2026 14:54:19 -0400
+Date: Tue, 20 Jan 2026 14:54:19 -0400
 From: Jason Gunthorpe <jgg@ziepe.ca>
-To: Edward Srouji <edwards@nvidia.com>
-Cc: Leon Romanovsky <leon@kernel.org>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	Christian =?utf-8?B?S8O2bmln?= <christian.koenig@amd.com>,
-	linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
-	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linaro-mm-sig@lists.linaro.org, Yishai Hadas <yishaih@nvidia.com>
-Subject: Re: [PATCH rdma-next 2/2] RDMA/mlx5: Implement DMABUF export ops
-Message-ID: <20260120181819.GT961572@ziepe.ca>
-References: <20260108-dmabuf-export-v1-0-6d47d46580d3@nvidia.com>
- <20260108-dmabuf-export-v1-2-6d47d46580d3@nvidia.com>
+To: Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>
+Cc: leon@kernel.org, linux-rdma@vger.kernel.org,
+	andrew.gospodarek@broadcom.com, selvin.xavier@broadcom.com,
+	kalesh-anakkur.purayil@broadcom.com
+Subject: Re: [PATCH rdma-next v8 3/4] RDMA/bnxt_re: Direct Verbs: Support DBR
+ verbs
+Message-ID: <20260120185419.GU961572@ziepe.ca>
+References: <20260117080052.43279-1-sriharsha.basavapatna@broadcom.com>
+ <20260117080052.43279-4-sriharsha.basavapatna@broadcom.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -82,30 +81,56 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20260108-dmabuf-export-v1-2-6d47d46580d3@nvidia.com>
+In-Reply-To: <20260117080052.43279-4-sriharsha.basavapatna@broadcom.com>
 
-On Thu, Jan 08, 2026 at 01:11:15PM +0200, Edward Srouji wrote:
-> +static int phys_addr_to_bar(struct pci_dev *pdev, phys_addr_t pa)
+On Sat, Jan 17, 2026 at 01:30:51PM +0530, Sriharsha Basavapatna wrote:
+> diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.h b/drivers/infiniband/hw/bnxt_re/ib_verbs.h
+> index a11f56730a31..33e0f66b39eb 100644
+> --- a/drivers/infiniband/hw/bnxt_re/ib_verbs.h
+> +++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.h
+> @@ -164,6 +164,13 @@ struct bnxt_re_user_mmap_entry {
+>  	u8 mmap_flag;
+>  };
+>  
+> +struct bnxt_re_dbr_obj {
+> +	struct bnxt_re_dev *rdev;
+> +	struct bnxt_qplib_dpi dpi;
+> +	struct bnxt_re_user_mmap_entry *entry;
+> +	atomic_t usecnt; /* QPs using this dbr */
+> +};
+
+This added usecnt but it doesn't use it
+
+It is supposed to prevent destroying the object by the user out of sequence.
+
+> +static int bnxt_re_dv_dbr_cleanup(struct ib_uobject *uobject,
+> +				  enum rdma_remove_reason why,
+> +				  struct uverbs_attr_bundle *attrs)
 > +{
-> +	resource_size_t start, end;
-> +	int bar;
+> +	struct bnxt_re_dbr_obj *obj = uobject->object;
+> +	struct bnxt_re_dev *rdev = obj->rdev;
 > +
-> +	for (bar = 0; bar < PCI_STD_NUM_BARS; bar++) {
-> +		/* Skip BARs not present or not memory-mapped */
-> +		if (!(pci_resource_flags(pdev, bar) & IORESOURCE_MEM))
-> +			continue;
-> +
-> +		start = pci_resource_start(pdev, bar);
-> +		end = pci_resource_end(pdev, bar);
-> +
-> +		if (!start || !end)
-> +			continue;
-> +
-> +		if (pa >= start && pa <= end)
-> +			return bar;
-> +	}
+> +	rdma_user_mmap_entry_remove(&obj->entry->rdma_entry);
+> +	bnxt_qplib_free_uc_dpi(&rdev->qplib_res, &obj->dpi);
+> +	return 0;
+> +}
 
-Don't we know which of the two BARs the mmap entry came from based on
-its type? This seems like overkill..
+For instance CQ did it in the above function:
+
+static int uverbs_free_cq(struct ib_uobject *uobject,
+			  enum rdma_remove_reason why,
+			  struct uverbs_attr_bundle *attrs)
+{
+	ret = ib_destroy_cq_user(cq, &attrs->driver_udata);
+	if (ret)
+		return ret;
+
+int ib_destroy_cq_user(struct ib_cq *cq, struct ib_udata *udata)
+{
+	if (atomic_read(&cq->usecnt))
+		return -EBUSY;
+
+So this patch should be doing the usecnt check as well, otherwise it
+won't work right.
 
 Jason
