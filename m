@@ -1,120 +1,106 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from verein.lst.de (verein.lst.de [213.95.11.211])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5FB3B441045;
-	Wed, 21 Jan 2026 08:41:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8BF0F36656F;
+	Wed, 21 Jan 2026 08:42:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.11.211
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768984910; cv=none; b=ur/4jZ9mvr5jtAwXJX4gLOXPeO5dvV1DbnG1xzBGUc8bgnmGnrNWsyS+gCI7QdLSGsK03PbeJAAYTcz5PjCsyGVelDPfhdEx9SYN1/tVihUnWaHfp7+UNWb6eQ4ppgmhIWIu1POZuqlFzm5xWPiZKSlJJrR8tjAlUD+d3FjD19A=
+	t=1768984944; cv=none; b=FI9CZbeizXZa6w4K9Z0ANct0MJkiumZA45aP4zZoY45tY7qF7GbgcEDirLJbvVFmLSYwKYZbL/c/n2ce9PLE2xOjtsvuoB3b4EGOxk2smSChqXDkEcYvsKY+2X+Gp5xG006kq/kYefRDwUs2nmWrn87JiGmciKrRk4YOXWJKOFo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768984910; c=relaxed/simple;
-	bh=vX9ez30UqQH8Ea7faskYAe/RcTUI4WeiZy+2L8FsrmA=;
+	s=arc-20240116; t=1768984944; c=relaxed/simple;
+	bh=xcItrdUgyJnWL9h2AfWiJfoEtRsVD720bMV8yaVFjjU=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=uXjIsOuIyf9AmDrfY9jyKLDuBQdqQwr3BJwlz/Vewj2gHzUBnTAj5iyE5W+7KvizTC+3/xikJ+DxfzubSttPZQVDO06eT2h6j6kQJaaE4OfnnOGnvzV2UCJQ2s2NTGGZP4MK/M17PzI9T60XmHUxDsg3wyoSeTckTgF8kpd03F4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=N/jftV8W; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="N/jftV8W"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C7174C116D0;
-	Wed, 21 Jan 2026 08:41:48 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1768984909;
-	bh=vX9ez30UqQH8Ea7faskYAe/RcTUI4WeiZy+2L8FsrmA=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=N/jftV8WqKnsm2maFReUTyS1FKZrVxHQAluTkW3EpHJ4ervet/wKOmSASptNsqcn8
-	 YCUzQehY130BGt6cUU9BFs3H9AF/0B02h/cwqe1DJtbIVQn1O0baHcQoVTQ4ECkrKj
-	 2eY60EIQdA2ElUlO9F+1P5ikr5b7v9ZGk6mmC2XusS1ZE2PrwNWovFFzfgQo56DnSf
-	 RBQuuCWVT7WPdSGkQQLmpBx1Aohcb+mdN3pnRJHuhScYqnsOPK8OkZ0n/Q7YnxOFCo
-	 mWv0ZGyr+NyMttlGy80VgLqW+5iigg0WaDm1Zt85kap7Vth+hi3cX+K4uvuAZIXBk1
-	 /elzGAkYMChww==
-Date: Wed, 21 Jan 2026 10:41:43 +0200
-From: Leon Romanovsky <leon@kernel.org>
-To: Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>
-Cc: Sumit Semwal <sumit.semwal@linaro.org>,
-	Alex Deucher <alexander.deucher@amd.com>,
-	David Airlie <airlied@gmail.com>, Simona Vetter <simona@ffwll.ch>,
-	Gerd Hoffmann <kraxel@redhat.com>,
-	Dmitry Osipenko <dmitry.osipenko@collabora.com>,
-	Gurchetan Singh <gurchetansingh@chromium.org>,
-	Chia-I Wu <olvaffe@gmail.com>,
-	Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
-	Maxime Ripard <mripard@kernel.org>,
-	Thomas Zimmermann <tzimmermann@suse.de>,
-	Lucas De Marchi <lucas.demarchi@intel.com>,
-	Thomas =?iso-8859-1?Q?Hellstr=F6m?= <thomas.hellstrom@linux.intel.com>,
-	Rodrigo Vivi <rodrigo.vivi@intel.com>,
-	Jason Gunthorpe <jgg@ziepe.ca>, Kevin Tian <kevin.tian@intel.com>,
-	Joerg Roedel <joro@8bytes.org>, Will Deacon <will@kernel.org>,
-	Robin Murphy <robin.murphy@arm.com>,
-	Felix Kuehling <Felix.Kuehling@amd.com>,
-	Alex Williamson <alex@shazbot.org>,
-	Ankit Agrawal <ankita@nvidia.com>,
-	Vivek Kasireddy <vivek.kasireddy@intel.com>,
-	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linaro-mm-sig@lists.linaro.org, linux-kernel@vger.kernel.org,
-	amd-gfx@lists.freedesktop.org, virtualization@lists.linux.dev,
-	intel-xe@lists.freedesktop.org, linux-rdma@vger.kernel.org,
-	iommu@lists.linux.dev, kvm@vger.kernel.org
-Subject: Re: [PATCH v3 1/7] dma-buf: Rename .move_notify() callback to a
- clearer identifier
-Message-ID: <20260121084143.GW13201@unreal>
-References: <20260120-dmabuf-revoke-v3-0-b7e0b07b8214@nvidia.com>
- <20260120-dmabuf-revoke-v3-1-b7e0b07b8214@nvidia.com>
- <59762c7e-f00b-49c6-bfab-ff647d3fe05d@amd.com>
+	 Content-Type:Content-Disposition:In-Reply-To; b=K16GXUsG98CHnnG56igNlGxJ4la9NzmaLa31osGJIlu8t+iNsgKTf/iWg6P8HD7nakzFa6pz0N6ZzDDIAOqdpXF8Y1V227UzOs5nd+LITrpwpPJ/Dg32Dm6FKBf2wE+BuesSwGm2/OPL4qzmKx959b4rwcsJFXXcP5QtX5QD/Oc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lst.de; spf=pass smtp.mailfrom=lst.de; arc=none smtp.client-ip=213.95.11.211
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lst.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lst.de
+Received: by verein.lst.de (Postfix, from userid 2407)
+	id 99C3A227AAA; Wed, 21 Jan 2026 09:42:17 +0100 (CET)
+Date: Wed, 21 Jan 2026 09:42:17 +0100
+From: Christoph Hellwig <hch@lst.de>
+To: Chuck Lever <cel@kernel.org>
+Cc: Jason Gunthorpe <jgg@nvidia.com>, Leon Romanovsky <leon@kernel.org>,
+	Christoph Hellwig <hch@lst.de>, NeilBrown <neilb@ownmail.net>,
+	Jeff Layton <jlayton@kernel.org>,
+	Olga Kornievskaia <okorniev@redhat.com>,
+	Dai Ngo <dai.ngo@oracle.com>, Tom Talpey <tom@talpey.com>,
+	linux-rdma@vger.kernel.org, linux-nfs@vger.kernel.org,
+	Chuck Lever <chuck.lever@oracle.com>
+Subject: Re: [PATCH v2 1/4] RDMA/core: add bio_vec based RDMA read/write API
+Message-ID: <20260121084217.GA16458@lst.de>
+References: <20260120143124.1822121-1-cel@kernel.org> <20260120143124.1822121-2-cel@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <59762c7e-f00b-49c6-bfab-ff647d3fe05d@amd.com>
+In-Reply-To: <20260120143124.1822121-2-cel@kernel.org>
+User-Agent: Mutt/1.5.17 (2007-11-01)
 
-On Wed, Jan 21, 2026 at 09:33:27AM +0100, Christian König wrote:
-> On 1/20/26 15:07, Leon Romanovsky wrote:
-> > From: Leon Romanovsky <leonro@nvidia.com>
-> > 
-> > Rename the .move_notify() callback to .invalidate_mappings() to make its
-> > purpose explicit and highlight that it is responsible for invalidating
-> > existing mappings.
-> > 
-> > Suggested-by: Christian König <christian.koenig@amd.com>
-> > Reviewed-by: Christian König <christian.koenig@amd.com>
-> > Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
-> > ---
-> >  drivers/dma-buf/dma-buf.c                   | 6 +++---
-> >  drivers/gpu/drm/amd/amdgpu/amdgpu_dma_buf.c | 4 ++--
-> >  drivers/gpu/drm/virtio/virtgpu_prime.c      | 2 +-
-> >  drivers/gpu/drm/xe/tests/xe_dma_buf.c       | 6 +++---
-> >  drivers/gpu/drm/xe/xe_dma_buf.c             | 2 +-
-> >  drivers/infiniband/core/umem_dmabuf.c       | 4 ++--
-> >  drivers/infiniband/hw/mlx5/mr.c             | 2 +-
-> >  drivers/iommu/iommufd/pages.c               | 2 +-
-> >  include/linux/dma-buf.h                     | 6 +++---
-> >  9 files changed, 17 insertions(+), 17 deletions(-)
-
-<...>
-
-> >  	attach = kzalloc(sizeof(*attach), GFP_KERNEL);
-> > @@ -1055,7 +1055,7 @@ EXPORT_SYMBOL_NS_GPL(dma_buf_pin, "DMA_BUF");
-> >   *
-> >   * This unpins a buffer pinned by dma_buf_pin() and allows the exporter to move
-> >   * any mapping of @attach again and inform the importer through
-> > - * &dma_buf_attach_ops.move_notify.
-> > + * &dma_buf_attach_ops.invalidate_mappings.
-> >   */
-> >  void dma_buf_unpin(struct dma_buf_attachment *attach)
-> >  {
-> > @@ -1262,7 +1262,7 @@ void dma_buf_move_notify(struct dma_buf *dmabuf)
+On Tue, Jan 20, 2026 at 09:31:21AM -0500, Chuck Lever wrote:
+> From: Chuck Lever <chuck.lever@oracle.com>
 > 
-> Thinking more about it we can keep the function names as they are in the importers, but renaming renaming this framework function as well would be really nice to have.
-
-Let me prepare an additional patch on top of this series. I'd prefer to
-avoid unnecessary resubmissions caused solely by renaming.
-
-Thanks
-
+> The existing rdma_rw_ctx_init() API requires callers to construct a
+> scatterlist, which is then DMA-mapped page by page. Callers that
+> already have data in bio_vec form (such as the NVMe-oF target) must
+> first convert to scatterlist, adding overhead and complexity.
 > 
-> Regards,
-> Christian.
+> Introduce rdma_rw_ctx_init_bvec() and rdma_rw_ctx_destroy_bvec() to
+> accept bio_vec arrays directly. The new helpers use dma_map_phys()
+> for hardware RDMA devices and virtual addressing for software RDMA
+> devices (rxe, siw), avoiding intermediate scatterlist construction.
+> 
+> Memory registration (MR) path support is deferred to a follow-up
+> series; callers requiring MR-based transfers (iWARP devices or
+> force_mr=1) receive -EOPNOTSUPP and should use the scatterlist API.
+> 
+> Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
+> ---
+>  drivers/infiniband/core/rw.c | 210 +++++++++++++++++++++++++++++++++++
+>  include/rdma/ib_verbs.h      |  42 +++++++
+>  include/rdma/rw.h            |  10 ++
+>  3 files changed, 262 insertions(+)
+> 
+> diff --git a/drivers/infiniband/core/rw.c b/drivers/infiniband/core/rw.c
+> index 6354ddf2a274..59f32fecf3df 100644
+> --- a/drivers/infiniband/core/rw.c
+> +++ b/drivers/infiniband/core/rw.c
+> @@ -4,6 +4,7 @@
+>   */
+>  #include <linux/memremap.h>
+>  #include <linux/moduleparam.h>
+> +#include <linux/overflow.h>
+>  #include <linux/slab.h>
+>  #include <linux/pci-p2pdma.h>
+>  #include <rdma/mr_pool.h>
+> @@ -274,6 +275,111 @@ static int rdma_rw_init_single_wr(struct rdma_rw_ctx *ctx, struct ib_qp *qp,
+>  	return 1;
+>  }
+>  
+> +static int rdma_rw_init_single_wr_bvec(struct rdma_rw_ctx *ctx,
+> +		struct ib_qp *qp, const struct bio_vec *bvec,
+
+Nit: maybe rename bvec to bvecs or bvec_table to make it clear this
+is the base array that the iter operates on?
+
+> +		struct bvec_iter *iter,
+> +		u64 remote_addr, u32 rkey, enum dma_data_direction dir)
+
+Nit 2: this can be condensed a little:
+
+> +		struct bvec_iter *iter, u64 remote_addr, u32 rkey,
+> +		enum dma_data_direction dir)
+
+> +static int rdma_rw_init_map_wrs_bvec(struct rdma_rw_ctx *ctx, struct ib_qp *qp,
+> +		const struct bio_vec *bvec, u32 nr_bvec,
+> +		struct bvec_iter *iter,
+> +		u64 remote_addr, u32 rkey, enum dma_data_direction dir)
+
+Same here.
+
+Otherwise looks good:
+
+Reviewed-by: Christoph Hellwig <hch@lst.de>
