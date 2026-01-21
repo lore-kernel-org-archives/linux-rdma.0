@@ -1,163 +1,162 @@
-Received: from out-177.mta1.migadu.com (out-177.mta1.migadu.com [95.215.58.177])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4048633DED8
-	for <linux-rdma@vger.kernel.org>; Wed, 21 Jan 2026 05:05:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=95.215.58.177
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D1C403D522D;
+	Wed, 21 Jan 2026 07:59:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768971915; cv=none; b=EKM1540mkwctzxm+JIUjUM+T1JzM1yn1ddWdU2y/GCsINKemT79XaLH2JM7vfgxzx0lH3VVSud5EknNWWDIHMiio8cgUNlYZ/qPfltjf7T2AhCRynBKfkRnRiZKkpYo6SG+FrlQBSsnLQXN6nO0w9JWe52YHDeBR8GvoNvi/T+c=
+	t=1768982375; cv=none; b=nfDDEPWk8OqJnlCDq6cZAfeSqxnbUyJS/p4of2OeG5MLPnUIu+gngIm/ZkW4VUy7wqNSON8H/OZ37iHzuCD5Q7b53kLOn3ZUP85UWQD/+BszYKFL7Jrv+OsR8xmTVTV6FZvKG7t1PTx/yHn3aRRaaXHd+a4exfhR5bcrwsWs65M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768971915; c=relaxed/simple;
-	bh=/2F3YxYazcp3chVDEiNdJCfgY9xuwk1ucvXalo9C6tY=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=e65QnxY4aVxGt2oW2t7jA5YC3kPnchJFLBUsfS0+WDhG3F+HaLDFZENVxZuj1Hq6ja78B13f2/zOtqrt/oBbWvZUFxFMWOFwWefeoLdKs6Py1Pwzh5B0fz+U+JKjuT085PBp9Y4byOiBZxCvAVmG07EzvbliQG2xW16wwOZ7AvQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=eEysbBxS; arc=none smtp.client-ip=95.215.58.177
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+	s=arc-20240116; t=1768982375; c=relaxed/simple;
+	bh=lEy1yZ/ijqL0f8O4r3b/+kmhBy9GW/pNUeqgzBHM/dA=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=naQthyK+orayeVtgZKBRYosB74QZWGSwwlEDiKF4JHjDqnvUx5BzqTrWcfCxFZxZ+ZvlZs9eq2x0wOw+JIt/CkOqkAXxWcVsghqTATF1PsiKPFWEiZOmKZ0lu3TcdNRPyYdxk96WyxfQX8aieYplF8oflBHlIvu9V19tt7ivnpk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=dfyuJlQZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="eEysbBxS"
-Message-ID: <0f37cd78-d4d1-4910-95e2-8f91a6417b3a@linux.dev>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-	t=1768971911;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=jVv0E2X/BfUN/RnCsT8W19P3ln0+bZdL9P0VfJNSC9Q=;
-	b=eEysbBxSomIZYXKpuhEahD2Ei9KpW8yGhPs43tLMEC9sDA+153HzqgqmaInXDzIiV3gBwN
-	h84DYESPprx8aDbrnHIucwF6td0aW1tQrosEoMaJf84FtQC3eGMbAXcwNdH51vq+scTird
-	qTZRc5K5gseIM26yxPM8eiX+fNd0ZHE=
-Date: Tue, 20 Jan 2026 21:04:27 -0800
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="dfyuJlQZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E9A6FC116D0;
+	Wed, 21 Jan 2026 07:59:33 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1768982374;
+	bh=lEy1yZ/ijqL0f8O4r3b/+kmhBy9GW/pNUeqgzBHM/dA=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=dfyuJlQZbT+khgy1UNrCtf//gRr41b5TeKPoiYg80AS6Fc/HmDd3VwtiI+5NSenuw
+	 2Spobvzc4gCbVDeqXVaQQbRwrS6+CHKVy3XbpOJDk9mphG7a3wdXKInoc7n0OfcKWE
+	 8SWHbICqvKTijL1hBIfRy4blDhgnKn5Fu+boDiKbghi+pmOrn0ZdSCoarjSE6+E1nR
+	 24AKgBy+Kh5VI/MLAyjcYTcRF130zk6/0Xf1/w1d4GVohJUI57MraMOfQ3eptReL80
+	 6JZuVHv3OQrm+n2zA8FnYBMhG1FJ8jnjl2gjc7wulNG8aRh7RUGCDXECKS4I2EibU8
+	 Rp2oext3FgQ8w==
+Date: Wed, 21 Jan 2026 09:59:29 +0200
+From: Leon Romanovsky <leon@kernel.org>
+To: Matthew Brost <matthew.brost@intel.com>
+Cc: Sumit Semwal <sumit.semwal@linaro.org>,
+	Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>,
+	Alex Deucher <alexander.deucher@amd.com>,
+	David Airlie <airlied@gmail.com>, Simona Vetter <simona@ffwll.ch>,
+	Gerd Hoffmann <kraxel@redhat.com>,
+	Dmitry Osipenko <dmitry.osipenko@collabora.com>,
+	Gurchetan Singh <gurchetansingh@chromium.org>,
+	Chia-I Wu <olvaffe@gmail.com>,
+	Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
+	Maxime Ripard <mripard@kernel.org>,
+	Thomas Zimmermann <tzimmermann@suse.de>,
+	Lucas De Marchi <lucas.demarchi@intel.com>,
+	Thomas =?iso-8859-1?Q?Hellstr=F6m?= <thomas.hellstrom@linux.intel.com>,
+	Rodrigo Vivi <rodrigo.vivi@intel.com>,
+	Jason Gunthorpe <jgg@ziepe.ca>, Kevin Tian <kevin.tian@intel.com>,
+	Joerg Roedel <joro@8bytes.org>, Will Deacon <will@kernel.org>,
+	Robin Murphy <robin.murphy@arm.com>,
+	Felix Kuehling <Felix.Kuehling@amd.com>,
+	Alex Williamson <alex@shazbot.org>,
+	Ankit Agrawal <ankita@nvidia.com>,
+	Vivek Kasireddy <vivek.kasireddy@intel.com>,
+	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linaro-mm-sig@lists.linaro.org, linux-kernel@vger.kernel.org,
+	amd-gfx@lists.freedesktop.org, virtualization@lists.linux.dev,
+	intel-xe@lists.freedesktop.org, linux-rdma@vger.kernel.org,
+	iommu@lists.linux.dev, kvm@vger.kernel.org
+Subject: Re: [PATCH v3 6/7] vfio: Wait for dma-buf invalidation to complete
+Message-ID: <20260121075929.GU13201@unreal>
+References: <20260120-dmabuf-revoke-v3-0-b7e0b07b8214@nvidia.com>
+ <20260120-dmabuf-revoke-v3-6-b7e0b07b8214@nvidia.com>
+ <aW/pQmOO8komCgOK@lstrano-desk.jf.intel.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Subject: Re: [PATCH] RDMA/rxe: Fix race condition in QP timer handlers
-To: Li Zhijian <lizhijian@fujitsu.com>, linux-rdma@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, zyjzyj2000@gmail.com, jgg@ziepe.ca,
- leon@kernel.org
-References: <20260120074437.623018-1-lizhijian@fujitsu.com>
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-From: Zhu Yanjun <yanjun.zhu@linux.dev>
-In-Reply-To: <20260120074437.623018-1-lizhijian@fujitsu.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-X-Migadu-Flow: FLOW_OUT
+In-Reply-To: <aW/pQmOO8komCgOK@lstrano-desk.jf.intel.com>
 
-在 2026/1/19 23:44, Li Zhijian 写道:
-> I encontered the following warning:
->   WARNING: drivers/infiniband/sw/rxe/rxe_task.c:249 at rxe_sched_task+0x1c8/0x238 [rdma_rxe], CPU#0: swapper/0/0
-> ...
->    libsha1 [last unloaded: ip6_udp_tunnel]
->   CPU: 0 UID: 0 PID: 0 Comm: swapper/0 Tainted: G         C          6.19.0-rc5-64k-v8+ #37 PREEMPT
->   Tainted: [C]=CRAP
->   Hardware name: Raspberry Pi 4 Model B Rev 1.2
->   Call trace:
->    rxe_sched_task+0x1c8/0x238 [rdma_rxe] (P)
->    retransmit_timer+0x130/0x188 [rdma_rxe]
->    call_timer_fn+0x68/0x4d0
->    __run_timers+0x630/0x888
-> ...
->   WARNING: drivers/infiniband/sw/rxe/rxe_task.c:38 at rxe_sched_task+0x1c0/0x238 [rdma_rxe], CPU#0: swapper/0/0
-> ...
->   WARNING: drivers/infiniband/sw/rxe/rxe_task.c:111 at do_work+0x488/0x5c8 [rdma_rxe], CPU#3: kworker/u17:4/93400
-> ...
->   refcount_t: underflow; use-after-free.
->   WARNING: lib/refcount.c:28 at refcount_warn_saturate+0x138/0x1a0, CPU#3: kworker/u17:4/93400
+On Tue, Jan 20, 2026 at 12:44:50PM -0800, Matthew Brost wrote:
+> On Tue, Jan 20, 2026 at 04:07:06PM +0200, Leon Romanovsky wrote:
+> > From: Leon Romanovsky <leonro@nvidia.com>
+> > 
+> > dma-buf invalidation is performed asynchronously by hardware, so VFIO must
+> > wait until all affected objects have been fully invalidated.
+> > 
+> > Fixes: 5d74781ebc86 ("vfio/pci: Add dma-buf export support for MMIO regions")
+> > Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+> > ---
+> >  drivers/vfio/pci/vfio_pci_dmabuf.c | 5 +++++
+> >  1 file changed, 5 insertions(+)
+> > 
+> > diff --git a/drivers/vfio/pci/vfio_pci_dmabuf.c b/drivers/vfio/pci/vfio_pci_dmabuf.c
+> > index d4d0f7d08c53..33bc6a1909dd 100644
+> > --- a/drivers/vfio/pci/vfio_pci_dmabuf.c
+> > +++ b/drivers/vfio/pci/vfio_pci_dmabuf.c
+> > @@ -321,6 +321,9 @@ void vfio_pci_dma_buf_move(struct vfio_pci_core_device *vdev, bool revoked)
+> >  			dma_resv_lock(priv->dmabuf->resv, NULL);
+> >  			priv->revoked = revoked;
+> >  			dma_buf_move_notify(priv->dmabuf);
+> > +			dma_resv_wait_timeout(priv->dmabuf->resv,
+> > +					      DMA_RESV_USAGE_KERNEL, false,
+> > +					      MAX_SCHEDULE_TIMEOUT);
 > 
-> The issue is caused by a race condition between retransmit_timer() and
-> rxe_destroy_qp, leading to the Queue Pair's (QP) reference count dropping
-> to zero during timer handler execution.
+> Should we explicitly call out in the dma_buf_move_notify() /
+> invalidate_mappings kernel-doc that KERNEL slots are the mechanism
+> for communicating asynchronous dma_buf_move_notify /
+> invalidate_mappings events via fences?
 > 
-> It seems this warning is harmless because rxe_qp_do_cleanup() will flush
-> all pending timers and requests.
+> Yes, this is probably implied, but it wouldn’t hurt to state this
+> explicitly as part of the cross-driver contract.
 > 
-> Example of flow causing the issue:
+> Here is what we have now:
 > 
-> CPU0                                   CPU1
-> retransmit_timer() {
->      spin_lock_irqsave
->                             rxe_destroy_qp()
->                              __rxe_cleanup()
->                                __rxe_put() // qp->ref_count decrease to 0
+>  	 * - Dynamic importers should set fences for any access that they can't
+> 	 *   disable immediately from their &dma_buf_attach_ops.invalidate_mappings
+>  	 *   callback.
 
-In  __rxe_cleanup, __rxe_put decrease qp->ref_count to 0.
+I believe I documented this in patch 4:
+https://lore.kernel.org/all/20260120-dmabuf-revoke-v3-4-b7e0b07b8214@nvidia.com/"
+Is there anything else that should be added?
 
-Then in the timer functions retransmit_timer and rnr_nak_timer will 
-check qp and resend the packets. IMO, it may be a solution to use the 
-function rxe_get to check if ref_count is 0 or not.
+  1275 /**
+  1276  * dma_buf_move_notify - notify attachments that DMA-buf is moving
+  1277  *
+  1278  * @dmabuf:     [in]    buffer which is moving
+  1279  *
+  1280  * Informs all attachments that they need to destroy and recreate all their
+  1281  * mappings. If the attachment is dynamic then the dynamic importer is expected
+  1282  * to invalidate any caches it has of the mapping result and perform a new
+  1283  * mapping request before allowing HW to do any further DMA.
+  1284  *
+  1285  * If the attachment is pinned then this informs the pinned importer that
+  1286  * the underlying mapping is no longer available. Pinned importers may take
+  1287  * this is as a permanent revocation so exporters should not trigger it
+  1288  * lightly.
+  1289  *
+  1290  * For legacy pinned importers that cannot support invalidation this is a NOP.
+  1291  * Drivers can call dma_buf_attach_revocable() to determine if the importer
+  1292  * supports this.
+  1293  *
+  1294  * NOTE: The invalidation triggers asynchronous HW operation and the callers
+  1295  * need to wait for this operation to complete by calling
+  1296  * to dma_resv_wait_timeout().
+  1297  */
 
-I am fine with it.
+Thanks
 
-Reviewed-by: Zhu Yanjun <yanjun.zhu@linux.dev>
 
-Thanks,
-Zhu Yanjun
-
->                              rxe_qp_do_cleanup() {
->      if (qp->valid) {
->          rxe_sched_task() {
->              WARN_ON(rxe_read(task->qp) <= 0);
->          }
->      }
->      spin_unlock_irqrestore
-> }
->                                spin_lock_irqsave
->                                qp->valid = 0
->                                spin_unlock_irqrestore
->                              }
 > 
-> Ensure the QP's reference count is maintained and its validity is checked
-> within the timer callbacks by adding calls to rxe_get(qp) and corresponding
-> rxe_put(qp) after use.
+> Matt
 > 
-> Signed-off-by: Li Zhijian <lizhijian@fujitsu.com>
-> ---
->   drivers/infiniband/sw/rxe/rxe_comp.c | 3 +++
->   drivers/infiniband/sw/rxe/rxe_req.c  | 3 +++
->   2 files changed, 6 insertions(+)
-> 
-> diff --git a/drivers/infiniband/sw/rxe/rxe_comp.c b/drivers/infiniband/sw/rxe/rxe_comp.c
-> index a5b2b62f596b..1390e861bd1d 100644
-> --- a/drivers/infiniband/sw/rxe/rxe_comp.c
-> +++ b/drivers/infiniband/sw/rxe/rxe_comp.c
-> @@ -119,12 +119,15 @@ void retransmit_timer(struct timer_list *t)
->   
->   	rxe_dbg_qp(qp, "retransmit timer fired\n");
->   
-> +	if (!rxe_get(qp))
-> +		return;
->   	spin_lock_irqsave(&qp->state_lock, flags);
->   	if (qp->valid) {
->   		qp->comp.timeout = 1;
->   		rxe_sched_task(&qp->send_task);
->   	}
->   	spin_unlock_irqrestore(&qp->state_lock, flags);
-> +	rxe_put(qp);
->   }
->   
->   void rxe_comp_queue_pkt(struct rxe_qp *qp, struct sk_buff *skb)
-> diff --git a/drivers/infiniband/sw/rxe/rxe_req.c b/drivers/infiniband/sw/rxe/rxe_req.c
-> index 373b03f223be..12d03f390b09 100644
-> --- a/drivers/infiniband/sw/rxe/rxe_req.c
-> +++ b/drivers/infiniband/sw/rxe/rxe_req.c
-> @@ -102,6 +102,8 @@ void rnr_nak_timer(struct timer_list *t)
->   
->   	rxe_dbg_qp(qp, "nak timer fired\n");
->   
-> +	if (!rxe_get(qp))
-> +		return;
->   	spin_lock_irqsave(&qp->state_lock, flags);
->   	if (qp->valid) {
->   		/* request a send queue retry */
-> @@ -110,6 +112,7 @@ void rnr_nak_timer(struct timer_list *t)
->   		rxe_sched_task(&qp->send_task);
->   	}
->   	spin_unlock_irqrestore(&qp->state_lock, flags);
-> +	rxe_put(qp);
->   }
->   
->   static void req_check_sq_drain_done(struct rxe_qp *qp)
-
+> >  			dma_resv_unlock(priv->dmabuf->resv);
+> >  		}
+> >  		fput(priv->dmabuf->file);
+> > @@ -342,6 +345,8 @@ void vfio_pci_dma_buf_cleanup(struct vfio_pci_core_device *vdev)
+> >  		priv->vdev = NULL;
+> >  		priv->revoked = true;
+> >  		dma_buf_move_notify(priv->dmabuf);
+> > +		dma_resv_wait_timeout(priv->dmabuf->resv, DMA_RESV_USAGE_KERNEL,
+> > +				      false, MAX_SCHEDULE_TIMEOUT);
+> >  		dma_resv_unlock(priv->dmabuf->resv);
+> >  		vfio_device_put_registration(&vdev->vdev);
+> >  		fput(priv->dmabuf->file);
+> > 
+> > -- 
+> > 2.52.0
+> > 
