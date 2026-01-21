@@ -1,308 +1,248 @@
-Received: from hr2.samba.org (hr2.samba.org [144.76.82.148])
+Received: from CH4PR04CU002.outbound.protection.outlook.com (mail-northcentralusazon11013066.outbound.protection.outlook.com [40.107.201.66])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8FEE835B13D;
-	Wed, 21 Jan 2026 20:07:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=144.76.82.148
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769026075; cv=none; b=hoaWBgrZ1nN0RdBAHNab6JC04LygPEgBFpyhpsYpNH9APum01NtJJkT2gcFFCrt3r2d1zIFRsVZbjKBqAdbX1d8CqrcFR09U1yai0zVvodi04tkCEFeyM56Wt4hprBYJuUbQZOHr7fab8lp5AeYLTaEwDPwDPe/4Q4AqvmAm778=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769026075; c=relaxed/simple;
-	bh=qKqgBxsymAgfgU0zQXSZWapNvJf8szk0XUIdyQDMA+8=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=gBKq5fvr8LPktrqdVCXEZSzyIO4fK2YCG5xfnWD0BURNoQHICkt5M1udhI57mqPgqj5odCu2BMP8ZXvAELkwCWL4wuJfuNd96aFx3F02F1M95Crl7cH9OFYcd8A6M7KD6+/zaV5pStfhxLolXHYZvUBRsz/aBT14UbgNQc/dvHI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=samba.org; spf=pass smtp.mailfrom=samba.org; dkim=pass (3072-bit key) header.d=samba.org header.i=@samba.org header.b=DW/RogCX; arc=none smtp.client-ip=144.76.82.148
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=samba.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=samba.org
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 820D7438FE5;
+	Wed, 21 Jan 2026 21:42:46 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.201.66
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1769031768; cv=fail; b=WLg1LGP2LJujfuwqTmc/geOsvB5v+GgNm74kK/tl5a6RGtwEEqH2TomvpIJ2THvzYDj6I/aJFp5gFN5qJzf/Aq673Nm2X5MVsqY1guAwKrO8CmOpNXQrp/nzGsq7VoLzSGfenbLPfusQDqpuq/uI/sBiLwCtNluoFAzN31cq6U4=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1769031768; c=relaxed/simple;
+	bh=PM3JSlt4fhglgKtyQfSMdJTj4L2zArTiYCc4dORczcg=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-ID:References:
+	 In-Reply-To:To:CC; b=ndRhYichQInd6Ii2sxY9vy7v7AVHPZr/TBWM2xYQ5AfCn6BBLXQIdQu2E4tf3BNiWuZv0Fh+mhND+IMkTNPaWfE2B40U8D1ZrNQMUTTlDALoVa26X6hOTmtV2oZ8+4xdRu/IPrJaapwQ4WSoWzITprcucjUkv3TdnGtRyd2JjP0=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=ZkuZRpJc; arc=fail smtp.client-ip=40.107.201.66
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (3072-bit key) header.d=samba.org header.i=@samba.org header.b="DW/RogCX"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=samba.org;
-	s=42; h=Message-ID:Date:Cc:To:From;
-	bh=+I3JhLzJTCC4NOeTMSI3WFI9XK0T/byLkHHoVmgnaFw=; b=DW/RogCXIke5/fwVZjoI2l5VMu
-	JRn6QQQfWDNZIzZDAi6hbaIAVldDNbshexhg2b9i8VkUSBvkB6c/DVmbZscIj7o5AfI7vpSocR/27
-	M9ZGCsiS5aFNXfi/LRt5L/qSCA10LGd0gKnOP0jSHM4x9KGSPlLK5u/+eCHMsj4IhdbuMxWlQwvun
-	dwYrguM99k6BDVrUTaAXDRs2Q3TeU4I3xYn1SAS927u5si39Wtta+x8ostuqoEhspP3ZlO8HfWZfZ
-	IYOMfDYA7lx4CM5sLhH5msrclCE0nVB4zNDPgTazAXua9tZJgavGYf1gGUiJ5sDehbcllmQCwUegd
-	YwY4Uts0FvsJIIh8H/zG0yT+J752J8TcsDYwqsoxILOO/mJhpJxilcKY55vSJYx9wqkopRBT3qdCP
-	dSeyisELgZunRJnCZQ249nR0XB1EQZeW0grFsm/Vjri9z6LPm9BUOnMeUtaGhUdqDCyz4R7W/pdV/
-	rb8FXzfDoJXtpwSMNFhr3t4r;
-Received: from [127.0.0.2] (localhost [127.0.0.1])
-	by hr2.samba.org with esmtpsa (TLS1.3:ECDHE_SECP256R1__ECDSA_SECP256R1_SHA256__CHACHA20_POLY1305:256)
-	(Exim)
-	id 1vieUV-00000001ekQ-2l6p;
-	Wed, 21 Jan 2026 20:07:48 +0000
-From: Stefan Metzmacher <metze@samba.org>
-To: linux-rdma@vger.kernel.org,
-	linux-cifs@vger.kernel.org,
-	samba-technical@lists.samba.org
-Cc: metze@samba.org,
-	Jason Gunthorpe <jgg@ziepe.ca>,
-	Leon Romanovsky <leon@kernel.org>,
-	Steve French <smfrench@gmail.com>,
-	Tom Talpey <tom@talpey.com>,
-	Long Li <longli@microsoft.com>,
-	Namjae Jeon <linkinjeon@kernel.org>
-Subject: [RFC PATCH 3/3] smb: server: make use of rdma_restrict_node_type()
-Date: Wed, 21 Jan 2026 21:07:13 +0100
-Message-ID: <617d10f51178bd43065d88ec3c3bfc25f6e9098c.1769025321.git.metze@samba.org>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <cover.1769025321.git.metze@samba.org>
-References: <cover.1769025321.git.metze@samba.org>
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="ZkuZRpJc"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=cufIbyUCoW+FSmq6+bFMpE2fr0jtm6ZhIjdRYglnm7RIJUxXJlbHF6k004Q3WqrL7LwlcASbCkEyvzxL53KZyRyIv0/uZyTL+jT642c+LaEibfDs2ipgx0MM0CN4HJ5Dr7xaO1rW/V2w3GbJvuRIpy9t/e8CLgcvKgfoqeWOTplKYIOGHsu7rfSXGk09DipZhLn8pkHwnZpEmVFDP44t4Bwb9+f3ispv9FPaWWsp/eBibXypDsBLy3AdrTVCDNwHp0en1oMWntcjmyJ0FXpRVatkFEKAYONYZHK7k6qEzgYP4YVSG5X3F8k+tfKJLcrwQFRZrgB29YeXcJfY/KL5mg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=Z1JOO+P9CmgrO2c+MK/RicVe4hocB9U0zNDmyV38gB4=;
+ b=qYf2l36UaybPYxmHKmjcOQqa/AenRJ1pu9/BsSwKFVHAWZzkCgdGwYk2xcKsPAwhOyxfiiZE5BkAHbeXmjqvwcBUHX2YNhqu2ZArKp8dD32dNMy3zQsRPP5QDaa7YL8LxfsxHXZxVc3TIFBrOwyhpDak74TrCVqAz/yNR6lhIJbBInCS/5t2uNm+zB+6lFJZP2sWfdF/zp5PIEPceRAAE6o2j+JibS92aTqHxiIlkA7xFlEs9YWxgFmjFl9MiRNA7XhUAbRojr2UQwRKDHVh4mzrPTtfdA+U81AeVDRWhgnrguGY6TMZr3rpK9PPQDsi2Hb2JMD6py6CCSghOE3pmA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 216.228.118.232) smtp.rcpttodomain=amd.com smtp.mailfrom=nvidia.com;
+ dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
+ dkim=none (message not signed); arc=none (0)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=Z1JOO+P9CmgrO2c+MK/RicVe4hocB9U0zNDmyV38gB4=;
+ b=ZkuZRpJcd4Sb018zgCrqITWH46D5tITMr58FVrUUfWEbI7+qvRq8CDY7kor3wvlORFA2y3XWJxzsBd6O3aS1okp7yR7LWW4eI8dqP0iojgdTyPZIbsDTrbkY32yU8UdayCpOZsQXZVnPrskvcZKvZC1bWTJ7/MD8KNfULl21FGEseNg6AIvg5bv5uAP81+owxKl2Z4FV8/CM1Gq/aHbOnHxox87UWYbZfXu4YhlGZK4MtQC/omKEwPO67DjA62pMaXcD8BnrQVfP4oJTRsGVSsa1qZbNaD0Aiser6odRnARPXCSZzhYpxlrMYOjtgK+Rb/dYkRHlMOSU8767buVNgg==
+Received: from SA9PR13CA0108.namprd13.prod.outlook.com (2603:10b6:806:24::23)
+ by DS5PPF4A654669B.namprd12.prod.outlook.com (2603:10b6:f:fc00::64b) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9520.12; Wed, 21 Jan
+ 2026 21:42:41 +0000
+Received: from SA2PEPF00003F67.namprd04.prod.outlook.com
+ (2603:10b6:806:24:cafe::57) by SA9PR13CA0108.outlook.office365.com
+ (2603:10b6:806:24::23) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.20.9542.9 via Frontend Transport; Wed,
+ 21 Jan 2026 21:42:41 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.118.232)
+ smtp.mailfrom=nvidia.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=nvidia.com;
+Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
+ 216.228.118.232 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.118.232; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.118.232) by
+ SA2PEPF00003F67.mail.protection.outlook.com (10.167.248.42) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.9542.4 via Frontend Transport; Wed, 21 Jan 2026 21:42:41 +0000
+Received: from drhqmail202.nvidia.com (10.126.190.181) by mail.nvidia.com
+ (10.127.129.5) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Wed, 21 Jan
+ 2026 13:42:27 -0800
+Received: from drhqmail201.nvidia.com (10.126.190.180) by
+ drhqmail202.nvidia.com (10.126.190.181) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.20; Wed, 21 Jan 2026 13:42:26 -0800
+Received: from c-237-150-60-063.mtl.labs.mlnx (10.127.8.10) by mail.nvidia.com
+ (10.126.190.180) with Microsoft SMTP Server id 15.2.2562.20 via Frontend
+ Transport; Wed, 21 Jan 2026 13:42:24 -0800
+From: Edward Srouji <edwards@nvidia.com>
+Date: Wed, 21 Jan 2026 23:42:11 +0200
+Subject: [PATCH rdma-next v2 1/3] RDMA/uverbs: Support external FD uobjects
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-ID: <20260121-dmabuf-export-v2-1-6381183bcc3d@nvidia.com>
+References: <20260121-dmabuf-export-v2-0-6381183bcc3d@nvidia.com>
+In-Reply-To: <20260121-dmabuf-export-v2-0-6381183bcc3d@nvidia.com>
+To: Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>, "Sumit
+ Semwal" <sumit.semwal@linaro.org>, =?utf-8?q?Christian_K=C3=B6nig?=
+	<christian.koenig@amd.com>
+CC: <linux-kernel@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
+	<linux-media@vger.kernel.org>, <dri-devel@lists.freedesktop.org>,
+	<linaro-mm-sig@lists.linaro.org>, Yishai Hadas <yishaih@nvidia.com>, "Edward
+ Srouji" <edwards@nvidia.com>
+X-Mailer: b4 0.14.3
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1769031741; l=2919;
+ i=edwards@nvidia.com; s=20251029; h=from:subject:message-id;
+ bh=NEf4tjfLs+CEQnECqTZ2VKUUXIGRqTQZBxE2IdIJBjQ=;
+ b=zw8fk2qGb12uPCtsvrP7lERsSO05x86HSa99wuI0I8wcybv9jTXIJ6ayZYVUjplbAsaPENmb+
+ D1MHybfIROxAK983mdP5jVPz0UhVrfKePczwgqT1M9T3TLPgBMTuPa0
+X-Developer-Key: i=edwards@nvidia.com; a=ed25519;
+ pk=VME+d2WbMZT5AY+AolKh2XIdrnXWUwwzz/XLQ3jXgDM=
+X-NV-OnPremToCloud: ExternallySecured
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: SA2PEPF00003F67:EE_|DS5PPF4A654669B:EE_
+X-MS-Office365-Filtering-Correlation-Id: c0d18b01-28d5-4718-8847-08de5936013b
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|36860700013|1800799024|82310400026|376014;
+X-Microsoft-Antispam-Message-Info:
+	=?utf-8?B?NFcwZ1pRY2xUN1ZOVk9uSTYwdnpWN2EzV25TQkVWcFVtVFlDUkxiY3VJUFhS?=
+ =?utf-8?B?UDRzYmwyNjZxREJIamppbVlvSDc5Yy9WRStMditjejNTS3czaUJINytnY2dU?=
+ =?utf-8?B?bGxOU2gvcVNndkM2c1hMMEJxVEVHVS9NMWNwRmZyUFZvWTZtbHgvQkJjaTd2?=
+ =?utf-8?B?MTBkTXp6VDJ0Qnh2cXlsRlVTZWVuOGk0QTlHSjRobm15L1hBWXVYL1BNZ3JV?=
+ =?utf-8?B?cVpRcjRBRzdobnZRRlVoOWhCb051YW42VHBKMEIyUFJSVVZtTS9WZDVialRq?=
+ =?utf-8?B?KzhPUFM3d09nQkoycStFVy9DbmVHWVJ3bmppWjNXUWFZeThhWVpDZnV0cGJ2?=
+ =?utf-8?B?SlpSREJHOWNYRHhpTGxkdE5OZitvTFRDZnExS1NldHNUa2g3WnFhaFJnNXhK?=
+ =?utf-8?B?ZE5FS0dlcGN3cFJzMEFXSk5UMTNvL0wrZWhnUTg4bW0za0ZVaGIyM0ljckVt?=
+ =?utf-8?B?eHNRL291NnQyRFU0cG5JaXMvalJWS3JtRGpMejhYNjdnOXI5MTE2cDAydlJL?=
+ =?utf-8?B?My9IWWpvNVFLZStGREFST3RTbGNjTEROT1AvaG93VFlWMHRmcUJHbFJ4cEtY?=
+ =?utf-8?B?bWtSVW5NUlo5Q3IwdFpJVXI3NVgyWkl6RXZ1R1l5UDNGcWs4VlBucGxmNGlI?=
+ =?utf-8?B?S3NNc1pUbXlURkxpaUtkRFRxUERHb29WNDdRTzdPTGRZQUd0elJJWW9iK3BQ?=
+ =?utf-8?B?Mk14MEZsUU1JeXVnKzlNUGd1eXNGaUNMV2xDN0pUc2h1dWJ5dzFyZ2IrY1hy?=
+ =?utf-8?B?b21ERUZGTTlIbTg1SmNBbEpnVzI2VU9mdi9VM3lkVHFYNWh3UVQxVllVaFg2?=
+ =?utf-8?B?SnFwSXVrVXRpTHNNTVMvam91UzZMY3g0ZXpvb0NKNDVXNHhtcmpNSExwMW9V?=
+ =?utf-8?B?MDhFMUtKdFYvNTlpeHlaczRnK0o3UEdOUHFJZ3NaTGs1UHRpZURUeWNmSXc1?=
+ =?utf-8?B?ak95MTc3R3dRbXMxYm1jSGwzMXJxZkNpZ1I5a3VXeW1PcU5BMUdidUNqRHJD?=
+ =?utf-8?B?UlF6cmRzenZxS2t4eXg2aXp5dkVVWnhML3hsbVlCa0xGTUc4dTI0UlUyNi8z?=
+ =?utf-8?B?RDgvOExubFpNWWJ5em9FVmwwOTFJMXhWNWZGT0swZnl4bXFtSHFnNGEzTFRC?=
+ =?utf-8?B?aDVXenJDaE5IckFpbTQyUFBHaG9wVDFPUTBuV3I0YjJTVjFybU8vMHZyODZM?=
+ =?utf-8?B?TTRBL2U0dFcxT3VEWElFL0E1aCtPditYdGFoTkFON1ZvTHlGclJIS0psQkZQ?=
+ =?utf-8?B?YUM4aEpPa3hyVFp1eWlyaDJZVUYyNzZ4Y0hYMFZDamNKZkl5UENqVU9QWVUx?=
+ =?utf-8?B?dmJHSHV6V1hPRmkxbmNNWWcyWUFPcUN0cEJ3VTNjWkJTeUoxYS9QV2NCelIw?=
+ =?utf-8?B?WjlCcEVnVnZrN3FLdUxMY1QxU1BHZllZdnltQ0I3a3NWc0E1U0xFbGNoMk8z?=
+ =?utf-8?B?R3M2SUJPQnI3NEVOeXBlM1puMDZ2bUptTVpJU3htSFBLdzRML0FPWGR5ekYz?=
+ =?utf-8?B?M0NDQVFMeXp5cGdCQ1FkbjBHZWgyRUl5R3RFSHZVTk5GUjA1cFQxVzZRaklX?=
+ =?utf-8?B?ZmhydWgwUll2ZUNrS01vbmFIeGFRS2xkMCtKNTJWb0d4VG03QlRYUDJoTWNV?=
+ =?utf-8?B?QndITTV4WXB4Mm10RHBUeUVaaTN6enhlWWIvWmhsWTNPazRSOHdDMVlDN3JV?=
+ =?utf-8?B?T0pUc1lhVEFZNVRTTThOUWs4eHhHSFI5c3Q2RUovaXh2SXI3YkNDNjB5clRC?=
+ =?utf-8?B?NzZhcHp3YzBDZVJxdUl4QWZLTVdBOTBSRTg3ekpuMzIvNWZHM0pJdy85VHZM?=
+ =?utf-8?B?TVRJRi9waXQwTEFSNmJ6YUp5cDhDS0Yya1BIZm5OeFhrVis3NW53b0hmWWlX?=
+ =?utf-8?B?WDlEUkhIRUk5S01CZXZpMEVpUU9lS0htZ1JMVTRnWk1kUzBKc2NsYndQeXJU?=
+ =?utf-8?B?UC93WWRiTmV3eWVOUXNJaGNkVGVmRHd2T3NsM1VmY1VFaEtmYkgyWk5sWVJx?=
+ =?utf-8?B?aGVxNklPQzFqSU9mZERQS3VnTzFTcW9lU2oyUmFTT1lTVGtQdFZuTUYyQy9z?=
+ =?utf-8?B?RkVFVTRHUm85RzJMOTFYRDB2MXJpTHZjQStLdU9RcXo2V3dHandPQ1N5ZG1X?=
+ =?utf-8?B?eWF5Wk1SSHU3emFFdDdEdGFCbE9YaWxDWjRxeUVRK2g4UkhqWk9la2pZdTBq?=
+ =?utf-8?B?UncvNHBUMlZud25pN3dKRmJCTUVraENZN0c1dnFaQWt2ZVVyRkhyTHJuU0pG?=
+ =?utf-8?B?Q0ZEWkhZTVVjUElRV0pNSmhYaTd3PT0=?=
+X-Forefront-Antispam-Report:
+	CIP:216.228.118.232;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc7edge1.nvidia.com;CAT:NONE;SFS:(13230040)(36860700013)(1800799024)(82310400026)(376014);DIR:OUT;SFP:1101;
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 21 Jan 2026 21:42:41.5553
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: c0d18b01-28d5-4718-8847-08de5936013b
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.118.232];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	SA2PEPF00003F67.namprd04.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS5PPF4A654669B
 
-For smbdirect it required to use different ports depending
-on the RDMA protocol. E.g. for iWarp 5445 is needed
-(as tcp port 445 already used by the raw tcp transport for SMB),
-while InfiniBand, RoCEv1 and RoCEv2 use port 445, as they
-use an independent port range (even for RoCEv2, which uses udp
-port 4791 itself).
+From: Yishai Hadas <yishaih@nvidia.com>
 
-Currently ksmbd is not able to function correctly at
-all if the system has iWarp (RDMA_NODE_RNIC) interface(s)
-and any InfiniBand, RoCEv1 and/or RoCEv2 interface(s)
-at the same time.
+Add support for uobjects that wrap externally allocated file
+descriptors (FDs).
 
-Now we do a wildcard listen on port 5445 only
-for iWarp devices and another wildcard listen
-on port 445 of any InfiniBand, RoCEv1 and/or RoCEv2
-devices.
+In this mode, the FD number still follows the standard uverbs allocation
+flow, but the file pointer is allocated externally and has its own fops
+and private data.
 
-The wildcard listeners also work if there is
-no device of the requested node_type, this
-is the same logic as we had before, but before
-we had to decide between port 5445 or 445
-and now both are possible at the same time.
+As a result, alloc_begin_fd_uobject() must handle cases where
+fd_type->fops is NULL, and both alloc_commit_fd_uobject() and
+alloc_abort_fd_uobject() must account for whether filp->private_data
+exists, since it is populated outside the standard uverbs flow.
 
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Leon Romanovsky <leon@kernel.org>
-Cc: Steve French <smfrench@gmail.com>
-Cc: Tom Talpey <tom@talpey.com>
-Cc: Long Li <longli@microsoft.com>
-Cc: Namjae Jeon <linkinjeon@kernel.org>
-Cc: linux-rdma@vger.kernel.org
-Cc: linux-cifs@vger.kernel.org
-Cc: samba-technical@lists.samba.org
-Signed-off-by: Stefan Metzmacher <metze@samba.org>
+Signed-off-by: Yishai Hadas <yishaih@nvidia.com>
+Signed-off-by: Edward Srouji <edwards@nvidia.com>
 ---
- fs/smb/server/transport_rdma.c | 108 ++++++++++++++++++++++++---------
- 1 file changed, 80 insertions(+), 28 deletions(-)
+ drivers/infiniband/core/rdma_core.c | 35 +++++++++++++++++++++--------------
+ 1 file changed, 21 insertions(+), 14 deletions(-)
 
-diff --git a/fs/smb/server/transport_rdma.c b/fs/smb/server/transport_rdma.c
-index 541e51a7c0ce..675194a24e36 100644
---- a/fs/smb/server/transport_rdma.c
-+++ b/fs/smb/server/transport_rdma.c
-@@ -61,9 +61,6 @@
-  * Those may change after a SMB_DIRECT negotiation
-  */
+diff --git a/drivers/infiniband/core/rdma_core.c b/drivers/infiniband/core/rdma_core.c
+index 18918f463361..b6eda2fb0911 100644
+--- a/drivers/infiniband/core/rdma_core.c
++++ b/drivers/infiniband/core/rdma_core.c
+@@ -465,7 +465,7 @@ alloc_begin_fd_uobject(const struct uverbs_api_object *obj,
  
--/* Set 445 port to SMB Direct port by default */
--static int smb_direct_port = SMB_DIRECT_PORT_INFINIBAND;
--
- /* The local peer's maximum number of credits to grant to the peer */
- static int smb_direct_receive_credit_max = 255;
+ 	fd_type =
+ 		container_of(obj->type_attrs, struct uverbs_obj_fd_type, type);
+-	if (WARN_ON(fd_type->fops->release != &uverbs_uobject_fd_release &&
++	if (WARN_ON(fd_type->fops && fd_type->fops->release != &uverbs_uobject_fd_release &&
+ 		    fd_type->fops->release != &uverbs_async_event_release)) {
+ 		ret = ERR_PTR(-EINVAL);
+ 		goto err_fd;
+@@ -477,14 +477,16 @@ alloc_begin_fd_uobject(const struct uverbs_api_object *obj,
+ 		goto err_fd;
+ 	}
  
-@@ -90,8 +87,9 @@ struct smb_direct_device {
- };
+-	/* Note that uverbs_uobject_fd_release() is called during abort */
+-	filp = anon_inode_getfile(fd_type->name, fd_type->fops, NULL,
+-				  fd_type->flags);
+-	if (IS_ERR(filp)) {
+-		ret = ERR_CAST(filp);
+-		goto err_getfile;
++	if (fd_type->fops) {
++		/* Note that uverbs_uobject_fd_release() is called during abort */
++		filp = anon_inode_getfile(fd_type->name, fd_type->fops, NULL,
++					  fd_type->flags);
++		if (IS_ERR(filp)) {
++			ret = ERR_CAST(filp);
++			goto err_getfile;
++		}
++		uobj->object = filp;
+ 	}
+-	uobj->object = filp;
  
- static struct smb_direct_listener {
-+	int			port;
- 	struct rdma_cm_id	*cm_id;
--} smb_direct_listener;
-+} smb_direct_ib_listener, smb_direct_iw_listener;
- 
- static struct workqueue_struct *smb_direct_wq;
- 
-@@ -2621,6 +2619,7 @@ static bool rdma_frwr_is_supported(struct ib_device_attr *attrs)
- static int smb_direct_handle_connect_request(struct rdma_cm_id *new_cm_id,
- 					     struct rdma_cm_event *event)
+ 	uobj->id = new_fd;
+ 	return uobj;
+@@ -561,7 +563,9 @@ static void alloc_abort_fd_uobject(struct ib_uobject *uobj)
  {
-+	struct smb_direct_listener *listener = new_cm_id->context;
- 	struct smb_direct_transport *t;
- 	struct smbdirect_socket *sc;
- 	struct smbdirect_socket_parameters *sp;
-@@ -2709,7 +2708,7 @@ static int smb_direct_handle_connect_request(struct rdma_cm_id *new_cm_id,
+ 	struct file *filp = uobj->object;
  
- 	handler = kthread_run(ksmbd_conn_handler_loop,
- 			      KSMBD_TRANS(t)->conn, "ksmbd:r%u",
--			      smb_direct_port);
-+			      listener->port);
- 	if (IS_ERR(handler)) {
- 		ret = PTR_ERR(handler);
- 		pr_err("Can't start thread\n");
-@@ -2746,39 +2745,73 @@ static int smb_direct_listen_handler(struct rdma_cm_id *cm_id,
- 	return 0;
+-	fput(filp);
++	if (filp)
++		fput(filp);
++
+ 	put_unused_fd(uobj->id);
  }
  
--static int smb_direct_listen(int port)
-+static int smb_direct_listen(struct smb_direct_listener *listener,
-+			     int port)
- {
- 	int ret;
- 	struct rdma_cm_id *cm_id;
-+	u8 node_type = RDMA_NODE_UNSPECIFIED;
- 	struct sockaddr_in sin = {
- 		.sin_family		= AF_INET,
- 		.sin_addr.s_addr	= htonl(INADDR_ANY),
- 		.sin_port		= htons(port),
- 	};
+@@ -628,11 +632,14 @@ static void alloc_commit_fd_uobject(struct ib_uobject *uobj)
+ 	/* This shouldn't be used anymore. Use the file object instead */
+ 	uobj->id = 0;
  
-+	switch (port) {
-+	case SMB_DIRECT_PORT_IWARP:
+-	/*
+-	 * NOTE: Once we install the file we loose ownership of our kref on
+-	 * uobj. It will be put by uverbs_uobject_fd_release()
+-	 */
+-	filp->private_data = uobj;
++	if (!filp->private_data) {
 +		/*
-+		 * only allow iWarp devices
-+		 * for port 5445.
++		 * NOTE: Once we install the file we loose ownership of our kref on
++		 * uobj. It will be put by uverbs_uobject_fd_release()
 +		 */
-+		node_type = RDMA_NODE_RNIC;
-+		break;
-+	case SMB_DIRECT_PORT_INFINIBAND:
-+		/*
-+		 * only allow InfiniBand, RoCEv1 or RoCEv2
-+		 * devices for port 445.
-+		 *
-+		 * (Basically don't allow iWarp devices)
-+		 */
-+		node_type = RDMA_NODE_IB_CA;
-+		break;
-+	default:
-+		pr_err("unsupported smbdirect port=%d!\n", port);
-+		return -ENODEV;
++		filp->private_data = uobj;
 +	}
 +
- 	cm_id = rdma_create_id(&init_net, smb_direct_listen_handler,
--			       &smb_direct_listener, RDMA_PS_TCP, IB_QPT_RC);
-+			       listener, RDMA_PS_TCP, IB_QPT_RC);
- 	if (IS_ERR(cm_id)) {
- 		pr_err("Can't create cm id: %ld\n", PTR_ERR(cm_id));
- 		return PTR_ERR(cm_id);
- 	}
- 
-+	ret = rdma_restrict_node_type(cm_id, node_type);
-+	if (ret) {
-+		pr_err("rdma_restrict_node_type(%u) failed %d\n",
-+		       node_type, ret);
-+		goto err;
-+	}
-+
- 	ret = rdma_bind_addr(cm_id, (struct sockaddr *)&sin);
- 	if (ret) {
- 		pr_err("Can't bind: %d\n", ret);
- 		goto err;
- 	}
- 
--	smb_direct_listener.cm_id = cm_id;
--
- 	ret = rdma_listen(cm_id, 10);
- 	if (ret) {
- 		pr_err("Can't listen: %d\n", ret);
- 		goto err;
- 	}
-+
-+	listener->port = port;
-+	listener->cm_id = cm_id;
-+
- 	return 0;
- err:
--	smb_direct_listener.cm_id = NULL;
-+	listener->port = 0;
-+	listener->cm_id = NULL;
- 	rdma_destroy_id(cm_id);
- 	return ret;
- }
-@@ -2787,10 +2820,6 @@ static int smb_direct_ib_client_add(struct ib_device *ib_dev)
- {
- 	struct smb_direct_device *smb_dev;
- 
--	/* Set 5445 port if device type is iWARP(No IB) */
--	if (ib_dev->node_type != RDMA_NODE_IB_CA)
--		smb_direct_port = SMB_DIRECT_PORT_IWARP;
--
- 	if (!rdma_frwr_is_supported(&ib_dev->attrs))
- 		return 0;
- 
-@@ -2833,8 +2862,9 @@ int ksmbd_rdma_init(void)
- {
- 	int ret;
- 
--	smb_direct_port = SMB_DIRECT_PORT_INFINIBAND;
--	smb_direct_listener.cm_id = NULL;
-+	smb_direct_ib_listener = smb_direct_iw_listener = (struct smb_direct_listener) {
-+		.cm_id = NULL,
-+	};
- 
- 	ret = ib_register_client(&smb_direct_ib_client);
- 	if (ret) {
-@@ -2850,31 +2880,53 @@ int ksmbd_rdma_init(void)
- 	smb_direct_wq = alloc_workqueue("ksmbd-smb_direct-wq",
- 					WQ_HIGHPRI | WQ_MEM_RECLAIM | WQ_PERCPU,
- 					0);
--	if (!smb_direct_wq)
--		return -ENOMEM;
-+	if (!smb_direct_wq) {
-+		ret = -ENOMEM;
-+		goto err;
-+	}
- 
--	ret = smb_direct_listen(smb_direct_port);
-+	ret = smb_direct_listen(&smb_direct_ib_listener,
-+				SMB_DIRECT_PORT_INFINIBAND);
- 	if (ret) {
--		destroy_workqueue(smb_direct_wq);
--		smb_direct_wq = NULL;
--		pr_err("Can't listen: %d\n", ret);
--		return ret;
-+		pr_err("Can't listen on InfiniBand/RoCEv1/RoCEv2: %d\n", ret);
-+		goto err;
- 	}
- 
--	ksmbd_debug(RDMA, "init RDMA listener. cm_id=%p\n",
--		    smb_direct_listener.cm_id);
-+	ksmbd_debug(RDMA, "InfiniBand/RoCEv1/RoCEv2 RDMA listener. cm_id=%p\n",
-+		    smb_direct_ib_listener.cm_id);
-+
-+	ret = smb_direct_listen(&smb_direct_iw_listener,
-+				SMB_DIRECT_PORT_IWARP);
-+	if (ret) {
-+		pr_err("Can't listen on iWarp: %d\n", ret);
-+		goto err;
-+	}
-+
-+	ksmbd_debug(RDMA, "iWarp RDMA listener. cm_id=%p\n",
-+		    smb_direct_iw_listener.cm_id);
-+
- 	return 0;
-+err:
-+	ksmbd_rdma_stop_listening();
-+	ksmbd_rdma_destroy();
-+	return ret;
+ 	fd_install(fd, filp);
  }
  
- void ksmbd_rdma_stop_listening(void)
- {
--	if (!smb_direct_listener.cm_id)
-+	if (!smb_direct_ib_listener.cm_id && !smb_direct_iw_listener.cm_id)
- 		return;
- 
- 	ib_unregister_client(&smb_direct_ib_client);
--	rdma_destroy_id(smb_direct_listener.cm_id);
- 
--	smb_direct_listener.cm_id = NULL;
-+	if (smb_direct_ib_listener.cm_id)
-+		rdma_destroy_id(smb_direct_ib_listener.cm_id);
-+	if (smb_direct_iw_listener.cm_id)
-+		rdma_destroy_id(smb_direct_iw_listener.cm_id);
-+
-+	smb_direct_ib_listener = smb_direct_iw_listener = (struct smb_direct_listener) {
-+		.cm_id = NULL,
-+	};
- }
- 
- void ksmbd_rdma_destroy(void)
+
 -- 
-2.43.0
+2.49.0
 
