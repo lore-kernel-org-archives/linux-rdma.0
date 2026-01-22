@@ -1,147 +1,65 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D840F40F8E2;
-	Thu, 22 Jan 2026 03:40:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2BCDB34CFD6;
+	Thu, 22 Jan 2026 03:41:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769053206; cv=none; b=BGBfgXq+NuOGarN6/gzcfRDVSXrgWIAwE0ox6f6LlerSjykn2kK46gEI0pOSG5jnpqCNDm0uLAYs/JMem0GPDtPaqDI1BZoEAa5melbqUopQly70ngDZRGhBKmSsTCgIGab2KDHp+H/dpSO6A5BXfJ+ixjy6dK+p1iQRFaNtxFs=
+	t=1769053298; cv=none; b=QwQTIPo961QCVjm0vY5Uc5XUAvMw/CGOWssVDJgjKX1Bx0Ha7DfkmDuO5irGxqN8nfk8Mwed1ePyR1+AmBblyke5243cVtc8y/pZ0FtwE0ha1SGMfJ9aslb1bjxOgqv+t01Rllbv9LqGX1ORY0kG7mZ/X+ycLE6o68sKKZplZjE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769053206; c=relaxed/simple;
-	bh=Hv2uOjidNO7FItxrn1mbMLnYqtrmqCi7BnoOH99M+8I=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=uyM1pAGSi0pgqqfEZ2jOGqEau0K8XbEW171U8/tudm1zdpco12IqCZQ43md2ow75RIUPfce161JS/pPlqmZvtI/nJhCWEtRN9POv3k4u0ZxSF7MS0QKfAvjInVl2GUAGxqrblg1JP1ZAMeBd22rjDe+QWBh/b2y0qpwAm5yE1hI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=XRiD9eKc; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769053298; c=relaxed/simple;
+	bh=fQn73AMtLykAtIbLfz754K7IjrqMh6xwHuQUkv3q07Y=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=nRobrXiLTEGJH+eGN4OjtiseFBz6ExApFzX6AYcE6ad25f4XvgD9RuVA4dFSjD0/O6dNgQkRO6fE5TkknnQyrTli3q+lYOetpxt4mP1eBN7eJoXqUHOQAeodD1yQSNkhV5slDRf2cansqliFKoEeW/VAUf0Yed6DVzRmDKd6VLI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=VZt6Tbha; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="XRiD9eKc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D8999C19425;
-	Thu, 22 Jan 2026 03:40:03 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="VZt6Tbha"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 76E56C116C6;
+	Thu, 22 Jan 2026 03:41:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1769053205;
-	bh=Hv2uOjidNO7FItxrn1mbMLnYqtrmqCi7BnoOH99M+8I=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=XRiD9eKcgAZnjW9LD6AsjpYQzB84ojCjz6qaihSsI0GauBmqbmtM1yqN1p0tnf7O5
-	 lar1kUOiKBKxBI07wKxrJhOUlgtzLwN6CX/C4pt1GRrHkjTFHMNbT37PeH3FlaYcWw
-	 ovdDZXb58jbAPvDVwzeLz7ex+OyTZwwyKfm1o3lIbk2LwaXgCb6gKC68Apt/tlxYi3
-	 PYf6jv1QdGACAaE5PlwGqQTYV3xVny0v/6CIQYdzwxDvbSgyYK302rRUPc/A2C6iOa
-	 fhLosNqSwUsGl556DfkbO5gcToJ4kQji3/eGSE6TYFbNAZSRN0ByTsuyRTxaYKJrnL
-	 zy7ZORJz79BQw==
+	s=k20201202; t=1769053297;
+	bh=fQn73AMtLykAtIbLfz754K7IjrqMh6xwHuQUkv3q07Y=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+	b=VZt6TbhaNMFnQUPH6VMQSSy4AY3T3m0yjxWcvzn/VJSjG/ekyR2N5WuJ1I77RoIeV
+	 UFxPvfj7KmKeZUvhEf2U+MSJbybnri/tGUIEKRvVLJRFjsT/5PK+T/USLsIiEI3Ubp
+	 rTV3QsEI1Z8DxpsYVh2htQANMvCMKPUwtAXmcIcguZG0Ju+IUfwGD0Rf2A6TPIq7T/
+	 GG42s5OMkxFqZ2apTXC+5L1RIJrMKr7o7I3+j7jhyFPJRANYFxkRBe9Hk4sfdYBwG/
+	 CDdIVQ9yDsg+jDNuWTQQ7qfteH+h0nw26S0Qreo6yZx3FryiiVGWkwWVML8KpayD/I
+	 7ubVMGLwPk1hg==
+Date: Wed, 21 Jan 2026 19:41:35 -0800
 From: Jakub Kicinski <kuba@kernel.org>
 To: tariqt@nvidia.com
-Cc: Jakub Kicinski <kuba@kernel.org>,
-	cratiu@nvidia.com,
-	saeedm@nvidia.com,
-	cjubran@nvidia.com,
-	davem@davemloft.net,
-	horms@kernel.org,
-	linux-doc@vger.kernel.org,
-	mbloch@nvidia.com,
-	moshe@nvidia.com,
-	jiri@nvidia.com,
-	edumazet@google.com,
-	gal@nvidia.com,
-	andrew+netdev@lunn.ch,
-	donald.hunter@gmail.com,
-	jiri@resnulli.us,
-	krzk@kernel.org,
-	pabeni@redhat.com,
-	linux-kernel@vger.kernel.org,
-	linux-rdma@vger.kernel.org,
-	netdev@vger.kernel.org,
-	rdunlap@infradead.org,
-	leon@kernel.org,
-	corbet@lwn.net
-Subject: Re: [net-next,V5,12/15] net/mlx5: Store QoS sched nodes in the sh_devlink
-Date: Wed, 21 Jan 2026 19:40:03 -0800
-Message-ID: <20260122034003.2579276-1-kuba@kernel.org>
-X-Mailer: git-send-email 2.52.0
-In-Reply-To: <1768895878-1637182-13-git-send-email-tariqt@nvidia.com>
-References: <1768895878-1637182-13-git-send-email-tariqt@nvidia.com>
+Cc: cratiu@nvidia.com, saeedm@nvidia.com, cjubran@nvidia.com,
+ davem@davemloft.net, horms@kernel.org, linux-doc@vger.kernel.org,
+ mbloch@nvidia.com, moshe@nvidia.com, jiri@nvidia.com, edumazet@google.com,
+ gal@nvidia.com, andrew+netdev@lunn.ch, donald.hunter@gmail.com,
+ jiri@resnulli.us, krzk@kernel.org, pabeni@redhat.com,
+ linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
+ netdev@vger.kernel.org, rdunlap@infradead.org, leon@kernel.org,
+ corbet@lwn.net
+Subject: Re: [net-next,V5,10/15] net/mlx5: Add a shared devlink instance for
+ PFs on same chip
+Message-ID: <20260121194135.6737b36f@kernel.org>
+In-Reply-To: <20260122033959.2579113-1-kuba@kernel.org>
+References: <1768895878-1637182-11-git-send-email-tariqt@nvidia.com>
+	<20260122033959.2579113-1-kuba@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-This is an AI-generated review of your patch. The human sending this
-email has considered the AI review valid, or at least plausible.
+On Wed, 21 Jan 2026 19:39:59 -0800 Jakub Kicinski wrote:
+> > +int mlx5_shd_init(struct mlx5_core_dev *dev)
+> > +{
+> > +	u8 *vpd_data __free(kfree) = NULL;  
+> 
+> The __free(kfree) annotation here combined with the early return below
+> looks problematic.
 
-For local reproduction steps see https://netdev-ai.bots.linux.dev/ai-local.html
----
-net/mlx5: Store QoS sched nodes in the sh_devlink
-
-This commit moves the QoS scheduling nodes from per-eswitch storage to
-the shared devlink instance. It replaces per-eswitch locking with the
-shared devlink lock and removes explicit locking from devlink rate
-callbacks with the expectation that devlink holds the shd lock.
-
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/esw/qos.c b/drivers/net/ethernet/mellanox/mlx5/core/esw/qos.c
-> index 8c3a026b8db4..0d187399d846 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/esw/qos.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/esw/qos.c
-
-[ ... ]
-
-> static void esw_assert_qos_lock_held(struct mlx5_eswitch *esw)
-> {
->-	lockdep_assert_held(&esw->qos.domain->lock);
->+	devl_assert_locked(esw->dev->shd);
-> }
-
-[ ... ]
-
-> int mlx5_esw_devlink_rate_leaf_tx_share_set(struct devlink_rate *rate_leaf, void *priv,
-> 					    u64 tx_share, struct netlink_ext_ack *extack)
-> {
-> 	struct mlx5_vport *vport = priv;
->-	struct mlx5_eswitch *esw;
-> 	int err;
->
->-	esw = vport->dev->priv.eswitch;
->-	if (!mlx5_esw_allowed(esw))
->+	if (!mlx5_esw_allowed(vport->dev->priv.eswitch))
-> 		return -EPERM;
->
-> 	err = esw_qos_devlink_rate_to_mbps(vport->dev, "tx_share", &tx_share, extack);
-> 	if (err)
-> 		return err;
->
->-	esw_qos_lock(esw);
-> 	err = mlx5_esw_qos_set_vport_min_rate(vport, tx_share, extack);
-                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-At this commit, the esw_qos_lock/unlock calls are removed with the
-expectation that "all calls originating from devlink rate already have
-the shd lock held" (per the commit message). However, the devlink rate
-infrastructure only locks dev->shd when supported_cross_device_rate_nodes
-is set in the devlink_ops, which does not happen until commit ef6db4a7f381
-("net/mlx5: qos: Enable cross-device scheduling").
-
-The call chain is:
-  devlink_nl_rate_set_doit() -> devl_rate_lock() ->
-  mlx5_esw_devlink_rate_leaf_tx_share_set() ->
-  mlx5_esw_qos_set_vport_min_rate() -> esw_assert_qos_lock_held() ->
-  devl_assert_locked(esw->dev->shd)
-
-Since devl_rate_lock() only locks the nested-in devlink when
-supported_cross_device_rate_nodes is true, and that flag is not set at
-this commit, the assertion will fail with lockdep enabled, and QoS data
-structures will be accessed without proper locking.
-
-This creates a bisect window between this commit and ef6db4a7f381 where
-the QoS locking is broken. Could the setting of supported_cross_device_rate_nodes
-be moved into this patch to avoid the bisect issue?
-
->-	if (err)
->-		goto out;
->-	esw_vport_qos_prune_empty(vport);
->-out:
->-	esw_qos_unlock(esw);
->+	if (!err)
->+		esw_vport_qos_prune_empty(vport);
-> 	return err;
-> }
-
-[ ... ]
+__free() should be considered banned for netdev.
+Please.
+It clearly adds more bugs than it fixes.
