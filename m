@@ -1,94 +1,60 @@
-Received: from zg8tmtyylji0my4xnjeumjiw.icoremail.net (zg8tmtyylji0my4xnjeumjiw.icoremail.net [162.243.161.220])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 9A9AB2C0296
-	for <linux-rdma@vger.kernel.org>; Thu, 22 Jan 2026 14:29:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=162.243.161.220
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 16C353EBF3D
+	for <linux-rdma@vger.kernel.org>; Thu, 22 Jan 2026 17:10:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769092154; cv=none; b=Zx6aUQKCYhlgWoqIaRLt0ll5b2e3iCne8Sa80UJUHXEkcJl4Czve0NE/eH+JLH2kq8OlaVr98DfkApA7TJPp55WN0VfKvXc8vpoh7Bc6Rcm0zd4DoRCGoViX8ftRUkm0euFy2imoA43/28TNFvuObCfy0hRaYmNCkhe3uy04EHo=
+	t=1769101810; cv=none; b=G7LRQG1XOVBJKuIvKoj8vd+RO6EGVaXbjaY7/2n9LDPoaQz6O/NcX6AAY/8WA9GIi80C1dkcn0L3Zs1ASA5a0+b8h+CIY5mVcei9d/H4122PR0M4WKTx6zN9OhF/ykCMydBKzzs1HE1Z/hQKym6Hnau1nTbVrhy3ID3KBsQLvs0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769092154; c=relaxed/simple;
-	bh=cHbKZu6q5NJS1criCFxgQVSctSWPabNKO0496HazpZ4=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=e/gmUVqoAjtOWD5ltQOjvyzal2BLcSIyRkejXN4XOBxwRBh8rudJA48zVqqOr9cIvEkP9boRFgYoY5UjibJ8hSXet3/md2PRIOBeDxKYlEW0d6om5xXxGr9YvulvZ8piiqbCqeVF/xZHd76Nz6CFlkHLw2Q1zGKYMrJA1gldZjQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=mails.tsinghua.edu.cn; spf=pass smtp.mailfrom=mails.tsinghua.edu.cn; dkim=pass (1024-bit key) header.d=mails.tsinghua.edu.cn header.i=@mails.tsinghua.edu.cn header.b=AQow2DaY; arc=none smtp.client-ip=162.243.161.220
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=mails.tsinghua.edu.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=mails.tsinghua.edu.cn
+	s=arc-20240116; t=1769101810; c=relaxed/simple;
+	bh=InjV94M9hZGmudvwWkiMkg4m+x4BjkmMac/RvNBa7mc=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=ZvGmYYczT40MXGMO8OPZulkOsdEbE96dlbMFpKgf7XBS/XkIbHpbX++zPVhKXlVWqS+0x/PHTHB84EDTmHq9ywcCvdosh31t025ygInWx2uB2E/wGzccYRm7j6Tb4lp9+dUDk7aJriauKtzCueOHKlRgYi8s7X2DzNrB3CdcwfQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=GyzpgD4P; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=mails.tsinghua.edu.cn header.i=@mails.tsinghua.edu.cn header.b="AQow2DaY"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=mails.tsinghua.edu.cn; s=dkim; h=Received:From:To:Cc:Subject:
-	Date:Message-Id:MIME-Version:Content-Transfer-Encoding; bh=tz1DO
-	d5OlEAnv4mqMzMEJ0cun5z1o52OTer0wAGl+/w=; b=AQow2DaYNIP2AdyDsqdEA
-	COJOj09687Ise3mgRpz7Q6mFxiRTAWQZgBQwHqM+FQM8sBkhHam8ABCYH0YT1CJw
-	BzMIvVFmptT1VnKi8HIe+JhnF9TRBGa3v7XjB2cAnM8JypgIriDPDlR0R9Hsm97R
-	DvV5wTP1THkQtXQ31ypS6I=
-Received: from dell-PowerEdge-R760.. (unknown [101.6.30.120])
-	by web4 (Coremail) with SMTP id ywQGZQAXeHIrNHJphh77AA--.36066S2;
-	Thu, 22 Jan 2026 22:28:59 +0800 (CST)
-From: Yi Liu <liuy22@mails.tsinghua.edu.cn>
-To: jgg@ziepe.ca,
-	leon@kernel.org
-Cc: linux-rdma@vger.kernel.org,
-	security@kernel.org,
-	Yi Liu <liuy22@mails.tsinghua.edu.cn>
-Subject: [PATCH 0/1] RDMA/uverbs: Fix missing wqe_size validation in ib_uverbs_post_send
-Date: Thu, 22 Jan 2026 22:28:59 +0800
-Message-Id: <20260122142900.2356276-1-liuy22@mails.tsinghua.edu.cn>
-X-Mailer: git-send-email 2.34.1
+	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="GyzpgD4P"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D4AC2C116C6;
+	Thu, 22 Jan 2026 17:10:08 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
+	s=korg; t=1769101809;
+	bh=InjV94M9hZGmudvwWkiMkg4m+x4BjkmMac/RvNBa7mc=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=GyzpgD4PPVZJ5vWI6gC52eC+dgWT2KFHGS7M5KcyRsoHuHRhsRJRRnO78h16TiLNr
+	 ODxNnsTTR6diE2mOGnTWdIFq1K7WauxwcFxvXv7KZy36EMrWk7sMNHxqtpwXCjzG65
+	 3ATjhLPyOza9eaS2T1LnDw3Nei0e3W1/g5mRDPWY=
+Date: Thu, 22 Jan 2026 18:10:06 +0100
+From: Greg KH <gregkh@linuxfoundation.org>
+To: Yi Liu <liuy22@mails.tsinghua.edu.cn>
+Cc: jgg@ziepe.ca, leon@kernel.org, linux-rdma@vger.kernel.org,
+	security@kernel.org
+Subject: Re: [PATCH 0/1] RDMA/uverbs: Fix missing wqe_size validation in
+ ib_uverbs_post_send
+Message-ID: <2026012249-huddling-scorn-d194@gregkh>
+References: <20260122142900.2356276-1-liuy22@mails.tsinghua.edu.cn>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:ywQGZQAXeHIrNHJphh77AA--.36066S2
-X-Coremail-Antispam: 1UD129KBjvdXoWrZF4rWFyDZrW3Gr15XF4kXrb_yoWkJrb_u3
-	WDtrsrCry5uFnrA3WUKF4xZFZIgr4xWFyYvFy0qa43J3s0vrsrWw129rWkXr18Gay7Wrn5
-	Jr4vy39xKwnIkjkaLaAFLSUrUUUUbb8apTn2vfkv8UJUUUU8Yxn0WfASr-VFAUDa7-sFnT
-	9fnUUIcSsGvfJTRUUUbxAFc2x0x2IEx4CE42xK8VAvwI8IcIk0rVWrJVCq3wA2ocxC64kI
-	II0Yj41l84x0c7CEw4AK67xGY2AK021l84ACjcxK6xIIjxv20xvE14v26ryj6F1UM28EF7
-	xvwVC0I7IYx2IY6xkF7I0E14v26F4j6r4UJwA2z4x0Y4vEx4A2jsIE14v26rxl6s0DM28E
-	F7xvwVC2z280aVCY1x0267AKxVW0oVCq3wAac4AC62xK8xCEY4vEwIxC4wAS0I0E0xvYzx
-	vE52x082IY62kv0487Mc02F40EFcxC0VAKzVAqx4xG6I80ewAv7VCjz48v1sIEY20_GrWk
-	Jr1UJwAm72CE4IkC6x0Yz7v_Jr0_Gr1lF7xvr2IYc2Ij64vIr41lF7I21c0EjII2zVCS5c
-	I20VAGYxC7MxkF7I0En4kS14v26r126r1DMxkIecxEwVAFwVW5XwCF04k20xvY0x0EwIxG
-	rwCF04k20xvE74AGY7Cv6cx26r4rKr1UJr1l4I8I3I0E4IkC6x0Yz7v_Jr0_Gr1lx2IqxV
-	Aqx4xG67AKxVWUJVWUGwC20s026x8GjcxK67AKxVWUGVWUWwC2zVAF1VAY17CE14v26r12
-	6r1DMIIYrxkI7VAKI48JMIIF0xvE2Ix0cI8IcVAFwI0_Jr0_JF4lIxAIcVC0I7IYx2IY6x
-	kF7I0E14v26r1j6r4UMIIF0xvE42xK8VAvwI8IcIk0rVWUJVWUCwCI42IY6I8E87Iv67AK
-	xVWUJVW8JwCI42IY6I8E87Iv6xkF7I0E14v26r1j6r4UYxBIdaVFxhVjvjDU0xZFpf9x0J
-	jI0PhUUUUU=
-X-CM-SenderInfo: polx5j2s6ptxtovo32xlqjx3vdohv3gofq/1tbiAgYPAmlx-+5bbgAAs1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260122142900.2356276-1-liuy22@mails.tsinghua.edu.cn>
 
-Hi,
+On Thu, Jan 22, 2026 at 10:28:59PM +0800, Yi Liu wrote:
+> Given the potential for kernel heap information disclosure, I believe
+> the first issue may warrant a CVE assignment. I would appreciate it if
+> the security team could evaluate this.
 
-I discovered a missing input validation issue in ib_uverbs_post_send().
+The kernel security team has nothing to do with CVEs, sorry.  Please see
+the in-kernel documentation at:
+	https://www.kernel.org/doc/html/latest/process/cve.html
+for how that works.
 
-The function uses cmd.wqe_size from userspace without validation before
-passing it to kmalloc() and accessing the buffer as struct ib_uverbs_send_wr.
+And as this is a public issue, the kernel security team doesn't need to
+be involved at all :)
 
-Security Impact:
-- If wqe_size is too small: out-of-bounds read from kernel heap memory,
-  potentially leaking sensitive kernel information.
-- If wqe_size is too large: triggers WARNING in the memory allocator.
+thanks,
 
-This patch addresses the first issue (wqe_size too small) by adding a
-lower bound check, consistent with ib_uverbs_unmarshall_recv(). The
-upper bound check is not included in this patch and may need further
-discussion on what a reasonable limit should be.
-
-Given the potential for kernel heap information disclosure, I believe
-the first issue may warrant a CVE assignment. I would appreciate it if
-the security team could evaluate this.
-
-Thanks,
-Yi Liu
-
-Yi Liu (1):
-  RDMA/uverbs: Validate wqe_size before using it in ib_uverbs_post_send
-
- drivers/infiniband/core/uverbs_cmd.c | 3 +++
- 1 file changed, 3 insertions(+)
-
---
-2.34.1
-
+greg k-h
