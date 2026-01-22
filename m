@@ -1,96 +1,107 @@
-Received: from mail-qk1-f172.google.com (mail-qk1-f172.google.com [209.85.222.172])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED0D3320CA7
-	for <linux-rdma@vger.kernel.org>; Thu, 22 Jan 2026 14:08:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.172
+Received: from sgoci-sdnproxy-4.icoremail.net (sgoci-sdnproxy-4.icoremail.net [129.150.39.64])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 9340134DB57
+	for <linux-rdma@vger.kernel.org>; Thu, 22 Jan 2026 14:29:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=129.150.39.64
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769090897; cv=none; b=livxNf0PDUa5hqJPHEV8hcANdvj1lCQ4N5xrDQxmQMPRx2Jn6G0jkyPz6Qpxq2lfJRqH/67YTji2kd8JnRf9idDoJ6+X8Pdxs4JgW0yeM640Oui2QUndRhQnTmqV0iYLm0Vk0lvd1txhLAR2zAapYNW7qUUGCIghVeqYOe4AHMw=
+	t=1769092152; cv=none; b=dbdGb22DrlJmRTi37gvg/z482InQux4BXKNNAdA05V0iHNyk20zGENY3BqYaZxCB/qtyUUphvWo1OEuC3mjACB+Jhw6O5CORvaOTnU76btHUvGKSeLx3ZWYYdk6/BNiSTl/JdFL22ablTpb6CWWeWAupuJqNE90cDAU25S6fwRg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769090897; c=relaxed/simple;
-	bh=OhR9Fws/m8KkhPyoy/s2nyPSurtBYOgALRwZAV0u/to=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=shI0BbAJC3bPoXs42kLaD6CssfnrkY00EeunHi9L3E+p6n181nzSe9JxLhnmtOA4TFdwE1x+gTZhkmpWYDv0UrhPCiTfbwvGT7Ob5w9dd70lpqh9IZus9/lOKKUNsV7J0sF/VOpB/reiea1e4SgkFl7zRc7AkY4YsnbOPTtU3JU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca; spf=pass smtp.mailfrom=ziepe.ca; dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b=ChusM5na; arc=none smtp.client-ip=209.85.222.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ziepe.ca
+	s=arc-20240116; t=1769092152; c=relaxed/simple;
+	bh=U3GgYtrVR2NiTVgSv2E0rQGLs50+AhRDpoHAejEbQa4=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=USLW3Smuwg/8x+NEUfNY0aOtJOfI62siErx39i+4bgc5cgKRPEiSXiM0L6ho1Hfn5AhNF0Zb4G/MyuNstWMoqMseHDnuqj3fhfO1RCh5HaQjVzgv9h3tyRHYg2r0/XbB0fVu2qTLZkePOySGGr+aK5piYly51F0zXii8L6nV1KE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=mails.tsinghua.edu.cn; spf=pass smtp.mailfrom=mails.tsinghua.edu.cn; dkim=pass (1024-bit key) header.d=mails.tsinghua.edu.cn header.i=@mails.tsinghua.edu.cn header.b=BpvFbp4U; arc=none smtp.client-ip=129.150.39.64
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=mails.tsinghua.edu.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=mails.tsinghua.edu.cn
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="ChusM5na"
-Received: by mail-qk1-f172.google.com with SMTP id af79cd13be357-8c6ac42b91eso99941185a.3
-        for <linux-rdma@vger.kernel.org>; Thu, 22 Jan 2026 06:08:15 -0800 (PST)
+	dkim=pass (1024-bit key) header.d=mails.tsinghua.edu.cn header.i=@mails.tsinghua.edu.cn header.b="BpvFbp4U"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google; t=1769090895; x=1769695695; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=OhR9Fws/m8KkhPyoy/s2nyPSurtBYOgALRwZAV0u/to=;
-        b=ChusM5naIBJXvJJbGrgN9lWLCmOG5OQc1vbGue/KVwIXgJKbkrZDcU+ZFzIDlrL0nE
-         7u69/2GEvJoVMCLhUUPjiMgmVZ0+38sz32JEaeWc7OwoqFIsHoK9breKEvpL+oUjWsu2
-         d+CQ+Orh04LGq5IMnVLrmLKKS7jVNMBJpvnOhINaXb8Jihnssll5c65S3pxydFLTwtj2
-         cQz5sGa+dHjReY10hIYknxQ00IK7A8DIPkmVZ95I2Psk1o3+lnD0M0kl2q/DJQnYIY2A
-         k+WqJ+AoFeyT6AMt5dI+ZH9jr0CRF36qEZ+4EDsPSwn7aygpT0O1j2Eli9IEefoKS+bd
-         cSqg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1769090895; x=1769695695;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=OhR9Fws/m8KkhPyoy/s2nyPSurtBYOgALRwZAV0u/to=;
-        b=q2u+z5zChMrDF1eeUXyVGJLIi+U7abaVBm0xYM8rnkkWe9u18+dmaVoceMJ0ODag5Z
-         VKH2JhHqpeNdGrtZOefFA+CCd6asMmGaQGR/Ymb9dD/2Yaa2pAuoCt710kefNBVtbQI8
-         Nuuzornbv4VV7ELaxKYNYTOACvNC4WA4d2JwqLZ35Ghqnq2ui5SXaJOGeTHNb2ubk5AL
-         Bm+X0zWPnd0Wn8rZT6Tgl3ifrdE9kY7i4hmFx4VW2ucI+tMCs1m9ZT0s1UtzCL70pMzg
-         o3unTlCDM6ztrDzlJxZ7mh9CAEOnbjl9zmpe2efko6T51FQc6LBwXx5M1OG5IcL/Ms/O
-         AUWQ==
-X-Forwarded-Encrypted: i=1; AJvYcCW34FXswJ5R47SzgcwOOWgdUDR1sMSmR3WP5/lpY1+TBUS5HKc6hHsd1FQqAKDfmtU+R19ctf/bwRwM@vger.kernel.org
-X-Gm-Message-State: AOJu0Yw9ngASltFhybwEq+YXBXh4DRv0ld4BWmVWPxZEBGcxxcqIai9f
-	Yti030Yd9iLgrBTUp+GyMoQf2SkejnYtrdi+NGeBy6s+TcgkmfewHsRJei/LNwO24YU=
-X-Gm-Gg: AZuq6aKtDySb1dAZXT/d0yFn7ZzHCEYjxM6SEOhlit1a/PJ91Ev7OJoXAoZCX6MvLnj
-	f0VYo8CaFic97LkIeMVetq73lL3qIRdN7kwfZ/TmH791cDxJdqnGJf95fSXlwtbFDA6ceR/533Q
-	5BvgZDoM9sf6WpPG8XaA8cfWFZ5gDBGBFY3DLtSPU4P0M3efb2qtiD17XAjPzlI5qC4GCZoa5PL
-	qxPxKdbi5OtKo+xa3YNfmWwy4Tv6zt0Y+mlbGJ7ynO1sOSWMCr8Z8bn+Y5au1p5UyEd1XP94ZQl
-	qM9PMz1xlZ665jlqy/gTi2a7OLHOvn1NZnscLgxAcW6PM9ortutq9dLSkAaSXShuw4iDDHpPrWr
-	jv5SYzrdppkL6WNGYBvmaMjhQZpZJMD8nKXEfIkoymQANQZo2vhdvzAWeJVgOHV2UFNITnfwjh8
-	TGkyPLbUCmimIfcJLdZgNHAdPwAWGFELCQM7H90BAFLKAp3kY+YQkdNP4N6Ntky20hZCo=
-X-Received: by 2002:a05:620a:4693:b0:8b2:dabe:de32 with SMTP id af79cd13be357-8c6a6764a50mr2785126585a.42.1769090894650;
-        Thu, 22 Jan 2026 06:08:14 -0800 (PST)
-Received: from ziepe.ca (hlfxns017vw-142-162-112-119.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.162.112.119])
-        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-8942e60428dsm157923986d6.22.2026.01.22.06.08.13
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 22 Jan 2026 06:08:13 -0800 (PST)
-Received: from jgg by wakko with local (Exim 4.97)
-	(envelope-from <jgg@ziepe.ca>)
-	id 1vivM5-00000006a95-1Z7k;
-	Thu, 22 Jan 2026 10:08:13 -0400
-Date: Thu, 22 Jan 2026 10:08:13 -0400
-From: Jason Gunthorpe <jgg@ziepe.ca>
-To: Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>
-Cc: leon@kernel.org, linux-rdma@vger.kernel.org,
-	andrew.gospodarek@broadcom.com, selvin.xavier@broadcom.com,
-	kalesh-anakkur.purayil@broadcom.com
-Subject: Re: [PATCH rdma-next v8 3/4] RDMA/bnxt_re: Direct Verbs: Support DBR
- verbs
-Message-ID: <20260122140813.GJ961572@ziepe.ca>
-References: <20260117080052.43279-1-sriharsha.basavapatna@broadcom.com>
- <20260117080052.43279-4-sriharsha.basavapatna@broadcom.com>
- <20260120185419.GU961572@ziepe.ca>
- <CAHHeUGXtiDezOVwmFJ3y-0daHD_3ENayqtDJUSHnDE9rVRiAKA@mail.gmail.com>
- <20260121165216.GH961572@ziepe.ca>
- <CAHHeUGUGGQHRySzgwM5Orjgj3GYLUQHB2LCzZDj1CBGyZJX3wg@mail.gmail.com>
+	d=mails.tsinghua.edu.cn; s=dkim; h=Received:From:To:Cc:Subject:
+	Date:Message-Id:In-Reply-To:References:MIME-Version:
+	Content-Transfer-Encoding; bh=DXUNrydkBRcAULeYqK8TBRhJ9QI0rb6kwn
+	UcclfF3Tw=; b=BpvFbp4UZNRnl9wEl+JmoafaBDSNmGVeVdwOYR7tLL1K9mBtdW
+	e3Ffo7/h/zaT2AxZxG4AYnCxGKlGWsgAn2gg31aAZ+N4vamyGgvIIFsod900SFqn
+	7BCkIWQ72uPkcRU1frI+PEBLfb3esNZGXeuOxXhpWoXgmKH4YdwlpyPJk=
+Received: from dell-PowerEdge-R760.. (unknown [101.6.30.120])
+	by web4 (Coremail) with SMTP id ywQGZQAXeHIrNHJphh77AA--.36066S3;
+	Thu, 22 Jan 2026 22:29:00 +0800 (CST)
+From: Yi Liu <liuy22@mails.tsinghua.edu.cn>
+To: jgg@ziepe.ca,
+	leon@kernel.org
+Cc: linux-rdma@vger.kernel.org,
+	security@kernel.org,
+	Yi Liu <liuy22@mails.tsinghua.edu.cn>
+Subject: [PATCH 1/1] RDMA/uverbs: Validate wqe_size before using it in ib_uverbs_post_send
+Date: Thu, 22 Jan 2026 22:29:00 +0800
+Message-Id: <20260122142900.2356276-2-liuy22@mails.tsinghua.edu.cn>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20260122142900.2356276-1-liuy22@mails.tsinghua.edu.cn>
+References: <20260122142900.2356276-1-liuy22@mails.tsinghua.edu.cn>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAHHeUGUGGQHRySzgwM5Orjgj3GYLUQHB2LCzZDj1CBGyZJX3wg@mail.gmail.com>
+Content-Transfer-Encoding: 8bit
+X-CM-TRANSID:ywQGZQAXeHIrNHJphh77AA--.36066S3
+X-Coremail-Antispam: 1UD129KBjvJXoW7uw1fZFy8Zr1UWrWxAw4xZwb_yoW8Ww1rpr
+	WUK3WjkrW7XF4fAF1DJw48u3yrA34kZFZrW3sa9asxZrn8Jryq9rZ0ya4YgrWrXr4kAr4Y
+	qr4v9FnYgF4vvaUanT9S1TB71UUUUUDqnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDU0xBIdaVrnRJUUUv21xkIjI8I6I8E6xAIw20EY4v20xvaj40_Wr0E3s1l8cAvFVAK
+	0II2c7xJM28CjxkF64kEwVA0rcxSw2x7M28EF7xvwVC0I7IYx2IY67AKxVW5JVW7JwA2z4
+	x0Y4vE2Ix0cI8IcVCY1x0267AKxVWxJVW8Jr1l84ACjcxK6I8E87Iv67AKxVW0oVCq3wA2
+	z4x0Y4vEx4A2jsIEc7CjxVAFwI0_GcCE3s1lnxkEFVAIw20F6cxK64vIFxWle2I262IYc4
+	CY6c8Ij28IcVAaY2xG8wAqx4xG64xvF2IEw4CE5I8CrVC2j2WlYx0E74AGY7Cv6cx26r4r
+	Kr1UJr1lOx8S6xCaFVCjc4AY6r1j6r4UM4x0Y48IcxkI7VAKI48JM4x0x7Aq67IIx4CEVc
+	8vx2IErcIFxwCY1x0262kKe7AKxVWUAVWUtwCY02Avz4vE14v_Xryl42xK82IYc2Ij64vI
+	r41l42xK82IY6x8ErcxFaVAv8VW8Ww4UJr1UMxC20s026xCaFVCjc4AY6r1j6r4UMI8I3I
+	0E5I8CrVAFwI0_Jr0_Jr4lx2IqxVCjr7xvwVAFwI0_JrI_JrWlx4CE17CEb7AF67AKxVWU
+	AVWUtwCIc40Y0x0EwIxGrwCI42IY6xIIjxv20xvE14v26r1j6r1xMIIF0xvE2Ix0cI8IcV
+	CY1x0267AKxVW8JVWxJwCI42IY6xAIw20EY4v20xvaj40_Jr0_JF4lIxAIcVC2z280aVAF
+	wI0_Jr0_Gr1lIxAIcVC2z280aVCY1x0267AKxVW8JVW8JrUvcSsGvfC2KfnxnUUI43ZEXa
+	7VU0xsqtUUUUU==
+X-CM-SenderInfo: polx5j2s6ptxtovo32xlqjx3vdohv3gofq/1tbiAgMPAmlx-+5bcAAAsu
 
-On Wed, Jan 21, 2026 at 11:04:48PM +0530, Sriharsha Basavapatna wrote:
-> It is in the next patch, you probably missed it? Pasted below for reference.
+ib_uverbs_post_send() uses cmd.wqe_size from userspace without any
+validation before passing it to kmalloc() and using the allocated
+buffer as struct ib_uverbs_send_wr.
 
-Yes, somehow my search missed it when I was looking
+If a user provides a small wqe_size value (e.g., 1), kmalloc() will
+succeed, but subsequent accesses to user_wr->opcode, user_wr->num_sge,
+and other fields will read beyond the allocated buffer, resulting in
+an out-of-bounds read from kernel heap memory. This could potentially
+leak sensitive kernel information to userspace.
 
-So it is OK.
+Additionally, providing an excessively large wqe_size can trigger a
+WARNING in the memory allocation path, as reported by syzkaller.
 
-Jason
+This is inconsistent with ib_uverbs_unmarshall_recv() which properly
+validates that wqe_size >= sizeof(struct ib_uverbs_recv_wr) before
+proceeding.
+
+Add the same validation for ib_uverbs_post_send() to ensure wqe_size
+is at least sizeof(struct ib_uverbs_send_wr).
+
+Fixes: 67cdb40ca444 ("[IB] uverbs: Implement more commands")
+Signed-off-by: Yi Liu <liuy22@mails.tsinghua.edu.cn>
+---
+ drivers/infiniband/core/uverbs_cmd.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index ce16404cd..a80b95948 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -2049,6 +2049,9 @@ static int ib_uverbs_post_send(struct uverbs_attr_bundle *attrs)
+ 	if (ret)
+ 		return ret;
+ 
++	if (cmd.wqe_size < sizeof(struct ib_uverbs_send_wr))
++		return -EINVAL;
++
+ 	user_wr = kmalloc(cmd.wqe_size, GFP_KERNEL);
+ 	if (!user_wr)
+ 		return -ENOMEM;
+-- 
+2.34.1
+
