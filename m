@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7D29A33D6C6;
-	Thu, 22 Jan 2026 22:04:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 73D192C375E;
+	Thu, 22 Jan 2026 22:04:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769119448; cv=none; b=r54l0eWo6Me/J3+fl2J8gP85Mmojcb5xWeI9EPfgkqOL/VycC5sHwVWiLjEuwUyv8j2e9LedQjy0xsGSEhLNPQnSeJTSnbcTf9mTGGZQdwZA98f3Ey/OV6euG7/3U2GEycDwVDbSIekZb8KKKeL0mA4BXp4Yad0k3gZjcRMmTKo=
+	t=1769119450; cv=none; b=jH4u6I2vOLfai6vG0pBZE9Gl0OrvEmpWWt1xZfj6n2e85Lvh71BzxKNK93/3Q5FMBWMsSc2sVM4ok1Ioew24eHJF9yiWOcUI+BkHZxRWeLGARR0Zojn9doqn3jKy0IuntqLhCNNldJg7f35wLnjPyh5JCy3cqDszliIcYgZZ0Sk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769119448; c=relaxed/simple;
-	bh=dvVauUjBKzuNlpvXhXYiw468/THHRJ/wRV1ZFvJ+YAs=;
+	s=arc-20240116; t=1769119450; c=relaxed/simple;
+	bh=EzcCdJ2AnSa4eaNOx1e7NCC497IfIm4NMYt/sXFlVic=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=CW3gi+LsuwluIOOapaJvxzTfSZG05SwL61nOaaTyYQwkI0GShi1ZXNIGHmVEO6OfCjywQtI1PlqSOCvqmdUhYStpy4ugk1xYKctg/bFTSgzwzQd5tjBlsUNdVGdH7J2CiIoPQwQNbQNGxfEYW59WTdEnkmraBzfr9V2SVy9mc/U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=jvo7a+th; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=XmulRL2ddF87xZ1PXsUiMLOhE8b5UWtlzn5fXj66LnTNHH1eJ8Avsp6qAb0VlaPu8+FAOM/nMyUurMotevSkNped2VV27NUrdsrqKEO869S+JRppmxg1vJrwDbMfNGuAEwVl/nQTJp4cNK9+Xkp3O87lstVLjDS3E4KtJkyX100=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=X4kBK4bU; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="jvo7a+th"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D44AFC116C6;
-	Thu, 22 Jan 2026 22:04:06 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="X4kBK4bU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 07B3FC19423;
+	Thu, 22 Jan 2026 22:04:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1769119447;
-	bh=dvVauUjBKzuNlpvXhXYiw468/THHRJ/wRV1ZFvJ+YAs=;
+	s=k20201202; t=1769119449;
+	bh=EzcCdJ2AnSa4eaNOx1e7NCC497IfIm4NMYt/sXFlVic=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=jvo7a+th1tCkn1V+d/t/QH/TxLkcLiixYgbsf9PrkcNVmG0nqPXIqM+1aqFvPs7vE
-	 VTVqXmh80z0a3ux2XgkFZ0KYsqHxSfev03YAyfqDe9VyFfrsVJtb2TBWTUskGczGB/
-	 b+BjlMtlwUn2sh1F9s2zb4yxP45Bp7bTNR4CGIUAzR17E+BRqNJfkSj+o0pMxeGRag
-	 cRE7HM416zZZ7N4PMxN5TcuBIDdxC7U6Y2Zy+mfNFve9Dgst87bAE2PBt7MhZ5BYuK
-	 O1pC7y6i6fs2Tbq19W11EJaVSconOFbLBYNa0yuZfSlx//mhMDHx/DCSAjvnevw+ZZ
-	 nA+VOPH0HwSdA==
+	b=X4kBK4bUsmC/UzUGB2pP3ygyFqD5hwkSY1JkTPFpQ8Z2CISs8kZcIsJ6Ix17F9nMs
+	 BD1DQ+hgv/YwvJZBrsYOQTKAfziVGqV0/AwLse/VUnc+6Fe8RgJV4HxJv2oixR9ol5
+	 rNbWVszNKKeGb/Z5Q624YN0qdKIrxq4MGrgXn1V5zlfztziD7ocRPjh+M6anLvKeHW
+	 TkhAQ0uesYfgTfZgNS3STkWz8pKrT54SxlDsZnj3Biq2W2m9gOhI7AGbRWM+D/v39p
+	 WzBR9fJ4jLwqkrPu3xkB3wLdyx0vpoMjj0GvglqlkCcL/YaeQpKPXEacFLr/ouuSVH
+	 il4J5rlOU/xBA==
 From: Chuck Lever <cel@kernel.org>
 To: Jason Gunthorpe <jgg@nvidia.com>,
 	Leon Romanovsky <leon@kernel.org>,
@@ -38,9 +38,9 @@ Cc: NeilBrown <neilb@ownmail.net>,
 	<linux-rdma@vger.kernel.org>,
 	<linux-nfs@vger.kernel.org>,
 	Chuck Lever <chuck.lever@oracle.com>
-Subject: [PATCH v3 2/5] RDMA/core: use IOVA-based DMA mapping for bvec RDMA operations
-Date: Thu, 22 Jan 2026 17:03:58 -0500
-Message-ID: <20260122220401.1143331-3-cel@kernel.org>
+Subject: [PATCH v3 4/5] RDMA/core: add rdma_rw_max_sge() helper for SQ sizing
+Date: Thu, 22 Jan 2026 17:04:00 -0500
+Message-ID: <20260122220401.1143331-5-cel@kernel.org>
 X-Mailer: git-send-email 2.52.0
 In-Reply-To: <20260122220401.1143331-1-cel@kernel.org>
 References: <20260122220401.1143331-1-cel@kernel.org>
@@ -54,205 +54,149 @@ Content-Transfer-Encoding: 8bit
 
 From: Chuck Lever <chuck.lever@oracle.com>
 
-The bvec RDMA API maps each bvec individually via dma_map_phys(),
-requiring an IOTLB sync for each mapping. For large I/O operations
-with many bvecs, this overhead becomes significant.
+svc_rdma_accept() computes sc_sq_depth as the sum of rq_depth and the
+number of rdma_rw contexts (ctxts). This value is used to allocate the
+Send CQ and to initialize the sc_sq_avail credit pool.
 
-The two-step IOVA API (dma_iova_try_alloc / dma_iova_link /
-dma_iova_sync) allocates a contiguous IOVA range upfront, links
-all physical pages without IOTLB syncs, then performs a single
-sync at the end. This reduces IOTLB flushes from O(n) to O(1).
+However, when the device uses memory registration for RDMA operations,
+rdma_rw_init_qp() inflates the QP's max_send_wr by a factor of three
+per context to account for REG and INV work requests. The Send CQ and
+credit pool remain sized for only one work request per context,
+causing Send Queue exhaustion under heavy NFS WRITE workloads.
 
-It also requires only a single output dma_addr_t compared to extra
-per-input element storage in struct scatterlist.
+Introduce rdma_rw_max_sge() to compute the actual number of Send Queue
+entries required for a given number of rdma_rw contexts. Upper layer
+protocols call this helper before creating a Queue Pair so that their
+Send CQs and credit accounting match the QP's true capacity.
 
+Update svc_rdma_accept() to use rdma_rw_max_sge() when computing
+sc_sq_depth, ensuring the credit pool reflects the work requests
+that rdma_rw_init_qp() will reserve.
+
+Fixes: 00bd1439f464 ("RDMA/rw: Support threshold for registration vs scattering to local pages")
 Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
 ---
- drivers/infiniband/core/rw.c | 109 +++++++++++++++++++++++++++++++++++
- include/rdma/rw.h            |   8 +++
- 2 files changed, 117 insertions(+)
+ drivers/infiniband/core/rw.c             | 53 +++++++++++++++++-------
+ include/rdma/rw.h                        |  2 +
+ net/sunrpc/xprtrdma/svc_rdma_transport.c |  8 +++-
+ 3 files changed, 46 insertions(+), 17 deletions(-)
 
 diff --git a/drivers/infiniband/core/rw.c b/drivers/infiniband/core/rw.c
-index 991006de4a43..393a9a4d551c 100644
+index 3a00b788417d..4bca8a8ab695 100644
 --- a/drivers/infiniband/core/rw.c
 +++ b/drivers/infiniband/core/rw.c
-@@ -14,6 +14,7 @@ enum {
- 	RDMA_RW_MULTI_WR,
- 	RDMA_RW_MR,
- 	RDMA_RW_SIG_MR,
-+	RDMA_RW_IOVA,
- };
- 
- static bool rdma_rw_force_mr;
-@@ -391,6 +392,89 @@ static int rdma_rw_init_map_wrs_bvec(struct rdma_rw_ctx *ctx, struct ib_qp *qp,
- 	return -ENOMEM;
+@@ -1099,34 +1099,57 @@ unsigned int rdma_rw_mr_factor(struct ib_device *device, u32 port_num,
  }
+ EXPORT_SYMBOL(rdma_rw_mr_factor);
  
-+/*
-+ * Try to use the two-step IOVA API to map bvecs into a contiguous DMA range.
-+ * This reduces IOTLB sync overhead by doing one sync at the end instead of
-+ * one per bvec, and produces a contiguous DMA address range that can be
-+ * described by a single SGE.
++/**
++ * rdma_rw_max_send_wr - compute max Send WRs needed for RDMA R/W contexts
++ * @dev: RDMA device
++ * @port_num: port number
++ * @max_rdma_ctxs: number of rdma_rw_ctx structures
++ * @create_flags: QP create flags (pass IB_QP_CREATE_INTEGRITY_EN if
++ *                data integrity will be enabled on the QP)
 + *
-+ * Returns the number of WQEs (always 1) on success, -EOPNOTSUPP if IOVA
-+ * mapping is not available, or another negative error code on failure.
++ * Returns the total number of Send Queue entries needed for
++ * @max_rdma_ctxs. The result accounts for memory registration and
++ * invalidation work requests when the device requires them.
++ *
++ * ULPs use this to size Send Queues and Send CQs before creating a
++ * Queue Pair.
 + */
-+static int rdma_rw_init_iova_wrs_bvec(struct rdma_rw_ctx *ctx,
-+		struct ib_qp *qp, const struct bio_vec *bvec,
-+		struct bvec_iter *iter, u64 remote_addr, u32 rkey,
-+		enum dma_data_direction dir)
++unsigned int rdma_rw_max_send_wr(struct ib_device *dev, u32 port_num,
++				 unsigned int max_rdma_ctxs, u32 create_flags)
 +{
-+	struct ib_device *dev = qp->pd->device;
-+	struct device *dma_dev = dev->dma_device;
-+	size_t total_len = iter->bi_size;
-+	struct bvec_iter link_iter;
-+	struct bio_vec first_bv;
-+	size_t mapped_len = 0;
-+	int ret;
++	unsigned int factor = 1;
++	unsigned int result;
 +
-+	/* Virtual DMA devices cannot support IOVA allocators */
-+	if (ib_uses_virt_dma(dev))
-+		return -EOPNOTSUPP;
++	if (create_flags & IB_QP_CREATE_INTEGRITY_EN ||
++	    rdma_rw_can_use_mr(dev, port_num))
++		factor += 2;	/* reg + inv */
 +
-+	/* Try to allocate contiguous IOVA space */
-+	first_bv = mp_bvec_iter_bvec(bvec, *iter);
-+	if (!dma_iova_try_alloc(dma_dev, &ctx->iova.state,
-+				bvec_phys(&first_bv), total_len))
-+		return -EOPNOTSUPP;
-+
-+	/* Link all bvecs into the IOVA space */
-+	link_iter = *iter;
-+	while (link_iter.bi_size) {
-+		struct bio_vec bv = mp_bvec_iter_bvec(bvec, link_iter);
-+
-+		ret = dma_iova_link(dma_dev, &ctx->iova.state, bvec_phys(&bv),
-+				    mapped_len, bv.bv_len, dir, 0);
-+		if (ret)
-+			goto out_destroy;
-+
-+		mapped_len += bv.bv_len;
-+		bvec_iter_advance(bvec, &link_iter, bv.bv_len);
-+	}
-+
-+	/* Sync the IOTLB once for all linked pages */
-+	ret = dma_iova_sync(dma_dev, &ctx->iova.state, 0, mapped_len);
-+	if (ret)
-+		goto out_destroy;
-+
-+	ctx->iova.mapped_len = mapped_len;
-+
-+	/* Single SGE covers the entire contiguous IOVA range */
-+	ctx->iova.sge.addr = ctx->iova.state.addr;
-+	ctx->iova.sge.length = mapped_len;
-+	ctx->iova.sge.lkey = qp->pd->local_dma_lkey;
-+
-+	/* Single WR for the whole transfer */
-+	memset(&ctx->iova.wr, 0, sizeof(ctx->iova.wr));
-+	if (dir == DMA_TO_DEVICE)
-+		ctx->iova.wr.wr.opcode = IB_WR_RDMA_WRITE;
-+	else
-+		ctx->iova.wr.wr.opcode = IB_WR_RDMA_READ;
-+	ctx->iova.wr.wr.num_sge = 1;
-+	ctx->iova.wr.wr.sg_list = &ctx->iova.sge;
-+	ctx->iova.wr.remote_addr = remote_addr;
-+	ctx->iova.wr.rkey = rkey;
-+
-+	ctx->type = RDMA_RW_IOVA;
-+	ctx->nr_ops = 1;
-+	return 1;
-+
-+out_destroy:
-+	/*
-+	 * dma_iova_destroy() expects the actual mapped length, not the
-+	 * total allocation size. It unlinks only the successfully linked
-+	 * range and frees the entire IOVA allocation.
-+	 */
-+	dma_iova_destroy(dma_dev, &ctx->iova.state, mapped_len, dir, 0);
-+	return ret;
++	if (check_mul_overflow(factor, max_rdma_ctxs, &result))
++		return UINT_MAX;
++	return result;
 +}
++EXPORT_SYMBOL(rdma_rw_max_send_wr);
 +
- /**
-  * rdma_rw_ctx_init - initialize a RDMA READ/WRITE context
-  * @ctx:	context to initialize
-@@ -493,6 +577,8 @@ int rdma_rw_ctx_init_bvec(struct rdma_rw_ctx *ctx, struct ib_qp *qp,
- 		struct bvec_iter iter, u64 remote_addr, u32 rkey,
- 		enum dma_data_direction dir)
+ void rdma_rw_init_qp(struct ib_device *dev, struct ib_qp_init_attr *attr)
  {
-+	int ret;
-+
- 	if (nr_bvec == 0 || iter.bi_size == 0)
- 		return -EINVAL;
+-	u32 factor;
++	unsigned int factor = 1;
  
-@@ -503,6 +589,17 @@ int rdma_rw_ctx_init_bvec(struct rdma_rw_ctx *ctx, struct ib_qp *qp,
- 	if (nr_bvec == 1)
- 		return rdma_rw_init_single_wr_bvec(ctx, qp, bvecs, &iter,
- 				remote_addr, rkey, dir);
-+
-+	/*
-+	 * Try IOVA-based mapping first for multi-bvec transfers.
-+	 * This reduces IOTLB sync overhead by batching all mappings.
-+	 * rdma_rw_init_iova_wrs_bvec() does not modify iter on -EOPNOTSUPP.
-+	 */
-+	ret = rdma_rw_init_iova_wrs_bvec(ctx, qp, bvecs, &iter, remote_addr,
-+			rkey, dir);
-+	if (ret != -EOPNOTSUPP)
-+		return ret;
-+
- 	return rdma_rw_init_map_wrs_bvec(ctx, qp, bvecs, nr_bvec, &iter,
- 			remote_addr, rkey, dir);
- }
-@@ -679,6 +776,10 @@ struct ib_send_wr *rdma_rw_ctx_wrs(struct rdma_rw_ctx *ctx, struct ib_qp *qp,
- 			first_wr = &ctx->reg[0].reg_wr.wr;
- 		last_wr = &ctx->reg[ctx->nr_ops - 1].wr.wr;
- 		break;
-+	case RDMA_RW_IOVA:
-+		first_wr = &ctx->iova.wr.wr;
-+		last_wr = &ctx->iova.wr.wr;
-+		break;
- 	case RDMA_RW_MULTI_WR:
- 		first_wr = &ctx->map.wrs[0].wr;
- 		last_wr = &ctx->map.wrs[ctx->nr_ops - 1].wr;
-@@ -753,6 +854,10 @@ void rdma_rw_ctx_destroy(struct rdma_rw_ctx *ctx, struct ib_qp *qp,
- 		break;
- 	case RDMA_RW_SINGLE_WR:
- 		break;
-+	case RDMA_RW_IOVA:
-+		/* IOVA contexts must use rdma_rw_ctx_destroy_bvec() */
-+		WARN_ON_ONCE(1);
-+		return;
- 	default:
- 		BUG();
- 		break;
-@@ -786,6 +891,10 @@ void rdma_rw_ctx_destroy_bvec(struct rdma_rw_ctx *ctx, struct ib_qp *qp,
- 	u32 i;
+ 	WARN_ON_ONCE(attr->port_num == 0);
  
- 	switch (ctx->type) {
-+	case RDMA_RW_IOVA:
-+		dma_iova_destroy(dev->dma_device, &ctx->iova.state,
-+				 ctx->iova.mapped_len, dir, 0);
-+		break;
- 	case RDMA_RW_MULTI_WR:
- 		for (i = 0; i < nr_bvec; i++)
- 			ib_dma_unmap_bvec(dev, ctx->map.sges[i].addr,
+ 	/*
+-	 * Each context needs at least one RDMA READ or WRITE WR.
+-	 *
+-	 * For some hardware we might need more, eventually we should ask the
+-	 * HCA driver for a multiplier here.
+-	 */
+-	factor = 1;
+-
+-	/*
+-	 * If the device needs MRs to perform RDMA READ or WRITE operations,
+-	 * we'll need two additional MRs for the registrations and the
+-	 * invalidation.
++	 * If the device uses MRs to perform RDMA READ or WRITE operations,
++	 * or if data integrity is enabled, account for registration and
++	 * invalidation work requests.
+ 	 */
+ 	if (attr->create_flags & IB_QP_CREATE_INTEGRITY_EN ||
+ 	    rdma_rw_can_use_mr(dev, attr->port_num))
+-		factor += 2;	/* inv + reg */
++		factor += 2;	/* reg + inv */
+ 
+ 	attr->cap.max_send_wr += factor * attr->cap.max_rdma_ctxs;
+ 
+ 	/*
+-	 * But maybe we were just too high in the sky and the device doesn't
+-	 * even support all we need, and we'll have to live with what we get..
++	 * The device might not support all we need, and we'll have to
++	 * live with what we get.
+ 	 */
+ 	attr->cap.max_send_wr =
+ 		min_t(u32, attr->cap.max_send_wr, dev->attrs.max_qp_wr);
 diff --git a/include/rdma/rw.h b/include/rdma/rw.h
-index b2fc3e2373d7..205e16ed6cd8 100644
+index 53ed0f05fa25..5f96ff754be7 100644
 --- a/include/rdma/rw.h
 +++ b/include/rdma/rw.h
-@@ -32,6 +32,14 @@ struct rdma_rw_ctx {
- 			struct ib_rdma_wr	*wrs;
- 		} map;
+@@ -88,6 +88,8 @@ int rdma_rw_ctx_post(struct rdma_rw_ctx *ctx, struct ib_qp *qp, u32 port_num,
  
-+		/* for IOVA-based mapping of bvecs into contiguous DMA range: */
-+		struct {
-+			struct dma_iova_state	state;
-+			struct ib_sge		sge;
-+			struct ib_rdma_wr	wr;
-+			size_t			mapped_len;
-+		} iova;
-+
- 		/* for registering multiple WRs: */
- 		struct rdma_rw_reg_ctx {
- 			struct ib_sge		sge;
+ unsigned int rdma_rw_mr_factor(struct ib_device *device, u32 port_num,
+ 		unsigned int maxpages);
++unsigned int rdma_rw_max_send_wr(struct ib_device *dev, u32 port_num,
++		unsigned int max_rdma_ctxs, u32 create_flags);
+ void rdma_rw_init_qp(struct ib_device *dev, struct ib_qp_init_attr *attr);
+ int rdma_rw_init_mrs(struct ib_qp *qp, struct ib_qp_init_attr *attr);
+ void rdma_rw_cleanup_mrs(struct ib_qp *qp);
+diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+index b7b318ad25c4..9b623849723e 100644
+--- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
++++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+@@ -462,7 +462,10 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
+ 		newxprt->sc_max_bc_requests = 2;
+ 	}
+ 
+-	/* Arbitrary estimate of the needed number of rdma_rw contexts.
++	/* Estimate the needed number of rdma_rw contexts. The maximum
++	 * Read and Write chunks have one segment each. Each request
++	 * can involve one Read chunk and either a Write chunk or Reply
++	 * chunk; thus a factor of three.
+ 	 */
+ 	maxpayload = min(xprt->xpt_server->sv_max_payload,
+ 			 RPCSVC_MAXPAYLOAD_RDMA);
+@@ -470,7 +473,8 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
+ 		rdma_rw_mr_factor(dev, newxprt->sc_port_num,
+ 				  maxpayload >> PAGE_SHIFT);
+ 
+-	newxprt->sc_sq_depth = rq_depth + ctxts;
++	newxprt->sc_sq_depth = rq_depth +
++		rdma_rw_max_send_wr(dev, newxprt->sc_port_num, ctxts, 0);
+ 	if (newxprt->sc_sq_depth > dev->attrs.max_qp_wr)
+ 		newxprt->sc_sq_depth = dev->attrs.max_qp_wr;
+ 	atomic_set(&newxprt->sc_sq_avail, newxprt->sc_sq_depth);
 -- 
 2.52.0
 
