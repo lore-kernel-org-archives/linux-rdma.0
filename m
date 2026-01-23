@@ -1,55 +1,51 @@
-Received: from out30-110.freemail.mail.aliyun.com (out30-110.freemail.mail.aliyun.com [115.124.30.110])
+Received: from m16.mail.163.com (m16.mail.163.com [220.197.31.2])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD53A34D91C;
-	Fri, 23 Jan 2026 08:24:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.110
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 752543370FE;
+	Fri, 23 Jan 2026 08:58:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=220.197.31.2
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769156647; cv=none; b=u19h5ZMFBLZW/ma0SUWGjmjxeO3iYvpnM2MGdaTHLrDBUaWjrZiEzoFTEya1pob0IDle3ZdcDkIaJROdeb0EU0yvVZ6oS8S0yJZMJ3MnYhNNDhI2uY8+6Z3jcwkM36kZC+3VUFoNpuZV/KYb8dlbZf8gcl6C2BLYdXGs1kPRasw=
+	t=1769158734; cv=none; b=XRRky47t7CKdUPfI7r/WiuGfuIeIs1XKUZSRcwASt819pJlRarha4PUgvmfc5HRn2B44A/YvmhJT8qHuJSQffUeuu+lcJOIPhhIz72A+rA58f4vHLJITIeQ/HGv/wXhkAJjTk76qYVJtIfE2foOKf6VbgHSFKoCw8Z46CeVZX0I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769156647; c=relaxed/simple;
-	bh=wM3JU/EQZGQCUY9DL/ap27lW5FHLzpGbQXdM7W26KpU=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=NChZWOWQ1YoWpIyz2vY3MhWgaPwBgsEv9jIvecD76Qsm0C7MSEPwPMqtdXw0QH5ziLhDvEiWkkbwRNWByWsP5EgwNNtXeA/f7+jBH4Z0IndUj+iINB+Gd8MPNYy3o2hRLY/Ajgy1P49v8U63r5aRhuWOjwaqPPQnsYtvfSlih5g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=N8UOb1xg; arc=none smtp.client-ip=115.124.30.110
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
+	s=arc-20240116; t=1769158734; c=relaxed/simple;
+	bh=FQk32BMzHESc1g+auuhE1AY09RGLD+GUzhW85HGfTDs=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=GQepOXbA7O+U9j+wF7zvxk6nyPSkv04H2D4Sop1w+G1jeQO17S9QtS4HTdqAtfJRZXZEEqsM9O4xkYYFSMnhNS65deI0tQ9aR2G5D39kRto64zKj6tFHenrjsuv+mF/uYqeQD0YTk/v+2c56IOHrNueKcc+scMI0r4ubk4EyDZU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com; spf=pass smtp.mailfrom=163.com; dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b=UH0AJJLf; arc=none smtp.client-ip=220.197.31.2
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="N8UOb1xg"
-DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux.alibaba.com; s=default;
-	t=1769156635; h=From:To:Subject:Date:Message-ID:MIME-Version;
-	bh=l4ux9tDlFdT94Vxn27fx7SeIZf5wjhCyTIcjZvfwWJQ=;
-	b=N8UOb1xgztH32QrTnJLQ0HErMKTEVypillYb5NrAbLG8ndcOQhHNa5GUXp/tWaUXBbOfNbs+VD1vFb5i1Y0P+GybToMmiESnuDDiAbyqHpWzV/RypwVcPh2RbmnhuKjZRNxA0AGfDLYQtSrrLl6WwPx+fEgjmwlXaCH9gy6mxtI=
-Received: from j66a10360.sqa.eu95.tbsite.net(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0Wxf8ov-_1769156634 cluster:ay36)
-          by smtp.aliyun-inc.com;
-          Fri, 23 Jan 2026 16:23:54 +0800
-From: "D. Wythe" <alibuda@linux.alibaba.com>
-To: "David S. Miller" <davem@davemloft.net>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Dust Li <dust.li@linux.alibaba.com>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Sidraya Jayagond <sidraya@linux.ibm.com>,
-	Uladzislau Rezki <urezki@gmail.com>,
-	Wenjia Zhang <wenjia@linux.ibm.com>
-Cc: Mahanta Jambigi <mjambigi@linux.ibm.com>,
-	Simon Horman <horms@kernel.org>,
-	Tony Lu <tonylu@linux.alibaba.com>,
-	Wen Gu <guwen@linux.alibaba.com>,
-	linux-kernel@vger.kernel.org,
-	linux-mm@kvack.org,
+	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="UH0AJJLf"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
+	s=s110527; h=From:To:Subject:Date:Message-Id:MIME-Version; bh=3Q
+	9PIHHsmNzz5nXOAMH+AINGqxXgNMHvUZUnjZZ5X0U=; b=UH0AJJLfVGfqLO9OXM
+	kIZL8rLVIE7y3AHZ1vq1F//w3rHvdY7xsGmOyBfUpHa7dk8GGIF8Pfi1f3/zs4hv
+	z7XK3DcoVQDML3Bap2i41z4Qq7H6xU0QSO+5qKroQBnMlQ++EEZ/bzc84QB3mUeA
+	W+dBHDxm7teiOqOZtrHLmhuqI=
+Received: from zengchi (unknown [])
+	by gzga-smtp-mtada-g0-0 (Coremail) with SMTP id _____wBHsLcOOHNpG8j6HQ--.35229S2;
+	Fri, 23 Jan 2026 16:57:51 +0800 (CST)
+From: Zeng Chi <zeng_chi911@163.com>
+To: saeedm@nvidia.com,
+	leon@kernel.org,
+	tariqt@nvidia.com,
+	mbloch@nvidia.com,
+	davem@davemloft.net,
+	andrew+netdev@lunn.ch,
+	edumazet@google.com,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	feliu@nvidia.com,
+	parav@nvidia.com,
+	witu@nvidia.com,
+	ajayachandra@nvidia.com
+Cc: netdev@vger.kernel.org,
 	linux-rdma@vger.kernel.org,
-	linux-s390@vger.kernel.org,
-	netdev@vger.kernel.org,
-	oliver.yang@linux.alibaba.com
-Subject: [PATCH net-next 1/3] net/smc: cap allocation order for SMC-R physically contiguous buffers
-Date: Fri, 23 Jan 2026 16:23:47 +0800
-Message-ID: <20260123082349.42663-2-alibuda@linux.alibaba.com>
-X-Mailer: git-send-email 2.45.0
-In-Reply-To: <20260123082349.42663-1-alibuda@linux.alibaba.com>
-References: <20260123082349.42663-1-alibuda@linux.alibaba.com>
+	linux-kernel@vger.kernel.org,
+	Zeng Chi <zengchi@kylinos.cn>
+Subject: [PATCH v3 net] net/mlx5: Fix return type mismatch in mlx5_esw_vport_vhca_id()
+Date: Fri, 23 Jan 2026 16:57:49 +0800
+Message-Id: <20260123085749.1401969-1-zeng_chi911@163.com>
+X-Mailer: git-send-email 2.25.1
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -57,73 +53,49 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+X-CM-TRANSID:_____wBHsLcOOHNpG8j6HQ--.35229S2
+X-Coremail-Antispam: 1Uf129KBjvJXoW7tr43JrWDCrW5uFWfury5twb_yoW8XF4xp3
+	yUGryxZFyktFWUXw4UWayrX3yrCayUK3y29F4Sk3WSqr1ktFWUtrn5KFZruF1DCrWUGr98
+	trs7Z3s5Zas8Aa7anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x07jaHq7UUUUU=
+X-CM-SenderInfo: 52hqws5fklmiqr6rljoofrz/xtbC6A9IBGlzOA-wWwAA3t
 
-The alloc_page() cannot satisfy requests exceeding MAX_PAGE_ORDER,
-and attempting such allocations will lead to guaranteed failures
-and potential kernel warnings.
+From: Zeng Chi <zengchi@kylinos.cn>
 
-For SMCR_PHYS_CONT_BUFS, the allocation order is now capped to
-MAX_PAGE_ORDER, ensures the attempts to allocate the largest possible
-physically contiguous chunk instead of failing with an invalid order,
-which also avoid redundant "try-fail-degrade" cycles in __smc_buf_create().
+The function mlx5_esw_vport_vhca_id() is declared to return bool,
+but returns -EOPNOTSUPP (-45), which is an int error code. This
+causes a signedness bug as reported by smatch.
 
-For SMCR_MIXED_BUFS, If it's order exceeds MAX_PAGE_ORDER, skips the
-doomed physical allocation attempt and fallback to virtual memory
-immediately.
+This patch fixes this smatch report:
+drivers/net/ethernet/mellanox/mlx5/core/eswitch.h:981 mlx5_esw_vport_vhca_id()
+warn: signedness bug returning '(-45)'
 
-Signed-off-by: D. Wythe <alibuda@linux.alibaba.com>
-Reviewed-by: Dust Li <dust.li@linux.alibaba.com>
+Fixes: 1baf30426553 ("net/mlx5: E-Switch, Set/Query hca cap via vhca id")
+Reviewed-by: Parav Pandit <parav@nvidia.com>
+Signed-off-by: Zeng Chi <zengchi@kylinos.cn>
 ---
- net/smc/smc_core.c | 28 ++++++++++++++++------------
- 1 file changed, 16 insertions(+), 12 deletions(-)
+v2 -> v3:
+- Shortened the commit ID in the `Fixes:` tag to 12 characters as suggested.
+- Added a `Reviewed-by:` tag from Parav Pandit <parav@nvidia.com>.
 
-diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
-index e4eabc83719e..6219db498976 100644
---- a/net/smc/smc_core.c
-+++ b/net/smc/smc_core.c
-@@ -2324,26 +2324,30 @@ static struct smc_buf_desc *smcr_new_buf_create(struct smc_link_group *lgr,
- 	if (!buf_desc)
- 		return ERR_PTR(-ENOMEM);
+v2:Added the required Fixes tag and specified target branch net in subject prefix
+---
+ drivers/net/ethernet/mellanox/mlx5/core/eswitch.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
+index ad1073f7b79f..e7fe43799b23 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
+@@ -1009,7 +1009,7 @@ mlx5_esw_host_functions_enabled(const struct mlx5_core_dev *dev)
+ static inline bool
+ mlx5_esw_vport_vhca_id(struct mlx5_eswitch *esw, u16 vportn, u16 *vhca_id)
+ {
+-	return -EOPNOTSUPP;
++	return false;
+ }
  
-+	buf_desc->order = get_order(bufsize);
-+
- 	switch (lgr->buf_type) {
- 	case SMCR_PHYS_CONT_BUFS:
-+		buf_desc->order = min(buf_desc->order, MAX_PAGE_ORDER);
-+		fallthrough;
- 	case SMCR_MIXED_BUFS:
--		buf_desc->order = get_order(bufsize);
--		buf_desc->pages = alloc_pages(GFP_KERNEL | __GFP_NOWARN |
--					      __GFP_NOMEMALLOC | __GFP_COMP |
--					      __GFP_NORETRY | __GFP_ZERO,
--					      buf_desc->order);
--		if (buf_desc->pages) {
--			buf_desc->cpu_addr =
--				(void *)page_address(buf_desc->pages);
--			buf_desc->len = bufsize;
--			buf_desc->is_vm = false;
--			break;
-+		if (buf_desc->order <= MAX_PAGE_ORDER) {
-+			buf_desc->pages = alloc_pages(GFP_KERNEL | __GFP_NOWARN |
-+						      __GFP_NOMEMALLOC | __GFP_COMP |
-+						      __GFP_NORETRY | __GFP_ZERO,
-+						      buf_desc->order);
-+			if (buf_desc->pages) {
-+				buf_desc->cpu_addr =
-+					(void *)page_address(buf_desc->pages);
-+				buf_desc->len = bufsize;
-+				buf_desc->is_vm = false;
-+				break;
-+			}
- 		}
- 		if (lgr->buf_type == SMCR_PHYS_CONT_BUFS)
- 			goto out;
- 		fallthrough;	// try virtually contiguous buf
- 	case SMCR_VIRT_CONT_BUFS:
--		buf_desc->order = get_order(bufsize);
- 		buf_desc->cpu_addr = vzalloc(PAGE_SIZE << buf_desc->order);
- 		if (!buf_desc->cpu_addr)
- 			goto out;
+ #endif /* CONFIG_MLX5_ESWITCH */
 -- 
-2.45.0
+2.25.1
 
