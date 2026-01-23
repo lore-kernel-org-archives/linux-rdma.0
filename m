@@ -1,80 +1,136 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from out-183.mta1.migadu.com (out-183.mta1.migadu.com [95.215.58.183])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 96B0332D0E1;
-	Fri, 23 Jan 2026 04:40:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 024B533CEA1
+	for <linux-rdma@vger.kernel.org>; Fri, 23 Jan 2026 06:05:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=95.215.58.183
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769143210; cv=none; b=Q+xX7b7y2SNK+p7sp9ex8b+zmLW+PHQGjRLEEDr6OmqaHsqieRCPR4Ygj2Cv1n+QJb181gTDpLp/i3ZPsxFNDITB2z579wPkJF9jQipeKadLZ43XkIxa97TqyGqUH/S6mR6O4IzKPkuETRqMEEexzGCxfF7NXo/nB7iPCtGobhU=
+	t=1769148309; cv=none; b=fra9qJA8GjWho3A+M1bqtdftyZdcIyN+s1ytsk3VAkguaSw53S10Ii7/tWe1oj8m8cQGPu4koTB7K8RwitPqM3D4rgJt0bkwiBk9NiVdYl7d1/SHEvnbFG2yGNJZRdHsO60c634CUhMjvyEZ/gcnQOy5TpVuvFUrip12uavbWPg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769143210; c=relaxed/simple;
-	bh=EsznYmM7XejyDbiYerQYj6FwGFHP4twu43xWSEu695E=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=UxQLD/jkAXIx3M/dSV0yyTbKP8Y7PBTmAjaqWQjn2sMfQUjlUiGOb5X1F0dzNorIWfVkdWS2AXj/pJctPlkc6NeeXYgWu3Wg+lrcHrmJRZFz/fkEibW8udXQitNQOLg3yoe4qrCK+1SlMcCIRvgjBTtJUQT6nF6J4lP3SMWcCKk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=JY2Pk8be; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769148309; c=relaxed/simple;
+	bh=h9g2gyRuNShziaYijgJlBgvgS/UY03RUaLaxQiejYLI=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=eNzdVN7e/niu0A8EpnB9838JiSU4E/WD52zOgPeehgVWW2ZCvSFhFL7lfqRAFyDV5bPmaKsIDYn9FiqiDnCjRSaqhL/VWRIIXVMFLW3GmQ98q8btFGcXmLsvhFNbXKMy9Zy85Bs2F0ASlrAk977HUCIRP02L5r1BYOuJPS3UJcs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=FDjGp9D5; arc=none smtp.client-ip=95.215.58.183
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="JY2Pk8be"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1E0B6C4CEF1;
-	Fri, 23 Jan 2026 04:40:09 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1769143209;
-	bh=EsznYmM7XejyDbiYerQYj6FwGFHP4twu43xWSEu695E=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-	b=JY2Pk8be6h0MzOVIMlKBqw1Rq/cB8p/uQDppoJREvT3JzzGV2iUx4CfVKj2YMXWQK
-	 XwJGy3M+ww1pjymr44m8XDF9hQNBs1223CuVxMOCohx1u7cr9+6pm74vkYuVWMivUD
-	 yMPOL4Ss+AqoJrqOkcsQipupYwMiXCVtOb1yIfYnM9W9SMtbcIYlgXNEpy/ozGG7O4
-	 iNWn0STZ8tGABvZPCjxQxz3FmeN5fGVI1xXqw/iO5Pm4FjOOc3ieRLzInkCHvUYDFT
-	 dLjvGYz0BvjGFMu157tkSgszGt4s2TdnWM7LwzC2sIqzdobNOObuHP0091BgYLzyCO
-	 mHgD1raBRY7Ug==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 8BCF73808200;
-	Fri, 23 Jan 2026 04:40:06 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="FDjGp9D5"
+Message-ID: <c02ab348-5243-4e97-b916-6bd59ffe769a@linux.dev>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
+	t=1769148291;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=HBjPnAPLtIJQgYd9Yf7ajYQCnwWpwqRQJkI1YWyJuP0=;
+	b=FDjGp9D52m5EaikR8iM3b52LZyCo3lZ7rh025hmcIikxPAPpLNFlEbkeEgP0tS1PK5pm+7
+	fDqoWZYrIxP5XPp3VZdbUt6jUec/nApqH+bJgrFORFTwOg0lJGpHDZzwoTXxaVgZ+dYkzf
+	TKbvZ8/IoWLQUKHp33HeKtn/J2RPTNo=
+Date: Thu, 22 Jan 2026 22:04:39 -0800
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Subject: Re: [PATCH v3 0/5] Add a bio_vec based API to core/rw.c
+To: Chuck Lever <cel@kernel.org>, Jason Gunthorpe <jgg@nvidia.com>,
+ Leon Romanovsky <leon@kernel.org>, Christoph Hellwig <hch@lst.de>
+Cc: NeilBrown <neilb@ownmail.net>, Jeff Layton <jlayton@kernel.org>,
+ Olga Kornievskaia <okorniev@redhat.com>, Dai Ngo <dai.ngo@oracle.com>,
+ Tom Talpey <tom@talpey.com>, linux-rdma@vger.kernel.org,
+ linux-nfs@vger.kernel.org, Chuck Lever <chuck.lever@oracle.com>
+References: <20260122220401.1143331-1-cel@kernel.org>
+X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
+From: Zhu Yanjun <yanjun.zhu@linux.dev>
+In-Reply-To: <20260122220401.1143331-1-cel@kernel.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net] net/mlx5: Fix memory leak in
- esw_acl_ingress_lgcy_setup()
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <176914320511.2396619.17707051472535714326.git-patchwork-notify@kernel.org>
-Date: Fri, 23 Jan 2026 04:40:05 +0000
-References: <20260120134640.2717808-1-zilin@seu.edu.cn>
-In-Reply-To: <20260120134640.2717808-1-zilin@seu.edu.cn>
-To: Zilin Guan <zilin@seu.edu.cn>
-Cc: saeedm@nvidia.com, leon@kernel.org, tariqt@nvidia.com, mbloch@nvidia.com,
- andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@google.com,
- kuba@kernel.org, pabeni@redhat.com, netdev@vger.kernel.org,
- linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
- jianhao.xu@seu.edu.cn
+X-Migadu-Flow: FLOW_OUT
 
-Hello:
-
-This patch was applied to netdev/net.git (main)
-by Jakub Kicinski <kuba@kernel.org>:
-
-On Tue, 20 Jan 2026 13:46:40 +0000 you wrote:
-> In esw_acl_ingress_lgcy_setup(), if esw_acl_table_create() fails,
-> the function returns directly without releasing the previously
-> created counter, leading to a memory leak.
+在 2026/1/22 14:03, Chuck Lever 写道:
+> From: Chuck Lever <chuck.lever@oracle.com>
 > 
-> Fix this by jumping to the out label instead of returning directly,
-> which aligns with the error handling logic of other paths in this
-> function.
+> This series introduces a bio_vec based API for RDMA read and write
+> operations in the RDMA core, eliminating unnecessary scatterlist
+> conversions for callers that already work with bvecs.
 > 
-> [...]
+> Current users of rdma_rw_ctx_init() must convert their native data
+> structures into scatterlists. For subsystems like svcrdma that
+> maintain data in bvec format, this conversion adds overhead both in
+> CPU cycles and memory footprint. The new API accepts bvec arrays
+> directly.
+> 
+> For hardware RDMA devices, the implementation uses the IOVA-based
+> DMA mapping API to reduce IOTLB synchronization overhead from O(n)
+> per-page syncs to a single O(1) sync after all mappings complete.
+> Software RDMA devices (rxe, siw) continue using virtual addressing.
+> 
+> The series includes MR registration support for bvec arrays,
+> enabling iWARP devices and the force_mr debug parameter. The MR
+> path reuses existing ib_map_mr_sg() infrastructure by constructing
+> a synthetic scatterlist from the bvec DMA addresses.
 
-Here is the summary with links:
-  - [net] net/mlx5: Fix memory leak in esw_acl_ingress_lgcy_setup()
-    https://git.kernel.org/netdev/net/c/108948f723b1
+Hi, Chuck Lever
 
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
+I’ve read through the patch series. As I understand it, the new 
+bio_vec–based RDMA read/write API allows callers that already operate on 
+bvecs (for example, svcrdma and potentially NVMe-oF) to avoid converting 
+their data into scatterlists, which should reduce CPU overhead and 
+memory usage in the data path.
 
+For hardware RDMA devices, the use of the IOVA-based DMA mapping API 
+also seems likely to reduce IOTLB synchronization overhead compared to 
+the existing per-page approach, while software devices (rxe, siw) retain 
+the current virtual-addressing model.
+
+Do you happen to have any performance or functional test results you 
+could share for this series, in particular:
+
+Hardware RDMA devices (e.g., latency, bandwidth, or CPU utilization 
+changes), and/or
+
+Software RDMA devices such as rxe or siw?
+
+Any data points or qualitative observations would be very helpful for 
+evaluating the impact of the new API.
+
+Zhu Yanjun
+
+> 
+> The final patch adds the first consumer for the new API: svcrdma.
+> 
+> Based on v6.19-rc6.
+> 
+> ---
+> 
+> Changes since v2:
+> - Add bvec iter arguments to the new API
+> - Add a synthetic SGL in the MR mapping function
+> - Try IOVA coalescing before max_sgl_rd triggers MR in bvec path
+> - Attempt once again to address SQ/CQ/max_rdma_ctxs sizing issues
+> 
+> Changes since v1:
+> - Simplify rw.c by using bvec iters internally
+> - IOVA mapping produces a contiguous DMA address range
+> - Clarify the comment that documents struct svc_rdma_rw_ctxt
+> - svcrdma now uses pre-allocated bio_vec arrays
+> 
+> Chuck Lever (5):
+>    RDMA/core: add bio_vec based RDMA read/write API
+>    RDMA/core: use IOVA-based DMA mapping for bvec RDMA operations
+>    RDMA/core: add MR support for bvec-based RDMA operations
+>    RDMA/core: add rdma_rw_max_sge() helper for SQ sizing
+>    svcrdma: use bvec-based RDMA read/write API
+> 
+>   drivers/infiniband/core/rw.c             | 591 ++++++++++++++++++++---
+>   drivers/infiniband/ulp/isert/ib_isert.c  |   4 +-
+>   drivers/nvme/target/rdma.c               |   4 +-
+>   include/rdma/ib_verbs.h                  |  42 ++
+>   include/rdma/rw.h                        |  36 +-
+>   net/sunrpc/xprtrdma/svc_rdma_rw.c        | 155 +++---
+>   net/sunrpc/xprtrdma/svc_rdma_transport.c |   8 +-
+>   7 files changed, 699 insertions(+), 141 deletions(-)
+> 
 
