@@ -1,29 +1,29 @@
-Received: from out30-99.freemail.mail.aliyun.com (out30-99.freemail.mail.aliyun.com [115.124.30.99])
+Received: from out30-110.freemail.mail.aliyun.com (out30-110.freemail.mail.aliyun.com [115.124.30.110])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 570A32EDD52;
-	Fri, 23 Jan 2026 08:23:58 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.99
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD53A34D91C;
+	Fri, 23 Jan 2026 08:24:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.110
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769156641; cv=none; b=BvqBxZW6wbDvz1C4YIz/W7j/0H3zZ9cKHJA6C5eJAXvBw7Uxg6+IZ+yA0bu0jfm5BKNVieYGMwoxwtke8XCRa53WaPFyFUnVlIeiPKadO9hKBvoXb9OG0ZuaN94l+QrACbTLk5B9u/66VuGocEU0+pESJ39hbORIcNI106E5jz8=
+	t=1769156647; cv=none; b=u19h5ZMFBLZW/ma0SUWGjmjxeO3iYvpnM2MGdaTHLrDBUaWjrZiEzoFTEya1pob0IDle3ZdcDkIaJROdeb0EU0yvVZ6oS8S0yJZMJ3MnYhNNDhI2uY8+6Z3jcwkM36kZC+3VUFoNpuZV/KYb8dlbZf8gcl6C2BLYdXGs1kPRasw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769156641; c=relaxed/simple;
-	bh=12BYwHefeCHvg6DzgrKy0FPgd9W5v3eEwpoFFWFX9Rk=;
+	s=arc-20240116; t=1769156647; c=relaxed/simple;
+	bh=wM3JU/EQZGQCUY9DL/ap27lW5FHLzpGbQXdM7W26KpU=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=jbiYhHaiOViPayADtMY+CWmGJrAwR+S6iRQHoO/Nu++HeInlnf9elKK/X/tZCCNhC3GahVLvkDNf8JpKpuQU6rczR7VjcUTFdZMVxBAF4+ssIvp1zxr6eg9F0KsmthfpQRdm7NEwI2qiFdrsym2jKQQrErsZaX3OgKJTlPqwGE0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=iThvwSmC; arc=none smtp.client-ip=115.124.30.99
+	 MIME-Version; b=NChZWOWQ1YoWpIyz2vY3MhWgaPwBgsEv9jIvecD76Qsm0C7MSEPwPMqtdXw0QH5ziLhDvEiWkkbwRNWByWsP5EgwNNtXeA/f7+jBH4Z0IndUj+iINB+Gd8MPNYy3o2hRLY/Ajgy1P49v8U63r5aRhuWOjwaqPPQnsYtvfSlih5g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=N8UOb1xg; arc=none smtp.client-ip=115.124.30.110
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="iThvwSmC"
+	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="N8UOb1xg"
 DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
 	d=linux.alibaba.com; s=default;
-	t=1769156636; h=From:To:Subject:Date:Message-ID:MIME-Version;
-	bh=hBm0JDk7EhK8byASx/pot4VMZ/7c5vuPMnvsfOBUnCE=;
-	b=iThvwSmCe9zTcBWIDB1rbrn1vrh94TL4bCYPVBTMxdUevCygeT6x8Ap5G17RYKMSlLRReGp2R8UqAnE7phsCgTiYhai58xbGeG+AmPziVjMEAehhoKQ657R1jkugzvEFLqyzGslvoDW0kLkkC43dLSCFwvE7a6wH59MhfBxNdaI=
-Received: from j66a10360.sqa.eu95.tbsite.net(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0Wxf8ovm_1769156634 cluster:ay36)
+	t=1769156635; h=From:To:Subject:Date:Message-ID:MIME-Version;
+	bh=l4ux9tDlFdT94Vxn27fx7SeIZf5wjhCyTIcjZvfwWJQ=;
+	b=N8UOb1xgztH32QrTnJLQ0HErMKTEVypillYb5NrAbLG8ndcOQhHNa5GUXp/tWaUXBbOfNbs+VD1vFb5i1Y0P+GybToMmiESnuDDiAbyqHpWzV/RypwVcPh2RbmnhuKjZRNxA0AGfDLYQtSrrLl6WwPx+fEgjmwlXaCH9gy6mxtI=
+Received: from j66a10360.sqa.eu95.tbsite.net(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0Wxf8ov-_1769156634 cluster:ay36)
           by smtp.aliyun-inc.com;
-          Fri, 23 Jan 2026 16:23:55 +0800
+          Fri, 23 Jan 2026 16:23:54 +0800
 From: "D. Wythe" <alibuda@linux.alibaba.com>
 To: "David S. Miller" <davem@davemloft.net>,
 	Andrew Morton <akpm@linux-foundation.org>,
@@ -44,9 +44,9 @@ Cc: Mahanta Jambigi <mjambigi@linux.ibm.com>,
 	linux-s390@vger.kernel.org,
 	netdev@vger.kernel.org,
 	oliver.yang@linux.alibaba.com
-Subject: [PATCH net-next 2/3] mm: vmalloc: export find_vm_area()
-Date: Fri, 23 Jan 2026 16:23:48 +0800
-Message-ID: <20260123082349.42663-3-alibuda@linux.alibaba.com>
+Subject: [PATCH net-next 1/3] net/smc: cap allocation order for SMC-R physically contiguous buffers
+Date: Fri, 23 Jan 2026 16:23:47 +0800
+Message-ID: <20260123082349.42663-2-alibuda@linux.alibaba.com>
 X-Mailer: git-send-email 2.45.0
 In-Reply-To: <20260123082349.42663-1-alibuda@linux.alibaba.com>
 References: <20260123082349.42663-1-alibuda@linux.alibaba.com>
@@ -58,27 +58,72 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-find_vm_area() provides a way to find the vm_struct associated with a
-virtual address. Export this symbol to modules so that modularized
-subsystems can perform lookups on vmalloc addresses.
+The alloc_page() cannot satisfy requests exceeding MAX_PAGE_ORDER,
+and attempting such allocations will lead to guaranteed failures
+and potential kernel warnings.
+
+For SMCR_PHYS_CONT_BUFS, the allocation order is now capped to
+MAX_PAGE_ORDER, ensures the attempts to allocate the largest possible
+physically contiguous chunk instead of failing with an invalid order,
+which also avoid redundant "try-fail-degrade" cycles in __smc_buf_create().
+
+For SMCR_MIXED_BUFS, If it's order exceeds MAX_PAGE_ORDER, skips the
+doomed physical allocation attempt and fallback to virtual memory
+immediately.
 
 Signed-off-by: D. Wythe <alibuda@linux.alibaba.com>
+Reviewed-by: Dust Li <dust.li@linux.alibaba.com>
 ---
- mm/vmalloc.c | 1 +
- 1 file changed, 1 insertion(+)
+ net/smc/smc_core.c | 28 ++++++++++++++++------------
+ 1 file changed, 16 insertions(+), 12 deletions(-)
 
-diff --git a/mm/vmalloc.c b/mm/vmalloc.c
-index ecbac900c35f..3eb9fe761c34 100644
---- a/mm/vmalloc.c
-+++ b/mm/vmalloc.c
-@@ -3292,6 +3292,7 @@ struct vm_struct *find_vm_area(const void *addr)
+diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
+index e4eabc83719e..6219db498976 100644
+--- a/net/smc/smc_core.c
++++ b/net/smc/smc_core.c
+@@ -2324,26 +2324,30 @@ static struct smc_buf_desc *smcr_new_buf_create(struct smc_link_group *lgr,
+ 	if (!buf_desc)
+ 		return ERR_PTR(-ENOMEM);
  
- 	return va->vm;
- }
-+EXPORT_SYMBOL_GPL(find_vm_area);
- 
- /**
-  * remove_vm_area - find and remove a continuous kernel virtual area
++	buf_desc->order = get_order(bufsize);
++
+ 	switch (lgr->buf_type) {
+ 	case SMCR_PHYS_CONT_BUFS:
++		buf_desc->order = min(buf_desc->order, MAX_PAGE_ORDER);
++		fallthrough;
+ 	case SMCR_MIXED_BUFS:
+-		buf_desc->order = get_order(bufsize);
+-		buf_desc->pages = alloc_pages(GFP_KERNEL | __GFP_NOWARN |
+-					      __GFP_NOMEMALLOC | __GFP_COMP |
+-					      __GFP_NORETRY | __GFP_ZERO,
+-					      buf_desc->order);
+-		if (buf_desc->pages) {
+-			buf_desc->cpu_addr =
+-				(void *)page_address(buf_desc->pages);
+-			buf_desc->len = bufsize;
+-			buf_desc->is_vm = false;
+-			break;
++		if (buf_desc->order <= MAX_PAGE_ORDER) {
++			buf_desc->pages = alloc_pages(GFP_KERNEL | __GFP_NOWARN |
++						      __GFP_NOMEMALLOC | __GFP_COMP |
++						      __GFP_NORETRY | __GFP_ZERO,
++						      buf_desc->order);
++			if (buf_desc->pages) {
++				buf_desc->cpu_addr =
++					(void *)page_address(buf_desc->pages);
++				buf_desc->len = bufsize;
++				buf_desc->is_vm = false;
++				break;
++			}
+ 		}
+ 		if (lgr->buf_type == SMCR_PHYS_CONT_BUFS)
+ 			goto out;
+ 		fallthrough;	// try virtually contiguous buf
+ 	case SMCR_VIRT_CONT_BUFS:
+-		buf_desc->order = get_order(bufsize);
+ 		buf_desc->cpu_addr = vzalloc(PAGE_SIZE << buf_desc->order);
+ 		if (!buf_desc->cpu_addr)
+ 			goto out;
 -- 
 2.45.0
 
