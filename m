@@ -1,28 +1,29 @@
-Received: from out30-99.freemail.mail.aliyun.com (out30-99.freemail.mail.aliyun.com [115.124.30.99])
+Received: from out30-118.freemail.mail.aliyun.com (out30-118.freemail.mail.aliyun.com [115.124.30.118])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE4021339A4;
-	Fri, 23 Jan 2026 08:23:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.99
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A15A63195FD;
+	Fri, 23 Jan 2026 08:23:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.118
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769156639; cv=none; b=r2Zqq4ouoeduUB5kV1bvwBGntdPJ3AfUU+vwPtN225X4PEsbj5bLqFM+L+g26w0PQ0WsrX6KI+nz27QhifsVlpUw09WTZOAjMJ9rgHxNzkdo6LBvVb5Vrqm9LhnA2eNsHqTS3WAEdQLc/y18tGTlGnjbeYX4F3BDT2qyXLG1RpE=
+	t=1769156641; cv=none; b=lwhvBZRzFVTXzx52ttfzUF+O6RcgPY69xTTmkzq2Q2Y9R6bhr7k3QtY8yggeiqVlHJ9LGxfu2kibeGEpHzoVv6E9xBvf6+Kgcc+Qk6W6dz7UypK0K6zlUST324pPImFfBa92ZjVPuLz86CnEjW+kNRKQVhJ9FSlcfoNVOQWOc8A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769156639; c=relaxed/simple;
-	bh=DQcH0PY7/R5XnOeYcpOzF2IC3lFMXoE8qT45X2llzOk=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=qDgD3o3rBCeaJ//PgEc77TTlDO6ImxT0T4atOP8sCyKQ5lRqPglj9ygN3qTbOQDkp8D085DvY50OoD4kN0/mZplw7yRLUHC5nQEhjidxRi0/8sdyLnYK0zRl7N/hfnjrnY5eDxME9Ul+XygofFcMPiyCxV+DLuq1BvWm0x1noPo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=dfqcbpFR; arc=none smtp.client-ip=115.124.30.99
+	s=arc-20240116; t=1769156641; c=relaxed/simple;
+	bh=59DKB/VaktxKecnGsajFsV8KKJSNeWl2YpkeV1l9kvs=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=g3EOrZjsRbsS0vpNTcqYaswWCB1KKG6Rzl8gmPTwes9aftDh54U6tdI6W9ViLW+8cXuob3/z+orlI11bGkGugWG3IbnHA2AxmsiVT/SSg+W+lpqYI8v8XqI6fCB8bTp+mzA0bJz4E6CoQFKDZz2E4nksDnzyGnf45dyGp6lZmo0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=dDKh9u0C; arc=none smtp.client-ip=115.124.30.118
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="dfqcbpFR"
+	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="dDKh9u0C"
 DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
 	d=linux.alibaba.com; s=default;
-	t=1769156634; h=From:To:Subject:Date:Message-ID:MIME-Version;
-	bh=+ToaMMw996GZ44VRILSBmrGyDdta+DK0o/5glqE5fFI=;
-	b=dfqcbpFRmTGUsmBbhURHsT/QeIBx9digLSUzZHXsQoj84cyPb+iCd+hrOjfojlSWmJPH6Y205f96ZLCjjslS2spBlTRLzQpqn336AEGPxR8LttsYpS2yrtSA4jRlw3ZrM+xp4fALuqMDGOLJ5KBEhRbC1RnrkTuZMHRrfNQK6B4=
-Received: from j66a10360.sqa.eu95.tbsite.net(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0Wxf8oqi_1769156629 cluster:ay36)
+	t=1769156636; h=From:To:Subject:Date:Message-ID:MIME-Version;
+	bh=S1bjNuHUrGPdJip9CidbGVSG4Xe7mlDtcxJDAR5+R0s=;
+	b=dDKh9u0C2/6CwA61LrupXXv7Iy8pKePZelbPzySVA39rNQJRFjJE7V4BrYqqPubDuGQxVqyM0Wsirsj1KSDB8Y3DZRG0jWfjuJWAUZdOigZ8kKxiaITif+c6vOzEbcks7QykzA/M6Fcnh0ElS9r08rcO5c5HaswE+gOqtuhpHCY=
+Received: from j66a10360.sqa.eu95.tbsite.net(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0Wxf8owG_1769156635 cluster:ay36)
           by smtp.aliyun-inc.com;
-          Fri, 23 Jan 2026 16:23:53 +0800
+          Fri, 23 Jan 2026 16:23:55 +0800
 From: "D. Wythe" <alibuda@linux.alibaba.com>
 To: "David S. Miller" <davem@davemloft.net>,
 	Andrew Morton <akpm@linux-foundation.org>,
@@ -43,10 +44,12 @@ Cc: Mahanta Jambigi <mjambigi@linux.ibm.com>,
 	linux-s390@vger.kernel.org,
 	netdev@vger.kernel.org,
 	oliver.yang@linux.alibaba.com
-Subject: [PATCH net-next 0/3] net/smc: buffer allocation and registration improvements
-Date: Fri, 23 Jan 2026 16:23:46 +0800
-Message-ID: <20260123082349.42663-1-alibuda@linux.alibaba.com>
+Subject: [PATCH net-next 3/3] net/smc: optimize MTTE consumption for SMC-R buffers
+Date: Fri, 23 Jan 2026 16:23:49 +0800
+Message-ID: <20260123082349.42663-4-alibuda@linux.alibaba.com>
 X-Mailer: git-send-email 2.45.0
+In-Reply-To: <20260123082349.42663-1-alibuda@linux.alibaba.com>
+References: <20260123082349.42663-1-alibuda@linux.alibaba.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -55,25 +58,93 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-This series improves SMC-R buffer management by refining the allocation
-logic and reducing hardware resource overhead during registration. 
+SMC-R buffers currently use 4KB page mapping for IB registration.
+Each page consumes one MTTE, which is inefficient and quickly depletes
+limited IB hardware resources for large buffers.
 
-The primary improvement is the significant reduction in MTTE consumption.
-By aligning IB registration with the actual physical block sizes, we can
-reduce the entry count from one per 4KB page to just one per contiguous
-block. This is especially beneficial for large buffers, preventing
-hardware resource exhaustion on RDMA NICs.
+For virtual contiguous buffer, switch to vmalloc_huge() to leverage
+huge page support. By using larger page sizes during IB MR registration,
+we can drastically reduce MTTE consumption.
 
-D. Wythe (3):
-  net/smc: cap allocation order for SMC-R physically contiguous buffers
-  mm: vmalloc: export find_vm_area()
-  net/smc: optimize MTTE consumption for SMC-R buffers
+For physically contiguous buffer, the entire buffer now requires only
+one single MTTE.
 
- mm/vmalloc.c       |  1 +
- net/smc/smc_core.c | 31 ++++++++++++++++++-------------
+Signed-off-by: D. Wythe <alibuda@linux.alibaba.com>
+Reviewed-by: Dust Li <dust.li@linux.alibaba.com>
+---
+ net/smc/smc_core.c |  3 ++-
  net/smc/smc_ib.c   | 23 ++++++++++++++++++++---
- 3 files changed, 39 insertions(+), 16 deletions(-)
+ 2 files changed, 22 insertions(+), 4 deletions(-)
 
+diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
+index 6219db498976..8aca5dc54be7 100644
+--- a/net/smc/smc_core.c
++++ b/net/smc/smc_core.c
+@@ -2348,7 +2348,8 @@ static struct smc_buf_desc *smcr_new_buf_create(struct smc_link_group *lgr,
+ 			goto out;
+ 		fallthrough;	// try virtually contiguous buf
+ 	case SMCR_VIRT_CONT_BUFS:
+-		buf_desc->cpu_addr = vzalloc(PAGE_SIZE << buf_desc->order);
++		buf_desc->cpu_addr = vmalloc_huge(PAGE_SIZE << buf_desc->order,
++						  GFP_KERNEL | __GFP_ZERO);
+ 		if (!buf_desc->cpu_addr)
+ 			goto out;
+ 		buf_desc->pages = NULL;
+diff --git a/net/smc/smc_ib.c b/net/smc/smc_ib.c
+index 1154907c5c05..67211d44a1db 100644
+--- a/net/smc/smc_ib.c
++++ b/net/smc/smc_ib.c
+@@ -20,6 +20,7 @@
+ #include <linux/wait.h>
+ #include <linux/mutex.h>
+ #include <linux/inetdevice.h>
++#include <linux/vmalloc.h>
+ #include <rdma/ib_verbs.h>
+ #include <rdma/ib_cache.h>
+ 
+@@ -697,6 +698,18 @@ void smc_ib_put_memory_region(struct ib_mr *mr)
+ 	ib_dereg_mr(mr);
+ }
+ 
++static inline int smc_buf_get_vm_page_order(struct smc_buf_desc *buf_slot)
++{
++#ifdef CONFIG_HAVE_ARCH_HUGE_VMALLOC
++	struct vm_struct *vm;
++
++	vm = find_vm_area(buf_slot->cpu_addr);
++	return vm ? vm->page_order : 0;
++#else
++	return 0;
++#endif
++}
++
+ static int smc_ib_map_mr_sg(struct smc_buf_desc *buf_slot, u8 link_idx)
+ {
+ 	unsigned int offset = 0;
+@@ -706,8 +719,9 @@ static int smc_ib_map_mr_sg(struct smc_buf_desc *buf_slot, u8 link_idx)
+ 	sg_num = ib_map_mr_sg(buf_slot->mr[link_idx],
+ 			      buf_slot->sgt[link_idx].sgl,
+ 			      buf_slot->sgt[link_idx].orig_nents,
+-			      &offset, PAGE_SIZE);
+-
++			      &offset,
++			      buf_slot->is_vm ? PAGE_SIZE << smc_buf_get_vm_page_order(buf_slot) :
++			      PAGE_SIZE << buf_slot->order);
+ 	return sg_num;
+ }
+ 
+@@ -719,7 +733,10 @@ int smc_ib_get_memory_region(struct ib_pd *pd, int access_flags,
+ 		return 0; /* already done */
+ 
+ 	buf_slot->mr[link_idx] =
+-		ib_alloc_mr(pd, IB_MR_TYPE_MEM_REG, 1 << buf_slot->order);
++		ib_alloc_mr(pd, IB_MR_TYPE_MEM_REG,
++			    buf_slot->is_vm ?
++			    1 << (buf_slot->order - smc_buf_get_vm_page_order(buf_slot)) : 1);
++
+ 	if (IS_ERR(buf_slot->mr[link_idx])) {
+ 		int rc;
+ 
 -- 
 2.45.0
 
