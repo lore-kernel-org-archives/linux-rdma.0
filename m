@@ -1,149 +1,128 @@
-Received: from out30-133.freemail.mail.aliyun.com (out30-133.freemail.mail.aliyun.com [115.124.30.133])
+Received: from out-177.mta0.migadu.com (out-177.mta0.migadu.com [91.218.175.177])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E32101D8E10;
-	Sat, 24 Jan 2026 14:58:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.133
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 28C207E0E4
+	for <linux-rdma@vger.kernel.org>; Sat, 24 Jan 2026 18:20:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.177
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769266687; cv=none; b=ElC6PsO3aPTmOaZD9jrpekYFt6ld6p/tG5hBub483CRf62uZDXPMqVbpbiqS8+RNRqlvMUwCnX62jr5UdvktRimzd6XiGDz31dglPnmqQOMzFpDkD6cjJD5e74V42QLfdQFSfV6mhqZm9tRuZ4Mx/O3OQdOp5mGnZyD2PUmNbBo=
+	t=1769278806; cv=none; b=K3p7DFfOD5dI1EMfLa+ziO7Bmden7yyBMTzhzPOe2uXOnw/WSgDbS0goHhPNno+0VfA52mr/9tGgDaYe4naSRLktMJNj1W6BAxcA+spXBwWx86beZLGrz4c+/uHxxl7o7WdXB/hn1c4bOF+8sGPtNFDznpkcNhbVHrfhlVETLwc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769266687; c=relaxed/simple;
-	bh=dm8Ct+dHvdTsQ8RTyKSos3OmynlqH5EjrJzZcnN2LuQ=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=GR4pmqcOBXYBzYRQ2Y0br4UARTj9RoPhiKUlJzo4gI0gbdr0sLWX7MjGlWEvIiZQAZZ8WGxXakmxErlTjaOfwUyZGRzFukeZX4LFxWWwyiHXEVDTAvzYeWH1fGGcpSdPulXnjm/aObjXS+UZ9h2/L/IRVDwMOzhrd6GiSxIOx2s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=qLMQh7xd; arc=none smtp.client-ip=115.124.30.133
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
+	s=arc-20240116; t=1769278806; c=relaxed/simple;
+	bh=+IWuDoH5ujWHp5FkJnvyvd8wvu1bU54JhaW4mGt6dQw=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=JA95RFFraZxscy13Y4jwGT/YU8IPQb26tlE9xyv7qeWODL/jPi1YqWn9LRvBPuJNmwdugosSXaRUZFzzIRWo0TEIyICa/h7qlLXsn6PZQHrRsA1hatejqz0q6qegnF2OrfRnuchXzkNxafd8QvqAtFsCxWXsbGrrmqScTvFrQk8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=XJi+b+Ms; arc=none smtp.client-ip=91.218.175.177
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="qLMQh7xd"
-DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux.alibaba.com; s=default;
-	t=1769266676; h=Date:From:To:Subject:Message-ID:MIME-Version:Content-Type;
-	bh=CPWuCV8/90YbisajP7XufYM2YYkYUVDqVYcpinvbKXw=;
-	b=qLMQh7xdIcdmuC4QVLXEsAR6u2W28NZEIu574FJuOTY6WkmSudQvNhw3iIGSyQ5pKjdjE3WFtPZqCszuv1Xd9cPMZc+2tKtlEJlR059mRXx1XzQt/z6vcy1nZoPbLa3jTAeuDKQCKAK09UxvwkYXHvboVDaYDpIKYuhqg+0T4Cs=
-Received: from localhost(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0WxjCWVN_1769266674 cluster:ay36)
-          by smtp.aliyun-inc.com;
-          Sat, 24 Jan 2026 22:57:55 +0800
-Date: Sat, 24 Jan 2026 22:57:54 +0800
-From: "D. Wythe" <alibuda@linux.alibaba.com    >
-To: Uladzislau Rezki <urezki@gmail.com>
-Cc: "D. Wythe" <alibuda@linux.alibaba.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Dust Li <dust.li@linux.alibaba.com>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Sidraya Jayagond <sidraya@linux.ibm.com>,
-	Wenjia Zhang <wenjia@linux.ibm.com>,
-	Mahanta Jambigi <mjambigi@linux.ibm.com>,
-	Simon Horman <horms@kernel.org>, Tony Lu <tonylu@linux.alibaba.com>,
-	Wen Gu <guwen@linux.alibaba.com>, linux-kernel@vger.kernel.org,
-	linux-mm@kvack.org, linux-rdma@vger.kernel.org,
-	linux-s390@vger.kernel.org, netdev@vger.kernel.org,
-	oliver.yang@linux.alibaba.com
-Subject: Re: [PATCH net-next 2/3] mm: vmalloc: export find_vm_area()
-Message-ID: <20260124145754.GA57116@j66a10360.sqa.eu95>
-References: <20260123082349.42663-1-alibuda@linux.alibaba.com>
- <20260123082349.42663-3-alibuda@linux.alibaba.com>
- <aXPEFdEdtSmd6AzF@milan>
- <20260124093505.GA98529@j66a10360.sqa.eu95>
- <aXSjm1DXm6yP62tD@pc636>
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="XJi+b+Ms"
+Message-ID: <6e3b0ade-6b45-4597-b065-9148c2c5e0ef@linux.dev>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
+	t=1769278793;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=23WA4bZaC9Vmd3U8ccN3qNWEee3xLFqy4xjAmNr+GxM=;
+	b=XJi+b+MsSE0HsKgkJ+Gbdo3TI8J59yOTa0MH8kWFtfDPL64VxeBaM3vc1cjNn57QqM3iSz
+	n6Ujne68dyZ1t/iX0jcPXsYXnQ+iEtAiMNkea1668NJ1HDPSGdPFwecmwqRT/rsGySmYcj
+	6zSRu1bU3Vdh60OUGU2w3B2NMXPUWng=
+Date: Sat, 24 Jan 2026 10:19:44 -0800
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <aXSjm1DXm6yP62tD@pc636>
-User-Agent: Mutt/1.5.21 (2010-09-15)
+Subject: Re: [PATCH v3 0/5] Add a bio_vec based API to core/rw.c
+To: Chuck Lever <cel@kernel.org>, Jason Gunthorpe <jgg@nvidia.com>,
+ Leon Romanovsky <leon@kernel.org>, Christoph Hellwig <hch@lst.de>
+Cc: NeilBrown <neilb@ownmail.net>, Jeff Layton <jlayton@kernel.org>,
+ Olga Kornievskaia <okorniev@redhat.com>, Dai Ngo <dai.ngo@oracle.com>,
+ Tom Talpey <tom@talpey.com>, linux-rdma@vger.kernel.org,
+ linux-nfs@vger.kernel.org, Chuck Lever <chuck.lever@oracle.com>
+References: <20260122220401.1143331-1-cel@kernel.org>
+ <c02ab348-5243-4e97-b916-6bd59ffe769a@linux.dev>
+ <d67a30a0-5ff1-4e31-a168-81f8b7bee97f@kernel.org>
+X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
+From: Zhu Yanjun <yanjun.zhu@linux.dev>
+In-Reply-To: <d67a30a0-5ff1-4e31-a168-81f8b7bee97f@kernel.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
+X-Migadu-Flow: FLOW_OUT
 
-On Sat, Jan 24, 2026 at 11:48:59AM +0100, Uladzislau Rezki wrote:
-> Hello, D. Wythe!
+在 2026/1/23 6:13, Chuck Lever 写道:
+> On 1/23/26 1:04 AM, Zhu Yanjun wrote:
+>> 在 2026/1/22 14:03, Chuck Lever 写道:
+>>> From: Chuck Lever <chuck.lever@oracle.com>
+>>>
+>>> This series introduces a bio_vec based API for RDMA read and write
+>>> operations in the RDMA core, eliminating unnecessary scatterlist
+>>> conversions for callers that already work with bvecs.
+>>>
+>>> Current users of rdma_rw_ctx_init() must convert their native data
+>>> structures into scatterlists. For subsystems like svcrdma that
+>>> maintain data in bvec format, this conversion adds overhead both in
+>>> CPU cycles and memory footprint. The new API accepts bvec arrays
+>>> directly.
+>>>
+>>> For hardware RDMA devices, the implementation uses the IOVA-based
+>>> DMA mapping API to reduce IOTLB synchronization overhead from O(n)
+>>> per-page syncs to a single O(1) sync after all mappings complete.
+>>> Software RDMA devices (rxe, siw) continue using virtual addressing.
+>>>
+>>> The series includes MR registration support for bvec arrays,
+>>> enabling iWARP devices and the force_mr debug parameter. The MR
+>>> path reuses existing ib_map_mr_sg() infrastructure by constructing
+>>> a synthetic scatterlist from the bvec DMA addresses.
+>>
+>> Hi, Chuck Lever
+>>
+>> I’ve read through the patch series. As I understand it, the new bio_vec–
+>> based RDMA read/write API allows callers that already operate on bvecs
+>> (for example, svcrdma and potentially NVMe-oF) to avoid converting their
+>> data into scatterlists, which should reduce CPU overhead and memory
+>> usage in the data path.
+>>
+>> For hardware RDMA devices, the use of the IOVA-based DMA mapping API
+>> also seems likely to reduce IOTLB synchronization overhead compared to
+>> the existing per-page approach, while software devices (rxe, siw) retain
+>> the current virtual-addressing model.
+>>
+>> Do you happen to have any performance or functional test results you
+>> could share for this series, in particular:
+>>
+>> Hardware RDMA devices (e.g., latency, bandwidth, or CPU utilization
+>> changes), and/or
 > 
-> > On Fri, Jan 23, 2026 at 07:55:17PM +0100, Uladzislau Rezki wrote:
-> > > On Fri, Jan 23, 2026 at 04:23:48PM +0800, D. Wythe wrote:
-> > > > find_vm_area() provides a way to find the vm_struct associated with a
-> > > > virtual address. Export this symbol to modules so that modularized
-> > > > subsystems can perform lookups on vmalloc addresses.
-> > > > 
-> > > > Signed-off-by: D. Wythe <alibuda@linux.alibaba.com>
-> > > > ---
-> > > >  mm/vmalloc.c | 1 +
-> > > >  1 file changed, 1 insertion(+)
-> > > > 
-> > > > diff --git a/mm/vmalloc.c b/mm/vmalloc.c
-> > > > index ecbac900c35f..3eb9fe761c34 100644
-> > > > --- a/mm/vmalloc.c
-> > > > +++ b/mm/vmalloc.c
-> > > > @@ -3292,6 +3292,7 @@ struct vm_struct *find_vm_area(const void *addr)
-> > > >  
-> > > >  	return va->vm;
-> > > >  }
-> > > > +EXPORT_SYMBOL_GPL(find_vm_area);
-> > > >  
-> > > This is internal. We can not just export it.
-> > > 
-> > > --
-> > > Uladzislau Rezki
-> > 
-> > Hi Uladzislau,
-> > 
-> > Thank you for the feedback. I agree that we should avoid exposing
-> > internal implementation details like struct vm_struct to external
-> > subsystems.
-> > 
-> > Following Christoph's suggestion, I'm planning to encapsulate the page
-> > order lookup into a minimal helper instead:
-> > 
-> > unsigned int vmalloc_page_order(const void *addr){
-> > 	struct vm_struct *vm;
-> >  	vm = find_vm_area(addr);
-> > 	return vm ? vm->page_order : 0;
-> > }
-> > EXPORT_SYMBOL_GPL(vmalloc_page_order);
-> > 
-> > Does this approach look reasonable to you? It would keep the vm_struct
-> > layout private while satisfying the optimization needs of SMC.
-> > 
-> Could you please clarify why you need info about page_order? I have not
-> looked at your second patch.
+> Functional tests with CX-5 Infiniband and NFS/RDMA show no regression.
 > 
-> Thanks!
+> Performance tests are difficult to evaluate because I don't have a
+> multi-client set-up here to drive a heavy workload, plus filesystems
+> bottleneck long before the network transport does. The changes are
+> designed to improve scalability (eg lower CPU utilization for the same
+> workload and less interaction between host and RNIC) more than improve
+> raw throughput. So far I have seen no throughput regression and perhaps
+> a bit of improvement for tail latencies.
+
+Thanks a lot. Based on the code changes, this patch series should 
+improve performance. Unfortunately, due to various limitations, we are 
+unable to provide performance test results.
+
+Best Regards,
+Zhu Yanjun
+
 > 
-> --
-> Uladzislau Rezki
-
-Hi Uladzislau,
-
-This stems from optimizing memory registration in SMC-R. To provide the
-RDMA hardware with direct access to memory buffers, we must register
-them with the NIC. During this process, the hardware generates one MTT
-entry for each physically contiguous block. Since these hardware entries
-are a finite and scarce resource, and SMC currently defaults to a 4KB
-registration granularity, a single 2MB buffer consumes 512 entries. In
-high-concurrency scenarios, this inefficiency quickly exhausts NIC
-resources and becomes a major bottleneck for system scalability.
-
-To address this, we intend to use vmalloc_huge(). When it successfully
-allocates high-order pages, the vmalloc area is backed by a sequence of
-physically contiguous chunks (e.g., 2MB each). If we know this
-page_order, we can register these larger physical blocks instead of
-individual 4KB pages, reducing MTT consumption from 512 entries down to
-1 for every 2MB of memory (with page_order == 9).
-
-However, the result of vmalloc_huge() is currently opaque to the caller.
-We cannot determine whether it successfully allocated huge pages or fell
-back to 4KB pages based solely on the returned pointer. Therefore, we
-need a helper function to query the actual page order, enabling SMC-R to
-adapt its registration logic to the underlying physical layout.
-
-I hope this clarifies our design motivation!
-
-Best regards,
-D. Wythe
-
-
-
+> The main purpose of the series, however, is part of an effort to enable
+> kernel-wide replacement of the use of scatter-gather lists, which are
+> technical debt. Socket APIs already support struct bio_vec.
+> 
+> 
+>> Software RDMA devices such as rxe or siw?
+> 
+> Software providers are not likely to see much change. However, you will
+> need to test the series with your own preferred configuration and
+> workload to assess performance and scalability delta.
+> 
+> 
 
