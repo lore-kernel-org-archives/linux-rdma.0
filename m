@@ -1,32 +1,32 @@
-Received: from out30-131.freemail.mail.aliyun.com (out30-131.freemail.mail.aliyun.com [115.124.30.131])
+Received: from out30-112.freemail.mail.aliyun.com (out30-112.freemail.mail.aliyun.com [115.124.30.112])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A53213EBF34;
-	Sat, 24 Jan 2026 09:22:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.131
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D9B5B262A6;
+	Sat, 24 Jan 2026 09:25:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.112
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769246557; cv=none; b=pKjsmZ2JMOiaZw4R+Nmizf+PnU/vt9TvNiBQHdxUEk46euqwBkgAFOQn6ycaoUoxqJFF+0ZqQlGnQyE5bKHM3hls3bZn9QkFPwNwJNb6RXHHB5veR+ZcJz7dQooXo/Zi7uy9wsQExdavMgeLSjhrdBeyHZwBkydevoNWtv0E27k=
+	t=1769246743; cv=none; b=LZ/A/H4eaEdf5e20T4eqE5xzFba4wqy+OcuF4yhWcp4nPevcSD2ikTYKoJ0pt6WQufsH2ButDTnXtL4fF+HeXsE7b4bML4QldfW4O/lwfQzIUEThd5nU/nQFbDWTM98k2mduIgk6VCGYN3Pqi3GWiMAMkKBFOmhBLuRxH6unGEI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769246557; c=relaxed/simple;
-	bh=QmWvenW9ze+OPCIN43D1aT/M5hDWbE0p8JTYbw2Ap94=;
+	s=arc-20240116; t=1769246743; c=relaxed/simple;
+	bh=0FF0hwSHU1Q1WpbRlERg3YOcdvIdbHeBGhfjfEZ0r2U=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=SNkhIJ33A0DHeCnbeFwD/aMprTCaNldYrxkgIH+Zd10FsoGCS/9OB1wt+KVZ+Jpvfob9M61LUxb7dNmuwaIAG7EFfh7fsbD5VbiYTy5QW04dCXmTrGODHZ05aDT929jq9UdPPGPE79wfxFjDwaK2ksH6BFXrOK93aOm9lPX83oE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=jJdKJg/Y; arc=none smtp.client-ip=115.124.30.131
+	 Content-Type:Content-Disposition:In-Reply-To; b=I5GceXBx55dfIMaK8YaDVE45qhYfy5Xei0W8G6OpyNjQVhHyqMnsU8SqFwgvEE2Yk6EF76CZAljK4hrlkFhJf06p3SkjY5jP0QkBUGY5SbJqXjC8ZT1VMcELMLr0HGqSqb4dcBos7qM2cbQIA97stBJLGwESn/0s1rrWZCaPqKI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=C6DPt9Nd; arc=none smtp.client-ip=115.124.30.112
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="jJdKJg/Y"
+	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="C6DPt9Nd"
 DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
 	d=linux.alibaba.com; s=default;
-	t=1769246547; h=Date:From:To:Subject:Message-ID:MIME-Version:Content-Type;
-	bh=JJIvyfyanGB9J6au1bCV2+bGjwvOLICjUu5CtLQtQkg=;
-	b=jJdKJg/YACnJdaykw8f82QUI7lAfTu8ACkvAGoUUJv92nYDCQZfFSRTqHCtdpNSUAiBk/BkqtUJhf6vXemr5DyYQgJbJGCPV3BFZjIrgyXpBQO8TBwBCi85temLwJZEw9MM9jEkdvuy+9cfiLQLJxz2MK+dZYHEgM8dr6aMPEOE=
-Received: from localhost(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0Wxia0AB_1769246545 cluster:ay36)
+	t=1769246730; h=Date:From:To:Subject:Message-ID:MIME-Version:Content-Type;
+	bh=kCoUJ1M29g2nJIrmBIjAZ34udgG8JTU6pQFm2HI3HyA=;
+	b=C6DPt9NdDIiu+Vzx1OjChL/IkoH+PW4bBgtK1m/va1XVYFMEKEQdaPZMBUVxcRYtIBtstpDW4NhIOe0EBJETyNLqu91hVBfN1Bp9SsYkWLoApOfWEsMfIVg4l7LVVUgsDZJNkLHWZ2J5FkVN7wojq1cX+UKgOR9DrxbblyILxaQ=
+Received: from localhost(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0WxiaRId_1769246728 cluster:ay36)
           by smtp.aliyun-inc.com;
-          Sat, 24 Jan 2026 17:22:26 +0800
-Date: Sat, 24 Jan 2026 17:22:25 +0800
+          Sat, 24 Jan 2026 17:25:28 +0800
+Date: Sat, 24 Jan 2026 17:25:28 +0800
 From: "D. Wythe" <alibuda@linux.alibaba.com    >
-To: Alexandra Winter <wintera@linux.ibm.com>
+To: Christoph Hellwig <hch@infradead.org>
 Cc: "D. Wythe" <alibuda@linux.alibaba.com>,
 	"David S. Miller" <davem@davemloft.net>,
 	Andrew Morton <akpm@linux-foundation.org>,
@@ -42,12 +42,12 @@ Cc: "D. Wythe" <alibuda@linux.alibaba.com>,
 	linux-mm@kvack.org, linux-rdma@vger.kernel.org,
 	linux-s390@vger.kernel.org, netdev@vger.kernel.org,
 	oliver.yang@linux.alibaba.com
-Subject: Re: [PATCH net-next 1/3] net/smc: cap allocation order for SMC-R
- physically contiguous buffers
-Message-ID: <20260124092225.GA85316@j66a10360.sqa.eu95>
+Subject: Re: [PATCH net-next 3/3] net/smc: optimize MTTE consumption for
+ SMC-R buffers
+Message-ID: <20260124092528.GB85316@j66a10360.sqa.eu95>
 References: <20260123082349.42663-1-alibuda@linux.alibaba.com>
- <20260123082349.42663-2-alibuda@linux.alibaba.com>
- <6f8de95e-b034-4ea8-a246-605047d142db@linux.ibm.com>
+ <20260123082349.42663-4-alibuda@linux.alibaba.com>
+ <aXOLR9GxwuNz3Ddc@infradead.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -56,49 +56,33 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <6f8de95e-b034-4ea8-a246-605047d142db@linux.ibm.com>
+In-Reply-To: <aXOLR9GxwuNz3Ddc@infradead.org>
 User-Agent: Mutt/1.5.21 (2010-09-15)
 
-On Fri, Jan 23, 2026 at 11:54:37AM +0100, Alexandra Winter wrote:
+On Fri, Jan 23, 2026 at 06:52:55AM -0800, Christoph Hellwig wrote:
+> On Fri, Jan 23, 2026 at 04:23:49PM +0800, D. Wythe wrote:
+> > +static inline int smc_buf_get_vm_page_order(struct smc_buf_desc *buf_slot)
+> > +{
+> > +#ifdef CONFIG_HAVE_ARCH_HUGE_VMALLOC
+> > +	struct vm_struct *vm;
+> > +
+> > +	vm = find_vm_area(buf_slot->cpu_addr);
+> > +	return vm ? vm->page_order : 0;
+> > +#else
+> > +	return 0;
+> > +#endif
 > 
-> 
-> On 23.01.26 09:23, D. Wythe wrote:
-> Describe your changes in imperative mood.
-> https://docs.kernel.org/process/submitting-patches.html#describe-your-changes
-> 
-> 
-> > For SMCR_PHYS_CONT_BUFS, the allocation order is now capped to
-> > MAX_PAGE_ORDER, ensures the attempts to allocate the largest possible
-> > physically contiguous chunk instead of failing with an invalid order,
-> > which also avoid redundant "try-fail-degrade" cycles in __smc_buf_create().
-> > 
-> > For SMCR_MIXED_BUFS, If it's order exceeds MAX_PAGE_ORDER, skips the
-> > doomed physical allocation attempt and fallback to virtual memory
-> > immediately.
-> > 
-> 
-> Proposal for a version in imperative mood (iiuc):
-> "
-> For SMCR_PHYS_CONT_BUFS, cap the allocation order to MAX_PAGE_ORDER. This
-> ensures the attempts to allocate the largest possible physically contiguous
-> chunk succeed, instead of failing with an invalid order. This also avoids
-> redundant "try-fail-degrade" cycles in __smc_buf_create().
-> 
-> For SMCR_MIXED_BUFS, if its order exceeds MAX_PAGE_ORDER, skip the doomed
-> physical allocation attempt and fallback to virtual memory immediately.
-> "
-> 
-> 
-> > Signed-off-by: D. Wythe <alibuda@linux.alibaba.com>
-> > Reviewed-by: Dust Li <dust.li@linux.alibaba.com>
-> 
-> Other than that: LGTM
-> Reviewed-by: Alexandra Winter <wintera@linux.ibm.com>
+> You might want to encapsulate this logic in a vmalloc_order or similar
+> helper in vmalloc.c.
 
-Hi Alexandra,
+Hi Christoph,
 
-Thank you for your review and for providing the refined description.
-I will use your suggested wording for the commit message in V2.
+That's a great suggestion. Encapsulating this logic into a helper like
+vmalloc_page_order() (or similar) within vmalloc.c is indeed much
+cleaner than exporting find_vm_area().
 
-Best regards,
+I'll implement this helper in V2 and use it in the SMC code. Thanks for
+pointing this out!
+
+Thanks,
 D. Wythe
