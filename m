@@ -1,199 +1,74 @@
-Received: from mail-pl1-f169.google.com (mail-pl1-f169.google.com [209.85.214.169])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7211E2737F9
-	for <linux-rdma@vger.kernel.org>; Mon, 26 Jan 2026 20:38:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.169
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E3B91283FC5;
+	Mon, 26 Jan 2026 20:50:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769459936; cv=none; b=fbYbHOLTJiBzAbtYi+zLRY8a10Sa81ogXns1B+R0NnqSZeXiqTphNfmc5R2wgjhVPeHpTyZQY1HJH8Q7oJmAMwQ8mYrTyX85gQ+YMyNq2sqezQOw4hH66ixvdPyJoMSaJaiPtKwkPptm1TNoJza4TIuT4cS4bH/r70IUF8i1TR8=
+	t=1769460650; cv=none; b=FSTnL0p0IqU4WZ1VD7ciolA1SJh7xgjWQawKMbFxy14euw2PHbbPK59aN66/eEyqBqowMwdrB52cZm9uTrC6oRh5jK2T8GPpHMupV7EzU0Fj1dYe+FoVqVrRdTHIwGpUSOs0ksIUX5WRj3lRC2x4c93MSWvQuRVlSv138/5G5lE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769459936; c=relaxed/simple;
-	bh=ReePk5ebIABc/04zyOJasPQOtiwxWbIgDXrD19pnIPk=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=QaEMmPtzZYEQn7bS+C3HwuHYQolK6xzSIR6Pcu+gqB8PpVqv6lEGFnkISlaKYyaf1Qfhx2KfiD1ODwjs6XLME9g6GYnfdy9So3x6d24BLSGwSYiSf92AyXiraWEqK/djQZk+kFdKqLY1ylP4iyBi5wlfYsupM2rnlJziALxZnwQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=ENqilvO3; arc=none smtp.client-ip=209.85.214.169
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
+	s=arc-20240116; t=1769460650; c=relaxed/simple;
+	bh=yndic95Dd8m5l7C1UqbBVJQY3dB2qyl3JPw2oSTE5TQ=;
+	h=Date:From:To:Cc:Subject:Message-Id:In-Reply-To:References:
+	 Mime-Version:Content-Type; b=Y7vgKw8a2nXORWlUEQDEWA+lELdWwbe5Hh3DccTgzfnu6+nQH6o0Mwk3YymL135lgN4EmRXsm+ScdrDKote5KhnlvEgPZGw91sycHLM/7D4Fqtzr2EQLINc3lIiByNgUf0yYO1CsioJAOJo9PCP3dH4IeBxJdVlieJrvRkBxq10=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Gnbh9Loe; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="ENqilvO3"
-Received: by mail-pl1-f169.google.com with SMTP id d9443c01a7336-2a35ae38bdfso1755ad.1
-        for <linux-rdma@vger.kernel.org>; Mon, 26 Jan 2026 12:38:54 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20230601; t=1769459934; x=1770064734; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=heQW4XXGxVNpbsMWtr+Uf/Qjg2mRHLgzAq6EBq5z5Gc=;
-        b=ENqilvO3yHNYxJOrBt3JSHu/J1ym8/v63iMpFaPstmn1DAgs606o/DB+mBzpFxEeO4
-         mohiD/SGVtJmpSrM1Um3Uz5WFoMGhwv8VYIvdp9vHnqkLUAiCSwOzDJMdpFvLlQwEawE
-         NyW9CXTGGNWOEbu4Xic/wTW/zxHCU/rTDwazPY8QzsPhaZzwAsSF5cFhP+j2tyetkWG+
-         IFRScGqMdHZgIk2wdOipjZt8NNqMkKn5+PlhwWoLAmiyDVFtyiHJD4r91ODEuEHKnuZy
-         f/uat5iPozNN1IMlQWUW+KioXuNyTZG/tPWXb7hCNRp4oiEKLBlrW/l/9Pe+iVJCD7Nc
-         WtXg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1769459934; x=1770064734;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=heQW4XXGxVNpbsMWtr+Uf/Qjg2mRHLgzAq6EBq5z5Gc=;
-        b=cayXlFwFy4fXhX3RS6pKzC7QsqXwVZwrErUxa68KaCYpVQNosW8EaPARUEDGg9zgRY
-         K9xfmgxUPqSOqXSKwoMEyOgd/uB85k47l9mrNcjBmrINjYNr6vXHvoYtiRxmVMs753aW
-         1MPM8C384lw8mzRkrSAw+jHySH9qEyWZC8D0qDEnW73xjoTj6MygqJaDwCQ7hV3HAw5Q
-         fCL7X+HfQfw6TiK7U0Q0F9EIcctMXdi/fSRq25hv9vfhzfRhYriZ0UVlBabaGpcga5aA
-         YtKUhPtyj2hO7g8jTywlcqAgBtSWMQvj7T3rwmlg3MY+/kIBCxbu3cZSs4MsEAvy9j+K
-         DKCg==
-X-Forwarded-Encrypted: i=1; AJvYcCW0B4tONrO6P0hdar+mxnh7ayHFPuIbUCfVyv6FMcnrHYfNBAuB/Bf4oeeCgLs+Oh7EdKnkHy73CigT@vger.kernel.org
-X-Gm-Message-State: AOJu0YzzoNF0EHRzzMJtKPfgNOpztxdZZ75uzBkDKTAVeDIrcdwVx43N
-	m+jgk6rQ6m6ZS1XPBpD5lWHRH0kYvdg9bYjGjJNqzcwK1FB2ZQrMhycCtqXKghwh3w==
-X-Gm-Gg: AZuq6aJnfXzT1XzIImWKOLbp0Gz7JpD0cgO0rxcdkV/XwB3d94yG8stdDUyCjcRbt0f
-	1dhhGdpRB9G1HLmcNLS3LPmtaSrTITmnVN64UAs7z3FQV5eaKbdpIkLvLcCWgypSU6L/WS1oA9s
-	SAxi+gitK7LHv2qtJOQnluGrFKfo7v7G9nADvVreqdlEkjguIKqW/lL0oumvY/n+PZDSzOIh28s
-	aR/igcLtpk/eOWFdeWNn5ozz4MU3qrzK9nb38oHqgSNUtUb1a2mT76xvACdbCtm+LDB+tAi2rl6
-	sv7FL5Qmxd9qnkcWb3t8H/TOh4teqXZXhs/LZDRwnKddbT4ywGcmlQlV6wkax5Kv1e/hbMmIJNU
-	+8k+qxeGI/XmxYRp7P9ZTXZSQTv74MAtuRPMAy2DFXKhd6H1IAF21SQkFmeDIOZa1GhwWkGO7/9
-	pvnml9g4diEYZ5W0jMM4M+EwTjdiaiFqnwEe33UCZ+0FcDzxU3
-X-Received: by 2002:a17:903:32d2:b0:2a7:7f07:340e with SMTP id d9443c01a7336-2a844901809mr3288195ad.4.1769459933510;
-        Mon, 26 Jan 2026 12:38:53 -0800 (PST)
-Received: from google.com (222.245.187.35.bc.googleusercontent.com. [35.187.245.222])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2a802fdce1fsm94536115ad.101.2026.01.26.12.38.47
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 26 Jan 2026 12:38:53 -0800 (PST)
-Date: Mon, 26 Jan 2026 20:38:44 +0000
-From: Pranjal Shrivastava <praan@google.com>
-To: Leon Romanovsky <leon@kernel.org>
-Cc: Sumit Semwal <sumit.semwal@linaro.org>,
-	Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>,
-	Alex Deucher <alexander.deucher@amd.com>,
-	David Airlie <airlied@gmail.com>, Simona Vetter <simona@ffwll.ch>,
-	Gerd Hoffmann <kraxel@redhat.com>,
-	Dmitry Osipenko <dmitry.osipenko@collabora.com>,
-	Gurchetan Singh <gurchetansingh@chromium.org>,
-	Chia-I Wu <olvaffe@gmail.com>,
-	Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
-	Maxime Ripard <mripard@kernel.org>,
-	Thomas Zimmermann <tzimmermann@suse.de>,
-	Lucas De Marchi <lucas.demarchi@intel.com>,
-	Thomas =?iso-8859-1?Q?Hellstr=F6m?= <thomas.hellstrom@linux.intel.com>,
-	Rodrigo Vivi <rodrigo.vivi@intel.com>,
-	Jason Gunthorpe <jgg@ziepe.ca>, Kevin Tian <kevin.tian@intel.com>,
-	Joerg Roedel <joro@8bytes.org>, Will Deacon <will@kernel.org>,
-	Robin Murphy <robin.murphy@arm.com>,
-	Felix Kuehling <Felix.Kuehling@amd.com>,
-	Alex Williamson <alex@shazbot.org>,
-	Ankit Agrawal <ankita@nvidia.com>,
-	Vivek Kasireddy <vivek.kasireddy@intel.com>,
-	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linaro-mm-sig@lists.linaro.org, linux-kernel@vger.kernel.org,
-	amd-gfx@lists.freedesktop.org, virtualization@lists.linux.dev,
-	intel-xe@lists.freedesktop.org, linux-rdma@vger.kernel.org,
-	iommu@lists.linux.dev, kvm@vger.kernel.org
-Subject: Re: [PATCH v5 6/8] dma-buf: Add dma_buf_attach_revocable()
-Message-ID: <aXfQ1LFNDUrfeuHf@google.com>
-References: <20260124-dmabuf-revoke-v5-0-f98fca917e96@nvidia.com>
- <20260124-dmabuf-revoke-v5-6-f98fca917e96@nvidia.com>
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Gnbh9Loe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DC155C116C6;
+	Mon, 26 Jan 2026 20:50:48 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1769460649;
+	bh=yndic95Dd8m5l7C1UqbBVJQY3dB2qyl3JPw2oSTE5TQ=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+	b=Gnbh9LoeYg4uZkvQPBCJHv7TazOmO+eqozhbasI0b8pDuDPJ/LE4GearjPOnG04NB
+	 /t1tDK4uOP4xN4ZsPWegJH7KYRjDifFFGDt4laaZ+PpC0Uf05a9w2tV709Z6OH1Ogt
+	 GvJ4OwYOaLmX6a2pJF4xDjbXynMUAml/PDzkSr5U=
+Date: Mon, 26 Jan 2026 12:50:48 -0800
+From: Andrew Morton <akpm@linux-foundation.org>
+To: Oleg Nesterov <oleg@redhat.com>
+Cc: Alice Ryhl <aliceryhl@google.com>, Boris Brezillon
+ <boris.brezillon@collabora.com>, Christian =?ISO-8859-1?Q?K=F6nig?=
+ <christian.koenig@amd.com>, Felix Kuehling <felix.kuehling@amd.com>, Leon
+ Romanovsky <leon@kernel.org>, Steven Price <steven.price@arm.com>,
+ "David S. Miller" <davem@davemloft.net>, Eric Dumazet
+ <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, Paolo Abeni
+ <pabeni@redhat.com>, Simon Horman <horms@kernel.org>,
+ linux-kernel@vger.kernel.org, amd-gfx@lists.freedesktop.org,
+ dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org,
+ netdev@vger.kernel.org
+Subject: Re: [PATCH v2 7/7] netclassid: use thread_group_leader(p) in
+ update_classid_task()
+Message-Id: <20260126125048.323a281527fb2554c96f40bf@linux-foundation.org>
+In-Reply-To: <aXY_4NSP094-Cf-2@redhat.com>
+References: <aXY_h8i78n6yD9JY@redhat.com>
+	<aXY_4NSP094-Cf-2@redhat.com>
+X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260124-dmabuf-revoke-v5-6-f98fca917e96@nvidia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-Hi Leon,
+On Sun, 25 Jan 2026 17:08:00 +0100 Oleg Nesterov <oleg@redhat.com> wrote:
 
-On Sat, Jan 24, 2026 at 09:14:18PM +0200, Leon Romanovsky wrote:
-> From: Leon Romanovsky <leonro@nvidia.com>
+> Cleanup and preparation to simplify the next changes.
 > 
-> Some exporters need a flow to synchronously revoke access to the DMA-buf
-> by importers. Once revoke is completed the importer is not permitted to
-> touch the memory otherwise they may get IOMMU faults, AERs, or worse.
-> 
-> DMA-buf today defines a revoke flow, for both pinned and dynamic
-> importers, which is broadly:
-> 
-> 	dma_resv_lock(dmabuf->resv, NULL);
-> 	// Prevent new mappings from being established
-> 	priv->revoked = true;
-> 
-> 	// Tell all importers to eventually unmap
-> 	dma_buf_invalidate_mappings(dmabuf);
-> 
-> 	// Wait for any inprogress fences on the old mapping
-> 	dma_resv_wait_timeout(dmabuf->resv,
-> 			      DMA_RESV_USAGE_BOOKKEEP, false,
-> 			      MAX_SCHEDULE_TIMEOUT);
-> 	dma_resv_unlock(dmabuf->resv, NULL);
-> 
-> 	// Wait for all importers to complete unmap
-> 	wait_for_completion(&priv->unmapped_comp);
-> 
-> This works well, and an importer that continues to access the DMA-buf
-> after unmapping it is very buggy.
-> 
-> However, the final wait for unmap is effectively unbounded. Several
-> importers do not support invalidate_mappings() at all and won't unmap
-> until userspace triggers it.
-> 
-> This unbounded wait is not suitable for exporters like VFIO and RDMA tha
-> need to issue revoke as part of their normal operations.
-> 
-> Add dma_buf_attach_revocable() to allow exporters to determine the
-> difference between importers that can complete the above in bounded time,
-> and those that can't. It can be called inside the exporter's attach op to
-> reject incompatible importers.
-> 
-> Document these details about how dma_buf_invalidate_mappings() works and
-> what the required sequence is to achieve a full revocation.
-> 
-> Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
-> ---
->  drivers/dma-buf/dma-buf.c | 48 ++++++++++++++++++++++++++++++++++++++++++++++-
->  include/linux/dma-buf.h   |  9 +++------
->  2 files changed, 50 insertions(+), 7 deletions(-)
-> 
-> diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
-> index 1629312d364a..f0e05227bda8 100644
-> --- a/drivers/dma-buf/dma-buf.c
-> +++ b/drivers/dma-buf/dma-buf.c
-> @@ -1242,13 +1242,59 @@ void dma_buf_unmap_attachment_unlocked(struct dma_buf_attachment *attach,
->  }
->  EXPORT_SYMBOL_NS_GPL(dma_buf_unmap_attachment_unlocked, "DMA_BUF");
+
+"next changes".  This is the final patch?
+
+> --- a/net/core/netclassid_cgroup.c
+> +++ b/net/core/netclassid_cgroup.c
+> @@ -93,7 +93,7 @@ static void update_classid_task(struct task_struct *p, u32 classid)
+>  	/* Only update the leader task, when many threads in this task,
+>  	 * so it can avoid the useless traversal.
+>  	 */
+> -	if (p != p->group_leader)
+> +	if (!thread_group_leader(p))
+>  		return;
 >  
-> +/**
-> + * dma_buf_attach_revocable - check if a DMA-buf importer implements
-> + * revoke semantics.
-> + * @attach: the DMA-buf attachment to check
-> + *
-> + * Returns true if the DMA-buf importer can support the revoke sequence
-> + * explained in dma_buf_invalidate_mappings() within bounded time. Meaning the
-> + * importer implements invalidate_mappings() and ensures that unmap is called as
-> + * a result.
-> + */
-> +bool dma_buf_attach_revocable(struct dma_buf_attachment *attach)
-> +{
-> +	return attach->importer_ops &&
-> +	       attach->importer_ops->invalidate_mappings;
-> +}
-> +EXPORT_SYMBOL_NS_GPL(dma_buf_attach_revocable, "DMA_BUF");
-> +
-
-I noticed that Patch 5 removes the invalidate_mappings stub from 
-umem_dmabuf.c, effectively making the callback NULL for an RDMA 
-importer. Consequently, dma_buf_attach_revocable() (introduced here)
-will return false for these importers.
-
-Since the cover letter mentions that VFIO will use
-dma_buf_attach_revocable() to prevent unbounded waits, this appears to
-effectively block paths like the VFIO-export -> RDMA-import path..
-
-Given that RDMA is a significant consumer of dma-bufs, are there plans
-to implement proper revocation support in the IB/RDMA core (umem_dmabuf)? 
-
-It would be good to know if there's a plan for bringing such importers
-into compliance with the new revocation semantics so they can interop
-with VFIO OR are we completely ruling out users like RDMA / IB importing
-any DMABUFs exported by VFIO?
-
-Thanks,
-Praan
+>  	do {
+> -- 
+> 2.52.0
