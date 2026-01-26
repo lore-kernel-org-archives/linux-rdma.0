@@ -1,48 +1,41 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF93734D4D2;
-	Mon, 26 Jan 2026 17:48:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 680A634D902;
+	Mon, 26 Jan 2026 18:14:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769449699; cv=none; b=R2O7YX8Q8k+aKDSsHxCbkGcuKNSECpkkAG0cTMGL8oUxPa+Qg1HPCucfb0134o7/oRqnqCvlwabL++DsLfHfYzr5zAGmxHkslUun9tr+IJgDIqSl11xGUousTAOIQYF9A5UH/T174rFc4MdtCcbA7sjPwwLRjGm6sZdeziFge7Q=
+	t=1769451258; cv=none; b=sddxC4No5jsO5dEI4iiGm/RvCKfcuaqmsqMOqbtD4g29gmj/Mt4UCexCuLjcRyj19Xhws1NwFkEw5RZqZNwv836Nd5z+R37dsYuwPoX0/OCwenAROXX4ax7k5ZQora2utbeJSag5Y1QsWIIk8UDKwNWBAmVjGjss/utrFajwKjE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769449699; c=relaxed/simple;
-	bh=RsYSuliAGyXfu7amtjytPEnCvLsy+vVf24yR5uPC0pE=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=EcJcd5ehyCMs/aFoIzVb3vamXBETSwV4CEIzL+uEyTTqFH77n245dVBNdpxPYYssvpKCK/ZojI5S45fI8J0z5mMTVe1oDDVajXPT+Arc7P1cEq+eZcQ89wHfg0m6XotEQvMBKy4SFf5wDJw0JV9sNstfRzosOElFMyYK0TbmcyE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=dl5BnoZ7; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769451258; c=relaxed/simple;
+	bh=rWf6tqPqWjreG0BCXURfCy/EfbbRFBi9s3cqFS1qkIc=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=jwrW6QwIohlL0QqjcQWE6hg3Gd1qdGfziBhri/yYIW5AsCxPOMu6Shm+XEEZSS1j5MohqFapuK3u51I+oU+83X6wMNCpDoTAOX7SQJ58eO8WTOlLIySj6lA78kCzCdk9/yaiWyu49WH6mfuuZGyObX5nYaoTZJNS5ESsg9Dp4pQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=dnmNp3Ml; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="dl5BnoZ7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9DF10C19425;
-	Mon, 26 Jan 2026 17:48:17 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="dnmNp3Ml"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 78FFEC116C6;
+	Mon, 26 Jan 2026 18:14:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1769449699;
-	bh=RsYSuliAGyXfu7amtjytPEnCvLsy+vVf24yR5uPC0pE=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=dl5BnoZ7qaHOYO4trP9UdK5tV4uq7Y1inMJKubhuJiTUS262YQ4v6mxlWuCeLyq4d
-	 PAlzmBHIdZuLO/EGWJ6lHjsKa7BINJcs8pbHMp/gAD4947UQ+OMQB/2Ct9hMvhmGQS
-	 7wDAxACL+XkjP/sM1jD3fHpHXJailvIsU9i0Tg3Pw5AvX7yjZK0Zqlw08An2wlJSiL
-	 Op7O/ke6q0tW/VbViZUveHmlS6hbOWjOP0eWcoph/4JO2BUtZ5Z6Jty6zRqQ6mWwrL
-	 CmZxSr9Ch8yeBGGJ2bzLgO2CMRVO4SvjzjUmE/6/wSq26j+wVbg28m69INzsDaIJfq
-	 d4Dn5wtw8VmUw==
-From: Simon Horman <horms@kernel.org>
-To: achender@kernel.org
-Cc: Simon Horman <horms@kernel.org>,
-	allison.henderson@oracle.com,
-	rds-devel@oss.oracle.com,
-	netdev@vger.kernel.org,
-	edumazet@google.com,
-	pabeni@redhat.com,
-	linux-rdma@vger.kernel.org,
-	linux-kselftest@vger.kernel.org,
-	kuba@kernel.org
-Subject: Re: [net-next,v1,7/7] net/rds: Trigger rds_send_ping() more than once
-Date: Mon, 26 Jan 2026 17:47:54 +0000
-Message-ID: <20260126174754.1393215-1-horms@kernel.org>
-X-Mailer: git-send-email 2.47.3
-In-Reply-To: <20260125070651.207042-8-achender@kernel.org>
-References: <20260125070651.207042-8-achender@kernel.org>
+	s=k20201202; t=1769451258;
+	bh=rWf6tqPqWjreG0BCXURfCy/EfbbRFBi9s3cqFS1qkIc=;
+	h=From:To:Cc:Subject:Date:From;
+	b=dnmNp3MlnI7YbZuImPnJbZK0kuTYzyZk2uUINoWONdyI7ESDdttfsIvrveN8uzyaJ
+	 d8Ssfjuti0JvaWQS0FIjrh69AhF+Ox0woz9lYxSr/K50qhas12nuT4NzxlWKpc0vdh
+	 zb7GdodncTc0jf6SuSja/4kH0hIJPWeV/kigfNB7/UuuGrJCyB+RBzs2HdMmtRyw4B
+	 tIk3uV9X6hdwFEuT17w1rsBsSvQDvR6N4LGITvykAm0XXvLhgHvDSh7iEUP3lGWMQj
+	 8AoED6zoA3Leni2LKi4iNPtRNMIChbB38npnTf5LB4cYKaRzaSSVdlJ7mqbkfVv84U
+	 N6TkSMFITBQog==
+From: Chuck Lever <cel@kernel.org>
+To: Leon Romanovsky <leon@kernel.org>,
+	Christoph Hellwig <hch@lst.de>,
+	Jason Gunthorpe <jgg@nvidia.com>
+Cc: <linux-rdma@vger.kernel.org>,
+	<linux-nfs@vger.kernel.org>,
+	Chuck Lever <chuck.lever@oracle.com>
+Subject: [PATCH v4 0/5] Add a bio_vec based API to core/rw.c
+Date: Mon, 26 Jan 2026 13:14:09 -0500
+Message-ID: <20260126181414.105062-1-cel@kernel.org>
+X-Mailer: git-send-email 2.52.0
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -51,46 +44,66 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-This is an AI-generated review of your patch. The human sending this
-email has considered the AI review valid, or at least plausible.
+From: Chuck Lever <chuck.lever@oracle.com>
 
-For local reproduction steps see https://netdev-ai.bots.linux.dev/ai-local.html
+This series introduces a bio_vec based API for RDMA read and write
+operations in the RDMA core, eliminating unnecessary scatterlist
+conversions for callers that already work with bvecs.
+
+Current users of rdma_rw_ctx_init() must convert their native data
+structures into scatterlists. For subsystems like svcrdma that
+maintain data in bvec format, this conversion adds overhead both in
+CPU cycles and memory footprint. The new API accepts bvec arrays
+directly.
+
+For hardware RDMA devices, the implementation uses the IOVA-based
+DMA mapping API to reduce IOTLB synchronization overhead from O(n)
+per-page syncs to a single O(1) sync after all mappings complete.
+Software RDMA devices (rxe, siw) continue using virtual addressing.
+
+The series includes MR registration support for bvec arrays,
+enabling iWARP devices and the force_mr debug parameter. The MR
+path reuses existing ib_map_mr_sg() infrastructure by constructing
+a synthetic scatterlist from the bvec DMA addresses.
+
+The final patch adds the first consumer for the new API: svcrdma.
+
+Based on v6.19-rc7.
+
 ---
-net/rds: Trigger rds_send_ping() more than once
 
-This commit ensures that rds_send_ping() is triggered after reconnect
-to properly communicate path capabilities, especially after an RDS
-module reload. It also validates source port modulo during fan-out.
+Changes since v3:
+- Remove the local iter from rdma_rw_init_iova_wrs_bvec()
+- Refactor common per-MR handling into a helper
 
-> diff --git a/net/rds/send.c b/net/rds/send.c
-> index ea3b57e9191b..8e7ece085ff1 100644
-> --- a/net/rds/send.c
-> +++ b/net/rds/send.c
-> @@ -1328,6 +1328,23 @@ int rds_sendmsg(struct socket *sock, struct msghdr *msg, size_t payload_len)
->  		cpath = &conn->c_path[0];
->  	}
->
-> +	/* c_npaths == 0 if we have not talked to this peer
-> +	 * before.  Initiate a connection request to the
-> +	 * peer right away.
-> +	 */
-> +	if (conn->c_trans->t_mp_capable &&
-> +	    !rds_conn_path_up(&conn->c_path[0])) {
+Changes since v2:
+- Add bvec iter arguments to the new API
+- Add a synthetic SGL in the MR mapping function
+- Try IOVA coalescing before max_sgl_rd triggers MR in bvec path
+- Attempt once again to address SQ/CQ/max_rdma_ctxs sizing issues
 
-This isn't a bug, but the comment says "c_npaths == 0" while the code
-checks "!rds_conn_path_up()". These conditions are different:
-c_npaths == 0 means no paths negotiated yet, while !rds_conn_path_up()
-is true for any state other than RDS_CONN_UP (DOWN, CONNECTING,
-DISCONNECTING, ERROR, RESETTING).
+Changes since v1:
+- Simplify rw.c by using bvec iters internally
+- IOVA mapping produces a contiguous DMA address range
+- Clarify the comment that documents struct svc_rdma_rw_ctxt
+- svcrdma now uses pre-allocated bio_vec arrays
 
-The commit message mentions "after a re-connect to any peer" which
-aligns with the code, but the comment specifically mentions c_npaths
-which isn't checked. Should the comment be updated to reflect the
-actual logic?
+Chuck Lever (5):
+  RDMA/core: add bio_vec based RDMA read/write API
+  RDMA/core: use IOVA-based DMA mapping for bvec RDMA operations
+  RDMA/core: add MR support for bvec-based RDMA operations
+  RDMA/core: add rdma_rw_max_sge() helper for SQ sizing
+  svcrdma: use bvec-based RDMA read/write API
 
-> +		/* Ensures that only one request is queued.  And
-> +		 * rds_send_ping() ensures that only one ping is
-> +		 * outstanding.
-> +		 */
+ drivers/infiniband/core/rw.c             | 594 ++++++++++++++++++++---
+ drivers/infiniband/ulp/isert/ib_isert.c  |   4 +-
+ drivers/nvme/target/rdma.c               |   4 +-
+ include/rdma/ib_verbs.h                  |  42 ++
+ include/rdma/rw.h                        |  36 +-
+ net/sunrpc/xprtrdma/svc_rdma_rw.c        | 155 +++---
+ net/sunrpc/xprtrdma/svc_rdma_transport.c |   8 +-
+ 7 files changed, 685 insertions(+), 158 deletions(-)
 
-[ ... ]
+-- 
+2.52.0
+
