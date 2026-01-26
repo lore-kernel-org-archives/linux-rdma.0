@@ -1,61 +1,162 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qt1-f177.google.com (mail-qt1-f177.google.com [209.85.160.177])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5BDEE1C84B8;
-	Mon, 26 Jan 2026 19:47:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7FB9D285C9F
+	for <linux-rdma@vger.kernel.org>; Mon, 26 Jan 2026 19:49:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.177
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769456822; cv=none; b=eukYBKs/xguNw1pYioGaWibdT2/ydWhFlRPYEPUNn4xyWy+uSpSvqpMyTZlOuhq/BkUg17pKqDkk1ZIfFZnVvO7YbKF9maUQIsPyv2JWQ2EKQ5Az2GxIPropoiqDDoFIL4eWevZdwtcR9v2Mr5vbPDpR/Fa1tJwMG65fnPpLBCM=
+	t=1769456997; cv=none; b=mYgEeUp1xtZhL/5YJ90vMv4FpPGl6iH/XfQypspeb7KbfXh3DA6ztn7oyxegSgo1/Kl4e86N1GcFLq37LbWZq6KBXCEXDx/XqRbcaLhMft3IUpDrNDKjKqEgD/DXgdPwQpiLWmBBv/R0nfgrCLv02v4uQ4/nWwMSf02OfTd5VoE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769456822; c=relaxed/simple;
-	bh=Ej4YkzeRliwgjkiZomTLy1mKyJSW8sQlElSDBlVVbYo=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=UDhoWF+Sq3cRcelQiiDVjM7pnNvdb/hLVoIbTIphzlOExP7sgIbzfk3X3j2jLCuF/9y4E3kUAqXu5cMKtBVvdbzEyYpL5aB/7X9LNWMbHY5Ay76X//lIhnhAXkPkN9mC/ySoA5vkPeh1j9S/3becsQYB2hpaJl8PF34eBf2TAhQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=jcTXllhu; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769456997; c=relaxed/simple;
+	bh=Ew0wil3rS4MqDg53VyMtrRBkkpZ592JhyvoxrBM5REI=;
+	h=Date:From:To:Cc:Message-ID:In-Reply-To:References:Subject:
+	 Mime-Version:Content-Type; b=blz4wZHvGVGQ/BG10pAF2GdhgxPNCaeBEQK1y+4xM65Om83bphatx3mNcKB4lQf8EPOVirUmdx53eZCcwbUaEY8fKGv5d9XBvpgmhWN/QR0hejY9p+LTgJ0V6kg5G3smPNwkLRtHVNuA7SRP2g//eC/+ZNpmf4Zd9MC1kVke/6s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=CQGG1hIn; arc=none smtp.client-ip=209.85.160.177
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="jcTXllhu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 09EBAC2BC86;
-	Mon, 26 Jan 2026 19:47:00 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1769456822;
-	bh=Ej4YkzeRliwgjkiZomTLy1mKyJSW8sQlElSDBlVVbYo=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=jcTXllhu4mqX9VySexWU2ilHKDmSjg60/rJfNAYZ//oRDUNylK7eEFYLBzcHDctMB
-	 2QLq+w3IWDFmiMkzloRwD92rT59s+jn86KAmNqNoqFmUxsRZ+23mgnzuuLKhcKbpsR
-	 Mtkz2LUiCzotWaSfVBJ7BRDYYKvXFYpeBpnVmDMDdceJD6pV+LWobMxCHlr33iWwEX
-	 cujHXGy59iO1ASmbavq2N5/r6R0LqdPGZeKrECVorGdFb4W08T6fch8denoGJD6k+m
-	 e36Ljpu/hpoVFk2rqTctV/XspGyQsgBm0zGNGPl4d5Z2DVRyYFFmEfXzrFIPPq3UI9
-	 8fMw3LVoLRUOQ==
-Date: Mon, 26 Jan 2026 21:46:55 +0200
-From: Leon Romanovsky <leon@kernel.org>
-To: Carlos Bilbao <carlos.bilbao@lambdal.com>
-Cc: mustafa.ismail@intel.com, shiraz.saleem@intel.com, jgg@ziepe.ca,
-	bilbao@vt.edu, linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org, carlos.bilbao@kernel.org
-Subject: Re: [PATCH] RDMA/irdma: Use kvzalloc for paged memory DMA address
- array
-Message-ID: <20260126194655.GN13967@unreal>
-References: <70f5170f-70eb-4244-9049-a994ec503ac6@lambdal.com>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="CQGG1hIn"
+Received: by mail-qt1-f177.google.com with SMTP id d75a77b69052e-4ffbea7fdf1so47407591cf.1
+        for <linux-rdma@vger.kernel.org>; Mon, 26 Jan 2026 11:49:56 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1769456995; x=1770061795; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:subject:references
+         :in-reply-to:message-id:cc:to:from:date:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=1DkhtEYlu1cxCF+r3Na88j9n+YMNLVAzK55vGoP2wzQ=;
+        b=CQGG1hIn1LsIihcKV68Rf/S0mUf7mSTVoNOdZm6WyulsFxvbUUDOd9jHvW4gfNJIAi
+         IeMt+TVRXGzohsGRjqaeAFaFp0zeliJRhsnnjaMPWlLMK7eOwfPdkHW0Wc1G1e0OAJf1
+         /WMuYuxJLPpM0En+hB9p4wttaNb/SgMKrZCJtMYeuTgfQnfybfRtyD8vHs6HAW3h1eDq
+         H6Wl9I7JBVvcx4S9DcvX8mD9InpLqrIslo1sI+VJZTCzMKaOqpW4eaQk3Eioi+4dI4DP
+         3L2m6DsVGhK+f2D5+ad6Nz5TojoSlsFJ5R0Cy103N0YmfppJc8Q2lFUTniMe41U4iXRL
+         2SgQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1769456995; x=1770061795;
+        h=content-transfer-encoding:mime-version:subject:references
+         :in-reply-to:message-id:cc:to:from:date:x-gm-gg:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=1DkhtEYlu1cxCF+r3Na88j9n+YMNLVAzK55vGoP2wzQ=;
+        b=SXOQQ99MsWTiuVxdJ8RJ7qV4QpLzfLPAY/1L1mxP7Rm1fWCBHIClXBxW5ve1cJzB1y
+         bE6HJBu+QR+YVJbBzFaQK5q3YUHb+PdPrChmuFhFIJ4/EsoToNG8X8v4/jWrW4rAqf3r
+         5pnxRJaIGTAhKUdJk5PkVcs0GjSi0H7INC5jF5iZHjGnkOoRwuA7h1D66P0ZJhDHomJR
+         eIm5zJBdZUyKwRPqA1e35Z5I7EFcPoYwYBvrOZkeNjnXHZoZtYB1SAJWLYub1P2JTkKX
+         pl8V2Gr/rbzTqVuJislz4HpWtvSpg3JYgGxNfcpZpUb6rdP+1Bg+GqH9XDiAu6WG1Gm2
+         REog==
+X-Forwarded-Encrypted: i=1; AJvYcCXXetoyLetUlq+LHyeio5N2CwRlTdZEsauEI/065bWSkQLyw4bSBNY795DH9rog5hIbg5w2xxOsxxGu@vger.kernel.org
+X-Gm-Message-State: AOJu0Yx3QsLR+SkUVcS+Zd6Yg6/DUfgaHST0vEX72EUrEd3y6wFzowBc
+	pxkKBQ+RdnDiGTXTX3KP6KveizLrQZZ1/NDRIJ/jsBws6LN2FkPzQFj+
+X-Gm-Gg: AZuq6aL2nereFNuZgyDpXAciZQa5EjoWHZC5VWqRD1QsWkqJw2YPyjq6drUqCxa9m4U
+	7JwLcFjIOamjLw8ZCy/wDa5kXsUwzHPo/Rg3LKi9lGIH7u9m7ajIxZj4odVEsjoSj/06iyZ5yR0
+	JlVns0UllWpQ5I6xiDIlLitdJ5TEwxXh7WadujmvJP6D/n8aj5ZQOoXo/cwtHavY4vV/9X+D54A
+	76o/qzy+9aSkk5OaRAlAICr/iaZxUAa9CgQThgT/7QN6M65/HA5kH4YVvv8DuohwL455zgJtLdr
+	WaeH2QLxCQxg1/Y/9s0NPnii1xZzAowOkj+eUqYpwpH500RTMXFfvqhJV+9XrCqQkJTuwBPGzrD
+	xE/QTvHfmjiztddYFshKcnqcG817Av6Il3Yfqx8I4QxjXej6o/HJMNPT60Gj9AaVivxt2ofNJHp
+	iGgRbsYPYGWrEGXk1JEjKVaWW2dR/1ApPfEXqqnMiIf81NaNFIEANeJtC86mA=
+X-Received: by 2002:a05:690e:1503:b0:649:51d8:6f72 with SMTP id 956f58d0204a3-64970b45682mr4014192d50.5.1769450012509;
+        Mon, 26 Jan 2026 09:53:32 -0800 (PST)
+Received: from gmail.com (21.33.48.34.bc.googleusercontent.com. [34.48.33.21])
+        by smtp.gmail.com with UTF8SMTPSA id 956f58d0204a3-6495cfde5ccsm5560600d50.24.2026.01.26.09.53.31
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 26 Jan 2026 09:53:32 -0800 (PST)
+Date: Mon, 26 Jan 2026 12:53:31 -0500
+From: Willem de Bruijn <willemdebruijn.kernel@gmail.com>
+To: Gal Pressman <gal@nvidia.com>, 
+ "David S. Miller" <davem@davemloft.net>, 
+ Eric Dumazet <edumazet@google.com>, 
+ Jakub Kicinski <kuba@kernel.org>, 
+ Paolo Abeni <pabeni@redhat.com>, 
+ Andrew Lunn <andrew+netdev@lunn.ch>, 
+ netdev@vger.kernel.org
+Cc: Igor Russkikh <irusskikh@marvell.com>, 
+ Boris Pismenny <borisp@nvidia.com>, 
+ Saeed Mahameed <saeedm@nvidia.com>, 
+ Leon Romanovsky <leon@kernel.org>, 
+ Tariq Toukan <tariqt@nvidia.com>, 
+ Mark Bloch <mbloch@nvidia.com>, 
+ David Ahern <dsahern@kernel.org>, 
+ Simon Horman <horms@kernel.org>, 
+ Alexander Duyck <alexanderduyck@fb.com>, 
+ linux-rdma@vger.kernel.org, 
+ Gal Pressman <gal@nvidia.com>, 
+ Dragos Tatulea <dtatulea@nvidia.com>
+Message-ID: <willemdebruijn.kernel.218d53621fba7@gmail.com>
+In-Reply-To: <20260125121649.778086-2-gal@nvidia.com>
+References: <20260125121649.778086-1-gal@nvidia.com>
+ <20260125121649.778086-2-gal@nvidia.com>
+Subject: Re: [PATCH net-next 1/3] udp: gso: Use single MSS length in UDP
+ header for GSO_PARTIAL
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <70f5170f-70eb-4244-9049-a994ec503ac6@lambdal.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+ charset=utf-8
+Content-Transfer-Encoding: 7bit
 
-On Wed, Jan 21, 2026 at 10:54:36AM -0800, Carlos Bilbao wrote:
-> Allocate array chunk->dmainfo.dmaaddrs using kvzalloc() to allow the
-> allocation to fall back to vmalloc when contiguous memory is unavailable
-> (instead of failing and logging page allocation warnings).
+Gal Pressman wrote:
+> In GSO_PARTIAL segmentation, set the UDP length field to the single
+> segment size (gso_size + UDP header) instead of the large MSS size.
+> This provides hardware with a template length value for final
+> segmentation, similar to how tunnel GSO_PARTIAL handles outer headers
+> in UDP tunnels.
 > 
-> Signed-off-by: Carlos Bilbao (Lambda) <carlos.bilbao@kernel.org>
+> This will remove the need to manually adjust the UDP header length in
+> the drivers, as can be seen in subsequent patches.
+> 
+> This was suggested by Alex in 2018:
+> https://lore.kernel.org/netdev/CAKgT0UcdnUWgr3KQ=RnLKigokkiUuYefmL-ePpDvJOBNpKScFA@mail.gmail.com/
+> 
+> Reviewed-by: Dragos Tatulea <dtatulea@nvidia.com>
+> Signed-off-by: Gal Pressman <gal@nvidia.com>
+
+Reviewed-by: Willem de Bruijn <willemb@google.com>
+
+This only affects the udp header value when using GSO_PARTIAL, and
+these are the only two drivers that adversize USO using GSO_PARTIAL.
+
 > ---
->  drivers/infiniband/hw/irdma/utils.c | 6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
+>  net/ipv4/udp_offload.c | 6 ++++--
+>  1 file changed, 4 insertions(+), 2 deletions(-)
+> 
+> diff --git a/net/ipv4/udp_offload.c b/net/ipv4/udp_offload.c
+> index 19d0b5b09ffa..89e0b48b60ae 100644
+> --- a/net/ipv4/udp_offload.c
+> +++ b/net/ipv4/udp_offload.c
+> @@ -483,11 +483,11 @@ struct sk_buff *__udp_gso_segment(struct sk_buff *gso_skb,
+>  	struct sock *sk = gso_skb->sk;
+>  	unsigned int sum_truesize = 0;
+>  	struct sk_buff *segs, *seg;
+> +	__be16 newlen, msslen;
+>  	struct udphdr *uh;
+>  	unsigned int mss;
+>  	bool copy_dtor;
+>  	__sum16 check;
+> -	__be16 newlen;
+>  	int ret = 0;
+>  
+>  	mss = skb_shinfo(gso_skb)->gso_size;
+> @@ -555,6 +555,8 @@ struct sk_buff *__udp_gso_segment(struct sk_buff *gso_skb,
+>  		return segs;
+>  	}
+>  
+> +	msslen = htons(sizeof(*uh) + mss);
+> +
+>  	/* GSO partial and frag_list segmentation only requires splitting
+>  	 * the frame into an MSS multiple and possibly a remainder, both
+>  	 * cases return a GSO skb. So update the mss now.
+> @@ -584,7 +586,7 @@ struct sk_buff *__udp_gso_segment(struct sk_buff *gso_skb,
+>  		if (!seg->next)
+>  			break;
+>  
+> -		uh->len = newlen;
+> +		uh->len = msslen;
+>  		uh->check = check;
+>  
+>  		if (seg->ip_summed == CHECKSUM_PARTIAL)
+> -- 
+> 2.40.1
+> 
 
-This patch doesn't apply to rdma/for-next.
 
-Thanks
