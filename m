@@ -1,611 +1,192 @@
-Received: from CH1PR05CU001.outbound.protection.outlook.com (mail-northcentralusazon11010043.outbound.protection.outlook.com [52.101.193.43])
+Received: from SA9PR02CU001.outbound.protection.outlook.com (mail-southcentralusazon11013000.outbound.protection.outlook.com [40.93.196.0])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E028A34F48D;
-	Wed, 28 Jan 2026 11:28:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.193.43
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A7C5434DCE3;
+	Wed, 28 Jan 2026 11:28:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.196.0
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769599698; cv=fail; b=ZFZvkEuuvFaCWLgDlS/Tt+arTFk8bfbLC1ww5ts8h95rwTpqWwruK72sC3nMdwCGtCkyQNNp7RA4pUVN+3NN5kQOJ4iazgZVBO3xpTQPxRQ1SgI22TslcD+dVkuZ9FbAXJFfCiltd2BJhE3WBAIAHQreENDC2ZgGjdVJgUnWBlo=
+	t=1769599706; cv=fail; b=FRmawNCbzAKAfPLJ7rfeGyH9brgIiaMfZs/kvooH4slnrXJzhkdvgG9QPvb4gRARtm5qlW+v6B0RLBbDha2dRsMgihGi8K9OuGp1quw8k9vr4GZ8t+OyqxZ16/46Kc0wGf9c/vVhmJQvmODVQzF1YnzEYQfFv1c5F6dshRoj4/Q=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769599698; c=relaxed/simple;
-	bh=bteEhhF2+0MQT8anZAMYaFKSaUbv1hd/pJM5rB9szE4=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=IA4weQw2DEprEf8cacPo4JjADpFQsB5ZeFaf5QOBRug8KBdSHdVrSdIo7zEEsEXJhSu18eCv3oYS43BQ/j6aalXuOixXpOqrQIs/GAnUV8St4SQB7+FVj5BvlXgsUoK1QiBOuW9xVA4+1jkOsNx1U+9EIcKx98oTygbbFhBS6zI=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=gVqtwxB/; arc=fail smtp.client-ip=52.101.193.43
+	s=arc-20240116; t=1769599706; c=relaxed/simple;
+	bh=fk44EojnvYM6C1hyToE1dWGGzYqsbyH6vIu2JbJ+txE=;
+	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
+	 Content-Type:MIME-Version; b=Vw7luAngYUidzZX/9D/FznrTfpUdVODonmO5NlQfSX5oel6nKOwSFECuK4Bx6S9oPNxepU2QHF8m4JqGruqXb8Ki7XyhiJ7+qLG+iArdBf9XuKkYeXmYSzZCmrCPpyeHhwC7MudB89X0aO4uKU7wThOwlzD63S+KOP+CppHyM28=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=iz3eE2Eo; arc=fail smtp.client-ip=40.93.196.0
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="gVqtwxB/"
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="iz3eE2Eo"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=DPM3mKsu2E5x8ui+kA7JhF5t2btP+PrghZ8Rq15xZNgEN3Gs5CYeN6B8XN2TpFgH5i3j9LS8sURhyg6VKg9sAUkv7SRHx6FV5DhndW+vzFLFPAAhckZ4t/F+VCkoEj2YnRtXz6LdCnFJccU2fXi2cVsuvOKYysyNZtNyUKb5VCFEKgs41omBzbi4Yh9w3y6usCRgIyjxPzoWkH2Xgjjg5WBs4wrrh+JdyPlHWf7bL+mTDwyNwgsUxWK+AnZ1TZoEJ4y4RVr5ZNQ+Wmu7+p3rJZ6psMfftiE0gCmm2ILiH7Bh1qWphd3uF1kKvfltsEKGe8yQlxr8qObSjxJEqXblkw==
+ b=RvInpTTiPJcYYwEnAIdgNnYQRs+Djn4WFPS1i1NhG5VDYIclTAQAYjpGR6+7e4BRId6v7J/2QXviWPgq9iy2Fe0xAWzae/Z4fkDaWEUt8TJic8Rxpd+v2jV2DGua2XRa1EqqcBAg6CsZfFrjos4AieVFSHxmD40gGiWIpXD9tN3gR7jnvpte3dGDbCfYMadThw4p5K+dgaVtPqA3zNv+TbKYc3Qz3iIVJFm3SBF/3CekOOoEJBhkgvg29m7Z5tSPCW/VxZHmgF3p24q4oq5QAJYdcXC1Pc8DRfaAfkx3KqgYlJ2qnZ8+7pmSwAaFED1QzeLBUexscdfREnA5YTY6ag==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=swuXfU9OsKz9oErO1xKCNGlsYOEkSGwCl6vX6BEUiBU=;
- b=b9FcSVNKpWTHpj5t/3I0KstXeP4CAZnzPjEqYLqPZVXmBc0Ptvum+IzZfL/+WPofoNVb0S/PrAZvhZR0p88UFC4t4ZHGJgKmwBDhXQW1Vxm6/RZQUrb8hTSCQRLWkd4L338RQfB2wwREsulFgDM3EWBqC03meVxn4g/0anhklr56lya4qpYE23Ix1VgvHi0ymsVRkdhG0ZMdy7Iiho2ywpjUyf+mU97uls0T2fL7PLjHO9yh89hxveOWjF5ceW/mUliNiQHMcR+PlzXEYguFY/JHpvHr+7qWkGrB3kKissa5fERiycmNI04qdF5z4KehWUYEbuXfnpXbO2wD1Bb4rQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.117.160) smtp.rcpttodomain=google.com smtp.mailfrom=nvidia.com;
- dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
- dkim=none (message not signed); arc=none (0)
+ bh=1QcZm+TEpuF/SUXQZiKmsSNIqswR7yPtUu1S/KsU63c=;
+ b=hwm4MW6KutgTv6llrhDUr71hDmo94yUMGGXy5JKpsm6WIol5k0gkotWFC3iL/3JIY+6zVI9S+rbxMC7zRHVzBAlegDSeyUMNeXuGWkdm+cs5B6p4E/htFZZ4a6B7+GnwsXYqEhr19M8dz58VTKOWnt3u4prDToMe6prqgS6rlHiuUOLea+JbMc65coK/x02nThEgz8NRPz5ckGveYF/jidWVeziXuMDw+yNJ7L7gJ2E9wI+OM2LGTc+p3JKPhKMyz9c0cg3EFCLP/zK/H4AyXWntyxy01o9w4OjFCChBE/OYQxqclS3W+xHNbipf9wEKmPIRatLsYH7psP1JkMY8UQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=swuXfU9OsKz9oErO1xKCNGlsYOEkSGwCl6vX6BEUiBU=;
- b=gVqtwxB/x+acEHL4pZrOwtV9xImEhVpDPOiOHS6SjUO3YqYIQcm0PMTPq0xutUsneKr8qQQNptv3T2gy0TmAqgBfABI95BqYslDPjKoc+K0ycEk1GQAIVqwVpUC3xD2p85K4CTvtYR4Dv9WqeeVT0ry81R/Q4VzzUS94d4T02bI39zrn83n2o1yk4Yg0tdAAx2dDe0Cu4B7t5oGHZa+1jTf6zC6uMkLPxS8E9zK0M0AfdPrUp2ayUelnyJ6sjlhSMVozJajtdaRvmwx99Snxv99UjIvEgb8gxCwTm/qK34SQDGUVnsWhgR8Q0gPMOQcmWywEsN9LIGRpTvppGs1gQA==
-Received: from PH1PEPF000132F0.NAMP220.PROD.OUTLOOK.COM (2603:10b6:518:1::33)
- by IA1PR12MB6459.namprd12.prod.outlook.com (2603:10b6:208:3a9::11) with
+ bh=1QcZm+TEpuF/SUXQZiKmsSNIqswR7yPtUu1S/KsU63c=;
+ b=iz3eE2Eo+B2G71dznbCTBvwTjBCQ8Pnh9Gtsv23r1ACGlaF9Wc69DOuKyZ7MLBGbK8FKauePl9B0Uje8RB4s9RCmyiCfq48CC8hK1/OQWH9Zs11ZRFWmB8ztBoD3zfMgvo/NWjhF/xQc/DI5OgAaJ+/EAPiKAawqDX/J/CJKglFwTAJXm7CLWjYBUe3QSZDJXxzdLqi7mgk9QExTJGtgMskC8cXw2q2oxjTxSEo1Wv2Na68Wi/i51FAYxqjFFLwawv6f9XhlIiBxcLYixQyKscrHs3mPpPmZX0gGoaPJzePlB83vTe7+TlvSodjOKtZ4wW1zrOGVKU9HdWWazHULhg==
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from SA0PR12MB7003.namprd12.prod.outlook.com (2603:10b6:806:2c0::10)
+ by PH8PR12MB6770.namprd12.prod.outlook.com (2603:10b6:510:1c5::11) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9564.7; Wed, 28 Jan
- 2026 11:28:10 +0000
-Received: from SN1PEPF0002BA4D.namprd03.prod.outlook.com
- (2a01:111:f403:f90e::3) by PH1PEPF000132F0.outlook.office365.com
- (2603:1036:903:47::3) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.20.9564.8 via Frontend Transport; Wed,
- 28 Jan 2026 11:28:10 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.160)
- smtp.mailfrom=nvidia.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=nvidia.com;
-Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.117.160 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.117.160; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.117.160) by
- SN1PEPF0002BA4D.mail.protection.outlook.com (10.167.242.70) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.9564.3 via Frontend Transport; Wed, 28 Jan 2026 11:28:09 +0000
-Received: from rnnvmail202.nvidia.com (10.129.68.7) by mail.nvidia.com
- (10.129.200.66) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Wed, 28 Jan
- 2026 03:28:00 -0800
-Received: from rnnvmail205.nvidia.com (10.129.68.10) by rnnvmail202.nvidia.com
- (10.129.68.7) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Wed, 28 Jan
- 2026 03:27:59 -0800
-Received: from vdi.nvidia.com (10.127.8.10) by mail.nvidia.com (10.129.68.10)
- with Microsoft SMTP Server id 15.2.2562.20 via Frontend Transport; Wed, 28
- Jan 2026 03:27:54 -0800
-From: Tariq Toukan <tariqt@nvidia.com>
-To: Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>, Andrew Lunn <andrew+netdev@lunn.ch>, "David
- S. Miller" <davem@davemloft.net>
-CC: Donald Hunter <donald.hunter@gmail.com>, Jiri Pirko <jiri@resnulli.us>,
-	Jonathan Corbet <corbet@lwn.net>, Saeed Mahameed <saeedm@nvidia.com>, "Leon
- Romanovsky" <leon@kernel.org>, Tariq Toukan <tariqt@nvidia.com>, Mark Bloch
-	<mbloch@nvidia.com>, <netdev@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>, <linux-doc@vger.kernel.org>,
-	<linux-rdma@vger.kernel.org>, Gal Pressman <gal@nvidia.com>, Moshe Shemesh
-	<moshe@nvidia.com>, Carolina Jubran <cjubran@nvidia.com>, Cosmin Ratiu
-	<cratiu@nvidia.com>, Jiri Pirko <jiri@nvidia.com>, Randy Dunlap
-	<rdunlap@infradead.org>, Simon Horman <horms@kernel.org>, Krzysztof Kozlowski
-	<krzk@kernel.org>
-Subject: [PATCH net-next V7 06/14] devlink: Decouple rate storage from associated devlink object
-Date: Wed, 28 Jan 2026 13:25:36 +0200
-Message-ID: <20260128112544.1661250-7-tariqt@nvidia.com>
-X-Mailer: git-send-email 2.44.0
-In-Reply-To: <20260128112544.1661250-1-tariqt@nvidia.com>
-References: <20260128112544.1661250-1-tariqt@nvidia.com>
+ 2026 11:28:22 +0000
+Received: from SA0PR12MB7003.namprd12.prod.outlook.com
+ ([fe80::4099:396e:1f40:169b]) by SA0PR12MB7003.namprd12.prod.outlook.com
+ ([fe80::4099:396e:1f40:169b%4]) with mapi id 15.20.9564.006; Wed, 28 Jan 2026
+ 11:28:22 +0000
+Message-ID: <c5df3b60-246a-4030-9c9a-0a35cd1ca924@nvidia.com>
+Date: Wed, 28 Jan 2026 13:28:16 +0200
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH net 3/3] net/mlx5e: Account for netdev stats in
+ ndo_get_stats64
+To: Jakub Kicinski <kuba@kernel.org>, Tariq Toukan <tariqt@nvidia.com>
+Cc: Eric Dumazet <edumazet@google.com>, Paolo Abeni <pabeni@redhat.com>,
+ Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller"
+ <davem@davemloft.net>, Saeed Mahameed <saeedm@nvidia.com>,
+ Leon Romanovsky <leon@kernel.org>, Mark Bloch <mbloch@nvidia.com>,
+ netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
+ linux-kernel@vger.kernel.org, Moshe Shemesh <moshe@nvidia.com>
+References: <1769411695-18820-1-git-send-email-tariqt@nvidia.com>
+ <1769411695-18820-4-git-send-email-tariqt@nvidia.com>
+ <20260127195252.10fa054e@kernel.org>
+From: Gal Pressman <gal@nvidia.com>
+Content-Language: en-US
+In-Reply-To: <20260127195252.10fa054e@kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: TL2P290CA0008.ISRP290.PROD.OUTLOOK.COM
+ (2603:1096:950:2::11) To SA0PR12MB7003.namprd12.prod.outlook.com
+ (2603:10b6:806:2c0::10)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-NV-OnPremToCloud: ExternallySecured
-X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: SN1PEPF0002BA4D:EE_|IA1PR12MB6459:EE_
-X-MS-Office365-Filtering-Correlation-Id: 446f9109-ac56-4912-6f83-08de5e6050e7
+X-MS-TrafficTypeDiagnostic: SA0PR12MB7003:EE_|PH8PR12MB6770:EE_
+X-MS-Office365-Filtering-Correlation-Id: 56d9cf98-869e-4725-869a-08de5e6057f6
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|1800799024|82310400026|36860700013|376014|7416014;
+X-Microsoft-Antispam: BCL:0;ARA:13230040|366016|376014|1800799024;
 X-Microsoft-Antispam-Message-Info:
-	=?us-ascii?Q?AOnezcPbiWG2Ead8RjDVk5ks5XhEWktoPoH6ULQaZ6WQonb53CRs0PLsZCzb?=
- =?us-ascii?Q?3TlJDjD7rqKaqmGv5O+4tmpQv5IhRfdn2rrwOotWqX0bcJw+4dIlROvaz6KS?=
- =?us-ascii?Q?ULiPEqwoCP1tP8ujKqT33tG8ZuZMx2b6L7yLpnW7uzx2/3aGQZ8OwA4FtXhl?=
- =?us-ascii?Q?K3knT790jlhOcp29lTcTSoMGlGjK2KGkwoYmDpcc1NCM4moYEt4WpDzB9bq9?=
- =?us-ascii?Q?Do9xFuhS5g7JPLa9747vlqm2MPlrJBBNnqFBGeCN4zSXLvJzF3cS2ZHQFUPJ?=
- =?us-ascii?Q?RuZbjal9HrhTxjpzqWpKKrNfa5iK5kidkE+oRO7TOu9URSoDmv/G/gbIxm66?=
- =?us-ascii?Q?1YLr4cRA/5grCwfXqZOhB0DThlP9HQUmEMCaR24xrQZMMPscgw3QwIqYVUVb?=
- =?us-ascii?Q?L4dEU48FliLCoXhT8r0kyMDhsTwe5z1q3jvpflWXuLACTsefIM2oMA+MKGhy?=
- =?us-ascii?Q?hSaL9moCNyTBgJnKt7kN48a+5ksPV3LxQJadHt2/VRfXSW8G8UpAl61ZpyRZ?=
- =?us-ascii?Q?FJBvogZeP4JK7pgXkahLU60Z5fGuoAPcZbE4fgc3YOWtybl8AtkgSyjTuVYv?=
- =?us-ascii?Q?5iEmQTOwwtvB2m33VWFFkJfBCjIYVzfKIgfFVzz/xahNP5TlqZXoT6nBL3bZ?=
- =?us-ascii?Q?qW2itxPFzrGjuQPTOfcGahwlvRzGmu4TsMTFRVBFEI1PuxlWmCfLBd6ADVIU?=
- =?us-ascii?Q?OsBNyWR1Tr+ol5b+9fn4jPJNJ9Li2tUYnt6XKwoimkvnxUbl+wDLfW1YD6wf?=
- =?us-ascii?Q?xHF916G31dK2tK4a+MjjPPZRH6I6wk+1LtNm5++ZiefSxYN1Pcya1AQ+r7YZ?=
- =?us-ascii?Q?M4K9Sgs2d5eAi6BvVkRPKLdWcW580mA84LANgBNCSFC1k25XRiX/MiQ3mEQW?=
- =?us-ascii?Q?e5Tsw3mcKTijHf3E/wpzSeKnsSawGWzWwTzmJH6BGhyvHyF6sXepNovz+S85?=
- =?us-ascii?Q?nXeO83ZCyDdd5YUVU5Ni7CWQ25hQJWA4pUf236pyIlGfhLO02uwmeE+Yz1QG?=
- =?us-ascii?Q?BX8wlln3bhYzUoCWQZw3p+dgga/eMBg/LsDhMKZe5T0V2WsxpspVbA068cVU?=
- =?us-ascii?Q?gF+xWw0gu0tVOefxeDYM+zQQlXt3RJ5fmebSfyRReYns4YRMXFR7eDPInOV/?=
- =?us-ascii?Q?gK68HYts6Fmupn04tnH18Nu1JGLw3ufn8rFduIhBNHXLpI77xnHh4VJJOlZY?=
- =?us-ascii?Q?DJXZTkCyrkkl2dw6+Ry4Gx1heBLurfcQRhl1JAI7gB4YlKW+XQQ4WbLbmr5q?=
- =?us-ascii?Q?27xjAODOmZ/Z/azv9FGA+S0fzARIDXU1EfojE3EkhimTPW7MVDRSbO5ckMZV?=
- =?us-ascii?Q?A+WSyj4ASSF0Cd/hZnCukOD5qPrx8R85nJ7sQZbHHNvnhmXy21mi6BhGdoK8?=
- =?us-ascii?Q?l7x0olPksgEBrUMtNw8IZnghGCiukVWbb5uumhvPhWQUAzV6VwcvWzUSemjn?=
- =?us-ascii?Q?Dpj3Qz7VKIi+Kb/NQLGgyjoob141PmADGiDgKPvZlpHaVPYm1DTwSGREzH7m?=
- =?us-ascii?Q?1A9S6rDVz+xnPTd0MMC51M3pRYMH9RSK2ugqQ65hw9GEa0NcNs+zlwQugiGH?=
- =?us-ascii?Q?kvqKcSWkRgZzGvW2WEmh70INFSgl1fFoMAkDjTtX4gPm5j583/zlL5YYawJV?=
- =?us-ascii?Q?4dfHBFrDeYWEzAonTsoxRryiRVsSjhmgnlfqBJqye/BnRZf+umsps7DXhHga?=
- =?us-ascii?Q?NzGaMQ=3D=3D?=
+	=?utf-8?B?aDRicDQ1cHlGTWFpTENFKzNpUyt2QlJ4TUVibHgvaGpmazh6dXBZa1phRGxW?=
+ =?utf-8?B?SWFsVCtqK0FBYzk3QW4xRFVLc1I5bTJyTkV4Q1dQdmFFSkYreVR3TFRiU2xX?=
+ =?utf-8?B?dGFWREpKek9iVklqRUFRa3o4b0RQNmtWUzNTNCsyQ3U4bG9pSEc5bXJSR05D?=
+ =?utf-8?B?TWRvUjNGQ2JZOHcyUUtjcU83QU9qVitwNkRHdjZiZHpsd2ozQ3ZpWm51VzZS?=
+ =?utf-8?B?UWs5UFFOQ1puZlhlNUxuaGtjTytHbEEva2Z6ejRCVkpacGNuR3MrR3FVbjdJ?=
+ =?utf-8?B?ODU4WUZVQXZYbUxsNmIyWFAvTkxWd2wvbDI2L3czRVVOdENWeEk2eWtsV3hE?=
+ =?utf-8?B?TmpqWmhqVkRJcGFXQ0NoMkxKQU9BRlJ2UTB6T3BjNGtvNHhPUGdPVlNPT25E?=
+ =?utf-8?B?dmduZzYyVlk1RFk1dUdISEtJM3VaVXZ3Vm5hU000M3hmVGRFbk1YSWhXbU5H?=
+ =?utf-8?B?aCtFazJZdHI5T2xCUDZpOVc2ZGdWMlBOWE9lSHUxQlVRRlM5MlBRbzQ1ODdM?=
+ =?utf-8?B?VFZ2VXZHU0JuK01TWjl0d2NGQ0lvQmNsOW9yVkJEMVViMG5CWjd3aVdleVNS?=
+ =?utf-8?B?OXNJWUF6cHdjS3V1TVBIai9CZkZaQkFySHp5b0NPSXdwSFRnQ3RLbFVGdDQ4?=
+ =?utf-8?B?M1ROWUR1a05yaTdFK25wS1ZpL1pkV0JheElBb25BaWZXWFRNamR6OEY3T29X?=
+ =?utf-8?B?M2xqU3V2VHlMdnZSTFN4ek8zbFlnaFNBMk9RblFkNGY0OHk5RDI3dmZMV3Er?=
+ =?utf-8?B?Vm5PUnkvaVlKTW0xbUI1eU1zTmNmaHlZRmRTbkJOamRLaE9PMlROYjlUZDZ6?=
+ =?utf-8?B?eWV3KzdIcGh5clo1MkdCNndDTkQwazMweVRiaStkUGpYQmhjL0VFZlZoNDZ4?=
+ =?utf-8?B?a3YvZXpROVo2bjE0TmpFWjdXcHJycU1BczRIaGQ0VktieUR1dktiMGpwSGs2?=
+ =?utf-8?B?eTRiZ3FPT0k2UTBDMXlERm1MbGdXa1JMTll6NGZrcnlPc0orSjEwS2FkVVBR?=
+ =?utf-8?B?NURYMkJuUDBWUU5xbnc0bWxDTDZhblYyS0VqT29WUmFwTVVrUmd1VXZ5QVJV?=
+ =?utf-8?B?RFpRUmRTM2dtQ29FNWQ4MEwwa3Yzd0U2UWpBYWs4NHBicytIZzhqRU1NN1pS?=
+ =?utf-8?B?UmxMK2IydEV5NTdTRFZtVVRubmtZOHJSUUVRTWJkdmExc1BNM2U5RWNRWEdx?=
+ =?utf-8?B?MVg0NXN5eE5zWit5UDZJT0tOQTVFaXZWVVJVVFpnNEZ1UHl0NDdja0VyMm1z?=
+ =?utf-8?B?dVpwVytFZ2RXeFVKb05hWE9sZTdJS3FaUXJJWHVMcEFaUlBmYmhMd3Mxd3Jl?=
+ =?utf-8?B?OTlsc3M3TVZXL2tQMmxRNmpkangyS3dGTDV6QkNHVjFQVHgrQkhSVE05cncz?=
+ =?utf-8?B?WStwSnN3WUp1eDJiYzh5WkFOeGFvQnJsSEZWQkU4ZWlQNTdYZmpoM2RsSEJq?=
+ =?utf-8?B?RUlCb1BnUVBZWEFtQkVjWWRCbm5NOFBDa3ZPN0I0ek1Ccld3UlhXMml0a2R3?=
+ =?utf-8?B?OC9Rdm11aFFmL2dSM0ZYa0VMRWd4dXphUTdGbmZSZEY0TC8rMnBtOTJKT2hH?=
+ =?utf-8?B?Z1hORjhHNTRxdEVNZkVGT3ZkNmZPRWhVaFc4QTM2VFZEaWVYTnJtdklmYUVj?=
+ =?utf-8?B?VElCUTYvRkFwZmVCcUJsMGZJN2tJa1NBVXY0ZHh3bkZFb1RTZ2N6dEZOUFhx?=
+ =?utf-8?B?My9OZ3pUQ1JQZ3d3b29jd3JMdFNzYU9DaStHZmtmeTZKYWt2N000WkRtTTJB?=
+ =?utf-8?B?L1BaTTRUSUlyNGFObWpyUk41RVg0R2JRYyszS2t1WjhMUFk2OUp0OEVjM2wy?=
+ =?utf-8?B?SGpYTm9XeUNCTGpYSzBENlMvblo1Q0JkODVVdTN4dnl2bFc0OWJRZktuQ0Fo?=
+ =?utf-8?B?M2J5cGJoZnpzYmNPSkE5Y0ZoNjc2RzFhclJTRm4yZHRaRldFa1liSVdXbkdi?=
+ =?utf-8?B?cnpLOEZ1SXo4QWY4bHlOMjNPdFpKWjdzMG9OZkVKc0EwQnljY1JBTGNidkpF?=
+ =?utf-8?B?THdLeHN0ci9HeEdNdFJBWW03bXJnWm90UlpPOFNTRGxkVjBDVGYvYUNnVEIx?=
+ =?utf-8?B?VzEyT3NMYXROTjhrQTVSdE04OElhYnh5dDBvU1RMVlNZOXhOWXVtNkFablh2?=
+ =?utf-8?Q?cW44=3D?=
 X-Forefront-Antispam-Report:
-	CIP:216.228.117.160;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge1.nvidia.com;CAT:NONE;SFS:(13230040)(1800799024)(82310400026)(36860700013)(376014)(7416014);DIR:OUT;SFP:1101;
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SA0PR12MB7003.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(376014)(1800799024);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?utf-8?B?OVBmZVErUFJ6NWswRlZyQlVrcFFmOGNvaHNDMnBoN28xY1lnM0szZFBtTTRH?=
+ =?utf-8?B?YXI2OFVZMGI2RjR1Yk05Ym5nMHFtVEVuaWhrSS93Sy95ZDJPWngvRVFuQXR6?=
+ =?utf-8?B?RVN1VVZTaWxwdXZKOWtVVEFvSWl6aldoNkh0NnpMdUxXWUZRUUp6cTEveTBD?=
+ =?utf-8?B?RitCYlVqQytKNkJDYk5SazVKMnAzbCtueTFjQTYvcUlxbVI2QlluNUx5QUw0?=
+ =?utf-8?B?S0xzalRXMzdoSjRJTnFzZERrMm43eWZoU2U5M0NxSS9qOCtHK3VIa0hWQVpl?=
+ =?utf-8?B?Zk1MSnUxTE5lZTErR2dHTmc3eUJZMTRsbEJrczJobndFemVjRDRRWm02Wm05?=
+ =?utf-8?B?eEFLMnJYVjRyT3RDdE4ydlhKVFJ1bUMxRGNwTmt4ZXhQSk52RVlIZFRzV3hx?=
+ =?utf-8?B?VEJsaHdEUFZLaElEcmlUUGlvaE9RZjVuR1Znc3RJd3plSHdyOXNYMm1HbjZj?=
+ =?utf-8?B?SE1CM1NqWjhycHp2akhheXR6cmZZcWRvc3BkTHUvZUMxcDBudVNzTWliRm1q?=
+ =?utf-8?B?clJhSk9ZTGtCejdmM0RXVHhtUDE4d1BjY0Zvdncramh2TDZQS214SVBmNElQ?=
+ =?utf-8?B?K3Ixd1l0bkhNM3ovZ0ZvNCsvbXpYSHdrdUtIQjVKVXI1MFBxR2tmenZwcmF6?=
+ =?utf-8?B?K21jUmcyZXJRV0hFQWVVYWlQUzBINDl5aXc4cS9GNy9lTFltTU91aDJja0Qv?=
+ =?utf-8?B?QUgyTkNUN01Ud3BrdWcxUmVLRlB6b24rblF5cXNpRWgwQ1Q5TnFhckx1Q0FI?=
+ =?utf-8?B?blRUNnBBOWFtRy94eFNyRUtNbTZodTNvYy9Ic1hJZEtrUThPRFV0ZlZobWpP?=
+ =?utf-8?B?QlUwZW5FUVFnUFArY3V0Rkk5R0VaUndaT0c3dytQWFo3TXE2S2lreGNtVXFC?=
+ =?utf-8?B?Z29sR01admVjVXpZRzgxRmpKZkdHVndkRzVDRWptbmFEU3JUZjBHTlNUSGIx?=
+ =?utf-8?B?SktDWHgxeHhsTjR0clU4b013dzVKRlpzZzc2aERJdTBYU2RMWjFvV0RHcUwz?=
+ =?utf-8?B?ZFdUR2lmMENYa1F2cWQ1UEJaY0w2bEFFSVZLMUEzLzlRUzZhN2N5Y1phUXQ1?=
+ =?utf-8?B?WjFjVzBBMmZRaTEybHp4T3BMYW00NUx3engvTXNFMnR0T0Z5ZjFJdUVBVll1?=
+ =?utf-8?B?OFYvcVhSeXJLcUVLSkxVOEpKS0Vvbm53T1IxZldnWlZGNnJkYXE3NllTd0d4?=
+ =?utf-8?B?KzlRZTlVNUJTeVNlZVQvYWdvSFQxa05iOGhNWEhieGNjRE1qb21iNkplak45?=
+ =?utf-8?B?SCtOdHBzQmxIcWtEVmkyTXp0MGFQbXFMcXFiMUYrSC9OQ3BDQzQyRTNSUG84?=
+ =?utf-8?B?ZDVIby9XMTkrMFdEWU1NK2JwNFdYRVpuc3NEZjc4YXNMSlRWV3UyK0s1Tmpt?=
+ =?utf-8?B?ZXA5S0NrbzFVbW5ab0c5OFhtS2Vsb0phak1tU2psYVpqTUFtekdhNE1yZGJs?=
+ =?utf-8?B?eGZSdTJHaGhtQkZISC8wdFcwcEdUdSt1RFVYSlAxRDRPV0U2aVR3YnM3VCtC?=
+ =?utf-8?B?RzRiTXhzbVdUZFRFVVFzek1CM2Q5K3lHVXJJanUzZVdUMWtWNjdST2IyaFF6?=
+ =?utf-8?B?U3BjWFBIK1FEYlJKSFdqWlBBTWpqb251bWRkMlU4bjljUTIwRmdwTTBYaUJM?=
+ =?utf-8?B?allQY2Q1SHdic2lyaDFXSVE2ZEh2VlpockJ3ajYvY3EwZHFUeWRhMlFuWC8y?=
+ =?utf-8?B?SE9pQzZIUCtkQ3J5V2Y1TDZLTkdtZjJHSEJqNU5veVFkM2I4NWlFdXVHR2dk?=
+ =?utf-8?B?YTNIWlF1SkNFVTlSV2FocVBUWjNJSWhZeTZGMVpDMkhFNHpsVThmd1JDQjlB?=
+ =?utf-8?B?TFZNNjFocTlOMm56elZJMExqa0xZT1I1UkVyWlJMaG80dld2bmM1eGpEQm1M?=
+ =?utf-8?B?a0NYc1F2ZEROVlFMZzJmTFhOclRMRkRtd2c3a2gzNnZvdHhjUEtJYnFIbVRE?=
+ =?utf-8?B?MTZhSTRsUGgxbCs2NmFSaTBuOC8ySDBCZlhlUWc1M2pmdm1oZDk5VkxmTkJ4?=
+ =?utf-8?B?VjhCU0Fjd0ZiRTlSOVVaNmRXRGFSbzdzV3o2bkplU0pWdGxEbjg4N2M5d3JM?=
+ =?utf-8?B?TG9OV1ltNlBCSmpiNlZDdWZpRWM2Q2wwdm9yU2o0MFBPREF1NEhFZmNnMzZk?=
+ =?utf-8?B?cVo0RElzOEkzeFJGajA0K0c1VTMyRnovU014YjQwZ0ducGJOWmR4YS9kcitQ?=
+ =?utf-8?B?YXJidkpQVlNnSEVFcHA1NVRhRC9UaWUwU3BLM1hvb1E0RnFBcE5mWURmcUMz?=
+ =?utf-8?B?RTdpTGJ3WnZzSjljWXZoUzZHU2NVbG9iaS9iL04rMDMxV1VvMndDVUpUdE5H?=
+ =?utf-8?Q?kbGicEUMkmEtkWTrRT?=
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 28 Jan 2026 11:28:09.9059
+X-MS-Exchange-CrossTenant-Network-Message-Id: 56d9cf98-869e-4725-869a-08de5e6057f6
+X-MS-Exchange-CrossTenant-AuthSource: SA0PR12MB7003.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 28 Jan 2026 11:28:22.1514
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 446f9109-ac56-4912-6f83-08de5e6050e7
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.160];Helo=[mail.nvidia.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	SN1PEPF0002BA4D.namprd03.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA1PR12MB6459
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: X3A2zTJeh+I90YMQ9t4wCiyFw4OZWcqxOQm4bgpGfPAm65SL3c+AY2ztB17+EZUK
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH8PR12MB6770
 
-From: Cosmin Ratiu <cratiu@nvidia.com>
+On 28/01/2026 5:52, Jakub Kicinski wrote:
+> On Mon, 26 Jan 2026 09:14:55 +0200 Tariq Toukan wrote:
+>> The driver's ndo_get_stats64 callback is only reporting mlx5 counters,
+>> without accounting for the netdev stats, causing errors from the network
+>> stack to be invisible in statistics.
+> 
+> I cooked up a patch to fix this generically in the core... but I can't
+> actually find any "errors from the network stack" that are accounted
+> to dev->stats. Could you be more specific about the issues you were
+> seeing?
 
-Devlink rate leafs and nodes were stored in their respective devlink
-objects pointed to by devlink_rate->devlink.
+My original motivation was identifying packet drops in the GRE stack,
+specifically in gre_rcv() after an error in gre_parse_header() (in my
+case, due to a checksum error).
+Currently, these packets are silently dropped. I have additional patches
+that increment the rx_dropped/rx_crc_errors counters in that path, which
+exposed the issue, but they haven't been submitted yet.
 
-This patch removes that association by introducing the concept of
-'rate node devlink', which is where all rates that could link to each
-other are stored. For now this is the same as devlink_rate->devlink.
-
-After this patch, the devlink rates stored in this devlink instance
-could potentially be from multiple other devlink instances. So all rate
-node manipulation code was updated to:
-- correctly compare the actual devlink object during iteration.
-- maybe acquire additional locks (noop for now).
-
-Signed-off-by: Cosmin Ratiu <cratiu@nvidia.com>
-Reviewed-by: Carolina Jubran <cjubran@nvidia.com>
-Reviewed-by: Jiri Pirko <jiri@nvidia.com>
-Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
----
- include/net/devlink.h |   2 +
- net/devlink/rate.c    | 192 +++++++++++++++++++++++++++++++-----------
- 2 files changed, 143 insertions(+), 51 deletions(-)
-
-diff --git a/include/net/devlink.h b/include/net/devlink.h
-index c453faec8ebf..fbb434185a67 100644
---- a/include/net/devlink.h
-+++ b/include/net/devlink.h
-@@ -1820,6 +1820,8 @@ void devlink_port_attrs_pci_sf_set(struct devlink_port *devlink_port,
- 				   bool external);
- int devl_port_fn_devlink_set(struct devlink_port *devlink_port,
- 			     struct devlink *fn_devlink);
-+struct devlink *devl_rate_lock(struct devlink *devlink);
-+void devl_rate_unlock(struct devlink *devlink);
- struct devlink_rate *
- devl_rate_node_create(struct devlink *devlink, void *priv, char *node_name,
- 		      struct devlink_rate *parent);
-diff --git a/net/devlink/rate.c b/net/devlink/rate.c
-index 0d68b5c477dc..c062fd8a6c36 100644
---- a/net/devlink/rate.c
-+++ b/net/devlink/rate.c
-@@ -30,13 +30,31 @@ devlink_rate_leaf_get_from_info(struct devlink *devlink, struct genl_info *info)
- 	return devlink_rate ?: ERR_PTR(-ENODEV);
- }
- 
-+struct devlink *devl_rate_lock(struct devlink *devlink)
-+{
-+	return devlink;
-+}
-+
-+static struct devlink *
-+devl_get_rate_node_instance_locked(struct devlink *devlink)
-+{
-+	return devlink;
-+}
-+
-+void devl_rate_unlock(struct devlink *devlink)
-+{
-+}
-+
- static struct devlink_rate *
- devlink_rate_node_get_by_name(struct devlink *devlink, const char *node_name)
- {
- 	struct devlink_rate *devlink_rate;
-+	struct devlink *rate_devlink;
- 
--	list_for_each_entry(devlink_rate, &devlink->rate_list, list) {
--		if (devlink_rate_is_node(devlink_rate) &&
-+	rate_devlink = devl_get_rate_node_instance_locked(devlink);
-+	list_for_each_entry(devlink_rate, &rate_devlink->rate_list, list) {
-+		if (devlink_rate->devlink == devlink &&
-+		    devlink_rate_is_node(devlink_rate) &&
- 		    !strcmp(node_name, devlink_rate->name))
- 			return devlink_rate;
- 	}
-@@ -190,17 +208,25 @@ static void devlink_rate_notify(struct devlink_rate *devlink_rate,
- void devlink_rates_notify_register(struct devlink *devlink)
- {
- 	struct devlink_rate *rate_node;
-+	struct devlink *rate_devlink;
- 
--	list_for_each_entry(rate_node, &devlink->rate_list, list)
--		devlink_rate_notify(rate_node, DEVLINK_CMD_RATE_NEW);
-+	rate_devlink = devl_rate_lock(devlink);
-+	list_for_each_entry(rate_node, &rate_devlink->rate_list, list)
-+		if (rate_node->devlink == devlink)
-+			devlink_rate_notify(rate_node, DEVLINK_CMD_RATE_NEW);
-+	devl_rate_unlock(devlink);
- }
- 
- void devlink_rates_notify_unregister(struct devlink *devlink)
- {
- 	struct devlink_rate *rate_node;
-+	struct devlink *rate_devlink;
- 
--	list_for_each_entry_reverse(rate_node, &devlink->rate_list, list)
--		devlink_rate_notify(rate_node, DEVLINK_CMD_RATE_DEL);
-+	rate_devlink = devl_rate_lock(devlink);
-+	list_for_each_entry_reverse(rate_node, &rate_devlink->rate_list, list)
-+		if (rate_node->devlink == devlink)
-+			devlink_rate_notify(rate_node, DEVLINK_CMD_RATE_DEL);
-+	devl_rate_unlock(devlink);
- }
- 
- static int
-@@ -209,17 +235,20 @@ devlink_nl_rate_get_dump_one(struct sk_buff *msg, struct devlink *devlink,
- {
- 	struct devlink_nl_dump_state *state = devlink_dump_state(cb);
- 	struct devlink_rate *devlink_rate;
-+	struct devlink *rate_devlink;
- 	int idx = 0;
- 	int err = 0;
- 
--	list_for_each_entry(devlink_rate, &devlink->rate_list, list) {
-+	rate_devlink = devl_rate_lock(devlink);
-+	list_for_each_entry(devlink_rate, &rate_devlink->rate_list, list) {
- 		enum devlink_command cmd = DEVLINK_CMD_RATE_NEW;
- 		u32 id = NETLINK_CB(cb->skb).portid;
- 
--		if (idx < state->idx) {
-+		if (idx < state->idx || devlink_rate->devlink != devlink) {
- 			idx++;
- 			continue;
- 		}
-+
- 		err = devlink_nl_rate_fill(msg, devlink_rate, cmd, id,
- 					   cb->nlh->nlmsg_seq, flags, NULL);
- 		if (err) {
-@@ -228,6 +257,7 @@ devlink_nl_rate_get_dump_one(struct sk_buff *msg, struct devlink *devlink,
- 		}
- 		idx++;
- 	}
-+	devl_rate_unlock(devlink);
- 
- 	return err;
- }
-@@ -244,23 +274,33 @@ int devlink_nl_rate_get_doit(struct sk_buff *skb, struct genl_info *info)
- 	struct sk_buff *msg;
- 	int err;
- 
-+	devl_rate_lock(devlink);
- 	devlink_rate = devlink_rate_get_from_info(devlink, info);
--	if (IS_ERR(devlink_rate))
--		return PTR_ERR(devlink_rate);
-+	if (IS_ERR(devlink_rate)) {
-+		err = PTR_ERR(devlink_rate);
-+		goto unlock;
-+	}
- 
- 	msg = nlmsg_new(NLMSG_DEFAULT_SIZE, GFP_KERNEL);
--	if (!msg)
--		return -ENOMEM;
-+	if (!msg) {
-+		err = -ENOMEM;
-+		goto unlock;
-+	}
- 
- 	err = devlink_nl_rate_fill(msg, devlink_rate, DEVLINK_CMD_RATE_NEW,
- 				   info->snd_portid, info->snd_seq, 0,
- 				   info->extack);
--	if (err) {
--		nlmsg_free(msg);
--		return err;
--	}
-+	if (err)
-+		goto err_fill;
- 
-+	devl_rate_unlock(devlink);
- 	return genlmsg_reply(msg, info);
-+
-+err_fill:
-+	nlmsg_free(msg);
-+unlock:
-+	devl_rate_unlock(devlink);
-+	return err;
- }
- 
- static bool
-@@ -590,24 +630,32 @@ int devlink_nl_rate_set_doit(struct sk_buff *skb, struct genl_info *info)
- 	const struct devlink_ops *ops;
- 	int err;
- 
-+	devl_rate_lock(devlink);
- 	devlink_rate = devlink_rate_get_from_info(devlink, info);
--	if (IS_ERR(devlink_rate))
--		return PTR_ERR(devlink_rate);
-+	if (IS_ERR(devlink_rate)) {
-+		err = PTR_ERR(devlink_rate);
-+		goto unlock;
-+	}
- 
- 	ops = devlink->ops;
--	if (!ops || !devlink_rate_set_ops_supported(ops, info, devlink_rate->type))
--		return -EOPNOTSUPP;
-+	if (!ops ||
-+	    !devlink_rate_set_ops_supported(ops, info, devlink_rate->type)) {
-+		err = -EOPNOTSUPP;
-+		goto unlock;
-+	}
- 
- 	err = devlink_nl_rate_set(devlink_rate, ops, info);
- 
- 	if (!err)
- 		devlink_rate_notify(devlink_rate, DEVLINK_CMD_RATE_NEW);
-+unlock:
-+	devl_rate_unlock(devlink);
- 	return err;
- }
- 
- int devlink_nl_rate_new_doit(struct sk_buff *skb, struct genl_info *info)
- {
--	struct devlink *devlink = info->user_ptr[0];
-+	struct devlink *rate_devlink, *devlink = info->user_ptr[0];
- 	struct devlink_rate *rate_node;
- 	const struct devlink_ops *ops;
- 	int err;
-@@ -621,15 +669,21 @@ int devlink_nl_rate_new_doit(struct sk_buff *skb, struct genl_info *info)
- 	if (!devlink_rate_set_ops_supported(ops, info, DEVLINK_RATE_TYPE_NODE))
- 		return -EOPNOTSUPP;
- 
-+	rate_devlink = devl_rate_lock(devlink);
- 	rate_node = devlink_rate_node_get_from_attrs(devlink, info->attrs);
--	if (!IS_ERR(rate_node))
--		return -EEXIST;
--	else if (rate_node == ERR_PTR(-EINVAL))
--		return -EINVAL;
-+	if (!IS_ERR(rate_node)) {
-+		err = -EEXIST;
-+		goto unlock;
-+	} else if (rate_node == ERR_PTR(-EINVAL)) {
-+		err = -EINVAL;
-+		goto unlock;
-+	}
- 
- 	rate_node = kzalloc(sizeof(*rate_node), GFP_KERNEL);
--	if (!rate_node)
--		return -ENOMEM;
-+	if (!rate_node) {
-+		err = -ENOMEM;
-+		goto unlock;
-+	}
- 
- 	rate_node->devlink = devlink;
- 	rate_node->type = DEVLINK_RATE_TYPE_NODE;
-@@ -648,8 +702,9 @@ int devlink_nl_rate_new_doit(struct sk_buff *skb, struct genl_info *info)
- 		goto err_rate_set;
- 
- 	refcount_set(&rate_node->refcnt, 1);
--	list_add(&rate_node->list, &devlink->rate_list);
-+	list_add(&rate_node->list, &rate_devlink->rate_list);
- 	devlink_rate_notify(rate_node, DEVLINK_CMD_RATE_NEW);
-+	devl_rate_unlock(devlink);
- 	return 0;
- 
- err_rate_set:
-@@ -658,6 +713,8 @@ int devlink_nl_rate_new_doit(struct sk_buff *skb, struct genl_info *info)
- 	kfree(rate_node->name);
- err_strdup:
- 	kfree(rate_node);
-+unlock:
-+	devl_rate_unlock(devlink);
- 	return err;
- }
- 
-@@ -667,13 +724,17 @@ int devlink_nl_rate_del_doit(struct sk_buff *skb, struct genl_info *info)
- 	struct devlink_rate *rate_node;
- 	int err;
- 
-+	devl_rate_lock(devlink);
- 	rate_node = devlink_rate_node_get_from_info(devlink, info);
--	if (IS_ERR(rate_node))
--		return PTR_ERR(rate_node);
-+	if (IS_ERR(rate_node)) {
-+		err = PTR_ERR(rate_node);
-+		goto unlock;
-+	}
- 
- 	if (refcount_read(&rate_node->refcnt) > 1) {
- 		NL_SET_ERR_MSG(info->extack, "Node has children. Cannot delete node.");
--		return -EBUSY;
-+		err = -EBUSY;
-+		goto unlock;
- 	}
- 
- 	devlink_rate_notify(rate_node, DEVLINK_CMD_RATE_DEL);
-@@ -684,6 +745,8 @@ int devlink_nl_rate_del_doit(struct sk_buff *skb, struct genl_info *info)
- 	list_del(&rate_node->list);
- 	kfree(rate_node->name);
- 	kfree(rate_node);
-+unlock:
-+	devl_rate_unlock(devlink);
- 	return err;
- }
- 
-@@ -692,14 +755,20 @@ int devlink_rates_check(struct devlink *devlink,
- 			struct netlink_ext_ack *extack)
- {
- 	struct devlink_rate *devlink_rate;
-+	struct devlink *rate_devlink;
-+	int err = 0;
- 
--	list_for_each_entry(devlink_rate, &devlink->rate_list, list)
--		if (!rate_filter || rate_filter(devlink_rate)) {
-+	rate_devlink = devl_rate_lock(devlink);
-+	list_for_each_entry(devlink_rate, &rate_devlink->rate_list, list)
-+		if (devlink_rate->devlink == devlink &&
-+		    (!rate_filter || rate_filter(devlink_rate))) {
- 			if (extack)
- 				NL_SET_ERR_MSG(extack, "Rate node(s) exists.");
--			return -EBUSY;
-+			err = -EBUSY;
-+			break;
- 		}
--	return 0;
-+	devl_rate_unlock(devlink);
-+	return err;
- }
- 
- /**
-@@ -716,14 +785,20 @@ devl_rate_node_create(struct devlink *devlink, void *priv, char *node_name,
- 		      struct devlink_rate *parent)
- {
- 	struct devlink_rate *rate_node;
-+	struct devlink *rate_devlink;
- 
-+	rate_devlink = devl_rate_lock(devlink);
- 	rate_node = devlink_rate_node_get_by_name(devlink, node_name);
--	if (!IS_ERR(rate_node))
--		return ERR_PTR(-EEXIST);
-+	if (!IS_ERR(rate_node)) {
-+		rate_node = ERR_PTR(-EEXIST);
-+		goto unlock;
-+	}
- 
- 	rate_node = kzalloc(sizeof(*rate_node), GFP_KERNEL);
--	if (!rate_node)
--		return ERR_PTR(-ENOMEM);
-+	if (!rate_node) {
-+		rate_node = ERR_PTR(-ENOMEM);
-+		goto unlock;
-+	}
- 
- 	if (parent) {
- 		rate_node->parent = parent;
-@@ -737,12 +812,15 @@ devl_rate_node_create(struct devlink *devlink, void *priv, char *node_name,
- 	rate_node->name = kstrdup(node_name, GFP_KERNEL);
- 	if (!rate_node->name) {
- 		kfree(rate_node);
--		return ERR_PTR(-ENOMEM);
-+		rate_node = ERR_PTR(-ENOMEM);
-+		goto unlock;
- 	}
- 
- 	refcount_set(&rate_node->refcnt, 1);
--	list_add(&rate_node->list, &devlink->rate_list);
-+	list_add(&rate_node->list, &rate_devlink->rate_list);
- 	devlink_rate_notify(rate_node, DEVLINK_CMD_RATE_NEW);
-+unlock:
-+	devl_rate_unlock(devlink);
- 	return rate_node;
- }
- EXPORT_SYMBOL_GPL(devl_rate_node_create);
-@@ -758,10 +836,10 @@ EXPORT_SYMBOL_GPL(devl_rate_node_create);
- int devl_rate_leaf_create(struct devlink_port *devlink_port, void *priv,
- 			  struct devlink_rate *parent)
- {
--	struct devlink *devlink = devlink_port->devlink;
-+	struct devlink *rate_devlink, *devlink = devlink_port->devlink;
- 	struct devlink_rate *devlink_rate;
- 
--	devl_assert_locked(devlink_port->devlink);
-+	devl_assert_locked(devlink);
- 
- 	if (WARN_ON(devlink_port->devlink_rate))
- 		return -EBUSY;
-@@ -770,6 +848,7 @@ int devl_rate_leaf_create(struct devlink_port *devlink_port, void *priv,
- 	if (!devlink_rate)
- 		return -ENOMEM;
- 
-+	rate_devlink = devl_rate_lock(devlink);
- 	if (parent) {
- 		devlink_rate->parent = parent;
- 		refcount_inc(&devlink_rate->parent->refcnt);
-@@ -779,9 +858,10 @@ int devl_rate_leaf_create(struct devlink_port *devlink_port, void *priv,
- 	devlink_rate->devlink = devlink;
- 	devlink_rate->devlink_port = devlink_port;
- 	devlink_rate->priv = priv;
--	list_add_tail(&devlink_rate->list, &devlink->rate_list);
-+	list_add_tail(&devlink_rate->list, &rate_devlink->rate_list);
- 	devlink_port->devlink_rate = devlink_rate;
- 	devlink_rate_notify(devlink_rate, DEVLINK_CMD_RATE_NEW);
-+	devl_rate_unlock(devlink);
- 
- 	return 0;
- }
-@@ -797,16 +877,19 @@ EXPORT_SYMBOL_GPL(devl_rate_leaf_create);
- void devl_rate_leaf_destroy(struct devlink_port *devlink_port)
- {
- 	struct devlink_rate *devlink_rate = devlink_port->devlink_rate;
-+	struct devlink *devlink = devlink_port->devlink;
- 
--	devl_assert_locked(devlink_port->devlink);
-+	devl_assert_locked(devlink);
- 	if (!devlink_rate)
- 		return;
- 
-+	devl_rate_lock(devlink);
- 	devlink_rate_notify(devlink_rate, DEVLINK_CMD_RATE_DEL);
- 	if (devlink_rate->parent)
- 		refcount_dec(&devlink_rate->parent->refcnt);
- 	list_del(&devlink_rate->list);
- 	devlink_port->devlink_rate = NULL;
-+	devl_rate_unlock(devlink);
- 	kfree(devlink_rate);
- }
- EXPORT_SYMBOL_GPL(devl_rate_leaf_destroy);
-@@ -815,18 +898,22 @@ EXPORT_SYMBOL_GPL(devl_rate_leaf_destroy);
-  * devl_rate_nodes_destroy - destroy all devlink rate nodes on device
-  * @devlink: devlink instance
-  *
-- * Unset parent for all rate objects and destroy all rate nodes
-- * on specified device.
-+ * Unset parent for all rate objects involving this device and destroy all rate
-+ * nodes on it.
-  */
- void devl_rate_nodes_destroy(struct devlink *devlink)
- {
- 	const struct devlink_ops *ops = devlink->ops;
- 	struct devlink_rate *devlink_rate, *tmp;
-+	struct devlink *rate_devlink;
- 
- 	devl_assert_locked(devlink);
-+	rate_devlink = devl_rate_lock(devlink);
- 
--	list_for_each_entry(devlink_rate, &devlink->rate_list, list) {
--		if (!devlink_rate->parent)
-+	list_for_each_entry(devlink_rate, &rate_devlink->rate_list, list) {
-+		if (!devlink_rate->parent ||
-+		    (devlink_rate->devlink != devlink &&
-+		     devlink_rate->parent->devlink != devlink))
- 			continue;
- 
- 		if (devlink_rate_is_leaf(devlink_rate))
-@@ -839,13 +926,16 @@ void devl_rate_nodes_destroy(struct devlink *devlink)
- 		refcount_dec(&devlink_rate->parent->refcnt);
- 		devlink_rate->parent = NULL;
- 	}
--	list_for_each_entry_safe(devlink_rate, tmp, &devlink->rate_list, list) {
--		if (devlink_rate_is_node(devlink_rate)) {
-+	list_for_each_entry_safe(devlink_rate, tmp, &rate_devlink->rate_list,
-+				 list) {
-+		if (devlink_rate->devlink == devlink &&
-+		    devlink_rate_is_node(devlink_rate)) {
- 			ops->rate_node_del(devlink_rate, devlink_rate->priv, NULL);
- 			list_del(&devlink_rate->list);
- 			kfree(devlink_rate->name);
- 			kfree(devlink_rate);
- 		}
- 	}
-+	devl_rate_unlock(devlink);
- }
- EXPORT_SYMBOL_GPL(devl_rate_nodes_destroy);
--- 
-2.44.0
-
+However, you are right that it's hard to find existing dev->stats
+increments, the use case this currently fixes is an error in
+__bpf_redirect_neigh_v4()/__bpf_redirect_neigh_v6().
