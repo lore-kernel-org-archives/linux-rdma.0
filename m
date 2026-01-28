@@ -1,79 +1,166 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B1F422DC35F;
-	Wed, 28 Jan 2026 10:25:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 750DE32ED24;
+	Wed, 28 Jan 2026 11:13:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769595916; cv=none; b=duUNUzLVrXxswnMkAtd1iqcK72TmpD4EdNDaGpmQlfUVr0l7P4FbZ9HnYWTgMKsqid/Dl46wT/AYxwxuzp+bpfJGQI32U8iW6NLTg/NilorKdjBl+zxZmsYQ0FOykf1ZtEqwGf8RnBJmWk2zdzQzCEUejVW6j7uodd20a+HQ9VM=
+	t=1769598830; cv=none; b=LWuPoZTZMRKzG29om/bpnj9r3dAYUXxrCwQ10A9d4doLFUgTLxoxKOkkh4qJthz10PO9rbAwsspABcJj2SwAmtQlzORrf4aEnFMPvarHykHMOjl7sqhFla1HPciJhQhCCoqoX8UJypTVEai1r1fwE8oJ+ExkaX+SbGAEO8SyS0k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769595916; c=relaxed/simple;
-	bh=dzl0aSJisa0yEWxjSxLPS6VD8xhxf55JGzx0Uswr2+c=;
-	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
-	 MIME-Version:Content-Type; b=ojrtYf7j3XwxtBSysQPb+M9javMMDH9LIMsjXBes0akj7gdoNSiQBpj7ExDIUI5gJy/unrOgpN74qv22/vFmILdlWc2hjqxaQsV3qLaJyOezBhAAIC6OJMmFtSfHU9x13vK6o4mOQV+/bWxfXbI1K/EmD+tfaD301qFKX+/qeRU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=muoELubT; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769598830; c=relaxed/simple;
+	bh=XhAa/knyZ6haG7FHsLWt0DcbM4mnkccj/WzXt56VTpQ=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=oTeTdPz3FIlMC8KZepjA4CutgSr1HJ3P6/dXIrQZ50cqJOi8ELLIEfyc1lOa4CFOqHcvHpQawAJQ0Je3EiHEwoM1O5siMSoCn+fKrVwFZ/Ve+NyPnVLakEmRgxxIIdYiDchNpxoe3epa9D0QqDFU8Qx3+L5O/cK2eCkqUPf/YD4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=QsOIO6cV; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="muoELubT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E170AC4CEF1;
-	Wed, 28 Jan 2026 10:25:15 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="QsOIO6cV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E815DC4CEF1;
+	Wed, 28 Jan 2026 11:13:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1769595916;
-	bh=dzl0aSJisa0yEWxjSxLPS6VD8xhxf55JGzx0Uswr2+c=;
-	h=From:To:Cc:In-Reply-To:References:Subject:Date:From;
-	b=muoELubTbsiVUEuOAAxhn9L4aeSfaMQf5y873imj8vtEl0225Yy14XjZhnU1bQeUa
-	 cLxOn4ET05PpZfar3X5DI8Lqrnv7fU6XcidMqBDUCvDFCt2cF5O60H/dKobaoYqx+P
-	 7Y/ramM/jHmoVWPdYs1RB9ZqQVcdq8BRZMm2ZhRfeEmMVYzH6nRM21f+HzRDjnq1pW
-	 qgFlAH0AijfMtCDkdqP5AxCJvRYGv9Km7h4EXvTszIltR/NGrblP4XtLvtbrjPdDoi
-	 qXHw7fl7fyz+c1JNSKDu1UImP6By8N8ZXpVQq96RL9ireCgjMvVeZTXIhRo+uDp1cj
-	 VihN09BOvPb7g==
+	s=k20201202; t=1769598830;
+	bh=XhAa/knyZ6haG7FHsLWt0DcbM4mnkccj/WzXt56VTpQ=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=QsOIO6cV70uo0MZSW5kkJyDzI6RcSrMOzS5q7b7ULZKvuvWOx/IEA15z5DVAGIIJB
+	 coB0IBdwYPmvjySgO+Q5k0Jh7yt3uJdRV7gfvJoAN354mNNBcRN0nPgfT+cNOutquJ
+	 ZpegGQAj4wSMSonkLxC7IwKMy3Ey977CuGMoGbkKTiCHGIQ0NLz5TwtRb/TERR82EW
+	 gi+yJN3vH9nFSz8UetoM6ON9giYtcaD2dAs7OBryHfj7ofCebLLX0mZMO5KXNUbTV6
+	 tJEsoktIRK3o+24kAK4i4HfY3V6Kp+kTlsfAFbeP/LXceIkOsVtbdbiUnMiqvrXZhI
+	 Zl1Y90LMpECMQ==
+Date: Wed, 28 Jan 2026 13:13:46 +0200
 From: Leon Romanovsky <leon@kernel.org>
-To: linux-rdma@vger.kernel.org, Li Zhijian <lizhijian@fujitsu.com>
-Cc: linux-kernel@vger.kernel.org, zyjzyj2000@gmail.com, jgg@ziepe.ca
-In-Reply-To: <20260120074437.623018-1-lizhijian@fujitsu.com>
-References: <20260120074437.623018-1-lizhijian@fujitsu.com>
-Subject: Re: [PATCH] RDMA/rxe: Fix race condition in QP timer handlers
-Message-Id: <176959591332.19472.2038436434809316961.b4-ty@kernel.org>
-Date: Wed, 28 Jan 2026 05:25:13 -0500
+To: "D. Wythe" <alibuda@linux.alibaba.com>
+Cc: Uladzislau Rezki <urezki@gmail.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Dust Li <dust.li@linux.alibaba.com>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Sidraya Jayagond <sidraya@linux.ibm.com>,
+	Wenjia Zhang <wenjia@linux.ibm.com>,
+	Mahanta Jambigi <mjambigi@linux.ibm.com>,
+	Simon Horman <horms@kernel.org>, Tony Lu <tonylu@linux.alibaba.com>,
+	Wen Gu <guwen@linux.alibaba.com>, linux-kernel@vger.kernel.org,
+	linux-mm@kvack.org, linux-rdma@vger.kernel.org,
+	linux-s390@vger.kernel.org, netdev@vger.kernel.org,
+	oliver.yang@linux.alibaba.com
+Subject: Re: [PATCH net-next 2/3] mm: vmalloc: export find_vm_area()
+Message-ID: <20260128111346.GD12149@unreal>
+References: <20260123082349.42663-1-alibuda@linux.alibaba.com>
+ <20260123082349.42663-3-alibuda@linux.alibaba.com>
+ <aXPEFdEdtSmd6AzF@milan>
+ <20260124093505.GA98529@j66a10360.sqa.eu95>
+ <aXSjm1DXm6yP62tD@pc636>
+ <20260124145754.GA57116@j66a10360.sqa.eu95>
+ <20260127133417.GU13967@unreal>
+ <20260128034558.GA126415@j66a10360.sqa.eu95>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-X-Mailer: b4 0.15-dev-47773
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260128034558.GA126415@j66a10360.sqa.eu95>
 
-
-On Tue, 20 Jan 2026 15:44:37 +0800, Li Zhijian wrote:
-> I encontered the following warning:
->  WARNING: drivers/infiniband/sw/rxe/rxe_task.c:249 at rxe_sched_task+0x1c8/0x238 [rdma_rxe], CPU#0: swapper/0/0
-> ...
->   libsha1 [last unloaded: ip6_udp_tunnel]
->  CPU: 0 UID: 0 PID: 0 Comm: swapper/0 Tainted: G         C          6.19.0-rc5-64k-v8+ #37 PREEMPT
->  Tainted: [C]=CRAP
->  Hardware name: Raspberry Pi 4 Model B Rev 1.2
->  Call trace:
->   rxe_sched_task+0x1c8/0x238 [rdma_rxe] (P)
->   retransmit_timer+0x130/0x188 [rdma_rxe]
->   call_timer_fn+0x68/0x4d0
->   __run_timers+0x630/0x888
-> ...
->  WARNING: drivers/infiniband/sw/rxe/rxe_task.c:38 at rxe_sched_task+0x1c0/0x238 [rdma_rxe], CPU#0: swapper/0/0
-> ...
->  WARNING: drivers/infiniband/sw/rxe/rxe_task.c:111 at do_work+0x488/0x5c8 [rdma_rxe], CPU#3: kworker/u17:4/93400
-> ...
->  refcount_t: underflow; use-after-free.
->  WARNING: lib/refcount.c:28 at refcount_warn_saturate+0x138/0x1a0, CPU#3: kworker/u17:4/93400
+On Wed, Jan 28, 2026 at 11:45:58AM +0800, D. Wythe wrote:
+> On Tue, Jan 27, 2026 at 03:34:17PM +0200, Leon Romanovsky wrote:
+> > On Sat, Jan 24, 2026 at 10:57:54PM +0800, D. Wythe wrote:
+> > > On Sat, Jan 24, 2026 at 11:48:59AM +0100, Uladzislau Rezki wrote:
+> > > > Hello, D. Wythe!
+> > > > 
+> > > > > On Fri, Jan 23, 2026 at 07:55:17PM +0100, Uladzislau Rezki wrote:
+> > > > > > On Fri, Jan 23, 2026 at 04:23:48PM +0800, D. Wythe wrote:
+> > > > > > > find_vm_area() provides a way to find the vm_struct associated with a
+> > > > > > > virtual address. Export this symbol to modules so that modularized
+> > > > > > > subsystems can perform lookups on vmalloc addresses.
+> > > > > > > 
+> > > > > > > Signed-off-by: D. Wythe <alibuda@linux.alibaba.com>
+> > > > > > > ---
+> > > > > > >  mm/vmalloc.c | 1 +
+> > > > > > >  1 file changed, 1 insertion(+)
+> > > > > > > 
+> > > > > > > diff --git a/mm/vmalloc.c b/mm/vmalloc.c
+> > > > > > > index ecbac900c35f..3eb9fe761c34 100644
+> > > > > > > --- a/mm/vmalloc.c
+> > > > > > > +++ b/mm/vmalloc.c
+> > > > > > > @@ -3292,6 +3292,7 @@ struct vm_struct *find_vm_area(const void *addr)
+> > > > > > >  
+> > > > > > >  	return va->vm;
+> > > > > > >  }
+> > > > > > > +EXPORT_SYMBOL_GPL(find_vm_area);
+> > > > > > >  
+> > > > > > This is internal. We can not just export it.
+> > > > > > 
+> > > > > > --
+> > > > > > Uladzislau Rezki
+> > > > > 
+> > > > > Hi Uladzislau,
+> > > > > 
+> > > > > Thank you for the feedback. I agree that we should avoid exposing
+> > > > > internal implementation details like struct vm_struct to external
+> > > > > subsystems.
+> > > > > 
+> > > > > Following Christoph's suggestion, I'm planning to encapsulate the page
+> > > > > order lookup into a minimal helper instead:
+> > > > > 
+> > > > > unsigned int vmalloc_page_order(const void *addr){
+> > > > > 	struct vm_struct *vm;
+> > > > >  	vm = find_vm_area(addr);
+> > > > > 	return vm ? vm->page_order : 0;
+> > > > > }
+> > > > > EXPORT_SYMBOL_GPL(vmalloc_page_order);
+> > > > > 
+> > > > > Does this approach look reasonable to you? It would keep the vm_struct
+> > > > > layout private while satisfying the optimization needs of SMC.
+> > > > > 
+> > > > Could you please clarify why you need info about page_order? I have not
+> > > > looked at your second patch.
+> > > > 
+> > > > Thanks!
+> > > > 
+> > > > --
+> > > > Uladzislau Rezki
+> > > 
+> > > Hi Uladzislau,
+> > > 
+> > > This stems from optimizing memory registration in SMC-R. To provide the
+> > > RDMA hardware with direct access to memory buffers, we must register
+> > > them with the NIC. During this process, the hardware generates one MTT
+> > > entry for each physically contiguous block. Since these hardware entries
+> > > are a finite and scarce resource, and SMC currently defaults to a 4KB
+> > > registration granularity, a single 2MB buffer consumes 512 entries. In
+> > > high-concurrency scenarios, this inefficiency quickly exhausts NIC
+> > > resources and becomes a major bottleneck for system scalability.
+> > 
+> > I believe this complexity can be avoided by using the RDMA MR pool API,
+> > as other ULPs do, for example NVMe.
+> > 
+> > Thanks
+> > 
 > 
-> [...]
+> Hi Leon,
+> 
+> Am I correct in assuming you are suggesting mr_pool to limit the number
+> of MRs as a way to cap MTTE consumption?
 
-Applied, thanks!
+I don't see this a limit, but something that is considered standard
+practice to reduce MTT consumption.
 
-[1/1] RDMA/rxe: Fix race condition in QP timer handlers
-      https://git.kernel.org/rdma/rdma/c/87bf646921430e
+> 
+> However, our goal is to maximize the total registered memory within
+> the MTTE limits rather than to cap it. In SMC-R, each connection
+> occupies a configurable, fixed-size registered buffer; consequently,
+> the more memory we can register, the more concurrent connections
+> we can support.
 
-Best regards,
--- 
-Leon Romanovsky <leon@kernel.org>
+It is not cap, but more efficient use of existing resources.
 
+> 
+> By leveraging vmalloc_huge() and the proposed helper to increase the
+> page_size in ib_map_mr_sg(), each MTTE covers a much larger contiguous
+> physical block. This significantly reduces the total number of entries
+> required to map the same amount of memory, allowing us to serve more
+> connections under the same hardware constraints
+> 
+> D. Wythe
