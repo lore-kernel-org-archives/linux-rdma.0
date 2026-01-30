@@ -1,104 +1,96 @@
-Received: from mail-qt1-f171.google.com (mail-qt1-f171.google.com [209.85.160.171])
+Received: from mail-qv1-f52.google.com (mail-qv1-f52.google.com [209.85.219.52])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 39283315D21
-	for <linux-rdma@vger.kernel.org>; Fri, 30 Jan 2026 14:44:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.171
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 75C5736AB49
+	for <linux-rdma@vger.kernel.org>; Fri, 30 Jan 2026 15:16:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.52
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769784258; cv=none; b=dBv8Q7uTqoP6HbOUEI53IqLhuLVEDHg43alXbcIFer9fh+NFhu8Lga09Z5ZUZZjWQV6RAc9mpR5u1RglstPy7vWKU09RCfQ7YPw//S/JQh4szM5xY2SIKFtDoRqiWf8XuV5f/dE3+AzCbw5vlP9Q6gG3EQ/GyX0CDHqvYHIi/P0=
+	t=1769786204; cv=none; b=C/kXdHhCmChi5d8emo+UVnX8F3Vhz/J36s6Xv1/1f3ucXzJgPL4OtEADRRnkvEw/XN/pZzhaFw1TTIcqqQF0A7IRedTNTlZxpKXwpVRKM3CMiGJ8dlvbIbzYthEhrQ0XivU4AFiQl808JqPrZgiMlLXPiwVPM2Z2Alb4iWfufvE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769784258; c=relaxed/simple;
-	bh=VsbMM5xoKqA8UQ3isRtzAP4PmVkOh9whfmV8sar8q8U=;
+	s=arc-20240116; t=1769786204; c=relaxed/simple;
+	bh=WmHtBHSTYxbfJ263YgNe7PXPFBdQFrEByiiVtkOz+uw=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=c/2jnyer26LvKT/sWgwT1nw08Qyz/VgJvdZ1nh9ir8qPs+j7HGeAoFmF1ywM5xyPMLcdfSbWMykkwubaOkvQfKSd3Ujo2Khnrwgwl6C9saX2BLmCgDdJpZ1tF5t11KQaN+QGMgLm2hG5BvrJsAW+npGfyShSN6gG1qu6uUB98jo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca; spf=pass smtp.mailfrom=ziepe.ca; dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b=G572Xvqv; arc=none smtp.client-ip=209.85.160.171
+	 Content-Type:Content-Disposition:In-Reply-To; b=aEk8NTFZvlM4XOaY6clJV46ijcLR2KOUEHsVkttDUNSvCcVNqssQEX66uw9TWE2xrAIctjZA97P4eR6quJx41JCuZ5lZx5GRk6a++X9VALnrHvPulsf7xdTTS5Qs8N+1L4VVqPXLzoHxE1ajfn2GFywLWqkjBSzvTFjW16BYEeU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca; spf=pass smtp.mailfrom=ziepe.ca; dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b=o3p/t+Oz; arc=none smtp.client-ip=209.85.219.52
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ziepe.ca
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="G572Xvqv"
-Received: by mail-qt1-f171.google.com with SMTP id d75a77b69052e-505aaab61d9so10741191cf.0
-        for <linux-rdma@vger.kernel.org>; Fri, 30 Jan 2026 06:44:17 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="o3p/t+Oz"
+Received: by mail-qv1-f52.google.com with SMTP id 6a1803df08f44-8948273f5d0so32543536d6.0
+        for <linux-rdma@vger.kernel.org>; Fri, 30 Jan 2026 07:16:40 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google; t=1769784256; x=1770389056; darn=vger.kernel.org;
+        d=ziepe.ca; s=google; t=1769786199; x=1770390999; darn=vger.kernel.org;
         h=in-reply-to:content-transfer-encoding:content-disposition
          :mime-version:references:message-id:subject:cc:to:from:date:from:to
          :cc:subject:date:message-id:reply-to;
-        bh=UlIFC23S9unnjQhVGEC3vUha1a+Kfy5xxpLqRiUCtvQ=;
-        b=G572XvqvqEJ95BhX2bAuiQ/O5wI4h8d/DRsGbf3bogEs27PccC/FQ9DAz/U4GD5IIA
-         /QshJGOAPahQIA8znGcPtyDORLvxPEHNhRbhESmpvY6wWD5tgB/7tS460R14YJJkMo+0
-         6P/HA5MGamiEsVxo2G0Ux2BIqTt+1DZM9SDgakye920Jk6xQTS9XOjRWOxZz+rJkrpBr
-         8nv3x6TuipUUnMw5cQvHttzzVcP6rCgHC6OLjc2ujgi50QiKkG5I4LSbzV/EDJvaQMsg
-         7m7EiE5TkuVUtJ9zbigdaa2b2446bdwwa8jlXFFHbp4YBpiz68Lj+We8pesk7AiM2ton
-         5rqw==
+        bh=9si664lpAABtSRH5NCDTNiWW5Zo1E2FOdd2kZn8cRsw=;
+        b=o3p/t+OzNolmstthDKxfQ2xaDr4SG5Cd5MhbMtCpLSmb1pSCcPW8jaVlip9X438OsU
+         pvqcK+zIuEQTlyP6cyjSPpPISnUcNH8HBRF8XscGM0zgrtsq9YMvJCbOascyJ6SYle3K
+         5+lplx4rOZBELiGFXi7Z029vg2gzMC0aiSCWP/xkR9Zj42Ur8ylSVCaRV6w/kOkYPsRI
+         NCWMbQlXq7eyk4aNHKTwPQQYIk6ntQG++EF1z3KRTnDa5JBk2tRP7dJov/Sgzp0Jnu5a
+         SVuV3RCSgr6Qe2RLxTELd34T9s4IMJbMo5I1OeLdPPTA68gyCEv8RiFwF6w3hkirjZTv
+         /fhA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1769784256; x=1770389056;
+        d=1e100.net; s=20230601; t=1769786199; x=1770390999;
         h=in-reply-to:content-transfer-encoding:content-disposition
          :mime-version:references:message-id:subject:cc:to:from:date:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=UlIFC23S9unnjQhVGEC3vUha1a+Kfy5xxpLqRiUCtvQ=;
-        b=p1cAlvnPAe7TfSRsMeKA4OZMF/Y9TEUDEenYVilS7dHfDiDlmJsoNeQJr30/KUPppa
-         2F3fQwQ9MwLrYfrsPEBJjHxgZK1MEJIQoWwnsqDDGSudf5xEMF4UaLkrk4nk8T/W9W5F
-         W24+hwZGIQR+erki9K/VI+lVs5lmHbhKn6FRlogN06GgchB6XvJjVGZNK2LSS1u/EyS8
-         59WpgN5HIPgJLI2L46WaFciaTqZZrCNi15m2UfGlA/kRcKvVL4G8qgOW6njzlzQCz5xj
-         yHYh2XMGjKfsThi5dNOyIDYZYYxPJSTqvo1HlS50CT+8Xu13pKZ8G+ub6mMD8omffEo2
-         ggMA==
-X-Forwarded-Encrypted: i=1; AJvYcCWgKNNNuI2WGeWu7U6YbgNGDGYu49KCN9QRemqq9ivsaoaqG7HXUmGpqWCI5Ir45oCT18IngwBeFgPl@vger.kernel.org
-X-Gm-Message-State: AOJu0YxMfvDIGW2HQZOLT56lAVyYmzBqEwxpv55ppwc/gbriCwGMQS0b
-	vhQZRSiToIaccVBA8gKygjRmZimV7zr3B/WQcHA7rjKw4N0Ly//w009CO9eRmODqSxg=
-X-Gm-Gg: AZuq6aIUeWVP8ikRVBgUF6rUf5FpRgplKn+gUbfPy7g+012r+cIpp+BsW3sCUZPPXIg
-	sxs+QpoEj5JduMw3IAPjJ8Egu7d5C3X2W7U84fMqnFugvzZZQ14WvZN19uFzzyPGN101nWjpHP8
-	X/s27h5BNx/5OKKquzwGOSebGxC/mN5Zkt8yttCjKmdem6zVEhVjIWn3KksKo61n0TDqklpGaml
-	hyKGbImkR6nLO4ApEhqlsj1BhqmtqrumG+xk78qSttE9FfoE5SuuuZgeelfA3RaOHMdTK+gG1wS
-	LPVMePVNc3pJ6SYLISHdiUI86B90fSK44mxj3SyW8jO39fHPhQ5TTiJP+5Qm/4BF0AaHAk6azlQ
-	XYIQhmuaKNzJntLpPmY2zmvuLSkYPVxxfYW3DpS2pNZ6weVzaRCMXYAvL0/dVPVWQQl9wKxOI9D
-	5Dhrh9icBoHP8lWujVq0lGZEDIfG4JOJ+KrJosXqt15UkCk3oTZjOBGCMwup/V1Vrp7yY=
-X-Received: by 2002:ac8:7f0f:0:b0:501:51b6:cd3e with SMTP id d75a77b69052e-505d21a4775mr39321141cf.29.1769784256186;
-        Fri, 30 Jan 2026 06:44:16 -0800 (PST)
+        bh=9si664lpAABtSRH5NCDTNiWW5Zo1E2FOdd2kZn8cRsw=;
+        b=EHXiW0cI9kHBSC6aB7axh1l5cVGo8D5i3ODj05ECWJE7b2rKgV0BIBMHWDRTOhuSJ9
+         a3VpFm2Owqs8OAdAJRXl3wNpqQWZ4XGFI2/VqqADMbrcZzL4XJDzuXYJpWUz28TYDQID
+         loYjZ2Cn8oRraTKn1nxy6UD38Kfj6j26Js4ifq0Kg9/x65iKdl51dIEiscpmYyJ7NJUh
+         KbjYme9XgxgiMLt9NdnfXmpm7vNEo8PWDUNRea+URraiwoGsYbWrw8c0l7BIEr5eUL65
+         ar5sQH/Vzslikxbghmt2SbhDYAcc/sp140vwhnw+3uQxk8o13EcF1dII/F2WCyq89FIv
+         4gPg==
+X-Forwarded-Encrypted: i=1; AJvYcCV5AilGlKH48ssoimkk+wBqrNO9tm/avsTJs9jSKmdxjVr8fG74sGpbaeYvCd5BOxCEVowG/nTSfjcH@vger.kernel.org
+X-Gm-Message-State: AOJu0YwkZ4NkZUQ569OUukWqHbbAB5BGOTmCOHen+Ql/j5KHm4mYhq4S
+	LP9cdJSZ8ih94n3La+TRYJ12RlFJzjquiYyoVFbJ4D33VtFRiZoI/fGNU6ic/H23nTA=
+X-Gm-Gg: AZuq6aLV8KmQ2j3scRXyveyIj5C5UBUCdAWC3bmyoUiaVRRlRkIkAeYfGGf3kGlX25f
+	x1+btaN1GfRX9gDHpqGO8Ey+bm36NToRNI/7mtbrKUn7/Q72LWzxTQguJhsug+aET3cnHYHRB7A
+	wFxRdip++zWxvhRqvqgUz3njtb/Dxm+CUmz5pjR3/N9r84eO3Q91OEUGUQBTJ9vrhQ2m5UTQDkL
+	dr89D8mRlRF3WvaTW4FUttUX1xqec6PMERt4VboX5qOWezeWEQr78CnT4mjeKqlmzu2rDRTtxqE
+	XpHTgKISrxc1C+jqarQH7NTR3qEhiX3LZPPHvTTu8Iar9Fsx84soZ43UuaGV/uZu4mOxFAyYqhs
+	j1xE5yGaSuworDJRpvqYDf/APNxEARDVBKKU/PuG1H/fysJV0FCftw4qc/tY3Zo7qupkcg4Dq3K
+	gDWa0yAkjfYhdjOZ1PGP7R/SlmcFWBtf3cmgZBjRpnIVVKrKB+mSqwKbD08zD7VUuMigE=
+X-Received: by 2002:a05:6214:501d:b0:88a:4c50:3be0 with SMTP id 6a1803df08f44-894df970109mr86470926d6.6.1769786198441;
+        Fri, 30 Jan 2026 07:16:38 -0800 (PST)
 Received: from ziepe.ca (hlfxns017vw-142-162-112-119.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.162.112.119])
-        by smtp.gmail.com with ESMTPSA id d75a77b69052e-5033745c426sm56137391cf.7.2026.01.30.06.44.15
+        by smtp.gmail.com with ESMTPSA id d75a77b69052e-5033745c5d4sm58414081cf.3.2026.01.30.07.16.37
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 30 Jan 2026 06:44:15 -0800 (PST)
+        Fri, 30 Jan 2026 07:16:37 -0800 (PST)
 Received: from jgg by wakko with local (Exim 4.97)
 	(envelope-from <jgg@ziepe.ca>)
-	id 1vlpjL-0000000B0t1-0Fhg;
-	Fri, 30 Jan 2026 10:44:15 -0400
-Date: Fri, 30 Jan 2026 10:44:15 -0400
+	id 1vlqEe-0000000BAef-38VG;
+	Fri, 30 Jan 2026 11:16:36 -0400
+Date: Fri, 30 Jan 2026 11:16:36 -0400
 From: Jason Gunthorpe <jgg@ziepe.ca>
-To: Christian =?utf-8?B?S8O2bmln?= <christian.koenig@amd.com>
-Cc: Leon Romanovsky <leon@kernel.org>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	Alex Deucher <alexander.deucher@amd.com>,
-	David Airlie <airlied@gmail.com>, Simona Vetter <simona@ffwll.ch>,
-	Gerd Hoffmann <kraxel@redhat.com>,
-	Dmitry Osipenko <dmitry.osipenko@collabora.com>,
-	Gurchetan Singh <gurchetansingh@chromium.org>,
-	Chia-I Wu <olvaffe@gmail.com>,
-	Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
-	Maxime Ripard <mripard@kernel.org>,
-	Thomas Zimmermann <tzimmermann@suse.de>,
-	Lucas De Marchi <lucas.demarchi@intel.com>,
-	Thomas =?utf-8?Q?Hellstr=C3=B6m?= <thomas.hellstrom@linux.intel.com>,
-	Rodrigo Vivi <rodrigo.vivi@intel.com>,
-	Kevin Tian <kevin.tian@intel.com>, Joerg Roedel <joro@8bytes.org>,
-	Will Deacon <will@kernel.org>, Robin Murphy <robin.murphy@arm.com>,
-	Felix Kuehling <Felix.Kuehling@amd.com>,
-	Alex Williamson <alex@shazbot.org>,
-	Ankit Agrawal <ankita@nvidia.com>,
-	Vivek Kasireddy <vivek.kasireddy@intel.com>,
-	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linaro-mm-sig@lists.linaro.org, linux-kernel@vger.kernel.org,
-	amd-gfx@lists.freedesktop.org, virtualization@lists.linux.dev,
-	intel-xe@lists.freedesktop.org, linux-rdma@vger.kernel.org,
-	iommu@lists.linux.dev, kvm@vger.kernel.org
-Subject: Re: [PATCH v5 4/8] vfio: Wait for dma-buf invalidation to complete
-Message-ID: <20260130144415.GE2328995@ziepe.ca>
-References: <20260124-dmabuf-revoke-v5-0-f98fca917e96@nvidia.com>
- <20260124-dmabuf-revoke-v5-4-f98fca917e96@nvidia.com>
- <31872c87-5cba-4081-8196-72cc839c6122@amd.com>
- <20260130130131.GO10992@unreal>
- <d25bead8-8372-4791-a741-3371342f4698@amd.com>
- <20260130135618.GC2328995@ziepe.ca>
- <d1dce6c1-9a89-4ae4-90eb-7b6d8cdcdd91@amd.com>
+To: "D. Wythe" <alibuda@linux.alibaba.com>
+Cc: Leon Romanovsky <leon@kernel.org>, Uladzislau Rezki <urezki@gmail.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Dust Li <dust.li@linux.alibaba.com>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Sidraya Jayagond <sidraya@linux.ibm.com>,
+	Wenjia Zhang <wenjia@linux.ibm.com>,
+	Mahanta Jambigi <mjambigi@linux.ibm.com>,
+	Simon Horman <horms@kernel.org>, Tony Lu <tonylu@linux.alibaba.com>,
+	Wen Gu <guwen@linux.alibaba.com>, linux-kernel@vger.kernel.org,
+	linux-mm@kvack.org, linux-rdma@vger.kernel.org,
+	linux-s390@vger.kernel.org, netdev@vger.kernel.org,
+	oliver.yang@linux.alibaba.com
+Subject: Re: [PATCH net-next 2/3] mm: vmalloc: export find_vm_area()
+Message-ID: <20260130151636.GF2328995@ziepe.ca>
+References: <aXPEFdEdtSmd6AzF@milan>
+ <20260124093505.GA98529@j66a10360.sqa.eu95>
+ <aXSjm1DXm6yP62tD@pc636>
+ <20260124145754.GA57116@j66a10360.sqa.eu95>
+ <20260127133417.GU13967@unreal>
+ <20260128034558.GA126415@j66a10360.sqa.eu95>
+ <20260128180629.GT1641016@ziepe.ca>
+ <20260129113609.GA37734@j66a10360.sqa.eu95>
+ <20260129132058.GC2307128@ziepe.ca>
+ <20260130085131.GA122673@j66a10360.sqa.eu95>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -108,24 +100,52 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <d1dce6c1-9a89-4ae4-90eb-7b6d8cdcdd91@amd.com>
+In-Reply-To: <20260130085131.GA122673@j66a10360.sqa.eu95>
 
-On Fri, Jan 30, 2026 at 03:11:48PM +0100, Christian König wrote:
-> On 1/30/26 14:56, Jason Gunthorpe wrote:
-> > On Fri, Jan 30, 2026 at 02:21:08PM +0100, Christian König wrote:
+On Fri, Jan 30, 2026 at 04:51:31PM +0800, D. Wythe wrote:
+> On Thu, Jan 29, 2026 at 09:20:58AM -0400, Jason Gunthorpe wrote:
+> > On Thu, Jan 29, 2026 at 07:36:09PM +0800, D. Wythe wrote:
 > > 
-> >> That would work for me.
-> >>
-> >> Question is if you really want to do it this way? See usually
-> >> exporters try to avoid blocking such functions.
+> > > > From there you can check the resulting scatterlist and compute the
+> > > > page_size to pass to ib_map_mr_sg().
 > > 
-> > Yes, it has to be this way, revoke is a synchronous user space
-> > triggered operation around things like FLR or device close. We can't
-> > defer it into some background operation like pm.
+> > I should clarify this is done after DMA mapping the scatterlist. dma
+> > mapping can improve the page size.
+> > 
+> > And maybe the core code should be helping compute the MR's target page
+> > size for a scatterlist.. We already have code to do this in umem, and
+> > it is a pretty bit tricky considering the IOVA related rules.
+> >
 > 
-> Yeah, but you only need that in a couple of use cases and not all.
+> Hi Jason,
+> 
+> After a deep dive into ib_umem_find_best_pgsz(), I have to say it is
+> much more subtle than it first appears. The IOVA-to-PA relative offset
+> rules, in particular, make it quite easy to get wrong.
+> 
+> While SMC could duplicate this logic, it is certainly not ideal for
+> maintenance. Are there any plans to refactor this into a generic RDMA
+> core helper—for instance, one that can determine the best page size
+> directly from an sg_table or scatterlist?
 
-Not all, that is why the dma_buf_attach_revocable() is there to
-distinguish this case from others.
+I have not heard of anyone touching this.
+
+It looks like there are only two users in the kernel that pass
+something other than PAGE_SIZE, so it seems nobody has cared about
+this till now.
+
+With high order folios being more common it seems like something
+missing.
+
+However, I wonder what the drivers do with the input page size, 
+segmenting a scatterlist is a bit hard and we have helpers for that
+already too.
+
+It is a bigger project but probably the right thing is to remove the
+page size input, wrap the scatterlist in a umem and fixup the drivers
+to use the existing umem support for building mtts, splitting
+scatterlists into blocks and so on.
+
+The kernel side here has been left alone for a long time..
 
 Jason
