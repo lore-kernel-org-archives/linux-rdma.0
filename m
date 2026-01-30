@@ -1,71 +1,137 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qk1-f181.google.com (mail-qk1-f181.google.com [209.85.222.181])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 504E3236453;
-	Thu, 29 Jan 2026 23:40:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9B8432417C6
+	for <linux-rdma@vger.kernel.org>; Fri, 30 Jan 2026 00:17:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.181
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769730026; cv=none; b=Sllsoo7AyltPuOXAtDCqe+dPLFYSjzlztZb0vRfih0f9uIrKtjM9pHjGhXccDxUrcPgYlFMeZ6/uvC4S6gWmJXUwMBoFGKN72QWgsILLaZqns7tHxL5cB7VWMt6+fDPG2y1Y0hzl97qgo/2UCN2fh+rK40gEl6uMC3VppFrzUZQ=
+	t=1769732236; cv=none; b=Kg1+pNkCQmL9Ot8907hj1kvRx10i71MEMVaR9knFoX74TufBsmVn/aD8eA60NzmB4P8oYRinaZDercQFdyqWmEuA0jhjSniXD+pP/aG1+fBY9RL7SI2agjYUyHNGP97WTvYUFcIIayKkCYPLc+pqRTS5cUnorR74y2V3W3IK6ck=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769730026; c=relaxed/simple;
-	bh=7V/w0cMiWKDJR01klhKtUJS0e5hzRvts/SSEVugoySs=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=hPOWr4qHLBO7J2NAeUrUPahkOhyOrNxfTf/mvAohlrqLbY3hutM9dMP3O9zfjgZTEKJOg8LxgNHZXiBUlpkMujuLeXe6/HP5tHe9qGBxwOJMhmF7OaDWzzw2MJ3zbwjpHMZ15M/6FuhxY9U9uY1BSFYWtoAHqG0Lw5y+l0V0byQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=nHZq4Xz8; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769732236; c=relaxed/simple;
+	bh=PgxWXxtJeqUdvgjP5KxrfenUWVrCXmnl/Ip3hY3gzr0=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=kHufKybpIwYfcUotPTv1PI+x+pRazx2R8J9Gj+dT91eg4okioE5LCf6PlLH5dzdoRSn+cE5Gj0K2/E2zQKiMgJM1Z/rWmHBW7iH0+sRyo1MYrP5/N68hFxRm7GcONLIBFLsRBYDdix4m4cVW7WoQQY6wkIqXogvGot+JxAnjlkY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca; spf=pass smtp.mailfrom=ziepe.ca; dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b=KA7biT7z; arc=none smtp.client-ip=209.85.222.181
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ziepe.ca
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="nHZq4Xz8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3C218C4CEF7;
-	Thu, 29 Jan 2026 23:40:25 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1769730025;
-	bh=7V/w0cMiWKDJR01klhKtUJS0e5hzRvts/SSEVugoySs=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=nHZq4Xz8dM8FOkArZFPv+4z5ZXxi2TDozybO19H76dTX5MKZqTdf8MqZD4UCE+Ji7
-	 FtMGJOd5+0TD8Hcm5hfxn3ar5aA4aOCrSp0TqJ2meMMnLH1FOzvlEmtTwtMLVVpDRh
-	 h4h7/bF26q0XwCao27Jd2gBGSBWkkNg8DMQWJhtWxxT2Pnxf+HLHik+8LsOhdA+dBd
-	 J8S6nTdyL1YoIHK+cJQNQD1V6LhrR6lxGhopXLFXJM/eErBKDXOO/hg6CHWnn7+919
-	 EFZe+ZUeOc+aucirwIjX5OG1S9TKNT4+dGzulfcESVdraotLH8skN547lkfCuYWGkf
-	 7lG+r6hzYQJRg==
-Date: Thu, 29 Jan 2026 15:40:24 -0800
-From: Jakub Kicinski <kuba@kernel.org>
-To: Cosmin Ratiu <cratiu@nvidia.com>
-Cc: Tariq Toukan <tariqt@nvidia.com>, "andrew+netdev@lunn.ch"
- <andrew+netdev@lunn.ch>, "linux-rdma@vger.kernel.org"
- <linux-rdma@vger.kernel.org>, "davem@davemloft.net" <davem@davemloft.net>,
- Gal Pressman <gal@nvidia.com>, Moshe Shemesh <moshe@nvidia.com>, Mark Bloch
- <mbloch@nvidia.com>, "linux-kernel@vger.kernel.org"
- <linux-kernel@vger.kernel.org>, "pabeni@redhat.com" <pabeni@redhat.com>,
- "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "edumazet@google.com"
- <edumazet@google.com>, Saeed Mahameed <saeedm@nvidia.com>,
- "horms@kernel.org" <horms@kernel.org>, "leon@kernel.org" <leon@kernel.org>
-Subject: Re: [PATCH net V2 2/4] net/mlx5: Fix deadlock between devlink lock
- and esw->wq
-Message-ID: <20260129154024.3915c3bf@kernel.org>
-In-Reply-To: <d52714243592921c08175aa742f32ae56e4f6651.camel@nvidia.com>
-References: <1769503961-124173-1-git-send-email-tariqt@nvidia.com>
-	<1769503961-124173-3-git-send-email-tariqt@nvidia.com>
-	<20260128205622.12e1f026@kernel.org>
-	<d52714243592921c08175aa742f32ae56e4f6651.camel@nvidia.com>
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="KA7biT7z"
+Received: by mail-qk1-f181.google.com with SMTP id af79cd13be357-8c532d8be8cso157741885a.2
+        for <linux-rdma@vger.kernel.org>; Thu, 29 Jan 2026 16:17:13 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ziepe.ca; s=google; t=1769732232; x=1770337032; darn=vger.kernel.org;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :mime-version:references:message-id:subject:cc:to:from:date:from:to
+         :cc:subject:date:message-id:reply-to;
+        bh=JQnCcQDZjp9U0R1Q7JCyNDeekOxxS8phMo1p2crcsis=;
+        b=KA7biT7z2WPIJqn1yWtupwtFpuiVSND6sCJuDPiqtvlV/udtpzWhHBdHKHzdXfdrt9
+         s5ff0uj0MnRJ2qUUQNgrd0lk2LV/u1TJUfKQTbzPIGnBZoQoPXVw92tOcr4jJ+o6LTsh
+         pmrSmwNEYgAYmP11U4AzdudTpUbSJ/6lGl2fTB0tpVVeZ5pwjPdB10zBv03zrqTMm32F
+         XRxwdujmIDrabfqlhXdKEogyduDcZ/LafEpZu5i5+k5xCZIZggCdPOPnVishQAaKjj5E
+         KENQjSUQFCVdWDnSRyM99hu8FmY0ffQviK954nkYYxdhylaquDPwhk4OhuIA+A5fqMJJ
+         rp/Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1769732232; x=1770337032;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :mime-version:references:message-id:subject:cc:to:from:date:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=JQnCcQDZjp9U0R1Q7JCyNDeekOxxS8phMo1p2crcsis=;
+        b=DGAq3nC0hPRD6TgqWm3vR69RObnsqWjm/jQU3X9X4xrSIVCwHVtONYFiNjcdW61I97
+         trB0aisSK3r1T/1ToT/PKjaqKm/IE4mPIIfn+DM+MGd+5K1WV+lY8K1ByiOvtAr0H3/l
+         EVkHS+d1m4Rl0dOT/8mqdP2KutgKuInaLFv9CXUqZqXGldf6vrH1Y9UDOcXEPXwjaO3G
+         jthSwj6MwWhLhngogbiON36+LZ65Kqr2V53yoUPavWFynCk4EA5bJwOJJvphpFFJ7VaH
+         sHEx1iQy5l0bWavwmAQO9KAKadc/pmePKJ6vwnadKuPuam3iH4B/lNqsfndHXwKuPyU3
+         PpMg==
+X-Forwarded-Encrypted: i=1; AJvYcCWtnqTXkhD3TWhjJTZ68VaKBgj/wodatuC3hLlbo4H/uhV1mycmpA+y382lwSV+in0qJshQTXTiLvZi@vger.kernel.org
+X-Gm-Message-State: AOJu0YxIUQPdk22xqx7FQmHbrbVynm4tllCWvFDTiWB50dpGQJrm1KbW
+	h2KykjH+zFUgWrFoieLWfpWUP7rQgKm4IBPTsbEWCm666IssVpL+H61TrZ1JXvCg9Tw=
+X-Gm-Gg: AZuq6aL30A+hZMNGlrjl0xFEgA/1LwTlBm2it2kilYya3MxvlmQYhKGu7wF7FlYzDUa
+	nwwVHVelZlutnUQDbGT426uETgNzlwxPNnfNBTGLoLIvadwdkSawGEIsyZ7gPa77WsQnM3ZM4Rr
+	B8Z3+8JPnuBvj0/tIsi7H0EnqVAE66Cn79xaj3Zwz3LcXNdvTRqL/kkssPQrBcPlZSgo3w8BIur
+	4ENWn5Rn1y0tUn0O8RKp91cJ+h4qI9sW6SSunLaMDlFJqNQWaSgpEmNiHbDjohWNjZoM+ITlwqj
+	Yi29gfFo6CmXBQtMPuGyGVyT/ArUlBLaKBFJaPcQT0du96iLe4HoHVqiMagI9rwdCIhTTfVzeXc
+	Qn4ZftB0b0M2M48NeJ1TayNT97zQF1M6Jeb59KNJAAI+4KDirIFhzEqjBzQ0csmUdY7d4f0oE7P
+	DUry9bLBCGIaaTJYc0rKHk2YRWEYo/2GQrfBGnyrrSNbm9/8q6yWWqMm31gZfNvZV38N/ovPfyt
+	U5c9Q==
+X-Received: by 2002:ac8:5781:0:b0:4f3:5f7b:cc1d with SMTP id d75a77b69052e-505d21846b4mr19549181cf.34.1769732232444;
+        Thu, 29 Jan 2026 16:17:12 -0800 (PST)
+Received: from ziepe.ca (hlfxns017vw-142-162-112-119.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.162.112.119])
+        by smtp.gmail.com with ESMTPSA id d75a77b69052e-50337cc19d7sm45008611cf.35.2026.01.29.16.17.10
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 29 Jan 2026 16:17:11 -0800 (PST)
+Received: from jgg by wakko with local (Exim 4.97)
+	(envelope-from <jgg@ziepe.ca>)
+	id 1vlcCE-0000000AQZD-13C4;
+	Thu, 29 Jan 2026 20:17:10 -0400
+Date: Thu, 29 Jan 2026 20:17:10 -0400
+From: Jason Gunthorpe <jgg@ziepe.ca>
+To: Leon Romanovsky <leon@kernel.org>
+Cc: Sumit Semwal <sumit.semwal@linaro.org>,
+	Christian =?utf-8?B?S8O2bmln?= <christian.koenig@amd.com>,
+	Alex Deucher <alexander.deucher@amd.com>,
+	David Airlie <airlied@gmail.com>, Simona Vetter <simona@ffwll.ch>,
+	Gerd Hoffmann <kraxel@redhat.com>,
+	Dmitry Osipenko <dmitry.osipenko@collabora.com>,
+	Gurchetan Singh <gurchetansingh@chromium.org>,
+	Chia-I Wu <olvaffe@gmail.com>,
+	Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
+	Maxime Ripard <mripard@kernel.org>,
+	Thomas Zimmermann <tzimmermann@suse.de>,
+	Lucas De Marchi <lucas.demarchi@intel.com>,
+	Thomas =?utf-8?Q?Hellstr=C3=B6m?= <thomas.hellstrom@linux.intel.com>,
+	Rodrigo Vivi <rodrigo.vivi@intel.com>,
+	Kevin Tian <kevin.tian@intel.com>, Joerg Roedel <joro@8bytes.org>,
+	Will Deacon <will@kernel.org>, Robin Murphy <robin.murphy@arm.com>,
+	Felix Kuehling <Felix.Kuehling@amd.com>,
+	Alex Williamson <alex@shazbot.org>,
+	Ankit Agrawal <ankita@nvidia.com>,
+	Vivek Kasireddy <vivek.kasireddy@intel.com>,
+	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linaro-mm-sig@lists.linaro.org, linux-kernel@vger.kernel.org,
+	amd-gfx@lists.freedesktop.org, virtualization@lists.linux.dev,
+	intel-xe@lists.freedesktop.org, linux-rdma@vger.kernel.org,
+	iommu@lists.linux.dev, kvm@vger.kernel.org
+Subject: Re: [PATCH v5 8/8] iommufd: Add dma_buf_pin()
+Message-ID: <20260130001710.GB2328995@ziepe.ca>
+References: <20260124-dmabuf-revoke-v5-0-f98fca917e96@nvidia.com>
+ <20260124-dmabuf-revoke-v5-8-f98fca917e96@nvidia.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20260124-dmabuf-revoke-v5-8-f98fca917e96@nvidia.com>
 
-On Thu, 29 Jan 2026 10:33:40 +0000 Cosmin Ratiu wrote:
-> > This is quite an ugly hack, is there no way to avoid the flush and
-> > let 
-> > the work discover that what it was supposed to do is no longer
-> > needed?  
+On Sat, Jan 24, 2026 at 09:14:20PM +0200, Leon Romanovsky wrote:
+> From: Leon Romanovsky <leonro@nvidia.com>
 > 
-> Not possible, unfortunately. I stared at it for quite a while. The wq
-> is flushed because the esw is being unconfigured, which removes data
-> structs the work handler uses. Flushing the work is required, otherwise
-> we'll run into worse issues.
+> IOMMUFD relies on a private protocol with VFIO, and this always operated
+> in pinned mode.
+> 
+> Now that VFIO can support pinned importers update IOMMUFD to invoke the
+> normal dma-buf flow to request pin.
+> 
+> This isn't enough to allow IOMMUFD to work with other exporters, it still
+> needs a way to get the physical address list which is another series.
+> 
+> IOMMUFD supports the defined revoke semantics. It immediately stops and
+> fences access to the memory inside it's invalidate_mappings() callback,
+> and it currently doesn't use scatterlists so doesn't call map/unmap at
+> all.
+> 
+> It is expected that a future revision can synchronously call unmap from
+> the move_notify callback as well.
+> 
+> Acked-by: Christian König <christian.koenig@amd.com>
+> Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+> ---
+>  drivers/iommu/iommufd/pages.c | 9 ++++++++-
+>  1 file changed, 8 insertions(+), 1 deletion(-)
 
-And having a refount on (I presume) struct mlx5_esw_functions
-so that work can hold a ref is not an option?
-Are you planning to revisit this in -next?
+Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
+
+Jason
