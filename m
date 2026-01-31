@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8928A33984D;
-	Sat, 31 Jan 2026 05:34:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C30D2339878;
+	Sat, 31 Jan 2026 05:34:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769837676; cv=none; b=hGqxmTGkD6WBLmhlCdm2b5NuTMj2EbdpRseFnavq5fXiqMOvbl69qvAC4AhiFuFGhuwdEYjTvRQWnsPH0HVxQN4Y31Vefr0J7v2cu/FthFl6g2rSdVTISwA+czDn0NLmk9XbNa3shZXWqpfYWTE7rDgD7oPX8iJoI9G21i6GVBw=
+	t=1769837679; cv=none; b=j+NPstpCNue/XJwDm6rTz7MhU/Yy8vXmMkEpv1NLl6OX+42PPz8Fnh2IP8feZmezdhJ+YWgtIrgLayMoBvymtDZEo3CkwpPnOhuRsb/vCJtJ7Y3TmPSmQx5I6/v/8giHjRq/syfc7GRfkwBsA0pW+J0ikGnKhW6JS0vAkzjT188=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769837676; c=relaxed/simple;
-	bh=dRmSLq4/FywGyZeI8PIr9pH6bt5knP9pTzL9IXuhxBY=;
+	s=arc-20240116; t=1769837679; c=relaxed/simple;
+	bh=IK+Fi5z28OyxSW5A5MVG412OaOginCpeb45wYEXqT9M=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=NpKbhagP6rCI8e4QtK5ixXYlRYoY3lYXBIYJeHtviuvA13CjU0MgZsGp9aMXtveUZU4M37azuMcA4WxWnKPhudXehgRu3ytyYKaWqasXcTlhNqrgsJTeUdHDWieBCvGeFtqn9CwMPekLnE7syoK57IGARQYa1qqkfcEvafEtkP0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=iZK6B99q; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version:Content-Type; b=e+CuyswUjPqxXKW72W9JPTZQau7K9C3TwlZZ2uIZ9eaj/zB/E6mCNpDE/P5Q+SDRc/vhp7og9SGOrx14MhVwjYsN78h4KGnaHBfTHAeaBwgPk7COs3Kwrmb10prw8wSX4qBNN9axn5jOgtGd5Z9uGhknhoR5MTyB2zzylxgG6hU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=QOii2hB6; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="iZK6B99q"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6895EC19421;
-	Sat, 31 Jan 2026 05:34:35 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="QOii2hB6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0A744C19421;
+	Sat, 31 Jan 2026 05:34:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1769837676;
-	bh=dRmSLq4/FywGyZeI8PIr9pH6bt5knP9pTzL9IXuhxBY=;
+	s=k20201202; t=1769837679;
+	bh=IK+Fi5z28OyxSW5A5MVG412OaOginCpeb45wYEXqT9M=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=iZK6B99qZJvHWLw0umPO9VsobGzLekxYpu0TbZoz/6curcXTSX6ttcSStjW47tYV5
-	 /5Kao63Q5oEaWH7wtSnivYjzV3C4io+KL2BwKN4Agy0nCBMiV/uV+ApgNiLYhJImEL
-	 JGD2Hlpp77s3SXarZArpWtxtKIsOglEDNauZLwCPntlSTpLPWvOzhCs3V6cik2EDJH
-	 XSAFCaw+ojSLd9aTPv4HXoIEI+zN6t24uvis5pHl4jCrs0jnKsAMfhDahKQIHxp3hP
-	 ksjANR42tMGyytER3WpJLLsQTZ/qQS4iW340TuBFj542Z/E1F4ubk52rbVI/Hnxozd
-	 lYzBa+D3wAyoQ==
+	b=QOii2hB61mzWoTwdIM817T9WhDDxcSWGW/oCljdViMAt5hb/DRxB7fB6mInc5UwTg
+	 pK3mOuw40ZXMiY+i8xCR7EpzXJDhE/KEGwcbRXroQe2KPDdFz4H8LEP+UBWr4f+1cm
+	 Wz7MYCK3sai35ezUirYT7IEn1i5kdC1dzSaSBysM7juDX9+Jxi2AWwlxv1c1TQGv/j
+	 36r5kKrGCKX1OaFtpRVVEXEky+Atd8uD7keEtkStQlYt2yj7gYaMZPkc2oVS9bxEpZ
+	 aJikDYoZBd6YiJdNWHhnxYT1weO4dg0FGvepjLyRYFHtCWblIAaXwjCEj9B5OxsNpa
+	 YKGycvb52Yf5g==
 From: Leon Romanovsky <leon@kernel.org>
 To: Sumit Semwal <sumit.semwal@linaro.org>,
 	=?utf-8?q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>,
@@ -62,9 +62,9 @@ Cc: linux-media@vger.kernel.org,
 	linux-rdma@vger.kernel.org,
 	iommu@lists.linux.dev,
 	kvm@vger.kernel.org
-Subject: [PATCH v7 1/8] dma-buf: Rename .move_notify() callback to a clearer identifier
-Date: Sat, 31 Jan 2026 07:34:11 +0200
-Message-ID: <20260131-dmabuf-revoke-v7-1-463d956bd527@nvidia.com>
+Subject: [PATCH v7 3/8] dma-buf: Always build with DMABUF_MOVE_NOTIFY
+Date: Sat, 31 Jan 2026 07:34:13 +0200
+Message-ID: <20260131-dmabuf-revoke-v7-3-463d956bd527@nvidia.com>
 X-Mailer: git-send-email 2.52.0
 In-Reply-To: <20260131-dmabuf-revoke-v7-0-463d956bd527@nvidia.com>
 References: <20260131-dmabuf-revoke-v7-0-463d956bd527@nvidia.com>
@@ -80,214 +80,133 @@ Content-Transfer-Encoding: 8bit
 
 From: Leon Romanovsky <leonro@nvidia.com>
 
-Rename the .move_notify() callback to .invalidate_mappings() to make its
-purpose explicit and highlight that it is responsible for invalidating
-existing mappings.
+DMABUF_MOVE_NOTIFY was introduced in 2018 and has been marked as
+experimental and disabled by default ever since. Six years later,
+all new importers implement this callback.
+
+It is therefore reasonable to drop CONFIG_DMABUF_MOVE_NOTIFY and
+always build DMABUF with support for it enabled.
 
 Suggested-by: Christian König <christian.koenig@amd.com>
 Reviewed-by: Christian König <christian.koenig@amd.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/dma-buf/dma-buf.c                   | 6 +++---
- drivers/gpu/drm/amd/amdgpu/amdgpu_dma_buf.c | 4 ++--
- drivers/gpu/drm/virtio/virtgpu_prime.c      | 2 +-
- drivers/gpu/drm/xe/tests/xe_dma_buf.c       | 6 +++---
- drivers/gpu/drm/xe/xe_dma_buf.c             | 2 +-
- drivers/infiniband/core/umem_dmabuf.c       | 4 ++--
- drivers/infiniband/hw/mlx5/mr.c             | 2 +-
- drivers/iommu/iommufd/pages.c               | 2 +-
- include/linux/dma-buf.h                     | 6 +++---
- 9 files changed, 17 insertions(+), 17 deletions(-)
+ drivers/dma-buf/Kconfig                     | 12 ------------
+ drivers/dma-buf/dma-buf.c                   |  3 +--
+ drivers/gpu/drm/amd/amdgpu/amdgpu_dma_buf.c | 10 +++-------
+ drivers/gpu/drm/amd/amdkfd/Kconfig          |  2 +-
+ drivers/gpu/drm/xe/tests/xe_dma_buf.c       |  3 +--
+ drivers/gpu/drm/xe/xe_dma_buf.c             | 12 ++++--------
+ 6 files changed, 10 insertions(+), 32 deletions(-)
 
+diff --git a/drivers/dma-buf/Kconfig b/drivers/dma-buf/Kconfig
+index b46eb8a552d7..84d5e9b24e20 100644
+--- a/drivers/dma-buf/Kconfig
++++ b/drivers/dma-buf/Kconfig
+@@ -40,18 +40,6 @@ config UDMABUF
+ 	  A driver to let userspace turn memfd regions into dma-bufs.
+ 	  Qemu can use this to create host dmabufs for guest framebuffers.
+ 
+-config DMABUF_MOVE_NOTIFY
+-	bool "Move notify between drivers (EXPERIMENTAL)"
+-	default n
+-	depends on DMA_SHARED_BUFFER
+-	help
+-	  Don't pin buffers if the dynamic DMA-buf interface is available on
+-	  both the exporter as well as the importer. This fixes a security
+-	  problem where userspace is able to pin unrestricted amounts of memory
+-	  through DMA-buf.
+-	  This is marked experimental because we don't yet have a consistent
+-	  execution context and memory management between drivers.
+-
+ config DMABUF_DEBUG
+ 	bool "DMA-BUF debug checks"
+ 	depends on DMA_SHARED_BUFFER
 diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
-index edaa9e4ee4ae..59cc647bf40e 100644
+index e12db540c413..cd68c1c0bfd7 100644
 --- a/drivers/dma-buf/dma-buf.c
 +++ b/drivers/dma-buf/dma-buf.c
-@@ -948,7 +948,7 @@ dma_buf_dynamic_attach(struct dma_buf *dmabuf, struct device *dev,
- 	if (WARN_ON(!dmabuf || !dev))
- 		return ERR_PTR(-EINVAL);
- 
--	if (WARN_ON(importer_ops && !importer_ops->move_notify))
-+	if (WARN_ON(importer_ops && !importer_ops->invalidate_mappings))
- 		return ERR_PTR(-EINVAL);
- 
- 	attach = kzalloc(sizeof(*attach), GFP_KERNEL);
-@@ -1055,7 +1055,7 @@ EXPORT_SYMBOL_NS_GPL(dma_buf_pin, "DMA_BUF");
-  *
-  * This unpins a buffer pinned by dma_buf_pin() and allows the exporter to move
-  * any mapping of @attach again and inform the importer through
-- * &dma_buf_attach_ops.move_notify.
-+ * &dma_buf_attach_ops.invalidate_mappings.
-  */
- void dma_buf_unpin(struct dma_buf_attachment *attach)
+@@ -847,8 +847,7 @@ static bool
+ dma_buf_pin_on_map(struct dma_buf_attachment *attach)
  {
-@@ -1262,7 +1262,7 @@ void dma_buf_move_notify(struct dma_buf *dmabuf)
- 
- 	list_for_each_entry(attach, &dmabuf->attachments, node)
- 		if (attach->importer_ops)
--			attach->importer_ops->move_notify(attach);
-+			attach->importer_ops->invalidate_mappings(attach);
+ 	return attach->dmabuf->ops->pin &&
+-		(!dma_buf_attachment_is_dynamic(attach) ||
+-		 !IS_ENABLED(CONFIG_DMABUF_MOVE_NOTIFY));
++	       !dma_buf_attachment_is_dynamic(attach);
  }
- EXPORT_SYMBOL_NS_GPL(dma_buf_move_notify, "DMA_BUF");
  
+ /**
 diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_dma_buf.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_dma_buf.c
-index c1461317eb29..cd4944ceb047 100644
+index cd4944ceb047..b7f85b8653cf 100644
 --- a/drivers/gpu/drm/amd/amdgpu/amdgpu_dma_buf.c
 +++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_dma_buf.c
-@@ -438,7 +438,7 @@ amdgpu_dma_buf_create_obj(struct drm_device *dev, struct dma_buf *dma_buf)
- }
+@@ -133,13 +133,9 @@ static int amdgpu_dma_buf_pin(struct dma_buf_attachment *attach)
+ 	 * notifiers are disabled, only allow pinning in VRAM when move
+ 	 * notiers are enabled.
+ 	 */
+-	if (!IS_ENABLED(CONFIG_DMABUF_MOVE_NOTIFY)) {
+-		domains &= ~AMDGPU_GEM_DOMAIN_VRAM;
+-	} else {
+-		list_for_each_entry(attach, &dmabuf->attachments, node)
+-			if (!attach->peer2peer)
+-				domains &= ~AMDGPU_GEM_DOMAIN_VRAM;
+-	}
++	list_for_each_entry(attach, &dmabuf->attachments, node)
++		if (!attach->peer2peer)
++			domains &= ~AMDGPU_GEM_DOMAIN_VRAM;
  
- /**
-- * amdgpu_dma_buf_move_notify - &attach.move_notify implementation
-+ * amdgpu_dma_buf_move_notify - &attach.invalidate_mappings implementation
-  *
-  * @attach: the DMA-buf attachment
-  *
-@@ -509,7 +509,7 @@ amdgpu_dma_buf_move_notify(struct dma_buf_attachment *attach)
+ 	if (domains & AMDGPU_GEM_DOMAIN_VRAM)
+ 		bo->flags |= AMDGPU_GEM_CREATE_CPU_ACCESS_REQUIRED;
+diff --git a/drivers/gpu/drm/amd/amdkfd/Kconfig b/drivers/gpu/drm/amd/amdkfd/Kconfig
+index 16e12c9913f9..a5d7467c2f34 100644
+--- a/drivers/gpu/drm/amd/amdkfd/Kconfig
++++ b/drivers/gpu/drm/amd/amdkfd/Kconfig
+@@ -27,7 +27,7 @@ config HSA_AMD_SVM
  
- static const struct dma_buf_attach_ops amdgpu_dma_buf_attach_ops = {
- 	.allow_peer2peer = true,
--	.move_notify = amdgpu_dma_buf_move_notify
-+	.invalidate_mappings = amdgpu_dma_buf_move_notify
- };
- 
- /**
-diff --git a/drivers/gpu/drm/virtio/virtgpu_prime.c b/drivers/gpu/drm/virtio/virtgpu_prime.c
-index ce49282198cb..19c78dd2ca77 100644
---- a/drivers/gpu/drm/virtio/virtgpu_prime.c
-+++ b/drivers/gpu/drm/virtio/virtgpu_prime.c
-@@ -288,7 +288,7 @@ static void virtgpu_dma_buf_move_notify(struct dma_buf_attachment *attach)
- 
- static const struct dma_buf_attach_ops virtgpu_dma_buf_attach_ops = {
- 	.allow_peer2peer = true,
--	.move_notify = virtgpu_dma_buf_move_notify
-+	.invalidate_mappings = virtgpu_dma_buf_move_notify
- };
- 
- struct drm_gem_object *virtgpu_gem_prime_import(struct drm_device *dev,
+ config HSA_AMD_P2P
+ 	bool "HSA kernel driver support for peer-to-peer for AMD GPU devices"
+-	depends on HSA_AMD && PCI_P2PDMA && DMABUF_MOVE_NOTIFY
++	depends on HSA_AMD && PCI_P2PDMA
+ 	help
+ 	  Enable peer-to-peer (P2P) communication between AMD GPUs over
+ 	  the PCIe bus. This can improve performance of multi-GPU compute
 diff --git a/drivers/gpu/drm/xe/tests/xe_dma_buf.c b/drivers/gpu/drm/xe/tests/xe_dma_buf.c
-index 5df98de5ba3c..1f2cca5c2f81 100644
+index 1f2cca5c2f81..c107687ef3c0 100644
 --- a/drivers/gpu/drm/xe/tests/xe_dma_buf.c
 +++ b/drivers/gpu/drm/xe/tests/xe_dma_buf.c
-@@ -23,7 +23,7 @@ static bool p2p_enabled(struct dma_buf_test_params *params)
+@@ -22,8 +22,7 @@ static bool p2p_enabled(struct dma_buf_test_params *params)
+ 
  static bool is_dynamic(struct dma_buf_test_params *params)
  {
- 	return IS_ENABLED(CONFIG_DMABUF_MOVE_NOTIFY) && params->attach_ops &&
--		params->attach_ops->move_notify;
-+		params->attach_ops->invalidate_mappings;
+-	return IS_ENABLED(CONFIG_DMABUF_MOVE_NOTIFY) && params->attach_ops &&
+-		params->attach_ops->invalidate_mappings;
++	return params->attach_ops && params->attach_ops->invalidate_mappings;
  }
  
  static void check_residency(struct kunit *test, struct xe_bo *exported,
-@@ -60,7 +60,7 @@ static void check_residency(struct kunit *test, struct xe_bo *exported,
- 
- 	/*
- 	 * Evict exporter. Evicting the exported bo will
--	 * evict also the imported bo through the move_notify() functionality if
-+	 * evict also the imported bo through the invalidate_mappings() functionality if
- 	 * importer is on a different device. If they're on the same device,
- 	 * the exporter and the importer should be the same bo.
- 	 */
-@@ -198,7 +198,7 @@ static void xe_test_dmabuf_import_same_driver(struct xe_device *xe)
- 
- static const struct dma_buf_attach_ops nop2p_attach_ops = {
- 	.allow_peer2peer = false,
--	.move_notify = xe_dma_buf_move_notify
-+	.invalidate_mappings = xe_dma_buf_move_notify
- };
- 
- /*
 diff --git a/drivers/gpu/drm/xe/xe_dma_buf.c b/drivers/gpu/drm/xe/xe_dma_buf.c
-index 7c74a31d4486..1b9cd043e517 100644
+index 1b9cd043e517..ea370cd373e9 100644
 --- a/drivers/gpu/drm/xe/xe_dma_buf.c
 +++ b/drivers/gpu/drm/xe/xe_dma_buf.c
-@@ -287,7 +287,7 @@ static void xe_dma_buf_move_notify(struct dma_buf_attachment *attach)
+@@ -56,14 +56,10 @@ static int xe_dma_buf_pin(struct dma_buf_attachment *attach)
+ 	bool allow_vram = true;
+ 	int ret;
  
- static const struct dma_buf_attach_ops xe_dma_buf_attach_ops = {
- 	.allow_peer2peer = true,
--	.move_notify = xe_dma_buf_move_notify
-+	.invalidate_mappings = xe_dma_buf_move_notify
- };
+-	if (!IS_ENABLED(CONFIG_DMABUF_MOVE_NOTIFY)) {
+-		allow_vram = false;
+-	} else {
+-		list_for_each_entry(attach, &dmabuf->attachments, node) {
+-			if (!attach->peer2peer) {
+-				allow_vram = false;
+-				break;
+-			}
++	list_for_each_entry(attach, &dmabuf->attachments, node) {
++		if (!attach->peer2peer) {
++			allow_vram = false;
++			break;
+ 		}
+ 	}
  
- #if IS_ENABLED(CONFIG_DRM_XE_KUNIT_TEST)
-diff --git a/drivers/infiniband/core/umem_dmabuf.c b/drivers/infiniband/core/umem_dmabuf.c
-index 0ec2e4120cc9..d77a739cfe7a 100644
---- a/drivers/infiniband/core/umem_dmabuf.c
-+++ b/drivers/infiniband/core/umem_dmabuf.c
-@@ -129,7 +129,7 @@ ib_umem_dmabuf_get_with_dma_device(struct ib_device *device,
- 	if (check_add_overflow(offset, (unsigned long)size, &end))
- 		return ret;
- 
--	if (unlikely(!ops || !ops->move_notify))
-+	if (unlikely(!ops || !ops->invalidate_mappings))
- 		return ret;
- 
- 	dmabuf = dma_buf_get(fd);
-@@ -195,7 +195,7 @@ ib_umem_dmabuf_unsupported_move_notify(struct dma_buf_attachment *attach)
- 
- static struct dma_buf_attach_ops ib_umem_dmabuf_attach_pinned_ops = {
- 	.allow_peer2peer = true,
--	.move_notify = ib_umem_dmabuf_unsupported_move_notify,
-+	.invalidate_mappings = ib_umem_dmabuf_unsupported_move_notify,
- };
- 
- struct ib_umem_dmabuf *
-diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
-index 325fa04cbe8a..97099d3b1688 100644
---- a/drivers/infiniband/hw/mlx5/mr.c
-+++ b/drivers/infiniband/hw/mlx5/mr.c
-@@ -1620,7 +1620,7 @@ static void mlx5_ib_dmabuf_invalidate_cb(struct dma_buf_attachment *attach)
- 
- static struct dma_buf_attach_ops mlx5_ib_dmabuf_attach_ops = {
- 	.allow_peer2peer = 1,
--	.move_notify = mlx5_ib_dmabuf_invalidate_cb,
-+	.invalidate_mappings = mlx5_ib_dmabuf_invalidate_cb,
- };
- 
- static struct ib_mr *
-diff --git a/drivers/iommu/iommufd/pages.c b/drivers/iommu/iommufd/pages.c
-index dbe51ecb9a20..76f900fa1687 100644
---- a/drivers/iommu/iommufd/pages.c
-+++ b/drivers/iommu/iommufd/pages.c
-@@ -1451,7 +1451,7 @@ static void iopt_revoke_notify(struct dma_buf_attachment *attach)
- 
- static struct dma_buf_attach_ops iopt_dmabuf_attach_revoke_ops = {
- 	.allow_peer2peer = true,
--	.move_notify = iopt_revoke_notify,
-+	.invalidate_mappings = iopt_revoke_notify,
- };
- 
- /*
-diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
-index 0bc492090237..1b397635c793 100644
---- a/include/linux/dma-buf.h
-+++ b/include/linux/dma-buf.h
-@@ -407,7 +407,7 @@ struct dma_buf {
- 	 *   through the device.
- 	 *
- 	 * - Dynamic importers should set fences for any access that they can't
--	 *   disable immediately from their &dma_buf_attach_ops.move_notify
-+	 *   disable immediately from their &dma_buf_attach_ops.invalidate_mappings
- 	 *   callback.
- 	 *
- 	 * IMPORTANT:
-@@ -458,7 +458,7 @@ struct dma_buf_attach_ops {
- 	bool allow_peer2peer;
- 
- 	/**
--	 * @move_notify: [optional] notification that the DMA-buf is moving
-+	 * @invalidate_mappings: [optional] notification that the DMA-buf is moving
- 	 *
- 	 * If this callback is provided the framework can avoid pinning the
- 	 * backing store while mappings exists.
-@@ -475,7 +475,7 @@ struct dma_buf_attach_ops {
- 	 * New mappings can be created after this callback returns, and will
- 	 * point to the new location of the DMA-buf.
- 	 */
--	void (*move_notify)(struct dma_buf_attachment *attach);
-+	void (*invalidate_mappings)(struct dma_buf_attachment *attach);
- };
- 
- /**
 
 -- 
 2.52.0
