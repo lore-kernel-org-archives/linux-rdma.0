@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D25ED19D8A8;
-	Sat, 31 Jan 2026 05:34:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A8F4E33C190;
+	Sat, 31 Jan 2026 05:34:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769837685; cv=none; b=VbFLufa8TMhL6XAfLD68gWBcWWIh/A4lAKCdHS03/ehLuKUfRu4j5GDLOg2RlSxsqrVCdh6IedeZ6EZ6CB/g1W5jligMtkIBFWkm0YqPkV7ubktnVg+YZL15XFibatFjaXKhzhGaDbFtq2XWprgzK6cRyKGbz6IxOMWNLIQyBlo=
+	t=1769837687; cv=none; b=dGXpJwhR92JQ36t3CXvZoRcV8kE2QzI+UXaWLU5XfTmfd1beUiy+FFijHo3y/tqAQ7lrJOzUyMZjDkGz3mZw7ypUVHaSV2wpepmkWgBpPbGmvRCEovVGhpHUf7NrSzHjzdVszfJlr+Rdz3pfIbg7Z3noAMIfYSBoUaL/LhBkteI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769837685; c=relaxed/simple;
-	bh=PjtPaYCwW8GyC9UrsuJNBQBTLvXGRWhqJxW4W7K8RDk=;
+	s=arc-20240116; t=1769837687; c=relaxed/simple;
+	bh=+QM2qm9n4iaFpnhJwfs3GnPxSGtlBrgmoDMGbKtOF5c=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=NzTSagFu02aSbn+fAcyyKq7lfcXjp4ax1ODmBNolsAK9AJngRQoSfFRTOMGrnhn/kDyU2Bc8s2DaCu7mQCJr4Gn0AhuX3afAEDVQTudY9v0UVZDy6KdIskN8mfo1+lw7K3+5lraqgJmvKMikMOc33iiAmzWDlDo0nDGmCRU82wg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=fAHoKYJS; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version:Content-Type; b=gE83QjDtFE83I8OOaj58R6JHOkpsCZ2072QgzdPbr9Zvh0fMkiOP0/KSspDSEnNbraacFxvl4IHadxV5YrkTULXUIMIC4GkBdQ2MFGIfwjCn2UKu4nL3PKRDvVow9YPpOFx2UnPda7bIN/dwmUTehD7aINCen0Kl49XB92GbAOE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=oJ7crLi/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="fAHoKYJS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DEB95C4CEF1;
-	Sat, 31 Jan 2026 05:34:42 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="oJ7crLi/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A18EFC4CEF1;
+	Sat, 31 Jan 2026 05:34:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1769837683;
-	bh=PjtPaYCwW8GyC9UrsuJNBQBTLvXGRWhqJxW4W7K8RDk=;
+	s=k20201202; t=1769837687;
+	bh=+QM2qm9n4iaFpnhJwfs3GnPxSGtlBrgmoDMGbKtOF5c=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=fAHoKYJSQIA5FD5Z4jRtDfIY19kNDGT85pD1iLEg8Oy9RKKLvOKkqDJl6czg0goM2
-	 7Kypx18/dEVqCGXsZvOcnsq1wiiilkdJBxb2zbB3cUxZJDlaMXTvIQoHrOYikE3l84
-	 k0/Eay+eO2OkhTVIc/o/UGC+23sl99rLPLvAI/sjan5Zkpa+Tjbe4lJz+oy0ASme6x
-	 QM6n9G6UAEZugLn9nQLxCmHMyXZ0O+bSc6+Zj2Io+z+5NHREgUTHoduhxRyQuUpKTp
-	 P6EM3Rr+b7LVhd7jfpMYT+SRSi3ba2T+e5X9ym5YXIC5WIwFCdEPt3xprJYf9NEfGM
-	 LQdMwKUr87Opg==
+	b=oJ7crLi/49/43iV1ElNHh/EzzfCpTSGYrxRjRd+3Z7a1yKAsZ7qo7m4sGHb1kVHnP
+	 KaKXNhspK4+cjEKLHplYkOR0QFdsfdEaXpsKW8Q8UbjZSZikkPnpcOETWXBZW1U66W
+	 HeaF3wdLeiURYm/OgJHGmymOWzRLKNyupe3nMdn7B83CV3xWUGK34iBCEWFXkqcs/b
+	 8rdvzJUDpnBhHZQvKA0sQiN+YJhxsfQ01H8p+4dR4ar6HbFMjoeVUlgW2pOxdacoAT
+	 LtIeGp4BTz2zdkSquMRgk4cSGPbXQ/GxQMxLZg8A263/enNjm8OwCAM/bYBmhGEFml
+	 2AAx0OxEkqtSQ==
 From: Leon Romanovsky <leon@kernel.org>
 To: Sumit Semwal <sumit.semwal@linaro.org>,
 	=?utf-8?q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>,
@@ -62,9 +62,9 @@ Cc: linux-media@vger.kernel.org,
 	linux-rdma@vger.kernel.org,
 	iommu@lists.linux.dev,
 	kvm@vger.kernel.org
-Subject: [PATCH v7 4/8] vfio: Wait for dma-buf invalidation to complete
-Date: Sat, 31 Jan 2026 07:34:14 +0200
-Message-ID: <20260131-dmabuf-revoke-v7-4-463d956bd527@nvidia.com>
+Subject: [PATCH v7 2/8] dma-buf: Rename dma_buf_move_notify() to dma_buf_invalidate_mappings()
+Date: Sat, 31 Jan 2026 07:34:12 +0200
+Message-ID: <20260131-dmabuf-revoke-v7-2-463d956bd527@nvidia.com>
 X-Mailer: git-send-email 2.52.0
 In-Reply-To: <20260131-dmabuf-revoke-v7-0-463d956bd527@nvidia.com>
 References: <20260131-dmabuf-revoke-v7-0-463d956bd527@nvidia.com>
@@ -80,140 +80,134 @@ Content-Transfer-Encoding: 8bit
 
 From: Leon Romanovsky <leonro@nvidia.com>
 
-dma-buf invalidation is handled asynchronously by the hardware, so VFIO
-must wait until all affected objects have been fully invalidated.
+Along with renaming the .move_notify() callback, rename the corresponding
+dma-buf core function. This makes the expected behavior clear to exporters
+calling this function.
 
-In addition, the dma-buf exporter is expecting that all importers unmap any
-buffers they previously mapped.
-
-Fixes: 5d74781ebc86 ("vfio/pci: Add dma-buf export support for MMIO regions")
-Reviewed-by: Kevin Tian <kevin.tian@intel.com>
+Reviewed-by: Christian König <christian.koenig@amd.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/vfio/pci/vfio_pci_dmabuf.c | 61 +++++++++++++++++++++++++++++++++++---
- 1 file changed, 57 insertions(+), 4 deletions(-)
+ drivers/dma-buf/dma-buf.c                  | 8 ++++----
+ drivers/gpu/drm/amd/amdgpu/amdgpu_object.c | 2 +-
+ drivers/gpu/drm/xe/xe_bo.c                 | 2 +-
+ drivers/iommu/iommufd/selftest.c           | 2 +-
+ drivers/vfio/pci/vfio_pci_dmabuf.c         | 4 ++--
+ include/linux/dma-buf.h                    | 2 +-
+ 6 files changed, 10 insertions(+), 10 deletions(-)
 
+diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
+index 59cc647bf40e..e12db540c413 100644
+--- a/drivers/dma-buf/dma-buf.c
++++ b/drivers/dma-buf/dma-buf.c
+@@ -912,7 +912,7 @@ dma_buf_pin_on_map(struct dma_buf_attachment *attach)
+  * 3. Exporters must hold the dma-buf reservation lock when calling these
+  *    functions:
+  *
+- *     - dma_buf_move_notify()
++ *     - dma_buf_invalidate_mappings()
+  */
+ 
+ /**
+@@ -1247,14 +1247,14 @@ void dma_buf_unmap_attachment_unlocked(struct dma_buf_attachment *attach,
+ EXPORT_SYMBOL_NS_GPL(dma_buf_unmap_attachment_unlocked, "DMA_BUF");
+ 
+ /**
+- * dma_buf_move_notify - notify attachments that DMA-buf is moving
++ * dma_buf_invalidate_mappings - notify attachments that DMA-buf is moving
+  *
+  * @dmabuf:	[in]	buffer which is moving
+  *
+  * Informs all attachments that they need to destroy and recreate all their
+  * mappings.
+  */
+-void dma_buf_move_notify(struct dma_buf *dmabuf)
++void dma_buf_invalidate_mappings(struct dma_buf *dmabuf)
+ {
+ 	struct dma_buf_attachment *attach;
+ 
+@@ -1264,7 +1264,7 @@ void dma_buf_move_notify(struct dma_buf *dmabuf)
+ 		if (attach->importer_ops)
+ 			attach->importer_ops->invalidate_mappings(attach);
+ }
+-EXPORT_SYMBOL_NS_GPL(dma_buf_move_notify, "DMA_BUF");
++EXPORT_SYMBOL_NS_GPL(dma_buf_invalidate_mappings, "DMA_BUF");
+ 
+ /**
+  * DOC: cpu access
+diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_object.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_object.c
+index e08f58de4b17..f73dc99d1887 100644
+--- a/drivers/gpu/drm/amd/amdgpu/amdgpu_object.c
++++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_object.c
+@@ -1270,7 +1270,7 @@ void amdgpu_bo_move_notify(struct ttm_buffer_object *bo,
+ 
+ 	if (abo->tbo.base.dma_buf && !drm_gem_is_imported(&abo->tbo.base) &&
+ 	    old_mem && old_mem->mem_type != TTM_PL_SYSTEM)
+-		dma_buf_move_notify(abo->tbo.base.dma_buf);
++		dma_buf_invalidate_mappings(abo->tbo.base.dma_buf);
+ 
+ 	/* move_notify is called before move happens */
+ 	trace_amdgpu_bo_move(abo, new_mem ? new_mem->mem_type : -1,
+diff --git a/drivers/gpu/drm/xe/xe_bo.c b/drivers/gpu/drm/xe/xe_bo.c
+index bf4ee976b680..7d02cd9a8501 100644
+--- a/drivers/gpu/drm/xe/xe_bo.c
++++ b/drivers/gpu/drm/xe/xe_bo.c
+@@ -819,7 +819,7 @@ static int xe_bo_move_notify(struct xe_bo *bo,
+ 
+ 	/* Don't call move_notify() for imported dma-bufs. */
+ 	if (ttm_bo->base.dma_buf && !ttm_bo->base.import_attach)
+-		dma_buf_move_notify(ttm_bo->base.dma_buf);
++		dma_buf_invalidate_mappings(ttm_bo->base.dma_buf);
+ 
+ 	/*
+ 	 * TTM has already nuked the mmap for us (see ttm_bo_unmap_virtual),
+diff --git a/drivers/iommu/iommufd/selftest.c b/drivers/iommu/iommufd/selftest.c
+index 550ff36dec3a..f60cbd5328cc 100644
+--- a/drivers/iommu/iommufd/selftest.c
++++ b/drivers/iommu/iommufd/selftest.c
+@@ -2081,7 +2081,7 @@ static int iommufd_test_dmabuf_revoke(struct iommufd_ucmd *ucmd, int fd,
+ 	priv = dmabuf->priv;
+ 	dma_resv_lock(dmabuf->resv, NULL);
+ 	priv->revoked = revoked;
+-	dma_buf_move_notify(dmabuf);
++	dma_buf_invalidate_mappings(dmabuf);
+ 	dma_resv_unlock(dmabuf->resv);
+ 
+ err_put:
 diff --git a/drivers/vfio/pci/vfio_pci_dmabuf.c b/drivers/vfio/pci/vfio_pci_dmabuf.c
-index d8ceafabef48..78d47e260f34 100644
+index 4be4a85005cb..d8ceafabef48 100644
 --- a/drivers/vfio/pci/vfio_pci_dmabuf.c
 +++ b/drivers/vfio/pci/vfio_pci_dmabuf.c
-@@ -17,6 +17,8 @@ struct vfio_pci_dma_buf {
- 	struct dma_buf_phys_vec *phys_vec;
- 	struct p2pdma_provider *provider;
- 	u32 nr_ranges;
-+	struct kref kref;
-+	struct completion comp;
- 	u8 revoked : 1;
- };
- 
-@@ -44,27 +46,46 @@ static int vfio_pci_dma_buf_attach(struct dma_buf *dmabuf,
- 	return 0;
- }
- 
-+static void vfio_pci_dma_buf_done(struct kref *kref)
-+{
-+	struct vfio_pci_dma_buf *priv =
-+		container_of(kref, struct vfio_pci_dma_buf, kref);
-+
-+	complete(&priv->comp);
-+}
-+
- static struct sg_table *
- vfio_pci_dma_buf_map(struct dma_buf_attachment *attachment,
- 		     enum dma_data_direction dir)
- {
- 	struct vfio_pci_dma_buf *priv = attachment->dmabuf->priv;
-+	struct sg_table *ret;
- 
- 	dma_resv_assert_held(priv->dmabuf->resv);
- 
- 	if (priv->revoked)
- 		return ERR_PTR(-ENODEV);
- 
--	return dma_buf_phys_vec_to_sgt(attachment, priv->provider,
--				       priv->phys_vec, priv->nr_ranges,
--				       priv->size, dir);
-+	ret = dma_buf_phys_vec_to_sgt(attachment, priv->provider,
-+				      priv->phys_vec, priv->nr_ranges,
-+				      priv->size, dir);
-+	if (IS_ERR(ret))
-+		return ret;
-+
-+	kref_get(&priv->kref);
-+	return ret;
- }
- 
- static void vfio_pci_dma_buf_unmap(struct dma_buf_attachment *attachment,
- 				   struct sg_table *sgt,
- 				   enum dma_data_direction dir)
- {
-+	struct vfio_pci_dma_buf *priv = attachment->dmabuf->priv;
-+
-+	dma_resv_assert_held(priv->dmabuf->resv);
-+
- 	dma_buf_free_sgt(attachment, sgt, dir);
-+	kref_put(&priv->kref, vfio_pci_dma_buf_done);
- }
- 
- static void vfio_pci_dma_buf_release(struct dma_buf *dmabuf)
-@@ -287,6 +308,9 @@ int vfio_pci_core_feature_dma_buf(struct vfio_pci_core_device *vdev, u32 flags,
- 		goto err_dev_put;
- 	}
- 
-+	kref_init(&priv->kref);
-+	init_completion(&priv->comp);
-+
- 	/* dma_buf_put() now frees priv */
- 	INIT_LIST_HEAD(&priv->dmabufs_elm);
- 	down_write(&vdev->memory_lock);
-@@ -331,9 +355,33 @@ void vfio_pci_dma_buf_move(struct vfio_pci_core_device *vdev, bool revoked)
- 
+@@ -332,7 +332,7 @@ void vfio_pci_dma_buf_move(struct vfio_pci_core_device *vdev, bool revoked)
  		if (priv->revoked != revoked) {
  			dma_resv_lock(priv->dmabuf->resv, NULL);
--			priv->revoked = revoked;
-+			if (revoked)
-+				priv->revoked = true;
- 			dma_buf_invalidate_mappings(priv->dmabuf);
-+			dma_resv_wait_timeout(priv->dmabuf->resv,
-+					      DMA_RESV_USAGE_BOOKKEEP, false,
-+					      MAX_SCHEDULE_TIMEOUT);
+ 			priv->revoked = revoked;
+-			dma_buf_move_notify(priv->dmabuf);
++			dma_buf_invalidate_mappings(priv->dmabuf);
  			dma_resv_unlock(priv->dmabuf->resv);
-+			if (revoked) {
-+				kref_put(&priv->kref, vfio_pci_dma_buf_done);
-+				wait_for_completion(&priv->comp);
-+			} else {
-+				/*
-+				 * Kref is initialize again, because when revoke
-+				 * was performed the reference counter was decreased
-+				 * to zero to trigger completion.
-+				 */
-+				kref_init(&priv->kref);
-+				/*
-+				 * There is no need to wait as no mapping was
-+				 * performed when the previous status was
-+				 * priv->revoked == true.
-+				 */
-+				reinit_completion(&priv->comp);
-+				dma_resv_lock(priv->dmabuf->resv, NULL);
-+				priv->revoked = false;
-+				dma_resv_unlock(priv->dmabuf->resv);
-+			}
  		}
  		fput(priv->dmabuf->file);
- 	}
-@@ -354,7 +402,12 @@ void vfio_pci_dma_buf_cleanup(struct vfio_pci_core_device *vdev)
+@@ -353,7 +353,7 @@ void vfio_pci_dma_buf_cleanup(struct vfio_pci_core_device *vdev)
+ 		list_del_init(&priv->dmabufs_elm);
  		priv->vdev = NULL;
  		priv->revoked = true;
- 		dma_buf_invalidate_mappings(priv->dmabuf);
-+		dma_resv_wait_timeout(priv->dmabuf->resv,
-+				      DMA_RESV_USAGE_BOOKKEEP, false,
-+				      MAX_SCHEDULE_TIMEOUT);
+-		dma_buf_move_notify(priv->dmabuf);
++		dma_buf_invalidate_mappings(priv->dmabuf);
  		dma_resv_unlock(priv->dmabuf->resv);
-+		kref_put(&priv->kref, vfio_pci_dma_buf_done);
-+		wait_for_completion(&priv->comp);
  		vfio_device_put_registration(&vdev->vdev);
  		fput(priv->dmabuf->file);
- 	}
+diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
+index 1b397635c793..d5c3ce2b3aa4 100644
+--- a/include/linux/dma-buf.h
++++ b/include/linux/dma-buf.h
+@@ -600,7 +600,7 @@ struct sg_table *dma_buf_map_attachment(struct dma_buf_attachment *,
+ 					enum dma_data_direction);
+ void dma_buf_unmap_attachment(struct dma_buf_attachment *, struct sg_table *,
+ 				enum dma_data_direction);
+-void dma_buf_move_notify(struct dma_buf *dma_buf);
++void dma_buf_invalidate_mappings(struct dma_buf *dma_buf);
+ int dma_buf_begin_cpu_access(struct dma_buf *dma_buf,
+ 			     enum dma_data_direction dir);
+ int dma_buf_end_cpu_access(struct dma_buf *dma_buf,
 
 -- 
 2.52.0
