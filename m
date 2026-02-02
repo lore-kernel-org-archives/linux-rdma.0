@@ -1,297 +1,247 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from AM0PR83CU005.outbound.protection.outlook.com (mail-westeuropeazon11010024.outbound.protection.outlook.com [52.101.69.24])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0CBCA36923C
-	for <linux-rdma@vger.kernel.org>; Mon,  2 Feb 2026 13:34:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770039241; cv=none; b=Yho0SNgIJ+5z6eis6xeUET1PLFtQy7EL25VwoACK9TWwQPoCrbG3RLysCKl9DRoBBg9ik/t0qJmF1uSWUif/o/Com1Mp2kFaK160tXf7yPuv2MR/HZmVlgyACZUzNH5JEz79YOpc6dcyOXqFthGB7dBwK35uaC9JwbpJKF/wrcE=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770039241; c=relaxed/simple;
-	bh=r6f0RiHGyBgn3409+7hRU5d8awRfVkMGxwnYzcmN+kA=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=dqCmv6dpAHzlc4zYxQtrxLn7NW+ke3/BVt45jd2qlpeT/bdw/d4FJPVLTUQgGsF4YYlsKHGXquj939dnEvwP8vDajSBdbMJh9FnOtiirZbjEHoeh/c0u640petMilSKRqLGpuCLVrk9w1O3L01b8e+/AqAfLSzc4/LUJQymmdcg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ZjgEeAH1; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC5903C0C;
+	Mon,  2 Feb 2026 14:10:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.69.24
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1770041436; cv=fail; b=jlKuoE9h7ey9uIIMqP8Zj8FuZwClgqo+JMXg+CPPs7hYoOG6KMHjrP2KAbMRxsV6xLySsx1r0c2lxDysuXLPIMATqcbn4NK8BC/1F8rgH0hd44Pdd+gAPU/fhSoV016pg/2PsCVFWLBRmub++k7CakSBZBwQ1bBbq063+kDWs3g=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1770041436; c=relaxed/simple;
+	bh=0/pjI7LEPLjoCvOWp7H9JcjXyC8yVewW9SjWbv9z/54=;
+	h=From:To:CC:Subject:Date:Message-ID:References:In-Reply-To:
+	 Content-Type:MIME-Version; b=McYtHdehjSStyGTaSQy8q4eZ/7rTNVRvEXSnVXzXtfkAxmcBs0pOVW9k/JTtc2ZnVQ+cauAhNLL6MCyF+QxovrHoL1LKY0OOfvDgfq8QBXet+7qcGMwP9i8el8dosM/2V0yr7kBZpLGsfbBdQFQHDnfkoWLuJwPwWOk2D4sbT+c=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nokia-bell-labs.com; spf=fail smtp.mailfrom=nokia-bell-labs.com; dkim=pass (2048-bit key) header.d=nokia-bell-labs.com header.i=@nokia-bell-labs.com header.b=lm69v6Hi; arc=fail smtp.client-ip=52.101.69.24
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nokia-bell-labs.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nokia-bell-labs.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ZjgEeAH1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0BE23C116C6;
-	Mon,  2 Feb 2026 13:33:59 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1770039240;
-	bh=r6f0RiHGyBgn3409+7hRU5d8awRfVkMGxwnYzcmN+kA=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=ZjgEeAH1RKSQvtYk7bQ6LaTG4DSTWPynBS8Qznm6lEG9QWx6onEZ0V9OUTB9Jkccf
-	 FBGuiwGSBLBLYzbKL5TSWPjzTZHhTvvaG2vI3PNDoQG5BCDlgJX7kRZmwLruGmjl8f
-	 6fonm6WbHL4XWg9ksShs4ofSAlk+jN+AyPYMIRy+20IYyQ1oYJF/5jEMSG9b3gMFE4
-	 omr/yLqRlcnuSrW575JQppcX7qKSE9OR3Aw4HyTUqKuW2cOpaEfNsBlBeGXgLV1yKQ
-	 xYD6ZOBTwD2U2VdjW4ky9fIK/KRXqslfXHmgNY1RS50y/vY7nHtZFoxe+aehpzxjUj
-	 7RucayN4sXYqA==
-Date: Mon, 2 Feb 2026 15:33:54 +0200
-From: Leon Romanovsky <leon@kernel.org>
-To: Bernard Metzler <bernard.metzler@linux.dev>
-Cc: YunJe Shin <yjshin0438@gmail.com>, jgg@ziepe.ca, joonkyoj@yonsei.ac.kr,
-	linux-rdma@vger.kernel.org, ioerts@kookmin.ac.kr
-Subject: Re: [PATCH] RDMA/siw: Fix potential NULL pointer dereference in
- header processing
-Message-ID: <20260202133354.GL34749@unreal>
-References: <662a7cd7-a1ea-4b9f-8654-c2537e5ef615@linux.dev>
- <20260131111335.4069021-1-ioerts@kookmin.ac.kr>
- <674871c0-1136-47ec-a5eb-907adda487ac@linux.dev>
- <20260202100605.GH34749@unreal>
- <e62a48ce-0cd4-4ff6-a576-d58cba57e132@linux.dev>
+	dkim=pass (2048-bit key) header.d=nokia-bell-labs.com header.i=@nokia-bell-labs.com header.b="lm69v6Hi"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=zJG1byOQpAp/Iv3o4OETOTmxiyHbnGeoyF40QjiXdZaJrfE4JwmnNQXoTiCIMp0G7MMQGZ3I7OuAGUj4X9JjrOoruV8HvqRDcHH98eM164AMTUzo3EP5QKnzHArmmwp/s0z4GmUutvSP5lRGnOPLZb1YqPN5CIQQ+ji4NKslowcd3/f8R2NKtzUwfgOMUjWOxbcnReKVZfKNg9IsVjTiP/DlUqJPzz60SpYH7u1BDrtk3qQe0aGYYYQRfin6bEmKla8ctYxiO0vi/JeERNbDKhP1DxvqTIQ9hn68QSiSFnt4gNHHMQwzAMG9IMOrK862cLyJl35R4H+RUZnBmhKKYA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=dAP2zJ0LnNt/RLKRLAZpoEbj0KC/+3mwh/02pXWGOOw=;
+ b=S27jWXNkA5VK2Sg9Ir9ygsQT3tULqi3Xf8dxSh2sKOZNAtKWUJPyzkKTwOlLWSsLBKA7iDW8IzO+WRfJC/TqSkL6rCSBW6lWIB7QCvTPl/MXS8t7PI/949wI+PVD8rvFT6zhlkvMPeAhN1kndAmePrU+RE0Qr6hEJfEtlzFHDVYV8gyDoFyR1rPehbhy+vEH04kHD6Jf1ru9Ri6LSKUKgNPJe1zH8cieSK+/YbriVtgWCwcjbLyv9Nx4qV89APqJ00UlUtn2u+uA6p+lgMovPUXChi+OFZAr337TJH98/fmb9guHXZxkUM+oa0/f5FmVuYuD1HljwnpJLwX7wGc/lQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nokia-bell-labs.com; dmarc=pass action=none
+ header.from=nokia-bell-labs.com; dkim=pass header.d=nokia-bell-labs.com;
+ arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nokia-bell-labs.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=dAP2zJ0LnNt/RLKRLAZpoEbj0KC/+3mwh/02pXWGOOw=;
+ b=lm69v6HiJUnc/NxzAjBMRmYCfTjqhPmtsfFvU8+V0yFy5/opsZ3Niol5XY7fL/FuZLLmsablVYIw82hC8afhKSGx4k6HqAcpeitjw1esXf9IPqm+w+xKKBAvc4RsUCWzVOSSwS5mp1JRtyBxr95r2P9Bl4V/r+fHvDMCjB3WJ4xOfU8SCg1HqAhKYDiqvQc9Ai1hv3wzZBMdyZwbiLVTY9A583Pso3tplNxKEzHSnzHIcJOo42Gc8jPpXaAiDPd7XQ8VmZAh8MDeD7MFRfo1w4T/0gyyHNRFV6Mc8B7+8LoneOrfUUDmACHI/j9cl0zOaIEO8meWmiyu4HoaNU415w==
+Received: from AM9PR07MB7969.eurprd07.prod.outlook.com (2603:10a6:20b:302::15)
+ by AMDPR07MB11453.eurprd07.prod.outlook.com (2603:10a6:20b:739::5) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9564.16; Mon, 2 Feb
+ 2026 14:10:31 +0000
+Received: from AM9PR07MB7969.eurprd07.prod.outlook.com
+ ([fe80::b676:5e6b:e3e7:4bbd]) by AM9PR07MB7969.eurprd07.prod.outlook.com
+ ([fe80::b676:5e6b:e3e7:4bbd%5]) with mapi id 15.20.9564.007; Mon, 2 Feb 2026
+ 14:10:31 +0000
+From: "Chia-Yu Chang (Nokia)" <chia-yu.chang@nokia-bell-labs.com>
+To: Jakub Kicinski <kuba@kernel.org>
+CC: "tariqt@nvidia.com" <tariqt@nvidia.com>, "linux-rdma@vger.kernel.org"
+	<linux-rdma@vger.kernel.org>, "shaojijie@huawei.com" <shaojijie@huawei.com>,
+	"shenjian15@huawei.com" <shenjian15@huawei.com>, "salil.mehta@huawei.com"
+	<salil.mehta@huawei.com>, "mbloch@nvidia.com" <mbloch@nvidia.com>,
+	"saeedm@nvidia.com" <saeedm@nvidia.com>, "leon@kernel.org" <leon@kernel.org>,
+	"eperezma@redhat.com" <eperezma@redhat.com>, "brett.creeley@amd.com"
+	<brett.creeley@amd.com>, "jasowang@redhat.com" <jasowang@redhat.com>,
+	"virtualization@lists.linux.dev" <virtualization@lists.linux.dev>,
+	"mst@redhat.com" <mst@redhat.com>, "xuanzhuo@linux.alibaba.com"
+	<xuanzhuo@linux.alibaba.com>, "pabeni@redhat.com" <pabeni@redhat.com>,
+	"edumazet@google.com" <edumazet@google.com>, "parav@nvidia.com"
+	<parav@nvidia.com>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>,
+	"corbet@lwn.net" <corbet@lwn.net>, "horms@kernel.org" <horms@kernel.org>,
+	"dsahern@kernel.org" <dsahern@kernel.org>, "kuniyu@google.com"
+	<kuniyu@google.com>, "bpf@vger.kernel.org" <bpf@vger.kernel.org>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>, "dave.taht@gmail.com"
+	<dave.taht@gmail.com>, "jhs@mojatatu.com" <jhs@mojatatu.com>,
+	"stephen@networkplumber.org" <stephen@networkplumber.org>,
+	"xiyou.wangcong@gmail.com" <xiyou.wangcong@gmail.com>, "jiri@resnulli.us"
+	<jiri@resnulli.us>, "davem@davemloft.net" <davem@davemloft.net>,
+	"andrew+netdev@lunn.ch" <andrew+netdev@lunn.ch>, "donald.hunter@gmail.com"
+	<donald.hunter@gmail.com>, "ast@fiberby.net" <ast@fiberby.net>,
+	"liuhangbin@gmail.com" <liuhangbin@gmail.com>, "shuah@kernel.org"
+	<shuah@kernel.org>, "linux-kselftest@vger.kernel.org"
+	<linux-kselftest@vger.kernel.org>, "ij@kernel.org" <ij@kernel.org>,
+	"ncardwell@google.com" <ncardwell@google.com>, "Koen De Schepper (Nokia)"
+	<koen.de_schepper@nokia-bell-labs.com>, "g.white@cablelabs.com"
+	<g.white@cablelabs.com>, "ingemar.s.johansson@ericsson.com"
+	<ingemar.s.johansson@ericsson.com>, "mirja.kuehlewind@ericsson.com"
+	<mirja.kuehlewind@ericsson.com>, "cheshire@apple.com" <cheshire@apple.com>,
+	"rs.ietf@gmx.at" <rs.ietf@gmx.at>, "Jason_Livingood@comcast.com"
+	<Jason_Livingood@comcast.com>, "vidhi_goel@apple.com" <vidhi_goel@apple.com>
+Subject: RE: [PATCH v1 net-next 0/3] ECN offload handling for AccECN series
+Thread-Topic: [PATCH v1 net-next 0/3] ECN offload handling for AccECN series
+Thread-Index: AQHckwSqNJd+cLpfckquPKO4yVYjJrVtAgcAgAJyxvA=
+Date: Mon, 2 Feb 2026 14:10:31 +0000
+Message-ID:
+ <AM9PR07MB79692171B9BB1BC2C2C0B888A39AA@AM9PR07MB7969.eurprd07.prod.outlook.com>
+References: <20260131225510.2946-1-chia-yu.chang@nokia-bell-labs.com>
+ <20260131164516.4a423230@kernel.org>
+In-Reply-To: <20260131164516.4a423230@kernel.org>
+Accept-Language: en-GB, en-US
+Content-Language: en-US
+X-MS-Has-Attach:
+X-MS-TNEF-Correlator:
+authentication-results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nokia-bell-labs.com;
+x-ms-publictraffictype: Email
+x-ms-traffictypediagnostic: AM9PR07MB7969:EE_|AMDPR07MB11453:EE_
+x-ms-office365-filtering-correlation-id: bbc26924-4047-46a2-b2d5-08de6264d339
+x-ms-exchange-senderadcheck: 1
+x-ms-exchange-antispam-relay: 0
+x-microsoft-antispam:
+ BCL:0;ARA:13230040|7416014|376014|1800799024|366016|38070700021;
+x-microsoft-antispam-message-info:
+ =?us-ascii?Q?xBsinDcdjbws4a8HIucfQz7pOSav191l7a9ypBIC3KI9zGV6EantkLHh7nx1?=
+ =?us-ascii?Q?tyAUMnaJ59zY4ycpMYwI7d1HYFjaY/tJguG8QRWEflSUwxV51rUsO/t5PSw2?=
+ =?us-ascii?Q?drah2UFwGeRbUmZk72vDSEgEBP6AKed+CxdLCKdI77FMrWjApygrIrSpjvTj?=
+ =?us-ascii?Q?ePH80lg/U9FM1oqctzVqjvdGjgPSbI20MdvO/fce79makQCHxwr2k7QOcKKo?=
+ =?us-ascii?Q?AL5cwu4+JejGy104HDyHxHU93lS0+qB+UhT4TYJd4YOq66zFhOSB22zl2bB3?=
+ =?us-ascii?Q?1fkoeQHp3/s65S6gRYQDz8/y7Fyvuv1nO8uXFafc7veYsQtAoPCo27d/85IR?=
+ =?us-ascii?Q?yNu0Qyt3o1W6WO/jdLowAGKpSrY05pj0O9nheP04ptA7urDMsY9yPmPYZEJk?=
+ =?us-ascii?Q?vbvZ/xL4OlIzV0aF8TigyV2TwTKi8wDd+EsS1SPRnid1MAWzBvUJuAjS3aCa?=
+ =?us-ascii?Q?lWD8jOK6Jg+oqqGjtukwNg9ur8HeBmPMtbu8Bd11Gl/m7MUow6RqNoUh1awe?=
+ =?us-ascii?Q?DT4HDTJxBD3EyXsAYq2dfGfu7PzleGESn44YeShnC9TTnu0jzbImhiDMkSZ7?=
+ =?us-ascii?Q?2tWl2xePdg0eLZ9JDEFaxQveX8DGwSP3F489la6uebX4zhaaAb0QXBj0Cv8v?=
+ =?us-ascii?Q?I4Auv0uf12+yn2J3hIymgB9KKuz+xZWXMsT4K7BSPllif00xVur0DdpcTk/H?=
+ =?us-ascii?Q?MXlqVUVxuPVdxzoM8ASwm2enPsCL3k0q3w7BdQiWApgG73hS48s3yPrSm+vH?=
+ =?us-ascii?Q?1PrLdRzjz/sJPvJq+foModqIQRqpWKCWvIAO1NQaU9KHKSDxFwNPtEWNjqWI?=
+ =?us-ascii?Q?ktFvMeiBKOFQnHojkfGlm0O6cxj9LDrmyU1/87Az9DzJJPSPqMxMN/cGzbjI?=
+ =?us-ascii?Q?Y9Pc7MiUShDnpKZDe3LMDan/Wdd91wzXtDF4BqQjfOV9+IV6Z7IJqTrUGwzo?=
+ =?us-ascii?Q?ETXrr89z2fVxhANWyuzM496B0k9l0stxqZmRmSdu3+Mfi5IdslPNDKHN5vFJ?=
+ =?us-ascii?Q?0flwntJrxRdXJ2PeigQjc+Py2Lz5rrURZHLzFxcU51BmgseKRX0kQp4Uz7A3?=
+ =?us-ascii?Q?BytV1vItUj46aoaCoCHDk/HBdaSqRppMzbE4Opx3G/ZWjF5P4heI97taMZph?=
+ =?us-ascii?Q?CjWFqJ0p9gQ3oraKcYTUvgP7840xfdOnJv7biGxQjd+8/TArhAabkVSiuOs9?=
+ =?us-ascii?Q?nO9MN3ZmKmX67U3/4nXjs6f78UZLnREN/ghG1OdwemUZj8baFmYe9SnljIt9?=
+ =?us-ascii?Q?sY+xuvX9WIewpnyjNXWj9E2taMZlPkUoiQpCI9XrG64g2FSh3jeVlAKZlPF8?=
+ =?us-ascii?Q?34n+qyjPkr9sEgKeJTGXSOibZ/tlWBcBICq4ZazFwTBm10Zjy2u5ga4sMaGs?=
+ =?us-ascii?Q?IaKOigQYOnePzsqgiWfh3qveXyyK8ae9Yy2MkQYpUbbfdAHxQhMc7CnRS19Z?=
+ =?us-ascii?Q?EQKo7dbnUWefF1k2+YkHR/EdEzpKqDofQ3f/cfIR0bk8cDtZM24MvSFLbdvz?=
+ =?us-ascii?Q?1pGZbP1NexRLLiVT6HeRW99Kr6Aq5PCgqYI9gO8l0FjbXyYGeMw8hBkIOdPV?=
+ =?us-ascii?Q?lN6v84vyX1KwYugWqJjRuBbJ+4QQtqlSnokuzWfn4EbB3w+OLJ8yw0fihoj+?=
+ =?us-ascii?Q?LDMDW0xTR99gSRiRNAi7a8Q=3D?=
+x-forefront-antispam-report:
+ CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:AM9PR07MB7969.eurprd07.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(7416014)(376014)(1800799024)(366016)(38070700021);DIR:OUT;SFP:1101;
+x-ms-exchange-antispam-messagedata-chunkcount: 1
+x-ms-exchange-antispam-messagedata-0:
+ =?us-ascii?Q?32yFSAG2nX1cAT1bUj7i6jWZSdC7Ti8IKN85QrkVSGQUjQtTJnMwN70lmWo0?=
+ =?us-ascii?Q?M+nT2VqLCdDF//o9R/hwyazFH4ZOhVgbkTOz3RFsEtB+KXHmBY9m4YFCbi3p?=
+ =?us-ascii?Q?g2UI0dfKEGk5REq5iuvd1asKLuVW6H8QLrKSbceo/t5qkIMUYNdYu/X/jM0o?=
+ =?us-ascii?Q?EhdzPRnpy2oFEtWQYG9mkrAhCUjmr+pbqbMVcYB7efEfTHD87tsukKdPE3m8?=
+ =?us-ascii?Q?KttiDl2Fc92S4sWyddJW3jR3smPWNsaYVqSa/WXmJH7Zk6ZA53WojytTGqk2?=
+ =?us-ascii?Q?wE2zRWYvWgiVC2hWDnCY8glICFDk7ZJAeAd3qVkYC3zOshPxAN3QvEmYZH4X?=
+ =?us-ascii?Q?2syJfvz0xXQuYt/64KB3Ii/20JMDP/mIVXZeSHVFQGSpMpMloea9Hsll0z+y?=
+ =?us-ascii?Q?zMbVtuz+VrnPTIoHF2rAUTUV0NVwmZOmJFVUEUCXMMPjGiqxXKBP3IHngLpl?=
+ =?us-ascii?Q?qLYMNlPFzCHcxKUtyaWaxqWLLorsCV/5sYkk2A0GxA9JUrmgqyFkZYpm+lcY?=
+ =?us-ascii?Q?JxGxvM+zuZkaqurECtqPiS2jl3IHjjp0XiiTCJKB5E5wLoc+dIWW3X5L3l1k?=
+ =?us-ascii?Q?Nv0thTJiafKAoNjypTiMgHdFwPI+yra93vMowkDWQ20Cts96FyXBygcz8k4f?=
+ =?us-ascii?Q?M79Gt5BPdFRhu+etuiSX0qEQfLdQs/FlMJB1da7NFDBXpQteUZg+yB8gTTpR?=
+ =?us-ascii?Q?8GrEEbpEIj2V7YM8FdpAhAt8PlJhGT3QIiB3MKvmn4cBkQHEGYhH/eMFDF2x?=
+ =?us-ascii?Q?tHXQoeclMWNSF75PBB9t9ALg7dOzFHfGWJ3227QidR8ki6ikLIax3o4QmPP/?=
+ =?us-ascii?Q?MfrzA2qxemmzuayErA5D1xzntDaLBUOAeroGA0M47p+ph4jHHgOniNXKjWbn?=
+ =?us-ascii?Q?yASyIULEeD+RZMEc8jswEfrV+6qXKA4XDkyEwLqwePhBr/Vvdxzg6FoV0VdK?=
+ =?us-ascii?Q?CVu7McSGhNTkZGVTWnFFM24Cs8SZ2jWv6mkS6plq+meP8QcN2Wi7DmVfQDM4?=
+ =?us-ascii?Q?EF3rEviySN0gYuoefa/rewHExfAmOPNWzGSEyZkvonrhwP7fTqacAJMumdvT?=
+ =?us-ascii?Q?lansFOMTsAXTCJxYp76AEK062QKhNmve2mZlc7g74mHkTXkDkjIrCRTXojXd?=
+ =?us-ascii?Q?ZZKmjtIR8jAk3u+yCw8T+FHI4UAyJN1DpbWQbeOTXtZE98k/yu9WLBKqytAJ?=
+ =?us-ascii?Q?LccEERzfw4636DvaZX52wycnZA85GcnSsqWu2qdcW7DgWwGp4Pn6KASH9eIk?=
+ =?us-ascii?Q?1IAYmbJg0vMhAAkVIu/JrUg6dbNLE4rfJUbt5kCbESe8U1E2uqHXA0wywBim?=
+ =?us-ascii?Q?/0AJZCyPUjBI7jxPa3nXFWSWrDb+cnIpDX4wPY51gjW95as4gXNmhe3ficou?=
+ =?us-ascii?Q?+46zCozwcXtqMv9TIIhY0+Tj0mQp04aBwgJAc00SVzYnndG0ZVkeYPXm6HaH?=
+ =?us-ascii?Q?VOlRxk0ZxEc1sz4acZIkcrve55/EvBqNBOsjxFFfNdlWBtzwNAqX+WU4kEZT?=
+ =?us-ascii?Q?mSU6lpE2FLxjXmRRB61nmlGDpgUgFuRKMk7GIVjZccCpyUKzzJQ5FyViB/5B?=
+ =?us-ascii?Q?7PrXfVbijmEvBzOnN6WLqDUNQuQVBPlNEkamgiNoF2e/rCTdipG/Dgs0DKT8?=
+ =?us-ascii?Q?pnjkjvtrk5jT5zgq69C88xdFXm0m1kHHG4XzREMADjKAVrBTymA9+CaocHpe?=
+ =?us-ascii?Q?nydCvdQc5QX/k05sQamH1NiJ4V6PweeQ1TcxKiapYEBM84bc1CSO233nIncU?=
+ =?us-ascii?Q?lweCwI8SJ5dPUYlzFUaXiFbYZUsN2GQ=3D?=
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <e62a48ce-0cd4-4ff6-a576-d58cba57e132@linux.dev>
+X-OriginatorOrg: nokia-bell-labs.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-AuthSource: AM9PR07MB7969.eurprd07.prod.outlook.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: bbc26924-4047-46a2-b2d5-08de6264d339
+X-MS-Exchange-CrossTenant-originalarrivaltime: 02 Feb 2026 14:10:31.2991
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: 5d471751-9675-428d-917b-70f44f9630b0
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: Lz+OGeQ7KOcaPyyeiokoZEbMOVmKmELtJTs2zHUUDLKrXOKU6iw4DaDHDTzS/fpbcbd451//PLSKHeAIUpocFB04J8kLMgCvU1UVl4P6lasGc4qGQUG4hnY6biAafeUk
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: AMDPR07MB11453
 
-On Mon, Feb 02, 2026 at 01:55:14PM +0100, Bernard Metzler wrote:
-> On 02.02.2026 11:06, Leon Romanovsky wrote:
-> > On Sun, Feb 01, 2026 at 06:23:37PM +0100, Bernard Metzler wrote:
-> > > On 31.01.2026 12:13, YunJe Shin wrote:
-> > > > If siw_get_hdr() returns -EINVAL before set_rx_fpdu_context(),
-> > > > qp->rx_fpdu can be NULL. Since the error path in siw_tcp_rx_data()
-> > > > dereferences qp->rx_fpdu->more_ddp_segs without checking, this
-> > > > may lead to a NULL pointer deref. Only check more_ddp_segs when
-> > > > rx_fpdu is present.
-> > > > 
-> > > > 
-> > > > [  101.384271] KASAN: null-ptr-deref in range
-> > > > [0x00000000000000c0-0x00000000000000c7]
-> > > > [  101.385071] CPU: 1 UID: 1000 PID: 265 Comm: exploit_poc Not tainted
-> > > > 6.19.0-rc7-g8dfce8991b95 #1 PREEMPT(voluntary)
-> > > > [  101.385418] Hardware name: QEMU Ubuntu 24.04 PC (i440FX + PIIX,
-> > > > 1996), BIOS 1.16.3-debian-1.16.3-2 04/01/2014
-> > > > [  101.385869] RIP: 0010:siw_tcp_rx_data+0x13ad/0x1e50
-> > > > [  101.386511] Code: 0b 89 34 24 e8 b4 49 1b fe 8b 34 24 48 8b ab f8
-> > > > 03 00 00 b8 ff ff 37 00 48 c1 e0 2a 48 8d bd c5 00 00 8
-> > > > [  101.386979] RSP: 0018:ffff88806d1083a0 EFLAGS: 00000207
-> > > > [  101.387243] RAX: dffffc0000000000 RBX: ffff88800d5ef000 RCX: 0000000000000000
-> > > > [  101.387545] RDX: 0000000000000018 RSI: 00000000ffffffea RDI: 00000000000000c5
-> > > > [  101.387829] RBP: 0000000000000000 R08: 0000000000000001 R09: 0000000000000006
-> > > > [  101.388076] R10: ffff88800d5ef5be R11: 0000000000000001 R12: dffffc0000000000
-> > > > [  101.388316] R13: ffff88800d5ef3f4 R14: 0000000000000010 R15: ffff88800d5ef384
-> > > > [  101.388599] FS:  00000000110e2380(0000) GS:ffff8880e62af000(0000)
-> > > > knlGS:0000000000000000
-> > > > [  101.388819] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-> > > > [  101.389020] CR2: dffffc0000000018 CR3: 00000000092c7000 CR4: 00000000000006f0
-> > > > [  101.389324] Call Trace:
-> > > > [  101.389635]  <IRQ>
-> > > > [  101.389807]  ? lapic_next_event+0x10/0x20
-> > > > [  101.389978]  ? clockevents_program_event+0x1d0/0x280
-> > > > [  101.390121]  ? hrtimer_interrupt+0x319/0x7e0
-> > > > [  101.390269]  __tcp_read_sock+0x1ab/0x810
-> > > > [  101.390412]  ? __pfx_siw_tcp_rx_data+0x10/0x10
-> > > > [  101.390535]  ? __pfx___tcp_read_sock+0x10/0x10
-> > > > [  101.390658]  siw_qp_llp_data_ready+0x185/0x2c0
-> > > > [  101.390759]  ? __pfx_siw_qp_llp_data_ready+0x10/0x10
-> > > > [  101.390871]  ? tcp_event_data_recv+0x36a/0x7b0
-> > > > [  101.390967]  ? tcp_queue_rcv+0x30a/0x620
-> > > > [  101.391062]  tcp_data_queue+0x1ecc/0x4b40
-> > > > [  101.391164]  ? common_startup_64+0x13e/0x148
-> > > > [  101.391265]  ? __pfx_tcp_data_queue+0x10/0x10
-> > > > [  101.391358]  ? tcp_try_undo_loss+0x640/0x710
-> > > > [  101.391459]  ? __pfx_read_tsc+0x10/0x10
-> > > > [  101.391545]  ? ktime_get+0x60/0x140
-> > > > [  101.391669]  ? __pfx_do_sync_core+0x10/0x10
-> > > > [  101.391764]  tcp_rcv_established+0x801/0x35e0
-> > > > [  101.391864]  ? sk_filter_trim_cap+0x4ab/0xb20
-> > > > [  101.391963]  ? __pfx_tcp_inbound_hash+0x10/0x10
-> > > > [  101.392060]  ? __pfx_tcp_rcv_established+0x10/0x10
-> > > > [  101.392167]  ? bpf_skb_net_hdr_push+0x560/0x580
-> > > > [  101.392268]  ? _raw_spin_lock+0x7f/0xd0
-> > > > [  101.392363]  tcp_v4_do_rcv+0x525/0x8a0
-> > > > [  101.392461]  tcp_v4_rcv+0x249d/0x3e50
-> > > > [  101.392558]  ? kernel_text_address+0xa7/0x130
-> > > > [  101.392685]  ? __pfx_tcp_v4_rcv+0x10/0x10
-> > > > [  101.392779]  ? unwind_get_return_address+0x59/0xa0
-> > > > [  101.392897]  ? __pfx_raw_local_deliver+0x10/0x10
-> > > > [  101.393020]  ip_protocol_deliver_rcu+0x61/0x2e0
-> > > > [  101.393122]  ? __pfx_stack_trace_save+0x10/0x10
-> > > > [  101.393233]  ip_local_deliver_finish+0x332/0x4b0
-> > > > [  101.393333]  ? ip_finish_output2+0x71f/0x19a0
-> > > > [  101.393429]  ip_local_deliver+0x18f/0x2d0
-> > > > [  101.393530]  ? __pfx_ip_local_deliver+0x10/0x10
-> > > > [  101.393642]  ? __pfx___netif_receive_skb_core.constprop.0+0x10/0x10
-> > > > [  101.393789]  ? __kasan_mempool_poison_object+0xbb/0x190
-> > > > [  101.393899]  ? napi_skb_cache_put+0x23/0x190
-> > > > [  101.394001]  ? skb_defer_free_flush+0x145/0x1b0
-> > > > [  101.394100]  ? net_rx_action+0x349/0xfb0
-> > > > [  101.394215]  ? __asan_memset+0x23/0x50
-> > > > [  101.394315]  ? __tcp_push_pending_frames+0x8f/0x2f0
-> > > > [  101.394423]  ip_rcv+0x221/0x270
-> > > > [  101.394506]  ? __pfx_ip_rcv+0x10/0x10
-> > > > [  101.394627]  ? __pfx_ip_rcv+0x10/0x10
-> > > > [  101.394735]  __netif_receive_skb_one_core+0x161/0x1b0
-> > > > [  101.394876]  ? __pfx___netif_receive_skb_one_core+0x10/0x10
-> > > > [  101.395029]  ? _raw_spin_lock_irq+0x80/0xe0
-> > > > [  101.395154]  process_backlog+0x1e5/0x5e0
-> > > > [  101.395268]  ? napi_skb_cache_put+0x23/0x190
-> > > > [  101.395423]  __napi_poll+0x9a/0x500
-> > > > [  101.395533]  net_rx_action+0x988/0xfb0
-> > > > [  101.395671]  ? _raw_spin_lock_irq+0x80/0xe0
-> > > > [  101.395797]  ? __pfx_net_rx_action+0x10/0x10
-> > > > [  101.395948]  ? timerqueue_add+0x21b/0x320
-> > > > [  101.396093]  ? __hrtimer_run_queues+0x3de/0x790
-> > > > [  101.396251]  ? __pfx_read_tsc+0x10/0x10
-> > > > [  101.396365]  ? ktime_get+0x60/0x140
-> > > > [  101.396475]  handle_softirqs+0x18c/0x530
-> > > > [  101.396592]  ? __pfx_handle_softirqs+0x10/0x10
-> > > > [  101.396731]  do_softirq+0x3b/0x60
-> > > > [  101.396855]  </IRQ>
-> > > > [  101.396940]  <TASK>
-> > > > [  101.397004]  __local_bh_enable_ip+0x61/0x70
-> > > > [  101.397144]  __dev_queue_xmit+0x618/0x2fe0
-> > > > [  101.397257]  ? __local_bh_enable_ip+0x61/0x70
-> > > > [  101.397380]  ? __pfx___dev_queue_xmit+0x10/0x10
-> > > > [  101.397500]  ? sched_clock+0x10/0x30
-> > > > [  101.397613]  ? __pfx_selinux_ip_postroute_compat+0x10/0x10
-> > > > [  101.397770]  ? _raw_spin_trylock+0xaf/0x120
-> > > > [  101.397883]  ? selinux_ip_postroute+0x3e9/0x9d0
-> > > > [  101.398008]  ip_finish_output2+0x71f/0x19a0
-> > > > [  101.398125]  ? __pfx_ip_finish_output2+0x10/0x10
-> > > > [  101.398251]  ? __pfx_stack_trace_consume_entry+0x10/0x10
-> > > > [  101.398395]  __ip_finish_output.part.0+0x477/0x950
-> > > > [  101.398541]  ? __pfx___ip_finish_output.part.0+0x10/0x10
-> > > > [  101.398691]  ? nf_hook_slow+0xa7/0x1e0
-> > > > [  101.398796]  ip_output+0x260/0x4d0
-> > > > [  101.398903]  ? __pfx_ip_output+0x10/0x10
-> > > > [  101.399015]  ? __pfx_stack_trace_save+0x10/0x10
-> > > > [  101.399132]  ? __pfx_ip_finish_output+0x10/0x10
-> > > > [  101.399236]  ? kasan_save_stack+0x42/0x60
-> > > > [  101.399501]  ? ipv4_dst_check+0x10a/0x160
-> > > > [  101.399665]  __ip_queue_xmit+0xcfb/0x1d60
-> > > > [  101.399813]  ? __tcp_select_window+0xf8/0xed0
-> > > > [  101.399931]  ? __skb_clone+0x550/0x740
-> > > > [  101.400034]  __tcp_transmit_skb+0x29ce/0x3de0
-> > > > [  101.400159]  ? __pfx___tcp_transmit_skb+0x10/0x10
-> > > > [  101.400284]  ? kmem_cache_alloc_node_noprof+0x13b/0x4d0
-> > > > [  101.400423]  ? kasan_save_track+0x14/0x30
-> > > > [  101.400565]  tcp_write_xmit+0x11ba/0x7610
-> > > > [  101.400744]  ? skb_page_frag_refill+0x55/0x430
-> > > > [  101.400872]  __tcp_push_pending_frames+0x8f/0x2f0
-> > > > [  101.400999]  tcp_sendmsg_locked+0x156e/0x3b70
-> > > > [  101.401165]  ? __pfx_tcp_sendmsg_locked+0x10/0x10
-> > > > [  101.401362]  ? __pfx_selinux_socket_sendmsg+0x10/0x10
-> > > > [  101.401528]  ? _raw_spin_lock_bh+0x83/0xe0
-> > > > [  101.401733]  ? ldsem_up_read+0x12/0x40
-> > > > [  101.402061]  tcp_sendmsg+0x26/0x40
-> > > > [  101.402210]  __sys_sendto+0x364/0x430
-> > > > [  101.402346]  ? __pfx___sys_sendto+0x10/0x10
-> > > > [  101.402523]  ? ksys_write+0xf7/0x1c0
-> > > > [  101.402671]  ? __pfx_ksys_write+0x10/0x10
-> > > > [  101.402834]  __x64_sys_sendto+0xdb/0x1b0
-> > > > [  101.402968]  ? fpregs_assert_state_consistent+0x56/0xe0
-> > > > [  101.403107]  do_syscall_64+0xa4/0x320
-> > > > [  101.403254]  entry_SYSCALL_64_after_hwframe+0x77/0x7f
-> > > > [  101.403554] RIP: 0033:0x42440d
-> > > > [  101.403982] Code: 02 48 c7 c0 ff ff ff ff eb b5 0f 1f 00 f3 0f 1e
-> > > > fa 80 3d 5d fc 08 00 00 41 89 ca 74 20 45 31 c9 45 31 9
-> > > > [  101.404392] RSP: 002b:00007ffc69a5f158 EFLAGS: 00000246 ORIG_RAX:
-> > > > 000000000000002c
-> > > > [  101.404659] RAX: ffffffffffffffda RBX: 0000000000000004 RCX: 000000000042440d
-> > > > [  101.404864] RDX: 0000000000000030 RSI: 00007ffc69a5f180 RDI: 0000000000000003
-> > > > [  101.405069] RBP: 00007ffc69a5f200 R08: 0000000000000000 R09: 0000000000000000
-> > > > [  101.405257] R10: 0000000000000000 R11: 0000000000000246 R12: 00007ffc69a5f318
-> > > > [  101.405416] R13: 00007ffc69a5f340 R14: 00000000004ae868 R15: 0000000000000001
-> > > > [  101.405634]  </TASK>
-> > > > [  101.405771] Modules linked in:
-> > > > [  101.406766] ---[ end trace 0000000000000000 ]---
-> > > > [  101.407214] RIP: 0010:siw_tcp_rx_data+0x13ad/0x1e50
-> > > > [  101.407387] Code: 0b 89 34 24 e8 b4 49 1b fe 8b 34 24 48 8b ab f8
-> > > > 03 00 00 b8 ff ff 37 00 48 c1 e0 2a 48 8d bd c5 00 00 8
-> > > > [  101.407946] RSP: 0018:ffff88806d1083a0 EFLAGS: 00000207
-> > > > [  101.408091] RAX: dffffc0000000000 RBX: ffff88800d5ef000 RCX: 0000000000000000
-> > > > [  101.408239] RDX: 0000000000000018 RSI: 00000000ffffffea RDI: 00000000000000c5
-> > > > [  101.408375] RBP: 0000000000000000 R08: 0000000000000001 R09: 0000000000000006
-> > > > [  101.408508] R10: ffff88800d5ef5be R11: 0000000000000001 R12: dffffc0000000000
-> > > > [  101.408741] R13: ffff88800d5ef3f4 R14: 0000000000000010 R15: ffff88800d5ef384
-> > > > [  101.408897] FS:  00000000110e2380(0000) GS:ffff8880e62af000(0000)
-> > > > knlGS:0000000000000000
-> > > > [  101.409051] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-> > > > [  101.409181] CR2: dffffc0000000018 CR3: 00000000092c7000 CR4: 00000000000006f0
-> > > > [  101.409577] Kernel panic - not syncing: Fatal exception in interrupt
-> > > > [  101.410887] Kernel Offset: disabled
-> > > > [  101.411108] Rebooting in 1 seconds..
-> > > > 
-> > > > 
-> > > > 
-> > > > Fixes: 8b6a361b8c48 ("rdma/siw: receive path")
-> > > > Signed-off-by: YunJe Shin <ioerts@kookmin.ac.kr>
-> > > > ---
-> > > >    drivers/infiniband/sw/siw/siw_qp_rx.c | 3 +--
-> > > >    1 file changed, 1 insertion(+), 2 deletions(-)
-> > > > 
-> > > > diff --git a/drivers/infiniband/sw/siw/siw_qp_rx.c b/drivers/infiniband/sw/siw/siw_qp_rx.c
-> > > > index e8a88b378d51..960f740cf46a 100644
-> > > > --- a/drivers/infiniband/sw/siw/siw_qp_rx.c
-> > > > +++ b/drivers/infiniband/sw/siw/siw_qp_rx.c
-> > > > @@ -1434,8 +1434,7 @@ int siw_tcp_rx_data(read_descriptor_t *rd_desc, struct sk_buff *skb,
-> > > >    			run_completion = 0;
-> > > >    		}
-> > > >    		if (unlikely(rv != 0 && rv != -EAGAIN)) {
-> > > > -			if ((srx->state > SIW_GET_HDR ||
-> > > 
-> > > We cannot remove that state > SIW_GET_HDR condition.
-> > > 
-> > > Consider this error case:
-> > > We received a header of say a short SEND comprising only
-> > > one DDP segment, and started data processing, while
-> > > encountering an error (too much data, no write permission
-> > > for the receive buffer, etc.). We have to complete the
-> > > current RECEIVE processing and surface a local completion,
-> > > since we already fetched the RQE from the receive queue.
-> > 
-> > Could you walk me through the code call chain?
-> > Don't we start with SIW_GET_HDR, which should initialize the qp->rx_fpdu
-> > pointer?
-> > 
-> 
-> Yes, we start with SIW_GET_HDR. If we got the complete header,
-> we move on to states for placing data and/or fetching trailer
-> CRC.
-> 
-> If we did not complete the header but encounter an error during
-> its parsing, such as an unsupported RDMA operation, we do not
-> leave SIW_GET_HDR state, but let the outer receive loop handle
-> the error case while in SIW_GET_HDR state. So far so good.
-> 
-> We did not consider the special error case that we are in
-> SIW_GET_HDR, but may have been unable to set the qp->rx_fpdu
-> receive context pointer, since it is a first fragment of a new
-> message and the header is malformed. In that case, we do not
-> assign a receive context and no local completion must be
-> generated.
-> 
-> If, at the other hand, it is the start of an expected consecutive
-> DDP fragment of a _fragmented_ message (checked via
-> 'qp->rx_fpdu->more_ddp_segs'), we (1) already have a receive context
-> (was set during parsing the first correct DDP segment), and (2) we
-> shall complete that incomplete RDMA operation in error, since we
-> already started it when parsing the previous message fragment(s).
-> 
-> Yes that is all rather complicated ...
+> -----Original Message-----
+> From: Jakub Kicinski <kuba@kernel.org>
+> Sent: Sunday, February 1, 2026 1:45 AM
+> To: Chia-Yu Chang (Nokia) <chia-yu.chang@nokia-bell-labs.com>
+> Cc: tariqt@nvidia.com; linux-rdma@vger.kernel.org; shaojijie@huawei.com; =
+shenjian15@huawei.com; salil.mehta@huawei.com; mbloch@nvidia.com; saeedm@nv=
+idia.com; leon@kernel.org; eperezma@redhat.com; brett.creeley@amd.com; jaso=
+wang@redhat.com; virtualization@lists.linux.dev; mst@redhat.com; xuanzhuo@l=
+inux.alibaba.com; pabeni@redhat.com; edumazet@google.com; parav@nvidia.com;=
+ linux-doc@vger.kernel.org; corbet@lwn.net; horms@kernel.org; dsahern@kerne=
+l.org; kuniyu@google.com; bpf@vger.kernel.org; netdev@vger.kernel.org; dave=
+.taht@gmail.com; jhs@mojatatu.com; stephen@networkplumber.org; xiyou.wangco=
+ng@gmail.com; jiri@resnulli.us; davem@davemloft.net; andrew+netdev@lunn.ch;=
+ donald.hunter@gmail.com; ast@fiberby.net; liuhangbin@gmail.com; shuah@kern=
+el.org; linux-kselftest@vger.kernel.org; ij@kernel.org; ncardwell@google.co=
+m; Koen De Schepper (Nokia) <koen.de_schepper@nokia-bell-labs.com>; g.white=
+@cablelabs.com; ingemar.s.johansson@ericsson.com; mirja.kuehlewind@ericsson=
+.com; cheshire@apple.com; rs.ietf@gmx.at; Jason_Livingood@comcast.com; vidh=
+i_goel@apple.com
+> Subject: Re: [PATCH v1 net-next 0/3] ECN offload handling for AccECN seri=
+es
+>
+>
+> CAUTION: This is an external email. Please be very careful when clicking =
+links or opening attachments. See the URL nok.it/ext for additional informa=
+tion.
+>
+>
+>
+> On Sat, 31 Jan 2026 23:55:07 +0100 chia-yu.chang@nokia-bell-labs.com
+> wrote:
+> > ---
+> > v2:
+> > - Replace VIRTIO_NET_HDR_GSO_ECN with VIRTIO_NET_HDR_GSO_ECN_FLAGS
+>
+> For the future:
+>
+> Quoting documentation:
+>
+>   Limit patches outstanding on mailing list
+>   -----------------------------------------
+>
+>   Avoid having more than 15 patches, across all series, outstanding for
+>   review on the mailing list for a single tree. In other words, a maximum=
+ of
+>   15 patches under review on net, and a maximum of 15 patches under revie=
+w on
+>   net-next.
+>
+>   This limit is intended to focus developer effort on testing patches bef=
+ore
+>   upstream review. Aiding the quality of upstream submissions, and easing=
+ the
+>   load on reviewers.
+>
+> See: https://www.kernel.org/doc/html/next/process/maintainer-netdev.html#=
+limit-patches-outstanding-on-mailing-list
 
-Thanks, so let's leave srx->state > SIW_GET_HDR check intact.
+Hi Jakub,
 
-> 
-> Thanks,
-> Bernard.
-> 
-> 
-> 
-> 
-> > Thanks
-> > 
-> > > 
-> > > > -			     (qp->rx_fpdu && qp->rx_fpdu->more_ddp_segs)) &&
-> > > > +			if (qp->rx_fpdu && qp->rx_fpdu->more_ddp_segs &&
-> > > >    			    run_completion)
-> > > >    				siw_rdmap_complete(qp, rv);
-> > > 
-> 
-> 
+Sorry for my miss, I was thinking to submit up to 15 patches per series, wi=
+thout considering the overall limit on net-next.
+Will be careful next time. Thanks.
+
+Chia-Yu
