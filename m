@@ -1,141 +1,297 @@
-Received: from mail-qv1-f100.google.com (mail-qv1-f100.google.com [209.85.219.100])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3561B369964
-	for <linux-rdma@vger.kernel.org>; Mon,  2 Feb 2026 13:32:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.100
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0CBCA36923C
+	for <linux-rdma@vger.kernel.org>; Mon,  2 Feb 2026 13:34:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770039133; cv=none; b=XQOzxUAY2NLP54kDMs9eZrIhWBJHzYwvqiF/us6J3AaAaUc4JHnLxgiAzfCS2dBWijHiskeTo4VGkHwgQowXk+dyXwY7uz2um9EUzRKWV9K6Pgc0vG1bTbpmTlxI9WraZw+iK8fX0h5pfGWknmGPoN0tNv0bSLlDs2VYwIZLd2Q=
+	t=1770039241; cv=none; b=Yho0SNgIJ+5z6eis6xeUET1PLFtQy7EL25VwoACK9TWwQPoCrbG3RLysCKl9DRoBBg9ik/t0qJmF1uSWUif/o/Com1Mp2kFaK160tXf7yPuv2MR/HZmVlgyACZUzNH5JEz79YOpc6dcyOXqFthGB7dBwK35uaC9JwbpJKF/wrcE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770039133; c=relaxed/simple;
-	bh=ov8clyLfqxNEBvWRpGujN20ZfaTjVz3FzH/hPrH5x0c=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=Z3CAu/ctFvg2MPaokT8LhsUx+NiIuCQm8oBEyK4twOO1kF1FC5UNYqQu5fN8W3y8jVwnQkMCo+TALxFlXN1GFuBXeCGVCEDdKzmfB3RFMXRJrFghquGWkPW4KXfzMIzSmx3IBLBh3NVWhT15e3lPfZXqWU58mS9FkQU/hkVpELk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com; spf=fail smtp.mailfrom=broadcom.com; dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b=Eh3SHtSN; arc=none smtp.client-ip=209.85.219.100
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=broadcom.com
+	s=arc-20240116; t=1770039241; c=relaxed/simple;
+	bh=r6f0RiHGyBgn3409+7hRU5d8awRfVkMGxwnYzcmN+kA=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=dqCmv6dpAHzlc4zYxQtrxLn7NW+ke3/BVt45jd2qlpeT/bdw/d4FJPVLTUQgGsF4YYlsKHGXquj939dnEvwP8vDajSBdbMJh9FnOtiirZbjEHoeh/c0u640petMilSKRqLGpuCLVrk9w1O3L01b8e+/AqAfLSzc4/LUJQymmdcg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ZjgEeAH1; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b="Eh3SHtSN"
-Received: by mail-qv1-f100.google.com with SMTP id 6a1803df08f44-88fcc71dbf4so32857576d6.2
-        for <linux-rdma@vger.kernel.org>; Mon, 02 Feb 2026 05:32:11 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1770039131; x=1770643931;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:dkim-signature:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=5wKTjqNGqwbPWUWBwX0EYSUZ4Cl88mKrjf+1xnIB43M=;
-        b=ivgAZwr+JMmu5+EXTkVNJJipMXnvFbj5falJPknriuVjtbJy60zQmNpzTPmyP6E/Xy
-         JHKyM9elUZ/gwj+G/7dcj6b1h8DsOBbSmeh3h3K6JA5NMllyfxqv7VEWZvN+xu9/g6wN
-         uOGpMxbHbkyPs8nvqBsF3rgHbS1loqjisgPmvG04L96sVV2W7rXk8kZ14LPPMg9TILEK
-         Zq/DwspEIVdhee/lTmiV5wxp3R8Cn+G1oc9+xWfuPzOZPPpqbFW+xB4ZbEg7f4d53Qa2
-         dhe4SArpY1ootlrZZfmlHiKuDUEGDK+aRqvE2iXecGNLtGS1MzA8RZnV6pOHlh4OiTkp
-         tssg==
-X-Gm-Message-State: AOJu0YyQy9GMKJ+utU/sPO0g5F7FkVk5N6LHVK32eVTA0Kgh3U1YFDne
-	k119yIUdoNDtkvok9Fe03wc9zJeDLmi95yYFN0YVryaBvdjVcExPprTh0/319Vm85W+bFMs+xk8
-	0ZZc9jAxyuj76vk+cr8WLLjSTTDGVAh/lPNqRgarl+UHL0K+WeEh1RTDq9mIWnryGc6/VzA7xR5
-	y2Czpj8WVwRSgF71yLVhVKaPSdbnrUA4Be1wQYrFnMKyVveB78/eBwla+frGGshr1eB6l16Zx68
-	Pwlva549qTqfbM5z6E2rwVjbikByQ==
-X-Gm-Gg: AZuq6aLqbdt8KLSKK1zwga8Y590HNLwNphHEiRBrMRjonfPk3BbHndLalTDUIgR1xGJ
-	7+Yyv4dgovpcc3urmlX30X2OUwYDn9zFAXnadJs75INrP/EH4dI1KYEyJAB4CI6r9ApQgJ4IPSB
-	FKzUFbezcpwaJG+LDCKS3d8Eieckx39ovqAEb2TGSbFKJDfdWefqLhLvqNy8F6+jQewhuZr6UAE
-	Uzmu17Cf7raOzuStjSql2qUqIEYPDRAM+c3DdYnQWAK7qF8TXg9hDeYSthSO+Xun+Y7Fc/u0P/7
-	2/lm0IT1MZfoTfrnRDDH6xKMUNDkHtgrduc7kz9aBpxIYpFgZ4g9QM6XlshMg5eYwYojMafUzha
-	DPKdaBYZn7+nLm0nGFCyVK8yGI4myAIg3j2PS0EH58fKP6b5RW2f6XZ7XfySmNDij+C7rZIOmju
-	6uDZpQq4TPUI3HRDvd5Ozk9DuI5t6T1xooMDEqhmXWqcqCWIEZJEe4Aprgpe1Z
-X-Received: by 2002:a05:6214:4009:b0:894:3cb7:28a6 with SMTP id 6a1803df08f44-894e9f83d00mr158700696d6.16.1770039130867;
-        Mon, 02 Feb 2026 05:32:10 -0800 (PST)
-Received: from smtp-us-east1-p01-i01-si01.dlp.protect.broadcom.com (address-144-49-247-100.dlp.protect.broadcom.com. [144.49.247.100])
-        by smtp-relay.gmail.com with ESMTPS id 6a1803df08f44-894d36c2f01sm23097886d6.13.2026.02.02.05.32.10
-        for <linux-rdma@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 02 Feb 2026 05:32:10 -0800 (PST)
-X-Relaying-Domain: broadcom.com
-X-CFilter-Loop: Reflected
-Received: by mail-pj1-f72.google.com with SMTP id 98e67ed59e1d1-34ab8693a2cso10465036a91.0
-        for <linux-rdma@vger.kernel.org>; Mon, 02 Feb 2026 05:32:10 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=broadcom.com; s=google; t=1770039129; x=1770643929; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=5wKTjqNGqwbPWUWBwX0EYSUZ4Cl88mKrjf+1xnIB43M=;
-        b=Eh3SHtSN2B2QLjea6RsWeYZ7dUZZM02NqzOMdV52R6tkU4H8dEuL29y96Hw11m46nj
-         xCw1NO8qNTW3nAWtXRIp/YKH/fnWKRjsjam7dMYNEiVl+nvuLJnEmArpIcvPIoPV/4cO
-         aEgVh7PYUCEA2CX2fmYvAZFUQNIWaLqRPsbqo=
-X-Received: by 2002:a17:90b:4a89:b0:34c:9cf7:60a0 with SMTP id 98e67ed59e1d1-3543b2e00d8mr10681349a91.5.1770039129653;
-        Mon, 02 Feb 2026 05:32:09 -0800 (PST)
-X-Received: by 2002:a17:90b:4a89:b0:34c:9cf7:60a0 with SMTP id 98e67ed59e1d1-3543b2e00d8mr10681336a91.5.1770039129261;
-        Mon, 02 Feb 2026 05:32:09 -0800 (PST)
-Received: from dhcp-10-123-157-228.dhcp.broadcom.net ([192.19.234.250])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-353f61e0007sm18859382a91.12.2026.02.02.05.32.06
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 02 Feb 2026 05:32:08 -0800 (PST)
-From: Kalesh AP <kalesh-anakkur.purayil@broadcom.com>
-To: leon@kernel.org,
-	jgg@ziepe.ca
-Cc: linux-rdma@vger.kernel.org,
-	andrew.gospodarek@broadcom.com,
-	selvin.xavier@broadcom.com,
-	Kalesh AP <kalesh-anakkur.purayil@broadcom.com>,
-	Damodharam Ammepalli <damodharam.ammepalli@broadcom.com>
-Subject: [PATCH rdma-rext V4 5/5] IB/core: Extend rate limit support for RC QPs
-Date: Mon,  2 Feb 2026 19:04:13 +0530
-Message-ID: <20260202133413.3182578-6-kalesh-anakkur.purayil@broadcom.com>
-X-Mailer: git-send-email 2.43.5
-In-Reply-To: <20260202133413.3182578-1-kalesh-anakkur.purayil@broadcom.com>
-References: <20260202133413.3182578-1-kalesh-anakkur.purayil@broadcom.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ZjgEeAH1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0BE23C116C6;
+	Mon,  2 Feb 2026 13:33:59 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1770039240;
+	bh=r6f0RiHGyBgn3409+7hRU5d8awRfVkMGxwnYzcmN+kA=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=ZjgEeAH1RKSQvtYk7bQ6LaTG4DSTWPynBS8Qznm6lEG9QWx6onEZ0V9OUTB9Jkccf
+	 FBGuiwGSBLBLYzbKL5TSWPjzTZHhTvvaG2vI3PNDoQG5BCDlgJX7kRZmwLruGmjl8f
+	 6fonm6WbHL4XWg9ksShs4ofSAlk+jN+AyPYMIRy+20IYyQ1oYJF/5jEMSG9b3gMFE4
+	 omr/yLqRlcnuSrW575JQppcX7qKSE9OR3Aw4HyTUqKuW2cOpaEfNsBlBeGXgLV1yKQ
+	 xYD6ZOBTwD2U2VdjW4ky9fIK/KRXqslfXHmgNY1RS50y/vY7nHtZFoxe+aehpzxjUj
+	 7RucayN4sXYqA==
+Date: Mon, 2 Feb 2026 15:33:54 +0200
+From: Leon Romanovsky <leon@kernel.org>
+To: Bernard Metzler <bernard.metzler@linux.dev>
+Cc: YunJe Shin <yjshin0438@gmail.com>, jgg@ziepe.ca, joonkyoj@yonsei.ac.kr,
+	linux-rdma@vger.kernel.org, ioerts@kookmin.ac.kr
+Subject: Re: [PATCH] RDMA/siw: Fix potential NULL pointer dereference in
+ header processing
+Message-ID: <20260202133354.GL34749@unreal>
+References: <662a7cd7-a1ea-4b9f-8654-c2537e5ef615@linux.dev>
+ <20260131111335.4069021-1-ioerts@kookmin.ac.kr>
+ <674871c0-1136-47ec-a5eb-907adda487ac@linux.dev>
+ <20260202100605.GH34749@unreal>
+ <e62a48ce-0cd4-4ff6-a576-d58cba57e132@linux.dev>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-DetectorID-Processed: b00c1d49-9d2e-4205-b15f-d015386d3d5e
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <e62a48ce-0cd4-4ff6-a576-d58cba57e132@linux.dev>
 
-Broadcom devices supports setting the rate limit while changing
-RC QP state from INIT to RTR, RTR to RTS and RTS to RTS.
+On Mon, Feb 02, 2026 at 01:55:14PM +0100, Bernard Metzler wrote:
+> On 02.02.2026 11:06, Leon Romanovsky wrote:
+> > On Sun, Feb 01, 2026 at 06:23:37PM +0100, Bernard Metzler wrote:
+> > > On 31.01.2026 12:13, YunJe Shin wrote:
+> > > > If siw_get_hdr() returns -EINVAL before set_rx_fpdu_context(),
+> > > > qp->rx_fpdu can be NULL. Since the error path in siw_tcp_rx_data()
+> > > > dereferences qp->rx_fpdu->more_ddp_segs without checking, this
+> > > > may lead to a NULL pointer deref. Only check more_ddp_segs when
+> > > > rx_fpdu is present.
+> > > > 
+> > > > 
+> > > > [  101.384271] KASAN: null-ptr-deref in range
+> > > > [0x00000000000000c0-0x00000000000000c7]
+> > > > [  101.385071] CPU: 1 UID: 1000 PID: 265 Comm: exploit_poc Not tainted
+> > > > 6.19.0-rc7-g8dfce8991b95 #1 PREEMPT(voluntary)
+> > > > [  101.385418] Hardware name: QEMU Ubuntu 24.04 PC (i440FX + PIIX,
+> > > > 1996), BIOS 1.16.3-debian-1.16.3-2 04/01/2014
+> > > > [  101.385869] RIP: 0010:siw_tcp_rx_data+0x13ad/0x1e50
+> > > > [  101.386511] Code: 0b 89 34 24 e8 b4 49 1b fe 8b 34 24 48 8b ab f8
+> > > > 03 00 00 b8 ff ff 37 00 48 c1 e0 2a 48 8d bd c5 00 00 8
+> > > > [  101.386979] RSP: 0018:ffff88806d1083a0 EFLAGS: 00000207
+> > > > [  101.387243] RAX: dffffc0000000000 RBX: ffff88800d5ef000 RCX: 0000000000000000
+> > > > [  101.387545] RDX: 0000000000000018 RSI: 00000000ffffffea RDI: 00000000000000c5
+> > > > [  101.387829] RBP: 0000000000000000 R08: 0000000000000001 R09: 0000000000000006
+> > > > [  101.388076] R10: ffff88800d5ef5be R11: 0000000000000001 R12: dffffc0000000000
+> > > > [  101.388316] R13: ffff88800d5ef3f4 R14: 0000000000000010 R15: ffff88800d5ef384
+> > > > [  101.388599] FS:  00000000110e2380(0000) GS:ffff8880e62af000(0000)
+> > > > knlGS:0000000000000000
+> > > > [  101.388819] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> > > > [  101.389020] CR2: dffffc0000000018 CR3: 00000000092c7000 CR4: 00000000000006f0
+> > > > [  101.389324] Call Trace:
+> > > > [  101.389635]  <IRQ>
+> > > > [  101.389807]  ? lapic_next_event+0x10/0x20
+> > > > [  101.389978]  ? clockevents_program_event+0x1d0/0x280
+> > > > [  101.390121]  ? hrtimer_interrupt+0x319/0x7e0
+> > > > [  101.390269]  __tcp_read_sock+0x1ab/0x810
+> > > > [  101.390412]  ? __pfx_siw_tcp_rx_data+0x10/0x10
+> > > > [  101.390535]  ? __pfx___tcp_read_sock+0x10/0x10
+> > > > [  101.390658]  siw_qp_llp_data_ready+0x185/0x2c0
+> > > > [  101.390759]  ? __pfx_siw_qp_llp_data_ready+0x10/0x10
+> > > > [  101.390871]  ? tcp_event_data_recv+0x36a/0x7b0
+> > > > [  101.390967]  ? tcp_queue_rcv+0x30a/0x620
+> > > > [  101.391062]  tcp_data_queue+0x1ecc/0x4b40
+> > > > [  101.391164]  ? common_startup_64+0x13e/0x148
+> > > > [  101.391265]  ? __pfx_tcp_data_queue+0x10/0x10
+> > > > [  101.391358]  ? tcp_try_undo_loss+0x640/0x710
+> > > > [  101.391459]  ? __pfx_read_tsc+0x10/0x10
+> > > > [  101.391545]  ? ktime_get+0x60/0x140
+> > > > [  101.391669]  ? __pfx_do_sync_core+0x10/0x10
+> > > > [  101.391764]  tcp_rcv_established+0x801/0x35e0
+> > > > [  101.391864]  ? sk_filter_trim_cap+0x4ab/0xb20
+> > > > [  101.391963]  ? __pfx_tcp_inbound_hash+0x10/0x10
+> > > > [  101.392060]  ? __pfx_tcp_rcv_established+0x10/0x10
+> > > > [  101.392167]  ? bpf_skb_net_hdr_push+0x560/0x580
+> > > > [  101.392268]  ? _raw_spin_lock+0x7f/0xd0
+> > > > [  101.392363]  tcp_v4_do_rcv+0x525/0x8a0
+> > > > [  101.392461]  tcp_v4_rcv+0x249d/0x3e50
+> > > > [  101.392558]  ? kernel_text_address+0xa7/0x130
+> > > > [  101.392685]  ? __pfx_tcp_v4_rcv+0x10/0x10
+> > > > [  101.392779]  ? unwind_get_return_address+0x59/0xa0
+> > > > [  101.392897]  ? __pfx_raw_local_deliver+0x10/0x10
+> > > > [  101.393020]  ip_protocol_deliver_rcu+0x61/0x2e0
+> > > > [  101.393122]  ? __pfx_stack_trace_save+0x10/0x10
+> > > > [  101.393233]  ip_local_deliver_finish+0x332/0x4b0
+> > > > [  101.393333]  ? ip_finish_output2+0x71f/0x19a0
+> > > > [  101.393429]  ip_local_deliver+0x18f/0x2d0
+> > > > [  101.393530]  ? __pfx_ip_local_deliver+0x10/0x10
+> > > > [  101.393642]  ? __pfx___netif_receive_skb_core.constprop.0+0x10/0x10
+> > > > [  101.393789]  ? __kasan_mempool_poison_object+0xbb/0x190
+> > > > [  101.393899]  ? napi_skb_cache_put+0x23/0x190
+> > > > [  101.394001]  ? skb_defer_free_flush+0x145/0x1b0
+> > > > [  101.394100]  ? net_rx_action+0x349/0xfb0
+> > > > [  101.394215]  ? __asan_memset+0x23/0x50
+> > > > [  101.394315]  ? __tcp_push_pending_frames+0x8f/0x2f0
+> > > > [  101.394423]  ip_rcv+0x221/0x270
+> > > > [  101.394506]  ? __pfx_ip_rcv+0x10/0x10
+> > > > [  101.394627]  ? __pfx_ip_rcv+0x10/0x10
+> > > > [  101.394735]  __netif_receive_skb_one_core+0x161/0x1b0
+> > > > [  101.394876]  ? __pfx___netif_receive_skb_one_core+0x10/0x10
+> > > > [  101.395029]  ? _raw_spin_lock_irq+0x80/0xe0
+> > > > [  101.395154]  process_backlog+0x1e5/0x5e0
+> > > > [  101.395268]  ? napi_skb_cache_put+0x23/0x190
+> > > > [  101.395423]  __napi_poll+0x9a/0x500
+> > > > [  101.395533]  net_rx_action+0x988/0xfb0
+> > > > [  101.395671]  ? _raw_spin_lock_irq+0x80/0xe0
+> > > > [  101.395797]  ? __pfx_net_rx_action+0x10/0x10
+> > > > [  101.395948]  ? timerqueue_add+0x21b/0x320
+> > > > [  101.396093]  ? __hrtimer_run_queues+0x3de/0x790
+> > > > [  101.396251]  ? __pfx_read_tsc+0x10/0x10
+> > > > [  101.396365]  ? ktime_get+0x60/0x140
+> > > > [  101.396475]  handle_softirqs+0x18c/0x530
+> > > > [  101.396592]  ? __pfx_handle_softirqs+0x10/0x10
+> > > > [  101.396731]  do_softirq+0x3b/0x60
+> > > > [  101.396855]  </IRQ>
+> > > > [  101.396940]  <TASK>
+> > > > [  101.397004]  __local_bh_enable_ip+0x61/0x70
+> > > > [  101.397144]  __dev_queue_xmit+0x618/0x2fe0
+> > > > [  101.397257]  ? __local_bh_enable_ip+0x61/0x70
+> > > > [  101.397380]  ? __pfx___dev_queue_xmit+0x10/0x10
+> > > > [  101.397500]  ? sched_clock+0x10/0x30
+> > > > [  101.397613]  ? __pfx_selinux_ip_postroute_compat+0x10/0x10
+> > > > [  101.397770]  ? _raw_spin_trylock+0xaf/0x120
+> > > > [  101.397883]  ? selinux_ip_postroute+0x3e9/0x9d0
+> > > > [  101.398008]  ip_finish_output2+0x71f/0x19a0
+> > > > [  101.398125]  ? __pfx_ip_finish_output2+0x10/0x10
+> > > > [  101.398251]  ? __pfx_stack_trace_consume_entry+0x10/0x10
+> > > > [  101.398395]  __ip_finish_output.part.0+0x477/0x950
+> > > > [  101.398541]  ? __pfx___ip_finish_output.part.0+0x10/0x10
+> > > > [  101.398691]  ? nf_hook_slow+0xa7/0x1e0
+> > > > [  101.398796]  ip_output+0x260/0x4d0
+> > > > [  101.398903]  ? __pfx_ip_output+0x10/0x10
+> > > > [  101.399015]  ? __pfx_stack_trace_save+0x10/0x10
+> > > > [  101.399132]  ? __pfx_ip_finish_output+0x10/0x10
+> > > > [  101.399236]  ? kasan_save_stack+0x42/0x60
+> > > > [  101.399501]  ? ipv4_dst_check+0x10a/0x160
+> > > > [  101.399665]  __ip_queue_xmit+0xcfb/0x1d60
+> > > > [  101.399813]  ? __tcp_select_window+0xf8/0xed0
+> > > > [  101.399931]  ? __skb_clone+0x550/0x740
+> > > > [  101.400034]  __tcp_transmit_skb+0x29ce/0x3de0
+> > > > [  101.400159]  ? __pfx___tcp_transmit_skb+0x10/0x10
+> > > > [  101.400284]  ? kmem_cache_alloc_node_noprof+0x13b/0x4d0
+> > > > [  101.400423]  ? kasan_save_track+0x14/0x30
+> > > > [  101.400565]  tcp_write_xmit+0x11ba/0x7610
+> > > > [  101.400744]  ? skb_page_frag_refill+0x55/0x430
+> > > > [  101.400872]  __tcp_push_pending_frames+0x8f/0x2f0
+> > > > [  101.400999]  tcp_sendmsg_locked+0x156e/0x3b70
+> > > > [  101.401165]  ? __pfx_tcp_sendmsg_locked+0x10/0x10
+> > > > [  101.401362]  ? __pfx_selinux_socket_sendmsg+0x10/0x10
+> > > > [  101.401528]  ? _raw_spin_lock_bh+0x83/0xe0
+> > > > [  101.401733]  ? ldsem_up_read+0x12/0x40
+> > > > [  101.402061]  tcp_sendmsg+0x26/0x40
+> > > > [  101.402210]  __sys_sendto+0x364/0x430
+> > > > [  101.402346]  ? __pfx___sys_sendto+0x10/0x10
+> > > > [  101.402523]  ? ksys_write+0xf7/0x1c0
+> > > > [  101.402671]  ? __pfx_ksys_write+0x10/0x10
+> > > > [  101.402834]  __x64_sys_sendto+0xdb/0x1b0
+> > > > [  101.402968]  ? fpregs_assert_state_consistent+0x56/0xe0
+> > > > [  101.403107]  do_syscall_64+0xa4/0x320
+> > > > [  101.403254]  entry_SYSCALL_64_after_hwframe+0x77/0x7f
+> > > > [  101.403554] RIP: 0033:0x42440d
+> > > > [  101.403982] Code: 02 48 c7 c0 ff ff ff ff eb b5 0f 1f 00 f3 0f 1e
+> > > > fa 80 3d 5d fc 08 00 00 41 89 ca 74 20 45 31 c9 45 31 9
+> > > > [  101.404392] RSP: 002b:00007ffc69a5f158 EFLAGS: 00000246 ORIG_RAX:
+> > > > 000000000000002c
+> > > > [  101.404659] RAX: ffffffffffffffda RBX: 0000000000000004 RCX: 000000000042440d
+> > > > [  101.404864] RDX: 0000000000000030 RSI: 00007ffc69a5f180 RDI: 0000000000000003
+> > > > [  101.405069] RBP: 00007ffc69a5f200 R08: 0000000000000000 R09: 0000000000000000
+> > > > [  101.405257] R10: 0000000000000000 R11: 0000000000000246 R12: 00007ffc69a5f318
+> > > > [  101.405416] R13: 00007ffc69a5f340 R14: 00000000004ae868 R15: 0000000000000001
+> > > > [  101.405634]  </TASK>
+> > > > [  101.405771] Modules linked in:
+> > > > [  101.406766] ---[ end trace 0000000000000000 ]---
+> > > > [  101.407214] RIP: 0010:siw_tcp_rx_data+0x13ad/0x1e50
+> > > > [  101.407387] Code: 0b 89 34 24 e8 b4 49 1b fe 8b 34 24 48 8b ab f8
+> > > > 03 00 00 b8 ff ff 37 00 48 c1 e0 2a 48 8d bd c5 00 00 8
+> > > > [  101.407946] RSP: 0018:ffff88806d1083a0 EFLAGS: 00000207
+> > > > [  101.408091] RAX: dffffc0000000000 RBX: ffff88800d5ef000 RCX: 0000000000000000
+> > > > [  101.408239] RDX: 0000000000000018 RSI: 00000000ffffffea RDI: 00000000000000c5
+> > > > [  101.408375] RBP: 0000000000000000 R08: 0000000000000001 R09: 0000000000000006
+> > > > [  101.408508] R10: ffff88800d5ef5be R11: 0000000000000001 R12: dffffc0000000000
+> > > > [  101.408741] R13: ffff88800d5ef3f4 R14: 0000000000000010 R15: ffff88800d5ef384
+> > > > [  101.408897] FS:  00000000110e2380(0000) GS:ffff8880e62af000(0000)
+> > > > knlGS:0000000000000000
+> > > > [  101.409051] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> > > > [  101.409181] CR2: dffffc0000000018 CR3: 00000000092c7000 CR4: 00000000000006f0
+> > > > [  101.409577] Kernel panic - not syncing: Fatal exception in interrupt
+> > > > [  101.410887] Kernel Offset: disabled
+> > > > [  101.411108] Rebooting in 1 seconds..
+> > > > 
+> > > > 
+> > > > 
+> > > > Fixes: 8b6a361b8c48 ("rdma/siw: receive path")
+> > > > Signed-off-by: YunJe Shin <ioerts@kookmin.ac.kr>
+> > > > ---
+> > > >    drivers/infiniband/sw/siw/siw_qp_rx.c | 3 +--
+> > > >    1 file changed, 1 insertion(+), 2 deletions(-)
+> > > > 
+> > > > diff --git a/drivers/infiniband/sw/siw/siw_qp_rx.c b/drivers/infiniband/sw/siw/siw_qp_rx.c
+> > > > index e8a88b378d51..960f740cf46a 100644
+> > > > --- a/drivers/infiniband/sw/siw/siw_qp_rx.c
+> > > > +++ b/drivers/infiniband/sw/siw/siw_qp_rx.c
+> > > > @@ -1434,8 +1434,7 @@ int siw_tcp_rx_data(read_descriptor_t *rd_desc, struct sk_buff *skb,
+> > > >    			run_completion = 0;
+> > > >    		}
+> > > >    		if (unlikely(rv != 0 && rv != -EAGAIN)) {
+> > > > -			if ((srx->state > SIW_GET_HDR ||
+> > > 
+> > > We cannot remove that state > SIW_GET_HDR condition.
+> > > 
+> > > Consider this error case:
+> > > We received a header of say a short SEND comprising only
+> > > one DDP segment, and started data processing, while
+> > > encountering an error (too much data, no write permission
+> > > for the receive buffer, etc.). We have to complete the
+> > > current RECEIVE processing and surface a local completion,
+> > > since we already fetched the RQE from the receive queue.
+> > 
+> > Could you walk me through the code call chain?
+> > Don't we start with SIW_GET_HDR, which should initialize the qp->rx_fpdu
+> > pointer?
+> > 
+> 
+> Yes, we start with SIW_GET_HDR. If we got the complete header,
+> we move on to states for placing data and/or fetching trailer
+> CRC.
+> 
+> If we did not complete the header but encounter an error during
+> its parsing, such as an unsupported RDMA operation, we do not
+> leave SIW_GET_HDR state, but let the outer receive loop handle
+> the error case while in SIW_GET_HDR state. So far so good.
+> 
+> We did not consider the special error case that we are in
+> SIW_GET_HDR, but may have been unable to set the qp->rx_fpdu
+> receive context pointer, since it is a first fragment of a new
+> message and the header is malformed. In that case, we do not
+> assign a receive context and no local completion must be
+> generated.
+> 
+> If, at the other hand, it is the start of an expected consecutive
+> DDP fragment of a _fragmented_ message (checked via
+> 'qp->rx_fpdu->more_ddp_segs'), we (1) already have a receive context
+> (was set during parsing the first correct DDP segment), and (2) we
+> shall complete that incomplete RDMA operation in error, since we
+> already started it when parsing the previous message fragment(s).
+> 
+> Yes that is all rather complicated ...
 
-Signed-off-by: Kalesh AP <kalesh-anakkur.purayil@broadcom.com>
-Reviewed-by: Damodharam Ammepalli <damodharam.ammepalli@broadcom.com>
----
- drivers/infiniband/core/verbs.c | 9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+Thanks, so let's leave srx->state > SIW_GET_HDR check intact.
 
-diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index 8b56b6b62352..02ebc3e52196 100644
---- a/drivers/infiniband/core/verbs.c
-+++ b/drivers/infiniband/core/verbs.c
-@@ -1537,7 +1537,8 @@ static const struct {
- 						 IB_QP_PKEY_INDEX),
- 				 [IB_QPT_RC]  = (IB_QP_ALT_PATH			|
- 						 IB_QP_ACCESS_FLAGS		|
--						 IB_QP_PKEY_INDEX),
-+						 IB_QP_PKEY_INDEX		|
-+						 IB_QP_RATE_LIMIT),
- 				 [IB_QPT_XRC_INI] = (IB_QP_ALT_PATH		|
- 						 IB_QP_ACCESS_FLAGS		|
- 						 IB_QP_PKEY_INDEX),
-@@ -1585,7 +1586,8 @@ static const struct {
- 						 IB_QP_ALT_PATH			|
- 						 IB_QP_ACCESS_FLAGS		|
- 						 IB_QP_MIN_RNR_TIMER		|
--						 IB_QP_PATH_MIG_STATE),
-+						 IB_QP_PATH_MIG_STATE		|
-+						 IB_QP_RATE_LIMIT),
- 				 [IB_QPT_XRC_INI] = (IB_QP_CUR_STATE		|
- 						 IB_QP_ALT_PATH			|
- 						 IB_QP_ACCESS_FLAGS		|
-@@ -1619,7 +1621,8 @@ static const struct {
- 						IB_QP_ACCESS_FLAGS		|
- 						IB_QP_ALT_PATH			|
- 						IB_QP_PATH_MIG_STATE		|
--						IB_QP_MIN_RNR_TIMER),
-+						IB_QP_MIN_RNR_TIMER		|
-+						IB_QP_RATE_LIMIT),
- 				[IB_QPT_XRC_INI] = (IB_QP_CUR_STATE		|
- 						IB_QP_ACCESS_FLAGS		|
- 						IB_QP_ALT_PATH			|
--- 
-2.43.5
-
+> 
+> Thanks,
+> Bernard.
+> 
+> 
+> 
+> 
+> > Thanks
+> > 
+> > > 
+> > > > -			     (qp->rx_fpdu && qp->rx_fpdu->more_ddp_segs)) &&
+> > > > +			if (qp->rx_fpdu && qp->rx_fpdu->more_ddp_segs &&
+> > > >    			    run_completion)
+> > > >    				siw_rdmap_complete(qp, rv);
+> > > 
+> 
+> 
