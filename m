@@ -1,77 +1,125 @@
-Received: from smtp-relay-services-0.canonical.com (smtp-relay-services-0.canonical.com [185.125.188.250])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 995E0201278
-	for <linux-rdma@vger.kernel.org>; Tue,  3 Feb 2026 21:39:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.125.188.250
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1AEB6310763
+	for <linux-rdma@vger.kernel.org>; Tue,  3 Feb 2026 22:59:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770154788; cv=none; b=bfPSbhjRRYQGvuHDTZfvAmhG2unnL1DSRSICifS4R5WUE0oyyBwz8EwEMXu6iknUzc02JNcnzlvp00lTMmOmtQga9RAcpW2NTmWVg5F3xh2VT6C7O/ACpzvToVYQIVwavAF/VOQE8tj7MTuSeLekdU5Oi8S0AW6DqO8FWVxqVC0=
+	t=1770159547; cv=none; b=SPn8RKwTGZc52je8WcfsEiwAF/E56f0U7ogBFUGOXRt/QdCzl/9TyIt91lg1TIxBkMbbfbkNrJw5WhDbTu3Jsq9KMdQj8OuolFNeXBsXunxaWVVwEjr+rD8B2pmRU6nFYFl1cur8WVuZuK3FUvmdcrdoRxsfoUA0dWoYIx+Zulo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770154788; c=relaxed/simple;
-	bh=/pl+FNK6hTIg4hX0gxNWMPaCC2rEB1OyIe6vVuMaPKs=;
-	h=Content-Type:MIME-Version:To:From:Subject:Message-Id:Date; b=HPlVY6vkaOuNNKeIOg+WSpLGATmwktyRDpXX0Z4n0glILZwcAjxhHbPuIf2Gpd6k8c1QfHaCMsd3VJcUV+zmcdIF+U3fJCjMoK/Yi/pZpBo1kyrejkx9aATK/3yDHSebyxYGh7UcEYXvswOOyqO18Y1AmrrNRjZ1C+AwLGytq70=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=launchpad.net; spf=pass smtp.mailfrom=launchpad.net; dkim=pass (2048-bit key) header.d=launchpad.net header.i=@launchpad.net header.b=lB40vyh6; arc=none smtp.client-ip=185.125.188.250
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=launchpad.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=launchpad.net
+	s=arc-20240116; t=1770159547; c=relaxed/simple;
+	bh=tJNadpiFM50O70Wa/xME6qyZkIQ571lLqhqsljcE//s=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=u5/YW3J7oUUE9aqP/2yji1JYx3WcjTI4qBabxLoVGau14wTeY1gDaFJIxkq372ZpmJ4kvcICiOBHDWeCXssN+Nk3F2vWUwnYuir9/ttCJFxR1eTwGZQ90c5TYF/iZI7GgQMeDbbXl3spLasU9LqAu245CgxUWTSh2cZ+sakhTzw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=AqwgUlF/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=launchpad.net header.i=@launchpad.net header.b="lB40vyh6"
-Received: from buildd-manager.lp.internal (buildd-manager.lp.internal [10.131.215.202])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-relay-services-0.canonical.com (Postfix) with ESMTPSA id 034F73F1DB
-	for <linux-rdma@vger.kernel.org>; Tue,  3 Feb 2026 21:32:10 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=launchpad.net;
-	s=20210803; t=1770154330;
-	bh=/pl+FNK6hTIg4hX0gxNWMPaCC2rEB1OyIe6vVuMaPKs=;
-	h=Content-Type:MIME-Version:To:From:Subject:Message-Id:Date:
-	 Reply-To;
-	b=lB40vyh6zQFBQc6yrsYcM8zjfb1mTTlfhDkiqTdfyELkFKMEwxOfD0m7UtTWtg+D/
-	 N5KCpoJCH0FPcTIqYLbF9lFeJ2LwU5JmRQoGJBPYpgdV439Xqxc8W/Jfj4qqO1b9MI
-	 z5bv9IJXT1tQ5cIOZeHWnhpV08XrDWtC7qFCdFzccdfhEA4DCOCGQpebb2I/Eg52Tn
-	 lOKMjwQmm34ksIAox121yLG/qUxOTWIGCQ53skm9gXCM/9MZe08AFUs5WSybk+R+rJ
-	 Qt7mX6067asGa+x1JX3sh7NUfjp6wG5I4fcLF36o/IIdWa3v6F/Dy9hJZq+QLNTZ12
-	 iYla5nkCZtWWw==
-Received: from buildd-manager.lp.internal (localhost [127.0.0.1])
-	by buildd-manager.lp.internal (Postfix) with ESMTP id EAFD07F136
-	for <linux-rdma@vger.kernel.org>; Tue,  3 Feb 2026 21:32:09 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="AqwgUlF/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B7AB9C116D0
+	for <linux-rdma@vger.kernel.org>; Tue,  3 Feb 2026 22:59:06 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1770159546;
+	bh=tJNadpiFM50O70Wa/xME6qyZkIQ571lLqhqsljcE//s=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+	b=AqwgUlF/wVShQbmJtrZJ3WLq/OV3bTA7D2dkMjFZe7PJewiemClCJ9fBY4uLa5lvx
+	 Nlud1I9Nx0cID63r3SMYDWwMGhRhD2HohuzyWBISEjlIeQiyum/V2wV29+nEfvOAwy
+	 X7iImRKP1gmYl1iZhazJoi33jrcnWZWOROdSCt/nttMYWI+dJlZ75uY/ze2BUAgDgm
+	 HcGtqbamfOjVmkZpNrBEV75hb6XI6HaYJcae/nA2wQ5VqAg/cLv1rTI1WLuzhrLyhT
+	 vxrpRvzFb1oiSsNwCeIm4S/pX2TmATAYbC53355OWVtHuW5Y5l8kc1iCCOTZWHWdqs
+	 OQZ6SBi3+gYlg==
+Received: by mail-ed1-f51.google.com with SMTP id 4fb4d7f45d1cf-64c893f3a94so515633a12.0
+        for <linux-rdma@vger.kernel.org>; Tue, 03 Feb 2026 14:59:06 -0800 (PST)
+X-Gm-Message-State: AOJu0Yw37+ck0y2GQuAKGj/08Pfv0r0CviGXXypN1SyPV6V0YJZKrqKR
+	pVDk2OtlFi0dZIDW+Cm4XutAZbFOzDm2qccnv4nWiyHplznC6O5VMguAjj/atctMK081QtVg0oK
+	yeW95lgxcfV3GiTbsJ8CaE1NitQ+YQHE=
+X-Received: by 2002:a17:907:971b:b0:b87:85f:4598 with SMTP id
+ a640c23a62f3a-b8e837d96bbmr290314266b.14.1770159545347; Tue, 03 Feb 2026
+ 14:59:05 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+References: <cover.1769025321.git.metze@samba.org>
+In-Reply-To: <cover.1769025321.git.metze@samba.org>
+From: Namjae Jeon <linkinjeon@kernel.org>
+Date: Wed, 4 Feb 2026 07:58:52 +0900
+X-Gmail-Original-Message-ID: <CAKYAXd-eyYhh9E2zkiraJX0ihct=yEpx-tgQvpAJ0fK+q1oUQQ@mail.gmail.com>
+X-Gm-Features: AZwV_QiaxFV2_vq5ig4lbGmwCExyMJg3gUgo8OLH5hhxOtefqrfin2SeP-FVFIQ
+Message-ID: <CAKYAXd-eyYhh9E2zkiraJX0ihct=yEpx-tgQvpAJ0fK+q1oUQQ@mail.gmail.com>
+Subject: Re: [RFC PATCH 0/3] RDMA/smbdirect: introduce and use rdma_restrict_node_type()
+To: Stefan Metzmacher <metze@samba.org>
+Cc: linux-rdma@vger.kernel.org, linux-cifs@vger.kernel.org, 
+	samba-technical@lists.samba.org, Jason Gunthorpe <jgg@ziepe.ca>, 
+	Leon Romanovsky <leon@kernel.org>, Steve French <smfrench@gmail.com>, Tom Talpey <tom@talpey.com>, 
+	Long Li <longli@microsoft.com>
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
-X-Launchpad-Message-Rationale: Requester @linux-rdma
-X-Launchpad-Message-For: linux-rdma
-X-Launchpad-Notification-Type: recipe-build-status
-X-Launchpad-Archive: ~linux-rdma/ubuntu/rdma-core-daily
-X-Launchpad-Build-State: MANUALDEPWAIT
-To: Linux RDMA <linux-rdma@vger.kernel.org>
-From: noreply@launchpad.net
-Subject: [recipe build #4004880] of ~linux-rdma rdma-core-daily in xenial: Dependency wait
-Message-Id: <177015432995.1615174.16847005850516222011.launchpad@buildd-manager.lp.internal>
-Date: Tue, 03 Feb 2026 21:32:09 -0000
-Reply-To: noreply@launchpad.net
-Sender: noreply@launchpad.net
-Errors-To: noreply@launchpad.net
-Precedence: bulk
-X-Generated-By: Launchpad (canonical.com); Revision="4847db153920c8fbc330ac275b92a72279fa07a2"; Instance="launchpad-buildd-manager"
-X-Launchpad-Hash: 2a38a75fe1327a6197c66bf122aba62628f547ff
 
- * State: Dependency wait
- * Recipe: linux-rdma/rdma-core-daily
- * Archive: ~linux-rdma/ubuntu/rdma-core-daily
- * Distroseries: xenial
- * Duration: 2 minutes
- * Build Log: https://launchpad.net/~linux-rdma/+archive/ubuntu/rdma-core-d=
-aily/+recipebuild/4004880/+files/buildlog.txt.gz
- * Upload Log:=20
- * Builder: https://launchpad.net/builders/lcy02-amd64-032
+On Thu, Jan 22, 2026 at 5:07=E2=80=AFAM Stefan Metzmacher <metze@samba.org>=
+ wrote:
+>
+> Hi,
+>
+> for smbdirect it required to use different ports depending
+> on the RDMA protocol. E.g. for iWarp 5445 is needed
+> (as tcp port 445 already used by the raw tcp transport for SMB),
+> while InfiniBand, RoCEv1 and RoCEv2 use port 445, as they
+> use an independent port range (even for RoCEv2, which uses udp
+> port 4791 itself).
+>
+> Currently ksmbd is not able to function correctly at
+> all if the system has iWarp (RDMA_NODE_RNIC) interface(s)
+> and any InfiniBand, RoCEv1 and/or RoCEv2 interface(s)
+> at the same time.
+>
+> And cifs.ko uses 5445 with a fallback to 445, which
+> means depending on the available interfaces, it tries
+> 5445 in the RoCE range or may tries iWarp with 445
+> as a fallback. This leads to strange error messages
+> and strange network captures.
+>
+> To avoid these problems they will be able to
+> use rdma_restrict_node_type(RDMA_NODE_RNIC) before
+> trying port 5445 and rdma_restrict_node_type(RDMA_NODE_IB_CA)
+> before trying port 445. It means we'll get early
+> -ENODEV early from rdma_resolve_addr() without any
+> network traffic and timeouts.
+>
+> This is marked as RFC as I want to get feedback
+> if the rdma_restrict_node_type() function is acceptable
+> for the RDMA layer. And because the current form of
+> the smb patches are not tested, I only tested the
+> rdma part with my branch the prepares IPPROTO_SMBDIRECT
+> sockets.
+>
+> I'm not sure if this would be acceptable for 6.19
+> in order to avoid the smb layer problems, if the
+> RDMA layer change is only acceptable for 7.0 that's
+> also fine.
+>
+> This is based on the following fix applied:
+> smb: server: reset smb_direct_port =3D SMB_DIRECT_PORT_INFINIBAND on init
+> https://lore.kernel.org/linux-cifs/20251208154919.934760-1-metze@samba.or=
+g/
+> It's not yet in Linus' tree, so if this gets ready
+> before it's merged we can squash it.
+Acked-by: Namjae Jeon <linkinjeon@kernel.org>
 
---=20
-https://launchpad.net/~linux-rdma/+archive/ubuntu/rdma-core-daily/+recipebu=
-ild/4004880
-Your team Linux RDMA is the requester of the build.
-
+Thanks!
+>
+> Stefan Metzmacher (3):
+>   RDMA/core: introduce rdma_restrict_node_type()
+>   smb: client: make use of rdma_restrict_node_type()
+>   smb: server: make use of rdma_restrict_node_type()
+>
+>  drivers/infiniband/core/cma.c      |  30 ++++++++
+>  drivers/infiniband/core/cma_priv.h |   1 +
+>  fs/smb/client/smbdirect.c          |  26 +++++++
+>  fs/smb/server/transport_rdma.c     | 108 +++++++++++++++++++++--------
+>  include/rdma/rdma_cm.h             |  17 +++++
+>  5 files changed, 154 insertions(+), 28 deletions(-)
+>
+> --
+> 2.43.0
+>
