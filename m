@@ -1,63 +1,63 @@
-Received: from mail-wm1-f41.google.com (mail-wm1-f41.google.com [209.85.128.41])
+Received: from mail-wr1-f46.google.com (mail-wr1-f46.google.com [209.85.221.46])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 19D61392C3A
-	for <linux-rdma@vger.kernel.org>; Tue,  3 Feb 2026 08:50:07 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.41
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 66EA7395D8F
+	for <linux-rdma@vger.kernel.org>; Tue,  3 Feb 2026 08:50:10 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.46
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770108611; cv=none; b=jzmpvPxNSUTksMHd3P+eRP5touxrh5dKt+OfrCjzySKoyEnS7zHpquGaOjr6fcgV/8uQz0Q9kxVWfQ/OIxPFlDn4wSw7HvOsaX2JihCkSLVvwFwISdE7gZ8ujWMiiPYXKpQcwhzSPMdM5LaJU66nx9wIuY1pIR4D4wYoudcRTbU=
+	t=1770108612; cv=none; b=m3LlCw72zv510lwVNbPMgMdq0KcRX8+EwW2veJVIBWHPx7JMK4Dk7KDNUQVcLwZw6HCrEb6m9RCoeeNhr+ZGM8y2RfOMyYQKqKam49tsTXWwr72vVOeU4/WhBo/tR33w4cGQ8yZEv0+DzeC8BWrwYRie3s4P4bHeycgcI/lYNRY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770108611; c=relaxed/simple;
-	bh=pv3mSeEWlqxRTCf5n0BbaG9G8jzDkPguLGSPDrGuTUI=;
+	s=arc-20240116; t=1770108612; c=relaxed/simple;
+	bh=81Fxx7kIXX//q9jhujXjDK3SS2zaZFy2vtCPO7AHA9M=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=joZqxSeILMoalt+g1OTly/cY138H7XtqG6QFRImE+jE+rlb1sN7j993898RGT9aKDv8YFXhtai5Uf0VPO5oZKxM4a2eRCSLKlVZ4f6GA3z3XP0QobS/S7AKPBfJBk5rrFstHZS1IQQn6kl9P8ApRNF0VJwzbjnNR/ijbjwNJWa0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=resnulli.us; spf=none smtp.mailfrom=resnulli.us; dkim=pass (2048-bit key) header.d=resnulli-us.20230601.gappssmtp.com header.i=@resnulli-us.20230601.gappssmtp.com header.b=Y+qEn+uw; arc=none smtp.client-ip=209.85.128.41
+	 MIME-Version; b=jFIX3kV6hvH/mdHQc0iFFqm3vXUyOQ3P3+aVx0etJ+au40+IdjGlVvR1HLgG3cyCDnarZ82VLjB7BcZoeZAfQKRF6LkFpbKwFG7PkGyWPmGz9VUwkdhR6BuAsdCFr4HRQVPrYzO1Qioc0+So2H6f0fWZcGvHNzs10mkHtS3KKIc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=resnulli.us; spf=none smtp.mailfrom=resnulli.us; dkim=pass (2048-bit key) header.d=resnulli-us.20230601.gappssmtp.com header.i=@resnulli-us.20230601.gappssmtp.com header.b=NWyImh30; arc=none smtp.client-ip=209.85.221.46
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=resnulli.us
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=resnulli.us
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=resnulli-us.20230601.gappssmtp.com header.i=@resnulli-us.20230601.gappssmtp.com header.b="Y+qEn+uw"
-Received: by mail-wm1-f41.google.com with SMTP id 5b1f17b1804b1-4806fbc6bf3so56914325e9.2
-        for <linux-rdma@vger.kernel.org>; Tue, 03 Feb 2026 00:50:07 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=resnulli-us.20230601.gappssmtp.com header.i=@resnulli-us.20230601.gappssmtp.com header.b="NWyImh30"
+Received: by mail-wr1-f46.google.com with SMTP id ffacd0b85a97d-435903c4040so3548071f8f.3
+        for <linux-rdma@vger.kernel.org>; Tue, 03 Feb 2026 00:50:10 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=resnulli-us.20230601.gappssmtp.com; s=20230601; t=1770108606; x=1770713406; darn=vger.kernel.org;
+        d=resnulli-us.20230601.gappssmtp.com; s=20230601; t=1770108609; x=1770713409; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=A+1ZJcDT5cS0bMwkYCrlpEQ8pa1JKseCWzEDe2/Ia0o=;
-        b=Y+qEn+uw62aYyST7Cu4yxKW0gBkC18HSvMtBi3nxSy6+xU+nTutRxZNvtZ2BAdH+6H
-         UapJpwS9OO/DMmYBYD94ZQUTqL7DJC4cLHhFBfCCpAU/ynu02MJcZjSEk3dhKdUk9dKf
-         vL+nA54cJ9dPpm6ZmC4hPJlPelgDkkSluY+b4zqjM/RaiNrLBZxYJs+y0j1GJyJfdgjM
-         XQBPesa1KP13dbLboM/J8G1/bPg1HN4NJWGR1xDxcVtJBxj+nZLiOyl7Xm0oBGWawHcB
-         WOAI2PKqu/XUXSkQ9tIpnzGUmX7A3oI6OE80aWYmrNVEQ+nNUPdg4IarRvjN9rJeU1cI
-         oUIg==
+        bh=Q8z5qh7HsYpAPsupSkp0GNPkqkbgFxPOEkIpLkpLbxk=;
+        b=NWyImh30FcGzE9RzFW8lqavHKx3+c8UM2FSCnsfaqglSv4gFpUbW5Y7j+dvy3ZQG60
+         0zXMBC9Ijkd50btpsbbxtO4j2JY17lyG0V4DO7FxM3T4Pvt30vqH1ngWoKt9mvJgaT5Q
+         IRV63BVTyzJKZlz7CPFpRfi76GwzphNMw8jXUlo6E8epT+QNnw4uabpVY6ixBreiPDLv
+         d7zVixhId5v2ULY8m4LABIB08ofDnnd3u3B8PKsDdAl+Hr/72SLSHu2tU6V2jvHae2Y6
+         mxasgV2Xu6r8iyUYLLRn2mDqUw98AuhVq3L05jThPq7PqmjQKQmXzIlP2VJgVf6+RXDO
+         tajg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1770108606; x=1770713406;
+        d=1e100.net; s=20230601; t=1770108609; x=1770713409;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=A+1ZJcDT5cS0bMwkYCrlpEQ8pa1JKseCWzEDe2/Ia0o=;
-        b=qd8psWx/++nSBPG2oONGLs2APBCLbFlTdl+6wf85u67anEnTAvjoP/nZ6L4iIuWv27
-         751yritUrR+XkMzHiyXSiHtlsQsPKjy6KqivobXt9U54b7/qGVWo2XeBzh9u0Oroa/gr
-         NKGkW9+BkdWnPD7/dsG3mDlvnNCKIMfFWvSuj4c2yfviRRk54Ryzdzyj5lpgS08jPCXa
-         Ze/OZOTWZSrEftx4T4jojEXP3ntXbTcbjIx58UB/kZGO8BK9W2z7eKBG7otkNdA6HEJH
-         KKtE18fgXFSdHqwNuuZqva0WA4XtGF3J5ei6suhxryuNgjU8jE0uJnI93orPGSi+ibgO
-         iEJw==
-X-Gm-Message-State: AOJu0YzykIuS7xanP/J+r7cm5eHmYMRac/Iqv+RZrZjljmD4HqyNpm1o
-	qgi4KoiRtRtDQyYFgBJuaOHds0UxRw4N9reoDxGsd9P3f3nufI8GfBmC3KjmIFyvsRkdN6fOwO2
-	+ZQyf
-X-Gm-Gg: AZuq6aKFz33FLP5sgBGIOFCuJ2rL6nI9KvgIJ9uSrIsJetMa4vOZS/AUUbDRMJHdxVE
-	fl94EByWpf0J5nWrdh4mmQR5geNcmbnxOuql/R6H+ay9b4rJliT3L4tCg0dIs4+XMbPKh4i9td7
-	bZgcyo82hMFRgn/IwmeViBxljfkkvtt9FOVGchI3A6Y8smwXP53MxOvlGGMoHkuNJLsGV7RtBf1
-	7LOfdbRpwxZCS2L4TEKKYttWEaX0NeJ9CsCBNVQDOCLgMRBwKkS9yjbp7/tfx8hmLAYZOZvYoiF
-	5bTNsVqv18p59js0bPejBDbkbbwiaTctDorxS52E//zl7s/BmmIPC93KToQaZqwMp4u+DMGEtxX
-	yrnRMqt6epKO+QMG7IeAsHQeooCFx/VJJ2gWis9Xw95Ncx0JHoucuj7Z/nk73J60qiQlBejOjP1
-	mNfg==
-X-Received: by 2002:a05:600c:4f47:b0:47d:403e:4eaf with SMTP id 5b1f17b1804b1-482db460714mr210577975e9.10.1770108606013;
-        Tue, 03 Feb 2026 00:50:06 -0800 (PST)
+        bh=Q8z5qh7HsYpAPsupSkp0GNPkqkbgFxPOEkIpLkpLbxk=;
+        b=HfH0ta7vvmzBMUqL48y+Wrj68Js3QvT0qWVzDAzf4/gS5n84FiRWTfbxWDckOZiL0M
+         9wsoY4D1L1hFfOWE48GVwj6nu3ENqja5nB59eqIGEtBWLRyoTDfayfiX+AQkZbOmbTyu
+         3uyZ7MHo49EmgpTM+ZvXbQzf8B20qJ7i23voLnBWWH1W41+MmXAiGZH3QQIzxYzaxp8a
+         +hQGKmyQny9Vm9uwQmifml1QVRT6vtqOZGrjjtMC2SV2yPd9VmIiPsWf5Ob5KDcQLXnH
+         cj72LZUurLZ6wKjy96nQArqWj2gALQJysxrPHdUVMpw37O8f/yiSet6cWQwUPShjLh5w
+         lnIA==
+X-Gm-Message-State: AOJu0Yy8FIogSZLc+QE58UpGLBoZ/NVfPxV2fasI/PLXfsTAnm6t3hMz
+	4MzjIjUQDbnatFNEAP2k3WbmUbsMZnvbhWbCBjKH4kaLZBs0jLWtDdkkCe1M9bs5tfxspVdko8L
+	lyIcs
+X-Gm-Gg: AZuq6aIVBGfL01PlErjJTS+Oeu8cGNDi4UMQdpjss3VXpkHOoNLeSP63fNcT74L6D+0
+	hEJM0ze59PQiFzxMwv0w2grekyqicb5qcrXYQN12G+bHjB7fvc2rOv9rLx0nvFXsjsVfvRdlHJp
+	qHWokH+vQnsT9a8V6YDOEXl/Gk5D/k7cLcv9ydfKcUew4S0n7QluX+6VEnM2lX+A2clwdaTOUez
+	+ajb7Szw2fcCMAxB5TFQCA/kHmpszaQflDTRip3C3FLztZORgdE8KAmGk3o1owJAUPAyu6vg/GH
+	9oGDUez/Xfcdr21tkkf6tz0qJVoxNXAzjm6GsqHLCyNhzPWweQB3kYfnYVw8SPIjm7O1w+phmyv
+	/iwScbAZ8mQ8dcP89Vfi0fx+0rY22g6aytN41SC5ofawtZeyDEiwlO2bxCRI/gsxTUEPpjHt9zw
+	EiZw==
+X-Received: by 2002:a5d:5885:0:b0:432:dfa8:e1b6 with SMTP id ffacd0b85a97d-435f3aae088mr21443324f8f.39.1770108608616;
+        Tue, 03 Feb 2026 00:50:08 -0800 (PST)
 Received: from localhost ([85.163.81.98])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4830511ccd0sm43254205e9.1.2026.02.03.00.50.05
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-435e1353f8bsm47108542f8f.39.2026.02.03.00.50.07
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 03 Feb 2026 00:50:05 -0800 (PST)
+        Tue, 03 Feb 2026 00:50:08 -0800 (PST)
 From: Jiri Pirko <jiri@resnulli.us>
 To: linux-rdma@vger.kernel.org
 Cc: jgg@ziepe.ca,
@@ -83,9 +83,9 @@ Cc: jgg@ziepe.ca,
 	sriharsha.basavapatna@broadcom.com,
 	andrew.gospodarek@broadcom.com,
 	selvin.xavier@broadcom.com
-Subject: [PATCH rdma-next 01/10] RDMA/umem: Add reference counting to ib_umem
-Date: Tue,  3 Feb 2026 09:49:53 +0100
-Message-ID: <20260203085003.71184-2-jiri@resnulli.us>
+Subject: [PATCH rdma-next 03/10] RDMA/mlx5: Add support for CQ creation with external umem buffer
+Date: Tue,  3 Feb 2026 09:49:55 +0100
+Message-ID: <20260203085003.71184-4-jiri@resnulli.us>
 X-Mailer: git-send-email 2.51.1
 In-Reply-To: <20260203085003.71184-1-jiri@resnulli.us>
 References: <20260203085003.71184-1-jiri@resnulli.us>
@@ -99,140 +99,124 @@ Content-Transfer-Encoding: 8bit
 
 From: Jiri Pirko <jiri@nvidia.com>
 
-Introduce reference counting for ib_umem objects to simplify memory
-lifecycle management when umem buffers are shared between the core
-layer and device drivers.
-
-When the core RDMA layer allocates an ib_umem and passes it to a driver
-(e.g., for CQ or QP creation with external buffers), both layers need
-to manage the umem lifecycle. Without reference counting, this requires
-complex conditional release logic to avoid double-frees on error paths
-and leaks on success paths.
-
-With reference counting:
-- Core allocates umem with refcount=1
-- Driver calls ib_umem_get_ref() to take a reference
-- Both layers can unconditionally call ib_umem_release()
-- The umem is freed only when the last reference is dropped
+Add mlx5_ib_create_cq_umem() function that allows creating a Completion
+Queue with an externally provided user memory region instead of
+allocating one internally.
 
 Signed-off-by: Jiri Pirko <jiri@nvidia.com>
-Change-Id: Ifb1765ea3b14dab3329294633ea5df063c74420d
+Change-Id: Ie686dc8aa76fb72299a2bff2de30e95efbcffb3e
 ---
- drivers/infiniband/core/umem.c        | 5 +++++
- drivers/infiniband/core/umem_dmabuf.c | 1 +
- drivers/infiniband/core/umem_odp.c    | 3 +++
- include/rdma/ib_umem.h                | 9 +++++++++
- 4 files changed, 18 insertions(+)
+ drivers/infiniband/hw/mlx5/cq.c      | 42 ++++++++++++++++++++++------
+ drivers/infiniband/hw/mlx5/main.c    |  1 +
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |  2 ++
+ 3 files changed, 36 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
-index 8137031c2a65..09ce694d66ea 100644
---- a/drivers/infiniband/core/umem.c
-+++ b/drivers/infiniband/core/umem.c
-@@ -192,6 +192,7 @@ struct ib_umem *ib_umem_get(struct ib_device *device, unsigned long addr,
- 	umem = kzalloc(sizeof(*umem), GFP_KERNEL);
- 	if (!umem)
- 		return ERR_PTR(-ENOMEM);
-+	refcount_set(&umem->refcount, 1);
- 	umem->ibdev      = device;
- 	umem->length     = size;
- 	umem->address    = addr;
-@@ -280,11 +281,15 @@ EXPORT_SYMBOL(ib_umem_get);
- /**
-  * ib_umem_release - release memory pinned with ib_umem_get
-  * @umem: umem struct to release
-+ *
-+ * Decrement the reference count and free the umem when it reaches zero.
-  */
- void ib_umem_release(struct ib_umem *umem)
+diff --git a/drivers/infiniband/hw/mlx5/cq.c b/drivers/infiniband/hw/mlx5/cq.c
+index 651d76bca114..2558a52c31c0 100644
+--- a/drivers/infiniband/hw/mlx5/cq.c
++++ b/drivers/infiniband/hw/mlx5/cq.c
+@@ -718,6 +718,7 @@ static int mini_cqe_res_format_to_hw(struct mlx5_ib_dev *dev, u8 format)
+ static int create_cq_user(struct mlx5_ib_dev *dev, struct ib_udata *udata,
+ 			  struct mlx5_ib_cq *cq, int entries, u32 **cqb,
+ 			  int *cqe_size, int *index, int *inlen,
++			  struct ib_umem *ext_umem,
+ 			  struct uverbs_attr_bundle *attrs)
  {
- 	if (!umem)
- 		return;
-+	if (!refcount_dec_and_test(&umem->refcount))
-+		return;
- 	if (umem->is_dmabuf)
- 		return ib_umem_dmabuf_release(to_ib_umem_dmabuf(umem));
- 	if (umem->is_odp)
-diff --git a/drivers/infiniband/core/umem_dmabuf.c b/drivers/infiniband/core/umem_dmabuf.c
-index 939da49b0dcc..5c5286092fca 100644
---- a/drivers/infiniband/core/umem_dmabuf.c
-+++ b/drivers/infiniband/core/umem_dmabuf.c
-@@ -143,6 +143,7 @@ ib_umem_dmabuf_get_with_dma_device(struct ib_device *device,
+ 	struct mlx5_ib_create_cq ucmd = {};
+@@ -749,12 +750,21 @@ static int create_cq_user(struct mlx5_ib_dev *dev, struct ib_udata *udata,
+ 
+ 	*cqe_size = ucmd.cqe_size;
+ 
+-	cq->buf.umem =
+-		ib_umem_get(&dev->ib_dev, ucmd.buf_addr,
+-			    entries * ucmd.cqe_size, IB_ACCESS_LOCAL_WRITE);
+-	if (IS_ERR(cq->buf.umem)) {
+-		err = PTR_ERR(cq->buf.umem);
+-		return err;
++	if (ext_umem) {
++		if (ext_umem->length < entries * ucmd.cqe_size) {
++			mlx5_ib_dbg(dev, "External umem too small for CQ\n");
++			return -EINVAL;
++		}
++		ib_umem_get_ref(ext_umem);
++		cq->buf.umem = ext_umem;
++	} else {
++		cq->buf.umem =
++			ib_umem_get(&dev->ib_dev, ucmd.buf_addr,
++				    entries * ucmd.cqe_size, IB_ACCESS_LOCAL_WRITE);
++		if (IS_ERR(cq->buf.umem)) {
++			err = PTR_ERR(cq->buf.umem);
++			return err;
++		}
  	}
  
- 	umem = &umem_dmabuf->umem;
-+	refcount_set(&umem->refcount, 1);
- 	umem->ibdev = device;
- 	umem->length = size;
- 	umem->address = offset;
-diff --git a/drivers/infiniband/core/umem_odp.c b/drivers/infiniband/core/umem_odp.c
-index 572a91a62a7b..7be30fda57e3 100644
---- a/drivers/infiniband/core/umem_odp.c
-+++ b/drivers/infiniband/core/umem_odp.c
-@@ -144,6 +144,7 @@ struct ib_umem_odp *ib_umem_odp_alloc_implicit(struct ib_device *device,
- 	if (!umem_odp)
- 		return ERR_PTR(-ENOMEM);
- 	umem = &umem_odp->umem;
-+	refcount_set(&umem->refcount, 1);
- 	umem->ibdev = device;
- 	umem->writable = ib_access_writable(access);
- 	umem->owning_mm = current->mm;
-@@ -185,6 +186,7 @@ ib_umem_odp_alloc_child(struct ib_umem_odp *root, unsigned long addr,
- 	if (!odp_data)
- 		return ERR_PTR(-ENOMEM);
- 	umem = &odp_data->umem;
-+	refcount_set(&umem->refcount, 1);
- 	umem->ibdev = root->umem.ibdev;
- 	umem->length     = size;
- 	umem->address    = addr;
-@@ -245,6 +247,7 @@ struct ib_umem_odp *ib_umem_odp_get(struct ib_device *device,
- 	if (!umem_odp)
- 		return ERR_PTR(-ENOMEM);
+ 	page_size = mlx5_umem_find_best_cq_quantized_pgoff(
+@@ -949,8 +959,10 @@ static void notify_soft_wc_handler(struct work_struct *work)
+ 	cq->ibcq.comp_handler(&cq->ibcq, cq->ibcq.cq_context);
+ }
  
-+	refcount_set(&umem_odp->umem.refcount, 1);
- 	umem_odp->umem.ibdev = device;
- 	umem_odp->umem.length = size;
- 	umem_odp->umem.address = addr;
-diff --git a/include/rdma/ib_umem.h b/include/rdma/ib_umem.h
-index 0a8e092c0ea8..44264f78eab3 100644
---- a/include/rdma/ib_umem.h
-+++ b/include/rdma/ib_umem.h
-@@ -10,6 +10,7 @@
- #include <linux/list.h>
- #include <linux/scatterlist.h>
- #include <linux/workqueue.h>
-+#include <linux/refcount.h>
- #include <rdma/ib_verbs.h>
+-int mlx5_ib_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
+-		      struct uverbs_attr_bundle *attrs)
++static int __mlx5_ib_create_cq(struct ib_cq *ibcq,
++			       const struct ib_cq_init_attr *attr,
++			       struct ib_umem *ext_umem,
++			       struct uverbs_attr_bundle *attrs)
+ {
+ 	struct ib_udata *udata = &attrs->driver_udata;
+ 	struct ib_device *ibdev = ibcq->device;
+@@ -989,7 +1001,7 @@ int mlx5_ib_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
  
- struct ib_ucontext;
-@@ -19,6 +20,7 @@ struct dma_buf_attach_ops;
- struct ib_umem {
- 	struct ib_device       *ibdev;
- 	struct mm_struct       *owning_mm;
-+	refcount_t		refcount;
- 	u64 iova;
- 	size_t			length;
- 	unsigned long		address;
-@@ -110,6 +112,12 @@ static inline bool __rdma_umem_block_iter_next(struct ib_block_iter *biter)
+ 	if (udata) {
+ 		err = create_cq_user(dev, udata, cq, entries, &cqb, &cqe_size,
+-				     &index, &inlen, attrs);
++				     &index, &inlen, ext_umem, attrs);
+ 		if (err)
+ 			return err;
+ 	} else {
+@@ -1058,6 +1070,18 @@ int mlx5_ib_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
+ 	return err;
+ }
  
- struct ib_umem *ib_umem_get(struct ib_device *device, unsigned long addr,
- 			    size_t size, int access);
-+
-+static inline void ib_umem_get_ref(struct ib_umem *umem)
++int mlx5_ib_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
++		      struct uverbs_attr_bundle *attrs)
 +{
-+	refcount_inc(&umem->refcount);
++	return __mlx5_ib_create_cq(ibcq, attr, NULL, attrs);
 +}
 +
- void ib_umem_release(struct ib_umem *umem);
- int ib_umem_copy_from(void *dst, struct ib_umem *umem, size_t offset,
- 		      size_t length);
-@@ -188,6 +196,7 @@ static inline struct ib_umem *ib_umem_get(struct ib_device *device,
++int mlx5_ib_create_cq_umem(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
++			   struct ib_umem *umem, struct uverbs_attr_bundle *attrs)
++{
++	return __mlx5_ib_create_cq(ibcq, attr, umem, attrs);
++}
++
+ int mlx5_ib_pre_destroy_cq(struct ib_cq *cq)
  {
- 	return ERR_PTR(-EOPNOTSUPP);
- }
-+static inline void ib_umem_get_ref(struct ib_umem *umem) { }
- static inline void ib_umem_release(struct ib_umem *umem) { }
- static inline int ib_umem_copy_from(void *dst, struct ib_umem *umem, size_t offset,
- 		      		    size_t length) {
+ 	struct mlx5_ib_dev *dev = to_mdev(cq->device);
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index eba023b7af0f..a719738ebd0c 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -4447,6 +4447,7 @@ static const struct ib_device_ops mlx5_ib_dev_ops = {
+ 	.check_mr_status = mlx5_ib_check_mr_status,
+ 	.create_ah = mlx5_ib_create_ah,
+ 	.create_cq = mlx5_ib_create_cq,
++	.create_cq_umem = mlx5_ib_create_cq_umem,
+ 	.create_qp = mlx5_ib_create_qp,
+ 	.create_srq = mlx5_ib_create_srq,
+ 	.create_user_ah = mlx5_ib_create_ah,
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index 4f4114d95130..25efdae83d27 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -1371,6 +1371,8 @@ int mlx5_ib_read_wqe_srq(struct mlx5_ib_srq *srq, int wqe_index, void *buffer,
+ 			 size_t buflen, size_t *bc);
+ int mlx5_ib_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
+ 		      struct uverbs_attr_bundle *attrs);
++int mlx5_ib_create_cq_umem(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
++			   struct ib_umem *umem, struct uverbs_attr_bundle *attrs);
+ int mlx5_ib_destroy_cq(struct ib_cq *cq, struct ib_udata *udata);
+ int mlx5_ib_poll_cq(struct ib_cq *ibcq, int num_entries, struct ib_wc *wc);
+ int mlx5_ib_pre_destroy_cq(struct ib_cq *cq);
 -- 
 2.51.1
 
