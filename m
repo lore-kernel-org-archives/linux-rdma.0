@@ -1,249 +1,220 @@
-Received: from mail-qv1-f98.google.com (mail-qv1-f98.google.com [209.85.219.98])
+Received: from mail-pg1-f225.google.com (mail-pg1-f225.google.com [209.85.215.225])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC5072D2493
-	for <linux-rdma@vger.kernel.org>; Tue,  3 Feb 2026 05:06:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.219.98
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770095166; cv=pass; b=nJsRGllcw0CsZMSn6IhvoDvrVk89c0e1kHvRE2GLJhHGiulOmGjQ8i59YpmyhAAcclXW15EqaaXK4D1U6kmFxLKswkPNhWBJxGpht/q3oGh10l14Us5y3n76pS2WyngjZ4fdPWxxoxgxvwc2qzzosIESU87sShY90lubNI/TnPQ=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770095166; c=relaxed/simple;
-	bh=euswlGbyCSaIgT6awUHE3esTnGzss1Ud2qLkivxveXA=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=ItVuTq5ZM0g6VJUVeZkr1m4xQKESWqrCMKBvBYKwsYub2953zmqQXNu5yiRtlIDpdkKQc+7RiJZyG8tEA+OX3snEdD0nqObc0Hyq+0L0F0C6pojv7Jdg5UsDAj97m14a2vzLehEpnu95xMncPq/pszB+EcT2NeqmAm84e5BBcf4=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com; spf=fail smtp.mailfrom=broadcom.com; dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b=QwtZXSfX; arc=pass smtp.client-ip=209.85.219.98
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B1F86192B7D
+	for <linux-rdma@vger.kernel.org>; Tue,  3 Feb 2026 05:09:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.215.225
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1770095356; cv=none; b=ZOrjPovLopTuTz0pJ6/hK6QCHwgU0dAx3XIT8OJeghkQWq1pgwK9ywY/VYWtCEGe1GY8zkKODXn0dOZ3dneF4FVZMkbVuO/FDG52x7CMSaochcj6OdvZTUCuFdRm1Zetu4rKRo798xhkSS0+6ybPOWjErGyoys1ocuCm6iti/Y0=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1770095356; c=relaxed/simple;
+	bh=pR4L2rMeyfFKqF0KqSGmPKUoSYc82N9Bk06IH/0c1R8=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=eoRoPLUCenUC03WWWzzYtGGJBNe4kon8NGCBTVhXTIgQD7KqG3/SPL9jfyk6osnEWg3s6KpqsZVN66Tig8HJCTr7JRBIk8nPSdbrPbTjBGc1qJ0meM88vfczeEucvp6umy2BLQZ8CmHxPQ/zrfieuyX0EI0ni1zj/mVdKPcXzy0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com; spf=fail smtp.mailfrom=broadcom.com; dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b=Yplf2aBL; arc=none smtp.client-ip=209.85.215.225
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=broadcom.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b="QwtZXSfX"
-Received: by mail-qv1-f98.google.com with SMTP id 6a1803df08f44-8946e0884afso87742476d6.1
-        for <linux-rdma@vger.kernel.org>; Mon, 02 Feb 2026 21:06:04 -0800 (PST)
+	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b="Yplf2aBL"
+Received: by mail-pg1-f225.google.com with SMTP id 41be03b00d2f7-c65822dead7so2062432a12.3
+        for <linux-rdma@vger.kernel.org>; Mon, 02 Feb 2026 21:09:14 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1770095163; x=1770699963;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:dkim-signature:x-gm-gg:x-gm-message-state:from:to:cc
+        d=1e100.net; s=20230601; t=1770095354; x=1770700154;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:dkim-signature:x-gm-gg:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=bLmmYOIUNEkwi7Fx3ftf9TcTe+2V5AaddfqTtMxKHys=;
-        b=Uc4p5Eeolay+roWr7ZbnLOBhvxyDSSK9HDLKqlBUnpam85foaG3A5eD9Wf0fPkrdI3
-         w6/P6L7bQiCOCJ3+Yc5nIgbwCD0Gfq3qdxgTMEU48EYaVm731i7XWpY+OHfJHzCAQx0d
-         glRpeSomFwKZjEyP3v5WC+PR0TyhaAPKTEYVPDZg91Jf/Eja76zVg5sfF8H+mQqZL2ie
-         hkodwZtfVDxpSPld/IvOBRlCa9NcE8DU708KPD+HCLw74m6v1hISdiHdtFC+nGGhKCfB
-         x+kCKqXt4uTLKjciI2W8PMoVJknTqWhwsiUw1kTtC3xPXeOWwLRQMl4Ia/L/v5ingDk3
-         DlGA==
-X-Forwarded-Encrypted: i=2; AJvYcCW6G0wu7zJbKRwKdGTfHD+GA7PuKH88eOYL9cZsYe8tP6bbE9cs191oRW5YiJKn71EGoPphFqiyGkgW@vger.kernel.org
-X-Gm-Message-State: AOJu0YxPCpUFmQLuVfDOSYxm8LS7JkBY6CeGKyYmZ+QmnflXOve8fgfj
-	nnMz48B8iEpeALpqONB0OgTejWoYSXGSJawVJumPRAsB5SR0IIE5JroFlQ7fH8Qn/wkbbdcPEsO
-	0KXemBtBLuybexWvwM1z00tzih2aIbKfgSS2hnjnRLE7r27JINZWp3J/Y61BWyv3YKufhCaKAW2
-	cm7wmB8RbofXP5ZWOD/H3vsnXCCHWGXtwcvpmghXdVgcjyoYmWI6i1Wi2t1ykbClszGiQn0/cgL
-	0NFso5aE4hpxQI+ypeDnvC8ouQ4
-X-Gm-Gg: AZuq6aKPxXdPBWRQrnqs+BSP6yUvKPhR7GKMyacRIq6Ort5vnwgjSliW1dSbvB71Zbe
-	eDBoN7n6a/oPi2F/zHcEi5gdR+NyJME2i0N4NXFDG10ckBkhJZY5BOgR5Ee6HUdsieD+aKHIx8Y
-	8FEg3sBN6qV45argm2Qe2VIFaeX1FavVnVFAgtesqLdmW+jXmC383edlGkjly6GMHFt7fBlDjCd
-	W0+ivuu6XA1Bm/4dYvWS36udQE/rnylvXTnmbCt/8rknbm50r5dXOy78RygilImqgvBphQqVL9V
-	T/fwn+al3tGdZWBUYfcVXQu9IDY3iDSOBifo3aLx4Z3USAOXpkNFmT16/oMaPVz9I2JGIPzQZoM
-	udOUr4wIO8jLMHBb8dUWKr87tGavtTy8JP+1Zy02UoMUSqC4Dkt9K4VgtDB6lm0Vm3yKClckn5h
-	1BSyTooeRcePll5OxX59pElozY+b2CfuxMGt+PIvak5cKdXZXkef7Jfg==
-X-Received: by 2002:ad4:5f8a:0:b0:894:3cde:f81e with SMTP id 6a1803df08f44-894ea0905f6mr214812996d6.41.1770095163307;
-        Mon, 02 Feb 2026 21:06:03 -0800 (PST)
+        bh=W13QsJysAuhzPW1PDBgh2Vqmo6mJ2keoagDseiZ7L0o=;
+        b=fQufqN1tPg+KJffwHDsplwKBVUU0Wy9/jDQ8mbJH294Vh6hPp7yq/X3KS41n1LD8JU
+         ih3Sa80I3TiLPg9keG1Ovc0KFBc9C1LgtFCFHXimD2y8LgBZpmIqvYikFdcQCdTy0JQ6
+         4WarCt+KN32x/yz2vraS2Tw4kbatVdU4Szx+qP8hFJa852DUmUHE4tjusDMVGzudTdfj
+         +KCJAwsAz0uk2+HQqHSXPRDNvHmsQrJj2ZI1nrsjI7Az3WGDGnOBZD6AQtXowptu50dd
+         RbhdezMEMzTwggcuNKceDpgnzm7koJRKASO6MX2ZYrvY6jxofJY4e/eC5vXmgXc8Tk6L
+         iRTQ==
+X-Gm-Message-State: AOJu0Yw+JHoKQFMg+pFet1ry8d8RgN2FmNd6tc3wqQQzDJp9o/PQL2OE
+	0xS9J+sjntTnRcOeiyXLY/yJrv0ggzhZ2eP5rnNw6YMjMFWb/sXdKfilJeELsYSClJpjxRsAplM
+	tB5TuIxvyTVG1367OV5yoQX+Gy8uzUdLZf8FOjcQ0S1Y49kJRZgS5Gp9y6LT+52RiHgx8vdxX1i
+	MCFo1hpw9oj0dIit/RPKXC/cCyPKxgIDiTxrz6SDP1Ba/QO5akpnLGbWHdoT3x1o2oq802fsvCd
+	qWCmpaOZ/h5CKzSHRcZdFGlNOxE
+X-Gm-Gg: AZuq6aLWocOyHGETXE+Qd3Zjf1g+EgjkbYuftRg6tZSd5t2hPzZ6vnU2wAU5hsBe9Zr
+	fpBhX8+1qZWh3PLQr7foGhnBhUxo0RHmeeO4fAaY9tkGD95+QAMUOEouyXGClDphOpSGkkjvDaF
+	WSh1PIBo9wUZTNespM5yVtMpUa/UMu6xyvCaI4XvABMJMMySsfpv9i0dayhQrih69r29p7uOPD0
+	GIef7KE4tPp727kfbpwRBGQU30EmTqb8WCsQckh4nmjXGSjfzHBvFLuf5CQj3mQDJpF0i9GEviz
+	UMFKGNn68P029bSdECHN3HivryRFV4oYFZMCSknQiBhcGfVNoORz6c52u+SHPIaAnqhEphNSW4r
+	jfYTKhxoUHX25QD6PsGTIoPl1hFRo08jYijFgNx4CRoFVK6qZYUW+SUNXSX88BgAGji6lS5D/Q2
+	pLZcGbMKKhmlYho9RRSzQ8P8KbJWcjqIzkWf/Jni0Bux11BH6KeOF5hw==
+X-Received: by 2002:a17:902:cecb:b0:295:54cb:16ac with SMTP id d9443c01a7336-2a8d7ed87e3mr147213125ad.18.1770095353935;
+        Mon, 02 Feb 2026 21:09:13 -0800 (PST)
 Received: from smtp-us-east1-p01-i01-si01.dlp.protect.broadcom.com (address-144-49-247-2.dlp.protect.broadcom.com. [144.49.247.2])
-        by smtp-relay.gmail.com with ESMTPS id 6a1803df08f44-894d36a99f5sm26553826d6.7.2026.02.02.21.06.02
+        by smtp-relay.gmail.com with ESMTPS id d9443c01a7336-2a88b4265d6sm24177035ad.25.2026.02.02.21.09.13
         for <linux-rdma@vger.kernel.org>
         (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 02 Feb 2026 21:06:03 -0800 (PST)
+        Mon, 02 Feb 2026 21:09:13 -0800 (PST)
 X-Relaying-Domain: broadcom.com
 X-CFilter-Loop: Reflected
-Received: by mail-wm1-f72.google.com with SMTP id 5b1f17b1804b1-4803e8b6007so42559135e9.0
-        for <linux-rdma@vger.kernel.org>; Mon, 02 Feb 2026 21:06:02 -0800 (PST)
-ARC-Seal: i=1; a=rsa-sha256; t=1770095161; cv=none;
-        d=google.com; s=arc-20240605;
-        b=Id8tnZ7/oevCrZ3R/LgUItd5eDpz+dI3EiV5bD92waqGRkLcS1RHjpJqH/nNCuUOf3
-         FPU9pFnz9n0k+ejSYdSH3HLY7JBCYhCzghph/96oFg0iFHU9fTJLXVnpvkYlZNt6Jkqn
-         o5GGujXFnoMv4lVDll5HI+lZsiykHKqhbFQDyFqha9QkYvbFehFJdcK4RvgG/piwYvwI
-         UqE6t6xfTmPNeWy7cgWdnuSPifUN4Y5Zh/LIU0cmEv4WXid+ASZWL2sioe2XciGDAfnV
-         s2/pYeezLh2D2KINQDCLZWD+A3ZdVGYdsXS42Wg4jMlo8jFTUGvIDXhFQxDLpBmvZJOy
-         WjcQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:dkim-signature;
-        bh=bLmmYOIUNEkwi7Fx3ftf9TcTe+2V5AaddfqTtMxKHys=;
-        fh=TEliDx3YoFTpMG3c3x90HFbLIVCh4yArtnlnCZne3mk=;
-        b=S4u9gvBATDWSxygaj3QnXbB7mQxbWOz1dHc++6GDb9L3hrvqAdQgqj1PKZK/Js8VVJ
-         5MGu5H4r0hJX+yqLL3O2w+D1qzKpPjA8GjLzyj7u/GxowE1nXJmWNGsM8CIV5rZBS05x
-         7ttJpiVrytBQkgyWx8KGc8upet3N95HYFP8Xrr4foYJfRzFdc28OMuawHFY8wkQw8i+8
-         p5vIrysmO+89pIQQkGkUI05mLirwPZCbFDsTRS/5lKfczN8jH4kU+bqVIo/bs4k96SBd
-         aHdd0+g5HM4u5Nwrtp6uFGnFSsczX2tCiNy4kXjDNuWchO7riimxL07kDDnR5WhWk5zU
-         mQHA==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
+Received: by mail-pg1-f199.google.com with SMTP id 41be03b00d2f7-c68b97b7316so1506217a12.3
+        for <linux-rdma@vger.kernel.org>; Mon, 02 Feb 2026 21:09:12 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=broadcom.com; s=google; t=1770095160; x=1770699960; darn=vger.kernel.org;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=bLmmYOIUNEkwi7Fx3ftf9TcTe+2V5AaddfqTtMxKHys=;
-        b=QwtZXSfXql3qsxqTSNTq299wMCr478q5hLGl164WpwgWK+MO0E7gPxDoYzG0zMmgQe
-         5e3yYlHomQ0oy7sBf+bJHgv/KO6ztFKEeWF7vctHStU7OAll0AtaiTeJJLNqNyMyfqY0
-         druxboLiCamJew2AePUsTChhw+yL6eIWBUc74=
-X-Forwarded-Encrypted: i=1; AJvYcCUxR/ERayGleMFWRn39/aqA3Bjmn+LsXJk45/o/YgUTfZsQCuPRMWtdfYqR+Q7+q6xDSbFoZsemM603@vger.kernel.org
-X-Received: by 2002:a05:600c:3e1b:b0:480:32da:f33e with SMTP id 5b1f17b1804b1-482db47ce18mr181473155e9.17.1770095160703;
-        Mon, 02 Feb 2026 21:06:00 -0800 (PST)
-X-Received: by 2002:a05:600c:3e1b:b0:480:32da:f33e with SMTP id
- 5b1f17b1804b1-482db47ce18mr181472955e9.17.1770095160381; Mon, 02 Feb 2026
- 21:06:00 -0800 (PST)
+        d=broadcom.com; s=google; t=1770095352; x=1770700152; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=W13QsJysAuhzPW1PDBgh2Vqmo6mJ2keoagDseiZ7L0o=;
+        b=Yplf2aBLkm/9hWjcE9bi2msXzAq1yr6KuIh6wVAZrK6YgZa0M6J5xCdJDgwYNFTkZ1
+         Im4ogPOuXIIWyUf1Pd9dXz/e7yFhjim9uuDe2AI9y/Db/gjtrhaxmf4zTVj6KvtLSjwc
+         wQpqr1FUn6wj+ciWF4f0JgSfJzFjNgh4KLPho=
+X-Received: by 2002:a05:6a21:6490:b0:2dc:40f5:3c6c with SMTP id adf61e73a8af0-392e0145956mr11849567637.54.1770095351784;
+        Mon, 02 Feb 2026 21:09:11 -0800 (PST)
+X-Received: by 2002:a05:6a21:6490:b0:2dc:40f5:3c6c with SMTP id adf61e73a8af0-392e0145956mr11849550637.54.1770095351418;
+        Mon, 02 Feb 2026 21:09:11 -0800 (PST)
+Received: from dhcp-10-123-157-187.dhcp.broadcom.net ([192.19.234.250])
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3547b1306c5sm621948a91.15.2026.02.02.21.09.08
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 02 Feb 2026 21:09:10 -0800 (PST)
+From: Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>
+To: leon@kernel.org,
+	jgg@ziepe.ca
+Cc: linux-rdma@vger.kernel.org,
+	andrew.gospodarek@broadcom.com,
+	selvin.xavier@broadcom.com,
+	kalesh-anakkur.purayil@broadcom.com,
+	Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>
+Subject: [PATCH rdma-next v10 0/6] RDMA/bnxt_re: Support direct verbs
+Date: Tue,  3 Feb 2026 10:30:43 +0530
+Message-ID: <20260203050049.171026-1-sriharsha.basavapatna@broadcom.com>
+X-Mailer: git-send-email 2.51.2.636.ga99f379adf
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260127103109.32163-1-sriharsha.basavapatna@broadcom.com>
- <20260127103109.32163-6-sriharsha.basavapatna@broadcom.com>
- <20260128153248.GK1641016@ziepe.ca> <CAHHeUGVLi8ZxK3qpJ+nk6DcDd8365fdru-vPmkKtF6k-P4FAcw@mail.gmail.com>
- <CAHHeUGVZCojAmjmqm7yPys2N2TYApPnbMN3dcb4dnWDL_sAA0g@mail.gmail.com>
- <20260128194253.GX1641016@ziepe.ca> <CAHHeUGUNzi3x5bAQeHKkMY2Mb3nE7eFJAVF=NHNXoQ3RRLGzcw@mail.gmail.com>
- <20260202174845.GK2328995@ziepe.ca>
-In-Reply-To: <20260202174845.GK2328995@ziepe.ca>
-From: Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>
-Date: Tue, 3 Feb 2026 10:35:48 +0530
-X-Gm-Features: AZwV_QisL_qfnxlokAHLRkbLoCp9BmdlvrU9IxajK5l7G5pWrOfDXNtKN2_Fexk
-Message-ID: <CAHHeUGW=Jced=QcFK=7+rZdHmVZkzDKdvOZ7beTK2u_xcQ2hfw@mail.gmail.com>
-Subject: Re: [PATCH rdma-next v9 5/5] RDMA/bnxt_re: Direct Verbs: Support CQ
- and QP verbs
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Jiri Pirko <jiri@nvidia.com>, leon@kernel.org, linux-rdma@vger.kernel.org, 
-	andrew.gospodarek@broadcom.com, selvin.xavier@broadcom.com, 
-	kalesh-anakkur.purayil@broadcom.com, 
-	Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>
+Content-Transfer-Encoding: 8bit
 X-DetectorID-Processed: b00c1d49-9d2e-4205-b15f-d015386d3d5e
-Content-Type: multipart/signed; protocol="application/pkcs7-signature"; micalg=sha-256;
-	boundary="0000000000004a2aa10649e4655b"
 
---0000000000004a2aa10649e4655b
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Hi,
 
-On Mon, Feb 2, 2026 at 11:18=E2=80=AFPM Jason Gunthorpe <jgg@ziepe.ca> wrot=
-e:
->
-> On Mon, Feb 02, 2026 at 07:49:29PM +0530, Sriharsha Basavapatna wrote:
-> > I have the revised patchset ready. Let me know how you want to proceed
-> > -  if I should send it out (without the uverbs kernel patch for QP
-> > umem) or if I should wait for the kernel patch and rebase it before
-> > sending.
->
-> How about change the Author on that patch to youself and some
-> co-developed & signed-off for Jiri and send it out, I'd at least like
-> to look at the other changes.
->
-> Jiri said he would send his series, there is still time I can stitch
-> something together.
-Ok, I will include that patch as a placeholder for now and this patch
-series can be rebased when it is ready.
+This patchset supports Direct Verbs in the bnxt_re driver.
+
+This is required by vendor specific applications that need to manage
+the HW resources directly and to implement the datapath in the
+application.
+
+To support this, the library and the driver are being enhanced to
+provide Direct Verbs using which the application can allocate and
+manage the HW resources (Queues, Doorbell etc) . The Direct Verbs
+enable the application to implement the control path.
+
+Patch#1 Uverbs support for user allocated QP mem
+Patch#2 Move uapi methods to a separate file
+Patch#3 Refactor existing bnxt_qplib_create_qp() function
+Patch#4 Support dbr direct verbs
+Patch#5 Support cq direct verbs
+Patch#6 Support qp direct verbs
+
 Thanks,
 -Harsha
->
-> Jason
 
---0000000000004a2aa10649e4655b
-Content-Type: application/pkcs7-signature; name="smime.p7s"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="smime.p7s"
-Content-Description: S/MIME Cryptographic Signature
+******
 
-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
-tJVewHuOmXgWQxNWV7Oiszu1d9xAcqyj65s1PrEIIaHnxEM3eTK+teecLEy8QymZjjDTrCHg4x36
-2AczdlQAIiq5TSAucGja5VP8g1zTnfL/RAxEZvLS471GABptArolXY2hMVHdVEYcTduZlu8aHARc
-phXveOB5/l3bPqpMVf2aFalv4ab733Aw6cPuQkbtwpMFifp9Y3s/0HGBfADomK4OeDTDJfuvCp8g
-a907E48SjOJBGkh6c6B3ace2XH+CyB7+WBsoK6hsrV5twAXSe7frgP4lN/4Cm2isQl3D7vXM3PBQ
-ddI2aZzmewTfbgZptt4KCUhZh+t7FGB6ZKppQ++Rx0zsGN1s71MtjJnhXvJyPs9UyL1n7KQPTEX/
-07kwIwdMjxC/hpbZmVq0mVccpMy7FYlTuiwFD+TEnhmxGDTVTJ267fcfrySVBHioA7vugeXaX3yL
-SqGQdCWnsz5LyCxWvcfI7zjiXJLwefechLp0LWEBIH5+0fJPB1lfiy1DUutGDJTh9WZHeXfVVFsf
-rSQ3y0VaTqBESMjYsJnFFYQJ9tZJScBluOYacW6gqPGC6EU+bNYC1wpngwVayaQQMIIGszCCBJug
-AwIBAgIMPiCpKhlPGjqoQ++SMA0GCSqGSIb3DQEBCwUAMFIxCzAJBgNVBAYTAkJFMRkwFwYDVQQK
-ExBHbG9iYWxTaWduIG52LXNhMSgwJgYDVQQDEx9HbG9iYWxTaWduIEdDQyBSNiBTTUlNRSBDQSAy
-MDIzMB4XDTI1MDYyMDEzNTQwNVoXDTI3MDYyMTEzNTQwNVowgfIxCzAJBgNVBAYTAlVTMRMwEQYD
-VQQIEwpDYWxpZm9ybmlhMREwDwYDVQQHEwhTYW4gSm9zZTEZMBcGA1UEYRMQTlRSVVMrREUtNjYx
-MDExNzEUMBIGA1UEBBMLQmFzYXZhcGF0bmExEjAQBgNVBCoTCVNyaWhhcnNoYTEWMBQGA1UEChMN
-QlJPQURDT00gSU5DLjErMCkGA1UEAwwic3JpaGFyc2hhLmJhc2F2YXBhdG5hQGJyb2FkY29tLmNv
-bTExMC8GCSqGSIb3DQEJARYic3JpaGFyc2hhLmJhc2F2YXBhdG5hQGJyb2FkY29tLmNvbTCCASIw
-DQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAKS3kXt4zVFK0i5F3y88WV5rV0rr2S3nOVTaCGMB
-o6Se8pIb2HJcdpQ4rMiJuIRSyG2XDWv6OB+66eM/6cD2oklFcdzpC4/eYOQFWJ/XM8+ms6HT7P5e
-uE7sY6CeUzLzHNjcRwVgZRWlELghY7DIW9fbMzRNDFsbxuIN/7eSofavP1q7PF3+DqhHZpmrVkDu
-vcEBTRZSn8NWZ0Xhy4a+Y3KN2W55hh6pWQWO0lt2TtpyaqYp95egJGqDUPtqydci+qrBzXbL05Q0
-gcK0NfqGJwLsEVqxHwzz/jRrzKBYKQEK4Bpau91oxVGLmxy1nQDiyI1121xyvsJBDctKH245XZkC
-AwEAAaOCAeYwggHiMA4GA1UdDwEB/wQEAwIFoDAMBgNVHRMBAf8EAjAAMIGTBggrBgEFBQcBAQSB
-hjCBgzBGBggrBgEFBQcwAoY6aHR0cDovL3NlY3VyZS5nbG9iYWxzaWduLmNvbS9jYWNlcnQvZ3Nn
-Y2NyNnNtaW1lY2EyMDIzLmNydDA5BggrBgEFBQcwAYYtaHR0cDovL29jc3AuZ2xvYmFsc2lnbi5j
-b20vZ3NnY2NyNnNtaW1lY2EyMDIzMGUGA1UdIAReMFwwCQYHZ4EMAQUDAzALBgkrBgEEAaAyASgw
-QgYKKwYBBAGgMgoDAjA0MDIGCCsGAQUFBwIBFiZodHRwczovL3d3dy5nbG9iYWxzaWduLmNvbS9y
-ZXBvc2l0b3J5LzBBBgNVHR8EOjA4MDagNKAyhjBodHRwOi8vY3JsLmdsb2JhbHNpZ24uY29tL2dz
-Z2NjcjZzbWltZWNhMjAyMy5jcmwwLQYDVR0RBCYwJIEic3JpaGFyc2hhLmJhc2F2YXBhdG5hQGJy
-b2FkY29tLmNvbTATBgNVHSUEDDAKBggrBgEFBQcDBDAfBgNVHSMEGDAWgBQAKTaeXHq6D68tUC3b
-oCOFGLCgkjAdBgNVHQ4EFgQU9Dwqof/Zp1ZdK6zi7XdRGdBWQt0wDQYJKoZIhvcNAQELBQADggIB
-AKzx/6ognUMhNv+rh7iQOeHdGA7WMDixk+zrD7TZL6O5DPqXfFqaTLpswyruTymA3AVxZkMJyF6D
-zOAsRfU23BjVlgC95zl1glr7DorZW7B/CQDwbLHlkFy92Oa3E+gBzwdiDMjnq6tOW5p83zoVqiV4
-qm4OwC9JILEkslV4uZVXHPm5cZoOQURTECE2BN34Qhg5qD3EKYqOTeMVRed1qQiIPqQv1b4xjPVS
-qBwNPl7/4TJGiZGnRB7FsNnNUQRJONnEFifM3KGqjbqA4F8BhLXCYjqtBxxCGA5506StNfsjT8UU
-28E6lcuJXC4hQXau+xXQ5GWqS4ecWwm22FAVy/i8FJVfXPTJnZeixmqaadbIU3fOJs5+XfyNkU2T
-mlCafSr7KgV570M6tITSyminW/7rc8hdznGYypCNa+45JYJTaK4x1+Ejptaxc7TCS12B1zQNCxa7
-AHX5PZra3SpDb7g1p1i1Ax0JVJTkThiCSNDbiauVn7xIJpf+H8HC6O2ddGmtKUxe6NseFnSGJsi6
-7lO/cU+TpduV7w3weUy+nHhp+GsbClfvAGhFAs/GkyONExCwwIEVlFp9Mj5JLAgB+ceMbojBIoaO
-d5rOzdIII5FDwKAAqyjHuniYLrP0xIH4L5kWOAy+LudP4PSze7uAxTiCiSJg5AaNBTa5NuwTnSX6
-MYICVzCCAlMCAQEwYjBSMQswCQYDVQQGEwJCRTEZMBcGA1UEChMQR2xvYmFsU2lnbiBudi1zYTEo
-MCYGA1UEAxMfR2xvYmFsU2lnbiBHQ0MgUjYgU01JTUUgQ0EgMjAyMwIMPiCpKhlPGjqoQ++SMA0G
-CWCGSAFlAwQCAQUAoIHHMC8GCSqGSIb3DQEJBDEiBCDCgYWkAh/kbB2NsxiCtPh5sABFbUsYwqo2
-YpFAFOMNjjAYBgkqhkiG9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0yNjAyMDMw
-NTA2MDBaMFwGCSqGSIb3DQEJDzFPME0wCwYJYIZIAWUDBAEqMAsGCWCGSAFlAwQBFjALBglghkgB
-ZQMEAQIwCgYIKoZIhvcNAwcwCwYJKoZIhvcNAQEHMAsGCWCGSAFlAwQCATANBgkqhkiG9w0BAQEF
-AASCAQCIWSuLRe/vuWbQIu3ZPRDXvD8ykRLpj8KOrvDhNGkR72pX003IL+9HoN8N582JhwoZ+fCI
-1fYPTC1SzL6ByZXGBUAnuIWVifHTLevhUBhrc4bYrCx/qyYGGlUS9xIvmgHg4feg5R1pTE7xXoFQ
-Law2cdPFZCPo98etkTqRGFzB7C3K2xrWOy5ByoNxgnprg2CTWdzT2v0653gA3pHcUa+VC4MvN8EL
-3rUj3Jflr1wa+rn/7a8GFvfNoNOv+oUeJ1DipnqzB3hePINjxuahc+aiJ1PM3iOKqb91ka9400dZ
-szFBR59L5gVFzhzsV1iZdcZ/zk+qilY/tAJQc1NVMN8c
---0000000000004a2aa10649e4655b--
+Changes:
+
+v10:
+- Fixed comp_mask issues:
+  - Driver returns cmask capability in ucntx for CQ/QP.
+  - Driver checks req comp_mask for supported bitmasks.
+  - Driver returns -EOPNOTSUPP if invalid comp_mask.
+- Fixed zero initialization of req/resp structures.
+- Use PD object from QP; deleted pd_id in ureq.
+- Deleted debug counters.
+- Split CQ/QP changes into two separate patches (#5,#6).
+v9:
+- Added a new uverbs patch (#1) in RDMA core.
+  - Supports user/app allocated memory for QP.
+- Updated Patch#5 (cq/qp) to utilize umem dev op.
+- Updated driver ABI file (deleted dmabuf_fd/len fields).
+v8:
+- Patch#3:
+  - Removed dpi_hash table (and lock/rcu).
+  - Renamed bnxt_re_alloc_dbr_obj->bnxt_re_dbr_obj.
+  - Added an atomic usecnt in dbr_obj.
+- Patch#4:
+  - Registered a driver specific attribute for dbr_handle.
+  - Process dbr_handle during QP creation.
+  - Added refcnt logic to avoid dbr deletion with active QPs.
+  - Reverted dpi hash table lookup and related code.
+  - Removed dpi from req_qp ABI.
+  - Added ib_umem_find_best_pgsz() in umem processing.
+  - Added a wrapper function for dv_cq deletion.
+v7:
+- Patch#3:
+  - DBR_OFFSET attribute changed to PTR_OUT.
+  - Added a reserved field in struct bnxt_re_dv_db_region.
+  - Reordered sequence in DBR_ALLOC (hash_add -> uverbs_finalize).
+  - Synchronized access to dpi hash table.
+- Patch#4:
+  - Changed dmabuf_fd type (u32->s32) in ABI.
+  - Changed num_dma_blocks() arg from PAGE_SIZE to SZ_4K. 
+  - Fixed atomic read/inc race window in bnxt_re_dv_create_qplib_cq().
+  - Deleted bnxt_re_dv_init_ib_cq(). 
+v6:
+- Minor updates in Patch#3:
+  - Removed unused variables.
+  - Renamed & updated a uverbs method to a global.
+- Minor updates in Patch#4:
+  - Removed unused variables, stray hunks.
+v5:
+- Design changes to address previous round of comments:
+  - Reverted changes in rdma-core (removed V4-Patch#1).
+  - Removed driver support for umem-reg/dereg DVs (Patch#3).
+  - Enhanced driver specific udata to avoid new CQ/QP ioctls (Patch#4).
+  - Removed additional driver functions in modify/query QP (Patch#4).
+  - Utilized queue-va in udata for deferred pinning (Patch#4).
+v4:
+- Added a new (rdma core) patch.
+- Addressed code review comments in patch 5.
+v3:
+- Addressed code review comments in patches 1, 2 and 4.
+v2:
+- Fixed build warnings reported by test robot in patches 3 and 4.
+
+v9: https://lore.kernel.org/linux-rdma/20260127103109.32163-1-sriharsha.basavapatna@broadcom.com/
+v8: https://lore.kernel.org/linux-rdma/20260117080052.43279-1-sriharsha.basavapatna@broadcom.com/
+v7: https://lore.kernel.org/linux-rdma/20260113170956.103779-1-sriharsha.basavapatna@broadcom.com/
+v6: https://lore.kernel.org/linux-rdma/20251224042602.56255-1-sriharsha.basavapatna@broadcom.com/
+v5: https://lore.kernel.org/linux-rdma/20251129165441.75274-1-sriharsha.basavapatna@broadcom.com/
+v4: https://lore.kernel.org/linux-rdma/20251117061741.15752-1-sriharsha.basavapatna@broadcom.com/
+v3: https://lore.kernel.org/linux-rdma/20251110145628.290296-1-sriharsha.basavapatna@broadcom.com/
+v2: https://lore.kernel.org/linux-rdma/20251104072320.210596-1-sriharsha.basavapatna@broadcom.com/
+v1: https://lore.kernel.org/linux-rdma/20251103105033.205586-1-sriharsha.basavapatna@broadcom.com/
+
+******
+
+Kalesh AP (3):
+  RDMA/bnxt_re: Move the UAPI methods to a dedicated file
+  RDMA/bnxt_re: Refactor bnxt_qplib_create_qp() function
+  RDMA/bnxt_re: Direct Verbs: Support DBR verbs
+
+Sriharsha Basavapatna (3):
+  RDMA/uverbs: Support QP creation with user allocated memory
+  RDMA/bnxt_re: Direct Verbs: Support CQ verbs
+  RDMA/bnxt_re: Direct Verbs: Support QP verbs
+
+ drivers/infiniband/core/device.c              |   1 +
+ drivers/infiniband/core/uverbs_std_types_qp.c | 157 ++-
+ drivers/infiniband/hw/bnxt_re/Makefile        |   2 +-
+ drivers/infiniband/hw/bnxt_re/bnxt_re.h       |   4 +
+ drivers/infiniband/hw/bnxt_re/dv.c            | 906 ++++++++++++++++++
+ drivers/infiniband/hw/bnxt_re/ib_verbs.c      | 666 ++++++-------
+ drivers/infiniband/hw/bnxt_re/ib_verbs.h      |  32 +
+ drivers/infiniband/hw/bnxt_re/main.c          |   2 +
+ drivers/infiniband/hw/bnxt_re/qplib_fp.c      | 305 ++----
+ drivers/infiniband/hw/bnxt_re/qplib_fp.h      |   8 +
+ drivers/infiniband/hw/bnxt_re/qplib_res.c     |  43 +
+ drivers/infiniband/hw/bnxt_re/qplib_res.h     |  10 +
+ include/rdma/ib_verbs.h                       |   4 +
+ include/uapi/rdma/bnxt_re-abi.h               |  44 +
+ include/uapi/rdma/ib_user_ioctl_cmds.h        |   8 +
+ 15 files changed, 1623 insertions(+), 569 deletions(-)
+ create mode 100644 drivers/infiniband/hw/bnxt_re/dv.c
+
+-- 
+2.51.2.636.ga99f379adf
+
