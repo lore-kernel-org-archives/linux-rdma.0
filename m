@@ -1,86 +1,141 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qk1-f172.google.com (mail-qk1-f172.google.com [209.85.222.172])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A9AB3ECBCB;
-	Wed,  4 Feb 2026 13:01:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D8DCD27055D
+	for <linux-rdma@vger.kernel.org>; Wed,  4 Feb 2026 13:35:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770210063; cv=none; b=LaH6alHNNsPzubOU5gpXhZ/7kwLwKxbtZNJNoy5ckFVah5GkNUJI9BbWPXxJ8AWE0gWMYgCN/DExu+yInSWpQIW8Xo8LzsLFHZpWn3IAN5hkZ73Ux/doCURvmRR2+ur6vGLjw4gMk4h0oe1MTTKdhREngUNVbzLxUoSLk3eaWeA=
+	t=1770212126; cv=none; b=HFqWtSa2hnS/fG08lS1CpzNPWvCPEs8TAvNZxtr9Cow1zWh0IfQpEFMIPMke3ua3dIfYWUY5KaEWsD//NAfn+jF7UCnTXRaGo7q5WOWeT1DG7ccA6vzLxopQnFkneJaLZ4ezrFUc5AdcWG4dUC0whbCzESSl9il1t72P5DF9eZ8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770210063; c=relaxed/simple;
-	bh=KwTfWpq86D9sO12JLnK7XQva4LmKulNdCMUHoaxRzRE=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=E2FZkiwQN2eKEvPKR9QLHUKy03wvvNlHAmra1Xyq0S3BPamjTtUTaxjHH68y/68f6jl67I6oZ9zGFGG8rZl3SJBSjfVgZ1+m8eITNHuxBAb7KjWNLEOI6bOCR37okWyV+ikAqoTaV8L/RmrcKeQia2O9t6CTcbMq1om+DkrzuFg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=AVEVU1cH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1770212126; c=relaxed/simple;
+	bh=H/kTkGZP8AkvmyFzU3sXO08Z5L27cMenr5LlCq/UphI=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=MHuVhLamyBBqpyiLArvhq1By+3fKHTA0pR4rKN02J3kvZw+0GgWk4iSiBpQsVnO2sMiq8amxDCPdf2AJ4dmwjj9Vcebs8V50ixX/hcC4ZJ0ChYPXGEzbPZSAMmohWWx6bOeg0fXKn4hi51ACrezCvobLQnaObp4kG9zIkqd9PvU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca; spf=pass smtp.mailfrom=ziepe.ca; dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b=Uv0WIWUc; arc=none smtp.client-ip=209.85.222.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ziepe.ca
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="AVEVU1cH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1BD33C16AAE;
-	Wed,  4 Feb 2026 13:00:59 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1770210063;
-	bh=KwTfWpq86D9sO12JLnK7XQva4LmKulNdCMUHoaxRzRE=;
-	h=From:To:Cc:Subject:Date:From;
-	b=AVEVU1cHdK/2ASt2v2RhR9lCuJMc76zYzPdqZlvRTwAMGWCAexUnw4HLGpTWXlPX3
-	 z2H8H47glj4k4rQEiUSY4NjV3uTtWgf2G8BvcLk7lh6HMfF7Vv/vaQIaRasp5moBRy
-	 eAkqCSWnOENQG3gjcGbGHBptwbp3wwp74nxU66lZKGNzHl5FlHFpPYDt4cKK+EaS50
-	 rIh1rmphvJxsGKUMWp//T0ElO3WfsXoDA0GJou1B6M095KfeBOQtMaO8Mj1iicRzZ2
-	 FrPx3i2DEFPeaRIx7Ra3XKVjUl1zoDHTHDeUfcyYLxD7O5dCJjHD37C4TYaBAIMQxz
-	 TXPrJ1DyLTl3Q==
-From: Arnd Bergmann <arnd@kernel.org>
-To: Saeed Mahameed <saeedm@nvidia.com>,
-	Leon Romanovsky <leon@kernel.org>,
-	Tariq Toukan <tariqt@nvidia.com>,
-	Mark Bloch <mbloch@nvidia.com>,
-	Andrew Lunn <andrew+netdev@lunn.ch>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Jianbo Liu <jianbol@nvidia.com>
-Cc: Arnd Bergmann <arnd@arndb.de>,
-	Cosmin Ratiu <cratiu@nvidia.com>,
-	Raed Salem <raeds@nvidia.com>,
-	netdev@vger.kernel.org,
-	linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH] [net-next] net/mlx5e: fix ip6_dst_lookup link failure
-Date: Wed,  4 Feb 2026 14:00:49 +0100
-Message-Id: <20260204130057.4107804-1-arnd@kernel.org>
-X-Mailer: git-send-email 2.39.5
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="Uv0WIWUc"
+Received: by mail-qk1-f172.google.com with SMTP id af79cd13be357-8c9f6b78ca4so721831385a.0
+        for <linux-rdma@vger.kernel.org>; Wed, 04 Feb 2026 05:35:25 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ziepe.ca; s=google; t=1770212125; x=1770816925; darn=vger.kernel.org;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :mime-version:references:message-id:subject:cc:to:from:date:from:to
+         :cc:subject:date:message-id:reply-to;
+        bh=cy8s41Ej9e437sslVRAHtURD2nYFlOPaZF56zUYznoI=;
+        b=Uv0WIWUcqJtPXKa/5Y7ubmiDv0M8T+sBw1uP2dAfNaKLquu1fLoQKAHmC/IPmVrWqC
+         5tWvyrmfii+V58Isx8AjekbvEEXTun3IiyFlip6GExElerbAkxZP4NI3Hd0F3oriQ+CO
+         huxr/QhQ2zEgauiFRlsDaxzXkEQwWbqkmlxNAazL2vfE+Rrydjoj2jCuzWZut7u/trmJ
+         JZURS7iHKu6X9E5OtW2VnFzp4SID4WKhMRBz0+mx9vj7TjxtkGVvptuDo0MUaH+4N62Q
+         dSkX82jwu3reH9HUOItc1utLRRMj9Ds+/4kG0qtsIdGyVJfF8KeZQ6Y96Lqv55UIV4An
+         TwMQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1770212125; x=1770816925;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :mime-version:references:message-id:subject:cc:to:from:date:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=cy8s41Ej9e437sslVRAHtURD2nYFlOPaZF56zUYznoI=;
+        b=s3ZS/UN39AdXv490A2c9z063jIGCffxp/gDd2iOC50AAyE1xWyMker4/gLFYCrVsro
+         7oiLHVCgwcB9NtBFLVUpKX5Ueb/ivKGiaL+AeH4/+Hf76e5RiJSF08LNOxFJepaNJo+h
+         tgo8IZXy/t3dEyoBIgwICoUvgpndIV028A4oHxIeVrN6RE8ZUbuUDhzTbqLovVZUfPP1
+         yccM2Mj7ApA7FENMSZV9tgc97epPGuFAWl4UDpxCSCK2uTjuntNU3OOZWjcuzk6eTtuh
+         dXshiq+fLQFvJ9D+8Dvqj6XSfWT+kQ46aZD9sT9gozmdMaakAGXo/YO9sQhxEGHEFYdc
+         tIzA==
+X-Forwarded-Encrypted: i=1; AJvYcCXqrrm1aGVGUNIQJNcTL0hYBXbbKhNYvENMCXRiBZrY/FRz7RUPYEBfsCnNedPitm9/8dgYxfdL6Bru@vger.kernel.org
+X-Gm-Message-State: AOJu0YyBdWoW6SbrkVpbGCceuztJUMAFe98vb6yDJW8bOCn5ITeSctQU
+	OCEEf2frlN+3RS0XpEAdNr4JMd7jy+5NDy+I7Cm6fn9tLJqERj9dsjbxXCHm9hIISek=
+X-Gm-Gg: AZuq6aK1fPfLyW25S17McTG0wM//L2yrl8h6PfxEiRKGgWE8jcsnj5dh7EiW/ZXzYXi
+	mwz+MfNCAsyHMh20n129nXa4ixlbQocvyKV4ZfF3vqg60yU3QmO8DKUYyCpcpVeJWn2YIC7uQUm
+	HxQ/H9Uz3cUMwmpdbl6QXiuxxRQ8IaM41ZFJoJtGZwp+FklzxY3awiRAOq52M+F2MxD0MWDZCEI
+	w0++QyE5aWJdqudohgwRbDj9OuZN0/3o07CC9WIIdddilgpicbCZePSrKKlhCp30tSjLYI0toUE
+	OoAGqDXi8owZxk6Ui5T+mzEMTyFd3HJvmTKAtyCqI93QX54a9ej6+wqR57BD+3a6Ui1ViiMVQdb
+	d9vBGsirgRC4dgFA3YZ5CIq61xZTLc4tZgPfqjIb4sn09DZQnsJ9Xt3LwAQ3M0cYT/V29oNdOUE
+	oNBOT4T6DODvzlpScJlHJKXnv1+DeGcZ1SmYuAaWWaP9/PHEJeSfgD7JpAi2IhXwN5jAM=
+X-Received: by 2002:a05:622a:1aaa:b0:4f4:d29a:40e7 with SMTP id d75a77b69052e-5061c1c1dc5mr32950871cf.74.1770212124739;
+        Wed, 04 Feb 2026 05:35:24 -0800 (PST)
+Received: from ziepe.ca (hlfxns017vw-142-162-112-119.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.162.112.119])
+        by smtp.gmail.com with ESMTPSA id d75a77b69052e-5061c17babbsm16346801cf.15.2026.02.04.05.35.23
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 04 Feb 2026 05:35:24 -0800 (PST)
+Received: from jgg by wakko with local (Exim 4.97)
+	(envelope-from <jgg@ziepe.ca>)
+	id 1vnd2R-0000000H0ml-1uPP;
+	Wed, 04 Feb 2026 09:35:23 -0400
+Date: Wed, 4 Feb 2026 09:35:23 -0400
+From: Jason Gunthorpe <jgg@ziepe.ca>
+To: Christian =?utf-8?B?S8O2bmln?= <christian.koenig@amd.com>
+Cc: Leon Romanovsky <leon@kernel.org>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	Alex Deucher <alexander.deucher@amd.com>,
+	David Airlie <airlied@gmail.com>, Simona Vetter <simona@ffwll.ch>,
+	Gerd Hoffmann <kraxel@redhat.com>,
+	Dmitry Osipenko <dmitry.osipenko@collabora.com>,
+	Gurchetan Singh <gurchetansingh@chromium.org>,
+	Chia-I Wu <olvaffe@gmail.com>,
+	Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
+	Maxime Ripard <mripard@kernel.org>,
+	Thomas Zimmermann <tzimmermann@suse.de>,
+	Lucas De Marchi <lucas.demarchi@intel.com>,
+	Thomas =?utf-8?Q?Hellstr=C3=B6m?= <thomas.hellstrom@linux.intel.com>,
+	Rodrigo Vivi <rodrigo.vivi@intel.com>,
+	Kevin Tian <kevin.tian@intel.com>, Joerg Roedel <joro@8bytes.org>,
+	Will Deacon <will@kernel.org>, Robin Murphy <robin.murphy@arm.com>,
+	Felix Kuehling <Felix.Kuehling@amd.com>,
+	Alex Williamson <alex@shazbot.org>,
+	Ankit Agrawal <ankita@nvidia.com>,
+	Vivek Kasireddy <vivek.kasireddy@intel.com>,
+	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linaro-mm-sig@lists.linaro.org, linux-kernel@vger.kernel.org,
+	amd-gfx@lists.freedesktop.org, virtualization@lists.linux.dev,
+	intel-xe@lists.freedesktop.org, linux-rdma@vger.kernel.org,
+	iommu@lists.linux.dev, kvm@vger.kernel.org
+Subject: Re: [PATCH v7 0/8] dma-buf: Use revoke mechanism to invalidate
+ shared buffers
+Message-ID: <20260204133523.GD2328995@ziepe.ca>
+References: <20260131-dmabuf-revoke-v7-0-463d956bd527@nvidia.com>
+ <20260202160425.GO34749@unreal>
+ <20260204081630.GA6771@unreal>
+ <6d5c392b-596b-4341-9992-aa4b26001804@amd.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <6d5c392b-596b-4341-9992-aa4b26001804@amd.com>
 
-From: Arnd Bergmann <arnd@arndb.de>
+On Wed, Feb 04, 2026 at 09:54:13AM +0100, Christian König wrote:
+> 
+> Mhm, sounds like AMDs mail servers never send my last mail out.
 
-Changing mlx5 to call ip6_dst_lookup() means it now fails to link
-when IPv6 is a loadable module but ipsec support is built-in:
-
-ipsec.c:(.text+0x1061): undefined reference to `ip6_dst_lookup'
-
-Add a Kconfig dependency that removes avoids this configuration.
-
-Fixes: e35d7da8dd9e ("net/mlx5e: Use ip6_dst_lookup instead of ipv6_dst_lookup_flow for MAC init")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- drivers/net/ethernet/mellanox/mlx5/core/Kconfig | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/Kconfig b/drivers/net/ethernet/mellanox/mlx5/core/Kconfig
-index 9cf394c66939..c298efe93f97 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/Kconfig
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/Kconfig
-@@ -154,6 +154,7 @@ config MLX5_EN_IPSEC
- 	depends on MLX5_CORE_EN
- 	depends on XFRM_OFFLOAD
- 	depends on INET_ESP_OFFLOAD || INET6_ESP_OFFLOAD
-+	depends on IPV6!=m || MLX5_CORE=m
- 	help
- 	  Build support for IPsec cryptography-offload acceleration in the NIC.
+Oh :(
  
--- 
-2.39.5
+> As far as I can see all patches have an reviewed-by, I also gave an
+> rb on patch #6 (should that mail never got out as well). The
+> discussion on patch v5 is just orthogonal I think, the handling was
+> there even completely before this patch set.
 
+Leon I guess grab the reviewed-by from this email and we have a full
+package if it needs a v8
+
+> For upstreaming as long as the VFIO and infiniband folks don't
+> object I would like to take that through the drm-misc branch (like
+> every other DMA-buf change).
+
+No issue here, both subsystems are waiting for this..
+
+> So as long as nobody objects I can push that today, but I can't
+> promise that Dave/Linus will take it for the 6.20 window.
+
+Sure, thanks, and if it doesn't happen for whatever reason lets just
+consider it pending for the next cycle.
+
+Next is to work on the dma mapping type, I should be able to post a
+rfc next week for people to look at.
+
+Thanks,
+Jason
