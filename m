@@ -1,65 +1,137 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wm1-f65.google.com (mail-wm1-f65.google.com [209.85.128.65])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CC2B13AEF34;
-	Wed,  4 Feb 2026 17:46:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 531E82EDD62
+	for <linux-rdma@vger.kernel.org>; Wed,  4 Feb 2026 17:53:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.65
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770227206; cv=none; b=FXIlXl90BZp6aVdxsUeindl2YNjAjs2BD4qQRIB57Juc+6jSHbiy1ZWxQmejJC//utbyOrjyB7QeAdURU+6mjSAyZREJZh5O35K4xRfK67fLpOqkP0hdPo2LYc27Dfh3jdqu4kCizEOOu37tSDdFJBCUfZddOh8sYSOf0FdP4hg=
+	t=1770227624; cv=none; b=GOaCqCYKjGs0wwO2IR2hIYPSvg5ql/+8/YC6YB1K7mUhlDY53DSQuMHhUbiUiKB83E3EHrUzsUH09I7de9nilT/2Xts0uWP7DvIxVKKY25b1oGimp8VuQx1pEFAXwqlKEfbO6L1ROGFbZaTKguSiwV7tC7Fe3RPQCRxRWgY/8oM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770227206; c=relaxed/simple;
-	bh=FMpw7MCRAxpI19L4sGevw2nu0PxGdX+AeHvLnk4cicI=;
+	s=arc-20240116; t=1770227624; c=relaxed/simple;
+	bh=hU/hPUHbaVPbDKCwyA5sXpOrCShdPh6A27BiiNS1yj0=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=L6ycxXMZOep0IPWv6PtUtd5h9h+xPI4gtL2H/6EtGGL7h3XAO1WaXE6MPvx4FY0Ke3cgaUODty98p/uABDaXz+qumEOVcULjtcHJJxdbNh7BmRsIGlDjTD6LY/Z/V2OC+7e2jSP8wOzLAOC1neemg5PL6oWCBVm3SRjDADCRDJs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=jzkRWBw5; arc=none smtp.client-ip=10.30.226.201
+	 Content-Type:Content-Disposition:In-Reply-To; b=d+YtSNHwTnNraPL+x2J82HljPKUxOo2dwZpdMBSkzJMuXqCyfoSTU2JngT9vOqdCCRER8pgh/b0hKo+5gQMWjPkVJgbTpL0SJKruZ4TkHmAJE+pubJMLIi2pXg8MerK0ax7WUOisrKIBH0vSRlZdMWMWpUomnY01ecLG3X1Gb3o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=resnulli.us; spf=none smtp.mailfrom=resnulli.us; dkim=pass (2048-bit key) header.d=resnulli-us.20230601.gappssmtp.com header.i=@resnulli-us.20230601.gappssmtp.com header.b=hQzDNu3k; arc=none smtp.client-ip=209.85.128.65
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=resnulli.us
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=resnulli.us
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="jzkRWBw5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3DB82C4CEF7;
-	Wed,  4 Feb 2026 17:46:46 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1770227206;
-	bh=FMpw7MCRAxpI19L4sGevw2nu0PxGdX+AeHvLnk4cicI=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=jzkRWBw5SRTHOnH2WrKCixE194N9KteMRjsWqxVBh77I2GYd4fIfzp+bCnNG85nxP
-	 mIoPqkXKBv5WrAzFq3HjkaL19vBm2oeao367b+NzYTxEk1UEBtWpEy8ivuTxRo0SG+
-	 mVLItx4FeEsI6cqoFa+VzasG5xvYzOuJ4Ng2W8MiXmL0VTajKTXPgN83SjcIKEwtvW
-	 8GbMjn0zlR1Jm2eD9vrYSVuo3us4qQPR8BLpNY9O8OxMBKccja2gjnJk+RR0j0wobv
-	 hpq+UhtMsbl39u80kZN0BiUNZq8hrOKqle/SvXeJL08Cs1jIZHcyzv6V8oJlxlykSZ
-	 kXPoQuHcRuO2g==
-Date: Wed, 4 Feb 2026 19:46:43 +0200
-From: Leon Romanovsky <leon@kernel.org>
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Konstantin Taranov <kotaranov@linux.microsoft.com>,
-	kotaranov@microsoft.com, shirazsaleem@microsoft.com,
-	longli@microsoft.com, linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH rdma-next 1/1] RDMA/mana_ib: return PD number to the user
-Message-ID: <20260204174643.GA12824@unreal>
-References: <20260204135813.870538-1-kotaranov@linux.microsoft.com>
- <20260204142827.GF2328995@ziepe.ca>
+	dkim=pass (2048-bit key) header.d=resnulli-us.20230601.gappssmtp.com header.i=@resnulli-us.20230601.gappssmtp.com header.b="hQzDNu3k"
+Received: by mail-wm1-f65.google.com with SMTP id 5b1f17b1804b1-4806f80cac9so515055e9.1
+        for <linux-rdma@vger.kernel.org>; Wed, 04 Feb 2026 09:53:41 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=resnulli-us.20230601.gappssmtp.com; s=20230601; t=1770227620; x=1770832420; darn=vger.kernel.org;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :mime-version:references:message-id:subject:cc:to:from:date:from:to
+         :cc:subject:date:message-id:reply-to;
+        bh=hU/hPUHbaVPbDKCwyA5sXpOrCShdPh6A27BiiNS1yj0=;
+        b=hQzDNu3k6L/nEKE2xFD+Y3XWR6YirjAsHxpD2bFRsi7fPFdKiGN0Bn9JJSHjUWOfNd
+         4nVre6M5z8idpU6EwyvyjvwQuV0Oc6PvlKjr8IhT3pGZ/kEdgR8yKs8LxVbKSnjjM7iA
+         AB9G9wCVnWYZlBrMr1HLCLw0h1x3R3zSZ6wcNJzLh63bm/Js/T4RZGceKIJA/AU1CJTv
+         zDFw0c19U2EPCBUgiQAWmQK1JaTc1EHj1bweR8ue1GmkNWCZnHUxYWnwRsbdmspF9W56
+         N6O8Dn0/hOnSRmu/46lr0IWxBlRfQIUM82sam1lXEGVnnLqZPvhDRPAMgq8DoKn4SFev
+         lCbA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1770227620; x=1770832420;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :mime-version:references:message-id:subject:cc:to:from:date:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=hU/hPUHbaVPbDKCwyA5sXpOrCShdPh6A27BiiNS1yj0=;
+        b=cm4y64r9m4IkepChoRALdXqio38zMGzUd5l62f5NSaFTIzvZeMx8a7gCvsGuE7Bg3m
+         f1Z1YGg2ZnF+SR9bTc2LYg0ShB03YryKupBYYU98pXAr2BIAIbLpPRnS/VrZlvCv9/Qs
+         35TywRze36bOBA1vFvspIJkRS7pzYp+tU27YtxIiW5RfeSsDxAAoTtlgQQlg9F88IzHH
+         3AY9SVfdTvYEq7ZsmKTD5fpUgUyhzAhFJ1td0Xt/D+TjXLx60N/ZYPVIaMU8X1JwQMVN
+         P7GGnpp2xY49StnvwGI+wgjXq3uscCFAU0LVlYjQoUxHZPPLMKLDKc8ut2tviYAd92Ae
+         mxCQ==
+X-Forwarded-Encrypted: i=1; AJvYcCUGB9n7oYAN5FlgDX/7hQ5oaeLcgWVTG6Flexs8Z/epEsCQLr8cLNuLOvHSiUIBphGp9r1SJszBvlqs@vger.kernel.org
+X-Gm-Message-State: AOJu0Ywy7TSe+9cSXSW7vSh3TlWTHQTC+By+NoMgziJjBc1sxr/kVNM0
+	aDgpFxy6GqRT9baIHwE41KoWBhbU3XPEflsBkPIqK3iFRJ28pSKtBqZC1YwRhehBiEs=
+X-Gm-Gg: AZuq6aKyBgdpia9nclcpuEiDlTOjiFHBp7neKv8DLw8sHs9W9wEUli3vXjeawHcxoqY
+	YXd2rOsLThKBjy3nNTpobZScg4DGYnDJPeF3CaLw4Bh4i/aCVp57mL1N5xaPNLad90N7M8l8tHk
+	XWi5wp+SAAZXTnbBFFO3C1qspUtE2/bJNpGuMRtBb3bhvBHmZZRx3O9nRu4ezEqKcUK9Gi4fLYI
+	mniFhwaWSBYrhIxco4l7Sl7kH8eQtVv+4eZE0BATdqLlE6noBqlgALB6IXRyDuPOStiuirCvoZS
+	WR+3Xh9fuSbnX9cplus8pCp3SLGtYKtBaqq+ydXCG+P9LwtkTf4Yh4QZOOiFcEauaygjm2cxOsP
+	PpEf77qaTyq39eLstTnYDjaF2buccF4po/U4M9DEr0ZVqiHlRePXsnWLDEhoFMh0mGQRvnCnADu
+	H4fbQSC9W+YG4yaFoHx5LRw/o=
+X-Received: by 2002:a05:600d:19:b0:483:1403:c47f with SMTP id 5b1f17b1804b1-4831403cc8emr23918105e9.6.1770227620232;
+        Wed, 04 Feb 2026 09:53:40 -0800 (PST)
+Received: from FV6GYCPJ69 ([140.209.217.211])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4830ffae8fbsm23145405e9.15.2026.02.04.09.53.39
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 04 Feb 2026 09:53:39 -0800 (PST)
+Date: Wed, 4 Feb 2026 18:53:37 +0100
+From: Jiri Pirko <jiri@resnulli.us>
+To: Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>, leon@kernel.org, 
+	linux-rdma@vger.kernel.org, andrew.gospodarek@broadcom.com, selvin.xavier@broadcom.com, 
+	kalesh-anakkur.purayil@broadcom.com
+Subject: Re: [PATCH rdma-next v10 5/6] RDMA/bnxt_re: Direct Verbs: Support CQ
+ verbs
+Message-ID: <h2mvy2z6ipibzbzmi6jk2jw4so3x7c5rptm2jhpfavizxmd7c6@olttoocrfgcl>
+References: <20260203050049.171026-1-sriharsha.basavapatna@broadcom.com>
+ <20260203050049.171026-6-sriharsha.basavapatna@broadcom.com>
+ <20260204011019.GZ2328995@ziepe.ca>
+ <CAHHeUGXky2H8NSWy8ZwCcqKDQEBn=CkMAzsLDT5gBFnZrn0WYg@mail.gmail.com>
+ <20260204144313.GG2328995@ziepe.ca>
+ <CAHHeUGUeJ6YfB59heJ+PN5NkTOAXFSBLQwhS3Y3jpDSfYROO-A@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20260204142827.GF2328995@ziepe.ca>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAHHeUGUeJ6YfB59heJ+PN5NkTOAXFSBLQwhS3Y3jpDSfYROO-A@mail.gmail.com>
 
-On Wed, Feb 04, 2026 at 10:28:27AM -0400, Jason Gunthorpe wrote:
-> On Wed, Feb 04, 2026 at 05:58:13AM -0800, Konstantin Taranov wrote:
-> > From: Konstantin Taranov <kotaranov@microsoft.com>
-> > 
-> > Implement returning to userspace applications PDNs of created PDs.
-> > Allow users to request short PDNs which are 16 bits.
-> 
-> Why does userspace ever need to see a PDN? Please justify that in the
-> commit message
+Wed, Feb 04, 2026 at 05:25:39PM +0100, sriharsha.basavapatna@broadcom.com wrote:
+>On Wed, Feb 4, 2026 at 8:13 PM Jason Gunthorpe <jgg@ziepe.ca> wrote:
+>>
+>> On Wed, Feb 04, 2026 at 07:25:48PM +0530, Sriharsha Basavapatna wrote:
+>> > > Here, I made you a branch that takes care of it all:
+>> > >
+>> > > https://github.com/jgunthorpe/linux/commits/for-sriharsha/
+>> > >
+>> > > And makes the required whole flow a lot clearer since it has evolved
+>> > > into something that is far too open coded..
+>> > >
+>> > > Let me know what you think.
+>>
+>> > Thanks for sharing these changes, it looks great. I certainly missed
+>> > the point that you were suggesting a kernel helper function for
+>> > structure validation and one that also includes comp_mask validation.
+>> > For bnxt_re, it also eliminates the need to have a separate compat
+>> > flag in ucontext for each type of ureq.
+>>
+>> Yeah, after looking at it the state was much worse than I
+>> expected.
+>>
+>> > I applied the draft version of QP-umem support patch (not the series),
+>> > followed by bnxt_re DV patch set, updated bnxt_re to use the new
+>> > helper for CQ/QP - ib_copy_validate_udata_in_cm(). Tested it and it
+>> > works fine.
+>>
+>> Ok, well let me work on posting this series and you can revise this
+>> one to drop this UCTX hunk and use the new helpers for the new
+>> structures. I wanted to look at the other uapi parts of this one
+>> today too..
+>Just to be clear, I will rebase and post my series after you post the
+>ureq validation series. Is that right? Also, what about the QP-umem
+>support patch?
 
-Probably for the debug and we have restrack for it.
+Reworking it a bit. I will send it most likely on Friday.
 
-Thanks
+>
+>>
+>> > One question (maybe I'm missing something) is, copy_struct_from_user()
+>> > seems to have similar logic to check for trailing bytes when user-size
+>> > > kernel-size. Is it also needed in _ib_copy_validate_udata_in()?
+>>
+>> Yes, that is a mistake to have left it behind, thanks
+>Thanks,
+>-Harsha
+>>
+>> Jason
+>>
 
-> 
-> Jason
+
