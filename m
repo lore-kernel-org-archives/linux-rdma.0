@@ -1,68 +1,68 @@
-Received: from PH7PR06CU001.outbound.protection.outlook.com (mail-westus3azon11010014.outbound.protection.outlook.com [52.101.201.14])
+Received: from CH1PR05CU001.outbound.protection.outlook.com (mail-northcentralusazon11010017.outbound.protection.outlook.com [52.101.193.17])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 52E303F23CD;
-	Thu,  5 Feb 2026 14:31:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.201.14
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D11DE3F23B3;
+	Thu,  5 Feb 2026 14:31:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.193.17
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770301879; cv=fail; b=JiF3+ZWI7mIovVPMWgieROevXZylKMoAbsoJz0kKA9fQHV3Ks4yZE0i6iRJNsfRZ36NmLv2KHs9CsuEhvEWwqhSeAKVXX6nAQu/Mo/iRLsnSJsEZu0T0oWaXMAuYsn9Be8IKjX4FHIOpgRevK1fP9HGDN9DF5G7X21Tx/rASV6E=
+	t=1770301883; cv=fail; b=NvicH8WXBWl8B5dvYZFeg9qkftuPNDvrEPB9cQ3rF3NuCi1EsKMDy6RsoXCRQSmpWCik/kFTKpSq3PJzY2HRn/lZpdKJJhBpxVl03Ck8aVYAhrgdk0HuA/gQOPVIXodAPLzsAt1eTJ/k2ACZWrhzzlWL7k13sIrBfFjZvU6k1SA=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770301879; c=relaxed/simple;
-	bh=ttQg7ykIkns3IubZiLivJQ0KeiO+kkkbqAtZ33BOK7g=;
+	s=arc-20240116; t=1770301883; c=relaxed/simple;
+	bh=ThkJnhF/oLDpOOMyBxFcotE+7Xl8XrqClLzhSPwLHNU=;
 	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=ceuxy3h+Xnr8/Xf3W7bGKTOGG8R69g0qjTXm4nMvb5ZvI4VLZoP3Bxo1hHafJda8vFQglukcMUy+z3O27tnUFzQJjyfTER4S5ZASJpCuliadXEI8gukljSmbrc3u81feerFLBGj6TkzD5U0qBD2rRoPy7aTeUIdF3iccTmfYRzE=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=UQbiIxbL; arc=fail smtp.client-ip=52.101.201.14
+	 MIME-Version:Content-Type; b=JOH/jt3BYZYRnbWh3/sybCNthm3Y9kWJbadymw8XAH98cnDGxjNlQqtqndh8dmRCi6yBfVtcnJpUBpsEzMzdhOE79icTyHeJF0eIfwQceG9c9UklBA4TkTcS1UD/+fkqoa37xrom4E9hhaRK1W1mcp7anQtLll9HFlYzOcsJ6kA=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=cdlxnKDi; arc=fail smtp.client-ip=52.101.193.17
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="UQbiIxbL"
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="cdlxnKDi"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=mOcKpBuzW8SPYSeyEiGzWNiqE+n0W8+bjr7W1l1iaJeAT2FWaSkIVUIbFHffDGxQwvJfSKcnE4edlhJ5kcgWlyQbVzPS1ZQjegx8Bkh2UQr2+lFfd5lqpL/ha1buJvQ+OMQGz5nO56g8TJfJ1o5fRHUgTuzLkrClovq8emgGDJUlau9CGVWFkYh7SYVHB+HUH1dgb/ovJ+k76HLCBe/mWnnor26g5W2Imx48yXo+SDZAGA4iigYc8ApFdGZz2yaRt/8cxFIRejhKW1tp8IWVaK9zTSMZ2OMlbBcALwYhRYEgXGMUwywdso8QGB0GWb8PtCBAgieYhQwAJ/RH0ldCSw==
+ b=doLO//JpvHS4pHnSxs0PU4BKfptcdVm54tdMVoRUqU46IsU+OoCp9JVVIqN1/lefUPziwSolC/Glpg/GfBgOOrpkkTuc4oIHkrp7BhiXVCQQ4PT5YLtMeKtcDhGu0sjptovIAmxKU30nktzqMHOITf1pQx0D3PYgsruYSMwQEIKBD0p8pNsbj3yJKZVvrI7axm7uWfhHkta1BOzDHTkVvaxiaNprAQ703h9vMaErpRa9VkItn/g90FGRQEF3+rB1hVMp2EsR0PJDgJ96VyMRurktHu5d71q38OfOga7Zyd78Ei2itLr7GkYbbZ3PiQqqL2slxFHl4dtVJKFn3slKsg==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=yRzCoQ8MxLqu9BPAsuuNN/dDvi+SPtSZCI/pj/D3JnU=;
- b=DvztO7MYrdspfi0ez53+mtZ88fZIYJVoua982eGr8Ffba+zNTc+UW5H4YZU8FMn3Eoao/vY67DffgKS76WUoWk1FE9BUOH6t7wnRnQ06GzS7+MMFC6api9Yz5SGvc1Asp/RWq3PYHpmtO9BnoNfaqOF0nZehC4bKATqeEEo3lcuHLvEccx5neB9EN3+fuKewb1y3Ktbi08eY0/EgMAtXNnpKRcgC9pbLWO5u3UxG/B1tdl+xb4rFvAlr32UTjRjOFSBqFiVyJ9t3QU3WXqG7diMDXSUlEujQKrNborewd3F1SO47g+ztNQeUqHZYjZlaehEHvM5VJ16dANANgOmUgA==
+ bh=CUGdfs9Kb8OXUcEpv95Of19l/c2kNeeIofKor8Yh49E=;
+ b=y5PlHrvKpnQZREUZhFndBLDdmXgCfOqrzxneY2sYqTjjouXrJzYDE0p5KET8gWVrIinYnQJptMW/KhOhSDxnZqoK9xUp1YQVrh0XIpcj+DttF+3BblUPwZyCnJ1OT65KFiqRgIA/NAWG9gNbN0Z36CCeo3KWeUSQ0PPAtFTQ3ZdSkjKcXa0umCMWaA4buoU1SOyHtdd6Ptp35IWb1EUFVyp3T1tz/vug3ZqgSBnrx9kRqS4gr3Jxxn+iiVJnyNmdysAo96S0C6Zq/TsloaHp7nh+RHSdIA7OuNNTkrWztOX5cZPjTiLs2D4DxNs8Xa+fsHRTL5HK0Q+x8Uz1jDytfg==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.118.232) smtp.rcpttodomain=google.com smtp.mailfrom=nvidia.com;
+ 216.228.118.233) smtp.rcpttodomain=google.com smtp.mailfrom=nvidia.com;
  dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
  dkim=none (message not signed); arc=none (0)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=yRzCoQ8MxLqu9BPAsuuNN/dDvi+SPtSZCI/pj/D3JnU=;
- b=UQbiIxbLWUB3F6zegstqgiq+WLlQsneMDkVqVMIpPkOTyUtbyXYE4KwQORj1UT6x0BAi2GxEmrm1qHavevv4WiAubRnZM731s7+rDhUVIWziEKioUBYBCH6CscpdzBRjg2vrnH1ZZgu3phlLbCpH6Bn2UH21nFArDjkSYUxU/M1nALWMWCJQWcHTsBBmWGKOObgtzzNwYMgce2XEr8ZD7pyd2pdz8KkUbVkA8O7XVq5PKARWv3MhNiMhxod7K2tSUgGm51pxbQrkVtl2kIq/602amTazfCs6xzFb8fENT3gB6qJxf5WIjK014cx7vX8D/PNgIg5NsNHcF+T+8qfvKQ==
-Received: from CH5P222CA0024.NAMP222.PROD.OUTLOOK.COM (2603:10b6:610:1ee::9)
- by SA3PR12MB9226.namprd12.prod.outlook.com (2603:10b6:806:396::20) with
+ bh=CUGdfs9Kb8OXUcEpv95Of19l/c2kNeeIofKor8Yh49E=;
+ b=cdlxnKDi9StB6JXsRp46WlbexD/snbE4PB8mjhh9BOmlOqc6uwcKtx70XiikHkBipAe7ns5VGRWp8wq9U9J/ONUnblorO0NXm9WARpomMR3mvkl/BzP+lINputsPOH67aWtSj5/MCo4U1CKeJKFRE22BBQ+ou9kqoGLXTIhPe+5PBrrMj8XYMXn1+8S4ATKrfzzzPVZnNMXKidfqKn4y+vnh7RMuUYlRj3i/OiBxR1d6d6Wi46M6BEgfh+q3l7wFUcrg0C2NP4VBmu6nsAUaZK38EJsmoNez+fQjXpSCwC+UwzNMLYFd0ilY2DvXA7EIWuwko3hDFMYFFdnmAUMfqg==
+Received: from BN9PR03CA0701.namprd03.prod.outlook.com (2603:10b6:408:ef::16)
+ by IA1PR12MB6212.namprd12.prod.outlook.com (2603:10b6:208:3e4::7) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9587.13; Thu, 5 Feb
- 2026 14:31:14 +0000
-Received: from DS2PEPF00003439.namprd02.prod.outlook.com
- (2603:10b6:610:1ee:cafe::4f) by CH5P222CA0024.outlook.office365.com
- (2603:10b6:610:1ee::9) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9587.12; Thu, 5 Feb
+ 2026 14:31:18 +0000
+Received: from BN3PEPF0000B06E.namprd21.prod.outlook.com
+ (2603:10b6:408:ef:cafe::6b) by BN9PR03CA0701.outlook.office365.com
+ (2603:10b6:408:ef::16) with Microsoft SMTP Server (version=TLS1_3,
  cipher=TLS_AES_256_GCM_SHA384) id 15.20.9564.16 via Frontend Transport; Thu,
- 5 Feb 2026 14:31:13 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.118.232)
+ 5 Feb 2026 14:30:55 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.118.233)
  smtp.mailfrom=nvidia.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=nvidia.com;
 Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.118.232 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.118.232; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.118.232) by
- DS2PEPF00003439.mail.protection.outlook.com (10.167.18.36) with Microsoft
+ 216.228.118.233 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.118.233; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.118.233) by
+ BN3PEPF0000B06E.mail.protection.outlook.com (10.167.243.73) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.9587.10 via Frontend Transport; Thu, 5 Feb 2026 14:31:13 +0000
-Received: from drhqmail201.nvidia.com (10.126.190.180) by mail.nvidia.com
- (10.127.129.5) with Microsoft SMTP Server (version=TLS1_2,
+ 15.20.9587.0 via Frontend Transport; Thu, 5 Feb 2026 14:31:18 +0000
+Received: from drhqmail202.nvidia.com (10.126.190.181) by mail.nvidia.com
+ (10.127.129.6) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Thu, 5 Feb
- 2026 06:30:46 -0800
+ 2026 06:30:57 -0800
 Received: from drhqmail201.nvidia.com (10.126.190.180) by
- drhqmail201.nvidia.com (10.126.190.180) with Microsoft SMTP Server
+ drhqmail202.nvidia.com (10.126.190.181) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.20; Thu, 5 Feb 2026 06:30:45 -0800
+ 15.2.2562.20; Thu, 5 Feb 2026 06:30:57 -0800
 Received: from vdi.nvidia.com (10.127.8.10) by mail.nvidia.com
  (10.126.190.180) with Microsoft SMTP Server id 15.2.2562.20 via Frontend
- Transport; Thu, 5 Feb 2026 06:30:40 -0800
+ Transport; Thu, 5 Feb 2026 06:30:52 -0800
 From: Tariq Toukan <tariqt@nvidia.com>
 To: Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
 	Paolo Abeni <pabeni@redhat.com>, Andrew Lunn <andrew+netdev@lunn.ch>, "David
@@ -76,9 +76,9 @@ CC: Donald Hunter <donald.hunter@gmail.com>, Jiri Pirko <jiri@resnulli.us>,
 	<gal@nvidia.com>, Moshe Shemesh <moshe@nvidia.com>, Shay Drori
 	<shayd@nvidia.com>, Jiri Pirko <jiri@nvidia.com>, Or Har-Toov
 	<ohartoov@nvidia.com>
-Subject: [PATCH net-next V2 1/7] devlink: Refactor resource functions to be generic
-Date: Thu, 5 Feb 2026 16:28:27 +0200
-Message-ID: <20260205142833.1727929-2-tariqt@nvidia.com>
+Subject: [PATCH net-next V2 3/7] devlink: Add port resource netlink command
+Date: Thu, 5 Feb 2026 16:28:29 +0200
+Message-ID: <20260205142833.1727929-4-tariqt@nvidia.com>
 X-Mailer: git-send-email 2.44.0
 In-Reply-To: <20260205142833.1727929-1-tariqt@nvidia.com>
 References: <20260205142833.1727929-1-tariqt@nvidia.com>
@@ -93,326 +93,341 @@ Content-Type: text/plain
 X-NV-OnPremToCloud: ExternallySecured
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: DS2PEPF00003439:EE_|SA3PR12MB9226:EE_
-X-MS-Office365-Filtering-Correlation-Id: f83b198a-905a-4120-039e-08de64c336e0
+X-MS-TrafficTypeDiagnostic: BN3PEPF0000B06E:EE_|IA1PR12MB6212:EE_
+X-MS-Office365-Filtering-Correlation-Id: b8741a1b-fc04-4a4f-f0bb-08de64c339f8
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
 	BCL:0;ARA:13230040|1800799024|7416014|376014|36860700013|82310400026;
 X-Microsoft-Antispam-Message-Info:
-	=?us-ascii?Q?U695fWKtPTVuayRjV3BAH5IQ20bPUCZQVKLmso5VSfNQe2usKK7u51b0CqSH?=
- =?us-ascii?Q?8QA5cl+wN7HvhgGN0Ar6Oow2c6jLXajLSL5/RHim1KdFdJewF83uNtOW51Z0?=
- =?us-ascii?Q?sqnsBuwfeZMZxiUmAjCk5TIU2ynpajkHnQRc6lA9Jfc5c5LLXqaqZtOuA3AW?=
- =?us-ascii?Q?BR6L4jggXiuGRQwB+1Rqrg5nQV/64e5BUrn/mHs2+clTFG7My0n8ZcyB+A2/?=
- =?us-ascii?Q?gGk8iRa8rh5vAs8Vq2MJ3mjWGLXMH8OPXFfn9/lcvoSGUQ1VXBvzqE0XXe/F?=
- =?us-ascii?Q?4Nh+Pc8j2zaphf7Yk0qX89nK3j6Bfnd6BivpMLPW/pCLAojVCRVOF/ibEWQ4?=
- =?us-ascii?Q?va35a6UKFCDajBo4/CCrh6SCUy/E2fq+J0QJ9G/83ae/oIdjBG6jz6PPylqt?=
- =?us-ascii?Q?B41Yw+0wrd+zEl2dHFtvUMY8HI5ycTsFxzYJMXJ/YcrjWz9d62hTYtH/agRr?=
- =?us-ascii?Q?NokdF8/KJ3azkR0+ZQChCjAZuQQvukp9Rlj+Q7aLEcsuLL2uvWFcn1UqFtQj?=
- =?us-ascii?Q?cJqKbz6D5iEjQUX/EOJdJJ1W+6YUJ0M4CJ8i/D8JXiChYJ70xNxunOElXSyL?=
- =?us-ascii?Q?SoWsIyOupeqgJhxt4W+RCbHf4ZvJwW65mqibraTBGLQ4YxcqcT9sIwyDntDE?=
- =?us-ascii?Q?1K869yF+qVc/Bw6m+oA9OGjQ2lKySlsqmzbblvw7BtII6fVD3YSuaRWD8FHe?=
- =?us-ascii?Q?W66no4qDG3WusMfKbbmH7/PZNENMX5oPXq54YCdnKpdI3SmSfuvzil1K/D9A?=
- =?us-ascii?Q?XxJWaqa+mosCr7Mxo+hweIpRKLGA5urVQuMQ2KCf5snugfRHxy0M9gTcNr/w?=
- =?us-ascii?Q?XUuTMpUluXvxjNf6kmcCbmMsecF0ACbsEV/Xliw0r/2GatlDKZzX+nSwgnw6?=
- =?us-ascii?Q?OT/gK1jOIV+ngjIqctwswQaBzAV2YcV3nFORJBwJsr7kaZIfhPs3kjHW6xe0?=
- =?us-ascii?Q?CSRNdZMiAOEGBpWjKclxRr12KjqV7BGUgHGgLYtLR9Bew7NR0MODrHwQ6eOZ?=
- =?us-ascii?Q?PjsuC/wyXfZs3OUG+gM5tIoFPHPhm0VL1PmSTbSozJinMabTexqR7yWpK0ju?=
- =?us-ascii?Q?GR/xZzMWKiwFzFbvVsHn+Q/x7pKwFZC/NlMcDNmVz+MN4OEEy5WpRM+xfGCT?=
- =?us-ascii?Q?pu2wo8IvmcfsuBKfTCppy1ydXOq2Cha5FIua/zr3c/8VGzEgeE4xDkkz6XL0?=
- =?us-ascii?Q?OTUsiQyRDRpJ92ICtUcX7bIfld7U2M1Gey3mrbCFAtZRZ2G30xfqExr34a5W?=
- =?us-ascii?Q?Gr2475HifwDrqf8V2cC1CLI5anH+Vvg4PxRHiejKrPRQ1NxAESWXllB/9LNl?=
- =?us-ascii?Q?1ecqo1Y/vU6qM7ju9QZhMxHXyrWHdp1f+4zEXXh2w+qGf9lqfaXFJ8VKqhOO?=
- =?us-ascii?Q?ZuShXZc7oBSDQqP/nHIAzdXl+aYjfae+sdp6QZJ1YGd3sWSFCqKt+vFy4l24?=
- =?us-ascii?Q?gkZaHt+BFolaL+IWBO6agBziVONctgyM30LQ/JB/PNTna/99IGgvQC46MU0n?=
- =?us-ascii?Q?Pvmiku3uSNhQVDuBXbv1UNaaMO/NC32VO9BvLuAmlBPfXUENFzoaXdxp/yvi?=
- =?us-ascii?Q?KggfOquICsDiHmNHbtD7UnsMEIJN8zIpgbn4WnAFh5x8mhwcLYejBmrx1dZG?=
- =?us-ascii?Q?GOvqKeE/gtbUSSov3qtAH02VWmhA0R4IaI5YyRKOo0SUY8MZsmFg8smKINR5?=
- =?us-ascii?Q?/0moSA=3D=3D?=
+	=?us-ascii?Q?kPIGXRTjP83CTh0iaRnd1Qlgr7UxBZEcOZ+eTKwYRLOFZS3wUE0ckr4DzVYk?=
+ =?us-ascii?Q?DVFnb/YldVjcPM6pp/8VogmrsFeqeTwiBLsRrPhyMEuvKycWskRcQgtGF9CC?=
+ =?us-ascii?Q?Zs84VI1QboMDhR5G805z7Wv3ZFo+vqn57PfE88bRWhzSxszeQwtMllFmCmeK?=
+ =?us-ascii?Q?3B9pXaCm3WA2vKxqo/kOY04ziLQYwPq/Fw9th+OCOAQP4BSYMa7HqtYWaWGu?=
+ =?us-ascii?Q?yPJ9HgxVD7eVBxFP8MCXxiW5KH3i54xzsR6zsc4MpCOVgVMs0TW5kC+MUHeU?=
+ =?us-ascii?Q?H7qNK6HUtWCd8sWe0dnaqVmLQDhGYlw2ILqXQCFqK2vjsJx7wqXx3OhXwkMY?=
+ =?us-ascii?Q?zpnem9cd0NFWz/KEXXwuez7vwX6x9yIQ0Z8FdTNgQwHirdOxpUvlCpAHJCUX?=
+ =?us-ascii?Q?/S3uly8WipD/O/z5b57TCTHj9LiwdtyR9zBbwv4kAV7HBGaoq1N1TscC8Dba?=
+ =?us-ascii?Q?3zE6KbQsr220oI15kd20mg/5ZFrnQI/2Cryd+/5oiNd1M2Zkad40dFIWOM9o?=
+ =?us-ascii?Q?4SQ3dLZZTOlZHZgXetv7PCaVqfkt/hj5NVRJKF0LKwjyH9e/TdzD4keg0rlU?=
+ =?us-ascii?Q?GEyRsyp1Uybx7RivXaAYXTiQvMAa+/e08G8pkvJ2qaxJKp5c+7PnU8arnPJu?=
+ =?us-ascii?Q?xcyldlliQ0PR4k3RhJ4Wumxeg3qw9I32THaZZmNBbWU+EfiFgWOnqfsGno3j?=
+ =?us-ascii?Q?DCcrSwaUd4v8eOKegV3Pd2ZkeKs7Krxl8RTTCgNX+WeHhd+ZWNnz7F7QKBLM?=
+ =?us-ascii?Q?I5ogH8h2ldEmnjAM+asVm9kvPSRL0kE2CQ82lJoitGACiadHyE5fiIhHXjs3?=
+ =?us-ascii?Q?5FESCPAnF5+9qULSXAf6sQS1O9uNuBGlZNPGZPy1HKwalEgx3LlUoxiM0S/i?=
+ =?us-ascii?Q?h6h1+iBN75TED9xe6L/UgjIx3/UkORjH3DV+zkBIXer9cWTt5/gychm5xiiH?=
+ =?us-ascii?Q?Wppu1ZKsanqFKMO0icg0wvjUgBIx8PJMgA6Ep1yBXdUHs1d6jP3yE6fs1G3E?=
+ =?us-ascii?Q?+Orxkp5dNg5Kww5SyBzmm+Ls2Ymj9LRzfHGbBvrQ4mrXVuGMkgG8PMg8Z6t2?=
+ =?us-ascii?Q?y4QfyytdPsdEGqHfE5adGUj0fPPvx2WTLgNo6twDFp+7BNtm58yKfmtY+bEN?=
+ =?us-ascii?Q?p9wI1TX4Z6D0IETcm+UQyFqJVK1LDpWpFVBQnVG+85W8YCdFgp6Tzd+Ljha5?=
+ =?us-ascii?Q?PcmNnqMzDIgoswYacguAAZhFDTNWep8xkHoyL4igBpCghLlLi22fzl2AzmtM?=
+ =?us-ascii?Q?M/jb09N3kP1Oxn+Kr/dttmBlMMVIg1itiYUNZPVXuzDyfbbTbUUqXApeNg3D?=
+ =?us-ascii?Q?68QfV038p4VUaSD6bGwqjvC81DLKpMeat6IcuJOLAV/r7E5U/6Fc1CpRFeRJ?=
+ =?us-ascii?Q?eY+PKRBqstbNlxrlyMt1aVsj25KFFwrUJV3mIxAbP/+MvjrAwYqlFPw1iPOX?=
+ =?us-ascii?Q?k6pSt+5Ra4qf1PsQ0hUfgdPmzuQcvrLn8lIvXU0xDXoGOPoz1S6LaL6hqVw5?=
+ =?us-ascii?Q?2bwFXq7nF9Y44YmSNxttgqbDo7lUjh49wV0bgJ2mXnizPEcpT463cyVEmP44?=
+ =?us-ascii?Q?UUvwQy5W54EOejECQKCKaY8nTJCoVbdstJkWmfgHmwJdycvi0P95MfLuDsqu?=
+ =?us-ascii?Q?uvO6SdX/ZJXaPZh7g9ybb5i13jTM/ViH6w783gsCPAcFyBiPUqKUEhUQxt00?=
+ =?us-ascii?Q?mbQmmQ=3D=3D?=
 X-Forefront-Antispam-Report:
-	CIP:216.228.118.232;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc7edge1.nvidia.com;CAT:NONE;SFS:(13230040)(1800799024)(7416014)(376014)(36860700013)(82310400026);DIR:OUT;SFP:1101;
+	CIP:216.228.118.233;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc7edge2.nvidia.com;CAT:NONE;SFS:(13230040)(1800799024)(7416014)(376014)(36860700013)(82310400026);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	6sG5S8OBqZt/h/JLyBJAjaMSp8x/Eyy68kmpfsP0ol1uQWt9jjwBlz3AwVzGQeqYBbqrYWODnXzu+/jU/cAeGG7TvbQJn7ie1SIBNAxq1W5BPCfM+Qbp9XJizpBTHRnatQ7jByLpSV9plpF1ECaqKXl9AeQkhNhsfOagD9mDwmfBUy+H1a64O22+fVeCtBTUK0c0VgxkxxjEElTR3znpIanEdiYi7uqvxyfmRqfM9+z2tVmONbUdDoGWLkAiqwF5GG3b8jKmdj8AKy0SFsyIrtzGxZ7SSbsV40YFSfV4AqhG9NkPcWY6bnVXyGBjZ3l0Fp1dT6Lsj0YQ52qA9Q3051+wabQyfjn9Tnm5F7FT0fTXijaFVJFAl1Pz1b/Y6LILnD17om1syCl7wMWJYUrM7zGgvglKWPoAbhG/4F3pkO+n1wz4hoGTNwE5qQy+aT4u
+	yVc3WaPRc61J1cbBvx07TuS/+ZV4tzpcvzASUiaFiSesEohX6E69rZhRy4x3NKbAOy92T76jDLYSrcw9kKlkwc1oT6iZnB/HdgrSNeHUSXUFCs2EvdBzQWqrE+xZ4ubhYq4482rhkKwDa83JtukPwizikTnc8FK2sDGbrnFBTYEXUFvmy7cMk+PGactgLqxnz2tB5tJpc1mO7QvnqlbnEBQz1rA2GIVVYymFuzgK7pNKGaeAH20IoyabFs8iO5YCHE+PCfzSdJEkvlb9sJ3aUyf4doM/puCeyALk9c33VONWN8gqIIIpiiTAb0EE9qKTKcOgRgwIgcLtmQ/s7bLMESU10xQ1nMot2v+9RjG0O2W2EoSzvjl1QjICJsPqjc7fCv2BBHpuO7aqlXlwVLoQ6BsGU8LjBh9gOE0HFaCXojlRmBFxWIBxHTbYjyTIhaOb
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 05 Feb 2026 14:31:13.3967
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 05 Feb 2026 14:31:18.5430
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: f83b198a-905a-4120-039e-08de64c336e0
+X-MS-Exchange-CrossTenant-Network-Message-Id: b8741a1b-fc04-4a4f-f0bb-08de64c339f8
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.118.232];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.118.233];Helo=[mail.nvidia.com]
 X-MS-Exchange-CrossTenant-AuthSource:
-	DS2PEPF00003439.namprd02.prod.outlook.com
+	BN3PEPF0000B06E.namprd21.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA3PR12MB9226
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA1PR12MB6212
 
 From: Or Har-Toov <ohartoov@nvidia.com>
 
-Currently the resource functions take devlink pointer as parameter
-and take the resource list from there.
-Allows the resource functions to work with other resource lists
-that will be added in next patches and not only with the devlink's
-resource list.
+Add support for userspace to query resources registered on devlink
+ports, allowing drivers to expose per-port resource limits and usage.
+
+Example output:
+
+  $ devlink port resource show
+  pci/0000:03:00.0/196608:
+    name max_SFs size 20 unit entry
+  pci/0000:03:00.1/262144:
+    name max_SFs size 20 unit entry
+
+  $ devlink port resource show pci/0000:03:00.0/196608
+  pci/0000:03:00.0/196608:
+    name max_SFs size 20 unit entry
 
 Signed-off-by: Or Har-Toov <ohartoov@nvidia.com>
 Reviewed-by: Shay Drori <shayd@nvidia.com>
 Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
 ---
- net/devlink/resource.c | 137 +++++++++++++++++++++++++----------------
- 1 file changed, 84 insertions(+), 53 deletions(-)
+ Documentation/netlink/specs/devlink.yaml |  23 ++++++
+ include/uapi/linux/devlink.h             |   3 +
+ net/devlink/netlink.c                    |   2 +-
+ net/devlink/netlink_gen.c                |  32 ++++++-
+ net/devlink/netlink_gen.h                |   6 +-
+ net/devlink/resource.c                   | 101 +++++++++++++++++++++++
+ 6 files changed, 164 insertions(+), 3 deletions(-)
 
-diff --git a/net/devlink/resource.c b/net/devlink/resource.c
-index 2d6324f3d91f..2ab4f0dfe0d6 100644
---- a/net/devlink/resource.c
-+++ b/net/devlink/resource.c
-@@ -36,15 +36,16 @@ struct devlink_resource {
+diff --git a/Documentation/netlink/specs/devlink.yaml b/Documentation/netlink/specs/devlink.yaml
+index 837112da6738..0290db1b8393 100644
+--- a/Documentation/netlink/specs/devlink.yaml
++++ b/Documentation/netlink/specs/devlink.yaml
+@@ -2336,3 +2336,26 @@ operations:
+             - bus-name
+             - dev-name
+             - port-index
++
++    -
++      name: port-resource-get
++      doc: Get port resources.
++      attribute-set: devlink
++      dont-validate: [strict]
++      do:
++        pre: devlink-nl-pre-doit-port
++        post: devlink-nl-post-doit
++        request:
++          value: 85
++          attributes: *port-id-attrs
++        reply: &port-resource-get-reply
++          value: 85
++          attributes:
++            - bus-name
++            - dev-name
++            - port-index
++            - resource-list
++      dump:
++        request:
++          attributes: *dev-id-attrs
++        reply: *port-resource-get-reply
+diff --git a/include/uapi/linux/devlink.h b/include/uapi/linux/devlink.h
+index e7d6b6d13470..1cabd1f6cba0 100644
+--- a/include/uapi/linux/devlink.h
++++ b/include/uapi/linux/devlink.h
+@@ -141,6 +141,9 @@ enum devlink_command {
+ 
+ 	DEVLINK_CMD_NOTIFY_FILTER_SET,
+ 
++	DEVLINK_CMD_PORT_RESOURCE_GET,	/* can dump */
++	DEVLINK_CMD_PORT_RESOURCE_SET,
++
+ 	/* add new commands above here */
+ 	__DEVLINK_CMD_MAX,
+ 	DEVLINK_CMD_MAX = __DEVLINK_CMD_MAX - 1
+diff --git a/net/devlink/netlink.c b/net/devlink/netlink.c
+index 593605c1b1ef..c78c31779622 100644
+--- a/net/devlink/netlink.c
++++ b/net/devlink/netlink.c
+@@ -367,7 +367,7 @@ struct genl_family devlink_nl_family __ro_after_init = {
+ 	.module		= THIS_MODULE,
+ 	.split_ops	= devlink_nl_ops,
+ 	.n_split_ops	= ARRAY_SIZE(devlink_nl_ops),
+-	.resv_start_op	= DEVLINK_CMD_SELFTESTS_RUN + 1,
++	.resv_start_op	= DEVLINK_CMD_PORT_RESOURCE_GET + 1,
+ 	.mcgrps		= devlink_nl_mcgrps,
+ 	.n_mcgrps	= ARRAY_SIZE(devlink_nl_mcgrps),
+ 	.sock_priv_size		= sizeof(struct devlink_nl_sock_priv),
+diff --git a/net/devlink/netlink_gen.c b/net/devlink/netlink_gen.c
+index f4c61c2b4f22..692d7862183a 100644
+--- a/net/devlink/netlink_gen.c
++++ b/net/devlink/netlink_gen.c
+@@ -604,8 +604,21 @@ static const struct nla_policy devlink_notify_filter_set_nl_policy[DEVLINK_ATTR_
+ 	[DEVLINK_ATTR_PORT_INDEX] = { .type = NLA_U32, },
  };
  
- static struct devlink_resource *
--devlink_resource_find(struct devlink *devlink,
--		      struct devlink_resource *resource, u64 resource_id)
-+__devlink_resource_find(struct list_head *resource_list_head,
-+			struct devlink_resource *resource,
-+			u64 resource_id)
- {
- 	struct list_head *resource_list;
- 
- 	if (resource)
- 		resource_list = &resource->resource_list;
- 	else
--		resource_list = &devlink->resource_list;
-+		resource_list = resource_list_head;
- 
- 	list_for_each_entry(resource, resource_list, list) {
- 		struct devlink_resource *child_resource;
-@@ -52,14 +53,23 @@ devlink_resource_find(struct devlink *devlink,
- 		if (resource->id == resource_id)
- 			return resource;
- 
--		child_resource = devlink_resource_find(devlink, resource,
--						       resource_id);
-+		child_resource = __devlink_resource_find(resource_list_head,
-+							 resource,
-+							 resource_id);
- 		if (child_resource)
- 			return child_resource;
- 	}
- 	return NULL;
- }
- 
-+static struct devlink_resource *
-+devlink_resource_find(struct devlink *devlink,
-+		      struct devlink_resource *resource, u64 resource_id)
-+{
-+	return __devlink_resource_find(&devlink->resource_list,
-+				       resource, resource_id);
-+}
++/* DEVLINK_CMD_PORT_RESOURCE_GET - do */
++static const struct nla_policy devlink_port_resource_get_do_nl_policy[DEVLINK_ATTR_PORT_INDEX + 1] = {
++	[DEVLINK_ATTR_BUS_NAME] = { .type = NLA_NUL_STRING, },
++	[DEVLINK_ATTR_DEV_NAME] = { .type = NLA_NUL_STRING, },
++	[DEVLINK_ATTR_PORT_INDEX] = { .type = NLA_U32, },
++};
 +
- static void
- devlink_resource_validate_children(struct devlink_resource *resource)
- {
-@@ -214,6 +224,7 @@ static int devlink_resource_put(struct devlink *devlink, struct sk_buff *skb,
- }
++/* DEVLINK_CMD_PORT_RESOURCE_GET - dump */
++static const struct nla_policy devlink_port_resource_get_dump_nl_policy[DEVLINK_ATTR_DEV_NAME + 1] = {
++	[DEVLINK_ATTR_BUS_NAME] = { .type = NLA_NUL_STRING, },
++	[DEVLINK_ATTR_DEV_NAME] = { .type = NLA_NUL_STRING, },
++};
++
+ /* Ops table for devlink */
+-const struct genl_split_ops devlink_nl_ops[74] = {
++const struct genl_split_ops devlink_nl_ops[76] = {
+ 	{
+ 		.cmd		= DEVLINK_CMD_GET,
+ 		.validate	= GENL_DONT_VALIDATE_STRICT,
+@@ -1284,4 +1297,21 @@ const struct genl_split_ops devlink_nl_ops[74] = {
+ 		.maxattr	= DEVLINK_ATTR_PORT_INDEX,
+ 		.flags		= GENL_CMD_CAP_DO,
+ 	},
++	{
++		.cmd		= DEVLINK_CMD_PORT_RESOURCE_GET,
++		.validate	= GENL_DONT_VALIDATE_STRICT,
++		.pre_doit	= devlink_nl_pre_doit_port,
++		.doit		= devlink_nl_port_resource_get_doit,
++		.post_doit	= devlink_nl_post_doit,
++		.policy		= devlink_port_resource_get_do_nl_policy,
++		.maxattr	= DEVLINK_ATTR_PORT_INDEX,
++		.flags		= GENL_CMD_CAP_DO,
++	},
++	{
++		.cmd		= DEVLINK_CMD_PORT_RESOURCE_GET,
++		.dumpit		= devlink_nl_port_resource_get_dumpit,
++		.policy		= devlink_port_resource_get_dump_nl_policy,
++		.maxattr	= DEVLINK_ATTR_DEV_NAME,
++		.flags		= GENL_CMD_CAP_DUMP,
++	},
+ };
+diff --git a/net/devlink/netlink_gen.h b/net/devlink/netlink_gen.h
+index 2817d53a0eba..204a665d2fd2 100644
+--- a/net/devlink/netlink_gen.h
++++ b/net/devlink/netlink_gen.h
+@@ -18,7 +18,7 @@ extern const struct nla_policy devlink_dl_rate_tc_bws_nl_policy[DEVLINK_RATE_TC_
+ extern const struct nla_policy devlink_dl_selftest_id_nl_policy[DEVLINK_ATTR_SELFTEST_ID_FLASH + 1];
  
- static int devlink_resource_fill(struct genl_info *info,
-+				 struct list_head *resource_list,
+ /* Ops table for devlink */
+-extern const struct genl_split_ops devlink_nl_ops[74];
++extern const struct genl_split_ops devlink_nl_ops[76];
+ 
+ int devlink_nl_pre_doit(const struct genl_split_ops *ops, struct sk_buff *skb,
+ 			struct genl_info *info);
+@@ -146,5 +146,9 @@ int devlink_nl_selftests_get_dumpit(struct sk_buff *skb,
+ int devlink_nl_selftests_run_doit(struct sk_buff *skb, struct genl_info *info);
+ int devlink_nl_notify_filter_set_doit(struct sk_buff *skb,
+ 				      struct genl_info *info);
++int devlink_nl_port_resource_get_doit(struct sk_buff *skb,
++				      struct genl_info *info);
++int devlink_nl_port_resource_get_dumpit(struct sk_buff *skb,
++					struct netlink_callback *cb);
+ 
+ #endif /* _LINUX_DEVLINK_GEN_H */
+diff --git a/net/devlink/resource.c b/net/devlink/resource.c
+index 1b06a1f408fa..42ad7c96a740 100644
+--- a/net/devlink/resource.c
++++ b/net/devlink/resource.c
+@@ -227,6 +227,7 @@ static int devlink_resource_fill(struct genl_info *info,
+ 				 struct list_head *resource_list,
  				 enum devlink_command cmd, int flags)
  {
++	struct devlink_port *devlink_port = info->user_ptr[1];
  	struct devlink *devlink = info->user_ptr[0];
-@@ -226,8 +237,11 @@ static int devlink_resource_fill(struct genl_info *info,
- 	int i;
- 	int err;
- 
--	resource = list_first_entry(&devlink->resource_list,
--				    struct devlink_resource, list);
-+	if (list_empty(resource_list))
-+		return -EOPNOTSUPP;
-+
-+	resource = list_first_entry(resource_list, struct devlink_resource,
-+				    list);
- start_again:
- 	err = devlink_nl_msg_reply_and_new(&skb, info);
- 	if (err)
-@@ -250,7 +264,7 @@ static int devlink_resource_fill(struct genl_info *info,
- 
- 	incomplete = false;
- 	i = 0;
--	list_for_each_entry_from(resource, &devlink->resource_list, list) {
-+	list_for_each_entry_from(resource, resource_list, list) {
- 		err = devlink_resource_put(devlink, skb, resource);
- 		if (err) {
- 			if (!i)
-@@ -286,10 +300,8 @@ int devlink_nl_resource_dump_doit(struct sk_buff *skb, struct genl_info *info)
- {
- 	struct devlink *devlink = info->user_ptr[0];
- 
--	if (list_empty(&devlink->resource_list))
--		return -EOPNOTSUPP;
--
--	return devlink_resource_fill(info, DEVLINK_CMD_RESOURCE_DUMP, 0);
-+	return devlink_resource_fill(info, &devlink->resource_list,
-+				     DEVLINK_CMD_RESOURCE_DUMP, 0);
- }
- 
- int devlink_resources_validate(struct devlink *devlink,
-@@ -314,26 +326,12 @@ int devlink_resources_validate(struct devlink *devlink,
- 	return err;
- }
- 
--/**
-- * devl_resource_register - devlink resource register
-- *
-- * @devlink: devlink
-- * @resource_name: resource's name
-- * @resource_size: resource's size
-- * @resource_id: resource's id
-- * @parent_resource_id: resource's parent id
-- * @size_params: size parameters
-- *
-- * Generic resources should reuse the same names across drivers.
-- * Please see the generic resources list at:
-- * Documentation/networking/devlink/devlink-resource.rst
-- */
--int devl_resource_register(struct devlink *devlink,
--			   const char *resource_name,
--			   u64 resource_size,
--			   u64 resource_id,
--			   u64 parent_resource_id,
--			   const struct devlink_resource_size_params *size_params)
-+static int
-+__devl_resource_register(struct devlink *devlink,
-+			 struct list_head *resource_list_head,
-+			 const char *resource_name, u64 resource_size,
-+			 u64 resource_id, u64 parent_resource_id,
-+			 const struct devlink_resource_size_params *params)
- {
  	struct devlink_resource *resource;
- 	struct list_head *resource_list;
-@@ -343,7 +341,8 @@ int devl_resource_register(struct devlink *devlink,
+ 	struct nlattr *resources_attr;
+@@ -257,6 +258,10 @@ static int devlink_resource_fill(struct genl_info *info,
+ 	if (devlink_nl_put_handle(skb, devlink))
+ 		goto nla_put_failure;
  
- 	top_hierarchy = parent_resource_id == DEVLINK_RESOURCE_ID_PARENT_TOP;
- 
--	resource = devlink_resource_find(devlink, NULL, resource_id);
-+	resource = __devlink_resource_find(resource_list_head, NULL,
-+					   resource_id);
- 	if (resource)
- 		return -EEXIST;
- 
-@@ -352,15 +351,15 @@ int devl_resource_register(struct devlink *devlink,
- 		return -ENOMEM;
- 
- 	if (top_hierarchy) {
--		resource_list = &devlink->resource_list;
-+		resource_list = resource_list_head;
- 	} else {
--		struct devlink_resource *parent_resource;
-+		struct devlink_resource *parent_res;
- 
--		parent_resource = devlink_resource_find(devlink, NULL,
--							parent_resource_id);
--		if (parent_resource) {
--			resource_list = &parent_resource->resource_list;
--			resource->parent = parent_resource;
-+		parent_res = __devlink_resource_find(resource_list_head, NULL,
-+						     parent_resource_id);
-+		if (parent_res) {
-+			resource_list = &parent_res->resource_list;
-+			resource->parent = parent_res;
- 		} else {
- 			kfree(resource);
- 			return -EINVAL;
-@@ -372,46 +371,78 @@ int devl_resource_register(struct devlink *devlink,
- 	resource->size_new = resource_size;
- 	resource->id = resource_id;
- 	resource->size_valid = true;
--	memcpy(&resource->size_params, size_params,
--	       sizeof(resource->size_params));
-+	memcpy(&resource->size_params, params, sizeof(resource->size_params));
- 	INIT_LIST_HEAD(&resource->resource_list);
- 	list_add_tail(&resource->list, resource_list);
- 
- 	return 0;
- }
++	if (devlink_port && nla_put_u32(skb, DEVLINK_ATTR_PORT_INDEX,
++					devlink_port->index))
++		goto nla_put_failure;
 +
-+/**
-+ * devl_resource_register - devlink resource register
-+ *
-+ * @devlink: devlink
-+ * @resource_name: resource's name
-+ * @resource_size: resource's size
-+ * @resource_id: resource's id
-+ * @parent_resource_id: resource's parent id
-+ * @params: size parameters
-+ *
-+ * Generic resources should reuse the same names across drivers.
-+ * Please see the generic resources list at:
-+ * Documentation/networking/devlink/devlink-resource.rst
-+ *
-+ * Return: 0 on success, negative error code otherwise.
-+ */
-+int devl_resource_register(struct devlink *devlink, const char *resource_name,
-+			   u64 resource_size, u64 resource_id,
-+			   u64 parent_resource_id,
-+			   const struct devlink_resource_size_params *params)
-+{
-+	return __devl_resource_register(devlink, &devlink->resource_list,
-+					resource_name, resource_size,
-+					resource_id, parent_resource_id,
-+					params);
-+}
- EXPORT_SYMBOL_GPL(devl_resource_register);
- 
--static void devlink_resource_unregister(struct devlink *devlink,
--					struct devlink_resource *resource)
-+static void devlink_resource_unregister(struct devlink_resource *resource)
- {
- 	struct devlink_resource *tmp, *child_resource;
- 
- 	list_for_each_entry_safe(child_resource, tmp, &resource->resource_list,
- 				 list) {
--		devlink_resource_unregister(devlink, child_resource);
-+		devlink_resource_unregister(child_resource);
- 		list_del(&child_resource->list);
- 		kfree(child_resource);
- 	}
+ 	resources_attr = nla_nest_start_noflag(skb,
+ 					       DEVLINK_ATTR_RESOURCE_LIST);
+ 	if (!resources_attr)
+@@ -576,3 +581,99 @@ void devl_port_resources_unregister(struct devlink_port *devlink_port)
+ 				    &devlink_port->resource_list);
  }
- 
--/**
-- * devl_resources_unregister - free all resources
-- *
-- * @devlink: devlink
-- */
--void devl_resources_unregister(struct devlink *devlink)
-+static void
-+__devl_resources_unregister(struct devlink *devlink,
-+			    struct list_head *resource_list_head)
- {
- 	struct devlink_resource *tmp, *child_resource;
- 
- 	lockdep_assert_held(&devlink->lock);
- 
--	list_for_each_entry_safe(child_resource, tmp, &devlink->resource_list,
-+	list_for_each_entry_safe(child_resource, tmp, resource_list_head,
- 				 list) {
--		devlink_resource_unregister(devlink, child_resource);
-+		devlink_resource_unregister(child_resource);
- 		list_del(&child_resource->list);
- 		kfree(child_resource);
- 	}
- }
+ EXPORT_SYMBOL_GPL(devl_port_resources_unregister);
 +
-+/**
-+ * devl_resources_unregister - free all resources
-+ *
-+ * @devlink: devlink
-+ */
-+void devl_resources_unregister(struct devlink *devlink)
++static int devlink_nl_port_resource_fill(struct sk_buff *msg,
++					 struct devlink_port *devlink_port,
++					 enum devlink_command cmd,
++					 u32 portid, u32 seq, int flags)
 +{
-+	__devl_resources_unregister(devlink, &devlink->resource_list);
++	struct devlink *devlink = devlink_port->devlink;
++	struct devlink_resource *resource;
++	struct nlattr *resources_attr;
++	void *hdr;
++
++	if (list_empty(&devlink_port->resource_list))
++		return 0;
++
++	hdr = genlmsg_put(msg, portid, seq, &devlink_nl_family, flags, cmd);
++	if (!hdr)
++		return -EMSGSIZE;
++
++	if (devlink_nl_put_handle(msg, devlink))
++		goto nla_put_failure;
++	if (nla_put_u32(msg, DEVLINK_ATTR_PORT_INDEX, devlink_port->index))
++		goto nla_put_failure;
++
++	resources_attr = nla_nest_start_noflag(msg, DEVLINK_ATTR_RESOURCE_LIST);
++	if (!resources_attr)
++		goto nla_put_failure;
++
++	list_for_each_entry(resource, &devlink_port->resource_list, list) {
++		if (devlink_resource_put(devlink, msg, resource)) {
++			nla_nest_cancel(msg, resources_attr);
++			goto nla_put_failure;
++		}
++	}
++	nla_nest_end(msg, resources_attr);
++	genlmsg_end(msg, hdr);
++	return 0;
++
++nla_put_failure:
++	genlmsg_cancel(msg, hdr);
++	return -EMSGSIZE;
 +}
- EXPORT_SYMBOL_GPL(devl_resources_unregister);
- 
- /**
++
++int devlink_nl_port_resource_get_doit(struct sk_buff *skb,
++				      struct genl_info *info)
++{
++	struct devlink_port *devlink_port = info->user_ptr[1];
++	struct sk_buff *msg;
++	int err;
++
++	msg = nlmsg_new(NLMSG_DEFAULT_SIZE, GFP_KERNEL);
++	if (!msg)
++		return -ENOMEM;
++
++	err = devlink_nl_port_resource_fill(msg, devlink_port,
++					    DEVLINK_CMD_PORT_RESOURCE_GET,
++					    info->snd_portid, info->snd_seq, 0);
++	if (err) {
++		nlmsg_free(msg);
++		return err;
++	}
++
++	return genlmsg_reply(msg, info);
++}
++
++static int
++devlink_nl_port_resource_get_dump_one(struct sk_buff *msg,
++				      struct devlink *devlink,
++				      struct netlink_callback *cb, int flags)
++{
++	enum devlink_command cmd = DEVLINK_CMD_PORT_RESOURCE_GET;
++	struct devlink_nl_dump_state *state = devlink_dump_state(cb);
++	struct devlink_port *devlink_port;
++	unsigned long port_index;
++	int err;
++
++	xa_for_each_start(&devlink->ports, port_index, devlink_port,
++			  state->idx) {
++		err = devlink_nl_port_resource_fill(msg, devlink_port,
++						    cmd,
++						    NETLINK_CB(cb->skb).portid,
++						    cb->nlh->nlmsg_seq, flags);
++		if (err) {
++			state->idx = port_index;
++			return err;
++		}
++	}
++
++	return 0;
++}
++
++int devlink_nl_port_resource_get_dumpit(struct sk_buff *skb,
++					struct netlink_callback *cb)
++{
++	return devlink_nl_dumpit(skb, cb,
++				 devlink_nl_port_resource_get_dump_one);
++}
 -- 
 2.44.0
 
