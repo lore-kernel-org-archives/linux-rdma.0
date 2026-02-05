@@ -1,106 +1,106 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.19])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.9])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 54F4A392C54;
-	Thu,  5 Feb 2026 08:59:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=198.175.65.19
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE9E82BE053;
+	Thu,  5 Feb 2026 09:01:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=198.175.65.9
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770281952; cv=fail; b=jm79aQrJ+Rb97PX/bQFCbvrNIkH7Ha39UUXa/hrBPIdynfn9LyN/hyp6VaCPbt0TehsfwF2/MWcf4hRySVckohg2X7EnSxus5znTPpxOoYslhDj3wq50zeq3P5GVNG4z+lDzkgfTyMCbbkcoA/cNxJ8b70lyfrl8qXmLwt62GIk=
+	t=1770282099; cv=fail; b=EnEBRiyvL/Gp4c4AhClvFmBKFEjqRck0jC2sdYNoqRigqvkUgOHfKTYhx4EIBj1UorEHR/O4h05j9Y6RTNSLtMJ4TV8NwIOvXPt2ZucQVO1fo/afOkkFHpO8orszud6XmlTyZ+tucS4zHOxYwvcG5v4cH5Xpvq1VIBuuHXwVlJc=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770281952; c=relaxed/simple;
-	bh=jutL1VfePvzFvqXniSwBb6dMvhiQGrBaZU8cKY1nm6Y=;
+	s=arc-20240116; t=1770282099; c=relaxed/simple;
+	bh=TgC+Qtr/JhwCoW6RC+MlE5JoiNNtw9ywN+8On8sxrl0=;
 	h=From:To:CC:Subject:Date:Message-ID:References:In-Reply-To:
-	 Content-Type:MIME-Version; b=ghU3PtGXWCG9uFi37gwQocflPAenxyxTNNaBxzoIrqwSPGpJNuueAJeJ+Y0hIg7whR3oGvnsn+ej/piTPVzqBlDwcyaQYnU22zJRMMtDb1wwHN000mFjfHMGkiQx3IGNT1pkstpZxWU+srE9yviB4bqM5U8rujx7Ruyp1yMBXag=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=jrf3eKNZ; arc=fail smtp.client-ip=198.175.65.19
+	 Content-Type:MIME-Version; b=aPQ7Fkz2nL16KsUDCyrTC30cvwb/xIqHEX9IWvrOIW1Zhq2yJmhifNMn7UdgdSE+bGmWfU7g7VvV+b/437iLry2oYrFd9TLsroR5dqf8rtrc7+/xGDv/rJBjsRgiKyl6SYuR+rAfEIjikmPM7uv/aGso8Fq98+//Aa4mp6h47oE=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=g3tdkPBI; arc=fail smtp.client-ip=198.175.65.9
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="jrf3eKNZ"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="g3tdkPBI"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1770281953; x=1801817953;
+  t=1770282099; x=1801818099;
   h=from:to:cc:subject:date:message-id:references:
    in-reply-to:content-transfer-encoding:mime-version;
-  bh=jutL1VfePvzFvqXniSwBb6dMvhiQGrBaZU8cKY1nm6Y=;
-  b=jrf3eKNZ60ffTIRn31oVKdjyiwE8+TfFG0Mb5/T5RHnbMWhBfSWBrNwX
-   zOCe5wFCSaqjiq0ZrCLwbI8KUdVJDh+DgQ96fn6o4/cSftH3kYEUkAS+0
-   EldzRga3eDlTbQg+WK8+SFJFcPMPdHtfaveIegAGpK/xVjTrFG87CmmSo
-   iHuVjls8vETvjCKTE+FggDsQVU6j2xF9f2TAYNQg/L7FkFhsS+mtgXzZc
-   69BHbDlK0ygEZcMpS0pQm3736q2CuZWJJ98OEXXqpIL0k5q00HFjBBWBd
-   fH4OF+9f39MkgenTM9tWX9T8sa0cLeXAO/e3xP17dlo/G9+P25b5kxBbK
-   w==;
-X-CSE-ConnectionGUID: VKDVz55CTKGQN23e6Wv4DQ==
-X-CSE-MsgGUID: eAfghMfcTHO2+UIUdwOwHw==
-X-IronPort-AV: E=McAfee;i="6800,10657,11691"; a="71374476"
+  bh=TgC+Qtr/JhwCoW6RC+MlE5JoiNNtw9ywN+8On8sxrl0=;
+  b=g3tdkPBIwabXrV7cUzXIQFwX0eW3P8EhjJKXqP1A+FMid+3CLiElH+Dp
+   s2sr/Xo91A53A6HbdFTcVimH5LSgDo6EsI2i83MYUEsj4ok7Vei0OLIbn
+   hZ5bsRCA+iMahcIbbIm9ZLyrxXLn0OdpyBijEP8XO0T3FJLarCJNtEc6R
+   H1aNVmjPJLAZ+P0IX7VcB9RtolRFddiUUIXoJD+v05B68gk5TX5N212Et
+   6cw6I6Meya2H/jBucxzZemkM9BcowFPB7U5HTttzmJlz1Uw9nY0klTyIM
+   p0J4jnJCbm4mSG9qf05Do/RY6LKQAu0yo3Hfz3Yic6RosJW7qPWVTzZAu
+   g==;
+X-CSE-ConnectionGUID: V73IKMurQSaYwogxF3BKIA==
+X-CSE-MsgGUID: iyq32OZYTs+a2gJzsNymow==
+X-IronPort-AV: E=McAfee;i="6800,10657,11691"; a="94126438"
 X-IronPort-AV: E=Sophos;i="6.21,274,1763452800"; 
-   d="scan'208";a="71374476"
-Received: from orviesa004.jf.intel.com ([10.64.159.144])
-  by orvoesa111.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Feb 2026 00:58:43 -0800
-X-CSE-ConnectionGUID: Ro0VB2yaTpO1McMUyef0qQ==
-X-CSE-MsgGUID: JqFMvbcIR/SrQ/K88KoSSw==
+   d="scan'208";a="94126438"
+Received: from orviesa007.jf.intel.com ([10.64.159.147])
+  by orvoesa101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Feb 2026 01:01:38 -0800
+X-CSE-ConnectionGUID: goekc04iSXSl35PEXvNU3w==
+X-CSE-MsgGUID: mRMTx6aeQLmzlGl2rtq1Sw==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.21,274,1763452800"; 
-   d="scan'208";a="214966439"
+   d="scan'208";a="210527061"
 Received: from orsmsx901.amr.corp.intel.com ([10.22.229.23])
-  by orviesa004.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Feb 2026 00:58:42 -0800
+  by orviesa007.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Feb 2026 01:01:38 -0800
 Received: from ORSMSX902.amr.corp.intel.com (10.22.229.24) by
  ORSMSX901.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.35; Thu, 5 Feb 2026 00:58:41 -0800
-Received: from ORSEDG902.ED.cps.intel.com (10.7.248.12) by
+ 15.2.2562.35; Thu, 5 Feb 2026 01:01:37 -0800
+Received: from ORSEDG903.ED.cps.intel.com (10.7.248.13) by
  ORSMSX902.amr.corp.intel.com (10.22.229.24) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.35 via Frontend Transport; Thu, 5 Feb 2026 00:58:41 -0800
-Received: from MW6PR02CU001.outbound.protection.outlook.com (52.101.48.68) by
- edgegateway.intel.com (134.134.137.112) with Microsoft SMTP Server
+ 15.2.2562.35 via Frontend Transport; Thu, 5 Feb 2026 01:01:37 -0800
+Received: from SJ2PR03CU001.outbound.protection.outlook.com (52.101.43.9) by
+ edgegateway.intel.com (134.134.137.113) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.35; Thu, 5 Feb 2026 00:58:41 -0800
+ 15.2.2562.35; Thu, 5 Feb 2026 01:01:37 -0800
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=tHoemrsyzpeC2lO0cPsYrJFrLH/CPi2KvuOPEAMG7YUDvnCn7Zoi0iNk7X4q/ytdeyW2MYGtn66AdShhZ2/hEbPpZDSVsQvSxQHeZo87eDZC1Zj5CW6CfyqaSRhatuRZV02sfPYhdr8phl/iBDisLuIs0U5cFt/yjvBxDYF8iUhisdJ2kLox4hV1eijI9ShBQWLNhpxEl76ejiWz7baSqmz5BI6GSpeQsk2bgPl6b/pxVtm6fA83Rh8XIYurn1xN5LC22TltxDJs9ElKHf5zmkbUVDaHiZ7hZD4DOb4P/EJEff5kQArWXUSrXcfzi/tMnyHg/2IZwMBgJCdCJpp51Q==
+ b=f1F0lMSbiBUvOMsdk+Wk4jB0OOMroqKxoHLHFjG0m6a1STPb+ty4tQ6KjAbiaoBeokhqdkybWNvVFAAMPs39V+OIz1MUEER20NpM7DHDHPtK2OSiuUaRUnrzuxBt8xOhsBTatkArwDAob5JeHK0SkqCLK/fpeWAM5mHEx4W+rPscGIdwON5g7OhhSZyHjK0wXcErgIi7iFuggc5O1xAiswAMekx9yiGgKQo/kNpBLPOgIuj8zmd6JwQ+1SD91nFbdyns5l/cdXHPTZwrDKEBB9XmbpOd86r6RHovTHrAR+zo2rFqF+eCdJ0kox7grfwQuMxPNpb3fhokkitBNIARwQ==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=oCvmn4yb4w7YRcaSqlDJjhthiZvF7m0iMKSFXs2UwcQ=;
- b=o2PV8zbF1i18jk2Qfw96/9rP5KMa3e4XFSgu/cdMqWSeMznrjkw61Ew0hDflsmcrd29E/m3EA1ytUiAmAfWHQzxHAmQ539PjzSh1GR5/yOqe3/AC4qM9WexTozvgkloKsHUHle2IHw6bHQHFXcU+Ar7vTs040tDWYCHDnsKfo3HkNk6LWBsWpIePcGBAgtOdVdGRn88eYYWpKJd47QUMNjXIu6yC3WhY+QRjgO8qjRpQwPZsGMErToemmz68b/jF/pwpi4ZDpLwsHWWCiT2qDbgQMqpYkxnyudyC5Q4zsTQrBpmm64ydlSo1bWqq1/2gDqeNjSpNjigsMT+tyUC3tw==
+ bh=dhqOpg6UQmIf77URoWerRR4eRiBi5ot/1MQrscJUddo=;
+ b=wrxevlYgnGLGwPF11XxOPrXF731HPvdRPku9g5kNyDOqXGC8HoDp4kPjmq7kbRv274vcyUE9w74y9/l7DUIYdg1MUrjboPeyw5jWt9dkXtuCa6GrMfAVCL3p37/SzoYYaxcCBuxHqaxHIldlrtbAM19OSQXPg/IkBs2TYbBLmkuGoaIG9nA11MYFrta8SC0iE6Y74IIelr6gAtuLrrQidOZlYekT6seUWkn6SXW1TLVDEbcfemOQX9L6MP1tVc61Pa/i9BDcR6dgxKsk50jkq0XEIeLExKjsPioa6yHTiuITgFfCNH8kW8qUkt2jlZw0kUmnUypgtFexEfycLwxgbw==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
  dkim=pass header.d=intel.com; arc=none
 Received: from LV4PR11MB9491.namprd11.prod.outlook.com (2603:10b6:408:2de::14)
- by SJ5PPF263E38237.namprd11.prod.outlook.com (2603:10b6:a0f:fc02::81a) with
+ by MW4PR11MB6887.namprd11.prod.outlook.com (2603:10b6:303:225::16) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9587.12; Thu, 5 Feb
- 2026 08:58:36 +0000
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9587.14; Thu, 5 Feb
+ 2026 09:01:30 +0000
 Received: from LV4PR11MB9491.namprd11.prod.outlook.com
  ([fe80::6f0e:9ee3:9e98:1ed]) by LV4PR11MB9491.namprd11.prod.outlook.com
  ([fe80::6f0e:9ee3:9e98:1ed%3]) with mapi id 15.20.9587.010; Thu, 5 Feb 2026
- 08:58:36 +0000
+ 09:01:30 +0000
 From: "Kubalewski, Arkadiusz" <arkadiusz.kubalewski@intel.com>
 To: "Vecera, Ivan" <ivecera@redhat.com>, "netdev@vger.kernel.org"
 	<netdev@vger.kernel.org>
-CC: Eric Dumazet <edumazet@google.com>, "Nguyen, Anthony L"
-	<anthony.l.nguyen@intel.com>, Leon Romanovsky <leon@kernel.org>, "Lobakin,
- Aleksander" <aleksander.lobakin@intel.com>, "linux-rdma@vger.kernel.org"
-	<linux-rdma@vger.kernel.org>, "Kitszel, Przemyslaw"
-	<przemyslaw.kitszel@intel.com>, "Loktionov, Aleksandr"
-	<aleksandr.loktionov@intel.com>, "intel-wired-lan@lists.osuosl.org"
-	<intel-wired-lan@lists.osuosl.org>, Jakub Kicinski <kuba@kernel.org>, "Paolo
- Abeni" <pabeni@redhat.com>, Jiri Pirko <jiri@resnulli.us>, Richard Cochran
-	<richardcochran@gmail.com>, Prathosh Satish <Prathosh.Satish@microchip.com>,
-	Vadim Fedorenko <vadim.fedorenko@linux.dev>, Mark Bloch <mbloch@nvidia.com>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Tariq Toukan
-	<tariqt@nvidia.com>, Andrew Lunn <andrew+netdev@lunn.ch>, Jonathan Lemon
-	<jonathan.lemon@gmail.com>, Saeed Mahameed <saeedm@nvidia.com>, "David S.
- Miller" <davem@davemloft.net>
-Subject: RE: [Intel-wired-lan] [PATCH net-next v5 7/9] dpll: Add reference
- count tracking support
-Thread-Topic: [Intel-wired-lan] [PATCH net-next v5 7/9] dpll: Add reference
- count tracking support
-Thread-Index: AQHclTRU3Iwjc5zq4EO6sqE+jcFpQLVz0CrA
-Date: Thu, 5 Feb 2026 08:58:36 +0000
-Message-ID: <LV4PR11MB949129F71F676FEC95C67CB89B99A@LV4PR11MB9491.namprd11.prod.outlook.com>
+CC: "Loktionov, Aleksandr" <aleksandr.loktionov@intel.com>, "Lobakin,
+ Aleksander" <aleksander.lobakin@intel.com>, Andrew Lunn
+	<andrew+netdev@lunn.ch>, "David S. Miller" <davem@davemloft.net>, "Eric
+ Dumazet" <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, Jiri Pirko
+	<jiri@resnulli.us>, Jonathan Lemon <jonathan.lemon@gmail.com>, "Leon
+ Romanovsky" <leon@kernel.org>, Mark Bloch <mbloch@nvidia.com>, Paolo Abeni
+	<pabeni@redhat.com>, Prathosh Satish <Prathosh.Satish@microchip.com>,
+	"Kitszel, Przemyslaw" <przemyslaw.kitszel@intel.com>, Richard Cochran
+	<richardcochran@gmail.com>, Saeed Mahameed <saeedm@nvidia.com>, Tariq Toukan
+	<tariqt@nvidia.com>, "Nguyen, Anthony L" <anthony.l.nguyen@intel.com>, "Vadim
+ Fedorenko" <vadim.fedorenko@linux.dev>, "intel-wired-lan@lists.osuosl.org"
+	<intel-wired-lan@lists.osuosl.org>, "linux-kernel@vger.kernel.org"
+	<linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org"
+	<linux-rdma@vger.kernel.org>
+Subject: RE: [PATCH net-next v5 4/9] dpll: Support dynamic pin index
+ allocation
+Thread-Topic: [PATCH net-next v5 4/9] dpll: Support dynamic pin index
+ allocation
+Thread-Index: AQHclTRJvDvb3vplVUWQ4ZEMM5k9sbVz0Oeg
+Date: Thu, 5 Feb 2026 09:01:30 +0000
+Message-ID: <LV4PR11MB9491F4542E5F9BA52D5A77309B99A@LV4PR11MB9491.namprd11.prod.outlook.com>
 References: <20260203174002.705176-1-ivecera@redhat.com>
- <20260203174002.705176-8-ivecera@redhat.com>
-In-Reply-To: <20260203174002.705176-8-ivecera@redhat.com>
+ <20260203174002.705176-5-ivecera@redhat.com>
+In-Reply-To: <20260203174002.705176-5-ivecera@redhat.com>
 Accept-Language: pl-PL, en-US
 Content-Language: en-US
 X-MS-Has-Attach:
@@ -108,72 +108,72 @@ X-MS-TNEF-Correlator:
 authentication-results: dkim=none (message not signed)
  header.d=none;dmarc=none action=none header.from=intel.com;
 x-ms-publictraffictype: Email
-x-ms-traffictypediagnostic: LV4PR11MB9491:EE_|SJ5PPF263E38237:EE_
-x-ms-office365-filtering-correlation-id: 45c45561-5131-433e-e494-08de6494bfa9
+x-ms-traffictypediagnostic: LV4PR11MB9491:EE_|MW4PR11MB6887:EE_
+x-ms-office365-filtering-correlation-id: ec516441-b235-4d35-5a6d-08de6495270e
 x-ld-processed: 46c98d88-e344-4ed4-8496-4ed7712e255d,ExtAddr
 x-ms-exchange-senderadcheck: 1
 x-ms-exchange-antispam-relay: 0
-x-microsoft-antispam: BCL:0;ARA:13230040|7416014|376014|1800799024|366016|38070700021;
-x-microsoft-antispam-message-info: =?us-ascii?Q?MgBmDTAOBfX/qRhY6WlL7E0kkZU+JshsWZPGFyVfzHyqvMKdO1MaJmJdqULL?=
- =?us-ascii?Q?IT1ghG/eaS/Y/2tBZv3Vlg+7FhPtzqfOcc1nknCdVIV6tMzIWt7/f+FUFPq9?=
- =?us-ascii?Q?w5OabBYRysR40Uf2JjMCf3EnvqdKi78VuGYuXcB9eKO4AR+EPxikIEFXeIbY?=
- =?us-ascii?Q?SqPFXq0BxJr9il2H0Mcmx23D8hyYbscmT0t0V/mIUEf4hKayKWxE5Z8Kon/o?=
- =?us-ascii?Q?XF1M39Gvi+Np++yQjF1QK9Ofq8LPu5gm/tc0tHOqisGfwjpBOuXTJoH8mPu/?=
- =?us-ascii?Q?eQu6USMVm8VqY8pVEjopQXSKQs2uwEVffH/eyLV8FfKTDzBBc1/ndQ4W7FnH?=
- =?us-ascii?Q?3TT1/MjTOj2yyphTbfwsyDkavZHbI7nxyGkAkTVA86YddMYQlFSdnI7+rmOM?=
- =?us-ascii?Q?R+jFEbHT97SrJy1KFKBiskNCa1HD4ME2NAF3k5QwtwMqVpOT5SgjlrKG5M74?=
- =?us-ascii?Q?9fHLtUrgX8e2ci9CsL/Uoimkr29NLws5H9R7lkw6jScQGwL7ToulFLdKjG+q?=
- =?us-ascii?Q?DbUpqw2+crt555V6uCuPBW30z62a7v9IWiIoL0oZdaK8P6ejmPX/IYFwBX0w?=
- =?us-ascii?Q?3ZFhp8m2r3QsflrLANduVw03WaT7obiPRVXVos+j2nymW3K1nDB29BAyNTo4?=
- =?us-ascii?Q?IZ8SbtCO5Ru+TLwQ+XiAJJevNzW6cYzHVMZsmJhUFOVqeQkEf1V1gT58ZTQe?=
- =?us-ascii?Q?2OIbmfu3J62+gMNWsHO8eQWwpkSZIri3IJkzB9CVmlciBCKacnr5I1wpbWNM?=
- =?us-ascii?Q?vuNFF6srni5FQeKo0SA63P4uXMXwAs/7Z3qKKnD61gnYjPqRmm89BF5nfYIO?=
- =?us-ascii?Q?p1JdabG99fuIz1AhZDiIIYlzomgx0kZ69xq07DhgSasjxP6BPUvGTeZEUbZs?=
- =?us-ascii?Q?n5rzhZZKyTXVbeLvhML2lNErmfG6plFXWY4n7GluY1vQtH1l4ftTlobO1l/K?=
- =?us-ascii?Q?Gt6/prSa11ERP3GvgYjPF7Mis1YT83t6atLZVpFKqg9dJVyoLornS61rTuEz?=
- =?us-ascii?Q?fKKChSqDLJ6gNi6BvT+rCA9hxziIxxgz18ps4Zs0RLWqDGBvYDfpd3/87pFd?=
- =?us-ascii?Q?XU+YCI7yuCkLFjZkaJTaBcK26/P92qDjYOfX6Up2J6ikxUCkFx8BuJGGTLNP?=
- =?us-ascii?Q?KN6TQFmc7RPZfiA5hex1nU78yzcXbiUblWkvZ3BwIkV5tSDMnsIy/VxYJzYc?=
- =?us-ascii?Q?/Sj0fxSsjoGebGkzTNgdSKXH+tFlp6w3fvIdClQdzFVf5gMT0NI+KE4oZjV3?=
- =?us-ascii?Q?TThwaLm0MxvoYUMB90rKJSMrtvOUqn3dIz615c4M0L9sffPcClAUVyAFC2IE?=
- =?us-ascii?Q?0uC+IhB/aFoJi/drIpDejn/dV+MkB67c3aJYqaGN0+pdfSq2ClJTD3s3tn+0?=
- =?us-ascii?Q?ElYHCUvRIaj+u1ZNsiqSB+g7AX9G5kD5fWRmmLRlmOYN4s46nRtrpYOyDXVd?=
- =?us-ascii?Q?eB9aKjwF1NVjRhF70qYESpxOfb5V3jXGEoKusWSEFKQozzzkcu2H1C0l8mIQ?=
- =?us-ascii?Q?yzGiVewUlB3ZotfF2R2YWxhtgzUGtmaTtDMTPciI8Wx+fpSHNpEwKNaeSEMH?=
- =?us-ascii?Q?YIgfFykoF2Gy5OXbGO2fU70pJyg6lVSBjINCT6F98raUB7jn1f6eTLySIvMm?=
- =?us-ascii?Q?DXPYV/6gin7p5VtFxhTAQHY=3D?=
-x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:LV4PR11MB9491.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(7416014)(376014)(1800799024)(366016)(38070700021);DIR:OUT;SFP:1101;
+x-microsoft-antispam: BCL:0;ARA:13230040|1800799024|366016|376014|7416014|38070700021;
+x-microsoft-antispam-message-info: =?us-ascii?Q?ITz0aCeBGyEKp24CoH66P9W3OGY46CaMGTNH08thpeVHSRP6n60ibkK7kgM/?=
+ =?us-ascii?Q?QzRkozkDlOGgzgdjbVGP52ZHQmcnjZ35Aoujz9BVQMOcIqdssXx1UEt6cpqs?=
+ =?us-ascii?Q?Io6i1xPcRR1jcV9nQ8Qq2hLAP5tbpc+7PzT2bx9y1+kYnhUJnj2Q/GUAjVXi?=
+ =?us-ascii?Q?xHCG355G3zxpnlJEWcNDT6YsxNjzGlUdaohaVQ4bFfbKveew2fWXQy+TkhuA?=
+ =?us-ascii?Q?ARNMbxytHMfwPQewOhq60Nvt4nj2ea7FVkqGy7mP0Bx7u4PlzTo28rrxQs+P?=
+ =?us-ascii?Q?F+mPUcft5e6jzl/kcpaFdf5fMRyKPW7BfUkM8rdp6boR9mT5pIbCRh6fCUDb?=
+ =?us-ascii?Q?amQrEq/89CZln00RvhUXEwGZVA2RhpxYH8z8tr4HsvTXsWSrLGduKcBMe22B?=
+ =?us-ascii?Q?TrLaUF4WzuhIRfollnWZqppiwUJG95xamSsU0WBb1Vd+npbc7A9EnW2gzxFm?=
+ =?us-ascii?Q?2SHXd5mI7kHojlIfq7N3kIT8MypSb/TKp2WkPTq1KIRdlxtQbdoDU8DTWh0w?=
+ =?us-ascii?Q?kB3SAc1hCzGr//lOfZGtUO6/7/LGsyjcVQKo/Tz8bzcykxaEfVYkeP6Zgwcp?=
+ =?us-ascii?Q?9uCn84rUerkltr5hzIUycylnCrfmRemGhLlehLwLE4EeqrqVICgYNHm4BLc6?=
+ =?us-ascii?Q?4BgK1f12o5stf1UjClQS/IXpTVh8fIHs2qFbNygMOK36Uq6xppM3wTqYO/Rm?=
+ =?us-ascii?Q?tsnuYOR1h6PrYmY//UH4kSmbHtZnYgcwmwbFUEPmetvCBujPqKm47B8JNQie?=
+ =?us-ascii?Q?vXl0IlN5P3I7q2ajTZtd4qKkqFio9cxC56biVWS0T69u1QkUCkYjOD/geMlx?=
+ =?us-ascii?Q?vf9vbCLHRMFODb62A8Z+6qQ2boxij5c4A3JFhr2Xq5ejKO2edboNaTHFTJgV?=
+ =?us-ascii?Q?NY810cR+nv5gbK6DR/yr4MgwbN1bd/L343EehskSxDzT1BlGywfbYkdwjG9y?=
+ =?us-ascii?Q?MH725WQ+7NMCtBT91TCuDjlyjvjsAYjBeBQ4dbhhbhCb8nF4Pr36kdTBPSPa?=
+ =?us-ascii?Q?tefe7uE/90YqkrM1oEkw0TgFouE6of4jbgHph8uio2iPzXhX7rUruu5yFspa?=
+ =?us-ascii?Q?3w9EIPAIUOqDIwu01WoJf+tr/DY71QvYvosiDcJiRhY3HoR2igDqvKq9lock?=
+ =?us-ascii?Q?jxAgRlW5BT3qE70VejzrFYsJ9TOAo//FtnkF+VZjCTy8jB0aptltwEARk2y3?=
+ =?us-ascii?Q?GBIsFCXyWKZ/koeaNuIiCP8r1rhScsHVxrfhjKRAVe2XgKCVYf8G1YwjK+L1?=
+ =?us-ascii?Q?loK31st3MLZIRWsk/c304125aTNxzLpwXSbWbItBpQbf7REH1dkvD1dQEVeh?=
+ =?us-ascii?Q?0ZlqmwE+zZkrtu4EHC4wwWt6XabIAFRqkZFEoF4twLvdCVyXhEYCUnwartgY?=
+ =?us-ascii?Q?zgvPNEQ4Aq43eB3Fuoyy5Ysb3EA002jpzn9O+Lyl8hgxRbVYsHV4eMOT9QnV?=
+ =?us-ascii?Q?zHNnH84fvydhg/cJBuiDqiPNkke6hsvHy5wUeG124jzMMMaQMJgrKXiLb78D?=
+ =?us-ascii?Q?ctNW0NwD+jS72LZQ7EYaO+wF6TsVjbAukUVVUBpGAlJ98ZdyStlokhXjy1cZ?=
+ =?us-ascii?Q?2tipMOrgDucsANxqS1yWTNMtDiUGwOvPsb4zTHCL6571C+nznE4kJGvxVJ+X?=
+ =?us-ascii?Q?QuSUEznXVaYmcBOmQ79PMhE=3D?=
+x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:LV4PR11MB9491.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(366016)(376014)(7416014)(38070700021);DIR:OUT;SFP:1101;
 x-ms-exchange-antispam-messagedata-chunkcount: 1
-x-ms-exchange-antispam-messagedata-0: =?us-ascii?Q?PqUESnTLNLhvGuOdjciDedxuy8xnhrPysI6XPy56WY8rwDk2kwhDjbxJDpxu?=
- =?us-ascii?Q?brHWdbwG2Xf4vutOGIWXkF1F1QaQyD3PJAIa/cf35v/N2aV6yNotIjdR/0hP?=
- =?us-ascii?Q?fKFlhkpNpoMIRYaA+sUypk62ZrwAjbgTDyHmYEz4P77e5AUPEAd4TR5z1hjF?=
- =?us-ascii?Q?JukBwI6bzamMiAwNwl8xLHV4MAWV1bXGNNwkYKWhbQDtyKHFPm/upAY/ICO5?=
- =?us-ascii?Q?+Czpol9+zi5Qxh99nr+xYTD+F8Fz3n3jHNFCGho8wCSyXaXNNPACVVixpUDt?=
- =?us-ascii?Q?YjwiN/u31WO3396n6ZnhDLa3TCBSVmkuudovTPiI15fzYuX3SzG0Z5JoOKlv?=
- =?us-ascii?Q?8LRsMpKDCfe7kYDplZXD879CQMOgCgUSvf21uaIAynYAJTvdq2XaGxg82TH8?=
- =?us-ascii?Q?i20N8UKxrBDJCyT5oBXHreIHLUd/kd6OiOZtMhid+rf4RTFJUbpyR7JmCNwc?=
- =?us-ascii?Q?WFr7YONdFVqo98W4rCL0tDkz3if5iqlH275em8vTc1OuxFHOqfkUyOww6WM1?=
- =?us-ascii?Q?RXuOm74SQ70F6fHyeUrw+7R6ww/MLW5CXEPS2mvmI+n19VkG3VOEQAoiiPuI?=
- =?us-ascii?Q?3sRi7h80dPWvYU3rCfMwcHFdx5WZgJz742baGwVjqKwebJsJe74EsHwgMoP1?=
- =?us-ascii?Q?ayKsFCPg91RN9d+M+UzQUuIpreWqA17v6MgHUrOkwlWvjcLX0tZBSYrO0ohl?=
- =?us-ascii?Q?Xzj1b3nqhdVP6NpjpKVmxk76GDfcsn/DwtUtRQ6PUNea+D3ueUNerGKItclI?=
- =?us-ascii?Q?rNvEY4knwfoIpwXjK/wlGXLe9ElhIU4rlFjOyAVXjYuSUEbBhDXAiWIJBQ++?=
- =?us-ascii?Q?4qYXRFATpKphgfIKq12PAnXbLhWwmUHoX0BMPfnKU6S/sRNZhwbzsMdZ68YH?=
- =?us-ascii?Q?6znTsHfA+25HQadNlEz3XYU/6uX2an+FmCzpknSVleGFMzvvkmEvKMigOlaz?=
- =?us-ascii?Q?mVlbY9R/DKv0FgSMZrRoSP973fp7zdalWm5Tyqs9qsNX0d7f5kYrd4hIhhou?=
- =?us-ascii?Q?p7y77IfyMaHHAFFdZvqqUEo70mjukX8TWthR4BDVi/mRzm0DO1WRjhN6Oxv0?=
- =?us-ascii?Q?5b5s1dpgyIlFgsJ738BJPp3roMM9e1NoAyBeLuyygOwX0Xcl/oD+8FTCdjHl?=
- =?us-ascii?Q?+U76AGa4wGLhwjzT+OeXHkbfg0kHUQ9buxGzzadatxIpWP/FpE//JJ+KPeBi?=
- =?us-ascii?Q?V0IE3jWERsrZkDKoS4oVmta/w1XsfN53ch5jr+fMqWpgI4hIbQJqaq6HScVX?=
- =?us-ascii?Q?zo5jAvtChCdRtvxGQdQKyWftghrSz7CBYauQhful0E5SeSxSK9qBnYsIoNA1?=
- =?us-ascii?Q?Hc+s6w8CEXwE5Jj8ir94b64qmGhDgsnu7ivXeugEwzo0McLxUEBIXXv27hEr?=
- =?us-ascii?Q?hWu3EY2QdLpyUP0X6ru5uZewVHewqGvgpuQ14C0R4SYHG2ywc6Dri5oGMyfj?=
- =?us-ascii?Q?wTCOV5jR/ng7wkG64F8bX6SVAfx2nMdC8Zgglc2++/iaS1NChHgk24pz8wIP?=
- =?us-ascii?Q?G0tyjSMMR1m29CFuB/vR2svm21hDyW564HZ6mFEZOY/6VqNChB6WxZSS2quL?=
- =?us-ascii?Q?wAPmBCk2mvGtLxpFHsagpFg3UziUlrBPJ1ewIfsty7zi638J1yZYdyo4ATAn?=
- =?us-ascii?Q?B2uppOCwnT60tUZAgDwzfRFMs976CESa4OJVWW/NkI/DQzwxGNj29+7cxVkN?=
- =?us-ascii?Q?GwZfQNueVOkyYk+s6gmmGgzO6TglNQRO92jspYO+lW9670/TOotr+WtLmm1v?=
- =?us-ascii?Q?cE8h2WZIYdSz3Dee8EjT9eliuMbkkm8=3D?=
+x-ms-exchange-antispam-messagedata-0: =?us-ascii?Q?8wz3x5aMG61+vIeCYBFV+mmb7hXpbzrNyf426LuQpzL06xMXrsroFz3I2lZn?=
+ =?us-ascii?Q?qrCy2rjtTjQflbILRG7SbXARktyAeNMwkclH9ovExWBSfrYkWBeHlX4l2fzb?=
+ =?us-ascii?Q?uHTixeGQvQ1X/lxz9vJULBlUPlh4Xw1oizBvEjdwHjMnF6Z8PtlXpuMFc6QY?=
+ =?us-ascii?Q?IGhb+Kjyb78r04km3RxxbUj9z75pMUrYlo4O9tRhIOVItdGk3ljykWSzE2DG?=
+ =?us-ascii?Q?ifENz78YSVz3pMvuOJxPK9EiRb/cMiDvmxxSMc4l5+rBObNLNxzEuiXhf6MV?=
+ =?us-ascii?Q?nX6LFUjg8YkvioEMYfaaxwd4vm2HgcUnVnBpjFi/4bVcrDmBPldczG5iMNA3?=
+ =?us-ascii?Q?quEyXs4D9Hy8RVLQRt51TBjD9FLP3/t7xVkjbe4Ikal8XD/O64V3P/s9w7+W?=
+ =?us-ascii?Q?eu+UjNO7cdk9Dyl0HUcItc/aKo0cAcNCM/S50lRCxVwqsM3BtQTYsvRBE+S4?=
+ =?us-ascii?Q?PwQN8A2E0BtAzdgs58mOnppZ2EpRmoDMYHpCPbZ7ISSbYfWc65lhsrREPGiS?=
+ =?us-ascii?Q?082DlNQkOHTgIKskpyNsovPLzfMFZQbFHJyWXcHnaQ5YOAx3yaQdEHNOTLsO?=
+ =?us-ascii?Q?hCqJW+cGbQUXH/r2WMq4K2pMmLt3bB3iK4plRoZbeBt74TW1u01cb9Ick8TE?=
+ =?us-ascii?Q?dRW2C6f0NgSQmmCn5AT7BfpDHV6Meq6KwoeNg/4YC9QGTm0uq3PhITC6Mt9r?=
+ =?us-ascii?Q?eltl6IRc7iRlX4pF3TTN0tjsO13xcasOSIzw/TveSIrL2fAIPjDXmuzJs86E?=
+ =?us-ascii?Q?pQYQPU7oeB01xd/OcVy678m6PrmodcFJ/wk10pNzau7S9VP7JZwpC/6l7Lzm?=
+ =?us-ascii?Q?Ak0R1DHIJpTtlPaTFd2985Mw65BUxChVHO6DDK73DFcQkPMVcqC1WlHrHtKp?=
+ =?us-ascii?Q?u7o36p/FWgMdVVQs5QosjUU/JWgUl5+sfp/fINg/5IMjfURlj+R+KRo4X8Dl?=
+ =?us-ascii?Q?hZloAIx3liI5na24fzeVmYISK/wqr7TugJ16XeHxRYcZyDgRvTXWWAnMWpdx?=
+ =?us-ascii?Q?fjKDhtuMiYr+kmr0ug1LWksBsNaFTA6+/yDHsl8uKlvM0Ha/Y7tm68lokXTl?=
+ =?us-ascii?Q?4V2bGMG9Has2jZvb/xFmJ808trCFN4KmfJT68ZJI0hDZjWRYnZxgcp/qo7+s?=
+ =?us-ascii?Q?DzOPxLrMKpr+dFNfwi70iEHqOf16hSguBkoTtAeGFRoKTbQmwuzahAN9hZjE?=
+ =?us-ascii?Q?ks1p9RwkDNKe8jUD+ijr7PTuHbAR4cs7OAh9KEsSF/kz9RjaAUHEN6yFG/U1?=
+ =?us-ascii?Q?b8fZ+HNLvFJAesERLSZ2rELqfo09PopU0fy/F9FFgN5FrlhntfJgFCyXrLRK?=
+ =?us-ascii?Q?KU0l0VddMBIjgT3VfbDb0qEWWb/dr0F6pbmYJ1NdcRK36QozV4557jiV9BSI?=
+ =?us-ascii?Q?9NaV4cjylieIra1fjHgd6P9+pxm0ylMrA1ERubDwsV5cYYyvUABQv2zazKEF?=
+ =?us-ascii?Q?nqDxpX3m+tYRr9P/yKVE/n6mhLfEkxV8EmeCgwf4TjsoXFuxPZC5iTxkIyf6?=
+ =?us-ascii?Q?VuKt5TQ/FwZGR4Kq8QCEY/AgPqlFtYx/zRv4GrGr/cy2DfSCE2HSETisSJFr?=
+ =?us-ascii?Q?ZCxKbzaoLpe2ecfdORRxwPf9CS/4b7r90a8lx3pdY3DBF8yazCOELfDHJkuQ?=
+ =?us-ascii?Q?yEGonztE/5tF13TZaEg17Z3SrA5QdYAaDCIqrjgqEg2wMcZtv20OrgQf0JDX?=
+ =?us-ascii?Q?zlAjUBnL+EQ9+7ZtdcvkVmRrnp/qrEooYgxjI4b4fswC2KXa3OI+zFcK9d17?=
+ =?us-ascii?Q?kJK7mXfRCK8tVJrI+EQpOdDe4jDGLDI=3D?=
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
@@ -184,811 +184,163 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 X-MS-Exchange-CrossTenant-AuthAs: Internal
 X-MS-Exchange-CrossTenant-AuthSource: LV4PR11MB9491.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 45c45561-5131-433e-e494-08de6494bfa9
-X-MS-Exchange-CrossTenant-originalarrivaltime: 05 Feb 2026 08:58:36.6623
+X-MS-Exchange-CrossTenant-Network-Message-Id: ec516441-b235-4d35-5a6d-08de6495270e
+X-MS-Exchange-CrossTenant-originalarrivaltime: 05 Feb 2026 09:01:30.0783
  (UTC)
 X-MS-Exchange-CrossTenant-fromentityheader: Hosted
 X-MS-Exchange-CrossTenant-id: 46c98d88-e344-4ed4-8496-4ed7712e255d
 X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: Hom47jXmVtBuGG244cm3FmiZrX2Ud7okihO3xDz1oCI6q9aEPROzMNP12GIlAoq+cnZSX3QrIE/ihcxIypGpmJOWiZXKZOlQikr39PAOSxM=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ5PPF263E38237
+X-MS-Exchange-CrossTenant-userprincipalname: D35tjw8B3BrnmHcVpuvsYLoaggHsJeW1LIpCFk3THu5QV7JQU4R9EF5x+BtPZkw6X23nmMS8iP3Wd6XeCVuurspZXqWlEt0hQ9Y3Bx2qH4Y=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: MW4PR11MB6887
 X-OriginatorOrg: intel.com
 
->From: Intel-wired-lan <intel-wired-lan-bounces@osuosl.org> On Behalf Of
->Ivan Vecera
+>From: Ivan Vecera <ivecera@redhat.com>
 >Sent: Tuesday, February 3, 2026 6:40 PM
 >
->Add support for the REF_TRACKER infrastructure to the DPLL subsystem.
+>Allow drivers to register DPLL pins without manually specifying a pin
+>index.
 >
->When enabled, this allows developers to track and debug reference counting
->leaks or imbalances for dpll_device and dpll_pin objects. It records stack
->traces for every get/put operation and exposes this information via
->debugfs at:
->  /sys/kernel/debug/ref_tracker/dpll_device_*
->  /sys/kernel/debug/ref_tracker/dpll_pin_*
+>Currently, drivers must provide a unique pin index when calling
+>dpll_pin_get(). This works well for hardware-mapped pins but creates
+>friction for drivers handling virtual pins or those without a strict
+>hardware indexing scheme.
 >
->The following API changes are made to support this:
->1. dpll_device_get() / dpll_device_put() now accept a 'dpll_tracker *'
->   (which is a typedef to 'struct ref_tracker *' when enabled, or an empty
->   struct otherwise).
->2. dpll_pin_get() / dpll_pin_put() and fwnode_dpll_pin_find() similarly
->   accept the tracker argument.
->3. Internal registration structures now hold a tracker to associate the
->   reference held by the registration with the specific owner.
+>Introduce DPLL_PIN_IDX_UNSPEC (U32_MAX). When a driver passes this
+>value as the pin index:
+>1. The core allocates a unique index using an IDA
+>2. The allocated index is mapped to a range starting above `INT_MAX`
 >
->All existing in-tree drivers (ice, mlx5, ptp_ocp, zl3073x) are updated
->to pass NULL for the new tracker argument, maintaining current behavior
->while enabling future debugging capabilities.
+>This separation ensures that dynamically allocated indices never collide
+>with standard driver-provided hardware indices, which are assumed to be
+>within the `0` to `INT_MAX` range. The index is automatically freed when
+>the pin is released in dpll_pin_put().
 >
 >Reviewed-by: Aleksandr Loktionov <aleksandr.loktionov@intel.com>
 
 LGTM,
 Reviewed-by: Arkadiusz Kubalewski <arkadiusz.kubalewski@intel.com>
 
->Co-developed-by: Petr Oros <poros@redhat.com>
->Signed-off-by: Petr Oros <poros@redhat.com>
 >Signed-off-by: Ivan Vecera <ivecera@redhat.com>
 >---
->v5:
->* fixed typo
->v4:
->* added missing tracker parameter to fwnode_dpll_pin_find() stub
->v3:
->* added Kconfig dependency on STACKTRACE_SUPPORT and DEBUG_KERNEL
+>v2:
+>* fixed integer overflow in dpll_pin_idx_free()
 >---
-> drivers/dpll/Kconfig                          | 15 +++
-> drivers/dpll/dpll_core.c                      | 98 ++++++++++++++-----
-> drivers/dpll/dpll_core.h                      |  5 +
-> drivers/dpll/zl3073x/dpll.c                   | 12 +--
-> drivers/net/ethernet/intel/ice/ice_dpll.c     | 14 +--
-> .../net/ethernet/mellanox/mlx5/core/dpll.c    | 13 +--
-> drivers/ptp/ptp_ocp.c                         | 15 +--
-> include/linux/dpll.h                          | 21 ++--
-> 8 files changed, 139 insertions(+), 54 deletions(-)
+> drivers/dpll/dpll_core.c | 48 ++++++++++++++++++++++++++++++++++++++--
+> include/linux/dpll.h     |  2 ++
+> 2 files changed, 48 insertions(+), 2 deletions(-)
 >
->diff --git a/drivers/dpll/Kconfig b/drivers/dpll/Kconfig
->index ade872c915ac6..be98969f040ab 100644
->--- a/drivers/dpll/Kconfig
->+++ b/drivers/dpll/Kconfig
->@@ -8,6 +8,21 @@ menu "DPLL device support"
-> config DPLL
-> 	bool
->
->+config DPLL_REFCNT_TRACKER
->+	bool "DPLL reference count tracking"
->+	depends on DEBUG_KERNEL && STACKTRACE_SUPPORT && DPLL
->+	select REF_TRACKER
->+	help
->+	  Enable reference count tracking for DPLL devices and pins.
->+	  This helps debugging reference leaks and use-after-free bugs
->+	  by recording stack traces for each get/put operation.
->+
->+	  The tracking information is exposed via debugfs at:
->+	    /sys/kernel/debug/ref_tracker/dpll_device_*
->+	    /sys/kernel/debug/ref_tracker/dpll_pin_*
->+
->+	  If unsure, say N.
->+
-> source "drivers/dpll/zl3073x/Kconfig"
->
-> endmenu
 >diff --git a/drivers/dpll/dpll_core.c b/drivers/dpll/dpll_core.c
->index f6ab4f0cad84d..627a5b39a0efd 100644
+>index b05fe2ba46d91..59081cf2c73ae 100644
 >--- a/drivers/dpll/dpll_core.c
 >+++ b/drivers/dpll/dpll_core.c
->@@ -41,6 +41,7 @@ struct dpll_device_registration {
-> 	struct list_head list;
-> 	const struct dpll_device_ops *ops;
-> 	void *priv;
->+	dpll_tracker tracker;
-> };
->
-> struct dpll_pin_registration {
->@@ -48,6 +49,7 @@ struct dpll_pin_registration {
-> 	const struct dpll_pin_ops *ops;
-> 	void *priv;
-> 	void *cookie;
->+	dpll_tracker tracker;
-> };
->
-> static int call_dpll_notifiers(unsigned long action, void *info)
->@@ -83,33 +85,68 @@ void dpll_pin_notify(struct dpll_pin *pin, unsigned
->long action)
-> 	call_dpll_notifiers(action, &info);
-> }
->
->-static void __dpll_device_hold(struct dpll_device *dpll)
->+static void dpll_device_tracker_alloc(struct dpll_device *dpll,
->+				      dpll_tracker *tracker)
-> {
->+#ifdef CONFIG_DPLL_REFCNT_TRACKER
->+	ref_tracker_alloc(&dpll->refcnt_tracker, tracker, GFP_KERNEL);
->+#endif
->+}
->+
->+static void dpll_device_tracker_free(struct dpll_device *dpll,
->+				     dpll_tracker *tracker)
->+{
->+#ifdef CONFIG_DPLL_REFCNT_TRACKER
->+	ref_tracker_free(&dpll->refcnt_tracker, tracker);
->+#endif
->+}
->+
->+static void __dpll_device_hold(struct dpll_device *dpll, dpll_tracker
->*tracker)
->+{
->+	dpll_device_tracker_alloc(dpll, tracker);
-> 	refcount_inc(&dpll->refcount);
-> }
->
->-static void __dpll_device_put(struct dpll_device *dpll)
->+static void __dpll_device_put(struct dpll_device *dpll, dpll_tracker
->*tracker)
-> {
->+	dpll_device_tracker_free(dpll, tracker);
-> 	if (refcount_dec_and_test(&dpll->refcount)) {
-> 		ASSERT_DPLL_NOT_REGISTERED(dpll);
-> 		WARN_ON_ONCE(!xa_empty(&dpll->pin_refs));
-> 		xa_destroy(&dpll->pin_refs);
-> 		xa_erase(&dpll_device_xa, dpll->id);
-> 		WARN_ON(!list_empty(&dpll->registration_list));
->+		ref_tracker_dir_exit(&dpll->refcnt_tracker);
-> 		kfree(dpll);
-> 	}
-> }
->
->-static void __dpll_pin_hold(struct dpll_pin *pin)
->+static void dpll_pin_tracker_alloc(struct dpll_pin *pin, dpll_tracker
->*tracker)
-> {
->+#ifdef CONFIG_DPLL_REFCNT_TRACKER
->+	ref_tracker_alloc(&pin->refcnt_tracker, tracker, GFP_KERNEL);
->+#endif
->+}
->+
->+static void dpll_pin_tracker_free(struct dpll_pin *pin, dpll_tracker
->*tracker)
->+{
->+#ifdef CONFIG_DPLL_REFCNT_TRACKER
->+	ref_tracker_free(&pin->refcnt_tracker, tracker);
->+#endif
->+}
->+
->+static void __dpll_pin_hold(struct dpll_pin *pin, dpll_tracker *tracker)
->+{
->+	dpll_pin_tracker_alloc(pin, tracker);
-> 	refcount_inc(&pin->refcount);
-> }
->
-> static void dpll_pin_idx_free(u32 pin_idx);
-> static void dpll_pin_prop_free(struct dpll_pin_properties *prop);
->
->-static void __dpll_pin_put(struct dpll_pin *pin)
->+static void __dpll_pin_put(struct dpll_pin *pin, dpll_tracker *tracker)
-> {
->+	dpll_pin_tracker_free(pin, tracker);
-> 	if (refcount_dec_and_test(&pin->refcount)) {
-> 		xa_erase(&dpll_pin_xa, pin->id);
-> 		xa_destroy(&pin->dpll_refs);
->@@ -118,6 +155,7 @@ static void __dpll_pin_put(struct dpll_pin *pin)
-> 		dpll_pin_prop_free(&pin->prop);
-> 		fwnode_handle_put(pin->fwnode);
-> 		dpll_pin_idx_free(pin->pin_idx);
->+		ref_tracker_dir_exit(&pin->refcnt_tracker);
-> 		kfree_rcu(pin, rcu);
-> 	}
-> }
->@@ -191,7 +229,7 @@ dpll_xa_ref_pin_add(struct xarray *xa_pins, struct
->dpll_pin *pin,
-> 	reg->ops =3D ops;
-> 	reg->priv =3D priv;
-> 	reg->cookie =3D cookie;
->-	__dpll_pin_hold(pin);
->+	__dpll_pin_hold(pin, &reg->tracker);
-> 	if (ref_exists)
-> 		refcount_inc(&ref->refcount);
-> 	list_add_tail(&reg->list, &ref->registration_list);
->@@ -214,7 +252,7 @@ static int dpll_xa_ref_pin_del(struct xarray *xa_pins,
->struct dpll_pin *pin,
-> 		if (WARN_ON(!reg))
-> 			return -EINVAL;
-> 		list_del(&reg->list);
->-		__dpll_pin_put(pin);
->+		__dpll_pin_put(pin, &reg->tracker);
-> 		kfree(reg);
-> 		if (refcount_dec_and_test(&ref->refcount)) {
-> 			xa_erase(xa_pins, i);
->@@ -272,7 +310,7 @@ dpll_xa_ref_dpll_add(struct xarray *xa_dplls, struct
->dpll_device *dpll,
-> 	reg->ops =3D ops;
-> 	reg->priv =3D priv;
-> 	reg->cookie =3D cookie;
->-	__dpll_device_hold(dpll);
->+	__dpll_device_hold(dpll, &reg->tracker);
-> 	if (ref_exists)
-> 		refcount_inc(&ref->refcount);
-> 	list_add_tail(&reg->list, &ref->registration_list);
->@@ -295,7 +333,7 @@ dpll_xa_ref_dpll_del(struct xarray *xa_dplls, struct
->dpll_device *dpll,
-> 		if (WARN_ON(!reg))
-> 			return;
-> 		list_del(&reg->list);
->-		__dpll_device_put(dpll);
->+		__dpll_device_put(dpll, &reg->tracker);
-> 		kfree(reg);
-> 		if (refcount_dec_and_test(&ref->refcount)) {
-> 			xa_erase(xa_dplls, i);
->@@ -337,6 +375,7 @@ dpll_device_alloc(const u64 clock_id, u32 device_idx,
->struct module *module)
-> 		return ERR_PTR(ret);
-> 	}
-> 	xa_init_flags(&dpll->pin_refs, XA_FLAGS_ALLOC);
->+	ref_tracker_dir_init(&dpll->refcnt_tracker, 128, "dpll_device");
->
-> 	return dpll;
-> }
->@@ -346,6 +385,7 @@ dpll_device_alloc(const u64 clock_id, u32 device_idx,
->struct module *module)
->  * @clock_id: clock_id of creator
->  * @device_idx: idx given by device driver
->  * @module: reference to registering module
->+ * @tracker: tracking object for the acquired reference
->  *
->  * Get existing object of a dpll device, unique for given arguments.
->  * Create new if doesn't exist yet.
->@@ -356,7 +396,8 @@ dpll_device_alloc(const u64 clock_id, u32 device_idx,
->struct module *module)
->  * * ERR_PTR(X) - error
->  */
-> struct dpll_device *
->-dpll_device_get(u64 clock_id, u32 device_idx, struct module *module)
->+dpll_device_get(u64 clock_id, u32 device_idx, struct module *module,
->+		dpll_tracker *tracker)
-> {
-> 	struct dpll_device *dpll, *ret =3D NULL;
-> 	unsigned long index;
->@@ -366,13 +407,17 @@ dpll_device_get(u64 clock_id, u32 device_idx, struct
->module *module)
-> 		if (dpll->clock_id =3D=3D clock_id &&
-> 		    dpll->device_idx =3D=3D device_idx &&
-> 		    dpll->module =3D=3D module) {
->-			__dpll_device_hold(dpll);
->+			__dpll_device_hold(dpll, tracker);
-> 			ret =3D dpll;
-> 			break;
-> 		}
-> 	}
->-	if (!ret)
->+	if (!ret) {
-> 		ret =3D dpll_device_alloc(clock_id, device_idx, module);
->+		if (!IS_ERR(ret))
->+			dpll_device_tracker_alloc(ret, tracker);
->+	}
->+
-> 	mutex_unlock(&dpll_lock);
->
-> 	return ret;
->@@ -382,15 +427,16 @@ EXPORT_SYMBOL_GPL(dpll_device_get);
-> /**
->  * dpll_device_put - decrease the refcount and free memory if possible
->  * @dpll: dpll_device struct pointer
->+ * @tracker: tracking object for the acquired reference
->  *
->  * Context: Acquires a lock (dpll_lock)
->  * Drop reference for a dpll device, if all references are gone, delete
->  * dpll device object.
->  */
->-void dpll_device_put(struct dpll_device *dpll)
->+void dpll_device_put(struct dpll_device *dpll, dpll_tracker *tracker)
-> {
-> 	mutex_lock(&dpll_lock);
->-	__dpll_device_put(dpll);
->+	__dpll_device_put(dpll, tracker);
-> 	mutex_unlock(&dpll_lock);
-> }
-> EXPORT_SYMBOL_GPL(dpll_device_put);
->@@ -452,7 +498,7 @@ int dpll_device_register(struct dpll_device *dpll,
->enum dpll_type type,
-> 	reg->ops =3D ops;
-> 	reg->priv =3D priv;
-> 	dpll->type =3D type;
->-	__dpll_device_hold(dpll);
->+	__dpll_device_hold(dpll, &reg->tracker);
-> 	first_registration =3D list_empty(&dpll->registration_list);
-> 	list_add_tail(&reg->list, &dpll->registration_list);
-> 	if (!first_registration) {
->@@ -492,7 +538,7 @@ void dpll_device_unregister(struct dpll_device *dpll,
-> 		return;
-> 	}
-> 	list_del(&reg->list);
->-	__dpll_device_put(dpll);
->+	__dpll_device_put(dpll, &reg->tracker);
-> 	kfree(reg);
->
-> 	if (!list_empty(&dpll->registration_list)) {
->@@ -622,6 +668,7 @@ dpll_pin_alloc(u64 clock_id, u32 pin_idx, struct
->module *module,
-> 			      &dpll_pin_xa_id, GFP_KERNEL);
-> 	if (ret < 0)
-> 		goto err_xa_alloc;
->+	ref_tracker_dir_init(&pin->refcnt_tracker, 128, "dpll_pin");
-> 	return pin;
-> err_xa_alloc:
-> 	xa_destroy(&pin->dpll_refs);
->@@ -683,6 +730,7 @@ EXPORT_SYMBOL_GPL(unregister_dpll_notifier);
->  * @pin_idx: idx given by dev driver
->  * @module: reference to registering module
->  * @prop: dpll pin properties
->+ * @tracker: tracking object for the acquired reference
->  *
->  * Get existing object of a pin (unique for given arguments) or create
->new
->  * if doesn't exist yet.
->@@ -694,7 +742,7 @@ EXPORT_SYMBOL_GPL(unregister_dpll_notifier);
->  */
-> struct dpll_pin *
-> dpll_pin_get(u64 clock_id, u32 pin_idx, struct module *module,
->-	     const struct dpll_pin_properties *prop)
->+	     const struct dpll_pin_properties *prop, dpll_tracker *tracker)
-> {
-> 	struct dpll_pin *pos, *ret =3D NULL;
-> 	unsigned long i;
->@@ -704,13 +752,16 @@ dpll_pin_get(u64 clock_id, u32 pin_idx, struct
->module *module,
-> 		if (pos->clock_id =3D=3D clock_id &&
-> 		    pos->pin_idx =3D=3D pin_idx &&
-> 		    pos->module =3D=3D module) {
->-			__dpll_pin_hold(pos);
->+			__dpll_pin_hold(pos, tracker);
-> 			ret =3D pos;
-> 			break;
-> 		}
-> 	}
->-	if (!ret)
->+	if (!ret) {
-> 		ret =3D dpll_pin_alloc(clock_id, pin_idx, module, prop);
->+		if (!IS_ERR(ret))
->+			dpll_pin_tracker_alloc(ret, tracker);
->+	}
-> 	mutex_unlock(&dpll_lock);
->
-> 	return ret;
->@@ -720,15 +771,16 @@ EXPORT_SYMBOL_GPL(dpll_pin_get);
-> /**
->  * dpll_pin_put - decrease the refcount and free memory if possible
->  * @pin: pointer to a pin to be put
->+ * @tracker: tracking object for the acquired reference
->  *
->  * Drop reference for a pin, if all references are gone, delete pin
->object.
->  *
->  * Context: Acquires a lock (dpll_lock)
->  */
->-void dpll_pin_put(struct dpll_pin *pin)
->+void dpll_pin_put(struct dpll_pin *pin, dpll_tracker *tracker)
-> {
-> 	mutex_lock(&dpll_lock);
->-	__dpll_pin_put(pin);
->+	__dpll_pin_put(pin, tracker);
-> 	mutex_unlock(&dpll_lock);
-> }
-> EXPORT_SYMBOL_GPL(dpll_pin_put);
->@@ -752,6 +804,7 @@ EXPORT_SYMBOL_GPL(dpll_pin_fwnode_set);
-> /**
->  * fwnode_dpll_pin_find - find dpll pin by firmware node reference
->  * @fwnode: reference to firmware node
->+ * @tracker: tracking object for the acquired reference
->  *
->  * Get existing object of a pin that is associated with given firmware
->node
->  * reference.
->@@ -761,7 +814,8 @@ EXPORT_SYMBOL_GPL(dpll_pin_fwnode_set);
->  * * valid dpll_pin pointer on success
->  * * NULL when no such pin exists
->  */
->-struct dpll_pin *fwnode_dpll_pin_find(struct fwnode_handle *fwnode)
->+struct dpll_pin *fwnode_dpll_pin_find(struct fwnode_handle *fwnode,
->+				      dpll_tracker *tracker)
-> {
-> 	struct dpll_pin *pin, *ret =3D NULL;
-> 	unsigned long index;
->@@ -769,7 +823,7 @@ struct dpll_pin *fwnode_dpll_pin_find(struct
->fwnode_handle *fwnode)
-> 	mutex_lock(&dpll_lock);
-> 	xa_for_each(&dpll_pin_xa, index, pin) {
-> 		if (pin->fwnode =3D=3D fwnode) {
->-			__dpll_pin_hold(pin);
->+			__dpll_pin_hold(pin, tracker);
-> 			ret =3D pin;
-> 			break;
-> 		}
->diff --git a/drivers/dpll/dpll_core.h b/drivers/dpll/dpll_core.h
->index b7b4bb251f739..71ac88ef20172 100644
->--- a/drivers/dpll/dpll_core.h
->+++ b/drivers/dpll/dpll_core.h
 >@@ -10,6 +10,7 @@
-> #include <linux/dpll.h>
-> #include <linux/list.h>
-> #include <linux/refcount.h>
->+#include <linux/ref_tracker.h>
-> #include "dpll_nl.h"
 >
-> #define DPLL_REGISTERED		XA_MARK_1
->@@ -23,6 +24,7 @@
->  * @type:		type of a dpll
->  * @pin_refs:		stores pins registered within a dpll
->  * @refcount:		refcount
->+ * @refcnt_tracker:	ref_tracker directory for debugging reference
->leaks
->  * @registration_list:	list of registered ops and priv data of dpll
->owners
->  **/
-> struct dpll_device {
->@@ -33,6 +35,7 @@ struct dpll_device {
-> 	enum dpll_type type;
-> 	struct xarray pin_refs;
-> 	refcount_t refcount;
->+	struct ref_tracker_dir refcnt_tracker;
-> 	struct list_head registration_list;
-> };
+> #include <linux/device.h>
+> #include <linux/err.h>
+>+#include <linux/idr.h>
+> #include <linux/property.h>
+> #include <linux/slab.h>
+> #include <linux/string.h>
+>@@ -24,6 +25,7 @@ DEFINE_XARRAY_FLAGS(dpll_device_xa, XA_FLAGS_ALLOC);
+> DEFINE_XARRAY_FLAGS(dpll_pin_xa, XA_FLAGS_ALLOC);
 >
->@@ -48,6 +51,7 @@ struct dpll_device {
->  * @ref_sync_pins:	hold references to pins for Reference SYNC feature
->  * @prop:		pin properties copied from the registerer
->  * @refcount:		refcount
->+ * @refcnt_tracker:	ref_tracker directory for debugging reference
->leaks
->  * @rcu:		rcu_head for kfree_rcu()
->  **/
-> struct dpll_pin {
->@@ -61,6 +65,7 @@ struct dpll_pin {
-> 	struct xarray ref_sync_pins;
-> 	struct dpll_pin_properties prop;
-> 	refcount_t refcount;
->+	struct ref_tracker_dir refcnt_tracker;
-> 	struct rcu_head rcu;
-> };
+> static RAW_NOTIFIER_HEAD(dpll_notifier_chain);
+>+static DEFINE_IDA(dpll_pin_idx_ida);
 >
->diff --git a/drivers/dpll/zl3073x/dpll.c b/drivers/dpll/zl3073x/dpll.c
->index 9eed21088adac..8788bcab7ec53 100644
->--- a/drivers/dpll/zl3073x/dpll.c
->+++ b/drivers/dpll/zl3073x/dpll.c
->@@ -1480,7 +1480,7 @@ zl3073x_dpll_pin_register(struct zl3073x_dpll_pin
->*pin, u32 index)
->
-> 	/* Create or get existing DPLL pin */
-> 	pin->dpll_pin =3D dpll_pin_get(zldpll->dev->clock_id, index,
->THIS_MODULE,
->-				     &props->dpll_props);
->+				     &props->dpll_props, NULL);
-> 	if (IS_ERR(pin->dpll_pin)) {
-> 		rc =3D PTR_ERR(pin->dpll_pin);
-> 		goto err_pin_get;
->@@ -1503,7 +1503,7 @@ zl3073x_dpll_pin_register(struct zl3073x_dpll_pin
->*pin, u32 index)
-> 	return 0;
->
-> err_register:
->-	dpll_pin_put(pin->dpll_pin);
->+	dpll_pin_put(pin->dpll_pin, NULL);
-> err_prio_get:
-> 	pin->dpll_pin =3D NULL;
-> err_pin_get:
->@@ -1534,7 +1534,7 @@ zl3073x_dpll_pin_unregister(struct zl3073x_dpll_pin
->*pin)
-> 	/* Unregister the pin */
-> 	dpll_pin_unregister(zldpll->dpll_dev, pin->dpll_pin, ops, pin);
->
->-	dpll_pin_put(pin->dpll_pin);
->+	dpll_pin_put(pin->dpll_pin, NULL);
-> 	pin->dpll_pin =3D NULL;
+> static u32 dpll_device_xa_id;
+> static u32 dpll_pin_xa_id;
+>@@ -464,6 +466,36 @@ void dpll_device_unregister(struct dpll_device *dpll,
 > }
+> EXPORT_SYMBOL_GPL(dpll_device_unregister);
 >
->@@ -1708,7 +1708,7 @@ zl3073x_dpll_device_register(struct zl3073x_dpll
->*zldpll)
-> 				       dpll_mode_refsel);
->
-> 	zldpll->dpll_dev =3D dpll_device_get(zldev->clock_id, zldpll->id,
->-					   THIS_MODULE);
->+					   THIS_MODULE, NULL);
-> 	if (IS_ERR(zldpll->dpll_dev)) {
-> 		rc =3D PTR_ERR(zldpll->dpll_dev);
-> 		zldpll->dpll_dev =3D NULL;
->@@ -1720,7 +1720,7 @@ zl3073x_dpll_device_register(struct zl3073x_dpll
->*zldpll)
-> 				  zl3073x_prop_dpll_type_get(zldev, zldpll->id),
-> 				  &zl3073x_dpll_device_ops, zldpll);
-> 	if (rc) {
->-		dpll_device_put(zldpll->dpll_dev);
->+		dpll_device_put(zldpll->dpll_dev, NULL);
-> 		zldpll->dpll_dev =3D NULL;
-> 	}
->
->@@ -1743,7 +1743,7 @@ zl3073x_dpll_device_unregister(struct zl3073x_dpll
->*zldpll)
->
-> 	dpll_device_unregister(zldpll->dpll_dev, &zl3073x_dpll_device_ops,
-> 			       zldpll);
->-	dpll_device_put(zldpll->dpll_dev);
->+	dpll_device_put(zldpll->dpll_dev, NULL);
-> 	zldpll->dpll_dev =3D NULL;
-> }
->
->diff --git a/drivers/net/ethernet/intel/ice/ice_dpll.c
->b/drivers/net/ethernet/intel/ice/ice_dpll.c
->index 53b54e395a2ed..64b7b045ecd58 100644
->--- a/drivers/net/ethernet/intel/ice/ice_dpll.c
->+++ b/drivers/net/ethernet/intel/ice/ice_dpll.c
->@@ -2814,7 +2814,7 @@ static void ice_dpll_release_pins(struct
->ice_dpll_pin *pins, int count)
-> 	int i;
->
-> 	for (i =3D 0; i < count; i++)
->-		dpll_pin_put(pins[i].pin);
->+		dpll_pin_put(pins[i].pin, NULL);
-> }
->
-> /**
->@@ -2840,7 +2840,7 @@ ice_dpll_get_pins(struct ice_pf *pf, struct
->ice_dpll_pin *pins,
->
-> 	for (i =3D 0; i < count; i++) {
-> 		pins[i].pin =3D dpll_pin_get(clock_id, i + start_idx,
->THIS_MODULE,
->-					   &pins[i].prop);
->+					   &pins[i].prop, NULL);
-> 		if (IS_ERR(pins[i].pin)) {
-> 			ret =3D PTR_ERR(pins[i].pin);
-> 			goto release_pins;
->@@ -2851,7 +2851,7 @@ ice_dpll_get_pins(struct ice_pf *pf, struct
->ice_dpll_pin *pins,
->
-> release_pins:
-> 	while (--i >=3D 0)
->-		dpll_pin_put(pins[i].pin);
->+		dpll_pin_put(pins[i].pin, NULL);
-> 	return ret;
-> }
->
->@@ -3037,7 +3037,7 @@ static void ice_dpll_deinit_rclk_pin(struct ice_pf
->*pf)
-> 	if (WARN_ON_ONCE(!vsi || !vsi->netdev))
-> 		return;
-> 	dpll_netdev_pin_clear(vsi->netdev);
->-	dpll_pin_put(rclk->pin);
->+	dpll_pin_put(rclk->pin, NULL);
-> }
->
-> /**
->@@ -3247,7 +3247,7 @@ ice_dpll_deinit_dpll(struct ice_pf *pf, struct
->ice_dpll *d, bool cgu)
+>+static int dpll_pin_idx_alloc(u32 *pin_idx)
+>+{
+>+	int ret;
+>+
+>+	if (!pin_idx)
+>+		return -EINVAL;
+>+
+>+	/* Alloc unique number from IDA. Number belongs to <0, INT_MAX>
+>range */
+>+	ret =3D ida_alloc(&dpll_pin_idx_ida, GFP_KERNEL);
+>+	if (ret < 0)
+>+		return ret;
+>+
+>+	/* Map the value to dynamic pin index range <INT_MAX+1, U32_MAX> */
+>+	*pin_idx =3D (u32)ret + INT_MAX + 1;
+>+
+>+	return 0;
+>+}
+>+
+>+static void dpll_pin_idx_free(u32 pin_idx)
+>+{
+>+	if (pin_idx <=3D INT_MAX)
+>+		return; /* Not a dynamic pin index */
+>+
+>+	/* Map the index value from dynamic pin index range to IDA range and
+>+	 * free it.
+>+	 */
+>+	pin_idx -=3D (u32)INT_MAX + 1;
+>+	ida_free(&dpll_pin_idx_ida, pin_idx);
+>+}
+>+
+> static void dpll_pin_prop_free(struct dpll_pin_properties *prop)
 > {
-> 	if (cgu)
-> 		dpll_device_unregister(d->dpll, d->ops, d);
->-	dpll_device_put(d->dpll);
->+	dpll_device_put(d->dpll, NULL);
-> }
->
-> /**
->@@ -3271,7 +3271,7 @@ ice_dpll_init_dpll(struct ice_pf *pf, struct
->ice_dpll *d, bool cgu,
-> 	u64 clock_id =3D pf->dplls.clock_id;
+> 	kfree(prop->package_label);
+>@@ -521,9 +553,18 @@ dpll_pin_alloc(u64 clock_id, u32 pin_idx, struct
+>module *module,
+> 	struct dpll_pin *pin;
 > 	int ret;
 >
->-	d->dpll =3D dpll_device_get(clock_id, d->dpll_idx, THIS_MODULE);
->+	d->dpll =3D dpll_device_get(clock_id, d->dpll_idx, THIS_MODULE, NULL);
-> 	if (IS_ERR(d->dpll)) {
-> 		ret =3D PTR_ERR(d->dpll);
-> 		dev_err(ice_pf_to_dev(pf),
->@@ -3287,7 +3287,7 @@ ice_dpll_init_dpll(struct ice_pf *pf, struct
->ice_dpll *d, bool cgu,
-> 		ice_dpll_update_state(pf, d, true);
-> 		ret =3D dpll_device_register(d->dpll, type, ops, d);
-> 		if (ret) {
->-			dpll_device_put(d->dpll);
->+			dpll_device_put(d->dpll, NULL);
-> 			return ret;
-> 		}
-> 		d->ops =3D ops;
->diff --git a/drivers/net/ethernet/mellanox/mlx5/core/dpll.c
->b/drivers/net/ethernet/mellanox/mlx5/core/dpll.c
->index 3ea8a1766ae28..541d83e5d7183 100644
->--- a/drivers/net/ethernet/mellanox/mlx5/core/dpll.c
->+++ b/drivers/net/ethernet/mellanox/mlx5/core/dpll.c
->@@ -438,7 +438,7 @@ static int mlx5_dpll_probe(struct auxiliary_device
->*adev,
-> 	auxiliary_set_drvdata(adev, mdpll);
+>+	if (pin_idx =3D=3D DPLL_PIN_IDX_UNSPEC) {
+>+		ret =3D dpll_pin_idx_alloc(&pin_idx);
+>+		if (ret)
+>+			return ERR_PTR(ret);
+>+	} else if (pin_idx > INT_MAX) {
+>+		return ERR_PTR(-EINVAL);
+>+	}
+> 	pin =3D kzalloc(sizeof(*pin), GFP_KERNEL);
+>-	if (!pin)
+>-		return ERR_PTR(-ENOMEM);
+>+	if (!pin) {
+>+		ret =3D -ENOMEM;
+>+		goto err_pin_alloc;
+>+	}
+> 	pin->pin_idx =3D pin_idx;
+> 	pin->clock_id =3D clock_id;
+> 	pin->module =3D module;
+>@@ -551,6 +592,8 @@ dpll_pin_alloc(u64 clock_id, u32 pin_idx, struct
+>module *module,
+> 	dpll_pin_prop_free(&pin->prop);
+> err_pin_prop:
+> 	kfree(pin);
+>+err_pin_alloc:
+>+	dpll_pin_idx_free(pin_idx);
+> 	return ERR_PTR(ret);
+> }
 >
-> 	/* Multiple mdev instances might share one DPLL device. */
->-	mdpll->dpll =3D dpll_device_get(clock_id, 0, THIS_MODULE);
->+	mdpll->dpll =3D dpll_device_get(clock_id, 0, THIS_MODULE, NULL);
-> 	if (IS_ERR(mdpll->dpll)) {
-> 		err =3D PTR_ERR(mdpll->dpll);
-> 		goto err_free_mdpll;
->@@ -451,7 +451,8 @@ static int mlx5_dpll_probe(struct auxiliary_device
->*adev,
->
-> 	/* Multiple mdev instances might share one DPLL pin. */
-> 	mdpll->dpll_pin =3D dpll_pin_get(clock_id, mlx5_get_dev_index(mdev),
->-				       THIS_MODULE, &mlx5_dpll_pin_properties);
->+				       THIS_MODULE, &mlx5_dpll_pin_properties,
->+				       NULL);
-> 	if (IS_ERR(mdpll->dpll_pin)) {
-> 		err =3D PTR_ERR(mdpll->dpll_pin);
-> 		goto err_unregister_dpll_device;
->@@ -479,11 +480,11 @@ static int mlx5_dpll_probe(struct auxiliary_device
->*adev,
-> 	dpll_pin_unregister(mdpll->dpll, mdpll->dpll_pin,
-> 			    &mlx5_dpll_pins_ops, mdpll);
-> err_put_dpll_pin:
->-	dpll_pin_put(mdpll->dpll_pin);
->+	dpll_pin_put(mdpll->dpll_pin, NULL);
-> err_unregister_dpll_device:
-> 	dpll_device_unregister(mdpll->dpll, &mlx5_dpll_device_ops, mdpll);
-> err_put_dpll_device:
->-	dpll_device_put(mdpll->dpll);
->+	dpll_device_put(mdpll->dpll, NULL);
-> err_free_mdpll:
-> 	kfree(mdpll);
-> 	return err;
->@@ -499,9 +500,9 @@ static void mlx5_dpll_remove(struct auxiliary_device
->*adev)
-> 	destroy_workqueue(mdpll->wq);
-> 	dpll_pin_unregister(mdpll->dpll, mdpll->dpll_pin,
-> 			    &mlx5_dpll_pins_ops, mdpll);
->-	dpll_pin_put(mdpll->dpll_pin);
->+	dpll_pin_put(mdpll->dpll_pin, NULL);
-> 	dpll_device_unregister(mdpll->dpll, &mlx5_dpll_device_ops, mdpll);
->-	dpll_device_put(mdpll->dpll);
->+	dpll_device_put(mdpll->dpll, NULL);
-> 	kfree(mdpll);
->
-> 	mlx5_dpll_synce_status_set(mdev,
->diff --git a/drivers/ptp/ptp_ocp.c b/drivers/ptp/ptp_ocp.c
->index 65fe05cac8c42..f39b3966b3e8c 100644
->--- a/drivers/ptp/ptp_ocp.c
->+++ b/drivers/ptp/ptp_ocp.c
->@@ -4788,7 +4788,7 @@ ptp_ocp_probe(struct pci_dev *pdev, const struct
->pci_device_id *id)
-> 	devlink_register(devlink);
->
-> 	clkid =3D pci_get_dsn(pdev);
->-	bp->dpll =3D dpll_device_get(clkid, 0, THIS_MODULE);
->+	bp->dpll =3D dpll_device_get(clkid, 0, THIS_MODULE, NULL);
-> 	if (IS_ERR(bp->dpll)) {
-> 		err =3D PTR_ERR(bp->dpll);
-> 		dev_err(&pdev->dev, "dpll_device_alloc failed\n");
->@@ -4800,7 +4800,8 @@ ptp_ocp_probe(struct pci_dev *pdev, const struct
->pci_device_id *id)
-> 		goto out;
->
-> 	for (i =3D 0; i < OCP_SMA_NUM; i++) {
->-		bp->sma[i].dpll_pin =3D dpll_pin_get(clkid, i, THIS_MODULE, &bp-
->>sma[i].dpll_prop);
->+		bp->sma[i].dpll_pin =3D dpll_pin_get(clkid, i, THIS_MODULE,
->+						   &bp->sma[i].dpll_prop, NULL);
-> 		if (IS_ERR(bp->sma[i].dpll_pin)) {
-> 			err =3D PTR_ERR(bp->sma[i].dpll_pin);
-> 			goto out_dpll;
->@@ -4809,7 +4810,7 @@ ptp_ocp_probe(struct pci_dev *pdev, const struct
->pci_device_id *id)
-> 		err =3D dpll_pin_register(bp->dpll, bp->sma[i].dpll_pin,
->&dpll_pins_ops,
-> 					&bp->sma[i]);
-> 		if (err) {
->-			dpll_pin_put(bp->sma[i].dpll_pin);
->+			dpll_pin_put(bp->sma[i].dpll_pin, NULL);
-> 			goto out_dpll;
-> 		}
+>@@ -654,6 +697,7 @@ void dpll_pin_put(struct dpll_pin *pin)
+> 		xa_destroy(&pin->ref_sync_pins);
+> 		dpll_pin_prop_free(&pin->prop);
+> 		fwnode_handle_put(pin->fwnode);
+>+		dpll_pin_idx_free(pin->pin_idx);
+> 		kfree_rcu(pin, rcu);
 > 	}
->@@ -4819,9 +4820,9 @@ ptp_ocp_probe(struct pci_dev *pdev, const struct
->pci_device_id *id)
-> out_dpll:
-> 	while (i--) {
-> 		dpll_pin_unregister(bp->dpll, bp->sma[i].dpll_pin,
->&dpll_pins_ops, &bp->sma[i]);
->-		dpll_pin_put(bp->sma[i].dpll_pin);
->+		dpll_pin_put(bp->sma[i].dpll_pin, NULL);
-> 	}
->-	dpll_device_put(bp->dpll);
->+	dpll_device_put(bp->dpll, NULL);
-> out:
-> 	ptp_ocp_detach(bp);
-> out_disable:
->@@ -4842,11 +4843,11 @@ ptp_ocp_remove(struct pci_dev *pdev)
-> 	for (i =3D 0; i < OCP_SMA_NUM; i++) {
-> 		if (bp->sma[i].dpll_pin) {
-> 			dpll_pin_unregister(bp->dpll, bp->sma[i].dpll_pin,
->&dpll_pins_ops, &bp->sma[i]);
->-			dpll_pin_put(bp->sma[i].dpll_pin);
->+			dpll_pin_put(bp->sma[i].dpll_pin, NULL);
-> 		}
-> 	}
-> 	dpll_device_unregister(bp->dpll, &dpll_ops, bp);
->-	dpll_device_put(bp->dpll);
->+	dpll_device_put(bp->dpll, NULL);
-> 	devlink_unregister(devlink);
-> 	ptp_ocp_detach(bp);
-> 	pci_disable_device(pdev);
+> 	mutex_unlock(&dpll_lock);
 >diff --git a/include/linux/dpll.h b/include/linux/dpll.h
->index 8fff048131f1d..2ce295b46b8cd 100644
+>index 8ed90dfc65f05..8fff048131f1d 100644
 >--- a/include/linux/dpll.h
 >+++ b/include/linux/dpll.h
->@@ -18,6 +18,7 @@ struct dpll_device;
-> struct dpll_pin;
-> struct dpll_pin_esync;
-> struct fwnode_handle;
->+struct ref_tracker;
+>@@ -240,6 +240,8 @@ int dpll_device_register(struct dpll_device *dpll,
+>enum dpll_type type,
+> void dpll_device_unregister(struct dpll_device *dpll,
+> 			    const struct dpll_device_ops *ops, void *priv);
 >
-> struct dpll_device_ops {
-> 	int (*mode_get)(const struct dpll_device *dpll, void *dpll_priv,
->@@ -173,6 +174,12 @@ struct dpll_pin_properties {
-> 	u32 phase_gran;
-> };
->
->+#ifdef CONFIG_DPLL_REFCNT_TRACKER
->+typedef struct ref_tracker *dpll_tracker;
->+#else
->+typedef struct {} dpll_tracker;
->+#endif
+>+#define DPLL_PIN_IDX_UNSPEC	U32_MAX
 >+
-> #define DPLL_DEVICE_CREATED	1
-> #define DPLL_DEVICE_DELETED	2
-> #define DPLL_DEVICE_CHANGED	3
->@@ -205,7 +212,8 @@ size_t dpll_netdev_pin_handle_size(const struct
->net_device *dev);
-> int dpll_netdev_add_pin_handle(struct sk_buff *msg,
-> 			       const struct net_device *dev);
->
->-struct dpll_pin *fwnode_dpll_pin_find(struct fwnode_handle *fwnode);
->+struct dpll_pin *fwnode_dpll_pin_find(struct fwnode_handle *fwnode,
->+				      dpll_tracker *tracker);
-> #else
-> static inline void
-> dpll_netdev_pin_set(struct net_device *dev, struct dpll_pin *dpll_pin) {
->}
->@@ -223,16 +231,17 @@ dpll_netdev_add_pin_handle(struct sk_buff *msg,
->const struct net_device *dev)
-> }
->
-> static inline struct dpll_pin *
->-fwnode_dpll_pin_find(struct fwnode_handle *fwnode)
->+fwnode_dpll_pin_find(struct fwnode_handle *fwnode, dpll_tracker *tracker)
-> {
-> 	return NULL;
-> }
-> #endif
->
-> struct dpll_device *
->-dpll_device_get(u64 clock_id, u32 dev_driver_id, struct module *module);
->+dpll_device_get(u64 clock_id, u32 dev_driver_id, struct module *module,
->+		dpll_tracker *tracker);
->
->-void dpll_device_put(struct dpll_device *dpll);
->+void dpll_device_put(struct dpll_device *dpll, dpll_tracker *tracker);
->
-> int dpll_device_register(struct dpll_device *dpll, enum dpll_type type,
-> 			 const struct dpll_device_ops *ops, void *priv);
->@@ -244,7 +253,7 @@ void dpll_device_unregister(struct dpll_device *dpll,
->
 > struct dpll_pin *
 > dpll_pin_get(u64 clock_id, u32 dev_driver_id, struct module *module,
->-	     const struct dpll_pin_properties *prop);
->+	     const struct dpll_pin_properties *prop, dpll_tracker *tracker);
->
-> int dpll_pin_register(struct dpll_device *dpll, struct dpll_pin *pin,
-> 		      const struct dpll_pin_ops *ops, void *priv);
->@@ -252,7 +261,7 @@ int dpll_pin_register(struct dpll_device *dpll, struct
->dpll_pin *pin,
-> void dpll_pin_unregister(struct dpll_device *dpll, struct dpll_pin *pin,
-> 			 const struct dpll_pin_ops *ops, void *priv);
->
->-void dpll_pin_put(struct dpll_pin *pin);
->+void dpll_pin_put(struct dpll_pin *pin, dpll_tracker *tracker);
->
-> void dpll_pin_fwnode_set(struct dpll_pin *pin, struct fwnode_handle
->*fwnode);
->
+> 	     const struct dpll_pin_properties *prop);
 >--
 >2.52.0
 
