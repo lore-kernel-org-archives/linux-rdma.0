@@ -1,132 +1,78 @@
-Received: from fhigh-a4-smtp.messagingengine.com (fhigh-a4-smtp.messagingengine.com [103.168.172.155])
+Received: from canpmsgout09.his.huawei.com (canpmsgout09.his.huawei.com [113.46.200.224])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 05F1D360752;
-	Fri,  6 Feb 2026 10:00:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.168.172.155
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C77E1296BD1
+	for <linux-rdma@vger.kernel.org>; Fri,  6 Feb 2026 10:31:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.224
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770372024; cv=none; b=s+sd2nKoiPHjTin50vbYPqzkmfgsFrYjm856lUDYiI2JC6vYnYQI+3JgVN0KZWf3MlhCvCxVGVmSFoJ0LHdVpEIJrn7s4o63ibEpr3r3Xh7bvdHDYbux2GRuGwKHXqlRKGmt2VjZYQ59QXbDvJqeVvw0jCweO3mw5g45OKKgEQE=
+	t=1770373875; cv=none; b=ZipcS5758hHc/+HMBGard3YvvSWwe32TPKGDikTWAOKm9bHf3GLH0DT7YPhe2DYL4VCXJ5CX8IeXMTGjN+/YjWgEncWpWqbehhvEEQk+uplXbpvPKqlEsz7o9DtrkOcGJ9E1FOugnwJyzveAxkAn5plLPaj3KHFgccOXG4x+190=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770372024; c=relaxed/simple;
-	bh=2JTvlmMeGGKKKRFKmiYP4bowNql5E2S4kFM2WmofBYc=;
-	h=MIME-Version:Date:From:To:Cc:Message-Id:In-Reply-To:References:
-	 Subject:Content-Type; b=e7cOB32uRt2OSgratyy8JK5hwdhFwpKsVhiogi/EtihrM4DXPnURv3uiUH3EHeoQEJ/MCz4AmzpK3rowEwyLG6OMC5DzASHrmmD7E/jb0otZN8q61rDYpDR0MuVpsh4tTp+d9ElFpIYdVqxxEPYeQ2fgAO5pN642tZ2iz5F2+KA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de; spf=pass smtp.mailfrom=arndb.de; dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b=UUOM6f+V; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=AsLbZgLO; arc=none smtp.client-ip=103.168.172.155
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arndb.de
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b="UUOM6f+V";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="AsLbZgLO"
-Received: from phl-compute-04.internal (phl-compute-04.internal [10.202.2.44])
-	by mailfhigh.phl.internal (Postfix) with ESMTP id 0E59D14001C6;
-	Fri,  6 Feb 2026 05:00:23 -0500 (EST)
-Received: from phl-imap-02 ([10.202.2.81])
-  by phl-compute-04.internal (MEProxy); Fri, 06 Feb 2026 05:00:23 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
-	:cc:content-transfer-encoding:content-type:content-type:date
-	:date:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:subject:subject:to:to; s=fm2; t=1770372023;
-	 x=1770458423; bh=Pz/rkam5VJHb19DKwCI0gMfUPBewaqOcVKlVT4axSgw=; b=
-	UUOM6f+V11EFPWKryo6UcxbywvwKFPytV0/fNP0hiFg5aV52vGDxQ1eIVZofM55h
-	eyYKzFtC/1XLbJhYwsdRyw0s4kGTP3zoxDlvBmVWFG0Y30q6OGyL62YhO4yF1BpC
-	qJTMxBEdcnFe8YCs6KhkpKXqXc5EhRfRU0zPJY7s3xEgboyL92sGLHS0sD1BIGiQ
-	PrVVnfnrM+WDAZu3nHqEF30aI4p2PV3tZx70V74EoJNBpdd+m9KaUG7z0GS8WMqi
-	Lkc7YKmdIWJfnnFHdSaMOTkX56tybzoFIgU1fx1ffAgvDm1WE9uxmOHUtbi9s4rU
-	CjWTBt+MUSx31wdOlYtd4w==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:cc:content-transfer-encoding
-	:content-type:content-type:date:date:feedback-id:feedback-id
-	:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:subject:subject:to:to:x-me-proxy
-	:x-me-sender:x-me-sender:x-sasl-enc; s=fm3; t=1770372023; x=
-	1770458423; bh=Pz/rkam5VJHb19DKwCI0gMfUPBewaqOcVKlVT4axSgw=; b=A
-	sLbZgLObR+atv3fxxWm+CIh/RueSDykCI8uuyszcZ0LjYHV7jmRUdZQFzuwn/Qi4
-	HqMZqKT2vJfF+T4CzCYD5LN7AvBg9We+9RfJJ3ljvG6SSHwT8HOs+MVKHoDBUdAK
-	ngBabonXSAs98AJmlwkicwPv/5klcWxxxlGoAXwj0VpwPPHDFt4Bu5eeo/h4cXBQ
-	w4Hhg41XA2PFE9O4WuYKwn2lKIcaC/HdEo0I8yh12+Wt2lU77H95gV96bE1NLRql
-	4LsTKCOsEO0EGxNq8D98zSAcxorDglbL0jO4k6xAUlPzQH1KeiuqWzfgcyP49vpf
-	dInqHahoFO+t+2rDMYQiw==
-X-ME-Sender: <xms:truFaXnbv1cc8nooBhTDhTXDMIIeaQ-kT8iTUfXAxJ9QvOPTOUglxg>
-    <xme:truFaVr8-dhV8fcs2OCKqRQt3Q4EJWDRCzcwEiopGEuKUMZV4e_QICI11VfoXUeAV
-    yn6fhr3zHkvGgYgdP5SRGJfTHYRwbeksGe5s9hgpD3c7p-YifargUc>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeefgedrtddtgddukeejkeejucetufdoteggodetrf
-    dotffvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfurfetoffkrfgpnffqhgenuceu
-    rghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujf
-    gurhepofggfffhvfevkfgjfhfutgfgsehtjeertdertddtnecuhfhrohhmpedftehrnhgu
-    uceuvghrghhmrghnnhdfuceorghrnhgusegrrhhnuggsrdguvgeqnecuggftrfgrthhtvg
-    hrnhepfefhheetffduvdfgieeghfejtedvkeetkeejfeekkeelffejteevvdeghffhiefh
-    necuffhomhgrihhnpehkvghrnhgvlhdrohhrghenucevlhhushhtvghrufhiiigvpedtne
-    curfgrrhgrmhepmhgrihhlfhhrohhmpegrrhhnugesrghrnhgusgdruggvpdhnsggprhgt
-    phhtthhopeduiedpmhhouggvpehsmhhtphhouhhtpdhrtghpthhtohepuggrvhgvmhesug
-    grvhgvmhhlohhfthdrnhgvthdprhgtphhtthhopegvughumhgriigvthesghhoohhglhgv
-    rdgtohhmpdhrtghpthhtoheprghrnhgusehkvghrnhgvlhdrohhrghdprhgtphhtthhope
-    hkuhgsrgeskhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhgvohhnsehkvghrnhgvlhdr
-    ohhrghdprhgtphhtthhopegrnhgurhgvfidonhgvthguvghvsehluhhnnhdrtghhpdhrtg
-    hpthhtoheptghrrghtihhusehnvhhiughirgdrtghomhdprhgtphhtthhopehjihgrnhgs
-    ohhlsehnvhhiughirgdrtghomhdprhgtphhtthhopehmsghlohgthhesnhhvihguihgrrd
-    gtohhm
-X-ME-Proxy: <xmx:truFafSKo3_S4ovA8oDjs0irZQ77XiVx2hHujeWaIfDMibHeigZXqA>
-    <xmx:truFafSf79dVPmp_3e6qo_zkXgt8k2_kBkx-3Is9MGyHmAJCNPZ-dw>
-    <xmx:truFabpuqL1FubEwRJ81iksq_uti-ewS_v0HW_n3d8v_dk0GgWUtwA>
-    <xmx:truFafCMEEWtqhE9h8NcPLdtfTKIxUj3ycnyM57hRlNCCwU6mEHiGA>
-    <xmx:t7uFac8R62d49k44kir1qcaSvC6khV8JZJcqwpinCfvrVQ43KszjafYD>
-Feedback-ID: i56a14606:Fastmail
-Received: by mailuser.phl.internal (Postfix, from userid 501)
-	id 755BE700065; Fri,  6 Feb 2026 05:00:22 -0500 (EST)
-X-Mailer: MessagingEngine.com Webmail Interface
+	s=arc-20240116; t=1770373875; c=relaxed/simple;
+	bh=mYOD8IUDFEXKFzIoN7ILvsoBckTyd/CsAT8NSPtwoLM=;
+	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=NlzSJXi7XOxi+zwwklPwbppZUPpgiqJABDIyVL1l4DX6IlKFhjVAYv4cYRmLCbL/TQ394DwKbtgWSkk+W6IVGr0bd7QxbDBC4ncoP79nfh58l7tbbnjboIx8u/hBbXLLBIy+7vJ4fvJBJm/gfN0GOrkbs5RRxdCT15vhKMzni/4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com; spf=pass smtp.mailfrom=hisilicon.com; arc=none smtp.client-ip=113.46.200.224
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=hisilicon.com
+Received: from mail.maildlp.com (unknown [172.19.163.214])
+	by canpmsgout09.his.huawei.com (SkyGuard) with ESMTPS id 4f6qy51QB0z1cyQM;
+	Fri,  6 Feb 2026 18:26:37 +0800 (CST)
+Received: from kwepemf100018.china.huawei.com (unknown [7.202.181.17])
+	by mail.maildlp.com (Postfix) with ESMTPS id 4B3D040561;
+	Fri,  6 Feb 2026 18:31:12 +0800 (CST)
+Received: from localhost.localdomain (10.50.163.32) by
+ kwepemf100018.china.huawei.com (7.202.181.17) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1544.36; Fri, 6 Feb 2026 18:31:11 +0800
+From: Junxian Huang <huangjunxian6@hisilicon.com>
+To: <jgg@ziepe.ca>, <leon@kernel.org>
+CC: <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
+	<huangjunxian6@hisilicon.com>, <tangchengchang@huawei.com>
+Subject: [PATCH for-next 1/3] RDMA/hns: Initialize seqfile before creating file
+Date: Fri, 6 Feb 2026 18:31:08 +0800
+Message-ID: <20260206103110.3414311-2-huangjunxian6@hisilicon.com>
+X-Mailer: git-send-email 2.33.0
+In-Reply-To: <20260206103110.3414311-1-huangjunxian6@hisilicon.com>
+References: <20260206103110.3414311-1-huangjunxian6@hisilicon.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-ThreadId: A3LZyQCFhUBg
-Date: Fri, 06 Feb 2026 11:00:02 +0100
-From: "Arnd Bergmann" <arnd@arndb.de>
-To: "Jianbo Liu" <jianbol@nvidia.com>, "Arnd Bergmann" <arnd@kernel.org>,
- "Saeed Mahameed" <saeedm@nvidia.com>, "Leon Romanovsky" <leon@kernel.org>,
- "Tariq Toukan" <tariqt@nvidia.com>, "Mark Bloch" <mbloch@nvidia.com>,
- "Andrew Lunn" <andrew+netdev@lunn.ch>,
- "David S . Miller" <davem@davemloft.net>,
- "Eric Dumazet" <edumazet@google.com>, "Jakub Kicinski" <kuba@kernel.org>,
- "Paolo Abeni" <pabeni@redhat.com>
-Cc: "Cosmin Ratiu" <cratiu@nvidia.com>, "Raed Salem" <raeds@nvidia.com>,
- Netdev <netdev@vger.kernel.org>, linux-rdma@vger.kernel.org,
- linux-kernel@vger.kernel.org
-Message-Id: <2ec67d1a-32ae-479e-99c2-dc5042d9f57e@app.fastmail.com>
-In-Reply-To: <8da9781c-4b89-41cc-8810-8312ef7c2c81@nvidia.com>
-References: <20260204130057.4107804-1-arnd@kernel.org>
- <8da9781c-4b89-41cc-8810-8312ef7c2c81@nvidia.com>
-Subject: Re: [PATCH] [net-next] net/mlx5e: fix ip6_dst_lookup link failure
+Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: kwepems200002.china.huawei.com (7.221.188.68) To
+ kwepemf100018.china.huawei.com (7.202.181.17)
 
-On Fri, Feb 6, 2026, at 10:56, Jianbo Liu wrote:
-> On 2/4/2026 9:00 PM, Arnd Bergmann wrote:
->> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/Kconfig b/drivers/net/ethernet/mellanox/mlx5/core/Kconfig
->> index 9cf394c66939..c298efe93f97 100644
->> --- a/drivers/net/ethernet/mellanox/mlx5/core/Kconfig
->> +++ b/drivers/net/ethernet/mellanox/mlx5/core/Kconfig
->> @@ -154,6 +154,7 @@ config MLX5_EN_IPSEC
->>   	depends on MLX5_CORE_EN
->>   	depends on XFRM_OFFLOAD
->>   	depends on INET_ESP_OFFLOAD || INET6_ESP_OFFLOAD
->> +	depends on IPV6!=m || MLX5_CORE=m
->
-> Thanks for the fix.
-> I received a report for this same error here: 
-> https://lore.kernel.org/oe-kbuild-all/202512261850.P5Jp5BSz-lkp@intel.com/
->
-> We were about to send a fix ourselves, it is to simply add:
->    depends on IPV6 || !IPV6
-> Is there a specific reason to prefer "depends on IPV6!=m || 
-> MLX5_CORE=m"? To me, the IPV6 || !IPV6 syntax seems a bit cleaner.
+The debugfs file was created before seq->read and seq->data were set,
+leaving a small window where userspace could access an uninitialized
+seqfile. Move debugfs_create_file() after the assignments to avoid
+this issue.
 
-MLX5_EN_IPSEC needs the dependency, but this is a 'bool' symbols.
+Fixes: ca7ad04cd5d2 ("RDMA/hns: Add debugfs to hns RoCE")
+Signed-off-by: Junxian Huang <huangjunxian6@hisilicon.com>
+---
+ drivers/infiniband/hw/hns/hns_roce_debugfs.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-The "IPV6 || !IPV6" syntax only works on tristate symbols, so you'd
-have to put it into CONFIG_MLX5_CORE itself, but MLX5_CORE does
-not actually have the IPV6 dependency unless MLX5_EN_IPSEC is
-enabled.
+diff --git a/drivers/infiniband/hw/hns/hns_roce_debugfs.c b/drivers/infiniband/hw/hns/hns_roce_debugfs.c
+index b869cdc54118..3f0a692e6ac7 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_debugfs.c
++++ b/drivers/infiniband/hw/hns/hns_roce_debugfs.c
+@@ -31,10 +31,10 @@ static void init_debugfs_seqfile(struct hns_debugfs_seqfile *seq,
+ 				 int (*read_fn)(struct seq_file *, void *),
+ 				 void *data)
+ {
+-	debugfs_create_file(name, 0400, parent, seq, &hns_debugfs_seqfile_fops);
+-
+ 	seq->read = read_fn;
+ 	seq->data = data;
++
++	debugfs_create_file(name, 0400, parent, seq, &hns_debugfs_seqfile_fops);
+ }
+ 
+ static const char * const sw_stat_info[] = {
+-- 
+2.33.0
 
-     Arnd
