@@ -1,157 +1,151 @@
-Received: from mail-wm1-f52.google.com (mail-wm1-f52.google.com [209.85.128.52])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9CBD022B8C5
-	for <linux-rdma@vger.kernel.org>; Sat,  7 Feb 2026 01:05:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.52
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 597E51FE47B;
+	Sat,  7 Feb 2026 01:50:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770426351; cv=none; b=tlkPU7HCzW65cv8wG/ksrIMZy8ac3E0VAajYQgVDh+hOWh0kRqWXN93dWPvOioomvV0ielRcukrwrnzA6HjYUIT8KhxcSxegA3tslgLrt7uH0vFBsn4GsMqUDYyxuNGsVEbguLIm7XkbNo6cIIb0Ee3PUnP8cyVvFhiqvE4waeo=
+	t=1770429025; cv=none; b=Mx/skDxjEiioc5QKDZb9EQu+jD4QtCxPvAqbvxBEaoimNhVkJYsc2qPC00Ok89TykndXaudsmIpXW9XCCyICgA/hmh3k1PW+yJCElbTyQz31Wf1IvjYm56SYSnuS4oJNNX+p5MHMvrkQbKmLbUS4sZlWk7mDL6Pe+zhPTOqQZpc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770426351; c=relaxed/simple;
-	bh=S4lPJ+iQ6cr7r0HHk+6ImMlHSzuyYglfEyCilMTXMl8=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=lecprdd02uvR+ZIRj9W/rzWU6OXya4GvrfglY69LWaWGkot0nRGRgvElriWGLWMMO4hVDQz3ngOO7FDwFvxHcdJHaIVQ0VXduqllSqSUaU77qKkoAYTeZGCRss33tHir/d16U3gA0NQ5WRD6QJSZJJqjniPJLKQapL1tH/GXuhA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=hl5WQ7Mq; arc=none smtp.client-ip=209.85.128.52
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1770429025; c=relaxed/simple;
+	bh=AeZzWJJ3eLzOMDYijrOnV9Cvj9sBq8VrqxbcdEVuF9w=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=EYYUzj9PiQyv+YzEfo9h7BSVafed0vOkEga51mLqJUa1BnJXc4dOjk0SFnbhtJi/83wEkAUvoU+o9yW0bjty7MP5rB6M2tfsI3Vs4z0VHHcINMD6rqFIOVThWiGR/WccY6Zxf8rEmi/KulvduXjjZKSze4GjJ5Tc9rBdA5XJj9k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Z18bC+bK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="hl5WQ7Mq"
-Received: by mail-wm1-f52.google.com with SMTP id 5b1f17b1804b1-47ee3a63300so28263805e9.2
-        for <linux-rdma@vger.kernel.org>; Fri, 06 Feb 2026 17:05:50 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1770426349; x=1771031149; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=6WAb0jC5Pe9hgQVEU9ZMU3ZkVCoRfT6/PkrPXHX5Zeg=;
-        b=hl5WQ7Mq5MDrXSz+/SPPMxikUJCCyaG1H6VYyH5tmbQ3xqdHXXL7+S49IDZxL1qfGA
-         MtX2qZsht9EErFL9qilIwxnDI6cKe5yPwxECm0KrBQB/068M/AhP66rZUm/G+1dggfll
-         RCAW0ptsMe5kU34Et7GDdT/C3mRue+mQBP7NZZQB8Ln+Qg5LBrEghG5sxmAKFEufrzvR
-         zf/8HksQeslqaef+tw1jMUTQsjW+epSd1h7warqaqSuV+XPuRwkuh1L8ZrN0aER1B6GG
-         oe0qgkc0x8SYdKvNqSqJrBGi9lc38HWUkOa7m1B5KQFmKkc7cX8cmhXjR6dCrFVibDuK
-         RBOg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1770426349; x=1771031149;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=6WAb0jC5Pe9hgQVEU9ZMU3ZkVCoRfT6/PkrPXHX5Zeg=;
-        b=rvOk3NKxA3mhPQgHq4ncTknvob9I2NQE9xqbO8w13Nvl96nx+1WMiRTR0504jw+YGn
-         vPuSt8848fSBhaB8ATyBE2tvX3Cq2okCx7gvjVLBVt9S1IJSW01YhWmN3UUx9ejLYd4X
-         pOlxTUgkvgwqXPurFeQy61k0sNWWG4B/J5ztsI9ByqEYm3p5JgAb/u/A7vZGC/SJxKl9
-         0f9Ct6hJLB3Y3agi1DQePisxd4NHYjYYdkgSFhxLMEOeHUykRBVZRQsows1ei751IN9b
-         xRtePEVGHycjutXRUF584H2nsMznFpgiU8v49WWWnmQkiX6oF9+nYLmK4aBVxJSgSYIb
-         Yczw==
-X-Forwarded-Encrypted: i=1; AJvYcCXXwDujJuh++JL0pxdp2wyLwtWEeqPFr62rLZOV1JGlIcRmEbAvRR0q7RkZ1uQDWIASotFpgYjBAwm2@vger.kernel.org
-X-Gm-Message-State: AOJu0YxEDvHniQjk2fbWOz6vp0WOE6y2dpvu32JYe8dK0yFUYPJu6tu5
-	BMeiCWUqed3oi9egYeK28wspMyyeozFqXlcSRDK92IGndo8/Emt4S+pW
-X-Gm-Gg: AZuq6aKTZAKA++u6cRwErlcn8TA/fg7v/s3IZs0Mc1cLl/Ps55XWQKGASqiWNBQLndd
-	Tr/rK4r1P6BXKvrOMGfwgoDyuI/280OxiJ4gIyvbWP9wNovtlXVjyqPrExNmOWpouSCSv54yqWf
-	zj/CPQdnmqRfrfL4nwFuWBvi0S15IveM8qBue7DKifYNgzDmBQaO75jYJ4lKP7/MzvvDNpsmDMx
-	zGP+NYhje5Y7MWO5qnf/MbzZ6niJKdF+yO2iaFRs1LbunIqtXDyzzvliUjcFQRiH/LhXxnnwWV6
-	Bk7NwwaY4pIlc62JlqIbFMFKf4TMFAGA60sRPj3pHH3aQbn/4471GO2vGTNXshdMMrMfWixcrNf
-	iZJ0O3j/xhqImKBR7TDCjOsLUsHJD+Go7hw5R1KdAFizk532ojById+OS8gBQpl9jmn+Y1qJ2Ir
-	0CEywNhgBp
-X-Received: by 2002:a05:600c:c4a7:b0:47f:b737:5ce0 with SMTP id 5b1f17b1804b1-48320231161mr57802305e9.23.1770426348870;
-        Fri, 06 Feb 2026 17:05:48 -0800 (PST)
-Received: from localhost ([2a03:2880:31ff:5f::])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-48320961505sm58442315e9.4.2026.02.06.17.05.48
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 06 Feb 2026 17:05:48 -0800 (PST)
-From: Mohsin Bashir <mohsin.bashr@gmail.com>
-To: netdev@vger.kernel.org
-Cc: alexanderduyck@fb.com,
-	andrew+netdev@lunn.ch,
-	andrew@lunn.ch,
-	davem@davemloft.net,
-	donald.hunter@gmail.com,
-	edumazet@google.com,
-	gal@nvidia.com,
-	horms@kernel.org,
-	idosch@nvidia.com,
-	jacob.e.keller@intel.com,
-	kernel-team@meta.com,
-	kory.maincent@bootlin.com,
-	kuba@kernel.org,
-	lee@trager.us,
-	leon@kernel.org,
-	linux-rdma@vger.kernel.org,
-	linux@armlinux.org.uk,
-	mbloch@nvidia.com,
-	mohsin.bashr@gmail.com,
-	o.rempel@pengutronix.de,
-	pabeni@redhat.com,
-	saeedm@nvidia.com,
-	tariqt@nvidia.com,
-	vadim.fedorenko@linux.dev
-Subject: [PATCH net-next V2 5/5] eth: mlx5: Move pause storm errors to pause stats
-Date: Fri,  6 Feb 2026 17:05:25 -0800
-Message-ID: <20260207010525.3808842-6-mohsin.bashr@gmail.com>
-X-Mailer: git-send-email 2.47.3
-In-Reply-To: <20260207010525.3808842-1-mohsin.bashr@gmail.com>
-References: <20260207010525.3808842-1-mohsin.bashr@gmail.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Z18bC+bK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EBD81C116C6;
+	Sat,  7 Feb 2026 01:50:23 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1770429025;
+	bh=AeZzWJJ3eLzOMDYijrOnV9Cvj9sBq8VrqxbcdEVuF9w=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+	b=Z18bC+bKhdS99kEMAqdiL3lOhQtzzAe24vw1VQN6s4pRbZ/X71enNfEdvDRj0LU6n
+	 e8hj2zTXJ1FGgMcZDkUu/IAOeT/ipsoqE2osqBE1vHkOl8A9GFPHbYttyuCjLwqwqe
+	 FJws9OOttsiv9lIAg+1omzYMwa96uzOhPFa2QcZeKmTxToPpTN2V/d8xNdAO3fuFbD
+	 qwBQUEH3S+BzQVsnGiv/dgKxW9wcQLzgW6HO5PTcI6yRl+IQWLSurt4ZKmvQ+5B5Uz
+	 xyiqJuny1IGalN7NnWRT4FaBlkBWS51JrNjaEcEUuH7QctdZLqfRdI3NRYu9H7e+c9
+	 n2KPnZFcd1ujQ==
+Date: Fri, 6 Feb 2026 17:50:23 -0800
+From: Jakub Kicinski <kuba@kernel.org>
+To: Jiri Pirko <jiri@resnulli.us>
+Cc: Tariq Toukan <tariqt@nvidia.com>, Eric Dumazet <edumazet@google.com>,
+ Paolo Abeni <pabeni@redhat.com>, Andrew Lunn <andrew+netdev@lunn.ch>,
+ "David S. Miller" <davem@davemloft.net>, Donald Hunter
+ <donald.hunter@gmail.com>, Jonathan Corbet <corbet@lwn.net>, Saeed Mahameed
+ <saeedm@nvidia.com>, Leon Romanovsky <leon@kernel.org>, Mark Bloch
+ <mbloch@nvidia.com>, netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+ linux-doc@vger.kernel.org, linux-rdma@vger.kernel.org, Gal Pressman
+ <gal@nvidia.com>, Moshe Shemesh <moshe@nvidia.com>, Carolina Jubran
+ <cjubran@nvidia.com>, Cosmin Ratiu <cratiu@nvidia.com>, Jiri Pirko
+ <jiri@nvidia.com>, Randy Dunlap <rdunlap@infradead.org>, Simon Horman
+ <horms@kernel.org>, Krzysztof Kozlowski <krzk@kernel.org>
+Subject: Re: [PATCH net-next V7 01/14] documentation: networking: add shared
+ devlink documentation
+Message-ID: <20260206175023.34ffd9d6@kernel.org>
+In-Reply-To: <khee3ri33uvtp4ssaqu7a6vy4mkbrp2zq6nghpbmyyc5pup6rq@hyryulfrhfl6>
+References: <20260128112544.1661250-1-tariqt@nvidia.com>
+	<20260128112544.1661250-2-tariqt@nvidia.com>
+	<20260202194023.412bb454@kernel.org>
+	<u7uicnxkcirhacpzjimss2pqsuhbngg4ticqrz45iqchkk2ha2@t3eem6w6hhur>
+	<20260203190105.2cc28e71@kernel.org>
+	<3edheaanzxgutuyryorfzlfjvizlorpj4y3ard5js7mp44hfii@4a36de6wazfd>
+	<20260204180256.1476f537@kernel.org>
+	<khee3ri33uvtp4ssaqu7a6vy4mkbrp2zq6nghpbmyyc5pup6rq@hyryulfrhfl6>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-Report device_stall_critical_watermark_cnt as tx_pause_storm_events in
-the ethtool_pause_stats struct. This counter tracks pause storm error
-events which indicate the NIC has been sending pause frames for an
-extended period due to a stall.
+On Fri, 6 Feb 2026 11:52:21 +0100 Jiri Pirko wrote:
+> Thu, Feb 05, 2026 at 03:02:56AM +0100, kuba@kernel.org wrote:
+> >On Wed, 4 Feb 2026 08:12:00 +0100 Jiri Pirko wrote: =20
+> >> What's the backing device / handle (busname/devname)? Best would be to
+> >> draw a picture, as always :) =20
+> >
+> >Either the bus/dev that shows up first or we go back to index. =20
+>=20
+> That may be tricky in case you bind/unbind the PFs randomly. You may and
+> up with devlink handle of PF1 with only member PF2. Confusing at least.
+> You need to expose the members to the user anyway somehow. That is
+> exactly the list of nested instances these patchset is adding.
 
-Signed-off-by: Jakub Kicinski <kuba@kernel.org>
-Signed-off-by: Mohsin Bashir <mohsin.bashr@gmail.com>
----
- .../ethernet/mellanox/mlx5/core/en_stats.c    | 25 +++++++++++++++++++
- 1 file changed, 25 insertions(+)
+Yes, simpler setup would likely be to have one function designated=20
+as "main". This could get fairly complicated, OTOH most current use
+cases are fairly rigid, with the function config being per device SKU.
+=46rom uAPI perspective having the list of currently present functions
+and ports should be flexible for current and future use cases.
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_stats.c b/drivers/net/ethernet/mellanox/mlx5/core/en_stats.c
-index a8af84fc9763..2fe779c164e4 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_stats.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_stats.c
-@@ -916,6 +916,23 @@ static int mlx5e_stats_get_ieee(struct mlx5_core_dev *mdev,
- 				    sz, MLX5_REG_PPCNT, 0, 0);
- }
- 
-+static int mlx5e_stats_get_per_prio(struct mlx5_core_dev *mdev,
-+				    u32 *ppcnt_per_prio)
-+{
-+	u32 in[MLX5_ST_SZ_DW(ppcnt_reg)] = {};
-+	int sz = MLX5_ST_SZ_BYTES(ppcnt_reg);
-+
-+	if (!(MLX5_CAP_PCAM_FEATURE(mdev, pfcc_mask) &&
-+	      MLX5_CAP_DEBUG(mdev, stall_detect)))
-+		return -EOPNOTSUPP;
-+
-+	MLX5_SET(ppcnt_reg, in, local_port, 1);
-+	MLX5_SET(ppcnt_reg, in, grp, MLX5_PER_PRIORITY_COUNTERS_GROUP);
-+	MLX5_SET(ppcnt_reg, in, prio_tc, 0);
-+	return mlx5_core_access_reg(mdev, in, sz, ppcnt_per_prio, sz,
-+				    MLX5_REG_PPCNT, 0, 0);
-+}
-+
- void mlx5e_stats_pause_get(struct mlx5e_priv *priv,
- 			   struct ethtool_pause_stats *pause_stats)
- {
-@@ -933,6 +950,14 @@ void mlx5e_stats_pause_get(struct mlx5e_priv *priv,
- 		MLX5E_READ_CTR64_BE_F(ppcnt_ieee_802_3,
- 				      eth_802_3_cntrs_grp_data_layout,
- 				      a_pause_mac_ctrl_frames_received);
-+
-+	if (mlx5e_stats_get_per_prio(mdev, ppcnt_ieee_802_3))
-+		return;
-+
-+	pause_stats->tx_pause_storm_events =
-+		MLX5E_READ_CTR64_BE_F(ppcnt_ieee_802_3,
-+				      eth_per_prio_grp_data_layout,
-+				      device_stall_critical_watermark_cnt);
- }
- 
- void mlx5e_stats_eth_phy_get(struct mlx5e_priv *priv,
--- 
-2.47.3
+> >(My main point being that the single instance is strictly better
+> >than shared, ie. no problem exists in single instance multi func
+> >which does not exist in multi instance + extra instance multi func.
+> >But some problems do exist in multi instance which do not in single
+> >like the locking) =20
+>=20
+> I think that my shared and your shared are basically the same as far as
+> the nested PF instances are not really used for anything except the
+> modelling purposes. That should be up to the driver how he wants to play
+> it, shouldn't it?
+
+Man, seeing the locking shenanigans that the driver developers end up
+doing just in the last two weeks makes me question the "leave it to=20
+the driver" attitude. I'd much rather have code that works than code
+that is adaptive to multiple levels of incompetence.
+
+> >I think I was trying to sell you on "more stable identifiers"=20
+> >as a alternative to ALT_NAMEs for netdevs at some point ;) =20
+>=20
+> I don't recall that. Anyway, everyone loves ALT_NAMEs at this point :)
+
+:)
+
+> >> Okay, what's your suggestion going foreward then? =20
+> >
+> >Add the ID back, make bus/dev optional, forgo the faux dev?
+> >Would that work? Would exiting CLI become very unhappy? :S =20
+>=20
+> Ha, that would break so many things, everything is based on
+> bus/dev on UAPI level :/
+>=20
+> I was thinking about having some sort of *special-bus-name* for indexes,
+> like:
+>=20
+> none/1
+> none/2
+> or
+> devlink_id/1
+> devlink_id/2
+> or something like that.
+>=20
+> But it would be either that or original bus/dev, not both :/
+>=20
+> Perhaps we can add ID attr as optional/alternative handle? Then legacy
+> userspace can use existing bus/dev handle and new can use the ID attr?
+> Then the example output would look something like:
+>=20
+> $ devlink dev
+> pci/0000:08:00.0: id 1
+>   nested_devlink:
+>     auxiliary/mlx5_core.eth.0
+> devlink_id/2: id 2
+>   nested_devlink:
+>     pci/0000:08:00.0
+>     pci/0000:08:00.1
+> auxiliary/mlx5_core.eth.0: id 3
+> pci/0000:08:00.1: id 4
+>   nested_devlink:
+>     auxiliary/mlx5_core.eth.1
+> auxiliary/mlx5_core.eth.1: id 5
+>=20
+> Makes sense?
+
+Yup, seems reasonable.
+
+Alternatively we could add a socket or request flag to dumps that
+indicates that user space is aware that some instances will not
+have the bus/dev identifier?
 
