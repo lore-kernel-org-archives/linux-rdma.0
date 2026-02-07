@@ -1,91 +1,57 @@
-Received: from mail-wm1-f50.google.com (mail-wm1-f50.google.com [209.85.128.50])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5880E18BC3B
-	for <linux-rdma@vger.kernel.org>; Sat,  7 Feb 2026 03:36:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.50
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D09D217F27;
+	Sat,  7 Feb 2026 05:14:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770435395; cv=none; b=Pi4hRhihtLTFRPodLjdd8bD7YnqVEAdSCFBtaax1JvBhsbH4ruVJ2EfX+e9s9KECUxPk+5y2Qov5qOl6J7b2DI2HQ+s9vv20d3hZx1rXLZMHNpBNCqGkKPW4JCryNu8glHvjF0lUaymJA+eSftjnSPHA1JAdpS74GwDAdZa6wRU=
+	t=1770441265; cv=none; b=DVqyu0XifG4GNTqoi5WvI4Q8WKS+N4qO1Tr1kl0v3B7j4WCzxDj90NksAe4oqk4txYLD6SaxPddhPJvRHWlUV5vs6JrSlw9ZHMcXMNtotzirZJlk2nbakPg2nFhQZWcjiWS7uSe/1mjkZuPd9WnVUKWDFLaW58+DcZrvc8OGtbQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770435395; c=relaxed/simple;
-	bh=F75+iwxlRTLyIzKuJzJ+ID7DQ02GZVbuxnZkr4FlfjY=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=sBWvJYSzOOxClddT+CTmdb6UrPIud2oT2KpjcpodgyzNuL4J32KN5cr5GCLhgxvUJ94rAHSgNykH8t0FFtdL5gUGvVjOekdr60biSpUX41uD51br1xBUhg98czICz9x3z8cwXW5ZcAyE4lLmqm0US+illieaKN9bzjJacROBBaQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=T99Xo3Al; arc=none smtp.client-ip=209.85.128.50
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1770441265; c=relaxed/simple;
+	bh=WwBUxFFfKA66xrbBTVU0y6UWZ1GSe6yq1/Qw+mQnZSU=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=TfzOavS7Q3vwfyjCiMAQQojYvmqaec+Pq+OauXteqH4VfsG1I667YWBWvpgVyG8bpgiF6AFWLj6N7gnygEu8//v4CfEFK7QggjhlXaSDXZpTfcnB8VYzUDGfFiD58jojfcU6b/kt0RGCEeKO5XiMF5BzINw6A/bNgekKfA70PZo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=LTc6uhM9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="T99Xo3Al"
-Received: by mail-wm1-f50.google.com with SMTP id 5b1f17b1804b1-47ee3a63300so28909945e9.2
-        for <linux-rdma@vger.kernel.org>; Fri, 06 Feb 2026 19:36:35 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1770435394; x=1771040194; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=nV2/pR09fRCKiwS6HhA3KDDNoxylvhh0vYo9VwjMiO8=;
-        b=T99Xo3AlOdOvHhHBTmTgeuXXnaK3A7Jnr16666BMuCxBsUGA7q+CSxfCO7tW0SzKos
-         0DJM6j9/RF74845gprD0ctnPMSpDbSr0OcQIJXjI2+EDwogd3+npq+IEmJwJl8PFEDAg
-         O5wvG4Y76ELcGEBDxD1WznKoDVQ11b+GdTskiclemB3sxDNjhvbvrbVHL61RP2piZ+fv
-         DMxNHsAqlLqFCam/FXnzjj7a22jZndO5mPqdDb8js49ppb1AmtPjliLjM/hB9u+Go5cx
-         ts6bUspDQ4ouN5g/M1nq7vLQ1zVCOBg3dQjTi8c6Jv66Abj3pKCKQBpfFTXtL0ETbNg7
-         7wig==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1770435394; x=1771040194;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=nV2/pR09fRCKiwS6HhA3KDDNoxylvhh0vYo9VwjMiO8=;
-        b=G+OsQmh7q/rbd1TwJX/gK6BlPeXKEdfM/ETpnnWA+7nCzayvr4pdVFUaH2j7jN1oYl
-         b1sbdlw5dLMouEeDRuaDYRESe1gBGbiuD7mqJZwJpkWxg83cNkWVUqL+omjEJ4Rw+xfx
-         V5n0FErdvlKzXCtHeYQ4CFfgWPKcdbX3M0Y7yfix3w01mBo2qNFUmzwuS3R7ElYJXHEP
-         FWbgi9EnDAV6LsugXsnzH6EJo7uRjQwgnJmb56DqBplWFOU0tnKY/zpppRgIW5BUhUPK
-         xU4JBB0B9heqEKKDycHPs4ypxTfsuIjcMc/cEaOZmFBuW5FFvJdYOq8S1iyQenBU8Ehz
-         N/7g==
-X-Forwarded-Encrypted: i=1; AJvYcCUrFxjZVUPwzifO4SA4t42YRjmoAx7BHsgLDwjYYylKVoV2eMXfiJnmnNZI7/Z/OyhEVqWCn3g7XmfJ@vger.kernel.org
-X-Gm-Message-State: AOJu0YxJe+x86usZPbVZzd+BGS9ZbChRzjAZWk6oyHlTtQemh5tctEgu
-	+zWfV5xVcSWiKNPntKm81zJ5vMtBKjh8Zag6S5k8uhiYSeKynVQqcF/RZDQG8UwD
-X-Gm-Gg: AZuq6aLMdT+p+Way14lUnUcCrndQxUONr4Kaz7473Ss4hM8RUzEGeh0PganPUER1V1r
-	dq13Izr1VJ6FXPv8mIuOOddPlVT6CvafXtvUZ9BLrudbYPqXTUZYMfIzT4euXxkCN72XLDnE40r
-	OaW/x0XrY5V6SxrftVDuMZE5343C1dNYZUzVabzboG8gyRHRsY8LcKrMsDIXEjMcsQ6Baf6D69J
-	QLwRZ98yTDI7+ghsil2mUKCNJzkdweoW5MNcNmbPf0V2QsUEagD6/u37QzmvOPaXxtDF5MyYl9g
-	OeACPNrtScz/plHTNwMmQmDeXJsjriHb+gWqqUJA8USzdXUATIooClhkiNttsErnSlfALd+JJ9Y
-	tA1UnM39ZgiM2b1tClT5IkaZ23XJEn/9odI6UcNotGC1cIPujLxtXt5+Xzkf1mVMo5Uj8ZK0AZJ
-	xgVMjfRS4=
-X-Received: by 2002:a05:600c:8b6f:b0:477:7975:30ea with SMTP id 5b1f17b1804b1-48320236963mr61223265e9.29.1770428553506;
-        Fri, 06 Feb 2026 17:42:33 -0800 (PST)
-Received: from localhost ([2a03:2880:31ff:7::])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-48320961701sm59340825e9.5.2026.02.06.17.42.32
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 06 Feb 2026 17:42:33 -0800 (PST)
-From: Mohsin Bashir <mohsin.bashr@gmail.com>
-To: netdev@vger.kernel.org
-Cc: alexanderduyck@fb.com,
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="LTc6uhM9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C3585C116D0;
+	Sat,  7 Feb 2026 05:14:23 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1770441264;
+	bh=WwBUxFFfKA66xrbBTVU0y6UWZ1GSe6yq1/Qw+mQnZSU=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=LTc6uhM9qhMvNRysnX84I7uo7w2+AujGVGzbVAYMRhKYuzf3d+/hnNHx7hK4tHbEZ
+	 aaRvepLCi8VXZ/yn2ZJLhCJQztfdZc7S+sxYrANVnYUvcGiUqKAwqk60MlAxL1zTGc
+	 +dTEXijN0FHzhVcbFr38HDpvdPD3tkN3Xq2VafxO4tvObQlxgI99sN/HzrQUAd9Vtb
+	 4eXqhPbCpo9SuGf4qTdIzupgzzRpC3zLaZ1N5NuK+ZmL6vq8NU7vcVAF8Lypr2uZhk
+	 B5RhBKCbbKQ2F6D0ZIKIx7c44XKaFWFjBDkXrJS4DRII3BAK8aB1o6XsnXN3dydCL1
+	 s6WsnrDDD1LJg==
+From: Jakub Kicinski <kuba@kernel.org>
+To: vikas.gupta@broadcom.com
+Cc: Jakub Kicinski <kuba@kernel.org>,
 	andrew+netdev@lunn.ch,
-	andrew@lunn.ch,
-	davem@davemloft.net,
-	donald.hunter@gmail.com,
-	edumazet@google.com,
-	gal@nvidia.com,
+	bhargava.marreddy@broadcom.com,
+	siva.kallam@broadcom.com,
+	vsrama-krishna.nemani@broadcom.com,
 	horms@kernel.org,
-	idosch@nvidia.com,
-	jacob.e.keller@intel.com,
-	kernel-team@meta.com,
-	kory.maincent@bootlin.com,
-	kuba@kernel.org,
-	lee@trager.us,
-	leon@kernel.org,
-	linux-rdma@vger.kernel.org,
-	linux@armlinux.org.uk,
-	mbloch@nvidia.com,
-	mohsin.bashr@gmail.com,
-	o.rempel@pengutronix.de,
+	jgg@nvidia.com,
 	pabeni@redhat.com,
-	saeedm@nvidia.com,
-	tariqt@nvidia.com,
-	vadim.fedorenko@linux.dev
-Subject: [PATCH net-next V2 0/5] net: ethtool: Track TX pause storm
-Date: Fri,  6 Feb 2026 17:42:30 -0800
-Message-ID: <20260207010525.3808842-1-mohsin.bashr@gmail.com>
-X-Mailer: git-send-email 2.47.3
+	linux-kernel@vger.kernel.org,
+	linux-rdma@vger.kernel.org,
+	leonro@nvidia.com,
+	edumazet@google.com,
+	netdev@vger.kernel.org,
+	davem@davemloft.net,
+	michael.chan@broadcom.com,
+	ajit.khaparde@broadcom.com,
+	rajashekar.hudumula@broadcom.com,
+	pavan.chebbi@broadcom.com
+Subject: Re: [net-next,v2] bnge/bng_re: Add a new HSI
+Date: Fri,  6 Feb 2026 21:14:22 -0800
+Message-ID: <20260207051422.4181717-1-kuba@kernel.org>
+X-Mailer: git-send-email 2.53.0
+In-Reply-To: <20260206052614.1676580-1-vikas.gupta@broadcom.com>
+References: <20260206052614.1676580-1-vikas.gupta@broadcom.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -93,52 +59,46 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Message-ID: <20260207014230.EYdp6BG5pEnyMfPzjJ7BXEKC6ac6_XUmrg2KzDzJYUw@z>
 
-With TX pause enabled, if a device cannot deliver received frames to
-the stack (e.g., during a system hang), it may generate excessive pause
-frames causing a pause storm. This series updates the uAPI to track TX
-pause storm events as part of the pause stats (p1), propose to use the
-existing knob (pfc-prevention-tout) to configure storm watchdog (p2),
-adds pause storm protection support for fbnic (p3), and leverages p1
-to provide observability into these events for fbnic (p4) and mlnx5 (p5)
-drivers.
+This is an AI-generated review of your patch. The human sending this
+email has considered the AI review valid, or at least plausible.
 
+For local reproduction steps see https://netdev-ai.bots.linux.dev/ai-local.html
 ---
-Changelog:
-V2:
- - Clarify pfc-prevention-tout applies to general pause, not just PFC
-   (P2)
- - Add pause storm watchdog timeout configuration via pfc-prevention-tout
-   (P3)
- - mlx5: Report device stall prevention events (errors) in pause stats
-   (P5)
+bnge/bng_re: Add a new HSI
 
-V1: https://lore.kernel.org/20260122192158.428882-1-mohsin.bashr@gmail.com/
+This commit adds a new HSI (Hardware Software Interface) for the BNGE and
+ThorUltra RoCE drivers. The HSI is automatically generated and shared between
+firmware and driver, replacing the existing BNXT HSI references.
 
-Mohsin Bashir (5):
-  net: ethtool: Track pause storm events
-  net: ethtool: Update doc for tunable
-  eth: fbnic: Add protection against pause storm
-  eth: fbnic: Fetch TX pause storm stats
-  eth: mlx5: Move pause storm errors to pause stats
+> diff --git a/drivers/infiniband/hw/bng_re/bng_roce_hsi.h b/drivers/infiniband/hw/bng_re/bng_roce_hsi.h
+> new file mode 100644
+> index 000000000000..1c4666eb0c87
+> --- /dev/null
+> +++ b/drivers/infiniband/hw/bng_re/bng_roce_hsi.h
+> @@ -0,0 +1,6450 @@
+> +/* SPDX-License-Identifier: GPL-2.0 */
+> +/* Copyright (c) 2026 Broadcom */
+> +
+> +/* DO NOT MODIFY!!! This file is automatically generated. */
+> +
+> +#ifndef __BNG_RE_HSI_H__
+> +#define __BNG_RE_HSI_H__
 
- Documentation/netlink/specs/ethtool.yaml      |  13 +++
- .../ethernet/mellanox/mlx5/core/en_stats.c    |  25 ++++
- drivers/net/ethernet/meta/fbnic/fbnic.h       |   3 +
- drivers/net/ethernet/meta/fbnic/fbnic_csr.h   |  11 ++
- .../net/ethernet/meta/fbnic/fbnic_ethtool.c   |  46 ++++++++
- .../net/ethernet/meta/fbnic/fbnic_hw_stats.h  |   1 +
- drivers/net/ethernet/meta/fbnic/fbnic_irq.c   |   2 +
- drivers/net/ethernet/meta/fbnic/fbnic_mac.c   | 110 ++++++++++++++++++
- drivers/net/ethernet/meta/fbnic/fbnic_mac.h   |  27 +++++
- drivers/net/ethernet/meta/fbnic/fbnic_pci.c   |   5 +
- include/linux/ethtool.h                       |   2 +
- include/uapi/linux/ethtool.h                  |   2 +-
- .../uapi/linux/ethtool_netlink_generated.h    |   1 +
- net/ethtool/pause.c                           |   4 +-
- 14 files changed, 250 insertions(+), 2 deletions(-)
+[ ... ]
 
+> +};
+> +
+> +#endif /* _ROCE_HSI_H_ */
+           ^^^^^^^^^^^^^^^^
+
+This isn't a bug, but the include guard comment doesn't match the actual macro
+name. The file opens with '__BNG_RE_HSI_H__' but closes with a comment
+referencing '_ROCE_HSI_H_'. The closing comment should read
+'/* __BNG_RE_HSI_H__ */' to match.
+
+While this doesn't affect compilation, it creates confusion for developers.
+Compare with the related include/linux/bnge/hsi.h which correctly uses
+matching guards throughout.
 -- 
-2.47.3
-
+pw-bot: cr
