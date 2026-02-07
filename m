@@ -1,87 +1,143 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wr1-f51.google.com (mail-wr1-f51.google.com [209.85.221.51])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D44185B21A;
-	Sat,  7 Feb 2026 02:44:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5640C10F2
+	for <linux-rdma@vger.kernel.org>; Sat,  7 Feb 2026 02:54:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.51
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770432297; cv=none; b=iu6E8TPYwgfXw93AEAk5Cil5HecElTLXalOV24YCDwG6kMAQu3pV2W6EA5Wy1uOkd3Q0+dW4idszjeJ7k6kuo5W1v+N2xg0b+rC+kBZUh7nUqLxGj1Tjl6IvdN/Ov1NKAp8K5Fy4TAmG3y1UknoP2ccv8QsEfkZK7aExT2HUvzo=
+	t=1770432864; cv=none; b=eb3HZCx/Q7PWM13h+UAddYRi70/ovqrL+fAKR+tuVKwjnkgUSUXl3bTwbX3C7gueddvi9Cvuy/c9VIgdgpAJGQ1WRWUmNo4Or9J3qltfg3fOS1mBz8p6t0sBUelDBsJdS+Iln486KFYtQr8QNZTdeyPu/EVymZSV8PLB1RZU6xQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770432297; c=relaxed/simple;
-	bh=8n0PeIUOU9EPtDVGJ6Xp3Wu0ihsHM67WoiZUou48kQg=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=OWbRzr9iwu1iGGjADycEYX6Q3HGgRUpZk1+/aXXtUVc26/hogadHMr2A15yy8ebyyLPyokpRlwzEZvbClcVILKsd9xNreH9O5u8yLWLwzSxHraYWakbxASL9knHtQrA8It0dTB4pnFPyAQYUZ8ivSAEkMhho5muf2bsFqYDT9fE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=GUKJcntz; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1770432864; c=relaxed/simple;
+	bh=F75+iwxlRTLyIzKuJzJ+ID7DQ02GZVbuxnZkr4FlfjY=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=K2ftdkBbOt4ZANkX0W4oLkMveZy76gshIv33nmjub3LobezxofNVswvJuSxa4WYv84H42gNBXyMpnxo4+wtpoofSJvLEF9qLZgampTLf5NgnjZ1UBbeZkLKtbsfwUGgktUXOaiI1dVa+CTzwtjQ7S6kTQo0H+l+YS2MymMYqCkY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=ZTr9S2zV; arc=none smtp.client-ip=209.85.221.51
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="GUKJcntz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EF1CCC116C6;
-	Sat,  7 Feb 2026 02:44:56 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1770432297;
-	bh=8n0PeIUOU9EPtDVGJ6Xp3Wu0ihsHM67WoiZUou48kQg=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=GUKJcntzevb7KwsE/N58rPyn1ZbfzQK2J0w+llxGYUXtAhpA8CI2YpPQ33mrbewJ2
-	 64LIVODLLzTcDUSL7yF47tH2kXlSpEj4Ymz75MQkfhcpWA+X10dm+/8Ye/eVb8UrXa
-	 Sqk3cgonsLUiungjB4CYjAwjeENV7YQz9Z2XH1F1+bls4HEnn8rX3ua4PliZz2nkJz
-	 LU/loLURej4qiaJPS0wVmbSyzM5BWSh5DZ0zekOVxcYR5CDbYcsKQi/cIWNKnS9Qub
-	 rC/f1MyYpKRWlx1qVgb7m8HFlMmhySPm1zk8qNP54RfBzZ3AmHvd6e4uNk23hASXZc
-	 hrkYCYVSXJXxA==
-Date: Fri, 6 Feb 2026 18:44:56 -0800
-From: Jakub Kicinski <kuba@kernel.org>
-To: Dawid Osuchowski <dawid.osuchowski@linux.intel.com>
-Cc: patchwork-bot+netdevbpf@kernel.org, edumazet@google.com,
- pabeni@redhat.com, andrew+netdev@lunn.ch, davem@davemloft.net,
- leon@kernel.org, jgg@ziepe.ca, saeedm@nvidia.com, mbloch@nvidia.com,
- linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
- netdev@vger.kernel.org, gal@nvidia.com, moshe@nvidia.com,
- ychemla@nvidia.com, shshitrit@nvidia.com, Tariq Toukan <tariqt@nvidia.com>
-Subject: Re: [PATCH net-next] net/mlx5: Fix 1600G link mode enum naming
-Message-ID: <20260206184456.01f46d4e@kernel.org>
-In-Reply-To: <68fe9c87-c8e3-43eb-a40b-4b05267fa236@linux.intel.com>
-References: <20260204194324.1723534-1-tariqt@nvidia.com>
-	<177034620683.657894.2565367947070195735.git-patchwork-notify@kernel.org>
-	<68fe9c87-c8e3-43eb-a40b-4b05267fa236@linux.intel.com>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ZTr9S2zV"
+Received: by mail-wr1-f51.google.com with SMTP id ffacd0b85a97d-4362c635319so955927f8f.2
+        for <linux-rdma@vger.kernel.org>; Fri, 06 Feb 2026 18:54:24 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1770432863; x=1771037663; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=nV2/pR09fRCKiwS6HhA3KDDNoxylvhh0vYo9VwjMiO8=;
+        b=ZTr9S2zVhfNjdEP+oSogDVAG8me1pvOY0crJErAdvTr0dIJNxmDeTeYYY/85NU3AAd
+         RutEg5dkvp1XMus/fSVC36fT6lqFKVtKuV70Gt5S9nC1OX5DQUw0iLGL94n/C59Tova3
+         xvjSb4UC4q3tC8JejbjykLu2OcUGlWamlv4MXkepwtkfXDCi9V9jPIQNArvw4h/I7Co1
+         hyLrz707iqo9928ShzBfZAQ42LZPDR78MTKWGfh/ewRWLe6Th46GTmrHJd/JnCTXhsXw
+         RAKOa0ym6OOHTHzmua9b8dw11mr0wTyw64x/1nQSlDzVzBUUweeyWIIjTxeGSI8hItZ/
+         y1BA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1770432863; x=1771037663;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=nV2/pR09fRCKiwS6HhA3KDDNoxylvhh0vYo9VwjMiO8=;
+        b=NW9nidG4WBuY5j/qQG49l+QbgKGsi+MNpTbzTbMH3577Ww0OKwBdMK9mZsNfOzpWSR
+         qbTTL/yqRo0X4B+Rff0wh4o33YkCT0uRx4htqjSqy14m8ghfBukFPQiFPuYpP7YMhNGd
+         SHnvTMp6hRUp4BobRLX0bM39Zj5JywckllxHHDRkQ5/aUltPcb+bT9LiQyIgs0CTj98j
+         5cHBTeIrz08WvZte19Pny5NAXLyfd9K8w0tKj1nxlhZaiHJu2+ViOpQDatshprttI6D5
+         wbfcHMDNDADsMXSC4pJqLAjR9oFCKs/la3g6FzVz/O7BE1G0VwukWmiyj9GHI5m/2F2R
+         3plQ==
+X-Forwarded-Encrypted: i=1; AJvYcCVv6chQbx7abssYVIuPu6UrFg+1HQ6zYH/o/u3KTdHmb+MKyqJWuw8NhIjOz36ZynGlS+F2jc8zHFUC@vger.kernel.org
+X-Gm-Message-State: AOJu0Yy18r2ny0gjc+QO4rDSVKFJCYR0EtBOEuxu5SEvtBanRBhKEhTD
+	ZNQb7XtSjunEdJF/OT6NeEppEwlK9BlZ4gZn3g5XnSVGg15pPKyklC8G
+X-Gm-Gg: AZuq6aLeWhjryOyEgVAnugQTa4e3uSx1H3WU6w4fdXbAM5+AhWM9J60wVnNFSIKZs5K
+	Phs6ikDauJEtlWmdLOxyuLdfnOFlPJcCoEiQLpATE4JiWTBVceiZK2sDpkvCyR6PoCSgEZ+o/st
+	o4ADQUBB8DVQcWaRBwO2E5nn5woiH06eQ0980ll+MdHn3blFYqlX5USpOAufdYE3malMHQ21yKh
+	Rtp4S5zaU5UcZGspUzrMzjD6SVTOkoAH1XTHSpzjnQx+c9ttMxTHDLt61TygbSjLCk6ZV6DXJET
+	PFho+aBZhPyo2d3HVFOF8sSyi5d1pRWyFa9xlHCyTxPjsugS6AWuiJdq1cr9OTsxfv8FZe4ENEh
+	35c9ejiEFwcDb8cCA/CC7cr/qNCn2h7lvuqbFnpC/VDTLv/KfeXZRUL6lkzt8tB9Q/xDw3R+1L5
+	t32/QKgByI
+X-Received: by 2002:a5d:5247:0:b0:436:34e8:e665 with SMTP id ffacd0b85a97d-43634e8ef4amr189103f8f.54.1770426329243;
+        Fri, 06 Feb 2026 17:05:29 -0800 (PST)
+Received: from localhost ([2a03:2880:31ff:46::])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-436296bd4a1sm9576013f8f.17.2026.02.06.17.05.28
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 06 Feb 2026 17:05:28 -0800 (PST)
+From: Mohsin Bashir <mohsin.bashr@gmail.com>
+To: netdev@vger.kernel.org
+Cc: alexanderduyck@fb.com,
+	andrew+netdev@lunn.ch,
+	andrew@lunn.ch,
+	davem@davemloft.net,
+	donald.hunter@gmail.com,
+	edumazet@google.com,
+	gal@nvidia.com,
+	horms@kernel.org,
+	idosch@nvidia.com,
+	jacob.e.keller@intel.com,
+	kernel-team@meta.com,
+	kory.maincent@bootlin.com,
+	kuba@kernel.org,
+	lee@trager.us,
+	leon@kernel.org,
+	linux-rdma@vger.kernel.org,
+	linux@armlinux.org.uk,
+	mbloch@nvidia.com,
+	mohsin.bashr@gmail.com,
+	o.rempel@pengutronix.de,
+	pabeni@redhat.com,
+	saeedm@nvidia.com,
+	tariqt@nvidia.com,
+	vadim.fedorenko@linux.dev
+Subject: [PATCH net-next V2 0/5] net: ethtool: Track TX pause storm
+Date: Fri,  6 Feb 2026 17:05:20 -0800
+Message-ID: <20260207010525.3808842-1-mohsin.bashr@gmail.com>
+X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 
-On Fri, 6 Feb 2026 11:48:58 +0100 Dawid Osuchowski wrote:
-> > Here is the summary with links:
-> >    - [net-next] net/mlx5: Fix 1600G link mode enum naming
-> >      https://git.kernel.org/netdev/net-next/c/215b53099b60
-> > 
-> > You are awesome, thank you!  
-> 
-> Hey Kuba,
-> 
-> I noticed that in the commit message on the net-next tree the following 
-> tags are duplicated:
-> 
-> Reported-by: Dawid Osuchowski <dawid.osuchowski@linux.intel.com>
-> Signed-off-by: Yael Chemla <ychemla@nvidia.com>
-> 
-> Is that by design or did the bot break something? This is purely out of 
-> my curiosity.
+With TX pause enabled, if a device cannot deliver received frames to
+the stack (e.g., during a system hang), it may generate excessive pause
+frames causing a pause storm. This series updates the uAPI to track TX
+pause storm events as part of the pause stats (p1), propose to use the
+existing knob (pfc-prevention-tout) to configure storm watchdog (p2),
+adds pause storm protection support for fbnic (p3), and leverages p1
+to provide observability into these events for fbnic (p4) and mlnx5 (p5)
+drivers.
 
-Oh damn :( This is what patchwork produces:
+---
+Changelog:
+V2:
+ - Clarify pfc-prevention-tout applies to general pause, not just PFC
+   (P2)
+ - Add pause storm watchdog timeout configuration via pfc-prevention-tout
+   (P3)
+ - mlx5: Report device stall prevention events (errors) in pause stats
+   (P5)
 
-    Reported-by: Dawid Osuchowski <dawid.osuchowski@linux.intel.com>
-    Signed-off-by: Yael Chemla <ychemla@nvidia.com>
-    Reviewed-by: Shahar Shitrit <shshitrit@nvidia.com>
-    Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
-    Reviewed-by: Jacob Keller <jacob.e.keller@intel.com>
-    Reviewed-by: Dawid Osuchowski <dawid.osuchowski@linux.intel.com>
-    Reported-by: Dawid Osuchowski <dawid.osuchowski@linux.intel.com>
-    Signed-off-by: Yael Chemla <ychemla@nvidia.com>
-    Reviewed-by: Leon Romanovsky <leonro@nvidia.com>
-    Reported-by: Dawid Osuchowski <dawid.osuchowski@linux.intel.com>
-    Signed-off-by: Yael Chemla <ychemla@nvidia.com>
+V1: https://lore.kernel.org/20260122192158.428882-1-mohsin.bashr@gmail.com/
 
-I fixed it up manually but clearly not well enough.
+Mohsin Bashir (5):
+  net: ethtool: Track pause storm events
+  net: ethtool: Update doc for tunable
+  eth: fbnic: Add protection against pause storm
+  eth: fbnic: Fetch TX pause storm stats
+  eth: mlx5: Move pause storm errors to pause stats
 
-Patchwork needs so much work..
+ Documentation/netlink/specs/ethtool.yaml      |  13 +++
+ .../ethernet/mellanox/mlx5/core/en_stats.c    |  25 ++++
+ drivers/net/ethernet/meta/fbnic/fbnic.h       |   3 +
+ drivers/net/ethernet/meta/fbnic/fbnic_csr.h   |  11 ++
+ .../net/ethernet/meta/fbnic/fbnic_ethtool.c   |  46 ++++++++
+ .../net/ethernet/meta/fbnic/fbnic_hw_stats.h  |   1 +
+ drivers/net/ethernet/meta/fbnic/fbnic_irq.c   |   2 +
+ drivers/net/ethernet/meta/fbnic/fbnic_mac.c   | 110 ++++++++++++++++++
+ drivers/net/ethernet/meta/fbnic/fbnic_mac.h   |  27 +++++
+ drivers/net/ethernet/meta/fbnic/fbnic_pci.c   |   5 +
+ include/linux/ethtool.h                       |   2 +
+ include/uapi/linux/ethtool.h                  |   2 +-
+ .../uapi/linux/ethtool_netlink_generated.h    |   1 +
+ net/ethtool/pause.c                           |   4 +-
+ 14 files changed, 250 insertions(+), 2 deletions(-)
+
+-- 
+2.47.3
+
