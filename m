@@ -1,159 +1,188 @@
-Received: from PH7PR06CU001.outbound.protection.outlook.com (mail-westus3azon11010029.outbound.protection.outlook.com [52.101.201.29])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wr1-f47.google.com (mail-wr1-f47.google.com [209.85.221.47])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0EA8A429813
-	for <linux-rdma@vger.kernel.org>; Fri,  6 Feb 2026 19:11:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.201.29
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770405066; cv=fail; b=PbxY1ky1/vkUO5E2Sw8XQ/k6+PNivmcfuom93X1ptgPECN+LnvqFFCt1iFUQHripcRNMWUsJuZgiB908HLpQDQWSHctBY4Krhmctkh78g0+RYi2HhFM7BYg7tryI2PWn9rKuHyYA0GtaSA25o0WVcl9k0Zk7NSx9VH2JhwX+ET8=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770405066; c=relaxed/simple;
-	bh=oK/Xatc6iFKI9bskiH6MDzAtoVby2oM+j8z9PkeyDC8=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:Content-Type:
-	 Content-Disposition:In-Reply-To:MIME-Version; b=Ijdvi9MUY4xww0nKVa8gZvIaOIeQ2BVHS4ijAFcV6vPOYoKJOzV9CtYmJTpdWhiInvGD+Iu6EB22fCfFm2AiglqgPkI/cqus+/CFv2aZuhpXgAoRpAZzgE7eWA7OEqss/b1n93rPSFoHOTXSxllv1s7yL6mM13iTrW2Q00WF00A=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=mZ02h4+A; arc=fail smtp.client-ip=52.101.201.29
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF8291B424F
+	for <linux-rdma@vger.kernel.org>; Sat,  7 Feb 2026 01:05:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.47
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1770426337; cv=none; b=AGHP2Sm2/6TtmcbS3JJ5qh452DioBNUniYER9I3T0l5d1KnTlCv2zxwCk9OvSakcV7AFgnBvXyxazQZP0ehgibzbxpNP1n8DnrtmQFuwTFBTD5QZD2UzkwQ28rmrLp9MiA17omhMK6hB2xh2u3+Qkm/0jJ7DisQbKT4uNvmFjao=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1770426337; c=relaxed/simple;
+	bh=4c97E3l1fDx5rP31BJdStxGgz1jks7S0fHhu8URAe6A=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=szgpMPjL/vL919VPirv/QipazG1xnzkHn8uZ8ibCedoLfo6yJWpJ1InWOOOf6FcBvupXypj/AR4CVLJHhzZdW8bucoCDXU37aaMcctaZdzUFNlwEogRRn2q2bYDp2ONUphhfvhi9GOi2wIC8TyZmb8E+ROrz5dYTmcKH6uHmFKw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=WEZJgR3I; arc=none smtp.client-ip=209.85.221.47
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="mZ02h4+A"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=fO+SAsXEQbpNWr91Q86N2Q46FN1T3WRGoNpVBWcmBk5M6KpZQy7GTPEJqFlCmv8etM+AcNWPrp7prgykbkqYrWXjAz7GyyY/kC4kZDmW0pvy+sSJ0ZimHjdSnvAEIoK5tMyVnyEUdzNzcU7r0VXWfSdk1/b0N0S2UJ1g2bVuhG9I8nYF5wDRB8ebS279z+atOUF0Ib4AhGk9YyAt62BR7mNTWHlx0/ZcEMFQE5tGJxZf7qgmeAy1ke3Q7Kk1v85TIHG+IE2NAmzvx7pyQ0qsV3LHHTO1ZZYMPYAA2zdZubmpg5i4qW9dtulA6jSZB1EnUTkQt/am3pNEoF58TxhcdQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=sCnGMuapkRnphvvJeQHoTXjy50QZLDA46bgtIDz3JCE=;
- b=VMGI7NfQm1ERhx2c6NATYyWhB2L4aA1vjeArQBwEwXr/kCfgZrjBmHY9m20KNqWLkvQPxTKlSk1cULT2pmpUIsJ6DH6j+igMKteteIBKnMQPWfeVmsrbiycFJ85va978NtS7/7Qbp4MS+0wzvMILmxSdemOL6nCCQKM1xuqhLNCCjEF3Mb12BuNFciyzXX4o3tEXUV84xzOJBSaX9Mv+fjAafojU0eKf8Rbgcgh/7QgjAeJCfZbYOM6I0tRugvRsaB54s3Wnc3Y0+MMvJedqIXVGpcgQoafwSs48YFzvacg5vk7wka0/qDfFLZuHbOXf70+fr7tt6I4+kkZieUFTxA==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=sCnGMuapkRnphvvJeQHoTXjy50QZLDA46bgtIDz3JCE=;
- b=mZ02h4+AEmeoinqorxcRnlB70TRL8EeHSztJbwpOtq5+VAPelTm/N0r0xpX9Yd+ixmsnFLDp9XI1CG0wJwKEZdQp+ud5H2IkFTHv9y23q8sAK9hLsZ5KUVSZuvYNTA/1f5Ky2mlJxKMAszkf8Yv2ry0BbeA36kFj/55Og2oS+cP4WXZBChiTsOKJF/kBpwljsWv/j7yzDGQUbkXPU4ymnl7xQi415Jh9+64N8+YLVikhK4iXq7Zg2U7RRoz9I0dagBmyVn/+TWlXKNysnjTXt1z+deN40Bjd1BoKdUDE3mhlHcUORtqBtTzPWy+jPrH/EMrxuAAlASkI1eVhH+keXA==
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from LV8PR12MB9620.namprd12.prod.outlook.com (2603:10b6:408:2a1::19)
- by DS0PR12MB8416.namprd12.prod.outlook.com (2603:10b6:8:ff::13) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9587.14; Fri, 6 Feb
- 2026 19:11:02 +0000
-Received: from LV8PR12MB9620.namprd12.prod.outlook.com
- ([fe80::299d:f5e0:3550:1528]) by LV8PR12MB9620.namprd12.prod.outlook.com
- ([fe80::299d:f5e0:3550:1528%5]) with mapi id 15.20.9587.013; Fri, 6 Feb 2026
- 19:11:02 +0000
-Date: Fri, 6 Feb 2026 15:11:01 -0400
-From: Jason Gunthorpe <jgg@nvidia.com>
-To: Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>
-Cc: Kalesh AP <kalesh-anakkur.purayil@broadcom.com>,
-	Leon Romanovsky <leon@kernel.org>, linux-rdma@vger.kernel.org,
-	Selvin Xavier <selvin.xavier@broadcom.com>, patches@lists.linux.dev
-Subject: Re: [PATCH 00/10] Provide udata helpers and use them in bnxt_re
-Message-ID: <20260206191101.GC1874040@nvidia.com>
-References: <0-v1-89ea7d615ba4+636-bnxt_re_uapi_jgg@nvidia.com>
- <CAHHeUGWw221yuH7Ac8hbsVc+dMBC2GDnPZMmAjKMdu36wkY0Zg@mail.gmail.com>
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAHHeUGWw221yuH7Ac8hbsVc+dMBC2GDnPZMmAjKMdu36wkY0Zg@mail.gmail.com>
-X-ClientProxiedBy: MN2PR13CA0030.namprd13.prod.outlook.com
- (2603:10b6:208:160::43) To LV8PR12MB9620.namprd12.prod.outlook.com
- (2603:10b6:408:2a1::19)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="WEZJgR3I"
+Received: by mail-wr1-f47.google.com with SMTP id ffacd0b85a97d-4359108fd24so1747368f8f.2
+        for <linux-rdma@vger.kernel.org>; Fri, 06 Feb 2026 17:05:36 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1770426335; x=1771031135; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=5h0Bl07+wUVkPYukWTkRgRpTRDTreTtiujhSkbJvfK8=;
+        b=WEZJgR3IMgaZgVrA129f8Fv0CIkLDYJmZBTNGBNWTeRAbszKBLspOvb3OYujlkQG0k
+         f76ZyG1DmGal4yTb6w3dLtZsBys8QlTObrqILVy25xK9cd8g8hBBy15CIvH0zp6qpYC2
+         w+O7hKr/fuG2rGaJgpcSMLArXRKHkZzFIXjasA+wzMzP3cc1vmwocdJw12zLq90bEPZk
+         VldvUJmyJdolXwECLeqw0b74G0J9fXjxlQv9m7PVl4i5KrYWzs0mYBGEaxenSoFGB09Y
+         Xuovh8u0O1NbG3qotPZGWsRkX4zHb8mLLPptdXCodK9Y9PDItImSTQHOEMspW/U1CyIa
+         rxqg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1770426335; x=1771031135;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=5h0Bl07+wUVkPYukWTkRgRpTRDTreTtiujhSkbJvfK8=;
+        b=BiHuyyu0J0ehBcbvaUtcrVDJVuZJ9qZI76M4HUaGPscrVgCZMthpUnJHDOVs+MP4ub
+         LLqzrmWOb8NyeT8AKuiy7KhbmPMudky2vl3lL6IAwmJjuGRJ37kOdVYJo42lo/SIynD5
+         t+1YgJG/ZvxmeV5ZhUgg1S2KG3A5HSOuV4KdrvEOihLmAdkw5snu/ce++DBrmoZcc+vI
+         5N2zxj7o1PEQ5c+bfOcvywoINWaoBfQFLfiXxB/eh/BzYEMWRTmDyneulZhtJuDM+Pzd
+         Yruy/O1TE+VW/xMgdO+vqkPTSdPyRf0PoGkT3n5aPANR0XQXlbDKuLqR7NRBlNcHTPEy
+         kD3g==
+X-Forwarded-Encrypted: i=1; AJvYcCWNITU60TlZXd9zV7RfbZF+ghIXK4+OOMBKffkjhdxYz6J3XwnF6HZRQbs9USGSlQum1xBePCmhzB2f@vger.kernel.org
+X-Gm-Message-State: AOJu0YwcABWMMrFa7eOeSCkH7Pm77CU1FMIJ3dhcEoyh52XFDB737Nv4
+	2U4+fAt3ppSriPEDlReRUGfhqtFle3DhPIL36qsTIKPl67fT5JGHQh3u
+X-Gm-Gg: AZuq6aLvjK2iE7j2Ts6bSkMv0Azl/WCyidQsjWmDdbcXkTvehCXsOjPkBaNqjMv7+FB
+	ilLugZXMO8eqvc45Txho4VbR9JUsQyR5W3B4Rn5rj2qO3dy/VpIxPhKPh4TOCteWt0UrWXzjB9Z
+	pLItA03dTokmkitv3l+82sOhoLQmEFCtKFKP3RIPec+aDGABcvvK1fs3IqHLT8zCgQ2a4ZxfMzG
+	SLPrNMZ/BZYyXFmOP+LwI6GeJ2LNzqk9dCAxOu9kAcHwzALPY/RHP2gv33axoUns0FRBgszZ4/A
+	q+CW+NBDTvJBrx76IGknrUpWWiMYGAW0uUiGdA7qj9NsB0UBmQMbDbmZIrCQyvKKQDAkbwR51vX
+	Orljg3xUCfuq5Ir3enOdavgEudKCnhE/IKT4IRXjle2RnRJBqEoBdnUeVwCon//LEdYIE8xJeSw
+	8CpsqAyKClGQwfzBjM6w==
+X-Received: by 2002:a05:6000:288b:b0:435:975d:33b0 with SMTP id ffacd0b85a97d-4362967e068mr6267345f8f.35.1770426335035;
+        Fri, 06 Feb 2026 17:05:35 -0800 (PST)
+Received: from localhost ([2a03:2880:31ff:8::])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-4362974b230sm10555280f8f.36.2026.02.06.17.05.31
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 06 Feb 2026 17:05:32 -0800 (PST)
+From: Mohsin Bashir <mohsin.bashr@gmail.com>
+To: netdev@vger.kernel.org
+Cc: alexanderduyck@fb.com,
+	andrew+netdev@lunn.ch,
+	andrew@lunn.ch,
+	davem@davemloft.net,
+	donald.hunter@gmail.com,
+	edumazet@google.com,
+	gal@nvidia.com,
+	horms@kernel.org,
+	idosch@nvidia.com,
+	jacob.e.keller@intel.com,
+	kernel-team@meta.com,
+	kory.maincent@bootlin.com,
+	kuba@kernel.org,
+	lee@trager.us,
+	leon@kernel.org,
+	linux-rdma@vger.kernel.org,
+	linux@armlinux.org.uk,
+	mbloch@nvidia.com,
+	mohsin.bashr@gmail.com,
+	o.rempel@pengutronix.de,
+	pabeni@redhat.com,
+	saeedm@nvidia.com,
+	tariqt@nvidia.com,
+	vadim.fedorenko@linux.dev
+Subject: [PATCH net-next V2 1/5] net: ethtool: Track pause storm events
+Date: Fri,  6 Feb 2026 17:05:21 -0800
+Message-ID: <20260207010525.3808842-2-mohsin.bashr@gmail.com>
+X-Mailer: git-send-email 2.47.3
+In-Reply-To: <20260207010525.3808842-1-mohsin.bashr@gmail.com>
+References: <20260207010525.3808842-1-mohsin.bashr@gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: LV8PR12MB9620:EE_|DS0PR12MB8416:EE_
-X-MS-Office365-Filtering-Correlation-Id: bb13f698-67fa-47f3-3de2-08de65b377fe
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|1800799024|366016|376014;
-X-Microsoft-Antispam-Message-Info:
-	=?us-ascii?Q?CxxtMZuzdEBUbgCUJcYL4p/0+GMlm8bsHuG3O/w5cvMRvXvAXPA5zf9lXIhm?=
- =?us-ascii?Q?2PYwHqyn6bPgsif4IR6Bv4Aaq2jsfZ8cvDeNGa/lCXVDx2GsgZHobIGBZUuz?=
- =?us-ascii?Q?dl9HY4YppupvCfBlCGjw2APmYBIwQirXuxg7Ha+BOlwTN/st1815VEB9r2iD?=
- =?us-ascii?Q?Ta52YtxByzPh/uxJdNebA0k7NzXE/6Ln76gBPI4msObPRWPhEjVzKALzemmE?=
- =?us-ascii?Q?VYvFCnRhYxVl+MM7MgGopgq+h5juGyC+OxCRaEE9BUr3Gr1epzg49Dehpw7/?=
- =?us-ascii?Q?zBeC9Ikmk5+XDpwx9yClQpVm+i2WdcFMLph2UJcVN908JE43OshdNaeAsoeq?=
- =?us-ascii?Q?w1xU8Fs3qfP0+kVqM1rA2EazA3wOg68OzagWZXIhPKfFQoIVwaP7TRTf9JHd?=
- =?us-ascii?Q?IxP7y+w+9YbVZQ/SEL2S+6ObKU1JFaczew9HNXfoZ3ZNFUVT3G29FTzyW+C9?=
- =?us-ascii?Q?gL+5//3rPfOnmALzIs3GRgaDlcnP0ItGfFXRTpES+PdcAIQoZ3voNadXGw4Z?=
- =?us-ascii?Q?8IqWOZJPEtTJZHFVkzICFbbEs0AGF1Uu58o27CygXJl5/om/swLDgpqBO5U5?=
- =?us-ascii?Q?OPBfGfzG+fIzK5QwF4rxFsXLwzjwCyh99QJSbyjbnQZ9XyTLuFl4vMKF47RI?=
- =?us-ascii?Q?8OGxOmhwVRvo6WrlD2vyO8siSnnpnLEhXrZ/9gLB116HAmVeDwqwwJ7R7lAj?=
- =?us-ascii?Q?tVvUR+tRuEegRqU/rufjM9xL+PY7tgdEN3XhEU3P0bY90/9rVu0xdD+zem11?=
- =?us-ascii?Q?wKTAyY1NF2i9AyYxWkGRD7bJUtj1bYGB+rzl4lJW7jtGc+4Jx5O6W+wSt4Ms?=
- =?us-ascii?Q?AJPtfLi/TIl+aDmXKVIdwis+JXLfQk/9ZNQWHlFRDDGX43iX5Nyqjpa5hTN5?=
- =?us-ascii?Q?JTzu7AyPjFxjZu0Ea4TD1EzSl8CoxaEO6sMFh9KcVVIShys5V7fCuJd7ps9r?=
- =?us-ascii?Q?iJPHzRTi+ExkVbEcWJp16u+rbDxP0jtPxGxP7JTROIZpHEMv2IriNr5+GcIS?=
- =?us-ascii?Q?Xoi2F5gD2bcZ+G9aQDmDLCxX+S0tMHoKIMp9yxV1xK/HYQsfHc1+6VjQ728T?=
- =?us-ascii?Q?Entg9vjp2hs/vwFbjc7MvMIqzklIiP3y3pR9ybGCafEgJy3D3BxvcovKJZj6?=
- =?us-ascii?Q?vQJD7BKMLlYK6eeOkGPSLBJnji/MI3TNnHY/NiM+HFvVf+JYOdOw+Tmy8UBb?=
- =?us-ascii?Q?xIn6o00+I6mFfEpRAP4wFvGGjNlp7AyO27uP9T0xySUr5FTOjTABkY9uE8ZM?=
- =?us-ascii?Q?sPOPanZu/9EKenG9zhQ3hLrWI4aJxtFX7/nEroQAR8DebbgUXRc5GDu3sJwk?=
- =?us-ascii?Q?Apm8nJvGJO9cyRFDgufflm7P5xyN/mHW4lg6K6ya49nejwyMLmb1MLK5oH/m?=
- =?us-ascii?Q?IkKPKVnbFBmQlyUCPZk1Vr7nUg78G7ybwC8UlaH/fOKXsmlnxxf4vVWuYAPS?=
- =?us-ascii?Q?YO1E4h8v7aA+GsPSGoogzTnMG6c6gecNL3f9/+81MxL2IQ4pJ4xhv4UOGZZw?=
- =?us-ascii?Q?YjqV3yikPH2EodHbTdsV3iETTHu648gFjnh/LLcmImAIaIlMeUpGA3s7pPIJ?=
- =?us-ascii?Q?3ONri+fIxq+KE82gy2Q=3D?=
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:LV8PR12MB9620.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(366016)(376014);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?iFoFFF7xnZoklsDm69IKChxBnF9fn6NwPjHGuGjUuJXgTxVVfV6OW8b7DGai?=
- =?us-ascii?Q?0K1SzcskMATPlB8dfp3jocL1JMbH7CaYSslNRMk7aMgENj1J8zxz/jIuNKYn?=
- =?us-ascii?Q?kEQSKmoMwfPRc5FoNO6ENZxeshbU8nlhlIBiHMFnqW8k1jkCFU1N6QCYl4fH?=
- =?us-ascii?Q?2j2spmw8eX+akp+zqqB2kKbs8krOW/823wfxrr6lMSa1z6DMH/pW2p4C0pYY?=
- =?us-ascii?Q?jwd9Xos9bFly8EsDEM+LGHl0Na7h+14Rrrnw/X1e+I+ITh6h1ZUwidg5B7P3?=
- =?us-ascii?Q?059wUDw44zMqg/R1l+lQz84hpFuQLnQLLdmjKseSljU0m6iscmx2gVr4NE0G?=
- =?us-ascii?Q?jutsbmTdczJJSI/c3NzI9Saw3l/rhJR+lpvcgvxUk/HZ4cqXGDkLuyjveCvJ?=
- =?us-ascii?Q?sGyI6EqWMxuh1xTHL2b8HL/SWjnwZf6v5Y2K0kiYsfWVd0sIMQY514s2LwSb?=
- =?us-ascii?Q?YPCywtVxKt5ocWMuR3rZRqk4ZGDZgLaIusfZavPWwSvc7BFG7t3754Bf1FD3?=
- =?us-ascii?Q?LKtMC326T8mjIhxSsLCumAUsCUV71920rRiftucFIGgVsEbRvgRPb62t8Xqs?=
- =?us-ascii?Q?okP6pTqiVg/85xjrapsaId0RmbvQNnTCpuEip+kj1c6r1kJJBq5Aq4nDo4TT?=
- =?us-ascii?Q?fb1efQFQ2bK+6ew9W7zH7i2j8Lk2or5qNGcoMc+81WxD3hE4TQK+Nqcgt0HU?=
- =?us-ascii?Q?1NG9lhJzgNElt9tP7Ssv4dCcWSZvJSuqeblph9c198Q2+DgGk4V3Jt/yWbOL?=
- =?us-ascii?Q?qHAumY9S4nsjhJUaa9Adu4B6LaWXUftGDmDCN9NaVdQN9MNmRsc0BifPHzey?=
- =?us-ascii?Q?nL+x679FLJFXcrjGR+nX7TCQ4/fc992MIdXSG895WS+79kH27NQQzov+L8UF?=
- =?us-ascii?Q?Ky+7Nw/tJvt5ttmOgycgZ0B+gPUPZR5BlLZrweW1bouT3xPpiM35ICLX+AB1?=
- =?us-ascii?Q?BNMKAFsZkmLyvEasOR8y2KcSFyRylm1Asmd0gnm3nPZSQrYaC3aavI1ws5c/?=
- =?us-ascii?Q?x8AvDq34Vjb4F8pkhnGkSLCRsY4YK7tXZVGHLu6a+rUaAgD9z2w0ItDjzfrR?=
- =?us-ascii?Q?jWhVO8pxVw7vZOCH6OPs7bo0XtLXJQhmR0rwO0n4BLRN7u5YGwOde2+Eojfu?=
- =?us-ascii?Q?SBNPWsxul5aGZGD2R+oO0tQZ6sGuWbkatnyMjgzZJd+TJV/z6FPqYbk92PgB?=
- =?us-ascii?Q?WZXYrTTVIF/FGUn+CwigFyhDZZTZMFl3RSnctHrEUkX+Izj8hCuhVmJn5WwD?=
- =?us-ascii?Q?UaCweBV08U2OoJ6OVm/4/gaKHnnHtQanbiBKnExdblDzBGCGapyWs8/bmDUp?=
- =?us-ascii?Q?1ZBNAhd0OdxI4wE26MHP4Bi0VPO41x6kirUYboE2raKaojEYv/eY2GO5c/S4?=
- =?us-ascii?Q?KBcpG4U5chx17ji0EFgISXJOGDbWPXHMtE5kXuxP5j6wMduIIqw3O05rAQpU?=
- =?us-ascii?Q?Vc7UTV88RgqMUJzw6lki1zgD5ffASoRigeaEJEhw73QNldu47YulNOUjDtX9?=
- =?us-ascii?Q?jXe4LxDXnkgEQKEEZkUpYre6cChU1OHRkp8fzxdo4Mbc3AE6MPhsQ4oFPtQO?=
- =?us-ascii?Q?sPOPP31mI5T/Nl/u9nGFYPJhALvwWNNofEMD2I7VOBSVZ73Msl3VSLDKIwhl?=
- =?us-ascii?Q?SGUXfhSJ9HlMuh24QsBULCp3u+cLcQdBbYTgUnjtqNBFEVpI4DT6VVnk/bou?=
- =?us-ascii?Q?lm8UJma4AWm71osGzRdiKONMRRxgVi5lcH3dEXxCm5c93M4ud5ZGa6ub15/8?=
- =?us-ascii?Q?4Afg+vebnQ=3D=3D?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: bb13f698-67fa-47f3-3de2-08de65b377fe
-X-MS-Exchange-CrossTenant-AuthSource: LV8PR12MB9620.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 06 Feb 2026 19:11:02.1914
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: 1Wlkl4tUBYnqp2BYGYjtPd9eRzI2b9UQzUOSlPQZUD3NmiCZAf3k6WT0UOk5AShS
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS0PR12MB8416
+Content-Transfer-Encoding: 8bit
 
-On Fri, Feb 06, 2026 at 05:50:07PM +0530, Sriharsha Basavapatna wrote:
-> Thanks for this patch series. Patches 6, 7, 8 and 10 failed to apply
-> cleanly, due to conflicts with the recently merged QP rate limit
-> patchset in bnxt_re.  So please rebase it.
-> I applied this series, + QP-dmabuf devop patch, + bnxt_re DV series
-> and tested it.  It worked fine.
+With TX pause enabled, if a device is unable to pass packets up to the
+stack (e.g., CPU is hanged), the device can cause pause storm. Given
+that devices can have native support to protect the neighbor from such
+flooding, such events need some tracking. This support is to track TX
+pause storm events for better observability.
 
-Okay, I updated the github branches and we can do this first thing
-next merge window. If you send out just the DBR and revised more
-trivial CQ changes for the other series they can likely be picked up
-immediately on rc1 too. Then you can work on figuring out QP.
+Signed-off-by: Jakub Kicinski <kuba@kernel.org>
+Signed-off-by: Mohsin Bashir <mohsin.bashr@gmail.com>
+---
+ Documentation/netlink/specs/ethtool.yaml       | 13 +++++++++++++
+ include/linux/ethtool.h                        |  2 ++
+ include/uapi/linux/ethtool_netlink_generated.h |  1 +
+ net/ethtool/pause.c                            |  4 +++-
+ 4 files changed, 19 insertions(+), 1 deletion(-)
 
-Jason
+diff --git a/Documentation/netlink/specs/ethtool.yaml b/Documentation/netlink/specs/ethtool.yaml
+index 0a2d2343f79a..4707063af3b4 100644
+--- a/Documentation/netlink/specs/ethtool.yaml
++++ b/Documentation/netlink/specs/ethtool.yaml
+@@ -879,6 +879,19 @@ attribute-sets:
+       -
+         name: rx-frames
+         type: u64
++      -
++        name: tx-pause-storm-events
++        type: u64
++        doc: >-
++            TX pause storm event count. Increments each time device
++            detects that its pause assertion condition has been true
++            for too long for normal operation. As a result, the device
++            has temporarily disabled its own Pause TX function to
++            protect the network from itself.
++            This counter should never increment under normal overload
++            conditions; it indicates catastrophic failure like an OS
++            crash. The rate of incrementing is implementation specific.
++
+   -
+     name: pause
+     attr-cnt-name: __ethtool-a-pause-cnt
+diff --git a/include/linux/ethtool.h b/include/linux/ethtool.h
+index 798abec67a1b..83c375840835 100644
+--- a/include/linux/ethtool.h
++++ b/include/linux/ethtool.h
+@@ -512,12 +512,14 @@ struct ethtool_eth_ctrl_stats {
+  *
+  *	Equivalent to `30.3.4.3 aPAUSEMACCtrlFramesReceived`
+  *	from the standard.
++ * @tx_pause_storm_events: TX pause storm event count (see ethtool.yaml).
+  */
+ struct ethtool_pause_stats {
+ 	enum ethtool_mac_stats_src src;
+ 	struct_group(stats,
+ 		u64 tx_pause_frames;
+ 		u64 rx_pause_frames;
++		u64 tx_pause_storm_events;
+ 	);
+ };
+ 
+diff --git a/include/uapi/linux/ethtool_netlink_generated.h b/include/uapi/linux/ethtool_netlink_generated.h
+index 556a0c834df5..114b83017297 100644
+--- a/include/uapi/linux/ethtool_netlink_generated.h
++++ b/include/uapi/linux/ethtool_netlink_generated.h
+@@ -381,6 +381,7 @@ enum {
+ 	ETHTOOL_A_PAUSE_STAT_PAD,
+ 	ETHTOOL_A_PAUSE_STAT_TX_FRAMES,
+ 	ETHTOOL_A_PAUSE_STAT_RX_FRAMES,
++	ETHTOOL_A_PAUSE_STAT_TX_PAUSE_STORM_EVENTS,
+ 
+ 	__ETHTOOL_A_PAUSE_STAT_CNT,
+ 	ETHTOOL_A_PAUSE_STAT_MAX = (__ETHTOOL_A_PAUSE_STAT_CNT - 1)
+diff --git a/net/ethtool/pause.c b/net/ethtool/pause.c
+index 0f9af1e66548..5d28f642764c 100644
+--- a/net/ethtool/pause.c
++++ b/net/ethtool/pause.c
+@@ -130,7 +130,9 @@ static int pause_put_stats(struct sk_buff *skb,
+ 	if (ethtool_put_stat(skb, pause_stats->tx_pause_frames,
+ 			     ETHTOOL_A_PAUSE_STAT_TX_FRAMES, pad) ||
+ 	    ethtool_put_stat(skb, pause_stats->rx_pause_frames,
+-			     ETHTOOL_A_PAUSE_STAT_RX_FRAMES, pad))
++			     ETHTOOL_A_PAUSE_STAT_RX_FRAMES, pad) ||
++	    ethtool_put_stat(skb, pause_stats->tx_pause_storm_events,
++			     ETHTOOL_A_PAUSE_STAT_TX_PAUSE_STORM_EVENTS, pad))
+ 		goto err_cancel;
+ 
+ 	nla_nest_end(skb, nest);
+-- 
+2.47.3
+
