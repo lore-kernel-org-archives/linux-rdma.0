@@ -1,80 +1,103 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from stravinsky.debian.org (stravinsky.debian.org [82.195.75.108])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4AA3036E476;
-	Tue, 10 Feb 2026 15:00:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C2CADB67E;
+	Tue, 10 Feb 2026 15:19:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=82.195.75.108
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770735610; cv=none; b=CVPAVmw2/6gAtrHVakJkPuYntQQ1D5nHePvFwhqiSkQ6LqFOt00ex3/cEWUtFy9s9YtjSPlnVTmcpMC9pHMnGW9x1A4/pKlRhyTAeHzJmMteVwfKQrAL74AuvADWxxNkunX5UpkOiKQL//+cL25rGZY+ZXhsLAY8HHayPswoEJI=
+	t=1770736762; cv=none; b=NANDzYjzmxfYD09G/hdAdOwLlBTjNqE775xPdwyhGKDyGOs3zYYYJxjABIsWQ8Fs07nDR4cI0ptUZ+Nvu8LMG8Q0HNnQE7Ibxchk5qQHgjmQaH36AS+g6ohSdMbkY83pgeJ8aF3nP+PofPo7AjPuVeLZ8wVnqZHVw4h4mtgIZpw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770735610; c=relaxed/simple;
-	bh=tKMNJiUTGeWqAqxNWcIQZshtd5oLRcw41cmdLNIwTw4=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=f+ixl9Ss42JcNp73lWCtqDTdoUGoybyVjZfNPN9VBWXDIHCGLK29YcdCgtXzoWMTCEp6Q4dwfIVeq5QMVpM7B9ezroAg7yZarFf6Ka1jTvUHHhFtqoW0Uheul76e0FIUsVPj9+RbLzQLP32Rwzx9CbFa6+rEt6TRptgUpF2SFF8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=r/ZcX4MK; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1770736762; c=relaxed/simple;
+	bh=cIifu87CNyPJVLlB/RlNpFS13N1yF4sq1z+QgICwMeI=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=uNhm9TtK1k9Xkc0WEKKzK500yyq5VFTPv5fZj5hjmJXCI4JX7ONDHiaBvbcuOjiMBQWPVTZm6ZGbpJbtbIabQVknY/qc+w4jhZG9SPqgUyzKff21SC4jVH0zIt2mdD2kHx4X3V4aoVtDEPao+7AG/3WKzMavhKDTcHnO7MrwLdo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=debian.org; spf=none smtp.mailfrom=debian.org; dkim=pass (2048-bit key) header.d=debian.org header.i=@debian.org header.b=X9HR9Zvz; arc=none smtp.client-ip=82.195.75.108
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=debian.org
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=debian.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="r/ZcX4MK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 12B21C116C6;
-	Tue, 10 Feb 2026 15:00:10 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1770735610;
-	bh=tKMNJiUTGeWqAqxNWcIQZshtd5oLRcw41cmdLNIwTw4=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-	b=r/ZcX4MKiMlrAcZWzEGalYIEP5T3KlUlFXO7uXC+HlW8W3uY57z2Pcjps2/qzo7hA
-	 y0eZLmGSNw17eL3DMqZeMv38yzyBQq/rWc8lMpAKrM55Mfnn0zVyRdD6KRqho8WF1X
-	 BiGHB65AvqillyjLSU1gOUfiretr0Ypex4nec/jUXun78qA4kZ7nf7wbWIqLgOGMGF
-	 y6fXiTyGL50YShSsrHOWZLVuVwp3Tt7bmEFN71duqSBWSm0xwf7mlj/XuCZpV4YxzW
-	 qffgfDvV+gqay/kOQwRSDzCtZWKjhc/2mbS3I9VmyCnCsHUkanMXPqrkMxlc8pAa2d
-	 vGu0NfRTR/qrw==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 8517139D609B;
-	Tue, 10 Feb 2026 15:00:06 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	dkim=pass (2048-bit key) header.d=debian.org header.i=@debian.org header.b="X9HR9Zvz"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=debian.org;
+	s=smtpauto.stravinsky; h=X-Debian-User:In-Reply-To:Content-Transfer-Encoding:
+	Content-Type:MIME-Version:References:Message-ID:Subject:Cc:To:From:Date:
+	Reply-To:Content-ID:Content-Description;
+	bh=urcuhDVp7Oul0ufIx3aZnCiehPqHUufYMHJ5jXHBg4U=; b=X9HR9ZvzAXGXJ9I0eL7kb/WMeW
+	iusmt9LYTf5JtnFNzXMHReZVV147+jHgRkL6GWyGb644VpI7vaPOt63NOe/Cc1FrQngRVAmbkNNf5
+	7mCIBw6rixY4jMW/NfYQ2205W3xg6pXDVflI29xqYh1Pec7RDdw+9K5oZZ3JMfFW/l2Eqk3EsT8Zl
+	mD9nbqWebkUDEhuNRGpoy8G7B19MoJMxTfKkHzHn83jkSQg5D24HIbEgT4DWVPLU/6l4sN/DQ2RYU
+	pHwn0TqUrlaGQ3WMOaw2VFiqAXLw0ORoz5yDkU/rU++Krqy1X0AW6rQe2TRL+u919/bH6x2iJnmvr
+	guIWdJ5g==;
+Received: from authenticated user
+	by stravinsky.debian.org with esmtpsa (TLS1.3:ECDHE_X25519__RSA_PSS_RSAE_SHA256__AES_256_GCM:256)
+	(Exim 4.94.2)
+	(envelope-from <leitao@debian.org>)
+	id 1vppVo-00ALkf-QI; Tue, 10 Feb 2026 15:18:49 +0000
+Date: Tue, 10 Feb 2026 07:18:43 -0800
+From: Breno Leitao <leitao@debian.org>
+To: Jijie Shao <shaojijie@huawei.com>
+Cc: Saeed Mahameed <saeedm@nvidia.com>, Tariq Toukan <tariqt@nvidia.com>, 
+	Mark Bloch <mbloch@nvidia.com>, Leon Romanovsky <leon@kernel.org>, 
+	Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller" <davem@davemloft.net>, 
+	Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, 
+	Paolo Abeni <pabeni@redhat.com>, Amir Vadai <amirv@mellanox.com>, netdev@vger.kernel.org, 
+	linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, dcostantino@meta.com, 
+	rneu@meta.com, kernel-team@meta.com
+Subject: Re: [PATCH net] net/mlx5e: Skip NAPI polling when PCI channel is
+ offline
+Message-ID: <aYtIrl01U0uHo7RP@gmail.com>
+References: <20260209-mlx5_iommu-v1-1-b17ae501aeb2@debian.org>
+ <49fe0af5-7dcf-42e0-bd73-0bd42c067d26@huawei.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net-next] net/mlx5e: remove declarations of
- mlx5e_shampo_{fill_umr,dealloc_hd}
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <177073560508.3544204.5534906377848723317.git-patchwork-notify@kernel.org>
-Date: Tue, 10 Feb 2026 15:00:05 +0000
-References: <20260206-shampo-v1-1-75b20c6657e5@kernel.org>
-In-Reply-To: <20260206-shampo-v1-1-75b20c6657e5@kernel.org>
-To: Simon Horman <horms@kernel.org>
-Cc: saeedm@nvidia.com, leon@kernel.org, tariqt@nvidia.com, mbloch@nvidia.com,
- andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@google.com,
- kuba@kernel.org, pabeni@redhat.com, netdev@vger.kernel.org,
- linux-rdma@vger.kernel.org
+In-Reply-To: <49fe0af5-7dcf-42e0-bd73-0bd42c067d26@huawei.com>
+X-Debian-User: leitao
 
-Hello:
-
-This patch was applied to netdev/net-next.git (main)
-by Paolo Abeni <pabeni@redhat.com>:
-
-On Fri, 06 Feb 2026 11:18:51 +0000 you wrote:
-> These functions were recently removed by commit 24cf78c73831
-> ("net/mlx5e: SHAMPO, Switch to header memcpy"), however,
-> their declarations were left behind.
+On Tue, Feb 10, 2026 at 10:19:46AM +0800, Jijie Shao wrote:
 > 
-> This patch removes those declarations.
+> on 2026/2/10 2:01, Breno Leitao wrote:
+> > When a PCI error (e.g. AER error or DPC containment) marks the PCI
+> > channel as frozen or permanently failed, the IOMMU mappings for the
+> > device may already be torn down. If mlx5e_napi_poll() continues
+> > processing CQEs in this state, every call to dma_unmap_page() triggers
+> > a WARN_ON in iommu_dma_unmap_phys().
 > 
-> Flagged by review-prompts while I was exercising Orc mode locally.
-> Compile tested only.
+> Hi:
+>   My comment has nothing to do with the changes made in this patch itself.
 > 
-> [...]
+> 
+> I am more interested in this error itself.
+> 1. If there is an issue with dma_unmp, does dma_map in tx have a similar problem?
 
-Here is the summary with links:
-  - [net-next] net/mlx5e: remove declarations of mlx5e_shampo_{fill_umr,dealloc_hd}
-    https://git.kernel.org/netdev/net-next/c/ad1f18e985cb
+I suspect that dma_map will succeed in such a case (when the DMA maps are
+gone). 
 
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
+dma_map_single/dma_map_page creates new page table entries — it doesn't look up
+existing ones. Even if existing mappings are gone, new mappings succeed !?
 
+I haven't seen this instance on the TX path as well.
 
+> 2. Can this error be detected by mlx5_pci_err_detected()? If not, does this mean that all PCIe NIC drivers might have similar issues?
+
+mlx5_pci_err_detected() is called for the device under DPC — that's not the
+issue.
+
+From my naive view, the issue seems to be timing: there's a potential race
+between DPC setting the PCI channel to frozen and the error handler completing
+(which eventually calls napi_disable_locked).
+
+During that window, NAPI poll can still fire and process CQEs, triggering the
+dma_unmap WARN_ON storm, and crash.
+
+>    Do other drivers need to do similar checks?
+
+I really don't know, honestly. Are other drivers solving the problem
+differently?! 
+
+Thanks for the question,
+--breno
