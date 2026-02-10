@@ -1,137 +1,159 @@
-Received: from mail-qt1-f179.google.com (mail-qt1-f179.google.com [209.85.160.179])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx0a-00082601.pphosted.com (mx0a-00082601.pphosted.com [67.231.145.42])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C87693859C4
-	for <linux-rdma@vger.kernel.org>; Tue, 10 Feb 2026 19:14:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.179
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1934C148850
+	for <linux-rdma@vger.kernel.org>; Tue, 10 Feb 2026 19:47:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=67.231.145.42
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770750893; cv=none; b=d96InDquWha1o4kkcyaX4ME2gNhb82Agg9dfgzJ4aox/KiAAWj5O2eT9VGjQFoL1b0BAHFuMew/yD7vModJ9JHAg4NfTqosuYa6LJGp/L474T0uEkwW0yIJHEEEMeDbx5pkdVNhk0VHBhVtXA26v+W4Tmr0u3xZyepF5ljSruIk=
+	t=1770752858; cv=none; b=mDVLWT7YdXuF30a0jkCUsx6xEp30HE1x/c9TSui3oAepQggJbcIIbZgyZTbAiNxIxGPOX6jmNJLKownySV5bkoPYEV9hXP11JgMVtEJfsxRxDeaf1/vPFk7TMX41P8Pd8OSMxovuO7ihaqufMVB9EEIea9s52tMqLEGuHZLGooM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770750893; c=relaxed/simple;
-	bh=9xqNAYpqagS+Yo/2Arld+UxBGO/HfrO3BQ9uwD1a4Zk=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=MVpfOOBGwRdaQHnA8Ehvhzse7VuZYL56YnZsN7tBsPLdmtVWS40RDPqWl6wv+oaeC7HyPBndUjHPVMTXtmhRg5iXKt72L//PsC/Os3lPa0A0eaQMTqSbOZy5NB0bHEZy+0nGWI9x9CbYip2TBe19Xp6Cl8lexSl2qvp8JSy2XOE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca; spf=pass smtp.mailfrom=ziepe.ca; dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b=eID+FymD; arc=none smtp.client-ip=209.85.160.179
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ziepe.ca
+	s=arc-20240116; t=1770752858; c=relaxed/simple;
+	bh=Zy44/LIpSi3+agiLDUKcDMJV1qfWV/Mh2KHyfM8qNUg=;
+	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=TyxdEABzVGrf+A0LMp9r7dRTnl2cOxQgLPagT0GkXyopIGWrxdq7X7LByGMcrTEIwggz5/BSzwksjZYotsdHzT7cjDGM0uC9wd5rOaBKdM9XimV+NoP6/pebWgCEBYTA3S/Hi/iM4t/fEv8E3kNjwzbnDcXP0Az9cKrWiKlbU8g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=meta.com; spf=pass smtp.mailfrom=meta.com; dkim=pass (2048-bit key) header.d=meta.com header.i=@meta.com header.b=e+1BrbQE; arc=none smtp.client-ip=67.231.145.42
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=meta.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=meta.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="eID+FymD"
-Received: by mail-qt1-f179.google.com with SMTP id d75a77b69052e-502b0aa36feso1437081cf.1
-        for <linux-rdma@vger.kernel.org>; Tue, 10 Feb 2026 11:14:51 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google; t=1770750891; x=1771355691; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=femI4WrttQvTTkHcuguP8B65f0lyKniJDpfqrFYB7wI=;
-        b=eID+FymD8KXsFwWGtnrtdJIivFaki1gcELhq2IL1WF2302YXaU+V85VOr7/aHZJ5Za
-         IwdqKhLtOh4KH+fBNlOmJMzvSh1CCUTD2nVHpPldH+neQQeCN3FLY263mXjdtSsAd/oE
-         nMM9pqmYt04lcqeH3aJbING4NL8kKUdAaEU5eUuc+LEDFcmV//z43I1xW0h6JGR/XGgp
-         izHuX7vLglWYjHXgfeesxxzZBtfuHMSirwD3SMo6BNwmz2pmMulsC03POCMNxBR0O6pv
-         TDqZr3qyYiGtONrsC9ufM1lumuU8qZpHkzSMcevnaeYSwCdfpob/B47Ym3QVXukV2zju
-         //BA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1770750891; x=1771355691;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=femI4WrttQvTTkHcuguP8B65f0lyKniJDpfqrFYB7wI=;
-        b=LiYrtKCXdqcYKv5djjG5C+VK7vWMnSYtvlyTgyL8FHEfnn2e42AwTx++/gsgiAtu7Z
-         7hq0XBVMeot3ZBgAf3KWQxGmHh+Hoi3ObVbLwFnikUrrFsIkpMKAVuRNNEcCto2JxRp3
-         nFq8+ruDRrZ62ERm4pknFEdUGt4+2WS02KxuAXc3gauKhBzBcxyPGPQJ4ceXob90JYi1
-         dVh1SfusFUEcQ7xye/a9BmuoPPm/P/X2g0Eso46HJa3GJyqbv0n07vynDWnn5BJJvS9Z
-         iibabqz8ncsjy7wQMcrbjDKxctMpJ4mRan1jshXy9V6gDdctrHpnlX+66mQ57luMcvLP
-         Jsdg==
-X-Forwarded-Encrypted: i=1; AJvYcCVAiHPTc9RpuN0DQxIMsSuOY/jjtNi2MJFUSUPTtol2r+vigWX3GGA3upwkVSt4P+jCBaS9pzsdTJvB@vger.kernel.org
-X-Gm-Message-State: AOJu0YxpqWMHaafqL2xVQsIU1/Popy0cqVs+8nFJrNN06jlRh1zNsney
-	FDM4ULgjGVpKSZmImcLTwXl1StAeJnaeSaS5k/oiom7QMs1C9JPjjFynKHptL3swd7A=
-X-Gm-Gg: AZuq6aLwqPS2uFYvIwOBfOHQFmNVefi+eh+r+GHp/8ogb4z98Elm0coyP4XhXk9/dUr
-	HAn7dKPMTTfrWjdJnyFFTQZRIdlD634R6UVKIdLlrLiOF0NGK+E3DkAMfDR0AeSnXmYDALcRYpm
-	dC70Y9isdK15EdBnatxyjTBYqFw84odj+HvRs4csTN2sCAa6ZWDM4oeTgi11ZCqRJRXMswTu3jP
-	NOF8xIs+H8i1H7CrVDaI61VTCOR9qeAk2czv8r1zNzv0nliSsYTIcq22/BiyjAy1wPOZs75yj+c
-	SoCoDm4l3bHTZxZhHYVOUiousioLpvgbfChjKJqNyLv/gBWmtq3zUJyoJ+lrwquQrpjhgfQimho
-	nqw9UViZVrsVcfjkVz6UHZRpXGK2RRYaBA8GNimOo94qQAl5armSmceogW03znWNI/AvUCTpOED
-	pDmJgFG361cprscItwR5i3sgWt6RTnxs26ELpq++T5f8BgTJmEpHkzDenTz8KQYQGCdA6NDlkjk
-	ipgjig=
-X-Received: by 2002:a05:622a:254:b0:505:e529:11e9 with SMTP id d75a77b69052e-50672c73556mr54505251cf.36.1770750890616;
-        Tue, 10 Feb 2026 11:14:50 -0800 (PST)
-Received: from ziepe.ca (hlfxns017vw-142-162-112-119.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.162.112.119])
-        by smtp.gmail.com with ESMTPSA id af79cd13be357-8caf9a1654dsm1108808785a.31.2026.02.10.11.14.50
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 10 Feb 2026 11:14:50 -0800 (PST)
-Received: from jgg by wakko with local (Exim 4.97)
-	(envelope-from <jgg@ziepe.ca>)
-	id 1vptCD-00000005Eol-2Dul;
-	Tue, 10 Feb 2026 15:14:49 -0400
-Date: Tue, 10 Feb 2026 15:14:49 -0400
-From: Jason Gunthorpe <jgg@ziepe.ca>
-To: Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>
-Cc: leon@kernel.org, linux-rdma@vger.kernel.org,
-	andrew.gospodarek@broadcom.com, selvin.xavier@broadcom.com,
-	kalesh-anakkur.purayil@broadcom.com
-Subject: Re: [PATCH rdma-next v11 6/6] RDMA/bnxt_re: Support application
- specific CQs
-Message-ID: <20260210191449.GE750753@ziepe.ca>
-References: <20260210165939.41625-1-sriharsha.basavapatna@broadcom.com>
- <20260210165939.41625-7-sriharsha.basavapatna@broadcom.com>
+	dkim=pass (2048-bit key) header.d=meta.com header.i=@meta.com header.b="e+1BrbQE"
+Received: from pps.filterd (m0044010.ppops.net [127.0.0.1])
+	by mx0a-00082601.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 61AH2JQ43309727
+	for <linux-rdma@vger.kernel.org>; Tue, 10 Feb 2026 11:47:36 -0800
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=meta.com; h=cc
+	:content-transfer-encoding:content-type:date:from:in-reply-to
+	:message-id:mime-version:references:subject:to; s=s2048-2025-q2;
+	 bh=POD6O1akvG97jkADnL5riRKuih17v4b7P7apRIwKvXg=; b=e+1BrbQEKn4p
+	+nxrVKU91fkzolnJY7veJA/CMebQB+CtL30K3XQ2x21O39oodqDWLGmiPQmt5N+S
+	5CpQsdAnIRvjJq0Vtp6z4ocoOJ2TB4xq5N4JH96dwMpQwkYr7eLxd02EsUtfhcKC
+	eyIpt8UtZ1VSOGgRy6W4p+IdEHE8jgkthU/O6VP3mmdbS+gYQPKj0XG7pDGvwuMM
+	kM5k2kEmmqjTDQPuOGChaUJHi8LhJC3HdNeUnP/GGD290ncImwrxbaafydX+2BZO
+	mQTh88utZh++8VUbANF0v8lAXWkEB+msRHvEc/0jbNs1JHsu9Y1wTWOPm7fKrKmN
+	5IaxLgz72Q==
+Received: from mail.thefacebook.com ([163.114.134.16])
+	by mx0a-00082601.pphosted.com (PPS) with ESMTPS id 4c88qnjd9q-6
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT)
+	for <linux-rdma@vger.kernel.org>; Tue, 10 Feb 2026 11:47:36 -0800 (PST)
+Received: from twshared13080.31.frc3.facebook.com (2620:10d:c085:108::150d) by
+ mail.thefacebook.com (2620:10d:c08b:78::2ac9) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.2.2562.35; Tue, 10 Feb 2026 19:47:33 +0000
+Received: by devbig259.ftw1.facebook.com (Postfix, from userid 664516)
+	id C69F5102666F6; Tue, 10 Feb 2026 11:40:20 -0800 (PST)
+From: Zhiping Zhang <zhipingz@meta.com>
+To: Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>,
+        Bjorn
+ Helgaas <bhelgaas@google.com>, <linux-rdma@vger.kernel.org>,
+        <linux-pci@vger.kernel.org>, <netdev@vger.kernel.org>,
+        <dri-devel@lists.freedesktop.org>, Keith Busch <kbusch@kernel.org>,
+        Yochai
+ Cohen <yochai@nvidia.com>, Yishai Hadas <yishaih@nvidia.com>
+CC: Bjorn Helgaas <helgaas@kernel.org>, Zhiping Zhang <zhipingz@meta.com>
+Subject: [RFC 2/2] RMDA MLX5: get tph for p2p access when registering dmabuf mr
+Date: Tue, 10 Feb 2026 11:39:55 -0800
+Message-ID: <20260210194014.2147481-3-zhipingz@meta.com>
+X-Mailer: git-send-email 2.47.3
+In-Reply-To: <20260210194014.2147481-1-zhipingz@meta.com>
+References: <20260210194014.2147481-1-zhipingz@meta.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260210165939.41625-7-sriharsha.basavapatna@broadcom.com>
+Content-Transfer-Encoding: quoted-printable
+X-FB-Internal: Safe
+Content-Type: text/plain
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwMjEwMDE2MyBTYWx0ZWRfX5FXMG50Zm9ep
+ a+MpSHU+3tmSXj5LP/NJB9Mmq4vXK1I3OVq83Kqu5VIRbJhzeyrP61+wg5J5gf+0lhTdxmDTvM+
+ nNOjbucf29r7ad6HyI+svl54kYaKByZalKVXIUvqvRHPN5Gt7HO/031UzT8n/U5ygeQKRp0RjG8
+ TAfD0gWN6b2oZcyFfAghDiOdDvFgp/kNsBjN5L3p6GHf7yqn0Cx+V15j5pHzC8xQezirKyWJ4IL
+ tWxDsOlNm9pTEcRp5eYSqNfZWHWQTkK5rtH0H7usS6deltS/6LNajF32KCLr/ryoxAkfN0ib5Ab
+ knfgWVlvUlQdsOHws7g9jjug0MIUDf6yyAo98yMMkI420KToMkIuElENK9CFJEKuy5yZ6QnTtXs
+ 4A+Eytn6xiyk727hozuqvsaOWftNGpq/0HQZoPbbkkIphEe26csFp9A/NLjphuVYOsoUPXPvF5F
+ l+RSflBmSK1GnNjRX6w==
+X-Authority-Analysis: v=2.4 cv=POkCOPqC c=1 sm=1 tr=0 ts=698b8b58 cx=c_pps
+ a=CB4LiSf2rd0gKozIdrpkBw==:117 a=CB4LiSf2rd0gKozIdrpkBw==:17
+ a=HzLeVaNsDn8A:10 a=VkNPw1HP01LnGYTKEx00:22 a=Mpw57Om8IfrbqaoTuvik:22
+ a=GgsMoib0sEa3-_RKJdDe:22 a=VabnemYjAAAA:8 a=tOZ8yR1yUuKf9aCP_icA:9
+ a=gKebqoRLp9LExxC7YDUY:22
+X-Proofpoint-ORIG-GUID: SDLE3epd3BPg3F-ZRbmiBOsSb59LaGs6
+X-Proofpoint-GUID: SDLE3epd3BPg3F-ZRbmiBOsSb59LaGs6
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1121,Hydra:6.1.51,FMLib:17.12.100.49
+ definitions=2026-02-10_03,2026-02-10_02,2025-10-01_01
 
-On Tue, Feb 10, 2026 at 10:29:39PM +0530, Sriharsha Basavapatna wrote:
-> diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-> index dc73f0072528..04588b4f79c0 100644
-> --- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-> +++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-> @@ -3372,6 +3372,9 @@ static int bnxt_re_setup_sginfo(struct bnxt_re_dev *rdev,
->  	return 0;
->  }
->  
-> +static u64 bnxt_re_cq_cmask_supported = (BNXT_RE_CQ_TOGGLE_PAGE_SUPPORT |
-> +					 BNXT_RE_CQ_APP_ALLOC_ENABLE);
+The patch adds a local function to check and get tph info when available =
+during
+dmabuf mr registration. Note the DMAH workflow for CPU still takes preced=
+ence in
+the process. Currently, it only works with the direct st_mode. Compatibil=
+ity
+with other st_modes will be added in the formal patch set.
 
-Don't mix req and resp flags together!!!
+Signed-off-by: Zhiping Zhang <zhipingz@meta.com>
+---
+ drivers/infiniband/hw/mlx5/mr.c | 30 ++++++++++++++++++++++++++++++
+ 1 file changed, 30 insertions(+)
 
-Also don't make a global static variable, just pass the flags directly
-to the helper.
+diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5=
+/mr.c
+index 325fa04cbe8a..c3eb5b24ef29 100644
+--- a/drivers/infiniband/hw/mlx5/mr.c
++++ b/drivers/infiniband/hw/mlx5/mr.c
+@@ -46,6 +46,8 @@
+ #include "data_direct.h"
+ #include "dmah.h"
+=20
++MODULE_IMPORT_NS("DMA_BUF");
++
+ enum {
+ 	MAX_PENDING_REG_MR =3D 8,
+ };
+@@ -1623,6 +1625,32 @@ static struct dma_buf_attach_ops mlx5_ib_dmabuf_at=
+tach_ops =3D {
+ 	.move_notify =3D mlx5_ib_dmabuf_invalidate_cb,
+ };
+=20
++static void get_tph_mr_dmabuf(struct mlx5_ib_dev *dev, int fd, u16 *st_i=
+ndex,
++							  u8 *ph)
++{
++	int ret;
++	struct dma_buf *dmabuf;
++
++	dmabuf =3D dma_buf_get(fd);
++	if (IS_ERR(dmabuf))
++		return;
++
++	if (!dmabuf->ops->get_tph)
++		goto end_dbuf_put;
++
++	ret =3D dmabuf->ops->get_tph(dmabuf, st_index, ph);
++
++	if (ret) {
++		*st_index =3D MLX5_MKC_PCIE_TPH_NO_STEERING_TAG_INDEX;
++		*ph =3D MLX5_IB_NO_PH;
++		mlx5_ib_dbg(dev, "get_tph failed (%d)\n", ret);
++		goto end_dbuf_put;
++	}
++
++end_dbuf_put:
++	dma_buf_put(dmabuf);
++};
++
+ static struct ib_mr *
+ reg_user_mr_dmabuf(struct ib_pd *pd, struct device *dma_device,
+ 		   u64 offset, u64 length, u64 virt_addr,
+@@ -1662,6 +1690,8 @@ reg_user_mr_dmabuf(struct ib_pd *pd, struct device =
+*dma_device,
+ 		ph =3D dmah->ph;
+ 		if (dmah->valid_fields & BIT(IB_DMAH_CPU_ID_EXISTS))
+ 			st_index =3D mdmah->st_index;
++	} else {
++		get_tph_mr_dmabuf(dev, fd, &st_index, &ph);
+ 	}
+=20
+ 	mr =3D alloc_cacheable_mr(pd, &umem_dmabuf->umem, virt_addr,
+--=20
+2.47.3
 
->  int bnxt_re_create_cq_umem(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
->  			   struct ib_umem *umem, struct uverbs_attr_bundle *attrs)
->  {
-> @@ -3382,6 +3385,7 @@ int bnxt_re_create_cq_umem(struct ib_cq *ibcq, const struct ib_cq_init_attr *att
->  		rdma_udata_to_drv_context(udata, struct bnxt_re_ucontext, ib_uctx);
->  	struct bnxt_qplib_dev_attr *dev_attr = rdev->dev_attr;
->  	struct bnxt_qplib_chip_ctx *cctx;
-> +	struct bnxt_re_cq_req req = {};
-
-No need to zero memory being passed to ib_copy_validate_udata_in_cm(),
-it always writes to the whole struct.
-
-> diff --git a/include/uapi/rdma/bnxt_re-abi.h b/include/uapi/rdma/bnxt_re-abi.h
-> index 1f7685665db1..26eeb78193fa 100644
-> --- a/include/uapi/rdma/bnxt_re-abi.h
-> +++ b/include/uapi/rdma/bnxt_re-abi.h
-> @@ -103,10 +103,12 @@ struct bnxt_re_pd_resp {
->  struct bnxt_re_cq_req {
->  	__aligned_u64 cq_va;
->  	__aligned_u64 cq_handle;
-> +	__aligned_u64 comp_mask;
->  };
->  
->  enum bnxt_re_cq_mask {
->  	BNXT_RE_CQ_TOGGLE_PAGE_SUPPORT = 0x1,
-> +	BNXT_RE_CQ_APP_ALLOC_ENABLE = 0x2,
->  };
-
-The req/resp comp masks should be kept separate.
-
-The name should be much more specific "BNXT_RE_CQ_EXACT_CQE" or something.
-
-This is all alot better now, thanks
-
-Jhason
