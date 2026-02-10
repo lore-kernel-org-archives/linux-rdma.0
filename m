@@ -1,89 +1,44 @@
-Received: from mail-pf1-f226.google.com (mail-pf1-f226.google.com [209.85.210.226])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 59CF03803FD
-	for <linux-rdma@vger.kernel.org>; Tue, 10 Feb 2026 17:08:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.226
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BAD8130F541;
+	Tue, 10 Feb 2026 17:09:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770743327; cv=none; b=NuSydRC0K66Wb3GWSOUBUV8SpiPtSNY3VM+a42L4sS8NaV4SaEU2IkP9PRbIbaYop4fgLRU0sazPEErw+DzMVYCR64k8R3BqI0AVfg2+jNfArtk164A5esaSIvkqy4U+ktjaxAW1a/8/K/nO2VeCdfSnl2tlRWo3Dm6mS35hOzk=
+	t=1770743394; cv=none; b=SSVmz+tABucxESGpzNML9s9JBz/R+C0SWEWeJdNVvE4bdEDVrtAwAyGPFU5V8AcsyTazz57xsp4Q+a03tMFane2STLZf/t64hPQowAA+V6ip5Awu+mZ5/5o9ItP5+gk6Mm2xy2wQTrlfwlDcLwaI8hH6UZ0Qfh8S1n8ZY7Tz3rI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770743327; c=relaxed/simple;
-	bh=ohBiXHd58kpU9ZftvYCZ4rq34SruNQcja+2Xtt01xh0=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=Zxo0lQwsRH9eTC119xBeQZ8Ves3pwzsboREhcnhNRjyZryidaIhMuJhqUudmmt7vN6nEePP1Rklm7zcHAXa7jdHyQo4SQJyKiMVlZSI/tOZ0ydU5KdZlLAomesBV9942YCP3UBnd/5Ta3GXQJY/vU9fCU/HWLaTgE2PeKYpROT8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com; spf=fail smtp.mailfrom=broadcom.com; dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b=WUoRmeYT; arc=none smtp.client-ip=209.85.210.226
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=broadcom.com
+	s=arc-20240116; t=1770743394; c=relaxed/simple;
+	bh=EewhX7pCVaZsONS5AgLcaHibcIx/Rv1A5l0RH1SAVug=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=jbR488fbEDgcM7juQN+s3r4YMvYWFYESOlfG15fasoxCTxGTXlv+5Qxm5zK2Tnm18AN+IQzBF8MH64A/p1MtcJduHXG82wLuc2J+aidwCV9zXaiaG/Phzgw3bhdr7K5ptP99VZd0ltDe6ZcMMXNFuNkBCxB9RDrNZHqgFaN30VA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=u+6BAQX0; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b="WUoRmeYT"
-Received: by mail-pf1-f226.google.com with SMTP id d2e1a72fcca58-8220bd582ddso769242b3a.2
-        for <linux-rdma@vger.kernel.org>; Tue, 10 Feb 2026 09:08:46 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1770743326; x=1771348126;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:dkim-signature:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=A0kOBvvkqLimiigHgVwG9HhriCqD/eTab/bxgezvIng=;
-        b=euboKT/I8XEQyDGkLXW/wpI2CSKGjKImSZRguSZCwbuhT0h84nGzRMgym0C3ELa+7w
-         23OGaXkaE/aEnNYhDWB7R+D34aREUnh2hPdxAVFqXo64bVlN4pVg+02Ut6lSkbQ8DD/A
-         ieMbmdkolYo/9tYjlne5i66X4gMgUz788wBjgiW7As9adeI7SbJOQxPZV2hotrXq0nvM
-         dx2J9kTb1QgHBZhDkWCRoKBiJtexy/rZTVKhevKn2KwYqVyexX774S7aMQdoCu7wY51R
-         rmgKvoocLMvE0s6WC73l2Q5uW63Z+jdjp8VlLkflGN5L9Kc35bN+t9A+chvaJCHj9yI9
-         KqpA==
-X-Gm-Message-State: AOJu0YybbTK7A9/x1LtNXaNoOxPrMxiF4zqVgBDzM2xBub4UXhEITsze
-	RB5VH18uLXXCE6YpjqOWfbOw5fJeVtomPXjv0MTQogZ7taYyhQsJCwNZ2MYfQW4/Yf7R/YoaJto
-	j0xaIPAlifMyWZBJ0Ld/0sN6yObIs+uNF9YLK/AjxkzPo7ffp+CC8AoEaXscN6yJv9uwv8JtdaD
-	z8YK/L0Hby39KJp1+2lqvmNtAzzh2jD3sfkURU41psH3pWgxq3ra9ZTYi2bM9W96vwOXa75qU0+
-	CHMV4qhSZ9w1Garzwzz9kZPQWJY
-X-Gm-Gg: AZuq6aJ+t68PbCDcyu4SvPjnhUVS0MLXb/yAJLMh4Kulgi5bvJHXybGleD3lEfxDJoI
-	dH39I7qExOfy0zGVTb/c6qxUZW8btzcSxI4Y7IfAyyMcBgM97XeMF4Bnt4kMjkq0O9Suv2Wjy6J
-	eKx6600juH0Nrj5JwXWBuW/1tL8ghP2jZM91dor7k1TKxLlHZ8USfV0diX3czI576VKMod8jIls
-	0SRjGvz2nioOM6pmljMLDGrrkfDpbpoc+8YfW0htynuWl4koXKUZ2Z4+iCLSUqEmruk+wgR45Fn
-	Q2XjOik2FSKYh1gTcNnU6XLH1r3z1Xo3PkH3YjVnmUJtW9JdB8NHaIwn0O9nYxd9cLtlHTNPma4
-	0ZUu1BuFKtXR/8zghoM8/0v73HMqOoRKZ2Xlaxd9BALajuGbtCmgg10oZd0GMOlcmxPqu5ZOL1C
-	u2l6TxjGMOpfGqY6DU+EaWCn7UZm9gXSocKBSaZf0SapTlGtM9bd9TDWqUt7hebU2Ik47E
-X-Received: by 2002:a05:6a20:431c:b0:35f:b96d:af06 with SMTP id adf61e73a8af0-393acf88d68mr14182050637.14.1770743325645;
-        Tue, 10 Feb 2026 09:08:45 -0800 (PST)
-Received: from smtp-us-east1-p01-i01-si01.dlp.protect.broadcom.com (address-144-49-247-21.dlp.protect.broadcom.com. [144.49.247.21])
-        by smtp-relay.gmail.com with ESMTPS id 41be03b00d2f7-c6dcb641467sm1083274a12.10.2026.02.10.09.08.45
-        for <linux-rdma@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Tue, 10 Feb 2026 09:08:45 -0800 (PST)
-X-Relaying-Domain: broadcom.com
-X-CFilter-Loop: Reflected
-Received: by mail-pf1-f200.google.com with SMTP id d2e1a72fcca58-82451f11c4dso560955b3a.3
-        for <linux-rdma@vger.kernel.org>; Tue, 10 Feb 2026 09:08:44 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=broadcom.com; s=google; t=1770743324; x=1771348124; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=A0kOBvvkqLimiigHgVwG9HhriCqD/eTab/bxgezvIng=;
-        b=WUoRmeYT9kWj1pRGY0QeIqCrQFsLn4xTxOCBCSK1ssN703Nu1uT3Y8b/DvmBfqgmbi
-         sG/Ya10zoPDr8Utckuo266nwNi0knv3VdfF864fJ7WcEEHeQkz6+IzQlrpfDZArN/QKm
-         pxuva7yq3SUDoJ4nc6hBW1H7OPOJSZld0/92k=
-X-Received: by 2002:a05:6a00:1395:b0:81a:b602:daf6 with SMTP id d2e1a72fcca58-8244172ba54mr13919244b3a.48.1770743323841;
-        Tue, 10 Feb 2026 09:08:43 -0800 (PST)
-X-Received: by 2002:a05:6a00:1395:b0:81a:b602:daf6 with SMTP id d2e1a72fcca58-8244172ba54mr13919222b3a.48.1770743323305;
-        Tue, 10 Feb 2026 09:08:43 -0800 (PST)
-Received: from dhcp-10-123-157-187.dhcp.broadcom.net ([192.19.234.250])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-8244166f269sm15620806b3a.7.2026.02.10.09.08.40
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 10 Feb 2026 09:08:42 -0800 (PST)
-From: Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>
-To: leon@kernel.org,
-	jgg@ziepe.ca
-Cc: linux-rdma@vger.kernel.org,
-	andrew.gospodarek@broadcom.com,
-	selvin.xavier@broadcom.com,
-	kalesh-anakkur.purayil@broadcom.com,
-	Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>
-Subject: [PATCH rdma-next v11 6/6] RDMA/bnxt_re: Support application specific CQs
-Date: Tue, 10 Feb 2026 22:29:39 +0530
-Message-ID: <20260210165939.41625-7-sriharsha.basavapatna@broadcom.com>
-X-Mailer: git-send-email 2.51.2.636.ga99f379adf
-In-Reply-To: <20260210165939.41625-1-sriharsha.basavapatna@broadcom.com>
-References: <20260210165939.41625-1-sriharsha.basavapatna@broadcom.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="u+6BAQX0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1B290C116C6;
+	Tue, 10 Feb 2026 17:09:54 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1770743394;
+	bh=EewhX7pCVaZsONS5AgLcaHibcIx/Rv1A5l0RH1SAVug=;
+	h=From:To:Cc:Subject:Date:From;
+	b=u+6BAQX0iu1E+HYT1eHBFtD3YcZ8qPkk6ocR8gDFftYzWVEyRn+RwDaKrD4rdSAoo
+	 qo+m4fdZjk0MsCUXdV/lwsiBnxcVMowSjG4hFYeXoVTz8j2x/74T9i7MasT1cwxaxQ
+	 3xQXCKhrK4JQkdCoxpAks/79rhwt4haPGd88pDnGC1rWfdMTwvzJLGZ1KtQ1eSSe8V
+	 S4/Q7IJ7/xE+ciovS1CdF5136A5yiVd5GQDBnkjOnNgeyXtUh4RSXY8t+S2+NqeJxc
+	 XLqzH/HLTVDeB2j3Uxa+fsaenjnmOO5k/vVrHPDB2cf2CWW5HntudjGHzsBTcWgUp6
+	 MbRd6zswGi3xw==
+From: Allison Henderson <achender@kernel.org>
+To: netdev@vger.kernel.org
+Cc: linux-kselftest@vger.kernel.org,
+	pabeni@redhat.com,
+	edumazet@google.com,
+	rds-devel@oss.oracle.com,
+	kuba@kernel.org,
+	horms@kernel.org,
+	linux-rdma@vger.kernel.org,
+	allison.henderson@oracle.com
+Subject: [PATCH net v2] net/rds: rds_sendmsg should not discard payload_len
+Date: Tue, 10 Feb 2026 10:09:52 -0700
+Message-ID: <20260210170952.1836306-1-achender@kernel.org>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -91,85 +46,47 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-DetectorID-Processed: b00c1d49-9d2e-4205-b15f-d015386d3d5e
 
-This patch supports application allocated memory for CQs.
+Commit 3db6e0d172c9 ("rds: use RCU to synchronize work-enqueue with
+connection teardown") modifies rds_sendmsg to avoid enqueueing work
+while a tear down is in progress. However, it also changed the return
+value of rds_sendmsg to that of rds_send_xmit instead of the
+payload_len. This means the user may incorrectly receive errno values
+when it should have simply received a payload of 0 while the peer
+attempts a reconnections.  So this patch corrects the teardown handling
+code to only use the out error path in that case, thus restoring the
+original payload_len return value.
 
-The application allocates and manages the CQs directly. To support
-this, the driver exports a new comp_mask to indicate direct control
-of the CQ. When this comp_mask bit is set in the ureq, the driver
-maps this application allocated CQ memory into hardware. As the
-application manages this memory, the CQ depth ('cqe') passed by it
-must be used as is and the driver shouldn't update it.
+Fixes: 3db6e0d172c9 ("rds: use RCU to synchronize work-enqueue with connection teardown")
+Signed-off-by: Allison Henderson <achender@kernel.org>
 
-Signed-off-by: Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>
-Reviewed-by: Selvin Xavier <selvin.xavier@broadcom.com>
 ---
- drivers/infiniband/hw/bnxt_re/ib_verbs.c | 18 ++++++++++++++----
- include/uapi/rdma/bnxt_re-abi.h          |  2 ++
- 2 files changed, 16 insertions(+), 4 deletions(-)
+Changes in v2:
+- Rebased on net/main to fix apply failure in v1
 
-diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-index dc73f0072528..04588b4f79c0 100644
---- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-+++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-@@ -3372,6 +3372,9 @@ static int bnxt_re_setup_sginfo(struct bnxt_re_dev *rdev,
- 	return 0;
- }
- 
-+static u64 bnxt_re_cq_cmask_supported = (BNXT_RE_CQ_TOGGLE_PAGE_SUPPORT |
-+					 BNXT_RE_CQ_APP_ALLOC_ENABLE);
+Signed-off-by: Allison Henderson <achender@kernel.org>
+---
+ net/rds/send.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/net/rds/send.c b/net/rds/send.c
+index 0b3d0ef2f008..071c5dca969a 100644
+--- a/net/rds/send.c
++++ b/net/rds/send.c
+@@ -1382,9 +1382,11 @@ int rds_sendmsg(struct socket *sock, struct msghdr *msg, size_t payload_len)
+ 		else
+ 			queue_delayed_work(rds_wq, &cpath->cp_send_w, 1);
+ 		rcu_read_unlock();
 +
- int bnxt_re_create_cq_umem(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
- 			   struct ib_umem *umem, struct uverbs_attr_bundle *attrs)
- {
-@@ -3382,6 +3385,7 @@ int bnxt_re_create_cq_umem(struct ib_cq *ibcq, const struct ib_cq_init_attr *att
- 		rdma_udata_to_drv_context(udata, struct bnxt_re_ucontext, ib_uctx);
- 	struct bnxt_qplib_dev_attr *dev_attr = rdev->dev_attr;
- 	struct bnxt_qplib_chip_ctx *cctx;
-+	struct bnxt_re_cq_req req = {};
- 	int cqe = attr->cqe;
- 	int rc, entries;
- 	u32 active_cqs;
-@@ -3404,11 +3408,17 @@ int bnxt_re_create_cq_umem(struct ib_cq *ibcq, const struct ib_cq_init_attr *att
- 		entries = dev_attr->max_cq_wqes + 1;
++		if (ret)
++			goto out;
+ 	}
+-	if (ret)
+-		goto out;
++
+ 	rds_message_put(rm);
  
- 	if (udata) {
--		struct bnxt_re_cq_req req;
-+		rc = ib_copy_validate_udata_in_cm(udata, req, cq_handle,
-+						  bnxt_re_cq_cmask_supported);
-+		if (rc) {
-+			ibdev_dbg(&rdev->ibdev,
-+				  "CQ udata validation failed: %d comp_mask: 0x%llx supported: 0x%llx\n",
-+				  -rc, req.comp_mask, bnxt_re_cq_cmask_supported);
-+			return rc;
-+		}
- 
--		rc = ib_copy_validate_udata_in(udata, req, cq_handle);
--		if (rc)
--			goto fail;
-+		if (req.comp_mask & BNXT_RE_CQ_APP_ALLOC_ENABLE)
-+			entries = cqe;
- 
- 		if (umem) {
- 			cq->umem = umem;
-diff --git a/include/uapi/rdma/bnxt_re-abi.h b/include/uapi/rdma/bnxt_re-abi.h
-index 1f7685665db1..26eeb78193fa 100644
---- a/include/uapi/rdma/bnxt_re-abi.h
-+++ b/include/uapi/rdma/bnxt_re-abi.h
-@@ -103,10 +103,12 @@ struct bnxt_re_pd_resp {
- struct bnxt_re_cq_req {
- 	__aligned_u64 cq_va;
- 	__aligned_u64 cq_handle;
-+	__aligned_u64 comp_mask;
- };
- 
- enum bnxt_re_cq_mask {
- 	BNXT_RE_CQ_TOGGLE_PAGE_SUPPORT = 0x1,
-+	BNXT_RE_CQ_APP_ALLOC_ENABLE = 0x2,
- };
- 
- struct bnxt_re_cq_resp {
+ 	for (ind = 0; ind < vct.indx; ind++)
 -- 
-2.51.2.636.ga99f379adf
+2.43.0
 
