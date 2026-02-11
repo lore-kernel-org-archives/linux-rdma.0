@@ -1,207 +1,93 @@
-Received: from mx0a-00082601.pphosted.com (mx0a-00082601.pphosted.com [67.231.145.42])
+Received: from www262.sakura.ne.jp (www262.sakura.ne.jp [202.181.97.72])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1E94F3254AC
-	for <linux-rdma@vger.kernel.org>; Tue, 10 Feb 2026 19:47:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=67.231.145.42
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 59BAF1E511
+	for <linux-rdma@vger.kernel.org>; Wed, 11 Feb 2026 01:30:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=202.181.97.72
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770752861; cv=none; b=Vp4CSsy+vZvOV+3b2snYL/7iWZaHXLa94aNj4e9lO+DGqzJ4gfM/ch76YPu/z5LiN1LsWRAG6s3tzXoooskTq4l/Iscf6azxgcEo89pyG1WXcF82Qslouo27i7HT8nLhwGmhqhON7SiKirhjkYd15Wu5hwlkgNGzN06P12HIjPU=
+	t=1770773445; cv=none; b=Xy++Z3aSPlLBqwL5LYY6Nn512s2ciXgJOg9oCmjVichfGSWONXTFBkt+riOrFzUo0C9AcCDko5qaVNmImWKKTWycAbZMMCihfTG4d4cuY4EpI1wiQAhNhv2dWlwG7MbR0+Bbx5IQlJhjuciM8cgFxVcJLznLaizId1kj20qiR0k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770752861; c=relaxed/simple;
-	bh=k6JJU6/Xv5Bve7ALmeRsOaz8DO0O0Gst3Ha4Joxtbys=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=L74hIJdUgRirg9KVWosBRpnUJb/CSW22Y8QQCtE8jIm/nrWtqqNYVt4SNgAjVAgzP83UsSxpF4m+Al2otZ4CT/Y8ppqqsH2XUhMcAYZBnl0V0ccksoN6h7BlZg07uijhm5WtzvxLuKECXWWQq4TvU1l9YgVB4dk3WVoTauJmOes=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=meta.com; spf=pass smtp.mailfrom=meta.com; dkim=pass (2048-bit key) header.d=meta.com header.i=@meta.com header.b=FtJeKsLo; arc=none smtp.client-ip=67.231.145.42
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=meta.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=meta.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=meta.com header.i=@meta.com header.b="FtJeKsLo"
-Received: from pps.filterd (m0044010.ppops.net [127.0.0.1])
-	by mx0a-00082601.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 61AH2Jvs3309800
-	for <linux-rdma@vger.kernel.org>; Tue, 10 Feb 2026 11:47:39 -0800
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=meta.com; h=cc
-	:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to; s=s2048-2025-q2;
-	 bh=+Hrz8y6M1gcSbgUEcxq2AJOX4snqaTvaf+bpG7ruQ0Y=; b=FtJeKsLoEtSp
-	dj2vTUbAcX6f2D/qj6GVpsTgNAvwdV471dpvaVruJsyLgn+ULh9a0nDLRpjvlElp
-	ILM3gxrPT1SftDVnZYi106OzP96mJgmNYVe/qISUULA5xbNDZunlAEn+JIYdPlQg
-	u+PPXT6afKkTniJnj3atePFXQbZf6vvS8R+DR7TthZs0zFlWAJ6aM/zY6AQbo8JS
-	sBDlip9d7LlqnSpq51cb3PGgRAQXfq76r5CqaBGOTVDYg2n8BYwBNi4rihRyn9GD
-	WwYhUxNdpG3DvHpcWcbs65tY9mZzk1DHW5SvCWgsRB6GW0tlgMeqG2CIIkUA87D3
-	Zm9D4Jzzbg==
-Received: from mail.thefacebook.com ([163.114.134.16])
-	by mx0a-00082601.pphosted.com (PPS) with ESMTPS id 4c88qnjd9p-14
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT)
-	for <linux-rdma@vger.kernel.org>; Tue, 10 Feb 2026 11:47:39 -0800 (PST)
-Received: from twshared41309.15.frc2.facebook.com (2620:10d:c085:208::7cb7) by
- mail.thefacebook.com (2620:10d:c08b:78::c78f) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.2.2562.35; Tue, 10 Feb 2026 19:47:34 +0000
-Received: by devbig259.ftw1.facebook.com (Postfix, from userid 664516)
-	id 39B50102666BF; Tue, 10 Feb 2026 11:40:19 -0800 (PST)
-From: Zhiping Zhang <zhipingz@meta.com>
-To: Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>,
-        Bjorn
- Helgaas <bhelgaas@google.com>, <linux-rdma@vger.kernel.org>,
-        <linux-pci@vger.kernel.org>, <netdev@vger.kernel.org>,
-        <dri-devel@lists.freedesktop.org>, Keith Busch <kbusch@kernel.org>,
-        Yochai
- Cohen <yochai@nvidia.com>, Yishai Hadas <yishaih@nvidia.com>
-CC: Bjorn Helgaas <helgaas@kernel.org>, Zhiping Zhang <zhipingz@meta.com>
-Subject: [RFC 1/2] Vfio: add callback to get tph info for dmabuf
-Date: Tue, 10 Feb 2026 11:39:54 -0800
-Message-ID: <20260210194014.2147481-2-zhipingz@meta.com>
-X-Mailer: git-send-email 2.47.3
-In-Reply-To: <20260210194014.2147481-1-zhipingz@meta.com>
-References: <20260210194014.2147481-1-zhipingz@meta.com>
+	s=arc-20240116; t=1770773445; c=relaxed/simple;
+	bh=WGnhyQrPZAXL5WCGdui16zyuDMo5u0EzWMsvkifjKpU=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=RxT4PR00bxpJmDKDY/z6f1QL6iRSq+nC0n15VSps0NHwzk06GNfJeN4JXA6mEN8m3kkESklRbwVEgTKClGQ3jyyJOl0x/FDpFZFR9aPSclgIgxngG9Z7Wz4f1iuXK/Tks+x7sxipi2sbW+0HppDy3DKdip7tjWG7a3f+k1Se/UY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=I-love.SAKURA.ne.jp; spf=pass smtp.mailfrom=I-love.SAKURA.ne.jp; arc=none smtp.client-ip=202.181.97.72
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=I-love.SAKURA.ne.jp
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=I-love.SAKURA.ne.jp
+Received: from www262.sakura.ne.jp (localhost [127.0.0.1])
+	by www262.sakura.ne.jp (8.15.2/8.15.2) with ESMTP id 61B1UHBN090117;
+	Wed, 11 Feb 2026 10:30:17 +0900 (JST)
+	(envelope-from penguin-kernel@I-love.SAKURA.ne.jp)
+Received: from [192.168.1.10] (M106072142033.v4.enabler.ne.jp [106.72.142.33])
+	(authenticated bits=0)
+	by www262.sakura.ne.jp (8.15.2/8.15.2) with ESMTPSA id 61B1UHfJ090114
+	(version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NO);
+	Wed, 11 Feb 2026 10:30:17 +0900 (JST)
+	(envelope-from penguin-kernel@I-love.SAKURA.ne.jp)
+Message-ID: <ebdbde90-3583-48dd-a5d8-7a039a9a38a6@I-love.SAKURA.ne.jp>
+Date: Wed, 11 Feb 2026 10:30:17 +0900
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-X-FB-Internal: Safe
-Content-Type: text/plain
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwMjEwMDE2MyBTYWx0ZWRfX0N4PfbTvsgy4
- rCJR/iUivTaD7IlO32ryk6sWOhbonFjv3oFboVBpF259s26zkqrJZxO/i/bTa3N9O4bAi5CWvH5
- 9VVjRn3KVyMtEs4SH6VoasOjIqH+FKQsfN8X5rd93/dEpCXSaGUvmXUaw8CDZ6mp+9+7B4t1r5Q
- w9rqitZuQ3skCWFsseh3R2ju+MekIE0h1dFmbSiBEH06J5jHWPGAXJzrTPtv9y00P43o6CUkvrm
- dvfWebEUodEGIbFbVFJqUrgXGO8Rq/f0z5AskrxegSIkCGwc3sme1Vnm0SfbyAI44OrDhx4v+kv
- LQHUrD5mWsodYBKXewXTWLJKp78WHUBQS5pY2Qx2DqNwoJf3sfN+dbsmbyCh+iqD4ltj6j+SlVP
- TR5repzINt06dBwxzz7oio8hOFWzrtjtPAU9C33dVplS9Kgayf5aiOu2j60bV8FCLOcgaxDc70u
- SPwM1aOykByQwzQfZOw==
-X-Authority-Analysis: v=2.4 cv=POkCOPqC c=1 sm=1 tr=0 ts=698b8b5b cx=c_pps
- a=CB4LiSf2rd0gKozIdrpkBw==:117 a=CB4LiSf2rd0gKozIdrpkBw==:17
- a=HzLeVaNsDn8A:10 a=VkNPw1HP01LnGYTKEx00:22 a=Mpw57Om8IfrbqaoTuvik:22
- a=GgsMoib0sEa3-_RKJdDe:22 a=VabnemYjAAAA:8 a=66hUaM2K5p8tY_kFZzUA:9
- a=gKebqoRLp9LExxC7YDUY:22
-X-Proofpoint-ORIG-GUID: iP7k3wi9tncQ9KomVjMAVYmcTY5rNXn0
-X-Proofpoint-GUID: iP7k3wi9tncQ9KomVjMAVYmcTY5rNXn0
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1121,Hydra:6.1.51,FMLib:17.12.100.49
- definitions=2026-02-10_03,2026-02-10_02,2025-10-01_01
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH] RDMA/core: Fix stale RoCE GIDs during netdev events at
+ registration
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Jiri Pirko <jiri@resnulli.us>, linux-rdma@vger.kernel.org, leon@kernel.org,
+        msanalla@nvidia.com, maorg@nvidia.com, parav@nvidia.com,
+        mbloch@nvidia.com, markzhang@nvidia.com, marco.crivellari@suse.com,
+        roman.gushchin@linux.dev, "Yanjun.Zhu" <yanjun.zhu@linux.dev>
+References: <u7t7kha66tqngzyoryly6pltiur4wtz6gm3nui3zeb32dmtctp@54rr6gcsqtap>
+ <1dc21045-4030-4d37-9ae6-3dd2c42b8e88@I-love.SAKURA.ne.jp>
+ <inp2nyil62tkkvahvjvwvgp63ld5cffgowqhwlbssabhd2gaka@52lfxbmxvbzi>
+ <8bdfe8a3-1cdb-43e3-b68e-428f6c5133d5@I-love.SAKURA.ne.jp>
+ <j5tnfwmkfqtmmtpkbcdxriu7wlgxydazuvkk4nkfv27nddlq4r@xx4amuxv6y7y>
+ <d6aee73d-91cb-4eb3-ad11-6244e973932b@I-love.SAKURA.ne.jp>
+ <20260202235133.GP2328995@ziepe.ca>
+ <c5ebe396-eccf-450b-8486-e1900258d9c0@I-love.SAKURA.ne.jp>
+ <eqplwtvsocnqesb7vysnb6cq2emmghbg5wttkc6oyltsqtw6zi@6iewgx2qnsml>
+ <3f1881d9-243d-4869-8396-5cca2e915733@I-love.SAKURA.ne.jp>
+ <20260210154242.GB750753@ziepe.ca>
+Content-Language: en-US
+From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+In-Reply-To: <20260210154242.GB750753@ziepe.ca>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+X-Virus-Status: clean
+X-Anti-Virus-Server: fsav303.rs.sakura.ne.jp
 
-This RFC patch adds a callback to get the tph info on DMA buffer exporter=
-s.
-The tph info includes both the steering tag and the process hint (ph).
+On 2026/02/11 0:42, Jason Gunthorpe wrote:
+> This seems like a different thing, why does it matter if an unregister
+> event is lost like this?
+> 
+> gid_table_cleanup_one() removes all gids regardless of the state of
+> the netdev? It isn't going to start leaking a netdev reference if you
+> hit this race?
 
-Signed-off-by: Zhiping Zhang <zhipingz@meta.com>
----
- drivers/vfio/pci/vfio_pci_dmabuf.c | 15 ++++++++++++++-
- include/linux/dma-buf.h            | 30 ++++++++++++++++++++++++++++++
- include/uapi/linux/vfio.h          |  2 ++
- 3 files changed, 46 insertions(+), 1 deletion(-)
+Yes, syzbot is reporting
 
-diff --git a/drivers/vfio/pci/vfio_pci_dmabuf.c b/drivers/vfio/pci/vfio_p=
-ci_dmabuf.c
-index d4d0f7d08c53..4da1a6cc306f 100644
---- a/drivers/vfio/pci/vfio_pci_dmabuf.c
-+++ b/drivers/vfio/pci/vfio_pci_dmabuf.c
-@@ -17,6 +17,8 @@ struct vfio_pci_dma_buf {
- 	struct dma_buf_phys_vec *phys_vec;
- 	struct p2pdma_provider *provider;
- 	u32 nr_ranges;
-+	u16 steering_tag;
-+	u8 ph;
- 	u8 revoked : 1;
- };
-=20
-@@ -50,6 +52,15 @@ vfio_pci_dma_buf_map(struct dma_buf_attachment *attach=
-ment,
- 				       priv->size, dir);
- }
-=20
-+static int vfio_pci_dma_buf_get_tph(struct dma_buf *dmabuf, u16 *steerin=
-g_tag,
-+				    u8 *ph)
-+{
-+	struct vfio_pci_dma_buf *priv =3D dmabuf->priv;
-+	*steering_tag =3D priv->steering_tag;
-+	*ph =3D priv->ph;
-+	return 0;
-+}
-+
- static void vfio_pci_dma_buf_unmap(struct dma_buf_attachment *attachment=
-,
- 				   struct sg_table *sgt,
- 				   enum dma_data_direction dir)
-@@ -78,6 +89,7 @@ static void vfio_pci_dma_buf_release(struct dma_buf *dm=
-abuf)
- static const struct dma_buf_ops vfio_pci_dmabuf_ops =3D {
- 	.attach =3D vfio_pci_dma_buf_attach,
- 	.map_dma_buf =3D vfio_pci_dma_buf_map,
-+	.get_tph =3D vfio_pci_dma_buf_get_tph,
- 	.unmap_dma_buf =3D vfio_pci_dma_buf_unmap,
- 	.release =3D vfio_pci_dma_buf_release,
- };
-@@ -274,7 +286,8 @@ int vfio_pci_core_feature_dma_buf(struct vfio_pci_cor=
-e_device *vdev, u32 flags,
- 		ret =3D PTR_ERR(priv->dmabuf);
- 		goto err_dev_put;
- 	}
--
-+	priv->steering_tag =3D get_dma_buf.steering_tag;
-+	priv->ph =3D get_dma_buf.ph;
- 	/* dma_buf_put() now frees priv */
- 	INIT_LIST_HEAD(&priv->dmabufs_elm);
- 	down_write(&vdev->memory_lock);
-diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
-index 0bc492090237..466290c02ebf 100644
---- a/include/linux/dma-buf.h
-+++ b/include/linux/dma-buf.h
-@@ -113,6 +113,36 @@ struct dma_buf_ops {
- 	 */
- 	void (*unpin)(struct dma_buf_attachment *attach);
-=20
-+	/**
-+	 * @get_tph:
-+	 *
-+	 * Get the TPH (TLP Processing Hints) for this DMA buffer.
-+	 *
-+	 * This callback allows DMA buffer exporters to provide TPH including
-+	 * both the steering tag and the process hints (ph), which can be used
-+	 * to optimize peer-to-peer (P2P) memory access. The TPH info is typica=
-lly
-+	 * used in scenarios where:
-+	 * - A PCIe device (e.g., RDMA NIC) needs to access memory on another
-+	 *   PCIe device (e.g., GPU),
-+	 * - The system supports TPH and can use steering tags / ph to optimize
-+	 *   cache placement and memory access patterns,
-+	 * - The memory is exported via DMABUF for cross-device sharing.
-+	 *
-+	 * @dmabuf: [in] The DMA buffer for which to retrieve TPH
-+	 * @steering_tag: [out] Pointer to store the 16-bit TPH steering tag va=
-lue
-+	 * @ph: [out] Pointer to store the 8-bit TPH processing-hint value
-+	 *
-+	 * Returns:
-+	 * * 0 - Success, steering tag stored in @tph
-+	 * * -EOPNOTSUPP - TPH steering tags not supported for this buffer
-+	 * * -EINVAL - Invalid parameters
-+	 *
-+	 * This callback is optional. If not implemented, the buffer does not
-+	 * support TPH.
-+	 *
-+	 */
-+	int (*get_tph)(struct dma_buf *dmabuf, u16 *steering_tag, u8 *ph);
-+
- 	/**
- 	 * @map_dma_buf:
- 	 *
-diff --git a/include/uapi/linux/vfio.h b/include/uapi/linux/vfio.h
-index ac2329f24141..bff2f5f7e38d 100644
---- a/include/uapi/linux/vfio.h
-+++ b/include/uapi/linux/vfio.h
-@@ -1501,6 +1501,8 @@ struct vfio_region_dma_range {
- struct vfio_device_feature_dma_buf {
- 	__u32	region_index;
- 	__u32	open_flags;
-+	__u16   steering_tag;
-+	__u8    ph;
- 	__u32   flags;
- 	__u32   nr_ranges;
- 	struct vfio_region_dma_range dma_ranges[] __counted_by(nr_ranges);
---=20
-2.47.3
+  unregister_netdevice: waiting for bond1 to become free. Usage count = 2
+
+problem when we hit this unregister race and gid_table_cleanup_one() cannot
+be called within 10 seconds after xa_clear_mark(DEVICE_REGISTERED) is called
+( https://lkml.kernel.org/r/c1f9511c-7ad0-444d-aa0c-516674702b4e@I-love.SAKURA.ne.jp ).
+
+> 
+> It isn't going to block unregister from progressing AFAICT.
+
+Parav Pandit suspects that this race is relevant but you don't think
+this race is relevant.
+
+I'm currently monitoring linux-next tree whether there is a refcount leak,
+by watching for khungtaskd warning at wait_for_completion() from
+disable_device() from __ib_unregister_device(). If syzbot starts reporting
+khungtaskd warning instead of
+
+  unregister_netdevice: waiting for bond1 to become free. Usage count = 2
+
+warning in linux-next tree, we can conclude that this unregister race is
+a different thing.
 
