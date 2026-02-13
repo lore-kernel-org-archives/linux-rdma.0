@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D45EF357A48;
-	Fri, 13 Feb 2026 11:00:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF07335F8D1;
+	Fri, 13 Feb 2026 11:00:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770980448; cv=none; b=VTFfYIyxCBx1i4gMyThZ7hms7emqwWbzD7IDk2q/tflzK9F0hpoPDFOLKbDgq2QZrpfpNneWC1wSBwTkpzv1haA4pC6oPy0wuf4vSBxLbtOlPt080NdUGk8NacZ4FPzygg/UYSX6cDnlw62hMqo07aQe7ACSOClKXEyy7rBFzUE=
+	t=1770980452; cv=none; b=GrJfdly1WKm0mhhHs8bpNk7bsdCepYBOxqgSFh3vWMzf3vah54pVYfIXfdMiU9rTBknwrxk7ketbRyCz8Kha5EhhaCcRRIl7tOMRnB4jddArl3zEtaivtWfyyhHQf0exVzPY+5DxOqPWWJuqP+c/KCINQaqBjpCg3Ra/8K730ZQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770980448; c=relaxed/simple;
-	bh=Sp8gis0/mbQbLEUwfhSepvWCD6rochTkCa5B+TgVyAg=;
+	s=arc-20240116; t=1770980452; c=relaxed/simple;
+	bh=50qG2y5fbQy5Qu3vQ5GMSNOhKd9VjZpb7hrkivZKUF0=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=H+sJ9U22pS3eTT3WWZkqq+9npp4SI+Iwry6nLLhZhSbF5Ey7xZ1bQIKp80AGYL7NUhMVN4G3bJ4Fp46uF9QQBa9bbEBHJvScylIoamq+AbIqf3wWhr1j5xMgKJ+UAhSOPNwCAsOxtnJq3u2934Vui6URvsV3cgE4G9yCXrtw040=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=BdW0sEya; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version:Content-Type; b=pL36tesiLriiu98TO6+WopIjgGMCPEIP9Cm0wOivPlrTwjRGXNchdLqciV4UuzaetBnl94LDFS+0/EIR3MbKB5qBE8kf8688xAGvapBtuz/Yjsf27EtOsUyM2OdkbcdiJRZ0a5naPlWxlBEiA0HSzdBFCKwcDgZSqvYL05xpe1k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=iNQ8039N; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="BdW0sEya"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1CD9BC116C6;
-	Fri, 13 Feb 2026 11:00:48 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="iNQ8039N"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AF500C116C6;
+	Fri, 13 Feb 2026 11:00:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1770980448;
-	bh=Sp8gis0/mbQbLEUwfhSepvWCD6rochTkCa5B+TgVyAg=;
+	s=k20201202; t=1770980452;
+	bh=50qG2y5fbQy5Qu3vQ5GMSNOhKd9VjZpb7hrkivZKUF0=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=BdW0sEyaIVu2bI013scid28x1csrnTeT2oq31WiCGYjKbHIKl/paLEHKm9SZH1mBb
-	 LqSCC748iINh81+g9yLhfNJ5sYaXdQFqftda6D7lQIZpCFnS7/BpFu1TZLGhPLHNgt
-	 fVgLNwByc7ZwGOhG2gYCRqUrTBBhEWsteDiN+8CfC+BlrL7wJBICIOodsY9fLkxoAF
-	 CLVgyRRTr0EiP+3tazgI3fP7j5OExxkf5ooqRnjwS+IiO1LeYIBfUJ0scs7ib+A7hd
-	 4HQ9HDwqMZtpGyZSl93RgtVeDPKcD9+1BY/1kSXhKXiVCGUPBdLuhleH+nX9X0URSa
-	 i1Rk3dfrGxViQ==
+	b=iNQ8039NrIVSCwVGb42NPQhWrtdZI6BEGf3kdgt10LNUfPlVvdrvC9aFbqux2814v
+	 Q6Hx/eGuJUbiciVHJJTVC0PE7/HnQEptVYgGRlZRozvPdNglmd7EU3vi1uVioqsWXY
+	 u72yd/ptaS/utW9GMMHForver2HIdD7Azzx7eq5emHS1mR9Q3UoTNoYOIzIVkIqm75
+	 Ub3aELkOYY+EGfjiEjW523Dk6j8Q0Lc3Qid95/I3HGiy+lTPr2bZvnhvbfqyf/JLaT
+	 uSk6JOLCyjIb3MnMZqo5CN0l3CcESnxh4cHPVMYgXLyWxlKAEdIdf2A8SvKh6ASM6T
+	 cRCoNHtzUtMqg==
 From: Leon Romanovsky <leon@kernel.org>
 To: Jason Gunthorpe <jgg@ziepe.ca>,
 	Leon Romanovsky <leon@kernel.org>,
@@ -58,9 +58,9 @@ To: Jason Gunthorpe <jgg@ziepe.ca>,
 Cc: linux-kernel@vger.kernel.org,
 	linux-rdma@vger.kernel.org,
 	linux-hyperv@vger.kernel.org
-Subject: [PATCH rdma-next 31/50] RDMA/core: Remove unused ib_resize_cq() implementation
-Date: Fri, 13 Feb 2026 12:58:07 +0200
-Message-ID: <20260213-refactor-umem-v1-31-f3be85847922@nvidia.com>
+Subject: [PATCH rdma-next 29/50] RDMA/rxe: Split user and kernel CQ creation paths
+Date: Fri, 13 Feb 2026 12:58:05 +0200
+Message-ID: <20260213-refactor-umem-v1-29-f3be85847922@nvidia.com>
 X-Mailer: git-send-email 2.53.0
 In-Reply-To: <20260213-refactor-umem-v1-0-f3be85847922@nvidia.com>
 References: <20260213-refactor-umem-v1-0-f3be85847922@nvidia.com>
@@ -76,55 +76,130 @@ Content-Transfer-Encoding: 8bit
 
 From: Leon Romanovsky <leonro@nvidia.com>
 
-There are no in-kernel users of the CQ resize functionality, so drop it.
+Separate the CQ creation logic into distinct kernel and user flows.
 
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/core/verbs.c | 10 ----------
- include/rdma/ib_verbs.h         |  9 ---------
- 2 files changed, 19 deletions(-)
+ drivers/infiniband/sw/rxe/rxe_verbs.c | 81 ++++++++++++++++++++---------------
+ 1 file changed, 47 insertions(+), 34 deletions(-)
 
-diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index 9d075eeda463..5f59487fc9d4 100644
---- a/drivers/infiniband/core/verbs.c
-+++ b/drivers/infiniband/core/verbs.c
-@@ -2264,16 +2264,6 @@ int ib_destroy_cq_user(struct ib_cq *cq, struct ib_udata *udata)
+diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
+index 38d8c408320f..1e651bdd8622 100644
+--- a/drivers/infiniband/sw/rxe/rxe_verbs.c
++++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
+@@ -1072,58 +1072,70 @@ static int rxe_post_recv(struct ib_qp *ibqp, const struct ib_recv_wr *wr,
  }
- EXPORT_SYMBOL(ib_destroy_cq_user);
  
--int ib_resize_cq(struct ib_cq *cq, int cqe)
--{
--	if (cq->shared)
--		return -EOPNOTSUPP;
--
--	return cq->device->ops.resize_cq ?
--		cq->device->ops.resize_cq(cq, cqe, NULL) : -EOPNOTSUPP;
--}
--EXPORT_SYMBOL(ib_resize_cq);
--
- /* Memory regions */
+ /* cq */
+-static int rxe_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
+-			 struct uverbs_attr_bundle *attrs)
++static int rxe_create_user_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
++			      struct uverbs_attr_bundle *attrs)
+ {
+ 	struct ib_udata *udata = &attrs->driver_udata;
+ 	struct ib_device *dev = ibcq->device;
+ 	struct rxe_dev *rxe = to_rdev(dev);
+ 	struct rxe_cq *cq = to_rcq(ibcq);
+-	struct rxe_create_cq_resp __user *uresp = NULL;
+-	int err, cleanup_err;
++	struct rxe_create_cq_resp __user *uresp;
++	int err;
  
- struct ib_mr *ib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 67aa5fc2c0b7..b8adc2f17e73 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -4001,15 +4001,6 @@ struct ib_cq *__ib_create_cq(struct ib_device *device,
- #define ib_create_cq(device, cmp_hndlr, evt_hndlr, cq_ctxt, cq_attr) \
- 	__ib_create_cq((device), (cmp_hndlr), (evt_hndlr), (cq_ctxt), (cq_attr), KBUILD_MODNAME)
+-	if (udata) {
+-		if (udata->outlen < sizeof(*uresp)) {
+-			err = -EINVAL;
+-			rxe_dbg_dev(rxe, "malformed udata, err = %d\n", err);
+-			goto err_out;
+-		}
+-		uresp = udata->outbuf;
+-	}
++	if (udata->outlen < sizeof(*uresp))
++		return -EINVAL;
  
--/**
-- * ib_resize_cq - Modifies the capacity of the CQ.
-- * @cq: The CQ to resize.
-- * @cqe: The minimum size of the CQ.
-- *
-- * Users can examine the cq structure to determine the actual CQ size.
-- */
--int ib_resize_cq(struct ib_cq *cq, int cqe);
--
- /**
-  * rdma_set_cq_moderation - Modifies moderation params of the CQ
-  * @cq: The CQ to modify.
+-	if (attr->flags) {
+-		err = -EOPNOTSUPP;
+-		rxe_dbg_dev(rxe, "bad attr->flags, err = %d\n", err);
+-		goto err_out;
+-	}
++	uresp = udata->outbuf;
+ 
+-	err = rxe_cq_chk_attr(rxe, NULL, attr->cqe, attr->comp_vector);
+-	if (err) {
+-		rxe_dbg_dev(rxe, "bad init attributes, err = %d\n", err);
+-		goto err_out;
+-	}
++	if (attr->flags || ibcq->umem)
++		return -EOPNOTSUPP;
++
++	if (attr->cqe > rxe->attr.max_cqe)
++		return -EINVAL;
+ 
+ 	err = rxe_add_to_pool(&rxe->cq_pool, cq);
+-	if (err) {
+-		rxe_dbg_dev(rxe, "unable to create cq, err = %d\n", err);
+-		goto err_out;
+-	}
++	if (err)
++		return err;
+ 
+ 	err = rxe_cq_from_init(rxe, cq, attr->cqe, attr->comp_vector, udata,
+ 			       uresp);
+-	if (err) {
+-		rxe_dbg_cq(cq, "create cq failed, err = %d\n", err);
++	if (err)
+ 		goto err_cleanup;
+-	}
+ 
+ 	return 0;
+ 
+ err_cleanup:
+-	cleanup_err = rxe_cleanup(cq);
+-	if (cleanup_err)
+-		rxe_err_cq(cq, "cleanup failed, err = %d\n", cleanup_err);
+-err_out:
+-	rxe_err_dev(rxe, "returned err = %d\n", err);
++	rxe_cleanup(cq);
++	return err;
++}
++
++static int rxe_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
++			 struct uverbs_attr_bundle *attrs)
++{
++	struct ib_device *dev = ibcq->device;
++	struct rxe_dev *rxe = to_rdev(dev);
++	struct rxe_cq *cq = to_rcq(ibcq);
++	int err;
++
++	if (attr->flags)
++		return -EOPNOTSUPP;
++
++	if (attr->cqe > rxe->attr.max_cqe)
++		return -EINVAL;
++
++	err = rxe_add_to_pool(&rxe->cq_pool, cq);
++	if (err)
++		return err;
++
++	err = rxe_cq_from_init(rxe, cq, attr->cqe, attr->comp_vector, NULL,
++			       NULL);
++	if (err)
++		goto err_cleanup;
++
++	return 0;
++
++err_cleanup:
++	rxe_cleanup(cq);
+ 	return err;
+ }
+ 
+@@ -1478,6 +1490,7 @@ static const struct ib_device_ops rxe_dev_ops = {
+ 	.attach_mcast = rxe_attach_mcast,
+ 	.create_ah = rxe_create_ah,
+ 	.create_cq = rxe_create_cq,
++	.create_user_cq = rxe_create_user_cq,
+ 	.create_qp = rxe_create_qp,
+ 	.create_srq = rxe_create_srq,
+ 	.create_user_ah = rxe_create_ah,
 
 -- 
 2.52.0
