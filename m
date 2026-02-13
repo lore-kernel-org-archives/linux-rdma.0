@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 104D8354AEC;
-	Fri, 13 Feb 2026 11:00:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E29E635BDB4;
+	Fri, 13 Feb 2026 11:00:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770980427; cv=none; b=lkOZH4juwgGEAJYcKxSAY4MoPau93zg0253O0v6nSrJ8acZNOo8L2lT/y8iXOnDDSysNn8AXfCIf+BIM6y+wNcWf/ZPSsaP1uHgTgZ0n+C3GDe0qK43GloYzHw6nWshUQklggpy7lDaFIVFc6rO6HHNAut5uPwLyfNbcdBUYWWs=
+	t=1770980431; cv=none; b=KjconfMflw/LnS4eE1CGC6/kj+vDuA6nfjJdhhCz31LZ9EwUDKoV5s39NILKPoEOrjHff5CpOzCgV/NEZIQhyB+7PFl2MJURU0/UHDxl0zCW5lXVH6cUnPtqeJKj4k6pq7RS6I0yloEoFMD2MLeuqAyxGESbLkORP4khGulkEvc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770980427; c=relaxed/simple;
-	bh=ie+0JBki2/glNSETQLy2aDTa3dexDvCcQEZRepXCc4s=;
+	s=arc-20240116; t=1770980431; c=relaxed/simple;
+	bh=Ak3RmCVq6jtpD2K0Q8PWZX2hCkziroyuibiIfLhK4qA=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=IbiCR9Vbt/I5V9H7R9wY1UPKqPJ+uuRya9GRgaf7EsbcHRfYjHe/ub7/2rLjcUNwiRKE2V+ls7HOV1vr5DKGf4CLvowa4/5ccvabC1uwLt+ROXZokakEqW7qTLdVtOZofez6YJp5nVTH8nUd07GFbpesiwQvAjFTn/MyCcB7KDk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Z60BlmFK; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version:Content-Type; b=GOV/QSGVh3kjAdU5wdeJfGybAUjgOarEHXA6J2J/Qzd7uZeT5klWeix/IDU16t7M2Dmrd1Znc7LSHkn0/LLMnd/oetCXzOhozlHX7+fcUC1Y7Lj6l3OMs7pGr4kbYJsYilAgmVKsXmOkf7GbXkI0nw0oJmBpGOn/AIDZckUFzaY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=oGxmmSU6; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Z60BlmFK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AE252C116C6;
-	Fri, 13 Feb 2026 11:00:25 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="oGxmmSU6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CEE85C16AAE;
+	Fri, 13 Feb 2026 11:00:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1770980426;
-	bh=ie+0JBki2/glNSETQLy2aDTa3dexDvCcQEZRepXCc4s=;
+	s=k20201202; t=1770980430;
+	bh=Ak3RmCVq6jtpD2K0Q8PWZX2hCkziroyuibiIfLhK4qA=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=Z60BlmFKZA9KLWlKIWXibTo03BEI4Znra/QFK5qLMmskd3vMcQO/KSDf0M6cjr+UL
-	 4879MvwQ7Rx3shHZT3TgbusodoiXCOWwMPV2uhdCM56aST0UBZ3RpGUdmAWsL3KqNJ
-	 OUR0SJn3g3a1jjGl+k+Ts+jJyPfwnymUDiswuNq5MyW3eezF2FTz1VpnGCqmg5UL9k
-	 xkr3JHLTq45C4lO78eb/0XYlfB8eTzbyfbiR4bA0WCr63b5gB/wZOBxqmwcjuO9Isc
-	 BmBgPnY5VqJaM2yhdmsSMRWD/yt4gLqSOox4oq392oFf+u8W8oNeWlk4S9hkXruRO+
-	 HrxYW+//q5Svg==
+	b=oGxmmSU6isRSNDBomgG5ajckBArUA7EwDs5ppPEPXkdoQKC52wPUf2z8Wpf6ZgCSQ
+	 xANqp56bWpVa2408k5MS3aXmOV/DPa5WKkzu+YQR5ZRta1i5zinnjhW5FWRNxpGTLG
+	 8WWN/n7wwQu415CoBHNYsZf6wOWsNXMW5zpvhvNTMYGNik+7VpM7dU3sRdcGBhbkmu
+	 ujx6f9k5pv4C9mYqufOO7Fkdw7wWhVz1qEU/j8puOhlxqPizXrEQmktYRyAOrmr8Nq
+	 Eb41g9nJMKcfwNzK/eEY1YVuFLxVRQex1IsRvGVtrFe8UZjXqkkJLwk31gV0DUIMCo
+	 Td0bo5lTnsqQw==
 From: Leon Romanovsky <leon@kernel.org>
 To: Jason Gunthorpe <jgg@ziepe.ca>,
 	Leon Romanovsky <leon@kernel.org>,
@@ -58,9 +58,9 @@ To: Jason Gunthorpe <jgg@ziepe.ca>,
 Cc: linux-kernel@vger.kernel.org,
 	linux-rdma@vger.kernel.org,
 	linux-hyperv@vger.kernel.org
-Subject: [PATCH rdma-next 25/50] RDMA/mana: Provide a modern CQ creation interface
-Date: Fri, 13 Feb 2026 12:58:01 +0200
-Message-ID: <20260213-refactor-umem-v1-25-f3be85847922@nvidia.com>
+Subject: [PATCH rdma-next 22/50] RDMA/ocrdma: Split user and kernel CQ creation paths
+Date: Fri, 13 Feb 2026 12:57:58 +0200
+Message-ID: <20260213-refactor-umem-v1-22-f3be85847922@nvidia.com>
 X-Mailer: git-send-email 2.53.0
 In-Reply-To: <20260213-refactor-umem-v1-0-f3be85847922@nvidia.com>
 References: <20260213-refactor-umem-v1-0-f3be85847922@nvidia.com>
@@ -76,393 +76,135 @@ Content-Transfer-Encoding: 8bit
 
 From: Leon Romanovsky <leonro@nvidia.com>
 
-The uverbs CQ creation UAPI allows users to supply their own umem for a CQ.
-Update mana to support this workflow while preserving support for creating
-umem through the legacy interface.
+Separate the CQ creation logic into distinct kernel and user flows.
 
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/hw/mana/cq.c      | 128 +++++++++++++++++++++++------------
- drivers/infiniband/hw/mana/device.c  |   1 +
- drivers/infiniband/hw/mana/main.c    |  25 +++----
- drivers/infiniband/hw/mana/mana_ib.h |   4 +-
- drivers/infiniband/hw/mana/qp.c      |  42 ++++++++++--
- drivers/infiniband/hw/mana/wq.c      |  14 +++-
- 6 files changed, 147 insertions(+), 67 deletions(-)
+ drivers/infiniband/hw/ocrdma/ocrdma_main.c  |  1 +
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c | 56 +++++++++++++++++++----------
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.h |  3 ++
+ 3 files changed, 42 insertions(+), 18 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mana/cq.c b/drivers/infiniband/hw/mana/cq.c
-index 2dce1b677115..605122ecf9f9 100644
---- a/drivers/infiniband/hw/mana/cq.c
-+++ b/drivers/infiniband/hw/mana/cq.c
-@@ -5,8 +5,8 @@
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_main.c b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
+index 5d4b3bc16493..0d89c5ec9a7a 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_main.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
+@@ -141,6 +141,7 @@ static const struct ib_device_ops ocrdma_dev_ops = {
+ 	.create_cq = ocrdma_create_cq,
+ 	.create_qp = ocrdma_create_qp,
+ 	.create_user_ah = ocrdma_create_ah,
++	.create_user_cq = ocrdma_create_user_cq,
+ 	.dealloc_pd = ocrdma_dealloc_pd,
+ 	.dealloc_ucontext = ocrdma_dealloc_ucontext,
+ 	.dereg_mr = ocrdma_dereg_mr,
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+index bf9211d8d130..034d8b937a77 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+@@ -966,8 +966,9 @@ static int ocrdma_copy_cq_uresp(struct ocrdma_dev *dev, struct ocrdma_cq *cq,
+ 	return status;
+ }
  
- #include "mana_ib.h"
- 
--int mana_ib_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
--		      struct uverbs_attr_bundle *attrs)
-+int mana_ib_create_user_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
-+			   struct uverbs_attr_bundle *attrs)
+-int ocrdma_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
+-		     struct uverbs_attr_bundle *attrs)
++int ocrdma_create_user_cq(struct ib_cq *ibcq,
++			  const struct ib_cq_init_attr *attr,
++			  struct uverbs_attr_bundle *attrs)
  {
  	struct ib_udata *udata = &attrs->driver_udata;
- 	struct mana_ib_cq *cq = container_of(ibcq, struct mana_ib_cq, ibcq);
-@@ -17,7 +17,6 @@ int mana_ib_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
- 	struct mana_ib_dev *mdev;
- 	bool is_rnic_cq;
- 	u32 doorbell;
--	u32 buf_size;
- 	int err;
+ 	struct ib_device *ibdev = ibcq->device;
+@@ -976,36 +977,29 @@ int ocrdma_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
+ 	struct ocrdma_dev *dev = get_ocrdma_dev(ibdev);
+ 	struct ocrdma_ucontext *uctx = rdma_udata_to_drv_context(
+ 		udata, struct ocrdma_ucontext, ibucontext);
+-	u16 pd_id = 0;
+ 	int status;
+ 	struct ocrdma_create_cq_ureq ureq;
  
- 	mdev = container_of(ibdev, struct mana_ib_dev, ib_dev);
-@@ -26,44 +25,100 @@ int mana_ib_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
- 	cq->cq_handle = INVALID_MANA_HANDLE;
- 	is_rnic_cq = mana_ib_is_rnic(mdev);
+-	if (attr->flags)
++	if (attr->flags || ibcq->umem)
+ 		return -EOPNOTSUPP;
  
 -	if (udata) {
--		if (udata->inlen < offsetof(struct mana_ib_create_cq, flags))
--			return -EINVAL;
-+	if (udata->inlen < offsetof(struct mana_ib_create_cq, flags))
-+		return -EINVAL;
+-		if (ib_copy_from_udata(&ureq, udata, sizeof(ureq)))
+-			return -EFAULT;
+-	} else
+-		ureq.dpp_cq = 0;
++	if (ib_copy_from_udata(&ureq, udata, sizeof(ureq)))
++		return -EFAULT;
  
--		err = ib_copy_from_udata(&ucmd, udata, min(sizeof(ucmd), udata->inlen));
--		if (err) {
--			ibdev_dbg(ibdev, "Failed to copy from udata for create cq, %d\n", err);
--			return err;
--		}
-+	err = ib_copy_from_udata(&ucmd, udata, min(sizeof(ucmd), udata->inlen));
-+	if (err) {
-+		ibdev_dbg(ibdev, "Failed to copy from udata for create cq, %d\n", err);
-+		return err;
-+	}
+ 	spin_lock_init(&cq->cq_lock);
+ 	spin_lock_init(&cq->comp_handler_lock);
+ 	INIT_LIST_HEAD(&cq->sq_head);
+ 	INIT_LIST_HEAD(&cq->rq_head);
  
--		if ((!is_rnic_cq && attr->cqe > mdev->adapter_caps.max_qp_wr) ||
--		    attr->cqe > U32_MAX / COMP_ENTRY_SIZE) {
--			ibdev_dbg(ibdev, "CQE %d exceeding limit\n", attr->cqe);
--			return -EINVAL;
--		}
-+	if ((!is_rnic_cq && attr->cqe > mdev->adapter_caps.max_qp_wr) ||
-+	    attr->cqe > U32_MAX / COMP_ENTRY_SIZE) {
-+		ibdev_dbg(ibdev, "CQE %d exceeding limit\n", attr->cqe);
-+		return -EINVAL;
-+	}
+-	if (udata)
+-		pd_id = uctx->cntxt_pd->id;
+-
+-	status = ocrdma_mbx_create_cq(dev, cq, entries, ureq.dpp_cq, pd_id);
++	status = ocrdma_mbx_create_cq(dev, cq, entries, ureq.dpp_cq,
++				      uctx->cntxt_pd->id);
+ 	if (status)
+ 		return status;
+ 
+-	if (udata) {
+-		status = ocrdma_copy_cq_uresp(dev, cq, udata);
+-		if (status)
+-			goto ctx_err;
+-	}
++	status = ocrdma_copy_cq_uresp(dev, cq, udata);
++	if (status)
++		goto ctx_err;
 +
-+	cq->cqe = attr->cqe;
-+	if (!ibcq->umem)
-+		ibcq->umem = ib_umem_get(ibdev, ucmd.buf_addr,
-+				     cq->cqe * COMP_ENTRY_SIZE,
-+				     IB_ACCESS_LOCAL_WRITE);
-+	if (IS_ERR(ibcq->umem))
-+		return PTR_ERR(ibcq->umem);
-+	cq->queue.umem = ibcq->umem;
+ 	cq->phase = OCRDMA_CQE_VALID;
+ 	dev->cq_tbl[cq->id] = cq;
+ 	return 0;
+@@ -1015,6 +1009,32 @@ int ocrdma_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
+ 	return status;
+ }
+ 
++int ocrdma_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
++		     struct uverbs_attr_bundle *attrs)
++{
++	struct ib_device *ibdev = ibcq->device;
++	int entries = attr->cqe;
++	struct ocrdma_cq *cq = get_ocrdma_cq(ibcq);
++	struct ocrdma_dev *dev = get_ocrdma_dev(ibdev);
++	int status;
 +
-+	err = mana_ib_create_queue(mdev, &cq->queue);
-+	if (err)
-+		return err;
- 
--		cq->cqe = attr->cqe;
--		err = mana_ib_create_queue(mdev, ucmd.buf_addr, cq->cqe * COMP_ENTRY_SIZE,
--					   &cq->queue);
-+	mana_ucontext = rdma_udata_to_drv_context(udata, struct mana_ib_ucontext,
-+						  ibucontext);
-+	doorbell = mana_ucontext->doorbell;
-+
-+	if (is_rnic_cq) {
-+		err = mana_ib_gd_create_cq(mdev, cq, doorbell);
- 		if (err) {
--			ibdev_dbg(ibdev, "Failed to create queue for create cq, %d\n", err);
--			return err;
-+			ibdev_dbg(ibdev, "Failed to create RNIC cq, %d\n", err);
-+			goto err_destroy_queue;
- 		}
- 
--		mana_ucontext = rdma_udata_to_drv_context(udata, struct mana_ib_ucontext,
--							  ibucontext);
--		doorbell = mana_ucontext->doorbell;
--	} else {
--		buf_size = MANA_PAGE_ALIGN(roundup_pow_of_two(attr->cqe * COMP_ENTRY_SIZE));
--		cq->cqe = buf_size / COMP_ENTRY_SIZE;
--		err = mana_ib_create_kernel_queue(mdev, buf_size, GDMA_CQ, &cq->queue);
-+		err = mana_ib_install_cq_cb(mdev, cq);
- 		if (err) {
--			ibdev_dbg(ibdev, "Failed to create kernel queue for create cq, %d\n", err);
--			return err;
-+			ibdev_dbg(ibdev, "Failed to install cq callback, %d\n", err);
-+			goto err_destroy_rnic_cq;
- 		}
--		doorbell = mdev->gdma_dev->doorbell;
- 	}
- 
-+	resp.cqid = cq->queue.id;
-+	err = ib_copy_to_udata(udata, &resp, min(sizeof(resp), udata->outlen));
-+	if (err) {
-+		ibdev_dbg(&mdev->ib_dev, "Failed to copy to udata, %d\n", err);
-+		goto err_remove_cq_cb;
-+	}
++	if (attr->flags)
++		return -EOPNOTSUPP;
 +
 +	spin_lock_init(&cq->cq_lock);
-+	INIT_LIST_HEAD(&cq->list_send_qp);
-+	INIT_LIST_HEAD(&cq->list_recv_qp);
++	spin_lock_init(&cq->comp_handler_lock);
++	INIT_LIST_HEAD(&cq->sq_head);
++	INIT_LIST_HEAD(&cq->rq_head);
 +
++	status = ocrdma_mbx_create_cq(dev, cq, entries, 0, 0);
++	if (status)
++		return status;
++
++	cq->phase = OCRDMA_CQE_VALID;
++	dev->cq_tbl[cq->id] = cq;
 +	return 0;
-+
-+err_remove_cq_cb:
-+	mana_ib_remove_cq_cb(mdev, cq);
-+err_destroy_rnic_cq:
-+	mana_ib_gd_destroy_cq(mdev, cq);
-+err_destroy_queue:
-+	mana_ib_destroy_queue(mdev, &cq->queue);
-+	return err;
 +}
 +
-+int mana_ib_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
-+		      struct uverbs_attr_bundle *attrs)
-+{
-+	struct mana_ib_cq *cq = container_of(ibcq, struct mana_ib_cq, ibcq);
-+	struct ib_device *ibdev = ibcq->device;
-+	struct mana_ib_dev *mdev;
-+	bool is_rnic_cq;
-+	u32 doorbell;
-+	u32 buf_size;
-+	int err;
-+
-+	mdev = container_of(ibdev, struct mana_ib_dev, ib_dev);
-+
-+	cq->comp_vector = attr->comp_vector % ibdev->num_comp_vectors;
-+	cq->cq_handle = INVALID_MANA_HANDLE;
-+	is_rnic_cq = mana_ib_is_rnic(mdev);
-+
-+	buf_size = MANA_PAGE_ALIGN(roundup_pow_of_two(attr->cqe * COMP_ENTRY_SIZE));
-+	cq->cqe = buf_size / COMP_ENTRY_SIZE;
-+	err = mana_ib_create_kernel_queue(mdev, buf_size, GDMA_CQ, &cq->queue);
-+	if (err) {
-+		ibdev_dbg(ibdev, "Failed to create kernel queue for create cq, %d\n", err);
-+		return err;
-+	}
-+	doorbell = mdev->gdma_dev->doorbell;
-+
- 	if (is_rnic_cq) {
- 		err = mana_ib_gd_create_cq(mdev, cq, doorbell);
- 		if (err) {
-@@ -78,23 +133,12 @@ int mana_ib_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
- 		}
- 	}
- 
--	if (udata) {
--		resp.cqid = cq->queue.id;
--		err = ib_copy_to_udata(udata, &resp, min(sizeof(resp), udata->outlen));
--		if (err) {
--			ibdev_dbg(&mdev->ib_dev, "Failed to copy to udata, %d\n", err);
--			goto err_remove_cq_cb;
--		}
--	}
--
- 	spin_lock_init(&cq->cq_lock);
- 	INIT_LIST_HEAD(&cq->list_send_qp);
- 	INIT_LIST_HEAD(&cq->list_recv_qp);
- 
- 	return 0;
- 
--err_remove_cq_cb:
--	mana_ib_remove_cq_cb(mdev, cq);
- err_destroy_rnic_cq:
- 	mana_ib_gd_destroy_cq(mdev, cq);
- err_destroy_queue:
-diff --git a/drivers/infiniband/hw/mana/device.c b/drivers/infiniband/hw/mana/device.c
-index ccc2279ca63c..c5c5fe051424 100644
---- a/drivers/infiniband/hw/mana/device.c
-+++ b/drivers/infiniband/hw/mana/device.c
-@@ -21,6 +21,7 @@ static const struct ib_device_ops mana_ib_dev_ops = {
- 	.alloc_ucontext = mana_ib_alloc_ucontext,
- 	.create_ah = mana_ib_create_ah,
- 	.create_cq = mana_ib_create_cq,
-+	.create_user_cq = mana_ib_create_user_cq,
- 	.create_qp = mana_ib_create_qp,
- 	.create_rwq_ind_table = mana_ib_create_rwq_ind_table,
- 	.create_wq = mana_ib_create_wq,
-diff --git a/drivers/infiniband/hw/mana/main.c b/drivers/infiniband/hw/mana/main.c
-index fac159f7128d..a871b8287dc9 100644
---- a/drivers/infiniband/hw/mana/main.c
-+++ b/drivers/infiniband/hw/mana/main.c
-@@ -261,35 +261,26 @@ int mana_ib_create_kernel_queue(struct mana_ib_dev *mdev, u32 size, enum gdma_qu
- 	return 0;
- }
- 
--int mana_ib_create_queue(struct mana_ib_dev *mdev, u64 addr, u32 size,
-+int mana_ib_create_queue(struct mana_ib_dev *mdev,
- 			 struct mana_ib_queue *queue)
+ int ocrdma_resize_cq(struct ib_cq *ibcq, int new_cnt,
+ 		     struct ib_udata *udata)
  {
--	struct ib_umem *umem;
- 	int err;
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.h b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.h
+index 6c5c3755b8a9..4a572608fd9f 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.h
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.h
+@@ -71,6 +71,9 @@ int ocrdma_dealloc_pd(struct ib_pd *pd, struct ib_udata *udata);
  
--	queue->umem = NULL;
- 	queue->id = INVALID_QUEUE_ID;
- 	queue->gdma_region = GDMA_INVALID_DMA_REGION;
- 
--	umem = ib_umem_get(&mdev->ib_dev, addr, size, IB_ACCESS_LOCAL_WRITE);
--	if (IS_ERR(umem)) {
--		ibdev_dbg(&mdev->ib_dev, "Failed to get umem, %pe\n", umem);
--		return PTR_ERR(umem);
--	}
--
--	err = mana_ib_create_zero_offset_dma_region(mdev, umem, &queue->gdma_region);
-+	err = mana_ib_create_zero_offset_dma_region(mdev, queue->umem,
-+						    &queue->gdma_region);
- 	if (err) {
--		ibdev_dbg(&mdev->ib_dev, "Failed to create dma region, %d\n", err);
--		goto free_umem;
-+		ibdev_dbg(&mdev->ib_dev, "Failed to create dma region, %d\n",
-+			  err);
-+		return err;
- 	}
--	queue->umem = umem;
- 
--	ibdev_dbg(&mdev->ib_dev, "created dma region 0x%llx\n", queue->gdma_region);
-+	ibdev_dbg(&mdev->ib_dev, "created dma region 0x%llx\n",
-+		  queue->gdma_region);
- 
- 	return 0;
--free_umem:
--	ib_umem_release(umem);
--	return err;
- }
- 
- void mana_ib_destroy_queue(struct mana_ib_dev *mdev, struct mana_ib_queue *queue)
-diff --git a/drivers/infiniband/hw/mana/mana_ib.h b/drivers/infiniband/hw/mana/mana_ib.h
-index a7c8c0fd7019..3bc7c88dc136 100644
---- a/drivers/infiniband/hw/mana/mana_ib.h
-+++ b/drivers/infiniband/hw/mana/mana_ib.h
-@@ -624,7 +624,7 @@ int mana_ib_gd_destroy_dma_region(struct mana_ib_dev *dev,
- 
- int mana_ib_create_kernel_queue(struct mana_ib_dev *mdev, u32 size, enum gdma_queue_type type,
- 				struct mana_ib_queue *queue);
--int mana_ib_create_queue(struct mana_ib_dev *mdev, u64 addr, u32 size,
-+int mana_ib_create_queue(struct mana_ib_dev *mdev,
- 			 struct mana_ib_queue *queue);
- void mana_ib_destroy_queue(struct mana_ib_dev *mdev, struct mana_ib_queue *queue);
- 
-@@ -667,6 +667,8 @@ void mana_ib_uncfg_vport(struct mana_ib_dev *dev, struct mana_ib_pd *pd,
- 
- int mana_ib_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
- 		      struct uverbs_attr_bundle *attrs);
-+int mana_ib_create_user_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
-+			   struct uverbs_attr_bundle *attrs);
- 
- int mana_ib_destroy_cq(struct ib_cq *ibcq, struct ib_udata *udata);
- 
-diff --git a/drivers/infiniband/hw/mana/qp.c b/drivers/infiniband/hw/mana/qp.c
-index 48c1f4977f21..b08dbc675741 100644
---- a/drivers/infiniband/hw/mana/qp.c
-+++ b/drivers/infiniband/hw/mana/qp.c
-@@ -326,11 +326,20 @@ static int mana_ib_create_qp_raw(struct ib_qp *ibqp, struct ib_pd *ibpd,
- 	ibdev_dbg(&mdev->ib_dev, "ucmd sq_buf_addr 0x%llx port %u\n",
- 		  ucmd.sq_buf_addr, ucmd.port);
- 
--	err = mana_ib_create_queue(mdev, ucmd.sq_buf_addr, ucmd.sq_buf_size, &qp->raw_sq);
-+	qp->raw_sq.umem = ib_umem_get(&mdev->ib_dev, ucmd.sq_buf_addr,
-+				      ucmd.sq_buf_size, IB_ACCESS_LOCAL_WRITE);
-+	if (IS_ERR(qp->raw_sq.umem)) {
-+		err = PTR_ERR(qp->raw_sq.umem);
-+		ibdev_dbg(&mdev->ib_dev,
-+			  "Failed to get umem for qp-raw, err %d\n", err);
-+		goto err_free_vport;
-+	}
-+
-+	err = mana_ib_create_queue(mdev, &qp->raw_sq);
- 	if (err) {
- 		ibdev_dbg(&mdev->ib_dev,
- 			  "Failed to create queue for create qp-raw, err %d\n", err);
--		goto err_free_vport;
-+		goto err_release_umem;
- 	}
- 
- 	/* Create a WQ on the same port handle used by the Ethernet */
-@@ -391,6 +400,10 @@ static int mana_ib_create_qp_raw(struct ib_qp *ibqp, struct ib_pd *ibpd,
- 
- err_destroy_queue:
- 	mana_ib_destroy_queue(mdev, &qp->raw_sq);
-+	return err;
-+
-+err_release_umem:
-+	ib_umem_release(qp->raw_sq.umem);
- 
- err_free_vport:
- 	mana_ib_uncfg_vport(mdev, pd, port);
-@@ -553,13 +566,25 @@ static int mana_ib_create_rc_qp(struct ib_qp *ibqp, struct ib_pd *ibpd,
- 		if (i == MANA_RC_SEND_QUEUE_FMR) {
- 			qp->rc_qp.queues[i].id = INVALID_QUEUE_ID;
- 			qp->rc_qp.queues[i].gdma_region = GDMA_INVALID_DMA_REGION;
-+			qp->rc_qp.queues[i].umem = NULL;
- 			continue;
- 		}
--		err = mana_ib_create_queue(mdev, ucmd.queue_buf[j], ucmd.queue_size[j],
--					   &qp->rc_qp.queues[i]);
-+		qp->rc_qp.queues[i].umem = ib_umem_get(&mdev->ib_dev,
-+						       ucmd.queue_buf[j],
-+						       ucmd.queue_size[j],
-+						       IB_ACCESS_LOCAL_WRITE);
-+		if (IS_ERR(qp->rc_qp.queues[i].umem)) {
-+			err = PTR_ERR(qp->rc_qp.queues[i].umem);
-+			ibdev_err(&mdev->ib_dev, "Failed to get umem for queue %d, err %d\n",
-+				  i, err);
-+			goto release_umems;
-+		}
-+
-+		err = mana_ib_create_queue(mdev, &qp->rc_qp.queues[i]);
- 		if (err) {
- 			ibdev_err(&mdev->ib_dev, "Failed to create queue %d, err %d\n", i, err);
--			goto destroy_queues;
-+			ib_umem_release(qp->rc_qp.queues[i].umem);
-+			goto release_umems;
- 		}
- 		j++;
- 	}
-@@ -598,6 +623,13 @@ static int mana_ib_create_rc_qp(struct ib_qp *ibqp, struct ib_pd *ibpd,
- 	while (i-- > 0)
- 		mana_ib_destroy_queue(mdev, &qp->rc_qp.queues[i]);
- 	return err;
-+
-+release_umems:
-+	while (i-- > 0) {
-+		if (i != MANA_RC_SEND_QUEUE_FMR)
-+			ib_umem_release(qp->rc_qp.queues[i].umem);
-+	}
-+	return err;
- }
- 
- static void mana_add_qp_to_cqs(struct mana_ib_qp *qp)
-diff --git a/drivers/infiniband/hw/mana/wq.c b/drivers/infiniband/hw/mana/wq.c
-index f959f4b9244f..be474aa8bdfc 100644
---- a/drivers/infiniband/hw/mana/wq.c
-+++ b/drivers/infiniband/hw/mana/wq.c
-@@ -31,11 +31,19 @@ struct ib_wq *mana_ib_create_wq(struct ib_pd *pd,
- 
- 	ibdev_dbg(&mdev->ib_dev, "ucmd wq_buf_addr 0x%llx\n", ucmd.wq_buf_addr);
- 
--	err = mana_ib_create_queue(mdev, ucmd.wq_buf_addr, ucmd.wq_buf_size, &wq->queue);
-+	wq->queue.umem = ib_umem_get(&mdev->ib_dev, ucmd.wq_buf_addr,
-+				     ucmd.wq_buf_size, IB_ACCESS_LOCAL_WRITE);
-+	if (IS_ERR(wq->queue.umem)) {
-+		err = PTR_ERR(wq->queue.umem);
-+		ibdev_dbg(&mdev->ib_dev, "Failed to get umem for create wq, %d\n", err);
-+		goto err_free_wq;
-+	}
-+
-+	err = mana_ib_create_queue(mdev, &wq->queue);
- 	if (err) {
- 		ibdev_dbg(&mdev->ib_dev,
- 			  "Failed to create queue for create wq, %d\n", err);
--		goto err_free_wq;
-+		goto err_release_umem;
- 	}
- 
- 	wq->wqe = init_attr->max_wr;
-@@ -43,6 +51,8 @@ struct ib_wq *mana_ib_create_wq(struct ib_pd *pd,
- 	wq->rx_object = INVALID_MANA_HANDLE;
- 	return &wq->ibwq;
- 
-+err_release_umem:
-+	ib_umem_release(wq->queue.umem);
- err_free_wq:
- 	kfree(wq);
+ int ocrdma_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
+ 		     struct uverbs_attr_bundle *attrs);
++int ocrdma_create_user_cq(struct ib_cq *ibcq,
++			  const struct ib_cq_init_attr *attr,
++			  struct uverbs_attr_bundle *attrs);
+ int ocrdma_resize_cq(struct ib_cq *, int cqe, struct ib_udata *);
+ int ocrdma_destroy_cq(struct ib_cq *ibcq, struct ib_udata *udata);
  
 
 -- 
