@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A94A43542C3;
-	Fri, 13 Feb 2026 10:59:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B18A352921;
+	Fri, 13 Feb 2026 10:59:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770980365; cv=none; b=NU95e2QKCGVWdyqKdXVz9XDsDQXvgSUoz1rOW5ooYgAhBztni+I6XSK83v5agW3E9LqB74qaKExaNNNGCb3DK8VRgUpCRRxM0d93Q+63H3HH3Q4HN1Oeb0eiVx2/HQPDqu6myJWZ00W9co8YksmnpxmsHuvmkNtvY3XNG9UpLVw=
+	t=1770980369; cv=none; b=M6YiApUcIUKnB0BHTrGhhkas4GKHPzLZrfxLEPShN/n/00/Iep8fSu+rvicEBaeuOPNtqjIihS0ggZrogsHgnXv8XXsunus2X+L+IMVNPOKHZejhnw9MNKQicfgOYUt1Dd7QE2Aju5sz+thKWWG9YgoJBfwyvjzSKOtJpOnSlqk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770980365; c=relaxed/simple;
-	bh=1ErXtXjMtbxeTxtvFK/BCqEq2E/Df+Cbp/EEhtbCYwY=;
+	s=arc-20240116; t=1770980369; c=relaxed/simple;
+	bh=i/qKvrjNfvmFI1sFm/qwVSuao4YeuySQMuQRd70krlo=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=lXZwvAygOEmnguoUqAa32dcXOHi7fLS/42+gVeqH0B7N7u8/cfihLmSz3zv3XWuGGpNnEzb13x9qFUy+mRXaH+RiRQYb5gE/4CW6y4fwvP4boiofD9DLUfEWJ3gFTZzGrh084A/kP08jmWCs6krPyjklntQ2GcaPirZrLJr4Hc4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=JWRlqrA+; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version:Content-Type; b=bt6suvXGAATiDwGxwkaVsskQkIVI+0/BhjtKbwMZd52wKy1t4dYWsVWefvaKudxXg7xW4R0WRCVj3QUVBHfT44ns5WuIOxoeyiNw7Zw2BQxDe/nQ7YmCvfqa06LbnCgbyxJ4N6syeA8tQJM/FEoT6VZh6v2cTukbee9NKinPvnc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=VKXiziMZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="JWRlqrA+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 793ACC19423;
-	Fri, 13 Feb 2026 10:59:24 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="VKXiziMZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4DCD2C116C6;
+	Fri, 13 Feb 2026 10:59:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1770980365;
-	bh=1ErXtXjMtbxeTxtvFK/BCqEq2E/Df+Cbp/EEhtbCYwY=;
+	s=k20201202; t=1770980369;
+	bh=i/qKvrjNfvmFI1sFm/qwVSuao4YeuySQMuQRd70krlo=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=JWRlqrA+hjIuJXjGlavduge9xrmc9R6N4iPtT+JKX9L3u1qXXfFnsiwXZlG6KcbpW
-	 NjQMkF5wczKXvUHw4zrur1PefrhSyzQzgN5IzJTdHZigfnG9MvDd3z2BVqBOO1SnVj
-	 W4MWypDpp7jPAwpqvCzUcrudHfpeg/DLXjRQNKNKNoqTThJhVeT5UyIzzS5EL/F9r1
-	 tCVGg+lG+JbLXkGDoSDxpX+QKbMntxcmgI2WPCvzTrYxJDWwjFeo6IJQnA0dAXZt3Q
-	 Pyq6acssg/uhjzaYODOW4S0g2lnAPIPIRarIjAMHzBzLN0XDIx7eEB6fw50tEBM/rY
-	 KAhsemOP1NIQw==
+	b=VKXiziMZYUNuGfCQ0RULIqDte/ZGcOWiRPBH84iwuWflzmGecugR/bfnatOMUSehV
+	 fVLtP8JQ+333JomO+2dkf4vdI4/vn/IgNGR0aGDqoLPcYovkOZKa9pmiECk2V47aN3
+	 VSADKx5ijPiFho1qXXXHq7s2Vh5E+H7SKWWZkLTOPyEDwW8zRNFc5G7FQrhMdezaU+
+	 LHP9mn4ATVmhFM0u/Q4i35r03D4z9Yj5QQWp2k7NkAHc7fETVSOvY0LaSv5wK2uksa
+	 fHmy/Ctd60nrAYatFEddhV2R5/U3UBYX6KHEThdswPFFxbBQYuGUSEnQplzxN8ye0K
+	 ZZo6BNUEwCfsw==
 From: Leon Romanovsky <leon@kernel.org>
 To: Jason Gunthorpe <jgg@ziepe.ca>,
 	Leon Romanovsky <leon@kernel.org>,
@@ -58,9 +58,9 @@ To: Jason Gunthorpe <jgg@ziepe.ca>,
 Cc: linux-kernel@vger.kernel.org,
 	linux-rdma@vger.kernel.org,
 	linux-hyperv@vger.kernel.org
-Subject: [PATCH rdma-next 09/50] RDMA/efa: Remove check for zero CQE count
-Date: Fri, 13 Feb 2026 12:57:45 +0200
-Message-ID: <20260213-refactor-umem-v1-9-f3be85847922@nvidia.com>
+Subject: =?utf-8?q?=5BPATCH_rdma-next_06/50=5D_RDMA/efa=3A_Rely_on_CPU_ad?= =?utf-8?q?dress_in_create=E2=80=91QP?=
+Date: Fri, 13 Feb 2026 12:57:42 +0200
+Message-ID: <20260213-refactor-umem-v1-6-f3be85847922@nvidia.com>
 X-Mailer: git-send-email 2.53.0
 In-Reply-To: <20260213-refactor-umem-v1-0-f3be85847922@nvidia.com>
 References: <20260213-refactor-umem-v1-0-f3be85847922@nvidia.com>
@@ -76,8 +76,8 @@ Content-Transfer-Encoding: 8bit
 
 From: Leon Romanovsky <leonro@nvidia.com>
 
-Since ib_core now handles validation, the device driver no longer needs
-to verify that the CQE count is non‑zero.
+Align this code with other locations where efa_free_mapped() depends on the
+presence of a valid CPU address, which is guaranteed when qp->rq_size != 0.
 
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
@@ -85,21 +85,27 @@ Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
  1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/infiniband/hw/efa/efa_verbs.c b/drivers/infiniband/hw/efa/efa_verbs.c
-index d465e6acfe3c..e8fb99b61be8 100644
+index ae9b98b4b528..bc69aef3e436 100644
 --- a/drivers/infiniband/hw/efa/efa_verbs.c
 +++ b/drivers/infiniband/hw/efa/efa_verbs.c
-@@ -1152,9 +1152,9 @@ int efa_create_user_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
- 	if (attr->flags)
- 		return -EOPNOTSUPP;
+@@ -579,7 +579,7 @@ static int qp_mmap_entries_setup(struct efa_qp *qp,
  
--	if (entries < 1 || entries > dev->dev_attr.max_cq_depth) {
-+	if (entries > dev->dev_attr.max_cq_depth) {
- 		ibdev_dbg(ibdev,
--			  "cq: requested entries[%u] non-positive or greater than max[%u]\n",
-+			  "cq: requested entries[%u] greater than max[%u]\n",
- 			  entries, dev->dev_attr.max_cq_depth);
- 		err = -EINVAL;
- 		goto err_out;
+ 	resp->llq_desc_offset &= ~PAGE_MASK;
+ 
+-	if (qp->rq_size) {
++	if (qp->rq_cpu_addr) {
+ 		address = dev->db_bar_addr + resp->rq_db_offset;
+ 
+ 		qp->rq_db_mmap_entry =
+@@ -828,7 +828,7 @@ int efa_create_qp(struct ib_qp *ibqp, struct ib_qp_init_attr *init_attr,
+ err_destroy_qp:
+ 	efa_destroy_qp_handle(dev, create_qp_resp.qp_handle);
+ err_free_mapped:
+-	if (qp->rq_size)
++	if (qp->rq_cpu_addr)
+ 		efa_free_mapped(dev, qp->rq_cpu_addr, qp->rq_dma_addr,
+ 				qp->rq_size, DMA_TO_DEVICE);
+ err_out:
 
 -- 
 2.52.0
