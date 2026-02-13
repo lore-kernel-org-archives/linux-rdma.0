@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DFE843563EE;
-	Fri, 13 Feb 2026 11:01:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BBA1B35B65A;
+	Fri, 13 Feb 2026 11:01:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770980478; cv=none; b=pubf+QqGLsrl6EI8IddqIkFB7hFBGg7bqdZ6MRNoGkgdHjFufWZg/Q7pBTVUOWo+vFaQdHDuYgVoyZYRNC2tCIcW41Ao3i4km1TCWt9hFrl7fxMlbqM8UjKpDyez8ufRopTX+/5OyC+rwgQxS+Th9Cs2PxzLlYu+wCUGeeWHcoQ=
+	t=1770980482; cv=none; b=Db4OrPHL04MYLtA5T53tsosuW2BDHgxEX6BpoEHB0qbg9mHper9mhbztWMhbcwd+47v4NjWdbyN10beS8B+LpgANf58x2WapDJ4Og9hiadBfdaxv6oHvC4rPmU1SMrwo5zhY1gOhgX9gXeJ6hNyWP+W+5cgIAkUsWQp+2plImGE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770980478; c=relaxed/simple;
-	bh=otPh1I/moTb9nYti+CCiEiHRtjR31X2ZuYeuBozpQr8=;
+	s=arc-20240116; t=1770980482; c=relaxed/simple;
+	bh=tXRqtUNviOmDa3CJM4kPPztr+SgPVsUWwArMbQICjMA=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=HWixkQl+IXAQVur3v33pY5oKJh1emzYamVwgVptxidj96L4/i4OYwo5lPfO/NKtbA6u6yN09O1vPngHJ1l1Bsq4umcnOdqX3hXT5KW+2k50+UswEZK6pLP2m79ImznbFw2Agx0kpuaY+AXAZ8Cnv05Tw9HcrooCPAkjrLplxQG0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=RCv3PXeU; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version:Content-Type; b=O3GzPlR8UwIWLedCdWsK9EM7Y95x/P0pOYHSz7lgT9S87pg5bjr8NM4IDFDyDWe4B670nhZZIC2mL6T6EwO6ukWE+dXV1e9Nrc001P74kzr8K4je96MsPe7IMxjbTP2QmJjcO3iqiNS5QVXhgnR4/lORBKQhKumcL0HeQqa5Atc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=o0g4HcHl; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="RCv3PXeU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E292CC16AAE;
-	Fri, 13 Feb 2026 11:01:17 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="o0g4HcHl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EC2D5C116C6;
+	Fri, 13 Feb 2026 11:01:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1770980478;
-	bh=otPh1I/moTb9nYti+CCiEiHRtjR31X2ZuYeuBozpQr8=;
+	s=k20201202; t=1770980482;
+	bh=tXRqtUNviOmDa3CJM4kPPztr+SgPVsUWwArMbQICjMA=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=RCv3PXeUjsvB/W0lgk2GT75S3jP2cqDXxgyQuXD9KtyVdMXL4cq55Eqn/aRbfmKgz
-	 nKHhVE4uMcUk42KrBI9FzBdIs0/c4f9ZKuppi9bMvrI1ZrygD09Nl+137278SoHYvD
-	 56AQEviOEzGwDjmPOrHKAaHLvv2HTkO78d/KEr/RlUydfZieLPn9M/VD3ppALIOGte
-	 i7fdym+PHX+VK8TdjGyyw0mlfAnL0+sKsqK/g6ub8cN5HzfNCcM0Jz5N9vVmbqNeZx
-	 Op1bZvjNnUhEAMu3LXI+YmI2P9YpltgW4hECBbhxKTFuXG8vesesi0JWu3EJnVL1z+
-	 dAsf7bzNjqrOw==
+	b=o0g4HcHli8BNvHZMz3n5MdlxoKr3vz20VnV3/QIOrpBVtL/LeqkEjPOJvDkyAXZ7a
+	 50hvMeVlKkercF2pJhC7K4M/O9Nf6Wl0NVgM+IUdRjvQ1tbpfGeWzRxY3FEyZxXr69
+	 7v2P9rIuA4eF1J0SdrjexwI1uyvBOdogaBm8wUKBkp9qihhheYXY0m/sXga7/KVjEf
+	 HwzWJR7phxi8gWzQ7uZ/ZSYBKUb0y4zrjvYIGpb3kWo53ktePyEMIovX7eYH0gSB66
+	 VF7kyA5z4yNKpKeuYdNZ0Z3dsE5I2A54xdzpT2sOR56I+IPcA4X5BPvE8XM61U6cKR
+	 hh8RgpGlNvRvQ==
 From: Leon Romanovsky <leon@kernel.org>
 To: Jason Gunthorpe <jgg@ziepe.ca>,
 	Leon Romanovsky <leon@kernel.org>,
@@ -58,9 +58,9 @@ To: Jason Gunthorpe <jgg@ziepe.ca>,
 Cc: linux-kernel@vger.kernel.org,
 	linux-rdma@vger.kernel.org,
 	linux-hyperv@vger.kernel.org
-Subject: =?utf-8?q?=5BPATCH_rdma-next_39/50=5D_RDMA/rxe=3A_Remove_unused_?= =?utf-8?q?kernel=E2=80=91side_CQ_resize_support?=
-Date: Fri, 13 Feb 2026 12:58:15 +0200
-Message-ID: <20260213-refactor-umem-v1-39-f3be85847922@nvidia.com>
+Subject: [PATCH rdma-next 36/50] RDMA/mlx5: Remove support for resizing kernel CQs
+Date: Fri, 13 Feb 2026 12:58:12 +0200
+Message-ID: <20260213-refactor-umem-v1-36-f3be85847922@nvidia.com>
 X-Mailer: git-send-email 2.53.0
 In-Reply-To: <20260213-refactor-umem-v1-0-f3be85847922@nvidia.com>
 References: <20260213-refactor-umem-v1-0-f3be85847922@nvidia.com>
@@ -76,58 +76,233 @@ Content-Transfer-Encoding: 8bit
 
 From: Leon Romanovsky <leonro@nvidia.com>
 
-CQ resizing is only used by uverbs; the kernel‑side CQ resize path has
-no users and can be removed.
+No ULP users rely on CQ resize support, so drop the unused code.
 
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/sw/rxe/rxe_verbs.c | 27 +++++++--------------------
- 1 file changed, 7 insertions(+), 20 deletions(-)
+ drivers/infiniband/hw/mlx5/cq.c | 161 +++++-----------------------------------
+ 1 file changed, 18 insertions(+), 143 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
-index 72e3019ed1cb..bc7c77ff3d90 100644
---- a/drivers/infiniband/sw/rxe/rxe_verbs.c
-+++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
-@@ -1146,32 +1146,19 @@ static int rxe_resize_cq(struct ib_cq *ibcq, int cqe, struct ib_udata *udata)
- 	struct rxe_resize_cq_resp __user *uresp = NULL;
- 	int err;
- 
--	if (udata) {
--		if (udata->outlen < sizeof(*uresp)) {
--			err = -EINVAL;
--			rxe_dbg_cq(cq, "malformed udata\n");
--			goto err_out;
--		}
--		uresp = udata->outbuf;
--	}
-+	if (udata->outlen < sizeof(*uresp))
-+		return -EINVAL;
-+	uresp = udata->outbuf;
- 
- 	err = rxe_cq_chk_attr(rxe, cq, cqe, 0);
--	if (err) {
--		rxe_dbg_cq(cq, "bad attr, err = %d\n", err);
--		goto err_out;
--	}
-+	if (err)
-+		return err;
- 
- 	err = rxe_cq_resize_queue(cq, cqe, uresp, udata);
--	if (err) {
--		rxe_dbg_cq(cq, "resize cq failed, err = %d\n", err);
--		goto err_out;
--	}
-+	if (err)
-+		return err;
- 
- 	return 0;
--
--err_out:
--	rxe_err_cq(cq, "returned err = %d\n", err);
--	return err;
+diff --git a/drivers/infiniband/hw/mlx5/cq.c b/drivers/infiniband/hw/mlx5/cq.c
+index 52a435efd0de..ce20af01cde0 100644
+--- a/drivers/infiniband/hw/mlx5/cq.c
++++ b/drivers/infiniband/hw/mlx5/cq.c
+@@ -74,11 +74,6 @@ static void *get_cqe(struct mlx5_ib_cq *cq, int n)
+ 	return mlx5_frag_buf_get_wqe(&cq->buf.fbc, n);
  }
  
- static int rxe_poll_cq(struct ib_cq *ibcq, int num_entries, struct ib_wc *wc)
+-static u8 sw_ownership_bit(int n, int nent)
+-{
+-	return (n & nent) ? 1 : 0;
+-}
+-
+ static void *get_sw_cqe(struct mlx5_ib_cq *cq, int n)
+ {
+ 	void *cqe = get_cqe(cq, n & cq->ibcq.cqe);
+@@ -1258,87 +1253,11 @@ static int resize_user(struct mlx5_ib_dev *dev, struct mlx5_ib_cq *cq,
+ 	return 0;
+ }
+ 
+-static int resize_kernel(struct mlx5_ib_dev *dev, struct mlx5_ib_cq *cq,
+-			 int entries, int cqe_size)
+-{
+-	int err;
+-
+-	cq->resize_buf = kzalloc(sizeof(*cq->resize_buf), GFP_KERNEL);
+-	if (!cq->resize_buf)
+-		return -ENOMEM;
+-
+-	err = alloc_cq_frag_buf(dev, cq->resize_buf, entries, cqe_size);
+-	if (err)
+-		goto ex;
+-
+-	init_cq_frag_buf(cq->resize_buf);
+-
+-	return 0;
+-
+-ex:
+-	kfree(cq->resize_buf);
+-	return err;
+-}
+-
+-static int copy_resize_cqes(struct mlx5_ib_cq *cq)
+-{
+-	struct mlx5_ib_dev *dev = to_mdev(cq->ibcq.device);
+-	struct mlx5_cqe64 *scqe64;
+-	struct mlx5_cqe64 *dcqe64;
+-	void *start_cqe;
+-	void *scqe;
+-	void *dcqe;
+-	int ssize;
+-	int dsize;
+-	int i;
+-	u8 sw_own;
+-
+-	ssize = cq->buf.cqe_size;
+-	dsize = cq->resize_buf->cqe_size;
+-	if (ssize != dsize) {
+-		mlx5_ib_warn(dev, "resize from different cqe size is not supported\n");
+-		return -EINVAL;
+-	}
+-
+-	i = cq->mcq.cons_index;
+-	scqe = get_sw_cqe(cq, i);
+-	scqe64 = ssize == 64 ? scqe : scqe + 64;
+-	start_cqe = scqe;
+-	if (!scqe) {
+-		mlx5_ib_warn(dev, "expected cqe in sw ownership\n");
+-		return -EINVAL;
+-	}
+-
+-	while (get_cqe_opcode(scqe64) != MLX5_CQE_RESIZE_CQ) {
+-		dcqe = mlx5_frag_buf_get_wqe(&cq->resize_buf->fbc,
+-					     (i + 1) & cq->resize_buf->nent);
+-		dcqe64 = dsize == 64 ? dcqe : dcqe + 64;
+-		sw_own = sw_ownership_bit(i + 1, cq->resize_buf->nent);
+-		memcpy(dcqe, scqe, dsize);
+-		dcqe64->op_own = (dcqe64->op_own & ~MLX5_CQE_OWNER_MASK) | sw_own;
+-
+-		++i;
+-		scqe = get_sw_cqe(cq, i);
+-		scqe64 = ssize == 64 ? scqe : scqe + 64;
+-		if (!scqe) {
+-			mlx5_ib_warn(dev, "expected cqe in sw ownership\n");
+-			return -EINVAL;
+-		}
+-
+-		if (scqe == start_cqe) {
+-			pr_warn("resize CQ failed to get resize CQE, CQN 0x%x\n",
+-				cq->mcq.cqn);
+-			return -ENOMEM;
+-		}
+-	}
+-	++cq->mcq.cons_index;
+-	return 0;
+-}
+-
+ int mlx5_ib_resize_cq(struct ib_cq *ibcq, int entries, struct ib_udata *udata)
+ {
+ 	struct mlx5_ib_dev *dev = to_mdev(ibcq->device);
+ 	struct mlx5_ib_cq *cq = to_mcq(ibcq);
++	unsigned long page_size;
+ 	void *cqc;
+ 	u32 *in;
+ 	int err;
+@@ -1348,7 +1267,6 @@ int mlx5_ib_resize_cq(struct ib_cq *ibcq, int entries, struct ib_udata *udata)
+ 	unsigned int page_shift;
+ 	int inlen;
+ 	int cqe_size;
+-	unsigned long flags;
+ 
+ 	if (!MLX5_CAP_GEN(dev->mdev, cq_resize)) {
+ 		pr_info("Firmware does not support resize CQ\n");
+@@ -1371,34 +1289,19 @@ int mlx5_ib_resize_cq(struct ib_cq *ibcq, int entries, struct ib_udata *udata)
+ 		return 0;
+ 
+ 	mutex_lock(&cq->resize_mutex);
+-	if (udata) {
+-		unsigned long page_size;
+-
+-		err = resize_user(dev, cq, entries, udata, &cqe_size);
+-		if (err)
+-			goto ex;
+-
+-		page_size = mlx5_umem_find_best_cq_quantized_pgoff(
+-			cq->resize_umem, cqc, log_page_size,
+-			MLX5_ADAPTER_PAGE_SHIFT, page_offset, 64,
+-			&page_offset_quantized);
+-		if (!page_size) {
+-			err = -EINVAL;
+-			goto ex_resize;
+-		}
+-		npas = ib_umem_num_dma_blocks(cq->resize_umem, page_size);
+-		page_shift = order_base_2(page_size);
+-	} else {
+-		struct mlx5_frag_buf *frag_buf;
++	err = resize_user(dev, cq, entries, udata, &cqe_size);
++	if (err)
++		goto ex;
+ 
+-		cqe_size = 64;
+-		err = resize_kernel(dev, cq, entries, cqe_size);
+-		if (err)
+-			goto ex;
+-		frag_buf = &cq->resize_buf->frag_buf;
+-		npas = frag_buf->npages;
+-		page_shift = frag_buf->page_shift;
++	page_size = mlx5_umem_find_best_cq_quantized_pgoff(
++		cq->resize_umem, cqc, log_page_size, MLX5_ADAPTER_PAGE_SHIFT,
++		page_offset, 64, &page_offset_quantized);
++	if (!page_size) {
++		err = -EINVAL;
++		goto ex_resize;
+ 	}
++	npas = ib_umem_num_dma_blocks(cq->resize_umem, page_size);
++	page_shift = order_base_2(page_size);
+ 
+ 	inlen = MLX5_ST_SZ_BYTES(modify_cq_in) +
+ 		MLX5_FLD_SZ_BYTES(modify_cq_in, pas[0]) * npas;
+@@ -1410,11 +1313,7 @@ int mlx5_ib_resize_cq(struct ib_cq *ibcq, int entries, struct ib_udata *udata)
+ 	}
+ 
+ 	pas = (__be64 *)MLX5_ADDR_OF(modify_cq_in, in, pas);
+-	if (udata)
+-		mlx5_ib_populate_pas(cq->resize_umem, 1UL << page_shift, pas,
+-				     0);
+-	else
+-		mlx5_fill_page_frag_array(&cq->resize_buf->frag_buf, pas);
++	mlx5_ib_populate_pas(cq->resize_umem, 1UL << page_shift, pas, 0);
+ 
+ 	MLX5_SET(modify_cq_in, in,
+ 		 modify_field_select_resize_field_select.resize_field_select.resize_field_select,
+@@ -1440,31 +1339,10 @@ int mlx5_ib_resize_cq(struct ib_cq *ibcq, int entries, struct ib_udata *udata)
+ 	if (err)
+ 		goto ex_alloc;
+ 
+-	if (udata) {
+-		cq->ibcq.cqe = entries - 1;
+-		ib_umem_release(cq->ibcq.umem);
+-		cq->ibcq.umem = cq->resize_umem;
+-		cq->resize_umem = NULL;
+-	} else {
+-		struct mlx5_ib_cq_buf tbuf;
+-		int resized = 0;
+-
+-		spin_lock_irqsave(&cq->lock, flags);
+-		if (cq->resize_buf) {
+-			err = copy_resize_cqes(cq);
+-			if (!err) {
+-				tbuf = cq->buf;
+-				cq->buf = *cq->resize_buf;
+-				kfree(cq->resize_buf);
+-				cq->resize_buf = NULL;
+-				resized = 1;
+-			}
+-		}
+-		cq->ibcq.cqe = entries - 1;
+-		spin_unlock_irqrestore(&cq->lock, flags);
+-		if (resized)
+-			free_cq_buf(dev, &tbuf);
+-	}
++	cq->ibcq.cqe = entries - 1;
++	ib_umem_release(cq->ibcq.umem);
++	cq->ibcq.umem = cq->resize_umem;
++	cq->resize_umem = NULL;
+ 	mutex_unlock(&cq->resize_mutex);
+ 
+ 	kvfree(in);
+@@ -1475,10 +1353,7 @@ int mlx5_ib_resize_cq(struct ib_cq *ibcq, int entries, struct ib_udata *udata)
+ 
+ ex_resize:
+ 	ib_umem_release(cq->resize_umem);
+-	if (!udata) {
+-		free_cq_buf(dev, cq->resize_buf);
+-		cq->resize_buf = NULL;
+-	}
++	cq->resize_umem = NULL;
+ ex:
+ 	mutex_unlock(&cq->resize_mutex);
+ 	return err;
 
 -- 
 2.52.0
