@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B2213563EE;
-	Fri, 13 Feb 2026 11:01:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7E963563EE;
+	Fri, 13 Feb 2026 11:01:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770980464; cv=none; b=epMzOApNAAX/QFHypIsST+pRmAFktFZOE4fmm2MZvgwoTvOqc24rXiTQKYQHj/FZXksy8Wn+JqWyWqbTv3wSJCJhqnsLM0tHypvBVk2v01UTvAGh3+dRt04wfo7A2FRZKRLYWrMXXYXYpfFmuqMf8eTcBYOwP2oz6i7oA1EBke4=
+	t=1770980467; cv=none; b=ATf1oR2RP3PnmitovcNs5XcyOK02HquaxlYidVNselqEacFDTuaHoDZaxnISrUnf8RhRAbNQy7RGBLZmmuUVqbJW7v23w3yfWaLJ6u7DbeMAMGSjbdVS5LunkrmpEwNkQ3Ua9w84sDeIjJotbppap3AUves0ZG3u/n8mRouz59c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770980464; c=relaxed/simple;
-	bh=cXVPMCACaL/gKFCQ/f3NUv6u2y9sogOUml+fOjhCVfE=;
+	s=arc-20240116; t=1770980467; c=relaxed/simple;
+	bh=lJd7pNWwbz/yljv7iIoOKoXZ5xZZRifiDg+GM9LSUKc=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=el4pgY49LFuAf8+8tdv9Mc/NmjUTQBEH1zzZU4+zyN5WCI7P7dqIW8k8FndB5rAPwhXVjcKigYo2GGP1l+Tlpbuoc0GvHYojl+oN9PUWdbxh0MaWKYudORzFJlcDkGBrLfutWnuP9y9GjjlwIpBUdLE6Eaw7m+9KgVGoUWdCdJc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=suCrbUt5; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version:Content-Type; b=lT6kEsNHF7070iael3i3yvQp0L7jq3qdVcq/6IJdnDPkokuzICZO2OCHV7RkpNTqo5qsh4XRL83MaQAEm3LWYsmiUiSL3WXfuFCUK+WN60F/IpMtjNf7I412t6z9YxkM5yZmNO78Bg9nmvxmrautqBkqkDu5Y2Sgh1uVKeqf9ug=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ZABIR7H7; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="suCrbUt5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 313DAC116C6;
-	Fri, 13 Feb 2026 11:01:03 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ZABIR7H7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D639DC116C6;
+	Fri, 13 Feb 2026 11:01:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1770980464;
-	bh=cXVPMCACaL/gKFCQ/f3NUv6u2y9sogOUml+fOjhCVfE=;
+	s=k20201202; t=1770980467;
+	bh=lJd7pNWwbz/yljv7iIoOKoXZ5xZZRifiDg+GM9LSUKc=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=suCrbUt5uobz+J8Zy+H2OulDR2mfdrJR0brxW3fwatLE/yC+GHU1zAwiEII9nGIlH
-	 dwB7IM0le2zD/3l7+CsDSeQXhaZ30wsUn9AePU+13uEMQqCGmvv80yDQysD1LNPXMy
-	 BsN0wxScW7nm5ncAEhNBPrkkgWqKhYGXU/uoPkXPsOlrG2PTwIN1/qDK2+KAyBDuJe
-	 wUU8gBfSj9opmPAciR81jKqlqJ6jtSK4/YFNPU3q9CIXTNDJ/75rMJbFiZcG9IFDHd
-	 tTh4Wr8bl2lkx2F3s0iyqxv0ayEPgZqjz/nbflxUmcqzWsIgZBnNq/LZiV60TSLkBZ
-	 mP1U5Y6AXvWjw==
+	b=ZABIR7H7gBh77uE7071tByAHH2fokXvkebI9I4yiCoJvKAAiGEohi0JcZWwCSMtFC
+	 jpAAVgxgoVqKYTAzPTLjUw7pWtyeoUX/ZbWRoJh8eBW007RxAySrx+sX2fGOJw3X1y
+	 /Uop7F9+RZ66lf/HEx7L70yv36Cn0BwFK93ZulgudG/Kjfaj5Ovbr4Ocd2Xa5RAbSw
+	 3e7irxkZa7UhGoSxkf5PmoUAEFzg6kg22NgzvqoL2g4045in60Ykf3Nm24k0xd0B0N
+	 IARiyOpxzpe7OUOYF05IDN7Z0JSAMcODfwnVlek78w/8TJFK1gqkaufnb/mEja5js1
+	 OJJfi014geqNA==
 From: Leon Romanovsky <leon@kernel.org>
 To: Jason Gunthorpe <jgg@ziepe.ca>,
 	Leon Romanovsky <leon@kernel.org>,
@@ -58,9 +58,9 @@ To: Jason Gunthorpe <jgg@ziepe.ca>,
 Cc: linux-kernel@vger.kernel.org,
 	linux-rdma@vger.kernel.org,
 	linux-hyperv@vger.kernel.org
-Subject: [PATCH rdma-next 35/50] RDMA/mlx4: Remove support for kernel CQ resize
-Date: Fri, 13 Feb 2026 12:58:11 +0200
-Message-ID: <20260213-refactor-umem-v1-35-f3be85847922@nvidia.com>
+Subject: =?utf-8?q?=5BPATCH_rdma-next_32/50=5D_RDMA=3A_Clarify_that_CQ_re?= =?utf-8?q?size_is_a_user=E2=80=91space_verb?=
+Date: Fri, 13 Feb 2026 12:58:08 +0200
+Message-ID: <20260213-refactor-umem-v1-32-f3be85847922@nvidia.com>
 X-Mailer: git-send-email 2.53.0
 In-Reply-To: <20260213-refactor-umem-v1-0-f3be85847922@nvidia.com>
 References: <20260213-refactor-umem-v1-0-f3be85847922@nvidia.com>
@@ -76,256 +76,176 @@ Content-Transfer-Encoding: 8bit
 
 From: Leon Romanovsky <leonro@nvidia.com>
 
-No upper‑layer protocol currently uses CQ resize, and the feature has no
-active callers. Drop the unused functionality.
+The CQ resize operation is used only by uverbs. Make this explicit.
 
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/hw/mlx4/cq.c | 167 +++++-----------------------------------
- 1 file changed, 21 insertions(+), 146 deletions(-)
+ drivers/infiniband/core/device.c             | 2 +-
+ drivers/infiniband/core/uverbs_cmd.c         | 4 ++--
+ drivers/infiniband/hw/bnxt_re/main.c         | 2 +-
+ drivers/infiniband/hw/irdma/verbs.c          | 2 +-
+ drivers/infiniband/hw/mlx4/main.c            | 2 +-
+ drivers/infiniband/hw/mlx5/main.c            | 2 +-
+ drivers/infiniband/hw/mthca/mthca_provider.c | 2 +-
+ drivers/infiniband/hw/ocrdma/ocrdma_main.c   | 2 +-
+ drivers/infiniband/sw/rdmavt/vt.c            | 2 +-
+ drivers/infiniband/sw/rxe/rxe_verbs.c        | 2 +-
+ include/rdma/ib_verbs.h                      | 3 ++-
+ 11 files changed, 13 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx4/cq.c b/drivers/infiniband/hw/mlx4/cq.c
-index 83169060d120..05fad06b89c2 100644
---- a/drivers/infiniband/hw/mlx4/cq.c
-+++ b/drivers/infiniband/hw/mlx4/cq.c
-@@ -296,30 +296,6 @@ int mlx4_ib_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
- 	return err;
- }
+diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
+index 9209b8c664ef..9411f7805eed 100644
+--- a/drivers/infiniband/core/device.c
++++ b/drivers/infiniband/core/device.c
+@@ -2799,7 +2799,7 @@ void ib_set_device_ops(struct ib_device *dev, const struct ib_device_ops *ops)
+ 	SET_DEVICE_OP(dev_ops, reg_user_mr_dmabuf);
+ 	SET_DEVICE_OP(dev_ops, req_notify_cq);
+ 	SET_DEVICE_OP(dev_ops, rereg_user_mr);
+-	SET_DEVICE_OP(dev_ops, resize_cq);
++	SET_DEVICE_OP(dev_ops, resize_user_cq);
+ 	SET_DEVICE_OP(dev_ops, set_vf_guid);
+ 	SET_DEVICE_OP(dev_ops, set_vf_link_state);
+ 	SET_DEVICE_OP(dev_ops, ufile_hw_cleanup);
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index cdfee86fb800..57697738fd25 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -1151,7 +1151,7 @@ static int ib_uverbs_resize_cq(struct uverbs_attr_bundle *attrs)
+ 	if (IS_ERR(cq))
+ 		return PTR_ERR(cq);
  
--static int mlx4_alloc_resize_buf(struct mlx4_ib_dev *dev, struct mlx4_ib_cq *cq,
--				  int entries)
--{
--	int err;
--
--	if (cq->resize_buf)
--		return -EBUSY;
--
--	cq->resize_buf = kmalloc(sizeof *cq->resize_buf, GFP_KERNEL);
--	if (!cq->resize_buf)
--		return -ENOMEM;
--
--	err = mlx4_ib_alloc_cq_buf(dev, &cq->resize_buf->buf, entries);
--	if (err) {
--		kfree(cq->resize_buf);
--		cq->resize_buf = NULL;
--		return err;
--	}
--
--	cq->resize_buf->cqe = entries - 1;
--
--	return 0;
--}
--
- static int mlx4_alloc_resize_umem(struct mlx4_ib_dev *dev, struct mlx4_ib_cq *cq,
- 				   int entries, struct ib_udata *udata)
- {
-@@ -329,9 +305,6 @@ static int mlx4_alloc_resize_umem(struct mlx4_ib_dev *dev, struct mlx4_ib_cq *cq
- 	int n;
- 	int err;
+-	ret = cq->device->ops.resize_cq(cq, cmd.cqe, &attrs->driver_udata);
++	ret = cq->device->ops.resize_user_cq(cq, cmd.cqe, &attrs->driver_udata);
+ 	if (ret)
+ 		goto out;
  
--	if (cq->resize_umem)
--		return -EBUSY;
--
- 	if (ib_copy_from_udata(&ucmd, udata, sizeof ucmd))
- 		return -EFAULT;
+@@ -3811,7 +3811,7 @@ const struct uapi_definition uverbs_def_write_intf[] = {
+ 				     UAPI_DEF_WRITE_UDATA_IO(
+ 					     struct ib_uverbs_resize_cq,
+ 					     struct ib_uverbs_resize_cq_resp),
+-				     UAPI_DEF_METHOD_NEEDS_FN(resize_cq)),
++				     UAPI_DEF_METHOD_NEEDS_FN(resize_user_cq)),
+ 		DECLARE_UVERBS_WRITE_EX(
+ 			IB_USER_VERBS_EX_CMD_CREATE_CQ,
+ 			ib_uverbs_ex_create_cq,
+diff --git a/drivers/infiniband/hw/bnxt_re/main.c b/drivers/infiniband/hw/bnxt_re/main.c
+index 368c1fd8172e..ccc01fc222ca 100644
+--- a/drivers/infiniband/hw/bnxt_re/main.c
++++ b/drivers/infiniband/hw/bnxt_re/main.c
+@@ -1373,7 +1373,7 @@ static const struct ib_device_ops bnxt_re_dev_ops = {
+ 	.reg_user_mr = bnxt_re_reg_user_mr,
+ 	.reg_user_mr_dmabuf = bnxt_re_reg_user_mr_dmabuf,
+ 	.req_notify_cq = bnxt_re_req_notify_cq,
+-	.resize_cq = bnxt_re_resize_cq,
++	.resize_user_cq = bnxt_re_resize_cq,
+ 	.create_flow = bnxt_re_create_flow,
+ 	.destroy_flow = bnxt_re_destroy_flow,
+ 	INIT_RDMA_OBJ_SIZE(ib_ah, bnxt_re_ah, ib_ah),
+diff --git a/drivers/infiniband/hw/irdma/verbs.c b/drivers/infiniband/hw/irdma/verbs.c
+index f2b3cfe125af..f727d1922a84 100644
+--- a/drivers/infiniband/hw/irdma/verbs.c
++++ b/drivers/infiniband/hw/irdma/verbs.c
+@@ -5460,7 +5460,7 @@ static const struct ib_device_ops irdma_dev_ops = {
+ 	.reg_user_mr_dmabuf = irdma_reg_user_mr_dmabuf,
+ 	.rereg_user_mr = irdma_rereg_user_mr,
+ 	.req_notify_cq = irdma_req_notify_cq,
+-	.resize_cq = irdma_resize_cq,
++	.resize_user_cq = irdma_resize_cq,
+ 	INIT_RDMA_OBJ_SIZE(ib_pd, irdma_pd, ibpd),
+ 	INIT_RDMA_OBJ_SIZE(ib_ucontext, irdma_ucontext, ibucontext),
+ 	INIT_RDMA_OBJ_SIZE(ib_ah, irdma_ah, ibah),
+diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
+index fc05e7a1a870..daf95f94ec6f 100644
+--- a/drivers/infiniband/hw/mlx4/main.c
++++ b/drivers/infiniband/hw/mlx4/main.c
+@@ -2570,7 +2570,7 @@ static const struct ib_device_ops mlx4_ib_dev_ops = {
+ 	.reg_user_mr = mlx4_ib_reg_user_mr,
+ 	.req_notify_cq = mlx4_ib_arm_cq,
+ 	.rereg_user_mr = mlx4_ib_rereg_user_mr,
+-	.resize_cq = mlx4_ib_resize_cq,
++	.resize_user_cq = mlx4_ib_resize_cq,
+ 	.report_port_event = mlx4_ib_port_event,
  
-@@ -371,91 +344,36 @@ static int mlx4_alloc_resize_umem(struct mlx4_ib_dev *dev, struct mlx4_ib_cq *cq
+ 	INIT_RDMA_OBJ_SIZE(ib_ah, mlx4_ib_ah, ibah),
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 4f49f65e2c16..0471155eb739 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -4496,7 +4496,7 @@ static const struct ib_device_ops mlx5_ib_dev_ops = {
+ 	.reg_user_mr_dmabuf = mlx5_ib_reg_user_mr_dmabuf,
+ 	.req_notify_cq = mlx5_ib_arm_cq,
+ 	.rereg_user_mr = mlx5_ib_rereg_user_mr,
+-	.resize_cq = mlx5_ib_resize_cq,
++	.resize_user_cq = mlx5_ib_resize_cq,
+ 	.ufile_hw_cleanup = mlx5_ib_ufile_hw_cleanup,
  
- err_umem:
- 	ib_umem_release(cq->resize_umem);
--
-+	cq->resize_umem = NULL;
- err_buf:
- 	kfree(cq->resize_buf);
- 	cq->resize_buf = NULL;
- 	return err;
- }
+ 	INIT_RDMA_OBJ_SIZE(ib_ah, mlx5_ib_ah, ibah),
+diff --git a/drivers/infiniband/hw/mthca/mthca_provider.c b/drivers/infiniband/hw/mthca/mthca_provider.c
+index 6bf825978846..8920deceea73 100644
+--- a/drivers/infiniband/hw/mthca/mthca_provider.c
++++ b/drivers/infiniband/hw/mthca/mthca_provider.c
+@@ -1119,7 +1119,7 @@ static const struct ib_device_ops mthca_dev_ops = {
+ 	.query_port = mthca_query_port,
+ 	.query_qp = mthca_query_qp,
+ 	.reg_user_mr = mthca_reg_user_mr,
+-	.resize_cq = mthca_resize_cq,
++	.resize_user_cq = mthca_resize_cq,
  
--static int mlx4_ib_get_outstanding_cqes(struct mlx4_ib_cq *cq)
--{
--	u32 i;
--
--	i = cq->mcq.cons_index;
--	while (get_sw_cqe(cq, i))
--		++i;
--
--	return i - cq->mcq.cons_index;
--}
--
--static void mlx4_ib_cq_resize_copy_cqes(struct mlx4_ib_cq *cq)
--{
--	struct mlx4_cqe *cqe, *new_cqe;
--	int i;
--	int cqe_size = cq->buf.entry_size;
--	int cqe_inc = cqe_size == 64 ? 1 : 0;
--
--	i = cq->mcq.cons_index;
--	cqe = get_cqe(cq, i & cq->ibcq.cqe);
--	cqe += cqe_inc;
--
--	while ((cqe->owner_sr_opcode & MLX4_CQE_OPCODE_MASK) != MLX4_CQE_OPCODE_RESIZE) {
--		new_cqe = get_cqe_from_buf(&cq->resize_buf->buf,
--					   (i + 1) & cq->resize_buf->cqe);
--		memcpy(new_cqe, get_cqe(cq, i & cq->ibcq.cqe), cqe_size);
--		new_cqe += cqe_inc;
--
--		new_cqe->owner_sr_opcode = (cqe->owner_sr_opcode & ~MLX4_CQE_OWNER_MASK) |
--			(((i + 1) & (cq->resize_buf->cqe + 1)) ? MLX4_CQE_OWNER_MASK : 0);
--		cqe = get_cqe(cq, ++i & cq->ibcq.cqe);
--		cqe += cqe_inc;
--	}
--	++cq->mcq.cons_index;
--}
--
- int mlx4_ib_resize_cq(struct ib_cq *ibcq, int entries, struct ib_udata *udata)
- {
- 	struct mlx4_ib_dev *dev = to_mdev(ibcq->device);
- 	struct mlx4_ib_cq *cq = to_mcq(ibcq);
- 	struct mlx4_mtt mtt;
--	int outst_cqe;
- 	int err;
+ 	INIT_RDMA_OBJ_SIZE(ib_ah, mthca_ah, ibah),
+ 	INIT_RDMA_OBJ_SIZE(ib_cq, mthca_cq, ibcq),
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_main.c b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
+index 0d89c5ec9a7a..7dafebc7f57e 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_main.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
+@@ -167,7 +167,7 @@ static const struct ib_device_ops ocrdma_dev_ops = {
+ 	.query_qp = ocrdma_query_qp,
+ 	.reg_user_mr = ocrdma_reg_user_mr,
+ 	.req_notify_cq = ocrdma_arm_cq,
+-	.resize_cq = ocrdma_resize_cq,
++	.resize_user_cq = ocrdma_resize_cq,
  
--	mutex_lock(&cq->resize_mutex);
--	if (entries < 1 || entries > dev->dev->caps.max_cqes) {
--		err = -EINVAL;
--		goto out;
--	}
-+	if (entries < 1 || entries > dev->dev->caps.max_cqes)
-+		return -EINVAL;
+ 	INIT_RDMA_OBJ_SIZE(ib_ah, ocrdma_ah, ibah),
+ 	INIT_RDMA_OBJ_SIZE(ib_cq, ocrdma_cq, ibcq),
+diff --git a/drivers/infiniband/sw/rdmavt/vt.c b/drivers/infiniband/sw/rdmavt/vt.c
+index 15964400b8d3..5aff65b3916b 100644
+--- a/drivers/infiniband/sw/rdmavt/vt.c
++++ b/drivers/infiniband/sw/rdmavt/vt.c
+@@ -368,7 +368,7 @@ static const struct ib_device_ops rvt_dev_ops = {
+ 	.query_srq = rvt_query_srq,
+ 	.reg_user_mr = rvt_reg_user_mr,
+ 	.req_notify_cq = rvt_req_notify_cq,
+-	.resize_cq = rvt_resize_cq,
++	.resize_user_cq = rvt_resize_cq,
  
- 	entries = roundup_pow_of_two(entries + 1);
--	if (entries == ibcq->cqe + 1) {
--		err = 0;
--		goto out;
--	}
--
--	if (entries > dev->dev->caps.max_cqes + 1) {
--		err = -EINVAL;
--		goto out;
--	}
-+	if (entries == ibcq->cqe + 1)
-+		return 0;
+ 	INIT_RDMA_OBJ_SIZE(ib_ah, rvt_ah, ibah),
+ 	INIT_RDMA_OBJ_SIZE(ib_cq, rvt_cq, ibcq),
+diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
+index 1e651bdd8622..72e3019ed1cb 100644
+--- a/drivers/infiniband/sw/rxe/rxe_verbs.c
++++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
+@@ -1532,7 +1532,7 @@ static const struct ib_device_ops rxe_dev_ops = {
+ 	.reg_user_mr = rxe_reg_user_mr,
+ 	.req_notify_cq = rxe_req_notify_cq,
+ 	.rereg_user_mr = rxe_rereg_user_mr,
+-	.resize_cq = rxe_resize_cq,
++	.resize_user_cq = rxe_resize_cq,
  
--	if (ibcq->uobject) {
--		err = mlx4_alloc_resize_umem(dev, cq, entries, udata);
--		if (err)
--			goto out;
--	} else {
--		/* Can't be smaller than the number of outstanding CQEs */
--		outst_cqe = mlx4_ib_get_outstanding_cqes(cq);
--		if (entries < outst_cqe + 1) {
--			err = -EINVAL;
--			goto out;
--		}
-+	if (entries > dev->dev->caps.max_cqes + 1)
-+		return -EINVAL;
- 
--		err = mlx4_alloc_resize_buf(dev, cq, entries);
--		if (err)
--			goto out;
-+	mutex_lock(&cq->resize_mutex);
-+	err = mlx4_alloc_resize_umem(dev, cq, entries, udata);
-+	if (err) {
-+		mutex_unlock(&cq->resize_mutex);
-+		return err;
- 	}
--
- 	mtt = cq->buf.mtt;
- 
- 	err = mlx4_cq_resize(dev->dev, &cq->mcq, entries, &cq->resize_buf->buf.mtt);
-@@ -463,52 +381,26 @@ int mlx4_ib_resize_cq(struct ib_cq *ibcq, int entries, struct ib_udata *udata)
- 		goto err_buf;
- 
- 	mlx4_mtt_cleanup(dev->dev, &mtt);
--	if (ibcq->uobject) {
--		cq->buf      = cq->resize_buf->buf;
--		cq->ibcq.cqe = cq->resize_buf->cqe;
--		ib_umem_release(cq->ibcq.umem);
--		cq->ibcq.umem     = cq->resize_umem;
--
--		kfree(cq->resize_buf);
--		cq->resize_buf = NULL;
--		cq->resize_umem = NULL;
--	} else {
--		struct mlx4_ib_cq_buf tmp_buf;
--		int tmp_cqe = 0;
--
--		spin_lock_irq(&cq->lock);
--		if (cq->resize_buf) {
--			mlx4_ib_cq_resize_copy_cqes(cq);
--			tmp_buf = cq->buf;
--			tmp_cqe = cq->ibcq.cqe;
--			cq->buf      = cq->resize_buf->buf;
--			cq->ibcq.cqe = cq->resize_buf->cqe;
--
--			kfree(cq->resize_buf);
--			cq->resize_buf = NULL;
--		}
--		spin_unlock_irq(&cq->lock);
-+	cq->buf = cq->resize_buf->buf;
-+	cq->ibcq.cqe = cq->resize_buf->cqe;
-+	ib_umem_release(cq->ibcq.umem);
-+	cq->ibcq.umem = cq->resize_umem;
- 
--		if (tmp_cqe)
--			mlx4_ib_free_cq_buf(dev, &tmp_buf, tmp_cqe);
--	}
-+	kfree(cq->resize_buf);
-+	cq->resize_buf = NULL;
-+	cq->resize_umem = NULL;
-+	mutex_unlock(&cq->resize_mutex);
-+	return 0;
- 
--	goto out;
- 
- err_buf:
- 	mlx4_mtt_cleanup(dev->dev, &cq->resize_buf->buf.mtt);
--	if (!ibcq->uobject)
--		mlx4_ib_free_cq_buf(dev, &cq->resize_buf->buf,
--				    cq->resize_buf->cqe);
--
- 	kfree(cq->resize_buf);
- 	cq->resize_buf = NULL;
- 
- 	ib_umem_release(cq->resize_umem);
- 	cq->resize_umem = NULL;
--out:
- 	mutex_unlock(&cq->resize_mutex);
--
- 	return err;
- }
- 
-@@ -707,7 +599,6 @@ static int mlx4_ib_poll_one(struct mlx4_ib_cq *cq,
- 	u16 wqe_ctr;
- 	unsigned tail = 0;
- 
--repoll:
- 	cqe = next_cqe_sw(cq);
- 	if (!cqe)
- 		return -EAGAIN;
-@@ -727,22 +618,6 @@ static int mlx4_ib_poll_one(struct mlx4_ib_cq *cq,
- 	is_error = (cqe->owner_sr_opcode & MLX4_CQE_OPCODE_MASK) ==
- 		MLX4_CQE_OPCODE_ERROR;
- 
--	/* Resize CQ in progress */
--	if (unlikely((cqe->owner_sr_opcode & MLX4_CQE_OPCODE_MASK) == MLX4_CQE_OPCODE_RESIZE)) {
--		if (cq->resize_buf) {
--			struct mlx4_ib_dev *dev = to_mdev(cq->ibcq.device);
--
--			mlx4_ib_free_cq_buf(dev, &cq->buf, cq->ibcq.cqe);
--			cq->buf      = cq->resize_buf->buf;
--			cq->ibcq.cqe = cq->resize_buf->cqe;
--
--			kfree(cq->resize_buf);
--			cq->resize_buf = NULL;
--		}
--
--		goto repoll;
--	}
--
- 	if (!*cur_qp ||
- 	    (be32_to_cpu(cqe->vlan_my_qpn) & MLX4_CQE_QPN_MASK) != (*cur_qp)->mqp.qpn) {
- 		/*
+ 	INIT_RDMA_OBJ_SIZE(ib_ah, rxe_ah, ibah),
+ 	INIT_RDMA_OBJ_SIZE(ib_cq, rxe_cq, ibcq),
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index b8adc2f17e73..94bb3cc4c67a 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -2534,7 +2534,8 @@ struct ib_device_ops {
+ 			      struct uverbs_attr_bundle *attrs);
+ 	int (*modify_cq)(struct ib_cq *cq, u16 cq_count, u16 cq_period);
+ 	int (*destroy_cq)(struct ib_cq *cq, struct ib_udata *udata);
+-	int (*resize_cq)(struct ib_cq *cq, int cqe, struct ib_udata *udata);
++	int (*resize_user_cq)(struct ib_cq *cq, int cqe,
++			      struct ib_udata *udata);
+ 	/*
+ 	 * pre_destroy_cq - Prevent a cq from generating any new work
+ 	 * completions, but not free any kernel resources
 
 -- 
 2.52.0
