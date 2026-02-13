@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF07335F8D1;
-	Fri, 13 Feb 2026 11:00:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 130E635A92B;
+	Fri, 13 Feb 2026 11:00:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770980452; cv=none; b=GrJfdly1WKm0mhhHs8bpNk7bsdCepYBOxqgSFh3vWMzf3vah54pVYfIXfdMiU9rTBknwrxk7ketbRyCz8Kha5EhhaCcRRIl7tOMRnB4jddArl3zEtaivtWfyyhHQf0exVzPY+5DxOqPWWJuqP+c/KCINQaqBjpCg3Ra/8K730ZQ=
+	t=1770980457; cv=none; b=WMlLNdWstPmtq7vKa9RsA2WVIDosrjRXmnNKtulgVggxanUccC3Tr3xGOyo/2QcW6YwCDRZcYXqfYimMN8LHNzKfG9h6MUX4x9mfrAtcRIYbM9sCvpM4AwmYedL4xjrpiNeeKnfhaQJKo+63Wqlb/JflLv+TTYkXE6V/9gQf9ZQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770980452; c=relaxed/simple;
-	bh=50qG2y5fbQy5Qu3vQ5GMSNOhKd9VjZpb7hrkivZKUF0=;
+	s=arc-20240116; t=1770980457; c=relaxed/simple;
+	bh=BLfJ8z/WpaD4K6sejQn96Wb7dREUsgFWZySiBeQGF9s=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=pL36tesiLriiu98TO6+WopIjgGMCPEIP9Cm0wOivPlrTwjRGXNchdLqciV4UuzaetBnl94LDFS+0/EIR3MbKB5qBE8kf8688xAGvapBtuz/Yjsf27EtOsUyM2OdkbcdiJRZ0a5naPlWxlBEiA0HSzdBFCKwcDgZSqvYL05xpe1k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=iNQ8039N; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version:Content-Type; b=Qpa5zaxzACKHYxkb1kmWHtcS6jen3hm1ajtqNgcc3dC5mZPerQFIrCFv5SdEBzvKoiw14UkKhUu+TVtrwwzeqGaktNLwkxcjOoyqD7GV3YTR0rmGr/nEyz4ewxaPzQ8fquNFnQVRtwmj+HQqIZKkSAbNwbJ578m1W9yaK11xu/o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=EPYdIPJB; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="iNQ8039N"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AF500C116C6;
-	Fri, 13 Feb 2026 11:00:51 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="EPYdIPJB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E58A7C116C6;
+	Fri, 13 Feb 2026 11:00:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1770980452;
-	bh=50qG2y5fbQy5Qu3vQ5GMSNOhKd9VjZpb7hrkivZKUF0=;
+	s=k20201202; t=1770980456;
+	bh=BLfJ8z/WpaD4K6sejQn96Wb7dREUsgFWZySiBeQGF9s=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=iNQ8039NrIVSCwVGb42NPQhWrtdZI6BEGf3kdgt10LNUfPlVvdrvC9aFbqux2814v
-	 Q6Hx/eGuJUbiciVHJJTVC0PE7/HnQEptVYgGRlZRozvPdNglmd7EU3vi1uVioqsWXY
-	 u72yd/ptaS/utW9GMMHForver2HIdD7Azzx7eq5emHS1mR9Q3UoTNoYOIzIVkIqm75
-	 Ub3aELkOYY+EGfjiEjW523Dk6j8Q0Lc3Qid95/I3HGiy+lTPr2bZvnhvbfqyf/JLaT
-	 uSk6JOLCyjIb3MnMZqo5CN0l3CcESnxh4cHPVMYgXLyWxlKAEdIdf2A8SvKh6ASM6T
-	 cRCoNHtzUtMqg==
+	b=EPYdIPJBMbg5urgKDzfQeMyEA2s+G6InhG9YxUmme1Z1gXjttYwTpANTnGCF81Rvb
+	 kQqFo4Zp6YYsbhlY9LpC4/e/bML7aH4u25piPRXi5+y/IJLgnuRnqu50l5MTo2vsue
+	 FZg+m3AtEe3I5kqFSEpqr0LG2Ao0vRJ0oVca427aSsyLQj//08Oj/SgQbNhAv0ssDK
+	 Ye4fjm1ts5N1dfq1tnFSc+Biz1ZO9F9CTu1nb1wiEiIR3KZgjU/qhJfIngnSF1okww
+	 VdNW9Ib7zFUpQ5C0ptbPDGjWo1htRv0utxrKnqqI8TIaGaSbZyJWwdom4GFkH2J0oR
+	 oNFagAdf3tmRw==
 From: Leon Romanovsky <leon@kernel.org>
 To: Jason Gunthorpe <jgg@ziepe.ca>,
 	Leon Romanovsky <leon@kernel.org>,
@@ -58,9 +58,9 @@ To: Jason Gunthorpe <jgg@ziepe.ca>,
 Cc: linux-kernel@vger.kernel.org,
 	linux-rdma@vger.kernel.org,
 	linux-hyperv@vger.kernel.org
-Subject: [PATCH rdma-next 29/50] RDMA/rxe: Split user and kernel CQ creation paths
-Date: Fri, 13 Feb 2026 12:58:05 +0200
-Message-ID: <20260213-refactor-umem-v1-29-f3be85847922@nvidia.com>
+Subject: [PATCH rdma-next 33/50] RDMA/bnxt_re: Drop support for resizing kernel CQs
+Date: Fri, 13 Feb 2026 12:58:09 +0200
+Message-ID: <20260213-refactor-umem-v1-33-f3be85847922@nvidia.com>
 X-Mailer: git-send-email 2.53.0
 In-Reply-To: <20260213-refactor-umem-v1-0-f3be85847922@nvidia.com>
 References: <20260213-refactor-umem-v1-0-f3be85847922@nvidia.com>
@@ -76,130 +76,56 @@ Content-Transfer-Encoding: 8bit
 
 From: Leon Romanovsky <leonro@nvidia.com>
 
-Separate the CQ creation logic into distinct kernel and user flows.
+There are no ULP callers that use the CQ resize functionality, so remove it.
 
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/sw/rxe/rxe_verbs.c | 81 ++++++++++++++++++++---------------
- 1 file changed, 47 insertions(+), 34 deletions(-)
+ drivers/infiniband/hw/bnxt_re/ib_verbs.c | 18 ++++++------------
+ 1 file changed, 6 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
-index 38d8c408320f..1e651bdd8622 100644
---- a/drivers/infiniband/sw/rxe/rxe_verbs.c
-+++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
-@@ -1072,58 +1072,70 @@ static int rxe_post_recv(struct ib_qp *ibqp, const struct ib_recv_wr *wr,
- }
- 
- /* cq */
--static int rxe_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
--			 struct uverbs_attr_bundle *attrs)
-+static int rxe_create_user_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
-+			      struct uverbs_attr_bundle *attrs)
- {
- 	struct ib_udata *udata = &attrs->driver_udata;
- 	struct ib_device *dev = ibcq->device;
- 	struct rxe_dev *rxe = to_rdev(dev);
- 	struct rxe_cq *cq = to_rcq(ibcq);
--	struct rxe_create_cq_resp __user *uresp = NULL;
--	int err, cleanup_err;
-+	struct rxe_create_cq_resp __user *uresp;
-+	int err;
- 
--	if (udata) {
--		if (udata->outlen < sizeof(*uresp)) {
--			err = -EINVAL;
--			rxe_dbg_dev(rxe, "malformed udata, err = %d\n", err);
--			goto err_out;
--		}
--		uresp = udata->outbuf;
--	}
-+	if (udata->outlen < sizeof(*uresp))
-+		return -EINVAL;
- 
--	if (attr->flags) {
--		err = -EOPNOTSUPP;
--		rxe_dbg_dev(rxe, "bad attr->flags, err = %d\n", err);
--		goto err_out;
--	}
-+	uresp = udata->outbuf;
- 
--	err = rxe_cq_chk_attr(rxe, NULL, attr->cqe, attr->comp_vector);
--	if (err) {
--		rxe_dbg_dev(rxe, "bad init attributes, err = %d\n", err);
--		goto err_out;
--	}
-+	if (attr->flags || ibcq->umem)
-+		return -EOPNOTSUPP;
-+
-+	if (attr->cqe > rxe->attr.max_cqe)
-+		return -EINVAL;
- 
- 	err = rxe_add_to_pool(&rxe->cq_pool, cq);
--	if (err) {
--		rxe_dbg_dev(rxe, "unable to create cq, err = %d\n", err);
--		goto err_out;
--	}
-+	if (err)
-+		return err;
- 
- 	err = rxe_cq_from_init(rxe, cq, attr->cqe, attr->comp_vector, udata,
- 			       uresp);
--	if (err) {
--		rxe_dbg_cq(cq, "create cq failed, err = %d\n", err);
-+	if (err)
- 		goto err_cleanup;
+diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+index b8516d8b8426..16bb586d68c7 100644
+--- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
++++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+@@ -3338,10 +3338,6 @@ int bnxt_re_resize_cq(struct ib_cq *ibcq, int cqe, struct ib_udata *udata)
+ 	cq =  container_of(ibcq, struct bnxt_re_cq, ib_cq);
+ 	rdev = cq->rdev;
+ 	dev_attr = rdev->dev_attr;
+-	if (!ibcq->uobject) {
+-		ibdev_err(&rdev->ibdev, "Kernel CQ Resize not supported");
+-		return -EOPNOTSUPP;
 -	}
  
+ 	if (cq->resize_umem) {
+ 		ibdev_err(&rdev->ibdev, "Resize CQ %#x failed - Busy",
+@@ -3375,7 +3371,7 @@ int bnxt_re_resize_cq(struct ib_cq *ibcq, int cqe, struct ib_udata *udata)
+ 		ibdev_err(&rdev->ibdev, "%s: ib_umem_get failed! rc = %pe\n",
+ 			  __func__, cq->resize_umem);
+ 		cq->resize_umem = NULL;
+-		goto fail;
++		return rc;
+ 	}
+ 	cq->resize_cqe = entries;
+ 	memcpy(&sg_info, &cq->qplib_cq.sg_info, sizeof(sg_info));
+@@ -3399,13 +3395,11 @@ int bnxt_re_resize_cq(struct ib_cq *ibcq, int cqe, struct ib_udata *udata)
  	return 0;
  
- err_cleanup:
--	cleanup_err = rxe_cleanup(cq);
--	if (cleanup_err)
--		rxe_err_cq(cq, "cleanup failed, err = %d\n", cleanup_err);
--err_out:
--	rxe_err_dev(rxe, "returned err = %d\n", err);
-+	rxe_cleanup(cq);
-+	return err;
-+}
-+
-+static int rxe_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
-+			 struct uverbs_attr_bundle *attrs)
-+{
-+	struct ib_device *dev = ibcq->device;
-+	struct rxe_dev *rxe = to_rdev(dev);
-+	struct rxe_cq *cq = to_rcq(ibcq);
-+	int err;
-+
-+	if (attr->flags)
-+		return -EOPNOTSUPP;
-+
-+	if (attr->cqe > rxe->attr.max_cqe)
-+		return -EINVAL;
-+
-+	err = rxe_add_to_pool(&rxe->cq_pool, cq);
-+	if (err)
-+		return err;
-+
-+	err = rxe_cq_from_init(rxe, cq, attr->cqe, attr->comp_vector, NULL,
-+			       NULL);
-+	if (err)
-+		goto err_cleanup;
-+
-+	return 0;
-+
-+err_cleanup:
-+	rxe_cleanup(cq);
- 	return err;
+ fail:
+-	if (cq->resize_umem) {
+-		ib_umem_release(cq->resize_umem);
+-		cq->resize_umem = NULL;
+-		cq->resize_cqe = 0;
+-		memcpy(&cq->qplib_cq.sg_info, &sg_info, sizeof(sg_info));
+-		cq->qplib_cq.dpi = orig_dpi;
+-	}
++	ib_umem_release(cq->resize_umem);
++	cq->resize_umem = NULL;
++	cq->resize_cqe = 0;
++	memcpy(&cq->qplib_cq.sg_info, &sg_info, sizeof(sg_info));
++	cq->qplib_cq.dpi = orig_dpi;
+ 	return rc;
  }
  
-@@ -1478,6 +1490,7 @@ static const struct ib_device_ops rxe_dev_ops = {
- 	.attach_mcast = rxe_attach_mcast,
- 	.create_ah = rxe_create_ah,
- 	.create_cq = rxe_create_cq,
-+	.create_user_cq = rxe_create_user_cq,
- 	.create_qp = rxe_create_qp,
- 	.create_srq = rxe_create_srq,
- 	.create_user_ah = rxe_create_ah,
 
 -- 
 2.52.0
