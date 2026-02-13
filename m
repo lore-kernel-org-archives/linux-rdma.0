@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 99434357A48;
-	Fri, 13 Feb 2026 11:00:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2FD1635E558;
+	Fri, 13 Feb 2026 11:00:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770980441; cv=none; b=e+zlhk46/PTqPwmtzpBSfDAhxzsrcCsEooc3OF92KfGpdu0r91/OUddBOnGv7W5raib5L/VidR4jeHGhPpblHzsZ4qWTbbYjXWPrSK5ygO4V871EOgtWxHufpu1r/QkWMw6gsWwYfYufiubg35A0H4WBZW8pejBETAwIRfxzGE0=
+	t=1770980445; cv=none; b=thqpN1kT8+DFlHUQ1h+Op9MxFWoQ1g03+vzXbkraKnwOGZsXmYcWobnyBo/wYTLSKZKgBm3dTEZrfFZlJtjY6nWPXPtjbtn7Ncc/WPVyR+/ONmLRiTK7vKbwcaYdc3RrR0iUL2IZBZwO3aIsse3SJe+uNc9RhMyVwjHkmhSCDLI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770980441; c=relaxed/simple;
-	bh=1CctY2HBwLpkfQae2Bhsg6mecp9K8sByxfsXB098nls=;
+	s=arc-20240116; t=1770980445; c=relaxed/simple;
+	bh=2nVLE73sT2uaUudlFaxYimETRxX/g6qBtDOZjvSQO0I=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=kiGO4/y5fImZe93obSkHfjb3HH7PWx3B06v/tH12TXswjSayOd8w/dR8aBAr71U0PSbL34SqUfnxdREMkxioiKDrN3PKbRgxxX2oyuHV37LytTphUKhT0ybXvDNBgQEYwWW/7uqEjnD1bVPOlD8xkpXcjtK0t0pXluSrPHgDasI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=h3MRYdf+; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version:Content-Type; b=N0djZfXcNcHbHwr+0KOzQbyJuOIGWPvWAUReVIcUtB7vAGa5oAfvd90wlNV6O9UoarazuLOSQfCwxh1nDKigk20lJopPj7YBhVD6Wn1MTo/Kszi+h1xfuf31vDCU8ZAlYR5IHatci0mZ3qWB2jb+BEoxbEOOSCaOUmVgkLJFnmM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=cDYe/qQb; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="h3MRYdf+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B04FAC116C6;
-	Fri, 13 Feb 2026 11:00:40 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="cDYe/qQb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6D06EC116C6;
+	Fri, 13 Feb 2026 11:00:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1770980441;
-	bh=1CctY2HBwLpkfQae2Bhsg6mecp9K8sByxfsXB098nls=;
+	s=k20201202; t=1770980445;
+	bh=2nVLE73sT2uaUudlFaxYimETRxX/g6qBtDOZjvSQO0I=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=h3MRYdf+fowSfICWWtLhL3Q+lVcefmx8y2DMYlv/emZejELGChqql3aGEuj6C9tWa
-	 lsLJ+junZEvuyxb74+DeR4AEPcDVuzrJsEZ5XKvMMoSWFv+egAjyJbNU246Z1H2hAW
-	 yYmTE1kG2TomNj63JnhHtsqtkgXxezQhy4b+lLzPc++pQfdUW/kyzMx6jZ9ni8C/uI
-	 hIuJ1ndut42HkNIiHBPHXFiUeUzjleC/1Yi/2rSjG7PLKXCkWSquRj/4s+q5F3yyNT
-	 6djUi+sRbKFbfbOZptvxBk+M3cw8WY7KdZMA5Xa5tupL0P7gUVtcAeI+SyAKV1jP5d
-	 gjIOu8PIm2yig==
+	b=cDYe/qQbdAS++XO3ZDdALH5QDW1EbZV+dBVWefvD5H7nNwAPz8tcSUOyl/i1VaQ6w
+	 xiDySHBCW7fLfIy4Rx09MdsCZR/mb7kaC+bZ7NxHGcR5+bWDHgX+g+gu71zDHMfTrJ
+	 /SCNJyoA5Z6Bw+qS+tgz50JQiD9teIlqslUq8gA4CSe1aSnQ/8ITIDBleT8RjA2z/k
+	 SUiTFXuxXMnzTpZ0Mi0UzvC3jJ5LgJHSbxjhjSmjN8Hk+JGpKDo925odrLy6mbIXju
+	 C39xhF4URUo95wlwgdgHdLUeuDu4VrlUe0kyW2v21THFUUiKhvwxzpXiMtmPo8ZjaF
+	 sP4bzB1EyaSdA==
 From: Leon Romanovsky <leon@kernel.org>
 To: Jason Gunthorpe <jgg@ziepe.ca>,
 	Leon Romanovsky <leon@kernel.org>,
@@ -58,9 +58,9 @@ To: Jason Gunthorpe <jgg@ziepe.ca>,
 Cc: linux-kernel@vger.kernel.org,
 	linux-rdma@vger.kernel.org,
 	linux-hyperv@vger.kernel.org
-Subject: [PATCH rdma-next 26/50] RDMA/erdma: Separate user and kernel CQ creation paths
-Date: Fri, 13 Feb 2026 12:58:02 +0200
-Message-ID: <20260213-refactor-umem-v1-26-f3be85847922@nvidia.com>
+Subject: [PATCH rdma-next 30/50] RDMA/core: Remove legacy CQ creation fallback path
+Date: Fri, 13 Feb 2026 12:58:06 +0200
+Message-ID: <20260213-refactor-umem-v1-30-f3be85847922@nvidia.com>
 X-Mailer: git-send-email 2.53.0
 In-Reply-To: <20260213-refactor-umem-v1-0-f3be85847922@nvidia.com>
 References: <20260213-refactor-umem-v1-0-f3be85847922@nvidia.com>
@@ -76,224 +76,80 @@ Content-Transfer-Encoding: 8bit
 
 From: Leon Romanovsky <leonro@nvidia.com>
 
-Split CQ creation into distinct kernel and user flows. The hns driver,
-inherited from mlx4, uses a problematic pattern that shares and caches
-umem in hns_roce_db_map_user(). This design blocks the driver from
-supporting generic umem sources (VMA, dmabuf, memfd, and others).
+All drivers now support the modern CQ creation interface via the
+create_user_cq callback. Remove the legacy fallback to create_cq
+for userspace CQ creation.
 
-In addition, let's delete counter that counts CQ creation errors. There
-are multiple ways to debug kernel in modern kernel without need to rely
-on that debugfs counter.
+This simplifies the core code by eliminating conditional logic and
+ensures all userspace CQ creation goes through the modern interface
+that properly supports user-supplied umem.
 
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_cq.c      | 103 ++++++++++++++++++++-------
- drivers/infiniband/hw/hns/hns_roce_debugfs.c |   1 -
- drivers/infiniband/hw/hns/hns_roce_device.h  |   3 +-
- drivers/infiniband/hw/hns/hns_roce_main.c    |   1 +
- 4 files changed, 82 insertions(+), 26 deletions(-)
+ drivers/infiniband/core/uverbs_cmd.c          | 9 +++------
+ drivers/infiniband/core/uverbs_std_types_cq.c | 8 ++------
+ 2 files changed, 5 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_cq.c b/drivers/infiniband/hw/hns/hns_roce_cq.c
-index 857a913326cd..0f24a916466b 100644
---- a/drivers/infiniband/hw/hns/hns_roce_cq.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_cq.c
-@@ -335,7 +335,10 @@ static int verify_cq_create_attr(struct hns_roce_dev *hr_dev,
- {
- 	struct ib_device *ibdev = &hr_dev->ib_dev;
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index 041bed7a43b4..cdfee86fb800 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -1071,10 +1071,7 @@ static int create_cq(struct uverbs_attr_bundle *attrs,
+ 	rdma_restrack_new(&cq->res, RDMA_RESTRACK_CQ);
+ 	rdma_restrack_set_name(&cq->res, NULL);
  
--	if (!attr->cqe || attr->cqe > hr_dev->caps.max_cqes) {
-+	if (attr->flags)
-+		return -EOPNOTSUPP;
-+
-+	if (attr->cqe > hr_dev->caps.max_cqes) {
- 		ibdev_err(ibdev, "failed to check CQ count %u, max = %u.\n",
- 			  attr->cqe, hr_dev->caps.max_cqes);
- 		return -EINVAL;
-@@ -407,8 +410,8 @@ static int set_cqe_size(struct hns_roce_cq *hr_cq, struct ib_udata *udata,
- 	return 0;
- }
- 
--int hns_roce_create_cq(struct ib_cq *ib_cq, const struct ib_cq_init_attr *attr,
--		       struct uverbs_attr_bundle *attrs)
-+int hns_roce_create_user_cq(struct ib_cq *ib_cq, const struct ib_cq_init_attr *attr,
-+			    struct uverbs_attr_bundle *attrs)
- {
- 	struct hns_roce_dev *hr_dev = to_hr_dev(ib_cq->device);
- 	struct ib_udata *udata = &attrs->driver_udata;
-@@ -418,31 +421,27 @@ int hns_roce_create_cq(struct ib_cq *ib_cq, const struct ib_cq_init_attr *attr,
- 	struct hns_roce_ib_create_cq ucmd = {};
+-	if (ib_dev->ops.create_user_cq)
+-		ret = ib_dev->ops.create_user_cq(cq, &attr, attrs);
+-	else
+-		ret = ib_dev->ops.create_cq(cq, &attr, attrs);
++	ret = ib_dev->ops.create_user_cq(cq, &attr, attrs);
+ 	if (ret)
+ 		goto err_free;
+ 	rdma_restrack_add(&cq->res);
+@@ -3791,7 +3788,7 @@ const struct uapi_definition uverbs_def_write_intf[] = {
+ 				     UAPI_DEF_WRITE_UDATA_IO(
+ 					     struct ib_uverbs_create_cq,
+ 					     struct ib_uverbs_create_cq_resp),
+-				     UAPI_DEF_METHOD_NEEDS_FN(create_cq)),
++				     UAPI_DEF_METHOD_NEEDS_FN(create_user_cq)),
+ 		DECLARE_UVERBS_WRITE(
+ 			IB_USER_VERBS_CMD_DESTROY_CQ,
+ 			ib_uverbs_destroy_cq,
+@@ -3822,7 +3819,7 @@ const struct uapi_definition uverbs_def_write_intf[] = {
+ 					     reserved,
+ 					     struct ib_uverbs_ex_create_cq_resp,
+ 					     response_length),
+-			UAPI_DEF_METHOD_NEEDS_FN(create_cq)),
++			UAPI_DEF_METHOD_NEEDS_FN(create_user_cq)),
+ 		DECLARE_UVERBS_WRITE_EX(
+ 			IB_USER_VERBS_EX_CMD_MODIFY_CQ,
+ 			ib_uverbs_ex_modify_cq,
+diff --git a/drivers/infiniband/core/uverbs_std_types_cq.c b/drivers/infiniband/core/uverbs_std_types_cq.c
+index d2c8f71f934c..a12e3184dd5c 100644
+--- a/drivers/infiniband/core/uverbs_std_types_cq.c
++++ b/drivers/infiniband/core/uverbs_std_types_cq.c
+@@ -78,8 +78,7 @@ static int UVERBS_HANDLER(UVERBS_METHOD_CQ_CREATE)(
+ 	int buffer_fd;
  	int ret;
  
--	if (attr->flags) {
--		ret = -EOPNOTSUPP;
--		goto err_out;
--	}
-+	if (ib_cq->umem)
-+		return -EOPNOTSUPP;
+-	if ((!ib_dev->ops.create_cq && !ib_dev->ops.create_user_cq) ||
+-	    !ib_dev->ops.destroy_cq)
++	if (!ib_dev->ops.create_user_cq || !ib_dev->ops.destroy_cq)
+ 		return -EOPNOTSUPP;
  
- 	ret = verify_cq_create_attr(hr_dev, attr);
+ 	ret = uverbs_copy_from(&attr.comp_vector, attrs,
+@@ -200,10 +199,7 @@ static int UVERBS_HANDLER(UVERBS_METHOD_CQ_CREATE)(
+ 	rdma_restrack_new(&cq->res, RDMA_RESTRACK_CQ);
+ 	rdma_restrack_set_name(&cq->res, NULL);
+ 
+-	if (ib_dev->ops.create_user_cq)
+-		ret = ib_dev->ops.create_user_cq(cq, &attr, attrs);
+-	else
+-		ret = ib_dev->ops.create_cq(cq, &attr, attrs);
++	ret = ib_dev->ops.create_user_cq(cq, &attr, attrs);
  	if (ret)
--		goto err_out;
-+		return ret;
+ 		goto err_free;
  
--	if (udata) {
--		ret = get_cq_ucmd(hr_cq, udata, &ucmd);
--		if (ret)
--			goto err_out;
--	}
-+	ret = get_cq_ucmd(hr_cq, udata, &ucmd);
-+	if (ret)
-+		return ret;
- 
- 	set_cq_param(hr_cq, attr->cqe, attr->comp_vector, &ucmd);
- 
- 	ret = set_cqe_size(hr_cq, udata, &ucmd);
- 	if (ret)
--		goto err_out;
-+		return ret;
- 
- 	ret = alloc_cq_buf(hr_dev, hr_cq, udata, ucmd.buf_addr);
- 	if (ret) {
- 		ibdev_err(ibdev, "failed to alloc CQ buf, ret = %d.\n", ret);
--		goto err_out;
-+		return ret;
- 	}
- 
- 	ret = alloc_cq_db(hr_dev, hr_cq, udata, ucmd.db_addr, &resp);
-@@ -464,13 +463,11 @@ int hns_roce_create_cq(struct ib_cq *ib_cq, const struct ib_cq_init_attr *attr,
- 		goto err_cqn;
- 	}
- 
--	if (udata) {
--		resp.cqn = hr_cq->cqn;
--		ret = ib_copy_to_udata(udata, &resp,
--				       min(udata->outlen, sizeof(resp)));
--		if (ret)
--			goto err_cqc;
--	}
-+	resp.cqn = hr_cq->cqn;
-+	ret = ib_copy_to_udata(udata, &resp,
-+			       min(udata->outlen, sizeof(resp)));
-+	if (ret)
-+		goto err_cqc;
- 
- 	hr_cq->cons_index = 0;
- 	hr_cq->arm_sn = 1;
-@@ -487,9 +484,67 @@ int hns_roce_create_cq(struct ib_cq *ib_cq, const struct ib_cq_init_attr *attr,
- 	free_cq_db(hr_dev, hr_cq, udata);
- err_cq_buf:
- 	free_cq_buf(hr_dev, hr_cq);
--err_out:
--	atomic64_inc(&hr_dev->dfx_cnt[HNS_ROCE_DFX_CQ_CREATE_ERR_CNT]);
-+	return ret;
-+}
-+
-+int hns_roce_create_cq(struct ib_cq *ib_cq, const struct ib_cq_init_attr *attr,
-+		       struct uverbs_attr_bundle *attrs)
-+{
-+	struct hns_roce_dev *hr_dev = to_hr_dev(ib_cq->device);
-+	struct hns_roce_ib_create_cq_resp resp = {};
-+	struct hns_roce_cq *hr_cq = to_hr_cq(ib_cq);
-+	struct ib_device *ibdev = &hr_dev->ib_dev;
-+	struct hns_roce_ib_create_cq ucmd = {};
-+	int ret;
-+
-+	ret = verify_cq_create_attr(hr_dev, attr);
-+	if (ret)
-+		return ret;
-+
-+	set_cq_param(hr_cq, attr->cqe, attr->comp_vector, &ucmd);
-+
-+	ret = set_cqe_size(hr_cq, NULL, &ucmd);
-+	if (ret)
-+		return ret;
- 
-+	ret = alloc_cq_buf(hr_dev, hr_cq, NULL, 0);
-+	if (ret) {
-+		ibdev_err(ibdev, "failed to alloc CQ buf, ret = %d.\n", ret);
-+		return ret;
-+	}
-+
-+	ret = alloc_cq_db(hr_dev, hr_cq, NULL, 0, &resp);
-+	if (ret) {
-+		ibdev_err(ibdev, "failed to alloc CQ db, ret = %d.\n", ret);
-+		goto err_cq_buf;
-+	}
-+
-+	ret = alloc_cqn(hr_dev, hr_cq, NULL);
-+	if (ret) {
-+		ibdev_err(ibdev, "failed to alloc CQN, ret = %d.\n", ret);
-+		goto err_cq_db;
-+	}
-+
-+	ret = alloc_cqc(hr_dev, hr_cq);
-+	if (ret) {
-+		ibdev_err(ibdev,
-+			  "failed to alloc CQ context, ret = %d.\n", ret);
-+		goto err_cqn;
-+	}
-+
-+	hr_cq->cons_index = 0;
-+	hr_cq->arm_sn = 1;
-+	refcount_set(&hr_cq->refcount, 1);
-+	init_completion(&hr_cq->free);
-+
-+	return 0;
-+
-+err_cqn:
-+	free_cqn(hr_dev, hr_cq->cqn);
-+err_cq_db:
-+	free_cq_db(hr_dev, hr_cq, NULL);
-+err_cq_buf:
-+	free_cq_buf(hr_dev, hr_cq);
- 	return ret;
- }
- 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_debugfs.c b/drivers/infiniband/hw/hns/hns_roce_debugfs.c
-index b869cdc54118..481b30f2f5b5 100644
---- a/drivers/infiniband/hw/hns/hns_roce_debugfs.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_debugfs.c
-@@ -47,7 +47,6 @@ static const char * const sw_stat_info[] = {
- 	[HNS_ROCE_DFX_MBX_EVENT_CNT] = "mbx_event",
- 	[HNS_ROCE_DFX_QP_CREATE_ERR_CNT] = "qp_create_err",
- 	[HNS_ROCE_DFX_QP_MODIFY_ERR_CNT] = "qp_modify_err",
--	[HNS_ROCE_DFX_CQ_CREATE_ERR_CNT] = "cq_create_err",
- 	[HNS_ROCE_DFX_CQ_MODIFY_ERR_CNT] = "cq_modify_err",
- 	[HNS_ROCE_DFX_SRQ_CREATE_ERR_CNT] = "srq_create_err",
- 	[HNS_ROCE_DFX_SRQ_MODIFY_ERR_CNT] = "srq_modify_err",
-diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
-index 3f032b8038af..fdc5f487d7a3 100644
---- a/drivers/infiniband/hw/hns/hns_roce_device.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_device.h
-@@ -902,7 +902,6 @@ enum hns_roce_sw_dfx_stat_index {
- 	HNS_ROCE_DFX_MBX_EVENT_CNT,
- 	HNS_ROCE_DFX_QP_CREATE_ERR_CNT,
- 	HNS_ROCE_DFX_QP_MODIFY_ERR_CNT,
--	HNS_ROCE_DFX_CQ_CREATE_ERR_CNT,
- 	HNS_ROCE_DFX_CQ_MODIFY_ERR_CNT,
- 	HNS_ROCE_DFX_SRQ_CREATE_ERR_CNT,
- 	HNS_ROCE_DFX_SRQ_MODIFY_ERR_CNT,
-@@ -1295,6 +1294,8 @@ int to_hr_qp_type(int qp_type);
- 
- int hns_roce_create_cq(struct ib_cq *ib_cq, const struct ib_cq_init_attr *attr,
- 		       struct uverbs_attr_bundle *attrs);
-+int hns_roce_create_user_cq(struct ib_cq *ib_cq, const struct ib_cq_init_attr *attr,
-+			    struct uverbs_attr_bundle *attrs);
- 
- int hns_roce_destroy_cq(struct ib_cq *ib_cq, struct ib_udata *udata);
- int hns_roce_db_map_user(struct hns_roce_ucontext *context, unsigned long virt,
-diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
-index a3490bab297a..64de49bf8df7 100644
---- a/drivers/infiniband/hw/hns/hns_roce_main.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_main.c
-@@ -727,6 +727,7 @@ static const struct ib_device_ops hns_roce_dev_ops = {
- 	.create_ah = hns_roce_create_ah,
- 	.create_user_ah = hns_roce_create_ah,
- 	.create_cq = hns_roce_create_cq,
-+	.create_user_cq = hns_roce_create_user_cq,
- 	.create_qp = hns_roce_create_qp,
- 	.dealloc_pd = hns_roce_dealloc_pd,
- 	.dealloc_ucontext = hns_roce_dealloc_ucontext,
 
 -- 
 2.52.0
