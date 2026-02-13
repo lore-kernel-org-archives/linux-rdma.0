@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 83D613587A2;
-	Fri, 13 Feb 2026 11:00:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 41D2234B661;
+	Fri, 13 Feb 2026 11:00:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770980411; cv=none; b=CtRbzMxBOJeaKAP+p2zWuLUq/d0eE7SJKWw8mS4Sq+V0YqJjWxpEXLNE2x8++8QwpGFv+k0FMtt7aP7gn9vUam8q6xu52cNfEcDadcHYVoa286yVq+5Q0bSt6gXzifAh8V6uLRCruEN3hCw4ZYI/mH6RY8fN6BQ4HSgRntRHHZM=
+	t=1770980415; cv=none; b=mnTbH0NMrRr9Sf1CNsqsgrtwDvRNByaxyXmKT9JgrfXaYPDUUT0n1xLnpm/DSb55i3Npy2gGzzQtu3hIUOxnJX5lTKgPUZeAcyJOaCUqQoFCB6xMFAlk3bo2OoRWh2nB9q3Hjvcz/yAuZHggZEhhf3CpgwfhpEdZcqc20oUnxv4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770980411; c=relaxed/simple;
-	bh=s78Zi7UXsBRgLKBAZ5n7fQmfZPeu1Dtkh9uqA8RaVzw=;
+	s=arc-20240116; t=1770980415; c=relaxed/simple;
+	bh=a19PQ2D2C2DCb3hfZ+sOatc/4oV1zbjy3TOeGnf+Dj8=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=WXSK668oICNKuOS1XnJ5YhXTzLec0CnJjo5syTXVbr21TfXRUJtEn6Rw53CCIcRmcXhSpYSkW0ZVUIe4dKIBbVq0mH68gHcDxobzsRMu1ZbwYUWbW3XAN6rhwJicsBIkdKsDiaxFFmaqdOh7Aw2W8p2tAZ8DmZ4MQCQUIYyGpcg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=XEGQDWfk; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version:Content-Type; b=ZB5PzdrQpMRjLpT69Hk5QM92T6ETHQNzqPH451SmezN0LMpheK2rl0wOodRTd4C9+slx0LvlFr6/R770vK5W5EGmaEk4XG1CwSZ4Chx51VE+Ld/sJg+kFuoEcQjvcmmy68RVxNqGWLGDkAeoiJNrKiFAdyChqiPWmIcPQwJ8+wc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=KHRERZpq; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="XEGQDWfk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 96048C116C6;
-	Fri, 13 Feb 2026 11:00:10 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="KHRERZpq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4DC9CC16AAE;
+	Fri, 13 Feb 2026 11:00:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1770980411;
-	bh=s78Zi7UXsBRgLKBAZ5n7fQmfZPeu1Dtkh9uqA8RaVzw=;
+	s=k20201202; t=1770980415;
+	bh=a19PQ2D2C2DCb3hfZ+sOatc/4oV1zbjy3TOeGnf+Dj8=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=XEGQDWfkcO/J4lqcTytbrozdtN2QImw6fX8TX2+VVw+kgh7Ul6sUjT3/+tn20G+xZ
-	 fGKgofiPyxNhood8LIOuMLXzh6K7QpUVj3vzDaEttTjAbEv38H+jVR7vqBWaEr6GPb
-	 NymVNsDTkKf+SacdhWRGWN5XKCwIS83otzgDKZBVjqoyRf3slF+8eWmLvqlCDHJwTF
-	 X8Rr+e7IF8oUYxc8Ocpdx1FcD9oiyCK6qYeho3amuxruHBXlyFsYepuIgti+IPy47a
-	 ZduKb9WTwNUsX5ytKvTPOMYS472HqhXZoXNYYEH0VpcAQUNt8slETwCACophh7VagA
-	 lBlOoAg2OE6Xw==
+	b=KHRERZpq/kwOnJlNAtMLy4ABMFIGwIy5tc67If7UpWtDkSgv5sTONi3R4nhmT2JIK
+	 iEmzfC47O8p/WdQGQzKSuBGmuLoLNGe32yGqNXuWZHsqCjfLROaUWepxVXv9aJ0IjM
+	 u7ZbgPgUM3gSo8wZCpU+j7SmP+2BVJGdKLDbQCv1AVFiz8GhMcN71K2fUEu+VfODk/
+	 Ry7cdQ3wthFxhPZh2BlaiYjanhFqlDTu8PMl51sRjtzI1ctNS0qx5eW/GPFJkpHnAk
+	 0XV3jq633YSL8kRZ0UFRB/5ftBEhglJimbAoXP15VmvYmGaoKPn7TFCL57h725n8Gi
+	 oz9535P/Opeqg==
 From: Leon Romanovsky <leon@kernel.org>
 To: Jason Gunthorpe <jgg@ziepe.ca>,
 	Leon Romanovsky <leon@kernel.org>,
@@ -58,9 +58,9 @@ To: Jason Gunthorpe <jgg@ziepe.ca>,
 Cc: linux-kernel@vger.kernel.org,
 	linux-rdma@vger.kernel.org,
 	linux-hyperv@vger.kernel.org
-Subject: [PATCH rdma-next 21/50] RDMA/vmw_pvrdma: Provide a modern CQ creation interface
-Date: Fri, 13 Feb 2026 12:57:57 +0200
-Message-ID: <20260213-refactor-umem-v1-21-f3be85847922@nvidia.com>
+Subject: [PATCH rdma-next 19/50] RDMA/ionic: Split user and kernel CQ creation paths
+Date: Fri, 13 Feb 2026 12:57:55 +0200
+Message-ID: <20260213-refactor-umem-v1-19-f3be85847922@nvidia.com>
 X-Mailer: git-send-email 2.53.0
 In-Reply-To: <20260213-refactor-umem-v1-0-f3be85847922@nvidia.com>
 References: <20260213-refactor-umem-v1-0-f3be85847922@nvidia.com>
@@ -76,282 +76,183 @@ Content-Transfer-Encoding: 8bit
 
 From: Leon Romanovsky <leonro@nvidia.com>
 
-The uverbs CQ creation UAPI allows users to supply their own umem for a CQ.
-Update vmw_pvrdma to support this workflow while preserving support for creating
-umem through the legacy interface.
+Separate the CQ creation logic into distinct kernel and user flows. The ionic
+driver may allocate two umems per CQ, and the current layout prevents it from
+supporting generic umem sources (VMA, dmabuf, memfd, and others).
 
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c    | 171 ++++++++++++++++--------
- drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c  |   1 +
- drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.h |   3 +
- 3 files changed, 121 insertions(+), 54 deletions(-)
+ drivers/infiniband/hw/ionic/ionic_controlpath.c | 88 +++++++++++++++++--------
+ drivers/infiniband/hw/ionic/ionic_ibdev.c       |  1 +
+ drivers/infiniband/hw/ionic/ionic_ibdev.h       |  2 +
+ 3 files changed, 64 insertions(+), 27 deletions(-)
 
-diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c
-index b3df6eb9b8ef..c43c363565c1 100644
---- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c
-+++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c
-@@ -90,16 +90,9 @@ int pvrdma_req_notify_cq(struct ib_cq *ibcq,
- 	return has_data;
+diff --git a/drivers/infiniband/hw/ionic/ionic_controlpath.c b/drivers/infiniband/hw/ionic/ionic_controlpath.c
+index ea12d9b8e125..5b8b6baaf5d4 100644
+--- a/drivers/infiniband/hw/ionic/ionic_controlpath.c
++++ b/drivers/infiniband/hw/ionic/ionic_controlpath.c
+@@ -89,7 +89,7 @@ int ionic_create_cq_common(struct ionic_vcq *vcq,
+ 
+ 	cq->vcq = vcq;
+ 
+-	if (attr->cqe < 1 || attr->cqe + IONIC_CQ_GRACE > 0xffff) {
++	if (attr->cqe > 0xffff - IONIC_CQ_GRACE) {
+ 		rc = -EINVAL;
+ 		goto err_args;
+ 	}
+@@ -1209,8 +1209,8 @@ static int ionic_destroy_cq_cmd(struct ionic_ibdev *dev, u32 cqid)
+ 	return ionic_admin_wait(dev, &wr, IONIC_ADMIN_F_TEARDOWN);
  }
  
--/**
-- * pvrdma_create_cq - create completion queue
-- * @ibcq: Allocated CQ
-- * @attr: completion queue attributes
-- * @attrs: bundle
-- *
-- * @return: 0 on success
-- */
--int pvrdma_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
--		     struct uverbs_attr_bundle *attrs)
-+int pvrdma_create_user_cq(struct ib_cq *ibcq,
-+			  const struct ib_cq_init_attr *attr,
-+			  struct uverbs_attr_bundle *attrs)
+-int ionic_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
+-		    struct uverbs_attr_bundle *attrs)
++int ionic_create_user_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
++			 struct uverbs_attr_bundle *attrs)
  {
+ 	struct ionic_ibdev *dev = to_ionic_ibdev(ibcq->device);
  	struct ib_udata *udata = &attrs->driver_udata;
- 	struct ib_device *ibdev = ibcq->device;
-@@ -123,58 +116,48 @@ int pvrdma_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
- 	if (attr->flags)
- 		return -EOPNOTSUPP;
+@@ -1222,21 +1222,18 @@ int ionic_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
+ 	struct ionic_cq_req req;
+ 	int udma_idx = 0, rc;
  
--	entries = roundup_pow_of_two(entries);
--	if (entries < 1 || entries > dev->dsr->caps.max_cqe)
-+	if (attr->cqe > dev->dsr->caps.max_cqe)
- 		return -EINVAL;
+-	if (udata) {
+-		rc = ib_copy_from_udata(&req, udata, sizeof(req));
+-		if (rc)
+-			return rc;
+-	}
++	if (ibcq->umem)
++		return -EOPNOTSUPP;
  
-+	entries = roundup_pow_of_two(entries);
-+
- 	if (!atomic_add_unless(&dev->num_cqs, 1, dev->dsr->caps.max_cq))
- 		return -ENOMEM;
+-	vcq->udma_mask = BIT(dev->lif_cfg.udma_count) - 1;
++	rc = ib_copy_from_udata(&req, udata, sizeof(req));
++	if (rc)
++		return rc;
  
- 	cq->ibcq.cqe = entries;
--	cq->is_kernel = !udata;
--
--	if (!cq->is_kernel) {
--		if (ib_copy_from_udata(&ucmd, udata, sizeof(ucmd))) {
--			ret = -EFAULT;
--			goto err_cq;
--		}
--
--		cq->umem = ib_umem_get(ibdev, ucmd.buf_addr, ucmd.buf_size,
--				       IB_ACCESS_LOCAL_WRITE);
--		if (IS_ERR(cq->umem)) {
--			ret = PTR_ERR(cq->umem);
--			goto err_cq;
--		}
-+	cq->is_kernel = false;
+-	if (udata)
+-		vcq->udma_mask &= req.udma_mask;
++	vcq->udma_mask = BIT(dev->lif_cfg.udma_count) - 1;
++	vcq->udma_mask &= req.udma_mask;
  
--		npages = ib_umem_num_dma_blocks(cq->umem, PAGE_SIZE);
--	} else {
--		/* One extra page for shared ring state */
--		npages = 1 + (entries * sizeof(struct pvrdma_cqe) +
--			      PAGE_SIZE - 1) / PAGE_SIZE;
-+	if (ib_copy_from_udata(&ucmd, udata, sizeof(ucmd))) {
-+		ret = -EFAULT;
-+		goto err_cq;
-+	}
- 
--		/* Skip header page. */
--		cq->offset = PAGE_SIZE;
-+	if (!ibcq->umem)
-+		ibcq->umem = ib_umem_get(ibdev, ucmd.buf_addr, ucmd.buf_size,
-+					 IB_ACCESS_LOCAL_WRITE);
-+	if (IS_ERR(ibcq->umem)) {
-+		ret = PTR_ERR(ibcq->umem);
-+		goto err_cq;
- 	}
- 
-+	npages = ib_umem_num_dma_blocks(cq->umem, PAGE_SIZE);
-+
- 	if (npages < 0 || npages > PVRDMA_PAGE_DIR_MAX_PAGES) {
- 		dev_warn(&dev->pdev->dev,
- 			 "overflow pages in completion queue\n");
- 		ret = -EINVAL;
--		goto err_umem;
-+		goto err_cq;
- 	}
- 
--	ret = pvrdma_page_dir_init(dev, &cq->pdir, npages, cq->is_kernel);
-+	ret = pvrdma_page_dir_init(dev, &cq->pdir, npages, false);
- 	if (ret) {
- 		dev_warn(&dev->pdev->dev,
- 			 "could not allocate page directory\n");
--		goto err_umem;
-+		goto err_cq;
- 	}
- 
- 	/* Ring state is always the first page. Set in library for user cq. */
--	if (cq->is_kernel)
--		cq->ring_state = cq->pdir.pages[0];
--	else
--		pvrdma_page_dir_insert_umem(&cq->pdir, cq->umem, 0);
-+	pvrdma_page_dir_insert_umem(&cq->pdir, cq->umem, 0);
- 
- 	refcount_set(&cq->refcnt, 1);
- 	init_completion(&cq->free);
-@@ -183,7 +166,7 @@ int pvrdma_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
- 	memset(cmd, 0, sizeof(*cmd));
- 	cmd->hdr.cmd = PVRDMA_CMD_CREATE_CQ;
- 	cmd->nchunks = npages;
--	cmd->ctx_handle = context ? context->ctx_handle : 0;
-+	cmd->ctx_handle = context->ctx_handle;
- 	cmd->cqe = entries;
- 	cmd->pdir_dma = cq->pdir.dir_dma;
- 	ret = pvrdma_cmd_post(dev, &req, &rsp, PVRDMA_CMD_CREATE_CQ_RESP);
-@@ -200,24 +183,106 @@ int pvrdma_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
- 	dev->cq_tbl[cq->cq_handle % dev->dsr->caps.max_cq] = cq;
- 	spin_unlock_irqrestore(&dev->cq_tbl_lock, flags);
- 
--	if (!cq->is_kernel) {
--		cq->uar = &context->uar;
-+	cq->uar = &context->uar;
- 
--		/* Copy udata back. */
--		if (ib_copy_to_udata(udata, &cq_resp, sizeof(cq_resp))) {
--			dev_warn(&dev->pdev->dev,
--				 "failed to copy back udata\n");
--			pvrdma_destroy_cq(&cq->ibcq, udata);
--			return -EINVAL;
--		}
-+	/* Copy udata back. */
-+	if (ib_copy_to_udata(udata, &cq_resp, sizeof(cq_resp))) {
-+		dev_warn(&dev->pdev->dev,
-+			 "failed to copy back udata\n");
-+		pvrdma_destroy_cq(&cq->ibcq, udata);
+-	if (!vcq->udma_mask) {
+-		rc = -EINVAL;
+-		goto err_init;
+-	}
++	if (!vcq->udma_mask)
 +		return -EINVAL;
+ 
+ 	for (; udma_idx < dev->lif_cfg.udma_count; ++udma_idx) {
+ 		if (!(vcq->udma_mask & BIT(udma_idx)))
+@@ -1247,24 +1244,25 @@ int ionic_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
+ 					    &resp.cqid[udma_idx],
+ 					    udma_idx);
+ 		if (rc)
+-			goto err_init;
++			goto err_resp;
+ 
+ 		rc = ionic_create_cq_cmd(dev, ctx, &vcq->cq[udma_idx], &buf);
+-		if (rc)
+-			goto err_cmd;
++		if (rc) {
++			ionic_pgtbl_unbuf(dev, &buf);
++			ionic_destroy_cq_common(dev, &vcq->cq[udma_idx]);
++			goto err_resp;
++		}
+ 
+ 		ionic_pgtbl_unbuf(dev, &buf);
  	}
+ 
+ 	vcq->ibcq.cqe = attr->cqe;
+ 
+-	if (udata) {
+-		resp.udma_mask = vcq->udma_mask;
++	resp.udma_mask = vcq->udma_mask;
+ 
+-		rc = ib_copy_to_udata(udata, &resp, sizeof(resp));
+-		if (rc)
+-			goto err_resp;
+-	}
++	rc = ib_copy_to_udata(udata, &resp, sizeof(resp));
++	if (rc)
++		goto err_resp;
  
  	return 0;
  
- err_page_dir:
- 	pvrdma_page_dir_cleanup(dev, &cq->pdir);
--err_umem:
--	ib_umem_release(cq->umem);
-+err_cq:
-+	atomic_dec(&dev->num_cqs);
-+	return ret;
+@@ -1274,11 +1272,47 @@ int ionic_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
+ 		if (!(vcq->udma_mask & BIT(udma_idx)))
+ 			continue;
+ 		ionic_destroy_cq_cmd(dev, vcq->cq[udma_idx].cqid);
+-err_cmd:
+ 		ionic_pgtbl_unbuf(dev, &buf);
+ 		ionic_destroy_cq_common(dev, &vcq->cq[udma_idx]);
+-err_init:
+-		;
++	}
++
++	return rc;
 +}
 +
-+int pvrdma_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
-+		     struct uverbs_attr_bundle *attrs)
++int ionic_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
++		    struct uverbs_attr_bundle *attrs)
 +{
-+	struct ib_device *ibdev = ibcq->device;
-+	int entries = attr->cqe;
-+	struct pvrdma_dev *dev = to_vdev(ibdev);
-+	struct pvrdma_cq *cq = to_vcq(ibcq);
-+	int ret;
-+	int npages;
-+	unsigned long flags;
-+	union pvrdma_cmd_req req;
-+	union pvrdma_cmd_resp rsp;
-+	struct pvrdma_cmd_create_cq *cmd = &req.create_cq;
-+	struct pvrdma_cmd_create_cq_resp *resp = &rsp.create_cq_resp;
++	struct ionic_ibdev *dev = to_ionic_ibdev(ibcq->device);
++	struct ionic_vcq *vcq = to_ionic_vcq(ibcq);
++	struct ionic_tbl_buf buf = {};
++	int udma_idx = 0, rc;
 +
-+	BUILD_BUG_ON(sizeof(struct pvrdma_cqe) != 64);
++	vcq->udma_mask = BIT(dev->lif_cfg.udma_count) - 1;
++	for (; udma_idx < dev->lif_cfg.udma_count; ++udma_idx) {
++		rc = ionic_create_cq_common(vcq, &buf, attr, NULL, NULL, NULL,
++					    NULL, udma_idx);
++		if (rc)
++			goto err_resp;
 +
-+	if (attr->flags)
-+		return -EOPNOTSUPP;
++		rc = ionic_create_cq_cmd(dev, NULL, &vcq->cq[udma_idx], &buf);
++		if (rc) {
++			ionic_pgtbl_unbuf(dev, &buf);
++			ionic_destroy_cq_common(dev, &vcq->cq[udma_idx]);
++			goto err_resp;
++		}
 +
-+	if (attr->cqe > dev->dsr->caps.max_cqe)
-+		return -EINVAL;
-+	entries = roundup_pow_of_two(entries);
-+
-+	if (!atomic_add_unless(&dev->num_cqs, 1, dev->dsr->caps.max_cq))
-+		return -ENOMEM;
-+
-+	cq->ibcq.cqe = entries;
-+	cq->is_kernel = true;
-+
-+	/* One extra page for shared ring state */
-+	npages = 1 + (entries * sizeof(struct pvrdma_cqe) +
-+		      PAGE_SIZE - 1) / PAGE_SIZE;
-+
-+	/* Skip header page. */
-+	cq->offset = PAGE_SIZE;
-+
-+	if (npages < 0 || npages > PVRDMA_PAGE_DIR_MAX_PAGES) {
-+		dev_warn(&dev->pdev->dev,
-+			 "overflow pages in completion queue\n");
-+		ret = -EINVAL;
-+		goto err_cq;
++		ionic_pgtbl_unbuf(dev, &buf);
 +	}
 +
-+	ret = pvrdma_page_dir_init(dev, &cq->pdir, npages, true);
-+	if (ret) {
-+		dev_warn(&dev->pdev->dev,
-+			 "could not allocate page directory\n");
-+		goto err_cq;
-+	}
-+
-+	/* Ring state is always the first page. Set in library for user cq. */
-+	cq->ring_state = cq->pdir.pages[0];
-+
-+	refcount_set(&cq->refcnt, 1);
-+	init_completion(&cq->free);
-+	spin_lock_init(&cq->cq_lock);
-+
-+	memset(cmd, 0, sizeof(*cmd));
-+	cmd->hdr.cmd = PVRDMA_CMD_CREATE_CQ;
-+	cmd->nchunks = npages;
-+	cmd->ctx_handle = 0;
-+	cmd->cqe = entries;
-+	cmd->pdir_dma = cq->pdir.dir_dma;
-+	ret = pvrdma_cmd_post(dev, &req, &rsp, PVRDMA_CMD_CREATE_CQ_RESP);
-+	if (ret < 0) {
-+		dev_warn(&dev->pdev->dev,
-+			 "could not create completion queue, error: %d\n", ret);
-+		goto err_page_dir;
-+	}
-+
-+	cq->ibcq.cqe = resp->cqe;
-+	cq->cq_handle = resp->cq_handle;
-+	spin_lock_irqsave(&dev->cq_tbl_lock, flags);
-+	dev->cq_tbl[cq->cq_handle % dev->dsr->caps.max_cq] = cq;
-+	spin_unlock_irqrestore(&dev->cq_tbl_lock, flags);
++	vcq->ibcq.cqe = attr->cqe;
 +
 +	return 0;
 +
-+err_page_dir:
-+	pvrdma_page_dir_cleanup(dev, &cq->pdir);
- err_cq:
- 	atomic_dec(&dev->num_cqs);
- 	return ret;
-@@ -229,8 +294,6 @@ static void pvrdma_free_cq(struct pvrdma_dev *dev, struct pvrdma_cq *cq)
- 		complete(&cq->free);
- 	wait_for_completion(&cq->free);
++err_resp:
++	while (udma_idx--) {
++		ionic_destroy_cq_cmd(dev, vcq->cq[udma_idx].cqid);
++		ionic_pgtbl_unbuf(dev, &buf);
++		ionic_destroy_cq_common(dev, &vcq->cq[udma_idx]);
+ 	}
  
--	ib_umem_release(cq->umem);
--
- 	pvrdma_page_dir_cleanup(dev, &cq->pdir);
- }
- 
-diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
-index 1664d1d7d969..3f5b94a1e517 100644
---- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
-+++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
-@@ -194,6 +194,7 @@ static const struct ib_device_ops pvrdma_dev_ops = {
- 	.alloc_ucontext = pvrdma_alloc_ucontext,
- 	.create_ah = pvrdma_create_ah,
- 	.create_cq = pvrdma_create_cq,
-+	.create_user_cq = pvrdma_create_user_cq,
- 	.create_qp = pvrdma_create_qp,
- 	.dealloc_pd = pvrdma_dealloc_pd,
- 	.dealloc_ucontext = pvrdma_dealloc_ucontext,
-diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.h b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.h
-index 603e5a9311eb..18910d336744 100644
---- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.h
-+++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.h
-@@ -375,6 +375,9 @@ int pvrdma_map_mr_sg(struct ib_mr *ibmr, struct scatterlist *sg,
- 		     int sg_nents, unsigned int *sg_offset);
- int pvrdma_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
- 		     struct uverbs_attr_bundle *attrs);
-+int pvrdma_create_user_cq(struct ib_cq *ibcq,
-+			  const struct ib_cq_init_attr *attr,
-+			  struct uverbs_attr_bundle *attrs);
- int pvrdma_destroy_cq(struct ib_cq *cq, struct ib_udata *udata);
- int pvrdma_poll_cq(struct ib_cq *ibcq, int num_entries, struct ib_wc *wc);
- int pvrdma_req_notify_cq(struct ib_cq *cq, enum ib_cq_notify_flags flags);
+ 	return rc;
+diff --git a/drivers/infiniband/hw/ionic/ionic_ibdev.c b/drivers/infiniband/hw/ionic/ionic_ibdev.c
+index 164046d00e5d..32321a8996d6 100644
+--- a/drivers/infiniband/hw/ionic/ionic_ibdev.c
++++ b/drivers/infiniband/hw/ionic/ionic_ibdev.c
+@@ -229,6 +229,7 @@ static const struct ib_device_ops ionic_dev_ops = {
+ 	.alloc_mw = ionic_alloc_mw,
+ 	.dealloc_mw = ionic_dealloc_mw,
+ 	.create_cq = ionic_create_cq,
++	.create_user_cq = ionic_create_user_cq,
+ 	.destroy_cq = ionic_destroy_cq,
+ 	.create_qp = ionic_create_qp,
+ 	.modify_qp = ionic_modify_qp,
+diff --git a/drivers/infiniband/hw/ionic/ionic_ibdev.h b/drivers/infiniband/hw/ionic/ionic_ibdev.h
+index 63828240d659..0bcb8be6fb62 100644
+--- a/drivers/infiniband/hw/ionic/ionic_ibdev.h
++++ b/drivers/infiniband/hw/ionic/ionic_ibdev.h
+@@ -482,6 +482,8 @@ int ionic_alloc_mw(struct ib_mw *ibmw, struct ib_udata *udata);
+ int ionic_dealloc_mw(struct ib_mw *ibmw);
+ int ionic_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
+ 		    struct uverbs_attr_bundle *attrs);
++int ionic_create_user_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
++			 struct uverbs_attr_bundle *attrs);
+ int ionic_destroy_cq(struct ib_cq *ibcq, struct ib_udata *udata);
+ int ionic_create_qp(struct ib_qp *ibqp, struct ib_qp_init_attr *attr,
+ 		    struct ib_udata *udata);
 
 -- 
 2.52.0
