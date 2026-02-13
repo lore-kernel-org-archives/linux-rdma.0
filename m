@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 456F83559DA;
-	Fri, 13 Feb 2026 10:59:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B4FB21D3D6;
+	Fri, 13 Feb 2026 10:59:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770980377; cv=none; b=W1L6C/7G7GpCDUPZVPLSwt3Hv/byfx2PTw+luKRDpwcjR01B8KSrSuu75+Xzdtmxknx67nuQ47fKhruFutTO4ZNPPGMnWDxTuGCt2C3Y48xdWw35j8KSSd0WTWUzC+YNPzQwe3uUQzUMVbHGI29mLxeIdEXGtMPI4MxGrWFQe3o=
+	t=1770980381; cv=none; b=aKIRVLvWSxLwFe5xQVA3cRAbIH6y8Ck/sYXJiY039duDpeoM8HzF+el4Bybxm+DDgfiLPNHAaBe5KsrCI8v0lX1Dmr28G/j+ki7mNc38CT1zYr/L5Jq5IPiJCtBFAShKNnZD2j4REcmp1PXIz96hrzWzfjVqK1ThEpYZQjU7jYk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770980377; c=relaxed/simple;
-	bh=2cJ/2G3yJQf9uq5dUHoj/dBMQbpJF7L8DGWnhKjqzU4=;
+	s=arc-20240116; t=1770980381; c=relaxed/simple;
+	bh=DEbhTn6F1UX1TVdzezjFp62nwdCYX6NjcS4gjHmKhtM=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=p+1tz0gNBYzsRGlPc6koekOZdC7hQcHPBvBUiAjRDWeyQE6rZ865biKLlJh8Zst0UA72dyk8vcF+Vxb+OcaGxQyNPVNuXF0i1ScZ0OtygTQ27taAfrkHEVcCAcCgOTdJM7uyL7jFWk5zJUKCyDiwaE44U6a8X1FspTH3iOiID+k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=nRl5BlrG; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version:Content-Type; b=TGjuC7G/0vHetR4+8rkN8TI84EO2C80q2fqsPxvIxXbnvRZT9fHlouzDAVVMgi7Wn+uO14PcnFKqEavYelVH7uAurtD6e3YlkI8GFlgch9XObCDAbKqEJ19nkmCnktDh+yFB1KcxKkfxCQOlRnyYpd35erlhp7cOjNeN/Bk8fqw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=DDmXI31W; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="nRl5BlrG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F0CCAC116C6;
-	Fri, 13 Feb 2026 10:59:35 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="DDmXI31W"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EB03CC116C6;
+	Fri, 13 Feb 2026 10:59:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1770980376;
-	bh=2cJ/2G3yJQf9uq5dUHoj/dBMQbpJF7L8DGWnhKjqzU4=;
+	s=k20201202; t=1770980381;
+	bh=DEbhTn6F1UX1TVdzezjFp62nwdCYX6NjcS4gjHmKhtM=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=nRl5BlrGaVvfG9Cs/mFmkYuol0KmH1YCBzQihNoDehDGG+6r52y6mgyuylyp2FEl1
-	 99NZdX2hpBtynHOabD/lDnglkRV8Oju9SZ7yB4pXPehEjdQ/Q2hoFgR7jiQ1QEJxar
-	 rH7X1tbWeNEUmIeljKaq/EzK3EYTZXx6TcmiC7d7TDdSBgeLsLWOScCF54tGiZ4nDS
-	 /J3Iqz3DGprT3qYTBjVCD5KbgQrb0FuO0q24BwQwlx8NQUSAs1nmEppuUME5xLnVaQ
-	 T/VVcFSubN5AAw6r9UfBoEZe9LtQ0oTDwq3fi7eo6KzTy0F8XU00+oWgYXYYEswTwT
-	 p8cPEBu3sHpOA==
+	b=DDmXI31WWgbZ8pUEXO/805G1YKrgTEuot9/XK3KnN1ugHGmzERuFkN68ZqUyjMhxt
+	 gv7lgafxmY5HahAeHE8mxQNCeZel2efnz13xB6ux3vXZCxbBto+OgQnOKPudyjkaBa
+	 nyFK72PVOkJjjXiqaFOwmJjGi/daUl4IY+kiWRdYIgl/JLUG3SAhXTyhtaWN95o4LT
+	 1Ej3drJ3xgLHJ82HINrxtA7Ep5BjppiaEzodK7VJQ4FHCvR/j5ATnSvcLrFWUXxHje
+	 KxPB4MM622PSV4LSaMHqM7GZknTA37rzX12KwWByr0MRpklJwPuOQTV+Zu6URMdn4s
+	 UsVUlb0BqIG2A==
 From: Leon Romanovsky <leon@kernel.org>
 To: Jason Gunthorpe <jgg@ziepe.ca>,
 	Leon Romanovsky <leon@kernel.org>,
@@ -58,9 +58,9 @@ To: Jason Gunthorpe <jgg@ziepe.ca>,
 Cc: linux-kernel@vger.kernel.org,
 	linux-rdma@vger.kernel.org,
 	linux-hyperv@vger.kernel.org
-Subject: [PATCH rdma-next 10/50] RDMA/mlx5: Save 4 bytes in CQ structure
-Date: Fri, 13 Feb 2026 12:57:46 +0200
-Message-ID: <20260213-refactor-umem-v1-10-f3be85847922@nvidia.com>
+Subject: [PATCH rdma-next 13/50] RDMA/mlx4: Introduce a modern CQ creation interface
+Date: Fri, 13 Feb 2026 12:57:49 +0200
+Message-ID: <20260213-refactor-umem-v1-13-f3be85847922@nvidia.com>
 X-Mailer: git-send-email 2.53.0
 In-Reply-To: <20260213-refactor-umem-v1-0-f3be85847922@nvidia.com>
 References: <20260213-refactor-umem-v1-0-f3be85847922@nvidia.com>
@@ -76,72 +76,324 @@ Content-Transfer-Encoding: 8bit
 
 From: Leon Romanovsky <leonro@nvidia.com>
 
-There is no need to maintain separate, nearly empty create_flags and
-private_flags fields. Unifying them reduces memory usage.
+The uverbs CQ creation UAPI allows users to supply their own umem when
+creating a CQ. Update mlx4 to support this model while preserving compatibility
+with the legacy interface that allocates umem internally.
 
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/hw/mlx5/cq.c      | 5 +++--
- drivers/infiniband/hw/mlx5/mlx5_ib.h | 2 +-
- drivers/infiniband/hw/mlx5/qp.c      | 2 +-
- 3 files changed, 5 insertions(+), 4 deletions(-)
+ drivers/infiniband/hw/mlx4/cq.c      | 191 ++++++++++++++++++++---------------
+ drivers/infiniband/hw/mlx4/main.c    |   1 +
+ drivers/infiniband/hw/mlx4/mlx4_ib.h |   4 +-
+ 3 files changed, 111 insertions(+), 85 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/cq.c b/drivers/infiniband/hw/mlx5/cq.c
-index 651d76bca114..1b4290166e87 100644
---- a/drivers/infiniband/hw/mlx5/cq.c
-+++ b/drivers/infiniband/hw/mlx5/cq.c
-@@ -983,7 +983,8 @@ int mlx5_ib_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
+diff --git a/drivers/infiniband/hw/mlx4/cq.c b/drivers/infiniband/hw/mlx4/cq.c
+index 94e9ff45725a..4bee08317620 100644
+--- a/drivers/infiniband/hw/mlx4/cq.c
++++ b/drivers/infiniband/hw/mlx4/cq.c
+@@ -136,8 +136,9 @@ static void mlx4_ib_free_cq_buf(struct mlx4_ib_dev *dev, struct mlx4_ib_cq_buf *
+ }
+ 
+ #define CQ_CREATE_FLAGS_SUPPORTED IB_UVERBS_CQ_FLAGS_TIMESTAMP_COMPLETION
+-int mlx4_ib_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
+-		      struct uverbs_attr_bundle *attrs)
++int mlx4_ib_create_user_cq(struct ib_cq *ibcq,
++			   const struct ib_cq_init_attr *attr,
++			   struct uverbs_attr_bundle *attrs)
+ {
+ 	struct ib_udata *udata = &attrs->driver_udata;
+ 	struct ib_device *ibdev = ibcq->device;
+@@ -145,13 +146,16 @@ int mlx4_ib_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
+ 	int vector = attr->comp_vector;
+ 	struct mlx4_ib_dev *dev = to_mdev(ibdev);
+ 	struct mlx4_ib_cq *cq = to_mcq(ibcq);
+-	struct mlx4_uar *uar;
++	struct mlx4_ib_create_cq ucmd;
++	int cqe_size = dev->dev->caps.cqe_size;
+ 	void *buf_addr;
++	int shift;
++	int n;
+ 	int err;
+ 	struct mlx4_ib_ucontext *context = rdma_udata_to_drv_context(
+ 		udata, struct mlx4_ib_ucontext, ibucontext);
+ 
+-	if (entries < 1 || entries > dev->dev->caps.max_cqes)
++	if (attr->cqe > dev->dev->caps.max_cqes)
+ 		return -EINVAL;
+ 
+ 	if (attr->flags & ~CQ_CREATE_FLAGS_SUPPORTED)
+@@ -161,95 +165,63 @@ int mlx4_ib_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
+ 	cq->ibcq.cqe = entries - 1;
+ 	mutex_init(&cq->resize_mutex);
  	spin_lock_init(&cq->lock);
- 	cq->resize_buf = NULL;
- 	cq->resize_umem = NULL;
--	cq->create_flags = attr->flags;
-+	if (attr->flags & IB_UVERBS_CQ_FLAGS_TIMESTAMP_COMPLETION)
-+		cq->private_flags |= MLX5_IB_CQ_PR_TIMESTAMP_COMPLETION;
- 	INIT_LIST_HEAD(&cq->list_send_qp);
- 	INIT_LIST_HEAD(&cq->list_recv_qp);
+-	cq->resize_buf = NULL;
+-	cq->resize_umem = NULL;
+ 	cq->create_flags = attr->flags;
+ 	INIT_LIST_HEAD(&cq->send_qp_list);
+ 	INIT_LIST_HEAD(&cq->recv_qp_list);
  
-@@ -1017,7 +1018,7 @@ int mlx5_ib_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
- 	MLX5_SET(cqc, cqc, uar_page, index);
- 	MLX5_SET(cqc, cqc, c_eqn_or_apu_element, eqn);
- 	MLX5_SET64(cqc, cqc, dbr_addr, cq->db.dma);
--	if (cq->create_flags & IB_UVERBS_CQ_FLAGS_IGNORE_OVERRUN)
-+	if (attr->flags & IB_UVERBS_CQ_FLAGS_IGNORE_OVERRUN)
- 		MLX5_SET(cqc, cqc, oi, 1);
+-	if (udata) {
+-		struct mlx4_ib_create_cq ucmd;
+-		int cqe_size = dev->dev->caps.cqe_size;
+-		int shift;
+-		int n;
+-
+-		if (ib_copy_from_udata(&ucmd, udata, sizeof ucmd)) {
+-			err = -EFAULT;
+-			goto err_cq;
+-		}
+-
+-		buf_addr = (void *)(unsigned long)ucmd.buf_addr;
+-
+-		cq->umem = ib_umem_get(&dev->ib_dev, ucmd.buf_addr,
+-				       entries * cqe_size,
+-				       IB_ACCESS_LOCAL_WRITE);
+-		if (IS_ERR(cq->umem)) {
+-			err = PTR_ERR(cq->umem);
+-			goto err_cq;
+-		}
+-
+-		shift = mlx4_ib_umem_calc_optimal_mtt_size(cq->umem, 0, &n);
+-		if (shift < 0) {
+-			err = shift;
+-			goto err_umem;
+-		}
+-
+-		err = mlx4_mtt_init(dev->dev, n, shift, &cq->buf.mtt);
+-		if (err)
+-			goto err_umem;
+-
+-		err = mlx4_ib_umem_write_mtt(dev, &cq->buf.mtt, cq->umem);
+-		if (err)
+-			goto err_mtt;
++	if (ib_copy_from_udata(&ucmd, udata, sizeof(ucmd))) {
++		err = -EFAULT;
++		goto err_cq;
++	}
  
- 	if (udata) {
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index 4f4114d95130..ce3372aea48b 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -561,6 +561,7 @@ struct mlx5_ib_cq_buf {
- enum mlx5_ib_cq_pr_flags {
- 	MLX5_IB_CQ_PR_FLAGS_CQE_128_PAD	= 1 << 0,
- 	MLX5_IB_CQ_PR_FLAGS_REAL_TIME_TS = 1 << 1,
-+	MLX5_IB_CQ_PR_TIMESTAMP_COMPLETION = 1 << 2,
- };
+-		err = mlx4_ib_db_map_user(udata, ucmd.db_addr, &cq->db);
+-		if (err)
+-			goto err_mtt;
++	buf_addr = (void *)(unsigned long)ucmd.buf_addr;
  
- struct mlx5_ib_cq {
-@@ -581,7 +582,6 @@ struct mlx5_ib_cq {
- 	int			cqe_size;
- 	struct list_head	list_send_qp;
- 	struct list_head	list_recv_qp;
--	u32			create_flags;
- 	struct list_head	wc_list;
- 	enum ib_cq_notify_flags notify_flags;
- 	struct work_struct	notify_work;
-diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index 0324909e3151..7af09e668c4c 100644
---- a/drivers/infiniband/hw/mlx5/qp.c
-+++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -1274,7 +1274,7 @@ static int get_ts_format(struct mlx5_ib_dev *dev, struct mlx5_ib_cq *cq,
- 		}
- 		return MLX5_TIMESTAMP_FORMAT_REAL_TIME;
+-		uar = &context->uar;
+-		cq->mcq.usage = MLX4_RES_USAGE_USER_VERBS;
+-	} else {
+-		err = mlx4_db_alloc(dev->dev, &cq->db, 1);
+-		if (err)
+-			goto err_cq;
++	if (!ibcq->umem)
++		ibcq->umem = ib_umem_get(&dev->ib_dev, ucmd.buf_addr,
++					 entries * cqe_size,
++					 IB_ACCESS_LOCAL_WRITE);
++	if (IS_ERR(ibcq->umem)) {
++		err = PTR_ERR(ibcq->umem);
++		goto err_cq;
++	}
+ 
+-		cq->mcq.set_ci_db  = cq->db.db;
+-		cq->mcq.arm_db     = cq->db.db + 1;
+-		*cq->mcq.set_ci_db = 0;
+-		*cq->mcq.arm_db    = 0;
++	shift = mlx4_ib_umem_calc_optimal_mtt_size(cq->ibcq.umem, 0, &n);
++	if (shift < 0) {
++		err = shift;
++		goto err_cq;
++	}
+ 
+-		err = mlx4_ib_alloc_cq_buf(dev, &cq->buf, entries);
+-		if (err)
+-			goto err_db;
++	err = mlx4_mtt_init(dev->dev, n, shift, &cq->buf.mtt);
++	if (err)
++		goto err_cq;
+ 
+-		buf_addr = &cq->buf.buf;
++	err = mlx4_ib_umem_write_mtt(dev, &cq->buf.mtt, cq->ibcq.umem);
++	if (err)
++		goto err_mtt;
+ 
+-		uar = &dev->priv_uar;
+-		cq->mcq.usage = MLX4_RES_USAGE_DRIVER;
+-	}
++	err = mlx4_ib_db_map_user(udata, ucmd.db_addr, &cq->db);
++	if (err)
++		goto err_mtt;
+ 
+ 	if (dev->eq_table)
+ 		vector = dev->eq_table[vector % ibdev->num_comp_vectors];
+ 
+-	err = mlx4_cq_alloc(dev->dev, entries, &cq->buf.mtt, uar, cq->db.dma,
+-			    &cq->mcq, vector, 0,
++	err = mlx4_cq_alloc(dev->dev, entries, &cq->buf.mtt, &context->uar,
++			    cq->db.dma, &cq->mcq, vector, 0,
+ 			    !!(cq->create_flags &
+ 			       IB_UVERBS_CQ_FLAGS_TIMESTAMP_COMPLETION),
+-			    buf_addr, !!udata);
++			    buf_addr, true);
+ 	if (err)
+ 		goto err_dbmap;
+ 
+-	if (udata)
+-		cq->mcq.tasklet_ctx.comp = mlx4_ib_cq_comp;
+-	else
+-		cq->mcq.comp = mlx4_ib_cq_comp;
++	cq->mcq.tasklet_ctx.comp = mlx4_ib_cq_comp;
+ 	cq->mcq.event = mlx4_ib_cq_event;
++	cq->mcq.usage = MLX4_RES_USAGE_USER_VERBS;
+ 
+-	if (udata)
+-		if (ib_copy_to_udata(udata, &cq->mcq.cqn, sizeof (__u32))) {
+-			err = -EFAULT;
+-			goto err_cq_free;
+-		}
++	if (ib_copy_to_udata(udata, &cq->mcq.cqn, sizeof(__u32))) {
++		err = -EFAULT;
++		goto err_cq_free;
++	}
+ 
+ 	return 0;
+ 
+@@ -257,21 +229,72 @@ int mlx4_ib_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
+ 	mlx4_cq_free(dev->dev, &cq->mcq);
+ 
+ err_dbmap:
+-	if (udata)
+-		mlx4_ib_db_unmap_user(context, &cq->db);
++	mlx4_ib_db_unmap_user(context, &cq->db);
+ 
+ err_mtt:
+ 	mlx4_mtt_cleanup(dev->dev, &cq->buf.mtt);
++	/* UMEM is released by ib_core */
+ 
+-err_umem:
+-	ib_umem_release(cq->umem);
+-	if (!udata)
+-		mlx4_ib_free_cq_buf(dev, &cq->buf, cq->ibcq.cqe);
++err_cq:
++	return err;
++}
++
++int mlx4_ib_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
++		      struct uverbs_attr_bundle *attrs)
++{
++	struct ib_device *ibdev = ibcq->device;
++	int entries = attr->cqe;
++	int vector = attr->comp_vector;
++	struct mlx4_ib_dev *dev = to_mdev(ibdev);
++	struct mlx4_ib_cq *cq = to_mcq(ibcq);
++	void *buf_addr;
++	int err;
++
++	if (attr->cqe > dev->dev->caps.max_cqes)
++		return -EINVAL;
++
++	entries      = roundup_pow_of_two(entries + 1);
++	cq->ibcq.cqe = entries - 1;
++	mutex_init(&cq->resize_mutex);
++	spin_lock_init(&cq->lock);
++	INIT_LIST_HEAD(&cq->send_qp_list);
++	INIT_LIST_HEAD(&cq->recv_qp_list);
++
++	err = mlx4_db_alloc(dev->dev, &cq->db, 1);
++	if (err)
++		return err;
++
++	cq->mcq.set_ci_db  = cq->db.db;
++	cq->mcq.arm_db     = cq->db.db + 1;
++	*cq->mcq.set_ci_db = 0;
++	*cq->mcq.arm_db    = 0;
++
++	err = mlx4_ib_alloc_cq_buf(dev, &cq->buf, entries);
++	if (err)
++		goto err_db;
++
++	buf_addr = &cq->buf.buf;
++
++	if (dev->eq_table)
++		vector = dev->eq_table[vector % ibdev->num_comp_vectors];
++
++	err = mlx4_cq_alloc(dev->dev, entries, &cq->buf.mtt, &dev->priv_uar,
++			    cq->db.dma, &cq->mcq, vector, 0, 0,
++			    buf_addr, false);
++	if (err)
++		goto err_buf;
++
++	cq->mcq.comp = mlx4_ib_cq_comp;
++	cq->mcq.event = mlx4_ib_cq_event;
++	cq->mcq.usage = MLX4_RES_USAGE_DRIVER;
++
++	return 0;
++
++err_buf:
++	mlx4_ib_free_cq_buf(dev, &cq->buf, cq->ibcq.cqe);
+ 
+ err_db:
+-	if (!udata)
+-		mlx4_db_free(dev->dev, &cq->db);
+-err_cq:
++	mlx4_db_free(dev->dev, &cq->db);
+ 	return err;
+ }
+ 
+@@ -445,8 +468,8 @@ int mlx4_ib_resize_cq(struct ib_cq *ibcq, int entries, struct ib_udata *udata)
+ 	if (ibcq->uobject) {
+ 		cq->buf      = cq->resize_buf->buf;
+ 		cq->ibcq.cqe = cq->resize_buf->cqe;
+-		ib_umem_release(cq->umem);
+-		cq->umem     = cq->resize_umem;
++		ib_umem_release(cq->ibcq.umem);
++		cq->ibcq.umem     = cq->resize_umem;
+ 
+ 		kfree(cq->resize_buf);
+ 		cq->resize_buf = NULL;
+@@ -506,11 +529,11 @@ int mlx4_ib_destroy_cq(struct ib_cq *cq, struct ib_udata *udata)
+ 				struct mlx4_ib_ucontext,
+ 				ibucontext),
+ 			&mcq->db);
++		/* UMEM is released by ib_core */
+ 	} else {
+ 		mlx4_ib_free_cq_buf(dev, &mcq->buf, cq->cqe);
+ 		mlx4_db_free(dev->dev, &mcq->db);
  	}
--	if (cq->create_flags & IB_UVERBS_CQ_FLAGS_TIMESTAMP_COMPLETION) {
-+	if (cq->private_flags & MLX5_IB_CQ_PR_TIMESTAMP_COMPLETION) {
- 		if (!fr_sup) {
- 			mlx5_ib_dbg(dev,
- 				    "Free running TS format is not supported\n");
+-	ib_umem_release(mcq->umem);
+ 	return 0;
+ }
+ 
+diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
+index dd35e03402ab..fc05e7a1a870 100644
+--- a/drivers/infiniband/hw/mlx4/main.c
++++ b/drivers/infiniband/hw/mlx4/main.c
+@@ -2527,6 +2527,7 @@ static const struct ib_device_ops mlx4_ib_dev_ops = {
+ 	.attach_mcast = mlx4_ib_mcg_attach,
+ 	.create_ah = mlx4_ib_create_ah,
+ 	.create_cq = mlx4_ib_create_cq,
++	.create_user_cq = mlx4_ib_create_user_cq,
+ 	.create_qp = mlx4_ib_create_qp,
+ 	.create_srq = mlx4_ib_create_srq,
+ 	.dealloc_pd = mlx4_ib_dealloc_pd,
+diff --git a/drivers/infiniband/hw/mlx4/mlx4_ib.h b/drivers/infiniband/hw/mlx4/mlx4_ib.h
+index 5df5b955114e..96563c0836ce 100644
+--- a/drivers/infiniband/hw/mlx4/mlx4_ib.h
++++ b/drivers/infiniband/hw/mlx4/mlx4_ib.h
+@@ -121,7 +121,6 @@ struct mlx4_ib_cq {
+ 	struct mlx4_db		db;
+ 	spinlock_t		lock;
+ 	struct mutex		resize_mutex;
+-	struct ib_umem	       *umem;
+ 	struct ib_umem	       *resize_umem;
+ 	int			create_flags;
+ 	/* List of qps that it serves.*/
+@@ -772,6 +771,9 @@ int mlx4_ib_modify_cq(struct ib_cq *cq, u16 cq_count, u16 cq_period);
+ int mlx4_ib_resize_cq(struct ib_cq *ibcq, int entries, struct ib_udata *udata);
+ int mlx4_ib_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
+ 		      struct uverbs_attr_bundle *attrs);
++int mlx4_ib_create_user_cq(struct ib_cq *ibcq,
++			   const struct ib_cq_init_attr *attr,
++			   struct uverbs_attr_bundle *attrs);
+ int mlx4_ib_destroy_cq(struct ib_cq *cq, struct ib_udata *udata);
+ int mlx4_ib_poll_cq(struct ib_cq *ibcq, int num_entries, struct ib_wc *wc);
+ int mlx4_ib_arm_cq(struct ib_cq *cq, enum ib_cq_notify_flags flags);
 
 -- 
 2.52.0
