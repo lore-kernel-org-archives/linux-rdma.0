@@ -1,60 +1,63 @@
-Received: from pdx-out-008.esa.us-west-2.outbound.mail-perimeter.amazon.com (pdx-out-008.esa.us-west-2.outbound.mail-perimeter.amazon.com [52.42.203.116])
+Received: from pdx-out-012.esa.us-west-2.outbound.mail-perimeter.amazon.com (pdx-out-012.esa.us-west-2.outbound.mail-perimeter.amazon.com [35.162.73.231])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A9A02DA762
-	for <linux-rdma@vger.kernel.org>; Mon, 16 Feb 2026 13:34:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=52.42.203.116
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 292151F8723
+	for <linux-rdma@vger.kernel.org>; Mon, 16 Feb 2026 13:34:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=35.162.73.231
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771248849; cv=none; b=CC2zQjaB6N4cIuVEJ4FLsSMKynb1q4xIAVPJP4GHfxLVeLfQn6yUS5FmezJ2gAWnQBX9mnkXROq5A4x1gcCbQh4BqC0lE/NzAmIFx6dOe0u+Kh7T0I9FCz2XyoAJOw6XIZK5j2tDIcwvYmY0+QFTUslABAhjnYBxFlwE+ufEs4I=
+	t=1771248855; cv=none; b=nF1B4rtxToEcUufsDMcXumkRUTHI5SdVByTRfk0teNM36P869DkqXT/AXbljnpbzjUMsuCTwDsi9cDFCzen66iukaaDPTOAJoPvmAfwaFbZbKxEUH6vrXnJGdAm/v1Wx1EQC3JHPyDN2KOh+DRcb3fhl37Pw1pdFzDbySjstR+w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771248849; c=relaxed/simple;
-	bh=0ZBzCxU3mJDCQMt7SURzr/c5wAbeq1TdWYhxVRFH4rU=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=me0+YGGsVJxNMPDbADLet5Qz/UcVu784BcdfXW41YCOyHInGqW3hW9mlUJxMj8XasZNkr5twbAHibKuaKAG1GAChNb155srk0h6MUrFYHHkNB76+RDWuySFWsl2sG4p7AgHxcpxUo+wrvvRJxAFhzkWImaF/n99+qrcVSxERqdw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com; spf=pass smtp.mailfrom=amazon.com; dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.b=XRVjLTs2; arc=none smtp.client-ip=52.42.203.116
+	s=arc-20240116; t=1771248855; c=relaxed/simple;
+	bh=6Bf1GLkH7Ne+EKe4A4PUhXIkDg/2ap10kQ0JV6+AN1M=;
+	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=q/GWQRm9NfzAQYVx4ufM9qWyr1+e/1E0LFQsEkeY34BVDCPLmBzVtsjHsS6CQzEsWjOrsomVnEOioT/THN2XE/Nx2DbPTutKMav9UgLngvtG2daxrdFaRigKLbYSKMHrDM90P6cHxMkMJPmSjseKXCD1GcAm5uc7bjSWThjnL1Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com; spf=pass smtp.mailfrom=amazon.com; dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.b=RrUa5rHr; arc=none smtp.client-ip=35.162.73.231
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazon.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.b="XRVjLTs2"
+	dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.b="RrUa5rHr"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
   d=amazon.com; i=@amazon.com; q=dns/txt; s=amazoncorp2;
-  t=1771248848; x=1802784848;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=qIbkHyNiyQ5mE8D5L/XoK48WcdKn/ZBXIFKSW1fPXiQ=;
-  b=XRVjLTs29FKaVhsb+rXnaXrfcet/OaGPrIyPnl29aL5wLiTQwJ47L1Si
-   x/qH0QaACdJ1oflq53mYZUWCKizWEmMzQMMQHthCqEXmEzuoEGvxit5Mz
-   9EkDNjRieQqOwJdAJEjwE89rtn3iYBOpmvZX1benK/6ygy4tnY9NcVBcl
-   9YSydbXvtBZecWh8NmOOs9kmaqG8AOI/YAB4/C7R6RuwpI8vpOf+CHwKA
-   Cj6okqo4M9Iclmh1dmIZ7HuNNmwReg6UnVYELczdMpm3EzSBf/9v+ErvQ
-   VKgVDLAhUrGEKQgAn3GnD/rH7T/1660fiu9edzAI766/wNneOHQWGXFmP
-   A==;
-X-CSE-ConnectionGUID: haaaCNeoTr+YI79OrG6T0A==
-X-CSE-MsgGUID: Ctc0dF5ZTKm8FBhPgGSUWw==
+  t=1771248854; x=1802784854;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=mlClrv1hOv/2S6xgBk+m2G0EitQoMVPzUtU+e3bQhXI=;
+  b=RrUa5rHrYCnRyme6a7eEKJbJnB0OD+OxSvqY/yV7rs5wMxRTMfMQgoan
+   j0SWKBjHwnHijnd/QQcas9sH4oBcdAR0YFMemXCJkDrcqjr5+FGXzwObE
+   jOjY75pO+TGX8RW/B7cmqy91y1qU/NC6RYyVOd3quYViQGPpWaXG8FPhO
+   Dhhg38azulG5nibtUrl1s9ELFvEiZGwSWQSflR+8Mz5qmkqSMyrdGb2Cf
+   i520g1QQiWssh+SJdMBrzF16WbSxmAG7vIYEN2LYCVJuWbEKDTdklRZBR
+   iQV8LBX6DjK11SJdmhHlHCCU9B+qM/TUcjTzOFQCQ5dYbD8FhdGvtcBcC
+   g==;
+X-CSE-ConnectionGUID: 7z7S8PBDTXGMIUcJlzR7/Q==
+X-CSE-MsgGUID: 5jZViJlbR+uT6RwSC0QzwA==
 X-IronPort-AV: E=Sophos;i="6.21,294,1763424000"; 
-   d="scan'208";a="13144509"
-Received: from ip-10-5-9-48.us-west-2.compute.internal (HELO smtpout.naws.us-west-2.prod.farcaster.email.amazon.dev) ([10.5.9.48])
-  by internal-pdx-out-008.esa.us-west-2.outbound.mail-perimeter.amazon.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Feb 2026 13:34:03 +0000
-Received: from EX19MTAUWA001.ant.amazon.com [205.251.233.182:15189]
- by smtpin.naws.us-west-2.prod.farcaster.email.amazon.dev [10.0.42.47:2525] with esmtp (Farcaster)
- id eed07a07-41f2-4538-bfa9-cf9f76869979; Mon, 16 Feb 2026 13:34:03 +0000 (UTC)
-X-Farcaster-Flow-ID: eed07a07-41f2-4538-bfa9-cf9f76869979
+   d="scan'208";a="12952425"
+Received: from ip-10-5-0-115.us-west-2.compute.internal (HELO smtpout.naws.us-west-2.prod.farcaster.email.amazon.dev) ([10.5.0.115])
+  by internal-pdx-out-012.esa.us-west-2.outbound.mail-perimeter.amazon.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Feb 2026 13:34:13 +0000
+Received: from EX19MTAUWB002.ant.amazon.com [205.251.233.48:21405]
+ by smtpin.naws.us-west-2.prod.farcaster.email.amazon.dev [10.0.16.156:2525] with esmtp (Farcaster)
+ id 5bce4a1e-cc79-4f57-bbb6-ba088c0fbfef; Mon, 16 Feb 2026 13:34:12 +0000 (UTC)
+X-Farcaster-Flow-ID: 5bce4a1e-cc79-4f57-bbb6-ba088c0fbfef
 Received: from EX19D001UWA001.ant.amazon.com (10.13.138.214) by
- EX19MTAUWA001.ant.amazon.com (10.250.64.204) with Microsoft SMTP Server
+ EX19MTAUWB002.ant.amazon.com (10.250.64.231) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.35;
- Mon, 16 Feb 2026 13:34:02 +0000
+ Mon, 16 Feb 2026 13:34:11 +0000
 Received: from dev-dsk-ynachum-1b-aa121316.eu-west-1.amazon.com
  (10.253.69.224) by EX19D001UWA001.ant.amazon.com (10.13.138.214) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.35; Mon, 16 Feb 2026
- 13:34:01 +0000
+ 13:34:09 +0000
 From: Yonatan Nachum <ynachum@amazon.com>
 To: <jgg@nvidia.com>, <leon@kernel.org>, <linux-rdma@vger.kernel.org>
 CC: <mrgolin@amazon.com>, <sleybo@amazon.com>, <matua@amazon.com>,
 	<gal.pressman@linux.dev>, Yonatan Nachum <ynachum@amazon.com>
-Subject: [PATCH for-next v2 0/3] RDMA/efa: Expose extended max inline buffer size
-Date: Mon, 16 Feb 2026 13:33:48 +0000
-Message-ID: <20260216133351.14896-1-ynachum@amazon.com>
+Subject: [PATCH for-next v2 3/3] RDMA/efa: Use extended inline buff size for inline validation
+Date: Mon, 16 Feb 2026 13:33:51 +0000
+Message-ID: <20260216133351.14896-4-ynachum@amazon.com>
 X-Mailer: git-send-email 2.47.3
+In-Reply-To: <20260216133351.14896-1-ynachum@amazon.com>
+References: <20260216133351.14896-1-ynachum@amazon.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -66,37 +69,34 @@ Content-Type: text/plain
 X-ClientProxiedBy: EX19D037UWC004.ant.amazon.com (10.13.139.254) To
  EX19D001UWA001.ant.amazon.com (10.13.138.214)
 
-Changelog:
-v2:
- * Added patch 3 to use the extended inline buffer size for validation
-   in QP creation.
-v1: https://lore.kernel.org/all/20260215120451.18053-1-ynachum@amazon.com/
+On QP creation we validate the requested max inline size is supported by
+the device. Use the new extended max inline size instead of the old one
+to support actual max inline available.
 
--------------------------------------------------------------------------
-This series adds support for querying an extended max inline buffer size
-from the EFA device.
+Reviewed-by: Michael Margolin <mrgolin@amazon.com>
+Signed-off-by: Yonatan Nachum <ynachum@amazon.com>
+---
+ drivers/infiniband/hw/efa/efa_verbs.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-The first patch renames the existing queue attributes structure to prepare
-for adding a second queue attributes query.
-
-The second patch introduces the new extended max inline buffer size query
-and exposes this value to userspace.
-
-The third patch updates the inline validation to use the extended inline
-buffer size.
-
-Yonatan Nachum (3):
-  RDMA/efa: Rename admin queue attributes struct name for extendability
-  RDMA/efa: Expose new extended max inline buff size
-  RDMA/efa: Use extended inline buff size for inline validation
-
- .../infiniband/hw/efa/efa_admin_cmds_defs.h   | 22 ++++++--
- drivers/infiniband/hw/efa/efa_com_cmd.c       | 55 ++++++++++++-------
- drivers/infiniband/hw/efa/efa_com_cmd.h       |  3 +-
- drivers/infiniband/hw/efa/efa_verbs.c         |  7 ++-
- include/uapi/rdma/efa-abi.h                   |  5 +-
- 5 files changed, 61 insertions(+), 31 deletions(-)
-
+diff --git a/drivers/infiniband/hw/efa/efa_verbs.c b/drivers/infiniband/hw/efa/efa_verbs.c
+index 85c3a7dd4335..e5756b479eba 100644
+--- a/drivers/infiniband/hw/efa/efa_verbs.c
++++ b/drivers/infiniband/hw/efa/efa_verbs.c
+@@ -641,11 +641,11 @@ static int efa_qp_validate_cap(struct efa_dev *dev,
+ 			  init_attr->cap.max_recv_sge, dev->dev_attr.max_rq_sge);
+ 		return -EINVAL;
+ 	}
+-	if (init_attr->cap.max_inline_data > dev->dev_attr.inline_buf_size) {
++	if (init_attr->cap.max_inline_data > dev->dev_attr.inline_buf_size_ex) {
+ 		ibdev_dbg(&dev->ibdev,
+ 			  "qp: requested inline data[%u] exceeds the max[%u]\n",
+ 			  init_attr->cap.max_inline_data,
+-			  dev->dev_attr.inline_buf_size);
++			  dev->dev_attr.inline_buf_size_ex);
+ 		return -EINVAL;
+ 	}
+ 
 -- 
 2.47.3
 
