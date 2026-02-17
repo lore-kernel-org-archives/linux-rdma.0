@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2FD113C2D;
-	Tue, 17 Feb 2026 22:31:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 614A32EA473;
+	Tue, 17 Feb 2026 22:32:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771367512; cv=none; b=nxP0JDco6z/6j/FXy4CXl5YmZ48cQHxCFoAMKPsf1pTUhL3wu+5CCIg7L/emYNbznPTv+nDBij94xQm/VieRgjYa7IMcT0N5A9TXg8PpDSaf/IQ5bHCca3E98i+bhM3RJYgNuyIRHucuySuiK62bxSUmCgbf9ptpTaLblunZLxo=
+	t=1771367570; cv=none; b=gmDAUYWkQBypmkMO/zVYXkxGFRdOVYK4iCV8An9eWQ0dD6bcJL1wmQSv8eIo3cillhQnWBYdJaieUu2M4bBxthSbstRr8tHptHIh9QnetS+REeKeMn/Ojp0uSbItw73PmCXrUIwax8AUxmdJpXSgI/cFTdwmBgR8jpRP6LXGeh8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771367512; c=relaxed/simple;
-	bh=ahqf2qRVFegoMHQN9qWy0uSCWB+Tntxf3SSS1Kt/6WU=;
+	s=arc-20240116; t=1771367570; c=relaxed/simple;
+	bh=bsHw0CdDAwiKv+O4iPUOnlnloSTFSuZaPE4oWUfsSAY=;
 	h=Message-ID:Date:MIME-Version:Subject:From:To:Cc:References:
-	 In-Reply-To:Content-Type; b=W5GM836NlJdbMuhKpUv1Hjq/DTr++NvKPTzHvKucxsMxbHNBOnMSn+KwebTClA/z8YhcGS7fZTo0WUVTnI6GrvnisVlJfCYFQ7hzfAiGAnW9TFUL8saRZtg8o6sRhCTlRwQWwY7ESQYt1thT6fsN3NWjQGXpnLdM8BXyxPZzL3k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=TxGvwWL6; arc=none smtp.client-ip=10.30.226.201
+	 In-Reply-To:Content-Type; b=Fpov6U7C4y+yGBw3bpKZp2CViHZSDWLj29ILY33WRaNAs4Fa/hsQRKyUaiF9rD/RbZEVF4AR9BBLC1lYnfSSRiqiUYbZCYa8yXydjYTJhqtvuE9gN/jWQE/1L5euRf5H6uuSVe9vs4S1KFJ5z0YVeWnxC7V6RaCaNprmV7hy4F8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=jypbKAFR; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="TxGvwWL6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 64D10C4CEF7;
-	Tue, 17 Feb 2026 22:31:49 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="jypbKAFR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EFB1BC19421;
+	Tue, 17 Feb 2026 22:32:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1771367511;
-	bh=ahqf2qRVFegoMHQN9qWy0uSCWB+Tntxf3SSS1Kt/6WU=;
+	s=k20201202; t=1771367570;
+	bh=bsHw0CdDAwiKv+O4iPUOnlnloSTFSuZaPE4oWUfsSAY=;
 	h=Date:Subject:From:To:Cc:References:In-Reply-To:From;
-	b=TxGvwWL652Dx6J3RpAz9GbpYV+1fvUnwzIKZRpClPgqDAxVBOzREQysAOAbJUr5oL
-	 u2VPALzb6d3HKb+8eHGMv8c1QF3un7xhsLERBe3PwgdKjVfjSysFNe9xld08LFKjCc
-	 SnVcV+PXl7ok4mdlpVk0w5I8gXGQmKJdMi3VxjKSkimJj2htBfOy5KpL/TRqjnSO5m
-	 MfPaCd7gfkr2xIneOwVlCJi148G84fNwNPHuCVjf+SiGws00Cr5ZV/5QAF4LNml9xe
-	 4CU41PdtYSofaMkrGnMJZJq70T3wgt8oZF28TJ4os7t2+5AE6ZP9Aixz46RDb0Wa9u
-	 YNJ9olGdRikkQ==
-Message-ID: <01962d6e-7bb3-431d-9ec3-b4f20e883aae@kernel.org>
-Date: Tue, 17 Feb 2026 23:31:47 +0100
+	b=jypbKAFR2Jh4xWXGrHhlTaprdPNVnyhg5aUnSDib2lnw8pRwqxz8cUvy39LFHftR6
+	 jboHuR40a73E40sq4IqHQLio0m1Jzx0tcaE6g4eFk6Yi9o3gEeGtPT4cn5HG+VWGdj
+	 AEZhdvd5RgbJP/9MGexrJKYZFjPxn+NKM6S75t4vyW6FyZd0tAx/7CbWee+jRlygvl
+	 SfyR2hMorqcAaccz3nltJIbr2z0M6TutI2wgVdm13dVuRClPliIwGPSYF3hTvgYGcA
+	 A1DSs7McC2zECDnU8lyANXJ9DPv/R+ww2thyPr1/72PxN+qQI/uTfjSRfuFYqdxBDP
+	 hcEqcyhEE791A==
+Message-ID: <04c85242-dc51-4ddf-9920-4dab57f2498f@kernel.org>
+Date: Tue, 17 Feb 2026 23:32:46 +0100
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -35,8 +35,8 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: [PATCH RFC 09/10] driver core: make struct device_driver groups
- members contact arrays
+Subject: [PATCH RFC 10/10] kobject: make struct kobject member default_groups
+ a constant array
 From: Heiner Kallweit <hkall@kernel.org>
 To: =?UTF-8?Q?Thomas_Wei=C3=9Fschuh?= <linux@weissschuh.net>,
  Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
@@ -52,28 +52,26 @@ In-Reply-To: <5d0951ec-42c9-453f-9966-ecca593c4153@kernel.org>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
-Constify the groups arrays, allowing to assign constant arrays.
+Constify the default_groups array, allowing to assign constant arrays.
 
 Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
 ---
- include/linux/device/driver.h | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/kobject.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/include/linux/device/driver.h b/include/linux/device/driver.h
-index bbc67ec513e..c882daaef01 100644
---- a/include/linux/device/driver.h
-+++ b/include/linux/device/driver.h
-@@ -114,8 +114,8 @@ struct device_driver {
- 	void (*shutdown) (struct device *dev);
- 	int (*suspend) (struct device *dev, pm_message_t state);
- 	int (*resume) (struct device *dev);
--	const struct attribute_group **groups;
--	const struct attribute_group **dev_groups;
-+	const struct attribute_group *const *groups;
-+	const struct attribute_group *const *dev_groups;
- 
- 	const struct dev_pm_ops *pm;
- 	void (*coredump) (struct device *dev);
+diff --git a/include/linux/kobject.h b/include/linux/kobject.h
+index c8219505a79..e45ee843931 100644
+--- a/include/linux/kobject.h
++++ b/include/linux/kobject.h
+@@ -116,7 +116,7 @@ char *kobject_get_path(const struct kobject *kobj, gfp_t flag);
+ struct kobj_type {
+ 	void (*release)(struct kobject *kobj);
+ 	const struct sysfs_ops *sysfs_ops;
+-	const struct attribute_group **default_groups;
++	const struct attribute_group *const *default_groups;
+ 	const struct kobj_ns_type_operations *(*child_ns_type)(const struct kobject *kobj);
+ 	const void *(*namespace)(const struct kobject *kobj);
+ 	void (*get_ownership)(const struct kobject *kobj, kuid_t *uid, kgid_t *gid);
 -- 
 2.53.0
 
