@@ -1,42 +1,54 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF72C311971
-	for <linux-rdma@vger.kernel.org>; Wed, 18 Feb 2026 09:05:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E83B10E3;
+	Wed, 18 Feb 2026 09:06:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771405512; cv=none; b=NF3ZzrQo0TOFzB95wdr+5e2/GsYR5N9bNNYBPDphXhw8jXcthcgZ8UsyBMsbQGKEo5SEym6JbXccuMT4c5p1bN3Fxp0WCv8cxokLIkADTpeNWDEQUuIX+0OBhoiY1R7Qsd1Tuum0Q0u9D3ua1V62jKWx09JNKt0fFBlTKNzjkLE=
+	t=1771405589; cv=none; b=QjxwlJ2k+Z8f95ELFuWW3MZ+owvjZFxDntrZ8TuUemTtovBrr3KXNXMsiEVa2O6c1oNy2INeNcvYywl3C0vUowBIeudd01hAZoY4xEqJj3TuxfmQaceCuewF7uWGaPxe39/LAxe8VMsSjArJzCJuQ7BsJwQU/Iv3jAlZ6qb4XK0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771405512; c=relaxed/simple;
-	bh=TWE+gh0wJp26sdLB1G9ggqkhChhN16VzPqNk+nALOzQ=;
+	s=arc-20240116; t=1771405589; c=relaxed/simple;
+	bh=052lPPcR3y3wJ3e+SHhoN19jjGp8ed5pK8BFPm20qTQ=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=pE3yPk5dT3b3pfcgFsLMOpKIIN54DKmz6Q7aR1fU78bClASmHp2K6IlXr18eLnvX0TjW9t5vSxig3ZJzMhVT69Jh20GCtLVBhnLj9eSav8vBx10iE8yAPRjNOWZmBl4/2vXZQcxa4OhZIDxJ2hfi0QT2dxGx5Vou+ztGhExmGHs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=lgeLj3/s; arc=none smtp.client-ip=10.30.226.201
+	 Content-Type:Content-Disposition:In-Reply-To; b=uLAyCmDYbQbPN0vO8VrpKTdeb04VcmtfeiZTEl8XLNpelGMQDsK/l1LXJrb3RjPyv7d/zhBgrCGasJYZ5bzBoUjFFcR6uavFNFfykahCQ3TYf9/r83TvexE5VBdg3HcHIYPA7gkPgURbM9gD+dKZTCB6Kl3V+Ho6hPYBwVTfAsI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=p4WiSS7N; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="lgeLj3/s"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0703DC2BCAF;
-	Wed, 18 Feb 2026 09:05:11 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="p4WiSS7N"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DCC95C2BCAF;
+	Wed, 18 Feb 2026 09:06:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1771405512;
-	bh=TWE+gh0wJp26sdLB1G9ggqkhChhN16VzPqNk+nALOzQ=;
+	s=k20201202; t=1771405589;
+	bh=052lPPcR3y3wJ3e+SHhoN19jjGp8ed5pK8BFPm20qTQ=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=lgeLj3/s5+7lesut5qUY90SD8mrjW8IN202uZASzd4Cxg30CAmb4D4PTE+89ZCn4t
-	 eM/x8d37YvfA8OTfes77wKUKQ8dxI9kuW09DMq0zc6bJGiODoVj2/y6Yg8gahi2Hd0
-	 AGaymQmH21OvChmXkPJGRUYXEUTl2WbRP4UHjijkI6teJL9AfGXzg4UImn80K1YrkL
-	 2mSxYUwZjWvqsqbL/zI6W5PsLVu/BCM/+IlWz4LQCVSuZffhoaifRN3zu4AwAs96AQ
-	 fcpu8NgNMBE7gupvegWllCyPXQQ8wdHTsoWi8kxA7Wo9R56C50uxTcJN3bOzA3DfZ6
-	 6zyhKXlKTYEyA==
-Date: Wed, 18 Feb 2026 11:05:09 +0200
+	b=p4WiSS7NdhrjjG2n/cILDQjcxN3AD+6gBbowMSY2mgZmEnDczx6qlplHUWzNEydYX
+	 iHt+IlVWhJW7FbH8p0uLcb+a8IaT6B5nAJuVLQSKNh1gNO3oHqXiOg26zCn8QGpowf
+	 SsD/FoGOpgE8vQde4aUntSNMbsr9buw5tbcMP2sYopIzJi6R30eBy2cCorqoj2+Ckr
+	 GteZo8FklKCAHE0grH4hQ1/V3d5ScRWSPVpM3ZdBzBG/qrB5IPR50/dRLcnAdtcNNG
+	 sYbkH3MNWtrYvGID4MRP1re6mRezhhRBkIlNZiD3jGcnvsMNH+rzo/yQCB3PIip1R+
+	 GtII7J0wWP+Xw==
+Date: Wed, 18 Feb 2026 11:06:26 +0200
 From: Leon Romanovsky <leon@kernel.org>
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Jacob Moroni <jmoroni@google.com>, tatyana.e.nikolova@intel.com,
-	krzysztof.czurylo@intel.com, linux-rdma@vger.kernel.org
-Subject: Re: [RFC] RDMA/irdma: Add support for revocable dmabuf import
-Message-ID: <20260218090509.GD10368@unreal>
-References: <20260217182116.1726438-1-jmoroni@google.com>
- <20260217184559.GP750753@ziepe.ca>
- <CAHYDg1QdYZjT81gB6geWKpeRR1TEPKnk9XD1eXcMriVAOHCo4w@mail.gmail.com>
- <20260217232158.GQ750753@ziepe.ca>
+To: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Gal Pressman <gal.pressman@linux.dev>,
+	Krzysztof Czurylo <krzysztof.czurylo@intel.com>,
+	linux-rdma@vger.kernel.org, Michael Margolin <mrgolin@amazon.com>,
+	Yossi Leybovich <sleybo@amazon.com>,
+	Tatyana Nikolova <tatyana.e.nikolova@intel.com>,
+	Abhijit Gangurde <abhijit.gangurde@amd.com>,
+	Allen Hubbe <allen.hubbe@amd.com>,
+	Andrew Boyer <andrew.boyer@amd.com>,
+	Gal Pressman <galpress@amazon.com>,
+	Mustafa Ismail <mustafa.ismail@intel.com>, patches@lists.linux.dev,
+	Roland Dreier <rolandd@cisco.com>,
+	Shiraz Saleem <shiraz.saleem@intel.com>, stable@vger.kernel.org,
+	Steve Wise <swise@opengridcomputing.com>
+Subject: Re: [PATCH rc 2/4] IB/mthca: Add missed mthca_unmap_user_db() for
+ mthca_create_srq()
+Message-ID: <20260218090626.GE10368@unreal>
+References: <0-v1-83e918d69e73+a9-rdma_udata_rc_jgg@nvidia.com>
+ <2-v1-83e918d69e73+a9-rdma_udata_rc_jgg@nvidia.com>
+ <20260217132356.GM12989@unreal>
+ <20260217234627.GB3804671@nvidia.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -45,31 +57,28 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20260217232158.GQ750753@ziepe.ca>
+In-Reply-To: <20260217234627.GB3804671@nvidia.com>
 
-On Tue, Feb 17, 2026 at 07:21:58PM -0400, Jason Gunthorpe wrote:
-> On Tue, Feb 17, 2026 at 06:08:54PM -0500, Jacob Moroni wrote:
-> > Hi,
+On Tue, Feb 17, 2026 at 07:46:27PM -0400, Jason Gunthorpe wrote:
+> On Tue, Feb 17, 2026 at 03:23:56PM +0200, Leon Romanovsky wrote:
+> > > @@ -428,6 +428,8 @@ static int mthca_create_srq(struct ib_srq *ibsrq,
+> > >  
+> > >  	if (context && ib_copy_to_udata(udata, &srq->srqn, sizeof(__u32))) {
+> > >  		mthca_free_srq(to_mdev(ibsrq->device), srq);
+> > > +		mthca_unmap_user_db(to_mdev(ibsrq->device), &context->uar,
+> > > +				    context->db_tab, ucmd.db_index);
+> > >  		return -EFAULT;
+> > >  	}
 > > 
-> > Thanks for taking a look.
-
-<...>
-
-> > Should I create a new kernel device method for this? If so, then I wonder if
-> > it makes sense to expose it as a generic "invalidate_mr" method and let
-> > the drivers choose now to actually implement it (many can probably just
-> > forward the call to their internal rereg_mr logic).
+> > The `mthca_destroy_srq()` implementation needs to be corrected as well.
+> > Its resource release order is currently reversed.
 > 
-> I have on and off thought about doing something like that with rereg
-> mr as it would be more general, but I think for now just extending the
-> ib_umem_dmabuf_get_pinned() is reasonable, and avoids the races.
+> Er, that looks OK, this is probably in the wrong order, let's should swap
+> it, though I'm not sure it is even order sensitive..
 
-I'm in the camp that, sooner or later, we will need a generic solution in
-ib_core to handle this. More and more drivers now support dmabuf in RDMA,
-and most of them lack ODP, so they will all need to implement
-invalidate_mr at some point.
-
-That said, starting with the simplest reasonable approach and refactoring
-later sounds fine.
+Yes, mthca_destroy_srq() in the wrong order.
 
 Thanks
+
+> 
+> Jason
