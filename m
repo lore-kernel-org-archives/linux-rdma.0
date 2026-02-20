@@ -1,88 +1,81 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from vps0.lunn.ch (vps0.lunn.ch [156.67.10.101])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 25617341ACA;
-	Fri, 20 Feb 2026 11:14:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F143346ADC;
+	Fri, 20 Feb 2026 14:18:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=156.67.10.101
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771586058; cv=none; b=C+jY7N2XxjVXq5LZJFIkouc9jxaGPBILeNM5bATNqN0+9bb/ptTVbHvzrrwW0+gczcOW73iR/xOM0B5srr3UFyqf6VJ/m5zZAwv0lgaSQWUxsiqku08jswh+nxjG4OfocNp3dSuE1ia0hpKoNpMOvQe00tK+HP5S7LjHqLFTdSs=
+	t=1771597136; cv=none; b=XZlCQRqmTH+8bYRh+Zv42hwvNlv6VXvVrc9RvZ9sLF+NvFifqlUDpyiFMW5amGY+GgpaBGBsM/5//8JjbJ3KM5DgOKNNPGwQ3St6U8b0lCXwSmwgceQ2QXKW2MpRko3Pq/qML+AgeDSfG1/S+G/ObvAHUeFdswH/v0ttpfy1ltw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771586058; c=relaxed/simple;
-	bh=OBIwovGiLEgk9sxiCKOM48/c82NKWhf+xBbPy5J21OY=;
-	h=Mime-Version:Content-Type:Date:Message-Id:To:From:Subject:Cc:
-	 References:In-Reply-To; b=S+qJiODOy44CeHtLCD+0DkbjbWBFaWQzZb3jYQtT0xapBmSIquY4sRaAO0dfIQyW0WtZMmxK96/wV0sLcFNVv+ySXNzbACG41TRH6Az5sqGsEvGlvmaUXINH6niWKbWSCSbTtQipYCkb/IjisqZ3F72QeO7bGHieiU6LNHpx5Wc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=gfPun1Jc; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1771597136; c=relaxed/simple;
+	bh=DRVNZZfSS1JbuE2p8ZZYT6kLTnF92Vr2AfclnpFdOgg=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=HF137uzfuVgpZubRYUiWQdCywO72PO9D20kG1oxPay5XDbBnhw7oe2LeoxSVxBQVnkNDpduPLD4WrnKFxZ2TJjlNCDpOa0yemeG07e/1KWEVLF7Bx90t8ok89w5hDWYuGmYypZ6wQoliePtN4w17YEjRzlFq4TDZKQGvjBKSv4E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lunn.ch; spf=pass smtp.mailfrom=lunn.ch; dkim=pass (1024-bit key) header.d=lunn.ch header.i=@lunn.ch header.b=IEhRrGKz; arc=none smtp.client-ip=156.67.10.101
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lunn.ch
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lunn.ch
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="gfPun1Jc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 981C6C116C6;
-	Fri, 20 Feb 2026 11:14:14 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1771586058;
-	bh=OBIwovGiLEgk9sxiCKOM48/c82NKWhf+xBbPy5J21OY=;
-	h=Date:To:From:Subject:Cc:References:In-Reply-To:From;
-	b=gfPun1JctNvoNIPU18uGCxIMd5aHiT6dlrmj2bsqLAyavEu8synMj7lWsFKeZXRGe
-	 2Ct9Zau5qkp2RGx60hxrlRnWk2pql8eJaaMg7VDRPkmx9vl7oYB9EiQrfHWiWDClNI
-	 epLqINoePUTxsjEVMnF3aXbzG0cL+ZDDE21nmHe2GjTf5UuKRo3+afXOpGYryxTUiy
-	 3bnMj7tn0ROxyUkCt5R9Q7+7EUQo2EiZ1p8doDxcASopRTcPqmbosOUSng3pwf9F8r
-	 9it9JfwQvqkFvY1m8DW6yYf9trdQEriJWze7GP1c65mUJhsz2kL5OiLm+faDY8Pect
-	 NCXlJg33ToXqw==
+	dkim=pass (1024-bit key) header.d=lunn.ch header.i=@lunn.ch header.b="IEhRrGKz"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=lunn.ch;
+	s=20171124; h=In-Reply-To:Content-Disposition:Content-Type:MIME-Version:
+	References:Message-ID:Subject:Cc:To:From:Date:From:Sender:Reply-To:Subject:
+	Date:Message-ID:To:Cc:MIME-Version:Content-Type:Content-Transfer-Encoding:
+	Content-ID:Content-Description:Content-Disposition:In-Reply-To:References;
+	bh=/C0JYLTvJxU7N0XNis2h4waB8weL5GFpHQnSERQGpgU=; b=IEhRrGKzUjXEktA0X3swtIwAwt
+	mX9BInLnVMT0VfzYLpP0cUUO1zynvIuUjBWYlsBkDctmh1/WSglfbCrmuJfNgblW0R8QERZAMIgk7
+	uE8vurZE62oCAb6XCJWsoOwZlyHbt2CXw+S47Kg8lpdYVc3cQS27wQlzXQQtTn0TC5ko=;
+Received: from andrew by vps0.lunn.ch with local (Exim 4.94.2)
+	(envelope-from <andrew@lunn.ch>)
+	id 1vtRL6-0084uy-C2; Fri, 20 Feb 2026 15:18:40 +0100
+Date: Fri, 20 Feb 2026 15:18:40 +0100
+From: Andrew Lunn <andrew@lunn.ch>
+To: Jakub Kicinski <kuba@kernel.org>
+Cc: =?iso-8859-1?Q?Bj=F6rn_T=F6pel?= <bjorn@kernel.org>,
+	netdev@vger.kernel.org, Donald Hunter <donald.hunter@gmail.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>, Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>, Saeed Mahameed <saeedm@nvidia.com>,
+	Tariq Toukan <tariqt@nvidia.com>, Leon Romanovsky <leon@kernel.org>,
+	Andrew Lunn <andrew+netdev@lunn.ch>,
+	Maxime Chevallier <maxime.chevallier@bootlin.com>,
+	Michael Chan <michael.chan@broadcom.com>,
+	Hariprasad Kelam <hkelam@marvell.com>,
+	Ido Schimmel <idosch@nvidia.com>,
+	Danielle Ratson <danieller@nvidia.com>,
+	linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org
+Subject: Re: [RFC net-next 0/4] ethtool: CMIS module diagnostic loopback
+ support
+Message-ID: <3b0949fa-0b05-4bce-86c0-2a7a058865a5@lunn.ch>
+References: <20260219130050.2390226-1-bjorn@kernel.org>
+ <415c4922-cc8d-4e35-bbac-3a532f44d238@lunn.ch>
+ <20260219160519.323041bf@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset=UTF-8
-Date: Fri, 20 Feb 2026 12:14:12 +0100
-Message-Id: <DGJQUDBN8WQ2.BPQRSNNGMH6X@kernel.org>
-To: "Leon Romanovsky" <leon@kernel.org>
-From: "Danilo Krummrich" <dakr@kernel.org>
-Subject: Re: [PATCH V2] driver core: auxiliary bus: Fix sysfs creation on
- bind
-Cc: "Tariq Toukan" <tariqt@nvidia.com>, "Greg Kroah-Hartman"
- <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>,
- "Saeed Mahameed" <saeedm@nvidia.com>, "Mark Bloch" <mbloch@nvidia.com>,
- "Andrew Lunn" <andrew+netdev@lunn.ch>, "David S. Miller"
- <davem@davemloft.net>, "Eric Dumazet" <edumazet@google.com>, "Jakub
- Kicinski" <kuba@kernel.org>, "Paolo Abeni" <pabeni@redhat.com>,
- <driver-core@lists.linux.dev>, <linux-kernel@vger.kernel.org>,
- <netdev@vger.kernel.org>, <linux-rdma@vger.kernel.org>, "Gal Pressman"
- <gal@nvidia.com>, "Moshe Shemesh" <moshe@nvidia.com>, "Amir Tzin"
- <amirtz@nvidia.com>
-References: <20260219210435.1769394-1-tariqt@nvidia.com>
- <DGJCHYS3SKIQ.1TIHQCMEOCRC@kernel.org> <20260220080413.GB10607@unreal>
-In-Reply-To: <20260220080413.GB10607@unreal>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260219160519.323041bf@kernel.org>
 
-On Fri Feb 20, 2026 at 9:04 AM CET, Leon Romanovsky wrote:
-> This init->add->remove->destroy pattern follows standard Linux kernel pra=
-ctice.
-> I expect all current review tools to flag any missing function call
-> among these three.
+> Something like:
+> 
+>   struct {
+>      enum type;   // MAC, PHY, SFP
+>      int type_id; // if type=PHY - phy id
+>      int depth;   // counting from CPU, first loopback opportunity is 1
+>                   // second is 2, etc.
+>      bool direction; // towards CPU/host vs towards network
+>      char name[16];  // "pcs", "far", "near", "post-fec", whatever
+>   }
 
-I'm not saying that the flow is not logical, goes against existing patterns=
-,
-etc., I'm saying that it is unnecessary to expose a new API to drivers, sin=
-ce
-this is already handled internally.
+Lets see what comes from the drawing board, but i was more thinking
+about expanding the bitmap this proposal already has, extending it to
+other layers. As use cases are implemented, we define the bits needed
+in the map. The ethtool kAPI has the needed infrastructure to map bits
+to names, it is used for link modes etc, and that can be used here. So
+the ethtool(1) part should be reasonably generic.
 
-I.e. we can easily fix the bug without increasing the API surface exposing =
-a new
-API to drivers.
+    Andrew
 
-> It is not, atomic is not a replacement for locking and this hunk is
-> going to be racy as hell:
-
-No, of course not, but it is sufficient to ensure that something runs only =
-once.
-
-However, you are still right, since sysfs_create_group() can still fail, we
-still need the mutex, because we may need to unwind.
-
-> In the proposed patch, locking is handled by the driver, which understand=
-s the
-> flow far better than the driver core.
-
-I don't think so, the driver core (or actually the auxiliary bus code) is
-perfectly aware of the flow, i.e. create the attribute group once actually
-needed by auxiliary_device_sysfs_irq_add(), remove it on driver unbind.
