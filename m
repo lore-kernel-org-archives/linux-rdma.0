@@ -1,134 +1,91 @@
-Received: from mail-dy1-f181.google.com (mail-dy1-f181.google.com [74.125.82.181])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD98F23EA85
-	for <linux-rdma@vger.kernel.org>; Mon, 23 Feb 2026 04:59:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.181
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0883B34A796;
+	Mon, 23 Feb 2026 07:17:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771822772; cv=none; b=qgmNHIY00DQcFNLMFVre6UwCmxdE5P8sgGo2TBuF7hK85YWB43tCeVsTePEPtDmc/TYMXgH9zhhLRZu7Ytj7u9UZ0X6Tn9VhAweApdDUoFVKgsRQx1HNbowvQlXEWcQ0N7MkwHgHUVN27MnF8yKEMcZ6bEykAs6Dzq5ESwbuww0=
+	t=1771831030; cv=none; b=CX1irhgdpoWGytZ5hKoQs3EIS0uVbvGqpkKrRI/A5tLoiCxkhJ7I+ynq/I/woJnSn6LmjUcTuA39uSCMAny0Img239+x0yLH0TDGN9G5Q4J7JYIqq2Gy+Z9gokgkpIO0k10EzKmCCtK9nK/5n3R930fhC/V+hEmYqWQ5NuH7ozE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771822772; c=relaxed/simple;
-	bh=LEFPyOaZEpHZmLXlHJrYQGoiUUQMfjxNFS9DsEDVwfQ=;
+	s=arc-20240116; t=1771831030; c=relaxed/simple;
+	bh=f8l2/4noAcJnq+ttTInXUmnEOp8ump43LAOqmtY5gJo=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=DFfPwTNXlOXEgxQO3s52i55TrtjadWl6HlIkqHQt24kg+ItmgJRZTOFiQ7qO20WN5/ZcKPWJQAUPJnAY9rXtJJBa9U05P+dpiuFDfHdaa7mwvFCG55aujBZ2dfCbngsN6lowWM6VWo78/8Uu1MluxowAJ+2O63DvM15S+m609xc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=roeck-us.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=CsRko61U; arc=none smtp.client-ip=74.125.82.181
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=roeck-us.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	 Content-Type:Content-Disposition:In-Reply-To; b=NWRcqRUmc6UjLjaemoaLIyrtj0zfOlrmUkmfv1dbgzUCExh1QUklKdQt2qqlQUJvPWaOVf/AsoqwEAdWwV8/srHdJKlF06OpqOW+yXjKGz64m+slIqPJFO0BHF8oHIepshtVBr/9yJkiImR4DjfCqJrYXl9lJn7ILSFoBDcy3Ps=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=YtlQerpo; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="CsRko61U"
-Received: by mail-dy1-f181.google.com with SMTP id 5a478bee46e88-2ba6aa57d5fso3796584eec.1
-        for <linux-rdma@vger.kernel.org>; Sun, 22 Feb 2026 20:59:30 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1771822770; x=1772427570; darn=vger.kernel.org;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :mime-version:references:message-id:subject:cc:to:from:date:sender
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=ar5KC76tgxYX5PKL9eOkCAkUY5PVkOEvBMJNrWwerKw=;
-        b=CsRko61UrOS/LBnAhxuT+TWf8AuTTluYnyJBxljgNtgtNuGG9boFKJoaOwN4c3nkpx
-         O1FhxiGi7tpK9YS062HKjOmg71nrE4ULTFC0rWU8gkgL5ovwFceONVcnsbbVyCZEbtMO
-         /ACAjgFK/pzoRzC9YU5WQCND9Jr1qDUCfSQUHBnVKOPtyvfWmbDMSVcH1eSf0LH/GBTw
-         d8NHME19BnqWxpQKf3Fj+ue6cKIw/IDhGdqlE75mHMBNJZm4KOkHl1Yptx6Dw1sa59H0
-         R+uNyoHztlcytswgQPvkUhBR+lpL7T11kJ921W5ptoS+Ww6vmbNH+bNNkprR49e78kny
-         f9GA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1771822770; x=1772427570;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :mime-version:references:message-id:subject:cc:to:from:date:sender
-         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=ar5KC76tgxYX5PKL9eOkCAkUY5PVkOEvBMJNrWwerKw=;
-        b=g92gnFjC3tZTTi8h65uP2h+YaE5wc/BrPD4xkbNaGfdgzjSxQqxgkRYJ2N0u3WrlgD
-         vn2t+S0KuARdulV239N2ZvudCl3ESAkBHAgBroqG2/ISdKOpYnMatqtDXBasPg0SvYCw
-         AOGd/AdfOdwJSoYDvUryFhUFR9QE0G5umfSgHg+Nrcvoqw/VlxBcjbX3cj+EsNfqVLgm
-         kP/yTWMYKfosiqo7U3lepBFS6uTtjUTJzZ5R0k2ZcM4iGflklUJPzfGGh774Cj8GHZVR
-         1OR/R8/scy2Enktb8w3hldOTGr+EziFrAnVA3XN69/IVDZxUtYV730TV8z6+EmGlken4
-         7DbA==
-X-Forwarded-Encrypted: i=1; AJvYcCVja9YliRYBQN+2KG8X+MMocfMBOcBwUz/EdokqGZUqmGr+rZEMsp/sTGv8/t5dshOWmAfhccfh1PYL@vger.kernel.org
-X-Gm-Message-State: AOJu0YyRgJKE/XfafxlFrFMEA5t9TdGzLmI39HvE2tSGUdhCoCSzhfC2
-	CUq10usVKV4cYRnHFXleIxVyFJNQq6KpQ30ZFVtNTZyk1raNoD9RLioG
-X-Gm-Gg: ATEYQzxd6xL7ycOB1QYUJZ+ZnPYgfZEVxXc7FSMywaNliky7CH7v9V/nKFnu0P94V8X
-	dditCQB7Vzfi9HvuSS4BEyVDvUF8V3pz3O2jYR0h4JRupcW9ZSk8yCI+Dck36OE4hr4fHmxkz6W
-	6UII5BYNmMax1FQG+RHVIjTlcjopEuplGM0/qz+lhKEi93RrGpdWYW42LDometWEiTpSnqTEcJl
-	dRVdxnAI/R0y5LMMKmnXzSLurgU97l1kZheuq29OfKKZHyf4iFabrVWvAXuS0X5xNdAfIRh2rpx
-	5xuXNdq0be11e0llSFUvQLVi0KmdxaWMEFFcunClZpyTzyVk4aXARJ6kJ7FKdQZmVrQw3N1NCRM
-	xUHKFiNUjD2Mg/NqARiEv5JVyAtLcVneJwPNYJAuqlFUb1VL+epe+Rmxs8bBzUSu6RarCx9NPmA
-	ejF+N28aiAA9nvO8z6OJAfdCImOngl8uhvEwbx
-X-Received: by 2002:a05:7301:6783:b0:2ba:6b03:90af with SMTP id 5a478bee46e88-2bd7bb4b383mr3387725eec.6.1771822769743;
-        Sun, 22 Feb 2026 20:59:29 -0800 (PST)
-Received: from server.roeck-us.net ([2600:1700:e321:62f0:da43:aeff:fecc:bfd5])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-2bd7da4775dsm4300363eec.2.2026.02.22.20.59.28
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 22 Feb 2026 20:59:29 -0800 (PST)
-Sender: Guenter Roeck <groeck7@gmail.com>
-Date: Sun, 22 Feb 2026 20:59:28 -0800
-From: Guenter Roeck <linux@roeck-us.net>
-To: Edward Srouji <edwards@nvidia.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>,
-	linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
-	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linaro-mm-sig@lists.linaro.org, Yishai Hadas <yishaih@nvidia.com>
-Subject: Re: [PATCH rdma-next v3 2/3] RDMA/uverbs: Add DMABUF object type and
- operations
-Message-ID: <716e8a8e-e4e0-468d-9314-10082c2bbb8d@roeck-us.net>
-References: <20260201-dmabuf-export-v3-0-da238b614fe3@nvidia.com>
- <20260201-dmabuf-export-v3-2-da238b614fe3@nvidia.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="YtlQerpo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 016C0C116C6;
+	Mon, 23 Feb 2026 07:17:08 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1771831029;
+	bh=f8l2/4noAcJnq+ttTInXUmnEOp8ump43LAOqmtY5gJo=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=YtlQerpoNYKVfHcLgBb2S2Rn5O8l5/2+anNviDJpHQ+u1MSlnjkwd05i9Jon/WhZf
+	 7Tpbo+BvCXkeLbWlGJrZMiNMqG2EkWME7OAx8Nb2ZODwuobR5ww2MXmPrg0m6Uf+oa
+	 G1Kl8Zid2rC8JWJcYxKGlPIVSER+DH6DThSVLwLJH/RkXVSdXr16vp6RIVkoW7UHr0
+	 t5AuN2FqKi7ahrG36Z7iz/TGmAZ/159LUq+xOT6CAJn+ZfsOCH/IVn8XuPzlhKBytm
+	 24a/F+FqxR3XHXg/5ta73UZdykp/r6L3B2rUuq8NqT0c1LWvgJmTov74Elctpr6X1e
+	 jdGn29aU9IfEg==
+Date: Fri, 20 Feb 2026 16:11:56 +0200
+From: Leon Romanovsky <leon@kernel.org>
+To: Danilo Krummrich <dakr@kernel.org>
+Cc: Tariq Toukan <tariqt@nvidia.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Saeed Mahameed <saeedm@nvidia.com>, Mark Bloch <mbloch@nvidia.com>,
+	Andrew Lunn <andrew+netdev@lunn.ch>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	driver-core@lists.linux.dev, linux-kernel@vger.kernel.org,
+	netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
+	Gal Pressman <gal@nvidia.com>, Moshe Shemesh <moshe@nvidia.com>,
+	Amir Tzin <amirtz@nvidia.com>
+Subject: Re: [PATCH V2] driver core: auxiliary bus: Fix sysfs creation on bind
+Message-ID: <20260220141156.GE10607@unreal>
+References: <20260219210435.1769394-1-tariqt@nvidia.com>
+ <DGJCHYS3SKIQ.1TIHQCMEOCRC@kernel.org>
+ <20260220080413.GB10607@unreal>
+ <DGJQUDBN8WQ2.BPQRSNNGMH6X@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20260201-dmabuf-export-v3-2-da238b614fe3@nvidia.com>
+In-Reply-To: <DGJQUDBN8WQ2.BPQRSNNGMH6X@kernel.org>
 
-On Sun, Feb 01, 2026 at 04:34:05PM +0200, Edward Srouji wrote:
-> From: Yishai Hadas <yishaih@nvidia.com>
+On Fri, Feb 20, 2026 at 12:14:12PM +0100, Danilo Krummrich wrote:
+> On Fri Feb 20, 2026 at 9:04 AM CET, Leon Romanovsky wrote:
+> > This init->add->remove->destroy pattern follows standard Linux kernel practice.
+> > I expect all current review tools to flag any missing function call
+> > among these three.
 > 
-> Expose DMABUF functionality to userspace through the uverbs interface,
-> enabling InfiniBand/RDMA devices to export PCI based memory regions
-> (e.g. device memory) as DMABUF file descriptors. This allows
-> zero-copy sharing of RDMA memory with other subsystems that support the
-> dma-buf framework.
+> I'm not saying that the flow is not logical, goes against existing patterns,
+> etc., I'm saying that it is unnecessary to expose a new API to drivers, since
+> this is already handled internally.
 > 
-> A new UVERBS_OBJECT_DMABUF object type and allocation method were
-> introduced.
+> I.e. we can easily fix the bug without increasing the API surface exposing a new
+> API to drivers.
 > 
-> During allocation, uverbs invokes the driver to supply the
-> rdma_user_mmap_entry associated with the given page offset (pgoff).
+> > It is not, atomic is not a replacement for locking and this hunk is
+> > going to be racy as hell:
 > 
-> Based on the returned rdma_user_mmap_entry, uverbs requests the driver
-> to provide the corresponding physical-memory details as well as the
-> driver’s PCI provider information.
-> 
-> Using this information, dma_buf_export() is called; if it succeeds,
-> uobj->object is set to the underlying file pointer returned by the
-> dma-buf framework.
-> 
-> The file descriptor number follows the standard uverbs allocation flow,
-> but the file pointer comes from the dma-buf subsystem, including its own
-> fops and private data.
-> 
-> When an mmap entry is removed, uverbs iterates over its associated
-> DMABUFs, marks them as revoked, and calls dma_buf_move_notify() so that
-> their importers are notified.
-> 
-> The same procedure applies during the disassociate flow; final cleanup
-> occurs when the application closes the file.
-> 
-> Signed-off-by: Yishai Hadas <yishaih@nvidia.com>
-> Signed-off-by: Edward Srouji <edwards@nvidia.com>
+> No, of course not, but it is sufficient to ensure that something runs only once.
 
-When trying to build powerpc:ppc64e_defconfig:
+No, atomic doesn't ensure that. Atomic makes sure that write/read
+variable isn't "interrupted" in the middle.
 
-ERROR: modpost: "dma_resv_wait_timeout" [drivers/infiniband/core/ib_core.ko] undefined!
-ERROR: modpost: "dma_buf_move_notify" [drivers/infiniband/core/ib_core.ko] undefined!
-ERROR: modpost: "dma_resv_reset_max_fences" [drivers/infiniband/core/ib_core.ko] undefined!
+Multiple simultaneous calls to auxiliary_irq_dir_prepare() without lock can return
+that sysfs.irq_dir_exists isn't set yet, will try to call to devm_device_add_group()
+which will fail.
 
-The code now requires CONFIG_DMA_SHARED_BUFFER which is not enabled for
-this platform.
+> 
+> However, you are still right, since sysfs_create_group() can still fail, we
+> still need the mutex, because we may need to unwind.
 
-Guenter
+If you decide to keep lock, you won't need atomic_t for irq_dir_exists.
+
+Thanks
