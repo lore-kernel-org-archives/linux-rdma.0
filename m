@@ -1,279 +1,72 @@
-Received: from out-188.mta0.migadu.com (out-188.mta0.migadu.com [91.218.175.188])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EFA8C2EAD15
-	for <linux-rdma@vger.kernel.org>; Wed, 25 Feb 2026 18:14:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.188
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 485F8313E17
+	for <linux-rdma@vger.kernel.org>; Wed, 25 Feb 2026 18:50:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772043284; cv=none; b=PkibOKEMFWU8I0mDmPLc7Z8gTyLiM0CMoRVuNLlIzSmIsun40ES2/cjIa3ECpyS+W/IuFHu3G7M7GSCWfVXsbM8Czq91K30cMr9GIxwWGOVEpEuJ3UIRYwTwF476zew+ZinRaYVTHPoTg4s9Qh15dorzdRPfKV6HiTpuYtHjnXc=
+	t=1772045429; cv=none; b=A/pFuSUv8ML7lnkFhRzGaeh+D5FovlfffCK65r8L1fKNKyOOis7W6v+AlEEdwUAZwAoRIoO8/ojFJ319e3W04tUkCfsm8h+Kff6HRFTPvX+5xayQ+wZX8wNkffx+ZGKj+cMx1R7MBaQt0BsdSJq+Q89KoprQ1AZE8883tbcknMo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772043284; c=relaxed/simple;
-	bh=MrD5JWCoKgrZEtuytnuYIaEGW+mGZ6XYf2/poO7StGE=;
+	s=arc-20240116; t=1772045429; c=relaxed/simple;
+	bh=Bc7QDZIxQQ3Q17TLO6F3tRbLkrGwoQY/sssRSkkuVWs=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=Mvp5edC+cfFWJ2MwYuuCEJFMYt8U5Kz247rDhnTT8BIw3p14/4TU9GjCZqJBwl1gwsrXBDje3moZ7lG+mzFjw2fceLYcHq9dxZ86IBXgmNIDUMEWovqop2bYiUMYmS6yCqlwezYfn94pefIjRYSKLbDvuc1u/hlil1OwMbQQbD8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=KDFtmg/B; arc=none smtp.client-ip=91.218.175.188
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+	 In-Reply-To:Content-Type; b=L6Dd+i4cl8sSSB4xlRRBMXOXd1W1q+3D6VhdU8HXapZQgEBHZKPE5FcA+drq8L81SLJi5Uf7lJXZEWWIcA9WU+9gDbnCesBIESqDbhMhz2IHC+A2ufUyPSt5KezX/AK18sH5Flv5U9HsDr3qBlMm12pRLYAEMdaVU3UO3WcYyvE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=f2VUQhMy; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="KDFtmg/B"
-Message-ID: <e87e7871-d35e-4b91-a00f-1491ac5b6dab@linux.dev>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-	t=1772043281;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=G8Z3EADJNI8Fpu8W09URwtWOWyeWv9QLmJHGpSN8L6M=;
-	b=KDFtmg/BiQDfihd+K4FbM+jzAwfLJ5lJGZaG/jNEJxQDjw/Mw8xxXrdgddYeq8K7hmtU8K
-	YSrNsDgrYwaN4xj95f3/jvhs9EjY5qH8soGE6jE1w91PAu2i1G9phA2RrXTRwIf4+xEFiD
-	RNshVwknfl73q8nX4kDM012TrbL34IA=
-Date: Wed, 25 Feb 2026 10:14:37 -0800
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="f2VUQhMy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AC245C116D0;
+	Wed, 25 Feb 2026 18:50:28 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1772045428;
+	bh=Bc7QDZIxQQ3Q17TLO6F3tRbLkrGwoQY/sssRSkkuVWs=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=f2VUQhMy2iMfKAuklpO69WCTuYQcL9SrC+0SCOXtZnMEg0dSm05SpnaynmTm/hntY
+	 tdYGHC7ke3islo3dbEimGXnwxPXtK9S+8/BXul4Cwqb7Pi40S0laaVaftvoi+umCf+
+	 UD2kQJwo1lU9yxYsC6OSgnzEwbHUnEhzq6bEFg8YP5bYrQk36+wmYclZSXwITghCau
+	 4IMLRX12+znlGUZGKG7qZOyXbtKtCbPDGetpo+Htd8bUDSILIE0QB4X/jwLXHmgmmT
+	 AAp06gGJ9Jj1CbsYenc3JGoHm0jpqDEgMTJ79Dzj+KWu733nJo6ecuL+8WqBrw2LzG
+	 KFs5fkU4u6DgQ==
+Message-ID: <18ecbd06-baac-43ee-a455-6b34c716fdfe@kernel.org>
+Date: Wed, 25 Feb 2026 11:50:27 -0700
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
 Subject: Re: [PATCH] RDMA/rxe: Add network namespace support
-To: David Ahern <dsahern@kernel.org>, zyjzyj2000@gmail.com, jgg@ziepe.ca,
+Content-Language: en-US
+To: "yanjun.zhu" <yanjun.zhu@linux.dev>, zyjzyj2000@gmail.com, jgg@ziepe.ca,
  leon@kernel.org
 Cc: linux-rdma@vger.kernel.org
 References: <20260225172622.7589-1-dsahern@kernel.org>
-Content-Language: en-US
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-From: "yanjun.zhu" <yanjun.zhu@linux.dev>
-In-Reply-To: <20260225172622.7589-1-dsahern@kernel.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+ <e87e7871-d35e-4b91-a00f-1491ac5b6dab@linux.dev>
+From: David Ahern <dsahern@kernel.org>
+In-Reply-To: <e87e7871-d35e-4b91-a00f-1491ac5b6dab@linux.dev>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-X-Migadu-Flow: FLOW_OUT
 
-On 2/25/26 9:26 AM, David Ahern wrote:
-> Allow rxe to work across network namespaces by making the sockets
-> per namespace using net_generic. Defer socket initialization until
-> a device is created in the namespace.
+On 2/25/26 11:14 AM, yanjun.zhu wrote:
+> On 2/25/26 9:26 AM, David Ahern wrote:
+>> Allow rxe to work across network namespaces by making the sockets
+>> per namespace using net_generic. Defer socket initialization until
+>> a device is created in the namespace.
+> 
+> https://github.com/zhuyj/linux/tree/upstream/6.14-net-namespace
+> 
+> Do you make tests with the above link?
 
-https://github.com/zhuyj/linux/tree/upstream/6.14-net-namespace
-
-Do you make tests with the above link?
-
-Compared with the net namespace in the above link, what is the 
-difference between this commit and the above link?
-
-Thanks a lot.
-Yanjun.Zhu
+no. I had no knowledge of that branch until this moment. It is almost 12
+months old, so not sure the relevance if it is not being actively fixed
+on top of tree.
 
 > 
-> Signed-off-by: David Ahern <dsahern@kernel.org>
-> ---
->   drivers/infiniband/sw/rxe/rxe_net.c | 123 ++++++++++++++++++++--------
->   1 file changed, 88 insertions(+), 35 deletions(-)
+> Compared with the net namespace in the above link, what is the
+> difference between this commit and the above link?
 > 
-> diff --git a/drivers/infiniband/sw/rxe/rxe_net.c b/drivers/infiniband/sw/rxe/rxe_net.c
-> index 0bd0902b11f7..f51afc38c9df 100644
-> --- a/drivers/infiniband/sw/rxe/rxe_net.c
-> +++ b/drivers/infiniband/sw/rxe/rxe_net.c
-> @@ -18,7 +18,10 @@
->   #include "rxe_net.h"
->   #include "rxe_loc.h"
->   
-> -static struct rxe_recv_sockets recv_sockets;
-> +static int __rxe_netns_init(struct net *net,
-> +			    struct rxe_recv_sockets *sockets);
-> +
-> +static unsigned int rxe_net_id;
->   
->   #ifdef CONFIG_DEBUG_LOCK_ALLOC
->   /*
-> @@ -105,6 +108,7 @@ static struct dst_entry *rxe_find_route4(struct rxe_qp *qp,
->   					 struct in_addr *saddr,
->   					 struct in_addr *daddr)
->   {
-> +	struct net *net = dev_net(ndev);
->   	struct rtable *rt;
->   	struct flowi4 fl = { { 0 } };
->   
-> @@ -114,7 +118,7 @@ static struct dst_entry *rxe_find_route4(struct rxe_qp *qp,
->   	memcpy(&fl.daddr, daddr, sizeof(*daddr));
->   	fl.flowi4_proto = IPPROTO_UDP;
->   
-> -	rt = ip_route_output_key(&init_net, &fl);
-> +	rt = ip_route_output_key(net, &fl);
->   	if (IS_ERR(rt)) {
->   		rxe_dbg_qp(qp, "no route to %pI4\n", &daddr->s_addr);
->   		return NULL;
-> @@ -129,6 +133,8 @@ static struct dst_entry *rxe_find_route6(struct rxe_qp *qp,
->   					 struct in6_addr *saddr,
->   					 struct in6_addr *daddr)
->   {
-> +	struct net *net = dev_net(ndev);
-> +	struct rxe_recv_sockets *recv_socket = net_generic(net, rxe_net_id);
->   	struct dst_entry *ndst;
->   	struct flowi6 fl6 = { { 0 } };
->   
-> @@ -138,9 +144,8 @@ static struct dst_entry *rxe_find_route6(struct rxe_qp *qp,
->   	memcpy(&fl6.daddr, daddr, sizeof(*daddr));
->   	fl6.flowi6_proto = IPPROTO_UDP;
->   
-> -	ndst = ipv6_stub->ipv6_dst_lookup_flow(sock_net(recv_sockets.sk6->sk),
-> -					       recv_sockets.sk6->sk, &fl6,
-> -					       NULL);
-> +	ndst = ipv6_stub->ipv6_dst_lookup_flow(net, recv_socket->sk6->sk,
-> +					       &fl6, NULL);
->   	if (IS_ERR(ndst)) {
->   		rxe_dbg_qp(qp, "no route to %pI6\n", daddr);
->   		return NULL;
-> @@ -606,8 +611,16 @@ const char *rxe_parent_name(struct rxe_dev *rxe, unsigned int port_num)
->   
->   int rxe_net_add(const char *ibdev_name, struct net_device *ndev)
->   {
-> -	int err;
-> +	struct net *net = dev_net(ndev);
-> +	struct rxe_recv_sockets *sockets = net_generic(net, rxe_net_id);
->   	struct rxe_dev *rxe = NULL;
-> +	int err;
-> +
-> +	if (!sockets->sk4) {
-> +		err = __rxe_netns_init(net, sockets);
-> +		if (err)
-> +			return err;
-> +	}
->   
->   	rxe = ib_alloc_device(rxe_dev, ib_dev);
->   	if (!rxe)
-> @@ -709,12 +722,13 @@ static struct notifier_block rxe_net_notifier = {
->   	.notifier_call = rxe_notify,
->   };
->   
-> -static int rxe_net_ipv4_init(void)
-> +static int rxe_net_ipv4_init(struct net *net,
-> +			     struct rxe_recv_sockets *sockets)
->   {
-> -	recv_sockets.sk4 = rxe_setup_udp_tunnel(&init_net,
-> -				htons(ROCE_V2_UDP_DPORT), false);
-> -	if (IS_ERR(recv_sockets.sk4)) {
-> -		recv_sockets.sk4 = NULL;
-> +	sockets->sk4 = rxe_setup_udp_tunnel(net, htons(ROCE_V2_UDP_DPORT),
-> +					    false);
-> +	if (IS_ERR(sockets->sk4)) {
-> +		sockets->sk4 = NULL;
->   		pr_err("Failed to create IPv4 UDP tunnel\n");
->   		return -1;
->   	}
-> @@ -722,31 +736,74 @@ static int rxe_net_ipv4_init(void)
->   	return 0;
->   }
->   
-> -static int rxe_net_ipv6_init(void)
-> -{
->   #if IS_ENABLED(CONFIG_IPV6)
-> -
-> -	recv_sockets.sk6 = rxe_setup_udp_tunnel(&init_net,
-> -						htons(ROCE_V2_UDP_DPORT), true);
-> -	if (PTR_ERR(recv_sockets.sk6) == -EAFNOSUPPORT) {
-> -		recv_sockets.sk6 = NULL;
-> -		pr_warn("IPv6 is not supported, can not create a UDPv6 socket\n");
-> -		return 0;
-> -	}
-> -
-> -	if (IS_ERR(recv_sockets.sk6)) {
-> -		recv_sockets.sk6 = NULL;
-> +static int rxe_net_ipv6_init(struct net *net,
-> +			     struct rxe_recv_sockets *sockets)
-> +{
-> +	sockets->sk6 = rxe_setup_udp_tunnel(net, htons(ROCE_V2_UDP_DPORT),
-> +					    true);
-> +	if (IS_ERR(sockets->sk6)) {
-> +		sockets->sk6 = NULL;
->   		pr_err("Failed to create IPv6 UDP tunnel\n");
->   		return -1;
->   	}
-> +	return 0;
-> +}
-> +#endif
-> +
-> +/* Initialize per network namespace state */
-> +static int __rxe_netns_init(struct net *net,
-> +			    struct rxe_recv_sockets *sockets)
-> +{
-> +	int err;
-> +
-> +	err = rxe_net_ipv4_init(net, sockets);
-> +	if (err)
-> +		return err;
-> +
-> +#if IS_ENABLED(CONFIG_IPV6)
-> +	err = rxe_net_ipv6_init(net, sockets);
-> +	if (err) {
-> +		rxe_release_udp_tunnel(sockets->sk4);
-> +		return err;
-> +	}
->   #endif
-> +
-> +	return 0;
-> +}
-> +
-> +static int __net_init rxe_netns_init(struct net *net)
-> +{
-> +	/* defer socket create in the namespace to the first
-> +	 * device create.
-> +	 */
->   	return 0;
->   }
->   
-> +static void __net_exit rxe_netns_exit(struct net *net)
-> +{
-> +	struct rxe_recv_sockets *sockets;
-> +
-> +	sockets = net_generic(net, rxe_net_id);
-> +
-> +#if IS_ENABLED(CONFIG_IPV6)
-> +	if (sockets->sk6)
-> +		rxe_release_udp_tunnel(sockets->sk6);
-> +#endif
-> +	if (sockets->sk4)
-> +		rxe_release_udp_tunnel(sockets->sk4);
-> +}
-> +
-> +static struct pernet_operations rxe_net_ops __net_initdata = {
-> +	.init = rxe_netns_init,
-> +	.exit = rxe_netns_exit,
-> +	.id   = &rxe_net_id,
-> +	.size = sizeof(struct rxe_recv_sockets),
-> +};
-> +
->   void rxe_net_exit(void)
->   {
-> -	rxe_release_udp_tunnel(recv_sockets.sk6);
-> -	rxe_release_udp_tunnel(recv_sockets.sk4);
-> +	unregister_pernet_device(&rxe_net_ops);
->   	unregister_netdevice_notifier(&rxe_net_notifier);
->   }
->   
-> @@ -754,21 +811,17 @@ int rxe_net_init(void)
->   {
->   	int err;
->   
-> -	recv_sockets.sk6 = NULL;
-> -
-> -	err = rxe_net_ipv4_init();
-> -	if (err)
-> -		return err;
-> -	err = rxe_net_ipv6_init();
-> -	if (err)
-> -		goto err_out;
->   	err = register_netdevice_notifier(&rxe_net_notifier);
->   	if (err) {
->   		pr_err("Failed to register netdev notifier\n");
->   		goto err_out;
->   	}
-> +	err = register_pernet_device(&rxe_net_ops);
-> +	if (err)
-> +		goto err_out;
-> +
->   	return 0;
->   err_out:
-> -	rxe_net_exit();
-> +	unregister_netdevice_notifier(&rxe_net_notifier);
->   	return err;
->   }
+
+no idea. This patch was in our tree at enfabrica dating back to 2021.
+Someone started looking into automated tests with rxe, so I pulled it
+from the tree, rebased to 7.0 and sent it out.
 
