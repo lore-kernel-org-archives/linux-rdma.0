@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B46E3194C96;
-	Wed, 25 Feb 2026 14:19:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EA0B83D3D0B;
+	Wed, 25 Feb 2026 14:19:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772029192; cv=none; b=d3/m/ykXf0Eqy+agPfYLkWVLnHpmA7j49jCHwjYECWoCK0y+PEslKb3WKKJhYcxc07syxPgGuzg4OilNBDpoRrJg6IdDVykxLw0lOgtJ7AC32wvzP6stqZ9nbpu0F7qdkINuxf3W7Ov+140whKcLuKRu3gR2bi29SxWZaJ60MrY=
+	t=1772029196; cv=none; b=NSF/I1VUWKeO4UrhsaJeeBxpEj0oCbXL/I18NaI3OwtxYcs2y6jpmsjUIWZZ8vgN/GYAJ5KF8hHeiRTQ4uBx4tiKN8EQqvYCeLc7bQnQDICpGfQtLm+dEEfUnQDuPZXkyK1Qr+jxkR9RptXTMzLuP9hMu30i60Ly33ca1fGqBlE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772029192; c=relaxed/simple;
-	bh=oCHXWqbGbkbUkAeuFWoJ2UsgSUH4bWiDsWHTPRNOBYE=;
+	s=arc-20240116; t=1772029196; c=relaxed/simple;
+	bh=w3TVcaeOV/ur73vBlLQPPQzK3QrbtKyo5WZcT/7pBK0=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=Tv0jFK6YFdC0BpmePNOaiXRkBYeaw293cxc/DYsKU3pBm55Jql9/ahkn/h8vm0Iab+oluJm6asf19wGANW/V90QIF6EVx08+KOQevJ0Qo3tFf8RDO9G8g5+L0qpZW0jt3CYcCaDDn9W0RMw5/VlS7o00tmCbq3KxAaiq3Iua55E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=YROCJD7a; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version:Content-Type; b=j0gz858impADsOZr3LEsXFdexj2TxpZd4zIlyoSI+HKKlpTJdpo0h25dCb49LcnlIPV9HfNNovqujRIG+OpE+XfGlqo+SzrDHLFNuRwgitW1UxgpgTUIhcEUD+NzemCB3hwjrvulvoysduMcDbUB5bTtwWD/4r8LRZ93nf1iiNI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=scaT0NcX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="YROCJD7a"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 00942C19421;
-	Wed, 25 Feb 2026 14:19:51 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="scaT0NcX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2BB42C2BC86;
+	Wed, 25 Feb 2026 14:19:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1772029192;
-	bh=oCHXWqbGbkbUkAeuFWoJ2UsgSUH4bWiDsWHTPRNOBYE=;
+	s=k20201202; t=1772029195;
+	bh=w3TVcaeOV/ur73vBlLQPPQzK3QrbtKyo5WZcT/7pBK0=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=YROCJD7anBwanDxoHs3wcZNaK5Gbv81M3l1OBpBSjkm36GeI1q5i4gOkpVDMR6K/L
-	 WZEUMKvRVHcA/VU7gL3KwBgjYT+7+j25TylZSXNhehFPY4LjAVe2c619dA9CBFpgg0
-	 Ga7/sz22fjB48Gf0STnRwfhzb2o2t3G304kZll/vYNyNocYtoat2UvptpN8HdD9YXd
-	 ilL0gz/cci/OxciHthoGhWikmh0S4zyL0pSdnmwfbkytIv2IdTYKLDZ1jh54QljDt8
-	 PUcaqaL/PT2ctri1Nhp24qwfbiRvBNybNl0Xr/pt8mnMK0el/9SBegCOUnfe/SSkS6
-	 wUceiouDHAQEw==
+	b=scaT0NcXf0zU+C6dGUJOkJHE0QSd2C6ZMVxUG+X7zGAUrKKTOAM4zVG4feH4rCiaN
+	 LRqXJDXevdkKfDKCVcYjYfJJvty3CTT4PQFNjgpq+C09CiW01g9HIBWupldyoMev7h
+	 QyN5w8EDIc2MtcMAsGdHhK14yCbAaEiHWVaS3Y+6TqGJmCq5zUJLRu2a2yHkywR4dC
+	 PxRESsYQnC1ZST3v8mnWMKQcMXON5aleEH/008bxSUKrILL42izhRDXFVG9PXv8Cm5
+	 QXUVGc9O2SLzSb8UpMHihbyJtQtzoWdWloT5lwh8M5M9ns8uPDArZQHfjmIunBf0ii
+	 mS9bEkYpJfXkw==
 From: Leon Romanovsky <leon@kernel.org>
 To: Saeed Mahameed <saeedm@nvidia.com>,
 	Leon Romanovsky <leon@kernel.org>,
@@ -41,9 +41,9 @@ Cc: linux-rdma@vger.kernel.org,
 	netdev@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	Maher Sanalla <msanalla@nvidia.com>
-Subject: [PATCH rdma-next 3/6] RDMA/mlx5: Refactor VAR table to use region abstraction
-Date: Wed, 25 Feb 2026 16:19:33 +0200
-Message-ID: <20260225-var-tlp-v1-3-fe14a7ac7731@nvidia.com>
+Subject: [PATCH rdma-next 5/6] RDMA/mlx5: Add support for TLP VAR allocation
+Date: Wed, 25 Feb 2026 16:19:35 +0200
+Message-ID: <20260225-var-tlp-v1-5-fe14a7ac7731@nvidia.com>
 X-Mailer: git-send-email 2.53.0
 In-Reply-To: <20260225-var-tlp-v1-0-fe14a7ac7731@nvidia.com>
 References: <20260225-var-tlp-v1-0-fe14a7ac7731@nvidia.com>
@@ -59,192 +59,144 @@ Content-Transfer-Encoding: 8bit
 
 From: Maher Sanalla <msanalla@nvidia.com>
 
-Extract mlx5_var_region struct from mlx5_var_table to enable
-supporting multiple VAR regions in VAR table, which will be used in
-the upcoming patches (Virtio emulation VAR and TLP emulation VAR).
+Extend the VAR allocation UAPI to accept an optional flags attribute,
+allowing userspace to request TLP VAR allocation via the
+MLX5_IB_UAPI_VAR_ALLOC_FLAG_TLP flag.
+
+When the TLP flag "MLX5_IB_UAPI_VAR_ALLOC_FLAG_TLP" is specified,
+the driver selects the TLP VAR region for allocation instead of the
+regular VirtIO VAR region.
 
 Signed-off-by: Maher Sanalla <msanalla@nvidia.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/hw/mlx5/main.c    | 62 +++++++++++++++++++-----------------
- drivers/infiniband/hw/mlx5/mlx5_ib.h |  6 +++-
- 2 files changed, 38 insertions(+), 30 deletions(-)
+ drivers/infiniband/hw/mlx5/main.c         | 40 ++++++++++++++++++++++++++-----
+ include/uapi/rdma/mlx5_user_ioctl_cmds.h  |  1 +
+ include/uapi/rdma/mlx5_user_ioctl_verbs.h |  4 ++++
+ 3 files changed, 39 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 26ee8e763d5e..835fe2a95ad6 100644
+index 424426a2cd76..77cd11c6cca9 100644
 --- a/drivers/infiniband/hw/mlx5/main.c
 +++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -2524,6 +2524,7 @@ static void mlx5_ib_mmap_free(struct rdma_user_mmap_entry *entry)
- 	struct mlx5_ib_dev *dev = to_mdev(entry->ucontext->device);
- 	struct mlx5_var_table *var_table = &dev->var_table;
- 	struct mlx5_ib_ucontext *context = to_mucontext(entry->ucontext);
-+	struct mlx5_var_region *var_region;
+@@ -4153,7 +4153,7 @@ static int mlx5_rdma_user_mmap_entry_insert(struct mlx5_ib_ucontext *c,
+ }
  
- 	switch (mentry->mmap_flag) {
- 	case MLX5_IB_MMAP_TYPE_MEMIC:
-@@ -2531,9 +2532,10 @@ static void mlx5_ib_mmap_free(struct rdma_user_mmap_entry *entry)
- 		mlx5_ib_dm_mmap_free(dev, mentry);
- 		break;
- 	case MLX5_IB_MMAP_TYPE_VAR:
--		mutex_lock(&var_table->bitmap_lock);
--		clear_bit(mentry->page_idx, var_table->bitmap);
--		mutex_unlock(&var_table->bitmap_lock);
-+		var_region = &var_table->var_region;
-+		mutex_lock(&var_region->bitmap_lock);
-+		clear_bit(mentry->page_idx, var_region->bitmap);
-+		mutex_unlock(&var_region->bitmap_lock);
- 		kfree(mentry);
- 		break;
- 	case MLX5_IB_MMAP_TYPE_UAR_WC:
-@@ -4143,43 +4145,45 @@ static struct mlx5_user_mmap_entry *
- alloc_var_entry(struct mlx5_ib_ucontext *c)
+ static struct mlx5_user_mmap_entry *
+-alloc_var_entry(struct mlx5_ib_ucontext *c)
++alloc_var_entry(struct mlx5_ib_ucontext *c, u32 flags)
  {
  	struct mlx5_user_mmap_entry *entry;
-+	struct mlx5_var_region *var_region;
- 	struct mlx5_var_table *var_table;
- 	u32 page_idx;
+ 	struct mlx5_var_region *var_region;
+@@ -4162,7 +4162,11 @@ alloc_var_entry(struct mlx5_ib_ucontext *c)
  	int err;
  
  	var_table = &to_mdev(c->ibucontext.device)->var_table;
-+	var_region = &var_table->var_region;
+-	var_region = &var_table->var_region;
++	if (flags & MLX5_IB_UAPI_VAR_ALLOC_FLAG_TLP)
++		var_region = &var_table->tlp_var_region;
++	else
++		var_region = &var_table->var_region;
++
  	entry = kzalloc_obj(*entry);
  	if (!entry)
  		return ERR_PTR(-ENOMEM);
- 
--	mutex_lock(&var_table->bitmap_lock);
--	page_idx = find_first_zero_bit(var_table->bitmap,
--				       var_table->num_var_hw_entries);
--	if (page_idx >= var_table->num_var_hw_entries) {
-+	mutex_lock(&var_region->bitmap_lock);
-+	page_idx = find_first_zero_bit(var_region->bitmap,
-+				       var_region->num_var_hw_entries);
-+	if (page_idx >= var_region->num_var_hw_entries) {
- 		err = -ENOSPC;
--		mutex_unlock(&var_table->bitmap_lock);
-+		mutex_unlock(&var_region->bitmap_lock);
- 		goto end;
- 	}
- 
--	set_bit(page_idx, var_table->bitmap);
--	mutex_unlock(&var_table->bitmap_lock);
-+	set_bit(page_idx, var_region->bitmap);
-+	mutex_unlock(&var_region->bitmap_lock);
- 
--	entry->address = var_table->hw_start_addr +
--				(page_idx * var_table->stride_size);
-+	entry->address = var_region->hw_start_addr +
-+				(page_idx * var_region->stride_size);
+@@ -4182,7 +4186,9 @@ alloc_var_entry(struct mlx5_ib_ucontext *c)
+ 	entry->address = var_region->hw_start_addr +
+ 				(page_idx * var_region->stride_size);
  	entry->page_idx = page_idx;
- 	entry->mmap_flag = MLX5_IB_MMAP_TYPE_VAR;
+-	entry->mmap_flag = MLX5_IB_MMAP_TYPE_VAR;
++	entry->mmap_flag = flags & MLX5_IB_UAPI_VAR_ALLOC_FLAG_TLP ?
++				   MLX5_IB_MMAP_TYPE_TLP_VAR :
++				   MLX5_IB_MMAP_TYPE_VAR;
  
  	err = mlx5_rdma_user_mmap_entry_insert(c, entry,
--					       var_table->stride_size);
-+					       var_region->stride_size);
- 	if (err)
- 		goto err_insert;
- 
- 	return entry;
- 
- err_insert:
--	mutex_lock(&var_table->bitmap_lock);
--	clear_bit(page_idx, var_table->bitmap);
--	mutex_unlock(&var_table->bitmap_lock);
-+	mutex_lock(&var_region->bitmap_lock);
-+	clear_bit(page_idx, var_region->bitmap);
-+	mutex_unlock(&var_region->bitmap_lock);
- end:
- 	kfree(entry);
- 	return ERR_PTR(err);
-@@ -4607,10 +4611,10 @@ static const struct ib_device_ops mlx5_ib_dev_xrc_ops = {
- 	INIT_RDMA_OBJ_SIZE(ib_xrcd, mlx5_ib_xrcd, ibxrcd),
- };
- 
--static int mlx5_ib_init_var_table(struct mlx5_ib_dev *dev)
-+static int mlx5_ib_init_var_region(struct mlx5_ib_dev *dev)
+ 					       var_region->stride_size);
+@@ -4205,9 +4211,10 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_VAR_OBJ_ALLOC)(
  {
-+	struct mlx5_var_region *var_region = &dev->var_table.var_region;
- 	struct mlx5_core_dev *mdev = dev->mdev;
--	struct mlx5_var_table *var_table = &dev->var_table;
- 	u8 log_doorbell_bar_size;
- 	u8 log_doorbell_stride;
- 	u64 bar_size;
-@@ -4619,17 +4623,17 @@ static int mlx5_ib_init_var_table(struct mlx5_ib_dev *dev)
- 					log_doorbell_bar_size);
- 	log_doorbell_stride = MLX5_CAP_DEV_VDPA_EMULATION(mdev,
- 					log_doorbell_stride);
--	var_table->hw_start_addr = dev->mdev->bar_addr +
-+	var_region->hw_start_addr = dev->mdev->bar_addr +
- 				MLX5_CAP64_DEV_VDPA_EMULATION(mdev,
- 					doorbell_bar_offset);
- 	bar_size = (1ULL << log_doorbell_bar_size) * 4096;
--	var_table->stride_size = 1ULL << log_doorbell_stride;
--	var_table->num_var_hw_entries = div_u64(bar_size,
--						var_table->stride_size);
--	mutex_init(&var_table->bitmap_lock);
--	var_table->bitmap = bitmap_zalloc(var_table->num_var_hw_entries,
--					  GFP_KERNEL);
--	return (var_table->bitmap) ? 0 : -ENOMEM;
-+	var_region->stride_size = 1ULL << log_doorbell_stride;
-+	var_region->num_var_hw_entries = div_u64(bar_size,
-+						 var_region->stride_size);
-+	mutex_init(&var_region->bitmap_lock);
-+	var_region->bitmap = bitmap_zalloc(var_region->num_var_hw_entries,
-+					   GFP_KERNEL);
-+	return (var_region->bitmap) ? 0 : -ENOMEM;
+ 	struct ib_uobject *uobj = uverbs_attr_get_uobject(
+ 		attrs, MLX5_IB_ATTR_VAR_OBJ_ALLOC_HANDLE);
+-	struct mlx5_ib_ucontext *c;
+ 	struct mlx5_user_mmap_entry *entry;
++	struct mlx5_ib_ucontext *c;
+ 	u64 mmap_offset;
++	u32 flags = 0;
+ 	u32 length;
+ 	int err;
+ 
+@@ -4215,7 +4222,24 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_VAR_OBJ_ALLOC)(
+ 	if (IS_ERR(c))
+ 		return PTR_ERR(c);
+ 
+-	entry = alloc_var_entry(c);
++	err = uverbs_get_flags32(&flags, attrs,
++				 MLX5_IB_ATTR_VAR_OBJ_ALLOC_FLAGS,
++				 MLX5_IB_UAPI_VAR_ALLOC_FLAG_TLP);
++	if (err)
++		return err;
++
++	if (flags & MLX5_IB_UAPI_VAR_ALLOC_FLAG_TLP) {
++		if (!MLX5_CAP_GEN(to_mdev(c->ibucontext.device)->mdev,
++				  tlp_device_emulation_manager))
++			return -EOPNOTSUPP;
++	} else {
++		if (!(MLX5_CAP_GEN_64(to_mdev(c->ibucontext.device)->mdev,
++				      general_obj_types) &
++		      MLX5_GENERAL_OBJ_TYPES_CAP_VIRTIO_NET_Q))
++			return -EOPNOTSUPP;
++	}
++
++	entry = alloc_var_entry(c, flags);
+ 	if (IS_ERR(entry))
+ 		return PTR_ERR(entry);
+ 
+@@ -4245,6 +4269,9 @@ DECLARE_UVERBS_NAMED_METHOD(
+ 			MLX5_IB_OBJECT_VAR,
+ 			UVERBS_ACCESS_NEW,
+ 			UA_MANDATORY),
++	UVERBS_ATTR_FLAGS_IN(MLX5_IB_ATTR_VAR_OBJ_ALLOC_FLAGS,
++			     enum mlx5_ib_uapi_var_alloc_flags,
++			     UA_OPTIONAL),
+ 	UVERBS_ATTR_PTR_OUT(MLX5_IB_ATTR_VAR_OBJ_ALLOC_PAGE_ID,
+ 			   UVERBS_ATTR_TYPE(u32),
+ 			   UA_MANDATORY),
+@@ -4272,7 +4299,8 @@ static bool var_is_supported(struct ib_device *device)
+ 	struct mlx5_ib_dev *dev = to_mdev(device);
+ 
+ 	return (MLX5_CAP_GEN_64(dev->mdev, general_obj_types) &
+-			MLX5_GENERAL_OBJ_TYPES_CAP_VIRTIO_NET_Q);
++			MLX5_GENERAL_OBJ_TYPES_CAP_VIRTIO_NET_Q) ||
++		MLX5_CAP_GEN(dev->mdev, tlp_device_emulation_manager);
  }
  
- static void mlx5_ib_cleanup_ucaps(struct mlx5_ib_dev *dev)
-@@ -4673,7 +4677,7 @@ static void mlx5_ib_stage_caps_cleanup(struct mlx5_ib_dev *dev)
- 	    MLX5_HCA_CAP_2_GENERAL_OBJECT_TYPES_RDMA_CTRL)
- 		mlx5_ib_cleanup_ucaps(dev);
- 
--	bitmap_free(dev->var_table.bitmap);
-+	bitmap_free(dev->var_table.var_region.bitmap);
- }
- 
- static int mlx5_ib_stage_caps_init(struct mlx5_ib_dev *dev)
-@@ -4721,7 +4725,7 @@ static int mlx5_ib_stage_caps_init(struct mlx5_ib_dev *dev)
- 
- 	if (MLX5_CAP_GEN_64(dev->mdev, general_obj_types) &
- 			MLX5_GENERAL_OBJ_TYPES_CAP_VIRTIO_NET_Q) {
--		err = mlx5_ib_init_var_table(dev);
-+		err = mlx5_ib_init_var_region(dev);
- 		if (err)
- 			return err;
- 	}
-@@ -4738,7 +4742,7 @@ static int mlx5_ib_stage_caps_init(struct mlx5_ib_dev *dev)
- 	return 0;
- 
- err_ucaps:
--	bitmap_free(dev->var_table.bitmap);
-+	bitmap_free(dev->var_table.var_region.bitmap);
- 	return err;
- }
- 
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index 2556e326afde..3d0ae52c68a7 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -1132,7 +1132,7 @@ struct mlx5_devx_event_table {
- 	struct xarray event_xa;
+ static struct mlx5_user_mmap_entry *
+diff --git a/include/uapi/rdma/mlx5_user_ioctl_cmds.h b/include/uapi/rdma/mlx5_user_ioctl_cmds.h
+index 18f9fe070213..01a2a050e468 100644
+--- a/include/uapi/rdma/mlx5_user_ioctl_cmds.h
++++ b/include/uapi/rdma/mlx5_user_ioctl_cmds.h
+@@ -139,6 +139,7 @@ enum mlx5_ib_var_alloc_attrs {
+ 	MLX5_IB_ATTR_VAR_OBJ_ALLOC_MMAP_OFFSET,
+ 	MLX5_IB_ATTR_VAR_OBJ_ALLOC_MMAP_LENGTH,
+ 	MLX5_IB_ATTR_VAR_OBJ_ALLOC_PAGE_ID,
++	MLX5_IB_ATTR_VAR_OBJ_ALLOC_FLAGS,
  };
  
--struct mlx5_var_table {
-+struct mlx5_var_region {
- 	/* serialize updating the bitmap */
- 	struct mutex bitmap_lock;
- 	unsigned long *bitmap;
-@@ -1141,6 +1141,10 @@ struct mlx5_var_table {
- 	u64 num_var_hw_entries;
+ enum mlx5_ib_var_obj_destroy_attrs {
+diff --git a/include/uapi/rdma/mlx5_user_ioctl_verbs.h b/include/uapi/rdma/mlx5_user_ioctl_verbs.h
+index 8f86e79d78a5..ef295b38a1cf 100644
+--- a/include/uapi/rdma/mlx5_user_ioctl_verbs.h
++++ b/include/uapi/rdma/mlx5_user_ioctl_verbs.h
+@@ -100,6 +100,10 @@ enum mlx5_ib_uapi_query_port_flags {
+ 	MLX5_IB_UAPI_QUERY_PORT_ESW_OWNER_VHCA_ID	= 1 << 5,
  };
  
-+struct mlx5_var_table {
-+	struct mlx5_var_region var_region;
++enum mlx5_ib_uapi_var_alloc_flags {
++	MLX5_IB_UAPI_VAR_ALLOC_FLAG_TLP = 1 << 0,
 +};
 +
- struct mlx5_port_caps {
- 	bool has_smi;
- 	u8 ext_port_cap;
+ struct mlx5_ib_uapi_reg {
+ 	__u32 value;
+ 	__u32 mask;
 
 -- 
 2.53.0
