@@ -1,137 +1,179 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wm1-f43.google.com (mail-wm1-f43.google.com [209.85.128.43])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 30D0D3ACF0B;
-	Wed, 25 Feb 2026 13:19:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D30C53B960A
+	for <linux-rdma@vger.kernel.org>; Wed, 25 Feb 2026 13:34:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.43
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772025553; cv=none; b=W9lDWk+e7zPkIo1XtDmiKAyYkxkuQPVOiGuytCWIdo9oZDlpEUhU5zjvgAPUPeUkI3Oq50Lg61NN1/p8UU4he2zDAh2ygl3hu7USCoHtlCWuZBleQJZNN/+cv9J/O4wqVJStr456kVIKsMK3nBILC37/Ga6dgeJnzCegIxPRkcQ=
+	t=1772026469; cv=none; b=Sd6ofNkxPZ+DdvDw6xrDAVgivMFuq+eZSe+pICZUdT+u5iuCBHzmMIzxQlryI+U20VdppvWzLwU5rebNRVU1TVvaoQKjTK4h5ZeliKtno/lPQ7e6G5Tlk6wnXjfYQHsr8TJ1NoBNQUkPDY7JNTfGiLPZF1tjSkJaQqlGmAWGKr0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772025553; c=relaxed/simple;
-	bh=JsHNTuDpDaTenv/doXJeT6JTO4Gzv/IyY7siVzebZek=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=rwJEC0NJGq7DDRtTDuKtKAc27iuTW3OXln2jILAN9O47/j/RTyHn87Jt2wcazjSAGG52e4sm8WQUn3z7ukE7oIK5WNzrk3O1Kvu1oxLCDC9U13cpfmy58xPwJJMLZWx/OOMaL/+ArpjSef9dhCetXBuy7SNgm+9GviutkK3/FdA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=jYgI/wBB; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772026469; c=relaxed/simple;
+	bh=Uit1Ti7AU3XxeFhawNvwoDfVMeh6nJo+iBe3Dbimg88=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=DN/dWwufGPURk/EJfogINsv5LnPpXkeVfrdNPPkXV4NsRYZb9u96WFN3XYHxHX7iQ4l/ho6ZR9AnG08ZFM5wvUcOLIW2sJ6k4xQPWd6R4nSHrxjErMVXiI308NvJng2pgQL2c5NdAAItGOASw/4pIZI7EpZZCDfratpSMeDghA8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=resnulli.us; spf=none smtp.mailfrom=resnulli.us; dkim=pass (2048-bit key) header.d=resnulli-us.20230601.gappssmtp.com header.i=@resnulli-us.20230601.gappssmtp.com header.b=BczRShrX; arc=none smtp.client-ip=209.85.128.43
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=resnulli.us
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=resnulli.us
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="jYgI/wBB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CF600C116D0;
-	Wed, 25 Feb 2026 13:19:08 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1772025552;
-	bh=JsHNTuDpDaTenv/doXJeT6JTO4Gzv/IyY7siVzebZek=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=jYgI/wBBIjm7WRhcOiIVl3RoGnGfZMdVlbgwEUIWrVx8v7cLefQKJTlI86LkLu6eC
-	 k0XT2Yp05DVZC9Bjl5I2tH+opZM7btcHssfQrsUnY1ZrqoNoXz6/+mBt91buZcevYZ
-	 75DLbWXpWPQYFXvTv+TVfi/ywxUD0k4BPN0VAM+h3CSSS5T2Egg9wnVYzBy5MfeYYY
-	 4LD00VeqE7ZOt34uIGB+8ZoPDVhC7B1+fm+w5uN6qkWsOqxDfapHLgXSun+66EC/Sb
-	 YCWBrxfRn7o/HYA+s6HkXHTwnrgmPqkVqpU8HiKN+im03/fmToQkvlo/y5u9iqMLOK
-	 os0KW0LWcRTUw==
-Date: Wed, 25 Feb 2026 13:19:06 +0000
-From: Simon Horman <horms@kernel.org>
-To: Dipayaan Roy <dipayanroy@linux.microsoft.com>
-Cc: kys@microsoft.com, haiyangz@microsoft.com, wei.liu@kernel.org,
-	decui@microsoft.com, andrew+netdev@lunn.ch, davem@davemloft.net,
-	edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
-	longli@microsoft.com, kotaranov@microsoft.com,
-	shradhagupta@linux.microsoft.com, ssengar@linux.microsoft.com,
-	ernis@linux.microsoft.com, shirazsaleem@microsoft.com,
-	linux-hyperv@vger.kernel.org, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
-	dipayanroy@microsoft.com, Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH net] net: mana: Fix double destroy_workqueue on service
- rescan PCI path
-Message-ID: <aZ72yhY98hVbHSrr@horms.kernel.org>
-References: <aZ2bzL64NagfyHpg@linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net>
+	dkim=pass (2048-bit key) header.d=resnulli-us.20230601.gappssmtp.com header.i=@resnulli-us.20230601.gappssmtp.com header.b="BczRShrX"
+Received: by mail-wm1-f43.google.com with SMTP id 5b1f17b1804b1-48372efa020so53796385e9.2
+        for <linux-rdma@vger.kernel.org>; Wed, 25 Feb 2026 05:34:26 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=resnulli-us.20230601.gappssmtp.com; s=20230601; t=1772026465; x=1772631265; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=d9KLhKGx9RzUBsWoWUkwA/+vgETenzM1WQ8j317w0fU=;
+        b=BczRShrX8kFKRl+NNC4TUU3fx++ERqfTYVffd2fsSe3xeCriS5DSeUmMKdTEoUHysn
+         X3ZmaSXJAvzF4pgV3FkHk6zblNlljRC6aT3NchOHj5J+Li0ugawnQgQJxtIW+1BMcIBb
+         SW+vqRD3kp2jz35omeGV09paNT0niPtgU8DleEUp8UuuJywTRQJ1QiZhFlasAn2Lmdoo
+         7sIg9/E6661RsgEERrFVhNz0un2Zn7Fiqjv1nu24f2Oq82fYVg4KsISULKTpJsjoWf8D
+         o+uHzcud1eTMY3KlqGXr8WPu25QIkzJAvuiy9xCOUTkCoXWDPim8C0gJyI2rgdym+r0z
+         gKkg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1772026465; x=1772631265;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=d9KLhKGx9RzUBsWoWUkwA/+vgETenzM1WQ8j317w0fU=;
+        b=RNwXFPpF9cwdorKyTryD45UZrLHKnx1JntlRT3MicydEaOItyUD1dwZHxWRJ6HkyMs
+         2jC40qLqwO9m/yNN0j27aqfMzHHYsUiAy4WKqw+/5fu6slH6Mr2i2f416rnoFf1QduzN
+         UXxa/ePirBxSzwvym2krs6KSNUW6SZhRyP9gfXZmvsx+/CfJoS4BZ2LuhEr7OKDXEZKS
+         ywb6HpLibUbp2ERdr3EK6FWmfplNXThD+lGYGiPP7PQ2Kp675xJhTSkeCpc9rcNhXOo7
+         5aerGehT9RVgWV4ht2ii6g6uZJfK6MZ438XzMZuCUaHhB6BdSoNd33EHf4EpELXdKl1U
+         DcTg==
+X-Forwarded-Encrypted: i=1; AJvYcCXmzXqcu2WH4B4EvAK9bIt7PXeTpqXiW2yKrbrJOdycsYdiHpFEXvaXdqtTrNFqY0s03jk2SOOvViRe@vger.kernel.org
+X-Gm-Message-State: AOJu0Yxpx1O5KNws/BH1tIJx4c46ghX50FoT1tYjq5wFRMKJ2XdihsBe
+	hfQubA82XTbnzsC9nkWpSyi7waJ6gK1eLXSmJKFgT3EJBq0nR+100nzvxUFqF0b2kZ4=
+X-Gm-Gg: ATEYQzy1AcuhYlnQoE3Kyq7jd95/TLVKbqrrx+Z+g7b33AKPK9QQ/fRQVtKh7BFcWV1
+	vyzX3TgmkX3XlHvE8NJL7nIbuhoqou65dBPe8mvHFnVTHAZymqQD4OS4BsQqIWWZLyECT7W4Xl5
+	uiVlyW/tCfIoFQ1yTwKBM4EACm5SCIQkkKOXBYzquKoGDXNEwWV88UF6cF+zk+6NF0P421pPdxN
+	bcPjGI8IGKPaY1672pKH2e5Z6RAKuQzOrVd0FFzWU8HaCb+mSUo0MSBXQymDrugYY8CFezlLFvn
+	IXSoUVrtRpMlRGlOtWnZmOSbgfNhwRurX8U9YRK5W8c/pYXqixAx3Sud+0L9EfofjVCzvCKnGLK
+	pTbk5TfzCpRyOVWwxGBd7hdA3fCpmTZ5QxEfcXLFHUhtmzea030enJDXz1EnIm3dF8/0Puh8ClG
+	KZw0fGTsCOKP2FXQNnSwmxjamA
+X-Received: by 2002:a05:600c:a11:b0:47d:885d:d2ff with SMTP id 5b1f17b1804b1-483c21af52fmr5939965e9.29.1772026465278;
+        Wed, 25 Feb 2026 05:34:25 -0800 (PST)
+Received: from localhost ([85.163.81.98])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-483bfb776a3sm16744665e9.7.2026.02.25.05.34.24
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 25 Feb 2026 05:34:24 -0800 (PST)
+From: Jiri Pirko <jiri@resnulli.us>
+To: netdev@vger.kernel.org
+Cc: davem@davemloft.net,
+	edumazet@google.com,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	horms@kernel.org,
+	donald.hunter@gmail.com,
+	corbet@lwn.net,
+	skhan@linuxfoundation.org,
+	saeedm@nvidia.com,
+	leon@kernel.org,
+	tariqt@nvidia.com,
+	mbloch@nvidia.com,
+	przemyslaw.kitszel@intel.com,
+	mschmidt@redhat.com,
+	andrew+netdev@lunn.ch,
+	rostedt@goodmis.org,
+	mhiramat@kernel.org,
+	mathieu.desnoyers@efficios.com,
+	chuck.lever@oracle.com,
+	matttbe@kernel.org,
+	cjubran@nvidia.com,
+	daniel.zahka@gmail.com,
+	linux-doc@vger.kernel.org,
+	linux-rdma@vger.kernel.org,
+	linux-trace-kernel@vger.kernel.org
+Subject: [PATCH net-next v2 01/10] devlink: expose devlink instance index over netlink
+Date: Wed, 25 Feb 2026 14:34:13 +0100
+Message-ID: <20260225133422.290965-2-jiri@resnulli.us>
+X-Mailer: git-send-email 2.51.1
+In-Reply-To: <20260225133422.290965-1-jiri@resnulli.us>
+References: <20260225133422.290965-1-jiri@resnulli.us>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <aZ2bzL64NagfyHpg@linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net>
+Content-Transfer-Encoding: 8bit
 
-+ Leon
+From: Jiri Pirko <jiri@nvidia.com>
 
-On Tue, Feb 24, 2026 at 04:38:36AM -0800, Dipayaan Roy wrote:
-> While testing corner cases in the driver, a use-after-free crash
-> was found on the service rescan PCI path.
-> 
-> When mana_serv_reset() calls mana_gd_suspend(), mana_gd_cleanup()
-> destroys gc->service_wq. If the subsequent mana_gd_resume() fails
-> with -ETIMEDOUT or -EPROTO, the code falls through to
-> mana_serv_rescan() which triggers pci_stop_and_remove_bus_device().
-> This invokes the PCI .remove callback (mana_gd_remove), which calls
-> mana_gd_cleanup() a second time, attempting to destroy the already-
-> freed workqueue. Fix this by NULL-checking gc->service_wq in
-> mana_gd_cleanup() and setting it to NULL after destruction.
-> 
-> Call stack of issue for reference:
-> [Sat Feb 21 18:53:48 2026] Call Trace:
-> [Sat Feb 21 18:53:48 2026]  <TASK>
-> [Sat Feb 21 18:53:48 2026]  mana_gd_cleanup+0x33/0x70 [mana]
-> [Sat Feb 21 18:53:48 2026]  mana_gd_remove+0x3a/0xc0 [mana]
-> [Sat Feb 21 18:53:48 2026]  pci_device_remove+0x41/0xb0
-> [Sat Feb 21 18:53:48 2026]  device_remove+0x46/0x70
-> [Sat Feb 21 18:53:48 2026]  device_release_driver_internal+0x1e3/0x250
-> [Sat Feb 21 18:53:48 2026]  device_release_driver+0x12/0x20
-> [Sat Feb 21 18:53:48 2026]  pci_stop_bus_device+0x6a/0x90
-> [Sat Feb 21 18:53:48 2026]  pci_stop_and_remove_bus_device+0x13/0x30
-> [Sat Feb 21 18:53:48 2026]  mana_do_service+0x180/0x290 [mana]
-> [Sat Feb 21 18:53:48 2026]  mana_serv_func+0x24/0x50 [mana]
-> [Sat Feb 21 18:53:48 2026]  process_one_work+0x190/0x3d0
-> [Sat Feb 21 18:53:48 2026]  worker_thread+0x16e/0x2e0
-> [Sat Feb 21 18:53:48 2026]  kthread+0xf7/0x130
-> [Sat Feb 21 18:53:48 2026]  ? __pfx_worker_thread+0x10/0x10
-> [Sat Feb 21 18:53:48 2026]  ? __pfx_kthread+0x10/0x10
-> [Sat Feb 21 18:53:48 2026]  ret_from_fork+0x269/0x350
-> [Sat Feb 21 18:53:48 2026]  ? __pfx_kthread+0x10/0x10
-> [Sat Feb 21 18:53:48 2026]  ret_from_fork_asm+0x1a/0x30
-> [Sat Feb 21 18:53:48 2026]  </TASK>
-> 
-> Fixes: 505cc26bcae0 ("net: mana: Add support for auxiliary device servicing events")
-> Reviewed-by: Haiyang Zhang <haiyangz@microsoft.com>
-> Signed-off-by: Dipayaan Roy <dipayanroy@linux.microsoft.com>
+Each devlink instance has an internally assigned index used for xarray
+storage. Expose it as a new DEVLINK_ATTR_INDEX uint attribute alongside
+the existing bus_name and dev_name handle.
 
-Reviewed-by: Simon Horman <horms@kernel.org>
+Signed-off-by: Jiri Pirko <jiri@nvidia.com>
+---
+ Documentation/netlink/specs/devlink.yaml | 5 +++++
+ include/uapi/linux/devlink.h             | 2 ++
+ net/devlink/devl_internal.h              | 2 ++
+ net/devlink/port.c                       | 1 +
+ 4 files changed, 10 insertions(+)
 
-> ---
->  drivers/net/ethernet/microsoft/mana/gdma_main.c | 5 ++++-
->  drivers/net/ethernet/microsoft/mana/mana_en.c   | 4 +++-
->  2 files changed, 7 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/net/ethernet/microsoft/mana/gdma_main.c b/drivers/net/ethernet/microsoft/mana/gdma_main.c
-> index 0055c231acf6..3926d18f1840 100644
-> --- a/drivers/net/ethernet/microsoft/mana/gdma_main.c
-> +++ b/drivers/net/ethernet/microsoft/mana/gdma_main.c
-> @@ -1946,7 +1946,10 @@ static void mana_gd_cleanup(struct pci_dev *pdev)
->  
->  	mana_gd_remove_irqs(pdev);
->  
-> -	destroy_workqueue(gc->service_wq);
-> +	if (gc->service_wq) {
-> +		destroy_workqueue(gc->service_wq);
-> +		gc->service_wq = NULL;
-> +	}
->  	dev_dbg(&pdev->dev, "mana gdma cleanup successful\n");
->  }
->  
-> diff --git a/drivers/net/ethernet/microsoft/mana/mana_en.c b/drivers/net/ethernet/microsoft/mana/mana_en.c
-> index 9b5a72ada5c4..f69e42651359 100644
-> --- a/drivers/net/ethernet/microsoft/mana/mana_en.c
-> +++ b/drivers/net/ethernet/microsoft/mana/mana_en.c
-> @@ -3762,7 +3762,9 @@ void mana_rdma_remove(struct gdma_dev *gd)
->  	}
->  
->  	WRITE_ONCE(gd->rdma_teardown, true);
-> -	flush_workqueue(gc->service_wq);
-> +
-> +	if (gc->service_wq)
-> +		flush_workqueue(gc->service_wq);
->  
->  	if (gd->adev)
->  		remove_adev(gd);
-> -- 
-> 2.43.0
-> 
+diff --git a/Documentation/netlink/specs/devlink.yaml b/Documentation/netlink/specs/devlink.yaml
+index 837112da6738..1bed67a0eefb 100644
+--- a/Documentation/netlink/specs/devlink.yaml
++++ b/Documentation/netlink/specs/devlink.yaml
+@@ -867,6 +867,10 @@ attribute-sets:
+         type: flag
+         doc: Request restoring parameter to its default value.
+         value: 183
++      -
++        name: index
++        type: uint
++        doc: Unique devlink instance index.
+   -
+     name: dl-dev-stats
+     subset-of: devlink
+@@ -1311,6 +1315,7 @@ operations:
+           attributes:
+             - bus-name
+             - dev-name
++            - index
+             - reload-failed
+             - dev-stats
+       dump:
+diff --git a/include/uapi/linux/devlink.h b/include/uapi/linux/devlink.h
+index e7d6b6d13470..1ba3436db4ae 100644
+--- a/include/uapi/linux/devlink.h
++++ b/include/uapi/linux/devlink.h
+@@ -642,6 +642,8 @@ enum devlink_attr {
+ 	DEVLINK_ATTR_PARAM_VALUE_DEFAULT,	/* dynamic */
+ 	DEVLINK_ATTR_PARAM_RESET_DEFAULT,	/* flag */
+ 
++	DEVLINK_ATTR_INDEX,			/* uint */
++
+ 	/* Add new attributes above here, update the spec in
+ 	 * Documentation/netlink/specs/devlink.yaml and re-generate
+ 	 * net/devlink/netlink_gen.c.
+diff --git a/net/devlink/devl_internal.h b/net/devlink/devl_internal.h
+index 1377864383bc..31fa98af418e 100644
+--- a/net/devlink/devl_internal.h
++++ b/net/devlink/devl_internal.h
+@@ -178,6 +178,8 @@ devlink_nl_put_handle(struct sk_buff *msg, struct devlink *devlink)
+ 		return -EMSGSIZE;
+ 	if (nla_put_string(msg, DEVLINK_ATTR_DEV_NAME, dev_name(devlink->dev)))
+ 		return -EMSGSIZE;
++	if (nla_put_uint(msg, DEVLINK_ATTR_INDEX, devlink->index))
++		return -EMSGSIZE;
+ 	return 0;
+ }
+ 
+diff --git a/net/devlink/port.c b/net/devlink/port.c
+index 93d8a25bb920..1ff609571ea4 100644
+--- a/net/devlink/port.c
++++ b/net/devlink/port.c
+@@ -222,6 +222,7 @@ size_t devlink_nl_port_handle_size(struct devlink_port *devlink_port)
+ 
+ 	return nla_total_size(strlen(devlink->dev->bus->name) + 1) /* DEVLINK_ATTR_BUS_NAME */
+ 	     + nla_total_size(strlen(dev_name(devlink->dev)) + 1) /* DEVLINK_ATTR_DEV_NAME */
++	     + nla_total_size(8) /* DEVLINK_ATTR_INDEX */
+ 	     + nla_total_size(4); /* DEVLINK_ATTR_PORT_INDEX */
+ }
+ 
+-- 
+2.51.1
+
