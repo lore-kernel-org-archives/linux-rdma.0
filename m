@@ -1,117 +1,79 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from outbound.baidu.com (mx24.baidu.com [111.206.215.185])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B859931D39F
-	for <linux-rdma@vger.kernel.org>; Wed, 25 Feb 2026 08:39:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A2D2242D76;
+	Wed, 25 Feb 2026 08:52:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=111.206.215.185
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772008789; cv=none; b=U3UcbV2ryAjKymImyWtNdF1HeJQ+k5w06gpqJpB8iMXSRvOhrnZ3F8+W5J452ofIxLRqRZXy1wgHWNlk4G5p2yBrHH0y65tzbqheIlltsP5fjUtZRp8gDgqDpMA9GbfN9oGdVSaMjUcSXktYLDpEcKtz3ZO+MGbhNpaBh9kg0yk=
+	t=1772009531; cv=none; b=F7pl5eXW3wUToeWEoi10zm5FCdM5RjNFfe0pIxwcsqPgXcXPW1eEKvwmbq6WADc5kehCtXf/meGiFICOJPbCh4O4h9+jJtL2OI5O8g8pqscrnTHO78/VSQOuGwRkx2/anb7LSMXN9dDEAzR903b3XYac8ciGYNh6hXC0T9nocCo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772008789; c=relaxed/simple;
-	bh=vrrGMQbnf+2dV5ooRzVZAiTh2foYW0vfXITn+KLiFpQ=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=YFIuOBRWl+YIfZrqeX5YQu5S9qkaUCY/FqsMr1NtsOVjKC6FMp7b+mbDH8jy26tNWBHW3hSB97Dt9HmWKLEM8QqX1dXFvgWMbd4+ksslMA1J77QsfwuN7IsYB+O1wowq236Hj3KmDH0BGWC08a2po/d8s0P0+yvXjo0STqFLgQQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ogk+o/ld; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ogk+o/ld"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C63BC2BCB4
-	for <linux-rdma@vger.kernel.org>; Wed, 25 Feb 2026 08:39:49 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1772008789;
-	bh=vrrGMQbnf+2dV5ooRzVZAiTh2foYW0vfXITn+KLiFpQ=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=ogk+o/ldfBSD07CxYi/F/NdUj2Fmrzyeo3Uws5jBoIxtNQNHh/BN8HVkuXJuaHuTk
-	 U2WcGnGje+YDzU4aTNRdP6bVkvp5lM8D8+4Mn660PqtwTKIzXLfcXNe8q0Xp1dnGWV
-	 a35oQSJL2xVQT2ozAJSNPupeaQfkmW0vF48eWx61uIESyv6Od9jV3I/0jMBjuv3kYO
-	 85khEEumpT3lxXanHxgycJ9gQg0mC/zehqbAsMjyynefKtQkPOREOAEdzAPdR/OgTf
-	 oA826fdJdn8a2tGBjZbiHey7jSpghsdDtsHlA+fPuJxiZ85OE0ZL2Q3n+iI15MZph3
-	 K2VkOA9edlpHg==
-Received: by mail-qv1-f46.google.com with SMTP id 6a1803df08f44-896f9397ecdso69558266d6.3
-        for <linux-rdma@vger.kernel.org>; Wed, 25 Feb 2026 00:39:49 -0800 (PST)
-X-Forwarded-Encrypted: i=1; AJvYcCVXAjyTPza+b7b1WqfrYoro0iJuCdTl/GVLNaR/Pe1pIVd1EOY7POnby5t/Ya/b0bSM6lqmLc2eVNxU@vger.kernel.org
-X-Gm-Message-State: AOJu0YwsFcWnkNrbI16heuFPoIo/C978nDJiPQ6q38SoYaphBQGfISVh
-	Y8VYhu60rKMYfmG/qRDa57FOdxaU+HBALQoCaD74cCk2JT8UrX4swqLXmT79Gp+LnssX7rzMvVA
-	ZKoK4yaJjZ/bNfw51a6+bTQdNkgIoOjg=
-X-Received: by 2002:a05:6214:1c07:b0:892:e3c3:94df with SMTP id
- 6a1803df08f44-89979c90897mr223035516d6.28.1772008788473; Wed, 25 Feb 2026
- 00:39:48 -0800 (PST)
+	s=arc-20240116; t=1772009531; c=relaxed/simple;
+	bh=+pnO8PjjroyFg6yqnFKX+PEXdpjvflB7MLEUTIKD8N4=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=hwS08ZLzyq4KvbPFLWea2VvdZeEJKtnv+gApLepMtsT6LR1ItedGr//IVBe6t/5z3mboLCEV7DzDgohdfHgg8RftxizBBZHeuEQV0lOTgd3uB0HacEKeADAcJWPb8cx5XRK+yrYV0C/5aKYvXDQgw01BORa1d8Cd95dkkEcNSkI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=baidu.com; spf=pass smtp.mailfrom=baidu.com; arc=none smtp.client-ip=111.206.215.185
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=baidu.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=baidu.com
+From: lirongqing <lirongqing@baidu.com>
+To: Cheng Xu <chengyou@linux.alibaba.com>, Kai Shen
+	<kaishen@linux.alibaba.com>, Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky
+	<leon@kernel.org>, <linux-rdma@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>
+CC: Li RongQing <lirongqing@baidu.com>
+Subject: [PATCH][rdma-next] RDMA/erdma: Use NUMA-aware allocation for MTT tables
+Date: Wed, 25 Feb 2026 03:51:43 -0500
+Message-ID: <20260225085143.1721-1-lirongqing@baidu.com>
+X-Mailer: git-send-email 2.17.1
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260219130050.2390226-1-bjorn@kernel.org> <415c4922-cc8d-4e35-bbac-3a532f44d238@lunn.ch>
- <20260219160519.323041bf@kernel.org> <3b0949fa-0b05-4bce-86c0-2a7a058865a5@lunn.ch>
- <20260220131254.03874c4c@kernel.org> <CAJ+HfNgXqpqDYsmAa-mpHnO82aDgC7XbyVw3TmXk-ySFmGA-JQ@mail.gmail.com>
- <20260223150401.7993b11a@kernel.org> <CAJ+HfNjmRjr6VtRijmN9=4zPwxstw9B8D-_XVn3hwJzNHka1Jw@mail.gmail.com>
- <363527d6-1f29-4399-83a7-978785d1e11f@lunn.ch>
-In-Reply-To: <363527d6-1f29-4399-83a7-978785d1e11f@lunn.ch>
-From: =?UTF-8?B?QmrDtnJuIFTDtnBlbA==?= <bjorn@kernel.org>
-Date: Wed, 25 Feb 2026 09:39:37 +0100
-X-Gmail-Original-Message-ID: <CAJ+HfNhwM82H-sgbz0+WJGRjXJc8Ww0aCnp_YTNi-CB4aBMi=w@mail.gmail.com>
-X-Gm-Features: AaiRm51b-iSHJIXJpU9YtqTJihADuqI8G1EWn5PObRj6T7uFZlGZRIWVqhfgDe0
-Message-ID: <CAJ+HfNhwM82H-sgbz0+WJGRjXJc8Ww0aCnp_YTNi-CB4aBMi=w@mail.gmail.com>
-Subject: Re: [RFC net-next 0/4] ethtool: CMIS module diagnostic loopback support
-To: Andrew Lunn <andrew@lunn.ch>
-Cc: Jakub Kicinski <kuba@kernel.org>, Maxime Chevallier <maxime.chevallier@bootlin.com>, 
-	netdev@vger.kernel.org, Donald Hunter <donald.hunter@gmail.com>, 
-	"David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, 
-	Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>, Saeed Mahameed <saeedm@nvidia.com>, 
-	Tariq Toukan <tariqt@nvidia.com>, Leon Romanovsky <leon@kernel.org>, Andrew Lunn <andrew+netdev@lunn.ch>, 
-	Michael Chan <michael.chan@broadcom.com>, Hariprasad Kelam <hkelam@marvell.com>, 
-	Ido Schimmel <idosch@nvidia.com>, Danielle Ratson <danieller@nvidia.com>, linux-kernel@vger.kernel.org, 
-	linux-rdma@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+X-ClientProxiedBy: bjhj-exc13.internal.baidu.com (172.31.4.11) To
+ bjkjy-exc3.internal.baidu.com (172.31.50.47)
+X-FEAS-Client-IP: 172.31.50.47
+X-FE-Policy-ID: 52:10:53:SYSTEM
 
-On Wed, 25 Feb 2026 at 05:05, Andrew Lunn <andrew@lunn.ch> wrote:
->
-> > # ethtool --show-loopback eth0
-> > Loopback endpoints for eth0:
-> >   id  owner  depth  direction          name       enabled
-> >    0  mac       1   host->loop->host   mac        off
-> >    1  phy       2   host->loop->host   phy-pcs    on
-> >    2  module    3   line->loop->line   cmis-far   off
-> >
-> > # Enable endpoint 2
-> > ethtool --set-loopback eth0 id 2 on
->
-> We have to be careful about what is ABI here. Initially you plan to
-> implement module, so you will have:
->
-> # ethtool --show-loopback eth0
-> Loopback endpoints for eth0:
->   id  owner  depth  direction          name       enabled
->    0  module    1   line->loop->line   cmis-far   off
->
-> ethtool --set-loopback eth0 id 0 on
->
-> And then somebody implements loopback at the mac:
->
-> # ethtool --show-loopback eth0
-> Loopback endpoints for eth0:
->   id  owner  depth  direction          name       enabled
->    0  mac       1   host->loop->host   mac        off
->    1  module    2   line->loop->line   cmis-far   off
->
-> You script doing
->
-> ethtool --set-loopback eth0 id 0 on
->
-> Suddenly does something else.
+From: Li RongQing <lirongqing@baidu.com>
 
-Indeed!
+Currently, MTT (Memory Translation Table) buffers are allocated without
+NUMA awareness using kzalloc() and vzalloc(), which allocate memory on
+the NUMA node of the calling CPU. This can lead to cross-node memory
+access latencies if the erdma device is attached to a different NUMA
+socket.
 
-> Is this an ABI break? How do we make this reliable so implementing
-> more loopbacks at different levels does not change how you use
-> --set-loopback?
+Switch to kzalloc_node() and vzalloc_node() to ensure MTT buffers are
+allocated on the local NUMA node of the PCIe device (dev->attrs.numa_node).
+This reduces latency for hardware access and improves performance.
 
-Isn't this somewhat similar to what we have with ifindex/phy_index,
-but potentially unstable when modules are swapped/changed?
+Signed-off-by: Li RongQing <lirongqing@baidu.com>
+---
+ drivers/infiniband/hw/erdma/erdma_verbs.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Instead of ids, use string name and/or topology indices (e.g.
-phy_index)? All three -- owner, phy_index, name tuple?
+diff --git a/drivers/infiniband/hw/erdma/erdma_verbs.c b/drivers/infiniband/hw/erdma/erdma_verbs.c
+index 9f74aad..58da6ef 100644
+--- a/drivers/infiniband/hw/erdma/erdma_verbs.c
++++ b/drivers/infiniband/hw/erdma/erdma_verbs.c
+@@ -604,7 +604,7 @@ static struct erdma_mtt *erdma_create_cont_mtt(struct erdma_dev *dev,
+ 		return ERR_PTR(-ENOMEM);
+ 
+ 	mtt->size = size;
+-	mtt->buf = kzalloc(mtt->size, GFP_KERNEL);
++	mtt->buf = kzalloc_node(mtt->size, GFP_KERNEL, dev->attrs.numa_node);
+ 	if (!mtt->buf)
+ 		goto err_free_mtt;
+ 
+@@ -729,7 +729,7 @@ static struct erdma_mtt *erdma_create_scatter_mtt(struct erdma_dev *dev,
+ 		return ERR_PTR(-ENOMEM);
+ 
+ 	mtt->size = ALIGN(size, PAGE_SIZE);
+-	mtt->buf = vzalloc(mtt->size);
++	mtt->buf = vzalloc_node(mtt->size, dev->attrs.numa_node);
+ 	mtt->continuous = false;
+ 	if (!mtt->buf)
+ 		goto err_free_mtt;
+-- 
+2.9.4
 
-
-Bj=C3=B6rn
