@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 122F53D34AD;
-	Wed, 25 Feb 2026 14:19:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 284373B961D;
+	Wed, 25 Feb 2026 14:20:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772029199; cv=none; b=JDEjt2nE+G1bIv1g9nQG2IkZxfv5JozQsvfpcO6oRndIRDdwDf9uDyS8DmtnVLVDAupY1B5mqxsMRoq3M9N477Dhjqorr3RQnsC3qTKllwah8zCD7qNBVGihhH9wQ+MGyk3KjB2AhNuwBqYZGd4gYFoYL/kqtVAdI8DdPA8e2j8=
+	t=1772029202; cv=none; b=Y5J1UOMT92kZ5hFjr1HJmfndyGM/xy7nzxICeGNmrLhUzFq5usBaeHUigES16bmPuCC2YpDqFuUY9IgbWQ7OJkaFK6hIGFmgEbjM4uR/GPUeH9zf+3IzC5SqVSU5KjHE842Qac4ah4R5zvjkyoKHVLM6C0w2/ayonouJmaUOxjw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772029199; c=relaxed/simple;
-	bh=IWfIW+hzTkf5nStjv+pYV1pJ3Vmlm4ZHSTNuOGvG28E=;
+	s=arc-20240116; t=1772029202; c=relaxed/simple;
+	bh=oz+j+A+rE2XswhiJBlj63eWf/P56b9Co0UAl2knfd6A=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=mRD9eFRJ9dp2lSb9LtRmepPvR7KrU7sXPdgKhQJEfrh54F5j52kyGOb2kFfOwQ7B0QLg9Xr8/fukI6K2dGBPpcU4QuoLaRSFIYCQIxlCS8YWIZcoVdMYVRPO4/eS5JCcXCuKeDtX8apwCt+ky6DDfwCmxPPaJf/fGP2z6PU4SFM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=aMQF+tXJ; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version:Content-Type; b=LHm+l5Ey/4/vg/zg38phW6DAJt394fNEyoJr7fVjpzJJXqGK3asBULK5JykkH+jsfiTELR+eIq0gqiOW9y/uE13YReEk1dGjqV7So/9kiqrF6COJMqYrGqa+hX3R6Wg/i2OFa7km6pPiXSaGExqE6himSsbdBTVBxrW/5wtFYr8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=UDg3ADMo; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="aMQF+tXJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 48714C116D0;
-	Wed, 25 Feb 2026 14:19:58 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="UDg3ADMo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 73D40C116D0;
+	Wed, 25 Feb 2026 14:20:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1772029198;
-	bh=IWfIW+hzTkf5nStjv+pYV1pJ3Vmlm4ZHSTNuOGvG28E=;
+	s=k20201202; t=1772029201;
+	bh=oz+j+A+rE2XswhiJBlj63eWf/P56b9Co0UAl2knfd6A=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=aMQF+tXJfP7CBNQnr+pR/bKhDKwwVWOMiGQqTKj63Ty1JgOGxyrGyH+lGjtG6aj28
-	 N+tolxetZSs4XEjYAxrJXbH5QvzMGq8+AuAfkw5TbV0+jIWmGb1QvALgc05f+noXJ4
-	 dGoZHWPjKTvYv8IwqNk1gNzF99XmsMdhVXg14jEzBCZwOTwQK9TR1nnB/IsHrB8TIp
-	 WQTn86d4i4bkuXh5TLKC6ltql3e5md4zkB87Gu+swkLUgSMoGIutrRvn3G5cslKAJj
-	 tx7OicPUFRzHsNNfQlQmHBxWnH+8ZnWlcFIIIyiiGaKnVn6k9LxYVNs0keMISewCEr
-	 fSjlrAvNMuiDw==
+	b=UDg3ADMo0Rfs+pyTBPF5xEda7wOWBknOgKyz5CqT2Wd2oGdwAXryOgrH0dkR8pXXJ
+	 l6u+GsZxBnmmRU3UY4s6tUFTeq4pN7scLWWA75Y0pwqPvdhDUFxXJGho2FGl5vpJ8t
+	 3dkWTbS8XMJgEmGfu9qeR2Rxf0oBh0avQkAwtml3IjZbmwPpEeNEvV/VXkeLSo1Dq+
+	 PtQ3nptlSsiwjMj57I9Zt5JKN/5cceN316ZHAvddluGj2tC8PZV2AE5Xwxh6HEOsOx
+	 y4Hl2nFQw0l6EYWxsc/xuw0JiwKPvP03xk9XNI2R1+e8NNcEsvg9TWNBQg/eDYaXDr
+	 EABu+QlMydPoA==
 From: Leon Romanovsky <leon@kernel.org>
 To: Saeed Mahameed <saeedm@nvidia.com>,
 	Leon Romanovsky <leon@kernel.org>,
@@ -41,9 +41,9 @@ Cc: linux-rdma@vger.kernel.org,
 	netdev@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	Maher Sanalla <msanalla@nvidia.com>
-Subject: [PATCH rdma-next 6/6] RDMA/mlx5: Add VAR object query method for cross-process sharing
-Date: Wed, 25 Feb 2026 16:19:36 +0200
-Message-ID: <20260225-var-tlp-v1-6-fe14a7ac7731@nvidia.com>
+Subject: [PATCH rdma-next 4/6] RDMA/mlx5: Add TLP VAR region support and infrastructure
+Date: Wed, 25 Feb 2026 16:19:34 +0200
+Message-ID: <20260225-var-tlp-v1-4-fe14a7ac7731@nvidia.com>
 X-Mailer: git-send-email 2.53.0
 In-Reply-To: <20260225-var-tlp-v1-0-fe14a7ac7731@nvidia.com>
 References: <20260225-var-tlp-v1-0-fe14a7ac7731@nvidia.com>
@@ -59,111 +59,151 @@ Content-Transfer-Encoding: 8bit
 
 From: Maher Sanalla <msanalla@nvidia.com>
 
-Introduce MLX5_IB_METHOD_VAR_OBJ_QUERY to enable cross-process sharing
-of VAR objects. This method allows a process that has imported the uverbs
-fd via ibv_import_device() to query an existing VAR handle and obtain
-the mmap parameters needed to map the VAR region into its address space.
-
-This follows the same pattern as UVERBS_METHOD_QUERY_MR, allowing
-userspace to implement mlx5dv_import_var() analogous to ibv_import_mr().
+Add support for TLP (Transaction Layer Packet) VAR regions used by
+software-defined device emulation. TLP VAR provides dedicated response
+gateways for sending TLP responses back to the host in TLP emulation
+scenarios.
 
 Signed-off-by: Maher Sanalla <msanalla@nvidia.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/hw/mlx5/main.c        | 47 +++++++++++++++++++++++++++++++-
- include/uapi/rdma/mlx5_user_ioctl_cmds.h |  8 ++++++
- 2 files changed, 54 insertions(+), 1 deletion(-)
+ drivers/infiniband/hw/mlx5/main.c    | 57 ++++++++++++++++++++++++++++++++----
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |  2 ++
+ 2 files changed, 54 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 77cd11c6cca9..a75769f55d31 100644
+index 835fe2a95ad6..424426a2cd76 100644
 --- a/drivers/infiniband/hw/mlx5/main.c
 +++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -4263,6 +4263,34 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_VAR_OBJ_ALLOC)(
- 	return err;
+@@ -2518,6 +2518,15 @@ mlx5_ib_pgoff_to_mmap_entry(struct ib_ucontext *ucontext, off_t pg_off)
+ 	return rdma_user_mmap_entry_get_pgoff(ucontext, entry_pgoff);
  }
  
-+static int UVERBS_HANDLER(MLX5_IB_METHOD_VAR_OBJ_QUERY)(
-+	struct uverbs_attr_bundle *attrs)
++static void mlx5_ib_free_var_mmap_entry(struct mlx5_user_mmap_entry *mentry,
++					struct mlx5_var_region *var_region)
 +{
-+	struct mlx5_user_mmap_entry *entry =
-+		uverbs_attr_get_obj(attrs, MLX5_IB_ATTR_VAR_OBJ_QUERY_HANDLE);
-+	u64 mmap_offset;
-+	u32 length;
-+	int err;
-+
-+	mmap_offset = mlx5_entry_to_mmap_offset(entry);
-+	if (check_mul_overflow(entry->rdma_entry.npages, (u32)PAGE_SIZE, &length))
-+		return -EOVERFLOW;
-+
-+	err = uverbs_copy_to(attrs, MLX5_IB_ATTR_VAR_OBJ_QUERY_MMAP_OFFSET,
-+			     &mmap_offset, sizeof(mmap_offset));
-+	if (err)
-+		return err;
-+
-+	err = uverbs_copy_to(attrs, MLX5_IB_ATTR_VAR_OBJ_QUERY_PAGE_ID,
-+			     &entry->page_idx, sizeof(entry->page_idx));
-+	if (err)
-+		return err;
-+
-+	err = uverbs_copy_to(attrs, MLX5_IB_ATTR_VAR_OBJ_QUERY_MMAP_LENGTH,
-+			     &length, sizeof(length));
-+	return err;
++	mutex_lock(&var_region->bitmap_lock);
++	clear_bit(mentry->page_idx, var_region->bitmap);
++	mutex_unlock(&var_region->bitmap_lock);
++	kfree(mentry);
 +}
 +
- DECLARE_UVERBS_NAMED_METHOD(
- 	MLX5_IB_METHOD_VAR_OBJ_ALLOC,
- 	UVERBS_ATTR_IDR(MLX5_IB_ATTR_VAR_OBJ_ALLOC_HANDLE,
-@@ -4289,10 +4317,27 @@ DECLARE_UVERBS_NAMED_METHOD_DESTROY(
- 			UVERBS_ACCESS_DESTROY,
- 			UA_MANDATORY));
- 
-+DECLARE_UVERBS_NAMED_METHOD(
-+	MLX5_IB_METHOD_VAR_OBJ_QUERY,
-+	UVERBS_ATTR_IDR(MLX5_IB_ATTR_VAR_OBJ_QUERY_HANDLE,
-+			MLX5_IB_OBJECT_VAR,
-+			UVERBS_ACCESS_READ,
-+			UA_MANDATORY),
-+	UVERBS_ATTR_PTR_OUT(MLX5_IB_ATTR_VAR_OBJ_QUERY_PAGE_ID,
-+			    UVERBS_ATTR_TYPE(u32),
-+			    UA_MANDATORY),
-+	UVERBS_ATTR_PTR_OUT(MLX5_IB_ATTR_VAR_OBJ_QUERY_MMAP_LENGTH,
-+			    UVERBS_ATTR_TYPE(u32),
-+			    UA_MANDATORY),
-+	UVERBS_ATTR_PTR_OUT(MLX5_IB_ATTR_VAR_OBJ_QUERY_MMAP_OFFSET,
-+			    UVERBS_ATTR_TYPE(u64),
-+			    UA_MANDATORY));
-+
- DECLARE_UVERBS_NAMED_OBJECT(MLX5_IB_OBJECT_VAR,
- 			    UVERBS_TYPE_ALLOC_IDR(mmap_obj_cleanup),
- 			    &UVERBS_METHOD(MLX5_IB_METHOD_VAR_OBJ_ALLOC),
--			    &UVERBS_METHOD(MLX5_IB_METHOD_VAR_OBJ_DESTROY));
-+			    &UVERBS_METHOD(MLX5_IB_METHOD_VAR_OBJ_DESTROY),
-+			    &UVERBS_METHOD(MLX5_IB_METHOD_VAR_OBJ_QUERY));
- 
- static bool var_is_supported(struct ib_device *device)
+ static void mlx5_ib_mmap_free(struct rdma_user_mmap_entry *entry)
  {
-diff --git a/include/uapi/rdma/mlx5_user_ioctl_cmds.h b/include/uapi/rdma/mlx5_user_ioctl_cmds.h
-index 01a2a050e468..7db03b3fdae6 100644
---- a/include/uapi/rdma/mlx5_user_ioctl_cmds.h
-+++ b/include/uapi/rdma/mlx5_user_ioctl_cmds.h
-@@ -146,9 +146,17 @@ enum mlx5_ib_var_obj_destroy_attrs {
- 	MLX5_IB_ATTR_VAR_OBJ_DESTROY_HANDLE = (1U << UVERBS_ID_NS_SHIFT),
- };
+ 	struct mlx5_user_mmap_entry *mentry = to_mmmap(entry);
+@@ -2533,10 +2542,11 @@ static void mlx5_ib_mmap_free(struct rdma_user_mmap_entry *entry)
+ 		break;
+ 	case MLX5_IB_MMAP_TYPE_VAR:
+ 		var_region = &var_table->var_region;
+-		mutex_lock(&var_region->bitmap_lock);
+-		clear_bit(mentry->page_idx, var_region->bitmap);
+-		mutex_unlock(&var_region->bitmap_lock);
+-		kfree(mentry);
++		mlx5_ib_free_var_mmap_entry(mentry, var_region);
++		break;
++	case MLX5_IB_MMAP_TYPE_TLP_VAR:
++		var_region = &var_table->tlp_var_region;
++		mlx5_ib_free_var_mmap_entry(mentry, var_region);
+ 		break;
+ 	case MLX5_IB_MMAP_TYPE_UAR_WC:
+ 	case MLX5_IB_MMAP_TYPE_UAR_NC:
+@@ -2687,6 +2697,7 @@ static int mlx5_ib_mmap_offset(struct mlx5_ib_dev *dev,
+ 	mentry = to_mmmap(entry);
+ 	pfn = (mentry->address >> PAGE_SHIFT);
+ 	if (mentry->mmap_flag == MLX5_IB_MMAP_TYPE_VAR ||
++	    mentry->mmap_flag == MLX5_IB_MMAP_TYPE_TLP_VAR ||
+ 	    mentry->mmap_flag == MLX5_IB_MMAP_TYPE_UAR_NC)
+ 		prot = pgprot_noncached(vma->vm_page_prot);
+ 	else
+@@ -4636,6 +4647,28 @@ static int mlx5_ib_init_var_region(struct mlx5_ib_dev *dev)
+ 	return (var_region->bitmap) ? 0 : -ENOMEM;
+ }
  
-+enum mlx5_ib_var_obj_query_attrs {
-+	MLX5_IB_ATTR_VAR_OBJ_QUERY_HANDLE = (1U << UVERBS_ID_NS_SHIFT),
-+	MLX5_IB_ATTR_VAR_OBJ_QUERY_PAGE_ID,
-+	MLX5_IB_ATTR_VAR_OBJ_QUERY_MMAP_OFFSET,
-+	MLX5_IB_ATTR_VAR_OBJ_QUERY_MMAP_LENGTH,
-+};
++static int mlx5_ib_init_tlp_var_region(struct mlx5_ib_dev *dev)
++{
++	struct mlx5_var_region *var_region = &dev->var_table.tlp_var_region;
++	struct mlx5_core_dev *mdev = dev->mdev;
++	u8 log_tlp_var_stride;
 +
- enum mlx5_ib_var_obj_methods {
- 	MLX5_IB_METHOD_VAR_OBJ_ALLOC = (1U << UVERBS_ID_NS_SHIFT),
- 	MLX5_IB_METHOD_VAR_OBJ_DESTROY,
-+	MLX5_IB_METHOD_VAR_OBJ_QUERY,
++	log_tlp_var_stride =
++		MLX5_CAP_DEV_TLP_EMULATION(mdev, log_tlp_rsp_gw_page_stride);
++	var_region->hw_start_addr =
++		dev->mdev->bar_addr +
++		MLX5_CAP64_DEV_TLP_EMULATION(mdev, tlp_rsp_gw_pages_bar_offset);
++
++	var_region->stride_size = (1ULL << log_tlp_var_stride) * 4096;
++	var_region->num_var_hw_entries =
++		MLX5_CAP_DEV_TLP_EMULATION(mdev, tlp_rsp_gw_num_pages);
++
++	mutex_init(&var_region->bitmap_lock);
++	var_region->bitmap = bitmap_zalloc(var_region->num_var_hw_entries,
++					   GFP_KERNEL);
++	return (var_region->bitmap) ? 0 : -ENOMEM;
++}
++
+ static void mlx5_ib_cleanup_ucaps(struct mlx5_ib_dev *dev)
+ {
+ 	if (MLX5_CAP_GEN(dev->mdev, uctx_cap) & MLX5_UCTX_CAP_RDMA_CTRL)
+@@ -4671,13 +4704,19 @@ static int mlx5_ib_init_ucaps(struct mlx5_ib_dev *dev)
+ 	return ret;
+ }
+ 
++static void mlx5_ib_cleanup_var_table(struct mlx5_ib_dev *dev)
++{
++	bitmap_free(dev->var_table.var_region.bitmap);
++	bitmap_free(dev->var_table.tlp_var_region.bitmap);
++}
++
+ static void mlx5_ib_stage_caps_cleanup(struct mlx5_ib_dev *dev)
+ {
+ 	if (MLX5_CAP_GEN_2_64(dev->mdev, general_obj_types_127_64) &
+ 	    MLX5_HCA_CAP_2_GENERAL_OBJECT_TYPES_RDMA_CTRL)
+ 		mlx5_ib_cleanup_ucaps(dev);
+ 
+-	bitmap_free(dev->var_table.var_region.bitmap);
++	mlx5_ib_cleanup_var_table(dev);
+ }
+ 
+ static int mlx5_ib_stage_caps_init(struct mlx5_ib_dev *dev)
+@@ -4737,10 +4776,18 @@ static int mlx5_ib_stage_caps_init(struct mlx5_ib_dev *dev)
+ 			goto err_ucaps;
+ 	}
+ 
++	if (MLX5_CAP_GEN(dev->mdev, tlp_device_emulation_manager)) {
++		err = mlx5_ib_init_tlp_var_region(dev);
++		if (err)
++			goto err_tlp_var;
++	}
++
+ 	dev->ib_dev.use_cq_dim = true;
+ 
+ 	return 0;
+ 
++err_tlp_var:
++	mlx5_ib_cleanup_ucaps(dev);
+ err_ucaps:
+ 	bitmap_free(dev->var_table.var_region.bitmap);
+ 	return err;
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index 3d0ae52c68a7..5f789291be93 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -162,6 +162,7 @@ enum mlx5_ib_mmap_type {
+ 	MLX5_IB_MMAP_TYPE_UAR_WC = 3,
+ 	MLX5_IB_MMAP_TYPE_UAR_NC = 4,
+ 	MLX5_IB_MMAP_TYPE_MEMIC_OP = 5,
++	MLX5_IB_MMAP_TYPE_TLP_VAR = 6,
  };
  
- enum mlx5_ib_uar_alloc_attrs {
+ struct mlx5_bfreg_info {
+@@ -1143,6 +1144,7 @@ struct mlx5_var_region {
+ 
+ struct mlx5_var_table {
+ 	struct mlx5_var_region var_region;
++	struct mlx5_var_region tlp_var_region;
+ };
+ 
+ struct mlx5_port_caps {
 
 -- 
 2.53.0
