@@ -1,98 +1,66 @@
-Received: from hr2.samba.org (hr2.samba.org [144.76.82.148])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A8B96262FC0;
-	Thu, 26 Feb 2026 09:32:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=144.76.82.148
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B4C83168F8;
+	Thu, 26 Feb 2026 10:00:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772098358; cv=none; b=ZlAB7cf6lbQpY/13L4s4WpxGq8rfBdaf2P6yHyVxIoRSzJ3IlqEpidhOsJCh3lCa403dpm2jHkXmWk5jnI7BYSkdBxMG5xMFtJmcL04ec4qwOMer5mGGRb3R3E6x6y7X5/f2/zvrKX5rj139zMTa746h2DwUpxQD3tn9fzRBkRM=
+	t=1772100024; cv=none; b=flhTTqj8mHg0nq59bd1Fn2clg0aaVwKv85nkyRXfsJ0OfGBJXzHAiCY9Dkj+KgnomWaG0cflhfgGhAP5iOVlIov5IDVbUWaOtd2hW2HsUZoKVgiclBC7nd63UK6sHCqfMd2XDekeSSBvtqJlZU1xaYg5llrR5/81czxqScT59aA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772098358; c=relaxed/simple;
-	bh=tVQ1Tla0WZftYQlJplXdMjAqBqpf8EtLKK3BzXz5Szw=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=ngOQlRrea2/KWTL/PKYYoyokIrsvoYHvu+Fn523XvYSjFeJdmHLKki4lvzoTkwlcQbxffMpN5mxw6aijONg88eQNDhtKTtCFnWcVIdGpJNsuYK1btiSLPiZHwxT/cTQw0TBBW0R6eJVCVt5olIVYoQmoXWoITZS7xy12eMH48V0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=samba.org; spf=pass smtp.mailfrom=samba.org; dkim=pass (3072-bit key) header.d=samba.org header.i=@samba.org header.b=PTuZuxEO; arc=none smtp.client-ip=144.76.82.148
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=samba.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=samba.org
+	s=arc-20240116; t=1772100024; c=relaxed/simple;
+	bh=/ImB/zyuc6oJqa60gC1TJKr6BgCxDL12UndUp5+Ml3g=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
+	 MIME-Version:Content-Type; b=fRa6RGo0ergX9fOK738xVarN7UpZ+k+y89HxtYHCng4UMAWY6Gj5PJpli9blWlWtnWBl4bL3UpiUewqqLlVIDm0oGZUNjIU8E2YPUR2gLDKaBl9L7Rv/S9Xe1ZbbyKCelqcOh2usDerRaLVP2Ux7Xa5AT2U4pBiMawcGstpQU2g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=N/euXLw2; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (3072-bit key) header.d=samba.org header.i=@samba.org header.b="PTuZuxEO"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=samba.org;
-	s=42; h=From:Cc:To:Date:Message-ID;
-	bh=bgJobNO/XTwgsytGekJINzhShMgRvCBytOfe1cAppHs=; b=PTuZuxEOdvVMa+r5eevcZnDvx8
-	89iGipJiGFZO+ZZKPzabeqGO9hTzTGwVi/EdNWVdssLD1pgtwy4gXMFIlXsyq8IkM4QfAsYxzt5iu
-	pQnt8SXXEzCM+0ZrOoMUbIHwLNHCerns9rZLm2z3ggtWoFuI0M/Ih9FmJMcvX2LgUDX/LGy/MsBjY
-	MOu3jchTK0BkTkyK9KJ2dEk7Pee90kQYGgB4ZW0A4PLEv24FU8UzcDa2MyalpteazW4x/g7rAtcc4
-	MoXy7167REl7oNDJMIvVguLkQoQZn71VLjHCQhjnW5J3QehByQETOt/No677UGcMNlHsH7Jdqwtcw
-	7RXNnEJh7yx9UgwHEPHtKRXZikowGZo/Klqy1lPA774sjFXfREKwi2Bj2EZKyHVHsOmlLe2r4JDr8
-	Ayq1mncrUvuPjtowXeKiXzjqyyzQueaFwazCCXZxtcMQFtkykiypUrbfoHWC5gyecwoLA2kNKkKg2
-	Mr7+0oven5BHA1YUdBQW9JKO;
-Received: from [127.0.0.2] (localhost [127.0.0.1])
-	by hr2.samba.org with esmtpsa (TLS1.3:ECDHE_SECP256R1__ECDSA_SECP256R1_SHA256__CHACHA20_POLY1305:256)
-	(Exim)
-	id 1vvXjQ-00000008eKL-1e62;
-	Thu, 26 Feb 2026 09:32:28 +0000
-Message-ID: <a8d20762-e4f7-41fd-b67e-803858655aad@samba.org>
-Date: Thu, 26 Feb 2026 10:32:27 +0100
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="N/euXLw2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2B123C19422;
+	Thu, 26 Feb 2026 10:00:22 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1772100024;
+	bh=/ImB/zyuc6oJqa60gC1TJKr6BgCxDL12UndUp5+Ml3g=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Date:From;
+	b=N/euXLw2cGsQlL1RIY/d5ZSCI9fV5PWD3lmCpveWydrmYyGw8yNYmrOfo9uG0Wp7i
+	 yExJWaJkusbNtKGUYJyrv6vTwqx32nN1Q5ILkK0yhjEwywd4YEkphvr3cImMQAlbmp
+	 1VngtQdDtyhbavtmetFMeXHAskel7xh/5UZtj4Lvy1Qy4Bqdc9GUptAYotfJTZsI9l
+	 gE9/GB+GeuZLhzLKlC60SLYSD2ZVUg9fz7BxQM31HhqIHZD9swTH3l37nDpxuLz9i5
+	 LKw1BG1JDfuVEjE0/QFCGaLAYpVpTBBXNFrDbtaNhRVg44HLsCSy3qqwA2+WMQ6OpI
+	 D4nXjhVz66CRg==
+From: Leon Romanovsky <leon@kernel.org>
+To: Jason Gunthorpe <jgg@ziepe.ca>, Edward Srouji <edwards@nvidia.com>, 
+ Yishai Hadas <yishaih@nvidia.com>, Leon Romanovsky <leon@kernel.org>
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <20260225-fix-uverbs-compilation-v1-1-acf7b3d0f9fa@nvidia.com>
+References: <20260225-fix-uverbs-compilation-v1-1-acf7b3d0f9fa@nvidia.com>
+Subject: Re: [PATCH rdma-rc] RDMA/uverbs: Import DMA-BUF module in
+ uverbs_std_types_dmabuf file
+Message-Id: <177210001519.180298.3476648221337967387.b4-ty@kernel.org>
+Date: Thu, 26 Feb 2026 05:00:15 -0500
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] RDMA/core: check id_priv->restricted_node_type in
- cma_listen_on_dev()
-To: Leon Romanovsky <leon@kernel.org>
-Cc: linux-rdma@vger.kernel.org, Jason Gunthorpe <jgg@ziepe.ca>,
- Steve French <smfrench@gmail.com>, Namjae Jeon <linkinjeon@kernel.org>,
- Tom Talpey <tom@talpey.com>, Long Li <longli@microsoft.com>,
- linux-cifs@vger.kernel.org, samba-technical@lists.samba.org
-References: <20260224165951.3582093-2-metze@samba.org>
- <20260225125211.GE9541@unreal>
-Content-Language: en-US
-From: Stefan Metzmacher <metze@samba.org>
-In-Reply-To: <20260225125211.GE9541@unreal>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
+X-Mailer: b4 0.15-dev-47773
 
-Am 25.02.26 um 13:52 schrieb Leon Romanovsky:
-> On Tue, Feb 24, 2026 at 05:59:52PM +0100, Stefan Metzmacher wrote:
->> When listening on wildcard addresses we have a global list for
->> the application layer rdma_cm_id and for any existing
->> device or any device added in future we try to listen
->> on any wildcard listener.
->>
->> When the listener has a restricted_node_type we
->> should prevent listening on devices with a different
->> node type.
->>
->> While there fix the documentation comment of
->> rdma_restrict_node_type() to include rdma_resolve_addr()
->> instead of having rdma_bind_addr() twice.
->>
->> Fixes: a760e80e90f5 ("RDMA/core: introduce rdma_restrict_node_type()")
->> Cc: Jason Gunthorpe <jgg@ziepe.ca>
->> Cc: Leon Romanovsky <leon@kernel.org>
->> Cc: Steve French <smfrench@gmail.com>
->> Cc: Namjae Jeon <linkinjeon@kernel.org>
->> Cc: Tom Talpey <tom@talpey.com>
->> Cc: Long Li <longli@microsoft.com>
->> Cc: linux-rdma@vger.kernel.org
->> Cc: linux-cifs@vger.kernel.org
->> Cc: samba-technical@lists.samba.org
->> Signed-off-by: Stefan Metzmacher <metze@samba.org>
->> ---
->>   drivers/infiniband/core/cma.c | 6 +++++-
->>   include/rdma/rdma_cm.h        | 2 +-
->>   2 files changed, 6 insertions(+), 2 deletions(-)
+
+On Wed, 25 Feb 2026 15:48:59 +0200, Leon Romanovsky wrote:
+> Fix the following compilation error:
 > 
-> Applied, thanks.
+> ERROR: modpost: module ib_uverbs uses symbol dma_buf_move_notify
+> 	from namespace DMA_BUF, but does not import it.
+> 
+> 
 
-Great!
+Applied, thanks!
 
-Will this be scheduled for rc2?
-Would be great as it fixes a regression in ksmbd
-with iwarp.
+[1/1] RDMA/uverbs: Import DMA-BUF module in uverbs_std_types_dmabuf file
+      https://git.kernel.org/rdma/rdma/c/7c2889af823340
 
-Thanks!
-metze
+Best regards,
+-- 
+Leon Romanovsky <leon@kernel.org>
+
