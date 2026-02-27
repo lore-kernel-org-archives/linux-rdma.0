@@ -1,82 +1,80 @@
-Received: from mail-qv1-f50.google.com (mail-qv1-f50.google.com [209.85.219.50])
+Received: from mail-qt1-f171.google.com (mail-qt1-f171.google.com [209.85.160.171])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 16B9342982B
-	for <linux-rdma@vger.kernel.org>; Fri, 27 Feb 2026 14:50:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.50
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 47F79364936
+	for <linux-rdma@vger.kernel.org>; Fri, 27 Feb 2026 14:53:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.171
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772203844; cv=none; b=WNnG2NWrlIAJ9sQ7wL8A/7QoqSyevA9TPqAu3jUKKsAWE/mSCI20NIjblVoFRkn3AZze5HpdI55LHe3TKwhmnGmJEshx7VB3GfKb4ANDHpjYugAfZCt3ccYawFuoczJ46UnQYBxDcoRGpUprFe0dGOb1ggDpVquhhrJEO1TqxtQ=
+	t=1772203983; cv=none; b=PmK8c9suqL2O3vEQ7goDGdi/U6u/XJIIJUil+I2CxIcXeUf5G51bzlYLu+U8GGo2wLqAOJtJFHHg6SbyzjiIChbRBUSsRpmrLMmo78sOJASfPphImsfJZ2UZA323afjHB81yL3AhHr8VxhffQFD8XCzlsx3MG8yFsouLTetyZI0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772203844; c=relaxed/simple;
-	bh=7qMAtlqEERh0QTxOQuOlnbIc1h7SwmcsDK8VFLqTeXg=;
+	s=arc-20240116; t=1772203983; c=relaxed/simple;
+	bh=38jzOu0liYPjtYP6BEfdrenY04p+t5k0gXxfaDQNnwo=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=lG2NxfJL8lh3A2rTjq9kElkHY5emGjGUGdU3RXVkpaWKPcFGT/fv4ok7HCNf/Pej5RrRj0dFvLmx/H4TpxVy1kaT6FZbD45CcFeTNx1y2kszuDkNTFPbTPa5HIT6itQCRa4c43GY8mP7XSwksR57mh7VakCmTI9auPcbNb8/DZA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca; spf=pass smtp.mailfrom=ziepe.ca; dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b=Y79a1mS3; arc=none smtp.client-ip=209.85.219.50
+	 Content-Type:Content-Disposition:In-Reply-To; b=VjqCQQNUen9r/V7y4R4TLNCuuV65hEgutlKnCIxKdRDKt8OxBb0JC1yUcopNc37NwBQuWXk3zu7nWoPqVW0E74a9bnEe5Bjdpj0Hol8SakyMAsPSzpbRU8R8sw7WrLVybRKYfaA4dOqtB5Pmsp8ocb67REYsxmCx2ekFE7G77p4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca; spf=pass smtp.mailfrom=ziepe.ca; dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b=ocQDH0m1; arc=none smtp.client-ip=209.85.160.171
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ziepe.ca
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="Y79a1mS3"
-Received: by mail-qv1-f50.google.com with SMTP id 6a1803df08f44-899c97c5addso25340006d6.3
-        for <linux-rdma@vger.kernel.org>; Fri, 27 Feb 2026 06:50:41 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="ocQDH0m1"
+Received: by mail-qt1-f171.google.com with SMTP id d75a77b69052e-506984b6d83so15775041cf.3
+        for <linux-rdma@vger.kernel.org>; Fri, 27 Feb 2026 06:53:02 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google; t=1772203841; x=1772808641; darn=vger.kernel.org;
+        d=ziepe.ca; s=google; t=1772203981; x=1772808781; darn=vger.kernel.org;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=5FXPmkuMa+SjC20VO3F6GvvoxqvqIX4Im8uJXcn8ILQ=;
-        b=Y79a1mS3nDmHgoPuQwjoWbjatRvTNcq2hxTrgsu+/5wOp6Cb/IL7kscPYOBp7VNRUC
-         M8oimFDYU0tcWl+Q3tHyp+zOX6o7ifoW2w2HyQ8oloZ6bGDTj88VTad75OrGl5sjOPMs
-         3doNYa7GpBY98kbOaUGAVs/vGezVVhFK/JumGuTNACGXlrv7M66dd68nxHfaO58gVGOS
-         IPERi9DSl5L3f9RKMCFv9BNVTtl9WrYrRM9TgzX2j08fW8m5OxPzAjIfGbIEaDZQBGsv
-         U3xb/L4LPXnqceainZRAQlrjpC+WtzyllmZpPwu9jg0tUQrjiQ0FRzu/WVP4GtJ6fIv2
-         pqWA==
+        bh=38jzOu0liYPjtYP6BEfdrenY04p+t5k0gXxfaDQNnwo=;
+        b=ocQDH0m1nGyTYjFr0e2NHb4l1W94qAh5DERodklXLeW720zMOfrftTSnZaJcdwZMIe
+         ChweAE+kBY7ygKXqWja7bRiKld40qHpOPGUxg9Cy2JPTi+gpPCv3rvnP6E0Dw1kPPKi3
+         uPaNfqlVc/wXJiKizOyeLxlzfHTUKS2rNhl5R7AitNm/UoDHPo3SBimSagUur1UT9ffd
+         wmipI+mHV9bZSGmWTKKDCWNYwrkOTtRKPf1Kl6HHlMeWnj8WguO4CYMYWgaYb0DD1oQg
+         swG9P/ZirZyP1E7749YT8Re0WXfMe1kSzqex9kJZeHYE72CXpgHisA1lu0UbSE9mlwb2
+         LvsA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1772203841; x=1772808641;
+        d=1e100.net; s=20230601; t=1772203981; x=1772808781;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=5FXPmkuMa+SjC20VO3F6GvvoxqvqIX4Im8uJXcn8ILQ=;
-        b=RXJvKUkV9CU2HD/C3QsSwTmNVQgC2QYa8q8EMBD0vuiv0cA/NHP5ScGq/iTh3onS99
-         YwOtmFbZuXMWYhhqO/PcSide0j8xLI35SGcGTVoh4bsbmBLW7yuXz1bjqSSwrD+nDimJ
-         ezSjgouL5S5RZyj0iSqXbgH9Cg4B2SgxkdINA0A6WJS9YSTSEH7e+0gjsrp0tAoMcvYM
-         5CAroNfKhRLYkMGzFKLvFiaEALG9z3Z3qEowtiwEUe0IJdVEs+L++TCNgmXpVu95ZRLa
-         VzgGg9TS1pb8+wBW/cxeUOTh5EoviMtokymnXImzzpbgDx6RKluqxoRQePWhT4AwJKF6
-         XEMA==
-X-Forwarded-Encrypted: i=1; AJvYcCXFdzqEfnmA7efDA3Twmbq22ZNCIYpt8qpEFYjzKh1I8cTcOOlg0q9wFsRdmUP9sktWJg6kGxhDxbkN@vger.kernel.org
-X-Gm-Message-State: AOJu0Yyax5Bti0S8UHpnq/a+CJgkAmELaMHWznS0RZ5PvCU+/nzTpuBj
-	whoBCSuHhCKWS6l2LsdwndCgRbPE8kko7Xg/mwYp2pFySmkdfRwv+EK2cwdqykLn2p4=
-X-Gm-Gg: ATEYQzxLTAmv/ScDcwIlIr+TtGYOdrl8+43uEzMWgYrZnBy1t2ZIBnrayQjL1zLW84t
-	XgzBOz+kQ/D5JE37ZulIDuZn+CW3XXrjV3fRvumdFzP3TRPI8715tTeydz9Ybh0Z8TH4lV/v4Ug
-	n7m8VD9XYKSca1YVOLEKDWcD+ChekWeCdg0g7WwgjugDcO9TsmPuPgc7Bcu5xhUGSAOqSh2yaiM
-	PfElD0LER2H+BgpCIUpzgtpGoBnvm/yYlBZe5cELnBmldCrIB1V4fPGB7iAHACy574Vk5zj0InL
-	4jNiIRXi6kQjuMJ73f45CXTai6PM92fkCwL/gl1YlK33c7G4ErI2n9/280rB7nsEzo1mSSqOmg2
-	n/tzI+aOvvhqu1axsymDVsixMN/Ypc4QTlh1LY2mX7kf29Ox6cbQi1xazlfrnEnDJbB1/Zj8eav
-	Zl0qpdWuyIflkF+VUrpgiPEOyFTBL1UeViJzewZYtiV8pAYuUiRlb+orch8tWItAO1dKY72tsaD
-	ceYRQG5
-X-Received: by 2002:a05:6214:d81:b0:895:3ec:9e6c with SMTP id 6a1803df08f44-899d1da87cfmr43336196d6.1.1772203840715;
-        Fri, 27 Feb 2026 06:50:40 -0800 (PST)
+        bh=38jzOu0liYPjtYP6BEfdrenY04p+t5k0gXxfaDQNnwo=;
+        b=KqIyMxFxFK2lgKXAfUMsRRA2w1z1AcnpqgRPMMVXEUB4rM0EDtgYsLPNyr/tFf6ISF
+         qJgAlFdiVnbLhD4LGxmdXW25B4HZuyEYyKNqGqorqXRfQPuOEj8sRrY6PRQYe/pYvgdl
+         RLLfwZn48gIttUpE1HHq1I9cH1ylqxaqlNb7DCoSdbPRDuCVfUuGPt4iSrx5C8uU+9a0
+         sEbU6FDkiAxC3ByrLi+BYm2bWjgtzdMBBbBgWEU/P7Yf4cB2B3j63jYscvG+K7MqIPjb
+         09xG0/E1IHbdN0p1lNuRo2kIE6k1lL5ROmdT48ktLW8uuJy/d+VvWvToTy6R43+vmdB3
+         z/6g==
+X-Forwarded-Encrypted: i=1; AJvYcCXHR3WJRaf72xcwE6HSxd4csZVDXH6xzBYCE8UIFzi3WOApswZo21GWkPf6/1sCOE4yJpIAVpNEr48Z@vger.kernel.org
+X-Gm-Message-State: AOJu0Yzh5WiDTuSsfywd8UXZ9YWStwNDUcihyE9FkR/8EYRsVrHPJOTn
+	fi97eNJRimAB//c7aVidcf47zhJQrfE9pUosUvF+AFnFi6R5ZthOX72rEsV+D/B59IY=
+X-Gm-Gg: ATEYQzwoxNWLfwDBfvjmJ1rME3GlqccedkcSzOg+Iw3OT/pb+ZCNG4+Dwjk39Jh2MrQ
+	3lIDBy8ihz9R/TbDtzKkpS/Ef9NBz0nF7cyR72/F5D3nFH1slV6tFaa5UzsDBRdhb2ivD1r/0Ha
+	pV0pTDbMMgy4KDIifYxfcHEqkSs3cJuH9za0+litLgQD+gAd6CZ66362XonsimJ8DLcsosxKJ7H
+	hu+O7isz4n0OzGHJDGK4x4pkQ9idLor8eeoeo/SaNAeK0UlfjLC1cM/TVmfAWdYln9L9J9EIrjO
+	QBGM5aDMMvoHsvDAhx5elTbl9hQfulQrawMkVEwjV9L3+51t/4VEunNSNgVWxHMW/PG1SLGTdwl
+	CAwXaDqpDmbepaE3cMzNcJ4gJ569wo2Hk8OCt1K2yQvQvKGmIuv/dntg/npxiTQ9mrDDiVMGenx
+	GOlvOhV/5NVQFsHQ35BMbUXTZYhXGAg0vNa3rCRfD+HMgfy9frKjfqS+jNnYXUbFNLswYNHMyV3
+	Ud9SzKy
+X-Received: by 2002:a05:622a:406:b0:4ee:441c:dfb2 with SMTP id d75a77b69052e-507528dd496mr38152841cf.32.1772203981179;
+        Fri, 27 Feb 2026 06:53:01 -0800 (PST)
 Received: from ziepe.ca (hlfxns017vw-142-162-112-119.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.162.112.119])
-        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-899c73a320dsm44348516d6.52.2026.02.27.06.50.40
+        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-899c7159b72sm45370576d6.7.2026.02.27.06.53.00
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 27 Feb 2026 06:50:40 -0800 (PST)
+        Fri, 27 Feb 2026 06:53:00 -0800 (PST)
 Received: from jgg by wakko with local (Exim 4.97)
 	(envelope-from <jgg@ziepe.ca>)
-	id 1vvzAt-000000016NQ-2j8z;
-	Fri, 27 Feb 2026 10:50:39 -0400
-Date: Fri, 27 Feb 2026 10:50:39 -0400
+	id 1vvzDA-000000016OZ-0OId;
+	Fri, 27 Feb 2026 10:53:00 -0400
+Date: Fri, 27 Feb 2026 10:53:00 -0400
 From: Jason Gunthorpe <jgg@ziepe.ca>
-To: Jacob Moroni <jmoroni@google.com>
-Cc: Leon Romanovsky <leon@kernel.org>, tatyana.e.nikolova@intel.com,
+To: Leon Romanovsky <leon@kernel.org>
+Cc: Jacob Moroni <jmoroni@google.com>, tatyana.e.nikolova@intel.com,
 	krzysztof.czurylo@intel.com, linux-rdma@vger.kernel.org
 Subject: Re: [PATCH rdma-next 4/4] RDMA/irdma: Add support for revocable
  pinned dmabuf import
-Message-ID: <20260227145039.GJ44359@ziepe.ca>
+Message-ID: <20260227145300.GK44359@ziepe.ca>
 References: <20260225210705.373126-1-jmoroni@google.com>
  <20260225210705.373126-5-jmoroni@google.com>
  <20260226085517.GG12611@unreal>
  <CAHYDg1QLzeQTXpCTeP5ZYcYyYLHG3yhUQtrGec+-5MzaGL-jKA@mail.gmail.com>
  <20260226194149.GM12611@unreal>
- <CAHYDg1QB9sPWLx34heDnnV-K=pMXniqT7qxL_CY95fi7esPTBA@mail.gmail.com>
- <CAHYDg1Snxj5sfFr2ebkacZjbpttgjFyPHGedHXG155MXx0NMEw@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -85,25 +83,19 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CAHYDg1Snxj5sfFr2ebkacZjbpttgjFyPHGedHXG155MXx0NMEw@mail.gmail.com>
+In-Reply-To: <20260226194149.GM12611@unreal>
 
-On Fri, Feb 27, 2026 at 09:44:02AM -0500, Jacob Moroni wrote:
-> If IB_MR_REREG_TRANS is specified, then it will drop the umem_dmabuf and
-> get a new normal umem based on whatever arguments are provided, which I
-> guess makes sense, and I assume I will need to preserve this behavior since
-> it's user facing.
+On Thu, Feb 26, 2026 at 09:41:49PM +0200, Leon Romanovsky wrote:
 
-Yeah, I think that is where we are at today. You can't rereg into a
-new umem that has a dmabuf yet.
+> So, in my view, all drivers should follow the same flow, allowing us to
+> perform lock and unlock operations in the core during the call to
+> irdma_dereg_mr(). However, it is not clear whether this can actually be
+> achieved.
 
-> In the case where it is only a PD or access change, I will need to also deny
-> the rereg if the umem has been revoked. 
+I don't know about this, interlocking with the revoke requires access
+to the dma reservation lock in the driver in some way.
 
-> The buffer has been invalidated,
-> unpinned, and unmapped at that point and the rereg would have the side
-> effect of re-validating it in HW which I don't think can be allowed.
-
-Right, once revoked the rkey has to remain inoperable and anything
-that undoes that is a serious security hole.
+Many of the existing drivers don't support revoke so they don't expose
+this problem.
 
 Jason
