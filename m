@@ -1,276 +1,85 @@
-Received: from mail-qv1-f73.google.com (mail-qv1-f73.google.com [209.85.219.73])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8EEBE175A8F
-	for <linux-rdma@vger.kernel.org>; Mon,  2 Mar 2026 00:15:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.73
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 49F63379ECE;
+	Mon,  2 Mar 2026 05:55:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772410556; cv=none; b=dzDrPkiZDh7cVqMnr0As8M1CAE4Agfn3M58BRidHDhmY22qPvkGL601XCH+WYhQ7Xo2ywtUqEn+Fj89q7NJ4MfLqUF+5dxsuFTCy+8uAhOutui1undpE2ZToiC/LIDJpWlPFhr5qMkk4Tx7UYkE/4o9IIfoieGaf4G0RoiBbA/8=
+	t=1772430920; cv=none; b=rNxBR/UbyVIXnTiuObiMOrvjG4uKMAcSbH5EmkRcZNRM3JMZCNy+CTzcYZd8WASaGJjvkiuZaHTuPJgWSoAJUhP8o4/SM9o7gPv03MGWRCmZOfvAvtMokWeLnvdBIi4ayudvz7UGc1kwKyHKqe8AkruYc8CCSKPh6OucJFMkkS0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772410556; c=relaxed/simple;
-	bh=gP+oP3IxVstoJZ40XpHqNF0ITVWPAjIECsDaTOe/tSw=;
-	h=Date:In-Reply-To:Mime-Version:References:Message-ID:Subject:From:
-	 To:Cc:Content-Type; b=P4qQsWMsgHohnsqJSzUYSjuwGwa3RKQBNxKK5rksVnqAQa+LQNIaUaQrwXcs/GlVaHYeCkNmGGHkIuyD2zz1BAXv4YRpe8O9IzpfOVn6nSIhoPEHDYNueIk13CG8dFoapxXJVYQWKKz6Gbaz3SGxVujc+JIxRbTt3tQWtSghhu8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--jmoroni.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=E32iGYCa; arc=none smtp.client-ip=209.85.219.73
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--jmoroni.bounces.google.com
+	s=arc-20240116; t=1772430920; c=relaxed/simple;
+	bh=5Nc2JhcjVfsmChS3WB3k+ffnOWwMo9XgBND6/40u+a4=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=L7mDqRXkZ25Qu83heF4UgzsjwgZ0/kxaGc412KLhjKccN3Uo2OEJNLSgiIXKzNhdALfQepYeaZNT5lnlM/a8EbeePU9d+9dqe5tE64tA4a5paFuoigzQZLo3tq6zvbbP0jX1pt93wtDxU+u2coDlXo6x1TOlqWcLrnIPX99kyl8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=dMs//aB9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="E32iGYCa"
-Received: by mail-qv1-f73.google.com with SMTP id 6a1803df08f44-899e76aa555so166669146d6.2
-        for <linux-rdma@vger.kernel.org>; Sun, 01 Mar 2026 16:15:54 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20230601; t=1772410554; x=1773015354; darn=vger.kernel.org;
-        h=cc:to:from:subject:message-id:references:mime-version:in-reply-to
-         :date:from:to:cc:subject:date:message-id:reply-to;
-        bh=460O629QjDGQi/wu9Blzygm/qAeDEXekmH8q8iybpaI=;
-        b=E32iGYCayd4Z0PLCLCXiS/KR6n2WYh2h3yy042ZIu+eBo8wQ7Y/z/aBdXjmKZZPs8n
-         nmmq5Q92rop0Oeqa9Qi3GRGEnv0dAnbXSjULU3j0UJWfzOdGZnCvzWTRHZ+G1CCwDTTJ
-         TQ7puX8tdGbb1XVPm6ZreWyWI6lwRoAqJjYONzjrFL40bRb7debDyQ9noMp4TWp2+vCj
-         6FhYoCD5tenb0AWiNKAhHp6CTvIHV4D1twUXSVaKvwjXBHT70+Gc7rGMa9VcEBPbYpKX
-         EF7jyVs7QMwz+PWQ3MbJCWXPw2/114Ipe6ijoqNDmkmz5Pputv3/cFgqbyTAq0Ag7PZP
-         f8BQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1772410554; x=1773015354;
-        h=cc:to:from:subject:message-id:references:mime-version:in-reply-to
-         :date:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=460O629QjDGQi/wu9Blzygm/qAeDEXekmH8q8iybpaI=;
-        b=SOEErufw7eKfXuE7QNc5Dp8QFagxedOYA5TxuCO2vyR6UC36iLLILKUJ6kBzMZfcIY
-         6+jXuE/R0mvyN24YGt5Swc6O4yRWvl+7LVQAdIH5YjSGqyHB3CPI4vN9Y/TVdEo0LdQY
-         7U9qwzpGQsve9OuhCyAkW1bLFG7llCOXQ/bxbprDv6PB+iSukZuXou2aJmueUSg+6lsd
-         DLPLHCD8UhKrktvjszFVtWcjdZUiX9pvYPpXXaG5XpzgbfpdVpI8Uzl722kDaTq/6i+2
-         4ZBEPG5IUQsfxP/XShe6lk3yxh1GfNaFGLu6d2pHyu4+6IQ7lQiE8Nt1YX2H78iaXPqW
-         sLmg==
-X-Gm-Message-State: AOJu0YxIJzIvKEGVzZzvqXl4iqLLdOlHkDtKv5y6tRZ6auujh5SaUMvo
-	N6pA6/+lxhATi4jNazPnMm5BIaX5JoI9inBIxLV75YLKt9OS1IluoHS0nbP8Nd3Dvc10LGaztD6
-	ow5bMdhc/lQ==
-X-Received: from qvbor28.prod.google.com ([2002:a05:6214:469c:b0:899:f609:4371])
- (user=jmoroni job=prod-delivery.src-stubby-dispatcher) by 2002:a05:620a:1914:b0:8c0:88f3:fac4
- with SMTP id af79cd13be357-8cbc8e1dddamr1158416785a.56.1772410553487; Sun, 01
- Mar 2026 16:15:53 -0800 (PST)
-Date: Mon,  2 Mar 2026 00:15:39 +0000
-In-Reply-To: <20260302001539.2275303-1-jmoroni@google.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="dMs//aB9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F059AC19423;
+	Mon,  2 Mar 2026 05:55:18 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1772430919;
+	bh=5Nc2JhcjVfsmChS3WB3k+ffnOWwMo9XgBND6/40u+a4=;
+	h=From:To:Cc:Subject:Date:From;
+	b=dMs//aB94Gfp5mLFD6I/vHhVVIQCBzZu8dkuDlrUvVr7MoK/4q9v0buf6tIr4C9bo
+	 +Mkq1gTBFK0Ra/GzJPimUeujgo91pDhivKTYh6v2uc7t9csR6m5zFBGPRKqnxBRYex
+	 /jmvWIcClHeiNxFmmujKaOzDYkPixD+KnOQXkx4MVZ0MNYsrVOGX7CK4owLPFFRKdB
+	 bBSlADEsNb687RAz7pk6TwfXgDXs8WmkGqltFZ53fki8PtNbBiVKO6Zh6u0ShkSL/V
+	 9f/Owv8s5bIOFH28SMQOndfB9i3Zkh5WTqHIUuJcnxyWgdqv8wDg9ujKQJmkYjP3Qd
+	 rW64JAQfyrQ3g==
+From: Allison Henderson <achender@kernel.org>
+To: netdev@vger.kernel.org
+Cc: linux-kselftest@vger.kernel.org,
+	pabeni@redhat.com,
+	edumazet@google.com,
+	rds-devel@oss.oracle.com,
+	kuba@kernel.org,
+	horms@kernel.org,
+	linux-rdma@vger.kernel.org,
+	allison.henderson@oracle.com
+Subject: [PATCH net-next v1 0/2] selftests: rds: refactor and expand rds selftests test
+Date: Sun,  1 Mar 2026 22:55:16 -0700
+Message-ID: <20260302055518.301620-1-achender@kernel.org>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-References: <20260302001539.2275303-1-jmoroni@google.com>
-X-Mailer: git-send-email 2.53.0.473.g4a7958ca14-goog
-Message-ID: <20260302001539.2275303-6-jmoroni@google.com>
-Subject: [PATCH rdma-next v2 5/5] RDMA/irdma: Add support for revocable pinned
- dmabuf import
-From: Jacob Moroni <jmoroni@google.com>
-To: tatyana.e.nikolova@intel.com, krzysztof.czurylo@intel.com, jgg@ziepe.ca, 
-	leon@kernel.org
-Cc: linux-rdma@vger.kernel.org, Jacob Moroni <jmoroni@google.com>
-Content-Type: text/plain; charset="UTF-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 
-Use the new API to support importing pinned dmabufs from exporters
-that require revocation, such as VFIO. The revoke semantic is
-achieved by issuing a HW invalidation command but not freeing
-the key. This prevents further accesses to the region (they will
-result in an invalid key AE), but also keeps the key reserved
-until the region is actually deregistered (i.e., ibv_dereg_mr)
-so that a new MR registration cannot acquire the same key.
+Hi all,
 
-Tested with lockdep+kasan and a memfd backed dmabuf.
+This series aims to improve the current rds selftests.  The first patch
+refactors the existing test.py such that the networking set up can be
+reused as general purpose infrastructure for other tests.  The existing
+send and receive code is hoisted into a separate rds_basic.py.  The next
+patch adds a new rds_stress.py that exercises RDS via the external
+rds-stress tool from the rds-tools package if it is available on the host.
+We add two new flags to test.py, -b and -s to select rds_basic or
+rds_stress respectively.  The intent is to make the RDS selftests more
+modular and extensible.  Let me know what you all think.
 
-The rereg_mr path is explicitly blocked in libibverbs for dmabuf MRs
-(more specifically, any MR not of type IBV_MR_TYPE_MR), so the rereg_mr
-path for dmabufs was tested with a modified libibverbs.
+Questions, comments, suggestions appreciated!
+Thanks!
 
-Signed-off-by: Jacob Moroni <jmoroni@google.com>
----
- drivers/infiniband/hw/irdma/verbs.c | 105 ++++++++++++++++++++++++----
- 1 file changed, 93 insertions(+), 12 deletions(-)
+Allison
 
-diff --git a/drivers/infiniband/hw/irdma/verbs.c b/drivers/infiniband/hw/irdma/verbs.c
-index 15af53237..a0e0b3e39 100644
---- a/drivers/infiniband/hw/irdma/verbs.c
-+++ b/drivers/infiniband/hw/irdma/verbs.c
-@@ -3590,6 +3590,36 @@ static struct ib_mr *irdma_reg_user_mr(struct ib_pd *pd, u64 start, u64 len,
- 	return ERR_PTR(err);
- }
- 
-+static int irdma_hwdereg_mr(struct ib_mr *ib_mr);
-+
-+static void irdma_umem_dmabuf_revoke(void *priv)
-+{
-+	/* priv is guaranteed to be valid any time this callback is invoked
-+	 * because we do not set the callback until after successful iwmr
-+	 * allocation and initialization.
-+	 */
-+	struct irdma_mr *iwmr = priv;
-+	int err;
-+
-+	/* Invalidate the key in hardware. This does not actually release the
-+	 * key for potential reuse - that only occurs when the region is fully
-+	 * deregistered.
-+	 *
-+	 * The irdma_hwdereg_mr call is a no-op if the region is not currently
-+	 * registered with hardware.
-+	 */
-+	err = irdma_hwdereg_mr(&iwmr->ibmr);
-+	if (err) {
-+		struct irdma_device *iwdev = to_iwdev(iwmr->ibmr.device);
-+
-+		ibdev_err(&iwdev->ibdev, "dmabuf mr revoke failed %d", err);
-+		if (!iwdev->rf->reset) {
-+			iwdev->rf->reset = true;
-+			iwdev->rf->gen_ops.request_reset(iwdev->rf);
-+		}
-+	}
-+}
-+
- static struct ib_mr *irdma_reg_user_mr_dmabuf(struct ib_pd *pd, u64 start,
- 					      u64 len, u64 virt,
- 					      int fd, int access,
-@@ -3607,7 +3637,9 @@ static struct ib_mr *irdma_reg_user_mr_dmabuf(struct ib_pd *pd, u64 start,
- 	if (len > iwdev->rf->sc_dev.hw_attrs.max_mr_size)
- 		return ERR_PTR(-EINVAL);
- 
--	umem_dmabuf = ib_umem_dmabuf_get_pinned(pd->device, start, len, fd, access);
-+	umem_dmabuf =
-+		ib_umem_dmabuf_get_pinned_revocable_and_lock(pd->device, start,
-+							     len, fd, access);
- 	if (IS_ERR(umem_dmabuf)) {
- 		ibdev_dbg(&iwdev->ibdev, "Failed to get dmabuf umem[%pe]\n",
- 			  umem_dmabuf);
-@@ -3624,12 +3656,20 @@ static struct ib_mr *irdma_reg_user_mr_dmabuf(struct ib_pd *pd, u64 start,
- 	if (err)
- 		goto err_iwmr;
- 
-+	ib_umem_dmabuf_set_revoke_locked(umem_dmabuf, irdma_umem_dmabuf_revoke,
-+					 iwmr);
-+	ib_umem_dmabuf_revoke_unlock(umem_dmabuf);
- 	return &iwmr->ibmr;
- 
- err_iwmr:
- 	irdma_free_iwmr(iwmr);
- 
- err_release:
-+	ib_umem_dmabuf_revoke_unlock(umem_dmabuf);
-+
-+	/* Will result in a call to revoke, but driver callback is not set and
-+	 * is therefore skipped.
-+	 */
- 	ib_umem_release(&umem_dmabuf->umem);
- 
- 	return ERR_PTR(err);
-@@ -3749,6 +3789,8 @@ static struct ib_mr *irdma_rereg_user_mr(struct ib_mr *ib_mr, int flags,
- 	struct irdma_device *iwdev = to_iwdev(ib_mr->device);
- 	struct irdma_mr *iwmr = to_iwmr(ib_mr);
- 	struct irdma_pbl *iwpbl = &iwmr->iwpbl;
-+	bool dmabuf_revocable = iwmr->region && iwmr->region->is_dmabuf;
-+	struct ib_umem_dmabuf *umem_dmabuf;
- 	int ret;
- 
- 	if (len > iwdev->rf->sc_dev.hw_attrs.max_mr_size)
-@@ -3757,9 +3799,26 @@ static struct ib_mr *irdma_rereg_user_mr(struct ib_mr *ib_mr, int flags,
- 	if (flags & ~(IB_MR_REREG_TRANS | IB_MR_REREG_PD | IB_MR_REREG_ACCESS))
- 		return ERR_PTR(-EOPNOTSUPP);
- 
-+	if (dmabuf_revocable) {
-+		umem_dmabuf = to_ib_umem_dmabuf(iwmr->region);
-+
-+		ib_umem_dmabuf_revoke_lock(umem_dmabuf);
-+
-+		/* If the dmabuf has been revoked, it means that the region has
-+		 * been invalidated in HW. We must not allow it to become valid
-+		 * again unless the user is requesting a change in translation
-+		 * which will end up dropping the umem dmabuf and allocating an
-+		 * entirely new umem anyway.
-+		 */
-+		if (umem_dmabuf->revoked && !(flags & IB_MR_REREG_TRANS)) {
-+			ret = -EINVAL;
-+			goto err_unlock;
-+		}
-+	}
-+
- 	ret = irdma_hwdereg_mr(ib_mr);
- 	if (ret)
--		return ERR_PTR(ret);
-+		goto err_unlock;
- 
- 	if (flags & IB_MR_REREG_ACCESS)
- 		iwmr->access = new_access;
-@@ -3775,18 +3834,28 @@ static struct ib_mr *irdma_rereg_user_mr(struct ib_mr *ib_mr, int flags,
- 					&iwpbl->pble_alloc);
- 			iwpbl->pbl_allocated = false;
- 		}
-+
-+		if (dmabuf_revocable) {
-+			/* Must unlock before release to prevent deadlock */
-+			ib_umem_dmabuf_revoke_unlock(umem_dmabuf);
-+			dmabuf_revocable = false;
-+		}
-+
- 		if (iwmr->region) {
- 			ib_umem_release(iwmr->region);
- 			iwmr->region = NULL;
- 		}
- 
- 		ret = irdma_rereg_mr_trans(iwmr, start, len, virt);
--	} else
-+	} else {
- 		ret = irdma_hwreg_mr(iwdev, iwmr, iwmr->access);
--	if (ret)
--		return ERR_PTR(ret);
-+	}
- 
--	return NULL;
-+err_unlock:
-+	if (dmabuf_revocable)
-+		ib_umem_dmabuf_revoke_unlock(umem_dmabuf);
-+
-+	return ret ? ERR_PTR(ret) : NULL;
- }
- 
- /**
-@@ -3909,6 +3978,7 @@ static int irdma_dereg_mr(struct ib_mr *ib_mr, struct ib_udata *udata)
- 	struct irdma_mr *iwmr = to_iwmr(ib_mr);
- 	struct irdma_device *iwdev = to_iwdev(ib_mr->device);
- 	struct irdma_pbl *iwpbl = &iwmr->iwpbl;
-+	bool dmabuf_revocable = iwmr->region && iwmr->region->is_dmabuf;
- 	int ret;
- 
- 	if (iwmr->type != IRDMA_MEMREG_TYPE_MEM) {
-@@ -3923,17 +3993,28 @@ static int irdma_dereg_mr(struct ib_mr *ib_mr, struct ib_udata *udata)
- 		goto done;
- 	}
- 
--	ret = irdma_hwdereg_mr(ib_mr);
--	if (ret)
--		return ret;
-+	if (!dmabuf_revocable) {
-+		ret = irdma_hwdereg_mr(ib_mr);
-+		if (ret)
-+			return ret;
- 
--	irdma_free_stag(iwdev, iwmr->stag);
-+		irdma_free_stag(iwdev, iwmr->stag);
-+	}
- done:
-+	if (iwmr->region)
-+		/* For dmabuf MRs, ib_umem_release will trigger a synchronous
-+		 * call to the revoke callback which will perform the actual HW
-+		 * invalidation via irdma_hwdereg_mr. We rely on this for its
-+		 * implicit serialization w.r.t. concurrent revocations. This
-+		 * must be done before freeing the PBLEs.
-+		 */
-+		ib_umem_release(iwmr->region);
-+
- 	if (iwpbl->pbl_allocated)
- 		irdma_free_pble(iwdev->rf->pble_rsrc, &iwpbl->pble_alloc);
- 
--	if (iwmr->region)
--		ib_umem_release(iwmr->region);
-+	if (dmabuf_revocable)
-+		irdma_free_stag(iwdev, iwmr->stag);
- 
- 	kfree(iwmr);
- 
+v1:
+  - fixed pylint warnings
+
+Allison Henderson (2):
+  selftests: rds: Refactor test.py
+  selftests: rds: Add rds_stress.py
+
+ tools/testing/selftests/net/rds/Makefile      |   2 +
+ tools/testing/selftests/net/rds/rds_basic.py  | 183 +++++++++++++++++
+ tools/testing/selftests/net/rds/rds_stress.py |  58 ++++++
+ tools/testing/selftests/net/rds/run.sh        |  42 +++-
+ tools/testing/selftests/net/rds/test.py       | 184 +++---------------
+ 5 files changed, 308 insertions(+), 161 deletions(-)
+ create mode 100755 tools/testing/selftests/net/rds/rds_basic.py
+ create mode 100644 tools/testing/selftests/net/rds/rds_stress.py
+
 -- 
-2.53.0.473.g4a7958ca14-goog
+2.43.0
 
