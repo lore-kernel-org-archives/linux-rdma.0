@@ -1,28 +1,28 @@
-Received: from BYAPR05CU005.outbound.protection.outlook.com (mail-westusazon11010022.outbound.protection.outlook.com [52.101.85.22])
+Received: from CH5PR02CU005.outbound.protection.outlook.com (mail-northcentralusazon11012047.outbound.protection.outlook.com [40.107.200.47])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B41D5413231;
-	Mon,  2 Mar 2026 15:53:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.85.22
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B5FC64218B8;
+	Mon,  2 Mar 2026 15:53:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.200.47
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772466794; cv=fail; b=Fr/nYPeOsIp+xSH0XkOwXUZywjak/E7J2EHXjC5UCyhpeNJwijbzJaOlHWtejE3xw6QmsnFY3tKUEJz7/qLUAnwV1WyMJhd/d0SzdjheyjKmUQxOEc2yCUKIRvCFjnz5UdV+yOotIQyJvzilW/CdwsJoANPqSpeFRsC6vb9+Wjk=
+	t=1772466812; cv=fail; b=tLNcoKd6wV7LwEB3a2deauPr/uaexuYAYzi2jggZqb6p3PSuZa07aE8guTq4vI5y5jkOvnHUYSPefEx1JW+nrVkTsJyf2ToYNFhIM9EEoCWBhtf9U5kImnH3PC4RBDVGYHZKXFILlFbBDrz2kDK4Ymi7eDm76XDyJp8Xg1GwZY0=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772466794; c=relaxed/simple;
-	bh=Kd2Y8n9a/2dn9CbL26ErgZiza8ZaWoPmYYCmVjNZ8gY=;
+	s=arc-20240116; t=1772466812; c=relaxed/simple;
+	bh=zaDHJBCIdieIRlTeL/KO3QeyZNW7qFTyAWZ9hf+5Odg=;
 	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=PkiLsua0kKzzlblCjTQtoxQ/AZr5teBoBG1dvbLpNfIrL0t4q6J1TZO/b9snFSqfcuiiJhRK0dV0qvsXPSFzFHax4QNx+WxvJSdvWGHbLgsMpZmD3rb+bUtXWw8F7kE27J8ED2J0ZWbJ7Y9boZcDBtrsN64urhYW698asa4Vy5k=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=PVskwkBw; arc=fail smtp.client-ip=52.101.85.22
+	 MIME-Version:Content-Type; b=Qj8Jn1Ijx4RgfomHX4tsHhFYTPrQPEQ7tg3s3t7ZXGk2FSNohNJ8B3mqw79gWOTd6U90lLdAjF8swt3kG2xLLXbMRT8IaEfshxogBduxyI20nXvgjnLOTurbjgwQ0BNBZWoM+0boRtLUQoRksJEEOR8hV5V3ekXJH0YQsTaxyAM=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=tfft8Fcv; arc=fail smtp.client-ip=40.107.200.47
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="PVskwkBw"
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="tfft8Fcv"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=S/W/vHZDrqJXUg3yQ/r0T+fTzT00+UfOyqjx2i8u5gPdAV+9WkLxl4KkGoRHQvkDGXfVII95MbJZjlzEJ8jLDh6fxMOAwH1KQ+KOrGsqHx3OsbqrlEi1nK4H/Q0+MnxqMIGUTIaEGzzuDPdQffE2xTpQZTqBSIVRouhksdsBS4iS3tEXanQwAcQ4PkwmUYMB79HwGPSgwaonvK11dtENIXwj8eci/rfh8jXbf28M91qT8qXH5qegrLQKxXaIETAOQnfL9gscC4s90sfve34AVMM3Jqo/qU8P/VizQGekkVU6ThwzauoH5jByYG0PzjcIOXrLefTg1wbjt3yYnoO2EQ==
+ b=J9Qj1ZWf9rNB0XqEqtTMbU041jybiYah5eyLX/3fLSSs23wLkHqfDYOmvGM16P9CMvK1SySSuhDLX+aPY3yqlq0YzBDEcfo4/hoXk6jlZId5ayc7H8iDZ+IRiDhO4+tWijBdG5mjkUNGOmTilufUe0MqsjQUUHrCr3cZsJqb18qdNJX/ManJ2Psg8nfSIIyYj6t2qRx8eiiJMwzHJQwSS8AwmNbu6trJSfX4ERechi6d2+F5VQZA0SBaY+PIS+x9HfKy0v6j1ekMon0RDDdIulrRLQpuUEhQUJRN55sxt+9GDI/IAgKquc7/rjpeUp9Cx/7JfDd5MAhNeDIo1/u/5w==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=IN8OH1QjKfW0CcZddPK0UWoXp/3xfenzSZ5OlJBPnZ0=;
- b=maPLvve9BgHRlIR4zf54szpbFJSDjMGXeZdoIqULkt+1WQ1e6riuVTWUjcMt2FhbIWCLnzjvfSUVlNFyc2z6oBohoedOcs+tzNFzqJRD8AQrzTgIFC6jD1JrC6DC2c3QIFZHLPXr0sLbkOvLTsht6XeFTQDXd8hIWk3jtPUgFRqGi3V6FjsK51l2BNB8AjPvCXXdySRm6RiPDZbaKrr1gEobUMOz2DqoPseNKx22dHGZYVQmu2/vcF1YaxEVWKX/cQo0Dec+YTFiuvGaOBEb0CMLg1jfqwecpJ/JWkHBsEDPgDM7yJlV9fVDGRAVS1UixyasjAhj3X8nkBgcfTznsQ==
+ bh=56YfrInrP1XLgbiqs+n4EFOZSuEJN6PugTRLW3fF38k=;
+ b=hF/0WAwW0ANeGT+mJTlA73Joo0Fsh/L4KeyNfZVKk1EN/Qh1Wc2DsUvzz2CLTMSbc2V3C0oJCJqndXM+yboeF4I9Md9ZFqJLpxKMWU5vh2a328vtZ2qkNVgFkfHQbO4dHtEGWNbUAD68vdQkfUTjKpiWJCGsZoZL1Idw4P/mYkNkjeyopbZgkIW5Is/ZddMTyZWv0IQE4y0l+X4EoZ7S3KaTTL39B/foqpcHctsz95KQSyk+4E6e9n+KhH9cIC/0XFch8w0d7nXyn/BXAeT96wTou9gizxXZ1OnLPU2UGhB+642ewK4ZBZ/7qI6k9YCiMzmdbQegqv6mUbs5CaxfEA==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
  216.228.117.161) smtp.rcpttodomain=kernel.org smtp.mailfrom=nvidia.com;
  dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
@@ -30,18 +30,18 @@ ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=IN8OH1QjKfW0CcZddPK0UWoXp/3xfenzSZ5OlJBPnZ0=;
- b=PVskwkBwXQYLSlrV4++6iQCSRZqOVX9W+6VVx64mIvIPTywRUAvOszM6BByjEX74FyONwMFSryvi72hx7aTg2rUTVxp/iA6zgcP1AP9qh/s6YZWuSi2cYD6tb1cKhHVFIP69xlxSs/3fenEjtoJnQefrHg7bXRF8KvUgkcLfB1+YNSltqnAvUnTbbZIgnw0vifu1zLh6mRnMrCJMfIrl08RF1q73o0lvSq8CMZXwqOTBGLBCL7QqmvtEq0g3gN8ZLgJT8OZFJ+U6V5nUlysCS4D26E2oeiiBxNb7jyOoTMZIC766lte4ThkvYp7XvG8kOyyb6jaxaHbmPAHJL9esQw==
-Received: from SJ0PR03CA0112.namprd03.prod.outlook.com (2603:10b6:a03:333::27)
- by MN2PR12MB4047.namprd12.prod.outlook.com (2603:10b6:208:1de::20) with
+ bh=56YfrInrP1XLgbiqs+n4EFOZSuEJN6PugTRLW3fF38k=;
+ b=tfft8Fcv5JXrOqx/+P25oqML6AMwONtaO3pApYYy5hFldgdkSHjcY3DS0ZECpEVp91EbNIpCJByLT10wSvuEhNYhE5D+OY9F49UcfCEIHhA8O48ZY480ilKtkgLzxQomyBm2+QW5bKOE6BtjhRbxpXA5Ax5900QbJ5kC2D/M7WLHWV4C5Rr5cwMEhLdpkradQtqQfKCMCT5LyDTvQlrLFu+6HFjD0Oo66t5Cnx9gATqCiasKj0gjrUe7NMziukS0RsCGH5oCGB1/HcVYl1mQDLMjW8IFqjPtqlxmmmhyEkkliX+dB9UGyS/YaL2YWwjKHWBr/8PDzxG0LoWfcjBeEA==
+Received: from MW4PR04CA0173.namprd04.prod.outlook.com (2603:10b6:303:85::28)
+ by CH1PR12MB9575.namprd12.prod.outlook.com (2603:10b6:610:2ad::12) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9654.15; Mon, 2 Mar
- 2026 15:52:59 +0000
-Received: from MWH0EPF000C6187.namprd02.prod.outlook.com
- (2603:10b6:a03:333:cafe::1d) by SJ0PR03CA0112.outlook.office365.com
- (2603:10b6:a03:333::27) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.20.9632.28 via Frontend Transport; Mon,
- 2 Mar 2026 15:52:59 +0000
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9654.14; Mon, 2 Mar
+ 2026 15:53:18 +0000
+Received: from MWH0EPF000C618A.namprd02.prod.outlook.com
+ (2603:10b6:303:85:cafe::66) by MW4PR04CA0173.outlook.office365.com
+ (2603:10b6:303:85::28) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.20.9654.18 via Frontend Transport; Mon,
+ 2 Mar 2026 15:53:09 +0000
 X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.161)
  smtp.mailfrom=nvidia.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=nvidia.com;
@@ -49,27 +49,27 @@ Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
  216.228.117.161 as permitted sender) receiver=protection.outlook.com;
  client-ip=216.228.117.161; helo=mail.nvidia.com; pr=C
 Received: from mail.nvidia.com (216.228.117.161) by
- MWH0EPF000C6187.mail.protection.outlook.com (10.167.249.119) with Microsoft
+ MWH0EPF000C618A.mail.protection.outlook.com (10.167.249.122) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.9654.16 via Frontend Transport; Mon, 2 Mar 2026 15:52:58 +0000
+ 15.20.9654.16 via Frontend Transport; Mon, 2 Mar 2026 15:53:14 +0000
 Received: from rnnvmail201.nvidia.com (10.129.68.8) by mail.nvidia.com
  (10.129.200.67) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Mon, 2 Mar
- 2026 07:52:39 -0800
+ 2026 07:52:51 -0800
 Received: from rnnvmail205.nvidia.com (10.129.68.10) by rnnvmail201.nvidia.com
  (10.129.68.8) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Mon, 2 Mar
- 2026 07:52:39 -0800
+ 2026 07:52:51 -0800
 Received: from vdi.nvidia.com (10.127.8.13) by mail.nvidia.com (10.129.68.10)
  with Microsoft SMTP Server id 15.2.2562.20 via Frontend Transport; Mon, 2 Mar
- 2026 07:52:36 -0800
+ 2026 07:52:48 -0800
 From: Chiara Meiohas <cmeiohas@nvidia.com>
 To: <leon@kernel.org>, <dsahern@gmail.com>, <stephen@networkplumber.org>
 CC: <michaelgur@nvidia.com>, <jgg@nvidia.com>, <linux-rdma@vger.kernel.org>,
 	<netdev@vger.kernel.org>, Patrisious Haddad <phaddad@nvidia.com>
-Subject: [PATCH iproute2-next 2/4] rdma: Add resource FRMR pools show command
-Date: Mon, 2 Mar 2026 17:51:58 +0200
-Message-ID: <20260302155200.2611098-3-cmeiohas@nvidia.com>
+Subject: [PATCH iproute2-next 4/4] rdma: Add FRMR pools set pinned command
+Date: Mon, 2 Mar 2026 17:52:00 +0200
+Message-ID: <20260302155200.2611098-5-cmeiohas@nvidia.com>
 X-Mailer: git-send-email 2.38.1
 In-Reply-To: <20260302155200.2611098-1-cmeiohas@nvidia.com>
 References: <20260302155200.2611098-1-cmeiohas@nvidia.com>
@@ -84,365 +84,264 @@ Content-Type: text/plain
 X-NV-OnPremToCloud: ExternallySecured
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: MWH0EPF000C6187:EE_|MN2PR12MB4047:EE_
-X-MS-Office365-Filtering-Correlation-Id: c9dab7d2-bc43-42f6-80f7-08de7873c707
+X-MS-TrafficTypeDiagnostic: MWH0EPF000C618A:EE_|CH1PR12MB9575:EE_
+X-MS-Office365-Filtering-Correlation-Id: 2cf0a5ab-e194-48d2-793e-08de7873d092
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|82310400026|36860700013|376014|1800799024;
+	BCL:0;ARA:13230040|82310400026|376014|1800799024|36860700013;
 X-Microsoft-Antispam-Message-Info:
-	MwG5IF2+RzD30xNlsDBa2kIPCkEH3Q3AJMPSoCKk2lUilgycooGlyY25hL9WpYlTGeigQo3cF1cgYOvjkrsBBvWZLN+KY/QWJna3eseSmUa6ooqQyLiunwJtMvyHMvXbPnVnLRWFe/asO1an2U3ijDfpDbW6JYt+NqPwyIIK9h8CPSPAYmEcVWERYjk4rZVIUKTysXdpvHb1r30OIcUGIF+DQw28xXRkpfGCdCJqglUVIXVhmc1axO3sJ1z4AIOhrNyDHmn9PSgeeHsOCHE3zbHc/1i0M70lJKf6IKX1GEU+e9qqxsw8GKy0TyYPWw1u7G4jRj7YGPeuW6hgixaey2kcQuMSEbSpXxiBG3UEkQSZdVPik33TEnC/BJT5bt11lYSDR23I9JC4er9cGriXRzq1qK9l8raFA6bnY34hBvkiiDWEpIDEV1UAG4/7aVVTrKFxytD0+oL1/zWR3akSZG0O76PuskIfgBhzgc7V/ldoniqvupxifWphdSI0xlA3zEOK0j1114p4j98y+FhNmFPEiQsqvsrj5CnL7fc/pTjjnk0AuJ7t5WaWYp7rTuuoJkh7B1xOoB4/LAxIPU19VAFx8BYYijB+X+M/gN7gHQjhnjTFYw/LgWObznQM9blJsAHROgjpUTjPmbUPDl8wz5Rxyxt8FzlcouTKPRze3nvxaaSfCwPP2ayRR6r/Ko8Cts03RWMREbJJiRFfu0e6C91LB35GoslRyVBAttX+W3tM/FtY3Om5+roLJ08W+rSAmL8KMGKXt87TSs6EAtnFmE/FYib1VfKMosYso7E57PxTiaMQsqcORrRZwXcciTCPLeBoYrhfCC0DfXF0SkaJ7Q==
+	iMDuDHeW58jYQKZ+zsaBx3roTvrW5VTB4geiX0ArJeosdvZv0MCKlzYClpybBtONhBRthpEDNz/J9OZqlenQ0+GS1zJmX0xnrsfevD2cSL76cPkDGKtD5QXCc7XUHseeubJ+y3Gp9dTHsMBghleCWf0dgBlUqg4eCeCgM915Jt0N6cpg7DA4sORSn9fGibmWGQGjC2G1yqpF5wOgiipjtQrzAFQj9FsxNohxyzGIMj69B0VGXGdEBSQ7dmRyWUhx6W1LO7RYtViuuNRK+866C/Wlo5kcCaM8Lsfq5v1bSJY5JhbSKUij/uKBhQB/dA7DISoGh0/fbtmjP2JJa1dkewohKPc4DlE3tLK1moBgRAdkKHg1SPCRSihjQilepe2FMYbat3DtzaBHLBmnouFVTNdI7k2qGa28AO3oDlgBxUcwXv3zbRvI137mWcNUJHtd70XQ41iDRqsnvVBQesbOHggSbrYUcWMqsJpj0oXSliAT0obm/aZQ6cKoJO6ZivgRTOB3yqSLlckC5IB0ZKdKErwdjawNtM7yBTJD9gU5Tvllcq7kwP2BW0jOmKJuVgc/eEAUnjhcUxHZv6J66YxIuNOM1LHGjS5HL3rmlIsCoWvTwfMsAOfF36rSTTgd4liae8rnlKcY8coOY+uCk0a1jM/37WEEwzlmIVJ4JArOFejeUaiuNFNK8EhsagtHQPPsJfpHTvblxmfRANZRHGimgUEcRhJKVZtEiFmOctG7pDQjCTBHgtvJacMpWkc+Xbev2ynZnioPYaPFuHzHFnw45kGXNTd79XI6u8U4AHzWD2ZQKXm/cMN1fi0JZlOL0CfpwGpdA3ElMfwoXR0/c/4Yiw==
 X-Forefront-Antispam-Report:
-	CIP:216.228.117.161;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge2.nvidia.com;CAT:NONE;SFS:(13230040)(82310400026)(36860700013)(376014)(1800799024);DIR:OUT;SFP:1101;
+	CIP:216.228.117.161;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge2.nvidia.com;CAT:NONE;SFS:(13230040)(82310400026)(376014)(1800799024)(36860700013);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	TZs/qXrgVdF0r+5h78fndImc3Uf8rgTbBC5RYBDg8QOW2WsXowQGykW6/6MGDxvjzhGQ+zQKm2qMozsLE0H3arHwR42FCBQLUnJKfsjO11MIWfq+QHNVawnQYvi/gPLgCSdJhTow5Z6smVPKF2iImvG5x9UG3uGWk+k33ZRicFi8gnld0YKlZcRg9MykxmZkSz6DMcarMRhJf59vjbKw3NkbejMJ0neoyilzfmnVjgV23dxc+SuTo5vlydkP1LR0z+vPXMkRbQsvEvlNofkoiarqLLfDbpjJsxAnBGizhkqGNrqSPCZx4zHVOUclo6X+cs1ATc0CngYPL996Uzvrbx/njVyHV194y7v5y84OS5RhpJF9yCBbye/VBhlp/YlBJx4ns1REd2b9Z2UW8tSYXQJPAMAP2ZC6iy+BO4PezYy+CYszWHrc+VzxlblwGFrj
+	ZacIXOkkmQhr/meazRIc6FKTSKs0UX3lwBRYacx53lVWA8GMGkkjh3NL/aTlgQEMK9wzH6NluqcKs9kAA+J4e4krV8vA33kOHKWcadHA0PjvtbXx3MHpMYgX9M1YlfqYPrGTJZUWSRTdDq1kXOrBMEsiHMBo/T0wnHr6+3OXHQipwLCMFtiKmkVk0s5LHOMAnsunNj5rTnQqaIeyGbzUxeGjBEGkhUMqdExtC3rVZJ8o+t9yOLhZCXFaeQGhC0kBRqnUDK5vBmcKPu27OnYNbINd9dNPJXZawCQVD4mj4S5q14rW+C41V2YQwZEz9xZBHn3AHtJwRvH5VDx7K5MyhTHL9dTykAA8Wljt4QGkeY3MWvFv4tmLPbeTjI1eMqvsn+gf+pSKpfteeHZ9uS7Q2sIBwPWCm8vUthy6GnU09mKVINsL4Or5vyEPlg7wI44z
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 02 Mar 2026 15:52:58.7972
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 02 Mar 2026 15:53:14.7987
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: c9dab7d2-bc43-42f6-80f7-08de7873c707
+X-MS-Exchange-CrossTenant-Network-Message-Id: 2cf0a5ab-e194-48d2-793e-08de7873d092
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.161];Helo=[mail.nvidia.com]
 X-MS-Exchange-CrossTenant-AuthSource:
-	MWH0EPF000C6187.namprd02.prod.outlook.com
+	MWH0EPF000C618A.namprd02.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: MN2PR12MB4047
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CH1PR12MB9575
 
 From: Michael Guralnik <michaelgur@nvidia.com>
 
-Allow users to see the FRMR pools that were created on the devices,
-their properties and their usage statistics.
-The set of properties of each pool are encoded to a hex representation
-in order to simplify referencing a specific pool in 'set' commands.
+Add an option to set the amount of pinned handles to FRMR pool.
+Pinned handles are not affected by aging and stay available for reuse in
+the FRMR pool.
 
-Sample output:
-
-$rdma resource show frmr_pools
-dev rocep8s0f0 key 10000000000000 queue 0 in_use 0 max_in_use 200
-dev rocep8s0f0 key 8000000000000 queue 0 in_use 0 max_in_use 200
-dev rocep8s0f0 key 4000000000000 queue 0 in_use 0 max_in_use 200
-
-$rdma resource show frmr_pools -d
-dev rocep8s0f0 key 10000000000000 ats 0 access_flags 0 vendor_key 0 num_dma_blocks 4096 queue 0 in_use 0 max_in_use 200
-dev rocep8s0f0 key 8000000000000 ats 0 access_flags 0 vendor_key 0 num_dma_blocks 2048 queue 0 in_use 0 max_in_use 200
-dev rocep8s0f0 key 4000000000000 ats 0 access_flags 0 vendor_key 0 num_dma_blocks 1024 queue 0 in_use 0 max_in_use 200
-
-$rdma resource show frmr_pools num_dma_blocks 2048
-dev rocep8s0f0 key 8000000000000 queue 0 in_use 0 max_in_use 200
+Usage:
+Set 250 pinned handles to FRMR pool with key 800000000000000 on
+device rocep8s0f0
+$rdma resource set frmr_pools dev rocep8s0f0 pinned 800000000000000 250
 
 Signed-off-by: Michael Guralnik <michaelgur@nvidia.com>
 Reviewed-by: Patrisious Haddad <phaddad@nvidia.com>
 ---
- man/man8/rdma-resource.8 |   8 +-
- rdma/Makefile            |   2 +-
- rdma/res-frmr-pools.c    | 190 +++++++++++++++++++++++++++++++++++++++
- rdma/res.c               |   5 +-
- rdma/res.h               |  18 ++++
- 5 files changed, 220 insertions(+), 3 deletions(-)
- create mode 100644 rdma/res-frmr-pools.c
+ man/man8/rdma-resource.8 | 21 +++++++++
+ rdma/res-frmr-pools.c    | 93 +++++++++++++++++++++++++++++++++++++++-
+ rdma/res.c               |  1 +
+ rdma/res.h               |  1 +
+ 4 files changed, 115 insertions(+), 1 deletion(-)
 
 diff --git a/man/man8/rdma-resource.8 b/man/man8/rdma-resource.8
-index 61bec471..4e2ba39a 100644
+index a6dc33f3..60c4024e 100644
 --- a/man/man8/rdma-resource.8
 +++ b/man/man8/rdma-resource.8
-@@ -13,7 +13,8 @@ rdma-resource \- rdma resource configuration
+@@ -33,6 +33,14 @@ rdma-resource \- rdma resource configuration
+ .BR aging
+ .IR AGING_PERIOD
  
++.ti -8
++.B rdma resource set frmr_pools
++.BR dev
++.IR DEV
++.BR pinned
++.IR HEX_POOL_KEY
++.IR PINNED_VALUE
++
  .ti -8
- .IR RESOURCE " := { "
--.BR cm_id " | " cq " | " mr " | " pd " | " qp " | " ctx " | " srq " }"
-+.BR cm_id " | " cq " | " mr " | " pd " | " qp " | " ctx " | " srq " | "
-+.BR frmr_pools " }"
- .sp
+ .B rdma resource help
  
- .ti -8
-@@ -113,6 +114,11 @@ rdma resource show srq lqpn 5-7
- Show SRQs that the QPs with lqpn 5-7 are associated with.
+@@ -54,6 +62,14 @@ If this argument is omitted all links are listed.
+ .I "AGING_PERIOD"
+ - specifies the aging period in seconds for unused FRMR handles. Handles unused for this period will be freed.
+ 
++.PP
++.I "HEX_POOL_KEY"
++- specifies the hexadecimal pool key that identifies a specific FRMR pool.
++
++.PP
++.I "PINNED_VALUE"
++- specifies the pinned value for the FRMR pool. A non-zero value pins handles to the pool, preventing them from being freed by the aging mechanism.
++
+ .SH "EXAMPLES"
+ .PP
+ rdma resource show
+@@ -141,6 +157,11 @@ rdma resource set frmr_pools dev rocep8s0f0 aging 120
+ Set the aging period for FRMR pools on device rocep8s0f0 to 120 seconds.
  .RE
  .PP
-+rdma resource show frmr_pools ats 1
-+.RS
-+Show FRMR pools that have ats attribute set.
++rdma resource set frmr_pools dev rocep8s0f0 pinned 1000000000000 25000
++.RS 4
++Pin 25000 handles to the FRMR pool identified by key 1000000000000 on device rocep8s0f0 to prevent them from being freed.
 +.RE
 +.PP
  
  .SH SEE ALSO
  .BR rdma (8),
-diff --git a/rdma/Makefile b/rdma/Makefile
-index ed3c1c1c..66fe53f9 100644
---- a/rdma/Makefile
-+++ b/rdma/Makefile
-@@ -5,7 +5,7 @@ CFLAGS += -I./include/uapi/
- 
- RDMA_OBJ = rdma.o utils.o dev.o link.o res.o res-pd.o res-mr.o res-cq.o \
- 	   res-cmid.o res-qp.o sys.o stat.o stat-mr.o res-ctx.o res-srq.o \
--	   monitor.o
-+	   monitor.o res-frmr-pools.o
- 
- TARGETS += rdma
- 
 diff --git a/rdma/res-frmr-pools.c b/rdma/res-frmr-pools.c
-new file mode 100644
-index 00000000..97d59705
---- /dev/null
+index 29efb9cd..01a02e47 100644
+--- a/rdma/res-frmr-pools.c
 +++ b/rdma/res-frmr-pools.c
-@@ -0,0 +1,190 @@
-+// SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB
-+/*
-+ * res-frmr-pools.c	RDMA tool
-+ * Authors:    Michael Guralnik <michaelgur@nvidia.com>
-+ */
-+
-+#include "res.h"
-+#include <inttypes.h>
-+
-+#define FRMR_POOL_KEY_SIZE 21
-+#define FRMR_POOL_KEY_HEX_SIZE (FRMR_POOL_KEY_SIZE * 2)
-+union frmr_pool_key {
-+	struct {
-+		uint8_t ats;
-+		uint32_t access_flags;
-+		uint64_t vendor_key;
-+		uint64_t num_dma_blocks;
-+	} __attribute__((packed)) fields;
-+	uint8_t raw[FRMR_POOL_KEY_SIZE];
-+};
-+
-+/* Function to encode FRMR pool key to hex string (dropping leading zeros) */
-+static void encode_hex_pool_key(const union frmr_pool_key *key,
-+				char *hex_string)
+@@ -41,14 +41,40 @@ static void encode_hex_pool_key(const union frmr_pool_key *key,
+ 	strcpy(hex_string, temp_hex + i);
+ }
+ 
++/* Function to decode hex string to FRMR pool key */
++static int decode_hex_pool_key(const char *hex_string, union frmr_pool_key *key)
 +{
-+	char temp_hex[FRMR_POOL_KEY_HEX_SIZE + 1] = { 0 };
-+	int i;
++	char padded_hex[FRMR_POOL_KEY_HEX_SIZE + 1] = { 0 };
++	int len, pad_len;
 +
-+	for (i = 0; i < FRMR_POOL_KEY_SIZE; i++)
-+		sprintf(temp_hex + (i * 2), "%02x", key->raw[i]);
-+
-+	for (i = 0; i < FRMR_POOL_KEY_HEX_SIZE && temp_hex[i] == '0'; i++) {
-+		/* Skip leading zeros */
++	len = strlen(hex_string);
++	if (len > FRMR_POOL_KEY_HEX_SIZE) {
++		pr_err("Hex pool key too long: %d (max %d characters)\n", len,
++		       FRMR_POOL_KEY_HEX_SIZE);
++		return -EINVAL;
 +	}
 +
-+	if (i == FRMR_POOL_KEY_HEX_SIZE) {
-+		strcpy(hex_string, "0");
-+		return;
++	/* Pad with leading zeros if needed */
++	pad_len = FRMR_POOL_KEY_HEX_SIZE - len;
++	memset(padded_hex, '0', pad_len);
++	strcpy(padded_hex + pad_len, hex_string);
++
++	if (hex2mem(padded_hex, key->raw, FRMR_POOL_KEY_SIZE) < 0) {
++		pr_err("Invalid hex pool key: %s\n", hex_string);
++		return -EINVAL;
 +	}
 +
-+	strcpy(hex_string, temp_hex + i);
++	return 0;
 +}
 +
-+static int res_frmr_pools_line(struct rd *rd, const char *name, int idx,
-+			       struct nlattr **nla_line)
-+{
-+	uint64_t in_use = 0, max_in_use = 0, kernel_vendor_key = 0;
-+	char hex_string[FRMR_POOL_KEY_HEX_SIZE + 1] = { 0 };
-+	struct nlattr *key_tb[RDMA_NLDEV_ATTR_MAX] = {};
-+	union frmr_pool_key key = { 0 };
-+	uint32_t queue_handles = 0;
-+
-+	if (nla_line[RDMA_NLDEV_ATTR_RES_FRMR_POOL_KEY]) {
-+		if (mnl_attr_parse_nested(
-+			    nla_line[RDMA_NLDEV_ATTR_RES_FRMR_POOL_KEY],
-+			    rd_attr_cb, key_tb) != MNL_CB_OK)
-+			return MNL_CB_ERROR;
-+
-+		if (key_tb[RDMA_NLDEV_ATTR_RES_FRMR_POOL_KEY_ATS])
-+			key.fields.ats = mnl_attr_get_u8(
-+				key_tb[RDMA_NLDEV_ATTR_RES_FRMR_POOL_KEY_ATS]);
-+		if (key_tb[RDMA_NLDEV_ATTR_RES_FRMR_POOL_KEY_ACCESS_FLAGS])
-+			key.fields.access_flags = mnl_attr_get_u32(
-+				key_tb[RDMA_NLDEV_ATTR_RES_FRMR_POOL_KEY_ACCESS_FLAGS]);
-+		if (key_tb[RDMA_NLDEV_ATTR_RES_FRMR_POOL_KEY_VENDOR_KEY])
-+			key.fields.vendor_key = mnl_attr_get_u64(
-+				key_tb[RDMA_NLDEV_ATTR_RES_FRMR_POOL_KEY_VENDOR_KEY]);
-+		if (key_tb[RDMA_NLDEV_ATTR_RES_FRMR_POOL_KEY_NUM_DMA_BLOCKS])
-+			key.fields.num_dma_blocks = mnl_attr_get_u64(
-+				key_tb[RDMA_NLDEV_ATTR_RES_FRMR_POOL_KEY_NUM_DMA_BLOCKS]);
-+		if (key_tb[RDMA_NLDEV_ATTR_RES_FRMR_POOL_KEY_KERNEL_VENDOR_KEY])
-+			kernel_vendor_key = mnl_attr_get_u64(
-+				key_tb[RDMA_NLDEV_ATTR_RES_FRMR_POOL_KEY_KERNEL_VENDOR_KEY]);
-+
-+		if (rd_is_filtered_attr(
-+			    rd, "ats", key.fields.ats,
-+			    key_tb[RDMA_NLDEV_ATTR_RES_FRMR_POOL_KEY_ATS]))
-+			goto out;
-+
-+		if (rd_is_filtered_attr(
-+			    rd, "access_flags", key.fields.access_flags,
-+			    key_tb[RDMA_NLDEV_ATTR_RES_FRMR_POOL_KEY_ACCESS_FLAGS]))
-+			goto out;
-+
-+		if (rd_is_filtered_attr(
-+			    rd, "vendor_key", key.fields.vendor_key,
-+			    key_tb[RDMA_NLDEV_ATTR_RES_FRMR_POOL_KEY_VENDOR_KEY]))
-+			goto out;
-+
-+		if (rd_is_filtered_attr(
-+			    rd, "num_dma_blocks", key.fields.num_dma_blocks,
-+			    key_tb[RDMA_NLDEV_ATTR_RES_FRMR_POOL_KEY_NUM_DMA_BLOCKS]))
-+			goto out;
-+	}
-+
-+	if (nla_line[RDMA_NLDEV_ATTR_RES_FRMR_POOL_QUEUE_HANDLES])
-+		queue_handles = mnl_attr_get_u32(
-+			nla_line[RDMA_NLDEV_ATTR_RES_FRMR_POOL_QUEUE_HANDLES]);
-+	if (rd_is_filtered_attr(
-+		    rd, "queue", queue_handles,
-+		    nla_line[RDMA_NLDEV_ATTR_RES_FRMR_POOL_QUEUE_HANDLES]))
-+		goto out;
-+
-+	if (nla_line[RDMA_NLDEV_ATTR_RES_FRMR_POOL_IN_USE])
-+		in_use = mnl_attr_get_u64(
-+			nla_line[RDMA_NLDEV_ATTR_RES_FRMR_POOL_IN_USE]);
-+	if (rd_is_filtered_attr(rd, "in_use", in_use,
-+				nla_line[RDMA_NLDEV_ATTR_RES_FRMR_POOL_IN_USE]))
-+		goto out;
-+
-+	if (nla_line[RDMA_NLDEV_ATTR_RES_FRMR_POOL_MAX_IN_USE])
-+		max_in_use = mnl_attr_get_u64(
-+			nla_line[RDMA_NLDEV_ATTR_RES_FRMR_POOL_MAX_IN_USE]);
-+	if (rd_is_filtered_attr(
-+		    rd, "max_in_use", max_in_use,
-+		    nla_line[RDMA_NLDEV_ATTR_RES_FRMR_POOL_MAX_IN_USE]))
-+		goto out;
-+
-+	open_json_object(NULL);
-+	print_dev(idx, name);
-+
-+	if (nla_line[RDMA_NLDEV_ATTR_RES_FRMR_POOL_KEY]) {
-+		encode_hex_pool_key(&key, hex_string);
-+		print_string(PRINT_ANY, "key", "key %s ", hex_string);
-+
-+		if (rd->show_details) {
-+			res_print_u32(
-+				"ats", key.fields.ats,
-+				key_tb[RDMA_NLDEV_ATTR_RES_FRMR_POOL_KEY_ATS]);
-+			res_print_u32(
-+				"access_flags", key.fields.access_flags,
-+				key_tb[RDMA_NLDEV_ATTR_RES_FRMR_POOL_KEY_ACCESS_FLAGS]);
-+			res_print_u64(
-+				"vendor_key", key.fields.vendor_key,
-+				key_tb[RDMA_NLDEV_ATTR_RES_FRMR_POOL_KEY_VENDOR_KEY]);
-+			res_print_u64(
-+				"num_dma_blocks", key.fields.num_dma_blocks,
-+				key_tb[RDMA_NLDEV_ATTR_RES_FRMR_POOL_KEY_NUM_DMA_BLOCKS]);
-+			res_print_u64(
-+				"kernel_vendor_key", kernel_vendor_key,
-+				key_tb[RDMA_NLDEV_ATTR_RES_FRMR_POOL_KEY_KERNEL_VENDOR_KEY]);
-+		}
-+	}
-+
-+	res_print_u32("queue", queue_handles,
-+		      nla_line[RDMA_NLDEV_ATTR_RES_FRMR_POOL_QUEUE_HANDLES]);
-+	res_print_u64("in_use", in_use,
-+		      nla_line[RDMA_NLDEV_ATTR_RES_FRMR_POOL_IN_USE]);
-+	res_print_u64("max_in_use", max_in_use,
-+		      nla_line[RDMA_NLDEV_ATTR_RES_FRMR_POOL_MAX_IN_USE]);
-+
-+	print_driver_table(rd, nla_line[RDMA_NLDEV_ATTR_DRIVER]);
-+	close_json_object();
-+	newline();
-+
-+out:
-+	return MNL_CB_OK;
-+}
-+
-+int res_frmr_pools_parse_cb(const struct nlmsghdr *nlh, void *data)
-+{
-+	struct nlattr *tb[RDMA_NLDEV_ATTR_MAX] = {};
-+	struct nlattr *nla_table, *nla_entry;
-+	struct rd *rd = data;
-+	int ret = MNL_CB_OK;
-+	const char *name;
-+	uint32_t idx;
-+
-+	mnl_attr_parse(nlh, 0, rd_attr_cb, tb);
-+	if (!tb[RDMA_NLDEV_ATTR_DEV_INDEX] || !tb[RDMA_NLDEV_ATTR_DEV_NAME] ||
-+	    !tb[RDMA_NLDEV_ATTR_RES_FRMR_POOLS])
-+		return MNL_CB_ERROR;
-+
-+	name = mnl_attr_get_str(tb[RDMA_NLDEV_ATTR_DEV_NAME]);
-+	idx = mnl_attr_get_u32(tb[RDMA_NLDEV_ATTR_DEV_INDEX]);
-+	nla_table = tb[RDMA_NLDEV_ATTR_RES_FRMR_POOLS];
-+
-+	mnl_attr_for_each_nested(nla_entry, nla_table) {
-+		struct nlattr *nla_line[RDMA_NLDEV_ATTR_MAX] = {};
-+
-+		ret = mnl_attr_parse_nested(nla_entry, rd_attr_cb, nla_line);
-+		if (ret != MNL_CB_OK)
-+			break;
-+
-+		ret = res_frmr_pools_line(rd, name, idx, nla_line);
-+		if (ret != MNL_CB_OK)
-+			break;
-+	}
-+	return ret;
-+}
-diff --git a/rdma/res.c b/rdma/res.c
-index 7e7de042..f1f13d74 100644
---- a/rdma/res.c
-+++ b/rdma/res.c
-@@ -11,7 +11,7 @@ static int res_help(struct rd *rd)
+ static int res_frmr_pools_line(struct rd *rd, const char *name, int idx,
+ 			       struct nlattr **nla_line)
  {
- 	pr_out("Usage: %s resource\n", rd->filename);
- 	pr_out("          resource show [DEV]\n");
--	pr_out("          resource show [qp|cm_id|pd|mr|cq|ctx|srq]\n");
-+	pr_out("          resource show [qp|cm_id|pd|mr|cq|ctx|srq|frmr_pools]\n");
- 	pr_out("          resource show qp link [DEV/PORT]\n");
- 	pr_out("          resource show qp link [DEV/PORT] [FILTER-NAME FILTER-VALUE]\n");
- 	pr_out("          resource show cm_id link [DEV/PORT]\n");
-@@ -26,6 +26,8 @@ static int res_help(struct rd *rd)
- 	pr_out("          resource show ctx dev [DEV] [FILTER-NAME FILTER-VALUE]\n");
- 	pr_out("          resource show srq dev [DEV]\n");
- 	pr_out("          resource show srq dev [DEV] [FILTER-NAME FILTER-VALUE]\n");
-+	pr_out("          resource show frmr_pools dev [DEV]\n");
-+	pr_out("          resource show frmr_pools dev [DEV] [FILTER-NAME FILTER-VALUE]\n");
+ 	uint64_t in_use = 0, max_in_use = 0, kernel_vendor_key = 0;
+ 	char hex_string[FRMR_POOL_KEY_HEX_SIZE + 1] = { 0 };
+ 	struct nlattr *key_tb[RDMA_NLDEV_ATTR_MAX] = {};
++	uint32_t queue_handles = 0, pinned_handles = 0;
+ 	union frmr_pool_key key = { 0 };
+-	uint32_t queue_handles = 0;
+ 
+ 	if (nla_line[RDMA_NLDEV_ATTR_RES_FRMR_POOL_KEY]) {
+ 		if (mnl_attr_parse_nested(
+@@ -116,6 +142,13 @@ static int res_frmr_pools_line(struct rd *rd, const char *name, int idx,
+ 		    nla_line[RDMA_NLDEV_ATTR_RES_FRMR_POOL_MAX_IN_USE]))
+ 		goto out;
+ 
++	if (nla_line[RDMA_NLDEV_ATTR_RES_FRMR_POOL_PINNED])
++		pinned_handles = mnl_attr_get_u32(
++			nla_line[RDMA_NLDEV_ATTR_RES_FRMR_POOL_PINNED]);
++	if (rd_is_filtered_attr(rd, "pinned", pinned_handles,
++				nla_line[RDMA_NLDEV_ATTR_RES_FRMR_POOL_PINNED]))
++		goto out;
++
+ 	open_json_object(NULL);
+ 	print_dev(idx, name);
+ 
+@@ -148,6 +181,8 @@ static int res_frmr_pools_line(struct rd *rd, const char *name, int idx,
+ 		      nla_line[RDMA_NLDEV_ATTR_RES_FRMR_POOL_IN_USE]);
+ 	res_print_u64("max_in_use", max_in_use,
+ 		      nla_line[RDMA_NLDEV_ATTR_RES_FRMR_POOL_MAX_IN_USE]);
++	res_print_u32("pinned", pinned_handles,
++		      nla_line[RDMA_NLDEV_ATTR_RES_FRMR_POOL_PINNED]);
+ 
+ 	print_driver_table(rd, nla_line[RDMA_NLDEV_ATTR_DRIVER]);
+ 	close_json_object();
+@@ -220,10 +255,65 @@ static int res_frmr_pools_one_set_aging(struct rd *rd)
+ 	return ret;
+ }
+ 
++static int res_frmr_pools_one_set_pinned(struct rd *rd)
++{
++	union frmr_pool_key pool_key = { 0 };
++	struct nlattr *key_attr;
++	uint32_t pinned_value;
++	const char *hex_key;
++	uint32_t seq;
++
++	if (rd_no_arg(rd)) {
++		pr_err("Please provide pool key and pinned value.\n");
++		return -EINVAL;
++	}
++
++	hex_key = rd_argv(rd);
++	rd_arg_inc(rd);
++
++	if (decode_hex_pool_key(hex_key, &pool_key))
++		return -EINVAL;
++
++	if (rd_no_arg(rd)) {
++		pr_err("Please provide pinned value.\n");
++		return -EINVAL;
++	}
++
++	if (get_u32(&pinned_value, rd_argv(rd), 10)) {
++		pr_err("Invalid pinned value: %s\n", rd_argv(rd));
++		return -EINVAL;
++	}
++
++	rd_prepare_msg(rd, RDMA_NLDEV_CMD_RES_FRMR_POOLS_SET, &seq,
++		       (NLM_F_REQUEST | NLM_F_ACK));
++	mnl_attr_put_u32(rd->nlh, RDMA_NLDEV_ATTR_DEV_INDEX, rd->dev_idx);
++
++	mnl_attr_put_u32(rd->nlh, RDMA_NLDEV_ATTR_RES_FRMR_POOL_PINNED,
++			 pinned_value);
++
++	key_attr =
++		mnl_attr_nest_start(rd->nlh, RDMA_NLDEV_ATTR_RES_FRMR_POOL_KEY);
++	mnl_attr_put_u8(rd->nlh, RDMA_NLDEV_ATTR_RES_FRMR_POOL_KEY_ATS,
++			pool_key.fields.ats);
++	mnl_attr_put_u32(rd->nlh,
++			 RDMA_NLDEV_ATTR_RES_FRMR_POOL_KEY_ACCESS_FLAGS,
++			 pool_key.fields.access_flags);
++	mnl_attr_put_u64(rd->nlh, RDMA_NLDEV_ATTR_RES_FRMR_POOL_KEY_VENDOR_KEY,
++			 pool_key.fields.vendor_key);
++	mnl_attr_put_u64(rd->nlh,
++			 RDMA_NLDEV_ATTR_RES_FRMR_POOL_KEY_NUM_DMA_BLOCKS,
++			 pool_key.fields.num_dma_blocks);
++	mnl_attr_nest_end(rd->nlh, key_attr);
++
++	return rd_sendrecv_msg(rd, seq);
++}
++
+ static int res_frmr_pools_one_set_help(struct rd *rd)
+ {
+ 	pr_out("Usage: %s set frmr_pools dev DEV aging AGING_PERIOD\n",
+ 	       rd->filename);
++	pr_out("Usage: %s set frmr_pools dev DEV pinned HEX_POOL_KEY PINNED_VALUE\n",
++	       rd->filename);
  	return 0;
  }
  
-@@ -237,6 +239,7 @@ static int res_show(struct rd *rd)
- 		{ "pd",		res_pd		},
- 		{ "ctx",	res_ctx		},
- 		{ "srq",	res_srq		},
-+		{ "frmr_pools",	res_frmr_pools	},
+@@ -233,6 +323,7 @@ static int res_frmr_pools_one_set(struct rd *rd)
+ 		{ NULL, res_frmr_pools_one_set_help },
+ 		{ "help", res_frmr_pools_one_set_help },
+ 		{ "aging", res_frmr_pools_one_set_aging },
++		{ "pinned", res_frmr_pools_one_set_pinned },
  		{ 0 }
  	};
  
+diff --git a/rdma/res.c b/rdma/res.c
+index 63d8386a..1ff257c2 100644
+--- a/rdma/res.c
++++ b/rdma/res.c
+@@ -29,6 +29,7 @@ static int res_help(struct rd *rd)
+ 	pr_out("          resource show frmr_pools dev [DEV]\n");
+ 	pr_out("          resource show frmr_pools dev [DEV] [FILTER-NAME FILTER-VALUE]\n");
+ 	pr_out("          resource set frmr_pools dev DEV aging AGING_PERIOD\n");
++	pr_out("          resource set frmr_pools dev DEV pinned HEX_POOL_KEY PINNED_VALUE\n");
+ 	return 0;
+ }
+ 
 diff --git a/rdma/res.h b/rdma/res.h
-index fd09ce7d..30edb8f8 100644
+index dffbdb52..4758f2ea 100644
 --- a/rdma/res.h
 +++ b/rdma/res.h
-@@ -26,6 +26,8 @@ int res_ctx_parse_cb(const struct nlmsghdr *nlh, void *data);
- int res_ctx_idx_parse_cb(const struct nlmsghdr *nlh, void *data);
- int res_srq_parse_cb(const struct nlmsghdr *nlh, void *data);
- int res_srq_idx_parse_cb(const struct nlmsghdr *nlh, void *data);
-+int res_frmr_pools_parse_cb(const struct nlmsghdr *nlh, void *data);
-+int res_frmr_pools_idx_parse_cb(const struct nlmsghdr *nlh, void *data);
+@@ -198,6 +198,7 @@ struct filters frmr_pools_valid_filters[MAX_NUMBER_OF_FILTERS] = {
+ 	{ .name = "queue", .is_number = true },
+ 	{ .name = "in_use", .is_number = true },
+ 	{ .name = "max_in_use", .is_number = true },
++	{ .name = "pinned", .is_number = true },
+ };
  
- static inline uint32_t res_get_command(uint32_t command, struct rd *rd)
- {
-@@ -185,6 +187,22 @@ struct filters srq_valid_filters[MAX_NUMBER_OF_FILTERS] = {
- RES_FUNC(res_srq, RDMA_NLDEV_CMD_RES_SRQ_GET, srq_valid_filters, true,
- 	 RDMA_NLDEV_ATTR_RES_SRQN);
- 
-+
-+static const
-+struct filters frmr_pools_valid_filters[MAX_NUMBER_OF_FILTERS] = {
-+	{ .name = "dev", .is_number = false },
-+	{ .name = "ats", .is_number = true },
-+	{ .name = "access_flags", .is_number = true },
-+	{ .name = "vendor_key", .is_number = true },
-+	{ .name = "num_dma_blocks", .is_number = true },
-+	{ .name = "queue", .is_number = true },
-+	{ .name = "in_use", .is_number = true },
-+	{ .name = "max_in_use", .is_number = true },
-+};
-+
-+RES_FUNC(res_frmr_pools, RDMA_NLDEV_CMD_RES_FRMR_POOLS_GET,
-+	 frmr_pools_valid_filters, true, 0);
-+
- void print_dev(uint32_t idx, const char *name);
- void print_link(uint32_t idx, const char *name, uint32_t port, struct nlattr **nla_line);
- void print_key(const char *name, uint64_t val, struct nlattr *nlattr);
+ RES_FUNC(res_frmr_pools, RDMA_NLDEV_CMD_RES_FRMR_POOLS_GET,
 -- 
 2.38.1
 
