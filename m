@@ -1,63 +1,63 @@
-Received: from mail-wm1-f51.google.com (mail-wm1-f51.google.com [209.85.128.51])
+Received: from mail-wm1-f48.google.com (mail-wm1-f48.google.com [209.85.128.48])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D1D3F322B83
-	for <linux-rdma@vger.kernel.org>; Mon,  2 Mar 2026 23:01:58 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.51
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2AEC93346A6
+	for <linux-rdma@vger.kernel.org>; Mon,  2 Mar 2026 23:02:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.48
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772492520; cv=none; b=WMAwD/VVXAZxyERDu3veUkol4+dPGMffSlrW98rjNzYkeFPBWbiwswoZZhep/W5DksEV8JIJfAdyn8dBAH4drF+PkhQt5ugej1B9aeDwp9YRNZ/+LAxYkx/AKwe214LIo4mklP+aCIjd+jyMFcRUSg002H2uax3LtTQztKiTkZY=
+	t=1772492526; cv=none; b=HnnBHS3Tx4EG+Ady1kvXKiXm+RRADEBRPfMlg96h9YfR6u8/V2bU+5P1cDj8370GGvwMC711fUE3nPJBPjdE21qPjwZLDERAb+jBhCdp4/iiVgKkch/pb+UsAO8Lh+p+DK4JgAoU7oyMMI3jtZMJrhqk45NHn5OBAuyPil6D508=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772492520; c=relaxed/simple;
-	bh=D9A1mjx3Bo2dp6Mntk51MlHtoIWxAsQL+/MQZTZBMrs=;
+	s=arc-20240116; t=1772492526; c=relaxed/simple;
+	bh=XjMsdbdNrs98kYxtNW1pbPJk/Z3oCTXBzcBWcAWmAzc=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=gCRxXGj/SQ0KIz5JPOvf5YJjG4AaD0eNQ8NrpOb8+4o1/gTEv+QHg7qOP4S0IgxTkVhsZS2ferd34C/30Ku9EeHOkXqSNAYtc8MPW0cCYpJB70W+MWVxiRYk7sjXxsq2aE26AU9zPZ9XAx3vwJImU5QsX0ueROsdQb4ZKuq7BPc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=KSZPDkoL; arc=none smtp.client-ip=209.85.128.51
+	 MIME-Version; b=r8jfTXnU55YElQQTl4VAn9iPWNuOQL8MwiKAJ7rJAqSUqcsk3XqNEgFOoyfF/srf0g5jFNPt9plGFz3+Oj3D3mVkD9bUPm6teA3/SNnld75MQTkssYP7IvssuXcn2zAdB/MschJx2cAuy5R1hYQO4Ns4QKqKOcZm/aAq1LC78ZE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=jW07AfJ/; arc=none smtp.client-ip=209.85.128.48
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="KSZPDkoL"
-Received: by mail-wm1-f51.google.com with SMTP id 5b1f17b1804b1-48334ee0aeaso43030885e9.1
-        for <linux-rdma@vger.kernel.org>; Mon, 02 Mar 2026 15:01:58 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="jW07AfJ/"
+Received: by mail-wm1-f48.google.com with SMTP id 5b1f17b1804b1-4806bf39419so44280005e9.1
+        for <linux-rdma@vger.kernel.org>; Mon, 02 Mar 2026 15:02:04 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1772492517; x=1773097317; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1772492523; x=1773097323; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=CU2WMDwR3VgGVbtB5/gNO1+KxRbSdrRzqbkeoh8a3to=;
-        b=KSZPDkoLm/mALs/aq2swRZoX3KY1HPLt3YBz3LuJIdZjk6lLCaKxInR4sM3HA3/m9Z
-         dB32IaH2I2tFykaAPHOhW/NuJAL0sHbOqxKpP1Pd9AJz4tXHhvdyOJGudeJlN4F1hHmm
-         IOpGKrISvXdL7irouAOkNaa4TebXP+OxI61fXA2El0uaJAQ4lrcoJhZMEx92oPRSWErW
-         0BFwHGYsbkr4P0K6B5sUObguOhORN73UV7JJ0oaDjSQgCBxnVziLyAhF2n19iCFW6BIU
-         8d8G34Aedbwhv2l0GxaLBwjT01OLt6GXM3sN66es7QNzhZ4E3AI76WH5W6EeYx+uDZGQ
-         rEOw==
+        bh=rnBhrt+doFiSDm+zGOOZsJ3Mt9dkv5fw6UCQen9fmBA=;
+        b=jW07AfJ/ilJf7lhMXQom8QgJSmiyiq/Ydde6ZXZhj7g3GZRdaZjS9w8ST/lUSMUX9y
+         hVy3SfA0UBEmfAd/ljaYVPfAZ86nqOgK5+8rzo4Wd/ErueeAUYaCesf8MteHJSIEBHJ4
+         9rVdFx+c+Ypynr5THwZ/SpoUvvbRemn8wJMoOl6Q9CpvYzkQnzKTe1gvG6KK1L4ApUsf
+         9HfsPejkcFPVizllC1+HVgCYSuyZnanJ6OE/Ivq6WQtyqUciFmisDOSpUVSGVfQ/xTQf
+         I779l4VEQmdhTEeTC8YiB0iwVhMxgfcHbWXyRtAnU0T0LpwcDc5EzLTRVBWX6ovToEBU
+         yu/Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1772492517; x=1773097317;
+        d=1e100.net; s=20230601; t=1772492523; x=1773097323;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=CU2WMDwR3VgGVbtB5/gNO1+KxRbSdrRzqbkeoh8a3to=;
-        b=nQGM+8yVM44M1qbAbeYjM6bk0wn0cwZkhjwwpjKq0EV8yKUolp1wcL2FXa0urxEd1+
-         WgAwhmztLD3EFb3HXPiRF2lCEvBZiNBamV30dg4cJ+DUtBubAbqPuY0t075N77VKlIZl
-         9o94oeKKpsKr0L3KYeTLf9Bt0O2Zr/u0SMv9C7l+ui0C+6B44g+9Ye5W2F/3M4scmvwV
-         lfouXLXcnBGXlzeDWQk89GCfdI39/OvHisxv8JzrcXP6NegzrGJ4ZV3pl6reR1j3wkyD
-         Z5wE4/GSDxbmuisoAGU11Ut54yujN3kQPqLfHfqiNumg9wht6ZEJ+w2LIx67SY0xYsBP
-         FA1A==
-X-Forwarded-Encrypted: i=1; AJvYcCUsHimzSTUQaXgqGaJhIOZYab0V/2fhC+R+7mAJlmSyAP0h+Wpr62ntYhvJk87CD/bY+1NQz3dQJjvE@vger.kernel.org
-X-Gm-Message-State: AOJu0Yzwlu36d3labx4gloYYHd6aNJhU1CNTeF6hOzYa/7fljwquKIds
-	gMCUxq0iSxOmDvvdH5soO0d0uNX0QNSpXMsuvfagmPqVptpRsXqBNRBe
-X-Gm-Gg: ATEYQzyt7aN3mSJtMINIPN+n/T0XwB3w3WDK+ldIz1O6NmtlyYvhXx1QdNlABqsuxMl
-	yT2s268alAdWi2tz/etBlLDyyO3RKY7UptHNOqXBbQ1pb4giVlcXd/w+dh+lvyplsICEzbMyOoT
-	+1XrTudg7S/9i2u3eBGUsLaX2pScfQAF2J0OFQ7Ha/Yt9wih+kh8+KGMp6M1l1OrZ9G9dfhd7Dy
-	vLGONFhwR7bsrX1joPc1qmak054OmkvC4M+2VJJyTtpFzPsVmvH6vqWiW7zasto00yfVGp3uilX
-	B9ZnWW37XlOKMR0Jp96jxdyCM42FOEKeOb1PQvp8DGqPsEiPG5iVqHr5kx21tU9AsIkDhsL1Ybt
-	N1u5GkWoaduzcwCrdE+KG6r+z0AZbm+332C/k1FZS54t64Y6PX+dWHP+7vHpnBkN+gMF1HwjU5l
-	wO4rbuS1X65RzDOppVmBow
-X-Received: by 2002:a05:600c:4fc8:b0:47b:e2a9:2bd7 with SMTP id 5b1f17b1804b1-483c9beaca0mr292444625e9.19.1772492516969;
-        Mon, 02 Mar 2026 15:01:56 -0800 (PST)
-Received: from localhost ([2a03:2880:31ff:57::])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-439ae3f31dbsm17149216f8f.1.2026.03.02.15.01.55
+        bh=rnBhrt+doFiSDm+zGOOZsJ3Mt9dkv5fw6UCQen9fmBA=;
+        b=HBeQlHua1z6JN3eiwvCySm25z/s2W3LFvmxSZRw1H9mZGZz4mUlQHf7GXN7cLlchWw
+         WwnulFZCgBnUIJPt3TvtcTcULGJTSXVyK2TSn2d6jQkkkkysXKYN8Ws+md9oj7HEYE4p
+         HfHsrjnSj+z9O4RNGM1I0dsvMNffzpkYwLDRrjPy/dGLRbadhZ0Nv7XnojFkgHbuDj1+
+         5NCg39NKc/y5HSGoP6V/itRnimkOdH/Ehf0sCZEtblbKiMPX2C8S6DwPiUrqU7Dc2H0l
+         HBY5IdgzFsRFf6TG7jk6iAGIdl1O1AeLpGfEO18kzVzaqgrjv77uZhifcnODJBuCMz0g
+         HNrQ==
+X-Forwarded-Encrypted: i=1; AJvYcCVz7PmxGlawj1iDUjDsRbh+Pph/yK6BfZduzAIEDfaiLfBJAeVfuUHsWOtvwVN745oRbLutwYDtH0f7@vger.kernel.org
+X-Gm-Message-State: AOJu0YyvF4scQ8DPXqt6RhQv0/swHDBVjw/EBWvuhSrypc0kQnSeatqF
+	CrIB7OtmZ0UaA+DBTfgxX/8RhN27+E/c7JN1Aleo1tVgZI2tiR6xO/Rh
+X-Gm-Gg: ATEYQzwS9a3gdAqZ8hvp8LhR5kwPqALwikcSx0d9N/h4lWSMYr95U99FjqS8RHrvh9z
+	yDugc2MxyGi6gX9QdoaDmGj3YR5+LNwfI1xCxYOG+SFklKTHRK8bphyxzsRR6MBQYGmCCFUBypQ
+	cPpO8CyKjW7LC2A5qyjCkJZqd+ih3JoIGmbnyJGS9Gbzu/wxSjFOt1Z+sRXlTv19wHIM1BYDgUQ
+	lMnVf8M6PpIYYvtO9VaYQCWye1rLAoFfsSbhmFujXySdmA4g0uPdbn57uw1+myjJIseuX4q29Ap
+	YRNHLuDPAQCDWFp8ImG6jnYo4b4OxiWAu+OJ422aGGSX0YhEu/zE30Efwak920wny2Xuv8XOnC4
+	BfxyGKUH/vCemuF0J5Am37wXccAk65B8nR0wWmsjZFKzbU8deHGq5gGzIAxrQinJ2lieod1n2M2
+	aMUEldPLBDgTh2WHkk/J4d
+X-Received: by 2002:a05:600c:3f1a:b0:47d:6c36:a125 with SMTP id 5b1f17b1804b1-48513c80634mr1207015e9.17.1772492522465;
+        Mon, 02 Mar 2026 15:02:02 -0800 (PST)
+Received: from localhost ([2a03:2880:31ff:31::])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-485135ce748sm863795e9.25.2026.03.02.15.02.01
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 02 Mar 2026 15:01:55 -0800 (PST)
+        Mon, 02 Mar 2026 15:02:01 -0800 (PST)
 From: Mohsin Bashir <mohsin.bashr@gmail.com>
 To: netdev@vger.kernel.org
 Cc: alexanderduyck@fb.com,
@@ -88,9 +88,9 @@ Cc: alexanderduyck@fb.com,
 	saeedm@nvidia.com,
 	tariqt@nvidia.com,
 	vadim.fedorenko@linux.dev
-Subject: [net-next V4 1/5] net: ethtool: Track pause storm events
-Date: Mon,  2 Mar 2026 15:01:45 -0800
-Message-ID: <20260302230149.1580195-2-mohsin.bashr@gmail.com>
+Subject: [net-next V4 3/5] eth: fbnic: Add protection against pause storm
+Date: Mon,  2 Mar 2026 15:01:47 -0800
+Message-ID: <20260302230149.1580195-4-mohsin.bashr@gmail.com>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260302230149.1580195-1-mohsin.bashr@gmail.com>
 References: <20260302230149.1580195-1-mohsin.bashr@gmail.com>
@@ -102,92 +102,359 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-With TX pause enabled, if a device is unable to pass packets up to the
-stack (e.g., CPU is hanged), the device can cause pause storm. Given
-that devices can have native support to protect the neighbor from such
-flooding, such events need some tracking. This support is to track TX
-pause storm events for better observability.
+Add protection against TX pause storms. A pause storm occurs when a
+device fails to send received packets up to the stack. When a pause
+storm is detected (pause state persists beyond the configured timeout),
+the device stops sending the pause frames and begins dropping packets
+instead of back-pressuring.
 
-Reviewed-by: Oleksij Rempel <o.rempel@pengutronix.de>
+The timeout is configurable via ethtool tunable (pfc-prevention-tout)
+with a maximum value of 10485ms, and the default value of 500ms.
+
+Once the device transitions to the storm-detected state, the service
+task periodically attempts recovery, returning the device to normal
+operation to handle any subsequent pause storm episodes.
+
 Signed-off-by: Jakub Kicinski <kuba@kernel.org>
 Signed-off-by: Mohsin Bashir <mohsin.bashr@gmail.com>
 ---
- Documentation/netlink/specs/ethtool.yaml       | 13 +++++++++++++
- include/linux/ethtool.h                        |  2 ++
- include/uapi/linux/ethtool_netlink_generated.h |  1 +
- net/ethtool/pause.c                            |  4 +++-
- 4 files changed, 19 insertions(+), 1 deletion(-)
+ drivers/net/ethernet/meta/fbnic/fbnic.h       |  3 +
+ drivers/net/ethernet/meta/fbnic/fbnic_csr.h   | 10 ++
+ .../net/ethernet/meta/fbnic/fbnic_ethtool.c   | 43 +++++++++
+ drivers/net/ethernet/meta/fbnic/fbnic_irq.c   |  2 +
+ drivers/net/ethernet/meta/fbnic/fbnic_mac.c   | 96 +++++++++++++++++++
+ drivers/net/ethernet/meta/fbnic/fbnic_mac.h   | 27 ++++++
+ drivers/net/ethernet/meta/fbnic/fbnic_pci.c   |  5 +
+ 7 files changed, 186 insertions(+)
 
-diff --git a/Documentation/netlink/specs/ethtool.yaml b/Documentation/netlink/specs/ethtool.yaml
-index 0a2d2343f79a..4707063af3b4 100644
---- a/Documentation/netlink/specs/ethtool.yaml
-+++ b/Documentation/netlink/specs/ethtool.yaml
-@@ -879,6 +879,19 @@ attribute-sets:
-       -
-         name: rx-frames
-         type: u64
-+      -
-+        name: tx-pause-storm-events
-+        type: u64
-+        doc: >-
-+            TX pause storm event count. Increments each time device
-+            detects that its pause assertion condition has been true
-+            for too long for normal operation. As a result, the device
-+            has temporarily disabled its own Pause TX function to
-+            protect the network from itself.
-+            This counter should never increment under normal overload
-+            conditions; it indicates catastrophic failure like an OS
-+            crash. The rate of incrementing is implementation specific.
+diff --git a/drivers/net/ethernet/meta/fbnic/fbnic.h b/drivers/net/ethernet/meta/fbnic/fbnic.h
+index 779a083b9215..a760a27b1516 100644
+--- a/drivers/net/ethernet/meta/fbnic/fbnic.h
++++ b/drivers/net/ethernet/meta/fbnic/fbnic.h
+@@ -98,6 +98,9 @@ struct fbnic_dev {
+ 
+ 	/* MDIO bus for PHYs */
+ 	struct mii_bus *mdio_bus;
 +
-   -
-     name: pause
-     attr-cnt-name: __ethtool-a-pause-cnt
-diff --git a/include/linux/ethtool.h b/include/linux/ethtool.h
-index 798abec67a1b..83c375840835 100644
---- a/include/linux/ethtool.h
-+++ b/include/linux/ethtool.h
-@@ -512,12 +512,14 @@ struct ethtool_eth_ctrl_stats {
-  *
-  *	Equivalent to `30.3.4.3 aPAUSEMACCtrlFramesReceived`
-  *	from the standard.
-+ * @tx_pause_storm_events: TX pause storm event count (see ethtool.yaml).
-  */
- struct ethtool_pause_stats {
- 	enum ethtool_mac_stats_src src;
- 	struct_group(stats,
- 		u64 tx_pause_frames;
- 		u64 rx_pause_frames;
-+		u64 tx_pause_storm_events;
- 	);
++	/* In units of ms since API supports values in ms */
++	u16 ps_timeout;
  };
  
-diff --git a/include/uapi/linux/ethtool_netlink_generated.h b/include/uapi/linux/ethtool_netlink_generated.h
-index 556a0c834df5..114b83017297 100644
---- a/include/uapi/linux/ethtool_netlink_generated.h
-+++ b/include/uapi/linux/ethtool_netlink_generated.h
-@@ -381,6 +381,7 @@ enum {
- 	ETHTOOL_A_PAUSE_STAT_PAD,
- 	ETHTOOL_A_PAUSE_STAT_TX_FRAMES,
- 	ETHTOOL_A_PAUSE_STAT_RX_FRAMES,
-+	ETHTOOL_A_PAUSE_STAT_TX_PAUSE_STORM_EVENTS,
+ /* Reserve entry 0 in the MSI-X "others" array until we have filled all
+diff --git a/drivers/net/ethernet/meta/fbnic/fbnic_csr.h b/drivers/net/ethernet/meta/fbnic/fbnic_csr.h
+index b717db879cd3..e68c56237b61 100644
+--- a/drivers/net/ethernet/meta/fbnic/fbnic_csr.h
++++ b/drivers/net/ethernet/meta/fbnic/fbnic_csr.h
+@@ -230,6 +230,7 @@ enum {
+ #define FBNIC_INTR_MSIX_CTRL_VECTOR_MASK	CSR_GENMASK(7, 0)
+ #define FBNIC_INTR_MSIX_CTRL_ENABLE		CSR_BIT(31)
+ enum {
++	FBNIC_INTR_MSIX_CTRL_RXB_IDX	= 7,
+ 	FBNIC_INTR_MSIX_CTRL_PCS_IDX	= 34,
+ };
  
- 	__ETHTOOL_A_PAUSE_STAT_CNT,
- 	ETHTOOL_A_PAUSE_STAT_MAX = (__ETHTOOL_A_PAUSE_STAT_CNT - 1)
-diff --git a/net/ethtool/pause.c b/net/ethtool/pause.c
-index 0f9af1e66548..5d28f642764c 100644
---- a/net/ethtool/pause.c
-+++ b/net/ethtool/pause.c
-@@ -130,7 +130,9 @@ static int pause_put_stats(struct sk_buff *skb,
- 	if (ethtool_put_stat(skb, pause_stats->tx_pause_frames,
- 			     ETHTOOL_A_PAUSE_STAT_TX_FRAMES, pad) ||
- 	    ethtool_put_stat(skb, pause_stats->rx_pause_frames,
--			     ETHTOOL_A_PAUSE_STAT_RX_FRAMES, pad))
-+			     ETHTOOL_A_PAUSE_STAT_RX_FRAMES, pad) ||
-+	    ethtool_put_stat(skb, pause_stats->tx_pause_storm_events,
-+			     ETHTOOL_A_PAUSE_STAT_TX_PAUSE_STORM_EVENTS, pad))
- 		goto err_cancel;
+@@ -560,6 +561,11 @@ enum {
+ #define FBNIC_RXB_DROP_THLD_CNT			8
+ #define FBNIC_RXB_DROP_THLD_ON			CSR_GENMASK(12, 0)
+ #define FBNIC_RXB_DROP_THLD_OFF			CSR_GENMASK(25, 13)
++#define FBNIC_RXB_PAUSE_STORM(n)	(0x08019 + (n)) /* 0x20064 + 4*n */
++#define FBNIC_RXB_PAUSE_STORM_CNT		4
++#define FBNIC_RXB_PAUSE_STORM_FORCE_NORMAL	CSR_BIT(20)
++#define FBNIC_RXB_PAUSE_STORM_THLD_TIME		CSR_GENMASK(19, 0)
++#define FBNIC_RXB_PAUSE_STORM_UNIT_WR	0x0801d		/* 0x20074 */
+ #define FBNIC_RXB_ECN_THLD(n)		(0x0801e + (n)) /* 0x20078 + 4*n */
+ #define FBNIC_RXB_ECN_THLD_CNT			8
+ #define FBNIC_RXB_ECN_THLD_ON			CSR_GENMASK(12, 0)
+@@ -596,6 +602,9 @@ enum {
+ #define FBNIC_RXB_INTF_CREDIT_MASK2		CSR_GENMASK(11, 8)
+ #define FBNIC_RXB_INTF_CREDIT_MASK3		CSR_GENMASK(15, 12)
  
- 	nla_nest_end(skb, nest);
++#define FBNIC_RXB_ERR_INTR_STS		0x08050		/* 0x20140 */
++#define FBNIC_RXB_ERR_INTR_STS_PS		CSR_GENMASK(15, 12)
++#define FBNIC_RXB_ERR_INTR_MASK		0x08052		/* 0x20148 */
+ #define FBNIC_RXB_PAUSE_EVENT_CNT(n)	(0x08053 + (n))	/* 0x2014c + 4*n */
+ #define FBNIC_RXB_DROP_FRMS_STS(n)	(0x08057 + (n))	/* 0x2015c + 4*n */
+ #define FBNIC_RXB_DROP_BYTES_STS_L(n) \
+@@ -636,6 +645,7 @@ enum {
+ 
+ #define FBNIC_RXB_PBUF_FIFO_LEVEL(n)	(0x0811d + (n)) /* 0x20474 + 4*n */
+ 
++#define FBNIC_RXB_PAUSE_STORM_UNIT_RD	0x08125		/* 0x20494 */
+ #define FBNIC_RXB_INTEGRITY_ERR(n)	(0x0812f + (n))	/* 0x204bc + 4*n */
+ #define FBNIC_RXB_MAC_ERR(n)		(0x08133 + (n))	/* 0x204cc + 4*n */
+ #define FBNIC_RXB_PARSER_ERR(n)		(0x08137 + (n))	/* 0x204dc + 4*n */
+diff --git a/drivers/net/ethernet/meta/fbnic/fbnic_ethtool.c b/drivers/net/ethernet/meta/fbnic/fbnic_ethtool.c
+index 401c2196b9ff..ade9e667640f 100644
+--- a/drivers/net/ethernet/meta/fbnic/fbnic_ethtool.c
++++ b/drivers/net/ethernet/meta/fbnic/fbnic_ethtool.c
+@@ -1641,6 +1641,47 @@ static void fbnic_get_ts_stats(struct net_device *netdev,
+ 	}
+ }
+ 
++static int fbnic_get_tunable(struct net_device *netdev,
++			     const struct ethtool_tunable *tun,
++			     void *data)
++{
++	struct fbnic_net *fbn = netdev_priv(netdev);
++	int err = 0;
++
++	switch (tun->id) {
++	case ETHTOOL_PFC_PREVENTION_TOUT:
++		*(u16 *)data = fbn->fbd->ps_timeout;
++		break;
++	default:
++		err = -EOPNOTSUPP;
++		break;
++	}
++
++	return err;
++}
++
++static int fbnic_set_tunable(struct net_device *netdev,
++			     const struct ethtool_tunable *tun,
++			     const void *data)
++{
++	struct fbnic_net *fbn = netdev_priv(netdev);
++	int err;
++
++	switch (tun->id) {
++	case ETHTOOL_PFC_PREVENTION_TOUT: {
++		u16 ps_timeout = *(u16 *)data;
++
++		err = fbnic_mac_ps_protect_to_config(fbn->fbd, ps_timeout);
++		break;
++	}
++	default:
++		err = -EOPNOTSUPP;
++		break;
++	}
++
++	return err;
++}
++
+ static int
+ fbnic_get_module_eeprom_by_page(struct net_device *netdev,
+ 				const struct ethtool_module_eeprom *page_data,
+@@ -1915,6 +1956,8 @@ static const struct ethtool_ops fbnic_ethtool_ops = {
+ 	.set_channels			= fbnic_set_channels,
+ 	.get_ts_info			= fbnic_get_ts_info,
+ 	.get_ts_stats			= fbnic_get_ts_stats,
++	.get_tunable			= fbnic_get_tunable,
++	.set_tunable			= fbnic_set_tunable,
+ 	.get_link_ksettings		= fbnic_phylink_ethtool_ksettings_get,
+ 	.get_fec_stats			= fbnic_get_fec_stats,
+ 	.get_fecparam			= fbnic_phylink_get_fecparam,
+diff --git a/drivers/net/ethernet/meta/fbnic/fbnic_irq.c b/drivers/net/ethernet/meta/fbnic/fbnic_irq.c
+index 02e8b0b257fe..1e6a8fd6f702 100644
+--- a/drivers/net/ethernet/meta/fbnic/fbnic_irq.c
++++ b/drivers/net/ethernet/meta/fbnic/fbnic_irq.c
+@@ -170,6 +170,8 @@ int fbnic_mac_request_irq(struct fbnic_dev *fbd)
+ 	fbnic_wr32(fbd, FBNIC_INTR_MSIX_CTRL(FBNIC_INTR_MSIX_CTRL_PCS_IDX),
+ 		   FBNIC_PCS_MSIX_ENTRY | FBNIC_INTR_MSIX_CTRL_ENABLE);
+ 
++	fbnic_wr32(fbd, FBNIC_INTR_MSIX_CTRL(FBNIC_INTR_MSIX_CTRL_RXB_IDX), 0);
++
+ 	fbd->mac_msix_vector = vector;
+ 
+ 	return 0;
+diff --git a/drivers/net/ethernet/meta/fbnic/fbnic_mac.c b/drivers/net/ethernet/meta/fbnic/fbnic_mac.c
+index 9d0e4b2cc9ac..805107ba3b10 100644
+--- a/drivers/net/ethernet/meta/fbnic/fbnic_mac.c
++++ b/drivers/net/ethernet/meta/fbnic/fbnic_mac.c
+@@ -143,6 +143,7 @@ static void fbnic_mac_init_qm(struct fbnic_dev *fbd)
+ #define FBNIC_DROP_EN_MASK	0x7d
+ #define FBNIC_PAUSE_EN_MASK	0x14
+ #define FBNIC_ECN_EN_MASK	0x10
++#define FBNIC_PS_EN_MASK	0x01
+ 
+ struct fbnic_fifo_config {
+ 	unsigned int addr;
+@@ -420,6 +421,14 @@ static void __fbnic_mac_stat_rd64(struct fbnic_dev *fbd, bool reset, u32 reg,
+ #define fbnic_mac_stat_rd64(fbd, reset, __stat, __CSR) \
+ 	__fbnic_mac_stat_rd64(fbd, reset, FBNIC_##__CSR##_L, &(__stat))
+ 
++bool fbnic_mac_check_tx_pause(struct fbnic_dev *fbd)
++{
++	u32 command_config;
++
++	command_config = rd32(fbd, FBNIC_MAC_COMMAND_CONFIG);
++	return !(command_config & FBNIC_MAC_COMMAND_CONFIG_TX_PAUSE_DIS);
++}
++
+ static void fbnic_mac_tx_pause_config(struct fbnic_dev *fbd, bool tx_pause)
+ {
+ 	u32 rxb_pause_ctrl;
+@@ -434,6 +443,49 @@ static void fbnic_mac_tx_pause_config(struct fbnic_dev *fbd, bool tx_pause)
+ 	wr32(fbd, FBNIC_RXB_PAUSE_DROP_CTRL, rxb_pause_ctrl);
+ }
+ 
++static void
++fbnic_mac_ps_protect_to_reset(struct fbnic_dev *fbd, u16 timeout_ms)
++{
++	wr32(fbd, FBNIC_RXB_PAUSE_STORM_UNIT_WR, FBNIC_RXB_PS_CLK_DIV);
++
++	wr32(fbd, FBNIC_RXB_PAUSE_STORM(FBNIC_RXB_INTF_NET),
++	     FIELD_PREP(FBNIC_RXB_PAUSE_STORM_THLD_TIME,
++			FBNIC_MAC_RXB_PS_TO(timeout_ms)) |
++			FBNIC_RXB_PAUSE_STORM_FORCE_NORMAL);
++	wrfl(fbd);
++	wr32(fbd, FBNIC_RXB_PAUSE_STORM(FBNIC_RXB_INTF_NET),
++	     FIELD_PREP(FBNIC_RXB_PAUSE_STORM_THLD_TIME,
++			FBNIC_MAC_RXB_PS_TO(timeout_ms)));
++}
++
++static void
++fbnic_mac_ps_protect_config(struct fbnic_dev *fbd, bool ps_protect)
++{
++	u16 timeout;
++	u32 reg;
++
++	ps_protect = ps_protect && fbd->ps_timeout;
++	timeout = ps_protect ? fbd->ps_timeout : FBNIC_MAC_PS_TO_DEFAULT_MS;
++
++	fbnic_mac_ps_protect_to_reset(fbd, timeout);
++
++	reg = rd32(fbd, FBNIC_RXB_PAUSE_DROP_CTRL);
++	reg &= ~FBNIC_RXB_PAUSE_DROP_CTRL_PS_ENABLE;
++	reg |= FIELD_PREP(FBNIC_RXB_PAUSE_DROP_CTRL_PS_ENABLE, ps_protect);
++	wr32(fbd, FBNIC_RXB_PAUSE_DROP_CTRL, reg);
++
++	/* Clear any pending interrupt status first */
++	wr32(fbd, FBNIC_RXB_ERR_INTR_STS,
++	     FIELD_PREP(FBNIC_RXB_ERR_INTR_STS_PS, FBNIC_PS_EN_MASK));
++
++	/* Unmask the Network to Host PS interrupt if tx_pause is on */
++	reg = rd32(fbd, FBNIC_RXB_ERR_INTR_MASK);
++	reg |= FBNIC_RXB_ERR_INTR_STS_PS;
++	if (ps_protect)
++		reg &= ~FBNIC_RXB_ERR_INTR_STS_PS;
++	wr32(fbd, FBNIC_RXB_ERR_INTR_MASK, reg);
++}
++
+ static int fbnic_mac_get_link_event(struct fbnic_dev *fbd)
+ {
+ 	u32 intr_mask = rd32(fbd, FBNIC_SIG_PCS_INTR_STS);
+@@ -658,6 +710,7 @@ static void fbnic_mac_link_up_asic(struct fbnic_dev *fbd,
+ 	u32 cmd_cfg, mac_ctrl;
+ 
+ 	fbnic_mac_tx_pause_config(fbd, tx_pause);
++	fbnic_mac_ps_protect_config(fbd, tx_pause);
+ 
+ 	cmd_cfg = __fbnic_mac_cmd_config_asic(fbd, tx_pause, rx_pause);
+ 	mac_ctrl = rd32(fbd, FBNIC_SIG_MAC_IN0);
+@@ -918,3 +971,46 @@ int fbnic_mac_init(struct fbnic_dev *fbd)
+ 
+ 	return 0;
+ }
++
++int fbnic_mac_ps_protect_to_config(struct fbnic_dev *fbd, u16 timeout_ms)
++{
++	u16 old_timeout_ms = fbd->ps_timeout;
++
++	if (timeout_ms == old_timeout_ms)
++		return 0;
++
++	if (timeout_ms == PFC_STORM_PREVENTION_AUTO)
++		timeout_ms = FBNIC_MAC_PS_TO_DEFAULT_MS;
++
++	if (timeout_ms > FBNIC_MAC_PS_TO_MAX_MS)
++		return -EINVAL;
++
++	fbd->ps_timeout = timeout_ms;
++
++	if (!fbnic_mac_check_tx_pause(fbd))
++		return 0;
++
++	if (timeout_ms == 0)
++		fbnic_mac_ps_protect_config(fbd, false);
++	else if (old_timeout_ms == 0)
++		fbnic_mac_ps_protect_config(fbd, true);
++	else
++		fbnic_mac_ps_protect_to_reset(fbd, fbd->ps_timeout);
++
++	return 0;
++}
++
++void fbnic_mac_ps_protect_handler(struct fbnic_dev *fbd)
++{
++	u32 rxb_err_sts = rd32(fbd, FBNIC_RXB_ERR_INTR_STS);
++
++	/* Check if pause storm interrupt for network was triggered */
++	if (rxb_err_sts & FIELD_PREP(FBNIC_RXB_ERR_INTR_STS_PS,
++				     FBNIC_PS_EN_MASK)) {
++		/* Write 1 to clear the interrupt status first */
++		wr32(fbd, FBNIC_RXB_ERR_INTR_STS,
++		     FIELD_PREP(FBNIC_RXB_ERR_INTR_STS_PS, FBNIC_PS_EN_MASK));
++
++		fbnic_mac_ps_protect_to_reset(fbd, fbd->ps_timeout);
++	}
++}
+diff --git a/drivers/net/ethernet/meta/fbnic/fbnic_mac.h b/drivers/net/ethernet/meta/fbnic/fbnic_mac.h
+index f08fe8b7c497..10f30e0e8f69 100644
+--- a/drivers/net/ethernet/meta/fbnic/fbnic_mac.h
++++ b/drivers/net/ethernet/meta/fbnic/fbnic_mac.h
+@@ -8,6 +8,30 @@
+ 
+ struct fbnic_dev;
+ 
++/* The RXB clock runs at 600 MHZ in the ASIC and the PAUSE_STORM_UNIT_WR
++ * is 10us granularity, so set the clock to 6000 (0x1770)
++ */
++#define FBNIC_RXB_PS_CLK_DIV		0x1770
++
++/* Convert milliseconds to pause storm timeout units (10us granularity) */
++#define FBNIC_MAC_RXB_PS_TO(ms)		((ms) * 100)
++
++/* Convert pause storm timeout units (10us granularity) to milliseconds */
++#define FBNIC_MAC_RXB_PS_TO_MS(ps)	((ps) / 100)
++
++/* Set the default timer to 500ms, which should be longer than any
++ * reasonable period of continuous pausing. The service task, which runs
++ * once per second, periodically resets the pause storm trigger.
++ *
++ * As a result, on a functioning system, if pause continues, we enforce
++ * a duty cycle determined by the configured pause storm timeout (50%
++ * default). A crashed system will not have the service task and therefore
++ * pause will remain disabled until reboot recovery.
++ */
++#define FBNIC_MAC_PS_TO_DEFAULT_MS	500
++#define FBNIC_MAC_PS_TO_MAX_MS	\
++	FBNIC_MAC_RXB_PS_TO_MS(FIELD_MAX(FBNIC_RXB_PAUSE_STORM_THLD_TIME))
++
+ #define FBNIC_MAX_JUMBO_FRAME_SIZE	9742
+ 
+ /* States loosely based on section 136.8.11.7.5 of IEEE 802.3-2022 Ethernet
+@@ -119,4 +143,7 @@ struct fbnic_mac {
+ 
+ int fbnic_mac_init(struct fbnic_dev *fbd);
+ void fbnic_mac_get_fw_settings(struct fbnic_dev *fbd, u8 *aui, u8 *fec);
++int fbnic_mac_ps_protect_to_config(struct fbnic_dev *fbd, u16 timeout);
++void fbnic_mac_ps_protect_handler(struct fbnic_dev *fbd);
++bool fbnic_mac_check_tx_pause(struct fbnic_dev *fbd);
+ #endif /* _FBNIC_MAC_H_ */
+diff --git a/drivers/net/ethernet/meta/fbnic/fbnic_pci.c b/drivers/net/ethernet/meta/fbnic/fbnic_pci.c
+index 3fa9d1910daa..e3aebbe3656d 100644
+--- a/drivers/net/ethernet/meta/fbnic/fbnic_pci.c
++++ b/drivers/net/ethernet/meta/fbnic/fbnic_pci.c
+@@ -220,6 +220,9 @@ static void fbnic_service_task(struct work_struct *work)
+ 
+ 	fbnic_get_hw_stats32(fbd);
+ 
++	if (fbd->ps_timeout && fbnic_mac_check_tx_pause(fbd))
++		fbnic_mac_ps_protect_handler(fbd);
++
+ 	fbnic_fw_check_heartbeat(fbd);
+ 
+ 	fbnic_health_check(fbd);
+@@ -296,6 +299,8 @@ static int fbnic_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
+ 	/* Populate driver with hardware-specific info and handlers */
+ 	fbd->max_num_queues = info->max_num_queues;
+ 
++	fbd->ps_timeout = FBNIC_MAC_PS_TO_DEFAULT_MS;
++
+ 	pci_set_master(pdev);
+ 	pci_save_state(pdev);
+ 
 -- 
 2.47.3
 
