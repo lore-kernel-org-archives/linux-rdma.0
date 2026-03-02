@@ -1,75 +1,75 @@
-Received: from DM1PR04CU001.outbound.protection.outlook.com (mail-centralusazon11010033.outbound.protection.outlook.com [52.101.61.33])
+Received: from CY3PR05CU001.outbound.protection.outlook.com (mail-westcentralusazon11013028.outbound.protection.outlook.com [40.93.201.28])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5030F345752;
-	Mon,  2 Mar 2026 15:53:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.61.33
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 88F9E41C0CE;
+	Mon,  2 Mar 2026 15:53:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.201.28
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772466783; cv=fail; b=bACNkjTF5ozCoSrGwLIYwIlOBntIgEV+5b4mBJZBqtfABF/tmdEMl9ReNVAFqvcFoWWUsNVpdbgCOVC8dqpte2VltSvaboY6h8EJX/eLBdK0xSKv/xCsfGYrB3W4WZ3m3raIRGehqzKXoAAKldoAhSYiu1nQlORWw3sXqrKQN9w=
+	t=1772466788; cv=fail; b=AfxIBmjhlJ5El9Xcj69yJ/5XSEyb8aatJB3e5eQl6JSS4oQObq5OyVuVO5iEh3Y/u4TtlCG15gd+se+EEfShWMfEd7AExG7BjSlFbnegbHaAfRIbaTXl+B8g6S+ArXSMzsNfSJMWLux7zrveql8GxmeNrHCxeB7LqM5+LgQcMD8=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772466783; c=relaxed/simple;
-	bh=qCiO3is3qFOAZBjmdqqST5zBYiAl3pgWT3ofKGdzcEA=;
+	s=arc-20240116; t=1772466788; c=relaxed/simple;
+	bh=3BmIu2GJMe1h6GnkW8r7xkp//+SUgR2hcXN9/WCJ5tU=;
 	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=eOIpwtwbvOZAm3HeG4lVIHcmOtDpZdLhWOyQ+X1Ku1kQ6fXdDxjG0Z8qyLmMmCJvS0ODem17Kxewxrj84sC609B1hc0gomjhnnzlbjPpSS0jS3hqyL28FhqE2ud9BC+GsXOhW1i+MsIG0D0py403o4Chc4Wau2OWC/i5/WgCG/s=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=qVtgodB+; arc=fail smtp.client-ip=52.101.61.33
+	 MIME-Version:Content-Type; b=ZLux0HbjGVvuc14PUbxOtwuNSVPcqnjZkhFTujv+aMFTzk05uG6/DkIe/7tXU2Exd6faQgCyrNVOLruowXlNDLEKk9bc+LDqqG/NwvZo1OhGnziKOodX6tudG8YyT6iqQSAHm6Ak3hrG8Zy4Wa9Gni00QYu5ckIsLOs3ElI2WWk=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=epb4fpRv; arc=fail smtp.client-ip=40.93.201.28
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="qVtgodB+"
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="epb4fpRv"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=YXNwXwF04rODlZG0zpWyTfW+ID0BfmQSpYCeT8tQjU0+9N0ceFdxDK14ANDgciqzKPMCz6eKWy/8wjyrot+0bOiNWXeJjVFjwqssyZkTcAiU5SXEMeBS6YoENUZLLtwSh7diBpXsFptOcJSCTw69yC20HYO53wVlh33e8Q+xN7Ps0lM5LDkJdsopPEbJSbSLEl+72cwCXio6UIzjv1PdVxCS8wYNLy/tCKMnjEZg5majZ0DeoxQsrcoyF8C48U+m9y4bxhH18rFyGtrJ+9+5AmUJ4/pS6JeD8vMpziK7SqUUrP3X6X5BMjb6IYEM0RPIrUVJM7R1+DE2Zj5ANCW1Rw==
+ b=uib7b16So16ez4/OmYlzDu959rRp872ipYmzEhlO+gLlmAogfsl5ol8HBDn+BWWDYCo0tm51uviH3dyy/47S0p6KBZMvQnrJnbdT49QocrpkWv/b+aOk11agO7336FVz4OhOD5fQ4FUuL/y9x1Pcu5uQ0caJ3F2CD4jdgAPtup8mXALsDH/ph4X9igSWljX9uFkHgYyCFG7W5GP6WsAv9Yi3ERxcptToRez7tXIObwtudiyjKYQxxAvhF6atd49LMIInF9YFV5AbsskE9ErXxX+lLnZ9LILqJ5szESKKwHOkuAAKU4AQ/D9PpR/ujH7Bb17YJruHHdWD6uuLW3bykw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=KvOrc7Gb2vjmf0+C1cUzd1QsLjonQQ3ZEBhPcQEU7NA=;
- b=JFHZeKJjMMefFriZ0WVb+LOXs0GqV9KaNJdONKAQgnILZKMRcZpIH9PJrYHX15SkXuLsgmN68lpmrsR/4TLwQUpe2Z19m7ic48zpZjOXzCkPw7+Oz2n5v/8rOWbC8tS8ZrCfMJrRYOwctkFPhsZeBT9NXBgP5mCb9oT4D3vfe1Gsrw9tY4Zl3ybN/9XWZobKA69dnDnEAvZY3D1ep21EKO3X1+Psq+pf5wA6KJ2XqPdwP4gT7vsy1XDSXG2lCSr9RVtYlm4wfa3iepOTl86bglXXhNefYKgqt4/m6XiqHPd/2FzE7i88fSvX/+JMwbwrnuobrMv51YjUhIKppDLkcA==
+ bh=C1Y/GWM2WDesOkzQV87LqrG7xfYgQXXr1IMYRdrZMbM=;
+ b=VRVQdj/3kVo19WVhFRMqMYU6ovhM8VxK0onADGlIr856DZ1MjjYUFpvsVuMzdjfA+p2gZW9vwztI2LisqEnmiBo6R25log6R+YCboJH/CBYcWeDCaDy++8WozlcbsN60wGI8Hw4vZDRP0LQPg4e+xMQV09TwAKOYiJwofZ/fe/hQ7mD/gq8dOa+lP1quZq8iAq9Xt5l25ZJdSdx9p4E2awbpZNbY93pJ3vAJEnLGLb6sUBRSbSfBEfmg50Uxq4IUY3/4PNPaNaY3Wz+eBZGZ/jJHZWlIaRB9FbIaPPciSvpBhh+gKOAd09Y6SjUxBiBCV/CYwUpH7fgao/hUFw0Zyg==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.117.161) smtp.rcpttodomain=kernel.org smtp.mailfrom=nvidia.com;
+ 216.228.117.160) smtp.rcpttodomain=kernel.org smtp.mailfrom=nvidia.com;
  dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
  dkim=none (message not signed); arc=none (0)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=KvOrc7Gb2vjmf0+C1cUzd1QsLjonQQ3ZEBhPcQEU7NA=;
- b=qVtgodB+h4456Px6j/0aO4eqpfz6ceUJUmt4XyCaWWLHI+KJ9ytS+cOVCT6tfy/Nxg3iy2TNv5M1FroJJy0ZJ6uDMN4bpIXQlH5+yEMA2rtgma4THiCUu3FWi15O3IFKDWy2FQ7solwV5YTSWPGveKNydR7olW4qEUB+LMjKZ+uTUPnpZ870Pbs+P2Iki+7Kebkpe8uHXIoMlAdf+u2RBA6Cv9Pk3zkYAbvG/ovsFBTP21WZA+4GNkKfO5lDYLPUXp8f2BD59jsRZgtp5H9sjYaj7m7X1myTmoUKk3rU4EN2NHNX0pAEqXK+N4c3lprjMOZDVd4VRg0xuFH9QZDf2w==
-Received: from SJ0PR05CA0009.namprd05.prod.outlook.com (2603:10b6:a03:33b::14)
- by IA1PR12MB6601.namprd12.prod.outlook.com (2603:10b6:208:3a3::15) with
+ bh=C1Y/GWM2WDesOkzQV87LqrG7xfYgQXXr1IMYRdrZMbM=;
+ b=epb4fpRvOKoxevoeR0ZoFTy7DtJhsBkPXgXyLHG3gyQRJ+dNMiMp5a+FOvRX1j0gAPNPByTSPW5zyL+B9Qoi5WqOss3VwnFmqKfSkpBkyVuIGMdfuqEboNMLRDb9h+5DXuqlk9BySwHTlouoKxPE6P9EHCVxfqc1N+VktIVw7rOGcu2i4plZo/9fq7jMclL/lSd/kB3fNO7wfRI77YQ1WZrFXoTx5g6rFK5khJtvZ0buRH4SyThsl+dUhWBdsgOWYug+ejmTdtDXQUhMdTIkeeCHznIOXpkYsvsCvyFIzujsSG2BC+3WLZ/3lC83nCp1pbetp38DRg7QDmG1+NtbHA==
+Received: from SA1P222CA0188.NAMP222.PROD.OUTLOOK.COM (2603:10b6:806:3c4::16)
+ by MN2PR12MB4238.namprd12.prod.outlook.com (2603:10b6:208:199::11) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9654.21; Mon, 2 Mar
- 2026 15:52:55 +0000
-Received: from MWH0EPF000C6189.namprd02.prod.outlook.com
- (2603:10b6:a03:33b:cafe::10) by SJ0PR05CA0009.outlook.office365.com
- (2603:10b6:a03:33b::14) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.20.9654.18 via Frontend Transport; Mon,
- 2 Mar 2026 15:52:55 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.161)
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9654.14; Mon, 2 Mar
+ 2026 15:53:02 +0000
+Received: from SA2PEPF00003AE6.namprd02.prod.outlook.com
+ (2603:10b6:806:3c4:cafe::93) by SA1P222CA0188.outlook.office365.com
+ (2603:10b6:806:3c4::16) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.20.9654.21 via Frontend Transport; Mon,
+ 2 Mar 2026 15:52:57 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.160)
  smtp.mailfrom=nvidia.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=nvidia.com;
 Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.117.161 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.117.161; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.117.161) by
- MWH0EPF000C6189.mail.protection.outlook.com (10.167.249.121) with Microsoft
+ 216.228.117.160 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.117.160; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.117.160) by
+ SA2PEPF00003AE6.mail.protection.outlook.com (10.167.248.6) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.9654.16 via Frontend Transport; Mon, 2 Mar 2026 15:52:55 +0000
-Received: from rnnvmail204.nvidia.com (10.129.68.6) by mail.nvidia.com
- (10.129.200.67) with Microsoft SMTP Server (version=TLS1_2,
+ 15.20.9654.16 via Frontend Transport; Mon, 2 Mar 2026 15:53:01 +0000
+Received: from rnnvmail201.nvidia.com (10.129.68.8) by mail.nvidia.com
+ (10.129.200.66) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Mon, 2 Mar
- 2026 07:52:34 -0800
-Received: from rnnvmail205.nvidia.com (10.129.68.10) by rnnvmail204.nvidia.com
- (10.129.68.6) with Microsoft SMTP Server (version=TLS1_2,
+ 2026 07:52:43 -0800
+Received: from rnnvmail205.nvidia.com (10.129.68.10) by rnnvmail201.nvidia.com
+ (10.129.68.8) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Mon, 2 Mar
- 2026 07:52:33 -0800
+ 2026 07:52:43 -0800
 Received: from vdi.nvidia.com (10.127.8.13) by mail.nvidia.com (10.129.68.10)
  with Microsoft SMTP Server id 15.2.2562.20 via Frontend Transport; Mon, 2 Mar
- 2026 07:52:31 -0800
+ 2026 07:52:40 -0800
 From: Chiara Meiohas <cmeiohas@nvidia.com>
 To: <leon@kernel.org>, <dsahern@gmail.com>, <stephen@networkplumber.org>
 CC: <michaelgur@nvidia.com>, <jgg@nvidia.com>, <linux-rdma@vger.kernel.org>,
 	<netdev@vger.kernel.org>, Patrisious Haddad <phaddad@nvidia.com>
-Subject: [PATCH iproute2-next 1/4] rdma: Update headers
-Date: Mon, 2 Mar 2026 17:51:57 +0200
-Message-ID: <20260302155200.2611098-2-cmeiohas@nvidia.com>
+Subject: [PATCH iproute2-next 3/4] rdma: Add FRMR pools set aging command
+Date: Mon, 2 Mar 2026 17:51:59 +0200
+Message-ID: <20260302155200.2611098-4-cmeiohas@nvidia.com>
 X-Mailer: git-send-email 2.38.1
 In-Reply-To: <20260302155200.2611098-1-cmeiohas@nvidia.com>
 References: <20260302155200.2611098-1-cmeiohas@nvidia.com>
@@ -84,82 +84,211 @@ Content-Type: text/plain
 X-NV-OnPremToCloud: ExternallySecured
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: MWH0EPF000C6189:EE_|IA1PR12MB6601:EE_
-X-MS-Office365-Filtering-Correlation-Id: d9934207-2ea7-48d3-fc33-08de7873c50a
+X-MS-TrafficTypeDiagnostic: SA2PEPF00003AE6:EE_|MN2PR12MB4238:EE_
+X-MS-Office365-Filtering-Correlation-Id: 7ba425c5-b2b9-49d9-d87e-08de7873c8c6
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|1800799024|82310400026|36860700013|376014;
+	BCL:0;ARA:13230040|36860700013|82310400026|1800799024|376014;
 X-Microsoft-Antispam-Message-Info:
-	w4s4s+3xPcPDolu2VjpZuH5SaQapVRW+Gu7XgBI51NZ2MAmoR5zw3ksKt8O7xqpIf2MnTuD2K8Ojg27eU/nfCAk9w3krxSpflgHjDf5C/CxalfZDPBbpempVOFXDqSu4ybG9hqw1o2itYHrvMMXCEl9gf5zd+7DzXL7YP1Uvu0L/dfXdN65KStmWXd6TysOFyR+YfGgS7Xc3GMGusMVaaON0aZMue/ULV+ubDwTyPZH1DaKLNxA0oFpIN/yJ7H4g8uV/KCXc53nwnxFFNukQlgb1JatCVJE9lprJuz6lRqTbJSneneY6T9F9EqD3YHlMf9/xXjA8K425nDp2bO9GDRKHryjKkkSu7nBdo5nbL11XVC9pEWvlKORsh/ucoobNo9/0aa5RmxyDth7XffYKNn5ph1isNocnjErvV7egIlDrtlUXR2IVj44WW/rXtw0H++3F8jIM80w/WxFPPf1jH9o6Jg9RsDgWyB9dApBDrRUjpPc7lqJktnFD6lHfnoEsGGnICbUJXp8PvfTltBjj0JYWDaYqXNCHbWpaEjJumdaZe9Sq65CTYQwzXEtXhdpyUdvFpQpzETbuJ0T7fwIPkhyV2Uyr60mrCc01iHr6OmlEreZ4b8kKerEAmsOtGgqni65jRFW2EsGnovV4mKY0L0jm2VOMPdKYHOZf6CmAaIpjzPiOJQEAL3mT3TXUirf9tcCg+veNa/dZwA/XqQ1DxoWZ9JOGC+tGiDTbGA17TZe9rmmBvT234tdDOF781oGo+xw21GRGW+LPYAhvrFdRR4MuhIUwen0lW8sWZL8LBOTAPZcCZ6P7+ry5Y4lwHiswRMZygswQ7h5336IkFaNXgA==
+	PAz9uCJZ+NqabRmbdh/HxIKspdKrAy9MRL0cPMp60bd3/+0m68dMGF8o+rhq84SWTXGJPmeNry5ah/WnK0O1wnYp/LJc+PfpaVlvhm0Ll/1BUuOa1vQe7zsWt0QV9cGS2FUJr5/Tw0X3fJo1C3KGvaBBQJcqduhihTJQM0sfhOIQYExBGQ5FFN2biZccCqagIeQDc1TLyWYzdDsGi9JHLBV9tzjAAGttIQSQkZZknge//rNe9AdZKLosoBU/7ZhQyLLlVvx8IYuK3dYW7oY7oAPp0Mjr8XtoqgmIofxdeKpzQjV6tBYSrgoOaRVrQ0LkzEqq8SoRVNulZ/T766C5ZYr16yGaobItPxIaghVJVegEcuRuQLX5ylTMIAFsPfH4mhF6fG2JUQlgkECrhB3uRf+kR7xBOnbwXNg7Q6PQNjY7sQkno2AX1XcTfWX3bXj5zmdvlrTKADt2QMFC4syAhWLEQALgVe5Zank7gp9nAseRVe3NO3FVA/UJxPjAiu3xQ2RdOt5Dmgg86o99+0imts47TdrtXTaYplr8zc59UMyT81RvdHFbdD3hnEtjOWCkJfHx5TrOmyVcmuVsp9QUkjC3HWdK2Wo368uybJcETju54ZZ2zOeI9ExFhtnuAzMCSWUPQqD742vNYcFs9+Rd9RvowEyd849n/CdeqKp1aTfak9C1DUeqacONRud1m9AmVhFyrO/r0TB18XmnmypIEm3VscwAnvz3cSj9yLSin0SCtM1SiVutoVOboLPgEgJn/I+3MsG0BSU+YGBQO4dIc8/Xkqys3Uik8IX8aVEwjKrVgkGh36PusTWIqUB6oynvLD0OBiPMEXKShT0E2/jUeQ==
 X-Forefront-Antispam-Report:
-	CIP:216.228.117.161;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge2.nvidia.com;CAT:NONE;SFS:(13230040)(1800799024)(82310400026)(36860700013)(376014);DIR:OUT;SFP:1101;
+	CIP:216.228.117.160;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge1.nvidia.com;CAT:NONE;SFS:(13230040)(36860700013)(82310400026)(1800799024)(376014);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	P1BqcKJrY6vtFiQTBNuy5HvqAjgAI7MFUQJHeI3mNuB/nfBpXnLohDaRDvxff07BN+DEIgkAZg/Xr6XvJF0+0hXZ9yX+xOtF9mWDIloqCwH4HoR+BnyDI5ZHl7UWGVHI1PgJIdepvJsUb2WKLUdXCox1KQlO2V5bqFzYWbH6Stl/qwvgOpre5XCup/QgiQBz3PYMF0pt7yjVopJgpFo2lKu5UFLMxJoYNTxtTsjq6J52LXNoMKmQbOFvDYFDy6PFNcJQvgbr1PL+dpEg/qXk10/8gpjo+DJJQOB7xAblUDv8+dFi52Kc9d5Y7EXUeN9ygFxDUa/NQmRap23WvUYC5bkU08aJ3x/3f3GpX4YudGYlWtE7h4Z+2l897n1h+Fbaf1qgJtMNGlCDUDF0j+oPkbW9rO7rZib/SyJhJXuxIhCSouvXeFdl3dxKomVegjQg
+	zhT8ZVUe5jF8y6CHUCBfMEuMNi03iIv9GSgWAxxydl0a0DV2tB/Hgeb+k9n/nYtd/IYG+Tj1PNAnqVvw+/r5A+M2Mcv+VIhDWaceJzVy6LCe+uTu0FJuhVh5dnHsHxtZroK/iXbPiMxMYhVk2DNWezuAmNXgPmhq90Els86bWGBysIsYMwzc0ZBScSvVTwKJQSDZi30c6uap0f1li7nMNgeamyXsGi9P64iCET8OpRMGYhhQnawiPwFW4WugF/cyCbKnVn9IkgzIQZ8qZhBaZnOWsOmrJ6p54anO3rGyGsDESX6jf+M6oPlBI237RECmBi2cCv4GWY+uiaBM6mmI+X8kOpxsJmkygnG43+yGrd248fqS30GMA443f15IGdxZF7KOr6mT4Zx+BB14U9wG/8MSj5T7XOXdgRkY/3GcNKoKOGAMITkcWDfxMwn7WQFe
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 02 Mar 2026 15:52:55.4585
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 02 Mar 2026 15:53:01.6882
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: d9934207-2ea7-48d3-fc33-08de7873c50a
+X-MS-Exchange-CrossTenant-Network-Message-Id: 7ba425c5-b2b9-49d9-d87e-08de7873c8c6
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.161];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.160];Helo=[mail.nvidia.com]
 X-MS-Exchange-CrossTenant-AuthSource:
-	MWH0EPF000C6189.namprd02.prod.outlook.com
+	SA2PEPF00003AE6.namprd02.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA1PR12MB6601
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: MN2PR12MB4238
 
 From: Michael Guralnik <michaelgur@nvidia.com>
 
-Update rdma_netlink.h file up to kernel commit f55576f6ace6
-("RDMA/nldev: Expose kernel-internal FRMR pools in netlink")
+Allow users to modify the aging time of FRMR pools.
+
+Usage:
+$rdma resource set frmr_pools dev rocep8s0f0 aging 120
 
 Signed-off-by: Michael Guralnik <michaelgur@nvidia.com>
 Reviewed-by: Patrisious Haddad <phaddad@nvidia.com>
 ---
- rdma/include/uapi/rdma/rdma_netlink.h | 22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+ man/man8/rdma-resource.8 | 22 +++++++++++++++
+ rdma/res-frmr-pools.c    | 61 ++++++++++++++++++++++++++++++++++++++++
+ rdma/res.c               | 13 +++++++++
+ rdma/res.h               |  1 +
+ 4 files changed, 97 insertions(+)
 
-diff --git a/rdma/include/uapi/rdma/rdma_netlink.h b/rdma/include/uapi/rdma/rdma_netlink.h
-index ec8c19ca..dc958c8a 100644
---- a/rdma/include/uapi/rdma/rdma_netlink.h
-+++ b/rdma/include/uapi/rdma/rdma_netlink.h
-@@ -308,6 +308,10 @@ enum rdma_nldev_command {
+diff --git a/man/man8/rdma-resource.8 b/man/man8/rdma-resource.8
+index 4e2ba39a..a6dc33f3 100644
+--- a/man/man8/rdma-resource.8
++++ b/man/man8/rdma-resource.8
+@@ -26,6 +26,13 @@ rdma-resource \- rdma resource configuration
+ .B rdma resource show
+ .RI "[ " DEV/PORT_INDEX " ]"
  
- 	RDMA_NLDEV_CMD_MONITOR,
++.ti -8
++.B rdma resource set frmr_pools
++.BR dev
++.IR DEV
++.BR aging
++.IR AGING_PERIOD
++
+ .ti -8
+ .B rdma resource help
  
-+	RDMA_NLDEV_CMD_RES_FRMR_POOLS_GET, /* can dump */
-+
-+	RDMA_NLDEV_CMD_RES_FRMR_POOLS_SET,
-+
- 	RDMA_NLDEV_NUM_OPS
- };
+@@ -37,6 +44,16 @@ rdma-resource \- rdma resource configuration
+ - specifies the RDMA link to show.
+ If this argument is omitted all links are listed.
  
-@@ -582,6 +586,24 @@ enum rdma_nldev_attr {
- 	RDMA_NLDEV_SYS_ATTR_MONITOR_MODE,	/* u8 */
++.SS rdma resource set - configure resource related parameters
++
++.PP
++.I "DEV"
++- specifies the RDMA device to configure.
++
++.PP
++.I "AGING_PERIOD"
++- specifies the aging period in seconds for unused FRMR handles. Handles unused for this period will be freed.
++
+ .SH "EXAMPLES"
+ .PP
+ rdma resource show
+@@ -119,6 +136,11 @@ rdma resource show frmr_pools ats 1
+ Show FRMR pools that have ats attribute set.
+ .RE
+ .PP
++rdma resource set frmr_pools dev rocep8s0f0 aging 120
++.RS 4
++Set the aging period for FRMR pools on device rocep8s0f0 to 120 seconds.
++.RE
++.PP
  
- 	RDMA_NLDEV_ATTR_STAT_OPCOUNTER_ENABLED,	/* u8 */
+ .SH SEE ALSO
+ .BR rdma (8),
+diff --git a/rdma/res-frmr-pools.c b/rdma/res-frmr-pools.c
+index 97d59705..29efb9cd 100644
+--- a/rdma/res-frmr-pools.c
++++ b/rdma/res-frmr-pools.c
+@@ -188,3 +188,64 @@ int res_frmr_pools_parse_cb(const struct nlmsghdr *nlh, void *data)
+ 	}
+ 	return ret;
+ }
 +
-+	/*
-+	 * FRMR Pools attributes
-+	 */
-+	RDMA_NLDEV_ATTR_RES_FRMR_POOLS,			/* nested table */
-+	RDMA_NLDEV_ATTR_RES_FRMR_POOL_ENTRY,		/* nested table */
-+	RDMA_NLDEV_ATTR_RES_FRMR_POOL_KEY,		/* nested table */
-+	RDMA_NLDEV_ATTR_RES_FRMR_POOL_KEY_ATS,		/* u8 */
-+	RDMA_NLDEV_ATTR_RES_FRMR_POOL_KEY_ACCESS_FLAGS,	/* u32 */
-+	RDMA_NLDEV_ATTR_RES_FRMR_POOL_KEY_VENDOR_KEY,	/* u64 */
-+	RDMA_NLDEV_ATTR_RES_FRMR_POOL_KEY_NUM_DMA_BLOCKS, /* u64 */
-+	RDMA_NLDEV_ATTR_RES_FRMR_POOL_QUEUE_HANDLES,	/* u32 */
-+	RDMA_NLDEV_ATTR_RES_FRMR_POOL_MAX_IN_USE,	/* u64 */
-+	RDMA_NLDEV_ATTR_RES_FRMR_POOL_IN_USE,		/* u64 */
-+	RDMA_NLDEV_ATTR_RES_FRMR_POOL_AGING_PERIOD,	/* u64 */
-+	RDMA_NLDEV_ATTR_RES_FRMR_POOL_PINNED,		/* u8 */
-+	RDMA_NLDEV_ATTR_RES_FRMR_POOL_KEY_KERNEL_VENDOR_KEY, /* u64 */
++static int res_frmr_pools_one_set_aging(struct rd *rd)
++{
++	uint32_t aging_period;
++	uint32_t seq;
++	int ret;
 +
- 	/*
- 	 * Always the end
- 	 */
++	if (rd_no_arg(rd)) {
++		pr_err("Please provide aging period value.\n");
++		return -EINVAL;
++	}
++
++	if (get_u32(&aging_period, rd_argv(rd), 10)) {
++		pr_err("Invalid aging period value: %s\n", rd_argv(rd));
++		return -EINVAL;
++	}
++
++	if (aging_period == 0) {
++		pr_err("Setting the aging period to zero is not supported.\n");
++		return -EINVAL;
++	}
++
++	rd_prepare_msg(rd, RDMA_NLDEV_CMD_RES_FRMR_POOLS_SET, &seq,
++		       (NLM_F_REQUEST | NLM_F_ACK));
++	mnl_attr_put_u32(rd->nlh, RDMA_NLDEV_ATTR_DEV_INDEX, rd->dev_idx);
++	mnl_attr_put_u32(rd->nlh, RDMA_NLDEV_ATTR_RES_FRMR_POOL_AGING_PERIOD,
++			 aging_period);
++
++	ret = rd_sendrecv_msg(rd, seq);
++	return ret;
++}
++
++static int res_frmr_pools_one_set_help(struct rd *rd)
++{
++	pr_out("Usage: %s set frmr_pools dev DEV aging AGING_PERIOD\n",
++	       rd->filename);
++	return 0;
++}
++
++static int res_frmr_pools_one_set(struct rd *rd)
++{
++	const struct rd_cmd cmds[] = {
++		{ NULL, res_frmr_pools_one_set_help },
++		{ "help", res_frmr_pools_one_set_help },
++		{ "aging", res_frmr_pools_one_set_aging },
++		{ 0 }
++	};
++
++	return rd_exec_cmd(rd, cmds, "resource set frmr_pools command");
++}
++
++int res_frmr_pools_set(struct rd *rd)
++{
++	int ret;
++
++	ret = rd_set_arg_to_devname(rd);
++	if (ret)
++		return ret;
++
++	return rd_exec_require_dev(rd, res_frmr_pools_one_set);
++}
+diff --git a/rdma/res.c b/rdma/res.c
+index f1f13d74..63d8386a 100644
+--- a/rdma/res.c
++++ b/rdma/res.c
+@@ -28,6 +28,7 @@ static int res_help(struct rd *rd)
+ 	pr_out("          resource show srq dev [DEV] [FILTER-NAME FILTER-VALUE]\n");
+ 	pr_out("          resource show frmr_pools dev [DEV]\n");
+ 	pr_out("          resource show frmr_pools dev [DEV] [FILTER-NAME FILTER-VALUE]\n");
++	pr_out("          resource set frmr_pools dev DEV aging AGING_PERIOD\n");
+ 	return 0;
+ }
+ 
+@@ -252,11 +253,23 @@ static int res_show(struct rd *rd)
+ 	return rd_exec_cmd(rd, cmds, "parameter");
+ }
+ 
++static int res_set(struct rd *rd)
++{
++	const struct rd_cmd cmds[] = {
++		{ NULL,		res_help },
++		{ "frmr_pools",	res_frmr_pools_set },
++		{ 0 }
++	};
++
++	return rd_exec_cmd(rd, cmds, "resource set command");
++}
++
+ int cmd_res(struct rd *rd)
+ {
+ 	const struct rd_cmd cmds[] = {
+ 		{ NULL,		res_show },
+ 		{ "show",	res_show },
++		{ "set",	res_set },
+ 		{ "list",	res_show },
+ 		{ "help",	res_help },
+ 		{ 0 }
+diff --git a/rdma/res.h b/rdma/res.h
+index 30edb8f8..dffbdb52 100644
+--- a/rdma/res.h
++++ b/rdma/res.h
+@@ -203,6 +203,7 @@ struct filters frmr_pools_valid_filters[MAX_NUMBER_OF_FILTERS] = {
+ RES_FUNC(res_frmr_pools, RDMA_NLDEV_CMD_RES_FRMR_POOLS_GET,
+ 	 frmr_pools_valid_filters, true, 0);
+ 
++int res_frmr_pools_set(struct rd *rd);
+ void print_dev(uint32_t idx, const char *name);
+ void print_link(uint32_t idx, const char *name, uint32_t port, struct nlattr **nla_line);
+ void print_key(const char *name, uint64_t val, struct nlattr *nlattr);
 -- 
 2.38.1
 
