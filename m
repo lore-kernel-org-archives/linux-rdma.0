@@ -1,61 +1,63 @@
-Received: from mail-wr1-f41.google.com (mail-wr1-f41.google.com [209.85.221.41])
+Received: from mail-wm1-f54.google.com (mail-wm1-f54.google.com [209.85.128.54])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 835FD34A3B1
-	for <linux-rdma@vger.kernel.org>; Wed,  4 Mar 2026 16:00:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.41
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A9F9C34A3B1
+	for <linux-rdma@vger.kernel.org>; Wed,  4 Mar 2026 16:00:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.54
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772640031; cv=none; b=fpurIGZGrN9RPJZVmt2CFPFV3kiYYgzcbbQke67QbUU9Zle3/nppZ6PQouJOkBcwSLafVVlSYt00mWiusGR6Qx29wJd2PeOzKmPN2UDI4diXrRtD2sixyMgUklGQxn/61j28etyAdoWWQxKxRF+oQeF7uVo2vODOd9ErkmcCbj0=
+	t=1772640033; cv=none; b=S4kK9OH31m3/WDQgtezG0csDd8HZexaJak63rWKuBpaqQCwDlMXNOy+Q9ueMQtOBrN+PYAnoREVQo5nZwcWiEZbJzkggVS3G1erQf54hSsopn2MQ5t3o6B5gwexuwloCDRSiFnT6fmjdj/eW9f07WEFuWhRHgZZgTCpfx0rsuBQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772640031; c=relaxed/simple;
-	bh=KEeOkJm0EmRV6jqNyOAEXWp0ZZ6RYVxsvyRyrfSxNkY=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=azmcSl7oMVlHRyiOrcCEuaH4oeVE5V3AvKxN9WsY8oipjk75ewJQtocc6JzE2EsRKVj4dNfzQV/8pLX9KE0vF2Z6R9pXgKNWZVJUZ+fUpyKapWw6EVakvclLnRMbvUYeOFVAeCjBCyvFsOWLzJsQY1BWzy1qHg8m8b38vDpxO10=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=resnulli.us; spf=none smtp.mailfrom=resnulli.us; dkim=pass (2048-bit key) header.d=resnulli-us.20230601.gappssmtp.com header.i=@resnulli-us.20230601.gappssmtp.com header.b=IGxS4qVu; arc=none smtp.client-ip=209.85.221.41
+	s=arc-20240116; t=1772640033; c=relaxed/simple;
+	bh=Vtm80qE6FuR56bwzyqwTxutZyqLSGPZTe2b3PkwM178=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=cj9PZTb5sQQQPU/FCAnKu19Bw/+QrKdLZiXVZ3MJ1TYpGHh5L674Kl5jRVUgg03sd/u5jry1L4DBUi3egGtud4EmPsXJbqJIrC/PHfODJfUun+RK0xNvEoQHzKlOXWba0FQnpxu/O6wlUi6NeA31bEZuVMRF6Bc7EiJv03pzuYA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=resnulli.us; spf=none smtp.mailfrom=resnulli.us; dkim=pass (2048-bit key) header.d=resnulli-us.20230601.gappssmtp.com header.i=@resnulli-us.20230601.gappssmtp.com header.b=HKgeK19B; arc=none smtp.client-ip=209.85.128.54
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=resnulli.us
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=resnulli.us
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=resnulli-us.20230601.gappssmtp.com header.i=@resnulli-us.20230601.gappssmtp.com header.b="IGxS4qVu"
-Received: by mail-wr1-f41.google.com with SMTP id ffacd0b85a97d-439c4a93841so1066611f8f.1
-        for <linux-rdma@vger.kernel.org>; Wed, 04 Mar 2026 08:00:26 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=resnulli-us.20230601.gappssmtp.com header.i=@resnulli-us.20230601.gappssmtp.com header.b="HKgeK19B"
+Received: by mail-wm1-f54.google.com with SMTP id 5b1f17b1804b1-4834826e5a0so80057465e9.2
+        for <linux-rdma@vger.kernel.org>; Wed, 04 Mar 2026 08:00:31 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=resnulli-us.20230601.gappssmtp.com; s=20230601; t=1772640025; x=1773244825; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=OU95bHZuJNtP/VAPwIGit/Pa+QghFNKlhnRH3cB9CJ4=;
-        b=IGxS4qVuGVB6ooSFrgfLPbkfALb0ex4ep8cdG7ROwi1Hg+ZbwYXU6KMOfoW6Xd+Ehk
-         QTv5gwAKX4qmvsXMcu1w84NJvl/2i/46rktxrKqu5BY7LvGd/MhO8cnWicAa7wLsoEVl
-         6qCG/RgEMQPYUdyWvSN3wxY1l37FC+grgQKIlDI/MwiRh5Uxu6aqG9mnAKw4gCmTQHwf
-         x0KlDbch2jXuHkGQyd5VQGMQsgdugtR718PY2w/NODfxNvtRp7uF2ZZgSXuWrGRq/o33
-         4wBLaBCQKJ4J4BzSXhWLpLNd1tRUC4FGhyli0YXa7QAhn3+Ym7bvxh+2sFiGZfMFvns4
-         w5rg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1772640025; x=1773244825;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+        d=resnulli-us.20230601.gappssmtp.com; s=20230601; t=1772640030; x=1773244830; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=OU95bHZuJNtP/VAPwIGit/Pa+QghFNKlhnRH3cB9CJ4=;
-        b=MJVHnK+PBJ7OkWAygQW66xcGi1TutiaWb6qKCwT0N6Bn4T8WSaMaqxxdoq02C5b9y8
-         B3EkZxoY/TaO667B3T3AO7UqIrugd79SmsvUlvTrJlyH1gofFVh6oFEZo0/Pxb94QF1t
-         iaky/Tszglq3MniMrmo3OItk1ZsQ8/RLFE7Ab9njjFdkLSKCT594foLBO3OiWxeuIxzL
-         P2ysnHVAMnNisScRTqWsHuIjx9twrsTuHoblfyghLhkXMxr+feDZfOfUxguoXFahCwQ5
-         v2dBIkhWDXkXMXfOuOh8fnmaoOZfCmUL2AoLoXhr6uL1t1voSVYZUTz98YCb9u9rAkq5
-         6McA==
-X-Forwarded-Encrypted: i=1; AJvYcCUOmZoVjpTLBtj6ava4loOzWhboRi8SxtNWFHre1uvfcM9rQImk7dps4lBIu7FGch5QtvXZOcwqCJUv@vger.kernel.org
-X-Gm-Message-State: AOJu0Yycm4SdlHOBLBSx7oOv4z+Thb4ZtPeb2l8u2oHVn13KEOG9Hbmw
-	OhObvVloAXUEs4LYDqyIblsjUSsDzCKOSnRlzIe1Qn9oLsa6rVIBPBs/nggyt9Bou+c=
-X-Gm-Gg: ATEYQzwSZpr5G5rQRmsDpbr6xMr4k/TCHUECla0V/D88GqpkvWSo9JnjgS/7cqYXsjQ
-	7qOVd4D9M17vnWO0jzdE6V42mYuD0bvtKawKRGxc3l7Y3AIKpP/bUaKyPJB/7tgiXCzVJgp5+yS
-	jDfkvTlhOMg0HBY/CoUt0uqrNKbKj5xkQIJ0pPzTJWI2o9slNz+pPrvp0QKzCHFZTqCK+qKlCcc
-	b0PHtWvQ2wK3UHUIp3gdBaSXkS2xjtw1FQk/djJiYx1VukZKxxPAu4N/4xn305zgwOs/BICv+AS
-	CvOOKRGIg2PdacHpVF0V7nGjutwSC/SFxFiJA9k4GE+QRf3+a9q6YskTowduwdWFR0+gwPJetS9
-	nw/kbGVHWZQjWqxml3jgs5gAB+sDSWauVuU4A7lq/HT/eW9TcgawWriWIC6DCJs/O33Dx2z/cV3
-	C1aNSOSLgFqEUkUF8ewN9gaLOs2PHrEwJvdoWX1p6IA5EVRg==
-X-Received: by 2002:a05:6000:1acf:b0:439:b3ff:9ab9 with SMTP id ffacd0b85a97d-439c7ffcb29mr5150381f8f.48.1772640024040;
-        Wed, 04 Mar 2026 08:00:24 -0800 (PST)
+        bh=HEWuug6YBMXUGRBONZQ2DbkIBf5q1GxD8BXyAd3vMMw=;
+        b=HKgeK19BNnN/xfBdG3TeGtmGL4/I6csuNySXiK2cvgGVrlXff2jFACmEtRqt1l/BkT
+         QS8uWnklsDMoiQGl9zO7SZwouW09GKKmMpK346Hlh5FEVTSNPBKXJ6jfQX15eXo1TdRF
+         qlVD3h9UmKOPLDS//iY+ytByE8MGw49FZJ0V0I0NzZ1BCn2jCs591b0RE/Xpp3PoKF8s
+         azTOhDeI7RpNIvy6vt/0kOKU8R7hgiFVSrd+0v6JuY2LYxG0CGCXMVcyGIdRmjW52VlM
+         4zNYfYKPVl2jeoGMmQvDQRvR4toe5Z0JohC8zilCe0XoTEYzmcCm5+YF44VzPCPnLl7f
+         dLVQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1772640030; x=1773244830;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=HEWuug6YBMXUGRBONZQ2DbkIBf5q1GxD8BXyAd3vMMw=;
+        b=au5LuHW7abo5U1ftdrw2l419CXBS7ib0sGwaP2PrtUzIJ2M/4krSf4oMVAtHNJw/YS
+         PhSe6nU2FgRbW8exWlCIXICHQFbBEvp8OlAxN4sEiAsYcLA9otTzuFNF8UuvnhyU5kFM
+         0wHCwLJT2RZ24S3lYSr4HDzhtNV3rOpaHKfm2LovLnorAp0GKDZVtQCtuygL3mi3lHpE
+         HU2a9xlGHXWx1B6eur35c/q1WNDnVEX2oVYGZVjMlI/t5J3HIEvMFbqXluLQV3r40gkC
+         nrvHBzPugYyvH29tP3OaXeP92wJ4M7cFirFu1e5QHtx5VKx84KwLBhKKjm83pnFxnqaA
+         RTgw==
+X-Forwarded-Encrypted: i=1; AJvYcCUtPyLvU5Mjcb2TDidCPUJG9imBrhm6GSYaH4d8Tlt4HueCJS3ZOc5foNNkWk64gHm8YGkLjIwm7zQL@vger.kernel.org
+X-Gm-Message-State: AOJu0YyLo0TCWTlioFAnxdW4swG5EB/+B3rNmto3+Q/FbyYLG1tiTpv4
+	9CZn0t1IwEAKRAh2+Xb2SdZuQUC/LkAQ+anNPLBIg6EYqXxGqb3V0c2GjrYYhiF+R4I=
+X-Gm-Gg: ATEYQzxynn+bbuQFSARVvx+GJdrAnZK7l8Pit31i9yz/9zUhijqyManRvr2wjW5PPKA
+	eSr5DEu5rFzOhmIu3h6WGeH84PEHwew0W7Z4gDNj2E31LWH8hF7spRGxmZrbWWHfFHzrlbLTfjn
+	5nzKO11FV/KOpagunXOmoW8MzZ3yiPwW6i8dHcOv2pFo7cWPLZMn2li7xYoVpSvHqAD6Q4VkKXl
+	y49u+IuovhQdazggk6rUTboe2mxC7VN0Fyzj7cK9xg6mP2+K7HTyrXMAX2vXDks+15ijmu+863D
+	OYpo9kMFZoIbDdohZ9HWlsm4wcUhtF8KbvmB6wHjUoxV/tv2inPG+d7WUIJhc+fsxhhTjudSofs
+	IV/+dbCl444DodSAK8UVgviX1JA2zfRg66oV9IR+hDNdBoOddYVTuMDscITWlWKx7jO+vsDYMZ8
+	Hj48MMKJEJXuLgqXBPA8DP7mozKu9i3dTJ3sAu2C0Ul+R3zA==
+X-Received: by 2002:a05:600c:1c21:b0:483:71f7:2794 with SMTP id 5b1f17b1804b1-48519866866mr45713755e9.15.1772640030032;
+        Wed, 04 Mar 2026 08:00:30 -0800 (PST)
 Received: from localhost (46-13-72-179.customers.tmcz.cz. [46.13.72.179])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-439b59723fesm25578351f8f.38.2026.03.04.08.00.23
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-485187ced3bsm56749265e9.8.2026.03.04.08.00.29
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 04 Mar 2026 08:00:23 -0800 (PST)
+        Wed, 04 Mar 2026 08:00:29 -0800 (PST)
 From: Jiri Pirko <jiri@resnulli.us>
 To: netdev@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -83,10 +85,12 @@ Cc: davem@davemloft.net,
 	linux-doc@vger.kernel.org,
 	linux-rdma@vger.kernel.org,
 	linux-trace-kernel@vger.kernel.org
-Subject: [PATCH net-next v3 00/13] devlink: introduce shared devlink instance for PFs on same chip
-Date: Wed,  4 Mar 2026 17:00:09 +0100
-Message-ID: <20260304160022.6114-1-jiri@resnulli.us>
+Subject: [PATCH net-next v3 03/13] devlink: avoid extra iterations when found devlink is not registered
+Date: Wed,  4 Mar 2026 17:00:12 +0100
+Message-ID: <20260304160022.6114-4-jiri@resnulli.us>
 X-Mailer: git-send-email 2.51.1
+In-Reply-To: <20260304160022.6114-1-jiri@resnulli.us>
+References: <20260304160022.6114-1-jiri@resnulli.us>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -97,98 +101,46 @@ Content-Transfer-Encoding: 8bit
 
 From: Jiri Pirko <jiri@nvidia.com>
 
-Multiple PFs on a network adapter often reside on the same physical
-chip, running a single firmware. Some resources and configurations
-are inherently shared among these PFs - PTP clocks, VF group rates,
-firmware parameters, and others. Today there is no good object in
-the devlink model to attach these chip-wide configuration knobs to.
-Drivers resort to workarounds like pinning shared state to PF0 or
-maintaining ad-hoc internal structures (e.g., ice_adapter) that are
-invisible to userspace.
+Since the one found is not registered, very unlikely another one with
+the same bus_name/dev_name is going to be found. Stop right away and
+prepare common "found" path for the follow-up patch.
 
-This problem was discussed extensively starting with Przemek Kitszel's
-"whole device devlink instance" RFC for the ice driver [1]. Several
-approaches for representing the parent instance were considered:
-using a partial PCI BDF as the dev_name (breaks when PFs have different
-BDFs in VMs), creating a per-driver bus, using auxiliary devices, or
-using faux devices. All of these required a backing struct device for
-the parent devlink instance, which does not naturally exist - there is
-no PCI device that represents the chip as a whole.
-
-This patchset takes a different approach: allow devlink instances to
-exist without any backing struct device. The instance is identified
-purely by its internal index, exposed over devlin netlink. This avoids
-fabricating fake devices and keeps the devlink handle semantics clean.
-
-The first ten patches prepare the devlink core for device-less
-instances by decoupling the handle from the parent device. The last
-three introduce the shared devlink infrastructure and its first user
-in the mlx5 driver.
-
-Example output showing the shared instance and nesting:
-
-  pci/0000:08:00.0: index 0
-    nested_devlink:
-      auxiliary/mlx5_core.eth.0
-  devlink_index/1: index 1
-    nested_devlink:
-      pci/0000:08:00.0
-      pci/0000:08:00.1
-  auxiliary/mlx5_core.eth.0: index 2
-  pci/0000:08:00.1: index 3
-    nested_devlink:
-      auxiliary/mlx5_core.eth.1
-  auxiliary/mlx5_core.eth.1: index 4
-
-[1] https://lore.kernel.org/netdev/20250219164410.35665-1-przemyslaw.kitszel@intel.com/
-
+Signed-off-by: Jiri Pirko <jiri@nvidia.com>
 ---
-Decoupled from "devlink and mlx5: Support cross-function rate scheduling"
-patchset to maintain 15-patches limit.
+ net/devlink/netlink.c | 16 ++++++++++------
+ 1 file changed, 10 insertions(+), 6 deletions(-)
 
-See individual patches for changelog.
-
-Jiri Pirko (13):
-  devlink: expose devlink instance index over netlink
-  devlink: add helpers to get bus_name/dev_name
-  devlink: avoid extra iterations when found devlink is not registered
-  devlink: allow to use devlink index as a command handle
-  devlink: support index-based lookup via bus_name/dev_name handle
-  devlink: support index-based notification filtering
-  devlink: introduce __devlink_alloc() with dev driver pointer
-  devlink: add devlink_dev_driver_name() helper and use it in trace
-    events
-  devlink: add devl_warn() helper and use it in port warnings
-  devlink: allow devlink instance allocation without a backing device
-  devlink: introduce shared devlink instance for PFs on same chip
-  documentation: networking: add shared devlink documentation
-  net/mlx5: Add a shared devlink instance for PFs on same chip
-
- Documentation/netlink/specs/devlink.yaml      |  56 +++
- .../networking/devlink/devlink-shared.rst     |  97 +++++
- Documentation/networking/devlink/index.rst    |   1 +
- .../net/ethernet/mellanox/mlx5/core/Makefile  |   5 +-
- .../net/ethernet/mellanox/mlx5/core/main.c    |  17 +
- .../ethernet/mellanox/mlx5/core/sh_devlink.c  |  61 +++
- .../ethernet/mellanox/mlx5/core/sh_devlink.h  |  12 +
- include/linux/mlx5/driver.h                   |   1 +
- include/net/devlink.h                         |  10 +
- include/trace/events/devlink.h                |  36 +-
- include/uapi/linux/devlink.h                  |   4 +
- net/devlink/Makefile                          |   2 +-
- net/devlink/core.c                            |  91 ++++-
- net/devlink/dev.c                             |   8 +-
- net/devlink/devl_internal.h                   |  34 +-
- net/devlink/netlink.c                         |  57 ++-
- net/devlink/netlink_gen.c                     | 350 +++++++++++-------
- net/devlink/port.c                            |  19 +-
- net/devlink/sh_dev.c                          | 161 ++++++++
- 19 files changed, 813 insertions(+), 209 deletions(-)
- create mode 100644 Documentation/networking/devlink/devlink-shared.rst
- create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/sh_devlink.c
- create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/sh_devlink.h
- create mode 100644 net/devlink/sh_dev.c
-
+diff --git a/net/devlink/netlink.c b/net/devlink/netlink.c
+index 56817b85a3f9..7b205f677b7a 100644
+--- a/net/devlink/netlink.c
++++ b/net/devlink/netlink.c
+@@ -194,16 +194,20 @@ devlink_get_from_attrs_lock(struct net *net, struct nlattr **attrs,
+ 
+ 	devlinks_xa_for_each_registered_get(net, index, devlink) {
+ 		if (strcmp(devlink_bus_name(devlink), busname) == 0 &&
+-		    strcmp(devlink_dev_name(devlink), devname) == 0) {
+-			devl_dev_lock(devlink, dev_lock);
+-			if (devl_is_registered(devlink))
+-				return devlink;
+-			devl_dev_unlock(devlink, dev_lock);
+-		}
++		    strcmp(devlink_dev_name(devlink), devname) == 0)
++			goto found;
+ 		devlink_put(devlink);
+ 	}
+ 
+ 	return ERR_PTR(-ENODEV);
++
++found:
++	devl_dev_lock(devlink, dev_lock);
++	if (devl_is_registered(devlink))
++		return devlink;
++	devl_dev_unlock(devlink, dev_lock);
++	devlink_put(devlink);
++	return ERR_PTR(-ENODEV);
+ }
+ 
+ static int __devlink_nl_pre_doit(struct sk_buff *skb, struct genl_info *info,
 -- 
 2.51.1
 
