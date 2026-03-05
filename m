@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4BA23273803;
-	Thu,  5 Mar 2026 10:34:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 27474375F6D;
+	Thu,  5 Mar 2026 10:44:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772706889; cv=none; b=fTXpmO54TPvsFsm+2Fzp5ReMWMAdxaofXXYWjU9LuQAi72KYLasoUveK0cMrNLtFdDGOtJ+Fq0CUlcHlgSwK1drqzhyq8qRdFkVFq2RKgS3ptp65PJBU71ofi1jNdVrrXra2ovLwAi8b1rget8YNCsX2b0VBHZNv2B12WV6jJjU=
+	t=1772707464; cv=none; b=UtEbIF/F1mJNT+CM0Z8UFSDaXyAlyyh6rt97dHcorE7O8wFtMgcQBoc9SUUoiPg6agxRqHaQkZGNeLSxi32ZFQFkXLKZGhM1MgYLV5+HqhsaDD9oc9ZRnP1cBy8sxkx06b3+9QDkp+YyioK1LNm1DU9ALK4LTpqfdS/e8byRVCE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772706889; c=relaxed/simple;
-	bh=PrGLRJ5mfNNhmh+NJl+x6JMsMMWRzC9mI8IsJAXNbkM=;
+	s=arc-20240116; t=1772707464; c=relaxed/simple;
+	bh=9Edvck3LxiBvAXzvxFRHIOn3vCHYrELA6m6QYdblTzA=;
 	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
-	 MIME-Version:Content-Type; b=W8IOqAQeezCCJqtImd9ep175l3ujeuCdomjulctUFFLeP59wqgI6sOr3uwXAClFeR2A5YeE4Gcoqqr5XVyvJ7/DsDJZHkk5PB4lvDozFn/RwtvaWcPwdw1OamIowipB3cvoRqcr/g0AZePQAth3wubCuE0fNVusR2AyE6kquHDI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=dLOEqXiu; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version:Content-Type; b=qUGPeRgJrnTHbPhlB0UqYpk7tMRiNsrzfhaK6c3vhAUJCjozxJaVdl22T2wSvEE954piTEm8OIQTMttFPrrJmkG4zAWjnBi8CnBFOes/tdCbvCpMjB4AxTKHjDy2+4Vlk7oXgSOVx6XR2b7mW44hXbWfzKXDaeWJuSp0RhyhLxU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=I+A/J+aI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="dLOEqXiu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6178EC19422;
-	Thu,  5 Mar 2026 10:34:48 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="I+A/J+aI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 966D0C116C6;
+	Thu,  5 Mar 2026 10:44:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1772706888;
-	bh=PrGLRJ5mfNNhmh+NJl+x6JMsMMWRzC9mI8IsJAXNbkM=;
+	s=k20201202; t=1772707464;
+	bh=9Edvck3LxiBvAXzvxFRHIOn3vCHYrELA6m6QYdblTzA=;
 	h=From:To:Cc:In-Reply-To:References:Subject:Date:From;
-	b=dLOEqXiuweGH2n9V989CMBERJtG8XhhCaLmkmzIBxc7PvTsE0e1LFAYm4g3q5kUmJ
-	 y4ZW9GlQAuz+7oc/2R4FLhd5DK+eEPD3w4N60Sk0VSg12yHvxUMOIPk/JS6b1bX9W+
-	 kjsDJORLjbMaO7i+mNQM7jnJV+5Xe+wQAGN1RL1ypdrx1gl79L7WvsD/HAYWs659lp
-	 utNsfmmWSvoxwD/T/qMPUI9Xl/Z7bA/nm+vYH3Wp33cDsPYQsgJp1+g3y8bMMEN5BC
-	 YjujF/ATiHTPtsgERQmm2YS+AFGVGPTobLEpbf14BxRrzVWzR3t21aW5HVKfDw9Vzv
-	 ghiDbwbvkNMJA==
+	b=I+A/J+aIrdrEYqniBB6Tb8c15G9pVcV0AIhe9vRhE1fEoUlVTZbNUv6SO3JTBtc7n
+	 4Gj7dv9lh7V5nL1dQQdICRFvUAUlxUea84CEZSbzh2f/OdOwiEMeS62+JCGmmy6tZu
+	 /P7lAoK0NwM8J6ZQCPTZsk28l5ll+l92/qlOvyB78k9o8pZZjDmnblB6lvNEDDNSrO
+	 qx1vj6NMa3i5OcbDHyO8B2go5EWgisja5Hc1wo4rS104v0uGwI2g+nLcNZ8G+NcDta
+	 MO5kLuDSwI3mC9mD188ac2tMfy/5UoLe/4eXBMW56Y0QRHjdclchddujIAhc305tLB
+	 z+g/TnS1tzRrw==
 From: Leon Romanovsky <leon@kernel.org>
 To: Saeed Mahameed <saeedm@nvidia.com>, Tariq Toukan <tariqt@nvidia.com>, 
  Mark Bloch <mbloch@nvidia.com>, Andrew Lunn <andrew+netdev@lunn.ch>, 
@@ -37,8 +37,8 @@ Cc: linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
 In-Reply-To: <20260225-var-tlp-v1-0-fe14a7ac7731@nvidia.com>
 References: <20260225-var-tlp-v1-0-fe14a7ac7731@nvidia.com>
 Subject: Re: (subset) [PATCH rdma-next 0/6] Add support for TLP emulation
-Message-Id: <177270688603.1181551.11297261532942921320.b4-ty@kernel.org>
-Date: Thu, 05 Mar 2026 05:34:46 -0500
+Message-Id: <177270746103.1221304.5163870005960445007.b4-ty@kernel.org>
+Date: Thu, 05 Mar 2026 05:44:21 -0500
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -65,9 +65,13 @@ On Wed, 25 Feb 2026 16:19:30 +0200, Leon Romanovsky wrote:
 
 Applied, thanks!
 
-[1/6] net/mlx5: Add TLP emulation device capabilities
+[3/6] RDMA/mlx5: Refactor VAR table to use region abstraction
       (no commit info)
-[2/6] net/mlx5: Expose TLP emulation capabilities
+[4/6] RDMA/mlx5: Add TLP VAR region support and infrastructure
+      (no commit info)
+[5/6] RDMA/mlx5: Add support for TLP VAR allocation
+      (no commit info)
+[6/6] RDMA/mlx5: Add VAR object query method for cross-process sharing
       (no commit info)
 
 Best regards,
