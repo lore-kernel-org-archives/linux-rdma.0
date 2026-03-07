@@ -1,491 +1,160 @@
-Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 020F7331221;
-	Sat,  7 Mar 2026 01:47:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
+Received: from out-180.mta0.migadu.com (out-180.mta0.migadu.com [91.218.175.180])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3954E2EF67A
+	for <linux-rdma@vger.kernel.org>; Sat,  7 Mar 2026 03:22:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.180
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772848059; cv=none; b=pf9EDA8NebGWcNg7x5jzAZxRETc6DhpzIAwkZUzEJZtg8+u+QJCxrevU4Gjev4GNISHWseE+ARI8IDm5VAoFqhSQiR8Cawvn5ps+/Cg3fiDg2dwiBv4K/sMopxBrPhTO9baMu3asnxMI/tazh4mB4mo3PHLCrsihPVmtF6HY220=
+	t=1772853743; cv=none; b=JK9oPKspBPRj8b1SFQKlOsjwtXD/vWBG5CINxlRdHR3oKWUNN/LwlAykeZ3Bpye878j/3B19ZDQn9UjaY0wS1eARr86wTqxntphmkB0Zq9Afds+ly3YSfgX9a5x2BSPzYMQVOt2bY9S1sKEJoHDVWGNyjDklrqrP+KMT+l/9eEQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772848059; c=relaxed/simple;
-	bh=pWYTHJCNKqq1+GiUUCUl5igXga4xOTfXNYFerUaA9k4=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=ulvOslDfpXPU+MmPZK6hzLTXDJLpB/ftZhkzRa4KtgIVrFZ0+tpaMjoZ98smfdGe+/jfOMaGEEoy3+ceNREwfmRBkOCph4g0IF1EOTIx6PHe1Giq8sEkPauTBy/8p6r7/sfHldAl9aJsLKHTLhkTltQhRQQtcDdzR2ijOo/LO7c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; arc=none smtp.client-ip=13.77.154.182
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
-Received: by linux.microsoft.com (Postfix, from userid 1202)
-	id D1B5620B6F05; Fri,  6 Mar 2026 17:47:36 -0800 (PST)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com D1B5620B6F05
-From: Long Li <longli@microsoft.com>
-To: Long Li <longli@microsoft.com>,
-	Konstantin Taranov <kotaranov@microsoft.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	"David S . Miller" <davem@davemloft.net>,
-	Paolo Abeni <pabeni@redhat.com>,
+	s=arc-20240116; t=1772853743; c=relaxed/simple;
+	bh=VQwpztTD6X2+N2GcGFC+cfF0qdSug6p/2KKpCFyCe7Q=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=t+di/09aWp01xRP484l+gyOv/fFT2UJQ5ad6AP6gmUDpGP6uUk5vwuO6Syxi+6r91WWHiaX4tnFWZkYADVxtZX5LdZ1t99Nypk5Cv5Fif+URZ/m/lrZ3EBCPpDBnSCUuHK1GWHWCsD+k7WxyTQGIU3N1Q8OocPq6jQH9y+Ey51o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=HcKoFVbR; arc=none smtp.client-ip=91.218.175.180
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="HcKoFVbR"
+X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
+	t=1772853730;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=QJBoqx1LHyd0/cvODH/iQXRMAkmqnF6l6wgjSb0JHZ0=;
+	b=HcKoFVbRz57KHwAFkUutc+hPS9luMCnbkUmROaaPHfjaWWJT8en1f2qNtW+m4hW3QcRzWM
+	rVQ0BYBLCZMYOXnAPaGh0JxjUiEyxo7rR3d6B4Lf6av/sd/rgct5SFnTL/qs2VKdzgS0Tk
+	SQrOt6mUH9I0UsUi2khhjwpHggm06n8=
+From: Jiayuan Chen <jiayuan.chen@linux.dev>
+To: netdev@vger.kernel.org
+Cc: Jiayuan Chen <jiayuan.chen@linux.dev>,
+	syzbot+827ae2bfb3a3529333e9@syzkaller.appspotmail.com,
+	"D. Wythe" <alibuda@linux.alibaba.com>,
+	Dust Li <dust.li@linux.alibaba.com>,
+	Sidraya Jayagond <sidraya@linux.ibm.com>,
+	Wenjia Zhang <wenjia@linux.ibm.com>,
+	Mahanta Jambigi <mjambigi@linux.ibm.com>,
+	Tony Lu <tonylu@linux.alibaba.com>,
+	Wen Gu <guwen@linux.alibaba.com>,
+	"David S. Miller" <davem@davemloft.net>,
 	Eric Dumazet <edumazet@google.com>,
-	Andrew Lunn <andrew+netdev@lunn.ch>,
-	Jason Gunthorpe <jgg@ziepe.ca>,
-	Leon Romanovsky <leon@kernel.org>,
-	Haiyang Zhang <haiyangz@microsoft.com>,
-	"K . Y . Srinivasan" <kys@microsoft.com>,
-	Wei Liu <wei.liu@kernel.org>,
-	Dexuan Cui <decui@microsoft.com>
-Cc: Simon Horman <horms@kernel.org>,
-	netdev@vger.kernel.org,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>,
 	linux-rdma@vger.kernel.org,
-	linux-hyperv@vger.kernel.org,
+	linux-s390@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH rdma-next 7/8] RDMA/mana_ib: Notify service reset events to RDMA devices
-Date: Fri,  6 Mar 2026 17:47:21 -0800
-Message-ID: <20260307014723.556523-8-longli@microsoft.com>
-X-Mailer: git-send-email 2.43.7
-In-Reply-To: <20260307014723.556523-1-longli@microsoft.com>
-References: <20260307014723.556523-1-longli@microsoft.com>
+Subject: [PATCH net v1] net/smc: fix NULL dereference and UAF in smc_tcp_syn_recv_sock()
+Date: Sat,  7 Mar 2026 11:21:57 +0800
+Message-ID: <20260307032158.372165-1-jiayuan.chen@linux.dev>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
+X-Migadu-Flow: FLOW_OUT
 
-Register reset_notify and resume_notify callbacks so the RDMA driver
-is informed when the MANA service undergoes a reset cycle.
+Syzkaller reported a panic in smc_tcp_syn_recv_sock() [1].
 
-On reset notification:
-  - Acquire reset_rwsem write lock to serialize with resource creation
-  - Walk every tracked ucontext and invalidate firmware handles for
-    all PD, CQ, WQ, QP, and MR resources (set to INVALID_MANA_HANDLE)
-  - Dispatch IB_EVENT_PORT_ERR to each affected ucontext so userspace
-    (e.g. DPDK) learns about the reset
+smc_tcp_syn_recv_sock() is called in the TCP receive path
+(softirq) via icsk_af_ops->syn_recv_sock on the clcsock (TCP
+listening socket). It reads sk_user_data to get the smc_sock
+pointer. However, when the SMC listen socket is being closed
+concurrently, smc_close_active() sets clcsock->sk_user_data
+to NULL under sk_callback_lock, and then the smc_sock itself
+can be freed via sock_put() in smc_release().
 
-On resume notification:
-  - Release reset_rwsem write lock, unblocking new resource creation
+This leads to two issues:
 
-Resource creation paths (alloc_pd, create_cq, create_wq, create_qp for
-RAW_PACKET, reg_user_mr) acquire reset_rwsem read lock to ensure handles
-are not invalidated while being set up.
+1) NULL pointer dereference: sk_user_data is NULL when
+   accessed.
+2) Use-after-free: sk_user_data is read as non-NULL, but the
+   smc_sock is freed before its fields (e.g., queued_smc_hs,
+   ori_af_ops) are accessed.
 
-Signed-off-by: Long Li <longli@microsoft.com>
+The race window looks like this:
+
+  CPU A (softirq)              CPU B (process ctx)
+
+  tcp_v4_rcv()
+    TCP_NEW_SYN_RECV:
+    sk = req->rsk_listener
+    sock_hold(sk)
+    /* No lock on listener */
+                               smc_close_active():
+                                 write_lock_bh(cb_lock)
+                                 sk_user_data = NULL
+                                 write_unlock_bh(cb_lock)
+                                 ...
+                                 smc_clcsock_release()
+                                 sock_put(smc->sk) x2
+                                   -> smc_sock freed!
+    tcp_check_req()
+      smc_tcp_syn_recv_sock():
+        smc = user_data(sk)
+          -> NULL or dangling
+        smc->queued_smc_hs
+          -> crash!
+
+Note that the clcsock and smc_sock are two independent objects
+with separate refcounts. TCP stack holds a reference on the
+clcsock, which keeps it alive, but this does NOT prevent the
+smc_sock from being freed.
+
+Fix this by taking sk_callback_lock to read sk_user_data and
+then sock_hold(&smc->sk) under the lock to pin the smc_sock.
+The lock is released immediately after sock_hold(), rather
+than being held for the entire function, to avoid holding it
+across ori_af_ops->syn_recv_sock() which creates child
+sockets and could risk deadlocks with nested lock ordering.
+sock_put(&smc->sk) is called on all exit paths after the
+hold.
+
+[1] https://syzkaller.appspot.com/bug?extid=827ae2bfb3a3529333e9
+
+Fixes: 8270d9c21041 ("net/smc: Limit backlog connections")
+Reported-by: syzbot+827ae2bfb3a3529333e9@syzkaller.appspotmail.com
+Closes: https://lore.kernel.org/all/67eaf9b8.050a0220.3c3d88.004a.GAE@google.com/T/
+Signed-off-by: Jiayuan Chen <jiayuan.chen@linux.dev>
 ---
- drivers/infiniband/hw/mana/cq.c               |  15 ++-
- drivers/infiniband/hw/mana/device.c           | 103 ++++++++++++++++++
- drivers/infiniband/hw/mana/main.c             |   9 ++
- drivers/infiniband/hw/mana/mana_ib.h          |   2 +
- drivers/infiniband/hw/mana/mr.c               |   4 +
- drivers/infiniband/hw/mana/qp.c               |   5 +
- drivers/infiniband/hw/mana/wq.c               |   4 +
- drivers/net/ethernet/microsoft/mana/mana_en.c |  14 ++-
- include/net/mana/gdma.h                       |   6 +
- 9 files changed, 155 insertions(+), 7 deletions(-)
+ net/smc/af_smc.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff --git a/drivers/infiniband/hw/mana/cq.c b/drivers/infiniband/hw/mana/cq.c
-index 89cf60987ff5..b054684b8de7 100644
---- a/drivers/infiniband/hw/mana/cq.c
-+++ b/drivers/infiniband/hw/mana/cq.c
-@@ -41,13 +41,17 @@ int mana_ib_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
- 			ibdev_dbg(ibdev, "CQE %d exceeding limit\n", attr->cqe);
- 			return -EINVAL;
- 		}
+diff --git a/net/smc/af_smc.c b/net/smc/af_smc.c
+index d0119afcc6a1..21218b9b0f9a 100644
+--- a/net/smc/af_smc.c
++++ b/net/smc/af_smc.c
+@@ -131,7 +131,14 @@ static struct sock *smc_tcp_syn_recv_sock(const struct sock *sk,
+ 	struct smc_sock *smc;
+ 	struct sock *child;
+ 
++	read_lock_bh(&((struct sock *)sk)->sk_callback_lock);
+ 	smc = smc_clcsock_user_data(sk);
++	if (!smc) {
++		read_unlock_bh(&((struct sock *)sk)->sk_callback_lock);
++		return NULL;
 +	}
-+
-+	down_read(&mdev->reset_rwsem);
++	sock_hold(&smc->sk);
++	read_unlock_bh(&((struct sock *)sk)->sk_callback_lock);
  
-+	if (udata) {
- 		cq->cqe = attr->cqe;
- 		err = mana_ib_create_queue(mdev, ucmd.buf_addr, cq->cqe * COMP_ENTRY_SIZE,
- 					   &cq->queue);
- 		if (err) {
- 			ibdev_dbg(ibdev, "Failed to create queue for create cq, %d\n", err);
--			return err;
-+			goto err_unlock;
- 		}
- 
- 		mana_ucontext = rdma_udata_to_drv_context(udata, struct mana_ib_ucontext,
-@@ -56,14 +60,15 @@ int mana_ib_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
- 	} else {
- 		if (attr->cqe > U32_MAX / COMP_ENTRY_SIZE / 2 + 1) {
- 			ibdev_dbg(ibdev, "CQE %d exceeding limit\n", attr->cqe);
--			return -EINVAL;
-+			err = -EINVAL;
-+			goto err_unlock;
- 		}
- 		buf_size = MANA_PAGE_ALIGN(roundup_pow_of_two(attr->cqe * COMP_ENTRY_SIZE));
- 		cq->cqe = buf_size / COMP_ENTRY_SIZE;
- 		err = mana_ib_create_kernel_queue(mdev, buf_size, GDMA_CQ, &cq->queue);
- 		if (err) {
- 			ibdev_dbg(ibdev, "Failed to create kernel queue for create cq, %d\n", err);
--			return err;
-+			goto err_unlock;
- 		}
- 		doorbell = mdev->gdma_dev->doorbell;
+ 	if (READ_ONCE(sk->sk_ack_backlog) + atomic_read(&smc->queued_smc_hs) >
+ 				sk->sk_max_ack_backlog)
+@@ -153,11 +160,13 @@ static struct sock *smc_tcp_syn_recv_sock(const struct sock *sk,
+ 		if (inet_csk(child)->icsk_af_ops == inet_csk(sk)->icsk_af_ops)
+ 			inet_csk(child)->icsk_af_ops = smc->ori_af_ops;
  	}
-@@ -105,6 +110,7 @@ int mana_ib_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
- 		mutex_unlock(&mana_ucontext->lock);
- 	}
++	sock_put(&smc->sk);
+ 	return child;
  
-+	up_read(&mdev->reset_rwsem);
- 	return 0;
- 
- err_remove_cq_cb:
-@@ -113,7 +119,8 @@ int mana_ib_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
- 	mana_ib_gd_destroy_cq(mdev, cq);
- err_destroy_queue:
- 	mana_ib_destroy_queue(mdev, &cq->queue);
--
-+err_unlock:
-+	up_read(&mdev->reset_rwsem);
- 	return err;
+ drop:
+ 	dst_release(dst);
+ 	tcp_listendrop(sk);
++	sock_put(&smc->sk);
+ 	return NULL;
  }
  
-diff --git a/drivers/infiniband/hw/mana/device.c b/drivers/infiniband/hw/mana/device.c
-index 149e8d4d5b8e..081be31563ca 100644
---- a/drivers/infiniband/hw/mana/device.c
-+++ b/drivers/infiniband/hw/mana/device.c
-@@ -103,6 +103,7 @@ static int mana_ib_netdev_event(struct notifier_block *this,
- 					netdev_put(ndev, &dev->dev_tracker);
- 
- 				return NOTIFY_OK;
-+
- 			default:
- 				return NOTIFY_DONE;
- 			}
-@@ -110,6 +111,93 @@ static int mana_ib_netdev_event(struct notifier_block *this,
- 	return NOTIFY_DONE;
- }
- 
-+/*
-+ * Reset cleanup: invalidate firmware handles for all tracked user objects.
-+ *
-+ * Called during service reset BEFORE dispatching IB_EVENT_PORT_ERR to
-+ * user-mode.
-+ *
-+ * Only invalidates FW handles — does NOT free kernel resources (umem, queues)
-+ * or remove objects from lists. The IB core's destroy callbacks handle full
-+ * resource teardown when user-space closes the uverbs FD or ib_unregister_device
-+ * is called. The destroy callbacks skip FW commands when the handle is already
-+ * INVALID_MANA_HANDLE.
-+ *
-+ * For CQs, also removes the CQ callback to prevent stale completions.
-+ */
-+static void mana_ib_reset_notify(void *ctx)
-+{
-+	struct mana_ib_dev *mdev = ctx;
-+	struct mana_ib_ucontext *uctx;
-+	struct mana_ib_qp *qp;
-+	struct mana_ib_wq *wq;
-+	struct mana_ib_cq *cq;
-+	struct mana_ib_mr *mr;
-+	struct mana_ib_pd *pd;
-+	struct ib_event ibev;
-+	int i;
-+
-+	down_write(&mdev->reset_rwsem);
-+
-+	ibdev_dbg(&mdev->ib_dev, "reset cleanup starting\n");
-+
-+	mutex_lock(&mdev->ucontext_lock);
-+	list_for_each_entry(uctx, &mdev->ucontext_list, dev_list) {
-+		mutex_lock(&uctx->lock);
-+
-+		list_for_each_entry(qp, &uctx->qp_list, ucontext_list)
-+			qp->qp_handle = INVALID_MANA_HANDLE;
-+
-+		list_for_each_entry(wq, &uctx->wq_list, ucontext_list)
-+			wq->rx_object = INVALID_MANA_HANDLE;
-+
-+		list_for_each_entry(cq, &uctx->cq_list, ucontext_list) {
-+			mana_ib_remove_cq_cb(mdev, cq);
-+			cq->cq_handle = INVALID_MANA_HANDLE;
-+		}
-+
-+		list_for_each_entry(mr, &uctx->mr_list, ucontext_list)
-+			mr->mr_handle = INVALID_MANA_HANDLE;
-+
-+		list_for_each_entry(pd, &uctx->pd_list, ucontext_list)
-+			pd->pd_handle = INVALID_MANA_HANDLE;
-+
-+		uctx->doorbell = INVALID_DOORBELL;
-+
-+		mutex_unlock(&uctx->lock);
-+	}
-+	mutex_unlock(&mdev->ucontext_lock);
-+
-+	up_write(&mdev->reset_rwsem);
-+
-+	/* Revoke user doorbell mappings so userspace cannot ring
-+	 * stale doorbells after firmware handles are invalidated.
-+	 */
-+	rdma_user_mmap_disassociate(&mdev->ib_dev);
-+
-+	/* Notify userspace (e.g. DPDK) that the port is down */
-+	for (i = 0; i < mdev->ib_dev.phys_port_cnt; i++) {
-+		ibev.device = &mdev->ib_dev;
-+		ibev.element.port_num = i + 1;
-+		ibev.event = IB_EVENT_PORT_ERR;
-+		ib_dispatch_event(&ibev);
-+	}
-+}
-+
-+static void mana_ib_resume_notify(void *ctx)
-+{
-+	struct mana_ib_dev *dev = ctx;
-+	struct ib_event ibev;
-+	int i;
-+
-+	for (i = 0; i < dev->ib_dev.phys_port_cnt; i++) {
-+		ibev.device = &dev->ib_dev;
-+		ibev.element.port_num = i + 1;
-+		ibev.event = IB_EVENT_PORT_ACTIVE;
-+		ib_dispatch_event(&ibev);
-+	}
-+}
-+
- static int mana_ib_probe(struct auxiliary_device *adev,
- 			 const struct auxiliary_device_id *id)
- {
-@@ -134,6 +222,7 @@ static int mana_ib_probe(struct auxiliary_device *adev,
- 	xa_init_flags(&dev->qp_table_wq, XA_FLAGS_LOCK_IRQ);
- 	mutex_init(&dev->ucontext_lock);
- 	INIT_LIST_HEAD(&dev->ucontext_list);
-+	init_rwsem(&dev->reset_rwsem);
- 
- 	if (mana_ib_is_rnic(dev)) {
- 		dev->ib_dev.phys_port_cnt = 1;
-@@ -216,6 +305,15 @@ static int mana_ib_probe(struct auxiliary_device *adev,
- 
- 	dev_set_drvdata(&adev->dev, dev);
- 
-+	/* ETH device persists across reset — use callback for cleanup.
-+	 * RNIC device is removed/re-added, so its cleanup happens in remove.
-+	 */
-+	if (!mana_ib_is_rnic(dev)) {
-+		mdev->reset_notify = mana_ib_reset_notify;
-+		mdev->resume_notify = mana_ib_resume_notify;
-+		mdev->reset_notify_ctx = dev;
-+	}
-+
- 	return 0;
- 
- deallocate_pool:
-@@ -242,6 +340,11 @@ static void mana_ib_remove(struct auxiliary_device *adev)
- 	if (mana_ib_is_rnic(dev))
- 		mana_drain_gsi_sqs(dev);
- 
-+	if (!mana_ib_is_rnic(dev)) {
-+		dev->gdma_dev->reset_notify = NULL;
-+		dev->gdma_dev->resume_notify = NULL;
-+		dev->gdma_dev->reset_notify_ctx = NULL;
-+	}
- 	ib_unregister_device(&dev->ib_dev);
- 	dma_pool_destroy(dev->av_pool);
- 	if (mana_ib_is_rnic(dev)) {
-diff --git a/drivers/infiniband/hw/mana/main.c b/drivers/infiniband/hw/mana/main.c
-index f739e6da5435..61ce30aa9cb2 100644
---- a/drivers/infiniband/hw/mana/main.c
-+++ b/drivers/infiniband/hw/mana/main.c
-@@ -81,6 +81,8 @@ int mana_ib_alloc_pd(struct ib_pd *ibpd, struct ib_udata *udata)
- 	dev = container_of(ibdev, struct mana_ib_dev, ib_dev);
- 	gc = mdev_to_gc(dev);
- 
-+	down_read(&dev->reset_rwsem);
-+
- 	mana_gd_init_req_hdr(&req.hdr, GDMA_CREATE_PD, sizeof(req),
- 			     sizeof(resp));
- 
-@@ -98,6 +100,7 @@ int mana_ib_alloc_pd(struct ib_pd *ibpd, struct ib_udata *udata)
- 		if (!err)
- 			err = -EPROTO;
- 
-+		up_read(&dev->reset_rwsem);
- 		return err;
- 	}
- 
-@@ -118,6 +121,7 @@ int mana_ib_alloc_pd(struct ib_pd *ibpd, struct ib_udata *udata)
- 		mutex_unlock(&mana_ucontext->lock);
- 	}
- 
-+	up_read(&dev->reset_rwsem);
- 	return 0;
- }
- 
-@@ -230,10 +234,13 @@ int mana_ib_alloc_ucontext(struct ib_ucontext *ibcontext,
- 	mdev = container_of(ibdev, struct mana_ib_dev, ib_dev);
- 	gc = mdev_to_gc(mdev);
- 
-+	down_read(&mdev->reset_rwsem);
-+
- 	/* Allocate a doorbell page index */
- 	ret = mana_gd_allocate_doorbell_page(gc, &doorbell_page);
- 	if (ret) {
- 		ibdev_dbg(ibdev, "Failed to allocate doorbell page %d\n", ret);
-+		up_read(&mdev->reset_rwsem);
- 		return ret;
- 	}
- 
-@@ -252,6 +259,8 @@ int mana_ib_alloc_ucontext(struct ib_ucontext *ibcontext,
- 	list_add_tail(&ucontext->dev_list, &mdev->ucontext_list);
- 	mutex_unlock(&mdev->ucontext_lock);
- 
-+	up_read(&mdev->reset_rwsem);
-+
- 	return 0;
- }
- 
-diff --git a/drivers/infiniband/hw/mana/mana_ib.h b/drivers/infiniband/hw/mana/mana_ib.h
-index ce5c6c030fb2..29201cf3274c 100644
---- a/drivers/infiniband/hw/mana/mana_ib.h
-+++ b/drivers/infiniband/hw/mana/mana_ib.h
-@@ -86,6 +86,8 @@ struct mana_ib_dev {
- 	/* Protects ucontext_list */
- 	struct mutex ucontext_lock;
- 	struct list_head ucontext_list;
-+	/* Serializes resource create callbacks vs reset cleanup */
-+	struct rw_semaphore reset_rwsem;
- };
- 
- struct mana_ib_wq {
-diff --git a/drivers/infiniband/hw/mana/mr.c b/drivers/infiniband/hw/mana/mr.c
-index 559bb4f7c31d..7189ccd41576 100644
---- a/drivers/infiniband/hw/mana/mr.c
-+++ b/drivers/infiniband/hw/mana/mr.c
-@@ -141,6 +141,8 @@ struct ib_mr *mana_ib_reg_user_mr(struct ib_pd *ibpd, u64 start, u64 length,
- 	if (!mr)
- 		return ERR_PTR(-ENOMEM);
- 
-+	down_read(&dev->reset_rwsem);
-+
- 	mr->umem = ib_umem_get(ibdev, start, length, access_flags);
- 	if (IS_ERR(mr->umem)) {
- 		err = PTR_ERR(mr->umem);
-@@ -195,6 +197,7 @@ struct ib_mr *mana_ib_reg_user_mr(struct ib_pd *ibpd, u64 start, u64 length,
- 		mutex_unlock(&mana_ucontext->lock);
- 	}
- 
-+	up_read(&dev->reset_rwsem);
- 	return &mr->ibmr;
- 
- err_dma_region:
-@@ -204,6 +207,7 @@ struct ib_mr *mana_ib_reg_user_mr(struct ib_pd *ibpd, u64 start, u64 length,
- 	ib_umem_release(mr->umem);
- 
- err_free:
-+	up_read(&dev->reset_rwsem);
- 	kfree(mr);
- 	return ERR_PTR(err);
- }
-diff --git a/drivers/infiniband/hw/mana/qp.c b/drivers/infiniband/hw/mana/qp.c
-index 315bc54d8ae6..d590aca9b93a 100644
---- a/drivers/infiniband/hw/mana/qp.c
-+++ b/drivers/infiniband/hw/mana/qp.c
-@@ -701,12 +701,16 @@ int mana_ib_create_qp(struct ib_qp *ibqp, struct ib_qp_init_attr *attr,
- 		      struct ib_udata *udata)
- {
- 	struct mana_ib_qp *qp = container_of(ibqp, struct mana_ib_qp, ibqp);
-+	struct mana_ib_dev *mdev =
-+		container_of(ibqp->device, struct mana_ib_dev, ib_dev);
- 	int err;
- 
- 	INIT_LIST_HEAD(&qp->ucontext_list);
- 
- 	switch (attr->qp_type) {
- 	case IB_QPT_RAW_PACKET:
-+		down_read(&mdev->reset_rwsem);
-+
- 		/* When rwq_ind_tbl is used, it's for creating WQs for RSS */
- 		if (attr->rwq_ind_tbl)
- 			err = mana_ib_create_qp_rss(ibqp, ibqp->pd, attr,
-@@ -724,6 +728,7 @@ int mana_ib_create_qp(struct ib_qp *ibqp, struct ib_qp_init_attr *attr,
- 			mutex_unlock(&mana_ucontext->lock);
- 		}
- 
-+		up_read(&mdev->reset_rwsem);
- 		return err;
- 	case IB_QPT_RC:
- 		return mana_ib_create_rc_qp(ibqp, ibqp->pd, attr, udata);
-diff --git a/drivers/infiniband/hw/mana/wq.c b/drivers/infiniband/hw/mana/wq.c
-index 1af9869933aa..67b757cf30f9 100644
---- a/drivers/infiniband/hw/mana/wq.c
-+++ b/drivers/infiniband/hw/mana/wq.c
-@@ -31,6 +31,8 @@ struct ib_wq *mana_ib_create_wq(struct ib_pd *pd,
- 
- 	ibdev_dbg(&mdev->ib_dev, "ucmd wq_buf_addr 0x%llx\n", ucmd.wq_buf_addr);
- 
-+	down_read(&mdev->reset_rwsem);
-+
- 	err = mana_ib_create_queue(mdev, ucmd.wq_buf_addr, ucmd.wq_buf_size, &wq->queue);
- 	if (err) {
- 		ibdev_dbg(&mdev->ib_dev,
-@@ -52,9 +54,11 @@ struct ib_wq *mana_ib_create_wq(struct ib_pd *pd,
- 		mutex_unlock(&mana_ucontext->lock);
- 	}
- 
-+	up_read(&mdev->reset_rwsem);
- 	return &wq->ibwq;
- 
- err_free_wq:
-+	up_read(&mdev->reset_rwsem);
- 	kfree(wq);
- 
- 	return ERR_PTR(err);
-diff --git a/drivers/net/ethernet/microsoft/mana/mana_en.c b/drivers/net/ethernet/microsoft/mana/mana_en.c
-index ea71de39f996..3493b36426f7 100644
---- a/drivers/net/ethernet/microsoft/mana/mana_en.c
-+++ b/drivers/net/ethernet/microsoft/mana/mana_en.c
-@@ -3659,15 +3659,19 @@ int mana_probe(struct gdma_dev *gd, bool resuming)
- 		}
- 	}
- 
--	err = add_adev(gd, "eth");
-+	if (!resuming)
-+		err = add_adev(gd, "eth");
- 
- 	INIT_DELAYED_WORK(&ac->gf_stats_work, mana_gf_stats_work_handler);
- 	schedule_delayed_work(&ac->gf_stats_work, MANA_GF_STATS_PERIOD);
--
- out:
- 	if (err) {
- 		mana_remove(gd, false);
- 	} else {
-+		/* Notify IB layer that ports are back up after reset */
-+		if (resuming && gd->resume_notify)
-+			gd->resume_notify(gd->reset_notify_ctx);
-+
- 		dev_dbg(dev, "gd=%p, id=%u, num_ports=%d, type=%u, instance=%u\n",
- 			gd, gd->dev_id.as_uint32, ac->num_ports,
- 			gd->dev_id.type, gd->dev_id.instance);
-@@ -3691,9 +3695,13 @@ void mana_remove(struct gdma_dev *gd, bool suspending)
- 	cancel_delayed_work_sync(&ac->gf_stats_work);
- 
- 	/* adev currently doesn't support suspending, always remove it */
--	if (gd->adev)
-+	if (gd->adev && !suspending)
- 		remove_adev(gd);
- 
-+	/* Notify IB layer before tearing down net devices during reset */
-+	if (suspending && gd->reset_notify)
-+		gd->reset_notify(gd->reset_notify_ctx);
-+
- 	for (i = 0; i < ac->num_ports; i++) {
- 		ndev = ac->ports[i];
- 		if (!ndev) {
-diff --git a/include/net/mana/gdma.h b/include/net/mana/gdma.h
-index ec17004b10c0..9187c5b4d0d1 100644
---- a/include/net/mana/gdma.h
-+++ b/include/net/mana/gdma.h
-@@ -249,6 +249,12 @@ struct gdma_dev {
- 	struct auxiliary_device *adev;
- 	bool is_suspended;
- 	bool rdma_teardown;
-+
-+	/* Called by mana_remove() during reset to notify IB layer */
-+	void (*reset_notify)(void *ctx);
-+	/* Called by mana_probe() during resume to notify IB layer */
-+	void (*resume_notify)(void *ctx);
-+	void *reset_notify_ctx;
- };
- 
- /* MANA_PAGE_SIZE is the DMA unit */
 -- 
 2.43.0
 
