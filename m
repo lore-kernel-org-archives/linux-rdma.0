@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C3A7D3939D2;
-	Mon,  9 Mar 2026 11:15:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B285639A05B;
+	Mon,  9 Mar 2026 11:15:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773054931; cv=none; b=M1S7ZHUX/nT3EjJIroqGft/V/YhcecxfSzzH3Huq7sQO0oUmyy2qp2fzRz1V4S+9C4CfMKujPZkcvQQhx3TSUw6u/7G1Jpud8uaaG69QlUqbMJZxGlss1JwNM6fCByxv3/nObk6ZMkAsSbodmboAMPBKUEkIt560rkhaEEQQRoc=
+	t=1773054935; cv=none; b=AWbSlEec0OiLHoPjrc0AdUbDCouOMu03f8q2svVpQpVNl6hlqVzOa4GqX45FGKdj8or/gO62Z645wvn27tepBj7x0RM9uBF5rUne98xPRV2p2jaPKK9L4C4RgtkJsme4u6j3Q5xjNuaAbyJsmXNKJ+Fn74cRNgMG49j6W4BXoRg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773054931; c=relaxed/simple;
-	bh=PoqZDprkyG97xhHd0xAhB5NUCone+g6NoPGHHatVjlw=;
+	s=arc-20240116; t=1773054935; c=relaxed/simple;
+	bh=YZqrFAi+xx1WasdQBcrBtpQgQLl0zbLLz0lMnsGCHt8=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=li5SRQR9t8JVP3uFic/HGsaxG8qmS13r0P6taZd/gh1kR2rQoc1gOgclENHyLlqxL8309i/Ue4NCkEIq5AKiyCBOXcbKqM0EAUUGgTcy3LccmfuXWtKBQSAfwIby9L3gpleG4MWy3l9RE5ok+0dwa3yr5JtefghisaY3aH65EPw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=UOPvBKEx; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version:Content-Type; b=dWX2SAwnERPgqFYkauvcS0WX49dlSOyMUVDgwJXtv2JTs1cGfUjaFxlRt8iWxAP+C8PuAR4jOmeIVeA+yeHQX6GGoJvA6sSB7W80BoLdP0i06lyVShVmGygbJ2+jvN9wNcjIgM6qLteKzWVlTRBNDywZl+262kFEt5J9aDrOqWE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=nCkqRQ/k; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="UOPvBKEx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 05C44C2BC9E;
-	Mon,  9 Mar 2026 11:15:30 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="nCkqRQ/k"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B8F5EC4CEF7;
+	Mon,  9 Mar 2026 11:15:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1773054931;
-	bh=PoqZDprkyG97xhHd0xAhB5NUCone+g6NoPGHHatVjlw=;
+	s=k20201202; t=1773054935;
+	bh=YZqrFAi+xx1WasdQBcrBtpQgQLl0zbLLz0lMnsGCHt8=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=UOPvBKExj/tOZiQXJCY0WqA337vztYbTXpIv6XkFbKvDgxbn3Us5XcAgKPmIZdzgO
-	 PQXKGbwhe3nT0ymhLQZWEvbdghOrMl2myltS2Slk43BMSODmqJgYWlDe3Spb/wuLkH
-	 yVVJpauYglzEXR8yoB49+w4VeNeLQQT/FYXOz4yRPTc43alOlGW42TYXTKJYWJ2I7L
-	 jkf4C+v35lYIxitbZpdo1tgMlO/ILy4i5xZylCLVilBds71Bb5rxGsFfYgiO5hSL51
-	 X7tNwqHwUeXa4r2G8UIYq+bAAwWr/kSIKHAlEzGEZ2vjGLGB69DGt/8LvpgyydrJkg
-	 aKIFdJqk8fxbA==
+	b=nCkqRQ/kDYnasY1FUbbys375EBYRCVztdy70T7qjDndxTBBSy3Z26gZOFIVm+0MrS
+	 OphQZjvAtzLYKW+PmwWHOuD0sQjwTZwkdqyLPkZJF88KSZ/4EeOeC/gBGFOdLRtdRP
+	 nao9/KeoIZnSDNOPssFj6WwGOA+0VbyHsDLCeXrCbDyXJA6Fn0n1QDNo7Q6A38XyoA
+	 HqsV94Pyk15yuYIDwnh6mvA1ejGppYXCZGPrUV3ImVYfFy623kgIW3qowWBW58/Y5a
+	 wUpSjDEMnPKCDT6H5BgI7o5nhBUw33K2xT1rGfmeHeXprgQjUjth9w8Yrkav/XFU4S
+	 4a/hsEr9qo2Zw==
 From: Leon Romanovsky <leon@kernel.org>
 To: Paul Moore <paul@paul-moore.com>,
 	James Morris <jmorris@namei.org>,
@@ -42,9 +42,9 @@ Cc: linux-security-module@vger.kernel.org,
 	Chiara Meiohas <cmeiohas@nvidia.com>,
 	Maher Sanalla <msanalla@nvidia.com>,
 	Edward Srouji <edwards@nvidia.com>
-Subject: [PATCH 1/3] lsm: add hook for firmware command validation
-Date: Mon,  9 Mar 2026 13:15:18 +0200
-Message-ID: <20260309-fw-lsm-hook-v1-1-4a6422e63725@nvidia.com>
+Subject: [PATCH 3/3] fwctl/mlx5: Invoke fw_validate_cmd LSM hook for fwctl commands
+Date: Mon,  9 Mar 2026 13:15:20 +0200
+Message-ID: <20260309-fw-lsm-hook-v1-3-4a6422e63725@nvidia.com>
 X-Mailer: git-send-email 2.53.0
 In-Reply-To: <20260309-fw-lsm-hook-v1-0-4a6422e63725@nvidia.com>
 References: <20260309-fw-lsm-hook-v1-0-4a6422e63725@nvidia.com>
@@ -56,156 +56,68 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 X-Mailer: b4 0.15-dev-18f8f
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-From: Chiara Meiohas <cmeiohas@nvidia.com>=0D
-=0D
-Drivers typically communicate with device firmware either via=0D
-register-based commands (writing parameters into device registers)=0D
-or by passing a command buffer using shared-memory mechanisms.=0D
-=0D
-This hook targets the command buffer mechanism, which is commonly=0D
-used on modern, complex devices.=0D
-=0D
-Add the LSM hook fw_validate_cmd. This hook allows inspecting=0D
-firmware command buffers before they are sent to the device.=0D
-The hook receives the command buffer, device, command class, and a=0D
-class-specific id:=0D
-  - class_id (enum fw_cmd_class) allows security modules to=0D
-    differentiate between classes of firmware commands.=0D
-    In this series, class_id distinguishes between commands from the=0D
-    RDMA uverbs interface and from fwctl.=0D
-  - id is a class-specific device identifier. For uverbs, id is the=0D
-    RDMA driver identifier (enum rdma_driver_id). For fwctl, id is the=0D
-    device type (enum fwctl_device_type).=0D
-=0D
-Signed-off-by: Chiara Meiohas <cmeiohas@nvidia.com>=0D
-Reviewed-by: Maher Sanalla <msanalla@nvidia.com>=0D
-Signed-off-by: Edward Srouji <edwards@nvidia.com>=0D
-Signed-off-by: Leon Romanovsky <leonro@nvidia.com>=0D
----=0D
- include/linux/lsm_hook_defs.h |  2 ++=0D
- include/linux/security.h      | 25 +++++++++++++++++++++++++=0D
- security/security.c           | 26 ++++++++++++++++++++++++++=0D
- 3 files changed, 53 insertions(+)=0D
-=0D
-diff --git a/include/linux/lsm_hook_defs.h b/include/linux/lsm_hook_defs.h=
-=0D
-index 8c42b4bde09c0..93da090384ea1 100644=0D
---- a/include/linux/lsm_hook_defs.h=0D
-+++ b/include/linux/lsm_hook_defs.h=0D
-@@ -445,6 +445,8 @@ LSM_HOOK(int, 0, bpf_token_capable, const struct bpf_to=
-ken *token, int cap)=0D
- #endif /* CONFIG_BPF_SYSCALL */=0D
- =0D
- LSM_HOOK(int, 0, locked_down, enum lockdown_reason what)=0D
-+LSM_HOOK(int, 0, fw_validate_cmd, const void *in, size_t in_len,=0D
-+	 const struct device *dev, enum fw_cmd_class class_id, u32 id)=0D
- =0D
- #ifdef CONFIG_PERF_EVENTS=0D
- LSM_HOOK(int, 0, perf_event_open, int type)=0D
-diff --git a/include/linux/security.h b/include/linux/security.h=0D
-index 83a646d72f6f8..64786d013207a 100644=0D
---- a/include/linux/security.h=0D
-+++ b/include/linux/security.h=0D
-@@ -67,6 +67,7 @@ enum fs_value_type;=0D
- struct watch;=0D
- struct watch_notification;=0D
- struct lsm_ctx;=0D
-+struct device;=0D
- =0D
- /* Default (no) options for the capable function */=0D
- #define CAP_OPT_NONE 0x0=0D
-@@ -157,6 +158,21 @@ enum lockdown_reason {=0D
- 	LOCKDOWN_CONFIDENTIALITY_MAX,=0D
- };=0D
- =0D
-+/*=0D
-+ * enum fw_cmd_class - Class of the firmware command passed to=0D
-+ * security_fw_validate_cmd.=0D
-+ * This allows security modules to distinguish between different command=0D
-+ * classes.=0D
-+ *=0D
-+ * @FW_CMD_CLASS_UVERBS: Command originated from the RDMA uverbs interface=
-=0D
-+ * @FW_CMD_CLASS_FWCTL: Command originated from the fwctl interface=0D
-+ */=0D
-+enum fw_cmd_class {=0D
-+	FW_CMD_CLASS_UVERBS,=0D
-+	FW_CMD_CLASS_FWCTL,=0D
-+	FW_CMD_CLASS_MAX,=0D
-+};=0D
-+=0D
- /*=0D
-  * Data exported by the security modules=0D
-  */=0D
-@@ -575,6 +591,9 @@ int security_inode_notifysecctx(struct inode *inode, vo=
-id *ctx, u32 ctxlen);=0D
- int security_inode_setsecctx(struct dentry *dentry, void *ctx, u32 ctxlen)=
-;=0D
- int security_inode_getsecctx(struct inode *inode, struct lsm_context *cp);=
-=0D
- int security_locked_down(enum lockdown_reason what);=0D
-+int security_fw_validate_cmd(const void *in, size_t in_len,=0D
-+			     const struct device *dev,=0D
-+			     enum fw_cmd_class class_id, u32 id);=0D
- int lsm_fill_user_ctx(struct lsm_ctx __user *uctx, u32 *uctx_len,=0D
- 		      void *val, size_t val_len, u64 id, u64 flags);=0D
- int security_bdev_alloc(struct block_device *bdev);=0D
-@@ -1589,6 +1608,12 @@ static inline int security_locked_down(enum lockdown=
-_reason what)=0D
- {=0D
- 	return 0;=0D
- }=0D
-+static inline int security_fw_validate_cmd(const void *in, size_t in_len,=
-=0D
-+					   const struct device *dev,=0D
-+					   enum fw_cmd_class class_id, u32 id)=0D
-+{=0D
-+	return 0;=0D
-+}=0D
- static inline int lsm_fill_user_ctx(struct lsm_ctx __user *uctx,=0D
- 				    u32 *uctx_len, void *val, size_t val_len,=0D
- 				    u64 id, u64 flags)=0D
-diff --git a/security/security.c b/security/security.c=0D
-index 67af9228c4e94..d05941fe89a48 100644=0D
---- a/security/security.c=0D
-+++ b/security/security.c=0D
-@@ -5373,6 +5373,32 @@ int security_locked_down(enum lockdown_reason what)=
-=0D
- }=0D
- EXPORT_SYMBOL(security_locked_down);=0D
- =0D
-+/**=0D
-+ * security_fw_validate_cmd() - Validate a firmware command=0D
-+ * @in: pointer to the firmware command input buffer=0D
-+ * @in_len: length of the firmware command input buffer=0D
-+ * @dev: device associated with the command=0D
-+ * @class_id: class of the firmware command=0D
-+ * @id: device identifier, specific to the command @class_id=0D
-+ *=0D
-+ * Check permissions before sending a firmware command generated by=0D
-+ * userspace to the device.=0D
-+ *=0D
-+ * Return: Returns 0 if permission is granted.=0D
-+ */=0D
-+int security_fw_validate_cmd(const void *in, size_t in_len,=0D
-+			     const struct device *dev,=0D
-+			     enum fw_cmd_class class_id,=0D
-+			     u32 id)=0D
-+{=0D
-+	if (class_id >=3D FW_CMD_CLASS_MAX)=0D
-+		return -EINVAL;=0D
-+=0D
-+	return call_int_hook(fw_validate_cmd, in, in_len,=0D
-+			     dev, class_id, id);=0D
-+}=0D
-+EXPORT_SYMBOL_GPL(security_fw_validate_cmd);=0D
-+=0D
- /**=0D
-  * security_bdev_alloc() - Allocate a block device LSM blob=0D
-  * @bdev: block device=0D
-=0D
--- =0D
-2.53.0=0D
-=0D
+From: Chiara Meiohas <cmeiohas@nvidia.com>
+
+fwctl is subsystem which exposes a firmware interface directly to
+userspace: it allows userspace to send device specific command
+buffers to firmware.
+
+Call security_fw_validate_cmd() before dispatching the user-provided
+firmware command.
+
+This allows security modules to implement custom policies and
+enforce per-command security policy on user-triggered firmware
+commands. For example, a BPF LSM program could filter firmware
+commands based on their opcode.
+
+Signed-off-by: Chiara Meiohas <cmeiohas@nvidia.com>
+Reviewed-by: Maher Sanalla <msanalla@nvidia.com>
+Signed-off-by: Edward Srouji <edwards@nvidia.com>
+Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+---
+ drivers/fwctl/mlx5/main.c | 12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/fwctl/mlx5/main.c b/drivers/fwctl/mlx5/main.c
+index e86ab703c767a..8ed17aaf48f1f 100644
+--- a/drivers/fwctl/mlx5/main.c
++++ b/drivers/fwctl/mlx5/main.c
+@@ -7,6 +7,7 @@
+ #include <linux/mlx5/device.h>
+ #include <linux/mlx5/driver.h>
+ #include <uapi/fwctl/mlx5.h>
++#include <linux/security.h>
+ 
+ #define mlx5ctl_err(mcdev, format, ...) \
+ 	dev_err(&mcdev->fwctl.dev, format, ##__VA_ARGS__)
+@@ -324,6 +325,15 @@ static void *mlx5ctl_fw_rpc(struct fwctl_uctx *uctx, enum fwctl_rpc_scope scope,
+ 	if (!mlx5ctl_validate_rpc(rpc_in, scope))
+ 		return ERR_PTR(-EBADMSG);
+ 
++	/* Enforce the user context for the command */
++	MLX5_SET(mbox_in_hdr, rpc_in, uid, mfd->uctx_uid);
++
++	ret = security_fw_validate_cmd(rpc_in, in_len, &mcdev->fwctl.dev,
++				       FW_CMD_CLASS_FWCTL,
++				       FWCTL_DEVICE_TYPE_MLX5);
++	if (ret)
++		return ERR_PTR(ret);
++
+ 	/*
+ 	 * mlx5_cmd_do() copies the input message to its own buffer before
+ 	 * executing it, so we can reuse the allocation for the output.
+@@ -336,8 +346,6 @@ static void *mlx5ctl_fw_rpc(struct fwctl_uctx *uctx, enum fwctl_rpc_scope scope,
+ 			return ERR_PTR(-ENOMEM);
+ 	}
+ 
+-	/* Enforce the user context for the command */
+-	MLX5_SET(mbox_in_hdr, rpc_in, uid, mfd->uctx_uid);
+ 	ret = mlx5_cmd_do(mcdev->mdev, rpc_in, in_len, rpc_out, *out_len);
+ 
+ 	mlx5ctl_dbg(mcdev,
+
+-- 
+2.53.0
+
