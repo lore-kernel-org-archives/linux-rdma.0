@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B285639A05B;
-	Mon,  9 Mar 2026 11:15:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B962339B49B;
+	Mon,  9 Mar 2026 11:15:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773054935; cv=none; b=AWbSlEec0OiLHoPjrc0AdUbDCouOMu03f8q2svVpQpVNl6hlqVzOa4GqX45FGKdj8or/gO62Z645wvn27tepBj7x0RM9uBF5rUne98xPRV2p2jaPKK9L4C4RgtkJsme4u6j3Q5xjNuaAbyJsmXNKJ+Fn74cRNgMG49j6W4BXoRg=
+	t=1773054938; cv=none; b=mV2RxSo8T0JKaQ8whSxnAkD4FCwgPGElHwmUjr9wRfJHSujW9eNesiCnXxk5CVyoonBmDufEHJyWFjISGEz2Z4I1gZ7wuQJNUMaqjscrk3ZFho0nqFRCu/0xxDj5EkTGfsQnfs9uq0An9f/L8SL0eMFX45SjMzWrJRLH3rCL/rA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773054935; c=relaxed/simple;
-	bh=YZqrFAi+xx1WasdQBcrBtpQgQLl0zbLLz0lMnsGCHt8=;
+	s=arc-20240116; t=1773054938; c=relaxed/simple;
+	bh=S9SXkqh0jZ7DCmptgsdJJmECrldsV8hZlxHrOWU+6z4=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=dWX2SAwnERPgqFYkauvcS0WX49dlSOyMUVDgwJXtv2JTs1cGfUjaFxlRt8iWxAP+C8PuAR4jOmeIVeA+yeHQX6GGoJvA6sSB7W80BoLdP0i06lyVShVmGygbJ2+jvN9wNcjIgM6qLteKzWVlTRBNDywZl+262kFEt5J9aDrOqWE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=nCkqRQ/k; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version:Content-Type; b=ruMzdpjI4D7K9FWMYmYwswO0i8WvMpeInDivLdNeYkNnooZf/PV1VcMfHQ+l5HS9pDLu+B7FrL2nWIZtgOFAACPNgmEf6vGk7GXh4hQPiyyCSIlJWQVZ/QH2/ZbYYRkregxXiXlIIJREy+FzCKrhJc05gntuEQfHEVlRQ1Vfe/s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Cd4Qu2Qq; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="nCkqRQ/k"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B8F5EC4CEF7;
-	Mon,  9 Mar 2026 11:15:34 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Cd4Qu2Qq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 33B29C2BC9E;
+	Mon,  9 Mar 2026 11:15:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1773054935;
-	bh=YZqrFAi+xx1WasdQBcrBtpQgQLl0zbLLz0lMnsGCHt8=;
+	s=k20201202; t=1773054938;
+	bh=S9SXkqh0jZ7DCmptgsdJJmECrldsV8hZlxHrOWU+6z4=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=nCkqRQ/kDYnasY1FUbbys375EBYRCVztdy70T7qjDndxTBBSy3Z26gZOFIVm+0MrS
-	 OphQZjvAtzLYKW+PmwWHOuD0sQjwTZwkdqyLPkZJF88KSZ/4EeOeC/gBGFOdLRtdRP
-	 nao9/KeoIZnSDNOPssFj6WwGOA+0VbyHsDLCeXrCbDyXJA6Fn0n1QDNo7Q6A38XyoA
-	 HqsV94Pyk15yuYIDwnh6mvA1ejGppYXCZGPrUV3ImVYfFy623kgIW3qowWBW58/Y5a
-	 wUpSjDEMnPKCDT6H5BgI7o5nhBUw33K2xT1rGfmeHeXprgQjUjth9w8Yrkav/XFU4S
-	 4a/hsEr9qo2Zw==
+	b=Cd4Qu2QqjEqBHUxJwEfd4MdQNLC916btCHsFgwudmCHTwOhxr7WM2kbIW9CHHb7Pf
+	 8y6IuTYcP5J6f6F9sT5ZPzqfyhUZ5ZLsOMML00bJSHkFcbIRzXamIs87K3o1cBf43Y
+	 D8NUmZ+4H4p046FUix3j90wLBQUAbdwuS1TsLPf1MmKXekjZJ6Vie6htBDgGTBgtRl
+	 OsX+y5jep5QB7IOUPorCfVCCwCuIO7/RB1XIggsjVJCxl28VxoFOrDzU1dMVbebVj7
+	 7ENNt+j/+0/N7faguaNaPHBORK19rAOS0/hVgO/SidOlbvfuJ569yJU9Ks7wYjM1nz
+	 RvpkDSd+YDhYw==
 From: Leon Romanovsky <leon@kernel.org>
 To: Paul Moore <paul@paul-moore.com>,
 	James Morris <jmorris@namei.org>,
@@ -42,9 +42,9 @@ Cc: linux-security-module@vger.kernel.org,
 	Chiara Meiohas <cmeiohas@nvidia.com>,
 	Maher Sanalla <msanalla@nvidia.com>,
 	Edward Srouji <edwards@nvidia.com>
-Subject: [PATCH 3/3] fwctl/mlx5: Invoke fw_validate_cmd LSM hook for fwctl commands
-Date: Mon,  9 Mar 2026 13:15:20 +0200
-Message-ID: <20260309-fw-lsm-hook-v1-3-4a6422e63725@nvidia.com>
+Subject: [PATCH 2/3] RDMA/mlx5: Invoke fw_validate_cmd LSM hook for DEVX commands
+Date: Mon,  9 Mar 2026 13:15:19 +0200
+Message-ID: <20260309-fw-lsm-hook-v1-2-4a6422e63725@nvidia.com>
 X-Mailer: git-send-email 2.53.0
 In-Reply-To: <20260309-fw-lsm-hook-v1-0-4a6422e63725@nvidia.com>
 References: <20260309-fw-lsm-hook-v1-0-4a6422e63725@nvidia.com>
@@ -60,63 +60,160 @@ Content-Transfer-Encoding: 8bit
 
 From: Chiara Meiohas <cmeiohas@nvidia.com>
 
-fwctl is subsystem which exposes a firmware interface directly to
-userspace: it allows userspace to send device specific command
-buffers to firmware.
+DEVX is an RDMA uverbs extension that allows userspace to submit
+firmware command buffers. The driver inspects the command and then
+passes the buffer through for firmware execution.
 
-Call security_fw_validate_cmd() before dispatching the user-provided
-firmware command.
+Call security_fw_validate_cmd() before dispatching firmware commands
+through DEVX.
 
 This allows security modules to implement custom policies and
 enforce per-command security policy on user-triggered firmware
-commands. For example, a BPF LSM program could filter firmware
-commands based on their opcode.
+commands. For example, a BPF LSM program could restrict specific
+firmware operations to privileged users.
 
 Signed-off-by: Chiara Meiohas <cmeiohas@nvidia.com>
 Reviewed-by: Maher Sanalla <msanalla@nvidia.com>
 Signed-off-by: Edward Srouji <edwards@nvidia.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/fwctl/mlx5/main.c | 12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/mlx5/devx.c | 52 ++++++++++++++++++++++++++++++---------
+ 1 file changed, 40 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/fwctl/mlx5/main.c b/drivers/fwctl/mlx5/main.c
-index e86ab703c767a..8ed17aaf48f1f 100644
---- a/drivers/fwctl/mlx5/main.c
-+++ b/drivers/fwctl/mlx5/main.c
-@@ -7,6 +7,7 @@
- #include <linux/mlx5/device.h>
- #include <linux/mlx5/driver.h>
- #include <uapi/fwctl/mlx5.h>
+diff --git a/drivers/infiniband/hw/mlx5/devx.c b/drivers/infiniband/hw/mlx5/devx.c
+index 0066b2738ac89..48a2c4b4ad4eb 100644
+--- a/drivers/infiniband/hw/mlx5/devx.c
++++ b/drivers/infiniband/hw/mlx5/devx.c
+@@ -18,6 +18,7 @@
+ #include "devx.h"
+ #include "qp.h"
+ #include <linux/xarray.h>
 +#include <linux/security.h>
  
- #define mlx5ctl_err(mcdev, format, ...) \
- 	dev_err(&mcdev->fwctl.dev, format, ##__VA_ARGS__)
-@@ -324,6 +325,15 @@ static void *mlx5ctl_fw_rpc(struct fwctl_uctx *uctx, enum fwctl_rpc_scope scope,
- 	if (!mlx5ctl_validate_rpc(rpc_in, scope))
- 		return ERR_PTR(-EBADMSG);
+ #define UVERBS_MODULE_NAME mlx5_ib
+ #include <rdma/uverbs_named_ioctl.h>
+@@ -1111,6 +1112,8 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OTHER)(
+ 	struct mlx5_ib_dev *dev;
+ 	void *cmd_in = uverbs_attr_get_alloced_ptr(
+ 		attrs, MLX5_IB_ATTR_DEVX_OTHER_CMD_IN);
++	int cmd_in_len = uverbs_attr_get_len(attrs,
++					MLX5_IB_ATTR_DEVX_OTHER_CMD_IN);
+ 	int cmd_out_len = uverbs_attr_get_len(attrs,
+ 					MLX5_IB_ATTR_DEVX_OTHER_CMD_OUT);
+ 	void *cmd_out;
+@@ -1135,9 +1138,12 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OTHER)(
+ 		return PTR_ERR(cmd_out);
  
-+	/* Enforce the user context for the command */
-+	MLX5_SET(mbox_in_hdr, rpc_in, uid, mfd->uctx_uid);
+ 	MLX5_SET(general_obj_in_cmd_hdr, cmd_in, uid, uid);
+-	err = mlx5_cmd_do(dev->mdev, cmd_in,
+-			  uverbs_attr_get_len(attrs, MLX5_IB_ATTR_DEVX_OTHER_CMD_IN),
+-			  cmd_out, cmd_out_len);
++	err = security_fw_validate_cmd(cmd_in, cmd_in_len, &dev->ib_dev.dev,
++				       FW_CMD_CLASS_UVERBS, RDMA_DRIVER_MLX5);
++	if (err)
++		return err;
 +
-+	ret = security_fw_validate_cmd(rpc_in, in_len, &mcdev->fwctl.dev,
-+				       FW_CMD_CLASS_FWCTL,
-+				       FWCTL_DEVICE_TYPE_MLX5);
-+	if (ret)
-+		return ERR_PTR(ret);
-+
- 	/*
- 	 * mlx5_cmd_do() copies the input message to its own buffer before
- 	 * executing it, so we can reuse the allocation for the output.
-@@ -336,8 +346,6 @@ static void *mlx5ctl_fw_rpc(struct fwctl_uctx *uctx, enum fwctl_rpc_scope scope,
- 			return ERR_PTR(-ENOMEM);
++	err = mlx5_cmd_do(dev->mdev, cmd_in, cmd_in_len, cmd_out, cmd_out_len);
+ 	if (err && err != -EREMOTEIO)
+ 		return err;
+ 
+@@ -1570,6 +1576,12 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OBJ_CREATE)(
+ 		devx_set_umem_valid(cmd_in);
  	}
  
--	/* Enforce the user context for the command */
--	MLX5_SET(mbox_in_hdr, rpc_in, uid, mfd->uctx_uid);
- 	ret = mlx5_cmd_do(mcdev->mdev, rpc_in, in_len, rpc_out, *out_len);
++	err = security_fw_validate_cmd(cmd_in, cmd_in_len,
++				       &dev->ib_dev.dev,
++				       FW_CMD_CLASS_UVERBS, RDMA_DRIVER_MLX5);
++	if (err)
++		goto obj_free;
++
+ 	if (opcode == MLX5_CMD_OP_CREATE_DCT) {
+ 		obj->flags |= DEVX_OBJ_FLAGS_DCT;
+ 		err = mlx5_core_create_dct(dev, &obj->core_dct, cmd_in,
+@@ -1582,8 +1594,8 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OBJ_CREATE)(
+ 				     cmd_in, cmd_in_len, cmd_out,
+ 				     cmd_out_len);
+ 	} else {
+-		err = mlx5_cmd_do(dev->mdev, cmd_in, cmd_in_len,
+-				  cmd_out, cmd_out_len);
++		err = mlx5_cmd_do(dev->mdev, cmd_in, cmd_in_len, cmd_out,
++				  cmd_out_len);
+ 	}
  
- 	mlx5ctl_dbg(mcdev,
+ 	if (err == -EREMOTEIO)
+@@ -1646,6 +1658,8 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OBJ_MODIFY)(
+ 	struct uverbs_attr_bundle *attrs)
+ {
+ 	void *cmd_in = uverbs_attr_get_alloced_ptr(attrs, MLX5_IB_ATTR_DEVX_OBJ_MODIFY_CMD_IN);
++	int cmd_in_len = uverbs_attr_get_len(attrs,
++					MLX5_IB_ATTR_DEVX_OBJ_MODIFY_CMD_IN);
+ 	int cmd_out_len = uverbs_attr_get_len(attrs,
+ 					MLX5_IB_ATTR_DEVX_OBJ_MODIFY_CMD_OUT);
+ 	struct ib_uobject *uobj = uverbs_attr_get_uobject(attrs,
+@@ -1676,9 +1690,12 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OBJ_MODIFY)(
+ 
+ 	MLX5_SET(general_obj_in_cmd_hdr, cmd_in, uid, uid);
+ 	devx_set_umem_valid(cmd_in);
++	err = security_fw_validate_cmd(cmd_in, cmd_in_len, &mdev->ib_dev.dev,
++				       FW_CMD_CLASS_UVERBS, RDMA_DRIVER_MLX5);
++	if (err)
++		return err;
+ 
+-	err = mlx5_cmd_do(mdev->mdev, cmd_in,
+-			  uverbs_attr_get_len(attrs, MLX5_IB_ATTR_DEVX_OBJ_MODIFY_CMD_IN),
++	err = mlx5_cmd_do(mdev->mdev, cmd_in, cmd_in_len,
+ 			  cmd_out, cmd_out_len);
+ 	if (err && err != -EREMOTEIO)
+ 		return err;
+@@ -1693,6 +1710,8 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OBJ_QUERY)(
+ 	struct uverbs_attr_bundle *attrs)
+ {
+ 	void *cmd_in = uverbs_attr_get_alloced_ptr(attrs, MLX5_IB_ATTR_DEVX_OBJ_QUERY_CMD_IN);
++	int cmd_in_len = uverbs_attr_get_len(attrs,
++					     MLX5_IB_ATTR_DEVX_OBJ_QUERY_CMD_IN);
+ 	int cmd_out_len = uverbs_attr_get_len(attrs,
+ 					      MLX5_IB_ATTR_DEVX_OBJ_QUERY_CMD_OUT);
+ 	struct ib_uobject *uobj = uverbs_attr_get_uobject(attrs,
+@@ -1722,8 +1741,12 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OBJ_QUERY)(
+ 		return PTR_ERR(cmd_out);
+ 
+ 	MLX5_SET(general_obj_in_cmd_hdr, cmd_in, uid, uid);
+-	err = mlx5_cmd_do(mdev->mdev, cmd_in,
+-			  uverbs_attr_get_len(attrs, MLX5_IB_ATTR_DEVX_OBJ_QUERY_CMD_IN),
++	err = security_fw_validate_cmd(cmd_in, cmd_in_len, &mdev->ib_dev.dev,
++				       FW_CMD_CLASS_UVERBS, RDMA_DRIVER_MLX5);
++	if (err)
++		return err;
++
++	err = mlx5_cmd_do(mdev->mdev, cmd_in, cmd_in_len,
+ 			  cmd_out, cmd_out_len);
+ 	if (err && err != -EREMOTEIO)
+ 		return err;
+@@ -1832,6 +1855,8 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OBJ_ASYNC_QUERY)(
+ {
+ 	void *cmd_in = uverbs_attr_get_alloced_ptr(attrs,
+ 				MLX5_IB_ATTR_DEVX_OBJ_QUERY_ASYNC_CMD_IN);
++	int cmd_in_len = uverbs_attr_get_len(attrs,
++				MLX5_IB_ATTR_DEVX_OBJ_QUERY_ASYNC_CMD_IN);
+ 	struct ib_uobject *uobj = uverbs_attr_get_uobject(
+ 				attrs,
+ 				MLX5_IB_ATTR_DEVX_OBJ_QUERY_ASYNC_HANDLE);
+@@ -1894,9 +1919,12 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OBJ_ASYNC_QUERY)(
+ 	async_data->ev_file = ev_file;
+ 
+ 	MLX5_SET(general_obj_in_cmd_hdr, cmd_in, uid, uid);
+-	err = mlx5_cmd_exec_cb(&ev_file->async_ctx, cmd_in,
+-		    uverbs_attr_get_len(attrs,
+-				MLX5_IB_ATTR_DEVX_OBJ_QUERY_ASYNC_CMD_IN),
++	err = security_fw_validate_cmd(cmd_in, cmd_in_len, &mdev->ib_dev.dev,
++				       FW_CMD_CLASS_UVERBS, RDMA_DRIVER_MLX5);
++	if (err)
++		goto free_async;
++
++	err = mlx5_cmd_exec_cb(&ev_file->async_ctx, cmd_in, cmd_in_len,
+ 		    async_data->hdr.out_data,
+ 		    async_data->cmd_out_len,
+ 		    devx_query_callback, &async_data->cb_work);
 
 -- 
 2.53.0
