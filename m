@@ -1,119 +1,103 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8B9013C1413;
-	Wed, 11 Mar 2026 08:51:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 425763B8947;
+	Wed, 11 Mar 2026 08:54:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773219072; cv=none; b=rbynguh+fQt7RIz36IswJSLfQJ2okVFw8LRE0/TifGjgRuiG4/CgBB7OPEg+Dq9r/qJC/DTFVM03InQ8OhPXdKffNTSvaukf6bRA+3DqlMMDgfd6eSU8XB+rbj5GeTjtHygB3Bmi+x0Vy2bQZopSXLKOlGD2r5CBY/W6dGnRxN0=
+	t=1773219278; cv=none; b=WoEk4st/w2OAMaTe4A4uPoAz75kuyzud2b/izu6v7dW7WLDNpVW3DubsY3m5bp26LS+eV6gL/iD+/ExrWPftAbwHEisznbMkbHOQbShhsphO8OMfTYh7uEipJ072AGlxjOzy7u0+1L9NBLuBPoGMGmuldAzKKnEsHsAiP9IQCiA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773219072; c=relaxed/simple;
-	bh=ujQYia5FdRANnU+KepLceBZ5fhN0Wq/XsH31U6B/u4s=;
+	s=arc-20240116; t=1773219278; c=relaxed/simple;
+	bh=cDsCbaGsbMG3BZVDA+KavpaJ3ef+jAdCjRm6CO57PCc=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=LXykzmsiseQ50mn7s8ste5J23+ValUJAGd9wAW72El3JXVy8wJpf9seh85EFzaG/oSqVB5oN6Hh5sb7Z4chk2sVodAtIEwSFZsdSZRqImX4QGuJyBL3Rjotk5n28StUadGj7j5GnvuwVQEMtQzrd634XV7AhsBdm9M2rAjlq88k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=OObq+m82; arc=none smtp.client-ip=10.30.226.201
+	 Content-Type:Content-Disposition:In-Reply-To; b=Ylm88KbUSdsTwwjrqbXmciT02BhT6LV+KCq57y40Y1K2MeFbM6ONxRtqosmeZ282pFAqGRY348Qtx7etGOK4Ilh2Riu/WdBwg/Mw3XNU+iaDPepsJ+5WI6Yu1HvN1Rlhg3UcyIuI/M6Da3jRlZ0TVQVsWBO6RqgYa0ABtY0QX8U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=UBEfJdHo; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="OObq+m82"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DA7B0C2BC86;
-	Wed, 11 Mar 2026 08:51:11 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="UBEfJdHo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 111D2C4CEF7;
+	Wed, 11 Mar 2026 08:54:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1773219072;
-	bh=ujQYia5FdRANnU+KepLceBZ5fhN0Wq/XsH31U6B/u4s=;
+	s=k20201202; t=1773219277;
+	bh=cDsCbaGsbMG3BZVDA+KavpaJ3ef+jAdCjRm6CO57PCc=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=OObq+m82kHXZRJfS9isssazokdiI8Gq0xgBftf6XIg97RuEaG6/NNk+6CD0+hgFkK
-	 M0ndZNLAap+4mBmYOpZ6Z6b1Z0/04dr8Eojz2OLGFLpYPI0hfxxUzB/2GErvuKPJDg
-	 0up2EWpXIkEjrrshM51BpnW26cMnBkuatKRoSV9F884eEtJgjFXZ0tbq1CJcQ057v8
-	 a6zMS9rdHk8lYUcyrYfXxJnb5V4zn+lV8wSvWRQI/VwSgEYEhAsOoPbSsCHGsdsE7l
-	 dfBNbJYN8OCfzFPm3aAa8O/pd/4tunP9F5vJ96CVILK5XAIeVPicl4n3FoKzRa729u
-	 wJAnVNJLLuSaw==
-Date: Wed, 11 Mar 2026 10:51:08 +0200
+	b=UBEfJdHo3IRuuuhTfptvJgfLiqtvU4+ssSrWTbQ5wXt/qiL0dIWdmgzG3yw03nzKO
+	 KOOqjcxBw5XiYwBEMUG+l8AcQLknSwslsbI8RWe55A5AMr7qQR1MbtDk0JbipodWef
+	 eOnemS4xwEKINhmm2CKSDeiaBieqcoQmggn604u/2kyU76EluNEU7o3YgsWO8YPomu
+	 uX7M9Ljq5OAmZsxZG57v4kmXGez9fh5JqFUsdQHJi7oyB0nv4Q596rMxfEYtCe1O87
+	 jy9My3aiRdO7xOInF4st7ZX6hZ+kJFn8rqjTUfv5QEmy6ZT06EXH8ofcTYVURmc6z3
+	 ItbVWtHRpzW7Q==
+Date: Wed, 11 Mar 2026 10:54:34 +0200
 From: Leon Romanovsky <leon@kernel.org>
 To: "Yanjun.Zhu" <yanjun.zhu@linux.dev>
 Cc: jgg@ziepe.ca, zyjzyj2000@gmail.com, shuah@kernel.org,
 	linux-rdma@vger.kernel.org, linux-kselftest@vger.kernel.org,
 	dsahern@kernel.org
-Subject: Re: [PATCH v5 4/4] RDMA/rxe: Add testcase for net namespace rxe
-Message-ID: <20260311085108.GV12611@unreal>
+Subject: Re: [PATCH v5 1/4] RDMA/nldev: Add dellink function pointer
+Message-ID: <20260311085434.GW12611@unreal>
 References: <20260310020519.101415-1-yanjun.zhu@linux.dev>
- <20260310020519.101415-5-yanjun.zhu@linux.dev>
- <20260310185308.GJ12611@unreal>
- <93c8c159-90f0-41f7-81d7-0f10fa7cf373@linux.dev>
+ <20260310020519.101415-2-yanjun.zhu@linux.dev>
+ <20260310190140.GL12611@unreal>
+ <5700c718-d10e-4b23-adfc-c14ee1930b18@linux.dev>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <93c8c159-90f0-41f7-81d7-0f10fa7cf373@linux.dev>
+In-Reply-To: <5700c718-d10e-4b23-adfc-c14ee1930b18@linux.dev>
 
-On Tue, Mar 10, 2026 at 02:01:03PM -0700, Yanjun.Zhu wrote:
-> 
-> On 3/10/26 11:53 AM, Leon Romanovsky wrote:
-> > On Tue, Mar 10, 2026 at 03:05:18AM +0100, Zhu Yanjun wrote:
-> > > Add 4 testcases for rxe with net namespace.
-> > > 
-> > > Signed-off-by: Zhu Yanjun <yanjun.zhu@linux.dev>
-> > > ---
-> > >   MAINTAINERS                                   |  1 +
-> > >   tools/testing/selftests/Makefile              |  1 +
-> > >   tools/testing/selftests/rdma/Makefile         |  7 ++
-> > >   tools/testing/selftests/rdma/config           |  3 +
-> > >   tools/testing/selftests/rdma/rxe_ipv6.sh      | 63 ++++++++++++++
-> > >   .../selftests/rdma/rxe_rping_between_netns.sh | 85 +++++++++++++++++++
-> > >   .../selftests/rdma/rxe_socket_with_netns.sh   | 76 +++++++++++++++++
-> > >   .../rdma/rxe_test_NETDEV_UNREGISTER.sh        | 63 ++++++++++++++
-> > >   8 files changed, 299 insertions(+)
-> > >   create mode 100644 tools/testing/selftests/rdma/Makefile
-> > >   create mode 100644 tools/testing/selftests/rdma/config
-> > >   create mode 100755 tools/testing/selftests/rdma/rxe_ipv6.sh
-> > >   create mode 100755 tools/testing/selftests/rdma/rxe_rping_between_netns.sh
-> > >   create mode 100755 tools/testing/selftests/rdma/rxe_socket_with_netns.sh
-> > >   create mode 100755 tools/testing/selftests/rdma/rxe_test_NETDEV_UNREGISTER.sh
-> > > 
-> > > diff --git a/MAINTAINERS b/MAINTAINERS
-> > > index 77fdfcb55f06..bd33edf79150 100644
-> > > --- a/MAINTAINERS
-> > > +++ b/MAINTAINERS
-> > > @@ -24492,6 +24492,7 @@ L:	linux-rdma@vger.kernel.org
-> > >   S:	Supported
-> > >   F:	drivers/infiniband/sw/rxe/
-> > >   F:	include/uapi/rdma/rdma_user_rxe.h
-> > > +F:	tools/testing/selftests/rdma/
-> > This is wrong place in MAINTAINERS file.
-> > You need to add that line to "INFINIBAND SUBSYSTEM" and under RXE to add
-> > tools/testing/selftests/rdma/rxe* entry.
+On Tue, Mar 10, 2026 at 06:58:00PM -0700, Yanjun.Zhu wrote:
+> On 3/10/26 12:01 PM, Leon Romanovsky wrote:
+> > It is an RXE‑specific description, but you are adding code to the general
+> > nldev path. Please clarify that this behavior applies only to RXE, and
+> > include examples showing when and how it is invoked. In particular, explain
+> > how the socket is cleaned up if delink is not called.
 > 
 > Hi, Leon
 > 
-> "
-> 
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> 
-> index 77fdfcb55f06..3c6bc0e05fc0 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -24492,6 +24492,7 @@ L:� � � linux-rdma@vger.kernel.org
-> �S:� � �Supported
-> �F:� � �drivers/infiniband/sw/rxe/
-> �F:� � �include/uapi/rdma/rdma_user_rxe.h
-> +F:� � �tools/testing/selftests/rdma/rxe*
-> 
-> "
-> 
-> Is it OK?
+> You are correct that this logic should be driver-specific. I will add an
+> explicit check for RDMA_DRIVER_RXE in the nldev path to ensure this behavior
+> is strictly scoped to RXE and does not impact other drivers (like iWARP).
 
-It is not sufficient. We also need to be CCed on changes to
-tools/testing/selftests/rdma/Makefile. For that reason, you should place
-tools/testing/selftests/rdma/ under the "INFINIBAND SUBSYSTEM" as well.
+No, you don't need this driver_id check, because iWARP doesn't have link_ops->dellink,
+but you should document the rationale and how it is triggered for RXE.
 
 Thanks
 
 > 
+> This function path is primarily invoked when a user executes the
+> administrative command: rdma link delete <dev>.
+> 
+> Regarding socket cleanup: RXE does not rely solely on this path for resource
+> management. It monitors the underlying net_device state via a registered
+> netdev_notifier. Even if delink is not explicitly called (e.g., if the
+> parent interface is removed or the driver is forcefully unloaded), the
+> rxe_net_event callback ensures that the transport sockets are forcibly
+> closed and all allocated resources are released when the parent net_device
+> is destroyed.
+> 
+> The code diff is as below:
+> 
+> --- a/drivers/infiniband/core/nldev.c
+> +++ b/drivers/infiniband/core/nldev.c
+> @@ -1824,6 +1824,12 @@ static int nldev_dellink(struct sk_buff *skb, struct
+> nlmsghdr *nlh,
+>                 return -EINVAL;
+>         }
+> 
+> +       if (device->link_ops && device->ops.driver_id == RDMA_DRIVER_RXE) {
+> +               err = device->link_ops->dellink(device);
+> +               if (err)
+> +                       return err;
+> +       }
+> +
+>         ib_unregister_device_and_put(device);
+>         return 0;
+>  }
+> 
 > Zhu Yanjun
 > 
-> > 
-> > Thanks
 > 
