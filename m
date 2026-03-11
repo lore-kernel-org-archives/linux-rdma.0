@@ -1,70 +1,107 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD0BC30B508
-	for <linux-rdma@vger.kernel.org>; Wed, 11 Mar 2026 19:17:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id A76393254A0;
+	Wed, 11 Mar 2026 19:22:10 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773256676; cv=none; b=qtcYOnryhLY79g6Auo7iGaB+MVvjb+dc0yqzK0VP11PNi7iOWy+hNkN6mgc93El4ijl6GHvdEKqkY54U490NlCvPjYCMJxFaVv88BCSHSwR+eP8pfhOIiSr9Z+HwJVJ5KxKOG4tRsLkNY7jE/XInnmpuJeyX6w70kgj/X0epBQg=
+	t=1773256933; cv=none; b=k/RlzKntsHzd56F0tXth0NdH9/7fK91Fs3ZTVVReq7dPP/Il5Z1AruSidTENS9/hXlZFfeXP2tjyzBvXfHdM6vnsswPwXtVjxR6n2utBTRvZb3IsJ/yKQoXqeVQV/tf0nDZ7WmF4fqvokIRqCbwj89vsHnmcV+72hzFEV5HPSx4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773256676; c=relaxed/simple;
-	bh=BRifPSWvfDHRt9uv25VS4k+ie2oFCXB7w2HteZlN3vk=;
-	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
-	 MIME-Version:Content-Type; b=n5CMkU+ADSyQPbLHiOxpnkPf1P/QQYyC4+xzrWMl5iz9Oz5D1BBSbZ/zno7yQfZwhxGjX9xCR0ig/IESaa+DnrQITi+HJTtKSeW70/Maw5QjcEWnGmSMxzgOk5ODf2EgbsEykf7q+MarSaCS958U04V3iOARxNDK3W+4aXrDVUg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=nFNYAuJK; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773256933; c=relaxed/simple;
+	bh=3a1y95VnLiNRF22yB9xTwkHPK83osW3Y6kfjW4B/qzg=;
+	h=Date:From:To:Subject:Message-ID:MIME-Version:Content-Type:
+	 Content-Disposition; b=XL/utCEjBewzDGHk+0QVSITfnwiVVH98pS0xUvpakWOoQOH488FJafIZOAVSnjuoyz5Bl56Zh9hsGWqpLrp5vtaUpFZppNxtU1pyKmteTg3cTWMMAtPd6KPa1zvxHNoytIRzue6O+/7HPaGxx/QPNNkmw0DvSupkUq9ITWWlMJg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=Mi0zexhH; arc=none smtp.client-ip=13.77.154.182
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="nFNYAuJK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 19AA7C116C6;
-	Wed, 11 Mar 2026 19:17:55 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1773256676;
-	bh=BRifPSWvfDHRt9uv25VS4k+ie2oFCXB7w2HteZlN3vk=;
-	h=From:To:Cc:In-Reply-To:References:Subject:Date:From;
-	b=nFNYAuJK+Ouc4Ua6141XwV5I/qM391cYlJc/VvEClmffoAGdoiGZP32yZvTLdrbnM
-	 vdXL/Wpz4jxfcVxw88lEJwiK5yrTrxypmHwVZe5LvE+xg4ZgnYKYIErs66XA6cBDmF
-	 WPz0FitiEG3DD4HyC8XwDn52T+Og1jWST2UAtpfXXqYNdc6CZsCaXSKtVVq2u2JROL
-	 a0Rcd1G02nP6bbYv36AOS3WzWY8Ha9sKF638kp8Sp/coC8JXUDNJryK/qGFidWcQEc
-	 yGaONPPtEGMsMXj/S+sBU+l+7swH7U38KkinDS6jfJ1nGy2Ei3PUA6iZ42RhbhYACA
-	 77e+NR+DwQkeg==
-From: Leon Romanovsky <leon@kernel.org>
-To: jgg@ziepe.ca, 
- Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
-Cc: Dean Luick <dean.luick@cornelisnetworks.com>, 
- linux-rdma@vger.kernel.org
-In-Reply-To: <177308892140.1279894.3475429390519673020.stgit@awdrv-04.cornelisnetworks.com>
-References: <177308892140.1279894.3475429390519673020.stgit@awdrv-04.cornelisnetworks.com>
-Subject: Re: [PATCH for-next 0/4] Prepare for hfi2 submission
-Message-Id: <177325667358.1852743.12346760381110554038.b4-ty@kernel.org>
-Date: Wed, 11 Mar 2026 15:17:53 -0400
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="Mi0zexhH"
+Received: by linux.microsoft.com (Postfix, from userid 1204)
+	id 91EC620B710C; Wed, 11 Mar 2026 12:22:04 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 91EC620B710C
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
+	s=default; t=1773256924;
+	bh=T3bcUeSPf/iaPcHw/5z6J3eIMmoMmEOuBFZt6y0QIgE=;
+	h=Date:From:To:Subject:From;
+	b=Mi0zexhHPHFpNU+afLZjHBPFBGk7CsOXV1IUzevRs/QG69M0Y2/iJlpjQ0Hj33PoZ
+	 RndwISQ12B+rV8NDbKu0v8gomxytw/32KuKc4Jc+lKYe1cCjGxcYYGLrKKxADq7jxu
+	 13TRd6UelrFN6EyCYv+VTLXBFsDC+VujZxgNFPqc=
+Date: Wed, 11 Mar 2026 12:22:04 -0700
+From: Dipayaan Roy <dipayanroy@linux.microsoft.com>
+To: kys@microsoft.com, haiyangz@microsoft.com, wei.liu@kernel.org,
+	decui@microsoft.com, andrew+netdev@lunn.ch, davem@davemloft.net,
+	edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
+	leon@kernel.org, longli@microsoft.com, kotaranov@microsoft.com,
+	horms@kernel.org, shradhagupta@linux.microsoft.com,
+	ssengar@linux.microsoft.com, ernis@linux.microsoft.com,
+	shirazsaleem@microsoft.com, linux-hyperv@vger.kernel.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-rdma@vger.kernel.org, stephen@networkplumber.org,
+	dipayanroy@microsoft.com
+Subject: [PATCH net,v2] net: mana: fix use-after-free in
+ mana_hwc_destroy_channel() by reordering teardown
+Message-ID: <abHA3AjNtqa1nx9k@linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-X-Mailer: b4 0.15-dev-18f8f
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
+A potential race condition exists in mana_hwc_destroy_channel() where
+hwc->caller_ctx is freed before the HWC's Completion Queue (CQ) and
+Event Queue (EQ) are destroyed. This allows an in-flight CQ interrupt
+handler to dereference freed memory, leading to a use-after-free or
+NULL pointer dereference in mana_hwc_handle_resp().
 
-On Mon, 09 Mar 2026 16:44:39 -0400, Dennis Dalessandro wrote:
-> These 4 patches get rdmavt ready for hfi2 support. This is being split out
-> from the previous patch submission [1].
-> 
-> [1] https://lore.kernel.org/linux-rdma/175129726945.1859400.4492277779101226937.stgit@awdrv-04.cornelisnetworks.com/
+mana_smc_teardown_hwc() signals the hardware to stop but does not
+synchronize against IRQ handlers already executing on other CPUs. The
+IRQ synchronization only happens in mana_hwc_destroy_cq() via
+mana_gd_destroy_eq() -> mana_gd_deregister_irq(). Since this runs
+after kfree(hwc->caller_ctx), a concurrent mana_hwc_rx_event_handler()
+can dereference freed caller_ctx (and rxq->msg_buf) in
+mana_hwc_handle_resp().
 
-Applied, thanks!
+Fix this by reordering teardown to reverse-of-creation order: destroy
+the TX/RX work queues and CQ/EQ before freeing hwc->caller_ctx. This
+ensures all in-flight interrupt handlers complete before the memory they
+access is freed.
 
-[1/4] RDMA/OPA: Update OPA link speed list
-      https://git.kernel.org/rdma/rdma/c/ba8c700185d62b
-[2/4] RDMA/rdmavt: Add ucontext alloc/dealloc passthrough
-      https://git.kernel.org/rdma/rdma/c/e2849b3929743c
-[3/4] RDMA/rdmavt: Correct multi-port QP iteration
-      https://git.kernel.org/rdma/rdma/c/2ad64eeaefd293
-[4/4] RDMA/rdmavt: Add driver mmap callback
-      https://git.kernel.org/rdma/rdma/c/1487bad4ea518a
+Fixes: ca9c54d2d6a5 ("net: mana: Add a driver for Microsoft Azure Network Adapter (MANA)")
+Reviewed-by: Haiyang Zhang <haiyangz@microsoft.com>
+Signed-off-by: Dipayaan Roy <dipayanroy@linux.microsoft.com>
+---
+Changes in v2:
+  - Added maintainers missed in v1.
+---
+---
+ drivers/net/ethernet/microsoft/mana/hw_channel.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-Best regards,
+diff --git a/drivers/net/ethernet/microsoft/mana/hw_channel.c b/drivers/net/ethernet/microsoft/mana/hw_channel.c
+index 91975bdb5686..dbbde0fa57e7 100644
+--- a/drivers/net/ethernet/microsoft/mana/hw_channel.c
++++ b/drivers/net/ethernet/microsoft/mana/hw_channel.c
+@@ -814,9 +814,6 @@ void mana_hwc_destroy_channel(struct gdma_context *gc)
+ 		gc->max_num_cqs = 0;
+ 	}
+ 
+-	kfree(hwc->caller_ctx);
+-	hwc->caller_ctx = NULL;
+-
+ 	if (hwc->txq)
+ 		mana_hwc_destroy_wq(hwc, hwc->txq);
+ 
+@@ -826,6 +823,9 @@ void mana_hwc_destroy_channel(struct gdma_context *gc)
+ 	if (hwc->cq)
+ 		mana_hwc_destroy_cq(hwc->gdma_dev->gdma_context, hwc->cq);
+ 
++	kfree(hwc->caller_ctx);
++	hwc->caller_ctx = NULL;
++
+ 	mana_gd_free_res_map(&hwc->inflight_msg_res);
+ 
+ 	hwc->num_inflight_msg = 0;
 -- 
-Leon Romanovsky <leon@kernel.org>
+2.43.0
 
