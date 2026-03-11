@@ -1,116 +1,205 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 55C643CF032;
-	Wed, 11 Mar 2026 19:09:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4B2F82C0285;
+	Wed, 11 Mar 2026 19:16:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773256167; cv=none; b=HQj+w29171Ow5h7l8P4L6Vinb8c7wFkc7olWZYYidW8OfUAGSonlFHL3cY59g37sf3FwGJaO3LiO8L6cOTad3VmwAMSlWTO5R8yPcGwLy2DzCVnJcEj6AF3/eOJOAqFtRm9q39n1H+Jd0QNroe4av/ShUudwqhOAweNYH8LTzhQ=
+	t=1773256599; cv=none; b=DKakTyar0JZvwumwcvUCxN6Au+iX7BlJmTGsEiMjDt3SCsryu2uDQI4waSsXy0u+3GZ+2okV2Cnk2hjFn3cSLT+SKM/ekAouniaR21hprV5QKoXLDVFtDh8C34/tQqZVX2InTzqZ/iv28QS0hXgz0pJFCSCWCg0nndfeOnz/tlw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773256167; c=relaxed/simple;
-	bh=8pwuaCiDUSCBcuJ0n9V3xnzMZmgOorpLbuob290/9q4=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=puo1njSIq/6zKedsvaB/xzth4NRfb/WxHRy5OGZND7oJfgyR78VAgSsKoSqH/QB9IrWtYDrJK6xUMi4bPaa9xfdj9Q+fMCW3+56E2Y3EtaSJgzzUJjz/2HAXjHj7+jQ0z9ufHHGjY42r1mwbXYdNiLXol32NAMBc+rvjZ7Xu+Wk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=fHKnRO6y; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773256599; c=relaxed/simple;
+	bh=viQVK+ttUf0/GAMv0IQvikFFGJ/M/aCjzTR7XLE/Vag=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=UFgFIXkmsRl6JSclZLJQD+F5DD7AtN94OpBcYCLzPnAjTwC7YTNMSREaF7196rq9o1q1sM0K+H+bQ9o1pNSivUxsFs8oOrRUsxL20B7sLDTnXfIK711xPTbPXz3EBeqO+25YpVMBiUuvuaiMB2c5bI5OpE9xeEc4oEELbdoASeg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=GzUq9D/x; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="fHKnRO6y"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8658CC4CEF7;
-	Wed, 11 Mar 2026 19:09:26 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="GzUq9D/x"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8D793C116C6;
+	Wed, 11 Mar 2026 19:16:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1773256167;
-	bh=8pwuaCiDUSCBcuJ0n9V3xnzMZmgOorpLbuob290/9q4=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=fHKnRO6yqtY5rofM6SDr4DHDapAJhsI0XJQi4O9p65/khxIvwwDdKmxcfP8QYi6A2
-	 m104LZo+8JeIN3EoFgQM5Elab2cHsl5k8qdT1jPMH3o3Dzz6r5kBM+nkshU7bgmuWj
-	 iEcMBWWDHna5UV8c+CTUfuJ6W6gkfU1mWntrsCIn5VobxHkCLxQcD7/p0cM11R/5kr
-	 F2/iLjoVMLIfU9H6nkJoCL4rhAdIR+aXP4WOX2Dvv4Kv8MnhhPCcvvORJXpnDAduD5
-	 uVQcX6poI5WbBIl7IXu3Irg6tUKQGpfuh/AJs2iPba4QxwYO9dwxL3VAGMO2PcW34p
-	 Tzux8OKSdH0Mw==
+	s=k20201202; t=1773256599;
+	bh=viQVK+ttUf0/GAMv0IQvikFFGJ/M/aCjzTR7XLE/Vag=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=GzUq9D/xzec9x8Ynd+iPP6ePo7BZinxg/VM6yhohD3LXNt7AMtQ5Uq0xgL7GqVlap
+	 sCXv8FGohevbdy5yLbSATzQu+fzrFmcD1XiMuU8gZuSZOP+kVbzMRzjm+M5xoqQUX8
+	 L+UFQfFvy0nMsig80r3A4QWNlgZ50yIeYh+ExOm2eiKtQR2x8366reL0BZKR/rUKnt
+	 Wfc5ISSjnHFQVdo2hB6QgBiYN+MbD14XZBpBMBP0eGJO0LyE5fvGI+OinqyBZldj8W
+	 66vAXOCKw7ZgZ7I23RBmcj4xBaMhcF4F7vqaRD205j5QNQ3JyvBnIoEIEmyl+YR7nH
+	 wK++ljV/wBZuQ==
+Date: Wed, 11 Mar 2026 21:16:35 +0200
 From: Leon Romanovsky <leon@kernel.org>
-To: Marek Szyprowski <m.szyprowski@samsung.com>,
-	Robin Murphy <robin.murphy@arm.com>,
-	"Michael S. Tsirkin" <mst@redhat.com>,
-	Petr Tesarik <ptesarik@suse.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shuah Khan <skhan@linuxfoundation.org>,
-	Jason Wang <jasowang@redhat.com>,
-	Xuan Zhuo <xuanzhuo@linux.alibaba.com>,
-	=?utf-8?q?Eugenio_P=C3=A9rez?= <eperezma@redhat.com>,
-	Jason Gunthorpe <jgg@ziepe.ca>,
-	Leon Romanovsky <leon@kernel.org>,
-	Steven Rostedt <rostedt@goodmis.org>,
-	Masami Hiramatsu <mhiramat@kernel.org>,
-	Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
-	Joerg Roedel <joro@8bytes.org>,
-	Will Deacon <will@kernel.org>,
-	Andrew Morton <akpm@linux-foundation.org>
-Cc: iommu@lists.linux.dev,
-	linux-kernel@vger.kernel.org,
-	linux-doc@vger.kernel.org,
-	virtualization@lists.linux.dev,
-	linux-rdma@vger.kernel.org,
-	linux-trace-kernel@vger.kernel.org,
-	linux-mm@kvack.org
-Subject: [PATCH v2 5/8] dma-direct: prevent SWIOTLB path when DMA_ATTR_REQUIRE_COHERENT is set
-Date: Wed, 11 Mar 2026 21:08:48 +0200
-Message-ID: <20260311-dma-debug-overlap-v2-5-e00bc2ca346d@nvidia.com>
-X-Mailer: git-send-email 2.53.0
-In-Reply-To: <20260311-dma-debug-overlap-v2-0-e00bc2ca346d@nvidia.com>
-References: <20260311-dma-debug-overlap-v2-0-e00bc2ca346d@nvidia.com>
+To: Paul Moore <paul@paul-moore.com>
+Cc: James Morris <jmorris@namei.org>, "Serge E. Hallyn" <serge@hallyn.com>,
+	Jason Gunthorpe <jgg@ziepe.ca>, Saeed Mahameed <saeedm@nvidia.com>,
+	Itay Avraham <itayavr@nvidia.com>,
+	Dave Jiang <dave.jiang@intel.com>,
+	Jonathan Cameron <Jonathan.Cameron@huawei.com>,
+	linux-security-module@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-rdma@vger.kernel.org, Chiara Meiohas <cmeiohas@nvidia.com>,
+	Maher Sanalla <msanalla@nvidia.com>,
+	Edward Srouji <edwards@nvidia.com>
+Subject: Re: [PATCH 0/3] Firmware LSM hook
+Message-ID: <20260311191635.GY12611@unreal>
+References: <20260309-fw-lsm-hook-v1-0-4a6422e63725@nvidia.com>
+ <CAHC9VhTR9CsBgxRCAHXm5T2NZ5tr+XfmA--zkt=udmk9hPRuZQ@mail.gmail.com>
+ <20260309193743.GZ12611@unreal>
+ <CAHC9VhSRt_QEJKJFBDBySNQCiPpcawd5A76xmoRNtppRKGaCog@mail.gmail.com>
+ <20260310090733.GA12611@unreal>
+ <CAHC9VhTKsOYrs8Wh-O548=2gE7N_gkBy+q05+atcR=D+30uQ=w@mail.gmail.com>
+ <20260310193000.GM12611@unreal>
+ <CAHC9VhSh8A+yGHT_+BqFGaLNqsZDcaz_cuqf9A+neRQQ3PMY4A@mail.gmail.com>
+ <20260311081955.GS12611@unreal>
+ <CAHC9VhR0iuzYRpi3vPdKAbsOJ-DoMvWV-c7TXVcAmb3u8J4JwA@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-X-Mailer: b4 0.15-dev-18f8f
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAHC9VhR0iuzYRpi3vPdKAbsOJ-DoMvWV-c7TXVcAmb3u8J4JwA@mail.gmail.com>
 
-From: Leon Romanovsky <leonro@nvidia.com>
+On Wed, Mar 11, 2026 at 12:06:09PM -0400, Paul Moore wrote:
+> On Wed, Mar 11, 2026 at 4:20 AM Leon Romanovsky <leon@kernel.org> wrote:
+> > On Tue, Mar 10, 2026 at 05:40:02PM -0400, Paul Moore wrote:
+> > > On Tue, Mar 10, 2026 at 3:30 PM Leon Romanovsky <leon@kernel.org> wrote:
+> > > > On Tue, Mar 10, 2026 at 02:24:40PM -0400, Paul Moore wrote:
+> > > > > On Tue, Mar 10, 2026 at 5:07 AM Leon Romanovsky <leon@kernel.org> wrote:
+> > > > > > On Mon, Mar 09, 2026 at 07:10:25PM -0400, Paul Moore wrote:
+> > > > > > > On Mon, Mar 9, 2026 at 3:37 PM Leon Romanovsky <leon@kernel.org> wrote:
+> > > > > > > > On Mon, Mar 09, 2026 at 02:32:39PM -0400, Paul Moore wrote:
+> > > > > > > > > On Mon, Mar 9, 2026 at 7:15 AM Leon Romanovsky <leon@kernel.org> wrote:
+> > > > >
+> > > > > ...
+> > > > >
+> > > > > > > > > Hi Leon,
+> > > > > > > > >
+> > > > > > > > > At the link below, you'll find guidance on submitting new LSM hooks.
+> > > > > > > > > Please take a look and let me know if you have any questions.
+> > > > > > > > >
+> > > > > > > > > https://github.com/LinuxSecurityModule/kernel/blob/main/README.md#new-lsm-hooks
+> > > > > > > >
+> > > > > > > > I assume that you are referring to this part:
+> > > > > > >
+> > > > > > > I'm referring to all of the guidance, but yes, at the very least that
+> > > > > > > is something that I think we need to see in a future revision of this
+> > > > > > > patchset.
+> > > > > > >
+> > > > > > > >  * New LSM hooks must demonstrate their usefulness by providing a meaningful
+> > > > > > > >    implementation for at least one in-kernel LSM. The goal is to demonstrate
+> > > > > > > >    the purpose and expected semantics of the hooks. Out of tree kernel code,
+> > > > > > > >    and pass through implementations, such as the BPF LSM, are not eligible
+> > > > > > > >    for LSM hook reference implementations.
+> > > > > > > >
+> > > > > > > > The point is that we are not inspecting a kernel call, but the FW mailbox,
+> > > > > > > > which has very little meaning to the kernel. From the kernel's perspective,
+> > > > > > > > all relevant checks have already been performed, but the existing capability
+> > > > > > > > granularity does not allow us to distinguish between FW_CMD1 and FW_CMD2.
+> > > > > > >
+> > > > > > > It might help if you could phrase this differently, as I'm not
+> > > > > > > entirely clear on your argument.  LSMs are not limited to enforcing
+> > > > > > > access controls on requests the kernel understands (see the SELinux
+> > > > > > > userspace object manager concept), and the idea of access controls
+> > > > > > > with greater granularity than capabilities is one of the main reasons
+> > > > > > > people look to LSMs for access control (SELinux, AppArmor, Smack,
+> > > > > > > etc.).
+> > > > > >
+> > > > > > I should note that my understanding of LSM is limited, so some parts of my
+> > > > > > answers may be inaccurate.
+> > > > > >
+> > > > > > What I am referring to is a different level of granularity — specifically,
+> > > > > > the internals of the firmware commands. In the proposed approach, BPF
+> > > > > > programs would make decisions based on data passed through the mailbox.
+> > > > > > That mailbox format varies across vendors, and may even differ between
+> > > > > > firmware versions from the same vendor.
+> > > > >
+> > > > > That helps, thank you.
+> > > > >
+> > > > > > > > Here we propose a generic interface that can be applied to all FWCTL
+> > > > > > > > devices without out-of-tree kernel code at all.
+> > > > > > >
+> > > > > > > I expected to see a patch implementing some meaningful support for
+> > > > > > > access controls using these hooks in one of the existing LSMs, I did
+> > > > > > > not see that in this patchset.
+> > > > > >
+> > > > > > In some cases, the mailbox is forwarded from user space unchanged, but
+> > > > > > in others the kernel modifies it before submitting it to the FW.
+> > > > >
+> > > > > Without a standard format, opcode definitions, etc. I suspect
+> > > > > integrating this into an LSM will present a number of challenges.
+> > > >
+> > > > The opcode is relatively easy to extract from the mailbox and pass to the LSM.
+> > > > All drivers implement some variant of mlx5ctl_validate_rpc()/devx_is_general_cmd()
+> > > > to validate the opcode. The problem is that this check alone is not sufficient.
+> > > >
+> > > > > Instead of performing an LSM access control check before submitting
+> > > > > the firmware command, it might be easier from an LSM perspective to
+> > > > > have the firmware call into the kernel/LSM for an access control
+> > > > > decision before performing a security-relevant action.
+> > > >
+> > > > Ultimately, the LSM must make a decision for each executed firmware
+> > > > command. This will need to be handled one way or another, and will
+> > > > likely require parsing the mailbox again.
+> > >
+> > > As it's unlikely that parsing the mailbox is something that a LSM will
+> > > want to handle,
+> >
+> > I believe this approach offers the cleanest and most natural way to support
+> > all mailbox‑based devices.
+> >
+> > > my suggestion was to leverage the existing mailbox parsing in the firmware
+> > > and require the firmware to call into the LSM when authorization is needed.
+> > >
+> > > > > This removes the challenge of parsing/interpreting the arbitrary firmware commands,
+> > > > > but it does add some additional complexity of having to generically
+> > > > > represent the security relevant actions the firmware might request
+> > > >
+> > > > The difference here is that the proposed LSM hook is intended to disable
+> > > > certain functionality provided by the firmware, effectively depending on
+> > > > the operator’s preferences.
+> > >
+> > > My suggestion would also allow a LSM hook to disable certain firmware
+> > > functionality; however, the firmware itself would need to call the LSM
+> > > to check if the functionality is authorized.
+> >
+> > This suggestion adds an extra call from the FW to the LSM for every command, even
+> > for systems which don't have LSM at all.
+> 
+> If latency is a concern, I imagine we could create an LSM hook to
+> report whether any LSMs provided firmware access controls.  The
+> firmware could then use that hook, potentially caching the result, to
+> limit its calls into the LSM.
+> 
+> > The FW must pass the already parsed data
+> > back to the LSM; otherwise, the LSM   has no basis to decide whether to accept or
+> > reject the request.
+> >
+> > For example, consider the MLX5_CMD_OP_QUERY_DCT command handled in
+> > mlx5ctl_validate_rpc(). DCT in RDMA refers to Dynamically Connected
+> > Transport, a Mellanox-specific extension that effectively introduces a new
+> > QP‑type family on top of the standard RC/UC/UD transports. This type does not
+> > exist for other vendors, each of whom provides its own vendor‑specific
+> > extensions. All parameters here are tightly coupled to those specific
+> > commands.
+> >
+> > It is unrealistic to expect different firmware implementations to supply
+> > their data in a common format that would allow the LSM to make a generic
+> > decision.
+> 
+> That's unfortunate as that would be the easiest path forward.
+> Regardless, you are welcome to work on whatever implementation you
+> think makes sense for any of the in-tree LSMs, with that in place we
+> can take another look at the firmware command hooks.
+> 
+> Good luck.
 
-DMA_ATTR_REQUIRE_COHERENT indicates that SWIOTLB must not be used.
-Ensure the SWIOTLB path is declined whenever the DMA direct path is
-selected.
+I'll take advantage of the upcoming weekend and look into what can be done
+here.
 
-Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
----
- kernel/dma/direct.h | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+Thanks
 
-diff --git a/kernel/dma/direct.h b/kernel/dma/direct.h
-index e89f175e9c2d0..6184ff303f080 100644
---- a/kernel/dma/direct.h
-+++ b/kernel/dma/direct.h
-@@ -84,7 +84,7 @@ static inline dma_addr_t dma_direct_map_phys(struct device *dev,
- 	dma_addr_t dma_addr;
- 
- 	if (is_swiotlb_force_bounce(dev)) {
--		if (attrs & DMA_ATTR_MMIO)
-+		if (attrs & (DMA_ATTR_MMIO | DMA_ATTR_REQUIRE_COHERENT))
- 			return DMA_MAPPING_ERROR;
- 
- 		return swiotlb_map(dev, phys, size, dir, attrs);
-@@ -98,7 +98,8 @@ static inline dma_addr_t dma_direct_map_phys(struct device *dev,
- 		dma_addr = phys_to_dma(dev, phys);
- 		if (unlikely(!dma_capable(dev, dma_addr, size, true)) ||
- 		    dma_kmalloc_needs_bounce(dev, size, dir)) {
--			if (is_swiotlb_active(dev))
-+			if (is_swiotlb_active(dev) &&
-+			    !(attrs & DMA_ATTR_REQUIRE_COHERENT))
- 				return swiotlb_map(dev, phys, size, dir, attrs);
- 
- 			goto err_overflow;
-@@ -123,7 +124,7 @@ static inline void dma_direct_unmap_phys(struct device *dev, dma_addr_t addr,
- {
- 	phys_addr_t phys;
- 
--	if (attrs & DMA_ATTR_MMIO)
-+	if (attrs & (DMA_ATTR_MMIO | DMA_ATTR_REQUIRE_COHERENT))
- 		/* nothing to do: uncached and no swiotlb */
- 		return;
- 
-
--- 
-2.53.0
-
+> 
+> -- 
+> paul-moore.com
