@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 800523563FB;
-	Wed, 11 Mar 2026 08:21:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 16F143AEF36;
+	Wed, 11 Mar 2026 08:29:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773217268; cv=none; b=QlzqWGzyNiN5sysB+E24MPa5Gl3Wl2pcD9Mfsnma/TRbgwxe5H0e/eg5MW8nrBhzlu5nSo9FfP61wXodD5h+1pRC5j4QCCpvvREEk00eAsTG3YGAAXojLI9Ha3UWb8SjCoaiDpWhefxNb8+l0XQoMGhDC9vb6R7ZnTbi3PNYULE=
+	t=1773217743; cv=none; b=eQTau/AJB1aQWf0rC82+DsDOSbrl3ddEC/zRJJx78FE9CQRmVC4JClr95j8WG04kdXDifi81Vdbad8BlMY/oG/fsh6TWs8c7VK4E8TOK5hmzz73YJH6K5Jhrv8DQIw/XGCsz/yv/4TP/lv5ZXpkufSW/zoaTIHLZIs3QDQWIFEA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773217268; c=relaxed/simple;
-	bh=yoy2hHq0mlIZwc0kYZnvrnYvl8EpuwxGFzXVdSAUfiw=;
+	s=arc-20240116; t=1773217743; c=relaxed/simple;
+	bh=GE6B9Axf2iqOgQ6Zt2ej9Oufrn3oudVjXjL2vTIfmAQ=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=KKs+GW6YYIlcnCHOkN9ph5Hx5+pODwYbeeVIHbNVh0468N1vWInXZaEDSTpZNMK3IbymxQqJeN3yzDBUINjCnNmVV6FcmvqEpSLP69a/IlzFlPq75mGKVMqxzTgj1aOg+I9dPDqxne9HY9I50GD17WFD3Acr0djsnkGUyOSf7Jc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=cTf0RnmN; arc=none smtp.client-ip=10.30.226.201
+	 In-Reply-To:Content-Type; b=TaBi0TpABpWppN3I/jAbHobNkU+IPhRgg4kTWje6nHkDy0dMhMylf7D4RPwXp98qPAPbG5P8LkjpZpnXIsGLMhpHs6J5wQ5GjvpMLxPdqsDrdHQTovZlD12pbVzLeS8/qOV4uoQpufNAoeuRvHHvnYd2dC/xFOnCHsC1h4yxOYo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=utVavD96; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="cTf0RnmN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EA254C4CEF7;
-	Wed, 11 Mar 2026 08:20:54 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="utVavD96"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3C4C3C4CEF7;
+	Wed, 11 Mar 2026 08:28:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1773217268;
-	bh=yoy2hHq0mlIZwc0kYZnvrnYvl8EpuwxGFzXVdSAUfiw=;
+	s=k20201202; t=1773217742;
+	bh=GE6B9Axf2iqOgQ6Zt2ej9Oufrn3oudVjXjL2vTIfmAQ=;
 	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=cTf0RnmNDiJr/UaiIX68oNKNUMmk3eM19LeszXExEX5Januo2/40zQJ3oD4JOmvzx
-	 Q2n49GaHe97cnoonNB/JqiqpsNtHzHtLAbRLdZ6sYh863gpXifwvSx7D1dp/3sEvyZ
-	 Cz19hxeRzhZi2oJc0Wnk73bnhQ7wwkYnI2D4U6uKEPrCI8z4dlK812Jb3PAW7M303a
-	 WltTUBSwdhPNJlyqR7bREVbYU/2K/pT8iN+GLG9OQeR/gH5ZpF6uteOR+s/mrsI5qK
-	 e+MW9EWzf5J2dJKuPFzc/B0cyPzhCcoIHrW0iFi+aZAA5GHI2ocqzHfiCCK5nJI5En
-	 3rzrG7ue05B/Q==
-Message-ID: <9cd2794a-63c6-4645-b42b-10412899865f@kernel.org>
-Date: Wed, 11 Mar 2026 09:20:53 +0100
+	b=utVavD961L/MIxHcghlNRfP+qmyZvTz3tZkkai8biCLxovJiwSfi721dAan4WAerP
+	 qQU5S4O+so1CV/l13lXL1pBvxe6Xcb8kk+l/bBNkxM6Og8LAf+De6dljLV/bYd9vPF
+	 RnkVuR2LJMC1aO8Mmf8ZYzGG89DCjYYyg3JerSgXRXHIS9MEy5aP+0VPOJEnsfhJP/
+	 cAHnLbI4JCoH8Po1okfUE05z/3RGXHVkg9UE9OHdr7DaaCoUol+/nBwm0m7BwYmG4l
+	 DzBEoPXPx1/wX7BQYXu4AinRZizyRYhr3BiDVj3GhukhaNvYNRYVgru+HF9UqoHZIa
+	 O0mPmtOaDieiw==
+Message-ID: <5e5e0169-5197-4626-b91b-af4c13520805@kernel.org>
+Date: Wed, 11 Mar 2026 09:28:47 +0100
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -35,8 +35,8 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v1 15/16] mm: rename zap_vma_ptes() to
- zap_special_vma_range()
+Subject: Re: [PATCH v1 09/16] mm/memory: convert details->even_cows into
+ details->skip_cows
 To: "Lorenzo Stoakes (Oracle)" <ljs@kernel.org>
 Cc: linux-kernel@vger.kernel.org, "linux-mm @ kvack . org"
  <linux-mm@kvack.org>, Andrew Morton <akpm@linux-foundation.org>,
@@ -84,8 +84,8 @@ Cc: linux-kernel@vger.kernel.org, "linux-mm @ kvack . org"
  linux-perf-users@vger.kernel.org, linux-fsdevel@vger.kernel.org,
  netdev@vger.kernel.org, rust-for-linux@vger.kernel.org, x86@kernel.org
 References: <20260227200848.114019-1-david@kernel.org>
- <20260227200848.114019-16-david@kernel.org>
- <c77c1bed-f04e-4f21-87d9-6c5da3f0ad69@lucifer.local>
+ <20260227200848.114019-10-david@kernel.org>
+ <091ce280-9204-4b85-bf39-5e2a61e3d0ba@lucifer.local>
 From: "David Hildenbrand (Arm)" <david@kernel.org>
 Content-Language: en-US
 Autocrypt: addr=david@kernel.org; keydata=
@@ -132,29 +132,88 @@ Autocrypt: addr=david@kernel.org; keydata=
  3iyY2Nsd7JxfKu1PRhCGwXzRw5TlfEsoRI7V9A8isUCoqE2Dzh3FvYHVeX4Us+bRL/oqareJ
  CIFqgYMyvHj7Q06kTKmauOe4Nf0l0qEkIuIzfoLJ3qr5UyXc2hLtWyT9Ir+lYlX9efqh7mOY
  qIws/H2t
-In-Reply-To: <c77c1bed-f04e-4f21-87d9-6c5da3f0ad69@lucifer.local>
+In-Reply-To: <091ce280-9204-4b85-bf39-5e2a61e3d0ba@lucifer.local>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
-On 3/6/26 13:41, Lorenzo Stoakes (Oracle) wrote:
-> On Fri, Feb 27, 2026 at 09:08:46PM +0100, David Hildenbrand (Arm) wrote:
->> zap_vma_ptes() is the only zapping function we export to modules.
+
 >>
->> It's essentially a wrapper around zap_vma_range(), however, with some
->> safety checks:
->> * That the passed range fits fully into the VMA
->> * That it's only used for VM_PFNMAP
->>
->> We might want to support VM_MIXEDMAP soon as well, so use the
+>>  	zap_page_range_single_batched(
+>> diff --git a/mm/memory.c b/mm/memory.c
+>> index fdcd2abf29c2..7d7c24c6917c 100644
+>> --- a/mm/memory.c
+>> +++ b/mm/memory.c
+>> @@ -1554,11 +1554,13 @@ copy_page_range(struct vm_area_struct *dst_vma, struct vm_area_struct *src_vma)
+>>  static inline bool should_zap_cows(struct zap_details *details)
 > 
-> I think you should say we _are_ going to since patch 16/16 does that :)
+> Not sure if you fix up later, but we should probably change this function to
+> should_skip_cows() to keep everything consistent, otherwise this is a bit weird
+> and confusing.
 
-Heh, had that patch separate first before I decided to support
-VM_MIXEDMAP in the same series.
+should_skip_cows() is a bit misleading on its own IMHO, as we skip the
+"zap" context.
 
-@Andrew, can you fix that up? Thanks!
+Would have to be something like "should_skip_cows_when_zapping()", and I
+am not sure if that's really worth it.
 
-"We will add support for VM_MIXEDMAP next, so ..."
+So I think we can leave it as is.
+
+Thanks!
+
+> 
+>>  {
+>>  	/* By default, zap all pages */
+>> -	if (!details || details->reclaim_pt)
+>> +	if (!details)
+>>  		return true;
+>>
+>> +	VM_WARN_ON_ONCE(details->skip_cows && details->reclaim_pt);
+>> +
+>>  	/* Or, we zap COWed pages only if the caller wants to */
+>> -	return details->even_cows;
+>> +	return !details->skip_cows;
+>>  }
+>>
+>>  /* Decides whether we should zap this folio with the folio pointer specified */
+>> @@ -2149,8 +2151,6 @@ void unmap_vmas(struct mmu_gather *tlb, struct unmap_desc *unmap)
+>>  	struct mmu_notifier_range range;
+>>  	struct zap_details details = {
+>>  		.zap_flags = ZAP_FLAG_DROP_MARKER | ZAP_FLAG_UNMAP,
+>> -		/* Careful - we need to zap private pages too! */
+>> -		.even_cows = true,
+>>  	};
+>>
+>>  	vma = unmap->first;
+>> @@ -4282,7 +4282,7 @@ void unmap_mapping_folio(struct folio *folio)
+>>  	first_index = folio->index;
+>>  	last_index = folio_next_index(folio) - 1;
+>>
+>> -	details.even_cows = false;
+>> +	details.skip_cows = true;
+>>  	details.single_folio = folio;
+>>  	details.zap_flags = ZAP_FLAG_DROP_MARKER;
+>>
+>> @@ -4312,7 +4312,7 @@ void unmap_mapping_pages(struct address_space *mapping, pgoff_t start,
+>>  	pgoff_t	first_index = start;
+>>  	pgoff_t	last_index = start + nr - 1;
+>>
+>> -	details.even_cows = even_cows;
+>> +	details.skip_cows = !even_cows;
+> 
+> Not sure if you clean up later, but seems sensible to cascade the change into
+> the local boolean here.
+
+There are too many unmap_mapping_range() users for me to want to change
+the external interface :)
+
+What I was thinking is that probably there should be two independent
+user-facing functions, instead of having this magical bool passed around
+
+Because I am sure, most users don't really know whether to set it to
+true or false ...
+
+But that's something for another cleanup. (I left the whole
+unmap_mapping_pages() interface etc alone in this series)
 
 -- 
 Cheers,
