@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2EE67367F4A;
-	Wed, 11 Mar 2026 19:09:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7781636E469;
+	Wed, 11 Mar 2026 19:09:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773256152; cv=none; b=nHuJT53rvHVs59M6uKodj9JeKYvvf8Nndy6Clh7jPM7yr//DelLeBVBdQOblCeF+OF0n739x7UPrnHQALClH1u8CI5BTFuscUtx9ieMOURLRIcH9JQtKqSV51E1PKDYeC1yXqG93IJIM8dKrbim6Ef1lFDPU2HLSogMJl5o9aFc=
+	t=1773256156; cv=none; b=dPULr7ZoYZnBFV3jUFalN8gWjFprzOXi2RgNx2yXYsRxq381plYsh4NyHAbU8kTtfdAmCbwGzXZ2Vrz25EGzK5juwynptNHDrPvBjsrNgVtKV4SWI2BwLd4LwNtB4trYe7C9Bd7Z6epvCabGYR0zJGnpxRKnQcvyrrWXumG8GC4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773256152; c=relaxed/simple;
-	bh=Y7IxYgFPwpNVvKXeK9nR1uoDv1sEB/976av/0RuDIXA=;
+	s=arc-20240116; t=1773256156; c=relaxed/simple;
+	bh=aXwCdr26DGL4+NaZEE3PT+YDkt3E2yVN7za/ReeSxow=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=qj4q6m8AqqxCoH2+uuPhxKlo9+xeV1skU0SboWNRogxtdaoYpzQv1TLfD+YONCUlL/CjjUe4NEsX6L1gH5wvMRwq5dbq73uSkNbdvDLDKIESZ7ZmhIr+1CTgvNZN94Bcl3jdMFl9SPQknl1y0fO7B6RwUApZM2PNOlPNLHkWf5s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=PZjly+FD; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version:Content-Type; b=AsSemurQszG8PmNZprEbEhs7OoZ8UlIqM4aetnUyv41ElcEzsNenwZlzf2afH9qn9BAoLrlgQY+9nS7TvG3ZChOh+ph9njw0p1uSnSE7epU2mrjgXivQQAmhN2wl4s34w0vRV8G9xF7843DxTZVgEaSaAUPhBTNzm5UbRzXdB0M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=hfT6VO/H; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="PZjly+FD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3AAC1C116C6;
-	Wed, 11 Mar 2026 19:09:11 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="hfT6VO/H"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AFB91C4CEF7;
+	Wed, 11 Mar 2026 19:09:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1773256151;
-	bh=Y7IxYgFPwpNVvKXeK9nR1uoDv1sEB/976av/0RuDIXA=;
+	s=k20201202; t=1773256156;
+	bh=aXwCdr26DGL4+NaZEE3PT+YDkt3E2yVN7za/ReeSxow=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=PZjly+FD7RhrJxb1JD1VgY4spyEehNCANCCnx9mVnO9J4cWhenNclePe/JK1Iy/Zy
-	 +lffzBEJ96sc2SLnsy9exQHyisEszVRb6oOq7EVzSXq8W0Yh6WxIr+2XUnyKA/cLf1
-	 m/pz6fl6AezPbzmXIBszDFIE6tSwhBG826fO3jBsXgikveu0HxOOIIzjIiVCwod0no
-	 h8cuXF1gV1UO9KAr6ZbxDb+aFehyKFej3C2cqyHB/TvpuI/c+GbC7iBQIckvCaERVV
-	 LBj5kuI7vjP92AtWxD4vuJJ7/CW8N+ksu9l1OeuVKXABVX+04P7FuPyblNDEpBBNcp
-	 5RSfo2p/vb5sg==
+	b=hfT6VO/H2ei6g2r3v5zyGv7rxwT6gZVYEAZ3q/JxZD65/o54Se7wSvuPVHXwVG3KV
+	 lGDu5gO5rDUufjp8q+LowrU3Ke5y5jS1Y0bexFfXEB3tzQzQyOOftdHqt+R8iv65vI
+	 r7wvN46gsOkly1ZVrVr/Sl/g1XDPv9kDCCPnM7WliJ2076XljXXXFEhaxHnyVTNvjr
+	 gfEXB4mq7aNOf4+zV1wf2x9Jz+Ri4AjvTPzWFPes3dJEnWw/e595Owg7+LvCwGscfZ
+	 iT0Mis1SQnjow6HB3HyeJr9hbn/JtUUGlGfFied+XD1ozj+5qSP1XAToPA53V0fZrm
+	 dZB0p85e4RYfg==
 From: Leon Romanovsky <leon@kernel.org>
 To: Marek Szyprowski <m.szyprowski@samsung.com>,
 	Robin Murphy <robin.murphy@arm.com>,
@@ -51,9 +51,9 @@ Cc: iommu@lists.linux.dev,
 	linux-rdma@vger.kernel.org,
 	linux-trace-kernel@vger.kernel.org,
 	linux-mm@kvack.org
-Subject: [PATCH v2 2/8] dma-mapping: handle DMA_ATTR_CPU_CACHE_CLEAN in trace output
-Date: Wed, 11 Mar 2026 21:08:45 +0200
-Message-ID: <20260311-dma-debug-overlap-v2-2-e00bc2ca346d@nvidia.com>
+Subject: [PATCH v2 6/8] iommu/dma: add support for DMA_ATTR_REQUIRE_COHERENT attribute
+Date: Wed, 11 Mar 2026 21:08:49 +0200
+Message-ID: <20260311-dma-debug-overlap-v2-6-e00bc2ca346d@nvidia.com>
 X-Mailer: git-send-email 2.53.0
 In-Reply-To: <20260311-dma-debug-overlap-v2-0-e00bc2ca346d@nvidia.com>
 References: <20260311-dma-debug-overlap-v2-0-e00bc2ca346d@nvidia.com>
@@ -69,30 +69,70 @@ Content-Transfer-Encoding: 8bit
 
 From: Leon Romanovsky <leonro@nvidia.com>
 
-Tracing prints decoded DMA attribute flags, but it does not yet
-include the recently added DMA_ATTR_CPU_CACHE_CLEAN. Add support
-for decoding and displaying this attribute in the trace output.
+Add support for the DMA_ATTR_REQUIRE_COHERENT attribute to the exported
+functions. This attribute indicates that the SWIOTLB path must not be
+used and that no sync operations should be performed.
 
-Fixes: 61868dc55a11 ("dma-mapping: add DMA_ATTR_CPU_CACHE_CLEAN")
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- include/trace/events/dma.h | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/iommu/dma-iommu.c | 21 +++++++++++++++++----
+ 1 file changed, 17 insertions(+), 4 deletions(-)
 
-diff --git a/include/trace/events/dma.h b/include/trace/events/dma.h
-index 33e99e792f1aa..69cb3805ee81c 100644
---- a/include/trace/events/dma.h
-+++ b/include/trace/events/dma.h
-@@ -32,7 +32,8 @@ TRACE_DEFINE_ENUM(DMA_NONE);
- 		{ DMA_ATTR_ALLOC_SINGLE_PAGES, "ALLOC_SINGLE_PAGES" }, \
- 		{ DMA_ATTR_NO_WARN, "NO_WARN" }, \
- 		{ DMA_ATTR_PRIVILEGED, "PRIVILEGED" }, \
--		{ DMA_ATTR_MMIO, "MMIO" })
-+		{ DMA_ATTR_MMIO, "MMIO" }, \
-+		{ DMA_ATTR_CPU_CACHE_CLEAN, "CACHE_CLEAN" })
+diff --git a/drivers/iommu/dma-iommu.c b/drivers/iommu/dma-iommu.c
+index 5dac64be61bb2..94d5141696424 100644
+--- a/drivers/iommu/dma-iommu.c
++++ b/drivers/iommu/dma-iommu.c
+@@ -1211,7 +1211,7 @@ dma_addr_t iommu_dma_map_phys(struct device *dev, phys_addr_t phys, size_t size,
+ 	 */
+ 	if (dev_use_swiotlb(dev, size, dir) &&
+ 	    iova_unaligned(iovad, phys, size)) {
+-		if (attrs & DMA_ATTR_MMIO)
++		if (attrs & (DMA_ATTR_MMIO | DMA_ATTR_REQUIRE_COHERENT))
+ 			return DMA_MAPPING_ERROR;
  
- DECLARE_EVENT_CLASS(dma_map,
- 	TP_PROTO(struct device *dev, phys_addr_t phys_addr, dma_addr_t dma_addr,
+ 		phys = iommu_dma_map_swiotlb(dev, phys, size, dir, attrs);
+@@ -1223,7 +1223,8 @@ dma_addr_t iommu_dma_map_phys(struct device *dev, phys_addr_t phys, size_t size,
+ 		arch_sync_dma_for_device(phys, size, dir);
+ 
+ 	iova = __iommu_dma_map(dev, phys, size, prot, dma_mask);
+-	if (iova == DMA_MAPPING_ERROR && !(attrs & DMA_ATTR_MMIO))
++	if (iova == DMA_MAPPING_ERROR &&
++	    !(attrs & (DMA_ATTR_MMIO | DMA_ATTR_REQUIRE_COHERENT)))
+ 		swiotlb_tbl_unmap_single(dev, phys, size, dir, attrs);
+ 	return iova;
+ }
+@@ -1233,7 +1234,7 @@ void iommu_dma_unmap_phys(struct device *dev, dma_addr_t dma_handle,
+ {
+ 	phys_addr_t phys;
+ 
+-	if (attrs & DMA_ATTR_MMIO) {
++	if (attrs & (DMA_ATTR_MMIO | DMA_ATTR_REQUIRE_COHERENT)) {
+ 		__iommu_dma_unmap(dev, dma_handle, size);
+ 		return;
+ 	}
+@@ -1945,9 +1946,21 @@ int dma_iova_link(struct device *dev, struct dma_iova_state *state,
+ 	if (WARN_ON_ONCE(iova_start_pad && offset > 0))
+ 		return -EIO;
+ 
++	/*
++	 * DMA_IOVA_USE_SWIOTLB is set on state after some entry
++	 * took SWIOTLB path, which we were supposed to prevent
++	 * for DMA_ATTR_REQUIRE_COHERENT attribute.
++	 */
++	if (WARN_ON_ONCE((state->__size & DMA_IOVA_USE_SWIOTLB) &&
++			 (attrs & DMA_ATTR_REQUIRE_COHERENT)))
++		return -EOPNOTSUPP;
++
++	if (!dev_is_dma_coherent(dev) && (attrs & DMA_ATTR_REQUIRE_COHERENT))
++		return -EOPNOTSUPP;
++
+ 	if (dev_use_swiotlb(dev, size, dir) &&
+ 	    iova_unaligned(iovad, phys, size)) {
+-		if (attrs & DMA_ATTR_MMIO)
++		if (attrs & (DMA_ATTR_MMIO | DMA_ATTR_REQUIRE_COHERENT))
+ 			return -EPERM;
+ 
+ 		return iommu_dma_iova_link_swiotlb(dev, state, phys, offset,
 
 -- 
 2.53.0
