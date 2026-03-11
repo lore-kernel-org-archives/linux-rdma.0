@@ -1,439 +1,248 @@
-Received: from out-170.mta0.migadu.com (out-170.mta0.migadu.com [91.218.175.170])
+Received: from smtpout-03.galae.net (smtpout-03.galae.net [185.246.85.4])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 462B428CF4A
-	for <linux-rdma@vger.kernel.org>; Wed, 11 Mar 2026 06:35:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.170
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C2193AF66A;
+	Wed, 11 Mar 2026 07:33:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.246.85.4
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773210953; cv=none; b=Sk/f0LL1oMQfYyDU6rVJlR3Ulr5od6C9JKTIsDLC+2jtyNNiRLKGwc1ziM2UyhDnYkYI3wblR4eCJscwKXWdWHJfxKgaQWuCYUyTjP8J30iXxANwBVRibKu5JORiXPPFchVKqR/p5T9ECWkZuYXJ4i2vq+POQzibtaYjhh48NQ0=
+	t=1773214425; cv=none; b=ep8GGrpGArV3fxwdgFjvG2FEkEMD7TK54qEwykFaPN1lKjnUqiAgIsMGCDa7BKuPj4i0kGShnJtYjszCDaqYF4G1nSwhhf9Fiv93oyC3q9nqfXTqQOLYFbdleMhGBe/JWuDl/X/tX7kamuKpAc3BbVA2E/ZTEYn0LeZhWu8yFKc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773210953; c=relaxed/simple;
-	bh=Mv+33bjVBHHqnXe1uy4deRe9n04ajaqtIvw8A3bnNPk=;
-	h=Message-ID:Date:MIME-Version:Subject:To:References:From:
-	 In-Reply-To:Content-Type; b=O6JW/PjhCBYETNVs469+L/leoL1g3Iu2MNMJCvESxR+KgAEyB0gFX9alYXC1VKnS49wZ2aUspKlV2gboaAxMT8b+D4pAvOhakJZsVN5jzADf5dF+Npr+kIJKOP70XG28yL3l1VOIcagS+6cUv9OinjkMDpmH0sH0M7w1tbun1sw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=doCMNeOg; arc=none smtp.client-ip=91.218.175.170
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+	s=arc-20240116; t=1773214425; c=relaxed/simple;
+	bh=TnUwwV/B77eColgu+FTC3LP0ebszg38zOzmJYiOft34=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=T9+ionISt273aC8znEZn24TN1PZvIZTRZ7kH9judtGgigcBLlBeEN4x2GSNeCnWArZJyoxx2NQhojWjZVojn2mmjuaJQMOs+zmig0JVq2SOILuvh7eWoDIE2D/gM03JaSfZQza2Yvto5LZ70ZVlzfO72YV/GLPzWw6P407EEW8k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=EWvhKPJ1; arc=none smtp.client-ip=185.246.85.4
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="doCMNeOg"
-Message-ID: <af852510-2e6f-406e-9d8f-80a446ec0000@linux.dev>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-	t=1773210949;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=6Nwg+tX1KrQRzCvgwYGdLzvgeoCIycBhrn5VOwwRH2E=;
-	b=doCMNeOgE1AU5kLp060pLwdFRV2aT1P5+kDLGCR0mD92l7BiMwMKU92eKjxAkFjBeNkShF
-	NAQ1IBFPRBq347THf0KfsKJ/232CUs3A/37HzPsrVJKWMgUMADcqwbOuM0rjRS+BYXLkiJ
-	3ezIwjEESJz+RFFJjohN7dqIaMeD9xE=
-Date: Tue, 10 Mar 2026 23:35:33 -0700
+	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="EWvhKPJ1"
+Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
+	by smtpout-03.galae.net (Postfix) with ESMTPS id A077B4E42612;
+	Wed, 11 Mar 2026 07:33:36 +0000 (UTC)
+Received: from mail.galae.net (mail.galae.net [212.83.136.155])
+	by smtpout-01.galae.net (Postfix) with ESMTPS id 710D560004;
+	Wed, 11 Mar 2026 07:33:36 +0000 (UTC)
+Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id D351D10369B30;
+	Wed, 11 Mar 2026 08:33:27 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
+	t=1773214415; h=from:subject:date:message-id:to:cc:mime-version:content-type:
+	 content-transfer-encoding:content-language:in-reply-to:references;
+	bh=n3wH772870P9IpL8j8omLHGVOBI6gpvI4kazRBxkKQU=;
+	b=EWvhKPJ1D02MgJTIdcjo6/tweA8f7JrxrAEY+uuuroqhEwOwZydPWLbS0Y4laB6GseyYgO
+	UdFSQrUUuAqN2ezIfgS7Z15b5D1fbQHlSzAlHIJGg9Ws4t7hG7iNxc+eyWjxO25e9p1YCX
+	JOUUpjSr3avSsNbQUtvMNrIBrZU1RihcEQEj4hjZEUVmB9gijeuoW1DDqORtn7y4fUYEYt
+	S2Te6EQEonBfw5A2O4iAuDSHrFrbXyB61DBLRL6YCj8KlSJWxpf+0lGPsJTdN1RdM2Etdb
+	LxotNJPIK+3HMww6dmYslKQAnR/S7r21luxnLVLWxksi4glXhvQD6WXz0ihxJQ==
+Message-ID: <580debbb-8f6c-4b60-95ef-22c68480ded1@bootlin.com>
+Date: Wed, 11 Mar 2026 08:33:26 +0100
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Subject: Re: [PATCH v6 4/4] RDMA/rxe: Add testcase for net namespace rxe
-To: jgg@ziepe.ca, leon@kernel.org, zyjzyj2000@gmail.com, dsahern@kernel.org,
- linux-rdma@vger.kernel.org, linux-kselftest@vger.kernel.org,
- "yanjun.zhu@linux.dev" <yanjun.zhu@linux.dev>
-References: <20260311062906.1470-1-yanjun.zhu@linux.dev>
- <20260311062906.1470-5-yanjun.zhu@linux.dev>
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-From: Zhu Yanjun <yanjun.zhu@linux.dev>
-In-Reply-To: <20260311062906.1470-5-yanjun.zhu@linux.dev>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH net-next 02/11] ethtool: Add loopback netlink UAPI
+ definitions
+To: =?UTF-8?B?QmrDtnJuIFTDtnBlbA==?= <bjorn@kernel.org>,
+ netdev@vger.kernel.org, "David S. Miller" <davem@davemloft.net>,
+ Andrew Lunn <andrew+netdev@lunn.ch>, Donald Hunter
+ <donald.hunter@gmail.com>, Eric Dumazet <edumazet@google.com>,
+ Jakub Kicinski <kuba@kernel.org>, Naveen Mamindlapalli
+ <naveenm@marvell.com>, Paolo Abeni <pabeni@redhat.com>,
+ Simon Horman <horms@kernel.org>
+Cc: Danielle Ratson <danieller@nvidia.com>,
+ Hariprasad Kelam <hkelam@marvell.com>, Ido Schimmel <idosch@nvidia.com>,
+ Kory Maincent <kory.maincent@bootlin.com>, Leon Romanovsky
+ <leon@kernel.org>, Michael Chan <michael.chan@broadcom.com>,
+ Oleksij Rempel <o.rempel@pengutronix.de>,
+ Pavan Chebbi <pavan.chebbi@broadcom.com>,
+ Piergiorgio Beruto <piergiorgio.beruto@gmail.com>,
+ Russell King <linux@armlinux.org.uk>, Saeed Mahameed <saeedm@nvidia.com>,
+ Shuah Khan <shuah@kernel.org>, Tariq Toukan <tariqt@nvidia.com>,
+ Willem de Bruijn <willemb@google.com>, linux-kernel@vger.kernel.org,
+ linux-kselftest@vger.kernel.org, linux-rdma@vger.kernel.org
+References: <20260310104743.907818-1-bjorn@kernel.org>
+ <20260310104743.907818-3-bjorn@kernel.org>
+From: Maxime Chevallier <maxime.chevallier@bootlin.com>
+Content-Language: en-US
+In-Reply-To: <20260310104743.907818-3-bjorn@kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-X-Migadu-Flow: FLOW_OUT
+X-Last-TLS-Session-Version: TLSv1.3
 
+Hi again Björn,
 
-在 2026/3/10 23:29, Zhu Yanjun 写道:
-> Add 4 testcases for rxe with net namespace.
->
-> Reviewed-by: David Ahern <dsahern@kernel.org>
-> Signed-off-by: Zhu Yanjun <yanjun.zhu@linux.dev>
+First, thanks for iterating so quick !
+
+On 10/03/2026 11:47, Björn Töpel wrote:
+> Add the netlink YAML spec and auto-generated UAPI header for a unified
+> loopback interface covering MAC, PCS, PHY, and pluggable module
+> components.
+> 
+> Each loopback point is described by a nested entry attribute
+> containing:
+> 
+>  - component  where in the path (MAC, PCS, PHY, MODULE)
+>  - name       subsystem label, e.g. "cmis-host" or "cmis-media"
+>  - id         optional instance selector (e.g. PHY id, port id)
+>  - supported  bitmask of supported directions
+>  - direction  NEAR_END, FAR_END, or 0 (disabled)
+> 
+> Signed-off-by: Björn Töpel <bjorn@kernel.org>
 > ---
->   MAINTAINERS                                   |  1 +
->   tools/testing/selftests/Makefile              |  1 +
->   tools/testing/selftests/rdma/Makefile         |  7 ++
->   tools/testing/selftests/rdma/config           |  3 +
->   tools/testing/selftests/rdma/rxe_ipv6.sh      | 63 ++++++++++++++
->   .../selftests/rdma/rxe_rping_between_netns.sh | 85 +++++++++++++++++++
->   .../selftests/rdma/rxe_socket_with_netns.sh   | 76 +++++++++++++++++
->   .../rdma/rxe_test_NETDEV_UNREGISTER.sh        | 63 ++++++++++++++
->   8 files changed, 299 insertions(+)
->   create mode 100644 tools/testing/selftests/rdma/Makefile
->   create mode 100644 tools/testing/selftests/rdma/config
->   create mode 100755 tools/testing/selftests/rdma/rxe_ipv6.sh
->   create mode 100755 tools/testing/selftests/rdma/rxe_rping_between_netns.sh
->   create mode 100755 tools/testing/selftests/rdma/rxe_socket_with_netns.sh
->   create mode 100755 tools/testing/selftests/rdma/rxe_test_NETDEV_UNREGISTER.sh
->
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index 77fdfcb55f06..3c18bc614169 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -24492,6 +24492,7 @@ L:	linux-rdma@vger.kernel.org
->   S:	Supported
->   F:	drivers/infiniband/sw/rxe/
->   F:	include/uapi/rdma/rdma_user_rxe.h
-> +F:	tools/testing/selftests/rdma/exe*
+>  Documentation/netlink/specs/ethtool.yaml      | 123 ++++++++++++++++++
+>  .../uapi/linux/ethtool_netlink_generated.h    |  59 +++++++++
+>  2 files changed, 182 insertions(+)
+> 
+> diff --git a/Documentation/netlink/specs/ethtool.yaml b/Documentation/netlink/specs/ethtool.yaml
+> index 4707063af3b4..8bd14a3c946a 100644
+> --- a/Documentation/netlink/specs/ethtool.yaml
+> +++ b/Documentation/netlink/specs/ethtool.yaml
+> @@ -211,6 +211,49 @@ definitions:
+>          name: discard
+>          value: 31
+>  
+> +  -
+> +    name: loopback-component
+> +    type: enum
+> +    doc: |
+> +      Loopback component. Identifies where in the network path the
+> +      loopback is applied.
+> +    entries:
+> +      -
+> +        name: mac
+> +        doc: MAC loopback. Loops traffic at the MAC block.
+> +      -
+> +        name: pcs
+> +        doc: |
+> +          PCS loopback. Loops traffic at the PCS sublayer between the
+> +          MAC and the PHY.
+> +      -
+> +        name: phy
+> +        doc: |
+> +          Ethernet PHY loopback. This refers to the Ethernet PHY managed
+> +          by phylib, not generic PHY drivers. A Base-T SFP module
+> +          containing an Ethernet PHY driven by Linux should report
+> +          loopback under this component, not module.
+> +      -
+> +        name: module
+> +        doc: |
+> +          Pluggable module (e.g. CMIS (Q)SFP) loopback. Covers loopback
+> +          modes controlled via module firmware or EEPROM registers. When
+> +          Linux drives an Ethernet PHY inside the module via phylib, use
+> +          the phy component instead.
 
-Sorry. Should be "tools/testing/selftests/rdma/rxe*"
+So to get back on Andrew's remarks, let's see if we can get something
+closer to 802.3.
 
-Zhu Yanjun
+Here, we have loopback at various locations, which all depends on the
+Ethernet standard you use.
 
->   
->   SOFTLOGIC 6x10 MPEG CODEC
->   M:	Bluecherry Maintainers <maintainers@bluecherrydvr.com>
-> diff --git a/tools/testing/selftests/Makefile b/tools/testing/selftests/Makefile
-> index 450f13ba4cca..110e07c0d99d 100644
-> --- a/tools/testing/selftests/Makefile
-> +++ b/tools/testing/selftests/Makefile
-> @@ -94,6 +94,7 @@ TARGETS += proc
->   TARGETS += pstore
->   TARGETS += ptrace
->   TARGETS += openat2
-> +TARGETS += rdma
->   TARGETS += resctrl
->   TARGETS += riscv
->   TARGETS += rlimits
-> diff --git a/tools/testing/selftests/rdma/Makefile b/tools/testing/selftests/rdma/Makefile
-> new file mode 100644
-> index 000000000000..7dd7cba7a73c
-> --- /dev/null
-> +++ b/tools/testing/selftests/rdma/Makefile
-> @@ -0,0 +1,7 @@
-> +# SPDX-License-Identifier: GPL-2.0
-> +TEST_PROGS := rxe_rping_between_netns.sh \
-> +		rxe_ipv6.sh \
-> +		rxe_socket_with_netns.sh \
-> +		rxe_test_NETDEV_UNREGISTER.sh
-> +
-> +include ../lib.mk
-> diff --git a/tools/testing/selftests/rdma/config b/tools/testing/selftests/rdma/config
-> new file mode 100644
-> index 000000000000..4ffb814e253b
-> --- /dev/null
-> +++ b/tools/testing/selftests/rdma/config
-> @@ -0,0 +1,3 @@
-> +CONFIG_TUN
-> +CONFIG_VETH
-> +CONFIG_RDMA_RXE
-> diff --git a/tools/testing/selftests/rdma/rxe_ipv6.sh b/tools/testing/selftests/rdma/rxe_ipv6.sh
-> new file mode 100755
-> index 000000000000..b7059bfd6d7c
-> --- /dev/null
-> +++ b/tools/testing/selftests/rdma/rxe_ipv6.sh
-> @@ -0,0 +1,63 @@
-> +#!/bin/bash
-> +
-> +# Configuration
-> +NS_NAME="net6"
-> +VETH_HOST="veth0"
-> +VETH_NS="veth1"
-> +RXE_NAME="rxe6"
-> +PORT=4791
-> +IP6_ADDR="2001:db8::1/64"
-> +
-> +exec > /dev/null
-> +
-> +# Cleanup function to run on exit (even on failure)
-> +cleanup() {
-> +    ip netns del "$NS_NAME" 2>/dev/null
-> +    modprobe -r rdma_rxe 2>/dev/null
-> +    echo "Done."
-> +}
-> +trap cleanup EXIT
-> +
-> +# 1. Prerequisites check
-> +for mod in tun veth rdma_rxe; do
-> +    if ! modinfo "$mod" >/dev/null 2>&1; then
-> +        echo "Error: Kernel module '$mod' not found."
-> +        exit 1
-> +    fi
-> +done
-> +
-> +modprobe rdma_rxe
-> +
-> +# 2. Setup Namespace and Networking
-> +echo "Setting up IPv6 network namespace..."
-> +ip netns add "$NS_NAME"
-> +ip link add "$VETH_HOST" type veth peer name "$VETH_NS"
-> +ip link set "$VETH_NS" netns "$NS_NAME"
-> +ip netns exec "$NS_NAME" ip addr add "$IP6_ADDR" dev "$VETH_NS"
-> +ip netns exec "$NS_NAME" ip link set "$VETH_NS" up
-> +ip link set "$VETH_HOST" up
-> +
-> +# 3. Add RDMA Link
-> +echo "Adding RDMA RXE link..."
-> +if ! ip netns exec "$NS_NAME" rdma link add "$RXE_NAME" type rxe netdev "$VETH_NS"; then
-> +    echo "Error: Failed to create RXE link."
-> +    exit 1
-> +fi
-> +
-> +# 4. Verification: Port should be listening
-> +# Using -H to skip headers and -q for quiet exit codes
-> +if ! ip netns exec "$NS_NAME" ss -Hul6n sport = :$PORT | grep -q ":$PORT"; then
-> +    echo "Error: UDP port $PORT is NOT listening after link creation."
-> +    exit 1
-> +fi
-> +echo "Verified: Port $PORT is active."
-> +
-> +# 5. Removal and Verification
-> +echo "Deleting RDMA link..."
-> +ip netns exec "$NS_NAME" rdma link del "$RXE_NAME"
-> +
-> +if ip netns exec "$NS_NAME" ss -Hul6n sport = :$PORT | grep -q ":$PORT"; then
-> +    echo "Error: UDP port $PORT still active after link deletion."
-> +    exit 1
-> +fi
-> +echo "Verified: Port $PORT closed successfully."
-> diff --git a/tools/testing/selftests/rdma/rxe_rping_between_netns.sh b/tools/testing/selftests/rdma/rxe_rping_between_netns.sh
-> new file mode 100755
-> index 000000000000..e5b876f58c6e
-> --- /dev/null
-> +++ b/tools/testing/selftests/rdma/rxe_rping_between_netns.sh
-> @@ -0,0 +1,85 @@
-> +#!/bin/bash
-> +
-> +# Configuration
-> +NS="test1"
-> +VETH_A="veth-a"
-> +VETH_B="veth-b"
-> +IP_A="1.1.1.1"
-> +IP_B="1.1.1.2"
-> +PORT=4791
-> +
-> +exec > /dev/null
-> +
-> +# --- Cleanup Routine ---
-> +cleanup() {
-> +    echo "Cleaning up resources..."
-> +    rdma link del rxe1 2>/dev/null
-> +    ip netns exec "$NS" rdma link del rxe0 2>/dev/null
-> +    ip link delete "$VETH_B" 2>/dev/null
-> +    ip netns del "$NS" 2>/dev/null
-> +    modprobe -r rdma_rxe 2>/dev/null
-> +}
-> +trap cleanup EXIT
-> +
-> +# --- Prerequisite Checks ---
-> +if [[ $EUID -ne 0 ]]; then
-> +   echo "This script must be run as root"
-> +   exit 1
-> +fi
-> +
-> +modprobe rdma_rxe || { echo "Failed to load rdma_rxe"; exit 1; }
-> +
-> +# --- Setup Network Topology ---
-> +echo "Setting up network namespace and veth pair..."
-> +ip netns add "$NS"
-> +ip link add "$VETH_A" type veth peer name "$VETH_B"
-> +ip link set "$VETH_A" netns "$NS"
-> +
-> +# Configure Namespace side (test1)
-> +ip netns exec "$NS" ip addr add "$IP_A/24" dev "$VETH_A"
-> +ip netns exec "$NS" ip link set "$VETH_A" up
-> +ip netns exec "$NS" ip link set lo up
-> +
-> +# Configure Host side
-> +ip addr add "$IP_B/24" dev "$VETH_B"
-> +ip link set "$VETH_B" up
-> +
-> +# --- RXE Link Creation ---
-> +echo "Creating RDMA links..."
-> +ip netns exec "$NS" rdma link add rxe0 type rxe netdev "$VETH_A"
-> +rdma link add rxe1 type rxe netdev "$VETH_B"
-> +
-> +# Verify UDP 4791 is listening
-> +check_port() {
-> +    local target=$1 # "host" or "ns"
-> +    if [ "$target" == "ns" ]; then
-> +        ip netns exec "$NS" ss -Huln sport == :$PORT | grep -q ":$PORT"
-> +    else
-> +        ss -Huln sport == :$PORT | grep -q ":$PORT"
-> +    fi
-> +}
-> +
-> +check_port "ns" || { echo "Error: RXE port not listening in namespace"; exit 1; }
-> +check_port "host" || { echo "Error: RXE port not listening on host"; exit 1; }
-> +
-> +# --- Connectivity Test ---
-> +echo "Testing connectivity with rping..."
-> +ping -c 2 -W 1 "$IP_A" > /dev/null || { echo "Ping failed"; exit 1; }
-> +
-> +# Start rping server in background
-> +ip netns exec "$NS" rping -s -a "$IP_A" -v > /dev/null 2>&1 &
-> +RPING_PID=$!
-> +sleep 1 # Allow server to bind
-> +
-> +# Run rping client
-> +rping -c -a "$IP_A" -d -v -C 3
-> +RESULT=$?
-> +
-> +kill $RPING_PID 2>/dev/null
-> +
-> +if [ $RESULT -eq 0 ]; then
-> +    echo "SUCCESS: RDMA traffic verified."
-> +else
-> +    echo "FAILURE: rping failed."
-> +    exit 1
-> +fi
-> diff --git a/tools/testing/selftests/rdma/rxe_socket_with_netns.sh b/tools/testing/selftests/rdma/rxe_socket_with_netns.sh
-> new file mode 100755
-> index 000000000000..002e5098f751
-> --- /dev/null
-> +++ b/tools/testing/selftests/rdma/rxe_socket_with_netns.sh
-> @@ -0,0 +1,76 @@
-> +#!/bin/bash
-> +
-> +# Configuration
-> +PORT=4791
-> +MODS=("tun" "rdma_rxe")
-> +
-> +exec > /dev/null
-> +
-> +# --- Helper: Cleanup Routine ---
-> +cleanup() {
-> +    echo "Cleaning up resources..."
-> +    rdma link del rxe1 2>/dev/null
-> +    rdma link del rxe0 2>/dev/null
-> +    ip link del tun0 2>/dev/null
-> +    ip link del tun1 2>/dev/null
-> +    for m in "${MODS[@]}"; do modprobe -r "$m" 2>/dev/null; done
-> +}
-> +
-> +# Ensure cleanup runs on script exit or interrupt
-> +trap cleanup EXIT
-> +
-> +# --- Phase 1: Environment Check ---
-> +if [[ $EUID -ne 0 ]]; then
-> +   echo "Error: This script must be run as root."
-> +   exit 1
-> +fi
-> +
-> +for m in "${MODS[@]}"; do
-> +    modprobe "$m" || { echo "Error: Failed to load $m"; exit 1; }
-> +done
-> +
-> +# --- Phase 2: Create Interfaces & RXE Links ---
-> +echo "Creating tun0 (1.1.1.1) and rxe0..."
-> +ip tuntap add mode tun tun0
-> +ip addr add 1.1.1.1/24 dev tun0
-> +ip link set tun0 up
-> +rdma link add rxe0 type rxe netdev tun0
-> +
-> +# Verify port 4791 is listening
-> +if ! ss -Huln sport = :$PORT | grep -q ":$PORT"; then
-> +    echo "Error: UDP port $PORT not found after rxe0 creation"
-> +    exit 1
-> +fi
-> +
-> +echo "Creating tun1 (2.2.2.2) and rxe1..."
-> +ip tuntap add mode tun tun1
-> +ip addr add 2.2.2.2/24 dev tun1
-> +ip link set tun1 up
-> +rdma link add rxe1 type rxe netdev tun1
-> +
-> +# Verify port 4791 is still listening
-> +if ! ss -Huln sport = :$PORT | grep -q ":$PORT"; then
-> +    echo "Error: UDP port $PORT missing after rxe1 creation"
-> +    exit 1
-> +fi
-> +
-> +# --- Phase 3: Targeted Deletion ---
-> +echo "Deleting rxe1..."
-> +rdma link del rxe1
-> +
-> +# Port should still be active because rxe0 is still alive
-> +if ! ss -Huln sport = :$PORT | grep -q ":$PORT"; then
-> +    echo "Error: UDP port $PORT closed prematurely"
-> +    exit 1
-> +fi
-> +
-> +echo "Deleting rxe0..."
-> +rdma link del rxe0
-> +
-> +# Port should now be gone
-> +if ss -Huln sport = :$PORT | grep -q ":$PORT"; then
-> +    echo "Error: UDP port $PORT still exists after all links deleted"
-> +    exit 1
-> +fi
-> +
-> +echo "Test passed successfully."
-> diff --git a/tools/testing/selftests/rdma/rxe_test_NETDEV_UNREGISTER.sh b/tools/testing/selftests/rdma/rxe_test_NETDEV_UNREGISTER.sh
-> new file mode 100755
-> index 000000000000..021ca451499d
-> --- /dev/null
-> +++ b/tools/testing/selftests/rdma/rxe_test_NETDEV_UNREGISTER.sh
-> @@ -0,0 +1,63 @@
-> +#!/bin/bash
-> +
-> +# Configuration
-> +DEV_NAME="tun0"
-> +RXE_NAME="rxe0"
-> +RDMA_PORT=4791
-> +
-> +exec > /dev/null
-> +
-> +# --- Cleanup Routine ---
-> +# Ensures environment is clean even if the script hits an error
-> +cleanup() {
-> +    echo "Performing cleanup..."
-> +    rdma link del $RXE_NAME 2>/dev/null
-> +    ip link del $DEV_NAME 2>/dev/null
-> +    modprobe -r rdma_rxe 2>/dev/null
-> +}
-> +trap cleanup EXIT
-> +
-> +# 1. Dependency Check
-> +if ! modinfo rdma_rxe >/dev/null 2>&1; then
-> +    echo "Error: rdma_rxe module not found."
-> +    exit 1
-> +fi
-> +
-> +modprobe rdma_rxe
-> +
-> +# 2. Setup TUN Device
-> +echo "Creating $DEV_NAME..."
-> +ip tuntap add mode tun "$DEV_NAME"
-> +ip addr add 1.1.1.1/24 dev "$DEV_NAME"
-> +ip link set "$DEV_NAME" up
-> +
-> +# 3. Attach RXE Link
-> +echo "Attaching RXE link $RXE_NAME to $DEV_NAME..."
-> +rdma link add "$RXE_NAME" type rxe netdev "$DEV_NAME"
-> +
-> +# 4. Verification: Port Check
-> +# Use -H (no header) and -q (quiet) for cleaner scripting logic
-> +if ! ss -Huln sport == :$RDMA_PORT | grep -q ":$RDMA_PORT"; then
-> +    echo "Error: UDP port $RDMA_PORT is not listening."
-> +    exit 1
-> +fi
-> +echo "Verified: RXE is listening on UDP $RDMA_PORT."
-> +
-> +# 5. Trigger NETDEV_UNREGISTER
-> +# We delete the underlying device without deleting the RDMA link first.
-> +echo "Triggering NETDEV_UNREGISTER by deleting $DEV_NAME..."
-> +ip link del "$DEV_NAME"
-> +
-> +# 6. Final Verification
-> +# The RXE link and the UDP port should be automatically cleaned up by the kernel.
-> +if rdma link show "$RXE_NAME" 2>/dev/null; then
-> +    echo "Error: $RXE_NAME still exists after netdev removal."
-> +    exit 1
-> +fi
-> +
-> +if ss -Huln sport == :$RDMA_PORT | grep -q ":$RDMA_PORT"; then
-> +    echo "Error: UDP port $RDMA_PORT still listening after netdev removal."
-> +    exit 1
-> +fi
-> +
-> +echo "Success: NETDEV_UNREGISTER handled correctly."
+It's usually in the PCS, PMA or PMD components. Thing is, we may have
+these in multiple places in our link.
 
--- 
-Best Regards,
-Yanjun.Zhu
+If we take an example with a 10G PHY, we may have :
 
++----SoC-----+
+|            |
+|  MAC       |- drivers/net/ethernet
+|   |        |
+| Base-R PCS |- could be in drivers/net/pcs, or directly
+|   |        | in the MAC driver
+|   |        |
+|  SerDes    |- May be in drivers/phy, maybe handled by firmware,
+|   |        |  maybe by the MAC driver, maybe by the PCS driver ?
++---|--------+
+    |
+    | 10GBase-R
+    |
++---|-PHY+
+|   |    |
+| SerDes | \
+|   |    | |
+|  PCS   | |
+|   |    |  > All of that handled by the drivers/net/phy PHY driver
+|  PMA   | |
+|   |    | |
+|  PMD   | /
++---|----+
+    |
+    v 10GBaseT
+
+So even the "PCS" loopback component is a bit ambiguous, are we talking
+about the PHY PCS or the MAC PCS ?
+
+Another thing to consider is that there may be multiple PCSs in the SoC
+(e.g. a BaseX and a BaseR PCS like we have in mvpp2), the one in use
+depends on the current interface between the MAC and the PHY.
+
+Another open question is, do we deal with loopbacks that may affect
+multi-netdev links ? Like the multi-lane modes we discussed with fbnic,
+or even for embedded, interfaces such as QSGMII ?
+
+As for the SerDes on the MAC side (say, the comphy on Marvell devices),
+can we say it's a PMA for 10GBase-KR ? Or is it something that's simply
+out of spec ?
+
+So I'd say, maybe we should not have a PCS loopback component at all,
+but instead loopback at the well-defined components on our link, that is:
+
+ - MAC => MAC loopack, PCS on the MAC side, SerDes on the SoC, etc.
+ - PHY => Loopbacks on the PCS/PHY/PMA withing the PHY device
+ - Module => For non-PHY (Q)SFPs
+
+The important part would therefore to get the "name" part right, making
+sure we don't fall into driver specific names.
+
+We can name that 'pcs', 'pma', 'pmd', or maybe even 'mii' ? Let's see :
+
++----SoC-----+
+|            |
+|  MAC       |- component = MAC, name = 'mac'
+|   |        |
+| Base-R PCS |- component = MAC, name = 'pcs'
+|   |        |
+|   |        |
+|  SerDes    |- component = MAC, name = 'mii' ?
+|   |        |
++---|--------+
+    |
+    | 10GBase-R
+    |
++---|-PHY+
+|   |    |
+| SerDes | - component = PHY, name = 'mii' ?
+|   |    |
+|  PCS   | - component = PHY, name = 'pcs'
+|   |    |
+|  PMA   | - component = PHY, name = 'pma'
+|   |    |
+|  PMD   |- component = PHY, name = 'pmd' or 'mdi' ?
++---|----+
+    |
+    v 10GBaseT
+
+Sorry that's a lot of questions and I don't expect you to have the
+answer, but as what you've come-up with is taking a good shape, it's
+important to decide on the overall design and draw some lines about
+what do we support, and how :(
+
+> +  -
+> +    name: loopback-direction
+> +    type: flags
+> +    doc: |
+> +      Loopback direction flags. Used as a bitmask in supported, and as
+> +      a single value in direction.
+> +    entries:
+> +      -
+> +        name: near-end
+> +        doc: Near-end loopback; host-loop-host
+> +      -
+> +        name: far-end
+> +        doc: Far-end loopback; line-loop-line
+
+I was browsing 802.3, it uses the terminlogy of "local loopback" vs
+"remote loopback", I suggest we use those.
+
+Maxime
