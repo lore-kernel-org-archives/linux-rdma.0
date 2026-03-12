@@ -1,135 +1,137 @@
-Received: from out-189.mta0.migadu.com (out-189.mta0.migadu.com [91.218.175.189])
+Received: from smtpout-04.galae.net (smtpout-04.galae.net [185.171.202.116])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DBE1636D4FD;
-	Thu, 12 Mar 2026 05:09:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.189
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4F0063AF658;
+	Thu, 12 Mar 2026 07:49:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.171.202.116
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773292160; cv=none; b=pBoVGY+9UK5YFeO+aT7zj3HWvIXx/wtWkByRN5JcxbpLZfw5DjwFXEbT2kSik9ZBGqiQIyQG/31BRLL8vUZ+rMDfaxkQv8YGoSZNbYPygGUmfuRLTkqX/fl8Z5XxbMbqDwaO6ZkZak/pJtLfTENe0A9otcGNtKrrQqHxc/H+5jw=
+	t=1773301796; cv=none; b=AfHz55wOLpuvcEEpUi9C0nE4wnYhgi0Av1P3bewX/xCWvJyenol4G3+EGCaeV3Gxm2aG1tkrE8CwFBkbFDMbXsCx76nESyUiQpJRrQmm07BjnrJ9ZbjR0csHL91ye9ebLlVxFrdSlQZx5nmLqyUCmtmwGutzg2g+EeNUl2LhD/Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773292160; c=relaxed/simple;
-	bh=61bM1dGRtflgjhd7CA1L36YvIDrvruy/oC2IgohJNm8=;
+	s=arc-20240116; t=1773301796; c=relaxed/simple;
+	bh=qc6nhP5c2KbUKz7TVprgeRZu7pcKDVuliPuq3MEFpFk=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=anDAP+Cqhkc0MmcoCcaQlv3pfNR/QDKoFmz7MNmdbj2bXepJ7w/jNBR67MCeUGzcUkVtiWNxFvSkoYj2k6GFCbTjiFNLEi74LTUynL0rWsJne9C4MAvV+KGKSk+5F8MvABRNRi9nukRtxiZInvFeEWX+8CLLDnzolMKjqBOspzY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=OzxwKAzK; arc=none smtp.client-ip=91.218.175.189
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+	 In-Reply-To:Content-Type; b=RlJvRa/iL4DbfjyqBkpQLgYww5EsYNRZFwGyIyaywv3kccRMglYFebHrdVVGLLbmuHAavywHGjqp1npIk4vuPYoWshXT2vUo0Yl7RYfPn6vs8flE6X0Q31dAhu5wOijaI7EUYeHdIqtrZG4F5azxFdfpmd+vi6MLwHspyvTVN7I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=Ax/gNMry; arc=none smtp.client-ip=185.171.202.116
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="OzxwKAzK"
-Message-ID: <434a9a8c-f369-435a-b8bf-d9ae85558c8e@linux.dev>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-	t=1773292155;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=Q+sCxcvOZ4JJqPc6t51Nhtj+5M0ZfUINwSFsj4CHAPM=;
-	b=OzxwKAzKeUX5tvzKQ5wWRaUPgV4XD+n9rDUb8MfKoTIi4g1RytJKNM0A/OmmpJPr7mxewq
-	kN8T3WqBJlLn8P7YJwAOFkR6hE9GHQK1JmkGo/00RSxBJqiEI4DPSOocwOiAqLKH/tooeQ
-	B5lgF6NtFOPUyVLAXE8waK88IRdKzW8=
-Date: Wed, 11 Mar 2026 22:09:09 -0700
+	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="Ax/gNMry"
+Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
+	by smtpout-04.galae.net (Postfix) with ESMTPS id A48BBC4159A;
+	Thu, 12 Mar 2026 07:50:11 +0000 (UTC)
+Received: from mail.galae.net (mail.galae.net [212.83.136.155])
+	by smtpout-01.galae.net (Postfix) with ESMTPS id D2AC65FDEB;
+	Thu, 12 Mar 2026 07:49:49 +0000 (UTC)
+Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id BE4DD103685B6;
+	Thu, 12 Mar 2026 08:49:40 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
+	t=1773301788; h=from:subject:date:message-id:to:cc:mime-version:content-type:
+	 content-transfer-encoding:content-language:in-reply-to:references;
+	bh=oT1XxdAl50AWEmjTvDhxYXZzFl6EH2KJUz4HxFpnESQ=;
+	b=Ax/gNMry1zn+jSGCJbygPm1MqxQ4xxoTT66fSRTc5nLHZg0smRQfQsCBxzFAgGLzAa5lfd
+	Af4Hzw3beOAKGJa2JoN1tyRRgpFbt2P1DrjSQJLrLuFisE3KcRi9NuOajpxaUhtjQbuHEK
+	kR3cJQ7kSGJyJSKLk1FFFNgbzO9Llxvoc0l+zkG8/VZWxfJJLvshOLgAEPhd0YVzYaaAc3
+	wf1CqHn90p9oxKToETmVmvknFNcnGt4nnaLz9lclipHxPR9jfhGQ3zeSz9iFLtb5+nxz2S
+	99oywt/IIeSV4UXD45vO3Bd0BvPnK1F/DNbgdI8WLyq0hFw/oXtfNgrByjMj/Q==
+Message-ID: <ebab1d3e-8967-444b-be54-437e4dfe3c7e@bootlin.com>
+Date: Thu, 12 Mar 2026 08:49:39 +0100
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Subject: Re: [PATCH v5 1/4] RDMA/nldev: Add dellink function pointer
-To: David Ahern <dsahern@kernel.org>, Leon Romanovsky <leon@kernel.org>,
- "yanjun.zhu@linux.dev" <yanjun.zhu@linux.dev>
-Cc: jgg@ziepe.ca, zyjzyj2000@gmail.com, shuah@kernel.org,
- linux-rdma@vger.kernel.org, linux-kselftest@vger.kernel.org
-References: <20260310020519.101415-1-yanjun.zhu@linux.dev>
- <20260310020519.101415-2-yanjun.zhu@linux.dev>
- <20260310190140.GL12611@unreal>
- <5700c718-d10e-4b23-adfc-c14ee1930b18@linux.dev>
- <20260311085434.GW12611@unreal>
- <6a8b0983-a198-470a-8125-b0133ccb7032@linux.dev>
- <b5c2053c-f911-4e0d-8589-4d969bd580a4@kernel.org>
- <e8e1fc5b-7772-40c5-8214-b4f9d4a10d98@linux.dev>
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-From: Zhu Yanjun <yanjun.zhu@linux.dev>
-In-Reply-To: <e8e1fc5b-7772-40c5-8214-b4f9d4a10d98@linux.dev>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-X-Migadu-Flow: FLOW_OUT
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH net-next 02/11] ethtool: Add loopback netlink UAPI
+ definitions
+To: Oleksij Rempel <o.rempel@pengutronix.de>, Jakub Kicinski <kuba@kernel.org>
+Cc: Andrew Lunn <andrew@lunn.ch>, =?UTF-8?B?QmrDtnJuIFTDtnBlbA==?=
+ <bjorn@kernel.org>, netdev@vger.kernel.org,
+ "David S. Miller" <davem@davemloft.net>, Andrew Lunn
+ <andrew+netdev@lunn.ch>, Donald Hunter <donald.hunter@gmail.com>,
+ Eric Dumazet <edumazet@google.com>,
+ Naveen Mamindlapalli <naveenm@marvell.com>, Paolo Abeni <pabeni@redhat.com>,
+ Simon Horman <horms@kernel.org>, Danielle Ratson <danieller@nvidia.com>,
+ Hariprasad Kelam <hkelam@marvell.com>, Ido Schimmel <idosch@nvidia.com>,
+ Kory Maincent <kory.maincent@bootlin.com>, Leon Romanovsky
+ <leon@kernel.org>, Michael Chan <michael.chan@broadcom.com>,
+ Pavan Chebbi <pavan.chebbi@broadcom.com>,
+ Piergiorgio Beruto <piergiorgio.beruto@gmail.com>,
+ Russell King <linux@armlinux.org.uk>, Saeed Mahameed <saeedm@nvidia.com>,
+ Shuah Khan <shuah@kernel.org>, Tariq Toukan <tariqt@nvidia.com>,
+ Willem de Bruijn <willemb@google.com>, linux-kernel@vger.kernel.org,
+ linux-kselftest@vger.kernel.org, linux-rdma@vger.kernel.org
+References: <20260310104743.907818-1-bjorn@kernel.org>
+ <20260310104743.907818-3-bjorn@kernel.org>
+ <580debbb-8f6c-4b60-95ef-22c68480ded1@bootlin.com>
+ <b3825c0d-02e5-4625-831f-4346ce4eabd2@lunn.ch>
+ <085bb0a9-85d3-4d62-9ac4-3461b61da5f3@bootlin.com>
+ <438dae03-4dac-4e66-9f4d-e08b0434c9b4@lunn.ch>
+ <20260311195052.1202174f@kernel.org> <abJJY8whzSOB8O-X@pengutronix.de>
+From: Maxime Chevallier <maxime.chevallier@bootlin.com>
+Content-Language: en-US
+In-Reply-To: <abJJY8whzSOB8O-X@pengutronix.de>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+X-Last-TLS-Session-Version: TLSv1.3
 
 
-在 2026/3/11 20:59, Zhu Yanjun 写道:
->
-> 在 2026/3/11 19:04, David Ahern 写道:
->> On 3/11/26 4:01 PM, Yanjun.Zhu wrote:
+
+On 12/03/2026 06:04, Oleksij Rempel wrote:
+> On Wed, Mar 11, 2026 at 07:50:52PM -0700, Jakub Kicinski wrote:
+>> On Wed, 11 Mar 2026 20:26:39 +0100 Andrew Lunn wrote:
+>>>> For that we have what we need with phy_link_topology, as each PHY has
+>>>> its index, we should be good to go in that regard hopefully :)  
+>>>
+>>> So depth would be local to a component? We could have two PHY
+>>> components, each with a different index, and depth = 0?
+>>>
+>>> I _think_ Jakub's depth was more at a global level? But then it would
+>>> need to be passed down as we do the enumeration.
 >>
->>> Got it. The commit log explains how the netdev_notifier mechanism is
->> netdev notifiers are the NETDEV_UNREGISTER and friends. This dellink
->> handler is not related to that; this is an IB stack thing when the rxe
->> link is removed.
->>
->>> used to clean up the related resources.
->>>
->>> In the source code, additional comments have been added to explain how
->>> the dellink operation for rxe is triggered. For iWARP, this change
->>> should not make any difference because iWARP does not implement the
->>> dellink function.
->>>
->>> The commit is shown below. Please take a look and share your comments.
->>> If you agree, I will send out the latest commits out very soon.
->>>
->>>  From c05038dcdf69c5985837736a8926ba76d9f3e8e4 Mon Sep 17 00:00:00 2001
->>> From: Zhu Yanjun <yanjun.zhu@linux.dev>
->>> Date: Fri, 23 Sep 2022 16:52:45 +0000
->>> Subject: [PATCH 1/1] RDMA/nldev: Add dellink function pointer
->>>
->>> The newlink function pointer was previously added to support
->>> dynamic RDMA link creation. In the RXE driver, this path creates
->>> a transport socket listening on port 4791. Consequently, a dellink
->>> function pointer is required to ensure these sockets are properly
->>> closed when a user administratively removes a link via rdma link
->>> delete <dev>.
->>>
->>> Furthermore, RXE does not rely solely on this nldev path for resource
->>> management. It also monitors the underlying net_device state via a
->>> registered netdev_notifier. The rxe_net_event callback serves as a
->>> fallback mechanism to ensure that transport sockets are forcibly closed
->>> and all resources are released even if dellink is not explicitly called
->>> (e.g., if the parent NIC interface is removed or the driver is 
->>> forcefully
->>> unloaded).
->> IMHO, this explanation belongs in the patch that implements dellink 
->> for rxe.
->>
->> This patch adds the handler to allow link implementations to cleanup any
->> resources created by newklink as needed.
-> Thanks for the feedback. I agree that the detailed explanation of 
-> RXE's resource management (like sockets and notifiers) is more 
-> appropriate for the subsequent patch that implements the RXE dellink 
-> handler.
->
-> I will update the commit message for this patch to focus solely on the 
-> addition of the dellink infrastructure in the RDMA core, and move the 
-> RXE-specific details to the next patch in the series.
+>> Oh, sorry, I responded without reading the whole discussion :)
+>> No, I imagined the depth would be within a single component, 
+>> so under control of a single driver (instance). The ordering
+>> between components should be defined by PHY topology etc so
+>> it's outside of the loopback config.
+> 
+> As for me, it is problematic to help the user to understand the datapath
+> depth on a switch. For example:
+> 
+> CPU -- xMII --- MAC1 [loop] --- fabric --- MAC2 [loop] --- xMII -- PHY
+>                                     \----- MACx [loop] ---
+> 
+> ... each port has two xMII loop configurations: towards the xMII or towards
+> the fabric. From a driver perspective, a loop towards the xMII is
+> "remote." However, from a system perspective, a "remote" loop on MAC1 is
+> a local loop at depth=0, whereas a "local" loop on MAC2 is a local loop
+> at depth=1.
 
-Hi,
+What's important is to specify clearly in the documentation from which
+end do we start, where representing the topology. From your scenario
+here, each block is already well represented and exposed, and if we use
+local depth definitions we should be fine ?
 
-I would like to use the following as the commit log. It seems simple and 
-direct.
+> 
+> Other example would be where we have a chain of components which are
+> attached on the system in a unexpected direction, where the MDI
+> interface is pointing towards the main CPU, so the remote loopbacks
+> became to local loop.
 
-"
+I have a few of these types of setup on my desk, where 3 PHY devices are
+daisy-chained, we don't support that for now. If we one day add support
+for standalone PHYs acting as media converters, I expect we'll be able
+to tell which end is pointing where, and let it up to the user to figure
+out what "remote" and "local" means in that case.
 
-Add a dellink function pointer to rdma_link_ops to allow drivers to 
-clean up resources created during newlink.
-"
+> 
+> One more issue is the test data generator location. The data generator
+> is not always the CPU. We have HW generators located in components like
+> PHYs or we may use external source (remote loopback).
 
-Thanks,
+There were discussions about PRBS, I think the same idea of "pinpointing
+which block we want to use" can be applied for both loopback and
+generation ?
 
-Zhu Yanjun
-
-
->
-> Zhu Yanjun
->
->>
--- 
-Best Regards,
-Yanjun.Zhu
+Maxime
 
