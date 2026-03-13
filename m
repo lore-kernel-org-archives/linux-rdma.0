@@ -1,158 +1,126 @@
-Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qv1-f52.google.com (mail-qv1-f52.google.com [209.85.219.52])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 68DAC37CD33;
-	Fri, 13 Mar 2026 16:50:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.156.1
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA3C935F5F8
+	for <linux-rdma@vger.kernel.org>; Fri, 13 Mar 2026 16:59:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.52
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773420605; cv=none; b=vCrsU/N5NqyXOEX9NOnRuwvUaJozUMnkWok6mg4GPPJ5Ntk/veZnLpUAhQrzw3KzkoXQRzfi65iZ1jgnfbLgCo7ZbvPKslK6rGGMPRhcfYXJj+3/JyfQxDMDELdCc9KF7fQMfPAMmAhYVtiYQYo4SP6rRRcYDcUAIaJ2XvQ9VAA=
+	t=1773421171; cv=none; b=sqV7YkNUIXcOnSq0kLt8v4L4Tp2PYPplLZFJrs5MhgmVp5NEo3IoMt6YPgdG0H+mBx/KobKOrBO/BNBwQ3GTWCZ4X2EIVbQQWAigppcnIbNwUZ76WrHk3InEE2xqvaJSxuZwOwoLHWdDSds2Nt5jjKWC6vDfOcd3C665styKuF0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773420605; c=relaxed/simple;
-	bh=xTzdpMZCYondJWEPk8JkMgA5FD7i4J67sYgqTY+tQsU=;
-	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=ZNWladers9aQMlLh5b8HbUQI4OjZFVj93zorOWqj+fi6XbeYpj/3OHT2p7di8h3QmWfL3iQ5A5P09LOxk/eUltNins9XZgqsLbSClxrFjpuUyCQHlhstFue9YqeLwhuYg1eb6FeWlbYnryUXZrVoPHFWCivx6qFh+xPdNYbxDo4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=RNy9iP3E; arc=none smtp.client-ip=148.163.156.1
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
+	s=arc-20240116; t=1773421171; c=relaxed/simple;
+	bh=ZtCcl/BQGcxN/KUZGbuRltnqiIZdE1BNslevOQGWgSs=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=rRcgQQjRyQZ57bq6Z4BsBvZL+SG7kPzCd1gEdCQ3D3j1MxwCmHO8zn5K3TTCQfNi8uJr6IK2SoE37o+K/TxDrb8mYg5h6XijavN+iAYV0KryGLq4UISdu+MkCEe+SNNKWFAUFPdXtT+4zw/7tZwgoixp3SpA7GcpWyuvCM0R/zg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca; spf=pass smtp.mailfrom=ziepe.ca; dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b=PehQkiI4; arc=none smtp.client-ip=209.85.219.52
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ziepe.ca
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="RNy9iP3E"
-Received: from pps.filterd (m0356517.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 62D6wBBf2258884;
-	Fri, 13 Mar 2026 16:49:54 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
-	:content-transfer-encoding:content-type:date:from:message-id
-	:mime-version:subject:to; s=pp1; bh=iX9r2AiI1prHt7JakZMj6s5f6wmv
-	YMSn4/rnU5rjBf4=; b=RNy9iP3ELk0VTUm3EWcIpXzUzJ/CcAzbm4BE3ugNBEHl
-	BrfJVVGxMw5efE+gJ29XEr0iKajM/DjlKNng86ZRyO02YFIRdmJmns50v0S0pxzS
-	sRjo3djH9c7mzLbj8NCca+eLioioSptX6WAbB12aNzhbwdNkd6rPyJ1hdbF+Rp0F
-	j5nWN3pTbLPAEK/d7czlAPtWbpm2bY9ckH93kTXMNLiI5T2YjExVgmKTbDtOmQ81
-	cXB8vnW2tIOQ0MVdyKnPO8PNQhYGD7Jc3JPE39nMHt6Yyy46oNJZLo3yRy2CCQOG
-	7UIt9jf8HpTLQbTdo1sovI+O5DlHVq76ndkRLu9apw==
-Received: from ppma23.wdc07v.mail.ibm.com (5d.69.3da9.ip4.static.sl-reverse.com [169.61.105.93])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 4cuh92gtg2-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Fri, 13 Mar 2026 16:49:53 +0000 (GMT)
-Received: from pps.filterd (ppma23.wdc07v.mail.ibm.com [127.0.0.1])
-	by ppma23.wdc07v.mail.ibm.com (8.18.1.2/8.18.1.2) with ESMTP id 62DF2CPD021303;
-	Fri, 13 Mar 2026 16:49:52 GMT
-Received: from smtprelay02.fra02v.mail.ibm.com ([9.218.2.226])
-	by ppma23.wdc07v.mail.ibm.com (PPS) with ESMTPS id 4cuha9qff0-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Fri, 13 Mar 2026 16:49:52 +0000
-Received: from smtpav03.fra02v.mail.ibm.com (smtpav03.fra02v.mail.ibm.com [10.20.54.102])
-	by smtprelay02.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 62DGnmBp52822358
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Fri, 13 Mar 2026 16:49:48 GMT
-Received: from smtpav03.fra02v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id EF1C62004E;
-	Fri, 13 Mar 2026 16:49:47 +0000 (GMT)
-Received: from smtpav03.fra02v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id BEDDC20040;
-	Fri, 13 Mar 2026 16:49:47 +0000 (GMT)
-Received: from tuxmaker.boeblingen.de.ibm.com (unknown [9.87.85.9])
-	by smtpav03.fra02v.mail.ibm.com (Postfix) with ESMTP;
-	Fri, 13 Mar 2026 16:49:47 +0000 (GMT)
-From: Gerd Bayer <gbayer@linux.ibm.com>
-Subject: [PATCH v4 0/2] PCI: AtomicOps: Fix pci_enable_atomic_ops_to_root()
-Date: Fri, 13 Mar 2026 17:49:33 +0100
-Message-Id: <20260313-fix_pciatops-v4-0-93bc70a63935@linux.ibm.com>
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="PehQkiI4"
+Received: by mail-qv1-f52.google.com with SMTP id 6a1803df08f44-899ed41208fso23691736d6.1
+        for <linux-rdma@vger.kernel.org>; Fri, 13 Mar 2026 09:59:30 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ziepe.ca; s=google; t=1773421170; x=1774025970; darn=vger.kernel.org;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :mime-version:references:message-id:subject:cc:to:from:date:from:to
+         :cc:subject:date:message-id:reply-to;
+        bh=23vNKRuSFnFOzf5hO6ZBoQlegCCAZzuo2j5iFmnbc5A=;
+        b=PehQkiI4M6Jd47dJdNiK4ZLpmpbRRoOAWmvfoehAtix64kyfPIt9T7FFN0IRc+ycUs
+         n4vQbLjq+2guHsmefuI5RlDxSwngphyDF95e4Mt7gI3j2s+1ZffqdHV1xk1EMwHfbyAA
+         qznKFepOXmTz82YsZVkgQgTMP9ljWjFXH4W3pFYk8o8TSJfQ5SMALHY28jOJp9fM9rx7
+         2ukcl66e05ePXuU+frU8gUxrJWbXkrZx7lMkCQgl0LwWMzFmHsHUivqZD26nwuOsO6wR
+         1T1V72GHAty9EA54Il2rQE1OP/m/+Y4Q9PhepBm6eU7DI6NIF8HlbT7aeXRRiwYsFivm
+         UH5w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1773421170; x=1774025970;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :mime-version:references:message-id:subject:cc:to:from:date:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=23vNKRuSFnFOzf5hO6ZBoQlegCCAZzuo2j5iFmnbc5A=;
+        b=R4Yzwj1+YhcYy+T+gG7OPIZwV0f/1A7UGrQmaER8ucEzb97y+ta8HaiGd59Zc1D4Bm
+         oArYOkokzi3jSBqCS/bdbhpAX+3EmWAwufAaRtitGFq0Y5MLbVBAGwTlAWrXLRfCr++p
+         CzhdkciD/tGpBsBwsQilDUrpWUR6efH3SOvj+Yy5WxJ1/dT8PeAeAoG0bxXEdOmLRFqc
+         2lInOmnwxe2L4wnCVsaIyeYI0XaFi1hBreLohvVazM2l6EMybf3h1ebUWCihLlMIbj6L
+         CMYPl58WA2vE7ZAIKY9NRIW1DeaXabatU+4QLuSaq++OylAaA45+01FV3A/qtCMIYxT4
+         sTsw==
+X-Forwarded-Encrypted: i=1; AJvYcCWI8e3POa6ZLz6sxmbp6i+YZM5wAdLhA9FeM63BvmLlgxOBYeV2LI52kAVbJZFzSuFfI8P0C2ST4BbR@vger.kernel.org
+X-Gm-Message-State: AOJu0YytSk9r171bdtNuxuDOETtYxfw8R0gRqbVQ1n/XSMZW3nZSCBM+
+	91DCfQvXh2tY9VMUF11VvqrYUx68bpHLBIGJqMZnvZafYUK8VYTH+CwOemgrgqL8HuU=
+X-Gm-Gg: ATEYQzyFEopME2D20yVZp4ZfEzMwCE2x/UXEgHUXAnDjlyZl5bXWYJne+tZr4PZE1ps
+	bJ3ETrGigN1fnXX4CNDSZGoXBcEFTahBqs2su9/Qi+6QsGw6QuxjCl39bJpSRYCV2rQR+SgpBqm
+	EPRQz5wkhFU+hrbGKI6p8j4GswXsyYo5d3wMWN2wFGWPym2AeKZqenaJS5XCBMlqCl7DoVoVdV9
+	niSiEKO5S/GdMie2Bw2JqKdhafXKVsTXuwQk20UdUP/C32Efo0xnII+hmDLptH9EqzuGhWHtWks
+	bMoDa0w2kqD+F6i80EOOVjpJTvj91Rn4CGeDogmKb25wVvcAtnUFxAFMdqVir8AINqF9qWr/nrR
+	exod/DJyBI6obnUu7ZBNIbUC2tpfjDO0bdW/zOIR4LKJWRbFg3u6gF9QcvqY/puUII+kyrnsqOJ
+	lyOdoLsW9P3nzjuDmu5S3lj5hY7p0FHqXDDV9SvAG6HT4QJk28eT/IqGtQLfyS1nCGrtzXwEVla
+	8PQpFpt
+X-Received: by 2002:a05:6214:c2d:b0:89a:622e:d334 with SMTP id 6a1803df08f44-89a81fe1ef3mr64802856d6.48.1773421169725;
+        Fri, 13 Mar 2026 09:59:29 -0700 (PDT)
+Received: from ziepe.ca (hlfxns017vw-142-162-112-119.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.162.112.119])
+        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-89a65beb4besm60515486d6.15.2026.03.13.09.59.29
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 13 Mar 2026 09:59:29 -0700 (PDT)
+Received: from jgg by wakko with local (Exim 4.97)
+	(envelope-from <jgg@ziepe.ca>)
+	id 1w15rE-00000007Jg3-2Wt2;
+	Fri, 13 Mar 2026 13:59:28 -0300
+Date: Fri, 13 Mar 2026 13:59:28 -0300
+From: Jason Gunthorpe <jgg@ziepe.ca>
+To: Leon Romanovsky <leon@kernel.org>
+Cc: Long Li <longli@microsoft.com>,
+	Konstantin Taranov <kotaranov@microsoft.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	"David S . Miller" <davem@davemloft.net>,
+	Paolo Abeni <pabeni@redhat.com>, Eric Dumazet <edumazet@google.com>,
+	Andrew Lunn <andrew+netdev@lunn.ch>,
+	Haiyang Zhang <haiyangz@microsoft.com>,
+	"K . Y . Srinivasan" <kys@microsoft.com>,
+	Wei Liu <wei.liu@kernel.org>, Dexuan Cui <decui@microsoft.com>,
+	Simon Horman <horms@kernel.org>, netdev@vger.kernel.org,
+	linux-rdma@vger.kernel.org, linux-hyperv@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH rdma-next 0/8] RDMA/mana_ib: Handle service reset for
+ RDMA resources
+Message-ID: <20260313165928.GH1704121@ziepe.ca>
+References: <20260307014723.556523-1-longli@microsoft.com>
+ <20260307173814.GN12611@unreal>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-X-B4-Tracking: v=1; b=H4sIAB1AtGkC/23P3Q6CMAwF4Fcxu3Zk3eTPK9/DGMNGkSbCCMMFQ
- 3h3B9EYiZenzfnSTsxhT+jYcTexHj05sm0Ih/2Ombpob8ipDJlJIWMAkfCKxmtnqBhs53iKWSI
- yNEYLxUKl6zHsV+58CbkmN9j+ueoelukbAvELeeCCY2nirIhTnUg83al9jBHpJjK2YQvm5ReQs
- LnEywCUAhTmOkWJfwH1ARKhtq94FYA8L0FqU1Qa8i0wz/MLtCtFmi4BAAA=
-X-Change-ID: 20251106-fix_pciatops-7e8608eccb03
-To: Bjorn Helgaas <bhelgaas@google.com>, Jay Cornwall <Jay.Cornwall@amd.com>,
-        Felix Kuehling <Felix.Kuehling@amd.com>
-Cc: Leon Romanovsky <leon@kernel.org>,
-        Niklas Schnelle <schnelle@linux.ibm.com>,
-        Alexander Schmidt <alexs@linux.ibm.com>, linux-s390@vger.kernel.org,
-        linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org,
-        netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
-        Gerd Bayer <gbayer@linux.ibm.com>, stable@vger.kernel.org
-X-Mailer: b4 0.14.2
-X-TM-AS-GCONF: 00
-X-Proofpoint-Reinject: loops=2 maxloops=12
-X-Proofpoint-ORIG-GUID: _QrGwSjVUPltmE9RPpDZxFai8piLVSAM
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwMzEzMDEzMiBTYWx0ZWRfX+LXl7S5e9XGM
- SHb9sApOmPvqZxVPqPJDvGIywPwOOn2yjAurS0VdLCAJCWawF5qstdSkDOI3dXMCFCTYqMf22QR
- VzfUgp5c0hxFROV7o/AirdQFnzvsSosDljael8C/tBWS1SE+BIlyKwWFfFgUhYjvC2ZvSC2P+9G
- wgs1nfsVS2ioYHSAIbTshjoJNDhEGzPvSDQeSp/cF/62cbtjn0vclrhhqEJ1K+CVpNPFaZe8BlI
- 0QfJajSouRd0kNMk4Lrl7hDvQyDsZgj7PCwrvNkzRUTClyid3AAyybmi2Aj+CqjdtaEUyC5iVbl
- C2YKHGHo00KFsPqq9ycVkZOqriabqS+Uk79Od3RwCZ5sgLUtGsIe40+zrV7BHhHUx28uELJlLyf
- fWZWCWICPra0iqE29EvnnWvMqRnmlUmGbHt3xJCKNGceaEvFsM5SwfgZKsGKRrrAcptvCUTEcE3
- oSrw7egM+3NyOmQYjoQ==
-X-Proofpoint-GUID: CEBKxirgksMMj3B9GRt_JX9Ixqbp2o9n
-X-Authority-Analysis: v=2.4 cv=XNk9iAhE c=1 sm=1 tr=0 ts=69b44032 cx=c_pps
- a=3Bg1Hr4SwmMryq2xdFQyZA==:117 a=3Bg1Hr4SwmMryq2xdFQyZA==:17
- a=IkcTkHD0fZMA:10 a=Yq5XynenixoA:10 a=VkNPw1HP01LnGYTKEx00:22
- a=RnoormkPH1_aCDwRdu11:22 a=U7nrCbtTmkRpXpFmAIza:22 a=VwQbUJbxAAAA:8
- a=VnNF1IyMAAAA:8 a=rbBVMOfHOAgcstZCQ3AA:9 a=QEXdDO2ut3YA:10
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1143,Hydra:6.1.51,FMLib:17.12.100.49
- definitions=2026-03-13_03,2026-03-13_01,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- suspectscore=0 spamscore=0 clxscore=1015 lowpriorityscore=0 adultscore=0
- bulkscore=0 phishscore=0 priorityscore=1501 impostorscore=0 malwarescore=0
- classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
- reason=mlx scancount=1 engine=8.22.0-2603050001 definitions=main-2603130132
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20260307173814.GN12611@unreal>
 
-Hi Bjorn et al.
+On Sat, Mar 07, 2026 at 07:38:14PM +0200, Leon Romanovsky wrote:
+> On Fri, Mar 06, 2026 at 05:47:14PM -0800, Long Li wrote:
+> > When the MANA hardware undergoes a service reset, the ETH auxiliary device
+> > (mana.eth) used by DPDK persists across the reset cycle — it is not removed
+> > and re-added like RC/UD/GSI QPs. This means userspace RDMA consumers such
+> > as DPDK have no way of knowing that firmware handles for their PD, CQ, WQ,
+> > QP and MR resources have become stale.
+> 
+> NAK to any of this.
+> 
+> In case of hardware reset, mana_ib AUX device needs to be destroyed and
+> recreated later.
 
-On s390, AtomicOp Requests are enabled on a PCI function that supports
-them, despite the helper being ignorant about the root port's capability
-to supporting their completion.
+Yeah, that is our general model for any serious RAS event where the
+driver's view of resources becomes out of sync with the HW.
 
-Patch 1: Fix the logic in pci_enable_atomic_ops_to_root()
-Patch 2: Update references to PCIe spec in that function.
+You have tear down the ib_device by removing the aux and then bring
+back a new one.
 
-I did test that the issue is fixed with these patches. Also, I verified
-that on a Mellanox/Nvidia ConnectX-6 adapter plugged straight into the
-root port of a x86 system still gets AtomicOp Requests enabled.
+There is an IB_EVENT_DEVICE_FATAL, but the purpose of that event is to
+tell userspace to close and re-open their uverbs FD.
 
-Due to lacking the required hardware, I did not test this with any PCIe
-switches between root port and endpoint. So test exposure to other
-environments is highly appreciated.
+We don't have a model where a uverbs FD in userspace can continue to
+work after the device has a catasrophic RAS event.
 
-Signed-off-by: Gerd Bayer <gbayer@linux.ibm.com>
----
-Changes in v4:
-- drop patch 1 - it will become the base of a new series
-- previous patch 2, now 1: reword commit message
-- add a new patch to update references to PCI spec within
-  pci_enable_atomic_ops_to_root()
-- rebase to latest master
-- Link to v3: https://lore.kernel.org/r/20260306-fix_pciatops-v3-0-99d12bcafb19@linux.ibm.com
+There may be room to have a model where the ib device doesn't fully
+unplug/replug so it retains its name and things, but that is core code
+not driver stuff.
 
-Changes in v3:
-- rebase to 7.0-rc2
-- gentle ping
-- add netdev and rdma lists for awareness
-- Link to v2: https://lore.kernel.org/r/20251216-fix_pciatops-v2-0-d013e9b7e2ee@linux.ibm.com
-
-Changes in v2:
-- rebase to 6.19-rc1
-- otherwise unchanged to v1
-- Link to v1: https://lore.kernel.org/r/20251110-fix_pciatops-v1-0-edc58a57b62e@linux.ibm.com
-
----
-Gerd Bayer (2):
-      PCI: AtomicOps: Do not enable if root-port capabilities are unknown
-      PCI: AtomicOps: Update references to PCIe spec
-
- drivers/pci/pci.c | 36 +++++++++++++++++-------------------
- 1 file changed, 17 insertions(+), 19 deletions(-)
----
-base-commit: 0257f64bdac7fdca30fa3cae0df8b9ecbec7733a
-change-id: 20251106-fix_pciatops-7e8608eccb03
-
-Best regards,
--- 
-Gerd Bayer <gbayer@linux.ibm.com>
-
+Jason
