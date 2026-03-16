@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 76CD73EDABB;
-	Mon, 16 Mar 2026 19:07:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C6353EFD21;
+	Mon, 16 Mar 2026 19:07:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773688060; cv=none; b=INKpSXWtDhy4+hDy8Aa2HaOvA7TJBXEfBR6YhpSOK20KringqoUAclDt955kmd/nqNJ4+JB6Nn4+kP0vXZ9GlHMTjyYd4okaWctTlrYSGx/GKVyw9h/98rygvlX+m5Bg3GShBy4zevt00WCVSnmOkuf8l8rJnL8I5fle+0fxdqI=
+	t=1773688065; cv=none; b=Dd6hKr6mKa4n3NQpDuXPdjfVPP0s4K3PTpf/XnXT6KCT4r5MwElEftmNDXjK4pd0R8LFJ9hckQ94DV4Mb4wyJspaHVAW9tEQKOkwTl/nW48S05s6bXgCoKFaUL1aNzfQ4ghta7N8o3lyt7VDQJmWTQDDrIxI9xQi/5/JWgcns/A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773688060; c=relaxed/simple;
-	bh=8pwuaCiDUSCBcuJ0n9V3xnzMZmgOorpLbuob290/9q4=;
+	s=arc-20240116; t=1773688065; c=relaxed/simple;
+	bh=ZPv8i4FB+9gmQ6im9/gIYrUtjuhhh3DQksE2tI3ZIHY=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=gQC0mVB3nO7A0B+jUtjyoPJMG8EjoYYF8O9XkjQU3oDuwWbP8sHgDKPk4J59BY18WFoQcfyw8Gr+c2lTDmP/6pMyQC4qT8LSeMfyYEuPZs6fBgqiOEkkVAlRNucs6IQDy0GZ17VSjY1FDXUnlJxeanvEf/j0OWlFiUa8BnMLTTY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=GCGCn64m; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version:Content-Type; b=H2XqLaIt3dVo7b6WOCxDy7fTtxpsX+ANLwXudm+Ty0HSkktz+YN0WlYTpcgq+8Th4pfPkC13oDU/m2AGUL8d3NKhjFvEYJr4xf2s2CB+tCpdk6S2lNOPmgua54Wgs968FrLDy+mUl7D+bC6KS69SIM9c9a9gVRJzcRXzMY28rdw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=DRyYIodO; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="GCGCn64m"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C17F4C2BC87;
-	Mon, 16 Mar 2026 19:07:38 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="DRyYIodO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B0505C2BC9E;
+	Mon, 16 Mar 2026 19:07:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1773688059;
-	bh=8pwuaCiDUSCBcuJ0n9V3xnzMZmgOorpLbuob290/9q4=;
+	s=k20201202; t=1773688064;
+	bh=ZPv8i4FB+9gmQ6im9/gIYrUtjuhhh3DQksE2tI3ZIHY=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=GCGCn64m17HUEqXK/h5IorRImzMcDPJU0tCmJDbB3L4vZKoJ0IPFeBCRy+wsuVOsq
-	 QdLTqB+gMICogw/16bSnE5fKFrNacTDn0dgvpd9diHLoKz+MPcFcA3Moa3f7VJeLjJ
-	 1ej0Ud0wWhcmuYammtYQZHu2U6ujMP2SzDcIO/KtqJUu3zi2ahSbrZoMmCZZRQkJ0r
-	 G8Hmu6p0/RxKO0n5ZlwCOD7NB007g+yepdwOdggQWqPLaCSyWzx36KVZ7tV6Qx3o/c
-	 VUo3XtlNgXCcmPathZVid/O+mA8txRCpS7WCOQ9I3ZLhHxZyH7AYAGU+Kep7Jz77mP
-	 /gXA1Yq4XBbOA==
+	b=DRyYIodOfdcUjLcCDu/jidDUh2A0CrnVqmtrZoS38nnxbv1K9xKH4U2nERAxw5Dnr
+	 xpZMTzOwGgNefLLEJdu7kIACNybDBIMeL2gjYa/WsKkEztHVvNTf3FGyuY67ZRhp+B
+	 VVAoPRKw7x3JJlrrtCVE+XCdZ9KBdWNwdoyr/19oYyN0h4MOOzpQgv0brQidAnBnWt
+	 IAidaFL/EszVCVmuUZfxp1MrjtA+RoOGA+j/sIW0az0Wpz08Zo769/4qrzdnIx+1mD
+	 unjW1nqdLdGReK4dBwDjXVamQtoCFyEea/CaTevOe/aCsHEI+wMr6SICzVMhes72VG
+	 AYqyNZR5FO0ow==
 From: Leon Romanovsky <leon@kernel.org>
 To: Marek Szyprowski <m.szyprowski@samsung.com>,
 	Robin Murphy <robin.murphy@arm.com>,
@@ -50,10 +50,11 @@ Cc: iommu@lists.linux.dev,
 	virtualization@lists.linux.dev,
 	linux-rdma@vger.kernel.org,
 	linux-trace-kernel@vger.kernel.org,
-	linux-mm@kvack.org
-Subject: [PATCH v3 5/8] dma-direct: prevent SWIOTLB path when DMA_ATTR_REQUIRE_COHERENT is set
-Date: Mon, 16 Mar 2026 21:06:49 +0200
-Message-ID: <20260316-dma-debug-overlap-v3-5-1dde90a7f08b@nvidia.com>
+	linux-mm@kvack.org,
+	Jason Gunthorpe <jgg@nvidia.com>
+Subject: [PATCH v3 8/8] mm/hmm: Indicate that HMM requires DMA coherency
+Date: Mon, 16 Mar 2026 21:06:52 +0200
+Message-ID: <20260316-dma-debug-overlap-v3-8-1dde90a7f08b@nvidia.com>
 X-Mailer: git-send-email 2.53.0
 In-Reply-To: <20260316-dma-debug-overlap-v3-0-1dde90a7f08b@nvidia.com>
 References: <20260316-dma-debug-overlap-v3-0-1dde90a7f08b@nvidia.com>
@@ -69,47 +70,61 @@ Content-Transfer-Encoding: 8bit
 
 From: Leon Romanovsky <leonro@nvidia.com>
 
-DMA_ATTR_REQUIRE_COHERENT indicates that SWIOTLB must not be used.
-Ensure the SWIOTLB path is declined whenever the DMA direct path is
-selected.
+HMM is fundamentally about allowing a sophisticated device to perform DMA
+directly to a process’s memory while the CPU accesses that same memory at
+the same time. It is similar to SVA but does not rely on IOMMU support.
+Because the entire model depends on concurrent access to shared memory, it
+fails as a uAPI if SWIOTLB substitutes the memory or if the CPU caches are
+not coherent with DMA.
 
+Until now, there has been no reliable way to report this, and various
+approximations have been used:
+
+int hmm_dma_map_alloc(struct device *dev, struct hmm_dma_map *map,
+                      size_t nr_entries, size_t dma_entry_size)
+{
+<...>
+        /*
+         * The HMM API violates our normal DMA buffer ownership rules and can't
+         * transfer buffer ownership.  The dma_addressing_limited() check is a
+         * best approximation to ensure no swiotlb buffering happens.
+         */
+        dma_need_sync = !dev->dma_skip_sync;
+        if (dma_need_sync || dma_addressing_limited(dev))
+                return -EOPNOTSUPP;
+
+So let's mark mapped buffers with DMA_ATTR_REQUIRE_COHERENT attribute
+to prevent silent data corruption if someone tries to use hmm in a system
+with swiotlb or incoherent DMA
+
+Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- kernel/dma/direct.h | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ mm/hmm.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/kernel/dma/direct.h b/kernel/dma/direct.h
-index e89f175e9c2d0..6184ff303f080 100644
---- a/kernel/dma/direct.h
-+++ b/kernel/dma/direct.h
-@@ -84,7 +84,7 @@ static inline dma_addr_t dma_direct_map_phys(struct device *dev,
+diff --git a/mm/hmm.c b/mm/hmm.c
+index f6c4ddff4bd61..5955f2f0c83db 100644
+--- a/mm/hmm.c
++++ b/mm/hmm.c
+@@ -778,7 +778,7 @@ dma_addr_t hmm_dma_map_pfn(struct device *dev, struct hmm_dma_map *map,
+ 	struct page *page = hmm_pfn_to_page(pfns[idx]);
+ 	phys_addr_t paddr = hmm_pfn_to_phys(pfns[idx]);
+ 	size_t offset = idx * map->dma_entry_size;
+-	unsigned long attrs = 0;
++	unsigned long attrs = DMA_ATTR_REQUIRE_COHERENT;
  	dma_addr_t dma_addr;
+ 	int ret;
  
- 	if (is_swiotlb_force_bounce(dev)) {
--		if (attrs & DMA_ATTR_MMIO)
-+		if (attrs & (DMA_ATTR_MMIO | DMA_ATTR_REQUIRE_COHERENT))
- 			return DMA_MAPPING_ERROR;
+@@ -871,7 +871,7 @@ bool hmm_dma_unmap_pfn(struct device *dev, struct hmm_dma_map *map, size_t idx)
+ 	struct dma_iova_state *state = &map->state;
+ 	dma_addr_t *dma_addrs = map->dma_list;
+ 	unsigned long *pfns = map->pfn_list;
+-	unsigned long attrs = 0;
++	unsigned long attrs = DMA_ATTR_REQUIRE_COHERENT;
  
- 		return swiotlb_map(dev, phys, size, dir, attrs);
-@@ -98,7 +98,8 @@ static inline dma_addr_t dma_direct_map_phys(struct device *dev,
- 		dma_addr = phys_to_dma(dev, phys);
- 		if (unlikely(!dma_capable(dev, dma_addr, size, true)) ||
- 		    dma_kmalloc_needs_bounce(dev, size, dir)) {
--			if (is_swiotlb_active(dev))
-+			if (is_swiotlb_active(dev) &&
-+			    !(attrs & DMA_ATTR_REQUIRE_COHERENT))
- 				return swiotlb_map(dev, phys, size, dir, attrs);
- 
- 			goto err_overflow;
-@@ -123,7 +124,7 @@ static inline void dma_direct_unmap_phys(struct device *dev, dma_addr_t addr,
- {
- 	phys_addr_t phys;
- 
--	if (attrs & DMA_ATTR_MMIO)
-+	if (attrs & (DMA_ATTR_MMIO | DMA_ATTR_REQUIRE_COHERENT))
- 		/* nothing to do: uncached and no swiotlb */
- 		return;
- 
+ 	if ((pfns[idx] & valid_dma) != valid_dma)
+ 		return false;
 
 -- 
 2.53.0
