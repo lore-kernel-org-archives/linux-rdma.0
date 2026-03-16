@@ -1,57 +1,57 @@
 Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A57843E4C84
-	for <linux-rdma@vger.kernel.org>; Mon, 16 Mar 2026 18:41:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E04F13E4C85
+	for <linux-rdma@vger.kernel.org>; Mon, 16 Mar 2026 18:41:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.10
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773686469; cv=none; b=dgDfJaJSIDn+/+kR8SZ7pdse/BC+sY3VhdARRp5lutQJFgIqEriF3hFrCZEckGLeNdBsWGm31mj0mZTvsDmFL5sVI1xYo87ASis8e21WuBJIlVWznHEY42+rAV3WeTwtcgvK01ChrANfe22KvUbrQRFxhcNG3QZEu+aU4wusrdY=
+	t=1773686472; cv=none; b=tEHaqBU7Az29y+qn3WR7W8VvnqfDVYIUan7p2cYbJzJi2d4gYROMdFeWY/zzTzjZsTavk8q9fIQFPAQHoG42MhmMlErTXnau+nwO18gndTxniYWCLO1tu++As3wI+tu7VhMbyGCECbw3YvGy8faSaxk2wWxgpN4s3/gEdzqQdw0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773686469; c=relaxed/simple;
-	bh=0LTOQjROBVoO+/PpqqpdX2FNAJIecX/+e9+Ohig0zcc=;
+	s=arc-20240116; t=1773686472; c=relaxed/simple;
+	bh=mnzlCxEk3JalcJk7G53bPfdDZdVFfszP0N7VVjZEGAk=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=nnC1SEjgzP33R9ue8qbdgWN18TU2Omwrp1Uvi0VorCCj6GiP9ZAzFKfCNNZYLUNRQxVEVUNFDjPdT0ohmV84VEXi+AvOndFGB+ahF8JTLh7n49M24LLnxewyW+Qw+2xaU32dwYZlnoXexc7yoQ9G89XqNrta6JL8xHXZmi+4XxY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=ay5dOvIH; arc=none smtp.client-ip=192.198.163.10
+	 MIME-Version; b=iVZMoSQhVrjiifufMk06mEdyCeqk9t2OaGEah/oSbYOKEaZwD3oD5eOgxOVifV2v045W5Y+LAz3J4Q/Z8y4poUpycyrt477NdsVNKNeyvdVz/jsbGKQT6RxlgE/5uaWaTMYf6Hc/Q9Xr4Qi05IN7g2NjLnz+pK8JppPknDS72TY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=T+7ZJzuL; arc=none smtp.client-ip=192.198.163.10
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="ay5dOvIH"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="T+7ZJzuL"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1773686464; x=1805222464;
+  t=1773686468; x=1805222468;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=0LTOQjROBVoO+/PpqqpdX2FNAJIecX/+e9+Ohig0zcc=;
-  b=ay5dOvIHZITkHd+Ov2hrlQbL3B7kkGbpAJG6geC/ACSAFH7BPz38NRPb
-   msbHv9NPbzZJ+wSdfFBW+CgD9lCMHqCer/zenatyGgHkpTeGCTMKiCQsV
-   Cjnbh05THHPAT+ourtrQYaPGQhkUGDLOwjyMeUGkOUbyIjjmDPtnSx1Ic
-   mxujkWcDQfjS7Kalz7noddZXuMmE8Z+stoezdbDfDbIPctEe8125D6Neo
-   cf+MSmTZ/SMHVwFbgWEaKWPPRjJaVL3xh+72xOA+7VQeXHOi416zwNPXm
-   tpLz8UQHD4stYbEpZmxNUOIO30FlT+MAAjT/BJlNiLwHunOyTnxnvtLHg
-   g==;
-X-CSE-ConnectionGUID: Q87G3NUFRK64OCrXTAkEfw==
-X-CSE-MsgGUID: SCkUWu3aQ6K7erWpDILy1w==
-X-IronPort-AV: E=McAfee;i="6800,10657,11731"; a="86067616"
+  bh=mnzlCxEk3JalcJk7G53bPfdDZdVFfszP0N7VVjZEGAk=;
+  b=T+7ZJzuL5LlgkCmUQgjGBOKnbOIeFAOszINUWPoA+mAa9NjsHUtmsmPC
+   T9VKLeJhbfyRwTkeWqxkABEpUYOry0bz5c1siPzGq/Fs7zoQx7RcRjRZJ
+   YFwg19JCGfbJTQH1I17451VXDuNRcpp0Hyz3sRMnTLWiMyKV4IF+SLj4s
+   rhNDromH0msTd4z3HYGfC0wH7fHyJNhYkIPbRy6OZYrpxStbdftRw3pJv
+   HOWIO5OfR5JfEi4qM6AHuU8oj9WM4s6bPjdjan3o7ieavTSVTJRizyFhq
+   WU3qSJDa3Jo1+KyPt9t+LUQaj0YG2wVXgvMObexGYvOsrpfGrfW2Qw8+5
+   A==;
+X-CSE-ConnectionGUID: uJS8c7Q0R96mIQx5gYZPjQ==
+X-CSE-MsgGUID: LRfn9pWGRRm/6ym3v1fS2Q==
+X-IronPort-AV: E=McAfee;i="6800,10657,11731"; a="86067624"
 X-IronPort-AV: E=Sophos;i="6.23,124,1770624000"; 
-   d="scan'208";a="86067616"
+   d="scan'208";a="86067624"
 Received: from orviesa002.jf.intel.com ([10.64.159.142])
-  by fmvoesa104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Mar 2026 11:40:51 -0700
-X-CSE-ConnectionGUID: WZNeT/LlQCO14Pk62AhCRQ==
-X-CSE-MsgGUID: IdOUPfXMTIiXe1nvwsOL6A==
+  by fmvoesa104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Mar 2026 11:40:52 -0700
+X-CSE-ConnectionGUID: m0twXoDGRROPeAAlGFJrKA==
+X-CSE-MsgGUID: 437zMdokRfybhRCpqlS+4w==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.23,124,1770624000"; 
-   d="scan'208";a="252520428"
+   d="scan'208";a="252520437"
 Received: from soc-pf51ragt.clients.intel.com ([10.122.184.229])
-  by orviesa002-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Mar 2026 11:40:48 -0700
+  by orviesa002-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Mar 2026 11:40:50 -0700
 From: Tatyana Nikolova <tatyana.e.nikolova@intel.com>
 To: jgg@nvidia.com,
 	leon@kernel.org
 Cc: linux-rdma@vger.kernel.org,
 	tatyana.e.nikolova@intel.com,
 	krzysztof.czurylo@intel.com
-Subject: [for-next 07/12] RDMA/irdma: Remove reset check from irdma_modify_qp_to_err()
-Date: Mon, 16 Mar 2026 13:39:44 -0500
-Message-ID: <20260316183949.261-8-tatyana.e.nikolova@intel.com>
+Subject: [for-next 09/12] RDMA/irdma: Return EINVAL for invalid arp index error
+Date: Mon, 16 Mar 2026 13:39:46 -0500
+Message-ID: <20260316183949.261-10-tatyana.e.nikolova@intel.com>
 X-Mailer: git-send-email 2.45.1
 In-Reply-To: <20260316183949.261-1-tatyana.e.nikolova@intel.com>
 References: <20260316183949.261-1-tatyana.e.nikolova@intel.com>
@@ -63,30 +63,78 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-During reset, irdma_modify_qp() to error should be called to disconnect
-the QP. Without this fix, if not preceded by irdma_modify_qp() to error, the
-API call irdma_destroy_qp() gets stuck waiting for the QP refcount to go
-to zero, because the cm_node associated with this QP isn't disconnected.
+When rdma_connect() fails due to an invalid arp index, user space rdma core
+reports ENOMEM which is confusing. Modify irdma_make_cm_node() to return the
+correct error code.
 
-Fixes 915cc7ac0f8e ("RDMA/irdma: Add miscellaneous utility definitions")
+Fixes: 146b9756f14c ("RDMA/irdma: Add connection manager")
 Signed-off-by: Tatyana Nikolova <tatyana.e.nikolova@intel.com>
 ---
- drivers/infiniband/hw/irdma/utils.c | 2 --
- 1 file changed, 2 deletions(-)
+ drivers/infiniband/hw/irdma/cm.c | 17 ++++++++++-------
+ 1 file changed, 10 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/infiniband/hw/irdma/utils.c b/drivers/infiniband/hw/irdma/utils.c
-index be2dc92d008f..18d0f29100f3 100644
---- a/drivers/infiniband/hw/irdma/utils.c
-+++ b/drivers/infiniband/hw/irdma/utils.c
-@@ -2324,8 +2324,6 @@ void irdma_modify_qp_to_err(struct irdma_sc_qp *sc_qp)
- 	struct irdma_qp *qp = sc_qp->qp_uk.back_qp;
- 	struct ib_qp_attr attr;
+diff --git a/drivers/infiniband/hw/irdma/cm.c b/drivers/infiniband/hw/irdma/cm.c
+index 6557e1299a47..c952b735e187 100644
+--- a/drivers/infiniband/hw/irdma/cm.c
++++ b/drivers/infiniband/hw/irdma/cm.c
+@@ -2241,11 +2241,12 @@ irdma_make_cm_node(struct irdma_cm_core *cm_core, struct irdma_device *iwdev,
+ 	int oldarpindex;
+ 	int arpindex;
+ 	struct net_device *netdev = iwdev->netdev;
++	int ret;
  
--	if (qp->iwdev->rf->reset)
--		return;
- 	attr.qp_state = IB_QPS_ERR;
+ 	/* create an hte and cm_node for this instance */
+ 	cm_node = kzalloc_obj(*cm_node, GFP_ATOMIC);
+ 	if (!cm_node)
+-		return NULL;
++		return ERR_PTR(-ENOMEM);
  
- 	if (rdma_protocol_roce(qp->ibqp.device, 1))
+ 	/* set our node specific transport info */
+ 	cm_node->ipv4 = cm_info->ipv4;
+@@ -2348,8 +2349,10 @@ irdma_make_cm_node(struct irdma_cm_core *cm_core, struct irdma_device *iwdev,
+ 			arpindex = -EINVAL;
+ 	}
+ 
+-	if (arpindex < 0)
++	if (arpindex < 0) {
++		ret = -EINVAL;
+ 		goto err;
++	}
+ 
+ 	ether_addr_copy(cm_node->rem_mac,
+ 			iwdev->rf->arp_table[arpindex].mac_addr);
+@@ -2360,7 +2363,7 @@ irdma_make_cm_node(struct irdma_cm_core *cm_core, struct irdma_device *iwdev,
+ err:
+ 	kfree(cm_node);
+ 
+-	return NULL;
++	return ERR_PTR(ret);
+ }
+ 
+ static void irdma_destroy_connection(struct irdma_cm_node *cm_node)
+@@ -3021,8 +3024,8 @@ static int irdma_create_cm_node(struct irdma_cm_core *cm_core,
+ 
+ 	/* create a CM connection node */
+ 	cm_node = irdma_make_cm_node(cm_core, iwdev, cm_info, NULL);
+-	if (!cm_node)
+-		return -ENOMEM;
++	if (IS_ERR(cm_node))
++		return PTR_ERR(cm_node);
+ 
+ 	/* set our node side to client (active) side */
+ 	cm_node->tcp_cntxt.client = 1;
+@@ -3219,9 +3222,9 @@ void irdma_receive_ilq(struct irdma_sc_vsi *vsi, struct irdma_puda_buf *rbuf)
+ 		cm_info.cm_id = listener->cm_id;
+ 		cm_node = irdma_make_cm_node(cm_core, iwdev, &cm_info,
+ 					     listener);
+-		if (!cm_node) {
++		if (IS_ERR(cm_node)) {
+ 			ibdev_dbg(&cm_core->iwdev->ibdev,
+-				  "CM: allocate node failed\n");
++				  "CM: allocate node failed ret=%ld\n", PTR_ERR(cm_node));
+ 			refcount_dec(&listener->refcnt);
+ 			return;
+ 		}
 -- 
 2.31.1
 
