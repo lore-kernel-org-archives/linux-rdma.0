@@ -1,56 +1,35 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B50EA54723;
-	Tue, 17 Mar 2026 02:45:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 97EC22BEFF5;
+	Tue, 17 Mar 2026 02:50:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773715536; cv=none; b=PGO92xmWFDCfeM3qSaychfzb7Xl4jSFfkEWzcx5L7xSia+9E785OXuFY/ZSZG9GLB3d439H+KlGWMebbO/z3OkpljLNFxy73YpNSe+pjGt2UYyXPgFzI/Xqky96zo900DJTctIDgGr/zUdPGW0lyP01IJ749wBUEpmCwCNB0feQ=
+	t=1773715817; cv=none; b=iYEwfBQdzjpEhsLsBhBOBMkCsxGne0e8WHI6eXzfVZ5FFdmbj2qtalvfLbGsrGJ7DWeczjf4PYYMUEZ4Jy8ObK0m7KAFRV5iGPq/i3tSPKu6MWYYGRxliWN1BZ3rPhY1CFCgBQyfsk4g+8CPQ4+uOSwXHdo4Tm71n0kH3iuaqEA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773715536; c=relaxed/simple;
-	bh=o4KKEzECa0c9M2MuhD0pbm/LOj6Ot3Hiam15eo1ahHU=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=TdIv+Kp3uvtNf3r0LwPURxKUvkFdvAHjobvhDZjTdfXbew9nr+1KlHRqhuP+MFC5mZTqMbJ0CTvBld5/hzg8btIi+EMHT/I4vR/BCD/flZNkOAvz6QkDZhOhzWhJy8qqxa7E/r2kGXVuhiJ+xiy7AebrvjFuNNsY9+6JoJj8r/g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=BaZG9cFa; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773715817; c=relaxed/simple;
+	bh=alVrlu101bAdsJEA+qSPzD9ZCVrbyZEFXQz+beNOU40=;
+	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc; b=cjlbbxXODCgLjp9t0GRjrqehY16NEhy/9RqHK6hhGvHlSKJwUT5gHGAJQ7GSo6FrUVU1pDbG8jSB1tfKY7GNOdfZnanAeqe43lWy3KUInH87y7xaEk5evJixcsZfISOucQMqVfTzFgGjVJHodU1VN1EjKE0FPY3nZoZ43iAChCM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=X0RRJckj; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="BaZG9cFa"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9A37CC19421;
-	Tue, 17 Mar 2026 02:45:35 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="X0RRJckj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 56502C19421;
+	Tue, 17 Mar 2026 02:50:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1773715536;
-	bh=o4KKEzECa0c9M2MuhD0pbm/LOj6Ot3Hiam15eo1ahHU=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=BaZG9cFalAXv2WDdl0pf+EDyBk7oQxbUGElaV9B3674mLjUkDZx7p9rgOH0s7rKuX
-	 0gxlFsG75qG1MoA7VngD/uWJaCUM8+xWAZ+nCrXckr+pQOZZb8hZAvWVpJ7hCrtrPJ
-	 8WCaMU7aKYOyWKHBhdcL28wVjTFLXaOXKUstfLJolJDERe27H/PJ5wQ/115Q/bJyUD
-	 Mqyybm1vOOYe1O6fWFO5459cv7j5l0CehgG7lZzlGu7I4w3b0oHuSwn+CMnwreptov
-	 IOC5AeXEckXk7hDcvSNSRTO73LC1n85NorhfKT6oUwqei+onGHsSfsLg0zs12PomMk
-	 TN16J/NB+HSwA==
-From: Jakub Kicinski <kuba@kernel.org>
-To: alibuda@linux.alibaba.com
-Cc: Jakub Kicinski <kuba@kernel.org>,
-	netdev@vger.kernel.org,
-	edumazet@google.com,
-	tonylu@linux.alibaba.com,
-	wenjia@linux.ibm.com,
-	pabeni@redhat.com,
-	guwen@linux.alibaba.com,
-	davem@davemloft.net,
-	linux-kernel@vger.kernel.org,
-	mjambigi@linux.ibm.com,
-	dust.li@linux.alibaba.com,
-	oliver.yang@linux.alibaba.com,
-	sidraya@linux.ibm.com,
-	linux-s390@vger.kernel.org,
-	horms@kernel.org,
-	pasic@linux.ibm.com,
-	linux-rdma@vger.kernel.org
-Subject: Re: [net-next] net/smc: cap allocation order for SMC-R physically contiguous buffers
-Date: Mon, 16 Mar 2026 19:45:34 -0700
-Message-ID: <20260317024534.588136-1-kuba@kernel.org>
-X-Mailer: git-send-email 2.53.0
-In-Reply-To: <20260312082154.36971-1-alibuda@linux.alibaba.com>
-References: <20260312082154.36971-1-alibuda@linux.alibaba.com>
+	s=k20201202; t=1773715817;
+	bh=alVrlu101bAdsJEA+qSPzD9ZCVrbyZEFXQz+beNOU40=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+	b=X0RRJckjHVmk7hzNroZO6Q0S/HDK3/wkmqNWJBQ7Q+xHVPigtLEkkwfBxM5ov60qd
+	 XNm2+qk1CnPepSC8hK8fzOhP4q0qVm4+yZeAWkI+kznI4du2AKfE2qPims6fWnbPXY
+	 DsRrtOPq653720DLUG5P5QEKOtmOjyZUMAHkuQwYSJjJLj40zhZpueVYMSFZQsiAj6
+	 WhiV38VuC71UBkTUknIMm2/BSPex9FQoBQz9/yGfgaziMwB4N4E/7bmX4+QTFUDHda
+	 GvqfSsJDWl1PYCyPt4GttfMDDBs6WQDj1Xbj89NU4AUfTeo7S++/U+eVdlXOFRWfkl
+	 uPxgMWwVyZfuQ==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 3FF953808200;
+	Tue, 17 Mar 2026 02:50:11 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -58,154 +37,50 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net v5] net/smc: fix NULL dereference and UAF in
+ smc_tcp_syn_recv_sock()
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <177371580978.3402731.5817717150922524333.git-patchwork-notify@kernel.org>
+Date: Tue, 17 Mar 2026 02:50:09 +0000
+References: <20260312092909.48325-1-jiayuan.chen@linux.dev>
+In-Reply-To: <20260312092909.48325-1-jiayuan.chen@linux.dev>
+To: Jiayuan Chen <jiayuan.chen@linux.dev>
+Cc: netdev@vger.kernel.org, jiayuan.chen@shopee.com,
+ syzbot+827ae2bfb3a3529333e9@syzkaller.appspotmail.com, edumazet@google.com,
+ alibuda@linux.alibaba.com, dust.li@linux.alibaba.com, sidraya@linux.ibm.com,
+ wenjia@linux.ibm.com, mjambigi@linux.ibm.com, tonylu@linux.alibaba.com,
+ guwen@linux.alibaba.com, davem@davemloft.net, kuba@kernel.org,
+ pabeni@redhat.com, horms@kernel.org, linux-rdma@vger.kernel.org,
+ linux-s390@vger.kernel.org, linux-kernel@vger.kernel.org
 
-This is an AI-generated review of your patch. The human sending this
-email has considered the AI review valid, or at least plausible.
+Hello:
 
-For local reproduction steps see https://netdev-ai.bots.linux.dev/ai-local.html
----
-net/smc: cap allocation order for SMC-R physically contiguous buffers
+This patch was applied to netdev/net.git (main)
+by Jakub Kicinski <kuba@kernel.org>:
 
-The alloc_page() cannot satisfy requests exceeding MAX_PAGE_ORDER, and
-attempting such allocations will lead to guaranteed failures and potential
-kernel warnings. For SMCR_PHYS_CONT_BUFS, cap the allocation order to
-MAX_PAGE_ORDER. This ensures the attempts to allocate the largest possible
-physically contiguous chunk succeed. For SMCR_MIXED_BUFS, if its order
-exceeds MAX_PAGE_ORDER, skip the physical allocation attempt and fallback to
-virtual memory immediately.
+On Thu, 12 Mar 2026 17:29:07 +0800 you wrote:
+> From: Jiayuan Chen <jiayuan.chen@shopee.com>
+> 
+> Syzkaller reported a panic in smc_tcp_syn_recv_sock() [1].
+> 
+> smc_tcp_syn_recv_sock() is called in the TCP receive path
+> (softirq) via icsk_af_ops->syn_recv_sock on the clcsock (TCP
+> listening socket). It reads sk_user_data to get the smc_sock
+> pointer. However, when the SMC listen socket is being closed
+> concurrently, smc_close_active() sets clcsock->sk_user_data
+> to NULL under sk_callback_lock, and then the smc_sock itself
+> can be freed via sock_put() in smc_release().
+> 
+> [...]
 
-> diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
-> index e2d083daeb7e..a18730edb7e0 100644
-> --- a/net/smc/smc_core.c
-> +++ b/net/smc/smc_core.c
-> @@ -2314,6 +2314,10 @@ int smcr_buf_reg_lgr(struct smc_link *lnk)
->  	return rc;
->  }
->
-> +/*
-> + * smcr_new_buf_create may allocate a buffer smaller than the requested
-> + * bufsize. Use buf_desc->len to determine the actual allocated size.
-> + */
->  static struct smc_buf_desc *smcr_new_buf_create(struct smc_link_group *lgr,
->  						int bufsize)
->  {
-> @@ -2326,18 +2330,22 @@ static struct smc_buf_desc *smcr_new_buf_create(struct smc_link_group *lgr,
->
->  	switch (lgr->buf_type) {
->  	case SMCR_PHYS_CONT_BUFS:
-> +		bufsize = min(bufsize, (int)PAGE_SIZE << MAX_PAGE_ORDER);
-> +		fallthrough;
->  	case SMCR_MIXED_BUFS:
->  		buf_desc->order = get_order(bufsize);
-> -		buf_desc->pages = alloc_pages(GFP_KERNEL | __GFP_NOWARN |
-> -					      __GFP_NOMEMALLOC | __GFP_COMP |
-> -					      __GFP_NORETRY | __GFP_ZERO,
-> -					      buf_desc->order);
-> -		if (buf_desc->pages) {
-> -			buf_desc->cpu_addr =
-> -				(void *)page_address(buf_desc->pages);
-> -			buf_desc->len = bufsize;
-> -			buf_desc->is_vm = false;
-> -			break;
-> +		if (buf_desc->order <= MAX_PAGE_ORDER) {
-> +			buf_desc->pages = alloc_pages(GFP_KERNEL | __GFP_NOWARN |
-> +						      __GFP_NOMEMALLOC | __GFP_COMP |
-> +						      __GFP_NORETRY | __GFP_ZERO,
-> +						      buf_desc->order);
-> +			if (buf_desc->pages) {
-> +				buf_desc->cpu_addr =
-> +					(void *)page_address(buf_desc->pages);
-> +				buf_desc->len = bufsize;
-> +				buf_desc->is_vm = false;
-> +				break;
-> +			}
->  		}
->  		if (lgr->buf_type == SMCR_PHYS_CONT_BUFS)
->  			goto out;
+Here is the summary with links:
+  - [net,v5] net/smc: fix NULL dereference and UAF in smc_tcp_syn_recv_sock()
+    https://git.kernel.org/netdev/net/c/6d5e4538364b
 
-[ ... ]
-
-> @@ -2476,7 +2484,7 @@ static int __smc_buf_create(struct smc_sock *smc, bool is_smcd, bool is_rmb)
->  		}
->
->  		SMC_STAT_RMB_ALLOC(smc, is_smcd, is_rmb);
-> -		SMC_STAT_RMB_SIZE(smc, is_smcd, is_rmb, true, bufsize);
-> +		SMC_STAT_RMB_SIZE(smc, is_smcd, is_rmb, true, buf_desc->len);
->  		buf_desc->used = 1;
->  		down_write(lock);
->  		smc_lgr_buf_list_add(lgr, is_rmb, buf_list, buf_desc);
->  		up_write(lock);
->  		break; /* found */
->  	}
->
->  	if (IS_ERR(buf_desc))
->  		return PTR_ERR(buf_desc);
->
->  	if (!is_smcd) {
->  		if (smcr_buf_map_usable_links(lgr, buf_desc, is_rmb)) {
->  			smcr_buf_unuse(buf_desc, is_rmb, lgr);
->  			return -ENOMEM;
->  		}
->  	}
->
->  	if (is_rmb) {
->  		conn->rmb_desc = buf_desc;
->  		conn->rmbe_size_comp = bufsize_comp;
->  		smc->sk.sk_rcvbuf = bufsize * 2;
->  		atomic_set(&conn->bytes_to_rcv, 0);
->  		conn->rmbe_update_limit =
->  			smc_rmb_wnd_update_limit(buf_desc->len);
->  		if (is_smcd)
->  			smc_ism_set_conn(conn); /* map RMB/smcd_dev to conn */
->  	} else {
->  		conn->sndbuf_desc = buf_desc;
->  		smc->sk.sk_sndbuf = bufsize * 2;
->  		atomic_set(&conn->sndbuf_space, bufsize);
-                                                 ^^^^^^^
-
-The comment added at smcr_new_buf_create() says "Use buf_desc->len to
-determine the actual allocated size," but __smc_buf_create() still uses the
-uncapped bufsize for several critical fields. Is this correct?
-
-For SMCR_PHYS_CONT_BUFS, smcr_new_buf_create() now caps bufsize internally
-to PAGE_SIZE << MAX_PAGE_ORDER (typically 4MB), so buf_desc->len can be
-smaller than the requested bufsize.
-
-However, __smc_buf_create() continues using the original uncapped bufsize
-for:
-
-    if (is_rmb) {
-        conn->rmbe_size_comp = bufsize_comp;
-        smc->sk.sk_rcvbuf = bufsize * 2;
-    } else {
-        smc->sk.sk_sndbuf = bufsize * 2;
-        atomic_set(&conn->sndbuf_space, bufsize);
-    }
-
-The sndbuf_space mismatch is particularly concerning. Looking at
-smc_tx.c:274, the comment states: "0 <= sndbuf_space <= sndbuf_desc->len".
-When sndbuf_space exceeds sndbuf_desc->len, smc_tx_sendmsg() could calculate
-writespace incorrectly:
-
-    int writespace = atomic_read(&conn->sndbuf_space);
-
-and the two-chunk copy loop might write beyond the actual buffer boundary.
-This is reachable with default sysctl settings (SMCR_PHYS_CONT_BUFS) and
-socket buffer sizes exceeding 4MB.
-
-Should these assignments use buf_desc->len instead of bufsize? For example:
-
-    atomic_set(&conn->sndbuf_space, buf_desc->len);
-    smc->sk.sk_sndbuf = buf_desc->len * 2;
-    smc->sk.sk_rcvbuf = buf_desc->len * 2;
-
-And should rmbe_size_comp be recalculated from buf_desc->len? The
-rmbe_size_comp value is sent to the peer via CLC messages in smc_clc.c:1125,
-and an inflated value might cause the peer to believe the RMB is larger than
-it actually is.
-
->  	}
->  	return 0;
->  }
+You are awesome, thank you!
 -- 
-pw-bot: cr
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
+
