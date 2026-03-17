@@ -1,130 +1,128 @@
-Received: from out-170.mta0.migadu.com (out-170.mta0.migadu.com [91.218.175.170])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C06DB3E8677
-	for <linux-rdma@vger.kernel.org>; Tue, 17 Mar 2026 14:39:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.170
+Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id E02323E6DE6;
+	Tue, 17 Mar 2026 14:39:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773758344; cv=none; b=rEvk/ra0YEFt1KauecUle1Ti4SszLJc1RkhIFXr/PR5Yp1CN/eZ8SfVSNvW26Iwp+1xT0mHZgTB+8FtTDWLvIVHljpstwJv2++4dGKGDPeVab5DapN/1xOG/MjKkMcvTOPpty6Zs0Z/ip25aryH4D73Z3KCFphUCpKSRC3lwinU=
+	t=1773758385; cv=none; b=U4mNeNmN0E+tqx2VI40ETnFw7/1kS9uNFptyhKkrUk7asH1cZHSk39mJFZeUr6sYz7tkuxmsgJz3tBtsQogeEjF8r/kqX/fhOqLvmu9UQM+KgxXOFoVbU/R9mNzhannwkLj0YzUf8EYDQl4nyrwbk7NjE5GITtibk2yeeDv0dUk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773758344; c=relaxed/simple;
-	bh=A147bc2bT4KeYZIRrgqu8fITAQVo9jfiIw91PSZaPR0=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=CZ+oqh5AtXh8WLwXqgWqLwep+mxVFlVy5TI4NI/zLuPoVcm50HnuqUL6MVIHo0wtZIq2WoE0bGqOsnV1O5BUBmEmPjlpyI18VD8Wr87so+Z5YTYibaXsHAQl77IVS9n9qBCmZJzCDPhmVcgZssDQbb1HuR8b+mDTeOGAPPSluNA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=k6Sjz6TS; arc=none smtp.client-ip=91.218.175.170
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+	s=arc-20240116; t=1773758385; c=relaxed/simple;
+	bh=c+cdIRdM7Ez0D3peqQh+Zj3EK0hbiQwcJaAr0FS6Mro=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=tWiJJVCb10kdxcwNQ4/19kyX9wTZDQ2C53a2ieijdV37Jbi2ohi3TvcvnBuVOrGYpyC64Pe8VoD8feD55ZnuIxacdlWm2Rzt8q1QIwajRrnZjHVyGCe7lb4V3/OG83acvk3Ux0chYS6m1Vt5CNpIFx6J5bd/L0fNyx9vw4wXPkU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=ibCS9Y4l; arc=none smtp.client-ip=13.77.154.182
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="k6Sjz6TS"
-Message-ID: <c5374d12-84ed-4298-92d3-90062988f68d@linux.dev>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-	t=1773758340;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=63wRMo0FngaKINvt5+DIgmP+fsqgLbRaWZ8w/1faLk8=;
-	b=k6Sjz6TSdC2nyKK9J9E+a8l366kISxnRJfdxzpVkQlPVTK/IWd0VPDIiPnVsblmcjLK10M
-	ys1G65d5PpN3bhe92/K0dHRc7WJ3ElveCMa+WXW46uw/+EDJ0YYyeagk0so/h4qtEXG8Bt
-	4EP6xNeD+esG33CS6wCEbQVw2N/Z72g=
-Date: Tue, 17 Mar 2026 07:38:49 -0700
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="ibCS9Y4l"
+Received: by linux.microsoft.com (Postfix, from userid 1186)
+	id D0BB420B710C; Tue, 17 Mar 2026 07:39:43 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com D0BB420B710C
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
+	s=default; t=1773758383;
+	bh=Cs8wF+eyZi4CAp08CRR5vmK1gtQ9FCuuRGfTeThvTgU=;
+	h=From:To:Cc:Subject:Date:From;
+	b=ibCS9Y4lRNXbMXVh3iQsDqQCs1qGJtNPmVChk8eGVKZhgtgBoEe5nNLx29wGPgK6Q
+	 EZuCQwpLzl5aAeFvtAIxMAXhH9gkf3VP+aKMg+sz/C2EgQxKxSVJ5RCa95m0Rcq4+3
+	 Zy4DKJCUAmJ0I/WnNraIzHzJB4OGU8lx0tZbUUwY=
+From: Konstantin Taranov <kotaranov@linux.microsoft.com>
+To: shirazsaleem@microsoft.com,
+	kotaranov@microsoft.com,
+	pabeni@redhat.com,
+	haiyangz@microsoft.com,
+	kys@microsoft.com,
+	edumazet@google.com,
+	kuba@kernel.org,
+	davem@davemloft.net,
+	decui@microsoft.com,
+	wei.liu@kernel.org,
+	longli@microsoft.com,
+	jgg@ziepe.ca,
+	leon@kernel.org
+Cc: linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	netdev@vger.kernel.org
+Subject: [PATCH net v2] net/mana: Fix auxiliary device double-delete race
+Date: Tue, 17 Mar 2026 07:39:43 -0700
+Message-ID: <20260317143943.1329271-1-kotaranov@linux.microsoft.com>
+X-Mailer: git-send-email 2.43.7
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Subject: Re: [PATCH] RDMA/rxe: Replace use of system_unbound_wq with
- system_dfl_wq
-To: Leon Romanovsky <leon@kernel.org>,
- Marco Crivellari <marco.crivellari@suse.com>,
- "yanjun.zhu@linux.dev" <yanjun.zhu@linux.dev>
-Cc: linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
- Tejun Heo <tj@kernel.org>, Lai Jiangshan <jiangshanlai@gmail.com>,
- Frederic Weisbecker <frederic@kernel.org>,
- Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
- Michal Hocko <mhocko@suse.com>, Zhu Yanjun <zyjzyj2000@gmail.com>,
- Jason Gunthorpe <jgg@ziepe.ca>
-References: <20260313154023.298325-1-marco.crivellari@suse.com>
- <20260316201301.GL61385@unreal>
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-From: Zhu Yanjun <yanjun.zhu@linux.dev>
-In-Reply-To: <20260316201301.GL61385@unreal>
-Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
-X-Migadu-Flow: FLOW_OUT
 
-在 2026/3/16 13:13, Leon Romanovsky 写道:
-> On Fri, Mar 13, 2026 at 04:40:23PM +0100, Marco Crivellari wrote:
->> This patch continues the effort to refactor workqueue APIs, which has begun
->> with the changes introducing new workqueues and a new alloc_workqueue flag:
->>
->>     commit 128ea9f6ccfb ("workqueue: Add system_percpu_wq and system_dfl_wq")
->>     commit 930c2ea566af ("workqueue: Add new WQ_PERCPU flag")
->>
->> The point of the refactoring is to eventually alter the default behavior of
->> workqueues to become unbound by default so that their workload placement is
->> optimized by the scheduler.
->>
->> Before that to happen, workqueue users must be converted to the better named
->> new workqueues with no intended behaviour changes:
->>
->>     system_wq -> system_percpu_wq
->>     system_unbound_wq -> system_dfl_wq
->>
->> This way the old obsolete workqueues (system_wq, system_unbound_wq) can be
->> removed in the future.
-> 
-> I recall earlier efforts to replace system workqueues with per‑driver queues,
-> because unloading a driver forces a flush of the entire system workqueue,
-> which is undesirable for overall system behavior.
-> 
-> Wouldn't it be better to introduce a local workqueue here and use that instead?
+From: Shiraz Saleem <shirazsaleem@microsoft.com>
 
-Thanks.
+Make remove_adev() safe to call concurrently from the service reset
+and PCI eject paths by using xchg() to atomically claim the adev
+pointer. This prevents double auxiliary_device_delete/uninit when
+hv_eject_device_work races with the service reset workqueue.
 
-1.The initialization should be:
+Fixes: 505cc26bcae0 ("net: mana: Add support for auxiliary device servicing events")
+Signed-off-by: Shiraz Saleem <shirazsaleem@microsoft.com>
+Signed-off-by: Konstantin Taranov <kotaranov@microsoft.com>
+Reviewed-by: Long Li <longli@microsoft.com>
+---
+v2: rebased on the latest net
+ drivers/net/ethernet/microsoft/mana/mana_en.c | 18 ++++++++++--------
+ 1 file changed, 10 insertions(+), 8 deletions(-)
 
-my_wq = alloc_workqueue("my_driver_queue", WQ_UNBOUND | WQ_MEM_RECLAIM, 0);
-if (!my_wq)
-     return -ENOMEM;
-
-2. The Submission should be:
-
-queue_work(my_wq, &my_work);
-
-3. Destroy should be:
-
-destroy_workqueue()
-
-Thanks,
-Zhu Yanjun
-
-> 
-> Thanks
-> 
->>
->> Link: https://lore.kernel.org/all/20250221112003.1dSuoGyc@linutronix.de/
->> Suggested-by: Tejun Heo <tj@kernel.org>
->> Signed-off-by: Marco Crivellari <marco.crivellari@suse.com>
->> ---
->>   drivers/infiniband/sw/rxe/rxe_odp.c | 2 +-
->>   1 file changed, 1 insertion(+), 1 deletion(-)
->>
->> diff --git a/drivers/infiniband/sw/rxe/rxe_odp.c b/drivers/infiniband/sw/rxe/rxe_odp.c
->> index bc11b1ec59ac..d440c8cbaea5 100644
->> --- a/drivers/infiniband/sw/rxe/rxe_odp.c
->> +++ b/drivers/infiniband/sw/rxe/rxe_odp.c
->> @@ -545,7 +545,7 @@ static int rxe_ib_advise_mr_prefetch(struct ib_pd *ibpd,
->>   		work->frags[i].mr = mr;
->>   	}
->>   
->> -	queue_work(system_unbound_wq, &work->work);
->> +	queue_work(system_dfl_wq, &work->work);
->>   
->>   	return 0;
->>   
->> -- 
->> 2.53.0
->>
+diff --git a/drivers/net/ethernet/microsoft/mana/mana_en.c b/drivers/net/ethernet/microsoft/mana/mana_en.c
+index 9017e806e..9ae5f01d8 100644
+--- a/drivers/net/ethernet/microsoft/mana/mana_en.c
++++ b/drivers/net/ethernet/microsoft/mana/mana_en.c
+@@ -3410,14 +3410,18 @@ static void adev_release(struct device *dev)
+ 
+ static void remove_adev(struct gdma_dev *gd)
+ {
+-	struct auxiliary_device *adev = gd->adev;
+-	int id = adev->id;
++	struct auxiliary_device *adev = xchg(&gd->adev, NULL);
++	int id;
++
++	if (!adev)
++		return;
++
++	id = adev->id;
+ 
+ 	auxiliary_device_delete(adev);
+ 	auxiliary_device_uninit(adev);
+ 
+ 	mana_adev_idx_free(id);
+-	gd->adev = NULL;
+ }
+ 
+ static int add_adev(struct gdma_dev *gd, const char *name)
+@@ -3481,7 +3485,7 @@ static void mana_rdma_service_handle(struct work_struct *work)
+ 
+ 	switch (serv_work->event) {
+ 	case GDMA_SERVICE_TYPE_RDMA_SUSPEND:
+-		if (!gd->adev || gd->is_suspended)
++		if (gd->is_suspended)
+ 			break;
+ 
+ 		remove_adev(gd);
+@@ -3684,8 +3688,7 @@ void mana_remove(struct gdma_dev *gd, bool suspending)
+ 	cancel_delayed_work_sync(&ac->gf_stats_work);
+ 
+ 	/* adev currently doesn't support suspending, always remove it */
+-	if (gd->adev)
+-		remove_adev(gd);
++	remove_adev(gd);
+ 
+ 	for (i = 0; i < ac->num_ports; i++) {
+ 		ndev = ac->ports[i];
+@@ -3774,8 +3777,7 @@ void mana_rdma_remove(struct gdma_dev *gd)
+ 	if (gc->service_wq)
+ 		flush_workqueue(gc->service_wq);
+ 
+-	if (gd->adev)
+-		remove_adev(gd);
++	remove_adev(gd);
+ 
+ 	mana_gd_deregister_device(gd);
+ }
+-- 
+2.43.0
 
