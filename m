@@ -1,64 +1,64 @@
-Received: from mail-pj1-f54.google.com (mail-pj1-f54.google.com [209.85.216.54])
+Received: from mail-pf1-f177.google.com (mail-pf1-f177.google.com [209.85.210.177])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 368BA346AC6
-	for <linux-rdma@vger.kernel.org>; Wed, 18 Mar 2026 20:06:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.54
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 02BFF3ED13A
+	for <linux-rdma@vger.kernel.org>; Wed, 18 Mar 2026 20:11:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.177
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773864380; cv=none; b=hl1Xue3l7eLMD+aevK4YGpR5JRshr4E6Wv0mvJorRZJeTL42AICnxb90EEAvwVrKB9J+IfCoGmorXl6cR8s/+fP9CST36mIDkMHJNzPrAxVC5fZreITflNH6r6l20xiePLwRTQVwubPcjaitee6FnIM/FagPUGmrxjwFKVAEEIc=
+	t=1773864674; cv=none; b=atNurOm+vvIhASm6cW3AdU4uE+hyvjLhxD3HgsiZJd3q/O3aNvypjuytnIIZ5EPK+JPm7UETpkVeCsArrGbb0VtdX62VMt6J7vG/6wgFDjy563a5pJsBKOxtLZ5IUeAnRjV6H1dRrh7DiGVd2BY40jHSCQBO8RNo4dUS3wH310k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773864380; c=relaxed/simple;
-	bh=KuPSmFfK/2b8A5e3jfwFssD+wIacjMZ+zJyp9NVt61k=;
+	s=arc-20240116; t=1773864674; c=relaxed/simple;
+	bh=7V+tpJcHPHKkKArRby9B/AEvv+A6I5U8x69esMrCnRU=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=qpSJIoqS3dcnva2w9kMtATxNUFfh1GaF44GtYULSA35ksvuvferqioIgyStjjXXapJusIHQ6AoMeGYIyrUdJKtpwRuZ/k9P0r/VBCU0/Eg2PzkxY7CjJPjcWU1+fNiRKQZ1GHCgn6fQMzjc9+6R2nAhyX8P8QUszfyuYdEcR5T4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=dama.to; spf=none smtp.mailfrom=dama.to; dkim=pass (2048-bit key) header.d=dama-to.20230601.gappssmtp.com header.i=@dama-to.20230601.gappssmtp.com header.b=NIwj81m4; arc=none smtp.client-ip=209.85.216.54
+	 Content-Type:Content-Disposition:In-Reply-To; b=TLhZNqHUGisYKq9Fs+4oRpbKj2EaGBkqYLF7uKX5UBJldhlUUBAQmxxxpZcBrVOpz37tO/oqhsVX+bvavhaMbL4cWTZtLxq2c77sOQZsZqMM6WxLzA3Q/ZQqpZ9AE2EuqjnFkFUXnfyYEgHu9/McODS5U6S4SN24PmpQyQuZ13c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=dama.to; spf=none smtp.mailfrom=dama.to; dkim=pass (2048-bit key) header.d=dama-to.20230601.gappssmtp.com header.i=@dama-to.20230601.gappssmtp.com header.b=DkWczbrN; arc=none smtp.client-ip=209.85.210.177
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=dama.to
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=dama.to
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=dama-to.20230601.gappssmtp.com header.i=@dama-to.20230601.gappssmtp.com header.b="NIwj81m4"
-Received: by mail-pj1-f54.google.com with SMTP id 98e67ed59e1d1-3591cc98871so174149a91.3
-        for <linux-rdma@vger.kernel.org>; Wed, 18 Mar 2026 13:06:19 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=dama-to.20230601.gappssmtp.com header.i=@dama-to.20230601.gappssmtp.com header.b="DkWczbrN"
+Received: by mail-pf1-f177.google.com with SMTP id d2e1a72fcca58-82985f42664so232312b3a.0
+        for <linux-rdma@vger.kernel.org>; Wed, 18 Mar 2026 13:11:12 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=dama-to.20230601.gappssmtp.com; s=20230601; t=1773864379; x=1774469179; darn=vger.kernel.org;
+        d=dama-to.20230601.gappssmtp.com; s=20230601; t=1773864672; x=1774469472; darn=vger.kernel.org;
         h=in-reply-to:content-disposition:mime-version:references
          :mail-followup-to:message-id:subject:cc:to:from:date:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=Dp/L77L0/zotrZ2zU531gMdFREkU2AqJ3gHWhhi3kO0=;
-        b=NIwj81m4abnB79pq4TrYR1IOiQikbwXs2YA3icy+hn+OY8YPAsTUYcyYM09SVf25EW
-         iwxiVtfHo2BDclHKL/1s3O3XGm/V64ktgehyf+gl3M9Tsq+SsYjiunLE9DYu22BcYp+4
-         LamPoDxUkhXz01wWgaBtSK+G1iYgMGHktc9XWdHbKuIVTIHgL/3jZsyxpH+9P0WjCG1i
-         MkC8n3BxTZmF0gfUbCH9L0hhSvqiNIavvD/10YrAx4qQP8yDWIxvWgD+PLwQiXDYCtFF
-         DMQ1mJ/0N8lx5URw0iqeJxpPiwA8sxeKpgoFjvni2Y/+frJ0juTHbuqhRqHut/1i+MQ0
-         1wJA==
+        bh=tcrjf6o6BBsskimuOBs0/X8mHwc2XWl98zNiH3etscg=;
+        b=DkWczbrNIQVEjlE5M+pjSo5y5lJ+by1T8j93RepF68fSx2hJNsN3z/LP14spf2xTxD
+         GjHNvBYIMtS9I1INUMEa9oAH70XyhYqcm42elsdox7gMSJoDGd57sSjTB5mSan9qvCsV
+         eFlvtmd5JdQXQs1kjwSyZQPsYqDcKk4aFGRq7Dg4FgPkLrQBkMQ35JwbJbhSV8s2I33p
+         ndebk4WsWZ/wndb1k/sYfJTDKIYBd//H3X325h17nxGmnatVLHabxX2djDTegEdlLaOq
+         jvApSI+LinleIAO+nE8hXcutT4HnR+QMWsgbX152KBdlxgJt5fhGeLLe9LsBOYOLnIdH
+         05zw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1773864379; x=1774469179;
+        d=1e100.net; s=20251104; t=1773864672; x=1774469472;
         h=in-reply-to:content-disposition:mime-version:references
          :mail-followup-to:message-id:subject:cc:to:from:date:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=Dp/L77L0/zotrZ2zU531gMdFREkU2AqJ3gHWhhi3kO0=;
-        b=OYF8VIwKv3UmCtST9dpMv8+142u8BIctPpuYbkxY0CxhXCKRLvonJdBSh7Eyz6heKZ
-         aG+iymXtwBJi/fFwEv5OsWXIAZB1lrK1V+Bhw8+n9opawg8F8CJKHaXiEYd/W2t+0ylB
-         UPxph8ylMyX6s5WipY6xbYMiBvQfbWREGv7Ivj5c6uqYcReGaixdOP0+N7/4yFZim2Lz
-         kO710GyMrqo3LZgtbqBKOl0+ZaaJ1dL2nSDMPacNhJhBKPMEZaOZpWyI8qZHs+7vuV+s
-         L8sgIeoJjTEAOwiqGYTDfso+h9fVU9IFb7vfqE5y0ypeYZ9vHtYEgBNjfii8we2BebNq
-         O37A==
-X-Forwarded-Encrypted: i=1; AJvYcCVR1IrtrsAta9sbg4qAyuq5h2UxcDbzlxV+R+Q1mu7Wl7bwXWIheVgVKCm82EL26izFen6zsJ8q73AB@vger.kernel.org
-X-Gm-Message-State: AOJu0YzK4/OC7J+jvMQ7NUkQKq+S3pWmUiGRUhTWO26mx2ZP7P/MnpFW
-	ieTGjY5eB2/7HbExxpxyrPI3Xza5FsjkQO58BHfLM++MTdMRWEanWTwygVQXwMG3wgs=
-X-Gm-Gg: ATEYQzzgzxhQU/+eqKQU9c5mMjBapj2iF0pde+VH9ILwxH/vCTJXBLGwYpE7EYYJjh3
-	t5T8bqnYzc5HXDgI9g13QbbM5NJ9cIuWP/WDN5goxsE7K80D4E9+N8A/J3DEfLaySi5K7+InBn5
-	Ulf4C5xnJ/wmgNceAisLNBcMtQ5Jlhu2gl3/a8u0Lr6MDXxheqc6mc8mvzIidZipdnRMpT7U5Lt
-	x3I1ttCUkXD1fWJdsAooHtmIpB9yY6dqldqIseO77kz4re1VIbIqX8Grzvmo74bvl46Dy1aW3Fm
-	Lekpambz0WcGSfGUFEsKHAuvGW6NrmDBJE8df0jjql+34AUCXzjyFuovhSf+Cc3S987hq5RkX55
-	PAULUsBps6Qr3baTp9Xm663zPglVdHdTBfCHEPNnGY1283BB8+AFtRoR5yGvO3++JHznJqs29SJ
-	Oh+V1O
-X-Received: by 2002:a17:90b:2ec4:b0:35b:a7be:ae48 with SMTP id 98e67ed59e1d1-35bb9e5c4ebmr4159648a91.12.1773864378543;
-        Wed, 18 Mar 2026 13:06:18 -0700 (PDT)
-Received: from localhost ([2a03:2880:2ff:42::])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-35bc618be0fsm433703a91.0.2026.03.18.13.06.17
+        bh=tcrjf6o6BBsskimuOBs0/X8mHwc2XWl98zNiH3etscg=;
+        b=LAyQbO6RrTVmCP2iZqgAMMpk972QGDAda1yNNo14XUnpQ3s1O3H+7qSdEXXyMh4sNw
+         KW3+3pq0Ju7WUny/S8f5Xcas3wKELo8ze5kshQrQvBtYEJcZM6KWymptiZGOYLg7r8qF
+         2lU9Qn2AIpPrB24WJvG8z0WntHRKI141PDOsFETFiteVSLPhpE1JWR0HHYGAvgBbqxHf
+         6VKa/WUEjr0TEBSmbWWGDLzSYLqhjZyIC7FQzXhyGVO63cWUEI0mQXlSQ46v24X4+21j
+         DSAjBbZg8g2MdoAf+pUZGlWvTqE7Ny/fSl196LtUZ23PEk/AHZl7KHhvevytaGBdCDPu
+         VQUQ==
+X-Forwarded-Encrypted: i=1; AJvYcCV4eAW4x5cID6Z0/cClqO7NYkAxZkwzoxL81LSDzuizmCWiEJtWlYo08JZFcwwAsoqlh1JCxKBxb+c7@vger.kernel.org
+X-Gm-Message-State: AOJu0YwbBG9/Io0fxzhVN8Apwve8i5yq6Yp3BAKBpC/ryKxtKEEYTmFT
+	22eQnF6xPs6qYp8y1sui50e5goN+Ab9pDolQvFtPCm6HrFTPmylm611OpVy5uVqCSeg=
+X-Gm-Gg: ATEYQzzN3cU97ssBd6JpOt/+cAd+IDpZBnjOk2bVdZ4fVX2q7CwK4EhdGlPZOBmsKIG
+	AFxZxyfmsQdRccC9t2kF7E5kDUlE6Dibukkbchzg9o4Hl/6JTMlRXiYbjpDUcOcwrxv1T51c4cm
+	D7aTY/RFLolt8Rk49/iNEY1KHq1wJfQPYlCQkk03mxhuYwzEFMnxLWIZ7R4Y3JM92l3J3tPq1E9
+	BT5Q1r+Be1ndVKx8yE1j61MFv+QhJ3hiWeGpqtjb5xNBOY9T5IVPseoBES9WpVAJ0IQ2KRNfZKT
+	KLiVFOD4oL3h0TJZZXxw3X5l77+6W30288VgREQKllmnZJSLrtdKzjZtGvtl9lHXmFTWrfYVSmi
+	Hv9d94xXNjrWHJXiu/z3NdEto8B8PgJjh6/4tnDT9Uu1TfkcwFn8hAkstYQNpApLV0XpwHr/j0i
+	2tN9Y=
+X-Received: by 2002:a05:6a00:2183:b0:829:9c9c:1720 with SMTP id d2e1a72fcca58-82a6ae70a0dmr4132616b3a.38.1773864672197;
+        Wed, 18 Mar 2026 13:11:12 -0700 (PDT)
+Received: from localhost ([2a03:2880:2ff:8::])
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-82a6bbe1869sm4227445b3a.40.2026.03.18.13.11.11
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 18 Mar 2026 13:06:17 -0700 (PDT)
-Date: Wed, 18 Mar 2026 13:06:16 -0700
+        Wed, 18 Mar 2026 13:11:11 -0700 (PDT)
+Date: Wed, 18 Mar 2026 13:11:11 -0700
 From: Joe Damato <joe@dama.to>
 To: Tariq Toukan <tariqt@nvidia.com>
 Cc: Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
@@ -68,10 +68,13 @@ Cc: Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
 	Saeed Mahameed <saeedm@nvidia.com>, Mark Bloch <mbloch@nvidia.com>,
 	Leon Romanovsky <leon@kernel.org>, netdev@vger.kernel.org,
 	linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Gal Pressman <gal@nvidia.com>, Moshe Shemesh <moshe@nvidia.com>
-Subject: Re: [PATCH net-next] net/mlx5e: Remove unused field in
- mlx5e_flow_steering struct
-Message-ID: <absFuJ/Iuh4YUjrL@devvm20253.cco0.facebook.com>
+	Gal Pressman <gal@nvidia.com>, Moshe Shemesh <moshe@nvidia.com>,
+	Nimrod Oren <noren@nvidia.com>,
+	Carolina Jubran <cjubran@nvidia.com>,
+	Dragos Tatulea <dtatulea@nvidia.com>
+Subject: Re: [PATCH net-next] net/mlx5e: Add hds-thresh query support via
+ ethtool
+Message-ID: <absG34VIYtLLTF+X@devvm20253.cco0.facebook.com>
 Mail-Followup-To: Joe Damato <joe@dama.to>,
 	Tariq Toukan <tariqt@nvidia.com>,
 	Eric Dumazet <edumazet@google.com>,
@@ -81,8 +84,11 @@ Mail-Followup-To: Joe Damato <joe@dama.to>,
 	Saeed Mahameed <saeedm@nvidia.com>, Mark Bloch <mbloch@nvidia.com>,
 	Leon Romanovsky <leon@kernel.org>, netdev@vger.kernel.org,
 	linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Gal Pressman <gal@nvidia.com>, Moshe Shemesh <moshe@nvidia.com>
-References: <20260317104548.15697-1-tariqt@nvidia.com>
+	Gal Pressman <gal@nvidia.com>, Moshe Shemesh <moshe@nvidia.com>,
+	Nimrod Oren <noren@nvidia.com>,
+	Carolina Jubran <cjubran@nvidia.com>,
+	Dragos Tatulea <dtatulea@nvidia.com>
+References: <20260317104934.16124-1-tariqt@nvidia.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -91,18 +97,38 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20260317104548.15697-1-tariqt@nvidia.com>
+In-Reply-To: <20260317104934.16124-1-tariqt@nvidia.com>
 
-On Tue, Mar 17, 2026 at 12:45:48PM +0200, Tariq Toukan wrote:
-> From: Saeed Mahameed <saeedm@nvidia.com>
+On Tue, Mar 17, 2026 at 12:49:34PM +0200, Tariq Toukan wrote:
+> From: Nimrod Oren <noren@nvidia.com>
 > 
-> Not used in mlx5e, clean it up.
+> Add support for reporting HDS (Header-Data Split) threshold via
+> ethtool. When applicable, mlx5 hardware splits packets of all sizes with
+> no configurable threshold, so report both hds-thresh and hds-thresh-max
+> as 0 (i.e. always split regardless of size).
 > 
-> Signed-off-by: Saeed Mahameed <saeedm@nvidia.com>
-> Reviewed-by: Mark Bloch <mbloch@nvidia.com>
+> Signed-off-by: Nimrod Oren <noren@nvidia.com>
+> Reviewed-by: Carolina Jubran <cjubran@nvidia.com>
+> Reviewed-by: Dragos Tatulea <dtatulea@nvidia.com>
 > Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
 > ---
->  drivers/net/ethernet/mellanox/mlx5/core/en_fs.c | 1 -
->  1 file changed, 1 deletion(-)
+>  drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c | 6 +++++-
+>  1 file changed, 5 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c b/drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c
+> index 4a8dc85d5924..bb61e2179078 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c
+> @@ -371,6 +371,9 @@ void mlx5e_ethtool_get_ringparam(struct mlx5e_priv *priv,
+>  	param->tx_max_pending = 1 << MLX5E_PARAMS_MAXIMUM_LOG_SQ_SIZE;
+>  	param->rx_pending     = 1 << priv->channels.params.log_rq_mtu_frames;
+>  	param->tx_pending     = 1 << priv->channels.params.log_sq_size;
+> +
+> +	kernel_param->hds_thresh = 0;
+
+I think this is populated by the core before the call to get_ringparam and it
+looks like it is defaulted to 0, so I think this assignment is unnecessary.
+
+But everything else seems fine, so:
 
 Reviewed-by: Joe Damato <joe@dama.to>
