@@ -1,54 +1,54 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E3F9F281525;
-	Wed, 18 Mar 2026 18:26:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D8E95281525;
+	Wed, 18 Mar 2026 18:27:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773858415; cv=none; b=BQsDQYfcjpCkQRcXSaKqnk/HLIzWiUxfU1hygNmwdtegMcR0kYxfJsRQHjVysATRwnNAH+O/J9lZ3rnr+96OWRYNWxI/7kRmJE7U9/5biOvTgMU1CFm7TxCgM5KOp/qwW6LNWkF8Oz/xrBsIxjHj7VOJnRfbletKXQMBysyo8cY=
+	t=1773858437; cv=none; b=kRgSevmydYzvxc4c6zX/fLwFD6IqEnqnla62VlnvgmaUfPuTpOX+HNqmFofuedMLOEXWuurSbX9PAHIiokFXda63YYpG7lVQgvzKQYNtwsBTXcmLHZgrk1PQRK6sjUfyF2TL6kwMs3eQwdRx+t09HH+SYK+tOt1tBv7YaxXS888=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773858415; c=relaxed/simple;
-	bh=Uqg6di5ANgL2K7WBigJb9ZSeUEjzs9VNZ0jcmHohk+o=;
-	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
-	 MIME-Version:Content-Type; b=Pu3u4pY9hhyOOmy1zNnwICHuTgnkYV2yovPzVYqfwzhoInP4Y5BrmS9/aE2I5kOftx72xJFbjEurpOZKfHROf+5ALlwpY9xqFGj69p6Q8s5magr/QeKVHYIJckUr+h36Falm+vyH9dKcU92UH++rO4Dhf7pKcgnf8dSmuBI0Bq0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=QllJgh+9; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773858437; c=relaxed/simple;
+	bh=ABnNpemdtuhmdFVFsfGtR4doB+ZUJ4gh3YxvbUmyV+0=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=tVnzywL1XfLAsuZay5Hg47AR6m/2I4ItSrrcnmxiSd3NBeidB7livL0BTuBzkYLpUoAJjGu0FzfAfnp35xiX0743ajgfBiTZ9VeK7Tjpu8XeoYFsqLbCk896D0OG0hoCximWxTqY0bHFGczGttByfRiKZPCwpSymjhMZCxhnNCg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=bA+4cOvH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="QllJgh+9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2C220C2BCB2;
-	Wed, 18 Mar 2026 18:26:53 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="bA+4cOvH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E7C4AC2BCAF;
+	Wed, 18 Mar 2026 18:27:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1773858414;
-	bh=Uqg6di5ANgL2K7WBigJb9ZSeUEjzs9VNZ0jcmHohk+o=;
-	h=From:To:Cc:In-Reply-To:References:Subject:Date:From;
-	b=QllJgh+9fL3FfGdvTlXzxCP5sbpOqJPFUkC7pjjmg7wzpwQCG/SEP9St/42Gwd1tm
-	 dqHM5E4a0ce+W6bFJTtseh0ZI1wH+yx21UCqErB1/d3cwo2Tu8rgYr5yLLR0cNOJDR
-	 vid8sQLymD63NYPOYSbgEHmhW85hikz1TOn5S5BpOXAWev0RLsL4rupj4TQR0nw0Nf
-	 G43QBAqVe33m+QgibIv3Q4Ktein72nlo3tJVkoONgCS0xzg6NdfEvXoytfLl4to3Rg
-	 Mjn/IIVTlBeHJxcnkESw8XpOIZIyLQZk6zExJjRIe9ztRiq4bohUzkhKBPavXSWnG/
-	 zqCKVmLwew2pA==
+	s=k20201202; t=1773858437;
+	bh=ABnNpemdtuhmdFVFsfGtR4doB+ZUJ4gh3YxvbUmyV+0=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=bA+4cOvHFeMOp5V8YyBXeogK8NOrd/Bo2TgSVO4EBSzdlwjrr69w2ZgiCG/f0fS8u
+	 brAyGQn8OcEEacZP8fvGeSMbzJiJ7wfVn1Mjdq87vtVLJQrvkP7f/cEahW7Y1oxlA/
+	 rChknnJ+SbiZ0LaEmDifZS2ko81QQDMV4jST98Vf6JHMJWPDZbx9zTPeY1bmfnbKck
+	 LZCFsgznnCFnbdTNKt7FXgWR5X4p0gh0jj/U77Hfnk/Kh7g9rJ5ArwJm42H+/gRFso
+	 V48bqIrDnj+0djkPsdRMYHqR9t9VrpfBMCv8qxK+Q0JSP1SdwS0eJrjdm52whLJk+z
+	 EpSD/lrvUE+Zg==
+Date: Wed, 18 Mar 2026 20:27:12 +0200
 From: Leon Romanovsky <leon@kernel.org>
-To: kotaranov@microsoft.com, shirazsaleem@microsoft.com, 
- longli@microsoft.com, jgg@ziepe.ca, 
- Konstantin Taranov <kotaranov@linux.microsoft.com>
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
-In-Reply-To: <20260318173939.1417856-1-kotaranov@linux.microsoft.com>
-References: <20260318173939.1417856-1-kotaranov@linux.microsoft.com>
+To: Konstantin Taranov <kotaranov@linux.microsoft.com>
+Cc: kotaranov@microsoft.com, shirazsaleem@microsoft.com,
+	longli@microsoft.com, jgg@ziepe.ca, linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org
 Subject: Re: [PATCH rdma-next 1/1] RDMA/mana_ib: cleanup the usage of
  mana_gd_send_request()
-Message-Id: <177385841144.776737.17862315617132200486.b4-ty@kernel.org>
-Date: Wed, 18 Mar 2026 14:26:51 -0400
+Message-ID: <20260318182712.GI352386@unreal>
+References: <20260318173939.1417856-1-kotaranov@linux.microsoft.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-X-Mailer: b4 0.15-dev-18f8f
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260318173939.1417856-1-kotaranov@linux.microsoft.com>
 
-
-On Wed, 18 Mar 2026 10:39:39 -0700, Konstantin Taranov wrote:
+On Wed, Mar 18, 2026 at 10:39:39AM -0700, Konstantin Taranov wrote:
+> From: Konstantin Taranov <kotaranov@microsoft.com>
+> 
 > Do not check the status of the response header returned by mana_gd_send_request(),
 > as the returned error code already indicates the request status.
 > 
@@ -57,14 +57,15 @@ On Wed, 18 Mar 2026 10:39:39 -0700, Konstantin Taranov wrote:
 > for checking the correctness of multi-request operations, such as creation of
 > a dma region with mana_ib_gd_create_dma_region().
 > 
-> [...]
+> Signed-off-by: Konstantin Taranov <kotaranov@microsoft.com>
+> ---
+>  drivers/infiniband/hw/mana/main.c | 105 ++++--------------------------
+>  drivers/infiniband/hw/mana/mr.c   |  38 ++---------
+>  drivers/infiniband/hw/mana/qp.c   |   9 +--
+>  3 files changed, 19 insertions(+), 133 deletions(-)
 
-Applied, thanks!
+I fixed coding style errors, removed same debug print from other
+mana_gd_send_request() callers, together with netdev prints, which don't
+belong to RDMA and applied the patch.
 
-[1/1] RDMA/mana_ib: cleanup the usage of mana_gd_send_request()
-      https://git.kernel.org/rdma/rdma/c/684603da1e1567
-
-Best regards,
--- 
-Leon Romanovsky <leon@kernel.org>
-
+Thanks
