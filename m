@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E51943BBA0F;
-	Wed, 18 Mar 2026 10:09:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AFC4E3AA1B8;
+	Wed, 18 Mar 2026 10:09:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773828553; cv=none; b=sIp/CqQYgyDHwAH0lUoT+0xCw+AKHwA8JRLEYG4CngQYZa1czX8FYETeIRLuNNxuuQmfEHWN/KVI97EyHkUjyFcVjUbRAxwP6bMiB2T6ut7Z+24zHS/YY1IM90QTSq4QGKa11NIU23XsUgUfwfgRDgh6LPbcgKCOomazpVtDF/o=
+	t=1773828557; cv=none; b=JoNJ3xE7D5ycG6bAGlZTgOiVrtMYGmfBqbrhCaIMWdjW1z1juGrbTLRzOt17GOG1xUT1k/JrCF78uakKt6XlMJU8QkUPgQlU4ANExDnA0gQfwBvwP3kWrSHdyeuL0QmjMmKviDauhiSNgZ+LbeyGqtjhSSeZ5X/KPKLtADQPKn4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773828553; c=relaxed/simple;
-	bh=ncxl0MunJglavLbnABmWimFxVQWUekOXGMOBEDMdKlc=;
+	s=arc-20240116; t=1773828557; c=relaxed/simple;
+	bh=RwF8uylKoOHKmbOSm14ruGnoPloK28/E7b/HHxSXYyY=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=Pl/B9Lpg0Y1mbzaNSPIPuD1NDF2DDvgYjVcKR9slmLaweWteqN5x8ql0lc8smcI04a3NDU53+6B3n0gdWnLjYYVue7AtQQGVA+ioH2TOJ42Iddc/36I2QcejIfUM2/icjQ42I4REKLR2TBQuCwAPD0SfP0JOxbhObW2GrSn6G0w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=N7KH/EtS; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version:Content-Type; b=GgCMoHO1K1i0SdyHPyc7F4f90J+KMekA1LPoM9ZEwmEz7EVvmMNTqRHZyvXvTrPchiEApFs0yta2vQ2UbFtIPk+g6CvFcs6EQflexs+gDYLnhnuk2gFSzm3PoafRd08C2VncfReWg29korlWPicdDENHqApiqyDB5GpFtf08ztg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=bZ/FlLc8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="N7KH/EtS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8A4FFC19421;
-	Wed, 18 Mar 2026 10:09:11 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="bZ/FlLc8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5F66DC19421;
+	Wed, 18 Mar 2026 10:09:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1773828552;
-	bh=ncxl0MunJglavLbnABmWimFxVQWUekOXGMOBEDMdKlc=;
+	s=k20201202; t=1773828557;
+	bh=RwF8uylKoOHKmbOSm14ruGnoPloK28/E7b/HHxSXYyY=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=N7KH/EtSqIFKgEK/EKeWFc2oOYMlzMkCieBqL9HzpKQUXw+Mt79/El+rLHNM+43od
-	 uL+Kze+Y6b1/y0yw2MXdKCkvJdQOAeVK2TKMqL/AESZvM1sY+K/R3Alq8aXvK/qPqB
-	 IB9HFYVYpS8VaqT0kFJfiY02Z2OVuhhpU3Vl6K2ulklwmKZ6n0ktA13EzAkYm25pxN
-	 YtSgnC8KwysKpTOIg4ziQCVVXMS/oKSjV13vjHIcweWr0045YhXuoPbdV2vfTamSeK
-	 IkHV2GtedWP6Qw0Rf6e6MHEi3lfiJDtUR7NTf7Y7GzCxWadb7bNliSKAUqsOLIf66G
-	 rVs6l8yvV6ucw==
+	b=bZ/FlLc8DkIdZTQS1nK0S9AR5dra3y5QkPD9GxVIkVjaW/IS0Uo9lNDlIPKR7hPIj
+	 z7ehTclLErIYIpDJETUayyk3L9auC/TD9EkAQCH+ZAYxOVeOtYQPRwEAZ+c2DYSxzK
+	 SyhV3bqx3a9ltzfeOGVdZ/GQsbOA24UQpIBiZ9sNa7SYezPhU9JqAWvtl2ynbozpum
+	 QAF5tk7/XT0MtUYEvWjM/cV15pdmbnJAkO0Xmvp8P0/RSyAN4Yvf2RGDXFQvD0SzZg
+	 GxiM3BB0GGWrkZStAFPdL31PuB0TXHpCpMZAVqyj8T9OPy0oXVFe48S9saP4P6zvbA
+	 qbbGAmsuOmaqA==
 From: Leon Romanovsky <leon@kernel.org>
 To: Selvin Xavier <selvin.xavier@broadcom.com>,
 	Kalesh AP <kalesh-anakkur.purayil@broadcom.com>,
@@ -33,9 +33,9 @@ To: Selvin Xavier <selvin.xavier@broadcom.com>,
 	Leon Romanovsky <leon@kernel.org>
 Cc: linux-rdma@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH rdma-next 2/4] RDMA/bnxt_re: Remove unnecessary checks in kernel CQ creation path
-Date: Wed, 18 Mar 2026 12:08:51 +0200
-Message-ID: <20260318-bnxt_re-cq-v1-2-381cb1b5e625@nvidia.com>
+Subject: [PATCH rdma-next 4/4] RDMA/bnxt_re: Clean up uverbs CQ creation path
+Date: Wed, 18 Mar 2026 12:08:53 +0200
+Message-ID: <20260318-bnxt_re-cq-v1-4-381cb1b5e625@nvidia.com>
 X-Mailer: git-send-email 2.53.0
 In-Reply-To: <20260318-bnxt_re-cq-v1-0-381cb1b5e625@nvidia.com>
 References: <20260318-bnxt_re-cq-v1-0-381cb1b5e625@nvidia.com>
@@ -51,35 +51,27 @@ Content-Transfer-Encoding: 8bit
 
 From: Leon Romanovsky <leonro@nvidia.com>
 
-bnxt_re_create_cq() is a kernel verb, which means udata will always be
-NULL and attr->cqe is valid. Remove the code handling this unreachable
-case.
+Remove unnecessary checks, user‑visible prints that can flood dmesg,
+superfluous assignments, and convoluted goto label.
 
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/hw/bnxt_re/ib_verbs.c | 14 ++------------
- 1 file changed, 2 insertions(+), 12 deletions(-)
+ drivers/infiniband/hw/bnxt_re/ib_verbs.c | 28 +++++++++-------------------
+ 1 file changed, 9 insertions(+), 19 deletions(-)
 
 diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-index 40ac546f113bc..cb53dfdf69bab 100644
+index 1aee4fec137eb..59ef56030dbe8 100644
 --- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
 +++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-@@ -3471,31 +3471,21 @@ int bnxt_re_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
- {
- 	struct bnxt_re_cq *cq = container_of(ibcq, struct bnxt_re_cq, ib_cq);
- 	struct bnxt_re_dev *rdev = to_bnxt_re_dev(ibcq->device, ibdev);
--	struct ib_udata *udata = &attrs->driver_udata;
--	struct bnxt_re_ucontext *uctx =
--		rdma_udata_to_drv_context(udata, struct bnxt_re_ucontext, ib_uctx);
- 	struct bnxt_qplib_dev_attr *dev_attr = rdev->dev_attr;
+@@ -3377,7 +3377,6 @@ int bnxt_re_create_user_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *att
+ 	struct bnxt_qplib_chip_ctx *cctx;
+ 	struct bnxt_re_cq_resp resp = {};
+ 	struct bnxt_re_cq_req req;
 -	int cqe = attr->cqe;
  	int rc;
- 	u32 active_cqs;
+ 	u32 active_cqs, entries;
  
--	if (udata)
--		return bnxt_re_create_user_cq(ibcq, attr, attrs);
--
- 	if (attr->flags)
+@@ -3385,10 +3384,8 @@ int bnxt_re_create_user_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *att
  		return -EOPNOTSUPP;
  
  	/* Validate CQ fields */
@@ -90,14 +82,67 @@ index 40ac546f113bc..cb53dfdf69bab 100644
 -	}
  
  	cq->rdev = rdev;
- 	cq->qplib_cq.cq_handle = (u64)(unsigned long)(&cq->qplib_cq);
+ 	cctx = rdev->chip_ctx;
+@@ -3409,15 +3406,13 @@ int bnxt_re_create_user_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *att
+ 		ibcq->umem = ib_umem_get(&rdev->ibdev, req.cq_va,
+ 					 entries * sizeof(struct cq_base),
+ 					 IB_ACCESS_LOCAL_WRITE);
+-		if (IS_ERR(ibcq->umem)) {
+-			rc = PTR_ERR(ibcq->umem);
+-			goto fail;
+-		}
++		if (IS_ERR(ibcq->umem))
++			return PTR_ERR(ibcq->umem);
+ 	}
  
--	cq->max_cql = bnxt_re_init_depth(attr->cqe + 1,
--					 dev_attr->max_cq_wqes + 1, uctx);
-+	cq->max_cql = attr->cqe + 1;
- 	cq->cql = kcalloc(cq->max_cql, sizeof(struct bnxt_qplib_cqe),
- 			  GFP_KERNEL);
- 	if (!cq->cql)
+ 	rc = bnxt_re_setup_sginfo(rdev, ibcq->umem, &cq->qplib_cq.sg_info);
+ 	if (rc)
+-		goto fail;
++		return rc;
+ 
+ 	cq->qplib_cq.dpi = &uctx->dpi;
+ 	cq->qplib_cq.max_wqe = entries;
+@@ -3426,10 +3421,8 @@ int bnxt_re_create_user_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *att
+ 	cq->qplib_cq.cnq_hw_ring_id = cq->qplib_cq.nq->ring_id;
+ 
+ 	rc = bnxt_qplib_create_cq(&rdev->qplib_res, &cq->qplib_cq);
+-	if (rc) {
+-		ibdev_err(&rdev->ibdev, "Failed to create HW CQ");
+-		goto fail;
+-	}
++	if (rc)
++		return rc;
+ 
+ 	cq->ib_cq.cqe = entries;
+ 	cq->cq_period = cq->qplib_cq.period;
+@@ -3442,16 +3435,14 @@ int bnxt_re_create_user_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *att
+ 		hash_add(rdev->cq_hash, &cq->hash_entry, cq->qplib_cq.id);
+ 		/* Allocate a page */
+ 		cq->uctx_cq_page = (void *)get_zeroed_page(GFP_KERNEL);
+-		if (!cq->uctx_cq_page) {
+-			rc = -ENOMEM;
+-			goto fail;
+-		}
++		if (!cq->uctx_cq_page)
++			return -ENOMEM;
++
+ 		resp.comp_mask |= BNXT_RE_CQ_TOGGLE_PAGE_SUPPORT;
+ 	}
+ 	resp.cqid = cq->qplib_cq.id;
+ 	resp.tail = cq->qplib_cq.hwq.cons;
+ 	resp.phase = cq->qplib_cq.period;
+-	resp.rsvd = 0;
+ 	rc = ib_respond_udata(udata, resp);
+ 	if (rc) {
+ 		bnxt_qplib_destroy_cq(&rdev->qplib_res, &cq->qplib_cq);
+@@ -3462,7 +3453,6 @@ int bnxt_re_create_user_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *att
+ 
+ free_mem:
+ 	free_page((unsigned long)cq->uctx_cq_page);
+-fail:
+ 	return rc;
+ }
+ 
 
 -- 
 2.53.0
