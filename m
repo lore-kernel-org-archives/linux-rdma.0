@@ -1,34 +1,34 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 899C628E0F;
-	Thu, 19 Mar 2026 01:00:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D78E42DAFBD;
+	Thu, 19 Mar 2026 01:30:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773882018; cv=none; b=aCM2Ubf0x8d9qpI45zoC8moyUBP7DRBJKYCDPL6ZpXqAjbg5TltSclsI8G8WSCX0xQqkT6Seok/uzlksoWhZQ3VGzXkcdK82o0Fhs9izKCSynMV8jFF3n4Q03h3mQR9dTQbC1DO9SKHAz5MgmxULVz9Zj2/tcqU2c9ddUfncovU=
+	t=1773883820; cv=none; b=Y3+IWUHVeTZmo4rFZ/srjstjxdRotK4eaXlvEPf7IbAnPf+ffjfMLW37IHfOx1qEsBWjwBnn0ZggmouXbHdu31MxDB/gK0FDqRia0WtmsRx3oZFn63w1bIvE+iso9P9ZAiKsrZLWmjrOx2NBcWcZaC7IZ6+ZJfZ1DACPEV5MUA4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773882018; c=relaxed/simple;
-	bh=hmBd2DfgURFfkTWJuxwq7USEXF1nmZvNCT+/vThpeJY=;
+	s=arc-20240116; t=1773883820; c=relaxed/simple;
+	bh=RfXx/GdX9I0tNkcvWvdQRskJruN1HU8dodwLwQjwUyw=;
 	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=bT9fehmc+wkSxUTIj24ClHa0fPq9R/NJw/YP/xGRCziBJ3KUWY8eAo1fyTu/ol4CfLsAzCVl/UFMsKGNTbkipIDBpfdY7+n5h8Quk2I/S2iajJpeEKj8DmvKEXpQC8pOmb+31qkkdZiDf3WNH01eVpCcmGa5jiRfvRvsbCMhuHk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=FQFcTOk8; arc=none smtp.client-ip=10.30.226.201
+	 In-Reply-To:To:Cc; b=JWEPhwaqU97OTbudkFXD47jrstbdiZqALRo3qFgdJAOpE7b0kRYEDdSi0BkMIQPtSS5zafqQYUavw68iTRZU0iqWI+1XKGXhhXw/oBxAKJKBTLS5nL2BwrQ1LLlkOqn5tIuUtUqLueEtZJ3jZEue8NHnFlx7/ykZYZeLbggKDX0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=tGvMYcu0; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="FQFcTOk8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 320B0C19421;
-	Thu, 19 Mar 2026 01:00:18 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="tGvMYcu0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6692DC2BC87;
+	Thu, 19 Mar 2026 01:30:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1773882018;
-	bh=hmBd2DfgURFfkTWJuxwq7USEXF1nmZvNCT+/vThpeJY=;
+	s=k20201202; t=1773883820;
+	bh=RfXx/GdX9I0tNkcvWvdQRskJruN1HU8dodwLwQjwUyw=;
 	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-	b=FQFcTOk8qZ+9OUbBj2CAygkoEzgzaxw0qGaMI0SDrcLrZKsbCK5pui6v8zFGReoBB
-	 6EJv8Lff2QwchIfbGwrz3ebHupnB6e2AzWQ3Pvik7e74MkM1o3i6Ig32YVeZ8x51Rg
-	 /x+gxo1olphE1kZsHMqwilW3X1PGjtrJoD+tm2/R5f/YgaXWkh2avA6EJwiBITjLpP
-	 QjVDM67KmuZaUr/SvLi7nAZs78vORu0xgua4FkJuiOigstZk4y54ndKR5ufB/sQETt
-	 cz+RGrA+J4FOB/MbZ1dDOjXPXaggOxfkprg9QTbaLDwI3LjSXkZSNXFv4PcF6+XugL
-	 3SV2SSXMky45Q==
+	b=tGvMYcu0hc/YWalRxo25S/KTfY15RBJ8RVjwbniOQX1QuYmDjaZ8haCTPQLJYb0r8
+	 4+jJfyzDEfMGj89A91ZDFArxELqHG02xME9db3jzm+uH68x+XxA06kjjmZBC8FyTLg
+	 cxicHRqq5Y8D6XhpNrKMuWdRwWpn0BJTgHvgX2rfxQ6bYVcnAruMmpp+QTJfvrz8QC
+	 dYz3DkqI2hjHkuGOwSwq/HjM9dClCJIBvFaM1miHSIAtrtKeZ0FAHTg2OAbi/gpWfp
+	 WHLwrPje8scNPhTQX+7QCc5+cEgH5BPrq+IcprNUbGnlNl1nZz34SRBkPW2173O2xQ
+	 n9yFKLB5F+qeg==
 Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id BA0023808200;
-	Thu, 19 Mar 2026 01:00:10 +0000 (UTC)
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 02DB53808200;
+	Thu, 19 Mar 2026 01:30:13 +0000 (UTC)
 Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
@@ -37,43 +37,39 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net 0/3] mlx5 misc fixes 2026-03-16
+Subject: Re: [PATCH net-next] net/mlx5e: Add hds-thresh query support via
+ ethtool
 From: patchwork-bot+netdevbpf@kernel.org
 Message-Id: 
- <177388200954.971452.3408173969965476969.git-patchwork-notify@kernel.org>
-Date: Thu, 19 Mar 2026 01:00:09 +0000
-References: <20260316094603.6999-1-tariqt@nvidia.com>
-In-Reply-To: <20260316094603.6999-1-tariqt@nvidia.com>
+ <177388381153.978731.9539928416113084591.git-patchwork-notify@kernel.org>
+Date: Thu, 19 Mar 2026 01:30:11 +0000
+References: <20260317104934.16124-1-tariqt@nvidia.com>
+In-Reply-To: <20260317104934.16124-1-tariqt@nvidia.com>
 To: Tariq Toukan <tariqt@nvidia.com>
 Cc: edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
  andrew+netdev@lunn.ch, davem@davemloft.net, saeedm@nvidia.com,
- leon@kernel.org, mbloch@nvidia.com, netdev@vger.kernel.org,
+ mbloch@nvidia.com, leon@kernel.org, netdev@vger.kernel.org,
  linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, gal@nvidia.com,
- moshe@nvidia.com, dtatulea@nvidia.com
+ moshe@nvidia.com, noren@nvidia.com, cjubran@nvidia.com, dtatulea@nvidia.com
 
 Hello:
 
-This series was applied to netdev/net.git (main)
+This patch was applied to netdev/net-next.git (main)
 by Jakub Kicinski <kuba@kernel.org>:
 
-On Mon, 16 Mar 2026 11:46:00 +0200 you wrote:
-> Hi,
+On Tue, 17 Mar 2026 12:49:34 +0200 you wrote:
+> From: Nimrod Oren <noren@nvidia.com>
 > 
-> This patchset provides misc bug fixes from the team to the mlx5
-> core and Eth drivers.
-> 
-> Thanks,
-> Tariq.
+> Add support for reporting HDS (Header-Data Split) threshold via
+> ethtool. When applicable, mlx5 hardware splits packets of all sizes with
+> no configurable threshold, so report both hds-thresh and hds-thresh-max
+> as 0 (i.e. always split regardless of size).
 > 
 > [...]
 
 Here is the summary with links:
-  - [net,1/3] net/mlx5: qos: Restrict RTNL area to avoid a lock cycle
-    https://git.kernel.org/netdev/net/c/b7e3a5d9c0d6
-  - [net,2/3] net/mlx5e: Prevent concurrent access to IPSec ASO context
-    https://git.kernel.org/netdev/net/c/99b36850d881
-  - [net,3/3] net/mlx5e: Fix race condition during IPSec ESN update
-    https://git.kernel.org/netdev/net/c/beb6e2e5976a
+  - [net-next] net/mlx5e: Add hds-thresh query support via ethtool
+    https://git.kernel.org/netdev/net-next/c/d347b28c492e
 
 You are awesome, thank you!
 -- 
