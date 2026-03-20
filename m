@@ -1,81 +1,151 @@
-Received: from out-189.mta0.migadu.com (out-189.mta0.migadu.com [91.218.175.189])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pg1-f232.google.com (mail-pg1-f232.google.com [209.85.215.232])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B4063BBA1A
-	for <linux-rdma@vger.kernel.org>; Fri, 20 Mar 2026 13:56:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.189
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 34A3E375AA2
+	for <linux-rdma@vger.kernel.org>; Fri, 20 Mar 2026 14:03:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.215.232
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774015008; cv=none; b=KBE7UlfRGFEbsck2fgk6IbOs/+d8sVwHJL0doTdxsoa3yNK/SUcW58glm2qkUXc5qky0IqBryUJLZT32Rn3BMPVy9z2mr58ki4lGDcFrKQqnemmRggb8Mhockt2lsKnil4K5ztLhIoBpNKuSyJlFIc6VvB01XX5sO83q4Sv4gUk=
+	t=1774015420; cv=none; b=Tgdv9hIyMRT9DP2DDnYoPAdIkBjZMAlaMcVZIQhEbk1Zre3hN3+MGFDuFK126J0jvKcyKHDPJFEGZ3+yI5eZzVSijJ0fpSfl5F36s61PSkICt5DoPnVBJWC7yQzXrjvULZSnT/P33pPY/Jo3g3TbbgvypF4Zw8p3UrFMt+w15ZI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774015008; c=relaxed/simple;
-	bh=/wlqIjZIgwdkMI6K8TvPimSH17KMGKOIboXJZ/EjwGg=;
-	h=Message-ID:Date:MIME-Version:Subject:To:References:From:
-	 In-Reply-To:Content-Type; b=R4ptmutkzGa1hKw1myC7Sc55RuahKblcoMMopUKuHgneHn9ztEwiEV+Oibnx+NG2Fe41e0a8AmO31M+vsoVBJCT4SH8yBQBdbtreWXCJ7mwjFSLugfQKslKmDXGqCR+RSYLEUfCwb4sX5Acuqp/FfqZHSUEjKV9hqF3hPqtZ8Ro=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=vCsk/N6u; arc=none smtp.client-ip=91.218.175.189
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+	s=arc-20240116; t=1774015420; c=relaxed/simple;
+	bh=xjqaPCfpm5pkCOSbc/2QgKLxKwQnPqXFSkHmrAh1fCA=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=dObvioJ56GIGcVAiD5qeVbob1lpt1Aj8t/KxNg0wd4vlFBOMkXO0qHWZIygAYbY70yVTR+9yiiBD2Y+qprx2LFSq8FCQ9npTh1/w/+kTWQYN76IJAMOarWeKBQKEFPmhfHvP8rCIoi6a7sMeYcfNdkJTcw4mcVK6RTZzo9FxZO8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com; spf=fail smtp.mailfrom=broadcom.com; dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b=ZRp0Xe1v; arc=none smtp.client-ip=209.85.215.232
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=broadcom.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="vCsk/N6u"
-Message-ID: <dc60adb4-9b35-4016-9898-dd81ee359333@linux.dev>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-	t=1774014991;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=K2Pql+Ou9gVCW27sbcKkrqRNsfCX7zCBKdUFbxvC7JU=;
-	b=vCsk/N6uKf42oNAiSkE9qJ0OX36btVd8xUqhnrtvJpOJlvf8F/0HFRJmiSh+6DVrTQoUB9
-	4Mmslc218N58INAkIynr1OFJP/YqXQ3fpziXk7qpQgAkhNEQ+BJSPsUEvxNg+65xQoycF2
-	AOmcdUFC+lMWc/CKe+8LBXAr6ZeExg4=
-Date: Fri, 20 Mar 2026 06:56:26 -0700
+	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b="ZRp0Xe1v"
+Received: by mail-pg1-f232.google.com with SMTP id 41be03b00d2f7-c7358a7a8d1so1418600a12.3
+        for <linux-rdma@vger.kernel.org>; Fri, 20 Mar 2026 07:03:35 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1774015415; x=1774620215;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:dkim-signature:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=nO0BVHZ4NKsVjW2FYX9y53xHgFsn91SscXBPTXF24kk=;
+        b=GcvhpZa5IsTLHKPeAC0PQlt5TpD1MScH6bA3QVIkFCrSBUj900GYdCiqEGoLokxxaV
+         KFuFBpFHIMZCACHrfTXzzvilNU1Uk8g7nLp+I3t90IcwMUGs59dUxBAgwBp9kdJZoINu
+         uOT7uK/uqUii337KbSDXeXHpDGFInwzBJOhrBYS4QNQMuPDm7+Uhh6kfVXHtM9+296Oz
+         IHiIuv/W5SjCU4dEPeJOSUyRZJf9tb/ENDBA34KSZBuyb1y1lwAJGKNdE7HJmn7v4zPO
+         CNZjVbP2FIGE0M52mTT+RTOPN0Ld2bjNlO0VwutX8hPdW5b1VvDrNx/OZ6XfQUlj734a
+         Ki8Q==
+X-Gm-Message-State: AOJu0Yy+fPp06mzyDpfq+YAdnzcdwuRfBM/ASDJsM1aymwXerO+MUGOk
+	9Jrnb+0B1IegdRxPq2mHZF4Wqnb44T2aK9H8lF8j+gApT+nkK1ZgvE6xZzTM8uaofZJB57JbqfW
+	1jdnLO8lIbEjodFmeqi0B+hU+1+dDaWoFcWap3fTtKKGw3ppy1d7U1Oge17GOpmiiKs1xe0PrmK
+	CPPGORmzFWlUMxL8gg2mzGEQbhmV2c/kcCJo5QnF8e/DkRrPNyc1/iW2j+X5AcaYvv6NTTbtr7K
+	5te8YMHB7ejRKbg/BQOP2bpKxVKpjc=
+X-Gm-Gg: ATEYQzzfI4ecqmiXKm6E2H7fhH7D1VGLWnutDuPXVFnukxXRurndimbkFgUObzTrijm
+	OkAYwa4mOu65XpFrRx7M+Oe3AmAkPWWBxm2T2VTdLE/xF9NugTzFcTKV78dqSVcs0wwZovQ6yU1
+	KmSOZNYHB6FIGCVBKSU7ZXBzhkQF5Cd025pG0NX5/DwWHxXBjax0YwLJjkPSWsjKrMraM2sKtjJ
+	Yo8hwQQfCCNSPVV8fJpllMId2MiHRs5dN1achJuA47DRtZzsUiD9rC2F2aETo1B4A9KRqoGb+WP
+	hdxK2J7wkC9wI+5wv6i1yh8JbuAkBbdsMyTvt9n0c55U8DEmtjOUlM5DpHczZqEJ7ujv4qghX4L
+	P4h4v5DtDtZ2oririDpX2s+IB1Eq38yU+TsM4TtJZSU6SL1i6gGLhzwf4twAjoj0l+t13bUCn9F
+	DRqmaNEIVIq2qRhTjAtLoGjOnKmIKli6eTGS88OmMua2YHViPBkR7gsR/wRhF2bG/osBLMG/0=
+X-Received: by 2002:a17:90b:510a:b0:359:f3b1:6811 with SMTP id 98e67ed59e1d1-35bd2bd5ceamr2555052a91.1.1774015415064;
+        Fri, 20 Mar 2026 07:03:35 -0700 (PDT)
+Received: from smtp-us-east1-p01-i01-si01.dlp.protect.broadcom.com (address-144-49-247-117.dlp.protect.broadcom.com. [144.49.247.117])
+        by smtp-relay.gmail.com with ESMTPS id 98e67ed59e1d1-35bd24df91dsm143335a91.0.2026.03.20.07.03.34
+        for <linux-rdma@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Fri, 20 Mar 2026 07:03:35 -0700 (PDT)
+X-Relaying-Domain: broadcom.com
+X-CFilter-Loop: Reflected
+Received: by mail-pf1-f198.google.com with SMTP id d2e1a72fcca58-82a8afb2d0aso5097846b3a.1
+        for <linux-rdma@vger.kernel.org>; Fri, 20 Mar 2026 07:03:33 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=broadcom.com; s=google; t=1774015412; x=1774620212; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=nO0BVHZ4NKsVjW2FYX9y53xHgFsn91SscXBPTXF24kk=;
+        b=ZRp0Xe1vF+y/1HPRnF9+ZQpSm/Isg6pcf8X47wkSYir/Bsim3PeJrCVlpcd222PqrU
+         2BphIZkdBdRzxF/bVZMAAoC4S0FTa5kRR7YnXhysyN2NN1ByPuKmrbldvwz19fmIkoCq
+         T8qpSo4i/NYEtd1+WyDXegMs1WfJBElp5jq78=
+X-Received: by 2002:a05:6a00:ad89:b0:829:7e6d:cf20 with SMTP id d2e1a72fcca58-82a8c361309mr2571414b3a.58.1774015412377;
+        Fri, 20 Mar 2026 07:03:32 -0700 (PDT)
+X-Received: by 2002:a05:6a00:ad89:b0:829:7e6d:cf20 with SMTP id d2e1a72fcca58-82a8c361309mr2571363b3a.58.1774015411364;
+        Fri, 20 Mar 2026 07:03:31 -0700 (PDT)
+Received: from dhcp-10-123-157-187.dhcp.broadcom.net ([192.19.234.250])
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-82b040da3dfsm2136099b3a.45.2026.03.20.07.03.27
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 20 Mar 2026 07:03:30 -0700 (PDT)
+From: Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>
+To: leon@kernel.org,
+	jgg@ziepe.ca
+Cc: linux-rdma@vger.kernel.org,
+	andrew.gospodarek@broadcom.com,
+	selvin.xavier@broadcom.com,
+	kalesh-anakkur.purayil@broadcom.com,
+	Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>
+Subject: [PATCH rdma-next 0/9] RDMA/bnxt_re: Support QP uapi extensions
+Date: Fri, 20 Mar 2026 19:24:28 +0530
+Message-ID: <20260320135437.48716-1-sriharsha.basavapatna@broadcom.com>
+X-Mailer: git-send-email 2.51.2.636.ga99f379adf
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Subject: Re: [PATCH v7 0/4] RDMA/rxe: Add the support that rxe can work in net
- namespace
-To: Leon Romanovsky <leon@kernel.org>, jgg@ziepe.ca, zyjzyj2000@gmail.com,
- dsahern@kernel.org, linux-rdma@vger.kernel.org,
- linux-kselftest@vger.kernel.org, "yanjun.zhu@linux.dev"
- <yanjun.zhu@linux.dev>
-References: <20260313023058.13020-1-yanjun.zhu@linux.dev>
- <177392137151.816693.16033033040849071915.b4-ty@kernel.org>
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-From: Zhu Yanjun <yanjun.zhu@linux.dev>
-In-Reply-To: <177392137151.816693.16033033040849071915.b4-ty@kernel.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
-X-Migadu-Flow: FLOW_OUT
+X-DetectorID-Processed: b00c1d49-9d2e-4205-b15f-d015386d3d5e
 
-在 2026/3/19 4:56, Leon Romanovsky 写道:
-> 
-> On Thu, 12 Mar 2026 19:30:54 -0700, Zhu Yanjun wrote:
->> Currently rxe does not work correctly in network namespaces.
->>
->> When the rdma_rxe module is loaded, a UDP socket listening on port
->> 4791 is created in init_net. When users run:
->>
->>      ip link add ... type rxe
->>
->> [...]
-> 
-> Applied, thanks!
+Hi,
 
-Thanks a lot.
+This patchset adds QP uapi extensions to the bnxt_re driver.
+This is required by applications that need to manage some of the
+RDMA HW resources directly and to implement the datapath in the
+application.
 
-Zhu Yanjun
+This series supports application allocated memory for QPs.
+The application takes into account SQ/RQ ring sizing constraints
+(extra entries, rounding up etc) while allocating this memory.
+The driver should avoid duplicating this logic while creating
+these QPs.
 
-> 
-> [1/4] RDMA/nldev: Add dellink function pointer
->        https://git.kernel.org/rdma/rdma/c/fc3992d6e1e9f8
-> [2/4] RDMA/rxe: Add net namespace support for IPv4/IPv6 sockets
->        https://git.kernel.org/rdma/rdma/c/63ce1810c841df
-> [3/4] RDMA/rxe: Support RDMA link creation and destruction per net namespace
->        https://git.kernel.org/rdma/rdma/c/6d8756013d0e24
-> [4/4] RDMA/rxe: Add testcase for net namespace rxe
->        https://git.kernel.org/rdma/rdma/c/a4f4c76c90c53a
-> 
-> Best regards,
+The ring buffers provided by the application are pinned by the
+uverbs layer before they are passed (as ib_umem) to the driver.
+The uverbs changes are in review:
+https://patchwork.kernel.org/project/linux-rdma/cover/20260203085003.71184-1-jiri@resnulli.us/
+
+uAPI changes in this series:
+- Patch#5: new uapi parameter 'sq_npsn' in bnxt_re_qp_req.
+- Patch#7: new driver specific attribute 'DBR_HANDLE' for doorbell region.
+- Patch#8: new comp_mask 'APP_ALLOCATED_QP_ENABLE' in bnxt_re_qp_req.
+- Patch#9: new devop 'create_qp_umem' for sq/rq_umem buffers.
+
+Patch#1 Refactor bnxt_re_init_user_qp()
+Patch#2 Update rq depth for app allocated QPs
+Patch#3 Update sq depth for app allocated QPs
+Patch#4 Update umem for app allocated QPs
+Patch#5 Update msn table size for app allocated QPs
+Patch#6 Update hwq depth for app allocated QPs
+Patch#7 Support doorbells for app allocated QPs
+Patch#8 Enable app allocated QPs 
+Patch#9 Support create_qp_umem() devop
+
+Thanks,
+-Harsha
+
+******
+
+Sriharsha Basavapatna (9):
+  RDMA/bnxt_re: Refactor bnxt_re_init_user_qp()
+  RDMA/bnxt_re: Update rq depth for app allocated QPs
+  RDMA/bnxt_re: Update sq depth for app allocated QPs
+  RDMA/bnxt_re: Update umem for app allocated QPs
+  RDMA/bnxt_re: Update msn table size for app allocated QPs
+  RDMA/bnxt_re: Update hwq depth for app allocated QPs
+  RDMA/bnxt_re: Support doorbells for app allocated QPs
+  RDMA/bnxt_re: Enable app allocated QPs
+  RDMA/bnxt_re: Support create_qp_umem() devop
+
+ drivers/infiniband/hw/bnxt_re/ib_verbs.c | 318 +++++++++++++++--------
+ drivers/infiniband/hw/bnxt_re/ib_verbs.h |   5 +
+ drivers/infiniband/hw/bnxt_re/main.c     |   1 +
+ drivers/infiniband/hw/bnxt_re/uapi.c     |  18 ++
+ include/uapi/rdma/bnxt_re-abi.h          |   6 +
+ 5 files changed, 245 insertions(+), 103 deletions(-)
+
+-- 
+2.51.2.636.ga99f379adf
 
