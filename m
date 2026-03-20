@@ -1,19 +1,19 @@
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id DC385846F;
-	Fri, 20 Mar 2026 23:30:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 69D953A7F57;
+	Fri, 20 Mar 2026 23:54:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774049442; cv=none; b=kRSkVs+ZRKl0MPGn5C3VP0BvPdtbyIWGhGJNWfH0Z8jMzumizTJyMxXTn1CN0ew8yh364EIk1inNgGCvCT56+nGLdnh54TAeysgPerYPWvkJzSzXMnpE0pRzHOi10nDTRF0Wa9SzrrE+r4Yu8CkVRQCvdxPYQh47TlymC76uwHw=
+	t=1774050872; cv=none; b=Bi2FJNAdPU4DnrXSCmJwJIa6trBKh8NXu+J1VPpTe3VNigVz6afFaVFM5/jqkHWWz18XW7fy9GQkSbPpLyKM0ieiHxfnxVcl1ylw16PDju/+sUIDyyCMssqwAVRHbWXnTLqodIeFCx6XLVyatFoI205R0rBvmLAdatIuL5JOOs8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774049442; c=relaxed/simple;
-	bh=55x65rcI3Xy68ox8Qxvc+GJMDplJ+mxBUGukF8cGD7g=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=sXFA7VuGH5IY6up/IA3xdyKKLX9k5iGxgr5r4n9v/kLSq0MNVpxw1ROSPy51RYs9AX8fwlpchQjjAZ3OqsM8/0voW7CIMB3aJ5CKHehUG9UluG18koYlBXpgQ56SG7But9ECzAyP9XVkvDFdnHUemAYJ+yHQ/De9zC4vdyzezzU=
+	s=arc-20240116; t=1774050872; c=relaxed/simple;
+	bh=2vTo0YRF/YNAnCuxFaXllF21g50Np+nFXnkqq61p8MY=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=RmDo9y7aFhAuuNKWgSvncir27yJNqx8qW/vd2bz6v2SPz6LiAj4TBeuk7JN2cbQ0F7WhYjhcerBAx/JvkXBW8e6NX8nYBV+orD1uCgH6TzZn9dDm7HQudGQ3CV66c2G3k3mEBoFWiOK/bNwj2eqTNLZTlpKFNXBMN4qYHdS/K+M=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; arc=none smtp.client-ip=13.77.154.182
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Received: by linux.microsoft.com (Postfix, from userid 1202)
-	id D9EBE20B710C; Fri, 20 Mar 2026 16:30:35 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com D9EBE20B710C
+	id 4810920B6F01; Fri, 20 Mar 2026 16:54:31 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 4810920B6F01
 From: Long Li <longli@microsoft.com>
 To: Long Li <longli@microsoft.com>,
 	Konstantin Taranov <kotaranov@microsoft.com>,
@@ -33,9 +33,9 @@ Cc: Simon Horman <horms@kernel.org>,
 	linux-rdma@vger.kernel.org,
 	linux-hyperv@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH net-next] net: mana: Set default number of queues to 16
-Date: Fri, 20 Mar 2026 16:30:27 -0700
-Message-ID: <20260320233027.1603495-1-longli@microsoft.com>
+Subject: [PATCH net-next v4 0/6] net: mana: Per-vPort EQ and MSI-X interrupt management
+Date: Fri, 20 Mar 2026 16:54:13 -0700
+Message-ID: <cover.1774049761.git.longli@microsoft.com>
 X-Mailer: git-send-email 2.43.7
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
@@ -45,41 +45,70 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Set the default number of queues per vPort to MANA_DEF_NUM_QUEUES (16),
-as 16 queues can achieve optimal throughput for typical workloads. Users
-can increase the number of queues up to max_queues via ethtool if needed.
+This series adds per-vPort Event Queue (EQ) allocation and MSI-X interrupt
+management for the MANA driver. Previously, all vPorts shared a single set
+of EQs. This change enables dedicated EQs per vPort with support for both
+dedicated and shared MSI-X vector allocation modes.
 
-Signed-off-by: Long Li <longli@microsoft.com>
----
- drivers/net/ethernet/microsoft/mana/mana_en.c | 2 +-
- include/net/mana/mana.h                       | 1 +
- 2 files changed, 2 insertions(+), 1 deletion(-)
+Patch 1 moves EQ ownership from mana_context to per-vPort mana_port_context
+and exports create/destroy functions for the RDMA driver.
 
-diff --git a/drivers/net/ethernet/microsoft/mana/mana_en.c b/drivers/net/ethernet/microsoft/mana/mana_en.c
-index 49c65cc1697c..7cae8a7b9f31 100644
---- a/drivers/net/ethernet/microsoft/mana/mana_en.c
-+++ b/drivers/net/ethernet/microsoft/mana/mana_en.c
-@@ -3357,7 +3357,7 @@ static int mana_probe_port(struct mana_context *ac, int port_idx,
- 	apc->ac = ac;
- 	apc->ndev = ndev;
- 	apc->max_queues = gc->max_num_queues;
--	apc->num_queues = gc->max_num_queues;
-+	apc->num_queues = min(gc->max_num_queues, MANA_DEF_NUM_QUEUES);
- 	apc->tx_queue_size = DEF_TX_BUFFERS_PER_QUEUE;
- 	apc->rx_queue_size = DEF_RX_BUFFERS_PER_QUEUE;
- 	apc->port_handle = INVALID_MANA_HANDLE;
-diff --git a/include/net/mana/mana.h b/include/net/mana/mana.h
-index 3336688fed5e..96d21cbbdee2 100644
---- a/include/net/mana/mana.h
-+++ b/include/net/mana/mana.h
-@@ -1007,6 +1007,7 @@ struct mana_deregister_filter_resp {
- #define STATISTICS_FLAGS_TX_ERRORS_GDMA_ERROR		0x0000000004000000
- 
- #define MANA_MAX_NUM_QUEUES 64
-+#define MANA_DEF_NUM_QUEUES 16
- 
- #define MANA_SHORT_VPORT_OFFSET_MAX ((1U << 8) - 1)
- 
+Patch 2 adds device capability queries to determine whether MSI-X vectors
+should be dedicated per-vPort or shared. When the number of available MSI-X
+vectors is insufficient for dedicated allocation, the driver enables sharing
+mode with bitmap-based vector assignment.
+
+Patch 3 introduces the GIC (GDMA IRQ Context) abstraction with reference
+counting, allowing multiple EQs to safely share a single MSI-X vector.
+
+Patch 4 converts the global EQ allocation in probe/resume to use the new
+GIC functions.
+
+Patch 5 adds per-vPort GIC lifecycle management, calling get/put on each
+EQ creation and destruction during vPort open/close.
+
+Patch 6 extends the same GIC lifecycle management to the RDMA driver's EQ
+allocation path.
+
+Changes in v4:
+- Rebased on net-next/main 7.0-rc4
+- Patch 2: Use MANA_DEF_NUM_QUEUES instead of hardcoded 16 for
+  max_num_queues clamping
+- Patch 3: Track dyn_msix in GIC context instead of re-checking
+  pci_msix_can_alloc_dyn() on each call; improved remove_irqs iteration
+  to skip unallocated entries
+
+Changes in v3:
+- Rebased on net-next/main
+- Patch 1: Added NULL check for mpc->eqs in mana_ib_create_qp_rss() to
+  prevent NULL pointer dereference when RSS QP is created before a raw QP
+  has configured the vport and allocated EQs
+
+Changes in v2:
+- Rebased on net-next/main (adapted to kzalloc_objs/kzalloc_obj macros,
+  new GDMA_DRV_CAP_FLAG definitions)
+- Patch 2: Fixed misleading comment for max_num_queues vs
+  max_num_queues_vport in gdma.h
+- Patch 3: Fixed spelling typo in gdma_main.c ("difference" -> "different")
+
+Long Li (6):
+  net: mana: Create separate EQs for each vPort
+  net: mana: Query device capabilities and configure MSI-X sharing for
+    EQs
+  net: mana: Introduce GIC context with refcounting for interrupt
+    management
+  net: mana: Use GIC functions to allocate global EQs
+  net: mana: Allocate interrupt context for each EQ when creating vPort
+  RDMA/mana_ib: Allocate interrupt contexts on EQs
+
+ drivers/infiniband/hw/mana/main.c             |  47 ++-
+ drivers/infiniband/hw/mana/qp.c               |  16 +-
+ .../net/ethernet/microsoft/mana/gdma_main.c   | 307 +++++++++++++-----
+ drivers/net/ethernet/microsoft/mana/mana_en.c | 162 +++++----
+ include/net/mana/gdma.h                       |  32 +-
+ include/net/mana/mana.h                       |   7 +-
+ 6 files changed, 416 insertions(+), 155 deletions(-)
+
 -- 
 2.43.0
 
