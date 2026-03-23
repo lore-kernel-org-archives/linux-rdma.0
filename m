@@ -1,52 +1,43 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E77D41DED4C;
-	Mon, 23 Mar 2026 08:08:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 8116E37104E;
+	Mon, 23 Mar 2026 08:21:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774253335; cv=none; b=h9tSYC1AiUJOcCOZ9QW6AxKYVvd7Lgfjbrz8nLF78yPPHGPASeZNhQXjxloU8rr2zUieFLZTmHQCTY1kt1Ct7laGHjn9oKIutIQ3rm+Z4A57y90FSc6x8eWsfONMvPylAyRi7fUErbyvuyKFr0Pgz6EkyY9Y6AEv/lxV6Uy9H8Q=
+	t=1774254078; cv=none; b=ktKJEMgSz70bHSGc5o1Z3tBlB/7WRUqffysE80lBzEcY1JeEV/tgl6c1WjTbqkfeKnr9lMYM0KTFmPp7HGN5lwq3OmF1zBJH9D3NZZcP6++hPvex6rOM10Qv02Zel7uBXgP+SWM9dTilqB0mB3hRjc5g5F5vRiHU+S5FQ+4uwRI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774253335; c=relaxed/simple;
-	bh=duHbJjCiv3keEx2pL+5FokNVI6n7igApHRCi0RJex9Y=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=CWF8Tyy/eWFbBOtMGH7dnrISa3bn4ezE3XBRrO1sb8UnLKjl4vt36+Qjik2GhwPkQXH3ZrRUfK+NtM7Mw00h4f+bDKV/KzGK5eHunxRPq+jezfGmA6jBdHwjULHQ3lk0u2uhpY6sOKGN1wwLpZXCG7hMGSePoQICxaGNBk977iQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=s7b4fqp+; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774254078; c=relaxed/simple;
+	bh=qNhWPu5HjvRRDOABzZBW+TX71Rg3S7gQG7xVx4hvlHc=;
+	h=Date:From:To:Subject:Message-ID:MIME-Version:Content-Type:
+	 Content-Disposition; b=gDHRNsijHZltDLP3Up1bwbx6YIVRdgaz/lOCGA7P6UiZOZ3OrTAWt0rYCnO1vLQzGLdjTFwgN3Gi219RguHCyL7cAM/CpaCPlJ7mBCfaQOd8lohtgjd1kC7vbX7TRd1BfWdAbpNMx8RmiBd5nq8EjkFzouOC1HE/qcOSIUnemFI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=CKdi5VuT; arc=none smtp.client-ip=13.77.154.182
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="s7b4fqp+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D649DC4CEF7;
-	Mon, 23 Mar 2026 08:08:53 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1774253334;
-	bh=duHbJjCiv3keEx2pL+5FokNVI6n7igApHRCi0RJex9Y=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=s7b4fqp+kVUyMnMNOVp/ykyk3H23B5oRl0MU4J9jfYVuUs62QB5ciVDikFv8ercyK
-	 28zQOfjB91V9E6DfceJJF19ak6dzLDV77Cs6D0vL/k2Twn2rhof9zNW1bWPGGDbcBh
-	 Xr7DPx+Xz+Dil1/g0jItSUuFeXc3a1Igx98DnWgzYRA9zJdnM/X9BjJzrGEx/R3GRr
-	 qNpwzsBZAT8gsC0wGxO+05YeAfXo0a/G2inn1FceN+wDy76LDqAOHYkBSDMUNxbmcO
-	 oTz7AxjNSLlbgFq0UjOSGU0vWo2N4h2j5MmdhCUhqEZtBalUnmn0SioCwaPmzewUV6
-	 yMGjD0tu5NK4g==
-Date: Mon, 23 Mar 2026 10:08:48 +0200
-From: Leon Romanovsky <leon@kernel.org>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Arnd Bergmann <arnd@kernel.org>,
-	Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
-	Jason Gunthorpe <jgg@ziepe.ca>,
-	Nathan Chancellor <nathan@kernel.org>,
-	Mike Marciniszyn <mike.marciniszyn@intel.com>,
-	"Michael J. Ruhl" <michael.j.ruhl@intel.com>,
-	Doug Ledford <dledford@redhat.com>,
-	Nick Desaulniers <nick.desaulniers+lkml@gmail.com>,
-	Bill Wendling <morbo@google.com>,
-	Justin Stitt <justinstitt@google.com>,
-	Marco Crivellari <marco.crivellari@suse.com>,
-	Ingo Molnar <mingo@kernel.org>, linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org, llvm@lists.linux.dev
-Subject: Re: [PATCH 2/3] RDMA/hfi1, rdmavt: open-code rvt_set_ibdev_name()
-Message-ID: <20260323080848.GF814676@unreal>
-References: <20260320151511.3420818-1-arnd@kernel.org>
- <20260320151511.3420818-2-arnd@kernel.org>
- <6b56c476-86fd-4d43-8dee-c7f89d346941@app.fastmail.com>
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="CKdi5VuT"
+Received: by linux.microsoft.com (Postfix, from userid 1204)
+	id 6499420B710C; Mon, 23 Mar 2026 01:21:17 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 6499420B710C
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
+	s=default; t=1774254077;
+	bh=v/zgGi4KnjBvHxMREYCKdbfOdu/jxb/Ui7FVSLqycy4=;
+	h=Date:From:To:Subject:From;
+	b=CKdi5VuTiQB9IpVdyfyTwIqnm2v5nCt8M4S98WbE+nU4Bs7FnNXyNQv+m68595nGQ
+	 Cna+S0Tdh54funfgEyq0yYe31AuP6dK5HkNIXnCJ/4iUIBcMA4fa1iwQaD0ClLYX9i
+	 cffIZcdJNXtclSuWBRw4Sj4wT82C6dshpXRokKHU=
+Date: Mon, 23 Mar 2026 01:21:17 -0700
+From: Dipayaan Roy <dipayanroy@linux.microsoft.com>
+To: kys@microsoft.com, haiyangz@microsoft.com, wei.liu@kernel.org,
+	decui@microsoft.com, andrew+netdev@lunn.ch, davem@davemloft.net,
+	edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
+	leon@kernel.org, longli@microsoft.com, kotaranov@microsoft.com,
+	horms@kernel.org, shradhagupta@linux.microsoft.com,
+	ssengar@linux.microsoft.com, ernis@linux.microsoft.com,
+	shirazsaleem@microsoft.com, linux-hyperv@vger.kernel.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-rdma@vger.kernel.org, stephen@networkplumber.org,
+	dipayanroy@microsoft.com
+Subject: [PATCH net] net: mana: Fix RX skb truesize accounting
+Message-ID: <acD3/f4Se3miC/6z@linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -55,28 +46,45 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <6b56c476-86fd-4d43-8dee-c7f89d346941@app.fastmail.com>
 
-On Fri, Mar 20, 2026 at 04:53:04PM +0100, Arnd Bergmann wrote:
-> On Fri, Mar 20, 2026, at 16:12, Arnd Bergmann wrote:
-> 
-> > +	 */
-> > +	ibdev = &dd->verbs_dev.rdi.ibdev;
-> > +	dev_set_name(&ibdev->dev, "%s_%d", class_name(), dd->unit);
-> > +	strscpy(&ibdev->name, dev_name(&ibdev->dev), IB_DEVICE_NAME_MAX);
-> > +
-> 
-> I messed this up during a rebase, that should have been 
-> 
->        strscpy(ibdev->name, dev_name(&ibdev->dev), IB_DEVICE_NAME_MAX);
-> 
-> (without the extra &). I'll wait for comments before resending.
+MANA passes rxq->alloc_size to napi_build_skb() for all RX buffers.
+It is correct for fragment-backed RX buffers, where alloc_size matches
+the actual backing allocation used for each packet buffer. However, in
+the non-fragment RX path mana allocates a full page, or a higher-order
+page, per RX buffer. In that case alloc_size only reflects the usable
+packet area and not the actual backing memory.
 
-The hfi1 driver is scheduled for removal. Dennis has already posted the
-hfi2 driver, which serves as its replacement.
+This causes napi_build_skb() to underestimate the skb backing allocation
+in the single-buffer RX path, so skb->truesize is derived from a value
+smaller than the real RX buffer allocation.
 
-Thanks
+Fix this by updating alloc_size in the non-fragment RX path to the
+actual backing allocation size before it is passed to napi_build_skb().
 
-> 
->        Arnd
-> 
+Fixes: 730ff06d3f5c ("net: mana: Use page pool fragments for RX buffers instead of full pages to improve memory efficiency.")
+Signed-off-by: Dipayaan Roy <dipayanroy@linux.microsoft.com>
+---
+ drivers/net/ethernet/microsoft/mana/mana_en.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/drivers/net/ethernet/microsoft/mana/mana_en.c b/drivers/net/ethernet/microsoft/mana/mana_en.c
+index ea71de39f996..884f8e548174 100644
+--- a/drivers/net/ethernet/microsoft/mana/mana_en.c
++++ b/drivers/net/ethernet/microsoft/mana/mana_en.c
+@@ -766,6 +766,13 @@ static void mana_get_rxbuf_cfg(struct mana_port_context *apc,
+ 		}
+ 
+ 		*frag_count = 1;
++
++		/* In the single-buffer path, napi_build_skb() must see the
++		 * actual backing allocation size so skb->truesize reflects
++		 * the full page (or higher-order page), not just the usable
++		 * packet area.
++		 */
++		*alloc_size = PAGE_SIZE << get_order(*alloc_size);
+ 		return;
+ 	}
+ 
+-- 
+2.43.0
+
