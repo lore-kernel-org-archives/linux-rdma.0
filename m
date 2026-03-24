@@ -1,247 +1,87 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.7])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7DDBB21CC58;
-	Tue, 24 Mar 2026 01:30:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.7
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B371D48CFC;
+	Tue, 24 Mar 2026 01:50:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774315839; cv=none; b=bOdq40gIhrIbSyJgI8Zftf52ULeVmoaQ/KDcBQhNzKlVhyBhnLeif+eFMyDf2jREfKK6tblqZPagvthRpOgozaPGEaoMiTvxcalN/q6s4RV+km5qXw0tB37UJhvJNSpiDXwvD65k9t0J4XimFdKPrB5M7pIIEQEs5tMX/vX+KXc=
+	t=1774317022; cv=none; b=swhjTG3u5bwZZaptZFkZrpa4LQ7rpmPhqdil11kDctuD/PaiEE+es82o4dSC7OZw0ZGBkxtULjBg8pwoyrwOjt3SZ1wlv3P7K5vi9mO2bqIdmoO2YJQqpzUv4DvFisc0csZ3gDTugrQ0NJArcrlQEcoqwTILiuELQy5JzRd4rrY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774315839; c=relaxed/simple;
-	bh=SHgpbAsOpS9aD7tNLFUzQfSp+rS+RdjARGptOI9/4bg=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=j1yPnHdpnwTZbYiFoS3fy5cXEIuT2rwH7LcLTn2HMeru84YDcTov+Be07I/T5q/Cdoo3xZCPPctQr3ddqpGt4tB68kI1dKYScQihapMTR0kRnAClc7wOyqCnNbCN9Q6PZBia2RygZDHS25Jw4IhZY3S1kd8LBXgma2EWrLNEG20=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=FkLQfEbF; arc=none smtp.client-ip=192.198.163.7
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1774317022; c=relaxed/simple;
+	bh=n70GUlRlc+3qXd/85B78ellg6YqUJK50jpgsp5FOUqk=;
+	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc; b=e9faEP+vX0NWBOR9T05RvWqk7yWjc4aDEADTrjLRxciMr9bzTKeszXNFe4Ngeg/Ke3yQndT4eFyPIRY9G8AyKg8gUGZi7wSymCEeUPGf29GLIFLjyO3mFRTSDY2lHjkqvKVRkNc8+tUnowabdi2BKaB2ZvgEuQ9DWmjzpUGD1Lw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=iMKVc+jY; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="FkLQfEbF"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1774315838; x=1805851838;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=SHgpbAsOpS9aD7tNLFUzQfSp+rS+RdjARGptOI9/4bg=;
-  b=FkLQfEbF7QB3MX1K+e63EoMBm+wAkZFKuE+soDigOuv723Y2H/KBDQtT
-   AZO+dFPPCdA/MQiGMBs2GcdRjl12bPkY4pBiLnTcNg74zHNhJH9DWAwdb
-   ZFbxEU3SRyoDcEXQzmN4gau53yGIHqLEcMJj3PKv70+tr6BxgK0ibnMaq
-   n+FY3kjoUz9vdAIQuOKpP7kHLVkfpOGKZTye9qjahrxsuFwZ6tGmsNrtZ
-   F2HrNncTbwzIcl0TNPA/INs8bXo2fS0uPS8fLD2og09UtD4mOgb3y07qq
-   FeNLZq9LSmGUYqvz8Ddy2mSYYUzYoJEjOCiyx2XXxEIPj7llFwiKzXS9z
-   g==;
-X-CSE-ConnectionGUID: 8w0ecC9pQLGOlcVDCorzjA==
-X-CSE-MsgGUID: +Yg41FhMSNKF7paeZCvjwQ==
-X-IronPort-AV: E=McAfee;i="6800,10657,11738"; a="100780316"
-X-IronPort-AV: E=Sophos;i="6.23,138,1770624000"; 
-   d="scan'208";a="100780316"
-Received: from orviesa003.jf.intel.com ([10.64.159.143])
-  by fmvoesa101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Mar 2026 18:30:37 -0700
-X-CSE-ConnectionGUID: pOgt47R4SxyrL/0xZ4y0Tw==
-X-CSE-MsgGUID: jtfdBrTlTUOORy5f7FEL3Q==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.23,138,1770624000"; 
-   d="scan'208";a="228268969"
-Received: from lkp-server01.sh.intel.com (HELO 3905d212be1b) ([10.239.97.150])
-  by orviesa003.jf.intel.com with ESMTP; 23 Mar 2026 18:30:33 -0700
-Received: from kbuild by 3905d212be1b with local (Exim 4.98.2)
-	(envelope-from <lkp@intel.com>)
-	id 1w4qbE-000000003Vh-2icx;
-	Tue, 24 Mar 2026 01:30:28 +0000
-Date: Tue, 24 Mar 2026 09:29:42 +0800
-From: kernel test robot <lkp@intel.com>
-To: Arnd Bergmann <arnd@kernel.org>,
-	Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
-	Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>,
-	Nathan Chancellor <nathan@kernel.org>,
-	"Michael J. Ruhl" <michael.j.ruhl@intel.com>,
-	Doug Ledford <dledford@redhat.com>
-Cc: llvm@lists.linux.dev, oe-kbuild-all@lists.linux.dev,
-	Arnd Bergmann <arnd@arndb.de>,
-	Nick Desaulniers <nick.desaulniers+lkml@gmail.com>,
-	Bill Wendling <morbo@google.com>,
-	Justin Stitt <justinstitt@google.com>,
-	Marco Crivellari <marco.crivellari@suse.com>,
-	Ingo Molnar <mingo@kernel.org>, linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 2/3] RDMA/hfi1, rdmavt: open-code rvt_set_ibdev_name()
-Message-ID: <202603240950.t4UIpBJh-lkp@intel.com>
-References: <20260320151511.3420818-2-arnd@kernel.org>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="iMKVc+jY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 52A34C4CEF7;
+	Tue, 24 Mar 2026 01:50:22 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1774317022;
+	bh=n70GUlRlc+3qXd/85B78ellg6YqUJK50jpgsp5FOUqk=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+	b=iMKVc+jYGW5tHNuJ6iGQ5H0065y6hvM5o9s9f/e46zuzGh5yRQG95IQ36XcMCj4Hr
+	 NbHzzGbKlH6PMqCP062RY2eIHa5BlglKq9Iow/rPUofUY2iNLqRR7n+9H0Vm7dAy0f
+	 SPht9F6IvYXMVNj25DfnJt/7zVPWN/6pdbmXpLKbPifDBi1va2vHoUSVy3lTgfYGcW
+	 4Cg2Xfxt63tvbv/R275qSdlQniGAtezK3so8IGYhIYmZFzVfB4UdJkLx94Rs3zeAbY
+	 wL3JAETM7KjjWoqvPrw+qwkhAVhmeqsS+8TGOG2wdkk9AWyXEAIZ2DKJL9cfk3cL/L
+	 54ppN/OFiU3tw==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id BA1F83808200;
+	Tue, 24 Mar 2026 01:50:11 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260320151511.3420818-2-arnd@kernel.org>
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net-next v7 0/4] ethtool: Dynamic RSS context indirection
+ table resizing
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <177431701054.413704.17760247587470177196.git-patchwork-notify@kernel.org>
+Date: Tue, 24 Mar 2026 01:50:10 +0000
+References: <20260320085826.1957255-1-bjorn@kernel.org>
+In-Reply-To: <20260320085826.1957255-1-bjorn@kernel.org>
+To: =?utf-8?b?QmrDtnJuIFTDtnBlbCA8Ympvcm5Aa2VybmVsLm9yZz4=?=@aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org
+Cc: michael.chan@broadcom.com, pavan.chebbi@broadcom.com,
+ andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@google.com,
+ kuba@kernel.org, pabeni@redhat.com, saeedm@nvidia.com, tariqt@nvidia.com,
+ mbloch@nvidia.com, leon@kernel.org, horms@kernel.org, shuah@kernel.org,
+ netdev@vger.kernel.org, maxime.chevallier@bootlin.com, gal@nvidia.com,
+ willemb@google.com, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
+ linux-kselftest@vger.kernel.org
 
-Hi Arnd,
+Hello:
 
-kernel test robot noticed the following build errors:
+This series was applied to netdev/net-next.git (main)
+by Jakub Kicinski <kuba@kernel.org>:
 
-[auto build test ERROR on rdma/for-next]
-[also build test ERROR on soc/for-next linus/master v7.0-rc5 next-20260323]
-[If your patch is applied to the wrong git tree, kindly drop us a note.
-And when submitting patch, we suggest to use '--base' as documented in
-https://git-scm.com/docs/git-format-patch#_base_tree_information]
+On Fri, 20 Mar 2026 09:58:20 +0100 you wrote:
+> Hi!
+> 
+> Some NICs (e.g. bnxt) change their RSS indirection table size based on
+> the queue count, because the hardware table is a shared resource. The
+> ethtool core locks ctx->indir_size at context creation, so drivers
+> have to reject channel changes when RSS contexts exist.
+> 
+> [...]
 
-url:    https://github.com/intel-lab-lkp/linux/commits/Arnd-Bergmann/RDMA-hfi1-rdmavt-open-code-rvt_set_ibdev_name/20260322-190924
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git for-next
-patch link:    https://lore.kernel.org/r/20260320151511.3420818-2-arnd%40kernel.org
-patch subject: [PATCH 2/3] RDMA/hfi1, rdmavt: open-code rvt_set_ibdev_name()
-config: x86_64-rhel-9.4-rust (https://download.01.org/0day-ci/archive/20260324/202603240950.t4UIpBJh-lkp@intel.com/config)
-compiler: clang version 20.1.8 (https://github.com/llvm/llvm-project 87f0227cb60147a26a1eeb4fb06e3b505e9c7261)
-rustc: rustc 1.88.0 (6b00bc388 2025-06-23)
-reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20260324/202603240950.t4UIpBJh-lkp@intel.com/reproduce)
+Here is the summary with links:
+  - [net-next,v7,1/4] ethtool: Track user-provided RSS indirection table size
+    https://git.kernel.org/netdev/net-next/c/0475f9e779b4
+  - [net-next,v7,2/4] ethtool: Add RSS indirection table resize helpers
+    https://git.kernel.org/netdev/net-next/c/02bcb20083b2
+  - [net-next,v7,3/4] bnxt_en: Resize RSS contexts on channel count change
+    https://git.kernel.org/netdev/net-next/c/57cdfe0dc70b
+  - [net-next,v7,4/4] selftests: rss_drv: Add RSS indirection table resize tests
+    https://git.kernel.org/netdev/net-next/c/10329ce49285
 
-If you fix the issue in a separate patch/commit (i.e. not just a new version of
-the same patch/commit), kindly add following tags
-| Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202603240950.t4UIpBJh-lkp@intel.com/
-
-All errors (new ones prefixed by >>):
-
->> drivers/infiniband/hw/hfi1/init.c:1240:10: error: incompatible pointer types passing 'char (*)[64]' to parameter of type 'char *' [-Werror,-Wincompatible-pointer-types]
-    1240 |         strscpy(&ibdev->name, dev_name(&ibdev->dev), IB_DEVICE_NAME_MAX);
-         |                 ^~~~~~~~~~~~
-   include/linux/string.h:114:50: note: expanded from macro 'strscpy'
-     114 |         CONCATENATE(__strscpy, COUNT_ARGS(__VA_ARGS__))(dst, src, __VA_ARGS__)
-         |                                                         ^~~
-   include/linux/string.h:83:16: note: expanded from macro '__strscpy1'
-      83 |         sized_strscpy(dst, src, size + __must_be_cstr(dst) + __must_be_cstr(src))
-         |                       ^~~
-   include/linux/fortify-string.h:275:57: note: passing argument to parameter 'p' here
-     275 | __FORTIFY_INLINE ssize_t sized_strscpy(char * const POS p, const char * const POS q, size_t size)
-         |                                                         ^
-   1 error generated.
-
-
-vim +1240 drivers/infiniband/hw/hfi1/init.c
-
-  1195	
-  1196	/**
-  1197	 * hfi1_alloc_devdata - Allocate our primary per-unit data structure.
-  1198	 * @pdev: Valid PCI device
-  1199	 * @extra: How many bytes to alloc past the default
-  1200	 *
-  1201	 * Must be done via verbs allocator, because the verbs cleanup process
-  1202	 * both does cleanup and free of the data structure.
-  1203	 * "extra" is for chip-specific data.
-  1204	 */
-  1205	static struct hfi1_devdata *hfi1_alloc_devdata(struct pci_dev *pdev,
-  1206						       size_t extra)
-  1207	{
-  1208		struct hfi1_devdata *dd;
-  1209		struct ib_device *ibdev;
-  1210		int ret, nports;
-  1211	
-  1212		/* extra is * number of ports */
-  1213		nports = extra / sizeof(struct hfi1_pportdata);
-  1214	
-  1215		dd = (struct hfi1_devdata *)rvt_alloc_device(sizeof(*dd) + extra,
-  1216							     nports);
-  1217		if (!dd)
-  1218			return ERR_PTR(-ENOMEM);
-  1219		dd->num_pports = nports;
-  1220		dd->pport = (struct hfi1_pportdata *)(dd + 1);
-  1221		dd->pcidev = pdev;
-  1222		pci_set_drvdata(pdev, dd);
-  1223	
-  1224		ret = xa_alloc_irq(&hfi1_dev_table, &dd->unit, dd, xa_limit_32b,
-  1225				GFP_KERNEL);
-  1226		if (ret < 0) {
-  1227			dev_err(&pdev->dev,
-  1228				"Could not allocate unit ID: error %d\n", -ret);
-  1229			goto bail;
-  1230		}
-  1231	
-  1232		/*
-  1233		 * FIXME: rvt and its users want to touch the ibdev before
-  1234		 * registration and have things like the name work. We don't have the
-  1235		 * infrastructure in the core to support this directly today, hack it
-  1236		 * to work by setting the name manually here.
-  1237		 */
-  1238		ibdev = &dd->verbs_dev.rdi.ibdev;
-  1239		dev_set_name(&ibdev->dev, "%s_%d", class_name(), dd->unit);
-> 1240		strscpy(&ibdev->name, dev_name(&ibdev->dev), IB_DEVICE_NAME_MAX);
-  1241	
-  1242		/*
-  1243		 * If the BIOS does not have the NUMA node information set, select
-  1244		 * NUMA 0 so we get consistent performance.
-  1245		 */
-  1246		dd->node = pcibus_to_node(pdev->bus);
-  1247		if (dd->node == NUMA_NO_NODE) {
-  1248			dd_dev_err(dd, "Invalid PCI NUMA node. Performance may be affected\n");
-  1249			dd->node = 0;
-  1250		}
-  1251	
-  1252		/*
-  1253		 * Initialize all locks for the device. This needs to be as early as
-  1254		 * possible so locks are usable.
-  1255		 */
-  1256		spin_lock_init(&dd->sc_lock);
-  1257		spin_lock_init(&dd->sendctrl_lock);
-  1258		spin_lock_init(&dd->rcvctrl_lock);
-  1259		spin_lock_init(&dd->uctxt_lock);
-  1260		spin_lock_init(&dd->hfi1_diag_trans_lock);
-  1261		spin_lock_init(&dd->sc_init_lock);
-  1262		spin_lock_init(&dd->dc8051_memlock);
-  1263		seqlock_init(&dd->sc2vl_lock);
-  1264		spin_lock_init(&dd->sde_map_lock);
-  1265		spin_lock_init(&dd->pio_map_lock);
-  1266		mutex_init(&dd->dc8051_lock);
-  1267		init_waitqueue_head(&dd->event_queue);
-  1268		spin_lock_init(&dd->irq_src_lock);
-  1269	
-  1270		dd->int_counter = alloc_percpu(u64);
-  1271		if (!dd->int_counter) {
-  1272			ret = -ENOMEM;
-  1273			goto bail;
-  1274		}
-  1275	
-  1276		dd->rcv_limit = alloc_percpu(u64);
-  1277		if (!dd->rcv_limit) {
-  1278			ret = -ENOMEM;
-  1279			goto bail;
-  1280		}
-  1281	
-  1282		dd->send_schedule = alloc_percpu(u64);
-  1283		if (!dd->send_schedule) {
-  1284			ret = -ENOMEM;
-  1285			goto bail;
-  1286		}
-  1287	
-  1288		dd->tx_opstats = alloc_percpu(struct hfi1_opcode_stats_perctx);
-  1289		if (!dd->tx_opstats) {
-  1290			ret = -ENOMEM;
-  1291			goto bail;
-  1292		}
-  1293	
-  1294		dd->comp_vect = kzalloc_obj(*dd->comp_vect);
-  1295		if (!dd->comp_vect) {
-  1296			ret = -ENOMEM;
-  1297			goto bail;
-  1298		}
-  1299	
-  1300		/* allocate dummy tail memory for all receive contexts */
-  1301		dd->rcvhdrtail_dummy_kvaddr =
-  1302			dma_alloc_coherent(&dd->pcidev->dev, sizeof(u64),
-  1303					   &dd->rcvhdrtail_dummy_dma, GFP_KERNEL);
-  1304		if (!dd->rcvhdrtail_dummy_kvaddr) {
-  1305			ret = -ENOMEM;
-  1306			goto bail;
-  1307		}
-  1308	
-  1309		atomic_set(&dd->ipoib_rsm_usr_num, 0);
-  1310		return dd;
-  1311	
-  1312	bail:
-  1313		hfi1_free_devdata(dd);
-  1314		return ERR_PTR(ret);
-  1315	}
-  1316	
-
+You are awesome, thank you!
 -- 
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
+
