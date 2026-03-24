@@ -1,171 +1,237 @@
-Received: from mail-dy1-f171.google.com (mail-dy1-f171.google.com [74.125.82.171])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx0a-00082601.pphosted.com (mx0a-00082601.pphosted.com [67.231.145.42])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AFBB23C5DA6
-	for <linux-rdma@vger.kernel.org>; Tue, 24 Mar 2026 22:49:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.171
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A69A0264617
+	for <linux-rdma@vger.kernel.org>; Tue, 24 Mar 2026 23:51:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=67.231.145.42
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774392570; cv=none; b=EhiZ70L3a7REHVQywmlrLSFrGxxi6vLCn/0kokoHvvSPUV66zRv7Ou4pkXKyBN3hb+xnQ5ZLBNHgljjBQ6qPM7fzAwEP8r4nZIcSyJgZGqhrgHpaXpyZoYgF/df81Xj4N/GHSNQjdZ4q+BzWcGu8zTPCxKimrwmWAmoT+o8iRyE=
+	t=1774396310; cv=none; b=sZT/EZ+W54IOCzKAwMefPSFER9jG9+PhSm2iutjQnlCjIXJ9XIs3qZErIe3AWE7f8ClxEJRkPnk7ZL+y6S8Bu2BX5Gu/+kHuTJScHwSh/O9TjHv+rfZ6V45YcjC68HLRRGvyWxPPY1x/Aa6/c1wzz5kxpqJvoD81vNns4aJmLns=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774392570; c=relaxed/simple;
-	bh=x66sLBkPM9N4hLXn1DtA+Tsks0CxriXlzYTWpFI/SYE=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=RhKYIUR4zN0/RY7uUDcJm5jrzgsXAiC5xTnWqlH2oEFoXHJ9C/aLgdzpSN5QYgiLUqmUWCAmo8CiTCMbFHI6XRb8EZAPUJ7PKnQ1fZjJxnEI0KDuJG26QTaMoshJ7xdoX4ydTuBw+5wDU8yHIDQR1fB/vFg0lHyXe89aZgpeXMk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=goFNEleL; arc=none smtp.client-ip=74.125.82.171
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1774396310; c=relaxed/simple;
+	bh=uwHcFpcEFvAMgOCDAacpOu2ncyNjXE7KawDeNG96/EQ=;
+	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=a8OqPboZtWi1PC+2glVc86vVaBFixsZ+3HP3rzRxtYW+TD3qMCEeBfMecP5OpVHnrbLqMIUpk2DS30LbpVq8d05NuR7wWdWjQhy9XLpqISILgU62EYi9LuWfazbfOT+fXnCWwvjhRnvQ6CwGXET1oje9D9Y6N2bUjXltRiO7pbA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=meta.com; spf=pass smtp.mailfrom=meta.com; dkim=pass (2048-bit key) header.d=meta.com header.i=@meta.com header.b=UeOYGNcg; arc=none smtp.client-ip=67.231.145.42
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=meta.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=meta.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="goFNEleL"
-Received: by mail-dy1-f171.google.com with SMTP id 5a478bee46e88-2c0ea57fea7so7372249eec.0
-        for <linux-rdma@vger.kernel.org>; Tue, 24 Mar 2026 15:49:29 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1774392569; x=1774997369; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references
-         :mail-followup-to:message-id:subject:cc:to:from:date:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=gNx1VzVQBg2bGT4I9Bs+XmhXlek+bgkFq6Ick2G8sfw=;
-        b=goFNEleL/6OQLHn+J+oosYrN144Gvq3n9PxHX01b3AOoBSzMntlYyfDBUev1IPmigZ
-         PJNtk4Puil6DsOG08u2pCFDFISC0hZRWi1B9SPmvozkwDXnq7KMGHUMsTG48keNg0TzD
-         4ux7C9aM+cSk5nll4X0cKKMzWfJza7Ui2/qr02Y9axCLE+5UeHxyAg+zw5hr5ZMGy+s2
-         Wr13RXhhNNJkgmTqx7vNdoQdlkz6i4BFXe5JyxWiA7mIuFsP21vN0NKAed52WPvzDxz3
-         ClVP44k1pNh21rMwxWJ+CfYqfExhhx0OcvYywKMsYisw5flN0b4YHgQc14etyGiDFJ7r
-         1NCg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1774392569; x=1774997369;
-        h=in-reply-to:content-disposition:mime-version:references
-         :mail-followup-to:message-id:subject:cc:to:from:date:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=gNx1VzVQBg2bGT4I9Bs+XmhXlek+bgkFq6Ick2G8sfw=;
-        b=efWVPovzLG8L6YgsnxmG4m7i3IA8bklbUos8UYMR52zz0iA0AKlijIQSEPIvjfKVoK
-         cK8udHHNeraf4oYpPdfumyFB0lNLnUKwYnQHBvHrKt3X088Buc4YNwrZ0f8pah2Z3HIT
-         +7mJjzxqUfQvOKNriOD9ZSQA5Msr/aFy5Uec7p+2RzPd33q8S/zNwKAqnB/sH0bieW3G
-         CC6gjhAIAqUMu/QdQ+sJJHrKD5BghrTr+duQrWClUVemdYfz6UKnzLwM/XXq+zWUoHZq
-         jYLrj1E1+BgP3qDsQv0YresfdJVy+2K4cOQKRwmmYwM4o1X2xpmyZnCiU4bSye5pUuWd
-         Y6Ew==
-X-Forwarded-Encrypted: i=1; AJvYcCWpkdEZgHVw7nwbA0GaU8aIo+8ryxap3QwOCCuaeZ1kXxQMPk3bGvDJf4vhHBQ3UbLaRxNjFTdyu3c1@vger.kernel.org
-X-Gm-Message-State: AOJu0YwR2WBc+CkeLkK7FqzSF3HOfNSU0HlG3WAh5uWpQ0Htiw8E/h3A
-	GHmryGm5nazRYGRBUqWdZ3oshxn9MvuTGOKrUa8ac0YOH1fxQ8VjbsM=
-X-Gm-Gg: ATEYQzzkaeGdBUtrC1sy+jOVnOqEw0ffhJ22mirRQtM4jxfTepIcynEv0EV8x98nLDr
-	cF3l9rTIpZldrJj9vovE+m/jDTZxJvctx6S52IBLbgEg4nRzYFho968PznoaOZDdjqrij0eJBko
-	G8ejV9qrsooVr0RkV6hd510iRtP3gySbbK0D+hPMEIAMno/yWwnV4a8Kj1B7yIj8NkLVmKs2VG9
-	admOnw9+Lnla7Xm68Wj0LZO16PYn30/qeAwGqfHJNQoAdsrAfeqBH2/yCP5GvlWxHzxlMTpduw8
-	Ej7EznmvjjXs9/zEvsF1QIdWjVmW+amMNoPiSqT+XcbNvGhq5fc/M6Tycw3QzXxr3yptqBBdbmY
-	BmzSSVKYuSg0sNmxjqvT3Ob82EzFDODMSNZFaTEH3HzVKGmFMYtSwFgSxGDfRyq2VS3PpV3rFsz
-	acyFPB9+/cMBdCrg0EJjZ0J2q27QEcnw0PP2ZHTi4Wj/UvKsx55tuD30Pv28IgXuJWjafBUtdzn
-	fGi6HWpQiqHs/tSWZgdTFxFogJJ
-X-Received: by 2002:a05:7301:6582:b0:2c1:2999:498e with SMTP id 5a478bee46e88-2c15d3a1176mr717588eec.18.1774392568523;
-        Tue, 24 Mar 2026 15:49:28 -0700 (PDT)
-Received: from localhost (c-76-102-12-149.hsd1.ca.comcast.net. [76.102.12.149])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-2c10b1961a2sm16796758eec.12.2026.03.24.15.49.27
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 24 Mar 2026 15:49:28 -0700 (PDT)
-Date: Tue, 24 Mar 2026 15:49:27 -0700
-From: Stanislav Fomichev <stfomichev@gmail.com>
-To: Jakub Kicinski <kuba@kernel.org>
-Cc: Stanislav Fomichev <sdf@fomichev.me>, netdev@vger.kernel.org,
-	davem@davemloft.net, edumazet@google.com, pabeni@redhat.com,
-	horms@kernel.org, corbet@lwn.net, skhan@linuxfoundation.org,
-	andrew+netdev@lunn.ch, michael.chan@broadcom.com,
-	pavan.chebbi@broadcom.com, anthony.l.nguyen@intel.com,
-	przemyslaw.kitszel@intel.com, saeedm@nvidia.com, tariqt@nvidia.com,
-	mbloch@nvidia.com, alexanderduyck@fb.com, kernel-team@meta.com,
-	johannes@sipsolutions.net, sd@queasysnail.net, jianbol@nvidia.com,
-	dtatulea@nvidia.com, mohsin.bashr@gmail.com,
-	jacob.e.keller@intel.com, willemb@google.com, skhawaja@google.com,
-	bestswngs@gmail.com, aleksandr.loktionov@intel.com, kees@kernel.org,
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-	intel-wired-lan@lists.osuosl.org, linux-rdma@vger.kernel.org,
-	linux-wireless@vger.kernel.org, linux-kselftest@vger.kernel.org,
-	leon@kernel.org
-Subject: Re: [PATCH net-next v3 03/13] net: introduce ndo_set_rx_mode_async
- and dev_rx_mode_work
-Message-ID: <acMU93XN02PHmAGi@mini-arch>
-Mail-Followup-To: Stanislav Fomichev <stfomichev@gmail.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Stanislav Fomichev <sdf@fomichev.me>, netdev@vger.kernel.org,
-	davem@davemloft.net, edumazet@google.com, pabeni@redhat.com,
-	horms@kernel.org, corbet@lwn.net, skhan@linuxfoundation.org,
-	andrew+netdev@lunn.ch, michael.chan@broadcom.com,
-	pavan.chebbi@broadcom.com, anthony.l.nguyen@intel.com,
-	przemyslaw.kitszel@intel.com, saeedm@nvidia.com, tariqt@nvidia.com,
-	mbloch@nvidia.com, alexanderduyck@fb.com, kernel-team@meta.com,
-	johannes@sipsolutions.net, sd@queasysnail.net, jianbol@nvidia.com,
-	dtatulea@nvidia.com, mohsin.bashr@gmail.com,
-	jacob.e.keller@intel.com, willemb@google.com, skhawaja@google.com,
-	bestswngs@gmail.com, aleksandr.loktionov@intel.com, kees@kernel.org,
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-	intel-wired-lan@lists.osuosl.org, linux-rdma@vger.kernel.org,
-	linux-wireless@vger.kernel.org, linux-kselftest@vger.kernel.org,
-	leon@kernel.org
-References: <20260320012501.2033548-1-sdf@fomichev.me>
- <20260320012501.2033548-4-sdf@fomichev.me>
- <20260323162003.0d155055@kernel.org>
- <acLUMN1BYkIVyOk8@mini-arch>
- <20260324142114.216fcb01@kernel.org>
+	dkim=pass (2048-bit key) header.d=meta.com header.i=@meta.com header.b="UeOYGNcg"
+Received: from pps.filterd (m0528008.ppops.net [127.0.0.1])
+	by mx0a-00082601.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 62OLKqRt2093278
+	for <linux-rdma@vger.kernel.org>; Tue, 24 Mar 2026 16:51:48 -0700
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=meta.com; h=cc
+	:content-transfer-encoding:content-type:date:from:in-reply-to
+	:message-id:mime-version:references:subject:to; s=s2048-2025-q2;
+	 bh=B4WuddQzak0iMs+x+SFLQE/xEKY5OBiF+Wu5h4lGL3o=; b=UeOYGNcgp3H5
+	TduUlpqGXTYgT2Q9D/GPNOXzh9XnVHI8ldO3rbkDsSieTaencdeWe3FEzmmQFLo9
+	yQUVfQDqtlZHleg/lJFvwS2mA5wl0gAPpIwLFuR+PXtoxXqWT8gYFJKu+mf2Xy4Q
+	g2zpRB1AbAWFsikg1g4GJklKIsw0oMdms3A/+QgYl7GUTOSaqa6WHAe17JesKs9e
+	dzuZH8e8Il6fRFaEvXK231nTHShFGD/ba5KWCF36ReRxufwl8FC+zo9ke9KPpNZu
+	kqWAZ8s0mYg7rb3+pNOB8XsqnZIDtjwfzLge2BusvK0lgDmunLf4Pl1NrgxYf380
+	L1CwELs+Vg==
+Received: from maileast.thefacebook.com ([163.114.135.16])
+	by mx0a-00082601.pphosted.com (PPS) with ESMTPS id 4d42er1hc1-2
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT)
+	for <linux-rdma@vger.kernel.org>; Tue, 24 Mar 2026 16:51:47 -0700 (PDT)
+Received: from twshared25002.15.frc2.facebook.com (2620:10d:c0a8:1b::2d) by
+ mail.thefacebook.com (2620:10d:c0a9:6f::237c) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.2.2562.35; Tue, 24 Mar 2026 23:51:46 +0000
+Received: by devbig259.ftw1.facebook.com (Postfix, from userid 664516)
+	id 8DA221D7CF55; Tue, 24 Mar 2026 16:46:26 -0700 (PDT)
+From: Zhiping Zhang <zhipingz@meta.com>
+To: Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>,
+        Bjorn
+ Helgaas <bhelgaas@google.com>, <linux-rdma@vger.kernel.org>,
+        <linux-pci@vger.kernel.org>, <netdev@vger.kernel.org>,
+        <dri-devel@lists.freedesktop.org>, Keith Busch <kbusch@kernel.org>,
+        Yochai
+ Cohen <yochai@nvidia.com>, Yishai Hadas <yishaih@nvidia.com>
+CC: Bjorn Helgaas <helgaas@kernel.org>, Zhiping Zhang <zhipingz@meta.com>
+Subject: [RFC v2 1/2] vfio: add callback to get tph info for dmabuf
+Date: Tue, 24 Mar 2026 16:46:02 -0700
+Message-ID: <20260324234615.3731237-2-zhipingz@meta.com>
+X-Mailer: git-send-email 2.52.0
+In-Reply-To: <20260324234615.3731237-1-zhipingz@meta.com>
+References: <20260324234615.3731237-1-zhipingz@meta.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20260324142114.216fcb01@kernel.org>
+Content-Transfer-Encoding: quoted-printable
+X-FB-Internal: Safe
+Content-Type: text/plain
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwMzI0MDE4NCBTYWx0ZWRfX29EZ6hEVbvFR
+ G9sr2IL20uLgpvZAxjn95HPfqUGT2W9d9bjlFAx7UifKEXc2Znh6GKM/xqlWPqEEOK99efv4iAD
+ 3oTH9HOcPe++8d5JMoqY0HLPJK3nTptEk4YodhCkUqP1RpB1MxFmKANFXf3eNXKBv3SCq/Hh7og
+ ojCy+5DTqeYUoshiklHraSh/vgrCP+fdAcZftE+XgE2dVMXmiViawTnvIRE3HaP3gMTAXTwH1Vd
+ RdaBmeCGwZtjWYcCPSa3JK5vPHmePbIKacVSmd44IIfPj4v/pKHBYHqIanFowrpdKh2Tb4ayIA1
+ vnAmNhxLH8DOmOTAQlCCAJOuaI9mOjkm79v9jlndgR+xCEHBIYkztczqzk6A3kcAxde/72tEiFo
+ FtVll8M+ZsmZoRxZphFUfCkswA93cyV3mosVhsMzV8oogTTLylK3YsG3t9zK1SAHu+51zZmXCmw
+ p6VbLEKIpVVck6UpYGw==
+X-Proofpoint-ORIG-GUID: lWNEQZeMn_Bs7Hx3Kflwg0aLxM4W0rTP
+X-Proofpoint-GUID: lWNEQZeMn_Bs7Hx3Kflwg0aLxM4W0rTP
+X-Authority-Analysis: v=2.4 cv=KbffcAYD c=1 sm=1 tr=0 ts=69c32394 cx=c_pps
+ a=MfjaFnPeirRr97d5FC5oHw==:117 a=MfjaFnPeirRr97d5FC5oHw==:17
+ a=Yq5XynenixoA:10 a=VkNPw1HP01LnGYTKEx00:22 a=7x6HtfJdh03M6CCDgxCd:22
+ a=_1IyUuN4QrATX339ibzo:22 a=VabnemYjAAAA:8 a=9vb4j_dHmgPK81v2NVsA:9
+ a=gKebqoRLp9LExxC7YDUY:22
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1143,Hydra:6.1.51,FMLib:17.12.100.49
+ definitions=2026-03-24_04,2026-03-24_01,2025-10-01_01
 
-On 03/24, Jakub Kicinski wrote:
-> On Tue, 24 Mar 2026 11:13:04 -0700 Stanislav Fomichev wrote:
-> > > > +		netif_addr_lock_bh(dev);
-> > > > +
-> > > > +		err = __hw_addr_list_snapshot(&uc_snap, &dev->uc,
-> > > > +					      dev->addr_len);
-> > > > +		if (!err)
-> > > > +			err = __hw_addr_list_snapshot(&uc_ref, &dev->uc,
-> > > > +						      dev->addr_len);
-> > > > +		if (!err)
-> > > > +			err = __hw_addr_list_snapshot(&mc_snap, &dev->mc,
-> > > > +						      dev->addr_len);
-> > > > +		if (!err)
-> > > > +			err = __hw_addr_list_snapshot(&mc_ref, &dev->mc,
-> > > > +						      dev->addr_len);  
-> > > 
-> > > This doesn't get slow with a few thousands of addresses?  
-> > 
-> > I can add kunit benchmark and attach the output? Although not sure where
-> > to go from that. The alternative to this is allocating an array of entries.
-> > I started with that initially but __hw_addr_sync_dev wants to kfree the
-> > individual entries and I decided not to have a separate helpers to
-> > manage the snapshots.
-> 
-> Let's see what the benchmark says. Hopefully it's fast enough and 
-> we don't have to worry. Is keeping these lists around between the
-> invocations of the work tricky?
+This patch adds a callback to get the tph info on DMA buffer exporters.
+The tph info includes both the steering tag and the process hint (ph).
 
-Yeah, that sounds doable, don't think it's too tricky, just extra
-list_head on net_device + change the alloc/free to use it.
-And then we keep this cache around until unregister? I will try to add it as
-a separate patch to cache these entries to keep it simple for review..
- 
-> > > Can we give the work a reference on the netdev (at init time) and
-> > > cancel + release it here instead of flushing / waiting?  
-> > 
-> > Not sure why cancel+release, maybe you're thinking about the unregister
-> > path? This is rtnl_unlock -> netdev_run_todo -> __rtnl_unlock + some
-> > extras.
-> > 
-> > And the flush is here to plumb the addresses to the real devices
-> > before we return to the callers. Mostly because of the following
-> > things we have in the tests:
-> > 
-> > # TEST: team cleanup mode lacp                                        [FAIL]
-> > #       macvlan unicast address not found on a slave
-> > 
-> > Can you explain a bit more on the suggestion?
-> 
-> Oh, I thought it's here for unregister! Feels like it'd be cleaner to
-> add the flush in dev_*c_add() and friends? How hard would it be to
-> identify the callers in atomic context?
+The steering tag and ph are encoded in the flags field of
+vfio_device_feature_dma_buf instead of adding new fields to the uapi
+struct, to preserve ABI compatibility.
 
-Not sure we can do it in dev_xc_add because it runs under rtnl :-(
-I currently do flush in netdev_run_todo because that's the place that
-doesn't hold rtnl. Otherwise flush will get stuck because the work
-handler grabs it...
+Signed-off-by: Zhiping Zhang <zhipingz@meta.com>
+---
+ drivers/vfio/pci/vfio_pci_dmabuf.c | 26 ++++++++++++++++++++++++--
+ include/linux/dma-buf.h            | 30 ++++++++++++++++++++++++++++++
+ include/uapi/linux/vfio.h          |  9 +++++++--
+ 3 files changed, 61 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/vfio/pci/vfio_pci_dmabuf.c b/drivers/vfio/pci/vfio_p=
+ci_dmabuf.c
+index 478beafc6ac3..c45cb3884b85 100644
+--- a/drivers/vfio/pci/vfio_pci_dmabuf.c
++++ b/drivers/vfio/pci/vfio_pci_dmabuf.c
+@@ -17,6 +17,8 @@ struct vfio_pci_dma_buf {
+ 	struct phys_vec *phys_vec;
+ 	struct p2pdma_provider *provider;
+ 	u32 nr_ranges;
++	u16 steering_tag;
++	u8 ph;
+ 	u8 revoked : 1;
+ };
+
+@@ -60,6 +62,15 @@ vfio_pci_dma_buf_map(struct dma_buf_attachment *attach=
+ment,
+ 				       priv->size, dir);
+ }
+
++static int vfio_pci_dma_buf_get_tph(struct dma_buf *dmabuf, u16 *steerin=
+g_tag,
++				    u8 *ph)
++{
++	struct vfio_pci_dma_buf *priv =3D dmabuf->priv;
++	*steering_tag =3D priv->steering_tag;
++	*ph =3D priv->ph;
++	return 0;
++}
++
+ static void vfio_pci_dma_buf_unmap(struct dma_buf_attachment *attachment=
+,
+ 				   struct sg_table *sgt,
+ 				   enum dma_data_direction dir)
+@@ -90,6 +101,7 @@ static const struct dma_buf_ops vfio_pci_dmabuf_ops =3D=
+ {
+ 	.unpin =3D vfio_pci_dma_buf_unpin,
+ 	.attach =3D vfio_pci_dma_buf_attach,
+ 	.map_dma_buf =3D vfio_pci_dma_buf_map,
++	.get_tph =3D vfio_pci_dma_buf_get_tph,
+ 	.unmap_dma_buf =3D vfio_pci_dma_buf_unmap,
+ 	.release =3D vfio_pci_dma_buf_release,
+ };
+@@ -228,7 +240,10 @@ int vfio_pci_core_feature_dma_buf(struct vfio_pci_co=
+re_device *vdev, u32 flags,
+ 	if (copy_from_user(&get_dma_buf, arg, sizeof(get_dma_buf)))
+ 		return -EFAULT;
+
+-	if (!get_dma_buf.nr_ranges || get_dma_buf.flags)
++	if (!get_dma_buf.nr_ranges ||
++	    (get_dma_buf.flags & ~(VFIO_DMABUF_FL_TPH |
++				   VFIO_DMABUF_TPH_PH_MASK |
++				   VFIO_DMABUF_TPH_ST_MASK)))
+ 		return -EINVAL;
+
+ 	/*
+@@ -285,7 +300,14 @@ int vfio_pci_core_feature_dma_buf(struct vfio_pci_co=
+re_device *vdev, u32 flags,
+ 		ret =3D PTR_ERR(priv->dmabuf);
+ 		goto err_dev_put;
+ 	}
+-
++	if (get_dma_buf.flags & VFIO_DMABUF_FL_TPH) {
++		priv->steering_tag =3D (get_dma_buf.flags &
++				      VFIO_DMABUF_TPH_ST_MASK) >>
++				     VFIO_DMABUF_TPH_ST_SHIFT;
++		priv->ph =3D (get_dma_buf.flags &
++			    VFIO_DMABUF_TPH_PH_MASK) >>
++			   VFIO_DMABUF_TPH_PH_SHIFT;
++	}
+ 	/* dma_buf_put() now frees priv */
+ 	INIT_LIST_HEAD(&priv->dmabufs_elm);
+ 	down_write(&vdev->memory_lock);
+diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
+index 133b9e637b55..26705c83ad80 100644
+--- a/include/linux/dma-buf.h
++++ b/include/linux/dma-buf.h
+@@ -113,6 +113,36 @@ struct dma_buf_ops {
+ 	 */
+ 	void (*unpin)(struct dma_buf_attachment *attach);
+
++	/**
++	 * @get_tph:
++	 *
++	 * Get the TPH (TLP Processing Hints) for this DMA buffer.
++	 *
++	 * This callback allows DMA buffer exporters to provide TPH including
++	 * both the steering tag and the process hints (ph), which can be used
++	 * to optimize peer-to-peer (P2P) memory access. The TPH info is typica=
+lly
++	 * used in scenarios where:
++	 * - A PCIe device (e.g., RDMA NIC) needs to access memory on another
++	 *   PCIe device (e.g., GPU),
++	 * - The system supports TPH and can use steering tags / ph to optimize
++	 *   cache placement and memory access patterns,
++	 * - The memory is exported via DMABUF for cross-device sharing.
++	 *
++	 * @dmabuf: [in] The DMA buffer for which to retrieve TPH
++	 * @steering_tag: [out] Pointer to store the 16-bit TPH steering tag va=
+lue
++	 * @ph: [out] Pointer to store the 8-bit TPH processing-hint value
++	 *
++	 * Returns:
++	 * * 0 - Success, steering tag stored in @steering_tag
++	 * * -EOPNOTSUPP - TPH steering tags not supported for this buffer
++	 * * -EINVAL - Invalid parameters
++	 *
++	 * This callback is optional. If not implemented, the buffer does not
++	 * support TPH.
++	 *
++	 */
++	int (*get_tph)(struct dma_buf *dmabuf, u16 *steering_tag, u8 *ph);
++
+ 	/**
+ 	 * @map_dma_buf:
+ 	 *
+diff --git a/include/uapi/linux/vfio.h b/include/uapi/linux/vfio.h
+index bb7b89330d35..e2a8962641d2 100644
+--- a/include/uapi/linux/vfio.h
++++ b/include/uapi/linux/vfio.h
+@@ -1505,8 +1505,13 @@ struct vfio_region_dma_range {
+ struct vfio_device_feature_dma_buf {
+ 	__u32	region_index;
+ 	__u32	open_flags;
+-	__u32   flags;
+-	__u32   nr_ranges;
++	__u32	flags;
++#define VFIO_DMABUF_FL_TPH		(1U << 0) /* TPH info is present */
++#define VFIO_DMABUF_TPH_PH_SHIFT	1         /* bits 1-2: PH (2-bit) */
++#define VFIO_DMABUF_TPH_PH_MASK	0x6U
++#define VFIO_DMABUF_TPH_ST_SHIFT	16        /* bits 16-31: steering tag *=
+/
++#define VFIO_DMABUF_TPH_ST_MASK		0xffff0000U
++	__u32	nr_ranges;
+ 	struct vfio_region_dma_range dma_ranges[] __counted_by(nr_ranges);
+ };
+
+--
+2.52.0
+
