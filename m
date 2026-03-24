@@ -1,44 +1,42 @@
 Received: from mx0a-00082601.pphosted.com (mx0a-00082601.pphosted.com [67.231.145.42])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 505B9264617
-	for <linux-rdma@vger.kernel.org>; Tue, 24 Mar 2026 23:51:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD38D264617
+	for <linux-rdma@vger.kernel.org>; Tue, 24 Mar 2026 23:51:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=67.231.145.42
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774396316; cv=none; b=Pc1JGE1hUbWIe2enmFPWDtyeEMKpfbhY2bJdME3Egm0VeJgNqKONxPoooi021EEPcgyFirWHNLzZfdVnnsSPmxffJpwO2IqAZn7vRQCefqgztVQkiyqwRJqq5yeee0so5v1r+EgYNncI6LyoXuNW+tjXzyyUyGR32QLGnv/o0ZM=
+	t=1774396321; cv=none; b=F0futVSINc2Mup1FeE9Kc6JCNZpEQKqC8vnMBSzc9e/TUY8NVLUgbzpJueg1DggkmQR8UFbCTI8VpYtrBvXq3/ktsGTIxNkIkGd/PRTBdgXqLKzQfUPYWLcHZRTg4NjJ9DXw7s0ypg/Ua0HEUp2ovsJ4KjKrFHXUxAYIx1sjXlI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774396316; c=relaxed/simple;
-	bh=bTY2kSZ8d0y76wdgYY4Ktc2YHV+f+ThnXpVEOY1Mkzs=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=GhGz3BV+yvsNjQGjcAeaOrBhQ9mwumRO600Djt1dnSNBRHfDls+PxabAXkBS4pSPF99R+aM4iiR0dlsG4AU9kbWvu0SHPAT/ySIbRj6v/u+7oiGCxv4uk1Gnagw8Nliz2YLWlSVmznzSgd15aKc7lwAm7aTlTLMzR/UXwgLTH6Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=meta.com; spf=pass smtp.mailfrom=meta.com; dkim=pass (2048-bit key) header.d=meta.com header.i=@meta.com header.b=VDQr8Afa; arc=none smtp.client-ip=67.231.145.42
+	s=arc-20240116; t=1774396321; c=relaxed/simple;
+	bh=O5GME2cuVxChwrcJ1TC22wMeIZDwNl2gWemTSjB0vcc=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=mDUgK7FXtGNAKcsOBiyj6zVubWSYdFtrg77ipM2SmP+UCdGnSX7/c4M0a3ySx4MjlUJipVritji5qGdQxJ9jzZt0iOfyNwn+exy3AuE9zXn+60oKceyw9i8dODP7sk6uNS6vGPFioxyJG+ISdgFYIT/Y/xwJcGLc6Atuv3fr+q8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=meta.com; spf=pass smtp.mailfrom=meta.com; dkim=pass (2048-bit key) header.d=meta.com header.i=@meta.com header.b=CdOCU4Nn; arc=none smtp.client-ip=67.231.145.42
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=meta.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=meta.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=meta.com header.i=@meta.com header.b="VDQr8Afa"
-Received: from pps.filterd (m0528007.ppops.net [127.0.0.1])
-	by mx0a-00082601.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 62OKfGns1831230
-	for <linux-rdma@vger.kernel.org>; Tue, 24 Mar 2026 16:51:53 -0700
+	dkim=pass (2048-bit key) header.d=meta.com header.i=@meta.com header.b="CdOCU4Nn"
+Received: from pps.filterd (m0528009.ppops.net [127.0.0.1])
+	by mx0a-00082601.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 62OM01v63068308
+	for <linux-rdma@vger.kernel.org>; Tue, 24 Mar 2026 16:51:59 -0700
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=meta.com; h=cc
-	:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to; s=s2048-2025-q2;
-	 bh=oGyXd3xG5pggurnnSOT71i0oSkKn9mw956kLM6mwDgM=; b=VDQr8AfaXbHH
-	CXynrSWPSPxPAjkD3kcSwIcmegl0Sz5fpHZyNkdUGDfRt33TtKZPFqYk/iqR64IV
-	ZQK5YC27Ayu0nDD5EcbUn+mHXSLEH1+p/S6ebARVBaUwgPLjBuLtgXjnt36l8E0e
-	cQgtw5nOPLsTZSG+yhfYaQjezIS9/M4TlvJO8QB6XJDLrAe3zF9Vo+9IUgOs/vME
-	tmmON1rwWrP/CrVdpAuBaJ/0x0IG9SILhL8qGSX3ZRAD5Eg6tMYMuCxToLPaj67z
-	0PqA41C84edawzAwX63UH961xsYfZ1qpiq6a3GYeJk5CxuXJSEBEZh7ppBgrvfh5
-	LQeEsTLeVg==
-Received: from mail.thefacebook.com ([163.114.134.16])
-	by mx0a-00082601.pphosted.com (PPS) with ESMTPS id 4d41vat0hh-5
+	:content-transfer-encoding:content-type:date:from:message-id
+	:mime-version:subject:to; s=s2048-2025-q2; bh=GTcNfaIvTV9CCY4TmT
+	n6enDItgoZyUnkmTMnvSeTAAU=; b=CdOCU4NndSVgN7zKgckJpgtavyWE3HGGBo
+	w0ZNInhRdhfx+BxwqlhVlGDGV4taks4QDuIJG5B5A+TVmUmih4moBce6gRIXlZ9R
+	nlH9QI+MQOc0sEbqFwRMi78q6Jcm8EBjfWkMgojEMU4v4knh7rmzpDMOFuTYMM9I
+	twBFxtrnbnnCymOojZFLr3UrKRg3mkhv4OTXwdFfcxJICeogrS5eANvzgjjMQkIK
+	+q6K0fkL1zMPFCYURkJLNPtbHygVneLNgy7NjiP7l//Pdeo6bjqVxQ8YHTvLizIE
+	6f+ZI5WJeroXRgpfiYSwBrWxyM6aZkfBjWmCXPKGF6TuYUXjuuzA==
+Received: from maileast.thefacebook.com ([163.114.135.16])
+	by mx0a-00082601.pphosted.com (PPS) with ESMTPS id 4d3ngbbe7h-6
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT)
-	for <linux-rdma@vger.kernel.org>; Tue, 24 Mar 2026 16:51:53 -0700 (PDT)
-Received: from twshared18017.01.snb2.facebook.com (2620:10d:c085:208::7cb7) by
- mail.thefacebook.com (2620:10d:c08b:78::2ac9) with Microsoft SMTP Server
+	for <linux-rdma@vger.kernel.org>; Tue, 24 Mar 2026 16:51:59 -0700 (PDT)
+Received: from twshared22445.03.snb1.facebook.com (2620:10d:c0a8:1c::1b) by
+ mail.thefacebook.com (2620:10d:c0a9:6f::8fd4) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.2.2562.35; Tue, 24 Mar 2026 23:51:51 +0000
+ 15.2.2562.35; Tue, 24 Mar 2026 23:51:52 +0000
 Received: by devbig259.ftw1.facebook.com (Postfix, from userid 664516)
-	id 496D01D7CF69; Tue, 24 Mar 2026 16:46:28 -0700 (PDT)
+	id B181C1D7CEBE; Tue, 24 Mar 2026 16:46:15 -0700 (PDT)
 From: Zhiping Zhang <zhipingz@meta.com>
 To: Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>,
         Bjorn
@@ -48,12 +46,10 @@ To: Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>,
         Yochai
  Cohen <yochai@nvidia.com>, Yishai Hadas <yishaih@nvidia.com>
 CC: Bjorn Helgaas <helgaas@kernel.org>, Zhiping Zhang <zhipingz@meta.com>
-Subject: [RFC v2 2/2] RDMA/mlx5: get tph for p2p access when registering dmabuf mr
-Date: Tue, 24 Mar 2026 16:46:03 -0700
-Message-ID: <20260324234615.3731237-3-zhipingz@meta.com>
+Subject: [RFC v2 0/2] Retrieve tph from dmabuf for PCIe P2P memory access
+Date: Tue, 24 Mar 2026 16:46:01 -0700
+Message-ID: <20260324234615.3731237-1-zhipingz@meta.com>
 X-Mailer: git-send-email 2.52.0
-In-Reply-To: <20260324234615.3731237-1-zhipingz@meta.com>
-References: <20260324234615.3731237-1-zhipingz@meta.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -63,186 +59,63 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: quoted-printable
 X-FB-Internal: Safe
 Content-Type: text/plain
-X-Authority-Analysis: v=2.4 cv=D8pK6/Rj c=1 sm=1 tr=0 ts=69c32399 cx=c_pps
- a=CB4LiSf2rd0gKozIdrpkBw==:117 a=CB4LiSf2rd0gKozIdrpkBw==:17
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwMzI0MDE4NCBTYWx0ZWRfX/SQ+OFPfpY8y
+ xetAGrHSDmbfYoUEf6wyPYJhjPcFilCbv+y5iyzvEPe+whj1xdRb+Qmh4rnHebH+HBkSVCLbM7q
+ Aj1f1H2MKMRGLd/m4n3H0IOgQFxmnw2OeH73zUQ8FVNkEgWXF/fEGJV9lFBiRKRJhs9L7PRS+2J
+ AocCWL6VitcTJPKkq0OYOnHY46+NxvyfLJADWsaOO/bW+qDeMVLMKJ8NZfP+aHcyJ7T3tg9Bg6z
+ 7MkW32kjWv2ICeuI59prfzMrZxMbZoW9G2LZV34OnLZEW4zHCIlNDsMDOKLoVWtdER6PbfL/1yG
+ VszP02DOBW6VO+q/2gywXbW0wcL4tFpdWPSKbpVhDO8voSQtLMfysYJjgIv/T+1Iar15DKmQrFc
+ kQUUzg++TjhuJIg02ekHcLekn8l0LLY34rVcCJnMX2Mebbfj/44s2Ef43OZhwEe1CwuJv4ELePj
+ Qhaa8Uk+bJbAr73mdXA==
+X-Proofpoint-ORIG-GUID: CeXpSFuYOtSNt45kLAxqsKzSs2-gPELY
+X-Proofpoint-GUID: CeXpSFuYOtSNt45kLAxqsKzSs2-gPELY
+X-Authority-Analysis: v=2.4 cv=J86nLQnS c=1 sm=1 tr=0 ts=69c3239f cx=c_pps
+ a=MfjaFnPeirRr97d5FC5oHw==:117 a=MfjaFnPeirRr97d5FC5oHw==:17
  a=Yq5XynenixoA:10 a=VkNPw1HP01LnGYTKEx00:22 a=7x6HtfJdh03M6CCDgxCd:22
- a=4h92JMTCafKA-fb_NiOh:22 a=VabnemYjAAAA:8 a=YIu6cGBJ8C_R0mlkFEgA:9
- a=gKebqoRLp9LExxC7YDUY:22
-X-Proofpoint-ORIG-GUID: 0udrhTFuUv-vlrKu8YkRaXVnGm8TOgVE
-X-Proofpoint-GUID: 0udrhTFuUv-vlrKu8YkRaXVnGm8TOgVE
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwMzI0MDE4NCBTYWx0ZWRfXwd2oEE6dYo4R
- 98ydleHE8YNh81IyCz4z2k7v0PYxHIPvCnbeA2WhbZkIPGJD9gBPvr/lGQyGHRnREdIIq13nhHf
- HmJuFcYbW4cl2zLUwq7Y2yS6gmlRszAki3R3ff3MHyjGhys2bjjBGANeTSC1nG6c34w3Kvt/Cf9
- /wmlkgd4jGVMJKPsMvES/4wCr5olGfFwxnpn6dJlMOtNxcgljmrRxXca7M/f4yIeL6vU05O1/If
- cI3Sk6oadSLzTdfKli1ppnPgCZN/ih94twHrA6aMO5OSsKdCugI3ii4UbCBx4XPSWOFPSPYGGgc
- y6MkylbtTXXrP4zHaU8vWHOOyXrbGgwEh2pe4zU8Mzv5FBdKGtT7o61fOmyx0qQ4dERHaE7g5+9
- Nsr/VmqKgBqnoiiE7QRblzmhlR8FnrWyt0MrpAmdhTu/WoaOlKmhBKPxSO7PF9BCLmjkK/Auaih
- 56lYjvCWyfCxL4FPa1A==
+ a=U_y8lYiYyhHBU5rMqhb2:22 a=zJhtDeQ-gK41YlDc0VgA:9
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.293,Aquarius:18.0.1143,Hydra:6.1.51,FMLib:17.12.100.49
  definitions=2026-03-24_04,2026-03-24_01,2025-10-01_01
 
-This patch adds support to retrieve tph info from dmabuf during mr
-registration for P2P memory access. A new helper get_tph_mr_dmabuf()
-queries the dmabuf exporter for tph (steering tag and processing hint)
-and converts the raw steering tag to an st_index via
-mlx5_st_alloc_index_by_tag(). The DMAH workflow for CPU still takes
-precedence in the process.
+Currently, the steering tag can be used for a CPU on the motherboard; the
+ACPI check is in place to query and obtain the supported tph settings. He=
+re
+we intend to use the tph info to improve RDMA NIC memory access on a vfio=
+-based
+accelerator device via PCIe peer-to-peer. When an application registers a
+RDMA memory region with DMABUF for the RDMA NIC to access the device memo=
+ry,
+the tph info of the memory region can be retrieved and used to set the
+steering tag / process hint (ph). Additional instructions or hints can be
+passed to the GPU or accelerator device for advanced memory operations,
+such as, read cache selection.
 
-The new mlx5_st_alloc_index_by_tag() API is extracted from
-mlx5_st_alloc_index() to allow callers that already have a raw steering
-tag value (e.g., from a dmabuf) to allocate an st_index directly,
-without requiring a CPU ID and memory type lookup.
+Note this RFC is for the discussion on the direction and is not intended =
+to be
+a complete implementation. If no objection, we will convert it to a Patch=
+ set.
 
-Signed-off-by: Zhiping Zhang <zhipingz@meta.com>
----
+Changes v1 -> v2:
+- Encode steering tag and ph in vfio_device_feature_dma_buf flags field
+  instead of adding new uapi struct fields, to preserve ABI compatibility
+- Fix subject prefixes: "Vfio:" -> "vfio:", "RMDA MLX5:" -> "RDMA/mlx5:"
+- Fix raw steering tag vs st_index mismatch: get_tph() now returns a raw
+  steering tag, and the mlx5 consumer converts it to an st_index via the
+  new mlx5_st_alloc_index_by_tag() API
+- Fix @tph doc typo to @steering_tag in dma-buf.h
+- Remove unused variable, fix parameter alignment, fix trailing semicolon
+
+Zhiping Zhang (2):
+  vfio: add callback to get tph info for dmabuf
+  RDMA/mlx5: get tph for p2p access when registering dmabuf mr
+
  drivers/infiniband/hw/mlx5/mr.c               | 34 +++++++++++++++++++
  .../net/ethernet/mellanox/mlx5/core/lib/st.c  | 23 +++++++++----
+ drivers/vfio/pci/vfio_pci_dmabuf.c            | 26 ++++++++++++--
+ include/linux/dma-buf.h                       | 30 ++++++++++++++++
  include/linux/mlx5/driver.h                   |  7 ++++
- 3 files changed, 57 insertions(+), 7 deletions(-)
+ include/uapi/linux/vfio.h                     |  9 +++--
+ 6 files changed, 118 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5=
-/mr.c
-index 665323b90b64..041922ba3bff 100644
---- a/drivers/infiniband/hw/mlx5/mr.c
-+++ b/drivers/infiniband/hw/mlx5/mr.c
-@@ -46,6 +46,8 @@
- #include "data_direct.h"
- #include "dmah.h"
-
-+MODULE_IMPORT_NS("DMA_BUF");
-+
- enum {
- 	MAX_PENDING_REG_MR =3D 8,
- };
-@@ -1622,6 +1624,36 @@ static struct dma_buf_attach_ops mlx5_ib_dmabuf_at=
-tach_ops =3D {
- 	.move_notify =3D mlx5_ib_dmabuf_invalidate_cb,
- };
-
-+static void get_tph_mr_dmabuf(struct mlx5_ib_dev *dev, int fd, u16 *st_i=
-ndex,
-+			      u8 *ph)
-+{
-+	struct dma_buf *dmabuf;
-+	u16 steering_tag;
-+	int ret;
-+
-+	dmabuf =3D dma_buf_get(fd);
-+	if (IS_ERR(dmabuf))
-+		return;
-+
-+	if (!dmabuf->ops->get_tph)
-+		goto end_dbuf_put;
-+
-+	ret =3D dmabuf->ops->get_tph(dmabuf, &steering_tag, ph);
-+	if (ret) {
-+		mlx5_ib_dbg(dev, "get_tph failed (%d)\n", ret);
-+		goto end_dbuf_put;
-+	}
-+
-+	ret =3D mlx5_st_alloc_index_by_tag(dev->mdev, steering_tag, st_index);
-+	if (ret) {
-+		*ph =3D MLX5_IB_NO_PH;
-+		mlx5_ib_dbg(dev, "st_alloc_index_by_tag failed (%d)\n", ret);
-+	}
-+
-+end_dbuf_put:
-+	dma_buf_put(dmabuf);
-+}
-+
- static struct ib_mr *
- reg_user_mr_dmabuf(struct ib_pd *pd, struct device *dma_device,
- 		   u64 offset, u64 length, u64 virt_addr,
-@@ -1664,6 +1696,8 @@ reg_user_mr_dmabuf(struct ib_pd *pd, struct device =
-*dma_device,
- 		ph =3D dmah->ph;
- 		if (dmah->valid_fields & BIT(IB_DMAH_CPU_ID_EXISTS))
- 			st_index =3D mdmah->st_index;
-+	} else {
-+		get_tph_mr_dmabuf(dev, fd, &st_index, &ph);
- 	}
-
- 	mr =3D alloc_cacheable_mr(pd, &umem_dmabuf->umem, virt_addr,
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lib/st.c b/drivers/n=
-et/ethernet/mellanox/mlx5/core/lib/st.c
-index 997be91f0a13..112c55ede731 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/lib/st.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/lib/st.c
-@@ -92,23 +92,18 @@ void mlx5_st_destroy(struct mlx5_core_dev *dev)
- 	kfree(st);
- }
-
--int mlx5_st_alloc_index(struct mlx5_core_dev *dev, enum tph_mem_type mem=
-_type,
--			unsigned int cpu_uid, u16 *st_index)
-+int mlx5_st_alloc_index_by_tag(struct mlx5_core_dev *dev, u16 tag,
-+			       u16 *st_index)
- {
- 	struct mlx5_st_idx_data *idx_data;
- 	struct mlx5_st *st =3D dev->st;
- 	unsigned long index;
- 	u32 xa_id;
--	u16 tag;
- 	int ret;
-
- 	if (!st)
- 		return -EOPNOTSUPP;
-
--	ret =3D pcie_tph_get_cpu_st(dev->pdev, mem_type, cpu_uid, &tag);
--	if (ret)
--		return ret;
--
- 	if (st->direct_mode) {
- 		*st_index =3D tag;
- 		return 0;
-@@ -152,6 +147,20 @@ int mlx5_st_alloc_index(struct mlx5_core_dev *dev, e=
-num tph_mem_type mem_type,
- 	mutex_unlock(&st->lock);
- 	return ret;
- }
-+EXPORT_SYMBOL_GPL(mlx5_st_alloc_index_by_tag);
-+
-+int mlx5_st_alloc_index(struct mlx5_core_dev *dev, enum tph_mem_type mem=
-_type,
-+			unsigned int cpu_uid, u16 *st_index)
-+{
-+	u16 tag;
-+	int ret;
-+
-+	ret =3D pcie_tph_get_cpu_st(dev->pdev, mem_type, cpu_uid, &tag);
-+	if (ret)
-+		return ret;
-+
-+	return mlx5_st_alloc_index_by_tag(dev, tag, st_index);
-+}
- EXPORT_SYMBOL_GPL(mlx5_st_alloc_index);
-
- int mlx5_st_dealloc_index(struct mlx5_core_dev *dev, u16 st_index)
-diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
-index 04dcd09f7517..c1d2d603bd96 100644
---- a/include/linux/mlx5/driver.h
-+++ b/include/linux/mlx5/driver.h
-@@ -1177,10 +1177,17 @@ int mlx5_dm_sw_icm_dealloc(struct mlx5_core_dev *=
-dev, enum mlx5_sw_icm_type type
- 			   u64 length, u16 uid, phys_addr_t addr, u32 obj_id);
-
- #ifdef CONFIG_PCIE_TPH
-+int mlx5_st_alloc_index_by_tag(struct mlx5_core_dev *dev, u16 tag,
-+			       u16 *st_index);
- int mlx5_st_alloc_index(struct mlx5_core_dev *dev, enum tph_mem_type mem=
-_type,
- 			unsigned int cpu_uid, u16 *st_index);
- int mlx5_st_dealloc_index(struct mlx5_core_dev *dev, u16 st_index);
- #else
-+static inline int mlx5_st_alloc_index_by_tag(struct mlx5_core_dev *dev,
-+					     u16 tag, u16 *st_index)
-+{
-+	return -EOPNOTSUPP;
-+}
- static inline int mlx5_st_alloc_index(struct mlx5_core_dev *dev,
- 				      enum tph_mem_type mem_type,
- 				      unsigned int cpu_uid, u16 *st_index)
 --
 2.52.0
-
