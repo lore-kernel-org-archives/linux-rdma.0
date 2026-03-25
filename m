@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AB44F3F9F22;
-	Wed, 25 Mar 2026 14:51:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 19933410D0F;
+	Wed, 25 Mar 2026 14:51:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774450292; cv=none; b=GOk3l+KFI+Av6OJqPSa74iakvgIzgf9FB910LRX+G97BzndG/rqcgfVhoxljDVgBEPcVMt4m2cyhMw3roxH+Gk6MSK4AB1l/tb3D8Y1awJ8fYsEJGmWoc20dZsIDIWrqv/oR/YHAO8JLjIdOMlfuOiklCwWNQ9o7BJeUT6Vw1nQ=
+	t=1774450299; cv=none; b=lkNgblaPRdC5XNlW4jnxUd5mIRB3DOOPEC7z0mi2O7emdAcrmXwpxH4T3JgezY3I2rOXRaeOlL4AK4+TUMVkBpixmwsizp7Tjl+mJpOOx6cCU7ay0pmn/1tLXRiRDpnaBX0M7a+5d4HjnZ/UBdBQV1znbHJay8nEh/BZWJ0P5XI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774450292; c=relaxed/simple;
-	bh=fSMK9B7+FATcYBRbXIwRswKyArIMAjAjIlrpc0XMGJo=;
+	s=arc-20240116; t=1774450299; c=relaxed/simple;
+	bh=AoJN3mD+ZYMDEPLixrQql/276UNXHzit/UqYp0ozVgE=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=esb7vfXdO5piriuatmkQOhj5lGVJL0v/SiZfGSlWR/Ef/qbh1+R8njiQZjKrC1HdOAVGKyCcNox9Z16UZ2RstbhzNIEGrRvjcggX5Xj8qRDsDwcKmHWAE9pLL7HedtCSYfX764PoJEOu69yxBROohrw/wNBmWiI1RuG5gGQkOs8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=WhxJ7RrR; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version:Content-Type; b=Ix8q2qPYlOvbC69xunAKHJgZSQPIl1KrJCEoF0+PZBXrYrjxFT/YG9Wjs5JTJgrWckkORxADv7HafLmmL5jkhKfwULRKPmL90hr7ktiAceQtVGYj7rhnWkd4YOpIf/vlepfjTKExgI0oIdxYDe7giSZ/Y7Tluk02IXyGzK8nM8U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=CiMr9uxX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="WhxJ7RrR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BBF79C2BCB4;
-	Wed, 25 Mar 2026 14:51:25 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="CiMr9uxX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6BC1FC2BCF6;
+	Wed, 25 Mar 2026 14:51:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1774450291;
-	bh=fSMK9B7+FATcYBRbXIwRswKyArIMAjAjIlrpc0XMGJo=;
+	s=k20201202; t=1774450298;
+	bh=AoJN3mD+ZYMDEPLixrQql/276UNXHzit/UqYp0ozVgE=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=WhxJ7RrRpkDZpgTWfjc4VJddijHHsE2NRWf5dq+N/X2yjr8KVEkVVnz2k3eJB/UqT
-	 jdEppXr+F2VAL2B+sveWdQlDL/O8sCkcmaAGyKyZXCwRNSR9rBnjiEvmlR6j/MXsf2
-	 CI+hn7mc5Hpo/MqiHKaZcI1VkQ/1+Ux4nMpKiUdz7f+OMyk+Hsrt8lccs8m6++/b6y
-	 WdcLvLVXGH/VU5H0T9q/Z3nVcml5aT95TgwbVGoBQQMN4QHmybK00E/h3+ScWBS5UB
-	 X7Ae2M8QMHCdUZMLo03jLlq6ucI6uUgfttBJL4EItuh+GLtFP0q+c6zT5Tqo0rkThg
-	 SsLzKsRIE0smg==
+	b=CiMr9uxXe0TtC9MR3hGxTwSlV2erZr9US6NFfa1noGufzwAm9tLYPxAeofytpJpOX
+	 Cn24/GhMkq/WEBFfYEnT8VotFXc074mlVtS4sTMxJlFHSg63t9F1dTWtd/wpXHciMJ
+	 hOYkfp9qf1KvELDE1JQYeTIRV/2fM5LJwver3DunHdHqKB1MewWOKRmaG0F9Ry/Qmy
+	 HalyQwtwCHCoTvpgFVI9Tyl334q58dQfzSlt2VkKUYc0uIXtTtSMRplYoq1e7LXqyf
+	 XLQC20LYKGv5baMlkbYiq8cgGvPVli2TzUWRaTx+qbnRgUSOiTYFLA+2Spc6xyEbfp
+	 /r3P2BjipV9QA==
 From: =?UTF-8?q?Bj=C3=B6rn=20T=C3=B6pel?= <bjorn@kernel.org>
 To: netdev@vger.kernel.org,
 	"David S. Miller" <davem@davemloft.net>,
@@ -56,9 +56,9 @@ Cc: =?UTF-8?q?Bj=C3=B6rn=20T=C3=B6pel?= <bjorn@kernel.org>,
 	linux-kernel@vger.kernel.org,
 	linux-kselftest@vger.kernel.org,
 	linux-rdma@vger.kernel.org
-Subject: [PATCH net-next v2 09/12] selftests: drv-net: Add MAC loopback netdevsim test
-Date: Wed, 25 Mar 2026 15:50:16 +0100
-Message-ID: <20260325145022.2607545-10-bjorn@kernel.org>
+Subject: [PATCH net-next v2 10/12] MAINTAINERS: Add entry for ethtool loopback
+Date: Wed, 25 Mar 2026 15:50:17 +0100
+Message-ID: <20260325145022.2607545-11-bjorn@kernel.org>
 X-Mailer: git-send-email 2.53.0
 In-Reply-To: <20260325145022.2607545-1-bjorn@kernel.org>
 References: <20260325145022.2607545-1-bjorn@kernel.org>
@@ -71,178 +71,32 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-Add loopback_nsim.py with netdevsim-specific tests for MAC loopback
-via the new ethtool_ops loopback callbacks:
-
- - test_get_mac_entry: verify MAC entry appears in dump with correct
-   component, name, and supported directions
- - test_set_mac_local: SET local, verify via GET and debugfs
- - test_set_mac_disable: enable then disable
- - test_set_mac_unknown_name: SET with wrong name, expect EOPNOTSUPP
+Add a MAINTAINERS entry for the ethtool loopback subsystem covering
+the core loopback and CMIS loopback netlink implementation, and the
+associated selftests.
 
 Signed-off-by: Björn Töpel <bjorn@kernel.org>
 ---
- .../testing/selftests/drivers/net/hw/Makefile |   1 +
- .../selftests/drivers/net/hw/loopback_nsim.py | 138 ++++++++++++++++++
- 2 files changed, 139 insertions(+)
- create mode 100755 tools/testing/selftests/drivers/net/hw/loopback_nsim.py
+ MAINTAINERS | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/tools/testing/selftests/drivers/net/hw/Makefile b/tools/testing/selftests/drivers/net/hw/Makefile
-index 5a6037a71f8f..74b0e1937980 100644
---- a/tools/testing/selftests/drivers/net/hw/Makefile
-+++ b/tools/testing/selftests/drivers/net/hw/Makefile
-@@ -33,6 +33,7 @@ TEST_PROGS = \
- 	irq.py \
- 	loopback.sh \
- 	loopback_drv.py \
-+	loopback_nsim.py \
- 	nic_timestamp.py \
- 	nk_netns.py \
- 	pp_alloc_fail.py \
-diff --git a/tools/testing/selftests/drivers/net/hw/loopback_nsim.py b/tools/testing/selftests/drivers/net/hw/loopback_nsim.py
-new file mode 100755
-index 000000000000..d05be09f6c14
---- /dev/null
-+++ b/tools/testing/selftests/drivers/net/hw/loopback_nsim.py
-@@ -0,0 +1,138 @@
-+#!/usr/bin/env python3
-+# SPDX-License-Identifier: GPL-2.0
+diff --git a/MAINTAINERS b/MAINTAINERS
+index a09bf30a057d..411c412975ed 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -18389,6 +18389,12 @@ F:	net/ethtool/cabletest.c
+ F:	tools/testing/selftests/drivers/net/*/ethtool*
+ K:	cable_test
+ 
++NETWORKING [ETHTOOL LOOPBACK]
++M:	Björn Töpel <bjorn@kernel.org>
++F:	net/ethtool/cmis_loopback.c
++F:	net/ethtool/loopback.c
++F:	tools/testing/selftests/drivers/net/hw/loopback*
 +
-+"""Netdevsim-specific tests for MAC loopback via ethtool_ops.
-+
-+Verifies that MAC loopback entries appear in dumps, that SET
-+operations update state correctly (both via GET and debugfs).
-+"""
-+
-+import errno
-+import os
-+
-+from lib.py import ksft_run, ksft_exit, ksft_eq
-+from lib.py import KsftFailEx, ksft_disruptive
-+from lib.py import EthtoolFamily, NlError
-+from lib.py import NetDrvEnv, ip, defer
-+
-+# Direction flags as YNL returns them
-+DIR_NONE = set()
-+DIR_LOCAL = {'local'}
-+DIR_REMOTE = {'remote'}
-+
-+
-+def _nsim_dfs_path(cfg):
-+    return cfg._ns.nsims[0].dfs_dir  # pylint: disable=protected-access
-+
-+
-+def _dfs_read_u32(cfg, path):
-+    with open(os.path.join(_nsim_dfs_path(cfg), path),
-+              encoding="utf-8") as f:
-+        return int(f.read().strip())
-+
-+
-+def _dfs_write_u32(cfg, path, val):
-+    with open(os.path.join(_nsim_dfs_path(cfg), path), "w",
-+              encoding="utf-8") as f:
-+        f.write(str(val))
-+
-+
-+def _get_loopback(cfg):
-+    results = cfg.ethnl.loopback_get({
-+        'header': {'dev-index': cfg.ifindex}
-+    }, dump=True)
-+    entries = []
-+    for msg in results:
-+        if 'entry' in msg:
-+            entries.extend(msg['entry'])
-+    return entries
-+
-+
-+def _set_loopback(cfg, component, name, direction):
-+    cfg.ethnl.loopback_set({
-+        'header': {'dev-index': cfg.ifindex},
-+        'entry': [{
-+            'component': component,
-+            'name': name,
-+            'direction': direction,
-+        }]
-+    })
-+
-+
-+def test_get_mac_entry(cfg):
-+    """GET should return the MAC loopback entry with correct attributes."""
-+    entries = _get_loopback(cfg)
-+    mac_entries = [e for e in entries if e['component'] == 'mac']
-+
-+    ksft_eq(len(mac_entries), 1, "Expected 1 MAC loopback entry")
-+    ksft_eq(mac_entries[0]['name'], 'mac')
-+    ksft_eq(mac_entries[0]['supported'], DIR_LOCAL | DIR_REMOTE)
-+    ksft_eq(mac_entries[0]['direction'], DIR_NONE)
-+
-+
-+@ksft_disruptive
-+def test_set_mac_local(cfg):
-+    """SET MAC local loopback and verify via GET and debugfs."""
-+    ip(f"link set dev {cfg.ifname} down")
-+    defer(ip, f"link set dev {cfg.ifname} up")
-+
-+    _set_loopback(cfg, 'mac', 'mac', 'local')
-+    defer(_set_loopback, cfg, 'mac', 'mac', 0)
-+
-+    entries = _get_loopback(cfg)
-+    mac = [e for e in entries if e['component'] == 'mac']
-+    ksft_eq(mac[0]['direction'], DIR_LOCAL)
-+
-+    dfs_dir = _dfs_read_u32(cfg, "ethtool/mac_lb/direction")
-+    ksft_eq(dfs_dir, 1, "debugfs direction should be 1 (LOCAL)")
-+
-+
-+@ksft_disruptive
-+def test_set_mac_disable(cfg):
-+    """Enable then disable MAC loopback."""
-+    ip(f"link set dev {cfg.ifname} down")
-+    defer(ip, f"link set dev {cfg.ifname} up")
-+
-+    _set_loopback(cfg, 'mac', 'mac', 'local')
-+    defer(_set_loopback, cfg, 'mac', 'mac', 0)
-+
-+    _set_loopback(cfg, 'mac', 'mac', 0)
-+
-+    entries = _get_loopback(cfg)
-+    mac = [e for e in entries if e['component'] == 'mac']
-+    ksft_eq(mac[0]['direction'], DIR_NONE, "Direction should be off")
-+
-+    dfs_dir = _dfs_read_u32(cfg, "ethtool/mac_lb/direction")
-+    ksft_eq(dfs_dir, 0, "debugfs direction should be 0")
-+
-+
-+@ksft_disruptive
-+def test_set_mac_unknown_name(cfg):
-+    """SET with unknown name should fail with EOPNOTSUPP."""
-+    ip(f"link set dev {cfg.ifname} down")
-+    defer(ip, f"link set dev {cfg.ifname} up")
-+
-+    try:
-+        _set_loopback(cfg, 'mac', 'bogus', 'local')
-+        raise KsftFailEx("Should have rejected unknown name")
-+    except NlError as e:
-+        ksft_eq(e.error, errno.EOPNOTSUPP,
-+                "Expected EOPNOTSUPP for unknown name")
-+
-+
-+def main() -> None:
-+    """Run netdevsim loopback tests."""
-+    with NetDrvEnv(__file__) as cfg:
-+        cfg.ethnl = EthtoolFamily()
-+
-+        ksft_run([
-+            test_get_mac_entry,
-+            test_set_mac_local,
-+            test_set_mac_disable,
-+            test_set_mac_unknown_name,
-+        ], args=(cfg, ))
-+    ksft_exit()
-+
-+
-+if __name__ == "__main__":
-+    main()
+ NETWORKING [ETHTOOL MAC MERGE]
+ M:	Vladimir Oltean <vladimir.oltean@nxp.com>
+ F:	net/ethtool/mm.c
 -- 
 2.53.0
 
