@@ -1,283 +1,163 @@
-Received: from DM1PR04CU001.outbound.protection.outlook.com (mail-centralusazon11010045.outbound.protection.outlook.com [52.101.61.45])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5350C37EFE3;
-	Mon, 30 Mar 2026 19:41:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.61.45
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774899696; cv=fail; b=lzCy6NJfS6G6S5XUVPT8cMGXbVgzRQwzBgHsErIFBjfpWgKZRzXpgQGdlCfu5wUgjERSxZKdOpEnzfbkCBI3ue/C5OdNZmjS5CtORWnpalErObkXllZi2JC17wAtUwwH/Gw48IqIlrIN0/QRi2VlpgQ5ufPsczx2c0jnTG4CHWY=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774899696; c=relaxed/simple;
-	bh=3j5urw42CRoeEtlbD61/hWs4pabkf8qkXj9/CW69vbo=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=hejyFlaZESGCiQO6ckWje0Ql53XMqpnHk0nWktjJgyAkEmn8ePCuTq+ZRnVX1o3DSYzqgcZomKHxPWmyRlyc4dxKJzyq+Nx3NtLgUu3FB6ZT42IpHJLcYs3vDapE/wg+/8PWa4alGpH4IXT5uoTdYF2SMZDWM2drdUT9+dxeb+I=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=MBu+2rHu; arc=fail smtp.client-ip=52.101.61.45
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 2862239B4A9;
+	Mon, 30 Mar 2026 19:41:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1774899698; cv=none; b=WF01tgtEBAEf2/tX0jsRE+A/yo3FY5FnmlbpVIs8okfyCevx0IIXDVg0i8n7N0qMlec9U3TMejXVdCD7PI2fHvhWp1x6aZm3j9Bk6ePrIbWadIqCjJ98rcBjBTh8FgHq95NFPOsQkxeF29/7p0ZAmQymEpKPUaDCqLsr95F1YaM=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1774899698; c=relaxed/simple;
+	bh=2jzANB6Jpn7vyxL68LyAGHdLW1A45Ea8LNVNsMorZqo=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=seShLyaTsReCUZhptYZp80a+ZYr4dRYOvCky2YrZfmqyQM8j702HJ5HuyHZYK8dm0DC0NNoTExLw8SzXJZRGBYFuavg24NlSXYYDgiXs1gh4C7y/MAOiR7vXNd2z7OvRZ+VDXUg5hWkJxebJEblyqbsrDZTZDkWjSNFLenBPsVU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=EiV/FnMy; arc=none smtp.client-ip=13.77.154.182
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="MBu+2rHu"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=ytuGmFPgi5SYSfUXrSgU3oLISq9KVQUyY9jDmEUkWwfx6ucq9eNPoQ2UnuGgfJcUF3Gl74+Ysrs/Ac+IElK9SJgy0K8McO2jbxfn2OYsR8keU4a9dZG9EUnMT1hWuc+btktkNOZGQcmaIdufnMCmLFVDu3wt7fgq6ouqljVBlLdvJr7ZZsGTfFgSspJZhNRBClxgicX4qP49JFbfTWJWf4xxgY2ZGC1qsl045y+aM8+Y0ptmL3WG2ctr75750DrizfLyEHIYepwcDTPOKV1eDm01PnDiPpDMVhbaV486B7/UKuGJxFEtc1sUSqc1uP/MfCvHdaddMaU2spr+7Y2/QA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=fOcbX8a5sv5GA3VBH6eGINd9LtJF7xmVHwWs1+y4Hd8=;
- b=C1I8aaeSWjOzbiuQX0NqU7OI5xNGVLd6nNyRuuMF9kRG2LLdkSSMwDm+m4bUiGNRUv/lirlln2l9MgVxgUEhPzm4mqZ4Zy46mVDxAJArK8nSZu9wgk/AjE//SFZs54h4IHRXieHQIj6nLdlAKM56IrR6lsuksulEwIWHHkFyMQzy4M+JTCrrW1pR+NlUmHuPrNPotU8xcE/+/9CM4piadLsHxZzTv9dTCMYXAkpBWy6If1AVVmsXL/jc2CXyjPZPZti6lWRZGfKOGM2346X0bv3POfFx9CwVSI8JxNci6FDmyW9rdAPG4Kae8IUmPlp1weUXnBC1ELiZruaNqClffg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.118.232) smtp.rcpttodomain=google.com smtp.mailfrom=nvidia.com;
- dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
- dkim=none (message not signed); arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=fOcbX8a5sv5GA3VBH6eGINd9LtJF7xmVHwWs1+y4Hd8=;
- b=MBu+2rHu1KH1RhQA6Li9wer3fqR0bqURdOorwiHIrV+Exd0Uxsj1hKA4hb8bGMsNYLO9dtDDcRwUaW4NpIzX2W6SfAJWle28wA2CpWEw/SGCoFW3srMQy49U3qO2imr6H7KFHUj1vRFXcLFZ56eNRxjtac3LwS5SDYijI8cXBO+rfpP2uPPl+X0ye/veGLh3OyQPMa0rUfIIAFgHU/tS0VScL2AzMvpILIw3IC8/WFCZeFpIOPYtT2Vb6yLmksgqyhx1rOMaRAAYtLVDmInKI1/fV5dtbI5AaknHi6SaNLGj81fGEeP/b62ARrwqA+lAbj4q/k384hgV/tgmQiXZ1A==
-Received: from BY5PR16CA0024.namprd16.prod.outlook.com (2603:10b6:a03:1a0::37)
- by CYXPR12MB9319.namprd12.prod.outlook.com (2603:10b6:930:e8::11) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9769.15; Mon, 30 Mar
- 2026 19:41:27 +0000
-Received: from SJ1PEPF00001CE0.namprd05.prod.outlook.com
- (2603:10b6:a03:1a0:cafe::f4) by BY5PR16CA0024.outlook.office365.com
- (2603:10b6:a03:1a0::37) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.20.9745.28 via Frontend Transport; Mon,
- 30 Mar 2026 19:41:28 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.118.232)
- smtp.mailfrom=nvidia.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=nvidia.com;
-Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.118.232 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.118.232; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.118.232) by
- SJ1PEPF00001CE0.mail.protection.outlook.com (10.167.242.8) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.9745.21 via Frontend Transport; Mon, 30 Mar 2026 19:41:27 +0000
-Received: from drhqmail203.nvidia.com (10.126.190.182) by mail.nvidia.com
- (10.127.129.5) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Mon, 30 Mar
- 2026 12:41:06 -0700
-Received: from drhqmail202.nvidia.com (10.126.190.181) by
- drhqmail203.nvidia.com (10.126.190.182) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.20; Mon, 30 Mar 2026 12:41:06 -0700
-Received: from vdi.nvidia.com (10.127.8.10) by mail.nvidia.com
- (10.126.190.181) with Microsoft SMTP Server id 15.2.2562.20 via Frontend
- Transport; Mon, 30 Mar 2026 12:41:02 -0700
-From: Tariq Toukan <tariqt@nvidia.com>
-To: Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>, Andrew Lunn <andrew+netdev@lunn.ch>, "David
- S. Miller" <davem@davemloft.net>
-CC: Saeed Mahameed <saeedm@nvidia.com>, Leon Romanovsky <leon@kernel.org>,
-	Tariq Toukan <tariqt@nvidia.com>, Mark Bloch <mbloch@nvidia.com>, Shay Drory
-	<shayd@nvidia.com>, Shay Agroskin <shayag@mellanox.com>, Saeed Mahameed
-	<saeedm@mellanox.com>, Jianbo Liu <jianbol@nvidia.com>,
-	<netdev@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>, Gal Pressman <gal@nvidia.com>, Moshe Shemesh
-	<moshe@nvidia.com>
-Subject: [PATCH net 2/3] net/mlx5: Avoid "No data available" when FW version queries fail
-Date: Mon, 30 Mar 2026 22:40:14 +0300
-Message-ID: <20260330194015.53585-3-tariqt@nvidia.com>
-X-Mailer: git-send-email 2.44.0
-In-Reply-To: <20260330194015.53585-1-tariqt@nvidia.com>
-References: <20260330194015.53585-1-tariqt@nvidia.com>
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="EiV/FnMy"
+Received: by linux.microsoft.com (Postfix, from userid 1204)
+	id 488B920B712B; Mon, 30 Mar 2026 12:41:37 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 488B920B712B
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
+	s=default; t=1774899697;
+	bh=uk7R0f7m1KNvPxqL1ALcZ6sp+sNRZBUIYD6HuBJP0Ek=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=EiV/FnMyauGCISrcSrJXLqykf5bMDOVmqCQMXOqW5jKZvcTfRWRw76fpfCO1CCQ/c
+	 ducucJLSS6Xz5tSpfmHrNAO93xJ6TW6n8mCycCbiju/riYwDnLH3xHx2FCd0FjZ4d9
+	 I1cTHGAhB1TUK4ZlYToM6N7KrQjhhniVcwf1fNcQ=
+Date: Mon, 30 Mar 2026 12:41:37 -0700
+From: Dipayaan Roy <dipayanroy@linux.microsoft.com>
+To: Jakub Kicinski <kuba@kernel.org>
+Cc: kys@microsoft.com, haiyangz@microsoft.com, wei.liu@kernel.org,
+	decui@microsoft.com, andrew+netdev@lunn.ch, davem@davemloft.net,
+	edumazet@google.com, pabeni@redhat.com, leon@kernel.org,
+	longli@microsoft.com, kotaranov@microsoft.com, horms@kernel.org,
+	shradhagupta@linux.microsoft.com, ssengar@linux.microsoft.com,
+	ernis@linux.microsoft.com, shirazsaleem@microsoft.com,
+	linux-hyperv@vger.kernel.org, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
+	dipayanroy@microsoft.com
+Subject: Re: [PATCH net-next, v3] net: mana: Force full-page RX buffers for
+ 4K page size on specific systems.
+Message-ID: <acrR8fLQsIUkKRz7@linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net>
+References: <abDo8XTu1EiQFC7T@linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net>
+ <20260314125053.41d6221b@kernel.org>
+ <ab2T8LgRiDHDIUHV@linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net>
+ <20260320172908.1840229d@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-NV-OnPremToCloud: ExternallySecured
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: SJ1PEPF00001CE0:EE_|CYXPR12MB9319:EE_
-X-MS-Office365-Filtering-Correlation-Id: 68402263-de21-4ff5-fd30-08de8e94555d
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|376014|36860700016|1800799024|82310400026|22082099003|56012099003|18002099003;
-X-Microsoft-Antispam-Message-Info:
-	iwwsK+WMdHbvk1QMibBnwdvlnEl5NAdF36J3oFi2ZbqCpPNSJGaZEGt6vxKMQlX/EmO7BpVQY+W6IJsGay9K9EdDANgsdZKja3ntWmLiAUPEk14f3Eh+l4U0Yk4XyO30VoWsTX7bVFtAlkJi5FurkNpV1DeG7qmbDxYG/HRFZlZLZ+pw4SIBwgShaaPyCZ5xccz424mK8cRMMOjD3Fi+7OZQnJt6W/8PlA70WiMlZ9TkNe/qNhCIU70sheULL4/3r4C2Unt/mpjO7M01r6gGhSCpy/tTnj27vHq6ZOOIxcbMFPKwKXrfU70zKG0jIt2Ntbufkj136TfX6xCUVK3VLUCuCmG1sSGC8angyKKMceV9xbi83YjYr7ZjD9Uvkn0HYEVQCGoNT9Hl5BAp2bZfNHLyZaZZbQIuSa7HdvoenpHuhCLCtz+i3uzjNyZyiST/b1WN/5T8zPBhlpF3tvoEOr4vAU2bAu7o8AK82deo+cxBgqgzF5az9UACJRI1qaGj23YgTH9CKMx+Jkiu0wYCYeaVbg3adQqCkN0aVaOdheQ7RfME3uGxQ9F7XBWZD5uqHRC3JLs6bYA4BYDrgnpj+UG2AmridjSCnT0In70glnZBxxS9MxpEPYmkx6q8O5Mj5j5c69sz29q0Axn/ljEIEHcr5JHqCgXyTOglwhLB1nY/ssm8KCDid06No90SzrCmOE+U2/rRY7wM3mrmYKCWKuVz/G9+V15h5XGCfAq/O5cvj3pv5yPcqwIUwXYvW36q7SmmgzZETLM/HDutKc6WvQ==
-X-Forefront-Antispam-Report:
-	CIP:216.228.118.232;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc7edge1.nvidia.com;CAT:NONE;SFS:(13230040)(376014)(36860700016)(1800799024)(82310400026)(22082099003)(56012099003)(18002099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	Z57QEyjPNjhHey5+S9xKliFpjtn8QI96Q2yupBbRfAaBJekHG1vuxzI6+IOKBRENsx6TcHAEu1i79JY8pot8c+ijxOA6WRaqaV9C7sjK5eqZsx3jIUE+JKDND3uMw/DCJg4x4C7bewyOvj9Cj0VxXXepHn0WhieMv8RgBzKe2/aPhbzzqu2JprlvAW3MTLmas7QU9DYaPTFB0PEstaJf8qWtINe5sM0gh1S6kR8ksu6q5RwtnTigkbzESP1UrAqltO3+4J5p8zFmGBQB1YZ59EFJklUvB2kAzm6QRQIEVN1zS7fJBBjpSqPJ86qtwEJ7Es0bkKzbethjcCgleJqlIvtNnRNqD/92fOoF/1DvzV/dvobRTM1/eoUHXKARQQJAAiz257DiuTiNDaENFOp1C9+Pa+TInlckb8oEYYWr+93k5M8kSS5EIRt4qr3+zzom
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 30 Mar 2026 19:41:27.1551
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 68402263-de21-4ff5-fd30-08de8e94555d
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.118.232];Helo=[mail.nvidia.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	SJ1PEPF00001CE0.namprd05.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CYXPR12MB9319
+In-Reply-To: <20260320172908.1840229d@kernel.org>
 
-From: Saeed Mahameed <saeedm@nvidia.com>
+On Fri, Mar 20, 2026 at 05:29:08PM -0700, Jakub Kicinski wrote:
+> On Fri, 20 Mar 2026 11:37:36 -0700 Dipayaan Roy wrote:
+> > On Sat, Mar 14, 2026 at 12:50:53PM -0700, Jakub Kicinski wrote:
+> > > On Tue, 10 Mar 2026 21:00:49 -0700 Dipayaan Roy wrote:  
+> > > > On certain systems configured with 4K PAGE_SIZE, utilizing page_pool
+> > > > fragments for RX buffers results in a significant throughput regression.
+> > > > Profiling reveals that this regression correlates with high overhead in the
+> > > > fragment allocation and reference counting paths on these specific
+> > > > platforms, rendering the multi-buffer-per-page strategy counterproductive.  
+> > > 
+> > > Can you say more ? We could technically take two references on the page
+> > > right away if MTU is small and avoid some of the cost.  
+> > 
+> > There is a 15-20% shortfall in achieving line rate for MANA (180+ Gbps)
+> > on a particular ARM64 SKU. The issue is only specific to this processor SKU —
+> > not seen on other ARM64 SKUs (e.g., GB200) or x86 SKUs. Critically, the
+> > regression only manifests beyond 16 TCP connections, which strongly indicates
+> > seen when there is  high contention and traffic.
+> > 
+> >   no. of     | rx buf backed       | rx buf backed
+> >  connections | with page fragments | with full page
+> > -------------+---------------------+---------------
+> >            4 |         139 Gbps    |     138 Gbps
+> >            8 |         140 Gbps    |     162 Gbps
+> >           16 |         186 Gbps    |     186 Gbps
+> 
+> These results look at bit odd, 4 and 16 streams have the same perf,
+> while all other cases indeed show a delta. What I was hoping for was
+> a more precise attribution of the performance issue. Like perf top
+> showing that its indeed the atomic ops on the refcount that stall.
+> 
+> >           32 |         136 Gbps    |     183 Gbps
+> >           48 |         159 Gbps    |     185 Gbps
+> >           64 |         165 Gbps    |     184 Gbps
+> >          128 |         170 Gbps    |     180 Gbps
+> >  
+> > HW team is still working to RCA this hw behaviour.
+> > 
+> > Regarding "We could technically take two references on the page right
+> > away", are you suggesting having page reference counting logic to driver
+> > instead of relying on page pool?
+> 
+> Yes, either that or adjust the page pool APIs. 
+> page_pool_alloc_frag_netmem() currently sets the refcount to BIAS
+> which it then has to subtract later. So we get:
+> 
+>   set(BIAS)
+>   .. driver allocates chunks ..
+>   sub(BIAS_MAX - pool->frag_users)
+> 
+> Instead of using BIAS we could make the page pool guess that the caller
+> will keep asking for the same frame size. So initially take
+> (PAGE_SIZE/size) references.
+> 
+Ok I will be doing some expeimentation with this approach to see if it
+helps the current scenario.
 
-Avoid printing the misleading "kernel answers: No data available" devlink
-output when querying firmware or pending firmware version fails
-(e.g. MLX5 fw state errors / flash failures).
+> > > The driver doesn't seem to set skb->truesize accordingly after this
+> > > change. So you're lying to the stack about how much memory each packet
+> > > consumes. This is a blocker for the change.
+> > >   
+> > ACK. I will send out a separate patch with fixes tag to fix the skb true
+> > size.
+> > 
+> > > > To mitigate this, bypass the page_pool fragment path and force a single RX
+> > > > packet per page allocation when all the following conditions are met:
+> > > >   1. The system is configured with a 4K PAGE_SIZE.
+> > > >   2. A processor-specific quirk is detected via SMBIOS Type 4 data.  
+> > > 
+> > > I don't think we want the kernel to be in the business of carrying
+> > > matching on platform names and providing optimal config by default.
+> > > This sort of logic needs to live in user space or the hypervisor 
+> > > (which can then pass a single bit to the driver to enable the behavior)
+> > >   
+> > As per our internal discussion the hypervisor cannot provide the CPU
+> > version info(in vm as well as in bare metal offerings).
+> 
+> Why? I suppose it's much more effort for you but it's much more effort
+> for the community to carry the workaround. So..
+>
+As per the hypervisor team it is not solving the issue in the case of
+bare metal offering, hence will work ahead with an alternate soultion
+as suggested by you: "This sort of logic needs to live in user space..,
+which can then pass a single bit to the driver to enable the behavior"
 
-FW can fail on loading the pending flash image and get its version due
-to various reasons, examples:
+> > On handling it from user side are you suggesting it to introduce a new
+> > ethtool Private Flags and have udev rules for the driver to set the private
+> > flag and switch to full page rx buffers? Given that the wide number of distro
+> > support this might be harder to maintain/backport. 
+> > 
+> > Also the dmi parsing design was influenced by other net wireleass
+> > drivers as /wireless/ath/ath10k/core.c. If this approach is not
+> > acceptable for MANA driver then will have to take a alternate route
+> > based on the dsicussion right above it.
+> 
+> Plenty of ugly hacks in the kernel, it's no excuse.
 
-mlxfw: Firmware flash failed: key not applicable, err (7)
-mlx5_fw_image_pending: can't read pending fw version while fw state is 1
+Hi Jakub,
 
-and the resulting:
-$ devlink dev info
-kernel answers: No data available
+As we are still working on root causing the actual issue with HW team,
+we would want the user a option to achieve the line rate by a tuneable
+option to run with full page rx buffers. I will be sending out a next
+version that would introduce an ethtool private flag for mana that
+allows the user to force one RX buffer per page.
 
-Instead, just report 0 or 0xfff.. versions in case of failure to indicate
-a problem, and let other information be shown.
 
-after the fix:
-$ devlink dev info
-pci/0000:00:06.0:
-  driver mlx5_core
-  serial_number xxx...
-  board.serial_number MT2225300179
-  versions:
-      fixed:
-        fw.psid MT_0000000436
-      running:
-        fw.version 22.41.0188
-        fw 22.41.0188
-      stored:
-        fw.version 255.255.65535
-        fw 255.255.65535
-
-Fixes: 9c86b07e3069 ("net/mlx5: Added fw version query command")
-Signed-off-by: Saeed Mahameed <saeedm@nvidia.com>
-Reviewed-by: Moshe Shemesh <moshe@nvidia.com>
-Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
----
- .../net/ethernet/mellanox/mlx5/core/devlink.c |  4 +-
- drivers/net/ethernet/mellanox/mlx5/core/fw.c  | 53 ++++++++++++-------
- .../ethernet/mellanox/mlx5/core/mlx5_core.h   |  4 +-
- 3 files changed, 37 insertions(+), 24 deletions(-)
-
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/devlink.c b/drivers/net/ethernet/mellanox/mlx5/core/devlink.c
-index 6698ac55a4bf..73cf0321bb86 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/devlink.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/devlink.c
-@@ -107,9 +107,7 @@ mlx5_devlink_info_get(struct devlink *devlink, struct devlink_info_req *req,
- 	if (err)
- 		return err;
- 
--	err = mlx5_fw_version_query(dev, &running_fw, &stored_fw);
--	if (err)
--		return err;
-+	mlx5_fw_version_query(dev, &running_fw, &stored_fw);
- 
- 	snprintf(version_str, sizeof(version_str), "%d.%d.%04d",
- 		 mlx5_fw_ver_major(running_fw), mlx5_fw_ver_minor(running_fw),
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fw.c b/drivers/net/ethernet/mellanox/mlx5/core/fw.c
-index eeb4437975f2..c1f220e5fe18 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/fw.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/fw.c
-@@ -822,48 +822,63 @@ mlx5_fw_image_pending(struct mlx5_core_dev *dev,
- 	return 0;
- }
- 
--int mlx5_fw_version_query(struct mlx5_core_dev *dev,
--			  u32 *running_ver, u32 *pending_ver)
-+void mlx5_fw_version_query(struct mlx5_core_dev *dev,
-+			   u32 *running_ver, u32 *pending_ver)
- {
- 	u32 reg_mcqi_version[MLX5_ST_SZ_DW(mcqi_version)] = {};
- 	bool pending_version_exists;
- 	int component_index;
- 	int err;
- 
-+	*running_ver = 0;
-+	*pending_ver = 0;
-+
- 	if (!MLX5_CAP_GEN(dev, mcam_reg) || !MLX5_CAP_MCAM_REG(dev, mcqi) ||
- 	    !MLX5_CAP_MCAM_REG(dev, mcqs)) {
- 		mlx5_core_warn(dev, "fw query isn't supported by the FW\n");
--		return -EOPNOTSUPP;
-+		return;
- 	}
- 
- 	component_index = mlx5_get_boot_img_component_index(dev);
--	if (component_index < 0)
--		return component_index;
-+	if (component_index < 0) {
-+		mlx5_core_warn(dev, "fw query failed to find boot img component index, err %d\n",
-+			       component_index);
-+		return;
-+	}
- 
-+	*running_ver = U32_MAX; /* indicate failure */
- 	err = mlx5_reg_mcqi_version_query(dev, component_index,
- 					  MCQI_FW_RUNNING_VERSION,
- 					  reg_mcqi_version);
--	if (err)
--		return err;
--
--	*running_ver = MLX5_GET(mcqi_version, reg_mcqi_version, version);
--
-+	if (!err)
-+		*running_ver = MLX5_GET(mcqi_version, reg_mcqi_version,
-+					version);
-+	else
-+		mlx5_core_warn(dev, "failed to query running version, err %d\n",
-+			       err);
-+
-+	*pending_ver = U32_MAX; /* indicate failure */
- 	err = mlx5_fw_image_pending(dev, component_index, &pending_version_exists);
--	if (err)
--		return err;
-+	if (err) {
-+		mlx5_core_warn(dev, "failed to query pending image, err %d\n",
-+			       err);
-+		return;
-+	}
- 
- 	if (!pending_version_exists) {
- 		*pending_ver = 0;
--		return 0;
-+		return;
- 	}
- 
- 	err = mlx5_reg_mcqi_version_query(dev, component_index,
- 					  MCQI_FW_STORED_VERSION,
- 					  reg_mcqi_version);
--	if (err)
--		return err;
--
--	*pending_ver = MLX5_GET(mcqi_version, reg_mcqi_version, version);
--
--	return 0;
-+	if (!err)
-+		*pending_ver = MLX5_GET(mcqi_version, reg_mcqi_version,
-+					version);
-+	else
-+		mlx5_core_warn(dev, "failed to query pending version, err %d\n",
-+			       err);
-+
-+	return;
- }
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h b/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h
-index b635b423d972..1507e881d962 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h
-@@ -393,8 +393,8 @@ int mlx5_port_max_linkspeed(struct mlx5_core_dev *mdev, u32 *speed);
- 
- int mlx5_firmware_flash(struct mlx5_core_dev *dev, const struct firmware *fw,
- 			struct netlink_ext_ack *extack);
--int mlx5_fw_version_query(struct mlx5_core_dev *dev,
--			  u32 *running_ver, u32 *stored_ver);
-+void mlx5_fw_version_query(struct mlx5_core_dev *dev, u32 *running_ver,
-+			   u32 *stored_ver);
- 
- #ifdef CONFIG_MLX5_CORE_EN
- int mlx5e_init(void);
--- 
-2.44.0
-
+Regards
