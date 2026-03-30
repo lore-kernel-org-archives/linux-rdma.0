@@ -1,61 +1,61 @@
 Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 260B53D333F;
-	Mon, 30 Mar 2026 13:10:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2E343D3486;
+	Mon, 30 Mar 2026 13:10:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.156.1
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774876213; cv=none; b=qHvOQX44tohTxTViaCE8CBsTSUihVi7ME/Lm7gJvfpLq4/x6fBmE1G/moOPSPtKoGS22QD7xRNWFlgdNy7GYMowKifanoUPALTdpq8g3PAYiP3bLEzYpzhaYz1Jyd/U7BPdPptqxVLRVuiz2/BtLeEW4TiurxY+YpERObmwazNM=
+	t=1774876214; cv=none; b=CFR+oe2aItTszVBOzqByYhGhHu2g2hFk0yt645rwfgMZJPXZ4Co6hRSzGzFbVBU+u2fi7qGZioHiW9ykBOTAKdWxOqn5iAF/rDozIBPVahMZfjQZjs6x086rgxL1Yk94InBlUGhFxAcqMSWXFxewtRLphGtWTkUOUCivbOOQzvA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774876213; c=relaxed/simple;
-	bh=+z0ds1dEkDsjD2TbiG1J1ECIKxoY5I0HhGpLfURiclQ=;
+	s=arc-20240116; t=1774876214; c=relaxed/simple;
+	bh=9jmNyaOt/0cBAnwwLqfRspUEA0PjzlJZz4Yks/N0ptg=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=U6N64RkF3eC7iGirr7L40XZRjhR4B1W4Yrt1+7ZshddW2cNEnRwrPsa4uHAgRhdFSB8eajiOwTy0SrVFX8VnXeWS9BcFnN0JYi7RxW8SdEhTrdfz42zZhNGI1RPKRqfEXE4+stsC/NX+JcmfSroZPeMB2L2qsO0oN4gJkWY3l8I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=U9k3SEGC; arc=none smtp.client-ip=148.163.156.1
+	 In-Reply-To:To:Cc; b=m5yCiYzMVSkqH7SS9+9MLxJKpn2H1+yF8z7Qe8RAgWyjc01T49UC6pfbkaXJsAwIL3tLoHkkzJVaZS7CXzjCHfPfHTvTcz7y1i/btkbkszvZ5R9KLsaCDKkMbnP7RZx1FGgVWny6DCvihBf4LG7JsDU9xI//G/p+kNha/2/zJCY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=tXTXejvD; arc=none smtp.client-ip=148.163.156.1
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="U9k3SEGC"
-Received: from pps.filterd (m0353729.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 62U0jCiT462561;
-	Mon, 30 Mar 2026 13:10:07 GMT
+	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="tXTXejvD"
+Received: from pps.filterd (m0360083.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 62TMJRej505649;
+	Mon, 30 Mar 2026 13:10:09 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
 	:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to; s=pp1; bh=CHeSzO
-	4goq394woaZUo2vkt/fxPpeKAgtzg8EVdB714=; b=U9k3SEGCyHG5yQb7QvISk3
-	5GHtl1iCyzCoWlnunTc0+O9IB9zfY+PrUCUuvC+rtmaC+AEb/wx0QJAmb8NlJ6fw
-	IhrClLOTT2+XshHlnwQMxa5008uTuSaAEjCTXu5BYyzAtZDdr2p+hhGLfvQtEPyh
-	UWGxtgCOP9ybe//Zh/OKQ/oWhDXuSow3uh6lQ3sRaoHMsJi6Gnek5mGyokLTXR31
-	6iMhyF6qMD2/G66tQdHPPIVXRL3SjpAfzXvXLq8RrUctGGc+26YUl1d6jfCLgw36
-	2HarZWGsMUx/jfAFcaBvW6gaxixjiyecwK/4APOQmJSfmxyNE5TNoyAfnvfPszsA
+	:message-id:mime-version:references:subject:to; s=pp1; bh=YusLYK
+	c1zZAvs79QbUL4PnOWSxVkj8Y3/1w9SLjr/W0=; b=tXTXejvD67mTAgqN7+xyhx
+	HDSOMsnxdBn0t+1fYfU697k1/L5Aq+YbH2Xl3t8CXj+y//AP1pJi85g0aF93UEBp
+	ZrInXKlMtHoiUjZlZns/fJNyJg/zu5w2dJgfrZqu/BNgWd6ARGqRw7S8t0Db4iTC
+	Oh4JXl3mkMOO8w0JEJPXTgUQwxE86d7hqKNRvpc1h6S1dOewZGaSqrn+8mfw0dhv
+	kw3t37cVdk+RiAbPN9zVrU5T9kpuPGpUHuyYOIgnOPZ2aCtlVHSVJZ9l9429E6MI
+	7BHUUc4rWI+IG7E/cWsOAf503jqrA3Nk6q9I5WS7Au6TNz9qLfmZ6EWgIaYoJLKg
 	==
-Received: from ppma11.dal12v.mail.ibm.com (db.9e.1632.ip4.static.sl-reverse.com [50.22.158.219])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 4d66nnevwa-1
+Received: from ppma21.wdc07v.mail.ibm.com (5b.69.3da9.ip4.static.sl-reverse.com [169.61.105.91])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 4d66g1pxcf-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Mon, 30 Mar 2026 13:10:07 +0000 (GMT)
-Received: from pps.filterd (ppma11.dal12v.mail.ibm.com [127.0.0.1])
-	by ppma11.dal12v.mail.ibm.com (8.18.1.2/8.18.1.2) with ESMTP id 62UBFMQD008703;
-	Mon, 30 Mar 2026 13:10:06 GMT
-Received: from smtprelay05.fra02v.mail.ibm.com ([9.218.2.225])
-	by ppma11.dal12v.mail.ibm.com (PPS) with ESMTPS id 4d6v11cqy9-1
+	Mon, 30 Mar 2026 13:10:08 +0000 (GMT)
+Received: from pps.filterd (ppma21.wdc07v.mail.ibm.com [127.0.0.1])
+	by ppma21.wdc07v.mail.ibm.com (8.18.1.2/8.18.1.2) with ESMTP id 62UATOjC022266;
+	Mon, 30 Mar 2026 13:10:07 GMT
+Received: from smtprelay06.fra02v.mail.ibm.com ([9.218.2.230])
+	by ppma21.wdc07v.mail.ibm.com (PPS) with ESMTPS id 4d6tamvy0f-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Mon, 30 Mar 2026 13:10:06 +0000
+	Mon, 30 Mar 2026 13:10:07 +0000
 Received: from smtpav05.fra02v.mail.ibm.com (smtpav05.fra02v.mail.ibm.com [10.20.54.104])
-	by smtprelay05.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 62UDA2SD42664208
+	by smtprelay06.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 62UDA33G25952558
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Mon, 30 Mar 2026 13:10:02 GMT
+	Mon, 30 Mar 2026 13:10:03 GMT
 Received: from smtpav05.fra02v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id A628F2004B;
-	Mon, 30 Mar 2026 13:10:02 +0000 (GMT)
+	by IMSVA (Postfix) with ESMTP id 307C92004F;
+	Mon, 30 Mar 2026 13:10:03 +0000 (GMT)
 Received: from smtpav05.fra02v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 68C032004D;
+	by IMSVA (Postfix) with ESMTP id EB1912004D;
 	Mon, 30 Mar 2026 13:10:02 +0000 (GMT)
 Received: from tuxmaker.boeblingen.de.ibm.com (unknown [9.87.85.9])
 	by smtpav05.fra02v.mail.ibm.com (Postfix) with ESMTP;
 	Mon, 30 Mar 2026 13:10:02 +0000 (GMT)
 From: Gerd Bayer <gbayer@linux.ibm.com>
-Date: Mon, 30 Mar 2026 15:09:44 +0200
-Subject: [PATCH v7 1/3] PCI: AtomicOps: Do not enable requests by RCiEPs
+Date: Mon, 30 Mar 2026 15:09:46 +0200
+Subject: [PATCH v7 3/3] PCI: AtomicOps: Update references to PCIe spec
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -64,7 +64,7 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20260330-fix_pciatops-v7-1-f601818417e8@linux.ibm.com>
+Message-Id: <20260330-fix_pciatops-v7-3-f601818417e8@linux.ibm.com>
 References: <20260330-fix_pciatops-v7-0-f601818417e8@linux.ibm.com>
 In-Reply-To: <20260330-fix_pciatops-v7-0-f601818417e8@linux.ibm.com>
 To: Bjorn Helgaas <bhelgaas@google.com>, Jay Cornwall <Jay.Cornwall@amd.com>,
@@ -83,65 +83,61 @@ Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
 X-Mailer: b4 0.14.2
 X-TM-AS-GCONF: 00
 X-Proofpoint-Reinject: loops=2 maxloops=12
-X-Proofpoint-GUID: nR_7MWUNmRcBNJwufyVy4G_yWkey58SG
-X-Authority-Analysis: v=2.4 cv=KslAGGWN c=1 sm=1 tr=0 ts=69ca762f cx=c_pps
- a=aDMHemPKRhS1OARIsFnwRA==:117 a=aDMHemPKRhS1OARIsFnwRA==:17
+X-Authority-Analysis: v=2.4 cv=Fdo6BZ+6 c=1 sm=1 tr=0 ts=69ca7630 cx=c_pps
+ a=GFwsV6G8L6GxiO2Y/PsHdQ==:117 a=GFwsV6G8L6GxiO2Y/PsHdQ==:17
  a=IkcTkHD0fZMA:10 a=Yq5XynenixoA:10 a=VkNPw1HP01LnGYTKEx00:22
- a=RnoormkPH1_aCDwRdu11:22 a=uAbxVGIbfxUO_5tXvNgY:22 a=VnNF1IyMAAAA:8
- a=l8ywxVsZnL7a6Sv94yEA:9 a=QEXdDO2ut3YA:10
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwMzMwMDEwMCBTYWx0ZWRfX2sq8oqfMVQA+
- YeBcz7oajtbLWPeE9dkM/BaFYthp6zT+ff9iEmmOX9AsLPLOf8TXoicBR8gPeDxDDsk5qyG5Frb
- VYL2l3eO0/k9pnW7LICm0O+TqhI9UXcWctZuOshqgoqipqfECUH8e830QOZRSBiZvo2UMm25Jhs
- YOc7AKGL0BPBIC8D2N7dkf7yqxl3iWX37t3KPrUu/u6G32QWM4bxrVimZ2AT17/IKoCR9LAvQoR
- ezfqlbZgXCLCew2how5IZUefljiZaXfdiiuMmrzrCqoE6oqsNvPIv2meOCOv1OsUV74F0zI4yKx
- cKOHkNypn0M+al4GxQEGlUVFA1t4D5Da7KUf4zjrIvG5VoAfUI1s11heAaFizpajFSSQB5cAB5i
- G+rb4kv2yrDtwr6ZXOn00uV/UnggzT6TAvEI3b3x1PKGsjfyrTYeZkv+nWXcUpYz/Y0VBFvBHqd
- Fm9OovqYqPLfnXxpTpw==
-X-Proofpoint-ORIG-GUID: P-slp7YBInZbi8orMA2p2Lc-oqwdirtq
+ a=RnoormkPH1_aCDwRdu11:22 a=iQ6ETzBq9ecOQQE5vZCe:22 a=VnNF1IyMAAAA:8
+ a=9UpU5CifMvqjbUjnZUAA:9 a=QEXdDO2ut3YA:10
+X-Proofpoint-ORIG-GUID: iinQCws480Z3GQ6ayIZmDRpOPfgImJx3
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwMzMwMDEwMCBTYWx0ZWRfXzPAdaEWaQDxq
+ MFSc44PvvqPul7Ki2zlU+MfspgH43rVg282i/OsZTd1PWAUPClazyGmjHVcH+b6Be7L/QVjCgZL
+ N2tXNbF4WmqGvPndDJV5w6JCbSZk8dQOM5gnTkIeaMfFU9nJFHArJ6PeZnNf6KsYaIDmk5mtKvz
+ FBgKYHE8nVIpKmcTOoOrl8zZyrtZz/FCzT0ctxENjfRzCRex+ybKoQOxGryE0IGMfZRtFzLDLJT
+ me40YK9VUcFYWjgFeUTbZxaTYKhMB4VXLohmsZ/7PIsPdSRcOZucXDEJukSnENUfVHLdgs9x/f/
+ FkLTDp89JPaKuog/Ue+JmOIQ/KkcL6ebMrufhgiBuqvjdxU2PKbPB/2eQ6psbgSZTojs3JDP8Vw
+ s6OwGZkPiov5lQRGg49ox7tc0jVd5X0P56AMmDsHxioeKstyx09ow/M1cPPaVSIeuoLJgqEh+iM
+ rvoddYShwKGvKUdqmzg==
+X-Proofpoint-GUID: 37mMKGp9UjzJCLjZ9nBHREfsPsDi-nOH
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.293,Aquarius:18.0.1143,Hydra:6.1.51,FMLib:17.12.100.49
  definitions=2026-03-29_05,2026-03-28_01,2025-10-01_01
 X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- malwarescore=0 lowpriorityscore=0 priorityscore=1501 suspectscore=0
- phishscore=0 adultscore=0 bulkscore=0 impostorscore=0 clxscore=1015
- spamscore=0 classifier=typeunknown authscore=0 authtc= authcc= route=outbound
- adjust=0 reason=mlx scancount=1 engine=8.22.0-2603050001
- definitions=main-2603300100
+ impostorscore=0 clxscore=1015 bulkscore=0 suspectscore=0 priorityscore=1501
+ adultscore=0 malwarescore=0 phishscore=0 spamscore=0 lowpriorityscore=0
+ classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
+ reason=mlx scancount=1 engine=8.22.0-2603050001 definitions=main-2603300100
 
-Since root complex integrated end points (RCiEPs) attach to a bus that
-has no bridge device describing the root port, the capability to
-complete AtomicOps requests cannot be determined with PCIe methods.
-
-Change default of pci_enable_atomic_ops_to_root() to not enable
-AtomicOps requests on RCiEPs.
+Point to the relevant sections in the most recent release 7.0 of the
+PCIe spec. Text has mostly just moved around without any semantic
+change.
 
 Signed-off-by: Gerd Bayer <gbayer@linux.ibm.com>
 ---
- drivers/pci/pci.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/pci/pci.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
-index 8479c2e1f74f1044416281aba11bf071ea89488a..135e5b591df405e87e7f520a618d7e2ccba55ce1 100644
+index 57af00ecdc97086a32c063ff86f8a39087ad1f5e..b99ab47678b006004af6cdb9b0e9f9ca4a28b6e1 100644
 --- a/drivers/pci/pci.c
 +++ b/drivers/pci/pci.c
-@@ -3692,15 +3692,14 @@ int pci_enable_atomic_ops_to_root(struct pci_dev *dev, u32 cap_mask)
+@@ -3689,7 +3689,7 @@ int pci_enable_atomic_ops_to_root(struct pci_dev *dev, u32 cap_mask)
+ 	u32 ctl2;
  
  	/*
- 	 * Per PCIe r4.0, sec 6.15, endpoints and root ports may be
--	 * AtomicOp requesters.  For now, we only support endpoints as
--	 * requesters and root ports as completers.  No endpoints as
-+	 * AtomicOp requesters.  For now, we only support (legacy) endpoints
-+	 * as requesters and root ports as completers.  No endpoints as
- 	 * completers, and no peer-to-peer.
+-	 * Per PCIe r5.0, sec 9.3.5.10, the AtomicOp Requester Enable bit
++	 * Per PCIe r7.0, sec 7.5.3.16, the AtomicOp Requester Enable bit
+ 	 * in Device Control 2 is reserved in VFs and the PF value applies
+ 	 * to all associated VFs.
  	 */
- 
- 	switch (pci_pcie_type(dev)) {
- 	case PCI_EXP_TYPE_ENDPOINT:
- 	case PCI_EXP_TYPE_LEG_END:
--	case PCI_EXP_TYPE_RC_END:
- 		break;
- 	default:
+@@ -3700,7 +3700,7 @@ int pci_enable_atomic_ops_to_root(struct pci_dev *dev, u32 cap_mask)
  		return -EINVAL;
+ 
+ 	/*
+-	 * Per PCIe r4.0, sec 6.15, endpoints and root ports may be
++	 * Per PCIe r7.0, sec 6.15, endpoints and root ports may be
+ 	 * AtomicOp requesters.  For now, we only support (legacy) endpoints
+ 	 * as requesters and root ports as completers.  No endpoints as
+ 	 * completers, and no peer-to-peer.
 
 -- 
 2.51.0
