@@ -1,83 +1,63 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7151238F954;
-	Mon, 30 Mar 2026 16:49:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 739CC40DFC1;
+	Mon, 30 Mar 2026 17:18:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774889348; cv=none; b=JUjdJc8pLBPTqitRss0cjChZ4aQFfDmdCvLjgc/73OPUczqbq2/Y98IaJzt3cnU5SwfRSk7PlOI7VbJkJut3fstD1nhlJaj+JO1YAl0+BEqA+Eilry/q+Y0QWT6xUhuR7mChCvw9Xlfl6U94EN7ijmtmIfe0dKSzFsjbT8qFH2s=
+	t=1774891122; cv=none; b=anf6V0CF0Hsco6BdfiNfM3mbAyKZjsK4nPsWUPWtamuguLx7NQt9uUqIhVSTdYbQZxRzYhBGgP78OGZ+8yizcRw6gi2bPrttmiPLmcE/zga7TZi5Q80BYcDE0dOg2Vm+52P5QPLusbi4eiCiTKmFRGkqXBUQmMeV5YWNa4fGQ8A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774889348; c=relaxed/simple;
-	bh=SK9i7mqg/8dE6xiF6EF//eDfj1oB7TxRof8X0+8hqiU=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=OwfyvZUCZhFclrd1KqMogoFGWsI9GZ+aF3EabtB74NXjZln0T0/whwJXNzFpxLuwufVV0soZckC6d5xGan26k2oNU++EKGALlsnOKi3DodBk72XIWJwYY1UNoaZg6s9QywsHcfhfCfnWIoxCqNQZDKfaH8nRsaXPIv9zxn65FZg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=SUY3Lnn8; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774891122; c=relaxed/simple;
+	bh=ndQto9udr35L7Pv25t6GhkNkta5ASsee84f+b99axKQ=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
+	 MIME-Version:Content-Type; b=GBqbc3gyy/858A6WPMi9wMohchcMMHcq+32meMn0nB3VwOuRaY3fVRQW2QAVDjWyjHSt0e1w/rbW/a5WrD8LxCGhFy8El7HMOIEDQLVTHYtj9sLma4z373os1ONL87jH2WRQfdsg9P3zQdUokQeMb/23PMP0i7Itczi4gRkkOzY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=U+HLw9v6; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="SUY3Lnn8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4D30EC19423;
-	Mon, 30 Mar 2026 16:49:07 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="U+HLw9v6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 80557C4CEF7;
+	Mon, 30 Mar 2026 17:18:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1774889348;
-	bh=SK9i7mqg/8dE6xiF6EF//eDfj1oB7TxRof8X0+8hqiU=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=SUY3Lnn89tL+nhhMM8+RaWd+5SzKROFBfAPVom13WjZ1juwseG6yzmimNaMKPxar6
-	 TzldklXfJ+4xrZ7tiwdgIOVEI3km+BT6VeVXcJu39lHiH9nrzTQR6Sdke2C+xLoSCP
-	 LZh6FfdXNDZK2dfyoYdEmsZJqw4N6YT5GQWW79pkuYoR/BY2BTEhlQz3H74X9ddVwi
-	 1PWoaTcfUNFlRhiyKHLHQy3Qj6XxILiPvuZyjIgGdRpWA0DCXEM5JpYw/QXV9OVHRg
-	 aYXt6nfrNyAIDWxcLv+IWob5hCbpcL4qoS52rcATT7EGfJ2pv2a7fTF5o/ZyniPZB+
-	 rkRh9utkxmTsw==
-Date: Mon, 30 Mar 2026 19:49:02 +0300
+	s=k20201202; t=1774891122;
+	bh=ndQto9udr35L7Pv25t6GhkNkta5ASsee84f+b99axKQ=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Date:From;
+	b=U+HLw9v66obNAq5+e+s0SWUDUpqGufH3ACQeeCh/Hu5RT1awvoY3eSusvyYo2tbYV
+	 QDjCZY97v876wNZ+/xw9exfYyrGeVsamQWTxnY2h9xv4gpQbL/F78ZrEhMF5kgb+Gf
+	 Sbl9bhzsoJ0+GorFY99319XxEMsvQ5j/4xuyc+iDrHyiPc6BoLpIZCf8GcmiaWCZTu
+	 nGK8uAKCIVIjxpjpJLDpCT6MwnL6TWqXDYR3ZmRogS7xNJEXGrN1JuRGtVjUQ9bbbY
+	 CTIhlu35ZQ9TlJ7Fp6vA+zli/FItG2HA0P6f9zOF5LttSSz//GJQGhNKzMZ5pG7Tn5
+	 S4yiF3xUlXq1w==
 From: Leon Romanovsky <leon@kernel.org>
-To: Oskar Ray-Frayssinet <rayfraytech@gmail.com>
-Cc: saeedm@nvidia.com, tariqt@nvidia.com, mbloch@nvidia.com,
-	andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@google.com,
-	kuba@kernel.org, pabeni@redhat.com, netdev@vger.kernel.org,
-	linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH net 1/3] net/mlx5e: Add null check for flow namespace in
- mlx5e_tc_nic_create_miss_table
-Message-ID: <20260330164902.GW814676@unreal>
-References: <20260326205824.11749-1-rayfraytech@gmail.com>
+To: linux-rdma@vger.kernel.org, Rosen Penev <rosenp@gmail.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>, Kees Cook <kees@kernel.org>, 
+ "Gustavo A. R. Silva" <gustavoars@kernel.org>, linux-kernel@vger.kernel.org, 
+ linux-hardening@vger.kernel.org
+In-Reply-To: <20260327030124.8385-1-rosenp@gmail.com>
+References: <20260327030124.8385-1-rosenp@gmail.com>
+Subject: Re: [PATCH] RDMA/core: use kzalloc_flex
+Message-Id: <177489111890.3854404.9407326250267964747.b4-ty@kernel.org>
+Date: Mon, 30 Mar 2026 13:18:38 -0400
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260326205824.11749-1-rayfraytech@gmail.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-Mailer: b4 0.15-dev-18f8f
 
-On Thu, Mar 26, 2026 at 09:58:22PM +0100, Oskar Ray-Frayssinet wrote:
-> mlx5_get_flow_namespace() can return NULL if the namespace is not
-> available. Add a null check to prevent potential null pointer
-> dereference when accessing ns->node.
 
-MLX5_FLOW_NAMESPACE_KERNEL and MLX5_FLOW_NAMESPACE_FDB flow namespaces are always available.
-The driver and device cannot operate without them.
-
-Thanks
-
+On Thu, 26 Mar 2026 20:01:24 -0700, Rosen Penev wrote:
+> Simplifies allocations by using a flexible array member in this struct.
 > 
-> Signed-off-by: Oskar Ray-Frayssinet <rayfraytech@gmail.com>
-> ---
->  drivers/net/ethernet/mellanox/mlx5/core/en_tc.c | 4 ++++
->  1 file changed, 4 insertions(+)
-> 
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
-> index 1434b65d4746..503c9cc96a02 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
-> @@ -5216,6 +5216,10 @@ static int mlx5e_tc_nic_create_miss_table(struct mlx5e_priv *priv)
->  	ft_attr.level = MLX5E_TC_MISS_LEVEL;
->  	ft_attr.prio = 0;
->  	ns = mlx5_get_flow_namespace(priv->mdev, MLX5_FLOW_NAMESPACE_KERNEL);
-> +	if (!ns) {
-> +		netdev_err(priv->netdev, "failed to get flow namespace\n");
-> +		return -EOPNOTSUPP;
-> +	}
->  
->  	*ft = mlx5_create_auto_grouped_flow_table(ns, &ft_attr);
->  	if (IS_ERR(*ft)) {
-> -- 
-> 2.43.0
-> 
+> Add __counted_by to get extra runtime analysis.
+
+Applied, thanks!
+
+[1/1] RDMA/core: use kzalloc_flex
+      https://git.kernel.org/rdma/rdma/c/55893530ad19bf
+
+Best regards,
+-- 
+Leon Romanovsky <leon@kernel.org>
+
