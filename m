@@ -1,45 +1,65 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F34D2EEC0;
-	Thu,  2 Apr 2026 00:06:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8319D1A681D;
+	Thu,  2 Apr 2026 00:20:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775088363; cv=none; b=AVNu1Vf7seHIZZI2GeCh+cNwR5A7l6sYQ71nx9kAhHr8+o8WmR8wi1zdI3MI5LpeVLO5UETNH7pwSemcblt9OG0uOHW4Dhvztay42z/zrvNktg4sZbtGxB3LsKrDKIsDhJDMFSZ8mC10y7ubiHAXyniXT+g1vUMbXrQP8geFAtw=
+	t=1775089218; cv=none; b=EIn4rm4jCKRVpersCDhN9bQpEmE4YLgaxAI7Euhc8nb380D2AtEr530EOPBWED1kHUWTOSKnfDTGJphhPUfnjBlbLKbADQN03XRyvcuuHNgZ4FXZDT+4BwqSzNujf6l731pG/S0Cvq3g9uf0xpbcvw2hjElec3AadEyF7Jy7iaI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775088363; c=relaxed/simple;
-	bh=Hm5EWWDTjwUIWrWPKJ2kbP9Plm8b5q0Yv3+qJpfp7hA=;
+	s=arc-20240116; t=1775089218; c=relaxed/simple;
+	bh=xOc0MxuhOlh/2rYb+V6dfalnuoROdCwJOe5iK0mSue8=;
 	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=PUvtRRwwzYSU0a2JN0EjFtqWRol66x/NpQfeCm4bJPSM+1fKSQCJ3Hy9GNP5tqCD3DQgMW9L5fO0SU3OYukCssikT9To6UBwWbh0PSZ0acDY0E/8VLf0IHIlgU2u3cVOvsBuqPpHtXYYZahr9dGGQJhSwtBTcXtMi/8COzbOZkE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=itPdhWOp; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version:Content-Type; b=NAJ7zLkwc7m11/bX9acbNkMRd0snMdv35clyjj0uk8iXIlCJoaFvx2i2nzzN2mVWLoiUN0r+RudQyahNURLslHNOwy9O/+oCLigql9o63HRqJ0GlSVG5BcPM0qYWIhTF3dU3t+PZETu7kzuiMqkdE8glg0M+XgI0GlrMCkII4IE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=NTVgB/f2; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="itPdhWOp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C9977C4CEF7;
-	Thu,  2 Apr 2026 00:06:01 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="NTVgB/f2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0EBA4C19421;
+	Thu,  2 Apr 2026 00:20:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1775088362;
-	bh=Hm5EWWDTjwUIWrWPKJ2kbP9Plm8b5q0Yv3+qJpfp7hA=;
+	s=k20201202; t=1775089218;
+	bh=xOc0MxuhOlh/2rYb+V6dfalnuoROdCwJOe5iK0mSue8=;
 	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=itPdhWOpo1cn9X0A/A2aieNHKjY4stV3UqvNAMRhKd1/W7AMd84aTZElRZ4F/gLlf
-	 eHzl4m+LJE/xK8OuZ18wPfk2DYqKFsU68ORA8dIZQw8GVBeyHTY8hZHCgp3DsU8Nrc
-	 eYuKnzPd6Px0Gty2HFpF/Cf49soq+Bth09yZ/Bl8pPfA9/QFuTfmtdGQonjt9tEURx
-	 +J1iOEdS86krPChiFzT70r97vdCpDbc7UyLUD1jZ2dcAQ1czzGfrqd2z6Pznxf64Wg
-	 mo7qB0RLGr/544k1G5zpRTzZbG1iZ5dooy6Hhub5PmHbQp6hW8DNbV11K+KjQrMMLB
-	 8+0MI0VGE78Pw==
-Date: Wed, 1 Apr 2026 17:06:00 -0700
+	b=NTVgB/f2KhYP8gTTFW+iKP8X2zmpwXgR9AjSlmtOydimfF/UilRhtQA6gktQkc9EC
+	 4+iVZ4xHV6nvdEEt1mDPodUwFtEcqEEhYltCOC+vUappyuioJZEP0WxxrF/77UqEHG
+	 w9xN8QcRT25ABDdtQIr28h4aypusULUgFiKSw2BR4a/m6Z7J/Ji3pS7kZKVvVVuR2v
+	 eE5p3zPXhkfIzccjXjnBms6jOrfApzVc7GPIGOX/firjZHvh111/re4pAg6walAmSM
+	 zpudH87g5MmIoFwpHAXisRVD3BH4VyXECGFV4NYLPXoHi2VhjRUGP7TsOQ3sF3CbfH
+	 vhbA2Ai/1KFmQ==
+Date: Wed, 1 Apr 2026 17:20:10 -0700
 From: Jakub Kicinski <kuba@kernel.org>
-To: Abhijit Gangurde <abhijit.gangurde@amd.com>
-Cc: <jgg@ziepe.ca>, <leon@kernel.org>, <brett.creeley@amd.com>,
- <andrew+netdev@lunn.ch>, <davem@davemloft.net>, <edumazet@google.com>,
- <pabeni@redhat.com>, <allen.hubbe@amd.com>, <nikhil.agarwal@amd.com>,
- <linux-rdma@vger.kernel.org>, <netdev@vger.kernel.org>,
- <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH 2/4] net: ionic: Add PHC state page for user space
- access
-Message-ID: <20260401170600.312a23d1@kernel.org>
-In-Reply-To: <20260401102501.3395305-3-abhijit.gangurde@amd.com>
-References: <20260401102501.3395305-1-abhijit.gangurde@amd.com>
-	<20260401102501.3395305-3-abhijit.gangurde@amd.com>
+To: Stephen Hemminger <stephen@networkplumber.org>
+Cc: David Woodhouse <dwmw2@infradead.org>, Eric Dumazet
+ <edumazet@google.com>, Saeed Mahameed <saeedm@nvidia.com>, Leon Romanovsky
+ <leon@kernel.org>, Tariq Toukan <tariqt@nvidia.com>, Mark Bloch
+ <mbloch@nvidia.com>, Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller"
+ <davem@davemloft.net>, Paolo Abeni <pabeni@redhat.com>, Simon Horman
+ <horms@kernel.org>, Nikolay Aleksandrov <razor@blackwall.org>, Ido Schimmel
+ <idosch@nvidia.com>, Martin KaFai Lau <martin.lau@linux.dev>, Daniel
+ Borkmann <daniel@iogearbox.net>, John Fastabend <john.fastabend@gmail.com>,
+ Stanislav Fomichev <sdf@fomichev.me>, Alexei Starovoitov <ast@kernel.org>,
+ Andrii Nakryiko <andrii@kernel.org>, Eduard Zingerman <eddyz87@gmail.com>,
+ Song Liu <song@kernel.org>, Yonghong Song <yonghong.song@linux.dev>, KP
+ Singh <kpsingh@kernel.org>, Hao Luo <haoluo@google.com>, Jiri Olsa
+ <jolsa@kernel.org>, Kuniyuki Iwashima <kuniyu@google.com>, Willem de Bruijn
+ <willemb@google.com>, David Ahern <dsahern@kernel.org>, Neal Cardwell
+ <ncardwell@google.com>, Johannes Berg <johannes@sipsolutions.net>, Pablo
+ Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>, Phil
+ Sutter <phil@nwl.cc>, Guillaume Nault <gnault@redhat.com>, Kees Cook
+ <kees@kernel.org>, Alexei Lazar <alazar@nvidia.com>, Gal Pressman
+ <gal@nvidia.com>, Paul Moore <paul@paul-moore.com>, netdev@vger.kernel.org,
+ linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
+ oss-drivers@corigine.com, bridge@lists.linux.dev, bpf@vger.kernel.org,
+ linux-wireless@vger.kernel.org, netfilter-devel@vger.kernel.org,
+ coreteam@netfilter.org, torvalds@linux-foundation.org
+Subject: Re: [PATCH 6/6] net: Warn when processes listen on AF_INET sockets
+Message-ID: <20260401172010.6734453e@kernel.org>
+In-Reply-To: <20260401080657.70cd9bd1@phoenix.local>
+References: <20260401074509.1897527-1-dwmw2@infradead.org>
+	<20260401074509.1897527-7-dwmw2@infradead.org>
+	<CANn89i+GHkkubJp3MTKZ_r4tde1qLejfsxUh+w0gPZ3ec+YdjQ@mail.gmail.com>
+	<252823d75e9221647e7f8ccef6105432aabe8d6f.camel@infradead.org>
+	<20260401080657.70cd9bd1@phoenix.local>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -49,25 +69,18 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 
-On Wed, 1 Apr 2026 15:54:59 +0530 Abhijit Gangurde wrote:
-> diff --git a/include/uapi/rdma/ionic-abi.h b/include/uapi/rdma/ionic-abi.h
-> index 7b589d3e9728..97f695510380 100644
-> --- a/include/uapi/rdma/ionic-abi.h
-> +++ b/include/uapi/rdma/ionic-abi.h
-> @@ -112,4 +112,15 @@ struct ionic_srq_resp {
->  	__aligned_u64 rq_cmb_offset;
->  };
->  
-> +struct ionic_phc_state {
-> +	__u32 seq;
-> +	__u32 rsvd;
-> +	__aligned_u64 mask;
-> +	__aligned_u64 tick;
-> +	__aligned_u64 nsec;
-> +	__aligned_u64 frac;
-> +	__u32 mult;
-> +	__u32 shift;
-> +};
+On Wed, 1 Apr 2026 08:06:57 -0700 Stephen Hemminger wrote:
+> On Wed, 01 Apr 2026 10:28:23 +0100
+> David Woodhouse <dwmw2@infradead.org> wrote:
+> 
+> > > Some kernels are built without CONFIG_IPV6, so this warning would be
+> > > quite misleading.    
+> > 
+> > Maybe on this date next year, we could make it not possible to build
+> > the kernel *without* IPv6... ?  
+> 
+> There are some government agencies that used to require that IPV6 was disabled
+> for security reasons. Yes they had broken old firewalls
 
-You're just exposing kernel timecounter internals.
-Why is this ionic uAPI and not something reusable by other drivers?
+Which is why we sadly have to keep the ipv6_mod_enabled()
+sillilitude around. But that's a runtime thing.
