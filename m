@@ -1,32 +1,30 @@
-Received: from out-170.mta0.migadu.com (out-170.mta0.migadu.com [91.218.175.170])
+Received: from out-181.mta0.migadu.com (out-181.mta0.migadu.com [91.218.175.181])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 98896372EED
-	for <linux-rdma@vger.kernel.org>; Mon,  6 Apr 2026 13:29:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.170
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A63E337416B
+	for <linux-rdma@vger.kernel.org>; Mon,  6 Apr 2026 13:29:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.181
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775482145; cv=none; b=BFZVwTYiw8CYHgNH7sM1iN+mmiJna3wEi8p06W3XLDEQsRilwB8jP5uKPaIa03GaNTCBXVAoQGdWck4/d37ctyJ85PI7fw1CrBn78GczptGcsNuByLPgeVGrdWNADi+kSGEDNd7c0OjtZtgkK9K5kJVFxonjG5WuEfJA/2OCAcw=
+	t=1775482148; cv=none; b=qVlhvCjr5EW9rZMeGB6jkSGp9XpNI4aYSfXDHPIyHX+NE36AWTVtWwcDVCshKwVjiHmHDos67574HStXf5S/VhDAT5bvV4qF73EgNqBR7Oyc2gHTVEfCTvgG26Kwdb5ynz0wPiutCrTy6w4QXFpl9WSoDWv/6WAwAUlltBTZxVE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775482145; c=relaxed/simple;
-	bh=fOZ7/E3NaHng7RjFBr+jAe5NK9eFXqIiPuCj86C6oLg=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=O8bWtUmpKAyuCnSRxlUclaAVrXwHGXJ9+0sTVbjotruhEreQERhaGed1AE/EnL67l2n02Fl5vTIQiDQIPerf08fQvKZI9ZzqoQIDILC07WjXR06TPmwpc2D3rnNpZhRgIK1phiVvbgNwhor0ldsa98N7TPyT/STJtRD5Zol63fs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=D4yEhafc; arc=none smtp.client-ip=91.218.175.170
+	s=arc-20240116; t=1775482148; c=relaxed/simple;
+	bh=WheYACpO9d/hiu6UL0ZYblBQUu7xV19a6ef2+lPpedk=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=oh8xvR+i3XOcIQ5sPmwq7DyaY4ckknXK312qbIf2y2q0+sh5Ejx/EBeHhbMF2YOOpJnaQxCAmUALhxyqTmRXf53bZg1dlTwHKJPsD2vbEc6Fe5oG/X8P5Nac3QxSk1tMkaPENsnZA7HvqjRCxZxqB7guelkUPkpsrsg87rCA0kI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=WsnnAhiX; arc=none smtp.client-ip=91.218.175.181
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="D4yEhafc"
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="WsnnAhiX"
 X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-	t=1775482142;
+	t=1775482134;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=m5z7OLDqIXiYQp9eRoCufuvK2CrJP9euDFUggwGrBLw=;
-	b=D4yEhafclbOJIBC0gRX0ZaWI+nyT3BhWHeFRYCdz46j+aulQo9xdt70/VoqMpyDQSWwZdQ
-	JAjgoNDYCz8OkUhEg0id6J2ziuhtcuQWZeNpWOq6dd1pTK+nnbdpR+AtMJ9wQ1QeVgBXYJ
-	IXl3ORA/ci67e72iqCrdXp55Zbw1BQ8=
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=uJqDzBluXjhl3WpOmUv9bty8+1+HJpAdeY5ceFZjIDI=;
+	b=WsnnAhiXDoNrqTAt+ATZkogUf2cjw3oFPsvcw5L/yHne3Os8UfEfyAwfiCSthJWFAqqMoR
+	ulzChxATCISLwq839V/eFoeSGQN9VA9ibj1NkkjGdswAudSn8HHcPYI+mRR6vTcwIAYGlK
+	HexbE7681JpMbPf+zLosJ2yKBpbmAAU=
 From: zhenwei pi <zhenwei.pi@linux.dev>
 To: linux-kernel@vger.kernel.org,
 	linux-rdma@vger.kernel.org
@@ -34,11 +32,9 @@ Cc: zyjzyj2000@gmail.com,
 	jgg@ziepe.ca,
 	leon@kernel.org,
 	zhenwei pi <zhenwei.pi@linux.dev>
-Subject: [PATCH v4 2/4] RDMA/rxe: remove rxe_ib_device_get_netdev() and RXE_PORT
-Date: Mon,  6 Apr 2026 21:28:27 +0800
-Message-ID: <20260406132830.435381-3-zhenwei.pi@linux.dev>
-In-Reply-To: <20260406132830.435381-1-zhenwei.pi@linux.dev>
-References: <20260406132830.435381-1-zhenwei.pi@linux.dev>
+Subject: [PATCH v4 0/4] Support PERF MGMT for RXE
+Date: Mon,  6 Apr 2026 21:28:25 +0800
+Message-ID: <20260406132830.435381-1-zhenwei.pi@linux.dev>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -48,122 +44,46 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-Migadu-Flow: FLOW_OUT
 
-Suggested by Leon, remove the rxe_ib_device_get_netdev() wrapper and
-the RXE_PORT definition. These additions do not improve readability,
-and RXE has always had only a single port.
+v4:
+- drop rxe_ib_device_get_netdev and RXE_PORT, use 1 instead
+- avoid UAF to get skb length
+- remove one-line wrapper rxe_counter_get, use atomic64_read instead
+- fix memory free for GID table, this is a new patch in this series.
 
-Signed-off-by: zhenwei pi <zhenwei.pi@linux.dev>
----
- drivers/infiniband/sw/rxe/rxe_mcast.c | 4 ++--
- drivers/infiniband/sw/rxe/rxe_net.c   | 7 +++----
- drivers/infiniband/sw/rxe/rxe_verbs.c | 4 ++--
- drivers/infiniband/sw/rxe/rxe_verbs.h | 6 ------
- 4 files changed, 7 insertions(+), 14 deletions(-)
+v3:
+- merge 'RDMA/rxe: use rxe_counter_get' into previous commit
+- zero *out* MAD memory
+- return success with error status rather than failure to avoid
+  uplayer hang
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_mcast.c b/drivers/infiniband/sw/rxe/rxe_mcast.c
-index 5cad72073eca..acd03bd87794 100644
---- a/drivers/infiniband/sw/rxe/rxe_mcast.c
-+++ b/drivers/infiniband/sw/rxe/rxe_mcast.c
-@@ -34,7 +34,7 @@ static int rxe_mcast_add(struct rxe_dev *rxe, union ib_gid *mgid)
- 	struct net_device *ndev;
- 	int ret;
- 
--	ndev = rxe_ib_device_get_netdev(&rxe->ib_dev);
-+	ndev = ib_device_get_netdev(&rxe->ib_dev, 1);
- 	if (!ndev)
- 		return -ENODEV;
- 
-@@ -59,7 +59,7 @@ static int rxe_mcast_del(struct rxe_dev *rxe, union ib_gid *mgid)
- 	struct net_device *ndev;
- 	int ret;
- 
--	ndev = rxe_ib_device_get_netdev(&rxe->ib_dev);
-+	ndev = ib_device_get_netdev(&rxe->ib_dev, 1);
- 	if (!ndev)
- 		return -ENODEV;
- 
-diff --git a/drivers/infiniband/sw/rxe/rxe_net.c b/drivers/infiniband/sw/rxe/rxe_net.c
-index 211bd3000acc..6621d01ac32d 100644
---- a/drivers/infiniband/sw/rxe/rxe_net.c
-+++ b/drivers/infiniband/sw/rxe/rxe_net.c
-@@ -602,7 +602,7 @@ const char *rxe_parent_name(struct rxe_dev *rxe, unsigned int port_num)
- 	struct net_device *ndev;
- 	char *ndev_name;
- 
--	ndev = rxe_ib_device_get_netdev(&rxe->ib_dev);
-+	ndev = ib_device_get_netdev(&rxe->ib_dev, 1);
- 	if (!ndev)
- 		return NULL;
- 	ndev_name = ndev->name;
-@@ -646,12 +646,11 @@ static void rxe_sock_put(struct sock *sk,
- 
- void rxe_net_del(struct ib_device *dev)
- {
--	struct rxe_dev *rxe = container_of(dev, struct rxe_dev, ib_dev);
- 	struct net_device *ndev;
- 	struct sock *sk;
- 	struct net *net;
- 
--	ndev = rxe_ib_device_get_netdev(&rxe->ib_dev);
-+	ndev = ib_device_get_netdev(dev, 1);
- 	if (!ndev)
- 		return;
- 
-@@ -699,7 +698,7 @@ void rxe_set_port_state(struct rxe_dev *rxe)
- {
- 	struct net_device *ndev;
- 
--	ndev = rxe_ib_device_get_netdev(&rxe->ib_dev);
-+	ndev = ib_device_get_netdev(&rxe->ib_dev, 1);
- 	if (!ndev)
- 		return;
- 
-diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
-index 4e5c429aea37..d3b2d610ca37 100644
---- a/drivers/infiniband/sw/rxe/rxe_verbs.c
-+++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
-@@ -50,7 +50,7 @@ static int rxe_query_port(struct ib_device *ibdev,
- 		goto err_out;
- 	}
- 
--	ndev = rxe_ib_device_get_netdev(ibdev);
-+	ndev = ib_device_get_netdev(ibdev, 1);
- 	if (!ndev) {
- 		err = -ENODEV;
- 		goto err_out;
-@@ -1450,7 +1450,7 @@ static int rxe_enable_driver(struct ib_device *ib_dev)
- 	struct rxe_dev *rxe = container_of(ib_dev, struct rxe_dev, ib_dev);
- 	struct net_device *ndev;
- 
--	ndev = rxe_ib_device_get_netdev(ib_dev);
-+	ndev = ib_device_get_netdev(ib_dev, 1);
- 	if (!ndev)
- 		return -ENODEV;
- 
-diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.h b/drivers/infiniband/sw/rxe/rxe_verbs.h
-index d92f80d16f78..e800545d1046 100644
---- a/drivers/infiniband/sw/rxe/rxe_verbs.h
-+++ b/drivers/infiniband/sw/rxe/rxe_verbs.h
-@@ -415,7 +415,6 @@ struct rxe_port {
- 	u32			qp_gsi_index;
- };
- 
--#define	RXE_PORT	1
- struct rxe_dev {
- 	struct ib_device	ib_dev;
- 	struct ib_device_attr	attr;
-@@ -451,11 +450,6 @@ struct rxe_dev {
- 	struct rxe_port		port;
- };
- 
--static inline struct net_device *rxe_ib_device_get_netdev(struct ib_device *dev)
--{
--	return ib_device_get_netdev(dev, RXE_PORT);
--}
--
- static inline void rxe_counter_inc(struct rxe_dev *rxe, enum rxe_counters index)
- {
- 	atomic64_inc(&rxe->stats_counters[index]);
+v2:
+- Fix overflow for PMA counter *link_downed_counter*
+- Use *rxe_counter_get* instead of *atomic64_read* for hw-counters
+
+v1:
+Support PERF MGMT for RXE, add sent/received bytes for RXE counters,
+also improve coding style.
+
+zhenwei pi (4):
+  RDMA/core: Fix memory free for GID table
+  RDMA/rxe: remove rxe_ib_device_get_netdev() and RXE_PORT
+  RDMA/rxe: add SENT/RCVD bytes
+  RDMA/rxe: support perf mgmt GET method
+
+ drivers/infiniband/core/cache.c             |   1 -
+ drivers/infiniband/sw/rxe/Makefile          |   1 +
+ drivers/infiniband/sw/rxe/rxe_hw_counters.c |   2 +
+ drivers/infiniband/sw/rxe/rxe_hw_counters.h |   2 +
+ drivers/infiniband/sw/rxe/rxe_loc.h         |   6 ++
+ drivers/infiniband/sw/rxe/rxe_mad.c         | 101 ++++++++++++++++++++
+ drivers/infiniband/sw/rxe/rxe_mcast.c       |   4 +-
+ drivers/infiniband/sw/rxe/rxe_net.c         |   9 +-
+ drivers/infiniband/sw/rxe/rxe_recv.c        |   6 ++
+ drivers/infiniband/sw/rxe/rxe_verbs.c       |   5 +-
+ drivers/infiniband/sw/rxe/rxe_verbs.h       |  10 +-
+ 11 files changed, 133 insertions(+), 14 deletions(-)
+ create mode 100644 drivers/infiniband/sw/rxe/rxe_mad.c
+
 -- 
 2.43.0
 
