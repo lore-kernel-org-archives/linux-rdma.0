@@ -1,28 +1,28 @@
-Received: from SN4PR2101CU001.outbound.protection.outlook.com (mail-southcentralusazon11012070.outbound.protection.outlook.com [40.93.195.70])
+Received: from CY3PR05CU001.outbound.protection.outlook.com (mail-westcentralusazon11013022.outbound.protection.outlook.com [40.93.201.22])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4ACF031E107;
-	Mon,  6 Apr 2026 09:11:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.195.70
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A70231D372;
+	Mon,  6 Apr 2026 09:11:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.201.22
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775466711; cv=fail; b=QkpJtIUqlYUfRUEqYdniRfkCJM9e2p6Eo9izbJVdkw73GsmRoyovkmbdSPATAhAjvFnbXR2be58k9zqF2vUTfxHO1Lb1EZVwHhA8bOspFhLSsEh4aiRiZPbrMI07SvDK/xLTtxtmaq3yOLti5m4J839UGHxzc6aH7vzmyuZuUqk=
+	t=1775466720; cv=fail; b=YgcmY/dHfaDDdZQCMaQMfoXSLcjC+b94ZBvv3aGM5kICh5lNve8zH/6pP5D+8DX0xg1ER8sFmoQrykwp6f8bM/gvu0SOIALgnAzwumwh043K2qjbse7JjaTnWUCurPcq6aFf7Bqe8E6B50z026l/GAg6SftonekZELOaZCQGydo=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775466711; c=relaxed/simple;
-	bh=8NzoPIweU0aXMY3QofGsC+56iuNTl86+BMC7GUySLQE=;
+	s=arc-20240116; t=1775466720; c=relaxed/simple;
+	bh=mlYGaSGcypbRrSzsVJd5s6J5OjBBc/13GebHEXUJi2k=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-ID:References:
-	 In-Reply-To:To:CC; b=pGGf6Uk6/FG+8YpsyOiM1k5iSa3bcLUuD7olQBzWyrG4hUfhO0LTxCLFGpKzFWPAvdNvEckntZt1I3TjNaaDi9HK4307lX+Gg8r63TRWtGaGPiymvYSxEuVHa5hAYczymboE/KUJPgFY2RxPg4YZ4dmdbEku3Xj2p6AKXC+eauc=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=kdQbyiQH; arc=fail smtp.client-ip=40.93.195.70
+	 In-Reply-To:To:CC; b=K5HO8JEvtAcev+ZuW6oXw2GVp6B+k8iYt746PC9g4vF1fKr77FwzVhNoem6LS2GzmY+ndSK08QCHRL+JkemPTWrJB0wmzrFg7Esef7WT72QvCzZrbYcfukhdwOckieAfK0cDwmSn3Ksb94RL74FGk7R02Uzbdx6pckY58ceS0dU=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=S0D4NuEC; arc=fail smtp.client-ip=40.93.201.22
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="kdQbyiQH"
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="S0D4NuEC"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=p+x+lGuff1KBX9cnEvpKXE+YZZ5viwYOmsLcNWnB90CPODPf18cnpkx27wVMDETSSasYbPbdg+74dCSVc5mNpU5v2Dow3bwGAf6PwDNujH4rZJz/C1tU72ZI2pbFn6okG0nczkbpfvPO7M8DizcdlM6P0nfb15ltbqHUXBy81V0j0hlg+UBLzTWiS8fXXgRbk/zHT/pGnj25rPwP8MqXxIkKl74gvC4NjmHmUvGz9lRhP/bQbgXvcL8Gk5HtVhGVs3rrtFHZO8HRiH0USb066BDQsInFLmx4XlYo93gTDR3jCcLnnWsUrjwTm8xLqevDZ0UqTVXckgwu95XVN8wzWA==
+ b=BEtSyEqTQN+dfVguRC3XUriRJPZ/q3JgWpZlpiked6cv2r/kTeKcWFrnMOA327rXegDiMJonm9lW0ErGOGFXMx1YlBd0vrBdOrkXh4oNaWQCSOCM1DLRCtxWIecQU0rFiJMoc6/LXxAHVXJfTFPmvzSQ1ahu4AQDh7Kz5AwrmukPOUKjvlDD1BPpd0aLNIpnT22VflxKC88a1Ouh7CCOQiOSGI6LLlHUcw298NukBfOTvvNumT8gOnOW42NkYxLJnitduQiu2EpT75eD9QosVgvtHF6DHgG0h6GMv1/7PwL/Za58TSCtxx8H90xy/zrtM1WCsbR8dmn/Wz98RmMzow==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=Fi9O8PCxr66le4OCF4pQgoClXNiuHSFSXI8ayytGkYs=;
- b=enVGLI5S5Tgi1Zi+Kg/gSZZIkCiOXAdYgcTyrXICiy+1xOIdTAuT2Lt0oQ7d/IrjXPQsvSIirDc5iTOsdbi3GZ88nnB3SbZqJaMZ2cmwtBp0nWPQPYfjPONxKu8Rafs8vHq2cS4mn0ZO3EeC9WgdD14awRnoO5WmJ2+GycS3ZrMOmuQb7/wbgXEDfQeWHfa5g5bS9Q8Dd6VyvgsOK4/shilba1u0DKI03j/Fzdct0GQch0Y4N/B7xFd7R/DjrF2f7FNgYd3wfly1YPKLoVZ/hKzP4EA6VQAbuCoBSiI2LRauV38y7f47rMnIJsALYIw1H5LMd+ezLeOmO1LFBhT6Fw==
+ bh=aU/5ZDly+FSYMwDs7YwvDW1Y5j8zd67Xk+OGoPFhI1A=;
+ b=OgJmjpzWnEIeAru7l6oSn3LwGZk1Ag9pKb5t09QJpy5/sF+QVXMyTtC7vvtO76dxlFYJaryu0jlx/ceWDa8BUdeOPR+V0rHw35IyGG3qcQqB30WKYrBMbUCIylNYnGtVl0lw5TNMSPQs8SAcu0GTslT2uhOuBxnFU+wSu2+ZDAYod4ARektD2VzN7/BUkAGjKp+51E1k/DXRAYAUJ3539Tr8s/IvWZ6/gDhCEM6xWaf8jY77I9u5F39e4t3tpstKNC8IOk6aA5aBPny0Ap2leBlG5KDwqn0X86nCZVtP24s64UQTdnoFl26Tm1lhaTRm54gSZsOo2JHpDIpvsmimdQ==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
  216.228.118.232) smtp.rcpttodomain=redhat.com smtp.mailfrom=nvidia.com;
  dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
@@ -30,17 +30,17 @@ ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=Fi9O8PCxr66le4OCF4pQgoClXNiuHSFSXI8ayytGkYs=;
- b=kdQbyiQH2swmb4pWi7snjPzeoZ+PF5WEQPipgMmuzd5MxBVkITotLkBKNS80Tp66uQUEJVNkVR7wJVsM076KJIimDwy1YzdMYb8iy0yDthRpkTpFxaKvyZ1VMuhRG3hfyIWqVdH7Lqg8BcMMRmoez6mkXPbLyJSgcBiLN8iIBdk+Ox5xcZJmumSkWzzS7rtpMjtAiqlnA4t9+Y8J5u2G7XUd/6vcAGtnBVG6Fa3S07agzXlAWD4gZzhpiGwZ4ct7ixw2b6NpASZsWMkf/3FmQkVNdvzzEMMET6CpeBKmzYTx1YGz4uhVU2hmYQ/eQqXBOiqSyDyOUnKCTFEf1NJ1Vw==
-Received: from BL0PR01CA0019.prod.exchangelabs.com (2603:10b6:208:71::32) by
- DM6PR12MB4185.namprd12.prod.outlook.com (2603:10b6:5:216::13) with Microsoft
+ bh=aU/5ZDly+FSYMwDs7YwvDW1Y5j8zd67Xk+OGoPFhI1A=;
+ b=S0D4NuEC8YDUhLSfcz5Q2mzSAoyD5PvEB1QeejhndCq5g/Yu+I4Nx/uYQMloK3NeBRMAv4iIsfVEn38KyoL1CN9s4h5+C68a2Cn3D/tojXkCZV3+UULvkveowi6pElhDFTo8s3t5bfbXiGXzV3VVrxx0r1KIL/YtHQZdu6LGMDaBiINrO7XsrlYyJKGqRSrsWYuM2/rrKwnpMGrNOElY2tyZyPg+7+cQi7kq/5lrzXT4wca9KLTlTFa/5bFlG/6Oa5cU+YKA8E53RCKQ7TQsiby9UpH8jiJQm8Nb9d4kD7MsyBQxNQAZ/ijxQb/lndfqeacaQLkvAmDwNjm/+pUa5g==
+Received: from BL0PR01CA0029.prod.exchangelabs.com (2603:10b6:208:71::42) by
+ IA1PR12MB7712.namprd12.prod.outlook.com (2603:10b6:208:420::9) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.9769.21; Mon, 6 Apr 2026 09:11:43 +0000
+ 15.20.9769.20; Mon, 6 Apr 2026 09:11:56 +0000
 Received: from BL6PEPF00022575.namprd02.prod.outlook.com
- (2603:10b6:208:71:cafe::ce) by BL0PR01CA0019.outlook.office365.com
- (2603:10b6:208:71::32) with Microsoft SMTP Server (version=TLS1_3,
+ (2603:10b6:208:71:cafe::ab) by BL0PR01CA0029.outlook.office365.com
+ (2603:10b6:208:71::42) with Microsoft SMTP Server (version=TLS1_3,
  cipher=TLS_AES_256_GCM_SHA384) id 15.20.9769.32 via Frontend Transport; Mon,
- 6 Apr 2026 09:11:43 +0000
+ 6 Apr 2026 09:11:56 +0000
 X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.118.232)
  smtp.mailfrom=nvidia.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=nvidia.com;
@@ -50,22 +50,22 @@ Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
 Received: from mail.nvidia.com (216.228.118.232) by
  BL6PEPF00022575.mail.protection.outlook.com (10.167.249.43) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.9769.17 via Frontend Transport; Mon, 6 Apr 2026 09:11:43 +0000
+ 15.20.9769.17 via Frontend Transport; Mon, 6 Apr 2026 09:11:56 +0000
 Received: from drhqmail202.nvidia.com (10.126.190.181) by mail.nvidia.com
  (10.127.129.5) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Mon, 6 Apr
- 2026 02:11:31 -0700
+ 2026 02:11:45 -0700
 Received: from drhqmail203.nvidia.com (10.126.190.182) by
  drhqmail202.nvidia.com (10.126.190.181) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.20; Mon, 6 Apr 2026 02:11:31 -0700
+ 15.2.2562.20; Mon, 6 Apr 2026 02:11:45 -0700
 Received: from [10.135.59.1] (10.127.8.10) by mail.nvidia.com (10.126.190.182)
  with Microsoft SMTP Server id 15.2.2562.20 via Frontend Transport; Mon, 6 Apr
- 2026 02:11:27 -0700
+ 2026 02:11:40 -0700
 From: Edward Srouji <edwards@nvidia.com>
-Date: Mon, 6 Apr 2026 12:11:13 +0300
-Subject: [PATCH rdma-next v2 02/11] RDMA/mlx5: Remove raw RSS QP restrack
- tracking
+Date: Mon, 6 Apr 2026 12:11:16 +0300
+Subject: [PATCH rdma-next v2 05/11] RDMA/core: Fix potential use after free
+ in ib_destroy_cq_user()
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -74,7 +74,7 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-ID: <20260406-security-bug-fixes-v2-2-ee8815fa81b7@nvidia.com>
+Message-ID: <20260406-security-bug-fixes-v2-5-ee8815fa81b7@nvidia.com>
 References: <20260406-security-bug-fixes-v2-0-ee8815fa81b7@nvidia.com>
 In-Reply-To: <20260406-security-bug-fixes-v2-0-ee8815fa81b7@nvidia.com>
 To: Leon Romanovsky <leon@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>, "Chiara
@@ -86,74 +86,95 @@ To: Leon Romanovsky <leon@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>, "Chiara
  Ledford" <dledford@redhat.com>, Matan Barak <matanb@mellanox.com>,
 	<majd@mellanox.com>, Maor Gottlieb <maorg@mellanox.com>
 CC: <linux-rdma@vger.kernel.org>, <linux-kernel@vger.kernel.org>, "Edward
- Srouji" <edwards@nvidia.com>
+ Srouji" <edwards@nvidia.com>, Michael Guralnik <michaelgur@nvidia.com>
 X-Mailer: b4 0.14.2
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1775466677; l=1265;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1775466677; l=2124;
  i=edwards@nvidia.com; s=20251029; h=from:subject:message-id;
- bh=GR51MqDuerkWliBLJ+S2gJCb+sD+W3iDTE8IzL/1NZQ=;
- b=XjzMb+GPMmGJYbZTkGxKU9fUnSRx1i8+AIdrx7plBb5hgDz2huhV4R/9o8+dcI+JawkWDH9qE
- XRndnnILQvtBvJwCv6bq5sLPY2ub6/cPyWSdb7nu+lRxf61VT/6sOZ5
+ bh=W/2WlJLn689ImNNVXH7wlhyztcjmNw/q/99rPLeorOI=;
+ b=65ZOx4WWP6Wq/6aOp880KDfUBpzx3dnDCziPEd6rhGE5X6ax7S/HYVoyYy++n5SCXN5bfXeys
+ U9UaSK/8qzXCK0N34dNq6jCUGX6E1lO8N/ju079pRj6batom7ia6Hz7
 X-Developer-Key: i=edwards@nvidia.com; a=ed25519;
  pk=VME+d2WbMZT5AY+AolKh2XIdrnXWUwwzz/XLQ3jXgDM=
 X-NV-OnPremToCloud: ExternallySecured
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: BL6PEPF00022575:EE_|DM6PR12MB4185:EE_
-X-MS-Office365-Filtering-Correlation-Id: 45f37c62-1e7a-4091-cf9b-08de93bc854d
+X-MS-TrafficTypeDiagnostic: BL6PEPF00022575:EE_|IA1PR12MB7712:EE_
+X-MS-Office365-Filtering-Correlation-Id: 4d016fc0-5a4d-424c-34d3-08de93bc8d30
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|82310400026|1800799024|376014|36860700016|921020|22082099003|18002099003|56012099003;
+	BCL:0;ARA:13230040|1800799024|82310400026|376014|36860700016|921020|56012099003|22082099003|18002099003;
 X-Microsoft-Antispam-Message-Info:
-	puEHeZPCJtj842WErygHOSi8IrIk2yXzmUidHm5vMQDe5VBceXte3GiKnWuC+0IOpViUpgkHywiV7RRS4pXFlOVHl51nt04GdBVN+HD1tRp523wdQU6dYZR8mFzPzvEFYQYGyFdb1y1sWOy/DTEgxg/dmtp8PmeF1CtjUTgARCfDavqKJju88DcmRJJZM8TzK6Tvdn4GGkKWU/TGOzIRlptBMtIVmQKsaYAQeE0gcxBomsnmthhrrUjhXxp8EmBV0DjfIO8Gbbd/GVjrDCkXXsDD8eys/53x3n7/8iBbnaZfLEaFTeF4RZ/FIh7iVeg/Lrcr5/3UurERgpHF2kgrE6USXoZKo+YZSS4DkqNhwxsSUi99zkHbEg7xg0jZ7qDR+FGYLZ01jV5aqRcVj2H0sWL55KmDmfCW5sogiQMZYDboxJl89etze11YjBDMem1Yu4yzw4/Wu0kBqbAKIcpqptlIo6IZbWZxgNSBxZPTxneccx0YNkgFfZXUIaNRXhN+nCvJ3jCJq1sKK6mH1jnIIAMieomLslurQuiwEMhReMwjOMu5KwJVYg3KpZjfHIdxEOa5ur9cnvEdClPtByQ6EbHSmEpfuYyiAdwPUhEc20JOx7ct8Xe9G6RAmzM+zBFLylz2HG74sxtaz882UZ5KgHF1XgYAgFOwlTod13Xx/RIVeO8WPuUE/V0lH5Y4mjsVkAcCN8HM0xmE8B1tIgl19HCwBNxTSQCfnrNaaY5REltAgScBAGpoXNCuL1EHEiiHZg1gZwMv0K8QxjUHmbQH0JYyB+kpzqYVpkXdUvxavVG6NBlPp1zGPnrFMsFGrEXL
+	DDb9ikj8+lyB0DbsuQiNdZk5At6dkEPoMZVZujRU0Eo0WMQrw+a1biVW5jewbkdgyxdP8b+UD4oorbEqCS7xV5D13EyzS1y6UwV/joaRxTiDI8PaIopYncJZ//OLp1eca+wYJaB/KjFCjL2wnacpjffgQ3qFBRyGSQcYo8aY8CQJy+p6pZ2WWlDiCvwYlEV9urIrgTiOGpvOcOkBqAcKdgSul1mPBiWbCe9ebGCmyleQk317tWEuEVX4463imkNRjT6vrsOquLbqhXvBUPT5jSPEGgY9tnF8deNsRvaOQCLvo0GMvSRNQUymlWSUUycXqPBsty+j/K+HC1WTwAelonZbJIMcLAwo4ngr57hhbbS7iS8ilMjJFDW5VUu/5bOdM43XfcK4Uyl5/AM6witiJ4c90KZvquUKw8x9FIN6i/i+GQaXb0rGDlql4mSqbI/u41dEfm8O+FJqA4dANpG2dyFiUrJdKSRuTNb5sjKWql3nfpJRZFL8B+NNU6Fie3pzFRERxWcfhUHZgQJuZZw8h6XhJtwm5UXLriHMZ7Y2Gz2gDDkS7g+ISE9lNwjIxJQOOfQBzqZu8/SPY2g76MT0+hQn1et65Cp5Wo+2hxp1v4lRbYKeluwhyDebyJeuctzaQAw0exu0HSK/XZGT2SZxpN6IhUbffsP50WxUnkRoQSgPAtSx17tXfOMnRJTOl0MtYtpTolSlnx4IMgIXxWAZXzJzA+bba+9et+f9VpIqCYsHM8WGxR5nOyQV3C433vTqDgimIcTr37fzgEix8eWOx3/8JXnGcHviIydVky5NSlRNEWFsj1uR+bpr9otCH8u8
 X-Forefront-Antispam-Report:
-	CIP:216.228.118.232;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc7edge1.nvidia.com;CAT:NONE;SFS:(13230040)(82310400026)(1800799024)(376014)(36860700016)(921020)(22082099003)(18002099003)(56012099003);DIR:OUT;SFP:1101;
+	CIP:216.228.118.232;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc7edge1.nvidia.com;CAT:NONE;SFS:(13230040)(1800799024)(82310400026)(376014)(36860700016)(921020)(56012099003)(22082099003)(18002099003);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	MjPi1wq2CGA8SZnOWg3q7dAOF5av2gIIrToWohPdn7jkn6qMC1Qo0gNhq5tD9bGiifNuCsh6iFX3oh7lHfrlwZlAS2NJTFUNjojWYsIfwCHuisOyhPgC3rsMBTGWDPMH6m4kQSfPhsMK71XX032nfVIEHZ4mp9r5en62OI3uVdvQ0KcW8fJ2ruW8ithH1vpK61I9EdgPrgXabq4tAg86Azr08xy7hesIUrOACsC7D1WnQYScx28YHq+64pScCST22/gwQT1HLsNHFmyOa4m5+uaGr9eVjVRNd8D2fkLBLMpGk3MxuBkig3GYlN08YOhfa7fuohQJmf8SGtedDetxBtCzAWzP7c0qqKr1M58AuXEvZlZB2ZimRzJgnI9TQO4BK3t+kq/5ZVtvjldD+CfbelezICh/AySLAdFJHdPKqnhTJM+rBtuykOrbM7kyY79G
+	bDpXSsEYWQjWlW68YXdvG/MxJYlOjZk/cyZWnW4n6iIqmCpv/L0VAGaiRx7JMmC3TT4LjV/S6mMIdw5XjK3XDGv3Gbj5JDehqqCX2dtLN7qf56TThUPgZGaCl6f+U8lFUOBwKTr1yR9vJTpViRqwb4+a6g86LGzb7Fy7fbnlHqov7eSZ2webpNJ/4Mq9Bob6pYJb6HewfaJHVvZXrxIFu1DjRqmsRFT51rsd0+DuW1vvzga18mdQfsSnLHbDN5a+Qfv2qwr26jqsyiMVjtUBh6ILCHfkspK2ZqCktzE7n29pzXcUGIf3SHBdJ/KBulmKYVIygTupYC6pjkRpNr3ig+3M+601rr3MI2Gu6MmApxUsnFCcGnlSu/KKjAq1w+/pDYyCc5Q6KNEBGDSduwXGjyIS17P5i9mcNEeabK7qNJJBn5C5Zhq7r1u6fqnZEMzP
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 06 Apr 2026 09:11:43.1070
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 06 Apr 2026 09:11:56.3268
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 45f37c62-1e7a-4091-cf9b-08de93bc854d
+X-MS-Exchange-CrossTenant-Network-Message-Id: 4d016fc0-5a4d-424c-34d3-08de93bc8d30
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.118.232];Helo=[mail.nvidia.com]
 X-MS-Exchange-CrossTenant-AuthSource:
 	BL6PEPF00022575.namprd02.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM6PR12MB4185
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA1PR12MB7712
 
 From: Patrisious Haddad <phaddad@nvidia.com>
 
-Raw RSS QP restrack tracking wasn't working to begin with as it was
-only tracking the first raw RSS QP which was added, since at creation
-the raw RSS QP number is reserved so the QP number for this qp type
-was always zero.
-The following raw RSS QP additions were always failing silently.
+When accessing a CQ via the netlink path the only synchronization
+mechanism for the said CQ is rdma_restrack_get().
+Currently, rdma_restrack_del() is invoked at the end of
+ib_destroy_cq_user(), which is too late, since by that point
+vendor-specific resources associated with the CQ might already be
+freed. This can leave a short window where the CQ remains accessible
+through restrack, leading to a potential use-after-free.
 
-Hence remove the tracking for the raw RSS QP, support can be added
-later for it if needed by using the tirn for tracking.
+Fix this by moving the rdma_restrack_del() call to the start of
+ib_destroy_cq_user(), ensuring that the CQ is removed from restrack
+before its internal resources are released. This guarantees that no new
+users hold references to a CQ that is in the process of destruction.
 
-Fixes: 968f0b6f9c01 ("RDMA/mlx5: Consolidate into special function all create QP calls")
+In addition, this change preserves the intended asymmetric behavior
+between create and destroy routines: resources are added to the
+restrack at the end of successful creation, and hence shall be removed
+from the restrack first thing during the destruction flow, which keeps
+the lifecycle management consistent and predictable.
+
+Fixes: 08f294a1524b ("RDMA/core: Add resource tracking for create and destroy CQs")
 Signed-off-by: Patrisious Haddad <phaddad@nvidia.com>
-Reviewed-by: Chiara Meiohas <cmeiohas@nvidia.com>
+Reviewed-by: Michael Guralnik <michaelgur@nvidia.com>
 Signed-off-by: Edward Srouji <edwards@nvidia.com>
 ---
- drivers/infiniband/hw/mlx5/qp.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/infiniband/core/verbs.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index c54e7655763844b10943e12a70431da291c58b8a..69914406156c448e9f1cafbc8165d04e120e36bd 100644
---- a/drivers/infiniband/hw/mlx5/qp.c
-+++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -3104,6 +3104,7 @@ static int create_qp(struct mlx5_ib_dev *dev, struct ib_pd *pd,
- 	int err;
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index f1438d5802a3e97e22cdb607cf90a097d041a162..0e8f99807c7c0ce063ed0c1561f4ba42b485b69d 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -2256,12 +2256,16 @@ int ib_destroy_cq_user(struct ib_cq *cq, struct ib_udata *udata)
+ 	if (atomic_read(&cq->usecnt))
+ 		return -EBUSY;
  
- 	if (params->is_rss_raw) {
-+		rdma_restrack_no_track(&qp->ibqp.res);
- 		err = create_rss_raw_qp_tir(dev, pd, qp, params);
- 		goto out;
- 	}
++	rdma_restrack_del(&cq->res);
++
+ 	ret = cq->device->ops.destroy_cq(cq, udata);
+-	if (ret)
++	if (ret) {
++		rdma_restrack_new(&cq->res, RDMA_RESTRACK_CQ);
++		rdma_restrack_add(&cq->res);
+ 		return ret;
++	}
+ 
+ 	ib_umem_release(cq->umem);
+-	rdma_restrack_del(&cq->res);
+ 	kfree(cq);
+ 	return ret;
+ }
 
 -- 
 2.49.0
