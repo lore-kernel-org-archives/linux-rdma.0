@@ -1,42 +1,65 @@
-Received: from verein.lst.de (verein.lst.de [213.95.11.211])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 83CA63368BD;
-	Tue,  7 Apr 2026 05:24:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.11.211
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B2CE53A2575;
+	Tue,  7 Apr 2026 07:54:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775539483; cv=none; b=DwZJdOMHDgAqPzFqiPBiFx8eyZbXOvuuNdQbvYY5BdqMK+wyfMKvPI1pA56XTpLzN1nXLM1+TtDDlx8nC+l3h5kTHvuerKZtdftpmM1h7XY3HAq9k/FcMKJMenEgFHbliVJvN3qdwDvjLSPAkkvBAHBuimTp9zQujMWhnE2Tkt4=
+	t=1775548497; cv=none; b=kcW1UoTcQ17F7W0DPxxGJDZPxnhonFz1IYFNE5i11+mHIgAWFqE6YH+4zXZoQKrmie1JzeL0BxlDaqxDzQzv2N2kN0ZhmsYvOh5ER1Jq9QTEaqJ9Q3/qHZyyIK3SNVbFleOoGKxSAef0u/ghC/bubAgPmMhRTw0HZd4jPACLASc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775539483; c=relaxed/simple;
-	bh=M7NmYC/Iylm9myghHwqILim55SAUt9QrM+UZYk0eJlw=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=m+uJeSs6ItILZzSoNPOj3Tde4L50U87XQgSsy4XqqU/h95UX2IKA120v5MeKbitpHQSDK7AMk4i+WscTkn5zqzIn6si5niDGIVWGx4Fx8i4s1tTuGQabiMSy5154ifhka2DinOGXhYWB0xYRdhhbm1JoMYrG0DYoIk4+x8UtUUs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lst.de; spf=pass smtp.mailfrom=lst.de; arc=none smtp.client-ip=213.95.11.211
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lst.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lst.de
-Received: by verein.lst.de (Postfix, from userid 2407)
-	id DD31568C4E; Tue,  7 Apr 2026 07:24:37 +0200 (CEST)
-Date: Tue, 7 Apr 2026 07:24:37 +0200
-From: Christoph Hellwig <hch@lst.de>
-To: Shivaji Kant <shivajikant@google.com>
-Cc: kbusch@kernel.org, axboe@kernel.dk, hch@lst.de, sagi@grimberg.me,
-	henrique.carvalho@suse.com, linux-nvme@lists.infradead.org,
-	linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Pranjal Shrivastava <praan@google.com>
-Subject: Re: [PATCH v3] nvme: enable PCI P2PDMA support for RDMA transport
-Message-ID: <20260407052437.GB6089@lst.de>
-References: <20260406092132.1333458-1-shivajikant@google.com>
+	s=arc-20240116; t=1775548497; c=relaxed/simple;
+	bh=LbI8R/ecrApQ4vZQpbY4Kjjq4O6AqsIs4YecIibwGWk=;
+	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=DpH2mSDtvakRLiSn33dUdtP53nyIUVmYIbEzJig0u7HK6CAE7yku9k7lACtdhkFQuqqcOCcMTjAxC510A5G5Bzz5dmSZvuZydqxx03ZBfuifpvNDYPSgrciese5CkxkA7KcyGFTVv3qVoLNSErNBMhdaSQaHzM1PAuKjgaB5HGc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=t31iQV2a; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="t31iQV2a"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DC00AC116C6;
+	Tue,  7 Apr 2026 07:54:56 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1775548497;
+	bh=LbI8R/ecrApQ4vZQpbY4Kjjq4O6AqsIs4YecIibwGWk=;
+	h=Subject:From:To:Cc:Date:In-Reply-To:References:From;
+	b=t31iQV2aygBaiNSWKbUlXv0P0GEnGsgyJVnnNUKUMdHhEiUizIXbKZ/1+AuWPq8fq
+	 8gpsWSSoaSi+jP/+Jr7mubuFrKcLdzfG8ygMrlUXMhmM58Cy+jZtPC7mHR7uPkz37M
+	 iMFPQYHZPeaXwR5iOT11kJNizTxUKlo3PIT/z2aZ7/us7fGynxVcQKUUNcGs7vTwdZ
+	 XeZ5qN2Tng1iBUpGRdJjzdYRjBzbRvN0w4emRurwGMKcYqYSxCbiwdsx+2A+MkJmDT
+	 0G/td8uYRs6c/iVeMpfHT+Yl/GzuF1OfXzlIPn4ZJZ9elNKmuJuQdFmuz/qh/DecmO
+	 wgMnNEtXljpiA==
+Message-ID: <a80aee5102e3e249041feb325469f767be4710ff.camel@kernel.org>
+Subject: Re: [PATCH net v1 1/2] net/rds: Optimize rds_ib_laddr_check
+From: Allison Henderson <achender@kernel.org>
+To: Jakub Kicinski <kuba@kernel.org>
+Cc: netdev@vger.kernel.org, pabeni@redhat.com, edumazet@google.com, 
+	rds-devel@oss.oracle.com, horms@kernel.org, linux-rdma@vger.kernel.org
+Date: Tue, 07 Apr 2026 00:54:55 -0700
+In-Reply-To: <20260406181957.4bba8580@kernel.org>
+References: <20260405041613.309958-1-achender@kernel.org>
+	 <20260405041613.309958-2-achender@kernel.org>
+	 <20260406181957.4bba8580@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+User-Agent: Evolution 3.52.3-0ubuntu1.1 
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260406092132.1333458-1-shivajikant@google.com>
-User-Agent: Mutt/1.5.17 (2007-11-01)
 
-Looks good:
+On Mon, 2026-04-06 at 18:19 -0700, Jakub Kicinski wrote:
+> On Sat,  4 Apr 2026 21:16:12 -0700 Allison Henderson wrote:
+> > From: H=C3=A5kon Bugge <haakon.bugge@oracle.com>
+>=20
+> > Signed-off-by: Somasundaram Krishnasamy <somasundaram.krishnasamy@oracl=
+e.com>
+> > Signed-off-by: Gerd Rausch <gerd.rausch@oracle.com>
+> > Signed-off-by: Allison Henderson <achender@kernel.org>
+>=20
+> Author's sign-off missing on this patch (I sent out the AI reviews
+> as well, without looking, take them with a grain of salt).
 
-Reviewed-by: Christoph Hellwig <hch@lst.de>
+Yes, H=C3=A5kon's sob should be here, I will add it.
+
+Thanks!
+Allison
