@@ -1,138 +1,173 @@
-Received: from mail-qt1-f171.google.com (mail-qt1-f171.google.com [209.85.160.171])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from hr2.samba.org (hr2.samba.org [144.76.82.148])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A6F2438AC84
-	for <linux-rdma@vger.kernel.org>; Tue,  7 Apr 2026 14:29:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.171
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EDE403126C4;
+	Tue,  7 Apr 2026 14:47:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=144.76.82.148
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775572165; cv=none; b=irEFmY1ZrBpdzjodVdyohIebwSQClWcRcl8E2STpqlJc+wPwEDzIRigZR8Zq/zfq9jQXAJeu5wdeyEQe9GAhCW7hmBCAMwYkPI02ecCPkgQMMEfcnHf+oSO0bS8OnRbFOZVYEwg+9SIzh3u/6MGzqEGfqjXQnXIyrwEJkeclVro=
+	t=1775573264; cv=none; b=Cz4pk71yOJTqoTuxgwyUhFDrkswrfXhm/fTyRZ4IeBGJF8IVRoOcbgElo1gGyKSZgi14JreAoPL94S2qzSEIbj7GyPCB5qE4rr55qxZVu7XCkFeEurm4/NAa7I9vTDxf5SlZW2V9Ziqn/S7kjVLxztkFRIe7p18ZABXf7/jV51c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775572165; c=relaxed/simple;
-	bh=+rPKR4LXdDHQSLjcaS/yOhk6TewYYgXnPXQAkiPDgbM=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=N1bxBDd0Ng8JWqz8cQ4OGs0pLaJuncWTGlUmhM6+ycMPSFNj9M7MXaJ7l/CjMxjBA3UPT78VBxNDlVEYWiwVJguCSMGFnhwqz9PhruZHpd2bDqM5mUFZEnJ/PtW3JCurFa8e8uaGrbR0qReEOfUwhSC02ZCkdRIDgZOMEDJyc4M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca; spf=pass smtp.mailfrom=ziepe.ca; dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b=Pd0lyRrE; arc=none smtp.client-ip=209.85.160.171
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ziepe.ca
+	s=arc-20240116; t=1775573264; c=relaxed/simple;
+	bh=LEkhz9RNk6tC5NYe6F1u2WXpjMlteUXxksP1aHu2o4o=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=rMAQ/2vqISESc4uuI6kFc7CsSTGNh9PaZvKKzPnb+j1zEKMIC2PYtAPCyBhU/fldaa53uyqFG5sjW8gNvOurMHlUrwSCyWaD+H9C1DuU2rXiEOdqIz3KfqsPwMQJOnQzAJXB+vm1/MlmnBUy5+RcyyRWHmOb0+3b78ezWUHWIJI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=samba.org; spf=pass smtp.mailfrom=samba.org; dkim=pass (3072-bit key) header.d=samba.org header.i=@samba.org header.b=uEzIW+wb; arc=none smtp.client-ip=144.76.82.148
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=samba.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=samba.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="Pd0lyRrE"
-Received: by mail-qt1-f171.google.com with SMTP id d75a77b69052e-506aa685d62so27415521cf.0
-        for <linux-rdma@vger.kernel.org>; Tue, 07 Apr 2026 07:29:23 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google; t=1775572162; x=1776176962; darn=vger.kernel.org;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :mime-version:references:message-id:subject:cc:to:from:date:from:to
-         :cc:subject:date:message-id:reply-to;
-        bh=k7xgoSXhqByDtv24K63FAxEENppm1PtPVLBkAC9MVro=;
-        b=Pd0lyRrELKRdtPItO69mDrH0MUqWtCTU69evEnDUgtMxDggspIQsHI9ggiZoo6vERA
-         +XSOVFLb9oB4BC0EnRW8JK3Daj0jdhzgIeK7k98qut0l90A17wMiJ/4FyYfBuED9n5cC
-         9aI5tzJhtCXX8aKXmN1/YLLjgUCK2wjk6psPmNfPOFTOH0yyo80L1wfVG+lsq6/stj3o
-         V2I7MTefb0nNnzCpM4/ZwBcC69q5E3HAOOiXYDtCiJVrgkH7xWvZmpq04QuHGIaj1alS
-         OJdbcyh4blGvvyxHJ6IlqDQMNGq/q0kEibGo6J2TrtL92AoAgAI3KtTjXmadMLVrEmAz
-         /bnw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1775572162; x=1776176962;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :mime-version:references:message-id:subject:cc:to:from:date:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=k7xgoSXhqByDtv24K63FAxEENppm1PtPVLBkAC9MVro=;
-        b=szUjBZm2rBSicxmDEc8ck4e/5bQr1o1Uzc794Def/6eHKBe7Juk3njCXIM/whnypom
-         b5PqclWLbmybjpZsvHA3G01mZdJOrraOPhV5H5dZFYkppiCFO/r/Wsgditgnj/D0Ho7h
-         RyvTHI5AhdFQAOC+XvQsH4Beel3/3HqkxLDnwmQa2/jCvkHLYR324v3qvvPgxbJeQ3qb
-         mI/RmBe0cz6ZV3rXJjf/jaj1JExlkc6U8a9LXIBZ5DgYc6A5rN+JE2mUxxZxxFKoRgHj
-         HVTiXMTTGuL2Zb6wkZtlBIbdQCS3sQjkX/1RIXPK/BUUc//2doV4m6RjsNsTuJITcsU6
-         mWDw==
-X-Forwarded-Encrypted: i=1; AJvYcCXUJf6VDaVrbbhjepc/CGnBePd2658d9XXstS2JHO22eVPHR6U9/ge1+xyqXhz+cuQCUslHtW8gnY9X@vger.kernel.org
-X-Gm-Message-State: AOJu0YxBn74wPj/qIwS8pEMNK2Mfta1wLbOpRmLGYEKpUyAC7xyeCkl/
-	Gpc12t1ucaqZLVWTPdGcwLzTndn0p/DKVvKDqS1KpmqNTNZ+25sr0UkgIwpKetKJVRQ=
-X-Gm-Gg: AeBDievMTkNz2sNPFBauJqg7rmWJPkXXO7wkSYZiuRXJHOa8oiJKSiSZDZOAUkPkM/M
-	pz8fQ9Vzj+3TaDkKKRI+NTOjwzGQBpqC+qVRQd6bLrS8X7iHTRI9BPfgjqTkmbgqVMiCZm1f93b
-	N6Rtqv62puck6LF5x5e2t1JJkiz1+xPSoGAffQkDpWbqLivCxvbSWBl2onDs/YmEBUOOmhJN+AP
-	S22HrsI6m/B5B49cC51AFj9SspkBvRK34ou3TY/43cF0JQWybBSONUTg9K+BPq05Eqx2Wrb136t
-	3lwMAii6TxlPR2e5BLN0zIaAoGm/E8I3ozJyiORQ4ls7ooSu9XfUIqvfOUjFUOL8I8cUWdjnx5y
-	eOkIqlnVIrC2OJdRc8+OMJxbL2libDDAVUeUrigERdtcETqJu6l+yam8+2j5p/sjwP9nnJMjjOA
-	flXq0UL44qmSO7/m8PrVmh6kZoMx47t4/HZ7SwQSIkojCFfszeMtPwMmpmUqqoubSeZkIrpf4+t
-	rCRbrdu
-X-Received: by 2002:a05:622a:4d90:b0:50d:a747:9ea6 with SMTP id d75a77b69052e-50da747b356mr25942651cf.61.1775572162313;
-        Tue, 07 Apr 2026 07:29:22 -0700 (PDT)
-Received: from ziepe.ca (mctnnbsa70w-159-2-73-22.dhcp-dynamic.fibreop.nb.bellaliant.net. [159.2.73.22])
-        by smtp.gmail.com with ESMTPSA id d75a77b69052e-50d84ab853dsm87044681cf.27.2026.04.07.07.29.21
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 07 Apr 2026 07:29:21 -0700 (PDT)
-Received: from jgg by wakko with local (Exim 4.97)
-	(envelope-from <jgg@ziepe.ca>)
-	id 1wA7Qe-0000000EIFp-2aQu;
-	Tue, 07 Apr 2026 11:29:20 -0300
-Date: Tue, 7 Apr 2026 11:29:20 -0300
-From: Jason Gunthorpe <jgg@ziepe.ca>
-To: Patrisious Haddad <phaddad@nvidia.com>
-Cc: Edward Srouji <edwards@nvidia.com>, Leon Romanovsky <leon@kernel.org>,
-	Chiara Meiohas <cmeiohas@nvidia.com>,
-	Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
-	Gal Pressman <galpress@amazon.com>, Mark Bloch <markb@mellanox.com>,
-	Steve Wise <larrystevenwise@gmail.com>,
-	Mark Zhang <markzhang@nvidia.com>,
-	Neta Ostrovsky <netao@nvidia.com>,
-	Doug Ledford <dledford@redhat.com>,
-	Matan Barak <matanb@mellanox.com>, majd@mellanox.com,
-	Maor Gottlieb <maorg@mellanox.com>, linux-rdma@vger.kernel.org,
+	dkim=pass (3072-bit key) header.d=samba.org header.i=@samba.org header.b="uEzIW+wb"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=samba.org;
+	s=42; h=Message-ID:Date:Cc:To:From;
+	bh=9bs+E70xzu5LpaFuUzNo/5yPnyZdKVdBaQo2fRz47yM=; b=uEzIW+wbkTBxfbOC2ciOptE7dO
+	+g3IMOMNJ5GDsssalXpuq63yKaVv1S8YOH3AJ9yegOkYm3UmPXECFc9EaKYxyky+JAao7vsChSJx+
+	xVgrMxW9vcT/t7NLxE8ZyWDd3Ox40W+N+q0y+CZkg7QUlC7cf/1TbxaSfyyaZc+zOsE/XTijN8o/N
+	tiichYGtpziwETQu6ouyEXtgSLNvX61j4qpC/LL0EODtzUG3Q15jBrJJY/WCNvgcMFKwQUe9VJM3T
+	Qzlbk9vJyONZbww7JRyJqp4YffIewObgcNWgI83buD6dyzUgH9xgV5+8TgndYbDtpX+qJueezmzyY
+	oIoRmwvolOV9nKcEBYlhev4X1G6oIeDgDV+jCueSe4x54zQPwGQ7rPjAdUcNfiJ7DOHgak45ZQMty
+	b+CRxcHiHopXsYaPlurKPNZuT3bAJaPJZwPwnYQs+Isy6h10Lpom6HEz+efVxPAMPh4DTnuAIhLxo
+	8cwKxDDHQk/lRNGcviNpF9fH;
+Received: from [127.0.0.2] (localhost [127.0.0.1])
+	by hr2.samba.org with esmtpsa (TLS1.3:ECDHE_SECP256R1__ECDSA_SECP256R1_SHA256__CHACHA20_POLY1305:256)
+	(Exim)
+	id 1wA7iH-00000007WPz-3q2b;
+	Tue, 07 Apr 2026 14:47:34 +0000
+From: Stefan Metzmacher <metze@samba.org>
+To: linux-cifs@vger.kernel.org,
+	samba-technical@lists.samba.org
+Cc: metze@samba.org,
+	Steve French <smfrench@gmail.com>,
+	Tom Talpey <tom@talpey.com>,
+	Long Li <longli@microsoft.com>,
+	Namjae Jeon <linkinjeon@kernel.org>,
+	David Howells <dhowells@redhat.com>,
+	Henrique Carvalho <henrique.carvalho@suse.com>,
+	"David S . Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>,
+	Kuniyuki Iwashima <kuniyu@google.com>,
+	Willem de Bruijn <willemb@google.com>,
+	netdev@vger.kernel.org,
+	Xin Long <lucien.xin@gmail.com>,
+	quic@lists.linux.dev,
+	linux-rdma@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH rdma-next v2 03/11] RDMA/core: Preserve restrack resource
- ID on reinsertion
-Message-ID: <20260407142920.GO2551565@ziepe.ca>
-References: <20260406-security-bug-fixes-v2-0-ee8815fa81b7@nvidia.com>
- <20260406-security-bug-fixes-v2-3-ee8815fa81b7@nvidia.com>
- <20260406222356.GJ2551565@ziepe.ca>
- <ba7fed73-44b2-4078-8715-06ad5e2270e9@nvidia.com>
+Subject: [PATCH 5/8] net: define IPPROTO_SMBDIRECT and SOL_SMBDIRECT constants
+Date: Tue,  7 Apr 2026 16:46:31 +0200
+Message-ID: <af3d81da716943128dc98b5aefd44d1aa52c1094.1775571957.git.metze@samba.org>
+X-Mailer: git-send-email 2.43.0
+In-Reply-To: <cover.1775571957.git.metze@samba.org>
+References: <cover.1775571957.git.metze@samba.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <ba7fed73-44b2-4078-8715-06ad5e2270e9@nvidia.com>
 
-On Tue, Apr 07, 2026 at 12:18:07PM +0300, Patrisious Haddad wrote:
-> 
-> On 4/7/2026 1:23 AM, Jason Gunthorpe wrote:
-> > External email: Use caution opening links or attachments
-> > 
-> > 
-> > On Mon, Apr 06, 2026 at 12:11:14PM +0300, Edward Srouji wrote:
-> > > From: Patrisious Haddad <phaddad@nvidia.com>
-> > > 
-> > > rdma_restrack_add() currently always allocates a new ID via
-> > > xa_alloc_cyclic(), regardless of whether res->id is already set.
-> > > This change makes sure that the object’s ID remains the same across
-> > > removal and reinsertion to restrack.
-> > It would be better to somehow pre-delete it so it is still in the
-> > xarray but somehow blocked and then allow un pre-deleting. del/add
-> > pairs are not a good design.
-> Usually del/add pairs not good due to re-addition possibility of failure ,
-> here that cant happen ... so any reason why it is still considered bad ?
+This patch adds IPPROTO_SMBDIRECT and SOL_SMBDIRECT constants to the
+networking subsystem. These definitions are essential for applications
+to set socket options and protocol identifiers related to the SMBDIRECT
+protocol, defined in [MS-SMBD] by Microsoft. It is used as wrapper
+around RDMA in order to provide a transport for SMB3, but Microsoft also
+uses it as transport for other protocols.
 
-xa_insert can fail, so it's still a bad idea.
+SMBDIRECT works over Infiniband, RoCE and iWarp.
+RoCEv2 is based on IP/UDP and iWarp is based on IP/TCP,
+so these use IP addresses natively.
+Infiniband and RoCEv1 require IPOIB in order to be used for
+SMBDIRECT.
 
-I do not want to see random calls to restrack_add ignoring the return
-code. Some kind of restrack_abort_delete() with a void return and no
-possibility for failure is required.
+So instead of adding a PF_SMBDIRECT, which would only use AF_INET[6],
+we use IPPROTO_SMBDIRECT instead, this uses a number not
+allocated from IANA, as it would not appear in an IP header.
 
-> The problem with marking as deletion here is that it is not only the xarray
-> that is being done at the delete operation (there is restrack_put and
-> wait_for_completion inside the restrack del to sync with other threads that
-> are ongoing).
+This is similar to IPPROTO_SMC, IPPROTO_MPTCP and IPPROTO_QUIC,
+which are linux specific values for the socket() syscall.
 
-I think the main point of pre-delete is to fence the concurrency.
+  socket(AF_INET, SOCK_STREAM, IPPROTO_SMBDIRECT);
+  socket(AF_INET6, SOCK_STREAM, IPPROTO_SMBDIRECT);
 
-So what you probably want is to leave the entry in the xarray, or
-perhaps set it to XA_ZERO and drive the refcount to zero so that none
-of the xa_load patterns can return it. This is enough to fence the
-concurrency while allowing abort to not require any memory allocation.
+This will allow the existing smbdirect code used by
+cifs.ko and ksmbd.ko to be moved behind the socket layer,
+so that there's less special handling. Only sock_sendmsg()
+sock_recvmsg() are used, so that the main stream handling
+is done all the same for tcp, smbdirect and later also quic.
 
-I remember looking at this once and it was complex to unravel all the
-things that rdma_restrack_del with valid and no_track so I gave up..
+The special RDMA read/write handling will be via direct
+function calls as they are currently done for the in kernel
+consumers.
 
-Jason
+As a start __sock_create(kern=0)/sk->sk_kern_sock == 0 will
+still cause a -EPROTONOSUPPORT. So only in kernel consumers
+will be supported for now.
+
+Once I have developed a stable interface for the RDMA read/write
+handling using sendmsg/recvmsg with MSG_OOB and msg_control,
+it will also exposed to userspace in order to allow Samba to
+use it.
+
+As the numbers of IPPROTO_QUIC (261) and SOL_QUIC (288) [1]
+are already used in various (released) userspace applications,
+I used 289 for SOL_SMBDIRECT instead of 288.
+
+[1]
+https://lore.kernel.org/quic/0cb58f6fcf35ac988660e42704dae9960744a0a7.1763994509.git.lucien.xin@gmail.com/T/#u
+
+Cc: Steve French <smfrench@gmail.com>
+Cc: Tom Talpey <tom@talpey.com>
+Cc: Long Li <longli@microsoft.com>
+Cc: Namjae Jeon <linkinjeon@kernel.org>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Henrique Carvalho <henrique.carvalho@suse.com>
+Cc: linux-cifs@vger.kernel.org
+Cc: samba-technical@lists.samba.org
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Eric Dumazet <edumazet@google.com>
+Cc: Jakub Kicinski <kuba@kernel.org>
+Cc: Paolo Abeni <pabeni@redhat.com>
+Cc: Simon Horman <horms@kernel.org>
+Cc: Kuniyuki Iwashima <kuniyu@google.com>
+Cc: Willem de Bruijn <willemb@google.com>
+Cc: netdev@vger.kernel.org
+Cc: Xin Long <lucien.xin@gmail.com>
+Cc: quic@lists.linux.dev
+Cc: linux-rdma@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Signed-off-by: Stefan Metzmacher <metze@samba.org>
+---
+ include/linux/socket.h  | 2 ++
+ include/uapi/linux/in.h | 2 ++
+ 2 files changed, 4 insertions(+)
+
+diff --git a/include/linux/socket.h b/include/linux/socket.h
+index ec715ad4bf25..e00cbfdaa8d6 100644
+--- a/include/linux/socket.h
++++ b/include/linux/socket.h
+@@ -401,6 +401,8 @@ struct ucred {
+ #define SOL_MCTP	285
+ #define SOL_SMC		286
+ #define SOL_VSOCK	287
++/* 288 reserved for SOL_QUIC */
++#define SOL_SMBDIRECT	289
+ 
+ /* IPX options */
+ #define IPX_TYPE	1
+diff --git a/include/uapi/linux/in.h b/include/uapi/linux/in.h
+index ced0fc3c3aa5..933d243b1780 100644
+--- a/include/uapi/linux/in.h
++++ b/include/uapi/linux/in.h
+@@ -85,6 +85,8 @@ enum {
+ #define IPPROTO_RAW		IPPROTO_RAW
+   IPPROTO_SMC = 256,		/* Shared Memory Communications		*/
+ #define IPPROTO_SMC		IPPROTO_SMC
++  IPPROTO_SMBDIRECT = 257,	/* RDMA based transport (mostly used by SMB3) */
++#define IPPROTO_SMBDIRECT	IPPROTO_SMBDIRECT
+   IPPROTO_MPTCP = 262,		/* Multipath TCP connection		*/
+ #define IPPROTO_MPTCP		IPPROTO_MPTCP
+   IPPROTO_MAX
+-- 
+2.43.0
+
