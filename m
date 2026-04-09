@@ -1,130 +1,124 @@
-Received: from frasgout11.his.huawei.com (frasgout11.his.huawei.com [14.137.139.23])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 75B4A3C454E;
-	Thu,  9 Apr 2026 12:28:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=14.137.139.23
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 322BB386566;
+	Thu,  9 Apr 2026 12:45:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775737690; cv=none; b=CvKoF0u/O3Ob9WImNJpuPQwfA9oxnK5eSp4phkiPPY9zO2eYJNqewocwCu0qWSJsHeDw2wIwxSfGHL4dBS1UZ4YgZqi5CVJoeiapdR/gwgwzWRH11Gm3kEWuFKLHtB1a5rVL5Fw7MHggx73x+b2bcGNgPTEEkQR6UiJxFfb5raQ=
+	t=1775738758; cv=none; b=W8FlGbkmUh+manCRaDEb64J0Sje8RNKygItsanA2mwoKxDETUg2qF1xxVQfYKxRDg+Wl9wQtRsS1lKX8LGZRod1iIL23aiUJZEVr3uyFBmRiN0rCiOHNwXrBqhZmjdx3WETfGtvvb/JBdSaFYJ3wmWSD7XG/FaZaPN6H3wh4reE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775737690; c=relaxed/simple;
-	bh=EjSozxrj+12LZ6FmGgkaCxCJVy6nYxsUeszd8Ocgt7U=;
-	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=YtigCPIjxMVtH9+os1GPaAC0ASbXGZHrupboCHrTHK5ORQLv7n+3H7Gh+YWa2AQ+dWsHkmIqPIou46jaSClw1zZk4uxJFa1FTG7Cg94LCJhZpu4DYBl6lCtN3LXB+4x2wV9SX0ImE2EogN5WiR9OwOJDmCy9lW7VKGK4NguPq5k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=huaweicloud.com; spf=pass smtp.mailfrom=huaweicloud.com; arc=none smtp.client-ip=14.137.139.23
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=huaweicloud.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huaweicloud.com
-Received: from mail.maildlp.com (unknown [172.18.224.235])
-	by frasgout11.his.huawei.com (SkyGuard) with ESMTPS id 4frzcq3mgXz1HC3C;
-	Thu,  9 Apr 2026 20:23:55 +0800 (CST)
-Received: from mail02.huawei.com (unknown [7.182.16.47])
-	by mail.maildlp.com (Postfix) with ESMTP id 6ED1840569;
-	Thu,  9 Apr 2026 20:28:00 +0800 (CST)
-Received: from [10.204.63.22] (unknown [10.204.63.22])
-	by APP1 (Coremail) with SMTP id LxC2BwDnH+1Bm9dphfUEAg--.11564S2;
-	Thu, 09 Apr 2026 13:27:59 +0100 (CET)
-Message-ID: <2dd138a2ae87f90c55dbc3178d9c798294fd4450.camel@huaweicloud.com>
+	s=arc-20240116; t=1775738758; c=relaxed/simple;
+	bh=F3YWEWo+ZWw7HTP+EW83s9mQm7lmQNVuen/JBUuUnKU=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=GdYVDNhmoLZB9gWKN77ecj8IHp76uE9idqgi2GtcbgYk/RSuyJ/525Kj2W+XCYt/LBkw+VYNhH0fL8kpB5TYEyjW0O5VytFewMbdHgknIXDHJWoneJWpajDAo2VyvsAYref/1t1hYPHooKpXKCQNjD0h5lmFdqIIQGyhqyBUgpY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=jIvAptah; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="jIvAptah"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2D466C4CEF7;
+	Thu,  9 Apr 2026 12:45:57 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1775738757;
+	bh=F3YWEWo+ZWw7HTP+EW83s9mQm7lmQNVuen/JBUuUnKU=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=jIvAptahXSFmNzHFMElZa6wcgXee9e/ruyoLqF6Pn1zw/4Vj6v3Ty2OoXzK6dY+n6
+	 2giIpM4yXIXlAMd3pnD52DFd75PZ7MU0CKqrYewo8qXGe+vMyZBBFR3XIKkJtWRJbu
+	 8mmahAZCkXnwJF4kNrYpVnQ+qu6wfhmeV3eBK1YBYTHoQfr0H/wcI4D4LjSB5iGBTb
+	 TpE0L/EzixG7I1N3dGOaXH2J6grSzeact+g1IrL2wJ22ecjIbkSatnNTFXrjYZ8+c4
+	 Uro7UxW4GX6d5qMe9Pfi1cmKR+SsInIFZ3Srx/4wKQQpKLSlqNwwEcArq7k82hhZ3a
+	 TBEwjf+JPqOGA==
+Date: Thu, 9 Apr 2026 15:45:53 +0300
+From: Leon Romanovsky <leon@kernel.org>
+To: Roberto Sassu <roberto.sassu@huaweicloud.com>
+Cc: KP Singh <kpsingh@kernel.org>,
+	Matt Bobrowski <mattbobrowski@google.com>,
+	Alexei Starovoitov <ast@kernel.org>,
+	Daniel Borkmann <daniel@iogearbox.net>,
+	John Fastabend <john.fastabend@gmail.com>,
+	Andrii Nakryiko <andrii@kernel.org>,
+	Martin KaFai Lau <martin.lau@linux.dev>,
+	Eduard Zingerman <eddyz87@gmail.com>, Song Liu <song@kernel.org>,
+	Yonghong Song <yonghong.song@linux.dev>,
+	Stanislav Fomichev <sdf@fomichev.me>, Hao Luo <haoluo@google.com>,
+	Jiri Olsa <jolsa@kernel.org>, Shuah Khan <shuah@kernel.org>,
+	Jason Gunthorpe <jgg@ziepe.ca>, Saeed Mahameed <saeedm@nvidia.com>,
+	Itay Avraham <itayavr@nvidia.com>,
+	Dave Jiang <dave.jiang@intel.com>,
+	Jonathan Cameron <Jonathan.Cameron@huawei.com>, bpf@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org,
+	linux-rdma@vger.kernel.org, Chiara Meiohas <cmeiohas@nvidia.com>,
+	Maher Sanalla <msanalla@nvidia.com>, paul@paul-moore.com,
+	linux-security-module@vger.kernel.org
 Subject: Re: [PATCH v2 0/4] Firmware LSM hook
-From: Roberto Sassu <roberto.sassu@huaweicloud.com>
-To: Leon Romanovsky <leon@kernel.org>, KP Singh <kpsingh@kernel.org>, Matt
- Bobrowski <mattbobrowski@google.com>, Alexei Starovoitov <ast@kernel.org>,
- Daniel Borkmann <daniel@iogearbox.net>, John Fastabend
- <john.fastabend@gmail.com>, Andrii Nakryiko <andrii@kernel.org>, Martin
- KaFai Lau <martin.lau@linux.dev>, Eduard Zingerman <eddyz87@gmail.com>,
- Song Liu <song@kernel.org>, Yonghong Song <yonghong.song@linux.dev>,
- Stanislav Fomichev <sdf@fomichev.me>, Hao Luo <haoluo@google.com>, Jiri
- Olsa <jolsa@kernel.org>, Shuah Khan <shuah@kernel.org>,  Jason Gunthorpe
- <jgg@ziepe.ca>, Saeed Mahameed <saeedm@nvidia.com>, Itay Avraham
- <itayavr@nvidia.com>, Dave Jiang <dave.jiang@intel.com>, Jonathan Cameron
- <Jonathan.Cameron@huawei.com>
-Cc: bpf@vger.kernel.org, linux-kernel@vger.kernel.org, 
- linux-kselftest@vger.kernel.org, linux-rdma@vger.kernel.org, Chiara Meiohas
- <cmeiohas@nvidia.com>, Maher Sanalla <msanalla@nvidia.com>,
- paul@paul-moore.com,  linux-security-module@vger.kernel.org
-Date: Thu, 09 Apr 2026 14:27:43 +0200
-In-Reply-To: <20260409121230.GA720371@unreal>
+Message-ID: <20260409124553.GB720371@unreal>
 References: <20260331-fw-lsm-hook-v2-0-78504703df1f@nvidia.com>
-	 <20260409121230.GA720371@unreal>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.52.3-0ubuntu1 
+ <20260409121230.GA720371@unreal>
+ <2dd138a2ae87f90c55dbc3178d9c798294fd4450.camel@huaweicloud.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-CM-TRANSID:LxC2BwDnH+1Bm9dphfUEAg--.11564S2
-X-Coremail-Antispam: 1UD129KBjvJXoW7tw4xAF17ZFy8Ary5Wr4xCrg_yoW8XF13pF
-	Z5K3WftFWkJF4agF43Xr47uayYgan5JrW8JFnxt34Ut3sYyrn7Xw17Kr909FZrWFyfWw1F
-	yw42gFyDWF1kZ37anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDU0xBIdaVrnRJUUUvjb4IE77IF4wAFF20E14v26rWj6s0DM7CY07I20VC2zVCF04k2
-	6cxKx2IYs7xG6rWj6s0DM7CIcVAFz4kK6r1j6r18M28lY4IEw2IIxxk0rwA2F7IY1VAKz4
-	vEj48ve4kI8wA2z4x0Y4vE2Ix0cI8IcVAFwI0_Jr0_JF4l84ACjcxK6xIIjxv20xvEc7Cj
-	xVAFwI0_Gr0_Cr1l84ACjcxK6I8E87Iv67AKxVWUJVW8JwA2z4x0Y4vEx4A2jsIEc7CjxV
-	AFwI0_Gr0_Gr1UM2AIxVAIcxkEcVAq07x20xvEncxIr21l5I8CrVACY4xI64kE6c02F40E
-	x7xfMcIj6xIIjxv20xvE14v26r1j6r18McIj6I8E87Iv67AKxVWUJVW8JwAm72CE4IkC6x
-	0Yz7v_Jr0_Gr1lF7xvr2IY64vIr41lFIxGxcIEc7CjxVA2Y2ka0xkIwI1lc7CjxVAaw2AF
-	wI0_GFv_Wryl42xK82IYc2Ij64vIr41l4I8I3I0E4IkC6x0Yz7v_Jr0_Gr1lx2IqxVAqx4
-	xG67AKxVWUJVWUGwC20s026x8GjcxK67AKxVWUGVWUWwC2zVAF1VAY17CE14v26r4a6rW5
-	MIIYrxkI7VAKI48JMIIF0xvE2Ix0cI8IcVAFwI0_Jr0_JF4lIxAIcVC0I7IYx2IY6xkF7I
-	0E14v26r4j6F4UMIIF0xvE42xK8VAvwI8IcIk0rVWUJVWUCwCI42IY6I8E87Iv67AKxVWU
-	JVW8JwCI42IY6I8E87Iv6xkF7I0E14v26r4j6r4UJbIYCTnIWIevJa73UjIFyTuYvjxUIF
-	4iUUUUU
-X-CM-SenderInfo: purev21wro2thvvxqx5xdzvxpfor3voofrz/1tbiAgASBGnXEi8JxgAAsY
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <2dd138a2ae87f90c55dbc3178d9c798294fd4450.camel@huaweicloud.com>
 
-On Thu, 2026-04-09 at 15:12 +0300, Leon Romanovsky wrote:
-> On Tue, Mar 31, 2026 at 08:56:32AM +0300, Leon Romanovsky wrote:
-> > From Chiara:
-> >=20
-> > This patch set introduces a new BPF LSM hook to validate firmware comma=
-nds
-> > triggered by userspace before they are submitted to the device. The hoo=
-k
-> > runs after the command buffer is constructed, right before it is sent
-> > to firmware.
->=20
-> <...>
->=20
-> > ---
-> > Chiara Meiohas (4):
-> >       bpf: add firmware command validation hook
-> >       selftests/bpf: add test cases for fw_validate_cmd hook
-> >       RDMA/mlx5: Externally validate FW commands supplied in DEVX inter=
-face
-> >       fwctl/mlx5: Externally validate FW commands supplied in fwctl
->=20
-> Hi,
->=20
-> Can we get Ack from BPF/LSM side?
+On Thu, Apr 09, 2026 at 02:27:43PM +0200, Roberto Sassu wrote:
+> On Thu, 2026-04-09 at 15:12 +0300, Leon Romanovsky wrote:
+> > On Tue, Mar 31, 2026 at 08:56:32AM +0300, Leon Romanovsky wrote:
+> > > From Chiara:
+> > > 
+> > > This patch set introduces a new BPF LSM hook to validate firmware commands
+> > > triggered by userspace before they are submitted to the device. The hook
+> > > runs after the command buffer is constructed, right before it is sent
+> > > to firmware.
+> > 
+> > <...>
+> > 
+> > > ---
+> > > Chiara Meiohas (4):
+> > >       bpf: add firmware command validation hook
+> > >       selftests/bpf: add test cases for fw_validate_cmd hook
+> > >       RDMA/mlx5: Externally validate FW commands supplied in DEVX interface
+> > >       fwctl/mlx5: Externally validate FW commands supplied in fwctl
+> > 
+> > Hi,
+> > 
+> > Can we get Ack from BPF/LSM side?
+> 
+> + Paul, linux-security-module ML
+> 
+> Hi
+> 
+> probably you also want to get an Ack from the LSM maintainer (added in
+> CC with the list). Most likely, he will also ask you to create the
+> security_*() functions counterparts of the BPF hooks.
 
-+ Paul, linux-security-module ML
+We implemented this approach in v1:
+https://patch.msgid.link/20260309-fw-lsm-hook-v1-0-4a6422e63725@nvidia.com
+and were advised to pursue a different direction.
 
-Hi
+Thanks
 
-probably you also want to get an Ack from the LSM maintainer (added in
-CC with the list). Most likely, he will also ask you to create the
-security_*() functions counterparts of the BPF hooks.
-
-Roberto
-
-> Thanks
->=20
-> >=20
-> >  drivers/fwctl/mlx5/main.c                        | 12 +++++-
-> >  drivers/infiniband/hw/mlx5/devx.c                | 49 ++++++++++++++++=
-++------
-> >  include/linux/bpf_lsm.h                          | 41 ++++++++++++++++=
-++++
-> >  kernel/bpf/bpf_lsm.c                             | 11 ++++++
-> >  tools/testing/selftests/bpf/progs/verifier_lsm.c | 23 +++++++++++
-> >  5 files changed, 122 insertions(+), 14 deletions(-)
-> > ---
-> > base-commit: 11439c4635edd669ae435eec308f4ab8a0804808
-> > change-id: 20260309-fw-lsm-hook-7c094f909ffc
-> >=20
-> > Best regards,
-> > -- =20
-> > Leon Romanovsky <leonro@nvidia.com>
-> >=20
-
+> 
+> Roberto
+> 
+> > Thanks
+> > 
+> > > 
+> > >  drivers/fwctl/mlx5/main.c                        | 12 +++++-
+> > >  drivers/infiniband/hw/mlx5/devx.c                | 49 ++++++++++++++++++------
+> > >  include/linux/bpf_lsm.h                          | 41 ++++++++++++++++++++
+> > >  kernel/bpf/bpf_lsm.c                             | 11 ++++++
+> > >  tools/testing/selftests/bpf/progs/verifier_lsm.c | 23 +++++++++++
+> > >  5 files changed, 122 insertions(+), 14 deletions(-)
+> > > ---
+> > > base-commit: 11439c4635edd669ae435eec308f4ab8a0804808
+> > > change-id: 20260309-fw-lsm-hook-7c094f909ffc
+> > > 
+> > > Best regards,
+> > > --  
+> > > Leon Romanovsky <leonro@nvidia.com>
+> > > 
+> 
+> 
