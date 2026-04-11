@@ -1,63 +1,63 @@
-Received: from mail-wm1-f51.google.com (mail-wm1-f51.google.com [209.85.128.51])
+Received: from mail-wr1-f43.google.com (mail-wr1-f43.google.com [209.85.221.43])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F341C246774
-	for <linux-rdma@vger.kernel.org>; Sat, 11 Apr 2026 14:49:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.51
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6A2122D3A86
+	for <linux-rdma@vger.kernel.org>; Sat, 11 Apr 2026 14:49:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.43
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775918964; cv=none; b=nf96Rl72iCcwr37Q8LT18waVuWzpVKxcKFbKJg/OielGHSr7ZZz8NHXCl3EZqNs272/Dd9uHoioRYz2fIeM7feoP9QFakd+iN19yA20zfeASpLXwnvUrUgv/Wg42vMv5MIrT0ElYMywmGJJ7JSfR7mFMzS1EH0Mwhph7/n8LIqY=
+	t=1775918965; cv=none; b=Gu2KQ2n3nX3vUen/uJa33NkAnQlMh7qDj+0w7ztyAfUk1Mt3Ixn9WiW3UN112Cy4f53DRckhXmejO5juApupjhVPkfmvDiEL0XS//WRRi8EazKjNyLWeil7QUvlMlwb8YZzZKQMa2MA5rqdvZX15AmojEU+fcGUG7YNeV6iLcV4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775918964; c=relaxed/simple;
-	bh=zXdplC+SZBcw8Jf4OCjiPzlTkT4ziN3XRsXOuXzKy68=;
+	s=arc-20240116; t=1775918965; c=relaxed/simple;
+	bh=i3BWk9nT6QRtyD589GzMMvzZHzOAirt7Q1h/GO+LlBM=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=BU2J16Pg//V6JNRGf3ROAuRvbmbv8lK98H28VnrFYdsJR5JATp5plKKT7n4h951P2MLipsj/hiO0U+AbBGv8RTmeBw5zFzHojpEn44vJY7b8oTqKaOoMin3TbEA6EKnaNYqSogNPNOjCnv4eLj7mIgABlGVlViKIayjmF98kti0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=resnulli.us; spf=none smtp.mailfrom=resnulli.us; dkim=pass (2048-bit key) header.d=resnulli-us.20251104.gappssmtp.com header.i=@resnulli-us.20251104.gappssmtp.com header.b=rmTXlunX; arc=none smtp.client-ip=209.85.128.51
+	 MIME-Version; b=acU4jlnkRkRwVrjLs5yZWBoDNYyP08EprJO7/ISVv0Q75OMKEkyobI60wEr+QZc5QabeYRBCT1glP7p9CqHJhsnWZsaJviN3ciAUi6XLEpvQrXETh6FI+NXvW68d1vsw7Pgo45602SZVApjqyMZ7h3lHunxUfN0BqN+tZxzRdcw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=resnulli.us; spf=none smtp.mailfrom=resnulli.us; dkim=pass (2048-bit key) header.d=resnulli-us.20251104.gappssmtp.com header.i=@resnulli-us.20251104.gappssmtp.com header.b=Cgh1x75p; arc=none smtp.client-ip=209.85.221.43
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=resnulli.us
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=resnulli.us
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=resnulli-us.20251104.gappssmtp.com header.i=@resnulli-us.20251104.gappssmtp.com header.b="rmTXlunX"
-Received: by mail-wm1-f51.google.com with SMTP id 5b1f17b1804b1-488af96f6b2so39640105e9.0
-        for <linux-rdma@vger.kernel.org>; Sat, 11 Apr 2026 07:49:20 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=resnulli-us.20251104.gappssmtp.com header.i=@resnulli-us.20251104.gappssmtp.com header.b="Cgh1x75p"
+Received: by mail-wr1-f43.google.com with SMTP id ffacd0b85a97d-43cf3ee0fc1so1864101f8f.1
+        for <linux-rdma@vger.kernel.org>; Sat, 11 Apr 2026 07:49:23 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=resnulli-us.20251104.gappssmtp.com; s=20251104; t=1775918959; x=1776523759; darn=vger.kernel.org;
+        d=resnulli-us.20251104.gappssmtp.com; s=20251104; t=1775918962; x=1776523762; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=znxG3+G2Ges7Vf0rL9Z2hp6aINp8xWm8GVYlmCq4JcU=;
-        b=rmTXlunXoV88wE+SSXhCGUgnI89ZgEk04FL/w/LKUMokf7ufAOtYiNq8xxN3stUgGU
-         aytmPK4OFr6lT+/t+Xw/CT1swSof7LlaZ7AXS6Z0siHa+XrwL3L51eoySLUb//gRYaPi
-         CKCEeRwD1KfB7jdTPLpkUZKVz5RRnF9lOI/wUarkEdArN1EIIU0U5oggGE6RjDrf4lsa
-         HcjNnIirGzUEvGA8Ch93mcctMwAnHmWvnVWT9WkjL7NxfU9W4n8wvN+3WaVh0uFXu24W
-         qR2pJOBbJbE92VWJqlM3rNqFhzGsvB9DCBTqhyYUz2hHIbMtHkYHVt5myi+2VHlsJoCm
-         ZMPQ==
+        bh=sNlzD/sJ3x73XhNVjbdZYMNSspOvxqGP66ZAFax5gB8=;
+        b=Cgh1x75pCmIZ4HDwFCAYHSiEHQ3tqdg9tunhBU3bzJ7D1xmjELDBbw43PArydIdqZM
+         hm0fQ77yfDfSTyGm/++oNxjSWZ+HacDQU/yaSzZTlM2LWKA4ZGXu+NWx1Zf9/us67p98
+         fmQA/VeiDr0lx7SCz4NIb6fl7c+WjHg7ioip32iMn/6GljiJhc/K+UwrUXAc3JhR7X83
+         pqJaJmNoGyCRoIcLDroXJopj30jdruN5HFrvZWkAB0vfA+dS0cD+sLhhuWscxoBPEneb
+         UxexVyVa6jxBxp+dpu0lvcMwsmupTRjPHJdafhLWq3QpVrS4U9fbp9YoJnD03+r7JXC5
+         fehg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1775918959; x=1776523759;
+        d=1e100.net; s=20251104; t=1775918962; x=1776523762;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=znxG3+G2Ges7Vf0rL9Z2hp6aINp8xWm8GVYlmCq4JcU=;
-        b=XgUQ72ZtRjWewvdqphnY7kWkUx1HpzFZhkFJr14arFjJjXz8V/W6Y6ujXcfjpGdLjp
-         HGdB400A4pjPcA2k/6syTWFMINE/c37jPKnyNjxuZmwjw2MctUqlP3r5J7DKzmvd4QiA
-         e70e+j76uDuLOcop9sPBVHaifgTb4UOWALeYei1n5XidyZYLdBzZkw9JmBti9oJFhBiT
-         rMA7PaRYoZl4Un5EU49hX0JW9noQ9S9Eb7tRt62uNWiqSpZrHNJFsx4LqdPXkcu5RIuK
-         /VVzam1OFMDWmRlLHBOvZOYYuwzmal5vKwJ/JG5bi97cUHyPMdou+ICDHprIFbOSsO5A
-         6K8g==
-X-Gm-Message-State: AOJu0YwpkkbrUzO80va/abr0H+IEUC+IDIWjc962eG0mULEwBYMSVnz0
-	bPKZ3Fa4BPB7kHFVTtD+5/rklFk3/pTMLzCo9HenYZREVZJbvyoLp2VFiSAda7hZ8/dU+PM1PpK
-	N/C96
-X-Gm-Gg: AeBDievzl6lANTtztM2T1UrkFuFoIyGqRCtzBmsZ0sLC4NDe1Q+1i6ttwLQa7M4VjB7
-	S52ACfaBAiIbfNy24DiDJPVCIIXxeOokOUC7SWZM488y0YdK2J513WVfTmatMT1kFt1M6snIA5Y
-	bcbLrSNzOj5d2axnx6zd3uLyhhBjIX+N9lNGH42ucRjmgXjfl+737eNTf4W1eiKsYjMioW2oh/l
-	VqGOxb8LL8QnvZ64DofBYpwr2BQl7OL8njZFGl0oUQeBAESOhMUpXRCJU/W/XHWyquhGTx4/4ml
-	hxlnbZSFVRYbMQGwFx/68aKpqEWvPBCAMAlhyZys7sUcecyVcYqn6TUVvH+ADbAnrZ/uEqJkFI6
-	fgJYA4bpkvcOjqsrsMPnDaGwORPlm5RKzfPfPrt4SsbvQmVcEK2YdJDfCwkZ0yAfVReS1dYGeni
-	8Jf57E8jA2jME65isZkPiEatIYrcE99AcNwXPI7WYSNi0=
-X-Received: by 2002:a05:600c:30d2:b0:488:e192:6fb5 with SMTP id 5b1f17b1804b1-488e19270cbmr11353835e9.24.1775918958640;
-        Sat, 11 Apr 2026 07:49:18 -0700 (PDT)
+        bh=sNlzD/sJ3x73XhNVjbdZYMNSspOvxqGP66ZAFax5gB8=;
+        b=T6JGlSvSKeu4KNo1/oc87rSAMsqn28fRwp7n3h1tJrAbJz9zxn81r6gkWc+CiMalrk
+         DMcN9qptdS06ZbB0WB1BeGcY4XrqMHTX4t+iBLqK1CdlyBeKUUBgOVaXwVWP8uMQXqxH
+         ebfMbWdqeiCM6I5DzmsqYbd8Kdo/8gTkxUq8gilpt1Nnw4Ys1XR2+UQE2WM8lZzMpdUS
+         TpZ8w7vRTm7RiVmdJu0btcwUCFOKJWN4LSjBV0Ggp1X6Mx9Q1s6ieaXWsetaum70OMYC
+         WjsIHj8TheBO+uDRqFLKd+Yw4we9zAo29fBkTvrVVwxnJa57CwS4Upeo0E7tTqoNQiHd
+         RMYw==
+X-Gm-Message-State: AOJu0Yy7VqY9t56pi8P03oGfv9aiKXks6XxVAkZAc6QBk0bMlek/1Yia
+	jG0a7jcnJjDOXqxtrSGZjlLvM/fVf1UNg2ppdH6hNjISH9GXBryZl8rcLzwNpY54Oshnd/j1k0K
+	FOIGP
+X-Gm-Gg: AeBDieunjVORWyKqeLyNmQiO5bgtkrzgrrt8yblaRI2L0Jrs7X4HA4WKjmdVaFXikQE
+	XV7/8NVX/XCMQBO3HDIb5aEMuOTp/YZVNpqc156gVEhkoFn+DcRDfmFMpUiNYG5cUq+mr2JlAYS
+	Y5vqnHXSwddrYM1qoKOssL7hcRABnxOFUl5q3BMjlGveltuefj0evGvmKBxNujKuA+3j+J5jNO4
+	V87R2d+o3P8WTnsPne7lehpLBePF3YbWOTlWbkJBJh7bKFpHXaZl71kmgOlCblhwIpyXR1RqvYO
+	R276pF+JPHSeYJ5Ixl5F97mkZBIZBW0A+flLbw4dEpHzYC+tZ5eKGn8jL0B5GB/Hg3SDdNSK+eW
+	4HtvMg15HIxqT5mlSXbihFjO2rJnehjOgTmC9CITU9iGo7eDogWAACqxexVWcxOTg4KH64v/dN0
+	UirkwpfpIxyCcDn2ppz7wKnG8CPFQzSEFOktBzit8l0Kc=
+X-Received: by 2002:a05:6000:2504:b0:43d:677f:cc6b with SMTP id ffacd0b85a97d-43d677fcdbemr7663625f8f.5.1775918961653;
+        Sat, 11 Apr 2026 07:49:21 -0700 (PDT)
 Received: from localhost (78-80-9-176.customers.tmcz.cz. [78.80.9.176])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-488d53808b2sm177577905e9.11.2026.04.11.07.49.17
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-43d63e46a85sm16732152f8f.24.2026.04.11.07.49.20
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 11 Apr 2026 07:49:18 -0700 (PDT)
+        Sat, 11 Apr 2026 07:49:21 -0700 (PDT)
 From: Jiri Pirko <jiri@resnulli.us>
 To: linux-rdma@vger.kernel.org
 Cc: jgg@ziepe.ca,
@@ -82,9 +82,9 @@ Cc: jgg@ziepe.ca,
 	sriharsha.basavapatna@broadcom.com,
 	andrew.gospodarek@broadcom.com,
 	selvin.xavier@broadcom.com
-Subject: [PATCH rdma-next v2 01/15] RDMA/core: Introduce generic buffer descriptor infrastructure for umem
-Date: Sat, 11 Apr 2026 16:49:01 +0200
-Message-ID: <20260411144915.114571-2-jiri@resnulli.us>
+Subject: [PATCH rdma-next v2 03/15] RDMA/uverbs: Integrate umem_list into CQ creation
+Date: Sat, 11 Apr 2026 16:49:03 +0200
+Message-ID: <20260411144915.114571-4-jiri@resnulli.us>
 X-Mailer: git-send-email 2.53.0
 In-Reply-To: <20260411144915.114571-1-jiri@resnulli.us>
 References: <20260411144915.114571-1-jiri@resnulli.us>
@@ -98,440 +98,222 @@ Content-Transfer-Encoding: 8bit
 
 From: Jiri Pirko <jiri@nvidia.com>
 
-Add a unified mechanism for userspace to pass memory buffers to any
-uverbs command via a single UVERBS_ATTR_BUFFERS attribute. Each
-buffer is described by struct ib_uverbs_buffer_desc with a type
-discriminator supporting dma-buf and user VA backed memory, extensible
-for future buffer types.
-
-The ib_umem_list API enables any uverbs command to accept multiple
-buffers indexed by per-command slot enums, without requiring new UAPI
-attributes for each buffer. A consumption check ensures userspace and
-driver agree on which buffers are used.
+Wire up the generic buffer descriptor infrastructure to the CQ create
+command, with fallback to the existing per-attribute path. Add
+umem_list field to struct ib_cq and define the CQ buffer slot enum.
 
 Signed-off-by: Jiri Pirko <jiri@nvidia.com>
 ---
- drivers/infiniband/core/umem.c          | 248 ++++++++++++++++++++++++
- include/rdma/ib_umem.h                  |  54 ++++++
- include/rdma/uverbs_ioctl.h             |  14 ++
- include/uapi/rdma/ib_user_ioctl_cmds.h  |   1 +
- include/uapi/rdma/ib_user_ioctl_verbs.h |  27 +++
- 5 files changed, 344 insertions(+)
+ drivers/infiniband/core/uverbs_cmd.c          | 15 +++++++++++--
+ drivers/infiniband/core/uverbs_std_types_cq.c | 22 ++++++++++++++-----
+ drivers/infiniband/core/verbs.c               |  9 +++++---
+ include/rdma/ib_verbs.h                       |  2 ++
+ include/uapi/rdma/ib_user_ioctl_cmds.h        |  6 +++++
+ 5 files changed, 44 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
-index 786fa1aa8e55..f5b03e903b9d 100644
---- a/drivers/infiniband/core/umem.c
-+++ b/drivers/infiniband/core/umem.c
-@@ -37,6 +37,7 @@
- #include <linux/dma-mapping.h>
- #include <linux/sched/signal.h>
- #include <linux/sched/mm.h>
-+#include <linux/err.h>
- #include <linux/export.h>
- #include <linux/slab.h>
- #include <linux/pagemap.h>
-@@ -332,3 +333,250 @@ int ib_umem_copy_from(void *dst, struct ib_umem *umem, size_t offset,
- 		return 0;
- }
- EXPORT_SYMBOL(ib_umem_copy_from);
-+
-+struct ib_umem_list {
-+	unsigned int count; /* Total slots in the list. */
-+	unsigned long provided; /* Bitmask of slots provided by the user. */
-+	unsigned long loaded; /* Bitmask of slots loaded by the driver. */
-+	struct ib_umem *umems[] __counted_by(count);
-+};
-+
-+/**
-+ * ib_umem_list_create - Create a umem list from UVERBS_ATTR_BUFFERS
-+ * @device: IB device
-+ * @attrs: uverbs attribute bundle
-+ * @slot_max: highest buffer slot index (count = slot_max + 1)
-+ *
-+ * Return: umem list, or ERR_PTR on failure.
-+ */
-+struct ib_umem_list *ib_umem_list_create(struct ib_device *device,
-+					 const struct uverbs_attr_bundle *attrs,
-+					 unsigned int slot_max)
-+{
-+	const struct ib_uverbs_buffer_desc *descs;
-+	struct ib_umem_dmabuf *umem_dmabuf;
-+	struct ib_umem_list *list;
-+	struct ib_umem *umem;
-+	unsigned int count;
-+	int num_descs;
-+	int err;
-+	int i;
-+
-+	if (WARN_ON_ONCE(slot_max >= BITS_PER_LONG))
-+		return ERR_PTR(-EINVAL);
-+	count = slot_max + 1;
-+
-+	num_descs = uverbs_attr_ptr_get_array_size(
-+		(struct uverbs_attr_bundle *)attrs, UVERBS_ATTR_BUFFERS,
-+		sizeof(*descs));
-+	if (num_descs == -ENOENT) {
-+		num_descs = 0;
-+		descs = NULL;
-+	} else if (num_descs < 0) {
-+		return ERR_PTR(num_descs);
-+	} else if (num_descs > count) {
-+		return ERR_PTR(-EINVAL);
-+	} else {
-+		descs = uverbs_attr_get_alloced_ptr(attrs, UVERBS_ATTR_BUFFERS);
-+		if (IS_ERR(descs))
-+			return ERR_CAST(descs);
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index a768436ba468..77874834108b 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -42,6 +42,7 @@
+ 
+ #include <rdma/uverbs_types.h>
+ #include <rdma/uverbs_std_types.h>
++#include <rdma/ib_umem.h>
+ #include <rdma/ib_ucaps.h>
+ #include "rdma_core.h"
+ 
+@@ -1011,6 +1012,7 @@ static int create_cq(struct uverbs_attr_bundle *attrs,
+ {
+ 	struct ib_ucq_object           *obj;
+ 	struct ib_uverbs_completion_event_file    *ev_file = NULL;
++	struct ib_umem_list	       *umem_list;
+ 	struct ib_cq                   *cq;
+ 	int                             ret;
+ 	struct ib_uverbs_ex_create_cq_resp resp = {};
+@@ -1044,16 +1046,23 @@ static int create_cq(struct uverbs_attr_bundle *attrs,
+ 	attr.comp_vector = cmd->comp_vector;
+ 	attr.flags = cmd->flags;
+ 
++	umem_list = ib_umem_list_create(ib_dev, attrs, UVERBS_BUF_CQ_MAX);
++	if (IS_ERR(umem_list)) {
++		ret = PTR_ERR(umem_list);
++		goto err_file;
 +	}
 +
-+	list = kzalloc(struct_size(list, umems, count), GFP_KERNEL);
-+	if (!list)
-+		return ERR_PTR(-ENOMEM);
-+	list->count = count;
-+
-+	for (i = 0; i < num_descs; i++) {
-+		unsigned int idx = descs[i].index;
-+
-+		if (descs[i].reserved) {
-+			err = -EINVAL;
-+			goto err_release;
-+		}
-+		if (idx >= count || (list->provided & BIT(idx))) {
-+			err = -EINVAL;
-+			goto err_release;
-+		}
-+
-+		switch (descs[i].type) {
-+		case IB_UVERBS_BUFFER_TYPE_DMABUF:
-+			umem_dmabuf = ib_umem_dmabuf_get_pinned(
-+				device, descs[i].addr, descs[i].length,
-+				descs[i].fd, IB_ACCESS_LOCAL_WRITE);
-+			if (IS_ERR(umem_dmabuf)) {
-+				err = PTR_ERR(umem_dmabuf);
-+				goto err_release;
-+			}
-+			list->umems[idx] = &umem_dmabuf->umem;
-+			break;
-+		case IB_UVERBS_BUFFER_TYPE_VA:
-+			umem = ib_umem_get(device, descs[i].addr,
-+					   descs[i].length, IB_ACCESS_LOCAL_WRITE);
-+			if (IS_ERR(umem)) {
-+				err = PTR_ERR(umem);
-+				goto err_release;
-+			}
-+			list->umems[idx] = umem;
-+			break;
-+		default:
-+			err = -EINVAL;
-+			goto err_release;
-+		}
-+		list->provided |= BIT(idx);
+ 	cq = rdma_zalloc_drv_obj(ib_dev, ib_cq);
+ 	if (!cq) {
+ 		ret = -ENOMEM;
+-		goto err_file;
++		goto err_list_release;
+ 	}
+ 	cq->device        = ib_dev;
+ 	cq->uobject       = obj;
+ 	cq->comp_handler  = ib_uverbs_comp_handler;
+ 	cq->event_handler = ib_uverbs_cq_event_handler;
+ 	cq->cq_context    = ev_file ? &ev_file->ev_queue : NULL;
++	cq->umem_list     = umem_list;
+ 	atomic_set(&cq->usecnt, 0);
+ 
+ 	rdma_restrack_new(&cq->res, RDMA_RESTRACK_CQ);
+@@ -1079,9 +1088,11 @@ static int create_cq(struct uverbs_attr_bundle *attrs,
+ 	return uverbs_response(attrs, &resp, sizeof(resp));
+ 
+ err_free:
+-	ib_umem_release(cq->umem);
++	ib_umem_release_non_listed(umem_list, UVERBS_BUF_CQ_BUF, cq->umem);
+ 	rdma_restrack_put(&cq->res);
+ 	kfree(cq);
++err_list_release:
++	ib_umem_list_release(umem_list);
+ err_file:
+ 	if (ev_file)
+ 		ib_uverbs_release_ucq(ev_file, obj);
+diff --git a/drivers/infiniband/core/uverbs_std_types_cq.c b/drivers/infiniband/core/uverbs_std_types_cq.c
+index 4afe27fef6c9..f87cd11470fc 100644
+--- a/drivers/infiniband/core/uverbs_std_types_cq.c
++++ b/drivers/infiniband/core/uverbs_std_types_cq.c
+@@ -134,6 +134,7 @@ static int UVERBS_HANDLER(UVERBS_METHOD_CQ_CREATE)(
+ 	struct ib_device *ib_dev = attrs->context->device;
+ 	struct ib_cq_init_attr attr = {};
+ 	struct ib_uobject *ev_file_uobj;
++	struct ib_umem_list *umem_list;
+ 	struct ib_umem *umem = NULL;
+ 	struct ib_cq *cq;
+ 	u64 user_handle;
+@@ -183,17 +184,24 @@ static int UVERBS_HANDLER(UVERBS_METHOD_CQ_CREATE)(
+ 	INIT_LIST_HEAD(&obj->comp_list);
+ 	INIT_LIST_HEAD(&obj->uevent.event_list);
+ 
++	umem_list = ib_umem_list_create(ib_dev, attrs, UVERBS_BUF_CQ_MAX);
++	if (IS_ERR(umem_list)) {
++		ret = PTR_ERR(umem_list);
++		goto err_event_file;
 +	}
 +
-+	return list;
-+
-+err_release:
-+	ib_umem_list_release(list);
-+	return ERR_PTR(err);
-+}
-+EXPORT_SYMBOL(ib_umem_list_create);
-+
-+/**
-+ * ib_umem_list_release - Release all umems in the list and free it
-+ * @list: umem list
-+ */
-+void ib_umem_list_release(struct ib_umem_list *list)
-+{
-+	int i;
-+
-+	if (!list)
-+		return;
-+	for (i = 0; i < list->count; i++)
-+		ib_umem_release(list->umems[i]);
-+	kfree(list);
-+}
-+EXPORT_SYMBOL(ib_umem_list_release);
-+
-+/**
-+ * ib_umem_list_check_consumed - Verify all provided umems were loaded
-+ * @list: umem list
-+ *
-+ * Return: 0 if all provided slots were loaded, -EINVAL otherwise.
-+ */
-+int ib_umem_list_check_consumed(const struct ib_umem_list *list)
-+{
-+	return (list->provided & ~list->loaded) == 0 ? 0 : -EINVAL;
-+}
-+EXPORT_SYMBOL(ib_umem_list_check_consumed);
-+
-+/**
-+ * ib_umem_list_insert - Insert a umem into the list at a given index
-+ * @list: umem list
-+ * @index: per-command buffer slot index
-+ * @umem: umem pointer to store
-+ *
-+ * Stores @umem at @index (replacing any existing). For use from create_cq
-+ * when the buffer comes from legacy ATTRs rather than the buffer list.
-+ */
-+void ib_umem_list_insert(struct ib_umem_list *list, unsigned int index,
-+			 struct ib_umem *umem)
-+{
-+	ib_umem_list_replace(list, index, umem);
+ 	umem = uverbs_create_cq_get_umem(ib_dev, attrs);
+ 	if (IS_ERR(umem)) {
+ 		ret = PTR_ERR(umem);
+-		goto err_event_file;
++		goto err_umem_list;
+ 	}
 +	if (umem)
-+		list->provided |= BIT(index);
-+}
-+EXPORT_SYMBOL(ib_umem_list_insert);
-+
-+/**
-+ * ib_umem_list_load - Load a umem from the list by index
-+ * @list: umem list (may be NULL)
-+ * @index: per-command buffer slot index
-+ * @size: minimum required umem length
-+ *
-+ * Return: umem pointer, or NULL if the slot is empty or
-+ * the slot is out of bounds, or ERR_PTR(-EINVAL) if the umem is too small.
-+ */
-+struct ib_umem *ib_umem_list_load(struct ib_umem_list *list,
-+				 unsigned int index, size_t size)
-+{
-+	struct ib_umem *umem;
-+
-+	if (!list || index >= list->count)
-+		return NULL;
-+	umem = list->umems[index];
-+	if (!umem)
-+		return NULL;
-+	if (umem->length < size)
-+		return ERR_PTR(-EINVAL);
-+	list->loaded |= BIT(index);
-+	return umem;
-+}
-+EXPORT_SYMBOL(ib_umem_list_load);
-+
-+/**
-+ * ib_umem_list_load_or_get - Umem from list or pin user memory
-+ * @list: umem list (may be NULL)
-+ * @index: per-command buffer slot index
-+ * @device: IB device for ib_umem_get when the list slot is empty
-+ * @addr: user virtual address for ib_umem_get
-+ * @size: length for ib_umem_get
-+ * @access: access flags for ib_umem_get
-+ *
-+ * If @list has a umem at @index, returns it like ib_umem_list_load() (and
-+ * marks the slot loaded). Otherwise calls ib_umem_get() with the given
-+ * @access flags and on success stores the result at @index when
-+ * @list is non-NULL.
-+ *
-+ * Return: valid umem pointer, or ERR_PTR.
-+ */
-+struct ib_umem *ib_umem_list_load_or_get(struct ib_umem_list *list,
-+					 unsigned int index,
-+					 struct ib_device *device,
-+					 unsigned long addr, size_t size,
-+					 int access)
-+{
-+	struct ib_umem *umem;
-+
-+	umem = ib_umem_list_load(list, index, size);
-+	if (IS_ERR(umem) || umem)
-+		return umem;
-+	umem = ib_umem_get(device, addr, size, access);
-+	if (IS_ERR(umem))
-+		return umem;
-+	if (list && index < list->count)
-+		list->umems[index] = umem;
-+	return umem;
-+}
-+EXPORT_SYMBOL(ib_umem_list_load_or_get);
-+
-+/**
-+ * ib_umem_list_replace - Replace umem at index, releasing the previous one
-+ * @list: umem list (may be NULL)
-+ * @index: per-command buffer slot index
-+ * @umem: new umem pointer (may be NULL to clear the slot)
-+ *
-+ * Stores @umem at @index. If a different umem was already stored there, it is
-+ * released. Used for CQ resize and similar.
-+ */
-+void ib_umem_list_replace(struct ib_umem_list *list, unsigned int index,
-+			  struct ib_umem *umem)
-+{
-+	struct ib_umem *old;
-+
-+	if (!list || index >= list->count)
-+		return;
-+	old = list->umems[index];
-+	list->umems[index] = umem;
-+	if (old && old != umem)
-+		ib_umem_release(old);
-+}
-+EXPORT_SYMBOL(ib_umem_list_replace);
-+
-+/**
-+ * ib_umem_release_non_listed - Release a umem that is not stored in the list
-+ * @list: umem list
-+ * @index: per-command buffer slot index
-+ * @umem: umem pointer to release
-+ *
-+ * Releases @umem if it is not stored in @list.
-+ */
-+void ib_umem_release_non_listed(struct ib_umem_list *list, unsigned int index,
-+				struct ib_umem *umem)
-+{
-+	if (!list || index >= list->count || list->umems[index] != umem)
-+		ib_umem_release(umem);
-+}
-+EXPORT_SYMBOL(ib_umem_release_non_listed);
-diff --git a/include/rdma/ib_umem.h b/include/rdma/ib_umem.h
-index 2ad52cc1d52b..924acb8d08c3 100644
---- a/include/rdma/ib_umem.h
-+++ b/include/rdma/ib_umem.h
-@@ -11,6 +11,7 @@
++		ib_umem_list_insert(umem_list, UVERBS_BUF_CQ_BUF, umem);
  
- struct ib_device;
- struct dma_buf_attach_ops;
-+struct uverbs_attr_bundle;
+ 	cq = rdma_zalloc_drv_obj(ib_dev, ib_cq);
+ 	if (!cq) {
+ 		ret = -ENOMEM;
+-		ib_umem_release(umem);
+-		goto err_event_file;
++		goto err_umem_list;
+ 	}
  
- struct ib_umem {
- 	struct ib_device       *ibdev;
-@@ -80,6 +81,36 @@ struct ib_umem *ib_umem_get(struct ib_device *device, unsigned long addr,
- void ib_umem_release(struct ib_umem *umem);
- int ib_umem_copy_from(void *dst, struct ib_umem *umem, size_t offset,
- 		      size_t length);
-+
-+/**
-+ * struct ib_umem_list - collection of pre-mapped umems
-+ *
-+ * Created from the UVERBS_ATTR_BUFFERS attribute. Each entry is indexed
-+ * by a per-command buffer slot enum (e.g., IB_UMEM_CQ_BUF for CQ CREATE).
-+ * Drivers use ib_umem_list_load() to retrieve a specific umem by index.
-+ */
-+struct ib_umem_list;
-+
-+struct ib_umem_list *ib_umem_list_create(struct ib_device *device,
-+					 const struct uverbs_attr_bundle *attrs,
-+					 unsigned int slot_max);
-+void ib_umem_list_release(struct ib_umem_list *list);
-+int ib_umem_list_check_consumed(const struct ib_umem_list *list);
-+void ib_umem_list_insert(struct ib_umem_list *list, unsigned int index,
-+			 struct ib_umem *umem);
-+
-+struct ib_umem *ib_umem_list_load(struct ib_umem_list *list,
-+				  unsigned int index, size_t size);
-+struct ib_umem *ib_umem_list_load_or_get(struct ib_umem_list *list,
-+					 unsigned int index,
-+					 struct ib_device *device,
-+					 unsigned long addr, size_t size,
-+					 int access);
-+void ib_umem_list_replace(struct ib_umem_list *list, unsigned int index,
-+			  struct ib_umem *umem);
-+void ib_umem_release_non_listed(struct ib_umem_list *list, unsigned int index,
-+				struct ib_umem *umem);
-+
- unsigned long ib_umem_find_best_pgsz(struct ib_umem *umem,
- 				     unsigned long pgsz_bitmap,
- 				     unsigned long virt);
-@@ -230,5 +261,28 @@ static inline void ib_umem_dmabuf_revoke_lock(struct ib_umem_dmabuf *umem_dmabuf
- static inline void ib_umem_dmabuf_revoke_unlock(struct ib_umem_dmabuf *umem_dmabuf) {}
- static inline void ib_umem_dmabuf_revoke(struct ib_umem_dmabuf *umem_dmabuf) {}
+ 	cq->device        = ib_dev;
+@@ -206,6 +214,7 @@ static int UVERBS_HANDLER(UVERBS_METHOD_CQ_CREATE)(
+ 	 * CQ creation based on their internal udata.
+ 	 */
+ 	cq->umem = umem;
++	cq->umem_list     = umem_list;
+ 	atomic_set(&cq->usecnt, 0);
  
-+struct ib_umem_list;
-+
-+static inline void ib_umem_list_release(struct ib_umem_list *list) { }
-+static inline struct ib_umem *ib_umem_list_load(struct ib_umem_list *list,
-+						unsigned int index,
-+						size_t size)
-+{
-+	return ERR_PTR(-EOPNOTSUPP);
-+}
-+static inline struct ib_umem *
-+ib_umem_list_load_or_get(struct ib_umem_list *list, unsigned int index,
-+			 struct ib_device *device, unsigned long addr,
-+			 size_t size, int access)
-+{
-+	return ERR_PTR(-EOPNOTSUPP);
-+}
-+static inline void ib_umem_list_replace(struct ib_umem_list *list,
-+					unsigned int index,
-+					struct ib_umem *umem) { }
-+static inline void ib_umem_release_non_listed(struct ib_umem_list *list,
-+					      unsigned int index,
-+					      struct ib_umem *umem) { }
-+
- #endif /* CONFIG_INFINIBAND_USER_MEM */
- #endif /* IB_UMEM_H */
-diff --git a/include/rdma/uverbs_ioctl.h b/include/rdma/uverbs_ioctl.h
-index e2af17da3e32..05bcab27a87d 100644
---- a/include/rdma/uverbs_ioctl.h
-+++ b/include/rdma/uverbs_ioctl.h
-@@ -590,6 +590,20 @@ struct uapi_definition {
- 			    UA_OPTIONAL,                                       \
- 			    .is_udata = 1)
+ 	rdma_restrack_new(&cq->res, RDMA_RESTRACK_CQ);
+@@ -231,9 +240,11 @@ static int UVERBS_HANDLER(UVERBS_METHOD_CQ_CREATE)(
+ 	return ret;
  
-+/*
-+ * Optional array of struct ib_uverbs_buffer_desc describing memory regions
-+ * backed by dma-buf or user virtual address. Can be added to any method
-+ * that needs external buffer support.
-+ * Each entry carries an index field selecting the per-command buffer slot.
-+ * Use ib_umem_list_create() to map them and ib_umem_list_load() to access.
-+ */
-+#define UVERBS_ATTR_BUFFERS()                                                  \
-+	UVERBS_ATTR_PTR_IN(UVERBS_ATTR_BUFFERS,                               \
-+			   UVERBS_ATTR_MIN_SIZE(                               \
-+				sizeof(struct ib_uverbs_buffer_desc)),         \
-+			   UA_OPTIONAL,                                        \
-+			   UA_ALLOC_AND_COPY)
+ err_free:
+-	ib_umem_release(cq->umem);
++	ib_umem_release_non_listed(umem_list, UVERBS_BUF_CQ_BUF, cq->umem);
+ 	rdma_restrack_put(&cq->res);
+ 	kfree(cq);
++err_umem_list:
++	ib_umem_list_release(umem_list);
+ err_event_file:
+ 	if (obj->uevent.event_file)
+ 		uverbs_uobject_put(&obj->uevent.event_file->uobj);
+@@ -281,7 +292,8 @@ DECLARE_UVERBS_NAMED_METHOD(
+ 	UVERBS_ATTR_PTR_IN(UVERBS_ATTR_CREATE_CQ_BUFFER_OFFSET,
+ 			   UVERBS_ATTR_TYPE(u64),
+ 			   UA_OPTIONAL),
+-	UVERBS_ATTR_UHW());
++	UVERBS_ATTR_UHW(),
++	UVERBS_ATTR_BUFFERS());
+ 
+ static int UVERBS_HANDLER(UVERBS_METHOD_CQ_DESTROY)(
+ 	struct uverbs_attr_bundle *attrs)
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index bac87de9cc67..ed163fc56ef8 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -50,6 +50,7 @@
+ #include <rdma/ib_cache.h>
+ #include <rdma/ib_addr.h>
+ #include <rdma/ib_umem.h>
++#include <rdma/ib_user_ioctl_cmds.h>
+ #include <rdma/rw.h>
+ #include <rdma/lag.h>
+ 
+@@ -2223,9 +2224,9 @@ struct ib_cq *__ib_create_cq(struct ib_device *device,
+ 	}
+ 	/*
+ 	 * We are in kernel verbs flow and drivers are not allowed
+-	 * to set umem pointer, it needs to stay NULL.
++	 * to set umem or umem_list pointers, they need to stay NULL.
+ 	 */
+-	WARN_ON_ONCE(cq->umem);
++	WARN_ON_ONCE(cq->umem || cq->umem_list);
+ 
+ 	rdma_restrack_add(&cq->res);
+ 	return cq;
+@@ -2245,6 +2246,7 @@ EXPORT_SYMBOL(rdma_set_cq_moderation);
+ 
+ int ib_destroy_cq_user(struct ib_cq *cq, struct ib_udata *udata)
+ {
++	struct ib_umem_list *umem_list = cq->umem_list;
+ 	int ret;
+ 
+ 	if (WARN_ON_ONCE(cq->shared))
+@@ -2257,9 +2259,10 @@ int ib_destroy_cq_user(struct ib_cq *cq, struct ib_udata *udata)
+ 	if (ret)
+ 		return ret;
+ 
+-	ib_umem_release(cq->umem);
++	ib_umem_release_non_listed(umem_list, UVERBS_BUF_CQ_BUF, cq->umem);
+ 	rdma_restrack_del(&cq->res);
+ 	kfree(cq);
++	ib_umem_list_release(umem_list);
+ 	return ret;
+ }
+ EXPORT_SYMBOL(ib_destroy_cq_user);
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 9dd76f489a0b..dd6c0d68497d 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -1740,6 +1740,8 @@ struct ib_cq {
+ 	unsigned int comp_vector;
+ 	struct ib_umem *umem;
+ 
++	struct ib_umem_list    *umem_list;
 +
- /* =================================================
-  *              Parsing infrastructure
-  * =================================================
+ 	/*
+ 	 * Implementation details of the RDMA core, don't use in drivers:
+ 	 */
 diff --git a/include/uapi/rdma/ib_user_ioctl_cmds.h b/include/uapi/rdma/ib_user_ioctl_cmds.h
-index 72041c1b0ea5..10aa6568abf1 100644
+index 10aa6568abf1..375e4e224f6a 100644
 --- a/include/uapi/rdma/ib_user_ioctl_cmds.h
 +++ b/include/uapi/rdma/ib_user_ioctl_cmds.h
-@@ -64,6 +64,7 @@ enum {
- 	UVERBS_ATTR_UHW_IN = UVERBS_ID_DRIVER_NS,
- 	UVERBS_ATTR_UHW_OUT,
- 	UVERBS_ID_DRIVER_NS_WITH_UHW,
-+	UVERBS_ATTR_BUFFERS,
+@@ -120,6 +120,12 @@ enum uverbs_attrs_create_cq_cmd_attr_ids {
+ 	UVERBS_ATTR_CREATE_CQ_BUFFER_OFFSET,
  };
  
- enum uverbs_methods_device {
-diff --git a/include/uapi/rdma/ib_user_ioctl_verbs.h b/include/uapi/rdma/ib_user_ioctl_verbs.h
-index 90c5cd8e7753..41ed9f75b4de 100644
---- a/include/uapi/rdma/ib_user_ioctl_verbs.h
-+++ b/include/uapi/rdma/ib_user_ioctl_verbs.h
-@@ -273,4 +273,31 @@ struct ib_uverbs_gid_entry {
- 	__u32 netdev_ifindex; /* It is 0 if there is no netdev associated with it */
- };
- 
-+enum ib_uverbs_buffer_type {
-+	IB_UVERBS_BUFFER_TYPE_DMABUF,
-+	IB_UVERBS_BUFFER_TYPE_VA,
++enum uverbs_buf_cq_slots {
++	UVERBS_BUF_CQ_BUF,
++	__UVERBS_BUF_CQ_MAX,
++	UVERBS_BUF_CQ_MAX = __UVERBS_BUF_CQ_MAX - 1,
 +};
 +
-+/*
-+ * Describes a single buffer backed by dma-buf or user virtual address.
-+ * Passed as an array via UVERBS_ATTR_BUFFERS. Each uverb command that
-+ * accepts this attribute defines its own per-command buffer slot enum.
-+ * The index field selects the buffer slot this descriptor maps to.
-+ *
-+ * @fd: dma-buf file descriptor (valid for IB_UVERBS_BUFFER_TYPE_DMABUF)
-+ * @type: buffer type from enum ib_uverbs_buffer_type
-+ * @index: per-command buffer slot index
-+ * @reserved: must be zero
-+ * @addr: offset within dma-buf, or user virtual address for VA
-+ * @length: buffer length in bytes
-+ */
-+struct ib_uverbs_buffer_desc {
-+	__s32 fd;
-+	__u32 type;
-+	__u32 index;
-+	__u32 reserved;
-+	__aligned_u64 addr;
-+	__aligned_u64 length;
-+};
-+
- #endif
+ enum uverbs_attrs_destroy_cq_cmd_attr_ids {
+ 	UVERBS_ATTR_DESTROY_CQ_HANDLE,
+ 	UVERBS_ATTR_DESTROY_CQ_RESP,
 -- 
 2.53.0
 
