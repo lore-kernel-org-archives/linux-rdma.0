@@ -1,34 +1,34 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D02BC239E76;
-	Sun, 12 Apr 2026 20:50:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF80021CC71;
+	Sun, 12 Apr 2026 21:50:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776027037; cv=none; b=q+W7odHu7jtSNc13iV8Zef1dfghmDhVsMX/BDoqRcwiYHBIwE24ZRVGkQf7HlQyGiFD3LwefV2xFfiGyMuf77rmMShtXmiGTJ+7WLtdM2QafjJ0xG8xukOPCERIroYOpdrd0Z1rrB1R6fFTgWNDhn0JDctn/UCEzighS4/FBzug=
+	t=1776030636; cv=none; b=isnLeXAX+qqpwirFT+spy0en5K/bu/gc2S1EYDdYHH4q6qBeXYsbspcf1dZc+jKuN+h4w2ZC/6MrPU7ctCIhpywZLq9QyD7TbZiDVycGRPYfwZ262AS21GHsRQH3Wv1833qLZEBW0skCDxbzrX9LAZifcgMVAfZ+lOh81FQK4wY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776027037; c=relaxed/simple;
-	bh=6Z6UNS2ebQrH305yaq3CKGzqIvM0rJkgbl+imUkZLUc=;
+	s=arc-20240116; t=1776030636; c=relaxed/simple;
+	bh=ttZYdveUkveKhhd9BkfJxk7vHZmSLGfhZwk5jjz6iZw=;
 	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=EeaeMwWZ1ksVv9PFnzoj0DcjvHrlYFmVbZcY0fARz8Ref5j34hW7+jXjzTePVPjWmpB5sUZdpPRdonpmWLYVPBdTUii5ctN1xCqD+616vdXVsBg0Mg+qoFssFNVBBMP9wTocYj1YeakdywJLnJc9b/jssb3pU4Y44vhglo3lVK8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=acMQAq1K; arc=none smtp.client-ip=10.30.226.201
+	 In-Reply-To:To:Cc; b=TzWSe/hCyLmmyLvt9tG1xScdAoXagoBoqU6yHak/KQqYFdFYxz7ZORwcgcDQSow8yjWcTibAMQqHJuCAxM+3SfZCpHPxE0QAluqXfGcJDk4CjNtp4t7jL2INxk81heDh7FiDaOaok2xFqDwsv8aaf8WOtxaq2rvGZh/F2Vrqnl4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=sqZRdoLy; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="acMQAq1K"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 715D7C19424;
-	Sun, 12 Apr 2026 20:50:37 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="sqZRdoLy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6C9A0C19424;
+	Sun, 12 Apr 2026 21:50:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1776027037;
-	bh=6Z6UNS2ebQrH305yaq3CKGzqIvM0rJkgbl+imUkZLUc=;
+	s=k20201202; t=1776030636;
+	bh=ttZYdveUkveKhhd9BkfJxk7vHZmSLGfhZwk5jjz6iZw=;
 	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-	b=acMQAq1KL8Dv5JOmUq2KjdP+9o9oI8cFjvpDhpPs87R1psEPGZAZIFQPWWaGed0we
-	 nLnivfx8ABiN0q88Nwaixm8XQXEnzf181ctTvOIpDtRcHcVmRravQUoy1W3ENAtPe9
-	 LyAaO8YKoaYl6VfF7nqOMw1khL8KpfXJVcc9e8oY6QXcnJVOcFELLSE6RC/uphgMKc
-	 SxeyatNnn8D/TzZw93VoNA4VHgLhWe8z+bgESgkMRysrwq3U25VA+7pmBMTVxsvZmw
-	 Tth9riIxS+qGB/PPqvbX1M0a0eewq7Y68dB8b9ARtSze7Elv//FFZTUo4TeF9LuZx2
-	 5u/4fklhRoweg==
+	b=sqZRdoLyhrfTuFHPPUUabfF4ZopFWT+G20EXEBzkzGDWABhVkBofsnCVcN5HXsRC2
+	 z0aprpmx080mPMdrQRADKU8+g5Ze2hpEUUtjdS7X0Q6zgeW+0/lUo82vWHg9HjqpvI
+	 fPFuwtstBfGmbW+dxmsv6tWPRFbXFigOpgoqbTbypOhtkmVlFADDbaFvyZBMlcU3lz
+	 j+tIUIJKjddvs8TWbnqFYszI5/maQ8riyADTV4ndZLYotyBHetCGK7Zm6jFqYGBbxi
+	 hWqhzoBTznMr7kFdgCDPeOl8UlqSS32zV/CfRrXkesn9qnECsQ0z3hkrQlL+RXtT1x
+	 iWqAvE/SwfRew==
 Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 02BDA3809A8C;
-	Sun, 12 Apr 2026 20:50:11 +0000 (UTC)
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 02D2F3809A8C;
+	Sun, 12 Apr 2026 21:50:10 +0000 (UTC)
 Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
@@ -37,44 +37,43 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net v2 0/2] net/rds: Fix use-after-free in RDS/IB for
- non-init
- namespaces
+Subject: Re: [PATCH net 0/2] mlx5 misc fixes 2026-04-09
 From: patchwork-bot+netdevbpf@kernel.org
 Message-Id: 
- <177602700979.3405581.15178712327198304598.git-patchwork-notify@kernel.org>
-Date: Sun, 12 Apr 2026 20:50:09 +0000
-References: <20260408080420.540032-1-achender@kernel.org>
-In-Reply-To: <20260408080420.540032-1-achender@kernel.org>
-To: Allison Henderson <achender@kernel.org>
-Cc: netdev@vger.kernel.org, pabeni@redhat.com, edumazet@google.com,
- rds-devel@oss.oracle.com, kuba@kernel.org, horms@kernel.org,
- linux-rdma@vger.kernel.org
+ <177603060880.3833036.16496161564678609068.git-patchwork-notify@kernel.org>
+Date: Sun, 12 Apr 2026 21:50:08 +0000
+References: <20260409202852.158059-1-tariqt@nvidia.com>
+In-Reply-To: <20260409202852.158059-1-tariqt@nvidia.com>
+To: Tariq Toukan <tariqt@nvidia.com>
+Cc: edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
+ andrew+netdev@lunn.ch, davem@davemloft.net, borisp@nvidia.com,
+ saeedm@nvidia.com, leon@kernel.org, mbloch@nvidia.com, jianbol@nvidia.com,
+ kees@kernel.org, lkayal@nvidia.com, michal.swiatkowski@linux.intel.com,
+ gal@nvidia.com, royno@nvidia.com, roid@nvidia.com, raeds@nvidia.com,
+ netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
+ linux-kernel@vger.kernel.org, dtatulea@nvidia.com
 
 Hello:
 
 This series was applied to netdev/net.git (main)
 by Jakub Kicinski <kuba@kernel.org>:
 
-On Wed,  8 Apr 2026 01:04:18 -0700 you wrote:
-> This series fixes syzbot bug da8e060735ae02c8f3d1
-> https://syzkaller.appspot.com/bug?extid=da8e060735ae02c8f3d1
+On Thu, 9 Apr 2026 23:28:50 +0300 you wrote:
+> Hi,
 > 
-> The report finds a use-after-free bug where ib connections access an
-> invalid network namespace after it has been freed.  The stack is:
+> This small patchset provides misc bug fixes from Gal to the mlx5 Eth
+> driver.
 > 
->     rds_rdma_cm_event_handler_cmn
->       rds_conn_path_drop
->         rds_destroy_pending
->           check_net()  <-- use-after-free
+> Thanks,
+> Tariq.
 > 
 > [...]
 
 Here is the summary with links:
-  - [net,v2,1/2] net/rds: Optimize rds_ib_laddr_check
-    https://git.kernel.org/netdev/net/c/236f718ac885
-  - [net,v2,2/2] net/rds: Restrict use of RDS/IB to the initial network namespace
-    https://git.kernel.org/netdev/net/c/ebf71dd4aff4
+  - [net,1/2] net/mlx5e: Fix features not applied during netdev registration
+    https://git.kernel.org/netdev/net/c/9994ad4df82d
+  - [net,2/2] net/mlx5e: IPsec, fix ASO poll timeout with read_poll_timeout_atomic()
+    https://git.kernel.org/netdev/net/c/edccdd1eb947
 
 You are awesome, thank you!
 -- 
