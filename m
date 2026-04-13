@@ -1,121 +1,183 @@
-Received: from sonic304-27.consmr.mail.ne1.yahoo.com (sonic304-27.consmr.mail.ne1.yahoo.com [66.163.191.153])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from MW6PR02CU001.outbound.protection.outlook.com (mail-westus2azon11022089.outbound.protection.outlook.com [52.101.48.89])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D30B3B584A
-	for <linux-rdma@vger.kernel.org>; Mon, 13 Apr 2026 17:56:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=66.163.191.153
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776103006; cv=none; b=VCRNAaPcxk2Gn0dLNFDX0lSMBcqrSFu2PQhfqFcj6O7zSLvrAkIpXdmGusLO+O1zl2rs4AEwYip13nv1xEhtoerFkDfJu/P8bCzuTRz+lBA6NqxCTSLUGIiUiIDoEFi+hLYcrVqWaa1j8zbuX8/VQSVGnOFFrNQMoEvH29NHi44=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776103006; c=relaxed/simple;
-	bh=rmBTtrz9chI/mbl/+nEwMS5pf2+6uFRDUaAG1DPa390=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=V96EHpsal44Qoa+yNPziAW8T7S6YYFBA+wpBQuRXyj2zh7vzQG+rdPyYWt+C4QeXIU32BT71noKcrD8Yoes9jL0toZibVGBTNgOdAFCXVWaaauNrsw7or8fViL+Hu3/ZAVJltcM43hCjH6/nzCYMnZIeLnfSy8pgPhQmY4IoCDc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=schaufler-ca.com; spf=none smtp.mailfrom=schaufler-ca.com; dkim=pass (2048-bit key) header.d=yahoo.com header.i=@yahoo.com header.b=g/RnZw6O; arc=none smtp.client-ip=66.163.191.153
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=schaufler-ca.com
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=schaufler-ca.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D0A403E1D07;
+	Mon, 13 Apr 2026 18:00:47 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.48.89
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1776103249; cv=fail; b=OwMBO0i5XQDsbfM9eViEKGL7WVdNZX1MoSSgOG8UIQV3KW1YqW5uS6CQpX0UD44+ctGLrLVRD4LCyqcNQN0SZcwfS59hpa0qGy+t8bmid3lvp66rSTEqBnFzcjFrXd1KdNw7mDCiwaTvGy41dfF8sgKzQ+XJnxGJ9oB68/QTK7w=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1776103249; c=relaxed/simple;
+	bh=pBtfl2zefEJCkUYF9uPIrzezM491W/tMsPR6urlmikg=;
+	h=From:To:CC:Subject:Date:Message-ID:References:In-Reply-To:
+	 Content-Type:MIME-Version; b=pwRyjPHgBxvN6ZOUunuCjvc4OA37ZfeYF4fXQ78MMYfWUKXiYXddET8WBUAwpyejmYyptlSfwDwO+yFBjQHPqQ2Txofn4PI5DxsmuIxUBI1a2P7L3J+SA96JgD9zv5sxxBSfLSntCO4atQUhqduL32jycNzVs3CMxDpVL/TS6QY=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com; spf=pass smtp.mailfrom=microsoft.com; dkim=pass (1024-bit key) header.d=microsoft.com header.i=@microsoft.com header.b=BBdOnT1M; arc=fail smtp.client-ip=52.101.48.89
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=yahoo.com header.i=@yahoo.com header.b="g/RnZw6O"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoo.com; s=s2048; t=1776103003; bh=rmBTtrz9chI/mbl/+nEwMS5pf2+6uFRDUaAG1DPa390=; h=Date:Subject:To:Cc:References:From:In-Reply-To:From:Subject:Reply-To; b=g/RnZw6Ob/tVDfz888VQl8f9F4+lZyiuMuMtyHZz4TN3Nhyc1mTSMXvJmGmXhSSvL2kPVPH1KlaFyULgHZ/wmmT+wB4P/2Szc3hPIh28CNrYVh0mNoHEEEla7eRBL4bOYkf2b9sU4PgDpGSrfVVXl4ihshixU+wGM6Ix5FDZreF9xLQ7THgj5jYQpjELMsa1LXty/PGd7kqKXqwfFptcOMIsvpbM4y1pgo8jT5o0SrKjYchQdABgmRHw908WTSr/p5j9DAowei9HX4NRlKMkbNfHPreC/IRqZKpEVNoMD1MgdAgQwtyymLbKIzNelO8ltLeZCGU7fSwC1Gv57WMhFQ==
-X-SONIC-DKIM-SIGN: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoo.com; s=s2048; t=1776103003; bh=lH5eDplIdmWSGuX/ToReB8fKRnuurmR/+UhKAIOV4G/=; h=X-Sonic-MF:Date:Subject:To:From:From:Subject; b=kOVkNE0/ej/woNpNTRziNmWAlc1tqtjnkRLVgAL0vOWhfdWRHQJKH9cCNSKvv0WgoKpW1v+uGIEoeVktPjZZAf1rUPiYg9LzyjbeBo3CqDeCIpUqJH7yRAWVtNAeyfjaW2gonc5KR9WLVzn/EZBSLtdUFUnK8Kb8LnK6Y+lnL0tVU8BQN7NLmRElyOakTTz37GPuXBlmdYYTD5wDfSjJw6Ddk65rVlSD7LW/+GYK2BiQvgtj3ChhqLBv4kWdZWvGxHo88p30sfmObob5TNdikWulckZaQXL1kzBRgE/EpwMfFZZBkOvr3DZaFQs2yCPlhyGOC8jD/LHRDt07cuEtTw==
-X-YMail-OSG: Q4M_pPwVM1nv6EaRII.6WBpG_K6KUDVr67FR5BPMefwsjqkpMk8uT2qG1idDE5E
- WGB206otxTuQeEcQkfJ6LjBtbeTxskR4DcDkeRrQaD5SGY58qk0m5O0ay_sOdmsFbkOaIvhuXnVO
- 2AkCqsJ3j7uCctBZhAW9qQROi.JhGIs7i.Iq9DGLSGOQlSKM.EufFlshOBDG01cndr.NfJXHf9y_
- mcTJFoO1xYphgMDavQxgcOJSfrvQRNdSkewWKUdx1O_G56r_ofyrT.gk4eom9Poz6_lNPCm_btaL
- KPpvJWGeYBLRnEYivpB7_dxxZ60ybXzpwPz14hRCev2C5YDSI2yhy2ZgbuaokPp1PQxZoZuCds6y
- ov4n4i2gpKwO3zDJjTVi.az8LC9EmYhT4F6e_0ix8kLXDHVoMbFVdC0eGi.HPdlhZDMP_IirLODz
- LPggQd9qjsTbw6WueiIGwWc8sABqYvAbGvoYUd3Rr9NqJ55M7D30fny2DNIINYV3KbLMeT.68P24
- JE7dqzQ9O2X4lDyruvlIJIHl_XOOBbrzaqDlGKxakWedeDRfSZBQXKgEzh6v1iXGfQf8o87.wBQc
- BPJaqmRdlBWbgPcXtNliyMB7ZB_mUtkoPAzpDbh5QUEZKdLEmywtMYuKUATO3z9px1wYgPkIxHaM
- wkiwKijOwja9_pZRFSHHDMtmY7mJEFkLsJNVkHVELaiRGbm4RPDWQ7J5vcjVPaOgSBT6PN4ajTKp
- z0v8RIeXfUg4eAGoADDVu35ejkp4nqfjfDpjbDOBOXal00zz6aFNCu3faeiv2BqXx363SW8Z29rt
- NiYC8a.dA2pYdKbzbc9OUOPJA88u7HuIO4gcKeDDBVOkMkyr00lPUNsXFvC3JXAExLLFiwT4rbZU
- V_JKdnGHBT7SywCTgy.8aKCAMRLhjHVBJeLryIVlCEboQyG53Eub8EAOiF6QBC5yfbFXOht8KclA
- hbQ8QUS6UJ_ZG4eYiPH01bZaV0R5DUV05cDBUcB4s0WXmfWkvu__x6T5i78j.cni9FDF461QTw0o
- Omqf.b4SW6ICh6Zq5DyJJ5FU4W4SquW80UJhREm9jK3prNFkyVEu.nfAe76dI4rL3LmiTUCVeSyj
- iznTrTdyc8vFQ4g648sZy6m31G77s9zikPPlIh2ZKW0RXLTjaS0T8GKFVflsHNuE0RlhQt8gmi.e
- 9Jrg2jq2DhTd9h3SQVimW4sxo5rxmshzjVlvdegqs3Pu0HhxWHogdW2_xS6cvGE.ft3xjwOWTug0
- 0vtNthaB2b0UDvDugk3JYV8JTekNIUMsH.bBFrzDUJHlx6jpEjOPPrUkJSmfwJlYqtjTZMJaY3Wf
- dJpViVcwtKuxadUjKMuNnzzIPntrblLnFEqd50yXCvc4o88z.EypVkYRhkhXgV0wY_1gLtE9yc_y
- ZM4LzXx8W2PlfdXTQ0kvvVtkQjKHCWFwH1CourWrAnkuJQgsNOtIaNRUxAreDXEVqHjgF9qm64Cf
- cTicxV5jCycINI78oaPUssir8_stEcOHp8LVmjG6LH0n_vsJlMJBxr0QQKNt8PrtBxNW2B53Usik
- _0DBKCBgXl3tjd_6SL.Ebgb1VxOVepX54NC.v2lltWTsU8hQFlyQgFl5KMDMGv6ieU9JZZ1UCpoQ
- FDvysIYDpMLZAsMl2vVFZlL3b4iRYUyrIhYWfay2VC8eokjgWLw_fCjKPEZQUszhdzfeNa.2_BBm
- vp6J9jVyHA1NcD_pcLGQRqDfn92I70NgwrdZg9u9pSVqr40ku.FGv1qUra5c6fQecup9yTTDepOh
- dSDLNkUDZEzP3DjxshO4vCWlZi7P_jIZI1FFqdakPnSTNF47SO0sFvUhfafrtXk8.2b.tURmUmrA
- Zl7GX2XvDugs6_bTIoYfgXPlzKw1wZO5K9c82wcu8okp5X.Ap8Mf8FnlhjwqPvwQecGGBELaF9tM
- lDGZHQePfW2np0PWeOBojfWWQ6ogNyzPdvnqiH1DIoL0wyFX4E98ly5Iesn0x5ZPXipcSFe7PFY_
- kn_LDkIoWSNifQQXCJkLRS0aTDfXvruUf2zuPCUs87g.ugeBA9d8_vPCJoEuqSVuGPrhi0gi.DZI
- oxnR5oz8mN2t9QhuHIGToJ3pYY45vl2fJdswtUWC7OPr_WvEDEvZibZkgC3LvNo7wnYl5omt4D8F
- M4o2TwkUTel_fgTZJLnpQIm3CEVlm2i3BeQvwdGiRpH5ddnCeJwgqG9vyXSpFCGSVWXwOpBhveKi
- RCLPxwd51bhRwbqrX69hKqMH0ZZUocGg5vMInedDXzK9JaDwK_giFBIKOnDCS
-X-Sonic-MF: <casey@schaufler-ca.com>
-X-Sonic-ID: 955de430-2ace-48ee-8b4f-2fc6e9871f3b
-Received: from sonic.gate.mail.ne1.yahoo.com by sonic304.consmr.mail.ne1.yahoo.com with HTTP; Mon, 13 Apr 2026 17:56:43 +0000
-Received: by hermes--production-gq1-6dfcf9f8b-xs62w (Yahoo Inc. Hermes SMTP Server) with ESMTPA ID b13f36faa7b702ca1ab4e41c810c08a5;
-          Mon, 13 Apr 2026 17:36:25 +0000 (UTC)
-Message-ID: <bd7d139f-b5d6-42e1-be2c-4f71feed63cf@schaufler-ca.com>
-Date: Mon, 13 Apr 2026 10:36:22 -0700
+	dkim=pass (1024-bit key) header.d=microsoft.com header.i=@microsoft.com header.b="BBdOnT1M"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=mZ2TuDne4U3HYprKrQhp1BsBjnaof3edFQP0N4I/5TgZKYXecxR/hqqoe1mOlkQYy6KTfOZxRLc8izukNcFQH7VBb6XF/MA+AdCpCB48dj1pPS54o2QbPKzUQwoIIyxJf39uUWQnculep8A0hq4BeCkz1tz20GpiRZAa05ezMYh6IbTUj+vTFhA4t1Xq3Gll0CmVEOGXr1tR4r0FczV/vjtTJOWfIG/8HrRjLqpFUZz4gq1+IfMk0H9Bq50qmzSFRTLNhok6REHJlTXmaWvF33i91iRUh0Jjq8YF/XM2AHgf5N56UZIX5yd7V/mzZ07/xA77IUIltrVj5sWadEY3sQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=pBtfl2zefEJCkUYF9uPIrzezM491W/tMsPR6urlmikg=;
+ b=nqmhpJI0eU4BdWiKCwTLhynfAXIF7csqef4GF0bq9dOAhuN45SLJ2wWrmYnxtfy2pEot3KM5QnP9OAOhPl2YxcSGzfl7JH46uhGCrJ6i1atclgE54xdmgs9RvYx1XuTkLJlVZsfiQ86L3WXvV4pYYTe7eA/S5mfNftndupVsNt8NAV30XkMNigslomeKoDT10UNGed7Xpe3jUzH2WZPy0SjV3t5Jc37T3zmzTs0d7V2SGWx7IjG6+kgL4u/cErWnKhZs1X/QAd/uxbP/C+a1BI/yQ/7SwVP1mfQ8pKBztCreiDuB/xE86y/C6FvqqqlpYCaX260Iaqxh1SIcj+ItUQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=microsoft.com; dmarc=pass action=none
+ header.from=microsoft.com; dkim=pass header.d=microsoft.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=pBtfl2zefEJCkUYF9uPIrzezM491W/tMsPR6urlmikg=;
+ b=BBdOnT1MmdngrNlw91N3zqQIzlOCLBFDU0MwEDoSIWG858eRTSpy5Ojs0Nm/dZWNR/UxEq5/6riuRWJOU3ri26sVnhFKbWlcJkBeHR3wfJj0euMfmieptwOrVWnVj1EPoUEKcvEWqHZPeCn7y93e7qjXSpkJnVroCRIqGA8Si4A=
+Received: from SA1PR21MB6683.namprd21.prod.outlook.com (2603:10b6:806:4a4::6)
+ by SA3PR21MB5678.namprd21.prod.outlook.com (2603:10b6:806:49a::22) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9818.20; Mon, 13 Apr
+ 2026 18:00:44 +0000
+Received: from SA1PR21MB6683.namprd21.prod.outlook.com
+ ([fe80::879f:eec1:ca0e:d219]) by SA1PR21MB6683.namprd21.prod.outlook.com
+ ([fe80::879f:eec1:ca0e:d219%3]) with mapi id 15.20.9818.017; Mon, 13 Apr 2026
+ 18:00:44 +0000
+From: Long Li <longli@microsoft.com>
+To: Jason Gunthorpe <jgg@ziepe.ca>
+CC: Leon Romanovsky <leon@kernel.org>, Erni Sri Satya Vennela
+	<ernis@linux.microsoft.com>, Konstantin Taranov <kotaranov@microsoft.com>,
+	"linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+	"linux-hyperv@vger.kernel.org" <linux-hyperv@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Subject: RE: [EXTERNAL] Re: [PATCH rdma-next v2] RDMA/mana_ib: hardening:
+ Clamp adapter capability values from MANA_IB_GET_ADAPTER_CAP
+Thread-Topic: [EXTERNAL] Re: [PATCH rdma-next v2] RDMA/mana_ib: hardening:
+ Clamp adapter capability values from MANA_IB_GET_ADAPTER_CAP
+Thread-Index:
+ AQHcskxp/rldcz8WSE6y5yrJ7Ov/rrWxl2eAgAAP7gCAANlFAIAFtXdAgCBm4YCAAHC7cIAEJXUAgABHFvA=
+Date: Mon, 13 Apr 2026 18:00:44 +0000
+Message-ID:
+ <SA1PR21MB6683609E2E86D0464697F4DCCE242@SA1PR21MB6683.namprd21.prod.outlook.com>
+References: <20260312181642.989735-1-ernis@linux.microsoft.com>
+ <20260316194929.GI61385@unreal>
+ <SA1PR21MB66832D25A93394735624F454CE40A@SA1PR21MB6683.namprd21.prod.outlook.com>
+ <20260317094408.GR61385@unreal>
+ <SA1PR21MB66833EBAF447BA0B102862FCCE4DA@SA1PR21MB6683.namprd21.prod.outlook.com>
+ <20260410154327.GA2551565@ziepe.ca>
+ <LV0PR21MB66700DC2FB827B93ED6A5714CE592@LV0PR21MB6670.namprd21.prod.outlook.com>
+ <20260413134602.GL3694781@ziepe.ca>
+In-Reply-To: <20260413134602.GL3694781@ziepe.ca>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach:
+X-MS-TNEF-Correlator:
+msip_labels:
+ MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_ActionId=9cde75c9-a55b-48b8-83a9-76b1640c171d;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_ContentBits=0;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_Enabled=true;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_Method=Standard;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_Name=Internal;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_SetDate=2026-04-13T18:00:27Z;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_SiteId=72f988bf-86f1-41af-91ab-2d7cd011db47;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_Tag=10,
+ 3, 0, 1;
+authentication-results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=microsoft.com;
+x-ms-publictraffictype: Email
+x-ms-traffictypediagnostic: SA1PR21MB6683:EE_|SA3PR21MB5678:EE_
+x-ms-office365-filtering-correlation-id: d525dc00-5720-4095-cf47-08de9986958b
+x-ms-exchange-senderadcheck: 1
+x-ms-exchange-antispam-relay: 0
+x-microsoft-antispam:
+ BCL:0;ARA:13230040|1800799024|366016|376014|22082099003|18002099003|56012099003|38070700021;
+x-microsoft-antispam-message-info:
+ dJ4fb+0BtU9RnXkvT35M5b6QKmmrpefR6xZqFj2Fw5RU+dpW1v8LIrTmc2VZuW31x5K2zc0QNn8itwCakXkVfxCehzv04RJLMl/J+DJgu15hCnUltmPuWqO5EAn9rtBecQDdrcXPRYA/8cPUwKqmgS2x4dL+bQ9VWrA3que0LAuo+yiJGFhwjOK+J/xFadbrFWAJJMxAdGWszRIWJsOHXBVZ6bTsE7XbsyUrsiPDYFLphP4gFe3HA7e2Uw2OT4Xr2Qs6N/APOuy+fS+Gjvrezw7lR+MPu0W8YMfYkMWip6qpKKhq7zJXUzhbQuAc6TvlaIYgJL21w/MEkPnLUd722mHIZzGVtGdMtLRvEt332zvK/14b/wHAkZ7Er1VrS73b+nLYiAIpI4jwe78v+zYfRiI2DuVF1dbVl3pIz7zKK0yLh5HD4aFiNaTOkLvNO+yW7QJaTGBk1+nkXgkZbPB/A69Vmo/3LmOjZjvPsUnazxdhq5hy1ArkHHU/zXzNPcd0GcjHBIiBFyGHk27R/rWBNWgusP/RNbW1olJ9zN9ekYqJNXzrczFE2EQuZmykhXEr35wsPj4Y5AuA7b3BzwP4w/3lFfCZDLRbM1ENNU6OW1klhX0SH5I4a+Dbx96YzacqJGcuWmMgvOTUnndn4vhYtgo3x6kOwYIRrHOkvVijXvWy2Tq2zJDuphoK3NgvYndq38ZNmhF4PuGyzzmywWiwkm+1Tn6LKrzuAzoNSwcKPPU=
+x-forefront-antispam-report:
+ CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SA1PR21MB6683.namprd21.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(366016)(376014)(22082099003)(18002099003)(56012099003)(38070700021);DIR:OUT;SFP:1102;
+x-ms-exchange-antispam-messagedata-chunkcount: 1
+x-ms-exchange-antispam-messagedata-0:
+ =?us-ascii?Q?H+7NAGzHxQSR59sXVHfqIatr0bhOYpX4SJ2bysHvlfcWOVfE4o3tjJ0b7Bab?=
+ =?us-ascii?Q?PaSXRlH3GOvIXVGtFwChqW0zE2ynJijt+ngT8t/iXtsVDHs4OMWwgqBPbu2K?=
+ =?us-ascii?Q?fhOKorZitKYp1Ha+S6RoEsKjB8B3DgBV5EMLzv0s8rBSKLpVhAsRUwLhiDZI?=
+ =?us-ascii?Q?Z4IBWZZpE89XiURf9kPPZupF4he0mtiMEiq/i7RT83m/8CIsiBO8oiR+WqCR?=
+ =?us-ascii?Q?EDwb0FwGRUitthmXZ94tvLDEnLhQQRr9Qh1OakDg9bXFEsccSTZwIoK+Hlaj?=
+ =?us-ascii?Q?gDPA7v29WqSP+t8SMzFAUEvuk2bOTNzhmItWNLruTadly9DEgdzJc/ueiM87?=
+ =?us-ascii?Q?IYbo0urshlYX/Er9+tb5YQ+OooQuAVxH1MNEy8Sbqf6tyCvtLsL7Kp3ToR5I?=
+ =?us-ascii?Q?nXzFa+tjgeuVrTQ9eUskv4yEhSolp55LokbptZBSu/GN/gD67UiLe3yleBjZ?=
+ =?us-ascii?Q?+cy4LgTLBKwtsWanyJuWChaaJuxZRzF/0zRGh4O+sIbXO8g/nANsZBB5u4dJ?=
+ =?us-ascii?Q?/TWmKghT+eUUPpuLWeQskUDnUigiuIa12aNz7r9q+F1muYHIb3A29mWotqHK?=
+ =?us-ascii?Q?RiGbAfCkEScSvt7FFTIVHDediBFWdJOvhRa44tLo1zxhpCYxwReQaEOFliV+?=
+ =?us-ascii?Q?w6mtgMDtct1sN4csdPuCEszMvMXnps/nXKErA8P3acH1A0WysqISJNYDXqru?=
+ =?us-ascii?Q?6qvrHInD8rzE6FoJNo0H7e2lCZzwYiUYirDy0GXIlyjkfwMOW5KzJ1YW0cn/?=
+ =?us-ascii?Q?IC7QVXPuBsij5i3egvzeu2BokNe/To1ebqvXp6jdQnxmAVfeLCkCRIJJ9yJC?=
+ =?us-ascii?Q?MvrnOdhyfFgikriAZklAxHoTqkvCFXCZauc/AFyyIZ+wLxERtc3HDZX3QAbu?=
+ =?us-ascii?Q?rlFyPkeCry5ibGYVgXeAZcD9M2HsEZygOZrF3XXzj2h2XhH1VkRBEqr7jlhO?=
+ =?us-ascii?Q?DNXOiIs0sMo1Rx9oD1YNzzxUcej9/QG21hEfidOTyggfpY49p55kO5E5eoI1?=
+ =?us-ascii?Q?RaSCAfUy1Cp+tk+g6irng2pl8G/k1UZbAuodg7rkTO1u95S+j3pUoGidqpQY?=
+ =?us-ascii?Q?/bGeEG7rugEG9MulIzX9oK5kQo96DQOHPYipbW0AVxECuIxNiAznIkR/D52e?=
+ =?us-ascii?Q?uLdgq3xycjIcfHs0tjHrKKDaiCQWB2RPMhnjl2Va/BHLD+Hz2liBuRnS5p7k?=
+ =?us-ascii?Q?komZPJbvmx1AbEAm6Ag7fHge3CTkTcp9pSRc0mJJRXu3lNIxXmnm6zKvSjRd?=
+ =?us-ascii?Q?YUrcHvadNWzefp0TeCLYtAzrmSN1D2ak/XqSIl2m9N/eqiONuUumHeVSrt20?=
+ =?us-ascii?Q?JZNrSdIOZ5AKR5kgYQJeVrNIeFEE4bnBieKHr7GDRz7IWJ6oT7ZYLOv0qfcv?=
+ =?us-ascii?Q?xvDLqyLOq9lvFbAMRjOrbdg+s1+IQUyOlh1CupEGh4muG5Rpbh8Z0ArEwB6b?=
+ =?us-ascii?Q?Xn1rVDQHbW+V/a0P5v28HBwAhDgogeWBbb8eQ5ETvsq1F4Ckv1Deul13le6D?=
+ =?us-ascii?Q?I9qyCEaCp6WV4eb1PDXvrbFuHrPJbxrxSY+5je0izGuMfcU4/QBnWwjrSKjj?=
+ =?us-ascii?Q?Rp5KLRgrMnMTZzVUsHz2DRyw8/jCavbm2ZiIrialOtx8Nv1eBrf1pPty6Aqi?=
+ =?us-ascii?Q?9RWR7Bs9YXlx6qIw/wOWKfCmupfOddhhPKE8erUjEPDrhvr7UX/ETfA1txOA?=
+ =?us-ascii?Q?SKU0y78UQntS5Sx0hGVZ52IHDnP1AzTePvmkGDojty3yUcrw?=
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 0/4] Firmware LSM hook
-To: Jason Gunthorpe <jgg@ziepe.ca>, Paul Moore <paul@paul-moore.com>
-Cc: Leon Romanovsky <leon@kernel.org>,
- Roberto Sassu <roberto.sassu@huaweicloud.com>, KP Singh
- <kpsingh@kernel.org>, Matt Bobrowski <mattbobrowski@google.com>,
- Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann <daniel@iogearbox.net>,
- John Fastabend <john.fastabend@gmail.com>,
- Andrii Nakryiko <andrii@kernel.org>, Martin KaFai Lau
- <martin.lau@linux.dev>, Eduard Zingerman <eddyz87@gmail.com>,
- Song Liu <song@kernel.org>, Yonghong Song <yonghong.song@linux.dev>,
- Stanislav Fomichev <sdf@fomichev.me>, Hao Luo <haoluo@google.com>,
- Jiri Olsa <jolsa@kernel.org>, Shuah Khan <shuah@kernel.org>,
- Saeed Mahameed <saeedm@nvidia.com>, Itay Avraham <itayavr@nvidia.com>,
- Dave Jiang <dave.jiang@intel.com>,
- Jonathan Cameron <Jonathan.Cameron@huawei.com>, bpf@vger.kernel.org,
- linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org,
- linux-rdma@vger.kernel.org, Chiara Meiohas <cmeiohas@nvidia.com>,
- Maher Sanalla <msanalla@nvidia.com>, linux-security-module@vger.kernel.org,
- Casey Schaufler <casey@schaufler-ca.com>
-References: <20260331-fw-lsm-hook-v2-0-78504703df1f@nvidia.com>
- <20260409121230.GA720371@unreal>
- <2dd138a2ae87f90c55dbc3178d9c798294fd4450.camel@huaweicloud.com>
- <20260409124553.GB720371@unreal>
- <CAHC9VhT1X4HX4bGrK=mEzu=g=mZ-Wg-LDXVgZVe-e6oM+W9aHg@mail.gmail.com>
- <20260412090006.GA21470@unreal>
- <CAHC9VhRnYXjg+vE9a8PeykbXk91is12zYLaO7EFdfZPKMxDfPA@mail.gmail.com>
- <20260413164220.GP3694781@ziepe.ca>
-Content-Language: en-US
-From: Casey Schaufler <casey@schaufler-ca.com>
-In-Reply-To: <20260413164220.GP3694781@ziepe.ca>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-X-Mailer: WebService/1.1.25495 mail.backend.jedi.jws.acl:role.jedi.acl.token.atz.jws.hermes.yahoo
+X-OriginatorOrg: microsoft.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-AuthSource: SA1PR21MB6683.namprd21.prod.outlook.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: d525dc00-5720-4095-cf47-08de9986958b
+X-MS-Exchange-CrossTenant-originalarrivaltime: 13 Apr 2026 18:00:44.6518
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: 72f988bf-86f1-41af-91ab-2d7cd011db47
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: rGNCmUv9dJsS3ki8qeotNvYKxgn6qnfS+UIzAxWp6ei/WBtDchuhDSIBc6lLis3pR/UkOiO/W0szHNUd6eVi4Q==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA3PR21MB5678
 
-On 4/13/2026 9:42 AM, Jason Gunthorpe wrote:
-> On Sun, Apr 12, 2026 at 09:38:35PM -0400, Paul Moore wrote:
->>> We are not limited to LSM solution, the goal is to intercept commands
->>> which are submitted to the FW and "security" bucket sounded right to us.
->> Yes, it does sound "security relevant", but without a well defined
->> interface/format it is going to be difficult to write a generic LSM to
->> have any level of granularity beyond a basic "load firmware"
->> permission.
-> I think to step back a bit, what this is trying to achieve is very
-> similar to the iptables fwmark/secmark scheme.
+> On Fri, Apr 10, 2026 at 10:29:45PM +0000, Long Li wrote:
+> > > On Sat, Mar 21, 2026 at 12:56:39AM +0000, Long Li wrote:
+> > >
+> > > > How we rephrase this in this way: the driver should not corrupt or
+> > > > overflow other parts of the kernel if its device is misbehaving
+> > > > (or has a bug).
+> > >
+> > > If we are going to do this CC hardening stuff I think I want to see
+> > > a more comphrensive approach, like if we detect an attack then the
+> > > kernel instantly crashes or something. Or at least an approach in
+> > > general agreed to by the CC and kernel community.
+> > >
+> > > Igoring the issue and continuing seems just wrong.
+> > >
+> > > This sprinkling of random checks in this series doesn't feel
+> > > comprehensive or cohesive to me.
+> > >
+> > > Jason
+> >
+> > Can we follow the virtio BAD_RING()/vq->broken pattern in
+> >
+> https://git.kernel/
+> .org%2Fpub%2Fscm%2Flinux%2Fkernel%2Fgit%2Ftorvalds%2Flinux.git%2Ftree%2
+> Fdrivers%2Fvirtio%2Fvirtio_ring.c%23n57&data=3D05%7C02%7Clongli%40microso=
+ft
+> .com%7C698adb98daa64e20184708de996302b5%7C72f988bf86f141af91ab2d7c
+> d011db47%7C1%7C0%7C639116847704528406%7CUnknown%7CTWFpbGZsb3d
+> 8eyJFbXB0eU1hcGkiOnRydWUsIlYiOiIwLjAuMDAwMCIsIlAiOiJXaW4zMiIsIkFOIjoi
+> TWFpbCIsIldUIjoyfQ%3D%3D%7C0%7C%7C%7C&sdata=3DHkjUfCDysbQKTuiCsiQai
+> gySStd%2BI3VrHUnfMC%2FBORc%3D&reserved=3D0.
+> >
+> > Add a broken flag to mana_ib_dev. When any hardware response contains
+> > out-of-range values, mark the device broken and fail the operation -
+> > during probe this prevents device registration entirely, at runtime
+> > all subsequent operations return -EIO.
 >
-> secmark allows the user to specify programmable rules via iptables
-> which results in each packet being tagged with a SELinux context and
-> then the userspace policy can consume that and make security decision
-> based on that.
+> If that's the plan I would think it should be struct device based, but ye=
+ah, I'm
+> more comfortable with this sort of direction as a CC hardening plan.
+>
+> Jason
 
-If you want to pursue something like this DO NOT USE A u32 TO REPRESENT
-THE SECURITY CONTEXT! Use a struct lsm_context pointer. The limitations
-imposed by a "secid" don't show up in SELinux, which introduced them, but
-they sure do in Smack, and they really gum up the works for general LSM
-stacking.
+Will do, thank you.
 
+Long
