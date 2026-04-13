@@ -1,70 +1,120 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from pdx-out-009.esa.us-west-2.outbound.mail-perimeter.amazon.com (pdx-out-009.esa.us-west-2.outbound.mail-perimeter.amazon.com [35.155.198.111])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9CA2E272E6D;
-	Mon, 13 Apr 2026 16:09:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 70B8526ED41
+	for <linux-rdma@vger.kernel.org>; Mon, 13 Apr 2026 16:14:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=35.155.198.111
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776096555; cv=none; b=P0LyY/Io89xKJAv+h1AR/vCusgxpmC4ZXbcFGm7EYY6FydEXe/IrMvRmGqoZJerYErQPbgKFAfjHZqSIRghdWIy+ZAKC5fSP8L304Dti/olDaEPhdWwDnbhFKWzUtugI03BaXkSpGMLM2hHnZ/NlqpvhYrbjfyQfYZgHnS2K7uE=
+	t=1776096885; cv=none; b=ou2T08+yT01KjvlVffl+DtTmqtWwQL7s9ICLG01Q30iGbd/LC5AKgrQzZNNPq5iPf7vE+xIEw1M+dhezEpkvRfA2UN9rbEOGSwsQZqsBZtDmYshJLvcQelUcgp+DDj4dhHm2WpP6VQ6IwL+VqkzIlyFQLa77wfvj116KW8KKIf0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776096555; c=relaxed/simple;
-	bh=ivJCtvmKkXE+mdYlmr1xPzzNt85+4Pv62hw0me/sBIw=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=K7QWdXVua5+S6/Wl7BqhrwaRs34+TI/g5SHpheF2ln1AeSnAVOUqMmeHUcYJcN+PQ9vQtCV55hcP5Vh4Bqn06Nkkx0RkzlHgl5sFlpA/UvlXtuWAQGOKVV5vBB9+uq5vu95zqhVUHYv3Etvma8fzlVgfyRTAo7NdOUAR//gfuKU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=tEvkAHCU; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1776096885; c=relaxed/simple;
+	bh=jnhs0qRfDaBez6uPsEJ2WjSuZEkX6w80ruwJEhbMBmc=;
+	h=Date:From:To:CC:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=VsbgDGgh7bOrQDNrJ9/oYCnipiV8KXsvLfyqHObHNbjQFXQQqNWxgcDj4gyDCVLDbYp2x1BBSuZ4bZLIYjl2bPctx3ScF1jfIv5nFWZ2xVyahHOAwwPPkd1ejuZXZ/R+3xdLqiubcpecdcw2vfucNs4HW2EVruNEnrIo1pLcRcs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com; spf=pass smtp.mailfrom=amazon.com; dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.b=i/BK/T06; arc=none smtp.client-ip=35.155.198.111
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazon.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="tEvkAHCU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D1D7C2BCB4;
-	Mon, 13 Apr 2026 16:09:14 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1776096555;
-	bh=ivJCtvmKkXE+mdYlmr1xPzzNt85+4Pv62hw0me/sBIw=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=tEvkAHCUxScpzmU/fjUsAOwn4IjfT4Q8zigg17yVwyGLFbEX5vUjrwijkGox2N6zO
-	 G/8J2HWH0WdIgzTmxHDnAMCXVZneeJerIEXy/O2ttBYH3J+ioRjPZH+IMaINxKHCvE
-	 zXNwzezk4XNWwB7lKTsfgmFDfKK4IwMoG9wvFSv0Flr67Qmk9OIk4kiQhPkmHAwiC2
-	 mFAWUVEjDNRqmIz4HKiJmP/Pu3I7x5CISIIEyTp0jiyHMuguNKBwj/8kkiGjAU4Zsd
-	 WEkGOTTrTSKBZqjoOp+BIg9OQTDv+KWPOaSjH/N10qGNp7KpPSwnQ2leaXvx88n7+g
-	 rUn+TVhhuSXRQ==
-Date: Mon, 13 Apr 2026 19:09:11 +0300
-From: Leon Romanovsky <leon@kernel.org>
-To: Junrui Luo <moonafterrain@outlook.com>
-Cc: Chengchang Tang <tangchengchang@huawei.com>,
-	Junxian Huang <huangjunxian6@hisilicon.com>,
-	Jason Gunthorpe <jgg@ziepe.ca>, Xi Wang <wangxi11@huawei.com>,
-	Weihang Li <liweihang@huawei.com>, Wei Xu <xuwei5@hisilicon.com>,
-	Shengming Shu <shushengming1@huawei.com>,
+	dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.b="i/BK/T06"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazoncorp2;
+  t=1776096884; x=1807632884;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=lAxh83/jP7K/hnTfdaW6ebMP30MkMWuz/1amLaXlEwk=;
+  b=i/BK/T06wBOICiUETLs6sLTbuq4EULFtgL9vAR+bb6MGIw1D2BFX62av
+   dDjcjLTeQtn6HZ8qjVAHd/RHKO3CA40puHNy7akTTyzxyIICYRPTV2w2O
+   MkZ2a6zdxyu9kVhTxg7UfWV2aDJCSTqA8s9QfQTMuHzznyf/ScAchp3bZ
+   isgHV3bQf9fp5MhYhLFXo+zn1E1RNxM/KoCyzzlpdmH9KmaJ/iXUy1lgw
+   zcCzyqtHxSc09TfDBykFrhGQ65Xe4vdIFP7/uLdfFo+Z14CkiyhQlAvoA
+   plJ/dFUrG72SAQAxxBmhAbcOC3jz7LUIkci92pk686kt4WM6OY7QyWmto
+   A==;
+X-CSE-ConnectionGUID: wPD53d/hRCWmOHgNQDsqYw==
+X-CSE-MsgGUID: eVTpB7E3Sd+BkBWzBNpOuQ==
+X-IronPort-AV: E=Sophos;i="6.23,177,1770595200"; 
+   d="scan'208";a="17068013"
+Received: from ip-10-5-6-203.us-west-2.compute.internal (HELO smtpout.naws.us-west-2.prod.farcaster.email.amazon.dev) ([10.5.6.203])
+  by internal-pdx-out-009.esa.us-west-2.outbound.mail-perimeter.amazon.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Apr 2026 16:14:41 +0000
+Received: from EX19MTAUWA001.ant.amazon.com [205.251.233.182:17898]
+ by smtpin.naws.us-west-2.prod.farcaster.email.amazon.dev [10.0.25.2:2525] with esmtp (Farcaster)
+ id c54ac15b-9fed-4b90-8fb1-6b231abd83e8; Mon, 13 Apr 2026 16:14:41 +0000 (UTC)
+X-Farcaster-Flow-ID: c54ac15b-9fed-4b90-8fb1-6b231abd83e8
+Received: from EX19D001UWA001.ant.amazon.com (10.13.138.214) by
+ EX19MTAUWA001.ant.amazon.com (10.250.64.218) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.37;
+ Mon, 13 Apr 2026 16:14:40 +0000
+Received: from dev-dsk-mrgolin-1c-b2091117.eu-west-1.amazon.com
+ (10.253.103.172) by EX19D001UWA001.ant.amazon.com (10.13.138.214) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.37; Mon, 13 Apr 2026
+ 16:14:39 +0000
+Date: Mon, 13 Apr 2026 16:14:11 +0000
+From: Michael Margolin <mrgolin@amazon.com>
+To: Sean Hefty <shefty@nvidia.com>
+CC: Jason Gunthorpe <jgg@nvidia.com>, "leon@kernel.org" <leon@kernel.org>,
 	"linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	Yuhao Jiang <danisjiang@gmail.com>,
-	"stable@vger.kernel.org" <stable@vger.kernel.org>
-Subject: Re: [PATCH] RDMA/hns: fix out-of-bounds write in IRQ array during
- configuration
-Message-ID: <20260413160911.GN21470@unreal>
-References: <SYBPR01MB7881512F49EA80F0146EEEA1AF5CA@SYBPR01MB7881.ausprd01.prod.outlook.com>
- <20260412125005.GB21470@unreal>
- <E9C401AC-6A1E-4E5D-A3D3-C0D2216567B9@outlook.com>
+	"sleybo@amazon.com" <sleybo@amazon.com>, "matua@amazon.com"
+	<matua@amazon.com>, "gal.pressman@linux.dev" <gal.pressman@linux.dev>,
+	Yonatan Nachum <ynachum@amazon.com>
+Subject: Re: [PATCH for-next 1/4] RDMA/core: Add Completion Counters support
+Message-ID: <20260413161323.GA10653@dev-dsk-mrgolin-1c-b2091117.eu-west-1.amazon.com>
+References: <20260407115424.13359-1-mrgolin@amazon.com>
+ <20260407115424.13359-2-mrgolin@amazon.com>
+ <20260407141731.GC3357077@nvidia.com>
+ <20260409160007.GA24340@dev-dsk-mrgolin-1c-b2091117.eu-west-1.amazon.com>
+ <20260409161357.GL3357077@nvidia.com>
+ <CH8PR12MB97416FB899448DE69BF3082EBD582@CH8PR12MB9741.namprd12.prod.outlook.com>
+ <20260409185537.GQ3357077@nvidia.com>
+ <CH8PR12MB9741DAD52C2D8078B6D366DDBD582@CH8PR12MB9741.namprd12.prod.outlook.com>
+ <20260409194420.GT3357077@nvidia.com>
+ <CH8PR12MB974152A7540EADBDE6018FC0BD582@CH8PR12MB9741.namprd12.prod.outlook.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
 Content-Disposition: inline
-In-Reply-To: <E9C401AC-6A1E-4E5D-A3D3-C0D2216567B9@outlook.com>
+In-Reply-To: <CH8PR12MB974152A7540EADBDE6018FC0BD582@CH8PR12MB9741.namprd12.prod.outlook.com>
+User-Agent: Mutt/1.5.21 (2010-09-15)
+X-ClientProxiedBy: EX19D035UWB004.ant.amazon.com (10.13.138.104) To
+ EX19D001UWA001.ant.amazon.com (10.13.138.214)
 
-On Mon, Apr 13, 2026 at 07:09:49AM +0000, Junrui Luo wrote:
-> On Sun, Apr 12, 2026 at 03:50:05PM +0300, Leon Romanovsky wrote:
-> > Is this an actual issue, or just another imagined problem?
+On Thu, Apr 09, 2026 at 10:23:21PM +0000, Sean Hefty wrote:
+
+> > > > > I view this as an implementation option.  One vendor may implement
+> > > > > independent counters, which software can then piece together.
+> > > > > However, another implementation may have a tight coupling.
+> > > >
+> > > > Well, this is a problematic state to end up in when deciding the OS
+> > > > and library abstraction. If we don't have joined counters then we
+> > > > can't really support implementations that have tight coupling
+> > > >
+> > > > But if we never see an implementation like that then we wasted our
+> > > > efforts making them combined.
+> > > >
+> > > > It seems like if portals and libfabric defined them as joined
+> > > > together then we probably better support it that way too as someone
+> > probably made HW like that.
+> > >
+> > > Can we make this some general counter array, with properties applied
+> > > to the array and no concern with how any specific entry might be used
+> > > (at least from the view of the kernel)?
+> > 
+> > How does the API work? Who decides where the counter is stored?
 > 
-> This is a defensive hardening assumption rather than an
-> observed issue.
-
-Let's drop this patch. The kernel does not follow a defensive  
-programming style.
-
-Thanks
+> The counters are treated as a group for the purposes of create/destroy/QP attach.  That is, they can't be individually configured.  However, they can be individually set/read, so instead of:
 > 
-> Thanks,
-> Junrui Luo
+> +       SET_DEVICE_OP(dev_ops, inc_comp_cntr);
+> +       SET_DEVICE_OP(dev_ops, inc_err_comp_cntr);
+> 
+> There's just one 'inc_comp_cntr' call that takes the group + an index.
+> 
+> - Sean
+
+That's about what I suggested above. Tried doing so and it does make it
+look better IMO, will send it as part of v2.
+
+Michael
+
