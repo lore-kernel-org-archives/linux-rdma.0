@@ -1,105 +1,122 @@
-Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 28ADE3E63AD;
-	Tue, 14 Apr 2026 16:00:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0C7A23ED10F;
+	Tue, 14 Apr 2026 17:17:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776182457; cv=none; b=lSyWhskC59Bo74JikAsG5g+PE+gcvkVEEsffBPBslQm0aQsbrile6Xz86xzQkjIRto+26z04XIkG1AJ+Ff37y6cJbyRfIMFBHO7IURFO/xSWOC5P2Z7t3iqc4z0aVE/U4IabM8zcwZcMVktpI6ham9NtyAaQGqfgSwFFpkVHfmo=
+	t=1776187021; cv=none; b=WU71H2WGiKes49f6/fQEYULLjVHDW8zwfYoXkRF79xYYs8CFHOHrcHGG6oa4uokRYCGZaB2uI999s1Z3lbehILevrZhhKRYXMwsARkiUgkOmEPBtYLpVjeIxz2SD/YA4nqiAvB3/PZA2DXbQNSthAgvKfpXpEd8aESCYDRgypnI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776182457; c=relaxed/simple;
-	bh=iqcWvzGfXMfXkBPjvGQtMzc0oZwiS8MdvkTlX4lzKlg=;
+	s=arc-20240116; t=1776187021; c=relaxed/simple;
+	bh=f0qKwArB0ojtq47vAFre2SyA24zWTDVmi8aWOSYs8CY=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=hLzdNFett7F+u+tgfKkfuHhanljOW0QcfUdRS19jmDWQHrE6+FEiEUQs7MfhnGv8OKt3LcyFaGD1H50RsaTa5sAmG0lcpWOl6Uys1I6/qV2xgk1VFEC8/T+Da4oJr484ZV1KXQaVN+sBMJAfbwUWBhbrX9tIOEUUC/4aJTaJMyU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=oab2yZPg; arc=none smtp.client-ip=13.77.154.182
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
+	 Content-Type:Content-Disposition:In-Reply-To; b=RIAClUjo7t9qWxhrkqVbuMOHVWSJFvVGotcCcorjX5+3a9mWhCgMtMZ5cguFAFKghu3f2pvIDjTrljObLamiL0RDI+UZo6VAXlRTLUp3w/yzQ+h0oDlr0aGKZWvsH8QArQl1qbdB4u7m6Ln9BHluzCGTE7RFMjpRORNXvsatZSU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=IcgOp+nS; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="oab2yZPg"
-Received: by linux.microsoft.com (Postfix, from userid 1204)
-	id 09A2F20B6F01; Tue, 14 Apr 2026 09:00:56 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 09A2F20B6F01
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
-	s=default; t=1776182456;
-	bh=AWR6CQPjTVmxYhdo1VXWE39RpfMb8XUKUa90FYqMfu8=;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="IcgOp+nS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9E65FC19425;
+	Tue, 14 Apr 2026 17:16:57 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1776187020;
+	bh=f0qKwArB0ojtq47vAFre2SyA24zWTDVmi8aWOSYs8CY=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=oab2yZPg/3kwwxBCu4UfIDmtQpvY7FWtl7/FcQmGIPSZOLFVg2vqodagLku76f2jE
-	 B/1omNyulPRBqOCwKQ4iCz/ay47736GfpJHNa8INB3S/VoJu+erocjRlI/lMFDWYlX
-	 Jj35Nxbln7/5q+9Zj5N/m+vmoCu5EaTrsydliUW4=
-Date: Tue, 14 Apr 2026 09:00:56 -0700
-From: Dipayaan Roy <dipayanroy@linux.microsoft.com>
-To: Jakub Kicinski <kuba@kernel.org>
-Cc: kys@microsoft.com, haiyangz@microsoft.com, wei.liu@kernel.org,
-	decui@microsoft.com, andrew+netdev@lunn.ch, davem@davemloft.net,
-	edumazet@google.com, pabeni@redhat.com, leon@kernel.org,
-	longli@microsoft.com, kotaranov@microsoft.com, horms@kernel.org,
-	shradhagupta@linux.microsoft.com, ssengar@linux.microsoft.com,
-	ernis@linux.microsoft.com, shirazsaleem@microsoft.com,
-	linux-hyperv@vger.kernel.org, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
-	stephen@networkplumber.org, jacob.e.keller@intel.com,
-	leitao@debian.org, kees@kernel.org, john.fastabend@gmail.com,
-	hawk@kernel.org, bpf@vger.kernel.org, daniel@iogearbox.net,
-	ast@kernel.org, sdf@fomichev.me, dipayanroy@microsoft.com
-Subject: Re: [PATCH net-next v6 0/2] net: mana: add ethtool private flag for
- full-page RX buffers
-Message-ID: <ad5kuCZz+gR1TlSh@linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net>
-References: <20260407200216.272659-1-dipayanroy@linux.microsoft.com>
- <20260409183509.0b24dea6@kernel.org>
- <20260412125917.4fa8fc8d@kernel.org>
+	b=IcgOp+nSypTlAwKAW3t+oXiN7jUamE+Pah5A2Y5NPlT7DYlQMDI8EE7resb0GNz60
+	 9wrpGFczkrp1P+H7OPNxPkgaqmtqKNOsv9SEQq4CTasODJCYFCNEM0p15kRsweObE6
+	 moJGrdxWrHH/nzuDc0K2VQoGWQ0nUltoy3pHnVrRhzggh6BHR3csv3lswBxqbiaxfS
+	 aKOD+309XbuKlrPETi1ezWvvR6ZZ3022AWaZsV3PFJbHDCKB8w91dUX3sL6vkIwQlp
+	 ZXzfUCIYvON10o4lhJyP39f5/BHwgjS1lL03R2NinPci/XKDuAOybMCQdZTLaliBqe
+	 VewaVD2FOpG9w==
+Date: Tue, 14 Apr 2026 18:16:55 +0100
+From: Simon Horman <horms@kernel.org>
+To: "D. Wythe" <alibuda@linux.alibaba.com>
+Cc: "David S. Miller" <davem@davemloft.net>,
+	Dust Li <dust.li@linux.alibaba.com>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Sidraya Jayagond <sidraya@linux.ibm.com>,
+	Wenjia Zhang <wenjia@linux.ibm.com>,
+	Mahanta Jambigi <mjambigi@linux.ibm.com>,
+	Tony Lu <tonylu@linux.alibaba.com>,
+	Wen Gu <guwen@linux.alibaba.com>, linux-kernel@vger.kernel.org,
+	linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org,
+	netdev@vger.kernel.org, oliver.yang@linux.alibaba.com,
+	pasic@linux.ibm.com
+Subject: Re: [PATCH net-next v2] net/smc: cap allocation order for SMC-R
+ physically contiguous buffers
+Message-ID: <20260414171655.GB772670@horms.kernel.org>
+References: <20260407124337.88128-1-alibuda@linux.alibaba.com>
+ <20260410151631.GY469338@kernel.org>
+ <20260414021054.GA111420@j66a10360.sqa.eu95>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20260412125917.4fa8fc8d@kernel.org>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20260414021054.GA111420@j66a10360.sqa.eu95>
 
-On Sun, Apr 12, 2026 at 12:59:17PM -0700, Jakub Kicinski wrote:
-> On Thu, 9 Apr 2026 18:35:09 -0700 Jakub Kicinski wrote:
-> > On Tue,  7 Apr 2026 12:59:17 -0700 Dipayaan Roy wrote:
-> > > This behavior is observed on a single platform; other platforms
-> > > perform better with page_pool fragments, indicating this is not a
-> > > page_pool issue but platform-specific.  
+On Tue, Apr 14, 2026 at 10:10:54AM +0800, D. Wythe wrote:
+> On Fri, Apr 10, 2026 at 04:16:31PM +0100, Simon Horman wrote:
+> > On Tue, Apr 07, 2026 at 08:43:37PM +0800, D. Wythe wrote:
+> > > The alloc_pages() cannot satisfy requests exceeding MAX_PAGE_ORDER,
+> > > and attempting such allocations will lead to guaranteed failures
+> > > and potential kernel warnings.
+> > > 
+> > > For SMCR_PHYS_CONT_BUFS, cap the allocation order to MAX_PAGE_ORDER.
+> > > This ensures the attempts to allocate the largest possible physically
+> > > contiguous chunk succeed, instead of failing with an invalid order.
+> > > This also avoids redundant "try-fail-degrade" cycles in
+> > > __smc_buf_create().
+> > > 
+> > > For SMCR_MIXED_BUFS, no cap is needed: if the order exceeds
+> > > MAX_PAGE_ORDER, alloc_pages() will silently fail (__GFP_NOWARN)
+> > > and automatically fall back to virtual memory.
+> > > 
+> > > Signed-off-by: D. Wythe <alibuda@linux.alibaba.com>
+> > > Reviewed-by: Dust Li <dust.li@linux.alibaba.com>
+> > > ---
+> > > Changes v1 -> v2:
+> > > https://lore.kernel.org/netdev/20260312082154.36971-1-alibuda@linux.alibaba.com/
+> > > 
+> > > - Move the bufsize cap from smcr_new_buf_create() up to
+> > >   __smc_buf_create(), which is simpler and avoids touching
+> > >   the allocation logic itself.
 > > 
-> > Well, someone has to run some experiments and confirm other ARM
-> > platforms are not impacted, with data. I was hoping to do it myself
-> > but doesn't look like that will happen in time for the merge window :(
+> > The nit below notwithstanding, this looks good to me.
+> > 
+> > Reviewed-by: Simon Horman <horms@kernel.org>
+> > 
+> > > ---
+> > >  net/smc/smc_core.c | 4 ++++
+> > >  1 file changed, 4 insertions(+)
+> > > 
+> > > diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
+> > > index e2d083daeb7e..cdd881746e21 100644
+> > > --- a/net/smc/smc_core.c
+> > > +++ b/net/smc/smc_core.c
+> > > @@ -2440,6 +2440,10 @@ static int __smc_buf_create(struct smc_sock *smc, bool is_smcd, bool is_rmb)
+> > >  		/* use socket send buffer size (w/o overhead) as start value */
+> > >  		bufsize = smc->sk.sk_sndbuf / 2;
+> > >  
+> > > +	/* limit bufsize for physically contiguous buffers */
+> > > +	if (!is_smcd && lgr->buf_type == SMCR_PHYS_CONT_BUFS)
+> > > +		bufsize = min_t(int, bufsize, (PAGE_SIZE << MAX_PAGE_ORDER));
+> > 
+> > nit: I think min() is sufficient here, and the inner parentheses are
+> >      unnecessary
 > 
-> Please repost with the perf analysis on other commercially available
-> ARM platform. Something like:
+> Hi Simon,
 > 
->   This is a workaround applicable to only some platforms. Modifying
->   driver X to use a similar workaround on [Ampere Max|nVidia
->   Grace|Amazon Graviton 3|..] the performance for split pages is
->   y% higher than when using single pages.
-> -- 
-> pw-bot: cr
+> I think min_t is required here because min() triggers a signedness
+> error:
+> 
+> ././include/linux/compiler_types.h:706:38: error: call to
+> ‘__compiletime_assert_950’ declared with attribute error: min(bufsize,
+> ((1UL) << 12) << 10) signedness error
+> 
+> The inner parentheses can be removed, though.
 
-Hi Jakub,
-
-I ran the same experiment on an alternate ARM64 platform from a
-different vendor, which I was able to access only recently. I still see
-roughly a 5% overhead from the atomic refcount operation itself, but on
-that platform there is no throughput drop when using page fragments
-versus full-page mode. In both cases, the setup reaches line rate. That
-suggests the atomic overhead alone does not explain the throughput loss
-on the specific hardware we are discussing.
-
-I also received an update from the hardware team. They collected PCIe
-traces and observed stalls on this particular ARM64 prcossor
-when running with page fragments, while those stalls are not seen in
-full-page mode. The exact root cause is still under investigation, but
-their current assessment is that this is likely a microarchitectural
-issue in the PCIe root port. Based on that, they are asking for a
-software workaround that uses full pages until the issue is fully
-understood.
-
-For that reason, I am asking whether this could be accepted as an
-ethtool private flag rather than as a generic driver change,
-since the problem is still specific to one CPU/platform.
-Please let me know whether you think this patch with private flag
-would be acceptable here.
-
-Regards
-Dipayaan Roy
+Ack, thanks for checking.
