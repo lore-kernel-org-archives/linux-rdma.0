@@ -1,59 +1,63 @@
-Received: from pdx-out-011.esa.us-west-2.outbound.mail-perimeter.amazon.com (pdx-out-011.esa.us-west-2.outbound.mail-perimeter.amazon.com [52.35.192.45])
+Received: from pdx-out-014.esa.us-west-2.outbound.mail-perimeter.amazon.com (pdx-out-014.esa.us-west-2.outbound.mail-perimeter.amazon.com [35.83.148.184])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 99B953328E6
-	for <linux-rdma@vger.kernel.org>; Thu, 16 Apr 2026 21:23:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=52.35.192.45
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D233638E5D6
+	for <linux-rdma@vger.kernel.org>; Thu, 16 Apr 2026 21:23:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=35.83.148.184
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776374614; cv=none; b=Rzhh+njyBhyJJ9I4PafHTGxnykX3YPfovZkDVtYSxZgkQ3+gOAtaZ0S6BwdWHHgnL392CWGUbPU6Dyk6hZtLg3OT2cbKXCjDPAg4fHM7Rxhw2J+4dRpED0GxnaSizcPCia7hHadNwOpRUhq7MlsiAMW/fuOtAnA23LaV3WTEj8w=
+	t=1776374620; cv=none; b=j+VihXOZb0D3Yq98GgAVJJekdPd6QIlW4UwycufPnde0GvUQ58L8ADayZLvRvLz57rU3imue8+/Qli7cq0bsNqOddFDJr5Yy1ULzb1wGzxqer1KTO978U52tUQKcaGOLrqh1rAYud56sWgBDsy7OnQfj++d+j13xSlYFsWtt9yk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776374614; c=relaxed/simple;
-	bh=mG1zDHIHMbHQNT8EsCTjrdV6MWK0v3GLzXcVBTaDDoM=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=P5TcGk/cFSwiPrQpY90z505k1kBRjAUm9SjWNutwcAvpowcKoYbj7aA8LmSRXC4OVK+lxozAoR9YMZeZtGbLue29ldbod92wxvd9+dMcVM63pQOfAXUklOq1uF9IE7vZ6GoDnAYi45jwJH3Q0cWFtobVBvLTvNZ5GHGOaYXnup0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com; spf=pass smtp.mailfrom=amazon.com; dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.b=UkZWEe/k; arc=none smtp.client-ip=52.35.192.45
+	s=arc-20240116; t=1776374620; c=relaxed/simple;
+	bh=gHaLKyLpLI+FF2v42SleuAZ9ADAX2JH1EVpgFlUsnso=;
+	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=Qs6SHNOIbLLsclwdpTdxrLVY25iOmq+MOHTrldDSNWeB557tJB/WbWpfVP/03tm+u4jkFc2XJQhN18IZfQWCmKyjtlTmx+yTqITleg4aHJpT4L46/3L/KCmGHqzVXXZIhrbWPo8WBvU235ogO6LmISOOnM9Ak5uLeemYVc+/GkU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com; spf=pass smtp.mailfrom=amazon.com; dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.b=IgFcrwwV; arc=none smtp.client-ip=35.83.148.184
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazon.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.b="UkZWEe/k"
+	dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.b="IgFcrwwV"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
   d=amazon.com; i=@amazon.com; q=dns/txt; s=amazoncorp2;
-  t=1776374613; x=1807910613;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=DVBgwAoM6+KJG0w316VZEVId0f2oP8mO0nwKmS8KIgM=;
-  b=UkZWEe/kJjT/Mg4w8UVXuOeU89FrtqguXk/NtUHCu6UDT/he45tDwTIT
-   7sdcNf9EhBw0u4nI94HYpWPMUupPclt3sgAO7g620DFQVZHaRcA94KQVU
-   FhBi5uWmAia+Wb7vhUSkfBFLD4eSTr9ubwmLWkYqqx+to97KsMSGH30Gc
-   tIAINS0UaW/Lax64WKdhX230Pl2Cjh2Pv+XyhHyAlfzuQ3nFu+ZhOkQmh
-   gMzn4IuP5xsb3FDY1qKkAniYLzaiZWDl4jHaGvr3Go7hueBQ6pWUBKIRe
-   WjG4Tsd5MxOHCaz8FylToGcfzlF64oQ2YwGp+yBKKzHwS9EwHzHqAbato
-   w==;
-X-CSE-ConnectionGUID: mv19TOM/SoGDBs2VoiHHKw==
-X-CSE-MsgGUID: EtxR+MlYQmSrTZ0m7gGh+g==
+  t=1776374618; x=1807910618;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=2aPsD+KEHyWt18aEE8WakCmwClX6IjZTyZN77kgnIX4=;
+  b=IgFcrwwV8VWbGdyj9Yz8yzXOCrI5Lhmn8AKPpm64sxjDsY6KOonCRd/X
+   gwTnBcyECd3MfvRlPI45qZAXwVjbtlVdAVjzrY7Ks7yMfMG3YntLBQUeT
+   kQZBf/tIxaZZtGVggM6AlpB5yXhXDy+LuLprxme84LlSR5cGXTHi02e/B
+   F+DMQ4NstHBLunneh7Tic0xGr+TWdwhGllvrcV4l0oF50ZgGeL5XXBgs2
+   bL5CEHzAgRu0z43YhT23p/hBVQgICKn5WAveG+sMTl1MwlTg1P5AbLucX
+   QpQILMUCFhH7HG8NQedjkt/31TIRaEwCrATBBZqU+/G3BrzzfWolSAKzK
+   A==;
+X-CSE-ConnectionGUID: e9WHLN/kRyO+FqaJQ2pKsw==
+X-CSE-MsgGUID: mwJ3ErQMR8iGe16DnjqrUA==
 X-IronPort-AV: E=Sophos;i="6.23,181,1770595200"; 
-   d="scan'208";a="17284007"
-Received: from ip-10-5-9-48.us-west-2.compute.internal (HELO smtpout.naws.us-west-2.prod.farcaster.email.amazon.dev) ([10.5.9.48])
-  by internal-pdx-out-011.esa.us-west-2.outbound.mail-perimeter.amazon.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Apr 2026 21:23:31 +0000
-Received: from EX19MTAUWB002.ant.amazon.com [205.251.233.48:17082]
- by smtpin.naws.us-west-2.prod.farcaster.email.amazon.dev [10.0.1.88:2525] with esmtp (Farcaster)
- id 5f4de538-6496-4b72-bdc0-5637caccae72; Thu, 16 Apr 2026 21:23:30 +0000 (UTC)
-X-Farcaster-Flow-ID: 5f4de538-6496-4b72-bdc0-5637caccae72
+   d="scan'208";a="17282121"
+Received: from ip-10-5-0-115.us-west-2.compute.internal (HELO smtpout.naws.us-west-2.prod.farcaster.email.amazon.dev) ([10.5.0.115])
+  by internal-pdx-out-014.esa.us-west-2.outbound.mail-perimeter.amazon.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Apr 2026 21:23:34 +0000
+Received: from EX19MTAUWB001.ant.amazon.com [205.251.233.51:4533]
+ by smtpin.naws.us-west-2.prod.farcaster.email.amazon.dev [10.0.25.2:2525] with esmtp (Farcaster)
+ id 2698a945-1a04-4079-8cbc-4302962a0e7b; Thu, 16 Apr 2026 21:23:34 +0000 (UTC)
+X-Farcaster-Flow-ID: 2698a945-1a04-4079-8cbc-4302962a0e7b
 Received: from EX19D001UWA001.ant.amazon.com (10.13.138.214) by
- EX19MTAUWB002.ant.amazon.com (10.250.64.231) with Microsoft SMTP Server
+ EX19MTAUWB001.ant.amazon.com (10.250.64.248) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.37;
- Thu, 16 Apr 2026 21:23:30 +0000
+ Thu, 16 Apr 2026 21:23:33 +0000
 Received: from dev-dsk-mrgolin-1c-b2091117.eu-west-1.amazon.com
  (10.253.103.172) by EX19D001UWA001.ant.amazon.com (10.13.138.214) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.37; Thu, 16 Apr 2026
- 21:23:29 +0000
+ 21:23:32 +0000
 From: Michael Margolin <mrgolin@amazon.com>
 To: <jgg@nvidia.com>, <leon@kernel.org>, <linux-rdma@vger.kernel.org>
-CC: <sleybo@amazon.com>, <matua@amazon.com>, <gal.pressman@linux.dev>
-Subject: [PATCH for-next v2 0/5] Introduce Completion Counters
-Date: Thu, 16 Apr 2026 21:23:22 +0000
-Message-ID: <20260416212327.18191-1-mrgolin@amazon.com>
+CC: <sleybo@amazon.com>, <matua@amazon.com>, <gal.pressman@linux.dev>,
+	"Yonatan Nachum" <ynachum@amazon.com>
+Subject: [PATCH for-next v2 2/5] RDMA/core: Prevent destroying in-use completion counters
+Date: Thu, 16 Apr 2026 21:23:24 +0000
+Message-ID: <20260416212327.18191-3-mrgolin@amazon.com>
 X-Mailer: git-send-email 2.47.3
+In-Reply-To: <20260416212327.18191-1-mrgolin@amazon.com>
+References: <20260416212327.18191-1-mrgolin@amazon.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -65,64 +69,113 @@ Content-Type: text/plain
 X-ClientProxiedBy: EX19D032UWB001.ant.amazon.com (10.13.139.152) To
  EX19D001UWA001.ant.amazon.com (10.13.138.214)
 
-Add core infrastructure for Completion Counters, a light-weight
-alternative to polling CQ for tracking operation completions. The
-related rdma-core interface proposal is linked in [1].
+Reject comp_cntr destroy while it is attached to any QP. Track
+attachments using an xarray in ib_qp keyed by the attach op_mask.
+Use op bitmask to reject overlapping attaches early.
 
-Define the UVERBS_OBJECT_COMP_CNTR ioctl object with create, destroy,
-set, inc and read methods for both success and error counters. Add a
-QP attach method on the QP object to associate a completion counter
-with a queue pair.
-
-Completion Counters can be backed by user-provided VA or dmabuf or by
-internal device/driver memory. Common command infrastructure allows any
-of the implementations to support the various device capabilities.
-
-Add EFA Completion Counters support as first implementer.
-
-[1] https://github.com/linux-rdma/rdma-core/pull/1701
-
+Reviewed-by: Yonatan Nachum <ynachum@amazon.com>
+Signed-off-by: Michael Margolin <mrgolin@amazon.com>
 ---
-Changes in v2:
-- United set, inc and read flows for successful and error completions
-  counters
-- Added comp_cntr usage count
-- Minor cleanups
-- Link to v1: https://lore.kernel.org/all/20260407115424.13359-1-mrgolin@amazon.com/
+ .../core/uverbs_std_types_comp_cntr.c         |  3 +++
+ drivers/infiniband/core/uverbs_std_types_qp.c | 22 ++++++++++++++++++-
+ drivers/infiniband/core/verbs.c               |  1 +
+ include/rdma/ib_verbs.h                       |  3 +++
+ 4 files changed, 28 insertions(+), 1 deletion(-)
 
-Michael Margolin (5):
-  RDMA/core: Add Completion Counters support
-  RDMA/core: Prevent destroying in-use completion counters
-  RDMA/core: Add Completion Counters to resource tracking
-  RDMA/efa: Update device interface
-  RDMA/efa: Add Completion Counters support
-
- drivers/infiniband/core/Makefile              |   1 +
- drivers/infiniband/core/device.c              |   7 +
- drivers/infiniband/core/nldev.c               |   1 +
- drivers/infiniband/core/rdma_core.h           |   1 +
- drivers/infiniband/core/restrack.c            |   2 +
- drivers/infiniband/core/uverbs_cmd.c          |   1 +
- .../core/uverbs_std_types_comp_cntr.c         | 299 ++++++++++++++++++
- drivers/infiniband/core/uverbs_std_types_qp.c |  65 +++-
- drivers/infiniband/core/uverbs_uapi.c         |   1 +
- drivers/infiniband/core/verbs.c               |   1 +
- drivers/infiniband/hw/efa/efa.h               |  13 +
- .../infiniband/hw/efa/efa_admin_cmds_defs.h   | 185 ++++++++++-
- drivers/infiniband/hw/efa/efa_com_cmd.c       | 106 +++++++
- drivers/infiniband/hw/efa/efa_com_cmd.h       |  36 +++
- drivers/infiniband/hw/efa/efa_io_defs.h       |  62 +++-
- drivers/infiniband/hw/efa/efa_main.c          |   6 +
- drivers/infiniband/hw/efa/efa_verbs.c         | 171 ++++++++++
- include/rdma/ib_verbs.h                       |  41 +++
- include/rdma/restrack.h                       |   4 +
- include/uapi/rdma/efa-abi.h                   |   1 +
- include/uapi/rdma/ib_user_ioctl_cmds.h        |  50 +++
- include/uapi/rdma/ib_user_ioctl_verbs.h       |  14 +
- include/uapi/rdma/ib_user_verbs.h             |   2 +-
- 23 files changed, 1063 insertions(+), 7 deletions(-)
- create mode 100644 drivers/infiniband/core/uverbs_std_types_comp_cntr.c
-
+diff --git a/drivers/infiniband/core/uverbs_std_types_comp_cntr.c b/drivers/infiniband/core/uverbs_std_types_comp_cntr.c
+index 7651a565bb9f..6fd9f485692d 100644
+--- a/drivers/infiniband/core/uverbs_std_types_comp_cntr.c
++++ b/drivers/infiniband/core/uverbs_std_types_comp_cntr.c
+@@ -15,6 +15,9 @@ static int uverbs_free_comp_cntr(struct ib_uobject *uobject, enum rdma_remove_re
+ 	struct ib_comp_cntr *cc = uobject->object;
+ 	int ret;
+ 
++	if (atomic_read(&cc->usecnt))
++		return -EBUSY;
++
+ 	ret = cc->device->ops.destroy_comp_cntr(cc);
+ 	if (ret)
+ 		return ret;
+diff --git a/drivers/infiniband/core/uverbs_std_types_qp.c b/drivers/infiniband/core/uverbs_std_types_qp.c
+index 2c607b02d9d5..d4e214c56de9 100644
+--- a/drivers/infiniband/core/uverbs_std_types_qp.c
++++ b/drivers/infiniband/core/uverbs_std_types_qp.c
+@@ -15,6 +15,8 @@ static int uverbs_free_qp(struct ib_uobject *uobject,
+ 	struct ib_qp *qp = uobject->object;
+ 	struct ib_uqp_object *uqp =
+ 		container_of(uobject, struct ib_uqp_object, uevent.uobject);
++	struct ib_comp_cntr *cc;
++	unsigned long index;
+ 	int ret;
+ 
+ 	/*
+@@ -35,6 +37,10 @@ static int uverbs_free_qp(struct ib_uobject *uobject,
+ 	if (ret)
+ 		return ret;
+ 
++	xa_for_each(&qp->comp_cntrs, index, cc)
++		atomic_dec(&cc->usecnt);
++	xa_destroy(&qp->comp_cntrs);
++
+ 	if (uqp->uxrcd)
+ 		atomic_dec(&uqp->uxrcd->refcnt);
+ 
+@@ -392,7 +398,21 @@ static int UVERBS_HANDLER(UVERBS_METHOD_QP_ATTACH_COMP_CNTR)(
+ 	if (ret)
+ 		return ret;
+ 
+-	return qp->device->ops.qp_attach_comp_cntr(qp, cc, &attr);
++	if (attr.op_mask & qp->comp_cntr_op_mask)
++		return -EBUSY;
++
++	ret = qp->device->ops.qp_attach_comp_cntr(qp, cc, &attr);
++	if (ret)
++		return ret;
++
++	ret = xa_err(xa_store(&qp->comp_cntrs, attr.op_mask, cc, GFP_KERNEL));
++	if (ret)
++		return ret;
++
++	atomic_inc(&cc->usecnt);
++	qp->comp_cntr_op_mask |= attr.op_mask;
++
++	return 0;
+ }
+ 
+ DECLARE_UVERBS_NAMED_METHOD(
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index bac87de9cc67..df9a1bb9ece4 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -1293,6 +1293,7 @@ static struct ib_qp *create_qp(struct ib_device *dev, struct ib_pd *pd,
+ 	qp->qp_context = attr->qp_context;
+ 
+ 	spin_lock_init(&qp->mr_lock);
++	xa_init(&qp->comp_cntrs);
+ 	INIT_LIST_HEAD(&qp->rdma_mrs);
+ 	INIT_LIST_HEAD(&qp->sig_mrs);
+ 	init_completion(&qp->srq_completion);
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index b0db80447bf0..02f2e4dfd1c1 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -1754,6 +1754,7 @@ struct ib_comp_cntr {
+ 	struct ib_umem *err_umem;
+ 	u64 comp_count_max_value;
+ 	u64 err_count_max_value;
++	atomic_t usecnt;
+ };
+ 
+ enum ib_comp_cntr_entry {
+@@ -1944,6 +1945,8 @@ struct ib_qp {
+ 	struct completion	srq_completion;
+ 	struct ib_xrcd	       *xrcd; /* XRC TGT QPs only */
+ 	struct list_head	xrcd_list;
++	struct xarray		comp_cntrs; /* op_mask -> comp_cntr */
++	u32			comp_cntr_op_mask;
+ 
+ 	/* count times opened, mcast attaches, flow attaches */
+ 	atomic_t		usecnt;
 -- 
 2.47.3
 
