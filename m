@@ -1,85 +1,78 @@
-Received: from CO1PR03CU002.outbound.protection.outlook.com (mail-westus2azon11010071.outbound.protection.outlook.com [52.101.46.71])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qv1-f45.google.com (mail-qv1-f45.google.com [209.85.219.45])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 105C02FE07D;
-	Fri, 17 Apr 2026 05:03:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.46.71
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776402200; cv=fail; b=BGoPXIEdJDzpIoBtEeTfuG5cp1GDG37ycXHYptEF7Gj2B7PeSS89ex+oIInrNxmGdZAZkiO3WyZBk6EKOyBeMSr+zo4xu7WDx1D194sSQHC4ni4mNbDWKZ8UhLrrMO7Je9x/SmqSMii8tW9QpzTXqY9cPxq1YC2GbTm2do4pqow=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776402200; c=relaxed/simple;
-	bh=7Et9Ct+10wGSy6Dw5jxYxxN2QzQiQmpjZrktYcvBot4=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=N9IImzWV+yB6/OPEoo+d45iHF+TU22JrCVbcOfPzGAgZK+RF025uphxJs3Znja3BVUi3gt2hDWBKl0oY8qZbvUZPk0GqKznkWIQWKWvfTuN0FlSfAfeX7Ydl4eH3y9TtFUG5F8NVFbm5zomAjkON5sknZ3/loFkWJnW1gWeEya4=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=UCf2jYS4; arc=fail smtp.client-ip=52.101.46.71
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CEF683ACA5D
+	for <linux-rdma@vger.kernel.org>; Fri, 17 Apr 2026 14:19:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.45
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1776435571; cv=none; b=NlDgHx9Ao1i7J+/QIHWw+rVHy1OEhaqYXgh+Uc8l08+gUOMCvpLz0zUujMXwsBMUf34m0dw2uacCt9u426Zeo7lr/AbBkApmNTxjk9UD/bRg2thCQnwn4+WxfNkXb2IPZq0dNrj0/V29WQ43SjF/a0siTlK8O48+G21jrb6Yljg=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1776435571; c=relaxed/simple;
+	bh=ZlvQik8s0fGgOwMLxcaH7L+q0Axcry6zpYxcKJ8NclE=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=BxDGZwu8nEz5W5xyyzuWdDdfA2oB9pu+nRlfox1FDRtP7ZR5ImzkUfKXnSkmeP2EI3vFJCWGd657ysv5VDsDbJOy+ZFM/pEGmDT6pl/Q7jf1ORowDdfE15yBOqAGUvBF21Ms6DDr8+oorzf09ZwznESchCHXxLpd/YK6mXCeZQQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=UDHgDUaB; arc=none smtp.client-ip=209.85.219.45
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="UCf2jYS4"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=S5W1xAdqcRNcCrOzFfLYqMla0ZtURzz/bp2sHID/RQku6f/+gMvh7bgobDT1m2BJ1PpcQjet4qekg1SVZ28sMZelgYFFm1LtVfGiJYWQDph1Ye+T/eLUy2WKyjnfxadLZXDUejwBEdloKX2sSjiU54ESVaKGx3m9A6zUvmDatxr262dlA5p8MbzC3HJ4185XodSHjghP7co69MARvMfGEjthKUPTYx/OlaDYPVXS0q9HNSuz4EOuyvWYuieBrjw6MOvOyME6bzRo2Bl4SkpCIRt5EL9w1Zwbv+FCvYbSPaK928bIOihYGtUQjh8bo5/VOxjPuLbsbK5eRzIbx4L9Sw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=eVoqFUObSbbHS035oADtJ+ouy5pMYX9WAOTQgyVS0ZI=;
- b=cj5uDeyUZJZlvwhTu67QqHJqI7jopVyLTHGPKxiyAk/M0WAYFwHrZU702a3IzT8mgNXAy48uXshYCT1eNyopteMnu5ZbmkugI/vm5CtudZRPNwTF+A55xtxJNNveV5RIx32m8EBunNsuFAaaL9kQBsasOemSDaxZCh9gvq6QilU9oI8zkwgH45iypBY+SwXd7fiCw89q2NBEOie3Jtiu0wnkV/YsVfMcOZx/8KiuhRydYtc6To8DON49fKdaYgc0mU2zuWsZUZNz4JWhA/ap0lYNHAdIW8ICmahfAvP0wCEY32vHnnCzsBT6scJEnN4rANwVUTSHkRYD3bbleTgvZA==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.118.233) smtp.rcpttodomain=google.com smtp.mailfrom=nvidia.com;
- dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
- dkim=none (message not signed); arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=eVoqFUObSbbHS035oADtJ+ouy5pMYX9WAOTQgyVS0ZI=;
- b=UCf2jYS4iktzbzV8toC8VgpBlW7jZtkc91MY09d6bpddQ/dD5FcJu7/cg3RWhEfBpVHO1W7P/KS4V8lDPnlNR+3fM3fO06jUHZ/zfeuy4FUdbN1wyjFHgE24WJKRKFHcchiN3Owx30jLq06dUHVtNVW+5Arttj1ycPRXosDDdULrM6qnkiFZdHI4wWp3NBTaGMMCAWJ8hMVE/BwQKN+YMcaqgIovq79z9yxK5YQKIW4L8PWImiZoXX1hEb708R2svlxxcerGHKOfDPqpOLOVMXyc5Z46Ux96lPAqdrfmGzhJqC/rdjpI2FwOwFao+oRR/uOfjWhG5OxjMfG/Wq2HDQ==
-Received: from BN9P221CA0006.NAMP221.PROD.OUTLOOK.COM (2603:10b6:408:10a::33)
- by DM4PR12MB5866.namprd12.prod.outlook.com (2603:10b6:8:65::6) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.9818.20; Fri, 17 Apr 2026 05:03:01 +0000
-Received: from BN2PEPF00004FC1.namprd04.prod.outlook.com
- (2603:10b6:408:10a:cafe::24) by BN9P221CA0006.outlook.office365.com
- (2603:10b6:408:10a::33) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.20.9769.52 via Frontend Transport; Fri,
- 17 Apr 2026 05:03:00 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.118.233)
- smtp.mailfrom=nvidia.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=nvidia.com;
-Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.118.233 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.118.233; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.118.233) by
- BN2PEPF00004FC1.mail.protection.outlook.com (10.167.243.187) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.9769.17 via Frontend Transport; Fri, 17 Apr 2026 05:03:00 +0000
-Received: from drhqmail203.nvidia.com (10.126.190.182) by mail.nvidia.com
- (10.127.129.6) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Thu, 16 Apr
- 2026 22:02:45 -0700
-Received: from drhqmail201.nvidia.com (10.126.190.180) by
- drhqmail203.nvidia.com (10.126.190.182) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.20; Thu, 16 Apr 2026 22:02:45 -0700
-Received: from vdi.nvidia.com (10.127.8.10) by mail.nvidia.com
- (10.126.190.180) with Microsoft SMTP Server id 15.2.2562.20 via Frontend
- Transport; Thu, 16 Apr 2026 22:02:40 -0700
-From: Tariq Toukan <tariqt@nvidia.com>
-To: Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>, Andrew Lunn <andrew+netdev@lunn.ch>, "David
- S. Miller" <davem@davemloft.net>
-CC: Boris Pismenny <borisp@nvidia.com>, Saeed Mahameed <saeedm@nvidia.com>,
-	Leon Romanovsky <leon@kernel.org>, Tariq Toukan <tariqt@nvidia.com>, "Mark
- Bloch" <mbloch@nvidia.com>, Daniel Zahka <daniel.zahka@gmail.com>, "Willem de
- Bruijn" <willemdebruijn.kernel@gmail.com>, Cosmin Ratiu <cratiu@nvidia.com>,
-	Raed Salem <raeds@nvidia.com>, Rahul Rameshbabu <rrameshbabu@nvidia.com>,
-	Dragos Tatulea <dtatulea@nvidia.com>, Kees Cook <kees@kernel.org>,
-	<netdev@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>, Gal Pressman <gal@nvidia.com>
-Subject: [PATCH net 1/2] net/mlx5e: psp: Fix invalid access on PSP dev registration fail
-Date: Fri, 17 Apr 2026 08:02:00 +0300
-Message-ID: <20260417050201.192070-2-tariqt@nvidia.com>
-X-Mailer: git-send-email 2.44.0
-In-Reply-To: <20260417050201.192070-1-tariqt@nvidia.com>
-References: <20260417050201.192070-1-tariqt@nvidia.com>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="UDHgDUaB"
+Received: by mail-qv1-f45.google.com with SMTP id 6a1803df08f44-8acb3dab8dfso4472666d6.1
+        for <linux-rdma@vger.kernel.org>; Fri, 17 Apr 2026 07:19:27 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1776435566; x=1777040366; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=EKUMg6aZSBP+/AxTkMlkdmtJNfbxujumsmere2O+qGA=;
+        b=UDHgDUaBg+4EE00E4WlzuPXIr1lnzKjrbIEFVZtDT6DiaDxmeDKXZdKSXZBJ3bAL0R
+         9TC3bu82mCHDzksbqOwbhmrAIUQdtd5sfBHN2xRGHYkkL8dyoAlfw1Fs6bJNsSBFlB+R
+         fZHSUw+eXcCNWYbQq3v2/0+J1P6pMyGQQShSj1FvN4tM+tTpeihWHMChEf5qnTzjKlHG
+         uJzVJWQZQYhPlhJqkaspv+AZTQRFiaeIiRazwvf7Ui9pLUgWKvsxUERF8kA30sQ96DiU
+         XCqp0tWoQ+Lv0VZyUphM4kwFz5D+myaab869rn4SKS7uhZKBh0VKjxBk65LnAZSxyNvb
+         W7lA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1776435566; x=1777040366;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=EKUMg6aZSBP+/AxTkMlkdmtJNfbxujumsmere2O+qGA=;
+        b=i00iJu1782TmYn2GyJ+nrUYBJpkRTnLvbwjJo2ODrWLWmON3KvDGtXx5Zo2xZaW+Ng
+         CS6M6lSedLPd4GtGyKltz2410+JyCLR8z/tF2F67QUkY6coKHRTZ0ieRiYPdWIxBbQn6
+         ImDCd9EuePL+1Fd4BxRRPOalizPEgmgwa1Kexhy3UUahpz1Ubb/CEj00HOzboSEu0wix
+         q87qbrWlQUrxXINkDyTNYx5q3sB94+/99guv3Jdk86yuBT91edjFaxfnQd0enVL34imj
+         fRcEQZVYbMXLayK8qz69X1awqfHPKOV9YfDuBQfR2NWXqojovMSmGAnKPILHaQQEmNTJ
+         7mEg==
+X-Forwarded-Encrypted: i=1; AFNElJ9LxhjrYnjIYcStGswub7F3PpBeh0kJ7PdUKC9sHFZc0bHAkX8tTyL5bShdfH3fPyx4FKwDwazoupKM@vger.kernel.org
+X-Gm-Message-State: AOJu0YxjBPr6HP1GRNCCQcPnKUmu8IBwJFpvw/e4+Yxh8WyftgeLrBYs
+	JLR8kwOTxO4+QPRueL2zaTV4WmaGdyMJ7qGD/e8uknEVy+8B0tP6FmTe
+X-Gm-Gg: AeBDievqUH+BlPlOkO1Qcb++S0+zhDHTBjhNGfYwJG1J3LS3YU2Vff3UYJEWktLA7Hk
+	h83WN8YgR9SJZEHMA9sMSMhZf4B9jaKIGiSgdpelXU++oQ2ln6XVIAl02Ouk7YUVT8a9VLVZe6z
+	pfqVRb4pBStDjod4ldT4AUP3L1EvS9CxD+i7g8yFuXfu/fUQuxxHiFkRxvkoLlTJp4qI2WED/4N
+	q36uowLpuyi2I31Rl6kNjwxgW8QvjrXhivqLhQ8YC58x7i3m/hljQKBjBU+OuU27mVPTgC1k/xf
+	THstI22Y+jEzdWXquVMc90VoMYvkn6tJZ+3E2VaY9XYA8JMVneVR0DPmMivlid1tS8Lh3uy7pHE
+	gHrpOS1oSY1FJuxeOyO7Z+zzQfvFn/n+E5enP62WUD4BPEi07Ao5S5AAXXNvYhQWeS7Hx3Y3Mg0
+	dzmDE13n53XvNE30vUbfFsnWrlmB3ly+lzvBAb1qA9HSztJtVqJp9ds5iojBQj9MmwpUDX8zT4V
+	M6wi+c3mPhc1Gb0alz/TDS7ySewfPd7dZnWLoCSXbgtZosthmgKoQ==
+X-Received: by 2002:ad4:5f8e:0:b0:8a3:6f43:c78a with SMTP id 6a1803df08f44-8b02812da1fmr51027316d6.39.1776435566212;
+        Fri, 17 Apr 2026 07:19:26 -0700 (PDT)
+Received: from server0.tail6e7dd.ts.net (c-68-48-65-54.hsd1.mi.comcast.net. [68.48.65.54])
+        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-8b02ae97d89sm11875726d6.42.2026.04.17.07.19.24
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 17 Apr 2026 07:19:25 -0700 (PDT)
+From: Michael Bommarito <michael.bommarito@gmail.com>
+To: Allison Henderson <achender@kernel.org>,
+	"David S . Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>
+Cc: Simon Horman <horms@kernel.org>,
+	netdev@vger.kernel.org,
+	linux-rdma@vger.kernel.org,
+	rds-devel@oss.oracle.com,
+	linux-kernel@vger.kernel.org,
+	Michael Bommarito <michael.bommarito@gmail.com>
+Subject: [PATCH] rds: zero per-item info buffer before handing it to visitors
+Date: Fri, 17 Apr 2026 10:19:16 -0400
+Message-ID: <20260417141916.494761-1-michael.bommarito@gmail.com>
+X-Mailer: git-send-email 2.53.0
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -87,131 +80,100 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-NV-OnPremToCloud: ExternallySecured
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: BN2PEPF00004FC1:EE_|DM4PR12MB5866:EE_
-X-MS-Office365-Filtering-Correlation-Id: 10944224-50cd-4717-6fe2-08de9c3e9972
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|1800799024|82310400026|376014|7416014|36860700016|22082099003|56012099003|18002099003;
-X-Microsoft-Antispam-Message-Info:
-	gEMiw8QcnmjPpEgiL/ecMoefFjC+5naFv08eeYZz3VaSjxQazz6wAKSgyyiJHxTuAAmmK4oOaKmk8ehbqaMR8//GDrHYyUPH9QWM973C9C6rdLTYchEzCcU+FV+SdSVP2uMZnBjdoqYgwzMiszjRqzoWDAUvNc1RNRtF4vEopUTpNniaWm0BaxMeTN+e5A4v5bAOjLr5A89VP+0yPmn+NxL9LOfOtbxh6kadbOWfS6ruf+uoYnF7OFEfTMxADSmHxsdZNv8txEhIsq1NztoHNXb0l6MypRiyo9BHRZlevMQuVCOrDbjl6+WlzeYbjrUO/T5S4M3hjT9/oAMk5vTEd1fGBIZAL6PbOGkU5nFeP3bbOZgPkZJXVz4AtfVDDAUF0tKT8z8xAZPMKyniR03rtIZ2H4UUNpJLDoel11Owkl3ybBgmxmKohOo39BcXedJ9OyMtd/3/kK/VoaK2fXraKxCHxxvV7ZwJK3pHMp2VVd2mMPWQXvT+kdBAo3np20iOo+qMW8wNY5t0DWdOUM1WcyPQ1sCTwNTI/GjrsJ2iJj2Rq0wZgDUyuu12jWmULHYjonWzco/dUX40l9cLyCpVhMl1rpSAj2/9FiVGaO2KUeXTOsF4WSMdN5/7w6eB5IutSf74DXH4BRX6CUHDAN6Zzk6Miy5r8PX0VtLoaTf4cLJuzd3olGhjKe4UVvtZAie91ZL4W1tC8AnPTRSRthiU8xWq/ui6NDT6S7Irah7DmKkEQQ715ycwEtrQsluOV8fV1WB30jnf11PrRh9hlKQNVw==
-X-Forefront-Antispam-Report:
-	CIP:216.228.118.233;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc7edge2.nvidia.com;CAT:NONE;SFS:(13230040)(1800799024)(82310400026)(376014)(7416014)(36860700016)(22082099003)(56012099003)(18002099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	DYDAU8QHcJAgN2QH436RYVfGH+a3n5U/AOJug4+PhsAD3Y3o3914F6w+fISYSh2D8IqkJjXGDadwGqcm3QpS/YlF0/rBpfvHNxIBgOnR0lr4/CGXnRVBYMxJiLDuS1CNxqkFgNYt32lueTXfyZ6fQTIOMi9X6qFzGD3+tG/WuEvVXfF15SvsXWcj/eRq5a8Nj/MrMrv7JocCnisQV5x/vXxuTQ0c07SoF0gqeC11oqzgyYEWytmVbFe5l5yUCGhXtrav3EPtrYSiTS2UWN7zIkQhqSkepHmbvV85fa27vacYtwdnyqTYx7buqzjS1yVmSEVsDMeRtUXHOkYMx2bX4hSJ2fl3Gf44DuHdAWJpevD4v+2yZ73ayNsZwWuiBtUfegHHWivqtYikIgxzribgIDrMeTRsmvwWwcw/XtvJpjEMBWmp9UT0pQmTEN7MhBxI
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 17 Apr 2026 05:03:00.7431
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 10944224-50cd-4717-6fe2-08de9c3e9972
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.118.233];Helo=[mail.nvidia.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	BN2PEPF00004FC1.namprd04.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM4PR12MB5866
 
-From: Cosmin Ratiu <cratiu@nvidia.com>
+Yet another from my "clanker."  This only applies to people who
+don't use CONFIG_INIT_STACK_ALL_ZERO, but I presume that's
+still enough people that it's worth backporting since it can
+be chained through leaked addresses to defeat KASLR.
 
-priv->psp->psp is initialized with the PSP device as returned by
-psp_dev_create(). This could also return an error, in which case a
-future psp_dev_unregister() will result in unpleasantness.
+rds_for_each_conn_info() and rds_walk_conn_path_info() both hand a
+caller-allocated on-stack u64 buffer to a per-connection visitor and
+then copy the full item_len bytes back to user space via
+rds_info_copy() regardless of how much of the buffer the visitor
+actually wrote.
 
-Avoid that by using a local variable and only saving the PSP device when
-registration succeeds.
-Also apply some light refactoring of the functions managing the PSP
-device in order to make them more readable/safe.
+rds_ib_conn_info_visitor() and rds6_ib_conn_info_visitor() only
+write a subset of their output struct when the underlying
+rds_connection is not in state RDS_CONN_UP (src/dst addr, tos, sl
+and the two GIDs via explicit memsets).  Several u32 fields
+(max_send_wr, max_recv_wr, max_send_sge, rdma_mr_max, rdma_mr_size,
+cache_allocs) and the 2-byte alignment hole between sl and
+cache_allocs remain as whatever stack contents preceded the visitor
+call and are then memcpy_to_user()'d out to user space.
 
-Fixes: 89ee2d92f66c ("net/mlx5e: Support PSP offload functionality")
-Signed-off-by: Cosmin Ratiu <cratiu@nvidia.com>
-Reviewed-by: Dragos Tatulea <dtatulea@nvidia.com>
-Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
+struct rds_info_rdma_connection and struct rds6_info_rdma_connection
+are the only rds_info_* structs in include/uapi/linux/rds.h that are
+not marked __attribute__((packed)), so they have a real alignment
+hole.  The other info visitors (rds_conn_info_visitor,
+rds6_conn_info_visitor, rds_tcp_tc_info, ...) write all fields of
+their packed output struct today and are not known to be vulnerable,
+but a future visitor that adds a conditional write-path would have
+the same bug.
+
+Reproduction on a kernel built without CONFIG_INIT_STACK_ALL_ZERO=y:
+a local unprivileged user opens AF_RDS, sets SO_RDS_TRANSPORT=IB,
+binds to a local address on an RDMA-capable netdev (rxe soft-RoCE on
+any netdev is sufficient), sendto()'s any peer on the same subnet
+(fails cleanly but installs an rds_connection in the global hash in
+RDS_CONN_CONNECTING), then calls getsockopt(SOL_RDS,
+RDS_INFO_IB_CONNECTIONS).  The returned 68-byte item contains 26
+bytes of stack garbage including kernel text/data pointers:
+
+    0..7   0a 63 00 01 0a 63 00 02     src=10.99.0.1 dst=10.99.0.2
+    8..39  00 ...                      gids (memset-zeroed)
+    40..47 e0 92 a3 81 ff ff ff ff     kernel pointer (max_send_wr)
+    48..55 7f 37 b5 81 ff ff ff ff     kernel pointer (rdma_mr_max)
+    56..59 01 00 08 00                 rdma_mr_size (garbage)
+    60..61 00 00                       tos, sl
+    62..63 00 00                       alignment padding
+    64..67 18 00 00 00                 cache_allocs (garbage)
+
+Fix by zeroing the per-item buffer in both rds_for_each_conn_info()
+and rds_walk_conn_path_info() before invoking the visitor.  This
+covers the IPv4/IPv6 IB visitors and hardens all current and future
+visitors against the same class of bug.
+
+No functional change for visitors that fully populate their output.
+
+Fixes: ec16227e1414 ("RDS/IB: Infiniband transport")
+Signed-off-by: Michael Bommarito <michael.bommarito@gmail.com>
+Assisted-by: Claude:claude-opus-4-7
 ---
- .../mellanox/mlx5/core/en_accel/psp.c         | 36 ++++++++++---------
- 1 file changed, 20 insertions(+), 16 deletions(-)
+ net/rds/connection.c | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/psp.c b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/psp.c
-index 6a50b6dec0fa..d9adb993e64d 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/psp.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/psp.c
-@@ -1070,29 +1070,37 @@ static struct psp_dev_ops mlx5_psp_ops = {
+diff --git a/net/rds/connection.c b/net/rds/connection.c
+index 412441aaa298..c10b7ed06c49 100644
+--- a/net/rds/connection.c
++++ b/net/rds/connection.c
+@@ -701,6 +701,13 @@ void rds_for_each_conn_info(struct socket *sock, unsigned int len,
+ 	     i++, head++) {
+ 		hlist_for_each_entry_rcu(conn, head, c_hash_node) {
  
- void mlx5e_psp_unregister(struct mlx5e_priv *priv)
- {
--	if (!priv->psp || !priv->psp->psp)
-+	struct mlx5e_psp *psp = priv->psp;
++			/* Zero the per-item buffer before handing it to the
++			 * visitor so any field the visitor does not write -
++			 * including implicit alignment padding - cannot leak
++			 * stack contents to user space via rds_info_copy().
++			 */
++			memset(buffer, 0, item_len);
 +
-+	if (!psp || !psp->psp)
- 		return;
+ 			/* XXX no c_lock usage.. */
+ 			if (!visitor(conn, buffer))
+ 				continue;
+@@ -750,6 +757,13 @@ static void rds_walk_conn_path_info(struct socket *sock, unsigned int len,
+ 			 */
+ 			cp = conn->c_path;
  
--	psp_dev_unregister(priv->psp->psp);
-+	psp_dev_unregister(psp->psp);
-+	psp->psp = NULL;
- }
- 
- void mlx5e_psp_register(struct mlx5e_priv *priv)
- {
-+	struct mlx5e_psp *psp = priv->psp;
-+	struct psp_dev *psd;
++			/* Zero the per-item buffer for the same reason as
++			 * rds_for_each_conn_info(): any byte the visitor
++			 * does not write (including alignment padding) must
++			 * not leak stack contents via rds_info_copy().
++			 */
++			memset(buffer, 0, item_len);
 +
- 	/* FW Caps missing */
- 	if (!priv->psp)
- 		return;
- 
--	priv->psp->caps.assoc_drv_spc = sizeof(u32);
--	priv->psp->caps.versions = 1 << PSP_VERSION_HDR0_AES_GCM_128;
-+	psp->caps.assoc_drv_spc = sizeof(u32);
-+	psp->caps.versions = 1 << PSP_VERSION_HDR0_AES_GCM_128;
- 	if (MLX5_CAP_PSP(priv->mdev, psp_crypto_esp_aes_gcm_256_encrypt) &&
- 	    MLX5_CAP_PSP(priv->mdev, psp_crypto_esp_aes_gcm_256_decrypt))
--		priv->psp->caps.versions |= 1 << PSP_VERSION_HDR0_AES_GCM_256;
-+		psp->caps.versions |= 1 << PSP_VERSION_HDR0_AES_GCM_256;
- 
--	priv->psp->psp = psp_dev_create(priv->netdev, &mlx5_psp_ops,
--					&priv->psp->caps, NULL);
--	if (IS_ERR(priv->psp->psp))
-+	psd = psp_dev_create(priv->netdev, &mlx5_psp_ops, &psp->caps, NULL);
-+	if (IS_ERR(psd)) {
- 		mlx5_core_err(priv->mdev, "PSP failed to register due to %pe\n",
--			      priv->psp->psp);
-+			      psd);
-+		return;
-+	}
-+	psp->psp = psd;
- }
- 
- int mlx5e_psp_init(struct mlx5e_priv *priv)
-@@ -1131,22 +1139,18 @@ int mlx5e_psp_init(struct mlx5e_priv *priv)
- 	if (!psp)
- 		return -ENOMEM;
- 
--	priv->psp = psp;
- 	fs = mlx5e_accel_psp_fs_init(priv);
- 	if (IS_ERR(fs)) {
- 		err = PTR_ERR(fs);
--		goto out_err;
-+		kfree(psp);
-+		return err;
- 	}
- 
- 	psp->fs = fs;
-+	priv->psp = psp;
- 
- 	mlx5_core_dbg(priv->mdev, "PSP attached to netdevice\n");
- 	return 0;
--
--out_err:
--	priv->psp = NULL;
--	kfree(psp);
--	return err;
- }
- 
- void mlx5e_psp_cleanup(struct mlx5e_priv *priv)
+ 			/* XXX no cp_lock usage.. */
+ 			if (!visitor(cp, buffer))
+ 				continue;
 -- 
-2.44.0
+2.53.0
 
