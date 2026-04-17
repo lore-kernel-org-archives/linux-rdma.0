@@ -1,91 +1,76 @@
-Received: from mailgw.kylinos.cn (mailgw.kylinos.cn [124.126.103.232])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D5A331A682C
-	for <linux-rdma@vger.kernel.org>; Fri, 17 Apr 2026 01:09:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=124.126.103.232
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D43C1C695;
+	Fri, 17 Apr 2026 02:08:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776388196; cv=none; b=XD65R3Uo7Rf1rryUMmRTsS9lUaiNxFK6BfSqEtZkI5Dgq4bbwwwlao3KMMI3zcNAAiUuYaPPoux/Ek06fb4LjfUbRtuZBd7aplNUdaCLh3yfKeD5FbZzr40/Doc4ukrRPLu4oe7qt2bGPfNUEf+3A7T2wo8LbGc05FGXIe6fqzo=
+	t=1776391719; cv=none; b=GaLKRAbXNa/wOXOa0SNgFgJZVKugjochq+DK3/7Ya2H0yikIIt7VHVuxvzq2IbLNU4ZSYgmxe/T2CcaeFfqnFW4sWpIeVGGWtO6Kk2x4u4dG8Ee0MN/X/sWYIZ2esaMQHAyilfg3+25/yS5M5CWMxAnrnHlveT1YNMRaeSLoESI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776388196; c=relaxed/simple;
-	bh=BzBsW2EoOiVXBwmRUYlTxU0hLaG00q8tOB6dZVDEswE=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=Q97a1yKKWl6uZhFrQYeeWhMMCsgYv2abVnF5PBxFQhiBQky9UyQFu4ZhC0dItL9ayFmTFxAerbSoACbJLQJhHe8gOA44IpCPEFmkdbSXKKgfU/mu1rndmANUEfcwtSQT39Taie/cKQIqaXaQWaKHrAz3jVtmMeqDIucL6wduVZU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kylinos.cn; spf=pass smtp.mailfrom=kylinos.cn; arc=none smtp.client-ip=124.126.103.232
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kylinos.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kylinos.cn
-X-UUID: 1fb46dba39fa11f1aa26b74ffac11d73-20260417
-X-CTIC-Tags:
-	HR_CC_COUNT, HR_CC_DOMAIN_COUNT, HR_CC_NAME, HR_CC_NO_NAME, HR_CTE_8B
-	HR_CTT_MISS, HR_DATE_H, HR_DATE_WKD, HR_DATE_ZONE, HR_FROM_NAME
-	HR_SJ_DIGIT_LEN, HR_SJ_LANG, HR_SJ_LEN, HR_SJ_LETTER, HR_SJ_NOR_SYM
-	HR_SJ_PHRASE, HR_SJ_PHRASE_LEN, HR_SJ_WS, HR_TO_COUNT, HR_TO_DOMAIN_COUNT
-	HR_TO_NAME, IP_TRUSTED, SRC_TRUSTED, DN_TRUSTED, SA_TRUSTED
-	SA_EXISTED, SN_TRUSTED, SN_EXISTED, SPF_NOPASS, DKIM_NOPASS
-	DMARC_NOPASS, CIE_BAD, CIE_GOOD, CIE_GOOD_SPF, GTI_FG_BS
-	GTI_RG_INFO, GTI_C_BU, AMN_GOOD, ABX_MISS_RDNS
-X-CID-P-RULE: Release_Ham
-X-CID-O-INFO: VERSION:1.3.12,REQID:bb963fa5-eaa2-46c0-9d59-bb9e6ff3e059,IP:10,
-	URL:0,TC:0,Content:0,EDM:0,RT:0,SF:-30,FILE:0,BULK:0,RULE:Release_Ham,ACTI
-	ON:release,TS:-20
-X-CID-INFO: VERSION:1.3.12,REQID:bb963fa5-eaa2-46c0-9d59-bb9e6ff3e059,IP:10,UR
-	L:0,TC:0,Content:0,EDM:0,RT:0,SF:-30,FILE:0,BULK:0,RULE:Release_Ham,ACTION
-	:release,TS:-20
-X-CID-META: VersionHash:e7bac3a,CLOUDID:613d0436985aac6daccb317496add6f6,BulkI
-	D:260410154105WSQHVMYT,BulkQuantity:1,Recheck:0,SF:10|38|66|78|102|127|850
-	|898,TC:nil,Content:0|15|50,EDM:-3,IP:-2,URL:0,File:nil,RT:nil,Bulk:41,QS:
-	nil,BEC:nil,COL:0,OSI:0,OSA:0,AV:0,LES:1,SPR:NO,DKR:0,DKP:0,BRR:0,BRE:0,AR
-	C:0
-X-CID-BVR: 2,SSN|SDN
-X-CID-BAS: 2,SSN|SDN,0,_
-X-CID-FACTOR: TF_CID_SPAM_SNR
-X-CID-RHF: D41D8CD98F00B204E9800998ECF8427E
-X-UUID: 1fb46dba39fa11f1aa26b74ffac11d73-20260417
-X-User: zhaochenguang@kylinos.cn
-Received: from localhost.localdomain [(183.242.174.22)] by mailgw.kylinos.cn
-	(envelope-from <zhaochenguang@kylinos.cn>)
-	(Generic MTA with TLSv1.3 TLS_AES_256_GCM_SHA384 256/256)
-	with ESMTP id 898646432; Fri, 17 Apr 2026 09:09:46 +0800
-From: Chenguang Zhao <zhaochenguang@kylinos.cn>
-To: Leon Romanovsky <leon@kernel.org>,
-	Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Chenguang Zhao <zhaochenguang@kylinos.cn>,
-	linux-rdma@vger.kernel.org
-Subject: [PATCH RESEND] RDMA/mlx5: use QP port when decoding responder CQEs
-Date: Fri, 17 Apr 2026 09:09:40 +0800
-Message-Id: <20260417010940.178697-1-zhaochenguang@kylinos.cn>
-X-Mailer: git-send-email 2.25.1
+	s=arc-20240116; t=1776391719; c=relaxed/simple;
+	bh=AcRid5prjAQXvUSeIkmfK4VJfuY3OU39hoa0Ru3vYj0=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=BCKIl9ZNyWhDk8dTfUvqLS+HF7voPZTEaVr9S4I32ljXcfyhLMTw+4Q1tITLA/nHcMubK+4HPSQypHxJCO/GYlpvqC0uZTl1KHdikQZCm0blH2hU1XGPmr6zxMfiw0hYckdWoZ8TeRurzbjlEMnJjrkUeXuw5FTJFy1gPVxia0Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=kTJAkF33; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="kTJAkF33"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 32E96C2BCAF;
+	Fri, 17 Apr 2026 02:08:38 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1776391719;
+	bh=AcRid5prjAQXvUSeIkmfK4VJfuY3OU39hoa0Ru3vYj0=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+	b=kTJAkF33ZkfgARlXaqE5jH3i1puexRKtjGK5S4H7MjqjzLk4DOmXlpBgL8EWhJdOR
+	 6+CJxbIczNH6Qr47jp1q29tC/tVUX26LHffwaCvso7WWxvsmZNl+dFhI1Zrgmga5be
+	 VUK07xIBRbUReIw1dZg05JBBjIaW3PZrXxMCSpU4IxB8rWUTZrsObS6/4swfkeT9Ey
+	 pAOGrI/iVwUfzpych8P/teOFi4hTXZk+H05Ym9Cy1h1m199voGIzcxia+kxOAFWL49
+	 xpxAPNu+1shCq8YRzzwSjV8fW+tMRoWExOJeJrVWr2VoydrE/73+ZAknD5gxbvAWyd
+	 J5egRT7HHe2Yw==
+Date: Thu, 16 Apr 2026 19:08:37 -0700
+From: Jakub Kicinski <kuba@kernel.org>
+To: Aditya Garg <gargaditya@linux.microsoft.com>
+Cc: kys@microsoft.com, haiyangz@microsoft.com, wei.liu@kernel.org,
+ decui@microsoft.com, longli@microsoft.com, andrew+netdev@lunn.ch,
+ davem@davemloft.net, edumazet@google.com, pabeni@redhat.com,
+ kotaranov@microsoft.com, horms@kernel.org, ssengar@linux.microsoft.com,
+ jacob.e.keller@intel.com, dipayanroy@linux.microsoft.com,
+ ernis@linux.microsoft.com, shirazsaleem@microsoft.com, kees@kernel.org,
+ sbhatta@marvell.com, leitao@debian.org, netdev@vger.kernel.org,
+ linux-hyperv@vger.kernel.org, linux-kernel@vger.kernel.org,
+ linux-rdma@vger.kernel.org, bpf@vger.kernel.org, gargaditya@microsoft.com
+Subject: Re: [PATCH net-next 0/2] net: mana: Avoid queue struct allocation
+ failure under memory fragmentation
+Message-ID: <20260416190837.6b060bbe@kernel.org>
+In-Reply-To: <20260414151456.687506-1-gargaditya@linux.microsoft.com>
+References: <20260414151456.687506-1-gargaditya@linux.microsoft.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-The responder CQE path determines the link layer via
-rdma_port_get_link_layer(). Use qp->port instead of
-hardcoding port 1, which can mis-decode completions on
-multi-port devices.
+On Tue, 14 Apr 2026 08:13:28 -0700 Aditya Garg wrote:
+> The MANA driver can fail to load on systems with high memory
+> utilization because several allocations in the queue setup paths
+> require large physically contiguous blocks via kmalloc. Under memory
+> fragmentation these high-order allocations may fail, preventing the
+> driver from creating queues at probe time or when reconfiguring
+> channels, ring parameters or MTU at runtime.
 
-Signed-off-by: Chenguang Zhao <zhaochenguang@kylinos.cn>
----
- drivers/infiniband/hw/mlx5/cq.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+## Form letter - net-next-closed
 
-diff --git a/drivers/infiniband/hw/mlx5/cq.c b/drivers/infiniband/hw/mlx5/cq.c
-index d0cd3f805bcb..2481b3361c1d 100644
---- a/drivers/infiniband/hw/mlx5/cq.c
-+++ b/drivers/infiniband/hw/mlx5/cq.c
-@@ -169,7 +169,8 @@ enum {
- static void handle_responder(struct ib_wc *wc, struct mlx5_cqe64 *cqe,
- 			     struct mlx5_ib_qp *qp)
- {
--	enum rdma_link_layer ll = rdma_port_get_link_layer(qp->ibqp.device, 1);
-+	enum rdma_link_layer ll =
-+		rdma_port_get_link_layer(qp->ibqp.device, qp->port);
- 	struct mlx5_ib_dev *dev = to_mdev(qp->ibqp.device);
- 	struct mlx5_ib_srq *srq = NULL;
- 	struct mlx5_ib_wq *wq;
+We have already submitted our pull request with net-next material for v7.1,
+and therefore net-next is closed for new drivers, features, code refactoring
+and optimizations. We are currently accepting bug fixes only.
+
+Please repost when net-next reopens after Apr 27th.
+
+RFC patches sent for review only are obviously welcome at any time.
+
+See: https://www.kernel.org/doc/html/next/process/maintainer-netdev.html#development-cycle
 -- 
-2.25.1
-
+pw-bot: defer
+pv-bot: closed
