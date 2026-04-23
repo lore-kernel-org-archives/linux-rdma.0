@@ -1,143 +1,104 @@
-Received: from mail-dl1-f54.google.com (mail-dl1-f54.google.com [74.125.82.54])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from out30-131.freemail.mail.aliyun.com (out30-131.freemail.mail.aliyun.com [115.124.30.131])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CBAB337CD59
-	for <linux-rdma@vger.kernel.org>; Thu, 23 Apr 2026 10:29:47 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.54
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A79E2318B83;
+	Thu, 23 Apr 2026 10:57:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776940189; cv=none; b=G7pXXLgXTsClF7Q2K8S8+ZJkwALozUbIVxEEER+3DIruV4pTHKZ/2Wio2UOIq6zqhMTR7+CDZuoDfxGUjXhI0Evo+YWuePxrqnTEXk+kaXeINs3IiWBe+m+J4rrHoSbf6lV6KoEtnVBCVSspux3vx/AZhkAg8swOtXQzBmzGHqo=
+	t=1776941831; cv=none; b=QynT6MYUdAaRH+6YYkIPx52PM5KDcvd3vrxD5pqAHy03TUYdh2mqT7+JvQnqJQHC3Xo2GP8xxpdbK4BlDWg0kin4JYdZG8n3zIZy41uyWZp6kXkEyPJiLO8QCZsURvDIEy00knNNCxjvYbK8BJ6/2bnyeroq8RZphIQsf5FGXCk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776940189; c=relaxed/simple;
-	bh=i2CfFYtrls5Mfh8jl9B0Dx35/AVjhbDxUMTHf/x0+zM=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Z1obJOcl/xI7ZmqJUHnJCrr1FgSeJnseStXGY+V9BQFetgUpmTOGF/dYjn0Jc9OIMK1wK1pnKUhK9Y95qKH2WJQLxN8tKmbIA6eJ3/cY886Ha3o6TV/09SjS7qGUCXjFAi1hVMcgXQpppwiDzUn6P6/1qLaDU00Tnei1coK1zNw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=mc6F7Y6f; arc=none smtp.client-ip=74.125.82.54
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1776941831; c=relaxed/simple;
+	bh=x1cfWGvw5Do9Wneecux32loFJK989fZi5d5eQM4OJO0=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=Ckw9TxMCywGW4iUjHbdJHDZs7DnYGHkmJNBjc64O3dad/2+8dUA2oYO2I349HO13nsRn/G4RGGQeRxp50jtS/n6K04F3KHd0uI8Dgu65+DxX8zeXmHdbSGwjNRf53SbdO3vg9wiOEIp15YDBRl4IjS78g1ftAoX69ULQMxd7BLw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=gM4+758l; arc=none smtp.client-ip=115.124.30.131
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="mc6F7Y6f"
-Received: by mail-dl1-f54.google.com with SMTP id a92af1059eb24-12c19d23b19so8320054c88.0
-        for <linux-rdma@vger.kernel.org>; Thu, 23 Apr 2026 03:29:47 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1776940187; x=1777544987; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=8w5fOH/PqUx6ePD5lx3kpu9r4IZp2v338rhXTGbYE+Q=;
-        b=mc6F7Y6fMbWJOM7Yu7S0nk0nfT0lpP6fLxCPyuwsAE+x7vKOF3SrrbUn5sSOSKn3zW
-         ZKYsdN+69hzRbw7T2RXbYa5YUU4Dj2DOoPeL7dMxevEYkv2CV2hvzdhbXHA8W37m+H8J
-         Z7Cm0NdF8BvGvLNyd1gh5PxzdUI/Fv+FLjm1bdD4cUiq45zQDcM8ncqrM9gcdNCeSKpT
-         qc2DXZc5WkFf/e3sLakBTLdHBGBx0InAcVfBbesaT/d61kWVv6ALt2WDtSvtnSlVw0Vh
-         YSJpGB3uZOJpSuJxSfj7JDS0IWwyLKC59PHRLaBPQY+XkNiTVf0/P2q5TEw09/rzEQIw
-         hPIg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1776940187; x=1777544987;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=8w5fOH/PqUx6ePD5lx3kpu9r4IZp2v338rhXTGbYE+Q=;
-        b=RLP1aFsqq7dTqGdEWEKbRCesJFp5X8A3hdrq2E1bl6AEdk0ujyk/3x0lPXJXYApBH4
-         BthSMRlHhrIddFEj8F/NBXcP8f28xxoJ/EesuAQT4oevkoPf12fT8B9gttYbZkAkt0zS
-         8MZuARyYTB6FdXwMLSCMrMR3Ky+E4eFzZS7raxRz4moWvq+WeNYOGbiGBNh6QxwY1dph
-         5wEq2OoUMkvGN3/PVVVwNk4WCJ2ZNHJv7qKhZ5oJ+jpcb3AZ+dzrchZv1YwusSvAZ6Bk
-         ggGKENzKCqYHpXQKkNufnKWLlfeTo8tS9dsamJo5OkCHne/PHs/hK0l7gSPrMyJ532Cg
-         rp5A==
-X-Forwarded-Encrypted: i=1; AFNElJ9DbwSGCJ9VdKOIqjnr1CCdHZARZd/GAPydmK46u7EKWevh8NoL2BiOXdwOtLtR1d2nmQZOOp/IOJwI@vger.kernel.org
-X-Gm-Message-State: AOJu0YzeiWXOmShR5UF5p6oGVtz1eHnqQ41LF9UCnwXwKp/fTQPTPqVf
-	x84qvuyroLgN4gf0ysymSpYjOdteqZsLwZmCC1MYysMyZ+nYBWv6cd+n
-X-Gm-Gg: AeBDies3d0iymwlaza4CX1KqzUGwMs/7wZiWdCrCOdoAWwMtMmnjiCEX5Taw09q8Uwg
-	mLtvPCZVvOBiT6gx5G+yZGelLLX8eEs/qDwKRrFgHQ2nFJZbc18HefgB8yxO+4U9nviZmiaVank
-	J9D2Uj8PNjUccLNrqp9aGizyqxmRfq5a1RiUo1+7bsh2C/ZajiYyYDddb1G0GZO0OUvVkUnoVip
-	m1eJYJIw+wC2zQFfsFI/kkejFvMo/ww/DvylYD6fAGxYnD5Vyic/lx94mhfuzaslVizjMXlciPy
-	ksBPbIZeObJwvLAw6yFkoW3NxUAzaIXzqF2L037hrePTesafb72JCKVnLFELxW6ZJxLYLtQl78K
-	DRydTnzIX3Z45R8C8ZxaNTQGJHOiymo4fInugNVays5b3gQ4u2BAMSaCfm+Y0PY3SmHjbLxdXFg
-	ZiUXhSkatjA20ilwAIJJDMd3PBPUhkcZ+XP4LB+X2vH32jdJib3+cDxQHCP0+kiuSlE4o21vYm+
-	24JJ3m97/HL+FciEKnX
-X-Received: by 2002:a05:7022:10c:b0:12c:61fe:fb49 with SMTP id a92af1059eb24-12c73f6ded9mr14785443c88.6.1776940186680;
-        Thu, 23 Apr 2026 03:29:46 -0700 (PDT)
-Received: from efaec68ba852.tailc0aff1.ts.net ([206.206.192.132])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-2e53ab8b89csm27223984eec.12.2026.04.23.03.29.45
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 23 Apr 2026 03:29:46 -0700 (PDT)
-From: Weiming Shi <bestswngs@gmail.com>
-To: "D . Wythe" <alibuda@linux.alibaba.com>,
-	Dust Li <dust.li@linux.alibaba.com>,
-	Sidraya Jayagond <sidraya@linux.ibm.com>,
-	Wenjia Zhang <wenjia@linux.ibm.com>,
-	"David S . Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>
-Cc: Mahanta Jambigi <mjambigi@linux.ibm.com>,
-	Tony Lu <tonylu@linux.alibaba.com>,
-	Wen Gu <guwen@linux.alibaba.com>,
-	Simon Horman <horms@kernel.org>,
-	Ursula Braun <ubraun@linux.vnet.ibm.com>,
-	linux-rdma@vger.kernel.org,
-	linux-s390@vger.kernel.org,
-	netdev@vger.kernel.org,
-	Xiang Mei <xmei5@asu.edu>,
-	Weiming Shi <bestswngs@gmail.com>
-Subject: [PATCH net] net/smc: fix NULL pointer dereference in smc_clc_wait_msg()
-Date: Thu, 23 Apr 2026 03:02:07 -0700
-Message-ID: <20260423100205.1093987-3-bestswngs@gmail.com>
-X-Mailer: git-send-email 2.43.0
+	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="gM4+758l"
+DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux.alibaba.com; s=default;
+	t=1776941819; h=Date:From:To:Subject:Message-ID:MIME-Version:Content-Type;
+	bh=9q1FaQahwENCvtHoXxo/f55d34TX6GkQWSa7xSkulcw=;
+	b=gM4+758l0p4Pas0xo1VH+iha7IZbtp1Ddjpn4Ik9jNZqOQWWn3Y+nHj7gKtKPgLU3pMmnbge53Sce1f6yrBYJV5/3+iIZ7dF2HE727j++6DzCa/YixCGSLwlFPYRM4XgKOXBRIkLggLI15KgWczKa0O8n2eDZFcRv9Qb+GQcv1w=
+X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R131e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam011083073210;MF=dust.li@linux.alibaba.com;NM=1;PH=DS;RN=21;SR=0;TI=SMTPD_---0X1ZQOX2_1776941817;
+Received: from localhost(mailfrom:dust.li@linux.alibaba.com fp:SMTPD_---0X1ZQOX2_1776941817 cluster:ay36)
+          by smtp.aliyun-inc.com;
+          Thu, 23 Apr 2026 18:56:58 +0800
+Date: Thu, 23 Apr 2026 18:56:57 +0800
+From: Dust Li <dust.li@linux.alibaba.com>
+To: Ren Wei <n05ec@lzu.edu.cn>, linux-rdma@vger.kernel.org,
+	linux-s390@vger.kernel.org, netdev@vger.kernel.org
+Cc: alibuda@linux.alibaba.com, sidraya@linux.ibm.com, wenjia@linux.ibm.com,
+	mjambigi@linux.ibm.com, tonylu@linux.alibaba.com,
+	guwen@linux.alibaba.com, davem@davemloft.net, edumazet@google.com,
+	kuba@kernel.org, pabeni@redhat.com, horms@kernel.org,
+	ubraun@linux.vnet.ibm.com, yuantan098@gmail.com,
+	yifanwucs@gmail.com, tomapufckgml@gmail.com, bird@lzu.edu.cn,
+	ruijieli51@gmail.com
+Subject: Re: [PATCH net 1/1] net/smc: avoid early lgr access in
+ smc_clc_wait_msg
+Message-ID: <aen6-Q21biAYoXV_@linux.alibaba.com>
+Reply-To: dust.li@linux.alibaba.com
+References: <cover.1776850759.git.ruijieli51@gmail.com>
+ <08c68a5c817acf198cce63d22517e232e8d60718.1776850759.git.ruijieli51@gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <08c68a5c817acf198cce63d22517e232e8d60718.1776850759.git.ruijieli51@gmail.com>
 
-In smc_listen_work(), smc_clc_wait_msg() is called to wait for a CLC
-PROPOSAL message before any link group has been created, so
-smc->conn.lgr is still NULL at this point. smc_clc_wait_msg() also
-accepts CLC DECLINE messages regardless of the expected type. When a
-DECLINE with SMC_FIRST_CONTACT_MASK set in hdr.typev2 arrives, the code
-unconditionally dereferences smc->conn.lgr to set sync_err, causing a
-NULL pointer dereference.
+On 2026-04-22 23:40:18, Ren Wei wrote:
+>From: Ruijie Li <ruijieli51@gmail.com>
+>
+>A CLC decline can be received while the handshake is still in an early
+>stage, before the connection has been associated with a link group.
+>
+>The decline handling in smc_clc_wait_msg() updates link-group level sync
+>state for first-contact declines, but that state only exists after link
+>group setup has completed. Guard the link-group update accordingly and
+>keep the per-socket peer diagnosis handling unchanged.
+>
+>This preserves the existing sync_err handling for established link-group
+>contexts and avoids touching link-group state before it is available.
+>
+>Fixes: 0cfdd8f92cac ("smc: connection and link group creation")
+>Cc: stable@kernel.org
+>Reported-by: Yuan Tan <yuantan098@gmail.com>
+>Reported-by: Yifan Wu <yifanwucs@gmail.com>
+>Reported-by: Juefei Pu <tomapufckgml@gmail.com>
+>Reported-by: Xin Liu <bird@lzu.edu.cn>
+>Signed-off-by: Ruijie Li <ruijieli51@gmail.com>
+>Signed-off-by: Ren Wei <n05ec@lzu.edu.cn>
 
-KASAN reported a null-ptr-deref in smc_clc_wait_msg():
 
- Oops: general protection fault, 0000 [#1] SMP KASAN NOPTI
- KASAN: null-ptr-deref in range [0x0000000000000310-0x0000000000000317]
- RIP: 0010:smc_clc_wait_msg (net/smc/smc_clc.c:793)
- Call Trace:
-  <TASK>
-  smc_listen_work (net/smc/af_smc.c:2491)
-  process_one_work (kernel/workqueue.c:3281)
-  worker_thread (kernel/workqueue.c:3440)
-  kthread (kernel/kthread.c:436)
-  ret_from_fork (arch/x86/kernel/process.c:164)
-  ret_from_fork_asm (arch/x86/entry/entry_64.S:257)
-  </TASK>
- Kernel panic - not syncing: Fatal exception
+Reviewed-by: Dust Li <dust.li@linux.alibaba.com>
 
-Add a NULL check for smc->conn.lgr before dereferencing it. 
+Best regards,
+Dust
 
-Fixes: 0cfdd8f92cac ("smc: connection and link group creation")
-Reported-by: Xiang Mei <xmei5@asu.edu>
-Signed-off-by: Weiming Shi <bestswngs@gmail.com>
----
- net/smc/smc_clc.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
-
-diff --git a/net/smc/smc_clc.c b/net/smc/smc_clc.c
-index c38fc7bf0a7e..d22c9417d239 100644
---- a/net/smc/smc_clc.c
-+++ b/net/smc/smc_clc.c
-@@ -790,8 +790,10 @@ int smc_clc_wait_msg(struct smc_sock *smc, void *buf, int buflen,
- 		smc->peer_diagnosis = ntohl(dclc->peer_diagnosis);
- 		if (((struct smc_clc_msg_decline *)buf)->hdr.typev2 &
- 						SMC_FIRST_CONTACT_MASK) {
--			smc->conn.lgr->sync_err = 1;
--			smc_lgr_terminate_sched(smc->conn.lgr);
-+			if (smc->conn.lgr) {
-+				smc->conn.lgr->sync_err = 1;
-+				smc_lgr_terminate_sched(smc->conn.lgr);
-+			}
- 		}
- 	}
- 
--- 
-2.43.0
-
+>---
+> net/smc/smc_clc.c | 4 ++--
+> 1 file changed, 2 insertions(+), 2 deletions(-)
+>
+>diff --git a/net/smc/smc_clc.c b/net/smc/smc_clc.c
+>index c38fc7bf0a7e..014d527d5462 100644
+>--- a/net/smc/smc_clc.c
+>+++ b/net/smc/smc_clc.c
+>@@ -788,8 +788,8 @@ int smc_clc_wait_msg(struct smc_sock *smc, void *buf, int buflen,
+> 		dclc = (struct smc_clc_msg_decline *)clcm;
+> 		reason_code = SMC_CLC_DECL_PEERDECL;
+> 		smc->peer_diagnosis = ntohl(dclc->peer_diagnosis);
+>-		if (((struct smc_clc_msg_decline *)buf)->hdr.typev2 &
+>-						SMC_FIRST_CONTACT_MASK) {
+>+		if ((dclc->hdr.typev2 & SMC_FIRST_CONTACT_MASK) &&
+>+		    smc->conn.lgr) {
+> 			smc->conn.lgr->sync_err = 1;
+> 			smc_lgr_terminate_sched(smc->conn.lgr);
+> 		}
+>-- 
+>2.34.1
