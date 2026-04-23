@@ -1,204 +1,110 @@
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 152973E3C74
-	for <linux-rdma@vger.kernel.org>; Thu, 23 Apr 2026 09:27:47 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 782FF38737A;
+	Thu, 23 Apr 2026 10:19:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776936469; cv=none; b=FnOlpyW93/E+OnkKhucdkr3aWGTE/cdg6faTmU1FntdbPGLgwr/yEg+5ZYlhc5/nslF+YFOGy/G2vg2NHX1XETaYjhXL7YOvzwVLNFF9jweaXINZrFni3G8GkbTTWxIImnwRZod8RfnR9yZXTMiyV8AgeOcNPmFTW9vCZTGmJwc=
+	t=1776939570; cv=none; b=AQ6BaswjrbMQNbNH8iydrGjUcPNi92vXks3iWyuc96PE0kwG86BrT+2luFRdfTFdyEnUXemTh7IDx8WTPpJ7mVdsdzLdFWFWOG0VoFsFVuYZD3UzrfziVv5an/nZcwWuc5fMK9NCgI3RQGK5lf8BkDkYxTqL38Ur9lOwqCNpQeI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776936469; c=relaxed/simple;
-	bh=J8zuB+36+21An0Ys+NQd9QNXpbSjs/BAj2aMGbJaMSc=;
+	s=arc-20240116; t=1776939570; c=relaxed/simple;
+	bh=3ygz8aPQ887mmlXRKJ2niuUkt3iUa+0zyJRimlH0iLg=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=cjf1tQ+akZ3jkzsqJEzrnCw773CUMYVxNpIZf11u5FHMHKnOUQp3rHt+prnn3cI4puONW/arlmVtfBBgRBbmF//06Z1wxVDhhJnPfBnllcD4rdicUqhLS2AO9ilhEaRCWn5qabnzl6GuoqB8cmD4onT9mHh7W8s3SAXjnloONVA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz; spf=pass smtp.mailfrom=suse.cz; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=KfWMoPNc; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=ozNopPqo; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=KfWMoPNc; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=ozNopPqo; arc=none smtp.client-ip=195.135.223.131
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.cz
+	 Content-Type:Content-Disposition:In-Reply-To; b=O3QsDMCLOcW4r80DVqa70vs7NsxzL5GJZvQ8vZ+wVtwHQLu6MTPhMyYI0LtcS2COZkDPGsHgbtrAfw9b0A89fOvrl/fNKecMgvJMEAIE08uJzG7Fn1gVQaIROyTWMb301XCWBZMhHUUq6BwzTQCNctWkzyn9LpzV1mNX+sBNqVY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=WdFbFYl7; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="KfWMoPNc";
-	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="ozNopPqo";
-	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="KfWMoPNc";
-	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="ozNopPqo"
-Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out2.suse.de (Postfix) with ESMTPS id 3FF2F5BCED;
-	Thu, 23 Apr 2026 09:27:46 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
-	t=1776936466;
-	h=from:from:reply-to:reply-to:date:date:message-id:message-id:to:to:
-	 cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=Szb/77FrY07rl0gE1fIlIEDTcWYlFSvdGAl1J9gVNes=;
-	b=KfWMoPNcnfFZXgCW9cjsvXlQX6oPb1LzpxolFoXRWntmxAPQh0nPnBtD52lS/x+aKQJ6qO
-	e7Wik//rzyPSOH8g9ngmH+hEyP3Q7hoKFPs76NQ4YRCOCtcXaw88F4pm+vn3vGOckW0ywG
-	ZOXx4Y98TuRWg9w2C0hVan3Jn9zpVoU=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
-	s=susede2_ed25519; t=1776936466;
-	h=from:from:reply-to:reply-to:date:date:message-id:message-id:to:to:
-	 cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=Szb/77FrY07rl0gE1fIlIEDTcWYlFSvdGAl1J9gVNes=;
-	b=ozNopPqoUB9ccdHXL6R+I69BQ5sZbLzf8A0/Mp1npdzc2eRWMDcogcEk8l/tf9aTcD8jDw
-	LxSuYX6X0pkE+/Dg==
-Authentication-Results: smtp-out2.suse.de;
-	none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
-	t=1776936466;
-	h=from:from:reply-to:reply-to:date:date:message-id:message-id:to:to:
-	 cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=Szb/77FrY07rl0gE1fIlIEDTcWYlFSvdGAl1J9gVNes=;
-	b=KfWMoPNcnfFZXgCW9cjsvXlQX6oPb1LzpxolFoXRWntmxAPQh0nPnBtD52lS/x+aKQJ6qO
-	e7Wik//rzyPSOH8g9ngmH+hEyP3Q7hoKFPs76NQ4YRCOCtcXaw88F4pm+vn3vGOckW0ywG
-	ZOXx4Y98TuRWg9w2C0hVan3Jn9zpVoU=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
-	s=susede2_ed25519; t=1776936466;
-	h=from:from:reply-to:reply-to:date:date:message-id:message-id:to:to:
-	 cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=Szb/77FrY07rl0gE1fIlIEDTcWYlFSvdGAl1J9gVNes=;
-	b=ozNopPqoUB9ccdHXL6R+I69BQ5sZbLzf8A0/Mp1npdzc2eRWMDcogcEk8l/tf9aTcD8jDw
-	LxSuYX6X0pkE+/Dg==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 00FDC593A3;
-	Thu, 23 Apr 2026 09:27:45 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id +g4COhHm6WmmMgAAD6G6ig
-	(envelope-from <pvorel@suse.cz>); Thu, 23 Apr 2026 09:27:45 +0000
-Date: Thu, 23 Apr 2026 11:27:44 +0200
-From: Petr Vorel <pvorel@suse.cz>
-To: Leon Romanovsky <leon@kernel.org>
-Cc: Andrea Cervesato <andrea.cervesato@suse.de>,
-	Linux Test Project <ltp@lists.linux.it>,
-	Eric Biggers <ebiggers3@gmail.com>,
-	Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>,
-	linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com
-Subject: Re: [LTP] [PATCH 2/2] device-drivers/rdma: Add ucma_uaf01 test
-Message-ID: <20260423092744.GA664042@pevik>
-Reply-To: Petr Vorel <pvorel@suse.cz>
-References: <20260325-infiniband_rdma-v1-0-9c1bd3e69d29@suse.com>
- <20260325-infiniband_rdma-v1-2-9c1bd3e69d29@suse.com>
- <20260407132426.GC25645@pevik>
- <20260412141439.GD21470@unreal>
- <20260414073010.GB230573@pevik>
- <20260414091731.GT21470@unreal>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="WdFbFYl7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 62B77C2BCAF;
+	Thu, 23 Apr 2026 10:19:28 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1776939570;
+	bh=3ygz8aPQ887mmlXRKJ2niuUkt3iUa+0zyJRimlH0iLg=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=WdFbFYl7H0jbCT8dSo1bJErpMV5J/bQS1D6GT7LviSzdrkc1ANJuyh4N1Ww1b7Y9u
+	 Cd2mW+9bEAknm5VH+yY+BHD5NTdni+7zMnHnpxOtkqc91h7oOvPI5GiutDoUGhw4QW
+	 s33rrZZHxx2YytIIoBvImlZlU1rYctjB2GsY9M/UXhh29p8AvKBA/JLDq53Axu0Xce
+	 dfjx6UKHV90rHugLaF6MYnoS8FBE8sJu21qUUohO4naSFLbiSJu7IqjIg2RHCN1SXk
+	 NpDzzO1Jg0wq48N2b+XYaz2xndvfuSQ8629Ma2RHHHQ5y/z/d9Bv0spT3AKcwXD/ov
+	 RAeChM9mscW4g==
+Date: Thu, 23 Apr 2026 13:19:24 +0300
+From: Leon Romanovsky <leon@kernel.org>
+To: Chenguang Zhao <zhaochenguang@kylinos.cn>
+Cc: Shuah Khan <shuah@kernel.org>, Andrew Lunn <andrew+netdev@lunn.ch>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	netdev@vger.kernel.org, linux-kselftest@vger.kernel.org,
+	RDMA mailing list <linux-rdma@vger.kernel.org>
+Subject: Re: [PATCH] selftests: net: add RDMA CM observability and regression
+ scripts
+Message-ID: <20260423101924.GB172828@unreal>
+References: <20260416062224.1546388-1-zhaochenguang@kylinos.cn>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20260414091731.GT21470@unreal>
-X-Spamd-Result: default: False [-3.50 / 50.00];
-	BAYES_HAM(-3.00)[100.00%];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	MID_RHS_NOT_FQDN(0.50)[];
-	HAS_REPLYTO(0.30)[pvorel@suse.cz];
-	NEURAL_HAM_SHORT(-0.20)[-1.000];
-	MIME_GOOD(-0.10)[text/plain];
-	FUZZY_RATELIMITED(0.00)[rspamd.com];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	MISSING_XM_UA(0.00)[];
-	ARC_NA(0.00)[];
-	TO_DN_SOME(0.00)[];
-	MIME_TRACE(0.00)[0:+];
-	FREEMAIL_ENVRCPT(0.00)[gmail.com];
-	RCPT_COUNT_SEVEN(0.00)[8];
-	DKIM_SIGNED(0.00)[suse.cz:s=susede2_rsa,suse.cz:s=susede2_ed25519];
-	FROM_HAS_DN(0.00)[];
-	FREEMAIL_CC(0.00)[suse.de,lists.linux.it,gmail.com,redhat.com,ziepe.ca,vger.kernel.org,oss.oracle.com];
-	RCVD_TLS_ALL(0.00)[];
-	FROM_EQ_ENVFROM(0.00)[];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:helo,suse.com:email,bootlin.com:url,suse.cz:replyto,suse.cz:email];
-	RCVD_COUNT_TWO(0.00)[2];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	REPLYTO_EQ_FROM(0.00)[]
-X-Spam-Flag: NO
-X-Spam-Score: -3.50
-X-Spam-Level: 
+In-Reply-To: <20260416062224.1546388-1-zhaochenguang@kylinos.cn>
 
-Hi Leon, all,
+On Thu, Apr 16, 2026 at 02:22:24PM +0800, Chenguang Zhao wrote:
+> Add a minimal RDMA CM selftest suite that captures observability
+> baselines and runs trace, counter-delta, and fault-injection oriented
+> checks, plus a review-loop helper for repeated validation rounds.
+> 
+> Usage (client side):
+> - export
+>   CM_WORKLOAD_CMD='ib_send_bw -d <dev> -i <port> -R -g <gid> <server_ip>'
+>   (User can customize CM_WORKLOAD_CMD)
+> - sudo -E make -C tools/testing/selftests
+>   TARGETS=drivers/net/rdma run_tests
+> 
+> Signed-off-by: Chenguang Zhao <zhaochenguang@kylinos.cn>
+> ---
+>   The first patch adds a focused RDMA CM selftest suite under
+>   kselftest to make CM behavior easier to observe and validate
+>   in routine regression runs.
+> 
+>   It introduces baseline collection, trace-sequence checks,
+>   counter-delta checks, and failslab-based recovery checks, plus
+>   a review-loop script for one-shot serial execution. It also
+>   registers drivers/net/rdma in the top-level selftests TARGETS,
+>   so the suite runs through standard kselftest flow
+>   (make ... TARGETS=drivers/net/rdma run_tests) instead of requiring
+>   manual script-by-script execution.
+> ---
+>  tools/testing/selftests/Makefile              |   1 +
+>  .../selftests/drivers/net/rdma/Makefile       |  13 ++
+>  .../selftests/drivers/net/rdma/README.md      | 168 ++++++++++++++++++
+>  .../drivers/net/rdma/rdma_cm_baseline.sh      |  58 ++++++
+>  .../drivers/net/rdma/rdma_cm_counter_delta.sh |  72 ++++++++
+>  .../net/rdma/rdma_cm_fault_injection.sh       |  95 ++++++++++
+>  .../drivers/net/rdma/rdma_cm_review_loop.sh   |  35 ++++
+>  .../net/rdma/rdma_cm_trace_sequence.sh        |  83 +++++++++
+>  .../selftests/drivers/net/rdma/rdma_common.sh | 126 +++++++++++++
+>  9 files changed, 651 insertions(+)
+>  create mode 100644 tools/testing/selftests/drivers/net/rdma/Makefile
+>  create mode 100644 tools/testing/selftests/drivers/net/rdma/README.md
+>  create mode 100755 tools/testing/selftests/drivers/net/rdma/rdma_cm_baseline.sh
+>  create mode 100755 tools/testing/selftests/drivers/net/rdma/rdma_cm_counter_delta.sh
+>  create mode 100755 tools/testing/selftests/drivers/net/rdma/rdma_cm_fault_injection.sh
+>  create mode 100755 tools/testing/selftests/drivers/net/rdma/rdma_cm_review_loop.sh
+>  create mode 100755 tools/testing/selftests/drivers/net/rdma/rdma_cm_trace_sequence.sh
+>  create mode 100755 tools/testing/selftests/drivers/net/rdma/rdma_common.sh
+> 
+> diff --git a/tools/testing/selftests/Makefile b/tools/testing/selftests/Makefile
+> index 984abb6d42ab..0df7034f46b2 100644
+> --- a/tools/testing/selftests/Makefile
+> +++ b/tools/testing/selftests/Makefile
+> @@ -22,6 +22,7 @@ TARGETS += drivers/ntsync
+>  TARGETS += drivers/s390x/uvdevice
+>  TARGETS += drivers/net
+>  TARGETS += drivers/net/bonding
+> +TARGETS += drivers/net/rdma
 
-> On Tue, Apr 14, 2026 at 09:30:10AM +0200, Petr Vorel wrote:
-> > Hi Leon, all,
+It is very wrong place to put RDMA functionality.
+We have tools/testing/selftests/rdma folder for that.
 
-> > > On Tue, Apr 07, 2026 at 03:24:26PM +0200, Petr Vorel wrote:
-> > > > Hi Andrea,
-
-> > > > it's been long time since this use-after-free was fixed, but IMHO still useful
-> > > > to have a test (it's also kind of smoke test for rdma_cm).
-> > > > Anyway, LGTM, but it'd be nice to reproduce the bug.
-
-> > > > Reviewed-by: Petr Vorel <pvorel@suse.cz>
-
-> > > > > Test for use-after-free in RDMA UCMA triggered by racing CREATE_ID,
-> > > > > BIND_IP, and LISTEN operations. Three threads concurrently issue
-> > > > > these commands to /dev/infiniband/rdma_cm and the test checks for
-> > > > > kernel taint (KASAN use-after-free detection).
-
-> > > > > The bug was fixed by kernel commit 5fe23f262e05
-> > > > > ("ucma: fix a use-after-free in ucma_resolve_ip()").
-
-> > > > > Signed-off-by: Andrea Cervesato <andrea.cervesato@suse.com>
-> > > > > ---
-> > > > >  runtest/kernel_misc                               |   1 +
-> > > > >  testcases/kernel/device-drivers/Makefile          |   1 +
-> > > > >  testcases/kernel/device-drivers/rdma/.gitignore   |   1 +
-> > > > >  testcases/kernel/device-drivers/rdma/Makefile     |   7 +
-> > > > >  testcases/kernel/device-drivers/rdma/ucma_uaf01.c | 208 ++++++++++++++++++++++
-> > > > >  5 files changed, 218 insertions(+)
-
-> > > <...>
-
-> > > > > +static struct tst_test test = {
-> > > > > +	.test_all = run,
-> > > > > +	.setup = setup,
-> > > > > +	.cleanup = cleanup,
-> > > > > +	.runtime = 300,
-> > > > > +	.needs_root = 1,
-> > > > > +	.taint_check = TST_TAINT_W | TST_TAINT_D,
-> > > > > +	.needs_kconfigs = (const char *[]) {
-> > > > > +		"CONFIG_INFINIBAND",
-> > > > > +		"CONFIG_INFINIBAND_USER_ACCESS",
-
-> > > I’m not familiar with the LTP tests, but I wanted to point out that these
-> > > config options are insufficient. You need an actual or virtual RDMA device
-> > > connected to rdma-cm for the tests to work correctly.
-
-> > Leon, thanks for looking into it. FYI these are just config options to skip
-> > kernels without required kernel modules. 
-
-> > So using /dev/infiniband/rdma_cm (via RDMA_CM_DEV) is not enough, we need
-> > another device?
-
-> Yes, `rdma-cm` provides an interface for address resolution on
-> IB/iWARP/RoCE networks without requiring knowledge of the underlying
-> fabric details.
-
-> When an IB device is registered, RDMA/core invokes `cm_add_one()`, which
-> attaches `rdma-cm` to that device.
-> https://elixir.bootlin.com/linux/v7.0/source/drivers/infiniband/core/cm.c#L4335
-
-Leon, thanks a lot for a clarification. Setting patch "changes requested".
-
-Kind regards,
-Petr
-
-> Thanks
-
-
-> > Kind regards,
-> > Petr
+Thanks
