@@ -1,81 +1,100 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from vps0.lunn.ch (vps0.lunn.ch [156.67.10.101])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E27FE2BE053;
-	Thu, 23 Apr 2026 19:30:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7032823EA9B;
+	Thu, 23 Apr 2026 19:44:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=156.67.10.101
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776972645; cv=none; b=UonZSmPQm2EnOwE6ir2I6YrTArW0sI6JRbkNEcSl3pTEEK84iqZMFHfvVQEHt8fMjQiH28DR7bt7nWQrVhT4GeyvQvMfiRjhI21f3ZQL+9D+kPPfVITZa+7i/sXKyKT4+a/CQGHlsgdbagcUxGowK/DGnn6EYZ2WJgfZbh2mSeM=
+	t=1776973463; cv=none; b=YwxIZCen6s5EsaIgiu1/lEFpyHr07n8qNM/04ffCwxFcBQ5PlwcKxuczdVzWMfgZrxWIJ6mTHo182HKvTxV+L44oP/uH62KnDWQdsp2rxTvUoFl+MtlEc1VOU8VoSLJJJ45SSJpbWU7GNJo3YM/shQP8deA7iI04vOdhtyo9i5E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776972645; c=relaxed/simple;
-	bh=wEEzDSvGh4RC49EaRHrMFFS5Pokda4U2Hdmfqzgnm3g=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=LwbrKrXMFN4OABt43XTBaoBK1UzVoJjc1OYvQeK1iYBW4a21M05E/3s23hG8DdjBBQjs6FJTlDd0OobewVeZwUzmYM7u1khrh5gMY25ws4VO/NRpsvhmY1cJcTbRArWv3+iQ8jEMrRHgWJZ9x8/QJRJMYx6eBdsSzr7lv62GCj0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=GaScGOxD; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1776973463; c=relaxed/simple;
+	bh=KIdTnfrWhCm/3mkmY5XjowjHj5ElWmemc028AWda6Q0=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=TWPXJAT422fTTaCualCOdFclGIDxfZkboZrGvAUQtJ+KOtyy/wNDlrzQaW582NP93ttmUFXiHN20vbzes7Jc2e7QyUcQbwdp5LxRS2uD5gKk7VYb/bHYEKzr8ZB0v4M+FBFaNIt0gbbJtgCuD/CT7wo+RpUNWb8ejYgV3OgfS3Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lunn.ch; spf=pass smtp.mailfrom=lunn.ch; dkim=pass (1024-bit key) header.d=lunn.ch header.i=@lunn.ch header.b=tORt1L2A; arc=none smtp.client-ip=156.67.10.101
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lunn.ch
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lunn.ch
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="GaScGOxD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B5DA6C2BCAF;
-	Thu, 23 Apr 2026 19:30:44 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1776972644;
-	bh=wEEzDSvGh4RC49EaRHrMFFS5Pokda4U2Hdmfqzgnm3g=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-	b=GaScGOxD4HxDBUWJQEMe7sp8xVySbuIO6c2vJEHrUPhWFFdc37IdcarFOQQg/10wI
-	 QZ0E55Ejq4ceZ8isrBDv+K5evNevtJObOY0Fk+/2yPMYDTdFk3i1DFWfgCWdLyr/kc
-	 TEz/Tmx9f65PNtEvVBjdCNgjH5OObRS8dOTLUnAS+o6n1K0b1K5pqfcqEGR8wWiPUT
-	 nAfX4Gx+trl044rPzE0shazF1Jaz+nO3519KU9i1UrAkjS5lIShLNbLpk6MnN6svvN
-	 7SM0mEZZHLjVEuCyeXIcGw0im/UnswsmmU4YQINQKljlTPi9KLKZLJMRQ5xoFzRxHI
-	 ZdCSVphC7OdpA==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 3FC483809A90;
-	Thu, 23 Apr 2026 19:30:07 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	dkim=pass (1024-bit key) header.d=lunn.ch header.i=@lunn.ch header.b="tORt1L2A"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=lunn.ch;
+	s=20171124; h=In-Reply-To:Content-Disposition:Content-Type:MIME-Version:
+	References:Message-ID:Subject:Cc:To:From:Date:From:Sender:Reply-To:Subject:
+	Date:Message-ID:To:Cc:MIME-Version:Content-Type:Content-Transfer-Encoding:
+	Content-ID:Content-Description:Content-Disposition:In-Reply-To:References;
+	bh=RWJKOVoVRUNQb0LLzbgupq9gvwUJ+hzw26Jr6hGDu0U=; b=tORt1L2ASrxqUTjUb22wy+f77S
+	oKvaZdk1LgqqMCgZE0eRYQM/XdATVaA7NPKIacxjGSGbmCfuP4PftCe1JiP4yi2U22vHZ3fZZalEq
+	Ggz/wgjHto5ddWSk/gRv7FdmR1R0/Rw3OhlsaSGBnMXNjNtESdfD+cyTg1JZDj9uc3wc=;
+Received: from andrew by vps0.lunn.ch with local (Exim 4.94.2)
+	(envelope-from <andrew@lunn.ch>)
+	id 1wFzy0-00HI3w-KA; Thu, 23 Apr 2026 21:44:04 +0200
+Date: Thu, 23 Apr 2026 21:44:04 +0200
+From: Andrew Lunn <andrew@lunn.ch>
+To: Dipayaan Roy <dipayanroy@linux.microsoft.com>
+Cc: kys@microsoft.com, haiyangz@microsoft.com, wei.liu@kernel.org,
+	decui@microsoft.com, andrew+netdev@lunn.ch, davem@davemloft.net,
+	edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
+	leon@kernel.org, longli@microsoft.com, kotaranov@microsoft.com,
+	horms@kernel.org, shradhagupta@linux.microsoft.com,
+	ssengar@linux.microsoft.com, ernis@linux.microsoft.com,
+	shirazsaleem@microsoft.com, linux-hyperv@vger.kernel.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-rdma@vger.kernel.org, stephen@networkplumber.org,
+	jacob.e.keller@intel.com, dipayanroy@microsoft.com,
+	leitao@debian.org, kees@kernel.org, john.fastabend@gmail.com,
+	hawk@kernel.org, bpf@vger.kernel.org, daniel@iogearbox.net,
+	ast@kernel.org, sdf@fomichev.me, yury.norov@gmail.com
+Subject: Re: [PATCH net] net: mana: hardening: Validate SHM offset from BAR0
+ register to prevent crash due to alignment fault
+Message-ID: <7c4dbe89-9b51-45d6-ae89-39d4183e66b1@lunn.ch>
+References: <aepF3NwyANeklkfD@linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net>
+ <edccaafd-73f3-421d-a48e-a6cb704d39e6@lunn.ch>
+ <aepviNMszMBtiB/H@linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net 1/1] net: rds: fix MR cleanup on copy error
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <177697260580.733594.2705597671788388088.git-patchwork-notify@kernel.org>
-Date: Thu, 23 Apr 2026 19:30:05 +0000
-References: 
- <79c8ef73ec8e5844d71038983940cc2943099baf.1776764247.git.draw51280@163.com>
-In-Reply-To: 
- <79c8ef73ec8e5844d71038983940cc2943099baf.1776764247.git.draw51280@163.com>
-To: Ren Wei <n05ec@lzu.edu.cn>
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
- rds-devel@oss.oracle.com, achender@kernel.org, davem@davemloft.net,
- edumazet@google.com, kuba@kernel.org, pabeni@redhat.com, horms@kernel.org,
- leon@kernel.org, santosh.shilimkar@oracle.com, jhubbard@nvidia.com,
- yuantan098@gmail.com, yifanwucs@gmail.com, tomapufckgml@gmail.com,
- bird@lzu.edu.cn, draw51280@163.com
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <aepviNMszMBtiB/H@linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net>
 
-Hello:
+On Thu, Apr 23, 2026 at 12:14:16PM -0700, Dipayaan Roy wrote:
+> On Thu, Apr 23, 2026 at 06:37:04PM +0200, Andrew Lunn wrote:
+> > > The root cause is in mana_gd_init_vf_regs(), which computes:
+> > > 
+> > >   gc->shm_base = gc->bar0_va + mana_gd_r64(gc, GDMA_REG_SHM_OFFSET);
+> > > 
+> > > without validating the offset read from hardware. If the register
+> > > returns a garbage value that is neither within bar 0 bounds nor aligned
+> > > to the 4-byte granularity, thus causing the alignment fault.
+> > 
+> > Is GDMA_REG_SHM_OFFSET special?
+> Hi Andrew,
+> GDMA_REG_SHM_OFFSET is not special. It was simply the only register
+> read that had no validation at all. The other two registers
+> (GDMA_REG_DB_PAGE_SIZE, GDMA_REG_DB_PAGE_OFFSET) already have checks
+> in place.
 
-This patch was applied to netdev/net.git (main)
-by Jakub Kicinski <kuba@kernel.org>:
+I must be missing something:
 
-On Wed, 22 Apr 2026 22:52:07 +0800 you wrote:
-> From: Ao Zhou <draw51280@163.com>
-> 
-> __rds_rdma_map() hands sg/pages ownership to the transport after
-> get_mr() succeeds. If copying the generated cookie back to user space
-> fails after that point, the error path must not free those resources
-> again before dropping the MR reference.
-> 
-> [...]
+grep page_size *
 
-Here is the summary with links:
-  - [net,1/1] net: rds: fix MR cleanup on copy error
-    https://git.kernel.org/netdev/net/c/8141a2dc7008
+gdma_main.c:	gc->db_page_size = mana_gd_r32(gc, GDMA_PF_REG_DB_PAGE_SIZE) & 0xFFFF;
+gdma_main.c:	gc->db_page_size = mana_gd_r32(gc, GDMA_REG_DB_PAGE_SIZE) & 0xFFFF;
+gdma_main.c:	void __iomem *addr = gc->db_page_base + gc->db_page_size * db_index;
 
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
+So if GDMA_REG_DB_PAGE_SIZE returns garbage, it is at least masked,
+but it is still a random number.
 
+mana_gd_ring_doorbell() takes this random number, multiples by
+db_index, adds, gc->db_page_base and then does:
 
+writeq(e.as_uint64, addr);
+
+So you write to a random address. 
+
+I don't see any sanity checks here. Cannot you check that db_page_size
+is at least one of the expected page sizes?
+
+   Andrew
