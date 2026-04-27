@@ -1,28 +1,29 @@
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id EE3393C8716;
-	Mon, 27 Apr 2026 13:35:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 240B93CA481;
+	Mon, 27 Apr 2026 13:35:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777296927; cv=none; b=rbxwF27hhPUQHkLZtQsa07RxuNMUS76h2MRTb+cihDRjlyQJRMd3DAQGbLbab/rPIz96DrfSIu4Blx25LLi8wJviU+GCIfAjBWPu/aa138fkjbcjyztX4ubkwF2kF/jJ8gtfi8aGD8PnnYS0pmhk+ULDUG3aBm/ykvSXVluoyVY=
+	t=1777296927; cv=none; b=cw5KGXvrDKlkQmtSmwmzlz7KD9hdBM5/Qvoj1RLoVQw2Y+VaHWSWCk/9br1Gy70mgNvO5v70I5aJARvGgx+DbAnJ2FvqA7g+FK+9CABnf+TsVKwl7Hx8VqRwEIIiz2g8PCkpZEb1ekPPLN5OZiHr8ULbklIoteQUW5mE0V4CfWE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1777296927; c=relaxed/simple;
-	bh=Hrd3Ufbn0yIBkbjycfXpMJ9mBOrSVze4ikAYNtzpkMc=;
-	h=From:To:Subject:Date:Message-ID:MIME-Version; b=kvAKViOxXwYuZ9LmB1rnuljYumtC/+2Z0mgEnijxkia9d/v8b8pqKfDOb5n4EfypBC472tfv6X6OcUo0b9MjEHX7b7PMVjXIatAD5+aITLTXXCtA/2zek9bUweW6laFWLvMZDRNUGWG6+c+1y6/7fPwFyt08rMydqNlPoy+i3y8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=fpXs1g+j; arc=none smtp.client-ip=13.77.154.182
+	bh=6UnbY4DrqGtksJ4MzzZtojHfq0UuwCW7gM2ovAeSmYg=;
+	h=From:To:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=SpXJYuE1Kxp9By95LHSTAE5tcu4gyw4Ps8+RB3Okd+2fQF8cXllml0wInrsWd8SZoz2juGDVZ4PNoYTuIv4+Pg/GxN7O+UkGLEjy01sSYqJvJAN2jxN8XEWh6jjWTxNm7pybgiamd6hgUFuAvTD1bD3OeAbi0/I/Lqh2gHPQGMk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=OvoJEIid; arc=none smtp.client-ip=13.77.154.182
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="fpXs1g+j"
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="OvoJEIid"
 Received: by linux.microsoft.com (Postfix, from userid 1231)
-	id 2A95820B716A; Mon, 27 Apr 2026 06:35:26 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 2A95820B716A
+	id 460C420B716E; Mon, 27 Apr 2026 06:35:26 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 460C420B716E
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
 	s=default; t=1777296926;
-	bh=WsS2t80x+GGz7CqR25akz3086Hpb7Gp6QxW+DhOqL00=;
-	h=From:To:Subject:Date:From;
-	b=fpXs1g+jp/xD8PeBW9r9WrxfznWah99eMaY6m7AZKmmZq2t8QAzLxIW1Jojo0UZDS
-	 JHUwY/rury8nDfx6NokHY8FQYlHIn1086VwqLMw1zvLSv8f6dABVi4j+dsaQGznQqS
-	 Pg0wTkfw1/zDOW/EaQYxfTwU4AtJPcY1zts0RGfI=
+	bh=K/dQLWpvtfHpW7x2/2gVgixuqfIkLb/3dZkP2GDm5KU=;
+	h=From:To:Subject:Date:In-Reply-To:References:From;
+	b=OvoJEIidR5awQYT90mrlCmhY4HAlsh3WlvMkUWHSGMMurZxtSecu67XyqKVtIvA40
+	 KaRp1QMqSPHxxgeis+1TExCMq8PlFs0b+xv9zHoR8QzFfgUJOEU8lS6R9n+NFH28uV
+	 6yNOPRPBUWAqgPb0bGo/rMVIfJGf6iGY+FH8ynco=
 From: Aditya Garg <gargaditya@linux.microsoft.com>
 To: kys@microsoft.com,
 	haiyangz@microsoft.com,
@@ -51,10 +52,12 @@ To: kys@microsoft.com,
 	bpf@vger.kernel.org,
 	gargaditya@microsoft.com,
 	gargaditya@linux.microsoft.com
-Subject: [PATCH net-next v2 0/2] net: mana: Avoid queue struct allocation failure under memory fragmentation
-Date: Mon, 27 Apr 2026 06:23:33 -0700
-Message-ID: <20260427132807.1642290-1-gargaditya@linux.microsoft.com>
+Subject: [PATCH net-next v2 2/2] net: mana: Use kvmalloc for large RX queue and buffer allocations
+Date: Mon, 27 Apr 2026 06:23:35 -0700
+Message-ID: <20260427132807.1642290-3-gargaditya@linux.microsoft.com>
 X-Mailer: git-send-email 2.43.7
+In-Reply-To: <20260427132807.1642290-1-gargaditya@linux.microsoft.com>
+References: <20260427132807.1642290-1-gargaditya@linux.microsoft.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -63,64 +66,71 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-The MANA driver can fail to load on systems with high memory
-utilization because several allocations in the queue setup paths
-require large physically contiguous blocks via kmalloc. Under memory
-fragmentation these high-order allocations may fail, preventing the
-driver from creating queues at probe time or when reconfiguring
-channels, ring parameters or MTU at runtime.
+The RX path allocations for rxbufs_pre, das_pre, and rxq scale with
+queue count and queue depth. With high queue counts and depth, these can
+exceed what kmalloc can reliably provide from physically contiguous
+memory under fragmentation.
 
-Allocation sizes that are problematic:
+Switch these from kmalloc to kvmalloc variants so the allocator
+transparently falls back to vmalloc when contiguous memory is scarce,
+and update the corresponding frees to kvfree.
 
-  mana_create_txq -> tx_qp flat array (sizeof(mana_tx_qp) = 35528):
-    16 queues (default): 35528 * 16 =  ~555 KB contiguous
-    64 queues (max):     35528 * 64 = ~2220 KB contiguous
-
-  mana_create_rxq -> rxq struct with flex array
-  (sizeof(mana_rxq) = 35712, rx_oobs=296 per entry):
-    depth 1024 (default): 35712 + 296 * 1024 =  ~331 KB per queue
-    depth 8192 (max):     35712 + 296 * 8192 = ~2403 KB per queue
-
-  mana_pre_alloc_rxbufs -> rxbufs_pre and das_pre arrays:
-    16 queues, depth 1024 (default): 16 * 1024 * 8 =  128 KB each
-    64 queues, depth 8192 (max):     64 * 8192 * 8 = 4096 KB each
-
-This series addresses the issue by:
-  1. Converting the tx_qp flat array into an array of pointers with
-     per-queue kvzalloc (~35 KB each), replacing a single contiguous
-     allocation that can reach ~2.2 MB at 64 queues.
-  2. Switching rxbufs_pre, das_pre, and rxq allocations to
-     kvmalloc/kvzalloc so the allocator can fall back to vmalloc
-     when contiguous memory is unavailable.
-
-Throughput testing confirms no regression. Since kvmalloc falls
-back to vmalloc under memory fragmentation, all kvmalloc calls
-were temporarily replaced with vmalloc to simulate the fallback
-path (iperf3, GBits/sec):
-
-                 Physically contiguous         vmalloc region
-  Connections      TX          RX              TX          RX
-  --------------------------------------------------------------
-  1                47.2        46.9            46.8        46.6
-  16               181         181             181         181
-  32               181         181             181         181
-  64               181         181             181         181
-
+Signed-off-by: Aditya Garg <gargaditya@linux.microsoft.com>
+Reviewed-by: Haiyang Zhang <haiyangz@microsoft.com>
 ---
-Changes in v2:
-  - Rebased onto v7.1-rc1 (was v7.0-rc7)
+ drivers/net/ethernet/microsoft/mana/mana_en.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-Aditya Garg (2):
-  net: mana: Use per-queue allocation for tx_qp to reduce allocation
-    size
-  net: mana: Use kvmalloc for large RX queue and buffer allocations
-
- .../net/ethernet/microsoft/mana/mana_bpf.c    |  2 +-
- drivers/net/ethernet/microsoft/mana/mana_en.c | 61 +++++++++++--------
- .../ethernet/microsoft/mana/mana_ethtool.c    |  2 +-
- include/net/mana/mana.h                       |  2 +-
- 4 files changed, 39 insertions(+), 28 deletions(-)
-
+diff --git a/drivers/net/ethernet/microsoft/mana/mana_en.c b/drivers/net/ethernet/microsoft/mana/mana_en.c
+index 8adf72b96145..e1d8ac3417e8 100644
+--- a/drivers/net/ethernet/microsoft/mana/mana_en.c
++++ b/drivers/net/ethernet/microsoft/mana/mana_en.c
+@@ -685,11 +685,11 @@ void mana_pre_dealloc_rxbufs(struct mana_port_context *mpc)
+ 		put_page(virt_to_head_page(mpc->rxbufs_pre[i]));
+ 	}
+ 
+-	kfree(mpc->das_pre);
++	kvfree(mpc->das_pre);
+ 	mpc->das_pre = NULL;
+ 
+ out2:
+-	kfree(mpc->rxbufs_pre);
++	kvfree(mpc->rxbufs_pre);
+ 	mpc->rxbufs_pre = NULL;
+ 
+ out1:
+@@ -806,11 +806,11 @@ int mana_pre_alloc_rxbufs(struct mana_port_context *mpc, int new_mtu, int num_qu
+ 	num_rxb = num_queues * mpc->rx_queue_size;
+ 
+ 	WARN(mpc->rxbufs_pre, "mana rxbufs_pre exists\n");
+-	mpc->rxbufs_pre = kmalloc_array(num_rxb, sizeof(void *), GFP_KERNEL);
++	mpc->rxbufs_pre = kvmalloc_array(num_rxb, sizeof(void *), GFP_KERNEL);
+ 	if (!mpc->rxbufs_pre)
+ 		goto error;
+ 
+-	mpc->das_pre = kmalloc_objs(dma_addr_t, num_rxb);
++	mpc->das_pre = kvmalloc_objs(dma_addr_t, num_rxb);
+ 	if (!mpc->das_pre)
+ 		goto error;
+ 
+@@ -2564,7 +2564,7 @@ static void mana_destroy_rxq(struct mana_port_context *apc,
+ 	if (rxq->gdma_rq)
+ 		mana_gd_destroy_queue(gc, rxq->gdma_rq);
+ 
+-	kfree(rxq);
++	kvfree(rxq);
+ }
+ 
+ static int mana_fill_rx_oob(struct mana_recv_buf_oob *rx_oob, u32 mem_key,
+@@ -2704,7 +2704,7 @@ static struct mana_rxq *mana_create_rxq(struct mana_port_context *apc,
+ 
+ 	gc = gd->gdma_context;
+ 
+-	rxq = kzalloc_flex(*rxq, rx_oobs, apc->rx_queue_size);
++	rxq = kvzalloc_flex(*rxq, rx_oobs, apc->rx_queue_size);
+ 	if (!rxq)
+ 		return NULL;
+ 
 -- 
 2.43.0
 
