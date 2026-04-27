@@ -1,132 +1,120 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A2D435F8C9;
-	Mon, 27 Apr 2026 18:35:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 9C954282F3E;
+	Mon, 27 Apr 2026 18:40:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777314922; cv=none; b=TbxVWDTXN/AnZqBX4svTev63SRWCgjDMegyjfElNkDA2VL8+gTx6C4QZ5D4ZEiykcdYa6yYrOW8dfUnktcwq/HyfpoWd/jpxEOiRGUpwTjTYJcdzP7xSfNE/z9RF1jml+dhDUXqbUouxi8mPs/WAMOLPvhJaLkALp8Ou3H3Sm4w=
+	t=1777315213; cv=none; b=LHYds6PFnmEcJdWJKckRan2xtxcGISmKeJKKI+QQlwNDc6kb4XKtBQrZ3n8RteMap9d84odI8W56SWIYQFtLoug6Ap3z83vTsBq9e+5GARWrtt4C5nz4piwaJhPAQlzhcf+YGoSDdd5qQcCqW7vMIN+8+9IWzpgmcE8WxGWdysY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777314922; c=relaxed/simple;
-	bh=dt17/Yw/X7ftyXzeJoajfSmoBv1aq9SCt2MF5Y2JdVM=;
+	s=arc-20240116; t=1777315213; c=relaxed/simple;
+	bh=/HusL2LtExbYgbua5UuILHfWISTnSh1CAhqnyumz+Bs=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=r3xipk+L30p/bfFK++jhyiI4jW9xR0FUb2qtsasAtf/UxzUN2/Tn+lQS8xLgrkBV1SN7FwZNv5cNlU5BiE+iVT6LHFhhxCsxPNujKnsMlUJwCRqYDw6JM4j1glwUzdQIYK0JlGUdsJMtEsk0nnIcz0VmwuZSZHTK4zPc+UO6z2M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=O1pRr7EI; arc=none smtp.client-ip=10.30.226.201
+	 Content-Type:Content-Disposition:In-Reply-To; b=kDIDQuY1W2JfY0eev26fETZqXwSBwxw2HcZMlUNRuTK35m7pCJ7eb7VaSE7k35Fx3BiDf+WrtFVv/GqVrOr6+5p27GyzsBLGx9omynLbfJgNzMgeZzzur9PR5BIj5elNOBAUMkniW876yPf3suTACIpN81e/lALxqLBOomj/4h0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=phsTeeRh; arc=none smtp.client-ip=13.77.154.182
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="O1pRr7EI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F1CFEC19425;
-	Mon, 27 Apr 2026 18:35:20 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1777314921;
-	bh=dt17/Yw/X7ftyXzeJoajfSmoBv1aq9SCt2MF5Y2JdVM=;
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="phsTeeRh"
+Received: by linux.microsoft.com (Postfix, from userid 1204)
+	id C703020B716A; Mon, 27 Apr 2026 11:40:12 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com C703020B716A
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
+	s=default; t=1777315212;
+	bh=c9RCSoOaBSCbqRUxkmuPRyFNJC5Wn8rmCTPwlSbYIVQ=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=O1pRr7EI1PG1hjtjKdpAdfc+2s7DW0qoJ5kB20Ugw89Jv80juk123xO1KqCYRJP62
-	 i1fX+6A1M+MoaYEi705G2F+4y73YfmHnG+UYMTpX8UCi5kh9q6fI3dlsDXg6ykxjjO
-	 bnECLzldef1WsMK+ZycKb8ibIoPXIPgZ9PK4xnuQ7JThI9vBxqJAXtG6zLt8N/jYGQ
-	 +mRl8XWRM2a1bPrYVRemksBiIcZUBV2udHlt7IQVsC8VfIGj/3wpN++CXKC1TUxDPE
-	 YcB/RMUHxzycUhlVghl/khiwAz5yC1ETvZpkenO/AJgRmoecHc6DRHmd5Ii60qwPXU
-	 5Cmi32sxE5O6A==
-Date: Mon, 27 Apr 2026 21:35:13 +0300
-From: Leon Romanovsky <leon@kernel.org>
-To: Zhiping Zhang <zhipingz@meta.com>
-Cc: Alex Williamson <alex@shazbot.org>, Stanislav Fomichev <sdf@meta.com>,
-	Keith Busch <kbusch@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>,
-	Bjorn Helgaas <helgaas@kernel.org>, linux-rdma@vger.kernel.org,
-	linux-pci@vger.kernel.org, netdev@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, Yochai Cohen <yochai@nvidia.com>,
-	Yishai Hadas <yishaih@nvidia.com>
-Subject: Re: [PATCH v1 1/2] vfio: add callback to get tph info for dma-buf
-Message-ID: <20260427183513.GK440345@unreal>
-References: <20260420183920.3626389-1-zhipingz@meta.com>
- <20260420183920.3626389-2-zhipingz@meta.com>
- <20260422092327.3f629ad6@shazbot.org>
- <20260427133746.GJ440345@unreal>
- <CAH3zFs2Sy0mv=QkK4VSV+MVR=ef_CdoxMhTFgzaqoZ+uSOpxoQ@mail.gmail.com>
+	b=phsTeeRh1xzt23RXuaC4Il9OkAxXboOi53tfM/lLVqXxC3Dh78xEcvQZoPZIWhUpY
+	 WbTL+ZWNx0DLv7nslT/D45PToInmJ29R9pE6D82j5tzmK+VyHG/eIun94k+tVV+TDz
+	 6Qzsjwyrshmzj/mFeVHOy1qs/cdHbKzQmqds7JoU=
+Date: Mon, 27 Apr 2026 11:40:12 -0700
+From: Dipayaan Roy <dipayanroy@linux.microsoft.com>
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: kys@microsoft.com, haiyangz@microsoft.com, wei.liu@kernel.org,
+	decui@microsoft.com, andrew+netdev@lunn.ch, davem@davemloft.net,
+	edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
+	leon@kernel.org, longli@microsoft.com, kotaranov@microsoft.com,
+	horms@kernel.org, shradhagupta@linux.microsoft.com,
+	ssengar@linux.microsoft.com, ernis@linux.microsoft.com,
+	shirazsaleem@microsoft.com, linux-hyperv@vger.kernel.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-rdma@vger.kernel.org, stephen@networkplumber.org,
+	jacob.e.keller@intel.com, dipayanroy@microsoft.com,
+	leitao@debian.org, kees@kernel.org, john.fastabend@gmail.com,
+	hawk@kernel.org, bpf@vger.kernel.org, daniel@iogearbox.net,
+	ast@kernel.org, sdf@fomichev.me, yury.norov@gmail.com
+Subject: Re: [PATCH net] net: mana: hardening: Validate SHM offset from BAR0
+ register to prevent crash due to alignment fault
+Message-ID: <ae+tjDl+RPCU6JDq@linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net>
+References: <aepF3NwyANeklkfD@linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net>
+ <20260426131555.GA3501894@ziepe.ca>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAH3zFs2Sy0mv=QkK4VSV+MVR=ef_CdoxMhTFgzaqoZ+uSOpxoQ@mail.gmail.com>
+In-Reply-To: <20260426131555.GA3501894@ziepe.ca>
 
-On Mon, Apr 27, 2026 at 07:28:57AM -0700, Zhiping Zhang wrote:
-> On Mon, Apr 27, 2026 at 6:37 AM Leon Romanovsky <leon@kernel.org> wrote:
-> >
-> > >
-> > On Wed, Apr 22, 2026 at 09:23:27AM -0600, Alex Williamson wrote:
-> > > On Mon, 20 Apr 2026 11:39:15 -0700
-> > > Zhiping Zhang <zhipingz@meta.com> wrote:
-> > >
-> > > > Add a dma-buf callback that returns raw TPH metadata from the exporter
-> > > > so peer devices can reuse the steering tag and processing hint
-> > > > associated with a VFIO-exported buffer.
-> > > >
-> > > > Keep the existing VFIO_DEVICE_FEATURE_DMA_BUF uAPI layout intact by
-> > > > using a flag plus one extra trailing entries[] object for the optional
-> > > > TPH metadata. Rename the uAPI field dma_ranges to entries. The
-> > > > nr_ranges field remains the DMA range count; when VFIO_DMABUF_FLAG_TPH
-> > > > is set the kernel reads one extra entry beyond nr_ranges for the TPH
-> > > > metadata.
-> > > >
-> > > > Add an st_width parameter to get_tph() so the exporter can reject
-> > > > steering tags that exceed the consumer's supported width (8 vs 16 bit).
-> > > > When no TPH metadata was supplied, make get_tph() return -EOPNOTSUPP.
-> > > >
-> > > > Signed-off-by: Zhiping Zhang <zhipingz@meta.com>
-> > > > ---
-> > > >  drivers/vfio/pci/vfio_pci_dmabuf.c | 62 +++++++++++++++++++++++-------
-> > > >  include/linux/dma-buf.h            | 17 ++++++++
-> > > >  include/uapi/linux/vfio.h          | 28 ++++++++++++--
-> > > >  3 files changed, 89 insertions(+), 18 deletions(-)
-> >
-> > <...>
-> >
-> > > > diff --git a/include/uapi/linux/vfio.h b/include/uapi/linux/vfio.h
-> > > > index bb7b89330d35..a0bd24623c52 100644
-> > > > --- a/include/uapi/linux/vfio.h
-> > > > +++ b/include/uapi/linux/vfio.h
-> > > > @@ -1490,16 +1490,36 @@ struct vfio_device_feature_bus_master {
-> > > >   * open_flags are the typical flags passed to open(2), eg O_RDWR, O_CLOEXEC,
-> > > >   * etc. offset/length specify a slice of the region to create the dmabuf from.
-> > > >   * nr_ranges is the total number of (P2P DMA) ranges that comprise the dmabuf.
-> > > > + * When VFIO_DMABUF_FLAG_TPH is set, entries[] contains one extra trailing
-> > > > + * object after the nr_ranges DMA ranges carrying the TPH steering tag and
-> > > > + * processing hint.
-> > >
-> > > I really don't think we want to design an API where entries is
-> > > implicitly one-off from what's actually there.  This feeds back into
-> > > the below removal of the __counted by attribute, which is a red flag
-> > > that this is the wrong approach.
-> >
-> > I believe removing `__counted` is a mistake. In my proposal, the intent
-> > was to adjust the meaning of the storage object based on the flag bit.
-> > The size of the array should still be represented correctly.
-> >
-> > Thanks
+On Sun, Apr 26, 2026 at 10:15:55AM -0300, Jason Gunthorpe wrote:
+> On Thu, Apr 23, 2026 at 09:16:28AM -0700, Dipayaan Roy wrote:
+> > During Function Level Reset recovery, the MANA driver reads
+> > hardware BAR0 registers that may temporarily contain garbage values.
+> > The SHM (Shared Memory) offset read from GDMA_REG_SHM_OFFSET is used
+> > to compute gc->shm_base, which is later dereferenced via readl() in
+> > mana_smc_poll_register(). If the hardware returns an unaligned or
+> > out-of-range value, the driver must not blindly use it, as this would
+> > propagate the hardware error into a kernel crash.
 > 
-> Thanks Leon — you're right that __counted_by should be preserved. In
-> your approach, when the flag is set, the last entry in the array
-> carries the TPH data, so the effective DMA range count is nr_ranges -
-> 1.
+> It is not what we are calling "hardening" if you are hitting actual
+> crashes in actual real systems.
+> 
+> "hardening" is the driver defending against actively malicious
+> hardware, operating in ways that will never be seen in real systems,
+> attempting to compromise the kernel.
+> 
+> Drivers working around real world broken/buggy/malfunctioning HW is
+> just entirely normal stuff.
+>
+Hi Jason,
 
-It is correct only if you keep the original name *nr_range*. However, the
-variable name is worth changing to something clearer, such as
-*nr_array_elements*.
+sure, I will drop the hardening label, in v2. 
+> > @@ -73,10 +74,25 @@ static int mana_gd_init_pf_regs(struct pci_dev *pdev)
+> >  	gc->phys_db_page_base = gc->bar0_pa + gc->db_page_off;
+> >  
+> >  	sriov_base_off = mana_gd_r64(gc, GDMA_SRIOV_REG_CFG_BASE_OFF);
+> > +	if (sriov_base_off >= gc->bar0_size ||
+> > +	    !IS_ALIGNED(sriov_base_off, sizeof(u32))) {
+> > +		dev_err(gc->dev,
+> > +			"SRIOV base offset 0x%llx out of range or unaligned (BAR0 size 0x%llx)\n",
+> > +			sriov_base_off, (u64)gc->bar0_size);
+> > +		return -EPROTO;
+> > +	}
+> 
+> .. and if it is entirely normal and something that happens is EPROTO
+> really the right way to deal with this race, or should the driver be
+> looping somehow until the device stabilizes??
+This is the current flow of the driver:
+mana_serv_reset()
+	mana_gd_suspend()
+	msleep(MANA_SERVICE_PERIOD * 1000); -> 10s
+	mana_gd_resume()
+		mana_gd_init_registers();  -> read the garbage followed by fault
+	mana_serv_rescan(); -> On mana_gd_resume err(EPROTO) full PCI remove + rescan
+
+The 10-second sleep in mana_serv_reset() already happens before
+mana_gd_resume() is called, so by the time we read the registers
+hardware should have stabilized. If we still see garbage after 10
+seconds, it suggests deeper hardware issue where PCI rescan is
+recomended from HW. This patch returns -EPROTO on detection
+of unaligned / out of range offset and that err code triggers the
+mana_serv_rescan().
 
 > 
-> That said, after discussing internally, we're leaning toward
-> introducing a new VFIO device feature with dedicated TPH fields (as
-> Alex suggested too), to avoid overloading vfio_region_dma_range with a
-> union that changes semantics based on position.
-> 
-> Would you have concerns with that direction? I'll post a v3 with the
-> new approach.
+> Jason
 
-I don’t have any concerns. My only worry was about “stealing” too many  
-bits from the flags variable, and you’ve avoided that here.
+Thanks Jason for the review comments, will post a v2 to drop the
+hardening label.
 
-Thanks
+Regards
+Dipayaan Roy
+
