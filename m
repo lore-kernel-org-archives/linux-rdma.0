@@ -1,175 +1,232 @@
-Received: from mail-oi1-f182.google.com (mail-oi1-f182.google.com [209.85.167.182])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from BL0PR03CU003.outbound.protection.outlook.com (mail-eastusazon11012047.outbound.protection.outlook.com [52.101.53.47])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B3B7044B694
-	for <linux-rdma@vger.kernel.org>; Tue, 28 Apr 2026 16:06:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.182
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777392385; cv=none; b=A6xoZ/KebmL96OiQeeQNByNyCSqxQPJUo02jhuX9DSVwrNpQSwJel3bxG6wYzXS0gONmgy6GVvJcHnYBnTGorvTg+LiByiueWVJNH+xJMfX5+LdNxyDAWASDmELpBqcH0VfE8Dt5bqEM9QL/+uu8DVvG0fc+MinDFN+xuJI7PGs=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777392385; c=relaxed/simple;
-	bh=6DKe+rDUv8PNTmDtNK0+PcDeStcbUVZSpaSAcNp6gCc=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ZHjQp2QxW5JHQHjkfT2oXi0zJ3wB9qfI/+JFqmdal+40rk9VDAb/smt3SGfHIiO2VGcV6nf6Bz9mLLqoWRtU+FKMYFAtAdyHoDjRO7LqIzCqwAqU1SLyvKwI6KhxrPW3Asqq5q1094SXyqNK6ZMCFEHro0Y6BBDOWNen19GlH4o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca; spf=pass smtp.mailfrom=ziepe.ca; dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b=NwnZN8cS; arc=none smtp.client-ip=209.85.167.182
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ziepe.ca
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0BE3732ED27;
+	Tue, 28 Apr 2026 16:17:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.53.47
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1777393078; cv=fail; b=mSGutt3scDWXmEAbufpgC/Zzv/0wHYtldB7k3s4DhLBzPtWiQ9B1hbVBI2H6NMoUxz5DnEyu5eDBXLvpozcSbQSOrN1R2RIGyNkObMDAI+oUHYE3IrwtjfCofRp116Mltf+r9AAt6j59ILuAZqVVaQ6kIC2hmkRxZr2h8UVu0rU=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1777393078; c=relaxed/simple;
+	bh=pA9nYoShjNCsXF0/dWpqj7GRsRHKThHrIZBTFyIyiDc=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=DcFljk5FABdcgVBdqEPKTJ+TT7GGDfDXSHn7M/xdTk3wz8970iGHpxrhVIv4QYrckkqQ9toyxqBsUrXl4nwOCGr+y0d1k45AgCcB9+JZWqGUWVy9Jzb9BQC7p4vc1PEbY3rIbHP2JtPgEOQ7lQM3G3fvgqd54+XEr0fHo3vG96Q=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=ckPiKeqc; arc=fail smtp.client-ip=52.101.53.47
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="NwnZN8cS"
-Received: by mail-oi1-f182.google.com with SMTP id 5614622812f47-47c35be02fdso217709b6e.3
-        for <linux-rdma@vger.kernel.org>; Tue, 28 Apr 2026 09:06:22 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google; t=1777392381; x=1777997181; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=Qpi+ZEPIeo8vz/y7CHMSuNMgCTG3NtxefpttRhwmn6o=;
-        b=NwnZN8cS+ZjXgO+6qaFuzSrGk58B9ynTEnFf7gSx6266VpKbt1JQziREs5MXyFW9f4
-         1+KRLhTj8gVnp6SBschgUB/RXy3QcZLXdM93+EbBMcSv0zreyisXb6NXOeSa+MMsEThI
-         J0hnTqDKRXW9cAu0ejcgzLHf1wObBaV3N/vXXiKinc5RqakG5IS9crC8JkyeUV7CZHqw
-         s9skfTf9+ck88I49J4oShf6BplUj3Us+RvqgdpMOAsUxuErOZOqjl5D7tutyHUpLJ/es
-         3bk1OAeYUJaxQSzJv5WgRIjWoMhK93PSKPiD1egeR1qxO8YzGAtlTxXI2Ww1JJFLsZ/F
-         +J7Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1777392381; x=1777997181;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=Qpi+ZEPIeo8vz/y7CHMSuNMgCTG3NtxefpttRhwmn6o=;
-        b=HkJyf4cjVynT6s5T++gq7xP1RL9bKAuHlVSI3E/Gs6x/j4dmBm1/YEuAHxhcpRqVIf
-         iFh1FIYZyW+5Z0Gg7OkfVwQP5o5jUIifq7dtUw50zhkZjLNQskefaLfHwptp+je63w6X
-         TGnvRQYFyGsPL24gOkr6BnJB70bt7TJbQcyEBdYyC97e2caZ8c2CD7AlrvQJQ8LIvDEa
-         7nvsoL2suPkItLX2sHWTh00SxsK5Ws2xoXZvr1anQBFjgo4rYwriPSkZrGMTMPz96FMy
-         o8wZvbF5srFNDKj5aQBEpxoYCyiV58d9bFHqWqFncr05ftvix/iqqy0X1g/8dCZHa+6N
-         6Afw==
-X-Forwarded-Encrypted: i=1; AFNElJ8Mhry7NIjmZeSilV+XZbjSTesrlDEp50vFXAnhYAUi3cc2KqHqmdidXY72FZbFVHYJl0zG6Xp9ehdm@vger.kernel.org
-X-Gm-Message-State: AOJu0YzWalA1h2GwnHImkf2sNgL037XJDfO9+cnyf8MmRdNwhsaP44sx
-	y6v4lVoUJYOreZP5blqy/xzfY6gKQ2M/rvsNq5GCQnRs7YWqI6+sSTMZWl4rvBBeqAA=
-X-Gm-Gg: AeBDiesWG8J6WXxHrFDPPjBqnQEOTeqaqDrIGBjiBsq8cwarFxYWDZHcpcTQ8JUpx4b
-	AmFvMMItowwuvi+RZ/0aKNieui/GYMS2Fr+uY6gmNy2LMHJqGSshrvvLDzwoS421EF5PTpLuujq
-	D074qIW2WFdNAGr/S3TZOp+B+NVFh7lwiqmvjLCpEKMjY2n9p/WsH++dbsqyhOjvLIrWAxn3ry+
-	MT18UAygsA3aTJy7bbVavp7BVz/gEOEmeOgY6R4+E5uQenJ/hLQJ7pa7tVl4yoXm+3C9bEfXiwq
-	C7Xfpd8kPQLU+IB0D48w7Bw4aHlDNpNbS30ddMK6980a7HX7gEwIoUkf335J1LYxovanz66qjhI
-	0tBlqbXwgfnj3yQGEyTGR4xVaRZZF4/rBeFgQZlDKflpmxs328lzh9k6TGtoCEGttb5V1FrDPxE
-	+Q9MF2yqDAcnd3ay1/qxyKv7QxXzmNDn+Owi6g2v+uGrVbi4MhfOy553e8GfO5KiAQeZIYsB279
-	BxWAf+NMGrg6D/b
-X-Received: by 2002:a05:6808:181d:b0:464:5f3:ed1 with SMTP id 5614622812f47-47c28fc8fbdmr1928457b6e.26.1777392381147;
-        Tue, 28 Apr 2026 09:06:21 -0700 (PDT)
-Received: from ziepe.ca (crbknf0213w-47-54-130-67.pppoe-dynamic.high-speed.nl.bellaliant.net. [47.54.130.67])
-        by smtp.gmail.com with ESMTPSA id af79cd13be357-8f7c7cd2c97sm212640085a.23.2026.04.28.09.06.20
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 28 Apr 2026 09:06:20 -0700 (PDT)
-Received: from jgg by wakko with local (Exim 4.97)
-	(envelope-from <jgg@ziepe.ca>)
-	id 1wHkx1-0000000Bgu8-31g1;
-	Tue, 28 Apr 2026 13:06:19 -0300
-Date: Tue, 28 Apr 2026 13:06:19 -0300
-From: Jason Gunthorpe <jgg@ziepe.ca>
-To: Guangshuo Li <lgs201920130244@gmail.com>
-Cc: Yishai Hadas <yishaih@nvidia.com>, Leon Romanovsky <leon@kernel.org>,
-	Jack Morgenstein <jackm@dev.mellanox.co.il>,
-	Roland Dreier <roland@purestorage.com>, linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Subject: Re: [PATCH v3] IB/mlx4: Fix refcount leak in add_port() error path
-Message-ID: <20260428160619.GJ849557@ziepe.ca>
-References: <20260428154716.375069-1-lgs201920130244@gmail.com>
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="ckPiKeqc"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=Hqv/yD2JCMZcoIose9QrsmlAuACj91Qh6SynONMPbil2dQxRi5NFB8BkTsLkiycEQWikgRucDcRt7xqvDkQXYx6gxVvVOs0WkXfzPlQ9stufuF0l9DcVF89sLPsTBFUBeQfZxOjGaskaJcOdPq1AJYv8GaJEYIAnenb/KleMY4PXefxdZCPBbRYUD4kDYAused/+tfUBRTJtwvVmpGO1RnAR2GRsO0V9kTq90Otn/n8mSXRkJ5DLV+5rQPqLIGt9c/w1tuGOfNZMM+1c+lzor5r6pGIC45PaAx31TnZbf7zG1Blo9HgGVncRh8XN1V/2nrB6u7Akf3GY0RTFEBWl0g==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=cc+FYkK2mXSU+6/gIeF2ZbOIY/dDKboSo9MjMubv6QU=;
+ b=hreO3/FwG5tGzstuXANdI9x2qUxdDSQOfMBmnO1HjFqQwCR8Fjce1DasE5OQHjARJpzw8M7I1/GxPyCi2VBKjiu/ZNPwUPCdJDwZRbQbOuQr01/DVAr40N6wrSALm+DVe1+ee2XOEeWa30ZxgGFdJCJAg2q5YMIt7K8SGnJx5GsxR7Vmn5/h9XFV7SznfHoz06TB39GAWtZ/qG090iaSyq3G+NojC0uhrrgjwNs8f6cZyKIa8Zxpacwqf9vdJB5uH8MlFF9IwTq8ymh8oq6A78+KQHbyRPRjuj5krAb92QszgWX/nCFZz32PB9sOshOKtAjwHCA0y0V8fRaE35SMQg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=cc+FYkK2mXSU+6/gIeF2ZbOIY/dDKboSo9MjMubv6QU=;
+ b=ckPiKeqc+G/cG61GZy++OXebqAePMlxFQfUDm4mIGj+NlX7a7n2DYsaASC4aWNr+EnPZI+vtNic0usjxrLO7uV2qtEr7j+0rDVfFoirtP9L3oig1qhBBE1mdg9iIlklA8390sAZF/+hGpl3+A2NKGI6bkwN1skeYRejbxgGVvSVLYGasOVffx2LfxAgX1ywF/Q0d8JrFDELfjWhWl4/3be08XTpOXotS7QqEraUboJJKI9WkA4ABNP3aOQUyXtjrEiOI3XgO/NXgyk6wctKaRGuGjoKI0lkTNd+z/f25Yo4TXTE/akxA/2CWy27YJoqk0wLpjwy2EaAUZegsQhCSOA==
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from LV8PR12MB9620.namprd12.prod.outlook.com (2603:10b6:408:2a1::19)
+ by LV2PR12MB999095.namprd12.prod.outlook.com (2603:10b6:408:353::12) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9870.16; Tue, 28 Apr
+ 2026 16:17:51 +0000
+Received: from LV8PR12MB9620.namprd12.prod.outlook.com
+ ([fe80::299d:f5e0:3550:1528]) by LV8PR12MB9620.namprd12.prod.outlook.com
+ ([fe80::299d:f5e0:3550:1528%5]) with mapi id 15.20.9870.013; Tue, 28 Apr 2026
+ 16:17:51 +0000
+From: Jason Gunthorpe <jgg@nvidia.com>
+To: Andrew Lunn <andrew+netdev@lunn.ch>,
+	Broadcom internal kernel review list <bcm-kernel-feedback-list@broadcom.com>,
+	Bryan Tan <bryan-bt.tan@broadcom.com>,
+	Eric Dumazet <edumazet@google.com>,
+	Junxian Huang <huangjunxian6@hisilicon.com>,
+	Konstantin Taranov <kotaranov@microsoft.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Leon Romanovsky <leon@kernel.org>,
+	linux-hyperv@vger.kernel.org,
+	linux-rdma@vger.kernel.org,
+	netdev@vger.kernel.org,
+	Paolo Abeni <pabeni@redhat.com>,
+	Selvin Xavier <selvin.xavier@broadcom.com>,
+	Chengchang Tang <tangchengchang@huawei.com>,
+	Tariq Toukan <tariqt@nvidia.com>,
+	Vishnu Dasa <vishnu.dasa@broadcom.com>,
+	Yishai Hadas <yishaih@nvidia.com>
+Cc: Abhijit Gangurde <abhijit.gangurde@amd.com>,
+	Adit Ranadive <aditr@vmware.com>,
+	Allen Hubbe <allen.hubbe@amd.com>,
+	Andrew Boyer <andrew.boyer@amd.com>,
+	Aditya Sarwade <asarwade@vmware.com>,
+	Brad Spengler <brad.spengler@opensrcsec.com>,
+	Bryan Tan <bryantan@vmware.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Dexuan Cui <decui@microsoft.com>,
+	Doug Ledford <dledford@redhat.com>,
+	George Zhang <georgezhang@vmware.com>,
+	Jorgen Hansen <jhansen@vmware.com>,
+	Jianbo Liu <jianbol@nvidia.com>,
+	Kai Aizen <kai.aizen.dev@gmail.com>,
+	Leon Romanovsky <leonro@mellanox.com>,
+	Leon Romanovsky <leonro@nvidia.com>,
+	Yixian Liu <liuyixian@huawei.com>,
+	Long Li <longli@microsoft.com>,
+	Lijun Ou <oulijun@huawei.com>,
+	Parav Pandit <parav.pandit@emulex.com>,
+	patches@lists.linux.dev,
+	Roland Dreier <roland@purestorage.com>,
+	Roland Dreier <rolandd@cisco.com>,
+	Sagi Grimberg <sagi@grimberg.me>,
+	Ajay Sharma <sharmaajay@microsoft.com>,
+	stable@vger.kernel.org,
+	Tariq Toukan <tariqt@mellanox.com>,
+	"Wei Hu (Xavier)" <xavier.huwei@huawei.com>,
+	Shaobo Xu <xushaobo2@huawei.com>,
+	Nenglong Zhao <zhaonenglong@hisilicon.com>
+Subject: [PATCH rc 13/15] RDMA/hns: Fix xarray race in hns_roce_create_srq()
+Date: Tue, 28 Apr 2026 13:17:46 -0300
+Message-ID: <13-v1-41f3135e5565+9d2-rdma_ai_fixes1_jgg@nvidia.com>
+In-Reply-To: <0-v1-41f3135e5565+9d2-rdma_ai_fixes1_jgg@nvidia.com>
+References:
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: BLAPR03CA0122.namprd03.prod.outlook.com
+ (2603:10b6:208:32e::7) To LV8PR12MB9620.namprd12.prod.outlook.com
+ (2603:10b6:408:2a1::19)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260428154716.375069-1-lgs201920130244@gmail.com>
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: LV8PR12MB9620:EE_|LV2PR12MB999095:EE_
+X-MS-Office365-Filtering-Correlation-Id: cc1a86d8-8727-4487-c05a-08dea541b146
+X-LD-Processed: 43083d15-7273-40c1-b7db-39efd9ccc17a,ExtAddr
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|7416014|376014|1800799024|366016|56012099003|22082099003|18002099003|921020;
+X-Microsoft-Antispam-Message-Info:
+	g4XXXwYjIVjcHrLFbhBc6e4VAov2jX7gqpkQR5IAsqKCoJ6MnNx27Y9m0LAF514E6BYwUcIsnoTzrbl1vvtmqPBND8s+DNyKjx1/4RmpcCmNVhPw3BvRnPRllOv6YgpWeNpQaZJLIrNVk836QGpz2fBgcUUJwQ+TRjfbXN5DX3ldnZRtbGo+09ZqrslhDMwCWxG0CrZEon0l7x3VhiGszfoUSqo/0+FYm4CL5XPdJDM7LQD6ltPTT9LsX/8eyw7OPGhF4D/cU+pE501nksSE6aZdpR5Ar5IpaGOurpUfCUo9C0PBm2skEjTW+n9unk9SN1iupjOoPz44T1p0W5uKce+B8qVo89PdtTxct/fukc14xYaYXANMhJtsBzw6qZo/CuTG8yxddyT5NYAVdbplE/eSh9SedZ9VhLY3XKGqFK04IwvryFZJhTfHLqsODzjPgRKOKt9mrvTBGwl5r0BT5DpYKsOk7Qn+his7fwqpi768EmLWjf4bVVXRM8mV8L1HDckefPtn8BNTJF3qdYnF0dZJfzxYbWe+pHgUQnDiC2WNzHdtmpebbTd+PdzcApGW7aJ3yrnz2CPsbGa/Jh9G6oao+LLQIF+TVTvJgFf393ZdImCRDt53RlLNcg1F40NJ1DJR6LF73cpUQ8gjpeQjL4/UCt0+Zn74/EmDFN31GHzXyslAcCdZb0pb2+gP/1g9DzuGS5SBLNtUUK81Tdt+GvnGjCRaYV+JXbZFOMWx5AgnxSDwfixz/Y8LHV6oYhAEEaSl6EYffTNeMOTv0gP6cw==
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:LV8PR12MB9620.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(7416014)(376014)(1800799024)(366016)(56012099003)(22082099003)(18002099003)(921020);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?us-ascii?Q?OE2IG2Xbhrsxv2RxEO4VDkknm/TLy0pB0KvChI4vLy3SYN/Hh1/mR2a4eq9q?=
+ =?us-ascii?Q?tbZRw8yiT8gAU9KqXL4tjV+QwjN4zOCqRRJkRqhHryAf8K+Yw/PhR0dmXha8?=
+ =?us-ascii?Q?slzwT2qG1o1LhXl2g09XRrnOhSDapotFPaGYGsKHBvJgo7Mo87OBMhL9dqND?=
+ =?us-ascii?Q?PwH4uu8VwoO/iHqqOUljk2YJrCFJrmH0hUF/m3La6MPQ+N35mz58LLlAuxIy?=
+ =?us-ascii?Q?nbg+8vFIrfgjRy6N/KszTudjaWisQl1H30OJnlqEIE1/u2zj+5Nj3r/eyZw8?=
+ =?us-ascii?Q?GQvIlAmj0FjY/8slJfqcQPkbWMh7cDuPr36JUDyl2hrGRh8oZORLTojmZu5L?=
+ =?us-ascii?Q?4kl9bKpSIROe4+SES6bhD6n+7nITwAStX0LvRXHi8niHzlJ3hNiiIMkOgDwq?=
+ =?us-ascii?Q?Q6PZsQPmaxqCSMHN6sD5YYiNjUAcQd7v88vXVFyCzueUHN9MvhI5TK6dqDOf?=
+ =?us-ascii?Q?liALVAU+YrYgl6eZPYz/kh3ixhKKM10CHAtsPd5wy8JSDkZRqVbu3zc45Oii?=
+ =?us-ascii?Q?rqVFMiGxRFOnHcnS4eB4e0yjFyE8aKNB80xNJUZw/otykK/U+ppFHgt427Yz?=
+ =?us-ascii?Q?FuEfHxajmlSUHi2mxQT3B/l8TLuUeyyQtVDc/P9u9nJ00f74JELEA/wBPwru?=
+ =?us-ascii?Q?1RxTojepfB2p94YsVeENh4SOF76kLRvPWqJHU0ZRbjpOfPjfPK+mMEo2VGdG?=
+ =?us-ascii?Q?uRGl7JivlcKaAsCMfz7VTkl+6+fcoLjlwXx+FezW35xOi2tCNzbmOcPGYEdf?=
+ =?us-ascii?Q?csqvATsuLm1sfI9lRTBtVrc6OfPm1wZ8y+1drgIIfk6h/nvh7xltjJq8zWd2?=
+ =?us-ascii?Q?bz1RVZ8vntBNN32TravReGTiFVCtC1Ej6vkL5tbYBCXw8GmnGlzJpgZPz3sx?=
+ =?us-ascii?Q?RJg9w1H2tJvgEWblAJ2jdmUsy3xGB/6vr1RHQXUEEiuxVU6LcRzpeTDLO9dW?=
+ =?us-ascii?Q?z4P5I7CXHkQldYOZbRLLvniyPj9LN7ZizPRC0YGBp5HtDWV175hZyg2ngmQo?=
+ =?us-ascii?Q?6vFsOm/kL3ort8j3A+/w/+rzviCe6Vs70iBq/Rjd0CpsM3TcI6zjokFa2Sry?=
+ =?us-ascii?Q?hMk8Gte4Srg5S8jJG0LWcoUgmRB+mvqZHK1j5xPNeYLWTs6ymHb11xPSID+u?=
+ =?us-ascii?Q?oo6Lek2p/L3j/qmORH8EdeErxe3sDqGsFAA0j0v7ruEBFTkUZ3sMA8EEQOW8?=
+ =?us-ascii?Q?8PRwvBPvB+Q6aTTb4R7NrUpj6RK7kWGfXISo9U36yFjZM6CAlGun0Ewu25jY?=
+ =?us-ascii?Q?0qKX91yh4i0iIzeeMYZD302YGMStDPM7aAKYmH0zt5K1iZ2nXrUxLzYqv0wn?=
+ =?us-ascii?Q?iiVYppYR7nSxvnNQCtwNuVaQaD3L2WHgVlaHCrMXZbnc9gyeJad49rp0djRB?=
+ =?us-ascii?Q?BBO7Wb8COsUxHH9T8tS0fPfcPFcvjMKtJsSSEj0Qzxj1racsm/VXo9ijk1BE?=
+ =?us-ascii?Q?6V4wpU+Od6OtqLk1iHX6wU4/KJZmu1Itrw8sgpxyWlfJAC0T+qs7GtT4AjkX?=
+ =?us-ascii?Q?HH/WPcaCUQ1mvzwGhRZm79ZMrhBGOy7VwwNCRsnphvaJrG8pGJyVrSSj+rbo?=
+ =?us-ascii?Q?ZDswkrtfZS4AjDZQ0IL/NqQ93WYwo+xZ+Vozksf/dHeNBmhOV3f0xDSDFXbb?=
+ =?us-ascii?Q?LYl17ao734veAv+fNu4/jospuT9xAduleUI2oWpXDg3loK9xTBJerpyuLhbt?=
+ =?us-ascii?Q?W3dZwAF5XjCPbUzk0xYfzP1nhLGz4RlgVLmKpsVwWmEil5QG?=
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: cc1a86d8-8727-4487-c05a-08dea541b146
+X-MS-Exchange-CrossTenant-AuthSource: LV8PR12MB9620.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 28 Apr 2026 16:17:50.3172
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: VjKaA/yjYmASzgCjgH98TJBBKvuHqtmLuYPShxnfe1GXUNgK1HUeApizLhlZbee9
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: LV2PR12MB999095
 
-On Tue, Apr 28, 2026 at 11:47:16PM +0800, Guangshuo Li wrote:
-> After kobject_init_and_add(), the lifetime of the embedded struct
-> kobject is expected to be managed through the kobject core reference
-> counting.
-> 
-> In add_port(), if kobject_init_and_add() fails, the error path frees p
-> directly instead of releasing the kobject reference with kobject_put().
-> This may leave the reference count of the embedded struct kobject
-> unbalanced, resulting in a refcount leak and potentially leading to a
-> use-after-free.
-> 
-> The issue was identified by a static analysis tool I developed and
-> confirmed by manual review.
-> 
-> Fix this by using kobject_put(&p->kobj) in the kobject_init_and_add()
-> failure path.
-> 
-> Fixes: c1e7e466120b ("IB/mlx4: Add iov directory in sysfs under the ib device")
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Guangshuo Li <lgs201920130244@gmail.com>
-> ---
-> v3:
->   - make mlx4_port_release() tolerate NULL attribute arrays
->   - drop the parent kobject reference on the kobject_init_and_add()
->     failure path before putting the embedded kobject
-> 
-> v2:
->   - note that the issue was identified by my static analysis tool
->   - and confirmed by manual review
-> 
->  drivers/infiniband/hw/mlx4/sysfs.c | 25 ++++++++++++++++++-------
->  1 file changed, 18 insertions(+), 7 deletions(-)
-> 
-> diff --git a/drivers/infiniband/hw/mlx4/sysfs.c b/drivers/infiniband/hw/mlx4/sysfs.c
-> index b8fa4ecfc961..38c64b5fb23a 100644
-> --- a/drivers/infiniband/hw/mlx4/sysfs.c
-> +++ b/drivers/infiniband/hw/mlx4/sysfs.c
-> @@ -380,12 +380,17 @@ static void mlx4_port_release(struct kobject *kobj)
->  	struct attribute *a;
->  	int i;
->  
-> -	for (i = 0; (a = p->pkey_group.attrs[i]); ++i)
-> -		kfree(a);
-> -	kfree(p->pkey_group.attrs);
-> -	for (i = 0; (a = p->gid_group.attrs[i]); ++i)
-> -		kfree(a);
-> -	kfree(p->gid_group.attrs);
-> +	if (p->pkey_group.attrs) {
-> +		for (i = 0; (a = p->pkey_group.attrs[i]); ++i)
-> +			kfree(a);
-> +		kfree(p->pkey_group.attrs);
-> +	}
-> +
-> +	if (p->gid_group.attrs) {
-> +		for (i = 0; (a = p->gid_group.attrs[i]); ++i)
-> +			kfree(a);
-> +		kfree(p->gid_group.attrs);
-> +	}
->  	kfree(p);
->  }
->  
-> @@ -640,7 +645,7 @@ static int add_port(struct mlx4_ib_dev *dev, int port_num, int slave)
->  				   kobject_get(dev->dev_ports_parent[slave]),
->  				   "%d", port_num);
->  	if (ret)
-> -		goto err_alloc;
-> +		goto err_kobj;
->  
->  	p->pkey_group.name  = "pkey_idx";
->  	p->pkey_group.attrs =
-> @@ -687,6 +692,12 @@ static int add_port(struct mlx4_ib_dev *dev, int port_num, int slave)
->  	kobject_put(dev->dev_ports_parent[slave]);
->  	kfree(p);
->  	return ret;
-> +
-> +err_kobj:
-> +	kobject_put(dev->dev_ports_parent[slave]);
-> +	kobject_put(&p->kobj);
-> +	return ret;
-> +
+Sashiko points out that once the srq memory is stored into the xarray by
+alloc_srqc() it can immediately be looked up by:
 
-Do not put double returns in goto-unwinds..
+	xa_lock(&srq_table->xa);
+	srq = xa_load(&srq_table->xa, srqn & (hr_dev->caps.num_srqs - 1));
+	if (srq)
+		refcount_inc(&srq->refcount);
+	xa_unlock(&srq_table->xa);
 
-This should be fixed to open code the kobject_init() immediately after
-the memory allocation so we never switch between kfree and put, and fix
-all the release functions to tolerate half initialized objects.
+Which will fail refcount debug because the refcount is 0 and then crash:
 
-Then you can remove the mess of kfrees which are all duplicated in the
-release function.
+	srq->event(srq, event_type);
 
-Jason
+Because event is NULL.
+
+Use refcount_inc_not_zero() instead to ensure a partially prepared srq is
+never retrieved from the event handler and fix the ordering of the
+initialization so refcount becomes 1 only after it is fully ready.
+
+All the initialization must be done before calling free_srqc() since it
+depends on the completion and refcount.
+
+Fixes: 9a4435375cd1 ("IB/hns: Add driver files for hns RoCE driver")
+Link: https://sashiko.dev/#/patchset/0-v1-e911b76a94d1%2B65d95-rdma_udata_rep_jgg%40nvidia.com?part=3
+Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
+---
+ drivers/infiniband/hw/hns/hns_roce_srq.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/infiniband/hw/hns/hns_roce_srq.c b/drivers/infiniband/hw/hns/hns_roce_srq.c
+index cb848e8e6bbd76..8b94cbdfa54dfa 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_srq.c
++++ b/drivers/infiniband/hw/hns/hns_roce_srq.c
+@@ -16,8 +16,8 @@ void hns_roce_srq_event(struct hns_roce_dev *hr_dev, u32 srqn, int event_type)
+ 
+ 	xa_lock(&srq_table->xa);
+ 	srq = xa_load(&srq_table->xa, srqn & (hr_dev->caps.num_srqs - 1));
+-	if (srq)
+-		refcount_inc(&srq->refcount);
++	if (srq && !refcount_inc_not_zero(&srq->refcount))
++		srq = NULL;
+ 	xa_unlock(&srq_table->xa);
+ 
+ 	if (!srq) {
+@@ -470,6 +470,10 @@ int hns_roce_create_srq(struct ib_srq *ib_srq,
+ 	if (ret)
+ 		goto err_srqn;
+ 
++	srq->event = hns_roce_ib_srq_event;
++	init_completion(&srq->free);
++	refcount_set_release(&srq->refcount, 1);
++
+ 	if (udata) {
+ 		resp.cap_flags = srq->cap_flags;
+ 		resp.srqn = srq->srqn;
+@@ -480,10 +484,6 @@ int hns_roce_create_srq(struct ib_srq *ib_srq,
+ 		}
+ 	}
+ 
+-	srq->event = hns_roce_ib_srq_event;
+-	refcount_set(&srq->refcount, 1);
+-	init_completion(&srq->free);
+-
+ 	return 0;
+ 
+ err_srqc:
+-- 
+2.43.0
+
