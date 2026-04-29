@@ -1,226 +1,185 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.10])
+Received: from out-185.mta0.migadu.com (out-185.mta0.migadu.com [91.218.175.185])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4916339FCD0
-	for <linux-rdma@vger.kernel.org>; Wed, 29 Apr 2026 23:30:07 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.10
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 914FC2F84F
+	for <linux-rdma@vger.kernel.org>; Wed, 29 Apr 2026 23:31:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.185
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777505412; cv=none; b=D+DC6dsanecPMsWcCLJKZe4PoEHpaccNu3q7H8DcuHnaSCKOuDZnxubnvLWZotkcvLNMx5y3+7uA8ziPFE/6mhvxErbUXffxW8Ei4xRxNiIW/jLeC7ocrheTz69Lx9fGd4mgHbgEbahXTtOZdw9OVRWQLM7ekSnpMt6bKXuenhM=
+	t=1777505516; cv=none; b=QcEEk6zpUAPo4/GwLWUgeG/0eeOP/nwxyTHr9TamrwNS98GPyM1G3SrbUDSWNyboPgJTfY+g+TYV7oJ1t641izykk9P1p/l1lLY9gli0dx2cfh0qmZ9vWceIFyfFHNetqJ8ony8hQ7YX7TMbtm1p1SxKluIq7SofhVz3vKRQoNI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777505412; c=relaxed/simple;
-	bh=rYcTaPiCDpsDGGzfgLnLnuE+nRDdHNPAmTdeg4rOBYo=;
-	h=Date:From:To:Cc:Subject:Message-ID; b=V5LNHjL3Z4pAYMyPphtxVLiS8GB9yCUhEjf186EOA+FgHar2pv5o6HfOMVaZwy5MDz8XON908dPjUnBE+IvwLXwb8qoh8JqNlFNG7iiqTUdC0T5X9TbfAN61C+NZgjVOTlp/O4CnmGy2Tj2oU4URHrjMv7oJDJpZoWxb0owx4Dk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=MmMDBuFz; arc=none smtp.client-ip=198.175.65.10
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1777505516; c=relaxed/simple;
+	bh=A8ZTk5usKXyP1lxuJ4xP3WQ2rEwp786RLG2wrwavhRw=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=lOadYEZE0gfbDudZ+7t2yl+oQvUSwsVtyHzCkFbpRBrcCbyX9f4a1m4fXtcku97w/KnK4jQk+bqe+ZuWURZhbO8yxu7JLu9kKxaKpxAzsL2As905KfQ88G6fKQOEG8Cb7g64YB+w2SO8LULqih6WdmlRY/UekSGiliZ110W366E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=K15mvZGp; arc=none smtp.client-ip=91.218.175.185
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="MmMDBuFz"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1777505408; x=1809041408;
-  h=date:from:to:cc:subject:message-id;
-  bh=rYcTaPiCDpsDGGzfgLnLnuE+nRDdHNPAmTdeg4rOBYo=;
-  b=MmMDBuFzcGLlv+kFMG+kJIQZmYB0USNBM0cjKJK51aCdu7VTWhGSOc0y
-   3Of4yUdPLS4FdP5ssCQLI6zHWWvnYz6xVQLsTywxRxH8mB3/7ywf2LAcd
-   SbkgTU+wcZbNDKivD7vwSUTkhx2zq9t/b4Q9fdl6S2ozbDdGGlDehEf4w
-   UvMKJZSws4wt2T16lxUg8vsDjyBfvLYWrjY1haPq6AcwepPjVHCcIJV5k
-   XvZcd+NkgDCRU1KtBRRrfEvoYSch+7m2pJ5Z9mXRT7SnTXcs2Pl4z1W1Y
-   NBWgnogwY9dxBIVAhcyGvflQXy73CACDKydKrsGjoWYM07butK6nZglCp
-   g==;
-X-CSE-ConnectionGUID: WknsRRvBRL+d/ntJiGyHug==
-X-CSE-MsgGUID: vK0UtiM6TsWgX0arUrjmAw==
-X-IronPort-AV: E=McAfee;i="6800,10657,11771"; a="95869012"
-X-IronPort-AV: E=Sophos;i="6.23,207,1770624000"; 
-   d="scan'208";a="95869012"
-Received: from orviesa009.jf.intel.com ([10.64.159.149])
-  by orvoesa102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Apr 2026 16:30:07 -0700
-X-CSE-ConnectionGUID: i+7V/QTPSN67EdbGcNj4cQ==
-X-CSE-MsgGUID: 2g9mDdanQfetib6rRlY/Vw==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.23,207,1770624000"; 
-   d="scan'208";a="234438327"
-Received: from lkp-server01.sh.intel.com (HELO aa799cca880d) ([10.239.97.150])
-  by orviesa009.jf.intel.com with ESMTP; 29 Apr 2026 16:30:06 -0700
-Received: from kbuild by aa799cca880d with local (Exim 4.98.2)
-	(envelope-from <lkp@intel.com>)
-	id 1wIELz-00000000BeG-1n1I;
-	Wed, 29 Apr 2026 23:30:03 +0000
-Date: Thu, 30 Apr 2026 07:29:11 +0800
-From: kernel test robot <lkp@intel.com>
-To: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org
-Subject: [rdma:wip/jgg-for-rc] BUILD SUCCESS
- c488df06bd552bb8b6e14fa0cfd5ad986c6e9525
-Message-ID: <202604300701.I491eih9-lkp@intel.com>
-User-Agent: s-nail v14.9.25
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="K15mvZGp"
+Message-ID: <8b7650f8-2957-4318-841a-473738a605ef@linux.dev>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
+	t=1777505512;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=02h3M7BZd32IKv0zzGgTvlhjP2kOtP8JnCQD9PVdmcc=;
+	b=K15mvZGpUUvhVHg4yCKXcMUbBukvjvkz0lUS1ON9bacdFitw3oBeDyXF+cVbkOHVsUFUjp
+	UH34fT2uxq5NNBQniROaOF5nCLWNqijjeq65a56Ck27fbLBaA61N115QbEHTRH+Lz1VJTi
+	jGm2Ah5Bje6+IxOuB4zvgfmV2xHY0gA=
+Date: Wed, 29 Apr 2026 16:31:48 -0700
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Subject: Re: [PATCH 1/1] RDMA/rxe: Fix unsafe socket release during namespace
+ cleanup
+To: Leon Romanovsky <leon@kernel.org>, Zhu Yanjun <yanjun.zhu@linux.dev>
+Cc: zyjzyj2000@gmail.com, jgg@ziepe.ca, linux-rdma@vger.kernel.org
+References: <20260424043522.22901-1-yanjun.zhu@linux.dev>
+ <20260427123503.GI440345@unreal>
+ <805dcebc-39c6-4140-b07f-f76b7594c9d8@linux.dev>
+ <20260428142653.GQ440345@unreal>
+ <3bc69e75-1b4b-4bb9-87c4-7db863acc3d2@linux.dev>
+Content-Language: en-US
+X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
+From: "yanjun.zhu" <yanjun.zhu@linux.dev>
+In-Reply-To: <3bc69e75-1b4b-4bb9-87c4-7db863acc3d2@linux.dev>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
+X-Migadu-Flow: FLOW_OUT
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git wip/jgg-for-rc
-branch HEAD: c488df06bd552bb8b6e14fa0cfd5ad986c6e9525  RDMA/mlx5: Fix error path fall-through in mlx5_ib_dev_res_srq_init()
+On 4/29/26 6:49 AM, Zhu Yanjun wrote:
+> 在 2026/4/28 7:26, Leon Romanovsky 写道:
+>> On Mon, Apr 27, 2026 at 01:52:17PM -0700, yanjun.zhu wrote:
+>>> On 4/27/26 5:35 AM, Leon Romanovsky wrote:
+>>>> On Fri, Apr 24, 2026 at 06:35:22AM +0200, Zhu Yanjun wrote:
+>>>>> Since all the sockets are created in rdma link create command
+>>>>> and destroyed in rdma link delete command, keeping
+>>>>> udp_tunnel_sock_release in rxe_ns_exit risks a "double-free" if
+>>>>> the namespace and the device are being cleaned up simultaneously.
+>>>>
+>>>> Please add a ladder diagram to clarify how it can be possible.
+>>>
+>>> Hi, Leon
+>>>
+>>> The double-free occurs as follows:
+>>>
+>>> CPU 0 (Net NameSpace cleanup)        CPU 1 (RDMA device removal)
+>>> ---------------------                ---------------------------
+>>> rxe_ns_exit()                        rxe_link_delete() (rdma link del )
+>>>    -> sk = ns_sk->rxe_sk4               -> sk = ns_sk->rxe_sk4
+>>>    -> udp_tunnel_sock_release(sk)
+>>>       [Success: First Free]             -> udp_tunnel_sock_release(sk)
+>>>                                            [Crash: Double Free]
+>>>
+>>> After removing the socket release logic from rxe_ns_exit(), we ensure
+>>> that only the device destruction path (rxe_link_delete) is responsible
+>>> for freeing the tunnel sockets, effectively eliminating the double-free
+>>> problem.
+>>
+>> I think it is possible to call rxe_ns_exit() without invoking
+>> rxe_link_delete(), and in that case the UDP socket will not be
+>> destroyed.
+> 
+> Thanks, my bad. I missed this scenario.
+> 
+> Zhu Yanjun
+> 
+>>
+>> Thanks
+>>
+>>>
+>>> I am not sure if I should put the above into the commit log.
+>>>
+>>> Thanks a lot.
 
-elapsed time: 1764m
+Hi, Leon
 
-configs tested: 149
-configs skipped: 2
+I have performed further tests to verify the execution order and the 
+necessity of the cleanup code in rxe_ns_exit().
 
-The following configs have been built successfully.
-More configs may be tested in the coming days.
+My findings show that a double-free race condition is unlikely because 
+of how the kernel manages namespace references:
 
-tested configs:
-alpha                             allnoconfig    gcc-15.2.0
-alpha                            allyesconfig    gcc-15.2.0
-alpha                               defconfig    gcc-15.2.0
-arc                              allmodconfig    clang-16
-arc                               allnoconfig    gcc-15.2.0
-arc                              allyesconfig    clang-23
-arc                                 defconfig    gcc-15.2.0
-arc                   randconfig-001-20260430    gcc-8.5.0
-arc                   randconfig-002-20260430    gcc-8.5.0
-arm                               allnoconfig    gcc-15.2.0
-arm                              allyesconfig    clang-16
-arm                                 defconfig    gcc-15.2.0
-arm                   randconfig-001-20260430    gcc-8.5.0
-arm                   randconfig-002-20260430    gcc-8.5.0
-arm                   randconfig-003-20260430    gcc-8.5.0
-arm                   randconfig-004-20260430    gcc-8.5.0
-arm64                            allmodconfig    clang-23
-arm64                             allnoconfig    gcc-15.2.0
-arm64                               defconfig    gcc-15.2.0
-arm64                          randconfig-001    clang-23
-arm64                 randconfig-001-20260430    clang-23
-arm64                          randconfig-002    clang-23
-arm64                 randconfig-002-20260430    clang-23
-arm64                          randconfig-003    clang-23
-arm64                 randconfig-003-20260430    clang-23
-arm64                          randconfig-004    clang-23
-arm64                 randconfig-004-20260430    clang-23
-csky                             allmodconfig    gcc-15.2.0
-csky                              allnoconfig    gcc-15.2.0
-csky                                defconfig    gcc-15.2.0
-csky                           randconfig-001    clang-23
-csky                  randconfig-001-20260430    clang-23
-csky                           randconfig-002    clang-23
-csky                  randconfig-002-20260430    clang-23
-hexagon                          allmodconfig    gcc-15.2.0
-hexagon                           allnoconfig    gcc-15.2.0
-hexagon                             defconfig    gcc-15.2.0
-hexagon               randconfig-001-20260430    gcc-14.3.0
-hexagon               randconfig-002-20260430    gcc-14.3.0
-i386                             allmodconfig    clang-20
-i386                              allnoconfig    gcc-15.2.0
-i386                             allyesconfig    clang-20
-i386        buildonly-randconfig-001-20260430    gcc-14
-i386        buildonly-randconfig-002-20260430    gcc-14
-i386        buildonly-randconfig-003-20260430    gcc-14
-i386        buildonly-randconfig-004-20260430    gcc-14
-i386        buildonly-randconfig-005-20260430    gcc-14
-i386        buildonly-randconfig-006-20260430    gcc-14
-i386                                defconfig    gcc-15.2.0
-i386                  randconfig-001-20260430    clang-20
-i386                  randconfig-002-20260430    clang-20
-i386                  randconfig-003-20260430    clang-20
-i386                  randconfig-004-20260430    clang-20
-i386                  randconfig-005-20260430    clang-20
-i386                  randconfig-006-20260430    clang-20
-i386                  randconfig-007-20260430    clang-20
-i386                  randconfig-011-20260430    clang-20
-i386                  randconfig-012-20260430    clang-20
-i386                  randconfig-013-20260430    clang-20
-i386                  randconfig-014-20260430    clang-20
-i386                  randconfig-015-20260430    clang-20
-i386                  randconfig-016-20260430    clang-20
-i386                  randconfig-017-20260430    clang-20
-loongarch                        allmodconfig    clang-23
-loongarch                         allnoconfig    gcc-15.2.0
-loongarch                           defconfig    clang-19
-loongarch             randconfig-001-20260430    gcc-14.3.0
-loongarch             randconfig-002-20260430    gcc-14.3.0
-m68k                             allmodconfig    gcc-15.2.0
-m68k                              allnoconfig    gcc-15.2.0
-m68k                             allyesconfig    clang-16
-m68k                                defconfig    clang-19
-microblaze                        allnoconfig    gcc-15.2.0
-microblaze                       allyesconfig    gcc-15.2.0
-microblaze                          defconfig    clang-19
-mips                             allmodconfig    gcc-15.2.0
-mips                              allnoconfig    gcc-15.2.0
-mips                             allyesconfig    gcc-15.2.0
-mips                           xway_defconfig    clang-23
-nios2                            allmodconfig    clang-23
-nios2                             allnoconfig    clang-23
-nios2                               defconfig    clang-19
-nios2                 randconfig-001-20260430    gcc-14.3.0
-nios2                 randconfig-002-20260430    gcc-14.3.0
-openrisc                         allmodconfig    clang-23
-openrisc                          allnoconfig    clang-23
-openrisc                            defconfig    gcc-15.2.0
-parisc                           allmodconfig    gcc-15.2.0
-parisc                            allnoconfig    clang-23
-parisc                           allyesconfig    clang-19
-parisc                              defconfig    gcc-15.2.0
-parisc                randconfig-001-20260430    gcc-13.4.0
-parisc                randconfig-002-20260430    gcc-13.4.0
-parisc64                            defconfig    clang-19
-powerpc                          allmodconfig    gcc-15.2.0
-powerpc                           allnoconfig    clang-23
-powerpc               randconfig-001-20260430    gcc-13.4.0
-powerpc               randconfig-002-20260430    gcc-13.4.0
-powerpc64             randconfig-001-20260430    gcc-13.4.0
-powerpc64             randconfig-002-20260430    gcc-13.4.0
-riscv                            allmodconfig    clang-23
-riscv                             allnoconfig    clang-23
-riscv                            allyesconfig    clang-16
-riscv                               defconfig    gcc-15.2.0
-s390                             allmodconfig    clang-19
-s390                              allnoconfig    clang-23
-s390                             allyesconfig    gcc-15.2.0
-s390                                defconfig    gcc-15.2.0
-sh                               allmodconfig    gcc-15.2.0
-sh                                allnoconfig    clang-23
-sh                               allyesconfig    clang-19
-sh                           se7206_defconfig    gcc-15.2.0
-sparc                             allnoconfig    clang-23
-sparc                               defconfig    gcc-15.2.0
-sparc64                          allmodconfig    clang-23
-um                               allmodconfig    clang-19
-um                                allnoconfig    clang-23
-um                               allyesconfig    gcc-15.2.0
-x86_64                           allmodconfig    clang-20
-x86_64                            allnoconfig    clang-23
-x86_64                           allyesconfig    clang-20
-x86_64      buildonly-randconfig-001-20260430    gcc-14
-x86_64      buildonly-randconfig-002-20260430    gcc-14
-x86_64      buildonly-randconfig-003-20260430    gcc-14
-x86_64      buildonly-randconfig-004-20260430    gcc-14
-x86_64      buildonly-randconfig-005-20260430    gcc-14
-x86_64      buildonly-randconfig-006-20260430    gcc-14
-x86_64                                  kexec    clang-20
-x86_64                randconfig-011-20260430    clang-20
-x86_64                randconfig-012-20260430    clang-20
-x86_64                randconfig-013-20260430    clang-20
-x86_64                randconfig-014-20260430    clang-20
-x86_64                randconfig-015-20260430    clang-20
-x86_64                randconfig-016-20260430    clang-20
-x86_64                randconfig-071-20260430    gcc-14
-x86_64                randconfig-072-20260430    gcc-14
-x86_64                randconfig-073-20260430    gcc-14
-x86_64                randconfig-074-20260430    gcc-14
-x86_64                randconfig-075-20260430    gcc-14
-x86_64                randconfig-076-20260430    gcc-14
-x86_64                               rhel-9.4    clang-20
-x86_64                           rhel-9.4-bpf    gcc-14
-x86_64                          rhel-9.4-func    clang-20
-x86_64                    rhel-9.4-kselftests    clang-20
-x86_64                         rhel-9.4-kunit    gcc-14
-x86_64                           rhel-9.4-ltp    gcc-14
-x86_64                          rhel-9.4-rust    clang-20
-xtensa                            allnoconfig    clang-23
-xtensa                           allyesconfig    clang-23
+Reference Dependency: The RXE RDMA link holds a reference to the network 
+namespace.
 
---
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+Order of Execution: When a namespace is deleted while an RDMA link 
+exists, rxe_ns_exit() is not invoked immediately. It is deferred until 
+the RDMA link itself is deleted (e.g., via rdma link del), which drops 
+the final reference count of the namespace.
+
+Redundancy: Consequently, rxe_ns_exit() always follows the device 
+cleanup path (rxe_link_delete). Since all tunnel sockets are already 
+released during the device cleanup, the code in rxe_ns_exit() is 
+redundant and does nothing.
+
+Removing this code simplifies the driver by centralizing socket 
+destruction in the device management path, where the sockets are 
+originally created.
+
+This ensures that we don't attempt to release the same resources twice, 
+even if the destruction is technically serialized by the kernel's 
+reference counting.
+
+What are your thoughts on this observation?
+
+Thanks,
+
+Zhu Yanjun
+
+>>>
+>>> Zhu Yanjun
+>>>
+>>>>
+>>>> Thanks
+>>>>
+>>>>>
+>>>>> Fixes: 13f2a53c2a71 ("RDMA/rxe: Add net namespace support for IPv4/ 
+>>>>> IPv6 sockets")
+>>>>> Signed-off-by: Zhu Yanjun <yanjun.zhu@linux.dev>
+>>>>> ---
+>>>>>    drivers/infiniband/sw/rxe/rxe_ns.c | 20 --------------------
+>>>>>    1 file changed, 20 deletions(-)
+>>>>>
+>>>>> diff --git a/drivers/infiniband/sw/rxe/rxe_ns.c b/drivers/ 
+>>>>> infiniband/sw/rxe/rxe_ns.c
+>>>>> index 8b9d734229b2..53add78b8e3a 100644
+>>>>> --- a/drivers/infiniband/sw/rxe/rxe_ns.c
+>>>>> +++ b/drivers/infiniband/sw/rxe/rxe_ns.c
+>>>>> @@ -39,26 +39,6 @@ static void rxe_ns_exit(struct net *net)
+>>>>>    {
+>>>>>        /* called when the network namespace is removed
+>>>>>         */
+>>>>> -    struct rxe_ns_sock *ns_sk = net_generic(net, rxe_pernet_id);
+>>>>> -    struct sock *sk;
+>>>>> -
+>>>>> -    rcu_read_lock();
+>>>>> -    sk = rcu_dereference(ns_sk->rxe_sk4);
+>>>>> -    rcu_read_unlock();
+>>>>> -    if (sk) {
+>>>>> -        rcu_assign_pointer(ns_sk->rxe_sk4, NULL);
+>>>>> -        udp_tunnel_sock_release(sk->sk_socket);
+>>>>> -    }
+>>>>> -
+>>>>> -#if IS_ENABLED(CONFIG_IPV6)
+>>>>> -    rcu_read_lock();
+>>>>> -    sk = rcu_dereference(ns_sk->rxe_sk6);
+>>>>> -    rcu_read_unlock();
+>>>>> -    if (sk) {
+>>>>> -        rcu_assign_pointer(ns_sk->rxe_sk6, NULL);
+>>>>> -        udp_tunnel_sock_release(sk->sk_socket);
+>>>>> -    }
+>>>>> -#endif
+>>>>>    }
+>>>>>    /*
+>>>>> -- 
+>>>>> 2.43.0
+>>>>>
+>>>>>
+>>>
+> 
+
