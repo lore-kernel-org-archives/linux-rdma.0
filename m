@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D724627281E;
-	Thu, 30 Apr 2026 01:42:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EDA8C27B35B;
+	Thu, 30 Apr 2026 01:42:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777513331; cv=none; b=qzEjlOSqxgMh/1fZX2SwZUee6eRToGpk8XTaMYhwSEPU3QxtMSBx0N14ZtztAXQMzPi5lOLSr4Auo1IJbF2dz3GBLxTN0zym5udIAyNzIuGovQ5ndbN8qgsd6GXze3mXTPRiC/yKET00OO6UKjm+cMHXDx16X0PzU8fMyz1JSiU=
+	t=1777513334; cv=none; b=TuiM0OjJAaPqfKS3T8AMhY9/55q8n13r/knkJtZYXj7LpJVdgFlMj5ZkEZib3WdlgHjXOHZDOTYKVR1bspHBAYBHQvG0a8U7MyqbFkKoreep7mdVZW0r8s3HLqZ1TSG+fL2F2pqrVDBcw7WS/pP3tATu1p8QTJ8tb8P7ttxxPa8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777513331; c=relaxed/simple;
-	bh=Y0C8DoahSSBT/snQiPAOYHFv3KwGR48cDnmql3PWSC4=;
+	s=arc-20240116; t=1777513334; c=relaxed/simple;
+	bh=Im+1RwrIaWNXY5pBH5Qko2LxbgsRPU2X/tHmOfUgmYY=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=XIXUPLoLyOV6UXgfrHp3851GBShzOYpYq2sZ9C3ZE95G37zPXY7XuQoa1ITRqgnB3ytrgbePtU7ITvTQaTtNtXMNNLsArCR+o7kJwzKM9IKn94rdHl4RqD/uovtecc41WnnUzfr2wOWtftdujiAICQP0P9XtYYoXHHt8XTGQRFA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=RzXidNvm; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=oAW8evnReuQv6m59VMiZXOzFNvMwA49x55RWXHMLbukjv0Btswz8d9ZH0eX109U94G7Z2AX3xfdodO9IrGXq85oe7mtjjkJzu344HU4DWsSEttELJyL+ehs2K9Ul6PZ3SMPwEGW/zC1xLcRJfGdG1eJxh6Zx2JiIfm1VpSdAlbk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=G/Kl1HhJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="RzXidNvm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 036A4C2BCC4;
-	Thu, 30 Apr 2026 01:42:10 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="G/Kl1HhJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D9ACFC2BCC6;
+	Thu, 30 Apr 2026 01:42:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1777513331;
-	bh=Y0C8DoahSSBT/snQiPAOYHFv3KwGR48cDnmql3PWSC4=;
+	s=k20201202; t=1777513333;
+	bh=Im+1RwrIaWNXY5pBH5Qko2LxbgsRPU2X/tHmOfUgmYY=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=RzXidNvmmnGf8b/uyztl3xI0wT8zjSz3q7cSdItn3VVYNsj3/d9sebLXw5ISA5eLX
-	 G/gMygu9wLCO9Q1WGH/jocz26HedGWEWYQFyoxQPgwL9Z3FJbTMcNC03K7I0ogX+Ai
-	 xfXpLmI4meUZU/x1AG/SCVVvNAFuyfsmEU51ahL7MsXfBNWBo1hiuqCkGmalH9Mviu
-	 gxF3m83gf2vDKcoqaTBiUvZHZ9NgDle4kDGv8p+r1cwz+46SgDXfKX/jCEo1xlfGWo
-	 p629qruJg/EN3P3UO9b+xUFrFbk/xTRi5sBbu4PSGcKSl3p9Uj9R7g5FTQxkXxrrty
-	 /rNLT09HXwJtg==
+	b=G/Kl1HhJ11ZyiK//DGGP7rtlwsLgVAOfxb5UR+AtFQR/ydHNP40yybNjL0OYiNwE+
+	 TkEAsAAYW9wXLnziJPQMwxDvhIeAMeXH1lRzz7eq3FNjiizs5RFuxMCB2dm/O9XTLb
+	 KAvrPWtsHs1ZHmeMxqEXecovesn37WGcqXbfXyMjCA6+tIMEN9ZmWe4d0hPBJTsZe1
+	 INjRgOWviY1101MGhz+oDAJJGX2RypoFA4wSuBoMoM1oCYVzlDk5prRqPBvPBg9hok
+	 PLdfG2clh57Eg0P0hWJDFasv1e9p/7OsblcvLkcD8JRjTQtTGJn2OhEixNNz2CMv8o
+	 SWIRbwY+YczPQ==
 From: Jakub Kicinski <kuba@kernel.org>
 To: tariqt@nvidia.com
 Cc: Jakub Kicinski <kuba@kernel.org>,
@@ -46,12 +46,12 @@ Cc: Jakub Kicinski <kuba@kernel.org>,
 	linux-rdma@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	dtatulea@nvidia.com
-Subject: Re: [PATCH net V4 3/4] net/mlx5e: SD, Fix missing cleanup on probe error
-Date: Wed, 29 Apr 2026 18:42:09 -0700
-Message-ID: <20260430014209.2375731-1-kuba@kernel.org>
+Subject: Re: [PATCH net V4 4/4] net/mlx5e: SD, Fix race condition in secondary device probe/remove
+Date: Wed, 29 Apr 2026 18:42:11 -0700
+Message-ID: <20260430014211.2375751-1-kuba@kernel.org>
 X-Mailer: git-send-email 2.54.0
-In-Reply-To: <20260428060111.221086-4-tariqt@nvidia.com>
-References: <20260428060111.221086-4-tariqt@nvidia.com>
+In-Reply-To: <20260428060111.221086-5-tariqt@nvidia.com>
+References: <20260428060111.221086-5-tariqt@nvidia.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -63,56 +63,53 @@ Content-Transfer-Encoding: 8bit
 This is an AI-generated review of your patch. The human sending this
 email has considered the AI review valid, or at least plausible.
 ---
-net/mlx5e: SD, Fix missing cleanup on probe error
+net/mlx5e: SD, Fix race condition in secondary device probe/remove
 
-This commit adds a missing mlx5_sd_cleanup() call to the probe error path.
-The commit message notes a similar gap exists on the resume path leaving
-sd == NULL on failure, but defers the fix to a follow-up series.
+This commit updates secondary devices to acquire the device lock of the
+primary auxiliary device during probe, suspend, resume, and remove
+operations. It introduces mlx5_sd_get_adev() and mlx5_sd_put_adev() to
+manage this lock ordering and add a second devcom readiness check.
 
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-> index 5a46870c4b74..e21affd0ffc4 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lib/sd.c b/drivers/net/ethernet/mellanox/mlx5/core/lib/sd.c
+> index 7a1787f15320..a43ae482a679 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/lib/sd.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/lib/sd.c
+
 [ ... ]
-> @@ -6912,9 +6912,16 @@ static int mlx5e_probe(struct auxiliary_device *adev,
->  		return err;
+
+> @@ -563,5 +567,18 @@ struct auxiliary_device *mlx5_sd_get_adev(struct mlx5_core_dev *dev,
+>  	if (dev == primary)
+>  		return adev;
 >  
->  	actual_adev = mlx5_sd_get_adev(mdev, adev, edev->idx);
-> -	if (actual_adev)
-> -		return _mlx5e_probe(actual_adev);
-> +	if (actual_adev) {
-> +		err = _mlx5e_probe(actual_adev);
-> +		if (err)
-> +			goto sd_cleanup;
+> +	device_lock(&primary->priv.adev[idx]->adev.dev);
+
+If mlx5_devcom_comp_is_ready() returned true just before this, but the
+secondary thread is preempted before reaching device_lock(), could a
+concurrent removal of the primary device cause primary->priv.adev[idx]
+to become NULL or freed?
+
+It looks like the removal path (such as mlx5_unregister_device) frees the
+mlx5_adev memory and explicitly sets primary->priv.adev[idx] to NULL. If
+the secondary thread then resumes, it might dereference a NULL or freed
+pointer when attempting to acquire the lock.
+
+Since the second readiness check happens after the device_lock() call, does
+this leave a window where memory corruption or a panic can still occur?
+
+Additionally, since the driver core already holds device_lock(&adev->dev)
+for the secondary device during callbacks like probe() and remove(), will
+acquiring the primary device's lock here trigger a lockdep warning for
+possible recursive locking?
+
+Both the primary and secondary auxiliary devices use the same generic lock
+class assigned in device_initialize(). While the fixed secondary to primary
+ordering avoids an actual deadlock, lockdep might not distinguish between
+the two mutexes without explicit lockdep subclassing.
+
+> +	/* In case primary finish removing its adev */
+> +	if (!mlx5_devcom_comp_is_ready(sd->devcom)) {
+> +		device_unlock(&primary->priv.adev[idx]->adev.dev);
+> +		return NULL;
 > +	}
->  	return 0;
-> +
-> +sd_cleanup:
-> +	mlx5_sd_cleanup(mdev);
-> +	return err;
+>  	return &primary->priv.adev[idx]->adev;
 >  }
->  
->  static void _mlx5e_remove(struct auxiliary_device *adev)
-
-Will leaving the resume gap unfixed as mentioned in the commit message cause
-a NULL pointer dereference when a secondary device is later removed?
-
-If a secondary device fails resume, sd becomes NULL. Later during removal,
-mlx5_sd_get_adev() will check !sd and return the secondary adev.
-
-This causes _mlx5e_remove() to be executed on the secondary adev:
-
-_mlx5e_remove()
-{
-        struct mlx5_adev *edev = container_of(adev, struct mlx5_adev, adev);
-        struct mlx5e_dev *mlx5e_dev = auxiliary_get_drvdata(adev);
-        struct net_device *netdev = mlx5e_dev->netdev;
-        ...
-}
-
-Since _mlx5e_probe() is never called on secondary devices,
-auxiliary_get_drvdata(adev) returns NULL. Does this mean accessing
-mlx5e_dev->netdev will crash?
-
-Would it be safer to add a NULL check for mlx5e_dev in _mlx5e_remove()
-until the proper PM lifecycle fixes are implemented?
