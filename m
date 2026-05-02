@@ -1,96 +1,75 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EEECC1A6808;
-	Sat,  2 May 2026 16:53:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 496E0299AAB;
+	Sat,  2 May 2026 17:08:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777740787; cv=none; b=eM117kfo+KqM7CknbkCJyohBM1LKSK9WbkIf5eiR5clb2iLgG1euJhKRbHIUZKZXZCYE+gWfOwPzuOjq6ZlLvtoLfvGeZxndoLzcnypU28S2jQ+ckPPltviKCnnGQ2uND9Tx7NbndfDz6E+GHPARWG2JzFgwDTTZkbx6V7PscRg=
+	t=1777741690; cv=none; b=nYu8ObIs9FZMX5RQT7EQVQIP6Xlb9kCcWNmWLqbnSwy8lsndRRxyWEaYR9JHXTeZq1H0fHaoidDYXaEpeiwEnan6HF2RpA0MWALBMDhAgYCL0Q2D0ma/vRnGnuGynfjJ0ipBveUQlJN/35BM10Rylu1KVhOO3JDlDPX73zoOWYk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777740787; c=relaxed/simple;
-	bh=63je9fQk8rbq2FWAeTdpdXqpGJDjhaBfm7Vkh48f+Ak=;
+	s=arc-20240116; t=1777741690; c=relaxed/simple;
+	bh=30Uahu0v/XehWUtxu9l0X2lqpXU+V5dHVU5p7Ysft0E=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=sztee4XeCF2m/q8jxWRxeHaR6DUYT/rCea+779idKj8AFUjss7Mke3GA86aQ2MmowsaVP4QOy0DqcwvA9y3xo5bOdVx9uLdUJlD+gH46eyi6OXjROweujeP3i1+4xV/YYxP5SwIodQ5mdBLF5doH8Q0a0wpththqSLkl9tjVJJ8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=N7ONpL4/; arc=none smtp.client-ip=10.30.226.201
+	 Content-Type:Content-Disposition:In-Reply-To; b=DV1DGEYaak5vTy8ybMrFGnRnT0k/0uQXouBl+tzO8gVu6kfzd8uETNEzXpldnmeKR1RwNhUiqZ0oD7DncBxz5Gs1NPArw7/tXeHeeyT7LlOP1Znq6eAMXcmJICuGt68P/UbpT43g9kOYgtiQU91tdp++6JRmO04Kj0aXsa4I434=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Sz1l8ErP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="N7ONpL4/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C79B8C19425;
-	Sat,  2 May 2026 16:53:00 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Sz1l8ErP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 83176C19425;
+	Sat,  2 May 2026 17:08:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1777740786;
-	bh=63je9fQk8rbq2FWAeTdpdXqpGJDjhaBfm7Vkh48f+Ak=;
+	s=k20201202; t=1777741689;
+	bh=30Uahu0v/XehWUtxu9l0X2lqpXU+V5dHVU5p7Ysft0E=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=N7ONpL4/AN7uJhb9ZXPsM8kwagVU4kLEko7Mr30q3l37I+nFleUIC9bJUewS+COES
-	 vAq9Xoeh1KBfFEER9HbAzXuSfm+PLr5ZcrgC9bbeRIFgA+5td5E7ouSF5cxo5enZae
-	 IjzzO6c9eApZiajedDnwHroPsHCUOYqXyopE2Srlb4mqt6tbKf2JwLWlCBy/NtXbwd
-	 dAA5vXmkR9PauyaFsPWFmzHfS4ET5EpfpFO/yN7m2JV+5uIbc2IuYREw+LDTAlORn6
-	 V8VRnhf7gMUhAzPQjy1jWLltibcj7n0yKtGE8r7LeYzUbNKFCkS+kojVMhOSg/82E8
-	 fmT51UAmd4Ffw==
-Date: Sat, 2 May 2026 17:52:58 +0100
+	b=Sz1l8ErPMSmuGu5loMwMeOHJJoP6PmNqPQEEDsbePAJyAKGYVdDFxggRkgSIO3wbN
+	 mli1wfSei6iPbPT2uItrmqj1BH8TsgUMa+cWkKiccABu1tCJ5CkHosnPd32seXAkfp
+	 ou9Os54dP2xL/HZj8MMkT9eLrdrD1FDe8l/SIzut01aUyHI8SHRbaafO4TmBrqZhNU
+	 bX4eWLrt78am3eiKB/W/ffXIlJ/WjdmRI4UfJQdK4d08E2hLhqzCjjF9qs0OFQAj4+
+	 /oiy/XBt4dsMGYEuu1K7xJWHxp81h+xVmhQfdQpvKtD22tFfimRV+s+cz77T9B2WuR
+	 vKWY6zIFLUPHQ==
+Date: Sat, 2 May 2026 18:08:04 +0100
 From: Simon Horman <horms@kernel.org>
-To: Dipayaan Roy <dipayanroy@linux.microsoft.com>
-Cc: kys@microsoft.com, haiyangz@microsoft.com, wei.liu@kernel.org,
-	decui@microsoft.com, andrew+netdev@lunn.ch, davem@davemloft.net,
-	edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
-	leon@kernel.org, longli@microsoft.com, kotaranov@microsoft.com,
-	shradhagupta@linux.microsoft.com, ssengar@linux.microsoft.com,
-	ernis@linux.microsoft.com, shirazsaleem@microsoft.com,
-	linux-hyperv@vger.kernel.org, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
-	stephen@networkplumber.org, jacob.e.keller@intel.com,
-	dipayanroy@microsoft.com, leitao@debian.org, kees@kernel.org,
-	john.fastabend@gmail.com, hawk@kernel.org, bpf@vger.kernel.org,
-	daniel@iogearbox.net, ast@kernel.org, sdf@fomichev.me,
-	yury.norov@gmail.com
-Subject: Re: [PATCH 0/3] net: mana: Fix mana_destroy_rxq() cleanup for
- partial RXQ init
-Message-ID: <20260502165258.GM15617@horms.kernel.org>
-References: <20260430035935.1859220-1-dipayanroy@linux.microsoft.com>
+To: Tariq Toukan <tariqt@nvidia.com>
+Cc: Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>,
+	Andrew Lunn <andrew+netdev@lunn.ch>,
+	"David S. Miller" <davem@davemloft.net>,
+	Saeed Mahameed <saeedm@nvidia.com>,
+	Leon Romanovsky <leon@kernel.org>, Mark Bloch <mbloch@nvidia.com>,
+	Patrisious Haddad <phaddad@nvidia.com>,
+	Jianbo Liu <jianbol@nvidia.com>, Kees Cook <kees@kernel.org>,
+	Dragos Tatulea <dtatulea@nvidia.com>, netdev@vger.kernel.org,
+	linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Gal Pressman <gal@nvidia.com>, Leon Romanovsky <leonro@nvidia.com>
+Subject: Re: [PATCH net-next] net/mlx5: Add vhca_id_type support to IPsec
+ alias creation
+Message-ID: <20260502170804.GN15617@horms.kernel.org>
+References: <20260430061958.225245-1-tariqt@nvidia.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20260430035935.1859220-1-dipayanroy@linux.microsoft.com>
+In-Reply-To: <20260430061958.225245-1-tariqt@nvidia.com>
 
-On Wed, Apr 29, 2026 at 08:57:51PM -0700, Dipayaan Roy wrote:
-> When mana_create_rxq() fails partway through initialization (e.g. the
-> hardware rejects the WQ object creation), the error path calls
-> mana_destroy_rxq() to tear down a partially-initialized RXQ.
-> This exposed multiple issues in mana_destroy_rxq() path, as it assumed
-> the RXQ was always fully initialized, leading to multiple issues:
+On Thu, Apr 30, 2026 at 09:19:58AM +0300, Tariq Toukan wrote:
+> From: Patrisious Haddad <phaddad@nvidia.com>
 > 
-> 1. xdp_rxq_info_unreg() was called on an unregistered xdp_rxq,
->    triggering a WARN_ON ("Driver BUG") in net/core/xdp.c.
+> When creating an alias FT for MPV IPsec, if alias creation with
+> sw_vhca_id is supported use it instead of using the hw_vhca_id.
 > 
-> 2. mana_destroy_wq_obj() was called with INVALID_MANA_HANDLE,
->    sending a bogus destroy command to the hardware.
+> This in turn allows IPsec to work properly after live migration,
+> in case a VF was live migrated and his hw_vhca_id changed due to
+> migration which can happen if you migrate to a VF with a different index
+> than yours, IPsec would fail to start post migration, this patch
+> resolves the issue by using sw_vhca_id instead which doesn't change post
+> migration.
 > 
-> 3. mana_deinit_cq() was called twice — once inside mana_destroy_rxq()
->    and again in mana_create_rxq()'s error path — causing a
->    use-after-free since mana_destroy_rxq() frees the rxq first.
-> 
-> This was observed during ethtool ring parameter changes when the
-> hardware returned an error creating the RXQ. This series makes
-> mana_destroy_rxq() safe to call at any stage of RXQ initialization
-> by guarding each teardown step, and removes the redundant cleanup
-> in mana_create_rxq().
-
-For the series:
+> Signed-off-by: Patrisious Haddad <phaddad@nvidia.com>
+> Reviewed-by: Leon Romanovsky <leonro@nvidia.com>
+> Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
 
 Reviewed-by: Simon Horman <horms@kernel.org>
 
-I don't think that you need to repost for this. But please keep in mind for
-future submissions that fixes for code present in the net tree should be
-targeted at that tree, like this:
-
-Subject: [PATCH net vN/M] ...
-
-Also, FTR, there is an AI generated review of this patch-set available
-on sashiko.dev. It seems to me that the issues flagged there pre-date
-this patch-set and should not block progress of it. But you may wish
-to use that review as the basis of some follow-up.
