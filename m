@@ -1,262 +1,103 @@
-Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 5BED81FE47B;
-	Sat,  2 May 2026 07:46:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
+Received: from mout-p-201.mailbox.org (mout-p-201.mailbox.org [80.241.56.171])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 87FDE13E02A;
+	Sat,  2 May 2026 08:33:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=80.241.56.171
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777707962; cv=none; b=AXRgqpWZIwPsLMbdrrZ0EqvUsLT+IyvfO/OOrlcvmmX9cw/CXnHUcAfcym3qHqcUimkpqIrx8bC9HJJdPtqMilN5BmhxScLLjTOwOQUcfnOGIuaM46Q0Ro3mu+6vraUrPeBUYkZJb8VQVwYBjgQz9VWcXT8PBJTB3W1OhBvYNeU=
+	t=1777710837; cv=none; b=DgJ1vPQqxWm9zHMEnOW9iHhMhzUjX/G4/FZiSzE93L5sOMXOYrYoOyALpDE3PEexBfjwvelvKtJIgniEpQ6P17ympOxn9CDKHObb6BFp06yQREN7knmMcfGDUtqFbUv2zHAFRTxvQTTDVrRUDqAQ/uBhRvBKk6S+S91eZ7oQaQk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777707962; c=relaxed/simple;
-	bh=HouUOri904NMOp6S620izooVjSzSuTHhNCYD29MbSGY=;
-	h=From:To:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=QdnlFHq/tZ3BGhE83gjVMUl1//9LjPIXTfH6QrmO24wYPDHsmOsaxR2DTpFzzfR8C9KN2FxOvaoIGJUK/06jiuG6gCgzCwhvWCesjuhMw9ELAhHVNpz0S+WA3ui7NOk85GwQL1YA9J0pxovAxgsMvo9yt4vXD3fryHkgRbx7DpI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=bb0tQgTR; arc=none smtp.client-ip=13.77.154.182
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
+	s=arc-20240116; t=1777710837; c=relaxed/simple;
+	bh=AEFWyi1bfUyMJXHWZ66+GWlU4hMQ/K6QVwapHNfEqn8=;
+	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=L5CeortwlYj9CM2rnQA43PhV8VXwK9GQxheu6jjQeDTQgKkLOKJ+eBHTr1Tpxl1E8vsxZL36Ykfk7F/2AoNHxcTlCZibHjZyRyqe9iDeFRv8jA1oDyjmBoWpfujiVWUhWYt6C8So9o664cma6cjbkUskMlUNJ6pl1o6PsKRggnE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=mailbox.org; spf=pass smtp.mailfrom=mailbox.org; dkim=pass (2048-bit key) header.d=mailbox.org header.i=@mailbox.org header.b=xCARrbXu; arc=none smtp.client-ip=80.241.56.171
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=mailbox.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=mailbox.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="bb0tQgTR"
-Received: by linux.microsoft.com (Postfix, from userid 1231)
-	id C8E9E20B716C; Sat,  2 May 2026 00:46:00 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com C8E9E20B716C
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
-	s=default; t=1777707960;
-	bh=IPauBJl23XVTTPHaHpwNSZN2cNKdTVqw7x6BxTnQO4Q=;
-	h=From:To:Subject:Date:In-Reply-To:References:From;
-	b=bb0tQgTROYid9FHYdW7Ezg4xIh22mzAgfvYJoyyjJr5JXvzQbIRnsywu5Uz8mbey6
-	 lQAaKQ1JipeR2Q7r90STk3hZL238fc46a+cBZqSORGq2ZWUtIH2/sHccP0KVeRJBqL
-	 z5g6FU7tS5RQ1yy3csrCHmiRKCJXMaQf2kZSs+H8=
-From: Aditya Garg <gargaditya@linux.microsoft.com>
-To: kys@microsoft.com,
-	haiyangz@microsoft.com,
-	wei.liu@kernel.org,
-	decui@microsoft.com,
-	longli@microsoft.com,
-	andrew+netdev@lunn.ch,
-	davem@davemloft.net,
-	edumazet@google.com,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	kotaranov@microsoft.com,
-	horms@kernel.org,
-	ssengar@linux.microsoft.com,
-	jacob.e.keller@intel.com,
-	dipayanroy@linux.microsoft.com,
-	ernis@linux.microsoft.com,
-	shirazsaleem@microsoft.com,
-	kees@kernel.org,
-	sbhatta@marvell.com,
-	leitao@debian.org,
-	netdev@vger.kernel.org,
-	linux-hyperv@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	linux-rdma@vger.kernel.org,
-	bpf@vger.kernel.org,
-	gargaditya@microsoft.com,
-	gargaditya@linux.microsoft.com
-Subject: [PATCH net-next v3 1/2] net: mana: Use per-queue allocation for tx_qp to reduce allocation size
-Date: Sat,  2 May 2026 00:45:33 -0700
-Message-ID: <20260502074552.23857-2-gargaditya@linux.microsoft.com>
-X-Mailer: git-send-email 2.43.7
-In-Reply-To: <20260502074552.23857-1-gargaditya@linux.microsoft.com>
-References: <20260502074552.23857-1-gargaditya@linux.microsoft.com>
+	dkim=pass (2048-bit key) header.d=mailbox.org header.i=@mailbox.org header.b="xCARrbXu"
+Received: from smtp1.mailbox.org (smtp1.mailbox.org [10.196.197.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by mout-p-201.mailbox.org (Postfix) with ESMTPS id 4g71Qf0fv6z9tyN;
+	Sat,  2 May 2026 10:33:46 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=mailbox.org; s=mail20150812;
+	t=1777710826;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=Z2iWztUwm+o27y5dNxbgLF4/YL24oMbdNtxNqbeQMfI=;
+	b=xCARrbXuP9oXDZ7MWbmLF4UFkigjkeGeqqH0KcAKvvS2dFJ32ChqDLYi3wQVGGd075y9Tk
+	LFao7tfAX31YHgcilTqyNF+ZQSOMDKSGGzzZi6ym2W/OU5kAgLsEBw/7uyYgLkWlZGABLd
+	OoKW3Z0wwo4bVITtmUcCmK/sVD0QL6ulZ842RewCzPfzQNYxTHKPyd4AvDvYRZlk0HCuNN
+	54FfXr85SfuxlLkOGQ2ZZwcWbKhod265X+4d5nWGbsIvmhMB0eQz+yUOR8PlBYFWFsdMJ4
+	+rPgzerhlbCN9ANeBLo/GWEUEduokIZdqVWJd/BedSH+eLngA5ugNCUI51drqQ==
+Message-ID: <4007d59da564d357261b4ffa9c1daffcf09b5868.camel@mailbox.org>
+Subject: Re: [PATCH 07/11] vfio: selftests: Allow drivers to specify
+ required region size
+From: Manuel Ebner <manuelebner@mailbox.org>
+To: Jason Gunthorpe <jgg@nvidia.com>, Alex Williamson <alex@shazbot.org>, 
+ David Matlack <dmatlack@google.com>, kvm@vger.kernel.org, Leon Romanovsky
+ <leon@kernel.org>,  linux-kselftest@vger.kernel.org,
+ linux-rdma@vger.kernel.org, Mark Bloch <mbloch@nvidia.com>,
+ netdev@vger.kernel.org, Saeed Mahameed <saeedm@nvidia.com>,  Shuah Khan
+ <shuah@kernel.org>, Tariq Toukan <tariqt@nvidia.com>
+Cc: patches@lists.linux.dev
+Date: Sat, 02 May 2026 10:33:39 +0200
+In-Reply-To: <7-v1-dc5fa250ca1d+3213-mlx5st_jgg@nvidia.com>
+References: <7-v1-dc5fa250ca1d+3213-mlx5st_jgg@nvidia.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-MBO-RS-META: z4gfwoiygq3ad9gdyib4am31dmz9b8hw
+X-MBO-RS-ID: 59239b2a35230070757
 
-Convert tx_qp from a single contiguous array allocation to per-queue
-individual allocations. Each mana_tx_qp struct is approximately 35KB.
-With many queues (e.g., 32/64), the flat array requires a single
-contiguous allocation that can fail under memory fragmentation.
+Hi,
+On Thu, 2026-04-30 at 21:08 -0300, Jason Gunthorpe wrote:
+> Add a region_size field to struct vfio_pci_driver_ops so drivers can
+> declare how much DMA-mapped region they need. The mlx5 driver will
+> need ~18MB for firmware pages. Existing drivers leave region_size as
+> 0 and get the current default of SZ_2M.
+>=20
+> Assisted-by: Claude:claude-opus-4.6
+> Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
+> ---
+> =C2=A0.../selftests/vfio/lib/include/libvfio/vfio_pci_driver.h=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0=C2=A0 | 3 +++
+> =C2=A0tools/testing/selftests/vfio/vfio_pci_driver_test.c=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 | 3 ++-
+> =C2=A02 files changed, 5 insertions(+), 1 deletion(-)
+>=20
+> diff --git
+> a/tools/testing/selftests/vfio/lib/include/libvfio/vfio_pci_driver.h
+> b/tools/testing/selftests/vfio/lib/include/libvfio/vfio_pci_driver.h
+> index e5ada209b1d102..fa172635632453 100644
+> --- a/tools/testing/selftests/vfio/lib/include/libvfio/vfio_pci_driver.h
+> +++ b/tools/testing/selftests/vfio/lib/include/libvfio/vfio_pci_driver.h
+> @@ -9,6 +9,9 @@ struct vfio_pci_device;
+> =C2=A0struct vfio_pci_driver_ops {
+> =C2=A0	const char *name;
+> =C2=A0
+> +	/* Minimum driver region size, 0 =3D default SZ_2M */
+> +	u64 region_size;
 
-Change mana_tx_qp *tx_qp to mana_tx_qp **tx_qp (array of pointers),
-allocating each queue's mana_tx_qp individually via kvzalloc. This
-reduces each allocation to ~35KB and provides vmalloc fallback,
-avoiding allocation failure due to fragmentation.
+i guess i do not understand this comment, but that's no surprise
+because i'm new to the kernel.=20
+would one of my suggestions be better?
 
-Signed-off-by: Aditya Garg <gargaditya@linux.microsoft.com>
-Reviewed-by: Haiyang Zhang <haiyangz@microsoft.com>
----
- .../net/ethernet/microsoft/mana/mana_bpf.c    |  2 +-
- drivers/net/ethernet/microsoft/mana/mana_en.c | 49 ++++++++++++-------
- .../ethernet/microsoft/mana/mana_ethtool.c    |  2 +-
- include/net/mana/mana.h                       |  2 +-
- 4 files changed, 33 insertions(+), 22 deletions(-)
++	/* Minimum driver region size =3D=3D 0 -> default =3D SZ_2M */
 
-diff --git a/drivers/net/ethernet/microsoft/mana/mana_bpf.c b/drivers/net/ethernet/microsoft/mana/mana_bpf.c
-index 7697c9b52ed3..b5e9bb184a1d 100644
---- a/drivers/net/ethernet/microsoft/mana/mana_bpf.c
-+++ b/drivers/net/ethernet/microsoft/mana/mana_bpf.c
-@@ -68,7 +68,7 @@ int mana_xdp_xmit(struct net_device *ndev, int n, struct xdp_frame **frames,
- 		count++;
- 	}
- 
--	tx_stats = &apc->tx_qp[q_idx].txq.stats;
-+	tx_stats = &apc->tx_qp[q_idx]->txq.stats;
- 
- 	u64_stats_update_begin(&tx_stats->syncp);
- 	tx_stats->xdp_xmit += count;
-diff --git a/drivers/net/ethernet/microsoft/mana/mana_en.c b/drivers/net/ethernet/microsoft/mana/mana_en.c
-index a654b3699c4c..8adf72b96145 100644
---- a/drivers/net/ethernet/microsoft/mana/mana_en.c
-+++ b/drivers/net/ethernet/microsoft/mana/mana_en.c
-@@ -355,9 +355,9 @@ netdev_tx_t mana_start_xmit(struct sk_buff *skb, struct net_device *ndev)
- 	if (skb_cow_head(skb, MANA_HEADROOM))
- 		goto tx_drop_count;
- 
--	txq = &apc->tx_qp[txq_idx].txq;
-+	txq = &apc->tx_qp[txq_idx]->txq;
- 	gdma_sq = txq->gdma_sq;
--	cq = &apc->tx_qp[txq_idx].tx_cq;
-+	cq = &apc->tx_qp[txq_idx]->tx_cq;
- 	tx_stats = &txq->stats;
- 
- 	BUILD_BUG_ON(MAX_TX_WQE_SGL_ENTRIES != MANA_MAX_TX_WQE_SGL_ENTRIES);
-@@ -614,7 +614,7 @@ static void mana_get_stats64(struct net_device *ndev,
- 	}
- 
- 	for (q = 0; q < num_queues; q++) {
--		tx_stats = &apc->tx_qp[q].txq.stats;
-+		tx_stats = &apc->tx_qp[q]->txq.stats;
- 
- 		do {
- 			start = u64_stats_fetch_begin(&tx_stats->syncp);
-@@ -2321,21 +2321,26 @@ static void mana_destroy_txq(struct mana_port_context *apc)
- 		return;
- 
- 	for (i = 0; i < apc->num_queues; i++) {
--		debugfs_remove_recursive(apc->tx_qp[i].mana_tx_debugfs);
--		apc->tx_qp[i].mana_tx_debugfs = NULL;
-+		if (!apc->tx_qp[i])
-+			continue;
-+
-+		debugfs_remove_recursive(apc->tx_qp[i]->mana_tx_debugfs);
-+		apc->tx_qp[i]->mana_tx_debugfs = NULL;
- 
--		napi = &apc->tx_qp[i].tx_cq.napi;
--		if (apc->tx_qp[i].txq.napi_initialized) {
-+		napi = &apc->tx_qp[i]->tx_cq.napi;
-+		if (apc->tx_qp[i]->txq.napi_initialized) {
- 			napi_synchronize(napi);
- 			napi_disable_locked(napi);
- 			netif_napi_del_locked(napi);
--			apc->tx_qp[i].txq.napi_initialized = false;
-+			apc->tx_qp[i]->txq.napi_initialized = false;
- 		}
--		mana_destroy_wq_obj(apc, GDMA_SQ, apc->tx_qp[i].tx_object);
-+		mana_destroy_wq_obj(apc, GDMA_SQ, apc->tx_qp[i]->tx_object);
- 
--		mana_deinit_cq(apc, &apc->tx_qp[i].tx_cq);
-+		mana_deinit_cq(apc, &apc->tx_qp[i]->tx_cq);
- 
--		mana_deinit_txq(apc, &apc->tx_qp[i].txq);
-+		mana_deinit_txq(apc, &apc->tx_qp[i]->txq);
-+
-+		kvfree(apc->tx_qp[i]);
- 	}
- 
- 	kfree(apc->tx_qp);
-@@ -2344,7 +2349,7 @@ static void mana_destroy_txq(struct mana_port_context *apc)
- 
- static void mana_create_txq_debugfs(struct mana_port_context *apc, int idx)
- {
--	struct mana_tx_qp *tx_qp = &apc->tx_qp[idx];
-+	struct mana_tx_qp *tx_qp = apc->tx_qp[idx];
- 	char qnum[32];
- 
- 	sprintf(qnum, "TX-%d", idx);
-@@ -2383,7 +2388,7 @@ static int mana_create_txq(struct mana_port_context *apc,
- 	int err;
- 	int i;
- 
--	apc->tx_qp = kzalloc_objs(struct mana_tx_qp, apc->num_queues);
-+	apc->tx_qp = kzalloc_objs(struct mana_tx_qp *, apc->num_queues);
- 	if (!apc->tx_qp)
- 		return -ENOMEM;
- 
-@@ -2403,10 +2408,16 @@ static int mana_create_txq(struct mana_port_context *apc,
- 	gc = gd->gdma_context;
- 
- 	for (i = 0; i < apc->num_queues; i++) {
--		apc->tx_qp[i].tx_object = INVALID_MANA_HANDLE;
-+		apc->tx_qp[i] = kvzalloc_obj(*apc->tx_qp[i]);
-+		if (!apc->tx_qp[i]) {
-+			err = -ENOMEM;
-+			goto out;
-+		}
-+
-+		apc->tx_qp[i]->tx_object = INVALID_MANA_HANDLE;
- 
- 		/* Create SQ */
--		txq = &apc->tx_qp[i].txq;
-+		txq = &apc->tx_qp[i]->txq;
- 
- 		u64_stats_init(&txq->stats.syncp);
- 		txq->ndev = net;
-@@ -2424,7 +2435,7 @@ static int mana_create_txq(struct mana_port_context *apc,
- 			goto out;
- 
- 		/* Create SQ's CQ */
--		cq = &apc->tx_qp[i].tx_cq;
-+		cq = &apc->tx_qp[i]->tx_cq;
- 		cq->type = MANA_CQ_TYPE_TX;
- 
- 		cq->txq = txq;
-@@ -2453,7 +2464,7 @@ static int mana_create_txq(struct mana_port_context *apc,
- 
- 		err = mana_create_wq_obj(apc, apc->port_handle, GDMA_SQ,
- 					 &wq_spec, &cq_spec,
--					 &apc->tx_qp[i].tx_object);
-+					 &apc->tx_qp[i]->tx_object);
- 
- 		if (err)
- 			goto out;
-@@ -3288,7 +3299,7 @@ static int mana_dealloc_queues(struct net_device *ndev)
- 	 */
- 
- 	for (i = 0; i < apc->num_queues; i++) {
--		txq = &apc->tx_qp[i].txq;
-+		txq = &apc->tx_qp[i]->txq;
- 		tsleep = 1000;
- 		while (atomic_read(&txq->pending_sends) > 0 &&
- 		       time_before(jiffies, timeout)) {
-@@ -3307,7 +3318,7 @@ static int mana_dealloc_queues(struct net_device *ndev)
- 	}
- 
- 	for (i = 0; i < apc->num_queues; i++) {
--		txq = &apc->tx_qp[i].txq;
-+		txq = &apc->tx_qp[i]->txq;
- 		while ((skb = skb_dequeue(&txq->pending_skbs))) {
- 			mana_unmap_skb(skb, apc);
- 			dev_kfree_skb_any(skb);
-diff --git a/drivers/net/ethernet/microsoft/mana/mana_ethtool.c b/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
-index 6a4b42fe0944..04350973e19e 100644
---- a/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
-+++ b/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
-@@ -260,7 +260,7 @@ static void mana_get_ethtool_stats(struct net_device *ndev,
- 	}
- 
- 	for (q = 0; q < num_queues; q++) {
--		tx_stats = &apc->tx_qp[q].txq.stats;
-+		tx_stats = &apc->tx_qp[q]->txq.stats;
- 
- 		do {
- 			start = u64_stats_fetch_begin(&tx_stats->syncp);
-diff --git a/include/net/mana/mana.h b/include/net/mana/mana.h
-index 8f721cd4e4a7..aa90a858c8e3 100644
---- a/include/net/mana/mana.h
-+++ b/include/net/mana/mana.h
-@@ -507,7 +507,7 @@ struct mana_port_context {
- 	bool tx_shortform_allowed;
- 	u16 tx_vp_offset;
- 
--	struct mana_tx_qp *tx_qp;
-+	struct mana_tx_qp **tx_qp;
- 
- 	/* Indirection Table for RX & TX. The values are queue indexes */
- 	u32 *indir_table;
--- 
-2.43.0
+or
 
++	/* Minimum driver region size, default SZ_2M =3D 0 */
+
+> [...]
+
+Manuel
