@@ -1,34 +1,35 @@
 Received: from angie.orcam.me.uk (angie.orcam.me.uk [78.133.224.34])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 5D9F240DFDA;
-	Tue,  5 May 2026 00:03:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id D90F040DFD5;
+	Tue,  5 May 2026 00:04:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=78.133.224.34
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777939428; cv=none; b=cLYFXx+onbDMxR8gMXodrm+Fdw73iOs13wpNNfmYssESfTwU3lq1dNgr/3FbGrFAewOXAtqueTVXSyu7r3blU0FGgVjpjWTU2u+rElhO8zz+mfrEyn+REq1/PM6qjfy6HjHIP7cC+6NLaOX5n9xTm4P0FhedOUfsqMw8RVKg1Us=
+	t=1777939458; cv=none; b=nNsuwkmCEQGCrfsuDBvjauilxbOkkA7YJWOIyBKzvu7Wtqhu4KVXS3mbJMGjAl+p+UIggv1TGxvhXhpzqKUZz1qZiCF/80tuUIgtGnVxw5U5eTiVFE3PRWXFxBVG5+e8DG++1DAr1uIbuMfEoznR8QE8TlqdZ4CiXTbXGDFFmZg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777939428; c=relaxed/simple;
-	bh=px/8GFAzdk8jkuSUualcaZDsIBX2i3S5hcIxDgVDBtY=;
+	s=arc-20240116; t=1777939458; c=relaxed/simple;
+	bh=gilj1Gom0i0+f4DKl3WyFHEO9/tTz6CbvsD1Z5sNUKI=;
 	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
-	 MIME-Version:Content-Type; b=rAACQNAS2WsbLJ65XsAgoD805/Xd9nicv3VMvJF7duwOqB7SXbYtnqOcJiuUW5ty4XW1mPORWQUrzgpL70tJMAjxDMR0uPP7FMhMFqom4k06YrMhBrp39dkFx6T9C1T1EZR1bF5vU/1+zeYoVw3YuYiHymZG/chfq9HlQiddP+Q=
+	 MIME-Version:Content-Type; b=rafVZT4JU7p/roFyerLNrmlSPkfBuBV9Wd+snf5AHjH7xX4qbuMvea1TdDWpXA8sJyL0RBCQgOq71+0wLrxwGqepZ+CRulXhIkwfxdWqNANZo0f4ZGtPH4LyIZy7GsMqR06u+cb3wgsQ2D1nYvVZGybge5yuF+dwGZZZecCcqa0=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=orcam.me.uk; spf=none smtp.mailfrom=orcam.me.uk; arc=none smtp.client-ip=78.133.224.34
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=orcam.me.uk
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=orcam.me.uk
 Received: by angie.orcam.me.uk (Postfix, from userid 500)
-	id 4376F92009D; Tue,  5 May 2026 02:03:46 +0200 (CEST)
+	id D161592009C; Tue,  5 May 2026 02:04:15 +0200 (CEST)
 Received: from localhost (localhost [127.0.0.1])
-	by angie.orcam.me.uk (Postfix) with ESMTP id 3D6C192009C;
-	Tue,  5 May 2026 01:03:46 +0100 (BST)
-Date: Tue, 5 May 2026 01:03:46 +0100 (BST)
+	by angie.orcam.me.uk (Postfix) with ESMTP id CD67B92009B;
+	Tue,  5 May 2026 01:04:15 +0100 (BST)
+Date: Tue, 5 May 2026 01:04:15 +0100 (BST)
 From: "Maciej W. Rozycki" <macro@orcam.me.uk>
-To: Bjorn Helgaas <bhelgaas@google.com>, 
+To: =?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
+cc: Bjorn Helgaas <bhelgaas@google.com>, 
     Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>, 
-    Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>
-cc: =?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>, 
+    Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>, 
     linux-pci@vger.kernel.org, linux-rdma@vger.kernel.org, 
     linux-kernel@vger.kernel.org
-Subject: [PATCH v2 2/2] IB/hfi1: Remove pci_parent_bus_reset() duplication
-In-Reply-To: <alpine.DEB.2.21.2605050042390.46195@angie.orcam.me.uk>
-Message-ID: <alpine.DEB.2.21.2605050058450.46195@angie.orcam.me.uk>
-References: <alpine.DEB.2.21.2605050042390.46195@angie.orcam.me.uk>
+Subject: Re: [PATCH 1/2] PCI: Export pci_parent_bus_reset() for drivers to
+ use
+In-Reply-To: <6ddfb7a-2a83-cb84-ad73-9bd985652858@linux.intel.com>
+Message-ID: <alpine.DEB.2.21.2605050048140.46195@angie.orcam.me.uk>
+References: <alpine.DEB.2.21.2306200153110.14084@angie.orcam.me.uk> <alpine.DEB.2.21.2306200231020.14084@angie.orcam.me.uk> <6ddfb7a-2a83-cb84-ad73-9bd985652858@linux.intel.com>
 User-Agent: Alpine 2.21 (DEB 202 2017-01-01)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
@@ -39,61 +40,41 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8BIT
 
-Call pci_parent_bus_reset() rather than duplicating it in trigger_sbr().
-There are extra preparatory checks made by the former function, but they 
-are supposed to be neutral to the HFI1 device.
+On Tue, 8 Aug 2023, Ilpo Järvinen wrote:
 
-Signed-off-by: Maciej W. Rozycki <macro@orcam.me.uk>
-Reviewed-by: Ilpo Järvinen <ilpo.jarvinen@linux.intel.com>
----
-No change from v1, 
-<https://lore.kernel.org/r/alpine.DEB.2.21.2306200235510.14084@angie.orcam.me.uk/>.
----
- drivers/infiniband/hw/hfi1/pcie.c |   30 ++++--------------------------
- 1 file changed, 4 insertions(+), 26 deletions(-)
+> > Index: linux-macro/drivers/pci/pci.c
+> > ===================================================================
+> > --- linux-macro.orig/drivers/pci/pci.c
+> > +++ linux-macro/drivers/pci/pci.c
+> > @@ -5149,7 +5149,19 @@ int pci_bridge_secondary_bus_reset(struc
+> >  }
+> >  EXPORT_SYMBOL_GPL(pci_bridge_secondary_bus_reset);
+> >  
+> > -static int pci_parent_bus_reset(struct pci_dev *dev, bool probe)
+> > +/**
+> > + * pci_parent_bus_reset - Reset a device via its upstream PCI bridge
+> > + * @dev: Device to reset.
+> > + * @probe: Only check if reset is possible if TRUE, actually reset if FALSE.
+> > + *
+> > + * Perform a device reset by requesting a secondary bus reset via the
+> > + * device's immediate upstream PCI bridge.
+> 
+> >  Return 0 if successful or
+> 
+> Kernel doc has Return: section for return values.
 
-linux-ib-hfi1-pcie-sbr-parent-bus-reset.diff
-Index: linux-macro/drivers/infiniband/hw/hfi1/pcie.c
-===================================================================
---- linux-macro.orig/drivers/infiniband/hw/hfi1/pcie.c
-+++ linux-macro/drivers/infiniband/hw/hfi1/pcie.c
-@@ -791,35 +791,13 @@ static void pcie_post_steps(struct hfi1_
- /*
-  * Trigger a secondary bus reset (SBR) on ourselves using our parent.
-  *
-- * Based on pci_parent_bus_reset() which is not exported by the
-- * kernel core.
-+ * This is an end around to do an SBR during probe time.  A new API
-+ * needs to be implemented to have cleaner interface but this fixes
-+ * the current brokenness.
-  */
- static int trigger_sbr(struct hfi1_devdata *dd)
- {
--	struct pci_dev *dev = dd->pcidev;
--	struct pci_dev *pdev;
--
--	/* need a parent */
--	if (!dev->bus->self) {
--		dd_dev_err(dd, "%s: no parent device\n", __func__);
--		return -ENOTTY;
--	}
--
--	/* should not be anyone else on the bus */
--	list_for_each_entry(pdev, &dev->bus->devices, bus_list)
--		if (pdev != dev) {
--			dd_dev_err(dd,
--				   "%s: another device is on the same bus\n",
--				   __func__);
--			return -ENOTTY;
--		}
--
--	/*
--	 * This is an end around to do an SBR during probe time. A new API needs
--	 * to be implemented to have cleaner interface but this fixes the
--	 * current brokenness
--	 */
--	return pci_bridge_secondary_bus_reset(dev->bus->self);
-+	return pci_parent_bus_reset(dd->pcidev, PCI_RESET_DO_RESET);
- }
- 
- /*
+ No function description in this file follows this convention though.  I 
+have now made the amendment requested anyway.
+
+> > + * -ENOTTY if the reset failed or it could not have been issued in the
+> > + * first place because the device is not on a secondary bus of any PCI
+> > + * bridge or it wouldn't be the only device reset.  If probing, then
+> > + * only verify whether it would be possible to issue a reset.
+> 
+> I guess most of the in-depth explanation about reasons why reset 
+> might not me issuable could go into the longer description block.
+
+ Likewise.  Thanks for your review, v2 now posted at: 
+<https://lore.kernel.org/r/alpine.DEB.2.21.2605050051390.46195@angie.orcam.me.uk/>.
+
+  Maciej
