@@ -1,67 +1,67 @@
-Received: from MW6PR02CU001.outbound.protection.outlook.com (mail-westus2azon11012031.outbound.protection.outlook.com [52.101.48.31])
+Received: from CH4PR04CU002.outbound.protection.outlook.com (mail-northcentralusazon11013034.outbound.protection.outlook.com [40.107.201.34])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7642E3E8C71;
-	Wed,  6 May 2026 13:33:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.48.31
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A94C047A0BC;
+	Wed,  6 May 2026 13:33:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.201.34
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778074410; cv=fail; b=Yp3hIs3PvLPY4oO3ehCxvtq2k895Zb7uHweKvL99XeNATspvQ9bkQZ+RA0x1iIv+PkFdWOtG7Z7AFG9lAmLffawJ2wPRweqK40hcjyyuTGC0FIWmYZiH9FUSlrSBP8tPph6udbIJdI+tBjB3DneYuJ7CaOFvwQQDiA2f2IJCkv8=
+	t=1778074415; cv=fail; b=uUD9BVYbFY9zZehmSvgmQGrbjjlR+eHnr3DZja9ThNyoaoU0Uz6mehgqC0/+7jWe0lNyw2IL1ToRdz25vXcd7/W40GSJYsFMq3lZ+6y+xJTjQzuzwIHqbD72tMntcm8bMXqY/DJXQMSGKWm2RDN+rw1lfO6ATp0fXG2ODQcqCks=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778074410; c=relaxed/simple;
-	bh=nDH2J9rlAa2YXfdeb6Prpqcna6WNy3VGSNKyvtVLbtw=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=qwIIfH8Hd7CwSrtG44D3yzZkfNSDFV3rLtH52DdT79jIG73B8fH4dphNyenB3NSD+mQYRZideBuwjts0qu+qKtVPl88XJb1I8H1+HFfFy0Tst01h1/eFWliqXfbUsbL3HTxO3Sd6uRJ5p8yeikm574bkEMXylLfwZU2V59BX6N4=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=gktlRKId; arc=fail smtp.client-ip=52.101.48.31
+	s=arc-20240116; t=1778074415; c=relaxed/simple;
+	bh=4A+zi3fm5TgemW3trg/MrX8w9MKskgdUlpd8xNM7xsA=;
+	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=pTuYAM+8ZycEv8DhG8R8hpSuVmQTOEQfXbYv9s9Zw7srZGDXWGC3sY3tfKeIAtlCCgKDFXA51GJXUY3NTugWgj2OwQn9iZwopGpMctATeuCqWbm94DT/B5lsmzObrlyVVSPDS+S3cqKk0Q/AiIZs1Bzk+FAgIKF1uP044OcO49o=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=NYZ0M1B9; arc=fail smtp.client-ip=40.107.201.34
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="gktlRKId"
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="NYZ0M1B9"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=dHn7ub1fvATWP+DeYhQak8Ddwh2ZnMDyMvm6Crxv/2w8DCz99txmzr1mhWO6G04Bq+7A1Zb9mOz6TXjIgngqDu8Simt6MRIPiKnXwNhgkhJRqbUs6ziqAzWGxsqimf3p1D2IwdY/cN4skXX1POyOXmU907KkZL13xb1dPEa+kh8wBA4A5dLDoVUttIQfFz4OCNM4ay/WDRyAQQ/tt0K/qr41n0Y2AfbZc275QPKhdCr/bF5YCfrDBTN2AgRqpZeIUH+F2HtTDaqBwtsl/BjE/6axtbVfshpZQfY2Nr3AW/bbmJNq9i7A8KUuWmyzSJvfuLtp3p7LIE3zbv4yYbEGKA==
+ b=lMfnc/Ms4hRRjJIv+4rWISu7w2X0t73puJRJH1Ve4u7Qayvw9CtJOpmPA9n3OYluJDJr/VwGY9+zNrGvwMr0FicYtYq7dnNTooNuXfJ/3fIRGNXrJmJjBo/u8kG0S2q/1VbZWKexGL4JlyvSl3dxz/ulWurtEkbYQzCXnwlivUrwGFN4+QCb5ooxQtXpEc+lEzqVuQ3KUvYipN6z7EnKjhHKs+SzFCgmk+VwKdNJQsBXJWdflV8iyHooWmSZP+fP6ZuzR5zOl3fQRbmEacQjZUOZHhdyV7AKqKHtJaiQb2hURkNK6fG4CcWLiwomhWH2hzxF1S5QsDO1VCp2Yh5YDA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=5HQ2Q6CIhYwwvrBrPjbRHExq6czrDWWu9URbJluVLxY=;
- b=GrhIEFAJYQAVgEftTq/Ue+AawjeEt15Hg5sNdC2Zv8t8SqZz6ya1bPwFXlR9YabkA2mBuuv7Q2r3UVZVTF/3R3q5kowe2et2Howo3XlmqbSbQKdnn5qIqIHfM/B+Hpkby29ec+92nLG1tKLjSRNkeBwsRNxfjmWU2lygca1m+/c9OFR19ieCRLaMdlFRkuWT4P1DPEP2W80l+vFM6YSxd9KUgtNHavI23kzHi1g9tq/ctwQPVSzt+PV2q4lVHQW+UG114WR5w6Zc97YyIv/nkXeTjZiJxeSqEFn9TJdswv5odxluokZ6dTb6wvqIpPXi4rx0PhWNb9fz9zcHyoVbLw==
+ bh=6D4+b+/99IRUQOnflu8ud0uYsNvXzdn3HfaKA48jM8w=;
+ b=Hg5Ff/R9mfwmu+suIVPZTHv4ISqNbpdALnCx+LoZfv0m/96anlqlUqOTebA1HwtGkrSh43fN3Wv6MSS5XMGXRsHA3wDyFAHD/yuVY+JJGGwXhpVmV2wAnox0x+Mdg6v7x4zqYNZzdJG3f8N6yqID+x9bzK5Il9Jb5flyNW+42GjbGh0GjmVM8G5z8Q+p7PCTq6bJh7dzhxfcuaYijlGtr8n74EVykTev9NfyAcszQtMk3dkzcjJL8r0m1z3HGhtOnz5KsiOw+ehNQM8C8eyjAsO7ZstJr5xhEEsvhpiekyyCPh4/SXpD71VoW5wk38DfixKVsYdRjnwl00WITTWjjw==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.117.160) smtp.rcpttodomain=google.com smtp.mailfrom=nvidia.com;
+ 216.228.117.161) smtp.rcpttodomain=google.com smtp.mailfrom=nvidia.com;
  dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
  dkim=none (message not signed); arc=none (0)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=5HQ2Q6CIhYwwvrBrPjbRHExq6czrDWWu9URbJluVLxY=;
- b=gktlRKId8qS1alwNj9riaFpsrljAP+gGrdaw+TTNJDL+t3JyMbC6sl2mRCuulJeouC8RnPJ2j1Dyr/EzEVnWfynW+KS5yDNatgqa6C9oO1gSQT9PXwotBkJ91ek04i/trGDTggcstRFTyqeDky3SyMq2G8L5C1PYKKfvm/qjTqtHzYBpGe23fHu33N0IC9SD0iRaqJdidAmreciOEAtOMK6u3DaJOrzG5dpL6ihFThLpOrRUJfgUMENntpmq3kg5fJZnDemZFBPxBBjrgYQ0sDLjce4Ukh5jIlaVm86IwwdXIItbCcRL9LE1SCg88mhnIhWJxDg1G6T7RI7V0rz7xA==
-Received: from BYAPR07CA0098.namprd07.prod.outlook.com (2603:10b6:a03:12b::39)
- by IA0PR12MB8745.namprd12.prod.outlook.com (2603:10b6:208:48d::11) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9870.25; Wed, 6 May
- 2026 13:33:19 +0000
-Received: from MWH0EPF000A6731.namprd04.prod.outlook.com
- (2603:10b6:a03:12b:cafe::11) by BYAPR07CA0098.outlook.office365.com
- (2603:10b6:a03:12b::39) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.20.9891.15 via Frontend Transport; Wed,
- 6 May 2026 13:33:19 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.160)
+ bh=6D4+b+/99IRUQOnflu8ud0uYsNvXzdn3HfaKA48jM8w=;
+ b=NYZ0M1B9KvsAeuHPpyPHQKyFcY4CkSacm0+IoMmDdgHQkcHG5Sl0rA2d1hIyzKiWXmsU4mEYz2weITiYYUPjjg/R+0BeUbXR0THpURhiTe905AE7dYOpOVzVdawOS3Q7u/j9+PfhJitILISQLk6sa1GnZEh8IvO2M8LwhdspTrq23euAJKAvSsa6hWqPB752ivET0efE25fQ3UKNSl11226tMIQYBkgygh6dYcph8+/6BPYIDuv3JqirwxDRdcMMUOY+CO21gT4NoItlYWUUzAOFIJKjunCjiyQvit2jRIUvtYpmJbwGYbVERm9xKjmRKGFZCppcbwBbg07NGtLaGg==
+Received: from MN2PR04CA0005.namprd04.prod.outlook.com (2603:10b6:208:d4::18)
+ by DS7PR12MB6048.namprd12.prod.outlook.com (2603:10b6:8:9f::5) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.9891.15; Wed, 6 May 2026 13:33:26 +0000
+Received: from BN1PEPF00006001.namprd05.prod.outlook.com
+ (2603:10b6:208:d4:cafe::50) by MN2PR04CA0005.outlook.office365.com
+ (2603:10b6:208:d4::18) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.20.9870.27 via Frontend Transport; Wed,
+ 6 May 2026 13:33:26 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.161)
  smtp.mailfrom=nvidia.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=nvidia.com;
 Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.117.160 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.117.160; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.117.160) by
- MWH0EPF000A6731.mail.protection.outlook.com (10.167.249.23) with Microsoft
+ 216.228.117.161 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.117.161; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.117.161) by
+ BN1PEPF00006001.mail.protection.outlook.com (10.167.243.233) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.9891.9 via Frontend Transport; Wed, 6 May 2026 13:33:19 +0000
-Received: from rnnvmail205.nvidia.com (10.129.68.10) by mail.nvidia.com
- (10.129.200.66) with Microsoft SMTP Server (version=TLS1_2,
+ 15.20.9891.9 via Frontend Transport; Wed, 6 May 2026 13:33:25 +0000
+Received: from rnnvmail202.nvidia.com (10.129.68.7) by mail.nvidia.com
+ (10.129.200.67) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Wed, 6 May
- 2026 06:32:54 -0700
-Received: from rnnvmail205.nvidia.com (10.129.68.10) by rnnvmail205.nvidia.com
- (10.129.68.10) with Microsoft SMTP Server (version=TLS1_2,
+ 2026 06:33:04 -0700
+Received: from rnnvmail205.nvidia.com (10.129.68.10) by rnnvmail202.nvidia.com
+ (10.129.68.7) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Wed, 6 May
- 2026 06:32:54 -0700
+ 2026 06:33:03 -0700
 Received: from vdi.nvidia.com (10.127.8.10) by mail.nvidia.com (10.129.68.10)
  with Microsoft SMTP Server id 15.2.2562.20 via Frontend Transport; Wed, 6 May
- 2026 06:32:50 -0700
+ 2026 06:32:59 -0700
 From: Tariq Toukan <tariqt@nvidia.com>
 To: Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
 	Paolo Abeni <pabeni@redhat.com>, Andrew Lunn <andrew+netdev@lunn.ch>, "David
@@ -72,10 +72,12 @@ CC: Saeed Mahameed <saeedm@nvidia.com>, Leon Romanovsky <leon@kernel.org>,
 	<netdev@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
 	<linux-kernel@vger.kernel.org>, Gal Pressman <gal@nvidia.com>, Dragos Tatulea
 	<dtatulea@nvidia.com>
-Subject: [PATCH net-next V2 0/3] net/mlx5: ICM page management in VHCA_ID mode
-Date: Wed, 6 May 2026 16:32:36 +0300
-Message-ID: <20260506133239.276237-1-tariqt@nvidia.com>
+Subject: [PATCH net-next V2 2/3] net/mlx5: Make debugfs page counters by function type dynamic
+Date: Wed, 6 May 2026 16:32:38 +0300
+Message-ID: <20260506133239.276237-3-tariqt@nvidia.com>
 X-Mailer: git-send-email 2.44.0
+In-Reply-To: <20260506133239.276237-1-tariqt@nvidia.com>
+References: <20260506133239.276237-1-tariqt@nvidia.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -87,82 +89,156 @@ Content-Type: text/plain
 X-NV-OnPremToCloud: ExternallySecured
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: MWH0EPF000A6731:EE_|IA0PR12MB8745:EE_
-X-MS-Office365-Filtering-Correlation-Id: e85aeae1-c083-4f05-1b1f-08deab74094b
+X-MS-TrafficTypeDiagnostic: BN1PEPF00006001:EE_|DS7PR12MB6048:EE_
+X-MS-Office365-Filtering-Correlation-Id: 4a0e7904-e171-4826-1c64-08deab740d3d
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|82310400026|1800799024|376014|36860700016|13003099007|56012099003|18002099003;
+	BCL:0;ARA:13230040|36860700016|376014|82310400026|1800799024|56012099003|18002099003|22082099003;
 X-Microsoft-Antispam-Message-Info:
-	sANDeaC5Sfo8a2GwTloJyag84dIWDlzt6lKAMAVhXEDxu8zdXMz/yTcsLYYQ59kuEaDU/UY5KVHQ4OEXNjrDE18hQCRqbd0CJe8ByyV9YkVQSfCflAD6QYbErZKXu5utoYhoaW17cSVPCcIKW3EJx7g4Xz7j7/KoFzBPcGID0Ug+Oh0azdH2MOZBzEXdJFaiL7Styydw9ZLozR/LzM2NyvBpUdwTBeJajxRfvot1m7ez4aNqAX2hAwB5wsD20marbo8oAgldHmaKlURUlh5Pb/NjkmzjrGzWvGEqLwFDGvKcE5/FJC44GxWNPoxMJcMaIVPUzjDo1v/h4oHvK3XNZckJztBsewCVHnMfn0xAwvMuSxWV2KHNtjMf2s9RAH9GYrHJawQMRN+PpIxkDRMxBVp8c99rLJ2halKw1ncG+bgRnuVlLFbudZVXcKoHi33YHTsLAI1d3heKBcv/1GV4BxpXNMrhx9DI5q/KPeu+96FRRCEuiz1NFKi5uiJbi7qtNOkYESRhEnfOstdJG2tJiTOIhO+ZBxzoz1Su/rlKfgCA1xid35RvVycCpGRPUGHNdECrxVJOfj+LEYSJmqRgHrZy7I2/9kn2F2b3cWaKKuGsdld1ylywgdnW5FSJRJoF4243X9kZRLq3iLMQHE5riEg17cGt4Qxzvdl3HprYvXVGbUz9Pw474k7gzm+/pJsYcl2KtNQ/53UwCnAxuQnkT0CRlKboeEsNOuN7eo6cZ8LX6kfYzEGQ84TQ8facwwmq
+	Glhz0IiRFHB2b7CJTsp8p9JmHiK/OKadHj8PQEPsLNxIILE4aeGLqJE0hcE++6BP8NOCJReqmhih/NsfZYFFzu5SsuWgjYsBJ+wWioR5H1pSIVu9/YZtayEK4/rN1x4hMhMw+WfruIw/5TKohTD0KD45N12u+DNlCo/beoa8QaQ++/j3Lo0tH7q65r8j+DjjY5Ro6dvgNir6zl51gQBVPUn25/o/EkN0te72br+d8Fa153LE3fxtWWvZbK3Lngtx/BXzE3OqBMqmQJvcUQdlh4q0+O4ahzePop3F2ci4r5L+SogIbTo06lP1PZW8s/ljfFAAKIua+UHqKJz1ichPxetyoPET2E0S2QI7YlYZkCaTbpDMLC0F7QHM2K/UxKH9JMW7ddt0076cShLaS7ZOhzrzn0UoJuI/yisC+uvZ/RoPrIX7btt0T0zCo/rSQRDMO558hiA0vkI236QvM4EeDf36TQTMZEP3FzWklER8tt79X3LesrlR3C2364o1BbOyCLXKdPX54hwPzWvE3s/HgRAB0LZvPrRJua+nyJ3GSjNNLv3SWiSPE/nRxd7w6UG5FUoJp7A7zathN9CryEi8BIiHF8PIx+1GS8XgIRM9cGy/EZ30HxtQPFQnL5gB+2Nhg/mli/J0qAJiV2Cay9jSfoX4mln5rRdDqTnPH+VY4jXywDjofHYIgwGoqe22JzDi+cbyxMV8UiybGYZSNWcJAx5fa49yGbwal/QlvQKKw3g=
 X-Forefront-Antispam-Report:
-	CIP:216.228.117.160;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge1.nvidia.com;CAT:NONE;SFS:(13230040)(82310400026)(1800799024)(376014)(36860700016)(13003099007)(56012099003)(18002099003);DIR:OUT;SFP:1101;
+	CIP:216.228.117.161;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge2.nvidia.com;CAT:NONE;SFS:(13230040)(36860700016)(376014)(82310400026)(1800799024)(56012099003)(18002099003)(22082099003);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	D9dnDfMpSINR5cJnq0R7N/0esGvu0qFOAzSQl5l9ePgXzptk2wR8tLvLhJZ7cT2IAH/qkJ526T9Cip7+Fq+IcoUOKer1KW9QK2ubz2wpPVG/N+p1sSvi1lpuhBY7ooFqYCxDb8EneevsPKp84qEwrn3UxLvOK+wxCEy3138YxCCrhG80Zw2xLGfY+gwI3nXnebGrC5wt/n/fmazi9u8+cqss0rXWUPrQNjLOGwpSW3a2t8qHD/0iYswSAzpt6fLr2M3ONzo1USTu07+4EavdTwfHyJo7s9/AzxDg2zrV8loGW7lkB8SyrCiK9DdBde9hunHUTCzUCF2tVUBxIAxJpg0Aps7ih+hm13nAliIfNlEpPqjm5YYRmidDJBh09RdS/zEqW98hoNnKdDs6+hPplkWGM5sQZH5NaP97hhZageeexkHpTPgSjx9HFsP2N4Fd
+	kTR6WH61GvQAYbjjdse5jF2bcLyr+fiz354yCD8cheBwWCbYaF1KUIyDd1BEBAqlLduVSoHPIv3wIrMmCxr75t6uP0d4XwRE9qqCv0nbBhs+iDoYCmeuR1k/yiFeUPH97w65cpZ/s0AV7l/fwVhNsUNbNS0Wz48II+hkQ1YqMwhBE5UXJPgEqwxq6BJadH9rbLJXtnl0YbvQON7y1E/QH9ve6ZWbgsrs5NqBrkAeHujC+jS95E56bImyvpreXqSVoYMHwTxbJeCtrDYgYUiWTQMz7+I0eezJNBvbP1SU+EFmSvEXCDnaIGQ10ulY6kcLbl7yHKNI7l224eskh/FojpRRhE2S+7NLJJYrG/cI1I2gQvnvyufCFiX0bPo6llvGLIg5j2vNBDJwyxOS8QqhNpUs0dMhgr614lTSal4UZU+dek+LL+Drcy1dXlaFJd2x
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 06 May 2026 13:33:19.2107
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 06 May 2026 13:33:25.7939
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: e85aeae1-c083-4f05-1b1f-08deab74094b
+X-MS-Exchange-CrossTenant-Network-Message-Id: 4a0e7904-e171-4826-1c64-08deab740d3d
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.160];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.161];Helo=[mail.nvidia.com]
 X-MS-Exchange-CrossTenant-AuthSource:
-	MWH0EPF000A6731.namprd04.prod.outlook.com
+	BN1PEPF00006001.namprd05.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA0PR12MB8745
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS7PR12MB6048
 
-Hi,
+From: Moshe Shemesh <moshe@nvidia.com>
 
-Find detailed description by Moshe below.
+Make the per function type debugfs page counters dynamically added after
+mlx5_eswitch_init(). When page management operates in vhca_id mode, only
+the function acting as either eSwitch or vport manager can initialize
+the eSwitch structure and translate the vhca_id to function type for the
+functions to which it supplies pages. The next patch will add support
+for page management in vhca_id mode.
 
-Regards,
-Tariq
-
-This series adds driver support for the VHCA_ID page management mode.
-When firmware and driver support this mode, ICM (Interconnect Context
-Memory) page management uses the device vhca_id as the function
-identifier in MANAGE_PAGES, QUERY_PAGES, and page request events instead
-of the legacy function_id + ec_function pair.
-
-Background
-Firmware can operate page management in two modes:
-FUNC_ID mode (current): Function identity is (function_id, ec_function).
-This remains the default and is used for boot pages and when the new
-mode capability is not set.
-VHCA_ID mode (new): Function identity is vhca_id only; ec_function is
-ignored. This aligns page management with the vhca_id-based model used
-by other firmware commands and simplifies identification on SmartNIC and
-multi-function setups.
-
+Signed-off-by: Moshe Shemesh <moshe@nvidia.com>
+Reviewed-by: Akiva Goldberger <agoldberger@nvidia.com>
+Reviewed-by: Mark Bloch <mbloch@nvidia.com>
+Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
 ---
+ .../net/ethernet/mellanox/mlx5/core/debugfs.c | 39 +++++++++++++++++--
+ .../net/ethernet/mellanox/mlx5/core/main.c    |  7 +++-
+ include/linux/mlx5/driver.h                   |  2 +
+ 3 files changed, 42 insertions(+), 6 deletions(-)
 
-V2:
-- Cache vhca_id to type mapping to provide lockless lookup.
-- Store the resolved type on each fw_page at allocation time so reclaim
-  and release paths read it directly without any lookup.
-- Reorder erase old key and insert new key on migrate function.
-- Fixed comment on mlx5_satisfy_startup_pages.
-
-V1: https://lore.kernel.org/all/20260501044156.260875-1-tariqt@nvidia.com/
-
-Moshe Shemesh (3):
-  net/mlx5: Relax capability check for eswitch query paths
-  net/mlx5: Make debugfs page counters by function type dynamic
-  net/mlx5: Add VHCA_ID page management mode support
-
- .../net/ethernet/mellanox/mlx5/core/debugfs.c |  39 ++-
- .../ethernet/mellanox/mlx5/core/esw/ipsec.c   |   2 +-
- .../net/ethernet/mellanox/mlx5/core/eswitch.c |  49 +++-
- .../net/ethernet/mellanox/mlx5/core/eswitch.h |   8 +
- .../mellanox/mlx5/core/eswitch_offloads.c     |  14 +-
- .../net/ethernet/mellanox/mlx5/core/main.c    |  10 +-
- .../ethernet/mellanox/mlx5/core/pagealloc.c   | 250 +++++++++++++-----
- include/linux/mlx5/driver.h                   |   9 +
- 8 files changed, 304 insertions(+), 77 deletions(-)
-
-
-base-commit: 7e0cccae6b45b12eaf71fc3ab8eb133bb50b28ad
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/debugfs.c b/drivers/net/ethernet/mellanox/mlx5/core/debugfs.c
+index 8fe263190d38..6347957fefcb 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/debugfs.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/debugfs.c
+@@ -285,10 +285,6 @@ void mlx5_pages_debugfs_init(struct mlx5_core_dev *dev)
+ 	pages = dev->priv.dbg.pages_debugfs;
+ 
+ 	debugfs_create_u32("fw_pages_total", 0400, pages, &dev->priv.fw_pages);
+-	debugfs_create_u32("fw_pages_vfs", 0400, pages, &dev->priv.page_counters[MLX5_VF]);
+-	debugfs_create_u32("fw_pages_ec_vfs", 0400, pages, &dev->priv.page_counters[MLX5_EC_VF]);
+-	debugfs_create_u32("fw_pages_sfs", 0400, pages, &dev->priv.page_counters[MLX5_SF]);
+-	debugfs_create_u32("fw_pages_host_pf", 0400, pages, &dev->priv.page_counters[MLX5_HOST_PF]);
+ 	debugfs_create_u32("fw_pages_alloc_failed", 0400, pages, &dev->priv.fw_pages_alloc_failed);
+ 	debugfs_create_u32("fw_pages_give_dropped", 0400, pages, &dev->priv.give_pages_dropped);
+ 	debugfs_create_u32("fw_pages_reclaim_discard", 0400, pages,
+@@ -300,6 +296,41 @@ void mlx5_pages_debugfs_cleanup(struct mlx5_core_dev *dev)
+ 	debugfs_remove_recursive(dev->priv.dbg.pages_debugfs);
+ }
+ 
++void mlx5_pages_by_func_type_debugfs_init(struct mlx5_core_dev *dev)
++{
++	struct dentry *pages = dev->priv.dbg.pages_debugfs;
++
++	if (!pages)
++		return;
++
++	if (!dev->priv.eswitch &&
++	    MLX5_CAP_GEN(dev, icm_mng_function_id_mode) ==
++	    MLX5_ID_MODE_FUNCTION_VHCA_ID)
++		return;
++
++	debugfs_create_u32("fw_pages_vfs", 0400, pages,
++			   &dev->priv.page_counters[MLX5_VF]);
++	debugfs_create_u32("fw_pages_ec_vfs", 0400, pages,
++			   &dev->priv.page_counters[MLX5_EC_VF]);
++	debugfs_create_u32("fw_pages_sfs", 0400, pages,
++			   &dev->priv.page_counters[MLX5_SF]);
++	debugfs_create_u32("fw_pages_host_pf", 0400, pages,
++			   &dev->priv.page_counters[MLX5_HOST_PF]);
++}
++
++void mlx5_pages_by_func_type_debugfs_cleanup(struct mlx5_core_dev *dev)
++{
++	struct dentry *pages = dev->priv.dbg.pages_debugfs;
++
++	if (!pages)
++		return;
++
++	debugfs_lookup_and_remove("fw_pages_vfs", pages);
++	debugfs_lookup_and_remove("fw_pages_ec_vfs", pages);
++	debugfs_lookup_and_remove("fw_pages_sfs", pages);
++	debugfs_lookup_and_remove("fw_pages_host_pf", pages);
++}
++
+ static u64 qp_read_field(struct mlx5_core_dev *dev, struct mlx5_core_qp *qp,
+ 			 int index, int *is_str)
+ {
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+index b1b9ebfd3866..0c1c906b60fa 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+@@ -987,11 +987,12 @@ static int mlx5_init_once(struct mlx5_core_dev *dev)
+ 		mlx5_core_err(dev, "Failed to init eswitch %d\n", err);
+ 		goto err_sriov_cleanup;
+ 	}
++	mlx5_pages_by_func_type_debugfs_init(dev);
+ 
+ 	err = mlx5_fpga_init(dev);
+ 	if (err) {
+ 		mlx5_core_err(dev, "Failed to init fpga device %d\n", err);
+-		goto err_eswitch_cleanup;
++		goto err_page_debugfs_cleanup;
+ 	}
+ 
+ 	err = mlx5_vhca_event_init(dev);
+@@ -1034,7 +1035,8 @@ static int mlx5_init_once(struct mlx5_core_dev *dev)
+ 	mlx5_vhca_event_cleanup(dev);
+ err_fpga_cleanup:
+ 	mlx5_fpga_cleanup(dev);
+-err_eswitch_cleanup:
++err_page_debugfs_cleanup:
++	mlx5_pages_by_func_type_debugfs_cleanup(dev);
+ 	mlx5_eswitch_cleanup(dev->priv.eswitch);
+ err_sriov_cleanup:
+ 	mlx5_sriov_cleanup(dev);
+@@ -1072,6 +1074,7 @@ static void mlx5_cleanup_once(struct mlx5_core_dev *dev)
+ 	mlx5_sf_hw_table_cleanup(dev);
+ 	mlx5_vhca_event_cleanup(dev);
+ 	mlx5_fpga_cleanup(dev);
++	mlx5_pages_by_func_type_debugfs_cleanup(dev);
+ 	mlx5_eswitch_cleanup(dev->priv.eswitch);
+ 	mlx5_sriov_cleanup(dev);
+ 	mlx5_mpfs_cleanup(dev);
+diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
+index 531ce66fc8ef..d1751c5d01c7 100644
+--- a/include/linux/mlx5/driver.h
++++ b/include/linux/mlx5/driver.h
+@@ -1039,6 +1039,8 @@ void mlx5_pagealloc_start(struct mlx5_core_dev *dev);
+ void mlx5_pagealloc_stop(struct mlx5_core_dev *dev);
+ void mlx5_pages_debugfs_init(struct mlx5_core_dev *dev);
+ void mlx5_pages_debugfs_cleanup(struct mlx5_core_dev *dev);
++void mlx5_pages_by_func_type_debugfs_init(struct mlx5_core_dev *dev);
++void mlx5_pages_by_func_type_debugfs_cleanup(struct mlx5_core_dev *dev);
+ int mlx5_satisfy_startup_pages(struct mlx5_core_dev *dev, int boot);
+ int mlx5_reclaim_startup_pages(struct mlx5_core_dev *dev);
+ void mlx5_register_debugfs(void);
 -- 
 2.44.0
 
