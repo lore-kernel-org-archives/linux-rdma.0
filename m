@@ -1,75 +1,55 @@
-Received: from mail-wr1-f49.google.com (mail-wr1-f49.google.com [209.85.221.49])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C1B613090C6
-	for <linux-rdma@vger.kernel.org>; Tue,  5 May 2026 23:50:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.49
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8BC68246BBA;
+	Wed,  6 May 2026 01:28:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778025040; cv=none; b=hYD6tB/QDEmX2HTqfWkE0U4P7NybAYYIGS1Hz7B6f3Tm3ykF4ldaOwCNXQFiU6a6rim41x08AaV7efIalZ0sdGA7ia1zYshcVPUA8eum8yrgVGGTUAzw1iVIvjYOzIB7OCt1QVedKqmgGYHKOnpjrmXbQQC8VdOx535/SssxwSM=
+	t=1778030915; cv=none; b=RZQqT3kmQ3gY/WcMfCKE7AVp4HR7+Wfa7FwcaRglgA/EN+RDt4w+A7cO5CsPjrtX0i+gP+8q0Fja6HTN5XVhuONnGyOgLpjiDoF6zMC9QgVmBouwUfH+EBM9/YziKU86dWp2ZdVhrUKqMTxd582HqsdSsS3P6/nSPvck6hb3vUk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778025040; c=relaxed/simple;
-	bh=b0+sikzvNYfNWiv4eEBKwYdzayPztWTMNL7LUGw6qpc=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Ue746+rBaWRH//Os8cSEMfDKUmF9JckA7jOuFR9Bw6v0FnY2hNDYFp5VN2XUq6Km5go82KwjUNII+p7U+wQ+vJ2KPn9YX8oK9ZZdtd6qJ/nBMJ4wQXAjmhlNxmyijyAtOSRpWW4Vs573RJcImL114c8AuqRqWZFyyw5czbo3+XY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=MJFbQ1GA; arc=none smtp.client-ip=209.85.221.49
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1778030915; c=relaxed/simple;
+	bh=VQUC57fO+osALstZz2wYTzkFvOH4NzOFCjxh0tFqSH8=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=Sedzp/0uI8vUBL1PFvfwY5QZ4wW24NAVnA70offCw61OMNS3cuLF/sUtefEZUwP1aOwONfC4sdQdMOIfVFF4QxBt64P9US/lLK+fzbLF/iSxZ5hcZMpIt/mzXEGUJCVwELAyJQITZjwx2j9edFoMVqz+zlyk8hCBjq2IdoBm+E0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=cnrukEmN; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="MJFbQ1GA"
-Received: by mail-wr1-f49.google.com with SMTP id ffacd0b85a97d-43d73422431so5451472f8f.2
-        for <linux-rdma@vger.kernel.org>; Tue, 05 May 2026 16:50:38 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1778025037; x=1778629837; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=jviD8hPEm7lughBQuX/QL6NEuZ/mYGqrq0e4z3+1mUw=;
-        b=MJFbQ1GA9RwDz6psrHMElWReazbqsemnUFwYBbLkcj6jumOTII06pMc2yhU99IhKEL
-         z0rGwgR4MIJwfj6C0a36+Bm5rcuiIFKm5bYi8EOEz+zHDnVIpVvuTlIZXrvPqK6mo0z9
-         p7MunXN5y/BHoqxrqFG+TQuzIvHUouW9ilB2GNRvk8Y6+ArRJ3DnNoWCHx+5RUXlAgiV
-         BTCBGrb8V7iwNjgzZGDoRU6994/JZVPNupI+K17gzU+CxFc8fYiKIa+EHYC4aSWF8JXL
-         /7oigQ9ADLkliLRAG3QoilYthRRi+EKXVXBmYBV/vubVP7Mxdm82sKMWNJ07f/PMIR0S
-         VD5w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1778025037; x=1778629837;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=jviD8hPEm7lughBQuX/QL6NEuZ/mYGqrq0e4z3+1mUw=;
-        b=EETU6C9/5qTItbvq0XIwEfxnHIPY8jGEFdoBRBZ8ODFp+n1TQdhLJceE+E3VNPgFv4
-         Z7Q9k+JKPxuAEFMw54ztU2mpvgkipSvvaFDFYIUuuCmzvsuBH04Lgqml51FVf5oH1JF1
-         VKjM3efj03lcpm2/FiA48W/UcVfH410z8f5mQ17xJFoQW34ac8jXEFuvHG4MGFoZ0m4c
-         F0HQbI1Ungb00MaVao6fePE5s6Mz8QWl20I+ehPDpsI38YGO8OJvGsn+Pne/Qu/wwof3
-         ZJT1VNu0OoVBDcq22HJ2IWWRujMyJSd7TLOcegs/E1nr1wFzUGfQBKkZz8dnoxd9XPIB
-         +gqA==
-X-Forwarded-Encrypted: i=1; AFNElJ8hA1B7MJX8klV3nsR377TAmF2gKhXuP+AOKplFeT9Bo2uDnnqRBUYvp55wEj4GFO45AViEvpHfAiUJ@vger.kernel.org
-X-Gm-Message-State: AOJu0YzsHEY9TCPQaOrOMqzGL/2RXJzTxKv/uNffxD8IA5sGxsC83HRH
-	BCmzyxBBx39Mom8LEQjingbzZ/P551MeuDn8j4gSwSJBnUR3Hg7Kokro
-X-Gm-Gg: AeBDietDzEORn1VOFkplbh8OP5geBSXx4pLqA6xtP3G8YThtozewX8zr3S9MJB6y4KK
-	wxtIoQn1j7fG9kmoZP4vdgYf2MqPFu5hWq5tkJy/K6+/2wldIzm47vMhuzZVTeMjMDveJzXORKJ
-	VYWabrCSuOKEv0AI5ZDbtRh2FNHpXTZMDclvBXDUIyPrJhHpzhbWJfVp362Ju0KSlRFJulwCBwC
-	yH1fYt1q0PG3egAeoOqwkZqxkaKFuamSRDkluC+Sq55uwS2XEH/qIbIFv6xkywAs/Z1gRWuz64v
-	53Fa3BKvRqXyZY9RgKvdCn39p1TcLivqj7TrVcKRjMFreQ7Y0knZVvA+jdwwBVMJfl9tGfkkyQD
-	D195V+wZHJ2NNWPQYlECkAlwwt68Aws/CwjZ0y9MZ+amnk5y9MlduAgUTHMY4dj/gPisVUvbGDz
-	oRjZHHaTW8kGhpzyR/nCQy7YSO0j+oZVLShmJUDIxUNF/Jssd2WvalwLS59afJlYmFBslmjgxAQ
-	naDXgdZHgAPsRKhDs6T/T8JPDj7QNYm+CyzBD1dXAxM873Fi9BR
-X-Received: by 2002:a05:6000:2386:b0:43f:e938:1e67 with SMTP id ffacd0b85a97d-4515d99fff7mr1670239f8f.38.1778025037016;
-        Tue, 05 May 2026 16:50:37 -0700 (PDT)
-Received: from SD.localdomain (heme-13-b2-v4wan-167795-cust403.vm32.cable.virginm.net. [81.108.45.148])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-45055e2d3d0sm7658839f8f.34.2026.05.05.16.50.34
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 05 May 2026 16:50:35 -0700 (PDT)
-From: Prathamesh Deshpande <prathameshdeshpande7@gmail.com>
-To: Saeed Mahameed <saeedm@nvidia.com>,
-	Leon Romanovsky <leon@kernel.org>
-Cc: Tariq Toukan <tariqt@nvidia.com>,
-	Chris Mi <cmi@nvidia.com>,
-	netdev@vger.kernel.org,
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="cnrukEmN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C7BCCC2BCB4;
+	Wed,  6 May 2026 01:28:34 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1778030915;
+	bh=VQUC57fO+osALstZz2wYTzkFvOH4NzOFCjxh0tFqSH8=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=cnrukEmN8j1iWqLkR+9ueP62bKvElyimsh21fTiETV2QYzH+iVIZCeciTFRQuIFWJ
+	 9s5n2j9dWEUgtuLsph5i2SjZm4akfNnBlcCrWwCLjfLxyk07kEf543aGT5e+s4SJTU
+	 lCyMnDq9uKtUxr9A0e9OW/imHPjNkM+Thj8PgjYbaz0awST1Ew2Tz1JHNCPJQjK16x
+	 UBLDsWwQPHPHAEhxreaSpwhQCCDQbJ5pg/l/7UCbqwmcNy4GtzcMxpjK168nZ4M1Gq
+	 4Llu15xtBmC19wCcqkwxPWQda1VQd91NaI+eYSyOZtwyUkIEbONruwEe41BzDaHox0
+	 XBHN2bXrAda9A==
+From: Jakub Kicinski <kuba@kernel.org>
+To: kotaranov@linux.microsoft.com
+Cc: Jakub Kicinski <kuba@kernel.org>,
+	shirazsaleem@microsoft.com,
+	kotaranov@microsoft.com,
+	pabeni@redhat.com,
+	haiyangz@microsoft.com,
+	kys@microsoft.com,
+	edumazet@google.com,
+	davem@davemloft.net,
+	decui@microsoft.com,
+	wei.liu@kernel.org,
+	longli@microsoft.com,
+	jgg@ziepe.ca,
+	leon@kernel.org,
 	linux-rdma@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
-	Prathamesh Deshpande <prathameshdeshpande7@gmail.com>
-Subject: [PATCH net v1] net/mlx5e: CT: Fix NAT miss rule cleanup on init failure
-Date: Wed,  6 May 2026 00:48:33 +0100
-Message-ID: <20260505235029.51045-1-prathameshdeshpande7@gmail.com>
-X-Mailer: git-send-email 2.43.0
+	netdev@vger.kernel.org
+Subject: Re: [PATCH net v3] net/mana: Fix auxiliary device double-delete race
+Date: Tue,  5 May 2026 18:28:33 -0700
+Message-ID: <20260506012833.1607543-1-kuba@kernel.org>
+X-Mailer: git-send-email 2.54.0
+In-Reply-To: <20260504142704.159035-1-kotaranov@linux.microsoft.com>
+References: <20260504142704.159035-1-kotaranov@linux.microsoft.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -78,45 +58,62 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-mlx5_tc_ct_init() creates the CT-NAT miss rule before initializing the
-conntrack hash tables, workqueue and flow-steering state.
-
-If one of those later initialization steps fails, the error path destroys
-the CT-NAT table but does not delete the miss rule and flow group created
-in that table.
-
-Add a dedicated unwind step to delete the CT-NAT miss rule before
-destroying the CT-NAT table.
-
-Fixes: 49d37d05f216 ("net/mlx5: CT: Separate CT and CT-NAT tuple entries")
-Signed-off-by: Prathamesh Deshpande <prathameshdeshpande7@gmail.com>
+This is an AI-generated review of your patch. The human sending this
+email has considered the AI review valid, or at least plausible.
 ---
- drivers/net/ethernet/mellanox/mlx5/core/en/tc_ct.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+net/mana: Fix auxiliary device double-delete race
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en/tc_ct.c b/drivers/net/ethernet/mellanox/mlx5/core/en/tc_ct.c
-index 6c87a1c7db09..15e406d29004 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en/tc_ct.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en/tc_ct.c
-@@ -2349,7 +2349,7 @@ mlx5_tc_ct_init(struct mlx5e_priv *priv, struct mlx5_fs_chains *chains,
- 					   &ct_priv->ct_nat_miss_group,
- 					   &ct_priv->ct_nat_miss_rule);
- 	if (err)
--		goto err_ct_zone_ht;
-+		goto err_ct_nat_miss_rule;
- 
- 	ct_priv->post_act = post_act;
- 	mutex_init(&ct_priv->control_lock);
-@@ -2382,6 +2382,9 @@ mlx5_tc_ct_init(struct mlx5e_priv *priv, struct mlx5_fs_chains *chains,
- err_ct_tuples_ht:
- 	rhashtable_destroy(&ct_priv->zone_ht);
- err_ct_zone_ht:
-+	tc_ct_del_ct_table_miss_rule(ct_priv->ct_nat_miss_group,
-+				     ct_priv->ct_nat_miss_rule);
-+err_ct_nat_miss_rule:
- 	mlx5_chains_destroy_global_table(chains, ct_priv->ct_nat);
- err_ct_nat_tbl:
- 	mlx5_chains_destroy_global_table(chains, ct_priv->ct);
+This commit modifies remove_adev() to use xchg() to atomically claim the
+auxiliary device pointer. This change is intended to prevent a double-free
+race between the PCI eject path and the service reset workqueue.
+
+> diff --git a/drivers/net/ethernet/microsoft/mana/mana_en.c b/drivers/net/ethernet/microsoft/mana/mana_en.c
+> index a654b3699c4c5..dd4f4215ab434 100644
+> --- a/drivers/net/ethernet/microsoft/mana/mana_en.c
+> +++ b/drivers/net/ethernet/microsoft/mana/mana_en.c
+> @@ -3465,14 +3465,19 @@ static void adev_release(struct device *dev)
+>  
+>  static void remove_adev(struct gdma_dev *gd)
+>  {
+> -	struct auxiliary_device *adev = gd->adev;
+> -	int id = adev->id;
+> +	struct auxiliary_device *adev;
+> +	int id;
+> +
+> +	adev = xchg(&gd->adev, NULL);
+> +	if (!adev)
+> +		return;
+
+Does this xchg() operation act as an ad-hoc synchronization gate rather
+than properly synchronizing the concurrent teardown paths?
+
+While using xchg() ensures the adev pointer itself is only freed once, the
+rest of the teardown sequence appears to remain unprotected. If the PCI
+remove path and the service reset workqueue run concurrently, one thread
+might successfully claim and process the adev, causing the other thread to
+return early from remove_adev().
+
+However, the thread returning early will then continue its execution into
+the rest of mana_remove() or mana_rdma_remove(). This could allow the first
+thread to proceed and free critical structures:
+
+mana_remove() {
+    ...
+    remove_adev(gd);
+    ...
+    free_netdev(ndev);
+    ...
+    kfree(ac);
+}
+
+while the second thread concurrently iterates and accesses those same
+structures.
+
+Could this concurrent execution lead to a use-after-free on ndev or ac?
+Should the teardown sequence be synchronized using a proper lock, such as
+the device lock, or by synchronously canceling the service work in the
+remove path, instead of relying on an atomic operation?
+
+[ ... ]
 -- 
-2.43.0
-
+pw-bot: cr
