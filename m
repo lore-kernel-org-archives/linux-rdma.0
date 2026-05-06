@@ -1,45 +1,46 @@
-Received: from BYAPR05CU005.outbound.protection.outlook.com (mail-westusazon11010042.outbound.protection.outlook.com [52.101.85.42])
+Received: from PH0PR06CU001.outbound.protection.outlook.com (mail-westus3azon11011002.outbound.protection.outlook.com [40.107.208.2])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 30A7F1DF27D;
-	Wed,  6 May 2026 04:20:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.85.42
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BAE27299943;
+	Wed,  6 May 2026 04:20:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.208.2
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778041203; cv=fail; b=rfWq5Eagwb1d9rZkPciOvvWd5Gfp8HqqABRZ38punnzz8gnpjhzyI/iTmW7cUqmr/WHWT95dZVzc1mZUp3EFN3ROnBhVIBxebX4PEB3MuzL1RedQZ8YL27NbM0oytzVS9vl7hnIhOaylvRaDE2VLg1iVoOcHDULRTGZOPTDqslU=
+	t=1778041204; cv=fail; b=V7X2G76GedubCUR+hcu7N5/p/EwALvmUsEhittNv04nu4hN2kHycaJ7A99na+Jfayp65otfpOrv0NgAnQSxCaVBMs8LAVpboZlvQhnCohp8/eM5hFkPAgH9S7yQWODA+MlOqYPLg9S9xq7BqlITaazzGRXIpBHUxwsqWDbb7qiM=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778041203; c=relaxed/simple;
-	bh=hzb6620TgDtBq09MHZTOjKjfhQyL0HChjIeyMTWa9p8=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=NMFq7AL2pqxZZOGFBwUDMKBtDJN1YJskjZrPICz6ciHhraM5CCK2oOfUfNzqU8X7xpuqNvAwCFTttWmAeft7+UAXlSsBL4yXNAEjs2cqig94vOg1TaRjPPDkhvbKX2h+31hQdSFGPDQzVQCOoJSq7sYUf0dxygd/ehHm1ot9/lk=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=CDvbTnjR; arc=fail smtp.client-ip=52.101.85.42
+	s=arc-20240116; t=1778041204; c=relaxed/simple;
+	bh=ISkGucHQIKYycHPrSOKHVTcqzDMSpWE1KLA6lRmoErg=;
+	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=JL14hVVJ3PvlbU4y29CNG9h3nrmxRc9zqeqnOIoEGDpjeBN23Epgm7VV5NuKenGZoUVZQcMLl0aLg322TihI0o9nF2WhBauEzYoEGp/4WfywwX9JRres/FUokPnw5hGqw5k2Xt89XtM2Qu2Eyxz8b+2nkGNt1MNeZrllCZcZJeo=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=INMspnjZ; arc=fail smtp.client-ip=40.107.208.2
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="CDvbTnjR"
+	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="INMspnjZ"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=qigBfkEkqApJbpExiuWt+oMJujspaKU3SKS31PSKP0OnDClZtOyvxaEFEO9Gc/LAGMMqj6ukUBLRCy5O0moh2QwqBjGuiWmADjjZZ6EKLWgJOCX4eeyRO4d2F9/UNCGVUnTEU0I39zdfUkgITaOqSdbv8cBwNnq1frQE3GZmWf55CoIND/RadguCM2CfI2D5GGHbcD0wcVsZ+z0sCceI7mX7fEum1vKVuCtUt9tl/SNE8OfTVjrKBTAPMoKXpDZZMN8Z1kZDFpKd+6k/IxiOevOclrGU+Bb/5SVoCb+xVtzBdgDxKIyKOefQIRiKYsVfM8JA81/gEiIZ4m/ufSfn0g==
+ b=amoGwlWI1Qzz/YrCreR9D4JScPz0VXPkCHI8mbObEQry1C8D1olujNbBWoNZvZgPMOqdrJI7yVtVbRH/QRrceIj/w/p8aRyEdM7fc1W56XtyuB7CKwfpsE5zh12K4GjRnZWsu1I+ofdYEHnU1bWWG/K/XFem9DomBAAcPbjyQsPjpzXsWgXgzg7IsCPbwP1LPdBdgFVSZIW/l7zg3qKwGNbwmf2Mf9Gk9PFWEPVV8M/xT8O+qltYyTqBlwfL+mzxlAjaMwGKrzH5dyGv0Oon3F9pgg51zKkc2OKAOisBiBiC+Xj54izS4f+/5pceA8TkO8aNA1JTUKn8aGqgrjeSEw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=oeCmxfBF8d2VqNFmiF5C+BMfI9wyBB0z3m2/ZaNjUZ8=;
- b=PvBwM9OcoYeaO8Q9Wysi780GgaF3Y8snZrXdTQdaKsCgQTo3t+2K7Iqy2bcZ7OX6om1bAv6J19a4v7mqRrFbZAcz/e+dKHjOzE9eewNw2MCpwaCx11XF8SRPZpkpC4ZLsS0gw7EptPjrw0qfqbbUgXyXHosk4YcCECA3/zDFLDBy5HHb6dvTEA4rBZSkVYLQpwn+Ok4sDjT4Hf2kqdVZRcSDts9/+Q7iVWM0i1+6UvFq0qgN2YkEDlJi4wwZ5Vnde1WPZxQfoNDCHr3KuEmlb/cNqIa0oPFaiR8wpwr852c3bnTVs3aAx0+d+uJLuILCWFHFZ9w3GlkUCARL+GoTHA==
+ bh=rKYDoFR5HFeyrD+5Are8uKepBTc6Ql0EQo/DWwy4Tlw=;
+ b=Bq7j6LPsVj6MqtiWguub6EMZl8ZZPF3AnI4ZbcpDoqcPyKCO3O0MZrLxn4L4N5F9DHRKU3A8VWoANqk4NmYpNsTCmV7FYg1WqRBuNXd341ENtrQTCZKQOoPj1G3Wfn2I3HG0hFa7cYu8H37C7TaIdk3+9xoRLQcGlDIg+ZbUShoQtu3uHmZ54ACILXkpXxb5IEzZVXUyrNzRDOHwHPGWhBZmhuyNHZfXSCsXeNqtTColQckCXbuUIoSmlCMjH1rO9GFLtKekZtgaSr+dc3snp6U2tMUGhFKR5q5GtxA+uISKJHjT5hF0obnvjH0LmN5y6t4U9N/Px0M5QyCXWhNCsA==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
  165.204.84.17) smtp.rcpttodomain=vger.kernel.org smtp.mailfrom=amd.com;
  dmarc=pass (p=quarantine sp=quarantine pct=100) action=none
  header.from=amd.com; dkim=none (message not signed); arc=none (0)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=oeCmxfBF8d2VqNFmiF5C+BMfI9wyBB0z3m2/ZaNjUZ8=;
- b=CDvbTnjRjjlKZCPKH+j9WlE7eMGmys76yhLjWPXDsTs/GXIcUyVbps2ZejpAYnyChOiDGbbnsFJs3SgUTPBqP0osVNX9YBdgXxdi9g+M+sCcyJXvvhiR0EmC6PnoGTQbvCzIUSrIvjCEpzPWPqcEwm2UpDjFcOiqsKN6b54QMx4=
-Received: from PH7PR17CA0065.namprd17.prod.outlook.com (2603:10b6:510:325::9)
- by PH7PR12MB6667.namprd12.prod.outlook.com (2603:10b6:510:1a9::10) with
+ bh=rKYDoFR5HFeyrD+5Are8uKepBTc6Ql0EQo/DWwy4Tlw=;
+ b=INMspnjZbSSlSNHOraLGYQhtzxCFztdjaKwn/aQnQy5+FsOq8kRJci9Nb6I9uF5Jw4vVZQGkc9Gr/TEva9TyFMcZbQdtrGMVJ3GQpVeA9dUbZm2wE4hMYFrOednNDsoUjMts+6S+zwy6eYTb72dHeQ0io6AkNHFJrchJwvWpOIs=
+Received: from PH7PR17CA0072.namprd17.prod.outlook.com (2603:10b6:510:325::20)
+ by CH3PR12MB8728.namprd12.prod.outlook.com (2603:10b6:610:171::12) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9870.25; Wed, 6 May
- 2026 04:19:53 +0000
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9870.27; Wed, 6 May
+ 2026 04:19:57 +0000
 Received: from CY4PEPF0000EDD4.namprd03.prod.outlook.com
- (2603:10b6:510:325:cafe::b4) by PH7PR17CA0065.outlook.office365.com
- (2603:10b6:510:325::9) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.20.9891.15 via Frontend Transport; Wed,
- 6 May 2026 04:19:53 +0000
+ (2603:10b6:510:325:cafe::ca) by PH7PR17CA0072.outlook.office365.com
+ (2603:10b6:510:325::20) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.20.9870.27 via Frontend Transport; Wed,
+ 6 May 2026 04:19:57 +0000
 X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
  smtp.mailfrom=amd.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=amd.com;
@@ -49,11 +50,11 @@ Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
 Received: from satlexmb07.amd.com (165.204.84.17) by
  CY4PEPF0000EDD4.mail.protection.outlook.com (10.167.241.200) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.9891.9 via Frontend Transport; Wed, 6 May 2026 04:19:53 +0000
+ 15.20.9891.9 via Frontend Transport; Wed, 6 May 2026 04:19:57 +0000
 Received: from driver-dev1.pensando.io (10.180.168.240) by satlexmb07.amd.com
  (10.181.42.216) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.17; Tue, 5 May
- 2026 23:19:51 -0500
+ 2026 23:19:54 -0500
 From: Eric Joyner <eric.joyner@amd.com>
 To: <netdev@vger.kernel.org>, <linux-rdma@vger.kernel.org>
 CC: Brett Creeley <brett.creeley@amd.com>, Andrew Lunn
@@ -62,10 +63,12 @@ CC: Brett Creeley <brett.creeley@amd.com>, Andrew Lunn
 	<pabeni@redhat.com>, Abhijit Gangurde <abhijit.gangurde@amd.com>, Allen Hubbe
 	<allen.hubbe@amd.com>, Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky
 	<leon@kernel.org>, Eric Joyner <eric.joyner@amd.com>
-Subject: [PATCH net-next 0/4] RDMA/net/ionic: Misc updates
-Date: Tue, 5 May 2026 21:19:31 -0700
-Message-ID: <20260506041935.1061-1-eric.joyner@amd.com>
+Subject: [PATCH net-next 2/4] net/ionic: Add devlink parameter for RDMA
+Date: Tue, 5 May 2026 21:19:33 -0700
+Message-ID: <20260506041935.1061-3-eric.joyner@amd.com>
 X-Mailer: git-send-email 2.17.1
+In-Reply-To: <20260506041935.1061-1-eric.joyner@amd.com>
+References: <20260506041935.1061-1-eric.joyner@amd.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -77,78 +80,160 @@ X-ClientProxiedBy: satlexmb08.amd.com (10.181.42.217) To satlexmb07.amd.com
  (10.181.42.216)
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: CY4PEPF0000EDD4:EE_|PH7PR12MB6667:EE_
-X-MS-Office365-Filtering-Correlation-Id: b438ffaa-a8b7-447b-966f-08deab26b903
+X-MS-TrafficTypeDiagnostic: CY4PEPF0000EDD4:EE_|CH3PR12MB8728:EE_
+X-MS-Office365-Filtering-Correlation-Id: d9bc29a4-e9c1-42d0-f95e-08deab26bb53
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|376014|82310400026|36860700016|1800799024|18002099003|56012099003;
+	BCL:0;ARA:13230040|1800799024|376014|82310400026|36860700016|56012099003|22082099003|18002099003;
 X-Microsoft-Antispam-Message-Info:
-	iISPwWIpudCFNE7miUhhb8pnQc/9VFOfFRg94HAFA6uPfCSuyLv8sKagF1zCXPnBNIWkGwdD93Al4iRRaWZ60M+/sNYjnzjA9PWrGnmmj30fhl/aUDZr1CASc3L1MA2Gj33bifiz8zcS+dlOU63VJ61rQfl7EBUZ9xPyQvCPfauhBtO6XlLMCk2UVRLlaJoYKS8i55D6o9IU4gK927c9s89aYzlE+bw1aaGgbUPNvfHErDirmEPTzP8c1RMBmfsiiFv+74a2vXRoh0qhjk5KHZbuAKrdPTorcBmr1pOAj2XRrFq29CzNsSMsA5ZMKPDnU5gGy0CVYQEMqmO/RVpnVJElwE4FGPlfcQ1oks8ydnUlfarL/Zw8SKyHzTby5WTySBEnxU0wdN4ZRTND3a0/tYuN/8WPTB93TDVd5alg2mRfbOAAhOxnDETp11SWh4VJNP3PPONayOxstIflRdVYfN6RtGB1Wgsyt3prD+rqdv4Q7RHDlfXLeg9Y44fDGOx5EU2buxta8hbkxR1kRuTziP75dX4H3RhDkrIeKVpVoo6CYbYCib8oc9UooAvQyI8hE/COreE4xOZQmli+rr8KHJRWBl8B82lBlyMP6Dq73hhA2+eHA+NRqTL6zWJlCfm9AkwfPJtWmGvxbSIPGrMghsB0fSTY1AjkACa1Vjy8Y+p10dBCloNikxbZXmzdUezANlJFXdEjAN5nHMx48qx3Gzhr03k6WG/BtiQntKRY4ZM=
+	rr081CKt+QyGiZU0lh/y76bps21FbTEWdERYeY7B9Lg7NcAd0sBuN1+GxhxW4isM9hKVMo5cXmuy7aK4Cl8DT9+JFTsxDCx78erBd2bix2RRpoaJjx3lB7Jtd/iDinSa49IAwOX5MJhtIiTRr8AFmIyTzMK++tvvGN2oI8mcTDHeF09dJYXlNihBG6fxmAcYvr/ff80wJ9D9LpQbvAOUbY8VxgxXaIN8BoOWN9HRnzmndGMV7loyziwFaevr6ZZgNN9lStxEEHY+1+zBIgTgw2YtU/e94P3QBXPXV/Lid10FKrkzoZzPuiUCFTaGcehk4Fv4ycBKrWgslU56jINnRXF0tkeh90hgUF0x7D5KNuskbXXvXlg3rG72JAIxiarcSpxX1cXmBGWyJWZzX9Sz8dozJM/H3I+SuNU3Xq+ChxSp1qRF6715D4unt2WITdUnmVSnsEK1oZEh/bZolJ8x5nxRMXVZU7L/JW5DEJk7c7DEkNq4vTDgKJyG8AS47V8rKTVEBbfkfH0+ESowu2mGRxY2jujkl/Q3/JnbCiGdXEKTMbkUYA4/kW9ptnfoLoFT3+z5Zs1XqTx5CGvZovYjNLtvHsGn8bxEz/foPBGajFdCSq93nftQF6mXt4Z4lq4NL26gsfO3DjFuRuzx53//jM91KLryls/aQKQxFjOtGoJ4tfCDJb9CLjY9WB+p52MVTLYNuAISPUckLO24evlu0W6C6Bl5c29e53WobGqnZbA=
 X-Forefront-Antispam-Report:
-	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:satlexmb07.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(376014)(82310400026)(36860700016)(1800799024)(18002099003)(56012099003);DIR:OUT;SFP:1101;
+	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:satlexmb07.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(1800799024)(376014)(82310400026)(36860700016)(56012099003)(22082099003)(18002099003);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	B46txsiXwF0eLB5X81ib7LVFNlIVFAnbLMPEwRiomrmN1uQEcEqHELT29VWpKAU3u+XMN2zbJSNIr1/95YjXdh1UqXGrzVvYKKCNC3FSiv5tOxhZRwvdxx5LFX/qVw1ckt9FJAyBp1W5pu4aQ+5o/n9Q1p0LUsdL1tsXb+6U7/u1sHqpNOSSLhFl2rEnPre49rBq2oWhX2cjQ0RFVAIjPHXkQ3v7O3btrCSEIbXcSMzYICWCi9JUZBGCcmC9jTpwuP+qG+xJ8hTlm/W9xu6d9LIha7k0RFRA9TE93fu6BETkWevU7ulMDBr4Bb6IA9sbaB8KWI/rdRFWW1KidwFa5sZqygN8fH1M5NLOM7p4U6k9K4K47kO/pAa9EnzvO+HGGXllLyXS4XJWBCIKLkLtjMieasGcHY0NtykEJVR7Bv5TDooz26v5ioBJ6VELBMeq
+	YiYKDWHH4OH2t746UJKPZARqDlaahCdzUFa38GLW4PzBTMaXWJNRj5AsLJLRUWOnC5nQDqpqwQKbaRqTHJ7d22lodnrNnNm0qeHrURTG9eYt4AkckcA99ozi+Btgupb3290yQf4SUluz1pb6kmeH6pC3NZ5X8j3dyRbvEfjhGGhpMOKn5pB4uJYWV3t3pCV08j0P68C+cNGeMGa5wakKNOKmDZYcMRtAezZpg48b4stuVs/PmawTGlfBtfJHJgX/hV0ULYiBFsPEvFcmVfd9Abh0kvGwjNqRWfu0ncXg6MxF/Qb4SBjeQ8Dw3tDrB26/yxE9gDUmljtEyDhmrrxnw4xbkVRXM4yASVBPtfMm2dx0O4+kLnKn18rYIDVGqdYETdiZG96RW8ISqevLyLB2r43Q1nRIyP++iYrPLunknyEPOpwztUcqsaRiUpOQ7nM/
 X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 06 May 2026 04:19:53.3436
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 06 May 2026 04:19:57.2232
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: b438ffaa-a8b7-447b-966f-08deab26b903
+X-MS-Exchange-CrossTenant-Network-Message-Id: d9bc29a4-e9c1-42d0-f95e-08deab26bb53
 X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[satlexmb07.amd.com]
 X-MS-Exchange-CrossTenant-AuthSource:
 	CY4PEPF0000EDD4.namprd03.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH7PR12MB6667
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CH3PR12MB8728
 
-The big addition in this set is a dedicated debugfs directory under the
-main ionic driver's debugfs tree for RDMA-related entries and querying
-queue information; a separate patch on top of that adds the ability to
-configure DCQCN parameters using debugfs when the firmware is in a mode
-that allows it.
+From: Abhijit Gangurde <abhijit.gangurde@amd.com>
 
-Other smaller additions add a devlink parameter to the ionic ethernet
-driver for enabling and disabling RDMA, as well as updating the
-copyright years for the ionic RDMA driver all in one go.
+Provides a devlink parameter to the ionic Ethernet driver to
+enable/disable the RDMA feature.
 
-Abhijit Gangurde (1):
-  net/ionic: Add devlink parameter for RDMA
+Signed-off-by: Abhijit Gangurde <abhijit.gangurde@amd.com>
+Signed-off-by: Eric Joyner <eric.joyner@amd.com>
+---
+ .../net/ethernet/pensando/ionic/ionic_aux.c   |  3 +-
+ .../ethernet/pensando/ionic/ionic_devlink.c   | 75 +++++++++++++++++++
+ 2 files changed, 77 insertions(+), 1 deletion(-)
 
-Allen Hubbe (2):
-  RDMA/ionic: Add debugfs support
-  RDMA/ionic: Add DCQCN parameter configuration via debugfs
-
-Eric Joyner (1):
-  RDMA/ionic: Update copyright year to 2026
-
- drivers/infiniband/hw/ionic/Kconfig           |   2 +-
- drivers/infiniband/hw/ionic/Makefile          |   3 +-
- drivers/infiniband/hw/ionic/ionic_admin.c     |   6 +-
- .../infiniband/hw/ionic/ionic_controlpath.c   |  21 +-
- drivers/infiniband/hw/ionic/ionic_datapath.c  |   2 +-
- drivers/infiniband/hw/ionic/ionic_dcqcn.c     | 629 +++++++++++++++
- drivers/infiniband/hw/ionic/ionic_debugfs.c   | 750 ++++++++++++++++++
- drivers/infiniband/hw/ionic/ionic_fw.h        |  33 +-
- drivers/infiniband/hw/ionic/ionic_hw_stats.c  |   2 +-
- drivers/infiniband/hw/ionic/ionic_ibdev.c     |   9 +-
- drivers/infiniband/hw/ionic/ionic_ibdev.h     |  43 +-
- drivers/infiniband/hw/ionic/ionic_lif_cfg.c   |   6 +-
- drivers/infiniband/hw/ionic/ionic_lif_cfg.h   |   6 +-
- drivers/infiniband/hw/ionic/ionic_pgtbl.c     |   2 +-
- drivers/infiniband/hw/ionic/ionic_profiles.h  |  86 ++
- drivers/infiniband/hw/ionic/ionic_queue.c     |   2 +-
- drivers/infiniband/hw/ionic/ionic_queue.h     |   2 +-
- drivers/infiniband/hw/ionic/ionic_res.h       |   2 +-
- .../net/ethernet/pensando/ionic/ionic_aux.c   |   3 +-
- .../ethernet/pensando/ionic/ionic_devlink.c   |  75 ++
- 20 files changed, 1668 insertions(+), 16 deletions(-)
- create mode 100644 drivers/infiniband/hw/ionic/ionic_dcqcn.c
- create mode 100644 drivers/infiniband/hw/ionic/ionic_debugfs.c
- create mode 100644 drivers/infiniband/hw/ionic/ionic_profiles.h
-
-
-base-commit: 8c699be3dad7bba87cdda485dc099226cfc2f706
+diff --git a/drivers/net/ethernet/pensando/ionic/ionic_aux.c b/drivers/net/ethernet/pensando/ionic/ionic_aux.c
+index 4f193d0ee87a..689624f19f45 100644
+--- a/drivers/net/ethernet/pensando/ionic/ionic_aux.c
++++ b/drivers/net/ethernet/pensando/ionic/ionic_aux.c
+@@ -23,7 +23,8 @@ int ionic_auxbus_register(struct ionic_lif *lif)
+ 	struct auxiliary_device *aux_dev;
+ 	int err, id;
+ 
+-	if (!(le64_to_cpu(lif->ionic->ident.lif.capabilities) & IONIC_LIF_CAP_RDMA))
++	if (!IS_ENABLED(CONFIG_INFINIBAND_IONIC) ||
++	    !(le64_to_cpu(lif->ionic->ident.lif.capabilities) & IONIC_LIF_CAP_RDMA))
+ 		return 0;
+ 
+ 	ionic_adev = kzalloc_obj(*ionic_adev);
+diff --git a/drivers/net/ethernet/pensando/ionic/ionic_devlink.c b/drivers/net/ethernet/pensando/ionic/ionic_devlink.c
+index 4ec66a6be073..ab4f6a37c7f8 100644
+--- a/drivers/net/ethernet/pensando/ionic/ionic_devlink.c
++++ b/drivers/net/ethernet/pensando/ionic/ionic_devlink.c
+@@ -8,6 +8,7 @@
+ #include "ionic_bus.h"
+ #include "ionic_lif.h"
+ #include "ionic_devlink.h"
++#include "ionic_aux.h"
+ 
+ static int ionic_dl_flash_update(struct devlink *dl,
+ 				 struct devlink_flash_update_params *params,
+@@ -56,6 +57,72 @@ static const struct devlink_ops ionic_dl_ops = {
+ 	.flash_update	= ionic_dl_flash_update,
+ };
+ 
++static bool is_aux_enabled(struct ionic *ionic)
++{
++	return !!ionic->lif->ionic_adev;
++}
++
++static int ionic_devlink_enable_rdma_get(struct devlink *dl, u32 id,
++					 struct devlink_param_gset_ctx *ctx,
++					 struct netlink_ext_ack *extack)
++{
++	ctx->val.vbool = is_aux_enabled(devlink_priv(dl));
++	return 0;
++}
++
++static int ionic_devlink_enable_rdma_set(struct devlink *dl, u32 id,
++					 struct devlink_param_gset_ctx *ctx,
++					 struct netlink_ext_ack *extack)
++{
++	struct ionic *ionic = devlink_priv(dl);
++	int err = 0;
++
++	if (ctx->val.vbool == is_aux_enabled(ionic))
++		return err;
++
++	if (ctx->val.vbool)
++		err = ionic_auxbus_register(ionic->lif);
++	else
++		ionic_auxbus_unregister(ionic->lif);
++
++	return err;
++}
++
++static int ionic_devlink_enable_rdma_validate(struct devlink *dl, u32 id,
++					      union devlink_param_value val,
++					      struct netlink_ext_ack *extack)
++{
++	struct ionic *ionic = devlink_priv(dl);
++	bool new_state = val.vbool;
++
++	if (new_state &&
++	    !(le64_to_cpu(ionic->ident.lif.capabilities) & IONIC_LIF_CAP_RDMA))
++		return -EOPNOTSUPP;
++
++	return 0;
++}
++
++static const struct devlink_param ionic_dl_rdma_params[] = {
++	DEVLINK_PARAM_GENERIC(ENABLE_RDMA, BIT(DEVLINK_PARAM_CMODE_RUNTIME),
++			      ionic_devlink_enable_rdma_get, ionic_devlink_enable_rdma_set,
++			      ionic_devlink_enable_rdma_validate),
++};
++
++static int ionic_dl_rdma_params_register(struct devlink *dl)
++{
++	if (!IS_ENABLED(CONFIG_INFINIBAND_IONIC))
++		return 0;
++
++	return devlink_params_register(dl, ionic_dl_rdma_params,
++				       ARRAY_SIZE(ionic_dl_rdma_params));
++}
++
++static void ionic_devlink_rdma_params_unregister(struct devlink *dl)
++{
++	devlink_params_unregister(dl, ionic_dl_rdma_params,
++				  ARRAY_SIZE(ionic_dl_rdma_params));
++}
++
+ struct ionic *ionic_devlink_alloc(struct device *dev)
+ {
+ 	struct devlink *dl;
+@@ -82,9 +149,17 @@ int ionic_devlink_register(struct ionic *ionic)
+ 
+ 	attrs.flavour = DEVLINK_PORT_FLAVOUR_PHYSICAL;
+ 	devlink_port_attrs_set(&ionic->dl_port, &attrs);
++
++	err = ionic_dl_rdma_params_register(dl);
++	if (err) {
++		dev_err(ionic->dev, "ionic_dl_rdma_params_register failed: %d\n", err);
++		return err;
++	}
++
+ 	err = devlink_port_register(dl, &ionic->dl_port, 0);
+ 	if (err) {
+ 		dev_err(ionic->dev, "devlink_port_register failed: %d\n", err);
++		ionic_devlink_rdma_params_unregister(dl);
+ 		return err;
+ 	}
+ 
 -- 
 2.17.1
 
