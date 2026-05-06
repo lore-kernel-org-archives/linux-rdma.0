@@ -1,29 +1,30 @@
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 6F92D224B05;
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id DDE712F2918;
 	Wed,  6 May 2026 17:00:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778086859; cv=none; b=onGglYoLGzq1tD08kIgcMm+LeIQNYEMaT0i7pFSZEymQPtobQdKnylkaB4SXgt7N9CDZNpZHhFYcUMUl7JAjK3w45pza7igm3puYpu5i3ZNzx1UZUTU9/MUTsnrSa5DSZCtTyUcA1dq3rRkqn6HZjidQ2NNG82n9eTm1wDBb45o=
+	t=1778086860; cv=none; b=sMQ27CT4In6RSgpHcmW5ttmWtf5tUchQNoIzr5rLTF42FfvWyz2ZVif/nTJkdEUImqWhle5T65UyRZn9IPVpA8zirNRvBODsL1uWn4TIuZMqtmN4Su1H+JP/6gaVUWPtWXeac8sB7IDpgGZ1ATag9wKFgOw2s4ScXuP16dhfQDM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778086859; c=relaxed/simple;
-	bh=T2pN4pRTmGXSrGwTvPng6eIi9Q1IaKDR8VAsih68pkI=;
-	h=From:To:Subject:Date:Message-ID:MIME-Version; b=kS789HuQAqyQedsTixS3/ZH8KqsAEGHO8D9DMzQQPQ73nA5jd/8LLV9RrApgtcsye/xDmGXEAo/JMsuhZC+h366BUCmoc24CnvR4n3iJvr/gVHi6UncKwRaYf6XGsGTwKpq01UdsFXXTS8ktXlWjeZfHrntgEAQmK/n1iLAXqmA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=gtjvtsBj; arc=none smtp.client-ip=13.77.154.182
+	s=arc-20240116; t=1778086860; c=relaxed/simple;
+	bh=nZ3PEPjXz02eJX/JIhSD3+m5eowdY0WI6laAM8b2o0M=;
+	h=From:To:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=uKyHF08o86LxroasRmsMnj2Q/UrelVXl4orbNEthqyA290qEnvyRw87QkfB2Ncn5US0IrQJemT3pRau3w43RrqueuKtOZe+MIBTYdaXwEDZR6esuROFdw64TCr8shmnx1ynhKKxXLmw8YqYmxJJjzz2akrqO4FdJoJbRrKvv8tk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=H7xZSFmq; arc=none smtp.client-ip=13.77.154.182
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="gtjvtsBj"
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="H7xZSFmq"
 Received: from linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net (linux.microsoft.com [13.77.154.182])
-	by linux.microsoft.com (Postfix) with ESMTPSA id E97D220B7165;
-	Wed,  6 May 2026 10:00:54 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com E97D220B7165
+	by linux.microsoft.com (Postfix) with ESMTPSA id 93D8B20B7168;
+	Wed,  6 May 2026 10:00:55 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 93D8B20B7168
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
 	s=default; t=1778086855;
-	bh=p3ieCBlqmTfvbNhG8uTCFmBVhE/GPG3Op+8leF2Hrd8=;
-	h=From:To:Subject:Date:From;
-	b=gtjvtsBjfUPuGiGHrViDXw6UtU/XUSYnTfn1hQYF+CJpQK5q0zXs3rfAHFTs8Aid/
-	 QJ8K+bqmzEvZyH8cdrvVKXyXvuVoE30D2e1mEBmf4a9rNyny/1ELQYaFRA5EtRRE6D
-	 +uwyo8P/HiD7nsAvYXUnl25grPf+7BpuHZ+HZeuA=
+	bh=hmet5ykTD8e2tDq18DPjT6PHgc+wVdVqYFqMb8f4RmM=;
+	h=From:To:Subject:Date:In-Reply-To:References:From;
+	b=H7xZSFmq3sAlJ2hii2EEZRpwMqa2Uok4YxJ84CzG2sMu3gMrbqQHcifuuvdfQKlyC
+	 joHym2krBgXcV156tmusxbDwP/aGOFnDSDfo3DiRLYPyybbC6QDBDvsmIOjCeNYyqY
+	 njhAv7h8Ct3iPpTi4W/AQjhzms7sLGZBrCPsQb/k=
 From: Dipayaan Roy <dipayanroy@linux.microsoft.com>
 To: kys@microsoft.com,
 	haiyangz@microsoft.com,
@@ -58,10 +59,12 @@ To: kys@microsoft.com,
 	ast@kernel.org,
 	sdf@fomichev.me,
 	yury.norov@gmail.com
-Subject: [PATCH net-next v7 0/2] net: mana: add ethtool private flag for full-page RX buffers
-Date: Wed,  6 May 2026 09:58:56 -0700
-Message-ID: <20260506170034.327907-1-dipayanroy@linux.microsoft.com>
+Subject: [PATCH net-next v7 1/2] net: mana: refactor mana_get_strings() and mana_get_sset_count() to use switch
+Date: Wed,  6 May 2026 09:58:57 -0700
+Message-ID: <20260506170034.327907-2-dipayanroy@linux.microsoft.com>
 X-Mailer: git-send-email 2.43.7
+In-Reply-To: <20260506170034.327907-1-dipayanroy@linux.microsoft.com>
+References: <20260506170034.327907-1-dipayanroy@linux.microsoft.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -70,52 +73,121 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-On some ARM64 platforms with 4K PAGE_SIZE, utilizing page_pool 
-fragments for allocation in the RX refill path (~2kB buffer per fragment)
-causes 15-20% throughput regression under high connection counts
-(>16 TCP streams at 180+ Gbps). Using full-page buffers on these
-platforms shows no regression and restores line-rate performance.
+Refactor mana_get_strings() and mana_get_sset_count() from if/else to
+switch statements in preparation for adding ethtool private flags
+support which requires handling ETH_SS_PRIV_FLAGS.
 
-This behavior is observed on a single platform; other platforms
-perform better with page_pool fragments, indicating this is not a
-page_pool issue but platform-specific.
+No functional change.
 
-This series adds an ethtool private flag "full-page-rx" to let the
-user opt in to one RX buffer per page:
+Signed-off-by: Dipayaan Roy <dipayanroy@linux.microsoft.com>
+---
+ .../ethernet/microsoft/mana/mana_ethtool.c    | 75 ++++++++++++-------
+ 1 file changed, 46 insertions(+), 29 deletions(-)
 
-  ethtool --set-priv-flags eth0 full-page-rx on
-
-There is no behavioral change by default. The flag can be persisted
-via udev rule for affected platforms.
-
-Changes in v7:
-  - Rebased onto net-next.
-  - Retained private flag approach after David Wei's testing on
-    Grace (ARM64) confirmed that fragment mode outperforms
-    full-page mode on other platforms, validating this is a
-    single-platform workaround rather than a generic issue.
-Changes in v6:
-  - Added missed maintainers.
-Changes in v5:
-  - Split prep refactor into separate patch (patch 1/2)
-Changes in v4:
-  - Dropping the smbios string parsing and add ethtool priv flag
-    to reconfigure the queues with full page rx buffers.
-Changes in v3:
-  - changed u8* to char*
-Changes in v2:
-  - separate reading string index and the string, remove inline.
-
-Dipayaan Roy (2):
-  net: mana: refactor mana_get_strings() and mana_get_sset_count() to
-    use switch
-  net: mana: force full-page RX buffers via ethtool private flag
-
- drivers/net/ethernet/microsoft/mana/mana_en.c |  22 ++-
- .../ethernet/microsoft/mana/mana_ethtool.c    | 164 ++++++++++++++----
- include/net/mana/mana.h                       |   8 +
- 3 files changed, 163 insertions(+), 31 deletions(-)
-
+diff --git a/drivers/net/ethernet/microsoft/mana/mana_ethtool.c b/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
+index 6a4b42fe0944..a28ca461c135 100644
+--- a/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
++++ b/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
+@@ -138,53 +138,70 @@ static int mana_get_sset_count(struct net_device *ndev, int stringset)
+ 	struct mana_port_context *apc = netdev_priv(ndev);
+ 	unsigned int num_queues = apc->num_queues;
+ 
+-	if (stringset != ETH_SS_STATS)
++	switch (stringset) {
++	case ETH_SS_STATS:
++		return ARRAY_SIZE(mana_eth_stats) +
++		       ARRAY_SIZE(mana_phy_stats) +
++		       ARRAY_SIZE(mana_hc_stats)  +
++		       num_queues * (MANA_STATS_RX_COUNT + MANA_STATS_TX_COUNT);
++	default:
+ 		return -EINVAL;
+-
+-	return ARRAY_SIZE(mana_eth_stats) + ARRAY_SIZE(mana_phy_stats) + ARRAY_SIZE(mana_hc_stats) +
+-			num_queues * (MANA_STATS_RX_COUNT + MANA_STATS_TX_COUNT);
++	}
+ }
+ 
+-static void mana_get_strings(struct net_device *ndev, u32 stringset, u8 *data)
++static void mana_get_strings_stats(struct mana_port_context *apc, u8 **data)
+ {
+-	struct mana_port_context *apc = netdev_priv(ndev);
+ 	unsigned int num_queues = apc->num_queues;
+ 	int i, j;
+ 
+-	if (stringset != ETH_SS_STATS)
+-		return;
+ 	for (i = 0; i < ARRAY_SIZE(mana_eth_stats); i++)
+-		ethtool_puts(&data, mana_eth_stats[i].name);
++		ethtool_puts(data, mana_eth_stats[i].name);
+ 
+ 	for (i = 0; i < ARRAY_SIZE(mana_hc_stats); i++)
+-		ethtool_puts(&data, mana_hc_stats[i].name);
++		ethtool_puts(data, mana_hc_stats[i].name);
+ 
+ 	for (i = 0; i < ARRAY_SIZE(mana_phy_stats); i++)
+-		ethtool_puts(&data, mana_phy_stats[i].name);
++		ethtool_puts(data, mana_phy_stats[i].name);
+ 
+ 	for (i = 0; i < num_queues; i++) {
+-		ethtool_sprintf(&data, "rx_%d_packets", i);
+-		ethtool_sprintf(&data, "rx_%d_bytes", i);
+-		ethtool_sprintf(&data, "rx_%d_xdp_drop", i);
+-		ethtool_sprintf(&data, "rx_%d_xdp_tx", i);
+-		ethtool_sprintf(&data, "rx_%d_xdp_redirect", i);
+-		ethtool_sprintf(&data, "rx_%d_pkt_len0_err", i);
++		ethtool_sprintf(data, "rx_%d_packets", i);
++		ethtool_sprintf(data, "rx_%d_bytes", i);
++		ethtool_sprintf(data, "rx_%d_xdp_drop", i);
++		ethtool_sprintf(data, "rx_%d_xdp_tx", i);
++		ethtool_sprintf(data, "rx_%d_xdp_redirect", i);
++		ethtool_sprintf(data, "rx_%d_pkt_len0_err", i);
+ 		for (j = 0; j < MANA_RXCOMP_OOB_NUM_PPI - 1; j++)
+-			ethtool_sprintf(&data, "rx_%d_coalesced_cqe_%d", i, j + 2);
++			ethtool_sprintf(data,
++					"rx_%d_coalesced_cqe_%d",
++					i,
++					j + 2);
+ 	}
+ 
+ 	for (i = 0; i < num_queues; i++) {
+-		ethtool_sprintf(&data, "tx_%d_packets", i);
+-		ethtool_sprintf(&data, "tx_%d_bytes", i);
+-		ethtool_sprintf(&data, "tx_%d_xdp_xmit", i);
+-		ethtool_sprintf(&data, "tx_%d_tso_packets", i);
+-		ethtool_sprintf(&data, "tx_%d_tso_bytes", i);
+-		ethtool_sprintf(&data, "tx_%d_tso_inner_packets", i);
+-		ethtool_sprintf(&data, "tx_%d_tso_inner_bytes", i);
+-		ethtool_sprintf(&data, "tx_%d_long_pkt_fmt", i);
+-		ethtool_sprintf(&data, "tx_%d_short_pkt_fmt", i);
+-		ethtool_sprintf(&data, "tx_%d_csum_partial", i);
+-		ethtool_sprintf(&data, "tx_%d_mana_map_err", i);
++		ethtool_sprintf(data, "tx_%d_packets", i);
++		ethtool_sprintf(data, "tx_%d_bytes", i);
++		ethtool_sprintf(data, "tx_%d_xdp_xmit", i);
++		ethtool_sprintf(data, "tx_%d_tso_packets", i);
++		ethtool_sprintf(data, "tx_%d_tso_bytes", i);
++		ethtool_sprintf(data, "tx_%d_tso_inner_packets", i);
++		ethtool_sprintf(data, "tx_%d_tso_inner_bytes", i);
++		ethtool_sprintf(data, "tx_%d_long_pkt_fmt", i);
++		ethtool_sprintf(data, "tx_%d_short_pkt_fmt", i);
++		ethtool_sprintf(data, "tx_%d_csum_partial", i);
++		ethtool_sprintf(data, "tx_%d_mana_map_err", i);
++	}
++}
++
++static void mana_get_strings(struct net_device *ndev, u32 stringset, u8 *data)
++{
++	struct mana_port_context *apc = netdev_priv(ndev);
++
++	switch (stringset) {
++	case ETH_SS_STATS:
++		mana_get_strings_stats(apc, &data);
++		break;
++	default:
++		break;
+ 	}
+ }
+ 
 -- 
 2.43.0
 
