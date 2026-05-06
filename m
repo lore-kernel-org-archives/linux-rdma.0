@@ -1,82 +1,121 @@
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 912FA274B28;
-	Wed,  6 May 2026 16:52:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 6F92D224B05;
+	Wed,  6 May 2026 17:00:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778086364; cv=none; b=f6ibGUOavbinFotsZDDJzZfRAtX2ZtDi5YUkltocgz+HJSmJxIUr3v0eKhfa45qlr5JP85symt32xeQoar0E/s/815Exs00ZC9UlCUc6yle2oT4ioPJmXoyTW+/BjUt3Diw/NARwZJvo8Kf5c7mgpmHreFNZfb/2g1tGSiOTP8s=
+	t=1778086859; cv=none; b=onGglYoLGzq1tD08kIgcMm+LeIQNYEMaT0i7pFSZEymQPtobQdKnylkaB4SXgt7N9CDZNpZHhFYcUMUl7JAjK3w45pza7igm3puYpu5i3ZNzx1UZUTU9/MUTsnrSa5DSZCtTyUcA1dq3rRkqn6HZjidQ2NNG82n9eTm1wDBb45o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778086364; c=relaxed/simple;
-	bh=zLgo2hlPL3BFc2poeW/lY/orC7GUuzmLfWWK1cnK3Yw=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=k/e1/RZYRA4ABGMm4AtJ0faH2Ymh2kPI9+oRz3TeuV+eAOTshpR/OEwdbhJadYGINK4i+RGyx3Ni0JRC+vVmYTv6QiFYUxyfvIkhXrHdEWUy4syewVI9j8G7M7hGkhA25boYr8ULxJKNktb27VMgRr7cSl2n2+dfcxSfoGJYMUc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=UdmvDoKt; arc=none smtp.client-ip=13.77.154.182
+	s=arc-20240116; t=1778086859; c=relaxed/simple;
+	bh=T2pN4pRTmGXSrGwTvPng6eIi9Q1IaKDR8VAsih68pkI=;
+	h=From:To:Subject:Date:Message-ID:MIME-Version; b=kS789HuQAqyQedsTixS3/ZH8KqsAEGHO8D9DMzQQPQ73nA5jd/8LLV9RrApgtcsye/xDmGXEAo/JMsuhZC+h366BUCmoc24CnvR4n3iJvr/gVHi6UncKwRaYf6XGsGTwKpq01UdsFXXTS8ktXlWjeZfHrntgEAQmK/n1iLAXqmA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=gtjvtsBj; arc=none smtp.client-ip=13.77.154.182
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="UdmvDoKt"
-Received: by linux.microsoft.com (Postfix, from userid 1204)
-	id 9531D20B7165; Wed,  6 May 2026 09:52:40 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 9531D20B7165
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="gtjvtsBj"
+Received: from linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net (linux.microsoft.com [13.77.154.182])
+	by linux.microsoft.com (Postfix) with ESMTPSA id E97D220B7165;
+	Wed,  6 May 2026 10:00:54 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com E97D220B7165
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
-	s=default; t=1778086360;
-	bh=PCz+S4dgNQoTGyML6uFElTl2NXVVtXB+dmI/tbDc9rc=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=UdmvDoKtA0Li2wRZEF0U8Ea6XMbMrIBKbO44mzbwqc017t05dcSwx+bEHku+eR+XP
-	 +c4Xc9wmHW3DH57K81YhDHQDTSamHwEr6ZsyW9Kw0nUxErCDf0/ZghiwhZunkS9Dv6
-	 TTtQjboUhEueYjX/iyXl2Yn7HzOYtvMOmDUceSZw=
-Date: Wed, 6 May 2026 09:52:40 -0700
+	s=default; t=1778086855;
+	bh=p3ieCBlqmTfvbNhG8uTCFmBVhE/GPG3Op+8leF2Hrd8=;
+	h=From:To:Subject:Date:From;
+	b=gtjvtsBjfUPuGiGHrViDXw6UtU/XUSYnTfn1hQYF+CJpQK5q0zXs3rfAHFTs8Aid/
+	 QJ8K+bqmzEvZyH8cdrvVKXyXvuVoE30D2e1mEBmf4a9rNyny/1ELQYaFRA5EtRRE6D
+	 +uwyo8P/HiD7nsAvYXUnl25grPf+7BpuHZ+HZeuA=
 From: Dipayaan Roy <dipayanroy@linux.microsoft.com>
-To: Jakub Kicinski <kuba@kernel.org>
-Cc: David Wei <dw@davidwei.uk>, kys@microsoft.com, haiyangz@microsoft.com,
-	wei.liu@kernel.org, decui@microsoft.com, andrew+netdev@lunn.ch,
-	davem@davemloft.net, edumazet@google.com, pabeni@redhat.com,
-	leon@kernel.org, longli@microsoft.com, kotaranov@microsoft.com,
-	horms@kernel.org, shradhagupta@linux.microsoft.com,
-	ssengar@linux.microsoft.com, ernis@linux.microsoft.com,
-	shirazsaleem@microsoft.com, linux-hyperv@vger.kernel.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-rdma@vger.kernel.org, stephen@networkplumber.org,
-	jacob.e.keller@intel.com, leitao@debian.org, kees@kernel.org,
-	john.fastabend@gmail.com, hawk@kernel.org, bpf@vger.kernel.org,
-	daniel@iogearbox.net, ast@kernel.org, sdf@fomichev.me,
-	dipayanroy@microsoft.com
-Subject: Re: [PATCH net-next v6 0/2] net: mana: add ethtool private flag for
- full-page RX buffers
-Message-ID: <aftx2E1ZARV55DrR@linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net>
-References: <20260407200216.272659-1-dipayanroy@linux.microsoft.com>
- <20260409183509.0b24dea6@kernel.org>
- <20260412125917.4fa8fc8d@kernel.org>
- <ad5kuCZz+gR1TlSh@linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net>
- <20260416083146.0bb94d2b@kernel.org>
- <aeoVC27mIzoKytqA@linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net>
- <685d7bf9-062d-4bd2-8448-f7714bb05302@davidwei.uk>
- <aex119OtL8CEGXkb@linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net>
- <20260427131745.2eac52ef@kernel.org>
+To: kys@microsoft.com,
+	haiyangz@microsoft.com,
+	wei.liu@kernel.org,
+	decui@microsoft.com,
+	andrew+netdev@lunn.ch,
+	davem@davemloft.net,
+	edumazet@google.com,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	leon@kernel.org,
+	longli@microsoft.com,
+	kotaranov@microsoft.com,
+	horms@kernel.org,
+	shradhagupta@linux.microsoft.com,
+	ssengar@linux.microsoft.com,
+	ernis@linux.microsoft.com,
+	shirazsaleem@microsoft.com,
+	linux-hyperv@vger.kernel.org,
+	netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	linux-rdma@vger.kernel.org,
+	stephen@networkplumber.org,
+	jacob.e.keller@intel.com,
+	dipayanroy@microsoft.com,
+	leitao@debian.org,
+	kees@kernel.org,
+	john.fastabend@gmail.com,
+	hawk@kernel.org,
+	bpf@vger.kernel.org,
+	daniel@iogearbox.net,
+	ast@kernel.org,
+	sdf@fomichev.me,
+	yury.norov@gmail.com
+Subject: [PATCH net-next v7 0/2] net: mana: add ethtool private flag for full-page RX buffers
+Date: Wed,  6 May 2026 09:58:56 -0700
+Message-ID: <20260506170034.327907-1-dipayanroy@linux.microsoft.com>
+X-Mailer: git-send-email 2.43.7
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260427131745.2eac52ef@kernel.org>
+Content-Transfer-Encoding: 8bit
 
-On Mon, Apr 27, 2026 at 01:17:45PM -0700, Jakub Kicinski wrote:
-> On Sat, 25 Apr 2026 01:05:43 -0700 Dipayaan Roy wrote:
-> > Hi Jakub,
-> > with this new data from David, is it convincing enough for a mana driver
-> > specific private flag, which can be set from user space by a udev rule
-> > by detecting the underlying platform? If not then I will send the next
-> > version with the other rxbuflen approach. 
-> 
-> I think so, thank you both for the testing.
-> Please look out for the net-next opening up and repost the patches.
-> (The reopening is delayed, it was supposed to happen already but I
-> can't get a clean run out of our CI, sigh)
+On some ARM64 platforms with 4K PAGE_SIZE, utilizing page_pool 
+fragments for allocation in the RX refill path (~2kB buffer per fragment)
+causes 15-20% throughput regression under high connection counts
+(>16 TCP streams at 180+ Gbps). Using full-page buffers on these
+platforms shows no regression and restores line-rate performance.
 
-Hi Jakub,
-I have reposted the patches now.
+This behavior is observed on a single platform; other platforms
+perform better with page_pool fragments, indicating this is not a
+page_pool issue but platform-specific.
 
-Regards
-Dipayaan Roy
+This series adds an ethtool private flag "full-page-rx" to let the
+user opt in to one RX buffer per page:
+
+  ethtool --set-priv-flags eth0 full-page-rx on
+
+There is no behavioral change by default. The flag can be persisted
+via udev rule for affected platforms.
+
+Changes in v7:
+  - Rebased onto net-next.
+  - Retained private flag approach after David Wei's testing on
+    Grace (ARM64) confirmed that fragment mode outperforms
+    full-page mode on other platforms, validating this is a
+    single-platform workaround rather than a generic issue.
+Changes in v6:
+  - Added missed maintainers.
+Changes in v5:
+  - Split prep refactor into separate patch (patch 1/2)
+Changes in v4:
+  - Dropping the smbios string parsing and add ethtool priv flag
+    to reconfigure the queues with full page rx buffers.
+Changes in v3:
+  - changed u8* to char*
+Changes in v2:
+  - separate reading string index and the string, remove inline.
+
+Dipayaan Roy (2):
+  net: mana: refactor mana_get_strings() and mana_get_sset_count() to
+    use switch
+  net: mana: force full-page RX buffers via ethtool private flag
+
+ drivers/net/ethernet/microsoft/mana/mana_en.c |  22 ++-
+ .../ethernet/microsoft/mana/mana_ethtool.c    | 164 ++++++++++++++----
+ include/net/mana/mana.h                       |   8 +
+ 3 files changed, 163 insertions(+), 31 deletions(-)
+
+-- 
+2.43.0
+
