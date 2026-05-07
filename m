@@ -1,34 +1,34 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 432E154654;
-	Thu,  7 May 2026 01:51:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 133E922D4D3;
+	Thu,  7 May 2026 02:21:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778118666; cv=none; b=pSyF4DKEv8noFE7DFAlGBtJkGgdo8Bs6sWQaV5ZxbCWwl4u7KqhkUECReIGmFRl0TOYtW+IZXp6Rh7Wgp0V2d4AYoWMsOvXhsEnaJOSBGAZZhr1ok8gdwMbBD/YeDs7FRxlAjmGGuyzMGfY1pBh9RwH7M9Q+yB6GlQUnbP/AKQk=
+	t=1778120466; cv=none; b=TSUG/ASfMUQsfLwPmHGkjX2m2v17AkhIrqODj2Q6GM0+A0sEHTxV1+L1lPV1rfFLzQDlxCwM0RyBxuVCWxkvy3aOBXNNpAptH/aN0/QxRXiZbBMR7c33qZIoYidxocOf8kG4FRpg9VGpsx5EvtCcUxGowVZesllVQbENDBsstEc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778118666; c=relaxed/simple;
-	bh=AXOXuSdkJvwp5xLWfyL3fW+mT+60jXSHxCo9agzeu9o=;
+	s=arc-20240116; t=1778120466; c=relaxed/simple;
+	bh=ZSqLjFpD60c2bpyYQvPwBPh7kivp1T+epZnLDaU4SkE=;
 	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=VbmoU+3D98+SFn5BSoC2JPsrl40H32yh3zTuwEd4Dg6BF/3ak5VqOoxESnABQtd7hOm59Ntt24DiACrhLSGS7hNkXNTpIa66CeETbBl6ujPd1f8QgG3PMUFGXpDMUOJ/c9wOtsDntrMgSIZwd4dCOSzJa6UcoDwijCBWzcIrz1Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=pp36mgts; arc=none smtp.client-ip=10.30.226.201
+	 In-Reply-To:To:Cc; b=msBnhxok2eXMSAtW3Scl0ONSnEnR5I4ngXP0wzOW0eFqie8BZdTJbbHc4AapmPbPzYpFDdO6DzxrRfJYFI767zxTN4n5uLSYZM3rBLe1rCNdlS6yuZ+fQTzOHIfnFbbsyvU6cddmZPM+jbY45JdpwGDglQ8SNiPk7mkgdMgTYig=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=eSHd+ugr; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="pp36mgts"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C1132C2BCB0;
-	Thu,  7 May 2026 01:51:05 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="eSHd+ugr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3C307C2BCB0;
+	Thu,  7 May 2026 02:21:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1778118665;
-	bh=AXOXuSdkJvwp5xLWfyL3fW+mT+60jXSHxCo9agzeu9o=;
+	s=k20201202; t=1778120465;
+	bh=ZSqLjFpD60c2bpyYQvPwBPh7kivp1T+epZnLDaU4SkE=;
 	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-	b=pp36mgtsq9r8lH4alDWnt2X3E68dZCcG/xGn8B09gt10KRSY8NedXHzO/V9GFIPTr
-	 rpXW+2M6hMXys1TUc5EKmDf8l0AqywN27dcZY+TT3c8ekZX44GH5/2a62Dozt0sRTo
-	 6lKIHJvOjQ2zL45ZVCiahXjiK7+4dJIEmdQlG8vXAP51J3+KtcYcN0Gor1M1f8XdnE
-	 zn3UBr+0OfzzzI6He8Y1EMa6TAhsVu/LzIz/h8+xm0GYGmYi7kL7aYFBWcpJE66FNj
-	 G/ICUOx2Mc/AZ+5dE667TL+AmwRqB8wNP4DlEIsLA6IpJ2e4WuUnFjX5UGH5ub8U77
-	 QwyyQzN+pIncg==
+	b=eSHd+ugr/BxqZvHPpVd5F3f6mLPIr1nmUx2f8OE44fdRgV698IFsPUhG+v/CXVCnP
+	 pGpYbu+tXsuy1VO2UTelQtVP3vg/bNv8ZG1T/QZcOeWtwPkaVqQx8cwYfyXoMeeCD6
+	 2Df/pfE8U57EUhTTjqETY3lFWlqEjyH6+d7ydEDgfp/Fh7z4j3Gva3ICcd2CnwUTz1
+	 jJee1XNYvAjl16O9RX+/yz19Ifp+7c4d0PEHr/fNA3RW9bNlzJKA5H6k/MfemBwVrT
+	 2Inkc2T5X8SR6tf0Z+6VBHSMCPaWG6j3mNfHzG1ILTnQbwoo3Q85nA4vhJrhSFjriE
+	 vtimTPLqQ0TWQ==
 Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 7CEEB393089F;
-	Thu,  7 May 2026 01:50:16 +0000 (UTC)
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 02C88393089F;
+	Thu,  7 May 2026 02:20:16 +0000 (UTC)
 Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
@@ -37,18 +37,23 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net-next V3 0/5] net/mlx5e: Report more netdev stats
+Subject: Re: [PATCH net-next V3 0/7] net/mlx5: Improve representor lifecycle
+ and
+ late IB representor loading
 From: patchwork-bot+netdevbpf@kernel.org
 Message-Id: 
- <177811861529.3297406.17717520902430268279.git-patchwork-notify@kernel.org>
-Date: Thu, 07 May 2026 01:50:15 +0000
-References: <20260504183704.272322-1-tariqt@nvidia.com>
-In-Reply-To: <20260504183704.272322-1-tariqt@nvidia.com>
+ <177812041480.3304318.2260784771649427340.git-patchwork-notify@kernel.org>
+Date: Thu, 07 May 2026 02:20:14 +0000
+References: <20260503202726.266415-1-tariqt@nvidia.com>
+In-Reply-To: <20260503202726.266415-1-tariqt@nvidia.com>
 To: Tariq Toukan <tariqt@nvidia.com>
 Cc: edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
- andrew+netdev@lunn.ch, davem@davemloft.net, saeedm@nvidia.com,
- mbloch@nvidia.com, leon@kernel.org, netdev@vger.kernel.org,
- linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, gal@nvidia.com,
+ andrew+netdev@lunn.ch, davem@davemloft.net, leon@kernel.org, jgg@ziepe.ca,
+ saeedm@nvidia.com, mbloch@nvidia.com, shayd@nvidia.com, ohartoov@nvidia.com,
+ edwards@nvidia.com, horms@kernel.org, msanalla@nvidia.com, parav@nvidia.com,
+ phaddad@nvidia.com, kees@kernel.org, gbayer@linux.ibm.com, moshe@nvidia.com,
+ cjubran@nvidia.com, cratiu@nvidia.com, linux-rdma@vger.kernel.org,
+ linux-kernel@vger.kernel.org, netdev@vger.kernel.org, gal@nvidia.com,
  dtatulea@nvidia.com
 
 Hello:
@@ -56,29 +61,31 @@ Hello:
 This series was applied to netdev/net-next.git (main)
 by Jakub Kicinski <kuba@kernel.org>:
 
-On Mon, 4 May 2026 21:36:59 +0300 you wrote:
+On Sun, 3 May 2026 23:27:19 +0300 you wrote:
 > Hi,
 > 
-> This series by Gal extends the set of counters reported in netdev stats,
-> by adding:
-> - hw_gso_packets/bytes
-> - RX HW-GRO stats
-> - TX csum_none
-> - TX queue stop/wake
+> Find detailed description by Mark below.
+> 
+> Regards,
+> Tariq
 > 
 > [...]
 
 Here is the summary with links:
-  - [net-next,V3,1/5] net/mlx5e: Count full skb length in TSO byte counters
-    https://git.kernel.org/netdev/net-next/c/de58db5f0d95
-  - [net-next,V3,2/5] net/mlx5e: Report hw_gso_packets and hw_gso_bytes netdev stats
-    https://git.kernel.org/netdev/net-next/c/38e7e4a209c2
-  - [net-next,V3,3/5] net/mlx5e: Report RX HW-GRO netdev stats
-    https://git.kernel.org/netdev/net-next/c/97b96c3b47d1
-  - [net-next,V3,4/5] net/mlx5e: Report TX csum_none netdev stat
-    https://git.kernel.org/netdev/net-next/c/d8e5b2f7a5c3
-  - [net-next,V3,5/5] net/mlx5e: Report stop and wake TX queue stats
-    https://git.kernel.org/netdev/net-next/c/32b7e50e284a
+  - [net-next,V3,1/7] net/mlx5: Lag: refactor representor reload handling
+    https://git.kernel.org/netdev/net-next/c/b501400fa66d
+  - [net-next,V3,2/7] net/mlx5: E-Switch, let esw work callers choose GFP flags
+    https://git.kernel.org/netdev/net-next/c/386ef557f6df
+  - [net-next,V3,3/7] net/mlx5: E-Switch, add representor lifecycle lock
+    https://git.kernel.org/netdev/net-next/c/9b8468f001e4
+  - [net-next,V3,4/7] net/mlx5: Lag, avoid LAG and representor lock cycles
+    https://git.kernel.org/netdev/net-next/c/63ec6c69e613
+  - [net-next,V3,5/7] net/mlx5: E-Switch, serialize representor lifecycle
+    https://git.kernel.org/netdev/net-next/c/32a72840ee30
+  - [net-next,V3,6/7] net/mlx5: E-Switch, unwind only newly loaded representor types
+    https://git.kernel.org/netdev/net-next/c/8a6712925d38
+  - [net-next,V3,7/7] net/mlx5: E-Switch, load reps via work queue after registration
+    https://git.kernel.org/netdev/net-next/c/25933aca1012
 
 You are awesome, thank you!
 -- 
