@@ -1,102 +1,82 @@
-Received: from canpmsgout06.his.huawei.com (canpmsgout06.his.huawei.com [113.46.200.221])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 52D161D5174
-	for <linux-rdma@vger.kernel.org>; Thu,  7 May 2026 01:21:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.221
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1E56024728F;
+	Thu,  7 May 2026 01:33:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778116916; cv=none; b=U/WIORitnrHgkYAhIgOkAKEBUrzYswefBmdrzKvSpv84s52Nk3WNmMyW1RKq5T1gROrbZv5OxnloTIOB6u/4bK6SHuHcIw1viYZr2CGMCtz25F6ZsKE8j0swammTmOjQJKqUJF+U1SfqLx5YZKl4QeFGnKSVW8YYHhIWfor597M=
+	t=1778117625; cv=none; b=Kb9prStcAcFWSkdrqSqaPfgeh/uIpw2HfngYzRA4u+6y6wmBFMv8co3Y0xVMOwjBmI1m+KCIgpHhtDt8fRnTOirrLDd7SS11OhR51pPYxAn6bvzjHV/EeB4zKduoAqDrDTtxNMEaeWqiQn99mOWCP0GTfTrgstnyPn7lBthcwRM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778116916; c=relaxed/simple;
-	bh=c2G7BDryp2z77SUojWXTE39e4DWgZZat9kgs8bmkHsY=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=ce0HO3z2tp2CbvYBhA1AO2zW7EhJ0wMUjV/BoGO3425igVSwv7Y6ppZuvyRa6Xw0AaOh9qlX6py0Yut8iw8JcyxDt09NRYFOLOUyrbiN4nPzki256iPOZ4/BblaPiPvLxKlAsyZpNrhw7YXp46v4OlB3DdYrczUHmF7L4SiYKZY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com; spf=pass smtp.mailfrom=hisilicon.com; arc=none smtp.client-ip=113.46.200.221
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=hisilicon.com
-Received: from mail.maildlp.com (unknown [172.19.162.140])
-	by canpmsgout06.his.huawei.com (SkyGuard) with ESMTPS id 4g9vRD6STQzRhQT;
-	Thu,  7 May 2026 09:14:16 +0800 (CST)
-Received: from kwepemf100018.china.huawei.com (unknown [7.202.181.17])
-	by mail.maildlp.com (Postfix) with ESMTPS id CB69920226;
-	Thu,  7 May 2026 09:21:49 +0800 (CST)
-Received: from localhost.localdomain (10.50.163.32) by
- kwepemf100018.china.huawei.com (7.202.181.17) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.36; Thu, 7 May 2026 09:21:49 +0800
-From: Junxian Huang <huangjunxian6@hisilicon.com>
-To: <jgg@ziepe.ca>, <leon@kernel.org>
-CC: <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
-	<huangjunxian6@hisilicon.com>, <tangchengchang@huawei.com>
-Subject: [PATCH v2 for-next 1/3] RDMA/hns: Initialize seqfile before creating file
-Date: Thu, 7 May 2026 09:21:46 +0800
-Message-ID: <20260507012148.1079712-2-huangjunxian6@hisilicon.com>
-X-Mailer: git-send-email 2.33.0
-In-Reply-To: <20260507012148.1079712-1-huangjunxian6@hisilicon.com>
-References: <20260507012148.1079712-1-huangjunxian6@hisilicon.com>
+	s=arc-20240116; t=1778117625; c=relaxed/simple;
+	bh=XLKH7WaHBP0XLooJ86aMJ4Ej/10y46n1cv9vNbKP/cY=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=Nbfn4ibsVfNxISwKKBht6KvtzKf/YLotSFsIik6h+seOz1+WErK+CO1MNOHGuNS2F5Ng+MLZrNzeG+SCCL/ZCJVJhV8JO9hdThLq4iIRd1Kj/vTEyqRYiYZYUnWOS8gGrtIvn340KqugZhRu49WR6dLZG6eaP0Clze+DA3I3CiQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=N63ywpGg; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="N63ywpGg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A10A2C2BCB0;
+	Thu,  7 May 2026 01:33:43 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1778117624;
+	bh=XLKH7WaHBP0XLooJ86aMJ4Ej/10y46n1cv9vNbKP/cY=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+	b=N63ywpGgAXjpiFVbJE1f6b1mUc5fj3avyPenVVPfVPA5cwrirFZjuj5NsSwNELENE
+	 FDCepGOFFfZwVw4xmyoP6sfBqPASY63mKT8pD3M27xiUJTaahbEl7+ThBnutviWmIX
+	 4kOEZ6evLwspTqmw/A9DAm2nanZfzhUcX8NpKf9O9NReQsD+MdJUlBRdd/zqfjrvBF
+	 QLXgslxz+VZ9M71KjIfX8nXHV4DHP8Ozpwn0I+3XbHTjlbJHx5V3a29HSelY7wppJm
+	 +gxWhzu2J8kxRBnwGn49ZkPpNPPPqMGLL/cgVNj/2oHaCPiOLdtRoWkUcbmUkFTO68
+	 UxzZc94gHI7QQ==
+Date: Wed, 6 May 2026 18:33:42 -0700
+From: Jakub Kicinski <kuba@kernel.org>
+To: Ivan Vecera <ivecera@redhat.com>
+Cc: netdev@vger.kernel.org, Jiri Pirko <jiri@resnulli.us>, Andrew Lunn
+ <andrew+netdev@lunn.ch>, Arkadiusz Kubalewski
+ <arkadiusz.kubalewski@intel.com>, "David S. Miller" <davem@davemloft.net>,
+ Donald Hunter <donald.hunter@gmail.com>, Eric Dumazet
+ <edumazet@google.com>, Jonathan Corbet <corbet@lwn.net>, Leon Romanovsky
+ <leon@kernel.org>, Mark Bloch <mbloch@nvidia.com>, Michal Schmidt
+ <mschmidt@redhat.com>, Paolo Abeni <pabeni@redhat.com>, Pasi Vaananen
+ <pvaanane@redhat.com>, Petr Oros <poros@redhat.com>, Prathosh Satish
+ <Prathosh.Satish@microchip.com>, Saeed Mahameed <saeedm@nvidia.com>, Shuah
+ Khan <skhan@linuxfoundation.org>, Simon Horman <horms@kernel.org>, Tariq
+ Toukan <tariqt@nvidia.com>, Vadim Fedorenko <vadim.fedorenko@linux.dev>,
+ linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+ linux-rdma@vger.kernel.org
+Subject: Re: [PATCH net-next v3 1/2] dpll: add fractional frequency offset
+ to pin-parent-device
+Message-ID: <20260506183342.767b5fbc@kernel.org>
+In-Reply-To: <20260504155340.411063-2-ivecera@redhat.com>
+References: <20260504155340.411063-1-ivecera@redhat.com>
+	<20260504155340.411063-2-ivecera@redhat.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: kwepems100002.china.huawei.com (7.221.188.206) To
- kwepemf100018.china.huawei.com (7.202.181.17)
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-The debugfs file was created before seq->read and seq->data were set,
-leaving a small window where userspace could access an uninitialized
-seqfile.
+On Mon,  4 May 2026 17:53:39 +0200 Ivan Vecera wrote:
+> +          At top level this represents the RX vs TX symbol rate
+> +          offset on the media associated with the pin.
 
-Move debugfs_create_file() after the assignments to avoid this issue.
-Also, inline the original init_debugfs_seqfile() since it is not a
-really necessary helper.
+Isn't this a hacky hack? I'd think that pin is in or out.
+Having a freq offset between two pins or pin and parent's
+ref lock makes sense. This new interpretation sounds like
+we are trying to shove a difference between two pins into one?
 
-Fixes: ca7ad04cd5d2 ("RDMA/hns: Add debugfs to hns RoCE")
-Signed-off-by: Junxian Huang <huangjunxian6@hisilicon.com>
----
- drivers/infiniband/hw/hns/hns_roce_debugfs.c | 19 +++++--------------
- 1 file changed, 5 insertions(+), 14 deletions(-)
+> @@ -299,6 +299,10 @@ zl3073x_dpll_input_pin_ffo_get(const struct dpll_pin *dpll_pin, void *pin_priv,
+>  {
+>  	struct zl3073x_dpll_pin *pin = pin_priv;
+>  
+> +	/* Only rx vs tx symbol rate FFO is supported */
+> +	if (dpll)
+> +		return -ENODATA;
+> +
+>  	*ffo = pin->freq_offset;
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_debugfs.c b/drivers/infiniband/hw/hns/hns_roce_debugfs.c
-index b869cdc54118..db32c5897640 100644
---- a/drivers/infiniband/hw/hns/hns_roce_debugfs.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_debugfs.c
-@@ -26,17 +26,6 @@ static const struct file_operations hns_debugfs_seqfile_fops = {
- 	.llseek = seq_lseek
- };
- 
--static void init_debugfs_seqfile(struct hns_debugfs_seqfile *seq,
--				 const char *name, struct dentry *parent,
--				 int (*read_fn)(struct seq_file *, void *),
--				 void *data)
--{
--	debugfs_create_file(name, 0400, parent, seq, &hns_debugfs_seqfile_fops);
--
--	seq->read = read_fn;
--	seq->data = data;
--}
--
- static const char * const sw_stat_info[] = {
- 	[HNS_ROCE_DFX_AEQE_CNT] = "aeqe",
- 	[HNS_ROCE_DFX_CEQE_CNT] = "ceqe",
-@@ -76,10 +65,12 @@ static void create_sw_stat_debugfs(struct hns_roce_dev *hr_dev,
- {
- 	struct hns_sw_stat_debugfs *dbgfs = &hr_dev->dbgfs.sw_stat_root;
- 
--	dbgfs->root = debugfs_create_dir("sw_stat", parent);
-+	dbgfs->sw_stat.read = sw_stat_debugfs_show;
-+	dbgfs->sw_stat.data = hr_dev;
- 
--	init_debugfs_seqfile(&dbgfs->sw_stat, "sw_stat", dbgfs->root,
--			     sw_stat_debugfs_show, hr_dev);
-+	dbgfs->root = debugfs_create_dir("sw_stat", parent);
-+	debugfs_create_file("sw_stat", 0400, dbgfs->root, &dbgfs->sw_stat,
-+			    &hns_debugfs_seqfile_fops);
- }
- 
- /* debugfs for device */
--- 
-2.33.0
-
+It's easy for driver authors to forget this sort of validation.
+We should fail close, so it's better to have some "capability"
+bits or something for the driver to opt into getting given format 
+of the call.
