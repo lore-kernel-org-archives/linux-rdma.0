@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 74C71304BB2;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0AC0936CE14;
 	Thu,  7 May 2026 23:32:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778196736; cv=none; b=uu3cBIg0qpF1ng7uU7w64l+FtMT8ZkLX2ew4V5LiWu0pqrN4Q4ikLZysPDTeTbJtwxGx6Nkt8TlkxQ5BvxEyiIJQVwwo3/CVFIGOhs3nvLz1Qia1PZAGt/8S0kKgVvoVyM1FtzWfEiVRmOVoBRsQlIXaDu3dsfwxjP1Ak51h5k4=
+	t=1778196737; cv=none; b=hKqirF/oiG15k3a5hFrAmlB+UpFqcC5Nsbpm4MLTMU5F5uBAQTLr/5+9MiLlT1DjpTnfTwaIHSWIZTNoPrqXF3eOWVmSG9YMQmlAefNBTB12QuZ6blBKUoBm05T9LGBNhnLVc5xhCL6TxK2V192TCtgWD0a5EnSl9c+zTZ3qv8k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778196736; c=relaxed/simple;
-	bh=J8FLX/8S7d0qEfvsXh9CL7q60+tVl1XPXSiN27j1vMM=;
+	s=arc-20240116; t=1778196737; c=relaxed/simple;
+	bh=ppY6DUORpINH5dqwkso43tlKxT17Gv+DdjmLvzqz8aE=;
 	h=From:To:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=izeDZ0qcBKApldGC8qM5HKmzDZKVmngdd0jlYOPSltA25YkFDxkP8A4M6f7Z+onAnvqdooW8s6Rdpyzlp3xDdaEXimOOe9wizx0oOPP8IyJAjnvWXOWpJdMyiCA7EA/W6GI0ScBGg8cMLWuGnPAeduIF/Y4iDHYrJA3hwcztprA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=LNG8PA0C; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=dLaLKCVWuldMkL4DLricoCLbZe95iGbjysjWgtHUcGl8oTEtCI7H0URLvXLZpT0rsNdp6mVYzYe975IrAMdoHdYdGwdCc7FSygTv3LPn8nMCimiWRB7M4R6aebV+kQyMyo+qDcmE0RPyb5H/UISUEWWNwKD3veGFP/Z7DH+mIQE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=NlwC/r+r; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="LNG8PA0C"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 99007C2BCB8;
-	Thu,  7 May 2026 23:32:15 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="NlwC/r+r"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5275EC2BCB2;
+	Thu,  7 May 2026 23:32:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
 	s=k20201202; t=1778196736;
-	bh=J8FLX/8S7d0qEfvsXh9CL7q60+tVl1XPXSiN27j1vMM=;
+	bh=ppY6DUORpINH5dqwkso43tlKxT17Gv+DdjmLvzqz8aE=;
 	h=From:To:Subject:Date:In-Reply-To:References:From;
-	b=LNG8PA0C1YxpUd1NXzQNBPFwxQgHpm1oT/DOZi9V7Lrh71Dx13h6E3HGOOwBJMjUm
-	 6I7P/eusPDLA/NLMfUgZHChW2CorsKPLbp5bMT1WbpIG0zEnGEii1Eo3Wbn4KTdZeW
-	 CaBbvH7mqJyRGKj0DZyMq+1i6/bS4ZCnX1IhRCbZmLwoW9DZSk/xnuIa05ssXStGc6
-	 oteO2kmtgdsgp4h86vRWEtJlfrll8uLtqIUUPNzB94N+/eNXBkuYgaZIlXA1jqG2c4
-	 eLbSODA9Lgd2T6YmkzfRXdupVs7Lxi9NAlChdYI0xNhYvg5oqCVrx+p6SzotbDy4Hq
-	 65KkUwv43wvJw==
+	b=NlwC/r+r/qLmnBZ+6nn42Vs78xP5ByrtQoHSUguk2MyiP1Y0TZWxUgjA+hVySJfym
+	 D2GrjA8f6ryWm/efbXzVp50dJJM9RB3irLexKCkN/rcR7hnOBY4uOc4lm0bNEP2r9g
+	 VfZf54m60rlcVrKAgzRYXKq/GdeOvnwNSYLvf0+V9NFastoPPuaVZaztL4ancD7JHV
+	 5aNqz0ZRNR5DOzz3YAoM481xuAjJdfIPqOqtn3sQQLmNrn5Og7dc0gBqhshXuexj/i
+	 0+5UXlXEut3ufrjUDzY5dafkgFhoGv31XC7HCPBPwdLAxkL9UVQUZsYbknrsch2iSd
+	 LqBqxu7ibNw9A==
 From: Allison Henderson <achender@kernel.org>
 To: netdev@vger.kernel.org,
 	pabeni@redhat.com,
@@ -36,9 +36,9 @@ To: netdev@vger.kernel.org,
 	achender@kernel.org,
 	linux-kselftest@vger.kernel.org,
 	shuah@kernel.org
-Subject: [PATCH net-next v1 2/3] selftests: rds: Fix TAP-prefixed prints in check_gcov*
-Date: Thu,  7 May 2026 16:32:12 -0700
-Message-Id: <20260507233213.556182-3-achender@kernel.org>
+Subject: [PATCH net-next v1 3/3] selftests: rds: Disarm signal alarm on test completion
+Date: Thu,  7 May 2026 16:32:13 -0700
+Message-Id: <20260507233213.556182-4-achender@kernel.org>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20260507233213.556182-1-achender@kernel.org>
 References: <20260507233213.556182-1-achender@kernel.org>
@@ -50,86 +50,47 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-This patch adds the # prefix to info and warning prints in
-the check_gcov* routines.  Since these routines do not exit,
-as the other check_* routines do, the output here should be
-kept TAP compliant.
+A race in stop_pcaps is possible if the test completes and then
+times out while waiting for the tcpdump process to exit.  The
+signal handler may fire again and needlessly call stop_pcap a
+second time.  Fix this by disabling the alarm after normal
+test completion.
+
+Also if there are no tcpdump processes to wait on, stop_pcaps can
+just exit.  This avoids misleading prints when there are no procs
+to collect dumps from.
 
 Signed-off-by: Allison Henderson <achender@kernel.org>
 ---
- tools/testing/selftests/net/rds/run.sh | 18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ tools/testing/selftests/net/rds/test.py | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff --git a/tools/testing/selftests/net/rds/run.sh b/tools/testing/selftests/net/rds/run.sh
-index 4930aed8846b..424fd57401d8 100755
---- a/tools/testing/selftests/net/rds/run.sh
-+++ b/tools/testing/selftests/net/rds/run.sh
-@@ -35,7 +35,7 @@ GCOV_CMD=gcov
- check_gcov_env()
- {
- 	if ! which "$GCOV_CMD" > /dev/null 2>&1; then
--		echo "Warning: Could not find gcov. "
-+		echo "# Warning: Could not find gcov. "
- 		GENERATE_GCOV_REPORT=0
- 		return
- 	fi
-@@ -48,7 +48,7 @@ check_gcov_env()
- 		GCOV_CMD=gcov-$(gcc -dumpversion)
+diff --git a/tools/testing/selftests/net/rds/test.py b/tools/testing/selftests/net/rds/test.py
+index e1813e43fb4e..6db606779231 100755
+--- a/tools/testing/selftests/net/rds/test.py
++++ b/tools/testing/selftests/net/rds/test.py
+@@ -77,6 +77,10 @@ def stop_pcaps():
+     completes after the signal handler is fired.  List will be empty
+     if logdir is not set
+     """
++
++    if not tcpdump_procs:
++        return
++
+     ksft_pr("Stopping network packet captures")
+     while tcpdump_procs:
+         proc = tcpdump_procs.pop()
+@@ -279,6 +283,10 @@ for s in sockets:
+                 pass
  
- 		if ! which "$GCOV_CMD" > /dev/null 2>&1; then
--			echo "Warning: Could not find an appropriate gcov installation. \
-+			echo "# Warning: Could not find an appropriate gcov installation. \
- 				gcov version must match gcc version"
- 			GENERATE_GCOV_REPORT=0
- 			return
-@@ -58,11 +58,11 @@ check_gcov_env()
- 		GCOV_VER=$($GCOV_CMD -v | grep gcov | awk '{print $3}'| \
- 			awk 'BEGIN {FS="-"}{print $1}')
- 		if [ "$GCOV_VER" != "$GCC_VER" ]; then
--			echo "Warning: Could not find an appropriate gcov installation. \
-+			echo "# Warning: Could not find an appropriate gcov installation. \
- 				gcov version must match gcc version"
- 			GENERATE_GCOV_REPORT=0
- 		else
--			echo "Warning: Mismatched gcc and gcov detected.  Using $GCOV_CMD"
-+			echo "# Warning: Mismatched gcc and gcov detected.  Using $GCOV_CMD"
- 		fi
- 	fi
- }
-@@ -71,20 +71,20 @@ check_gcov_env()
- check_gcov_conf()
- {
- 	if ! grep -x "CONFIG_GCOV_PROFILE_RDS=y" "$kconfig" > /dev/null 2>&1; then
--		echo "INFO: CONFIG_GCOV_PROFILE_RDS should be enabled for coverage reports"
-+		echo "# INFO: CONFIG_GCOV_PROFILE_RDS should be enabled for coverage reports"
- 		GENERATE_GCOV_REPORT=0
- 	fi
- 	if ! grep -x "CONFIG_GCOV_KERNEL=y" "$kconfig" > /dev/null 2>&1; then
--		echo "INFO: CONFIG_GCOV_KERNEL should be enabled for coverage reports"
-+		echo "# INFO: CONFIG_GCOV_KERNEL should be enabled for coverage reports"
- 		GENERATE_GCOV_REPORT=0
- 	fi
- 	if grep -x "CONFIG_GCOV_PROFILE_ALL=y" "$kconfig" > /dev/null 2>&1; then
--		echo "INFO: CONFIG_GCOV_PROFILE_ALL should be disabled for coverage reports"
-+		echo "# INFO: CONFIG_GCOV_PROFILE_ALL should be disabled for coverage reports"
- 		GENERATE_GCOV_REPORT=0
- 	fi
+ ksft_pr(f"getsockopt(): {nr_success}/{nr_error}")
++
++# cancel timeout
++signal.alarm(0)
++
+ stop_pcaps()
  
- 	if [ "$GENERATE_GCOV_REPORT" -eq 0 ]; then
--		echo "To enable gcov reports, please run "\
-+		echo "# To enable gcov reports, please run "\
- 			"\"tools/testing/selftests/net/rds/config.sh -g\" and rebuild the kernel"
- 	else
- 		# if we have the required kernel configs, proceed to check the environment to
-@@ -208,7 +208,7 @@ if [[ -n "$LOG_DIR" ]]; then
- fi
- 
- set +e
--echo "#running RDS tests..."
-+echo "# running RDS tests..."
- "${TRACE_CMD[@]}" python3 "$(dirname "$0")/test.py" "${FLAGS[@]}" -t "$TIMEOUT"
- 
- test_rc=$?
+ # We're done sending and receiving stuff, now let's check if what
 -- 
 2.25.1
 
