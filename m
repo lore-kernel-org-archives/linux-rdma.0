@@ -1,69 +1,193 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wm1-f54.google.com (mail-wm1-f54.google.com [209.85.128.54])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2142330DEBA;
-	Fri,  8 May 2026 08:53:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 75EE6270EDF
+	for <linux-rdma@vger.kernel.org>; Fri,  8 May 2026 09:02:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.54
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778230400; cv=none; b=blE+x3sFWGrDogZQB/FSAFcC7pQEjPDzAKUHgl0NNvInwzx/qiflaTC1dpWVQBNZYjjBdz6//RK5HeHBaQFKoLVYC4AnrN84Yq4HMd+ansfo/q3fOThPRtGz/iQJYeFMK+lLwvwImmrd1nTZBcC8m6Wvs7Z29kr7BTWvvi6XN0w=
+	t=1778230952; cv=none; b=KiNvRYIIUOzi5r9yRMsZwe4MJLDLeL15szMoiUXNWIv+/mo8CnCoaxXKHG1+X/88JQrSb7caFdnXXUNqxj4zSDsY8JQSpmB4Xp4vXhLUJjM6ShSRB8M7HCPSTQseEi8sGq5Ax0bt94RO7OW6F2KsDXe9l7XSIYjgT/xIKMlZbSc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778230400; c=relaxed/simple;
-	bh=0Oc+nQErYflak7AM+05y0HqXVo7pIUyXWjUVlj9tC+k=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=brSat/fEdgClyd3bcU1nglxyqMf8I7RYHGrtSL2CcyRMOkXiEStDO5b0Z6M/SxOpY2uHOtGTgQTsBv6kFX2Qvvwa4MQjU6a9O61i2Hmq06i4dwMbSQq0Ncj/XlVTFV58ZY2H0FLf3Pl4LfzEHSWk8LGlS/++NBcyFi8D/X2CgOM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=txiMh5cH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1778230952; c=relaxed/simple;
+	bh=WIPNyT+MJITZgScNy15NlVstSPVx6hRR32XdQhokLmY=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=gkcdmrtLcdd0Cc4SOXAqR5Z0l17WBvt8UOnFEzMS1YGUlM1VD7lc8xNUMLzsIwM7nsz7x++sJcWrMNBwAHwRNlaOhnDjL6vxB9EvrxLcNBPQZuXyrKhGYtVJ+V/QlI9kHNNw5YxJk665DMrRIqVh7a0w3RaXh2s48h113elZtio=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Q7Qsovx+; arc=none smtp.client-ip=209.85.128.54
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="txiMh5cH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D707CC2BCB0;
-	Fri,  8 May 2026 08:53:17 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1778230399;
-	bh=0Oc+nQErYflak7AM+05y0HqXVo7pIUyXWjUVlj9tC+k=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=txiMh5cHWkzob08XqHJFpZGd6NpjHWMfELATGg5SAo0eZzhi3lFiVzgBi09ZFWbAO
-	 MIiQg8QzRLcJB0KSu7dGa1sDXL3Qia6pMxP4+29xiRFcxZqbk3m47uEoC9RMxq9q7n
-	 Q5ItaEL4AZ8GBbnjn5i6rwVefHZslhBFg/2Fi7HdtM2Ea34OkXhS1qUTKsWFM5xg1s
-	 X2r7/U/zIp5nWET+vqdLVQbxv0hP8+Lh9UjkZgEXHT0UId9EzWHdC8P1hSgEHVUZM3
-	 yzKD0zXvVWET04xmUWsoU3smXTsscuZVzYUZFVUC7c6b3utRZBdoNZZxgqqlyhEaDD
-	 saOfNUQq5jiIQ==
-Date: Fri, 8 May 2026 09:53:15 +0100
-From: Simon Horman <horms@kernel.org>
-To: Prathamesh Deshpande <prathameshdeshpande7@gmail.com>
-Cc: Saeed Mahameed <saeedm@nvidia.com>, Leon Romanovsky <leon@kernel.org>,
-	Moshe Shemesh <moshe@nvidia.com>, Tariq Toukan <tariqt@nvidia.com>,
-	Yevgeny Kliteynik <kliteyn@nvidia.com>,
-	Jakub Kicinski <kuba@kernel.org>, netdev@vger.kernel.org,
-	linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH net v1] net/mlx5: Fix HWS action unwind NULL dereference
-Message-ID: <20260508085315.GK15617@horms.kernel.org>
-References: <20260504220725.46686-1-prathameshdeshpande7@gmail.com>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Q7Qsovx+"
+Received: by mail-wm1-f54.google.com with SMTP id 5b1f17b1804b1-488ab2db91aso19829585e9.3
+        for <linux-rdma@vger.kernel.org>; Fri, 08 May 2026 02:02:30 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1778230949; x=1778835749; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:subject:cc:to:from:date:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=HlYOG3XzQZlo22JT9TgpdXVisycjOjKnbVWOM2UqaHQ=;
+        b=Q7Qsovx+vjB2CNZ4ZmA2+m+ZuI8vwuwxbbdeGJoUUWWBw9hvhSYU6URCEk/d1U4X9e
+         Sm9Kx2yekUieIDnw9LLiiQ4U1aGJMhdyZuqDkCr9ZochQvNtTkuwm9pE1LXVGrCmr1TN
+         GTPK5fvtZtazkSAzSH5XLMxeyKwaV1TIqcRfCMs2CK0MFJ8dmCbYMumqW2yp1gevmXev
+         xOvSutn2JztZ5JFleB1yaGZH0t9ZcUtvhd55sAKsLjyAbxep7tZ2eDw6IWH6yCj4XlIl
+         0Spu4x3Eh7OT14OrYzVL2gD5Dk8kKHbueUx1OzsfkNttganF5ZGtaEYPR1rLSm8MkilM
+         rCqA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1778230949; x=1778835749;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=HlYOG3XzQZlo22JT9TgpdXVisycjOjKnbVWOM2UqaHQ=;
+        b=g+JCd6xFY+qhSTPQIaKzUDnJfe7M/cYhtCkRrRPhIJw2fRxZmjs2Snv4iqE7oHmFwa
+         aTlzcw0c1nCQ7TGLkX1FwI0MYvoWICYiFcG14pLqBVEDfORR3yGnrvB9MDwUqMOtYW3U
+         /cNl9FqTwM8tEKjK9y2c8H0plKwyyHHphAX8nyJ1FjqL5jz/i+dn/BkoutJjOiQrYZ32
+         nFTlr6+KvZS7gbYVwWOG5SGH/xDwT6EBVd5Haw4I9wdimb7/HH1pwArXORe3QPdzuiky
+         3iWaqOM6lpyQg4A+DBLpY7LadQLSNsayuXMMbF54eujGzKM5y4hx/lMgQWIbMgCjHbIc
+         74AA==
+X-Forwarded-Encrypted: i=1; AFNElJ/EYLE8RWdjsCeKmMhROfw04A+y8zdYeqTAdrR+dCF0wMusrIgzwvRm1v8dCApREbCtzbma+y5cYSys@vger.kernel.org
+X-Gm-Message-State: AOJu0YzjWnlrhBv3m/qaFooZOJdhTbWWf8N53InZaD8dPbjDIwx8CxB5
+	81ES7hCkCg1XAqnFvgxyHigWVThO9HbiO7NHkiRqjIzggBN0x/MXojqf
+X-Gm-Gg: AeBDievQOvfGB4pxQWPvjqt6aj6q2FZS4JD0ZmapXRfPAwStC9ycezGQWO8lQ/cQMe8
+	Cgnm5kmB+FcDppPEKjwEk42mvNqjhTvj5K4o1l9tdJ6ZhA7HwGZOixYXELWe2vxV+MX/jOET7zg
+	ZHX+p4MQHBWgC8ZeV7VQMZgn4cNZ0FFFfb8Gv7Bi0t0q14bLqwyJqI1tRWLVNIySiTvcm6nkCF9
+	5a1QFv3HgpGWh2vMuvT+v1DCWtMn5kx4c/Etr7Jlkr8ziIbXh+jVsOmKlmPR61fKtJQw6Se6fPA
+	xLeVWGCfStR523OlyX6z6DYXC9gutR7VR+E0G9QTPhKF/+r2CeepQsuT+Ua1gS9tkd5ErvVOP9y
+	eVb8A4BAKc9aQKDP3ytsWEdQfqOSHENiJBA2VSvKvrESUmaFsD/LcVfmpgR7ECqGqhe4SteLf2A
+	7ThhlTc0UHHpE+JOgDlN9BgITGQbfYRmBQYZGi1/StGBX5yWt67E3i0OTCjqUOmJ8a
+X-Received: by 2002:a05:600c:8011:b0:48a:80cb:1bb4 with SMTP id 5b1f17b1804b1-48e51f3b00emr178439985e9.22.1778230948591;
+        Fri, 08 May 2026 02:02:28 -0700 (PDT)
+Received: from pumpkin (82-69-66-36.dsl.in-addr.zen.co.uk. [82.69.66.36])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-45491bae13csm2842091f8f.29.2026.05.08.02.02.27
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 08 May 2026 02:02:27 -0700 (PDT)
+Date: Fri, 8 May 2026 10:02:26 +0100
+From: David Laight <david.laight.linux@gmail.com>
+To: Ratheesh Kannoth <rkannoth@marvell.com>
+Cc: <intel-wired-lan@lists.osuosl.org>, <linux-kernel@vger.kernel.org>,
+ <linux-rdma@vger.kernel.org>, <netdev@vger.kernel.org>,
+ <oss-drivers@corigine.com>, <akiyano@amazon.com>, <andrew+netdev@lunn.ch>,
+ <anthony.l.nguyen@intel.com>, <arkadiusz.kubalewski@intel.com>,
+ <brett.creeley@amd.com>, <darinzon@amazon.com>, <davem@davemloft.net>,
+ <donald.hunter@gmail.com>, <edumazet@google.com>, <horms@kernel.org>,
+ <idosch@nvidia.com>, <ivecera@redhat.com>, <jiri@resnulli.us>,
+ <kuba@kernel.org>, <leon@kernel.org>, <mbloch@nvidia.com>,
+ <michael.chan@broadcom.com>, <pabeni@redhat.com>,
+ <pavan.chebbi@broadcom.com>, <petrm@nvidia.com>,
+ <Prathosh.Satish@microchip.com>, <przemyslaw.kitszel@intel.com>,
+ <saeedm@nvidia.com>, <sgoutham@marvell.com>, <tariqt@nvidia.com>,
+ <vadim.fedorenko@linux.dev>
+Subject: Re: [PATCH v12 net-next 2/9] net/mlx5e: trim stack use in PCIe
+ congestion threshold helper
+Message-ID: <20260508100226.49294dc3@pumpkin>
+In-Reply-To: <20260508034912.4082520-3-rkannoth@marvell.com>
+References: <20260508034912.4082520-1-rkannoth@marvell.com>
+	<20260508034912.4082520-3-rkannoth@marvell.com>
+X-Mailer: Claws Mail 4.1.1 (GTK 3.24.38; arm-unknown-linux-gnueabihf)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260504220725.46686-1-prathameshdeshpande7@gmail.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-On Mon, May 04, 2026 at 11:06:46PM +0100, Prathamesh Deshpande wrote:
-> mlx5_fs_fte_get_hws_actions() stores some destination actions in
-> fs_actions[] before checking whether action creation succeeded.
-> 
-> If creating a table-number or range destination action fails, or if
-> fetching a sampler destination action fails, dest_action is NULL but
-> num_fs_actions has already been incremented. The shared error path then
-> calls mlx5_fs_destroy_fs_action(), which dereferences fs_action->action
-> to get the HWS action type, causing a NULL pointer dereference while
-> unwinding the original failure.
-> 
-> Track whether the current destination action needs fs_actions[] cleanup,
-> but append it only after dest_action has been validated.
-> 
-> Fixes: 2ec6786ad0a6b ("net/mlx5: fs, add HWS fte API functions")
-> Fixes: 32e658c84b6d ("net/mlx5: fs, add support for dest flow sampler HWS action")
-> Signed-off-by: Prathamesh Deshpande <prathameshdeshpande7@gmail.com>
+On Fri, 8 May 2026 09:19:05 +0530
+Ratheesh Kannoth <rkannoth@marvell.com> wrote:
 
-Reviewed-by: Simon Horman <horms@kernel.org>
+> union devlink_param_value grew when U64 array parameters were added.
+> Keeping a four-element array of that union in
+> mlx5e_pcie_cong_get_thresh_config() inflated the stack frame past the
+> -Wframe-larger-than limit.
+> 
+> Read each driverinit value into a single reused union, then store the
+> four u16 thresholds in struct mlx5e_pcie_cong_thresh field order via a
+> temporary u16 pointer to config.
+> 
+> Signed-off-by: Ratheesh Kannoth <rkannoth@marvell.com>
+> ---
+>  .../mellanox/mlx5/core/en/pcie_cong_event.c   | 34 +++++++++++--------
+>  1 file changed, 19 insertions(+), 15 deletions(-)
+> 
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en/pcie_cong_event.c b/drivers/net/ethernet/mellanox/mlx5/core/en/pcie_cong_event.c
+> index 2eb666a46f39..88e76be3a73d 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/en/pcie_cong_event.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en/pcie_cong_event.c
+> @@ -252,28 +252,32 @@ static int
+>  mlx5e_pcie_cong_get_thresh_config(struct mlx5_core_dev *dev,
+>  				  struct mlx5e_pcie_cong_thresh *config)
+>  {
+> +	enum {
+> +		INBOUND_HIGH,
+> +		INBOUND_LOW,
+> +		OUTBOUND_HIGH,
+> +		OUTBOUND_LOW,
+> +	};
+> +
+>  	u32 ids[4] = {
+
+Someone will suggest that should be 'static const'.
+It may make the code smaller.
+
+> -		MLX5_DEVLINK_PARAM_ID_PCIE_CONG_IN_LOW,
+> -		MLX5_DEVLINK_PARAM_ID_PCIE_CONG_IN_HIGH,
+> -		MLX5_DEVLINK_PARAM_ID_PCIE_CONG_OUT_LOW,
+> -		MLX5_DEVLINK_PARAM_ID_PCIE_CONG_OUT_HIGH,
+> +		[INBOUND_LOW] = MLX5_DEVLINK_PARAM_ID_PCIE_CONG_IN_LOW,
+> +		[INBOUND_HIGH] = MLX5_DEVLINK_PARAM_ID_PCIE_CONG_IN_HIGH,
+> +		[OUTBOUND_LOW] = MLX5_DEVLINK_PARAM_ID_PCIE_CONG_OUT_LOW,
+> +		[OUTBOUND_HIGH] = MLX5_DEVLINK_PARAM_ID_PCIE_CONG_OUT_HIGH,
+>  	};
+> -	struct devlink *devlink = priv_to_devlink(dev);
+> -	union devlink_param_value val[4];
+>  
+> -	for (int i = 0; i < 4; i++) {
+> -		u32 id = ids[i];
+> -		int err;
+> +	struct devlink *devlink = priv_to_devlink(dev);
+> +	union devlink_param_value val;
+> +	u16 *dst = (u16 *)config;
+
+You can't do that - far too fragile.
+Maybe &config->inbound_low - but even that assumes the values are in order.
+A safer way would be using a temporary 'u16 val16[4]'.
+(Or even overwrite ids[] with the result.)
+
+But the code might even be smaller if you just unroll the loop:
+	err = devl_param_driverinit_value_get(devlink, MLX5_DEVLINK_PARAM_ID_PCIE_CONG_IN_LOW, &val);
+	if (err)
+		return err;
+	config->inbound_low = val.vu16;
+	err = devl_param_driverinit_value_get(devlink, MLX5_DEVLINK_PARAM_ID_PCIE_CONG_IN_HIGH, &val);
+	if (err)
+		return err;
+	config->inbound_high = val.vu16;
+	err = devl_param_driverinit_value_get(devlink, MLX5_DEVLINK_PARAM_ID_PCIE_CONG_OUT_LOW, &val);
+	if (err)
+		return err;
+	config->outbound_low = val.vu16;
+	err = devl_param_driverinit_value_get(devlink, MLX5_DEVLINK_PARAM_ID_PCIE_CONG_OUT_HIGH, &val);
+	if (err)
+		return err;
+	config->outbound_high = val.vu16;
+
+-- David
+
+
+> +	int err;
+>  
+> -		err = devl_param_driverinit_value_get(devlink, id, &val[i]);
+> +	for (int i = 0; i < ARRAY_SIZE(ids); i++) {
+> +		err = devl_param_driverinit_value_get(devlink, ids[i], &val);
+>  		if (err)
+>  			return err;
+> -	}
+>  
+> -	config->inbound_low = val[0].vu16;
+> -	config->inbound_high = val[1].vu16;
+> -	config->outbound_low = val[2].vu16;
+> -	config->outbound_high = val[3].vu16;
+> +		dst[i] = val.vu16;
+> +	}
+>  
+>  	return 0;
+>  }
 
