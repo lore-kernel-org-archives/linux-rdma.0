@@ -1,63 +1,63 @@
-Received: from mail-pj1-f67.google.com (mail-pj1-f67.google.com [209.85.216.67])
+Received: from mail-pf1-f196.google.com (mail-pf1-f196.google.com [209.85.210.196])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 63B5F3624B3
-	for <linux-rdma@vger.kernel.org>; Fri,  8 May 2026 15:01:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.67
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 606BD3FA5CA
+	for <linux-rdma@vger.kernel.org>; Fri,  8 May 2026 15:01:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.196
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778252488; cv=none; b=LDkF+v7/PVmdNkXl1h7B6otemezEiDQkEpGq13qo934/f1K4O5zEC/nSnMdWQ/I7rZHlxmilFrGtw7VBXzjDqHbjzbjEAxr0Z4CHX5jPo03c695CYBM1TgWqyiSJDA9e7Lye+OxD8uttzTqxYkQC+VCKAXCu9qI+ThbJM4SxdIk=
+	t=1778252500; cv=none; b=VXH2TVlAXuW3K77pZ7EjlqTCPndv/GT9o5nXEJrs5lWRDbojNh+X1TuvfM1N+EsXZgVysbRpRJzMAylglAuLFfIAJmmQP8pbfJfsi5STctoCjzArfOkRCfrRTDZiK3kvXp31MnlWhGlR0vJF1KW98l6tTBv2I4/NrFd7vfUyCwY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778252488; c=relaxed/simple;
-	bh=C4KEQYKYMt+jPGupFXeYgtyzFlnYTdxDs0//Owq2PWA=;
+	s=arc-20240116; t=1778252500; c=relaxed/simple;
+	bh=9/t/hUMZJzNMH4RVbdJbbZH15OTzwSdGifx4D0PefWA=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=jjRY9ouFS9r7DpuvbMbbRNkn/ly5QAg4CArPkTkCccaL6eEg88oOxRo/dl6fE87J4YOkt0/uh26ssTQ8IMHa1pBnnU9WvJ/UO7tL8H2AkFnmtWUnAAKUFJLm0OkCxZ7nxr8UDEBYaYoYZJow3WVbPeOVkkWNPoYPstTq90YI8t0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=k0GSFJJr; arc=none smtp.client-ip=209.85.216.67
+	 Content-Type:Content-Disposition:In-Reply-To; b=WktlVyZzO1r+CyymNhJiSXdYonGsjAAOECcTtu6eRV+5AB1Usvd1iueLMNxHUJbS7vT9CgcrMDcLeq9onHofuyTVU+nTeHd/VYqxDiby+jyAy3jbO8OnmY/XKRxGk/TiPKn75oUuU1qi3cxdqfiviLLZoiboub8ayZw1qDUGKWw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=qwrtcv0L; arc=none smtp.client-ip=209.85.210.196
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="k0GSFJJr"
-Received: by mail-pj1-f67.google.com with SMTP id 98e67ed59e1d1-3664df32e91so658391a91.3
-        for <linux-rdma@vger.kernel.org>; Fri, 08 May 2026 08:01:20 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="qwrtcv0L"
+Received: by mail-pf1-f196.google.com with SMTP id d2e1a72fcca58-836ed29d1e5so924286b3a.2
+        for <linux-rdma@vger.kernel.org>; Fri, 08 May 2026 08:01:39 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1778252480; x=1778857280; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1778252499; x=1778857299; darn=vger.kernel.org;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=VVsAIDWuXutjxalCznuSZJzmb8d2/FmjsiE/YFxHP1o=;
-        b=k0GSFJJrD1to0PbG8ZmvC0Y9LJNb3QkjjoZtb7wK/ZDczTYm3uWjZBFFtRLsX9t/eq
-         +s8uZdFUFfdJz/tkhb9zkkihV4X9ZiK+TI0oRe16kpl8iYbUDquIXDqeqzOGTwJS2vVI
-         5S1Jl/u0MS862SupdkPlckRMaUYyuej8xckw5Vm/alUJ3RY3tQms3rPS9lmbi1bxzblN
-         KPr74+xMjODE1ognAQZHD2wDXQhDTyidKirrffNRx4FR9wX9o2Q/hxjbNO32U1L9fLgQ
-         mbMr5b6mg/4oZBUt1XgFSBaygNFogyF3lxCq9TVhNSwvfPFBQV8mvBlj1bS7NjnNqhLa
-         r0GA==
+        bh=6j5p5DIVFbvgg+WGkwfocupb7aWHhDsZHNXCf6IHkDw=;
+        b=qwrtcv0LXEIx8rCCicFAexqLv2BoxrUwNPWaK/3Ygzu4ERWPqmO80wV/OX+t24E3mI
+         qtMK1pto0nicCgilFhKxLuLw1lBHY5yOjAFnWENpVmcgiQSbLXMS4LS/vcy7+AIfPXxb
+         l+J4sTLrnmODq2yqFRlbvWcw2EoEBUnsw2WcHR1fsHEC3juIHGTgy/6UTwqPGGFE48nE
+         cX/87Ob+bCJM3QFUL3BqkDEtE2wteyCnAxIkUGkbf8CrEA9om5Pdd/wH3a7o0kTrjBJg
+         R+rFDUzD+kQ0D4DdlQDF9f9YBPo2Q4OWk0Lm5qUHRorREp2tlgqNMqen8FcW4lAUF2bT
+         kqxw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1778252480; x=1778857280;
+        d=1e100.net; s=20251104; t=1778252499; x=1778857299;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=VVsAIDWuXutjxalCznuSZJzmb8d2/FmjsiE/YFxHP1o=;
-        b=KFQ3yML7hbSd7CQIJIROOcezdduzElB/mPnpGmnkFO+nWVFFOvnufBZ2p22j91S5eR
-         pl7MEhzdt6BjMY+JBtPeWo+inhUn7fy+VF0gpPORiQfzZeiODiG37jS6DFAvPdFZt5vt
-         a9QYZ+1PicMZ2UQLoPyJE/uyZJcfAHAVhlSkpT7dswTZjc3UYNR0CY7/Mid+yNGyXxQc
-         c4lHmkZ7kzXQZp9i7hrz13sEJ38ZTyW6lRGDuB+DANfwfxwfDJMAGxVyFxuLo8tGtatJ
-         PHe24JnEfcTOoxvtY9orh/J65OQZZmEX7pQcnF/Z6oNMDOvemcsjIrtHK6dA6MGbON2c
-         0Cbw==
-X-Forwarded-Encrypted: i=1; AFNElJ/IS9tR6/ZYUmMJccAyqAS6xBunZXBT0Ej83l+B6zZ6EBP5n1jr18KndkP03zEBMSqQk+lrjH0WM0oP@vger.kernel.org
-X-Gm-Message-State: AOJu0Yy9XksGO4XOLLgNxp6pudcbQzLj0sQ0BVADSo8kyWIsXljJwYFz
-	gYEIE7qYUhNEcE5hchJyS/plVLTWtOgnpuRm8WNw5hSlCHl3SbVQf8SJ
-X-Gm-Gg: Acq92OGBBQ/gy88UlbQee+dmHq91/d7SLwkJPMLLe7c5jbmdTHdAml2ge36WdrhaGz0
-	apNKmHtzMppdum84lmVQ9tHs4DKQL39brl//Ip6YqnS+yv5mB+2bKx6fvgh+M2jh0AxSUZ4hjWu
-	vCmGQrJuJ67zZmKXMaPrcbFo1j8780oFN2df8a/x7rP5rMNNM70BYObg4b5PyNl5ggOVZXPdMmu
-	q3Ph5JK5iACkjxIiiRyPPtuQFjyMTgsaPDzIiKmBWQ5IRyIpk9M5CnrQgJClyy+RzLh1se789q3
-	GRTkUqx2UZnjDit2eGEpVXafuJJK0/0PBx5SvnfrF13QmU3s5oRFTId5AMYyNk6Jl1cWTMiJjWg
-	ajAsffJ76XOaVNdV2N70moPBh39zR95QodIvwlxPFEzO9axeuqtf++z9MPRHUBWd/R1h/9UNJqg
-	h7NXAVQR4WsH04DmH5zgcVX5Fh4a40U5c0uOH0
-X-Received: by 2002:a17:90a:710:b0:366:159a:c228 with SMTP id 98e67ed59e1d1-36615b96cf0mr4284277a91.6.1778252479571;
-        Fri, 08 May 2026 08:01:19 -0700 (PDT)
-Received: from localhost ([2a03:2880:2ff:3::])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-367c119f372sm61912a91.2.2026.05.08.08.01.18
+        bh=6j5p5DIVFbvgg+WGkwfocupb7aWHhDsZHNXCf6IHkDw=;
+        b=Ax/Lq0PWggmNWzeQ90ZeMVaiY5O1/qx+NBoLF6jDODpKGbVyPifTsHF0k5HM1OqYXC
+         pwXWEKHsAcilae77teo9PCa20XxiqPh5Xkrgkc1gHZ1XvcsmhHJyMpYyVotESCRx9tnx
+         MG0wufkkpefzOJYExYly4nEQhbJFhU+2fGr3Q5FkKpyaWL2TTGJ3/RTZDIAtFi2RX1Q7
+         F9Q4Uz/hcHjLm1zUkn1r+0upTbCMvCHa7bXoh+aQ4GeG6v/u3nbCMUekjOa/TD/eOo/I
+         ld8IUy4IyaRieho799KbtEFoGn+Qqby5QnjiV3aPTPVFD9ZzAy5cjiinfPd7lYJ42d2d
+         K5VA==
+X-Forwarded-Encrypted: i=1; AFNElJ8mspB3hFQN6QS4dGLAjkHwXMlb4zbn01PZLEaNwKnzFVNWHMQnG9Xmho0NHbtV1Au/O49ZEbsQHIdA@vger.kernel.org
+X-Gm-Message-State: AOJu0Ywr4o2Atesar63esYO3gDnt21/bJeqiYLCqcILfzM+PVWQkhCtd
+	jwvs9jZ1LAHmnK9pI1x5yyJJdyjLD/NsmDSRAP43Z0oyWnirpOcLXp/K
+X-Gm-Gg: Acq92OFNjdbII93+uwo8b/r+myQaBKsUyx/04YLLnjWsRm70rlU2V0V9JHWFr5kwy7h
+	Eejco8hLHg7NiySIkxjBAtBRXDpwONvS82AiU6JofEtSoSt2LiQM2FkqeGKv3ghYaWLnXjS0oz9
+	6e9T1bBUB3U146x4N9JWeB8Ij6vOJmKMpqSt79cD0zAfM8Ixrs+xbflkdVGyOrLX0xmbufeBszS
+	Spz63+V+t6+GrFeZ0VAsOGyYoM9B1FnGa6ApmQ8SJ63F71bZxgOJisQBsK/Ugq1FluVPvS6SWYO
+	qXYO117MmDUxxJ1j3Gt1wuMO/wvmDX1uSNc7JfwBafdDaGDf9Zp2+2ygbICHsbnNyx0XEaNsIfF
+	G8Dn0gizNU++4k7JIMDrajyhazdMAYqxt9THAuQQPYoYXGyK0xUTLHL+lAvu4jUKcdf/CqS0FIh
+	bqiXiUQnypJrKuyXnK
+X-Received: by 2002:a05:6a00:39a5:b0:82c:2205:507d with SMTP id d2e1a72fcca58-83a5dd5bc34mr12224762b3a.36.1778252496977;
+        Fri, 08 May 2026 08:01:36 -0700 (PDT)
+Received: from localhost ([2a03:2880:2ff:5e::])
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-83965d35b3bsm11676274b3a.24.2026.05.08.08.01.36
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 08 May 2026 08:01:18 -0700 (PDT)
-Date: Fri, 8 May 2026 08:01:17 -0700
+        Fri, 08 May 2026 08:01:36 -0700 (PDT)
+Date: Fri, 8 May 2026 08:01:35 -0700
 From: Stanislav Fomichev <sdf.kernel@gmail.com>
 To: Bobby Eshleman <bobbyeshleman@gmail.com>
 Cc: Andrew Lunn <andrew+netdev@lunn.ch>, 
@@ -77,11 +77,11 @@ Cc: Andrew Lunn <andrew+netdev@lunn.ch>,
 	linux-rdma@vger.kernel.org, bpf@vger.kernel.org, linux-kselftest@vger.kernel.org, 
 	Stanislav Fomichev <sdf@fomichev.me>, Mina Almasry <almasrymina@google.com>, 
 	Bobby Eshleman <bobbyeshleman@meta.com>
-Subject: Re: [PATCH net-next v3 3/8] net: devmem: support TX over
- NETMEM_TX_NO_DMA devices
-Message-ID: <af3593dYeiEeMzC2@devvm7509.cco0.facebook.com>
+Subject: Re: [PATCH net-next v3 4/8] selftests: drv-net: ncdevmem: add -n
+ flag to skip NIC configuration
+Message-ID: <af36xtqCzGOGF2m-@devvm7509.cco0.facebook.com>
 References: <20260507-tcp-dm-netkit-v3-0-52821445867c@meta.com>
- <20260507-tcp-dm-netkit-v3-3-52821445867c@meta.com>
+ <20260507-tcp-dm-netkit-v3-4-52821445867c@meta.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -90,70 +90,21 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20260507-tcp-dm-netkit-v3-3-52821445867c@meta.com>
+In-Reply-To: <20260507-tcp-dm-netkit-v3-4-52821445867c@meta.com>
 
 On 05/07, Bobby Eshleman wrote:
 > From: Bobby Eshleman <bobbyeshleman@meta.com>
 > 
-> When a netkit virtual device leases queues from a physical NIC, devmem
-> TX bindings created on the netkit device must still result in the dmabuf
-> being mapped for dma by the physical device. This patch accomplishes
-> this by teaching the bind handler to search for the underlying
-> DMA-capable device by looking it up via leased rx queues. The function
-> netdev_find_netmem_tx_dev(), used for finding the underlying DMA-capable
-> device, can be extended to support other non-netkit NETMEM_TX_NO_DMA
-> devices in the future if needed.
+> Add a -n (skip_config) flag that causes ncdevmem to skip NIC
+> configuration when operating as an RX server. When -n is passed,
+> ncdevmem skips configuring header split, RSS, and flow steering, as well
+> as their teardown on exit.
 > 
-> Additionally, this patch extends validate_xmit_unreadable_skb() to
-> support the netkit case, where the skb is validated twice: once on the
-> netkit guest device and again on the physical NIC after BPF redirect or
-> ip forwarding.
+> This allows ksft tests to pre-configure the NIC in the host namespace
+> before launching ncdevmem in the guest namespace. This is needed for
+> netkit devmem tests where the test harness namespace has direct access
+> to the NIC and the ncdevmem namespace does not.
 > 
 > Signed-off-by: Bobby Eshleman <bobbyeshleman@meta.com>
-> ---
-> Changes in v3:
-> - Fix validate_xmit_unreadable_skb() bug for non-devmem
->   unreadable niovs (should not be dropped)
-> - Major simplification of validate_xmit_unreadable_skb()
-> - Fix prematurely released lock in bind-tx handler (Jakub)
-> 
-> Changes in v2:
-> - In validate_xmit_unreadable_skb() to check netmem_tx mode before
->   inspecting frags (Jakub)
-> - Lock bind_dev around netdev_queue_get_dma_dev() when bind_dev !=
->   netdev to fix lockdep (Sashiko)
-> ---
->  net/core/dev.c         |  3 +++
->  net/core/devmem.c      |  6 +++--
->  net/core/devmem.h      |  9 ++++++--
->  net/core/netdev-genl.c | 63 ++++++++++++++++++++++++++++++++++++++++++++++----
->  4 files changed, 72 insertions(+), 9 deletions(-)
-> 
-> diff --git a/net/core/dev.c b/net/core/dev.c
-> index fbe4c328a367..268417c9ef22 100644
-> --- a/net/core/dev.c
-> +++ b/net/core/dev.c
-> @@ -3999,6 +3999,9 @@ static struct sk_buff *validate_xmit_unreadable_skb(struct sk_buff *skb,
->  	if (dev->netmem_tx == NETMEM_TX_NONE)
->  		goto out_free;
->  
-> +	if (dev->netmem_tx == NETMEM_TX_NO_DMA)
-> +		goto out;
-> +
-
-Since this is a good case, maybe fold it into skb_frags_readable check above?
-
-	if (likely(skb_frags_readable() || netmem_tx == NETMEM_TX_NO_DMA))
-
-Otherwise it's a bit confusing to have:
-
-if (xxx)
-	goto out;
-if (yyy)
-	goto out_free;
-if (zzz)
-	goto out;
-
-(or, reorder to be out/out/out_free)
 
 Acked-by: Stanislav Fomichev <sdf@fomichev.me>
