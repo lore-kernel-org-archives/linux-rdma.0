@@ -1,193 +1,161 @@
-Received: from mail-wm1-f54.google.com (mail-wm1-f54.google.com [209.85.128.54])
+Received: from mail-ot1-f102.google.com (mail-ot1-f102.google.com [209.85.210.102])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 75EE6270EDF
-	for <linux-rdma@vger.kernel.org>; Fri,  8 May 2026 09:02:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.54
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 83FFF2F8EA9
+	for <linux-rdma@vger.kernel.org>; Fri,  8 May 2026 09:08:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.102
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778230952; cv=none; b=KiNvRYIIUOzi5r9yRMsZwe4MJLDLeL15szMoiUXNWIv+/mo8CnCoaxXKHG1+X/88JQrSb7caFdnXXUNqxj4zSDsY8JQSpmB4Xp4vXhLUJjM6ShSRB8M7HCPSTQseEi8sGq5Ax0bt94RO7OW6F2KsDXe9l7XSIYjgT/xIKMlZbSc=
+	t=1778231293; cv=none; b=uTtVxY23ogEt04kcO0t5C9sYoLGk3uBh0KyqpuH7LZdUKoBpD1QipgPTk8eiv9xw1HrJUpcMVyjF1kYKrnztGqugMdE629Uce6wnlwruGYHppc9o7tXSrdutFA85iAUKZKXVbCmXSk1PctLWZol7rUgcfJqWxZPy/O/mUB0DhQU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778230952; c=relaxed/simple;
-	bh=WIPNyT+MJITZgScNy15NlVstSPVx6hRR32XdQhokLmY=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=gkcdmrtLcdd0Cc4SOXAqR5Z0l17WBvt8UOnFEzMS1YGUlM1VD7lc8xNUMLzsIwM7nsz7x++sJcWrMNBwAHwRNlaOhnDjL6vxB9EvrxLcNBPQZuXyrKhGYtVJ+V/QlI9kHNNw5YxJk665DMrRIqVh7a0w3RaXh2s48h113elZtio=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Q7Qsovx+; arc=none smtp.client-ip=209.85.128.54
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1778231293; c=relaxed/simple;
+	bh=6AdemSepMaxR+NjBnEDXKipIWntrI7I6pmp1uz14at0=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=egYE4YCMWFX7VMqauI1YN8RoxX1Vr1/GR4ZpVLVmJGm7px8u3UdsEnsQfw0iCjYdp+jKG61rR/xjyQSk+H2X2swOes+QqT7JiDIQgjhpZP0j3YkVGBtAHwy45EIDFfhY0HL14VxxBe/UJPNkHej+18Y157Zq5bjNO1lbAUKinEE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com; spf=fail smtp.mailfrom=broadcom.com; dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b=KfY9skSQ; arc=none smtp.client-ip=209.85.210.102
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=broadcom.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Q7Qsovx+"
-Received: by mail-wm1-f54.google.com with SMTP id 5b1f17b1804b1-488ab2db91aso19829585e9.3
-        for <linux-rdma@vger.kernel.org>; Fri, 08 May 2026 02:02:30 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1778230949; x=1778835749; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:subject:cc:to:from:date:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=HlYOG3XzQZlo22JT9TgpdXVisycjOjKnbVWOM2UqaHQ=;
-        b=Q7Qsovx+vjB2CNZ4ZmA2+m+ZuI8vwuwxbbdeGJoUUWWBw9hvhSYU6URCEk/d1U4X9e
-         Sm9Kx2yekUieIDnw9LLiiQ4U1aGJMhdyZuqDkCr9ZochQvNtTkuwm9pE1LXVGrCmr1TN
-         GTPK5fvtZtazkSAzSH5XLMxeyKwaV1TIqcRfCMs2CK0MFJ8dmCbYMumqW2yp1gevmXev
-         xOvSutn2JztZ5JFleB1yaGZH0t9ZcUtvhd55sAKsLjyAbxep7tZ2eDw6IWH6yCj4XlIl
-         0Spu4x3Eh7OT14OrYzVL2gD5Dk8kKHbueUx1OzsfkNttganF5ZGtaEYPR1rLSm8MkilM
-         rCqA==
+	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b="KfY9skSQ"
+Received: by mail-ot1-f102.google.com with SMTP id 46e09a7af769-7dbe437b072so874236a34.2
+        for <linux-rdma@vger.kernel.org>; Fri, 08 May 2026 02:08:11 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1778230949; x=1778835749;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=HlYOG3XzQZlo22JT9TgpdXVisycjOjKnbVWOM2UqaHQ=;
-        b=g+JCd6xFY+qhSTPQIaKzUDnJfe7M/cYhtCkRrRPhIJw2fRxZmjs2Snv4iqE7oHmFwa
-         aTlzcw0c1nCQ7TGLkX1FwI0MYvoWICYiFcG14pLqBVEDfORR3yGnrvB9MDwUqMOtYW3U
-         /cNl9FqTwM8tEKjK9y2c8H0plKwyyHHphAX8nyJ1FjqL5jz/i+dn/BkoutJjOiQrYZ32
-         nFTlr6+KvZS7gbYVwWOG5SGH/xDwT6EBVd5Haw4I9wdimb7/HH1pwArXORe3QPdzuiky
-         3iWaqOM6lpyQg4A+DBLpY7LadQLSNsayuXMMbF54eujGzKM5y4hx/lMgQWIbMgCjHbIc
-         74AA==
-X-Forwarded-Encrypted: i=1; AFNElJ/EYLE8RWdjsCeKmMhROfw04A+y8zdYeqTAdrR+dCF0wMusrIgzwvRm1v8dCApREbCtzbma+y5cYSys@vger.kernel.org
-X-Gm-Message-State: AOJu0YzjWnlrhBv3m/qaFooZOJdhTbWWf8N53InZaD8dPbjDIwx8CxB5
-	81ES7hCkCg1XAqnFvgxyHigWVThO9HbiO7NHkiRqjIzggBN0x/MXojqf
-X-Gm-Gg: AeBDievQOvfGB4pxQWPvjqt6aj6q2FZS4JD0ZmapXRfPAwStC9ycezGQWO8lQ/cQMe8
-	Cgnm5kmB+FcDppPEKjwEk42mvNqjhTvj5K4o1l9tdJ6ZhA7HwGZOixYXELWe2vxV+MX/jOET7zg
-	ZHX+p4MQHBWgC8ZeV7VQMZgn4cNZ0FFFfb8Gv7Bi0t0q14bLqwyJqI1tRWLVNIySiTvcm6nkCF9
-	5a1QFv3HgpGWh2vMuvT+v1DCWtMn5kx4c/Etr7Jlkr8ziIbXh+jVsOmKlmPR61fKtJQw6Se6fPA
-	xLeVWGCfStR523OlyX6z6DYXC9gutR7VR+E0G9QTPhKF/+r2CeepQsuT+Ua1gS9tkd5ErvVOP9y
-	eVb8A4BAKc9aQKDP3ytsWEdQfqOSHENiJBA2VSvKvrESUmaFsD/LcVfmpgR7ECqGqhe4SteLf2A
-	7ThhlTc0UHHpE+JOgDlN9BgITGQbfYRmBQYZGi1/StGBX5yWt67E3i0OTCjqUOmJ8a
-X-Received: by 2002:a05:600c:8011:b0:48a:80cb:1bb4 with SMTP id 5b1f17b1804b1-48e51f3b00emr178439985e9.22.1778230948591;
-        Fri, 08 May 2026 02:02:28 -0700 (PDT)
-Received: from pumpkin (82-69-66-36.dsl.in-addr.zen.co.uk. [82.69.66.36])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-45491bae13csm2842091f8f.29.2026.05.08.02.02.27
+        d=1e100.net; s=20251104; t=1778231290; x=1778836090;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:dkim-signature:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=YIH8xKWkzje/+egWcUnFD3SF3JmRJhHwI5rbv/wDQnM=;
+        b=MUFTzFSdKb2cVVK4WxCztH9f2NzMVHsIAGwCBgLoe5Aaw25BaPcgQVoVoDEVuzkTnc
+         462i4c/Wjv+YtzMy8b8T5OwJKOqMuCc9SW5K6RRVs8u+Zbhuj0P3vWyUkdtFqVkX1XX1
+         NG1GM1dzf/0I21t/3vtz01zqqTmxslgGNziGWQC70E+8AdtFHkL5SMzODlWOC8zi4KS+
+         GMn3UyTVmFQ1wObziBjj9QQ4JCyyZIpc2KcNPjbNOUvfZveSJQbyLPsbZQt0YliyuWKE
+         8lcmPTsFFfJN/z9iePJJdDk75/eCT3zG25Y4FRzEV0jgNWUHXqEx5F5PsoHSFyQx/eMD
+         RboQ==
+X-Gm-Message-State: AOJu0YwJTcmNA7gcNagk8QF+vLKUXSQDYEeHa15t7RN19fz+GdjQOKUc
+	4ktDGz4AZ22pxL1xSCs9qOP8k9xIQ73aDcLypZOEvs+mmM804pVsSganeKGKP/xBqihlf969Ak8
+	ZtDhK2Kpwfu3XS2+CZFb/KLZn7q0BBezuORMocE5ARhdRIptU+BR4JNY1Tu5DNXHTsJDPXzOTgq
+	EFkNirj38YE4bU1G13z5YYOXE3B4Yigl0wOLXkYvu7V8X5T5y7WeAl37J6K3j74AEcFKbVbxE1r
+	2e2AwukVdEO6cZeoPwdETE8zyifiFM=
+X-Gm-Gg: AeBDieubEVSN1Elbku1p+twA70QzM63wyVKI77mt8ViZ6oydpfZNJ/kAZF/5XOndPEN
+	A+m3HpFxgCuxAY5K0G7I3FAsScCrWkpvCxPDbFLQFjfIpF4nv8PoaHt3+7eyAyGoWjX7sZl476Q
+	55LDvonGQ9eAon7JwVGwo/Fx1SinqtoW6mr1N2C9MwrHGYnwY2J6PTXIid1S49IDP6zryspbYGo
+	qSqChjqyeMTjI0LZScjNFk2F6ug3pdCwgGPs7nJGvUjN8R3Wb76ZxuUithCbuUlUgXnWwzrQW8c
+	NzTjWBLJrqJwbFJeH8r7GD2RkwJxbwa7vMW2aDcO0P6s/llMLPmgWgCGFQYkldtUhPiYZOMfIjl
+	ydwSaWQc9TlDRNMk6q0GqMiHwuL5tDu6ALlP2SePdbD0apmNDvnC3EK+bNBeKmNZrgCJZSFwhwc
+	vdVu3LDBJqppcho6AI
+X-Received: by 2002:a05:6830:3905:b0:7dc:cd0b:58b0 with SMTP id 46e09a7af769-7e1ded2b16fmr7339996a34.3.1778231290416;
+        Fri, 08 May 2026 02:08:10 -0700 (PDT)
+Received: from smtp-us-east1-p01-i01-si01.dlp.protect.broadcom.com ([144.49.247.127])
+        by smtp-relay.gmail.com with ESMTPS id 46e09a7af769-7e367be2072sm85098a34.1.2026.05.08.02.08.09
+        for <linux-rdma@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Fri, 08 May 2026 02:08:10 -0700 (PDT)
+X-Relaying-Domain: broadcom.com
+X-CFilter-Loop: Reflected
+Received: by mail-pg1-f198.google.com with SMTP id 41be03b00d2f7-c823549b1fcso2298492a12.0
+        for <linux-rdma@vger.kernel.org>; Fri, 08 May 2026 02:08:09 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=broadcom.com; s=google; t=1778231288; x=1778836088; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=YIH8xKWkzje/+egWcUnFD3SF3JmRJhHwI5rbv/wDQnM=;
+        b=KfY9skSQhJerrQQqcK1DfzAzJen0mcQ0G02G+GBd6rT36kfCbFdV4BCMTmWZdgYalq
+         qgyTmFon10BXDAKuNHS7waUGyN1qJq3piEtPP0Wy/9RI3aDre2CeWaOjURIJuHvveZkJ
+         a3LRhSFQJEgUgZWUbJ7o+FA48KDNMsna6zY+E=
+X-Received: by 2002:a05:6a21:9992:b0:3a2:ecb8:56d8 with SMTP id adf61e73a8af0-3aa5aaee2d5mr12904951637.31.1778231288317;
+        Fri, 08 May 2026 02:08:08 -0700 (PDT)
+X-Received: by 2002:a05:6a21:9992:b0:3a2:ecb8:56d8 with SMTP id adf61e73a8af0-3aa5aaee2d5mr12904910637.31.1778231287875;
+        Fri, 08 May 2026 02:08:07 -0700 (PDT)
+Received: from dhcp-10-123-157-187.dhcp.broadcom.net ([192.19.234.250])
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-839679c80e7sm14419052b3a.31.2026.05.08.02.08.04
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 08 May 2026 02:02:27 -0700 (PDT)
-Date: Fri, 8 May 2026 10:02:26 +0100
-From: David Laight <david.laight.linux@gmail.com>
-To: Ratheesh Kannoth <rkannoth@marvell.com>
-Cc: <intel-wired-lan@lists.osuosl.org>, <linux-kernel@vger.kernel.org>,
- <linux-rdma@vger.kernel.org>, <netdev@vger.kernel.org>,
- <oss-drivers@corigine.com>, <akiyano@amazon.com>, <andrew+netdev@lunn.ch>,
- <anthony.l.nguyen@intel.com>, <arkadiusz.kubalewski@intel.com>,
- <brett.creeley@amd.com>, <darinzon@amazon.com>, <davem@davemloft.net>,
- <donald.hunter@gmail.com>, <edumazet@google.com>, <horms@kernel.org>,
- <idosch@nvidia.com>, <ivecera@redhat.com>, <jiri@resnulli.us>,
- <kuba@kernel.org>, <leon@kernel.org>, <mbloch@nvidia.com>,
- <michael.chan@broadcom.com>, <pabeni@redhat.com>,
- <pavan.chebbi@broadcom.com>, <petrm@nvidia.com>,
- <Prathosh.Satish@microchip.com>, <przemyslaw.kitszel@intel.com>,
- <saeedm@nvidia.com>, <sgoutham@marvell.com>, <tariqt@nvidia.com>,
- <vadim.fedorenko@linux.dev>
-Subject: Re: [PATCH v12 net-next 2/9] net/mlx5e: trim stack use in PCIe
- congestion threshold helper
-Message-ID: <20260508100226.49294dc3@pumpkin>
-In-Reply-To: <20260508034912.4082520-3-rkannoth@marvell.com>
-References: <20260508034912.4082520-1-rkannoth@marvell.com>
-	<20260508034912.4082520-3-rkannoth@marvell.com>
-X-Mailer: Claws Mail 4.1.1 (GTK 3.24.38; arm-unknown-linux-gnueabihf)
+        Fri, 08 May 2026 02:08:06 -0700 (PDT)
+From: Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>
+To: leon@kernel.org,
+	jgg@ziepe.ca
+Cc: linux-rdma@vger.kernel.org,
+	andrew.gospodarek@broadcom.com,
+	selvin.xavier@broadcom.com,
+	kalesh-anakkur.purayil@broadcom.com,
+	Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>
+Subject: [PATCH rdma-next v4 0/7] RDMA/bnxt_re: Support QP uapi extensions
+Date: Fri,  8 May 2026 14:28:51 +0530
+Message-ID: <20260508085858.21060-1-sriharsha.basavapatna@broadcom.com>
+X-Mailer: git-send-email 2.51.2.636.ga99f379adf
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+X-DetectorID-Processed: b00c1d49-9d2e-4205-b15f-d015386d3d5e
 
-On Fri, 8 May 2026 09:19:05 +0530
-Ratheesh Kannoth <rkannoth@marvell.com> wrote:
+Hi,
 
-> union devlink_param_value grew when U64 array parameters were added.
-> Keeping a four-element array of that union in
-> mlx5e_pcie_cong_get_thresh_config() inflated the stack frame past the
-> -Wframe-larger-than limit.
-> 
-> Read each driverinit value into a single reused union, then store the
-> four u16 thresholds in struct mlx5e_pcie_cong_thresh field order via a
-> temporary u16 pointer to config.
-> 
-> Signed-off-by: Ratheesh Kannoth <rkannoth@marvell.com>
-> ---
->  .../mellanox/mlx5/core/en/pcie_cong_event.c   | 34 +++++++++++--------
->  1 file changed, 19 insertions(+), 15 deletions(-)
-> 
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en/pcie_cong_event.c b/drivers/net/ethernet/mellanox/mlx5/core/en/pcie_cong_event.c
-> index 2eb666a46f39..88e76be3a73d 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/en/pcie_cong_event.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en/pcie_cong_event.c
-> @@ -252,28 +252,32 @@ static int
->  mlx5e_pcie_cong_get_thresh_config(struct mlx5_core_dev *dev,
->  				  struct mlx5e_pcie_cong_thresh *config)
->  {
-> +	enum {
-> +		INBOUND_HIGH,
-> +		INBOUND_LOW,
-> +		OUTBOUND_HIGH,
-> +		OUTBOUND_LOW,
-> +	};
-> +
->  	u32 ids[4] = {
+This patchset adds QP uapi extensions to the bnxt_re driver.
+This is required by applications that need to manage some of the
+RDMA HW resources directly and to implement the datapath in the
+application.
 
-Someone will suggest that should be 'static const'.
-It may make the code smaller.
+This series supports application allocated memory for QPs.
+The application takes into account SQ/RQ ring sizing constraints
+(extra entries, rounding up etc) while allocating this memory.
+The driver should avoid duplicating this logic while creating
+these QPs.
 
-> -		MLX5_DEVLINK_PARAM_ID_PCIE_CONG_IN_LOW,
-> -		MLX5_DEVLINK_PARAM_ID_PCIE_CONG_IN_HIGH,
-> -		MLX5_DEVLINK_PARAM_ID_PCIE_CONG_OUT_LOW,
-> -		MLX5_DEVLINK_PARAM_ID_PCIE_CONG_OUT_HIGH,
-> +		[INBOUND_LOW] = MLX5_DEVLINK_PARAM_ID_PCIE_CONG_IN_LOW,
-> +		[INBOUND_HIGH] = MLX5_DEVLINK_PARAM_ID_PCIE_CONG_IN_HIGH,
-> +		[OUTBOUND_LOW] = MLX5_DEVLINK_PARAM_ID_PCIE_CONG_OUT_LOW,
-> +		[OUTBOUND_HIGH] = MLX5_DEVLINK_PARAM_ID_PCIE_CONG_OUT_HIGH,
->  	};
-> -	struct devlink *devlink = priv_to_devlink(dev);
-> -	union devlink_param_value val[4];
->  
-> -	for (int i = 0; i < 4; i++) {
-> -		u32 id = ids[i];
-> -		int err;
-> +	struct devlink *devlink = priv_to_devlink(dev);
-> +	union devlink_param_value val;
-> +	u16 *dst = (u16 *)config;
+uAPI changes in this series:
+- Patch#4: new uapi parameter 'sq_npsn' in bnxt_re_qp_req.
+- Patch#6: new driver specific attribute 'DBR_HANDLE' for doorbell region.
+- Patch#7: new comp_mask 'FIXED_QUE_ATTR' in bnxt_re_qp_req.
 
-You can't do that - far too fragile.
-Maybe &config->inbound_low - but even that assumes the values are in order.
-A safer way would be using a temporary 'u16 val16[4]'.
-(Or even overwrite ids[] with the result.)
+Patch#1 Refactor bnxt_re_init_user_qp()
+Patch#2 Update rq depth for app allocated QPs
+Patch#3 Update sq depth for app allocated QPs
+Patch#4 Update msn table size for app allocated QPs
+Patch#5 Update hwq depth for app allocated QPs
+Patch#6 Support doorbells for app allocated QPs
+Patch#7 Enable app allocated QPs 
 
-But the code might even be smaller if you just unroll the loop:
-	err = devl_param_driverinit_value_get(devlink, MLX5_DEVLINK_PARAM_ID_PCIE_CONG_IN_LOW, &val);
-	if (err)
-		return err;
-	config->inbound_low = val.vu16;
-	err = devl_param_driverinit_value_get(devlink, MLX5_DEVLINK_PARAM_ID_PCIE_CONG_IN_HIGH, &val);
-	if (err)
-		return err;
-	config->inbound_high = val.vu16;
-	err = devl_param_driverinit_value_get(devlink, MLX5_DEVLINK_PARAM_ID_PCIE_CONG_OUT_LOW, &val);
-	if (err)
-		return err;
-	config->outbound_low = val.vu16;
-	err = devl_param_driverinit_value_get(devlink, MLX5_DEVLINK_PARAM_ID_PCIE_CONG_OUT_HIGH, &val);
-	if (err)
-		return err;
-	config->outbound_high = val.vu16;
+Thanks,
+-Harsha
 
--- David
+******
 
+Changes:
 
-> +	int err;
->  
-> -		err = devl_param_driverinit_value_get(devlink, id, &val[i]);
-> +	for (int i = 0; i < ARRAY_SIZE(ids); i++) {
-> +		err = devl_param_driverinit_value_get(devlink, ids[i], &val);
->  		if (err)
->  			return err;
-> -	}
->  
-> -	config->inbound_low = val[0].vu16;
-> -	config->inbound_high = val[1].vu16;
-> -	config->outbound_low = val[2].vu16;
-> -	config->outbound_high = val[3].vu16;
-> +		dst[i] = val.vu16;
-> +	}
->  
->  	return 0;
->  }
+v4:
+- Rebased to latest for-next tree (Linux 7.1-rc1, commit: 254f49634ee1).
+- Renamed QP req comp_mask: APP_ALLOCATED_QP_ENABLE -> FIXED_QUE_ATTR.
+
+v3:
+- Removed umem patch from the series, that is dependent on uverbs support.
+- Patch#7: Process DBR_HANDLE attr regardless of app_qp comp_mask.
+
+v2:
+- Rebased to umem_list uverbs patch series:
+  https://patchwork.kernel.org/project/linux-rdma/cover/20260325150048.168341-1-jiri@resnulli.us/
+- Deleted Patch#9; create_qp_umem devop is not supported.
+
+v3: https://lore.kernel.org/linux-rdma/20260415054957.36745-1-sriharsha.basavapatna@broadcom.com/
+v2: https://lore.kernel.org/linux-rdma/20260327091755.47754-1-sriharsha.basavapatna@broadcom.com/
+v1: https://lore.kernel.org/linux-rdma/20260320135437.48716-1-sriharsha.basavapatna@broadcom.com/
+
+******
+
+Sriharsha Basavapatna (7):
+  RDMA/bnxt_re: Refactor bnxt_re_init_user_qp()
+  RDMA/bnxt_re: Update rq depth for app allocated QPs
+  RDMA/bnxt_re: Update sq depth for app allocated QPs
+  RDMA/bnxt_re: Update msn table size for app allocated QPs
+  RDMA/bnxt_re: Update hwq depth for app allocated QPs
+  RDMA/bnxt_re: Support doorbells for app allocated QPs
+  RDMA/bnxt_re: Enable app allocated QPs
+
+ drivers/infiniband/hw/bnxt_re/ib_verbs.c | 270 +++++++++++++++--------
+ drivers/infiniband/hw/bnxt_re/ib_verbs.h |   1 +
+ drivers/infiniband/hw/bnxt_re/uapi.c     |  18 ++
+ include/uapi/rdma/bnxt_re-abi.h          |   6 +
+ 4 files changed, 206 insertions(+), 89 deletions(-)
+
+-- 
+2.51.2.636.ga99f379adf
 
