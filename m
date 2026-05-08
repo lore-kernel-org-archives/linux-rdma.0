@@ -1,186 +1,206 @@
-Received: from mail-qk1-f227.google.com (mail-qk1-f227.google.com [209.85.222.227])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from CH5PR02CU005.outbound.protection.outlook.com (mail-northcentralusazon11012019.outbound.protection.outlook.com [40.107.200.19])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7280535CB87
-	for <linux-rdma@vger.kernel.org>; Fri,  8 May 2026 09:08:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.227
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778231322; cv=none; b=Zi5esbUjoWnJrUxXhshzI6wIXKXHU6w8uzDFqX2XSAMmlSF7JOk2TW6xhTRNbnskjHkYYQPaO+47ngyEdxrrNZIHQNwwme0RSHwt8rRfad5udkYnl4Corb7AKiXn6iTQNWWOy1G/Hp053ql/lQjYnaG+iGItC4FxSnZUZMO5vdM=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778231322; c=relaxed/simple;
-	bh=Gmk2+RQYtpOMvWzZfUBKI4TlcbE1KMq/mC/+zDSe+Wc=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=eBZAjj4E0LBIku6naQsg7ufGIrppF8s4kUSCv17hFT3zPGwgaUI5P+TEHCJrO7as4Tr9iE8YQPtj125bRwNVW+MXl4CWAhnopqFBNqrcEoFHO/bS7rNCILPRZ+/541TeL7R8zeRovuS1jRt4O5lX0GKNrGBtffR7YFp0lXUPyRU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com; spf=fail smtp.mailfrom=broadcom.com; dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b=cD7Iaww9; arc=none smtp.client-ip=209.85.222.227
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=broadcom.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8906430E829;
+	Fri,  8 May 2026 09:15:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.200.19
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1778231738; cv=fail; b=lKsx5E9Yocxv+u6+tlUvB3hjKJ1CWvraI83jpYmQz1G6ZvwbMfF4Rl8MMFSS6SFN5fbRijqWN1uatvPuVxh8WP62ruMgAjvIRvhP4Z1sS2pO0JQUnwXeTrqrHT2F4lOj7ZmLwdCrD99c/eLTL7dBmC1VwR1GjpMHASZYg7sjAK0=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1778231738; c=relaxed/simple;
+	bh=xDJXqMROWBg3wdbKdifFhbKGCq+7gvnNnHAT3AIIVqk=;
+	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
+	 Content-Type:MIME-Version; b=ly7edLVpfcVY0Sf+mwAaiy2b2MjgDxyx2qci0Fp1mJ7iPFTJhghk2SKGHPbc/89eqoh0lih4pstc8zI6/d3TlBz4lcj5VvMq4o0crHWJgubZancpLQqvLGFCJ75EzEZjhP2HcoyUAgXYUGsOI5sBsy6Vb0gax/Xo13S4Eu0Zia0=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=CBdurmMg; arc=fail smtp.client-ip=40.107.200.19
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b="cD7Iaww9"
-Received: by mail-qk1-f227.google.com with SMTP id af79cd13be357-8ec9f099fc6so198077385a.0
-        for <linux-rdma@vger.kernel.org>; Fri, 08 May 2026 02:08:41 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1778231320; x=1778836120;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:dkim-signature:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=imNdPYs52RzSdeRBCRcQw1ZpG4ZT4jWAr0fy5OjGqXs=;
-        b=sOLl/WSIPFm21cDSuDdzoKjqKPg4W2Jr3ugTBDvwG6Q8M8JiXkpipH0pDVhhbcf7FT
-         4kwFG4qZ96NW/yiAZ4VLBXczb4SN0G3rXEyxMC3AbINAeAl3PHwwLzO9dAqxkHapUzfw
-         gCDv1dnWXXoRl0wErX43yvGKa8cILVUAsZvmEcGjMHjNAI/dHs4I+XtIkrVE4J2q9+hY
-         0Ggxy+iFMGIvrQ3sV2chZJlVlBDCDULjbTkn36rEbQvVhIOCf7i0PXLg9o8PGXKMXXb4
-         TYAnkE49GpJAU1ldfXq0zCb+H+DCH+ptLKKaP3RMe7XT6ZniEqZBZTNbfWfoAWVEx2PG
-         8sEg==
-X-Gm-Message-State: AOJu0Yzb/hMW6kFOteDsgYI9L2l3YYGG7x3jknFHjWr8UIU6hpFV0QaE
-	oR2fHIAZhwtKTYNgcx4LVQcf53rHOITVSDtNxhPO0jIQecXt2vWge+q7PcRZ+h3PBd+cU/M6pPG
-	mfFHKpnrCZt2qFEh7vWnALjfAwxoeNUCVFgHZqoHug8hIpl+EMbeWJKBimONTnhlk1bkKKHX0L+
-	jXHSA452Fo8zX6bJhRVXslJSLiGbs/DpdzdPZWhC31jQcX1bAhQ/8SVqvREWVsqzpMGp14cHkAw
-	l9ITMb/jgWcs13w7FR5p1LGBSzd
-X-Gm-Gg: AeBDietEE5EiAHGwYAqLcCkXdksnDHwegoPl5cSpzx9gxikMwv67twbPbpT4WQfflSw
-	ei39+DOoCatmDJLbS2AcXR2RhUfofJgYusDW3qhsV8d3KZOJLL4LnsAuyHQX5YBGF+2hiFiRuol
-	jeEpzI3L/VPKy8SXJATIAnHhUmCPV3pmzPXR7gqfbu2Dl81/J867OW8TuzWWwJWe1v2yctMdNHD
-	7/XNzjvsPom+aeJ3ku14eBDASkL/OXgbdZIbnHHrItmPV8HcG9pgVyZAAxRzAyGPJK4QsG3LZHi
-	525CiSBH9UgazMYJFQ39dqFNz26dOxk5lU7DMRr2V/f+sq+SxbwPbZr2HgN+af5SvxszR1DlEPF
-	+he2NzNFhQnMCqYmbNIB0nUT0tl6Z0TVPQbYtxQjpnaxFp0gqS84yNb+q9VDp7NBR6PZZ+yl4Zu
-	E1gDBzOruk+p5naV53Ta6u3pclYtf3+IAhAlR5CVAZKZCDahRYNosrYX9exwQQAX66SYTPbxA=
-X-Received: by 2002:a05:620a:28c3:b0:8d3:ccef:b2c6 with SMTP id af79cd13be357-904d4d50f76mr1721025785a.24.1778231320277;
-        Fri, 08 May 2026 02:08:40 -0700 (PDT)
-Received: from smtp-us-east1-p01-i01-si01.dlp.protect.broadcom.com (address-144-49-247-121.dlp.protect.broadcom.com. [144.49.247.121])
-        by smtp-relay.gmail.com with ESMTPS id af79cd13be357-907b99654f5sm11128285a.0.2026.05.08.02.08.39
-        for <linux-rdma@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Fri, 08 May 2026 02:08:40 -0700 (PDT)
-X-Relaying-Domain: broadcom.com
-X-CFilter-Loop: Reflected
-Received: by mail-pf1-f199.google.com with SMTP id d2e1a72fcca58-835444b6ce1so1395927b3a.1
-        for <linux-rdma@vger.kernel.org>; Fri, 08 May 2026 02:08:39 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=broadcom.com; s=google; t=1778231319; x=1778836119; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=imNdPYs52RzSdeRBCRcQw1ZpG4ZT4jWAr0fy5OjGqXs=;
-        b=cD7Iaww9nDC9bwAr94SO//xmhaiXvAFFIXixlB1BZkWqyoZOsPl5BjRkM/ehIN260N
-         jFIJSpsTK7pALRlY/yosfga0v0MFMMVuRKGoL5SjDQZIswxecAZwvVdYoKl1MigTafhh
-         b9VCAX1QXNWwB2v4LNalZb5kpiYbQqEIW2gHU=
-X-Received: by 2002:a05:6a00:908c:b0:81f:3fbd:ccf with SMTP id d2e1a72fcca58-83a5d18fe1fmr12195021b3a.23.1778231318944;
-        Fri, 08 May 2026 02:08:38 -0700 (PDT)
-X-Received: by 2002:a05:6a00:908c:b0:81f:3fbd:ccf with SMTP id d2e1a72fcca58-83a5d18fe1fmr12194966b3a.23.1778231317927;
-        Fri, 08 May 2026 02:08:37 -0700 (PDT)
-Received: from dhcp-10-123-157-187.dhcp.broadcom.net ([192.19.234.250])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-839679c80e7sm14419052b3a.31.2026.05.08.02.08.33
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 08 May 2026 02:08:36 -0700 (PDT)
-From: Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>
-To: leon@kernel.org,
-	jgg@ziepe.ca
-Cc: linux-rdma@vger.kernel.org,
-	andrew.gospodarek@broadcom.com,
-	selvin.xavier@broadcom.com,
-	kalesh-anakkur.purayil@broadcom.com,
-	Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>
-Subject: [PATCH rdma-next v4 7/7] RDMA/bnxt_re: Enable app allocated QPs
-Date: Fri,  8 May 2026 14:28:58 +0530
-Message-ID: <20260508085858.21060-8-sriharsha.basavapatna@broadcom.com>
-X-Mailer: git-send-email 2.51.2.636.ga99f379adf
-In-Reply-To: <20260508085858.21060-1-sriharsha.basavapatna@broadcom.com>
-References: <20260508085858.21060-1-sriharsha.basavapatna@broadcom.com>
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="CBdurmMg"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=Y6JXtja2r0IcpYMG/HuweKPokZchswAc6fp7MIFCB+ngs0BdpRVhYzUML04DjC9BNgs5vBAtUmt2edJIpvbjdAr3Aob5enBgz1dAsewE/7eycq7LBaPdOFEK+ClxzfGQ2UfrmgTUdjMMFD1+91rQ3/zyAuAh/8UxTdUBDqLi1OT5SnlXeezk1BpY3EgpkwPXO33qkmdJx3XbhurXUA73zqwUzS6Mup/lHsiNeq/h1U9L275P5Zv+sLeXHNudhdO2D7ZbXlKr3oHXw40mbHXDxz1MrYLVxYlVg0x51ukUTttfKBj9I4KzRS+BVpO2LWGl6WG9m/LE77y4Q0+COWkLVA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=Wcpn7zZm4+UZu4fh+au+VKes06zgviDl7vc4f9c7B1s=;
+ b=wAqnt6Z3dT5wH4kUA0eHFUMWGE5yclQ2COC+bYjfDn6RgGfVp9BrtfF2NDeWoYXhQntuCpc5pQOpPc9F2VkDb1U79zECydUq8PTwTfKulEPlO0adbDZ4Nz7sapDgdF7F44qhi4zQtmgB9e+mUiJd3Koi6S+S+fkxD1yQ/y6jUtsRblZiUug0PbDq3FPV/9Qjx/3xVhkr4mnCb3NDaWIeGcdqZz2KM8asigH79YH9jseRisOD6jwv3vUQgYpw46SCGVGcujMWQqCIfstDbtvI8aktpRky1jx/XDLLE+6YMZPFAWL0W+83UKL0vf+cdP7wH6VdyFpX+LOB0srGeEaO6w==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=Wcpn7zZm4+UZu4fh+au+VKes06zgviDl7vc4f9c7B1s=;
+ b=CBdurmMgI6z046Sm4FvMTpVmwyjgQuCrL1SbMvvUJIAuwi7VfUm5TwkKWXypYJTROSOU21EygI6+DHmitCydmH4uGsOs4ZBNU0mhr9WMAK1jc4ETmQNEDSvOnGCegFmsHfmnFI3EIbhas/GKQPl0oWXWkhNndfJIqM9F8MxoBSMBJ+S2xwi25te34eGsgtCW4hkuMuB7iMBC2NNEv9NoSRS74gKbyQeBGcLzIqUJ7ramSP4VG0Q1GLPszO1qwaBd3VBVUtMvvT4b0Z2SCtZfYflftg7fckngstSqJDRXmvsn9nKRTW5Mwaq+h2iz7CliODsz0rg1sqzGWSe8zR7c4w==
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from CH3PR12MB8728.namprd12.prod.outlook.com (2603:10b6:610:171::12)
+ by BN7PPFEE0F400A9.namprd12.prod.outlook.com (2603:10b6:40f:fc02::6e9) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9846.26; Fri, 8 May
+ 2026 09:15:33 +0000
+Received: from CH3PR12MB8728.namprd12.prod.outlook.com
+ ([fe80::2641:1046:bdf3:93d7]) by CH3PR12MB8728.namprd12.prod.outlook.com
+ ([fe80::2641:1046:bdf3:93d7%7]) with mapi id 15.20.9891.015; Fri, 8 May 2026
+ 09:15:33 +0000
+Message-ID: <70d0b319-178f-4233-b0da-9618489a1dd6@nvidia.com>
+Date: Fri, 8 May 2026 11:15:27 +0200
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH net-next V6 2/3] net/mlx5e: Avoid copying payload to the
+ skb's linear part
+To: Amery Hung <ameryhung@gmail.com>
+Cc: Tariq Toukan <tariqt@nvidia.com>, Christoph Paasch <cpaasch@openai.com>,
+ Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
+ Paolo Abeni <pabeni@redhat.com>, Andrew Lunn <andrew+netdev@lunn.ch>,
+ "David S. Miller" <davem@davemloft.net>, Saeed Mahameed <saeedm@nvidia.com>,
+ Mark Bloch <mbloch@nvidia.com>, Leon Romanovsky <leon@kernel.org>,
+ netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
+ linux-kernel@vger.kernel.org, Gal Pressman <gal@nvidia.com>,
+ Daniel Borkmann <daniel@iogearbox.net>,
+ Jesper Dangaard Brouer <hawk@kernel.org>,
+ John Fastabend <john.fastabend@gmail.com>,
+ Stanislav Fomichev <sdf@fomichev.me>, Alexei Starovoitov <ast@kernel.org>
+References: <20260507095330.318892-1-tariqt@nvidia.com>
+ <20260507095330.318892-3-tariqt@nvidia.com>
+ <CAMB2axOFQN2f=veYgeJs+4tbZmb9PuNHk03TH_bmE8UL_REd7w@mail.gmail.com>
+ <b1d3f9bc-a5d7-4236-8bda-49e6327ee533@nvidia.com>
+ <CAMB2axPNhveQaDPs-ttu4uFcpvAfJCdzJ3d05HWQf4+p7uVUsg@mail.gmail.com>
+Content-Language: en-US
+From: Dragos Tatulea <dtatulea@nvidia.com>
+In-Reply-To: <CAMB2axPNhveQaDPs-ttu4uFcpvAfJCdzJ3d05HWQf4+p7uVUsg@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+X-ClientProxiedBy: FR4P281CA0334.DEUP281.PROD.OUTLOOK.COM
+ (2603:10a6:d10:ea::10) To CH3PR12MB8728.namprd12.prod.outlook.com
+ (2603:10b6:610:171::12)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-DetectorID-Processed: b00c1d49-9d2e-4205-b15f-d015386d3d5e
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: CH3PR12MB8728:EE_|BN7PPFEE0F400A9:EE_
+X-MS-Office365-Filtering-Correlation-Id: 8ea7d885-c74a-4247-cbc1-08deace25b52
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|1800799024|7416014|376014|366016|22082099003|18002099003|56012099003;
+X-Microsoft-Antispam-Message-Info:
+	BrHVg4k4XjTmLvMUal+aKstuAR+J61CNg8m58oF5WaQDaHcg77WZVKfEqnNbnDeQGfnPh/r70BnF50Hc8m1NTV98Hxch27pormOR9TFxUDQMasBKYV8xmeMjPOA94jaYNwlvtU8LxAY0fpW74R/vyi3mlKhMsva9fsfMiIhChYDKhI570mHfXvQY54USC2IyKn91H25jukpkd5IJbMpBBh0mnvjOzp+IU5+Mm2Ua/6YfPlIylOySpe2hgLSWGrDrJSkQWF/V7hQgvdRxz6Xz6lGMyMBdK7BaRt1JEgCxJHv6rTfwmpexAclALE+6Z5Jvb5LatCtlAq4NBT40HVhFzej+DyReI1oCxM6vmq4QxgoV7jxKd/aDjZpDjrOjDQnOG2VmVSCNoLRvcex0rNL55ht9SaOqun2zt0BPViC3ggRnYIRJQpw/GvNAwZslOTAGStSaQreLKrhOt1YaNA9aSCrX1mgaSR1ssWBWWb5FSUURnieG8k36VmGZkS8w8SJifpCHRbPt5zU870XGFtE1Rj7tBCRRrenI9mbzqolRm0yBJqqTyblfShM79s3dAQGWqYmPasiGEwhoL16tBUVsEMzXFEfrbizt8z0TwLCUKNSebiHxoPw8m7zoq+bNa+lK7azSiYQk8H2OqsLibl82hSyjsBCkS1QOtl77gGpQt0AOXzlklz1ZwVeebAb7JSOw
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CH3PR12MB8728.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(7416014)(376014)(366016)(22082099003)(18002099003)(56012099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?utf-8?B?RU9PeXdDdWQ5ZHZzQVIxSEVXY0VWVDQvb0tCZjdIRVVSMDh1T0w5TUxRMnZB?=
+ =?utf-8?B?SC9pZUk5bDNYUXNQYWFCK3BrVkFPVVpjd0oxL0FNdHdpVkF3Znk2YitjR1dS?=
+ =?utf-8?B?SHFUM0xKOG9qbmV6eS9hWnBaTGlpY3VQRE51Tmt6UGtjS0NoaU40VEZncCtK?=
+ =?utf-8?B?NlozTVRjeWNLN01uSUlWb1NsTVA5L3Q1OUdqMjY5MzJiampaZ0JqT0NYd3pr?=
+ =?utf-8?B?U2MvRkhmWDZhU0RSaHU1a0huMUpNYkw1dkE3SndhdldhV25ld2pkSkFzTXpr?=
+ =?utf-8?B?S2JZV3BHbEJZa3M0d3YwTTZCdkJkbE1VV3hoR0tBZ21oWUpzQ2lwQTEzc3pH?=
+ =?utf-8?B?YUp3a09tT0xFSS80eEVaTVdDcVQ5L2hCL0ova2NuMWtrMDBXM24xVDhxR1VQ?=
+ =?utf-8?B?Rit0NytZZDloUDZjeGNIdkpMVWFUaXZ1WkNCdzNHMkRRWUVtREZTNGczMDVO?=
+ =?utf-8?B?VDdTODRIMFB1UFRkS3Z4K1YxMXE3VHNEdGQ4WUh6MlZhZ084U0s0MGwyNUlk?=
+ =?utf-8?B?QTZqdTFraklYbzFBWWxqZHd0eGFuVVJtdFZDVnk0eDcvZ1RuZjRNVzJCeFh2?=
+ =?utf-8?B?Vy80TWFkTkRsU2N2SEFmTDhwQTFnV21WSUlnUStzUVc5VjNkZS9TdlpoRExh?=
+ =?utf-8?B?TE4zTlZlWml4ekdlM0s4YXYxbFk2eVoxZUNyR2IzcXFmSU02MnloMk1SbnFP?=
+ =?utf-8?B?QndQTkFxRXdDcDNSY3pvbUpyR0JPc0ZaMWQ2VW5SMnUyR1Nka3c4M3JNZkFM?=
+ =?utf-8?B?YXFPYlNuSmttYTJBK2pSVUgrNitmaU1LZlNtR3ErWEhWZ08vWlEzMGJ6RTNE?=
+ =?utf-8?B?M3lETktlcHZQaWxTUVRpeEhhQjBOM2xWRE5MbU1aQVBGRGlhdzl5WkhGRi9P?=
+ =?utf-8?B?bk9vbFMyenNmdUNVajh3VVk5ZzN5dDNUdXJyUExvNDJPdHlvZWkyWEwyUnY2?=
+ =?utf-8?B?cm5PdllvUkUwT2FBc1haYmNhVFU1UG55RzYxLy9XenMwQWtKK0tYaHZBeDdw?=
+ =?utf-8?B?aEVZak9GTXBXY0hQM1JiL3ZWeWFwU29HREhIeG9LOEl1SEkxd0pFVy9BSXV5?=
+ =?utf-8?B?UHNBdTdlWmtiMVdpc2hDc1UvYXdLR2RrcFpkK0s0YUpjM3hybExLK2Q0ZWV2?=
+ =?utf-8?B?TFlPbUlPM1dWTGxOS1JhczhBNjFKejlnMWQrN1BlTWxaOTNqWjdLNEZmR3JW?=
+ =?utf-8?B?QXJLQklERktrdkwwLzlqWmhTWnNVcE5Bb0JmQTdvdkYrZEJQVEl5MHhKQUJo?=
+ =?utf-8?B?eEl6SnhPU25iM3phejkwaHBDT1BZRmc0ZFFZemltZEQvMWhpS0xaRDI0NGwz?=
+ =?utf-8?B?aktWWUZZYmFZS3F6emt3eStiZDlCenVOcGJaSWhYWHlXTjFSUE05K2pDSXMw?=
+ =?utf-8?B?dFBTYk00QmI0ZVJQRmNhbjBzUTVHYnhZOUw4MTZuL0xhWmVtcWxiMk1hUmtq?=
+ =?utf-8?B?M21QaXY3dENTNmNMRXJuREZIZVRzTjVEUzR6ZzZsU3N0ZUZpTjk5SGpaMkpK?=
+ =?utf-8?B?UFl1N0h3SE1TR25GVUxUSE0xN2NrMEo5OVY3NHl4OFVlM2pYRWN5OWZOWVRq?=
+ =?utf-8?B?NGRyK1dELzZUMzFkcUtLVjVFdmhCb2xyaGJackNlemJNRFd4T3pFb1ppZERH?=
+ =?utf-8?B?enVlcjVURi9QZ3VKdVFjWmxPSzdYOWJWVzB2cEZhOUpDL2hwaCtmL0Y2Q0I3?=
+ =?utf-8?B?NEJxN00zM0R5aDQ0bGhuRjlmamxrczllOUovR1BweU1qSkJnYjk1K0dVd2RI?=
+ =?utf-8?B?S014WnAzR3dmNlZmWldLMmVXVVo2amdWeHRoM0ZmMTh0MHFKOW0xVjQ2WThI?=
+ =?utf-8?B?OW1TeHo3cWxyajNMT25lNXdSbklCUVdUeFRrQlJqMVF4R3FicHJSUStvNEUz?=
+ =?utf-8?B?SzdHakIydGxhQXYxclhSZ1hYOVRraU1ocWRERHRqYThwQTlYUndnSW5Vd3d4?=
+ =?utf-8?B?MjdJd0F2MndJelRvUGtTc0ZEbjMyTlhZZXEySmxoMmptTGVLNHF4aVh4b3I5?=
+ =?utf-8?B?U0s0SmpiODNUU3RIWEpmOHZBSSsrNms5RlYwb3NZRDhZMzlHL3NuOEFJVFQz?=
+ =?utf-8?B?Z1Q2TS9PTGpFRVQrbUhTZHV1ZmV3b1k4ZUJUMFdTV0hOOEFGdjN2cFI2dGkv?=
+ =?utf-8?B?RktjYXpIR2MvRkFmekxOamkyVUhoTnpBUkwxWXJmdmJnY210SzVNMHU3cXN6?=
+ =?utf-8?B?Y1d1UFM1UU5jSlF1Z2xZZU52Q05hcGVCeThCS0xtQkM3NVUxTm00NjRLUDZk?=
+ =?utf-8?B?aWVaTGFNNDg5bnhjRjhkWUxCY1RnbllLYmhxSzFSaUZSOVFMcTNrOXpaV1dC?=
+ =?utf-8?B?Y3VaUzZNUFRyeUZvU2szMHRrYW14K2dRbWJiRmZNVUc3KzJ0VG42QT09?=
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 8ea7d885-c74a-4247-cbc1-08deace25b52
+X-MS-Exchange-CrossTenant-AuthSource: CH3PR12MB8728.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 08 May 2026 09:15:33.0784
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: FLFR14HJwM4/IbGNves4N7eXy/ZhS74u8lsEoK3exAdounp9zNjsrGFMY4u8QAoYdzFqXaRm8t9Rd8DubWHpZg==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: BN7PPFEE0F400A9
 
-The driver supports a new comp_mask: REQ_MASK_FIXED_QUE_ATTR.
-The application sets this comp_mask bit in the CREATE_QP ureq
-to indicate direct control of the QP. The driver goes through
-the required processing for app allocated QPs (previous patches).
-Only variable WQE mode is supported for these QPs.
 
-Signed-off-by: Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>
-Reviewed-by: Selvin Xavier <selvin.xavier@broadcom.com>
----
- drivers/infiniband/hw/bnxt_re/ib_verbs.c | 14 ++++++++++----
- include/uapi/rdma/bnxt_re-abi.h          |  1 +
- 2 files changed, 11 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-index 5d36a2fc8a10..8ba157abc051 100644
---- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-+++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-@@ -1721,11 +1721,11 @@ static int bnxt_re_init_qp_attr(struct bnxt_re_qp *qp, struct bnxt_re_pd *pd,
- 				struct ib_qp_init_attr *init_attr,
- 				struct bnxt_re_ucontext *uctx,
- 				struct bnxt_re_qp_req *ureq,
--				struct bnxt_re_dbr_obj *dbr_obj)
-+				struct bnxt_re_dbr_obj *dbr_obj,
-+				bool fixed_que_attr)
- {
- 	struct bnxt_qplib_dev_attr *dev_attr;
- 	struct bnxt_qplib_qp *qplqp;
--	bool fixed_que_attr = false;
- 	struct bnxt_re_dev *rdev;
- 	struct bnxt_re_cq *cq;
- 	int rc = 0, qptype;
-@@ -1745,6 +1745,8 @@ static int bnxt_re_init_qp_attr(struct bnxt_re_qp *qp, struct bnxt_re_pd *pd,
- 		return qptype;
- 	qplqp->type = (u8)qptype;
- 	qplqp->wqe_mode = bnxt_re_is_var_size_supported(rdev, uctx);
-+	if (fixed_que_attr && qplqp->wqe_mode != BNXT_QPLIB_WQE_MODE_VARIABLE)
-+		return -EOPNOTSUPP;
- 	qplqp->dev_cap_flags = dev_attr->dev_cap_flags;
- 	qplqp->cctx = rdev->chip_ctx;
- 	if (init_attr->qp_type == IB_QPT_RC) {
-@@ -1929,6 +1931,7 @@ int bnxt_re_create_qp(struct ib_qp *ib_qp, struct ib_qp_init_attr *qp_init_attr,
- 	struct bnxt_qplib_dev_attr *dev_attr;
- 	struct uverbs_attr_bundle *attrs;
- 	struct bnxt_re_ucontext *uctx;
-+	bool fixed_que_attr = false;
- 	struct bnxt_re_qp_req ureq;
- 	struct bnxt_re_dev *rdev;
- 	struct bnxt_re_pd *pd;
-@@ -1945,7 +1948,8 @@ int bnxt_re_create_qp(struct ib_qp *ib_qp, struct ib_qp_init_attr *qp_init_attr,
- 
- 	uctx = rdma_udata_to_drv_context(udata, struct bnxt_re_ucontext, ib_uctx);
- 	if (udata) {
--		rc = ib_copy_validate_udata_in_cm(udata, ureq, qp_handle, 0);
-+		rc = ib_copy_validate_udata_in_cm(udata, ureq, qp_handle,
-+						  BNXT_RE_QP_REQ_MASK_FIXED_QUE_ATTR);
- 		if (rc)
- 			return rc;
- 
-@@ -1959,6 +1963,8 @@ int bnxt_re_create_qp(struct ib_qp *ib_qp, struct ib_qp_init_attr *qp_init_attr,
- 			atomic_inc(&dbr_obj->usecnt);
- 			qp->dbr_obj = dbr_obj;
- 		}
-+		if (ureq.comp_mask & BNXT_RE_QP_REQ_MASK_FIXED_QUE_ATTR)
-+			fixed_que_attr = true;
- 	}
- 
- 	rc = bnxt_re_test_qp_limits(rdev, qp_init_attr, dev_attr);
-@@ -1969,7 +1975,7 @@ int bnxt_re_create_qp(struct ib_qp *ib_qp, struct ib_qp_init_attr *qp_init_attr,
- 
- 	qp->rdev = rdev;
- 	rc = bnxt_re_init_qp_attr(qp, pd, qp_init_attr, uctx, &ureq,
--				  dbr_obj);
-+				  dbr_obj, fixed_que_attr);
- 	if (rc)
- 		goto fail;
- 
-diff --git a/include/uapi/rdma/bnxt_re-abi.h b/include/uapi/rdma/bnxt_re-abi.h
-index 4da8cda337dc..dd6ebe3e2fd3 100644
---- a/include/uapi/rdma/bnxt_re-abi.h
-+++ b/include/uapi/rdma/bnxt_re-abi.h
-@@ -127,6 +127,7 @@ struct bnxt_re_resize_cq_req {
- 
- enum bnxt_re_qp_mask {
- 	BNXT_RE_QP_REQ_MASK_VAR_WQE_SQ_SLOTS = 0x1,
-+	BNXT_RE_QP_REQ_MASK_FIXED_QUE_ATTR = 0x2,
- };
- 
- struct bnxt_re_qp_req {
--- 
-2.51.2.636.ga99f379adf
+On 07.05.26 22:50, Amery Hung wrote:
+> On Thu, May 7, 2026 at 4:50 PM Dragos Tatulea <dtatulea@nvidia.com> wrote:
+>>
+>>
+>> Hi Amery,
+>>
+>> On 07.05.26 15:53, Amery Hung wrote:
+>>> [...]
+>>> Am I understanding correctly that the better performance comes with
+>>> the assumption that the XDP does not change headers?
+>>>
+>>> headlen is determined before the XDP program runs. If it push/pop
+>>> headers, there could be headers in frags or data in the linear region
+>>> after __pskb_pull_tail().
+>>>
+>> That's right.
+>>
+>>>>                         if (__test_and_clear_bit(MLX5E_RQ_FLAG_XDP_XMIT, rq->flags)) {
+>>>>                                 struct mlx5e_frag_page *pfp;
+>>>> @@ -2060,8 +2066,7 @@ mlx5e_skb_from_cqe_mpwrq_nonlinear(struct mlx5e_rq *rq, struct mlx5e_mpw_info *w
+>>>>                                 pagep->frags++;
+>>>>                         while (++pagep < frag_page);
+>>>>
+>>>> -                       headlen = min_t(u16, MLX5E_RX_MAX_HEAD - len,
+>>>> -                                       skb->data_len);
+>>>> +                       headlen = min_t(u16, headlen - len, skb->data_len);
+>>>
+>>> headlen - len can underflow but will be capped by skb->data_len, so
+>>> this should be okay, right?
+>> It is safe. But it might trigger an extra allocation in the pull when
+>> len > headlen. We could also skip the pull in that case. Or do a
+>> min(headlen - len, min(skb->data_len, MLX5E_RX_MAX_HEAD)). WDYT?
+> 
+> Make sense, but this line took me a bit to understand. Maybe consider
+> checking len < headlen first?
+> 
+> if (len < headlen) {
+>         headlen = min_t(u32, headlen - len, skb->data_len);
+>         __pskb_pull_tail(skb, headlen);
+> }
+> 
+Yes, that's what I had in mind when skipping the pull. I would also
+tag this as likely.
 
+> Another clarifying question. So this patch will improve the
+> performance when the XDP programs don't change header length. For
+> those that encap/decap, they should precisely pull only headers into
+> the linear area for optimal performance. Is it correct?
+> 
+Right for encap, but for decap not quite:
+
+Let's say that the XDP program pulls 64B header into the linear part
+and snips 4B of the encap out. This would result in a pull of an
+additional 4B (headlen (64B) - len (60B) = 4B) which are now
+data bytes => sub-optimal layout.
+
+I don't see how we can improve this corner case though.
+
+Thanks,
+Dragos
