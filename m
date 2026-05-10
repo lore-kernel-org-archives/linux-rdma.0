@@ -1,99 +1,63 @@
-Received: from out30-112.freemail.mail.aliyun.com (out30-112.freemail.mail.aliyun.com [115.124.30.112])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 373E62F8E81;
-	Sun, 10 May 2026 15:19:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.112
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D8743A1CF8
+	for <linux-rdma@vger.kernel.org>; Sun, 10 May 2026 15:55:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778426365; cv=none; b=SgRmddCs2vQdq1Z+/od+TFlqzSaoK4cteI4oq+6XmrkyyaoKd+os4gajDe2Vssrj1mXQ6c9GIONVvnvGIxS3qJKzErF0TOiKKg5WFCK7MFmsF33qegh8VW6M6qmR25aXGyIDbdlvGA3A9wUC8m7KwqFMxCHroJA61gAsjI//4mw=
+	t=1778428512; cv=none; b=FBC/v3WZDgib0QgyinowVWeeEpl+8vSE1UN5FiUtfpB2KlArLm9W2w4U3P6xo1Gk6tTxP6DM2YwMBFj9eoCjmr/twaoKbzUl246Bb5UKZMT4PiiXMu+uYGxaBFWyKqXEjTA6OWWjf0rapSvwqPq4ZP3f2sGtiBFm7erjzkwlwKg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778426365; c=relaxed/simple;
-	bh=KA/p1RhujIaTAg1hTVqbE076u80O9x23DXASfs8gZPE=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Eb0RIEX8WnYw4T2djRsmXzQTQBYz8IlyqMpVBA2Y4GpSPH/ZOT9pUbQkRrSefD5sagpY+zx81OtKUQ7sz+/gGaz1A88igEmFKn50Nabm22zJ2nZEcoyBf4rrVnLzhjqKARi4PoZ49le1M8CNEzPMEx/pvf2hYrgv4IvWw3vZwQs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=B7gr0Djg; arc=none smtp.client-ip=115.124.30.112
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
+	s=arc-20240116; t=1778428512; c=relaxed/simple;
+	bh=hLeMTDDXIlirmObX4HXle+nkgJFIuu3DCbM3rIDaNzA=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
+	 MIME-Version:Content-Type; b=VgDUR/Q66c3yN3bMfcAD5778aPLBV78LDwIPHq/IC0o5hh5xXEjs7sP1tY1beEt/F7rW+OEmaZ9VCvpZ3DOBXuATxbZNndekPzsW3b4mZRIX4ktN0WtLkVcITdF0P0IyFkk1keOCON7dpldi6lzAJYqTZ7q4UjmL0QNr4Wf0Aic=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ndf68iBh; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="B7gr0Djg"
-DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux.alibaba.com; s=default;
-	t=1778426353; h=Date:From:To:Subject:Message-ID:MIME-Version:Content-Type;
-	bh=h8xm0ICWFyWAHAFUbZ2x6pFmPnB7nZ1XWtBXDMkVHTY=;
-	b=B7gr0DjgCvQaFFuoGvNTi4v0bV56JJQ1ykBne7gpROPhqkxEbvsQtyonu4J+LPsUZpGPrp1y9zFuBs4EOudwmheQ7jf/M71CZgp3zrTlIWU+A8tOPti3Tx/tj8dwde9OVAGWRcd3rkO55axfCAa44wl2hor9a+GgcSu+F+CB9Cw=
-X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R151e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam011083073210;MF=dust.li@linux.alibaba.com;NM=1;PH=DS;RN=12;SR=0;TI=SMTPD_---0X2cvymd_1778426352;
-Received: from localhost(mailfrom:dust.li@linux.alibaba.com fp:SMTPD_---0X2cvymd_1778426352 cluster:ay36)
-          by smtp.aliyun-inc.com;
-          Sun, 10 May 2026 23:19:12 +0800
-Date: Sun, 10 May 2026 23:19:12 +0800
-From: Dust Li <dust.li@linux.alibaba.com>
-To: =?iso-8859-1?Q?Nicol=F2?= Coccia <n.coccia96@gmail.com>,
-	alibuda@linux.alibaba.com, sidraya@linux.ibm.com,
-	Wenjia Zhang <wenjia@linux.ibm.com>
-Cc: Tony Lu <tonylu@linux.alibaba.com>, Wen Gu <guwen@linux.alibaba.com>,
-	linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org,
-	linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-	mjambigi@linux.ibm.com,
-	=?iso-8859-1?Q?Nicol=F2?= Coccia <nicolo.coccia@leonardo.com>
-Subject: Re: [PATCH net] net/smc: fix sleep-inside-lock in __smc_setsockopt()
- causing local DoS
-Message-ID: <agCh8NuM69sYSIRA@linux.alibaba.com>
-Reply-To: dust.li@linux.alibaba.com
-References: <CALSA8UZaE8FR2K-60fPYE6uSUvUNuLnH=8pPq0Hak2ADQpp1Qw@mail.gmail.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ndf68iBh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 460F5C2BCB8;
+	Sun, 10 May 2026 15:55:10 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1778428510;
+	bh=hLeMTDDXIlirmObX4HXle+nkgJFIuu3DCbM3rIDaNzA=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Date:From;
+	b=ndf68iBhnLMiV9CDDhGpEt//m+9yLXYjukJ97ERK+BLWk4nj5C5PtC1f+TL213q8x
+	 kjeSeTem0PV/ACjCBIA8D+5rZwjqtzoOjBkE7pelyZdjHIZYI3G8fjf20i4xSphUed
+	 VlBsRMB2+HftMoqeoxWPFjAcer5+lGmGXCL3EcvT6Pjul7B2Urg+kcZ5FWV6ke1m/u
+	 cCrw30wHOKp/+iqBgS6fAIxhv4wHWV8TM/8EiV/cngj77o55faNGaTvwvrwIvzHRCa
+	 Vf7/Bg4p6q6wXZCxZ9Edkeeew1gbULRy6DDGaCb/ctyC3X1cFoWh05ZalrszSlKA9S
+	 RwH41TRhiMlfg==
+From: Leon Romanovsky <leon@kernel.org>
+To: Jason Gunthorpe <jgg@ziepe.ca>, 
+ Chenguang Zhao <zhaochenguang@kylinos.cn>
+Cc: linux-rdma@vger.kernel.org
+In-Reply-To: <20260410074046.2044595-1-zhaochenguang@kylinos.cn>
+References: <20260410074046.2044595-1-zhaochenguang@kylinos.cn>
+Subject: Re: [PATCH] RDMA/mlx5: use QP port when decoding responder CQEs
+Message-Id: <177842850773.2062437.7010172559893275656.b4-ty@kernel.org>
+Date: Sun, 10 May 2026 11:55:07 -0400
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CALSA8UZaE8FR2K-60fPYE6uSUvUNuLnH=8pPq0Hak2ADQpp1Qw@mail.gmail.com>
-
-On 2026-05-09 07:01:02, Nicolò Coccia wrote:
->A logic flaw in __smc_setsockopt() allows a local unprivileged user to
->cause a Denial of Service (DoS) by holding the socket lock indefinitely.
->
->The function __smc_setsockopt() calls copy_from_sockptr() while holding
->lock_sock(sk). By passing a userfaultfd-monitored memory page (or
->FUSE-backed memory on systems where unprivileged userfaultfd is disabled)
->as the optval, an attacker can halt execution during the copy operation,
->keeping the lock held.
->
->Combined with asynchronous tear-down operations like shutdown(), this
->exhausts the kernel wq (kworkers) and triggers the hung task watchdog.
->
->[  240.123456] INFO: task kworker/u8:2 blocked for more than 120 seconds.
->[  240.123489] Call Trace:
->[  240.123501]  smc_shutdown+...
->[  240.123512]  lock_sock_nested+...
->
->This patch moves the user-space copy outside the lock_sock() critical
->section to prevent the issue.
->
->Fixes: a6a6fe27bab4 ("net/smc: Dynamic control handshake limitation by
->socket options")
->Signed-off-by: Nicolò Coccia <n.coccia96@gmail.com>
->---
->v1 -> v2:
-> - Rebased against netdev/net tree
-> - Added Fixes tag
->
-> net/smc/af_smc.c | 17 ++++++++---------
-> 1 file changed, 8 insertions(+), 9 deletions(-)
->
->diff --git a/net/smc/af_smc.c b/net/smc/af_smc.c
->index 185dbed7de5d..da28652f6810 100644
->--- a/net/smc/af_smc.c
->+++ b/net/smc/af_smc.c
->@@ -3054,18 +3054,17 @@ static int __smc_setsockopt(struct socket
->*sock, int level, int optname,
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-Mailer: b4 0.15-dev-18f8f
 
 
-Still not apply, have you changed this manually ?
-You can produce the patch simply using `git format-patch `
+On Fri, 10 Apr 2026 15:40:46 +0800, Chenguang Zhao wrote:
+> The responder CQE path determines the link layer via
+> rdma_port_get_link_layer(). Use qp->port instead of
+> hardcoding port 1, which can mis-decode completions on
+> multi-port devices.
+
+Applied, thanks!
+
+[1/1] RDMA/mlx5: use QP port when decoding responder CQEs
+      https://git.kernel.org/rdma/rdma/c/1a1ead4b27d3b5
 
 Best regards,
-Dust
+-- 
+Leon Romanovsky <leon@kernel.org>
 
