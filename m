@@ -1,102 +1,84 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0F7CD371CFF;
-	Sun, 10 May 2026 16:37:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4EFAD8635D;
+	Sun, 10 May 2026 17:31:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778431055; cv=none; b=pFIWucCmibkcOWIcsHRRsNwzOz8RRGplggtAgVn3mOG4t8Lyj5XdOLHNec7aXtZFsz2PTYQZ01O1R4pXx7MLBkcrOKvBxi/ebQrMts3Xx3swuc05kOix3SsYbocXt2mDGYmH3WMhB9i6SkZAfPUMzxYXEVhxRmemWIhG8zKcKxQ=
+	t=1778434263; cv=none; b=HhIeWOI2+vBAT7Te+2qcYnC9vDJ6kAmTIWn568BI3XyB0ZF9erM5rbn4zLe0Sailat3xdeSzksfTmRH4c8mWbOS9mUcSpnOoZzgYTlmQIUSOPDE6dfILNHxtDi7nMmUYqNqmb+TScPmxMz4t7Ux5jwnSeAKm2thfGwHS6QetqFY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778431055; c=relaxed/simple;
-	bh=L1xXaxGzoHwwroa3Zr/iluLS4q9Nr5n/YF8ZM6klWAI=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=VX5CC8APN8QJcTDGjNu5S95CUUaZXp7q74BD/h8qifasTJ747bzQpy6rcHgV2/Och1TWOhkrDWmB3czyv20db38OWk43F5EfzWq2BB2XKtkvY8Rkao5khcS+6VUDdG2SuG3OtayvRWthW/Kq+9UGv4PoveTBpM/3jGRyktrAl24=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Ymejetap; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1778434263; c=relaxed/simple;
+	bh=zclz00P2RXzk0iut/vDC+fZ5PNjL1f7ECX+axT82ogk=;
+	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc; b=ZCPlxE7ikLZeX2W2x3y8WnqAEFfhtuBuj1uRjzmp26QlziNDUv7bY+rgBg8oBYU/7uvf0wgSlIE61MMjLsbqimDUTLKKcO4PwCg/8WnUeCFapZuqb6sxES4A4pzRhKfWidEACWOFdFMZz5/NOCgdrxLAashqN65VvI0DWS5xbQU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=e4j40NZ5; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Ymejetap"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 62B38C2BCB8;
-	Sun, 10 May 2026 16:37:33 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="e4j40NZ5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 06B7EC2BCB8;
+	Sun, 10 May 2026 17:31:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1778431054;
-	bh=L1xXaxGzoHwwroa3Zr/iluLS4q9Nr5n/YF8ZM6klWAI=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=YmejetappZu2ZJ9Zi3qLnqfqreo16SA9xAr7Yjn6jpx0CJK+5jTLugHkfSy/52gJi
-	 5ul8YzfVPW6hCvF+pUMrnGYNSEuQJWFis4rYbr/2Owohegve5Y67jT3JuA3foP8cWw
-	 yV8My0r8fKXTchq0UWB0APXQHO/biL3XWfa1JkInNwlGYp/o2WilHWJ6BZS1IiEmqq
-	 vtBWDI3jb8AMsfZRSU58ucWEtKhV4M4gPkeLD5XHeY2PYm/DY3sqcCXEXkAavJrnJN
-	 OwQI64rExWJN+sRrsO439QxErqYgB945tOZ0PbG+S0NvRctXWsesaHMEAyuM9DN2VF
-	 GCVWrfzrQGe/g==
-Date: Sun, 10 May 2026 09:37:32 -0700
-From: Jakub Kicinski <kuba@kernel.org>
-To: Jiri Pirko <jiri@resnulli.us>
-Cc: Mark Bloch <mbloch@nvidia.com>, Eric Dumazet <edumazet@google.com>,
- Paolo Abeni <pabeni@redhat.com>, Andrew Lunn <andrew+netdev@lunn.ch>,
- "David S. Miller" <davem@davemloft.net>, Jonathan Corbet <corbet@lwn.net>,
- Shuah Khan <skhan@linuxfoundation.org>, Simon Horman <horms@kernel.org>,
- Saeed Mahameed <saeedm@nvidia.com>, Leon Romanovsky <leon@kernel.org>,
- Tariq Toukan <tariqt@nvidia.com>, Andrew Morton
- <akpm@linux-foundation.org>, "Borislav Petkov (AMD)" <bp@alien8.de>, Randy
- Dunlap <rdunlap@infradead.org>, Dave Hansen <dave.hansen@linux.intel.com>,
- Christian Brauner <brauner@kernel.org>, Petr Mladek <pmladek@suse.com>,
- "Peter Zijlstra (Intel)" <peterz@infradead.org>, Thomas Gleixner
- <tglx@kernel.org>, Pawan Gupta <pawan.kumar.gupta@linux.intel.com>, Dapeng
- Mi <dapeng1.mi@linux.intel.com>, Kees Cook <kees@kernel.org>, Marco Elver
- <elver@google.com>, Eric Biggers <ebiggers@kernel.org>, Li RongQing
- <lirongqing@baidu.com>, "Paul E. McKenney" <paulmck@kernel.org>,
- linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
- netdev@vger.kernel.org, linux-rdma@vger.kernel.org
-Subject: Re: [RFC net-next 0/4] devlink: Add boot-time defaults
-Message-ID: <20260510093732.6ba47e54@kernel.org>
-In-Reply-To: <af7Y4AYv-XDCbK_8@FV6GYCPJ69>
-References: <20260506123739.1959770-1-mbloch@nvidia.com>
-	<aftaW-irGmkfA7FS@FV6GYCPJ69>
-	<3f9215c4-7c84-46d9-ba74-30dabe24db09@nvidia.com>
-	<afxvzOjqw-vxUAED@FV6GYCPJ69>
-	<b6a9b568-dd09-4414-be57-6b9cd282a43c@nvidia.com>
-	<af4lBIJdCuN5VKq_@FV6GYCPJ69>
-	<20260508175213.1952097f@kernel.org>
-	<af7Y4AYv-XDCbK_8@FV6GYCPJ69>
+	s=k20201202; t=1778434263;
+	bh=zclz00P2RXzk0iut/vDC+fZ5PNjL1f7ECX+axT82ogk=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+	b=e4j40NZ5Jxpte5AHw8vdTYTpu2SoYMrAGSGdMJocjmx1ZoZEubPg+vuIuMZ/pwqd2
+	 u0J4hNsROrC/wBzfC0/Loeo2mguPFK+i8RuH04fykmTGntSt3isC9UikEKHPIajtX4
+	 mTKV4bL1upL2/Vxptv3Uh0pw0Nql3iq2kDT/pN3pjCgCOKd7w4S7yKkBN+8g30HQy3
+	 9yuDjyxzX/0A4y/3xGlIRMgkpgBMKIINFae22d9UKS1txoILYWsDme0ziyO9vO431b
+	 SkWAY0JU0jqIgCglclQWGWCDwX1xVp5FBd7rA5+tUlH0WpoIvxxb4H2mfpRDT67ERP
+	 OsxLcu1zlmPmw==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 7CEC63930020;
+	Sun, 10 May 2026 17:30:11 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net-next v1 0/3] Log clean up and TAP follow ups
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <177843421005.1439575.2959535937305070033.git-patchwork-notify@kernel.org>
+Date: Sun, 10 May 2026 17:30:10 +0000
+References: <20260507233213.556182-1-achender@kernel.org>
+In-Reply-To: <20260507233213.556182-1-achender@kernel.org>
+To: Allison Henderson <achender@kernel.org>
+Cc: netdev@vger.kernel.org, pabeni@redhat.com, edumazet@google.com,
+ kuba@kernel.org, horms@kernel.org, linux-rdma@vger.kernel.org,
+ linux-kselftest@vger.kernel.org, shuah@kernel.org
 
-On Sat, 9 May 2026 09:01:23 +0200 Jiri Pirko wrote:
-> Sat, May 09, 2026 at 02:52:13AM +0200, kuba@kernel.org wrote:
-> >On Fri, 8 May 2026 20:07:44 +0200 Jiri Pirko wrote:  
-> >legacy vs switchdev only describes the eswitch configuration.
-> >As a non-SR-IOV user I really don't want to see the extra representors
-> >hanging around my systems, confusing all daemons. IIRC mlx5 had some
-> >limitations around the uplink representor. Maybe that's the disconnect.
-> >But for a real, fully featured switchdev eswitches having the
-> >PHY and PF representors on boot, always, will not make sense.  
+Hello:
+
+This series was applied to netdev/net-next.git (main)
+by Jakub Kicinski <kuba@kernel.org>:
+
+On Thu,  7 May 2026 16:32:10 -0700 you wrote:
+> Hi all,
 > 
-> As "a non-SR-IOV user", what extra representors you talk about? When you
-> have pfs only, you don't have anything extra. Just 1 netdev per-pf, one
-> devlink port per-pf. What's extra about it? When you don't have VFs/SFs.
-> Everyhing is the same:
-
-Some devices have separate uplink ports and PF representors.
-As I said, what you're proposing isn't going to work for all drivers.
-
-> >> Well, as any other nv config, it persists across kernels/hosts.
-> >> Think about it as "unbreak-my-not-legacy-device" bit.  
-> >
-> >For most devices the switchdev mode does not change anything
-> >substantial about the device. It's purely a kernel / driver config. 
-> >It changes what objects and default rules kernel / driver installs. 
-> >So I don't get why it would make sense to flash into the device
-> >nvmem a Linux SW stack specific config.  
+> This is a follow up series to the  "Log collection, TAP compliance and
+> cleanups" set.  The sashiko report had made some points that I thought
+> was worth addressing.  This patch set fixes a few more TAP compliance
+> prints in the check_gcov* routines.  Also since the user must now pass
+> in the log folder to collect logs, log clean up is tightened to only
+> remove rds* prefixed artifacts instead of the entire folder.  Lastly a
+> the signal handler alarm should be disarmed after the completes to
+> avoid multiple calls to the stop_pcaps routine.
 > 
-> I look at it from the perspective that from some CX generation,
-> switchdev mode should be default. So that is a device-based decision.
-> I believe as such it can optionally be permanenty configured (nv config)
-> on older device. Why not?
+> [...]
 
-Feels a bit arbitrary and won't cover all cases. The question should be
-why you are nacking a more reasonable solution. Keeping Linux config in
-Linux params.
+Here is the summary with links:
+  - [net-next,v1,1/3] selftests: rds: Fix stale log clean up
+    https://git.kernel.org/netdev/net-next/c/4840467c84de
+  - [net-next,v1,2/3] selftests: rds: Fix TAP-prefixed prints in check_gcov*
+    https://git.kernel.org/netdev/net-next/c/490778834a42
+  - [net-next,v1,3/3] selftests: rds: Disarm signal alarm on test completion
+    https://git.kernel.org/netdev/net-next/c/08724ab1dc17
+
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
+
