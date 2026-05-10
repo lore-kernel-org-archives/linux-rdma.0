@@ -1,285 +1,265 @@
-Received: from CY7PR03CU001.outbound.protection.outlook.com (mail-westcentralusazon11010041.outbound.protection.outlook.com [40.93.198.41])
+Received: from CH5PR02CU005.outbound.protection.outlook.com (mail-northcentralusazon11012006.outbound.protection.outlook.com [40.107.200.6])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F299351C25;
-	Sun, 10 May 2026 05:36:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.198.41
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 511A52571C7;
+	Sun, 10 May 2026 06:51:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.200.6
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778391377; cv=fail; b=VxR2oHhI2we5SUyJC16Z3jjVj7hlw7MM17CrfF+/j2jrU3CCChu2VfylFhX9XZ09XvZHtBf1v6zkIO0Zyt6gKCfXY+sKWeDDeH7K8fDORQBYGGRCnNdVdDILfouWA8fXkchPEpAT6nbd9bfSLNqqZvBgwsMGSQ4ljXjHVyo/7Bk=
+	t=1778395867; cv=fail; b=B8zGh5t2Xh+RQHkBDsbaCvvOqgpIBayBDAQspUtNWUFrykALe37fJ1Tfr//Vrhos0U+g1SQQ/Wq44ZAWP4Hq7gaKRIbCAe05KTCfsVmqgyLKF6eNmwfyagW/VbDclxvHiIdxpelGXcSyyn1ILZcU9k060PoHwf89fIdJIbWPFiI=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778391377; c=relaxed/simple;
-	bh=dmlHeHL3Vzwqv3Pn5dynHIgWA43cpXX22f9yw+PrbfE=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=t2Ax/vu3chMA5khG03M22N1iQIHAJEqkjFLGkK9zVBNkSykrWBTDXJ69n4Sy/NYLon0fZ1rExQ42/8Pt7xkL/OOcGBwFoMqF1S6GUiz+r/+/Pa6y8gR1ofGO2706D+byaQgqXCx4uu+6+W/cNE8l4aMzN6PpoEMJR9iGGhgZJsQ=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=VhySzxE8; arc=fail smtp.client-ip=40.93.198.41
+	s=arc-20240116; t=1778395867; c=relaxed/simple;
+	bh=prP9+9ygAiMuieiCvIzBdOdrlNSw4I3EH4xM1U1BQQs=;
+	h=Message-ID:Date:Subject:From:To:Cc:References:In-Reply-To:
+	 Content-Type:MIME-Version; b=dY7FDW8d59C0leCRiYE3h8KlPttyhCnXnF8yfb7WWJUAWYwp4OH8iQNusUOvj1UMFTaGmzqbxwD+mFYg9E13VpEhPpncNviJcI2jMCvgs6UaDex7AOf0ohgE9koOjcpsM0KUXx8h7oTM4y+Js2/GQ02dIQkaTfkIYIDHoj6kWiY=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=Q+CiIJo9; arc=fail smtp.client-ip=40.107.200.6
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="VhySzxE8"
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="Q+CiIJo9"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=GRm7qdd2gM748NcKLvA90n4ry5TCKRsm1TR5ximAUXOJ5HFHyW4ib9d0duWW9nNgkM8rE/ub5gznL0napSS/6/nBLH3miLZMsEH9J/1X1VyfLE9mYHWoMlKrINHwl2w5UrB/OXwx1jwU37CILcwVQUPfmtjOzqF3mViTg13aT9kKyo+ojQQJyuD6jAhLlR1uWp4rg/+qLogIk7/c19tIfAsInd/i+nfdPF76VHmzNmDn6jercy0E5jry6iAvjNj9UCvTsLO/qzgU6cw5KU+OlYZQfs32dRG98JO3lkCzQqX9znAZWX/xw3d9Ic7NhrMJLiH4gIeU3GLazU4w05sE6g==
+ b=hW+fhudGXSydSMmoMwXFuv2ZQ4bnKoxXnhfPDtBo+uEzg6nN0nAG84ScZ/5qRB6yCzZNRyx+bxKKTRO2S8+A0WP4sl37rwlRcNUH1ia1g0Fs6i8et6zq99kU7J9NCuryAMmCGYZ5mtfz3VzCAB6zjQloKzQxdpgJZQr0hOJF2xdTRq4SBxBwYL7512ex2JYU7ZI742NeC03Jq0kqCaAsLX9HBndNUvi6YBAjOvfjAeWRh1RtSuIi8PpOqhoIFnlTVKEldJxBTglaGNK776MYk+T4M7KIQYpEimw4Yc7TbaBG2sb56jYVG2gpBkdm9YROSTTHR3Gb7BCq6SqbRzEpVQ==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=k//5NYtzwYj9LoHrlzJhqgt85UtgcgQD4sdpBuoEwRQ=;
- b=qH0o/dsFypylApzKwMLLU3vVosaguSPmR7G/dSDJRm+eCSyRJ7uDBaF8KlzvJ9AKSefnpfhETuWdr0QJhFZ59pGi2wNB3gJW58MR86MveSyY08OyH+2TN4RusbKDRtE+9KYjWyZ0Q2P7CvJiOa6Anvv7iLZ/QL0UtX6jGXN1N491+uGKaa2rbDgYA/2+ZoaR0JDhXjkTuZJt7MODmgDX7gixWR3bfblnBBsFJBlIF6ajqTKNEUS4ksV5YO6fw6E+gWXuFmtv6c1mBPCPbI2w2iCc7DDdGKcwelBSp024nq1/hg5okr6vtOMB75DdkqYsFXKfoB9i+Owx0l2IkW6Qcw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.117.161) smtp.rcpttodomain=google.com smtp.mailfrom=nvidia.com;
- dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
- dkim=none (message not signed); arc=none (0)
+ bh=kqsZcmLUfPi4TW0iTeH6OYv/42yu7nuc5d+X8cdR+/Q=;
+ b=d1sTo2CaeIKWLzqCfzmXmOZ4styDHYeCm3z5QJg1DsoUG9nfdeqgsjJKkm5i37e88ORvjFC/3R3NybqDvn6UeD5nljqlGciUenjyx22SbamEcLLBPSbvsoDGsNBmNLK2nH+sWshhu7GbDJCj6PDilsktJflo7kAFqQNqtJ1DJSL0ASY9XOUZw/RB3qFiOE9C8aJH9eI4yeMiee0JCaQEK4plMo/2QqTyjbISZX7XfQjLdbQfnCPjZ8Le08NoFSUtJqt/COu7BrsSQLL7AIU7ewGKyEQzK6uPg9rf2toDA4Sx7YUGuP3gTh5PzXds3DM8+SV4YsSxamkjs5FPcmM1kQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=k//5NYtzwYj9LoHrlzJhqgt85UtgcgQD4sdpBuoEwRQ=;
- b=VhySzxE8c+TVD6FV6n7Y0Zxh1ELa6QVW1gk5v8FnHOesXRYOBVtTKVTjV3yKuIBhTdLUZvobhcvLFFoZbhPFy+5PQveJq1WaRv4I0dOG1B8cN2KTPKyAwPV8tneDd+hIeOM0RixVaEM2fRIS4D/LWrIRHq5Pc4VgOLil0nnYTKn8lGDVjFMRpQrJStJrxlU/j08zS6EHVjQLNwzeQeFQs5/Do87R/FpS119gzOJbuhnD1d+zzMniM8PvwKHrzHsyoT/k0XEDht8VL+p+KQSjMASXCr+1rD1EzZo9jLPfJR1IETGWvQSEeVo8MzPbNZRRJxq/Ev4Tqq5JgUUzLIP3qw==
-Received: from PH8PR20CA0022.namprd20.prod.outlook.com (2603:10b6:510:23c::22)
- by SA0PR12MB4365.namprd12.prod.outlook.com (2603:10b6:806:96::22) with
+ bh=kqsZcmLUfPi4TW0iTeH6OYv/42yu7nuc5d+X8cdR+/Q=;
+ b=Q+CiIJo9B/zOyMt9R0Llt2rNPIH1mHLqyYzByTliWavtH+NAPHdQh2qpTNlJA3J7bj2ablOlzVg3nyG7/3A3ZzplKPLb8eUjJ11RUY4jQLKQwAdP9SEzKsJrIQUoqfhop18KR7z8AIIqKqr3aAqHzCnLodYfErVpn+5ckeP4S++Lr7mKlfjp+PNN+1YluULkGBrbEaa5a7G4+Arod05yYAMlnh8pY1VK6ckKkql58En+KNvbREcGZm3Tch/B+ty2rLRQGO2R7gj4fhB7MMtRIXA+hCZ+qxkmYkOfanEwt0uZmuvZiNZxPyFAvaR7tNGo1jtKvplJzDaSgBJn287Lsg==
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from CH3PR12MB8728.namprd12.prod.outlook.com (2603:10b6:610:171::12)
+ by DM6PR12MB4060.namprd12.prod.outlook.com (2603:10b6:5:216::15) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9891.19; Sun, 10 May
- 2026 05:36:11 +0000
-Received: from CY4PEPF0000EE30.namprd05.prod.outlook.com
- (2603:10b6:510:23c:cafe::24) by PH8PR20CA0022.outlook.office365.com
- (2603:10b6:510:23c::22) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.20.9891.22 via Frontend Transport; Sun,
- 10 May 2026 05:36:11 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.161)
- smtp.mailfrom=nvidia.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=nvidia.com;
-Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.117.161 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.117.161; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.117.161) by
- CY4PEPF0000EE30.mail.protection.outlook.com (10.167.242.36) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.25.13 via Frontend Transport; Sun, 10 May 2026 05:36:11 +0000
-Received: from rnnvmail202.nvidia.com (10.129.68.7) by mail.nvidia.com
- (10.129.200.67) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Sat, 9 May
- 2026 22:35:49 -0700
-Received: from rnnvmail202.nvidia.com (10.129.68.7) by rnnvmail202.nvidia.com
- (10.129.68.7) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Sat, 9 May
- 2026 22:35:48 -0700
-Received: from vdi.nvidia.com (10.127.8.10) by mail.nvidia.com (10.129.68.7)
- with Microsoft SMTP Server id 15.2.2562.20 via Frontend Transport; Sat, 9 May
- 2026 22:35:44 -0700
-From: Tariq Toukan <tariqt@nvidia.com>
-To: Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>, Andrew Lunn <andrew+netdev@lunn.ch>, "David
- S. Miller" <davem@davemloft.net>
-CC: Saeed Mahameed <saeedm@nvidia.com>, Leon Romanovsky <leon@kernel.org>,
-	Tariq Toukan <tariqt@nvidia.com>, Mark Bloch <mbloch@nvidia.com>, "Moshe
- Shemesh" <moshe@nvidia.com>, Akiva Goldberger <agoldberger@nvidia.com>,
-	<netdev@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>, Gal Pressman <gal@nvidia.com>, Dragos Tatulea
-	<dtatulea@nvidia.com>
-Subject: [PATCH net-next 7/8] net/mlx5: Use vport helper for IPsec eswitch set caps
-Date: Sun, 10 May 2026 08:34:47 +0300
-Message-ID: <20260510053448.326823-8-tariqt@nvidia.com>
-X-Mailer: git-send-email 2.44.0
-In-Reply-To: <20260510053448.326823-1-tariqt@nvidia.com>
-References: <20260510053448.326823-1-tariqt@nvidia.com>
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9891.21; Sun, 10 May
+ 2026 06:51:01 +0000
+Received: from CH3PR12MB8728.namprd12.prod.outlook.com
+ ([fe80::2641:1046:bdf3:93d7]) by CH3PR12MB8728.namprd12.prod.outlook.com
+ ([fe80::2641:1046:bdf3:93d7%7]) with mapi id 15.20.9891.020; Sun, 10 May 2026
+ 06:51:01 +0000
+Message-ID: <ef926d49-81d6-4d26-8d74-440d4a6bb8b1@nvidia.com>
+Date: Sun, 10 May 2026 08:50:54 +0200
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH net-next V6 2/3] net/mlx5e: Avoid copying payload to the
+ skb's linear part
+From: Dragos Tatulea <dtatulea@nvidia.com>
+To: Amery Hung <ameryhung@gmail.com>
+Cc: Tariq Toukan <tariqt@nvidia.com>, Christoph Paasch <cpaasch@openai.com>,
+ Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
+ Paolo Abeni <pabeni@redhat.com>, Andrew Lunn <andrew+netdev@lunn.ch>,
+ "David S. Miller" <davem@davemloft.net>, Saeed Mahameed <saeedm@nvidia.com>,
+ Mark Bloch <mbloch@nvidia.com>, Leon Romanovsky <leon@kernel.org>,
+ netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
+ linux-kernel@vger.kernel.org, Gal Pressman <gal@nvidia.com>,
+ Daniel Borkmann <daniel@iogearbox.net>,
+ Jesper Dangaard Brouer <hawk@kernel.org>,
+ John Fastabend <john.fastabend@gmail.com>,
+ Stanislav Fomichev <sdf@fomichev.me>, Alexei Starovoitov <ast@kernel.org>
+References: <20260507095330.318892-1-tariqt@nvidia.com>
+ <20260507095330.318892-3-tariqt@nvidia.com>
+ <CAMB2axOFQN2f=veYgeJs+4tbZmb9PuNHk03TH_bmE8UL_REd7w@mail.gmail.com>
+ <b1d3f9bc-a5d7-4236-8bda-49e6327ee533@nvidia.com>
+ <CAMB2axPNhveQaDPs-ttu4uFcpvAfJCdzJ3d05HWQf4+p7uVUsg@mail.gmail.com>
+ <70d0b319-178f-4233-b0da-9618489a1dd6@nvidia.com>
+ <CAMB2axPdqBUORn7Qy35Xccqbn+8aArZ-weegZyz=j0STh+iPNA@mail.gmail.com>
+ <6b7998e7-b2c1-4650-9564-679d647146cf@nvidia.com>
+Content-Language: en-US
+In-Reply-To: <6b7998e7-b2c1-4650-9564-679d647146cf@nvidia.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+X-ClientProxiedBy: FR4P281CA0337.DEUP281.PROD.OUTLOOK.COM
+ (2603:10a6:d10:ea::14) To CH3PR12MB8728.namprd12.prod.outlook.com
+ (2603:10b6:610:171::12)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-NV-OnPremToCloud: ExternallySecured
-X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: CY4PEPF0000EE30:EE_|SA0PR12MB4365:EE_
-X-MS-Office365-Filtering-Correlation-Id: 525a058c-8816-4c85-3d43-08deae560b76
+X-MS-TrafficTypeDiagnostic: CH3PR12MB8728:EE_|DM6PR12MB4060:EE_
+X-MS-Office365-Filtering-Correlation-Id: 56bea201-57ad-4099-396b-08deae607f26
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|36860700016|376014|82310400026|1800799024|56012099003|18002099003|22082099003|3023799003;
+	BCL:0;ARA:13230040|1800799024|7416014|376014|366016|56012099003|18002099003|22082099003;
 X-Microsoft-Antispam-Message-Info:
-	8yK1zJhxe/hxkeXZzA2z7Kgo3tCZK6tJ16BKhgY96qcFjz3uDxp5ZjsdSjYjaPhdaY0LZMpfaQw4KrXVBX2nxITtJpGaxPHxIXY34ccW5j3d3lRsnK9Ef8NRhrv/t+u3+h2bhtsM8tMuYidQ3seMnBewBlAJ9bfCA4Wumz4PWSPjKrL67vIzHSr0vx+k1PXYqPjruW+saFXxw1gtQqoO5Ks45NXJVS2p3OJ7WlFkS3KThk2gB+s1I0odq0O5Q0ImmPFnEvQh8OVyr+3hHEJjxEUPkiTBY9YXJRZQCVzbsO5uXeHXQZ/9KY1Nk6gSGEej11pawYegkkn/TR8BnXa0GVgRlqG+fqZ6raqlxKV/UlMN/4U6EypaVueKcfsZ7eVCKbQ744ZU0fJwWET2bWc/fIyBQ+TIhSzvC4jYz6cx7LCsqsZHS4/rIwVTZIo+FsGsrBFRP6mHCF5nVo8UbWjcFTx/803L7Mqw47qFID1IGNTFkxZatRwS9HwhEbxr6WIDuk53bTNlLPnPaQnl0lykNqwv4iFpQce0QUuuVzmHkEWjMMHMemDz5PbmWjPXI80Atah72fSWmebn/tSKdySN79AxZYyfJqHi810MPoTn+2HK0BAKtkVYG66TEV5uZYi1aJZwZUqtqmDHhcyo/po5XDWwcytRn1xFgCgKybhoTjj6UxJfYBVOd9a6yOPwuF5yYsEaj0Bs7CeO4jcm+bHHznVUgqwAFOiwOkBbKS3zQcg=
+	qRGXeVqdxe8ZbiWESXurCCkh+/Q/G58mYvAW2gAV1ovOivF52za9wmjFCiJqIm8+i8xEmgdXS8mrK94jobeUx4rit3KqPuvZLyIENN9ybiGf0C4qvEQYqfpEQH6YLnM/fYB9jLYm7/F+GPikm0k/wqB63PyYKXDUOVtG5R9foBfqqVTf9cNYBwTuVDLvCudIPohZI1wHSveqlge7XkkOiGCWP+hDWxJM7vKX1uw7vSI+0BjLcwWV1gY50S7vNDef/JgTgWENGajbsd9zxthvBmif/b9XpsldRUpCNTVVaBUZLDS+skvbEtVquluBjA3NmHya7hWXuEUsmKmEVsLULMn4BYqeMPbe3A57MV4bcQzlUsnLQMdO7FmJYUUqb2UoVpF4oUfcqQctfvZT2lVmrHr/dp/YUjnE3ucK+kfmG8cfdahrtWuMoUdeS+iaqT0YBXzhXPKnJatndHDv2y3/jnnIo52emSQX7dAXz4qItsXC1RqONEJ6ZyAd+0CRzZDjbqqdFmEjigOS/DCYhu6US3cvY+WeN3gtENpnuN9sLqopHkZLpUtsPy0jRD+1vC6ZyXBAU4ioJOfFpS1yC3fr7QOsHZwce2NuOpGgmaXsSgAYkS0FFurt9bD5rfnQh2DP7GC94iz6D9b+AswyO1HGnVpahABEIGTdmgpgR3vIeg2oTQNrgQzOD5Ei8gY7zrb9
 X-Forefront-Antispam-Report:
-	CIP:216.228.117.161;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge2.nvidia.com;CAT:NONE;SFS:(13230040)(36860700016)(376014)(82310400026)(1800799024)(56012099003)(18002099003)(22082099003)(3023799003);DIR:OUT;SFP:1101;
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CH3PR12MB8728.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(7416014)(376014)(366016)(56012099003)(18002099003)(22082099003);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	BPL3zN6IavYaNtdyOt/jrswmjVpHuKKC94zQGzIIo2zvT+jf3VlmzesvkvduKahKre99WhhhTQeEaxE2T+39BcU3UTO4Heh2nUPxpIxb1sH+yXFhjQii9xR6u9BA1D6IyOmAe2BAJQxmrcSRZP8F/NRneU3gg7aVHALD1KZFrwUqViq7AFJDfocRQs4FtEP3/e7oZNLI7DePT7759W1ogh58SMBJss/Em60513v2z2qVAWB1kORGg/6TKV/1Y+JL5f8fhSjNp9nVG3coDA1TT+9Dg25y1w69rKVtYHy1VlR4ZskU4nTPJungskd8rCYUxDA3/VvyQKKqeDJVse3vO7jsjtuC831Bgzzc43y3LvrwoJqysc4TMA6hfo8dtJA5fTGBUghkm37BNgYaxw7324/GAwmDkX+ULvrQ2sNhTUQ1V+6j28aSFS26BnR8bYpJ
+	=?utf-8?B?ckV1dDNtNW9NM2lkY3k4OWhCSUtyZXRHRk1CQ0VoUFprWGF4R3Q3WXB0QzlI?=
+ =?utf-8?B?M3YwZm5zZmMrQm16bDNSY3lvSFh5M0J6MW02dkpqbEtNbGhDTUZqNjRXY3Rk?=
+ =?utf-8?B?VEJGREJZVzNxbmg4SmV3ekttczFpWFNodTl5eFA1UnFzTmgrQ01QRWozV0FE?=
+ =?utf-8?B?akFMZEJKekNxNTNnV3ZPMnZBNlpVUDZKWmdPbC8rdlIwaUlFRXl0Y00wQTNz?=
+ =?utf-8?B?MzR3TG14Vk5McGV6QytxWGxudWpsK1pjYWxyWWtYMkE4Qmp3KzgwZEYzMVEy?=
+ =?utf-8?B?WlQ3Vkl2RWJHT0dxbFpMQ3o0NVBXcFcvVGhOeXJGaStWYlFmcmNOVmYzNjI0?=
+ =?utf-8?B?QlRRVStHTFVKT3VZRjkySVo4MkhackhUNGxHa0QrWHk4c1lCamJNZHZpV1NX?=
+ =?utf-8?B?UHpDV201S2pRUzkxTm9pNjdwNTdhVG55a0lRSWNBVGM4RkYwbXNra3A2VHpm?=
+ =?utf-8?B?YTJWZjVTVmp3ZFZHZVJHNGxMUmYzRVNicHlMdTlJWmRIWmZ4dDlBellienc0?=
+ =?utf-8?B?aXUvaTh5U054RVZJTEFIS0wzVjRGWEdYbXpMVE5tMXlGZlZWVVZCQmFsYUV2?=
+ =?utf-8?B?R1B4Z2djZ2dSd1A2SGZaWnJCZkFnUm9KVGF2cXB4bHM2S2YxOWhZeFNVajUx?=
+ =?utf-8?B?anM0RlJ5Vkk3VVo3czhCZGUwdW8yM0h5NHBCdzhJbTNpSks0akZBRHV1eFkx?=
+ =?utf-8?B?alBUZ3o1UExTME9ldlJob0JsaHJNc2VWcTRYMENsejJzbFl0b281WlpUSUZX?=
+ =?utf-8?B?T083dmRpL0U1cUFJMzBaaFA2eVVwRjBhWjJwbm5URDM0MFF5anJtU2prejJj?=
+ =?utf-8?B?QVpjZjJqNlhvYXZHUGF3VGhFa1VvZW11alhtV3hjSkFScHNCREVBU1lTQklC?=
+ =?utf-8?B?YzJ2QXlZY2dieUhPNndoZDlPT0l2REx0bmxSM0FIbEhuQUd4a2tZMjN1WWJC?=
+ =?utf-8?B?MWpGaHN2ZzVqYm9pbXB2MzJ0UktVeG5kRkhkNys2TGYwOFU2V1AzMG5mOWxV?=
+ =?utf-8?B?ZUd0YzNsZTVab0NCRnlNYVRaZVJtZjFCRzdldFFNN21aODJleXliQWphQ0kz?=
+ =?utf-8?B?ZVlhaVZmOWdHaldoVVc1OGVTbldKYWdQd3BqYTNiODJsQ3dWNU03a2MzU2dR?=
+ =?utf-8?B?UXhzSFBsSloyVTJnaXp0d2FISXgxa0NRcXFHMVlUbEtEVGVzU2E5V056Ump5?=
+ =?utf-8?B?WGNzSnJBQVUwKzJ0bjBqMmVsdExRUmxXR095V1VpMmhTMWFmOWFqVzFHMHpx?=
+ =?utf-8?B?eFJOalU0WHRtTnhjV0p0RFVIenlmUENIbFY3aW9RUGQwRCtsY3J5Snc1aUJj?=
+ =?utf-8?B?NWRQZVZlMGZ6VDdYY0M2OWV2RytLRyswa3JWTTNud0VOemVYZFBVTmo0eVp1?=
+ =?utf-8?B?RUxrRVJsVVZtRWlUbWZ1ajNwOUhRMkhkaGtZaDU2clFqb1Z2NGpCWEg4T3hl?=
+ =?utf-8?B?aXI5YzJ1ZXFtOEJONEVJcHUrSVQyUnFncXloYUMxWXlnRWFLYzZSSlpCQnRR?=
+ =?utf-8?B?QVZBNnA5alJ4RmM2UThvZFpaM05ELytYZGV3U0ZNd3N5Ym5UMlI5VVhCK29S?=
+ =?utf-8?B?Y3MrUlg2OHBFMTlBeCtBa2lNNXBMYm1qbmNzVTZmSFRiZlFabGkzTHc1Yy9s?=
+ =?utf-8?B?VWM2QUVNTXR0MlU2OEJJTHo4bEY5eVdndUVKQS9tbWtMMGVsZWZqMjlMQ3hM?=
+ =?utf-8?B?a1hlVTA3aUF3Z3VxQlFJbURGSlBQZVJjS3IrRXoyL0E5Q2QzMVBlUnJwWFp6?=
+ =?utf-8?B?ckdPRVExc290WEJDazJ3aE1Bc0NIUU5BZkNUUnJ3V2lBc3ZDeFBBNWRSckpS?=
+ =?utf-8?B?ZTBHaDh4OW1xSE1reElsMGhRVlZYbGdlN3BwMjlqWVpuQmJjMXhGUE8xdGkw?=
+ =?utf-8?B?WTE3U1BXKzVXSU9YTi9NbU0zckFtM2gyT2c1ZzFJeitmUG9SSjQwSDFDeDho?=
+ =?utf-8?B?K3FBQWlmTndLWldOQnBYT1JmSko3ZVVKckV0YWxuMFpaZjVFZHBkdVVaQ2pk?=
+ =?utf-8?B?aDhGMGxpTzdUWFNvZzdZRE9VS3ZWRkFNMGR5V1J3WDAxN0xUbU1HU3dZdi9a?=
+ =?utf-8?B?MHU5ek0vTmJCWkpqR0ozRDFoRUNHM0p4QmxYNnNwbmhMN08rZDhOdE5JS1ZR?=
+ =?utf-8?B?QjdNOENwc20yN3QrWmRsOGR0SVFRVlBVSHl4WUlSdUdtMnBmT1JYUXZScnZU?=
+ =?utf-8?B?N28rd2RPMlBjY1dobXl5SFB2b2ZXOGJjNERqaG5hR3JyWUNmemE5blBNd1Fw?=
+ =?utf-8?B?U0hBQUNYQTBLU1JIaHJPdFpRcVdhbFVmRU9LeEx4RzVHM1hUd2Z5ODE2dGZj?=
+ =?utf-8?B?QnI3aE1NaE9ka2hoUjdwVk5rMHRBZFZjK3VibkZKNFNLZkFBOTJ3Zz09?=
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 10 May 2026 05:36:11.4881
+X-MS-Exchange-CrossTenant-Network-Message-Id: 56bea201-57ad-4099-396b-08deae607f26
+X-MS-Exchange-CrossTenant-AuthSource: CH3PR12MB8728.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 10 May 2026 06:51:01.0140
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 525a058c-8816-4c85-3d43-08deae560b76
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.161];Helo=[mail.nvidia.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	CY4PEPF0000EE30.namprd05.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA0PR12MB4365
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: B0SrllSDGdES46EZO7KPCHF2FZXjgOzqNtY8T4t71Le+38aiuyX8oc4PaxmgrjU9xv+v7YNRapeQ7I331JKOdQ==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM6PR12MB4060
 
-From: Moshe Shemesh <moshe@nvidia.com>
 
-Use mlx5_vport_set_other_func_cap() and
-mlx5_vport_set_other_func_general_cap() in the IPsec eswitch functions
-instead of open-coding the SET_HCA_CAP command. This removes redundant
-buffer allocation and boilerplate, and also enables vhca_id based
-addressing when supported.
 
-Signed-off-by: Moshe Shemesh <moshe@nvidia.com>
-Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
----
- .../ethernet/mellanox/mlx5/core/esw/ipsec.c   | 81 ++++++-------------
- 1 file changed, 23 insertions(+), 58 deletions(-)
+On 08.05.26 20:42, Dragos Tatulea wrote:
+> 
+> 
+> On 08.05.26 19:44, Amery Hung wrote:
+>> On Fri, May 8, 2026 at 2:15 AM Dragos Tatulea <dtatulea@nvidia.com> wrote:
+>>>
+>>>
+>>>
+>>> On 07.05.26 22:50, Amery Hung wrote:
+>>>> On Thu, May 7, 2026 at 4:50 PM Dragos Tatulea <dtatulea@nvidia.com> wrote:
+>>>>>
+>>>>>
+>>>>> Hi Amery,
+>>>>>
+>>>>> On 07.05.26 15:53, Amery Hung wrote:
+>>>>>> [...]
+>>>>>> Am I understanding correctly that the better performance comes with
+>>>>>> the assumption that the XDP does not change headers?
+>>>>>>
+>>>>>> headlen is determined before the XDP program runs. If it push/pop
+>>>>>> headers, there could be headers in frags or data in the linear region
+>>>>>> after __pskb_pull_tail().
+>>>>>>
+>>>>> That's right.
+>>>>>
+>>>>>>>                         if (__test_and_clear_bit(MLX5E_RQ_FLAG_XDP_XMIT, rq->flags)) {
+>>>>>>>                                 struct mlx5e_frag_page *pfp;
+>>>>>>> @@ -2060,8 +2066,7 @@ mlx5e_skb_from_cqe_mpwrq_nonlinear(struct mlx5e_rq *rq, struct mlx5e_mpw_info *w
+>>>>>>>                                 pagep->frags++;
+>>>>>>>                         while (++pagep < frag_page);
+>>>>>>>
+>>>>>>> -                       headlen = min_t(u16, MLX5E_RX_MAX_HEAD - len,
+>>>>>>> -                                       skb->data_len);
+>>>>>>> +                       headlen = min_t(u16, headlen - len, skb->data_len);
+>>>>>>
+>>>>>> headlen - len can underflow but will be capped by skb->data_len, so
+>>>>>> this should be okay, right?
+>>>>> It is safe. But it might trigger an extra allocation in the pull when
+>>>>> len > headlen. We could also skip the pull in that case. Or do a
+>>>>> min(headlen - len, min(skb->data_len, MLX5E_RX_MAX_HEAD)). WDYT?
+>>>>
+>>>> Make sense, but this line took me a bit to understand. Maybe consider
+>>>> checking len < headlen first?
+>>>>
+>>>> if (len < headlen) {
+>>>>         headlen = min_t(u32, headlen - len, skb->data_len);
+>>>>         __pskb_pull_tail(skb, headlen);
+>>>> }
+>>>>
+>>> Yes, that's what I had in mind when skipping the pull. I would also
+>>> tag this as likely.
+>>>
+>>>> Another clarifying question. So this patch will improve the
+>>>> performance when the XDP programs don't change header length. For
+>>>> those that encap/decap, they should precisely pull only headers into
+>>>> the linear area for optimal performance. Is it correct?
+>>>>
+>>> Right for encap, but for decap not quite:
+>>>
+>>> Let's say that the XDP program pulls 64B header into the linear part
+>>> and snips 4B of the encap out. This would result in a pull of an
+>>> additional 4B (headlen (64B) - len (60B) = 4B) which are now
+>>> data bytes => sub-optimal layout.
+>>>
+>>> I don't see how we can improve this corner case though.
+>>
+>> I see. Thanks for the clarification.
+>>
+>> I think the "if (len < headlen)" makes too many assumptions about what
+>> the XDP program did.
+>>
+>> How about this policy instead: If the XDP program did not create/pull
+>> data into the linear area, pull the parsed headers; otherwise, assume
+>> the XDP program owns the geometry. min() is still needed since the
+>> program can shrink the packet.
+>>
+>> if (!len) {
+>>         headlen = min(headlen, skb->data_len);
+>>         __pskb_pull_tail(skb, headen);
+>> }
+>>
+>> This preserves the optimization for the default no-modification case,
+>> and most importantly allow XDP program to get the optimal performance
+>> if it gets the final geometry right.
+>>
+> I like this. It will also save us some neurons next time we need to
+> touch these lines.
+> 
+Sashiko disagrees:
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/esw/ipsec.c b/drivers/net/ethernet/mellanox/mlx5/core/esw/ipsec.c
-index b830ccd91e62..2b5765ab60d1 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/esw/ipsec.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/esw/ipsec.c
-@@ -81,38 +81,25 @@ int mlx5_esw_ipsec_vf_offload_get(struct mlx5_core_dev *dev, struct mlx5_vport *
- static int esw_ipsec_vf_set_generic(struct mlx5_core_dev *dev, u16 vport_num, bool ipsec_ofld)
- {
- 	int query_sz = MLX5_ST_SZ_BYTES(query_hca_cap_out);
--	int set_sz = MLX5_ST_SZ_BYTES(set_hca_cap_in);
--	void *hca_cap, *query_cap, *cap;
-+	void *query_cap, *hca_caps;
- 	int ret;
- 
- 	if (!MLX5_CAP_GEN(dev, vhca_resource_manager))
- 		return -EOPNOTSUPP;
- 
- 	query_cap = kvzalloc(query_sz, GFP_KERNEL);
--	hca_cap = kvzalloc(set_sz, GFP_KERNEL);
--	if (!hca_cap || !query_cap) {
--		ret = -ENOMEM;
--		goto free;
--	}
-+	if (!query_cap)
-+		return -ENOMEM;
- 
- 	ret = mlx5_vport_get_other_func_general_cap(dev, vport_num, query_cap);
- 	if (ret)
- 		goto free;
- 
--	cap = MLX5_ADDR_OF(set_hca_cap_in, hca_cap, capability);
--	memcpy(cap, MLX5_ADDR_OF(query_hca_cap_out, query_cap, capability),
--	       MLX5_UN_SZ_BYTES(hca_cap_union));
--	MLX5_SET(cmd_hca_cap, cap, ipsec_offload, ipsec_ofld);
-+	hca_caps = MLX5_ADDR_OF(query_hca_cap_out, query_cap, capability);
-+	MLX5_SET(cmd_hca_cap, hca_caps, ipsec_offload, ipsec_ofld);
- 
--	MLX5_SET(set_hca_cap_in, hca_cap, opcode, MLX5_CMD_OP_SET_HCA_CAP);
--	MLX5_SET(set_hca_cap_in, hca_cap, other_function, 1);
--	MLX5_SET(set_hca_cap_in, hca_cap, function_id, vport_num);
--
--	MLX5_SET(set_hca_cap_in, hca_cap, op_mod,
--		 MLX5_SET_HCA_CAP_OP_MOD_GENERAL_DEVICE << 1);
--	ret = mlx5_cmd_exec_in(dev, set_hca_cap, hca_cap);
-+	ret = mlx5_vport_set_other_func_general_cap(dev, hca_caps, vport_num);
- free:
--	kvfree(hca_cap);
- 	kvfree(query_cap);
- 	return ret;
- }
-@@ -121,49 +108,37 @@ static int esw_ipsec_vf_set_bytype(struct mlx5_core_dev *dev, struct mlx5_vport
- 				   bool enable, enum esw_vport_ipsec_offload type)
- {
- 	int query_sz = MLX5_ST_SZ_BYTES(query_hca_cap_out);
--	int set_sz = MLX5_ST_SZ_BYTES(set_hca_cap_in);
--	void *hca_cap, *query_cap, *cap;
-+	void *query_cap, *hca_caps;
- 	int ret;
- 
- 	if (!MLX5_CAP_GEN(dev, vhca_resource_manager))
- 		return -EOPNOTSUPP;
- 
- 	query_cap = kvzalloc(query_sz, GFP_KERNEL);
--	hca_cap = kvzalloc(set_sz, GFP_KERNEL);
--	if (!hca_cap || !query_cap) {
--		ret = -ENOMEM;
--		goto free;
--	}
-+	if (!query_cap)
-+		return -ENOMEM;
- 
- 	ret = mlx5_vport_get_other_func_cap(dev, vport->vport, query_cap, MLX5_CAP_IPSEC);
- 	if (ret)
- 		goto free;
- 
--	cap = MLX5_ADDR_OF(set_hca_cap_in, hca_cap, capability);
--	memcpy(cap, MLX5_ADDR_OF(query_hca_cap_out, query_cap, capability),
--	       MLX5_UN_SZ_BYTES(hca_cap_union));
-+	hca_caps = MLX5_ADDR_OF(query_hca_cap_out, query_cap, capability);
- 
- 	switch (type) {
- 	case MLX5_ESW_VPORT_IPSEC_CRYPTO_OFFLOAD:
--		MLX5_SET(ipsec_cap, cap, ipsec_crypto_offload, enable);
-+		MLX5_SET(ipsec_cap, hca_caps, ipsec_crypto_offload, enable);
- 		break;
- 	case MLX5_ESW_VPORT_IPSEC_PACKET_OFFLOAD:
--		MLX5_SET(ipsec_cap, cap, ipsec_full_offload, enable);
-+		MLX5_SET(ipsec_cap, hca_caps, ipsec_full_offload, enable);
- 		break;
- 	default:
- 		ret = -EOPNOTSUPP;
- 		goto free;
- 	}
- 
--	MLX5_SET(set_hca_cap_in, hca_cap, opcode, MLX5_CMD_OP_SET_HCA_CAP);
--	MLX5_SET(set_hca_cap_in, hca_cap, other_function, 1);
--	MLX5_SET(set_hca_cap_in, hca_cap, function_id, vport->vport);
--
--	MLX5_SET(set_hca_cap_in, hca_cap, op_mod,
--		 MLX5_SET_HCA_CAP_OP_MOD_IPSEC << 1);
--	ret = mlx5_cmd_exec_in(dev, set_hca_cap, hca_cap);
-+	ret = mlx5_vport_set_other_func_cap(dev, hca_caps, vport->vport,
-+					    MLX5_SET_HCA_CAP_OP_MOD_IPSEC);
- free:
--	kvfree(hca_cap);
- 	kvfree(query_cap);
- 	return ret;
- }
-@@ -171,34 +146,24 @@ static int esw_ipsec_vf_set_bytype(struct mlx5_core_dev *dev, struct mlx5_vport
- static int esw_ipsec_vf_crypto_aux_caps_set(struct mlx5_core_dev *dev, u16 vport_num, bool enable)
- {
- 	int query_sz = MLX5_ST_SZ_BYTES(query_hca_cap_out);
--	int set_sz = MLX5_ST_SZ_BYTES(set_hca_cap_in);
--	struct mlx5_eswitch *esw = dev->priv.eswitch;
--	void *hca_cap, *query_cap, *cap;
-+	void *query_cap, *hca_caps;
- 	int ret;
- 
- 	query_cap = kvzalloc(query_sz, GFP_KERNEL);
--	hca_cap = kvzalloc(set_sz, GFP_KERNEL);
--	if (!hca_cap || !query_cap) {
--		ret = -ENOMEM;
--		goto free;
--	}
-+	if (!query_cap)
-+		return -ENOMEM;
- 
- 	ret = mlx5_vport_get_other_func_cap(dev, vport_num, query_cap, MLX5_CAP_ETHERNET_OFFLOADS);
- 	if (ret)
- 		goto free;
- 
--	cap = MLX5_ADDR_OF(set_hca_cap_in, hca_cap, capability);
--	memcpy(cap, MLX5_ADDR_OF(query_hca_cap_out, query_cap, capability),
--	       MLX5_UN_SZ_BYTES(hca_cap_union));
--	MLX5_SET(per_protocol_networking_offload_caps, cap, insert_trailer, enable);
--	MLX5_SET(set_hca_cap_in, hca_cap, opcode, MLX5_CMD_OP_SET_HCA_CAP);
--	MLX5_SET(set_hca_cap_in, hca_cap, other_function, 1);
--	MLX5_SET(set_hca_cap_in, hca_cap, function_id, vport_num);
--	MLX5_SET(set_hca_cap_in, hca_cap, op_mod,
--		 MLX5_SET_HCA_CAP_OP_MOD_ETHERNET_OFFLOADS << 1);
--	ret = mlx5_cmd_exec_in(esw->dev, set_hca_cap, hca_cap);
-+	hca_caps = MLX5_ADDR_OF(query_hca_cap_out, query_cap, capability);
-+	MLX5_SET(per_protocol_networking_offload_caps, hca_caps,
-+		 insert_trailer, enable);
-+
-+	ret = mlx5_vport_set_other_func_cap(dev, hca_caps, vport_num,
-+					    MLX5_SET_HCA_CAP_OP_MOD_ETHERNET_OFFLOADS);
- free:
--	kvfree(hca_cap);
- 	kvfree(query_cap);
- 	return ret;
- }
--- 
-2.44.0
+"""
+If an XDP program changes the packet geometry by prepending data, len will
+be greater than 0, which skips the __pskb_pull_tail() call entirely.
+The resulting SKB's linear part will only contain the prepended data, with
+the Ethernet headers remaining in the fragments.
+When the network stack later calls eth_type_trans(), it unconditionally
+pulls ETH_HLEN:
+net/ethernet/eth.c:eth_type_trans() {
+    ...
+    skb_pull_inline(skb, ETH_HLEN);
+    ...
+}
+Could pulling 14 bytes from a smaller linear area cause skb->len to drop
+below skb->data_len and trigger a BUG() in __skb_pull()?
+"""
 
+So I think we need an else where we preserve the old behavior:
+  if (!len)
+          headlen = min(headlen, skb->data_len);
+  else
+          headlen = min(MLX5E_RX_MAX_HEAD - len, skb->data_len);
+
+  __pskb_pull_tail(skb, headlen);
+
+Thanks,
+Dragos
