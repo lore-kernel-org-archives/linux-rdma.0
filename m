@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2EA037E30C;
-	Mon, 11 May 2026 07:23:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D20DA37C909;
+	Mon, 11 May 2026 07:23:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778484200; cv=none; b=oAfOgby8qwi/GAMEvGe+q+HjKJna+s1xxmtfI0bilvMy/aF0s+WgUDMNyuP/fjOrtUyFqRrp86qVCY/oOHZahG+bZzt+FJWecOTCvAIdh6iIXbz9RMp9mNO4UgIQMKd/7uoV8YUCHI0DphcivMkQEGR0hmiq+uQVJWjO3rbKQIw=
+	t=1778484200; cv=none; b=lQhOu8ycadQafPVFj2uMf05dgByMLkLUa2uFsVIVtfs/+aZoUG+KWWTzAlqDCx7KL4yvWH3sWO8ibYpZmi8TzcvjqUrm/eH1DDWXDMewML108+Nt2BPMlFBuHxl8G3l0fTkdCtmqF3oqB9WyZb6jLLFk6KmiXSeMnMMNBRgfGCw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1778484200; c=relaxed/simple;
-	bh=KG6pW0j2q9TtLN/BqYsg6Ko8fpp8rjoXBp5PMI2CHC0=;
+	bh=V3qXU3fR9Gh++RAdEZYQVSjSwBR795LlMb2T5AKtxfs=;
 	h=From:To:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=nC0fssKSNAIKpYxSRCM+pzRgsgA5EZMOkzk9uGFRuVc3DGgKQFFdLEL0uJBZHLHeTNtmFCF0YXJ6hAKzKZx8yM3dhSvk+ARFzhyIMLLFxZgx+VJFHcj6Q35D/GKdqA0Y7YkIfRWScKI5IIAhhjc2RZzieOOpVi+oukrkvflMM3E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=WD8abpuI; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=AI5/6l2tFPBQgVqG4DYjGpeBn0LSw00+DHRZGwaGm3Iw0exDAv5fmzIHKoLV8UNxiXAS9lKH51x+VHIYaCN9dRA5JlThrmgSEzQNDxv/4SGi23MMoJSxS/oqcRxnqVSUn72hR7JFgxlE/MMjbIoqzKdL5tDvTyZd6q1oA7qgn3Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=SY9jJWGC; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="WD8abpuI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2A407C2BCB0;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="SY9jJWGC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DE04CC2BCF5;
 	Mon, 11 May 2026 07:23:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1778484199;
-	bh=KG6pW0j2q9TtLN/BqYsg6Ko8fpp8rjoXBp5PMI2CHC0=;
+	s=k20201202; t=1778484200;
+	bh=V3qXU3fR9Gh++RAdEZYQVSjSwBR795LlMb2T5AKtxfs=;
 	h=From:To:Subject:Date:In-Reply-To:References:From;
-	b=WD8abpuIQpSehG5qQ5sGU07TfbzEugxT3YfGiQUL/y7b30fUKh5WNNjgapBcMzNFL
-	 y2r9172IOrdS9D+yiq+PYcjn/8tbWDNXJYNqM73LtbHNTyYpA3FGZGGnmvNuQKwFwb
-	 f6gpFluuTOUHqngEwZXuRkDRpZllz1+3gV7Qtc9UCmo4eIhV0grT6Q4tXXOY0fEy3w
-	 z+Ge4/5DpNXjZj5PhjViuqJT7ZAiFnBYV/8HUGWJ966KWD28Mm+D5iCb+weHFtQc6w
-	 nggDuC1ffpd4PyBw5pOuOn+LuRd0kLMM0wHStWlHi1e5FwQBQwy9Z1HvpQbny9BoYc
-	 kSCFNPAB1YG6g==
+	b=SY9jJWGC9fh7YKFozsgNZyngCz9bur8kMA+P6wTTxO8YOayQiEwHOzaeHykvwkUzH
+	 0U81FNY1b2rpQyjyNYh95knJtM50xXmZ4P8u1Zmv9D1VBYir9SqNHtuz8k/dHROVlC
+	 I22nXuMT6R3GRDvICR3huNaxR10rOBO2iO6qFZYufBp2ZnHyVgueAIvqzteEWKkRp2
+	 Wk4Eh8yzcNpo4mjiHc0H9cb8uR0IdSKI+bRruw/ZcGNjTeJIbM6zBr6Ar3Clahzy1U
+	 0zU3+QWtUJJYCb173KQWy60Rdg4Fh5WmNlcU4NdFIsypLXcHKMRahsuUqFL213j+ve
+	 RgB3CB8yUDgqw==
 From: Allison Henderson <achender@kernel.org>
 To: netdev@vger.kernel.org,
 	pabeni@redhat.com,
@@ -36,9 +36,9 @@ To: netdev@vger.kernel.org,
 	achender@kernel.org,
 	linux-kselftest@vger.kernel.org,
 	shuah@kernel.org
-Subject: [PATCH net-next v1 3/9] selftests: rds: Add helper function check_info() in test.py
-Date: Mon, 11 May 2026 00:23:10 -0700
-Message-Id: <20260511072316.1174045-4-achender@kernel.org>
+Subject: [PATCH net-next v1 4/9] selftests: rds: Add helper function send_burst() in test.py
+Date: Mon, 11 May 2026 00:23:11 -0700
+Message-Id: <20260511072316.1174045-5-achender@kernel.org>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20260511072316.1174045-1-achender@kernel.org>
 References: <20260511072316.1174045-1-achender@kernel.org>
@@ -50,88 +50,94 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Hoist the page info logic in test.py into a helper function,
-check_info().  This is a preparatory refactoring for the rds over ROCE
+Hoist the send packet logic in test.py into a helper function,
+send_burst().  This is a preparatory refactoring for the rds over ROCE
 series that helps modularize the send/recv logic. Breaking up the logic
 now will help avoid large function pylint errors later.  No functional
 changes are introduced in this patch.
 
 Signed-off-by: Allison Henderson <achender@kernel.org>
 ---
- tools/testing/selftests/net/rds/test.py | 53 +++++++++++++++----------
- 1 file changed, 31 insertions(+), 22 deletions(-)
+ tools/testing/selftests/net/rds/test.py | 50 +++++++++++++------------
+ 1 file changed, 27 insertions(+), 23 deletions(-)
 
 diff --git a/tools/testing/selftests/net/rds/test.py b/tools/testing/selftests/net/rds/test.py
-index 027131b26287..5d4b039580df 100755
+index 5d4b039580df..d34e1af7887e 100755
 --- a/tools/testing/selftests/net/rds/test.py
 +++ b/tools/testing/selftests/net/rds/test.py
-@@ -79,6 +79,36 @@ def netns_socket(netns, *sock_args):
+@@ -79,6 +79,31 @@ def netns_socket(netns, *sock_args):
      u1.close()
      return socket.fromfd(fds[0], *sock_args)
  
-+def check_info(socks):
-+    """
-+    Check all rds info pages for errors
++def send_burst(socks, ip_addrs, snd_hashes, nr_sent, nr_total):
++    """Send until blocked or nr_total reached. Return updated nr_sent."""
 +
-+    :param socks: list of sockets to check
-+    """
++    while nr_sent < nr_total:
++        data = hashlib.sha256(
++            f'packet {nr_sent}'.encode('utf-8')).hexdigest().encode('utf-8')
++        # pseudo-random send/receive pattern
++        snd_idx = nr_sent % 2
++        rcv_idx = 1 - (nr_sent % 3) % 2
 +
-+    # the Python socket module doesn't know these
-+    rds_info_first = 10000
-+    rds_info_last = 10017
++        snd = socks[snd_idx]
++        rcv = socks[rcv_idx]
++        try:
++            snd.sendto(data, ip_addrs[rcv_idx])
++        except BlockingIOError:
++            return nr_sent
++        except OSError as e:
++            if e.errno in (errno.ENOBUFS, errno.ECONNRESET, errno.EPIPE):
++                return nr_sent
++            raise
++        snd_hashes.setdefault((snd.fileno(), rcv.fileno()),
++                hashlib.sha256()).update(f'<{data}>'.encode('utf-8'))
++        nr_sent += 1
++    return nr_sent
 +
-+    nr_success = 0
-+    nr_error = 0
-+
-+    for sock in socks:
-+        for optname in range(rds_info_first, rds_info_last + 1):
-+            # Sigh, the Python socket module doesn't allow us to pass
-+            # buffer lengths greater than 1024 for some reason. RDS
-+            # wants multiple pages.
-+            try:
-+                sock.getsockopt(socket.SOL_RDS, optname, 1024)
-+                nr_success = nr_success + 1
-+            except OSError as e:
-+                nr_error = nr_error + 1
-+                if e.errno == errno.ENOSPC:
-+                    # ignore
-+                    pass
-+
-+    ksft_pr(f"getsockopt(): {nr_success}/{nr_error}")
-+
- def stop_pcaps():
-     """Stop tcpdump processes.
+ def check_info(socks):
+     """
+     Check all rds info pages for errors
+@@ -234,10 +259,6 @@ fileno_to_socket = {
  
-@@ -268,28 +298,7 @@ while nr_send < NUM_PACKETS:
+ addr_to_socket = dict(zip(addrs, sockets))
  
- ksft_pr("done", nr_send, nr_recv)
- 
--# the Python socket module doesn't know these
--RDS_INFO_FIRST = 10000
--RDS_INFO_LAST = 10017
+-socket_to_addr = {
+-    s: addr for addr, s in zip(addrs, sockets)
+-}
 -
--nr_success = 0
--nr_error = 0
+ send_hashes = {}
+ recv_hashes = {}
+ 
+@@ -251,27 +272,10 @@ nr_send = 0
+ nr_recv = 0
+ 
+ while nr_send < NUM_PACKETS:
++
+     # Send as much as we can without blocking
+     ksft_pr("sending...", nr_send, nr_recv)
+-    while nr_send < NUM_PACKETS:
+-        send_data = hashlib.sha256(
+-            f'packet {nr_send}'.encode('utf-8')).hexdigest().encode('utf-8')
 -
--for s in sockets:
--    for optname in range(RDS_INFO_FIRST, RDS_INFO_LAST + 1):
--        # Sigh, the Python socket module doesn't allow us to pass
--        # buffer lengths greater than 1024 for some reason. RDS
--        # wants multiple pages.
+-        # pseudo-random send/receive pattern
+-        sender = sockets[nr_send % 2]
+-        receiver = sockets[1 - (nr_send % 3) % 2]
+-
 -        try:
--            s.getsockopt(socket.SOL_RDS, optname, 1024)
--            nr_success = nr_success + 1
+-            sender.sendto(send_data, socket_to_addr[receiver])
+-            send_hashes.setdefault((sender.fileno(), receiver.fileno()),
+-                    hashlib.sha256()).update(f'<{send_data}>'.encode('utf-8'))
+-            nr_send = nr_send + 1
+-        except BlockingIOError:
+-            break
 -        except OSError as e:
--            nr_error = nr_error + 1
--            if e.errno == errno.ENOSPC:
--                # ignore
--                pass
--
--ksft_pr(f"getsockopt(): {nr_success}/{nr_error}")
-+check_info(sockets)
+-            if e.errno in [errno.ENOBUFS, errno.ECONNRESET, errno.EPIPE]:
+-                break
+-            raise
++    nr_send = send_burst(sockets, addrs, send_hashes, nr_send, NUM_PACKETS)
  
- # cancel timeout
- signal.alarm(0)
+     # Receive as much as we can without blocking
+     ksft_pr("receiving...", nr_send, nr_recv)
 -- 
 2.25.1
 
