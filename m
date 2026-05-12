@@ -1,303 +1,153 @@
-Received: from DM5PR21CU001.outbound.protection.outlook.com (mail-centralusazon11011050.outbound.protection.outlook.com [52.101.62.50])
+Received: from DM5PR21CU001.outbound.protection.outlook.com (mail-centralusazon11011026.outbound.protection.outlook.com [52.101.62.26])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A0F733BB680;
-	Tue, 12 May 2026 15:33:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.62.50
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB2193CDBD3;
+	Tue, 12 May 2026 16:13:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.62.26
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778600003; cv=fail; b=mMs4/livRnvLo6pYbC/+UPdJJsuP0a7YyS+57HzeHz6me8bXubDYSgzTH7ZEe1mWnls2cl83VjMszbX+8/atJiONoIyE0lOs0s71AoubJsxz9RJqCaE4IB7Yp5hdmz0trjh/yLQ6UC90Qswn3L4RJA/rw7v+8sVY6pB13n8TcAI=
+	t=1778602390; cv=fail; b=KgvgXsPBvKt8QWYFCYNqNkKipP3tXKeIRuBTrb5zXljCuU/arQN/W+5VkcWOQnuAPeXZb/K8jNJ4j33BnrFEGxvYKqx04zp8vyZn0CONzX1OsN/5kxAwE3GJ7ckm4Y5XZgsnAWj78dYPnPo4H7pqeatqa6/ebmx8dWvlaXG7VzA=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778600003; c=relaxed/simple;
-	bh=7/M8qMhfAOkDQ+CC0wfVd3k5RWFevUW7kORBbugOj64=;
-	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
-	 Content-Type:MIME-Version; b=T/vAjncsgyCZMIPY1a8BmruWIfWlMi+cU7YqrsQwAQZRIC0xvcid4fn5XYctGblHp5bfZKwhwb9XSZMTIN63e2UxD7Vel/58P1Qz+cKoKZEeuDnCCsBwr/7K4NKiwY6yE9Hwf1a70iXq1EfIDroIWryTJBVs+EYgnRdvVODXsRE=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=MmEeMgqR; arc=fail smtp.client-ip=52.101.62.50
+	s=arc-20240116; t=1778602390; c=relaxed/simple;
+	bh=iWwSOmTvV9xbfkmLjsohgRMzTHf9AgvKdp7n39giBUk=;
+	h=Date:From:To:CC:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=O0S6UolnGIeRiIrhbVnUxWpkIiQPOAP41XB36iOsQ/N4HPJu7jLixDcuOVIlVFiqR5ChdimKExa4lEvH6ORXG7mdMpQDC2RBI02lIKMd4E8yEwfWrkcZrmumKFSfqcLDeuwcTFoK16vO+G1NAOGtJ8zR42J11DeN0LqBe/2qvzg=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=sdKYW8lQ; arc=fail smtp.client-ip=52.101.62.26
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="MmEeMgqR"
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="sdKYW8lQ"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=X6F0kzEWCFlXFcGx/AeCmR9SaoHhFkW+x7A66jDuzCPoOt1aFaC0w9Br+T03N+AQ8U+wp0t4Ke3CbQHJD0gcwxy++bIS0Zje3YrwbNZyaWnu8SQyBkYpIEjij7wCBfE74H6AMbarwOqR+yhSHLD+1Jj9q45ZZnP9gLCYkoShfg4yGOjDVrMYoJb42iEatO2zq2KfYVbM8M6dtX4dmNYAGvNElJG0u1PqFU5NE/G4ZoFcEYAMDpdoqix2/RCqRXT80/RRQuqoSeuFtAOvExEBvBg+TWII3qeqxfpQQRiicsOX5q2nt1jxhUmV1EIR8/4QnUXcke3GJ0qx61l2YQo0mg==
+ b=VnmLpRisg+YOZEr/Se5a3BgpLp4gRNKoNKCtHFPpi5HlY4wL6NpN+lvnU9GTUkoUH5Sv2FE5bUqRWBVYaMHsNCXiq/WERNj6FJNm+LSQUToHQn3pHMpmuhzJLumIpj2uOn6yIW2oZOjAZvvPV1qiJAECHZ7sgz3fIPLpSYZsp/0bkY2g2sHRVKVXFVAeboTMQEL9Rv0zL21Tq6uzgcMOWukdj8JiLNzdjbb2aHrnELDKmnblllOVJ1ayjIHR+CVoDTwDC7Z+xItZBETuXgLlCkN9m4NJO+rYmiZELuEnzo0roClTnlywBXP015jo0u+rwxlJFSgkkISUGsOMA8P/yQ==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=/SJG4Ubv6q03zfFZH4HtpuHypnCw6yKySKwps04g6pM=;
- b=wGap+6EuWfIsf6qGZAs+qsGn5jGG4x6NRa9Uwn8q29DCz2VepSg9+0RDF1qKcfi9UpR6kPASJfpdBM3Ey2aG+geI262+lOghgnXCjZ0F9jrBs99+8gwjMof+q+gWLVb0n5NEnXH90yaKHQeS01G/26SmDaasuTV/baPT+pCQ0zTpQNwDBvAOzrifF7073FSEq40bOY9Ob5H5+rAruvZ449Ku47wowbc1K9p4MZdF+OvYoXNn9aYzgt6rjcTKmp9Gm2DkWQZI7yB/QGhJ5+HcLnZTSmG/2P/g/abv4+1SIDQE8oAUboz0KGwmcw/dPP2TeSpT+YyGHzzPKslGVk8Rgg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
+ bh=szN0ooGA6bhEmh3lUHMngWyDmHbRqd9/gnaIrXRjavA=;
+ b=lDFnhJvXbuSVzSVdLOwwDTeu+EYcUOJVbt/4ovCFT5mqztdqAZWgOwZoONlIn+3u/hd+IhRj587WC854hZlUE/jSLib03SSyGCfRu5dWqSUZrZp90ARbSFM7YN3b2uIYjuLeaZ4oqkHlVSMeIPKc5ZZJJEbuzcjssbdZJ/CWyKBLpZSSeIDuBap6ZOvJDfhln32AkFEURjCpaTfcg3Ah93Z0Wo5PlJ+QDmKT5pSYcR4nJZQsIyPxecYLwrizjvnLRqpTkMaPPfwat9zyRwMlrbFwfScAE3xOu7uY2j2nilor52JTcNgsDfowuldHWcp9EpxBt9O+2y2dDt2iNDnBCA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 216.228.117.161) smtp.rcpttodomain=kernel.org smtp.mailfrom=nvidia.com;
+ dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
+ dkim=none (message not signed); arc=none (0)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=/SJG4Ubv6q03zfFZH4HtpuHypnCw6yKySKwps04g6pM=;
- b=MmEeMgqRzrWK8J/ByUgx4OeFsvcNDgrqp3I1fzTXesQdtFgr53syhJxuJ9Pwk22XGKGANAnA6bNNFewWFt259bBpg9Xu2AbnuXmqPLHgLzjemj8YQr8klTt79VyyIcI2c9jlCwccFPD+luoC4ENjrp1VIJYf/ApB4NNyk86u5qlPViSsPFIbWXTy8sws3a5bw7TRw16ecH1jz+UwkU2p6cgPAvSEZjpXISnN/1DuW2LY4WuGm6Ri63sRVcwSb2BWjNhxhNjjM8JfLVzGqU39OaDlsO0FQ615Hwt8K3+TQC5D6FAEPzrGlmb35o91/KhEFd8GgnvjrEsS6lJsGukQTg==
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from CH3PR12MB8728.namprd12.prod.outlook.com (2603:10b6:610:171::12)
- by CY8PR12MB7291.namprd12.prod.outlook.com (2603:10b6:930:54::14) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9891.23; Tue, 12 May
- 2026 15:33:14 +0000
-Received: from CH3PR12MB8728.namprd12.prod.outlook.com
- ([fe80::2641:1046:bdf3:93d7]) by CH3PR12MB8728.namprd12.prod.outlook.com
- ([fe80::2641:1046:bdf3:93d7%7]) with mapi id 15.20.9891.021; Tue, 12 May 2026
- 15:33:14 +0000
-Message-ID: <47630ed4-3028-4716-816e-d4f803423b37@nvidia.com>
-Date: Tue, 12 May 2026 17:33:08 +0200
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net-next V6 2/3] net/mlx5e: Avoid copying payload to the
- skb's linear part
-To: Amery Hung <ameryhung@gmail.com>
-Cc: Tariq Toukan <tariqt@nvidia.com>, Christoph Paasch <cpaasch@openai.com>,
- Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
- Paolo Abeni <pabeni@redhat.com>, Andrew Lunn <andrew+netdev@lunn.ch>,
- "David S. Miller" <davem@davemloft.net>, Saeed Mahameed <saeedm@nvidia.com>,
- Mark Bloch <mbloch@nvidia.com>, Leon Romanovsky <leon@kernel.org>,
- netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
- linux-kernel@vger.kernel.org, Gal Pressman <gal@nvidia.com>,
- Daniel Borkmann <daniel@iogearbox.net>,
- Jesper Dangaard Brouer <hawk@kernel.org>,
- John Fastabend <john.fastabend@gmail.com>,
- Stanislav Fomichev <sdf@fomichev.me>, Alexei Starovoitov <ast@kernel.org>
-References: <20260507095330.318892-1-tariqt@nvidia.com>
- <20260507095330.318892-3-tariqt@nvidia.com>
- <CAMB2axOFQN2f=veYgeJs+4tbZmb9PuNHk03TH_bmE8UL_REd7w@mail.gmail.com>
- <b1d3f9bc-a5d7-4236-8bda-49e6327ee533@nvidia.com>
- <CAMB2axPNhveQaDPs-ttu4uFcpvAfJCdzJ3d05HWQf4+p7uVUsg@mail.gmail.com>
- <70d0b319-178f-4233-b0da-9618489a1dd6@nvidia.com>
- <CAMB2axPdqBUORn7Qy35Xccqbn+8aArZ-weegZyz=j0STh+iPNA@mail.gmail.com>
- <6b7998e7-b2c1-4650-9564-679d647146cf@nvidia.com>
- <ef926d49-81d6-4d26-8d74-440d4a6bb8b1@nvidia.com>
- <CAMB2axN6USwsGaUQWkL52G=9V=kSe2La_gE-ppOFLWbPCnaVKQ@mail.gmail.com>
-Content-Language: en-US
-From: Dragos Tatulea <dtatulea@nvidia.com>
-In-Reply-To: <CAMB2axN6USwsGaUQWkL52G=9V=kSe2La_gE-ppOFLWbPCnaVKQ@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-X-ClientProxiedBy: FR4P281CA0347.DEUP281.PROD.OUTLOOK.COM
- (2603:10a6:d10:f4::15) To CH3PR12MB8728.namprd12.prod.outlook.com
- (2603:10b6:610:171::12)
+ bh=szN0ooGA6bhEmh3lUHMngWyDmHbRqd9/gnaIrXRjavA=;
+ b=sdKYW8lQkuWWlsGUK5QTrYswnjV7verxSPVRnUh5/DP9kMDZrImSYGnv+Jj0CP7AoLUueC89Gb50A5ArwwiQCmxPKPvykUcRxbh/YO3dLaUBADG60fVlr6U1K16HH0kyQikUdePCexJisyi4jReaGVbxXwyFV3K8IpwmM2qo0cvuX141vG6Tuex70YI4z2IADZhatEM1y/YlpjC64F4Wsd0BA0TN0v9OWohYJPB5xyffY1+U/qjX4Y7CTGsdfzoyC0BCfaHfCzn3YepExr4T5SkGBDtUQKVTuALhLh0J/3h3IV6IYMH4pzeB2fkJhdCYX2Hw7F3VNX44AGOBC7mPrA==
+Received: from BN0PR02CA0002.namprd02.prod.outlook.com (2603:10b6:408:e4::7)
+ by DM4PR12MB6472.namprd12.prod.outlook.com (2603:10b6:8:bc::7) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.9913.11; Tue, 12 May 2026 16:13:00 +0000
+Received: from BN1PEPF0000468B.namprd05.prod.outlook.com
+ (2603:10b6:408:e4:cafe::fb) by BN0PR02CA0002.outlook.office365.com
+ (2603:10b6:408:e4::7) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.20.9913.11 via Frontend Transport; Tue,
+ 12 May 2026 16:13:00 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.161)
+ smtp.mailfrom=nvidia.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=nvidia.com;
+Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
+ 216.228.117.161 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.117.161; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.117.161) by
+ BN1PEPF0000468B.mail.protection.outlook.com (10.167.243.136) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.21.25.13 via Frontend Transport; Tue, 12 May 2026 16:13:00 +0000
+Received: from rnnvmail201.nvidia.com (10.129.68.8) by mail.nvidia.com
+ (10.129.200.67) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Tue, 12 May
+ 2026 09:12:33 -0700
+Received: from localhost (10.126.230.37) by rnnvmail201.nvidia.com
+ (10.129.68.8) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Tue, 12 May
+ 2026 09:12:31 -0700
+Date: Tue, 12 May 2026 19:12:24 +0300
+From: Leon Romanovsky <leonro@nvidia.com>
+To: David Ahern <dsahern@kernel.org>
+CC: <stephen@networkplumber.org>, <netdev@vger.kernel.org>,
+	<linux-rdma@vger.kernel.org>, David Ahern <dahern@nvidia.com>
+Subject: Re: [PATCH iproute2-next 2/4] iplink: Update iplink_parse to use
+ netns_get_fd_pid
+Message-ID: <20260512161224.GW15586@unreal>
+References: <20260507150836.28105-1-dsahern@kernel.org>
+ <20260507150836.28105-3-dsahern@kernel.org>
+ <20260510100148.GC15586@unreal>
+ <14574ff8-128b-485e-af7e-34ebf00d2c8b@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <14574ff8-128b-485e-af7e-34ebf00d2c8b@kernel.org>
+X-ClientProxiedBy: rnnvmail201.nvidia.com (10.129.68.8) To
+ rnnvmail201.nvidia.com (10.129.68.8)
+X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: CH3PR12MB8728:EE_|CY8PR12MB7291:EE_
-X-MS-Office365-Filtering-Correlation-Id: 7a1e9ea0-5f79-4d86-66b5-08deb03bc851
+X-MS-TrafficTypeDiagnostic: BN1PEPF0000468B:EE_|DM4PR12MB6472:EE_
+X-MS-Office365-Filtering-Correlation-Id: c6d03d30-93fd-42fd-3328-08deb04156b1
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|366016|1800799024|7416014|376014|56012099003|11063799003|18002099003|22082099003;
+	BCL:0;ARA:13230040|1800799024|82310400026|376014|36860700016|22082099003|18002099003|56012099003|11063799003;
 X-Microsoft-Antispam-Message-Info:
-	Hx94CPdz98AjU3nWGYVIUl0n7MZlYo6RkNCRG6cPHmL0AA6wQojgLEZc3q8a3HXcUSonYAghRJZwPIAh79yl6i6iCynWzsxCYBDjmLuP2q29CqXWne3x84UEkX0YwlnDToy3Z7Ka9emqRc7yyEtUBv31XkqJ3Djbr73o6YhfexTRSqjer8eEQShbSsW4wZKhyhT+FHzjfhyn3hRbEljG7Yo0X+btHsieprX1Z4i0DlPFuu9fGDhELd1LMjdWoD9EqP/sOGu+ILqdViJHL0MHjxEMNS9nYNJYFXH77/rIdMH0nBIJardwUKD1kfQi0+yK9lMzhLD+Nem1We/ApkaMvd8JQnchix6RVfd6GKoFsw2SWc9n6pAn0sIHwzTQ4LN7OuAhnKwIGDDvcPxTZ+ALknoOSXZiWDFxZG4IOytlA2DsEyAuCpEeLnTcCjNaxXh05uv01xtBxLDSMUt7AnUPpsLIXF9aOoFz2hxBOPyOG4OkPRE7u4ivu6djGAsCRmCpg5lhP9HxaJdHhyKaHfsMsPuPFlIf1TkvILRJ+8S9s/Mtd0NE46my/3xAZstjnZr/HYPaE42fsknPGquwfDyY6pXfP6yGrIWeIxtg+YAhucIe15g+twou3dXTOr0s5qKSWfwvyfBWw+EP6OWwYrAvvXNzrE0UmwvTue5E7e1E5HFsU2N0sVo8Bq3BVlTwLYEZ
+	AGPmOgn/9xShOe34CAfM9IwJj/Q6rbOWgQb8sT4NC4bfUiiclmdUf30IiM2rhnCjbatLjp5894V5g/m27wiQ3KIpazQaza1kSm+/Fpt2Bu7FiPKcaQCiW1e3JbWgtl8V/nsbCO+Hi8tf9Tly+iH45sWJBEAKVDGx9Fb3McdOzBpqNN9JZhaglODlQQxmMdwZIL/2+LfqsT6zs7aRpLmXnqDogALJMBkhX8BujL9krS11XXvYSic1OZ5UlPBWFnWVbWMAw6gY2VCaIkPLrF//Uix1yCTe+Pfpz7Ti0VNr+Wu7E2UV/Z3pNtPj5AXTxcjQpPwceRiu5JQIUl8EewF8Vp+35nB7DV5JQhGkdzCmsvg6iWOtctbkJA7tALN9znyFTLPz9wXwMGHF6veL3H6ZO9DDsshJiWzN3vvnPk7p6TbNg2ftAce9tYmt8Wvu/wBU21gFfxlYsdoF5cz3csYINuPSugPLjp8TRjdnlyLG1Los2DUDuN/e8GvsXPe9lBtvb/L2sYqWZlxKh+MnljmKYZVvKnnpPThbRAkWgB4vtystLWOrqu7KZWTlXTuDUkMcQDQ7DuUxMqbePXISKfuQRAaL5NHvb8ablAwez8BfqLhX33FFt0yindqT4oYpreeWeLO87HUgRSl66NFRigfw1Wx3+3WbNZMnGcvGrXHA/L8K/Qy3owbWVzd/kTFD9OaOFIfygB9cPWLW4KAEv1m4A/0uEaV9/gzYwcAOc9xWi2Q=
 X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CH3PR12MB8728.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(1800799024)(7416014)(376014)(56012099003)(11063799003)(18002099003)(22082099003);DIR:OUT;SFP:1101;
+	CIP:216.228.117.161;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge2.nvidia.com;CAT:NONE;SFS:(13230040)(1800799024)(82310400026)(376014)(36860700016)(22082099003)(18002099003)(56012099003)(11063799003);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?OG9KMHhSUHh3SjV5ekJGMkppLzZOZXlEL0xmZEJpZ2ZTK1B4SXFEU3ZKTTRk?=
- =?utf-8?B?c3NFVGhISHBqaXowNWNBUG9iaHY5OXdzWTJoU2JBanRjNTMxdUVscnRkWVl6?=
- =?utf-8?B?dGhhdzEzMWNvNFJiL2g0YU5nRWFXM2F1ZWN6UVJaSmI5bEZNUFI4bUpFeTFr?=
- =?utf-8?B?aUc3UzRhZXFoZ0c4WERQcnZoTThnL2VpWnFWajg3eSs3TENSUGM2MHlvRktR?=
- =?utf-8?B?Nyt1SlRYSTlROXdSaHVGdlREcFI0NlNSQlpyYldoNTRKNWpEekNoL1JFd1lO?=
- =?utf-8?B?Q0ViblE4R3pHajJwV25vYStPVDNaTkRlYVd1UGt2em5hY09HWHdGTW1UR01z?=
- =?utf-8?B?aFV5SVFzRWd3OEJPenZnK2F3TDR0TTJyN3UwYnJlNncwWVlFcDQ3UzRIeXl1?=
- =?utf-8?B?YWZsSnhyYTQ5YWNjOGpTWlhkQ2xsYzdmY3hXVGduWXZma3NPNDgzNWZVbHJy?=
- =?utf-8?B?djRXMXdydW1NZFlEVGJCaFR4MVp6dWlqa2ozK0g0Nnp1UW9kVXBzY2dQSGRW?=
- =?utf-8?B?Q3EybXhwTXRDRWFIOE5NeE9KNGF5aEZrU2poZlNPWXRzeTYyVEtkbEZNVXdk?=
- =?utf-8?B?WFVOanVmMXR1cGdtemY0M01qbm8xOVNxRERqZTdMOXkzSUtEZldEQThmVjNP?=
- =?utf-8?B?b1h5eVh2VFFtRzhEek90RFhiajYxeFRNbEkvRmphT3RHRmpaM2Y0OE5ld0xV?=
- =?utf-8?B?T0xONmhUT2Fick8rVVd5Ulh6cnh5bU0vVEZRVHdLWHVYVWxjbUQ0OERJaURa?=
- =?utf-8?B?cldXTWEzayt0TVdkdGdHVnh0c1hkZk1McEovNzFzMEROQmFWSnBtR3BCaXJ6?=
- =?utf-8?B?bnpmVTRyck1WZXcyWW9uS0NsUm9sSlAyazNIQkZPK2dZSm9lSlpMYUlGV1B4?=
- =?utf-8?B?anlmRElCdzdXWFpCTmFDK3RKWjNKSDhmMlg4anQ2ZXhJODY3dTZvU3N1T0d1?=
- =?utf-8?B?eUhjWXFObTRvTkwyQWtVRU1qRlhWdVpyQVA3QllzSXRvdVZDRC9HWGNuMDIx?=
- =?utf-8?B?MGswQXdYdTlITEtPYnlFTHhneGtRY2RXcnk4ZE40eiszSUwzSWNpSHFFNHRQ?=
- =?utf-8?B?SWt3THM0WFBid3J1dGVWdVMxNGU2SGNiVW5vUWxlQkZPQWJKbTEzbkhEZmhh?=
- =?utf-8?B?ZDgzcEloeGZhblZmc3VhVXZQR2NDMDl3eHlmTDZYYzNLMjR3akh1VzdNbVEz?=
- =?utf-8?B?NjB1WCtwVTM4ZXVPVUZtVDdaMEp5V1JxNjMzcWtPVXRMRERjZnhVbm54VktL?=
- =?utf-8?B?bWFLZzllaFh1QjVFUWVjdDgwcnB2SmRIOFNETWFoV2s1bERWdm9hTjZZV1ZB?=
- =?utf-8?B?TjhSbC95WCtSbmFSZFN0ZUlXTXNubVZER2tqZ3lMYXlzdE1aRkwwRHVoT0Jm?=
- =?utf-8?B?MVRTaDNZcVpHUER3cW4vY1ArWkhkMVhvWHFCSjNUMDBWUC9wRUE1S3hXTSt4?=
- =?utf-8?B?NGxXWEZyUHhwOGRPbTh4bGRnZm5WOFJWWTYvWjdBM0w1SFNNSEZxby9Kbldk?=
- =?utf-8?B?Q3Y2MWkrRVpUdW9XMTBYell5MktzQU9oaTVPdnVPMjFlUVlneGh5aVNLdWtL?=
- =?utf-8?B?emtIM3ZscXkwTFZmZ1c3TUxGRTM0eklUeXh5ZmlseWZwTXVhUTdObzdYSXoz?=
- =?utf-8?B?aC9CeG54em5iS0JuWlBleVpCTkFLVWt2VU5rVmo1RlpBUlpXdFc4alBPSW81?=
- =?utf-8?B?YWNYMU9SR1FuVHZiTG9mRzdHckJXV01HcVBiTWNTKzdZTXJnRW9KbWFhWFBC?=
- =?utf-8?B?Q09oeDVNWDREWjZoTjhSUWdoQUdiZXFqS2hCYUpicG5iUzNSYjQwZnFRVE1P?=
- =?utf-8?B?M3A3TlcxNUJXeE9ybUx3NmJnbm1JU2txV1JRTXdsTUFScC9CWi8zMkxyeUZl?=
- =?utf-8?B?bC8xTldycWZpWDB4aWZwelpWOWJ0VFdMeDc4VUJXNUxINEZKRlJmMDB5dm5Y?=
- =?utf-8?B?WkRoYU03MXZkUlo4Zk8zUVVJOGlDWlo0M1lRM1YzK1hkcC9FQUV4a3BLd0pE?=
- =?utf-8?B?TjR2Um1mYStwSDdHdzdPOHltTTdLSDc4bzJvSHpXU1ROTnczQXJBQU1EZmZu?=
- =?utf-8?B?KzZ6K1ZPSFg0SzdGaVhic0UzSldYc09mMmVjU2tFRG1VVmNjbSt1SmVvM3Fz?=
- =?utf-8?B?VE1YRUEreCtoTFl2QkZzVjZpaU1pVFh6ZW54TldsT0ExZVQyb0VLb1djSUFm?=
- =?utf-8?B?SU02WWVLdURPRXNmVVc4Ujk0a2c5WndZdytWaWNpRU95TTZ2eitkeUdFWnBa?=
- =?utf-8?B?ZlhXYkdCWllReGgwaFRnb3lIM1RESkRZMWZ5SVgvT0oycjFXODFEK2JxVVRv?=
- =?utf-8?B?SHhJUEJYdEpiRW0waVliUlVTZ0VuVStCaldrNXVoZnZJTXlhVjUvUT09?=
+	61LAF6t6RsZKSv314cEQr9Gov21ICHLN4t29PEf6hdSCLb9ffKLxE+fzOOVyNqQKUiIBhzjSjfdVse54ogD86mDVbvu3GGbTjK52xDk1QgbjAsnwmGL7f1Me9xhELI7gFJGOXGXzTWhvq/NRTGAIrt7cDmc9ksIA3UMyMsBVScJnfPwYb3MUo6+Y8hEE0HNlhttR3MW+6PI3nJDPkHTxHErD9JKJA9N/Q0LcoGBuJpOMxWsC6je1/S8MNQQgri1R6nW93et48BHWHD2slMxoD2IjLw7KNz5pdXNesjzAFyn07PCVprWaa6HH2JWGeRs64K9BOVP5j3HpEOT5UiD467PGSTMVNeYQ9cOM/ZxDaC7m8eEZs7fps1qVMTYT/h799+pe2CiC6ZMLXIW5MssffAsSf6HjLhTSqi3u3CZRaiYIIHkONyuN33XIrKC2bWdD
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 7a1e9ea0-5f79-4d86-66b5-08deb03bc851
-X-MS-Exchange-CrossTenant-AuthSource: CH3PR12MB8728.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 12 May 2026 15:33:14.6650
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 12 May 2026 16:13:00.5082
  (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Network-Message-Id: c6d03d30-93fd-42fd-3328-08deb04156b1
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: SHWPsVDXy/yRIZj/IOQO3So9twhBM7+a4hZ4XVZ+CKJKh04kJpac6BOXry/B+pNiGkSuQJgrzbAz2xJHzda6sA==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CY8PR12MB7291
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.161];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	BN1PEPF0000468B.namprd05.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM4PR12MB6472
 
+On Tue, May 12, 2026 at 09:23:52AM -0600, David Ahern wrote:
+> On 5/10/26 4:01 AM, Leon Romanovsky wrote:
+> >> diff --git a/ip/iplink.c b/ip/iplink.c
+> >> index eae51438..6c4586ee 100644
+> >> --- a/ip/iplink.c
+> >> +++ b/ip/iplink.c
+> >> @@ -650,19 +650,13 @@ int iplink_parse(int argc, char **argv, struct iplink_req *req, char **type)
+> >>  			if (offload && name == dev)
+> >>  				dev = NULL;
+> >>  		} else if (strcmp(*argv, "netns") == 0) {
+> >> -			int pid;
+> >> -
+> >>  			NEXT_ARG();
+> >>  			if (netns != -1)
+> >>  				duparg("netns", *argv);
+> >> +			/* try by name then by pid */
+> >>  			netns = netns_get_fd(*argv);
+> >> -			if (netns < 0 && get_integer(&pid, *argv, 0) == 0) {
+> >> -				char path[PATH_MAX];
+> >> -
+> >> -				snprintf(path, sizeof(path), "/proc/%d/ns/net",
+> >> -					 pid);
+> >> -				netns = open(path, O_RDONLY);
+> >> -			}
+> >> +			if (netns < 0)
+> >> +				netns = netns_get_fd_pid(*argv);
+> > 
+> > It would be good to have a single function that handles the entire
+> > netns_get_fd() → netns < 0 → netns_get_fd_pid() sequence internally. This
+> > logic is used by at least iplink and rdmatool.
+> > 
+> 
+> I considered that. devlink usage of netns_get_fd and its handling of pid
+> vs name makes it a more complicated change.
 
+You are not modifying devlink in this series, so rather than introducing
+netns_get_fd_pid(), introduce netns_get_fd_fallback_pid() or another
+appropriately named helper.
 
-On 12.05.26 01:08, Amery Hung wrote:
-> On Sat, May 9, 2026 at 11:51 PM Dragos Tatulea <dtatulea@nvidia.com> wrote:
->>
->>
->>
->> On 08.05.26 20:42, Dragos Tatulea wrote:
->>>
->>>
->>> On 08.05.26 19:44, Amery Hung wrote:
->>>> On Fri, May 8, 2026 at 2:15 AM Dragos Tatulea <dtatulea@nvidia.com> wrote:
->>>>>
->>>>>
->>>>>
->>>>> On 07.05.26 22:50, Amery Hung wrote:
->>>>>> On Thu, May 7, 2026 at 4:50 PM Dragos Tatulea <dtatulea@nvidia.com> wrote:
->>>>>>>
->>>>>>>
->>>>>>> Hi Amery,
->>>>>>>
->>>>>>> On 07.05.26 15:53, Amery Hung wrote:
->>>>>>>> [...]
->>>>>>>> Am I understanding correctly that the better performance comes with
->>>>>>>> the assumption that the XDP does not change headers?
->>>>>>>>
->>>>>>>> headlen is determined before the XDP program runs. If it push/pop
->>>>>>>> headers, there could be headers in frags or data in the linear region
->>>>>>>> after __pskb_pull_tail().
->>>>>>>>
->>>>>>> That's right.
->>>>>>>
->>>>>>>>>                         if (__test_and_clear_bit(MLX5E_RQ_FLAG_XDP_XMIT, rq->flags)) {
->>>>>>>>>                                 struct mlx5e_frag_page *pfp;
->>>>>>>>> @@ -2060,8 +2066,7 @@ mlx5e_skb_from_cqe_mpwrq_nonlinear(struct mlx5e_rq *rq, struct mlx5e_mpw_info *w
->>>>>>>>>                                 pagep->frags++;
->>>>>>>>>                         while (++pagep < frag_page);
->>>>>>>>>
->>>>>>>>> -                       headlen = min_t(u16, MLX5E_RX_MAX_HEAD - len,
->>>>>>>>> -                                       skb->data_len);
->>>>>>>>> +                       headlen = min_t(u16, headlen - len, skb->data_len);
->>>>>>>>
->>>>>>>> headlen - len can underflow but will be capped by skb->data_len, so
->>>>>>>> this should be okay, right?
->>>>>>> It is safe. But it might trigger an extra allocation in the pull when
->>>>>>> len > headlen. We could also skip the pull in that case. Or do a
->>>>>>> min(headlen - len, min(skb->data_len, MLX5E_RX_MAX_HEAD)). WDYT?
->>>>>>
->>>>>> Make sense, but this line took me a bit to understand. Maybe consider
->>>>>> checking len < headlen first?
->>>>>>
->>>>>> if (len < headlen) {
->>>>>>         headlen = min_t(u32, headlen - len, skb->data_len);
->>>>>>         __pskb_pull_tail(skb, headlen);
->>>>>> }
->>>>>>
->>>>> Yes, that's what I had in mind when skipping the pull. I would also
->>>>> tag this as likely.
->>>>>
->>>>>> Another clarifying question. So this patch will improve the
->>>>>> performance when the XDP programs don't change header length. For
->>>>>> those that encap/decap, they should precisely pull only headers into
->>>>>> the linear area for optimal performance. Is it correct?
->>>>>>
->>>>> Right for encap, but for decap not quite:
->>>>>
->>>>> Let's say that the XDP program pulls 64B header into the linear part
->>>>> and snips 4B of the encap out. This would result in a pull of an
->>>>> additional 4B (headlen (64B) - len (60B) = 4B) which are now
->>>>> data bytes => sub-optimal layout.
->>>>>
->>>>> I don't see how we can improve this corner case though.
->>>>
->>>> I see. Thanks for the clarification.
->>>>
->>>> I think the "if (len < headlen)" makes too many assumptions about what
->>>> the XDP program did.
->>>>
->>>> How about this policy instead: If the XDP program did not create/pull
->>>> data into the linear area, pull the parsed headers; otherwise, assume
->>>> the XDP program owns the geometry. min() is still needed since the
->>>> program can shrink the packet.
->>>>
->>>> if (!len) {
->>>>         headlen = min(headlen, skb->data_len);
->>>>         __pskb_pull_tail(skb, headen);
->>>> }
->>>>
->>>> This preserves the optimization for the default no-modification case,
->>>> and most importantly allow XDP program to get the optimal performance
->>>> if it gets the final geometry right.
->>>>
->>> I like this. It will also save us some neurons next time we need to
->>> touch these lines.
->>>
->> Sashiko disagrees:
->>
->> """
->> If an XDP program changes the packet geometry by prepending data, len will
->> be greater than 0, which skips the __pskb_pull_tail() call entirely.
->> The resulting SKB's linear part will only contain the prepended data, with
->> the Ethernet headers remaining in the fragments.
->> When the network stack later calls eth_type_trans(), it unconditionally
->> pulls ETH_HLEN:
->> net/ethernet/eth.c:eth_type_trans() {
->>     ...
->>     skb_pull_inline(skb, ETH_HLEN);
->>     ...
->> }
->> Could pulling 14 bytes from a smaller linear area cause skb->len to drop
->> below skb->data_len and trigger a BUG() in __skb_pull()?
->> """
->>
->> So I think we need an else where we preserve the old behavior:
->>   if (!len)
->>           headlen = min(headlen, skb->data_len);
->>   else
->>           headlen = min(MLX5E_RX_MAX_HEAD - len, skb->data_len);
->>
->>   __pskb_pull_tail(skb, headlen);
-> 
-> I see. I am okay with the fallback.
-> 
-> One last question: if the fallback is mainly to preserve the minimum
-> linear head needed by eth_type_trans(), can we make that explicit
-> instead?
-> 
-> unsigned int pull_len = 0;
-> 
-> if (!len)
->         pull_len = headlen;
-> else if (len < ETH_HLEN)
->         pull_len = ETH_HLEN - len;
-> 
-> if (pull_len)
->         __pskb_pull_tail(skb, min(pull_len, skb->data_len));
-> 
-> This keeps the parsed-header pull for the fully nonlinear case, but once
-> XDP leaves some linear data, the driver only pulls enough to satisfy the
-> Ethernet header invariant and otherwise leaves the final geometry to XDP.
->
-That would work, but maybe with one less conditional:
-
-if (!len)
-        __pskb_pull_tail(skb, min(headlen, skb->data_len);
-else if (len < ETH_HLEN)
-        __pskb_pull_tail(skb, min(ETH_LEN - len, skb->data_len));
-
-Tariq suggested to make sure that we have an xdp selftest for this.
-Will take it as a follow-up after this series.
-
-Thanks,
-Dragos
+Thanks
 
