@@ -1,28 +1,28 @@
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 10C4228A3F8;
-	Tue, 12 May 2026 09:40:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 003C025B0B3;
+	Tue, 12 May 2026 09:42:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778578860; cv=none; b=nmnkMsG3moLtDRpbJ3RDpWrOTDlb1VeAODPJTIqTo+2/JCS42kHIjFOZL+Cz28xj0bN9l8NeVX0IgeA5yjOouOyMny7Ty+fr9dDhirjJ+GgpsxYLLFcQqG9hdJPJpTGyZqf5y64bD12venQIJZgR0D5cNGhCkwoolZpw/JMRg28=
+	t=1778578933; cv=none; b=s5AA3ygGTAtlhP8RwDxcjimR2n4ZBbv66KEVmwMU9LMBSlptuJNFrAzG7qel82vYEmmU2S2ipuwla1ZlzuKiFGH9hlvp/EPxyXVeRmvnO5wggbGz38PcUkxoChH8s/wdeN9SUU2SfdZQBXNy9YxN1yvcWKxOAZ36xNWYhyq0CfE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778578860; c=relaxed/simple;
-	bh=Xd/mVS+Jxp0+Vw0Ci0gL7YtydwscZdfP/nISbhk/WXI=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=jP95mf9nR9GgkWFw7HPYnDLxaMkTKZumxCTrxlZC1QrnnfQBBYib2XIvn6FtagHkraENHc2GVyNKKor9nY7I0pZ/sFjP4hTYFjz0mZ6vNjGt8ode7Hcq4r7QPvVfhWdcNo+G/OYo+WY/o6mFQ9ObWtJpprSqbhh7FxZmloIW5BM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=JZARelot; arc=none smtp.client-ip=13.77.154.182
+	s=arc-20240116; t=1778578933; c=relaxed/simple;
+	bh=h01wSVlOKeL6zz90a+6NC126jPSw8lwXIHFZEz7QtI4=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=EwsAzBnfeAHnH1Xph7ln6DYP53fJmpp2e8Ppq62MRnk0M3/Ul2/wwk9RNxnJKrw3iL7cDQyyGOSzgHLKlTLOeIw3rl0PiQUrYnNc+C4XvIzGqIcUNI4jo1zNWBwmU3TY2/bpKBjTjSHrqiY7CCU3Ti6ikkAwiD0yVayClhn+cT4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=PCPLz2ku; arc=none smtp.client-ip=13.77.154.182
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="JZARelot"
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="PCPLz2ku"
 Received: by linux.microsoft.com (Postfix, from userid 1186)
-	id C3B3320B7166; Tue, 12 May 2026 02:40:56 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com C3B3320B7166
+	id C059E20B7167; Tue, 12 May 2026 02:42:09 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com C059E20B7167
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
-	s=default; t=1778578856;
-	bh=yyIn0PUcqGmgv6EzlMUgFGnK/vQDpGEyuNlEe+4xQTs=;
+	s=default; t=1778578929;
+	bh=Sx/71IeY0S0zRcEMYNngeq6KBWhOETCNBtFrzTg0f84=;
 	h=From:To:Cc:Subject:Date:From;
-	b=JZARelotzi66/srGsdydU/OlW2FNHoZxqI0m51FVLyik4zzWdHzp90mvOGgN4kiFh
-	 Mm/8Il5f3ubgt5T3za8JId60qhksoe+CwDTL84NmLmHXfc43maXybSVX/9AM//KxDW
-	 zsHIB2E/hDupu1YH+n2pldjPWXhvZqMN/hF+yr5A=
+	b=PCPLz2kuxLtK0Ko9JavB0IoXoBvqFIxGD9ZvVQ1aF7t9FeJsoerbB2byY3lrxy77O
+	 g1MBlaXdDuV+3TJ1K0CvtKilj0iyHMbFJ6OQtcoG3Cd9VZ8ciQlpxMgwesn/hBOP6r
+	 8f+5eCQoGjVrwPxMFpQSMC1y25bVnANCcVETM1XQ=
 From: Konstantin Taranov <kotaranov@linux.microsoft.com>
 To: kotaranov@microsoft.com,
 	shirazsaleem@microsoft.com,
@@ -31,9 +31,9 @@ To: kotaranov@microsoft.com,
 	leon@kernel.org
 Cc: linux-rdma@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH rdma-next] RDMA/mana_ib: Use ib_get_eth_speed for reporting port speed
-Date: Tue, 12 May 2026 02:40:56 -0700
-Message-ID: <20260512094056.264827-1-kotaranov@linux.microsoft.com>
+Subject: [PATCH rdma-next] RDMA/mana_ib: Report max_msg_sz in mana_ib_query_port
+Date: Tue, 12 May 2026 02:42:09 -0700
+Message-ID: <20260512094209.264955-1-kotaranov@linux.microsoft.com>
 X-Mailer: git-send-email 2.43.7
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
@@ -45,30 +45,27 @@ Content-Transfer-Encoding: 8bit
 
 From: Shiraz Saleem <shirazsaleem@microsoft.com>
 
-Replace hardcoded IB_WIDTH_4X/IB_SPEED_EDR with ib_get_eth_speed()
-to report the actual link speed in mana_ib_query_port().
+Report max_msg_sz for mana_ib, which is 16MB.
 
 Fixes: 4bda1d5332ec ("RDMA/mana_ib: Implement port parameters")
 Signed-off-by: Shiraz Saleem <shirazsaleem@microsoft.com>
 Signed-off-by: Konstantin Taranov <kotaranov@microsoft.com>
 ---
- drivers/infiniband/hw/mana/main.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/infiniband/hw/mana/main.c | 1 +
+ 1 file changed, 1 insertion(+)
 
 diff --git a/drivers/infiniband/hw/mana/main.c b/drivers/infiniband/hw/mana/main.c
-index d4dfbec..9af92a4 100644
+index 9af92a4..4c211ac 100644
 --- a/drivers/infiniband/hw/mana/main.c
 +++ b/drivers/infiniband/hw/mana/main.c
-@@ -633,8 +633,7 @@ int mana_ib_query_port(struct ib_device *ibdev, u32 port,
- 		props->phys_state = IB_PORT_PHYS_STATE_DISABLED;
- 	}
- 
--	props->active_width = IB_WIDTH_4X;
--	props->active_speed = IB_SPEED_EDR;
-+	ib_get_eth_speed(ibdev, port, &props->active_speed, &props->active_width);
- 	props->pkey_tbl_len = 1;
+@@ -638,6 +638,7 @@ int mana_ib_query_port(struct ib_device *ibdev, u32 port,
  	if (mana_ib_is_rnic(dev)) {
  		props->gid_tbl_len = 16;
+ 		props->ip_gids = true;
++		props->max_msg_sz = SZ_16M;
+ 		if (port == 1)
+ 			props->port_cap_flags = IB_PORT_CM_SUP;
+ 	}
 -- 
 2.43.0
 
