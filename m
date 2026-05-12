@@ -1,131 +1,112 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wr1-f73.google.com (mail-wr1-f73.google.com [209.85.221.73])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AB8BD4D98EA
-	for <linux-rdma@vger.kernel.org>; Tue, 12 May 2026 11:36:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD9E639AD4A
+	for <linux-rdma@vger.kernel.org>; Tue, 12 May 2026 12:58:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.73
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778585795; cv=none; b=soQdt7IplV/2/Y38KUsk8EflDD6ZlCARP6qgruyPp6UforZvpn9mh03oTpGdh1MS+EuuNVYjAv3tg1hv+yvZchUgSSEGfMvO32mxe9q8SGpZQoIG3IeA/Es3iJv2UXV9K2MNCPJLuNidkbfp/yYvGKMWpXlRGLTFSvbXxmW1jT4=
+	t=1778590705; cv=none; b=hsEpmmFDDgtEiEXJ+lizaHeELTRqAyW7VF0EI49t1vrrJW1Uwq1amdIwkccExN+QAYKIIYd7MMkJRKjg/K+I6Mez45PGn/J1fcQfaDcPsFh9kL6W7aMmPZdhdOe1eYRbGZVGKjXK9AVpCFzjwL6tvAE1cVSoqPmDYRqxU6mbj+4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778585795; c=relaxed/simple;
-	bh=tD09wB0HSocpKa+1WEGTLBF7rc8s7bhV3jRNSldHa2o=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=R6q6zGEko9qmtiPEXSS0/3/BK9S+/X+JWwH7OxKiSTVuUMZ7iD+YoiiM6yB8Qp+Zqt9AmluskQz3MQgUHxLx5XljS+63TktbJjzlifySSAyvKosWncTIEbIYmDsKsvhUnmXWRDgHUfQiN9Ay6FkJVjRW/2KmIdMGQxIvI3IMFRk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=jRfyD+IW; dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b=iNOR1zEY; arc=none smtp.client-ip=170.10.129.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	s=arc-20240116; t=1778590705; c=relaxed/simple;
+	bh=pLY3GB/npkRWavBDYzVZGZTO+VbOpmmXpr9lI4mz4fA=;
+	h=Date:In-Reply-To:Mime-Version:References:Message-ID:Subject:From:
+	 To:Cc:Content-Type; b=b0cwKn04qsigOZs8n9O4zgfEzmYwVY35r4JuPNeRyKQZariaXaKYSYxFXcAgEI4KmYoS9calesniQZ2Kg+CsC8emr2F8pjBaNQ+1tO3iy/4icoj7Mm8U7jjGfQPGZ4sQ89HKoKBhavplETRLvQWkK+yrUDVexnLSRAHj5D6CD2Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--jackmanb.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=MOIzxd8M; arc=none smtp.client-ip=209.85.221.73
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--jackmanb.bounces.google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="jRfyD+IW";
-	dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b="iNOR1zEY"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1778585790;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=ph9gHYsx1MwJsXlOBpqpwZIJ5iQf/Q82Dt7OeJw2IpI=;
-	b=jRfyD+IW0W/Ibtt5+agFRZQ/tTj/wB7bs/FcLSqNNBKHFSzTJ1Y5UoCWc9PIe3YU1pKCEY
-	E7y6GC+zkLNqInN9zMOvKHZTeRda9HJM9U4vY2cjU83Qux5jRj99oh3yOVwq/g0aIoYFAL
-	EOXmyL/BxcSZlwxoKtU9VzGMRSURMKg=
-Received: from mail-wm1-f71.google.com (mail-wm1-f71.google.com
- [209.85.128.71]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-711--GQOEwDuNXCtw_7lH-T_Ow-1; Tue, 12 May 2026 07:36:29 -0400
-X-MC-Unique: -GQOEwDuNXCtw_7lH-T_Ow-1
-X-Mimecast-MFC-AGG-ID: -GQOEwDuNXCtw_7lH-T_Ow_1778585788
-Received: by mail-wm1-f71.google.com with SMTP id 5b1f17b1804b1-4891f97aef0so29372185e9.2
-        for <linux-rdma@vger.kernel.org>; Tue, 12 May 2026 04:36:29 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="MOIzxd8M"
+Received: by mail-wr1-f73.google.com with SMTP id ffacd0b85a97d-43d7a5b9678so3685575f8f.2
+        for <linux-rdma@vger.kernel.org>; Tue, 12 May 2026 05:58:23 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=redhat.com; s=google; t=1778585788; x=1779190588; darn=vger.kernel.org;
-        h=content-transfer-encoding:in-reply-to:content-language:from
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=ph9gHYsx1MwJsXlOBpqpwZIJ5iQf/Q82Dt7OeJw2IpI=;
-        b=iNOR1zEY30kw1wXLvG4XGfDkPXMPNxWcqIj+P2vM45ZHyG5dfLGX58Ap9I/npdHI4A
-         bQqFi/d76Ktln5lcalAc0QMHNjmzwdPeIp6H0KHuKWy+KBWVnR0EZWinCitMFsrQl2iF
-         JfMQFtEZ73OLQBgcgH/elwE5qqif0srNSYHpwk4Nm/JatBUT9wYG4K8jTKawPxdLnlqO
-         EkGz3GYwwopHLYgCESE3I/sp8eTPh7U9op0ZPHynkb9kJbR+dU/EfW29FtywKD+3OhSy
-         EGMWlsy24uJjmzddHQ1Q0QbkwIY9J1Sldu1cqemEb0W42GrN6X6YjVEJ2DGXV0/b9/W3
-         bexQ==
+        d=google.com; s=20251104; t=1778590702; x=1779195502; darn=vger.kernel.org;
+        h=cc:to:from:subject:message-id:references:mime-version:in-reply-to
+         :date:from:to:cc:subject:date:message-id:reply-to;
+        bh=vDWMnr041UI5ryil+k7XvoK/2F/EkGtTQwaeX0kDxi0=;
+        b=MOIzxd8M06jLqZdVnSSn+fl9/YjNb4fjltt3R3ync0g1aVCwi8YsgnwqqEWpVN8yDC
+         n+OZ7ayH7XM6XVwBPjR1+VLhNblCt+0q//YKBpjHER2l7IYfYuYOOxQ7f8ecykI7F02P
+         qkpSKl184Vd6WqziVquto1rxJ8hyAXM56pR5oWegNIdo1wSO0nnxkzMeh/4dD3Wh1nVf
+         nooc/ABS+gZVsfESPEkewzYXTezcopIVf1niMTLkEcyFxRmkfrARRbeksuYo94w0359A
+         VfwaoWUawNdMkdyXjfVfZJEmZG/iFsEiRQH/30Eqo3ct21ffxyFsmlAAXOItNxt9+WeH
+         W3Ow==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1778585788; x=1779190588;
-        h=content-transfer-encoding:in-reply-to:content-language:from
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=ph9gHYsx1MwJsXlOBpqpwZIJ5iQf/Q82Dt7OeJw2IpI=;
-        b=Vm7x0K396NdR/WkR07BhekynhD7fEUqa0GlOR9LarCuLSwRKxYtbjLP6gHzS51rKQZ
-         r+lHN8Cl4TPfrRALQ99Q4I6RY3VQmiYvDwv+b5kv7Okndb9teibbpKSEVCL50LTrSyAr
-         JKIwDt3m2MEf6LdCg1+scsswX/sh2ZyEMS0N33v+DvONya7uOKEAlTOnI02ICzZDJFe/
-         T3/aPPMSB45RBbIe7jh+kX8eLpAfWGlIgN9nfbalOKCr2oEyOvMxKy6k4P7kd+DUy8rA
-         EnmCj1Ifs9Dz3zcSvug73BJYWL3D0cH19Abq7T9DNc1Rf9ZaqHqmRSiaZ9tRA86Z8svw
-         LIxw==
-X-Forwarded-Encrypted: i=1; AFNElJ9GGMHgO+4XhvGvniNq80hukFZn5SrjGxpN9R1wRQceptia0OMOaJfxuYzR71qOOq/vnKqwbnWxFkAH@vger.kernel.org
-X-Gm-Message-State: AOJu0YzUvqwanMIbbwu9Udqbm3c5Njjn1+B3XJYrvjrYAtCW5ZamELiL
-	LOrpRU8T7/kdkEWPmgU0J8zjcvVeIkZtyCtOaSPhk27Q4FiV6jkx8AglYqZmPYdFXmmZezoBFT/
-	sUHnuHrSO42uMYtNo9o2wFI81FcURuP0K/fkpneBwpEJDENLL42zk2Woy2LmAKr8=
-X-Gm-Gg: Acq92OHGziwFtoQUOxpU7rpraCXsxJT3bd8arhy2vivyqVfbrvF+04rzf3xp/eJpPfY
-	AF1+R1e+0Yq4VJnDC+/nYg5qerKHezaOCEzh+41ibIjvPE3/rJ1heXwkDpJk63+33jDcURVj5P8
-	Fpa3pkgeT20fg+gc8J9BPoSit/A/pPIYtwnhPcfFBqvVK/Zt+hi83ZBnV4BH65Z1pvYfT7w6nIn
-	UBKSAUVNWNcQBoZ1i70JRqZi7rCVqCYEkToCH9QgPDYs7b9H95E4fOIMOQ2mEK/0Y3K6NpWnrCG
-	NRjRmDm6J0K5FF70SHURUpe9QAzDYvNIUfdds/ruJ4MqZI5VuCdBJY65cvhq2E82VV937IK7hrA
-	sBfctIZ2J2moirE6GCZc93HWJmUfON5EL097lpyvbigvdVft4LqOzy+4=
-X-Received: by 2002:a05:600c:8486:b0:48a:6fd4:d3d3 with SMTP id 5b1f17b1804b1-48e706be062mr230118655e9.20.1778585788031;
-        Tue, 12 May 2026 04:36:28 -0700 (PDT)
-X-Received: by 2002:a05:600c:8486:b0:48a:6fd4:d3d3 with SMTP id 5b1f17b1804b1-48e706be062mr230118195e9.20.1778585787633;
-        Tue, 12 May 2026 04:36:27 -0700 (PDT)
-Received: from [192.168.88.32] ([216.128.9.106])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-48e90681760sm40268075e9.12.2026.05.12.04.36.25
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 12 May 2026 04:36:27 -0700 (PDT)
-Message-ID: <259b0641-fba1-4977-adc7-fd4002412d7e@redhat.com>
-Date: Tue, 12 May 2026 13:36:24 +0200
+        d=1e100.net; s=20251104; t=1778590702; x=1779195502;
+        h=cc:to:from:subject:message-id:references:mime-version:in-reply-to
+         :date:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=vDWMnr041UI5ryil+k7XvoK/2F/EkGtTQwaeX0kDxi0=;
+        b=A1eDa5eqwIbNEq4NySnAXHSYAZmLfgNomem5ez4iV4fQ/+OtZPUJ/XzpYS2cQ9o40I
+         QJUVXwfdtfG8+Iprt7UocwHALNTJyZS86eOAISgoIDmXlZfRyiCSNW3NST+cQGe/oEvZ
+         sZAgM65EtKgEYuBNyaHIcVOk/UWNdhUmAv5wdc4yGIuVnKAjlUQY+yzws4HPgjT44JCB
+         Vsx4nyc7/6d1ONQKfqPO88uo2M9YVmySqMKsZesicVm/niiQSGYOKxcjUnfEOqXAMYI7
+         tDXVBB6v2MKn5wZuSZT5/mEwNWhSv0aY/2Ehp1m0wmqg8PdyNbuhVxLFE0djn6Wi6fEY
+         hLTA==
+X-Forwarded-Encrypted: i=1; AFNElJ+VD6wvAObMDkHY7SpVeFEji7nTqwY/6uKjJMh3xUKvTD6aqnKfbXgyaSFTzQECQhq4GgEdy5xo4XQi@vger.kernel.org
+X-Gm-Message-State: AOJu0Yy2Ntci78DsAHCcNdgiEltE2xhKmSg7HzBymhFWjI2scMyFz830
+	BDeqH0hcV0M7w0mKGE4oPWpIjqhdQ031xiakpv/H8zOeFBa36Pyww7jNv2PpGAW+kEOPMh4XdaL
+	pdiRedP3kev/zVQ==
+X-Received: from wmby19.prod.google.com ([2002:a05:600c:c053:b0:485:3aa2:da59])
+ (user=jackmanb job=prod-delivery.src-stubby-dispatcher) by
+ 2002:a05:600c:8010:b0:48a:5339:ef0e with SMTP id 5b1f17b1804b1-48e70687eabmr216165565e9.3.1778590701567;
+ Tue, 12 May 2026 05:58:21 -0700 (PDT)
+Date: Tue, 12 May 2026 12:58:20 +0000
+In-Reply-To: <20260326-gfp64-v2-0-d916021cecdf@google.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net-next v8 3/6] net: mana: Introduce GIC context with
- refcounting for interrupt management
-To: Long Li <longli@microsoft.com>,
- Konstantin Taranov <kotaranov@microsoft.com>,
- Jakub Kicinski <kuba@kernel.org>, "David S . Miller" <davem@davemloft.net>,
- Eric Dumazet <edumazet@google.com>, Andrew Lunn <andrew+netdev@lunn.ch>,
- Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>,
- Haiyang Zhang <haiyangz@microsoft.com>,
- "K . Y . Srinivasan" <kys@microsoft.com>, Wei Liu <wei.liu@kernel.org>,
- Dexuan Cui <decui@microsoft.com>, shradhagupta@linux.microsoft.com
-Cc: Simon Horman <horms@kernel.org>, netdev@vger.kernel.org,
- linux-rdma@vger.kernel.org, linux-hyperv@vger.kernel.org,
- linux-kernel@vger.kernel.org
-References: <20260508221202.15725-1-longli@microsoft.com>
- <20260508221202.15725-4-longli@microsoft.com>
-From: Paolo Abeni <pabeni@redhat.com>
-Content-Language: en-US
-In-Reply-To: <20260508221202.15725-4-longli@microsoft.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Mime-Version: 1.0
+References: <20260326-gfp64-v2-0-d916021cecdf@google.com>
+X-Mailer: aerc 0.21.0
+Message-ID: <DIGPS83BGEGA.5I7VLH8TV7XE@google.com>
+Subject: Re: [PATCH v2 0/4] treewide: fixup gfp_t printks
+From: Brendan Jackman <jackmanb@google.com>
+To: Brendan Jackman <jackmanb@google.com>, 
+	Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, Maxime Ripard <mripard@kernel.org>, 
+	Thomas Zimmermann <tzimmermann@suse.de>, David Airlie <airlied@gmail.com>, 
+	Simona Vetter <simona@ffwll.ch>, Stanislaw Gruszka <stf_xl@wp.pl>, 
+	Alexander Potapenko <glider@google.com>, Marco Elver <elver@google.com>, 
+	Dmitry Vyukov <dvyukov@google.com>, Andrew Morton <akpm@linux-foundation.org>, 
+	Allison Henderson <allison.henderson@oracle.com>, "David S. Miller" <davem@davemloft.net>, 
+	Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
+	Simon Horman <horms@kernel.org>
+Cc: <dri-devel@lists.freedesktop.org>, <linux-kernel@vger.kernel.org>, 
+	<linux-wireless@vger.kernel.org>, <kasan-dev@googlegroups.com>, 
+	<linux-mm@kvack.org>, <netdev@vger.kernel.org>, <linux-rdma@vger.kernel.org>, 
+	<rds-devel@oss.oracle.com>
+Content-Type: text/plain; charset="UTF-8"
 
-On 5/9/26 12:11 AM, Long Li wrote:
-> diff --git a/drivers/net/ethernet/microsoft/mana/gdma_main.c b/drivers/net/ethernet/microsoft/mana/gdma_main.c
-> index 4673ff62e6d9..78cb89c46ff3 100644
-> --- a/drivers/net/ethernet/microsoft/mana/gdma_main.c
-> +++ b/drivers/net/ethernet/microsoft/mana/gdma_main.c
-> @@ -1618,6 +1618,164 @@ static irqreturn_t mana_gd_intr(int irq, void *arg)
->  	return IRQ_HANDLED;
->  }
->  
-> +void mana_gd_put_gic(struct gdma_context *gc, bool use_msi_bitmap, int msi)
-> +{
-> +	struct pci_dev *dev = to_pci_dev(gc->dev);
-> +	struct msi_map irq_map;
-> +	struct gdma_irq_context *gic;
-> +	int irq;
+On Thu Mar 26, 2026 at 12:31 PM UTC, Brendan Jackman wrote:
+> This patchset used to be about switching gfp_t to unsigned long. That is
+> probably not gonna happen any more but while writing it I found these
+> cleanups that seem worthwhile regardless.
+>
+> Signed-off-by: Brendan Jackman <jackmanb@google.com>
+> ---
+> Changes in v2:
+> - Drop gfp_t changes
+> - Add correct CCs
+> - Add minor fixups to preexisting code spotted by AI review
+> - Link to v1: https://lore.kernel.org/r/20260319-gfp64-v1-0-2c73b8d42b7f@google.com
+>
+> ---
+> Brendan Jackman (4):
+>       drm/managed: Use special gfp_t format specifier
+>       iwlegacy: 3945-mac: Fixup allocation failure log
+>       mm/kfence: Use special gfp_t format specifier
+>       net/rds: Use special gfp_t format specifier
+>
+>  drivers/gpu/drm/drm_managed.c                  | 4 ++--
+>  drivers/net/wireless/intel/iwlegacy/3945-mac.c | 4 ++--
+>  mm/kfence/kfence_test.c                        | 2 +-
+>  net/rds/tcp_recv.c                             | 2 +-
+>  4 files changed, 6 insertions(+), 6 deletions(-)
+> ---
+> base-commit: c369299895a591d96745d6492d4888259b004a9e
+> change-id: 20260319-gfp64-7a970a80ba4e
+>
+> Best regards,
 
-Since a new revision is needed, please fix the reverse christmas tree
-above and elsewhere, thanks!
+Hi all,
 
-/P
-
+Any chance someone can take these?
