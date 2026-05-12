@@ -1,145 +1,126 @@
-Received: from mx0b-0016f401.pphosted.com (mx0b-0016f401.pphosted.com [67.231.156.173])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yw1-f179.google.com (mail-yw1-f179.google.com [209.85.128.179])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ABAA93CC338;
-	Tue, 12 May 2026 16:28:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=67.231.156.173
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778603311; cv=none; b=JUKIHpcMisZJgACsVEBpCl37xVs704/e0C3n1D+8FL/yEujr3LnpJRTG8VcRfxaWZTGhQ+6ULeC/9wjrwCv3/90tRD4H/6ykozd54P+Tt0LIwncsoY5hOfe4epiUTIdzJStbq9uWITyU3fJHQN2UZkqjJfXHk0oRHqueK5NTP7Y=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778603311; c=relaxed/simple;
-	bh=y47bLhuB3bbwOu6OG3ySuxnv0TFonWNvzbA3pv9b8JY=;
-	h=Date:From:To:CC:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=CbdpZY0a3jXrozxrkqGo/Vlswk2e1gXHHGFfot3aJD5rJw70WCn2rdR2iHtztYDsXLG73ty0ci06UANYaZAd5XzpXiX4D9GqJGEI3wsDeNI1kcIwgRQJ6PBhUwf8qy3jRpX2LSMoAZIZ8x5Xzd1lpICNGJTKVP+KGBuHenJnJqM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=marvell.com; spf=pass smtp.mailfrom=marvell.com; dkim=pass (2048-bit key) header.d=marvell.com header.i=@marvell.com header.b=iL3Wnq4P; arc=none smtp.client-ip=67.231.156.173
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=marvell.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=marvell.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D8583CF94E
+	for <linux-rdma@vger.kernel.org>; Tue, 12 May 2026 16:31:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.128.179
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1778603470; cv=pass; b=VqcjclI5ST0GjYq+3XL4rp1OSPgpOjiZVlfxqiOT/DBgHqkLDfZUVSOkBBq6LKR9UtswVXnwK3VDF90q3iKlhQhn0DXCT90k7a7bvQwv2EGOdkKPmuJ45lGdluTAbG0IfqSUFQ4rgC+oDRF+RUnACgFR44MtaLb5d8k3VVV6yA8=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1778603470; c=relaxed/simple;
+	bh=KxbNz6KofZwplC6xddwMYtDl8wBQ5ksp1r4oiCLjhbM=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=o0Raq57ErEfouomlorYCSGm3PYjhm400znpch1kiBCD/fKlOgohPUPxVcL8gWIgCqRJD7sSETY9XdR2qzrhzPvYnX/e4KaX7eByNlQxtRCMCe6mPgwpQi55a1ipGT0tf3kliTTxixkIDD8hqGvL3Ndp7CZe4B1w5r7lr1ZeKOFA=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=DtX4F109; arc=pass smtp.client-ip=209.85.128.179
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=marvell.com header.i=@marvell.com header.b="iL3Wnq4P"
-Received: from pps.filterd (m0431383.ppops.net [127.0.0.1])
-	by mx0b-0016f401.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 64CEwdVV2086045;
-	Tue, 12 May 2026 09:27:50 -0700
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=marvell.com; h=
-	cc:content-type:date:from:in-reply-to:message-id:mime-version
-	:references:subject:to; s=pfpt0220; bh=xXulHHw/MC7noVVIykDiuU4TO
-	Uml7RgT8BW3cOD1fXI=; b=iL3Wnq4PetcbvpMOMDHDpWlzfDkaZivaglBSpx/Ic
-	h0kyCPN4i6VpSjgnjyFDC7uhisXzsPUebKCIED9dBOYlU343kUAusm0EnDpiuKEC
-	1n2RcR0a+u8Km4WbjsVMDWnTZG/63aLaIuATddZb81v/RGauEI49KFqEkcMq9M1s
-	Kai3cNa/0IvI4sCQz/oQnXqd6UpGMn09F4hAPArA4YVLUZuKpbm57U1orH4gVyrB
-	jK/qomHVV132DGQ2rnLxxhCi3ERL4TYtEfWBwl074BTbVkGiBVKIi6W/tjCJUN/S
-	4CpopW3hD0rQ/UijqNeRwNc8lQfrwj1O4/AEKSgSP90Og==
-Received: from dc5-exch05.marvell.com ([199.233.59.128])
-	by mx0b-0016f401.pphosted.com (PPS) with ESMTPS id 4e46epraqk-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Tue, 12 May 2026 09:27:50 -0700 (PDT)
-Received: from DC5-EXCH05.marvell.com (10.69.176.209) by
- DC5-EXCH05.marvell.com (10.69.176.209) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.25; Tue, 12 May 2026 09:27:48 -0700
-Received: from maili.marvell.com (10.69.176.80) by DC5-EXCH05.marvell.com
- (10.69.176.209) with Microsoft SMTP Server id 15.2.1544.25 via Frontend
- Transport; Tue, 12 May 2026 09:27:48 -0700
-Received: from rkannoth-OptiPlex-7090 (unknown [10.28.36.165])
-	by maili.marvell.com (Postfix) with SMTP id 40A6C3F7062;
-	Tue, 12 May 2026 08:54:41 -0700 (PDT)
-Date: Tue, 12 May 2026 21:24:39 +0530
-From: Ratheesh Kannoth <rkannoth@marvell.com>
-To: <linux-kernel@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
-        <netdev@vger.kernel.org>, <oss-drivers@corigine.com>,
-        <jiri@resnulli.us>
-CC: <akiyano@amazon.com>, <andrew+netdev@lunn.ch>,
-        <anthony.l.nguyen@intel.com>, <arkadiusz.kubalewski@intel.com>,
-        <brett.creeley@amd.com>, <darinzon@amazon.com>, <davem@davemloft.net>,
-        <donald.hunter@gmail.com>, <edumazet@google.com>, <horms@kernel.org>,
-        <idosch@nvidia.com>, <ivecera@redhat.com>, <jiri@resnulli.us>,
-        <kuba@kernel.org>, <leon@kernel.org>, <mbloch@nvidia.com>,
-        <michael.chan@broadcom.com>, <pabeni@redhat.com>,
-        <pavan.chebbi@broadcom.com>, <petrm@nvidia.com>,
-        <Prathosh.Satish@microchip.com>, <przemyslaw.kitszel@intel.com>,
-        <saeedm@nvidia.com>, <sgoutham@marvell.com>, <tariqt@nvidia.com>,
-        <vadim.fedorenko@linux.dev>
-Subject: Re: [PATCH v13 net-next 4/9] devlink: Implement devlink param multi
- attribute nested data values
-Message-ID: <agNNPy2FoA1CFGrG@rkannoth-OptiPlex-7090>
-References: <20260511033923.1301976-1-rkannoth@marvell.com>
- <20260511033923.1301976-5-rkannoth@marvell.com>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="DtX4F109"
+Received: by mail-yw1-f179.google.com with SMTP id 00721157ae682-7b4ee3a88e1so58896247b3.1
+        for <linux-rdma@vger.kernel.org>; Tue, 12 May 2026 09:31:08 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1778603467; cv=none;
+        d=google.com; s=arc-20240605;
+        b=F1MfJ7lxy3BjUG/fPUeDgSCCxO0JlxVIaRlisKAUOfydS0Kv5hDra64v9naNm2NRgO
+         Z0ueFaNazmd/4vyhaOE21rlrkmlzWdtLfUyrTb/BWMKgXDzfmLSTWEmD5dJOTOpygBVv
+         Rgz7ALOBQxTKzSsh3fCxjH2/Zl1vSoMZbbH2xFNpJy1M+FoTfxAZn7excZgDiwYA4g6R
+         pg2u+IKCK1vbrTm/BfDU9N4ZkFENrR8zeKIupEyjyAAI7teMRGloilDUClNRzTUdWDyj
+         JzM3jkGLz7gGL2Mewe4rGSIvUD1li+ts/8RHDZSnBO6Ram7Fo+4n/NjwV4+QTiHzP19S
+         kpOg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:dkim-signature;
+        bh=C1AfrbvRUgp18Ab7cnHdWQ5A8b69jjesb+Ro7fndglo=;
+        fh=m2FoEV9xZX/2zNZ8BidYb3ksl0OcB8+u5Dd79MbuR/M=;
+        b=cyVmB/AsuxDLfARlqJil6TcSby9QeWFLk2RALyB4mUXiCny287oqMNnHZujvw99FCM
+         g0NrX8XRk7o+bBUrWRC5ZGnuYq5k2WVBgoFRcQuBMOk0x+frhxqUIYOzJ6GWYE0mqegN
+         vAiX0Hmy77t617PypDQ1mhAlLmowjyFTYSdFh/XsHadkpvb3y2IIe/9pey3GIp5sUgiZ
+         7VOB3jHpxBe0z4xG9K05WYIMjoqg4ZL4kmWQP8x7EUHV6CQZs+7OTB6ZlwiqCYXNrYrL
+         g8trXfEntjRXJuQvL3cPXO6YIDSE7mQRNb3+AvybUSdHxaR5fAmAwIFGo64yXkv4bC/C
+         MS/g==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1778603467; x=1779208267; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=C1AfrbvRUgp18Ab7cnHdWQ5A8b69jjesb+Ro7fndglo=;
+        b=DtX4F109NAIvtCxbiu+RVbUwe794jH8DEbm28hqsVVUFSJqsh3DUjZ20RRgOmNg+tz
+         WZb7rPRZahtLObROKgD107KkE07uR6QVS8sDUrD4uD4dyB8Ywq6EX2RixGSlHI/n+56w
+         kQYaa2+L53VZg0YlXlrWxvF2MDUYfSkTpiz6KJlAa0RErIDb9jWxdM3okwPL4pwk6uOR
+         budZOwl7Wm+yapwb0+76fW/1Dx5+IHNtOmJDY/3FLvQ04/XlUe9KRXc0G3u7rci3Dql4
+         lfZKg/5cOkGviQj8Y9XnbHiW+5t9Q9vHT+Tt77A7V1FUl6aU1JPYjLEct9FXlB8En4iw
+         +24w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1778603467; x=1779208267;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=C1AfrbvRUgp18Ab7cnHdWQ5A8b69jjesb+Ro7fndglo=;
+        b=R6KbiJlKYcV7wGIs3W89HeCkUCcH7EBYtRciVZo195uekYzdbsLyNk+BnDyQOpocwJ
+         ZX9x30VfB/y4JKXoW/Lb5OMuHocGLn0InKZZ9+E988iSXyinw0N7kp0KXkxunb4iQf0d
+         yKOUShVXtzrJ3laSkuCGvHCeDpxxrNLHAxP2H2QtMM/8HV15fsrKUx4++gQAPw2NOV5w
+         STSGxAJ9BqhQoq6bKmK8FVRd8Js6QK5w1ur/FYQGtjo397fI2sreEOk9EvpdKj3yEk7Z
+         q95vJx9ciOv19Vf8BqMWjMDwr04m/HFvMtHmnmURSSVLhquyGuftuyP9ZZY+5HpvbBp0
+         +8Ng==
+X-Forwarded-Encrypted: i=1; AFNElJ9O9A3/lFtmtLBsfy4RZWia1tP+ZlGIy0U2cWvUE31UtByFmI5uU86Cznh8IJxEoL8Eixy3/9YSPe3X@vger.kernel.org
+X-Gm-Message-State: AOJu0YyMCtAQg9P18UGpgY+id9nuWC4X2TyUJWR8wxh45RQTe89egaE7
+	GaO9mQESKC1EKRKYdqjqFutXKF52aClMr0whRfkpMZW/OdVBif1XxUDJzuXcDgH/uyAY3nckYHB
+	JDcaUkg9UAGYi/O1Lwm3vzE9wn0KRCcQ=
+X-Gm-Gg: Acq92OF6EkraJjhTT5sWjJQIP7DoD0tiRVCzby/7FkooAGDRTmMaO0weiukEdz2inBm
+	I8W9u959ZiXnThmt7EjXqkLjxNfGr//SMld7ixXccImqzW9NFpMw7TQtb9UV35VNFq6GRZ6gRAZ
+	JdB7ySyAYASEk1pl8YiUrtk455biHlbiL5TeOhstutKLxkyIgcB9+1uKQDNOIWibcDbhxBw+5qQ
+	Xi117+HG0T3nq0WHkS4Yn1TRFYffuKtCrytSdFufVs8vyEoIoEJtk/sFoS08BK4JLfCJJimHNGL
+	G5gBcIZ8
+X-Received: by 2002:a05:690c:c4d3:b0:7bd:6114:4002 with SMTP id
+ 00721157ae682-7bdf5efc9a4mr317364907b3.40.1778603465678; Tue, 12 May 2026
+ 09:31:05 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <20260511033923.1301976-5-rkannoth@marvell.com>
-X-Proofpoint-GUID: 9uqlHyOr9Gzw71SII3R8MQ23GPKDmXcD
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNTEyMDE3MSBTYWx0ZWRfX3I6zMTQdlafd
- VzS7aYDP7tweiv9GiPNxLqo7w9RyGk6z5wl+/uUeIjsHYNZdQhjDrA1pR+ZbpkVu54Uw5euMZD6
- zAU4umbIWjftrbYegrjEAHDGjKv81uPyqqwQ/2rDGYqXoH3WYuDgbbbhskvFVpYWTqdpGWDqKc3
- O9UJRlAsk/+kJYc58VMAR2o3S4z4CHli5sQAiMvuTdlHlrJ1tGIz7O1erQp9aZktfJ/mHO3QJN7
- u4fBCnVazPTgoIwq9/ASUo47WZANxrZlONlQm3f8wFDg+47gDgZfmcx5315GWdy4e+ay5kZhkNS
- VD3Oz2AUzMOnRJRKkqD7AFqqrbAWmA9M7f0obtj9uSDIaqoBRenDIW5BATRf0VY42YCG7lotdL2
- Y1vTDxnWr61FfI5U/sUNcMp8vdrm1Ln25qqEt8Abo8FYH5x+UPxprQY6B6FZPk2axoNfQxmcMFc
- 4aTVy0ydzWzWPjNzDRw==
-X-Authority-Analysis: v=2.4 cv=ApDeGu9P c=1 sm=1 tr=0 ts=6a035506 cx=c_pps
- a=rEv8fa4AjpPjGxpoe8rlIQ==:117 a=rEv8fa4AjpPjGxpoe8rlIQ==:17
- a=kj9zAlcOel0A:10 a=NGcC8JguVDcA:10 a=VkNPw1HP01LnGYTKEx00:22
- a=l0iWHRpgs5sLHlkKQ1IR:22 a=qit2iCtTFQkLgVSMPQTB:22 a=VwQbUJbxAAAA:8
- a=M5GUcnROAAAA:8 a=Ikd4Dj_1AAAA:8 a=qnsy3ciE5cuyejZEVdQA:9 a=CjuIK1q_8ugA:10
- a=OBjm3rFKGHvpk9ecZwUJ:22 a=Oh551-UHZqmTy8JkqTUo:22
-X-Proofpoint-ORIG-GUID: 9uqlHyOr9Gzw71SII3R8MQ23GPKDmXcD
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1143,Hydra:6.1.51,FMLib:17.12.100.49
- definitions=2026-05-11_05,2026-05-08_02,2025-10-01_01
+References: <20260507095330.318892-1-tariqt@nvidia.com> <20260507095330.318892-3-tariqt@nvidia.com>
+ <CAMB2axOFQN2f=veYgeJs+4tbZmb9PuNHk03TH_bmE8UL_REd7w@mail.gmail.com>
+ <b1d3f9bc-a5d7-4236-8bda-49e6327ee533@nvidia.com> <CAMB2axPNhveQaDPs-ttu4uFcpvAfJCdzJ3d05HWQf4+p7uVUsg@mail.gmail.com>
+ <70d0b319-178f-4233-b0da-9618489a1dd6@nvidia.com> <CAMB2axPdqBUORn7Qy35Xccqbn+8aArZ-weegZyz=j0STh+iPNA@mail.gmail.com>
+ <6b7998e7-b2c1-4650-9564-679d647146cf@nvidia.com> <ef926d49-81d6-4d26-8d74-440d4a6bb8b1@nvidia.com>
+ <CAMB2axN6USwsGaUQWkL52G=9V=kSe2La_gE-ppOFLWbPCnaVKQ@mail.gmail.com> <47630ed4-3028-4716-816e-d4f803423b37@nvidia.com>
+In-Reply-To: <47630ed4-3028-4716-816e-d4f803423b37@nvidia.com>
+From: Amery Hung <ameryhung@gmail.com>
+Date: Tue, 12 May 2026 18:30:54 +0200
+X-Gm-Features: AVHnY4Iek3R7CeWvC2rdxFfQ-Vfu4nQJysvyR2_rH_vMG7nCcg0y19mJ0XmkmAg
+Message-ID: <CAMB2axMOWSsYGyuXOnCQUrpCTGJa_Yy5mKOxErX7N2x3BTLKbg@mail.gmail.com>
+Subject: Re: [PATCH net-next V6 2/3] net/mlx5e: Avoid copying payload to the
+ skb's linear part
+To: Dragos Tatulea <dtatulea@nvidia.com>
+Cc: Tariq Toukan <tariqt@nvidia.com>, Christoph Paasch <cpaasch@openai.com>, 
+	Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
+	Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller" <davem@davemloft.net>, 
+	Saeed Mahameed <saeedm@nvidia.com>, Mark Bloch <mbloch@nvidia.com>, Leon Romanovsky <leon@kernel.org>, 
+	netdev@vger.kernel.org, linux-rdma@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, Gal Pressman <gal@nvidia.com>, 
+	Daniel Borkmann <daniel@iogearbox.net>, Jesper Dangaard Brouer <hawk@kernel.org>, 
+	John Fastabend <john.fastabend@gmail.com>, Stanislav Fomichev <sdf@fomichev.me>, 
+	Alexei Starovoitov <ast@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 
-On 2026-05-11 at 09:09:18, Ratheesh Kannoth (rkannoth@marvell.com) wrote:
-> From: Saeed Mahameed <saeedm@nvidia.com>
+> That would work, but maybe with one less conditional:
 >
-> Devlink param value attribute is not defined since devlink is handling
-> the value validating and parsing internally, this allows us to implement
-> multi attribute values without breaking any policies.
+> if (!len)
+>         __pskb_pull_tail(skb, min(headlen, skb->data_len);
+> else if (len < ETH_HLEN)
+>         __pskb_pull_tail(skb, min(ETH_LEN - len, skb->data_len));
+>
+> Tariq suggested to make sure that we have an xdp selftest for this.
+> Will take it as a follow-up after this series.
+>
 
-Jiri,
+Sounds good. Make sense.
 
-Sashiko raised below issue.
-> diff --git a/net/devlink/param.c b/net/devlink/param.c
-> index 1a196d3a843db..4cc479bd019fd 100644
-> --- a/net/devlink/param.c
-> +++ b/net/devlink/param.c
-> @@ -252,6 +252,11 @@ devlink_nl_param_value_put(struct sk_buff *msg, enum devlink_param_type type,
->  				return -EMSGSIZE;
->  		}
->  		break;
-> +	case DEVLINK_PARAM_TYPE_U64_ARRAY:
-> +		for (int i = 0; i < val->u64arr.size; i++)
-Can this loop read out of bounds of val->u64arr.val[]?
-There is no bounds check against __DEVLINK_PARAM_MAX_ARRAY_SIZE. If
-val->u64arr.size contains garbage or a maliciously large value, this will read
-past the end of the u64arr.val array.
-Could this leak adjacent kernel memory to userspace via nla_put_uint()?
-> +			if (nla_put_uint(msg, nla_type, val->u64arr.val[i]))
-> +				return -EMSGSIZE;
-> +		break;
->  	}
->  	return 0;
->  }
-I had modified in v12 as per https://lore.kernel.org/netdev/3pk4hkzgwy3a55zveapgmk23bsevru55xv75vhkzbpmzkfofcx@rlnkrvynofig/
+Thanks,
+Amery
 
-Is it okay to incorperate the sashiko comment and modify as below ?
-
-@@ -252,6 +252,15 @@ devlink_nl_param_value_put(struct sk_buff *msg, enum devlink_param_type type,
-                                return -EMSGSIZE;
-                }
-                break;
-+       case DEVLINK_PARAM_TYPE_U64_ARRAY:
-+               for (int i = 0; i < val->u64arr.size; i++) {
-+                       if (i >= __DEVLINK_PARAM_MAX_ARRAY_SIZE)
-+                               return -EINVAL;
-+
-+                       if (nla_put_uint(msg, nla_type, val->u64arr.val[i]))
-+                               return -EMSGSIZE;
-+               }
-+               break;
-        }
-
+> Thanks,
+> Dragos
 >
