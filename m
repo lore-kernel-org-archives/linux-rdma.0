@@ -1,515 +1,237 @@
-Received: from mail-yx1-f50.google.com (mail-yx1-f50.google.com [74.125.224.50])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from pdx-out-001.esa.us-west-2.outbound.mail-perimeter.amazon.com (pdx-out-001.esa.us-west-2.outbound.mail-perimeter.amazon.com [44.245.243.92])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C207530E84A
-	for <linux-rdma@vger.kernel.org>; Tue, 12 May 2026 01:18:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.224.50
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778548728; cv=none; b=dQz6iJQMAf5+IgpioUPRC7inQiJ8jKzr2w5KUrPaxrYl/WnuNM9BzN+Q9436vKjFqTfyamjpPl6JZ0Q2dRKWHCQW4nlt1q8LX4C3gEokjSpYMr/wxNACQ8kKVUOn/+FJjWMIHzzwe/dPWhbDaRak38cJvmeI8vcKcXIR8FBi/k0=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778548728; c=relaxed/simple;
-	bh=epQpfK9MSdf9Lkqj78QKFmtwPQbQQ3QJ5WPjew3n+tk=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=KSRq9rgVFtRzrC/STwYaNJDdA2NS0et2ernQ9CDnNtCU8T4fOqbLlshDOkvzX9SK7weVVrGCLYCi4hgveIBSNRDYoXy15cd/vEq9NlBsvX21g5xGZi7h0MS20Ti23a19M72GiBuo9iCpAAcn/CVqRaw4VUWpEhxPQHkamGHIqXY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=rAst1Ifu; arc=none smtp.client-ip=74.125.224.50
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C05917083C;
+	Tue, 12 May 2026 01:43:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=44.245.243.92
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1778550219; cv=fail; b=Lb68j1TAej/BsYH9xJA8fm/6u3yuXPAiXRvJPjyHaMcnoH+LPDLnGbDHOIqJnofR+nh0ctNhjysntCeRJZke9ItXsWxWFnmpiG0SzVp4nSFyrhvXnWSJxEUXuIyfQMdiYCFsSrHzanHfjl5bNXQSHM3mZ9N/1Dl9IVTY2iBoqa0=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1778550219; c=relaxed/simple;
+	bh=XjimCataUWhMP/iiXqUEAmNOTKRATM27ElmPPRWsKEc=;
+	h=From:To:CC:Subject:Date:Message-ID:References:In-Reply-To:
+	 Content-Type:MIME-Version; b=i/CIMMiY3d1HJwU9BfqlHmjUo4nVZ+suisHSaqQSTWvmdObodN9IVu6iT2P25lCl5fLI76sHSc6jFaFdov2TqUn7LW6+bQ8YptF9w7KxfjtsXuRMKMEduUvFkLCdswtLBCNnlXcNcvQzeBkMuKS4NbaoRd5BVKS9ajw/M082Zq8=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com; spf=pass smtp.mailfrom=amazon.com; dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.b=e8kyPvBH; arc=fail smtp.client-ip=44.245.243.92
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazon.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="rAst1Ifu"
-Received: by mail-yx1-f50.google.com with SMTP id 956f58d0204a3-65d071aac6eso4486268d50.0
-        for <linux-rdma@vger.kernel.org>; Mon, 11 May 2026 18:18:28 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.b="e8kyPvBH"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1778548701; x=1779153501; darn=vger.kernel.org;
-        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
-         :mime-version:subject:date:from:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=JGlgGG0HcaZYFyQRM9KLJ9chCZP0emxdYmUdgJoNtbw=;
-        b=rAst1IfuGJ5CMSRhJSlOJK5BOhGGyGtAVUabei+sTp6fb1708r1aMRspQE/Eb0guyF
-         Pf0+NX+eKbAKVKeMYqckNKVOKDEfoLa+9nyaE7dMpWvnytAxtlK9Sam+gOBS40JySGpx
-         7RCIggMUNiRI1GnOe/5JLulrL1jSwlZAjkbM8Y8ZTdjYZbQQ3u5rJDx6lGu608YBjmKc
-         pOTSjqSal3wNnymvaYKo88AxaF3u+hpjjFP2+9x/VnEPFuBRoPm+zmWqwZTnJ2vJGmPt
-         9JvNqPbJjfIistG4jby3DfDnrCxIybb2eskQWLKNUkrXreJgVpog/D55XFt0Uw+0kGmh
-         rXGA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1778548701; x=1779153501;
-        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
-         :mime-version:subject:date:from:x-gm-gg:x-gm-message-state:from:to
-         :cc:subject:date:message-id:reply-to;
-        bh=JGlgGG0HcaZYFyQRM9KLJ9chCZP0emxdYmUdgJoNtbw=;
-        b=c5a12vPybslBj30HezlW5JOQTXIU0G/wqCG5iiZBsqOlcP4oZlMSTs+5xCU79DXGTq
-         5F7Syy8v9cAtR5VJ6yybcJfQzIJ0kSNeycBSOJtWsOqQfxmq5TLa6v0aRQSukVd1oLEK
-         fVGMNUIf6xAIZaBjoEDHGwkA3Oyxj9LFrImveQ/Rl3qdQtV7vhojBpvdD0F2YEp5pBBM
-         jolp3S/qv8JQrqVmYAhvlaFqbHXUXn6YBQHzPvn26n+wJQve3gbSd110kUFFGlGJu6rl
-         U1QtWytwFr+ebDdiVrm1zxWh8LyEgDIA2mdt7z+YxOaggecNs4INFEyVlype+qZiWZ5B
-         4piA==
-X-Forwarded-Encrypted: i=1; AFNElJ833Ex57zX3yPTN3o2JdrFdQ9jAhtwSm6AwbmPg0oNKSSHz2gn9QD6LoDzVsvLHGIwQ1cJFHwf2XSHE@vger.kernel.org
-X-Gm-Message-State: AOJu0Yy2i9SCMs0gCqwZpF8frts6MEV+50pKRTnNooNQQiCZGuD2q5JO
-	tjB508BTDawZtxhmZ6P6QnsAKJShvjQIFQJlRtAWGh12rgoodWUCjesK
-X-Gm-Gg: Acq92OGDS2CDWhG3AyeEWMlbzJfcqg3Eo6Hf6Wk8rfQUcZQe7iZ7kRnM2RNu0GW86U7
-	SQ6BVSd6kNzF3/1vAZjFIhi///Gf4qg7H/hnl2aLI+423+KwCss8XYtxl9wfXDvDph+KgbvYuN+
-	55pHZISoSNheVR6tmXKjRikoxhHobRhHbfLow8mW3vCpAyI0U8woIPpb8TKRjo9C24BeDXkSevC
-	+8bywsrUd60eDN2paNKha0pr2Jx88QWuudOjIv15opeO+y8dH7JF+7AEiHhmmy6QF0gXUcjgseT
-	DBo2qPD9QljWzMRxp34TXdWHw2VIjSXKAMNJ/0Q58Mt3Z0jTRGCGPMSYQLMxX21V+SsSZy+8IIq
-	aE9ehfYcvuNSrKiKoy3EF0nVZLnQR169IZLi0zN4i7Q/l7rO0PuM62UdvylpOq82W5FzBueWbtJ
-	14bn/yCzHfGnlwJipHnEUxtOVrECZ4sGg=
-X-Received: by 2002:a05:690e:d01:b0:654:63e0:d1d1 with SMTP id 956f58d0204a3-65c79d13383mr28050604d50.43.1778548701306;
-        Mon, 11 May 2026 18:18:21 -0700 (PDT)
-Received: from localhost ([2a03:2880:f806:7::])
-        by smtp.gmail.com with ESMTPSA id 956f58d0204a3-65d96a67a9bsm6120649d50.9.2026.05.11.18.18.20
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 11 May 2026 18:18:21 -0700 (PDT)
-From: Bobby Eshleman <bobbyeshleman@gmail.com>
-Date: Mon, 11 May 2026 18:18:00 -0700
-Subject: [PATCH net-next v4 6/8] selftests: drv-net: refactor devmem
- command builders into lib module
+  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazoncorp2;
+  t=1778550218; x=1810086218;
+  h=from:to:cc:subject:date:message-id:references:
+   in-reply-to:content-transfer-encoding:mime-version;
+  bh=TgrQoptPJOMk+3/YelMlT6lw1IIjms0D7V4QLjQBSjc=;
+  b=e8kyPvBH6K16FTvuQ37qCJHTPdzvDkmEu2n3tosLaxEXWqvYW9uMm2Oe
+   CHch8MCq2DhLeDaKbzBBqjUDQqpG50adeo8mGE7ifxUZt0/MXFJGhf9oH
+   nlolFKtsF5jClJXUzpykscRZyZxtnNMruyQ4h1yTSSy20xhg/kXCCc1SB
+   kYliNn4nNI3cozdjk+E7zc2ONfmAWEFKTHTbL3yOFl1cxZ0bf8957addV
+   azSAmQLIjHH2K/wH06dqulZddxD7Byflo/SFke97ZS35onSmHsOdvYu4g
+   yP9BScc3K5A5V2F7dWdXjtq7meoz+Xz0Mm1VEQcTfB5LJPxQW4sNKzres
+   g==;
+X-CSE-ConnectionGUID: qC2jb7K2QGut8SWrKzXYuw==
+X-CSE-MsgGUID: 2kSRl48ZRlad9m8p1wbS7Q==
+X-IronPort-AV: E=Sophos;i="6.23,230,1770595200"; 
+   d="scan'208";a="18918472"
+Received: from ip-10-5-0-115.us-west-2.compute.internal (HELO smtpout.naws.us-west-2.prod.farcaster.email.amazon.dev) ([10.5.0.115])
+  by internal-pdx-out-001.esa.us-west-2.outbound.mail-perimeter.amazon.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 May 2026 01:43:35 +0000
+Received: from EX19MTAUWA002.ant.amazon.com [205.251.233.178:30606]
+ by smtpin.naws.us-west-2.prod.farcaster.email.amazon.dev [10.0.41.42:2525] with esmtp (Farcaster)
+ id 16f33058-11ea-4cce-a63f-f86883926c34; Tue, 12 May 2026 01:43:35 +0000 (UTC)
+X-Farcaster-Flow-ID: 16f33058-11ea-4cce-a63f-f86883926c34
+Received: from EX19EXOUWA001.ant.amazon.com (10.250.64.209) by
+ EX19MTAUWA002.ant.amazon.com (10.250.64.202) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.37;
+ Tue, 12 May 2026 01:43:29 +0000
+Received: from EX19EXOUWC002.ant.amazon.com (10.250.64.172) by
+ EX19EXOUWA001.ant.amazon.com (10.250.64.209) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.37;
+ Tue, 12 May 2026 01:43:28 +0000
+Received: from PH0PR07CU006.outbound.protection.outlook.com (10.250.64.206) by
+ EX19EXOUWC002.ant.amazon.com (10.250.64.172) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.37
+ via Frontend Transport; Tue, 12 May 2026 01:43:28 +0000
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=zDEw4qLzs+c2ZLeuR2btJwJJ8YxWr3VjOQYy8DS4iGGoJzwtbqIdDGFoywCZWfeK8P6gLyuUek0p7c7kakMU6xlv3z0N9YojLLcQvyCKZI6NgiK0WCUWxoeMB9tfcfMLGzqqAm6Eqhsa8GGf/QVpIi9MhW+Uwobbdx3EjmcZpfgEVOLXhkGHtcitm6YSBChNQZsoqzj6zIebuti8b9hApD3DQvKJ949w2WT8kihvkwsef5cyDERTbM8yXmeX1eoGO0r+TqQj52o7r7VnehL6XVNdNmS/nRgoScAUd5d99selpV/A9WmNpeWXMCW5HTrRQkCvUiQBTo87TnkzNNvrtg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=TgrQoptPJOMk+3/YelMlT6lw1IIjms0D7V4QLjQBSjc=;
+ b=EUwsrmyC088MeZkSoEqRquI3oslAmj9w6nTAAC6atu/aY3B2E9Bx+J+GXsX0CGtM/kkF5S+8j5Nc89XsMP8zLTp8jtrgFWGAVxheFEUbTBU7K5noA/D51JTemUZOewYfB3zN4k9o8Ry2baTEgXNVybRlltjHVTpcsEu9D+jotNJvIPWFwnjv4gfJV9b7vbBivzEpFFAm5zJnin6FhaRPw31v8E7QFylLCL7rbNM+DISAL4o0iwyIKNQ9q30uu0IqWWcSudPwIrTuTT6iYx6AG2TMQ5rrHcfN3Lbc+t5xF/ahmv462Pn8kCRJfnofVeQq3xa+9l7+7HruQulCjs0USg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=amazon.com; dmarc=pass action=none header.from=amazon.com;
+ dkim=pass header.d=amazon.com; arc=none
+Received: from SA1PR18MB4664.namprd18.prod.outlook.com (2603:10b6:806:1d7::5)
+ by SJ0PR18MB3900.namprd18.prod.outlook.com (2603:10b6:a03:2e4::9) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9891.23; Tue, 12 May
+ 2026 01:43:25 +0000
+Received: from SA1PR18MB4664.namprd18.prod.outlook.com
+ ([fe80::972c:f0e:7126:9112]) by SA1PR18MB4664.namprd18.prod.outlook.com
+ ([fe80::972c:f0e:7126:9112%6]) with mapi id 15.20.9846.016; Tue, 12 May 2026
+ 01:43:25 +0000
+From: "Kiyanovski, Arthur" <akiyano@amazon.com>
+To: Ratheesh Kannoth <rkannoth@marvell.com>, "linux-kernel@vger.kernel.org"
+	<linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org"
+	<linux-rdma@vger.kernel.org>, "netdev@vger.kernel.org"
+	<netdev@vger.kernel.org>, "oss-drivers@corigine.com"
+	<oss-drivers@corigine.com>
+CC: "andrew+netdev@lunn.ch" <andrew+netdev@lunn.ch>,
+	"anthony.l.nguyen@intel.com" <anthony.l.nguyen@intel.com>,
+	"arkadiusz.kubalewski@intel.com" <arkadiusz.kubalewski@intel.com>,
+	"brett.creeley@amd.com" <brett.creeley@amd.com>, "Arinzon, David"
+	<darinzon@amazon.com>, "davem@davemloft.net" <davem@davemloft.net>,
+	"donald.hunter@gmail.com" <donald.hunter@gmail.com>, "edumazet@google.com"
+	<edumazet@google.com>, "horms@kernel.org" <horms@kernel.org>,
+	"idosch@nvidia.com" <idosch@nvidia.com>, "ivecera@redhat.com"
+	<ivecera@redhat.com>, "jiri@resnulli.us" <jiri@resnulli.us>,
+	"kuba@kernel.org" <kuba@kernel.org>, "leon@kernel.org" <leon@kernel.org>,
+	"mbloch@nvidia.com" <mbloch@nvidia.com>, "michael.chan@broadcom.com"
+	<michael.chan@broadcom.com>, "pabeni@redhat.com" <pabeni@redhat.com>,
+	"pavan.chebbi@broadcom.com" <pavan.chebbi@broadcom.com>, "petrm@nvidia.com"
+	<petrm@nvidia.com>, "Prathosh.Satish@microchip.com"
+	<Prathosh.Satish@microchip.com>, "przemyslaw.kitszel@intel.com"
+	<przemyslaw.kitszel@intel.com>, "saeedm@nvidia.com" <saeedm@nvidia.com>,
+	"sgoutham@marvell.com" <sgoutham@marvell.com>, "tariqt@nvidia.com"
+	<tariqt@nvidia.com>, "vadim.fedorenko@linux.dev" <vadim.fedorenko@linux.dev>
+Subject: RE: [PATCH v13 net-next 3/9] devlink: pass param values by pointer
+Thread-Topic: [PATCH v13 net-next 3/9] devlink: pass param values by pointer
+Thread-Index: AQHc4bCzty6BSnkPh02DvKlZIBfR/g==
+Date: Tue, 12 May 2026 01:43:14 +0000
+Deferred-Delivery: Tue, 12 May 2026 01:42:21 +0000
+Message-ID: <SA1PR18MB4664A2B6D163D6D694AD7780D9392@SA1PR18MB4664.namprd18.prod.outlook.com>
+References: <20260511033923.1301976-1-rkannoth@marvell.com>
+ <20260511033923.1301976-4-rkannoth@marvell.com>
+In-Reply-To: <20260511033923.1301976-4-rkannoth@marvell.com>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach:
+X-MS-TNEF-Correlator:
+authentication-results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=amazon.com;
+x-ms-publictraffictype: Email
+x-ms-traffictypediagnostic: SA1PR18MB4664:EE_|SJ0PR18MB3900:EE_
+x-ms-office365-filtering-correlation-id: 1ea65398-138e-4af6-3a86-08deafc7dbe2
+x-ms-exchange-senderadcheck: 1
+x-ms-exchange-antispam-relay: 0
+x-microsoft-antispam: BCL:0;ARA:13230040|7416014|376014|1800799024|366016|38070700021|3023799003|11063799003|56012099003|22082099003|18002099003;
+x-microsoft-antispam-message-info: SEwDbJWUoP+VPQx1LXmvwd0jyU/DE5nYeolX/DPiWzWxD3QPWb1rjkNUstx/U01kbcLh/ytRfJSpsy4ifHl8aYhvyTmSgvnFxthBL+OWjBlNExmpKIS845rOLwQrQPYN02iS5ofxYhip84djezdup1aCcZ9sTRTSVkSufurDOrRhPUOa0fpxvmBbBosH2Umhy/ETmg77QUPpcHZE/syqVqulpCrga70EQssHdkyP9lm14CfM9u5cWL5O5GV3p2GaUcQ4bmVqFQIw1zOjORKkWMNBv2rT4uR1oVA6xZSNEN605hJstoNGgOp4taodcjzZGGD2qGZqdafgRHISwKGg8EIYd5QYHd9RhTspC2itOO/+/4hlxZQ7Sj12ZevZEaAJCCv03MgfVsn072TaU+QEmQhTvg657PxFXGnQBCVWzPSgZF9ww9V8KKsGysX152bAWdjyJBeUTPnxP78bLWJhSBz3X5w2xmmIDa6PkOEU1NYwBzm7tKlOTmmQXkCDbiU/86mjRySUI24cEvEygtuynNUrL6clG6+hMZ1zAsF0PGjjKcFyqtoZgAbIdaUroMvnGlNoeqdg6fJA/jD2jWaV244PrvWLtrP+JYnfotKc+9YJaavENi0ypjP0Gh6VZqvWntjxRpf7mLks5G88AKSPb+fm1ZjHWOkpXZ8CmuTf3bfeuBHqBqmdPVyOSGvGhAVxxKbNrWZUx6aZ+Xyaj40GnSBangCsPsjHwce1JMmduL8GjT17jE9wE1BFW0qs/KBW
+x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SA1PR18MB4664.namprd18.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(7416014)(376014)(1800799024)(366016)(38070700021)(3023799003)(11063799003)(56012099003)(22082099003)(18002099003);DIR:OUT;SFP:1101;
+x-ms-exchange-antispam-messagedata-chunkcount: 1
+x-ms-exchange-antispam-messagedata-0: =?us-ascii?Q?wDJ10dr9g2TPlwcvp7x3kMVBd12J0RmyGgFYjYuy7HtVSXgDxVLBgHSjpfbW?=
+ =?us-ascii?Q?HAv0C35e6OYhlkThBQmkhqksXeJWWE33fxq09jkWxJ65rFrds4NRkoRgLJPf?=
+ =?us-ascii?Q?DSYFhZB1kC1fXSJwt/4e3tISVhOw/zu4Q4DSGomRJmHsOMuxYfHiEwTI1rfB?=
+ =?us-ascii?Q?BkYJCTLR6rH3s9wYVYvVVHx5xnvpJj9svUQOvZJ2qsIp2sx8qGwJy5Hfj4D8?=
+ =?us-ascii?Q?xv044jmnU37Q5+6rH6V8GG+uNpMGgo7QHB+636apiafmG228BzOCGJUCeHYp?=
+ =?us-ascii?Q?X+cJ27XpOuPBnAi4qcxZnfg2kp3axHPtNjeifrPEhjBeZhgO5uB+XevFAs+J?=
+ =?us-ascii?Q?yVLqJGUiwewDXcRexOtfN0sBENiI8F4K5zM41b1+Ee2uwrnmDFn7WfkX8hDJ?=
+ =?us-ascii?Q?gK62BkfHy0+2U0wO5EziH/l4/UugqBHDvh7OY7h4soZ/SUZk/HTO6ouXFaKs?=
+ =?us-ascii?Q?K/8b7NH+n9UsQh//KJ3aF8gHobBdRkxddX7wBbOXOKwGPXP5BBg+KdZqrVWJ?=
+ =?us-ascii?Q?hryWWUI6TOKMm6j1nCxY8H6oHUAoKnFxTljOLCfhL9SWn05LSaeKoiNwraH8?=
+ =?us-ascii?Q?Es7Ca+khqHt4f7Zf1gWFToMr+YiBwxHUTGOGdTor+m0oZwjoBCMY1uEHOsY3?=
+ =?us-ascii?Q?kuVbKMDAsqIYdvoQpXf/vqMDRpUf2ht9+rquvH2o0dRqCzVXxRwA5n7M+Lg3?=
+ =?us-ascii?Q?mOiBsCNviZ02CouwyZANi79VqJ6jc75R8ILd+hTUnPtdZczkibfaYN6JOTyZ?=
+ =?us-ascii?Q?Md93l5+wV4Tv/ZMuRzzC5rIAYiETDxL3mXF0xYGagpQcVXTuKCYOtf+jwEWz?=
+ =?us-ascii?Q?cXc9KREE2Xqn4Emnuuu3BPbyCGxLnqiTzuCwfDlYAcf79jVYjGjUIDPuYCZY?=
+ =?us-ascii?Q?rjdTep4SctQS4tWQ+07NB7WNM1hV4IKMYM6efjKtuFq12gSgUtfyWxT7KCwF?=
+ =?us-ascii?Q?EZKknPu30keJG38ECT4MdLllg7zHk2PvV6aUgILEkTsb21n2qVtxLWN9ozxL?=
+ =?us-ascii?Q?4b9yPYExeIMVbd7fBdLeZVfyWtlq6DivKjvGzQOLE5pfrU7j1OrjVN1xJZgr?=
+ =?us-ascii?Q?hSr8Yp/AQUQLrh+CNasRGteupayE5+Y0lRNs1cRrGRbfnRCEa/LFE2eev3Wn?=
+ =?us-ascii?Q?Lqn3AXez677N+ktuUoWECFkiCaly29CQHWkwMQNwlxNlwHxlcp+mpHbFzxOz?=
+ =?us-ascii?Q?4x6QBM1/havDb6iompn5VuMm5qzA8GatMTPWv81isBy7K5SLwHXqOUXobyt3?=
+ =?us-ascii?Q?lMe2pOYdUQgig8TsnWY2KNvqaG52VyR8g3fb63AS7sUYQqf5exYNtd+lManb?=
+ =?us-ascii?Q?5hM7An3uzwK65WWwRJMS0q8i9nSqoxUgLR3MK6/hKTGgTD9AkWbNgkSVJ4Wx?=
+ =?us-ascii?Q?AByccYrfPP4T8/h8qyNoRaC52Cjoh3QSrJbH3ccZqMtJh2gTIiAAyT1JPAZv?=
+ =?us-ascii?Q?cFKP+1dfDpVUe9LnhCRmAmrVaZCK4oKrDftci0I+dOOuMW2HWpu8zhDmbMTv?=
+ =?us-ascii?Q?ti6dP+V5Gtowix/9MQG1gFllY5egHZ6EKxkJnBLb9S/plmW/RMtTDnrUdDV5?=
+ =?us-ascii?Q?9WA5wMc49lSHmphQnEwyjF3Pp1SitxzT7VuoVb6lQ4cufF7hW/e3PyMHngIh?=
+ =?us-ascii?Q?ipL0PuO+MuFM7bM5H8FMrvZgafL4izjvlBvuNtupFhiF17/R7Dt+rQSzLKSV?=
+ =?us-ascii?Q?WJ6PgZ2zP2Yo6uBDO9pm2TEFgijvJCK6PpL34fpkCEDHaHhTEpGWpBnDSVuz?=
+ =?us-ascii?Q?V4oijPdd0Q=3D=3D?=
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20260511-tcp-dm-netkit-v4-6-841b78b99d74@meta.com>
-References: <20260511-tcp-dm-netkit-v4-0-841b78b99d74@meta.com>
-In-Reply-To: <20260511-tcp-dm-netkit-v4-0-841b78b99d74@meta.com>
-To: Andrew Lunn <andrew+netdev@lunn.ch>, 
- "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, 
- Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
- Simon Horman <horms@kernel.org>, Jonathan Corbet <corbet@lwn.net>, 
- Shuah Khan <skhan@linuxfoundation.org>, Alex Shi <alexs@kernel.org>, 
- Yanteng Si <si.yanteng@linux.dev>, Dongliang Mu <dzm91@hust.edu.cn>, 
- Michael Chan <michael.chan@broadcom.com>, 
- Pavan Chebbi <pavan.chebbi@broadcom.com>, 
- Joshua Washington <joshwash@google.com>, 
- Harshitha Ramamurthy <hramamurthy@google.com>, 
- Saeed Mahameed <saeedm@nvidia.com>, Tariq Toukan <tariqt@nvidia.com>, 
- Mark Bloch <mbloch@nvidia.com>, Leon Romanovsky <leon@kernel.org>, 
- Alexander Duyck <alexanderduyck@fb.com>, kernel-team@meta.com, 
- Daniel Borkmann <daniel@iogearbox.net>, 
- Nikolay Aleksandrov <razor@blackwall.org>, Shuah Khan <shuah@kernel.org>, 
- Andrew Lunn <andrew+netdev@lunn.ch>, 
- "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, 
- Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
- Simon Horman <horms@kernel.org>, Jonathan Corbet <corbet@lwn.net>, 
- Shuah Khan <skhan@linuxfoundation.org>, Alex Shi <alexs@kernel.org>, 
- Yanteng Si <si.yanteng@linux.dev>, Dongliang Mu <dzm91@hust.edu.cn>, 
- Michael Chan <michael.chan@broadcom.com>, 
- Pavan Chebbi <pavan.chebbi@broadcom.com>, 
- Joshua Washington <joshwash@google.com>, 
- Harshitha Ramamurthy <hramamurthy@google.com>, 
- Saeed Mahameed <saeedm@nvidia.com>, Tariq Toukan <tariqt@nvidia.com>, 
- Mark Bloch <mbloch@nvidia.com>, Leon Romanovsky <leon@kernel.org>, 
- Alexander Duyck <alexanderduyck@fb.com>, kernel-team@meta.com, 
- Daniel Borkmann <daniel@iogearbox.net>, 
- Nikolay Aleksandrov <razor@blackwall.org>, Shuah Khan <shuah@kernel.org>
-Cc: dw@davidwei.uk, sdf.kernel@gmail.com, mohsin.bashr@gmail.com, 
- willemb@google.com, jiang.kun2@zte.com.cn, xu.xin16@zte.com.cn, 
- wang.yaxin@zte.com.cn, netdev@vger.kernel.org, linux-doc@vger.kernel.org, 
- linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, 
- bpf@vger.kernel.org, linux-kselftest@vger.kernel.org, 
- Stanislav Fomichev <sdf@fomichev.me>, Mina Almasry <almasrymina@google.com>, 
- netdev@vger.kernel.org, linux-doc@vger.kernel.org, 
- linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, 
- bpf@vger.kernel.org, linux-kselftest@vger.kernel.org, 
- Bobby Eshleman <bobbyeshleman@meta.com>
-X-Mailer: b4 0.14.3
+X-Exchange-RoutingPolicyChecked: G4LdJ1q8ExgJ5THUiCKnVM8S02g5haO+eePB3dzMzRmtDPb+1zjBnxJwswP77wSfk/eq1ymaJD9fFvKDeBKQ2xCt4N4Ol2EFhOedQIunJCiePOgCozbPXlfq1+5b/+Yp71J1Pjxch+Eb8iTcZZTkcJ/Rv9YV1iAsepyM4/K2Osi6KbcPOJBDaNpxKkdqGRdXMe0Qc+YdEhimwcilv4ZltcuToqATGnAI4s+KwCzTXFxVd+acnEmJfO3aGQsOD+L33m6EEjnG3JKKsiL/Z6xnJiWmuG6fbbxITHyKDr5mWnY7hismp4GvyhG2Dh4XqMrI1yX88+TiMVdRFZTDym3eQw==
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-AuthSource: SA1PR18MB4664.namprd18.prod.outlook.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 1ea65398-138e-4af6-3a86-08deafc7dbe2
+X-MS-Exchange-CrossTenant-originalarrivaltime: 12 May 2026 01:43:25.5103
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: 5280104a-472d-4538-9ccf-1e1d0efe8b1b
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: 4LGpjpwiugmIB+WrAx58zdjf5DV6HEhoRN3oIINTI0BQuWV87I+HL+kiBEAS8yhAe83xqjHpRBveGTuJZ4Gf3g==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ0PR18MB3900
+X-OriginatorOrg: amazon.com
 
-From: Bobby Eshleman <bobbyeshleman@meta.com>
+> -----Original Message-----
+> From: Ratheesh Kannoth <rkannoth@marvell.com>
+> Sent: Sunday, May 10, 2026 8:39 PM
+>=20
+> union devlink_param_value grows substantially once U64 array parameters
+> are added to devlink (from 32 bytes to over 264 bytes).
+> devlink_nl_param_value_fill_one() and devlink_nl_param_value_put() copy
+> the union by value in several places. Passing two instances as value
+> arguments alone consumes over 528 bytes of stack; combined with deeper
+> call chains the parameter stack can approach 800 bytes and trip
+> CONFIG_FRAME_WARN more easily.
+>=20
+> Switch internal helpers and exported driver APIs to pass pointers to unio=
+n
+> devlink_param_value rather than passing the union by value.
+>=20
+> Signed-off-by: Ratheesh Kannoth <rkannoth@marvell.com>
+>
+>
+> diff --git a/drivers/net/ethernet/amazon/ena/ena_devlink.c
+> b/drivers/net/ethernet/amazon/ena/ena_devlink.c
+> index 4772185e669d..5ea9fef149aa 100644
+> --- a/drivers/net/ethernet/amazon/ena/ena_devlink.c
+> +++ b/drivers/net/ethernet/amazon/ena/ena_devlink.c
+> @@ -8,12 +8,12 @@
+>  #include "ena_phc.h"
+>=20
+>  static int ena_devlink_enable_phc_validate(struct devlink *devlink, u32 =
+id,
+> -                                          union devlink_param_value val,
+> +                                          union devlink_param_value
+> + *val,
+>                                            struct netlink_ext_ack *extack=
+)  {
+>         struct ena_adapter *adapter =3D ENA_DEVLINK_PRIV(devlink);
+>=20
+> -       if (!val.vbool)
+> +       if (!val->vbool)
+>                 return 0;
+>=20
+>         if (!ena_com_phc_supported(adapter->ena_dev)) { @@ -57,7 +57,7 @@
+> void ena_devlink_disable_phc_param(struct devlink *devlink)
+>         value.vbool =3D false;
+>         devl_param_driverinit_value_set(devlink,
+>                                         DEVLINK_PARAM_GENERIC_ID_ENABLE_P=
+HC,
+> -                                       value);
+> +                                       &value);
+>         devl_unlock(devlink);
+>  }
+>=20
+> @@ -151,7 +151,7 @@ static int ena_devlink_configure_params(struct
+> devlink *devlink)
+>         value.vbool =3D ena_phc_is_enabled(adapter);
+>         devl_param_driverinit_value_set(devlink,
+>                                         DEVLINK_PARAM_GENERIC_ID_ENABLE_P=
+HC,
+> -                                       value);
+> +                                       &value);
+>         devl_unlock(devlink);
+>=20
+>         return 0;
 
-Adding netkit-based devmem tests is a straight-forward copy of devmem
-test commands plus some args for the nk cases, so this patch breaks out
-these command builders into helpers used by both.
+Reviewed-by: Arthur Kiyanovski <akiyano@amazon.com> #for ena
 
-Though we tried to avoid libraries to avoid increasing the barrier of
-entry/complexity (see selftests/drivers/net/README.md, section "Avoid
-libraries and frameworks"), factoring out these functions seemed like
-the lesser of two evils in this case of using the same commands, just
-with slightly different args per environment.
-
-I experimented with just having all of the tests in the same file to
-avoid having helpers in a library file, but because ksft_run() is
-limited to a single call per file, and the new tests will require
-different environments (NetDrvContEnv/NetDrvEpEnv), it would have been
-necessary to have each test set up its own environment instead of
-sharing one for the entire ksft_run() run. This came at the cost of
-ballooning the test time (from under 5s to 30s on my test system), so to
-strike a balance these tests were placed in separate files so they could
-keep a shared environment across a single ksft_run() run shared across
-all tests using the same env type (introduced in subsequent patches).
-
-The helpers work transparently with both plain and netkit environments
-by inspecting cfg for netkit-specific attributes (netns, nk_queue,
-etc...).
-
-Acked-by: Stanislav Fomichev <sdf@fomichev.me>
-Signed-off-by: Bobby Eshleman <bobbyeshleman@meta.com>
----
-Changes in v4:
-- Fixed bad change list version, v4 -> v3 (Stan)
-
-Changes in v3:
-- Make socat_send() always bind the source; drop its bind= parameter
-  and the matching bind=not_ns at the run_rx call site.
-- Drop socat_send()'s nodelay= arg; have buf_size>0 imply TCP_NODELAY
-  since they are only meaningful together.
-- configure_nic(): stash originals on cfg instead of using defer(); add
-  paired cleanup_nic() helper. Drop the per-test configure_nic() calls
-  from run_rx/run_tx/run_tx_chunks/run_rx_hds; the netkit test file
-  invokes configure_nic/cleanup_nic once around ksft_run().
-- make cfg.devmem_supported and cfg.devmem_probed public attrs (no '_')
-  for sake of linting
-- general cleanup of the code, linting fixes
-- In setup_test, drop the unused cfg.listen_ns = getattr(cfg, 'netns',
-  None) assignment.
-- In run_rx, pass flow_steer=not_ns to ncdevmem_rx and bind=not_ns to
-  socat_send to avoid changing functionality (we want just a straight
-  refactor here)
-
-Changes in v2:
-- Move require_devmem() into individual test functions so KsftSkipEx goes up to
-  ksft_run() (Sashiko)
-- in ncdevmem_rx(), move -v 7 to take effect for both netns and
-  non-netns when verify=True
----
- tools/testing/selftests/drivers/net/hw/devmem.py   |  77 ++------
- .../selftests/drivers/net/hw/lib/py/devmem.py      | 218 +++++++++++++++++++++
- 2 files changed, 231 insertions(+), 64 deletions(-)
-
-diff --git a/tools/testing/selftests/drivers/net/hw/devmem.py b/tools/testing/selftests/drivers/net/hw/devmem.py
-index ee863e90d1e0..dbc1e6a27b6a 100755
---- a/tools/testing/selftests/drivers/net/hw/devmem.py
-+++ b/tools/testing/selftests/drivers/net/hw/devmem.py
-@@ -2,91 +2,40 @@
- # SPDX-License-Identifier: GPL-2.0
- 
- from os import path
--from lib.py import ksft_run, ksft_exit
--from lib.py import ksft_eq, KsftSkipEx
-+from lib.py import ksft_run, ksft_exit, ksft_disruptive
- from lib.py import NetDrvEpEnv
--from lib.py import bkg, cmd, rand_port, wait_port_listen
--from lib.py import ksft_disruptive
--
--
--def require_devmem(cfg):
--    if not hasattr(cfg, "_devmem_probed"):
--        probe_command = f"{cfg.bin_local} -f {cfg.ifname}"
--        cfg._devmem_supported = cmd(probe_command, fail=False, shell=True).ret == 0
--        cfg._devmem_probed = True
--
--    if not cfg._devmem_supported:
--        raise KsftSkipEx("Test requires devmem support")
-+from lib.py.devmem import setup_test, run_rx, run_tx, run_tx_chunks, run_rx_hds
- 
- 
- @ksft_disruptive
- def check_rx(cfg) -> None:
--    require_devmem(cfg)
--
--    port = rand_port()
--    socat = f"socat -u - TCP{cfg.addr_ipver}:{cfg.baddr}:{port},bind={cfg.remote_baddr}:{port}"
--    listen_cmd = f"{cfg.bin_local} -l -f {cfg.ifname} -s {cfg.addr} -p {port} -c {cfg.remote_addr} -v 7"
--
--    with bkg(listen_cmd, exit_wait=True) as ncdevmem:
--        wait_port_listen(port)
--        cmd(f"yes $(echo -e \x01\x02\x03\x04\x05\x06) | \
--            head -c 1K | {socat}", host=cfg.remote, shell=True)
--
--    ksft_eq(ncdevmem.ret, 0)
-+    """Run the devmem RX test."""
-+    run_rx(cfg)
- 
- 
- @ksft_disruptive
- def check_tx(cfg) -> None:
--    require_devmem(cfg)
--
--    port = rand_port()
--    listen_cmd = f"socat -U - TCP{cfg.addr_ipver}-LISTEN:{port}"
--
--    with bkg(listen_cmd, host=cfg.remote, exit_wait=True) as socat:
--        wait_port_listen(port, host=cfg.remote)
--        cmd(f"echo -e \"hello\\nworld\"| {cfg.bin_local} -f {cfg.ifname} -s {cfg.remote_addr} -p {port}", shell=True)
--
--    ksft_eq(socat.stdout.strip(), "hello\nworld")
-+    """Run the devmem TX test."""
-+    run_tx(cfg)
- 
- 
- @ksft_disruptive
- def check_tx_chunks(cfg) -> None:
--    require_devmem(cfg)
--
--    port = rand_port()
--    listen_cmd = f"socat -U - TCP{cfg.addr_ipver}-LISTEN:{port}"
--
--    with bkg(listen_cmd, host=cfg.remote, exit_wait=True) as socat:
--        wait_port_listen(port, host=cfg.remote)
--        cmd(f"echo -e \"hello\\nworld\"| {cfg.bin_local} -f {cfg.ifname} -s {cfg.remote_addr} -p {port} -z 3", shell=True)
--
--    ksft_eq(socat.stdout.strip(), "hello\nworld")
-+    """Run the devmem TX chunking test."""
-+    run_tx_chunks(cfg)
- 
- 
- def check_rx_hds(cfg) -> None:
--    """Test HDS splitting across payload sizes."""
--    require_devmem(cfg)
--
--    for size in [1, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192]:
--        port = rand_port()
--        listen_cmd = f"{cfg.bin_local} -L -l -f {cfg.ifname} -s {cfg.addr} -p {port}"
--
--        with bkg(listen_cmd, exit_wait=True) as ncdevmem:
--            wait_port_listen(port)
--            cmd(f"dd if=/dev/zero bs={size} count=1 2>/dev/null | " +
--                f"socat -b {size} -u - TCP{cfg.addr_ipver}:{cfg.baddr}:{port},nodelay",
--                host=cfg.remote, shell=True)
--
--        ksft_eq(ncdevmem.ret, 0, f"HDS failed for payload size {size}")
-+    """Run the HDS test."""
-+    run_rx_hds(cfg)
- 
- 
- def main() -> None:
-+    """Run the devmem test cases."""
-     with NetDrvEpEnv(__file__) as cfg:
--        cfg.bin_local = path.abspath(path.dirname(__file__) + "/ncdevmem")
--        cfg.bin_remote = cfg.remote.deploy(cfg.bin_local)
--
-+        setup_test(cfg, path.abspath(path.dirname(__file__) + "/ncdevmem"))
-         ksft_run([check_rx, check_tx, check_tx_chunks, check_rx_hds],
--                 args=(cfg, ))
-+                 args=(cfg,))
-     ksft_exit()
- 
- 
-diff --git a/tools/testing/selftests/drivers/net/hw/lib/py/devmem.py b/tools/testing/selftests/drivers/net/hw/lib/py/devmem.py
-new file mode 100644
-index 000000000000..d3e7a3645cba
---- /dev/null
-+++ b/tools/testing/selftests/drivers/net/hw/lib/py/devmem.py
-@@ -0,0 +1,218 @@
-+# SPDX-License-Identifier: GPL-2.0
-+"""Shared helpers for devmem TCP selftests."""
-+
-+import re
-+
-+from net.lib.py import (bkg, cmd, defer, ethtool, rand_port, wait_port_listen,
-+                        ksft_eq, KsftSkipEx, NetNSEnter, EthtoolFamily,
-+                        NetdevFamily)
-+
-+
-+def require_devmem(cfg):
-+    """Probe ncdevmem on cfg.ifname and SKIP the test if devmem isn't supported."""
-+    if not hasattr(cfg, "devmem_probed"):
-+        probe_command = f"{cfg.bin_local} -f {cfg.ifname}"
-+        cfg.devmem_supported = cmd(probe_command, fail=False, shell=True).ret == 0
-+        cfg.devmem_probed = True
-+
-+    if not cfg.devmem_supported:
-+        raise KsftSkipEx("Test requires devmem support")
-+
-+
-+def configure_nic(cfg):
-+    """Channels, rings, RSS, queue lease for netkit devmem."""
-+    cfg.require_ipver('6')
-+    ethnl = EthtoolFamily()
-+
-+    channels = ethnl.channels_get({'header': {'dev-index': cfg.ifindex}})
-+    channels = channels['combined-count']
-+    if channels < 2:
-+        raise KsftSkipEx(
-+            'Test requires NETIF with at least 2 combined channels'
-+        )
-+
-+    rings = ethnl.rings_get({'header': {'dev-index': cfg.ifindex}})
-+    cfg.orig_rx_rings = rings['rx']
-+    cfg.orig_hds_thresh = rings.get('hds-thresh', 0)
-+    cfg.orig_data_split = rings.get('tcp-data-split', 'unknown')
-+
-+    ethnl.rings_set({'header': {'dev-index': cfg.ifindex},
-+                     'tcp-data-split': 'enabled',
-+                     'hds-thresh': 0,
-+                     'rx': min(64, cfg.orig_rx_rings)})
-+
-+    cfg.src_queue = channels - 1
-+    ethtool(f"-X {cfg.ifname} equal {cfg.src_queue}")
-+
-+    with NetNSEnter(str(cfg.netns)):
-+        netdevnl = NetdevFamily()
-+        lease_result = netdevnl.queue_create({
-+            "ifindex": cfg.nk_guest_ifindex,
-+            "type": "rx",
-+            "lease": {
-+                "ifindex": cfg.ifindex,
-+                "queue": {"id": cfg.src_queue, "type": "rx"},
-+                "netns-id": 0,
-+            },
-+        })
-+        cfg.nk_queue = lease_result['id']
-+
-+
-+def cleanup_nic(cfg):
-+    """Undo configure_nic() by restoring RSS and ring settings."""
-+    ethtool(f"-X {cfg.ifname} default")
-+    EthtoolFamily().rings_set({'header': {'dev-index': cfg.ifindex},
-+                               'tcp-data-split': cfg.orig_data_split,
-+                               'hds-thresh': cfg.orig_hds_thresh,
-+                               'rx': cfg.orig_rx_rings})
-+
-+
-+def set_flow_rule(cfg, port):
-+    """Install a flow rule steering to src_queue and return the flow rule ID."""
-+    output = ethtool(
-+        f"-N {cfg.ifname} flow-type tcp6 dst-port {port}"
-+        f" action {cfg.src_queue}"
-+    ).stdout
-+    return int(re.search(r'ID (\d+)', output).group(1))
-+
-+
-+def ncdevmem_rx(cfg, port, verify=True, fail_on_linear=False, flow_steer=False):
-+    """Build the ncdevmem RX listener command."""
-+    if hasattr(cfg, 'netns'):
-+        flow_rule_id = set_flow_rule(cfg, port)
-+        defer(ethtool, f"-N {cfg.ifname} delete {flow_rule_id}")
-+
-+        ifname = cfg.nk_guest_ifname
-+        addr = cfg.nk_guest_ipv6
-+        extras = [f"-t {cfg.nk_queue}", "-q 1", "-n"]
-+    else:
-+        ifname = cfg.ifname
-+        addr = cfg.addr
-+        extras = []
-+        if flow_steer:
-+            extras.append(f"-c {cfg.remote_addr}")
-+
-+    if verify:
-+        extras.append("-v 7")
-+    if fail_on_linear:
-+        extras.append("-L")
-+
-+    parts = [cfg.bin_local, "-l", f"-f {ifname}", f"-s {addr}",
-+             f"-p {port}", *extras]
-+    return " ".join(parts)
-+
-+
-+def ncdevmem_tx(cfg, port, chunk_size=0):
-+    """Build the ncdevmem TX send command."""
-+    if hasattr(cfg, 'netns'):
-+        ifname = cfg.nk_guest_ifname
-+        addr = cfg.remote_addr_v['6']
-+        extras = ["-t 0", "-q 1", "-n"]
-+    else:
-+        ifname = cfg.ifname
-+        addr = cfg.remote_addr
-+        extras = []
-+
-+    if chunk_size:
-+        extras.append(f"-z {chunk_size}")
-+
-+    parts = [cfg.bin_local, f"-f {ifname}", f"-s {addr}",
-+             f"-p {port}", *extras]
-+    return " ".join(parts)
-+
-+
-+def socat_send(cfg, port, buf_size=0):
-+    """Socat command for sending to the devmem listener.
-+
-+    When buf_size > 0, force one TCP segment per write of exactly that size by
-+    setting socat's buffer (-b) and disabling Nagle (TCP_NODELAY).
-+    """
-+    proto = f"TCP{cfg.addr_ipver}"
-+
-+    if hasattr(cfg, 'netns'):
-+        addr = f"[{cfg.nk_guest_ipv6}]"
-+    else:
-+        addr = cfg.baddr
-+
-+    suffix = f",bind={cfg.remote_baddr}:{port}"
-+
-+    buf = ""
-+    if buf_size:
-+        buf = f"-b {buf_size}"
-+        suffix += ",nodelay"
-+
-+    return f"socat {buf} -u - {proto}:{addr}:{port}{suffix}"
-+
-+
-+def socat_listen(cfg, port):
-+    """Socat listen command for TX tests."""
-+    return f"socat -U - TCP{cfg.addr_ipver}-LISTEN:{port}"
-+
-+
-+def setup_test(cfg, bin_local):
-+    """Stash the local ncdevmem path on cfg and deploy it to the remote."""
-+    cfg.bin_local = bin_local
-+    cfg.bin_remote = cfg.remote.deploy(cfg.bin_local)
-+
-+
-+def run_rx(cfg):
-+    """Run the devmem RX test."""
-+    require_devmem(cfg)
-+    port = rand_port()
-+    socat = socat_send(cfg, port)
-+    data_pipe = (f"yes $(echo -e \x01\x02\x03\x04\x05\x06) | head -c 1K"
-+                 f" | {socat}")
-+    netns = getattr(cfg, "netns", None)
-+
-+    listen_cmd = ncdevmem_rx(cfg, port, flow_steer=not hasattr(cfg, 'netns'))
-+    with bkg(listen_cmd, exit_wait=True, ns=netns) as ncdevmem:
-+        wait_port_listen(port, proto="tcp", ns=netns)
-+        cmd(data_pipe, host=cfg.remote, shell=True)
-+    ksft_eq(ncdevmem.ret, 0)
-+
-+
-+def run_tx(cfg):
-+    """Run the devmem TX test."""
-+    require_devmem(cfg)
-+    netns = getattr(cfg, "netns", None)
-+    port = rand_port()
-+    tx_cmd = ncdevmem_tx(cfg, port)
-+    listen_cmd = socat_listen(cfg, port)
-+
-+    with bkg(listen_cmd, host=cfg.remote, exit_wait=True) as socat:
-+        wait_port_listen(port, host=cfg.remote)
-+        cmd(f"bash -c 'echo -e \"hello\\nworld\" | {tx_cmd}'", ns=netns, shell=True)
-+    ksft_eq(socat.stdout.strip(), "hello\nworld")
-+
-+
-+def run_tx_chunks(cfg):
-+    """Run the devmem TX chunking test."""
-+    require_devmem(cfg)
-+    netns = getattr(cfg, "netns", None)
-+    port = rand_port()
-+    tx_cmd = ncdevmem_tx(cfg, port, chunk_size=3)
-+    listen_cmd = socat_listen(cfg, port)
-+
-+    with bkg(listen_cmd, host=cfg.remote, exit_wait=True) as socat:
-+        wait_port_listen(port, host=cfg.remote)
-+        cmd(f"bash -c 'echo -e \"hello\\nworld\" | {tx_cmd}'", ns=netns, shell=True)
-+    ksft_eq(socat.stdout.strip(), "hello\nworld")
-+
-+
-+def run_rx_hds(cfg):
-+    """Run the HDS test by running devmem RX across a segment size sweep."""
-+    require_devmem(cfg)
-+    netns = getattr(cfg, "netns", None)
-+
-+    for size in [1, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192]:
-+        port = rand_port()
-+
-+        listen_cmd = ncdevmem_rx(cfg, port, verify=False,
-+                                 fail_on_linear=True)
-+        socat = socat_send(cfg, port, buf_size=size)
-+
-+        with bkg(listen_cmd, exit_wait=True, ns=netns) as ncdevmem:
-+            wait_port_listen(port, proto="tcp", ns=netns)
-+            cmd(f"dd if=/dev/zero bs={size} count=1 2>/dev/null | "
-+                f"{socat}", host=cfg.remote, shell=True)
-+        ksft_eq(ncdevmem.ret, 0, f"HDS failed for payload size {size}")
-
--- 
-2.53.0-Meta
-
+Thank you for the patch!
