@@ -1,55 +1,58 @@
 Received: from BL2PR02CU003.outbound.protection.outlook.com (mail-eastusazon11011052.outbound.protection.outlook.com [52.101.52.52])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 516CF30F806
-	for <linux-rdma@vger.kernel.org>; Wed, 13 May 2026 17:33:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 64D764DC520
+	for <linux-rdma@vger.kernel.org>; Wed, 13 May 2026 17:33:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.52.52
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778693618; cv=fail; b=RCmhnlxRqWjC4COZslF0xmW0UyRbr+SpZXsGNwwJgwyAQbG6h+UcGIOTPCTrS5VG1N2bUI7ewKnSuo0oBSuTaMyYiKXTFIkJpI58HGPiqhKI7U91ZA32N1lkOiezWGFOReW27HLeorrUNCBtroNJALkeiXzD0iV6j98FrLCREwM=
+	t=1778693620; cv=fail; b=daxUiAulqNsLY6epFt7L+3MmSG2JGXI84OJKfGtfp9jNhBnzFYHyGCVNUA7iSe13k3FQjE0DGfn6EKQrjcwojo2qMvn41UUw5hqTB9p3gn1sBpTFuS0CXbMKk2CG7e4GcbTZQG9gwqY180rSP09iMSXgcdf45y2c9aMEiDwrE2U=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778693618; c=relaxed/simple;
-	bh=uretPZ9QUOL2OFKzScWZ4b2aU/Zz4/4C2KX4iV2EQ68=;
-	h=From:To:Cc:Subject:Date:Message-ID:Content-Type:MIME-Version; b=sG8rPotl5jvx9vj3LrQbhhk3taTFcCFpWlrfsVgl5u/JKz/gW3f8Q/xEtWqO55o5ei0NTiFmsW/csq9rNeMcLQhNW6QggeyhpupCZmcym1VJ2+ihrdN7c5ckAFF0QO/EePspNBPQzbCzApXicE7cugLWYYmdMmxwy2ljL1beF3I=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=pf1UpGpi; arc=fail smtp.client-ip=52.101.52.52
+	s=arc-20240116; t=1778693620; c=relaxed/simple;
+	bh=6BzaNzeccxMgtah5oZ8amoT105wys9lzhxg1zsmepEU=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=b05u4TlY+l9mWiktsEP1mK46ksJLOY6Of1Y1is485o+zg0+hIIHm8HFPgCJu7cILPegAvijvOgf5w10agQMUdGPXLPKaroXqScF6bSEIxh2m89cxb8ukQ/w63JNE+GKkekBP6OhJU3vYJLTzxg0jaCP/iyS07/I+RfPpQS+Wv1Y=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=mziPDayH; arc=fail smtp.client-ip=52.101.52.52
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="pf1UpGpi"
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="mziPDayH"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=Tsx4Epzr1zDizoSDEAGQyG+nHChwMQh50uNqNLxEg2rjuCT72dFu4JWyd2iDBk/yLNcbH5Qi8dMBQwRzyQIxE61xJNK/N5Op8z5HqN3gPx4qqYfx/eDh41NiL98VZHuITq7pDE1dyDMosF7Tp8FEulVKMC/Rl3OTxSCtlY8Io09Z6Ebp5GGLqeRbt4KUiCJH9+n1R+4at7FN5fQw+4v7Gw4GhKjQ+LkflrBkNuTW8fo+vl3PGbYN+ec8pj79qY2YMzHFjuEzJnRrIZh9DtCLbjuinli8FwgyrR83Qf9KqFi0Ev/ksb2A7FyUMsn4R/WK30XKR8TpDdKhu3gi4sjuFQ==
+ b=CaZWyMRwF1/xDaFwTIp5yrPSuIkBKobMbglMslrZ8WY38h4ARO7r+GbrqI+GyYGZnH2fnjoL4nsoEGKRsXi17NXHIU4qUKPpnPSrD7eYO7HLCK+AKzsVh0i3w2Vq0Bk89EnTBnWn6RNTrhOaIccvuI4qCnXxGXJdM71RzEH65aUvd1hP03LN7mV3j/+GSlYt1QaU9+39vvOLmRUHnTSsziwhWVyDOLB8NdP3BndAA5egLXC3ehktrieGwIQdYk1pKn6Ve64PSeSj4c04bDY+bnC13jEYOjjwoii2ntZ+flpMXLNMvqb4wMi2anAFdluIv4RFYR9URcBKNxGXBtcgRg==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=Sr1z4VJ3JH2JrqpziiHpDSEPlpXXbORkueB+LkZWDLc=;
- b=rXKIwgzgNFfXWzITeoE62LVmx/dbypc+uJwxmGynt9Idduisqp9eNy8zljeJHnmXzf1sd/Y7JQk1h/cTZtvNE0BtiGQYfaWztljF73G8S4DtwQa/bGzL+ZL9QJCKc6lEssZob9LKLlU4Bo/jW9XGaso3/isqRcphhUIqE05oU3rtzZdvSyDBDs2RaFtRqFj1lkPASlVbOTg2Ly7fQdyHbMQIoSCZFzfFGqiZKpi68QQoKaWsVNODA29VtSzovTXGftn9K986quf2XE5TnpclGXAdDlxTllU26RrqkgrTKVCvMixNoLw1DqPaUYijCmP5hI4YS7xseMmtNOnbfnQkdw==
+ bh=TMfjD4ZoSax0NBv0eun+HLV91U+Z9GNYW5pBRMVdLss=;
+ b=AViqAQ9TKnGYVnSAcUEqK8j1W3gs+QreFta+Ih3wsby2astm+GtGM5Oj+36f8qFWY2AOW6Q7sFq8U4gDzNHbXpnH4T9qKv4GBRHTV2I6ui5w+QZAZoid0tv/KKyiFEMCpd+Qcxd0QwTJ2BfmlVUtiWsCpVi2e5cEdvJnbAlyv5hBJzNjvwcuQzY2lwuPlCnYGCjP6jSmWCWo0SIzhkdjylKfR+vvCPZVF5pXTygHs+w4Y43nc6HA/ci9qzn8hqXjxv13WMf7IocXBq6kABa35Yb1AAfs5+ar9AswQuxoafoNL7T2FEkCJYlj7VebrwpmwhPOnOSR45/YasPBtmpoGw==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
  dkim=pass header.d=nvidia.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=Sr1z4VJ3JH2JrqpziiHpDSEPlpXXbORkueB+LkZWDLc=;
- b=pf1UpGpiXKSxx9P9lihZv1q62b6T4StLZq6VFGSi7Qb7m6+wyYgiPHp8qtD+8e+w5mFfvfwSenMmBXkfQV9tPdCLKtFN2QGirwTSskJJS0NlanD9MsEWlg350izgeB7D7q1CT9+cQcLKxpM42dMoxBRJ0agV0nGuhuI+vTwUt0Ufnot2kvriVF/AWCrClNBD+3Kefp4ks8KDJO6/hUkAdl2CAq3CBJtYvGlxdbNTi2zLJdJx9voXqY6tYSigcuswFbj+KHPX8+BEFyZiAJDswvJRmVcSo1dY9HhnrYhfd2Fh8HEL6fRLX1pTeCi7x0iejSaNym0n03I3PLT9eQkGwg==
+ bh=TMfjD4ZoSax0NBv0eun+HLV91U+Z9GNYW5pBRMVdLss=;
+ b=mziPDayHbk9skRy9Z8iNFh2QZctCCRRqmtc0IWe+bSrnLaV5/S7hq/waDAj/wT+wp+3l/3X3mgc2AV06S451TR8xKze8kyaiM1iqv/1E8WX28PM6wqREiaw+uGtXGY+P69lIGTJIJUe/LzJx3fsjhWPgGi8Z+yPcEa9wT1vwe24tL3FgUJiSPFXE8RMu2NFB1hzh5So5sdREjJfDRSi3j7jmuTV3V7VcrZ8tDfQJQRvx5fKo1tmd0OzFBMwrqJdeiD08HcdROd0wyrwDxBre2kDVqTz7mv9dEdcI1OFjfna97/B3jzA96W9HELx7C/RuHU3BLiVcbXZQGxuCKfqRZQ==
 Authentication-Results: dkim=none (message not signed)
  header.d=none;dmarc=none action=none header.from=nvidia.com;
 Received: from LV8PR12MB9620.namprd12.prod.outlook.com (2603:10b6:408:2a1::19)
  by BL1PR12MB5852.namprd12.prod.outlook.com (2603:10b6:208:397::21) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9913.11; Wed, 13 May
- 2026 17:33:30 +0000
+ 2026 17:33:31 +0000
 Received: from LV8PR12MB9620.namprd12.prod.outlook.com
  ([fe80::299d:f5e0:3550:1528]) by LV8PR12MB9620.namprd12.prod.outlook.com
  ([fe80::299d:f5e0:3550:1528%5]) with mapi id 15.20.9913.009; Wed, 13 May 2026
- 17:33:29 +0000
+ 17:33:31 +0000
 From: Jason Gunthorpe <jgg@nvidia.com>
 To: Leon Romanovsky <leon@kernel.org>,
 	linux-rdma@vger.kernel.org
 Cc: Jiri Pirko <jiri@resnulli.us>,
 	patches@lists.linux.dev,
 	Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>
-Subject: [PATCH 0/6] Remove driver dependencies on ib_uverbs.ko
-Date: Wed, 13 May 2026 14:33:22 -0300
-Message-ID: <0-v1-045258567bd6+9fe-ib_uverbs_support_ko_jgg@nvidia.com>
+Subject: [PATCH 6/6] RDMA/core: Move flow related functions to ib_uverbs_support.ko
+Date: Wed, 13 May 2026 14:33:28 -0300
+Message-ID: <6-v1-045258567bd6+9fe-ib_uverbs_support_ko_jgg@nvidia.com>
+In-Reply-To: <0-v1-045258567bd6+9fe-ib_uverbs_support_ko_jgg@nvidia.com>
+References:
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
 X-ClientProxiedBy: MN0P222CA0004.NAMP222.PROD.OUTLOOK.COM
@@ -63,103 +66,251 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
 X-MS-TrafficTypeDiagnostic: LV8PR12MB9620:EE_|BL1PR12MB5852:EE_
-X-MS-Office365-Filtering-Correlation-Id: 0e4405d0-9b4d-48ee-7bd3-08deb115bf54
+X-MS-Office365-Filtering-Correlation-Id: 6de79288-527f-4dc6-1c17-08deb115bf6f
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|366016|376014|1800799024|18002099003|11063799003|56012099003;
+	BCL:0;ARA:13230040|366016|376014|1800799024|18002099003|22082099003|11063799003|56012099003;
 X-Microsoft-Antispam-Message-Info:
-	Y0Y/cnahSsGjjE3CROf9LnBWsrtv64enlH2Lnu+GJMTk1VK1T1gw9NuSgSsrK3GZucpvi63YjI2fHaRuzT17ICkAPTljZXkP5vXuhG8sTYAsIHBZRKyvtAxBiv4Z2+xzmyR5YxQgAb6Oz3Zm0EETYhLiGo5Cu8kjK1LmHeLEpMYD1x1UF731F92KJIN46b5GPmFbX9wqXMZ5kSBt4prLnND71ujpuvp7ju63BWH0ao3UnikJO5Jc9/+AvBnlsMTB41ytfvFFlisU39vNZg7q3O4v6D9t/HMpkmUuD54Y2RKYZbikzxp9G4MjFX+C7UhED1T69QgahgzgAv2asdb7lLhn7sSarn/osJNJvQFsHZWeeCJov0SVQDFCQ11agWZgXibh3Ys5GyUc3mNjpxtJmzgkKmFa6EDmxbuJBaQCrhqnXyYs8JeBVmKlEH0TptSW0md8p29j4FU77Ls2ABPyyqrFSFGC+tdbp3/Z1D+gnM0nUfa+/nA8fRuEmMyteLxzIVZQRaW6Gcr87j1kCasqFh9RfpFjaztET0RHUd0eFygh6Z8b6rrQfSykNqUdPmVh+FPZK9XbQm2/JM/hy5BMPv9AZ7sIOQ42ZOzobxmOJDB9MlWeL5lzB5TI5fmknNB9DJmuvje+cLfDZl8S69x2GmgjCyll1ptcXsU0qz+Vu0alxYsCHg9jBD+EfigFLmRZ
+	jGdAPoCiAxPQooTDuU1gk8AbRSEUSHSH5G0ZoLYNYfeTMh1/jO3R3Q9FXCv+bqy1hnK6ZXV/5xWwPIEuskVRWVDe/osVKVs/MQEcYFB2/gAZklvViYrMJiqUcV1QMNllgPSDw1qyU/D88TQK2txUoiYnBfmVLlf774Y63uVvqrKrMnJ17XNDCbgQvnSijpGlUtO7wVlxKI819Pcg00hvlom7r6Jk7hQwRIs2PABQoAZgp5oKSW4d0HZwumdYxLctHPbmytObTnHa3NgU+QJZQBUEamFUoSamI4QvSAvSQAapkgmxgxNVHyq7Tir+moshSiI9p+ShukpdRWB5/xALXiJY4EVcdlqQTr3+gIuKDaMJbWHB9eDt33odmgLoUKqflvLovVwV0mFg88VqpA5Z3LN8/CFAOK4891Rmzi7HglqxKKEeMOGHGqGVOEii72sXNH0cIkWjx6H8P3ibGMh4zAClfn0EoB5Ni9L1lJaeavJ+3wJCvvxaE+DQu35jjOdOXuvyUN7oqvWTdk0NrJlf4vsGc1+j9uTwFc6KVGoCTY078RNCqvSuzokqgMsZNxoo1fJ6hzTWHoLCfjaEl80yXdLZBZQ4OSrJnoBduwZoLEpyrKClq9bsfPRj4LlC7pBQHjl00aZIckUC0js87UhMvDglsjeGD5vEOzJIWamhfuRkk2qpvtZE3bp/WaEZ9GjN
 X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:LV8PR12MB9620.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(376014)(1800799024)(18002099003)(11063799003)(56012099003);DIR:OUT;SFP:1101;
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:LV8PR12MB9620.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(376014)(1800799024)(18002099003)(22082099003)(11063799003)(56012099003);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?GfkzP/PJNFuQ4E/BBYgRPe8MM7lOqzkg7ziBHIOcGxapcbr3hZ3kSGGF55zn?=
- =?us-ascii?Q?tWM/jVat6H6bfkg/nNvqXMgaOdj1uNQTbKj+2AqSpcvegtZxzfILeGS1b7NF?=
- =?us-ascii?Q?h41N2nwhH6Sl9GnAY7ZA1x0OEKI/jkF/agpure34Q4B9CQALSLlq5AG5cshV?=
- =?us-ascii?Q?sms5BcrekFIPW1BO/0iXPTYCdUKO/70mHsrGr8pcWB/BhaUKOil8JAhEGC/y?=
- =?us-ascii?Q?9zDqMXv2uurShImb231icaNGULem6FkF0DgWmrWPfCMvzzRfn9iX78TZ491r?=
- =?us-ascii?Q?x7Tbun67SoX6ZprWYBe45Xw+WTSRtTHJOpJ0zpxbEGiW7zjgyorI1hi6a6wi?=
- =?us-ascii?Q?P88sMVUH0spv9NOohQl3KPtjXIgghXAaYW1cDnpqQq1YVHVd3khW+6N4jg92?=
- =?us-ascii?Q?Zj++h5o7EPnnlDnuFW6012rQZG2qF1aqq4xjPCG1IUxVTizGYkxmTtnz6FWz?=
- =?us-ascii?Q?LfstdB9bPfCvNHczhJixuw6kJUIIWSrZEbcJDcIXsjuGdYyJNik1koabdu8B?=
- =?us-ascii?Q?mzTDwcrc5RY0fC+VU16Q09oEB/KszMjyFbqIQxQQFPcb8rkC+jfRid526mK4?=
- =?us-ascii?Q?B7Z23F9MarYK/pUS8x6OQrjRxPYUEK0xENGG/ZFh++1hbdJ5gFiw8PwapzGc?=
- =?us-ascii?Q?a4Q+y07aWOdk/yO6jUSqG8dr/kVNGMQ/1AdCMjFZfbYQD2coQDrSLNc2yhFY?=
- =?us-ascii?Q?k7cx6+n2O6FPI/AIb+cXCXZ3uDdB70J0ozU2Ze4TV0YyfG6FCYktcBTDBTF/?=
- =?us-ascii?Q?fWha5r6+duLDMvgajHkYbA/6Phl8/RFK/Juwgs6V1kujO1YE7YJDKMdydGJH?=
- =?us-ascii?Q?HpvtY/zyOJdyPNyNLBvgXFKIRea4pdRw/h9E8xtbudMbJuux5Z4SAqqkeLMm?=
- =?us-ascii?Q?CYACon5UiAVoSereA0YEK+1HdCZKOV17/sojFAy9CRbQ2uxbWpijpOZNRxfc?=
- =?us-ascii?Q?5RVEJG1F+zKcjChNjCDUiVcwUUxpOvDYrZNnsOMH2bWKdJo0ABDs9ewPjz2x?=
- =?us-ascii?Q?SBNH4So9KEzx0WnnYQGH/foJidQx6Ef0V5yUdcBEwdm3o8kCfwCeBSIvSjOl?=
- =?us-ascii?Q?GyJrDFjjVL3jlut5Qf3KMF/S1Wz6yMQyh0xktY3HzlZ37O4vS7JDGgVHA6qI?=
- =?us-ascii?Q?OAHejJjQE3Z5NslqzIiiDqRkanPP5ALVtOJtKOoTw8V+wKb2WspR/iZ+H9hc?=
- =?us-ascii?Q?gUA4y1a0RrzbEDMPKSWr3T3GnByv1RiaEWQE9h6mtd33wy0kk4v3niNdpb0s?=
- =?us-ascii?Q?8+kqNo4ZgKBvf0dqQgtrw6Pu20eNVzDUNUUviGlta+MJQQ4P1+Q/b0fyqjGT?=
- =?us-ascii?Q?Spm4WV8N6r/kLSqJCl4q/puwtYp1lG9CU/FLbqn5mXOpDSr6zct/xNncSSre?=
- =?us-ascii?Q?GK77rv0ezg5VtpQtbVqvpqjoSTztzZCuUENQbjnhPd4zMuRhhbXO7bxiAq1j?=
- =?us-ascii?Q?d9QBHYRdtzcZEXwMv2WSlVEoouiZ8ML5aDKGPGr17rHwH05tQMyIwUA1WR3Q?=
- =?us-ascii?Q?iQj1x80NLVwiG+KFr+iEdwNB1l4gRcJ7tuAb3sqQDq9wxSYrr2fNUqBpG3sb?=
- =?us-ascii?Q?lnEjxWcaRx71xao1MIZo2fV8BO/nd40/u8eiLeZA9JrasdFTokoUQzdPNL9b?=
- =?us-ascii?Q?e3uUQbXnan3BERXFd67vR9X3VXhbK8MlJHGgH+uYduFeflv/V3/xY05MSFVn?=
- =?us-ascii?Q?TQ/qABXqxcJtFPG79bSZpbkXratDVlpRwaznpGu9/1UkI7rb?=
+	=?us-ascii?Q?mt8tQVNGw16YHjl5zt7cwfmCyfezkWk18+Bi7/kyC2pRDUSa6mmHXFrRHgPz?=
+ =?us-ascii?Q?V4wYY+vrWTdS6Bz14//raKSa9wSMnovwXmbmA2794xxUv8axjlBX7oLPGJZZ?=
+ =?us-ascii?Q?Lh6JKCjcI2J+EtwOUuhcK0lqaTj05yGARPBnPKrRBWuzoxWp43f8IkJPHaa2?=
+ =?us-ascii?Q?7cTiOUWZHhMZr0XZAw2Ntyb6oIZjOPdmGOPtF7/PWvWafI0DzfhvlGd8WcWL?=
+ =?us-ascii?Q?ILiJNCoMmKq/tQdmSIjj9Scdppi+LkMyiWHd+DsW1CD17KcPbpYsC7XEaSwv?=
+ =?us-ascii?Q?6gQqZuARAfIYzrtWUF1Lm9KzUmYkxCi/Hzt422uRfDq6uzyY9Qx+oNmE5VJG?=
+ =?us-ascii?Q?z+TWWO7mJxAQhXL3giR/l8jH8rhur80sR4kUa7yGSFJB4l98IcXYXK85ooEf?=
+ =?us-ascii?Q?eVjxgultVTru9xxdeUiGus2j2DKzsHnJ/J+Yv7+SG6nBP3fbRSnzXlaMfWfi?=
+ =?us-ascii?Q?Orixrn9irWqGbICpG2+ccTXzg8nya1VZcQXziv1omY3ftkmAqA6K4gYfWCtJ?=
+ =?us-ascii?Q?fyl85uiDeEgEtYfNq4Py2QwXx11qSQyRvnY21K/N9fQbA5BHTrIHjnavl1Xl?=
+ =?us-ascii?Q?LZtIANIRAZy9Z1uljA4eeDLdb5NZoLhUghB0Gcsb0mvpFn1XulZGkjahp3u3?=
+ =?us-ascii?Q?YRq/r5R1F30J9Vo6rQ/ZQisx8Vq2TfaLI6ICjxf/YJfLYgNTB7cgkkneIyNL?=
+ =?us-ascii?Q?mYPFf2ah+kvYWTO7F2HizufbJkm4XUsbCTDoCJuDyKMCLeAgSli9ibqKWj2Y?=
+ =?us-ascii?Q?VaYdNQF2AmO0GXu+Mpnoo7ZO9zV2rgVqgCj9alAAovJYPqLKwcr3nZafxC95?=
+ =?us-ascii?Q?nPl6Te212PMjQEyIE4tcZ3cGnuxqwXIIxTyEJtCxDI+twK7NBXwbrXpxMDRD?=
+ =?us-ascii?Q?ZLFYVBkTlaBJN//vK6wlyEBl8R5LGu26uyBj3gH959Dq6hUz/Z9ZG/ti9s+o?=
+ =?us-ascii?Q?SFF4xWFGs8TscBEUGaNFlmn49nz20q/ZQohdHYhvyR9VE06XnZG1rw4B+zWf?=
+ =?us-ascii?Q?8AOmOL+9XDdxzM9vpLs0M8E36ROkyQ2Vh7gJNrRxfXy9L6YanluxdZvxN6wf?=
+ =?us-ascii?Q?iCx/z4jAustGkjSGiAJBP+wfk12R+y+fgEvohiVfmmHYQsyX018vWA3yVwa+?=
+ =?us-ascii?Q?+NlxhUIvw/LuyP/4uuKTDspBAxSQVo1zf2HtLyL4rXMJ9i3TB7X0yp8/24BA?=
+ =?us-ascii?Q?FNqj0RmIbwM1CUdwI9MUg6UvOlJavqxuWbcXPoiv40lNNkRav1KUYj9sBCDs?=
+ =?us-ascii?Q?3OGS92egse7Gmy3Fc7yhgh7UzMb/HemzMjKyvTQUDAwzOMWAhZpCrl968LhH?=
+ =?us-ascii?Q?YG6u7ZO7uOZ39mz2tDfdFPbRvnzJq37JA9vXbGvOstmmbVk5gZYEmrOmPMKq?=
+ =?us-ascii?Q?XFHbGaoIazpBJ8vNcXoLKRn1nj2CpEByQrTpeTzfeFT07JV26TBqcLrz+KEO?=
+ =?us-ascii?Q?FTMljQ/WAevpvmvvb8V/Xucy6/EMqEEPODUm2tn/M+YM0r8a7CQhP17yEll4?=
+ =?us-ascii?Q?ZPA1Gl0M++fvpjR1BjPVzNQKE/JAmtAsUoa1Av+is4ZROZdZ0t6AbYxkmW9i?=
+ =?us-ascii?Q?jbRDPfIjzA9L76+BQ7eDNz1YaLX7UQCjBxQnsHdxKPLPv9PpTptT2kAQa65s?=
+ =?us-ascii?Q?Dg/kFLwebwHcVmuDiVfra7imksqEaLPih/AffhO3WdUzz2fKljgPMf7ER3+/?=
+ =?us-ascii?Q?/SahVxfEkzqtglaa05V2zC3caOxOnHZDQliVfTe0yG4oreci?=
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 0e4405d0-9b4d-48ee-7bd3-08deb115bf54
+X-MS-Exchange-CrossTenant-Network-Message-Id: 6de79288-527f-4dc6-1c17-08deb115bf6f
 X-MS-Exchange-CrossTenant-AuthSource: LV8PR12MB9620.namprd12.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 13 May 2026 17:33:29.9202
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 13 May 2026 17:33:30.0575
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: jc2Nt06vM1+1e6fXLPweCYauzKBvoLGE4kOeitWVnciWnbkFTA7DApbA7LoiRXl6
+X-MS-Exchange-CrossTenant-UserPrincipalName: FEoOtu6B/Zr061OegyoVyR2zJFoZwi0E4auOI/7nWgSt/y+hrGXtN5fo/+aw3Bxr
 X-MS-Exchange-Transport-CrossTenantHeadersStamped: BL1PR12MB5852
 
-The original design was for user facing modules like ib_uverbs to be
-independently loadable, if the user didn't want to have those char devs
-then they could block the module.
+mlx5 uses these as part of the driver implementation, move them to the
+support module instead.
 
-This has slowly gotten degraded over time and right now every driver is
-depending on ib_uverbs.ko. Fixup everything except
-rdma_user_mmap_disassociate() in hns by moving coding around and adding a
-new module ib_uverbs_support.ko to hold the dirver functions without any
-of the uverbs cdev code.
-
-After this series mlx5_ib and bnxt_re will use ib_uverbs_support.ko.
-
-The first patch should go to rc
-
-Jason Gunthorpe (6):
-  RDMA/core: Move the _ib_copy_validate_udata* functions to
-    ib_core_uverbs
-  RDMA/core: Move many of the little EXPORTs from uverbs_ioctl into
-    ib_core_uverbs
-  RDMA/core: Remove uverbs_async_event_release()
-  RDMA/core: Make a new module for the uverbs components needed by
-    drivers
-  RDMA/core: Move ucaps into ib_uverbs_support.ko
-  RDMA/core: Move flow related functions to ib_uverbs_support.ko
-
- drivers/infiniband/core/Makefile              |  13 +-
- drivers/infiniband/core/ib_core_uverbs.c      | 305 ++++++++++++++++
- drivers/infiniband/core/rdma_core.c           | 150 ++++----
- drivers/infiniband/core/rdma_core.h           |   1 -
- drivers/infiniband/core/ucaps.c               |   6 +-
- drivers/infiniband/core/uverbs.h              |  60 +++-
- drivers/infiniband/core/uverbs_cmd.c          |  76 ----
- drivers/infiniband/core/uverbs_flow.c         |  78 +++++
- drivers/infiniband/core/uverbs_ioctl.c        | 326 ------------------
- drivers/infiniband/core/uverbs_main.c         | 127 +++----
- drivers/infiniband/core/uverbs_std_types.c    |   6 -
- .../core/uverbs_std_types_async_fd.c          |  22 +-
- drivers/infiniband/core/uverbs_uapi.c         |  13 +
- include/rdma/ib_ucaps.h                       |   1 -
- include/rdma/uverbs_types.h                   |   8 +-
- 15 files changed, 628 insertions(+), 564 deletions(-)
+Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
+---
+ drivers/infiniband/core/Makefile      |  3 +-
+ drivers/infiniband/core/uverbs_cmd.c  | 76 --------------------------
+ drivers/infiniband/core/uverbs_flow.c | 78 +++++++++++++++++++++++++++
+ 3 files changed, 80 insertions(+), 77 deletions(-)
  create mode 100644 drivers/infiniband/core/uverbs_flow.c
 
-
-base-commit: 254f49634ee16a731174d2ae34bc50bd5f45e731
+diff --git a/drivers/infiniband/core/Makefile b/drivers/infiniband/core/Makefile
+index 697468cf88b16f..69f72b63e961ab 100644
+--- a/drivers/infiniband/core/Makefile
++++ b/drivers/infiniband/core/Makefile
+@@ -48,4 +48,5 @@ ib_uverbs-y :=			uverbs_main.o uverbs_cmd.o uverbs_marshall.o \
+ 				uverbs_std_types_qp.o
+ 
+ ib_uverbs_support-y :=		rdma_core.o \
+-				ucaps.o
++				ucaps.o \
++				uverbs_flow.o
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index a768436ba46805..fce6eb18287a19 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -2589,82 +2589,6 @@ static int ib_uverbs_detach_mcast(struct uverbs_attr_bundle *attrs)
+ 	return ret;
+ }
+ 
+-struct ib_uflow_resources *flow_resources_alloc(size_t num_specs)
+-{
+-	struct ib_uflow_resources *resources;
+-
+-	resources = kzalloc_obj(*resources);
+-
+-	if (!resources)
+-		return NULL;
+-
+-	if (!num_specs)
+-		goto out;
+-
+-	resources->counters =
+-		kzalloc_objs(*resources->counters, num_specs);
+-	resources->collection =
+-		kzalloc_objs(*resources->collection, num_specs);
+-
+-	if (!resources->counters || !resources->collection)
+-		goto err;
+-
+-out:
+-	resources->max = num_specs;
+-	return resources;
+-
+-err:
+-	kfree(resources->counters);
+-	kfree(resources);
+-
+-	return NULL;
+-}
+-EXPORT_SYMBOL(flow_resources_alloc);
+-
+-void ib_uverbs_flow_resources_free(struct ib_uflow_resources *uflow_res)
+-{
+-	unsigned int i;
+-
+-	if (!uflow_res)
+-		return;
+-
+-	for (i = 0; i < uflow_res->collection_num; i++)
+-		atomic_dec(&uflow_res->collection[i]->usecnt);
+-
+-	for (i = 0; i < uflow_res->counters_num; i++)
+-		atomic_dec(&uflow_res->counters[i]->usecnt);
+-
+-	kfree(uflow_res->collection);
+-	kfree(uflow_res->counters);
+-	kfree(uflow_res);
+-}
+-EXPORT_SYMBOL(ib_uverbs_flow_resources_free);
+-
+-void flow_resources_add(struct ib_uflow_resources *uflow_res,
+-			enum ib_flow_spec_type type,
+-			void *ibobj)
+-{
+-	WARN_ON(uflow_res->num >= uflow_res->max);
+-
+-	switch (type) {
+-	case IB_FLOW_SPEC_ACTION_HANDLE:
+-		atomic_inc(&((struct ib_flow_action *)ibobj)->usecnt);
+-		uflow_res->collection[uflow_res->collection_num++] =
+-			(struct ib_flow_action *)ibobj;
+-		break;
+-	case IB_FLOW_SPEC_ACTION_COUNT:
+-		atomic_inc(&((struct ib_counters *)ibobj)->usecnt);
+-		uflow_res->counters[uflow_res->counters_num++] =
+-			(struct ib_counters *)ibobj;
+-		break;
+-	default:
+-		WARN_ON(1);
+-	}
+-
+-	uflow_res->num++;
+-}
+-EXPORT_SYMBOL(flow_resources_add);
+-
+ static int kern_spec_to_ib_spec_action(struct uverbs_attr_bundle *attrs,
+ 				       struct ib_uverbs_flow_spec *kern_spec,
+ 				       union ib_flow_spec *ib_spec,
+diff --git a/drivers/infiniband/core/uverbs_flow.c b/drivers/infiniband/core/uverbs_flow.c
+new file mode 100644
+index 00000000000000..1528a294f7f85f
+--- /dev/null
++++ b/drivers/infiniband/core/uverbs_flow.c
+@@ -0,0 +1,78 @@
++// SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB
++#include "uverbs.h"
++
++struct ib_uflow_resources *flow_resources_alloc(size_t num_specs)
++{
++	struct ib_uflow_resources *resources;
++
++	resources = kzalloc_obj(*resources);
++
++	if (!resources)
++		return NULL;
++
++	if (!num_specs)
++		goto out;
++
++	resources->counters =
++		kzalloc_objs(*resources->counters, num_specs);
++	resources->collection =
++		kzalloc_objs(*resources->collection, num_specs);
++
++	if (!resources->counters || !resources->collection)
++		goto err;
++
++out:
++	resources->max = num_specs;
++	return resources;
++
++err:
++	kfree(resources->counters);
++	kfree(resources);
++
++	return NULL;
++}
++EXPORT_SYMBOL(flow_resources_alloc);
++
++void ib_uverbs_flow_resources_free(struct ib_uflow_resources *uflow_res)
++{
++	unsigned int i;
++
++	if (!uflow_res)
++		return;
++
++	for (i = 0; i < uflow_res->collection_num; i++)
++		atomic_dec(&uflow_res->collection[i]->usecnt);
++
++	for (i = 0; i < uflow_res->counters_num; i++)
++		atomic_dec(&uflow_res->counters[i]->usecnt);
++
++	kfree(uflow_res->collection);
++	kfree(uflow_res->counters);
++	kfree(uflow_res);
++}
++EXPORT_SYMBOL(ib_uverbs_flow_resources_free);
++
++void flow_resources_add(struct ib_uflow_resources *uflow_res,
++			enum ib_flow_spec_type type,
++			void *ibobj)
++{
++	WARN_ON(uflow_res->num >= uflow_res->max);
++
++	switch (type) {
++	case IB_FLOW_SPEC_ACTION_HANDLE:
++		atomic_inc(&((struct ib_flow_action *)ibobj)->usecnt);
++		uflow_res->collection[uflow_res->collection_num++] =
++			(struct ib_flow_action *)ibobj;
++		break;
++	case IB_FLOW_SPEC_ACTION_COUNT:
++		atomic_inc(&((struct ib_counters *)ibobj)->usecnt);
++		uflow_res->counters[uflow_res->counters_num++] =
++			(struct ib_counters *)ibobj;
++		break;
++	default:
++		WARN_ON(1);
++	}
++
++	uflow_res->num++;
++}
++EXPORT_SYMBOL(flow_resources_add);
 -- 
 2.43.0
 
