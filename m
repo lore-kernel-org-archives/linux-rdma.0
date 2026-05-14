@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9395C3B9DA8;
-	Thu, 14 May 2026 04:33:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3F1703BD649;
+	Thu, 14 May 2026 04:33:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778733216; cv=none; b=KYX14TILud9KweXDXVVl0SR6ULq8dvp7KrNhtXF0uB5VAllnELFnIZgDBkOc4CLpa++9O3//wHyblCO+o5bGkq441xCjTQvZXGBwVra8d3NZslYDrgpxHvNbHdV3+AhTm9awLPP4vilUrPyHmIdcX1BIcGpukg2yeGHcxfANkoY=
+	t=1778733217; cv=none; b=uLb3onZYhU4kdRfqUmN5WUYPHjjuaiMKyaQ5fjmjxCPXRBpM6StaiVtb3jSAT2rtKf0XI6MwleEHpsr3xOVC+MrGhIKde3NZxSMuyMZFzvOBFuYV10wf/acUDGd4mDdGQrr6VhBcCL1hZ11sntFhsyg/w3r3Hbi1Szcbcsiiz34=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778733216; c=relaxed/simple;
-	bh=qu9Ckvx3+OnLFi9o/k6rT6dElt8Zc9m4Dcn8OR4P9Tg=;
+	s=arc-20240116; t=1778733217; c=relaxed/simple;
+	bh=1cS471sQ6cV0xIneYJ70VZJLWpSMrqqCC7DYpcUq/3w=;
 	h=From:To:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=YGacG4lbiZD9U8sRzcEUnkwkXXz990WCF3dPxe1wlexo0sZoASiJjVa3o9FUdGnzvT7SN60g87vPtG+TdJZNKtJAG1EL8fAtXxV+U/rZ2kMBgbusjdv/qhFPuBWZmvicf9qGOi5kp0VS/ySQGnzcdHpixkzxpEk3IX/lOtGq58E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=SMe5GRn6; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=Tlv9N/jFLbiFxSJ5gC3ejOGtSTF1g1iPS03hnFuTCPkecnx5on1bqFsdEaMkqXUcOWObmlYzY7ya5Ez0cPcMWmW3S0mYnFZMyItmkFlxGsTtc5c+2b1oIbxzjVuKlbMPox3w0Z3r8UnyOghHHKqXtxUADM/pboIMC0bnJzdzU9c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=rQcYNz2+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="SMe5GRn6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DEF4BC2BCB7;
-	Thu, 14 May 2026 04:33:35 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="rQcYNz2+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 98635C2BCC6;
+	Thu, 14 May 2026 04:33:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1778733216;
-	bh=qu9Ckvx3+OnLFi9o/k6rT6dElt8Zc9m4Dcn8OR4P9Tg=;
+	s=k20201202; t=1778733217;
+	bh=1cS471sQ6cV0xIneYJ70VZJLWpSMrqqCC7DYpcUq/3w=;
 	h=From:To:Subject:Date:In-Reply-To:References:From;
-	b=SMe5GRn6X2ymgo7lSpokpVn9HTSI52+W5SRd+Axcozl8sTqpW/CP/A3MTz/oCKO1y
-	 mOvVpC9PcuggdNfMsFKcJB3PbYrpM59oAAs1CZvHPzEmTijI6mQb1m1DkfhmDN326S
-	 HQy5Ttzpq/PreYw9tZOp5Ozwy8cH5APAspuEChTQX3MsfPQZgoL4oojZsySeFkFZN2
-	 RFXOnTsBcf8eh5jWRqaOfwhXSSdwsLk7d7VJFD9W3ZmCU07JKQDdeWyIyvnL2PlCPV
-	 wpUFFN7VeawQRFxNZU4j07Zan4lLbLCNKCJhdB2dHh3E5CjO4tsmuMOCBJiJfiszQC
-	 Khl2+LsL+EQlw==
+	b=rQcYNz2+84B0iR/Iv1bbK/S/HtPbNA4jfc3DKtnAKAoj2URK1N792ueZGbiirrKWj
+	 Syena7ec/zY5WBRI6lZvXCGJ0bnX/khWRYApw3CKiOVJaDBOkZaOkg0DobM20pyUIl
+	 7wj3Ct/HFeyMxdeS9n6YU4oLn/Sw4Qna/hZy9jXfjzARqt6ngNNOGqg6OKvneilqMP
+	 8YOPMYL3kQEe7/N+HfiO8ML/GVlCCRCvsM8UP3So17kjJB+XanNJT7+0MAgKcdms9w
+	 K10sD1lRj2avTwfiPVBLAwJQu6AmiqYJEp4IH3wy0ApQUAaIcfJIxEFmjK4SnjiWzW
+	 nsIJLmXXvvqbw==
 From: Allison Henderson <achender@kernel.org>
 To: netdev@vger.kernel.org,
 	pabeni@redhat.com,
@@ -36,9 +36,9 @@ To: netdev@vger.kernel.org,
 	achender@kernel.org,
 	linux-kselftest@vger.kernel.org,
 	shuah@kernel.org
-Subject: [PATCH net-next v2 6/9] selftests: rds: Add helper function snd_rcv_packets() in test.py
-Date: Wed, 13 May 2026 21:33:27 -0700
-Message-Id: <20260514043330.1718969-7-achender@kernel.org>
+Subject: [PATCH net-next v2 7/9] selftests: rds: Register network teardown via atexit
+Date: Wed, 13 May 2026 21:33:28 -0700
+Message-Id: <20260514043330.1718969-8-achender@kernel.org>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20260514043330.1718969-1-achender@kernel.org>
 References: <20260514043330.1718969-1-achender@kernel.org>
@@ -50,143 +50,109 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Hoist the send/recv logic in test.py into a helper function,
-snd_rcv_packets().  This is a preparatory refactoring for the
-rds over ROCE series which can use the same function to run
-the test over tcp, rdma, or both.  No functional changes are
-introduced in this patch.
+This patch adds a teardown_tcp() helper that removes net0/net1.
+The cmd calls here use fail=False so they can be called from
+completed or partially-setup states on error. Also call
+teardown_tcp() at the top of setup_tcp() so a previous
+interrupted run does not leave net0/net1 lingering and break a
+subsequent ip netns add.  Register teardown_tcp() with atexit
+before setup_tcp() is invoked.
+
+Likewise, we can simpliy stop_pcaps() handling by registering it
+with atexit instead of calling it from the signal handler.
+
+atexit handlers run on any exit path - normal completion, raised
+exception, and sys.exit() from the timeout signal handler.  This
+guarantees cleanup are called without further wrapping the test
+body in a try/finally blocks.
+
+atexit LIFO ordering keeps stop_pcaps before teardown_tcp so
+tcpdumps are killed cleanly before their namespaces go away.
+
+This is a preparatory cleanup for the upcoming ROCE patch which
+will also register a teardown_rdma() alongside teardown_tcp()
 
 Signed-off-by: Allison Henderson <achender@kernel.org>
 ---
- tools/testing/selftests/net/rds/test.py | 99 ++++++++++++++-----------
- 1 file changed, 54 insertions(+), 45 deletions(-)
+ tools/testing/selftests/net/rds/test.py | 27 +++++++++++++++++++++----
+ 1 file changed, 23 insertions(+), 4 deletions(-)
 
 diff --git a/tools/testing/selftests/net/rds/test.py b/tools/testing/selftests/net/rds/test.py
-index a3def413d84a..f7d0dba85131 100755
+index f7d0dba85131..7738c7e2af36 100755
 --- a/tools/testing/selftests/net/rds/test.py
 +++ b/tools/testing/selftests/net/rds/test.py
-@@ -167,6 +167,59 @@ def verify_hashes(snd_hashes, rcv_hashes):
-         ksft_pr(f"{key[0]}/{key[1]}: ok")
-     return 0
+@@ -5,6 +5,7 @@ This module provides functional testing for the net/rds component.
+ """
  
-+def snd_rcv_packets(addrs, netns_list):
-+    """
-+    Send packets on the given network interfaces
-+
-+    :param addrs: list of (ip, port) tuples matching the sockets
-+    :param netns_list: list of network namespaces
-+    """
-+
-+    sockets = [
-+        netns_socket(netns_list[0], socket.AF_RDS, socket.SOCK_SEQPACKET),
-+        netns_socket(netns_list[1], socket.AF_RDS, socket.SOCK_SEQPACKET),
-+    ]
-+
-+    for s, addr in zip(sockets, addrs):
-+        s.bind(addr)
-+        s.setblocking(0)
-+
-+    send_hashes = {}
-+    recv_hashes = {}
-+
-+    ep = select.epoll()
-+
-+    for s in sockets:
-+        ep.register(s, select.EPOLLRDNORM)
-+
-+    num_packets = 50000
-+    nr_send = 0
-+    nr_recv = 0
-+
-+    while nr_send < num_packets:
-+
-+        # Send as much as we can without blocking
-+        ksft_pr("sending...", nr_send, nr_recv)
-+        nr_send = send_burst(sockets, addrs, send_hashes, nr_send, num_packets)
-+
-+        # Receive as much as we can without blocking
-+        ksft_pr("receiving...", nr_send, nr_recv)
-+        while nr_recv < nr_send:
-+            nr_recv = recv_burst(ep, sockets, addrs, recv_hashes, nr_recv)
-+
-+        # exercise net/rds/tcp.c:rds_tcp_sysctl_reset()
-+        for net in netns_list:
-+            ip(f"netns exec {net} /usr/sbin/sysctl net.rds.tcp.rds_tcp_rcvbuf=10000")
-+            ip(f"netns exec {net} /usr/sbin/sysctl net.rds.tcp.rds_tcp_sndbuf=10000")
-+
-+    ksft_pr("done", nr_send, nr_recv)
-+
-+    check_info(sockets)
-+
-+    # We're done sending and receiving stuff, now let's check if what
-+    # we received is what we sent.
-+    return verify_hashes(send_hashes, recv_hashes)
-+
- def stop_pcaps():
-     """Stop tcpdump processes.
+ import argparse
++import atexit
+ import ctypes
+ import errno
+ import hashlib
+@@ -19,7 +20,7 @@ import sys
+ this_dir = os.path.dirname(os.path.realpath(__file__))
+ sys.path.append(os.path.join(this_dir, "../"))
+ # pylint: disable-next=wrong-import-position,import-error,no-name-in-module
+-from lib.py.utils import ip # noqa: E402
++from lib.py.utils import ip, cmd # noqa: E402
+ # pylint: disable-next=wrong-import-position,import-error,no-name-in-module
+ from lib.py.ksft import ksft_pr # noqa: E402
  
-@@ -267,7 +320,6 @@ PACKET_CORRUPTION=str(args.corruption)+'%'
+@@ -246,7 +247,6 @@ def signal_handler(_sig, _frame):
+     Test timed out signal handler
+     """
+     ksft_pr("Test timed out")
+-    stop_pcaps()
+     print("not ok 1 rds selftest")
+     sys.exit(1)
+ 
+@@ -255,6 +255,9 @@ def setup_tcp():
+     Configure tcp network
+     """
+ 
++    # clean up any leftovers from a previously interrupted run
++    teardown_tcp()
++
+     ip(f"netns add {NET0}")
+     ip(f"netns add {NET1}")
+     ip("link add type veth")
+@@ -299,6 +302,17 @@ def setup_tcp():
+              corrupt {PACKET_CORRUPTION} loss {PACKET_LOSS} duplicate  \
+              {PACKET_DUPLICATE}")
+ 
++def teardown_tcp():
++    """
++    Tear down the tcp network configured by setup_tcp().
++
++    Removing the namespaces also removes the veth pair, addresses,
++    routes, and netem qdisc that live inside them.  fail=False so
++    this is safe to call in error paths after a partial or complete setup.
++    """
++    cmd(f"ip netns del {NET0}", fail=False)
++    cmd(f"ip netns del {NET1}", fail=False)
++
+ #Parse out command line arguments.  We take an optional
+ # timeout parameter and an optional log output folder
+ parser = argparse.ArgumentParser(description="init script args",
+@@ -319,6 +333,13 @@ PACKET_LOSS=str(args.loss)+'%'
+ PACKET_CORRUPTION=str(args.corruption)+'%'
  PACKET_DUPLICATE=str(args.duplicate)+'%'
  
++# Register cleanup before setup so a partial-setup crash still tears down
++# whatever state did get created.  atexit runs LIFO, so registering
++# teardown_tcp first means stop_pcaps (registered second) runs first,
++# killing tcpdumps before their namespaces go away.
++atexit.register(teardown_tcp)
++atexit.register(stop_pcaps)
++
  setup_tcp()
--addrs = tcp_addrs
  
  print("TAP version 13")
- print("1..1")
-@@ -277,56 +329,13 @@ if args.timeout > 0:
-     signal.alarm(args.timeout)
-     signal.signal(signal.SIGALRM, signal_handler)
- 
--sockets = [
--    netns_socket(NET0, socket.AF_RDS, socket.SOCK_SEQPACKET),
--    netns_socket(NET1, socket.AF_RDS, socket.SOCK_SEQPACKET),
--]
--
--for s, addr in zip(sockets, addrs):
--    s.bind(addr)
--    s.setblocking(0)
--
--send_hashes = {}
--recv_hashes = {}
--
--ep = select.epoll()
--
--for s in sockets:
--    ep.register(s, select.EPOLLRDNORM)
--
--NUM_PACKETS = 50000
--nr_send = 0
--nr_recv = 0
--
--while nr_send < NUM_PACKETS:
--
--    # Send as much as we can without blocking
--    ksft_pr("sending...", nr_send, nr_recv)
--    nr_send = send_burst(sockets, addrs, send_hashes, nr_send, NUM_PACKETS)
--
--    # Receive as much as we can without blocking
--    ksft_pr("receiving...", nr_send, nr_recv)
--    while nr_recv < nr_send:
--        nr_recv = recv_burst(ep, sockets, addrs, recv_hashes, nr_recv)
--
--    # exercise net/rds/tcp.c:rds_tcp_sysctl_reset()
--    for net in [NET0, NET1]:
--        ip(f"netns exec {net} /usr/sbin/sysctl net.rds.tcp.rds_tcp_rcvbuf=10000")
--        ip(f"netns exec {net} /usr/sbin/sysctl net.rds.tcp.rds_tcp_sndbuf=10000")
--
--ksft_pr("done", nr_send, nr_recv)
--
--check_info(sockets)
-+ret = snd_rcv_packets(tcp_addrs, [NET0, NET1])
- 
+@@ -334,8 +355,6 @@ ret = snd_rcv_packets(tcp_addrs, [NET0, NET1])
  # cancel timeout
  signal.alarm(0)
  
- stop_pcaps()
- 
--# We're done sending and receiving stuff, now let's check if what
--# we received is what we sent.
--ret = verify_hashes(send_hashes, recv_hashes)
+-stop_pcaps()
 -
  if ret == 0:
      ksft_pr("Success")
