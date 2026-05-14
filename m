@@ -1,46 +1,48 @@
-Received: from mx0a-0016f401.pphosted.com (mx0a-0016f401.pphosted.com [67.231.148.174])
+Received: from mx0b-0016f401.pphosted.com (mx0a-0016f401.pphosted.com [67.231.148.174])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EC41133F5B9;
-	Thu, 14 May 2026 06:26:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1FA963C4161;
+	Thu, 14 May 2026 06:26:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=67.231.148.174
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778739992; cv=none; b=SyC5TGhREWWdq4lXr3HdxczNibda/8UA9ykeR03CmJM4fwnogeq0CGZ7KE/GJJDDynwFER84Xv4SbV4KiVbtPZm77LkvZM2gHstIDMeDGtMIshMAKW5L1F4yPWfI57X4GEFY0/cdkML0Fq1tP0TBgtisFqE1ry+01zCRebI0SnU=
+	t=1778739994; cv=none; b=ijH7EuUMgdf+guG8PbYWAQdXL7xzHcbE/wvcXVWgiTi/ZN1wRCnbd3Quwa1ISK0DfeErvVP9guncalhkIvxQQ885Eq16OnFMN05LsnPR4enKytAPs1W9N7cSnEEcvMGcoD85pMOiPnQUfoXzioLZUKIPCb67EPNvy4wSm6OtLDM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778739992; c=relaxed/simple;
-	bh=IUjSWSafV35IhpQoPVYxuAvf2ly63CGQEjxIiWr5CHU=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=KwqxkFe+xLWr0EzunCfUNJQ27uZilqh9CXv1/wczWdzZ6BsgIilXKfbW0eXvRtgLDt2JAO/pj0Sl2ga6kbCmhj48xZzpl+92Q5XIrxKzFfQv4qCPv732wPhS8bDNkA0KfzE91StVNMluvrXrtXpLUCLs8Ze3SbF/Zn3QAlGhmLs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=marvell.com; spf=pass smtp.mailfrom=marvell.com; dkim=pass (2048-bit key) header.d=marvell.com header.i=@marvell.com header.b=fI9ba2nz; arc=none smtp.client-ip=67.231.148.174
+	s=arc-20240116; t=1778739994; c=relaxed/simple;
+	bh=82S5qPKABfZLZNdFCHZg5I3zAOaT1wv0sRxx9PplVs4=;
+	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=tNGL/Lu3J2Oq99xBgjB1J6uzX8UQJ5psgsqZ7s9RQqD+hwkMyjmHd4m1/avHoO/5mm5vhKQzlYPUA5A1rKw6EC8F3TpIPXWGWbEV7Tm5ok6+ZZFY0avRd7SLz16x9spctOcvJWc4DO0qPnZUdPwm4ULZELCOp2EB4vIrxqwV6vE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=marvell.com; spf=pass smtp.mailfrom=marvell.com; dkim=pass (2048-bit key) header.d=marvell.com header.i=@marvell.com header.b=d1LsqvPu; arc=none smtp.client-ip=67.231.148.174
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=marvell.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=marvell.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=marvell.com header.i=@marvell.com header.b="fI9ba2nz"
-Received: from pps.filterd (m0431384.ppops.net [127.0.0.1])
-	by mx0a-0016f401.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 64E2AbxC2549951;
-	Wed, 13 May 2026 23:25:57 -0700
+	dkim=pass (2048-bit key) header.d=marvell.com header.i=@marvell.com header.b="d1LsqvPu"
+Received: from pps.filterd (m0045849.ppops.net [127.0.0.1])
+	by mx0a-0016f401.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 64DK6Hbj1320187;
+	Wed, 13 May 2026 23:26:14 -0700
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=marvell.com; h=
-	cc:content-transfer-encoding:content-type:date:from:message-id
-	:mime-version:subject:to; s=pfpt0220; bh=hMysuiiOXHeVxvCsF4wMs5z
-	3zV6v1S8Py2HULIEjojY=; b=fI9ba2nzn2uz/jbzDIS0tld8KCBEQhVE9L1MfyL
-	I0CvLcOp5Hmfqu0ZCiHc4r6ZZp2eMtqmnmDyiJIXGjdMLIW6LaA9bivQxIDyoj3L
-	h3Xpd7fN44ks05vrfEPAxx6JVl4F6eNR83pCgTUQJACZZNEGVw+/56HMw/yL8+hc
-	wZokvm3GfC7mU82IV8t/5wg11+5D1s5l0GxY8Uds0r8sv28u597jK5qKiray8Ku4
-	zCfH3hmmlQ1XzxVFfV35a7BZsVIc895lmMZKzVo8YDbKN1xQY4fS3pUegL1aFqyn
-	rNb8icLB307X9fx7eNYpGsB91ZFuF+si6V1f7FgyyJq7v9g==
-Received: from dc6wp-exch02.marvell.com ([4.21.29.225])
-	by mx0a-0016f401.pphosted.com (PPS) with ESMTPS id 4e45ybe48q-1
+	cc:content-transfer-encoding:content-type:date:from:in-reply-to
+	:message-id:mime-version:references:subject:to; s=pfpt0220; bh=b
+	U+zHNDZEsWwX6Mq1FaTlkkIxTZNWYmPtkPXt96TI1s=; b=d1LsqvPu8517SO/pU
+	+BQy3cisoAMqqZHEZhtO3h2WJionxuOjq94p76dvD/6it+pGignhmhcPyOxOnKDL
+	ziV/K3Jvu7Ak1YkRAGDU7JPmZnS8hsXu0Ztp6nQswnEQ+ZEnnyi3Uli9Z7VZOCSm
+	7VwoNdOIolLS+K2AuoTewQzJFyxjOE3aPugWkbXNYPAEek7hntuy4qtI/5LMMYWo
+	cNzB4Up0tmjveOyysjlxZeZWNA2fItFx6GgqwVHW8yftpLZRSjjBVu750nAgvk/v
+	yF4m80BI5xnjJlc903NgujaEB7pj5qK+L0um9C7OFy3lqFXdwYbx6D18AXtK9V0p
+	6bxDQ==
+Received: from dc5-exch05.marvell.com ([199.233.59.128])
+	by mx0a-0016f401.pphosted.com (PPS) with ESMTPS id 4e4neu3dq9-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Wed, 13 May 2026 23:25:57 -0700 (PDT)
-Received: from DC6WP-EXCH02.marvell.com (10.76.176.209) by
- DC6WP-EXCH02.marvell.com (10.76.176.209) with Microsoft SMTP Server
+	Wed, 13 May 2026 23:26:14 -0700 (PDT)
+Received: from DC5-EXCH05.marvell.com (10.69.176.209) by
+ DC5-EXCH05.marvell.com (10.69.176.209) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.25; Wed, 13 May 2026 23:25:56 -0700
-Received: from maili.marvell.com (10.69.176.80) by DC6WP-EXCH02.marvell.com
- (10.76.176.209) with Microsoft SMTP Server id 15.2.1544.25 via Frontend
- Transport; Wed, 13 May 2026 23:25:56 -0700
+ 15.2.1544.25; Wed, 13 May 2026 23:26:13 -0700
+Received: from maili.marvell.com (10.69.176.80) by DC5-EXCH05.marvell.com
+ (10.69.176.209) with Microsoft SMTP Server id 15.2.1544.25 via Frontend
+ Transport; Wed, 13 May 2026 23:26:13 -0700
 Received: from rkannoth-OptiPlex-7090.. (unknown [10.28.36.165])
-	by maili.marvell.com (Postfix) with ESMTP id 00B605B693F;
-	Wed, 13 May 2026 23:25:47 -0700 (PDT)
+	by maili.marvell.com (Postfix) with ESMTP id 3022F5B6943;
+	Wed, 13 May 2026 23:26:04 -0700 (PDT)
 From: Ratheesh Kannoth <rkannoth@marvell.com>
 To: <linux-kernel@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
         <netdev@vger.kernel.org>, <oss-drivers@corigine.com>
@@ -54,11 +56,15 @@ CC: <akiyano@amazon.com>, <andrew+netdev@lunn.ch>,
         <pavan.chebbi@broadcom.com>, <petrm@nvidia.com>,
         <Prathosh.Satish@microchip.com>, <przemyslaw.kitszel@intel.com>,
         <saeedm@nvidia.com>, <sgoutham@marvell.com>, <tariqt@nvidia.com>,
-        <vadim.fedorenko@linux.dev>, Ratheesh Kannoth <rkannoth@marvell.com>
-Subject: [PATCH v14 net-next 0/9] octeontx2-af: npc: Enhancements.
-Date: Thu, 14 May 2026 11:55:28 +0530
-Message-ID: <20260514062537.3813802-1-rkannoth@marvell.com>
+        <vadim.fedorenko@linux.dev>, Ratheesh Kannoth <rkannoth@marvell.com>,
+        "Dragos
+ Tatulea" <dtatulea@nvidia.com>
+Subject: [PATCH v14 net-next 2/9] net/mlx5e: Reduce stack use reading PCIe congestion thresholds
+Date: Thu, 14 May 2026 11:55:30 +0530
+Message-ID: <20260514062537.3813802-3-rkannoth@marvell.com>
 X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20260514062537.3813802-1-rkannoth@marvell.com>
+References: <20260514062537.3813802-1-rkannoth@marvell.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -67,187 +73,100 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-Proofpoint-GUID: WAW26jAu9giEhNXil23YmcBI_uVHdS5a
-X-Proofpoint-ORIG-GUID: WAW26jAu9giEhNXil23YmcBI_uVHdS5a
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNTE0MDA2MCBTYWx0ZWRfX+2UMNs1bndDn
- kGPeZV23cap2MV0VBJ/rcdf7DxuCQGgtzoYhUesBTIN7y7pevjEPTQ/UZ87qaO2+X6aKBQV+PNp
- Uvlc6RFB2cob3TE/VtpL1IhRKBfZlCon2d8TftAnS8mO+jlnHZEK8JfkaOYuWoRf4tp+Nw9/m/a
- tcZVCRtqhVyBcx5MuGEsFICUAbL/yFBG1QVOT7Rs/OJ5YDINq6AXEHihgPdPqY1YuZsCDeuzauT
- 8qvhPjrJmiPiAx+ltklHhhmIh6npFc364ojDhNoLGiFwtqAnV/tDailHi9G/IGdPuwUgUJx7Xzp
- USt9cO+sXwtkSvmjYa9tjdNjANvy5o06DTnxdAdSwtF+DFAkw7JB+21IrH/LPfbBQfdO1EiD3Ex
- G9FK4q3qmrb0gQV2KcvPa2eIAzsLVwdh1S7Wj5siIBIhDxZGS0kNFPjUtoriaaSuOaJhpB2Tvj/
- tkNXbK/kdWSZt4eAq/Q==
-X-Authority-Analysis: v=2.4 cv=ZtTd7d7G c=1 sm=1 tr=0 ts=6a056af5 cx=c_pps
- a=gIfcoYsirJbf48DBMSPrZA==:117 a=gIfcoYsirJbf48DBMSPrZA==:17
+X-Proofpoint-GUID: StUO8JSfqVhyNlvUq7XN-yHeBBRdbBiQ
+X-Proofpoint-ORIG-GUID: StUO8JSfqVhyNlvUq7XN-yHeBBRdbBiQ
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNTE0MDA2MCBTYWx0ZWRfXzFPoh4vTg5q/
+ xq/N9CQCQahlSaLTYbB8yVuZkm3dpen63O6D7+Pk0fg45/1fGJxeYqu/LwRZll0paF3N2fxKqTY
+ 6+nnf3xEoWHoVV24EqZs5S2zmNyfrFZcn3o17dxKtAdZ7y0ZGdCJMr37wccZ08nCTpB8uH/Oh5r
+ yi6Hgy9v3CdhtGYnrSJV+IETcUxyRk5FTqihBZAZfsvgfO0ztZEATa7iYskdI33ATPk6xabpkX2
+ DNAVDT7Llv2KXZwey7vh59x7CNxlDnsZOZj8p3T77ymTmCDK98VLuNHqUm8vBvBdO74/N/uiuQ4
+ s9LAnaQSkjD19IL4jz95/xLf3SmgXqTq/BYUN2DCLRN3bOoqcD8ZZ7cW8sK/A7PB9MQUX9u1/iY
+ VcuazU4gOWc8VSk9IhZyqxTZaToQorxAvHZ5qfenJQHW+4JcCvvVvOGT431exrdhT7zTNyPswSI
+ G7c5BBu1KBQpzG4GQ6w==
+X-Authority-Analysis: v=2.4 cv=f7p4wuyM c=1 sm=1 tr=0 ts=6a056b06 cx=c_pps
+ a=rEv8fa4AjpPjGxpoe8rlIQ==:117 a=rEv8fa4AjpPjGxpoe8rlIQ==:17
  a=NGcC8JguVDcA:10 a=VkNPw1HP01LnGYTKEx00:22 a=l0iWHRpgs5sLHlkKQ1IR:22
- a=TtqV-g6YmW1Jfm2GSLaY:22 a=VwQbUJbxAAAA:8 a=M5GUcnROAAAA:8
- a=1rdZWFfAsYpIarNArpIA:9 a=OBjm3rFKGHvpk9ecZwUJ:22
+ a=EAYMVhzMl8SCOHhVQcBL:22 a=Ikd4Dj_1AAAA:8 a=M5GUcnROAAAA:8
+ a=atuItEQtGSbojjJp8OQA:9 a=OBjm3rFKGHvpk9ecZwUJ:22
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.293,Aquarius:18.0.1143,Hydra:6.1.51,FMLib:17.12.100.49
  definitions=2026-05-14_01,2026-05-13_01,2025-10-01_01
 
-This series extends Marvell octeontx2-af support for CN20K NPC (MCAM
-debuggability, allocation policy, default-rule lifetime, optional KPU
-profiles from firmware files, X2/X4 MCAM keyword handling in flows and
-defaults, and dynamic CN20K NPC private state), adds a devlink mechanism
-for multi-value parameters, and adjusts devlink param netlink helpers
-and mlx5 so stack usage stays within -Wframe-larger-than limits once union
-devlink_param_value grows.
+union devlink_param_value grew when U64 array parameters were added.
+Keeping union devlink_param_value val[4] in
+mlx5e_pcie_cong_get_thresh_config() exceeded the compiler's
+-Wframe-larger-than limit.
 
-Patch 1 improves CN20K MCAM visibility in debugfs: mcam_layout marks
-enabled entries, dstats reports per-entry hit deltas, and mismatch lists
-enabled entries without a PF mapping. MCAM enable state is tracked in a
-bitmap updated from the CN20K enable path.
+Reuse one union: call devl_param_driverinit_value_get() once per
+MLX5 PCIe congestion threshold and assign each vu16 to the
+corresponding mlx5e_pcie_cong_thresh member.
 
-Patch 2 reduces stack usage in mlx5e_pcie_cong_get_thresh_config() by
-reusing a single union devlink_param_value across four
-devl_param_driverinit_value_get() calls (instead of
-union devlink_param_value val[4] on the stack) and assigning each vu16
-into mlx5e_pcie_cong_thresh,
-so the helper stays under the frame-size warning limit as the union grows
-(patches 3-4).
+Reviewed-by: Dragos Tatulea <dtatulea@nvidia.com>
+Signed-off-by: Ratheesh Kannoth <rkannoth@marvell.com>
+---
+ .../mellanox/mlx5/core/en/pcie_cong_event.c   | 45 +++++++++++--------
+ 1 file changed, 27 insertions(+), 18 deletions(-)
 
-Patch 3 changes devlink_nl_param_value_put() and
-devlink_nl_param_value_fill_one() to pass union devlink_param_value by
-pointer instead of by value. Passing two copies of the union by value in
-the param netlink path consumes over 500 bytes of argument stack and risks
-CONFIG_FRAME_WARN as the union grows beyond its historical size (patch 4).
-
-Patch 4 (Saeed) introduces DEVLINK_PARAM_TYPE_U64_ARRAY and nested
-DEVLINK_ATTR_PARAM_VALUE_DATA attributes so drivers and user space can
-exchange bounded u64 arrays; YAML, uapi, and netlink validation are
-updated.
-
-Patch 5 adds a runtime devlink parameter srch_order to reorder CN20K
-subbank search during MCAM allocation.
-
-Patch 6 ties default MCAM entries to NIX LF alloc/free on CN20K, adds
-NIX_LF_DONT_FREE_DFT_IDXS for PF teardown paths that must not drop default
-NPC indexes while the driver still owns state, and tightens nix_lf_alloc
-error propagation.
-
-Patch 7 allows loading a custom KPU profile from /lib/firmware/kpu via
-module parameter kpu_profile, with cam2 / ptype_mask wiring and helpers
-that share firmware-sourced vs filesystem-sourced profile layouts.
-
-Patch 8 makes default-rule allocation, AF flow install, and PF-side RSS,
-defaults, and ethtool flows respect the active CN20K MCAM keyword width
-(X2 vs X4), including X4 reference-index masking and -EOPNOTSUPP when a
-flow needs X4 keys on an X2-only profile.
-
-Patch 9 replaces file-scope npc_priv and static dstats with allocation
-sized from discovered bank/subbank geometry, threads npc_priv_get()
-through CN20K NPC paths, and allocates dstats via devm_kzalloc for the
-debugfs helper.
-
-The mlx5 change sits immediately before the devlink patches so the series
-applies cleanly and stays warning-free when built incrementally;
-pass-by-pointer precedes the U64 array type so helpers are not copying an
-even larger union by value. The CN20K patches keep srch_order ahead of
-NIX LF coordination, KPU-from-filesystem, X2/X4 handling, and the npc_priv
-refactor that touches the same files heavily.
-
-Ratheesh Kannoth (8):
-  octeontx2-af: npc: cn20k: debugfs enhancements
-  net/mlx5e: Reduce stack use reading PCIe congestion thresholds
-  devlink: pass param values by pointer
-  octeontx2-af: npc: cn20k: add subbank search order control
-  octeontx2: cn20k: Coordinate default rules with NIX LF lifecycle
-  octeontx2-af: npc: Support for custom KPU profile from filesystem
-  octeontx2: cn20k: Respect NPC MCAM X2/X4 profile in flows and DFT
-    alloc
-  octeontx2-af: npc: cn20k: Allocate npc_priv and dstats dynamically.
-
-Saeed Mahameed (1):
-  devlink: Implement devlink param multi attribute nested data values
-
- Documentation/netlink/specs/devlink.yaml           |   4 +
- drivers/dpll/zl3073x/devlink.c                     |   6 +-
- drivers/net/ethernet/amazon/ena/ena_devlink.c      |   8 +-
- drivers/net/ethernet/amd/pds_core/core.h           |   2 +-
- drivers/net/ethernet/amd/pds_core/devlink.c        |   2 +-
- drivers/net/ethernet/broadcom/bnxt/bnxt_devlink.c  |   6 +-
- drivers/net/ethernet/intel/ice/devlink/devlink.c   |  30 +-
- .../ethernet/marvell/octeontx2/af/cn20k/debugfs.c  |  16 +-
- .../net/ethernet/marvell/octeontx2/af/cn20k/npc.c  | 542 ++++++++++++---------
- .../net/ethernet/marvell/octeontx2/af/cn20k/npc.h  |   6 +-
- drivers/net/ethernet/marvell/octeontx2/af/mbox.h   |   1 +
- drivers/net/ethernet/marvell/octeontx2/af/npc.h    |  17 +
- drivers/net/ethernet/marvell/octeontx2/af/rvu.h    |  12 +-
- .../ethernet/marvell/octeontx2/af/rvu_devlink.c    | 114 ++++-
- .../net/ethernet/marvell/octeontx2/af/rvu_nix.c    |  69 ++-
- .../net/ethernet/marvell/octeontx2/af/rvu_npc.c    | 486 ++++++++++++++----
- .../net/ethernet/marvell/octeontx2/af/rvu_npc.h    |  17 +
- .../net/ethernet/marvell/octeontx2/af/rvu_npc_fs.c |  12 +-
- .../net/ethernet/marvell/octeontx2/af/rvu_reg.h    |   1 +
- .../ethernet/marvell/octeontx2/nic/otx2_devlink.c  |   4 +-
- .../ethernet/marvell/octeontx2/nic/otx2_flows.c    |  48 +-
- .../net/ethernet/marvell/octeontx2/nic/otx2_pf.c   |   6 +-
- drivers/net/ethernet/mellanox/mlx4/main.c          |  14 +-
- drivers/net/ethernet/mellanox/mlx5/core/devlink.c  |  72 +--
- .../mellanox/mlx5/core/en/pcie_cong_event.c        |  45 +-
- .../ethernet/mellanox/mlx5/core/eswitch_offloads.c |   2 +-
- drivers/net/ethernet/mellanox/mlx5/core/fs_core.c  |   4 +-
- .../net/ethernet/mellanox/mlx5/core/lib/nv_param.c |  12 +-
- drivers/net/ethernet/mellanox/mlxsw/core.c         |   8 +-
- drivers/net/ethernet/netronome/nfp/devlink_param.c |   6 +-
- drivers/net/netdevsim/dev.c                        |   4 +-
- include/net/devlink.h                              |  12 +-
- include/uapi/linux/devlink.h                       |   1 +
- net/devlink/netlink_gen.c                          |   2 +
- net/devlink/param.c                                | 120 +++--
- 35 files changed, 1175 insertions(+), 536 deletions(-)
-
---
-
-v13 -> v14: Addressed sashiko comments.
-	I had to revert Jiri comment in v11 as sashiko was complaining about
-	leaking kernel memory to userspace.
-
-v12 -> v13: Addressed David Laight comments
-	https://lore.kernel.org/netdev/20260508034912.4082520-1-rkannoth@marvell.com/
-
-v11 -> v12: Addressed Paolo,Jiri comments.
-	https://lore.kernel.org/netdev/20260409025055.1664053-1-rkannoth@marvell.com/
-	Added one patch which was rejected by simon in net
-	(as it was kind of enhancement rather than a bug)
-	Added one more patch- which allocates two variables from heap.
-
-v10 -> v11: Addressed Paolo comments.
-	https://lore.kernel.org/netdev/20260403025533.6250-1-rkannoth@marvell.com/
-
-v9 -> v10: Addressed Paolo comments
-	https://lore.kernel.org/netdev/
-	20260330053105.2722453-1-rkannoth@marvell.com/
-
-v8 -> v9: Addressed Simon comments
-	https://lore.kernel.org/netdev/
-	20260325072159.1126964-1-rkannoth@marvell.com/
-
-v7 -> v8: Addressed Simon comments
-	https://lore.kernel.org/netdev/
-	20260323035110.3908741-1-rkannoth@marvell.com/T/#t
-
-v6 -> v7: Addressed Simon comments
-	https://lore.kernel.org/netdev/20260320165432.98832-1-horms@kernel.org/
-
-v5 -> v6: Addressed Jakub,Jiri comments
-	https://lore.kernel.org/netdev/
-	20260317045623.250187-1-rkannoth@marvell.com/
-
-v4 -> v5: Addressed Jakub comments
-	https://lore.kernel.org/netdev/
-	20260312022754.2029595-6-rkannoth@marvell.com/
-
-v3 -> v4: Addressed Simon comments
-	https://lore.kernel.org/netdev/abDeXLpMMxp7G1v3@rkannoth-OptiPlex-7090/#t
-
-v2 -> v3: Addressed Simon comments.
-	https://lore.kernel.org/netdev/
-	20260304043032.3661647-1-rkannoth@marvell.com/
-
-v1 -> v2: Addressed Jakub comments.
-	https://lore.kernel.org/netdev/
-	20260302085803.2449828-1-rkannoth@marvell.com/#t
-
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en/pcie_cong_event.c b/drivers/net/ethernet/mellanox/mlx5/core/en/pcie_cong_event.c
+index 2eb666a46f39..f4f2ecfc6719 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en/pcie_cong_event.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en/pcie_cong_event.c
+@@ -252,28 +252,37 @@ static int
+ mlx5e_pcie_cong_get_thresh_config(struct mlx5_core_dev *dev,
+ 				  struct mlx5e_pcie_cong_thresh *config)
+ {
+-	u32 ids[4] = {
+-		MLX5_DEVLINK_PARAM_ID_PCIE_CONG_IN_LOW,
+-		MLX5_DEVLINK_PARAM_ID_PCIE_CONG_IN_HIGH,
+-		MLX5_DEVLINK_PARAM_ID_PCIE_CONG_OUT_LOW,
+-		MLX5_DEVLINK_PARAM_ID_PCIE_CONG_OUT_HIGH,
+-	};
+ 	struct devlink *devlink = priv_to_devlink(dev);
+-	union devlink_param_value val[4];
++	union devlink_param_value val;
++	int err;
+ 
+-	for (int i = 0; i < 4; i++) {
+-		u32 id = ids[i];
+-		int err;
++	err = devl_param_driverinit_value_get(devlink,
++					      MLX5_DEVLINK_PARAM_ID_PCIE_CONG_IN_LOW,
++					      &val);
++	if (err)
++		return err;
++	config->inbound_low = val.vu16;
+ 
+-		err = devl_param_driverinit_value_get(devlink, id, &val[i]);
+-		if (err)
+-			return err;
+-	}
++	err = devl_param_driverinit_value_get(devlink,
++					      MLX5_DEVLINK_PARAM_ID_PCIE_CONG_IN_HIGH,
++					      &val);
++	if (err)
++		return err;
++	config->inbound_high = val.vu16;
+ 
+-	config->inbound_low = val[0].vu16;
+-	config->inbound_high = val[1].vu16;
+-	config->outbound_low = val[2].vu16;
+-	config->outbound_high = val[3].vu16;
++	err = devl_param_driverinit_value_get(devlink,
++					      MLX5_DEVLINK_PARAM_ID_PCIE_CONG_OUT_LOW,
++					      &val);
++	if (err)
++		return err;
++	config->outbound_low = val.vu16;
++
++	err = devl_param_driverinit_value_get(devlink,
++					      MLX5_DEVLINK_PARAM_ID_PCIE_CONG_OUT_HIGH,
++					      &val);
++	if (err)
++		return err;
++	config->outbound_high = val.vu16;
+ 
+ 	return 0;
+ }
+-- 
 2.43.0
+
