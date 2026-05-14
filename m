@@ -1,85 +1,104 @@
-Received: from out-178.mta0.migadu.com (out-178.mta0.migadu.com [91.218.175.178])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 81EE327F75C
-	for <linux-rdma@vger.kernel.org>; Thu, 14 May 2026 13:14:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.178
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 570B23E51CA;
+	Thu, 14 May 2026 13:58:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778764472; cv=none; b=KsJbyg2ElnaUnus0EhnAKrkAl0W7YELgz41kegpYbPX8UJBLq6vq/yToNlFAmjkkix8CKeuYrm6yyNY0G3J0leI1sHPRp8Q44WEDXkPUvsgQvuVXJG5qFi78fSwRljrQnk4+TYrxky4qoMqDEiOHXXJD6bQkBn6ZazXDM08coxY=
+	t=1778767100; cv=none; b=TXbstj9TZEZ9y687R9W7V1s7WvxrQ+zDvBhPAfr34nc1jBWBBuQpHg4U69IyJtxthDE4RjPwFijD+i9Tz5ZG+VBPhTIE9D964rM+v3WrHZFLnWB2IlmEpnlxM4iFKKy9QtiTQ/jxvdL63ND75nDbyvD2J5Z5Pzpplrmo7Hbwwrc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778764472; c=relaxed/simple;
-	bh=x3PlOJRU80zRDyrVtynuTEktOPJp8Kj0xTcx30CHpqU=;
+	s=arc-20240116; t=1778767100; c=relaxed/simple;
+	bh=8oyZ/VO926g2lRdJgN02SOY8dwZhWLcwWuq6M6cDJys=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=fbyn4/bwqyqMgqglIc0oB+WJm7uEMzC0W2Q2wWGLJ7BXxA6qCbzlXlKQc4gvXgUbddA/1WtuvPovyMgDaKBsJTK2jeKcM06aK2RFPJM6Wh8ilh6cHZqhOBIbycn+0sswJABDS+eOQj2/zH+f76KlQsHBf9xFtFaKIl2WgeI9+R4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=gGlKofmX; arc=none smtp.client-ip=91.218.175.178
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+	 In-Reply-To:Content-Type; b=bamvvoedCRnos97VydtbiyYf6sXgBgT508LlYaxPxlCRFWS2XgPaxq+OiFz1k4HaHLI02Is3xjNfrnfc4meHVjVPp6gOuOxaStdnxA8czuRQEIKhoiQDxRV8WqnYDS05Qxn/AhdDMHRwC35d9/sF1Mo8D1IK2ddLxAyJBKi2LIQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=i3PT/VTo; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="gGlKofmX"
-Message-ID: <7463ed4b-543c-49d4-9337-f41915354a3f@linux.dev>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-	t=1778764467;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=WNvf/tl2zCppYtjfin0VjNCyLest0Jrv/etKUgcv1qw=;
-	b=gGlKofmXe3uoetcawVa5f5jmLG31kDRAIpkIimGboKay6a4m5lhqYmce15No/GTPpOtkGi
-	pLkJ8URFTGBAklFsfhjV38QZtG+YtosNWe/yxAgn4+WLrVkiHc7H7YKiBCln6mdUBopC6h
-	q78TcEK2C9vswSzHfWsZlWLaZJzuI9k=
-Date: Thu, 14 May 2026 15:14:24 +0200
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="i3PT/VTo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 519A7C2BCB3;
+	Thu, 14 May 2026 13:58:19 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1778767100;
+	bh=8oyZ/VO926g2lRdJgN02SOY8dwZhWLcwWuq6M6cDJys=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=i3PT/VTo3H2Z40TYgAHf60r2KXNlFgPxv0dhTjhOCRCQd/PwGsvt3q74nemk9NVEk
+	 wJ8eJD9ByWD1LYssmiR7hD+XQfyKjLGCuJ8Un7xZwksNXr8rD9gaqmneDpSpotsVp5
+	 vGc9Vxa+sDcj0uGhcW41A8fFJ0+j5/igO6RoSPus1Iw+7yZqlTgyiFrKVJKfo6vOrv
+	 yTKSoTuayFud6LihcH/hOxTAjvk75d+rrFSQrrrAekQOSzjnUzLnKzIE/aww5/3Ueu
+	 6jBGK6pczhWtewfVZg31/zKrK6h0oUkGrYlaTAF+/LeWSHYnwQ3Cr0251HdrZ4JziT
+	 7hv00CF4h6XsA==
+Message-ID: <139794f1-80b8-49d9-829a-0629379def51@kernel.org>
+Date: Thu, 14 May 2026 07:58:18 -0600
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Subject: Re: [RFC PATCH v3] RDMA/siw: use kzalloc_flex
-To: Leon Romanovsky <leon@kernel.org>, rosenp@gmail.com
-Cc: jgg@ziepe.ca, kees@kernel.org, gustavoars@kernel.org,
- linux-rdma@vger.kernel.org
-References: <20260511141149.52362-1-bernard.metzler@linux.dev>
- <177869432039.2333679.10257766726760194039.b4-ty@kernel.org>
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-From: Bernard Metzler <bernard.metzler@linux.dev>
-In-Reply-To: <177869432039.2333679.10257766726760194039.b4-ty@kernel.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH] RDMA/nldev: add mutual exclusion in nldev_dellink()
+Content-Language: en-US
+To: Jason Gunthorpe <jgg@ziepe.ca>, Edward Adam Davis <eadavis@qq.com>
+Cc: akpm@linux-foundation.org, arjan@linux.intel.com, davem@davemloft.net,
+ edumazet@google.com, hdanton@sina.com, horms@kernel.org, kuba@kernel.org,
+ kuniyu@google.com, leon@kernel.org, linux-kernel@vger.kernel.org,
+ linux-rdma@vger.kernel.org, netdev@vger.kernel.org, pabeni@redhat.com,
+ syzbot+d8f76778263ab65c2b21@syzkaller.appspotmail.com,
+ syzkaller-bugs@googlegroups.com, yanjun.zhu@linux.dev, zyjzyj2000@gmail.com
+References: <20260513234655.GW7702@ziepe.ca>
+ <tencent_3CCD70788A6EAC2D356D4C9674E8D2EEEA0A@qq.com>
+ <20260514115048.GX7702@ziepe.ca>
+From: David Ahern <dsahern@kernel.org>
+In-Reply-To: <20260514115048.GX7702@ziepe.ca>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-X-Migadu-Flow: FLOW_OUT
 
-On 13.05.2026 19:45, Leon Romanovsky wrote:
+On 5/14/26 5:50 AM, Jason Gunthorpe wrote:
+> On Thu, May 14, 2026 at 03:31:22PM +0800, Edward Adam Davis wrote:
+>> On Wed, 13 May 2026 20:46:55 -0300, Jason Gunthorpe wrote:
+>>> On Wed, May 13, 2026 at 02:17:28PM -0400, Leon Romanovsky wrote:
+>>>>
+>>>> On Thu, 07 May 2026 20:50:10 +0800, Edward Adam Davis wrote:
+>>>>> We must serialize calls to nldev_dellink() or risk a crash as syzbot
+>>>>> reported:
+>>>>>
+>>>>> Call Trace:
+>>>>>  udp_tunnel_sock_release+0x6d/0x80 net/ipv4/udp_tunnel_core.c:197
+>>>>>  rxe_release_udp_tunnel drivers/infiniband/sw/rxe/rxe_net.c:294 [inline]
+>>>>>  rxe_sock_put drivers/infiniband/sw/rxe/rxe_net.c:639 [inline]
+>>>>>  rxe_net_del+0xfb/0x290 drivers/infiniband/sw/rxe/rxe_net.c:660
+>>>>>  rxe_dellink+0x15/0x20 drivers/infiniband/sw/rxe/rxe.c:254
+>>>>>
+>>>>> [...]
+>>>>
+>>>> Applied, thanks!
+>>>>
+>>>> [1/1] RDMA/nldev: add mutual exclusion in nldev_dellink()
+>>>>       https://git.kernel.org/rdma/rdma/c/0b28000b64f40d
+>>>
+>>> This seems like a rxe bug, I would have expected the lock to be inside
+>>> rxe to protect its racy implementation of rxe_net_del(), which looks
+>>> like it is possibly also triggered by NETDEV_UNREGISTER...
+>> No, it was triggered by RDMA_NLDEV_CMD_DELLINK, you can see the "call trace".
+
+Not that Jason's point. Code wise
+
+rxe_dellink -> rxe_net_del
+
+netdev NETDEV_UNREGISTER:
+ rxe_notify -> rxe_net_del
+
+both can lead to the same problem
+
+>>>
+>>> ie it should not change nldev_dellink().
+>> While this could be fixed within RXE, the same issue affects all other
+>> RXE-like submodules when they subsequently support the "dellink" interface,
+>> therefore, handling this within nldev_dellink() is relatively more appropriate.
 > 
-> On Mon, 11 May 2026 16:11:49 +0200, bernard.metzler@linux.dev wrote:
->> Simplify umem allocation by using flexible array member.
->> Add __counted_by to get extra runtime analysis.
-> 
-> Applied, thanks!
-> 
-> [1/1] RDMA/siw: use kzalloc_flex
->        https://git.kernel.org/rdma/rdma/c/79678bea399052
-> 
-> Best regards,
-Hi Leon,
+> Why would other modules have an issue? The problem is rxe's racey
+> refcounting scheme for its lazy socket creation. There is nothing
+> wrong with nldev, and now you've created some nasty BKL in the nldev
+> code to fix rxe while ignoring its other races.
 
-per Jason's suggestion, please amend the patch by
-adding below line. We should NOT assume kzalloc_flex
-to initialize anything but 0. So we shall set
-umem->num_chunks explicitly.
-
-Many thanks,
-Bernard.
-----
-
-diff --git a/drivers/infiniband/sw/siw/siw_mem.c b/drivers/infiniband/sw/siw/siw_mem.c
-index 88ec3cacfa00..40455616d9ec 100644
---- a/drivers/infiniband/sw/siw/siw_mem.c
-+++ b/drivers/infiniband/sw/siw/siw_mem.c
-@@ -359,6 +359,7 @@ struct siw_umem *siw_umem_get(struct ib_device *base_dev, u64 start,
-	umem->fp_addr = first_page_va;
-	umem->base_mem = base_mem;
-	umem->num_pages = num_pages;
-+	umem->num_chunks = num_chunks;
-
-	sgt = &base_mem->sgt_append.sgt;
-	__sg_page_iter_start(&sg_iter, sgt->sgl, sgt->orig_nents, 0);
++1
 
