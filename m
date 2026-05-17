@@ -1,155 +1,68 @@
-Received: from pdx-out-009.esa.us-west-2.outbound.mail-perimeter.amazon.com (pdx-out-009.esa.us-west-2.outbound.mail-perimeter.amazon.com [35.155.198.111])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7FEEE305692
-	for <linux-rdma@vger.kernel.org>; Sun, 17 May 2026 07:06:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=35.155.198.111
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A6E9434A76F;
+	Sun, 17 May 2026 08:45:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779001594; cv=none; b=jYDDedu885HYC+V6OWG5qJQ38g4pYbdHN3rBWg+ceY+s28t85OAdiD2V1o+y06IWwvBHXiQvgrU3ed9MbUh2Px7JzunFp5Cp0K39PvPDq3GfjOU5mFiJvMCzq5zNY3Tc7B9Yhkh1rrE9WGVspmiJd8i1o2eDv9bwxCXJvllOg3o=
+	t=1779007517; cv=none; b=iNeynG+bT/TVz47KeQvHW1SjIwQaJDCICW4oLclBswh7JTP/YE3tbGEDHIYrfUQImEP9MStPwAncOK8Q23JbycIT52GNXwlHwu9gRv+baE6PvKaPIzbe52/TeuNukZ2es5o2e4wtXIghlcNmW/fCi1ahX6vP9Q/BkKyNJjFPHWY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779001594; c=relaxed/simple;
-	bh=rREgySsOCAARJjfm2aNTCDIRlVGRg6XzOAgvQ/UhduA=;
-	h=Date:From:To:CC:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=iwF4krB7pB8TdXkium6vLA7SXgwqY/0BUsL711ru9WQISlbOtk5IUP+tU7ddQ/d7PJGg0uvvUucuIRLkN/2Zd+IsgvedH/jmLBvGVcV/MEV8fZ2XG78BslS5aS0V+KpQQZJzmJvFX7xjinE4/jIPVUgTefDPJyLOoYVasBfmTRU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com; spf=pass smtp.mailfrom=amazon.com; dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.b=qvZ1A54T; arc=none smtp.client-ip=35.155.198.111
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazon.com
+	s=arc-20240116; t=1779007517; c=relaxed/simple;
+	bh=JCEMetkZW7cgevDGH7f1eHrAyDf6CeeVwkjMDn6Mjnc=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=ZfALjsOfR0jSYPB8MkiO88Wn+YW22NczXyvE8Jo5UlT8mk+/HzmpP00aCUKNVzKqcsNY29/+WeE4YZlXfEPNX6mMsSVQpdfiY3gp45A+vR28z5unZdOSoW/Tb8LNFPthlUpOUxB3FDB4W1UqCxJ0dWn2XK5ecNeDO18QzzZP3W4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=suUfAOEt; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.b="qvZ1A54T"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazoncorp2;
-  t=1779001593; x=1810537593;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:content-transfer-encoding:in-reply-to;
-  bh=ThkKw0ovE2HoOGGLPIkmmsVTvI0dZ7xEB0bEIiDsEpE=;
-  b=qvZ1A54Ty82xOxFQsgZLpLtgTYf5PnIHDUE7RTgqvNCYdnPifoE7VmMi
-   z3ffHnOSZa8zmgjLYjg5Nawh6BwGhh/7IXvUfOgkdHxh5r+tt32YThU/q
-   ss4xyPnPMpoPk9rLJNX+w5ju4SO/lU2dddQz8FEl+DLAYWH6+i/YOvjPv
-   DWSjBMQSGB8I/UDHSwbISqLnKXdIBOZ3Vj0oPfgJ9q6a92FcTPTJCkKfC
-   Gk2AgAFpcoJW9XrlrLzYZtyrU6W5342HMPptP8QoR4wmiDmfvFoCKuGSJ
-   QES/k/DLLUwPsAMOfZfUjt47aPnnR+a874mqqLCLtH9XutgfaMibdlIyN
-   A==;
-X-CSE-ConnectionGUID: pzir0SVcTWqYH85MbgvssQ==
-X-CSE-MsgGUID: mrvHNe3OQzezQXSBWDtX/A==
-X-IronPort-AV: E=Sophos;i="6.23,239,1770595200"; 
-   d="scan'208";a="19707922"
-Received: from ip-10-5-0-115.us-west-2.compute.internal (HELO smtpout.naws.us-west-2.prod.farcaster.email.amazon.dev) ([10.5.0.115])
-  by internal-pdx-out-009.esa.us-west-2.outbound.mail-perimeter.amazon.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 May 2026 07:06:31 +0000
-Received: from EX19MTAUWC002.ant.amazon.com [205.251.233.111:9663]
- by smtpin.naws.us-west-2.prod.farcaster.email.amazon.dev [10.0.0.241:2525] with esmtp (Farcaster)
- id 2fc3efc2-56ec-4a4c-aeff-3ae87e615c36; Sun, 17 May 2026 07:06:30 +0000 (UTC)
-X-Farcaster-Flow-ID: 2fc3efc2-56ec-4a4c-aeff-3ae87e615c36
-Received: from EX19D001UWA001.ant.amazon.com (10.13.138.214) by
- EX19MTAUWC002.ant.amazon.com (10.250.64.143) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.37;
- Sun, 17 May 2026 07:06:30 +0000
-Received: from dev-dsk-ynachum-1b-aa121316.eu-west-1.amazon.com
- (10.253.69.224) by EX19D001UWA001.ant.amazon.com (10.13.138.214) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.37; Sun, 17 May 2026
- 07:06:28 +0000
-Date: Sun, 17 May 2026 07:06:14 +0000
-From: Yonatan Nachum <ynachum@amazon.com>
-To: Zhu Yanjun <yanjun.zhu@linux.dev>
-CC: <jgg@nvidia.com>, <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
-	<mrgolin@amazon.com>, <sleybo@amazon.com>, <matua@amazon.com>,
-	<gal.pressman@linux.dev>, Firas Jahjah <firasj@amazon.com>
-Subject: Re: [PATCH for-next v2 1/2] RDMA/efa: Add initialization of AH cache
- rhashtable
-Message-ID: <20260517070614.GA18352@dev-dsk-ynachum-1b-aa121316.eu-west-1.amazon.com>
-References: <20260512061121.2177521-1-ynachum@amazon.com>
- <20260512061121.2177521-2-ynachum@amazon.com>
- <346a4118-4902-46a6-9245-ef37322b30b1@linux.dev>
- <20260514100214.GA22423@dev-dsk-ynachum-1b-aa121316.eu-west-1.amazon.com>
- <ac4a8f98-7986-42d3-b6ca-28f514791b79@linux.dev>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="suUfAOEt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E8F94C2BCB0;
+	Sun, 17 May 2026 08:45:16 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1779007517;
+	bh=JCEMetkZW7cgevDGH7f1eHrAyDf6CeeVwkjMDn6Mjnc=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=suUfAOEtHHB2BiVHgZCCMYJtS9B3x2ClWrAW4W5+PZzz8q8lSBM4MWhNFz8r1WSUg
+	 +0Y0BRm/y4IL0Z5ZFi7dv5vo32mCTVB6EAklXucK/v3eBdjjCMkERpVjMUPO40kTtA
+	 BfZQH6y3w3u0L0LIyf8Q00AQYC5NXUYRn9VHNjjBBS0i5v2pLEp/uTFg0zQtnGOl/j
+	 L4AbyOL+obFxBAgDMmDR6iqVbCCw8BZPxIK+/Qifx1MZwTwZc8tphy5G1NrxKxIj71
+	 FvOS/REbLbafiGqqjbcHYKhF4IgTVxwfRSYGIl6b0Gk9V2TUU36mCChisledd2GWBz
+	 fcU71svIP72ng==
+Date: Sun, 17 May 2026 11:45:13 +0300
+From: Leon Romanovsky <leon@kernel.org>
+To: Xiang Mei <xmei5@asu.edu>, alibuda@linux.alibaba.com
+Cc: netdev@vger.kernel.org, dust.li@linux.alibaba.com, wenjia@linux.ibm.com,
+	sidraya@linux.ibm.com, tonylu@linux.alibaba.com,
+	linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org,
+	bestswngs@gmail.com
+Subject: Re: [PATCH net] net/smc: avoid NULL deref of conn->lnk in
+ smc_msg_event tracepoint
+Message-ID: <20260517084513.GA33515@unreal>
+References: <20260510222640.1230720-1-xmei5@asu.edu>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <ac4a8f98-7986-42d3-b6ca-28f514791b79@linux.dev>
-User-Agent: Mutt/1.5.21 (2010-09-15)
-X-ClientProxiedBy: EX19D043UWC002.ant.amazon.com (10.13.139.222) To
- EX19D001UWA001.ant.amazon.com (10.13.138.214)
+In-Reply-To: <20260510222640.1230720-1-xmei5@asu.edu>
 
-On Thu, May 14, 2026 at 10:09:11PM -0700, Zhu Yanjun wrote:
+On Sun, May 10, 2026 at 03:26:40PM -0700, Xiang Mei wrote:
+> The smc_msg_event tracepoint class, shared by smc_tx_sendmsg and
+> smc_rx_recvmsg, unconditionally dereferences smc->conn.lnk:
 > 
-> 在 2026/5/14 3:02, Yonatan Nachum 写道:
-> >On Wed, May 13, 2026 at 10:12:01PM -0700, Zhu Yanjun wrote:
-> >>在 2026/5/11 23:11, Yonatan Nachum 写道:
-> >>>New EFA devices don't support the creation of multiple address handles
-> >>>to the same remote on the same PD.
-> >>>To overcome this limitation, introduce an AH cache rhashtable which will
-> >>>store the refcounts of the same AH creation on the same PD and will
-> >>>allow the driver to manage AH reuse. The hashtable key is the
-> >>>combination of PD and GID. Add initialization and teardown logic for the
-> >>>rhashtable.
-> >>>
-> >>>Reviewed-by: Firas Jahjah <firasj@amazon.com>
-> >>>Reviewed-by: Michael Margolin <mrgolin@amazon.com>
-> >>>Signed-off-by: Yonatan Nachum <ynachum@amazon.com>
-> >>>---
-> >>>  drivers/infiniband/hw/efa/Makefile       |  4 +--
-> >>>  drivers/infiniband/hw/efa/efa_ah_cache.c | 30 ++++++++++++++++++++
-> >>>  drivers/infiniband/hw/efa/efa_ah_cache.h | 36 ++++++++++++++++++++++++
-> >>>  drivers/infiniband/hw/efa/efa_com.c      | 12 +++++++-
-> >>>  drivers/infiniband/hw/efa/efa_com.h      |  5 +++-
-> >>>  5 files changed, 83 insertions(+), 4 deletions(-)
-> >>>  create mode 100644 drivers/infiniband/hw/efa/efa_ah_cache.c
-> >>>  create mode 100644 drivers/infiniband/hw/efa/efa_ah_cache.h
-> >>>
-> >>>diff --git a/drivers/infiniband/hw/efa/efa_ah_cache.h b/drivers/infiniband/hw/efa/efa_ah_cache.h
-> >>>new file mode 100644
-> >>>index 000000000000..25288fdf778a
-> >>>--- /dev/null
-> >>>+++ b/drivers/infiniband/hw/efa/efa_ah_cache.h
-> >>>@@ -0,0 +1,36 @@
-> >>>+/* SPDX-License-Identifier: GPL-2.0 OR BSD-2-Clause */
-> >>>+/*
-> >>>+ * Copyright 2026 Amazon.com, Inc. or its affiliates. All rights reserved.
-> >>>+ */
-> >>>+
-> >>>+#ifndef _EFA_AH_CACHE_H_
-> >>>+#define _EFA_AH_CACHE_H_
-> >>>+
-> >>>+#include <linux/refcount.h>
-> >>>+#include <linux/rhashtable.h>
-> >>>+
-> >>>+#define EFA_AH_GID_SIZE 16
-> >>>+
-> >>>+struct efa_ah_cache_key {
-> >>>+	u8 gid[EFA_AH_GID_SIZE];
-> >>>+	u16 pd;
-> >>>+};
-> >>I am not sure if we add __packed to avoid memory hole.
-> >>
-> >>Zhu Yanjun
-> >Currently there is no holes in the struct (verified using pahole) and we
-> >Zero-initialize AH cache key so I don't think packed is really needed.
-> 
-> I’m wondering whether you’ve tested this on all architectures.
-> 
-> Explicitly using `__packed` or ensuring proper memory alignment
-> 
-> would likely be a better solution to avoid memory holes in the key
-> structure.
-> 
-> Zhu Yanjun
-> 
-> 
-> >Thanks
-> 
-> -- 
-> Best Regards,
-> Yanjun.Zhu
+> 	__string(name, smc->conn.lnk->ibname)
 
-It was tested on x86 and arm which are the supported architectures for
-EFA. Current implementation handles holes and I prefer to not add packed
-annotation.
+My comment is not directly related to this patch, but it was triggered
+while reviewing it. The ibname should not be cached, as users can rename
+it through rdmatool or udev.
+
+For example, this function is racy:
+   552 static int smc_nl_handle_smcr_dev(struct smc_ib_device *smcibdev,
+   553                                   struct sk_buff *skb,
+   554                                   struct netlink_callback *cb)
+   555 {
+   ...
+   582         snprintf(smc_ibname, sizeof(smc_ibname), "%s", smcibdev->ibdev->name);
 
 Thanks
-
