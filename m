@@ -1,50 +1,42 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A16F3C465;
-	Sun, 17 May 2026 10:30:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E34A71B808
+	for <linux-rdma@vger.kernel.org>; Sun, 17 May 2026 10:32:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779013849; cv=none; b=dJkrpCB4ssC6b1498AuWYNrBsoRtFziZV4n7JeEkSYxhUBy2amUbvthYsWmwgyXmk2OQq+BWa4GGbZJr5/uRHPW3k/JgOLj7h8hXtABLe0YV6w49YeUhygJkUhG4olC/PoKcSDDKTJVVSSUYJxUWKKuNx813BhyVRpXRAk2s1k0=
+	t=1779013966; cv=none; b=itDRsppUhfxsDdOlRaVFHXQ8fS1ueJ2Lu1oQ/Wy/XVWFCfgVMDPNCBR50s3NglGYPq53dmvUlHFlD9FDaCnKpXU6mtFrc+FlTiLEwW0L1GjO/WPcE6/i+bg+wtv1tXbchGIdptbqP7wTYOM+8AZljR7sidjhQSqXfvHc+hkIR/Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779013849; c=relaxed/simple;
-	bh=oKB4vZkKMB1iY1/10UVgDNZcxKd+ie6puFVXHVtNU/E=;
+	s=arc-20240116; t=1779013966; c=relaxed/simple;
+	bh=i++zmOlgyIRhxzXRAzGDA9Q2mB3jYD25F/SLIHLTYzc=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=d2lBdkaDksqalWN+TxElgMItzbPkjVrJaimodOvLjbxzcO48O23keLHI2/Sd2FmV/GJlSReHSXRBvZkojJS0pLJuaBEU80q6KMamdqw/TI9INS2+pZzJW9QbUtsGznajn0VS+gQxVsxNoUdgJxESHmVN7Dm3tg9H4tUj8u6859E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=g0wT50jn; arc=none smtp.client-ip=10.30.226.201
+	 Content-Type:Content-Disposition:In-Reply-To; b=A4x3zdo4AVY08JZwmIvtDUt2r7wrYAQE9+6aopTuosw/v6X+euJodogwbltjAlgTkXFncwdtnKwckExD2eHr3e8IItPvXhZkIjM+yocW7qjNtqsM/8ZF3wv4DIct7fMb2ORydpZq4ZMJ+XXm8l3DBKclh43F5VDIfl/AmarouI8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ZTUeFww/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="g0wT50jn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DAA73C2BCB0;
-	Sun, 17 May 2026 10:30:44 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ZTUeFww/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B0CF6C2BCB0;
+	Sun, 17 May 2026 10:32:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1779013848;
-	bh=oKB4vZkKMB1iY1/10UVgDNZcxKd+ie6puFVXHVtNU/E=;
+	s=k20201202; t=1779013965;
+	bh=i++zmOlgyIRhxzXRAzGDA9Q2mB3jYD25F/SLIHLTYzc=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=g0wT50jnfaVQBbzO+xoyYyLOQl4dDjwSyZLd7hHJUCot6si+daFBUL3+SACrsqY43
-	 RFmcEMDQiu/QQyonJCIJI5kXaedKvoHYZOfpDECqLZ9vpROiHpjEpXJYsT65hF5Abp
-	 XxY43BPJDRTD0XWXoeBNXhKGE/VIaovIOC7DesCqsR0yRcqoAnV/rjT7nyL0NoWK8g
-	 gQt2vkVtZv3vxrcAHxyvDeZK/ucck1TJMfy+qMGdl95o4Hj/bcR5lka8uYSx9dU7tr
-	 XodhGyrESKY9o0pFfrE1eJrLf7BfIyA1iza+GbIpbZXEu6rApSYzqiRv28vqvkcUTR
-	 tJSq6T2+bIAxg==
-Date: Sun, 17 May 2026 11:30:42 +0100
-From: Simon Horman <horms@kernel.org>
-To: Tariq Toukan <tariqt@nvidia.com>
-Cc: Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Andrew Lunn <andrew+netdev@lunn.ch>,
-	"David S. Miller" <davem@davemloft.net>,
-	Saeed Mahameed <saeedm@nvidia.com>, Mark Bloch <mbloch@nvidia.com>,
-	Leon Romanovsky <leon@kernel.org>,
-	Tariq Toukan <tariqt@mellanox.com>,
-	Maxim Mikityanskiy <maxtram95@gmail.com>,
-	Daniel Borkmann <daniel@iogearbox.net>,
-	Saeed Mahameed <saeedm@mellanox.com>, netdev@vger.kernel.org,
-	linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Gal Pressman <gal@nvidia.com>, Paul Saab <ps@meta.com>,
-	Dragos Tatulea <dtatulea@nvidia.com>, Paul Saab <ps@mu.org>
-Subject: Re: [PATCH net] net/mlx5e: xsk: Fix unlocked writing to ICOSQ
-Message-ID: <20260517103042.GB98116@horms.kernel.org>
-References: <20260513064613.334602-1-tariqt@nvidia.com>
+	b=ZTUeFww/lrQ5QtTzY6gUEBwFStt1PR3M5dsetdA10v/lppCnFTchczp9ctUTJnLcU
+	 I8i3pjYzNx3/QFtmiu8x/jGZVU6jpGJCDDHyWnWvSmz/CPUgGsBf6nWu884MOzuUGj
+	 0qtUuUOaCUU6N4JkZXkhD86jcIYAF8l6EGT1rKi/Vu3EILI/aKvxY5mg2WDiO1Ljwr
+	 U6MBAUnoZRmJmVlU6+vODbKld6nT8AHKFheBCghDlcMV1XNBQ/LjVnnHLoMRe8nY1n
+	 XO8xftZ3IYuIsi9cuN1m8+r1A4KksiSxFMWlv8UZqZ9M8MGUrB+ggQ82tqNg1VOd+B
+	 OeqONEpMU06Ow==
+Date: Sun, 17 May 2026 13:32:40 +0300
+From: Leon Romanovsky <leon@kernel.org>
+To: Chenguang Zhao <zhaochenguang@kylinos.cn>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>, Kees Cook <kees@kernel.org>,
+	Etienne AUJAMES <eaujames@ddn.com>,
+	zhenwei pi <zhenwei.pi@linux.dev>, Jiri Pirko <jiri@resnulli.us>,
+	Maor Gottlieb <maorg@nvidia.com>, linux-rdma@vger.kernel.org
+Subject: Re: [PATCH] IB/cache: Check GID table references before attempting
+ deletion
+Message-ID: <20260517103240.GC33515@unreal>
+References: <20260513080707.3929955-1-zhaochenguang@kylinos.cn>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -53,49 +45,95 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20260513064613.334602-1-tariqt@nvidia.com>
+In-Reply-To: <20260513080707.3929955-1-zhaochenguang@kylinos.cn>
 
-On Wed, May 13, 2026 at 09:46:13AM +0300, Tariq Toukan wrote:
-> From: Dragos Tatulea <dtatulea@nvidia.com>
+On Wed, May 13, 2026 at 04:07:07PM +0800, Chenguang Zhao wrote:
+> In the NFS over RDMA environment, repeatedly performing frequent
+> ifdown/ifup operations on the client may cause df -h to hang.
+> The kernel log reports an error:
+>   __ib_cache_gid_add: unable to add gid
+>   0000:0000:0000:0000:0000:ffff:c0a8:0115 error=-28.
+> Error code -28 indicates the GID table is full.
+> The call stack during ifdown is as follows:
+>   put_gid_entry_locked()
+>   del_gid()
+>   _ib_cache_gid_del()
+>   update_gid()
+>   update_gid_event_work_handler()
 > 
-> During napi poll, when the affinity changes and there's still XSK work
-> to be done, we trigger an ICOSQ interrupt on the new CPU. However, this
-> triggering on the ICOSQ is done unprotected.
-> 
-> There are 2 such races:
-> 
-> A) mlx5e_trigger_irq() is called while mlx5e_xsk_alloc_rx_mpwqe() is
-> running from a different CPU due to affinity change. This can happen
-> because IRQ triggering is done after napi_complete_done(). At this point
-> the NAPI can be scheduled on a different CPU. Like this:
-> 
->   CPU A (old affinity, NAPI tail)    CPU B (new affinity, fresh NAPI)
->   -------------------------------    --------------------------------
->   napi_complete_done()  clears SCHED
->   mlx5e_cq_arm(...)
->                                      napi_schedule_prep() sets SCHED
->                                      mlx5e_napi_poll()
->                                        mlx5e_xsk_alloc_rx_mpwqe()
->                                          mlx5e_icosq_sync_lock() // noop
->                                          memcpy 640 B UMR body
->                                          advance sq->pc by 10
->   mlx5e_trigger_irq(&c->icosq)
->     wqe_info[pi] = {NOP, 1}
->     mlx5e_post_nop() advances sq->pc
-> 
-> B) mlx5e_trigger_irq() is called on the ICOSQ when
-> mlx5e_trigger_napi_icosq() is running.
-> 
-> The obvious fix would be to lock the ICOSQ. But ICOSQ has an optimized
-> locking scheme that doesn't work for this scenario. Kick the async ICOSQ
-> instead which is always locked.
+> In put_gid_entry_locked(), kref_put(&entry->kref) does not
+> drop the reference count to zero.
 
-...
+Why?
 
-> Fixes: db05815b36cb ("net/mlx5e: Add XSK zero-copy support")
-> Reported-by: Paul Saab <ps@mu.org>
-> Signed-off-by: Dragos Tatulea <dtatulea@nvidia.com>
-> Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
+> so free_gid_entry() is never invoked to release the entry. Subsequent ifup
+> attempts keep adding new entries into the GID table,
+> eventually exhausting the table capacity.
 
-Reviewed-by: Simon Horman <horms@kernel.org>
+This behavior is not what we expect from the IB/cache layer.
 
+Thanks
+
+> 
+> To fix this, check whether the GID entry still has
+> outstanding references in del_gid(), and only remove
+> and release the entry when no other references remain.
+> 
+> Signed-off-by: Chenguang Zhao <zhaochenguang@kylinos.cn>
+> ---
+>  drivers/infiniband/core/cache.c | 31 +++++++++++++++++++++++++++++++
+>  1 file changed, 31 insertions(+)
+> 
+> diff --git a/drivers/infiniband/core/cache.c b/drivers/infiniband/core/cache.c
+> index 647a547e2d7f..c71522fbf89f 100644
+> --- a/drivers/infiniband/core/cache.c
+> +++ b/drivers/infiniband/core/cache.c
+> @@ -596,6 +596,34 @@ int ib_cache_gid_add(struct ib_device *ib_dev, u32 port,
+>  	return __ib_cache_gid_add(ib_dev, port, gid, attr, mask, false);
+>  }
+>  
+> +/**
+> + * gid_table_is_shared - Check if GID table has other reference owners
+> + * @table: GID table to check
+> + * @ix: index of entry
+> + *
+> + * Returns true if the gid table refcount is greater than 1,
+> + */
+> +static bool gid_table_is_shared(struct ib_gid_table *table, int ix)
+> +{
+> +	unsigned int refcount;
+> +	struct ib_gid_table_entry *entry;
+> +
+> +	write_lock_irq(&table->rwlock);
+> +
+> +	entry = table->data_vec[ix];
+> +	refcount = kref_read(&entry->kref);
+> +
+> +	write_unlock_irq(&table->rwlock);
+> +
+> +	if (refcount > 1) {
+> +		pr_debug("%s: The GID table is still referenced and cannot be deleted.\n",
+> +			__func__);
+> +		return true;
+> +	} else {
+> +		return false;
+> +	}
+> +}
+> +
+>  static int
+>  _ib_cache_gid_del(struct ib_device *ib_dev, u32 port,
+>  		  union ib_gid *gid, struct ib_gid_attr *attr,
+> @@ -615,6 +643,9 @@ _ib_cache_gid_del(struct ib_device *ib_dev, u32 port,
+>  		goto out_unlock;
+>  	}
+>  
+> +	if (gid_table_is_shared(table, ix))
+> +		goto out_unlock;
+> +
+>  	del_gid(ib_dev, port, table, ix);
+>  	dispatch_gid_change_event(ib_dev, port);
+>  
+> -- 
+> 2.25.1
+> 
+> 
