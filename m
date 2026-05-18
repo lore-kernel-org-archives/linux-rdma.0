@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F179F21D590;
-	Mon, 18 May 2026 01:24:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 04AFF26CE11;
+	Mon, 18 May 2026 01:24:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779067490; cv=none; b=QKabKrGIHVoxVyfWSxV4I80YM+Eh38UjQS+Z4qZ6VHuWwtOTbRNQsa9GnWwQopOh0tO8u8/lxL52wL0poxT1zA6osJ1HVYmD/3vpvFKtuxnygjVv4BLiDC1BFmpYZ+Mm0NHNStcSu7aTmFQKKCy45iZVpyQw3+P2cxaVES9mX+k=
+	t=1779067491; cv=none; b=QsgLxC8SfIaxfqc2B7b9cLddtmyjwXLb4VQkKFAR1gjVIldIdfefmywESHwkhj6hGCqqRmD9B7Ic0WVsR4MZfrHDztJ1N5KYOFhG53KW6W5jjgcFdKg4WuagJ8DHM9WyEiOwsRQeXgRDEeZlUlWHEpAFWEYG7bL8fRNQ3U7GQoA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779067490; c=relaxed/simple;
-	bh=D9aqmV4Qj7vVA5k92KHWySaH8uAfgMfomQHrg4nNkXI=;
+	s=arc-20240116; t=1779067491; c=relaxed/simple;
+	bh=g6QtbzzbjUWO3EenwLABGnFL9V2BfXR/BEBTMZQj45k=;
 	h=From:To:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=qPd2X3qbAq0BK/dBsOAPq5JRlY7UT24Ke9dkMKZulnioTW33jlOI3Pow02JFoNprEn2ZWEOXSuyTB/7SJ4xkQwgH3uksn72VbLMwNYwsO/FP/U/YZ0SHBArIBIZrGMWl1fELmSssNmmXF9jubUZoQbDN/p/wn/6GhZuSN2xnkmQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=b1YBfkS+; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=PWZRTbgBSdQzq66xaXKd4+JVUnzrULNEVK/20b7oFvgK/Q1iL/QoYEpu6y+KOYST3fAH7DpyP3bKOkk1gdV9CIqhK3E+BlriFAzgX0zkQfqHLF8d+XwOUuaBKqn2QI6ojF5/QawCR2gzvSEf16Gc6KwfObXVtKadxzi4vRiFkmM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=NvAd+24C; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="b1YBfkS+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 55260C2BCB3;
-	Mon, 18 May 2026 01:24:49 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="NvAd+24C"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 116A6C2BCB0;
+	Mon, 18 May 2026 01:24:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1779067489;
-	bh=D9aqmV4Qj7vVA5k92KHWySaH8uAfgMfomQHrg4nNkXI=;
+	s=k20201202; t=1779067490;
+	bh=g6QtbzzbjUWO3EenwLABGnFL9V2BfXR/BEBTMZQj45k=;
 	h=From:To:Subject:Date:In-Reply-To:References:From;
-	b=b1YBfkS+GzerEku/YmLcycUq/J0hByv86HTtzRs7V/dkbXUeLNkrjm+BRzrvSrozw
-	 hmMNCBZf5adj1F3GdA+NFshF2fOPh6YnMAFSAAJG8y+ReB8yGVnUf8hfYYqxpSTt4y
-	 XnAH8JxEOD5Ik3UIa6mCMakEtXC2aGJt5mzIZymrsLWf/0GMwj5Lz5xBBOlLpKkzQl
-	 cRQoXpR4Y+n2nMuMDu2AZ3vOAdnPbGjfaMeZk22A7AOHfdIcDIFE5LJg0Xo17uPFaD
-	 4vQ4pqcncubh7Fx4rK4pQTw/QtyTep8TaM2xvF7zsXmld2uU9uS9GukeUuaqo8gqfj
-	 NvqSbbUK1E9yg==
+	b=NvAd+24CaxRlaV16yp/GD4TmYGazo34qE7mar48dj+KNjByOS/C9DeEuRRlzxHfjj
+	 NlqNckvjh04m8F1g0pqUbjLLSktJJWJQ287+xrRnbbk1OWT2ti9l8uT63hDGIkqexq
+	 WJO2dwqmHyt+KkI8kGZ7REbcouKwfRZknpSKxKtkRa7d4o4FY3nHSzpVEGn0Fvydbn
+	 dT388l2fLJOKZdMrvknQpi+x5NbtAsS+y1UDCHbUTez9HaprvDXuJDTRrSStojLfIx
+	 sxw05LOxJtl9Ph1D367HqFeCmw1aVRay8LywXtaPQq4HPz4uj+qNQlfEk6glIBUEYa
+	 goQ1r9uBWSxHQ==
 From: Allison Henderson <achender@kernel.org>
 To: netdev@vger.kernel.org,
 	pabeni@redhat.com,
@@ -36,9 +36,9 @@ To: netdev@vger.kernel.org,
 	achender@kernel.org,
 	linux-kselftest@vger.kernel.org,
 	shuah@kernel.org
-Subject: [PATCH net-next v3 07/11] selftests: rds: Add helper function snd_rcv_packets() in test.py
-Date: Sun, 17 May 2026 18:24:39 -0700
-Message-Id: <20260518012443.2629206-8-achender@kernel.org>
+Subject: [PATCH net-next v3 08/11] selftests: rds: Handle errors in netns_socket
+Date: Sun, 17 May 2026 18:24:40 -0700
+Message-Id: <20260518012443.2629206-9-achender@kernel.org>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20260518012443.2629206-1-achender@kernel.org>
 References: <20260518012443.2629206-1-achender@kernel.org>
@@ -50,147 +50,73 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Hoist the send/recv logic in test.py into a helper function,
-snd_rcv_packets().  This is a preparatory refactoring for the
-rds over ROCE series which can use the same function to run
-the test over tcp, rdma, or both.  No functional changes are
-introduced in this patch.
+Sockets created by child processes in netns_socket may raise
+exceptions that are currently not handled by the parent.  If for
+example a namespace didn't exist or the rds module didn't load. Because
+these exceptions occur with in a child thread, the child thread exits,
+but the parent does not check the return status.
+
+Further, allowing the child processes to quietly raise exceptions
+will cause problems later if the parent registers clean up functions
+with atexit.  Since the child processes inherit the parents handlers,
+they may prematurely call the parents cleanup routines without the
+parent being aware.
+
+Fix this by all catching exceptions raised by the child processes.
+Child errors surface as a non-zero exit status, which are then
+properly raised in the parent process.
 
 Signed-off-by: Allison Henderson <achender@kernel.org>
 ---
- tools/testing/selftests/net/rds/test.py | 99 ++++++++++++++-----------
- 1 file changed, 54 insertions(+), 45 deletions(-)
+ tools/testing/selftests/net/rds/test.py | 27 +++++++++++++------------
+ 1 file changed, 14 insertions(+), 13 deletions(-)
 
 diff --git a/tools/testing/selftests/net/rds/test.py b/tools/testing/selftests/net/rds/test.py
-index a3def413d84ad..f7d0dba85131e 100755
+index f7d0dba85131e..2188221ee7805 100755
 --- a/tools/testing/selftests/net/rds/test.py
 +++ b/tools/testing/selftests/net/rds/test.py
-@@ -167,6 +167,59 @@ def verify_hashes(snd_hashes, rcv_hashes):
-         ksft_pr(f"{key[0]}/{key[1]}: ok")
-     return 0
+@@ -56,27 +56,28 @@ def netns_socket(netns, *sock_args):
  
-+def snd_rcv_packets(addrs, netns_list):
-+    """
-+    Send packets on the given network interfaces
-+
-+    :param addrs: list of (ip, port) tuples matching the sockets
-+    :param netns_list: list of network namespaces
-+    """
-+
-+    sockets = [
-+        netns_socket(netns_list[0], socket.AF_RDS, socket.SOCK_SEQPACKET),
-+        netns_socket(netns_list[1], socket.AF_RDS, socket.SOCK_SEQPACKET),
-+    ]
-+
-+    for s, addr in zip(sockets, addrs):
-+        s.bind(addr)
-+        s.setblocking(0)
-+
-+    send_hashes = {}
-+    recv_hashes = {}
-+
-+    ep = select.epoll()
-+
-+    for s in sockets:
-+        ep.register(s, select.EPOLLRDNORM)
-+
-+    num_packets = 50000
-+    nr_send = 0
-+    nr_recv = 0
-+
-+    while nr_send < num_packets:
-+
-+        # Send as much as we can without blocking
-+        ksft_pr("sending...", nr_send, nr_recv)
-+        nr_send = send_burst(sockets, addrs, send_hashes, nr_send, num_packets)
-+
-+        # Receive as much as we can without blocking
-+        ksft_pr("receiving...", nr_send, nr_recv)
-+        while nr_recv < nr_send:
-+            nr_recv = recv_burst(ep, sockets, addrs, recv_hashes, nr_recv)
-+
-+        # exercise net/rds/tcp.c:rds_tcp_sysctl_reset()
-+        for net in netns_list:
-+            ip(f"netns exec {net} /usr/sbin/sysctl net.rds.tcp.rds_tcp_rcvbuf=10000")
-+            ip(f"netns exec {net} /usr/sbin/sysctl net.rds.tcp.rds_tcp_sndbuf=10000")
-+
-+    ksft_pr("done", nr_send, nr_recv)
-+
-+    check_info(sockets)
-+
-+    # We're done sending and receiving stuff, now let's check if what
-+    # we received is what we sent.
-+    return verify_hashes(send_hashes, recv_hashes)
-+
- def stop_pcaps():
-     """Stop tcpdump processes.
+     child = os.fork()
+     if child == 0:
+-        # change network namespace
+-        with open(f'/var/run/netns/{netns}', encoding='utf-8') as f:
+-            try:
++        try:
++            # change network namespace
++            with open(f'/var/run/netns/{netns}', encoding='utf-8') as f:
+                 setns(f.fileno(), 0)
+-            except IOError as e:
+-                print(e.errno)
+-                print(e)
+-
+-        # create socket in target namespace
+-        sock = socket.socket(*sock_args)
++            # create socket in target namespace
++            sock = socket.socket(*sock_args)
  
-@@ -267,7 +320,6 @@ PACKET_CORRUPTION=str(args.corruption)+'%'
- PACKET_DUPLICATE=str(args.duplicate)+'%'
+-        # send resulting socket to parent
+-        socket.send_fds(u0, [], [sock.fileno()])
++            # send resulting socket to parent
++            socket.send_fds(u0, [], [sock.fileno()])
  
- setup_tcp()
--addrs = tcp_addrs
+-        os._exit(0)
++            os._exit(0)
++        except BaseException:
++            os._exit(1)
  
- print("TAP version 13")
- print("1..1")
-@@ -277,56 +329,13 @@ if args.timeout > 0:
-     signal.alarm(args.timeout)
-     signal.signal(signal.SIGALRM, signal_handler)
+     # receive socket from child
+     _, fds, _, _ = socket.recv_fds(u1, 0, 1)
+-    os.waitpid(child, 0)
++    _, status = os.waitpid(child, 0)
+     u0.close()
+     u1.close()
++    if not os.WIFEXITED(status) or os.WEXITSTATUS(status) != 0:
++        raise RuntimeError(
++            f"netns_socket child failed in netns {netns} (status={status})")
+     return socket.fromfd(fds[0], *sock_args)
  
--sockets = [
--    netns_socket(NET0, socket.AF_RDS, socket.SOCK_SEQPACKET),
--    netns_socket(NET1, socket.AF_RDS, socket.SOCK_SEQPACKET),
--]
--
--for s, addr in zip(sockets, addrs):
--    s.bind(addr)
--    s.setblocking(0)
--
--send_hashes = {}
--recv_hashes = {}
--
--ep = select.epoll()
--
--for s in sockets:
--    ep.register(s, select.EPOLLRDNORM)
--
--NUM_PACKETS = 50000
--nr_send = 0
--nr_recv = 0
--
--while nr_send < NUM_PACKETS:
--
--    # Send as much as we can without blocking
--    ksft_pr("sending...", nr_send, nr_recv)
--    nr_send = send_burst(sockets, addrs, send_hashes, nr_send, NUM_PACKETS)
--
--    # Receive as much as we can without blocking
--    ksft_pr("receiving...", nr_send, nr_recv)
--    while nr_recv < nr_send:
--        nr_recv = recv_burst(ep, sockets, addrs, recv_hashes, nr_recv)
--
--    # exercise net/rds/tcp.c:rds_tcp_sysctl_reset()
--    for net in [NET0, NET1]:
--        ip(f"netns exec {net} /usr/sbin/sysctl net.rds.tcp.rds_tcp_rcvbuf=10000")
--        ip(f"netns exec {net} /usr/sbin/sysctl net.rds.tcp.rds_tcp_sndbuf=10000")
--
--ksft_pr("done", nr_send, nr_recv)
--
--check_info(sockets)
-+ret = snd_rcv_packets(tcp_addrs, [NET0, NET1])
- 
- # cancel timeout
- signal.alarm(0)
- 
- stop_pcaps()
- 
--# We're done sending and receiving stuff, now let's check if what
--# we received is what we sent.
--ret = verify_hashes(send_hashes, recv_hashes)
--
- if ret == 0:
-     ksft_pr("Success")
-     print("ok 1 rds selftest")
+ def send_burst(socks, ip_addrs, snd_hashes, nr_sent, nr_total):
 -- 
 2.25.1
 
