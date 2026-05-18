@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 04AFF26CE11;
-	Mon, 18 May 2026 01:24:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6407827874F;
+	Mon, 18 May 2026 01:24:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779067491; cv=none; b=QsgLxC8SfIaxfqc2B7b9cLddtmyjwXLb4VQkKFAR1gjVIldIdfefmywESHwkhj6hGCqqRmD9B7Ic0WVsR4MZfrHDztJ1N5KYOFhG53KW6W5jjgcFdKg4WuagJ8DHM9WyEiOwsRQeXgRDEeZlUlWHEpAFWEYG7bL8fRNQ3U7GQoA=
+	t=1779067491; cv=none; b=Y0p3+QBLro7Mqoxgop2vETCFtx7MvRSc8qcV3t/zNhD0LVPPLNw5rKwXdLqGptL3PtcIyD7tC9+7ZnHyAefLuj5B8fbBHsW75zkxfGDWJaitUJitrvBYRAHwkHgpOZvodeT5IlegxUbxa0uklamDbx5n501AkWpltSaxYJD3jY0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1779067491; c=relaxed/simple;
-	bh=g6QtbzzbjUWO3EenwLABGnFL9V2BfXR/BEBTMZQj45k=;
+	bh=LgWsWxZXMn9mGg7AgnmKmeCEHeiVZuBEgETVwRGWG3g=;
 	h=From:To:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=PWZRTbgBSdQzq66xaXKd4+JVUnzrULNEVK/20b7oFvgK/Q1iL/QoYEpu6y+KOYST3fAH7DpyP3bKOkk1gdV9CIqhK3E+BlriFAzgX0zkQfqHLF8d+XwOUuaBKqn2QI6ojF5/QawCR2gzvSEf16Gc6KwfObXVtKadxzi4vRiFkmM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=NvAd+24C; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=diL8DDQzVELffuEUWPCTBgD01L44LAERBu4/Di6t/63m/yhpz3ZloH8r5rcyyY/N+qGwo88d6dHGIMt9dWXXlAd88fUfRZl4YIICyf24Xp037cpCjAKj3o2u/8dpYv6MFOrBg6te8SvfjFeGsuT7fGa/RaN8tlNh/lFV6z0QvuI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=qK+y+xwn; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="NvAd+24C"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 116A6C2BCB0;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="qK+y+xwn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BF312C2BCB3;
 	Mon, 18 May 2026 01:24:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1779067490;
-	bh=g6QtbzzbjUWO3EenwLABGnFL9V2BfXR/BEBTMZQj45k=;
+	s=k20201202; t=1779067491;
+	bh=LgWsWxZXMn9mGg7AgnmKmeCEHeiVZuBEgETVwRGWG3g=;
 	h=From:To:Subject:Date:In-Reply-To:References:From;
-	b=NvAd+24CaxRlaV16yp/GD4TmYGazo34qE7mar48dj+KNjByOS/C9DeEuRRlzxHfjj
-	 NlqNckvjh04m8F1g0pqUbjLLSktJJWJQ287+xrRnbbk1OWT2ti9l8uT63hDGIkqexq
-	 WJO2dwqmHyt+KkI8kGZ7REbcouKwfRZknpSKxKtkRa7d4o4FY3nHSzpVEGn0Fvydbn
-	 dT388l2fLJOKZdMrvknQpi+x5NbtAsS+y1UDCHbUTez9HaprvDXuJDTRrSStojLfIx
-	 sxw05LOxJtl9Ph1D367HqFeCmw1aVRay8LywXtaPQq4HPz4uj+qNQlfEk6glIBUEYa
-	 goQ1r9uBWSxHQ==
+	b=qK+y+xwntijJYMhNpcI71enm53kHpWvzP7U79XPX91COlQvFmiwaCQF7TkTT6ypEk
+	 gsB9leV0z8HNRqJ/V/IB+2JRn4ahnCWgPcwPQ2OO16uz6Ayr5f/S21ZEXPGEO3Ne3h
+	 A7c0bgjprmuJFPl/SbmxGR///Z3YuaUzhw4qaI+yx7lNQ7H8zt5xFNl6piIZB+Kfzx
+	 9msws5pnlTFrxwtmq3q47+V/KgJnBTIquX0WsIG718/NYyaXfyrPppqKRbZA+RWk8b
+	 wdNbGjXKp1eq7tgQ2U3A+3jHgjAxalsZhmHrNlg9xLGkilhpwoXAUHyE9kY+VVj0V5
+	 c9elvmT10AqsA==
 From: Allison Henderson <achender@kernel.org>
 To: netdev@vger.kernel.org,
 	pabeni@redhat.com,
@@ -36,9 +36,9 @@ To: netdev@vger.kernel.org,
 	achender@kernel.org,
 	linux-kselftest@vger.kernel.org,
 	shuah@kernel.org
-Subject: [PATCH net-next v3 08/11] selftests: rds: Handle errors in netns_socket
-Date: Sun, 17 May 2026 18:24:40 -0700
-Message-Id: <20260518012443.2629206-9-achender@kernel.org>
+Subject: [PATCH net-next v3 09/11] selftests: rds: Register network teardown via atexit
+Date: Sun, 17 May 2026 18:24:41 -0700
+Message-Id: <20260518012443.2629206-10-achender@kernel.org>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20260518012443.2629206-1-achender@kernel.org>
 References: <20260518012443.2629206-1-achender@kernel.org>
@@ -50,73 +50,111 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Sockets created by child processes in netns_socket may raise
-exceptions that are currently not handled by the parent.  If for
-example a namespace didn't exist or the rds module didn't load. Because
-these exceptions occur with in a child thread, the child thread exits,
-but the parent does not check the return status.
+This patch adds a teardown_tcp() helper that removes net0/net1.
+The cmd calls here use fail=False so they can be called from
+completed or partially-setup states on error. Also call
+teardown_tcp() at the top of setup_tcp() so a previous
+interrupted run does not leave net0/net1 lingering and break a
+subsequent ip netns add.  Register teardown_tcp() with atexit
+before setup_tcp() is invoked.
 
-Further, allowing the child processes to quietly raise exceptions
-will cause problems later if the parent registers clean up functions
-with atexit.  Since the child processes inherit the parents handlers,
-they may prematurely call the parents cleanup routines without the
-parent being aware.
+Likewise, we can simpliy stop_pcaps() handling by registering it
+with atexit instead of calling it from the signal handler.
 
-Fix this by all catching exceptions raised by the child processes.
-Child errors surface as a non-zero exit status, which are then
-properly raised in the parent process.
+atexit handlers run on any exit path - normal completion, raised
+exception, and sys.exit() from the timeout signal handler.  This
+guarantees cleanup are called without further wrapping the test
+body in a try/finally blocks.
+
+atexit LIFO ordering keeps stop_pcaps before teardown_tcp so
+tcpdumps are killed cleanly before their namespaces go away.
+
+This is a preparatory cleanup for the upcoming ROCE patch which
+will also register a teardown_rdma() alongside teardown_tcp()
 
 Signed-off-by: Allison Henderson <achender@kernel.org>
 ---
- tools/testing/selftests/net/rds/test.py | 27 +++++++++++++------------
- 1 file changed, 14 insertions(+), 13 deletions(-)
+ tools/testing/selftests/net/rds/test.py | 25 +++++++++++++++++++++----
+ 1 file changed, 21 insertions(+), 4 deletions(-)
 
 diff --git a/tools/testing/selftests/net/rds/test.py b/tools/testing/selftests/net/rds/test.py
-index f7d0dba85131e..2188221ee7805 100755
+index 2188221ee7805..5b699bf87eb25 100755
 --- a/tools/testing/selftests/net/rds/test.py
 +++ b/tools/testing/selftests/net/rds/test.py
-@@ -56,27 +56,28 @@ def netns_socket(netns, *sock_args):
+@@ -5,6 +5,7 @@ This module provides functional testing for the net/rds component.
+ """
  
-     child = os.fork()
-     if child == 0:
--        # change network namespace
--        with open(f'/var/run/netns/{netns}', encoding='utf-8') as f:
--            try:
-+        try:
-+            # change network namespace
-+            with open(f'/var/run/netns/{netns}', encoding='utf-8') as f:
-                 setns(f.fileno(), 0)
--            except IOError as e:
--                print(e.errno)
--                print(e)
+ import argparse
++import atexit
+ import ctypes
+ import errno
+ import hashlib
+@@ -19,7 +20,7 @@ import sys
+ this_dir = os.path.dirname(os.path.realpath(__file__))
+ sys.path.append(os.path.join(this_dir, "../"))
+ # pylint: disable-next=wrong-import-position,import-error,no-name-in-module
+-from lib.py.utils import ip # noqa: E402
++from lib.py.utils import ip, cmd # noqa: E402
+ # pylint: disable-next=wrong-import-position,import-error,no-name-in-module
+ from lib.py.ksft import ksft_pr # noqa: E402
+ 
+@@ -247,7 +248,6 @@ def signal_handler(_sig, _frame):
+     Test timed out signal handler
+     """
+     ksft_pr("Test timed out")
+-    stop_pcaps()
+     print("not ok 1 rds selftest")
+     sys.exit(1)
+ 
+@@ -256,6 +256,9 @@ def setup_tcp():
+     Configure tcp network
+     """
+ 
++    # clean up any leftovers from a previously interrupted run
++    teardown_tcp()
++
+     ip(f"netns add {NET0}")
+     ip(f"netns add {NET1}")
+     ip("link add type veth")
+@@ -300,6 +303,17 @@ def setup_tcp():
+              corrupt {PACKET_CORRUPTION} loss {PACKET_LOSS} duplicate  \
+              {PACKET_DUPLICATE}")
+ 
++def teardown_tcp():
++    """
++    Tear down the tcp network configured by setup_tcp().
++
++    Removing the namespaces also removes the veth pair, addresses,
++    routes, and netem qdisc that live inside them.  fail=False so
++    this is safe to call in error paths after a partial or complete setup.
++    """
++    cmd(f"ip netns del {NET0}", fail=False)
++    cmd(f"ip netns del {NET1}", fail=False)
++
+ #Parse out command line arguments.  We take an optional
+ # timeout parameter and an optional log output folder
+ parser = argparse.ArgumentParser(description="init script args",
+@@ -320,6 +334,11 @@ PACKET_LOSS=str(args.loss)+'%'
+ PACKET_CORRUPTION=str(args.corruption)+'%'
+ PACKET_DUPLICATE=str(args.duplicate)+'%'
+ 
++# Register cleanup before setup so a partial-setup crash still tears down
++# whatever state did get created.
++atexit.register(teardown_tcp)
++atexit.register(stop_pcaps)
++
+ setup_tcp()
+ 
+ print("TAP version 13")
+@@ -335,8 +354,6 @@ ret = snd_rcv_packets(tcp_addrs, [NET0, NET1])
+ # cancel timeout
+ signal.alarm(0)
+ 
+-stop_pcaps()
 -
--        # create socket in target namespace
--        sock = socket.socket(*sock_args)
-+            # create socket in target namespace
-+            sock = socket.socket(*sock_args)
- 
--        # send resulting socket to parent
--        socket.send_fds(u0, [], [sock.fileno()])
-+            # send resulting socket to parent
-+            socket.send_fds(u0, [], [sock.fileno()])
- 
--        os._exit(0)
-+            os._exit(0)
-+        except BaseException:
-+            os._exit(1)
- 
-     # receive socket from child
-     _, fds, _, _ = socket.recv_fds(u1, 0, 1)
--    os.waitpid(child, 0)
-+    _, status = os.waitpid(child, 0)
-     u0.close()
-     u1.close()
-+    if not os.WIFEXITED(status) or os.WEXITSTATUS(status) != 0:
-+        raise RuntimeError(
-+            f"netns_socket child failed in netns {netns} (status={status})")
-     return socket.fromfd(fds[0], *sock_args)
- 
- def send_burst(socks, ip_addrs, snd_hashes, nr_sent, nr_total):
+ if ret == 0:
+     ksft_pr("Success")
+     print("ok 1 rds selftest")
 -- 
 2.25.1
 
