@@ -1,211 +1,209 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-vs1-f103.google.com (mail-vs1-f103.google.com [209.85.217.103])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F9DC3AFCFF;
-	Tue, 19 May 2026 15:08:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C5BE83AFD0D
+	for <linux-rdma@vger.kernel.org>; Tue, 19 May 2026 15:09:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.217.103
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779203306; cv=none; b=dFnaG2SghMJ0R60enViP4gVLVX8uU05HghFGtyn0Y2Tm5pzbC8QaNuSAbZy5xxx0+LRisXnDQkmmVRVPCHYRtB/6a2x9dZTopSwdULVNbNBNZ/GDgBxdtMDx3Arh3JaTgQGAfufKLv80SBfD6XHqLs2FAYNtrBHqtLbaQDoCOrM=
+	t=1779203401; cv=none; b=dmXEMB/DPRyhIg8grGCib+BD5F6sJiSww/FLvMsl9lUjr/CGupo8tu+KNwhyLNGl5zflR0U/dAu1XlUcb1IIJVRx60vpqnjMwXIVJtGb2UHhWqBVrGOJqHe4YT/ty/e9e+h+tV7NDgG7gR7I6B7ciZ2uFzgEix8zeRMasLBVCy4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779203306; c=relaxed/simple;
-	bh=cW/i5F3zU6zS2MBxCTWXTQxpkm6T26RjXTd4j3uv1tM=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=HFVuzWxQbkjnJ9SIoAj035/UAwwmCOx3BbIyk9tldMXT/sLeS/TO/gw2zjTiO3/7QKESHlJsr3DEPSoeVdLdIjN+mXFFCsZ6aE0EJNMpB7RH+HsUi/ORXvoqPQ99OtgE3fOMXWs/wz63pzumG52GAQ489ac5+MwPn+HIeBnCVRY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=RW5OTl3i; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1779203401; c=relaxed/simple;
+	bh=4YlMb/qGwHwlKPPTkDkLxbznJgaB0nxuJDpHEdZy3ro=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=KYXyGHqVuhaU6exwMzV9VDM+DciEYnTjdEduo5cic7ZH+/Liwzq21l2MJs3SXVxNjruvekJipDuV8rfKuYA0jtz4LDa9NqHvfykW3hAvfcgJYzapLCgcjDCX0fdX0k8s8mGK29Wja4aeQEk3/mAMbjA4qs+54MB+Dilk4RWQ3hg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com; spf=fail smtp.mailfrom=broadcom.com; dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b=XQbY1yF7; arc=none smtp.client-ip=209.85.217.103
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=broadcom.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="RW5OTl3i"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A3B41C2BCB3;
-	Tue, 19 May 2026 15:08:25 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1779203306;
-	bh=cW/i5F3zU6zS2MBxCTWXTQxpkm6T26RjXTd4j3uv1tM=;
-	h=From:To:Cc:Subject:Date:From;
-	b=RW5OTl3iIqu2/cb3B4Z8Oyg57ZLRP0sgNi9/wqJ+rPsdYRUuefiqQ6qvdgJ73up/6
-	 fUaI0jCw28LwHyaexuRP5Lel9HaMyizDZRVntlQjrkNeY8kbTxXotF0UMC13VdHsSP
-	 sWQsfLwGw6rU3vDZt17o8jqscmI5Lld3PrmyYGm/lzvZ7wgTCASsX3OBnIWpT+Ll2s
-	 YRO7yJQ4TQeJBasPmH5Z1NX2+5tGCUo4+KpqPwKrccbLWnBmjdZUPV5syGzupNP/c2
-	 qbg0iokeSLzCveoOgxhbZctPddMSXZqDPJcJDV5TXhuJFL/mOx5Fr/10zlIr9kdJ7V
-	 /Y+pV6KuZZ5tA==
-From: Leon Romanovsky <leon@kernel.org>
-To: Leon Romanovsky <leon@kernel.org>,
-	Jason Gunthorpe <jgg@ziepe.ca>,
-	Saeed Mahameed <saeedm@nvidia.com>,
-	Tariq Toukan <tariqt@nvidia.com>,
-	Mark Bloch <mbloch@nvidia.com>,
-	Andrew Lunn <andrew+netdev@lunn.ch>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>
+	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b="XQbY1yF7"
+Received: by mail-vs1-f103.google.com with SMTP id ada2fe7eead31-63270abd14fso1112080137.1
+        for <linux-rdma@vger.kernel.org>; Tue, 19 May 2026 08:09:59 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1779203398; x=1779808198;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:dkim-signature:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=r/H/RKE/d8dpx4JUeq1dzhZ/G1iNaRKLAArGz7BAB14=;
+        b=EqzyWaqqtRyT27+vV2UgI+nlJ58QHS+rsAdhIgpblUZFDFzcO0oZqN7SWz9oUUE3Y+
+         8OZcBXjjWJCbRaSuQxMungZjHveZH2tp1iDqHQyXyQjBvLw+//OtmWLP4W5XBZUzAYPu
+         7rOVb2Ijf2D6xnkH8reJLNbFuSKs75obUR9/wae2HjWVPrtuvZIL6AtUe4gwbHydn/1U
+         6VtCtOqMnj78XTxqQ1zW14AxQz82Ol2DDLKzaTq4kDSWyn0rri3y/Y/+MkqRAVg9E5eX
+         stG4sRmKMlUxd9qij4Fd8Tgfn4vJP8LpNBmGW7ziD5Px6HlxlwL7i9yeOxhWiZiZ2WxD
+         m40w==
+X-Gm-Message-State: AOJu0YxrmAS36/f3drionoEvvldW2OoXUhipe14LBq4m28PeqdZlaO/J
+	oXRE9QA51Pru1Yw5t7etFCbdqv0fUaZRSNE+LsSuqRLbSnoztSz7w2VIxNe/PnKHsJzZ+hNMAvu
+	/AF0OQxMn9utsRFU4hsocURLJU30DP/6sNP3OWD+U+bmfEAJAQmJoigxI0Q7HzmIcuMfsPlMqmR
+	TNTrUVMRI0Aj+vmdTSn6rSdfN+9rpquJN4jBELJGiGsa4Jy3Aipx3IjA7Ipy3jgefdA8J/4+Zz6
+	84Sd4K9uA+xb6OA+WEC0iqcRmrVSXc=
+X-Gm-Gg: Acq92OFNwRKj8n53AKTbEkxOLs3oLx7ZYWWSzTSLHdogerx85u1ZG+u7S9lAiZ9Phhe
+	WvClqk+1ll2JVwIcGl/vZyEenmrZC7dD6OcutgVJHOxSpOTUtwdR1r6NYc2KsqpNAXRhzX9TwiP
+	3zdCz6GhrxOOJERwtC6H0nGwRRKqhelgFhfLriMwXzwDjZH8Y16He2XzEsIi9fnpxBS/NIM9yUL
+	O8ZCtQ9Pp7bqbtX/Pk/0Suv3GxuWON6oRnND73kSL9kB69/oJkZnzAEDZKOnP3C3qfoQWySleK/
+	cikt++4908Ucg86MwHMHCpEzeqL6JzUGTIgrJJEZsyY3Hsb5NpSZ919EPs161L0a+QUSByYbZuC
+	7FVizfEZmk65TUlRBqENIkafrJZFJoDbFt/uh7yUY97gcCJMD0TbVJhgp57FTZy6sUqsFhewr/b
+	cBUsKOWpjs9No08LXt15RAtQEl4SNBAw8mgzrMJrZKG4nYx8FQej9leYMRHborxibHwCj7
+X-Received: by 2002:a67:e118:0:b0:633:a4bd:5b28 with SMTP id ada2fe7eead31-63a403b04c0mr8278064137.30.1779203397987;
+        Tue, 19 May 2026 08:09:57 -0700 (PDT)
+Received: from smtp-us-east1-p01-i01-si01.dlp.protect.broadcom.com (address-144-49-247-16.dlp.protect.broadcom.com. [144.49.247.16])
+        by smtp-relay.gmail.com with ESMTPS id ada2fe7eead31-63cd19df5dfsm939504137.12.2026.05.19.08.09.57
+        for <linux-rdma@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Tue, 19 May 2026 08:09:57 -0700 (PDT)
+X-Relaying-Domain: broadcom.com
+X-CFilter-Loop: Reflected
+Received: by mail-pl1-f197.google.com with SMTP id d9443c01a7336-2bd04e4fe3dso53632145ad.3
+        for <linux-rdma@vger.kernel.org>; Tue, 19 May 2026 08:09:57 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=broadcom.com; s=google; t=1779203397; x=1779808197; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=r/H/RKE/d8dpx4JUeq1dzhZ/G1iNaRKLAArGz7BAB14=;
+        b=XQbY1yF7seulaUx8gDylKgwcYhUIfEquQChWrlop/46CEsmgVOe+hYbO3ZYbwAASCe
+         jjPS60DJCdul7v1c7SEwjwUReC/oxeZH3HxqBVGUEnNOIENNL/HyHXktuw23RPzZxw63
+         MB6NmcDJwWtt2cZvt+StsCvUe/SHBUNWkhUqQ=
+X-Received: by 2002:a17:902:d311:b0:2b0:a980:3687 with SMTP id d9443c01a7336-2bd7e7e4ddemr144692865ad.3.1779203396862;
+        Tue, 19 May 2026 08:09:56 -0700 (PDT)
+X-Received: by 2002:a17:902:d311:b0:2b0:a980:3687 with SMTP id d9443c01a7336-2bd7e7e4ddemr144692615ad.3.1779203396387;
+        Tue, 19 May 2026 08:09:56 -0700 (PDT)
+Received: from dhcp-10-123-156-119.dhcp.broadcom.net ([192.19.234.250])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2bd5d1062e9sm190739735ad.67.2026.05.19.08.09.53
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 19 May 2026 08:09:55 -0700 (PDT)
+From: Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>
+To: leon@kernel.org,
+	jgg@ziepe.ca
 Cc: linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	netdev@vger.kernel.org
-Subject: [PATCH mlx5-next] net/mlx5: Consolidate UAR index to PFN helpers
-Date: Tue, 19 May 2026 18:08:18 +0300
-Message-ID: <20260519-mlx5-uar-index-v1-1-1027ae724bff@nvidia.com>
-X-Mailer: git-send-email 2.54.0
+	andrew.gospodarek@broadcom.com,
+	selvin.xavier@broadcom.com,
+	kalesh-anakkur.purayil@broadcom.com,
+	Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>
+Subject: [PATCH rdma-next v7 0/9] RDMA/bnxt_re: Support QP uapi extensions
+Date: Tue, 19 May 2026 20:30:32 +0530
+Message-ID: <20260519150041.7251-1-sriharsha.basavapatna@broadcom.com>
+X-Mailer: git-send-email 2.51.2.636.ga99f379adf
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-X-Change-ID: 20260511-mlx5-uar-index-107c8052c7d6
-X-Mailer: b4 0.15-dev-18f8f
 Content-Transfer-Encoding: 8bit
+X-DetectorID-Processed: b00c1d49-9d2e-4205-b15f-d015386d3d5e
 
-From: Leon Romanovsky <leonro@nvidia.com>
+Hi,
 
-mlx5_core's uar2pfn() and mlx5_ib's uar_index2pfn() compute the same
-value via slightly different idioms.  Given:
+This patchset adds QP uapi extensions to the bnxt_re driver.
+This is required by applications that need to manage some of the
+RDMA HW resources directly and to implement the datapath in the
+application.
 
-  MLX5_ADAPTER_PAGE_SHIFT = 12
-  MLX5_UARS_IN_PAGE       = PAGE_SIZE / MLX5_ADAPTER_PAGE_SIZE
-                          = 1 << (PAGE_SHIFT - 12)
+This series supports application allocated memory for QPs.
+The application takes into account SQ/RQ ring sizing constraints
+(extra entries, rounding up etc) while allocating this memory.
+The driver should avoid duplicating this logic while creating
+these QPs.
 
-when uar_4k is set, uar2pfn()'s "index >> (PAGE_SHIFT - 12)" reduces to
-"index / MLX5_UARS_IN_PAGE", which is exactly what uar_index2pfn() does.
-When uar_4k is clear, both fall through to the identity case.  The same
-arithmetic is also open-coded a third time in uar_index2paddress(), which
-just multiplies the result by PAGE_SIZE.
+uAPI changes in this series:
+- Patch#4: new uapi parameter 'sq_npsn' in bnxt_re_qp_req.
+- Patch#8: new driver specific attribute 'DBR_HANDLE' for doorbell region.
+- Patch#9: new comp_mask 'FIXED_QUE_ATTR' in bnxt_re_qp_req.
 
-The duplication is historical: uar_index2pfn() landed with the original
-mlx5_ib driver in 2013 (e126ba97dba9), uar2pfn() was added in 2017
-(a6d51b68611e) when the bfreg allocator moved into mlx5_core, and no
-shared header ever exposed the helper.  The two were last touched in
-parallel by aa8106f137b9 ("net/mlx5: Add explicit bar address field"),
-confirming they are meant to behave identically.
+Patch#1 Refactor bnxt_re_init_user_qp()
+Patch#2 Update rq depth for app allocated QPs
+Patch#3 Update sq depth for app allocated QPs
+Patch#4 Update msn table size for app allocated QPs
+Patch#5 Update hwq depth for app allocated QPs
+Patch#6 Enhance dbr usecnt logic in doorbell uapis
+Patch#7 Enhance dpi lifecycle logic in doorbell uapis
+Patch#8 Support doorbells for app allocated QPs
+Patch#9 Enable app allocated QPs 
 
-Replace all three local copies with two static inlines in
-include/linux/mlx5/driver.h returning phys_addr_t, which is the
-appropriate type for a value that subsequently feeds ioremap*() and
-rdma_user_mmap_io().  No functional change.
+Thanks,
+-Harsha
 
-Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
----
-mlx5_core's uar2pfn() and mlx5_ib's uar_index2pfn() compute the same
-value via slightly different idioms. Let's consolidate them.
----
- drivers/infiniband/hw/mlx5/main.c             | 25 ++-----------------------
- drivers/net/ethernet/mellanox/mlx5/core/uar.c | 14 +-------------
- include/linux/mlx5/driver.h                   | 16 ++++++++++++++++
- 3 files changed, 19 insertions(+), 36 deletions(-)
+******
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 428811fa805b..e61db29bc166 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -2373,27 +2373,6 @@ static void mlx5_ib_dealloc_ucontext(struct ib_ucontext *ibcontext)
- 	}
- }
- 
--static phys_addr_t uar_index2pfn(struct mlx5_ib_dev *dev,
--				 int uar_idx)
--{
--	int fw_uars_per_page;
--
--	fw_uars_per_page = MLX5_CAP_GEN(dev->mdev, uar_4k) ? MLX5_UARS_IN_PAGE : 1;
--
--	return (dev->mdev->bar_addr >> PAGE_SHIFT) + uar_idx / fw_uars_per_page;
--}
--
--static u64 uar_index2paddress(struct mlx5_ib_dev *dev,
--				 int uar_idx)
--{
--	unsigned int fw_uars_per_page;
--
--	fw_uars_per_page = MLX5_CAP_GEN(dev->mdev, uar_4k) ?
--				MLX5_UARS_IN_PAGE : 1;
--
--	return (dev->mdev->bar_addr + (uar_idx / fw_uars_per_page) * PAGE_SIZE);
--}
--
- static int get_command(unsigned long offset)
- {
- 	return (offset >> MLX5_IB_MMAP_CMD_SHIFT) & MLX5_IB_MMAP_CMD_MASK;
-@@ -2643,7 +2622,7 @@ static int uar_mmap(struct mlx5_ib_dev *dev, enum mlx5_ib_mmap_cmd cmd,
- 		uar_index = bfregi->sys_pages[idx];
- 	}
- 
--	pfn = uar_index2pfn(dev, uar_index);
-+	pfn = mlx5_uar_index_to_pfn(dev->mdev, uar_index);
- 	mlx5_ib_dbg(dev, "uar idx 0x%lx, pfn %pa\n", idx, &pfn);
- 
- 	err = rdma_user_mmap_io(&context->ibucontext, vma, pfn, PAGE_SIZE,
-@@ -4327,7 +4306,7 @@ alloc_uar_entry(struct mlx5_ib_ucontext *c,
- 		goto end;
- 
- 	entry->page_idx = uar_index;
--	entry->address = uar_index2paddress(dev, uar_index);
-+	entry->address = mlx5_uar_index_to_paddr(dev->mdev, uar_index);
- 	if (alloc_type == MLX5_IB_UAPI_UAR_ALLOC_TYPE_BF)
- 		entry->mmap_flag = MLX5_IB_MMAP_TYPE_UAR_WC;
- 	else
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/uar.c b/drivers/net/ethernet/mellanox/mlx5/core/uar.c
-index 1513112ecec8..a85d8fed1546 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/uar.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/uar.c
-@@ -66,18 +66,6 @@ static int uars_per_sys_page(struct mlx5_core_dev *mdev)
- 	return 1;
- }
- 
--static u64 uar2pfn(struct mlx5_core_dev *mdev, u32 index)
--{
--	u32 system_page_index;
--
--	if (MLX5_CAP_GEN(mdev, uar_4k))
--		system_page_index = index >> (PAGE_SHIFT - MLX5_ADAPTER_PAGE_SHIFT);
--	else
--		system_page_index = index;
--
--	return (mdev->bar_addr >> PAGE_SHIFT) + system_page_index;
--}
--
- static void up_rel_func(struct kref *kref)
- {
- 	struct mlx5_uars_page *up = container_of(kref, struct mlx5_uars_page, ref_count);
-@@ -132,7 +120,7 @@ static struct mlx5_uars_page *alloc_uars_page(struct mlx5_core_dev *mdev,
- 		goto error1;
- 	}
- 
--	pfn = uar2pfn(mdev, up->index);
-+	pfn = mlx5_uar_index_to_pfn(mdev, up->index);
- 	if (map_wc) {
- 		up->map = ioremap_wc(pfn << PAGE_SHIFT, PAGE_SIZE);
- 		if (!up->map) {
-diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
-index 04b96c5abb57..10eec559fd58 100644
---- a/include/linux/mlx5/driver.h
-+++ b/include/linux/mlx5/driver.h
-@@ -908,6 +908,22 @@ static inline u32 wq_get_byte_sz(u8 log_sz, u8 log_stride)
- 	return ((u32)1 << log_sz) << log_stride;
- }
- 
-+static inline phys_addr_t mlx5_uar_index_to_pfn(struct mlx5_core_dev *mdev,
-+						u32 uar_idx)
-+{
-+	u32 fw_uars_per_page = MLX5_CAP_GEN(mdev, uar_4k) ? MLX5_UARS_IN_PAGE : 1;
-+
-+	return (mdev->bar_addr >> PAGE_SHIFT) + uar_idx / fw_uars_per_page;
-+}
-+
-+static inline phys_addr_t mlx5_uar_index_to_paddr(struct mlx5_core_dev *mdev,
-+						  u32 uar_idx)
-+{
-+	u32 fw_uars_per_page = MLX5_CAP_GEN(mdev, uar_4k) ? MLX5_UARS_IN_PAGE : 1;
-+
-+	return mdev->bar_addr + (uar_idx / fw_uars_per_page) * PAGE_SIZE;
-+}
-+
- static inline void mlx5_init_fbc_offset(struct mlx5_buf_list *frags,
- 					u8 log_stride, u8 log_sz,
- 					u16 strides_offset,
+Changes:
 
----
-base-commit: 67464f388d52ec172be62c99fc43697437ffa384
-change-id: 20260511-mlx5-uar-index-107c8052c7d6
+v7:
+- Fixed an issue reported by Sashiko.
+  - Patch#7:
+    Restrict changes to DPI allocated by DBR_ALLOC(),
+    by using a boolean dpi_valid.
 
-Best regards,
---  
-Leon Romanovsky <leonro@nvidia.com>
+v6:
+- Fixed issues reported by Sashiko AI.
+- Added two new patches: #6 and #7.
+- Patch#6: Support kref for DBR object (from v5).
+- Patch#7: DPI lifecycle changes.
+- Patch#8 (QP-DBR) requires these two patches.
+- Patch#9:
+  - Commit msg updated: removed unused comp_mask.
+  - ureq->sq_npsn validation (from v5).
+- Remaining issues are about lack of ureq->sq_slots validation.
+  - Existing code; will be fixed in a subsequent patch series.
+
+v5:
+- Fixed issues reported by Sashiko AI.
+- Patch#1:
+  - No changes.
+  - Issues are about lack of ureq->sq_slots validation.
+  - Existing code; will be fixed in a subsequent patch series.
+- Patch#2:
+  - Removed unused ureq param in bnxt_re_init_rq_attr().
+- Patch#4:
+  - Issues are about lack of ureq->sq_npsn validation.
+  - Validation added in Patch#7 fixes these issues.
+- Patch#5:
+  - Updated to utilize existing code for RQ hwq depth.
+- Patch#6:
+  - Moved usecnt relase logic to after QP is destroyed in HW.
+  - Avoids race with concurrent dbr destroy.
+  - Updated usecnt from simple atomic to kref based counter.
+  - This handles implicit teardown of dbr.
+  - Added kfree() of dbr.
+- Patch#7:
+  - Added validation of ureq->sq_npsn.
+  - Removed unused ureq comp_mask: BNXT_RE_QP_REQ_MASK_VAR_WQE_SQ_SLOTS.
+
+v4:
+- Rebased to latest for-next tree (Linux 7.1-rc1, commit: 254f49634ee1).
+- Renamed QP req comp_mask: APP_ALLOCATED_QP_ENABLE -> FIXED_QUE_ATTR.
+
+v3:
+- Removed umem patch from the series, that is dependent on uverbs support.
+- Patch#7: Process DBR_HANDLE attr regardless of app_qp comp_mask.
+
+v2:
+- Rebased to umem_list uverbs patch series:
+  https://patchwork.kernel.org/project/linux-rdma/cover/20260325150048.168341-1-jiri@resnulli.us/
+- Deleted Patch#9; create_qp_umem devop is not supported.
+
+v6: https://lore.kernel.org/linux-rdma/20260518153721.183749-1-sriharsha.basavapatna@broadcom.com/
+v5: https://lore.kernel.org/linux-rdma/20260514162336.72644-1-sriharsha.basavapatna@broadcom.com/
+v4: https://lore.kernel.org/linux-rdma/20260508085858.21060-1-sriharsha.basavapatna@broadcom.com/
+v3: https://lore.kernel.org/linux-rdma/20260415054957.36745-1-sriharsha.basavapatna@broadcom.com/
+v2: https://lore.kernel.org/linux-rdma/20260327091755.47754-1-sriharsha.basavapatna@broadcom.com/
+v1: https://lore.kernel.org/linux-rdma/20260320135437.48716-1-sriharsha.basavapatna@broadcom.com/
+
+******
+
+Sriharsha Basavapatna (9):
+  RDMA/bnxt_re: Refactor bnxt_re_init_user_qp()
+  RDMA/bnxt_re: Update rq depth for app allocated QPs
+  RDMA/bnxt_re: Update sq depth for app allocated QPs
+  RDMA/bnxt_re: Update msn table size for app allocated QPs
+  RDMA/bnxt_re: Update hwq depth for app allocated QPs
+  RDMA/bnxt_re: Enhance dbr usecnt logic in doorbell uapis
+  RDMA/bnxt_re: Enhance dpi lifecycle logic in doorbell uapis
+  RDMA/bnxt_re: Support doorbells for app allocated QPs
+  RDMA/bnxt_re: Enable app allocated QPs
+
+ drivers/infiniband/hw/bnxt_re/ib_verbs.c | 273 +++++++++++++++--------
+ drivers/infiniband/hw/bnxt_re/ib_verbs.h |   6 +-
+ drivers/infiniband/hw/bnxt_re/uapi.c     |  49 +++-
+ include/uapi/rdma/bnxt_re-abi.h          |   7 +-
+ 4 files changed, 242 insertions(+), 93 deletions(-)
+
+-- 
+2.51.2.636.ga99f379adf
 
