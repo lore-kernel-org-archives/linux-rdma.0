@@ -1,78 +1,138 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from black.elm.relay.mailchannels.net (black.elm.relay.mailchannels.net [23.83.212.19])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E304B40961E;
-	Tue, 19 May 2026 13:59:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779199198; cv=none; b=fWn/pax2YEswv05mb6jl0aoJ1bmTEBf51e5jYzI/Ak5WEXZHmObTBbgZqI33cmKt3ufAUIHcF87i3nZ3oJfDVO7CXqshA/ScBMtCe+x6+T1gxS6xR6JxroubLzJX+dijgd6MY4dINEYy6qyvwt12niVP36G7vO+HZhmUfWcmi9I=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779199198; c=relaxed/simple;
-	bh=/dUImDtzIAmB2cBJXFyB/CIZcPGCvfwZOCSB97KcM2k=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=GkGqFiO/iwZlcn7yn+BW8FswrznanLYGVd3jgkX7thICN6A6eKie3fwoLbhM2ktxssKWnJQ4VLANfUqe6m/rUkfDtpyiwtuU96+hX5t1+I6dESUpgSs6I8POMyknvCsdyv+2h4eI6DNMOTK6dDdXxdNSh8cul9FOO3MmHs9mrvg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=X+YtpEsN; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 344603403FF;
+	Tue, 19 May 2026 14:07:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=23.83.212.19
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1779199652; cv=pass; b=fLd1u/KnBZuTjeOF+JaZLnmCV/wrKzX5Sn4EnHrxzb0DeZ/ra7Gw9yfJqf4w3U/Xr6M58TazJK4h0NlHdDoR6etWVhCG/wYwWLhgViDkq56GVCK1ruMN4B+xiTbDxVC3YzWlpre52L+5IecKaKQH1JAbqQaoggZMRS9LjPUtRO8=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1779199652; c=relaxed/simple;
+	bh=8d1tmTN66ShmrLNM2sDuVIt0qg0eod2NT5cirK0UbXc=;
+	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
+	 Content-Disposition; b=QIG6V4+15Ie/hNNAo/3eHoVoSoPWTXmvEnBUhj7pFyQT6ePZrQawqc/OHHdU34i6WkwpUFi0srYnDgce++Eu6FDtww4tYSGgMrRLaGScVLDm+kYrtGxrP7l1mSBi3ypbtwszsTh/y6ZfJ+Dc2s7AmvPZ1H13MX+FuN3auMPObvQ=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=stgolabs.net; spf=fail smtp.mailfrom=stgolabs.net; dkim=pass (2048-bit key) header.d=stgolabs.net header.i=@stgolabs.net header.b=GANpHPK1; arc=pass smtp.client-ip=23.83.212.19
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=stgolabs.net
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=stgolabs.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="X+YtpEsN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EBFDDC2BCB8;
+	dkim=pass (2048-bit key) header.d=stgolabs.net header.i=@stgolabs.net header.b="GANpHPK1"
+X-Sender-Id: dreamhost|x-authsender|dave@stgolabs.net
+Received: from relay.mailchannels.net (localhost [127.0.0.1])
+	by relay.mailchannels.net (Postfix) with ESMTP id 59FA1720588;
+	Tue, 19 May 2026 13:59:57 +0000 (UTC)
+Received: from pdx1-sub0-mail-a247.dreamhost.com (trex-green-3.trex.outbound.svc.cluster.local [100.109.25.249])
+	(Authenticated sender: dreamhost)
+	by relay.mailchannels.net (Postfix) with ESMTPA id D270272188C;
 	Tue, 19 May 2026 13:59:56 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1779199197;
-	bh=/dUImDtzIAmB2cBJXFyB/CIZcPGCvfwZOCSB97KcM2k=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=X+YtpEsNb1G6tdUnRd/pFk+r78bDsHdCAh1i237yRveESMSdxpD9TyyRtxMPgK6IH
-	 kFTVZO/57irHBhzvyivtgUlHqHGeMyqJCLGYWGOeLA6YU4FJz7vkoKArzpdHaMiV/G
-	 pXnF1m38+AdDneKCGhjo1Nki2EkZcs5MutdxCBdwyfzbknu0dQssmehQ2HK/Je2At8
-	 i90BAMl9WRMHHqoe4x/3md95886WhaY4wp86bAqul+JCP7a9tZUp5Gzwmww5FvTlp3
-	 VH7Jzs2WDsT8nIsXFqu26N59z2+uhNXzTDfHvNeavE3R8gr75GnSG8cSpQlZDQjb2j
-	 iMhDMJl3JQTJg==
-Date: Tue, 19 May 2026 16:59:53 +0300
-From: Leon Romanovsky <leon@kernel.org>
-To: Will Mortensen <will@extrahop.com>
-Cc: Saeed Mahameed <saeedm@nvidia.com>, Tariq Toukan <tariqt@nvidia.com>,
-	Mark Bloch <mbloch@nvidia.com>, netdev <netdev@vger.kernel.org>,
-	Shahar Shitrit <shshitrit@nvidia.com>,
-	Carolina Jubran <cjubran@nvidia.com>,
-	Andrew Lunn <andrew+netdev@lunn.ch>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>,
-	linux-rdma <linux-rdma@vger.kernel.org>,
-	Jeremy Royal <jeremyr@extrahop.com>
-Subject: Re: [PATCH net v3] net/mlx5: don't printk garbage when transceiver
- overheats
-Message-ID: <20260519135953.GX33515@unreal>
-References: <20260515-b4-mlx5-sensor-fix-v3-1-f537ce191d6c@extrahop.com>
- <20260518112555.GM33515@unreal>
- <CAMpnoC5ACdKiqy9mzmwvm592fJCbxXJCsuFxKJPG0c75_frFhg@mail.gmail.com>
+ARC-Seal: i=1; a=rsa-sha256; d=mailchannels.net; s=arc-2022; cv=none;
+	t=1779199196;
+	b=UICybyjvqK+9gv0mHnr3Gqt5yyQ41AwfyFNKuaHyAFZWBjzY1S0GSmM/PqEqyP0Wxk1lyl
+	HR8GoiGWWIWNtNL4IAbEZtqV9YDqRxIbPBVsd8NzdXSpJXqRYrSB3Qn3cz1KvGrMzI5sP0
+	HW6WsRGmSn32tjN4zawvVHJPtxef3NCbwmahK92Z34fbnfEQykVza6QIgBVkHHmlbiegq3
+	2/kvmQ1+nGdBXfyVNLPgIUfAHy+H/WMTA5DZfOCgid+tooIxytYPPUsrV4PxImjL7j/CVj
+	50rwhj9Fiw7+HIiQEDaMnaPU4ec7L1z5np2n2Onju1RVMpeyREKsJSU32UBwpQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=mailchannels.net;
+	s=arc-2022; t=1779199196;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 dkim-signature; bh=jFxOgosKVa9ofCbZHaIOL9XiRrG91n8Kyi+HJW0U5gA=;
+	b=YF3O6HTiBeYsDs9TAua0xzSKfBmq1jG8uMce47Vd9uiFSM757zdeqv8cOqLOcn4rK0CmTN
+	4zW+O2m8puIPFMWbWz86EkFniUyIbOguINu3GrROIxdQQHnlzDu9x7UJd8kCs+9K3a1O2C
+	WPFerDcfhmOxzTNyyRoS5PJZo51XaW4WOpfJ6mRS+voqrbkJarySzfB6rC6tkAwembWxAp
+	bkMEXDz8B8gYKI8e8TYpmyzJvxADZXr5/lPunHy8E7dP3Hq/pRoaHxPEU9IJrd+vEdlObC
+	txdVKoJXBPxipiS/TkdXA+Q96r+JQCWo7PDBMS0LN6vfRkKrRW9Mx9DtDe/E/A==
+ARC-Authentication-Results: i=1;
+	rspamd-54674b4cbd-brtcq;
+	auth=pass smtp.auth=dreamhost smtp.mailfrom=dave@stgolabs.net
+X-Sender-Id: dreamhost|x-authsender|dave@stgolabs.net
+X-MC-Relay: Neutral
+X-MailChannels-SenderId: dreamhost|x-authsender|dave@stgolabs.net
+X-MailChannels-Auth-Id: dreamhost
+X-Attack-Hysterical: 249efd135791aa8f_1779199197226_80967156
+X-MC-Loop-Signature: 1779199197226:4283785261
+X-MC-Ingress-Time: 1779199197226
+Received: from pdx1-sub0-mail-a247.dreamhost.com (pop.dreamhost.com
+ [64.90.62.162])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384)
+	by 100.109.25.249 (trex/7.1.5);
+	Tue, 19 May 2026 13:59:57 +0000
+Received: from offworld (unknown [76.167.199.67])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange ECDHE (P-256) server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	(Authenticated sender: dave@stgolabs.net)
+	by pdx1-sub0-mail-a247.dreamhost.com (Postfix) with ESMTPSA id 4gKbs82NT2z106M;
+	Tue, 19 May 2026 06:59:56 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=stgolabs.net;
+	s=dreamhost; t=1779199196;
+	bh=jFxOgosKVa9ofCbZHaIOL9XiRrG91n8Kyi+HJW0U5gA=;
+	h=Date:From:To:Cc:Subject:Content-Type;
+	b=GANpHPK1WffqqXdiP/4KXPQp/S+JFICRzsVSrF+yDVEy3EuzL+K48e96dZc7EYbvk
+	 eF2c1F0bdwKRhSnyIjy8n1R6KpmRZCv1Z8pHdHrbgmzuo6RaODvbOQlpQU39ysefMq
+	 5rICplTx/G8jRW72YZWANehMuhiQ4dlxJRg9Iw8y+hJvI4EG5lhBTpd7RrilwN7V+p
+	 83mwfMOnP3HEn20Ln5MET6xzu3I2xSO/xnS105QjFksVslvms+gOkTTTmGED0PKQbk
+	 ABx67NMAeMMfzgzCEmybcHUrio06+UM6VFY/jV/KLjDK6mpVc7TV0vnYaAgoc+49I1
+	 rYHSPdJlNSCPQ==
+Date: Tue, 19 May 2026 06:59:53 -0700
+From: Davidlohr Bueso <dave@stgolabs.net>
+To: linux-cxl@vger.kernel.org, linux-mm@kvack.org,
+	linux-rdma@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: djbw@kernel.org, jic23@kernel.org, dave@stgolabs.net
+Subject: [ANNOUNCE CFP] Linux Plumbers 2026 Device Memory Microconference
+Message-ID: <20260519135953.v74dnpyi4i62diyr@offworld>
+Mail-Followup-To: linux-cxl@vger.kernel.org, linux-mm@kvack.org,
+	linux-rdma@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	djbw@kernel.org, jic23@kernel.org
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAMpnoC5ACdKiqy9mzmwvm592fJCbxXJCsuFxKJPG0c75_frFhg@mail.gmail.com>
+User-Agent: NeoMutt/20220429
 
-On Tue, May 19, 2026 at 12:35:27AM -0700, Will Mortensen wrote:
-> On Mon, May 18, 2026 at 4:26 AM Leon Romanovsky <leon@kernel.org> wrote:
-> > Honestly, this approach feels overly complex and fragile for something as
-> > simple as printing to dmesg. In my opinion, you should drop
-> > print_sensor_names_in_bit_set().
-> 
-> Do you mean basically revert 46fd50cfcc12 ("net/mlx5: Add sensor name
-> to temperature event message")? Yes, we could do that. It is
-> definitely fragile regardless; there are lots of assumptions that
-> there's at most one ASIC sensor and one module sensor. If we want to
-> keep the printing, we could simplify by having temp_warn() just print
-> a static string like "ASIC" or "Module" rather than using the strings
-> from the firmware, and maybe also call a function in hwmon.c to check
-> against our module's sensor index in order to ignore events about
-> other modules.
+Hello,
 
-Yes
+Linux Plumbers Conference will be held Oct 5-7 2026 in Prague, Czechia,
+and will host the Device and Specific Purpose Memory microconference[0] for a
+second year in a row. Co-lead by Dan Williams, Jonathan Cameron and myself.
 
-Thanks
+The call for proposals and topic submissions is now open. Please submit
+your proposals by July 24th at:
+
+        https://lpc.events/event/20/abstracts/
+
+and select "Device and Specific Purpose Memory MC".
+
+Examples of topics relevant to this microconference:
+
+- NUMA vs Specific Purpose Memory challenges
+- Core-MM services vs page allocator isolation
+- CXL use case challenges
+- Hotness Tracking and Migration Offloads
+- ZONE_DEVICE future for Accelerator Memory
+- ZONE_DEVICE future for CXL Memory Expansion
+- PMEM, NVDIMM, and DAX "legacy" challenges
+- Memory hotplug vs Device Memory
+- Memory RAS and repair gaps and challenges
+- Dynamic Capacity Device ABI
+- Confidential Memory challenges
+- DMABUF beyond DRM use cases
+- virtiomem and virtiofs vs DAX and CXL challenges
+- Peer-to-peer DMA challenges
+- CXL Memory Pool Management
+- Device Memory testing
+
+You can get an idea of the format and accepted topics from last year's
+session[1].
+
+We look forward to your proposals, discussions and seeing you in Prague.
+
+Thanks,
+Davidlohr
+
+[0] https://lpc.events/event/20/contributions/2331/
+[1] https://lpc.events/event/19/sessions/238/
