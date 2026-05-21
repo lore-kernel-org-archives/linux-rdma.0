@@ -1,48 +1,48 @@
-Received: from mx0a-0016f401.pphosted.com (mx0a-0016f401.pphosted.com [67.231.148.174])
+Received: from mx0b-0016f401.pphosted.com (mx0b-0016f401.pphosted.com [67.231.156.173])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0850E3815E7;
-	Thu, 21 May 2026 09:54:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=67.231.148.174
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5BFA6382369;
+	Thu, 21 May 2026 09:54:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=67.231.156.173
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779357279; cv=none; b=CdFV4uawWDbHrQeFTqQLEz+pnXD4x7vUcNN9xEuOZGOR86djrwdbqhd3tQrH+QS4BnRAaYd6j3LTTDLtiMm+hwYefPgHRUPkRxsP+M6rtLxCYrY2umRA73bxOhCPlvBoJLv60PqZG48gLYfybIqd0XATYk8qarjevfoLrI0nh4M=
+	t=1779357286; cv=none; b=BXxDJKImOPBxXSjWMHKpau8Ha7nzrYXUUAabUbjOERMXR9mQvkLv7Wfr6Z/xtVhjI7MBmIyTtKTslYGnmz7Vn6GVZfkMM+br4PwNMDmKqCDNnye2g9fRUJ8eLQBC/gzLlbxDdLRebLswvLjPvReqBMGKqdhdWh0WJWiTu/p2NQ8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779357279; c=relaxed/simple;
-	bh=e10sbByuEur5ixvYVOUCaTrU/IakQdwOAmq3Mtb+Kv4=;
+	s=arc-20240116; t=1779357286; c=relaxed/simple;
+	bh=V03pdNHi0tOIj6Sk6FMkECq8VjnhZEmkBSyRRXuvLyg=;
 	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=I/Hn8K6ViT+uAAIyC4ePzuY2U2IvqNZ1U3+5SOjAVWFvZMBO1Ti6nG3/Ye1o8pNtrRytNLEBhkB7KR8DqQEcMNFi3lQZsHORhb2gnoW6muS76/nNLBBXwDDLrtHHj4Za72E08/d1tibjWx0WNufeIULdxfAd2MGEIzn+UMt1TNQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=marvell.com; spf=pass smtp.mailfrom=marvell.com; dkim=pass (2048-bit key) header.d=marvell.com header.i=@marvell.com header.b=N60Yx8fN; arc=none smtp.client-ip=67.231.148.174
+	 MIME-Version:Content-Type; b=hLurUcv/YGey9ZBpd83hbBjcjFrUosSpzSHR/UMCud3oCOlR6gVZ3FvQhq/B8TfHq1J5+t2ZkT056cUGn85hVQYnGVJOd2ductKUYLQwoQOe/bJmNcjBgNL5aSQUvh0JDOoyM1It3Q+M8kMWwwsuhcrW2zvDtp1TfY7fKkEZv9k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=marvell.com; spf=pass smtp.mailfrom=marvell.com; dkim=pass (2048-bit key) header.d=marvell.com header.i=@marvell.com header.b=QpidDZ1r; arc=none smtp.client-ip=67.231.156.173
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=marvell.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=marvell.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=marvell.com header.i=@marvell.com header.b="N60Yx8fN"
-Received: from pps.filterd (m0431384.ppops.net [127.0.0.1])
-	by mx0a-0016f401.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 64L6Bxoo092669;
-	Thu, 21 May 2026 02:53:57 -0700
+	dkim=pass (2048-bit key) header.d=marvell.com header.i=@marvell.com header.b="QpidDZ1r"
+Received: from pps.filterd (m0045851.ppops.net [127.0.0.1])
+	by mx0b-0016f401.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 64L17g432256088;
+	Thu, 21 May 2026 02:54:17 -0700
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=marvell.com; h=
 	cc:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to; s=pfpt0220; bh=e
-	rhXKNucmwA3NXsucxdGDyLH8ucH442Uu5u24hJFADY=; b=N60Yx8fN/MaUm0XiB
-	CZRDBckCPHZVxffy0dyRXTUTboCpeud8RH8Yqb9C0MbWqaLkqLX3isfeYBgSpTCw
-	Z3ge7p9BZbmxaxJe+6paKLL9/kdvJev1VeNPtK9o7KcUS4/FZC2DHkVNADn4gZH5
-	2yCqSBBUucjtThMZArkz10SRlwdOqDqzOsufZ9DW/W+ery3RHjLkW2RNZoB/gl/9
-	pKopGQfxK+x7LqUMb//0mBj8ClMY0HR6PfMQ8daS9UbwNEsB8lmYdq13sfJ04Pi7
-	1YxjPeSjciVPlN0lwxFhl8f2Ljv/0w6me0QiffjCw9D6BCRCOBApfk3LKARHlp35
-	Mj1KQ==
-Received: from dc6wp-exch02.marvell.com ([4.21.29.225])
-	by mx0a-0016f401.pphosted.com (PPS) with ESMTPS id 4e9vjj8gpv-1
+	:message-id:mime-version:references:subject:to; s=pfpt0220; bh=C
+	p6zkDs1VhynAYMdq2VObGaJzL3EVh8GZHWc/HJcqoQ=; b=QpidDZ1rOs6HF1tmS
+	kGos0xDpfG8Zh60Kfqj+G/umtL5VG9FfIgAkDcPR6Nlyw+ene1faXnw6TIAylDvJ
+	4kc5SzxpkvhzxjxxHzWlCPSt5Cb+uTtV9nFe04M7+XtsGhej3SWT+NwNCA4Fbfsx
+	MZaDb6jBY85psOjVyFjvtcsXXaKCywKUXO8LCF0pssOiLvkHqngGeWBb97szLRBQ
+	ZIZfnaw6CBcqepvLYKt8nTWV5I4odykitu1jihF4TCNRCWqdeswUwNeDs+8eRPC/
+	p0H+nAIT+1iINkILRufok4Q54+byHGkfNeBd/NatzLTION98IImf3evALjeYHqd0
+	cfX1A==
+Received: from dc5-exch05.marvell.com ([199.233.59.128])
+	by mx0b-0016f401.pphosted.com (PPS) with ESMTPS id 4e94eummy5-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Thu, 21 May 2026 02:53:56 -0700 (PDT)
-Received: from DC6WP-EXCH02.marvell.com (10.76.176.209) by
- DC6WP-EXCH02.marvell.com (10.76.176.209) with Microsoft SMTP Server
+	Thu, 21 May 2026 02:54:17 -0700 (PDT)
+Received: from DC5-EXCH05.marvell.com (10.69.176.209) by
+ DC5-EXCH05.marvell.com (10.69.176.209) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.25; Thu, 21 May 2026 02:53:55 -0700
-Received: from maili.marvell.com (10.69.176.80) by DC6WP-EXCH02.marvell.com
- (10.76.176.209) with Microsoft SMTP Server id 15.2.1544.25 via Frontend
- Transport; Thu, 21 May 2026 02:53:55 -0700
+ 15.2.1544.25; Thu, 21 May 2026 02:54:16 -0700
+Received: from maili.marvell.com (10.69.176.80) by DC5-EXCH05.marvell.com
+ (10.69.176.209) with Microsoft SMTP Server id 15.2.1544.25 via Frontend
+ Transport; Thu, 21 May 2026 02:54:16 -0700
 Received: from rkannoth-OptiPlex-7090.. (unknown [10.28.36.165])
-	by maili.marvell.com (Postfix) with ESMTP id E8F643F7063;
-	Thu, 21 May 2026 02:53:45 -0700 (PDT)
+	by maili.marvell.com (Postfix) with ESMTP id 8633C3F7063;
+	Thu, 21 May 2026 02:54:06 -0700 (PDT)
 From: Ratheesh Kannoth <rkannoth@marvell.com>
 To: <linux-kernel@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
         <netdev@vger.kernel.org>, <oss-drivers@corigine.com>
@@ -57,9 +57,9 @@ CC: <akiyano@amazon.com>, <andrew+netdev@lunn.ch>,
         <Prathosh.Satish@microchip.com>, <przemyslaw.kitszel@intel.com>,
         <saeedm@nvidia.com>, <sgoutham@marvell.com>, <tariqt@nvidia.com>,
         <vadim.fedorenko@linux.dev>, Ratheesh Kannoth <rkannoth@marvell.com>
-Subject: [PATCH v16 net-next 4/9] devlink: Implement devlink param multi attribute nested data values
-Date: Thu, 21 May 2026 15:22:58 +0530
-Message-ID: <20260521095303.2395584-5-rkannoth@marvell.com>
+Subject: [PATCH v16 net-next 6/9] octeontx2: cn20k: Coordinate default rules with NIX LF lifecycle
+Date: Thu, 21 May 2026 15:23:00 +0530
+Message-ID: <20260521095303.2395584-7-rkannoth@marvell.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20260521095303.2395584-1-rkannoth@marvell.com>
 References: <20260521095303.2395584-1-rkannoth@marvell.com>
@@ -71,300 +71,318 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-Authority-Analysis: v=2.4 cv=O4kJeh9W c=1 sm=1 tr=0 ts=6a0ed635 cx=c_pps
- a=gIfcoYsirJbf48DBMSPrZA==:117 a=gIfcoYsirJbf48DBMSPrZA==:17
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNTIxMDA5OCBTYWx0ZWRfX96GOMdW12O/o
+ svi2Mz1dsKVAWVHUOgVJ4sAtlKnefGJYXq4Vj7CtBM4KE6VTjOIMIAy14zo7ugjVuUInRLJcDJc
+ NtH/ssvQ89dk0EhflD4HHuoCnwo9flJobIu7BkdJvEbg3gK2qCgXaaWThn//Otr6EZhUNRxoJ1K
+ +9mwPJevvHhEBJl0bbuuqE4gRfxruzQ7OMrCAguB6cGYeUaSRfKcb7g5e5dovh2OW+juNDhECDm
+ w3e31o7cpVMHNzWyUUjzme++98AOEN3SDvguCzXh/YEpjBNOzIaQr3gJWQ2R4FaPfSw2CrDwIuV
+ Crw1wJPevrmEE79gJ8+QXNieAGtYH5N4zlPgNHj6vtOKIITb+PiMu36Q8INYlNQlcHS6LT2fijr
+ yYJP1jvTlgfukx3IX0W9irNrxHm2yn3vdAgs3yxihIdnNlZBu8CacbHu8F9Qg9zwl/T5xlfeo4p
+ 5ZaqIKVghhYH5NMNLrA==
+X-Proofpoint-ORIG-GUID: Mow3lZAQAjMM7TMeZWyq_XtRzZMuMwJL
+X-Authority-Analysis: v=2.4 cv=SNVykuvH c=1 sm=1 tr=0 ts=6a0ed649 cx=c_pps
+ a=rEv8fa4AjpPjGxpoe8rlIQ==:117 a=rEv8fa4AjpPjGxpoe8rlIQ==:17
  a=NGcC8JguVDcA:10 a=VkNPw1HP01LnGYTKEx00:22 a=l0iWHRpgs5sLHlkKQ1IR:22
- a=TtqV-g6YmW1Jfm2GSLaY:22 a=Ikd4Dj_1AAAA:8 a=M5GUcnROAAAA:8
- a=fjkij7JY_VKj8B3xdwgA:9 a=OBjm3rFKGHvpk9ecZwUJ:22
-X-Proofpoint-ORIG-GUID: WPJYGGkmONg3h_ShblOGJ1FBw8D9UiMG
-X-Proofpoint-GUID: WPJYGGkmONg3h_ShblOGJ1FBw8D9UiMG
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNTIxMDA5OCBTYWx0ZWRfX11Oync5Fkug8
- kQYJqfwRFHf95SMYIiA6GfC6bTQq3fbJqwPiR4azFYYC3gVK+YUFVPBKTrU3apmAGfQlzC1smLP
- f49XhWgFTGfs0ocdUH/yZUUTh3paQ3GhkYP7AcylelMu8hk8iF9oLvwy8qSdz/cguo3/DZr7+rs
- 9mABLDuh731TVvi3zcPEYnZeQHWUwW3DE8H8U2f5n9BBzeOfom90kHqr7vkLr9eM9I+YTDW5c5d
- SHCG+wztBRtGmeANJmPjMA+0WcVDEO2sAWye5dH9I7siTSYj05bpe1SycxWR4Woodbmg/Qsn9V6
- w0dcOa65c8Kv85ZwTxt3bdp4MM1FivPN5g645Vq8XHCMqp439v7q62+cpoMD2u/Su6INnZE6z+w
- rgAmBXewg3rPfGO+ktKZ9Zxo+8skIda9z/Vh/Apfl/tFFh+3iDs8IGkJxyIRx/0u+XBE6ZL3/iX
- tfFHJU18++fNiIfOARA==
+ a=QXcCYyLzdtTjyudCfB6f:22 a=M5GUcnROAAAA:8 a=D4RoFv6TgYvzmL5duKYA:9
+ a=OBjm3rFKGHvpk9ecZwUJ:22
+X-Proofpoint-GUID: Mow3lZAQAjMM7TMeZWyq_XtRzZMuMwJL
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.293,Aquarius:18.0.1143,Hydra:6.1.51,FMLib:17.12.100.49
  definitions=2026-05-21_01,2026-05-18_01,2025-10-01_01
 
-From: Saeed Mahameed <saeedm@nvidia.com>
+Add NIX_LF_DONT_FREE_DFT_IDXS so the PF can send NIX LF free during hw
+reinit or teardown without the AF freeing CN20K default NPC rule indexes
+while the driver still owns that state (otx2_init_hw_resources and
+otx2_free_hw_resources).
 
-Devlink param value attribute is not defined since devlink is handling
-the value validating and parsing internally, this allows us to implement
-multi attribute values without breaking any policies.
+On CN20K, allocate default NPC rules from NIX LF alloc before
+nix_interface_init, roll back with npc_cn20k_dft_rules_free on failure,
+and free from NIX LF free when the new flag is not set. Tighten
+rvu_mbox_handler_nix_lf_alloc error handling: use a single rc, propagate
+qmem_alloc and other errors, and set -ENOMEM only when kcalloc fails
+(remove the blanket -ENOMEM at the free_mem path).
 
-Devlink param multi-attribute values are considered to be dynamically
-sized arrays of u64 values, by introducing a new devlink param type
-DEVLINK_PARAM_TYPE_U64_ARRAY, driver and user space can set a variable
-count of u64 values into the DEVLINK_ATTR_PARAM_VALUE_DATA attribute.
-
-Implement get/set parsing and add to the internal value structure passed
-to drivers.
-
-This is useful for devices that need to configure a list of values for
-a specific configuration.
-
-example:
-$ devlink dev param show pci/... name multi-value-param
-name multi-value-param type driver-specific
-values:
-cmode permanent value: 0,1,2,3,4,5,6,7
-
-$ devlink dev param set pci/... name multi-value-param \
-		value 4,5,6,7,0,1,2,3 cmode permanent
-
-Signed-off-by: Saeed Mahameed <saeedm@nvidia.com>
 Signed-off-by: Ratheesh Kannoth <rkannoth@marvell.com>
 ---
- Documentation/netlink/specs/devlink.yaml |  4 ++
- include/net/devlink.h                    |  8 +++
- include/uapi/linux/devlink.h             |  1 +
- net/devlink/netlink_gen.c                |  2 +
- net/devlink/param.c                      | 92 +++++++++++++++++++-----
- 5 files changed, 90 insertions(+), 17 deletions(-)
+ .../net/ethernet/marvell/octeontx2/af/mbox.h  |  1 +
+ .../ethernet/marvell/octeontx2/af/rvu_nix.c   | 69 ++++++++++++-------
+ .../ethernet/marvell/octeontx2/af/rvu_npc.c   | 20 ++++--
+ .../ethernet/marvell/octeontx2/nic/otx2_pf.c  |  6 +-
+ 4 files changed, 61 insertions(+), 35 deletions(-)
 
-diff --git a/Documentation/netlink/specs/devlink.yaml b/Documentation/netlink/specs/devlink.yaml
-index 247b147d689f..52ad1e7805d1 100644
---- a/Documentation/netlink/specs/devlink.yaml
-+++ b/Documentation/netlink/specs/devlink.yaml
-@@ -234,6 +234,10 @@ definitions:
-         value: 10
-       -
-         name: binary
-+      -
-+        name: u64-array
-+        value: 129
-+
-   -
-     name: rate-tc-index-max
-     type: const
-diff --git a/include/net/devlink.h b/include/net/devlink.h
-index 5f4083dc4345..dd546dbd57cf 100644
---- a/include/net/devlink.h
-+++ b/include/net/devlink.h
-@@ -433,6 +433,13 @@ enum devlink_param_type {
- 	DEVLINK_PARAM_TYPE_U64 = DEVLINK_VAR_ATTR_TYPE_U64,
- 	DEVLINK_PARAM_TYPE_STRING = DEVLINK_VAR_ATTR_TYPE_STRING,
- 	DEVLINK_PARAM_TYPE_BOOL = DEVLINK_VAR_ATTR_TYPE_FLAG,
-+	DEVLINK_PARAM_TYPE_U64_ARRAY = DEVLINK_VAR_ATTR_TYPE_U64_ARRAY,
-+};
-+
-+#define __DEVLINK_PARAM_MAX_ARRAY_SIZE 32
-+struct devlink_param_u64_array {
-+	u64 size;
-+	u64 val[__DEVLINK_PARAM_MAX_ARRAY_SIZE];
+diff --git a/drivers/net/ethernet/marvell/octeontx2/af/mbox.h b/drivers/net/ethernet/marvell/octeontx2/af/mbox.h
+index dc42c81c0942..e07fbf842b94 100644
+--- a/drivers/net/ethernet/marvell/octeontx2/af/mbox.h
++++ b/drivers/net/ethernet/marvell/octeontx2/af/mbox.h
+@@ -1009,6 +1009,7 @@ struct nix_lf_free_req {
+ 	struct mbox_msghdr hdr;
+ #define NIX_LF_DISABLE_FLOWS		BIT_ULL(0)
+ #define NIX_LF_DONT_FREE_TX_VTAG	BIT_ULL(1)
++#define NIX_LF_DONT_FREE_DFT_IDXS	BIT_ULL(2)
+ 	u64 flags;
  };
  
- union devlink_param_value {
-@@ -442,6 +449,7 @@ union devlink_param_value {
- 	u64 vu64;
- 	char vstr[__DEVLINK_PARAM_MAX_STRING_VALUE];
- 	bool vbool;
-+	struct devlink_param_u64_array u64arr;
- };
+diff --git a/drivers/net/ethernet/marvell/octeontx2/af/rvu_nix.c b/drivers/net/ethernet/marvell/octeontx2/af/rvu_nix.c
+index f977734ae712..7df256a9e01c 100644
+--- a/drivers/net/ethernet/marvell/octeontx2/af/rvu_nix.c
++++ b/drivers/net/ethernet/marvell/octeontx2/af/rvu_nix.c
+@@ -16,6 +16,7 @@
+ #include "cgx.h"
+ #include "lmac_common.h"
+ #include "rvu_npc_hash.h"
++#include "cn20k/npc.h"
  
- struct devlink_param_gset_ctx {
-diff --git a/include/uapi/linux/devlink.h b/include/uapi/linux/devlink.h
-index 0b165eac7619..ca713bcc47b9 100644
---- a/include/uapi/linux/devlink.h
-+++ b/include/uapi/linux/devlink.h
-@@ -406,6 +406,7 @@ enum devlink_var_attr_type {
- 	DEVLINK_VAR_ATTR_TYPE_BINARY,
- 	__DEVLINK_VAR_ATTR_TYPE_CUSTOM_BASE = 0x80,
- 	/* Any possible custom types, unrelated to NLA_* values go below */
-+	DEVLINK_VAR_ATTR_TYPE_U64_ARRAY,
- };
- 
- enum devlink_attr {
-diff --git a/net/devlink/netlink_gen.c b/net/devlink/netlink_gen.c
-index 81899786fd98..f52b0c2b19ed 100644
---- a/net/devlink/netlink_gen.c
-+++ b/net/devlink/netlink_gen.c
-@@ -37,6 +37,8 @@ devlink_attr_param_type_validate(const struct nlattr *attr,
- 	case DEVLINK_VAR_ATTR_TYPE_NUL_STRING:
- 		fallthrough;
- 	case DEVLINK_VAR_ATTR_TYPE_BINARY:
-+		fallthrough;
-+	case DEVLINK_VAR_ATTR_TYPE_U64_ARRAY:
- 		return 0;
- 	}
- 	NL_SET_ERR_MSG_ATTR(extack, attr, "invalid enum value");
-diff --git a/net/devlink/param.c b/net/devlink/param.c
-index 1a196d3a843d..6e0e48696f4a 100644
---- a/net/devlink/param.c
-+++ b/net/devlink/param.c
-@@ -252,6 +252,15 @@ devlink_nl_param_value_put(struct sk_buff *msg, enum devlink_param_type type,
- 				return -EMSGSIZE;
- 		}
- 		break;
-+	case DEVLINK_PARAM_TYPE_U64_ARRAY:
-+		for (int i = 0; i < val->u64arr.size; i++) {
-+			if (i >= __DEVLINK_PARAM_MAX_ARRAY_SIZE)
-+				break;
-+
-+			if (nla_put_uint(msg, nla_type, val->u64arr.val[i]))
-+				return -EMSGSIZE;
-+		}
-+		break;
- 	}
- 	return 0;
- }
-@@ -304,56 +313,78 @@ static int devlink_nl_param_fill(struct sk_buff *msg, struct devlink *devlink,
- 				 u32 portid, u32 seq, int flags,
- 				 struct netlink_ext_ack *extack)
+ static void nix_free_tx_vtag_entries(struct rvu *rvu, u16 pcifunc);
+ static int rvu_nix_get_bpid(struct rvu *rvu, struct nix_bp_cfg_req *req,
+@@ -1499,7 +1500,7 @@ int rvu_mbox_handler_nix_lf_alloc(struct rvu *rvu,
+ 				  struct nix_lf_alloc_req *req,
+ 				  struct nix_lf_alloc_rsp *rsp)
  {
--	union devlink_param_value default_value[DEVLINK_PARAM_CMODE_MAX + 1];
--	union devlink_param_value param_value[DEVLINK_PARAM_CMODE_MAX + 1];
- 	bool default_value_set[DEVLINK_PARAM_CMODE_MAX + 1] = {};
- 	bool param_value_set[DEVLINK_PARAM_CMODE_MAX + 1] = {};
- 	const struct devlink_param *param = param_item->param;
--	struct devlink_param_gset_ctx ctx;
-+	union devlink_param_value *default_value;
-+	union devlink_param_value *param_value;
-+	struct devlink_param_gset_ctx *ctx;
- 	struct nlattr *param_values_list;
- 	struct nlattr *param_attr;
- 	void *hdr;
- 	int err;
- 	int i;
+-	int nixlf, qints, hwctx_size, intf, err, rc = 0;
++	int nixlf, qints, hwctx_size, intf, rc = 0;
+ 	struct rvu_hwinfo *hw = rvu->hw;
+ 	u16 pcifunc = req->hdr.pcifunc;
+ 	struct rvu_block *block;
+@@ -1555,8 +1556,8 @@ int rvu_mbox_handler_nix_lf_alloc(struct rvu *rvu,
+ 		return NIX_AF_ERR_RSS_GRPS_INVALID;
  
-+	default_value = kcalloc(DEVLINK_PARAM_CMODE_MAX + 1,
-+				sizeof(*default_value), GFP_KERNEL);
-+	if (!default_value)
-+		return -ENOMEM;
-+
-+	param_value = kcalloc(DEVLINK_PARAM_CMODE_MAX + 1,
-+			      sizeof(*param_value), GFP_KERNEL);
-+	if (!param_value) {
-+		kfree(default_value);
-+		return -ENOMEM;
+ 	/* Reset this NIX LF */
+-	err = rvu_lf_reset(rvu, block, nixlf);
+-	if (err) {
++	rc = rvu_lf_reset(rvu, block, nixlf);
++	if (rc) {
+ 		dev_err(rvu->dev, "Failed to reset NIX%d LF%d\n",
+ 			block->addr - BLKADDR_NIX0, nixlf);
+ 		return NIX_AF_ERR_LF_RESET;
+@@ -1566,13 +1567,15 @@ int rvu_mbox_handler_nix_lf_alloc(struct rvu *rvu,
+ 
+ 	/* Alloc NIX RQ HW context memory and config the base */
+ 	hwctx_size = 1UL << ((ctx_cfg >> 4) & 0xF);
+-	err = qmem_alloc(rvu->dev, &pfvf->rq_ctx, req->rq_cnt, hwctx_size);
+-	if (err)
++	rc = qmem_alloc(rvu->dev, &pfvf->rq_ctx, req->rq_cnt, hwctx_size);
++	if (rc)
+ 		goto free_mem;
+ 
+ 	pfvf->rq_bmap = kcalloc(req->rq_cnt, sizeof(long), GFP_KERNEL);
+-	if (!pfvf->rq_bmap)
++	if (!pfvf->rq_bmap) {
++		rc = -ENOMEM;
+ 		goto free_mem;
++	}
+ 
+ 	rvu_write64(rvu, blkaddr, NIX_AF_LFX_RQS_BASE(nixlf),
+ 		    (u64)pfvf->rq_ctx->iova);
+@@ -1583,13 +1586,15 @@ int rvu_mbox_handler_nix_lf_alloc(struct rvu *rvu,
+ 
+ 	/* Alloc NIX SQ HW context memory and config the base */
+ 	hwctx_size = 1UL << (ctx_cfg & 0xF);
+-	err = qmem_alloc(rvu->dev, &pfvf->sq_ctx, req->sq_cnt, hwctx_size);
+-	if (err)
++	rc = qmem_alloc(rvu->dev, &pfvf->sq_ctx, req->sq_cnt, hwctx_size);
++	if (rc)
+ 		goto free_mem;
+ 
+ 	pfvf->sq_bmap = kcalloc(req->sq_cnt, sizeof(long), GFP_KERNEL);
+-	if (!pfvf->sq_bmap)
++	if (!pfvf->sq_bmap) {
++		rc = -ENOMEM;
+ 		goto free_mem;
++	}
+ 
+ 	rvu_write64(rvu, blkaddr, NIX_AF_LFX_SQS_BASE(nixlf),
+ 		    (u64)pfvf->sq_ctx->iova);
+@@ -1599,13 +1604,15 @@ int rvu_mbox_handler_nix_lf_alloc(struct rvu *rvu,
+ 
+ 	/* Alloc NIX CQ HW context memory and config the base */
+ 	hwctx_size = 1UL << ((ctx_cfg >> 8) & 0xF);
+-	err = qmem_alloc(rvu->dev, &pfvf->cq_ctx, req->cq_cnt, hwctx_size);
+-	if (err)
++	rc = qmem_alloc(rvu->dev, &pfvf->cq_ctx, req->cq_cnt, hwctx_size);
++	if (rc)
+ 		goto free_mem;
+ 
+ 	pfvf->cq_bmap = kcalloc(req->cq_cnt, sizeof(long), GFP_KERNEL);
+-	if (!pfvf->cq_bmap)
++	if (!pfvf->cq_bmap) {
++		rc = -ENOMEM;
+ 		goto free_mem;
++	}
+ 
+ 	rvu_write64(rvu, blkaddr, NIX_AF_LFX_CQS_BASE(nixlf),
+ 		    (u64)pfvf->cq_ctx->iova);
+@@ -1615,18 +1622,18 @@ int rvu_mbox_handler_nix_lf_alloc(struct rvu *rvu,
+ 
+ 	/* Initialize receive side scaling (RSS) */
+ 	hwctx_size = 1UL << ((ctx_cfg >> 12) & 0xF);
+-	err = nixlf_rss_ctx_init(rvu, blkaddr, pfvf, nixlf, req->rss_sz,
+-				 req->rss_grps, hwctx_size, req->way_mask,
+-				 !!(req->flags & NIX_LF_RSS_TAG_LSB_AS_ADDER));
+-	if (err)
++	rc = nixlf_rss_ctx_init(rvu, blkaddr, pfvf, nixlf, req->rss_sz,
++				req->rss_grps, hwctx_size, req->way_mask,
++				!!(req->flags & NIX_LF_RSS_TAG_LSB_AS_ADDER));
++	if (rc)
+ 		goto free_mem;
+ 
+ 	/* Alloc memory for CQINT's HW contexts */
+ 	cfg = rvu_read64(rvu, blkaddr, NIX_AF_CONST2);
+ 	qints = (cfg >> 24) & 0xFFF;
+ 	hwctx_size = 1UL << ((ctx_cfg >> 24) & 0xF);
+-	err = qmem_alloc(rvu->dev, &pfvf->cq_ints_ctx, qints, hwctx_size);
+-	if (err)
++	rc = qmem_alloc(rvu->dev, &pfvf->cq_ints_ctx, qints, hwctx_size);
++	if (rc)
+ 		goto free_mem;
+ 
+ 	rvu_write64(rvu, blkaddr, NIX_AF_LFX_CINTS_BASE(nixlf),
+@@ -1639,8 +1646,8 @@ int rvu_mbox_handler_nix_lf_alloc(struct rvu *rvu,
+ 	cfg = rvu_read64(rvu, blkaddr, NIX_AF_CONST2);
+ 	qints = (cfg >> 12) & 0xFFF;
+ 	hwctx_size = 1UL << ((ctx_cfg >> 20) & 0xF);
+-	err = qmem_alloc(rvu->dev, &pfvf->nix_qints_ctx, qints, hwctx_size);
+-	if (err)
++	rc = qmem_alloc(rvu->dev, &pfvf->nix_qints_ctx, qints, hwctx_size);
++	if (rc)
+ 		goto free_mem;
+ 
+ 	rvu_write64(rvu, blkaddr, NIX_AF_LFX_QINTS_BASE(nixlf),
+@@ -1684,10 +1691,16 @@ int rvu_mbox_handler_nix_lf_alloc(struct rvu *rvu,
+ 	if (is_sdp_pfvf(rvu, pcifunc))
+ 		intf = NIX_INTF_TYPE_SDP;
+ 
+-	err = nix_interface_init(rvu, pcifunc, intf, nixlf, rsp,
+-				 !!(req->flags & NIX_LF_LBK_BLK_SEL));
+-	if (err)
+-		goto free_mem;
++	if (is_cn20k(rvu->pdev)) {
++		rc = npc_cn20k_dft_rules_alloc(rvu, pcifunc);
++		if (rc)
++			goto free_mem;
 +	}
 +
-+	ctx = kzalloc_obj(*ctx);
-+	if (!ctx) {
-+		kfree(param_value);
-+		kfree(default_value);
-+		return -ENOMEM;
-+	}
++	rc = nix_interface_init(rvu, pcifunc, intf, nixlf, rsp,
++				!!(req->flags & NIX_LF_LBK_BLK_SEL));
++	if (rc)
++		goto free_dft;
+ 
+ 	/* Disable NPC entries as NIXLF's contexts are not initialized yet */
+ 	rvu_npc_disable_default_entries(rvu, pcifunc, nixlf);
+@@ -1699,9 +1712,12 @@ int rvu_mbox_handler_nix_lf_alloc(struct rvu *rvu,
+ 
+ 	goto exit;
+ 
++free_dft:
++	if (is_cn20k(rvu->pdev))
++		npc_cn20k_dft_rules_free(rvu, pcifunc);
 +
- 	/* Get value from driver part to driverinit configuration mode */
- 	for (i = 0; i <= DEVLINK_PARAM_CMODE_MAX; i++) {
- 		if (!devlink_param_cmode_is_supported(param, i))
- 			continue;
- 		if (i == DEVLINK_PARAM_CMODE_DRIVERINIT) {
--			if (param_item->driverinit_value_new_valid)
-+			if (param_item->driverinit_value_new_valid) {
- 				param_value[i] = param_item->driverinit_value_new;
--			else if (param_item->driverinit_value_valid)
-+			} else if (param_item->driverinit_value_valid) {
- 				param_value[i] = param_item->driverinit_value;
--			else
--				return -EOPNOTSUPP;
-+			} else {
-+				err = -EOPNOTSUPP;
-+				goto get_put_fail;
-+			}
+ free_mem:
+ 	nix_ctx_free(rvu, pfvf);
+-	rc = -ENOMEM;
  
- 			if (param_item->driverinit_value_valid) {
- 				default_value[i] = param_item->driverinit_default;
- 				default_value_set[i] = true;
- 			}
- 		} else {
--			ctx.cmode = i;
--			err = devlink_param_get(devlink, param, &ctx, extack);
-+			ctx->cmode = i;
-+			err = devlink_param_get(devlink, param, ctx, extack);
- 			if (err)
--				return err;
--			param_value[i] = ctx.val;
-+				goto get_put_fail;
-+			param_value[i] = ctx->val;
+ exit:
+ 	/* Set macaddr of this PF/VF */
+@@ -1775,6 +1791,9 @@ int rvu_mbox_handler_nix_lf_free(struct rvu *rvu, struct nix_lf_free_req *req,
  
--			err = devlink_param_get_default(devlink, param, &ctx,
-+			err = devlink_param_get_default(devlink, param, ctx,
- 							extack);
- 			if (!err) {
--				default_value[i] = ctx.val;
-+				default_value[i] = ctx->val;
- 				default_value_set[i] = true;
- 			} else if (err != -EOPNOTSUPP) {
--				return err;
-+				goto get_put_fail;
- 			}
- 		}
- 		param_value_set[i] = true;
- 	}
+ 	nix_ctx_free(rvu, pfvf);
  
-+	err = -EMSGSIZE;
- 	hdr = genlmsg_put(msg, portid, seq, &devlink_nl_family, flags, cmd);
- 	if (!hdr)
--		return -EMSGSIZE;
-+		goto get_put_fail;
- 
- 	if (devlink_nl_put_handle(msg, devlink))
- 		goto genlmsg_cancel;
-@@ -393,6 +424,9 @@ static int devlink_nl_param_fill(struct sk_buff *msg, struct devlink *devlink,
- 	nla_nest_end(msg, param_values_list);
- 	nla_nest_end(msg, param_attr);
- 	genlmsg_end(msg, hdr);
-+	kfree(default_value);
-+	kfree(param_value);
-+	kfree(ctx);
- 	return 0;
- 
- values_list_nest_cancel:
-@@ -401,7 +435,11 @@ static int devlink_nl_param_fill(struct sk_buff *msg, struct devlink *devlink,
- 	nla_nest_cancel(msg, param_attr);
- genlmsg_cancel:
- 	genlmsg_cancel(msg, hdr);
--	return -EMSGSIZE;
-+get_put_fail:
-+	kfree(default_value);
-+	kfree(param_value);
-+	kfree(ctx);
-+	return err;
- }
- 
- static void devlink_param_notify(struct devlink *devlink,
-@@ -507,7 +545,7 @@ devlink_param_value_get_from_info(const struct devlink_param *param,
- 				  union devlink_param_value *value)
- {
- 	struct nlattr *param_data;
--	int len;
-+	int len, cnt, rem;
- 
- 	param_data = info->attrs[DEVLINK_ATTR_PARAM_VALUE_DATA];
- 
-@@ -547,6 +585,26 @@ devlink_param_value_get_from_info(const struct devlink_param *param,
- 			return -EINVAL;
- 		value->vbool = nla_get_flag(param_data);
- 		break;
++	if (is_cn20k(rvu->pdev) && !(req->flags & NIX_LF_DONT_FREE_DFT_IDXS))
++		npc_cn20k_dft_rules_free(rvu, pcifunc);
 +
-+	case DEVLINK_PARAM_TYPE_U64_ARRAY:
-+		cnt = 0;
-+		nla_for_each_attr_type(param_data,
-+				       DEVLINK_ATTR_PARAM_VALUE_DATA,
-+				       genlmsg_data(info->genlhdr),
-+				       genlmsg_len(info->genlhdr), rem) {
-+			if (cnt >= __DEVLINK_PARAM_MAX_ARRAY_SIZE)
-+				return -EMSGSIZE;
-+
-+			if ((nla_len(param_data) != sizeof(u64)) &&
-+			    (nla_len(param_data) != sizeof(u32)))
-+				return -EINVAL;
-+
-+			value->u64arr.val[cnt] = (u64)nla_get_uint(param_data);
-+			cnt++;
-+		}
-+
-+		value->u64arr.size = cnt;
-+		break;
- 	}
  	return 0;
  }
+ 
+diff --git a/drivers/net/ethernet/marvell/octeontx2/af/rvu_npc.c b/drivers/net/ethernet/marvell/octeontx2/af/rvu_npc.c
+index 3c814d157ab9..ec5b2d648246 100644
+--- a/drivers/net/ethernet/marvell/octeontx2/af/rvu_npc.c
++++ b/drivers/net/ethernet/marvell/octeontx2/af/rvu_npc.c
+@@ -1285,11 +1285,18 @@ void npc_enadis_default_mce_entry(struct rvu *rvu, u16 pcifunc,
+ 	struct nix_mce_list *mce_list;
+ 	int index, blkaddr, mce_idx;
+ 	struct rvu_pfvf *pfvf;
++	u16 ptr[4];
+ 
+ 	/* multicast pkt replication is not enabled for AF's VFs & SDP links */
+ 	if (is_lbk_vf(rvu, pcifunc) || is_sdp_pfvf(rvu, pcifunc))
+ 		return;
+ 
++	/* In cn20k, only CGX mapped devices have default MCAST entry */
++	if (is_cn20k(rvu->pdev) &&
++	    npc_cn20k_dft_rules_idx_get(rvu, pcifunc, &ptr[0], &ptr[1],
++					&ptr[2], &ptr[3]))
++		return;
++
+ 	blkaddr = rvu_get_blkaddr(rvu, BLKTYPE_NPC, 0);
+ 	if (blkaddr < 0)
+ 		return;
+@@ -1329,9 +1336,12 @@ static void npc_enadis_default_entries(struct rvu *rvu, u16 pcifunc,
+ 	struct rvu_pfvf *pfvf = rvu_get_pfvf(rvu, pcifunc);
+ 	struct npc_mcam *mcam = &rvu->hw->mcam;
+ 	int index, blkaddr;
++	u16 ptr[4];
+ 
+ 	/* only CGX or LBK interfaces have default entries */
+-	if (is_cn20k(rvu->pdev) && !npc_is_cgx_or_lbk(rvu, pcifunc))
++	if (is_cn20k(rvu->pdev) &&
++	    npc_cn20k_dft_rules_idx_get(rvu, pcifunc, &ptr[0], &ptr[1],
++					&ptr[2], &ptr[3]))
+ 		return;
+ 
+ 	blkaddr = rvu_get_blkaddr(rvu, BLKTYPE_NPC, 0);
+@@ -4085,12 +4095,10 @@ void rvu_npc_clear_ucast_entry(struct rvu *rvu, int pcifunc, int nixlf)
+ 
+ 	ucast_idx = npc_get_nixlf_mcam_index(mcam, pcifunc,
+ 					     nixlf, NIXLF_UCAST_ENTRY);
+-	if (ucast_idx < 0) {
+-		dev_err(rvu->dev,
+-			"%s: Error to get ucast entry for pcifunc=%#x\n",
+-			__func__, pcifunc);
++
++	/* In cn20k, default rules are freed before detach rsrc */
++	if (ucast_idx < 0)
+ 		return;
+-	}
+ 
+ 	npc_enable_mcam_entry(rvu, mcam, blkaddr, ucast_idx, false);
+ 
+diff --git a/drivers/net/ethernet/marvell/octeontx2/nic/otx2_pf.c b/drivers/net/ethernet/marvell/octeontx2/nic/otx2_pf.c
+index ee623476e5ff..81b088f5a016 100644
+--- a/drivers/net/ethernet/marvell/octeontx2/nic/otx2_pf.c
++++ b/drivers/net/ethernet/marvell/octeontx2/nic/otx2_pf.c
+@@ -1053,7 +1053,6 @@ irqreturn_t otx2_pfaf_mbox_intr_handler(int irq, void *pf_irq)
+ 	/* Clear the IRQ */
+ 	otx2_write64(pf, RVU_PF_INT, BIT_ULL(0));
+ 
+-
+ 	mbox_data = otx2_read64(pf, RVU_PF_PFAF_MBOX0);
+ 
+ 	if (mbox_data & MBOX_UP_MSG) {
+@@ -1729,7 +1728,7 @@ int otx2_init_hw_resources(struct otx2_nic *pf)
+ 	mutex_lock(&mbox->lock);
+ 	free_req = otx2_mbox_alloc_msg_nix_lf_free(mbox);
+ 	if (free_req) {
+-		free_req->flags = NIX_LF_DISABLE_FLOWS;
++		free_req->flags = NIX_LF_DISABLE_FLOWS | NIX_LF_DONT_FREE_DFT_IDXS;
+ 		if (otx2_sync_mbox_msg(mbox))
+ 			dev_err(pf->dev, "%s failed to free nixlf\n", __func__);
+ 	}
+@@ -1803,7 +1802,7 @@ void otx2_free_hw_resources(struct otx2_nic *pf)
+ 	/* Reset NIX LF */
+ 	free_req = otx2_mbox_alloc_msg_nix_lf_free(mbox);
+ 	if (free_req) {
+-		free_req->flags = NIX_LF_DISABLE_FLOWS;
++		free_req->flags = NIX_LF_DISABLE_FLOWS | NIX_LF_DONT_FREE_DFT_IDXS;
+ 		if (!(pf->flags & OTX2_FLAG_PF_SHUTDOWN))
+ 			free_req->flags |= NIX_LF_DONT_FREE_TX_VTAG;
+ 		if (otx2_sync_mbox_msg(mbox))
+@@ -1926,7 +1925,6 @@ int otx2_alloc_queue_mem(struct otx2_nic *pf)
+ 	struct otx2_qset *qset = &pf->qset;
+ 	struct otx2_cq_poll *cq_poll;
+ 
+-
+ 	/* RQ and SQs are mapped to different CQs,
+ 	 * so find out max CQ IRQs (i.e CINTs) needed.
+ 	 */
 -- 
 2.43.0
 
