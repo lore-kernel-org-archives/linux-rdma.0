@@ -1,120 +1,216 @@
-Received: from mail-pj1-f42.google.com (mail-pj1-f42.google.com [209.85.216.42])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8060A3B2FC7
-	for <linux-rdma@vger.kernel.org>; Thu, 21 May 2026 13:20:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.42
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E3773D7D80;
+	Thu, 21 May 2026 13:33:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779369652; cv=none; b=l9cs4idfZ/7Gq4Qb2cyj0KGRtUPOKurzVAb2KW1cv0Z04xEVqDmGFg0+ZSBq/Op3opSvBkEC2efu9ccz5G7WskAuHEnCts/73/8X1y+dt7c3UzKlcznS5qeg5z0nSmQ67tRPDHQd17psTnS4YQ2PFIWWaS7CT3Vy/C3eXi39DyQ=
+	t=1779370408; cv=none; b=hKW9kln1PLK9mSTd0Ce7XrTssVlcSMyJCXs6/9mt9jzIiFvGUCdN49g9onMb9QgkjHqLgWd4AUcqIIjNQdb5fO1mJWX6ZPf9VkJiaQFkNsx+TZ8/QPqUcGZ0txesFbL+TqH3POBRYF+dEoOzvQeytL6IWm/rKyF4MetdB1W1ii0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779369652; c=relaxed/simple;
-	bh=ubQU2oquEa++COtDSqD7OVoJAyfvJd89jAtOAgPP+tA=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=mppK7vfPIxRlvjknk2Z9T1diwWl62BATbj/O3/9GFu333Nlx6dxuXv0TWctRCTXPoKueYhJJuGq19TjPFSx5TyWfiouavLFIhGI0DkkEyNr1iBWfymS7rWWdcTOdLqpnyEgI03Q4MhMzHtP5TTzfm7XiBk3w64JcPgLbzuh/gqI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=RqEqJ8Ec; arc=none smtp.client-ip=209.85.216.42
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1779370408; c=relaxed/simple;
+	bh=5uv+CTbn8AcIcVue/GiaGr9BSc0U2Of/hQLri15LfLg=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=j0thK6dLeDJ7ZgeB1y2FqTzEs33VjwJL8PzvLZBZQjdECQNPRI5QxRhmQn6yzv7Jk6LuoYKoPPiaTTiJvlpGprjysEn7NmDNZATRN19IbexzGsrVvaIv9J81CfQkvvm/5wcX9MDldl5wKCgscIIW9hkAyvmvP+M/jEqCKJfKJJ0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=j4CDviTd; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="RqEqJ8Ec"
-Received: by mail-pj1-f42.google.com with SMTP id 98e67ed59e1d1-36974221f93so3319111a91.2
-        for <linux-rdma@vger.kernel.org>; Thu, 21 May 2026 06:20:50 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1779369650; x=1779974450; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=TRFTEKHYtfPaeIVYcQrFvfCGX7kREmXkMBppsc46oO8=;
-        b=RqEqJ8EcPQgStAQ5gh+/7Lv999QLWG+8/HXVmFi+wRQXPMp2fzdA+06ke0BzfTp4je
-         i2Cv/zu42t+edkMXY0xixLsDo65kTlbno7q8WS3Y9mlLdGos2a51oUNcmEfBLCJ7icdr
-         cTaK7rpzLBj1Y3jbddL25EBtQMgrDTXDDXVU0lE/xVMlTdQfSr5gdFW/oS2gg1QPTPVI
-         ZhwXPGw5it4coRrbe7JagaCQzak1MItQekQ13CFrtHFsehfcCxHM2afv5CPYR8tf0oTn
-         1UQy6qyqWii5kzNdinnAKbwLrurFbUEA9Th/qB2mFKQC98PqNsO+IY9sNlxO+TNoP0Eh
-         J5uw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1779369650; x=1779974450;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=TRFTEKHYtfPaeIVYcQrFvfCGX7kREmXkMBppsc46oO8=;
-        b=PkSFFe+lCAVomm8KC9QyNre8tOsbr2SCEtYS04v9WFG7smEX6wNk1M6pzczQs9R3sf
-         VpQo10A4gi1FkEvWGytzDIYU3R5CQ1hcC9X1LcgvOpceR6/oknH1LbbbFDgzP/viHJt+
-         AT0nNaiNt4ch4nh7bNBOR7uzQPjUjJXcMCKt6sr3WQd6ykycml9QDxaZ3CO6uR4HJkId
-         JKKi698lspZ2k6wRl/Lv3CzDPi2HPBRFPvMljd19PE1PASw6AxhylkueazvoO7M/lnKL
-         Z4rJ26BljhgwmIsFZb3EOTP2CvVavJsBfY2sY3Zhlyspcu+bSFhMvJguMD00u1bAmWFz
-         i9fQ==
-X-Forwarded-Encrypted: i=1; AFNElJ8j2ibsRAQvt9pjxarAriKuCpHOCq/pSZ8FUIkj9EQ0HE2dHJLPEjzAZNuc4eGkNP4gdLooaJ48udNj@vger.kernel.org
-X-Gm-Message-State: AOJu0YzhJOt3nu930zfBjOVl16ZcVVHqrjU80NAku17C4Qx0uVAn45Oe
-	hbDLWA+wB48THpcqjS6DAw4vqSNSIi+WAKCV08cnxgvB2WAx8pG5LH1u
-X-Gm-Gg: Acq92OGL5Ij0ZBYVq1Hmlx6i98pPaAOndJk45l+XuFQqG/ZnBnm8LNOUc31OIeaaiQQ
-	6Rqiy4Qh/+rH0HgYtcE0C2TMQPDim90vZjXZDdz9+uOu+wyP07vJrj8FbGeXVJDpRKCMrFo4vn9
-	i9pgJoGwImcqz0o4GrCnZXt8YnWusjoVp2y/pox2zi+2fBnuuCXJV4xYQychvhkHuooKOTywE9s
-	qyO17ki9a5xXHwtfLtxXg9aRPi55Ji0WYIBkrF7AEZtVtG3muVezkDVQnnKH0Aq7SZKvfH0NTHs
-	KuHg5clC3763hV+gdxR338Rje1aVoExYPAVDsw+/Oone33X7ltDt/O/o5nbVY8Lvg/pHGkLC/HK
-	KAbOYQjCopRJ1wPhKd1n6jb4q2MpM/nYorGSpmxA82xOqapg+LNxZ9tpUU1HjRVdnz3s9aCNhh1
-	MElQD3jM87axDcal21rAm5vkt8XRBrGBiR1ars8pY3jZ8vnTtq
-X-Received: by 2002:a17:90b:3505:b0:368:9da3:c496 with SMTP id 98e67ed59e1d1-36a4575e8acmr2887160a91.24.1779369649745;
-        Thu, 21 May 2026 06:20:49 -0700 (PDT)
-Received: from csl-conti-dell7858.ntu.edu.sg ([155.69.195.57])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-36a45757364sm843594a91.5.2026.05.21.06.20.47
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 21 May 2026 06:20:49 -0700 (PDT)
-From: Maoyi Xie <maoyixie.tju@gmail.com>
-To: Chengchang Tang <tangchengchang@huawei.com>,
-	Junxian Huang <huangjunxian6@hisilicon.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>,
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="j4CDviTd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 664AA1F00A3C;
+	Thu, 21 May 2026 13:33:26 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1779370406;
+	bh=ezV5ICAM2va0jVjd8iAniGdLxBSb69xxnF1gv2JwpSY=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=j4CDviTd6M6LDTj5r6sQRqgJ6ESa9aWMu37zRV8mtOcXrJiE1zLL6x/OVHUw7taNB
+	 jl6ETIYiu8JAkRBqc4Wuv2aB534ln8Hu69MX1fb2GFClu2Mmurr/zb532bCHmICyRT
+	 bW4gGDuRH21kbO4Mt3QzAC1BgrPy+si2Rjb35ZfN4nboZAY9y9toARiousj3e/bp3M
+	 OhVS9wgD8OvUpe6jIOQ+pq818okRHEEM5Lah2/H+GkNEe7+pCkBUV/HEs3jXEYS4f4
+	 MtCRjjIGdmkPubfqUsmmCsve0nsahQ5jfKPmPGh0P3LHoWU280OP0E1I4NEEZgAN1h
+	 MDV3MyE2qhaxQ==
+From: Kees Cook <kees@kernel.org>
+To: Luis Chamberlain <mcgrof@kernel.org>
+Cc: Kees Cook <kees@kernel.org>,
+	Pengpeng Hou <pengpeng@iscas.ac.cn>,
+	stable@vger.kernel.org,
+	Petr Pavlu <petr.pavlu@suse.com>,
+	Richard Weinberger <richard@nod.at>,
+	Anton Ivanov <anton.ivanov@cambridgegreys.com>,
+	Johannes Berg <johannes@sipsolutions.net>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Len Brown <lenb@kernel.org>,
+	Corey Minyard <corey@minyard.net>,
+	Gabriel Somlo <somlo@cmu.edu>,
+	"Michael S. Tsirkin" <mst@redhat.com>,
+	Jani Nikula <jani.nikula@linux.intel.com>,
+	Joonas Lahtinen <joonas.lahtinen@linux.intel.com>,
+	Rodrigo Vivi <rodrigo.vivi@intel.com>,
+	Tvrtko Ursulin <tursulin@ursulin.net>,
+	David Airlie <airlied@gmail.com>,
+	Simona Vetter <simona@ffwll.ch>,
+	Bart Van Assche <bvanassche@acm.org>,
+	Jason Gunthorpe <jgg@ziepe.ca>,
 	Leon Romanovsky <leon@kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans de Goede <hansg@kernel.org>,
+	Mauro Carvalho Chehab <mchehab@kernel.org>,
+	Bjorn Helgaas <bhelgaas@google.com>,
+	Hannes Reinecke <hare@suse.de>,
+	"James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
+	"Martin K. Petersen" <martin.petersen@oracle.com>,
+	Daniel Lezcano <daniel.lezcano@kernel.org>,
+	Zhang Rui <rui.zhang@intel.com>,
+	Lukasz Luba <lukasz.luba@arm.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Jiri Slaby <jirislaby@kernel.org>,
+	Alan Stern <stern@rowland.harvard.edu>,
+	Jason Wang <jasowang@redhat.com>,
+	Xuan Zhuo <xuanzhuo@linux.alibaba.com>,
+	=?UTF-8?q?Eugenio=20P=C3=A9rez?= <eperezma@redhat.com>,
+	Jason Baron <jbaron@akamai.com>,
+	Jim Cromie <jim.cromie@gmail.com>,
+	Tiwei Bie <tiwei.btw@antgroup.com>,
+	Benjamin Berg <benjamin.berg@intel.com>,
+	=?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>,
+	"David E. Box" <david.e.box@linux.intel.com>,
+	"Maciej W. Rozycki" <macro@orcam.me.uk>,
+	Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
+	Peter Zijlstra <peterz@infradead.org>,
+	Heiko Carstens <hca@linux.ibm.com>,
+	Vasily Gorbik <gor@linux.ibm.com>,
+	Sean Christopherson <seanjc@google.com>,
+	Paolo Bonzini <pbonzini@redhat.com>,
+	Thomas Gleixner <tglx@kernel.org>,
+	Ingo Molnar <mingo@redhat.com>,
+	Borislav Petkov <bp@alien8.de>,
+	Dave Hansen <dave.hansen@linux.intel.com>,
+	x86@kernel.org,
+	"H. Peter Anvin" <hpa@zytor.com>,
+	Vinod Koul <vkoul@kernel.org>,
+	Frank Li <Frank.Li@kernel.org>,
+	Daniel Gomez <da.gomez@kernel.org>,
+	Sami Tolvanen <samitolvanen@google.com>,
+	Aaron Tomlin <atomlin@atomlin.com>,
+	Alexander Potapenko <glider@google.com>,
+	Marco Elver <elver@google.com>,
+	Dmitry Vyukov <dvyukov@google.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	John Johansen <john.johansen@canonical.com>,
+	Paul Moore <paul@paul-moore.com>,
+	James Morris <jmorris@namei.org>,
+	"Serge E. Hallyn" <serge@hallyn.com>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Georgia Garcia <georgia.garcia@canonical.com>,
+	kvm@vger.kernel.org,
+	dmaengine@vger.kernel.org,
+	linux-modules@vger.kernel.org,
+	kasan-dev@googlegroups.com,
+	linux-mm@kvack.org,
+	apparmor@lists.ubuntu.com,
+	linux-security-module@vger.kernel.org,
+	linux-um@lists.infradead.org,
+	linux-acpi@vger.kernel.org,
+	openipmi-developer@lists.sourceforge.net,
+	qemu-devel@nongnu.org,
+	intel-gfx@lists.freedesktop.org,
+	dri-devel@lists.freedesktop.org,
 	linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH] RDMA/hns: fix dead empty check on head->root in setup_root_hem()
-Date: Thu, 21 May 2026 21:20:45 +0800
-Message-Id: <20260521132045.3430906-1-maoyixie.tju@gmail.com>
+	linux-media@vger.kernel.org,
+	linux-pci@vger.kernel.org,
+	linux-scsi@vger.kernel.org,
+	linux-pm@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org,
+	linux-serial@vger.kernel.org,
+	linux-usb@vger.kernel.org,
+	usb-storage@lists.one-eyed-alien.net,
+	virtualization@lists.linux.dev,
+	linux-kernel@vger.kernel.org,
+	linux-arch@vger.kernel.org,
+	netdev@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org,
+	linux-hardening@vger.kernel.org
+Subject: [PATCH 01/11] params: bound array element output to the caller's page buffer
+Date: Thu, 21 May 2026 06:33:14 -0700
+Message-Id: <20260521133326.2465264-1-kees@kernel.org>
 X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20260521133315.work.845-kees@kernel.org>
+References: <20260521133315.work.845-kees@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+X-Developer-Signature: v=1; a=openpgp-sha256; l=2143; i=kees@kernel.org; h=from:subject; bh=3eO38ZdE0rbljlF5l/QfEOapKDQ3GxlJmKbxHXugskI=; b=owGbwMvMwCVmps19z/KJym7G02pJDFn8nAtqmS7cf3B//69jZ5rrq6va9p3fNOGM7h2Jd74Pn JTCV6u3dZSyMIhxMciKKbIE2bnHuXi8bQ93n6sIM4eVCWQIAxenAEzEYiojw//ne8uu9YZ9+sWp mJ7czDyrP2Afv+2f21+/99yL9Jp+OI2RYVNeQ9witS6BzPe55aerW/eveRmS81ixc8XMVftPpj7 OZQAA
+X-Developer-Key: i=kees@kernel.org; a=openpgp; fpr=A5C3F68F229DD60F723E6E138972F4DFDC6DC026
 Content-Transfer-Encoding: 8bit
 
-setup_root_hem() reads head->root with list_first_entry() and then
-tests the returned pointer against NULL. list_first_entry() never
-returns NULL. On an empty list it returns container_of(&head->root,
-struct hns_roce_hem_item, list), which equals &head->root because
-list is the first member. The -ENOMEM early return is dead code.
+From: Pengpeng Hou <pengpeng@iscas.ac.cn>
 
-If head->root is ever empty here, the aliased root_hem points at
-&head->root. root_hem->addr and root_hem->dma_addr then read past
-the end of struct hns_roce_hem_head into adjacent memory. The
-garbage value is handed to the hardware as a DMA base address.
+param_array_get() appends each element's string representation into the
+shared sysfs page buffer by passing buffer + off to the element getter.
 
-Use list_first_entry_or_null() so the empty case returns NULL and the
--ENOMEM early return runs.
+That works for getters that only write a small bounded string, but
+param_get_charp() and similar helpers format against PAGE_SIZE from the
+pointer they receive. Once off is non-zero, an element getter can
+therefore write past the end of the original sysfs page buffer.
 
-The same shape has been cleaned up elsewhere, for example in
-commit fbb8bc408027 ("net: qed: Remove redundant NULL checks after list_first_entry()"),
-commit c708d3fad421 ("crypto: atmel - use list_first_entry_or_null to simplify find_dev"),
-and commit 10379171f346 ("ksmbd: use list_first_entry_or_null for opinfo_get_list()").
-This hns site was missed by those cleanups.
+Collect each element into a temporary PAGE_SIZE buffer first and then
+copy only the remaining space into the caller's page buffer.
 
-Signed-off-by: Maoyi Xie <maoyixie.tju@gmail.com>
+Cc: stable@vger.kernel.org
+Reviewed-by: Petr Pavlu <petr.pavlu@suse.com>
+Signed-off-by: Pengpeng Hou <pengpeng@iscas.ac.cn>
+Signed-off-by: Kees Cook <kees@kernel.org>
 ---
- drivers/infiniband/hw/hns/hns_roce_hem.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/params.c | 26 ++++++++++++++++++++------
+ 1 file changed, 20 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hem.c b/drivers/infiniband/hw/hns/hns_roce_hem.c
-index e7c9e30ad2d8..12ac9ba6b312 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hem.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hem.c
-@@ -1267,8 +1267,8 @@ setup_root_hem(struct hns_roce_dev *hr_dev, struct hns_roce_hem_list *hem_list,
- 	int i, total;
- 	int ret;
+diff --git a/kernel/params.c b/kernel/params.c
+index 74d620bc2521..752721922a15 100644
+--- a/kernel/params.c
++++ b/kernel/params.c
+@@ -475,22 +475,36 @@ static int param_array_set(const char *val, const struct kernel_param *kp)
+ static int param_array_get(char *buffer, const struct kernel_param *kp)
+ {
+ 	int i, off, ret;
++	char *elem_buf;
+ 	const struct kparam_array *arr = kp->arr;
+ 	struct kernel_param p = *kp;
  
--	root_hem = list_first_entry(&head->root,
--				    struct hns_roce_hem_item, list);
-+	root_hem = list_first_entry_or_null(&head->root,
-+					    struct hns_roce_hem_item, list);
- 	if (!root_hem)
- 		return -ENOMEM;
++	elem_buf = kmalloc(PAGE_SIZE, GFP_KERNEL);
++	if (!elem_buf)
++		return -ENOMEM;
++
+ 	for (i = off = 0; i < (arr->num ? *arr->num : arr->max); i++) {
+-		/* Replace \n with comma */
+-		if (i)
+-			buffer[off - 1] = ',';
+ 		p.arg = arr->elem + arr->elemsize * i;
+ 		check_kparam_locked(p.mod);
+-		ret = arr->ops->get(buffer + off, &p);
++		ret = arr->ops->get(elem_buf, &p);
+ 		if (ret < 0)
+-			return ret;
++			goto out;
++		ret = min(ret, (int)(PAGE_SIZE - 1 - off));
++		if (!ret)
++			break;
++		/* Replace the previous element's trailing newline with a comma. */
++		if (i)
++			buffer[off - 1] = ',';
++		memcpy(buffer + off, elem_buf, ret);
+ 		off += ret;
++		if (off == PAGE_SIZE - 1)
++			break;
+ 	}
+ 	buffer[off] = '\0';
+-	return off;
++	ret = off;
++out:
++	kfree(elem_buf);
++	return ret;
+ }
  
+ static void param_array_free(void *arg)
 -- 
 2.34.1
 
