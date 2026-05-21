@@ -1,68 +1,68 @@
-Received: from PH8PR06CU001.outbound.protection.outlook.com (mail-westus3azon11012055.outbound.protection.outlook.com [40.107.209.55])
+Received: from SN4PR2101CU001.outbound.protection.outlook.com (mail-southcentralusazon11012068.outbound.protection.outlook.com [40.93.195.68])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3F5ED3AC00;
-	Thu, 21 May 2026 11:12:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.209.55
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CE04F3BFE33;
+	Thu, 21 May 2026 11:12:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.195.68
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779361959; cv=fail; b=X/cAiQozXf4F3K9I95TuESMJ01rP/mPvy0kwld3H+ljRh7Varz+65nLDMFaj7frseQtSsS79o0CBuD9KcPRyZNeFl45HU0MukFcnkejZ1Eh8HN21UkY6a42CsQcoFadDquCyOj750OYQ3IjcchBoEDObeMOgstG5CGby9FCCiy4=
+	t=1779361964; cv=fail; b=oQQlWGNMcVVR6t2lHzNRtsGGR/u/aiG5u+jKScvQQwQ1ZXtgvOnuypV6JuEcMm6V+m1oJif3CTAKh4pY+InYJbwi3UyNtarVFHPSNbxYs0qu59CaWUAMiUZNX3zZC4zFbZli/metD9JuZODDGaIc8hitBEiP7bud7uFDnZ9N2N8=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779361959; c=relaxed/simple;
-	bh=Eumh9LvpMy8aXHhAjtResdFiRMRSv5Tyb+pgHeyPbfo=;
+	s=arc-20240116; t=1779361964; c=relaxed/simple;
+	bh=xwlQnhfDirbmxkyLLk84nXOhoFqNp5RBnPlAuo25dPI=;
 	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=Y8J3UHDRmmy6uYc3K8eSRqT4I2XDMCSbzwbOFXFR0EeNLw4ypInoddR08tdGZgvjbmOREYh+gUVDjxvFmp1/BvLgGtBP6Q+5F7DB3TKwaZro1IVbJglNmqR2vr/voaNFanMRYsuupTaSontphkkno6N6MaC0xVhv6IGvnXerOX8=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=SVq4WSLh; arc=fail smtp.client-ip=40.107.209.55
+	 MIME-Version:Content-Type; b=qN0/uPeeHEu0bwzQ3PfmTGLGMEpYYWcd/rGlGGUAvnyz1Y4RlFrry6IR6IPj3eB5WyqcgOKW4V9Q6M0TkLulHfmp1QEsHrJ45pNrVZYQnUYoOfjrNupXzpYHYy/L8AOs/MQZnyQhzfLNmRuE2v6KRWPb6UHzE9AUmaMPYbm6+Hk=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=bqIsyyoR; arc=fail smtp.client-ip=40.93.195.68
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="SVq4WSLh"
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="bqIsyyoR"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=v6jrtrIAotoLvhOZY8Ar8ohsvBWlk97nTBhIspWhCHs0Ege10tvNPZ5fwqx4DLniuRtgwAUgbwS5CM294SONy2gZI3xnOvxcxc23lGsLsg7expW3p0/WpjCaG7+yUF4KP9tkxF2Lq0mmWyHR3bLxUeIIhxXTYmHWpG3/f9qcyhTOevJrjIIumMB4eCnme0I1xSpjJOjTTOBDFDzgcpnRJMYR7P0YAGBryTLakm64biSrJerCyAA1I1YYLKp4OoZeeP3nrucoC9GXolvQMRn3CmpmMVijQCal09jlv/zQfWeG1DaTtuRS6G/TuyDDUmg7XaeNC4/2f8XIcuxdPFqu2w==
+ b=A4EgIq9zUhwLnuiZ/YKxH4E5BTd9TetTVSYp69FZdJ4FJFxqyczYsO6yVMzt8vqL3qYGQyasHxk+LTF3XqIlnicBfsmYiog/frrigYY51DtK+J4tAW8VQ+napHHuOCEtY03DHObfTcjMehGWbxjwk4e2VSMssi5yuSOJYVhtJNv1RvERi51NORch9ofm78HUaFbxuLGj90in1SC3Rw7Ywv+sWiXOq+U9yPw8jXBy58IaZfLfg/olxc6EEkFzFeLVkKly/Rd63wD2KUj1ofG2BKleXvnTOI0hZaKkfiYnf2aavEBHEZln6lRyf4Ok1ZB0/LOjhIdrHz3AzPOmFTtxSA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=wAIbSKGWSPZnGhM11kn04WUmVGAUZaQqADNqfCsfDIg=;
- b=Jdy7iIWNcHpveaj744yzNL6uA2+XzSoxJpWe2xQ2u+yeYmHbCvnnpzWKbWoPHS/AdML97VFr16GlaHfPvnXLqcD7wKFvfE7qQAfl0G+ACKtDkHFBBChthSLOL64hVIJVQLBw5NeSzRIHZ9tLZSAPll+hz/E3wnb+yipCmW1NFPL7FDm1KlgTT93SEQzmpN9EulAKwcpUqN0akaeQlhdoLtLYbZosQPFAVgDb3uV3KqezMuY8AeyQh9TpwlsmW0oJ3Tw44UOLwhALD/nQi1vGLjtd2gdJXTdMfqRWOeBagHXlwxHJxSkNrqgguXoL0FjcaFfFcNzaiI9gk7EhvChE6Q==
+ bh=3p6LgZHoVKL02lE5EmdufToJlYZ1oyN9d0v+E4NNYHk=;
+ b=P+I7TIrT3ahJoRygFWOVU4Wn4mYMHzkZMLiWDdG+9aCKrpyvZw2XqTrLQRCRPxc5Mr2BvxWiK/v+G+6uaSw4lvE+PliI4CLvCOGgDLHQ6pCtGLmwt4W2pQVqTGJVhnEEI+6zfg62kT/kZwh1ZoOhEAZxvkKjXQ7C4cx38u1n3TOHjVX/IyOzVBLc+Jrj31t3ieDwP11oTeF0HFd8lPNPx+3DxYKjS1PdSqVtTpWoTPHiKqboRLcTMIhzOrfxlZbO3dBxiTfoWyEi12RykrBs8eYA4G1xPAiBYVLxJcRF5xUpK/uxoZv4OlK2bCMU+IFyo8tF9hWpsQnD1myEu+yAyA==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.117.161) smtp.rcpttodomain=google.com smtp.mailfrom=nvidia.com;
+ 216.228.117.160) smtp.rcpttodomain=google.com smtp.mailfrom=nvidia.com;
  dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
  dkim=none (message not signed); arc=none (0)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=wAIbSKGWSPZnGhM11kn04WUmVGAUZaQqADNqfCsfDIg=;
- b=SVq4WSLh07eZyvwe1tqxrJKgqk7SEn0DXpfZTWCqT1U6eaOyOFd9nC79Tf8dMyyqjWLiq9VBC0uHrG3HjVz7eUbGixUuq6EjtoPTstyvlMl412UPwZO3Ja31QwaNleIhFz0K0XMz/ND2sXQW0V/6PWfwiT+CtC1eY64Zwb6il/h0KU44TH0CFJu2xp24XoBtRfGlnC964hbNgQiPl75Qg0bXtWgD2kMEMzXK8hIMMYlPdiBwEDC92whuiydZwio9KV3q17Hwf3Bo0MAMMQca0jZmuzk80w6b/eo74FIlc4LGGoucgBmWBUjsld52SgSdOapu4SrNK0fRAUa8CphUCQ==
-Received: from BLAPR03CA0037.namprd03.prod.outlook.com (2603:10b6:208:32d::12)
- by SAWPR12MB999140.namprd12.prod.outlook.com (2603:10b6:806:4e2::11) with
+ bh=3p6LgZHoVKL02lE5EmdufToJlYZ1oyN9d0v+E4NNYHk=;
+ b=bqIsyyoR5gyfman2I0+9qWMoUWlYn72OR42ygIQ9/YJRtidhTjtaaMN76nJ1iPYMd3/bYAt8Wu5kyebK4sT4IkY1qy1WYZu8jIkLoSimC1NGAioVWP0o5n8n0viO3zAMQpw/rt0x5uutePVgbeHIDL7eX0HOIGBpVjQ7z3To8Q93M02CfwdX41iiE8o2i0ui5/ws4wEwA8GF4MHmHVZk/Ak0uSUKZu/yaCQFdywNE5ojYAjQTbcxP5HZQHWXFpzENkRplxURB8Uye6oqx0x3t14T+f/LOrh1x89pLGH+vavKxLdJk9YwdRLWJ9VVXEr0w2eMDi11HUtlB2zYYV5LFA==
+Received: from CH0PR03CA0322.namprd03.prod.outlook.com (2603:10b6:610:118::27)
+ by MN0PR12MB5811.namprd12.prod.outlook.com (2603:10b6:208:377::12) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9891.16; Thu, 21 May
- 2026 11:12:16 +0000
-Received: from BL6PEPF00022572.namprd02.prod.outlook.com
- (2603:10b6:208:32d:cafe::65) by BLAPR03CA0037.outlook.office365.com
- (2603:10b6:208:32d::12) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.25.23 via Frontend Transport; Thu, 21
- May 2026 11:12:16 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.161)
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.48.14; Thu, 21 May
+ 2026 11:12:31 +0000
+Received: from CH1PEPF0000AD76.namprd04.prod.outlook.com
+ (2603:10b6:610:118:cafe::59) by CH0PR03CA0322.outlook.office365.com
+ (2603:10b6:610:118::27) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.21.48.17 via Frontend Transport; Thu, 21
+ May 2026 11:12:31 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.160)
  smtp.mailfrom=nvidia.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=nvidia.com;
 Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.117.161 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.117.161; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.117.161) by
- BL6PEPF00022572.mail.protection.outlook.com (10.167.249.40) with Microsoft
+ 216.228.117.160 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.117.160; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.117.160) by
+ CH1PEPF0000AD76.mail.protection.outlook.com (10.167.244.53) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.71.7 via Frontend Transport; Thu, 21 May 2026 11:12:16 +0000
+ 15.21.71.7 via Frontend Transport; Thu, 21 May 2026 11:12:31 +0000
 Received: from rnnvmail201.nvidia.com (10.129.68.8) by mail.nvidia.com
- (10.129.200.67) with Microsoft SMTP Server (version=TLS1_2,
+ (10.129.200.66) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Thu, 21 May
- 2026 04:11:56 -0700
+ 2026 04:12:09 -0700
 Received: from rnnvmail204.nvidia.com (10.129.68.6) by rnnvmail201.nvidia.com
  (10.129.68.8) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Thu, 21 May
- 2026 04:11:55 -0700
+ 2026 04:12:08 -0700
 Received: from vdi.nvidia.com (10.127.8.10) by mail.nvidia.com (10.129.68.6)
  with Microsoft SMTP Server id 15.2.2562.20 via Frontend Transport; Thu, 21
- May 2026 04:11:49 -0700
+ May 2026 04:12:02 -0700
 From: Tariq Toukan <tariqt@nvidia.com>
 To: Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
 	Paolo Abeni <pabeni@redhat.com>, Andrew Lunn <andrew+netdev@lunn.ch>, "David
@@ -76,9 +76,9 @@ CC: Saeed Mahameed <saeedm@nvidia.com>, Leon Romanovsky <leon@kernel.org>,
 	<kees@kernel.org>, Cosmin Ratiu <cratiu@nvidia.com>, Carolina Jubran
 	<cjubran@nvidia.com>, <netdev@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
 	<linux-kernel@vger.kernel.org>, Gal Pressman <gal@nvidia.com>
-Subject: [PATCH net-next 06/12] net/mlx5: Expose PF number from query_esw_functions
-Date: Thu, 21 May 2026 14:08:37 +0300
-Message-ID: <20260521110843.367329-7-tariqt@nvidia.com>
+Subject: [PATCH net-next 08/12] net/mlx5: Register devlink ports for satellite PFs
+Date: Thu, 21 May 2026 14:08:39 +0300
+Message-ID: <20260521110843.367329-9-tariqt@nvidia.com>
 X-Mailer: git-send-email 2.44.0
 In-Reply-To: <20260521110843.367329-1-tariqt@nvidia.com>
 References: <20260521110843.367329-1-tariqt@nvidia.com>
@@ -93,184 +93,129 @@ Content-Type: text/plain
 X-NV-OnPremToCloud: ExternallySecured
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: BL6PEPF00022572:EE_|SAWPR12MB999140:EE_
-X-MS-Office365-Filtering-Correlation-Id: 54b72a59-3a6f-405c-1f43-08deb729d13d
+X-MS-TrafficTypeDiagnostic: CH1PEPF0000AD76:EE_|MN0PR12MB5811:EE_
+X-MS-Office365-Filtering-Correlation-Id: e9e0b3cf-5a54-43a8-09b2-08deb729da32
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|36860700016|1800799024|82310400026|7416014|376014|22082099003|56012099003|3023799007|11063799006|18002099003|6133799003;
+	BCL:0;ARA:13230040|376014|82310400026|1800799024|7416014|36860700016|22082099003|18002099003|56012099003|11063799006|6133799003;
 X-Microsoft-Antispam-Message-Info:
-	ImPWDt+xhsx4Jt3mcrvgWmQHhVUECdBdGGJGeCVKeYQHEkku6RR6Oir+7rQ/sgizZsfmVE3/bAnxfVCm1ufnidkEa0jDHgD0GdySJOfe6QIMcF128oIx5GWhYSdoDTPZbOVNiuzy6GH+DzD00M5F3RkI4Iqc02L12T+wnSio5pj49HVjLLBpBPdqTSpCVjbC8gF/4X2AIu+k/8qMy9uUId/9yRPrsMzPldPTNVMqvqADT6+Ipqt9VKZEPctZ15ZksJGOanIh57rHxRBWtql9GPRo8cLHCmYo8eKBVS0YhKexo1M2nTbSh1PGbwqgkK+8cYdv/yPP9z8Anbl7U1QfKydsrxGLg153+qsEdCuL6ePzc8+fEYP+ksAchA+REH7MS9qu+/AHMaR9jz04/uJ6sNEiC4w650TvYyL3UZiDN/96kc0RmAgjFfdJs0YX9qGzL4T7HQuBR4CKA+5p433OWgbkrQ5DkLa9OGm+dhvediuFploq2NUxlM4gPs8pzSzu8VO/z6w2kNTHwkHJK8+CQgEU8LrmByhNJq7+ZqJ3ECqqw3h2DeIISsAy5g5Lrz/Aad2Wk+aZx90yAqvip4duoofa9d4id+Vmy7I/o2xH4NZtl04ZhtMrRM+xlY85AaOHUFHLvulS8ZGMpbbiv8VulD2HxWnRipIIGo/haiyqSZqLkEZ+pvyXEXp5zuhZX4XbLp+vDd7tz9AjEUwMC1Mxd/LN6GYH8yFQH+u5dxt1KuE=
+	2yX6uDyDBLPpdE3xULneWjur5enAFs+ZWNegM0i/QmU2cuJZozfb5sjjV9YGcLy3es9erx2M0gydVzlbOVzNg25bUpexb+sKSMr6S+/7xeCniXxQ476uTLHHI5zgA6wsCD/aFZQd/hFWK9RD8IU+TvEj/YHtOWe7jKW5KePlllwjxU4YJ0pa5b0xyO3M8IoXpO7JxxyuPJPN2IL85SiHuqzQp93q/tozFSwF4BxPHfcoIu3Ce9lH31kcJovZzOaTFVOfonY6RwzCaMbAQ9qMHKT4kPiXFXMIuS9aMZgnE7J1Fwf79PmsHr7b6uUh+GhztsqlHGdrJa9Vg4Xe+SPcra8Y4dTgVgEAn2I6Q1PM7K5jbT/z3Mu8k2k62udgBxh3s3rWeMifMBd4hTlUqmVN29WYp4jj0WhLXdtdeNTrlsz4y1ZCdDEW4/kAV8O3gnvkY9cvjZ2tGujJa3166FG4gYqXRKbHoavtn+XGn5nTLT9b3XzwXc6dN+WJbYLCr8A3wbnPonfibQqTPQikwsJqiRWiSUneAjnNFz9zf1l/7BCInW3F6kSdG3Iinl6N+4ufNEP7bIiIaDMpFOcapKfPKAkr9rXhsJVXhNMQmxNLAdqnPFes5H2hjVm6cFWeJ0NGDWbDsIrAcNDJdnH2xmW/KorURNucGrWUIZl8eOzJOz0/H7n4qG9fitb2jYrVv+EsIqfx3Zqai45DFE5FqKwliDcLCUo6JN0L30UcE0SqOhs=
 X-Forefront-Antispam-Report:
-	CIP:216.228.117.161;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge2.nvidia.com;CAT:NONE;SFS:(13230040)(36860700016)(1800799024)(82310400026)(7416014)(376014)(22082099003)(56012099003)(3023799007)(11063799006)(18002099003)(6133799003);DIR:OUT;SFP:1101;
+	CIP:216.228.117.160;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge1.nvidia.com;CAT:NONE;SFS:(13230040)(376014)(82310400026)(1800799024)(7416014)(36860700016)(22082099003)(18002099003)(56012099003)(11063799006)(6133799003);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	zUw3emYwApGoKOVqjmriY6rM2f6gyokgceemjWEtQ42zYVuHt/V+sqsVopcZKShbCwDyOfkkO2UV86yu5THwZ6bYk5cDnddGvWCS0h2/nTMYE5ougJbYqaqdQQPDraTimoCL6O0CQC+Q6jJLgSxsS+7piSW+Zj6Qauj4ap3/MP/23q5CWP2NBrt169ZdIm5MTljCCWypd2A8P3HgRbxpTjjep4mXXJ5uPpZJcgW1BfHwndt2NQ1N7yRGS+AvJuClhSefMNgkIRYUilZv4QiixAzETmj3YciiWX3uJ1ACS8lBsvdu6hwhrxgu3MQE53I7cXs9dS4xPmdvOeDzSNn+KoEI0ALmELGax/knkMARANKiCN2rG6Q8aDBgdN2Fs2wCRW4+qN27fm7y0D6m+5SBJbALrMvml/pdi7K1gmi6GlMfYWOR7YsIfv2qoOolay87
+	SQj2LItuCVYVr4vkwSBGYh6eJYMsNaUeVYRRaQlQ1E5h28GYYHPbscuRJug1aDD2S3JvpxuvIs4DzaPeHtw0KL1q9OhHi3Lv0y6vwbEkvp7BSDnDLglBulOYR3CZsdKVOy4n2CehDwA62i7jQcScMq9EmqHiCv1YZCEOt9a6fTbH7CEsCVsKdIlmjZk15KRCUmHxJuGQAB00sE7qOan4TMerFwgNpaNsAFGK51anaavVNKAmHdjwGYaNQ4Jy+hV43ORCRutXhLyHUc8iQQCAlMZwdTpjh7XFRZm8bkUWETKRP1Oxa7N+H7WW6WDDrVT04C2JEnIBJ9DVeHYMvUNvECzb/fmunzIYJza4MN+QjrDyZjWqqQKho06S3rTDArvrkO/Nxl6VDlfjhBUpaYQiN3av9wHI18vOM7PajZlPZX452Tfg9b9ZPL5sjc2+MpAA
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 21 May 2026 11:12:16.3310
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 21 May 2026 11:12:31.3815
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 54b72a59-3a6f-405c-1f43-08deb729d13d
+X-MS-Exchange-CrossTenant-Network-Message-Id: e9e0b3cf-5a54-43a8-09b2-08deb729da32
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.161];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.160];Helo=[mail.nvidia.com]
 X-MS-Exchange-CrossTenant-AuthSource:
-	BL6PEPF00022572.namprd02.prod.outlook.com
+	CH1PEPF0000AD76.namprd04.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SAWPR12MB999140
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: MN0PR12MB5811
 
 From: Moshe Shemesh <moshe@nvidia.com>
 
-Extract pci_device_function from the query_esw_functions output for both
-the host PF and satellite PFs, storing it alongside the existing
-host_number field.
+Include satellite PFs in mlx5_eswitch_is_pf_vf_vport() so they receive
+the standard PF/VF devlink port operations. Update
+mlx5_esw_devlink_port_supported() and devlink port attribute setup to
+register SPF devlink ports with controller number and PF number.
 
-Add mlx5_esw_get_hpf_pf_num() helper that returns the host PF's actual
-PCI device function when the new query format is supported, falling back
-to PCI_FUNC(dev->pdev->devfn) for older firmware. Use it in devlink port
-attribute setup so that host PF and VF devlink ports report the correct
-PF number rather than the ECPF's own PCI function number.
+Add mlx5_esw_spf_vport_to_idx() to look up the SPF array index by vport
+number, and mlx5_esw_is_spf_vport() boolean wrapper to identify
+satellite PF vports.
 
 Signed-off-by: Moshe Shemesh <moshe@nvidia.com>
 Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
 ---
- .../mellanox/mlx5/core/esw/devlink_port.c     |  4 ++++
- .../net/ethernet/mellanox/mlx5/core/eswitch.c | 22 ++++++++++++++++---
- .../net/ethernet/mellanox/mlx5/core/eswitch.h |  4 ++++
- 3 files changed, 27 insertions(+), 3 deletions(-)
+ .../mellanox/mlx5/core/esw/devlink_port.c     | 13 +++++++++++-
+ .../net/ethernet/mellanox/mlx5/core/eswitch.c | 21 ++++++++++++++++++-
+ .../net/ethernet/mellanox/mlx5/core/eswitch.h |  2 ++
+ 3 files changed, 34 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/net/ethernet/mellanox/mlx5/core/esw/devlink_port.c b/drivers/net/ethernet/mellanox/mlx5/core/esw/devlink_port.c
-index e723f05cd4d3..d5f0101aa966 100644
+index fddb108bcbff..05d89769b917 100644
 --- a/drivers/net/ethernet/mellanox/mlx5/core/esw/devlink_port.c
 +++ b/drivers/net/ethernet/mellanox/mlx5/core/esw/devlink_port.c
-@@ -37,6 +37,8 @@ static void mlx5_esw_offloads_pf_vf_devlink_port_attrs_set(struct mlx5_eswitch *
- 		controller_num = mlx5_esw_get_hpf_host_number(dev) + 1;
+@@ -16,7 +16,8 @@ static bool mlx5_esw_devlink_port_supported(struct mlx5_eswitch *esw, u16 vport_
+ 	return (mlx5_core_is_ecpf(esw->dev) &&
+ 		vport_num == MLX5_VPORT_HOST_PF) ||
+ 	       mlx5_eswitch_is_vf_vport(esw, vport_num) ||
+-	       mlx5_core_is_ec_vf_vport(esw->dev, vport_num);
++	       mlx5_core_is_ec_vf_vport(esw->dev, vport_num) ||
++	       mlx5_esw_is_spf_vport(esw, vport_num);
+ }
  
- 	if (vport_num == MLX5_VPORT_HOST_PF) {
-+		if (external)
-+			pfnum = mlx5_esw_get_hpf_pf_num(dev);
- 		memcpy(dl_port->attrs.switch_id.id, ppid.id, ppid.id_len);
+ static void mlx5_esw_offloads_pf_vf_devlink_port_attrs_set(struct mlx5_eswitch *esw,
+@@ -64,6 +65,16 @@ static void mlx5_esw_offloads_pf_vf_devlink_port_attrs_set(struct mlx5_eswitch *
  		dl_port->attrs.switch_id.id_len = ppid.id_len;
- 		devlink_port_attrs_pci_pf_set(dl_port, controller_num, pfnum, external);
-@@ -49,6 +51,8 @@ static void mlx5_esw_offloads_pf_vf_devlink_port_attrs_set(struct mlx5_eswitch *
- 		if (vport->adjacent) {
- 			func_id = vport->adj_info.function_id;
- 			pfnum = vport->adj_info.parent_pci_devfn;
-+		} else if (external) {
-+			pfnum = mlx5_esw_get_hpf_pf_num(dev);
- 		}
+ 		devlink_port_attrs_pci_vf_set(dl_port, 0, pfnum,
+ 					      vport_num - base_vport, false);
++	} else if (mlx5_esw_is_spf_vport(esw, vport_num)) {
++		int spf_idx = mlx5_esw_spf_vport_to_idx(esw, vport_num);
++
++		controller_num = esw->esw_funcs.spfs[spf_idx].host_number + 1;
++		pfnum = esw->esw_funcs.spfs[spf_idx].pf_num;
++
++		memcpy(dl_port->attrs.switch_id.id, ppid.id, ppid.id_len);
++		dl_port->attrs.switch_id.id_len = ppid.id_len;
++		devlink_port_attrs_pci_pf_set(dl_port, controller_num, pfnum,
++					      true);
+ 	}
+ }
  
- 		devlink_port_attrs_pci_vf_set(dl_port, controller_num, pfnum,
 diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
-index 42cdb4309258..8e2ac759d1f3 100644
+index f734f9364b2c..8bee014140b8 100644
 --- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
 +++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
-@@ -1157,6 +1157,8 @@ mlx5_esw_host_pf_from_net_func_params(const u8 *entry, int num_entries)
- 					      entry, pci_total_vfs),
- 			.host_number = MLX5_GET(network_function_params,
- 						entry, host_number),
-+			.pf_num = MLX5_GET(network_function_params, entry,
-+					   pci_device_function),
- 		};
- 	}
- 
-@@ -2103,7 +2105,6 @@ int mlx5_esw_spf_get_host_number(struct mlx5_core_dev *dev, int spf_idx,
- 		return -EINVAL;
- 
- 	*host_number = esw->esw_funcs.spfs[spf_idx].host_number;
--
- 	return 0;
+@@ -2651,10 +2651,29 @@ bool mlx5_eswitch_is_vf_vport(struct mlx5_eswitch *esw, u16 vport_num)
+ 	return mlx5_esw_check_port_type(esw, vport_num, MLX5_ESW_VPT_VF);
  }
  
-@@ -2117,6 +2118,17 @@ u16 mlx5_esw_get_hpf_host_number(struct mlx5_core_dev *dev)
- 	return esw->esw_funcs.hpf_host_number;
- }
- 
-+u16 mlx5_esw_get_hpf_pf_num(struct mlx5_core_dev *dev)
++int mlx5_esw_spf_vport_to_idx(struct mlx5_eswitch *esw, u16 vport_num)
 +{
-+	struct mlx5_eswitch *esw = dev->priv.eswitch;
++	struct mlx5_esw_functions *esw_funcs = &esw->esw_funcs;
++	int i;
 +
-+	if (mlx5_core_is_ecpf_esw_manager(dev) &&
-+	    MLX5_CAP_GEN(dev, query_host_net_function_v1))
-+		return esw->esw_funcs.hpf_pf_num;
++	for (i = 0; i < esw_funcs->num_spfs; i++) {
++		if (esw_funcs->spfs[i].vport_num == vport_num)
++			return i;
++	}
 +
-+	return PCI_FUNC(dev->pdev->devfn);
++	return -ENOENT;
 +}
 +
- bool mlx5_esw_has_spf_sfs(struct mlx5_core_dev *dev)
++bool mlx5_esw_is_spf_vport(struct mlx5_eswitch *esw, u16 vport_num)
++{
++	return mlx5_esw_spf_vport_to_idx(esw, vport_num) >= 0;
++}
++
+ bool mlx5_eswitch_is_pf_vf_vport(struct mlx5_eswitch *esw, u16 vport_num)
  {
- 	struct mlx5_eswitch *esw = dev->priv.eswitch;
-@@ -2127,7 +2139,7 @@ bool mlx5_esw_has_spf_sfs(struct mlx5_core_dev *dev)
- 	return esw->esw_funcs.has_spf_sfs;
+ 	return vport_num == MLX5_VPORT_HOST_PF ||
+-		mlx5_eswitch_is_vf_vport(esw, vport_num);
++		mlx5_eswitch_is_vf_vport(esw, vport_num) ||
++		mlx5_esw_is_spf_vport(esw, vport_num);
  }
  
--static int mlx5_esw_hpf_host_number_init(struct mlx5_eswitch *esw)
-+static int mlx5_esw_hpf_info_init(struct mlx5_eswitch *esw)
- {
- 	struct mlx5_esw_pf_info host_pf_info;
- 	const u32 *query_host_out;
-@@ -2142,6 +2154,7 @@ static int mlx5_esw_hpf_host_number_init(struct mlx5_eswitch *esw)
- 	/* Mark non local controller with non zero controller number. */
- 	host_pf_info = mlx5_esw_get_host_pf_info(esw->dev, query_host_out);
- 	esw->esw_funcs.hpf_host_number = host_pf_info.host_number;
-+	esw->esw_funcs.hpf_pf_num = host_pf_info.pf_num;
- 	kvfree(query_host_out);
- 	return 0;
- }
-@@ -2255,6 +2268,9 @@ static int mlx5_esw_spfs_init(struct mlx5_eswitch *esw)
- 		esw_funcs->spfs[esw_funcs->num_spfs].vhca_id = vhca_id;
- 		esw_funcs->spfs[esw_funcs->num_spfs].host_number =
- 			MLX5_GET(network_function_params, entry, host_number);
-+		esw_funcs->spfs[esw_funcs->num_spfs].pf_num =
-+			MLX5_GET(network_function_params, entry,
-+				 pci_device_function);
- 		esw_funcs->num_spfs++;
- 
- 		entry += MLX5_UN_SZ_BYTES(net_function_params);
-@@ -2297,7 +2313,7 @@ static int mlx5_esw_vports_init(struct mlx5_eswitch *esw)
- 
- 	xa_init(&esw->vports);
- 
--	err = mlx5_esw_hpf_host_number_init(esw);
-+	err = mlx5_esw_hpf_info_init(esw);
- 	if (err)
- 		goto err;
- 
+ bool mlx5_esw_is_sf_vport(struct mlx5_eswitch *esw, u16 vport_num)
 diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
-index 88041dd8a39d..03c7582d7b95 100644
+index f85be8e39953..7da1a888aa7c 100644
 --- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
 +++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
-@@ -77,6 +77,7 @@ struct mlx5_esw_pf_info {
- 	u16 num_of_vfs;
- 	u16 total_vfs;
- 	u16 host_number;
-+	u16 pf_num;
- };
+@@ -798,6 +798,8 @@ struct mlx5_vport *__must_check
+ mlx5_eswitch_get_vport(struct mlx5_eswitch *esw, u16 vport_num);
  
- #ifdef CONFIG_MLX5_ESWITCH
-@@ -352,6 +353,7 @@ struct mlx5_esw_spf {
- 	u16 vport_num;
- 	u16 vhca_id;
- 	u16 host_number;
-+	u16 pf_num;
- };
+ bool mlx5_eswitch_is_vf_vport(struct mlx5_eswitch *esw, u16 vport_num);
++int mlx5_esw_spf_vport_to_idx(struct mlx5_eswitch *esw, u16 vport_num);
++bool mlx5_esw_is_spf_vport(struct mlx5_eswitch *esw, u16 vport_num);
+ bool mlx5_eswitch_is_pf_vf_vport(struct mlx5_eswitch *esw, u16 vport_num);
+ bool mlx5_esw_is_sf_vport(struct mlx5_eswitch *esw, u16 vport_num);
  
- struct mlx5_esw_functions {
-@@ -360,6 +362,7 @@ struct mlx5_esw_functions {
- 	u16			num_vfs;
- 	u16			num_ec_vfs;
- 	u16			hpf_host_number;
-+	u16			hpf_pf_num;
- 	bool			has_spf_sfs;
- 	struct mlx5_esw_spf	*spfs;
- 	int			num_spfs;
-@@ -887,6 +890,7 @@ int mlx5_esw_get_num_spfs(struct mlx5_core_dev *dev);
- int mlx5_esw_spf_get_host_number(struct mlx5_core_dev *dev, int spf_idx,
- 				 u16 *host_number);
- u16 mlx5_esw_get_hpf_host_number(struct mlx5_core_dev *dev);
-+u16 mlx5_esw_get_hpf_pf_num(struct mlx5_core_dev *dev);
- bool mlx5_esw_has_spf_sfs(struct mlx5_core_dev *dev);
- 
- int mlx5_esw_vport_vhca_id_map(struct mlx5_eswitch *esw,
 -- 
 2.44.0
 
