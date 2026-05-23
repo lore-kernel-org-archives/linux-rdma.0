@@ -1,19 +1,20 @@
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id B90241EA7F4;
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id B90E1230BEC;
 	Sat, 23 May 2026 02:03:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779501796; cv=none; b=c678XimN315Csgm0D5tM3clEqrN/AhRhacBzze55kPf4Vl0uZVNZqYeF7piTFjysinTdB4lGd/2Y46R/m1FuPf5KE0EZzbftqKsFyViC5tM9Yn0p64TTUqNNCynupHIq8kaGfnvpG4vnZrfejUeX7j79G4/BDPpjDkNITTRKdRI=
+	t=1779501796; cv=none; b=YRTBBQPOyrSE8+lpxFbloK2/fmpH15D/SJPgD9r/bWEo7bjnVcnnzQT92MC6pE+7VoJ6i/j7HiA139ZGNueQrqp+DJR5mi9711d+UjBTlNlb/87J8vxCvu+S8MsIcny7EVCBpk0F6vvYe1XD8sybHSus1+dyPeCdesMkcaahhCc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1779501796; c=relaxed/simple;
-	bh=6Am8ZIsDnWYLBy2dBlQ/26eg+x/XeIz2AneD7TIgxYs=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=ngLK4e+IG+GQxWJRFCBnbFgPc24QVJ2KunT1+nCwkrzHJSEC6rNsX6NNwfv5iMSreVRYJpq82kozIkp7fgPJ4qse/6Aq4rKzp3jiLehajgletbxo1PHL6/1Ke5yjPUZymE3sGVrRqEmBrRtmqwQBtx1BPGr0AwQel5sq1SUTDeE=
+	bh=GH3t7Poja0Yvnu9tzPHLKtImggbUlduMiW3pBEJzcPs=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=TgAjX2L20fxZKnnoQjtsznyuJY/cOePM5Fk3WArPT6GsUe2MAu3YMlycf1xaxSdIfjKLklevJpAzMFCb5izn5U+iaoPWG8C3kLyaAqPvBkoVRKgzV57Y6KUrgr5E9n+BI5tdSKy3niE/rorKa0TlV2auA7d3YAcZTyaV5mJVDPM=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; arc=none smtp.client-ip=13.77.154.182
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Received: by linux.microsoft.com (Postfix, from userid 1202)
-	id 92DF020B7167; Fri, 22 May 2026 19:03:06 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 92DF020B7167
+	id ADF2E20B7169; Fri, 22 May 2026 19:03:06 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com ADF2E20B7169
 From: Long Li <longli@microsoft.com>
 To: Long Li <longli@microsoft.com>,
 	Konstantin Taranov <kotaranov@microsoft.com>,
@@ -34,10 +35,12 @@ Cc: Simon Horman <horms@kernel.org>,
 	linux-rdma@vger.kernel.org,
 	linux-hyperv@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH net-next v11 0/6] net: mana: Per-vPort EQ and MSI-X management
-Date: Fri, 22 May 2026 19:02:50 -0700
-Message-ID: <20260523020258.1107742-1-longli@microsoft.com>
+Subject: [PATCH net-next v11 2/6] net: mana: Query device capabilities and configure MSI-X sharing for EQs
+Date: Fri, 22 May 2026 19:02:52 -0700
+Message-ID: <20260523020258.1107742-3-longli@microsoft.com>
 X-Mailer: git-send-email 2.43.7
+In-Reply-To: <20260523020258.1107742-1-longli@microsoft.com>
+References: <20260523020258.1107742-1-longli@microsoft.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -46,169 +49,318 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-This series moves EQ ownership from the shared mana_context to per-vPort
-mana_port_context, enabling each vPort to have dedicated MSI-X vectors
-when the hardware provides enough vectors. When vectors are limited, the
-driver falls back to sharing MSI-X among vPorts.
+When querying the device, adjust the max number of queues to allow
+dedicated MSI-X vectors for each vPort. The per-vPort queue count is
+clamped towards MANA_DEF_NUM_QUEUES but will not exceed the hardware
+maximum reported by the device.
 
-The series introduces a GDMA IRQ Context (GIC) abstraction with reference
-counting to manage interrupt context lifecycle. This allows both Ethernet
-and RDMA EQs to dynamically acquire dedicated or shared MSI-X vectors at
-vPort creation time rather than pre-allocating all vectors at probe time.
+MSI-X sharing among vPorts is enabled when there are not enough MSI-X
+vectors for dedicated allocation, or when the platform does not support
+dynamic MSI-X allocation (in which case all vectors are pre-allocated
+at probe time and sharing is always used). The msi_sharing flag is
+reset at the top of mana_gd_query_max_resources() so it is recomputed
+from current hardware state on each probe or resume cycle.
 
-This series touches both the net and RDMA MANA drivers and is intended
-to go through the net-next tree. The patches are available on a shared
-branch for both netdev and RDMA maintainers to review.
+Clamp apc->max_queues to gc->max_num_queues_vport in mana_init_port()
+so that on resume, if max_num_queues_vport has decreased due to fewer
+MSI-X vectors, num_queues is reduced accordingly before EQ allocation.
 
-The following changes since commit 95fab46aea57d6d7b76b319341acbefe8a9293c8:
+A device reporting zero ports now results in a fatal probe error since
+the per-vPort MSI-X math requires at least one port.
 
-  Merge branch 'net-convert-atm-xdp-af_iucv-l2tp_ppp-rxrpc-tipc-to-getsockopt_iter' (2026-05-22 11:11:12 -0700)
+Rename mana_query_device_cfg() to mana_gd_query_device_cfg() as it is
+used at GDMA device probe time for querying device capabilities.
 
-are available in the Git repository at:
+Signed-off-by: Long Li <longli@microsoft.com>
+---
+ .../net/ethernet/microsoft/mana/gdma_main.c   | 71 ++++++++++++++++++-
+ drivers/net/ethernet/microsoft/mana/mana_en.c | 45 +++++++-----
+ include/net/mana/gdma.h                       | 13 +++-
+ 3 files changed, 107 insertions(+), 22 deletions(-)
 
-  https://github.com/longlimsft/linux.git tags/mana-eq-msi-v11
-
-for you to fetch changes up to a26d11135abba51e81ae8b9689e288718af95088:
-
-  RDMA/mana_ib: Allocate interrupt contexts on EQs (2026-05-22 20:35:43 +0000)
-
-Changes in v11:
-- Address AI reviewer feedback from Paolo on patch 1: add cross-port
-  PD-sharing check in mana_ib_create_qp_rss() to match the guard
-  already present in mana_ib_cfg_vport(), preventing NULL deref on
-  mpc->eqs when an RSS QP is created on a different port than the
-  PD's bound port (patch 1)
-- Document that pd->vport_port is only valid when vport_use_count > 0
-  in the struct mana_ib_pd comment, as suggested by the AI reviewer
-  (patch 1)
-- Propagate actual error code from mana_ib_cfg_vport() instead of
-  hardcoding -ENODEV in the raw QP creation path (patch 1)
-- Switch mana_gd_get_gic() from returning NULL to IS_ERR/PTR_ERR on
-  failure so callers can propagate the actual error code (-ENOSPC,
-  -ENOMEM, etc.) instead of always returning -ENOMEM (patch 3)
-- Update all mana_gd_get_gic() callers (patches 2, 4, 5, 6) to use
-  IS_ERR()/PTR_ERR() error checking
-- Set *msi_requested after pci_msix_alloc_irq_at() returns the actual
-  assigned index, so the caller gets the correct MSI vector when
-  dynamic allocation remaps it (patch 3)
-- Add comments documenting the GIC refcount ownership contract in
-  mana_gd_register_irq() and mana_gd_deregister_irq() (patch 5)
-- Move the zero-port detection error message from mana_probe() to
-  mana_gd_query_max_resources() where the actual check occurs (patch 2)
-- Clamp apc->max_queues to gc->max_num_queues_vport in
-  mana_init_port() so that on resume, if max_num_queues_vport has
-  decreased, num_queues is reduced before EQ allocation (patch 2)
-- Rebase onto net-next/main (2026-05-22)
-
-Changes in v10:
-- Add channel_changing flag to block RDMA from grabbing the vport
-  during mana_set_channels() detach/attach window. The flag is checked
-  in mana_cfg_vport() only when called from the RDMA path via a new
-  check_channel_changing parameter (patch 1)
-- Bind each PD to a single physical port via pd->vport_port to prevent
-  cross-port PD sharing which would cause EQ scope mismatch. Returns
-  -EINVAL if a second port tries to use an already-bound PD (patch 1)
-- Guard gc->msi_sharing reset with pci_msix_can_alloc_dyn() to avoid
-  overwriting the non-dyn platform constraint set by
-  mana_gd_setup_hwc_irqs() (patch 2)
-
-Changes in v9:
-- RSS QPs now take a vport reference via pd->vport_use_count to ensure
-  EQs outlive all QP consumers. EQs are only destroyed when the last
-  QP (raw or RSS) on the PD releases its reference (patch 1)
-- Serialize mana_set_channels() against RDMA vport configuration via
-  apc->vport_mutex when the port is down. When the port is up, Ethernet
-  owns the vport exclusively so no locking is needed (patch 1)
-- Change WARN_ON(apc->eqs) to bail out with -EEXIST to prevent
-  leaking prior EQ array if invariant is violated (patch 1)
-- Only commit pd->tx_shortform_allowed and pd->tx_vp_offset after
-  mana_create_eq() succeeds (patch 1)
-- Reset gc->msi_sharing at the top of mana_gd_query_max_resources()
-  so it is recomputed from current hardware state on resume (patch 2)
-- Fix reverse Christmas tree variable declaration ordering (patches
-  1, 3, 5)
-
-Changes in v8:
-- Fix comment to reference per-vPort queue count instead of
-  gc->max_num_queues (patch 2)
-- Remove duplicate irq_update_affinity_hint() calls from error paths
-  and mana_gd_remove_irqs(); the clearing is now centralized in
-  mana_gd_put_gic() (patch 4)
-- Note the IRQ name change (mana_q -> mana_msi) in the commit
-  message (patch 4)
-- Remove dead conditional write to spec.eq.msix_index (patch 5)
-- Document GIC ownership contract and msix_index invariant change
-  in commit message (patch 5)
-- Populate eq.irq on RDMA EQs for consistency with the Ethernet
-  path (patch 6)
-- Document BIT(6) relocation and capability flag semantics in
-  commit message (patch 6)
-- Fix checkpatch --strict alignment and line length warnings
-
-Changes in v7:
-- Use rounddown_pow_of_two() instead of roundup_pow_of_two() when
-  computing per-vPort queue count to avoid unnecessarily forcing shared
-  MSI-X mode (patch 2)
-- Call mana_gd_setup_remaining_irqs() unconditionally to ensure
-  irq_contexts are populated in both dedicated and shared MSI-X modes,
-  fixing bisectability between patches 2 and 5 (patch 2)
-- Guard ibdev_dbg() in mana_ib_cfg_vport() with error check so the
-  vport handle is not logged on the failure path (patch 1)
-- Use cached gic->irq instead of pci_irq_vector() lookup in
-  mana_gd_put_gic() for consistency with the allocation path (patch 3)
-- Fix unsigned int* to int* pointer type mismatch when calling
-  mana_gd_get_gic() by using a local int variable for the MSI index
-  (patches 5, 6)
-
-Changes in v6:
-- Rebased on net-next/main (v7.1-rc1)
-
-Changes in v5:
-- Rebased on net-next/main
-
-Changes in v4:
-- Rebased on net-next/main 7.0-rc4
-- Patch 2: Use MANA_DEF_NUM_QUEUES instead of hardcoded 16 for
-  max_num_queues clamping
-- Patch 3: Track dyn_msix in GIC context instead of re-checking
-  pci_msix_can_alloc_dyn() on each call; improved remove_irqs iteration
-  to skip unallocated entries
-
-Changes in v3:
-- Rebased on net-next/main
-- Patch 1: Added NULL check for mpc->eqs in mana_ib_create_qp_rss() to
-  prevent NULL pointer dereference when RSS QP is created before a raw QP
-  has configured the vport and allocated EQs
-
-Changes in v2:
-- Rebased on net-next/main (adapted to kzalloc_objs/kzalloc_obj macros,
-  new GDMA_DRV_CAP_FLAG definitions)
-- Patch 2: Fixed misleading comment for max_num_queues vs
-  max_num_queues_vport in gdma.h
-- Patch 3: Fixed spelling typo in gdma_main.c ("difference" -> "different")
-
-Long Li (6):
-  net: mana: Create separate EQs for each vPort
-  net: mana: Query device capabilities and configure MSI-X sharing for
-    EQs
-  net: mana: Introduce GIC context with refcounting for interrupt
-    management
-  net: mana: Use GIC functions to allocate global EQs
-  net: mana: Allocate interrupt context for each EQ when creating vPort
-  RDMA/mana_ib: Allocate interrupt contexts on EQs
-
- drivers/infiniband/hw/mana/main.c             |  83 ++++-
- drivers/infiniband/hw/mana/mana_ib.h          |   7 +
- drivers/infiniband/hw/mana/qp.c               |  40 +-
- .../net/ethernet/microsoft/mana/gdma_main.c   | 346 +++++++++++++-----
- drivers/net/ethernet/microsoft/mana/mana_en.c | 180 +++++----
- .../ethernet/microsoft/mana/mana_ethtool.c    |  23 +-
- include/net/mana/gdma.h                       |  33 +-
- include/net/mana/mana.h                       |  15 +-
- 8 files changed, 539 insertions(+), 188 deletions(-)
-
-
-base-commit: 95fab46aea57d6d7b76b319341acbefe8a9293c8
+diff --git a/drivers/net/ethernet/microsoft/mana/gdma_main.c b/drivers/net/ethernet/microsoft/mana/gdma_main.c
+index 712a0881d720..e31eeca3563d 100644
+--- a/drivers/net/ethernet/microsoft/mana/gdma_main.c
++++ b/drivers/net/ethernet/microsoft/mana/gdma_main.c
+@@ -179,8 +179,21 @@ static int mana_gd_query_max_resources(struct pci_dev *pdev)
+ 	struct gdma_context *gc = pci_get_drvdata(pdev);
+ 	struct gdma_query_max_resources_resp resp = {};
+ 	struct gdma_general_req req = {};
++	unsigned int max_num_queues;
++	u8 bm_hostmode;
++	u16 num_ports;
+ 	int err;
+ 
++	/* Reset msi_sharing so it is recomputed from current hardware
++	 * state. On resume, num_online_cpus() or num_msix_usable may
++	 * have changed, making dedicated MSI-X feasible where it was
++	 * not before. Only reset on platforms that support dynamic
++	 * MSI-X allocation; on non-dyn platforms msi_sharing is
++	 * unconditionally true (set in mana_gd_setup_hwc_irqs).
++	 */
++	if (pci_msix_can_alloc_dyn(to_pci_dev(gc->dev)))
++		gc->msi_sharing = false;
++
+ 	mana_gd_init_req_hdr(&req.hdr, GDMA_QUERY_MAX_RESOURCES,
+ 			     sizeof(req), sizeof(resp));
+ 
+@@ -232,6 +245,45 @@ static int mana_gd_query_max_resources(struct pci_dev *pdev)
+ 	debugfs_create_u32("max_num_queues", 0400, gc->mana_pci_debugfs,
+ 			   &gc->max_num_queues);
+ 
++	err = mana_gd_query_device_cfg(gc, MANA_MAJOR_VERSION,
++				       MANA_MINOR_VERSION,
++				       MANA_MICRO_VERSION,
++				       &num_ports, &bm_hostmode);
++	if (err)
++		return err;
++
++	if (!num_ports) {
++		dev_err(gc->dev, "Failed to detect any vPort\n");
++		return -EINVAL;
++	}
++
++	/*
++	 * Adjust the per-vPort max queue count to allow dedicated
++	 * MSIx for each vPort. Clamp to no less than MANA_DEF_NUM_QUEUES.
++	 */
++	max_num_queues = (gc->num_msix_usable - 1) / num_ports;
++	max_num_queues = rounddown_pow_of_two(max(max_num_queues, 1U));
++	if (max_num_queues < MANA_DEF_NUM_QUEUES)
++		max_num_queues = MANA_DEF_NUM_QUEUES;
++
++	/*
++	 * Use dedicated MSIx for EQs whenever possible, use MSIx sharing for
++	 * Ethernet EQs when (max_num_queues * num_ports > num_msix_usable - 1).
++	 */
++	max_num_queues = min(gc->max_num_queues, max_num_queues);
++	if (max_num_queues * num_ports > gc->num_msix_usable - 1)
++		gc->msi_sharing = true;
++
++	/* If MSI is shared, use max allowed value */
++	if (gc->msi_sharing)
++		gc->max_num_queues_vport = min(gc->num_msix_usable - 1,
++					       gc->max_num_queues);
++	else
++		gc->max_num_queues_vport = max_num_queues;
++
++	dev_info(gc->dev, "MSI sharing mode %d max queues %d\n",
++		 gc->msi_sharing, gc->max_num_queues);
++
+ 	return 0;
+ }
+ 
+@@ -1901,6 +1953,7 @@ static int mana_gd_setup_hwc_irqs(struct pci_dev *pdev)
+ 		/* Need 1 interrupt for HWC */
+ 		max_irqs = min(num_online_cpus(), MANA_MAX_NUM_QUEUES) + 1;
+ 		min_irqs = 2;
++		gc->msi_sharing = true;
+ 	}
+ 
+ 	nvec = pci_alloc_irq_vectors(pdev, min_irqs, max_irqs, PCI_IRQ_MSIX);
+@@ -1979,6 +2032,8 @@ static void mana_gd_remove_irqs(struct pci_dev *pdev)
+ 
+ 	pci_free_irq_vectors(pdev);
+ 
++	bitmap_free(gc->msi_bitmap);
++	gc->msi_bitmap = NULL;
+ 	gc->max_num_msix = 0;
+ 	gc->num_msix_usable = 0;
+ }
+@@ -2018,6 +2073,10 @@ static int mana_gd_setup(struct pci_dev *pdev)
+ 	if (err)
+ 		goto destroy_hwc;
+ 
++	err = mana_gd_detect_devices(pdev);
++	if (err)
++		goto destroy_hwc;
++
+ 	err = mana_gd_query_max_resources(pdev);
+ 	if (err)
+ 		goto destroy_hwc;
+@@ -2028,9 +2087,15 @@ static int mana_gd_setup(struct pci_dev *pdev)
+ 		goto destroy_hwc;
+ 	}
+ 
+-	err = mana_gd_detect_devices(pdev);
+-	if (err)
+-		goto destroy_hwc;
++	if (!gc->msi_sharing) {
++		gc->msi_bitmap = bitmap_zalloc(gc->num_msix_usable, GFP_KERNEL);
++		if (!gc->msi_bitmap) {
++			err = -ENOMEM;
++			goto destroy_hwc;
++		}
++		/* Set bit for HWC */
++		set_bit(0, gc->msi_bitmap);
++	}
+ 
+ 	dev_dbg(&pdev->dev, "mana gdma setup successful\n");
+ 	return 0;
+diff --git a/drivers/net/ethernet/microsoft/mana/mana_en.c b/drivers/net/ethernet/microsoft/mana/mana_en.c
+index 7c776f115f5a..571648007378 100644
+--- a/drivers/net/ethernet/microsoft/mana/mana_en.c
++++ b/drivers/net/ethernet/microsoft/mana/mana_en.c
+@@ -1007,10 +1007,9 @@ static int mana_init_port_context(struct mana_port_context *apc)
+ 	return !apc->rxqs ? -ENOMEM : 0;
+ }
+ 
+-static int mana_send_request(struct mana_context *ac, void *in_buf,
+-			     u32 in_len, void *out_buf, u32 out_len)
++static int gdma_mana_send_request(struct gdma_context *gc, void *in_buf,
++				  u32 in_len, void *out_buf, u32 out_len)
+ {
+-	struct gdma_context *gc = ac->gdma_dev->gdma_context;
+ 	struct gdma_resp_hdr *resp = out_buf;
+ 	struct gdma_req_hdr *req = in_buf;
+ 	struct device *dev = gc->dev;
+@@ -1044,6 +1043,14 @@ static int mana_send_request(struct mana_context *ac, void *in_buf,
+ 	return 0;
+ }
+ 
++static int mana_send_request(struct mana_context *ac, void *in_buf,
++			     u32 in_len, void *out_buf, u32 out_len)
++{
++	struct gdma_context *gc = ac->gdma_dev->gdma_context;
++
++	return gdma_mana_send_request(gc, in_buf, in_len, out_buf, out_len);
++}
++
+ static int mana_verify_resp_hdr(const struct gdma_resp_hdr *resp_hdr,
+ 				const enum mana_command_code expected_code,
+ 				const u32 min_size)
+@@ -1177,11 +1184,10 @@ static void mana_pf_deregister_filter(struct mana_port_context *apc)
+ 			   err, resp.hdr.status);
+ }
+ 
+-static int mana_query_device_cfg(struct mana_context *ac, u32 proto_major_ver,
+-				 u32 proto_minor_ver, u32 proto_micro_ver,
+-				 u16 *max_num_vports, u8 *bm_hostmode)
++int mana_gd_query_device_cfg(struct gdma_context *gc, u32 proto_major_ver,
++			     u32 proto_minor_ver, u32 proto_micro_ver,
++			     u16 *max_num_vports, u8 *bm_hostmode)
+ {
+-	struct gdma_context *gc = ac->gdma_dev->gdma_context;
+ 	struct mana_query_device_cfg_resp resp = {};
+ 	struct mana_query_device_cfg_req req = {};
+ 	struct device *dev = gc->dev;
+@@ -1196,7 +1202,8 @@ static int mana_query_device_cfg(struct mana_context *ac, u32 proto_major_ver,
+ 	req.proto_minor_ver = proto_minor_ver;
+ 	req.proto_micro_ver = proto_micro_ver;
+ 
+-	err = mana_send_request(ac, &req, sizeof(req), &resp, sizeof(resp));
++	err = gdma_mana_send_request(gc, &req, sizeof(req),
++				     &resp, sizeof(resp));
+ 	if (err) {
+ 		dev_err(dev, "Failed to query config: %d", err);
+ 		return err;
+@@ -1230,8 +1237,6 @@ static int mana_query_device_cfg(struct mana_context *ac, u32 proto_major_ver,
+ 	else
+ 		*bm_hostmode = 0;
+ 
+-	debugfs_create_u16("adapter-MTU", 0400, gc->mana_pci_debugfs, &gc->adapter_mtu);
+-
+ 	return 0;
+ }
+ 
+@@ -3184,6 +3189,8 @@ static int mana_init_port(struct net_device *ndev)
+ 	max_queues = min_t(u32, max_txq, max_rxq);
+ 	if (apc->max_queues > max_queues)
+ 		apc->max_queues = max_queues;
++	if (apc->max_queues > gc->max_num_queues_vport)
++		apc->max_queues = gc->max_num_queues_vport;
+ 
+ 	if (apc->num_queues > apc->max_queues)
+ 		apc->num_queues = apc->max_queues;
+@@ -3442,7 +3449,7 @@ static int mana_probe_port(struct mana_context *ac, int port_idx,
+ 	int err;
+ 
+ 	ndev = alloc_etherdev_mq(sizeof(struct mana_port_context),
+-				 gc->max_num_queues);
++				 gc->max_num_queues_vport);
+ 	if (!ndev)
+ 		return -ENOMEM;
+ 
+@@ -3451,9 +3458,9 @@ static int mana_probe_port(struct mana_context *ac, int port_idx,
+ 	apc = netdev_priv(ndev);
+ 	apc->ac = ac;
+ 	apc->ndev = ndev;
+-	apc->max_queues = gc->max_num_queues;
++	apc->max_queues = gc->max_num_queues_vport;
+ 	/* Use MANA_DEF_NUM_QUEUES as default, still honoring the HW limit */
+-	apc->num_queues = min(gc->max_num_queues, MANA_DEF_NUM_QUEUES);
++	apc->num_queues = min(gc->max_num_queues_vport, MANA_DEF_NUM_QUEUES);
+ 	apc->tx_queue_size = DEF_TX_BUFFERS_PER_QUEUE;
+ 	apc->rx_queue_size = DEF_RX_BUFFERS_PER_QUEUE;
+ 	apc->port_handle = INVALID_MANA_HANDLE;
+@@ -3717,13 +3724,18 @@ int mana_probe(struct gdma_dev *gd, bool resuming)
+ 
+ 	INIT_DELAYED_WORK(&ac->gf_stats_work, mana_gf_stats_work_handler);
+ 
+-	err = mana_query_device_cfg(ac, MANA_MAJOR_VERSION, MANA_MINOR_VERSION,
+-				    MANA_MICRO_VERSION, &num_ports, &bm_hostmode);
++	err = mana_gd_query_device_cfg(gc, MANA_MAJOR_VERSION,
++				       MANA_MINOR_VERSION,
++				       MANA_MICRO_VERSION,
++				       &num_ports, &bm_hostmode);
+ 	if (err)
+ 		goto out;
+ 
+ 	ac->bm_hostmode = bm_hostmode;
+ 
++	debugfs_create_u16("adapter-MTU", 0400,
++			   gc->mana_pci_debugfs, &gc->adapter_mtu);
++
+ 	if (!resuming) {
+ 		ac->num_ports = num_ports;
+ 	} else {
+@@ -3737,9 +3749,6 @@ int mana_probe(struct gdma_dev *gd, bool resuming)
+ 		enable_work(&ac->link_change_work);
+ 	}
+ 
+-	if (ac->num_ports == 0)
+-		dev_err(dev, "Failed to detect any vPort\n");
+-
+ 	if (ac->num_ports > MAX_PORTS_IN_MANA_DEV)
+ 		ac->num_ports = MAX_PORTS_IN_MANA_DEV;
+ 
+diff --git a/include/net/mana/gdma.h b/include/net/mana/gdma.h
+index 70d62bc32837..145cc59dfc19 100644
+--- a/include/net/mana/gdma.h
++++ b/include/net/mana/gdma.h
+@@ -399,8 +399,10 @@ struct gdma_context {
+ 	struct device		*dev;
+ 	struct dentry		*mana_pci_debugfs;
+ 
+-	/* Per-vPort max number of queues */
++	/* Hardware max number of queues */
+ 	unsigned int		max_num_queues;
++	/* Per-vPort max number of queues */
++	unsigned int		max_num_queues_vport;
+ 	unsigned int		max_num_msix;
+ 	unsigned int		num_msix_usable;
+ 	struct xarray		irq_contexts;
+@@ -447,6 +449,12 @@ struct gdma_context {
+ 	struct workqueue_struct *service_wq;
+ 
+ 	unsigned long		flags;
++
++	/* Indicate if this device is sharing MSI for EQs on MANA */
++	bool msi_sharing;
++
++	/* Bitmap tracks where MSI is allocated when it is not shared for EQs */
++	unsigned long *msi_bitmap;
+ };
+ 
+ static inline bool mana_gd_is_mana(struct gdma_dev *gd)
+@@ -1019,4 +1027,7 @@ int mana_gd_resume(struct pci_dev *pdev);
+ 
+ bool mana_need_log(struct gdma_context *gc, int err);
+ 
++int mana_gd_query_device_cfg(struct gdma_context *gc, u32 proto_major_ver,
++			     u32 proto_minor_ver, u32 proto_micro_ver,
++			     u16 *max_num_vports, u8 *bm_hostmode);
+ #endif /* _GDMA_H */
 -- 
 2.43.0
 
