@@ -1,167 +1,63 @@
-Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 5965727A47F;
-	Sat, 23 May 2026 02:03:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A0784316197;
+	Sat, 23 May 2026 16:23:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779501799; cv=none; b=Qwy5tHXg6oRR+zgwSYsA/JkrFTCRxgfFN+ew89PpEDfk20tMtyuRzEGKAGmiSShtkjKz0rW9Klfs7faIB9jBoXKmTLibfXlvUXI/RHczSDZPPQ6BzauoNa8TuACcg4SMpNHg6ES6EeQqnubqrwxaGTd9ArYw8C+D9xcVOU8ESyg=
+	t=1779553422; cv=none; b=dljNb6NaL9Fxt2ddSC6SCVmYQeFXJunb9pzrJl3b3aoF1zY6442df9OKOOrpQ/CxHKi9F5t1CKeezu74fUrqbJ1/PoLjJt+vhxHVehyK0PLoBbQdmiSXq+Gkc0whbgbjFenP09riXW6voRiVZQm24qLG6DgJiZ1J2P/boK6spWM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779501799; c=relaxed/simple;
-	bh=UCElUD480IjCnvdnwEUw59+Jfe3MIUvK0ppnG/1p0M4=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=PsdDu3+lAc3EDwbufP7deQ5u6kA1p+PCkznWWBkF+wS8reeWnehFGgxRPy1H8dty8Q2P3AJzqs5eD+KRpzSw7sKJ61byRhQCssb/jhaeJ5jJf2YNF/3u0ucbuIm8KAnjXb8uVAGuauWt7dDpV1rWqDuu3B5MIdG66Usg7giuS/Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; arc=none smtp.client-ip=13.77.154.182
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
-Received: by linux.microsoft.com (Postfix, from userid 1202)
-	id D5E2F20B716C; Fri, 22 May 2026 19:03:06 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com D5E2F20B716C
-From: Long Li <longli@microsoft.com>
-To: Long Li <longli@microsoft.com>,
-	Konstantin Taranov <kotaranov@microsoft.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	"David S . Miller" <davem@davemloft.net>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Eric Dumazet <edumazet@google.com>,
-	Andrew Lunn <andrew+netdev@lunn.ch>,
-	Jason Gunthorpe <jgg@ziepe.ca>,
-	Leon Romanovsky <leon@kernel.org>,
-	Haiyang Zhang <haiyangz@microsoft.com>,
-	"K . Y . Srinivasan" <kys@microsoft.com>,
-	Wei Liu <wei.liu@kernel.org>,
-	Dexuan Cui <decui@microsoft.com>,
-	shradhagupta@linux.microsoft.com
-Cc: Simon Horman <horms@kernel.org>,
-	netdev@vger.kernel.org,
-	linux-rdma@vger.kernel.org,
-	linux-hyperv@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH net-next v11 5/6] net: mana: Allocate interrupt context for each EQ when creating vPort
-Date: Fri, 22 May 2026 19:02:55 -0700
-Message-ID: <20260523020258.1107742-6-longli@microsoft.com>
-X-Mailer: git-send-email 2.43.7
-In-Reply-To: <20260523020258.1107742-1-longli@microsoft.com>
-References: <20260523020258.1107742-1-longli@microsoft.com>
+	s=arc-20240116; t=1779553422; c=relaxed/simple;
+	bh=hjeUxWgydteIuisH9JMMnFlLtn70SEIGdiEji/wc9FM=;
+	h=Subject:From:In-Reply-To:References:Message-Id:Date:To:Cc; b=L+IK4Z3haxdH/LPgAxb1q/puVk+V6xdBPQJMJWDM3NEB8oDP5cfhHwGnD2hf3gBAVcT9nZlyknHp44rP1rS2ckVBUjvdS0NRoWHkB+grlornQY+Gu7nlln3E25pz9XO1SQdBM8B7GVQEuX7dA2Jk6Ijco3wWDu9M3hiLtQ4VDnU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=CU2Q9tne; arc=none smtp.client-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="CU2Q9tne"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F2C6D1F000E9;
+	Sat, 23 May 2026 16:23:39 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1779553420;
+	bh=7sK6MkDjM5LgfdJ4F8gEhmf+4NEzTCGHTtHF33yhb1w=;
+	h=Subject:From:In-Reply-To:References:Date:To:Cc;
+	b=CU2Q9tne37PrcQ7ZHAFr2igoFMqYPOl2fzyh1gw3wm71Yni/sedZTpbXhEAtsmxvl
+	 enVE3Ehx++pzpRaxEvfJ9dcutKf/yTfjWo1DYI272EdtZCTrBTlCNOCraohn4ZUlnW
+	 mjpu4nj6+i7C3c/uMj9kI9ZMqFgo/EQdv3pvm9Y+F4uV6SQNub7YWa1AEleSF30svn
+	 QXHeWkXESUfEw13XAXChlsZaJH5MwRYaXP3L793CukFNsiIRvQzNF4UI2KFACn8pHD
+	 ZpzWACVr2fmuxPWFiLwz2IRb0QnDn0QvH0lrM5j0aU/kNDw7c+myzeil6zI68yBPj1
+	 dvb1A65z6gBWg==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 93DB13808205;
+	Sat, 23 May 2026 16:23:49 +0000 (UTC)
+Subject: Re: [GIT PULL] Please pull FWCTL subsystem changes
+From: pr-tracker-bot@kernel.org
+In-Reply-To: <20260522232501.GA1168039@nvidia.com>
+References: <20260522232501.GA1168039@nvidia.com>
+X-PR-Tracked-List-Id: <linux-cxl.vger.kernel.org>
+X-PR-Tracked-Message-Id: <20260522232501.GA1168039@nvidia.com>
+X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/fwctl/fwctl.git tags/for-linus-fwctl
+X-PR-Tracked-Commit-Id: e7537735028c3ad4b0bfc02ff8fa2a1a28aa04fe
+X-PR-Merge-Tree: torvalds/linux.git
+X-PR-Merge-Refname: refs/heads/master
+X-PR-Merge-Commit-Id: f53a244224ec0304209917e3f4d68dc83b1967db
+Message-Id: <177955342806.1611769.309283381910606227.pr-tracker-bot@kernel.org>
+Date: Sat, 23 May 2026 16:23:48 +0000
+To: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, linux-rdma@vger.kernel.org, linux-cxl@vger.kernel.org, linux-kernel@vger.kernel.org, Dave Jiang <dave.jiang@intel.com>, Saeed Mahameed <saeedm@nvidia.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
 
-Use GIC functions to create a dedicated interrupt context or acquire a
-shared interrupt context for each EQ when setting up a vPort.
+The pull request you sent on Fri, 22 May 2026 20:25:01 -0300:
 
-The caller now owns the GIC reference across the EQ create/destroy
-lifecycle: mana_create_eq() calls mana_gd_get_gic() before creating
-each EQ and mana_destroy_eq() calls mana_gd_put_gic() after destroying
-it. The msix_index invalidation is moved from mana_gd_deregister_irq()
-to the mana_gd_create_eq() error path so that mana_destroy_eq() can
-read the index before teardown.
+> git://git.kernel.org/pub/scm/linux/kernel/git/fwctl/fwctl.git tags/for-linus-fwctl
 
-Signed-off-by: Long Li <longli@microsoft.com>
----
- .../net/ethernet/microsoft/mana/gdma_main.c    |  2 +-
- drivers/net/ethernet/microsoft/mana/mana_en.c  | 18 +++++++++++++++++-
- include/net/mana/gdma.h                        |  1 +
- 3 files changed, 19 insertions(+), 2 deletions(-)
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/f53a244224ec0304209917e3f4d68dc83b1967db
 
-diff --git a/drivers/net/ethernet/microsoft/mana/gdma_main.c b/drivers/net/ethernet/microsoft/mana/gdma_main.c
-index fc21c7f57e23..10d394dd9653 100644
---- a/drivers/net/ethernet/microsoft/mana/gdma_main.c
-+++ b/drivers/net/ethernet/microsoft/mana/gdma_main.c
-@@ -912,7 +912,6 @@ static void mana_gd_deregister_irq(struct gdma_queue *queue)
- 	}
- 	spin_unlock_irqrestore(&gic->lock, flags);
- 
--	queue->eq.msix_index = INVALID_PCI_MSIX_INDEX;
- 	synchronize_rcu();
- }
- 
-@@ -1027,6 +1026,7 @@ static int mana_gd_create_eq(struct gdma_dev *gd,
- out:
- 	dev_err(dev, "Failed to create EQ: %d\n", err);
- 	mana_gd_destroy_eq(gc, false, queue);
-+	queue->eq.msix_index = INVALID_PCI_MSIX_INDEX;
- 	return err;
- }
- 
-diff --git a/drivers/net/ethernet/microsoft/mana/mana_en.c b/drivers/net/ethernet/microsoft/mana/mana_en.c
-index 571648007378..bca381f8bc7b 100644
---- a/drivers/net/ethernet/microsoft/mana/mana_en.c
-+++ b/drivers/net/ethernet/microsoft/mana/mana_en.c
-@@ -1634,6 +1634,7 @@ void mana_destroy_eq(struct mana_port_context *apc)
- 	struct mana_context *ac = apc->ac;
- 	struct gdma_context *gc = ac->gdma_dev->gdma_context;
- 	struct gdma_queue *eq;
-+	unsigned int msi;
- 	int i;
- 
- 	if (!apc->eqs)
-@@ -1647,7 +1648,9 @@ void mana_destroy_eq(struct mana_port_context *apc)
- 		if (!eq)
- 			continue;
- 
-+		msi = eq->eq.msix_index;
- 		mana_gd_destroy_queue(gc, eq);
-+		mana_gd_put_gic(gc, !gc->msi_sharing, msi);
- 	}
- 
- 	kfree(apc->eqs);
-@@ -1664,6 +1667,7 @@ static void mana_create_eq_debugfs(struct mana_port_context *apc, int i)
- 	eq.mana_eq_debugfs = debugfs_create_dir(eqnum, apc->mana_eqs_debugfs);
- 	debugfs_create_u32("head", 0400, eq.mana_eq_debugfs, &eq.eq->head);
- 	debugfs_create_u32("tail", 0400, eq.mana_eq_debugfs, &eq.eq->tail);
-+	debugfs_create_u32("irq", 0400, eq.mana_eq_debugfs, &eq.eq->eq.irq);
- 	debugfs_create_file("eq_dump", 0400, eq.mana_eq_debugfs, eq.eq, &mana_dbg_q_fops);
- }
- 
-@@ -1672,7 +1676,9 @@ int mana_create_eq(struct mana_port_context *apc)
- 	struct gdma_dev *gd = apc->ac->gdma_dev;
- 	struct gdma_context *gc = gd->gdma_context;
- 	struct gdma_queue_spec spec = {};
-+	struct gdma_irq_context *gic;
- 	int err;
-+	int msi;
- 	int i;
- 
- 	if (WARN_ON(apc->eqs))
-@@ -1692,12 +1698,22 @@ int mana_create_eq(struct mana_port_context *apc)
- 		debugfs_create_dir("EQs", apc->mana_port_debugfs);
- 
- 	for (i = 0; i < apc->num_queues; i++) {
--		spec.eq.msix_index = (i + 1) % gc->num_msix_usable;
-+		msi = (i + 1) % gc->num_msix_usable;
-+
-+		gic = mana_gd_get_gic(gc, !gc->msi_sharing, &msi);
-+		if (IS_ERR(gic)) {
-+			err = PTR_ERR(gic);
-+			goto out;
-+		}
-+		spec.eq.msix_index = msi;
-+
- 		err = mana_gd_create_mana_eq(gd, &spec, &apc->eqs[i].eq);
- 		if (err) {
- 			dev_err(gc->dev, "Failed to create EQ %d : %d\n", i, err);
-+			mana_gd_put_gic(gc, !gc->msi_sharing, msi);
- 			goto out;
- 		}
-+		apc->eqs[i].eq->eq.irq = gic->irq;
- 		mana_create_eq_debugfs(apc, i);
- 	}
- 
-diff --git a/include/net/mana/gdma.h b/include/net/mana/gdma.h
-index e3ee85c614ec..6a65fedae38f 100644
---- a/include/net/mana/gdma.h
-+++ b/include/net/mana/gdma.h
-@@ -342,6 +342,7 @@ struct gdma_queue {
- 			void *context;
- 
- 			unsigned int msix_index;
-+			unsigned int irq;
- 
- 			u32 log2_throttle_limit;
- 		} eq;
+Thank you!
+
 -- 
-2.43.0
-
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/prtracker.html
