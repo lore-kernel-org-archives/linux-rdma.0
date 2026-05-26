@@ -1,61 +1,63 @@
-Received: from mail-wm1-f67.google.com (mail-wm1-f67.google.com [209.85.128.67])
+Received: from mail-wm1-f49.google.com (mail-wm1-f49.google.com [209.85.128.49])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 92D94355F57
-	for <linux-rdma@vger.kernel.org>; Tue, 26 May 2026 14:41:58 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.67
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D49613FF89E
+	for <linux-rdma@vger.kernel.org>; Tue, 26 May 2026 14:42:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.49
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779806522; cv=none; b=E1xZ1R8YixjKdrx/5fSDTvbS1ktmta60szqMnF2ie6hsTxrjJVipRUBudx4wMWgfI/jrJFnWkn3VzojA2yxZHgERGLxPbreQvqArR7TGZ401ZeDHg0xOBAnB0H60DCHzxifBgRic9h+RjufYZKK87ejSkfg71LY27uZpKQ8FqpA=
+	t=1779806528; cv=none; b=i65x0pqF5VRBeOUSZ0Y+QGYRgg5dH5XXs6mtRURROPkGcUABncD/f1O5HNWOwNeTziHco7JwgTGx4rtfebuzs4Xt86YCSAU4Ipajsft7/I/eObGlvOo7JpUFz+8uoyhThPCHbZPTW0c94/gQcJ9fGQVqmzF+MCepREx96Sa8NPU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779806522; c=relaxed/simple;
-	bh=64gInwnnjhhv8V6kuMqS9KmmdJUoAxUSoD1AvBRfyeo=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=TfQQTG8uqNJWwIUkCvf5qM2eWWbwqPVcHWq4zF8K1nYVTPl3H2abq1LkySO50EOWT1XQoUPDfSQnL28IM2QvRfyNBrrZyWLQ8EQ1ANVBr/xtxiDtjRbBvXV1Wc99qkr+pUcqiymjoAeivV6QiYxnUyB3477mS29dMuNhFAKkC+M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=resnulli.us; spf=none smtp.mailfrom=resnulli.us; dkim=pass (2048-bit key) header.d=resnulli-us.20251104.gappssmtp.com header.i=@resnulli-us.20251104.gappssmtp.com header.b=tOmvav7e; arc=none smtp.client-ip=209.85.128.67
+	s=arc-20240116; t=1779806528; c=relaxed/simple;
+	bh=CdHNvdVyWwn4B7PYsPkfFQFpo97DkDkDhNP32go/344=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=hlL4EvTWSFEy+PN5/8PR4mb6vCunQDLyqHm9n36uQz8LhjIHbsF0UMp22bGaTP80hkA7eEzG/KNhiUpJRe/+5H92jX0kH2CSwKC0ALZRUsWW8rMVx4YY3NaAoEdNYHh6v1JWGVHER3JwLUsBye1XkXVI7CPIl8DO/p+AnIxuSgk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=resnulli.us; spf=none smtp.mailfrom=resnulli.us; dkim=pass (2048-bit key) header.d=resnulli-us.20251104.gappssmtp.com header.i=@resnulli-us.20251104.gappssmtp.com header.b=bzj9KIjz; arc=none smtp.client-ip=209.85.128.49
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=resnulli.us
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=resnulli.us
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=resnulli-us.20251104.gappssmtp.com header.i=@resnulli-us.20251104.gappssmtp.com header.b="tOmvav7e"
-Received: by mail-wm1-f67.google.com with SMTP id 5b1f17b1804b1-4905529b933so23425295e9.0
-        for <linux-rdma@vger.kernel.org>; Tue, 26 May 2026 07:41:58 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=resnulli-us.20251104.gappssmtp.com header.i=@resnulli-us.20251104.gappssmtp.com header.b="bzj9KIjz"
+Received: by mail-wm1-f49.google.com with SMTP id 5b1f17b1804b1-48984d29fe3so112291385e9.0
+        for <linux-rdma@vger.kernel.org>; Tue, 26 May 2026 07:42:05 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=resnulli-us.20251104.gappssmtp.com; s=20251104; t=1779806517; x=1780411317; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=kTKl3pLJD8SabdAaZe07jyBUSBk+quM4ZE1IBcHKtIw=;
-        b=tOmvav7egtcpyOBHUNOLhBFLcLhh9M3/KAimiGO0tr/i7z0zbv7PnkAJnr85cXaNnC
-         H1EGny2bHxGIcvYz2LOUFcx7c64i8FXmUPE5zF9IHT9/EH76fA4wknm+W5GAGR9vKDEq
-         L+dMQXI1BjuitbFO9HnxdRihohoS4sSYZnHgFe5SzhjZDCRhJSVKzINeUtXwyHAfDhjl
-         bLufdR4xg1h6OD2YmJiuI9sQ5zczVdLefXcewWVssh9dnLaThtyTk8htLHU8qy2kCZF6
-         U9jJoGwFtXTDOX1gFBikyDHKeWIwsZ/7PAeOcUiF338jHWaewywvuCiS6O2ylq53fUgT
-         iW+g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1779806517; x=1780411317;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+        d=resnulli-us.20251104.gappssmtp.com; s=20251104; t=1779806524; x=1780411324; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=kTKl3pLJD8SabdAaZe07jyBUSBk+quM4ZE1IBcHKtIw=;
-        b=HN+tCRvomtXJnMN/2puc1Q2jWokN2bRosdVe96Cgpce76pjhH2MbUjMmkRJzhHQ4sU
-         rEdUwJEQwDDzA0HjHas7mhMLjXXXp+GSN7RoUTNPXUxDS08PFvynFu/FOQWN4aIlloYr
-         zcYQ35mFgkgI49Tgie8Cmhh7DyRbXGeLsnxlG2fCiynjXvyfnfvC/EZJ4AZarvbNfhir
-         OZrCKm+pan4Ug77Xe7bwqYzo4Yk1beGJt8lYYGRZCjixe8dqF62tlrKn3KGKiAB9P2aR
-         5bX0iYoVFQqjtiyzVbo8GQyiOqSBQwyRIfRi2o125JVhP4HN+nPwUZikFCvYufvoIVIL
-         vCeA==
-X-Gm-Message-State: AOJu0YwZgOPVKp9MsHUkf+/L+A3GTBrk2JPT9FyVwGEGrUZEq4nxzCCs
-	QTAo/YKS+bDg8hqZ/Jrma/BPdVUPZBq4pMnI0BDLEa7Mt+gvqgWQnPNeAhLB1iTigc99cbn/io+
-	XXTZlRLKqqfd7
-X-Gm-Gg: Acq92OEkiWgMng1gUkf34b/MjZ9QzYhzN2zDwLS2HPUAk+AWtRz75wfuouHo1lZQlrr
-	lmFHfklT4KYaltFjFzJRk2bldA4935CI5yLfIjfBJOT8s2U+G02XHHeyKSerXK47YR0YHq2UVW4
-	SyNkNqi9dtIkmld+VPEJm4BaK7T0oZRl6F3pv6OcpBqJlq4RK6Ao3P7wWQPHDQJAstcfH0AvSLY
-	+l7dXQmXmnX7hiaam02382VJf7TeOFknZbTTYoRO5xXfZ99MyZBmokpKYtE41ifvWdHIL7xteEP
-	XGltiJ5bD8wizC5d/NnRuDsX+2zhufYxN2PwwjHa7bZJ40RqTxgppGdVXuwINRx/fOlecqJGBxT
-	HCT5oMJB7dR0wensk7+je1q3aRUkwNJJUQ29E+Fop+hiydGrnZJE3FP5k2Wm5A/QE8PQ2DTVwGL
-	IrzDyam+kMr50xkr0TM3oaZWFHzHFFptIR
-X-Received: by 2002:a05:600c:a011:b0:490:50ff:7943 with SMTP id 5b1f17b1804b1-49050ff7b15mr246311765e9.5.1779806516558;
-        Tue, 26 May 2026 07:41:56 -0700 (PDT)
+        bh=Y99Ea4bAs50iTgic0X2Vf0N/VWbWanhuVBb4Ly3bw18=;
+        b=bzj9KIjz0W0QsQajDCJWoGzJMhdpBhMGfz0s5R817L/RY/qIMZf/KMbTgTyU9Zy0QY
+         fk705bZPSTOpa2yPMlGyc4jKb0Qnt+A358dFRnNRw/cSg5sCQC5wwqGReWGkzVe2utPA
+         sT7mlWEbBxhZ57oVttGSuuDpKcvw0wtiZsT0s6sKHR7qIKNr0ITeXcXLvJCETRHRqTjd
+         KrVJDYw0N/LPlcsAKskIuCWEQWcfLD88+fUclPKS5VpkPaeim1ECXdlJ4TfyC0KdksHz
+         MyW2rv1jB/m07Yb27yf3ovPMD1Z331HteLD0jXXGY7QWwFqTUreeMniTgGIijAO/15Uy
+         suWg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1779806524; x=1780411324;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=Y99Ea4bAs50iTgic0X2Vf0N/VWbWanhuVBb4Ly3bw18=;
+        b=jNNcVYPyYCqvqDLA5wqx5wEHmbx2buNRO0RBNuhA4zUS0S8O+ThqpKMsq2VHujHuAG
+         HLKkWmn7g9R5PN0szHwJUBqrufq06dRVWzDlaX9voqm1Crxw/Z+sqg9VNq+ojUlhUCWI
+         vuYDeaITqc3+2shCoHVvzihDRnTMQiNlU6RgCAF841xdpr/6tfKNjZOfZVIaKx5GjvC6
+         mb1waCUJmA866rDmRwLf8tlUof6LXrXozUNZLJSmj07vCcIUzqRX2eJZVpHRxvhCUllu
+         yqSmJ+/f9HZlD+x8tVi0tZ+v6PLCxVlHZVnEUJ300XyyMQ5/ai8HrqQi4/zPzrwrEPrD
+         X3bw==
+X-Gm-Message-State: AOJu0YwQUFVSowdgKq/ZUCmy29TsL59umsZxtYQXnaPBs/oPa5Mjik9Z
+	7r15Hp2hztaoHP5BADKktpDu5hgFK2G0axZaoEuw7xVomDn8zxuk2NAcKeQ2j5YcujtktUQLSAB
+	EDocZAzZz+Q==
+X-Gm-Gg: Acq92OGXAJciY4oPiJc5lqzUbmfAe97bYNZajtbNWDWt9qxftCY+TwgtBNXxPmGQD1Z
+	l3KemNrmV8Pc3ejayUmpYosGLtg56+PoWY63RSDpxMSeR0zhgZ5RZoo3l0A9DZeei9RDNEyCAg/
+	7CjR5N5QqnVP7F8MOZdBK+QxUofInbwwWK/C/tI7+gFE1OIAhaPkH49hNPjbftOylBNdc4dq8h1
+	iom8YbA+EgUXqE872FHgVo/i17xlpq33vUkvdpkVXDLseiXbxQrROMXvdMzyFIIzdv+b7rF0dRO
+	Ys3B3q8UiQ8zQ0j5rpuSTwCiytzx3sKg92yu+0E/CrmYSqdxnDDJcATjoboml5U2IUxDAJbiEzu
+	IYMsuTQVQQgJT/hOfBue5LVISvp+YZ4Q4CbOQPvOtkFCrm7UW9RQVUgsTUly99hxiUezytsVjAe
+	hddrKdWoJPyWBdAkJnWztH/pz7v/kWjrNl
+X-Received: by 2002:a05:600c:4f91:b0:490:6e12:5418 with SMTP id 5b1f17b1804b1-4906e12552emr98029315e9.23.1779806523955;
+        Tue, 26 May 2026 07:42:03 -0700 (PDT)
 Received: from localhost ([140.209.217.212])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4904333146bsm193574235e9.0.2026.05.26.07.41.55
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-49045282201sm368484545e9.8.2026.05.26.07.42.03
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 26 May 2026 07:41:56 -0700 (PDT)
+        Tue, 26 May 2026 07:42:03 -0700 (PDT)
 From: Jiri Pirko <jiri@resnulli.us>
 To: linux-rdma@vger.kernel.org
 Cc: jgg@ziepe.ca,
@@ -81,10 +83,12 @@ Cc: jgg@ziepe.ca,
 	andrew.gospodarek@broadcom.com,
 	selvin.xavier@broadcom.com,
 	jmoroni@google.com
-Subject: [PATCH rdma-next v7 00/15] RDMA: Introduce generic buffer descriptor infrastructure for umem
-Date: Tue, 26 May 2026 16:41:37 +0200
-Message-ID: <20260526144152.1422310-1-jiri@resnulli.us>
+Subject: [PATCH rdma-next v7 02/15] RDMA/umem: Split ib_umem_get_va() into a thin wrapper around __ib_umem_get_va()
+Date: Tue, 26 May 2026 16:41:39 +0200
+Message-ID: <20260526144152.1422310-3-jiri@resnulli.us>
 X-Mailer: git-send-email 2.54.0
+In-Reply-To: <20260526144152.1422310-1-jiri@resnulli.us>
+References: <20260526144152.1422310-1-jiri@resnulli.us>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -95,115 +99,67 @@ Content-Transfer-Encoding: 8bit
 
 From: Jiri Pirko <jiri@nvidia.com>
 
-This patchset introduces a generic buffer descriptor infrastructure
-for passing memory buffers (dma-buf or user VA) to uverbs commands,
-and wires it up for CQ and QP creation in the uverbs core, efa, mlx5,
-bnxt_re and mlx4 drivers.
+The follow-up patch is going to introduce ib_umem_get_desc(),
+the canonical desc-to-umem helper, which needs to pin a userspace VA
+without going through the exported ib_umem_get_va() helper so later on
+ib_umem_get_va() would use the ib_umem_get_desc() flow too.
 
-Instead of adding ad-hoc per-buffer UAPI attributes for each new buffer
-type, each command declares dedicated UVERBS_ATTR_UMEM attributes that
-carry one buffer descriptor each. Each descriptor specifies a buffer
-type, covering both VA and dma-buf. A consumption check ensures
-userspace and driver agree on which attributes are used.
+Move the existing ib_umem_get_va() to a static __ib_umem_get_va()
+and have ib_umem_get_va() as a thin wrapper that calls it.
 
-The patchset:
-1-2,4. Plumbing: rename ib_umem_get() to ib_umem_get_va() and re-route
-   it through ib_umem_get_attr_or_va(); no behaviour change.
-3. Introduces the core buffer descriptor infrastructure and UAPI.
-5. Factors out CQ buffer umem processing into a helper.
-6. Adds the CQ buffer UMEM attribute and driver wrappers.
-7-10. Converts efa, mlx5, bnxt_re and mlx4 to use the new CQ helpers,
-   with drivers taking umem ownership.
-11. Removes the legacy umem field from struct ib_cq, now that all
-   drivers use the new helpers.
-12. Adds optional whole-QP, RQ and SQ UMEM attributes to QP creation.
-13. Converts mlx5 QP creation to use the new attributes.
-14-15. Adds mlx5 driver-namespace UMEM attributes for CQ and QP
-   doorbell records.
-
+Signed-off-by: Jiri Pirko <jiri@nvidia.com>
 ---
-Based on top of: jgg-for-next 9733e9f580fdda2e8c1cd349caddd93f026ab6f5
+v2->v3:
+- new patch
+---
+ drivers/infiniband/core/umem.c | 27 +++++++++++++++++----------
+ 1 file changed, 17 insertions(+), 10 deletions(-)
 
-See individual patches for changelog.
-
-v6: https://lore.kernel.org/all/20260520101129.899464-1-jiri@resnulli.us/
-v5: https://lore.kernel.org/all/20260517063006.2200680-1-jiri@resnulli.us/
-v4: https://lore.kernel.org/all/20260507125231.2950751-1-jiri@resnulli.us/
-v3: https://lore.kernel.org/all/20260504135731.2345383-1-jiri@resnulli.us/
-v2: https://lore.kernel.org/all/20260411144915.114571-1-jiri@resnulli.us/
-v1: https://lore.kernel.org/all/20260203085003.71184-1-jiri@resnulli.us/
-
-Note this re-works the original patchset trying to handle this:
-https://lore.kernel.org/all/20260203085003.71184-1-jiri@resnulli.us/
-The code is so much different I'm sending this is a new patchset.
-
-Jiri Pirko (15):
-  RDMA/umem: Rename ib_umem_get() to ib_umem_get_va()
-  RDMA/umem: Split ib_umem_get_va() into a thin wrapper around
-    __ib_umem_get_va()
-  RDMA/core: Introduce generic buffer descriptor infrastructure for umem
-  RDMA/umem: Route ib_umem_get_va() through ib_umem_get_attr_or_va()
-  RDMA/uverbs: Push out CQ buffer umem processing into a helper
-  RDMA/uverbs: Add CQ buffer UMEM attribute and driver helpers
-  RDMA/efa: Use ib_umem_get_cq_buf() for user CQ buffer
-  RDMA/mlx5: Use ib_umem_get_cq_buf_or_va() for user CQ buffer
-  RDMA/bnxt_re: Use ib_umem_get_cq_buf_or_va() for user CQ buffer
-  RDMA/mlx4: Use ib_umem_get_cq_buf() for user CQ buffer
-  RDMA/uverbs: Remove legacy umem field from struct ib_cq
-  RDMA/uverbs: Use UMEM attributes for QP creation
-  RDMA/mlx5: Use UMEM attributes for QP buffers in create_qp
-  RDMA/mlx5: Use UMEM attribute for CQ doorbell record
-  RDMA/mlx5: Use UMEM attribute for QP doorbell record
-
- drivers/infiniband/core/umem.c                | 336 +++++++++++++++++-
- drivers/infiniband/core/uverbs_cmd.c          |   1 -
- drivers/infiniband/core/uverbs_ioctl.c        |  25 ++
- drivers/infiniband/core/uverbs_std_types_cq.c |  73 +---
- drivers/infiniband/core/uverbs_std_types_qp.c |   6 +
- drivers/infiniband/core/verbs.c               |   7 -
- drivers/infiniband/hw/bnxt_re/ib_verbs.c      |  61 ++--
- drivers/infiniband/hw/bnxt_re/ib_verbs.h      |   1 +
- drivers/infiniband/hw/cxgb4/mem.c             |   2 +-
- drivers/infiniband/hw/efa/efa_verbs.c         |  29 +-
- drivers/infiniband/hw/erdma/erdma_verbs.c     |   6 +-
- drivers/infiniband/hw/hns/hns_roce_db.c       |   4 +-
- drivers/infiniband/hw/hns/hns_roce_mr.c       |   4 +-
- .../infiniband/hw/ionic/ionic_controlpath.c   |  10 +-
- drivers/infiniband/hw/irdma/verbs.c           |   4 +-
- drivers/infiniband/hw/mana/main.c             |   2 +-
- drivers/infiniband/hw/mana/mr.c               |   2 +-
- drivers/infiniband/hw/mlx4/cq.c               |  56 +--
- drivers/infiniband/hw/mlx4/doorbell.c         |   4 +-
- drivers/infiniband/hw/mlx4/mlx4_ib.h          |   1 +
- drivers/infiniband/hw/mlx4/mr.c               |   4 +-
- drivers/infiniband/hw/mlx4/qp.c               |   4 +-
- drivers/infiniband/hw/mlx4/srq.c              |   2 +-
- drivers/infiniband/hw/mlx5/cq.c               |  41 ++-
- drivers/infiniband/hw/mlx5/devx.c             |   2 +-
- drivers/infiniband/hw/mlx5/doorbell.c         |  93 ++++-
- drivers/infiniband/hw/mlx5/main.c             |   1 +
- drivers/infiniband/hw/mlx5/mlx5_ib.h          |   6 +-
- drivers/infiniband/hw/mlx5/mr.c               |   6 +-
- drivers/infiniband/hw/mlx5/qp.c               |  69 +++-
- drivers/infiniband/hw/mlx5/srq.c              |   4 +-
- drivers/infiniband/hw/mthca/mthca_provider.c  |   2 +-
- drivers/infiniband/hw/ocrdma/ocrdma_verbs.c   |   2 +-
- drivers/infiniband/hw/qedr/verbs.c            |  13 +-
- drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c  |   4 +-
- drivers/infiniband/hw/vmw_pvrdma/pvrdma_mr.c  |   2 +-
- drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c  |  10 +-
- drivers/infiniband/hw/vmw_pvrdma/pvrdma_srq.c |   2 +-
- drivers/infiniband/sw/rdmavt/mr.c             |   2 +-
- drivers/infiniband/sw/rxe/rxe_mr.c            |   2 +-
- drivers/infiniband/sw/siw/siw_mem.c           |   4 +-
- include/rdma/ib_umem.h                        |  71 +++-
- include/rdma/ib_verbs.h                       |   1 -
- include/rdma/uverbs_ioctl.h                   |  31 ++
- include/uapi/rdma/ib_user_ioctl_cmds.h        |   4 +
- include/uapi/rdma/ib_user_ioctl_verbs.h       |  27 ++
- include/uapi/rdma/mlx5_user_ioctl_cmds.h      |   5 +
- 47 files changed, 783 insertions(+), 265 deletions(-)
-
+diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
+index b253090bb1ab..0056f23af57b 100644
+--- a/drivers/infiniband/core/umem.c
++++ b/drivers/infiniband/core/umem.c
+@@ -153,16 +153,9 @@ unsigned long ib_umem_find_best_pgsz(struct ib_umem *umem,
+ }
+ EXPORT_SYMBOL(ib_umem_find_best_pgsz);
+ 
+-/**
+- * ib_umem_get_va - Pin and DMA map userspace memory.
+- *
+- * @device: IB device to connect UMEM
+- * @addr: userspace virtual address to start at
+- * @size: length of region to pin
+- * @access: IB_ACCESS_xxx flags for memory being pinned
+- */
+-struct ib_umem *ib_umem_get_va(struct ib_device *device, unsigned long addr,
+-			       size_t size, int access)
++static struct ib_umem *__ib_umem_get_va(struct ib_device *device,
++					unsigned long addr, size_t size,
++					int access)
+ {
+ 	struct ib_umem *umem;
+ 	struct page **page_list;
+@@ -275,6 +268,20 @@ struct ib_umem *ib_umem_get_va(struct ib_device *device, unsigned long addr,
+ 	}
+ 	return ret ? ERR_PTR(ret) : umem;
+ }
++
++/**
++ * ib_umem_get_va - Pin and DMA map userspace memory.
++ *
++ * @device: IB device to connect UMEM
++ * @addr: userspace virtual address to start at
++ * @size: length of region to pin
++ * @access: IB_ACCESS_xxx flags for memory being pinned
++ */
++struct ib_umem *ib_umem_get_va(struct ib_device *device, unsigned long addr,
++			       size_t size, int access)
++{
++	return __ib_umem_get_va(device, addr, size, access);
++}
+ EXPORT_SYMBOL(ib_umem_get_va);
+ 
+ /**
 -- 
 2.54.0
 
