@@ -1,61 +1,61 @@
 Received: from SA9PR02CU001.outbound.protection.outlook.com (mail-southcentralusazon11013028.outbound.protection.outlook.com [40.93.196.28])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 120FB290DBB
-	for <linux-rdma@vger.kernel.org>; Tue, 26 May 2026 01:22:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CAA332989B5
+	for <linux-rdma@vger.kernel.org>; Tue, 26 May 2026 01:23:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.196.28
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779758582; cv=fail; b=MBrUoPc69d68aeu3OqbuhW2EEBHtIFYSgqw84Bl1VwdUJ0JGle6n3JgxiRQ9EyXJ0Na5rGpYicfmd36JYmfxwIpw6lF9S1iLP04sMJZFpadY4sRkwClNbKQV0aOInWY1E0n0Q7RKhI1stz/jhE0CJYLcoGYfJLn6iY7Z4F422eI=
+	t=1779758585; cv=fail; b=kV0sxB+a0k+IVQc2yfiN8t16xQwK9cNyePLdlfeVwtHrOITGLQWk0Jht7T49obasimVYzETqlKqitUIQs/YuB4VhESp0kUgbLGug8ad4B/KD7toEv4hy8GaKFuORZmGqt/EinIrMm2r8QCK+mBwYobm6Ia/D8I9S5Nbi7vZBJpk=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779758582; c=relaxed/simple;
-	bh=746gUF9Vhu6nXgoyShTq1KEnm9GtZF6zxIyN37BxcvA=;
+	s=arc-20240116; t=1779758585; c=relaxed/simple;
+	bh=PYHvaWKVvFaBZ30OeI2eXzOPhNmdm5rTAikc+h73848=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=L6l4EKr4AHItYRp559s7I9I9LnJ0j5CncV2g+eL9lWJnqA1w70KHoR4PFLnTCWaWMBC/J7ewwBxm7yt4jNalQ1a30b4Vc9XOu/E/FFEGT9vGwkoY9uxHXes7s4dnqPSSqhCG/zmIxO1schYsIAHWGQ2DM66o6cuGKL0h5RtiKLQ=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=JW8zBAos; arc=fail smtp.client-ip=40.93.196.28
+	 Content-Type:MIME-Version; b=H/5YD2X3UK21yIZjSVz0Bpp3hSfDt+qmFiHesl0rFpZ9mNutxOm8S1E4YzKRbWlDMJj4YA2F2Ov7TFynwl3d9y3VgsX9KEM1B5ypuBr3RHKVXgniCw/2E0o1/lcrGdEM1c6Gg8Q3dVYXRcsdn+nF++dqjOMJRdYFZ5KPkZIOlTo=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=udfQou4r; arc=fail smtp.client-ip=40.93.196.28
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="JW8zBAos"
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="udfQou4r"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=U1q2KawZ99KA0mPoOqab3ioRSJOWZY9ujnDKacNvPtERzCKzSSBvgkkEYck/jkUCze/4Fb0od9oYSzaBqMtQXemC176ZJlHK+sbRW8vLY6PWus3p686/j4DMp1sENk7Z103YPrC4fiunaA78Upec9HNU0t9qt3n3DOOx8vA9kuJ3B7za+ha+kAxqvAKbHUdzsIgXPdxGgpJlKJqrN6FZlFxkMJ0mLcNxdi1aZVelXTilDo8STTrOEUgbqLxSvOIqgRBA5KexpjN778eyKa56y4LcBxmz6k/b9MaWrqK4GmG/M1RJCJzHbhxThmTnSl9bSfU12O5RE7reeuK8cjfYyA==
+ b=eMmcVdrM2I71yLCtjFqzHefljbeoZUlug3i7QMtFxK4HvIighzQThBg8hU3YqHlbi4BiyUeYBslLjmbRQpen6x9W/f/uSUIBj6TGxFcrTVKIElTK3VMzKBrvEw4dQ4qCPf1fht7IHjuddWmsxD7vh6cX7R1GvDQ4gr1icIa17KZPgw6aIcTewmQ/AVQQzesXHf0a/ODz4TYzT/u4ILY7a8H1B0jZ0ISe87szhtK1C2mHXlDK3O6/jZdjLcScISqLZFY5tGtZhxsyeGKNQLMqYs//QghGrExloCl0Kn4/QrfbuzW5qQ8Pzgtjf5knIC9fqmdOquhe7FgurNDyx3fInQ==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=gwlwwJQR0tY45ZMkZsjBh633xDV7LGTxJE2xRNP+qjA=;
- b=KiB+Akz7cuFFzAFoG223UkGLz6Oba2CXST2ZlVq1hT29yuhURI/h57X8zg1oSw3S86SiTg4BTd6hXlt2icQAvn/bTu80Y4WYwqcg+0pFJlXqsR83BTlGq2Y1zMHSR/jpomz8g1A+moUu+pFw1sOVr5fBNMwnRVoqj95sC0madvH0IL21ftHkfeirt9wOB2NWjWytcCP2E/Msm1thR2JFXtrXvlo51SH7zeE/vJF9YopTc/BWsVqNno7M7Ch5iLJSw7QBDqhvgp7YOVcEAhm+tTDbs243FwP6cqMA0U63/eLn338pv3C7ST3ShhEnbtgnAbf055qi2ZqLISxSuVjbGw==
+ bh=WWOs1Zlvt/PDx5x6doE0uW+9Dfzqm2XP+qlf3j4jJvQ=;
+ b=ipYHLxL1ONxD3ZOOse5f2mPYiRBpLfpIGXgjHlMOkZyWdGd7LlmrFFmXou38uWJGrvPDsHBTovV70mh7BVeIuljv8pTbFrMYQJak4/Zzw3sgWAIlEJ1OICgkSvOq/tZNUP4RADO6an58fO30wjhewCxRRHkwW+SK1HxcnyTrTkobMWcacpZMXEG60oCIsI5xwTF7JsMp6/1jrxwmr9AxMFtPz0fHedd9i/3aDncsdvpKj0EYvGRUj0RoYe3IooH9Q8JZWaplW+TOPXft3AOTyKg2OYQ3v6xBcLcGl22uwlDxB71nrqmb5HWxWC8ahqwiBu1cfAKqi0qrLZvpZqVD4A==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
  dkim=pass header.d=nvidia.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=gwlwwJQR0tY45ZMkZsjBh633xDV7LGTxJE2xRNP+qjA=;
- b=JW8zBAos7AMzg3FEI15layAmPx0a0NIHLfgYzUe1knybttVoIvF8xru0lsHYuvtM1jUidzL7jicWeQDinP/Tre8rQPMJU+7itNvAzNyQD6IDIghwsSXKxXZV1LVQcaoM2xjSHsrmY7lW+xOf8nAAfYAfEauAXdLm4qPKkI8uVUlsJx5JdqiMa60C0rDqULmYmmiB/HTreM2qCFaLC5XSwcJt3RGYlb5ccrUt2zwoNMHcpriDDv/DX4pApyM8/yL/PrfIfx3vC2R4Wn9P4nA7gnBMPzfPVdVHMKS3Vp0aiqqdEowM+/wIpyRRJlXRHPLW2czXaSMPupoD0wHRFF/v6g==
+ bh=WWOs1Zlvt/PDx5x6doE0uW+9Dfzqm2XP+qlf3j4jJvQ=;
+ b=udfQou4rHr+4Ns8Na/L0i6lLTdTr1QxTmdf+kJrSWFkCvdhLhAfUZLueE3smeow0Uy0uhS/o6A2SN+jNqfLiH2Fa8dcz+7Av8FkDMdOLgqb0Oot1sA+4R5+auhmUiIWUP8wpK6dC28xsUA2dJnHBf4+5aG2xDeONus06yKpF4zXgo1LHofxtvQ7asV4SqMV+GSSTFlOh8WMYig2ktBuqG0Xk8JyBw+GDHOEJLQtiNdAOBNhC5naEL4MOXbO9870I0YNSgjyrEDMny2KJSoI2sGrovUH3aFrva4B4L+E8prtEXlKYxoinSP5rPl1WkNwN9dQeiu5/07mee6jiAVIi1g==
 Authentication-Results: dkim=none (message not signed)
  header.d=none;dmarc=none action=none header.from=nvidia.com;
 Received: from CY1PR12MB9601.namprd12.prod.outlook.com (2603:10b6:930:107::16)
  by IA0PPF73BED5E32.namprd12.prod.outlook.com (2603:10b6:20f:fc04::bd2) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.25.21; Tue, 26 May
- 2026 01:22:45 +0000
+ 2026 01:22:46 +0000
 Received: from CY1PR12MB9601.namprd12.prod.outlook.com
  ([fe80::cd76:b497:475f:4de3]) by CY1PR12MB9601.namprd12.prod.outlook.com
  ([fe80::cd76:b497:475f:4de3%5]) with mapi id 15.21.0048.019; Tue, 26 May 2026
- 01:22:45 +0000
+ 01:22:46 +0000
 From: Jason Gunthorpe <jgg@nvidia.com>
 To: Leon Romanovsky <leon@kernel.org>,
 	linux-rdma@vger.kernel.org
 Cc: Jiri Pirko <jiri@resnulli.us>,
 	patches@lists.linux.dev
-Subject: [PATCH v3 5/6] RDMA/core: Move ucaps into ib_uverbs_support.ko
-Date: Mon, 25 May 2026 22:22:41 -0300
-Message-ID: <5-v3-43aba1969751+1988-ib_uverbs_support_ko_jgg@nvidia.com>
+Subject: [PATCH v3 3/6] RDMA/core: Remove uverbs_async_event_release()
+Date: Mon, 25 May 2026 22:22:39 -0300
+Message-ID: <3-v3-43aba1969751+1988-ib_uverbs_support_ko_jgg@nvidia.com>
 In-Reply-To: <0-v3-43aba1969751+1988-ib_uverbs_support_ko_jgg@nvidia.com>
 References:
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-ClientProxiedBy: MN0P221CA0009.NAMP221.PROD.OUTLOOK.COM
- (2603:10b6:208:52a::27) To CY1PR12MB9601.namprd12.prod.outlook.com
+X-ClientProxiedBy: IA4P221CA0009.NAMP221.PROD.OUTLOOK.COM
+ (2603:10b6:208:559::11) To CY1PR12MB9601.namprd12.prod.outlook.com
  (2603:10b6:930:107::16)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
@@ -65,127 +65,269 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
 X-MS-TrafficTypeDiagnostic: CY1PR12MB9601:EE_|IA0PPF73BED5E32:EE_
-X-MS-Office365-Filtering-Correlation-Id: 71bcb2c7-28c3-4426-2761-08debac549cc
+X-MS-Office365-Filtering-Correlation-Id: 5aeda3eb-24ec-404f-774d-08debac54ace
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
 	BCL:0;ARA:13230040|1800799024|376014|366016|22082099003|18002099003|56012099003|11063799006;
 X-Microsoft-Antispam-Message-Info:
-	PVAzXb0LRMOPZWfWpty8oUhmkp+L7lfkX5miVp0b7/0OZu51fKpUuxuH3oXhTUovNzEsVlX0W0pQ0bim0n6WKgAcIlZBWYDYGO7gaXLjCOd5hpFLHltNjg9FH18ZbWZB6bbklWmPBdp33D0kWPT/Bn6zIQzEereXwIdDW9wy9xDt7fTD6SOXv7WgFjJjLSg42IzITHih1C93d1Hy2PiaEVb3ectKH+iR65J5j3BHOo+v7uCpJen3eSs/PrUNFyhH5WW7vrZwXJmCbSXHdYMK/ybvBE66Di+qQRKnmCFql22ODN+MhA6wqp/bEuSCgCIvq892u7iMFZgMOpZw3QPw+6wdFDxBZMzr6KGTDfJIwiGph92UYQ/rPao2mkmoJlOTzsI+CFOuB4Byu/fbJgpK3WTYiH6JC0RNsakFzSOHkEZT3nV6Qj1xXpfKOTUR+nI6rsujcXBU7AF3L7b0yvTJaJV0nI4EbomxlSZm5RmBY0iMopsGBM2Yy0xQ9GXRuV6kER0+Z5Ny25sEqXqZ3pF17/nM1DccixkAGK8vZvEdsQ+4afUGWva38UC1JQmO9I58dbeHXxtS9Z1zpeIj5gBFtJufPCJOGK9xHPkO4m89jddwMB3q0WbFVN9SfDCngKmqZKAZb+9Yo69zfH/GeVJ+1Khzm39kWhpWHCpCx3S63uTqPCppxFx8PJtsnftR9PW0
+	wuSHcHGy/Me7Ujd2pHK1UL847oDVUPJ3yItPJjiJvBm8kxT6n39mTv6pu2j7zWEzr79fIZ77umYy/05xkwbjPWXNgjX/5VpQqmHvk+BcFwWhmYvFFGooMNe9x05GCtVwaz/1dgodZ/4KlK3Afgp/j4PtoVm8lKsF5jbaT5WICNZX/M/UWekLAqBd9lWFUoCHAdjUr6E+l57AbWQiGAyf7S0lTGuUOny6ru+ZEYfwgpadwTQYcrGjTF6eYXgwX1IGssvhCtAguW8VRY23Grwy9hZXEdfMxrAZpGMneUGhbxz2G2Zm4EbMsK9USYWTP/RCz0dJ0O/SF8aPKP/PTNE1Lc68M8OSF2E/luuPeW4m73JDo+C8lXl6IJGRXovUOxaiCTmgL3eSKzWumIZO/NZp+F7EhuvJ5jqgsoqiUOkYwblQ+CsGSbMdw1gKjjjjNBhfE1d+Z4nSEqt0RGYpcWAdAa2SUhMb+zd28e637vXZ3VSMrdSiYXesNbD51Ufq3/kLu4L3LWRUPbS8c7JvHqi0iOrxET8mXRnpQWzqk6nj9IEO/EeD0re63eu0TjtugGr7isjWLO0AES8Cxz9Sb8ynsG5TocaOL/TqH6ztrr0W0mmj7B3rqi2zgDaMTuDDoH3IvqaOJ9jdf8WAapQr5XTp/d+MzBuCVVQV71l2w556cZJc3F4FUUrbywAW4pLvHp7R
 X-Forefront-Antispam-Report:
 	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CY1PR12MB9601.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(376014)(366016)(22082099003)(18002099003)(56012099003)(11063799006);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?uyPXwemV4rWjVp05pYmFbSLjD5DGU7IbEzUqAhjOy5zIrvZ7k6sRmjvm4CfR?=
- =?us-ascii?Q?QGEsuIMyjLI/z/AE3LpSduydVe3S07vLRePiYv+7Kogm4wuJWHLrdxBZeznb?=
- =?us-ascii?Q?l75vVq5vC6V7KMyXy5AFUK6X52TNduzgt08B9jStFjYwXiDxhE/P6Tzee+p6?=
- =?us-ascii?Q?1jRiI5WwQLBfZCIiAtGjXA/xJSkqiMFqFnHf5GRDpmevVZOhpvKFc50X9F40?=
- =?us-ascii?Q?HzpkBo681gONp5TvCLl1lmEmglXykyGn/5s4uZcKEUTjUYMo0KPfbYucZgtX?=
- =?us-ascii?Q?5RHk9Vri18GVIW4Av4OawKnLSL3J8iHjaY0d8fc8woAKSezqz2a/Tp4aNW5e?=
- =?us-ascii?Q?qYH6krhQMfZP3KC71W2DkmUKNZNe8I0g5HuxY1xPxlRyCdDPjvwN0Cr8UdDf?=
- =?us-ascii?Q?gOq/BlfLIz1evdyjHXG3xtJ3GWA/q/s3wO9S37/y2Z3j+2UfWaf3Ov8t4e5v?=
- =?us-ascii?Q?XI0AFrkiQTozJwhN8LfxUPta0CvTWeE61F3vIoarBCaVEejphNuslQgGJeZU?=
- =?us-ascii?Q?P2mwGaV/XKqPiOZE9fgb/1H9i+slKwayqnhHK1zW1PuC9xJ+38CTeAUAvpUF?=
- =?us-ascii?Q?2A/58vWascQ5oaT73KvQCBHkwa2qLXy4B5b9BZ8uk1QvILMGyybPwcHD6dpT?=
- =?us-ascii?Q?TqVFOFyVOnFeHlkIqGwVRDutOx/HlJwAtbRodMCM9elesod+Xrs3W8pVj8Jy?=
- =?us-ascii?Q?w6xo4+uHMhMEQnRXUWUvDR36RDP9TEDe1i0p3MWsGlx2eY0X+CCXZ36N14Fl?=
- =?us-ascii?Q?B9iYHGrokpdByMmEEgdXtBF5I2H2YC34F1WZdwPxhXa0WSEqIIYXaurlgRWI?=
- =?us-ascii?Q?oBQ0KHavbWac0zIKSaNJ9zMwEubQK1/71dq86qOqk6Xbc+QiHVgkaOF1k8EB?=
- =?us-ascii?Q?PPIYjyLctzOM1nlO97D8cIROj7M8aW88zn4aDjqr+Gzg5OfegQv65oFq2Jsi?=
- =?us-ascii?Q?Vd/yQcdOWdW9BmtqQ/d/zJYLy61guCoAPYmZ2qzCYoZprldQMstAkA10UxT6?=
- =?us-ascii?Q?pZ0SCwkGrrGwOJ6TQ+R4PRCG77y/6uzDqgixvTTJmL3+HyHp3b7DxKsu03eO?=
- =?us-ascii?Q?1cfUoLOu2BbZxhrttbhHosimkeDThBoE6p0/sQg7wtkRrwhpUwysm4HmO4G9?=
- =?us-ascii?Q?mEf+qOlbtQUXUtrAZFXHrG2ZmKn5Q7PTv6ruNv/x2b2B9+HhTK/P4xzPwXe0?=
- =?us-ascii?Q?ymGccz6t1W59TmfOMxe01ZSDK2aw9iMF3WfvHg2zWkheXbXUB3szhzonJilp?=
- =?us-ascii?Q?b5pM1ZTtPiyTWjKkSkn5/hwHd7ZpjxuCpxIKUhr5HBvk4hv3Vm1YbkIkfHpy?=
- =?us-ascii?Q?LVU/a+MVeAqE9Tj9CSGh629Fr0c/m0OheGtAqXaeBfTrvkR4NZZaPGp1n+YH?=
- =?us-ascii?Q?i5FUu734eqLwDj8/MhRC7QRczjrLQchbkijrBQXsHp9sjvgre4v/yp9SWS08?=
- =?us-ascii?Q?1uA8gQDLQv6S1dvvrHba7/9xGa+r7bxGYsoEpsybDtt/kbbBwdMVV0hrCab+?=
- =?us-ascii?Q?KQp194OPjRbDUY9cAdUOkZFrrtxuNU9fpnlaw+EoSo19Jy4RsCafQjRyeXgG?=
- =?us-ascii?Q?UTw63QVhVbnXdmFJLitH96wYwGOXUjMCsCIdi04yZusfKFkV/DupRnWCjbTt?=
- =?us-ascii?Q?c9szKlLY3neIeXgp11ObDS2iNdeCxyDpo/NdzFm+V9Nab4t3yVYHlCtzifIK?=
- =?us-ascii?Q?IICJtvsCI+YHJA0N8L5Ou3Yfha06VXf2YoWj0kFzisJfuuZy?=
+	=?us-ascii?Q?vrJqEtEaQxdB++SBRwqVNN1EmcdtpAhr4PqLqBKLyG4Nx1uG61N8ZnUvT0En?=
+ =?us-ascii?Q?MB+vnjxuoSOV4Jfj6JpZZ+Vg0STFRwDfCXE8/jH1ZeP56VZgdEq1BSTByekA?=
+ =?us-ascii?Q?nKPP8LLVn2S5rienrJQX44Q6R4n2+o4AZ/j1LpoCDF8F+vDBMccG2+C3l0ys?=
+ =?us-ascii?Q?xA/GHGReXba9JtHSPUjkjltldeJ0thX4cE2tH5TGZaQ6AYGdQz9eZa/Rx5s5?=
+ =?us-ascii?Q?5eZWlOdsA1FUOKqu3hoIbkFe9KEqsYHKYQjdxcWy4h3MtrC2xNeczBaSWRSz?=
+ =?us-ascii?Q?9HuECEu3Tb5gJvOPId2u06mchideUtK1GJHIMSghyNmC8Ps8HJ2oW8HrtuFQ?=
+ =?us-ascii?Q?pLqXxXzWZ8RYANsU3ydnjShW4/9iFMN4uorGic9LgeGTb1iNMSneuvbd2egt?=
+ =?us-ascii?Q?26D4zkAeGnPR/BtPI1ih2UYDsLsc7zQDPMGIdYEBF2g9dI3nDRP57grRZYR/?=
+ =?us-ascii?Q?tA7MWOqvbktD5LNp4nDYJVJ+w05qnWfRdTrj5D4Dxlg2tqHqj4OKYmG+CJei?=
+ =?us-ascii?Q?n9sbIOqJakkfURjJEXGqzTYkkPJvNshZiQnMe6r3c5PMlKcCt6a+JZA5s5vc?=
+ =?us-ascii?Q?T5oFinuagjBPG0GVy23IPiBVQmgLW86I1C3LbCezLnj53D9tHcThfinKBICt?=
+ =?us-ascii?Q?sJ933nLtNSPFLBlGJTFowD/s2K0ClxQ4Ox39lpORtn8/V9NRY+dK/6oVvBGM?=
+ =?us-ascii?Q?Ax50uc1tLQ0hMpflrQNBia+wNTbdaX3c4JHpw+6PdWX9HVpMarzYriyiQXhF?=
+ =?us-ascii?Q?aMgf7CiPaQQqrZZKsBf2EnE9wxkylnNt6soUrqjFR0a0FY2Q6tdybH372YNy?=
+ =?us-ascii?Q?td4a8L1zAjuzyFLGZp5dt0zDtebR8SMvaMhUq3YzEUtd2o4ejpcCpPgNfJSQ?=
+ =?us-ascii?Q?YKdmgbSA9pmLh0ZNd6dR0xZMHTcOH6zrAhH5eOUVKsVdLA+mEwa0NVkiCqPZ?=
+ =?us-ascii?Q?AZVGXKBhlW6m/dyMt8fgHWc1hrx9buTpRBjn4juiZNKQIOIHaO14tpEM2hgX?=
+ =?us-ascii?Q?ziS7ZCc4zM4QNFtQEhcqeY8zr2XvupgtV9Tc9iGUTxcfkfcEsQpSKNfpOaNY?=
+ =?us-ascii?Q?wuzDLrCQVkgzha2r/VDmAorAB+Ny0HE1szikLCBwpbu1ZPJl6205Llt/nNQI?=
+ =?us-ascii?Q?6+2CuwEELhAALWRauThNJF6o/WSdneHILAjuRtkIJprl2QyWckKte9C0y5nL?=
+ =?us-ascii?Q?MibyLKHdqq8tCQcVj1HSmEgMWNIFxOdHTI0Uam/PzxD1Z4oRbh3aOiSpuDGr?=
+ =?us-ascii?Q?MDJTL/ISyruA9v1C6zEyEFs/euBqCHYv5PMM+9mc2Dgfp0V/+rkkssTGuVb/?=
+ =?us-ascii?Q?Az6ocU825H9+7mDbSVKzNYyFHfAML2be1ASV/XUS0EzEbih5+ITiMUfpPPcs?=
+ =?us-ascii?Q?PGEGyBCxoSVpPErt/CmuSxZiA/o/QoChkcIHb6vWF18mnqs8xazmZTG7StUh?=
+ =?us-ascii?Q?gR8NSdkn9QhvWGI7xk86Hty7AuYjwcBOQufsXIQ0gjMqP8A0Lu2ni9w7cvnY?=
+ =?us-ascii?Q?Ws8oX/00ABU2iK4KIWNYhiOdocREXwdRK2D5s08sV+LpCtqOoyiRwV0DMUKm?=
+ =?us-ascii?Q?OcPRbeVYn4ZtREv6SrRtbhwAXHrxKfbe3CJPl3VQvxPBzxEKX6UephuoI2IY?=
+ =?us-ascii?Q?HUk0YAh8sz+yPe3Gp9IZry1+jxcxPK2A+QEDZ5O6p9FEXipDC2oneOfR3+AV?=
+ =?us-ascii?Q?VooxCTKUKZPTgdqmltigQXb3E2V64VgjqtxlJukO3+ZXqED0?=
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 71bcb2c7-28c3-4426-2761-08debac549cc
+X-MS-Exchange-CrossTenant-Network-Message-Id: 5aeda3eb-24ec-404f-774d-08debac54ace
 X-MS-Exchange-CrossTenant-AuthSource: CY1PR12MB9601.namprd12.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 26 May 2026 01:22:44.5547
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 26 May 2026 01:22:46.2307
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: f0fV0CYph4rChg77Ogv7E2IjLHfiz1f/W3YvbB9pRqZHmPBqI7j2gwu9uOhVQILd
+X-MS-Exchange-CrossTenant-UserPrincipalName: 89Cwu6szCQtANs+A6GVOR7/vn5yj6fJi7WnTwuNFxwBfkdbE7qYRQkFPZIi8yzcV
 X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA0PPF73BED5E32
 
-mlx5 uses these move them into the support module from ib_uverbs.ko.
+Instead of having an alternative fops release always use the standard
+uverbs_uobject_fd_release() and route the special async behavior back up
+through uverbs_obj_fd_type ops pointer.
+
+This removes a dependency where the technically lower level rdma_core.c is
+referring to a symbol from uverbs_std_types_async_fd.c.
 
 Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
 ---
- drivers/infiniband/core/Makefile      | 6 +++---
- drivers/infiniband/core/ucaps.c       | 5 ++++-
- drivers/infiniband/core/uverbs_main.c | 1 -
- include/rdma/ib_ucaps.h               | 1 -
- 4 files changed, 7 insertions(+), 6 deletions(-)
+ drivers/infiniband/core/rdma_core.c           | 30 ++++++++++++++++---
+ drivers/infiniband/core/uverbs.h              |  1 -
+ drivers/infiniband/core/uverbs_main.c         |  2 +-
+ .../core/uverbs_std_types_async_fd.c          | 22 +++++---------
+ drivers/infiniband/core/uverbs_uapi.c         | 13 ++++++++
+ include/rdma/uverbs_types.h                   |  8 ++++-
+ 6 files changed, 54 insertions(+), 22 deletions(-)
 
-diff --git a/drivers/infiniband/core/Makefile b/drivers/infiniband/core/Makefile
-index e2ff9c2be9d377..47f645cb76f69e 100644
---- a/drivers/infiniband/core/Makefile
-+++ b/drivers/infiniband/core/Makefile
-@@ -46,7 +46,7 @@ ib_uverbs-y :=			uverbs_main.o uverbs_cmd.o uverbs_marshall.o \
- 				uverbs_std_types_async_fd.o \
- 				uverbs_std_types_srq.o \
- 				uverbs_std_types_wq.o \
--				uverbs_std_types_qp.o \
--				ucaps.o
-+				uverbs_std_types_qp.o
+diff --git a/drivers/infiniband/core/rdma_core.c b/drivers/infiniband/core/rdma_core.c
+index 5018ec837056ff..71e3d58d26e654 100644
+--- a/drivers/infiniband/core/rdma_core.c
++++ b/drivers/infiniband/core/rdma_core.c
+@@ -465,8 +465,8 @@ alloc_begin_fd_uobject(const struct uverbs_api_object *obj,
  
--ib_uverbs_support-y :=		rdma_core.o
-+ib_uverbs_support-y :=		rdma_core.o \
-+				ucaps.o
-diff --git a/drivers/infiniband/core/ucaps.c b/drivers/infiniband/core/ucaps.c
-index 948093260dbda1..a998bf6c326cfe 100644
---- a/drivers/infiniband/core/ucaps.c
-+++ b/drivers/infiniband/core/ucaps.c
-@@ -51,7 +51,7 @@ static const struct file_operations ucaps_cdev_fops = {
-  *
-  * This is called once, when removing the ib_uverbs module.
+ 	fd_type =
+ 		container_of(obj->type_attrs, struct uverbs_obj_fd_type, type);
+-	if (WARN_ON(fd_type->fops && fd_type->fops->release != &uverbs_uobject_fd_release &&
+-		    fd_type->fops->release != &uverbs_async_event_release)) {
++	if (WARN_ON(fd_type->fops &&
++		    fd_type->fops->release != &uverbs_uobject_fd_release)) {
+ 		ret = ERR_PTR(-EINVAL);
+ 		goto err_fd;
+ 	}
+@@ -846,13 +846,35 @@ int uverbs_uobject_release(struct ib_uobject *uobj)
   */
--void ib_cleanup_ucaps(void)
-+static __exit void ib_cleanup_ucaps(void)
+ int uverbs_uobject_fd_release(struct inode *inode, struct file *filp)
  {
- 	mutex_lock(&ucaps_mutex);
- 	if (!ucaps_class_is_registered) {
-@@ -265,3 +265,6 @@ int ib_get_ucaps(int *fds, int fd_count, uint64_t *idx_mask)
- 	mutex_unlock(&ucaps_mutex);
- 	return ret;
- }
-+EXPORT_SYMBOL_NS_GPL(ib_get_ucaps, "rdma_core");
++	void (*release_cleanup)(struct ib_uobject *uobj) = NULL;
++	struct ib_uobject *uobj = filp->private_data;
++	int ret;
 +
-+module_exit(ib_cleanup_ucaps);
+ 	/*
+ 	 * This can only happen if the fput came from alloc_abort_fd_uobject()
+ 	 */
+-	if (!filp->private_data)
++	if (!uobj)
+ 		return 0;
+ 
+-	return uverbs_uobject_release(filp->private_data);
++	/*
++	 * uverbs_disassociate_api() can NULL type_attrs after disassociate, but
++	 * it won't if release_cleanup is used.
++	 */
++	if (uobj->uapi_object->type_attrs)
++		release_cleanup = container_of(uobj->uapi_object->type_attrs,
++					       struct uverbs_obj_fd_type, type)
++					  ->release_cleanup;
++	if (release_cleanup)
++		uverbs_uobject_get(uobj);
++
++	ret = uverbs_uobject_release(uobj);
++
++	if (release_cleanup) {
++		release_cleanup(uobj);
++		uverbs_uobject_put(uobj);
++	}
++
++	return ret;
+ }
+ EXPORT_SYMBOL(uverbs_uobject_fd_release);
+ 
+diff --git a/drivers/infiniband/core/uverbs.h b/drivers/infiniband/core/uverbs.h
+index 1563169c65009e..a1de8fe9c90bf1 100644
+--- a/drivers/infiniband/core/uverbs.h
++++ b/drivers/infiniband/core/uverbs.h
+@@ -203,7 +203,6 @@ void ib_uverbs_init_event_queue(struct ib_uverbs_event_queue *ev_queue);
+ void ib_uverbs_init_async_event_file(struct ib_uverbs_async_event_file *ev_file);
+ void ib_uverbs_free_event_queue(struct ib_uverbs_event_queue *event_queue);
+ void ib_uverbs_flow_resources_free(struct ib_uflow_resources *uflow_res);
+-int uverbs_async_event_release(struct inode *inode, struct file *filp);
+ 
+ int ib_alloc_ucontext(struct uverbs_attr_bundle *attrs);
+ int ib_init_ucontext(struct uverbs_attr_bundle *attrs);
 diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
-index ab6f1e3cb47a18..3ccf58e96aedeb 100644
+index 15d8387718c050..a937d276c5c076 100644
 --- a/drivers/infiniband/core/uverbs_main.c
 +++ b/drivers/infiniband/core/uverbs_main.c
-@@ -1350,7 +1350,6 @@ static void __exit ib_uverbs_cleanup(void)
- 				 IB_UVERBS_NUM_FIXED_MINOR);
- 	unregister_chrdev_region(dynamic_uverbs_dev,
- 				 IB_UVERBS_NUM_DYNAMIC_MINOR);
--	ib_cleanup_ucaps();
- 	mmu_notifier_synchronize();
- }
- 
-diff --git a/include/rdma/ib_ucaps.h b/include/rdma/ib_ucaps.h
-index d9f96be3a553f8..b629c99117d8fe 100644
---- a/include/rdma/ib_ucaps.h
-+++ b/include/rdma/ib_ucaps.h
-@@ -14,7 +14,6 @@ enum rdma_user_cap {
- 	RDMA_UCAP_MAX
+@@ -338,7 +338,7 @@ const struct file_operations uverbs_async_event_fops = {
+ 	.owner	 = THIS_MODULE,
+ 	.read	 = ib_uverbs_async_event_read,
+ 	.poll    = ib_uverbs_async_event_poll,
+-	.release = uverbs_async_event_release,
++	.release = uverbs_uobject_fd_release,
+ 	.fasync  = ib_uverbs_async_event_fasync,
  };
  
--void ib_cleanup_ucaps(void);
- int ib_get_ucaps(int *fds, int fd_count, uint64_t *idx_mask);
- #if IS_ENABLED(CONFIG_INFINIBAND_USER_ACCESS)
- int ib_create_ucap(enum rdma_user_cap type);
+diff --git a/drivers/infiniband/core/uverbs_std_types_async_fd.c b/drivers/infiniband/core/uverbs_std_types_async_fd.c
+index cc24cfdf7aee66..671f510bca496f 100644
+--- a/drivers/infiniband/core/uverbs_std_types_async_fd.c
++++ b/drivers/infiniband/core/uverbs_std_types_async_fd.c
+@@ -32,14 +32,9 @@ static void uverbs_async_event_destroy_uobj(struct ib_uobject *uobj,
+ 					NULL, NULL);
+ }
+ 
+-int uverbs_async_event_release(struct inode *inode, struct file *filp)
++static void uverbs_async_event_free_event_queue(struct ib_uobject *uobj)
+ {
+ 	struct ib_uverbs_async_event_file *event_file;
+-	struct ib_uobject *uobj = filp->private_data;
+-	int ret;
+-
+-	if (!uobj)
+-		return uverbs_uobject_fd_release(inode, filp);
+ 
+ 	event_file =
+ 		container_of(uobj, struct ib_uverbs_async_event_file, uobj);
+@@ -50,11 +45,7 @@ int uverbs_async_event_release(struct inode *inode, struct file *filp)
+ 	 * release. The user knows it has reached the end of the event stream
+ 	 * when it sees IB_EVENT_DEVICE_FATAL.
+ 	 */
+-	uverbs_uobject_get(uobj);
+-	ret = uverbs_uobject_fd_release(inode, filp);
+ 	ib_uverbs_free_event_queue(&event_file->ev_queue);
+-	uverbs_uobject_put(uobj);
+-	return ret;
+ }
+ 
+ DECLARE_UVERBS_NAMED_METHOD(
+@@ -66,11 +57,12 @@ DECLARE_UVERBS_NAMED_METHOD(
+ 
+ DECLARE_UVERBS_NAMED_OBJECT(
+ 	UVERBS_OBJECT_ASYNC_EVENT,
+-	UVERBS_TYPE_ALLOC_FD(sizeof(struct ib_uverbs_async_event_file),
+-			     uverbs_async_event_destroy_uobj,
+-			     &uverbs_async_event_fops,
+-			     "[infinibandevent]",
+-			     O_RDONLY),
++	UVERBS_TYPE_ALLOC_FD_RELEASE(sizeof(struct ib_uverbs_async_event_file),
++				     uverbs_async_event_destroy_uobj,
++				     uverbs_async_event_free_event_queue,
++				     &uverbs_async_event_fops,
++				     "[infinibandevent]",
++				     O_RDONLY),
+ 	&UVERBS_METHOD(UVERBS_METHOD_ASYNC_EVENT_ALLOC));
+ 
+ const struct uapi_definition uverbs_def_obj_async_fd[] = {
+diff --git a/drivers/infiniband/core/uverbs_uapi.c b/drivers/infiniband/core/uverbs_uapi.c
+index 31b248295854bd..4e2e556c8119b5 100644
+--- a/drivers/infiniband/core/uverbs_uapi.c
++++ b/drivers/infiniband/core/uverbs_uapi.c
+@@ -718,12 +718,25 @@ void uverbs_disassociate_api(struct uverbs_api *uapi)
+ 		if (uapi_key_is_object(iter.index)) {
+ 			struct uverbs_api_object *object_elm =
+ 				rcu_dereference_protected(*slot, true);
++			const struct uverbs_obj_type *type_attrs =
++				object_elm->type_attrs;
+ 
+ 			/*
+ 			 * Some type_attrs are in the driver module. We don't
+ 			 * bother to keep track of which since there should be
+ 			 * no use of this after disassociate.
++			 *
++			 * release_cleanup is the exception because
++			 * uverbs_uobject_fd_release() needs it. In this case
++			 * the module reference held by the fops will guarentee
++			 * the type_class remains valid too.
+ 			 */
++			if (type_attrs &&
++			    type_attrs->type_class == &uverbs_fd_class &&
++			    container_of(type_attrs, struct uverbs_obj_fd_type,
++					 type)->release_cleanup)
++				continue;
++
+ 			object_elm->type_attrs = NULL;
+ 		} else if (uapi_key_is_attr(iter.index)) {
+ 			struct uverbs_api_attr *elm =
+diff --git a/include/rdma/uverbs_types.h b/include/rdma/uverbs_types.h
+index 6a253b7dc5ea66..5a07f9a6dcd1f6 100644
+--- a/include/rdma/uverbs_types.h
++++ b/include/rdma/uverbs_types.h
+@@ -147,6 +147,7 @@ struct uverbs_obj_fd_type {
+ 	struct uverbs_obj_type  type;
+ 	void (*destroy_object)(struct ib_uobject *uobj,
+ 			       enum rdma_remove_reason why);
++	void (*release_cleanup)(struct ib_uobject *uobj);
+ 	const struct file_operations	*fops;
+ 	const char			*name;
+ 	int				flags;
+@@ -190,7 +191,8 @@ int uverbs_uobject_release(struct ib_uobject *uobj);
+ 
+ #define UVERBS_BUILD_BUG_ON(cond) (sizeof(char[1 - 2 * !!(cond)]) -	\
+ 				   sizeof(char))
+-#define UVERBS_TYPE_ALLOC_FD(_obj_size, _destroy_object, _fops, _name, _flags) \
++#define UVERBS_TYPE_ALLOC_FD_RELEASE(_obj_size, _destroy_object,	\
++				     _release_cleanup, _fops, _name, _flags) \
+ 	((&((const struct uverbs_obj_fd_type)				\
+ 	 {.type = {							\
+ 		.type_class = &uverbs_fd_class,				\
+@@ -199,9 +201,13 @@ int uverbs_uobject_release(struct ib_uobject *uobj);
+ 					    sizeof(struct ib_uobject)), \
+ 	 },								\
+ 	 .destroy_object = _destroy_object,				\
++	 .release_cleanup = _release_cleanup,				\
+ 	 .fops = _fops,							\
+ 	 .name = _name,							\
+ 	 .flags = _flags}))->type)
++#define UVERBS_TYPE_ALLOC_FD(_obj_size, _destroy_object, _fops, _name, _flags) \
++	UVERBS_TYPE_ALLOC_FD_RELEASE(_obj_size, _destroy_object, NULL,	\
++				     _fops, _name, _flags)
+ #define UVERBS_TYPE_ALLOC_IDR_SZ(_size, _destroy_object)	\
+ 	((&((const struct uverbs_obj_idr_type)				\
+ 	 {.type = {							\
 -- 
 2.43.0
 
