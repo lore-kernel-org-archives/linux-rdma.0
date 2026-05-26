@@ -1,60 +1,60 @@
-Received: from pdx-out-013.esa.us-west-2.outbound.mail-perimeter.amazon.com (pdx-out-013.esa.us-west-2.outbound.mail-perimeter.amazon.com [34.218.115.239])
+Received: from pdx-out-012.esa.us-west-2.outbound.mail-perimeter.amazon.com (pdx-out-012.esa.us-west-2.outbound.mail-perimeter.amazon.com [35.162.73.231])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C6323D090A
-	for <linux-rdma@vger.kernel.org>; Tue, 26 May 2026 09:07:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=34.218.115.239
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA236356A12
+	for <linux-rdma@vger.kernel.org>; Tue, 26 May 2026 09:07:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=35.162.73.231
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779786445; cv=none; b=Sm/PbwIYJT8zkX1KByXG2/kGFqCzh4nFrCSzHJOVOnsPHtzLQu/a5VGrRm48LE7wlQ8vhuq8KBu5hN6x+xrLgwWFz4f07bGUp+zZ7Kb1e1vxPpw+So/tD7dSEyHnOIZzP/k53RfCRnwJzbLiyBTOooOpb1bRsSQFHumpQO1GN8E=
+	t=1779786447; cv=none; b=co3Brwqj3O7fUulxmZVfvwlmKvmYW67+xdnDcEva2ubst1ZVm9yl3cgaLKB9Qse9o7dxSzuxJRO8wWVGP16lCFkQdpb1ImiAjVR/1LPGRTJICtkVBFAyBcqqH/U90mjz92n7qU8gsuxevOBhtfs8XT51LlXHfEql/ZI9wNLzVNY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779786445; c=relaxed/simple;
-	bh=VJqQuGTa9ps2jgjyoplvtImBjnDWzdAKtINbUvwKW+Q=;
+	s=arc-20240116; t=1779786447; c=relaxed/simple;
+	bh=3fGEfBXSJ9Ca6VsUZqI1ST9X3nGq5EjGBOe0b9UeUtQ=;
 	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=JA7txzupz5Y1tvza9frRnfYcy/1eFu28eONWA2/eEtHW4h6K+M4ubT4DSHfj9kr3PGP6admpNsGe8Y5+IMHlGc+sWqAaTQkp2MsbzJAcuKwhYkLzbC0USQDk48EBuSHmP0CN1zKcowsSQF944Oxx8D3JYHjec/aV+yIBIAMVVJc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com; spf=pass smtp.mailfrom=amazon.com; dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.b=lyMxaqzo; arc=none smtp.client-ip=34.218.115.239
+	 MIME-Version:Content-Type; b=WbVwmYmdCN33OCWzPmmiozuklsDTCLpsBR5uwfbvySStPFgu1YAzVWo6RfbO8uOCaA724ie+wcUwU7/x8Pr0HaId687mfc0K3WXV4nD0dnA3rleKVMzVDVuTYDIX7zn8xrihZ/DjUrdujh7dC0G3BdZG3Er7a9z5IN6AC/A5egE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com; spf=pass smtp.mailfrom=amazon.com; dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.b=ZHZdmhgd; arc=none smtp.client-ip=35.162.73.231
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazon.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.b="lyMxaqzo"
+	dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.b="ZHZdmhgd"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
   d=amazon.com; i=@amazon.com; q=dns/txt; s=amazoncorp2;
-  t=1779786444; x=1811322444;
+  t=1779786445; x=1811322445;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=7/k7+ZuLqo5qeN00xvwn0U9rkH+OfPZwM4yES6Zi9FU=;
-  b=lyMxaqzo+VhN0KWyyx+0oibZ/SoJVWvb1GEAWypjdMUS4uuSmyvEWQVl
-   xk8xVi0TOVusHbl33k7zoEQPPogf30h7pCt6D+lMDS6JpLkcz/xCuGcFH
-   aMVeoUCHgs4IFmTy8C5JhzwcNe7b1AqMAdvP+1MeBhusSHb3/zDL3OXSV
-   C6GLhKFJNVjhzRB9f4/0CaAGvscrVsGm+xE7Yqr9LaXwgWUI5Euw+V/f5
-   XVORnCc1UTYnDOc4NBfQMnErz1QWxzFFrvnF6Gan0/d3EVjFvLQnG8Z8y
-   KKQ2qT/lVUMWA5FjrGHHKh6KtoTY+vT8P7mrd8liUF+fu5Q09hQNRUSAp
-   Q==;
-X-CSE-ConnectionGUID: 7xAAt+OdRTSOD4rCFkdb7g==
-X-CSE-MsgGUID: MD2vOni4SkGBnLMLNF/IOA==
+  bh=Ah+rWSdu+d8UedvkU1lD3PJYduWu6otjmFXbmHIEN2w=;
+  b=ZHZdmhgdUa00S+IFzfbvFM0pXbF37ID1EkwVml7lhm7IGj2eKE49W8XJ
+   XEVBzp3yHuB/eLjzfLG8nHQ+qpsh/15mkVVXAwUIVVTZoFpz8FmOwAyp0
+   DX/Agn0XnYAZKLtyUkeyQgePipBQ8IVEyP4iWvnORer/Ls2GOvz33qj2b
+   +N0pPpUTXpjLrbsIi+UMOfLERDbyUTHnwuBlRiTZPi0A+IjORaPynxbhX
+   gYHdMtqP1VcLGLcLuUO9xSXtXfb0odRGFI83E8nsnky/OWk8xgMnWAEkq
+   nNoat+i1IRXkxF/Hhh/u2PheMmFgPbarJ453gEiR75/X3bkcrxwMwE7A3
+   w==;
+X-CSE-ConnectionGUID: ipOm2F5zTDes1J0+byVHuA==
+X-CSE-MsgGUID: V4hnfTIwStuOgXvY3KsiKQ==
 X-IronPort-AV: E=Sophos;i="6.24,169,1774310400"; 
-   d="scan'208";a="20259235"
-Received: from ip-10-5-0-115.us-west-2.compute.internal (HELO smtpout.naws.us-west-2.prod.farcaster.email.amazon.dev) ([10.5.0.115])
-  by internal-pdx-out-013.esa.us-west-2.outbound.mail-perimeter.amazon.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 May 2026 09:07:22 +0000
-Received: from EX19MTAUWB002.ant.amazon.com [205.251.233.111:6284]
- by smtpin.naws.us-west-2.prod.farcaster.email.amazon.dev [10.0.35.206:2525] with esmtp (Farcaster)
- id db2768c0-521d-458d-91b8-98d58b6d7821; Tue, 26 May 2026 09:07:22 +0000 (UTC)
-X-Farcaster-Flow-ID: db2768c0-521d-458d-91b8-98d58b6d7821
+   d="scan'208";a="20260840"
+Received: from ip-10-5-9-48.us-west-2.compute.internal (HELO smtpout.naws.us-west-2.prod.farcaster.email.amazon.dev) ([10.5.9.48])
+  by internal-pdx-out-012.esa.us-west-2.outbound.mail-perimeter.amazon.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 May 2026 09:07:21 +0000
+Received: from EX19MTAUWA001.ant.amazon.com [205.251.233.182:14523]
+ by smtpin.naws.us-west-2.prod.farcaster.email.amazon.dev [10.0.1.25:2525] with esmtp (Farcaster)
+ id 5c3db884-2c62-41ad-bcbe-8ff12b07a81f; Tue, 26 May 2026 09:07:20 +0000 (UTC)
+X-Farcaster-Flow-ID: 5c3db884-2c62-41ad-bcbe-8ff12b07a81f
 Received: from EX19D001UWA001.ant.amazon.com (10.13.138.214) by
- EX19MTAUWB002.ant.amazon.com (10.250.64.231) with Microsoft SMTP Server
+ EX19MTAUWA001.ant.amazon.com (10.250.64.217) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.37;
- Tue, 26 May 2026 09:07:20 +0000
+ Tue, 26 May 2026 09:07:18 +0000
 Received: from dev-dsk-mrgolin-1c-b2091117.eu-west-1.amazon.com
  (10.253.103.172) by EX19D001UWA001.ant.amazon.com (10.13.138.214) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.37; Tue, 26 May 2026
- 09:07:19 +0000
+ 09:07:16 +0000
 From: Michael Margolin <mrgolin@amazon.com>
 To: <jgg@nvidia.com>, <leon@kernel.org>, <linux-rdma@vger.kernel.org>
-CC: <sleybo@amazon.com>, <matua@amazon.com>, <gal.pressman@linux.dev>, "Daniel
- Kinsbursky" <dkinsb@amazon.com>, Yonatan Nachum <ynachum@amazon.com>
-Subject: [PATCH for-next v5 4/5] RDMA/efa: Update device interface
-Date: Tue, 26 May 2026 09:07:11 +0000
-Message-ID: <20260526090712.17575-5-mrgolin@amazon.com>
+CC: <sleybo@amazon.com>, <matua@amazon.com>, <gal.pressman@linux.dev>,
+	"Yonatan Nachum" <ynachum@amazon.com>
+Subject: [PATCH for-next v5 2/5] RDMA/core: Prevent destroying in-use completion counters
+Date: Tue, 26 May 2026 09:07:09 +0000
+Message-ID: <20260526090712.17575-3-mrgolin@amazon.com>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260526090712.17575-1-mrgolin@amazon.com>
 References: <20260526090712.17575-1-mrgolin@amazon.com>
@@ -69,366 +69,121 @@ Content-Type: text/plain
 X-ClientProxiedBy: EX19D032UWA004.ant.amazon.com (10.13.139.56) To
  EX19D001UWA001.ant.amazon.com (10.13.138.214)
 
-Align device interface definitions.
+Reject comp_cntr destroy while it is attached to any QP. Track
+attachments using an xarray in ib_qp keyed by the attach op_mask.
+Use op bitmask to reject overlapping attaches early.
 
-Reviewed-by: Daniel Kinsbursky <dkinsb@amazon.com>
 Reviewed-by: Yonatan Nachum <ynachum@amazon.com>
 Signed-off-by: Michael Margolin <mrgolin@amazon.com>
 ---
- .../infiniband/hw/efa/efa_admin_cmds_defs.h   | 185 +++++++++++++++++-
- drivers/infiniband/hw/efa/efa_io_defs.h       |  61 +++++-
- 2 files changed, 241 insertions(+), 5 deletions(-)
+ .../infiniband/core/uverbs_std_types_comp_cntr.c |  3 +++
+ drivers/infiniband/core/uverbs_std_types_qp.c    | 16 +++++++++++++++-
+ drivers/infiniband/core/verbs.c                  |  8 ++++++++
+ include/rdma/ib_verbs.h                          |  3 +++
+ 4 files changed, 29 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/efa/efa_admin_cmds_defs.h b/drivers/infiniband/hw/efa/efa_admin_cmds_defs.h
-index 826790ca9d83..a305585dee3c 100644
---- a/drivers/infiniband/hw/efa/efa_admin_cmds_defs.h
-+++ b/drivers/infiniband/hw/efa/efa_admin_cmds_defs.h
-@@ -28,7 +28,12 @@ enum efa_admin_aq_opcode {
- 	EFA_ADMIN_CREATE_EQ                         = 18,
- 	EFA_ADMIN_DESTROY_EQ                        = 19,
- 	EFA_ADMIN_ALLOC_MR                          = 20,
--	EFA_ADMIN_MAX_OPCODE                        = 20,
-+	EFA_ADMIN_SERVICE                           = 21,
-+	EFA_ADMIN_CREATE_EVENT_COUNTER              = 25,
-+	EFA_ADMIN_DESTROY_EVENT_COUNTER             = 26,
-+	EFA_ADMIN_ATTACH_EVENT_COUNTER              = 27,
-+	EFA_ADMIN_MODIFY_EVENT_COUNTER              = 28,
-+	EFA_ADMIN_MAX_OPCODE                        = 28,
+diff --git a/drivers/infiniband/core/uverbs_std_types_comp_cntr.c b/drivers/infiniband/core/uverbs_std_types_comp_cntr.c
+index 91ad54b270cf..967f05f76bbe 100644
+--- a/drivers/infiniband/core/uverbs_std_types_comp_cntr.c
++++ b/drivers/infiniband/core/uverbs_std_types_comp_cntr.c
+@@ -13,6 +13,9 @@ static int uverbs_free_comp_cntr(struct ib_uobject *uobject, enum rdma_remove_re
+ 	struct ib_comp_cntr *cc = uobject->object;
+ 	int ret;
+ 
++	if (atomic_read(&cc->usecnt))
++		return -EBUSY;
++
+ 	ret = cc->device->ops.destroy_comp_cntr(cc);
+ 	if (ret)
+ 		return ret;
+diff --git a/drivers/infiniband/core/uverbs_std_types_qp.c b/drivers/infiniband/core/uverbs_std_types_qp.c
+index c401972865a0..aa740478c117 100644
+--- a/drivers/infiniband/core/uverbs_std_types_qp.c
++++ b/drivers/infiniband/core/uverbs_std_types_qp.c
+@@ -395,7 +395,21 @@ static int UVERBS_HANDLER(UVERBS_METHOD_QP_ATTACH_COMP_CNTR)(
+ 	if (!attr.op_mask)
+ 		return -EINVAL;
+ 
+-	return qp->device->ops.qp_attach_comp_cntr(qp, cc, &attr);
++	if (attr.op_mask & qp->comp_cntr_op_mask)
++		return -EBUSY;
++
++	ret = qp->device->ops.qp_attach_comp_cntr(qp, cc, &attr);
++	if (ret)
++		return ret;
++
++	ret = xa_err(xa_store(&qp->comp_cntrs, attr.op_mask, cc, GFP_KERNEL));
++	if (ret)
++		return ret;
++
++	atomic_inc(&cc->usecnt);
++	qp->comp_cntr_op_mask |= attr.op_mask;
++
++	return 0;
+ }
+ 
+ DECLARE_UVERBS_NAMED_METHOD(
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index bac87de9cc67..3a7ab4df89d1 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -1293,6 +1293,7 @@ static struct ib_qp *create_qp(struct ib_device *dev, struct ib_pd *pd,
+ 	qp->qp_context = attr->qp_context;
+ 
+ 	spin_lock_init(&qp->mr_lock);
++	xa_init(&qp->comp_cntrs);
+ 	INIT_LIST_HEAD(&qp->rdma_mrs);
+ 	INIT_LIST_HEAD(&qp->sig_mrs);
+ 	init_completion(&qp->srq_completion);
+@@ -1325,6 +1326,7 @@ static struct ib_qp *create_qp(struct ib_device *dev, struct ib_pd *pd,
+ 	qp->device->ops.destroy_qp(qp, udata ? &dummy : NULL);
+ err_create:
+ 	rdma_restrack_put(&qp->res);
++	xa_destroy(&qp->comp_cntrs);
+ 	kfree(qp);
+ 	return ERR_PTR(ret);
+ 
+@@ -2147,6 +2149,8 @@ int ib_destroy_qp_user(struct ib_qp *qp, struct ib_udata *udata)
+ 	const struct ib_gid_attr *alt_path_sgid_attr = qp->alt_path_sgid_attr;
+ 	const struct ib_gid_attr *av_sgid_attr = qp->av_sgid_attr;
+ 	struct ib_qp_security *sec;
++	struct ib_comp_cntr *cc;
++	unsigned long index;
+ 	int ret;
+ 
+ 	WARN_ON_ONCE(qp->mrs_used > 0);
+@@ -2177,6 +2181,10 @@ int ib_destroy_qp_user(struct ib_qp *qp, struct ib_udata *udata)
+ 	if (av_sgid_attr)
+ 		rdma_put_gid_attr(av_sgid_attr);
+ 
++	xa_for_each(&qp->comp_cntrs, index, cc)
++		atomic_dec(&cc->usecnt);
++	xa_destroy(&qp->comp_cntrs);
++
+ 	ib_qp_usecnt_dec(qp);
+ 	if (sec)
+ 		ib_destroy_qp_security_end(sec);
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 776070e061cd..9cfc5691f217 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -1752,6 +1752,7 @@ struct ib_comp_cntr {
+ 	struct ib_uobject *uobject;
+ 	u64 comp_count_max_value;
+ 	u64 err_count_max_value;
++	atomic_t usecnt;
  };
  
- enum efa_admin_aq_feature_id {
-@@ -722,7 +727,9 @@ struct efa_admin_feature_device_attr_desc {
- 	 *    on TX queues
- 	 * 4 : unsolicited_write_recv - If set, unsolicited
- 	 *    write with imm. receive is supported
--	 * 31:5 : reserved - MBZ
-+	 * 5 : event_counters - If set, event counters are
-+	 *    supported
-+	 * 31:6 : reserved - MBZ
- 	 */
- 	u32 device_caps;
+ enum ib_comp_cntr_entry {
+@@ -1947,6 +1948,8 @@ struct ib_qp {
+ 	struct completion	srq_completion;
+ 	struct ib_xrcd	       *xrcd; /* XRC TGT QPs only */
+ 	struct list_head	xrcd_list;
++	struct xarray		comp_cntrs; /* op_mask -> comp_cntr */
++	u32			comp_cntr_op_mask;
  
-@@ -811,6 +818,34 @@ struct efa_admin_feature_queue_attr_desc_1 {
- struct efa_admin_feature_queue_attr_desc_2 {
- 	/* Maximum size of data that can be sent inline in a Send WQE */
- 	u16 inline_buf_size_ex;
-+
-+	/* MBZ */
-+	u8 reserved[6];
-+
-+	/*
-+	 * Supported counter QP events
-+	 * 0 : send_comp
-+	 * 1 : send_comp_err
-+	 * 2 : recv_comp
-+	 * 3 : recv_comp_err
-+	 * 4 : read_comp
-+	 * 5 : read_comp_err
-+	 * 6 : write_comp
-+	 * 7 : write_comp_err
-+	 * 8 : remote_read_comp
-+	 * 9 : remote_write_comp
-+	 * 31:10 : reserved - MBZ
-+	 */
-+	u32 supported_event_counter_qp_events;
-+
-+	/* Maximum number of counters */
-+	u32 max_event_counters;
-+
-+	/*
-+	 * Maximum counter value, counter wraps around to 0 after reaching
-+	 * this value
-+	 */
-+	u64 event_counter_max_val;
- };
- 
- struct efa_admin_event_queue_attr_desc {
-@@ -1089,6 +1124,127 @@ struct efa_admin_host_info {
- 	u32 flags;
- };
- 
-+struct efa_admin_service_cmd {
-+	struct efa_admin_aq_common_desc aq_common_descriptor;
-+
-+	u8 buffer[60];
-+};
-+
-+struct efa_admin_service_resp {
-+	struct efa_admin_acq_common_desc acq_common_desc;
-+
-+	u8 buffer[56];
-+};
-+
-+/* Create Counter command */
-+struct efa_admin_create_event_counter_cmd {
-+	struct efa_admin_aq_common_desc aq_common_descriptor;
-+
-+	/* UAR number */
-+	u16 uar;
-+
-+	/* MBZ */
-+	u16 reserved;
-+
-+	/* Counter physical address */
-+	u64 paddr;
-+};
-+
-+struct efa_admin_create_event_counter_resp {
-+	struct efa_admin_acq_common_desc acq_common_desc;
-+
-+	/* Counter handle */
-+	u32 cntr_handle;
-+
-+	/* MBZ */
-+	u32 reserved;
-+};
-+
-+struct efa_admin_destroy_event_counter_cmd {
-+	struct efa_admin_aq_common_desc aq_common_descriptor;
-+
-+	/* Counter handle */
-+	u32 cntr_handle;
-+};
-+
-+struct efa_admin_destroy_event_counter_resp {
-+	struct efa_admin_acq_common_desc acq_common_desc;
-+};
-+
-+enum efa_admin_event_counter_attach_type {
-+	EFA_ADMIN_EVENT_COUNTER_ATTACH_QP_EVENTS    = 0,
-+};
-+
-+struct efa_admin_event_counter_attach_qp_events {
-+	/* QP handle */
-+	u32 qp_handle;
-+
-+	/*
-+	 * Bitmask of counter QP events
-+	 * 0 : send_comp
-+	 * 1 : send_comp_err
-+	 * 2 : recv_comp
-+	 * 3 : recv_comp_err
-+	 * 4 : read_comp
-+	 * 5 : read_comp_err
-+	 * 6 : write_comp
-+	 * 7 : write_comp_err
-+	 * 8 : remote_read_comp
-+	 * 9 : remote_write_comp
-+	 * 31:10 : reserved - MBZ
-+	 */
-+	u32 events;
-+};
-+
-+struct efa_admin_attach_event_counter_cmd {
-+	struct efa_admin_aq_common_desc aq_common_descriptor;
-+
-+	/* Counter handle */
-+	u32 cntr_handle;
-+
-+	/* efa_admin_event_counter_attach_type */
-+	u8 attach_type;
-+
-+	/* MBZ */
-+	u8 reserved[3];
-+
-+	union {
-+		struct efa_admin_event_counter_attach_qp_events qp_events;
-+	} u;
-+};
-+
-+struct efa_admin_attach_event_counter_resp {
-+	struct efa_admin_acq_common_desc acq_common_desc;
-+};
-+
-+/* Counter modify operations */
-+enum efa_admin_event_counter_modify_ops {
-+	/* Set counter value */
-+	EFA_ADMIN_EVENT_COUNTER_MODIFY_SET          = 0,
-+	/* Add to counter value */
-+	EFA_ADMIN_EVENT_COUNTER_MODIFY_ADD          = 1,
-+};
-+
-+struct efa_admin_modify_event_counter_cmd {
-+	struct efa_admin_aq_common_desc aq_common_descriptor;
-+
-+	/* Counter handle */
-+	u32 cntr_handle;
-+
-+	/* Counter operation type (efa_admin_event_counter_modify_ops) */
-+	u8 operation;
-+
-+	/* MBZ */
-+	u8 reserved[7];
-+
-+	/* Value for SET or ADD */
-+	u64 value;
-+};
-+
-+struct efa_admin_modify_event_counter_resp {
-+	struct efa_admin_acq_common_desc acq_common_desc;
-+};
-+
- /* create_qp_cmd */
- #define EFA_ADMIN_CREATE_QP_CMD_SQ_VIRT_MASK                BIT(0)
- #define EFA_ADMIN_CREATE_QP_CMD_RQ_VIRT_MASK                BIT(1)
-@@ -1129,6 +1285,19 @@ struct efa_admin_host_info {
- #define EFA_ADMIN_FEATURE_DEVICE_ATTR_DESC_DATA_POLLING_128_MASK BIT(2)
- #define EFA_ADMIN_FEATURE_DEVICE_ATTR_DESC_RDMA_WRITE_MASK  BIT(3)
- #define EFA_ADMIN_FEATURE_DEVICE_ATTR_DESC_UNSOLICITED_WRITE_RECV_MASK BIT(4)
-+#define EFA_ADMIN_FEATURE_DEVICE_ATTR_DESC_EVENT_COUNTERS_MASK BIT(5)
-+
-+/* feature_queue_attr_desc_2 */
-+#define EFA_ADMIN_FEATURE_QUEUE_ATTR_DESC_2_SEND_COMP_MASK  BIT(0)
-+#define EFA_ADMIN_FEATURE_QUEUE_ATTR_DESC_2_SEND_COMP_ERR_MASK BIT(1)
-+#define EFA_ADMIN_FEATURE_QUEUE_ATTR_DESC_2_RECV_COMP_MASK  BIT(2)
-+#define EFA_ADMIN_FEATURE_QUEUE_ATTR_DESC_2_RECV_COMP_ERR_MASK BIT(3)
-+#define EFA_ADMIN_FEATURE_QUEUE_ATTR_DESC_2_READ_COMP_MASK  BIT(4)
-+#define EFA_ADMIN_FEATURE_QUEUE_ATTR_DESC_2_READ_COMP_ERR_MASK BIT(5)
-+#define EFA_ADMIN_FEATURE_QUEUE_ATTR_DESC_2_WRITE_COMP_MASK BIT(6)
-+#define EFA_ADMIN_FEATURE_QUEUE_ATTR_DESC_2_WRITE_COMP_ERR_MASK BIT(7)
-+#define EFA_ADMIN_FEATURE_QUEUE_ATTR_DESC_2_REMOTE_READ_COMP_MASK BIT(8)
-+#define EFA_ADMIN_FEATURE_QUEUE_ATTR_DESC_2_REMOTE_WRITE_COMP_MASK BIT(9)
- 
- /* create_eq_cmd */
- #define EFA_ADMIN_CREATE_EQ_CMD_ENTRY_SIZE_WORDS_MASK       GENMASK(4, 0)
-@@ -1147,4 +1316,16 @@ struct efa_admin_host_info {
- #define EFA_ADMIN_HOST_INFO_INTREE_MASK                     BIT(0)
- #define EFA_ADMIN_HOST_INFO_GDR_MASK                        BIT(1)
- 
-+/* counter_attach_qp_events */
-+#define EFA_ADMIN_EVENT_COUNTER_ATTACH_QP_EVENTS_SEND_COMP_MASK   BIT(0)
-+#define EFA_ADMIN_EVENT_COUNTER_ATTACH_QP_EVENTS_SEND_COMP_ERR_MASK BIT(1)
-+#define EFA_ADMIN_EVENT_COUNTER_ATTACH_QP_EVENTS_RECV_COMP_MASK   BIT(2)
-+#define EFA_ADMIN_EVENT_COUNTER_ATTACH_QP_EVENTS_RECV_COMP_ERR_MASK BIT(3)
-+#define EFA_ADMIN_EVENT_COUNTER_ATTACH_QP_EVENTS_READ_COMP_MASK   BIT(4)
-+#define EFA_ADMIN_EVENT_COUNTER_ATTACH_QP_EVENTS_READ_COMP_ERR_MASK BIT(5)
-+#define EFA_ADMIN_EVENT_COUNTER_ATTACH_QP_EVENTS_WRITE_COMP_MASK  BIT(6)
-+#define EFA_ADMIN_EVENT_COUNTER_ATTACH_QP_EVENTS_WRITE_COMP_ERR_MASK BIT(7)
-+#define EFA_ADMIN_EVENT_COUNTER_ATTACH_QP_EVENTS_REMOTE_READ_COMP_MASK BIT(8)
-+#define EFA_ADMIN_EVENT_COUNTER_ATTACH_QP_EVENTS_REMOTE_WRITE_COMP_MASK BIT(9)
-+
- #endif /* _EFA_ADMIN_CMDS_H_ */
-diff --git a/drivers/infiniband/hw/efa/efa_io_defs.h b/drivers/infiniband/hw/efa/efa_io_defs.h
-index a4c9fd33da38..1fa6aac1b980 100644
---- a/drivers/infiniband/hw/efa/efa_io_defs.h
-+++ b/drivers/infiniband/hw/efa/efa_io_defs.h
-@@ -9,6 +9,7 @@
- #define EFA_IO_TX_DESC_NUM_BUFS              2
- #define EFA_IO_TX_DESC_NUM_RDMA_BUFS         1
- #define EFA_IO_TX_DESC_INLINE_MAX_SIZE       32
-+#define EFA_IO_TX_DESC_INLINE_MAX_SIZE_128   80
- #define EFA_IO_TX_DESC_IMM_DATA_SIZE         4
- #define EFA_IO_TX_DESC_INLINE_PBL_SIZE       1
- 
-@@ -65,6 +66,8 @@ enum efa_io_comp_status {
- 	EFA_IO_COMP_STATUS_REMOTE_ERROR_UNKNOWN_PEER = 14,
- 	/* Unreachable remote - never received a response */
- 	EFA_IO_COMP_STATUS_LOCAL_ERROR_UNREACH_REMOTE = 15,
-+	/* Remote feature mismatch */
-+	EFA_IO_COMP_STATUS_REMOTE_ERROR_FEATURE_MISMATCH = 18,
- };
- 
- enum efa_io_frwr_pbl_mode {
-@@ -72,6 +75,11 @@ enum efa_io_frwr_pbl_mode {
- 	EFA_IO_FRWR_DIRECT_PBL                      = 1,
- };
- 
-+enum efa_io_processing_hint {
-+	/* Optimize for throughput */
-+	EFA_IO_PROCESSING_HINT_BURST_PPS_SENSITIVE  = 1 << 0,
-+};
-+
- struct efa_io_tx_meta_desc {
- 	/* Verbs-generated Request ID */
- 	u16 req_id;
-@@ -121,7 +129,15 @@ struct efa_io_tx_meta_desc {
- 
- 	u16 ah;
- 
--	u16 reserved;
-+	/*
-+	 * control flags
-+	 * 1:0 : processing_hints - Bitmask of enum
-+	 *    efa_io_processing_hint
-+	 * 7:2 : reserved - MBZ
-+	 */
-+	u8 ctrl3;
-+
-+	u8 reserved;
- 
- 	/* Queue key */
- 	u32 qkey;
-@@ -172,6 +188,19 @@ struct efa_io_rdma_req {
- 	struct efa_io_tx_buf_desc local_mem[1];
- };
- 
-+struct efa_io_rdma_req_128 {
-+	/* Remote memory address */
-+	struct efa_io_remote_mem_addr remote_mem;
-+
-+	union {
-+		/* Local memory address */
-+		struct efa_io_tx_buf_desc local_mem[1];
-+
-+		/* inline data for RDMA */
-+		u8 inline_data[80];
-+	};
-+};
-+
- struct efa_io_fast_mr_reg_req {
- 	/* Updated local key of the MR after lkey/rkey increment */
- 	u32 lkey;
-@@ -230,8 +259,8 @@ struct efa_io_fast_mr_inv_req {
- };
- 
- /*
-- * Tx WQE, composed of tx meta descriptors followed by either tx buffer
-- * descriptors or inline data
-+ * 64-byte Tx WQE, composed of tx meta descriptors followed by either tx
-+ * buffer descriptors or inline data
-  */
- struct efa_io_tx_wqe {
- 	/* TX meta */
-@@ -254,6 +283,31 @@ struct efa_io_tx_wqe {
- 	} data;
- };
- 
-+/*
-+ * 128-byte Tx WQE, composed of tx meta descriptors followed by either tx
-+ * buffer descriptors or inline data
-+ */
-+struct efa_io_tx_wqe_128 {
-+	/* TX meta */
-+	struct efa_io_tx_meta_desc meta;
-+
-+	union {
-+		/* Send buffer descriptors */
-+		struct efa_io_tx_buf_desc sgl[2];
-+
-+		u8 inline_data[80];
-+
-+		/* RDMA local and remote memory addresses */
-+		struct efa_io_rdma_req_128 rdma_req;
-+
-+		/* Fast registration */
-+		struct efa_io_fast_mr_reg_req reg_mr_req;
-+
-+		/* Fast invalidation */
-+		struct efa_io_fast_mr_inv_req inv_mr_req;
-+	} data;
-+};
-+
- /*
-  * Rx buffer descriptor; RX WQE is composed of one or more RX buffer
-  * descriptors.
-@@ -365,6 +419,7 @@ struct efa_io_rx_cdesc_ex {
- #define EFA_IO_TX_META_DESC_FIRST_MASK                      BIT(2)
- #define EFA_IO_TX_META_DESC_LAST_MASK                       BIT(3)
- #define EFA_IO_TX_META_DESC_COMP_REQ_MASK                   BIT(4)
-+#define EFA_IO_TX_META_DESC_PROCESSING_HINTS_MASK           GENMASK(1, 0)
- 
- /* tx_buf_desc */
- #define EFA_IO_TX_BUF_DESC_LKEY_MASK                        GENMASK(23, 0)
+ 	/* count times opened, mcast attaches, flow attaches */
+ 	atomic_t		usecnt;
 -- 
 2.47.3
 
