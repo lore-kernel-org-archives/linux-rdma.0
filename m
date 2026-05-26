@@ -1,102 +1,99 @@
-Received: from outbound.baidu.com (mx22.baidu.com [220.181.50.185])
-	by smtp.subspace.kernel.org (Postfix) with SMTP id C6CBD3DD86E
-	for <linux-rdma@vger.kernel.org>; Tue, 26 May 2026 12:44:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=220.181.50.185
+Received: from mail-qt1-f182.google.com (mail-qt1-f182.google.com [209.85.160.182])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 232751F91F6
+	for <linux-rdma@vger.kernel.org>; Tue, 26 May 2026 12:57:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779799488; cv=none; b=idY1u87pprpcXiiKzkw5JRT7YLePgSSQrNjRqunMAOE9wT6w8DITb9sKsBGi+dUwPE+Q/qXhDrYP61Q4YWDrZOeHChpKAWdS7tPZIgJYlYYmBkZNSoZK1eo5gdDJsjq0vsKlH+07jSRdjmriMA6xPyEn8tOkF3j+MODM6lnG2y4=
+	t=1779800281; cv=none; b=RQs23v950vuT89BACFDPwG9P+iJ8BUR+JXLSggjlfW8L6zu4QI+8dAuMD+QnvBOpkd3R3PR09b5pSf5edaEyo+Of2n+9pNs8sRSNnClEevz7Q5vafGiup4XyoB688adwb7Mh1Vjei1AV+0DV0+YMTZJNd0KfZmex8QO/Lgyd0MI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779799488; c=relaxed/simple;
-	bh=sArlGPDS/xmWU/Q+rpmQaVwcXqWJaTwjtsMEogPebLU=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=UsTdE+RL+Cj+D/nYpUJuY3mkjfb7r46rqasmQkjF7/cBQbioHrkHMwX8sr2vJtoEAN+RubpIxie/UTADe73VblJH2lVY+jFSmYKxdo1hQJo64pNKEIdzUcZHkYaOnC6/QxJFFNlQeB9ZPBRs9CS3TCR5ifhRFJGoC1Yje02r/V0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=baidu.com; spf=pass smtp.mailfrom=baidu.com; dkim=fail (0-bit key) header.d=baidu.com header.i=@baidu.com header.b=YdQlDLcD reason="key not found in DNS"; arc=none smtp.client-ip=220.181.50.185
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=baidu.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=baidu.com
+	s=arc-20240116; t=1779800281; c=relaxed/simple;
+	bh=glVNOVD8gAB8ARSFAFANQr3d9gdhukxkEriIb9YMLe0=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=I9QfRvQnDQqbez3HT0cZrnHU6kZ307o10rHXXblI4gbueSywCk2/fLW7hz7vYXstCa5VJXRdKW42d08pUtyIVHxd8GkZ1KQ/43p5wK3mc1a6tAXZiEMRxy0e9L0ql72Vm7hnAkLCqa1f74VoG89ySSrH5vS9PBsHMBEm3qzv8Ug=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca; spf=pass smtp.mailfrom=ziepe.ca; dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b=DT8oKbEF; arc=none smtp.client-ip=209.85.160.182
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ziepe.ca
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=fail reason="key not found in DNS" (0-bit key) header.d=baidu.com header.i=@baidu.com header.b="YdQlDLcD"
-X-MD-Sfrom: lirongqing@baidu.com
-X-MD-SrcIP: 172.31.50.47
-From: lirongqing <lirongqing@baidu.com>
-To: Leon Romanovsky <leon@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>, Yishai
- Hadas <yishaih@nvidia.com>, Edward Srouji <edwards@nvidia.com>,
-	<linux-rdma@vger.kernel.org>
-CC: Li RongQing <lirongqing@baidu.com>
-Subject: [PATCH] RDMA/mlx5: Fix boundary check in phys_addr_to_bar() for DMABUF export
-Date: Tue, 26 May 2026 08:44:13 -0400
-Message-ID: <20260526124413.2220-1-lirongqing@baidu.com>
-X-Mailer: git-send-email 2.17.1
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="DT8oKbEF"
+Received: by mail-qt1-f182.google.com with SMTP id d75a77b69052e-50e614fdb42so82358481cf.3
+        for <linux-rdma@vger.kernel.org>; Tue, 26 May 2026 05:57:59 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ziepe.ca; s=google; t=1779800279; x=1780405079; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=pnSIGXr2DYxhyE9HUVE8MOB38M//n4fgb/csbPCCuDQ=;
+        b=DT8oKbEFZWct9vsB+NXo3ZsegADeZSFnajAZk4Vb2Stt22rIE2Knz2xUxKzlZXE4Ih
+         mRPdOy4UTQ0HDX8eMnI8nJ78b9JpUxrzCwKerr7gt0+ayMNYivLMtRbIJyotIKeWhiWP
+         5v8Ste9n82aCqlxnBHUzx1qqI9zyP0I8VDpxDo0e76m22zH+kKYUm1DVbRUHDxJcJZ2y
+         JEBCdX0ZlCh9l5RaUWzI6rUgY/bt5sVYMk4OFKPJtxWABwP3S0cKDOu35jQeMBCdcQit
+         LYZHZVHnwUaE4vk/4h3c+t8DzlGEZTrYmVohd4IRMt7sujbvgmI/USOHa3bDpv9Ro1VS
+         QJTQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1779800279; x=1780405079;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=pnSIGXr2DYxhyE9HUVE8MOB38M//n4fgb/csbPCCuDQ=;
+        b=SrNg5cknYXvVfCTn+12uuTTuNQ8oHLE8fDN1+9NKFXVIfyMaq/ZWItXxLdFXcC+WAI
+         N0bzPHs12TblA6mHGVsk2zv5dLzmEqY1NWEebxCD6D94ZxoT7ZSqnb70qUR4u1NtN5or
+         QSObUtDrBPtKSZBffNvjb/lLXoAEY6Xx7i01g3OKfFiwscsE0R6A+XchanV2csjoRhPG
+         GXz6F0w5q+o6FrWNuvoLyogI6m8nBtgkc5xW4NNj79ga1zrCOQeCH7Ckg/Gjq+xlZNUb
+         Jc0jF6A/t66sXly298zs4mLV7oKJ0y9/RSM1nO3akkBHlStgDP/QTgKI8ahBkII2qYfo
+         Y8EA==
+X-Forwarded-Encrypted: i=1; AFNElJ/Poez6J0VK53MXQ2uvFB8iMM2fy0fkuC9toEFxJkQHZVffCGeF44+d8WVEet83F2IWEMJToUCo4s56@vger.kernel.org
+X-Gm-Message-State: AOJu0Ywve4PX5k9IhsBmxxyO/Rc4BgAe8l1zRvsttwYGpJBqSGKUnSIv
+	ogungeNjeXEwHBx5qGERMv1fvTOy7ab5TWOkUvJp+V98Zy2yqIOlR57Mo3x63MJ3k5s=
+X-Gm-Gg: Acq92OEUQLfq3l2BKmW+X7JgoczOnaVRrpfKKqLTG5HlCCGg0fvx2yS6L9uJVX4K5C5
+	4e5CbUHFdW7lfMv3QQo2mqDGI/WBqJKGfaoWaNlZBvzityRLgpGLqoWZtudvY+YX26V3Rac4Uew
+	3vZ+OnI67ibxqPhFm7eduvVU7j+5Ea7UiS46vuStZTr6hAWT03WJhwRhxzblT/5htd1tFxMl5Yf
+	IRcx2SXB4HIJXdQ2KiW+Vg5g3zNyAusYdTZKlmGEnDpIUyJF5ag8lEm0DD/lneYp155er6j10S5
+	G6ZVRDoj0iqaDAxqqVaUpOCozNB3J0Vh5HPrtu3+DORk92j+sfWzwImoWgCln0xhfHVRmeLMR/E
+	PgYxxtNYLakAq+jUrRNHsx4OIBzZQ8y3VT8Y3a1RjSH1UFiJh6yA27YAxWDV2H0+J0DwfxMGCdp
+	kU0upDwt/MdVtoPrE5ETk+x4LwlvPuDjHfmGjySpz/K1O3l53wmy4azlCC1164+MxhQRj1NXDvm
+	vxuUr+Y3qhzwVGNtLmlQr6NpyA=
+X-Received: by 2002:a05:622a:5917:b0:516:f4ef:5c1 with SMTP id d75a77b69052e-516f4ef0d14mr115699921cf.38.1779800279005;
+        Tue, 26 May 2026 05:57:59 -0700 (PDT)
+Received: from ziepe.ca (crbknf0213w-47-54-130-67.pppoe-dynamic.high-speed.nl.bellaliant.net. [47.54.130.67])
+        by smtp.gmail.com with ESMTPSA id d75a77b69052e-51706a0be01sm20230721cf.7.2026.05.26.05.57.58
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 26 May 2026 05:57:58 -0700 (PDT)
+Received: from jgg by wakko with local (Exim 4.97)
+	(envelope-from <jgg@ziepe.ca>)
+	id 1wRrM6-0000000DR6z-0LtB;
+	Tue, 26 May 2026 09:57:58 -0300
+Date: Tue, 26 May 2026 09:57:58 -0300
+From: Jason Gunthorpe <jgg@ziepe.ca>
+To: lirongqing <lirongqing@baidu.com>
+Cc: Leon Romanovsky <leon@kernel.org>, Yishai Hadas <yishaih@nvidia.com>,
+	Edward Srouji <edwards@nvidia.com>, linux-rdma@vger.kernel.org
+Subject: Re: [PATCH] RDMA/mlx5: Fix boundary check in phys_addr_to_bar() for
+ DMABUF export
+Message-ID: <20260526125758.GG2487554@ziepe.ca>
+References: <20260526124413.2220-1-lirongqing@baidu.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain
-X-ClientProxiedBy: bjhj-exc3.internal.baidu.com (172.31.3.13) To
- bjkjy-exc3.internal.baidu.com (172.31.50.47)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=baidu.com;
-	s=selector1; t=1779799462;
-	bh=FydAub/sSEPMlybPWuQtyu/4khQN024QPDVq/ajTU8o=;
-	h=From:To:CC:Subject:Date:Message-ID:Content-Type;
-	b=YdQlDLcDcT+ztwq4gVSyT6nUYgs8eSysR6S1Y1ZbQgJErOoG0G8j3KzR2Coy/W3F2
-	 hIx629aTBd517KiQnTLA2qYr/nlH+WHjo0c4dvJFQwqk8f04q2CxpAkq+vdcY6oCjy
-	 tyyK7pDx5ivrc8CiDD3paZs92n53AWdP8TVGYCTpoj90y7k9iv2TEm/Y6mzI1zLZYh
-	 QWx1c4vDUskvNFWrGABL9KfPIjvj/rYXHEVVqWOGQ/YonuHMy2nxuSaWK3z0ROJzQJ
-	 zZELsXNT0eRxE2G94eoqNtOs1oyMIX+K098k/k6e2YFANdN9zrnkZVFK8wHA9GTYab
-	 Uz451YLT2yl6A==
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260526124413.2220-1-lirongqing@baidu.com>
 
-From: Li RongQing <lirongqing@baidu.com>
+On Tue, May 26, 2026 at 08:44:13AM -0400, lirongqing wrote:
+> From: Li RongQing <lirongqing@baidu.com>
+> 
+> In mlx5_ib_mmap_get_pfns(), the physical address range to be mapped via
+> DMABUF is defined by both a starting physical address (phys_vec->paddr)
+> and a length (phys_vec->len).
+> 
+> However, phys_addr_to_bar() only validates whether the starting physical
+> address 'pa' falls within a PCI BAR's boundaries. It fails to verify
+> if the entire requested memory range (pa + len) fits inside that BAR.
+> This can potentially lead to out-of-bounds P2PDMA memory mappings if the
+> requested range overlaps or exceeds the BAR limit.
 
-In mlx5_ib_mmap_get_pfns(), the physical address range to be mapped via
-DMABUF is defined by both a starting physical address (phys_vec->paddr)
-and a length (phys_vec->len).
+No it can't. The mentry never crosses the end of a BAR.
 
-However, phys_addr_to_bar() only validates whether the starting physical
-address 'pa' falls within a PCI BAR's boundaries. It fails to verify
-if the entire requested memory range (pa + len) fits inside that BAR.
-This can potentially lead to out-of-bounds P2PDMA memory mappings if the
-requested range overlaps or exceeds the BAR limit.
-
-Fix this by extending phys_addr_to_bar() to accept a 'len' parameter
-and enforcing a strict range check to ensure that the entire requested
-buffer is completely contained within the same PCI BAR.
-
-Fixes: d6c58f4eb3d00 ("RDMA/mlx5: Implement DMABUF export ops")
-Signed-off-by: Li RongQing <lirongqing@baidu.com>
----
- drivers/infiniband/hw/mlx5/main.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 6107828..7359395 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -2453,7 +2453,7 @@ static int mlx5_ib_mmap_clock_info_page(struct mlx5_ib_dev *dev,
- 			      virt_to_page(dev->mdev->clock_info));
- }
- 
--static int phys_addr_to_bar(struct pci_dev *pdev, phys_addr_t pa)
-+static int phys_addr_to_bar(struct pci_dev *pdev, phys_addr_t pa, size_t len)
- {
- 	resource_size_t start, end;
- 	int bar;
-@@ -2469,7 +2469,7 @@ static int phys_addr_to_bar(struct pci_dev *pdev, phys_addr_t pa)
- 		if (!start || !end)
- 			continue;
- 
--		if (pa >= start && pa <= end)
-+		if (pa >= start && (pa + len - 1) <= end)
- 			return bar;
- 	}
- 
-@@ -2487,7 +2487,7 @@ static int mlx5_ib_mmap_get_pfns(struct rdma_user_mmap_entry *entry,
- 	phys_vec->paddr = mentry->address;
- 	phys_vec->len = entry->npages * PAGE_SIZE;
- 
--	bar = phys_addr_to_bar(pdev, phys_vec->paddr);
-+	bar = phys_addr_to_bar(pdev, phys_vec->paddr, phys_vec->len);
- 	if (bar < 0)
- 		return -EINVAL;
- 
--- 
-2.9.4
-
+Jason
