@@ -1,36 +1,36 @@
 Received: from SA9PR02CU001.outbound.protection.outlook.com (mail-southcentralusazon11013028.outbound.protection.outlook.com [40.93.196.28])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DDE2029D275
-	for <linux-rdma@vger.kernel.org>; Tue, 26 May 2026 01:23:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 17F4E29A9C3
+	for <linux-rdma@vger.kernel.org>; Tue, 26 May 2026 01:23:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.196.28
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779758587; cv=fail; b=Wrb9Jvk86cmar8G7IluPmP5e373WIFfYcdBBtX1UHletwaDO8iQIKJCMVJ4N67JC3a6zAUh9i+fTbR9OoK0IvLy5NG/RgaCyyPm8CaylAu3OBTCFszuARMdkrkxl7W3rEzsSleEF9Cd6DXRyi/kfwSrnrOESlo+DRB75vjLYsS8=
+	t=1779758590; cv=fail; b=Pyhp6+Z0HWOhPgKQQ3+FKapnXf59LSHRUBY+LwzV2AaLxXZMwobtyiBwkeImRqdLCuUxYeiujwE3juugoejdo33KD3Cr9t+PAxCUsruuu47vYFOG+fl5whrd8bbEIHKv3dB+S2/PFwrTLHBo1dGMsnKe1Oo51cIUEZq22g6slbM=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779758587; c=relaxed/simple;
-	bh=qYOdhwUPzh3XCT0ayU9woKJSs8wO6kRyLhY7mXOIgEA=;
+	s=arc-20240116; t=1779758590; c=relaxed/simple;
+	bh=dydimFYW4jxWRHG9VxASKou0rQ08V/TGSiJyc24SzTI=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=MoQj8KN+TNT2OVekW4aXlXk0fc8IlIxXL+bWbCgXxu7+VE3PbfuDH+jOimMt8Dn+BXP7H+QvnwDyQYV5FNQhr1nAGEHiMF1Dlz+MD0CSKpugEMZ6RM3Cnf21VguJVjerrIGa5ruixyj/StMYBN69JVFvcVJZa5d4239Ok09d/3E=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=e86I1Zbl; arc=fail smtp.client-ip=40.93.196.28
+	 Content-Type:MIME-Version; b=tuYQa/Dxyuv4ahpAySQbpsb//uMWC826Aw0sXfmrnLd8apeEI/IZ3VkPUhJqEv6kgP97zrARncaYDfWeGL2X1fW1U9AuxIUabHnbXUugBSybVNQbc362guQ69sDK0gttUQSrnSfsjDCmRY74b2VMt4P4BoYVLZ3LinAJLdbmKto=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=gNq/GAIf; arc=fail smtp.client-ip=40.93.196.28
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="e86I1Zbl"
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="gNq/GAIf"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=cr2yleo0Gxtsoe5wmIuid6fojHfyk4VKZKYyuQ3oxUR0rNZhy2qGhLGBUM1LIEDxuIG2/UgRrZlWCxv1oE2XKkoX4ZBi+zjPrLR34luYiLKGc2sHoIGfMmo781AMtaU9VzsI431BuZsGZUyRJBAcdW+h43dz/980FJYbcvcx59EFn7vcmli6Zg942Av0ABuR+CZDFRJiTCfpzFRV6JPjh9CEc916H50Rq1IALb4ICYXADvPDKuT7DI++Jd7bUTWLyYPFsfD9+F4ICkslVBIMmw5LgAcDCoi8nWHnPZeq381Hv1NAdrH4TbPAtRaCs3aycUVB1Zvyhs0UEEH5eiiW+A==
+ b=B7qWTW603in6S7jw4GxkbWBJ7HWFuqyHNfGIgVbkV3oJuXH6PymxIJeaKUKfRScKEWmugdOptx63dB5CTrgEzN5/OQNwlvbNJS7MLSuGYGmLy9ky2AlGZ3xicY4t15G9tCGK6N/Qm0+CafX7kPWuKnXWZLKKSDcnV/GdEuwYs5S3725x2GEL7Nav75SE0UB8xVVnYoEXJyTx+dbVdRwo7WX44aPdw70VTGzBeW6rlI137/++w+eHF2YVFwmMgzpQPWXnceeyaSovxPSDgO5PArx3eCFwy3YKm5VtXbCRMSPhI5JEmvpWRaGlgZ5Jww7YbkRX/gcuB2taufMkcvJjVg==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=OGv06KHuJgjtC0nyz7iy7u7nyZOc91mfuqJAqboC1LQ=;
- b=Zfvrz73MBTq+IdMr22roGV9Z4ZFnDuW7w/fepTjiFddE9x9Zsyo/FMzNJo9WhNMzIH+yvAAs6q1S9rYYJv2SnfSpTM6KU+NSloD/QZepNZ6o8+sAIKWVlttE6bLaeIAi6c1wRgWdAMeLTHPrCw8HcNjrnSuxUIivd6OKF1htm6llyZZufBHrCypX8b2O3IGOz9/WzFIyQQVOWXJIH853CWlzNdsq6tKX8oWSTNCOkfMF5MJXkYOHPAlSZNwi0JhOhjHvVhpdm/sK8fA/j8vhdXADnWIBrCKsCNWoi3aMIufGJYwE28xQVvbmgC/AnMAUZkI8GFZT40K4QrA+BkrSdA==
+ bh=jahQWnMsNQmUfRNllHyqagdjeiBxaBYndqkYUHxtFwM=;
+ b=U2txNZOjmYbIZk6MeAxmVHU6Vmu0/+phnSk9x3Mnwik/i103yZIbxO4vj3mzK6aoOZAFtKjRADcCQHyQj/ibaj9DTUipKZGIAOhxNYdeuLJLZ8GP/WaNxNe/7Ut5eSczCJJmf3A9KXSGkvQ9MlaPlTvMz3M7AQST1Fby+G3mviW+NMCScp2xuBrkBMseWCBOIHpffadO7QRUC+7a2Eag4OO1EaWgHFgRtDwy4Rr6Uw62gS4TpzUI8LpIhfQpTmR028LaMPSL/ZZgldlveJ+Zv5/ykRR3QLuBYvYpJ00N1h+7h0kzW+m5lmJahIwaqPV6K6ocDuwjhzlfQWDmfhIv/Q==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
  dkim=pass header.d=nvidia.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=OGv06KHuJgjtC0nyz7iy7u7nyZOc91mfuqJAqboC1LQ=;
- b=e86I1Zbl+HUdu3TJFhON5yV5sPFDns7d83nld42TbV1sB0UXXxfRI2N9Ht43i0qL2OCNll4Jr1FM4xRfk3jsiE1F84qGn/hSN6W8pDwt8b1WwrNwNtmaBWbnGx/QxgijUpSAddFyphFMax0M7pF3A5ATQ2qKOeKNeCaa20NBxpah7exUpJBmfsXYHfwbRJD/+lIc+snw4IT0fmJ3Rk8HekmHk5C0G3TM7M8xn6C1qUpqHil0W3iJqYKkEsFinfVpN/7Vq/btpxBxNcda1yseu8i6xcjcc+QrRgvKsoYA38FpqRYWE3Z/TZiOnptHa8PNcfDPHwdKEgSOe3j27+gmAA==
+ bh=jahQWnMsNQmUfRNllHyqagdjeiBxaBYndqkYUHxtFwM=;
+ b=gNq/GAIfgy1n5fL06HB42ZENKP177T8y5SAmcxtbiq6bwrzoeFq79S7PANTfutt8+45sAKuo/kX7EUn6SwMekhR63uhQ8/q+TK9rPt4psRP2nYTm/YPEjcC1j8YoKK2eOSDjCBui54FFZZ5BlIaHcbjEzalUyTkideG0LOAsk6ekxPoDO+vSklA3ka2OtEg74WksOTW/+C4vyYOAUdlcstiAYSaM0kI3P7ksAkuMtMRVsYto41fU8u/2W3HxGw8hmKJ5BSqItq0OWULqyOmY64l9v0O2ke4HMEgU8e6Jtba7wAoYqY3h/+cUzU/lvzXaCt+3iAyHSwef3tgahmQcyQ==
 Authentication-Results: dkim=none (message not signed)
  header.d=none;dmarc=none action=none header.from=nvidia.com;
 Received: from CY1PR12MB9601.namprd12.prod.outlook.com (2603:10b6:930:107::16)
@@ -47,15 +47,15 @@ To: Leon Romanovsky <leon@kernel.org>,
 	linux-rdma@vger.kernel.org
 Cc: Jiri Pirko <jiri@resnulli.us>,
 	patches@lists.linux.dev
-Subject: [PATCH v3 4/6] RDMA/core: Make a new module for the uverbs components needed by drivers
-Date: Mon, 25 May 2026 22:22:40 -0300
-Message-ID: <4-v3-43aba1969751+1988-ib_uverbs_support_ko_jgg@nvidia.com>
+Subject: [PATCH v3 2/6] RDMA/core: Move many of the little EXPORTs from uverbs_ioctl into ib_core_uverbs
+Date: Mon, 25 May 2026 22:22:38 -0300
+Message-ID: <2-v3-43aba1969751+1988-ib_uverbs_support_ko_jgg@nvidia.com>
 In-Reply-To: <0-v3-43aba1969751+1988-ib_uverbs_support_ko_jgg@nvidia.com>
 References:
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-ClientProxiedBy: IA4P221CA0001.NAMP221.PROD.OUTLOOK.COM
- (2603:10b6:208:559::16) To CY1PR12MB9601.namprd12.prod.outlook.com
+X-ClientProxiedBy: BLAPR03CA0096.namprd03.prod.outlook.com
+ (2603:10b6:208:32a::11) To CY1PR12MB9601.namprd12.prod.outlook.com
  (2603:10b6:930:107::16)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
@@ -65,502 +65,614 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
 X-MS-TrafficTypeDiagnostic: CY1PR12MB9601:EE_|IA0PPF73BED5E32:EE_
-X-MS-Office365-Filtering-Correlation-Id: 942d89f7-2e9c-43c9-cebc-08debac54ace
+X-MS-Office365-Filtering-Correlation-Id: c3eb8137-9bee-4942-0b3d-08debac54aca
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|1800799024|376014|366016|22082099003|18002099003|56012099003|5023799004|3023799007|11063799006|6133799003;
+	BCL:0;ARA:13230040|1800799024|376014|366016|22082099003|18002099003|56012099003|3023799007|11063799006|6133799003;
 X-Microsoft-Antispam-Message-Info:
-	VM3+1RNI0nJinr5RZQMeLoHr9d6ZVUZjCGq/9cbzqZtydX/R49Cvh5O5m3RYe+aUfLv76TciYB3V8Nyi5i5DtGP3OJe4v2DeUjtJ7dcF33NVSdAGpGgOoot9A4D0NSPQNrQGXrN3Zm13aUK15+5mX7n+jM9KPJorrSAP+I9l1PU+ufafaXqohWyXWA/G25ASONHOWYKwi+yKGlQVMtMiqc09JVUAvD4QRlWKiG+QumPYh/p+BqD/rosmKYRs98ODFwXAEwetXKwXXO4LW2cDdedleieJK682sZG3sDIelaD/eoJOzaydNjjy7/j9Q7wxlrtxOJy3fAaqivIajqrPbsXZ0jRbctbDiONDNS5occGL9wvqdFZAdx6ZFbedw5Ta28Nx3KJSyNXzZPrN/EkW+PuRgHGfCJLMCVm3FPSvG68yPWh3x5ApANUeen3CnmPNmAOa/da5OKX1Mg7jH/Gl42pHazhl6NI8QWrCHULZ+fE8Pt1B1oUz5D7BEE5Hr1dbskoJRFHGqle+LVRz/L2Vv7QmhnxoDNP6s19l2N0ezEcf3Fr7f14cOS2wvd2ti9mi/c8q4VzpBNJTeSf77muYGOqEuxNsrc++AdBJ541EETjUgVSl0h1hXMQy9HIEAqNf9KDLl+MrmTx9jCvJ3b8kGfqc0woe2rs+dPVSIRkHSwp82RE7NfzaGEBSFSQZF8xE
+	2dnZgtfRbFyRjY0CnaerdUTWrC6RCs5t6/3CUJFFnHubQT0mBAV/Mnv8aK17esGtN0fbNZAIBxo8hDr5vAQDQBdktMD3rkOJhkhNgpLRHcGhbfIsxguvwQqyEj9UIewlxqT0oL6VC9pDZIG9bpsMw8O1H91T+4jjiBypGDg6hcHwnQPaAfGbCB0SfuHibQ+xPM2eMcKavnBb4yxqjWhKZR72/2Cr3T7qRj9Kirv0vmssHM4Vxi++Thh2xNcwSa9aFW/F+9s1Da6bhOgAn7FtC8Dm6eG4rW0wie6q0q9e8orFT4VkG/PSV+HyPpjfPQUbCvHwGx+g1YPbiYXN/H1EyG0Xgx+s+Vfzo/aeuiE5VWR7Frdq+dqRmqmOXAFhmF/DLlG0WrwOZStSBIzmEr0ECxsAhEr6HHQlzCYW6IHOSvOODICfMhrnDD19aqt0NsGE3AJnWjB+dVFYC9s4IodAM33HvHRUll2SRsmmw9G0YYD+IZSDW7kum+CAhRZLguEW2Itegu4F/O3dA4pL+AG8jHPF7V3ySP27xt6Qk44hpA0fFAVecjiyJkvAFyodhb5Yf1VZl2Q9bZZ/MrDqqJ6cL/2Sd+O+tyzS9NsaN74B2AP9FRdGB297naUF43qox4GGaJYvkymN5ku5sU4UmqcoN953X/LIxVa0OgZxMgy/xSLsSzVI48DQ87hLkv5tzY7h
 X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CY1PR12MB9601.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(376014)(366016)(22082099003)(18002099003)(56012099003)(5023799004)(3023799007)(11063799006)(6133799003);DIR:OUT;SFP:1101;
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CY1PR12MB9601.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(376014)(366016)(22082099003)(18002099003)(56012099003)(3023799007)(11063799006)(6133799003);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?xXxo4r1nxaobB/Nt7kh2NJ9XTmbtzw1sCruZ1Qu1wODOjFLqiC4WuH4oARlo?=
- =?us-ascii?Q?w38c/5p3MrPJt/B+O+wQupZml4KetBuSuE4rRUMYjod5rn+5yL5Ocp4v+DTt?=
- =?us-ascii?Q?z2ro+xWaQvfBfmrQvTpzhbrxTbPQJeHkDGwGsjldgGf/PfH1U9qIbTUFfTLq?=
- =?us-ascii?Q?DLXMpplG8AxHsHzXMHDDGlc0gCpPuVoQAsYpW0sDxq0FtaNrrL+PRX1p2/sK?=
- =?us-ascii?Q?EdgOAVg+f1D1LwIhmcNguIrQR1yHTluTU/ucdNePGd/pnKo4L2FkyyyUF/zz?=
- =?us-ascii?Q?RtZowHkFf27DwBDZSEXLxdiInAFZlbD5UaKaEWcNi8iboUmrrUroBsgUHzxy?=
- =?us-ascii?Q?j1Wxp2xw9l2qkBFjZcc5S4yFLu31CQDQ7+s+PgPfCilMnRBLT+VVyLnR4ztS?=
- =?us-ascii?Q?si9DYlhHiuuOU7sS9rVx9q+c2wVz+Q0cKtJfngQYGgRb4vNIuRjct8MsJ6hy?=
- =?us-ascii?Q?OqH3Qi7qTmxojH4fZ28thfG5+psK3S1DhDWeyKvTal8I/VHmOOd3X8enKpE1?=
- =?us-ascii?Q?bJO4ttZ+kdX2N1Py2Wf1z02Xw6AkcPtsOknqjw37Kclhe1qH1YVY6hcQNB4l?=
- =?us-ascii?Q?3opjepxhPJ8RDnfTrEY0YUy7DdtC8rnTA/es/MEs/Pj1KHwVPz8tirRX5b4x?=
- =?us-ascii?Q?USborwm1+LLRUp4fPYAgGxlATC0QrlsYaaqgGro+FLPAmAe+dpWMvh4dHozx?=
- =?us-ascii?Q?GlXcai7mzNjT+2UWZfyt/l+abuUZ9IcS+KruSNCf1foC3jtiWKqtK3tr3tLE?=
- =?us-ascii?Q?+XMk+OqsqKaYzrtQ0gDm8L32z2FihAztouCXjMTIQn5fJgQcGxpYVfkhJagq?=
- =?us-ascii?Q?y4wwulpck3qTPcVuYX476Qds8kNMT3qw6Mukor3wqQVNBJEjjRCTliC4IEv+?=
- =?us-ascii?Q?cawYUAoBtlCsEqjrULHeIwWUA6JTg3oCXT6kbYtYeGAx6J9i7/h9rQGtTrRs?=
- =?us-ascii?Q?P3EmTeqwlka5UAKX8qbXBXUS2Q5m4/UDMdKA8titkUQpEqiNSXnB2WCIBy3h?=
- =?us-ascii?Q?Fwkse63E/wII4C/HbTbSZUNyRPqlBzTuMvYz9n/r0FHascKrixoFN4OXt6H2?=
- =?us-ascii?Q?bWqe1Lhmrb8t86V2p0B/q8G5SZqMV4tPO6MnJ4Sj//DA4tAlSHL1h8tZUjVI?=
- =?us-ascii?Q?2TRr+Z1dQTlEzo+UmhnA9rRE/84DXIlKpJmd0h3VWqHJHE5Owqn4cAe/+lHT?=
- =?us-ascii?Q?rbGxNOkJab3lpSsXxpeqD4iR1oFAe2BenKL6h/inPLj0sKtRWKKG1wOJFSj/?=
- =?us-ascii?Q?ApHiYkmmQ1awhrZ30EGEvPPz9PmFQ+6+EFLUKLaC9tljV7sDE5f6yRr5+P5y?=
- =?us-ascii?Q?GKKaIu9G/OH9BQbfAVFVy99o3ptilD8KLX/fRIhmvf+5d0qYJOy94y9AsM89?=
- =?us-ascii?Q?EykEhrBmn7IZVvfgNSxwuHM/UZZkIvvN1OHKT60krFO1eq4CJREhDG/88eHp?=
- =?us-ascii?Q?8hPDcZmUcpE9BI7f0CkTZEp1JX5/O4YHypUUFkcwk0h6cjsEoLnmYpXrkz+U?=
- =?us-ascii?Q?3abdcPp6lMOIHKw/wW8pYMOTZZpnprRf+Y3GpB4DuJgADB5J68Eb6pB3woRf?=
- =?us-ascii?Q?+iWoyiJ4ArgNzX5DafsvrkxrIkD8HjHp3+2YgopbG+yoCcB8vsrvJIqmnga/?=
- =?us-ascii?Q?+jrOpiSfmyE+u7jNUjpV3ja3AvXb3KCz34i3CbdxoT3NJWkfU4URBp0iGgnI?=
- =?us-ascii?Q?DcV9JtJiUyQxmYcT2dbYjgU2MkRtHy7iwib6+a41A5PAbf7B?=
+	=?us-ascii?Q?h1e5amxz0MebSSIDCYr+FhkKkw78xg7J5klaWv0Sx05CmtasUDDzoNolpJ0R?=
+ =?us-ascii?Q?Jt3SQQfXhZRJUrdnAcPw8lgSwQl9FSTBBxjU2b/L479lIlewVyZKpGm3reE7?=
+ =?us-ascii?Q?KT59tk+fHAsVm7ji1r9BLYlsbJ50nf9yPdIwN8J6TPxZLnVaCDrpOmK09dX0?=
+ =?us-ascii?Q?D8RWcyknU6xNcOtbI8QeZ+IRaE8sKjX73te2oA7gIwF2AsPi48/qDS1IyEcA?=
+ =?us-ascii?Q?DbcghvKJHl/CcOCfOpbVWNnziJNYq+p6CPcJiC8yF5lX27U3k292DuLYXksp?=
+ =?us-ascii?Q?0SXMAUkOHAvGX4cgzz8RjEi0c/ox09mXjs7V0VzrK46dxGfWPo4TST4V5rsi?=
+ =?us-ascii?Q?ZY2tkBUPEBd0v4vu1Dgotv2kWKkxiJtiQh6EjQF41lQyErro9XHWbcaTq8/7?=
+ =?us-ascii?Q?4ao5d7jsW0HBy26PCFGJWl9sCiO012Na6vl8o+ia+eDrcKz6I0c3SyfXx/0v?=
+ =?us-ascii?Q?1iJho13v4T6DP+P8UcLU8tdEZKLPQBjGO3yzXIucCLaS3jqwH80kvYph9c96?=
+ =?us-ascii?Q?qDpzF4WDYPzrdgrIdKIuFnbQKUEEJAdtJBY3nIPaJP4syBDngAX+akoU7A/F?=
+ =?us-ascii?Q?gp6OCC3c9lg9jPS37md6WwDK1+flbo0zHY0n4jfeT3MUnub+xno6aqN+7LUt?=
+ =?us-ascii?Q?VffafSCyb6oOZNBhbICifNtP2/DJqT0R+eUeEGaOlDi2or4v+02hNlDtHRR4?=
+ =?us-ascii?Q?iktznn1RZRnhA3wHCaaJyvCf0QiW2PoZJFYmtQ+heGFTYDNvNuWTYdF9gunI?=
+ =?us-ascii?Q?za0Bysex+m8WmOb4wrKX7IwpbOraZgYspJ3YuBYfYIksB6Sk1HYQz5BLfAwX?=
+ =?us-ascii?Q?8bMbWk3QEccysFzFt7GoPpZcCpn4ekhrRaJIWX+DPxbwGCelnVJU4IQmr2Dv?=
+ =?us-ascii?Q?9o4RRyyMVSOMOdKK42nZJro1MGtpSmlCQbTH6QI89U5tRRBe8ymHsmtrKVV6?=
+ =?us-ascii?Q?eZeoANZ6zVYTLhN2ynWQJRvpCSa6/XXrWRX5rM2zX1il+3YTvpvERGIEaCM3?=
+ =?us-ascii?Q?44PWG8sPQcdOaBTQrZYpwlX/d/xVfGHBVSeIUNPcKbxqdVtmMROoAKVpqyUC?=
+ =?us-ascii?Q?IItuzKzeEE0csdbJZnY1Sb+dm+44VOgg+M0WZWbWYwOpNBNi9o17uDaJXY4A?=
+ =?us-ascii?Q?kfmnK58CscgD4Gm1tK8fJhAzPcDngCzimAH4Eb/WBaYYcp+1Neqs8hMCMjww?=
+ =?us-ascii?Q?yfCFYD+ssqGS5H/h+W4dbeZvyHQXBoI22QuXwCU1oK95eajQ+1VyxLRDqF8H?=
+ =?us-ascii?Q?XgUnamb6jMs5DP8F5omIa2WYxadcC3WSTEjxDkDh0IXDF9FWu2NXI+hdRG5T?=
+ =?us-ascii?Q?qAQlM90kTPpJzCVIjElNpMK0ICkMhxmvcHe0eEP0GFbBStrYqQCks56wYEfM?=
+ =?us-ascii?Q?+X9guqtDjrtYwebTe3g8RVv5MuUL3StNX+gC4i1rk1H9r6wA7pw3PJcMBeZe?=
+ =?us-ascii?Q?emjhqpXPIridEKZVsXjPIwa06O+QgWwt7QxD7gVgm4B/VsB5f2QOb3G++Dgh?=
+ =?us-ascii?Q?tQriaGNE3tu5mifO8s4LKIfRsSXZK/7LI2DRuJi16vGqdIaEezhuyxnGYpkQ?=
+ =?us-ascii?Q?iyQzssZWAGW03nHN7lW43rcF25W8HQK520tRSnb4cLGAnCVHeSoqfzFzUTB9?=
+ =?us-ascii?Q?SL7Z1iYi8u+gtTti56VMvo9poALi42oi+3b63wJSgJQTJ6kVfh/+lCGEkPqN?=
+ =?us-ascii?Q?h/caNYrZcLeJzoLcDRYjzUGnhfOPP9/u2ALJE0ycH9HUbxdJ?=
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 942d89f7-2e9c-43c9-cebc-08debac54ace
+X-MS-Exchange-CrossTenant-Network-Message-Id: c3eb8137-9bee-4942-0b3d-08debac54aca
 X-MS-Exchange-CrossTenant-AuthSource: CY1PR12MB9601.namprd12.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 26 May 2026 01:22:46.4719
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 26 May 2026 01:22:46.3749
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: /sYTGqAIBPSmw2dnEl/xyu7bCPM9bUiynuNFYqfjQyCsxwWDANP57DZcwT3L+pQ8
+X-MS-Exchange-CrossTenant-UserPrincipalName: DSyxxCRHdS+Vj2Wt064P0EJevrydJfNIzle+9pyuQxKcfcX7AwDeSuxGVas5rJfs
 X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA0PPF73BED5E32
 
-To maintain the split where ib_uverbs.ko should not be depended on by
-drivers, add a new module ib_uverbs_support.ko which contains the driver
-called functions that are too large or too rare to be placed in
-ib_uverbs_core.ko
-
-Start by moving most of rdma_core.c into this module, making some
-adjustments to split it from the actual uverbs FD code.
-
-This was not done originally because we lacked EXPORT_SYMBOL_NS and I had
-a fear that drivers would abuse this interface surface.
+Not as many drivers need these functions but it does free efa from the
+ib_uverbs.ko dependency and follows the general design better.
 
 Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
 ---
- drivers/infiniband/core/Makefile      |   8 +-
- drivers/infiniband/core/rdma_core.c   | 120 ++++++++++++--------------
- drivers/infiniband/core/rdma_core.h   |   1 -
- drivers/infiniband/core/uverbs.h      |   9 ++
- drivers/infiniband/core/uverbs_main.c | 100 +++++++++++++--------
- 5 files changed, 133 insertions(+), 105 deletions(-)
+ drivers/infiniband/core/ib_core_uverbs.c   | 218 +++++++++++++++++++++
+ drivers/infiniband/core/uverbs.h           |  15 ++
+ drivers/infiniband/core/uverbs_ioctl.c     | 204 -------------------
+ drivers/infiniband/core/uverbs_main.c      |  24 ---
+ drivers/infiniband/core/uverbs_std_types.c |   6 -
+ 5 files changed, 233 insertions(+), 234 deletions(-)
 
-diff --git a/drivers/infiniband/core/Makefile b/drivers/infiniband/core/Makefile
-index 8c2ba2ce035176..e2ff9c2be9d377 100644
---- a/drivers/infiniband/core/Makefile
-+++ b/drivers/infiniband/core/Makefile
-@@ -5,7 +5,9 @@ user_access-$(CONFIG_INFINIBAND_ADDR_TRANS)	:= rdma_ucm.o
- obj-$(CONFIG_INFINIBAND) +=		ib_core.o ib_cm.o iw_cm.o \
- 					$(infiniband-y)
- obj-$(CONFIG_INFINIBAND_USER_MAD) +=	ib_umad.o
--obj-$(CONFIG_INFINIBAND_USER_ACCESS) += ib_uverbs.o $(user_access-y)
-+obj-$(CONFIG_INFINIBAND_USER_ACCESS) += ib_uverbs.o \
-+					$(user_access-y) \
-+					ib_uverbs_support.o
- 
- ib_core-y :=			packer.o ud_header.o verbs.o cq.o rw.o sysfs.o \
- 				device.o cache.o netlink.o \
-@@ -34,7 +36,7 @@ rdma_ucm-y :=			ucma.o
- ib_umad-y :=			user_mad.o
- 
- ib_uverbs-y :=			uverbs_main.o uverbs_cmd.o uverbs_marshall.o \
--				rdma_core.o uverbs_std_types.o uverbs_ioctl.o \
-+				uverbs_std_types.o uverbs_ioctl.o \
- 				uverbs_std_types_cq.o \
- 				uverbs_std_types_dmabuf.o \
- 				uverbs_std_types_dmah.o \
-@@ -46,3 +48,5 @@ ib_uverbs-y :=			uverbs_main.o uverbs_cmd.o uverbs_marshall.o \
- 				uverbs_std_types_wq.o \
- 				uverbs_std_types_qp.o \
- 				ucaps.o
+diff --git a/drivers/infiniband/core/ib_core_uverbs.c b/drivers/infiniband/core/ib_core_uverbs.c
+index 0acb0d4967cb6b..b4fc693a3bd8b7 100644
+--- a/drivers/infiniband/core/ib_core_uverbs.c
++++ b/drivers/infiniband/core/ib_core_uverbs.c
+@@ -501,3 +501,221 @@ int _ib_respond_udata(struct ib_udata *udata, const void *src, size_t len)
+ 	return -EFAULT;
+ }
+ EXPORT_SYMBOL(_ib_respond_udata);
 +
-+ib_uverbs_support-y :=		rdma_core.o
-diff --git a/drivers/infiniband/core/rdma_core.c b/drivers/infiniband/core/rdma_core.c
-index 71e3d58d26e654..b81a1540d0fb59 100644
---- a/drivers/infiniband/core/rdma_core.c
-+++ b/drivers/infiniband/core/rdma_core.c
-@@ -42,6 +42,40 @@
- #include "core_priv.h"
- #include "rdma_core.h"
- 
-+static void release_ufile_idr_uobject(struct ib_uverbs_file *ufile);
-+
-+void ib_uverbs_release_file(struct kref *ref)
++/*
++ * Must be called with the ufile->device->disassociate_srcu held, and the lock
++ * must be held until use of the ucontext is finished.
++ */
++struct ib_ucontext *ib_uverbs_get_ucontext_file(struct ib_uverbs_file *ufile)
 +{
-+	struct ib_uverbs_file *file =
-+		container_of(ref, struct ib_uverbs_file, ref);
-+	struct ib_device *ib_dev;
-+	int srcu_key;
++	/*
++	 * We do not hold the hw_destroy_rwsem lock for this flow, instead
++	 * srcu is used. It does not matter if someone races this with
++	 * get_context, we get NULL or valid ucontext.
++	 */
++	struct ib_ucontext *ucontext = smp_load_acquire(&ufile->ucontext);
 +
-+	release_ufile_idr_uobject(file);
++	if (!srcu_dereference(ufile->device->ib_dev,
++			      &ufile->device->disassociate_srcu))
++		return ERR_PTR(-EIO);
 +
-+	srcu_key = srcu_read_lock(&file->device->disassociate_srcu);
-+	ib_dev = srcu_dereference(file->device->ib_dev,
-+				  &file->device->disassociate_srcu);
-+	if (ib_dev && !ib_dev->ops.disassociate_ucontext)
-+		module_put(ib_dev->ops.owner);
-+	srcu_read_unlock(&file->device->disassociate_srcu, srcu_key);
++	if (!ucontext)
++		return ERR_PTR(-EINVAL);
 +
-+	if (refcount_dec_and_test(&file->device->refcount))
-+		ib_uverbs_comp_dev(file->device);
-+
-+	if (file->default_async_file)
-+		uverbs_uobject_put(&file->default_async_file->uobj);
-+	put_device(&file->device->dev);
-+
-+	if (file->disassociate_page)
-+		__free_pages(file->disassociate_page, 0);
-+	mutex_destroy(&file->disassociation_lock);
-+	mutex_destroy(&file->umap_lock);
-+	mutex_destroy(&file->ucontext_lock);
-+	kfree(file);
++	return ucontext;
 +}
-+EXPORT_SYMBOL_NS_GPL(ib_uverbs_release_file, "rdma_core");
++EXPORT_SYMBOL(ib_uverbs_get_ucontext_file);
 +
- static void uverbs_uobject_free(struct kref *ref)
- {
- 	kfree_rcu(container_of(ref, struct ib_uobject, ref), rcu);
-@@ -214,6 +248,7 @@ int uobj_destroy(struct ib_uobject *uobj, struct uverbs_attr_bundle *attrs)
- 	up_read(&ufile->hw_destroy_rwsem);
- 	return ret;
- }
-+EXPORT_SYMBOL_NS_GPL(uobj_destroy, "rdma_core");
- 
- /*
-  * uobj_get_destroy destroys the HW object and returns a handle to the uobj
-@@ -239,6 +274,7 @@ struct ib_uobject *__uobj_get_destroy(const struct uverbs_api_object *obj,
- 
- 	return uobj;
- }
-+EXPORT_SYMBOL_NS_GPL(__uobj_get_destroy, "rdma_core");
- 
- /*
-  * Does both uobj_get_destroy() and uobj_put_destroy().  Returns 0 on success
-@@ -255,6 +291,7 @@ int __uobj_perform_destroy(const struct uverbs_api_object *obj, u32 id,
- 	uobj_put_destroy(uobj);
- 	return 0;
- }
-+EXPORT_SYMBOL_NS_GPL(__uobj_perform_destroy, "rdma_core");
- 
- /* alloc_uobj must be undone by uverbs_destroy_uobject() */
- static struct ib_uobject *alloc_uobj(struct uverbs_attr_bundle *attrs,
-@@ -420,6 +457,7 @@ struct ib_uobject *rdma_lookup_get_uobject(const struct uverbs_api_object *obj,
- 	uverbs_uobject_put(uobj);
- 	return ERR_PTR(ret);
- }
-+EXPORT_SYMBOL_NS_GPL(rdma_lookup_get_uobject, "rdma_core");
- 
- static struct ib_uobject *
- alloc_begin_idr_uobject(const struct uverbs_api_object *obj,
-@@ -522,6 +560,7 @@ struct ib_uobject *rdma_alloc_begin_uobject(const struct uverbs_api_object *obj,
- 	}
- 	return ret;
- }
-+EXPORT_SYMBOL_NS_GPL(rdma_alloc_begin_uobject, "rdma_core");
- 
- static void alloc_abort_idr_uobject(struct ib_uobject *uobj)
- {
-@@ -668,6 +707,7 @@ void rdma_alloc_commit_uobject(struct ib_uobject *uobj,
- 	/* Matches the down_read in rdma_alloc_begin_uobject */
- 	up_read(&ufile->hw_destroy_rwsem);
- }
-+EXPORT_SYMBOL_NS_GPL(rdma_alloc_commit_uobject, "rdma_core");
- 
- /*
-  * new_uobj will be assigned to the handle currently used by to_uobj, and
-@@ -697,6 +737,7 @@ void rdma_assign_uobject(struct ib_uobject *to_uobj, struct ib_uobject *new_uobj
- 	 */
- 	uverbs_destroy_uobject(to_uobj, RDMA_REMOVE_DESTROY, attrs);
- }
-+EXPORT_SYMBOL_NS_GPL(rdma_assign_uobject, "rdma_core");
- 
- /*
-  * This consumes the kref for uobj. It is up to the caller to unwind the HW
-@@ -727,6 +768,7 @@ void rdma_alloc_abort_uobject(struct ib_uobject *uobj,
- 	/* Matches the down_read in rdma_alloc_begin_uobject */
- 	up_read(&ufile->hw_destroy_rwsem);
- }
-+EXPORT_SYMBOL_NS_GPL(rdma_alloc_abort_uobject, "rdma_core");
- 
- static void lookup_put_idr_uobject(struct ib_uobject *uobj,
- 				   enum rdma_lookup_mode mode)
-@@ -770,13 +812,15 @@ void rdma_lookup_put_uobject(struct ib_uobject *uobj,
- 	/* Pairs with the kref obtained by type->lookup_get */
- 	uverbs_uobject_put(uobj);
- }
-+EXPORT_SYMBOL_NS_GPL(rdma_lookup_put_uobject, "rdma_core");
- 
- void setup_ufile_idr_uobject(struct ib_uverbs_file *ufile)
- {
- 	xa_init_flags(&ufile->idr, XA_FLAGS_ALLOC);
- }
-+EXPORT_SYMBOL_NS_GPL(setup_ufile_idr_uobject, "rdma_core");
- 
--void release_ufile_idr_uobject(struct ib_uverbs_file *ufile)
-+static void release_ufile_idr_uobject(struct ib_uverbs_file *ufile)
- {
- 	struct ib_uobject *entry;
- 	unsigned long id;
-@@ -839,6 +883,7 @@ int uverbs_uobject_release(struct ib_uobject *uobj)
- 	uverbs_uobject_put(uobj);
- 	return 0;
- }
-+EXPORT_SYMBOL_NS_GPL(uverbs_uobject_release, "rdma_core");
- 
- /*
-  * Users of UVERBS_TYPE_ALLOC_FD should set this function as the struct
-@@ -878,41 +923,8 @@ int uverbs_uobject_fd_release(struct inode *inode, struct file *filp)
- }
- EXPORT_SYMBOL(uverbs_uobject_fd_release);
- 
--/*
-- * Drop the ucontext off the ufile and completely disconnect it from the
-- * ib_device
-- */
--static void ufile_destroy_ucontext(struct ib_uverbs_file *ufile,
--				   enum rdma_remove_reason reason)
--{
--	struct ib_ucontext *ucontext = ufile->ucontext;
--	struct ib_device *ib_dev = ucontext->device;
--
--	/*
--	 * If we are closing the FD then the user mmap VMAs must have
--	 * already been destroyed as they hold on to the filep, otherwise
--	 * they need to be zap'd.
--	 */
--	if (reason == RDMA_REMOVE_DRIVER_REMOVE) {
--		uverbs_user_mmap_disassociate(ufile);
--		if (ib_dev->ops.disassociate_ucontext)
--			ib_dev->ops.disassociate_ucontext(ucontext);
--	}
--
--	ib_rdmacg_uncharge(&ucontext->cg_obj, ib_dev,
--			   RDMACG_RESOURCE_HCA_HANDLE);
--
--	rdma_restrack_del(&ucontext->res);
--
--	ib_dev->ops.dealloc_ucontext(ucontext);
--	WARN_ON(!xa_empty(&ucontext->mmap_xa));
--	kfree(ucontext);
--
--	ufile->ucontext = NULL;
--}
--
--static int __uverbs_cleanup_ufile(struct ib_uverbs_file *ufile,
--				  enum rdma_remove_reason reason)
-+int __uverbs_cleanup_ufile(struct ib_uverbs_file *ufile,
-+			   enum rdma_remove_reason reason)
- {
- 	struct uverbs_attr_bundle attrs = { .ufile = ufile };
- 	struct ib_ucontext *ucontext = ufile->ucontext;
-@@ -953,36 +965,7 @@ static int __uverbs_cleanup_ufile(struct ib_uverbs_file *ufile,
- 	}
- 	return ret;
- }
--
--/*
-- * Destroy the ucontext and every uobject associated with it.
-- *
-- * This is internally locked and can be called in parallel from multiple
-- * contexts.
-- */
--void uverbs_destroy_ufile_hw(struct ib_uverbs_file *ufile,
--			     enum rdma_remove_reason reason)
--{
--	down_write(&ufile->hw_destroy_rwsem);
--
--	/*
--	 * If a ucontext was never created then we can't have any uobjects to
--	 * cleanup, nothing to do.
--	 */
--	if (!ufile->ucontext)
--		goto done;
--
--	while (!list_empty(&ufile->uobjects) &&
--	       !__uverbs_cleanup_ufile(ufile, reason)) {
--	}
--
--	if (WARN_ON(!list_empty(&ufile->uobjects)))
--		__uverbs_cleanup_ufile(ufile, RDMA_REMOVE_DRIVER_FAILURE);
--	ufile_destroy_ucontext(ufile, reason);
--
--done:
--	up_write(&ufile->hw_destroy_rwsem);
--}
-+EXPORT_SYMBOL_NS_GPL(__uverbs_cleanup_ufile, "rdma_core");
- 
- const struct uverbs_obj_type_class uverbs_fd_class = {
- 	.alloc_begin = alloc_begin_fd_uobject,
-@@ -1020,6 +1003,7 @@ uverbs_get_uobject_from_file(u16 object_id, enum uverbs_obj_access access,
- 		return ERR_PTR(-EOPNOTSUPP);
- 	}
- }
-+EXPORT_SYMBOL_NS_GPL(uverbs_get_uobject_from_file, "rdma_core");
- 
- void uverbs_finalize_object(struct ib_uobject *uobj,
- 			    enum uverbs_obj_access access, bool hw_obj_valid,
-@@ -1052,6 +1036,7 @@ void uverbs_finalize_object(struct ib_uobject *uobj,
- 		WARN_ON(true);
- 	}
- }
-+EXPORT_SYMBOL_NS_GPL(uverbs_finalize_object, "rdma_core");
- 
- /**
-  * rdma_uattrs_has_raw_cap() - Returns whether a rdma device linked to the
-@@ -1081,3 +1066,6 @@ bool rdma_uattrs_has_raw_cap(const struct uverbs_attr_bundle *attrs)
- 	return has_cap;
- }
- EXPORT_SYMBOL(rdma_uattrs_has_raw_cap);
++int uverbs_destroy_def_handler(struct uverbs_attr_bundle *attrs)
++{
++	return 0;
++}
++EXPORT_SYMBOL(uverbs_destroy_def_handler);
 +
-+MODULE_DESCRIPTION("InfiniBand uverbs objects");
-+MODULE_LICENSE("Dual BSD/GPL");
-diff --git a/drivers/infiniband/core/rdma_core.h b/drivers/infiniband/core/rdma_core.h
-index 55f1e3558856f1..b626d3d24d087d 100644
---- a/drivers/infiniband/core/rdma_core.h
-+++ b/drivers/infiniband/core/rdma_core.h
-@@ -70,7 +70,6 @@ void uverbs_finalize_object(struct ib_uobject *uobj,
- int uverbs_output_written(const struct uverbs_attr_bundle *bundle, size_t idx);
- 
- void setup_ufile_idr_uobject(struct ib_uverbs_file *ufile);
--void release_ufile_idr_uobject(struct ib_uverbs_file *ufile);
- 
- struct ib_udata *uverbs_get_cleared_udata(struct uverbs_attr_bundle *attrs);
- 
++/**
++ * _uverbs_alloc() - Quickly allocate memory for use with a bundle
++ * @bundle: The bundle
++ * @size: Number of bytes to allocate
++ * @flags: Allocator flags
++ *
++ * The bundle allocator is intended for allocations that are connected with
++ * processing the system call related to the bundle. The allocated memory is
++ * always freed once the system call completes, and cannot be freed any other
++ * way.
++ *
++ * This tries to use a small pool of pre-allocated memory for performance.
++ */
++__malloc void *_uverbs_alloc(struct uverbs_attr_bundle *bundle, size_t size,
++			     gfp_t flags)
++{
++	struct bundle_priv *pbundle =
++		container_of(&bundle->hdr, struct bundle_priv, bundle);
++	size_t new_used;
++	void *res;
++
++	if (check_add_overflow(size, pbundle->internal_used, &new_used))
++		return ERR_PTR(-EOVERFLOW);
++
++	if (new_used > pbundle->internal_avail) {
++		struct bundle_alloc_head *buf;
++
++		buf = kvmalloc_flex(*buf, data, size, flags);
++		if (!buf)
++			return ERR_PTR(-ENOMEM);
++		buf->next = pbundle->allocated_mem;
++		pbundle->allocated_mem = buf;
++		return buf->data;
++	}
++
++	res = (void *)pbundle->internal_buffer + pbundle->internal_used;
++	pbundle->internal_used =
++		ALIGN(new_used, sizeof(*pbundle->internal_buffer));
++	if (want_init_on_alloc(flags))
++		memset(res, 0, size);
++	return res;
++}
++EXPORT_SYMBOL(_uverbs_alloc);
++
++int uverbs_copy_to(const struct uverbs_attr_bundle *bundle, size_t idx,
++		   const void *from, size_t size)
++{
++	const struct uverbs_attr *attr = uverbs_attr_get(bundle, idx);
++	size_t min_size;
++
++	if (IS_ERR(attr))
++		return PTR_ERR(attr);
++
++	min_size = min_t(size_t, attr->ptr_attr.len, size);
++	if (copy_to_user(u64_to_user_ptr(attr->ptr_attr.data), from, min_size))
++		return -EFAULT;
++
++	return uverbs_set_output(bundle, attr);
++}
++EXPORT_SYMBOL(uverbs_copy_to);
++
++int uverbs_copy_to_struct_or_zero(const struct uverbs_attr_bundle *bundle,
++				  size_t idx, const void *from, size_t size)
++{
++	const struct uverbs_attr *attr = uverbs_attr_get(bundle, idx);
++
++	if (IS_ERR(attr))
++		return PTR_ERR(attr);
++
++	if (size < attr->ptr_attr.len) {
++		if (clear_user(u64_to_user_ptr(attr->ptr_attr.data) + size,
++			       attr->ptr_attr.len - size))
++			return -EFAULT;
++	}
++	return uverbs_copy_to(bundle, idx, from, size);
++}
++EXPORT_SYMBOL(uverbs_copy_to_struct_or_zero);
++
++int _uverbs_get_const_unsigned(u64 *to,
++			       const struct uverbs_attr_bundle *attrs_bundle,
++			       size_t idx, u64 upper_bound, u64 *def_val)
++{
++	const struct uverbs_attr *attr;
++
++	attr = uverbs_attr_get(attrs_bundle, idx);
++	if (IS_ERR(attr)) {
++		if ((PTR_ERR(attr) != -ENOENT) || !def_val)
++			return PTR_ERR(attr);
++
++		*to = *def_val;
++	} else {
++		*to = attr->ptr_attr.data;
++	}
++
++	if (*to > upper_bound)
++		return -EINVAL;
++
++	return 0;
++}
++EXPORT_SYMBOL(_uverbs_get_const_unsigned);
++
++int _uverbs_get_const_signed(s64 *to,
++			     const struct uverbs_attr_bundle *attrs_bundle,
++			     size_t idx, s64 lower_bound, u64 upper_bound,
++			     s64  *def_val)
++{
++	const struct uverbs_attr *attr;
++
++	attr = uverbs_attr_get(attrs_bundle, idx);
++	if (IS_ERR(attr)) {
++		if ((PTR_ERR(attr) != -ENOENT) || !def_val)
++			return PTR_ERR(attr);
++
++		*to = *def_val;
++	} else {
++		*to = attr->ptr_attr.data;
++	}
++
++	if (*to < lower_bound || (*to > 0 && (u64)*to > upper_bound))
++		return -EINVAL;
++
++	return 0;
++}
++EXPORT_SYMBOL(_uverbs_get_const_signed);
++
++int uverbs_get_flags64(u64 *to, const struct uverbs_attr_bundle *attrs_bundle,
++		       size_t idx, u64 allowed_bits)
++{
++	const struct uverbs_attr *attr;
++	u64 flags;
++
++	attr = uverbs_attr_get(attrs_bundle, idx);
++	/* Missing attribute means 0 flags */
++	if (IS_ERR(attr)) {
++		*to = 0;
++		return 0;
++	}
++
++	/*
++	 * New userspace code should use 8 bytes to pass flags, but we
++	 * transparently support old userspaces that were using 4 bytes as
++	 * well.
++	 */
++	if (attr->ptr_attr.len == 8)
++		flags = attr->ptr_attr.data;
++	else if (attr->ptr_attr.len == 4)
++		flags = *(u32 *)&attr->ptr_attr.data;
++	else
++		return -EINVAL;
++
++	if (flags & ~allowed_bits)
++		return -EINVAL;
++
++	*to = flags;
++	return 0;
++}
++EXPORT_SYMBOL(uverbs_get_flags64);
++
++int uverbs_get_flags32(u32 *to, const struct uverbs_attr_bundle *attrs_bundle,
++		       size_t idx, u64 allowed_bits)
++{
++	u64 flags;
++	int ret;
++
++	ret = uverbs_get_flags64(&flags, attrs_bundle, idx, allowed_bits);
++	if (ret)
++		return ret;
++
++	if (flags > U32_MAX)
++		return -EINVAL;
++	*to = flags;
++
++	return 0;
++}
++EXPORT_SYMBOL(uverbs_get_flags32);
++
++/* Once called an abort will call through to the type's destroy_hw() */
++void uverbs_finalize_uobj_create(const struct uverbs_attr_bundle *bundle,
++				 u16 idx)
++{
++	struct bundle_priv *pbundle =
++		container_of(&bundle->hdr, struct bundle_priv, bundle);
++
++	__set_bit(uapi_bkey_attr(uapi_key_attr(idx)),
++		  pbundle->uobj_hw_obj_valid);
++}
++EXPORT_SYMBOL(uverbs_finalize_uobj_create);
 diff --git a/drivers/infiniband/core/uverbs.h b/drivers/infiniband/core/uverbs.h
-index a1de8fe9c90bf1..c64dd6b94e1067 100644
+index f2e192b51e609c..1563169c65009e 100644
 --- a/drivers/infiniband/core/uverbs.h
 +++ b/drivers/infiniband/core/uverbs.h
-@@ -359,4 +359,13 @@ static inline void ib_uverbs_dmabuf_done(struct kref *kref)
- 	complete(&priv->comp);
- }
+@@ -263,6 +263,21 @@ struct bundle_priv {
+ 	u64 internal_buffer[32];
+ };
  
-+int __uverbs_cleanup_ufile(struct ib_uverbs_file *ufile,
-+			   enum rdma_remove_reason reason);
-+
-+static inline void ib_uverbs_comp_dev(struct ib_uverbs_device *dev)
++static inline int uverbs_set_output(const struct uverbs_attr_bundle *bundle,
++				    const struct uverbs_attr *attr)
 +{
-+	complete(&dev->comp);
++	struct bundle_priv *pbundle =
++		container_of(&bundle->hdr, struct bundle_priv, bundle);
++	u16 flags;
++
++	flags = pbundle->uattrs[attr->ptr_attr.uattr_idx].flags |
++		UVERBS_ATTR_F_VALID_OUTPUT;
++	if (put_user(flags,
++		     &pbundle->user_attrs[attr->ptr_attr.uattr_idx].flags))
++		return -EFAULT;
++	return 0;
 +}
 +
-+
- #endif /* UVERBS_H */
-diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
-index a937d276c5c076..ab6f1e3cb47a18 100644
---- a/drivers/infiniband/core/uverbs_main.c
-+++ b/drivers/infiniband/core/uverbs_main.c
-@@ -61,6 +61,7 @@
- MODULE_AUTHOR("Roland Dreier");
- MODULE_DESCRIPTION("InfiniBand userspace verbs access");
- MODULE_LICENSE("Dual BSD/GPL");
-+MODULE_IMPORT_NS("rdma_core");
+ long ib_uverbs_ioctl(struct file *filp, unsigned int cmd, unsigned long arg);
  
- enum {
- 	IB_UVERBS_MAJOR       = 231,
-@@ -165,42 +166,6 @@ void ib_uverbs_detach_umcast(struct ib_qp *qp,
+ struct ib_uverbs_flow_spec {
+diff --git a/drivers/infiniband/core/uverbs_ioctl.c b/drivers/infiniband/core/uverbs_ioctl.c
+index 2552a7efe2fbe2..6a78288e27a1c7 100644
+--- a/drivers/infiniband/core/uverbs_ioctl.c
++++ b/drivers/infiniband/core/uverbs_ioctl.c
+@@ -58,50 +58,6 @@ void uapi_compute_bundle_size(struct uverbs_api_ioctl_method *method_elm,
+ 	WARN_ON_ONCE(method_elm->bundle_size > PAGE_SIZE);
+ }
+ 
+-/**
+- * _uverbs_alloc() - Quickly allocate memory for use with a bundle
+- * @bundle: The bundle
+- * @size: Number of bytes to allocate
+- * @flags: Allocator flags
+- *
+- * The bundle allocator is intended for allocations that are connected with
+- * processing the system call related to the bundle. The allocated memory is
+- * always freed once the system call completes, and cannot be freed any other
+- * way.
+- *
+- * This tries to use a small pool of pre-allocated memory for performance.
+- */
+-__malloc void *_uverbs_alloc(struct uverbs_attr_bundle *bundle, size_t size,
+-			     gfp_t flags)
+-{
+-	struct bundle_priv *pbundle =
+-		container_of(&bundle->hdr, struct bundle_priv, bundle);
+-	size_t new_used;
+-	void *res;
+-
+-	if (check_add_overflow(size, pbundle->internal_used, &new_used))
+-		return ERR_PTR(-EOVERFLOW);
+-
+-	if (new_used > pbundle->internal_avail) {
+-		struct bundle_alloc_head *buf;
+-
+-		buf = kvmalloc_flex(*buf, data, size, flags);
+-		if (!buf)
+-			return ERR_PTR(-ENOMEM);
+-		buf->next = pbundle->allocated_mem;
+-		pbundle->allocated_mem = buf;
+-		return buf->data;
+-	}
+-
+-	res = (void *)pbundle->internal_buffer + pbundle->internal_used;
+-	pbundle->internal_used =
+-		ALIGN(new_used, sizeof(*pbundle->internal_buffer));
+-	if (want_init_on_alloc(flags))
+-		memset(res, 0, size);
+-	return res;
+-}
+-EXPORT_SYMBOL(_uverbs_alloc);
+-
+ static bool uverbs_is_attr_cleared(const struct ib_uverbs_attr *uattr,
+ 				   u16 len)
+ {
+@@ -113,21 +69,6 @@ static bool uverbs_is_attr_cleared(const struct ib_uverbs_attr *uattr,
+ 			   0, uattr->len - len);
+ }
+ 
+-static int uverbs_set_output(const struct uverbs_attr_bundle *bundle,
+-			     const struct uverbs_attr *attr)
+-{
+-	struct bundle_priv *pbundle =
+-		container_of(&bundle->hdr, struct bundle_priv, bundle);
+-	u16 flags;
+-
+-	flags = pbundle->uattrs[attr->ptr_attr.uattr_idx].flags |
+-		UVERBS_ATTR_F_VALID_OUTPUT;
+-	if (put_user(flags,
+-		     &pbundle->user_attrs[attr->ptr_attr.uattr_idx].flags))
+-		return -EFAULT;
+-	return 0;
+-}
+-
+ static int uverbs_process_idrs_array(struct bundle_priv *pbundle,
+ 				     const struct uverbs_api_attr *attr_uapi,
+ 				     struct uverbs_objs_arr_attr *attr,
+@@ -616,57 +557,6 @@ long ib_uverbs_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ 	return err;
+ }
+ 
+-int uverbs_get_flags64(u64 *to, const struct uverbs_attr_bundle *attrs_bundle,
+-		       size_t idx, u64 allowed_bits)
+-{
+-	const struct uverbs_attr *attr;
+-	u64 flags;
+-
+-	attr = uverbs_attr_get(attrs_bundle, idx);
+-	/* Missing attribute means 0 flags */
+-	if (IS_ERR(attr)) {
+-		*to = 0;
+-		return 0;
+-	}
+-
+-	/*
+-	 * New userspace code should use 8 bytes to pass flags, but we
+-	 * transparently support old userspaces that were using 4 bytes as
+-	 * well.
+-	 */
+-	if (attr->ptr_attr.len == 8)
+-		flags = attr->ptr_attr.data;
+-	else if (attr->ptr_attr.len == 4)
+-		flags = *(u32 *)&attr->ptr_attr.data;
+-	else
+-		return -EINVAL;
+-
+-	if (flags & ~allowed_bits)
+-		return -EINVAL;
+-
+-	*to = flags;
+-	return 0;
+-}
+-EXPORT_SYMBOL(uverbs_get_flags64);
+-
+-int uverbs_get_flags32(u32 *to, const struct uverbs_attr_bundle *attrs_bundle,
+-		       size_t idx, u64 allowed_bits)
+-{
+-	u64 flags;
+-	int ret;
+-
+-	ret = uverbs_get_flags64(&flags, attrs_bundle, idx, allowed_bits);
+-	if (ret)
+-		return ret;
+-
+-	if (flags > U32_MAX)
+-		return -EINVAL;
+-	*to = flags;
+-
+-	return 0;
+-}
+-EXPORT_SYMBOL(uverbs_get_flags32);
+-
+ /*
+  * Fill a ib_udata struct (core or uhw) using the given attribute IDs.
+  * This is primarily used to convert the UVERBS_ATTR_UHW() into the
+@@ -707,24 +597,6 @@ void uverbs_fill_udata(struct uverbs_attr_bundle *bundle,
  	}
  }
  
--static void ib_uverbs_comp_dev(struct ib_uverbs_device *dev)
+-int uverbs_copy_to(const struct uverbs_attr_bundle *bundle, size_t idx,
+-		   const void *from, size_t size)
 -{
--	complete(&dev->comp);
--}
+-	const struct uverbs_attr *attr = uverbs_attr_get(bundle, idx);
+-	size_t min_size;
 -
--void ib_uverbs_release_file(struct kref *ref)
+-	if (IS_ERR(attr))
+-		return PTR_ERR(attr);
+-
+-	min_size = min_t(size_t, attr->ptr_attr.len, size);
+-	if (copy_to_user(u64_to_user_ptr(attr->ptr_attr.data), from, min_size))
+-		return -EFAULT;
+-
+-	return uverbs_set_output(bundle, attr);
+-}
+-EXPORT_SYMBOL(uverbs_copy_to);
+-
+-
+ /*
+  * This is only used if the caller has directly used copy_to_use to write the
+  * data.  It signals to user space that the buffer is filled in.
+@@ -738,79 +610,3 @@ int uverbs_output_written(const struct uverbs_attr_bundle *bundle, size_t idx)
+ 
+ 	return uverbs_set_output(bundle, attr);
+ }
+-
+-int _uverbs_get_const_signed(s64 *to,
+-			     const struct uverbs_attr_bundle *attrs_bundle,
+-			     size_t idx, s64 lower_bound, u64 upper_bound,
+-			     s64  *def_val)
 -{
--	struct ib_uverbs_file *file =
--		container_of(ref, struct ib_uverbs_file, ref);
--	struct ib_device *ib_dev;
--	int srcu_key;
+-	const struct uverbs_attr *attr;
 -
--	release_ufile_idr_uobject(file);
+-	attr = uverbs_attr_get(attrs_bundle, idx);
+-	if (IS_ERR(attr)) {
+-		if ((PTR_ERR(attr) != -ENOENT) || !def_val)
+-			return PTR_ERR(attr);
 -
--	srcu_key = srcu_read_lock(&file->device->disassociate_srcu);
--	ib_dev = srcu_dereference(file->device->ib_dev,
--				  &file->device->disassociate_srcu);
--	if (ib_dev && !ib_dev->ops.disassociate_ucontext)
--		module_put(ib_dev->ops.owner);
--	srcu_read_unlock(&file->device->disassociate_srcu, srcu_key);
+-		*to = *def_val;
+-	} else {
+-		*to = attr->ptr_attr.data;
+-	}
 -
--	if (refcount_dec_and_test(&file->device->refcount))
--		ib_uverbs_comp_dev(file->device);
+-	if (*to < lower_bound || (*to > 0 && (u64)*to > upper_bound))
+-		return -EINVAL;
 -
--	if (file->default_async_file)
--		uverbs_uobject_put(&file->default_async_file->uobj);
--	put_device(&file->device->dev);
--
--	if (file->disassociate_page)
--		__free_pages(file->disassociate_page, 0);
--	mutex_destroy(&file->disassociation_lock);
--	mutex_destroy(&file->umap_lock);
--	mutex_destroy(&file->ucontext_lock);
--	kfree(file);
+-	return 0;
 -}
+-EXPORT_SYMBOL(_uverbs_get_const_signed);
 -
- static ssize_t ib_uverbs_event_read(struct ib_uverbs_event_queue *ev_queue,
- 				    struct file *filp, char __user *buf,
- 				    size_t count, loff_t *pos,
-@@ -985,6 +950,69 @@ static int ib_uverbs_open(struct inode *inode, struct file *filp)
- 	return ret;
+-int _uverbs_get_const_unsigned(u64 *to,
+-			       const struct uverbs_attr_bundle *attrs_bundle,
+-			       size_t idx, u64 upper_bound, u64 *def_val)
+-{
+-	const struct uverbs_attr *attr;
+-
+-	attr = uverbs_attr_get(attrs_bundle, idx);
+-	if (IS_ERR(attr)) {
+-		if ((PTR_ERR(attr) != -ENOENT) || !def_val)
+-			return PTR_ERR(attr);
+-
+-		*to = *def_val;
+-	} else {
+-		*to = attr->ptr_attr.data;
+-	}
+-
+-	if (*to > upper_bound)
+-		return -EINVAL;
+-
+-	return 0;
+-}
+-EXPORT_SYMBOL(_uverbs_get_const_unsigned);
+-
+-int uverbs_copy_to_struct_or_zero(const struct uverbs_attr_bundle *bundle,
+-				  size_t idx, const void *from, size_t size)
+-{
+-	const struct uverbs_attr *attr = uverbs_attr_get(bundle, idx);
+-
+-	if (IS_ERR(attr))
+-		return PTR_ERR(attr);
+-
+-	if (size < attr->ptr_attr.len) {
+-		if (clear_user(u64_to_user_ptr(attr->ptr_attr.data) + size,
+-			       attr->ptr_attr.len - size))
+-			return -EFAULT;
+-	}
+-	return uverbs_copy_to(bundle, idx, from, size);
+-}
+-EXPORT_SYMBOL(uverbs_copy_to_struct_or_zero);
+-
+-/* Once called an abort will call through to the type's destroy_hw() */
+-void uverbs_finalize_uobj_create(const struct uverbs_attr_bundle *bundle,
+-				 u16 idx)
+-{
+-	struct bundle_priv *pbundle =
+-		container_of(&bundle->hdr, struct bundle_priv, bundle);
+-
+-	__set_bit(uapi_bkey_attr(uapi_key_attr(idx)),
+-		  pbundle->uobj_hw_obj_valid);
+-}
+-EXPORT_SYMBOL(uverbs_finalize_uobj_create);
+diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
+index f5837da47299c1..15d8387718c050 100644
+--- a/drivers/infiniband/core/uverbs_main.c
++++ b/drivers/infiniband/core/uverbs_main.c
+@@ -91,30 +91,6 @@ static const struct class uverbs_class = {
+ 	.devnode = uverbs_devnode,
+ };
+ 
+-/*
+- * Must be called with the ufile->device->disassociate_srcu held, and the lock
+- * must be held until use of the ucontext is finished.
+- */
+-struct ib_ucontext *ib_uverbs_get_ucontext_file(struct ib_uverbs_file *ufile)
+-{
+-	/*
+-	 * We do not hold the hw_destroy_rwsem lock for this flow, instead
+-	 * srcu is used. It does not matter if someone races this with
+-	 * get_context, we get NULL or valid ucontext.
+-	 */
+-	struct ib_ucontext *ucontext = smp_load_acquire(&ufile->ucontext);
+-
+-	if (!srcu_dereference(ufile->device->ib_dev,
+-			      &ufile->device->disassociate_srcu))
+-		return ERR_PTR(-EIO);
+-
+-	if (!ucontext)
+-		return ERR_PTR(-EINVAL);
+-
+-	return ucontext;
+-}
+-EXPORT_SYMBOL(ib_uverbs_get_ucontext_file);
+-
+ int uverbs_dealloc_mw(struct ib_mw *mw)
+ {
+ 	struct ib_pd *pd = mw->pd;
+diff --git a/drivers/infiniband/core/uverbs_std_types.c b/drivers/infiniband/core/uverbs_std_types.c
+index 13776a66e2e43a..e160786e1df164 100644
+--- a/drivers/infiniband/core/uverbs_std_types.c
++++ b/drivers/infiniband/core/uverbs_std_types.c
+@@ -165,12 +165,6 @@ uverbs_completion_event_file_destroy_uobj(struct ib_uobject *uobj,
+ 	ib_uverbs_free_event_queue(&file->ev_queue);
  }
  
-+/*
-+ * Drop the ucontext off the ufile and completely disconnect it from the
-+ * ib_device
-+ */
-+static void ufile_destroy_ucontext(struct ib_uverbs_file *ufile,
-+			    enum rdma_remove_reason reason)
-+{
-+	struct ib_ucontext *ucontext = ufile->ucontext;
-+	struct ib_device *ib_dev = ucontext->device;
-+
-+	/*
-+	 * If we are closing the FD then the user mmap VMAs must have
-+	 * already been destroyed as they hold on to the filep, otherwise
-+	 * they need to be zap'd.
-+	 */
-+	if (reason == RDMA_REMOVE_DRIVER_REMOVE) {
-+		uverbs_user_mmap_disassociate(ufile);
-+		if (ib_dev->ops.disassociate_ucontext)
-+			ib_dev->ops.disassociate_ucontext(ucontext);
-+	}
-+
-+	ib_rdmacg_uncharge(&ucontext->cg_obj, ib_dev,
-+			   RDMACG_RESOURCE_HCA_HANDLE);
-+
-+	rdma_restrack_del(&ucontext->res);
-+
-+	ib_dev->ops.dealloc_ucontext(ucontext);
-+	WARN_ON(!xa_empty(&ucontext->mmap_xa));
-+	kfree(ucontext);
-+
-+	ufile->ucontext = NULL;
-+}
-+
-+/*
-+ * Destroy the ucontext and every uobject associated with it.
-+ *
-+ * This is internally locked and can be called in parallel from multiple
-+ * contexts.
-+ */
-+void uverbs_destroy_ufile_hw(struct ib_uverbs_file *ufile,
-+			     enum rdma_remove_reason reason)
-+{
-+	down_write(&ufile->hw_destroy_rwsem);
-+
-+	/*
-+	 * If a ucontext was never created then we can't have any uobjects to
-+	 * cleanup, nothing to do.
-+	 */
-+	if (!ufile->ucontext)
-+		goto done;
-+
-+	while (!list_empty(&ufile->uobjects) &&
-+	       !__uverbs_cleanup_ufile(ufile, reason)) {
-+	}
-+
-+	if (WARN_ON(!list_empty(&ufile->uobjects)))
-+		__uverbs_cleanup_ufile(ufile, RDMA_REMOVE_DRIVER_FAILURE);
-+	ufile_destroy_ucontext(ufile, reason);
-+
-+done:
-+	up_write(&ufile->hw_destroy_rwsem);
-+}
-+
- static int ib_uverbs_close(struct inode *inode, struct file *filp)
- {
- 	struct ib_uverbs_file *file = filp->private_data;
+-int uverbs_destroy_def_handler(struct uverbs_attr_bundle *attrs)
+-{
+-	return 0;
+-}
+-EXPORT_SYMBOL(uverbs_destroy_def_handler);
+-
+ DECLARE_UVERBS_NAMED_OBJECT(
+ 	UVERBS_OBJECT_COMP_CHANNEL,
+ 	UVERBS_TYPE_ALLOC_FD(sizeof(struct ib_uverbs_completion_event_file),
 -- 
 2.43.0
 
