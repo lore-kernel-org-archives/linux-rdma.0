@@ -1,67 +1,67 @@
-Received: from mail-qt1-f169.google.com (mail-qt1-f169.google.com [209.85.160.169])
+Received: from mail-qk1-f178.google.com (mail-qk1-f178.google.com [209.85.222.178])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A04C312F585
-	for <linux-rdma@vger.kernel.org>; Wed, 27 May 2026 17:40:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.169
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 526F64534A2
+	for <linux-rdma@vger.kernel.org>; Wed, 27 May 2026 17:41:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.178
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779903635; cv=none; b=t/sl/LAKo7vn/PePn04OKv70RXryIAxI54Jsf6esa74w8LwtLcWmYu4cItUI3xhgl+YA8WnA2pWK36humpXjwy29y6rTb1xq/yvV0r1N4Ig7GTwMEvROAoI/vqkAKtSLqksihqbJcacWSo+EjPR94JW0AzQBp0Hjp9hzqRvbg4k=
+	t=1779903717; cv=none; b=Zs86E4+1fDt379I/btndhVjC83SpfxX4Kw/B0gff0l525QVUZQVoVF1DBctiBNUqVDyVFMG91C6UmAQ7NcDNqVh8QCVw8kncj2kFtGZRzmGTC8KsaqIffU08lV49LjPzfR2YLf8pnmwozH1jow4cH5AJP2UUNL5R4qukPruN0Bg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779903635; c=relaxed/simple;
-	bh=EYZBtGLYBsDMKWxI1Hn3I+3zNtIMx6Z+JvaXyEc4hIU=;
+	s=arc-20240116; t=1779903717; c=relaxed/simple;
+	bh=wKsM608Esl0fy6X1o4nG+xhV/5Q6mB3P9exIoxqFSuw=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Ptba1zeFFC2i8sFeONoGE4tcZ6HqcYvnn9IJOQ6pC0+qiQt4PNdJeKbBrE5AUqvnPOS/+y6AwJOrV7jE6++zBFpcuwCyFuaMREjVqRelxnHt6qiXGvsf7Tl9ubprWqyOrI1p//LXIR47hJdeW4saRE5+gGzShR+NQuxzIrnBCu8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca; spf=pass smtp.mailfrom=ziepe.ca; dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b=Iy0irSCj; arc=none smtp.client-ip=209.85.160.169
+	 Content-Type:Content-Disposition:In-Reply-To; b=EapUA152cVFaz8G0YcEjbm2p/WGuBBCmzr1PKheJLrVl9+woYuLGQoTHkzxrSkA+v/g7iYNnWMsxc334Cg3API+CzeJ0EzaZco2Pga46anb4glvy1LvmbA6eaY+VkHdXvIEoP3TWQTfnpeIpeffYB22GCnl0z0jGCZEWeCYOiDA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca; spf=pass smtp.mailfrom=ziepe.ca; dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b=RN1mV5fh; arc=none smtp.client-ip=209.85.222.178
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ziepe.ca
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="Iy0irSCj"
-Received: by mail-qt1-f169.google.com with SMTP id d75a77b69052e-50faeb8317bso108337011cf.2
-        for <linux-rdma@vger.kernel.org>; Wed, 27 May 2026 10:40:33 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="RN1mV5fh"
+Received: by mail-qk1-f178.google.com with SMTP id af79cd13be357-91173f20ccdso530738585a.0
+        for <linux-rdma@vger.kernel.org>; Wed, 27 May 2026 10:41:55 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google; t=1779903633; x=1780508433; darn=vger.kernel.org;
+        d=ziepe.ca; s=google; t=1779903714; x=1780508514; darn=vger.kernel.org;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=DqFeTv3zQ1eZrp+0fYGu1eja5BsXVK78baJ0ZjzzUg8=;
-        b=Iy0irSCjju4O70dPU8yx2/Qk1JTSBT70eMdxa0zxywEIHCsjoXWlra+VPbkKrnqw6K
-         U+G+oc5RDZsI2ETB2IoYKxtrpRMjCzgoAaVPCUgjiT2QaWs72/dEUfxqh5peeVZFEHib
-         iN90NV2ktYXoDeAD63vfouCf/pUgsKz/FQeeBqc+am7K5XIXNa4BNlb+1h6/JyLx5AYL
-         FeFLBBJR80TGnxQLZEshKXrjZ2NM0Kay5CcOJrWWf4SanuXQa86W7EvlCO5oKwh5ZSYM
-         perYHZ227Y8d92tyNle9TpiO/T3XO0xqnCvvSdJMPaIbL+9d3WHGu9G5Tj6vPGC0aa/P
-         75Hg==
+        bh=DmrDjy36KcGDNrJKWLTqrfLWEGEdjBVPnWG8V76UL1w=;
+        b=RN1mV5fhA2mINONoxIZXXBC4lPjVyYNgs2FgpFWTPpzNsnBNrFJeqXDSRYJMP/Iq1x
+         YvgZztLQ/C6NkKwxia+xLecDMh9khm+8cwDOsywU51RuaXMIgNf2qi3F/PNxpI2yJHFL
+         jR67bNqjbqCh0wRYanf9kPGsH8jD9yLmRYtVo9fbZBWhVEanhcrEgQ2geDQX4h4GtbUh
+         ohYpM25MqBNY85RW1NuWFbQdDtk1K54rNhr5x00u08WQNyFIvHgIusnzZ8yQeaBlDOfL
+         LZuEi50rNhDS5xHnMPZEcc0sxo2q3JiC2m6xtcmmz4GleILEahRLUlXd7h6beifxyl7N
+         uSYw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1779903633; x=1780508433;
+        d=1e100.net; s=20251104; t=1779903714; x=1780508514;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=DqFeTv3zQ1eZrp+0fYGu1eja5BsXVK78baJ0ZjzzUg8=;
-        b=nNeCdT3xouaXBv9sFBYAAbgDrcHVBnYloYz1TAOss2cFc1UExbQ+lj94cfTlkrWtCu
-         vL646eYnQBkpNWj515HIyozbaPVU+7G76Nb3r/pQqB+7yF3VkcoiQReaccNWq4PpKazb
-         r/7tCgW44+zNwWoX9GQCq5bU1bDUS83aqU0Gul0+u+g1Bwk+kxAMb/Xr+JnfAgzhmm3K
-         oDGhlBNLxE/5rPFiM6Z0/8uTeipwOmxaDqei6mcZXQPMwRvVe3xnETURyhRz0i7Q7P3a
-         0mngVXVPXpnHsQoID8VTMUd7Z/b6ujPsBq2EwQgax6yK59m7BcvB7fZugStN4PZJHV23
-         CkVA==
-X-Gm-Message-State: AOJu0YzQrp+bQ74lIC4HBmCNp0YSLrcdr45zTBpYnogZct42A8M7bwUS
-	3Of5L6QM5gScbl+CQWp7PJuk+ydmIw/KzBiQXnQgs/uzhJ20l/rVQsiaKjCfG1Rrvj4=
-X-Gm-Gg: Acq92OG8DzmfFxDfLILRs/RleuMN0AMpID0wq45dQ2jKcefEc1QyvhaZAgYbpJ8iahi
-	dV+nHHvIYRepRXEI9xNiJEjdTe0mUgiBF/ImVtui2mJ8BE+9ov+A3DndNycU2s+43Ca1gFNkH9e
-	hoW6A4kWp72WAXH8aqlQVtKsKm6YvzQBNuJuIZaxvEk8cUz+q0P4vIacYKVqfarWeIMUhJcZ8p0
-	Gp91KIn4VdoS8Cy12YliEwaq9oDicDvPRnmKqU5cQHyDC/SDrbt+lURZfYfVek46+W8fjHSzDoV
-	y2nE/KhEhVqmtK8P5UixE1i1NHLYTw0p3Q1II+euyojCMxjLCW+IDA5Y7YtTmZH8I4k5Stl8mKg
-	1dOUoXkCsgS8XuzhY73Zjn7JgRBjAR2n5NR1tGY+JRTbvUL0pPdZp41YyodFPhymEsKzFfJaS6w
-	lb+j17aulCqlVneaGJuO8F1u7vkJR/iidi5OzxrjX8qaDprWxcu1d4rZnoW8isja5c2CUgWfQNn
-	Wb/vw==
-X-Received: by 2002:a05:622a:5c08:b0:516:e833:64f2 with SMTP id d75a77b69052e-516e83367b9mr265338291cf.12.1779903632537;
-        Wed, 27 May 2026 10:40:32 -0700 (PDT)
+        bh=DmrDjy36KcGDNrJKWLTqrfLWEGEdjBVPnWG8V76UL1w=;
+        b=obAHT8UR3IgT+97fND40NDA/8G19jPGZ2DHsFTA970fPPecG86Vczb2vHCAm+3K0Bq
+         VZluXMBoQENN+//crCC0C9w8JYhPwdKXLwFdjWB/FwBOEbZuNcCL1etl1kioISAjOX7I
+         p38BmfrDbUmhaQ6lLuc0zZtF3xfFKmoxIn/EYGuvm1/ZJIVOJGRGjheem6ja8OAkTVIP
+         QMrfhjC/la1LmV2Z0nCSSXjSlgbkHXzxCSl31ogz00VOWD4ZKuSzfkHNvUn6U69mf61s
+         O2BQFecUVcsRvZNeiJYqXCj6P/B4PLKTMVGmVztNcaOieeCZj46jx9lsPvjudiqVZBXo
+         QzlQ==
+X-Gm-Message-State: AOJu0Yw3fDu5P40LoxQQ8MmbnH6k8HoqS3mbGqm2DYYuN/ihLeGd0X0G
+	4fhzZRSTxXwLcsvRKDXCZwZhjupcUKvU1y4XCilENigdRdgx6lasNZ2qrEAgZ/ZTLIU=
+X-Gm-Gg: Acq92OEg2j5pFsKbD4IMoXJ4pbKTpfUv74Qg+z89wCiCf1SPVsTfznjFMUDP3Xm2yXP
+	xFSZfTxJGvK6hsdcKpCnqpfY/QSOGAtTWOw2XjPsdoMJSuXeX0kkiVW+/XUSHIF1E6JACE7V3n/
+	f8+k5BvpqbEqqbkE099w+4sw5AXtf/TAgcbWg7CIwt16o4WMOAr2rnWqPBwdBkZWQj93++/S3PN
+	w0rgkn1R4UPEb/ofd98Y0olnQGmjgzz5HOtlsVh/Z7VcQazbxB5hjvKyMjaLrhI/CGA9XO8ireR
+	AOeghxvYYPtH4GIKscfT7o4AIrYTzp1HAC1IeL/yuB7Obyme3ym+tb51CuddpLA/cmPyDXSS5dL
+	mcoBFluYcKFbjFuVGwa6b+jORF1ndJ/o6n5C/Wg+gsb7ny2v5iy5lrfyOcBmyRR0P220FX9bvAi
+	ZT0htr/3vxGLozxpMSarzSGUXsZ3ts7guYOOkUB1U9VmKm4KIUa2uR3mdxlMLUVcEgfW55j0A6I
+	9NMMnoD9iT0bgv8FxYcg+H/iLE=
+X-Received: by 2002:a05:620a:372a:b0:914:c100:6a18 with SMTP id af79cd13be357-914c10072bamr3218941085a.16.1779903713990;
+        Wed, 27 May 2026 10:41:53 -0700 (PDT)
 Received: from ziepe.ca (crbknf0213w-47-54-130-67.pppoe-dynamic.high-speed.nl.bellaliant.net. [47.54.130.67])
-        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-8cc8132f780sm174837726d6.49.2026.05.27.10.40.31
+        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-8cc80dcd3f4sm174513766d6.5.2026.05.27.10.41.53
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 27 May 2026 10:40:32 -0700 (PDT)
+        Wed, 27 May 2026 10:41:53 -0700 (PDT)
 Received: from jgg by wakko with local (Exim 4.97)
 	(envelope-from <jgg@ziepe.ca>)
-	id 1wSIF5-0000000FLny-2Kcj;
-	Wed, 27 May 2026 14:40:31 -0300
-Date: Wed, 27 May 2026 14:40:31 -0300
+	id 1wSIGP-0000000FLqn-03Al;
+	Wed, 27 May 2026 14:41:53 -0300
+Date: Wed, 27 May 2026 14:41:52 -0300
 From: Jason Gunthorpe <jgg@ziepe.ca>
 To: Jiri Pirko <jiri@resnulli.us>
 Cc: linux-rdma@vger.kernel.org, leon@kernel.org, mrgolin@amazon.com,
@@ -73,11 +73,11 @@ Cc: linux-rdma@vger.kernel.org, leon@kernel.org, mrgolin@amazon.com,
 	michaelgur@nvidia.com, shayd@nvidia.com, edwards@nvidia.com,
 	sriharsha.basavapatna@broadcom.com, andrew.gospodarek@broadcom.com,
 	selvin.xavier@broadcom.com, jmoroni@google.com
-Subject: Re: [PATCH rdma-next v7 03/15] RDMA/core: Introduce generic buffer
- descriptor infrastructure for umem
-Message-ID: <20260527174031.GB3528738@ziepe.ca>
+Subject: Re: [PATCH rdma-next v7 14/15] RDMA/mlx5: Use UMEM attribute for CQ
+ doorbell record
+Message-ID: <20260527174152.GC3528738@ziepe.ca>
 References: <20260526144152.1422310-1-jiri@resnulli.us>
- <20260526144152.1422310-4-jiri@resnulli.us>
+ <20260526144152.1422310-15-jiri@resnulli.us>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -86,34 +86,25 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20260526144152.1422310-4-jiri@resnulli.us>
+In-Reply-To: <20260526144152.1422310-15-jiri@resnulli.us>
 
-On Tue, May 26, 2026 at 04:41:40PM +0200, Jiri Pirko wrote:
-> @@ -862,6 +884,9 @@ int uverbs_get_flags32(u32 *to, const struct uverbs_attr_bundle *attrs_bundle,
->  		       size_t idx, u64 allowed_bits);
->  int uverbs_copy_to(const struct uverbs_attr_bundle *attrs_bundle, size_t idx,
->  		   const void *from, size_t size);
-> +int uverbs_attr_get_buffer_desc(const struct uverbs_attr_bundle *attrs,
-> +				u16 attr_id,
-> +				struct ib_uverbs_buffer_desc *desc);
->  __malloc void *_uverbs_alloc(struct uverbs_attr_bundle *bundle, size_t size,
->  			     gfp_t flags);
->  
-> @@ -920,6 +945,12 @@ static inline int uverbs_copy_to(const struct uverbs_attr_bundle *attrs_bundle,
->  {
->  	return -EINVAL;
->  }
-> +static inline int
-> +uverbs_attr_get_buffer_desc(struct uverbs_attr_bundle *attrs, u16 attr_id,
-> +			    struct ib_uverbs_buffer_desc *desc)
-> +{
-> +	return -EINVAL;
-> +}
+On Tue, May 26, 2026 at 04:41:51PM +0200, Jiri Pirko wrote:
 
-This mismatches needs a const:
+> +	/*
+> +	 * The 8-byte DBR is programmed to the device as one DMA address,
+> +	 * so it must live in a single contiguous DMA segment.
+> +	 */
+> +	if (!ib_umem_is_contiguous(umem)) {
+> +		ib_umem_release(umem);
+>  		kfree(page);
+> +		err = -EINVAL;
+>  		goto out;
+>  	}
 
-../drivers/infiniband/hw/mlx5/doorbell.c: In function \u2018mlx5_ib_db_map_user\u2019:
-../drivers/infiniband/hw/mlx5/doorbell.c:141:51: warning: passing argument 1 of \u2018uverbs_attr_get_buffer_desc\u2019 discards \u2018const\u2019 qualifier from pointer target type [-Wdiscarded-qualifiers]
-  141 |                 err = uverbs_attr_get_buffer_desc(attrs, attr_id, &desc);
+Michael forgot to add an inline for this:
+
+../drivers/infiniband/hw/mlx5/doorbell.c: In function \u2018mlx5_ib_db_map_user_desc\u2019:
+../drivers/infiniband/hw/mlx5/doorbell.c:102:14: error: implicit declaration of function \u2018ib_umem_is_contiguous\u2019 [-Werror=implicit-function-declaration]
+  102 |         if (!ib_umem_is_contiguous(umem)) {
 
 Jason
