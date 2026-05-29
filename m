@@ -1,132 +1,86 @@
-Received: from out-178.mta0.migadu.com (out-178.mta0.migadu.com [91.218.175.178])
+Received: from out30-133.freemail.mail.aliyun.com (out30-133.freemail.mail.aliyun.com [115.124.30.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 00C5134E762
-	for <linux-rdma@vger.kernel.org>; Fri, 29 May 2026 01:39:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.178
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9514312F585
+	for <linux-rdma@vger.kernel.org>; Fri, 29 May 2026 02:16:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.133
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780018772; cv=none; b=D7S6Jib29kADKeIBfCi7ezC1091Tj4LIwzOJ+34m1ECDvu456nGLFUDfb0hRwUI7TtMZtlzun60+pZqHi3Kw4xaP90toYZnTRHrrBDzic81tQHelxNQ5LMcoLVWwyosxQef06QWSCixRwLFi5YkAaONaQlHZtzDWTOHJgdQNMIk=
+	t=1780021003; cv=none; b=AE6vEys75c/A/IZd//7JH7/Qs4YP/I79I4ict+nasypvhssYs1JYkHXYF76q0yvyc8b+r/FHOok+MPeu6stmakYaGSvotDrlpIq5GrEzjAk93Cqjg7sxI2uLB5x9SM64HUvt9hmd5UvxcLHxoOX/Fmkm9VSIiAs4HGBVIF73ppk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780018772; c=relaxed/simple;
-	bh=CrJHONzal1igCLU2RdflDf06+t5jtDPZKAZr+IvVkF4=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=j7jSNP9uICRQqGcZm4qTsGBaDu8qeWtkvTEODsy70nvo9v6jO/rYSHRFOG/ONxQgnCuHgMzMLyy54uC2IHIMtK8qgkKHxSI1gvgfmzFvC/TU+Cl1Qj1jfoPz1MHBc2eyqQ1gLeXuhA7SxYlvOIzx/Sb2XMfBVzQ+93Iqw2XRM1Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=C5d/Nfue; arc=none smtp.client-ip=91.218.175.178
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+	s=arc-20240116; t=1780021003; c=relaxed/simple;
+	bh=GvTSJ7jDxcWV0fzfxb7OFwYDM5SHmB6SErkH6xvLplA=;
+	h=Message-ID:Date:MIME-Version:Subject:To:References:From:Cc:
+	 In-Reply-To:Content-Type; b=mLQS7KA345UdC4q/u3qWM8XdSsWOvo5QWpbjX9D++wlGuaIgJEEt67keZNQJr8jlb493x/WREvGjH+p5c/j9o9uZY9RwrwYThCRZksnkHShaEhj13R/RP7aNf5YEk03aIVuUREKCPUE+Ih5x2cDumQiqNNvoxkexALRs9eYxlwQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=Su2PKpNM; arc=none smtp.client-ip=115.124.30.133
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="C5d/Nfue"
-Message-ID: <ca22a09a-9682-44f2-b10c-9daac2b2928f@linux.dev>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-	t=1780018768;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=LkcsFsPTbBgQrtVkPUc/bE1jIBwePz193zFdZhGY59o=;
-	b=C5d/NfueLV+xeLe5/k1q9jD986DQovzY1Zlybl21LdHBd3qwIal6tDvxbTS+NLg5qvW+fP
-	b3jWHdyguErYo88dG9JbgNyUhojBjPteoa0PEZncqjFPDhgyRIXojt9ozJNutDu4sAQ8a8
-	FlMyzjJSnJEQ6Sz8ipev1ty0bcrF/0Y=
-Date: Thu, 28 May 2026 18:39:05 -0700
+	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="Su2PKpNM"
+DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux.alibaba.com; s=default;
+	t=1780020997; h=Message-ID:Date:MIME-Version:Subject:To:From:Content-Type;
+	bh=v1ocmTGmgoZy30Eimm1HaXE/hJ4GypwwY7oVKee9Qbw=;
+	b=Su2PKpNME2q7QjqQknqGHji0yBSpfeP9TJ/LMaVJzSG9EQLTH3eVqVqMRM+l70o09GpGaKwkVpdN0R6hYicvypG8V3c/S4MC15xPicsmKH4cODvoaDxUflV59jiJAlYZRKcOD9G/mW76SDJ0zWR0bFjCvS89LV0LJR/TLrQOQjk=
+X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R111e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam033037009110;MF=boshiyu@linux.alibaba.com;NM=1;PH=DS;RN=5;SR=0;TI=SMTPD_---0X3nxGhC_1780020995;
+Received: from 30.221.149.52(mailfrom:boshiyu@linux.alibaba.com fp:SMTPD_---0X3nxGhC_1780020995 cluster:ay36)
+          by smtp.aliyun-inc.com;
+          Fri, 29 May 2026 10:16:36 +0800
+Message-ID: <ad4b6678-ae4b-4320-9b5b-e01516322735@linux.alibaba.com>
+Date: Fri, 29 May 2026 10:16:34 +0800
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Subject: Re: [PATCH 2/2] RDMA/rxe: copy WQE to local buffer in non-SRQ receive
- path
-To: Tristan Madani <tristmd@gmail.com>, Zhu Yanjun <zyjzyj2000@gmail.com>,
- Zhu Yanjun <yanjun.zhu@linux.dev>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>,
- linux-rdma@vger.kernel.org, Tristan Madani <tristan@talencesecurity.com>
-References: <20260518215040.1598586-1-tristan@talencesecurity.com>
- <20260518215040.1598586-3-tristan@talencesecurity.com>
-Content-Language: en-US
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-From: "yanjun.zhu" <yanjun.zhu@linux.dev>
-In-Reply-To: <20260518215040.1598586-3-tristan@talencesecurity.com>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH for-next v2 3/3] RDMA/erdma: Implement
+ erdma_reg_user_mr_dmabuf
+To: Jason Gunthorpe <jgg@nvidia.com>
+References: <20260518120637.16831-1-boshiyu@linux.alibaba.com>
+ <20260518120637.16831-4-boshiyu@linux.alibaba.com>
+ <20260525163708.GA2504127@nvidia.com>
+From: Boshi Yu <boshiyu@linux.alibaba.com>
+Cc: Leon Romanovsky <leon@kernel.org>, linux-rdma@vger.kernel.org,
+ chengyou@linux.alibaba.com, kaishen@linux.alibaba.com
+In-Reply-To: <20260525163708.GA2504127@nvidia.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-Migadu-Flow: FLOW_OUT
+Content-Transfer-Encoding: 8bit
 
-On 5/18/26 2:50 PM, Tristan Madani wrote:
-> For non-SRQ QPs, the responder reads WQE fields directly from the
-> shared queue buffer mapped into userspace. This allows a malicious
-> user to modify fields like num_sge or sge entries while the kernel
-> is processing the WQE, leading to out-of-bounds reads in
-> rxe_resp_check_length() and copy_data().
+On 2026/5/26 00:37, Jason Gunthorpe wrote:
+> On Mon, May 18, 2026 at 08:06:28PM +0800, Boshi Yu wrote:
+>> +	if (attr->flags & ERDMA_MEM_FLAG_DMABUF) {
+>> +		umem_dmabuf = ib_umem_dmabuf_get_pinned(&dev->ibdev,
+>> +							attr->start, attr->len,
+>> +							attr->fd, attr->access);
+>> +		if (IS_ERR(umem_dmabuf)) {
 > 
-> Introduce get_recv_wqe() that validates num_sge and copies the WQE
-> to a kernel-local buffer before processing, matching the approach
-> already used for SRQ WQEs in get_srq_wqe(). The srq_wqe buffer is
-> reused since SRQ and non-SRQ paths are mutually exclusive per QP.
+> I don't want to see new MR implementations that use the get_pinned
+> interface.
 > 
-> Fixes: 8700e3e7c485 ("Soft RoCE driver")
-> Signed-off-by: Tristan Madani <tristan@talencesecurity.com>
-> ---
->   drivers/infiniband/sw/rxe/rxe_resp.c | 27 ++++++++++++++++++++++++---
->   1 file changed, 24 insertions(+), 3 deletions(-)
+> Please implement the revoked interface Jacob added:
 > 
-> diff --git a/drivers/infiniband/sw/rxe/rxe_resp.c b/drivers/infiniband/sw/rxe/rxe_resp.c
-> index 8a0a973..43e8d86 100644
-> --- a/drivers/infiniband/sw/rxe/rxe_resp.c
-> +++ b/drivers/infiniband/sw/rxe/rxe_resp.c
-> @@ -310,6 +310,29 @@ static enum resp_states get_srq_wqe(struct rxe_qp *qp)
->   	return RESPST_CHK_LENGTH;
->   }
->   
-> +static enum resp_states get_recv_wqe(struct rxe_qp *qp)
-> +{
-> +	struct rxe_queue *q = qp->rq.queue;
-> +	struct rxe_recv_wqe *wqe;
-> +	unsigned int num_sge;
-> +	size_t size;
-> +
-> +	wqe = queue_head(q, QUEUE_TYPE_FROM_CLIENT);
-> +	if (!wqe)
-> +		return RESPST_ERR_RNR;
-> +
-> +	num_sge = wqe->dma.num_sge;
-> +	if (unlikely(num_sge > qp->rq.max_sge)) {
-> +		rxe_dbg_qp(qp, "invalid num_sge in recv WQE\n");
-> +		return RESPST_ERR_MALFORMED_WQE;
-> +	}
-> +	size = sizeof(*wqe) + num_sge * sizeof(struct rxe_sge);
-> +	memcpy(&qp->resp.srq_wqe, wqe, size);
-> +
-> +	qp->resp.wqe = &qp->resp.srq_wqe.wqe;
-> +	return RESPST_CHK_LENGTH;
-> +}
+> commit ff85a2ebacbdaec9f28c4660c991295ace93cd1c
+> Author: Jacob Moroni <jmoroni@google.com>
+> Date:   Thu Mar 5 17:08:24 2026 +0000
+> 
+>      RDMA/umem: Add pinned revocable dmabuf import interface
+>      
+>      Added an interface for importing a pinned but revocable dmabuf.
+>      This interface can be used by drivers that are capable of revocation
+>      so that they can import dmabufs from exporters that may require it,
+>      such as VFIO.
+> 
+> 
+> Any IBTA compliant device should be implement revoke at least through
+> regreg_mr.
+> 
+> Jason
 
-This approach makes sense to me. Copying the receive WQE into a
-kernel-local buffer before processing closes the race window against
-userspace modifications and aligns the non-SRQ path with the existing
-SRQ handling model.
+Hi, Jason
 
-One minor suggestion: it may be better to rename `get_recv_wqe()` to
-`rxe_get_recv_wqe()` for consistency with the RXE naming convention
-used elsewhere in the driver and to avoid overly generic helper names.
+Thanks for your suggestion. I’ll use ib_umem_dmabuf_get_pinned_revocable 
+instead of ib_umem_dmabuf_get_pinned in the next version.
 
-
-Thanks a lot.
-Reviewed-by: Zhu Yanjun <yanjun.zhu@linux.dev>
-
-Zhu Yanjun
-
-> +
->   static enum resp_states check_resource(struct rxe_qp *qp,
->   				       struct rxe_pkt_info *pkt)
->   {
-> @@ -330,9 +353,7 @@ static enum resp_states check_resource(struct rxe_qp *qp,
->   		if (srq)
->   			return get_srq_wqe(qp);
->   
-> -		qp->resp.wqe = queue_head(qp->rq.queue,
-> -				QUEUE_TYPE_FROM_CLIENT);
-> -		return (qp->resp.wqe) ? RESPST_CHK_LENGTH : RESPST_ERR_RNR;
-> +		return get_recv_wqe(qp);
->   	}
->   
->   	return RESPST_CHK_LENGTH;
-
+Thanks,
+Boshi Yu
