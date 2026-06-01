@@ -1,153 +1,82 @@
-Received: from pdx-out-006.esa.us-west-2.outbound.mail-perimeter.amazon.com (pdx-out-006.esa.us-west-2.outbound.mail-perimeter.amazon.com [52.26.1.71])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 37D16201004
-	for <linux-rdma@vger.kernel.org>; Mon,  1 Jun 2026 09:17:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=52.26.1.71
+Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 73C4F3655CF;
+	Mon,  1 Jun 2026 09:23:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780305438; cv=none; b=IDJ37WOKDYpKchWQ4XT/Fdux5RkfPmPB2h/oSAHk/yBmsIYa4Z+XHCJpBitNfBr5wv6ktTxzva1w0b4OsZ9woxlyA89tuRELys0ov2eMP0iZNhmSPB83RgdyVIODBTLqV5PPv4iUnX06IcgIADaW1ev/5a7rSXbc0eZRPoyR96k=
+	t=1780305839; cv=none; b=AsQZPOPbaA8qBNJorENE8od9Ot9MKP3/3neoXLWnJFZKk4kb/LiDlZEjvJe3li8nab1FL4RX73JA2QM1zXRcs2fyQoYtmgPGj4LxLQfSo1+8wg2PimgXl7vvUlcA54yhKQjikwtVYVCY9qUYpE8yN+qmTdH+Sn6WTqLYAqOUlts=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780305438; c=relaxed/simple;
-	bh=WvnuC1vHZomNi0EpGtcCr6xvmyzo3YzazoGmWeqQiBU=;
-	h=Date:From:To:CC:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=b8dTNIzl85/GRfA9swbcM4+CVSX70z8aoF7q13Z0G3iyWIUp+7qMiSQPkClLvx+uyOwCc4brbLcoyEucZrwUc3ikz642fM5GvYNdwvLLgLheAbc715TJJv0Nx6bm/HkgD6Eg3rBJTjKpja2Sljq3odSoxpUWHTTncrmko4p+krg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com; spf=pass smtp.mailfrom=amazon.com; dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.b=bgQUYQxs; arc=none smtp.client-ip=52.26.1.71
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazon.com
+	s=arc-20240116; t=1780305839; c=relaxed/simple;
+	bh=9cpGroDrLpJMUxxcUm5cBGOinWy7SIB6mxCDnw1EVb8=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=E3k0H4w6RzCydXzvJ6yZfoGHuQbc4DhwJdYq/FmVkC28m6A6Q2RV71JrXWCfXz/bpHFZhey/B/hMdA0WpwKJ4hoYpnpYR+1Fd53Wz6QqnrKVthkW6yyORr2scwKZ6s9U2FFRsZlfk+J27jgcQoMgoz3AGCIIOCZBAp3cwVRCEiA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=Gc0VUppu; arc=none smtp.client-ip=13.77.154.182
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.b="bgQUYQxs"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazoncorp2;
-  t=1780305437; x=1811841437;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=HUvKBOiHaZ+VB0AZfemW/AorttkZfLiQbHGElMJV0R8=;
-  b=bgQUYQxs6bfJYrkjKQbkkHDUNrwyN6DVS9H2KZkyVHk+sMJ3Yny0+W7s
-   BhRikZXFYTXZn8fA7mpKrkzhil0M7V/c4EUDc+Iu90+oor8r3knXsTQ+i
-   SykQNELwpiGBQLhkJhhL9nPrkIjKURjOilGJYzQHchFVlwlvw2+fAJrd9
-   AsffFWptkEKR4CDtHMB5YvkA+fwG/k1ZczeOsG9C3OMpxy4w18hZxgUp8
-   LPHhuqnaeziq8SCp8EFWS9DnSusqJKs3O9P2fXtHINmHa6CwF7EHwm1WI
-   s8TMiO44NR3YS44xcEdaGBwFH75RVV5pWjo3GSggimabXZ+4FTAWyl0XQ
-   w==;
-X-CSE-ConnectionGUID: 8k/mR1PaSQOpm4ecFqK7NA==
-X-CSE-MsgGUID: nO+3LOPxT9G7CWF0DiGmgA==
-X-IronPort-AV: E=Sophos;i="6.24,181,1774310400"; 
-   d="scan'208";a="20854843"
-Received: from ip-10-5-6-203.us-west-2.compute.internal (HELO smtpout.naws.us-west-2.prod.farcaster.email.amazon.dev) ([10.5.6.203])
-  by internal-pdx-out-006.esa.us-west-2.outbound.mail-perimeter.amazon.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Jun 2026 09:17:14 +0000
-Received: from EX19MTAUWB002.ant.amazon.com [205.251.233.111:19587]
- by smtpin.naws.us-west-2.prod.farcaster.email.amazon.dev [10.0.10.209:2525] with esmtp (Farcaster)
- id 841376fc-490a-478c-af25-81a5712fa97d; Mon, 1 Jun 2026 09:17:14 +0000 (UTC)
-X-Farcaster-Flow-ID: 841376fc-490a-478c-af25-81a5712fa97d
-Received: from EX19D001UWA001.ant.amazon.com (10.13.138.214) by
- EX19MTAUWB002.ant.amazon.com (10.250.64.231) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.37;
- Mon, 1 Jun 2026 09:17:12 +0000
-Received: from dev-dsk-ynachum-1b-aa121316.eu-west-1.amazon.com
- (10.253.69.224) by EX19D001UWA001.ant.amazon.com (10.13.138.214) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.37; Mon, 1 Jun 2026
- 09:17:10 +0000
-Date: Mon, 1 Jun 2026 09:16:57 +0000
-From: Yonatan Nachum <ynachum@amazon.com>
-To: <jgg@nvidia.com>, <leon@kernel.org>, <linux-rdma@vger.kernel.org>
-CC: <mrgolin@amazon.com>, <sleybo@amazon.com>, <matua@amazon.com>,
-	<gal.pressman@linux.dev>
-Subject: Re: [PATCH for-rc] RDMA/efa: Validate SQ ring size against max LLQ
- size
-Message-ID: <20260601091657.GA35750@dev-dsk-ynachum-1b-aa121316.eu-west-1.amazon.com>
-References: <20260526081536.1203553-1-ynachum@amazon.com>
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="Gc0VUppu"
+Received: by linux.microsoft.com (Postfix, from userid 1173)
+	id 1BFE020B7167; Mon,  1 Jun 2026 02:23:45 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 1BFE020B7167
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
+	s=default; t=1780305825;
+	bh=1dBsl+usX+yNit5uL7Cl+L0xh4XKIwuUK/l5Em4lMN4=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=Gc0VUppuySH6OSGGa44IlxUBt26W6vYFDTARrKiIVzcCNWCKExJMK4v51ZKXUiE7L
+	 9JMRMjVx8SaYOW/bF9YMEu8SR33UiVwg9pO1J1o73UdEyNp6AVmhEWh9m/oHLHyMeA
+	 JYQjkX8fKzc6s3ReVmCH86g/p4UkGhWDdslPI9j4=
+Date: Mon, 1 Jun 2026 02:23:45 -0700
+From: Erni Sri Satya Vennela <ernis@linux.microsoft.com>
+To: mkalderon@marvell.com, Jason Gunthorpe <jgg@ziepe.ca>,
+	Leon Romanovsky <leon@kernel.org>, zyjzyj2000@gmail.com,
+	sagi@grimberg.me, mgurtovoy@nvidia.com, haris.iqbal@ionos.com,
+	jinpu.wang@ionos.com, bvanassche@acm.org, kbusch@kernel.org,
+	Jens Axboe <axboe@kernel.dk>, Christoph Hellwig <hch@lst.de>,
+	kch@nvidia.com, smfrench@gmail.com, linkinjeon@kernel.org,
+	metze@samba.org, tom@talpey.com, trondmy@kernel.org,
+	anna@kernel.org, chuck.lever@oracle.com, jlayton@kernel.org,
+	neil@brown.name, okorniev@redhat.com, Dai.Ngo@oracle.com,
+	achender@kernel.org, davem@davemloft.net, edumazet@google.com,
+	kuba@kernel.org, pabeni@redhat.com, horms@kernel.org,
+	kees@kernel.org, andriy.shevchenko@linux.intel.com,
+	ebadger@purestorage.com, linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org, target-devel@vger.kernel.org,
+	linux-nvme@lists.infradead.org, linux-cifs@vger.kernel.org,
+	samba-technical@lists.samba.org, linux-nfs@vger.kernel.org,
+	netdev@vger.kernel.org, rds-devel@oss.oracle.com
+Cc: Jason Gunthorpe <jgg@nvidia.com>
+Subject: Re: [PATCH net-next v5] RDMA: Change capability fields in
+ ib_device_attr from int to u32
+Message-ID: <ah1PoREU8DSqYHxj@linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net>
+References: <20260601091505.1763912-1-ernis@linux.microsoft.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20260526081536.1203553-1-ynachum@amazon.com>
-User-Agent: Mutt/1.5.21 (2010-09-15)
-X-ClientProxiedBy: EX19D033UWC004.ant.amazon.com (10.13.139.225) To
- EX19D001UWA001.ant.amazon.com (10.13.138.214)
+In-Reply-To: <20260601091505.1763912-1-ernis@linux.microsoft.com>
 
-On Tue, May 26, 2026 at 08:15:36AM +0000, Yonatan Nachum wrote:
-> Validate the SQ ring size against the device's max LLQ size. This
-> ensures that when using 128-byte WQEs, userspace cannot exceed the queue
-> limits.
+On Mon, Jun 01, 2026 at 02:14:44AM -0700, Erni Sri Satya Vennela wrote:
+> The capability counter fields in struct ib_device_attr are declared
+> as signed int, but these values are inherently non-negative. Drivers
+> maintain their cached caps as u32 and assign them directly into these
+> int fields; if a cap exceeds INT_MAX the implicit narrowing yields a
+> negative value visible to the IB core.
 > 
-> On create QP, userspace provides the SQ ring size (depth x WQE size)
-> which is validated against the max LLQ size.
+> Change the signed int capability fields to u32 to match the
+> underlying nature of the data. Also update consumers across the IB
+> core, ULPs, NVMe-oF target, RDS, and NFS/RDMA so the new u32 values
+> are not forced back through signed int or u8 via min()/min_t() or
+> narrowing local variables.
 > 
-> Fixes: 40909f664d27 ("RDMA/efa: Add EFA verbs implementation")
-> Reviewed-by: Michael Margolin <mrgolin@amazon.com>
-> Signed-off-by: Yonatan Nachum <ynachum@amazon.com>
+> Suggested-by: Jason Gunthorpe <jgg@nvidia.com>
+> Signed-off-by: Erni Sri Satya Vennela <ernis@linux.microsoft.com>
 > ---
->  drivers/infiniband/hw/efa/efa_verbs.c | 27 ++++++++++++++++++---------
->  1 file changed, 18 insertions(+), 9 deletions(-)
-> 
-> diff --git a/drivers/infiniband/hw/efa/efa_verbs.c b/drivers/infiniband/hw/efa/efa_verbs.c
-> index 395290ab0584..aa1a615bb341 100644
-> --- a/drivers/infiniband/hw/efa/efa_verbs.c
-> +++ b/drivers/infiniband/hw/efa/efa_verbs.c
-> @@ -598,7 +598,8 @@ static int qp_mmap_entries_setup(struct efa_qp *qp,
->  }
->  
->  static int efa_qp_validate_cap(struct efa_dev *dev,
-> -			       struct ib_qp_init_attr *init_attr)
-> +			       struct ib_qp_init_attr *init_attr,
-> +			       u32 sq_ring_size)
->  {
->  	if (init_attr->cap.max_send_wr > dev->dev_attr.max_sq_depth) {
->  		ibdev_dbg(&dev->ibdev,
-> @@ -607,6 +608,14 @@ static int efa_qp_validate_cap(struct efa_dev *dev,
->  			  dev->dev_attr.max_sq_depth);
->  		return -EINVAL;
->  	}
-> +
-> +	if (sq_ring_size > dev->dev_attr.max_llq_size) {
-> +		ibdev_dbg(&dev->ibdev,
-> +			  "qp: requested sq ring size[%u] exceeds the max[%u]\n",
-> +			  sq_ring_size, dev->dev_attr.max_llq_size);
-> +		return -EINVAL;
-> +	}
-> +
->  	if (init_attr->cap.max_recv_wr > dev->dev_attr.max_rq_depth) {
->  		ibdev_dbg(&dev->ibdev,
->  			  "qp: requested receive wr[%u] exceeds the max[%u]\n",
-> @@ -676,14 +685,6 @@ int efa_create_qp(struct ib_qp *ibqp, struct ib_qp_init_attr *init_attr,
->  	ucontext = rdma_udata_to_drv_context(udata, struct efa_ucontext,
->  					     ibucontext);
->  
-> -	err = efa_qp_validate_cap(dev, init_attr);
-> -	if (err)
-> -		goto err_out;
-> -
-> -	err = efa_qp_validate_attr(dev, init_attr);
-> -	if (err)
-> -		goto err_out;
-> -
->  	err = ib_copy_validate_udata_in_cm(udata, cmd, driver_qp_type, 0);
->  	if (err)
->  		goto err_out;
-> @@ -705,6 +706,14 @@ int efa_create_qp(struct ib_qp *ibqp, struct ib_qp_init_attr *init_attr,
->  		goto err_out;
->  	}
->  
-> +	err = efa_qp_validate_cap(dev, init_attr, cmd.sq_ring_size);
-> +	if (err)
-> +		goto err_out;
-> +
-> +	err = efa_qp_validate_attr(dev, init_attr);
-> +	if (err)
-> +		goto err_out;
-> +
->  	create_qp_params.uarn = ucontext->uarn;
->  	create_qp_params.pd = to_epd(ibqp->pd)->pdn;
->  
-> -- 
-> 2.50.1
->
+Sorry for the incorrect prefix in v5 (used net-next instead of
+rdma-next).
+Please considerthe next version v6.
 
-Hi, kind reminder
-
-Thanks
+Thanks,
+Vennela
