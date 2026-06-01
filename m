@@ -1,154 +1,131 @@
-Received: from DM1PR04CU001.outbound.protection.outlook.com (mail-centralusazon11010041.outbound.protection.outlook.com [52.101.61.41])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5758830E831;
-	Mon,  1 Jun 2026 16:52:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.61.41
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780332768; cv=fail; b=WYDaWKpl1I2nF9Y88qXks2Qg6Z1eubsTSoBGBfPYo8kOGsCluT1TTGzuwx2astPpE48iKeiguIhgUNGXhcoGwBuMGyG2IeSWDDNAYEVPzzSCnPBHQcaEustJxYF4i0pY3Km1tgV+36Y6/0FOASPKP5hdtF8+Q1YtVDb9xmYU0hU=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780332768; c=relaxed/simple;
-	bh=5dNrXAzt6oBekNOsuyWYiSg+0jmN2zBd+pLEklTip8o=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=ihMN5bWpA2qua7SI8cctWgliqzPKn0JEQoHgeSyFQeXZT1+kkH+QR6YessMNQldl48jNyb3VC57tF0IUndNuHcSuy8Cj63BDVAEVIVaKuYg7Xbj6jyeP3dQloZ3/JMlomzBP9qoAg0OF4WFcSGfdMXud1cQt0nK4rz8ltCyVgL8=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=gmTJ6hmK; arc=fail smtp.client-ip=52.101.61.41
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 941983E168A
+	for <linux-rdma@vger.kernel.org>; Mon,  1 Jun 2026 17:45:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1780335919; cv=none; b=oMKl+Y7cU2XYxd91MGi8KKKJxUZg/NdQibjFDFsCq6vo+ukXnIhOtzxA27sknxM+QF/qBersfE1xAKYJ9zZieF3e9AwJbpDR8cZ+V+RirbbbcCQJaskZFqCqvGftJ0lvTk7KZSLXn3NuHCw1Chihm4jWlJxgjbMKRjuTvpDwClA=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1780335919; c=relaxed/simple;
+	bh=EUaevAzgtzlvUB5/tuC/JSEZdio1mHCw6ZYwf4PCo8o=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=t3vWZ5gKBg8zAtRj4k4VAJItT2mimg7l5vgXOEKQIDiuvwGdYee77kDRlfZ5KwKxRs73VpKBziXrmQq1T3qhy1qRPliYoefXSPnFmhP8xTxLyJPck+7vc3XDzhTXEhy+uuXAToeHX6P0GzcM3UZ/HYklGc8T9AQAx+y8297ojCg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=gjGRHh/A; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="gmTJ6hmK"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=XbBMY+h93uLjoHuIGs1jdTvTZ7R513VyAvL1RB4LF4CsDI1C7MmpGNpwxI+oBzMQX9kYHtTemc9oRa/CG/pfh2ilvOg5f+bnpFpdboHTwlZFbUf5wZ9OsiskkghkeBBZIdxgaqwa4WNrFBV0SpTcRHmeBXLuLfVx2OnWSXWnuzC/BojvLqslmxziz6cAnkX1c1ycmI2Ij5pDe3Z20ioMntI28INJh3448LvjowP+JlUhqCyzTrCsaB7PipN+h2IU9PxSGpp8XhpnsfuHJoF6tdNnQmgrT4rCZJ9533cwjVqSvt5cWVPMK9pM9QfNTKQZPCKyjwwN5fG8zgkV+AabxQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=Jo+3jA4rlPNfae0kuRXE+IeVDtJtdZ+tHCYMu3X/XCU=;
- b=WTuYPg4e8D+GkLpBk4NQK7TCTNRibgR36KXS7s1xL9Jp34CcfCaQSp1U3Kkx0SigXhqdUHR/m0tYtvlmX9qPPWlPmOJdE9ViZKk/ICLWOAVK7x5FBBkfhPwjxG1zBDtII+Ob3Z0seef5f7LBRb4NvWWVQQ5msgMuIoiPHBbQfQ8vN3Ih545BEpnupuyWQMKPRsO1XX0v1vSgBIxWvIMDxnulaIu5aUl5v+h6O6XFGs6vxIQQFp3QiWHpeNuxNmS4awLs+jlA+HRWvEvjD5Hv/zoF06oaeL0RfYJL70PAF+dQLSoH3Gxuon9pE4Vt0CTaqoYdjoH2uI/HDXmJr2eMjQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=Jo+3jA4rlPNfae0kuRXE+IeVDtJtdZ+tHCYMu3X/XCU=;
- b=gmTJ6hmKxZ6xS3xcN/KG5/l+91sX4lIE4+t48G8ABngWuZblESK9mwX6c8LwiQApIsSb1gdjBubVA5Ih+9kWwveZw0FTiVBIjkJMeShZDePYRR+7R0sLYA8J6SZszRSu48ImHKWxNBeupIzXiAcyun0sC9vUqDiBjttCCJIsUb88RpvqrHO9fsCCaPS+j9FSaBBNTPlxGnay7iUeMC62/zE2qAfu51P/Dvn51pyKqCchK0o5D3sgFomS1lcAZ6/79wc+nGdFFfFkGG9uMHSgREaXPTCaZPBxLqdRyxoku6Z5nEbCZPu0+6aY26W3ZQgXqE2M3V0ic4NNiZv1VfQY2w==
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from LV8PR12MB9620.namprd12.prod.outlook.com (2603:10b6:408:2a1::19)
- by DM4PR12MB9733.namprd12.prod.outlook.com (2603:10b6:8:225::13) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.71.16; Mon, 1 Jun 2026
- 16:52:36 +0000
-Received: from LV8PR12MB9620.namprd12.prod.outlook.com
- ([fe80::299d:f5e0:3550:1528]) by LV8PR12MB9620.namprd12.prod.outlook.com
- ([fe80::299d:f5e0:3550:1528%4]) with mapi id 15.21.0071.011; Mon, 1 Jun 2026
- 16:52:36 +0000
-From: Jason Gunthorpe <jgg@nvidia.com>
-To: Leon Romanovsky <leon@kernel.org>,
-	linux-rdma@vger.kernel.org
-Cc: patches@lists.linux.dev,
-	Shiraz Saleem <shiraz.saleem@intel.com>,
-	stable@vger.kernel.org
-Subject: [PATCH 1/3] RDMA/umem: Fix truncation for block sizes >= 4G
-Date: Mon,  1 Jun 2026 13:52:31 -0300
-Message-ID: <1-v1-88303e9e509f+f7-ib_umem_types_jgg@nvidia.com>
-In-Reply-To: <0-v1-88303e9e509f+f7-ib_umem_types_jgg@nvidia.com>
-References:
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: BN9P223CA0020.NAMP223.PROD.OUTLOOK.COM
- (2603:10b6:408:10b::25) To LV8PR12MB9620.namprd12.prod.outlook.com
- (2603:10b6:408:2a1::19)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="gjGRHh/A"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4EBDB1F00A0D
+	for <linux-rdma@vger.kernel.org>; Mon,  1 Jun 2026 17:45:16 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1780335916;
+	bh=NQXET+HIwUHzkASejrWXITD/EhCJ1l5nthigBOUX5B4=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc;
+	b=gjGRHh/AejulXxkNQAjfjV93VMiqgdq6wRmZ7BNSN1UHb97WguW4+/ZA+WuQC6Kll
+	 yhn3UxrX6XHEvJlmkImSQf3opqad40WQNxo0e446ikygz1JQuNxXlxEupqUOOMotfi
+	 QZ7zNwyi6Ev4WkeVDBku7OIdn6/NnCxDJfGGNtSBSMm42l8FYQ3sk4gJGLxT/hbqCe
+	 K0vFWgCVQinuD4UcX6ltdXhdbZf0cM4k6OQ10FtXjpLK4tNUvA3GQZ7EyhXiE2tkMT
+	 OVYBnp+ntfYpsvWr85EAbNEvk2fl/CVRUiYB0mkIo2usdhpYSJ7vIUPsX5pwj59Gzk
+	 lW6qoYjQk8e7g==
+Received: by mail-lf1-f46.google.com with SMTP id 2adb3069b0e04-5aa68cfc182so1546666e87.0
+        for <linux-rdma@vger.kernel.org>; Mon, 01 Jun 2026 10:45:16 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AFNElJ9b0lClnGaw9Qt8uZsBlPmbcFAzm17H4ODAMEKfbOB8nlkIU0405aUvO/6zBaTPzf7KH3Dxqq7xah0W@vger.kernel.org
+X-Gm-Message-State: AOJu0YyagQyyDJGkm8RECUsrp/6iFL0RBpL8QqFiMv4382EnIvcCBpsj
+	SzOw8AW1+k7JX3WB2r+mJbj/98rUALAoMeHnoVVQZCvx1TjPlk+hx1+V0b8pY+vGKUguYX0JoLN
+	oscwFtH9VwUt2MERHPpwo8VcyxpCWNFM=
+X-Received: by 2002:a05:6512:3b97:b0:5aa:6e86:55c8 with SMTP id
+ 2adb3069b0e04-5aa6e8657c0mr1302970e87.12.1780335912894; Mon, 01 Jun 2026
+ 10:45:12 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: LV8PR12MB9620:EE_|DM4PR12MB9733:EE_
-X-MS-Office365-Filtering-Correlation-Id: 71a3b617-22c3-4674-abb3-08debffe2e17
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|366016|376014|1800799024|56012099006|11063799006|18002099003|22082099003;
-X-Microsoft-Antispam-Message-Info:
-	DWpvCHgLJow/3KMDgVjWnbyuvPN67UgTPz7rS+bd5HLlmZFvH1DI66kOTICZcBiGkPoLjhnq9dwvr3r1KHTb4rOVNhyRUZhkFsMqc3UDJgI0zs3km+QQ6gys9b7X1x00KeyIeDIpskEhJDcPDy2EbY35WALc0JAHW7QT5IBhfQjqCMyOaSOEAzuhf3ak3Mv5JgRiztiJxOe1o3DuvxuwEkdyupSUsvsKhYZNqdpC8BqfPgnwJIDIvLkvNrpfYBj8VJr7HZxTG/jZtaz4Q0Czb/vE8YpYott8g/zJE6dDTjXIZjJbt7NLyUR3QdRK4Umd3VS7TmDPvyBxnpYKgIuXrdVwRyAa9RtOy3tXbIL3bAF6RgiRWLPGjeCue58WEHSNMLZh26e5DRy/Td5QiLeB8/XSoyH3lgtB4YUyCPqFK/zrf54+AcObws3aoilH067/+Y+bTNmkiOk36x0YSEPlNAAy9gTb4E9+ypbYFxaBS7+sPfXPEHbRVKowr8pAG0VNOMDVAaqWdgfta4+4FcppXYotaDMHcSeHFsHjJxQ92AXLzjftOLxQHTOedL6YUc6U+7n1vglv9vLof+KcXDXboHs61R3I3xL3NqIYmdWLaPQtqIZtAgNzJBzBIsDOpYhW5+RMeGtuA3oEAAtDu5BNctj0sNf4SfOTu5ytGvnboth7X8hZeZ87BpPMU1fF+945
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:LV8PR12MB9620.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(376014)(1800799024)(56012099006)(11063799006)(18002099003)(22082099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?csb1336lyaM4tnAqcaqq5wv7+iffjnnFHPz3GKjKOHgYG48z8yKdwZjydLvL?=
- =?us-ascii?Q?qSNuZCnxU1Pz07Cg2TUu1Bdy1kUYxBKV7gv1ssxmUqYLL1YNM01mh8Vach89?=
- =?us-ascii?Q?34xOdD1BsKK+GaaiU5pC4J6Ya9HQkrVWiKjW/1j8OwFWvXlk+SsZh2W7AWGN?=
- =?us-ascii?Q?5h5YspArza8BvCk6MEnxohKgdTWyPYHJtB51FdBWQnL6UYCkv8qbvHBd8qnp?=
- =?us-ascii?Q?s0wQy6RYY12X4MzvtNNRa5jSk0Lb5YfKlAD2vDJ7RUX3Y7rQIpdPlTbvhNPu?=
- =?us-ascii?Q?fPCqa2KEKSXYFsdcL4XB5ubqwD8Ml8WkOhyYbCTYwPmD/6u4qSL9kvUGi32y?=
- =?us-ascii?Q?ChFoLw/xqLZbiDdomvCVnj0toW915WpiNtVxrSOSuDm1zAfq+vBgAKoL6ohc?=
- =?us-ascii?Q?WhP0fXRmO8H66kjQkldJ9IAbRDttNmWfbrrwGYuh64Txfkrxv/kGJu7Itu4Q?=
- =?us-ascii?Q?AHed7ZcOGuQuPGohl4ja86inPzVa/rDWQT2ARzMFnSzEUi31rHScS/5z07/t?=
- =?us-ascii?Q?xTmxlSl1oqmwUpAT4LSSmUcuQ45ZxrxAdV49zX5fb+7Eq2oaDX+6QpCg9Gjb?=
- =?us-ascii?Q?q6pPcnVrJ4m64rspY1gKo7h0gxll4qaV4Gr4vlrUD/TVL+PmhGkkeZ6NZJrn?=
- =?us-ascii?Q?b5wSaqWSnj6u94mi3BRe2VIc04sMtzAwrs37k6uDGFgvcWutovnts1Zi7kIl?=
- =?us-ascii?Q?D1BGWoQkeSgkSTmGoyVnz18xdI9IKcXTLpIs2VuePzhtSUgSi0pwoGKsGlTb?=
- =?us-ascii?Q?/bkhFZfBXXn7rQWpyoN2pW0ZDfq+XKXeTvZUAqDHT4zXLsZaEer4e19uBpQS?=
- =?us-ascii?Q?VMPuW+D/L+0eAQmB620TVjgziyOH+1eQUBvIac/SCTyweWbCiwZ/1RCQLiVf?=
- =?us-ascii?Q?VvrlcC6rKgzTQodjdSIiW/dwOY9P0D/oY8JTAUdgBvSU8IHaImdeMJZ1W04K?=
- =?us-ascii?Q?YYDXxK8s5kr1+Hp9nElTv7K4nmW9rUUIhC/HalfYB5AJJYO7Jp/G67Rbahbm?=
- =?us-ascii?Q?uEXfwK78sWnoNra0AEe/IFTqRU27kjl3wBqpSKiRI1utPqczAFElPaKACHOa?=
- =?us-ascii?Q?CbOO4D8xID4HlqxR17LY3m3IluUARdPXY2bCaQe0wuEMsmBhTqhd+hF0D5eR?=
- =?us-ascii?Q?W+Ck4geqp6BSq36521MWGMbO+TELFX2+CqAmhftuYoQI3r4/UoyNtgeY+DiU?=
- =?us-ascii?Q?eHbqThWYEfbupDwzJH80tZRX5nX9/yjuveYfA8E26ooK4P6MqNiycxzKihX0?=
- =?us-ascii?Q?LW1Tk/MoPW6305Q3f2VRrc9y5rPRl3x4cvnGAncRwtxolLHzlG8KnRbi7lFf?=
- =?us-ascii?Q?tGN9ceG0jsxwBy6ARhtU+2bJNHYuPJ1cis00eiYR/YyN7ArTQNfgeN+0N1HT?=
- =?us-ascii?Q?VSH//TBcGA5p/MGbK1G2C1ER240aDBxMkJAxXBiI1O0hJOOJgWbaFEcRtt7j?=
- =?us-ascii?Q?Cy74hif/7439daLMyxR2GrRxWXSbs1HXJViQivniY87/MAQCXhLWJ+GqVt/3?=
- =?us-ascii?Q?I3zxjajsH4itmN9uc3LRGwPlQXgWfj7g5xyNGOMFolseQGisJxJIuqjUMVZn?=
- =?us-ascii?Q?M3WbzM0LDBUWuZoBvj3FnjwdLe5gYXng/kG0GyJGGz175HHzZPOtABz5xmyF?=
- =?us-ascii?Q?nLnyNN+1/8KUJJqqnmTic+kiCkbo6SnoOm4D+QDTXZv7aL032TLiB3te0tXY?=
- =?us-ascii?Q?bgAptbq9DrxtSbMdEY5aWHbCXtr4058Te44uq3FmnoM7vD2M?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 71a3b617-22c3-4674-abb3-08debffe2e17
-X-MS-Exchange-CrossTenant-AuthSource: LV8PR12MB9620.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 01 Jun 2026 16:52:35.0506
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: p2dxcRsiuXawDpiYchdilf6N1ibo/dtu3znkv7dzSxCkZVA8uIHWc5JGsOIhzRyr
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM4PR12MB9733
+References: <20260528183625.870813-1-ynorov@nvidia.com> <20260528183625.870813-6-ynorov@nvidia.com>
+In-Reply-To: <20260528183625.870813-6-ynorov@nvidia.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Date: Mon, 1 Jun 2026 19:45:01 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0gPZL7Cmi7Sm5pVN01AG7rb8NiwWkUJ9X6gwim67EUZPQ@mail.gmail.com>
+X-Gm-Features: AVHnY4L1KYHIevdOf61kuP7a6ocAZfa6dkfv0T6IORvr_Om4IsQ3giCPU7iBHEE
+Message-ID: <CAJZ5v0gPZL7Cmi7Sm5pVN01AG7rb8NiwWkUJ9X6gwim67EUZPQ@mail.gmail.com>
+Subject: Re: [PATCH 05/16] ACPI: pad: Use sysfs_emit() for idlecpus show
+To: Yury Norov <ynorov@nvidia.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Rasmus Villemoes <linux@rasmusvillemoes.dk>, 
+	Russell King <linux@armlinux.org.uk>, Frank Li <Frank.Li@nxp.com>, 
+	Sascha Hauer <s.hauer@pengutronix.de>, Pengutronix Kernel Team <kernel@pengutronix.de>, 
+	Fabio Estevam <festevam@gmail.com>, Madhavan Srinivasan <maddy@linux.ibm.com>, 
+	Michael Ellerman <mpe@ellerman.id.au>, Nicholas Piggin <npiggin@gmail.com>, 
+	"Christophe Leroy (CS GROUP)" <chleroy@kernel.org>, Peter Zijlstra <peterz@infradead.org>, 
+	Ingo Molnar <mingo@redhat.com>, Arnaldo Carvalho de Melo <acme@kernel.org>, Namhyung Kim <namhyung@kernel.org>, 
+	Mark Rutland <mark.rutland@arm.com>, 
+	Alexander Shishkin <alexander.shishkin@linux.intel.com>, Jiri Olsa <jolsa@kernel.org>, 
+	Ian Rogers <irogers@google.com>, Adrian Hunter <adrian.hunter@intel.com>, 
+	James Clark <james.clark@linaro.org>, Thomas Gleixner <tglx@kernel.org>, Borislav Petkov <bp@alien8.de>, 
+	Dave Hansen <dave.hansen@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, 
+	"Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, 
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Danilo Krummrich <dakr@kernel.org>, 
+	Chanwoo Choi <cw00.choi@samsung.com>, MyungJoo Ham <myungjoo.ham@samsung.com>, 
+	Kyungmin Park <kyungmin.park@samsung.com>, Heiko Stuebner <heiko@sntech.de>, 
+	Lorenzo Pieralisi <lpieralisi@kernel.org>, Xu Yilun <yilun.xu@intel.com>, Tom Rix <trix@redhat.com>, 
+	Moritz Fischer <mdf@kernel.org>, Yicong Yang <yangyicong@hisilicon.com>, 
+	Jonathan Cameron <jic23@kernel.org>, 
+	Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>, Jason Gunthorpe <jgg@ziepe.ca>, 
+	Leon Romanovsky <leon@kernel.org>, Dan Williams <djbw@kernel.org>, 
+	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
+	Ira Weiny <ira.weiny@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, 
+	Shuai Xue <xueshuai@linux.alibaba.com>, Will Deacon <will@kernel.org>, 
+	Jiucheng Xu <jiucheng.xu@amlogic.com>, Neil Armstrong <neil.armstrong@linaro.org>, 
+	Kevin Hilman <khilman@baylibre.com>, Jerome Brunet <jbrunet@baylibre.com>, 
+	Martin Blumenstingl <martin.blumenstingl@googlemail.com>, Robin Murphy <robin.murphy@arm.com>, 
+	Jing Zhang <renyu.zj@linux.alibaba.com>, Xu Yang <xu.yang_2@nxp.com>, 
+	Linu Cherian <lcherian@marvell.com>, Gowthami Thiagarajan <gthiagarajan@marvell.com>, 
+	Ji Sheng Teoh <jisheng.teoh@starfivetech.com>, Khuong Dinh <khuong@os.amperecomputing.com>, 
+	Daniel Lezcano <daniel.lezcano@kernel.org>, Zhang Rui <rui.zhang@intel.com>, 
+	Lukasz Luba <lukasz.luba@arm.com>, Yury Norov <yury.norov@gmail.com>, Kees Cook <kees@kernel.org>, 
+	=?UTF-8?Q?Thomas_Wei=C3=9Fschuh?= <thomas.weissschuh@linutronix.de>, 
+	Aboorva Devarajan <aboorvad@linux.ibm.com>, "Ritesh Harjani (IBM)" <ritesh.list@gmail.com>, 
+	Ilkka Koskinen <ilkka@os.amperecomputing.com>, Besar Wicaksono <bwicaksono@nvidia.com>, 
+	Ma Ke <make24@iscas.ac.cn>, Chengwen Feng <fengchengwen@huawei.com>, 
+	linux-arm-kernel@lists.infradead.org, imx@lists.linux.dev, 
+	linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, 
+	linux-perf-users@vger.kernel.org, linux-acpi@vger.kernel.org, 
+	driver-core@lists.linux.dev, linux-pm@vger.kernel.org, 
+	linux-rockchip@lists.infradead.org, linux-fpga@vger.kernel.org, 
+	linux-rdma@vger.kernel.org, nvdimm@lists.linux.dev, linux-pci@vger.kernel.org, 
+	linux-amlogic@lists.infradead.org, linux-cxl@vger.kernel.org, 
+	linux-arm-msm@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-When the iommu is used the linearization of the mapping can give a single
-block that is very large split across multiple SG entries.
+On Thu, May 28, 2026 at 8:36=E2=80=AFPM Yury Norov <ynorov@nvidia.com> wrot=
+e:
+>
+> idlecpus_show() is a sysfs show callback. Use sysfs_emit() and
+> cpumask_pr_args() to emit the mask.
+>
+> This prepares for removing cpumap_print_to_pagebuf().
+>
+> Signed-off-by: Yury Norov <ynorov@nvidia.com>
+> ---
+>  drivers/acpi/acpi_pad.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/acpi/acpi_pad.c b/drivers/acpi/acpi_pad.c
+> index ec94b09bb747..04d61a6cc95f 100644
+> --- a/drivers/acpi/acpi_pad.c
+> +++ b/drivers/acpi/acpi_pad.c
+> @@ -334,8 +334,8 @@ static ssize_t idlecpus_store(struct device *dev,
+>  static ssize_t idlecpus_show(struct device *dev,
+>         struct device_attribute *attr, char *buf)
+>  {
+> -       return cpumap_print_to_pagebuf(false, buf,
+> -                                      to_cpumask(pad_busy_cpus_bits));
+> +       return sysfs_emit(buf, "%*pb\n",
+> +                         cpumask_pr_args(to_cpumask(pad_busy_cpus_bits))=
+);
+>  }
+>
+>  static DEVICE_ATTR_RW(idlecpus);
+> --
 
-When __rdma_block_iter_next() reassembles the split SG entries it is
-overflowing the 32 bit stack values and computed the wrong DMA addresses
-for blocks after the truncation.
-
-Use the right types to hold DMA addresses.
-
-Cc: stable@vger.kernel.org
-Fixes: a808273a495c ("RDMA/verbs: Add a DMA iterator to return aligned contiguous memory blocks")
-Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
----
- drivers/infiniband/core/iter.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/infiniband/core/iter.c b/drivers/infiniband/core/iter.c
-index 8e543d100657ee..3ed351e8fcf6c9 100644
---- a/drivers/infiniband/core/iter.c
-+++ b/drivers/infiniband/core/iter.c
-@@ -19,8 +19,8 @@ EXPORT_SYMBOL(__rdma_block_iter_start);
- 
- bool __rdma_block_iter_next(struct ib_block_iter *biter)
- {
--	unsigned int block_offset;
--	unsigned int delta;
-+	dma_addr_t block_offset;
-+	dma_addr_t delta;
- 
- 	if (!biter->__sg_nents || !biter->__sg)
- 		return false;
--- 
-2.43.0
-
+Applied (with a tweaked subject) as 7.2 material, thanks!
