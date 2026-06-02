@@ -1,98 +1,120 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF2ED2877F7;
-	Tue,  2 Jun 2026 05:04:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5FE9F2BEFEE;
+	Tue,  2 Jun 2026 05:06:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780376678; cv=none; b=KIHspsvq22nGPIIJtD74ekpUwtP2rpNZ4803Kj+3jfHa3vzc5BkvfbmFOOgS6XHuC1YNpsowD8s78N+drgGYRMgm27CDO3QtyLs6P610pwyjFDW28ydbqB9ezEsfVln9EIjttudLg8Sdygeik3rsxsM476U9tM/Fyt0jyirFzF0=
+	t=1780376820; cv=none; b=hTO34U30HE7pPik+DjYDhFaX2biMrt6oNlYywTnBELc+JgWqLOquE7zjwBqVRrOrV5IWOHsalql/MI+v+faixsaa0IdU2aYudXOsNV2CuOKWzitbAY84ibEE7qdTsKald7GMpLudRCqhJSeZ/HAoSzNPu+j8arntK/SVhpQP/nk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780376678; c=relaxed/simple;
-	bh=1yCY4Tm11Ve0rurH9KdOroMpYXs96kX8GwqppF8Muhw=;
-	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=KtyIhHPkTA2mNnF4Z+0sJhD8MQ1+Jn6zuIJNIhBOqefPGtMwP1XsOQikX8CVAj6ovL3ZB9LKZNHIO5ebyvJxtl//QugfF7aZHTVAI9mBhKImryEYKIq5Ncgk/h0wWAh14P892xddkevsszgTc/kQWFgvjBv7WGqJWtc1qwhuhM8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=DoI0f47D; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780376820; c=relaxed/simple;
+	bh=6phfBdD7Y8i8kIGiUIPre4j3tXYbCRIV02SUxxtO+AA=;
+	h=From:To:Subject:Date:Message-Id:MIME-Version; b=hcpTl8+vObqOnkcW4g9CzkGCxnRSCMBxZdFpGBoV3H2ozZJS0uAoZLfeutM8QiZYf0YVt9/qnotGmWvB/1AuSBStLUZRgdiZ7Qim2FKzkw/YtfXn4/C5x5Ih1knFv8BeTXVNhZEqcIjY5V4e7+9XigCFF5k3jln/uDM3hqh5S9E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=c+i3PPEz; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="DoI0f47D"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 18BAA1F00893;
-	Tue,  2 Jun 2026 05:04:37 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="c+i3PPEz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6339F1F00893;
+	Tue,  2 Jun 2026 05:06:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1780376677;
-	bh=BEFyxiwlSr2KHbrQxImIjpt54/S03h4ARTIPEn9Z6p8=;
-	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=DoI0f47DbyMCyOwDZIrdI7HMeOKVuXMtV1Fun45XtXJ4oUxUM960u3iv9UZl042Wg
-	 +J5e+pNzx2sEmjqSohr6wgzZLzlPo2bxkf46pCprpfK627x6vIjW3Y+WAHYnf7wg/e
-	 xg7uz5CF2tvrLNs2ggnVYPWi/YVDEJWZ/gUlku25B8OZyDG3Ky6CrexhQc84bAjOQw
-	 kYhn2wGwx02W4ldVpmI1UGkF071x8Zsm9QnGfMIBjQf2ncPa7eX8ye2KR7M7Y3277h
-	 +Qcjp9h8uRxcyHlWzdlorQyq1irRuE1xBTNXDuenJk3WHYvYh6FYbvldhVs5VW0U+c
-	 jIgKsmXIGbrGw==
-Message-ID: <9a99b71acb54c2062d4ec5c1cf83fe3e45748c25.camel@kernel.org>
-Subject: Re: [PATCH net-next v2 4/4] selftests: rds: report missing RDMA
- prereqs as XFAIL
+	s=k20260515; t=1780376819;
+	bh=NTcvrD6vnoDOP9BObrF7HGtoiQIc3t/YgVf27KmlOZA=;
+	h=From:To:Subject:Date;
+	b=c+i3PPEzvpA/np+hyPRIFgyDXzOcMEKYbUfyMBCpePVqa77QOjbNt80NPx5KAUhxh
+	 aHKUMeWObfEt+HundEzPmtaqGBvG6CKpGO6z6Qb4wxu/uYr7Yc2jaIJgKCCxyqcGeT
+	 f7fJQmdR4YRBpvo1r9fn8arirTkzIHPJfHuYGJb5T6saeS47FUQagMSYETlwgsM7FQ
+	 cTaOrxinCvGgW7ARzaK5Ubh3W4IeuiKzyHq6xZYARa1mEDD+IBdBiM4HWCO7bsehgt
+	 fDkuaycQEzFVouD8/1kR83ih/fvFPL+cF1KPZiS1Yiwu32VSBbvOXFsh6Hd8wW77OT
+	 SVUEiNCHQ0b6w==
 From: Allison Henderson <achender@kernel.org>
-To: Jakub Kicinski <kuba@kernel.org>
-Cc: netdev@vger.kernel.org, pabeni@redhat.com, edumazet@google.com, 
- horms@kernel.org, linux-rdma@vger.kernel.org,
- linux-kselftest@vger.kernel.org,  shuah@kernel.org
-Date: Mon, 01 Jun 2026 22:04:36 -0700
-In-Reply-To: <20260602022449.1634587-1-kuba@kernel.org>
-References: <20260527023423.387792-5-achender@kernel.org>
-	 <20260602022449.1634587-1-kuba@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.52.3-0ubuntu1.1 
+To: netdev@vger.kernel.org,
+	pabeni@redhat.com,
+	edumazet@google.com,
+	kuba@kernel.org,
+	horms@kernel.org,
+	linux-rdma@vger.kernel.org,
+	achender@kernel.org,
+	linux-kselftest@vger.kernel.org,
+	shuah@kernel.org
+Subject: [PATCH net-next v3 0/4] selftests: rds: ROCE support follow ups
+Date: Mon,  1 Jun 2026 22:06:53 -0700
+Message-Id: <20260602050657.26389-1-achender@kernel.org>
+X-Mailer: git-send-email 2.25.1
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 
-On Mon, 2026-06-01 at 19:24 -0700, Jakub Kicinski wrote:
-> This is an AI-generated review of your patch. The human sending this
-> email has considered the AI review valid, or at least plausible.
-> ---
-> selftests: rds: report missing RDMA prereqs as XFAIL
->=20
-> This commit changes the exit code and message tag for RDMA prerequisites =
-in
-> the RDS selftests to report as an expected failure instead of a skip.
->=20
-> > diff --git a/tools/testing/selftests/net/rds/rds_run.sh b/tools/testing=
-/selftests/net/rds/rds_run.sh
-> > --- a/tools/testing/selftests/net/rds/rds_run.sh
-> > +++ b/tools/testing/selftests/net/rds/rds_run.sh
-> > @@ -123,10 +123,10 @@ check_rdma_conf_enabled() {
-> >  		probe_module "$2"
-> >  		return
-> >  	fi
-> > -	echo "selftests: [SKIP] rdma transport requires $1 enabled"
-> > +	echo "selftests: [XFAIL] rdma transport requires $1 enabled"
-> >  	echo "To enable, run" \
-> >  	     "tools/testing/selftests/net/rds/config.sh -r and rebuild"
-> > -	exit 4
-> > +	exit 5
->=20
-> [Severity: High]
-> Is exit code 5 the correct value for an expected failure in the kselftest
-> framework?
->=20
-> Looking at the kselftest framework in tools/testing/selftests/kselftest.h
-> and ktap_helpers.sh, the expected failure code (KSFT_XFAIL) is defined as=
- 2.
->=20
-> When runner.sh receives an exit code of 5, it does not match KSFT_XFAIL.
-> Instead, it falls through to the default case and calls ktap_test_fail,
-> which logs a hard test failure.
->=20
-> Could this actively fail the test in the continuous integration environme=
-nts
-> rather than marking it as an expected failure?
+Hi all,
 
-You're right its 2, good catch.  I will fix that and config.sh in a v3.  Th=
-anks!
+This is a follow up series to the "Add ROCE support to rds selftests"
+series.  The first patch renames run.sh to rds_run.sh, which provides
+a self-describing name that appears on the netdev CI dashboard.
+
+The second patch addresses a sashiko complaint that I thought was
+worth circling back for.  In the patch "pin RDS sockets to their
+intended transport," sockets are pinned to the specific transport they
+are meant to test.  By default, socket transports are implicitly
+selected based on the network topology, but it is possible that they
+can fail back to other transports if the underlying connection could
+not be established.  So the patch pins them to the intended transport
+to avoid false positives.
+
+The third patch "support RDS built as loadable modules," lifts the
+CONFIG_MODULES=n requirement, and updates the check_*conf_enabled()
+to allow modules set to "=m" and further load the backing modules for
+any component set as such.  config.sh is updated to match.
+
+The fourth patch converts the rdma-prerequisite checks to return XFAIL
+rather than SKIP, since the RDMA datapath is not run in netdev CI.
+
+Questions, comments and feedback appreciated!
+
+Thanks everyone!
 Allison
 
->=20
-> [ ... ]
+Change log:
+v3:
+   [PATCH net-next v2 1/4] selftests: rds: Rename run.sh to rds_run.sh
+   - Wrapped USAGE line to fix checkpatch 84-column warning
+
+   [PATCH net-next v2 3/4] selftests: rds: support RDS built as loadable modules
+   - Drop --disable CONFIG_MODULES from config.sh
+
+   [PATCH net-next v2 4/4] selftests: rds: report missing RDMA prereqs as XFAIL
+   - Corrected XFAIL rc from 5 to 2
+
+v2:
+   [PATCH net-next v1 1/3] selftests: rds: add per-transport run wrappers
+   - Renamed to "selftests: rds: Rename run.sh to rds_run.sh"
+   - Removed rds_*_run.sh wrappers
+   - Dropped dangling wrapper paragraph from README
+
+   [PATCH net-next v1 3/3] selftests: rds: support RDS built as loadable modules
+   - Fixed long line length warning
+
+   [PATCH net-next v2 4/4] selftests: rds: report missing RDMA prereqs as XFAIL
+   - NEW
+
+Allison Henderson (4):
+  selftests: rds: Rename run.sh to rds_run.sh
+  selftests: rds: pin RDS sockets to their intended transport
+  selftests: rds: support RDS built as loadable modules
+  selftests: rds: report missing RDMA prereqs as XFAIL
+
+ tools/testing/selftests/net/rds/Makefile      |  2 +-
+ tools/testing/selftests/net/rds/README.txt    |  8 +-
+ tools/testing/selftests/net/rds/config        |  1 -
+ tools/testing/selftests/net/rds/config.sh     |  3 -
+ .../selftests/net/rds/{run.sh => rds_run.sh}  | 75 ++++++++++++-------
+ tools/testing/selftests/net/rds/test.py       | 18 +++++
+ 6 files changed, 71 insertions(+), 36 deletions(-)
+ rename tools/testing/selftests/net/rds/{run.sh => rds_run.sh} (78%)
+
+
+base-commit: 1a1f055318d82e64485a6ff8420e5f70b4267998
+-- 
+2.25.1
 
