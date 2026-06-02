@@ -1,138 +1,148 @@
-Received: from MW6PR02CU001.outbound.protection.outlook.com (mail-westus2azon11012006.outbound.protection.outlook.com [52.101.48.6])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B67B3E1D08;
-	Tue,  2 Jun 2026 13:05:07 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.48.6
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780405509; cv=fail; b=ZJuebQjJx5tJTZLq+4fZ2kUpSKc5rjS77Gf+GZgRjrNws8kf7jLTV/AbRnl5x/CYQ6bSqYhhr0ZMsPVqIuXjTGIl4f8vy/xrkj6tMp+dronKOh0SlDPp5zotmQLakjtU+vJvstMmlhTJLrUFhMg1Hurktah/4EGZJoF2rJTCRgU=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780405509; c=relaxed/simple;
-	bh=mYOZgjgOIcu/Gu2Ydm4lQRJNcRDecJSBqFckkv5ZcBo=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:Content-Type:
-	 Content-Disposition:In-Reply-To:MIME-Version; b=bhluqTpCYuDCboVFWATG/ep613eAAZPIvgxf2SNNXuEe25thyD4bTVkfhQN4HtsapPEiUaOi4gxcRXr7da4eVbao8Dlz0H+0LnrL1hozwvqKL45P2QW6olfY60vPyS+iXg5lJKnv9+bExvNI1kVV6FbmKPGmvgwBBtllpEGoet4=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=PokTYaYg; arc=fail smtp.client-ip=52.101.48.6
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C046E3E867A;
+	Tue,  2 Jun 2026 14:05:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1780409115; cv=none; b=e5LnN1VNE07q2utxSemABrnz6rwX5RAyoF8QcFmT6P5jHr6TfT8rz6Za++zREaxTYbE0NukEo0nug9zWdhji/iwpu72wOLRq1VWf0DvTo2XSPAelGb4V2bqDVArxhc3vBVntwnM8wne1O3IWFujuFqtDKx19jvZQcI+7PhXxqbI=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1780409115; c=relaxed/simple;
+	bh=MPJmrHyzu6Q4n7GstA06o8d60TkJhPuXCvlMGIU8yKM=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=hy0fipb3cUNP/TbC67RCo+pHDzNytQ8JcN9mdfTsGhOspqUXTKlOJNJAIXLXqzU6R3uW/hKc/iudwsOYA9UXQPdICQn5+Cnrdoxqy4p1Grjmp/E++lI3usDJDMEws2ZLUZhHBpQdiDMpdlREcuTSK7nHbkAApfDcin9RfpvR8VY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=B9dqDQoM; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="PokTYaYg"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=wp0EfFmG1TjOWgP0r3Z/fWMx8f/RPtE7xu1LHHb00vnJjJoV3JK1ot4kajd8kco/Sshs1wMUx8UVkQQC4uGWNjHa+eVHQqAo3707x4XWezVWvVAzFnoFSOpgsPtLTjSg3F32NaHjIbvHUdQ1msXQqqAVIUw010jkDuAaQU9KfC1zyQ8bKVmuJatYpE4qaWqyAspkAbLDWn4de8QMgUTJPYkMsN6Lqx2gBdVUBJXMYD1ZMUByLNfG0KcvUOteEWVtnh7lp1sLQrLQTzHTxxNXK3SgRCKnr02G48+0o32ITAUYxKidOQfB0macmyWZy5aDNlGrfr9MR87k3pcNJsfqRQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=GJS/bOfP3mH/lUxqIYzsu1vJBmCzfh2C9kwla2ZlDKk=;
- b=mSZ3TXuaLuo3SSfp152c9tgvV9STjB5ATzJZr7EMNSf9AnKDDA7u4imlK83giJn/NkbfV/2YA93DV0JK2jIuIryFyDr6iY898VMafxSPwNzUiJpQKeQJ3+aaRm7+9Yp58ijTFzhqgXiBV2h8JREA1h5fhvnhk19nOvYL5Po4lJlpF9OK8B0yoQyJLUugNvbFDa2JBoq9a3zhXlH3M13ayecwXpLxxmh3gZF7xx6YCWRKQ4dnc6eNa2AfwAXzvIyqGRabvokKy5GvZ8Fx7tAsVJF4QJHxmRf2HB7FWBb2IvI5gqx01/2a1lPPP5WvG6xFRVrsYSzMyEUzXfWbgQgvXQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=GJS/bOfP3mH/lUxqIYzsu1vJBmCzfh2C9kwla2ZlDKk=;
- b=PokTYaYgRO7K/s6DyRJPwO4+I/9WTcppbljn2Hh2vjZPjMXPciwoEH9UUcpxbYUTez9LPUFdYb+cY4UOXTNU9tOwdtSY9WhUdio5j15drxxfSQyAGEFTwlLsQk3jIODHEe0A4hWV12Tfbkh6RVYImKHfs+Tb4AIbbA8i9NF1xAL71wInzxOPWkaoWOUIv39RZUy1UDJMALMKERn4ZUM16QahJux10c3TDn7YTp2U66ClD+6LrXpFwQf0K9n98ZVPmcdIAsvYNo9zjFP58F74Nqh5KPwo1xvvXwJ0fE4siWshRSri1IW7e3COvc8w0iC55Mdm+eHT8zf4l8orlvZWnQ==
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from LV8PR12MB9620.namprd12.prod.outlook.com (2603:10b6:408:2a1::19)
- by MN2PR12MB4359.namprd12.prod.outlook.com (2603:10b6:208:265::24) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.48.17; Tue, 2 Jun 2026
- 13:04:51 +0000
-Received: from LV8PR12MB9620.namprd12.prod.outlook.com
- ([fe80::299d:f5e0:3550:1528]) by LV8PR12MB9620.namprd12.prod.outlook.com
- ([fe80::299d:f5e0:3550:1528%4]) with mapi id 15.21.0071.015; Tue, 2 Jun 2026
- 13:04:51 +0000
-Date: Tue, 2 Jun 2026 10:04:46 -0300
-From: Jason Gunthorpe <jgg@nvidia.com>
-To: linux-rdma@vger.kernel.org
-Cc: Chiara Meiohas <cmeiohas@nvidia.com>, Leon Romanovsky <leon@kernel.org>,
-	patches@lists.linux.dev, stable@vger.kernel.org,
-	Zhu Yanjun <yanjun.zhu@linux.dev>,
-	Yishai Hadas <yishaih@nvidia.com>
-Subject: Re: [PATCH rc] RDMA/core: Validate the passed in fops for
- ib_get_ucaps()
-Message-ID: <20260602130446.GA910183@nvidia.com>
-References: <0-v1-fd9482545e37+1e25-ib_ucaps_fd_ops_jgg@nvidia.com>
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <0-v1-fd9482545e37+1e25-ib_ucaps_fd_ops_jgg@nvidia.com>
-X-ClientProxiedBy: BN0PR04CA0143.namprd04.prod.outlook.com
- (2603:10b6:408:ed::28) To LV8PR12MB9620.namprd12.prod.outlook.com
- (2603:10b6:408:2a1::19)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="B9dqDQoM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 679661F00893;
+	Tue,  2 Jun 2026 14:05:11 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1780409114;
+	bh=2/krVRc7nfC9A6ChR8uWLfYagg/geIPKiZr1Lzo9cUQ=;
+	h=From:To:Cc:Subject:Date;
+	b=B9dqDQoMxwB67FmFnBSdYa7bcZ9qIe4k6ZHnCsHhGztpX9zQim+J3K7vYlCTxCLM1
+	 FY4U5Mwa6JLqmYcAFc7xFtmyrwB25RItgtvRgkYHjHe6J9agymaA0vDgHPX+lFOmSv
+	 DrQ7opyYK1VrDmF2Ekp7koeroAi+6D+tw9mC3ZI1IxtPOceIvfw9AUI7aKg3Mqfasa
+	 +Lp4cd9rV+WwsGKFcY+ADl6qPnnqVRi2KMnixcNA1g6q4tp9KD4Iz5UkMT1PodcWHF
+	 vHqJkVzIvhBBi1KJTeCp4+eOyi+jR+xU5ouLyHc30X5w3DubDp+x1WOYlpZPmIc4YM
+	 rrcDrADWND5JQ==
+From: Arnd Bergmann <arnd@kernel.org>
+To: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
+	Jason Gunthorpe <jgg@ziepe.ca>,
+	Leon Romanovsky <leon@kernel.org>,
+	Doug Ledford <dledford@redhat.com>,
+	"Michael J. Ruhl" <michael.j.ruhl@intel.com>,
+	Mike Marciniszyn <mike.marciniszyn@intel.com>
+Cc: Arnd Bergmann <arnd@arndb.de>,
+	Nathan Chancellor <nathan@kernel.org>,
+	Nick Desaulniers <nick.desaulniers+lkml@gmail.com>,
+	Marco Crivellari <marco.crivellari@suse.com>,
+	Kees Cook <kees@kernel.org>,
+	Dean Luick <dean.luick@cornelisnetworks.com>,
+	linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	llvm@lists.linux.dev
+Subject: [PATCH] [v2] RDMA/hfi1, rdmavt: open-code rvt_set_ibdev_name()
+Date: Tue,  2 Jun 2026 16:04:34 +0200
+Message-Id: <20260602140453.3542427-1-arnd@kernel.org>
+X-Mailer: git-send-email 2.39.5
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: LV8PR12MB9620:EE_|MN2PR12MB4359:EE_
-X-MS-Office365-Filtering-Correlation-Id: fc2397c7-d147-41ed-dd56-08dec0a785eb
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|376014|1800799024|366016|6133799003|11063799006|18002099003|56012099006|22082099003;
-X-Microsoft-Antispam-Message-Info:
-	BDXYGFZSppOgcPBrG83lsufa/0asETNkQEeyaQB08K2KAOlWeMlXqxsn+v3EXrfep1+8zNO5sSYSYg7sH5Ds+yyUk/r0lXHaXoBz5ZbUIvEZxe2hjxJqbUgJl7K/Y6KWRrss/QfHjjERUHTVUoqDk1sDPcFw3Us+6EVKLWuiF0zAS6VfqPeRDczS/06ePC+z6uhiXopnQUBUgtES5DcZRUYkyPF+Z251mBWPzzuPM/2CZ4rcLDcF3rT/420c6WU+l147GOKFcjWGAqZuSsx4KvNVghfscWmjklYDf4T0Ezv8dOlX4C+XstGVV9toh4xzUuWyNkgcah2I2evc/HMpwBRc6m6amxT9rw6wqrPloUDxUEn6slRtAH2kWLtkEY9ML0vGTbAohHTvfaZFXQZ+aACEZf+NJoJ9HRvcoJXgEp3idRjqCi2FzO2iSNUHyKoZ7kXKen3Q7YG8Dp8FssZNDx18uP57eS9b3y9YQsTydNvTMvVQHGjr4GDYLPZ4rJI5UyU601WdT2qonKt6TJ2ELdtwhpn4OpTkIRUratZ9rIcpvBvD5XaKlOXFx6NHcZkNfTJjwrjKpoxdGmPNG4yBM9xobCtguoq0+mxRHGq33iyHJsWz8hzlfmV6cBTBgoyr+Hccg0sBnqAaGn9QHoAqPDFK84F5ZlO8lIR7Kk89QcbQ3otA1YMRCl3lHhV8i1/T
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:LV8PR12MB9620.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(1800799024)(366016)(6133799003)(11063799006)(18002099003)(56012099006)(22082099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?iMh6xQ1tRIvXzr/cwVw2rmsFCQcWsAedVIi+RsAtY6/mBybr8KDgzGxRYsQl?=
- =?us-ascii?Q?p3+wPyEhsD2HCxVMyF15wKlkrl//wJszvi9R2xZyyroP3vbQBVytraxV0tPM?=
- =?us-ascii?Q?xKzeQrry31VLTdDcBmt6RdC5BGnkM7Yhpu44N8IOdpZCZU1T0+WjMRjhcEY0?=
- =?us-ascii?Q?xdEs7dBS0XvB6NB1MY9AMcCW0e4CePxFss0xVVzDVjzlQ9Hdwgr9HFdD/MWn?=
- =?us-ascii?Q?5OMFuyySIk18uq55AP8TXybGMknxKIqYAk6kGNrnJsODmQpoNf0Wv9NUyy3v?=
- =?us-ascii?Q?qqhCn4FMnASzHi/E/fQnN6I1CdaSaOkOJOigRyqIr4B5JaRSjVo6ayLezqpe?=
- =?us-ascii?Q?GG0XKWaJaDo9I1p0NCJo1Ib1MyEwkqQZvAX3wsKKEIZl+0kaBMcB97Y3rE/8?=
- =?us-ascii?Q?nS+KmvLSfeHKHedxFMpPhdPgwhwRRaJ78ijnz2oZJn/ePer1Ck20YY4bPEdc?=
- =?us-ascii?Q?9OFtXWU7UCrMRWYxJBZrvEKL0ntXCrafh49gXLV7VJNitDLazWj1T0c5M+lU?=
- =?us-ascii?Q?qMn7sxr1Ek+NvRFYSby75IJGehwaI74c0d23qHCahvsBL3WwwXq9HRZefNwB?=
- =?us-ascii?Q?W8Atyuru7bdkAqzLcgPy6pRIMBtwl7jXcIMc4SY4DFNTR7fEU0luwHhqknqy?=
- =?us-ascii?Q?sq7Z/Dx0S8yvvxwvr9UfBRTRpuvF3rQiW5vTu1tNET/AgT+dGkzvS08V9jGt?=
- =?us-ascii?Q?Lt3uqO0ELgq17ZqyvFbQaTWMDRMMxxCaDWoXRplrNwXtp0ItzS3dAFyLV5Bz?=
- =?us-ascii?Q?0HmTy8SqLa9ZHvujyI7SnNd8jf3VNpat3JYomsPmE7UHnh+wzbU+LFsMHNfw?=
- =?us-ascii?Q?w100RZH+QOdaYjbo1pNbJ9x/C6bW5/4fCiG9DfF0k6gQW9Sa23TRVUe2AFfc?=
- =?us-ascii?Q?d9EDLEDM3npFsJ9AD4C4OvNWnyo53/c7KLpzwncp7IW+QHo8wNsBXiMoTUGF?=
- =?us-ascii?Q?VW7gueSxSZva32m1NjMstj8dwMM6Jv63i7ht6pXUdxUuF7JMfvTSN+wdQD83?=
- =?us-ascii?Q?Ta0QYWkB2R4hUaDd2Oj4vuP8O4B1udFWJSXizxNAhIW+4SBchPXw6QvGh4A7?=
- =?us-ascii?Q?yUSyUoKygv8grByzgpGBJHTAMDejLLjdF3gLVFEolhryWPmL+jloU4ZskwlT?=
- =?us-ascii?Q?HKvC6kaX9ZpxBKqTXnuIWWrft8VAYIpwqKBN0hEh3owByVeaPUKbiZWO8odg?=
- =?us-ascii?Q?J4LJIM+8pKhUrOX0vmxt2h7zVaczZOapHTPnzNmIvLWyp2IKiH7/Aqwi/WFw?=
- =?us-ascii?Q?By/Vy9x3k7TDjdG3yL6x1TKp6VNhtC3Dz7Y7Bmls6K339n6xkUOG2b5beaVQ?=
- =?us-ascii?Q?zEum8WfWtgtZScNPvulfIj8reqcogYmZahMarH+GFKTwzXIxsX7c79Lush8F?=
- =?us-ascii?Q?8IpcZ+NgKw3Oc1d+7PROS90VdYQCwVnHccq6d4xKzsEYZxMd8o179MwV+V4a?=
- =?us-ascii?Q?7dgtiJV6wr65hDi1jYKh4TveLCeSLy9qDPS0QPD0j8pd4Mb85n8nqWu8/5sE?=
- =?us-ascii?Q?JvJItxjNraEf9XCl48JhICNcuPVTqWYtKJ7VuMMeI0TPf11499D71o9PYbwj?=
- =?us-ascii?Q?ucOfcn0lQf82StypUsTklntGu/hL/uA157IdigRJB4D7c3uFXrjYnOZbmvd5?=
- =?us-ascii?Q?TH51RR95GuhAAO2Om3NMH7+S+c8K43453tjm0dQ+c2xe9fkJ/4gu5E4WF3Tn?=
- =?us-ascii?Q?j+F59Fop3CL61bwkqIZVGIh5BGGP0Qmcz/L9Rzyu0+pkcR5C?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: fc2397c7-d147-41ed-dd56-08dec0a785eb
-X-MS-Exchange-CrossTenant-AuthSource: LV8PR12MB9620.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 02 Jun 2026 13:04:47.4906
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: 4h3nOzkEADzPnXQYmM8MefTd0X0Va5J/6OwwDLSarWL4mgt6X7LlIxovWS58JOlR
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: MN2PR12MB4359
+Content-Transfer-Encoding: 8bit
 
-On Tue, May 26, 2026 at 12:40:25PM -0300, Jason Gunthorpe wrote:
-> Sashiko pointed out it is not safe to rely only on the devt because
-> char/block alias so if the user finds a block device with the same dev_t
-> it can masquerade as a ucap cdev fd.
-> 
-> Test the f_ops to only accept authentic cdevs.
-> 
-> Cc: stable@vger.kernel.org
-> Fixes: 61e51682816d ("RDMA/uverbs: Introduce UCAP (User CAPabilities) API")
-> Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
-> ---
->  drivers/infiniband/core/ucaps.c | 8 +++-----
->  1 file changed, 3 insertions(+), 5 deletions(-)
+From: Arnd Bergmann <arnd@arndb.de>
 
-Applied to for-rc
+clang warns about a function missing a printf attribute:
 
-Jason
+include/rdma/rdma_vt.h:457:47: error: diagnostic behavior may be improved by adding the 'format(printf, 2, 3)' attribute to the declaration of 'rvt_set_ibdev_name' [-Werror,-Wmissing-format-attribute]
+  447 | static inline void rvt_set_ibdev_name(struct rvt_dev_info *rdi,
+      | __attribute__((format(printf, 2, 3)))
+  448 |                                       const char *fmt, const char *name,
+  449 |                                       const int unit)
+
+The helper was originally added as an abstraction for the hfi1 and
+qib drivers needing the same thing, but now qib is gone, and hfi1
+is the only remaining user of rdma_vt.
+
+Avoid the warning and allow the compiler to check the format string by
+open-coding the helper and directly assigning the device name.
+
+Fixes: 5084c8ff21f2 ("IB/{rdmavt, hfi1, qib}: Self determine driver name")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+v2: fix typo
+    drop two other patches from the series that are no longer
+    relevant, leaving only one patch
+---
+ drivers/infiniband/hw/hfi1/init.c | 13 ++++++++++++-
+ include/rdma/rdma_vt.h            | 20 --------------------
+ 2 files changed, 12 insertions(+), 21 deletions(-)
+
+diff --git a/drivers/infiniband/hw/hfi1/init.c b/drivers/infiniband/hw/hfi1/init.c
+index 8b5a5b32b0fa..b7fd8b1fbbbd 100644
+--- a/drivers/infiniband/hw/hfi1/init.c
++++ b/drivers/infiniband/hw/hfi1/init.c
+@@ -1206,6 +1206,7 @@ static struct hfi1_devdata *hfi1_alloc_devdata(struct pci_dev *pdev,
+ 					       size_t extra)
+ {
+ 	struct hfi1_devdata *dd;
++	struct ib_device *ibdev;
+ 	int ret, nports;
+ 
+ 	/* extra is * number of ports */
+@@ -1227,7 +1228,17 @@ static struct hfi1_devdata *hfi1_alloc_devdata(struct pci_dev *pdev,
+ 			"Could not allocate unit ID: error %d\n", -ret);
+ 		goto bail;
+ 	}
+-	rvt_set_ibdev_name(&dd->verbs_dev.rdi, "%s_%d", class_name(), dd->unit);
++
++	/*
++	 * FIXME: rvt and its users want to touch the ibdev before
++	 * registration and have things like the name work. We don't have the
++	 * infrastructure in the core to support this directly today, hack it
++	 * to work by setting the name manually here.
++	 */
++	ibdev = &dd->verbs_dev.rdi.ibdev;
++	dev_set_name(&ibdev->dev, "%s_%d", class_name(), dd->unit);
++	strscpy(ibdev->name, dev_name(&ibdev->dev), IB_DEVICE_NAME_MAX);
++
+ 	/*
+ 	 * If the BIOS does not have the NUMA node information set, select
+ 	 * NUMA 0 so we get consistent performance.
+diff --git a/include/rdma/rdma_vt.h b/include/rdma/rdma_vt.h
+index 7d8de561f71b..7ffc83262a01 100644
+--- a/include/rdma/rdma_vt.h
++++ b/include/rdma/rdma_vt.h
+@@ -438,26 +438,6 @@ struct rvt_dev_info {
+ 	struct rvt_wss *wss;
+ };
+ 
+-/**
+- * rvt_set_ibdev_name - Craft an IB device name from client info
+- * @rdi: pointer to the client rvt_dev_info structure
+- * @name: client specific name
+- * @unit: client specific unit number.
+- */
+-static inline void rvt_set_ibdev_name(struct rvt_dev_info *rdi,
+-				      const char *fmt, const char *name,
+-				      const int unit)
+-{
+-	/*
+-	 * FIXME: rvt and its users want to touch the ibdev before
+-	 * registration and have things like the name work. We don't have the
+-	 * infrastructure in the core to support this directly today, hack it
+-	 * to work by setting the name manually here.
+-	 */
+-	dev_set_name(&rdi->ibdev.dev, fmt, name, unit);
+-	strscpy(rdi->ibdev.name, dev_name(&rdi->ibdev.dev), IB_DEVICE_NAME_MAX);
+-}
+-
+ /**
+  * rvt_get_ibdev_name - return the IB name
+  * @rdi: rdmavt device
+-- 
+2.39.5
+
