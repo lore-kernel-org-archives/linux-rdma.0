@@ -1,80 +1,81 @@
-Received: from relay.hostedemail.com (smtprelay0015.hostedemail.com [216.40.44.15])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D39F33EB809;
-	Tue,  2 Jun 2026 15:39:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=216.40.44.15
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1CEFC2D3EC7;
+	Tue,  2 Jun 2026 17:32:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780414782; cv=none; b=TT6IVBiiun/bc97f0LEts8RbWNL5cH3TXn+m37BTYDsDi95HIp6rL1slDZal4SMy1CN2ITQptjLuZl4Ue2s9jo4ZKg1wtsmQng0IfhToWxmLekvn7UTYfbnFeuAU8OLNVimeZFjhZ85BJBNG2go/5z/Yg6hrMqJZpc/RQOq0ljE=
+	t=1780421530; cv=none; b=fa/xMeeBYkrQmRRyymp/iNrovJGboLbjfwtYHVl3sYtxHjPxpCyIhzptNu2YOYkxskk9CmvtYuXoxL/IRdQBksAlY7F8Gfyk0JZg/rpBeUDsUXvwejJTrCSpOkRRa9yg9CZGw6VVYwwOh8ROlMUA4pIp33gcBQjuQT1xbJCeo7E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780414782; c=relaxed/simple;
-	bh=duWFMQSTCLt95k26YHk17X8pJ+R8BAvvovbK9QZT69Y=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=Lp2tij6sY5cfcxgVHqlGJQADp9oCoxd2BqgzAv5oIcy4ykX1W21wK/p1CpaRz1UNEHZkpO4gsXR0BZ7q5iNW9zme8lcMyL87BavuTaL4GByV5z11pyXLC3tm3Ul+aQ3flwUqnfNpVqto3J+0k9sh+4MScrw+N6GZu2yEkhDe/ig=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=goodmis.org; spf=pass smtp.mailfrom=goodmis.org; arc=none smtp.client-ip=216.40.44.15
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=goodmis.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=goodmis.org
-Received: from omf01.hostedemail.com (lb01a-stub [10.200.18.249])
-	by unirelay09.hostedemail.com (Postfix) with ESMTP id C6556931F4;
-	Tue,  2 Jun 2026 15:39:36 +0000 (UTC)
-Received: from [HIDDEN] (Authenticated sender: rostedt@goodmis.org) by omf01.hostedemail.com (Postfix) with ESMTPA id 8504D60018;
-	Tue,  2 Jun 2026 15:39:31 +0000 (UTC)
-Date: Tue, 2 Jun 2026 11:40:19 -0400
-From: Steven Rostedt <rostedt@goodmis.org>
+	s=arc-20240116; t=1780421530; c=relaxed/simple;
+	bh=Q8RAfVmtkJ+IPg7BYVEkPBRKt9ntB+TJqcyjR3LZpv0=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=IYALg48I8NR8uvIV63vfJO3vzr1EDFpHMX9H6P0f4SA2jdTCH5klMkyYtTZ6c/k9KaTI9/g+7QGE/0Wv3VnSyB/hRGif+rZY7MPgtVPVJtMwKOleiXkTG4hSZHYKkJYSsnUoQSFDadUGnekAGkK155lNg8H6v1OilxhjzmPoGo4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=e7i8x2gO; arc=none smtp.client-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="e7i8x2gO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 018B61F00893;
+	Tue,  2 Jun 2026 17:32:09 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1780421529;
+	bh=IT/hnXtjUfBU0YvE7YTAxpftFLi1PmAVY52XpGJ9Rvo=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=e7i8x2gO5tbHBLsNcfUaXSL+6NHFT9g6XtATvuG3GNTWbVerEEtb7oJFYB66HRW05
+	 73IR+ZTqDdsQfa2A0B97KQ1IycOMKVdCuqzHrVOcjbKO9wz55jnNAdXPH2WvHlEpCL
+	 Ry5IElmuJXPoF5fQoUgt3A1rWDkF1CMME2Csm24pAKDcmsyjywt6YzKpYk36dTB/7N
+	 kZKOvXyxvEBdMfq+QC29FZGZ4wngeoWTTY5kwl/sYvfgHujQor1MXZOb9TDde+zG+Z
+	 zzAk7tGp/afF/b683OA31sm4ni/Y+98j6ef/xxGXCJthAu2zM3729ffJjoNDeN5tyH
+	 yMS30FBAgv1ww==
+Date: Tue, 2 Jun 2026 10:32:08 -0700
+From: Kees Cook <kees@kernel.org>
 To: Arnd Bergmann <arnd@kernel.org>
-Cc: Masami Hiramatsu <mhiramat@kernel.org>, Andrew Morton
- <akpm@linux-foundation.org>, Petr Mladek <pmladek@suse.com>, Nathan
- Chancellor <nathan@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Dennis
- Dalessandro <dennis.dalessandro@cornelisnetworks.com>, Jason Gunthorpe
- <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>, Arend van Spriel
- <arend.vanspriel@broadcom.com>, Miri Korenblit
- <miriam.rachel.korenblit@intel.com>, Mathieu Desnoyers
- <mathieu.desnoyers@efficios.com>, Andy Shevchenko
- <andriy.shevchenko@linux.intel.com>, Rasmus Villemoes
- <linux@rasmusvillemoes.dk>, Sergey Senozhatsky <senozhatsky@chromium.org>,
- Nick Desaulniers <nick.desaulniers+lkml@gmail.com>, Bill Wendling
- <morbo@google.com>, Justin Stitt <justinstitt@google.com>, Vlastimil Babka
- <vbabka@kernel.org>, linux-rdma@vger.kernel.org,
- linux-kernel@vger.kernel.org, linux-wireless@vger.kernel.org,
- brcm80211@lists.linux.dev, brcm80211-dev-list.pdl@broadcom.com,
- linux-trace-kernel@vger.kernel.org, llvm@lists.linux.dev
-Subject: Re: [PATCH 1/2] tracing: work around -Wmissing-format-attribute
- warning
-Message-ID: <20260602114019.0b468183@gandalf.local.home>
-In-Reply-To: <20260602150904.2258624-1-arnd@kernel.org>
-References: <20260602150904.2258624-1-arnd@kernel.org>
-X-Mailer: Claws Mail 3.20.0git84 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+Cc: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
+	Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>,
+	Doug Ledford <dledford@redhat.com>,
+	"Michael J. Ruhl" <michael.j.ruhl@intel.com>,
+	Mike Marciniszyn <mike.marciniszyn@intel.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Nathan Chancellor <nathan@kernel.org>,
+	Nick Desaulniers <nick.desaulniers+lkml@gmail.com>,
+	Marco Crivellari <marco.crivellari@suse.com>,
+	Dean Luick <dean.luick@cornelisnetworks.com>,
+	linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
+	llvm@lists.linux.dev
+Subject: Re: [PATCH] [v2] RDMA/hfi1, rdmavt: open-code rvt_set_ibdev_name()
+Message-ID: <202606021032.F864729@keescook>
+References: <20260602140453.3542427-1-arnd@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-X-Stat-Signature: 9rzk53wd7afo7uzkpczt1q8xzbbfeezs
-X-Rspamd-Server: rspamout08
-X-Rspamd-Queue-Id: 8504D60018
-X-Session-Marker: 726F737465647440676F6F646D69732E6F7267
-X-Session-ID: U2FsdGVkX18uK80cPUvu0PcxYHkVoO/Exws1tsbni8g=
-X-HE-Tag: 1780414771-736166
-X-HE-Meta: U2FsdGVkX1/JQy9GCXGniipFNPGU2/D3baRLikCzvEb/c0R5WH6io7xo03B1mD3aoAD9Mr2VfseVaCfnhwe4JtZ89AAYxSil5f1k/mPcMnDVMf+n+MtW10tFiQs7Dm5oNbVYLmQTP7Mfb5pfuZSYRVv1av6Chl/lXBhHHNZKH3DQAzktM4iXx2pHPYb5H+2P97gWwqAJdkQcA5f59T0WFdJUrelc+XnaNcLl4OcglAo18/oaZrm8z7TK50lhUoedlNq0uoflvgP4/GRocsf/SZAWwQiAzbr/806rT+hA/dB2OKGAkiK1+Z2+6WJ7ES2hon/HMzBxR/fJ9fN2EgC7/i+QCfge5Zn+1uf2ysa0wQumJE0xJOWsgg==
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260602140453.3542427-1-arnd@kernel.org>
 
-On Tue,  2 Jun 2026 17:07:05 +0200
-Arnd Bergmann <arnd@kernel.org> wrote:
+On Tue, Jun 02, 2026 at 04:04:34PM +0200, Arnd Bergmann wrote:
+> From: Arnd Bergmann <arnd@arndb.de>
+> 
+> clang warns about a function missing a printf attribute:
+> 
+> include/rdma/rdma_vt.h:457:47: error: diagnostic behavior may be improved by adding the 'format(printf, 2, 3)' attribute to the declaration of 'rvt_set_ibdev_name' [-Werror,-Wmissing-format-attribute]
+>   447 | static inline void rvt_set_ibdev_name(struct rvt_dev_info *rdi,
+>       | __attribute__((format(printf, 2, 3)))
+>   448 |                                       const char *fmt, const char *name,
+>   449 |                                       const int unit)
+> 
+> The helper was originally added as an abstraction for the hfi1 and
+> qib drivers needing the same thing, but now qib is gone, and hfi1
+> is the only remaining user of rdma_vt.
+> 
+> Avoid the warning and allow the compiler to check the format string by
+> open-coding the helper and directly assigning the device name.
+> 
+> Fixes: 5084c8ff21f2 ("IB/{rdmavt, hfi1, qib}: Self determine driver name")
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 
-> @@ -2979,6 +2975,12 @@ int vsnprintf(char *buf, size_t size, const char *fmt_str, va_list args)
->  }
->  EXPORT_SYMBOL(vsnprintf);
->  
+Reviewed-by: Kees Cook <kees@kernel.org>
 
-Should add a comment here for why this is needed.
-
--- Steve
-
-> +int __printf(3, 0) __vsnprintf(char *buf, size_t size, const char *fmt_str, va_list args)
-> +{
-> +	return vsnprintf(buf, size, fmt_str, args);
-> +}
-> +EXPORT_SYMBOL(__vsnprintf);
-> +
+-- 
+Kees Cook
