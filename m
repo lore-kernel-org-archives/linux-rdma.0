@@ -1,80 +1,82 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DD18431F9A3;
-	Tue,  2 Jun 2026 20:40:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id B790437EFE2;
+	Tue,  2 Jun 2026 20:43:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780432804; cv=none; b=d4wc5EEzslaR9EeZ2fwn5Jv7G3dzTgXGWRvKed77paz8lTyllZeZ+Iy3/Ur6SSNfeNYyH1PaGnICGpw2FI3Tztbp6kcMKYKvenP96DmwfVWzOo3Is0rpjQym0X5DdX8OKI74d/0Bd0IEn+8cvXcndti7Bi0KQZIdefvBPh+fXSs=
+	t=1780432989; cv=none; b=FglpsKoUc/hOWJ8gloRUQ8knrErdG1BhWm8GUy1WxT4rUSFq0H+/c9huAnLKdfg9CnayVw6Xd0nFIq7Mm9/PwGKarDCpJ9/zsn+PFJM4/j/mB3tl4Uw5lRdqPqKVkJjA4q1owA98btFuwGXYKILNl7RjwVpJpHZRlhB9/YO9hGA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780432804; c=relaxed/simple;
-	bh=BfLDQr9pt69S8MlWwDuy/Z+mVbeCcUXRj22h9jDPRSE=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=WT/YZr99qNCRHGISNa5amqIMJ/vZseZWsHQt6LDDi+KDuIr005JS1jqJyXZ1ixb2ZuZhqUiVgNhFWSRCNPe20wW5itmUauz2OKkMbsk0pWmDl4Z3g2zfYx0Y8uHphDjyA9ZRqQX8479EU8yy2wgxsHPd26NeLgWBCYvMDDcxvp4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=dbCAVXTa; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780432989; c=relaxed/simple;
+	bh=2O1gcP/d7udlYJtNzKmFYrF+js+Ih2nWNSmX65Ge+5o=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=u46MPVu21b8rzkZdNJaPE+FYun8E9HuUWm19ePHBMlxUsLWWVbagPtjgcbbwZ3O1jvS9PAtnaU5Kldu87O6RoajuALhQnXSKo7/VxOThFJDOJuZdan2hEFV4k6f3kPoFRO4PRoFEinEIjfKjGy+6rC5kmJ18npC+arV/Xe6qCcE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=OkPvqQq7; arc=none smtp.client-ip=13.77.154.182
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="dbCAVXTa"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 82FFC1F00893;
-	Tue,  2 Jun 2026 20:40:03 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1780432803;
-	bh=FOpl/ZpM26+tD54wKWBy5O0+u1RCyEjX0Ylp6b3/Ybg=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc;
-	b=dbCAVXTa1jblXOpkluhoDXnzArjP+63aCEXBYvb9ccHtNXONNhK4cnwNyr2JtR5TB
-	 Ru4fkcw4ieIU6akcYldRp36DiyMwu2V42fqKKLGZHjbl7xMyqVsDAQVyV0m8H+yyuN
-	 Hjlwcbh1xcgoN0GTRkC3ahWHn6fuMpnSgxhV9aEPWwM/eaP4JFawVcki8B8XQv2oGn
-	 KdGTLP75Tc4roMZ2TpTr6lYayJEs0priqyEXqqn1zIFX53sejxm9JoSVlVlatWcUU6
-	 fkmcBYKS/zZo7RYnWY/tpE56M9CbReuDuGPLKx67aiJkPty9S9gqHAMNaOBo+oyNXb
-	 MkkDIDnk8aJqg==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 93CAE3811A72;
-	Tue,  2 Jun 2026 20:40:06 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="OkPvqQq7"
+Received: by linux.microsoft.com (Postfix, from userid 1204)
+	id B84C720B7167; Tue,  2 Jun 2026 13:42:54 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com B84C720B7167
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
+	s=default; t=1780432974;
+	bh=YfXavZAnhgEX9wJtH9QZrsFlIDVXx/maWlD8Y7IYFuk=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=OkPvqQq74OHaaGRag7dgVGGkyZdqn3ksIm7UUEfQS544c2EErEdSZ8AghWOEXnpHu
+	 Hq9iSy+lvH8g8tkw+FBB0YifTfiqS7FrKUyIhtoofgokafFZKsMtG6lji5GV15LsG6
+	 I6G83Jk5tamZcqBgr8SskbKMkTjpKSJnaX45rcAE=
+Date: Tue, 2 Jun 2026 13:42:54 -0700
+From: Dipayaan Roy <dipayanroy@linux.microsoft.com>
+To: Jakub Kicinski <kuba@kernel.org>
+Cc: kys@microsoft.com, haiyangz@microsoft.com, wei.liu@kernel.org,
+	decui@microsoft.com, andrew+netdev@lunn.ch, davem@davemloft.net,
+	edumazet@google.com, pabeni@redhat.com, leon@kernel.org,
+	longli@microsoft.com, kotaranov@microsoft.com, horms@kernel.org,
+	shradhagupta@linux.microsoft.com, ssengar@linux.microsoft.com,
+	ernis@linux.microsoft.com, shirazsaleem@microsoft.com,
+	linux-hyperv@vger.kernel.org, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
+	stephen@networkplumber.org, jacob.e.keller@intel.com,
+	dipayanroy@microsoft.com, leitao@debian.org, kees@kernel.org,
+	john.fastabend@gmail.com, hawk@kernel.org, bpf@vger.kernel.org,
+	daniel@iogearbox.net, ast@kernel.org, sdf@fomichev.me,
+	yury.norov@gmail.com
+Subject: Re: [PATCH v8 2/2] net: mana: force full-page RX buffers via ethtool
+ private flag
+Message-ID: <ah9ATqI3dsAJiW/P@linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net>
+References: <20260508115100.488506-3-dipayanroy@linux.microsoft.com>
+ <20260512022133.856196-1-kuba@kernel.org>
+ <aguFpq8+LV+I9oH0@linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net>
+ <ahkAG/EN2YhKIKpi@linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net>
+ <20260529105739.5fc5fdf5@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net 1/1] net: rds: clear i_sends on setup unwind
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <178043280517.1040770.3974828278309991048.git-patchwork-notify@kernel.org>
-Date: Tue, 02 Jun 2026 20:40:05 +0000
-References: 
- <5a0f7624bb9845a7b67d26166a150b59e7f394ce.1779632468.git.xuyq21@lenovo.com>
-In-Reply-To: 
- <5a0f7624bb9845a7b67d26166a150b59e7f394ce.1779632468.git.xuyq21@lenovo.com>
-To: Ren Wei <n05ec@lzu.edu.cn>
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
- rds-devel@oss.oracle.com, achender@kernel.org, yanjun.zhu@oracle.com,
- guanglei.li@oracle.com, davem@davemloft.net, santosh.shilimkar@oracle.com,
- junxiao.bi@oracle.com, yuantan098@gmail.com, zcliangcn@gmail.com,
- bird@lzu.edu.cn, xuyq21@lenovo.com
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260529105739.5fc5fdf5@kernel.org>
 
-Hello:
-
-This patch was applied to netdev/net.git (main)
-by Jakub Kicinski <kuba@kernel.org>:
-
-On Fri, 29 May 2026 21:01:44 +0800 you wrote:
-> From: Yuqi Xu <xuyq21@lenovo.com>
+On Fri, May 29, 2026 at 10:57:39AM -0700, Jakub Kicinski wrote:
+> On Thu, 28 May 2026 19:55:23 -0700 Dipayaan Roy wrote:
+> > As the pre-requisite fixes patches are accepted now:
+> > https://git.kernel.org/pub/scm/linux/kernel/git/netdev/net.git/commit/?id=17bfe0a8c014
+> > https://git.kernel.org/pub/scm/linux/kernel/git/netdev/net.git/commit/?id=5b05aa36ee24
+> > 
+> > Can this series be merged now? Let me know if it needs a rebase or
+> > anything else.
 > 
-> The RDS IB connection teardown path is written so it can run during
-> partial startup and on repeated shutdown attempts. It uses NULL
-> pointers to distinguish resources that are still owned from resources
-> that have already been released.
+> If there's any dependency, functional or otherwise on the fixes you
+> need to wait until they make their way to net-next.
 > 
-> [...]
+> Otherwise you can rebase and repost now.
 
-Here is the summary with links:
-  - [net,1/1] net: rds: clear i_sends on setup unwind
-    https://git.kernel.org/netdev/net/c/20cf0fb715c4
+Hi Jakub,
 
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
+I see the fixes have landed in net-next. So I rebased this series and posted as v10.
+https://lore.kernel.org/all/20260602202801.1873742-1-dipayanroy@linux.microsoft.com/
 
 
+Regards
+Dipayaan Roy
