@@ -1,135 +1,82 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.18])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5DEDF2E173D;
-	Tue,  2 Jun 2026 21:05:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 732ED3A6B9D;
+	Tue,  2 Jun 2026 21:30:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780434318; cv=none; b=ewEyxvV/7b2keE6+vxXGzMkVpPQcri1/tMYAOIEVtUcigwUHvgusW8qQa0tc8pCadNVNMTl38/uVg4N6vAcOzv+eXeHALEx6d/mwjz3y6uFlrlUs8rt/yf9OjnBZsqb/gwfdINYwXJeLXhZTtlVTk9BQZ4vZ8FfDKMOIn1gvFWU=
+	t=1780435809; cv=none; b=uVFqO8WKDCX3VLYHOLHqD90heMv1VYMYiM9uEAmiptpOczspQSQvLl/U5OrOBGhkryX7rJa9HpF2UYqlNCdoFWvjke3qMtJ71nT0/KXlZtkPH19XOcmQptwO1RhaBdTwMZSBuAsfq/mRqN3zh15d0H39+CSapP6WlLiUqxVQGOo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780434318; c=relaxed/simple;
-	bh=xUDEVzA7dW2EFM7q7nsKhfV8kbLTLrhkVRoEHeV/Tyw=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Vl8lbZA8+wDRfoKCgaHKZuYDuMUR7c1w31ckRe5HAiuF0kqVYEkVBIxpUZjT0HW8CofOhRiTKKY/B0kuP52+ufdIFzmxI03hL5uBAIpKppwoRyJbswKJyfciaULOUNh3L/pSu+h68qux2d5RDpD0rbQ20zXsQ4A05FLAMpKCxlg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=fsRhb8rD; arc=none smtp.client-ip=198.175.65.18
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	s=arc-20240116; t=1780435809; c=relaxed/simple;
+	bh=EybQnBMoxL9pB6EZAAy755FMVg0F44AFTkBuy545DAw=;
+	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc; b=qExRJoF7ZlBeu2RE4G/tkGV9Xv6XgW9wcMEMITd1BKJkXYpu56Y04f8wzBUo4mFEyg5XeBNJdxg0g+yMLkYabKUepArVvVPnEZIdynzbyEocBcsjJEZ1CQ/YD3dZrrT/tvIu21qw01gdDneXlp2SRF25mcuKF94AvVvGs6CstpY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=NGmp5p9v; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="fsRhb8rD"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1780434318; x=1811970318;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=xUDEVzA7dW2EFM7q7nsKhfV8kbLTLrhkVRoEHeV/Tyw=;
-  b=fsRhb8rD5fEgPNC1GtqiuU0ZOq2/x4Qu7RW37vG8onFtauqL5kk23dA8
-   Vluk3Zep03TPTPMcUzXRVp1RlflF16zlu60JHjhErUY+k6bf8tv2yZoC9
-   IG9Cem++fzO2FoB6M4vs6gD59u4fc71xf+DmpBjyrfXnoE2IIFRfroKjg
-   sOTisvsJV+YB07VEIIWkvOft9KgbuBnrBZeDs4xuiPKPuXlJopjM9bN62
-   JLEUO07MiGPt26kYy1G9IWkqbWSh+oKGJGYlmCmnMEHLwfOpgIzWiSrTu
-   UocpZGXA45aRZR6TE83XoovuFWFDhWnMEOtsdjy9QpLQI3V3pFp5p2pDB
-   Q==;
-X-CSE-ConnectionGUID: N1n46YjJTtS/qMZI7KcRvg==
-X-CSE-MsgGUID: UlMpEkRCTOWKKpcTmGrKmw==
-X-IronPort-AV: E=McAfee;i="6800,10657,11805"; a="81293848"
-X-IronPort-AV: E=Sophos;i="6.24,183,1774335600"; 
-   d="scan'208";a="81293848"
-Received: from orviesa007.jf.intel.com ([10.64.159.147])
-  by orvoesa110.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Jun 2026 14:05:17 -0700
-X-CSE-ConnectionGUID: q3VK4G18SUSwPLf7/GZKLw==
-X-CSE-MsgGUID: bWrAzEGVSu+fW6rQ4CFVNg==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.24,183,1774335600"; 
-   d="scan'208";a="244128076"
-Received: from mkosciow-mobl1.ger.corp.intel.com (HELO localhost) ([10.245.245.229])
-  by orviesa007-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Jun 2026 14:05:11 -0700
-Date: Wed, 3 Jun 2026 00:05:08 +0300
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Arnd Bergmann <arnd@kernel.org>, Steven Rostedt <rostedt@goodmis.org>,
-	Masami Hiramatsu <mhiramat@kernel.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Petr Mladek <pmladek@suse.com>,
-	Nathan Chancellor <nathan@kernel.org>,
-	Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
-	Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>,
-	Arend van Spriel <arend.vanspriel@broadcom.com>,
-	Miri Korenblit <miriam.rachel.korenblit@intel.com>,
-	Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
-	Rasmus Villemoes <linux@rasmusvillemoes.dk>,
-	Sergey Senozhatsky <senozhatsky@chromium.org>,
-	Nick Desaulniers <nick.desaulniers+lkml@gmail.com>,
-	Bill Wendling <morbo@google.com>,
-	Justin Stitt <justinstitt@google.com>,
-	"Vlastimil Babka (SUSE)" <vbabka@kernel.org>,
-	linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-wireless@vger.kernel.org, brcm80211@lists.linux.dev,
-	brcm80211-dev-list.pdl@broadcom.com,
-	linux-trace-kernel@vger.kernel.org, llvm@lists.linux.dev
-Subject: Re: [PATCH 1/2] tracing: work around -Wmissing-format-attribute
- warning
-Message-ID: <ah9FhFfQWzYpB0oi@ashevche-desk.local>
-References: <20260602150904.2258624-1-arnd@kernel.org>
- <ah8n-Nk305S5hRwN@ashevche-desk.local>
- <35c1ba62-e74d-4abc-aa73-ccd35968ff89@app.fastmail.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="NGmp5p9v"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0F04D1F00893;
+	Tue,  2 Jun 2026 21:30:07 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1780435807;
+	bh=fNztbHBTXfT03ZHeQleG2e86Ii5WrI1yJc7iP2ZJidc=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc;
+	b=NGmp5p9voh26f4zoK7UJWcX8n8YeIJk1Jcgx/48irsR5/ea1ktBQ0w/a0WhB1VdnT
+	 r5XCwmFfhccSwOaLOqDkqBOTjM94bLQWsR5/2F6WakhAthcUJe5y4EdNHohKKxk6/Y
+	 4/6VmWDYz9eatPmAJbDaLJjR5xSCjrYguy9/aZrtTD6vIua77UFHB6HpH2XTQEQqek
+	 v4vmtsalNGasmwuiMpdjFB4WKSDyleGQlWNUeNwQBhTi4RkEJmeFABQnCJ3q9RIQf6
+	 K8+6Z3nz1RI2MaXHEx8aDAo3DoYJ+wiz7lhIkp91vtwg8JSXg/QBHsH9hit0xtWc4e
+	 Z2P9klkg/TmAQ==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 19AA53811A72;
+	Tue,  2 Jun 2026 21:30:10 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <35c1ba62-e74d-4abc-aa73-ccd35968ff89@app.fastmail.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
- krs, Bertel Jungin Aukio 5, 02600 Espoo
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net-next V7 0/2] net/mlx5: Avoid payload in skb's linear
+ part
+ for better GRO-processing
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <178043580880.1057654.15648019430651033677.git-patchwork-notify@kernel.org>
+Date: Tue, 02 Jun 2026 21:30:08 +0000
+References: <20260601061522.398044-1-tariqt@nvidia.com>
+In-Reply-To: <20260601061522.398044-1-tariqt@nvidia.com>
+To: Tariq Toukan <tariqt@nvidia.com>
+Cc: edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
+ andrew+netdev@lunn.ch, davem@davemloft.net, saeedm@nvidia.com,
+ mbloch@nvidia.com, leon@kernel.org, netdev@vger.kernel.org,
+ linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, gal@nvidia.com,
+ ameryhung@gmail.com, david.laight.linux@gmail.com, cpaasch@openai.com
 
-On Tue, Jun 02, 2026 at 10:32:04PM +0200, Arnd Bergmann wrote:
-> On Tue, Jun 2, 2026, at 20:59, Andy Shevchenko wrote:
-> > On Tue, Jun 02, 2026 at 05:07:05PM +0200, Arnd Bergmann wrote:
+Hello:
 
-...
+This series was applied to netdev/net-next.git (main)
+by Jakub Kicinski <kuba@kernel.org>:
 
-> > Why the __printf() annotation is in the C file and not here?
-> > Is this all about headers as the second paragraph in the commit message 
-> > explains?
-> > I would add a comment to explain it here, otherwise we might see false 
-> > patches to "make things consistent" in a wrong way.
+On Mon, 1 Jun 2026 09:15:20 +0300 you wrote:
+> Hi,
 > 
-> I've tried to come up with a kerneldoc comment now, similar to
-> the one for the vsnprintf() function, and added a separate prototype
-> in the header. Does this address your concern?
+> This is V7 of a series originally submitted by Christoph.
+> 
+> When LRO is enabled on the MLX, mlx5e_skb_from_cqe_mpwrq_nonlinear
+> copies parts of the payload to the linear part of the skb.
+> 
+> [...]
 
-Yes, see one nit, though.
+Here is the summary with links:
+  - [net-next,V7,1/2] net/mlx5e: DMA-sync earlier in mlx5e_skb_from_cqe_mpwrq_nonlinear
+    https://git.kernel.org/netdev/net-next/c/34d8c91a3d39
+  - [net-next,V7,2/2] net/mlx5e: Avoid copying payload to the skb's linear part
+    https://git.kernel.org/netdev/net-next/c/399f030cd612
 
-> -int __printf(3, 0) __vsnprintf(char *buf, size_t size, const char *fmt_str, va_list args)
-> +/**
-> + * __vsnprintf - vsnprintf() wrapper without __printf() attribute
-> + * @buf: The buffer to place the result into
-> + * @size: The size of the buffer, including the trailing null space
-> + * @fmt_str: The format string to use
-> + * @args: Arguments for the format string
-> + *
-> + * This has the exact same behavior as vsnprintf() but can be used in call
-> + * sites that are missing a __printf() annotation, e.g. because they
-> + * get a 'va_format' argument instead of format and varargs.
-> + *
-> + * For this to work, the attribute is added to the declaration here but
-> + * not in the header.
-
-+ *
-+ * Return: ...
-
-> + */
-> +int __printf(3, 0) __vsnprintf(char *buf, size_t size, const char *fmt_str, va_list args);
-
-> +
-> +int __vsnprintf(char *buf, size_t size, const char *fmt_str, va_list args)
-
-Something slipped here...
-
+You are awesome, thank you!
 -- 
-With Best Regards,
-Andy Shevchenko
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
 
 
