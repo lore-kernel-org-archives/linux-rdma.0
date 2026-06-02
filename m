@@ -1,176 +1,116 @@
-Received: from mail-qv1-f53.google.com (mail-qv1-f53.google.com [209.85.219.53])
+Received: from mail-oa1-f52.google.com (mail-oa1-f52.google.com [209.85.160.52])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D9E0D38B12C
-	for <linux-rdma@vger.kernel.org>; Tue,  2 Jun 2026 22:05:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.53
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780437924; cv=none; b=jtRzxQOXkv8bTzZ3OlAD2PAM5XZqAj7WOoNI3D6F0HxM56Y8csc2jL122+Ac/eIRVFR57+8L/xzyJLguJnLnuOEdxPO1+zF3/SaIen/0GonvXz/0eKahnN4AbWBZxXIk2Sm+/eX7AuCh4D6Ovu2QOaphbbbedpd2mGgHw5siUoU=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780437924; c=relaxed/simple;
-	bh=XC0KcaNw7SDbvUWq1bVjwUuRSHFM10TeVlcpU63KBBY=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=VznL8Xi+CzdH3U2Xvl7KHJ2j2AqJmpmHst0E72of3FWlxylZRbOfJ8CFd71vb+kvq+HZgGSJzu2wAMuuzDkOnl5L8FxfKomLdq8/WnjO42JuPJ3gILm7cFuAg49eshr44/VrQ9VKtFFq3iJshb51rhuXvtI59xRMrH91DSGlw1s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Cg3+yDVc; arc=none smtp.client-ip=209.85.219.53
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EEE603C769B
+	for <linux-rdma@vger.kernel.org>; Tue,  2 Jun 2026 22:31:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.160.52
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1780439517; cv=pass; b=kWi1o79R0S6E8nm/sR9J623wOriRZ7E+sMpmVeR4vhX5y2EQmQvhENbJiMTGZIgUzNPTNb5/XfNQaGD7B6RJTi8lgbMsTugRp55UFRYBheGaKbZcMexuYtARgLnHTJax4ek3sK+pr/EsTM+ltNMHJSF956IBHpWHqxh8E1fVgqU=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1780439517; c=relaxed/simple;
+	bh=F8hTP47ikKsPAHLkN0/ccW56UYyMMfZo9RM12hPsVNI=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=CJrv9ObSUQg3qVIdlyumr8p5tFDFDHQF+Ca7Bm6rU95U3rV1Ug/d+lscZan+YWp5wbj6G6uSVyCsqSqsYWcPYyQftORM9ur7i3QFfglI7HhcPzdh5q974OfoLBRkwetMzD5sEOpU1s1t+BIXpOOn19pRBGFeBmQ++dm18OOqQQQ=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=emMgrcx4; arc=pass smtp.client-ip=209.85.160.52
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Cg3+yDVc"
-Received: by mail-qv1-f53.google.com with SMTP id 6a1803df08f44-8ccea53f35cso53187126d6.1
-        for <linux-rdma@vger.kernel.org>; Tue, 02 Jun 2026 15:05:19 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="emMgrcx4"
+Received: by mail-oa1-f52.google.com with SMTP id 586e51a60fabf-43d08bc82deso1718568fac.3
+        for <linux-rdma@vger.kernel.org>; Tue, 02 Jun 2026 15:31:55 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1780439515; cv=none;
+        d=google.com; s=arc-20240605;
+        b=HV+suua6n0XOAw6QzejgDAuH1Bee4ZwyUxzs5FDK+jIhN5aa62a2Xf+DJJuDrI3Sjp
+         h6gtxiL7gQZDVLm2Hi99PZAY8m3TNhFuQitEy9gZVGZWtibybksEK7HcjMmLLv18LhbZ
+         yCDgHn28Gf+uQIc0z3jgXXbd/YS9r3YPGBdiexCq9gcst1+yros4c2j4JMiDk5ole7MS
+         JqPYp48AjZN/x/WuRyeu5xU8N/cp6Iq2SyD8f2if0ZF5tj1vnHrxve8f0xUCScCBr+9T
+         rlXF74qWQp9aDTFSecWWZIbiAUHuWn+C0W2ZiHqvyOukUvIV9ZaAHziS1M6mGpVRcE4C
+         ebZw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:dkim-signature;
+        bh=F8hTP47ikKsPAHLkN0/ccW56UYyMMfZo9RM12hPsVNI=;
+        fh=+FKnfzEx8Zpi/4CgwMaDhADDVrV24aqJ1dxRLSaiIyM=;
+        b=R8fE63jUaIxE2aJXzpdrrW4ecO8ZacJneojWQs0YR/Kq2+YN+N6x7fNnNgNTWKfXaW
+         9acFJ3eEMhTAuI3wjDKrkbiz1Aw0mdRvjLJVNIDQm3pZkUv/6AGOM/TSX5BLNxlG96XP
+         P3j68OhJ3mrFoEDDJetOQXyWGxLinq4TFlkKZ+XiP8Inz6sgN6lqfqcMVi+GlSxP+LXq
+         Hn6qYNMwMKbHzqa+l0hi4Y9isxdsXdARGl4ns4P9i1gG8c/RKqvELDVk0muaXLNk3ZVs
+         BoWx+fH5LgVxTNZfzpxx5ta+Z+1OTJXPvRcIs1zW5eqfQJbAMWiBKU9PDf5rzSLuwOtH
+         RQTg==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1780437919; x=1781042719; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=iOc/r8laH9Q5rcV75Dpu9RWLNtUdzZsvgQiYjPZO9Lo=;
-        b=Cg3+yDVcsU3UFOt5poogMKMOikHzJmoDrq4QcM2v3R8cjQH6Q78AuInUP8CKJOd3Q+
-         mdCL5ib9B2i0xtsDLLJXSvdRBkr36gmM2RmzWeCl5hhQpP+yQaXEu1bv2sIp9vDGzjUj
-         nKFqvU8vxOu2bOlscGNjbTtp0VpTTBiJyYdgGruav9Lg/0s8Edq3F3I4ECCfe1iKsIcf
-         Wtsq3lHz3vhRLn30n6uxmCxYnNxEP23chnemkYzFz/oshj5MZI2QHftIVyjJiVlnOtyz
-         3Fd2OyaWtBs8zH80T3Ny6jjQvFHX772ludmQXOhaPW1xI1ffdBx/0klk8JezlvUTMG/d
-         tr/g==
+        d=google.com; s=20251104; t=1780439515; x=1781044315; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=F8hTP47ikKsPAHLkN0/ccW56UYyMMfZo9RM12hPsVNI=;
+        b=emMgrcx43CrLmkdQ2/TuNqOvmZoUiGWH7H+rM/Tz4Qfgjdo5Sx+nHf7ksoVe4grQwD
+         XTY61uZfB1gWKWqyIxyxjlbZwVUGXydDW2RfvjBPM1zS7f9u4twpwr7r8A1h+WO0H2KD
+         DFpjOwdnLQEFSL+zu04bLIT5+wX1SVLWmVT36ITX3DVYRvnG6UYsfU2ZFJvmeLTvpn4r
+         Szt8koD76Kd0/jF9rPKbTdxVVdEwBiI3Bpc87+KZF+B0/l1oKazt97LESpRTHwWtVKMP
+         VWmBhLCvluF4JeU6mBojtNYbAU9LA1hr35OhxGMIbMih5RMzjiJaQ4vmiYmHzd8dUozM
+         Zq4A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1780437919; x=1781042719;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+        d=1e100.net; s=20251104; t=1780439515; x=1781044315;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=iOc/r8laH9Q5rcV75Dpu9RWLNtUdzZsvgQiYjPZO9Lo=;
-        b=ZV7io5+7BHNPVXne9SK3II9q1HzVxhr458ODGD2LXLJlI/ozukWSkUiy45O9B83VVd
-         I3DaMdV6gE+8fvelLDgS0q9c3y2Y1XfKZpa50OYUoOxwO1zTkPNyHfmaGpq4tKIKIRVi
-         ZAKlXv5V3rADJNf/3daCLY73RfSHwBOiWYXlJXYj3M1I11BG1einzwNMoLY0KOaNJreu
-         YeNGzr2fF+YVNn/sJw/i+BZtq9EFDM55ZeX4+01b+O+W0XAtumIJ0Gy37VY0qWnt3fKh
-         F4I3GJH0yjtv/r1kOsDKkaUSTxs6qgXnZIN2rBo8Xstq3PXAuAdg8vW7hIINoJRl6wEr
-         nrkw==
-X-Gm-Message-State: AOJu0YzctGtpZ4y2EyftY3lzgpYt+8TTSrY4zLAeDVwPJ4ywATDev/hq
-	Z0EfTxpVRJLLZ0jM9ergdFoeSv/2ITLxFzGgC4DD33lZdc3Iuu32mpjI
-X-Gm-Gg: Acq92OH+JqM5ye1oyj5u0X2/fIDGji3GcBMGCMTNWoAchiEUJpi8INJxWlBUjL9NnOm
-	PIXXDQEjuYwGlydddooTYkQauhEjYDLlXCMFG2BsPUJZFTf1VPuzpg1xTY4j6d3FQC+w78kIcRR
-	R7NqTLKqnBVYs9kZ/RUOJuIUW+klb+BEZNsELfiJATFLGy212vLQeHd0TK17DmEfhqaoFEeRRus
-	GxKsYmXcduPqA3NbPqYURepjYmRB6zNupp3toA97rrfdQ1Pg7HOJVho9P3G/u8MhSOqFtQn/E83
-	KZ9Gvs7FVPzCkVCNGx79GIAbXuBU5Vk5AjAaKszjnaGiGK+HqwfYps9W6sR0g5PmHVo59EO2Da5
-	eqe0hHP/wM4MmYze4GZCuVZFgtoBgfAFlQGCGmcCI+ew68Dr/ePuvwAK3mPLjZc1a/QiA5yjx7N
-	ORKfe7VdTyrw10M7J/VJF6Jt5T9njb+nXvkGIXA8sz/QE6LdB2i+uWaE9V6EwIzfqFNVeSie3Zg
-	A3bkoP5Kxw/u+lGGxN1HnoqJgQdPxk=
-X-Received: by 2002:a05:6214:4905:b0:8cc:f30b:642c with SMTP id 6a1803df08f44-8cecdd243dcmr7627236d6.43.1780437918693;
-        Tue, 02 Jun 2026 15:05:18 -0700 (PDT)
-Received: from server0 (c-68-48-65-54.hsd1.mi.comcast.net. [68.48.65.54])
-        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-8cecd077be8sm3480026d6.40.2026.06.02.15.05.17
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 02 Jun 2026 15:05:18 -0700 (PDT)
-From: Michael Bommarito <michael.bommarito@gmail.com>
-To: Bart Van Assche <bvanassche@acm.org>,
-	Jason Gunthorpe <jgg@ziepe.ca>,
-	Leon Romanovsky <leon@kernel.org>
-Cc: linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH v2] RDMA/srp: bound SRP_RSP sense copy by the received length
-Date: Tue,  2 Jun 2026 18:04:57 -0400
-Message-ID: <20260602220457.2542840-1-michael.bommarito@gmail.com>
-X-Mailer: git-send-email 2.53.0
+        bh=F8hTP47ikKsPAHLkN0/ccW56UYyMMfZo9RM12hPsVNI=;
+        b=Kjz5TqLa0/3L9cmOrcAYKZSlW6RevFV5s/p11J5fdOGVU/FjSouBsHO6kPWGIM5ZnY
+         ieEIxr1xNP8Q1vu/zxu/OSWxOHX6sXM/vdKNxtYeZ+0Kr6LVqLOg3Hvch6+2hBcWQEL0
+         atKk+zh5sKQMJXy69xpVd29W/7VLPXPYYPfMmJg2HhgaT9QHln96ocbOrudsCevfFk5c
+         u235BorcIOhcCia3oVV1UUnP2nZFlnHVlwV9SK7YHCI+LKDlu+4bShGSsGqkDoho9wdL
+         mlNLe5YjW7VTZqp5tzhDHbPtrA6YCVquXWPFGaCNk1k6L7gYFCON853NWwIb1BSEZrIZ
+         /IRQ==
+X-Forwarded-Encrypted: i=1; AFNElJ9tfkcnKXHwM8ppCimeVLsGt0BdrHpEDJhL1KkER2Bd147jVQMMVLfOZ8Oi5Xi8RcVNaj22R/WIs4f2@vger.kernel.org
+X-Gm-Message-State: AOJu0Yyqd5L0IWnoc2Eyfaor3YX0TPYCycxBbLR5bK2w97r5jHjVbfZU
+	4LDhC00gAeAFo2tHPd5yeftjgkyvMjhvCHHLPTBjgk10sfYuBKTH19dT6Pl64xcLH5HqORfM6KL
+	bL+Z2MzifV6INbio1dSMgRgzQNpETJJTS1QMXpfdhOKsYbmXUlqOri0F49OU=
+X-Gm-Gg: Acq92OE2qaqkg5iCAYOTRyKMjrjTp2VUGGDa0bsNXtLYMuxBdlnbiKPYlIpE1uzrYt3
+	BZipjAsVGQpD3Drm1YQxpB+sSW6rtI14uZl8+1WsNCg4geqIxaBPc+H8u8yuK2OdiE9ldmk+/vg
+	VLYw16KblqV+SAfs75dRQaY+59ZmB/dz7RajjBTncBYkhAzC6cZYifFwFio9FfjcCrbGibJFLMs
+	axcvqJHSUcQNJk1pntlG08yQczOI/6c+94eHjUi2RGVIje3RId0nHTPYtDb6YmW/uPCnto3rdLc
+	8XiBMnrC9rf1KuO2AmUm9VyFODKrpyXRNZ6/sJtvTe+f+gI5
+X-Received: by 2002:a05:6870:96a6:b0:417:2b13:f2cd with SMTP id
+ 586e51a60fabf-440db6deee4mr641061fac.10.1780439514408; Tue, 02 Jun 2026
+ 15:31:54 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
+References: <ahjB87k54bYdFbft@grain> <CAHYDg1T3m=mn17zLRZp3+zcJq+GeDGcOU_99ZZmWxYasEDKN=g@mail.gmail.com>
+ <CAM5jBj4LPZxejjq2VFJZiwPWkZf3_rNxBRcT-8yrnfDXFSot-A@mail.gmail.com>
+ <CAHYDg1QH=tMy8xbYn4D-L9iyp9iCVCEU190H9_gFLTWMABqhpw@mail.gmail.com>
+ <20260602182503.GI2487554@ziepe.ca> <ah9TH5DNspLIXYWz@grain>
+In-Reply-To: <ah9TH5DNspLIXYWz@grain>
+From: Jacob Moroni <jmoroni@google.com>
+Date: Tue, 2 Jun 2026 18:31:43 -0400
+X-Gm-Features: AVHnY4Krl0G_99H2lKXe3sLSHli6ioAiK_mxndBwIlb9z4bz6LnL7Qr-t901kIo
+Message-ID: <CAHYDg1SengqQBTnbY5AfjTZM=7HUR47jkBy2f90QAdv9X3ioRQ@mail.gmail.com>
+Subject: Re: [PATCH] RDMA/irdma: Fix typo in SQ completions generation
+To: Cyrill Gorcunov <gorcunov@gmail.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	Tatyana Nikolova <tatyana.e.nikolova@intel.com>, Leon Romanovsky <leon@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 
-srp_process_rsp() copies sense data from rsp->data + resp_data_len,
-where resp_data_len is the full 32-bit value supplied by the SRP target
-and is never checked against the number of bytes actually received
-(wc->byte_len). The copy length is bounded to SCSI_SENSE_BUFFERSIZE, so
-at most 96 bytes are copied, but the source offset is not bounded.
+Sorry, didn't mean to open up a can of worms. I personally would like to
+move in the other direction - let's get all of these fixes upstream :)
 
-A malicious or compromised SRP target on the InfiniBand/RoCE fabric that
-the initiator has logged into can return an SRP_RSP with
-SRP_RSP_FLAG_SNSVALID set and a large resp_data_len. The receive buffer
-is allocated at the target-chosen max_ti_iu_len, so the source of the
-sense copy lands past the bytes actually received; with resp_data_len
-near 0xFFFFFFFF it is gigabytes past the buffer and the read faults.
+> i'm loosing completions on posted operations when
+> hardware in reset mode
 
-Copy the sense data only if it has not been truncated, that is, only if
-the response header, the response data, and the sense region fit within
-the bytes actually received; otherwise drop the sense and log. The
-in-tree iSER and NVMe-RDMA receive paths already bound their parse by
-wc->byte_len; this brings ib_srp into line with them.
+I think this has come up before. For example, I vaguely recall an async
+VF reset during heavy RDMA CM activity resulting in some timeout firing
+(cm_destroy_id_wait_timeout), which I think was due to completions
+getting lost.
 
-Fixes: aef9ec39c40c ("IB: Add SCSI RDMA Protocol (SRP) initiator")
-Cc: stable@vger.kernel.org
-Assisted-by: Claude:claude-opus-4-8
-Signed-off-by: Michael Bommarito <michael.bommarito@gmail.com>
----
+You may be on to something regarding flushing that WQ. I'll give it a try
+on my end.
 
-Impact: a malicious or compromised SRP target the initiator has logged
-into can trigger an out-of-bounds read in srp_process_rsp() by returning
-an SRP_RSP with SRP_RSP_FLAG_SNSVALID and a large resp_data_len, faulting
-the initiator's SRP completion path.
+- Jake
 
-Changes since v1 (all per Bart Van Assche's review):
-- Commit message: state that the sense copy is bounded to
-  SCSI_SENSE_BUFFERSIZE; the unbounded value is the source offset, not
-  the number of bytes copied.
-- Describe the dropped case as truncated rather than oversized sense,
-  in both the commit message and the log message.
-- Guard on the full sense_data_len so the truncated-sense log message is
-  accurate; the copy stays bounded to SCSI_SENSE_BUFFERSIZE.
-Link to v1: https://lore.kernel.org/all/20260602194619.2272486-1-michael.bommarito@gmail.com/
- drivers/infiniband/ulp/srp/ib_srp.c | 30 +++++++++++++++++++++++------
- 1 file changed, 24 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index b58868e1cf11c..42eee27e6b2a1 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.c
-+++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -1932,7 +1932,8 @@ static int srp_post_recv(struct srp_rdma_ch *ch, struct srp_iu *iu)
- 	return ib_post_recv(ch->qp, &wr, NULL);
- }
- 
--static void srp_process_rsp(struct srp_rdma_ch *ch, struct srp_rsp *rsp)
-+static void srp_process_rsp(struct srp_rdma_ch *ch, struct srp_rsp *rsp,
-+			    u32 byte_len)
- {
- 	struct srp_target_port *target = ch->target;
- 	struct srp_request *req;
-@@ -1973,10 +1974,27 @@ static void srp_process_rsp(struct srp_rdma_ch *ch, struct srp_rsp *rsp)
- 		scmnd->result = rsp->status;
- 
- 		if (rsp->flags & SRP_RSP_FLAG_SNSVALID) {
--			memcpy(scmnd->sense_buffer, rsp->data +
--			       be32_to_cpu(rsp->resp_data_len),
--			       min_t(int, be32_to_cpu(rsp->sense_data_len),
--				     SCSI_SENSE_BUFFERSIZE));
-+			u32 resp_len = be32_to_cpu(rsp->resp_data_len);
-+			u32 sense_len = be32_to_cpu(rsp->sense_data_len);
-+
-+			/*
-+			 * The sense data starts resp_data_len bytes past the
-+			 * response data area; both lengths come from the
-+			 * target-controlled response.  Copy the sense data
-+			 * only if it has not been truncated, that is, only if
-+			 * the full sense region fits within the bytes actually
-+			 * received.  Otherwise the copy source would run past
-+			 * the receive buffer (sized to the target-chosen
-+			 * max_ti_iu_len), reading out of bounds.
-+			 */
-+			if (sizeof(*rsp) + (u64)resp_len + sense_len <= byte_len)
-+				memcpy(scmnd->sense_buffer, rsp->data + resp_len,
-+				       min_t(u32, sense_len,
-+					     SCSI_SENSE_BUFFERSIZE));
-+			else
-+				shost_printk(KERN_ERR, target->scsi_host,
-+					     "dropping truncated sense data (resp_data_len %u sense_data_len %u, %u bytes received)\n",
-+					     resp_len, sense_len, byte_len);
- 		}
- 
- 		if (unlikely(rsp->flags & SRP_RSP_FLAG_DIUNDER))
-@@ -2086,7 +2104,7 @@ static void srp_recv_done(struct ib_cq *cq, struct ib_wc *wc)
- 
- 	switch (opcode) {
- 	case SRP_RSP:
--		srp_process_rsp(ch, iu->buf);
-+		srp_process_rsp(ch, iu->buf, wc->byte_len);
- 		break;
- 
- 	case SRP_CRED_REQ:
--- 
-2.53.0
-
+> At
+> moment I suspect that we need to *flush* queue here instead of cancelling it
