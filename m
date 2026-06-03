@@ -1,40 +1,41 @@
 Received: from stravinsky.debian.org (stravinsky.debian.org [82.195.75.108])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E5393E9F60;
-	Wed,  3 Jun 2026 16:11:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 219EA3E4C94;
+	Wed,  3 Jun 2026 16:11:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=82.195.75.108
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780503117; cv=none; b=SCQOjuXf9nVcgj+ys/iSRIJG62vBojdHluCx+TRAEBpZ0Fh7NjlZiRHQdAraz4IS74Q6fkYMS0Dv2KEi4MG9UsATuQoerU/bAqsUxGTZI3t20mNLEviD8+d3tOY3cXWlz0gR7YAXDLOHJaFJUixQX+7S3L92SGh4CUXzMVGl0VE=
+	t=1780503122; cv=none; b=lCbhzgymj3oDVCZ/zJsJFroCpLdoXKHAJrBMgDBPLVHGx73bQo1KwAKgKsb1XPreo9a+enVbEz0PcDMNVMlVzQ03rpkKh8SUWRHX9gdim6EulY0QxQFIf+AJdUzwACxDEh73ygNVmv+w0D5XHNh5bHCH5pOIZBFHUC4Klsx3W8g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780503117; c=relaxed/simple;
-	bh=HmlL0qqvpijOQOD4o02HHmq3QAAGEgH16ErPWKOs/L0=;
-	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=R/242AJeell6bXw5Mk5eLG4MCJ3h2y7yE2iICpT1tCZhYNipzbIzwDzN9ZF8Elq2+CnYRRGqfOU3NP4a3erbtOuNv4Su0l6Nu6TLI273FrdjtcDqL+CTIFSEJMfdrmZfl1NEkmV6NTv+jrR06ea3MlAuM8wuSjPmKNVDysHvELM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=debian.org; spf=pass smtp.mailfrom=debian.org; dkim=pass (2048-bit key) header.d=debian.org header.i=@debian.org header.b=wQVRqAAn; arc=none smtp.client-ip=82.195.75.108
+	s=arc-20240116; t=1780503122; c=relaxed/simple;
+	bh=vgaIXB9ODb1iWfG/DxrrQY6ja3Nb0by41Ez40fau7zQ=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
+	 In-Reply-To:To:Cc; b=FVkC8ouh+3csnUhX3INC447obe2z6RRxCSUDD4yoMxrbZoqkb41zt17B1vKAurXWKATagZtneK98PNhX+V8GukgrSD9BFWF17dsVSBVTOHwCoMn2g+COV35bBSCm0dOrqLPKEOIyRcLHBTV0oVZDu6fY/eSEDbiYLTRFxlsnOgM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=debian.org; spf=pass smtp.mailfrom=debian.org; dkim=pass (2048-bit key) header.d=debian.org header.i=@debian.org header.b=RzPAShWT; arc=none smtp.client-ip=82.195.75.108
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=debian.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=debian.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=debian.org header.i=@debian.org header.b="wQVRqAAn"
+	dkim=pass (2048-bit key) header.d=debian.org header.i=@debian.org header.b="RzPAShWT"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=debian.org;
-	s=smtpauto.stravinsky; h=X-Debian-User:Cc:To:Content-Transfer-Encoding:
-	Content-Type:MIME-Version:Message-Id:Date:Subject:From:Reply-To:Content-ID:
-	Content-Description:In-Reply-To:References;
-	bh=yIRToXVv0wy1zHveiEYfzvdmIu/DuGuO9ho2KecgFfA=; b=wQVRqAAnifklIHxfTOQkMEd28U
-	v3NwSzgZn9GWiGICtFLOWepo3nA4l2zE6kdFEgoZWEOZeajnLAqtycnIKs/zk73dN1Q4Q0HNIxDOC
-	iR8x2Kxk8IF/3f0z9YraTHhdVGmu7DZkLHH1EEtbE8jC+c+U5/PoHeZ63nU9mi8HVFiYEj0ehm+kk
-	gIUpFPdyoJvSOySmTnz2yJyHoH+SvxeKpzpzcDcXjACjBtk27HU/KEHcwYOWYFm2ZNsLVN+l9Xawk
-	fD0i88WoJIn21mJgW10drB/GqSsNilcZIMULzyosfzDbh1YqIjKdJ+/jpmNdyDq9u9lw+Pe7G0tem
-	lw32mQqw==;
+	s=smtpauto.stravinsky; h=X-Debian-User:Cc:To:In-Reply-To:References:
+	Message-Id:Content-Transfer-Encoding:Content-Type:MIME-Version:Subject:Date:
+	From:Reply-To:Content-ID:Content-Description;
+	bh=7brWS/9bcNV3+TdU1s0SdLQUSR+tgsRw5rTeUkYjkys=; b=RzPAShWTg/IUJLYWfH0ZR9A9vZ
+	VwwHThEjEcEZcMJylSwxiIGKp2tHhTSvEl9DTGDuwdT5x9tWQ+CuuzwD6W2468Arouj6VZyvNG49Q
+	X0mCN1eJ4OIzjszpEj0VKf57cPJDA1EqaSz5qw0HGmh9bn/1MEN9+F9bHprrWscAkyq7DCpIfiGzL
+	WIpDJXZFoT2w3JNmyGhJ7omJewlJtKPXV+ssFOv1rdVK9AotK8YPFATG5CFB1xwXNlZERaU8UbuCI
+	Env8/lnf75UQQvc8quxuBvpL+7w158SR4pcXDiLc/wmoPXoUMqE/2cmlc5wLQDLYHkNSfGj2Smg6J
+	oDEhi2Aw==;
 Received: from authenticated-user
 	by stravinsky.debian.org with esmtpsa (TLS1.3:ECDHE_X25519__RSA_PSS_RSAE_SHA256__AES_256_GCM:256)
 	(Exim 4.96)
 	(envelope-from <leitao@debian.org>)
-	id 1wUoBy-003rAE-2h;
-	Wed, 03 Jun 2026 16:11:43 +0000
+	id 1wUoC8-003rAe-0G;
+	Wed, 03 Jun 2026 16:11:52 +0000
 From: Breno Leitao <leitao@debian.org>
-Subject: [PATCH net-next 0/2] net: rds: convert rds to getsockopt_iter
-Date: Wed, 03 Jun 2026 09:11:32 -0700
-Message-Id: <20260603-getsock_more-v1-0-43b8d40c8849@debian.org>
+Date: Wed, 03 Jun 2026 09:11:34 -0700
+Subject: [PATCH net-next 2/2] selftests: net: rds: add getsockopt()
+ conversion test
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -42,11 +43,10 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-X-B4-Tracking: v=1; b=H4sIADRSIGoC/x3M4QqCMBQG0Fe5fL8dTKsRexWRqO3TLuEm2whBf
- Peg8wDnQGVRVng5UPjVqjnBS98JwvuZFhqN8ILBDs46ezELW83h81hzobm6F++xDzc3R3SCrXD
- W/d+NSGwmcW+YzvMHzZDXEmgAAAA=
-X-Change-ID: 20260603-getsock_more-46be8d1c56fd
+Content-Transfer-Encoding: 7bit
+Message-Id: <20260603-getsock_more-v1-2-43b8d40c8849@debian.org>
+References: <20260603-getsock_more-v1-0-43b8d40c8849@debian.org>
+In-Reply-To: <20260603-getsock_more-v1-0-43b8d40c8849@debian.org>
 To: Allison Henderson <achender@kernel.org>, 
  "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, 
  Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
@@ -56,63 +56,276 @@ Cc: linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
  linux-kselftest@vger.kernel.org, Breno Leitao <leitao@debian.org>, 
  kernel-team@meta.com
 X-Mailer: b4 0.14.3
-X-Developer-Signature: v=1; a=openpgp-sha256; l=1792; i=leitao@debian.org;
- h=from:subject:message-id; bh=HmlL0qqvpijOQOD4o02HHmq3QAAGEgH16ErPWKOs/L0=;
- b=owEBbQKS/ZANAwAIATWjk5/8eHdtAcsmYgBqIFI5ZoRcBI802SNhhD4Qtl7B9Gb+BaV35ApYR
- NytHROiXVeJAjMEAAEIAB0WIQSshTmm6PRnAspKQ5s1o5Of/Hh3bQUCaiBSOQAKCRA1o5Of/Hh3
- bSfwD/9fzBka2YgDbRozYUD7ERcASa44D7I8AD9R45kYwVqXs808ZIpQU8YMmEmde0CD1Rmh6T0
- KEHFyZy+XvEKez4iQOd6pvdd+UnRS6lS6i0m2IMJAncaEA+ALQSMNF9ajzqjGHTQnmIS0YsWgzA
- wIA31vlRw4/jTpOqt+QDUWI3/aHpwGTuD1SiOjQIDE/IOAKIdouP71RU60v2HE5AbQ88bSRUvWE
- D9GP6x+KWbCCY8WdAITJ9Imshs33nN0/PA17C9oINE/KM/dep4g8RLzrX3TNGKFuYPlcRmmrulb
- 53W9Ewz0BsZp+RXufCPNq5EJ0v9m2nKoKEL+GugqSm14GLX/+U/0j5fmcN5anUZIYaJHzjIWnce
- F+F7CCgJFDkqBDUoeU3c04wM5RWjXOrVi6IJwUAa0kwN2Q4Ta0fNvvJ8M4EqnSdC48OXUO9ekwO
- jir5rxBh82Kje5mj2/jKdNLTwqQwhAZVuKG6o55Dw69Kut9R9c3vMjgy618B++vWsjce3Zpbffl
- crQsWTauqRhYTLyO4vHZh0R/kjFz3L4ATKLZEpcyO1yUsB5rKHmvMGcbAXnnhfB73rBdl7/UqjP
- bw27JY0LcryLW/VfxV4hY2RmF5WjQ3tg6eaI+hd8WsoRbaR5tcIWVHfc5d7lBtRkigTCihIi0iQ
- jghN6dIcXLckfdw==
+X-Developer-Signature: v=1; a=openpgp-sha256; l=7647; i=leitao@debian.org;
+ h=from:subject:message-id; bh=vgaIXB9ODb1iWfG/DxrrQY6ja3Nb0by41Ez40fau7zQ=;
+ b=owEBbQKS/ZANAwAIATWjk5/8eHdtAcsmYgBqIFI5CNb/hVz4+ZqPhHvxFT4QgHtChY4rzcvZ9
+ V1AVfOyXl2JAjMEAAEIAB0WIQSshTmm6PRnAspKQ5s1o5Of/Hh3bQUCaiBSOQAKCRA1o5Of/Hh3
+ bRhUD/44srPU3UoeRnwAMlrnZxIFh8PC1Po2Hknw/W4cU/JEcsYYqbR9noaBR1JX2Qan85S5+X5
+ NgJgkz4UwInSVyyiM2pa/plD+oBX1PsEDLZbPROM71MZU89bsiDNBRb6qnnf5VZ69H95bu6X6LQ
+ 2+iONkEXT1miMn7ZR73/ahMKTRABG/nMPOQA9/xEC48lePe/Dzh7TbniOtkRa4R414E2la3YVG2
+ ikrMpf2DLBOlcomShN8T4rJkV0KrO/81rdRU+iVmAn77Ck2ouFlAKqm6H1T0LvczXYPOpzAgx2H
+ 0xjHR9dCdxwZdjpBxPw5hsY2T5CQ/4i7AnG/W4Y/ZaxPBowW+zOAQyaMRaeja6c4XQYQLLLOZpD
+ QN1DF4ssWo+ScC0jQ4OEZ2oOOMV5a5AmiuBeHKfWaP6XXS4b+VEymmHjkmRjIEfd5VXbac5exlz
+ Fh60KjS0mPc4jReZTtVFktAVwFnoo4Y6BCYXqL9kvrAVkmzmTroKaelxK2eI6g1TERPg95urleL
+ 4HlsNgbmPD6dZDUqNQ0M1FihR16/sKtpr89/EcY8Iw6GVcWwIxUE1Ix+WaYsMLONlfd0MFXxFvW
+ MG0Jzj8LKEOt32+Mi+VqkTphF2eAqAmMoOcvbM5KkUztYdqiAxHvY6IOD752X7YZsB3t3W8jCJW
+ 1g33RbRE69+w7Gg==
 X-Developer-Key: i=leitao@debian.org; a=openpgp;
  fpr=AC8539A6E8F46702CA4A439B35A3939FFC78776D
 X-Debian-User: leitao
 
-This series continues the conversion of the remaining proto_ops getsockopt
-callbacks to the new getsockopt_iter callback introduced in commit
-67fab22a7adc ("net: add getsockopt_iter callback to proto_ops"), this time
-for RDS.
+Add a kselftest that exercises the RDS getsockopt() paths converted to
+the getsockopt_iter() / sockopt_t callback:
 
-RDS is a little more involved than the protocols converted so far, because
-the RDS_INFO_* options snapshot kernel state directly into the destination
-buffer: the info producers memcpy into the pages under a spinlock via
-kmap_atomic() and so must not fault.
+- RDS_RECVERR and SO_RDS_TRANSPORT, which return their int value through
+  copy_to_iter() and report the written length in opt->optlen.
 
-The conversion preserves that model — it obtains the same page array and
-starting offset from opt->iter_out with iov_iter_extract_pages(),
-preallocating the array so the iterator fills it in place, and leaves
-the rds_info_iterator / rds_info_copy machinery and all producer
-callbacks unchanged; kernel (ITER_KVEC) buffers remain unsupported on
-the RDS_INFO path, as before.
-
-I've vibe-coded a kselftest exercising both the simple options and the
-RDS_INFO_* snapshot path, feel free to drop it in case this is not
-useful.
+- RDS_INFO_*, which obtains the userspace buffer pages with
+  iov_iter_extract_pages() (including a non-zero starting page offset)
+  and lets the info producers copy the snapshot in under a spinlock.
 
 Signed-off-by: Breno Leitao <leitao@debian.org>
 ---
-Breno Leitao (2):
-      rds: convert to getsockopt_iter
-      selftests: net: rds: add getsockopt() conversion test
-
- net/rds/af_rds.c                             |  36 ++---
- net/rds/info.c                               |  70 +++++-----
- net/rds/info.h                               |   3 +-
  tools/testing/selftests/net/rds/.gitignore   |   1 +
  tools/testing/selftests/net/rds/Makefile     |   4 +
  tools/testing/selftests/net/rds/getsockopt.c | 201 +++++++++++++++++++++++++++
- 6 files changed, 266 insertions(+), 49 deletions(-)
----
-base-commit: b7bee4ca5688e30ca50fbc87b1b8f7eed7006c17
-change-id: 20260603-getsock_more-46be8d1c56fd
+ 3 files changed, 206 insertions(+)
 
-Best regards,
+diff --git a/tools/testing/selftests/net/rds/.gitignore b/tools/testing/selftests/net/rds/.gitignore
+index 1c6f04e2aa11..7ca4b1440f51 100644
+--- a/tools/testing/selftests/net/rds/.gitignore
++++ b/tools/testing/selftests/net/rds/.gitignore
+@@ -1 +1,2 @@
+ include.sh
++getsockopt
+diff --git a/tools/testing/selftests/net/rds/Makefile b/tools/testing/selftests/net/rds/Makefile
+index fe363be8e358..0700d8298eec 100644
+--- a/tools/testing/selftests/net/rds/Makefile
++++ b/tools/testing/selftests/net/rds/Makefile
+@@ -5,6 +5,8 @@ all:
+ 
+ TEST_PROGS := run.sh
+ 
++TEST_GEN_PROGS := getsockopt
++
+ TEST_FILES := \
+ 	include.sh \
+ 	settings \
+@@ -16,4 +18,6 @@ EXTRA_CLEAN := \
+ 	/tmp/rds_logs \
+ # end of EXTRA_CLEAN
+ 
++CFLAGS += $(KHDR_INCLUDES)
++
+ include ../../lib.mk
+diff --git a/tools/testing/selftests/net/rds/getsockopt.c b/tools/testing/selftests/net/rds/getsockopt.c
+new file mode 100644
+index 000000000000..a82ffe4871c2
+--- /dev/null
++++ b/tools/testing/selftests/net/rds/getsockopt.c
+@@ -0,0 +1,201 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * Exercise the RDS getsockopt() paths that were converted to the
++ * getsockopt_iter() / sockopt_t callback.
++ *
++ * Three distinct paths are covered:
++ *
++ *   - RDS_RECVERR and SO_RDS_TRANSPORT, which now return their int value
++ *     through copy_to_iter() and report the written length in opt->optlen.
++ *
++ *   - RDS_INFO_*, which pins the userspace buffer with
++ *     iov_iter_extract_pages() (including a non-zero starting page offset)
++ *     and lets the info producers memcpy the snapshot in under a spinlock.
++ *
++ * The kvec (in-kernel buffer) -> -EOPNOTSUPP path of rds_info_getsockopt()
++ * is not reachable from a userspace getsockopt() and so is not tested here.
++ */
++#include <errno.h>
++#include <stdint.h>
++#include <string.h>
++#include <unistd.h>
++#include <sys/mman.h>
++#include <sys/socket.h>
++#include <linux/rds.h>
++
++#include "../../kselftest_harness.h"
++
++#ifndef AF_RDS
++#define AF_RDS 21
++#endif
++
++FIXTURE(rds) {
++	int fd;
++};
++
++FIXTURE_SETUP(rds)
++{
++	self->fd = socket(AF_RDS, SOCK_SEQPACKET, 0);
++	if (self->fd < 0)
++		SKIP(return, "AF_RDS unavailable (errno %d) - load the rds module",
++		     errno);
++}
++
++FIXTURE_TEARDOWN(rds)
++{
++	if (self->fd >= 0)
++		close(self->fd);
++}
++
++/* RDS_RECVERR defaults to 0 and is reported back as a 4-byte int. */
++TEST_F(rds, recverr_default)
++{
++	socklen_t len = sizeof(int);
++	int val = 0xdeadbeef;
++
++	ASSERT_EQ(0, getsockopt(self->fd, SOL_RDS, RDS_RECVERR, &val, &len));
++	EXPECT_EQ(sizeof(int), len);
++	EXPECT_EQ(0, val);
++}
++
++/* A value set via setsockopt() must be readable back unchanged. */
++TEST_F(rds, recverr_set_get)
++{
++	socklen_t len = sizeof(int);
++	int val = 1;
++
++	ASSERT_EQ(0, setsockopt(self->fd, SOL_RDS, RDS_RECVERR, &val, len));
++
++	val = 0;
++	ASSERT_EQ(0, getsockopt(self->fd, SOL_RDS, RDS_RECVERR, &val, &len));
++	EXPECT_EQ(sizeof(int), len);
++	EXPECT_EQ(1, val);
++}
++
++/* A buffer smaller than an int is rejected with EINVAL, not silently. */
++TEST_F(rds, recverr_short_buffer)
++{
++	socklen_t len = sizeof(int) - 1;
++	char buf[sizeof(int)];
++
++	EXPECT_EQ(-1, getsockopt(self->fd, SOL_RDS, RDS_RECVERR, buf, &len));
++	EXPECT_EQ(EINVAL, errno);
++}
++
++/* An unbound socket reports RDS_TRANS_NONE for SO_RDS_TRANSPORT. */
++TEST_F(rds, transport_unbound)
++{
++	socklen_t len = sizeof(int);
++	int val = 0;
++
++	ASSERT_EQ(0, getsockopt(self->fd, SOL_RDS, SO_RDS_TRANSPORT, &val,
++				&len));
++	EXPECT_EQ(sizeof(int), len);
++	EXPECT_EQ(RDS_TRANS_NONE, (unsigned int)val);
++}
++
++TEST_F(rds, transport_short_buffer)
++{
++	socklen_t len = sizeof(int) - 1;
++	char buf[sizeof(int)];
++
++	EXPECT_EQ(-1, getsockopt(self->fd, SOL_RDS, SO_RDS_TRANSPORT, buf,
++				 &len));
++	EXPECT_EQ(EINVAL, errno);
++}
++
++/*
++ * RDS_INFO_COUNTERS with a zero-length buffer is the "probe" call: it must
++ * fail with ENOSPC and report the required snapshot size in optlen.
++ */
++TEST_F(rds, info_counters_probe)
++{
++	socklen_t len = 0;
++
++	EXPECT_EQ(-1, getsockopt(self->fd, SOL_RDS, RDS_INFO_COUNTERS, NULL,
++				 &len));
++	EXPECT_EQ(ENOSPC, errno);
++	EXPECT_GT(len, 0);
++	/* The snapshot is an array of fixed-size counter records. */
++	EXPECT_EQ(0, len % (socklen_t)sizeof(struct rds_info_counter));
++}
++
++/*
++ * A real snapshot into an unaligned userspace buffer exercises the
++ * iov_iter_extract_pages() path, including the non-zero offset0 handling
++ * that the patch reworked. Place the buffer at a non-page-aligned address
++ * spanning into the next page to make sure multi-page pinning works too.
++ */
++TEST_F(rds, info_counters_snapshot)
++{
++	struct rds_info_counter *ctr;
++	socklen_t need = 0, len;
++	long pagesz = sysconf(_SC_PAGESIZE);
++	unsigned int i, n;
++	char *region, *buf;
++	int ret;
++
++	/* Probe for the required size. */
++	getsockopt(self->fd, SOL_RDS, RDS_INFO_COUNTERS, NULL, &need);
++	ASSERT_GT(need, 0);
++
++	region = mmap(NULL, 2 * pagesz, PROT_READ | PROT_WRITE,
++		      MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
++	ASSERT_NE(MAP_FAILED, region);
++
++	/* Unaligned start that runs past the first page boundary. */
++	buf = region + pagesz - 64;
++	ASSERT_LE(need, (socklen_t)(pagesz + 64));
++
++	/*
++	 * On success the RDS_INFO path returns the positive per-element size
++	 * (lens.each) rather than 0, and writes the full snapshot length back
++	 * into optlen.
++	 */
++	len = need;
++	ret = getsockopt(self->fd, SOL_RDS, RDS_INFO_COUNTERS, buf, &len);
++	ASSERT_GE(ret, 0) {
++		TH_LOG("getsockopt snapshot failed: errno %d", errno);
++	}
++	EXPECT_EQ(sizeof(struct rds_info_counter), ret);
++	EXPECT_EQ(need, len);
++
++	/* The counter names must be NUL-terminated, non-empty strings. */
++	ctr = (struct rds_info_counter *)buf;
++	n = len / sizeof(*ctr);
++	ASSERT_GT(n, 0);
++	for (i = 0; i < n; i++) {
++		size_t namelen = strnlen((char *)ctr[i].name,
++					 sizeof(ctr[i].name));
++
++		EXPECT_GT(namelen, 0);
++		EXPECT_LT(namelen, sizeof(ctr[i].name));
++	}
++
++	munmap(region, 2 * pagesz);
++}
++
++/*
++ * A non-zero but too-small buffer must report ENOSPC and the full required
++ * length, without corrupting memory past the buffer.
++ */
++TEST_F(rds, info_counters_short_buffer)
++{
++	socklen_t need = 0, len;
++	char small[sizeof(struct rds_info_counter)];
++
++	getsockopt(self->fd, SOL_RDS, RDS_INFO_COUNTERS, NULL, &need);
++	ASSERT_GT(need, 0);
++
++	/* Ask with a buffer guaranteed smaller than the full snapshot. */
++	if (need <= (socklen_t)sizeof(small))
++		SKIP(return, "snapshot fits in one record; nothing to test");
++
++	len = 1; /* < sizeof(struct rds_info_counter) */
++	EXPECT_EQ(-1, getsockopt(self->fd, SOL_RDS, RDS_INFO_COUNTERS, small,
++				 &len));
++	EXPECT_EQ(ENOSPC, errno);
++	EXPECT_EQ(need, len);
++}
++
++TEST_HARNESS_MAIN
+
 -- 
-Breno Leitao <leitao@debian.org>
+2.54.0
 
