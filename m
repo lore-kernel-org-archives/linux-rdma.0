@@ -1,68 +1,68 @@
-Received: from CH4PR04CU002.outbound.protection.outlook.com (mail-northcentralusazon11013040.outbound.protection.outlook.com [40.107.201.40])
+Received: from BL2PR02CU003.outbound.protection.outlook.com (mail-eastusazon11011047.outbound.protection.outlook.com [52.101.52.47])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6A95F48C3E7;
-	Wed,  3 Jun 2026 19:34:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.201.40
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 232BF48C3EE;
+	Wed,  3 Jun 2026 19:34:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.52.47
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780515251; cv=fail; b=tZQOpLpxCBTDJEi1CkYkRsEbjCRYWVww6gdw3LEOkuxUhhxdoxkura6+JLWRJ203uqpNowz8nbKhZsDdoLbbZAYavkMkN7xX4aZOZImbS/m6GBVp1QSQcS9ivOhKQ2Da1TNHuyeXz/5YQCyempc1TIr/x3Il6xTiVzqQPbbWFws=
+	t=1780515264; cv=fail; b=WZ8zFI32Qm4YIIEZIZ5IQB2XvImfxoQgZOrEpfyc5flLKFlS41MhJuODGXG46u3/1aGWDpcao10X4sWlqXuTNg2SlVb3zkPFvWmG/THz5vESIqXiH/oa0Ucy3Foocz2i01RHXeTYp6tv4/+6kn8ShK2x2c3Suq7PmEen0CvEcAE=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780515251; c=relaxed/simple;
-	bh=3L4qTVaXVsHhZGtPKr5grk91uzRlksA5PWNKFDY+HD0=;
+	s=arc-20240116; t=1780515264; c=relaxed/simple;
+	bh=RN65OY02mpeMdw2wxqvPBOlusAFxX1I22MIU9jK28Bk=;
 	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=Uy4g8OEp3afiUDCHlbSHK7q2eznIJKWJV9EMC2wNSYkIGF57yNLRAyasI1J3/G70xr7fDi0gxHAcn3CyI9y5Wd+OfT05KZ5SxlTXFTO91IXU9WHa01HvyNsR8zqjV+oNjqLlmwctcNT1J7ixGU9BAs70/zaHJcxTEHUfAgxhIgA=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=tKNsNaI5; arc=fail smtp.client-ip=40.107.201.40
+	 MIME-Version:Content-Type; b=lDwnPDvnXlBLqsj/NFJRdieFBvoScsFy9vYVPgaS8Dz5JGuSRNRBlH4J5zwdEZdH37lOUBEHA4NQ77pKbz+uZHlHpl75uiLcTH2Uq+kehmfnzP8Od5suYujNKfh9Gs+V2RfB9mdV00bygKEPH44Cm0rEbxBxlbuRFp0b4HL4nvc=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=mJvCVsZV; arc=fail smtp.client-ip=52.101.52.47
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="tKNsNaI5"
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="mJvCVsZV"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=y6E+eCLOxQj7kHgXpOvZPfZ93fMh6cwqFSM9kKdl9sbQgDEywKHowSyN+jxpLyg+jcF9Pb8TtrqVQMfkg+a/D7xYYDga04QUMJwktYWvy4rsqkFOdJXU2g++QIWbaxG2LrkwFOfLtwg+I0EFcW9e0XsW9xiK20njRMncoxXSTVLMXPT/L6Wrxcq2khQfoCVo4/sxiQM4jXvJGP0R2fWKsbo2iFWvIvLrpkZuA+ZCYBE52u/0e0g66MwruTvk90SqQaahEPmWymTWEwKx91DzUL0RTk8nRfOn/lpWWscXGshtznrCbTAxT6kKQcxJd0B7I8ZDOO9DcBhWBIZVw6T8Nw==
+ b=wKbM/FOkWdcDEQsY7lPSa7buNUbm0vouDFUxDurivqRZMwfAJLQRThpBTiKbOPAb0i3lE8wKwRSWMgq6dx/g5yo+tNf9LaIiOpVhxmhn1oG6eb1aMQ8ThynRRZLMKLRysvzLZ2pzfuvBpQEmZ0uRSdKHoG6fzxh5J7qFSKlDOlR1AZNt8ZciNXaNNGlw5fiuFYpEegk9rfT+Fqtsd5tjaYjFuSaA4EcJQqqZ/GXdCamMmsoGTT80pJmg9iH9hj+jwz55YyUSm9LNtRYsx4YI24V8aoVrQP/kAd+MJ0BnrKlf4OD0g2hBEkPceStfe+eKcIQhPLziK+1C/qXfEVf1mA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=WwMMEhxYUtogO9ja4xvnvWwjCYS+isEdhmWIzJuXmR4=;
- b=nZzE6NGGJEOwCZTQ43JdZZWndBPZpNBkvzFIA4jFLwEBUDTq44y2p+aRgsZFXkZ0uPUK/aiiXqk9WDp8aWcEoLHburr4RKZ3XfpL1Rz4JaVgNy5VH16x5Rh91phjGd83Rq8klgMoxa+RDMWnduA5a4eiesenowDX1aO2PRtDQXwbThf0yyjSDcVDSh1vGA5K+CEdnb/04BeIlSewMYr/AV5pn8qaCBHHr3pBzZI8LESFcfh/v7EuH3mbbydWwSzwHvzueASlT+Xn+coapeiNi/EQdjtTq9vVRrRPrDWvNPm/mFTb6R568CyA9+00GgpS1d9CzubzevD/fTrHwak1lg==
+ bh=4EcDVjXvMslhxg5WvUNRPiUdDDUNtWachhUPQFetDR0=;
+ b=iivY0hIFiiOxHHeu1sCZmFW8G5MJgJD8WxopmbVHbwcJzAYmM8ZGKYo8fAEnlyvsrW4jbgmx+CpwhGP+r4yPseC77JP4OM+oJCwFXMgBCGK3/xcQdxcLyEVmjAPGGuT2mxNoG9QrFOcZomHiGbCwHUfOB3ovlb8utkw2yQrOzPENDdVzev2kWsJcRSrQNcosey7NV3RK3nWkqKMciXDvQ2KmoNgtpGvQNe6l2u4+x8cZsosRdhMjrJMmmiRqG02UON17rSCPAvO+9SswSNTMrrKSbz6bG2n75JQ3y6PU6bWF0VPtbLThF73V+e6On8YpV7WEUPtEcOTTkG3pLT3juQ==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.118.232) smtp.rcpttodomain=google.com smtp.mailfrom=nvidia.com;
+ 216.228.118.233) smtp.rcpttodomain=google.com smtp.mailfrom=nvidia.com;
  dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
  dkim=none (message not signed); arc=none (0)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=WwMMEhxYUtogO9ja4xvnvWwjCYS+isEdhmWIzJuXmR4=;
- b=tKNsNaI5a8MysdEYS79aYIJWmgsv822Dxb1NWsLFjrRGzicoYb4HaHR9JA8XGfBQfTMc8sZti7i2DpzMOVptAYLwyydWUAD75QLoWlbxLmtIYPI+QQmCgI6B/IcqeOxGYTTLuSoN5SLOaSNGnqe9FQ8o4rO+sSu7CUvZNKRWBo2rGCbTsgKVD4NAsBdeQs10ioUR8M+s7z40eAH1iVuEvzDUAL/f3cgufL6DDlYpG23yl2/1TIbsOwHEf716Cf5BCLEI695rrGFNyxnEvJCViXOWFesa0ctO5HP6LDKD6BVtwONW3ypTeIE1D+sjgnl9kwl64G9oEWUrGeTbQ0bv6Q==
-Received: from BN1PR14CA0022.namprd14.prod.outlook.com (2603:10b6:408:e3::27)
- by PH7PR12MB5950.namprd12.prod.outlook.com (2603:10b6:510:1d9::9) with
+ bh=4EcDVjXvMslhxg5WvUNRPiUdDDUNtWachhUPQFetDR0=;
+ b=mJvCVsZVNoXrzUexi5E3Zq7/yCjrtEq8uH078uxRJk1P/WVw6I7ozm9oi7dA/wFEWlspsLYeWqPfM7XrojT0CceC9RR52HSxLd5ZcWV57za0kkvJYNLHEKq9//K9V9LU2U4ziEVZILw5WHKL6shodG+OUywMRz5166sOtWZlzDTGA2+IOFyZIhaa54cbz+BDTGA2ZeDHSvD1ivskt51/3bB2GrkeU44BgDWhWM/Ow63irE0YUsZjkRVOZ51KU2Wx3ig1FflYtAdsyv/GuoRJlhwDnU1XN9K1i1732L2Iet7D0MoXin6o5meFWc8EPmOys5UAosawiqk9C/wHxXAXlQ==
+Received: from SJ0PR03CA0019.namprd03.prod.outlook.com (2603:10b6:a03:33a::24)
+ by BN7PPFABD533732.namprd12.prod.outlook.com (2603:10b6:40f:fc02::6df) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.92.7; Wed, 3 Jun 2026
- 19:34:00 +0000
-Received: from BN2PEPF000044A2.namprd02.prod.outlook.com
- (2603:10b6:408:e3:cafe::6f) by BN1PR14CA0022.outlook.office365.com
- (2603:10b6:408:e3::27) with Microsoft SMTP Server (version=TLS1_3,
+ 19:34:09 +0000
+Received: from CO1PEPF000066ED.namprd05.prod.outlook.com
+ (2603:10b6:a03:33a:cafe::16) by SJ0PR03CA0019.outlook.office365.com
+ (2603:10b6:a03:33a::24) with Microsoft SMTP Server (version=TLS1_3,
  cipher=TLS_AES_256_GCM_SHA384) id 15.21.92.7 via Frontend Transport; Wed, 3
- Jun 2026 19:33:58 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.118.232)
+ Jun 2026 19:34:08 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.118.233)
  smtp.mailfrom=nvidia.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=nvidia.com;
 Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.118.232 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.118.232; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.118.232) by
- BN2PEPF000044A2.mail.protection.outlook.com (10.167.243.153) with Microsoft
+ 216.228.118.233 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.118.233; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.118.233) by
+ CO1PEPF000066ED.mail.protection.outlook.com (10.167.249.10) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.92.5 via Frontend Transport; Wed, 3 Jun 2026 19:33:58 +0000
-Received: from drhqmail201.nvidia.com (10.126.190.180) by mail.nvidia.com
- (10.127.129.5) with Microsoft SMTP Server (version=TLS1_2,
+ 15.21.92.5 via Frontend Transport; Wed, 3 Jun 2026 19:34:08 +0000
+Received: from drhqmail202.nvidia.com (10.126.190.181) by mail.nvidia.com
+ (10.127.129.6) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Wed, 3 Jun
- 2026 12:33:39 -0700
+ 2026 12:33:48 -0700
 Received: from drhqmail201.nvidia.com (10.126.190.180) by
- drhqmail201.nvidia.com (10.126.190.180) with Microsoft SMTP Server
+ drhqmail202.nvidia.com (10.126.190.181) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.20; Wed, 3 Jun 2026 12:33:28 -0700
+ 15.2.2562.20; Wed, 3 Jun 2026 12:33:48 -0700
 Received: from vdi.nvidia.com (10.127.8.10) by mail.nvidia.com
  (10.126.190.180) with Microsoft SMTP Server id 15.2.2562.20 via Frontend
- Transport; Wed, 3 Jun 2026 12:33:20 -0700
+ Transport; Wed, 3 Jun 2026 12:33:39 -0700
 From: Mark Bloch <mbloch@nvidia.com>
 To: Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
 	Paolo Abeni <pabeni@redhat.com>, Andrew Lunn <andrew+netdev@lunn.ch>, "David
@@ -85,10 +85,10 @@ CC: Jonathan Corbet <corbet@lwn.net>, Shuah Khan <skhan@linuxfoundation.org>,
 	<lirongqing@baidu.com>, "Paul E. McKenney" <paulmck@kernel.org>, "Ethan
  Nelson-Moore" <enelsonmoore@gmail.com>, <linux-doc@vger.kernel.org>,
 	<linux-kernel@vger.kernel.org>, <netdev@vger.kernel.org>,
-	<linux-rdma@vger.kernel.org>
-Subject: [PATCH net-next V2 2/7] netdevsim: Register devlink after device init
-Date: Wed, 3 Jun 2026 22:32:54 +0300
-Message-ID: <20260603193259.3412464-3-mbloch@nvidia.com>
+	<linux-rdma@vger.kernel.org>, Shay Drori <shayd@nvidia.com>
+Subject: [PATCH net-next V2 4/7] net/mlx5: Register devlink after device init
+Date: Wed, 3 Jun 2026 22:32:56 +0300
+Message-ID: <20260603193259.3412464-5-mbloch@nvidia.com>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20260603193259.3412464-1-mbloch@nvidia.com>
 References: <20260603193259.3412464-1-mbloch@nvidia.com>
@@ -103,110 +103,154 @@ Content-Type: text/plain
 X-NV-OnPremToCloud: ExternallySecured
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: BN2PEPF000044A2:EE_|PH7PR12MB5950:EE_
-X-MS-Office365-Filtering-Correlation-Id: dcaa9c4d-6e6c-4fde-f4a9-08dec1a70f0f
+X-MS-TrafficTypeDiagnostic: CO1PEPF000066ED:EE_|BN7PPFABD533732:EE_
+X-MS-Office365-Filtering-Correlation-Id: 07584d26-6f0d-47c4-e333-08dec1a714d2
 X-LD-Processed: 43083d15-7273-40c1-b7db-39efd9ccc17a,ExtAddr
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|36860700016|376014|7416014|82310400026|1800799024|6133799003|56012099006|11063799006|22082099003|18002099003;
+	BCL:0;ARA:13230040|376014|7416014|1800799024|36860700016|82310400026|6133799003|22082099003|18002099003|56012099006|11063799006;
 X-Microsoft-Antispam-Message-Info:
-	5H0uZVqEIt+9Bse6Wsksb5K/0ZrlDU0mPmMZtZjIOFf0Xb/FVf4qSVYSRg2RvRq2LQI/Vt6sULbr3GKCzvlDrFtpv0FVXZkMLYD9r5qaRXNFfX59UFEhb+mfl9kF3cEBPJOb4cPfdGg8VzZMYY3ucB3qdnveD1lWAllHcdk6XcwDiai3zFfy9YJTBJR7rdEEE6yX1S5RXqfdo9CfeJ9jR91gyOZ7UgpP0CU9NiJZFu+aCwiwd7+F4tgKFZFNqaDNq+yqlmK0ElSTauuhKuUuP4zEMEFvRq0eN9xa9DehznRUusb2DJeASmmaSIM8emtYkKzw9wyat9O6GhzgwU+4repQLE3ypgcxtOqlxULEWDYAiASG8Sk5QQB84I8+2RIAu7FKtcs6vG21USSSA379ApVkm3gmRrsmaD1kcpV3NrDGlavvplB3humH8+USSdcdv/QpGCpF6utJxovmplJ0wr/8jDj94Qzj1YCaAGmlpOLbCu80p0jxu/a/vvq/wpy0/QClqF79pnPKQBguqmXOKsSQLtUM9LNjhJPVScmhNWZ9umZKW+ET4lkBvHwd6Mz3ang1Wd8abUxQGW/OgyhDc7lAwTvnP1nIEQ82i3UqfSB1wf7hRwX/lKxZrL1Ab0j4Pi3LMH9DXGEia1LI7SQpwuuznkRyqmh6NvFoIvBksZTQ/aOIX5OoYXh4MiYvbeGLzF0+2PnjIHgk58ZQ13Kb/7gS6WBaIPP84hbFcrANysw=
+	ep+rkXXe/y7ee7/4zYh+NELIWmlz3ffjY6t6bzk8B59VxFu7uUmSA78tEJ7gurB3FxRRcTVYMfL/aBO14km+7IQJSnv22vcEyghxYrdDE2YHfiABSSJea98nfXdh/Uq+lzSQeyYFTcZtDO3y5EtvkEJn5Jq0wDkVF/m5sOA2JjG/YCH6NtCKAEYdJ0WW1/vmFDX9FGZ8DiDUdKok8MJgmXfxqqd4fBo6rzG+ctFiojVJh+eWlqD0ZYppIVIFT8+VRKp0NN9J/7zOkC/vLzPyoyI1iIZNtoGFQ4hEuxVB92gEugfQLL1Jx+EiOyBstIBjki4CuOiQlqWzqturgi1tRb4w6A7NchkR5P8+A7+UJLHttkvN+mPufMob7UekL5H3njqVEoG5/oPUa5cpKQkFTJ5YTAr+8M+AxDvgD6kyamOf+uBVr1Z/NUE/10b2P/YXt29Lo2+JKrGaRIichhCNu7FIrFYyLmWMO1JWQzJtxuIpgua5/qhKqV2hgeeQdPk2Tv9VmON211Bmd40j9CcAprAbti4CvyzUJihLJrk2uxanwMaxFlLFDmtr0uF1IlJELAHeP6HFxfMAVO1ZS0MFK2Bu/AIApaD19vZ7RZVpdKOnWet23MkoUH3EQgCGg4IOo4TqjHGKul5zPxrxZ3DIc5B2FpsjHsuIJN/X2YLcQPkU/0NV3VPd5wWXcPqknxqhRCu4rQfEB09AMnhsfCK14D+Hw/Lc3DMkKiZxyHerr1k=
 X-Forefront-Antispam-Report:
-	CIP:216.228.118.232;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc7edge1.nvidia.com;CAT:NONE;SFS:(13230040)(36860700016)(376014)(7416014)(82310400026)(1800799024)(6133799003)(56012099006)(11063799006)(22082099003)(18002099003);DIR:OUT;SFP:1101;
+	CIP:216.228.118.233;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc7edge2.nvidia.com;CAT:NONE;SFS:(13230040)(376014)(7416014)(1800799024)(36860700016)(82310400026)(6133799003)(22082099003)(18002099003)(56012099006)(11063799006);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	RDxfJqBaH7skHRL6JAxD+04o22Ut5LrlB9IQrySHL8EocyvATZgqf5tL2EGtN+Hd3UsM3MUiBiPw4L77dAsrZHj30vk5e4sDOE7MRKQsqmMgEeyhPlTwATp+iFdk/SDxg+2doHm3DP9p/L3mlO7levI5biOt9X5VoDX+3XjnVn6z/JDmbCTUvUdnZWnMMGhBQWB4tJAAYzGmptjGKXBg+4zSWNkRbWJqpRjw1E6HDOhiPTVnmvo1U6TNcS+HxrkSmUBLOFbBWtBqLEshklfFGm319fN20vBpj9MizpcBT/pU2TGky5VCcOehTMlQ3eo6bYQaItqcW9B275gED9y9jc0IdRwgnTlG60TTdRVU/5USNLRDxS3tUcgn6RmisRpE0vO7qng1mXCCUIQGlFflSlzmFnWRabzwoitWcXiDRquyuMtdvKswBzEd9CkygPpy
+	BVxlnWBqlXQzMXuOS1BGEWRIMqLK9yOWFICN/HSG929bQ0fnYh+TkpQUhpXr3M3Aan+/wU6XXTtY1XVXxcyd8x7dokTDR8FFsAwmok9ZsnT7+Rh4OCM490TuqzOhZDsjWo8JP8XgWIf7vEcvJEN3uTZQQgo03OGjK9ek10rlkjNfYzREjGFU1vy393mTXitzuNDDKTpxwOTpYw0yaEgsQ6YHft6Kz6cBUadyJ3p5KOa5qN+S/L8uvwaZ9V5wAW0lZ/t36kLLusfH8vZXwHBa3xaCfTyAttzI3zGBcQRV551/8eZwDygIbCTGjKtTYzkjd+XQrLKR4MMYftq1kIypffyw5fxkkmmWiflhglv6m/6YPMT52VKGhhMx8HquQ0uxbxfhtDqNOJlVg7lDEf5VVM9QmsY/4Fd180IROH7seygjdmRB7vfw7nF43UsWN5rd
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 03 Jun 2026 19:33:58.7951
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 03 Jun 2026 19:34:08.5582
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: dcaa9c4d-6e6c-4fde-f4a9-08dec1a70f0f
+X-MS-Exchange-CrossTenant-Network-Message-Id: 07584d26-6f0d-47c4-e333-08dec1a714d2
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.118.232];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.118.233];Helo=[mail.nvidia.com]
 X-MS-Exchange-CrossTenant-AuthSource:
-	BN2PEPF000044A2.namprd02.prod.outlook.com
+	CO1PEPF000066ED.namprd05.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH7PR12MB5950
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: BN7PPFABD533732
 
 devl_register() makes the devlink instance visible to userspace. A later
 patch also makes registration the point where devlink core may call
 eswitch_mode_set() to apply a boot-time default eswitch mode.
 
-Move netdevsim registration after all objects (resources, params, regions,
-traps, debugfs etc) are initialized, and after the initial eswitch mode is
-set to legacy.
+Move mlx5 devlink registration after mlx5 device initialization completes,
+including the lightweight init path, so registration-time devlink
+operations see initialized driver state.
 
-Move devl_unregister() to the beginning of nsim_drv_remove(), before those
-devlink objects are torn down. This keeps devlink register/unregister as
-the notification barrier and makes the later object teardown paths run
-after devlink is no longer registered, so they do not emit their own
-netlink DEL notifications.
+Move devl_unregister() before the matching teardown paths, so unregister
+notifications are emitted from devl_unregister() before mlx5 removes the
+devlink objects.
 
+Add a devl-locked uninit helper so failed nested devlink setup can unwind
+the initialized device before the instance is registered.
+
+Reviewed-by: Shay Drori <shayd@nvidia.com>
 Signed-off-by: Mark Bloch <mbloch@nvidia.com>
 ---
- drivers/net/netdevsim/dev.c | 15 +++++++--------
- 1 file changed, 7 insertions(+), 8 deletions(-)
+ .../net/ethernet/mellanox/mlx5/core/main.c    | 34 ++++++++++++++-----
+ 1 file changed, 25 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/net/netdevsim/dev.c b/drivers/net/netdevsim/dev.c
-index aed9ad5f1b43..7cf4102b049e 100644
---- a/drivers/net/netdevsim/dev.c
-+++ b/drivers/net/netdevsim/dev.c
-@@ -1680,13 +1680,9 @@ int nsim_drv_probe(struct nsim_bus_dev *nsim_bus_dev)
- 		goto err_devlink_unlock;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+index 0c6e4efe38c8..ab3d3ff10f1a 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+@@ -1455,31 +1455,40 @@ int mlx5_init_one_devl_locked(struct mlx5_core_dev *dev)
+ 	return err;
+ }
+ 
++static void mlx5_uninit_one_devl_locked(struct mlx5_core_dev *dev);
++
+ int mlx5_init_one(struct mlx5_core_dev *dev)
+ {
+ 	struct devlink *devlink = priv_to_devlink(dev);
+ 	int err;
+ 
+ 	devl_lock(devlink);
++	err = mlx5_init_one_devl_locked(dev);
++	if (err)
++		goto unlock;
++
+ 	if (dev->shd) {
+ 		err = devl_nested_devlink_set(dev->shd, devlink);
+ 		if (err)
+-			goto unlock;
++			goto err_uninit;
+ 	}
++
+ 	devl_register(devlink);
+-	err = mlx5_init_one_devl_locked(dev);
+-	if (err)
+-		devl_unregister(devlink);
++	devl_unlock(devlink);
++	return 0;
++
++err_uninit:
++	mlx5_uninit_one_devl_locked(dev);
+ unlock:
+ 	devl_unlock(devlink);
+ 	return err;
+ }
+ 
+-void mlx5_uninit_one(struct mlx5_core_dev *dev)
++static void mlx5_uninit_one_devl_locked(struct mlx5_core_dev *dev)
+ {
+ 	struct devlink *devlink = priv_to_devlink(dev);
+ 
+-	devl_lock(devlink);
++	devl_assert_locked(devlink);
+ 	mutex_lock(&dev->intf_state_mutex);
+ 
+ 	mlx5_hwmon_dev_unregister(dev);
+@@ -1501,7 +1510,15 @@ void mlx5_uninit_one(struct mlx5_core_dev *dev)
+ 	mlx5_function_teardown(dev, true);
+ out:
+ 	mutex_unlock(&dev->intf_state_mutex);
++}
++
++void mlx5_uninit_one(struct mlx5_core_dev *dev)
++{
++	struct devlink *devlink = priv_to_devlink(dev);
++
++	devl_lock(devlink);
+ 	devl_unregister(devlink);
++	mlx5_uninit_one_devl_locked(dev);
+ 	devl_unlock(devlink);
+ }
+ 
+@@ -1635,7 +1652,6 @@ int mlx5_init_one_light(struct mlx5_core_dev *dev)
+ 	int err;
+ 
+ 	devl_lock(devlink);
+-	devl_register(devlink);
+ 	dev->state = MLX5_DEVICE_STATE_UP;
+ 	err = mlx5_function_enable(dev, true, mlx5_tout_ms(dev, FW_PRE_INIT_TIMEOUT));
+ 	if (err) {
+@@ -1655,6 +1671,7 @@ int mlx5_init_one_light(struct mlx5_core_dev *dev)
+ 		goto query_hca_caps_err;
  	}
  
--	err = devl_register(devlink);
--	if (err)
--		goto err_vfc_free;
--
- 	err = nsim_dev_resources_register(devlink);
- 	if (err)
--		goto err_dl_unregister;
-+		goto err_vfc_free;
- 
- 	err = devl_params_register(devlink, nsim_devlink_params,
- 				   ARRAY_SIZE(nsim_devlink_params));
-@@ -1733,9 +1729,14 @@ int nsim_drv_probe(struct nsim_bus_dev *nsim_bus_dev)
- 		goto err_hwstats_exit;
- 
- 	nsim_dev->esw_mode = DEVLINK_ESWITCH_MODE_LEGACY;
-+	err = devl_register(devlink);
-+	if (err)
-+		goto err_port_del_all;
++	devl_register(devlink);
  	devl_unlock(devlink);
  	return 0;
  
-+err_port_del_all:
-+	nsim_dev_port_del_all(nsim_dev);
- err_hwstats_exit:
- 	nsim_dev_hwstats_exit(nsim_dev);
- err_psample_exit:
-@@ -1757,8 +1758,6 @@ int nsim_drv_probe(struct nsim_bus_dev *nsim_bus_dev)
- 			       ARRAY_SIZE(nsim_devlink_params));
- err_resource_unregister:
- 	devl_resources_unregister(devlink);
--err_dl_unregister:
+@@ -1662,7 +1679,6 @@ int mlx5_init_one_light(struct mlx5_core_dev *dev)
+ 	mlx5_function_disable(dev, true);
+ out:
+ 	dev->state = MLX5_DEVICE_STATE_INTERNAL_ERROR;
 -	devl_unregister(devlink);
- err_vfc_free:
- 	kfree(nsim_dev->vfconfigs);
- err_devlink_unlock:
-@@ -1797,6 +1796,7 @@ void nsim_drv_remove(struct nsim_bus_dev *nsim_bus_dev)
- 	struct devlink *devlink = priv_to_devlink(nsim_dev);
+ 	devl_unlock(devlink);
+ 	return err;
+ }
+@@ -1672,8 +1688,8 @@ void mlx5_uninit_one_light(struct mlx5_core_dev *dev)
+ 	struct devlink *devlink = priv_to_devlink(dev);
  
  	devl_lock(devlink);
-+	devl_unregister(devlink);
- 	nsim_dev_reload_destroy(nsim_dev);
- 
- 	nsim_bpf_dev_exit(nsim_dev);
-@@ -1804,7 +1804,6 @@ void nsim_drv_remove(struct nsim_bus_dev *nsim_bus_dev)
- 	devl_params_unregister(devlink, nsim_devlink_params,
- 			       ARRAY_SIZE(nsim_devlink_params));
- 	devl_resources_unregister(devlink);
--	devl_unregister(devlink);
- 	kfree(nsim_dev->vfconfigs);
- 	kfree(nsim_dev->fa_cookie);
- 	mutex_destroy(&nsim_dev->progs_list_lock);
+-	mlx5_devlink_params_unregister(priv_to_devlink(dev));
+ 	devl_unregister(devlink);
++	mlx5_devlink_params_unregister(priv_to_devlink(dev));
+ 	devl_unlock(devlink);
+ 	if (dev->state != MLX5_DEVICE_STATE_UP)
+ 		return;
 -- 
 2.34.1
 
