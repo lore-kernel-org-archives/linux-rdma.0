@@ -1,201 +1,116 @@
-Received: from out-170.mta1.migadu.com (out-170.mta1.migadu.com [95.215.58.170])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-dy1-f193.google.com (mail-dy1-f193.google.com [74.125.82.193])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4ED4F3A1D07
-	for <linux-rdma@vger.kernel.org>; Wed,  3 Jun 2026 09:44:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=95.215.58.170
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 90AC7221FB4
+	for <linux-rdma@vger.kernel.org>; Wed,  3 Jun 2026 10:09:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.193
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780479898; cv=none; b=SOG9Z0QY4uO4ocIi2MS4mV/LQ8ja/uBnv4iJ2RdEAP0DeE4WP9Kd/rdYaW95yQIkTQCjsRJ6ROdzXAILvMquZ0Su3F8ixqWX9xx25GglzNl8F3BsgCQlJQpKYvLz9eOsJvCi3XjSI+q0VM3XAZ5qQoYOotOPXH1yXtgilgtzxNY=
+	t=1780481385; cv=none; b=UExwYpW6h2ET+HsGujkefF1K3rTp2/vaxJoDXNgbsP/TcAfVllpo20X93qwThdQxTeiyt4n/kE1EORSaKQBXhUedMwNGkVc0Bji9KMSfGdtq3RMElyGbASyvyOLfKUrSNC7NaJOHpCfzPs6nx32dS6nmnYgGoxeXekr8DfYW3Sk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780479898; c=relaxed/simple;
-	bh=VrWKDlUvJe8z6UrdbOYkDylgnsV7ejbhvYkZ9YtqOeQ=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=e4+0hkl/VL3d13cJAV5xsukdNz9aqiu8zjPPCL1c7GpccT49Sm1I5u0bnRaiYBv5qIflbIo8WbBNTiOiWo7TfcxBdGA/nJHMoyk4O1FW/Br3v7XdLKK+7nkSvi0eFT2DlcFndH1VE1KDoolW1Ks6RlEL6AQSKTgZTgTb8kCW+ys=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=taq9wPPe; arc=none smtp.client-ip=95.215.58.170
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+	s=arc-20240116; t=1780481385; c=relaxed/simple;
+	bh=HuETMB4PLYYz65jC3yyMI47575oQkI0xm1Txko0El1g=;
+	h=From:To:Subject:Date:Message-ID:MIME-Version:Content-Type; b=ND3CCdOePEILJi5k5i6CawY0AJ0bsT8rOPKOccWAYKKM5GJ0sJOo6fOFklwqPpV36P0M972gGxEZsGuHWXiTtSjFG+611uOD8a7nrVPi9RmVTDu1f55BWrpTlDrnlC9vsBPRsw+yKYvWrjlKjKdgbuwRrIFn8eCJQBVKWc6ZWoE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=cJzjaf5N; arc=none smtp.client-ip=74.125.82.193
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="taq9wPPe"
-Message-ID: <e73d3c05-d3b0-4da8-b063-1a8175748621@linux.dev>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-	t=1780479893;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=wkG7Wog+e/ksqpp874C+k3jNOpU7ekj1cZoFAoxRVew=;
-	b=taq9wPPekFwNf7X6qXbi/wZznx8wF1PB6L2TvBH4xU1RF3vQ7fklIbNU6Ydyh8tJbcqP6j
-	EWEo8K96kxtlNVGOj/iBY2tI3vApowfHMKcf15mw2O+dVY6qobWgu3SY/sPJ8l+g0BDFAL
-	M11LcMFUWfx/VXLDZ3d2dYKqUCz7ukY=
-Date: Wed, 3 Jun 2026 11:44:12 +0200
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="cJzjaf5N"
+Received: by mail-dy1-f193.google.com with SMTP id 5a478bee46e88-304f0039c02so9758933eec.1
+        for <linux-rdma@vger.kernel.org>; Wed, 03 Jun 2026 03:09:43 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1780481383; x=1781086183; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:to
+         :from:from:to:cc:subject:date:message-id:reply-to;
+        bh=03ieKC9B6pSYMZB8yCD7Lxz2rXtF0I/QZ/gfZx53cXw=;
+        b=cJzjaf5NPeboaHSDqvAoLj4FKXXTWrck7G5rKtM4zmulJdC+QhAEm3ZOjl9sQ/qZNx
+         40IeTyzkYB4rt+37wsbI+K/ueuVapx2yUnOVCudWsmkgdzMmCEflvQ4CJZpp7dw6dRdM
+         TUJ5roHKmqlqueSsaQUgNPCl/BLOXo6XE9QyUHj5AXZpkQgyfC7GntBD1rDRnz1i8kTU
+         uFxC07iDvrk5uKXzJoIufeb78ZWNvjckxmLQpW6rC1FUEkWUuHepmtG3XOKsV7TK/Ajt
+         uPuJvighm2XtiRUWysoOv/VMeqIN1EL/AoHZuiH0cGIqJXaXiv8JCUlK76Bc3FUbCaYo
+         CJWA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1780481383; x=1781086183;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:to
+         :from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=03ieKC9B6pSYMZB8yCD7Lxz2rXtF0I/QZ/gfZx53cXw=;
+        b=qg4njlKIhGSvAzqkFnAaRvUa902NOEmz5WiROzUM/aZHFZLKt7mRQyn+nfU2DWiFvI
+         sgwAVVZ8qjGArGBsShkJUkwlJ+kQERKkCuMpIFnVQ4NgtcqaMoLdgCwKzDBDXec1zjqP
+         8SZimNIYFNf+GkPAkYgmYx4LJJ6pkblzcfDRuDhB8oX/+Ruyfw2EbzIFZ7nm7Mh6jk5h
+         4/p7fRrW0De5Y8tldx8N4WHDMOei4DAPJUh3HsZ0+DwZ4d3mjXD0NMCdJQZ35sh3fMzO
+         SsA3oA3wGV3vKWZhfLI0GltwtxO9J3t9OxIx3Xlkf2WeYgpir/lI4Dhsq/M2v4SHWEZW
+         WaHA==
+X-Gm-Message-State: AOJu0Yw7ghrDxylY8Gx/3yiTmZhOTb0k51U8rlsl5u58GhEoNWPFmrfD
+	VSvOq37f7BKJaGch2y8pVnnHF8KgRHCVFabDfuWpqY5Jp1QM6zx53F7Z+XN67WXiWU9v
+X-Gm-Gg: Acq92OHjqlVFPfuwrnW9wF9iENDG/U3+X3PPXlLFt9aPpsYPWkU1M9uSkMKGiNAapak
+	AGIKM0H3AhtmuIpEeL/msB14QwDgYCCqmjsWyX/Izt8YGi1yGPW485bMNN06YkafM6V3atOLsc1
+	IGj01uIMMsmA2HFQrjEdlH62dsq/5WbyjC/J82cClDDm3aPGkUR68iJhXJtS0wzdgkIRrQ8Q2BA
+	j7FT4OJrHoS7ZsR91ocozlv1JcRMbS/vs9hvGizfp3HkgROi1Lt01srLybz4XVva4ek/DxU0Q13
+	z2ieWJk1LchTHGKwa2wQu2Wu4PMcUgJpc4uuw8QEfH24P5JYonc3mqeZF1u0wrO3AQUD/4QbKd3
+	ywh2LeylwSIPzbh8VrpozP9zaxOkPGEKNypmkKkvkLq26G6Jr7FNLAH5opv+YBTp+egW0qdPpW1
+	AOnq8sIOJB4suGjbre6eNuSWQM8SIBWVHUj0RargR9ALxd8l/DVILcswM2GsSyJts=
+X-Received: by 2002:a05:693c:380a:b0:304:8366:7456 with SMTP id 5a478bee46e88-3074fa52a93mr1364400eec.3.1780481382593;
+        Wed, 03 Jun 2026 03:09:42 -0700 (PDT)
+Received: from rainbow (static-23-234-72-105.cust.tzulo.com. [23.234.72.105])
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-3074db56697sm2091177eec.2.2026.06.03.03.09.41
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 03 Jun 2026 03:09:42 -0700 (PDT)
+From: Jordan Walters <jaggyaur@gmail.com>
+To: linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH] RDMA/rxe: Fix use-after-free of netdev in smc_ib_port_event_work
+Date: Wed,  3 Jun 2026 06:09:19 -0400
+Message-ID: <20260603100919.268055-1-jaggyaur@gmail.com>
+X-Mailer: git-send-email 2.54.0
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Subject: Re: [PATCH] RDMA/siw: bound Read Response placement to the RREAD
- length
-To: Michael Bommarito <michael.bommarito@gmail.com>,
- Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <20260602194700.2273758-1-michael.bommarito@gmail.com>
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-From: Bernard Metzler <bernard.metzler@linux.dev>
-In-Reply-To: <20260602194700.2273758-1-michael.bommarito@gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-Migadu-Flow: FLOW_OUT
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-On 02.06.2026 21:47, Michael Bommarito wrote:
-> In drivers/infiniband/sw/siw/siw_qp_rx.c, siw_proc_rresp() places each
-> inbound Read Response DDP segment at sge->laddr + wqe->processed and then
-> accumulates wqe->processed, but it never checks the running total against
-> the sink buffer length on continuation segments. siw_check_sge() resolves
-> and validates the sink memory only on the first fragment (the if (!*mem)
-> branch), and siw_rresp_check_ntoh() compares the cumulative length against
-> wqe->bytes only on the final segment (the !frx->more_ddp_segs guard).
-> 
-> A connected siw peer that answers an outstanding RREAD with Read Response
-> segments that keep the DDP Last flag clear, carrying more total payload
-> than the RREAD requested, drives wqe->processed past the validated sink
-> buffer; the next siw_rx_data() call writes out of bounds at
-> sge->laddr + wqe->processed. siw runs iWARP over ordinary routable TCP,
-> so the peer is the remote end of an established RDMA connection and needs
-> no local privilege.
-> 
-> Bound every segment before placement, exactly as siw_proc_send() and
-> siw_proc_write() already do for their tagged and untagged paths, and
-> terminate the connection with a base-or-bounds DDP error when the
-> Read Response would overrun the sink buffer.
-> 
-> This is the second receive-path length fix for this file. A separate
-> change rejects an MPA FPDU length that underflows the per-fragment
-> remainder in the header decode; that guard does not cover this case,
-> because here each individual segment length is self-consistent and only
-> the accumulated placement offset overruns the buffer.
-> 
-> Fixes: 8b6a361b8c48 ("rdma/siw: receive path")
-> Cc: stable@vger.kernel.org
-> Assisted-by: Claude:claude-opus-4-8
-> Signed-off-by: Michael Bommarito <michael.bommarito@gmail.com>
-> ---
-> 
-> Impact: the remote peer of an established Soft-iWARP connection can write
-> out of bounds past the RREAD sink (global DMA MR sink) or force a
-> connection-terminating fault (default FRWR sink) by streaming Read
-> Response segments whose cumulative length exceeds the requested length
-> with the DDP Last flag clear.
-> 
-> Relationship to the in-flight siw receive-path fix
-> 
-> This is the second receive-path length fix I have for this file. The
-> first, currently under review on this list, rejects an MPA FPDU length
-> that underflows the per-fragment remainder during header decode in
-> siw_get_hdr(). That guard sits in the header-length path and does not
-> cover the case here: in this report every individual segment length is
-> self-consistent and non-negative, and only the accumulated placement
-> offset (wqe->processed across continuation segments) overruns the sink
-> buffer. The two fixes touch different functions and are independent;
-> either can be applied without the other. I am sending this as a fresh
-> top-level thread rather than threading it under the earlier series to
-> keep the two changes separable for review and for stable selection.
-> 
-> Analysis
-> 
-> Verified by reading siw_qp_rx.c at v7.1-rc4 (a1f173eb51db):
-> 
->    - siw_proc_rresp() resolves and range-checks the sink memory region
->      once, on the first fragment only (the if (!*mem) branch calling
->      siw_check_sge() with the full requested length).
->    - The cumulative-length consistency check in siw_rresp_check_ntoh()
->      is gated on !more_ddp_segs, so it fires only on the segment that
->      carries the DDP Last flag, and siw_rresp_check_ntoh() itself runs
->      only on the first DDP segment.
->    - Each segment is then placed at sge->laddr + wqe->processed and
->      wqe->processed is accumulated, with no per-segment bound against
->      wqe->bytes.
-> 
-> A peer that keeps the DDP Last flag clear across continuation segments
-> and streams more total payload than the outstanding RREAD requested
-> therefore drives wqe->processed past the validated sink region; the
-> next placement writes peer-supplied bytes out of bounds. For a sink
-> backed by a global DMA / kernel-virtual MR (mem_obj NULL, the
-> siw_rx_kva() path) this is a direct kernel-heap out-of-bounds write.
-> For a user-memory or fast-registration/PBL MR (siw_rx_umem() /
-> siw_rx_pbl(), the mode kernel ULPs use by default) the over-walk is
-> caught when the page or PBL index runs out and is converted to a
-> connection-terminating fault. The missing per-segment bound should be
-> added regardless of sink type.
-> 
-> siw_proc_send() and siw_proc_write() already bound every segment with
-> the equivalent wqe->bytes < wqe->processed + srx->fpdu_part_rem check;
-> this patch brings siw_proc_rresp() in line with them.
-> 
-> Conditions: CONFIG_RDMA_SIW=m or =y, siw loaded and a link configured
-> (modprobe siw; rdma link add ... type siw), and a local ULP with an
-> outstanding RDMA READ to the peer. The out-of-bounds write requires the
-> READ sink to be a global DMA / kernel-virtual MR; ULPs using the default
-> fast-registration (FRWR) sink instead see a connection-terminating
-> fault. No special sysctls or local privilege on the victim are required
-> beyond the configured fabric.
-> 
-> Mitigations: until the patch is applied, do not configure Soft-iWARP
-> toward untrusted peers, or restrict the RDMA-CM listener to trusted
-> peers at the network layer. Removing the module (rmmod siw) is
-> sufficient when no application is using it.
-> 
-> A function-level reproducer that drives siw_proc_rresp() over the real
-> kernel TCP receive path with a primed ORQ and a two-segment malformed
-> Read Response reproduces a KASAN slab-out-of-bounds write on a global
-> DMA MR sink; it can be shared off-list on request.
-> 
-> Fixes: 8b6a361b8c48 ("rdma/siw: receive path"), reachable from v5.10
-> and all later releases; all stable branches carrying siw are affected.
-> 
->   drivers/infiniband/sw/siw/siw_qp_rx.c | 19 +++++++++++++++++++
->   1 file changed, 19 insertions(+)
-> 
-> diff --git a/drivers/infiniband/sw/siw/siw_qp_rx.c b/drivers/infiniband/sw/siw/siw_qp_rx.c
-> index e8a88b378d51d..ec4aadef3dfe2 100644
-> --- a/drivers/infiniband/sw/siw/siw_qp_rx.c
-> +++ b/drivers/infiniband/sw/siw/siw_qp_rx.c
-> @@ -844,6 +844,25 @@ int siw_proc_rresp(struct siw_qp *qp)
->   	}
->   	mem_p = *mem;
->   
-> +	/*
-> +	 * siw_rresp_check_ntoh() validates the cumulative length only on
-> +	 * the last DDP segment (!more_ddp_segs), and siw_check_sge() above
-> +	 * resolves the sink memory only on the first fragment. A peer that
-> +	 * keeps DDP_FLAG_LAST clear and streams more payload than the
-> +	 * outstanding RREAD requested therefore drives wqe->processed past
-> +	 * the validated sink buffer, writing out of bounds. Bound every
-> +	 * segment as siw_proc_send()/siw_proc_write() already do.
-> +	 */
-Excellent finding!
-What we do for Send's and WRITE's, we have to do for RRESP's as
-well.
-Please make the commentary above much shorter, if at all.
-As you are pointing out, we have that bounds check in place
-for Send and WRITE already and it is clear why we need it
-here as well. We are indeed excited we found a big and
-ugly hole in the driver, but that should get reflected
-in a (brief and concise) commit message and not the
-code path.
-> +	if (unlikely(wqe->processed + srx->fpdu_part_rem > wqe->bytes)) {
-> +		siw_dbg_qp(qp, "rresp len: %d + %d > %d\n",
-> +			   wqe->processed, srx->fpdu_part_rem, wqe->bytes);
-> +		wqe->wc_status = SIW_WC_LOC_LEN_ERR;
-> +		siw_init_terminate(qp, TERM_ERROR_LAYER_DDP,
-> +				   DDP_ETYPE_TAGGED_BUF,
-> +				   DDP_ECODE_T_BASE_BOUNDS, 0);
-> +		return -EINVAL;
-> +	}
-> +
-No extra newline here
+rxe_net_del() drops its reference to the underlying net_device
+via dev_put() but does not clear the netdev pointer from the
+ib_device. This leaves a dangling pointer that the async
+smc_ib_port_event_work worker can dereference after the
+net_device has been freed, causing a use-after-free in
+__ethtool_get_link_ksettings().
 
->   	bytes = min(srx->fpdu_part_rem, srx->skb_new);
->   	rv = siw_rx_data(mem_p, srx, &frx->pbl_idx,
->   			 sge->laddr + wqe->processed, bytes);
+An unprivileged user can trigger this via user namespaces
+by creating a dummy interface, binding it to rdma_rxe, and
+immediately destroying the namespace before the worker fires.
 
+Clear the netdev pointer via ib_device_set_netdev() before
+releasing the reference. Downstream callers such as
+ib_get_eth_speed() already handle a NULL netdev safely.
+
+Note: this is a distinct issue from the socket TOCTOU race
+fixed by Zhu Yanjun in [1]. That patch addresses a race on
+the pernet socket pointers (rxe_sk4/sk6) leading to a NULL
+deref in kernel_sock_shutdown(). This patch fixes a dangling
+netdev pointer leading to a UAF in
+__ethtool_get_link_ksettings via smc_ib_port_event_work.
+
+Link: https://lore.kernel.org/all/20260519023541.8594-1-yanjun.zhu@linux.dev/ [1]
+
+Signed-off-by: Jordan Walters <jaggyaur@gmail.com>
+---
+ drivers/infiniband/sw/rxe/rxe_net.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/infiniband/sw/rxe/rxe_net.c b/drivers/infiniband/sw/rxe/rxe_net.c
+index 50a2cb5405e2..a8f91d6e3b17 100644
+--- a/drivers/infiniband/sw/rxe/rxe_net.c
++++ b/drivers/infiniband/sw/rxe/rxe_net.c
+@@ -663,6 +663,7 @@ void rxe_net_del(struct ib_device *dev)
+ 	if (sk)
+ 		rxe_sock_put(sk, rxe_ns_pernet_set_sk6, net);
+ 
++	ib_device_set_netdev(dev, NULL, 1);
+ 	dev_put(ndev);
+ }
+ 
+-- 
+2.49.0
