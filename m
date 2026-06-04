@@ -1,86 +1,59 @@
-Received: from CY3PR05CU001.outbound.protection.outlook.com (mail-westcentralusazon11013065.outbound.protection.outlook.com [40.93.201.65])
+Received: from pdx-out-004.esa.us-west-2.outbound.mail-perimeter.amazon.com (pdx-out-004.esa.us-west-2.outbound.mail-perimeter.amazon.com [44.246.77.92])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2DC2F438FF1;
-	Thu,  4 Jun 2026 11:46:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.201.65
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780573589; cv=fail; b=F3XPze/D2WrDl2ySgEWERQHyRNdZ4pVEvfZxBi2WizdDM8tzoBF0grc3OQsadnMVSX21DrGPeTaHyuGb2czhWpbLpU0xyCrY8HFtXkRYlu1pGUcXIv0mNxwDQYlThcak6mrwFCUvM6JI+1OkOesDfmDYkAiJNYG4sXY62CHL3Gk=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780573589; c=relaxed/simple;
-	bh=VgXq6M8XVl205C6as7WC8UDl21sko+5McOSyc8usBpk=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=rQpm01Y4sCd3LP6bbLqe1Txk0OsNcrUZ0ol6H3IqSl3gLRNY6KlMox9EacaXZStW/j3rfFBQDAODkquyTDEWmd5Ku+4SV8wSnqClVVagkB53Ez9qS9HzdUi1OomzIx84ZhKvgRa32ByaqBbIItxTmaUoRG7MzeQ4MQ6BZfU4K/U=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=cZfr30Iy; arc=fail smtp.client-ip=40.93.201.65
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 40BE843CEEB
+	for <linux-rdma@vger.kernel.org>; Thu,  4 Jun 2026 11:46:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=44.246.77.92
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1780573594; cv=none; b=afGp0hDEKeYRsX2GF5SywNrQMDlzF1c0TSrbeD5W3vtfeC9VwL2hvSDlQaeOgb0GhypV22LiWSy/NhOQW59d6Qac2j4l5v2ujrseZkY5yVixF6KBZiu3LiKuuw7/hEdlCiO4M6lguMDThxZBTecSNvzv1iRzC2mIIhY3nV7vzX8=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1780573594; c=relaxed/simple;
+	bh=E20/aU/l/snsfFoZCP68irf2Q3+4Rml6jSZbv/YdvZ8=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=fTr8VLjcSrHcuZDdPIRUXu1t6tWxTi4PmufvWuuYmI9RV3AgKFQMg/8tqybWhWKGrT8O49wkESg9PF5hTYM1QD+oHGMbq1dCDlI60361oPVX+ZmiPYo+ABho+9SKIrgov/aXbMyfSt5XTUBvxrbkzW1/acZWSHSYPhMiwlyykqM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com; spf=pass smtp.mailfrom=amazon.com; dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.b=kMQLuKEx; arc=none smtp.client-ip=44.246.77.92
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazon.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="cZfr30Iy"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=wNLX630QM6l+nmvCm4jOUSKl8R0mZKcjS05pom3dXSjtW7tTZT4vtccgbKEQdBD2vpdaEwpZLjCXfYdU/hUUcM8cd7HISEdye8Cn6HthwlztXqiF7Vr8Da7A8oSRl/VSexWrC47dra9XjJAXtsWrzQlXsnoAllB4w9DB2IewDqci/XT/z0X9m0SWh1VstT4D7Bywj6pd/BhFYm+hglcCdDYOwUdyFNid9HCvE6HU/7XFBsnfo87KfcMnFX7cX/csoXzF+AcG3i8ZKLkVok597kGgdzicNctyBAUOKXcW6vdLxO1icRwEtEwuYYqPbgjfm/D7HkRh03Ti8hYkkADgVw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=xGLMv4Kby72lGJCau0SwTIznPOYS/SnrAgM7iJx1Dac=;
- b=byvSaB6AWpiJV5V4Xs6JefseRoRvHc69mMEbySliYAbTNTSbg1kPxZ3P0DuDPunAm6rusi+iyS6bgVjKMg7GURo46cWuPFIcK/IBynaaIo4dkPYjDkCm/FtfGHk6vgA1mshK7sbUNCaTNKAvNG2p8pHCs68OOCjtNFzy71Rqkzw0pvFsV+No/b0i3c9PUwpfIYTaoPA69zGeNpVICwxFUTT1ePRqti3evboX3HrZ73GWXkF7/M5lUniHrl9Bvn0lW97NIpPQYoGPPBr5Q2X2W69BvaRfVQZVADrqBwUv2Gr4wRP0wPy7F9k+FM3+XGN7lC6FCpX+HwwG+1jGE46QCg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.118.233) smtp.rcpttodomain=google.com smtp.mailfrom=nvidia.com;
- dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
- dkim=none (message not signed); arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=xGLMv4Kby72lGJCau0SwTIznPOYS/SnrAgM7iJx1Dac=;
- b=cZfr30IyhS/mW6WFCxW4LB2t+L0Eu+qyH1FHv8NfJrf5OOjDe/qCRc61KEvEoo5Xh/VfDpQfiwLzcrTspKcN5Unmh4zw/98tp0TtjC5aHmREG2XCwvY3FdODPWX5EaD1fjok/1IrdDYhlNeXCAZEvBr1ace+iWUNX6mRx5PSiBGkPfkyvvriXiI0FKAx8dp4VnpkLIZoVfS9I935k0UtcYupImNZBX6DVkYw4pl1BtM0SZAjBcw+AwKczzf4RZhFxugkwBuHWIkg0+P591k4yS/QZHjhljRwYZlgoHBMgqEvcsGIh26Jrn81jwbqLkhF7nkHKVkX8jneQaKgFYhVjw==
-Received: from BN9PR03CA0841.namprd03.prod.outlook.com (2603:10b6:408:13d::6)
- by SA1PR12MB9246.namprd12.prod.outlook.com (2603:10b6:806:3ac::6) with
+	dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.b="kMQLuKEx"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazoncorp2;
+  t=1780573593; x=1812109593;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=Sup+nCKnLt1QZQeaRAhI5R/g9wBvQ/sZgzsyF8zzFcQ=;
+  b=kMQLuKEx8XXK+fzPj2nnkRBO3UhrzFqUAJm5hiCrwyi5YFD1h0E5Af6o
+   /0d//e6ZYnMTqPiB8tq3j+QBc0qa7jzWq3YIyX1ZRIFqViTdAN4EqdOjT
+   NB9uGTZZUWRiASRGZBXopL0Gzi2JDDyZkGy2J3yBXfyboOElzZwkwnJxy
+   djEOMTmh3x8His1Y3FOXkQvzTyTn3raYdyHKeSMNS69hgi/O7xgpeQO5q
+   BJT9hbvuK3QVOF1lJr6DvdSJCIxDx7AGRLLI2Nbth9e8cQwhRTMj4aq3U
+   kXMqVdfV8q6ilU44dR516Z+76z7U5c5hKhMUyDG/Rx+n3EVAojz1osuKv
+   Q==;
+X-CSE-ConnectionGUID: KBFOtg6dQ+qUZM8juaSvLA==
+X-CSE-MsgGUID: ujBnKIGGQDek23tN+Y5fEA==
+X-IronPort-AV: E=Sophos;i="6.24,187,1774310400"; 
+   d="scan'208";a="21080189"
+Received: from ip-10-5-6-203.us-west-2.compute.internal (HELO smtpout.naws.us-west-2.prod.farcaster.email.amazon.dev) ([10.5.6.203])
+  by internal-pdx-out-004.esa.us-west-2.outbound.mail-perimeter.amazon.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Jun 2026 11:46:30 +0000
+Received: from EX19MTAUWC001.ant.amazon.com [205.251.233.105:6327]
+ by smtpin.naws.us-west-2.prod.farcaster.email.amazon.dev [10.0.40.245:2525] with esmtp (Farcaster)
+ id 81f04ecc-e82e-4825-81dd-81aa36928dd6; Thu, 4 Jun 2026 11:46:30 +0000 (UTC)
+X-Farcaster-Flow-ID: 81f04ecc-e82e-4825-81dd-81aa36928dd6
+Received: from EX19D001UWA001.ant.amazon.com (10.13.138.214) by
+ EX19MTAUWC001.ant.amazon.com (10.250.64.174) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.37;
+ Thu, 4 Jun 2026 11:46:30 +0000
+Received: from dev-dsk-mrgolin-1c-b2091117.eu-west-1.amazon.com
+ (10.253.103.172) by EX19D001UWA001.ant.amazon.com (10.13.138.214) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.92.8; Thu, 4 Jun 2026
- 11:46:24 +0000
-Received: from BN2PEPF000044A0.namprd02.prod.outlook.com
- (2603:10b6:408:13d:cafe::6c) by BN9PR03CA0841.outlook.office365.com
- (2603:10b6:408:13d::6) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.92.8 via Frontend Transport; Thu, 4
- Jun 2026 11:46:22 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.118.233)
- smtp.mailfrom=nvidia.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=nvidia.com;
-Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.118.233 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.118.233; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.118.233) by
- BN2PEPF000044A0.mail.protection.outlook.com (10.167.243.151) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.92.5 via Frontend Transport; Thu, 4 Jun 2026 11:46:23 +0000
-Received: from drhqmail201.nvidia.com (10.126.190.180) by mail.nvidia.com
- (10.127.129.6) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Thu, 4 Jun
- 2026 04:46:14 -0700
-Received: from drhqmail202.nvidia.com (10.126.190.181) by
- drhqmail201.nvidia.com (10.126.190.180) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.20; Thu, 4 Jun 2026 04:46:13 -0700
-Received: from vdi.nvidia.com (10.127.8.10) by mail.nvidia.com
- (10.126.190.181) with Microsoft SMTP Server id 15.2.2562.20 via Frontend
- Transport; Thu, 4 Jun 2026 04:46:08 -0700
-From: Tariq Toukan <tariqt@nvidia.com>
-To: Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>, Andrew Lunn <andrew+netdev@lunn.ch>, "David
- S. Miller" <davem@davemloft.net>
-CC: Saeed Mahameed <saeedm@nvidia.com>, Leon Romanovsky <leon@kernel.org>,
-	Tariq Toukan <tariqt@nvidia.com>, Mark Bloch <mbloch@nvidia.com>, Shay Drory
-	<shayd@nvidia.com>, Or Har-Toov <ohartoov@nvidia.com>, Edward Srouji
-	<edwards@nvidia.com>, Simon Horman <horms@kernel.org>, Maher Sanalla
-	<msanalla@nvidia.com>, Parav Pandit <parav@nvidia.com>, Kees Cook
-	<kees@kernel.org>, Moshe Shemesh <moshe@nvidia.com>, Patrisious Haddad
-	<phaddad@nvidia.com>, <netdev@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>, Gal Pressman <gal@nvidia.com>
-Subject: [PATCH net-next 08/15] net/mlx5: E-Switch, notify SD on eswitch disable
-Date: Thu, 4 Jun 2026 14:44:48 +0300
-Message-ID: <20260604114455.434711-9-tariqt@nvidia.com>
-X-Mailer: git-send-email 2.44.0
-In-Reply-To: <20260604114455.434711-1-tariqt@nvidia.com>
-References: <20260604114455.434711-1-tariqt@nvidia.com>
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.37; Thu, 4 Jun 2026
+ 11:46:29 +0000
+From: Michael Margolin <mrgolin@amazon.com>
+To: <jgg@nvidia.com>, <leon@kernel.org>, <linux-rdma@vger.kernel.org>
+CC: <sleybo@amazon.com>, <matua@amazon.com>, <gal.pressman@linux.dev>
+Subject: [PATCH for-next v6 0/5] Introduce Completion Counters
+Date: Thu, 4 Jun 2026 11:46:22 +0000
+Message-ID: <20260604114627.6086-1-mrgolin@amazon.com>
+X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -89,59 +62,79 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-NV-OnPremToCloud: ExternallySecured
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: BN2PEPF000044A0:EE_|SA1PR12MB9246:EE_
-X-MS-Office365-Filtering-Correlation-Id: 568a2f44-c46f-4c01-feb6-08dec22ee756
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|7416014|376014|1800799024|82310400026|36860700016|6133799003|22082099003|18002099003|56012099006|11063799006;
-X-Microsoft-Antispam-Message-Info:
-	9vwkTFvsK2UCfo4pAd7i54/8W7sSM5WNkN5lDx8lP57Hmh7xw/u9K0ZNiTf8GJr17RHfjIJqFM30q+Q3PP9Zto2hyX6D68JdxKkFg56JcmNkSTWDu4ILSYmW8jRZTapm3c57XoRkdRz/RXvXUR0tIrjCbyd0PDkEDjl4N+830GxsPr6SE3Rgtg8tLTp9CYJaeFzJi7Kg9HAaZGsvFMGU6WVIudGBq1TL5L8ywv/sLBT45si9WGHgTm3BNIeSWrYmHYrSBfsusZgdoK53rL8WrgYPY5d+VIff8mtkEavPjU7d0uIrb2pM+hz3Bb+H+zzYws6Q5ZqMLjKkp8F4H0o4uyY2P8e4aCaGm0p1tza7o1K/B2/gJ4YgmTeKBTHJ4YEFVqFmFwe7kPv5fLLhn6ozkZhA7jXNQlh0tHn0K3Q+sOxvtV55u7ec9uLkbF6inX7m7TxdwqfHzRQdlNBLFWYEFrfgVSX2y4utpUV0GVL2JGhg2/2WGojtrJH+J9ZRZCVXuWxPismr1/3xRvN0VpYDlZyNF799UcojOeUPuCHwnVUyP+5dypL8DB0jEx/XYUMBz1DIE8THd+E4SIahr1gEJ09pRNm/VkSjNJSDA/Yld3NOOX2vYkl6kslOBAgQUUb7GYlPnEnNwF2aYnS45RVzEyZkz70MfKvwrl9c3rlPI4OOcD84IYKk6BnzmPmPPgwNlbIwWfwYzJdmaF1ZUBAXLJODDzr30n6UfUlInCBQFrM=
-X-Forefront-Antispam-Report:
-	CIP:216.228.118.233;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc7edge2.nvidia.com;CAT:NONE;SFS:(13230040)(7416014)(376014)(1800799024)(82310400026)(36860700016)(6133799003)(22082099003)(18002099003)(56012099006)(11063799006);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	GyciSi0bsnbm+FHbTauTHeNafyssXmJxzWqfgXAL+L4yEzSynmoPa04SZ/R1PsQDKZxkS1C9YKH6eVDnxF6Bhf9A0/Z1yP5PG4M/dG2cTOtd4q8bcTzenq0ctpSCaeAl3g5qY1t6kh9dSlfW9caNWox4bmdQG6qF2DA0lG2NdmdRZq9HKmOcAFzSCPYP5m8gOpTmg7XHw0XM+qyICKJiF4xqQYn6o4g+aIGEG/huhXAlt19rRrdqwDeoN82/yzbydw2toZQH2GeZ6KXfoKOGlOSxC2A5Zw4irs5RdU4pt73azbSI4rYzGSJRZ4tyYSJl+QNeeWXWZ+tag/a2ZNuOl4TTD8N1jZTtz6OcyLFLtuWQ/1dBEl50Kdg9741mevgau4diXyWFBkVTTmgBnQ3v0MXv/7o1vlGpbCVTK2BgGW4TzaEchkghV65/vruXdBiA
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 04 Jun 2026 11:46:23.6836
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 568a2f44-c46f-4c01-feb6-08dec22ee756
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.118.233];Helo=[mail.nvidia.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	BN2PEPF000044A0.namprd02.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA1PR12MB9246
+X-ClientProxiedBy: EX19D044UWA003.ant.amazon.com (10.13.139.43) To
+ EX19D001UWA001.ant.amazon.com (10.13.138.214)
 
-From: Shay Drory <shayd@nvidia.com>
+Add core infrastructure for Completion Counters, a light-weight
+alternative to polling CQ for tracking operation completions. The
+related rdma-core support is linked in [1].
 
-When eswitch is disabled, notify the SD layer so it can clean up
-SD-specific resources such as the TX flow table root configuration
-on secondary devices.
+Define the UVERBS_OBJECT_COMP_CNTR ioctl object with create, destroy,
+modify and read methods for both success and error counters. Add a QP
+attach method on the QP object to associate a completion counter with a
+queue pair.
 
-Signed-off-by: Shay Drory <shayd@nvidia.com>
-Reviewed-by: Mark Bloch <mbloch@nvidia.com>
-Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
+Add EFA Completion Counters support as first implementer.
+
+[1] https://github.com/linux-rdma/rdma-core/pull/1701
+
 ---
- drivers/net/ethernet/mellanox/mlx5/core/eswitch.c | 1 +
- 1 file changed, 1 insertion(+)
+Chnages in v6:
+- Moved to using ib_umem_get_attr util
+- Resolved additional Sashiko comments
+- Link to v5: https://lore.kernel.org/all/20260526090712.17575-1-mrgolin@amazon.com/
+Changes in v5:
+- Fixed Sashiko findings
+- Minor naming improvements
+- Link to v4: https://lore.kernel.org/all/20260511223721.18365-1-mrgolin@amazon.com/
+Changes in v4:
+- Replaced inc and set commands by a single modify command
+- Changed to passing buffers as EFA specific attributes using desc
+  struct aligned with the suggested common method of passing and
+  consuming umem in RDMA drivers
+- Link to v2: https://lore.kernel.org/all/20260416212327.18191-1-mrgolin@amazon.com/
+Changes in v3:
+- Skipped this version because of a wrong patch list
+Changes in v2:
+- United set, inc and read flows for successful and error completions
+  counters
+- Added comp_cntr usage count
+- Minor cleanups
+- Link to v1: https://lore.kernel.org/all/20260407115424.13359-1-mrgolin@amazon.com/
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
-index f8cfbf76dd6a..93d51f09b17f 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
-@@ -2072,6 +2072,7 @@ void mlx5_eswitch_disable(struct mlx5_eswitch *esw)
- 	mlx5_esw_reps_unblock(esw);
- 
- 	esw->mode = MLX5_ESWITCH_LEGACY;
-+	mlx5_sd_eswitch_mode_set(esw->dev, MLX5_ESWITCH_LEGACY);
- 	mlx5_lag_enable_change(esw->dev);
- }
- 
+Michael Margolin (5):
+  RDMA/core: Add Completion Counters support
+  RDMA/core: Prevent destroying in-use completion counters
+  RDMA/core: Add Completion Counters to resource tracking
+  RDMA/efa: Update device interface
+  RDMA/efa: Add Completion Counters support
+
+ drivers/infiniband/core/Makefile              |   1 +
+ drivers/infiniband/core/device.c              |   6 +
+ drivers/infiniband/core/nldev.c               |   1 +
+ drivers/infiniband/core/rdma_core.h           |   1 +
+ drivers/infiniband/core/restrack.c            |   2 +
+ drivers/infiniband/core/uverbs_cmd.c          |   1 +
+ .../core/uverbs_std_types_comp_cntr.c         | 182 ++++++++++++++++
+ drivers/infiniband/core/uverbs_std_types_qp.c |  64 +++++-
+ drivers/infiniband/core/uverbs_uapi.c         |   1 +
+ drivers/infiniband/core/verbs.c               |   8 +
+ drivers/infiniband/hw/efa/efa.h               |  17 +-
+ .../infiniband/hw/efa/efa_admin_cmds_defs.h   | 185 +++++++++++++++-
+ drivers/infiniband/hw/efa/efa_com_cmd.c       | 110 ++++++++++
+ drivers/infiniband/hw/efa/efa_com_cmd.h       |  36 ++++
+ drivers/infiniband/hw/efa/efa_io_defs.h       |  63 +++++-
+ drivers/infiniband/hw/efa/efa_main.c          |   7 +-
+ drivers/infiniband/hw/efa/efa_verbs.c         | 199 ++++++++++++++++++
+ include/rdma/ib_verbs.h                       |  44 ++++
+ include/rdma/restrack.h                       |   4 +
+ include/uapi/rdma/efa-abi.h                   |   6 +
+ include/uapi/rdma/ib_user_ioctl_cmds.h        |  38 ++++
+ include/uapi/rdma/ib_user_ioctl_verbs.h       |  19 ++
+ include/uapi/rdma/ib_user_verbs.h             |   2 +-
+ 23 files changed, 987 insertions(+), 10 deletions(-)
+ create mode 100644 drivers/infiniband/core/uverbs_std_types_comp_cntr.c
+
 -- 
-2.44.0
+2.47.3
 
