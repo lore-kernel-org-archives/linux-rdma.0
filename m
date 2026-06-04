@@ -1,122 +1,165 @@
-Received: from out-170.mta1.migadu.com (out-170.mta1.migadu.com [95.215.58.170])
+Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 820D1224AF1
-	for <linux-rdma@vger.kernel.org>; Thu,  4 Jun 2026 03:06:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=95.215.58.170
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8FA1B36AF6;
+	Thu,  4 Jun 2026 03:53:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.137.202.133
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780542397; cv=none; b=KYns9YdRjHaWjTE4y4uC6ZHY6hL8QsTCiep/r2E6BlP3sUXvhxJAo2JHGBdB3yLODf28rgkoaB3rBVO4QsfhO4LY2O+oC1gz86YB2jOMHn+LuaHmy206t519EY0zumvSGy5XLjjuBE98QpPyQ7WhZyAIFbEFYPwCfHPY1AztFbM=
+	t=1780545215; cv=none; b=EBGr1VdxSIkpYdULwb6po/bKGLL7JvPMYLexL3OoYWSlMqk/8cxZJXcBbQkZZSEcMOy6jv9j/l8p+2WqLrNwh4QTL/losNtr3MhmX0pCgLlWVZhAZnlWL9gjAzZ4VegeRvnzGBfvVhS0+xj2sUkAVLB7n5PczpCc/CwFvk7vWuo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780542397; c=relaxed/simple;
-	bh=QPuVoflKdsiaqDzd3ZlNEFCPauwEewX5VY7fTtalMQM=;
+	s=arc-20240116; t=1780545215; c=relaxed/simple;
+	bh=IbZDDiI4sTfVViCQqvDWqR5n0xj8Bma7tEQ4mXxqk+U=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=gqYEpZXUOMYTby3g/dlt4IvOtNQPTa8FvSoyl1DhUwho9ndQt6EVIMhH6lzfd6dTSrV0pCHpAC6ieMQYFZW5a4bzbxINE7NP5yNVIZOWTw6GP5CUmGL7oicXMt9DpQiJzUc9OzuKDPuopLN2Bl8+P5Rg8vNS64z2Etsy0SOlZnI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=W2cNAqxa; arc=none smtp.client-ip=95.215.58.170
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+	 In-Reply-To:Content-Type; b=HXOkC95jUPfIDaIx6F3nSUsyGXcmZg+CR3Lng1k98XYmCM81/dtpYHFusr43V6cZV5FgkOWUfgCv6mj0TjR0yiA2sqz0qDhdpoIa9CPkRznPNVphbjzgvBXn1otg7r42/tmYJ2I1QNv2F9rSyiEDD/WPviKfNZq4l2bOP2+CivA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org; spf=pass smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=EFzE3fkC; arc=none smtp.client-ip=198.137.202.133
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=infradead.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="W2cNAqxa"
-Message-ID: <8269eca8-0ff5-43ae-b3ef-04cfde67882c@linux.dev>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-	t=1780542393;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=LmZqS52HgaEyWPt+CCvZthmz6nFexCR5JlPdVyY2C0M=;
-	b=W2cNAqxaH0COvxU3F5HpddtjWC8k8Tr/MvDGy7D9TTTRvUMHh28n41j0AYKwCLc+t0d92T
-	ot8gWZkSLNo2ldH8mI+Ya57ACwyLtZpivIFnt8ZypOoQ7EtArMDlVvU0gDfi3SdKMfwrme
-	YYtF3Ba0++abcBvBhSS4GygTTxhTp2Y=
-Date: Wed, 3 Jun 2026 20:06:27 -0700
+	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="EFzE3fkC"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
+	Content-Type:In-Reply-To:From:References:Cc:To:Subject:MIME-Version:Date:
+	Message-ID:Sender:Reply-To:Content-ID:Content-Description;
+	bh=Iec0mp4Rj6DxjXTpBzeIIYyiPjr/Gr+gA3QOICt7QLY=; b=EFzE3fkCvWzZTurHZYxYoyFRXZ
+	jIWGeP+cEbt+zs2lr46uyaGr4yvCNptPMvuS0YdvFNFWrsxkezfvt7SiCxm9o9EcpSPwLMx67HpCd
+	cTQuAnS9GYuHsFi5+TAYmiGeHXQp7cZ63xj5aeWSXGav1Pr26HcxP2a42asdqjHcZO6wOmCyeXpyn
+	SjV0rpN62g3ZM19xsK8bHeC61GNmdQMbe9WoRhrfF+Uf4eYLr4CREqlzxYYDydP5x276pyf0r45DG
+	S3m6e+nJWyjFIEU8Qia9yaT+lVHCw20KcveBSNw3VmYrCD5J/29cm9D6cyUCYvFHkzzvuoe7ZNVjI
+	b4K2TiFQ==;
+Received: from [50.53.43.113] (helo=[192.168.254.34])
+	by bombadil.infradead.org with esmtpsa (Exim 4.99.1 #2 (Red Hat Linux))
+	id 1wUz8g-0000000G7yt-3Wso;
+	Thu, 04 Jun 2026 03:53:02 +0000
+Message-ID: <909ada9a-a398-4e3f-8ed0-596a1e4bdbfd@infradead.org>
+Date: Wed, 3 Jun 2026 20:53:00 -0700
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Subject: Re: [PATCH v2 1/1] RDMA/rxe: Fix Use-After-Free problem in
- rxe_net_del
-To: Jason Gunthorpe <jgg@nvidia.com>,
- "yanjun.zhu@linux.dev" <yanjun.zhu@linux.dev>
-Cc: zyjzyj2000@gmail.com, leon@kernel.org, linux-rdma@vger.kernel.org,
- syzbot+d8f76778263ab65c2b21@syzkaller.appspotmail.com
-References: <20260519023541.8594-1-yanjun.zhu@linux.dev>
- <20260603012532.GA1188713@nvidia.com>
- <3cdac159-4c61-448c-8327-d39ac0f87fe3@linux.dev>
- <20260603162537.GD1170766@nvidia.com>
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-From: Zhu Yanjun <yanjun.zhu@linux.dev>
-In-Reply-To: <20260603162537.GD1170766@nvidia.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-X-Migadu-Flow: FLOW_OUT
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH net-next V2 7/7] devlink: Add eswitch mode boot defaults
+To: Mark Bloch <mbloch@nvidia.com>, Eric Dumazet <edumazet@google.com>,
+ Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+ Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller" <davem@davemloft.net>
+Cc: Jonathan Corbet <corbet@lwn.net>, Shuah Khan <skhan@linuxfoundation.org>,
+ Jiri Pirko <jiri@resnulli.us>, Simon Horman <horms@kernel.org>,
+ Sunil Goutham <sgoutham@marvell.com>, Linu Cherian <lcherian@marvell.com>,
+ Geetha sowjanya <gakula@marvell.com>, hariprasad <hkelam@marvell.com>,
+ Subbaraya Sundeep <sbhatta@marvell.com>,
+ Bharat Bhushan <bbhushan2@marvell.com>, Saeed Mahameed <saeedm@nvidia.com>,
+ Leon Romanovsky <leon@kernel.org>, Tariq Toukan <tariqt@nvidia.com>,
+ "Borislav Petkov (AMD)" <bp@alien8.de>,
+ Andrew Morton <akpm@linux-foundation.org>,
+ "Peter Zijlstra (Intel)" <peterz@infradead.org>,
+ Thomas Gleixner <tglx@kernel.org>, Petr Mladek <pmladek@suse.com>,
+ Tejun Heo <tj@kernel.org>, Vlastimil Babka <vbabka@kernel.org>,
+ Feng Tang <feng.tang@linux.alibaba.com>,
+ Dave Hansen <dave.hansen@linux.intel.com>,
+ Christian Brauner <brauner@kernel.org>,
+ Dapeng Mi <dapeng1.mi@linux.intel.com>, Kees Cook <kees@kernel.org>,
+ Marco Elver <elver@google.com>, Eric Biggers <ebiggers@kernel.org>,
+ Li RongQing <lirongqing@baidu.com>, "Paul E. McKenney" <paulmck@kernel.org>,
+ Ethan Nelson-Moore <enelsonmoore@gmail.com>, linux-doc@vger.kernel.org,
+ linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+ linux-rdma@vger.kernel.org
+References: <20260603193259.3412464-1-mbloch@nvidia.com>
+ <20260603193259.3412464-8-mbloch@nvidia.com>
+ <d276e842-dd8f-40b7-806b-71572503005e@infradead.org>
+ <e4aada53-fb80-41a8-9a8e-d19414f6466b@nvidia.com>
+Content-Language: en-US
+From: Randy Dunlap <rdunlap@infradead.org>
+In-Reply-To: <e4aada53-fb80-41a8-9a8e-d19414f6466b@nvidia.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-在 2026/6/3 9:25, Jason Gunthorpe 写道:
-> On Wed, Jun 03, 2026 at 08:43:31AM -0700, Zhu Yanjun wrote:
+
+
+On 6/3/26 6:16 PM, Mark Bloch wrote:
+> 
+> 
+> On 03/06/2026 23:06, Randy Dunlap wrote:
+>> Hi.
 >>
->> 在 2026/6/2 18:25, Jason Gunthorpe 写道:
->>> On Tue, May 19, 2026 at 04:35:41AM +0200, Zhu Yanjun wrote:
->>>
->>>> index 50a2cb5405e2..0bf5b0eabc7b 100644
->>>> --- a/drivers/infiniband/sw/rxe/rxe_net.c
->>>> +++ b/drivers/infiniband/sw/rxe/rxe_net.c
->>>> @@ -135,13 +135,21 @@ static struct dst_entry *rxe_find_route6(struct rxe_qp *qp,
->>>>    {
->>>>    	struct dst_entry *ndst;
->>>>    	struct flowi6 fl6 = {};
->>>> +	struct sock *sk;
->>>>    	fl6.flowi6_oif = ndev->ifindex;
->>>>    	memcpy(&fl6.saddr, saddr, sizeof(*saddr));
->>>>    	memcpy(&fl6.daddr, daddr, sizeof(*daddr));
->>>>    	fl6.flowi6_proto = IPPROTO_UDP;
->>>> -	ndst = ip6_dst_lookup_flow(net, rxe_ns_pernet_sk6(net), &fl6, NULL);
->>>> +	rxe_ns_lock(net);
->>>> +	sk = rxe_ns_pernet_sk6(net);
->>>> +	if (sk)
->>>> +		sock_hold(sk);
->>>> +	rxe_ns_unlock(net);
->>>> +
->>>> +	ndst = ip6_dst_lookup_flow(net, sk, &fl6, NULL);
->>>> +	sock_put(sk);
->>> Sashiko says this crashes when sk is null, which it can be.
->>>
->>> But this really seems weird, the rxe can be in only one namespace, why
->>> not reach the listening sks associated with the ib_dev through
->>> qp->pd->dev and not do net lookups?
->>>
->>> I would expect net lookups to only exist in the add/del link paths?
+>> On 6/3/26 12:32 PM, Mark Bloch wrote:
+>>> diff --git a/Documentation/admin-guide/kernel-parameters.txt b/Documentation/admin-guide/kernel-parameters.txt
+>>> index 063c11ca33e5..7af9f2898d92 100644
+>>> --- a/Documentation/admin-guide/kernel-parameters.txt
+>>> +++ b/Documentation/admin-guide/kernel-parameters.txt
+>>> @@ -1264,6 +1264,31 @@ Kernel parameters
+>>>  	dell_smm_hwmon.fan_max=
+>>>  			[HW] Maximum configurable fan speed.
+>>>  
+>>> +	devlink_eswitch_mode=
+>>> +			[NET]
+>>> +			Format:
+>>> +			[<selector>]:<mode>
 >>
->> Thanks a lot. I will send out the new patch, following your advice.
+>> It appears (please correct me if I am mistaken) that the '[' and ']'
+>> above don't mean "optional" but instead they are required characters...
+>>
+>>> +
+>>> +			<selector>:
+>>> +			* | <handle>[,<handle>...]
+>>
+>> while here they mean "optional".
+>>
+>> That is confusing (inconsistent). Also, if the square brackets are
+>> always required around the <selector>, what purpose do they serve?
 > 
-> I was thinking later I don't really know what rxe did here and normal
-> rdma core code has multiple namespace flow. IIRC the namespace
-> flows from the selected GID entry and the namespace mode selects how
-> gid entries are created from namespaces.
+> Yes, you are right, this is confusing. The outer square brackets are part of
+> the syntax and are required, while the brackets in "[,<handle>...]" mean that
+> additional handles are optional.
 > 
-> So this still looks quite odd, by the time we get to RXE we should
-> have already locked down a source gid entry and that should be where
-> the sk really comes from??
-
-You are exactly right on the architecture. Conceptually, the namespace 
-and socket context should be strictly locked down via the source GID 
-entry by the time we hit the provider routing path.
-
-However, RXE currently relies on an internal, dummy kernel socket 
-created per-netns to pass into ip6_dst_lookup_flow(). The 
-rxe_ns_pernet_sk6(net) helper fetches this global socket on the fly.
-
-This patch is a localized, tactical fix for an active Use-After-Free 
-(UAF) crash. Without it, a concurrent container/netns teardown can free 
-that dummy socket right in the middle of ip6_dst_lookup_flow(). The 
-rxe_ns_lock and sock_hold() are just there to pin the socket's lifetime 
-during the routing call.
-
-I agree that structurally aligning RXE to derive/pin this context 
-directly from the GID entry lifecycle would be the cleaner, long-term 
-fix. For now, this patch unblocks the immediate crash.
-
-Zhu Yanjun
-
+> I couldn't find a better way to describe this. What I want to say is that the
+> selector is always wrapped in square brackets. Inside the brackets it can either
+> be "*" to match all devices, or a comma separated list of handles. If "*" is
+> not used, then at least one handle has to be provided.
 > 
-> Jason
+> Maybe it would be clearer to spell it out explicitly, something like:
+> 
+> Format:
+>   [<selector>]:<mode>
+> 
+> The '[' and ']' characters are literal and required.
+> 
+> <selector>:
+>   * | <handle>[,<handle>...]
+> 
+> If '*' is not used, <selector> must contain at least one <handle>.
+> 
+> Does that sound like a reasonable way to document it?
+
+Yes, that helps a little bit. Better than nothing.
+
+But why are they required at all?
+
+>>> +
+>>> +			<handle>:
+>>> +			<bus-name>/<dev-name>
+>>> +
+>>> +			Configure default devlink eswitch mode for matching
+>>> +			devlink instances during device initialization.
+>>> +
+>>> +			<mode>:
+>>> +			legacy | switchdev | switchdev_inactive
+>>> +
+>>> +			Examples:
+>>> +			devlink_eswitch_mode=[*]:switchdev
+>>> +			devlink_eswitch_mode=[pci/0000:08:00.0]:switchdev
+>>> +			devlink_eswitch_mode=[pci/0000:08:00.0,pci/0000:09:00.1]:legacy
+>>> +
+>>> +			See Documentation/networking/devlink/devlink-defaults.rst
+>>> +			for the full syntax.
+>>> +
+>>>  	dfltcc=		[HW,S390]
+>>>  			Format: { on | off | def_only | inf_only | always }
+>>>  			on:       s390 zlib hardware support for compression on
+>>
+>>
+> 
+
+-- 
+~Randy
 
