@@ -1,120 +1,108 @@
-Received: from out-172.mta0.migadu.com (out-172.mta0.migadu.com [91.218.175.172])
+Received: from stravinsky.debian.org (stravinsky.debian.org [82.195.75.108])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3EE8B3F8256;
-	Fri,  5 Jun 2026 10:21:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.172
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E712141363B;
+	Fri,  5 Jun 2026 10:31:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=82.195.75.108
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780654903; cv=none; b=odXdOKBWXpn1ICI+9NO7SHTD05oVoEgu91Grj2y0zLFGWa+Q2azJMQFA0v787+AT3snrg89Hk/uV4V6Uowi3nbYUs1ejsti1IgK8AA3e157NM6jnKNWwEVP2oHoh1O7pOAyMuoAs2SeL1X0BryMK3p7uj8eGV/sJ5A/wy54Bgow=
+	t=1780655514; cv=none; b=CJjn3DcTcAEEMQP8s9w3NBJmqyyEzmnoaL/HEEBUaZ0rzlpp4gTf0bGM08GAbcmpLCZ26LyywI9VyZZ3Y1h02LscYHd2oRw5k0oJv1qWCAsVHGi797gADY34cKtLg/y+foUZ51e+fhvJgfCbN3Oj2xYklDAHTRULvSnxC0nWwbw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780654903; c=relaxed/simple;
-	bh=n0k4JGs4kQG2g1krCb8kuEjcTHo5ckxZS8wF38x7sEE=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version:Content-Type; b=i/BjdY9pGk++9eg8JdjBh5u/Njk3eUbY8hqW4kCCC/2ANwgI0HMnMOdYL1nXxAn3xXKfz8DOEHIYrk6QOj69II8/Jd2KVGzryuYocFpOZXLxRkVq9bTd7kZMoAZSi1SoG5vuYbh/PlYo4bPseZREegXTLzn81RQrQ4hPlbOGA3E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=vnpoYyQQ; arc=none smtp.client-ip=91.218.175.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+	s=arc-20240116; t=1780655514; c=relaxed/simple;
+	bh=00hwPSZA8fZYcFj+RYCIxpnKtgT+aRtEfaPpoZFZJBY=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
+	 In-Reply-To:To:Cc; b=n3OKoYKMbUTV0foRfxtMN+83UL6Nf4Jyykue/5WMwZz0xuH8YF5O6kgQkeO7kT5t8B2F1lrnrfGo/RxWfF8ZH650iaF6+LQL8EFowwsDVMCFo02v1j6Hx2TmmXqbs7LMye7sAdj0XS/xW8OV3liKpNoC1gjxVTJ8R2PX3FEYZY4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=debian.org; spf=pass smtp.mailfrom=debian.org; dkim=pass (2048-bit key) header.d=debian.org header.i=@debian.org header.b=qy2Po5Ez; arc=none smtp.client-ip=82.195.75.108
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=debian.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=debian.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="vnpoYyQQ"
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-	t=1780654900;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding;
-	bh=qmshnswE8x0GBLubuyd5jODV23L4uppKMxxUHX+7goQ=;
-	b=vnpoYyQQ+RziLKxNP15P1l/tm6hhar1Dc/VYl5ttTKi8fEQ1nVNJTUHs1IKgYDsz8w7H7e
-	9MhkWYvoOxZ4T6aEB0rsyFnFaUr/UJpisABG7WF6RYkyHLP80GpB7OpT/4yylKwgY1oKNn
-	mlLFZSXWOFPvOnH+M8IqUJJOyA1YEZU=
-From: Fushuai Wang <fushuai.wang@linux.dev>
-To: saeedm@nvidia.com,
-	leon@kernel.org,
-	tariqt@nvidia.com,
-	mbloch@nvidia.com,
-	andrew+netdev@lunn.ch,
-	davem@davemloft.net,
-	edumazet@google.com,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	shayd@nvidia.com,
-	parav@nvidia.com,
-	moshe@nvidia.com
-Cc: netdev@vger.kernel.org,
-	linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	wangfushuai@baidu.com
-Subject: [PATCH net v3] net/mlx5: Use effective affinity mask for IRQ selection
-Date: Fri,  5 Jun 2026 18:21:12 +0800
-Message-Id: <20260605102112.91772-1-fushuai.wang@linux.dev>
+	dkim=pass (2048-bit key) header.d=debian.org header.i=@debian.org header.b="qy2Po5Ez"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=debian.org;
+	s=smtpauto.stravinsky; h=X-Debian-User:Cc:To:In-Reply-To:References:
+	Message-Id:Content-Transfer-Encoding:Content-Type:MIME-Version:Subject:Date:
+	From:Reply-To:Content-ID:Content-Description;
+	bh=8DmfM0emdEXvHwwBK/UWoQtQdiUcoSMtiKrMc4myUNY=; b=qy2Po5EzFtqBVmaUj5pARa+sAb
+	5Gcdae7s3vwdeTUvF4A0iXn6EbxMpcydwhIOL1XgdABvEUbvs8BiYDr7hrdJwLe8qZiojWAMAh44l
+	rwMVScrutwrmzFDX4DVm21m4XCAYYGuwvStuxYet4x2iECzK+FK04i2+dl1XKc4DVh3HnvPk+yPkQ
+	Zo+b8ifcaw1AnwUrA94/R4wGYxHWAeQ7KsB63caW4IZO9OlsQ8yoPBSkfjjzgw+h5vlrXBD6CPOKZ
+	xGFfeZXp1LuM9yToRcD/twQOrp6WEXnVOuZqp4nIbv+AYQ4FL+uN1WlTd+kyGpSU+dZ9g9hKc6wth
+	8b3Py7FA==;
+Received: from authenticated-user
+	by stravinsky.debian.org with esmtpsa (TLS1.3:ECDHE_X25519__RSA_PSS_RSAE_SHA256__AES_256_GCM:256)
+	(Exim 4.96)
+	(envelope-from <leitao@debian.org>)
+	id 1wVRq9-005EEs-2h;
+	Fri, 05 Jun 2026 10:31:50 +0000
+From: Breno Leitao <leitao@debian.org>
+Date: Fri, 05 Jun 2026 03:31:38 -0700
+Subject: [PATCH net-next v2 1/3] rds: mark snapshot pages dirty in
+ rds_info_getsockopt()
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-X-Migadu-Flow: FLOW_OUT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <20260605-getsock_more-v2-1-80f38cdb8706@debian.org>
+References: <20260605-getsock_more-v2-0-80f38cdb8706@debian.org>
+In-Reply-To: <20260605-getsock_more-v2-0-80f38cdb8706@debian.org>
+To: Allison Henderson <achender@kernel.org>, 
+ "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, 
+ Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
+ Simon Horman <horms@kernel.org>, Shuah Khan <shuah@kernel.org>
+Cc: linux-kernel@vger.kernel.org, netdev@vger.kernel.org, 
+ linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, 
+ linux-kselftest@vger.kernel.org, Breno Leitao <leitao@debian.org>, 
+ kernel-team@meta.com
+X-Mailer: b4 0.14.3
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1093; i=leitao@debian.org;
+ h=from:subject:message-id; bh=00hwPSZA8fZYcFj+RYCIxpnKtgT+aRtEfaPpoZFZJBY=;
+ b=owEBbQKS/ZANAwAIATWjk5/8eHdtAcsmYgBqIqWNcVYIIJISvcnN7cwAbA0w5GLVZG8jfwZ4Q
+ BxzYfinR9WJAjMEAAEIAB0WIQSshTmm6PRnAspKQ5s1o5Of/Hh3bQUCaiKljQAKCRA1o5Of/Hh3
+ bcWKEACuD3qtWXMRs/X/KxwjB9YhpiCScdOL1ayjmDKa76/qXeVdgQpiS8ufbjI9rEY+mL63N84
+ XpRle9/j5uLr6KkRrbcP+xOuBdFEvHA1jd3jC6imnxdOnF3JpJGDO1Ct7ZvOR3d/QOuzmjbCgvc
+ /Uy6BF9GcLbEJLKhoZ+L4CC8RLEDAWrPQsuwPNMMOsjNd/liGEbNP2H8MKgfmBhRX5egLEJlM3b
+ 9LegD3FHsR33fZ2DEUF+ru3drqi/aVxF8LaLKGX15YwmHe1kZHKX9ILG+Avjc8HbIw2g8pX1b2C
+ okXGPcsaqO7I2OedE1jpAqnC/W+AEg3yYZb6qu5tD6w208Z/Qgtdk3vi4hV6XGwFcK5Umqg7QYF
+ CEeKqtxZo2Zml5P/e1ecIKHk84IJDn/WMad3xVA4H2H6zMrArR+x/XV7mQ36xwXv3mxsECTIZxg
+ XjrE7Y3n/tmvnnGidXQDOKY42Sk2tj0rSqrwWXiz+++YsgB8KBCJRF50FGniLGhtx2sIWRi0Gid
+ hR8/6K8NsDDc1Co70/85VIvYqAqpDrZXrmcsvVtjAu5NbPhDIQ6WyeVFmBWOSE84D6pvRidte/v
+ xwea8h4aTyJvZmSFQQFKXu1NXT0zOh0KkpchhnT/0fA0nnth3LJYsVXvzNJ/rmj0bZxE+51afx7
+ co8JzalAEf26YIQ==
+X-Developer-Key: i=leitao@debian.org; a=openpgp;
+ fpr=AC8539A6E8F46702CA4A439B35A3939FFC78776D
+X-Debian-User: leitao
 
-From: Fushuai Wang <wangfushuai@baidu.com>
+rds_info_getsockopt() pins the destination user pages with FOLL_WRITE and
+the RDS_INFO_* producers memcpy the snapshot into them through
+kmap_atomic(). Because that copy goes through the kernel direct map, the
+dirty bit on the user PTE is never set, so unpin_user_pages() releases the
+pages without marking them dirty. A file-backed destination page can then
+be reclaimed without writeback, silently discarding the copied data.
 
-When a sf is created after a CPU has been taken offline, the IRQ pool may
-contain IRQs with affinity masks that include the offline CPU. Since only
-online CPUs should be considered for IRQ placement, cpumask_subset() check
-would fail because the iter_mask contains offline CPUs that are not present
-in req_mask, causing sf creation to fail.
+Use unpin_user_pages_dirty_lock() with make_dirty=true so the modified
+pages are marked dirty before they are unpinned.
 
-This is an example:
-  1. When mlx5 driver loads, it initializes the IRQ pools.
-     For sf_ctrl_pool with ≤64 sf:
-     - xa_num_irqs = {N, N} (There is only one slot)
-  2. When the first SF is created:
-     - The ctrl IRQ is allocated with mask=cpu_online_mask={0-191}
-  2. We take CPU 20 offline
-  3. Existing ctl irq still have mask={0-191}
-  4. Create a new SF:
-     - req_mask={0-19,21-191}
-     - iter_mask={0-191}
-     - {0-191} is NOT a subset of {0-19,21-191}
-     - least_loaded_irq=NULL
-  5. Try to allocate a new irq via irq_pool_request_irq()
-  6. xa_alloc() fails because the pool is full(There is only one slot)
-  7. sf creation fails with error
-
-Use irq_get_effective_affinity_mask() instead, which returns the IRQ's
-actual effective affinity that already excludes offline CPUs.
-
-Fixes: 061f5b23588a ("net/mlx5: SF, Use all available cpu for setting cpu affinity")
-Suggested-by: Shay Drory <shayd@nvidia.com>
-Signed-off-by: Fushuai Wang <wangfushuai@baidu.com>
+Signed-off-by: Breno Leitao <leitao@debian.org>
 ---
-v2->v3: Separate the patchset to two patches, reverse xmas tree coding style fix.
-v1->v2: Use mlx5_irq_get_affinity_mask() api
+ net/rds/info.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-previous discussion:
-https://lore.kernel.org/all/20260603072657.10868-1-fushuai.wang@linux.dev/T/#u
-https://lore.kernel.org/all/20260604125705.21241-1-fushuai.wang@linux.dev/T/#u
-
- drivers/net/ethernet/mellanox/mlx5/core/irq_affinity.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/irq_affinity.c b/drivers/net/ethernet/mellanox/mlx5/core/irq_affinity.c
-index 994fe83da4be..a0bb8ee44e35 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/irq_affinity.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/irq_affinity.c
-@@ -105,9 +105,12 @@ irq_pool_find_least_loaded(struct mlx5_irq_pool *pool, const struct cpumask *req
+diff --git a/net/rds/info.c b/net/rds/info.c
+index f1b29994934a..17061f6ff74e 100644
+--- a/net/rds/info.c
++++ b/net/rds/info.c
+@@ -235,7 +235,7 @@ int rds_info_getsockopt(struct socket *sock, int optname, char __user *optval,
  
- 	lockdep_assert_held(&pool->lock);
- 	xa_for_each_range(&pool->irqs, index, iter, start, end) {
--		struct cpumask *iter_mask = mlx5_irq_get_affinity_mask(iter);
- 		int iter_refcount = mlx5_irq_read_locked(iter);
-+		const struct cpumask *iter_mask;
+ out:
+ 	if (pages)
+-		unpin_user_pages(pages, nr_pages);
++		unpin_user_pages_dirty_lock(pages, nr_pages, true);
+ 	kfree(pages);
  
-+		iter_mask = irq_get_effective_affinity_mask(mlx5_irq_get_irq(iter));
-+		if (!iter_mask)
-+			continue;
- 		if (!cpumask_subset(iter_mask, req_mask))
- 			/* skip IRQs with a mask which is not subset of req_mask */
- 			continue;
+ 	return ret;
+
 -- 
-2.36.1
+2.53.0-Meta
 
