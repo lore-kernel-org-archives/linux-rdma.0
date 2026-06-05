@@ -1,293 +1,206 @@
-Received: from out30-119.freemail.mail.aliyun.com (out30-119.freemail.mail.aliyun.com [115.124.30.119])
+Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1894C2773E5;
-	Fri,  5 Jun 2026 04:00:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.119
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9465E33F597;
+	Fri,  5 Jun 2026 04:03:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.137.202.133
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780632032; cv=none; b=ovDhNlJ/E3/+uEa4xS8gqFgrlqKjjl8aokgHcjUeZ/7tki9SGTqYyvw7PZ2Nd7/ACjSgn7CBdloeD/t9yzZDDajlxn+s5132pmWdSjaaLlUP1zkSwxDyfW1rsR4SDM6+pXSvFOfXAE341Cn3jy0c4avroZe6bzKBSpWvIA/sCu8=
+	t=1780632213; cv=none; b=i2aedkCDP5Qz+TGfeynA+LEfTzfkG0vYg8WnxXm6NiBCbL+qgOZH7ALO4Za6jiPYW3zDh3tD7ZBcP2qvCzdEprVZROD22g9eebBMHCC8/Qlejo/MpTI3/MXGCOI9IjvJ+uldeUCAVb1W64L5mX3nEwLj/1xXn7EPcO0qiiX0W6k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780632032; c=relaxed/simple;
-	bh=ssVepqQO0pAFjh5eOWKCXQUfSAThy7uGzZOvQ/biCXA=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=WKb35M7lRXD/hVehN30ohaZhQ2svSJfLMRQUJF/Q2oDoSzqcij4MVSKG9a/rWuymPVLc5dmXhgVHjVp166VfpuQ7eDT/xOiLHea9J6jUZaOjkftBUSMFtLzRQrucbI1rujTYOzLw5rudt/fUSRt+TcAYdZJd3sRNJTByBOFzXPg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=rE7HcEjH; arc=none smtp.client-ip=115.124.30.119
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
+	s=arc-20240116; t=1780632213; c=relaxed/simple;
+	bh=OANjMFi4kP/bRhSbJ+1yiLW+pPy6GZpY3M5e8T+s8ss=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=bMgJ4B2V0ZCG0JtNSbqLWJP3ALCNdKyoTYlWi2F/SFWBfSljnkb02NpkyPmnKVyJXMMy/brvafB7Tz7A+1VTHxx0eKAWekIzQlxf+aPCY8zHY3CAPeEw9eSLTY2IvXujKwKhMDFxvU3gswLqMLH7WSWAjD3vBJK/e0Jj+QA4qiM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org; spf=pass smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=rvPgAkqq; arc=none smtp.client-ip=198.137.202.133
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=infradead.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="rE7HcEjH"
-DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux.alibaba.com; s=default;
-	t=1780632026; h=Date:From:To:Subject:Message-ID:MIME-Version:Content-Type;
-	bh=WjvFR5I7aT6sxM14afkrMm8W9jawGkW5mpGdPwuQ0pI=;
-	b=rE7HcEjHsPzR4Y0gEj9cYQMCen1F0Wp+SykFFGOORKkTIUDk5vd6LwbHn7Zs+m4eA42cJiaRiCX3InzOvh87+E+k8rDV2mXbJpzMNgz7OTbABDUF+lgxi6Rl18a9gZQsi2B3+rNQX+JjR+yBclCfP/1nPrUrgQH05B0bnsGa3CE=
-X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R201e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam011083073210;MF=alibuda@linux.alibaba.com;NM=1;PH=DS;RN=19;SR=0;TI=SMTPD_---0X4Bwyea_1780632025;
-Received: from localhost(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0X4Bwyea_1780632025 cluster:ay36)
-          by smtp.aliyun-inc.com;
-          Fri, 05 Jun 2026 12:00:26 +0800
-Date: Fri, 5 Jun 2026 12:00:25 +0800
-From: "D. Wythe" <alibuda@linux.alibaba.com    >
-To: Paolo Abeni <pabeni@redhat.com>
-Cc: alibuda@linux.alibaba.com, davem@davemloft.net,
-	dust.li@linux.alibaba.com, edumazet@google.com, kuba@kernel.org,
-	sidraya@linux.ibm.com, wenjia@linux.ibm.com, mjambigi@linux.ibm.com,
-	horms@kernel.org, tonylu@linux.alibaba.com, guwen@linux.alibaba.com,
-	linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
-	linux-s390@vger.kernel.org, netdev@vger.kernel.org,
-	oliver.yang@linux.alibaba.com, pasic@linux.ibm.com,
-	leonro@nvidia.com
-Subject: Re: [PATCH net-next v2 1/2] net/smc: transition to RDMA core CQ
- pooling
-Message-ID: <20260605040025.GB60671@j66a10360.sqa.eu95>
-References: <20260528084819.6059-2-alibuda@linux.alibaba.com>
- <20260604083637.61737-1-pabeni@redhat.com>
+	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="rvPgAkqq"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
+	Content-Type:In-Reply-To:From:References:Cc:To:Subject:MIME-Version:Date:
+	Message-ID:Sender:Reply-To:Content-ID:Content-Description;
+	bh=prTptCr2IPlJWSLe3kQzyJTLbKMBWIJZlJtJ2pBygAI=; b=rvPgAkqqXZpJ7CtnBaKLfMc23l
+	Ax7rKOBbEd6/Tx/rtxJxy1RZVV5rDkKEoFnUacNECKYaHgETtczkbsvneXoBCuooInCnS+5xiwjUm
+	QGMYA3ra/3+PjBsx//sG9Fm8oa4ixhfb0iKekqZ2hE2UlKtsGyBPbGDV+vL1bGe3ZjxAvN6uqKfYg
+	3JcZTf9HeeMcr+NE5yXxoBG6SFCBE241ipiKOXCokqb5KwmidsvZUKAQZ07u9Rg2GhMuaV3AtaJaE
+	IDrwVdz9M8VERsb/tl3/ZpQD7vJsc68iRh2zBU35cnU92aBGiR7awHXKZy9QtawYzxsF7i5yKJshJ
+	AoRhlLSQ==;
+Received: from [50.53.43.113] (helo=[192.168.254.34])
+	by bombadil.infradead.org with esmtpsa (Exim 4.99.1 #2 (Red Hat Linux))
+	id 1wVLlj-000000003t6-2WQS;
+	Fri, 05 Jun 2026 04:02:51 +0000
+Message-ID: <fa19f1d2-832b-4b9c-824d-29ae48e4bc2a@infradead.org>
+Date: Thu, 4 Jun 2026 21:02:50 -0700
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20260604083637.61737-1-pabeni@redhat.com>
-User-Agent: Mutt/1.5.21 (2010-09-15)
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH net-next V2 7/7] devlink: Add eswitch mode boot defaults
+To: Mark Bloch <mbloch@nvidia.com>, Eric Dumazet <edumazet@google.com>,
+ Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+ Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller" <davem@davemloft.net>
+Cc: Jonathan Corbet <corbet@lwn.net>, Shuah Khan <skhan@linuxfoundation.org>,
+ Jiri Pirko <jiri@resnulli.us>, Simon Horman <horms@kernel.org>,
+ Sunil Goutham <sgoutham@marvell.com>, Linu Cherian <lcherian@marvell.com>,
+ Geetha sowjanya <gakula@marvell.com>, hariprasad <hkelam@marvell.com>,
+ Subbaraya Sundeep <sbhatta@marvell.com>,
+ Bharat Bhushan <bbhushan2@marvell.com>, Saeed Mahameed <saeedm@nvidia.com>,
+ Leon Romanovsky <leon@kernel.org>, Tariq Toukan <tariqt@nvidia.com>,
+ "Borislav Petkov (AMD)" <bp@alien8.de>,
+ Andrew Morton <akpm@linux-foundation.org>,
+ "Peter Zijlstra (Intel)" <peterz@infradead.org>,
+ Thomas Gleixner <tglx@kernel.org>, Petr Mladek <pmladek@suse.com>,
+ Tejun Heo <tj@kernel.org>, Vlastimil Babka <vbabka@kernel.org>,
+ Feng Tang <feng.tang@linux.alibaba.com>,
+ Dave Hansen <dave.hansen@linux.intel.com>,
+ Christian Brauner <brauner@kernel.org>,
+ Dapeng Mi <dapeng1.mi@linux.intel.com>, Kees Cook <kees@kernel.org>,
+ Marco Elver <elver@google.com>, Eric Biggers <ebiggers@kernel.org>,
+ Li RongQing <lirongqing@baidu.com>, "Paul E. McKenney" <paulmck@kernel.org>,
+ Ethan Nelson-Moore <enelsonmoore@gmail.com>, linux-doc@vger.kernel.org,
+ linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+ linux-rdma@vger.kernel.org
+References: <20260603193259.3412464-1-mbloch@nvidia.com>
+ <20260603193259.3412464-8-mbloch@nvidia.com>
+ <d276e842-dd8f-40b7-806b-71572503005e@infradead.org>
+ <e4aada53-fb80-41a8-9a8e-d19414f6466b@nvidia.com>
+ <909ada9a-a398-4e3f-8ed0-596a1e4bdbfd@infradead.org>
+ <91d12ffd-6bd9-4951-8351-655262d44874@nvidia.com>
+Content-Language: en-US
+From: Randy Dunlap <rdunlap@infradead.org>
+In-Reply-To: <91d12ffd-6bd9-4951-8351-655262d44874@nvidia.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-On Thu, Jun 04, 2026 at 10:36:37AM +0200, Paolo Abeni wrote:
-> From: AI Reviewer <ai@example.com>
+
+
+On 6/4/26 2:49 AM, Mark Bloch wrote:
 > 
-> This is an AI-generated review of your patch. The human sending this
-> email has considered the AI review valid, or at least plausible.
-> Full review at: https://sashiko.dev/
-> ---
-> net/smc: transition to RDMA core CQ pooling
 > 
-> The current SMC-R implementation relies on global per-device CQs
-> and manual polling within tasklets, which introduces severe
-> scalability bottlenecks due to global lock contention and tasklet
-> scheduling overhead, resulting in poor performance as concurrency
-> increases.
+> On 04/06/2026 6:53, Randy Dunlap wrote:
+>>
+>>
+>> On 6/3/26 6:16 PM, Mark Bloch wrote:
+>>>
+>>>
+>>> On 03/06/2026 23:06, Randy Dunlap wrote:
+>>>> Hi.
+>>>>
+>>>> On 6/3/26 12:32 PM, Mark Bloch wrote:
+>>>>> diff --git a/Documentation/admin-guide/kernel-parameters.txt b/Documentation/admin-guide/kernel-parameters.txt
+>>>>> index 063c11ca33e5..7af9f2898d92 100644
+>>>>> --- a/Documentation/admin-guide/kernel-parameters.txt
+>>>>> +++ b/Documentation/admin-guide/kernel-parameters.txt
+>>>>> @@ -1264,6 +1264,31 @@ Kernel parameters
+>>>>>  	dell_smm_hwmon.fan_max=
+>>>>>  			[HW] Maximum configurable fan speed.
+>>>>>  
+>>>>> +	devlink_eswitch_mode=
+>>>>> +			[NET]
+>>>>> +			Format:
+>>>>> +			[<selector>]:<mode>
+>>>>
+>>>> It appears (please correct me if I am mistaken) that the '[' and ']'
+>>>> above don't mean "optional" but instead they are required characters...
+>>>>
+>>>>> +
+>>>>> +			<selector>:
+>>>>> +			* | <handle>[,<handle>...]
+>>>>
+>>>> while here they mean "optional".
+>>>>
+>>>> That is confusing (inconsistent). Also, if the square brackets are
+>>>> always required around the <selector>, what purpose do they serve?
+>>>
+>>> Yes, you are right, this is confusing. The outer square brackets are part of
+>>> the syntax and are required, while the brackets in "[,<handle>...]" mean that
+>>> additional handles are optional.
+>>>
+>>> I couldn't find a better way to describe this. What I want to say is that the
+>>> selector is always wrapped in square brackets. Inside the brackets it can either
+>>> be "*" to match all devices, or a comma separated list of handles. If "*" is
+>>> not used, then at least one handle has to be provided.
+>>>
+>>> Maybe it would be clearer to spell it out explicitly, something like:
+>>>
+>>> Format:
+>>>   [<selector>]:<mode>
+>>>
+>>> The '[' and ']' characters are literal and required.
+>>>
+>>> <selector>:
+>>>   * | <handle>[,<handle>...]
+>>>
+>>> If '*' is not used, <selector> must contain at least one <handle>.
+>>>
+>>> Does that sound like a reasonable way to document it?
+>>
+>> Yes, that helps a little bit. Better than nothing.
+>>
+>> But why are they required at all?
 > 
-> Refactor the completion handling to utilize the ib_cqe API and
-> standard RDMA core CQ pooling.
+> Jiri suggested using the square brackets, and I liked that they made the
+> selector look like a grouped argument. But if that is too confusing, I can
+> also drop them and use a simpler separator, for example:
 > 
-> > diff --git a/net/smc/smc_ib.c b/net/smc/smc_ib.c
-> > index 9bb495707445e..a6d6b81830d38 100644
-> > --- a/net/smc/smc_ib.c
-> > +++ b/net/smc/smc_ib.c
+> 	devlink_eswitch_mode=
+> 			[NET]
+> 			Format:
+> 			<selector>=<mode>
 > 
-> [ ... ]
+> 			<selector>:
+> 			* | <handle>[,<handle>...]
 > 
-> > @@ -657,38 +645,59 @@ void smc_ib_destroy_queue_pair(struct smc_link *lnk)
-> >  	if (lnk->roce_qp)
-> >  		ib_destroy_qp(lnk->roce_qp);
-> >  	lnk->roce_qp = NULL;
-> > +	if (lnk->ib_cq) {
-> > +		ib_cq_pool_put(lnk->ib_cq, lnk->nr_cqe);
-> > +		lnk->ib_cq = NULL;
-> > +	}
-> >  }
-> >  
-> >  /* create a queue pair within the protection domain for a link */
-> >  int smc_ib_create_queue_pair(struct smc_link *lnk)
-> >  {
-> > +	int max_send_wr, max_recv_wr, rc;
-> > +	struct ib_cq *cq;
-> > +
-> > +	/* include unsolicited rdma_writes as well,
-> > +	 * there are max. 2 RDMA_WRITE per 1 WR_SEND.
-> > +	 */
-> > +	max_send_wr = 3 * lnk->lgr->max_send_wr + 1;	/* +1 for ib_drain_sq() */
+> 			<handle>:
+> 			<bus-name>/<dev-name>
 > 
-> [Severity: High]
-> Does this calculation account for all possible work requests?
+> 			Configure default devlink eswitch mode for matching
+> 			devlink instances during device initialization.
 > 
-> To support ib_drain_sq(), this patch increases SQ capacity by exactly 1,
-> assuming standard data transmissions consume up to 3 WRs each. However, SMC
-> also posts FastReg WRs (smc_wr_reg_send) and SMC-Rv2 LLC control messages
-> (smc_wr_tx_v2_send) to the same SQ.
+> 			<mode>:
+> 			legacy | switchdev | switchdev_inactive
 > 
-> If these independent WRs are posted while data TX slots are saturated, the
-> total in-flight WRs will consume the remaining +1 slot reserved for the drain
-> WR.
+> 			Examples:
+> 			devlink_eswitch_mode=*=switchdev
+> 			devlink_eswitch_mode=pci/0000:08:00.0=switchdev
+> 			devlink_eswitch_mode=pci/0000:08:00.0,pci/0000:09:00.1=switchdev_inactive
 > 
-> When teardown occurs, ib_drain_sq() will attempt to post its dummy WR, but
-> ib_post_send() will fail with -ENOMEM because the SQ is full. ib_drain_sq()
-> responds to this failure by returning immediately without waiting for
-> completions, unblocking teardown and freeing link structures while the
-> hardware is still asynchronously flushing the SQ. When the softirq polls the
-> flushed CQEs, it will access the freed ib_cqe pointers, leading to a
-> use-after-free.
+> Does this look better to you?
+
+Yes, that looks much better to me.
+But you should do whatever you think is right.
+
+>>>>> +
+>>>>> +			<handle>:
+>>>>> +			<bus-name>/<dev-name>
+>>>>> +
+>>>>> +			Configure default devlink eswitch mode for matching
+>>>>> +			devlink instances during device initialization.
+>>>>> +
+>>>>> +			<mode>:
+>>>>> +			legacy | switchdev | switchdev_inactive
+>>>>> +
+>>>>> +			Examples:
+>>>>> +			devlink_eswitch_mode=[*]:switchdev
+>>>>> +			devlink_eswitch_mode=[pci/0000:08:00.0]:switchdev
+>>>>> +			devlink_eswitch_mode=[pci/0000:08:00.0,pci/0000:09:00.1]:legacy
+>>>>> +
+>>>>> +			See Documentation/networking/devlink/devlink-defaults.rst
+>>>>> +			for the full syntax.
+>>>>> +
+>>>>>  	dfltcc=		[HW,S390]
+>>>>>  			Format: { on | off | def_only | inf_only | always }
+>>>>>  			on:       s390 zlib hardware support for compression on
+>>>>
+>>>>
+>>>
+>>
 > 
 
-Good catch. The +1 is indeed not enough.
+-- 
+~Randy
 
-The SQ has three independent producers but only the data path (3*N) was counted.
-FastReg (link->wr_reg) and the SMC-Rv2 v2 SEND (link->wr_tx_v2_ib) are both link-unique,
-so up to 3N + 2 WRs can be in flight when __ib_drain_sq() posts its drain WR.
-
-With only +1 the __ib_drain_sq() may return without draining, and teardown frees the link
-while WRs are still in flight.
-
-The undersizing itself is pre-existing — 3*N never reserved room for FastReg/v2,
-but it was harmless before. This series only turns it fatal by moving to ib_drain_qp(),
-which actually posts a WR. Since it was benign on its own, I'll just fix it
-here in the next revision rather than as a separate patch, bumping the 
-reservation to +3 (drain + FastReg + v2).
-
-> > +	max_recv_wr = lnk->lgr->max_recv_wr + 1;	/* +1 for ib_drain_rq() */
-> > +
-> > +	cq = ib_cq_pool_get(lnk->smcibdev->ibdev, max_send_wr + max_recv_wr, -1,
-> > +			    IB_POLL_SOFTIRQ);
-> 
-> [ ... ]
-> 
-> > diff --git a/net/smc/smc_wr.c b/net/smc/smc_wr.c
-> > index 59c92b46945c5..130bc6c26fb31 100644
-> > --- a/net/smc/smc_wr.c
-> > +++ b/net/smc/smc_wr.c
-> 
-> [ ... ]
-> 
-> > @@ -63,109 +60,67 @@ void smc_wr_tx_wait_no_pending_sends(struct smc_link *link)
-> 
-> [ ... ]
-> 
-> >  	if (pnd_snd_idx == link->wr_tx_cnt) {
-> > -		if (link->lgr->smc_version != SMC_V2 ||
-> > -		    link->wr_tx_v2_pend->wr_id != wc->wr_id)
-> > -			return;
-> > -		link->wr_tx_v2_pend->wc_status = wc->status;
-> > -		memcpy(&pnd_snd, link->wr_tx_v2_pend, sizeof(pnd_snd));
-> > -		/* clear the full struct smc_wr_tx_pend including .priv */
-> > -		memset(link->wr_tx_v2_pend, 0,
-> > -		       sizeof(*link->wr_tx_v2_pend));
-> >  		memset(link->lgr->wr_tx_buf_v2, 0,
-> >  		       sizeof(*link->lgr->wr_tx_buf_v2));
-> 
-> [Severity: High]
-> This is a pre-existing issue, but while reviewing this code I noticed a
-> potential memory leak and NULL pointer dereference in smc_wr_tx_put_slot().
-> 
-> In the error path of smc_wr_tx_put_slot(), the code attempts to clear the V2
-> pending slots:
-> 
-> net/smc/smc_wr.c:smc_wr_tx_put_slot() {
->     ...
-> 	} else if (link->lgr->smc_version == SMC_V2 &&
-> 		   pend->idx == link->wr_tx_cnt) {
-> 		/* Large v2 buffer */
-> 		memset(&link->wr_tx_v2_pend, 0,
-> 		       sizeof(link->wr_tx_v2_pend));
-> 		memset(&link->lgr->wr_tx_buf_v2, 0,
-> 		       sizeof(link->lgr->wr_tx_buf_v2));
->     ...
-> }
-> 
-> Because these target variables are pointers, sizeof evaluates to 8 bytes. The
-> memset() call zeroes the pointer variable itself rather than clearing the
-> underlying structure, which leaks the allocated memory.
-> 
-> If smc_wr_tx_get_v2_slot() is called subsequently, it will attempt to
-> dereference the now-NULL link->wr_tx_v2_pend, leading to a direct NULL pointer
-> dereference.
-> 
-> Could this be updated to use sizeof(*link->wr_tx_v2_pend) similar to the code
-> removed above?
-> 
-> [ ... ]
-> 
-
-Makes sense. Since this is pre-existing and unrelated to this series,
-I'll send it as a separate patch.
-
-> > @@ -431,94 +367,74 @@ static inline void smc_wr_rx_demultiplex(struct ib_wc *wc)
-> >  {
-> 
-> [ ... ]
-> 
-> >  }
-> >  
-> > -static inline void smc_wr_rx_process_cqes(struct ib_wc wc[], int num)
-> > +static void smc_wr_rx_process_cqe(struct ib_cq *cq, struct ib_wc *wc)
-> >  {
-> > -	struct smc_link *link;
-> > -	int i;
-> > +	struct smc_link *link = wc->qp->qp_context;
-> >  
-> > -	for (i = 0; i < num; i++) {
-> > -		link = wc[i].qp->qp_context;
-> > -		link->wr_rx_id_compl = wc[i].wr_id;
-> > -		if (wc[i].status == IB_WC_SUCCESS) {
-> > -			link->wr_rx_tstamp = jiffies;
-> > -			smc_wr_rx_demultiplex(&wc[i]);
-> > -			smc_wr_rx_post(link); /* refill WR RX */
-> > -		} else {
-> > -			/* handle status errors */
-> > -			switch (wc[i].status) {
-> > -			case IB_WC_RETRY_EXC_ERR:
-> > -			case IB_WC_RNR_RETRY_EXC_ERR:
-> > -			case IB_WC_WR_FLUSH_ERR:
-> > -				smcr_link_down_cond_sched(link);
-> > -				if (link->wr_rx_id_compl == link->wr_rx_id)
-> > -					wake_up(&link->wr_rx_empty_wait);
-> > -				break;
-> > -			default:
-> > -				smc_wr_rx_post(link); /* refill WR RX */
-> > -				break;
-> > -			}
-> > +	if (wc->status == IB_WC_SUCCESS) {
-> > +		link->wr_rx_tstamp = jiffies;
-> > +		smc_wr_rx_demultiplex(wc);
-> > +		smc_wr_rx_post(link, wc->wr_cqe); /* refill WR RX */
-> 
-> [Severity: Critical]
-> Can this cause a use-after-free when racing with queue teardown?
-> 
-> The patch replaces smc_wr_drain_cq() with ib_drain_qp().
-> ib_drain_rq() transitions the QP to IB_QPS_ERR and posts a dummy drain WR to
-> wait for completions.
-> 
-> However, smc_wr_rx_process_cqe() unconditionally reposts a new WR when
-> processing a successful packet completion. If a valid RX completion is polled
-> in the softirq concurrently with ib_drain_rq(), the softirq will post a new WR
-> after the drain WR has been posted.
-> 
-> Since the QP is in the ERR state, the new WR will be immediately completed
-> with a flush error, but its CQE will be generated after the drain WR's CQE.
-> This allows ib_drain_rq() to return and unblock link teardown, freeing
-> link->wr_rx_ibs.
-> 
-> When the softirq subsequently polls the flush CQE for the newly posted WR,
-> it will dereference wc->wr_cqe->done. Since wc->wr_cqe points to the freed
-> smc_ib_recv_wr, this results in a use-after-free.
->
-
-The analysis is right, and unlike the other two this one is introduced by this
-series. The old smc_wr_drain_cq() was a pure counting wait that posted
-no WR, so the unconditional repost was harmless. By switching to
-ib_drain_qp(), which relies on the drain WR being the last WR on the
-queue, the same repost now breaks that invariant and opens the UAF
-window.
-
-I'll fix it in the next revision by quiescing the repost path
-before draining, so the drain WR is guaranteed to be the last one.
-
-D. Wythe
-
-> > +	} else {
-> > +		/* handle status errors */
-> > +		switch (wc->status) {
-> > +		case IB_WC_RETRY_EXC_ERR:
-> > +		case IB_WC_RNR_RETRY_EXC_ERR:
-> > +		case IB_WC_WR_FLUSH_ERR:
-> > +			smcr_link_down_cond_sched(link);
-> > +			break;
-> > +		default:
-> > +			smc_wr_rx_post(link, wc->wr_cqe); /* refill WR RX */
-> > +			break;
-> >  		}
-> >  	}
-> >  }
-> -- 
-> This is an AI-generated review.
