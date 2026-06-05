@@ -1,41 +1,40 @@
 Received: from stravinsky.debian.org (stravinsky.debian.org [82.195.75.108])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E712141363B;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2294413620;
 	Fri,  5 Jun 2026 10:31:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=82.195.75.108
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780655514; cv=none; b=CJjn3DcTcAEEMQP8s9w3NBJmqyyEzmnoaL/HEEBUaZ0rzlpp4gTf0bGM08GAbcmpLCZ26LyywI9VyZZ3Y1h02LscYHd2oRw5k0oJv1qWCAsVHGi797gADY34cKtLg/y+foUZ51e+fhvJgfCbN3Oj2xYklDAHTRULvSnxC0nWwbw=
+	t=1780655514; cv=none; b=T98XXpRET0sijmgrljQ60CxkfmLziyaja5XM9z9OswEy39zn88/qGqWsY1pyH7zzAzK4J4B/SgNRcgJu9Jfcs8Wl3WHuFUGHpGGEZB42ZjxcGZ7dTAMm03HsW3aeVT8WJTtHXpEEAcTLSyRhkdKxaTKoTrM7hpCsxtCwAE6MxpA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1780655514; c=relaxed/simple;
-	bh=00hwPSZA8fZYcFj+RYCIxpnKtgT+aRtEfaPpoZFZJBY=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=n3OKoYKMbUTV0foRfxtMN+83UL6Nf4Jyykue/5WMwZz0xuH8YF5O6kgQkeO7kT5t8B2F1lrnrfGo/RxWfF8ZH650iaF6+LQL8EFowwsDVMCFo02v1j6Hx2TmmXqbs7LMye7sAdj0XS/xW8OV3liKpNoC1gjxVTJ8R2PX3FEYZY4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=debian.org; spf=pass smtp.mailfrom=debian.org; dkim=pass (2048-bit key) header.d=debian.org header.i=@debian.org header.b=qy2Po5Ez; arc=none smtp.client-ip=82.195.75.108
+	bh=OBWY16znzlumIDuXmPxKShpN9lmCjAmAY1x0RdDphkY=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=tFMN44HBfuZqrLl0lNZ4gkTkl2EEKO8t7PMKBvnw61K9gIqHssdQQBGMmJAo+L2xswxzz2dng9oFfJB55uDgdSktxMjfm23YzkAwJJr9GKzbJqWKza0azV37TtQmDSsN2KbvAUq/8kSs6+R9oav6OIW2WixCZh0Zfh1AiPh52F8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=debian.org; spf=pass smtp.mailfrom=debian.org; dkim=pass (2048-bit key) header.d=debian.org header.i=@debian.org header.b=cz8euOCu; arc=none smtp.client-ip=82.195.75.108
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=debian.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=debian.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=debian.org header.i=@debian.org header.b="qy2Po5Ez"
+	dkim=pass (2048-bit key) header.d=debian.org header.i=@debian.org header.b="cz8euOCu"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=debian.org;
-	s=smtpauto.stravinsky; h=X-Debian-User:Cc:To:In-Reply-To:References:
-	Message-Id:Content-Transfer-Encoding:Content-Type:MIME-Version:Subject:Date:
-	From:Reply-To:Content-ID:Content-Description;
-	bh=8DmfM0emdEXvHwwBK/UWoQtQdiUcoSMtiKrMc4myUNY=; b=qy2Po5EzFtqBVmaUj5pARa+sAb
-	5Gcdae7s3vwdeTUvF4A0iXn6EbxMpcydwhIOL1XgdABvEUbvs8BiYDr7hrdJwLe8qZiojWAMAh44l
-	rwMVScrutwrmzFDX4DVm21m4XCAYYGuwvStuxYet4x2iECzK+FK04i2+dl1XKc4DVh3HnvPk+yPkQ
-	Zo+b8ifcaw1AnwUrA94/R4wGYxHWAeQ7KsB63caW4IZO9OlsQ8yoPBSkfjjzgw+h5vlrXBD6CPOKZ
-	xGFfeZXp1LuM9yToRcD/twQOrp6WEXnVOuZqp4nIbv+AYQ4FL+uN1WlTd+kyGpSU+dZ9g9hKc6wth
-	8b3Py7FA==;
+	s=smtpauto.stravinsky; h=X-Debian-User:Cc:To:Content-Transfer-Encoding:
+	Content-Type:MIME-Version:Message-Id:Date:Subject:From:Reply-To:Content-ID:
+	Content-Description:In-Reply-To:References;
+	bh=9PTu3Vb3Lt5Y6lB5ku3B8N33RivQCs3vrjjJ3i7UYOE=; b=cz8euOCueZ5KDpiTRs6xTITzWd
+	yZfuWCEbPh1lvm6FGWe+T0sGbRISl8uB1YrKkq3XFRk7rE9C6lXq921pVQwv0txzRoRLrw6sHWCZ6
+	i+tpnlV3j52OCDEaCciMlCpW8XY4pLeXDDFfqQmwNfv1UiBjkTsaWqCzO6glTrA4UkfWNd+YiNu7h
+	dDxU47CAUtMMGnsH/LtY8kSz0Vw4eddQcuuGkD/BiJAAIJ7J55n4gfEKT2yUwrU/6O/rd0lp8nqY0
+	uDL37y1QtQAWXuxkDCUhj2tLIuzLIxsHtweIzFioU4tJTGeUsWyH666RZBF/qhvDAZ10QdQ7icP+e
+	TeY40D4w==;
 Received: from authenticated-user
 	by stravinsky.debian.org with esmtpsa (TLS1.3:ECDHE_X25519__RSA_PSS_RSAE_SHA256__AES_256_GCM:256)
 	(Exim 4.96)
 	(envelope-from <leitao@debian.org>)
-	id 1wVRq9-005EEs-2h;
-	Fri, 05 Jun 2026 10:31:50 +0000
+	id 1wVRq5-005EEp-1d;
+	Fri, 05 Jun 2026 10:31:45 +0000
 From: Breno Leitao <leitao@debian.org>
-Date: Fri, 05 Jun 2026 03:31:38 -0700
-Subject: [PATCH net-next v2 1/3] rds: mark snapshot pages dirty in
- rds_info_getsockopt()
+Subject: [PATCH net-next v2 0/3] net: rds: convert rds to getsockopt_iter
+Date: Fri, 05 Jun 2026 03:31:37 -0700
+Message-Id: <20260605-getsock_more-v2-0-80f38cdb8706@debian.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -43,10 +42,12 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20260605-getsock_more-v2-1-80f38cdb8706@debian.org>
-References: <20260605-getsock_more-v2-0-80f38cdb8706@debian.org>
-In-Reply-To: <20260605-getsock_more-v2-0-80f38cdb8706@debian.org>
+Content-Transfer-Encoding: 8bit
+X-B4-Tracking: v=1; b=H4sIAImlImoC/23NQQqDMBRF0a2ENzYlahpSR91HkaLJVz+lSUmCW
+ MS9Fxx3fOHcHZkSU0YndiRaOXMM6ERTCbhlCDNJ9ugEGtUYZVQrZyo5utfzHRNJbUayvnZXM3l
+ UAp9EE28n90CgIgNtBX0lsHAuMX3Pz1qf/T+51lJJ3Y7Wa+Ws1be7p5GHcIlpRn8cxw8p9zmys
+ wAAAA==
+X-Change-ID: 20260603-getsock_more-46be8d1c56fd
 To: Allison Henderson <achender@kernel.org>, 
  "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, 
  Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
@@ -56,53 +57,76 @@ Cc: linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
  linux-kselftest@vger.kernel.org, Breno Leitao <leitao@debian.org>, 
  kernel-team@meta.com
 X-Mailer: b4 0.14.3
-X-Developer-Signature: v=1; a=openpgp-sha256; l=1093; i=leitao@debian.org;
- h=from:subject:message-id; bh=00hwPSZA8fZYcFj+RYCIxpnKtgT+aRtEfaPpoZFZJBY=;
- b=owEBbQKS/ZANAwAIATWjk5/8eHdtAcsmYgBqIqWNcVYIIJISvcnN7cwAbA0w5GLVZG8jfwZ4Q
- BxzYfinR9WJAjMEAAEIAB0WIQSshTmm6PRnAspKQ5s1o5Of/Hh3bQUCaiKljQAKCRA1o5Of/Hh3
- bcWKEACuD3qtWXMRs/X/KxwjB9YhpiCScdOL1ayjmDKa76/qXeVdgQpiS8ufbjI9rEY+mL63N84
- XpRle9/j5uLr6KkRrbcP+xOuBdFEvHA1jd3jC6imnxdOnF3JpJGDO1Ct7ZvOR3d/QOuzmjbCgvc
- /Uy6BF9GcLbEJLKhoZ+L4CC8RLEDAWrPQsuwPNMMOsjNd/liGEbNP2H8MKgfmBhRX5egLEJlM3b
- 9LegD3FHsR33fZ2DEUF+ru3drqi/aVxF8LaLKGX15YwmHe1kZHKX9ILG+Avjc8HbIw2g8pX1b2C
- okXGPcsaqO7I2OedE1jpAqnC/W+AEg3yYZb6qu5tD6w208Z/Qgtdk3vi4hV6XGwFcK5Umqg7QYF
- CEeKqtxZo2Zml5P/e1ecIKHk84IJDn/WMad3xVA4H2H6zMrArR+x/XV7mQ36xwXv3mxsECTIZxg
- XjrE7Y3n/tmvnnGidXQDOKY42Sk2tj0rSqrwWXiz+++YsgB8KBCJRF50FGniLGhtx2sIWRi0Gid
- hR8/6K8NsDDc1Co70/85VIvYqAqpDrZXrmcsvVtjAu5NbPhDIQ6WyeVFmBWOSE84D6pvRidte/v
- xwea8h4aTyJvZmSFQQFKXu1NXT0zOh0KkpchhnT/0fA0nnth3LJYsVXvzNJ/rmj0bZxE+51afx7
- co8JzalAEf26YIQ==
+X-Developer-Signature: v=1; a=openpgp-sha256; l=2386; i=leitao@debian.org;
+ h=from:subject:message-id; bh=OBWY16znzlumIDuXmPxKShpN9lmCjAmAY1x0RdDphkY=;
+ b=owEBbQKS/ZANAwAIATWjk5/8eHdtAcsmYgBqIqWNpaqMrV3mAFG2swCP5DiCM43NEpny5JPBV
+ SSDRY+wuKiJAjMEAAEIAB0WIQSshTmm6PRnAspKQ5s1o5Of/Hh3bQUCaiKljQAKCRA1o5Of/Hh3
+ bZ9NEACGKK+YVIXxYig46rW39uHzWqMyUyo1SJQZkp2r62/SBjCo9ppZI3Ht6bQBXUOV+pvzdpw
+ mQ/H3yOT08alSIWnFmTOvDfBngcUDKmoRRn0BmsDeGa/c4Ymo+MIkP80w+6CjcKvqediH6bnRvE
+ v5E6AxNMb2DK5FFeq9lAINIZnsUp7/CQ6lNzBEn9UFqrNdV++bq1RnzvxcrLbaiB4kh5C9A796d
+ EdYh5bmFFTMBZoX9h+2uRWa4dsGJ0SmR7BGZ1xJNAs4/ZZz/K1edNcuaoGac1XY3qTRe2qSxJRt
+ mk7ynPZVDTO3KUxCZiA+Owhzl/G2qiUHByBG2gySDLHx3ZKBd2FgZZrBJA+JskRnLqa+HuM9hOO
+ 1KIiJekE7IsCMaA1RX2EnEuL2st8fh6tFa4A4hFdAotOaHgVjvs8iKP7P8pEg9tz/5IhgvWzvJF
+ +4X0ywWZEq5acbwpxM+XSLRxMS0Lo7uSoEAFUedG+4BW6YmnMdhmX2H0IPxsLwfV7h5FaaFl/Jw
+ wSOiCyaBx+0B3NK97vhzUet3VMQh8/BZjvCJznJnADmi5eO3rBJC3ovDYLMgnB2w7CMGcZBeiGz
+ FETKSxE92/PTjbfgDDHgwKRHXg0KPasHDp8rzzmw0gcChnwLj7NwAQ2wuPNGBmZk2OmavCuFHzm
+ gmpuk18U2WhRk9g==
 X-Developer-Key: i=leitao@debian.org; a=openpgp;
  fpr=AC8539A6E8F46702CA4A439B35A3939FFC78776D
 X-Debian-User: leitao
 
-rds_info_getsockopt() pins the destination user pages with FOLL_WRITE and
-the RDS_INFO_* producers memcpy the snapshot into them through
-kmap_atomic(). Because that copy goes through the kernel direct map, the
-dirty bit on the user PTE is never set, so unpin_user_pages() releases the
-pages without marking them dirty. A file-backed destination page can then
-be reclaimed without writeback, silently discarding the copied data.
+This series continues the conversion of the remaining proto_ops getsockopt
+callbacks to the new getsockopt_iter callback introduced in commit
+67fab22a7adc ("net: add getsockopt_iter callback to proto_ops"), this time
+for RDS.
 
-Use unpin_user_pages_dirty_lock() with make_dirty=true so the modified
-pages are marked dirty before they are unpinned.
+RDS is a little more involved than the protocols converted so far, because
+the RDS_INFO_* options snapshot kernel state directly into the destination
+buffer: the info producers memcpy into the pages under a spinlock via
+kmap_atomic() and so must not fault.
+
+The conversion preserves that model — it obtains the same page array and
+starting offset from opt->iter_out with iov_iter_extract_pages(),
+preallocating the array so the iterator fills it in place, and leaves
+the rds_info_iterator / rds_info_copy machinery and all producer
+callbacks unchanged; kernel (ITER_KVEC) buffers remain unsupported on
+the RDS_INFO path, as before.
+
+I've vibe-coded a kselftest exercising both the simple options and the
+RDS_INFO_* snapshot path, feel free to drop it in case this is not
+useful.
 
 Signed-off-by: Breno Leitao <leitao@debian.org>
 ---
- net/rds/info.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Changes in v2:
+- rds: reject non-user-backed buffers with !user_backed_iter() instead of
+  iov_iter_is_kvec() on the RDS_INFO path (Allison Henderson)
+- rds: gate the page unpin on iov_iter_extract_will_pin() and comment the
+  implicit pin (Allison Henderson)
+- selftest: size the snapshot mmap from the probed length instead of a fixed
+  two pages (Allison Henderson)
+- Add a new patch to fix a concern raised by Sashiko.
+- Link to v1:
+https://lore.kernel.org/r/20260603-getsock_more-v1-0-43b8d40c8849@debian.org
 
-diff --git a/net/rds/info.c b/net/rds/info.c
-index f1b29994934a..17061f6ff74e 100644
---- a/net/rds/info.c
-+++ b/net/rds/info.c
-@@ -235,7 +235,7 @@ int rds_info_getsockopt(struct socket *sock, int optname, char __user *optval,
- 
- out:
- 	if (pages)
--		unpin_user_pages(pages, nr_pages);
-+		unpin_user_pages_dirty_lock(pages, nr_pages, true);
- 	kfree(pages);
- 
- 	return ret;
+---
+Breno Leitao (3):
+      rds: mark snapshot pages dirty in rds_info_getsockopt()
+      selftests: net: rds: add getsockopt() conversion test
+      rds: convert to getsockopt_iter
 
+ net/rds/af_rds.c                             |  36 ++---
+ net/rds/info.c                               |  78 +++++-----
+ net/rds/info.h                               |   3 +-
+ tools/testing/selftests/net/rds/.gitignore   |   1 +
+ tools/testing/selftests/net/rds/Makefile     |   4 +
+ tools/testing/selftests/net/rds/getsockopt.c | 208 +++++++++++++++++++++++++++
+ 6 files changed, 279 insertions(+), 51 deletions(-)
+---
+base-commit: b7bee4ca5688e30ca50fbc87b1b8f7eed7006c17
+change-id: 20260603-getsock_more-46be8d1c56fd
+
+Best regards,
 -- 
-2.53.0-Meta
+Breno Leitao <leitao@debian.org>
 
