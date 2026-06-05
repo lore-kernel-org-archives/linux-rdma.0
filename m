@@ -1,79 +1,79 @@
-Received: from mail-wm1-f52.google.com (mail-wm1-f52.google.com [209.85.128.52])
+Received: from mail-wm1-f46.google.com (mail-wm1-f46.google.com [209.85.128.46])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 95F2039D3D0
-	for <linux-rdma@vger.kernel.org>; Fri,  5 Jun 2026 22:39:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.128.52
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 01AB13955F3
+	for <linux-rdma@vger.kernel.org>; Fri,  5 Jun 2026 23:13:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.128.46
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780699165; cv=pass; b=fbl8v1LYSDD7hcx3fsRC+CP7iaU6CVM2Q4df34RoVrzB8CEt7oevQMtRTxD3L35iM5f8guDqPSSKLrz1ixgXh03WO4vOYxZw4ypdd6KhLyrGz42oyGNzMw+CqgE6wtASZ/sWimcjmAmuLXoCvVq7IILMXROa71WZ8J3Q8ZQ9pBY=
+	t=1780701197; cv=pass; b=N0L2BgXFWb9W7VsUletjuFp0j5SAHhmcl3Zra+SxwJ4S/zg3zbjNnZEVD/c1lBo1SF1FZ5Vn05c0k7MO2vDrnP5Bv4A+xy02qonV1li9i7Cv874hdDx7MyRycpjWY67rWeEg1d04F0lyxypN9wzvrEeFus+ivmPMkO2sEwUxUy8=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780699165; c=relaxed/simple;
-	bh=FnXrjnkNI33tVdfHYkYQx3ixiIoGOgfo4flzDs56Vb4=;
+	s=arc-20240116; t=1780701197; c=relaxed/simple;
+	bh=4cE486h5t6YIIigwj5Ql88T65gS4pqp6vVCrPMt54vY=;
 	h=From:References:In-Reply-To:MIME-Version:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=SoVg4QRaE3/utuQPjAwHqBUAnFaeQ+nqM+v4nnutWTyM3Y6kj0cenePyUMiQX+oxsij88WjaH6Gkh6E9tllh8ZmmxXhYXvJBGIjLxvpLfG/85MW8+nGf4vxRkqXDi4O3TqP2Jm+eeWsPUY1xEdkEv7md8dP1edmqXCjNb/MoGW0=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hammerspace.com; spf=fail smtp.mailfrom=hammerspace.com; dkim=pass (2048-bit key) header.d=hammerspace.com header.i=@hammerspace.com header.b=FpRyl6hB; arc=pass smtp.client-ip=209.85.128.52
+	 To:Cc:Content-Type; b=e0s2QiWJ/Lmcw1dDUO+iXuYrCt1UtLOA0KFHG54RznMqkuQ2P9sesbTCT+n6PrMCrA0nHq040Iyraq0HGmO052/LTiqD85S+yARoJ1GoF2KLlHKGh1m6FOl/pbbFjDQ6uPT8GzzLdPyHvPuMPNk3LF9HekrrYQjVCmw8NZ1zPkE=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hammerspace.com; spf=fail smtp.mailfrom=hammerspace.com; dkim=pass (2048-bit key) header.d=hammerspace.com header.i=@hammerspace.com header.b=Sro0e4tk; arc=pass smtp.client-ip=209.85.128.46
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hammerspace.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=hammerspace.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=hammerspace.com header.i=@hammerspace.com header.b="FpRyl6hB"
-Received: by mail-wm1-f52.google.com with SMTP id 5b1f17b1804b1-490a765d410so25216475e9.1
-        for <linux-rdma@vger.kernel.org>; Fri, 05 Jun 2026 15:39:22 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1780699161; cv=none;
+	dkim=pass (2048-bit key) header.d=hammerspace.com header.i=@hammerspace.com header.b="Sro0e4tk"
+Received: by mail-wm1-f46.google.com with SMTP id 5b1f17b1804b1-490b9318997so18116755e9.2
+        for <linux-rdma@vger.kernel.org>; Fri, 05 Jun 2026 16:13:14 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1780701193; cv=none;
         d=google.com; s=arc-20240605;
-        b=RpquaJ/3KCqKOAcgxclG74ya0mPiDeXb9TB6FIfEt0V6tcqbECZLMYgNmefFlLVx1I
-         Kf3DQvGsYQVNDA2AGrEWtre1AFa2i3aKXtC4kUePhUJcvEaukTMSAPPCTguVvxQiK8y1
-         2TYB3LwGJivdCBvHerTevae6QQpax0xubP/Z4/5SbAd+lnlGAY+qiarejFlc1VzuNJ+u
-         YP7RI1pvZwb2I00Az/gYZ+PMqMabFvdTQ1CARD15YXI14mVF12BeCEZiETyqEXslSMBl
-         Ce/tq2NmpPNhmEgMP4P6QZ/lWcJ/ZWG+eRB1cEcAXywKS51inIzszG8+9yQ8oPQoX36v
-         4J8w==
+        b=IZRTnkp5DN5XOfTYMGmbg49DnWi68XqY+/vMXQbT0NvHIBy4oo1Ds4acW7LoeXmANZ
+         GjTfvEvJav3rVXo2MIrmz9MQlrnlevJ3C00txTylOi8U9L3lwckfQ33KMnsikSnptbbB
+         CM4/IwpwVSFvfV8/KMLVTTliwNpqKsvJb+6NEGKLW68e36Hu/rsPu4r/UXdtSN/iZOV1
+         yjV+0UxluJGyRjZZAZg9cCZsgLB1jOq5Vt6D51hIkjF1HcKOXS7rmqQSmd0W4+vgDFi9
+         PtLL6AYb99ownTTlS4uLUHIIdJSSIbMiDUuGV3uqFzb4SYJTMr4tg2fd9HWbZNKCO7AK
+         L9sw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
         h=cc:to:subject:message-id:date:thread-index:mime-version:in-reply-to
          :references:from:dkim-signature;
-        bh=Fc6W6oIkjMbqytM9E/cvVD3Cas3uXp/UlRnjJ0px6I0=;
-        fh=105b4i1cBBe/Q5ysiQ1NbhVCx8/+su9scbMs6h0o+pk=;
-        b=a7k15JReBKr0Go8LylngIYq/E3FZzD5pE/jUz/Lzz5ci+oVWwScH3Mcn2dlOngfCZ1
-         /UrYq36/Ie1ZVcbOqcQjln1gUzT65RFr3QYEwdmMTzn9kC9KrPoLyn4ab8+7re/OT17U
-         dQYFzKyuGRolQJ7PceCyab8cJb6jGKMiehtzL7PYQqt+IEo/gHVrsBMQqZXR6W++JEiM
-         ZeTW0U/2SFjrGpxebjAQ7tckFm9OkJ6oc0q6W1SF7TVfSDdhwFoV1244YjjtO1pP7k60
-         7zcgkGjOZUNMhUwWkIj/NGIzL/96+xjcTqau7KRizUkhgZrEUCRiNR5K4m8Dzxsx2Xn5
-         z2Lw==;
+        bh=79tlu8fv//QY1Mz5hfzUvL7B6kALz4yuxyZKouUvpEA=;
+        fh=7h68sSiNgeI1X36AbYsFDq+DRINt+lkaxir3aw8RQ8I=;
+        b=EF+YrnfWwLT95T+o5Ot3xsAjODnkbq4faIBqX+ONw80G6iEs1PUlVgTliHL+M1fnh1
+         Sl4rMdew5SQ0kzjrh3lFlqpamOItu7vo5aNah1JMDDUgY3nzM/O6QZd1C6ldXQUQ6lwk
+         FZNGHcJo0/Ssmceb27DmlOtYpckmiQgzYZh7CWs+qZkf9Fu7acTFoMdkQTPAXXNVG1fr
+         VZFRKPvVR+LzOTuiVAXK3tz4JrzU32bUcUVZQQXsV1ZeVWacR4Ru32lBSYqyFKbNEoGA
+         DZ+/3f7k5AFUTlBsimsYLlzoUbWwVVajNRlJr7hhAmI6tNm+oAic0DMe3xcjz0XV6Ese
+         w7+w==;
         darn=vger.kernel.org
 ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=hammerspace.com; s=google; t=1780699161; x=1781303961; darn=vger.kernel.org;
+        d=hammerspace.com; s=google; t=1780701193; x=1781305993; darn=vger.kernel.org;
         h=cc:to:subject:message-id:date:thread-index:mime-version:in-reply-to
          :references:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=Fc6W6oIkjMbqytM9E/cvVD3Cas3uXp/UlRnjJ0px6I0=;
-        b=FpRyl6hBOA1tRKzb1NYQRH0n5h6zJWNP7+Vv/Jv6xlzl1q5POyjrRAKg75ilawF8dz
-         YZf/6fIl1gg2pxLmwnBTzoONP8G+Q23F6GFFah6w7jPrNhz3J8wKTN662LnutQJ0HwZo
-         AeR6I8ldnH8XmocD7OeiGdDpjrMAQd4AYc7Pfxvvns9ShM6H5YQk+Ymaybv+3wFkNYNz
-         4HRIQc8svHQusKq/c+zTw8DNwHt6aqIktSNVS+Wju7VVbEg4qUr8dMAFSJMO4ybKA8Di
-         X+EDBghkYvXAE8lUjoI+U7QOOSbSxWSUTG+XIh3m4W5AofZJDaa99EkfXXwOGfyM44J7
-         tXRQ==
+        bh=79tlu8fv//QY1Mz5hfzUvL7B6kALz4yuxyZKouUvpEA=;
+        b=Sro0e4tkAKPOnRXFRQ8v4kPraQLZOK6t5d94gln1A9t6aAnh04YmkITeCel4NhGyPu
+         jjrUmX/9olqBO0gCRVpxRo1Iu0zmJJRjs2qRIZhXCQNVt9UtZ6HwSb38SPC5VU16+6ME
+         MSXuCWNMKIQpJrzrTCDTsaTsXw6ImLRAj+pG5Ntkn+1Z58YCJ4Y2xir/5+dlixrX/QGS
+         mUFPvG1atkEdhcpVIS19Itzc900s2pxsSdkLv/EwfjFH4ZSLt+ps7oSlmJFZmWTfRBeL
+         wfgCEovnT6TPvnMzqFJIhq7tvfruMqfYFhxHqsA7E1q9p2BloxIBY0Npr7kAfDJPxTVx
+         t04Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1780699161; x=1781303961;
+        d=1e100.net; s=20251104; t=1780701193; x=1781305993;
         h=cc:to:subject:message-id:date:thread-index:mime-version:in-reply-to
          :references:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=Fc6W6oIkjMbqytM9E/cvVD3Cas3uXp/UlRnjJ0px6I0=;
-        b=VfGAN81ccoudvhMnyfTJaqc8uEfFcdo4nHmCh4qh/rhK0AJIWk319+ZZdZIcwOGGgv
-         Mj23chUhyRpQ5KjAnhfXLO2x656uZ5tWdUWAZ7aSLLDxJGE1LrmjrgFPTlQ7YLtyP+5n
-         OlT+K22BtotfYw4pMYu1zaAu3H912tAOgRIH37GX3p1qfY51QiMuOWlrF20SYAMQ4ueY
-         xvGgITlTTV9L1DqEbwfCG7b7UgMM0yIdqv8YfsEVsQC/2WVpyuCdi2iI6U2pwL7k9ZAN
-         bnpl5pKKqbpr31xK6cEN7MlDhStdUgbXICrd9GdUHbbqEpzo0wQTUKaFkuA+UpJ9oi/p
-         jFKw==
-X-Forwarded-Encrypted: i=1; AFNElJ/xvoMEPugS6M+3WWkM3nB3O2a5fhmjrkMfCSD3I7SmWcTzXUwXkoDZ6rlTUUojnaEKEeSE+Dk+JYqv@vger.kernel.org
-X-Gm-Message-State: AOJu0YzRcHs4o4i/lSdMaFGgP9bRMGIjB1Nx5L+eG4shYagwvIOkX2PN
-	GsvAYEIQkm/Z3gpwA28ObqBb+KMNBk6T4w0HX0i1DoaR8h5zs2bEbY6ceg0yJ6LdvJczrmk36Uz
-	EDaFBZD2k2hagF0vBgXyMcRJPudYrRtx0/cfMietuRw==
-X-Gm-Gg: Acq92OGrKYDi6fxvMCVY8EXcRE9rIhy6XyhjUotJG38PkfRhOo/NAsnmH8VizrwObhj
-	G1iiQN5yyCWzyXy66O8QQjmlss5nU5OvMeEXF+hpxcsioUGaolPdoUpI+WA46MukT/wiFTgK+F1
-	jyXMOdj8k432mj2IcR11OP0dokV/AuXAeB8ZQXAuEcuGR6/cyH0TrfUZIGDkr1aEvM7bDo7lVUP
-	0f8XpZrXgtJ/xcdxN1K5FBEIm+gTPhrmYu9dI9X9BTx/pEVSMvE2HmevUIyKWlg7jdXwTyFwmVt
-	+7hPFQHWUZ+64WouZUqlZY0wD/Q=
-X-Received: by 2002:a05:600c:8215:b0:490:a1be:6b01 with SMTP id
- 5b1f17b1804b1-490c2560493mr100406745e9.4.1780699161033; Fri, 05 Jun 2026
- 15:39:21 -0700 (PDT)
+        bh=79tlu8fv//QY1Mz5hfzUvL7B6kALz4yuxyZKouUvpEA=;
+        b=gDNj5kcwRNWynD9zwLdarK81kXKgQ/JM3JGqnUf+OFJG+8yR8os5w8fCx4YEbuZj+C
+         sn3pFtooBZvE3n6RhucuyocUtKUsxPOwVgsqn4JGK90lZ9EdZ4dG0JzSw9ECzgJrXMc4
+         Exx8yC9SxuY0t7CltKnKdk21bqDCB3aEDgyAMrcNDkp+wpHRYyGcIdXJOJwTf6lMGByZ
+         lEe0P2uYdE5j5IoIgD2Brk8GYqwl/FpNmwj3Gz3km9Pykq8qE7fwQH2aKQUzsqyjk65F
+         bbsEKwcORiSC+zIJBvPGAK457Bw3VzPphvvYN2Tx05rYgmQGCXP65X3fP5CrbRMl7kXa
+         3vEQ==
+X-Forwarded-Encrypted: i=1; AFNElJ+/QGSH7quy4hKZzDPD18vqu5OjYk4VCMcqqm6mB5SYUrH8V/sE8svEvu8qDWV+97JZb1AcUnXXhKVh@vger.kernel.org
+X-Gm-Message-State: AOJu0Yx3usiq2lGmGWBDgiXHBEc41idx9gggYNzIrkCksUhtAS70Q5NM
+	2+K+/IJDYlJ7Rda0G6YGEiL6wJ9th03NGwMNwpqdIQ8da1cAQD1H6VLw3padsgakU1irElzJsfv
+	NjCt3LEgQU2Hun3O6T99QC8TNKhy3Q70Kces+5UCCMA==
+X-Gm-Gg: Acq92OFeu25tIbbw1Mxs8FHuN7ziZeX6kc56LSzZbCdj+hhDAUz7tsygBXuCy+IrhyL
+	7v4DuTX4gpOc+WCBJZ0e3uuyY5SklTx5lNZv9kLQPLsYTTVI4qIICEKmU3uSuZtK4smJPm3YPje
+	D1e5fUOO1H/lUUP5l+t+7BDFvHoqcpVGc46IernJ46rpF8yhZ4GcotdunQjACIgIvSYb0za73cw
+	0URcH0gZ6V4rldqUIpFwDeAiBmWvTp0jK19hS75wCUuq9oX8uiFltTnQSV68TKltkRJYlxfMKxe
+	xUFqPGsFjh0AXybm
+X-Received: by 2002:a05:600c:628e:b0:485:3abe:ab86 with SMTP id
+ 5b1f17b1804b1-490c2599ff8mr101101885e9.4.1780701193538; Fri, 05 Jun 2026
+ 16:13:13 -0700 (PDT)
 From: Jonathan Flynn <jonathan.flynn@hammerspace.com>
 References: <20260605223118.75092-1-cel@kernel.org>
 In-Reply-To: <20260605223118.75092-1-cel@kernel.org>
@@ -84,17 +84,15 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 X-Mailer: Microsoft Outlook 16.0
-Thread-Index: AQIiV4E/dqzlDyccSLfgm6X2NNlNbLWlyTfw
-Date: Fri, 5 Jun 2026 16:39:20 -0600
-X-Gm-Features: AVVi8CdXBg5Y8jbUNOnF8jvT6U-MYB1M6GFzsUq2DqSnz6vAYtQ5xwc8jaW0bKE
-Message-ID: <32141f1303369612966329d18bc37c0d@mail.gmail.com>
+Thread-Index: AQIiV4E/dqzlDyccSLfgm6X2NNlNbLWl0DlA
+Date: Fri, 5 Jun 2026 17:13:12 -0600
+X-Gm-Features: AVVi8CcgDTMvhJMy5dzuXLKJ8d6pBsj9mQVdQ0taq0X4REIWYUp5n2UXMlf1Tko
+Message-ID: <01eb014a108d59a6312cd23379abb49b@mail.gmail.com>
 Subject: RE: [PATCH] svcrdma: Avoid direct reclaim when allocating Read sink buffers
 To: Chuck Lever <cel@kernel.org>, Mike Snitzer <snitzer@kernel.org>
 Cc: linux-nfs@vger.kernel.org, linux-rdma@vger.kernel.org, 
 	Chuck Lever <chuck.lever@oracle.com>
 Content-Type: text/plain; charset="UTF-8"
-
-Thanks Chuck, give me a few to test it out!
 
 > -----Original Message-----
 > From: Chuck Lever <cel@kernel.org>
@@ -200,3 +198,21 @@ fix the
 >  			*order = o;
 > --
 > 2.54.0
+Unfortunately, the GFP_NOWAIT change did not materially affect either
+throughput or the perf profile. The allocator-heavy stack rooted at
+svc_rdma_build_read_segment_contig() remains dominant, with
+alloc_pages_noprof() and rmqueue_buddy() continuing to account for a
+significant portion of the samples, similar to the original regressed
+build.
+
+I have added a gfp-nowait directory to the OneDrive link referenced in my
+previous email. It contains the fio results, perf reports, and a
+flamegraph for the GFP_NOWAIT test.
+
+I have also added a flamegraph to:
+
+rpcrdma-regression/regressed/phase2/server
+
+for the original regressed configuration.
+
+-Jon
