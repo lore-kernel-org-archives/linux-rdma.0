@@ -1,216 +1,105 @@
-Received: from mail-wm1-f51.google.com (mail-wm1-f51.google.com [209.85.128.51])
+Received: from mail-yx1-f47.google.com (mail-yx1-f47.google.com [74.125.224.47])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D99FB2E7388
-	for <linux-rdma@vger.kernel.org>; Sat,  6 Jun 2026 17:35:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.128.51
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5320A30D3E5
+	for <linux-rdma@vger.kernel.org>; Sat,  6 Jun 2026 18:42:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.224.47
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780767357; cv=pass; b=A8hlkR1D0oX4QQFJ2MGy4B+ZWJkw5m/3VbHOIsAFeWwAuEfLlTQCvpz7L1+RXeHaegOc/tVFMHsbcZrIJSpAI0/WxXAoX6xwk/lipaTdCNrNawNkZ+v2kjVyZHyuHYjKNV/4hl2QKkOEY9lfDrjL7wsT8iMZDBKiqasMDCvMoVc=
+	t=1780771344; cv=pass; b=Y8NWQKPxFYhJvhGolUVaT+aCik7FLcw8QxsezlRR9CrrDjVX1IFLZiECcnok98LFhj+zlz5N/ckFPHLAGeHP3tdQTEY4fmqXoQK0NsAGzoRyE4ILUdq7UW6c8Jx2+F3SjWAs4z5BqmjoDCrh4on0XFLwZXy+Fwsu5goo5ETsw10=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780767357; c=relaxed/simple;
-	bh=kaIOlM2dR399VfkohKkulIGjRFRv1YLOvYZvYkxuEv4=;
-	h=From:References:In-Reply-To:MIME-Version:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=XSCJL55hHmY+fZ7IRPZ8LiM42t57Bw6bEljMb3xKgBFqM1MPoK02/hFatXEBn2jPvnF2JqIk69vbLJ+nnDeZlDeBKaG/bZJ2sEWajjxf/ba73joGE35x0zNcgkLM+5Y7+pBepJZ2OyI3/fbS57kLj2R3GlsNkz/j6SDLpugZ830=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hammerspace.com; spf=fail smtp.mailfrom=hammerspace.com; dkim=pass (2048-bit key) header.d=hammerspace.com header.i=@hammerspace.com header.b=TMOTRTXF; arc=pass smtp.client-ip=209.85.128.51
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hammerspace.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=hammerspace.com
+	s=arc-20240116; t=1780771344; c=relaxed/simple;
+	bh=RBlU1eXgTTD9jJN1iDXVJqzQoWToOFMDJo8xJji+O3w=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=GW94KG71FrGvWgvk3LP1YvP3dA0Nga7DT8Ot5RO/CDpcWON2zke9Em+GLKRfY7L+KUCi7qEXcnQAYJG0LRRD659Y1k2KclmtDX+/3QsyFDyb63stJI9zkj11KOf5pz6bFDPZTT9lEtF+AlW1nyHxJ1stvcdLKGks+qL8WTPBHHE=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=jvB8Gu8o; arc=pass smtp.client-ip=74.125.224.47
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=hammerspace.com header.i=@hammerspace.com header.b="TMOTRTXF"
-Received: by mail-wm1-f51.google.com with SMTP id 5b1f17b1804b1-490ace40f4bso34315375e9.3
-        for <linux-rdma@vger.kernel.org>; Sat, 06 Jun 2026 10:35:55 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1780767354; cv=none;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="jvB8Gu8o"
+Received: by mail-yx1-f47.google.com with SMTP id 956f58d0204a3-66062a414fcso3392324d50.1
+        for <linux-rdma@vger.kernel.org>; Sat, 06 Jun 2026 11:42:23 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1780771342; cv=none;
         d=google.com; s=arc-20240605;
-        b=VBak3Mb/+RTRpVa6w04o5vOHJO98roeFVmGtz9K5jsMO+YIclB62sv5vXOtuWm0aJQ
-         UinRbq0SVtIJ165YRUyP3OT+MKGoLUKibh/M5fQmFALkOudkTGR/hSWPK7A2zdEKUqyg
-         khn/FkfAAsWdTtayxcyI2FoErxvlyCVBeFDgswDy7/ArwB/COxiy0RnikpFguPfPbb2i
-         Cgc78fYpYXTqaSZoZN+aa2obSxqbBJdfIz0AtbbWj7ofRDa0GDLDBCJIc4bbUtAyzTgf
-         QW9mUjG86TcLLPFGOhovtusQ3H9arDaOvpOVodODr3pR+zmC9PSXEqtCDKVFCXn+nmIg
-         7F3w==
+        b=dPmKpmf93ZzlG2p22tXJLAk2CG8pSHVN6leCMDsUV/wTLd6y6fyhQH8XHNC3KmgmHW
+         GRDLoFiwhpLdBvzgBGvyhBVUzzEpzNBAb0C5SjW6OKmYX4uy94y8qtLDzeBCNcQzbgmT
+         8qGGEIFuQKy8Q4ad32pXkc2xlAo1lHMWVZt8I1sOwrTJcteqntOyqxBru1yT3Jp1+ffm
+         jhT13ohUNQJ9K2e5i7gw7BY/ZyE+Ibs3w31mo/Mggt0woH9kGEHYMBm339ru/FoS1iLy
+         nSZRw+80U/773bgG7EVznRDU2fjYI7rG1Be9Rt3EeC0SY+46ECWw4Avns0xgN9AAAO/E
+         e58Q==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
-        h=cc:to:subject:message-id:date:thread-index:mime-version:in-reply-to
-         :references:from:dkim-signature;
-        bh=Hppu2DGhG4EZwt2QnaFLsyyEt3kmcDDCj2adKDQrCl4=;
-        fh=XsEfyrBfc3YWARwOcqkt6dOnJkmaMGrxVypspOcym5M=;
-        b=Q400BO4kakvhzpnE9BynwiduoLy1c2+I5XJrOAuViojNZ7hYK91mbDccvj9EP6teD0
-         gFPP2+9jUt0nC3siCztM764FuoALFzb7SWA7L7Z5N/vbx8Rb2m0WPKKWmn6j7Bd0ek89
-         cUu9EesVqei8fFYNKAGCg0TbaqQVGlrzcQATZEK0EsY0GNDlch1VuJfj2IAXtvGNSxfE
-         /X8N3lwG4NHJY0ZJdtVnNyoGguFnQvZNNQilHp6bpk0Nkxi2uMmJ1FtTD2c3/l5oGsa6
-         Wch/5nw5p3qoGx6gGLsm8jg6uztw19N9uxY9btaScgjDYXbW/913HiGqCrqA1OqaVwyD
-         9I6w==;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=yLaXl5eiO3mLmCxHqPHP8XMTqDdRd4OBcfkKscy7we8=;
+        fh=Wxw+euk3JJQc4AL3bhFpAZdJpkXkn08fyO+CEuvgurc=;
+        b=U6AsJecssUSDXpSZQhC+9VB3xGi9XRqzgcAt/T87eHy+oZI61tExgvpXoxqLm3/FMS
+         DzjBtgrggaEO6OFkeeSrUxNIohw3BpydHTZd32CDPqYE1Ww3YooB2FaqEMrtF1H0Cbgk
+         +E39HQV3BBNZUhwogr4FoePIEqz5WEDcsS/L1gU2RrP/vj2flXiQJOR+yFlJ2Ynu81Q4
+         xudbU4iKjXPjmYcqfZ7rGL3DMhSjJF30BD88TbRahAb1m/5efUyUAROun7G+vdtnNnz2
+         FUIMotEYPM4ryzEILqc0Y/MbwwbrvR4Cexy+cSV/C3y2eGUZLU3UH2thI3567/Y0SVZP
+         QVEw==;
         darn=vger.kernel.org
 ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=hammerspace.com; s=google; t=1780767354; x=1781372154; darn=vger.kernel.org;
-        h=cc:to:subject:message-id:date:thread-index:mime-version:in-reply-to
-         :references:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=Hppu2DGhG4EZwt2QnaFLsyyEt3kmcDDCj2adKDQrCl4=;
-        b=TMOTRTXFD/GN1jg5cEc55ASv/xygFpFonwc7TEeuAnBgHV3VtNeRTnVtzD2UTN6vli
-         oZA7U5IxuhVmIN/QpASUBZRwsyGu8bVGwti0B7cMRoCNn2TKbblNkE+lOuTefwLcM1Uf
-         TfaGALGyQwLS7STQbmB1Zys8ajSV29qeVAJwXn6qcFt//lylEnXcdWrQq/b81fFy6tam
-         1TBX0qCLvmiYMzFFl4fNM5luaBFYckyYFUr7ZP1D0SVc4Uwfx32kUei4W/ZCOrCb3NZ0
-         Ri/p4bz6ICkwWwmxTRDTCzun5/7l6XKAJ2BXvk+Jj9hEfxt6MYfEHY5DKS8NQ4Vw8avP
-         8TTg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1780767354; x=1781372154;
-        h=cc:to:subject:message-id:date:thread-index:mime-version:in-reply-to
-         :references:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+        d=gmail.com; s=20251104; t=1780771342; x=1781376142; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=Hppu2DGhG4EZwt2QnaFLsyyEt3kmcDDCj2adKDQrCl4=;
-        b=EVLNs89rHqyhONJCPmr6yovxIZ9V6rPWgG4bIlp7+H9oquatbu8yCSI/LW1q834a8d
-         PH/Gnn/T4PBfQtYfZVdUzwJtMIvo4YVSrGugGZvjGmMZRYqe0KkgRaBo938Ctc5592Kh
-         kl1titGaPBSi5OIXYJHmzBC0LUPKjsNoqoq1OKjShreH7dki/8EpBHkywAti1k8ZRJSU
-         LPgshrHz76XF53myYbd3ViWjYc1l6TgzqudYSS3EFrHlfpT1UFxWEjQK3/qVP1UhbH/x
-         zgvfiru6bremUjdGHC1zq3cjye2MzHvICbZdH0rkfMhOZeOfNFmkru/0WMLtwUJV8x72
-         ImRg==
-X-Forwarded-Encrypted: i=1; AFNElJ+GMj+1m5duWa16o0ngk1tVBa8fKpXuJCkWKQO9cmLEhQCXZ8nfk42s8afb816l59yt7Q7BgSguJvg7@vger.kernel.org
-X-Gm-Message-State: AOJu0Yw2gME8xz0E3NSDQTb8yyJj+VA/kGPCVMrFgRwl9iMuJT9JFEID
-	gPWV7rYPriNIKrMonnL2QFaAEqEq27G1Bu6cSyFdP5bz6vzNis0tSJ348segAYp2NPMX6kCYjxk
-	6OraBbLMGanmGSLq5VIwdZ1eREBVpg7YZN5FtNwqg9A==
-X-Gm-Gg: Acq92OH7x622WV5M8SxvZsmhLzZ2rSamY1nr/eoapjLcKurdajZWb3yqx/Ai6G9V9XH
-	PzuyK/UeAHnjo2UqwkFrWCBNsZeq33hSKQh4cNg+tnzcJjJYDJPqqrwZ81iWQD/pMbfh+vWHXzP
-	zN1XeS9vCu5RL/VEkEKrV9ml1s90UJsY2GgGLepUfZqP4h7/Y7PC/P3AyDw0YeyZCbdsoHP055J
-	CKgUZh5Fh4CA00Noy5qQ+jW0Gc1fvb5ZkMNRJYG3wPnINpRjTm6NHF98yRXRZHmAMF2yt3qYUKA
-	ZHTf7LVYfoSiP6ug
-X-Received: by 2002:a05:600c:4fc6:b0:490:b432:6f1e with SMTP id
- 5b1f17b1804b1-490c2614bf9mr144449255e9.33.1780767353362; Sat, 06 Jun 2026
- 10:35:53 -0700 (PDT)
-From: Jonathan Flynn <jonathan.flynn@hammerspace.com>
-References: <20260606035722.83175-1-cel@kernel.org>
-In-Reply-To: <20260606035722.83175-1-cel@kernel.org>
+        bh=yLaXl5eiO3mLmCxHqPHP8XMTqDdRd4OBcfkKscy7we8=;
+        b=jvB8Gu8oQsuI/EiLGgnS7vgAOFgna6wJsTRraJpz8Kb0wBeZaBqRjY4KRgmKr6/XNe
+         HOugEw9Adkab5dIbl+unyV9kksCAxk7tm3aESsYhiyarTr8Xc3rTikcIOipynLt7VXgy
+         AFpohb4AkeZKIIKTI/Iz8xAWPzNXMciVlbxTDzkVfFOaxV+oJwVQQqG1z9GHEQ4jss2t
+         wfDR/2yDU4JFPJqSdEjee+q5Z4vxGBDeDtZ9N6P4PJOr5Kh9VUtKoRVErIbEXnpS2xsw
+         NfOdAB0HBwaY2obIp83jOKRUKEAagnZkYH7VM1WRnECWVlKTbDZbCr9b9b8UfwFThXOE
+         kr3A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1780771342; x=1781376142;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=yLaXl5eiO3mLmCxHqPHP8XMTqDdRd4OBcfkKscy7we8=;
+        b=fYDxz3roLBUc8ZL6l2fhYLxkUL7CgNyFFvzzGud80w3F/MHBKIpcAp1lEbkEQgTmej
+         A2AyHv0VNjEIghU+I9+dxgQAIvLRvSOA2WVHPif1Lcr7BeAEwEfnsaFx4nvBehR78XpE
+         MDVakT8/2dJZbuoM+j7oUoRbyCIT+Wk/TFOJ3xGbIbzn5+MXG7ZCyrVfd1kqw+DBkj3J
+         1g1MCW5jxyOYCzMzAhIRCzBRDG3/EgJ2LinOYEYrCs+EdUiiNxuc1H5LhVGeSh9q0z/i
+         cgb9VTKC+PaOksFWqU/WQt+dB2oCsz4VVwM3+TxtnnMO4f9P3FfEOKm3530K1/yHeCra
+         LJLQ==
+X-Forwarded-Encrypted: i=1; AFNElJ84bB5nvxMA3obvqDPILkv/W9jm5THS+njuJlIBmXMWS3HNh2+XxuB8YggVidOBzqWnRG/cyrDKoeU1@vger.kernel.org
+X-Gm-Message-State: AOJu0YzjCfuIAwxmI2ZoquzDWWSeaVq9EnoKLFTaqFhmksajXpNmIezm
+	G4jBqJPF5oIDLTCmbUndFR0Ddnn0DgkdAwHmhMkwYOjr525dvNnBCMiw6LS9gMiGScU521a4dcA
+	9iGoJ3xsv+pbNikyMWSFvvGjKCebW9wc=
+X-Gm-Gg: Acq92OEhV7vyXpf7NHVpHncXiZ9t6VAEpfUwinPyKuQEj7VYWb9X/diUTHXkpEQGTRI
+	vyeKxTM+nIyc4MvabbOg5q3p9HYaLJNTIfaGnoLAue2HvD3aIjulrul/slmCQzBPG47Ecw1kuvF
+	6/FRuHi+EgH5DPENkvdUMqRbwfEBDv3AUUvxtZnw2rlKrXbBw23H/W10gV/pzDAV4W+p0cbzMgR
+	RQicTqBDydzxxOBQ9C6EasfqaJgwztU4iC2lmsm8x0v3YlVYFHF0h5Vc/eAQ6/GgsV5BtHSSNtW
+	Xo8FJxgR/Ybn1rRMgVR0am8LyudDZ4oPMDkjSuKcWNpRbQY=
+X-Received: by 2002:a05:690e:4090:b0:65c:6f05:adf5 with SMTP id
+ 956f58d0204a3-66106fbd515mr7756629d50.60.1780771342372; Sat, 06 Jun 2026
+ 11:42:22 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Mailer: Microsoft Outlook 16.0
-Thread-Index: AQMa29E4u4Im5YIb7ViXmqyooY1UybO1/K8Q
-Date: Sat, 6 Jun 2026 11:35:51 -0600
-X-Gm-Features: AVVi8Cez9uncDsFw8DZPkODWXV4aG8-aKGtQeYnLtb6-RB7MYGS0NV-SQUjhB-Q
-Message-ID: <65a2cdb132b0c28e69a29955e3bd37e7@mail.gmail.com>
-Subject: RE: [PATCH] svcrdma: Cap Read sink allocations at PAGE_ALLOC_COSTLY_ORDER
-To: Chuck Lever <cel@kernel.org>, Mike Snitzer <snitzer@kernel.org>
-Cc: linux-nfs@vger.kernel.org, linux-rdma@vger.kernel.org, 
-	Chuck Lever <chuck.lever@oracle.com>
+References: <20260602194700.2273758-1-michael.bommarito@gmail.com> <20260605170741.GA2768320@nvidia.com>
+In-Reply-To: <20260605170741.GA2768320@nvidia.com>
+From: Michael Bommarito <michael.bommarito@gmail.com>
+Date: Sat, 6 Jun 2026 14:42:10 -0400
+X-Gm-Features: AVVi8CdtG-6pY5tjKGyddk1_ky3H6_YPKyZ6dgZtitoIboHRVgo2qeN1REWA9RE
+Message-ID: <CAJJ9bXyAMe6Wm1cvOqOGBZG0sjL6p2py1yW4eu9RuKbjciWZmw@mail.gmail.com>
+Subject: Re: [PATCH] RDMA/siw: bound Read Response placement to the RREAD length
+To: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Bernard Metzler <bernard.metzler@linux.dev>, Leon Romanovsky <leon@kernel.org>, 
+	linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-I tested the PAGE_ALLOC_COSTLY_ORDER change on the same setup.
-Unfortunately, it did not improve the regression. Throughput was slightly
-worse than the previous GFP_NOWAIT test, measuring 25.4 GiB/s.
+On Fri, Jun 5, 2026 at 1:07=E2=80=AFPM Jason Gunthorpe <jgg@nvidia.com> wro=
+te:
+> I made the changes Bernard asked for and applied it to for-next
 
-Current results are:
-Original regressed build: ~30.3 GiB/s
-GFP_NOWAIT build: ~31.0 GiB/s
-PAGE_ALLOC_COSTLY_ORDER: 25.4 GiB/s
-Commit reverted: ~73.9 GiB/s
+Thanks for finishing this and SRP_RSP.  I know you're still waiting on
+my v2 for IB/mad, which I'll be sending soon too.
 
-I added the results to the shared bundle. (including flamegraph)
-
-The GFP_NOWAIT and the Original Commit flamegraphs are nearly identical.
-The dominant stack being:
-svc_recv()
--> svc_rdma_build_read_segment_contig()
--> alloc_pages_noprof()
--> get_page_from_freelist()
--> rmqueue_buddy()
-
-The PAGE_ALLOC_COSTLY_ORDER flamegraph is different. Time spent under
-alloc_pages_noprof() is reduced, but the reduction does not translate into
-improved throughput.
-
-The following percentages were observed:
-                                                   Original     GFP_NOWAIT
-COSTLY_ORDER
-svc_recv()                                 76.09%      75.99%
-78.44%
-alloc_pages_noprof()             58.07%      57.99%               40.29%
-folios_put_refs()                        7.15%        7.19%
-16.06%
-svc_rdma_read_complete()    7.18%        7.21%               16.08%
-
-In other words, the PAGE_ALLOC_COSTLY_ORDER change reduces time spent in
-the allocation path, but a larger fraction of CPU time then appears under
-svc_rdma_read_complete() and folios_put_refs(), while overall throughput
-decreases further.
-
--Jon
-
-> -----Original Message-----
-> From: Chuck Lever <cel@kernel.org>
-> Sent: Friday, June 5, 2026 9:57 PM
-> To: Mike Snitzer <snitzer@kernel.org>
-> Cc: linux-nfs@vger.kernel.org; linux-rdma@vger.kernel.org; Chuck Lever
-> <chuck.lever@oracle.com>; Jonathan Flynn
-> <jonathan.flynn@hammerspace.com>
-> Subject: [PATCH] svcrdma: Cap Read sink allocations at
-> PAGE_ALLOC_COSTLY_ORDER
->
-> From: Chuck Lever <chuck.lever@oracle.com>
->
-> Jonathan Flynn reports that commit 18755b8c2f24 ("svcrdma: Use
-contiguous
-> pages for RDMA Read sink buffers") regresses NFS/RDMA WRITE throughput
-> from 73.9 GiB/s to 30.3 GiB/s on a 128-core single-NUMA-node server
-driving
-> dual 400Gb/s links with 640 nfsd threads. In the regressed
-configuration,
-> server CPU utilization rises from 8.5% to 76%, and 73% of all server CPU
-cycles
-> are spent in native_queued_spin_lock_slowpath.
->
-> The contended lock is zone->lock. The page allocator serves allocations
-only
-> up to PAGE_ALLOC_COSTLY_ORDER (3) from its per-CPU page lists;
-> SVC_RDMA_CONTIG_MAX_ORDER is 4, so every contiguous sink buffer
-> allocation falls through to rmqueue_buddy() and acquires the zone lock.
-The
-> workload above issues roughly half a million order-4 allocations per
-second,
-> all serialized on the single zone lock of the one NUMA node. Replacing
-the
-> GFP mask with GFP_NOWAIT did not change the profile because direct
-> reclaim never
-> ran: the cycles are spent acquiring the lock, not reclaiming memory.
->
-> Cap the allocation order at PAGE_ALLOC_COSTLY_ORDER so contiguous sink
-> buffer allocations remain eligible for the per-CPU page lists, where
-zone lock
-> acquisition is amortized across pcp batch refills. An order-3 chunk
-still
-> replaces eight per-page bvecs with one.
->
-> Reported-by: Jonathan Flynn <jonathan.flynn@hammerspace.com>
-> Fixes: 18755b8c2f24 ("svcrdma: Use contiguous pages for RDMA Read sink
-> buffers")
-> Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
-> ---
->  net/sunrpc/xprtrdma/svc_rdma_rw.c | 9 +++++----
->  1 file changed, 5 insertions(+), 4 deletions(-)
->
-> diff --git a/net/sunrpc/xprtrdma/svc_rdma_rw.c
-> b/net/sunrpc/xprtrdma/svc_rdma_rw.c
-> index efde26cac961..4546e594f2d7 100644
-> --- a/net/sunrpc/xprtrdma/svc_rdma_rw.c
-> +++ b/net/sunrpc/xprtrdma/svc_rdma_rw.c
-> @@ -746,11 +746,12 @@ int svc_rdma_prepare_reply_chunk(struct
-> svcxprt_rdma *rdma,  }
->
->  /*
-> - * Cap contiguous RDMA Read sink allocations at order-4. Higher orders
-risk
-> - * allocation failure under GFP_NOWAIT, which would negate the benefit
-of
-> - * the contiguous fast path.
-> + * Cap contiguous RDMA Read sink allocations at
-> PAGE_ALLOC_COSTLY_ORDER.
-> + * The page allocator serves allocations at or below that order from
-> + * its per-CPU page lists; above it, every allocation acquires the
-> + * zone lock, which serializes all nfsd threads.
->   */
-> -#define SVC_RDMA_CONTIG_MAX_ORDER	4
-> +#define SVC_RDMA_CONTIG_MAX_ORDER	PAGE_ALLOC_COSTLY_ORDER
->
->  /**
->   * svc_rdma_alloc_read_pages - Allocate physically contiguous pages
-> --
-> 2.54.0
+Thanks,
+Mike
