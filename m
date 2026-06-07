@@ -1,398 +1,182 @@
-Received: from pdx-out-014.esa.us-west-2.outbound.mail-perimeter.amazon.com (pdx-out-014.esa.us-west-2.outbound.mail-perimeter.amazon.com [35.83.148.184])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wr1-f42.google.com (mail-wr1-f42.google.com [209.85.221.42])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D4D2827A916
-	for <linux-rdma@vger.kernel.org>; Sun,  7 Jun 2026 16:18:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=35.83.148.184
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780849104; cv=none; b=ePvlv7HtAfKgm/Z1cHWRFcwRbui9n0t4yd5HzjlJqkImJrQNxBZjS+uNeUGSZsdaEoRoFwWOt2fLbtCe1F5i4CgxCE6mVsmHMa0FGzSq+WTDo3R0vvjDaEq7yovA0ji3whXoDpwmHJ+fXsbHECNGuVTR1ts3Vc9gcCu8NrQQ6/8=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780849104; c=relaxed/simple;
-	bh=t26P3QY29SWEAvHFTYggHHd0oefYcKu0S7qFizYlo98=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=gOHveVsOkWi6+E+r3lVcbwOUFJPNNt4mof1iOPuHVPE0iEVP1ycw56JCVqdTX42CYxNqP9ppKjVvkHep1d/zb3ybNTJquMe+2GPCQubC/U/wnf8DzDlukqjEU6R4aV/eYImfxVMMouy/7DH9277LrotfU6z1TMxklEWNLq/8rws=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com; spf=pass smtp.mailfrom=amazon.com; dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.b=Jxcx47Q7; arc=none smtp.client-ip=35.83.148.184
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazon.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 82B4A31327D
+	for <linux-rdma@vger.kernel.org>; Sun,  7 Jun 2026 18:11:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.221.42
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1780855881; cv=pass; b=Ntw4w4vj2VWMPw21DSuzqhWAqan/Qe2kgwTCRVXpvaIQ/kYIIy3I3NsRtd7o8QXMcMSPE/4lS8qGiDCd8b76s3UwZMAQXk3MHpg5TFJUOVsToK4fhv8hFn7ph4D8jWu/ioxAdir2rNc1xFG3UCnGK5FPCR4V6s1fzrbN0m8y+NY=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1780855881; c=relaxed/simple;
+	bh=NsCwZGmg5H7s42g9hbQh/NsDLVrnqm9r9v4MIl+ABNQ=;
+	h=From:References:In-Reply-To:MIME-Version:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=unLwtMZTeioOfTJd/4Y2+UEvyVEOIQ2PSmQ/P9a5qPi+tv5rlMaDzBdQbZjCW2Wz9RShLt7yFGvRBiU0WxZ00xnXvuJxwu7txX0CZJkJg7qtMRwS9QYfea5pN6jEL8BERZrIUud6syVCFla4qTv77fPeVqfCi4j+S9HycTtICuU=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hammerspace.com; spf=fail smtp.mailfrom=hammerspace.com; dkim=pass (2048-bit key) header.d=hammerspace.com header.i=@hammerspace.com header.b=WXnG1/ja; arc=pass smtp.client-ip=209.85.221.42
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hammerspace.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=hammerspace.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.b="Jxcx47Q7"
+	dkim=pass (2048-bit key) header.d=hammerspace.com header.i=@hammerspace.com header.b="WXnG1/ja"
+Received: by mail-wr1-f42.google.com with SMTP id ffacd0b85a97d-45ef29c5561so1828583f8f.0
+        for <linux-rdma@vger.kernel.org>; Sun, 07 Jun 2026 11:11:19 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1780855878; cv=none;
+        d=google.com; s=arc-20240605;
+        b=L1NoxGELFASYbZ55RFZUYR/uGvyRgoi2UsEpXm5H4wlPP3f3dIXiBBccbktgYSZYev
+         ZgNsa9j/TWQ+OqI/xibIx2bUP0rgPZVeSoG8Z6O4jgblSFrH0acIoTWxpNL9NyGRPOi4
+         WLtQ99D1i1q/XBsrTGvBtYFoZDmn6hu8cb053gsl6fsuCrEqIPbEaMQvIUmPSXtnyn7l
+         Q/vCYwVk7Df0oSd61tfTGAHJ4B4rhEKRCpP91IBXF7Wc84jbNvzhe7vDzCZd67+CB1sz
+         1nqjy3YymN0TfmPQWe1fM+MNy3eomWPwo5ABYf/cU+V8t+Gl6NSq+St7FeyhQxMvgR+0
+         prxw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=cc:to:subject:message-id:date:thread-index:mime-version:in-reply-to
+         :references:from:dkim-signature;
+        bh=V2dxyk081x1MpYrLgdjAI7OK69gzCevFIsf/WudvfOk=;
+        fh=Kcw5s5h5w8xcjKzujxw2pDkFc1Flj9ZRkOqv8omfnUA=;
+        b=RZJL3jKIelF6GygEv7KEz6E9bUKAwXMkWY9o7l8X23VZ7KepsQ4W8bRWVWMgdLNaAA
+         hlXuLFbc4p4sjLLJBuDiKv1pur5hhxYX/1AMGdt0MfFbmGJFLBgsNPXminG9qhJyL/EB
+         7/cJBTI8Liko0R3Mc5YpNGVghnu4NiNjRW5cjUzs3LXXWqPA3W6buS/tRairuxEsQuwD
+         JKVyzW+YtMXRKNToNHnSzQexOaHmoMDI7IgmJovhXU8oRUhzvfvzZ2Tnfncn4YPr3EJ4
+         aUn4UJ0b96xVvRzlNq2oCx15TmqDYvl3vHV++Niat3OSAnEZcCMA4wjMm8F3KIDh6H9t
+         hU6Q==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazoncorp2;
-  t=1780849102; x=1812385102;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=apP1YDXBcaq8FndqMAgkSh8EqqCRT5mZpNgs/g50y+k=;
-  b=Jxcx47Q7Dlf3Nk/pil4PgTvmsPTASOuhxHNLZfeOAaohMDoaMOkI/Loe
-   AZ557xhTC+7SSayuNDcDBjv7pKJesNARIeiVJZbA1xXtMpxrt6Yfmzvir
-   NuPmhFrNZnmop05JBGwFvYuTDnpXAztO4h9HdH0ChBvXIs69WwzdJLKqL
-   Jb/TejBWBQoAtXzr3dYT8yxHaLnrvGsF960vfihJAcCUXN/jjc14GW7UI
-   g5Sag7IGMoSI0smBkG/B2wAtoCsiAa13OF0aYmR/9AL2Sfm+WEyVdjWkI
-   /BLVIbTgle6YYdNZr3K6tfQcRryBMU7/JvjzAJErdDdsXg0VZi5Sl0apl
-   w==;
-X-CSE-ConnectionGUID: 5FcVkViFSlq/LSCrfd+J5g==
-X-CSE-MsgGUID: qFK+aynnQoCb/GXgT7VisA==
-X-IronPort-AV: E=Sophos;i="6.24,192,1774310400"; 
-   d="scan'208";a="21066283"
-Received: from ip-10-5-6-203.us-west-2.compute.internal (HELO smtpout.naws.us-west-2.prod.farcaster.email.amazon.dev) ([10.5.6.203])
-  by internal-pdx-out-014.esa.us-west-2.outbound.mail-perimeter.amazon.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Jun 2026 16:18:18 +0000
-Received: from EX19MTAUWA002.ant.amazon.com [205.251.233.178:13665]
- by smtpin.naws.us-west-2.prod.farcaster.email.amazon.dev [10.0.31.226:2525] with esmtp (Farcaster)
- id edc66154-8a20-4cdf-824d-2aae8df32b53; Sun, 7 Jun 2026 16:18:18 +0000 (UTC)
-X-Farcaster-Flow-ID: edc66154-8a20-4cdf-824d-2aae8df32b53
-Received: from EX19D001UWA001.ant.amazon.com (10.13.138.214) by
- EX19MTAUWA002.ant.amazon.com (10.250.64.202) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.37;
- Sun, 7 Jun 2026 16:18:18 +0000
-Received: from dev-dsk-ynachum-1b-0ecf7b87.eu-west-1.amazon.com
- (10.13.226.176) by EX19D001UWA001.ant.amazon.com (10.13.138.214) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.37; Sun, 7 Jun 2026
- 16:18:16 +0000
-From: Yonatan Nachum <ynachum@amazon.com>
-To: <jgg@nvidia.com>, <leon@kernel.org>, <linux-rdma@vger.kernel.org>
-CC: <mrgolin@amazon.com>, <sleybo@amazon.com>, <matua@amazon.com>,
-	<gal.pressman@linux.dev>, Yonatan Nachum <ynachum@amazon.com>, Firas Jahjah
-	<firasj@amazon.com>
-Subject: [PATCH for-next v3 2/2] RDMA/efa: Add AH cache handling on create and destroy AH
-Date: Sun, 7 Jun 2026 16:17:53 +0000
-Message-ID: <20260607161753.1607559-3-ynachum@amazon.com>
-X-Mailer: git-send-email 2.50.1
-In-Reply-To: <20260607161753.1607559-1-ynachum@amazon.com>
-References: <20260607161753.1607559-1-ynachum@amazon.com>
+        d=hammerspace.com; s=google; t=1780855878; x=1781460678; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:thread-index:mime-version:in-reply-to
+         :references:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=V2dxyk081x1MpYrLgdjAI7OK69gzCevFIsf/WudvfOk=;
+        b=WXnG1/jaSTaU+zTuFmMe80BqoDJr8Y3t9yYV3iWofBOyfhHZ9Am4WQZ6J39hasUiER
+         /NLO1Qhfh3/df2zlXYLjqiw3KjYn8Vu1haK345fHFQ/wxRajWUacVkvr30w2+WeYKVD2
+         sm9NpMajUCoRZM0E3AyMK+U8sCUFi16RUbhOHl9SagdVRKMubWYgssftpkaXGensekGK
+         Xg6r3SlBWbBzkz2eqgImj4AVsuN+ZY9+Km4uWBtACpcnx9rUZ5KK3h5yT4bI41EOZmEy
+         5GzQxcuSNYUv1oU0AaJjM6Zl0KYDTcwIcbHG8CuAyMG+A0VQATnqCZQm88xi1JZTWTNd
+         04Mw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1780855878; x=1781460678;
+        h=cc:to:subject:message-id:date:thread-index:mime-version:in-reply-to
+         :references:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=V2dxyk081x1MpYrLgdjAI7OK69gzCevFIsf/WudvfOk=;
+        b=U4u09swG2w9P03ItZzghdQAysmRnKly/kGuo/n0Tjl4VJXb2BRuMV3X7leCDzbQmms
+         LQN1d6BISl7Q++c6K84JS+iQybPe6EolWX+Yfi8IFicFoETldjqb1jyAWlWV3NRirTaI
+         gTrKqhPDHNmGA/A2xh3ZkDTZMl33+8Oqsyr+e5L/UfRbVdGX4TLF9kueZa6DndmnwkIG
+         rWDUmOXQkShalzA6K3Lv2AiubNvpmygNr7Ld8et0TL14h4f1+gOljUAtcG+WX3xN2qZr
+         uCSDkBe2/ie0THqKDC5xs+DRQlID5C9kNR8uwjuTXHAHr8YCjB1uWm0A6Q65TjrwynLe
+         mY2Q==
+X-Forwarded-Encrypted: i=1; AFNElJ+Lqe/h7EM7+z65g/yNrr2QKyr0BuD1aFFBjlk3BAH1AIduWbx4bmDQ1+nChXoDZGZx2eFK3TtRmpJ0@vger.kernel.org
+X-Gm-Message-State: AOJu0YySDaOhm203XBT12TQZZ1wxNezER1zDM+w5IPwfhFBPUDW8kDlV
+	FsUjAe910alnnbCz5Pz5hGKuqJSgn7Z/Sw4lG0u1fbMLUSkf5pWSnt2O39GheuwZ60Y6sNySigm
+	7VqdYHkM/oVToygF94zSbGc3g8rbjIorBl3HPGBovKg==
+X-Gm-Gg: Acq92OFOVXfJ/UC0TQcFkRg8PiKifzviuErAR5GV3w0Bw3QCFkG5nYCvPg9cNtTXdTH
+	rqQ54ODMWgm+36Q80nle5wbiddqJXYezjSsJP41s13NaBAPwhsJE9vsqZ3fp0MNqwJSxebQJEk8
+	RVzxvoCQk0kInnXrdEdGtEyve8R17PznKwT0qSQukoEx3tuUjlkMObfSbKtCZAouVQ9enBmahSG
+	VCqo3wgybZsPT1f2XxaGbsH+WvA/xKG+wVkg+rdRs0tNC5rOGBEPpku/Fz0ld3MHOtoDEK1LGqz
+	zlt81iIHbjFpNkbCXKhG2hpUYeo=
+X-Received: by 2002:a05:6000:18a5:b0:460:1967:abed with SMTP id
+ ffacd0b85a97d-4603063c55dmr18750198f8f.39.1780855877749; Sun, 07 Jun 2026
+ 11:11:17 -0700 (PDT)
+From: Jonathan Flynn <jonathan.flynn@hammerspace.com>
+References: <20260606035722.83175-1-cel@kernel.org> <65a2cdb132b0c28e69a29955e3bd37e7@mail.gmail.com>
+ <096a2b91-7a19-48da-a06a-dc60e7150956@app.fastmail.com>
+In-Reply-To: <096a2b91-7a19-48da-a06a-dc60e7150956@app.fastmail.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: EX19D046UWA002.ant.amazon.com (10.13.139.39) To
- EX19D001UWA001.ant.amazon.com (10.13.138.214)
+X-Mailer: Microsoft Outlook 16.0
+Thread-Index: AQMa29E4u4Im5YIb7ViXmqyooY1UyQL8EEwvAkqTvJezjWPcAA==
+Date: Sun, 7 Jun 2026 12:11:15 -0600
+X-Gm-Features: AVVi8Cdu0VGe4NEPfyxatTz0Fl-QTK-ZRK4b4WC-NSjqjAgiAL9y3iGuEEgGWKc
+Message-ID: <511ac3ff2c4bd019aa2670b2dd1bb0c8@mail.gmail.com>
+Subject: RE: [PATCH] svcrdma: Cap Read sink allocations at PAGE_ALLOC_COSTLY_ORDER
+To: Chuck Lever <cel@kernel.org>, Mike Snitzer <snitzer@kernel.org>
+Cc: linux-nfs@vger.kernel.org, linux-rdma@vger.kernel.org, 
+	Chuck Lever <chuck.lever@oracle.com>
+Content-Type: text/plain; charset="UTF-8"
 
-On create AH, first check if the AH cache entry already exists and if
-so, returns the already stored AH number. If the entry doesn't exist,
-the driver creates it and calls the device to create the AH. A per-entry
-mutex serializes concurrent device commands on the same AH cache entry,
-ensuring only one thread issues the device create while others wait and
-reuse the result. If the device create fails, the entry remains
-uninitialized so subsequent threads calls can create the AH.
+> -----Original Message-----
+> From: Chuck Lever <cel@kernel.org>
+> Sent: Saturday, June 6, 2026 9:18 PM
+> To: Jonathan Flynn <jonathan.flynn@hammerspace.com>; Mike Snitzer
+> <snitzer@kernel.org>
+> Cc: linux-nfs@vger.kernel.org; linux-rdma@vger.kernel.org; Chuck Lever
+> <chuck.lever@oracle.com>
+> Subject: Re: [PATCH] svcrdma: Cap Read sink allocations at
+> PAGE_ALLOC_COSTLY_ORDER
+>
+>
+>
+> On Sat, Jun 6, 2026, at 1:35 PM, Jonathan Flynn wrote:
+> > I tested the PAGE_ALLOC_COSTLY_ORDER change on the same setup.
+> > Unfortunately, it did not improve the regression. Throughput was
+> > slightly worse than the previous GFP_NOWAIT test, measuring 25.4
+GiB/s.
+> >
+> > Current results are:
+> > Original regressed build: ~30.3 GiB/s
+> > GFP_NOWAIT build: ~31.0 GiB/s
+> > PAGE_ALLOC_COSTLY_ORDER: 25.4 GiB/s
+> > Commit reverted: ~73.9 GiB/s
+> >
+> > I added the results to the shared bundle. (including flamegraph)
+> >
+> > The GFP_NOWAIT and the Original Commit flamegraphs are nearly
+> identical.
+> > The dominant stack being:
+> > svc_recv()
+> > -> svc_rdma_build_read_segment_contig()
+> > -> alloc_pages_noprof()
+> > -> get_page_from_freelist()
+> > -> rmqueue_buddy()
+> >
+> > The PAGE_ALLOC_COSTLY_ORDER flamegraph is different. Time spent under
+> > alloc_pages_noprof() is reduced, but the reduction does not translate
+> > into improved throughput.
+> >
+> > The following percentages were observed:
+> >                                                    Original
+GFP_NOWAIT
+> > COSTLY_ORDER
+> > svc_recv()                                 76.09%      75.99%
+> > 78.44%
+> > alloc_pages_noprof()             58.07%      57.99%
+40.29%
+> > folios_put_refs()                        7.15%        7.19%
+> > 16.06%
+> > svc_rdma_read_complete()    7.18%        7.21%               16.08%
+> >
+> > In other words, the PAGE_ALLOC_COSTLY_ORDER change reduces time
+> spent
+> > in the allocation path, but a larger fraction of CPU time then appears
+> > under
+> > svc_rdma_read_complete() and folios_put_refs(), while overall
+> > throughput decreases further.
+>
+> The two failed fixes demonstrate that the current folio allocator is not
+up to
+> the task -- the problem appears to be on the release side, where the
+> individual pages have to be merged back into an order-4 compound page. I
+> don't yet see a straightforward way to make it work.
+>
+> Since we're right up against v7.1-rc7, I've added a patch to nfsd-next
+to revert
+> 18755b8c2f24 -- it will get pulled back into 7.1.y as soon as the v7.2
+merge
+> window closes in three weeks.
+>
+>
+> --
+> Chuck Lever
 
-On destroy AH, the refcount is checked and if it's the last reference,
-the driver issues the device destroy command while holding the entry
-mutex. The entry remains in the hashtable during destroy to allow
-concurrent create threads to find it and wait on the entry mutex,
-preventing create-before-destroy races on the device. After the device
-destroy completes, the entry is either recycled if new users arrived or
-removed and freed.
 
-Reviewed-by: Firas Jahjah <firasj@amazon.com>
-Reviewed-by: Michael Margolin <mrgolin@amazon.com>
-Signed-off-by: Yonatan Nachum <ynachum@amazon.com>
----
- drivers/infiniband/hw/efa/efa_ah_cache.c | 122 +++++++++++++++++++++++
- drivers/infiniband/hw/efa/efa_ah_cache.h |   5 +
- drivers/infiniband/hw/efa/efa_com_cmd.c  |  73 ++++++++++----
- drivers/infiniband/hw/efa/efa_com_cmd.h  |   1 +
- drivers/infiniband/hw/efa/efa_verbs.c    |   9 +-
- 5 files changed, 187 insertions(+), 23 deletions(-)
+This sounds good.
 
-diff --git a/drivers/infiniband/hw/efa/efa_ah_cache.c b/drivers/infiniband/hw/efa/efa_ah_cache.c
-index ab763b06b9bb..b8314cdbf054 100644
---- a/drivers/infiniband/hw/efa/efa_ah_cache.c
-+++ b/drivers/infiniband/hw/efa/efa_ah_cache.c
-@@ -39,3 +39,125 @@ void efa_ah_cache_destroy(struct efa_ah_cache *ah_cache)
- 	rhashtable_free_and_destroy(&ah_cache->hashtable, efa_ah_cache_entry_free, NULL);
- 	mutex_destroy(&ah_cache->lock);
- }
-+
-+static struct efa_ah_cache_entry *efa_ah_cache_lookup(struct efa_ah_cache *ah_cache, u16 pd,
-+						      u8 *gid)
-+	__must_hold(&ah_cache->lock)
-+{
-+	struct efa_ah_cache_key key = {};
-+
-+	memcpy(key.gid, gid, sizeof(key.gid));
-+	key.pd = pd;
-+
-+	return rhashtable_lookup_fast(&ah_cache->hashtable, &key, ah_cache_params);
-+}
-+
-+/**
-+ * efa_ah_cache_get_or_create - Get or create an AH cache entry
-+ * @ah_cache: AH cache
-+ * @pd: Protection domain number
-+ * @gid: GID address
-+ *
-+ * Look up an AH cache entry by PD and GID. If found, increment the refcount and
-+ * return it. If not found, allocate a new entry and insert it into the
-+ * hashtable. The entry is returned unlocked.
-+ *
-+ * Return: Pointer to the entry on success, ERR_PTR on failure.
-+ */
-+struct efa_ah_cache_entry *efa_ah_cache_get_or_create(struct efa_ah_cache *ah_cache, u16 pd,
-+						      u8 *gid)
-+{
-+	struct efa_ah_cache_entry *entry;
-+	int err;
-+
-+	mutex_lock(&ah_cache->lock);
-+
-+	entry = efa_ah_cache_lookup(ah_cache, pd, gid);
-+	if (entry) {
-+		refcount_inc(&entry->refcount);
-+		mutex_unlock(&ah_cache->lock);
-+		return entry;
-+	}
-+
-+	entry = kzalloc(sizeof(*entry), GFP_KERNEL);
-+	if (!entry) {
-+		mutex_unlock(&ah_cache->lock);
-+		return ERR_PTR(-ENOMEM);
-+	}
-+
-+	memcpy(entry->key.gid, gid, sizeof(entry->key.gid));
-+	entry->key.pd = pd;
-+	refcount_set(&entry->refcount, 1);
-+	mutex_init(&entry->lock);
-+
-+	err = rhashtable_insert_fast(&ah_cache->hashtable, &entry->linkage, ah_cache_params);
-+	if (err) {
-+		mutex_destroy(&entry->lock);
-+		kfree(entry);
-+		mutex_unlock(&ah_cache->lock);
-+		return ERR_PTR(err);
-+	}
-+
-+	mutex_unlock(&ah_cache->lock);
-+	return entry;
-+}
-+
-+/**
-+ * efa_ah_cache_put_unless_last - Release a reference to an AH cache entry
-+ * @ah_cache: AH cache
-+ * @pd: Protection domain number
-+ * @gid: GID address
-+ *
-+ * If this is not the last reference, decrement the refcount and return NULL.
-+ * If this is the last reference, return the entry with its mutex locked
-+ * without decrementing.
-+ *
-+ * Return: Pointer to the locked entry if last reference, NULL otherwise.
-+ */
-+struct efa_ah_cache_entry *efa_ah_cache_put_unless_last(struct efa_ah_cache *ah_cache, u16 pd,
-+							u8 *gid)
-+{
-+	struct efa_ah_cache_entry *entry;
-+
-+	mutex_lock(&ah_cache->lock);
-+	entry = efa_ah_cache_lookup(ah_cache, pd, gid);
-+	if (!entry) {
-+		mutex_unlock(&ah_cache->lock);
-+		return NULL;
-+	}
-+
-+	if (refcount_dec_not_one(&entry->refcount)) {
-+		mutex_unlock(&ah_cache->lock);
-+		return NULL;
-+	}
-+
-+	mutex_lock(&entry->lock);
-+	mutex_unlock(&ah_cache->lock);
-+	return entry;
-+}
-+
-+/**
-+ * efa_ah_cache_put - Release the final reference to an AH cache entry
-+ * @ah_cache: AH cache
-+ * @entry: AH cache entry
-+ *
-+ * Decrement the refcount. If it reaches zero, the entry is removed from the
-+ * hashtable and freed. Otherwise, the entry is kept for reuse.
-+ *
-+ * Called after the device destroy completes or on a failed create to release
-+ * the caller's reference.
-+ */
-+void efa_ah_cache_put(struct efa_ah_cache *ah_cache, struct efa_ah_cache_entry *entry)
-+{
-+	mutex_lock(&ah_cache->lock);
-+	if (!refcount_dec_and_test(&entry->refcount)) {
-+		mutex_unlock(&ah_cache->lock);
-+		return;
-+	}
-+
-+	rhashtable_remove_fast(&ah_cache->hashtable, &entry->linkage, ah_cache_params);
-+	mutex_unlock(&ah_cache->lock);
-+
-+	mutex_destroy(&entry->lock);
-+	kfree_rcu(entry, rcu_head);
-+}
-diff --git a/drivers/infiniband/hw/efa/efa_ah_cache.h b/drivers/infiniband/hw/efa/efa_ah_cache.h
-index 133181b4466d..573fd29bb416 100644
---- a/drivers/infiniband/hw/efa/efa_ah_cache.h
-+++ b/drivers/infiniband/hw/efa/efa_ah_cache.h
-@@ -33,5 +33,10 @@ struct efa_ah_cache {
- 
- int efa_ah_cache_init(struct efa_ah_cache *ah_cache);
- void efa_ah_cache_destroy(struct efa_ah_cache *ah_cache);
-+struct efa_ah_cache_entry *efa_ah_cache_get_or_create(struct efa_ah_cache *ah_cache, u16 pd,
-+						      u8 *gid);
-+struct efa_ah_cache_entry *efa_ah_cache_put_unless_last(struct efa_ah_cache *ah_cache, u16 pd,
-+							u8 *gid);
-+void efa_ah_cache_put(struct efa_ah_cache *ah_cache, struct efa_ah_cache_entry *entry);
- 
- #endif /* _EFA_AH_CACHE_H_ */
-diff --git a/drivers/infiniband/hw/efa/efa_com_cmd.c b/drivers/infiniband/hw/efa/efa_com_cmd.c
-index 63c7f07806a8..9eafcba5e028 100644
---- a/drivers/infiniband/hw/efa/efa_com_cmd.c
-+++ b/drivers/infiniband/hw/efa/efa_com_cmd.c
-@@ -313,19 +313,25 @@ int efa_com_dereg_mr(struct efa_com_dev *edev,
- 	return 0;
- }
- 
--int efa_com_create_ah(struct efa_com_dev *edev,
--		      struct efa_com_create_ah_params *params,
--		      struct efa_com_create_ah_result *result)
-+int efa_com_destroy_ah(struct efa_com_dev *edev,
-+		       struct efa_com_destroy_ah_params *params)
- {
--	struct efa_admin_create_ah_resp cmd_completion;
-+	struct efa_admin_destroy_ah_resp cmd_completion;
-+	struct efa_admin_destroy_ah_cmd ah_cmd = {};
- 	struct efa_com_admin_queue *aq = &edev->aq;
--	struct efa_admin_create_ah_cmd ah_cmd = {};
-+	struct efa_ah_cache_entry *entry;
- 	int err;
- 
--	ah_cmd.aq_common_desc.opcode = EFA_ADMIN_CREATE_AH;
-+	entry = efa_ah_cache_put_unless_last(&edev->ah_cache, params->pdn, params->gid);
-+	if (!entry)
-+		return 0;
- 
--	memcpy(ah_cmd.dest_addr, params->dest_addr, sizeof(ah_cmd.dest_addr));
--	ah_cmd.pd = params->pdn;
-+	if (!entry->initialized)
-+		goto out;
-+
-+	ah_cmd.aq_common_desc.opcode = EFA_ADMIN_DESTROY_AH;
-+	ah_cmd.ah = entry->ah;
-+	ah_cmd.pd = entry->key.pd;
- 
- 	err = efa_com_cmd_exec(aq,
- 			       (struct efa_admin_aq_entry *)&ah_cmd,
-@@ -333,27 +339,47 @@ int efa_com_create_ah(struct efa_com_dev *edev,
- 			       (struct efa_admin_acq_entry *)&cmd_completion,
- 			       sizeof(cmd_completion));
- 	if (err) {
-+		mutex_unlock(&entry->lock);
- 		ibdev_err_ratelimited(edev->efa_dev,
--				      "Failed to create ah for %pI6 [%d]\n",
--				      ah_cmd.dest_addr, err);
-+				      "Failed to destroy ah-%d pd-%d [%d]\n",
-+				      ah_cmd.ah, ah_cmd.pd, err);
- 		return err;
- 	}
- 
--	result->ah = cmd_completion.ah;
-+	entry->initialized = false;
-+
-+out:
-+	mutex_unlock(&entry->lock);
-+	efa_ah_cache_put(&edev->ah_cache, entry);
- 
- 	return 0;
- }
- 
--int efa_com_destroy_ah(struct efa_com_dev *edev,
--		       struct efa_com_destroy_ah_params *params)
-+int efa_com_create_ah(struct efa_com_dev *edev,
-+		      struct efa_com_create_ah_params *params,
-+		      struct efa_com_create_ah_result *result)
- {
--	struct efa_admin_destroy_ah_resp cmd_completion;
--	struct efa_admin_destroy_ah_cmd ah_cmd = {};
-+	struct efa_com_destroy_ah_params destroy_params = {};
-+	struct efa_admin_create_ah_resp cmd_completion;
- 	struct efa_com_admin_queue *aq = &edev->aq;
-+	struct efa_admin_create_ah_cmd ah_cmd = {};
-+	struct efa_ah_cache_entry *entry;
- 	int err;
- 
--	ah_cmd.aq_common_desc.opcode = EFA_ADMIN_DESTROY_AH;
--	ah_cmd.ah = params->ah;
-+	entry = efa_ah_cache_get_or_create(&edev->ah_cache, params->pdn, params->dest_addr);
-+	if (IS_ERR(entry))
-+		return PTR_ERR(entry);
-+
-+	mutex_lock(&entry->lock);
-+	if (entry->initialized) {
-+		result->ah = entry->ah;
-+		mutex_unlock(&entry->lock);
-+		return 0;
-+	}
-+
-+	ah_cmd.aq_common_desc.opcode = EFA_ADMIN_CREATE_AH;
-+
-+	memcpy(ah_cmd.dest_addr, params->dest_addr, sizeof(ah_cmd.dest_addr));
- 	ah_cmd.pd = params->pdn;
- 
- 	err = efa_com_cmd_exec(aq,
-@@ -362,12 +388,21 @@ int efa_com_destroy_ah(struct efa_com_dev *edev,
- 			       (struct efa_admin_acq_entry *)&cmd_completion,
- 			       sizeof(cmd_completion));
- 	if (err) {
-+		mutex_unlock(&entry->lock);
-+		memcpy(destroy_params.gid, params->dest_addr, sizeof(destroy_params.gid));
-+		destroy_params.pdn = params->pdn;
-+		efa_com_destroy_ah(edev, &destroy_params);
- 		ibdev_err_ratelimited(edev->efa_dev,
--				      "Failed to destroy ah-%d pd-%d [%d]\n",
--				      ah_cmd.ah, ah_cmd.pd, err);
-+				      "Failed to create ah for %pI6 [%d]\n",
-+				      ah_cmd.dest_addr, err);
- 		return err;
- 	}
- 
-+	entry->ah = cmd_completion.ah;
-+	entry->initialized = true;
-+	result->ah = cmd_completion.ah;
-+	mutex_unlock(&entry->lock);
-+
- 	return 0;
- }
- 
-diff --git a/drivers/infiniband/hw/efa/efa_com_cmd.h b/drivers/infiniband/hw/efa/efa_com_cmd.h
-index ef15b3c38429..39bd4e06684a 100644
---- a/drivers/infiniband/hw/efa/efa_com_cmd.h
-+++ b/drivers/infiniband/hw/efa/efa_com_cmd.h
-@@ -106,6 +106,7 @@ struct efa_com_create_ah_result {
- 
- struct efa_com_destroy_ah_params {
- 	u16 ah;
-+	u8 gid[EFA_GID_SIZE];
- 	u16 pdn;
- };
- 
-diff --git a/drivers/infiniband/hw/efa/efa_verbs.c b/drivers/infiniband/hw/efa/efa_verbs.c
-index 434d60235945..6742a4037888 100644
---- a/drivers/infiniband/hw/efa/efa_verbs.c
-+++ b/drivers/infiniband/hw/efa/efa_verbs.c
-@@ -2032,10 +2032,11 @@ int efa_mmap(struct ib_ucontext *ibucontext,
- 
- static int efa_ah_destroy(struct efa_dev *dev, struct efa_ah *ah)
- {
--	struct efa_com_destroy_ah_params params = {
--		.ah = ah->ah,
--		.pdn = to_epd(ah->ibah.pd)->pdn,
--	};
-+	struct efa_com_destroy_ah_params params = {};
-+
-+	params.ah = ah->ah;
-+	memcpy(params.gid, ah->id, sizeof(params.gid));
-+	params.pdn = to_epd(ah->ibah.pd)->pdn;
- 
- 	return efa_com_destroy_ah(&dev->edev, &params);
- }
--- 
-2.50.1
+Thank you for taking the time to investigate it and for working through
+the test results with us.
 
+If you continue exploring this area in the future and still see promise in
+the contiguous allocation approach, I'd be happy to help test additional
+changes as time permits.
+
+-Jon
