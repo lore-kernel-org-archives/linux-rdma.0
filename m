@@ -1,68 +1,68 @@
-Received: from PH0PR06CU001.outbound.protection.outlook.com (mail-westus3azon11011003.outbound.protection.outlook.com [40.107.208.3])
+Received: from BYAPR05CU005.outbound.protection.outlook.com (mail-westusazon11010051.outbound.protection.outlook.com [52.101.85.51])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B0DD83C8716;
-	Mon,  8 Jun 2026 13:58:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.208.3
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F38BE3C37A9;
+	Mon,  8 Jun 2026 13:59:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.85.51
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780927100; cv=fail; b=rgNT3OwIjj7DrZuVlvrH/ulqlFlO/r39QCY+DUyp6zt+CUcodJuUika1/T9s/sKAdb7YsOIpuz/vgGdyVKu5lFYIO7RjXRjcD18j58f+BxPO14O2J21Qf0ahUSgpxzXfLPrzfnr4SdrblcTrBcpNCiZXY4z8o1yInz2CT141dtU=
+	t=1780927164; cv=fail; b=T+JdczxXpdVYTlxPntJdSo73OulRb+/8g/1Kl24l5Q7OAW1skwqwFAQhiT/hrIRFXVedn9HeohJKNw2Dlkehh1tbb/lOSIYqY/uKxy0jS1FKDCtv2swldl3XBlkZsImE5RE8RXMfmWqrb8vQvrr6TH803TY9Y3XUmZfMxUBd48Q=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780927100; c=relaxed/simple;
-	bh=3mOuRt69UmRlKxl1sr2Bf0nHWCAbq48FAXMQEZddQw4=;
+	s=arc-20240116; t=1780927164; c=relaxed/simple;
+	bh=KPWPA8X/jS3kiLqZF09ftnqrOIJkyIMA/1tQvfLHc9Y=;
 	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=jayWrdPXX7Fabl8y8ncnRYyPQRt/VLpwV/E3kDyyNxMGliqcJeA581GmJ+b3blVUD8dADNYfDN4bCHvWg1hTYtQszbPrF46V38nepj7GFYa/FuBQzow1Pcha3nv8MzWNxR39W6+OEliqMdHCbQwq1Vm9gM0zKz/1GerofhmDd30=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=N6lILXK9; arc=fail smtp.client-ip=40.107.208.3
+	 MIME-Version:Content-Type; b=SU2Osez0sZAk/eKHTqRvc0pZpSWrsn5bCVHd2kMM4nzPFzWJA4cchsv9EESR86KnQXknPdE+nFZYggHvlytMSsKEPN1Z/Qcr/Y9J3dXO3uiSuh3YtZlXVaixcVKq11/CZOzbCadQvkHl3+6Sr+IXMykuSCkYpV4KZLD9d9HspQk=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=I+gucA/v; arc=fail smtp.client-ip=52.101.85.51
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="N6lILXK9"
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="I+gucA/v"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=Q7bx0hAUZB/qDhaz//ahl06AUuppV4lPB4foDU27tIeDZBo8ayL09jEoZ+ftJu/W7iRvo5MubIP1dCwn/qk70Xx29NvKU9/PEXAhgdEa/HtMCJY+42EIJVutyGbeOaB3boAQoSu7KD61uGmv4/JczksQEtuiYd8C3KWRLKczqOYKw1g1N6hxwnf7h8UCNft7KxoWsa2TNmVnQAMM1lpHYnWR5Mv8iVRjjc3a1IX+TvAZ2ta9KF037VluKBfz4U6hMunY7lqW9vP1ioxMChFaRyers5F17E9S5l02zNjRm8+OuE41ijuaWmAddbX7IxJBLDa6s9YUK8WHt681rNBXFQ==
+ b=RTCClJAYXeYcD0i3gYLSXqs/fmnjLJq+eRGzTN4Utj1bXL08grF5T5EZVuXGjWUlIC9runTaD0K0a+eM9VTM0EsfZjdDrG6vCktw7sA8xQSK1F7q2M31lLy2QNRXCRJ7KnHz03oUmYPHgSbn2hYpo/r81JFwP/XsRo1URh50p7ICcdxE8Sab69ZBBtBFSvMgzE4BqSCVBEBC6TZGnkCOw63TeM7PUSEzJEOrkilQNlB4u+6+Y+bqmk6L+C3Sr/qpg3mjg7vc93k+cBlScCP7Xf+f4LGwrInL/ACCtaEy3wKr9bu36rR00tmQQzv+QeGfmYMur89S6z+7bWhqV/czbw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=evybPi7JWYNML2noGRUz7zsA+fczd+LvLnRmqSaIoLs=;
- b=qE4e3ZjzS5IYcraJnW3/nMCy9Nf2PYTIVgteAFUyO65Af/3J8t2+Qa7TvR3hq3vKQZyNSie/NQCM6S+A9wiFH+WSo4lVTz24z8FFmFE/sxqaRnUezDwXW/fjdCH48jlDLtNMdDVqs/mqYSZYYoryr6gkT1mDPK7yfLbv6m6BbbE9LQe/ZePkr7KfXA9C9+95rv3UDZatvcDLPIvqiLJHSL9cs0v6iphes6EqVSDs7iKacYxTwpgic+9tH32lBgrlBdFpbYVOGpVljlkwfdIppJ6ZCWxZd+swGcNEC0vwS7b7GXOZC7hE7O+y2TKa/Y8GfBQGMWT5YPTSvvMvCBPktw==
+ bh=M/f1jn4XuesYfYShF4pQve6tfWxwf8Klevz57P621xQ=;
+ b=QHiWBrga5x1/uFneiKfjfutFPbZ7Cl8EG4kRNrzlzXTJJYzBQcUQAIBxPPgz8mjS+kr830lBoGV74nms4nU3z+ub8pjbkh9zAA+rS2oT0Qy+hLG0CLTxBPQsBpgUHS/cQR5reARe9z6vK60G7FgmM0BHfbAfTasRwVsqTN0yclyiJeeecAV8xio9L0xbfIBC0I2CIC5UiREZGDR5NGumJPiyR19L7MPsfUHCftC/lunJoI5Yxa2AWYzSM7W5e2QUHCidd58W8/mNo64LbSWeMImMUXNPQ1eIoFIC6X4GRPzGtOP7+C40HPcdJYFSqHzOObPT3xxjximJ6I6rwJJxWA==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.118.233) smtp.rcpttodomain=google.com smtp.mailfrom=nvidia.com;
+ 216.228.118.232) smtp.rcpttodomain=google.com smtp.mailfrom=nvidia.com;
  dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
  dkim=none (message not signed); arc=none (0)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=evybPi7JWYNML2noGRUz7zsA+fczd+LvLnRmqSaIoLs=;
- b=N6lILXK95HEYKzqZdS7llchPYQ+m8f9X/RAVAj10BzQGoDfTO6PObbwqBW47YX5F0gXTU4xBWfDgCZS32KA5t57PXZqBQxOqy7U9K/zXVnX+EzCl5Yvw1Ou3ySBjwHYm+BIE6OPVCKaxtNG5SLQX8WDnGBn3JGqWTbWX862FK62nXZhE4BfPOKBV3GUogw1jzdE7Ee3DJtQSTyPJvByzEvZtJgvL2ZDYYiqiw0GGpo1AMAaOHvCG/ZjavKFBXThrap6KSE1d+Uqh/D02VWsWnK8VN2jsP6pliprkgYlqShjvs8rbJR0PSxnzYiH4VQbs2Wypj/d+k+dbZj6jGnHT6w==
-Received: from BL0PR02CA0106.namprd02.prod.outlook.com (2603:10b6:208:51::47)
- by DS0PR12MB7995.namprd12.prod.outlook.com (2603:10b6:8:14e::7) with
+ bh=M/f1jn4XuesYfYShF4pQve6tfWxwf8Klevz57P621xQ=;
+ b=I+gucA/vc8OiuIrvKIQg1G9mGybUOwPxbJwdbxHfCzxjlXmNnlxsQuyziPRWj0qdjESKJWu8XfL6c7vu6thkilbOpIRju377eNVXY8VblT2zdpcDNq7oWU/p2fNN3VrqcUyHMRSGli+YJQVlcPo+ReEUWISqdffheQ/VbCHDt326T+yxX6VjJ/pnPJ8Wd4LG0EV46nswXqgI8HSVJP6feTzOI9JoMr+B7dfHJb+DyjASHEbFWdt8NCVtBlngawKUAUjKb9M62mgglFIAExmex0HWuweiqnnr1A9Z7daGyH4UdgvcWhx2H5A39/4Ni3xxmN8dgMGETUYcer3y5wP5sQ==
+Received: from BN9PR03CA0677.namprd03.prod.outlook.com (2603:10b6:408:10e::22)
+ by CH1PPF931B95D07.namprd12.prod.outlook.com (2603:10b6:61f:fc00::619) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.92.10; Mon, 8 Jun 2026
- 13:58:10 +0000
-Received: from BN1PEPF00004688.namprd05.prod.outlook.com
- (2603:10b6:208:51:cafe::5e) by BL0PR02CA0106.outlook.office365.com
- (2603:10b6:208:51::47) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.92.13; Mon, 8 Jun 2026
+ 13:57:45 +0000
+Received: from BN1PEPF00005FFF.namprd05.prod.outlook.com
+ (2603:10b6:408:10e:cafe::8) by BN9PR03CA0677.outlook.office365.com
+ (2603:10b6:408:10e::22) with Microsoft SMTP Server (version=TLS1_3,
  cipher=TLS_AES_256_GCM_SHA384) id 15.21.92.13 via Frontend Transport; Mon, 8
- Jun 2026 13:58:10 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.118.233)
+ Jun 2026 13:57:45 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.118.232)
  smtp.mailfrom=nvidia.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=nvidia.com;
 Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.118.233 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.118.233; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.118.233) by
- BN1PEPF00004688.mail.protection.outlook.com (10.167.243.133) with Microsoft
+ 216.228.118.232 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.118.232; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.118.232) by
+ BN1PEPF00005FFF.mail.protection.outlook.com (10.167.243.231) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.113.7 via Frontend Transport; Mon, 8 Jun 2026 13:58:09 +0000
+ 15.21.113.7 via Frontend Transport; Mon, 8 Jun 2026 13:57:44 +0000
 Received: from drhqmail201.nvidia.com (10.126.190.180) by mail.nvidia.com
- (10.127.129.6) with Microsoft SMTP Server (version=TLS1_2,
+ (10.127.129.5) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Mon, 8 Jun
- 2026 06:57:51 -0700
+ 2026 06:57:28 -0700
 Received: from drhqmail202.nvidia.com (10.126.190.181) by
  drhqmail201.nvidia.com (10.126.190.180) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.20; Mon, 8 Jun 2026 06:57:50 -0700
+ 15.2.2562.20; Mon, 8 Jun 2026 06:57:27 -0700
 Received: from vdi.nvidia.com (10.127.8.10) by mail.nvidia.com
  (10.126.190.181) with Microsoft SMTP Server id 15.2.2562.20 via Frontend
- Transport; Mon, 8 Jun 2026 06:57:45 -0700
+ Transport; Mon, 8 Jun 2026 06:57:22 -0700
 From: Tariq Toukan <tariqt@nvidia.com>
 To: Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
 	Paolo Abeni <pabeni@redhat.com>, Andrew Lunn <andrew+netdev@lunn.ch>, "David
@@ -76,9 +76,9 @@ CC: Saeed Mahameed <saeedm@nvidia.com>, Leon Romanovsky <leon@kernel.org>,
 	<phaddad@nvidia.com>, <netdev@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
 	<linux-kernel@vger.kernel.org>, Gal Pressman <gal@nvidia.com>, Dragos Tatulea
 	<dtatulea@nvidia.com>
-Subject: [PATCH net-next V2 14/15] net/mlx5: SD, defer vport metadata init until SD is ready
-Date: Mon, 8 Jun 2026 16:55:46 +0300
-Message-ID: <20260608135547.482825-15-tariqt@nvidia.com>
+Subject: [PATCH net-next V2 10/15] net/mlx5: LAG, disable both regular and SD LAG on lag_disable_change
+Date: Mon, 8 Jun 2026 16:55:42 +0300
+Message-ID: <20260608135547.482825-11-tariqt@nvidia.com>
 X-Mailer: git-send-email 2.44.0
 In-Reply-To: <20260608135547.482825-1-tariqt@nvidia.com>
 References: <20260608135547.482825-1-tariqt@nvidia.com>
@@ -93,206 +93,100 @@ Content-Type: text/plain
 X-NV-OnPremToCloud: ExternallySecured
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: BN1PEPF00004688:EE_|DS0PR12MB7995:EE_
-X-MS-Office365-Filtering-Correlation-Id: 4696aba2-0efa-4d8d-80de-08dec565f986
+X-MS-TrafficTypeDiagnostic: BN1PEPF00005FFF:EE_|CH1PPF931B95D07:EE_
+X-MS-Office365-Filtering-Correlation-Id: f1caff83-2e90-49e8-b5bc-08dec565ea6f
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|7416014|376014|1800799024|36860700016|82310400026|11063799006|56012099006|22082099003|18002099003;
+	BCL:0;ARA:13230040|7416014|376014|36860700016|82310400026|1800799024|18002099003|22082099003|11063799006|56012099006;
 X-Microsoft-Antispam-Message-Info:
-	pHwIsch88jzxy79d2XHilRPQng5Bo8Nsh45IuFsNoMFhpXisN+n2wJOtS1g3DIEi+4kNh0Vld8/9XYncqNSwcrsjcTy0vhuM2dGBX6Is+5eGxmsJhFpBNsDAdD04rU61S7VSCU0Oh3JqW+3hCJFjnQJ6Mx22VgfEHaZZVPy7MzMxQxJbDR2shhhKk3mRbpQdirhxDZcidS0LTDT53wwpqWXlBAvH4f2LgbOq/kwp7/YoSRZaI+BjgFNhoMRBGBxy5pryJUFfUwj+Ud8wEZCKA/6mi1qkw/LcOtQSILJdpz/PExlBkyHmqrQqeGEAnqoySF61NQFrgzqjg64DLHatzikjKlmVUuRwLBE+IW/UO+RDUE8/9t3ONIEEDRtdcxBygDL6SwodiOaoJtLE2RNwGbgLFyXWI/ftXTI7e55IgflHvTVIw6vR4ifzDEp4u8372FBP/OMbmP5tB31JzioOI1q0iX7rzDAUyINTeeZjvANqASS2CBZYQxrUTorPYRDnSPS049+jEAmSTducl67GYWT/ZCL3+A4MHi3lvoeG+NgqjXtJ3WbjOdInHB81NdgkzamontgNNdqjCLnAwTkYEQsyFBeb1bN7EElF6fRuOIOH0hbPdmDF9SnyL7gwYphlcqDFJesPpjLFCGSg50PME0GwqZtDOhyopALz+/ip/9bXE/oXefSG68XDbBg7cmMbhQVVi2Q2euRFf89UqwLVKk58vqvZYcIKXN7vNwzohBM=
+	PcjDm+ZDR2r56pkoJtjjUL1M/D+RtMRhFoV6W6skrHwsDUxC8Z0J/eSEtpLPTod2dqt7eANFIdb/tOlfBcA+RYvHzrjrKuSnNBU6rC2PVc/glkRpsYATVj/u2hA/yiIwpu6bAh1JM7gRmwBhAfdBRXTfkVZAPO7NmHBMyRU1GQbAYDzoLNfMbGdz3KdAf1DR0TiV22WLx7CxlbicaHt4J5B54dXSqjcr4ncYYiVYuGPllnVJXEkSkWYDoFkZNl/EqO6TsDoPdAA6ifsy3OYj5le8a3KmnwFlXCu0K5f3b2OUwGEjVuhUKTSji8H47K2h8wbna7YM/adLPTF1vCM2R8EuQPJ3+0b64DTGVyea1PXnJsDJUv7gjgQl70rW92Rtn2OfQl+yrwt2k+uUItz7cklw52vX7zVYJ4Kn5Sg/Jow4LR3RAsrrKZaoAfQ4KJlhRWNauZN/Q6MGzY8ZyG1myQr53yoT0vFtZ/1t/U2OnpJ9Tys2g2CI4VoLC25r6/FY1+e3zLuqfsnd8ancPPUVVqU6UEv7e7FPrFxwXmBIkQoyYY8VBKBOcHX4DEm0N7xQTsAzLY+VCpzWGV/WVVzsfX5wc3wjRINIbPnsY+AKt61d9/mFyYkjUBnX6gks+fMbkshAXEGFgDOCAyqmLpcJc8QgCaSR8V9/vOkcCLy5q5SVs/j1959X/XKWv/l42GbgRM+JQrFy3y0FPhVFRHv8oOkm7Ny/V1R57W0B48WxpZM=
 X-Forefront-Antispam-Report:
-	CIP:216.228.118.233;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc7edge2.nvidia.com;CAT:NONE;SFS:(13230040)(7416014)(376014)(1800799024)(36860700016)(82310400026)(11063799006)(56012099006)(22082099003)(18002099003);DIR:OUT;SFP:1101;
+	CIP:216.228.118.232;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc7edge1.nvidia.com;CAT:NONE;SFS:(13230040)(7416014)(376014)(36860700016)(82310400026)(1800799024)(18002099003)(22082099003)(11063799006)(56012099006);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	iSuy/21L+w4KTuYuUcqJXUcGdUlhnNwN8hzI5uWNV6IrzN7J5Y6G4K5LWL3u2K07T7rolQKZUtYLYVPIcGULmydBHehsQz8cIpbLqMerrRw3CmD68rFoOtzdIy9pmJj4QJMwO1vQYxgW8LwsA8Ikb+hEF/SllTzG6tMEJ4d/cIBo5qlIxDlrxdq3lkeFOzB39IyUR3poX8FtCGrsQZjo49spZpheqQOYPXSBFfY7wCiMJKaFzDJ25Uf7DT/fTUYJ1EG6X8knc9Vx/kUcmIL2Ar1jX3WAAUbnShb3I2vUdOB9r4t3JiWZ2Oth8Z4V7BvBHGyPA15MAWOsoj//pbXrVaopBEfrryCASImsBL4ZTg2kNJt59b/GOV3YFpG22fr29ABN+cNrNvqb2SjujAsAKwzkS+Hm/rt+IiYI0PAUiFMWaW+gzx1WieWq6QCMvMoi
+	Q1aj2BjVbhv4VAHkWNCCUrqv3hGAeMPApQLaCj3ylHOKptwirAHFD3oBnWqwmUcdJSJX6w8RKtOsFdgfP+iaf0ATulwFwAy40Gox8XwfBlK7IFwNtcP5HUxpoZZJVTZeHP3p4ykZSSxG7IzO7RQECfl05FaVsV8u2ECwFGX4Ij3HSVmWeDXZtSH5m1iRWWTWzFs8ZxEh899xPKS7435A23KxU8pp6gnyfZ4i8YIR9JZV5urbUfQ0wBMaWcbMjqolixlqFIGsIuKReDM/i5exfWcQzCvD267d8SRZudkoPhXetKRS7S63fvcFP85t3m6y/D+l2HaNlVm6BJjz3eQgUe5E7ffVhu+u7zorAq+Lmf82g4HOXMOR9JiAygxqS7a2oUS3Cr0EWPe5uDHpyHiJ+c5d3vXqgnKck8tk1C+sJGJaXgu+QXHaKGgH8nJXvGq9
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 08 Jun 2026 13:58:09.9928
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 08 Jun 2026 13:57:44.6896
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 4696aba2-0efa-4d8d-80de-08dec565f986
+X-MS-Exchange-CrossTenant-Network-Message-Id: f1caff83-2e90-49e8-b5bc-08dec565ea6f
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.118.233];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.118.232];Helo=[mail.nvidia.com]
 X-MS-Exchange-CrossTenant-AuthSource:
-	BN1PEPF00004688.namprd05.prod.outlook.com
+	BN1PEPF00005FFF.namprd05.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS0PR12MB7995
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CH1PPF931B95D07
 
 From: Shay Drory <shayd@nvidia.com>
 
-Allow SD devices to transition to switchdev before the SD group is
-fully up. Metadata allocation requires the SD group to be ready, so
-defer it from esw_offloads_enable() until SD shared-FDB activation.
+Extend mlx5_lag_disable_change() to properly disable both regular LAG
+and SD LAG when requested. Each LAG type uses its own devcom component
+for locking.
 
-Add mlx5_esw_offloads_init_deferred_metadata() which allocates
-per-vport metadata and refreshes the manager ingress ACLs that were
-previously programmed with metadata=0. The helper is idempotent and
-can be called multiple times.
+Use mlx5_sd_get_devcom() helper to retrieve the SD devcom component,
+needed for proper locking when disabling SD LAG.
 
 Signed-off-by: Shay Drory <shayd@nvidia.com>
 Reviewed-by: Mark Bloch <mbloch@nvidia.com>
 Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
 ---
- .../net/ethernet/mellanox/mlx5/core/eswitch.h |  1 +
- .../mellanox/mlx5/core/eswitch_offloads.c     | 77 ++++++++++++++++++-
- .../net/ethernet/mellanox/mlx5/core/lib/sd.c  | 16 ++++
- 3 files changed, 91 insertions(+), 3 deletions(-)
+ .../net/ethernet/mellanox/mlx5/core/lag/lag.c | 29 +++++++++++++++++--
+ 1 file changed, 27 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
-index a5f0774834fe..ecf6a28a1c08 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
-@@ -440,6 +440,7 @@ struct mlx5_eswitch {
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c b/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c
+index e23c1e81b98f..84eff995cad1 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c
+@@ -2494,13 +2494,22 @@ EXPORT_SYMBOL(mlx5_lag_is_shared_fdb);
  
- void esw_offloads_disable(struct mlx5_eswitch *esw);
- int esw_offloads_enable(struct mlx5_eswitch *esw);
-+int mlx5_esw_offloads_init_deferred_metadata(struct mlx5_eswitch *esw);
- void esw_offloads_cleanup(struct mlx5_eswitch *esw);
- int esw_offloads_init(struct mlx5_eswitch *esw);
- 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-index e87837fbc372..9aec470fe126 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-@@ -43,6 +43,7 @@
- #include "esw/acl/ofld.h"
- #include "rdma.h"
- #include "en.h"
-+#include "en_rep.h"
- #include "fs_core.h"
- #include "lib/mlx5.h"
- #include "lib/devcom.h"
-@@ -3675,6 +3676,7 @@ static void esw_offloads_vport_metadata_cleanup(struct mlx5_eswitch *esw,
- 
- 	WARN_ON(vport->metadata != vport->default_metadata);
- 	mlx5_esw_match_metadata_free(esw, vport->default_metadata);
-+	vport->default_metadata = 0;
- }
- 
- static void esw_offloads_metadata_uninit(struct mlx5_eswitch *esw)
-@@ -3711,6 +3713,70 @@ static int esw_offloads_metadata_init(struct mlx5_eswitch *esw)
- 	return err;
- }
- 
-+/* Deferred metadata init for SD devices: allocate vport metadata and
-+ * refresh the ingress ACL for every vport whose ACL was created with
-+ * metadata=0 in esw_create_offloads_acl_tables() / esw_vport_setup().
-+ *
-+ * No Rep is loaded at this point ==> no Rep net-dev exists, so no need
-+ * to take rtnl lock.
-+ *
-+ * Safe to call multiple times - subsequent calls are no-ops.
-+ */
-+int mlx5_esw_offloads_init_deferred_metadata(struct mlx5_eswitch *esw)
-+{
-+	struct mlx5_vport *manager, *vport;
-+	unsigned long i;
-+	int err;
-+
-+	if (!mlx5_eswitch_vport_match_metadata_enabled(esw))
-+		return 0;
-+
-+	manager = mlx5_eswitch_get_vport(esw, esw->manager_vport);
-+	if (IS_ERR(manager))
-+		return PTR_ERR(manager);
-+
-+	/* Sanity check: skip if metadata was already initialized */
-+	if (manager->default_metadata)
-+		return 0;
-+
-+	err = esw_offloads_metadata_init(esw);
-+	if (err)
-+		return err;
-+
-+	/* Manager vport doesn't have a rep/netdev loaded but its ingress ACL
-+	 * was programmed with metadata=0 - refresh it explicitly.
-+	 */
-+	err = mlx5_esw_acl_ingress_vport_metadata_update(esw,
-+							 esw->manager_vport,
-+							 0);
-+	if (err)
-+		goto err_acl;
-+
-+	/* UPLINK is never marked enabled but its ACL is programmed in
-+	 * esw_create_offloads_acl_tables(); refresh it explicitly.
-+	 */
-+	err = mlx5_esw_acl_ingress_vport_metadata_update(esw, MLX5_VPORT_UPLINK,
-+							 0);
-+	if (err)
-+		goto err_acl;
-+
-+	mlx5_esw_for_each_vport(esw, i, vport) {
-+		if (!vport || !vport->enabled)
-+			continue;
-+		err = mlx5_esw_acl_ingress_vport_metadata_update(esw,
-+								 vport->vport,
-+								 0);
-+		if (err)
-+			goto err_acl;
-+	}
-+
-+	return 0;
-+
-+err_acl:
-+	esw_offloads_metadata_uninit(esw);
-+	return err;
-+}
-+
- int
- esw_vport_create_offloads_acl_tables(struct mlx5_eswitch *esw,
- 				     struct mlx5_vport *vport)
-@@ -4053,9 +4119,14 @@ int esw_offloads_enable(struct mlx5_eswitch *esw)
- 	if (err)
- 		goto err_roce;
- 
--	err = esw_offloads_metadata_init(esw);
--	if (err)
--		goto err_metadata;
-+	/* SD devices defer metadata init until SD is ready and
-+	 * mlx5_sd_pf_num_get() can return the correct pf_num.
-+	 */
-+	if (!mlx5_get_sd(esw->dev)) {
-+		err = esw_offloads_metadata_init(esw);
-+		if (err)
-+			goto err_metadata;
-+	}
- 
- 	err = esw_set_passing_vport_metadata(esw, true);
- 	if (err)
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lib/sd.c b/drivers/net/ethernet/mellanox/mlx5/core/lib/sd.c
-index 9ff62c134c2a..d74a5a2862cb 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/lib/sd.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/lib/sd.c
-@@ -988,6 +988,7 @@ static bool mlx5_sd_all_paired(struct mlx5_core_dev *primary)
- static void mlx5_sd_activate_shared_fdb(struct mlx5_core_dev *primary)
+ void mlx5_lag_disable_change(struct mlx5_core_dev *dev)
  {
- 	struct mlx5_sd *sd = mlx5_get_sd(primary);
-+	struct mlx5_core_dev *pos;
++	struct mlx5_devcom_comp_dev *sd_devcom = mlx5_sd_get_devcom(dev);
++	struct mlx5_core_dev *primary = dev;
  	struct mlx5_lag *ldev;
- 	struct lag_func *pf;
- 	int err;
-@@ -1020,6 +1021,21 @@ static void mlx5_sd_activate_shared_fdb(struct mlx5_core_dev *primary)
- 		goto unlock;
++	struct lag_func *pf;
++	int i;
+ 
+ 	ldev = mlx5_lag_dev(dev);
+ 	if (!ldev)
+ 		return;
+ 
+-	mlx5_devcom_comp_lock(dev->priv.hca_devcom_comp);
++	if (sd_devcom) {
++		mlx5_devcom_comp_lock(sd_devcom);
++		primary = mlx5_sd_get_primary(dev) ?: dev;
++		mlx5_devcom_comp_unlock(sd_devcom);
++	}
++	mlx5_devcom_comp_lock(primary->priv.hca_devcom_comp);
+ 	mutex_lock(&ldev->lock);
+ 
+ 	ldev->mode_changes_in_progress++;
+@@ -2512,7 +2521,23 @@ void mlx5_lag_disable_change(struct mlx5_core_dev *dev)
  	}
  
-+	/* Initialize vport metadata for all group devices. This is deferred
-+	 * from esw_offloads_enable() because mlx5_sd_pf_num_get() requires
-+	 * the SD group to be ready.
-+	 */
-+	mlx5_sd_for_each_dev(i, primary, pos) {
-+		struct mlx5_eswitch *esw = pos->priv.eswitch;
+ 	mutex_unlock(&ldev->lock);
+-	mlx5_devcom_comp_unlock(dev->priv.hca_devcom_comp);
++	mlx5_devcom_comp_unlock(primary->priv.hca_devcom_comp);
 +
-+		err = mlx5_esw_offloads_init_deferred_metadata(esw);
-+		if (err) {
-+			sd_warn(primary, "Failed to init metadata for %s: %d\n",
-+				dev_name(pos->device), err);
-+			goto unlock;
++	if (!sd_devcom)
++		return;
++
++	/* Teardown SD shared FDB for this device's group if active */
++	mlx5_devcom_comp_lock(sd_devcom);
++	mutex_lock(&ldev->lock);
++	mlx5_lag_for_each(i, 0, ldev, MLX5_LAG_FILTER_ALL) {
++		pf = mlx5_lag_pf(ldev, i);
++		if (pf->dev == dev && pf->sd_fdb_active) {
++			mlx5_lag_shared_fdb_destroy(ldev, pf->group_id);
++			break;
 +		}
 +	}
-+
- 	err = mlx5_lag_shared_fdb_create(ldev, NULL, 0, sd->group_id);
- 	if (err)
- 		sd_warn(primary, "Failed to create shared FDB: %d\n", err);
++	mutex_unlock(&ldev->lock);
++	mlx5_devcom_comp_unlock(sd_devcom);
+ }
+ 
+ void mlx5_lag_enable_change(struct mlx5_core_dev *dev)
 -- 
 2.44.0
 
