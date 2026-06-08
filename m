@@ -1,57 +1,43 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9DE1E38E8D4;
-	Mon,  8 Jun 2026 20:30:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E71CE3769EB;
+	Mon,  8 Jun 2026 21:20:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780950632; cv=none; b=qAUf6ntDygVV1PP6aIYD8VEOqwm6jbq7dADTPIBuC+UStkjuxsdYvy1cK+0lwcEehjNaOYOQlt/PMOUagPmr9SZQXwVdgJFM3NCqPSCDkrSnCzFoj+Qu3MhdP/muPoCfEN4cP2WNzrfw400x1b3AkX4SEXT3H/5/2h54MXssOCU=
+	t=1780953649; cv=none; b=J1yxjog+p3SCdfn9w5gvJ8IQROKQiuCeKxi1At2o0BNcr7kaEgAoEMpe5ynmmvPaxk8oTthAtJJPDN9uuNlcwHGlKqNJm0zuKm9A52+jqBPLCkSki+0E2cT9qi8igk9VZgovxjokmD/PEor7oM+HIxNlH8EdhQiVxaiFqb/wZsA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780950632; c=relaxed/simple;
-	bh=ro13X8bYyZN635AsD1TAc0Se21/nyspGsLYa8UAWjSw=;
+	s=arc-20240116; t=1780953649; c=relaxed/simple;
+	bh=xdXrA7WuZWOFV3zOKzTZwoFD9F+YW9X/LEhJKuP2uAI=;
 	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=V3ER+b8z8I9camCrZ2uD6imXHw06An2RhxJV0O4Y6bmBQ0lxh600XEg3P2VtL8MOIXwedK+0VyhqDhnQvTYbfDLD2OOwk4bbpDUwpqDy+Yv4bL8pQDeFRovrYO3/e1i7ocDYhujEBcv8FUFEHIZEeM2hf+ls/KMCjlcqORiiq48=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=H+RR+km9; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=YUVEGQ5miIFeoqkt4tMjpC7ra+xlpGk3yup0MRfjZiTWXjeGxwJNNMnmWHcC6xjQknoDXcv43nfs+GYO5g9Hoq5hlQNOCKJRcqUpp5ABmOhWAeQ1N3f1hmfArn7TyJIuLm2rc0ieaf6auV2cwgVCNrzQDXgrg5tmTnko2WmAA3A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=JRdn8rAD; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="H+RR+km9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EC9B41F00893;
-	Mon,  8 Jun 2026 20:30:29 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="JRdn8rAD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1603D1F00893;
+	Mon,  8 Jun 2026 21:20:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1780950631;
-	bh=BDDI0zZ85tZ3dra1dzCyCbAmBdm/ZjszTpTSBf91ICk=;
+	s=k20260515; t=1780953648;
+	bh=K8SFcbQD5TdWhbK/VoBNiPVzLEY9nk+UtISgZtbEMp0=;
 	h=Date:From:To:Cc:Subject:In-Reply-To:References;
-	b=H+RR+km9F27/4FtD/nDVbbsskwOtzC3R+aaRnoK93RfDjLtT0P1d0+Vvj/oIZ7Ytx
-	 4Yq94jO7XGV2gcXKD4cl/8tcnEF6f6HuMrgHtevN41QbQ7T63wcm38+7Py0yNWpktj
-	 pwX/PwCeEYUO0L7oUu97Yj73OKH7CpIbY7bd2bZrICfzfNrv4sy5GkCNiAZFhvpOZ9
-	 Ntu5+0aRb6a5VoJeI0XntIfSNP4diIMlz8UD36rhBprJUcmtc+sRbx2QtCVVGBSqIF
-	 fDE+FDl7eU3HTyBklFfw4cORoaHSVqt0QlCHpb8kMh6teJ8vIJUaUDGNgNtQYb2mvZ
-	 eYFxS98Gok2BA==
-Date: Mon, 8 Jun 2026 13:30:29 -0700
+	b=JRdn8rADw7sfFQHPDSXGx3rlEOCMh4Qb5EVoW20Ysncbl3l7yAfELft2S3vrPBEjb
+	 rlo2dokCX2C/lqUyYlzl4kFCSTEIgzNLThSMiwPYMfhEI0vXt4rtwnnUsOg2b7KwvV
+	 zy7TnsCeFd//uNZdmStnk3n/ef3tLdv8l/ubOL9idmWO034BNXoP7I48rB7q6+2AIT
+	 gYijpoYGfllhh5YjJc7SzU3ktWQqwbHvyjAvmQnltCPYXQajVXy7vnzUme4CeJpgJB
+	 Lw7uZdiSNlRnDWvDy+53Sk1XhRj1GJ903HwC1SeDYsAbJB/w6D2zdgHn+Wba1DdkVD
+	 8lwoBN8rXP/pQ==
+Date: Mon, 8 Jun 2026 14:20:47 -0700
 From: Jakub Kicinski <kuba@kernel.org>
-To: Tariq Toukan <tariqt@nvidia.com>
-Cc: Eric Dumazet <edumazet@google.com>, Paolo Abeni <pabeni@redhat.com>,
- Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller"
- <davem@davemloft.net>, Simon Horman <horms@kernel.org>, Donald Hunter
- <donald.hunter@gmail.com>, Jiri Pirko <jiri@resnulli.us>, Jonathan Corbet
- <corbet@lwn.net>, Shuah Khan <skhan@linuxfoundation.org>, Saeed Mahameed
- <saeedm@nvidia.com>, "Leon Romanovsky" <leon@kernel.org>, Mark Bloch
- <mbloch@nvidia.com>, Shuah Khan <shuah@kernel.org>, "Matthieu Baerts
- (NGI0)" <matttbe@kernel.org>, Chuck Lever <chuck.lever@oracle.com>,
- Carolina Jubran <cjubran@nvidia.com>, Or Har-Toov <ohartoov@nvidia.com>,
- Moshe Shemesh <moshe@nvidia.com>, Dragos Tatulea <dtatulea@nvidia.com>,
- Daniel Zahka <daniel.zahka@gmail.com>, Shahar Shitrit
- <shshitrit@nvidia.com>, Cosmin Ratiu <cratiu@nvidia.com>, Jacob Keller
- <jacob.e.keller@intel.com>, Parav Pandit <parav@nvidia.com>, Adithya
- Jayachandran <ajayachandra@nvidia.com>, "Shay Drori" <shayd@nvidia.com>,
- Kees Cook <kees@kernel.org>, Daniel Jurgens <danielj@nvidia.com>,
- <netdev@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
- <linux-doc@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
- <linux-kselftest@vger.kernel.org>, Gal Pressman <gal@nvidia.com>
-Subject: Re: [PATCH net-next V5 00/12] devlink: add per-port resource
- support
-Message-ID: <20260608133029.3e1ef109@kernel.org>
-In-Reply-To: <20260407194107.148063-1-tariqt@nvidia.com>
-References: <20260407194107.148063-1-tariqt@nvidia.com>
+To: Abhijit Gangurde <abhijit.gangurde@amd.com>
+Cc: <jgg@ziepe.ca>, <leon@kernel.org>, <brett.creeley@amd.com>,
+ <andrew+netdev@lunn.ch>, <davem@davemloft.net>, <edumazet@google.com>,
+ <pabeni@redhat.com>, <allen.hubbe@amd.com>, <nikhil.agarwal@amd.com>,
+ <linux-rdma@vger.kernel.org>, <netdev@vger.kernel.org>,
+ <linux-kernel@vger.kernel.org>, David Woodhouse <dwmw2@infradead.org>
+Subject: Re: [for-next v3 0/5] ionic: RDMA completion timestamping support
+Message-ID: <20260608142047.6deff079@kernel.org>
+In-Reply-To: <20260606050003.3648306-1-abhijit.gangurde@amd.com>
+References: <20260606050003.3648306-1-abhijit.gangurde@amd.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -61,10 +47,16 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 
-On Tue, 7 Apr 2026 22:40:55 +0300 Tariq Toukan wrote:
-> Userspace patches for iproute2:
-> https://github.com/ohartoov/iproute2/tree/port_resources
+On Sat, 6 Jun 2026 10:29:58 +0530 Abhijit Gangurde wrote:
+> This series adds RDMA completion timestamp support for ionic.
+> 
+> It enables PHC registration for RDMA timestamp capability, exposes a PHC
+> state page for safe user-space reads, maps that PHC state through RDMA
+> ucontext mmap, and extends the RDMA CQE format to carry completion
+> timestamps.
+> 
+> With this, user space can read completion timestamps and convert them to
+> wall time with low overhead.
 
-Hi! As far as I can tell these iproute2 patches have not even been
-posted? Please try to get them upstream ASAP, we have to manually 
-carry them in the CI right now.
+please CC David Woodhouse <dwmw2@infradead.org> on future versions.
+Since David is working on uAPI for clocks he may have some thoughts.
