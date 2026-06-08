@@ -1,60 +1,87 @@
-Received: from mail-wr1-f50.google.com (mail-wr1-f50.google.com [209.85.221.50])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from PH8PR06CU001.outbound.protection.outlook.com (mail-westus3azon11012070.outbound.protection.outlook.com [40.107.209.70])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 07C3F31E83B
-	for <linux-rdma@vger.kernel.org>; Mon,  8 Jun 2026 13:48:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.50
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780926501; cv=none; b=E7nspmk2un4LBrp0Cb5+Lcg1kYoIFx9vVbPM6Ia+nv8Q0KfM+kzxERwD6NLHfLBcvnpFB/0NWAAoMwD3s6nW1USpSAzLy3Qgn/KGVw4kU2LMOXSKM9heuTDc4vcPqbrCgJjeR/vz/+4nsR5NQkdjrF3hxds/V/dV+q0elMhCRqQ=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780926501; c=relaxed/simple;
-	bh=wdMIaMAyWdu4S0DSYGF8WY9qDJK4dJUDqKeDSk483os=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=PNHhslQogcbq8Zh9g7S6qAQ3nqGfrioLxvuiUSDNluc1se+1nuPet+s/LKHAdCotucxollksq/tv7bm5Yk9vl8Ietmji2G4CyasYU1sedUPHnG+1FGvzV+hkZYDvZeq9cT8lKiugti+y7B2RBeyPiX7EFoL0Eeld8gdr9soIh2s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=hackers.camp; spf=pass smtp.mailfrom=gmail.com; arc=none smtp.client-ip=209.85.221.50
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=hackers.camp
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Received: by mail-wr1-f50.google.com with SMTP id ffacd0b85a97d-45ef93a0b0fso255948f8f.2
-        for <linux-rdma@vger.kernel.org>; Mon, 08 Jun 2026 06:48:19 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1780926498; x=1781531298;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=DTMnrlV+pTN/lOUFBQDSTc1z3+qQ6zPVzMzDHtmZ+9o=;
-        b=Gn2l9/0EfE37hBNO+Y/qkiLFHg//FC3bzH1rK3HH4/abm0fh0U13IuoMx+WJFVypaj
-         mbLFydiBgh1adv4JIGyRXHLZ9wKL3Xij/ZW3+7XUWPFIoLmqpSV0JWWZz+4M3XoRPOnC
-         lL188PDp+Amvt3nAqAhKkmq3DoDFwpO0AGd71XAbfmSr93cZKfhM3jNUm7bE1+bgdByJ
-         oP64FBjv0Tuk/KQO1atb2p/Fxmgtx0KctK5dIf8N0WogiYyrJEpDDq4AAuLFotDLMcjL
-         4HcoigJZa0wF/B3eZU9JFJlhh2/DnKg2Ghl18N1RJ0ys3ooFXWlGlXThqSzVkk0I0b0/
-         fFfA==
-X-Gm-Message-State: AOJu0Yz8xqtsxZ8xcR1UOI7VLb7QZO8Gb+yr3kIIy0iQLtN6I4t9jGpE
-	YTEv+urBvS5VxOV4TiEnkgMXosLK965OoQs//ALUYXjIWIhr9vYJkR3FbIkIPsRh
-X-Gm-Gg: Acq92OH4mlGW7NieEumoFNW0i/PLrUR2+KehYdWPbEcWIyFh4B3b94LGUeGYkKlRPT3
-	H1HFsUyXTy1jlYjjvaDKQluFbazoTPMacjoJxbWgi/Fqdo6AyRvu0N44SfvLao30mRCLo3Mc7zs
-	xD2F+e5bcQUFKFO5LENpz8GiKUYjS9YxbgC97aXIZqXX2VqfTWdVRS9URveZi874gCjvRtP9FpQ
-	FKp4Via9P5ysPmhJen5jcDSJDHTvm+3zw/SGs3t5/KUzD9RI1FCI7hykPoU+zaS2rqlyAfMsSof
-	8LVtrnzRxRTcAxUkq4wlc/qZXIN+cYZqCSFevCYdnzbwIF8FPuKjFdoAiCd6cb0gTrGE8tY4nR2
-	C/tAmNVNPBMXr5a452MI5xWpQE2HVIJQ+hFGR3jlrwt5UJldb6xx+y5hZbp3JdNo9mFm3nDii06
-	BDfyYPY9Yklsy23519Xy0XkW6k9DibR6eaKq/jBsuqNfZ5MFZYixM5uwlfAqvRQbJdwnYVkjYlW
-	A==
-X-Received: by 2002:a5d:5254:0:b0:450:4980:b4fe with SMTP id ffacd0b85a97d-460302f0b27mr7831225f8f.2.1780926498314;
-        Mon, 08 Jun 2026 06:48:18 -0700 (PDT)
-Received: from spartian.home ([2a01:cb1c:868:fa00:915c:e3c1:676e:553e])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-4602cda3651sm41027148f8f.32.2026.06.08.06.48.17
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 08 Jun 2026 06:48:17 -0700 (PDT)
-From: Aurelien DESBRIERES <aurelien@hackers.camp>
-To: linux-rdma@vger.kernel.org
-Cc: jgg@ziepe.ca,
-	leon@kernel.org,
-	haris.iqbal@ionos.com,
-	jinpu.wang@ionos.com,
-	gregkh@linuxfoundation.org,
-	Aurelien DESBRIERES <aurelien@hackers.camp>
-Subject: [PATCH] RDMA/rtrs-srv: Fix integer underflow in process_read and process_write
-Date: Mon,  8 Jun 2026 15:47:15 +0200
-Message-ID: <20260608134802.5019-1-aurelien@hackers.camp>
-X-Mailer: git-send-email 2.53.0
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E8293BCD0A;
+	Mon,  8 Jun 2026 13:57:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.209.70
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1780927026; cv=fail; b=pGtqZEiDrwbcZB+ztXMOvJUtXSQMd75CSqVG9UiCxKRlN2q8QHLoN1NRwCxQH2NvXLH4Q4Qh+Ec6pVglprqFXkvCuRpzrHd38MhM47HDNO/bccLNIkcgDh4dF+3rlEyD+21YqKK1U1joKja+lnKV/fc9+/FbJi/jYyncOc78dy0=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1780927026; c=relaxed/simple;
+	bh=uniS2HCWjGDEtovVNXVHKmyiH68v6Ot4OsXTYbefww0=;
+	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=pCaI5gc1n7KQDPYd1+1lbajgbt7d//f3G0JlVqIAzHTwEoSI6j+TYzwmIKdoioxc63/TpFw97Kn7R+I+vTHt7zyRJzZIKJJx6KGRHty9vxdUucWZmQuw0RumD3hO70nGo86wZgjfpsPIy/j83LJSfmVqqVyPQxY6dpTiQWMS2JE=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=QyThCKbx; arc=fail smtp.client-ip=40.107.209.70
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="QyThCKbx"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=bRIwlS+6jL7+uwuLwepy+cC+snCeRQ/0yAwEVH0z7xX+mUO28H4Aykqj8u3wXh1sSCkZiFJzQ5TN+8J+f8j5PpSpPTIvocyRqTH5vg/8WxmqEJjdXBZHdRbnF2V3tOqFmyNiPOJyYzvn8El2tZ/84DE9rysINoAtJURlx1kPmeU9zT50ewqodQtt53vhWMBQk3VnN8VIYCrIo1D5f/c9kK9Q5TP2eFQPYW7d3v1M3e2pkV5LqgGbGeshRcMFPFPYN0ogzNQ6dhnFL3n8l4DM5/sN2YzYzkxEz8wl7a8/Gyz/7afLKApD9PFG8YkIQOT3ZMrwsC40RUZL2adBQAS90w==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=CtnTz+coA8yrqJ+gMluWV7GH9ViBzn9vVK2VT1yus0o=;
+ b=xw2oLl05z7YFG+mzndbD+bC+kDO7rrEiGmkWDW5UuPjSGeo6YezYPydUtVd5Fa2WYJm4tRacuEiugWFhCJDKt7u1bMjXWwqg7zR9MmNWjt53fsOlw5kzLGoa4FujId3aBjhGi60KbDQr1Vi+aTV+r+MC9/M/vN0RP0Axnf4bovDwKjLuHsO6N/5Je62aGKTTG4DHQjs5kmtXYf3n7V2oWuzx/EWnF6AORyEcK1W5CliZEGk2H28iHmK/XTipfFdtPfY/ix9rCH9xgEu7S6uaIiNpthWr0OOcgp2xDSE0vEvOeQaP+w/q66/0VddV2ZCSqpWb4TZg4GgIpx8KLbQVwA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 216.228.118.233) smtp.rcpttodomain=google.com smtp.mailfrom=nvidia.com;
+ dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
+ dkim=none (message not signed); arc=none (0)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=CtnTz+coA8yrqJ+gMluWV7GH9ViBzn9vVK2VT1yus0o=;
+ b=QyThCKbxB2X9dReUxwVELy1jbxR614qXbwjTynwadGvlBxwCFLgXqq6z/32ZGrKMIgD5lagV3GBSYLY158aZVvERd41aHD25PZb9boSzz1EtwGDI0nRwkXfMDGRn46AIUzGU8I3ovQ/GwzosCg3iG/suTOZbJCaKEslWUbh0RkCl6taXSQ3QD/8Psw0jisy1qGD+FWRpV0XucjqVPv8G1JGfPXycJ1jtXMA8NapWaaFuSEClqfqAL1hylY+wF8hPErEMTL7qQGYkhOY3mpYOeDYtbxXzE0jb/G3AgtXwV2SocLa6jM5ypmdJdd8l0bUsZfYmBc3DEkGQxbHrfzfz8A==
+Received: from BN0PR10CA0001.namprd10.prod.outlook.com (2603:10b6:408:143::31)
+ by IA1PR12MB9466.namprd12.prod.outlook.com (2603:10b6:208:595::14) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.92.12; Mon, 8 Jun 2026
+ 13:57:00 +0000
+Received: from BN1PEPF0000468C.namprd05.prod.outlook.com
+ (2603:10b6:408:143:cafe::76) by BN0PR10CA0001.outlook.office365.com
+ (2603:10b6:408:143::31) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.21.92.14 via Frontend Transport; Mon, 8
+ Jun 2026 13:57:00 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.118.233)
+ smtp.mailfrom=nvidia.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=nvidia.com;
+Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
+ 216.228.118.233 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.118.233; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.118.233) by
+ BN1PEPF0000468C.mail.protection.outlook.com (10.167.243.137) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.21.113.7 via Frontend Transport; Mon, 8 Jun 2026 13:57:00 +0000
+Received: from drhqmail201.nvidia.com (10.126.190.180) by mail.nvidia.com
+ (10.127.129.6) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Mon, 8 Jun
+ 2026 06:56:43 -0700
+Received: from drhqmail202.nvidia.com (10.126.190.181) by
+ drhqmail201.nvidia.com (10.126.190.180) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.20; Mon, 8 Jun 2026 06:56:42 -0700
+Received: from vdi.nvidia.com (10.127.8.10) by mail.nvidia.com
+ (10.126.190.181) with Microsoft SMTP Server id 15.2.2562.20 via Frontend
+ Transport; Mon, 8 Jun 2026 06:56:37 -0700
+From: Tariq Toukan <tariqt@nvidia.com>
+To: Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>, Andrew Lunn <andrew+netdev@lunn.ch>, "David
+ S. Miller" <davem@davemloft.net>
+CC: Saeed Mahameed <saeedm@nvidia.com>, Leon Romanovsky <leon@kernel.org>,
+	Tariq Toukan <tariqt@nvidia.com>, Mark Bloch <mbloch@nvidia.com>, Shay Drory
+	<shayd@nvidia.com>, Or Har-Toov <ohartoov@nvidia.com>, Edward Srouji
+	<edwards@nvidia.com>, Simon Horman <horms@kernel.org>, Maher Sanalla
+	<msanalla@nvidia.com>, Parav Pandit <parav@nvidia.com>, Kees Cook
+	<kees@kernel.org>, Moshe Shemesh <moshe@nvidia.com>, Patrisious Haddad
+	<phaddad@nvidia.com>, <netdev@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>, Gal Pressman <gal@nvidia.com>, Dragos Tatulea
+	<dtatulea@nvidia.com>
+Subject: [PATCH net-next V2 02/15] net/mlx5: devcom, expose locked variant of send_event
+Date: Mon, 8 Jun 2026 16:55:34 +0300
+Message-ID: <20260608135547.482825-3-tariqt@nvidia.com>
+X-Mailer: git-send-email 2.44.0
+In-Reply-To: <20260608135547.482825-1-tariqt@nvidia.com>
+References: <20260608135547.482825-1-tariqt@nvidia.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -62,70 +89,137 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-NV-OnPremToCloud: ExternallySecured
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: BN1PEPF0000468C:EE_|IA1PR12MB9466:EE_
+X-MS-Office365-Filtering-Correlation-Id: 1bdc296f-deb8-4048-e495-08dec565cffd
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|7416014|376014|36860700016|82310400026|1800799024|11063799006|56012099006|6133799003|18002099003|22082099003;
+X-Microsoft-Antispam-Message-Info:
+	VDJYSM2OXjDHkYvgH/tkj9u/5/k5UWPOY5hpTsB1CjxfHCR1Tk5md6WcAGq3g8mCLK9ow/p5VJEEQtZPIOlRccStUZW828o89QrcRQqm8k8y0j+2CQfbE90ncRItKemFVS69fjCri6FWSEfFiv3WMAddOCVO48iOOMoOwkLhyavVaySdtd5XVTZCDL5nKNLHnvaI6cl5xM434jzZU73YLLULWBuwsYR9yOIDtkZPBOJJBmUwpbZMFflen+A+jnC2EEaLzMtHs6e4mGVfmpwcfkaaSvpjaeREnC2ZPXFCbhc65Y526ajaP2ILqT1vHZuFgxV0GAuvMbD6DrS4gGOdW5mW8EtF1qPjDbrELSY2YtYoObmynydPGS4/P21V8ecXJQlnUJ2PkEDsmsIqEKcbAlP4PMimGqXSaebacrl9IyhEfJwyPv6g3PjPBGFeDBLeUjnXNeNloO9sIysiPAOi2hdM6fTBADQbKcHnewBoLIk9kdGwo0zqLtVSO4Pl0o8kdnkZMxdQQkU78cGINZRw1+49gTq9fmZMe5bcAfM0cyNTDtptGod23cK7F7ddoTieCboz7DLl2c3Nyvk7Ani9+XYy2s00WOR7F3xPE2Ip8X32Nmf52puXgZMkGfVUxhJQip7HWfSJAUep7ljebtGVblRBykcH3Rbs2pU6dl+xYm8PSR4cV7jn6UpSe8sYUYWYNj7yGEu4bV4IRnMoKwc0e7EZuwsgxgSohmEh5x1sfCg=
+X-Forefront-Antispam-Report:
+	CIP:216.228.118.233;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc7edge2.nvidia.com;CAT:NONE;SFS:(13230040)(7416014)(376014)(36860700016)(82310400026)(1800799024)(11063799006)(56012099006)(6133799003)(18002099003)(22082099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	HlIxxxs419zqZ1/hc/DKOtbj/svSioNB1WgcW4pr0CQjklwgFh0AQsbW78U5qE24wed/cq6P/w0ivz1J4iMX8Y4esZiF7vM4GRg/brqynvu0dUgcUEb1wyD5pI5Zq9iHNWfmBQSHT8s6gMAIAATb5Zss/P6NUlgi6NrYWnHOlnbaqz0PVHfkAcn8og5U2PnFzTjtLgg6RQ480jUQCWQLmGbMq6XSzOhNFc0udM3XxiIsX2qxpKdKeEHWunI/4zfXaK31xUXUOliyiGk1NCambuFWzeI7PE5O/5aHRwTE85C+a0/p6fjKE+jLvqZo0UfZV+H7AMxuLUzIVdMFb3d1QXqEBCpov+YZ6P5nJ59rPD4RsgFcB0DTWRWdKoShjovMD/U1fESSxRNJF8NCMx4c9ID32Ryv2tV+s+d7TRXCYbdX+jablQAUpGcdGcc1sQ7M
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 08 Jun 2026 13:57:00.3214
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: 1bdc296f-deb8-4048-e495-08dec565cffd
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.118.233];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	BN1PEPF0000468C.namprd05.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA1PR12MB9466
 
-usr_len is read from a network-supplied message field (le16_to_cpu)
-and used to compute data_len = off - usr_len without validating that
-usr_len <= off. A malicious RDMA client can send usr_len > off causing
-an integer underflow, resulting in data_len wrapping to a huge size_t
-value which is then passed to the rdma_ev callback as a memory length,
-leading to out-of-bounds memory access.
+From: Shay Drory <shayd@nvidia.com>
 
-Fix by reading and validating usr_len <= off before rtrs_srv_get_ops_ids()
-in both process_read() and process_write(), ensuring the early return
-path acquires no reference and has no resource leak.
+Factor mlx5_devcom_send_event() into two functions:
+- mlx5_devcom_locked_send_event(): performs the dispatch (and
+  rollback) with comp->sem already held by the caller.
+- mlx5_devcom_send_event(): unchanged wrapper that takes comp->sem,
+  calls the locked variant, and releases it.
 
-Reported-by: Aurelien DESBRIERES <aurelien@hackers.camp>
-Reviewed-by: Md Haris Iqbal <haris.iqbal@ionos.com>
-Signed-off-by: Aurelien DESBRIERES <aurelien@hackers.camp>
-Assisted-by: Claude <claude-sonnet-4-6>
+This lets callers bracket multiple event broadcasts under a single
+held write lock, eliminating the gap between consecutive dispatches
+where peer state could change.
+
+Will be used by a downstream patch.
+
+Signed-off-by: Shay Drory <shayd@nvidia.com>
+Reviewed-by: Mark Bloch <mbloch@nvidia.com>
+Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
 ---
- drivers/infiniband/ulp/rtrs/rtrs-srv.c | 12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ .../ethernet/mellanox/mlx5/core/lib/devcom.c  | 29 ++++++++++++++-----
+ .../ethernet/mellanox/mlx5/core/lib/devcom.h  |  3 ++
+ 2 files changed, 25 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/rtrs/rtrs-srv.c b/drivers/infiniband/ulp/rtrs/rtrs-srv.c
-index 6482ad859..f2fd80c8a 100644
---- a/drivers/infiniband/ulp/rtrs/rtrs-srv.c
-+++ b/drivers/infiniband/ulp/rtrs/rtrs-srv.c
-@@ -1059,6 +1059,11 @@ static void process_read(struct rtrs_srv_con *con,
- 			    "Processing read request failed, invalid message\n");
- 		return;
- 	}
-+	usr_len = le16_to_cpu(msg->usr_len);
-+	if (usr_len > off) {
-+		pr_debug("rtrs-srv: Invalid usr_len %zu > off %u\n", usr_len, off);
-+		return;
-+	}
- 	rtrs_srv_get_ops_ids(srv_path);
- 	rtrs_srv_update_rdma_stats(srv_path->stats, off, READ);
- 	id = srv_path->ops_ids[buf_id];
-@@ -1066,7 +1071,6 @@ static void process_read(struct rtrs_srv_con *con,
- 	id->dir		= READ;
- 	id->msg_id	= buf_id;
- 	id->rd_msg	= msg;
--	usr_len = le16_to_cpu(msg->usr_len);
- 	data_len = off - usr_len;
- 	data = page_address(srv->chunks[buf_id]);
- 	ret = ctx->ops.rdma_ev(srv->priv, id, data, data_len,
-@@ -1112,6 +1116,11 @@ static void process_write(struct rtrs_srv_con *con,
- 			     rtrs_srv_state_str(srv_path->state));
- 		return;
- 	}
-+	usr_len = le16_to_cpu(req->usr_len);
-+	if (usr_len > off) {
-+		pr_debug("rtrs-srv: Invalid usr_len %zu > off %u\n", usr_len, off);
-+		return;
-+	}
- 	rtrs_srv_get_ops_ids(srv_path);
- 	rtrs_srv_update_rdma_stats(srv_path->stats, off, WRITE);
- 	id = srv_path->ops_ids[buf_id];
-@@ -1119,7 +1128,6 @@ static void process_write(struct rtrs_srv_con *con,
- 	id->dir    = WRITE;
- 	id->msg_id = buf_id;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lib/devcom.c b/drivers/net/ethernet/mellanox/mlx5/core/lib/devcom.c
+index d40c53193ea8..96b4f06d6184 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/lib/devcom.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/lib/devcom.c
+@@ -287,9 +287,9 @@ int mlx5_devcom_comp_get_size(struct mlx5_devcom_comp_dev *devcom)
+ 	return kref_read(&comp->ref);
+ }
  
--	usr_len = le16_to_cpu(req->usr_len);
- 	data_len = off - usr_len;
- 	data = page_address(srv->chunks[buf_id]);
- 	ret = ctx->ops.rdma_ev(srv->priv, id, data, data_len,
+-int mlx5_devcom_send_event(struct mlx5_devcom_comp_dev *devcom,
+-			   int event, int rollback_event,
+-			   void *event_data)
++int mlx5_devcom_locked_send_event(struct mlx5_devcom_comp_dev *devcom,
++				  int event, int rollback_event,
++				  void *event_data)
+ {
+ 	struct mlx5_devcom_comp_dev *pos;
+ 	struct mlx5_devcom_comp *comp;
+@@ -299,8 +299,8 @@ int mlx5_devcom_send_event(struct mlx5_devcom_comp_dev *devcom,
+ 	if (!devcom)
+ 		return -ENODEV;
+ 
++	lockdep_assert_held_write(&devcom->comp->sem);
+ 	comp = devcom->comp;
+-	down_write(&comp->sem);
+ 	list_for_each_entry(pos, &comp->comp_dev_list_head, list) {
+ 		data = rcu_dereference_protected(pos->data, lockdep_is_held(&comp->sem));
+ 
+@@ -311,12 +311,11 @@ int mlx5_devcom_send_event(struct mlx5_devcom_comp_dev *devcom,
+ 		}
+ 	}
+ 
+-	up_write(&comp->sem);
+ 	return 0;
+ 
+ rollback:
+ 	if (list_entry_is_head(pos, &comp->comp_dev_list_head, list))
+-		goto out;
++		return err;
+ 	pos = list_prev_entry(pos, list);
+ 	list_for_each_entry_from_reverse(pos, &comp->comp_dev_list_head, list) {
+ 		data = rcu_dereference_protected(pos->data, lockdep_is_held(&comp->sem));
+@@ -324,7 +323,23 @@ int mlx5_devcom_send_event(struct mlx5_devcom_comp_dev *devcom,
+ 		if (pos != devcom && data)
+ 			comp->handler(rollback_event, data, event_data);
+ 	}
+-out:
++	return err;
++}
++
++int mlx5_devcom_send_event(struct mlx5_devcom_comp_dev *devcom,
++			   int event, int rollback_event,
++			   void *event_data)
++{
++	struct mlx5_devcom_comp *comp;
++	int err;
++
++	if (!devcom)
++		return -ENODEV;
++
++	comp = devcom->comp;
++	down_write(&comp->sem);
++	err = mlx5_devcom_locked_send_event(devcom, event, rollback_event,
++					    event_data);
+ 	up_write(&comp->sem);
+ 	return err;
+ }
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lib/devcom.h b/drivers/net/ethernet/mellanox/mlx5/core/lib/devcom.h
+index 316052a85ca5..d5c60c03e55c 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/lib/devcom.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/lib/devcom.h
+@@ -46,6 +46,9 @@ mlx5_devcom_register_component(struct mlx5_devcom_dev *devc,
+ 			       void *data);
+ void mlx5_devcom_unregister_component(struct mlx5_devcom_comp_dev *devcom);
+ 
++int mlx5_devcom_locked_send_event(struct mlx5_devcom_comp_dev *devcom,
++				  int event, int rollback_event,
++				  void *event_data);
+ int mlx5_devcom_send_event(struct mlx5_devcom_comp_dev *devcom,
+ 			   int event, int rollback_event,
+ 			   void *event_data);
 -- 
-2.43.0
+2.44.0
 
