@@ -1,241 +1,159 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.20])
+Received: from PH8PR06CU001.outbound.protection.outlook.com (mail-westus3azon11012020.outbound.protection.outlook.com [40.107.209.20])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD8EA3CEB9D
-	for <linux-rdma@vger.kernel.org>; Tue,  9 Jun 2026 23:48:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.20
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781048899; cv=none; b=eFmkubxAfG/hiGU9WMQv52lAWjolfF26QgSumq32JQk668uxYYgqtBXDwoVnmIg89PhcqcgdP5WpS9udpRTeUv1mPGXQ2Rq1tdk0t7jZ2rWLVJGLBQiz8xd7wmoWMcBPn0KgnwFCks7rhmSIt9bxp+X9TzvYwJwdVY8MbJnPBb8=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781048899; c=relaxed/simple;
-	bh=Hwox4wgel/y6+h8p3/RyPi+xsbVrTlPvp2s/roeVZ8k=;
-	h=Date:From:To:Cc:Subject:Message-ID; b=qzoCysovwTlyqLpm4ktsGPwOCbH769wNDaahdJhgJTT7uAUlX/drO1wY30BMcgsu4FPAIZhFpAeDJx19xPz2knfUAzQwfg8ATnp7fmQ/CZ4d4keMAAdo2/03krqilCRbArwsTwS1Huvp7QI2unMJ5AAmhnS8isjIoy/XtunNRaA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=eTHy7sdE; arc=none smtp.client-ip=198.175.65.20
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 907258C1F
+	for <linux-rdma@vger.kernel.org>; Wed, 10 Jun 2026 00:02:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.209.20
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1781049766; cv=fail; b=RALznI4l+yNvYkntLggi4+2TZKfR0Ag12B5YhE5TJqRwobXLFXikbeGihe3gqLqgDxhd/kkICfnsPUQpm6poWo9VGc0oDq5/yOtzwP1BNdEk6aP0r/rZeLK3vvdt+C9kpFZICA91+CK/DF8PDrWx6cjzuVa8dXYWdO/8XkjQc6w=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1781049766; c=relaxed/simple;
+	bh=1/2x49PRxmuKWGRF/ocPgu83f2+OmoTrfzB3tac4HEI=;
+	h=From:To:Cc:Subject:Date:Message-ID:Content-Type:MIME-Version; b=taiiuognqwBsNfwhiccnWDguzQ69BCWHMX8TOXA3MiZ9Cs5h9Gu9FRNFB2akCrE7qvwO4VZVcP2ciOcJZUle3JVeE2m4mVF4CP3vni4JI1+L+CjsX94JeQ0MQjeOvz/bS7hfzCF/4yg4skfqZjtj+dKF0n5uk0dKeaUzQyIgFd8=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=UMKziGJd; arc=fail smtp.client-ip=40.107.209.20
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="eTHy7sdE"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1781048897; x=1812584897;
-  h=date:from:to:cc:subject:message-id;
-  bh=Hwox4wgel/y6+h8p3/RyPi+xsbVrTlPvp2s/roeVZ8k=;
-  b=eTHy7sdEFYeldCn3U7jCxHsZujv/XDCp5H+pYzCMbHZC9sbyb4csKf0I
-   YLSrdDBroXbe9xSwqiZvQ474oPcc5+539UbrQNq/f2Y4h084hsamlER8O
-   EhzD51vjBavx6cDHeoqP5J6iHgwB1xtfUzY2L5CMgmBx6e5OWPcIYE9Ii
-   tOPmLZvPc8FZ1+mzSVO8jOJWjTzTlw7yx8XjDKdjJ1bkXQGCaoC9gfCcr
-   TbdkTr69lAaShoCHtCWucx1ABCy82oi8tw8Lj8qOHjH+UPuHjNaA1z1se
-   7PTCQNl3q0XxRWfwtik3AvrNaksS98D3b9optYoDIx5PMGBAr48OKvfhs
-   Q==;
-X-CSE-ConnectionGUID: /csWjMnASrCdVGU3JlyrqQ==
-X-CSE-MsgGUID: loCC7hmZT5emZb//62EHVQ==
-X-IronPort-AV: E=McAfee;i="6800,10657,11812"; a="81576359"
-X-IronPort-AV: E=Sophos;i="6.24,196,1774335600"; 
-   d="scan'208";a="81576359"
-Received: from fmviesa002.fm.intel.com ([10.60.135.142])
-  by orvoesa112.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Jun 2026 16:48:17 -0700
-X-CSE-ConnectionGUID: T15HcB5uRP++Adcgpo7e6A==
-X-CSE-MsgGUID: 3dodnXdQRtuyRRsh2mVROQ==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.24,196,1774335600"; 
-   d="scan'208";a="269682452"
-Received: from lkp-server01.sh.intel.com (HELO f0d55cb201f0) ([10.239.97.150])
-  by fmviesa002.fm.intel.com with ESMTP; 09 Jun 2026 16:48:14 -0700
-Received: from kbuild by f0d55cb201f0 with local (Exim 4.98.2)
-	(envelope-from <lkp@intel.com>)
-	id 1wX6B1-00000000KgU-3UNa;
-	Tue, 09 Jun 2026 23:48:11 +0000
-Date: Wed, 10 Jun 2026 07:47:21 +0800
-From: kernel test robot <lkp@intel.com>
-To: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org
-Subject: [rdma:wip/leon-for-next] BUILD SUCCESS
- 54bf38b27afc08a0eb6b732f9c14eb8a4bcb66b5
-Message-ID: <202606100713.o5N1InrI-lkp@intel.com>
-User-Agent: s-nail v14.9.25
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="UMKziGJd"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=yARm8HB8IKrtwJzkpT1U3YHPVU1hSHdnAJ4QJo7D2DPaZI7vT3qawPZzuU72a12MoFXDJ4nwBha3c32uKCV8lj3/LcB4IvZCuuqSjQvCJkcinAg6PWx50a1qw7L/9f1+Q2xuHAbsR5JCHTBxmp+J29XKKYz2toyXX5uxiqYpPpDK3PVZu/SJ4fkZHx1Az3UmPg9AZP5TMuPGge5Hjr+oJM6Z62nRzlY01M7AUl7OzgNzAuX1FIY8vHwqEazH0xtGQMmvOZuHrEjN0tE3YjCu805KCU72YYEyNggEFNxT/1yc3l/M4T45ln4tasgGW/K0oPOx5lIIm7i84ujWHHU1dA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=+qTwcn2SmvWhbsqPGq2IYRs1N6NtNJL/T/RECamMlHA=;
+ b=OhFPuxPwjHrLv2fwpR8ZezbvteJEvuLLGnqT/F92uDUz5Rltj1+pxy4c8K7MbYDiQeHZLRQS1z2WQ1CqQLVhSuMgSdteqrn6fBcmHYihySmqAoYuLodANJFgUO9+pjdJnZ5UtsTg33Mw7egINZVRdzndtWXQ3VhsqxyjB/kMXRUBg2Sx9hJ3hbCnLA86HXk4lRPDcOWBQCtAItT38YT0L7sCJjXJbxulgbLxZdb/hjavlPaCWbEEoxKq6H7+46TKygnDJFNf/8y1x4UJq6/7KXJFG4ptZOGco5QO9ciENUoJLNi+HP4vsN82c4wdyTrAPu3hjUlt92kfI6+lCBvTrQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=+qTwcn2SmvWhbsqPGq2IYRs1N6NtNJL/T/RECamMlHA=;
+ b=UMKziGJd2dffPZVVQApywsOKm6o1v6nKmYNHVRJd788OitL1HX4voUgziowZog/r6VkH92gcYLCBglkZSKphQSFNyjACcHQO+UX2N/EUwCVEzlPiuM7SJDhyu5qahjZ5iD5+b4cB8iyvStmt3UTLz1qkkNjBV1BDtatwi2P4MLXBe4mj6d1JyEfQcuRgf96DY6IiYa0Dqm76htM5HUl/OAzYjL2xhaURJQmpRt5Ozqai4u+p5wpZdhR4GiaABPTNF81kZR/VJ+3m9Zho8RIjSzPUYUYckIC56Ag9iZVMu/vSg9fuoeM/+txzEEeaCM+7XVUVQky7m+i28KmawJQ+Zw==
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from LV8PR12MB9715.namprd12.prod.outlook.com (2603:10b6:408:2a0::7)
+ by DS2PR12MB9663.namprd12.prod.outlook.com (2603:10b6:8:27a::13) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.92.12; Wed, 10 Jun
+ 2026 00:02:42 +0000
+Received: from LV8PR12MB9715.namprd12.prod.outlook.com
+ ([fe80::e74f:2cf8:cf2c:142]) by LV8PR12MB9715.namprd12.prod.outlook.com
+ ([fe80::e74f:2cf8:cf2c:142%6]) with mapi id 15.21.0092.011; Wed, 10 Jun 2026
+ 00:02:41 +0000
+From: Michael Gur <michaelgur@nvidia.com>
+To: jgg@ziepe.ca,
+	leon@kernel.org,
+	linux-rdma@vger.kernel.org
+Cc: Edward Srouji <edwards@nvidia.com>,
+	Yishai Hadas <yishaih@nvidia.com>,
+	Patrisious Haddad <phaddad@nvidia.com>,
+	Michael Guralnik <michaelgur@nvidia.com>
+Subject: [PATCH rdma-next 0/9] FRMR pools fixes
+Date: Wed, 10 Jun 2026 03:01:36 +0300
+Message-ID: <20260610000145.820592-1-michaelgur@nvidia.com>
+X-Mailer: git-send-email 2.52.0
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: TL2P290CA0029.ISRP290.PROD.OUTLOOK.COM
+ (2603:1096:950:3::19) To LV8PR12MB9715.namprd12.prod.outlook.com
+ (2603:10b6:408:2a0::7)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: LV8PR12MB9715:EE_|DS2PR12MB9663:EE_
+X-MS-Office365-Filtering-Correlation-Id: 2998e504-0370-45e1-8502-08dec6839768
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|23010399003|376014|1800799024|366016|18002099003|11063799006|56012099006;
+X-Microsoft-Antispam-Message-Info:
+	ffjlMOUUsOQWqGYN8m02KdCqa/8+jV5OLAyahxdLIRljXFpflSYyE3Ju6uwcxvDiwlzRXAwvRAl9fDQbZmWSqVSm50Gj5wWvF5rfIsKHVL5/vmap5KbcJOoP9rVPOz8XiVnRP/d+qxVg10UKVEtN5N7XjspIDnyF0pS92bl3nyX8ioKDQfb0j+wBzMy6+B8/l5Ps6oQvkFOIR6ndzCUR0thdPoT31HHPacCus2/zlQVJOKDsrWk0XUqrJGntmZ6HrgiP8eHwvHTiyrtK5l7f1RBYlwoLklRFWoNwh+ybOBivfR6pwxELdsFBY1B77zZ4dZKH9HMhgkpqHdfmlEmoKOktyfI5M85fhbseXsn0YxMLS3YrNDj95W2jEDXpX3PQhFRwtp0CmmURIBkj5C4WBwjchc5TB8qiECHXwfyJOsFA3R+pdqwfvsj7TLzYcVj8YcZN/3kBDEZAdio9nvmLKxM+PE0LkPc7j3B61wvksMF3LdOYGTx+Kbtt0LINRfdlqEztDIzmiTufG5H+/2D+kwDSRnNJgiSee+2ndYXveAiCuXLz4hhTZn6Q8/we5TFKHZFBPLHFE6etk6Kmo34zL1f04ZEorWG5MBYSPUYuynWE5l1qvSbDsHcWNDmtBZvv80QgYhES+/4Mt6sHwU1SIdhwZKGts8JtW485OGp5yj3TLM1tjbaRMOjaGy0PMDlo
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:LV8PR12MB9715.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(23010399003)(376014)(1800799024)(366016)(18002099003)(11063799006)(56012099006);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?us-ascii?Q?cIEahOIs5lSE6SzzPub5JoxEXX/nPYyyQJocWCMDNu41w+8GPicTKuPykpf+?=
+ =?us-ascii?Q?eLOoMic94nj98vmLo6O8Yd2TkFcYjB4sr7HVdhnzU9alnRsi/tSKOZz+0UO5?=
+ =?us-ascii?Q?w0VAIUYFAYa1t8U9PXJxxZz9Num84H3OsMBNXJP+ab8SpGZA+mNEAuhI33H8?=
+ =?us-ascii?Q?CA7etDUpTVWoL+rf1E6NRBP5p42N0atUOD6N04P0Ty+KuNL66sdN836JXgdQ?=
+ =?us-ascii?Q?W5w1+B0Lf4aafCxz1yd10V2SKEsG2D937UaGFUOO/AUQIs0PRutfeMjTdjq3?=
+ =?us-ascii?Q?s+Fcq9ZjlsRI15GWLhzz6sEVBVEyBFlZ9+XSJGwFTeUwFl60tznHbTRCX19H?=
+ =?us-ascii?Q?l1L3Es8CaY1cXeNPYcC5AfOshqcpIyskAoSfj7Fjhdj4TPu/r/u6TtW3oofz?=
+ =?us-ascii?Q?4FwGJJNHb0F6hc9zwCDehzB54iUanj+x0q9slqoiL0MVlAqIc1e3TRk3CRsZ?=
+ =?us-ascii?Q?1Axi/SQQ32oqs+eeZ01cE4muzPlBe2ZSmA6HOCOvOld2FSwPWF12wrY/TbV4?=
+ =?us-ascii?Q?AEk2029cEPJmMikuXMe4na7BhMKeatSGn9WJwU0/y9LsAxPvQMkhdm42pn+j?=
+ =?us-ascii?Q?0iNmpAOlAOQIaknv1XprSuOtSo6mMlIRYrFHJTf8fbcX4Cel2h7xZFylZntA?=
+ =?us-ascii?Q?z4cdNc5HMHn180a2bbmRK+Vz9NKnYo4Ijhsnzm0vCi8M1Jj6ZWZ6FF1Nl4pa?=
+ =?us-ascii?Q?khO873ESgELgIySCxfFlF4VQs91pjPK9W1J1D53ZOpzDkFvTXHaDTQ0YLOQP?=
+ =?us-ascii?Q?/GHj7bThzk3rxSNmdHdJN2iKpJ4+S2IuQyMbBTh8DU3g7Xugy0nyHhsuEjBM?=
+ =?us-ascii?Q?AiDFY26pGPNZCwIn0rAEEmnn+mV6UIhSh4TvK940NZ/ZG94RlmmQzKmsuz+9?=
+ =?us-ascii?Q?/rIQGci4C+Sv+6Sm0IywD3nNE18nQZ6p9w3NERieZTppEKOxrRLgJTnli6PO?=
+ =?us-ascii?Q?1uAacomoH0ut4IO2pjZbiAj/kSq912LjipfFrvGQZ3FTVfAYqGrY+ohn/pnR?=
+ =?us-ascii?Q?20haf2YPLQAVCob1KLLwI5CH+oGvWLtp6fxngKjacgaAW5hyy4KWEv+apxn+?=
+ =?us-ascii?Q?uhAjB/ZIByYv2UzQH0pey9Lk1bOLJE+zs413MIXZjQnQdOJsdMzS0z6Jnc+j?=
+ =?us-ascii?Q?1JSedNxEdzGwSo/KJP3TBer95iAcsRovti7zlvxkSLwCl63jvzZMy4qc4i8i?=
+ =?us-ascii?Q?S/7qAA9rhelKAkteWJ6xTfb72JW2wrRt2PEsNdXpy4h6ypDkG/0fPGM4hsyQ?=
+ =?us-ascii?Q?dATGXKZQukZls5q89u6c0zvjWGU0qtU+wq+bBFxrGq/OcZ8r89WJgDNnR6I1?=
+ =?us-ascii?Q?wqVRZGwtEjcg6tiIPrRAHeM7ERBzRrpGcTWONCWZHSeirG8l61DsiBtDceu0?=
+ =?us-ascii?Q?JNZbwMlJSNIEr+YVTYZYpqntY6bi8LZWNAfcJ5yyOWbeH/OY9U1hBMVa39E5?=
+ =?us-ascii?Q?TKp+t+d7XA+IraupiVhlnjYV92oFUfe+38DujZHqnSNKKsgMxNhQfUcbEFvi?=
+ =?us-ascii?Q?kw8UVTiWJYSkYUFqgKZfGtF39FCWZnwi29FRLFdDfSfbecSG/vjzEt+4U3DJ?=
+ =?us-ascii?Q?fWoxKl5EiEJOxN1Iot8I8sz0tsoO3e/QvuIlff6NoD+Y3doM7f5RtWR7qBt9?=
+ =?us-ascii?Q?4vNgELS11ed3YcPpFN9sE31pjQrIWIl9LyRat1reJO1z0GyyOociyE5MT06Z?=
+ =?us-ascii?Q?YYmfaiEhkF3tXT08XCdm9yPmMZw/wqeOp5J84wuj2GFpolcmCKc+fWpkNvSr?=
+ =?us-ascii?Q?M6L0EXW6/Q=3D=3D?=
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 2998e504-0370-45e1-8502-08dec6839768
+X-MS-Exchange-CrossTenant-AuthSource: LV8PR12MB9715.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 10 Jun 2026 00:02:41.7090
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: eLgQRg+wpy6iO5K4NH0PV6aI5zjVQLkNyBTZPYCRLt4kFbSB9uhtFudsZeMXvguJTT1hvzbTjuQML8mBg6Yg6A==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS2PR12MB9663
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git wip/leon-for-next
-branch HEAD: 54bf38b27afc08a0eb6b732f9c14eb8a4bcb66b5  RDMA/rtrs-srv: Fix integer underflow in process_read and process_write
+From: Michael Guralnik <michaelgur@nvidia.com>
 
-elapsed time: 1401m
+This series addresses several bugs in FRMR pool handling.
 
-configs tested: 164
-configs skipped: 2
+Patch 2 fixes incorrect masking of TPH-related bits in the FRMR pool key,
+which caused stale TPH values to be used when creating handles from an
+empty pool.
 
-The following configs have been built successfully.
-More configs may be tested in the coming days.
+Patch 3 fixes set-pinned flow to use the pool key returned from the
+driver build_key callback instead of the raw key supplied by user.
 
-tested configs:
-alpha                             allnoconfig    gcc-16.1.0
-alpha                            allyesconfig    gcc-16.1.0
-alpha                               defconfig    gcc-16.1.0
-arc                              allmodconfig    clang-23
-arc                               allnoconfig    gcc-16.1.0
-arc                              allyesconfig    clang-23
-arc                          axs101_defconfig    gcc-16.1.0
-arc                                 defconfig    gcc-16.1.0
-arc                   randconfig-001-20260610    gcc-8.5.0
-arc                   randconfig-002-20260610    gcc-8.5.0
-arm                               allnoconfig    gcc-16.1.0
-arm                              allyesconfig    clang-23
-arm                                 defconfig    gcc-16.1.0
-arm                   randconfig-001-20260610    gcc-8.5.0
-arm                   randconfig-002-20260610    gcc-8.5.0
-arm                   randconfig-003-20260610    gcc-8.5.0
-arm                   randconfig-004-20260610    gcc-8.5.0
-arm64                            allmodconfig    clang-23
-arm64                             allnoconfig    gcc-16.1.0
-arm64                               defconfig    gcc-16.1.0
-arm64                 randconfig-001-20260610    gcc-11.5.0
-arm64                 randconfig-002-20260610    gcc-11.5.0
-arm64                 randconfig-003-20260610    gcc-11.5.0
-arm64                 randconfig-004-20260610    gcc-11.5.0
-csky                             allmodconfig    gcc-16.1.0
-csky                              allnoconfig    gcc-16.1.0
-csky                                defconfig    gcc-16.1.0
-csky                  randconfig-001-20260610    gcc-11.5.0
-csky                  randconfig-002-20260610    gcc-11.5.0
-hexagon                          allmodconfig    gcc-16.1.0
-hexagon                           allnoconfig    gcc-16.1.0
-hexagon                             defconfig    gcc-16.1.0
-hexagon               randconfig-001-20260610    clang-22
-hexagon               randconfig-002-20260610    clang-22
-i386                             allmodconfig    clang-22
-i386                              allnoconfig    gcc-16.1.0
-i386                             allyesconfig    clang-22
-i386        buildonly-randconfig-001-20260610    gcc-14
-i386        buildonly-randconfig-002-20260610    gcc-14
-i386        buildonly-randconfig-003-20260610    gcc-14
-i386        buildonly-randconfig-004-20260610    gcc-14
-i386        buildonly-randconfig-005-20260610    gcc-14
-i386        buildonly-randconfig-006-20260610    gcc-14
-i386                                defconfig    gcc-16.1.0
-i386                  randconfig-011-20260610    gcc-14
-i386                  randconfig-012-20260610    gcc-14
-i386                  randconfig-013-20260610    gcc-14
-i386                  randconfig-014-20260610    gcc-14
-i386                  randconfig-015-20260610    gcc-14
-i386                  randconfig-016-20260610    gcc-14
-i386                  randconfig-017-20260610    gcc-14
-loongarch                        allmodconfig    clang-23
-loongarch                         allnoconfig    gcc-16.1.0
-loongarch                           defconfig    clang-23
-loongarch             randconfig-001-20260610    clang-22
-loongarch             randconfig-002-20260610    clang-22
-m68k                             allmodconfig    gcc-16.1.0
-m68k                              allnoconfig    gcc-16.1.0
-m68k                             allyesconfig    clang-23
-m68k                                defconfig    clang-23
-microblaze                        allnoconfig    gcc-16.1.0
-microblaze                       allyesconfig    gcc-16.1.0
-microblaze                          defconfig    clang-23
-mips                             allmodconfig    gcc-16.1.0
-mips                              allnoconfig    gcc-16.1.0
-mips                             allyesconfig    gcc-16.1.0
-nios2                            allmodconfig    clang-20
-nios2                             allnoconfig    clang-23
-nios2                               defconfig    clang-23
-nios2                 randconfig-001-20260610    clang-22
-nios2                 randconfig-002-20260610    clang-22
-openrisc                         allmodconfig    clang-20
-openrisc                          allnoconfig    clang-23
-openrisc                            defconfig    gcc-16.1.0
-parisc                           allmodconfig    gcc-16.1.0
-parisc                            allnoconfig    clang-23
-parisc                           allyesconfig    clang-23
-parisc                              defconfig    gcc-16.1.0
-parisc                randconfig-001-20260610    gcc-8.5.0
-parisc                randconfig-002-20260610    gcc-8.5.0
-parisc64                            defconfig    clang-23
-powerpc                          allmodconfig    gcc-16.1.0
-powerpc                           allnoconfig    clang-23
-powerpc                   microwatt_defconfig    gcc-16.1.0
-powerpc                      pasemi_defconfig    clang-23
-powerpc               randconfig-001-20260610    gcc-8.5.0
-powerpc               randconfig-002-20260610    gcc-8.5.0
-powerpc                     tqm8548_defconfig    clang-23
-powerpc64             randconfig-001-20260610    gcc-8.5.0
-powerpc64             randconfig-002-20260610    gcc-8.5.0
-riscv                            allmodconfig    clang-23
-riscv                             allnoconfig    clang-23
-riscv                            allyesconfig    clang-23
-riscv                               defconfig    gcc-16.1.0
-riscv                 randconfig-001-20260610    gcc-16.1.0
-riscv                 randconfig-002-20260610    gcc-16.1.0
-s390                             allmodconfig    clang-23
-s390                              allnoconfig    clang-23
-s390                             allyesconfig    gcc-16.1.0
-s390                                defconfig    gcc-16.1.0
-s390                  randconfig-001-20260610    gcc-16.1.0
-s390                  randconfig-002-20260610    gcc-16.1.0
-sh                               allmodconfig    gcc-16.1.0
-sh                                allnoconfig    clang-23
-sh                               allyesconfig    clang-23
-sh                                  defconfig    gcc-14
-sh                    randconfig-001-20260610    gcc-16.1.0
-sh                    randconfig-002-20260610    gcc-16.1.0
-sparc                             allnoconfig    clang-23
-sparc                               defconfig    gcc-16.1.0
-sparc                 randconfig-001-20260610    gcc-14.3.0
-sparc                 randconfig-002-20260610    gcc-14.3.0
-sparc64                          allmodconfig    clang-20
-sparc64                             defconfig    gcc-14
-sparc64               randconfig-001-20260610    gcc-14.3.0
-sparc64               randconfig-002-20260610    gcc-14.3.0
-um                               allmodconfig    clang-23
-um                                allnoconfig    clang-23
-um                               allyesconfig    gcc-16.1.0
-um                                  defconfig    gcc-14
-um                             i386_defconfig    gcc-14
-um                    randconfig-001-20260610    gcc-14.3.0
-um                    randconfig-002-20260610    gcc-14.3.0
-um                           x86_64_defconfig    gcc-14
-x86_64                           allmodconfig    clang-22
-x86_64                            allnoconfig    clang-23
-x86_64                           allyesconfig    clang-22
-x86_64      buildonly-randconfig-001-20260610    gcc-14
-x86_64      buildonly-randconfig-002-20260610    gcc-14
-x86_64      buildonly-randconfig-003-20260610    gcc-14
-x86_64      buildonly-randconfig-004-20260610    gcc-14
-x86_64      buildonly-randconfig-005-20260610    gcc-14
-x86_64      buildonly-randconfig-006-20260610    gcc-14
-x86_64                              defconfig    gcc-14
-x86_64                                  kexec    clang-22
-x86_64                randconfig-001-20260610    gcc-13
-x86_64                randconfig-002-20260610    gcc-13
-x86_64                randconfig-003-20260610    gcc-13
-x86_64                randconfig-004-20260610    gcc-13
-x86_64                randconfig-005-20260610    gcc-13
-x86_64                randconfig-006-20260610    gcc-13
-x86_64                randconfig-011-20260610    gcc-14
-x86_64                randconfig-012-20260610    gcc-14
-x86_64                randconfig-013-20260610    gcc-14
-x86_64                randconfig-014-20260610    gcc-14
-x86_64                randconfig-015-20260610    gcc-14
-x86_64                randconfig-016-20260610    gcc-14
-x86_64                randconfig-071-20260610    gcc-14
-x86_64                randconfig-072-20260610    gcc-14
-x86_64                randconfig-073-20260610    gcc-14
-x86_64                randconfig-074-20260610    gcc-14
-x86_64                randconfig-075-20260610    gcc-14
-x86_64                randconfig-076-20260610    gcc-14
-x86_64                               rhel-9.4    clang-22
-x86_64                           rhel-9.4-bpf    gcc-14
-x86_64                          rhel-9.4-func    clang-22
-x86_64                    rhel-9.4-kselftests    clang-22
-x86_64                         rhel-9.4-kunit    gcc-14
-x86_64                           rhel-9.4-ltp    gcc-14
-x86_64                          rhel-9.4-rust    clang-22
-xtensa                            allnoconfig    clang-23
-xtensa                           allyesconfig    clang-20
-xtensa                randconfig-001-20260610    gcc-14.3.0
-xtensa                randconfig-002-20260610    gcc-14.3.0
+Patch 8 extends the FRMR pools API with a new drop() operation.
+This allows drivers to update pool state on handle destruction when
+revocation fails, without incorrectly returning the handle to the pool.
 
---
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+The remaining patches fix error path handling, covering cases where memory
+allocation fails during queue expansion, and where handle creation or
+destruction operations return errors.
+
+Michael Guralnik (9):
+  RDMA/mlx5: Fix mkey creation error flow rollback
+  RDMA/mlx5: Fix TPH extraction in FRMR pool key
+  RDMA/core: Fix skipped usage for driver built FRMR key
+  RDMA/core: Fix FRMR aging push to queue error flow
+  RDMA/core: Fix FRMR set pinned push error path
+  RDMA/core: Avoid NULL dereference on FRMR bad usage
+  RDMA/core: Fix FRMR handle leak on push failure
+  RDMA/core: Add ib_frmr_pool_drop for unrecoverable handles
+  RDMA/mlx5: Drop FRMR pool handle on UMR revoke failure
+
+ drivers/infiniband/core/frmr_pools.c | 104 +++++++++++++++++++--------
+ drivers/infiniband/hw/mlx5/mr.c      |  31 +++++---
+ include/rdma/frmr_pools.h            |   3 +-
+ 3 files changed, 98 insertions(+), 40 deletions(-)
+
+-- 
+2.52.0
+
