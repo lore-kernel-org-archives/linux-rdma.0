@@ -1,34 +1,34 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D6E21229B18;
-	Wed, 10 Jun 2026 01:10:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A9A2B31A07F;
+	Wed, 10 Jun 2026 01:50:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781053811; cv=none; b=J3+lPHDHQmMN3Lfs0oKJzBpj0E9iUVKu+1LEqUfaKR14KXiiWNUH3gAcFdIyvWQkkDzhymQ859M/FcKQrni0XvUpUc1WTVjnQJKhscGn0kmA66Mbf2rUUqpHZ+6eZoSf/ewzP+E650ODcTDaqbnROutnkxi9/HjP6hYlSDwyIBc=
+	t=1781056215; cv=none; b=b/ImtL3XoS13dT/2Sr/OUkyHUdSAaw15T08N31KIdkpfdRfT0/X84QXP4aZOskNoPEH/EphKs+wKJFy6QviTHSiIMEK/ngOzMkHlWBT98EzlTAQgTQGAAwKSC8rR8wHggpe0aSr9esq2deOcRyQoiRL1zLLEf7tS1W5rssmUA3o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781053811; c=relaxed/simple;
-	bh=tBjRxMsvIYkhu3TLqVGi/Jwn+5CVWmSg5F9Pqg86ms0=;
+	s=arc-20240116; t=1781056215; c=relaxed/simple;
+	bh=hwvxF8N1zvCFgMaupM71BHjj6goMqgmONQpn8qKsqT4=;
 	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=DjGlEPypCW18Pc3ClLIJt2rf8RCoGi4LScylo9znmUugV4mByB3s+UVLeSAxoytg1W4HV0DWbxB/kSUcz9WokuVNSl3BY15kdcirgxekqbSo+FJ95lfj5hRjg4bqrp8NxvDVEZL6Ak0KtucYg0G4MLtXo+FNXOOSHctljA+F48I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=V3i9UpCw; arc=none smtp.client-ip=100.103.45.18
+	 In-Reply-To:To:Cc; b=ib5IEBsqE3poKPKWaKpx6Hh77oALSIlZ4TZHK2+5bBWDLcNZg0CxXCqASUaANkuaZUwbUdbZnxfZUZdL9z9z/d6R7H9XryIsQ3WGwr9SOf2jzdG4+w5pP2k6QqdlCC3OxywicA7yhbC/kgQn8Ezu9ts2yGQcI0PSJ0Ku81eBko0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=G29nJ7/e; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="V3i9UpCw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AF7C41F00893;
-	Wed, 10 Jun 2026 01:10:10 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="G29nJ7/e"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B37411F00893;
+	Wed, 10 Jun 2026 01:50:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1781053810;
-	bh=TRS0K2x+KhOyLAb3tWycsjifz1cV0PWzUeVzV2T5i7U=;
+	s=k20260515; t=1781056210;
+	bh=4R14I7pQe6DsGJffgE0TahCiSRdNUpxcyY0Y88/vvT0=;
 	h=Subject:From:Date:References:In-Reply-To:To:Cc;
-	b=V3i9UpCwdTAuGrFUGaoDvZ0YlBN+c98pcC0vYOhEaxHTmlZRikA7NAEeiFnZi+Nuj
-	 JT9mwlPh//qEisc1QxUatPUijLuBv06rIULDBZK4sp1orZhnPQ9fTZ7FUWXSQCvCjw
-	 P+DYiXFn8s3TmPbbEWG9cRhy6a4vpmKLWGtL32dfK1ivBUGyQWFzwq1Z3Oii1OgWL2
-	 bTABkk01S8Y6qfUWZzqCwRcAUWos0zVvjhubRmfcCXNtP7fnA2IUmvdUrPZVJkBWy4
-	 ecTxxPfjIYiSfUgTlgkACuBC7FB+0D0Qlx4ZOPdJS+ONy3aflxPDMS+1dS1J9ksmIF
-	 Tx62cCH8yAT2w==
+	b=G29nJ7/e0YKC0tezdMnEyIYDz5rWu2bfKqbtneHMm3rmkpGkVpKsfxLxDqi0Ev1An
+	 G7qwei/Sy/HsrOPkuLe/nzRXJMha09QClFFYg5FYzGI3Z8ZesySRGEIYCcvcRxc5Gj
+	 IFWCG3Vu+rLaNphqytuJVuzdOzBLxUucnsPwgAXZadmKiIe3YfB73N87poeGhJR7kn
+	 LlxSODrkmhvolwWlTcRgeEhH8KresTzN+m/1DhTwst8dOcrHkFo9WfLEA8MMe3SQl4
+	 c2GUuo5ooedgMLc4U+Ko4ICznVGswheUOTddh3ZQTYChpec88L5D4KNZRPgHXtIswW
+	 liknofMZnQ2cQ==
 Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 198133930A12;
-	Wed, 10 Jun 2026 01:10:10 +0000 (UTC)
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 19A043930A1F;
+	Wed, 10 Jun 2026 01:50:10 +0000 (UTC)
 Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
@@ -37,42 +37,42 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net-next v2] net: mana: Cache MANA_QUERY_LINK_CONFIG
- result to
- avoid repeated HWC queries
+Subject: Re: [PATCH net] net/rds: fix NULL deref in rds_ib_send_cqe_handler()
+ on
+ masked atomic completion
 From: patchwork-bot+netdevbpf@kernel.org
 Message-Id: 
- <178105380863.2776665.17686730574089327914.git-patchwork-notify@kernel.org>
-Date: Wed, 10 Jun 2026 01:10:08 +0000
-References: <20260606133301.2180073-1-ernis@linux.microsoft.com>
-In-Reply-To: <20260606133301.2180073-1-ernis@linux.microsoft.com>
-To: Erni Sri Satya Vennela <ernis@linux.microsoft.com>
-Cc: kys@microsoft.com, haiyangz@microsoft.com, wei.liu@kernel.org,
- decui@microsoft.com, longli@microsoft.com, andrew+netdev@lunn.ch,
- davem@davemloft.net, edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
- kotaranov@microsoft.com, horms@kernel.org, dipayanroy@linux.microsoft.com,
- kees@kernel.org, linux-hyperv@vger.kernel.org, netdev@vger.kernel.org,
- linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org
+ <178105620864.2788910.17895846835034675747.git-patchwork-notify@kernel.org>
+Date: Wed, 10 Jun 2026 01:50:08 +0000
+References: <20260606192447.1179255-2-bestswngs@gmail.com>
+In-Reply-To: <20260606192447.1179255-2-bestswngs@gmail.com>
+To: Weiming Shi <bestswngs@gmail.com>
+Cc: netdev@vger.kernel.org, achender@kernel.org, pabeni@redhat.com,
+ kuba@kernel.org, edumazet@google.com, davem@davemloft.net,
+ linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, xmei5@asu.edu
 
 Hello:
 
-This patch was applied to netdev/net-next.git (main)
+This patch was applied to netdev/net.git (main)
 by Jakub Kicinski <kuba@kernel.org>:
 
-On Sat,  6 Jun 2026 06:32:55 -0700 you wrote:
-> mana_query_link_cfg() sends an HWC command to firmware on every call,
-> but the link speed and QoS values it returns only change when the
-> driver explicitly calls mana_set_bw_clamp(). This function is called
-> not only by userspace via ethtool get_link_ksettings, but also
-> periodically by hv_netvsc through netvsc_get_link_ksettings and by
-> the sysfs speed_show attribute via dev_attr_show, resulting in
-> unnecessary HWC traffic every few minutes.
+On Sat,  6 Jun 2026 12:24:48 -0700 you wrote:
+> rds_ib_xmit_atomic() always programs a masked atomic opcode
+> (IB_WR_MASKED_ATOMIC_CMP_AND_SWP or IB_WR_MASKED_ATOMIC_FETCH_AND_ADD)
+> for every RDS atomic cmsg.  But the completion-side switch in
+> rds_ib_send_unmap_op() only handles the non-masked opcodes, so a masked
+> atomic completion falls through to default and returns rm == NULL while
+> send->s_op is left set.  rds_ib_send_cqe_handler() then dereferences the
+> NULL rm via rm->m_final_op, oopsing in softirq context.  An unprivileged
+> AF_RDS sendmsg() of an atomic cmsg over an active RDS/IB connection
+> triggers it; on hardware that natively accepts masked atomics (mlx4,
+> mlx5) no extra setup is needed.
 > 
 > [...]
 
 Here is the summary with links:
-  - [net-next,v2] net: mana: Cache MANA_QUERY_LINK_CONFIG result to avoid repeated HWC queries
-    https://git.kernel.org/netdev/net-next/c/8e0ffcc926f4
+  - [net] net/rds: fix NULL deref in rds_ib_send_cqe_handler() on masked atomic completion
+    https://git.kernel.org/netdev/net/c/34080db3e70d
 
 You are awesome, thank you!
 -- 
