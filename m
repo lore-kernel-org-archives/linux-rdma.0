@@ -1,164 +1,124 @@
-Received: from mx0b-00069f02.pphosted.com (mx0b-00069f02.pphosted.com [205.220.177.32])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qt1-f176.google.com (mail-qt1-f176.google.com [209.85.160.176])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 31EBF222582;
-	Wed, 10 Jun 2026 17:39:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.177.32
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE74234D93B
+	for <linux-rdma@vger.kernel.org>; Wed, 10 Jun 2026 17:45:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.176
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781113173; cv=none; b=OZDYtw8XbPIa2kDvKxvXAO/IL3ybmOXXagHS1ZxbpUSHzm4vqDWVwlO/HLX0lyZi4kYyq/QgjWNFgcnkaX20JyezCCjxxJiHuwE762qwi+sLnPBsetpNO+DXVQh4hmb6CbKD0OnyzoIBWhDC6Er9uOlu+/FVmr0xtzvyJ1l7I/g=
+	t=1781113514; cv=none; b=Gw5StKE5nQ3njeAAOxbmkjWxx7Cuqf8Adz1eMEoGuDmLCFIEQeVP8bvxqsWqM2foUU8ZThxToyuy0gkOf/FUsW51CCt9wNg8Ll+jD42cGPSgNaQDyXGVCt9NtkUnrWdiI/YR3cpx9ZzeSR2m8glIrAMxBZLSUQIZhYkZP7ayvMU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781113173; c=relaxed/simple;
-	bh=mFsPdIQNmumD6FdOZ1f3tsuWa3qRREaX+mUfFjjJrVM=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=RJTF9mM6MoNchMwFTI1Uis4ZoX1QO95mbIA7sZQwty93+HaNxNxVr+otJXThFOxqWhEAHOEOhPSWmINpI0MF8eNYJdbt6PQEa83Q7aPZXan/g9gIV6sv/1WFvNalYRaGmNwDWOkq9VJnbCOjgcFRQ78oeWEHWMGvLzi6uWEa4LI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oracle.com; spf=pass smtp.mailfrom=oracle.com; dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b=CGVsG/EJ; arc=none smtp.client-ip=205.220.177.32
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oracle.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oracle.com
+	s=arc-20240116; t=1781113514; c=relaxed/simple;
+	bh=daQUOE9k5fpWJOqT4xaW+WPhdG1ed6aOPgfvpOaEIEI=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=P8Hkf5r55z5Woof5uThartKo/ZCzLVmufoVpDHPa9OvSrQG0ql41nXQxqVvVzrEE1x1EY7amIDY7SXpn+uuZVMFt50ASo+K1cC3pOmyt9dFsUADyXW6udQuT61jnkrAxOL+51atLIJAhAbVcacSRd7lik4cdb3xPeJS1xPO5BKs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca; spf=pass smtp.mailfrom=ziepe.ca; dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b=PLyYXZkW; arc=none smtp.client-ip=209.85.160.176
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ziepe.ca
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="CGVsG/EJ"
-Received: from pps.filterd (m0333520.ppops.net [127.0.0.1])
-	by mx0b-00069f02.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 65ADulOL140590;
-	Wed, 10 Jun 2026 17:39:20 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=cc
-	:content-transfer-encoding:date:from:message-id:mime-version
-	:subject:to; s=corp-2025-04-25; bh=KYcM7IBQoilglZiFsT2AYDGdPiR3Z
-	d59yAtoqkqCQaE=; b=CGVsG/EJZlJzknu1fMkTXnuvXp7Mr0jd3VMZdEZo5iUPI
-	X/ej4PJH61hpJoRLZ1nUrn3Ubwx1s/l1ajxWfsBNb8MO6H8+70BAP15VNU88qrxg
-	eQLNAW2rfRTrxYJ05Q9QCk9gwoBvRWdqNtDNJRifdE6L9DvsTUA7QuQe9QPZH/7E
-	n5H1Ryg0fo1g79VPPcE1m36dv3mgKog/yBPlimsGVDA6DuSwlVH0/EeSObnG885D
-	E09elU48TWLE2ZO8rjzFeiOSJOsNwtOKzN0e96w+7PFQGrm7YiPA2u1WLu6S5gnf
-	9qjI65JJ4aIAbMWdry5QG9NkM7DN3IHNy8Qsli0dw==
-Received: from phxpaimrmta03.imrmtpd1.prodappphxaev1.oraclevcn.com (phxpaimrmta03.appoci.oracle.com [138.1.37.129])
-	by mx0b-00069f02.pphosted.com (PPS) with ESMTPS id 4embkjf5e2-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Wed, 10 Jun 2026 17:39:20 +0000 (GMT)
-Received: from pps.filterd (phxpaimrmta03.imrmtpd1.prodappphxaev1.oraclevcn.com [127.0.0.1])
-	by phxpaimrmta03.imrmtpd1.prodappphxaev1.oraclevcn.com (8.18.1.7/8.18.1.7) with ESMTP id 65AHXBvJ028974;
-	Wed, 10 Jun 2026 17:39:18 GMT
-Received: from pps.reinject (localhost [127.0.0.1])
-	by phxpaimrmta03.imrmtpd1.prodappphxaev1.oraclevcn.com (PPS) with ESMTPS id 4eqbqftdda-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Wed, 10 Jun 2026 17:39:18 +0000 (GMT)
-Received: from phxpaimrmta03.imrmtpd1.prodappphxaev1.oraclevcn.com (phxpaimrmta03.imrmtpd1.prodappphxaev1.oraclevcn.com [127.0.0.1])
-	by pps.reinject (8.18.1.12/8.18.1.12) with ESMTP id 65AHbHKj011533;
-	Wed, 10 Jun 2026 17:39:17 GMT
-Received: from mbpatil-ws.osdevelopmeniad.oraclevcn.com (mbpatil-ol10-ws.webad1iad.osdevelopmeniad.oraclevcn.com [100.100.228.95])
-	by phxpaimrmta03.imrmtpd1.prodappphxaev1.oraclevcn.com (PPS) with ESMTP id 4eqbqftdcg-1;
-	Wed, 10 Jun 2026 17:39:17 +0000 (GMT)
-From: Manjunath Patil <manjunath.b.patil@oracle.com>
-To: Saeed Mahameed <saeedm@nvidia.com>, Tariq Toukan <tariqt@nvidia.com>,
-        Mark Bloch <mbloch@nvidia.com>, Leon Romanovsky <leon@kernel.org>,
-        netdev@vger.kernel.org
-Cc: Manjunath Patil <manjunath.b.patil@oracle.com>,
-        Andrew Lunn <andrew+netdev@lunn.ch>,
-        "David S . Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Patrisious Haddad <phaddad@nvidia.com>, linux-rdma@vger.kernel.org,
-        linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Subject: [PATCH net] net/mlx5e: Use sender devcom for MPV master-up
-Date: Wed, 10 Jun 2026 10:39:15 -0700
-Message-ID: <20260610173915.4053423-1-manjunath.b.patil@oracle.com>
-X-Mailer: git-send-email 2.47.3
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="PLyYXZkW"
+Received: by mail-qt1-f176.google.com with SMTP id d75a77b69052e-5177945a22eso48208781cf.1
+        for <linux-rdma@vger.kernel.org>; Wed, 10 Jun 2026 10:45:12 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ziepe.ca; s=google; t=1781113512; x=1781718312; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=TznMgKk0/8JcLdqAZMC+NOYEFrWh7GnGXI72Bh61yhk=;
+        b=PLyYXZkWN4EqnSz9utZu0S0wTmxl6zh97ZYsaKCuxGhcgjgEn/eNmbgHer3BbUXn+g
+         akbA3Bh+Us787wdUZrR0tMTfoGzsdXaxKQChd69PZvzuNvODZf//rZT0qcRL1q4Ne7hP
+         7Ymm8j33Xmy6zRSojb6GJ0fGcAkyvCYcW2ubgPwPtt/n4n1vYUTaAlwSYlDSvWRgubj5
+         e3H+Jarek3EvqV8lBOMStNUCClZt9lCeBv5akO5yxFt5d3mU6Jb1IDhO1NPDIh5lLLbN
+         X86kXVoXs8nEEKNOSiH2VYXhpQg7s/edIlJGoIMXBKeGJGm8TzZjDWZ3L5kAB1wTAG98
+         pxZw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1781113512; x=1781718312;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=TznMgKk0/8JcLdqAZMC+NOYEFrWh7GnGXI72Bh61yhk=;
+        b=R6XYoSc2/bRBbnb/cGetuomutOAtUerTFdiKmljhJBvCT+m090kjWX50JO/6FQtwny
+         3JM7ot+naMBwdkteR7iH+kEfgMQAKoTGhAWO6mXf0HD8TvODIyDjY0liIez0JX1+h/VV
+         yFQ/8uO0FUx/224Ck++jL9lvj4lk8f1sHXiEizeFK1nF+4Ny6coHk7FD9+MQyPLa/lX2
+         dTO7MtKEN2Ibuf6FhTA8RO8AdEINikC4T/gaPoIDa4qVuqQclmxXLpAXEYnjxSCtWO0l
+         elq/nBsChLVnKVtyC2ubnD67UpLDGmsshAe4QWy53Jo/PRrTowCGVrZ3FIK+3/rmhK7L
+         grcw==
+X-Forwarded-Encrypted: i=1; AFNElJ/zGVvT0eMSPWtARBFd3EhlHLWN5m21i1JFPg4NaUbxPIBpFuS+cZ7TDOOnWK633XwWOtPIt8o3b8vz@vger.kernel.org
+X-Gm-Message-State: AOJu0Yx6nprIdeMb2aweon8RsuJwRXKwWF88Ab6WK425qUXf0k83myz/
+	bx0e3oAl6IWzqkEgu8jCZTYS3HniKV3FzPd2hgxdsDaDYJLya1Ak9Fgjb78OYX67ZrI=
+X-Gm-Gg: Acq92OFkOcyP9EP+kro0gD3YuPWSp0x/0UGWsLhDXvBG2J2sC22ZA86dVwotx0Fn8Pk
+	XZ0OQpJtQ2OcuqXOCH+1WWX+GPqrlLyoPowYZtwNK+FRWy24IJyIQKjoZlTaksnfiZd6mgGGLht
+	V/cZaALaael8brKvgV5psB5KAEx7hgsmk50sGXbFwJX0xwswOyAFkPbmdxWYjhZe3cwDP0f4dO7
+	8rIRlTApqlxqIM6EC9ocGHBfPTRELWeYbnljNBaqClXVZy8TEhrCaAajTVTC7HymmQC+03ng79u
+	TfWO1j9BRvYYFRx8VjskUTjPVWVJYpSj5IMHKSUxxt9vzATPz35a+1xfDKQMU0MhAz+hPoyx7Vx
+	hJMFbxB4gO3D36P7RhJj8x4qOwmrSbzdP/dukZZDulWSTRqshB5oYOb5D0p8T/5OM1rJLWYH+AY
+	GHLaWi2FeG8EUuDI+nqVVYhPjYrrUVLbfOhdC7tcCPapBLlzxOfNpJiiLyZ81YyJWqCg1nFYrEr
+	DaUsXlRdfdBsQEN
+X-Received: by 2002:a05:622a:586:b0:517:76b7:7b3e with SMTP id d75a77b69052e-51795be20f9mr379377021cf.38.1781113511786;
+        Wed, 10 Jun 2026 10:45:11 -0700 (PDT)
+Received: from ziepe.ca (crbknf0213w-47-54-130-67.pppoe-dynamic.high-speed.nl.bellaliant.net. [47.54.130.67])
+        by smtp.gmail.com with ESMTPSA id d75a77b69052e-51775c2e2casm218655041cf.9.2026.06.10.10.45.11
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 10 Jun 2026 10:45:11 -0700 (PDT)
+Received: from jgg by wakko with local (Exim 4.97)
+	(envelope-from <jgg@ziepe.ca>)
+	id 1wXMzG-00000004Eq8-32fO;
+	Wed, 10 Jun 2026 14:45:10 -0300
+Date: Wed, 10 Jun 2026 14:45:10 -0300
+From: Jason Gunthorpe <jgg@ziepe.ca>
+To: Michael Gur <michaelgur@nvidia.com>
+Cc: leon@kernel.org, linux-rdma@vger.kernel.org,
+	Edward Srouji <edwards@nvidia.com>,
+	Yishai Hadas <yishaih@nvidia.com>,
+	Patrisious Haddad <phaddad@nvidia.com>
+Subject: Re: [PATCH rdma-next 0/9] FRMR pools fixes
+Message-ID: <20260610174510.GR2764304@ziepe.ca>
+References: <20260610000145.820592-1-michaelgur@nvidia.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1143,Hydra:6.1.125,FMLib:17.12.100.49
- definitions=2026-06-10_03,2026-06-09_02,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 phishscore=0
- mlxlogscore=999 malwarescore=0 bulkscore=0 lowpriorityscore=0 mlxscore=0
- spamscore=0 suspectscore=0 adultscore=0 classifier=spam adjust=0 reason=mlx
- scancount=1 engine=8.19.0-2605130000 definitions=main-2606100166
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNjEwMDE2NiBTYWx0ZWRfX5k9kQImBYMJb
- TMnA5U8R2f/ilo5tGIBLsZOBGtQpXW/f1VA7Ezklmbh8vd0LZEpKoW82H6n/TnfbcP1d9RDy28P
- A5eORAeKQXS9F6vyr4KHmiOdxfaaOnrb5Zwp3zdgAEyKMuqG/iupBtskzaIosIetTg+20JwhziR
- QLQ+spAy96a/vM5bQnfy2vMl2pc3Op7aqgltz1KuQ17O4bPhPuUOHn/IjtYynVeF2eoaQaHajIT
- bRcePuOjn5svN4ijB8TFM65Oi4GRuxs3ThzUFClYtbQ7nbLmW65Xqq1UKRPA+ykYkVyx4k09LYf
- Za1nkOXPA1tPCq+4zjTjGCG6Kf8AwZG3m1JlL87tzFOqcLE6hNLt1VbYjWZRmSCLjfW4erRuuDq
- 7ICJ4z9sK8fu9ZcBReuJwwdAN5XVhUpFnX8AYrKs9w62HUPHstFHQ8ng+YMjRkheZ7y1j2j4AjI
- j5T+wUcwha70ZaEAu8w==
-X-Authority-Analysis: v=2.4 cv=ROSD2Yi+ c=1 sm=1 tr=0 ts=6a29a148 b=1 cx=c_pps
- a=WeWmnZmh0fydH62SvGsd2A==:117 a=WeWmnZmh0fydH62SvGsd2A==:17
- a=FelO9ux0wxsA:10 a=VkNPw1HP01LnGYTKEx00:22 a=jiCTI4zE5U7BLdzWsZGv:22
- a=BqU2WV_vvsyTyxaotp0D:22 a=yPCof4ZbAAAA:8 a=VwQbUJbxAAAA:8
- a=JXUkVfB3YJkj4ag9OGkA:9
-X-Proofpoint-GUID: kFF8KusQBGovR0sKGsMd2h_cailNstJk
-X-Proofpoint-ORIG-GUID: kFF8KusQBGovR0sKGsMd2h_cailNstJk
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260610000145.820592-1-michaelgur@nvidia.com>
 
-After PCIe DPC recovery, mlx5 reloads the affected functions and
-replays multiport affiliation events. In the reported failure, the
-first relevant device error was:
+On Wed, Jun 10, 2026 at 03:01:36AM +0300, Michael Gur wrote:
+> From: Michael Guralnik <michaelgur@nvidia.com>
+> 
+> This series addresses several bugs in FRMR pool handling.
+> 
+> Patch 2 fixes incorrect masking of TPH-related bits in the FRMR pool key,
+> which caused stale TPH values to be used when creating handles from an
+> empty pool.
+> 
+> Patch 3 fixes set-pinned flow to use the pool key returned from the
+> driver build_key callback instead of the raw key supplied by user.
+> 
+> Patch 8 extends the FRMR pools API with a new drop() operation.
+> This allows drivers to update pool state on handle destruction when
+> revocation fails, without incorrectly returning the handle to the pool.
+> 
+> The remaining patches fix error path handling, covering cases where memory
+> allocation fails during queue expansion, and where handle creation or
+> destruction operations return errors.
+> 
+> Michael Guralnik (9):
+>   RDMA/mlx5: Fix mkey creation error flow rollback
+>   RDMA/mlx5: Fix TPH extraction in FRMR pool key
+>   RDMA/core: Fix skipped usage for driver built FRMR key
+>   RDMA/core: Fix FRMR aging push to queue error flow
+>   RDMA/core: Fix FRMR set pinned push error path
+>   RDMA/core: Avoid NULL dereference on FRMR bad usage
+>   RDMA/core: Fix FRMR handle leak on push failure
+>   RDMA/core: Add ib_frmr_pool_drop for unrecoverable handles
+>   RDMA/mlx5: Drop FRMR pool handle on UMR revoke failure
 
-  pcieport 0000:10:01.1: DPC: containment event
-  pcieport 0000:10:01.1: PCIe Bus Error: severity=Uncorrected (Fatal)
-  pcieport 0000:10:01.1:    [ 5] SDES                   (First)
+These fixes seem OK and Sashiko found two more:
 
-mlx5 recovered the PCI functions and resumed 0000:11:00.1. During
-that resume, RDMA multiport binding replayed
-MLX5_DRIVER_EVENT_AFFILIATION_DONE and mlx5e sent
-MPV_DEVCOM_MASTER_UP. The host then panicked with:
+https://sashiko.dev/#/patchset/20260610000145.820592-1-michaelgur%40nvidia.com
 
-  BUG: kernel NULL pointer dereference, address: 0000000000000010
-  RIP: mlx5_devcom_comp_set_ready+0x5/0x40 [mlx5_core]
-  RDI: 0000000000000000
+Can you send a followup?
 
-Call trace included:
+I'll pick this up tomorrow
 
-  mlx5_devcom_comp_set_ready
-  mlx5e_devcom_event_mpv
-  mlx5_devcom_send_event
-  mlx5_ib_bind_slave_port
-  mlx5r_mp_probe
-  mlx5_pci_resume
-
-MPV devcom registration publishes mlx5e private data to the component
-peer list before mlx5e_devcom_init_mpv() stores the returned component
-device in priv->devcom. A concurrent master-up event can therefore
-reach a peer whose private data is visible but whose priv->devcom
-backpointer is still NULL.
-
-MPV_DEVCOM_MASTER_UP already carries the sender/master mlx5e private
-data as event_data. The ready bit is stored on the shared devcom
-component, not on an individual peer. Use the sender devcom when
-marking the MPV component ready.
-
-This preserves the readiness transition while avoiding a NULL
-dereference of the peer devcom pointer during affiliation replay after
-PCI error recovery.
-
-Fixes: bf11485f8419 ("net/mlx5: Register mlx5e priv to devcom in MPV mode")
-Assisted-by: Codex:gpt-5
-Signed-off-by: Manjunath Patil <manjunath.b.patil@oracle.com>
-Cc: stable@vger.kernel.org # 6.7+
----
- drivers/net/ethernet/mellanox/mlx5/core/en_main.c | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-index 8f2b3abe0092..f7ff20b97e8c 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-@@ -211,11 +211,14 @@ static void mlx5e_disable_async_events(struct mlx5e_priv *priv)
- 
- static int mlx5e_devcom_event_mpv(int event, void *my_data, void *event_data)
- {
--	struct mlx5e_priv *slave_priv = my_data;
-+	struct mlx5e_priv *master_priv = event_data;
- 
- 	switch (event) {
- 	case MPV_DEVCOM_MASTER_UP:
--		mlx5_devcom_comp_set_ready(slave_priv->devcom, true);
-+		if (!master_priv || !master_priv->devcom)
-+			return -EINVAL;
-+
-+		mlx5_devcom_comp_set_ready(master_priv->devcom, true);
- 		break;
- 	case MPV_DEVCOM_MASTER_DOWN:
- 		/* no need for comp set ready false since we unregister after
--- 
-2.47.3
-
+Jason
