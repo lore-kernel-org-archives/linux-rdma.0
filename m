@@ -1,35 +1,85 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qt1-f228.google.com (mail-qt1-f228.google.com [209.85.160.228])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A9A2B31A07F;
-	Wed, 10 Jun 2026 01:50:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6A4242DA749
+	for <linux-rdma@vger.kernel.org>; Wed, 10 Jun 2026 04:46:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.228
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781056215; cv=none; b=b/ImtL3XoS13dT/2Sr/OUkyHUdSAaw15T08N31KIdkpfdRfT0/X84QXP4aZOskNoPEH/EphKs+wKJFy6QviTHSiIMEK/ngOzMkHlWBT98EzlTAQgTQGAAwKSC8rR8wHggpe0aSr9esq2deOcRyQoiRL1zLLEf7tS1W5rssmUA3o=
+	t=1781066790; cv=none; b=gdXNERZoxE6uizX12+C3AbvxneqcBQ6/WTUgT3sSwlZ7zWBwU7xADkB8SV60Ebvuksz4+GfzF6wylxxBBcOvaaifM2mfrMyBaxE163MwE0rWpYN2NyVdZG/jTUpBLDVRQcf+JGZev3+Pah0u6MZYSFqevXi8PhVsGeduxGoDEMA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781056215; c=relaxed/simple;
-	bh=hwvxF8N1zvCFgMaupM71BHjj6goMqgmONQpn8qKsqT4=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=ib5IEBsqE3poKPKWaKpx6Hh77oALSIlZ4TZHK2+5bBWDLcNZg0CxXCqASUaANkuaZUwbUdbZnxfZUZdL9z9z/d6R7H9XryIsQ3WGwr9SOf2jzdG4+w5pP2k6QqdlCC3OxywicA7yhbC/kgQn8Ezu9ts2yGQcI0PSJ0Ku81eBko0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=G29nJ7/e; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1781066790; c=relaxed/simple;
+	bh=/iw/6gxmomCPLxHgeYJR5H+avUIr6uUrQa6hWfErnQk=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=pyf5DUJ1A1A25C7i+Ltt+F74ONElqbwAOtqksFuoXN+97UuVyEl9X3ruLMDBijgm02tpi8zQqJnnL7DZ4M4TNbwvWRkcQkHdwCpY4yUtHG6+EJfaqgB9x8Qz/GzyQJOKIRsmwCwUcIpIg5tbBhGGdXvmMJ6M96Dz9eK5/TFkxws=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com; spf=fail smtp.mailfrom=broadcom.com; dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b=OTr1YT68; arc=none smtp.client-ip=209.85.160.228
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=broadcom.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="G29nJ7/e"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B37411F00893;
-	Wed, 10 Jun 2026 01:50:10 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1781056210;
-	bh=4R14I7pQe6DsGJffgE0TahCiSRdNUpxcyY0Y88/vvT0=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc;
-	b=G29nJ7/e0YKC0tezdMnEyIYDz5rWu2bfKqbtneHMm3rmkpGkVpKsfxLxDqi0Ev1An
-	 G7qwei/Sy/HsrOPkuLe/nzRXJMha09QClFFYg5FYzGI3Z8ZesySRGEIYCcvcRxc5Gj
-	 IFWCG3Vu+rLaNphqytuJVuzdOzBLxUucnsPwgAXZadmKiIe3YfB73N87poeGhJR7kn
-	 LlxSODrkmhvolwWlTcRgeEhH8KresTzN+m/1DhTwst8dOcrHkFo9WfLEA8MMe3SQl4
-	 c2GUuo5ooedgMLc4U+Ko4ICznVGswheUOTddh3ZQTYChpec88L5D4KNZRPgHXtIswW
-	 liknofMZnQ2cQ==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 19A043930A1F;
-	Wed, 10 Jun 2026 01:50:10 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b="OTr1YT68"
+Received: by mail-qt1-f228.google.com with SMTP id d75a77b69052e-5177945a279so67580631cf.0
+        for <linux-rdma@vger.kernel.org>; Tue, 09 Jun 2026 21:46:29 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1781066788; x=1781671588;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:dkim-signature:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=PmPkwXBLPaEZUg+IhjUOjdi5r/O9RYxev+nCgo8cbH8=;
+        b=HLiMVBGF8XKGK5wBEY9YnITlajIjCG+A43qGAvlEFVOfR1l8UduvLHMZOYP2yQoO7b
+         0lPV8x3XdA/EFQmfEMKqbQLyqj727YroTRWlQDdkvKCSC4bQV65U2U1vwjoyXfAqHvfi
+         RWXg1j3Fk+XWCdOB/d7c/esQWC+Yg0y7Ysn06edhwNAMNKnR4SxlSvTkOnML37j/jPSt
+         11xtBrwzzZtO3Q/OA6K9iB2NJv2FT3SKAkBJQVskda0bhP6tPqislbj0iynZyC34gwCX
+         OEGmp3YL9coR6zizl2Xq/fOtC6vJAR3K7GBodjOr4m+ZEMStE6NE3XimqL7sWwZpi8S6
+         dsKg==
+X-Gm-Message-State: AOJu0YwZndKZE7UBicuXHnMJnQtVoWlO3MbsYbuNfxcNQyItl6KQF5Sa
+	vhghrUIlA0bjQCkeIlulwjZpE8RxoZxP7SuPkKmjH9kC2JgSELgjgSD9+50piVXXDTS5A8OuVxY
+	Izm1GWHmNV2y8qNathIxar0smiK3ZnUGVguSCI86td6XzHXRyw4X8h+/zJI0LcCEF0vEEBvvFHL
+	9fXXWbfzwo9lEZDrIMiX4GeioxGDupK/eYBs7astZ2pOIMWlJzSLiQw0o/lorjgObF7s2ayFmJQ
+	eLaQE+u/oWAOq+2rg==
+X-Gm-Gg: Acq92OFxu2iZj5qt5FhuXrubdPSZSCCv3ExKQPMlQFWmQNDkbew4+al6Yr3IQvPIWvy
+	SZNtKVK83Zg8MYvIKBfxUEy8qFJBxCzeDrq71QASqzKa0NxwDyvd/rDnImTKXr7zktgTpCS+6QF
+	WCRw7BHkmBxdDvB3o4dQGG67/q8bXxIeIin4szG0dLAPnW+TEoqElMd/3KME8hoxLZuEoJYK9tu
+	g3ZCNHNJuPoAGK6kIn/e16EdAuQm2cCG07eAeu1LEfbRM2K/R5v2uXNe7M8iW2cX1inPnIn40aS
+	AT0Frun7JOGhUFRgakj89W6iTBOU4bX/AZq5CM3B6K4QqgA/08EwhJ7zFTQe0q6c32TcvgAYJ20
+	HsAbPkpiQCUoLct6UVlTQ9JTPOm8DGm8ilud9PouDt+cgoQ+9MzRuLCwUGNqEashNQI+zVZ/Elo
+	VjJALNk0vz+VDjd4HW8ulRz3fwy3adrWbPqMJbiTi7V43KxRPhvfApJG9//Ye/1Xgg/mEf3po=
+X-Received: by 2002:a05:622a:30d:b0:516:de71:e21b with SMTP id d75a77b69052e-51795b0a1a7mr330268951cf.9.1781066788230;
+        Tue, 09 Jun 2026 21:46:28 -0700 (PDT)
+Received: from smtp-us-east1-p01-i01-si01.dlp.protect.broadcom.com (address-144-49-247-121.dlp.protect.broadcom.com. [144.49.247.121])
+        by smtp-relay.gmail.com with ESMTPS id d75a77b69052e-51775bf7be3sm10272301cf.11.2026.06.09.21.46.27
+        for <linux-rdma@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Tue, 09 Jun 2026 21:46:28 -0700 (PDT)
+X-Relaying-Domain: broadcom.com
+X-CFilter-Loop: Reflected
+Received: by mail-pf1-f199.google.com with SMTP id d2e1a72fcca58-8428384f31fso4491646b3a.3
+        for <linux-rdma@vger.kernel.org>; Tue, 09 Jun 2026 21:46:27 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=broadcom.com; s=google; t=1781066787; x=1781671587; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=PmPkwXBLPaEZUg+IhjUOjdi5r/O9RYxev+nCgo8cbH8=;
+        b=OTr1YT68nI3y0LBddNNUrv1W3G5Von5KGzW4z2N3eizFj3vAHiJnjBq7BXIV4Avcxp
+         gBCqK7A+/dw9+LT2Y6j4s33h5z8M8wOYaR/DZPlZIgW7LtdnSIBrcR6P91S/e8sXsL0F
+         e9lHO+at9sxrLgjvzd2WfS0Se15RRhOpkOE34=
+X-Received: by 2002:a05:6a00:1da0:b0:842:377a:4dbf with SMTP id d2e1a72fcca58-842b0feef02mr22615645b3a.43.1781066786862;
+        Tue, 09 Jun 2026 21:46:26 -0700 (PDT)
+X-Received: by 2002:a05:6a00:1da0:b0:842:377a:4dbf with SMTP id d2e1a72fcca58-842b0feef02mr22615614b3a.43.1781066786417;
+        Tue, 09 Jun 2026 21:46:26 -0700 (PDT)
+Received: from dhcp-10-123-65-43.dhcp.broadcom.net ([192.19.234.250])
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-84282375f2dsm24532821b3a.19.2026.06.09.21.46.23
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 09 Jun 2026 21:46:25 -0700 (PDT)
+From: Selvin Xavier <selvin.xavier@broadcom.com>
+To: leon@kernel.org,
+	jgg@ziepe.ca
+Cc: linux-rdma@vger.kernel.org,
+	andrew.gospodarek@broadcom.com,
+	kalesh-anakkur.purayil@broadcom.com,
+	sriharsha.basavapatna@broadcom.com,
+	Selvin Xavier <selvin.xavier@broadcom.com>
+Subject: [PATCH 00/11] RDMA/bnxt_re: Generic driver fixes
+Date: Wed, 10 Jun 2026 03:08:44 -0700
+Message-Id: <20260610100855.64212-1-selvin.xavier@broadcom.com>
+X-Mailer: git-send-email 2.39.3
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -37,46 +87,38 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net] net/rds: fix NULL deref in rds_ib_send_cqe_handler()
- on
- masked atomic completion
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <178105620864.2788910.17895846835034675747.git-patchwork-notify@kernel.org>
-Date: Wed, 10 Jun 2026 01:50:08 +0000
-References: <20260606192447.1179255-2-bestswngs@gmail.com>
-In-Reply-To: <20260606192447.1179255-2-bestswngs@gmail.com>
-To: Weiming Shi <bestswngs@gmail.com>
-Cc: netdev@vger.kernel.org, achender@kernel.org, pabeni@redhat.com,
- kuba@kernel.org, edumazet@google.com, davem@davemloft.net,
- linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, xmei5@asu.edu
+X-DetectorID-Processed: b00c1d49-9d2e-4205-b15f-d015386d3d5e
 
-Hello:
+Includes fixes for few issues pointed by sashiko. Also, some
+generic fixes found during internal code reviews.
 
-This patch was applied to netdev/net.git (main)
-by Jakub Kicinski <kuba@kernel.org>:
+Please review and Apply.
 
-On Sat,  6 Jun 2026 12:24:48 -0700 you wrote:
-> rds_ib_xmit_atomic() always programs a masked atomic opcode
-> (IB_WR_MASKED_ATOMIC_CMP_AND_SWP or IB_WR_MASKED_ATOMIC_FETCH_AND_ADD)
-> for every RDS atomic cmsg.  But the completion-side switch in
-> rds_ib_send_unmap_op() only handles the non-masked opcodes, so a masked
-> atomic completion falls through to default and returns rm == NULL while
-> send->s_op is left set.  rds_ib_send_cqe_handler() then dereferences the
-> NULL rm via rm->m_final_op, oopsing in softirq context.  An unprivileged
-> AF_RDS sendmsg() of an atomic cmsg over an active RDS/IB connection
-> triggers it; on hardware that natively accepts masked atomics (mlx4,
-> mlx5) no extra setup is needed.
-> 
-> [...]
+Thanks,
+Selvin Xavier
 
-Here is the summary with links:
-  - [net] net/rds: fix NULL deref in rds_ib_send_cqe_handler() on masked atomic completion
-    https://git.kernel.org/netdev/net/c/34080db3e70d
+Selvin Xavier (11):
+  RDMA/bnxt_re : Initialize dpi variable to zero
+  RDMA/bnxt_re: Add ownership check while getting the CQ toggle page
+  RDMA/bnxt_re: Add ownership check while getting the SRQ toggle page
+  RDMA/bnxt_re: Avoid displaying the kernel pointer
+  RDMA/bnxt_re: Add a max slot check for SQ
+  RDMA/bnxt_re: Avoid repeated requests to allocate WC pages
+  RDMA/bnxt_re: Avoid any race while handling the hash list of CQ
+  RDMA/bnxt_re: Avoid any race while handling the hash list of SRQ
+  RDMA/bnxt_re: Fix the cleanup upon error during srq create
+  RDMA/bnxt_re: Fix the cleanup upon error during CQ create
+  RDMA/bnxt_re: Fail DBR related page allocation UAPIs if the feature is
+    disabled
 
-You are awesome, thank you!
+ drivers/infiniband/hw/bnxt_re/bnxt_re.h  |  2 ++
+ drivers/infiniband/hw/bnxt_re/ib_verbs.c | 35 ++++++++++++++++++++++--
+ drivers/infiniband/hw/bnxt_re/ib_verbs.h |  2 ++
+ drivers/infiniband/hw/bnxt_re/main.c     |  4 +--
+ drivers/infiniband/hw/bnxt_re/qplib_sp.h |  1 +
+ drivers/infiniband/hw/bnxt_re/uapi.c     | 19 ++++++++++++-
+ 6 files changed, 57 insertions(+), 6 deletions(-)
+
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
+2.39.3
 
