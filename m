@@ -1,208 +1,579 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.16])
+Received: from mx0b-00082601.pphosted.com (mx0b-00082601.pphosted.com [67.231.153.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 684B42C3757;
-	Thu, 11 Jun 2026 16:02:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=198.175.65.16
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781193738; cv=fail; b=qbHBg5yPzZLJdReekeChmiHoQXGEjrleXM9fCOITe1THHGmw8bW3HmOC0q5TFdbrYWrnd5SB03LawQty3LyBtB6pI5us0M0RTqOfhr3N/weps2/20Lf3sC9luYRT8DTPpo26lKnayBd4+TFoNiBTMmbAjqSvuc8jj9W4ahh4ULM=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781193738; c=relaxed/simple;
-	bh=RhDhkJ5pyxif2ix+6VS3cg3UaxXhPGRVfLjNNaf304g=;
-	h=Message-ID:Date:Subject:To:CC:References:From:In-Reply-To:
-	 Content-Type:MIME-Version; b=HSvPXnp7kRhdy9fVXKqHGWA9cFTfpy8Qzd9KBbAQqEHHQMBD7X97i8FD1IX462f1BfvSX2Frb/tvBYaL16p+JG7FxsMUvGFj4Xe0pxbXxrAHe3T7oUaQgu4uBSZZPl3ieH/N38lF16YvlmuVyN3o6Phejh5Plk+SaCGZq5D+1dc=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=GGGbtadx; arc=fail smtp.client-ip=198.175.65.16
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 993B837DAB5
+	for <linux-rdma@vger.kernel.org>; Thu, 11 Jun 2026 16:46:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=67.231.153.30
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1781196373; cv=none; b=IcJcJ0NUl0+sQh+dx22IFlT4wn5gdDKuWuvWYgP+uHBahA+F8ANcu7s3V/nv1Uhf/BelwfuAJthYAKLYBgRSDD3ZqgBDH6Bt2ZBogsPeQx+8kJ7+7/lSStyVGVHD3d3hxjP6SPlMREgdLJf/PvzG7lCd6r8cJEz5VRP57dZ0ZTo=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1781196373; c=relaxed/simple;
+	bh=60J/swpt8hSXKkHXnXQ2XH60IYV90l/RAZy8zo4DPfo=;
+	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=E1qgSDUGQbcl2aaT2dQVAwWpnLPjjsCg+TSN8kbAjQeajBvsD+D+aPZToZKFSyvBN8SkbIatjNVlYGrUyLtEzpIebLtG/m6NMntUjEeglvtMgWNv60UKYU9Z1jpIcTHogaYxvLMDF4ElnwbhasrqwWOZG4OUCqErGtP1YIfFqTk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=meta.com; spf=pass smtp.mailfrom=meta.com; dkim=pass (2048-bit key) header.d=meta.com header.i=@meta.com header.b=v+/EgHMG; arc=none smtp.client-ip=67.231.153.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=meta.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=meta.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="GGGbtadx"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1781193738; x=1812729738;
-  h=message-id:date:subject:to:cc:references:from:
-   in-reply-to:content-transfer-encoding:mime-version;
-  bh=RhDhkJ5pyxif2ix+6VS3cg3UaxXhPGRVfLjNNaf304g=;
-  b=GGGbtadxh1cjGhDbo01CNHl3QLp2EF0KClHpwSUFL81rVoEOLLXJbX9a
-   eKMtmQSyGonpV0Yf/7d7rlEX0Pe65FZVSoR5HG9d0o3erR2DlxTkVtdrM
-   zRdZ2kvur+SoCRhjERRHe13a2aVzfhHcjoBKk2PMQiL2G5/mG4ZFaV5Ta
-   VVpil8VnbNKZqCUSqPeVQjZeJ8xoNQTOvnbkZGrFcmnLkWiVQhQYHNG4x
-   nN9Sll6Z/Y4kdWSgIZhHzriCjmvpa02TQ54H1SJAXAkyT4Un4ZwoGuS0r
-   Gm6ckLtaM7t+Xt6EHKTpvZRwV7e81lVUGVr17stINZ2zP2kgMtUaI+Yk3
-   w==;
-X-CSE-ConnectionGUID: l+zfmmN7TBq0MygY4icwCg==
-X-CSE-MsgGUID: mnsWgUsQQwuoq2ae8ckkhQ==
-X-IronPort-AV: E=McAfee;i="6800,10657,11813"; a="82202924"
-X-IronPort-AV: E=Sophos;i="6.24,199,1774335600"; 
-   d="scan'208";a="82202924"
-Received: from orviesa007.jf.intel.com ([10.64.159.147])
-  by orvoesa108.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Jun 2026 09:01:51 -0700
-X-CSE-ConnectionGUID: hEdWRegVSx2jbl6qnvYzag==
-X-CSE-MsgGUID: 7Orw+3mkTMiJ4wyAuYm2kA==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.24,199,1774335600"; 
-   d="scan'208";a="246602502"
-Received: from fmsmsx903.amr.corp.intel.com ([10.18.126.92])
-  by orviesa007.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Jun 2026 09:01:50 -0700
-Received: from FMSMSX902.amr.corp.intel.com (10.18.126.91) by
- fmsmsx903.amr.corp.intel.com (10.18.126.92) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.37; Thu, 11 Jun 2026 09:01:49 -0700
-Received: from fmsedg903.ED.cps.intel.com (10.1.192.145) by
- FMSMSX902.amr.corp.intel.com (10.18.126.91) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.37 via Frontend Transport; Thu, 11 Jun 2026 09:01:49 -0700
-Received: from PH0PR06CU001.outbound.protection.outlook.com (40.107.208.59) by
- edgegateway.intel.com (192.55.55.83) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.37; Thu, 11 Jun 2026 09:01:48 -0700
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=pfZHwFU9aEfU1Fcx7dcgq9cvveZS8pzbIqCMjQRyl/gZ8rR0GsxV5WpR8+905RKcA7qcABiKxZN97WzphT1A1JQzXBvuR3rZY/jJVU9jJrUao2YDL4h2R+iVsviM7S5aVRiB5HmdK0E6oY4lGMGyKXSqtxXxCgXHK935kTHbCV/mvVXRmVLmcVeI5JERI7ERVSezLtbpPClDSpjZ4PbHL0Bib3xVeyma9NapQCJi3dfALNGwzAc93vdBAcfarFCUVWzXSfeRo7qwMpZl/rLneonQlZ6AHlwBdxaAZOgo6vgt9QvFF0d+LMWb1RdwjoXDkoOrldgn3j6JL57SJuWYxg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=4NyIJJ7kOlQeFgqwyM3Ve8b2aAbA2T7Dd6b+5F0XV4o=;
- b=Rh/4+yu30kiUY122m5av1RQE5Kr85RqgoQK3ZD4bfPl0d+Z1xbkVi5eWTCGdAbGm6M8p03vKH5+V4KQpfwsvDJjTAf89ARL7AXsgF4+XovaiXYXu4cnqD1XJLaBUv/jgDkW/fguq0wFgW7kBOY08MPC/RpT3eGFOBuJ4PL2zeRULwXjHkDNjtWZ+PFgmYh/ynFv4JtKIy4DKlCzmJ3/jfDvq1oMn7rrnuzoBLtf6xqdM87fLfuuG4usrR/kCQWclxAtfOTTCQ2vNdV8SMxSOI2CDW11V64Vj9pHq8luDcWB6mkr87pOM7nIJ4BOCZk0mZy3/zwHPL7pdDaHcEUyKfw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-Received: from DS0PR11MB8718.namprd11.prod.outlook.com (2603:10b6:8:1b9::20)
- by PH8PR11MB6854.namprd11.prod.outlook.com (2603:10b6:510:22d::18) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.92.18; Thu, 11 Jun
- 2026 16:01:37 +0000
-Received: from DS0PR11MB8718.namprd11.prod.outlook.com
- ([fe80::6aa:411d:4bfa:619c]) by DS0PR11MB8718.namprd11.prod.outlook.com
- ([fe80::6aa:411d:4bfa:619c%4]) with mapi id 15.21.0092.017; Thu, 11 Jun 2026
- 16:01:37 +0000
-Message-ID: <c11af82e-0adb-4ebe-a9f1-7c4a543d0a5f@intel.com>
-Date: Thu, 11 Jun 2026 18:01:29 +0200
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net] net/mlx5e: Fix oops from ERR_PTR in act-miss restore
- teardown
-To: Tariq Toukan <tariqt@nvidia.com>
-CC: Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>, Andrew Lunn <andrew+netdev@lunn.ch>, "David
- S. Miller" <davem@davemloft.net>, Saeed Mahameed <saeedm@nvidia.com>, "Mark
- Bloch" <mbloch@nvidia.com>, Leon Romanovsky <leon@kernel.org>, Vlad Buslov
-	<vladbu@nvidia.com>, Paul Blakey <paulb@nvidia.com>,
-	<netdev@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>, Gal Pressman <gal@nvidia.com>, Lama Kayal
-	<lkayal@nvidia.com>, Cosmin Ratiu <cratiu@nvidia.com>
-References: <20260611134836.534015-1-tariqt@nvidia.com>
-Content-Language: en-US
-From: Alexander Lobakin <aleksander.lobakin@intel.com>
-In-Reply-To: <20260611134836.534015-1-tariqt@nvidia.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: WA1P291CA0009.POLP291.PROD.OUTLOOK.COM
- (2603:10a6:1d0:19::20) To DS0PR11MB8718.namprd11.prod.outlook.com
- (2603:10b6:8:1b9::20)
+	dkim=pass (2048-bit key) header.d=meta.com header.i=@meta.com header.b="v+/EgHMG"
+Received: from pps.filterd (m0148460.ppops.net [127.0.0.1])
+	by mx0a-00082601.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 65BEO71r1446923
+	for <linux-rdma@vger.kernel.org>; Thu, 11 Jun 2026 09:46:10 -0700
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=meta.com; h=cc
+	:content-transfer-encoding:content-type:date:from:in-reply-to
+	:message-id:mime-version:references:subject:to; s=s2048-2025-q2;
+	 bh=OKtfjeKUos+le6rbGwLhae2ZwdVWKZcx+SvDveSqOBo=; b=v+/EgHMGpOA8
+	OsP8MSJ/tgP54IawW8YER2C0nKCdDEHHJJxkm3VlG2cdLI/Fr5bjXxULnXjbxwhR
+	8xeI9izSLO12Pr6MQQA5ckFyJcgkZQ+zdCpmlFqV9reOiy47Y+klzscEyup3t74I
+	vGY+pxGjpONqQTAsy3oLtv9+s2i9HUX6+0Bs+0lSnAGSYYZxkAtdKX0CffwTBBDW
+	Nj+WB4Nob6iA3F+dJEaCqVgpJTtY/eWDZhR7u5nC/Sk8ntusIyyfWuqNIcaHk5C4
+	AIYGFkt3Uh8pKAUU92GhTbjWEGcyxRiSaC/4UQ8RiDw0S2HJND7vNFoAE2L0eMpm
+	QO0NKOVqAQ==
+Received: from maileast.thefacebook.com ([163.114.135.16])
+	by mx0a-00082601.pphosted.com (PPS) with ESMTPS id 4eqe78essv-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT)
+	for <linux-rdma@vger.kernel.org>; Thu, 11 Jun 2026 09:46:10 -0700 (PDT)
+Received: from twshared8664.02.snb3.facebook.com (2620:10d:c0a8:fe::f072) by
+ mail.thefacebook.com (2620:10d:c0a9:6f::237c) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.2.2562.41; Thu, 11 Jun 2026 16:46:09 +0000
+Received: by devbig259.ftw1.facebook.com (Postfix, from userid 664516)
+	id 26C313DD37764; Thu, 11 Jun 2026 09:23:48 -0700 (PDT)
+From: Zhiping Zhang <zhipingz@meta.com>
+To: <netdev@vger.kernel.org>
+CC: <kvm@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
+        <linux-pci@vger.kernel.org>, <dri-devel@lists.freedesktop.org>,
+        Zhiping Zhang
+	<zhipingz@meta.com>
+Subject: [PATCH v7 5/5] RDMA/mlx5: get tph for p2p access when registering dma-buf mr
+Date: Thu, 11 Jun 2026 09:11:20 -0700
+Message-ID: <20260611161546.4075580-6-zhipingz@meta.com>
+X-Mailer: git-send-email 2.52.0
+In-Reply-To: <20260611161546.4075580-1-zhipingz@meta.com>
+References: <20260611161546.4075580-1-zhipingz@meta.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: DS0PR11MB8718:EE_|PH8PR11MB6854:EE_
-X-MS-Office365-Filtering-Correlation-Id: 8fc59dbc-1614-4cc7-45a0-08dec7d2b67b
-X-LD-Processed: 46c98d88-e344-4ed4-8496-4ed7712e255d,ExtAddr
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|366016|1800799024|376014|7416014|23010399003|18002099003|22082099003|56012099006|11063799006;
-X-Microsoft-Antispam-Message-Info: y7TWxQ3SJJW9BsbruYSDIx0cfkecNxnD5Pni6OFwX5sqthrw+p9qRfKYNFXa5RCefeySnxq/EhMCaLaMTnY8QuH83H2WMomC31czhqxhxw3gVnBEPNJoZwJOSgP9HPztsh/PVhQBjBDRymkotjmzDJB5ptvMSBR4c5WB5SHViaJDeMDPvVcxrU3T9qf6x+vj4uws5M0gQv1Kq7DqvWkxRqWfynf/1ZdrePGIfSQMj+NA5zj2YW5M9wc9L8Pnh90wVm0u+Mjr7b8O18EKK7CaoOE4gnQCTjenSFFwxfXAMtgteGV8rv2T/jkj+7Q1MJCcgIBekgq4yKuJc8BOidEMKrIenPtsAT3TTOk9iu27ag+wMJ7bF/YOEDwhSVHQ7iWEdySuWXBlgcLzShjeG5yzslA62MyxfLCI3tQifcA++69qlDxd3UyAnaBpV3oNq0EZvJv26ynnGsX++cEAeIB0dXVqHI6A4Haci5KG+jVj42gXAy68wKbLhQo0j5LSJHxkXNeC2VBpx+v5zmW+rNGLnvLOlMgRun9YTvZ8H0QbivdDJ+YfQzUbleOPzbdWNwKVc9pugKCquvv15ILp/bcD4b/145Jj2+0un8Kuk4EN9EfXb9wb7NeSE5yN3iU+exHhOBzjbcy1nfIHrVegIOxHi/WL4HY1KqFaAPGbMoXQ5HIfzeKNbpdGtUg8F2yt4TI7
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DS0PR11MB8718.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(1800799024)(376014)(7416014)(23010399003)(18002099003)(22082099003)(56012099006)(11063799006);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?ZGx6T0pDMFZZY0ZOclhhNDdZVWVPckF2dkZWR3U1ZnRVSWpFcGlsL29Udktv?=
- =?utf-8?B?YkErUWxjWFhmRUQrejJSYVkvSm5FQytCUmlzV1pUak9SblJwRnA0QkRhNlJM?=
- =?utf-8?B?bFFyMjNoNWU5eml6cUJLN0wzMjBkeWZNVDAxWUswQUpWUWhDU21wRmlFN0xa?=
- =?utf-8?B?VkFFQ2RxMWl1STZCd3lsUTQrNDBRWmFUZENZQjVMdFdwQ0ZZeFk2UXVLdmpV?=
- =?utf-8?B?RFE5Z0ZUOXMrbzN0VGZoakVic3VQNDJzWko5Q21VSmdMZkdrTEVEVnkrTkh6?=
- =?utf-8?B?ZHFBMWN5Q01uNmhGSnEvZ1BRTVB2N3NHM3FkRDl2N3NWRUVQbGp6bjZXczRq?=
- =?utf-8?B?MzdrSkxZMlVsWVZMYnV1R090VGlOUzFQdU1EMlIyY2lheGxOTU1OektaQmpL?=
- =?utf-8?B?QjZ0bFppODM2dzVVVGNFWDNtYlgwY2FsRWVpckpkSS9hZCs5bjQ4M2ZKazNy?=
- =?utf-8?B?a0kxdm54YVhrRXkvb2t3NDVvNFc2TW9qU0dPanR0V3lTMU1ET3NuTDFlc3ZR?=
- =?utf-8?B?S3lBcWppb08yNXQ1ODRSMFhseFF0a1JzSnNyaXljcUtqZnhsVVRqS0pBNWxm?=
- =?utf-8?B?bG84eEY1VktVRytSbS8yTG9ndjJZajlySi9YQ3RIa0dveU41VlVrYWh3T2x4?=
- =?utf-8?B?Y3ErYzN6R1M2Wmx3TEVYcG9EdVphcUx0cURjUklCYWFnMkd3bTlvQVBkVm1s?=
- =?utf-8?B?c0ZpU2hmdW5vWERXNkFRMUxZZDI5VWtEWFByUmNBcDhyditwbk9FQlFNQ2p5?=
- =?utf-8?B?aTZBYVd4MmVhUXdPU3BkTG9WcVRXeFdYVjZ2TlV4WlVPTXZIWHRQd0ZuQkxE?=
- =?utf-8?B?SjI3N2ZUVDl4SEt6Y1UyeUorZFR6aVQreWpDL0oxc01qNVk0K09Na1BZdDU3?=
- =?utf-8?B?WVBKQ3oyQWVqQ3BWd3dJZnd1T0FYejJ0TVR6cXlRaFcybUdlZVA3U1pReWlZ?=
- =?utf-8?B?d0NSZjRKY0RqZmdmTjBwZ1BMaCsxL1YxaWFxclpJYVZkaGcvWEU3WWxLM1JK?=
- =?utf-8?B?aVJHRVBtMXJFdFFhaGNEc1NDNi95dTd3b0UvbDJYcjArc1RTSzYwRzFvbGNL?=
- =?utf-8?B?R1FIN01PQWh5anBCalNnREc5SzY4WklxTWZSVk0yMlhGYmV4VGVRbUw1Wis4?=
- =?utf-8?B?OEhWR2FDd054OEJIbWllVUs0TzNVeFhjUFNZZWtNNU1ZMXBZWDA4a3pGUFlW?=
- =?utf-8?B?WU5zUDlTeXphUHFHbUJwbDZwRWtGMGp0dlVpSFl5UUNLZDZ1OWU3VHA2OHhW?=
- =?utf-8?B?d3ZPckt3NFBPb1RMUk03d1F2WXFMK1JZc0tlbUVqRWo3ODh1UGxpdTkvbHFs?=
- =?utf-8?B?T1lCQkJPbUt2QzJMVkRuR2dUN2JBSyt1dmpLU2NPMTNaTkloVDJvc2YydkRW?=
- =?utf-8?B?Z3hWWmJWNjAwODFZbXU2WElNTUFWMlJDNmg4QWg2aHRTTG1nRmJGQzh4dUZz?=
- =?utf-8?B?dTVYejk1ZEtpS0tZZ05jSWlGWVZtL3FHL2YrSGpBZ0UwL0JLUnBlOWttT082?=
- =?utf-8?B?MTVKMjRxd3pwWVlhOXZWdllZU0pXU1oxNE90b0VmUVlJazZhWGdNS2gzek9W?=
- =?utf-8?B?V3V1TnRHVjFsdlBGZ1lMZkYyRXVKNHZ2WHFKQm50eDlKRlh1bjM0NXBvT3FN?=
- =?utf-8?B?ZDJpQU13TVFVN0o2UldEWjFSUExpd2ZKdmRySEdoTmYwOG81YktjTzdkcEN5?=
- =?utf-8?B?a2kvcWlMdHM2aXByZm8zY0tub0Q5WkkxRnZmenlxNTExWjZJaHlFQjV0Vjlo?=
- =?utf-8?B?RDhxM25lYmZLcktXa3k2cXZkOEFWcEoyZ1NtdGIzdVljOTk3N1BkamxzbktN?=
- =?utf-8?B?VFFMRmY3OXpMbUJJeFNOaEIwVnVlbVV1RDFGZk5EeURxYzdmRmJhRWR6RTRS?=
- =?utf-8?B?dzFlVElVSzMrOEJqOElpS0hEVHBHRGU3a28zUkNhRUU3NHV2ZTlQaTJ1em16?=
- =?utf-8?B?dFVTbUJlYklmM0trVUhMZFd6cVA4UkM2VjMyZTJMSG5WdE82cGRsemVtWWFY?=
- =?utf-8?B?R2xuQnZjd1ZrM2hINitTZXh4YVhRWnNRQVE2Qy9RR0d0clpOQmMxY0NreWU2?=
- =?utf-8?B?QU5NSzVoUG96K3llTkFxcHYvaDlpdkhsUGVEeTRJdUQ4MnpCY3pyVVp4V0xv?=
- =?utf-8?B?djlMRG5NNGZGbGJaVmhJZ2hRWkZsc0NRSVlsMUorSldFdFQ5dzkyQjlDZSta?=
- =?utf-8?B?ZUovcFRGblVzVGlTNTg2N1lvRDdSZUlTeTdaK3RtWEY5cTlWOFZWMjRwODhi?=
- =?utf-8?B?b24wOWlOQUlSTnh4NEtqOEZlSTJVRmZPWEJFbFM2bElrUmswMEQ4VGt0a01p?=
- =?utf-8?B?Q3ZWeW45aDlPbUxFSmFuQWVDZTM1UjhZQ3BBdC9sei9ZOVpGUmwxREhOTnR0?=
- =?utf-8?Q?BiEZC6bvKoBUQ39c=3D?=
-X-Exchange-RoutingPolicyChecked: kWm3HvwR1ScPDymDRwc4wIM4Lj0wt3sySTkOTcwH36zd5kaUCCFaFQBqHUYOskfX7VzE7VSfZqd0GgOPWOhmkmk6xCrXFDGAU1f0ytrqWkStYi8Z/tN8ZZ0ehsiGwTjhX7dBaLDw+Sh2SamGGj6/2ylUxZAgvEuYok0umKF47thJF/hOuYAROoC+E93HEUzU0FCDPoaZgQZbFjuJf38f2kBQRu4jeEDXf/5O9JH0Idfik0LxXlRSuBwL+sVdnVfJOKRJp35jMeMN1+fKYAcjR7a1Gs2Y3F+dtjNnShgj+dUrCw05zvb6+3YBxXN0WUmNJpcazO23cQslIv1HYT88Ww==
-X-MS-Exchange-CrossTenant-Network-Message-Id: 8fc59dbc-1614-4cc7-45a0-08dec7d2b67b
-X-MS-Exchange-CrossTenant-AuthSource: DS0PR11MB8718.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 11 Jun 2026 16:01:37.4343
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: aPktgWGHJ+nkoYT+u+4ZN6hw1saK5tqbbUAzQouZPqDBkk4zXJ/IA1qmP9lb79zKs42+iSYHPPymsY2hyEKWMueixD8UwocMjq7D6PoQ9EE=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH8PR11MB6854
-X-OriginatorOrg: intel.com
+Content-Transfer-Encoding: quoted-printable
+X-FB-Internal: Safe
+Content-Type: text/plain
+X-Proofpoint-ORIG-GUID: WHOVVj5wS5Qrv74RmFBdNh7w_N_xs3FL
+X-Proofpoint-GUID: WHOVVj5wS5Qrv74RmFBdNh7w_N_xs3FL
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNjExMDE2OCBTYWx0ZWRfX6suVY5Vw9BfG
+ hyT9FVxbIN5EigKtm5dG2bO7H2rk3Qz/r9gdjs6SDMuQcZU8uYvJxdQGnd0AxW8FyG1aOeCebwp
+ Uc6zVtByGXV1mknoozNLoz2TNuw2kZmR792Zyj3qk3AgW9DP4AFps/rz5zcHIwxSv2QmDpZ4b0Q
+ DesPmoXIc4VFTnhVy69GfVzCTMAW6hG+/2m7oW1Pb7joYOdtoFoB0q/2l2/NNxRWanTaadHMhMm
+ Wk0rNYXiCnWl9jQ6FmDbeEbM/x1Hvf+2zveZX7pQKcloJR2oRTE0T7AyQXKM+KIz3UrMptn/fYT
+ dQ36W0YY6l9xlQ30NYlhzsyGtLc/SKSsNJqHQp2E/SffPCeU7J7ASxSwPP3qUOoiOyj21ugTnHF
+ cXNuFP5a93UdZdu1ooL6Ny8GIGgK15Cj0z5OOO+VsMFNgMfERwJSZZzg+i/lsynmQ9I3F2IbYiT
+ Co+XHG01ZrU0gnsnVQw==
+X-Authority-Analysis: v=2.4 cv=L98theT8 c=1 sm=1 tr=0 ts=6a2ae652 cx=c_pps
+ a=MfjaFnPeirRr97d5FC5oHw==:117 a=MfjaFnPeirRr97d5FC5oHw==:17
+ a=FelO9ux0wxsA:10 a=VkNPw1HP01LnGYTKEx00:22 a=7x6HtfJdh03M6CCDgxCd:22
+ a=JnKecZnUtZousrUlYMGU:22 a=VabnemYjAAAA:8 a=Ea2IVqN79ALhG3V46woA:9
+ a=gKebqoRLp9LExxC7YDUY:22
+X-Proofpoint-Spam-Info: AW1haW4tMjYwNjExMDE2OCBTYWx0ZWRfX4Q0JFtkvBzeJ
+ G0TCnipuRe6KmZMO9ub1wATmWE2SQH7HB/WafUG6mgHgd/4SGAWp//5NxNQkQY9nzTCURQUHm+N
+ 7ybDiYHBWMaI4n7rRI2JEgJx5uUPvoQ=
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1143,Hydra:6.1.125,FMLib:17.12.100.49
+ definitions=2026-06-11_03,2026-06-11_01,2025-10-01_01
 
-From: Tariq Toukan <tariqt@nvidia.com>
-Date: Thu, 11 Jun 2026 16:48:36 +0300
+Query dma-buf TPH metadata when registering a dma-buf MR for peer-to-
+peer access to a PCIe endpoint and use it to program requester-side TPH
+on the outbound mkey. If the exporter has no metadata, fall back to the
+existing no-TPH path.
 
-> From: Lama Kayal <lkayal@nvidia.com>
-> 
-> Restore-rule creation stores ERR_PTR(errno) in act_id_restore_rule
-> on failure.  Teardown still called mlx5_del_flow_rules() with that
-> value, which dereferenced it like a real mlx5_flow_handle and could
-> crash.
-> 
-> Clear act_id_restore_rule to NULL in the error branch after
-> esw_add_restore_rule() fails so teardown only sees NULL or a valid
-> handle.
-> 
-> Call Trace:
->  ? page_fault+0x1e/0x30
->  ? mlx5_del_flow_rules+0x12/0x140 [mlx5_core]
->  mlx5e_tc_action_miss_mapping_put+0x49/0x50 [mlx5_core]
->  mlx5_tc_ct_delete_flow+0x4d/0x70 [mlx5_core]
->  mlx5_free_flow_attr_actions+0xd2/0x160 [mlx5_core]
->  mlx5e_tc_del_fdb_flow+0x15d/0x210 [mlx5_core]
->  mlx5e_flow_put+0x23/0x40 [mlx5_core]
->  __mlx5e_add_fdb_flow+0xf3/0x430 [mlx5_core]
->  mlx5e_tc_add_flow+0x2ab/0x9c0 [mlx5_core]
->  mlx5e_configure_flower+0x2f4/0x620 [mlx5_core]
->  tc_setup_cb_add+0xca/0x1e0
->  fl_hw_replace_filter+0x143/0x1e0 [cls_flower]
->  [...]
-> 
-> Fixes: dfa1e46d6093 ("net/mlx5e: TC, Fix using eswitch mapping in nic mode")
-> Signed-off-by: Lama Kayal <lkayal@nvidia.com>
-> Reviewed-by: Cosmin Ratiu <cratiu@nvidia.com>
-> Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
+For TPH-backed FRMRs, make the extra ST-table reference belong to the
+hardware mkey handle rather than the transient MR object. Extend the
+FRMR pool API so reuse and final destroy can transfer and drop that ref
+at the handle lifetime boundaries, and add mlx5_st_get_index() to take
+a ref on an already-known ST index.
 
-Reviewed-by: Alexander Lobakin <aleksander.lobakin@intel.com>
+Also decode PH from kernel_vendor_key when recreating pooled mkeys so
+the requester hint matches the pool key.
 
-Thanks,
-Olek
+Signed-off-by: Zhiping Zhang <zhipingz@meta.com>
+---
+ drivers/infiniband/core/frmr_pools.c          |  20 +++-
+ drivers/infiniband/hw/mlx5/mr.c               | 111 +++++++++++++++++-
+ .../net/ethernet/mellanox/mlx5/core/lib/st.c  |  49 ++++++--
+ include/linux/mlx5/driver.h                   |  12 ++
+ include/rdma/frmr_pools.h                     |   5 +-
+ 5 files changed, 178 insertions(+), 19 deletions(-)
+
+diff --git a/drivers/infiniband/core/frmr_pools.c b/drivers/infiniband/co=
+re/frmr_pools.c
+index 5e992ff3d7cf..61a77847118e 100644
+--- a/drivers/infiniband/core/frmr_pools.c
++++ b/drivers/infiniband/core/frmr_pools.c
+@@ -92,7 +92,8 @@ static void destroy_all_handles_in_queue(struct ib_devi=
+ce *device,
+ 	u32 count;
+=20
+ 	while (pop_frmr_handles_page(pool, queue, &page, &count)) {
+-		pools->pool_ops->destroy_frmrs(device, page->handles, count);
++		pools->pool_ops->destroy_frmrs(device, &pool->key,
++					       page->handles, count);
+ 		kfree(page);
+ 	}
+ }
+@@ -136,7 +137,8 @@ static bool age_pinned_pool(struct ib_device *device,=
+ struct ib_frmr_pool *pool)
+ 	spin_unlock(&pool->lock);
+=20
+ 	if (destroyed)
+-		pools->pool_ops->destroy_frmrs(device, handles, destroyed);
++		pools->pool_ops->destroy_frmrs(device, &pool->key, handles,
++					       destroyed);
+ 	kfree(handles);
+ 	return has_work;
+ }
+@@ -453,9 +455,11 @@ int ib_frmr_pools_set_pinned(struct ib_device *devic=
+e, struct ib_frmr_key *key,
+ }
+=20
+ static int get_frmr_from_pool(struct ib_device *device,
+-			      struct ib_frmr_pool *pool, struct ib_mr *mr)
++			      struct ib_frmr_pool *pool, struct ib_mr *mr,
++			      bool *reused)
+ {
+ 	struct ib_frmr_pools *pools =3D device->frmr_pools;
++	bool local_reused =3D false;
+ 	u32 handle;
+ 	int err;
+=20
+@@ -464,6 +468,7 @@ static int get_frmr_from_pool(struct ib_device *devic=
+e,
+ 		if (pool->inactive_queue.ci > 0) {
+ 			handle =3D pop_handle_from_queue_locked(
+ 				&pool->inactive_queue);
++			local_reused =3D true;
+ 		} else {
+ 			spin_unlock(&pool->lock);
+ 			err =3D pools->pool_ops->create_frmrs(device, &pool->key,
+@@ -474,6 +479,7 @@ static int get_frmr_from_pool(struct ib_device *devic=
+e,
+ 		}
+ 	} else {
+ 		handle =3D pop_handle_from_queue_locked(&pool->queue);
++		local_reused =3D true;
+ 	}
+=20
+ 	pool->in_use++;
+@@ -484,6 +490,8 @@ static int get_frmr_from_pool(struct ib_device *devic=
+e,
+=20
+ 	mr->frmr.pool =3D pool;
+ 	mr->frmr.handle =3D handle;
++	if (reused)
++		*reused =3D local_reused;
+=20
+ 	return 0;
+ }
+@@ -493,10 +501,12 @@ static int get_frmr_from_pool(struct ib_device *dev=
+ice,
+  *
+  * @device: The device to pop the FRMR handle from.
+  * @mr: The MR to pop the FRMR handle from.
++ * @reused: Optional output that reports whether the returned handle was
++ *	    reused from the pool instead of freshly created.
+  *
+  * Returns 0 on success, negative error code on failure.
+  */
+-int ib_frmr_pool_pop(struct ib_device *device, struct ib_mr *mr)
++int ib_frmr_pool_pop(struct ib_device *device, struct ib_mr *mr, bool *r=
+eused)
+ {
+ 	struct ib_frmr_pools *pools =3D device->frmr_pools;
+ 	struct ib_frmr_pool *pool;
+@@ -509,7 +519,7 @@ int ib_frmr_pool_pop(struct ib_device *device, struct=
+ ib_mr *mr)
+ 			return PTR_ERR(pool);
+ 	}
+=20
+-	return get_frmr_from_pool(device, pool, mr);
++	return get_frmr_from_pool(device, pool, mr, reused);
+ }
+ EXPORT_SYMBOL(ib_frmr_pool_pop);
+=20
+diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5=
+/mr.c
+index 3b6da45061a5..5697c2862615 100644
+--- a/drivers/infiniband/hw/mlx5/mr.c
++++ b/drivers/infiniband/hw/mlx5/mr.c
+@@ -38,6 +38,7 @@
+ #include <linux/delay.h>
+ #include <linux/dma-buf.h>
+ #include <linux/dma-resv.h>
++#include <linux/pci-tph.h>
+ #include <rdma/frmr_pools.h>
+ #include <rdma/ib_umem_odp.h>
+ #include "dm.h"
+@@ -167,12 +168,39 @@ static int get_unchangeable_access_flags(struct mlx=
+5_ib_dev *dev,
+ #define MLX5_FRMR_POOLS_KERNEL_KEY_PH_MASK 0xFF0000
+ #define MLX5_FRMR_POOLS_KERNEL_KEY_ST_INDEX_MASK 0xFFFF
+=20
++static int mlx5_ib_get_frmr_st_handle_ref(struct mlx5_ib_dev *dev,
++					  u16 st_index)
++{
++	if (st_index =3D=3D MLX5_MKC_PCIE_TPH_NO_STEERING_TAG_INDEX)
++		return 0;
++
++	return mlx5_st_get_index(dev->mdev, st_index);
++}
++
++static void mlx5_ib_put_st_index_ref(struct mlx5_ib_dev *dev, u16 st_ind=
+ex)
++{
++	if (st_index =3D=3D MLX5_MKC_PCIE_TPH_NO_STEERING_TAG_INDEX)
++		return;
++
++	mlx5_st_dealloc_index(dev->mdev, st_index);
++}
++
++static void mlx5_ib_put_frmr_st_handle_ref(struct mlx5_ib_dev *dev,
++					   u64 kernel_vendor_key)
++{
++	u16 st_index =3D kernel_vendor_key &
++		       MLX5_FRMR_POOLS_KERNEL_KEY_ST_INDEX_MASK;
++
++	mlx5_ib_put_st_index_ref(dev, st_index);
++}
++
+ static struct mlx5_ib_mr *
+ _mlx5_frmr_pool_alloc(struct mlx5_ib_dev *dev, struct ib_umem *umem,
+ 		      int access_flags, int access_mode,
+ 		      unsigned long page_size, u16 st_index, u8 ph)
+ {
+ 	struct mlx5_ib_mr *mr;
++	bool reused =3D false;
+ 	int err;
+=20
+ 	mr =3D kzalloc_obj(*mr);
+@@ -195,11 +223,14 @@ _mlx5_frmr_pool_alloc(struct mlx5_ib_dev *dev, stru=
+ct ib_umem *umem,
+=20
+ 	mr->ibmr.frmr.key.kernel_vendor_key =3D
+ 		st_index | (ph << MLX5_FRMR_POOLS_KERNEL_KEY_PH_SHIFT);
+-	err =3D ib_frmr_pool_pop(&dev->ib_dev, &mr->ibmr);
++	err =3D ib_frmr_pool_pop(&dev->ib_dev, &mr->ibmr, &reused);
+ 	if (err) {
+ 		kfree(mr);
+ 		return ERR_PTR(err);
+ 	}
++	if (reused)
++		mlx5_ib_put_frmr_st_handle_ref(
++			dev, mr->ibmr.frmr.key.kernel_vendor_key);
+ 	mr->mmkey.key =3D mr->ibmr.frmr.handle;
+ 	init_waitqueue_head(&mr->mmkey.wait);
+=20
+@@ -229,7 +260,7 @@ struct mlx5_ib_mr *mlx5_mr_cache_alloc(struct mlx5_ib=
+_dev *dev,
+ 	init_waitqueue_head(&mr->mmkey.wait);
+=20
+ 	mr->ibmr.frmr.key =3D key;
+-	ret =3D ib_frmr_pool_pop(&dev->ib_dev, &mr->ibmr);
++	ret =3D ib_frmr_pool_pop(&dev->ib_dev, &mr->ibmr, NULL);
+ 	if (ret) {
+ 		kfree(mr);
+ 		return ERR_PTR(ret);
+@@ -273,7 +304,8 @@ static int mlx5r_create_mkeys(struct ib_device *devic=
+e, struct ib_frmr_key *key,
+=20
+ 	st_index =3D key->kernel_vendor_key &
+ 		   MLX5_FRMR_POOLS_KERNEL_KEY_ST_INDEX_MASK;
+-	ph =3D key->kernel_vendor_key & MLX5_FRMR_POOLS_KERNEL_KEY_PH_MASK;
++	ph =3D (key->kernel_vendor_key & MLX5_FRMR_POOLS_KERNEL_KEY_PH_MASK) >>
++	     MLX5_FRMR_POOLS_KERNEL_KEY_PH_SHIFT;
+ 	if (ph) {
+ 		/* Normalize ph: swap MLX5_IB_NO_PH for 0 */
+ 		if (ph =3D=3D MLX5_IB_NO_PH)
+@@ -299,7 +331,8 @@ static int mlx5r_create_mkeys(struct ib_device *devic=
+e, struct ib_frmr_key *key,
+ 	return err;
+ }
+=20
+-static void mlx5r_destroy_mkeys(struct ib_device *device, u32 *handles,
++static void mlx5r_destroy_mkeys(struct ib_device *device,
++				const struct ib_frmr_key *key, u32 *handles,
+ 				unsigned int count)
+ {
+ 	struct mlx5_ib_dev *dev =3D to_mdev(device);
+@@ -311,6 +344,9 @@ static void mlx5r_destroy_mkeys(struct ib_device *dev=
+ice, u32 *handles,
+ 			pr_warn_ratelimited(
+ 				"mlx5_ib: failed to destroy mkey %d: %d",
+ 				handles[i], err);
++		else
++			mlx5_ib_put_frmr_st_handle_ref(dev,
++						       key->kernel_vendor_key);
+ 	}
+ }
+=20
+@@ -333,6 +369,7 @@ static int mlx5r_build_frmr_key(struct ib_device *dev=
+ice,
+ 		get_unchangeable_access_flags(dev, in->access_flags);
+ 	out->vendor_key =3D in->vendor_key;
+ 	out->num_dma_blocks =3D in->num_dma_blocks;
++	out->kernel_vendor_key =3D in->kernel_vendor_key;
+=20
+ 	return 0;
+ }
+@@ -753,6 +790,12 @@ static struct ib_mr *create_real_mr(struct ib_pd *pd=
+, struct ib_umem *umem,
+=20
+ 	xlt_with_umr =3D mlx5r_umr_can_load_pas(dev, umem->length);
+ 	if (xlt_with_umr) {
++		err =3D mlx5_ib_get_frmr_st_handle_ref(dev, st_index);
++		if (err) {
++			ib_umem_release(umem);
++			return ERR_PTR(err);
++		}
++
+ 		mr =3D alloc_cacheable_mr(pd, umem, iova, access_flags,
+ 					MLX5_MKC_ACCESS_MODE_MTT,
+ 					st_index, ph);
+@@ -767,6 +810,8 @@ static struct ib_mr *create_real_mr(struct ib_pd *pd,=
+ struct ib_umem *umem,
+ 		mutex_unlock(&dev->slow_path_mutex);
+ 	}
+ 	if (IS_ERR(mr)) {
++		if (xlt_with_umr)
++			mlx5_ib_put_st_index_ref(dev, st_index);
+ 		ib_umem_release(umem);
+ 		return ERR_CAST(mr);
+ 	}
+@@ -899,6 +944,52 @@ static struct dma_buf_attach_ops mlx5_ib_dmabuf_atta=
+ch_ops =3D {
+ 	.invalidate_mappings =3D mlx5_ib_dmabuf_invalidate_cb,
+ };
+=20
++static void get_tph_mr_dmabuf(struct mlx5_ib_dev *dev, struct dma_buf *d=
+mabuf,
++			      u16 *st_index, u8 *ph)
++{
++	u16 local_st_index;
++	u16 steering_tag;
++	u8 local_ph;
++	bool extended;
++	int ret;
++
++	switch (pcie_tph_enabled_req_type(dev->mdev->pdev)) {
++	case PCI_TPH_REQ_TPH_ONLY:
++		extended =3D false;
++		break;
++	case PCI_TPH_REQ_EXT_TPH:
++		extended =3D true;
++		break;
++	default:
++		return;
++	}
++
++	dma_resv_lock(dmabuf->resv, NULL);
++	ret =3D dma_buf_get_tph(dmabuf, extended, &steering_tag, &local_ph);
++	dma_resv_unlock(dmabuf->resv);
++	if (ret) {
++		if (ret !=3D -EOPNOTSUPP)
++			mlx5_ib_dbg(dev, "get_tph failed (%d)\n", ret);
++		return;
++	}
++
++	ret =3D mlx5_st_alloc_index_by_tag(dev->mdev, steering_tag,
++					 &local_st_index);
++	if (ret) {
++		mlx5_ib_dbg(dev, "st_alloc_index_by_tag failed (%d)\n", ret);
++		return;
++	}
++
++	*st_index =3D local_st_index;
++	*ph =3D local_ph;
++}
++
++static void mlx5_ib_mr_put_frmr_st_handle_ref(struct mlx5_ib_mr *mr)
++{
++	mlx5_ib_put_frmr_st_handle_ref(mr_to_mdev(mr),
++				       mr->ibmr.frmr.key.kernel_vendor_key);
++}
++
+ static struct ib_mr *
+ reg_user_mr_dmabuf(struct ib_pd *pd, struct device *dma_device,
+ 		   u64 offset, u64 length, u64 virt_addr,
+@@ -941,12 +1032,22 @@ reg_user_mr_dmabuf(struct ib_pd *pd, struct device=
+ *dma_device,
+ 		ph =3D dmah->ph;
+ 		if (dmah->valid_fields & BIT(IB_DMAH_CPU_ID_EXISTS))
+ 			st_index =3D mdmah->st_index;
++
++		err =3D mlx5_ib_get_frmr_st_handle_ref(dev, st_index);
++		if (err) {
++			ib_umem_release(&umem_dmabuf->umem);
++			return ERR_PTR(err);
++		}
++	} else {
++		get_tph_mr_dmabuf(dev, umem_dmabuf->attach->dmabuf,
++				  &st_index, &ph);
+ 	}
+=20
+ 	mr =3D alloc_cacheable_mr(pd, &umem_dmabuf->umem, virt_addr,
+ 				access_flags, access_mode,
+ 				st_index, ph);
+ 	if (IS_ERR(mr)) {
++		mlx5_ib_put_st_index_ref(dev, st_index);
+ 		ib_umem_release(&umem_dmabuf->umem);
+ 		return ERR_CAST(mr);
+ 	}
+@@ -1400,6 +1501,8 @@ static int mlx5r_handle_mkey_cleanup(struct mlx5_ib=
+_mr *mr)
+ 		dma_resv_unlock(
+ 			to_ib_umem_dmabuf(mr->umem)->attach->dmabuf->resv);
+ 	}
++	if (!ret)
++		mlx5_ib_mr_put_frmr_st_handle_ref(mr);
+ 	return ret;
+ }
+=20
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lib/st.c b/drivers/n=
+et/ethernet/mellanox/mlx5/core/lib/st.c
+index 7cedc348790d..877b37b4e639 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/lib/st.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/lib/st.c
+@@ -92,23 +92,18 @@ void mlx5_st_destroy(struct mlx5_core_dev *dev)
+ 	kfree(st);
+ }
+=20
+-int mlx5_st_alloc_index(struct mlx5_core_dev *dev, enum tph_mem_type mem=
+_type,
+-			unsigned int cpu_uid, u16 *st_index)
++int mlx5_st_alloc_index_by_tag(struct mlx5_core_dev *dev, u16 tag,
++			       u16 *st_index)
+ {
+ 	struct mlx5_st_idx_data *idx_data;
+ 	struct mlx5_st *st =3D dev->st;
+ 	unsigned long index;
+ 	u32 xa_id;
+-	u16 tag;
+-	int ret;
++	int ret =3D 0;
+=20
+ 	if (!st)
+ 		return -EOPNOTSUPP;
+=20
+-	ret =3D pcie_tph_get_cpu_st(dev->pdev, mem_type, cpu_uid, &tag);
+-	if (ret)
+-		return ret;
+-
+ 	if (st->direct_mode) {
+ 		*st_index =3D tag;
+ 		return 0;
+@@ -152,8 +147,46 @@ int mlx5_st_alloc_index(struct mlx5_core_dev *dev, e=
+num tph_mem_type mem_type,
+ 	mutex_unlock(&st->lock);
+ 	return ret;
+ }
++EXPORT_SYMBOL_GPL(mlx5_st_alloc_index_by_tag);
++
++int mlx5_st_alloc_index(struct mlx5_core_dev *dev, enum tph_mem_type mem=
+_type,
++			unsigned int cpu_uid, u16 *st_index)
++{
++	u16 tag;
++	int ret;
++
++	ret =3D pcie_tph_get_cpu_st(dev->pdev, mem_type, cpu_uid, &tag);
++	if (ret)
++		return ret;
++
++	return mlx5_st_alloc_index_by_tag(dev, tag, st_index);
++}
+ EXPORT_SYMBOL_GPL(mlx5_st_alloc_index);
+=20
++int mlx5_st_get_index(struct mlx5_core_dev *dev, u16 st_index)
++{
++	struct mlx5_st_idx_data *idx_data;
++	struct mlx5_st *st =3D dev->st;
++	int ret =3D 0;
++
++	if (!st)
++		return -EOPNOTSUPP;
++
++	if (st->direct_mode)
++		return 0;
++
++	mutex_lock(&st->lock);
++	idx_data =3D xa_load(&st->idx_xa, st_index);
++	if (WARN_ON_ONCE(!idx_data))
++		ret =3D -EINVAL;
++	else
++		refcount_inc(&idx_data->usecount);
++	mutex_unlock(&st->lock);
++
++	return ret;
++}
++EXPORT_SYMBOL_GPL(mlx5_st_get_index);
++
+ int mlx5_st_dealloc_index(struct mlx5_core_dev *dev, u16 st_index)
+ {
+ 	struct mlx5_st_idx_data *idx_data;
+diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
+index 04b96c5abb57..0480b5c4f189 100644
+--- a/include/linux/mlx5/driver.h
++++ b/include/linux/mlx5/driver.h
+@@ -1166,10 +1166,22 @@ int mlx5_dm_sw_icm_dealloc(struct mlx5_core_dev *=
+dev, enum mlx5_sw_icm_type type
+ 			   u64 length, u16 uid, phys_addr_t addr, u32 obj_id);
+=20
+ #ifdef CONFIG_PCIE_TPH
++int mlx5_st_alloc_index_by_tag(struct mlx5_core_dev *dev, u16 tag,
++			       u16 *st_index);
++int mlx5_st_get_index(struct mlx5_core_dev *dev, u16 st_index);
+ int mlx5_st_alloc_index(struct mlx5_core_dev *dev, enum tph_mem_type mem=
+_type,
+ 			unsigned int cpu_uid, u16 *st_index);
+ int mlx5_st_dealloc_index(struct mlx5_core_dev *dev, u16 st_index);
+ #else
++static inline int mlx5_st_alloc_index_by_tag(struct mlx5_core_dev *dev,
++					     u16 tag, u16 *st_index)
++{
++	return -EOPNOTSUPP;
++}
++static inline int mlx5_st_get_index(struct mlx5_core_dev *dev, u16 st_in=
+dex)
++{
++	return -EOPNOTSUPP;
++}
+ static inline int mlx5_st_alloc_index(struct mlx5_core_dev *dev,
+ 				      enum tph_mem_type mem_type,
+ 				      unsigned int cpu_uid, u16 *st_index)
+diff --git a/include/rdma/frmr_pools.h b/include/rdma/frmr_pools.h
+index af1b88801fa4..a08d2b2cf9f3 100644
+--- a/include/rdma/frmr_pools.h
++++ b/include/rdma/frmr_pools.h
+@@ -24,7 +24,8 @@ struct ib_frmr_key {
+ struct ib_frmr_pool_ops {
+ 	int (*create_frmrs)(struct ib_device *device, struct ib_frmr_key *key,
+ 			    u32 *handles, u32 count);
+-	void (*destroy_frmrs)(struct ib_device *device, u32 *handles,
++	void (*destroy_frmrs)(struct ib_device *device,
++			      const struct ib_frmr_key *key, u32 *handles,
+ 			      u32 count);
+ 	int (*build_key)(struct ib_device *device, const struct ib_frmr_key *in=
+,
+ 			 struct ib_frmr_key *out);
+@@ -33,7 +34,7 @@ struct ib_frmr_pool_ops {
+ int ib_frmr_pools_init(struct ib_device *device,
+ 		       const struct ib_frmr_pool_ops *pool_ops);
+ void ib_frmr_pools_cleanup(struct ib_device *device);
+-int ib_frmr_pool_pop(struct ib_device *device, struct ib_mr *mr);
++int ib_frmr_pool_pop(struct ib_device *device, struct ib_mr *mr, bool *r=
+eused);
+ int ib_frmr_pool_push(struct ib_device *device, struct ib_mr *mr);
+=20
+ #endif /* FRMR_POOLS_H */
+--=20
+2.53.0-Meta
+
