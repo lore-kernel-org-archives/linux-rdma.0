@@ -1,89 +1,83 @@
-Received: from canpmsgout11.his.huawei.com (canpmsgout11.his.huawei.com [113.46.200.226])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 06C623ACA50
-	for <linux-rdma@vger.kernel.org>; Sat, 13 Jun 2026 10:20:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.226
+Received: from outbound.baidu.com (mx15.baidu.com [111.202.115.100])
+	by smtp.subspace.kernel.org (Postfix) with SMTP id 574963BF685;
+	Sat, 13 Jun 2026 15:36:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=111.202.115.100
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781346058; cv=none; b=WONMOBgjvPicIHs1XMczNlK2PYoQqe+E3A3mQSRr9+5OXD2FWzfpb6NLcKSZUWC2ZomHFwfpWtCSB1aBxraZixHdGcBC4cyKxq5LS7ftPm4nGFlH/5FLVa+pFuC5bIeILHmpcXLaTJJJ7mU1r6U5Y4zRTiqbWyqo4n5b3jDY6l0=
+	t=1781365018; cv=none; b=IYhh66E93yzSudYxEpBSfB2+PVmvjbUJIa+NayVPLp+U+GacY0mfzQ2V7PDO0UXEsqkanHZA6F/E7pms5BPfEaQW2nRmbUpGO88WoscLr455NZah5run/ct2p9gzJJBeEaJBv6hzwDD7m5A5Ql69yhNrgXlYgk9YO6vBhreo/h0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781346058; c=relaxed/simple;
-	bh=s4smzi2SkuzP8xGp1VmLCI/Xon/zRozVIE8n7jxImvk=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=FtADa7Y2C12WWZVtCrIHfvSqSPdW0ShRJg7R8S3ESdbtMxzrw3bJf4HhiR8h1657iHiSlLAqWlxY2NS/7TLpY1BH/AeKhrhOF1/AhcatL2OUEvJ2INlYo39hsbsh1nw39COGc37ej/FCGrdTAQOlbPpPmDsedfjeZlM78ne+fig=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com; spf=pass smtp.mailfrom=hisilicon.com; arc=none smtp.client-ip=113.46.200.226
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=hisilicon.com
-Received: from mail.maildlp.com (unknown [172.19.163.200])
-	by canpmsgout11.his.huawei.com (SkyGuard) with ESMTPS id 4gcsdX24xwzKm4Y;
-	Sat, 13 Jun 2026 18:12:48 +0800 (CST)
-Received: from kwepemf100018.china.huawei.com (unknown [7.202.181.17])
-	by mail.maildlp.com (Postfix) with ESMTPS id D456B40563;
-	Sat, 13 Jun 2026 18:20:46 +0800 (CST)
-Received: from localhost.localdomain (10.50.163.32) by
- kwepemf100018.china.huawei.com (7.202.181.17) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.36; Sat, 13 Jun 2026 18:20:46 +0800
-From: Junxian Huang <huangjunxian6@hisilicon.com>
-To: <jgg@ziepe.ca>, <leon@kernel.org>
-CC: <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
-	<huangjunxian6@hisilicon.com>, <tangchengchang@huawei.com>
-Subject: [PATCH v2 for-next] RDMA/hns: Fix memory leak of bonding resources
-Date: Sat, 13 Jun 2026 18:20:45 +0800
-Message-ID: <20260613102045.811623-1-huangjunxian6@hisilicon.com>
-X-Mailer: git-send-email 2.33.0
+	s=arc-20240116; t=1781365018; c=relaxed/simple;
+	bh=gm1vbwawVjM37r4oupYhif/1oaDCRwgPyzuN+/phpyM=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=vAnO1A6c4EmETJZVnvMde/ZYFyQtxGmEJEEZvq1vF4ZopK2XWp1St+ugjF2aFB72yMIDp1TIy1IwZRHi8pvIPdLjmjqydBjcwl/2FC/ymhqI0PiQNJY5cfmQvTAMsC2RltWFi4Nt/uJphsQ6axWuh/Neck950LRgSAOOlsZuysk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=baidu.com; spf=pass smtp.mailfrom=baidu.com; dkim=pass (2048-bit key) header.d=baidu.com header.i=@baidu.com header.b=NVTgd/gL; arc=none smtp.client-ip=111.202.115.100
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=baidu.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=baidu.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=baidu.com header.i=@baidu.com header.b="NVTgd/gL"
+X-MD-Sfrom: lirongqing@baidu.com
+X-MD-SrcIP: 172.31.50.47
+From: lirongqing <lirongqing@baidu.com>
+To: Saeed Mahameed <saeedm@nvidia.com>, Leon Romanovsky <leon@kernel.org>,
+	Tariq Toukan <tariqt@nvidia.com>, Mark Bloch <mbloch@nvidia.com>, Andrew Lunn
+	<andrew+netdev@lunn.ch>, "David S . Miller" <davem@davemloft.net>, Eric
+ Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, Paolo Abeni
+	<pabeni@redhat.com>, <netdev@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>
+CC: Li RongQing <lirongqing@baidu.com>
+Subject: [PATCH] net/mlx5: Fix L3 tunnel entropy refcount leak
+Date: Sat, 13 Jun 2026 23:36:31 +0800
+Message-ID: <20260613153631.1752-1-lirongqing@baidu.com>
+X-Mailer: git-send-email 2.17.1
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-ClientProxiedBy: kwepems500002.china.huawei.com (7.221.188.17) To
- kwepemf100018.china.huawei.com (7.202.181.17)
+X-ClientProxiedBy: bjhj-exc11.internal.baidu.com (172.31.3.21) To
+ bjkjy-exc3.internal.baidu.com (172.31.50.47)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=baidu.com;
+	s=selector1; t=1781365003;
+	bh=ltnOPbf4u5wXNn6TlECUDzO13cAthcx4skZw9/6ODOg=;
+	h=From:To:CC:Subject:Date:Message-ID:Content-Type;
+	b=NVTgd/gLLBWPEpwtcreLDiv0Zea61CBcjjs6ZyX/VIXE7qwJKRHXYEWLGjE4EzF4v
+	 8F0tBeXToSuqSXMhTJChL36mMD4mUHs5W8Cnf38e/9xBqQhXNZiKdAMOYLkhxbyQq7
+	 XKAALJR7y7FkpVCpjFV9fuh2aPQ+B7eGmTkUY8xdtnB038TujdsTSfLdD/fK8TFmg3
+	 EujGK0JPYrTuv2uvueqFJpfHOMRWxod08e32zxNWQtM3IyYqxCerxPKsBaw9NabllR
+	 7mUwkQz9YQ9Ng1DAP7bRIwUWG9GjU2hvQH83ofvLKz4/3QJD3hFodYU0FVEKGUYr2J
+	 Co+ld4R5OpzEg==
 
-In a corner case of concurrent driver removal and driver reset,
-bonding resource is first released in hns_roce_hw_v2_exit() during
-driver removal, and then is allocated again in hns_roce_register_device()
-during driver reset. This leads to memory leak because the release
-timing has already passed. This may also lead to a kernel panic
-as below because of the leaked notifier callback:
+From: Li RongQing <lirongqing@baidu.com>
 
-Call trace:
-  0xffffa20fccc04978 (P)
-  raw_notifier_call_chain+0x20/0x38
-  call_netdevice_notifiers_info+0x60/0xb8
-  netdev_lower_state_changed+0x4c/0xb8
+mlx5_tun_entropy_refcount_inc() counts both VXLAN and L2-to-L3
+tunnel reformat entries as entropy-enabling users. The matching
+decrement path only handled VXLAN, leaving L2-to-L3 tunnel entries
+counted after release.
 
-As Sashiko suggested, the teardown order of bonding resources should
-be inverted to make sure the resources are released when the driver
-is removed.
+Handle MLX5_REFORMAT_TYPE_L2_TO_L3_TUNNEL in
+mlx5_tun_entropy_refcount_dec() as well so the enabling entry
+refcount remains balanced.
 
-Fixes: b37ad2e290fc ("RDMA/hns: Initialize bonding resources")
-Signed-off-by: Junxian Huang <huangjunxian6@hisilicon.com>
+Fixes: f828ca6a2fb6 ("net/mlx5e: Add support for hw encapsulation of MPLS over UDP")
+Signed-off-by: Li RongQing <lirongqing@baidu.com>
 ---
-v2:
-* Invert the teardown order of bonding resources as suggested by
-  Jason and Sashiko.
-v1: https://lore.kernel.org/linux-rdma/20260520055759.2354037-2-huangjunxian6@hisilicon.com/
----
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/ethernet/mellanox/mlx5/core/lib/port_tun.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 4afd7d6ae3ca..f839578d7fdb 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -7654,8 +7654,8 @@ static int __init hns_roce_hw_v2_init(void)
-
- static void __exit hns_roce_hw_v2_exit(void)
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lib/port_tun.c b/drivers/net/ethernet/mellanox/mlx5/core/lib/port_tun.c
+index 4571c56..97f6097 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/lib/port_tun.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/lib/port_tun.c
+@@ -176,7 +176,8 @@ void mlx5_tun_entropy_refcount_dec(struct mlx5_tun_entropy *tun_entropy,
+ 				   int reformat_type)
  {
--	hns_roce_dealloc_bond_grp();
- 	hnae3_unregister_client(&hns_roce_hw_v2_client);
-+	hns_roce_dealloc_bond_grp();
- 	hns_roce_cleanup_debugfs();
- }
-
---
-2.33.0
+ 	mutex_lock(&tun_entropy->lock);
+-	if (reformat_type == MLX5_REFORMAT_TYPE_L2_TO_VXLAN)
++	if (reformat_type == MLX5_REFORMAT_TYPE_L2_TO_VXLAN ||
++	    reformat_type == MLX5_REFORMAT_TYPE_L2_TO_L3_TUNNEL)
+ 		tun_entropy->num_enabling_entries--;
+ 	else if (reformat_type == MLX5_REFORMAT_TYPE_L2_TO_NVGRE &&
+ 		 --tun_entropy->num_disabling_entries == 0)
+-- 
+2.9.4
 
