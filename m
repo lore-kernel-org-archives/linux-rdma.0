@@ -1,62 +1,36 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from canpmsgout11.his.huawei.com (canpmsgout11.his.huawei.com [113.46.200.226])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C82229AAEA;
-	Sat, 13 Jun 2026 08:20:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 06C623ACA50
+	for <linux-rdma@vger.kernel.org>; Sat, 13 Jun 2026 10:20:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.226
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781338836; cv=none; b=owMBegMQSXtpf5Q2X3ZVkKR+meB8rfh51yd7loqeDsm2P456FShZq6pCzhhXSqqJ0MT5C9Lw24m+bCoucaMmP2bqTRqz2KXNMb435C5MFY4GIrb6+Qzf41AYY9eDFpLOWgdc4lU6IT6typ9KsvypKGAjA1GRJGbD9oFRFpB7mNQ=
+	t=1781346058; cv=none; b=WONMOBgjvPicIHs1XMczNlK2PYoQqe+E3A3mQSRr9+5OXD2FWzfpb6NLcKSZUWC2ZomHFwfpWtCSB1aBxraZixHdGcBC4cyKxq5LS7ftPm4nGFlH/5FLVa+pFuC5bIeILHmpcXLaTJJJ7mU1r6U5Y4zRTiqbWyqo4n5b3jDY6l0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781338836; c=relaxed/simple;
-	bh=DE25FeJIR3eJbEyPjqnpV0gPCOu3SN4ATSHKVunPjeM=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=hISBRXa3BI608Z3QRiC4idcfEtQXwynQqz9z9ycetQ8NKYplk9isFMhvHTkdKrWHm2+5cHYcKjuLY2nA7sgZNcX2AF1DsiP4LGVsCgWbHL6uwxfx37cNjKUh+qrJKpvTZTR8DsjKgVep0HSbsjq316pPZbzxlEOHoEkwW9FRYN0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=JF1NCZZE; arc=none smtp.client-ip=100.103.45.18
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="JF1NCZZE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1BE641F000E9;
-	Sat, 13 Jun 2026 08:20:28 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1781338833;
-	bh=owuCffPj0B6/q5HMfLZveBGQe9ejC5DkgaoaNYPwlyI=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=JF1NCZZEzUhUrypMbf9whwV19dOYhpu6tusXQeZiMlKEqECpkpXhLH+/nsu2WUwOt
-	 YfOBVV0Yx9s3cxTHnShBEdDGeeqHF5kqNKiGDDVwKUvnIpq3wpC32HBQ887rzgDQHg
-	 pJ7IC4tByuRnDqVHCPAnr6fPDqiNCTqC3I14Eoivwv49V1sRXjypQfqtXmOgFhxQWA
-	 I5fM5n/Koel+q1i8GG19VrifHGq3x9VnhY/t5bN4Z1Tbk3J3kK9HumX1bTvphHRM9g
-	 o88ldYXMp5ZkVIjo1vwJOqiI5oCV6ZtYgU02tyHzdy9LzghUbqstWYrWqxC7rQeY/j
-	 68jhso09zMCVg==
-From: Simon Horman <horms@kernel.org>
-To: haiyangz@linux.microsoft.com
-Cc: Simon Horman <horms@kernel.org>,
-	linux-hyperv@vger.kernel.org,
-	netdev@vger.kernel.org,
-	kys@microsoft.com,
-	haiyangz@microsoft.com,
-	wei.liu@kernel.org,
-	decui@microsoft.com,
-	longli@microsoft.com,
-	andrew+netdev@lunn.ch,
-	davem@davemloft.net,
-	edumazet@google.com,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	kotaranov@microsoft.com,
-	shradhagupta@linux.microsoft.com,
-	ernis@linux.microsoft.com,
-	dipayanroy@linux.microsoft.com,
-	gargaditya@linux.microsoft.com,
-	kees@kernel.org,
-	leitao@debian.org,
-	linux-kernel@vger.kernel.org,
-	linux-rdma@vger.kernel.org,
-	paulros@microsoft.com
-Subject: Re: [PATCH net-next v3] net: mana: Add Interrupt Moderation support
-Date: Sat, 13 Jun 2026 09:20:14 +0100
-Message-ID: <20260613082014.715350-1-horms@kernel.org>
-X-Mailer: git-send-email 2.54.0
-In-Reply-To: <20260611190239.2532429-1-haiyangz@linux.microsoft.com>
-References: <20260611190239.2532429-1-haiyangz@linux.microsoft.com>
+	s=arc-20240116; t=1781346058; c=relaxed/simple;
+	bh=s4smzi2SkuzP8xGp1VmLCI/Xon/zRozVIE8n7jxImvk=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=FtADa7Y2C12WWZVtCrIHfvSqSPdW0ShRJg7R8S3ESdbtMxzrw3bJf4HhiR8h1657iHiSlLAqWlxY2NS/7TLpY1BH/AeKhrhOF1/AhcatL2OUEvJ2INlYo39hsbsh1nw39COGc37ej/FCGrdTAQOlbPpPmDsedfjeZlM78ne+fig=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com; spf=pass smtp.mailfrom=hisilicon.com; arc=none smtp.client-ip=113.46.200.226
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=hisilicon.com
+Received: from mail.maildlp.com (unknown [172.19.163.200])
+	by canpmsgout11.his.huawei.com (SkyGuard) with ESMTPS id 4gcsdX24xwzKm4Y;
+	Sat, 13 Jun 2026 18:12:48 +0800 (CST)
+Received: from kwepemf100018.china.huawei.com (unknown [7.202.181.17])
+	by mail.maildlp.com (Postfix) with ESMTPS id D456B40563;
+	Sat, 13 Jun 2026 18:20:46 +0800 (CST)
+Received: from localhost.localdomain (10.50.163.32) by
+ kwepemf100018.china.huawei.com (7.202.181.17) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1544.36; Sat, 13 Jun 2026 18:20:46 +0800
+From: Junxian Huang <huangjunxian6@hisilicon.com>
+To: <jgg@ziepe.ca>, <leon@kernel.org>
+CC: <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
+	<huangjunxian6@hisilicon.com>, <tangchengchang@huawei.com>
+Subject: [PATCH v2 for-next] RDMA/hns: Fix memory leak of bonding resources
+Date: Sat, 13 Jun 2026 18:20:45 +0800
+Message-ID: <20260613102045.811623-1-huangjunxian6@hisilicon.com>
+X-Mailer: git-send-email 2.33.0
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -64,146 +38,52 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: kwepems500002.china.huawei.com (7.221.188.17) To
+ kwepemf100018.china.huawei.com (7.202.181.17)
 
-This is an AI-generated review of your patch. The human sending this
-email has considered the AI review valid, or at least plausible.
-Full review at: https://sashiko.dev
+In a corner case of concurrent driver removal and driver reset,
+bonding resource is first released in hns_roce_hw_v2_exit() during
+driver removal, and then is allocated again in hns_roce_register_device()
+during driver reset. This leads to memory leak because the release
+timing has already passed. This may also lead to a kernel panic
+as below because of the leaked notifier callback:
+
+Call trace:
+  0xffffa20fccc04978 (P)
+  raw_notifier_call_chain+0x20/0x38
+  call_netdevice_notifiers_info+0x60/0xb8
+  netdev_lower_state_changed+0x4c/0xb8
+
+As Sashiko suggested, the teardown order of bonding resources should
+be inverted to make sure the resources are released when the driver
+is removed.
+
+Fixes: b37ad2e290fc ("RDMA/hns: Initialize bonding resources")
+Signed-off-by: Junxian Huang <huangjunxian6@hisilicon.com>
 ---
-Date:   Thu Jun 11 19:02:22 2026 +0000
+v2:
+* Invert the teardown order of bonding resources as suggested by
+  Jason and Sashiko.
+v1: https://lore.kernel.org/linux-rdma/20260520055759.2354037-2-huangjunxian6@hisilicon.com/
+---
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-    net: mana: Add Interrupt Moderation support
-    
-    This commit adds Static and Dynamic Interrupt Moderation (DIM) support for
-    Rx and Tx. It updates the queue creation procedure, adds functions to
-    collect stats for DIM, and provides ethtool handler support to get/set
-    the moderation settings.
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index 4afd7d6ae3ca..f839578d7fdb 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -7654,8 +7654,8 @@ static int __init hns_roce_hw_v2_init(void)
 
-> diff --git a/drivers/net/ethernet/microsoft/mana/mana_en.c b/drivers/net/ethernet/microsoft/mana/mana_en.c
-> index 26aef21c6c2c8..d92e022d8533c 100644
-> --- a/drivers/net/ethernet/microsoft/mana/mana_en.c
-> +++ b/drivers/net/ethernet/microsoft/mana/mana_en.c
-> @@ -1579,6 +1579,9 @@ int mana_create_wq_obj(struct mana_port_context *apc,
->  
->  	mana_gd_init_req_hdr(&req.hdr, MANA_CREATE_WQ_OBJ,
->  			     sizeof(req), sizeof(resp));
-> +
-> +	req.hdr.req.msg_version = GDMA_MESSAGE_V3;
-> +	req.hdr.resp.msg_version = GDMA_MESSAGE_V2;
->  	req.vport = vport;
->  	req.wq_type = wq_type;
->  	req.wq_gdma_region = wq_spec->gdma_region;
-> @@ -1587,6 +1590,9 @@ int mana_create_wq_obj(struct mana_port_context *apc,
->  	req.cq_size = cq_spec->queue_size;
->  	req.cq_moderation_ctx_id = cq_spec->modr_ctx_id;
->  	req.cq_parent_qid = cq_spec->attached_eq;
-> +	req.req_cq_moderation = cq_spec->req_cq_moderation;
-> +	req.cq_moderation_comp = cq_spec->cq_moderation_comp;
-> +	req.cq_moderation_usec = cq_spec->cq_moderation_usec;
+ static void __exit hns_roce_hw_v2_exit(void)
+ {
+-	hns_roce_dealloc_bond_grp();
+ 	hnae3_unregister_client(&hns_roce_hw_v2_client);
++	hns_roce_dealloc_bond_grp();
+ 	hns_roce_cleanup_debugfs();
+ }
 
-[Severity: High]
-Does this break queue creation on older Azure host firmwares?
+--
+2.33.0
 
-The code unconditionally bumps the WQ object creation request to use
-GDMA_MESSAGE_V3 and passes the req_cq_moderation flag. If the firmware does
-not support GDMA_PF_CAP_FLAG_1_DYN_INTERRUPT_MODERATION, could the firmware
-reject the queue creation request and break device initialization entirely?
-
-[ ... ]
-
-> +static void mana_update_tx_dim(struct mana_cq *cq)
-> +{
-> +	struct mana_port_context *apc = netdev_priv(cq->txq->ndev);
-> +	struct dim_sample dim_sample = {};
-> +	struct mana_txq *txq = cq->txq;
-> +
-> +	if (!apc->tx_dim_enabled)
-> +		return;
-> +
-> +	dim_update_sample(READ_ONCE(cq->dim_event_ctr), txq->stats.packets,
-> +			  txq->stats.bytes, &dim_sample);
-> +	net_dim(&cq->dim, &dim_sample);
-> +}
-
-[Severity: High]
-Does this measure the CPU enqueue rate rather than the hardware completion
-rate?
-
-It appears that txq->stats.packets is incremented in mana_start_xmit()
-upon enqueue, not during completion in mana_poll_tx_cq(). Dynamic interrupt
-moderation relies on measuring the actual hardware completion rate to
-function correctly.
-
-Additionally, is it safe to read txq->stats.packets here without the
-u64_stats_fetch_begin() retry loop? Reading a 64-bit statistic locklessly
-without the synchronization primitives could result in torn reads on 32-bit
-systems.
-
-[ ... ]
-
-> @@ -2324,7 +2434,13 @@ static int mana_cq_handler(void *context, struct gdma_queue *gdma_queue)
->  	if (w < cq->budget) {
->  		mana_gd_ring_cq(gdma_queue, SET_ARM_BIT);
->  		cq->work_done_since_doorbell = 0;
-> -		napi_complete_done(&cq->napi, w);
-> +
-> +		if (napi_complete_done(&cq->napi, w)) {
-> +			if (cq->type == MANA_CQ_TYPE_RX)
-> +				mana_update_rx_dim(cq);
-> +			else
-> +				mana_update_tx_dim(cq);
-> +		}
-
-[Severity: High]
-Is it safe to call mana_update_rx_dim() and mana_update_tx_dim() after
-napi_complete_done()?
-
-Since napi_complete_done() ends the NAPI polling cycle and relinquishes
-mutual exclusion, and the hardware interrupt was already re-armed by
-mana_gd_ring_cq() right before this, couldn't a new packet trigger an
-interrupt immediately? This could allow NAPI to be scheduled on another CPU
-concurrently while this CPU is still running the DIM update, potentially
-corrupting the non-thread-safe net_dim() state machine.
-
-[ ... ]
-
-> @@ -2562,6 +2685,9 @@ static int mana_create_txq(struct mana_port_context *apc,
->  		napi_enable_locked(&cq->napi);
->  		txq->napi_initialized = true;
->  
-> +		INIT_WORK(&cq->dim.work, mana_tx_dim_work);
-> +		cq->dim.mode = DIM_CQ_PERIOD_MODE_START_FROM_EQE;
-
-[Severity: High]
-Could this allow NAPI to schedule an uninitialized work_struct?
-
-napi_enable_locked() is called right before INIT_WORK(). Once NAPI is
-enabled, it can be scheduled to run immediately (for example, via netpoll).
-If NAPI executes before INIT_WORK completes, mana_update_tx_dim() would
-pass the uninitialized cq->dim to net_dim(), which could cause a kernel
-panic when it attempts to call schedule_work().
-
-This pattern also occurs in mana_create_rxq().
-
-> diff --git a/drivers/net/ethernet/microsoft/mana/mana_ethtool.c b/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
-> index 94e658d07a27e..67a2b282ff4da 100644
-> --- a/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
-> +++ b/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
-
-[ ... ]
-
-> @@ -440,18 +474,123 @@ static int mana_set_coalesce(struct net_device *ndev,
-> +		if (enable_rx_dim)
-> +			apc->rx_dim_enabled = true;
-> +		if (enable_tx_dim)
-> +			apc->tx_dim_enabled = true;
-
-[Severity: High]
-Could the lack of memory barriers here expose uninitialized DIM structures
-to NAPI?
-
-The driver initializes DIM via mana_dim_change() and then sets
-apc->rx_dim_enabled to true. Without an smp_store_release() here and a
-corresponding smp_load_acquire() in mana_update_rx_dim(), weakly-ordered
-CPUs like ARM64 might reorder the stores. Concurrently, NAPI polling might
-observe the flag as true before the initialization is fully visible in memory,
-potentially invoking net_dim() on garbage memory.
