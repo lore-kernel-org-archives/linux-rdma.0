@@ -1,179 +1,107 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wm1-f48.google.com (mail-wm1-f48.google.com [209.85.128.48])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 395213A1DB;
-	Mon, 15 Jun 2026 04:54:47 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E96D4336EF8
+	for <linux-rdma@vger.kernel.org>; Mon, 15 Jun 2026 08:38:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.48
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781499288; cv=none; b=ia1jdpwdx3ABDKLZbjXFIRfHfj7Yb0Wu1EE//eOrjinyCEv5pxef0wkACzb5HMitHInaePs5CTVYDCOjHPPTiadg3aQyoAE5g1l/xG+ad2e5ZE2RODnt9aK+fD51Uoc8vprOmmaSDazoMxNeQ2v1q3NU5VAcR3eeElTU9b3qUxc=
+	t=1781512736; cv=none; b=KNchU2wvSF1B8A4X9ObpLiqzjQSfEBUU4/onrsmZmaRq/Fj0DS5o6P34trV/mkuqf7NAtS1MdXY4BZJYCLS7oqYHpPGAgXgXS5krGE+OPJCe5g2O5pIlnT8RFBcKD29HR7GsQ4XFdiXKqlI77r7ZiPDaZ16jahZBsXDM6CF1Zvw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781499288; c=relaxed/simple;
-	bh=DwI1QGjBl+eFmOOKHqt8cmGm1eswWHvQ465qNrrlpXw=;
-	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=izyYAqEmIrEXF0XrJ3DxiXNam+8V3rN7iCcG73w7m/PdU1rOJ3COtonxknqTrJjBEOwk1mkb++mibidzq4VQzxhMhSx0kxRQPXsBZiztGTrzalNsEEjZyfR4qqRq0CebNDRaaRtLajh5i4I94Bn7Dr+o8wvr0jMibygCAwXFFV8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=e1VpKlxG; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1781512736; c=relaxed/simple;
+	bh=ZYmVFOgrTYHC/3wSPMeyldRWtEwfk0VBVIPxLuH6qyo=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=GEUeZoM2s1lO2odRtsOLq2mrXSfAHuLeRtn/Rg9cDNuG44DZdh9lLeXjuZuhfkCn4z9BxmfPVb9x3dG+w/Y/YjiaYDmnEMEj3Futulc/Yx33gTJWdJIyWQfGRePq9LUnD2daZps621epArLIa47WoomClgFo7dGgkSAivwrMmTA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=resnulli.us; spf=none smtp.mailfrom=resnulli.us; dkim=pass (2048-bit key) header.d=resnulli-us.20251104.gappssmtp.com header.i=@resnulli-us.20251104.gappssmtp.com header.b=AgB+kY3B; arc=none smtp.client-ip=209.85.128.48
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=resnulli.us
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=resnulli.us
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="e1VpKlxG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 471021F000E9;
-	Mon, 15 Jun 2026 04:54:46 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1781499286;
-	bh=x5U/riXi12CQinv00Fshdw+mxzCpH2LghnOXNQ4N4yE=;
-	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=e1VpKlxGslHv1esBgPVHEP2n7IS7dOTCdCSXIbd4LIT/O/bO5axZwrAbp1NVfY7ZN
-	 Fc3IKN1OZTgz1ldrXKxKFeAHjlJDWkqMq63N9qVa+Uaog+W3Dc7ttck95pw6j8ar2Z
-	 WKzyKg9oeVOC004RHkOI3EA/ikWSUjT614bYcddx1utWBge8XYnEw0s39xIYrR4gti
-	 TFR7gAH7hkJm2dInZ1o2fuPthISv/QYiLIOKT5Zy1qZBndb6qhYbyxbC0jGONhj4ns
-	 dfx53IzptDkClrLrLCrFYI11I9HD0CFuxkTd9pGKF95HwbnlKxo2qybxuujFQB+WG1
-	 tP9PPx+bRwS1g==
-Message-ID: <81a65e76f5524dfae8a644bed887d9461bcbfd26.camel@kernel.org>
-Subject: Re: [PATCH net] net: rds: check cmsg_len before reading
- rds_rdma_args in size pass
-From: Allison Henderson <achender@kernel.org>
-To: Michael Bommarito <michael.bommarito@gmail.com>, "David S . Miller"
-	 <davem@davemloft.net>, Jakub Kicinski <kuba@kernel.org>, Paolo Abeni
-	 <pabeni@redhat.com>, Eric Dumazet <edumazet@google.com>
-Cc: Simon Horman <horms@kernel.org>, netdev@vger.kernel.org, 
-	linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, 
-	linux-kernel@vger.kernel.org
-Date: Sun, 14 Jun 2026 21:54:45 -0700
-In-Reply-To: <20260614130725.2520842-1-michael.bommarito@gmail.com>
-References: <20260614130725.2520842-1-michael.bommarito@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.52.3-0ubuntu1.1 
+	dkim=pass (2048-bit key) header.d=resnulli-us.20251104.gappssmtp.com header.i=@resnulli-us.20251104.gappssmtp.com header.b="AgB+kY3B"
+Received: by mail-wm1-f48.google.com with SMTP id 5b1f17b1804b1-490c1915793so26873915e9.2
+        for <linux-rdma@vger.kernel.org>; Mon, 15 Jun 2026 01:38:51 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=resnulli-us.20251104.gappssmtp.com; s=20251104; t=1781512730; x=1782117530; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=1SOKcg9h2dIB7GoHqGxJTzpUfzkHeM9zk1DmQn+KH0Y=;
+        b=AgB+kY3B+X82X3f6o7ZG2UQLtqOYOSZsY3PtVpJ9bH1J/Nny0ozqjXKkACUwKtIN0K
+         ZJlN520GTTxu7iAm7I/fb3pU8vM8gd+HLGgsFCpHRdS5nlAwCMS9FepHoLj1sPe49eR6
+         cNRlkz5SLA9UyQagmQqkxGpbbpHdjsJ0I4Ui/V6NsVM3DvHwfI8YcM82rMceWEcFJmRf
+         lZlumP5yrNSUkzs4uCnBfbjyNySrYOjgOehC1yBlHx3IGzF176C2R7Zo5ED0r1LR9dl3
+         4SqZSl+DQBT9bJiA5S15KxyioFEQXsAQlujONoiX9x+CNtU9T3oZxQgsCajbyEEzVI1y
+         DX6A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1781512730; x=1782117530;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=1SOKcg9h2dIB7GoHqGxJTzpUfzkHeM9zk1DmQn+KH0Y=;
+        b=d4o5djNEFWtL3PZGSI1Pihjmfu4Uv4A7PiR9y6427+46OB/1zt1VbxPyULmOP5EyHQ
+         boW3jRbQk1Z23p9pBZMdbFiKlQpYxVjyI3ZtxM9QjBxsi+46Q//5SFyE1hOvrZ0xsVEz
+         xDQBZdNl/13rvgNV8CZhRfDgorJzh857OoYxCFxm39QbD9vNMm+t9NF6xDSjYaIkOIUz
+         URCc3oMadCfLuPlzAyuksxWXwcs/O3k5MaT0FrZWbsmMweihc3/F08dU7kCZ7xnWQejc
+         VlXHPomoWQoyOxStSAl3FMqjdpVwKJpCqTQwGIkS3P7ISeQEaM99dacsMro/bVZQsFny
+         vQEg==
+X-Gm-Message-State: AOJu0YzymfR50W77bsyWtNmPqsVrL0pJufUKTlRfE4lrROonTFa1ssjN
+	YGkSCBv6ss1lKcegbu2uuScptXy6ar8OrDVGmaX7yzgepVFW5MNI+qJG0JqMhv3wWqRHU1STUXV
+	IjPOE
+X-Gm-Gg: Acq92OGuJI/rMDmYBhYNFeCd45qt2qv/CexnOdnJBRNLMuqMgPpLFuBrfugz78GTfoP
+	p2zQCtGamSbzyTu5MpY++KozKgOhiheoAsiUMYYUtM/XIe79YsL0+rUYTgQOXC4sJ+ZnjYxZ2QI
+	wsPIgsj/D9eYbejb9/NIppoQGKSNKEq9GM8icHBRAW6CzY8KfWlg4Wy2ea5othZe870ScmeSTb3
+	8hKlm0H+zU08/E/39u2y+qqneNVPw4eWhqCznBvsNzDuGj4sKPX1LNn//CKlEws114lwk6F9G7p
+	B9TjSM/YYHJOp7Hm3d4bLK6uV8xgDHXSCKcDyXfAKVg552vq/4/ojJhHSaZuC1hlOHKk2L9Hq7w
+	vRsuS7YgvFr1v7DFUtciZxxc6UB1WsHYjmcb/JlFdUEZ6m4XzCYx8c2rG6rOP4A9RxYKwjXCs4R
+	TTghbc8sVZ9+gRStoY9lhArOlwdH0nn7CM
+X-Received: by 2002:a05:600c:3144:b0:48f:e3e7:3d39 with SMTP id 5b1f17b1804b1-490ec4d523dmr173728895e9.11.1781512729897;
+        Mon, 15 Jun 2026 01:38:49 -0700 (PDT)
+Received: from localhost ([140.209.217.212])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-490ea961f18sm253582705e9.2.2026.06.15.01.38.48
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 15 Jun 2026 01:38:48 -0700 (PDT)
+Date: Mon, 15 Jun 2026 10:38:44 +0200
+From: Jiri Pirko <jiri@resnulli.us>
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: linux-rdma@vger.kernel.org, leon@kernel.org, mrgolin@amazon.com, 
+	sfual@cse.ust.hk
+Subject: Re: [PATCH rdma-next 4/6] RDMA/uverbs: Add ioctl method for CQ resize
+Message-ID: <ai-6BtrZSqwN28Lf@FV6GYCPJ69>
+References: <20260611151229.879514-1-jiri@resnulli.us>
+ <20260611151229.879514-5-jiri@resnulli.us>
+ <20260612130159.GJ1066031@ziepe.ca>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260612130159.GJ1066031@ziepe.ca>
 
-On Sun, 2026-06-14 at 09:07 -0400, Michael Bommarito wrote:
+Fri, Jun 12, 2026 at 03:01:59PM +0200, jgg@ziepe.ca wrote:
+>On Thu, Jun 11, 2026 at 05:12:27PM +0200, Jiri Pirko wrote:
+>> +static int UVERBS_HANDLER(UVERBS_METHOD_CQ_RESIZE)(
+>> +	struct uverbs_attr_bundle *attrs)
+>> +{
+>> +	struct ib_cq *cq =
+>> +		uverbs_attr_get_obj(attrs, UVERBS_ATTR_RESIZE_CQ_HANDLE);
+>> +	u32 cqe;
+>> +	int ret;
+>> +
+>> +	if (IS_ERR(cq))
+>> +		return PTR_ERR(cq);
+>
+>I think this is impossible?
+>
+>> +DECLARE_UVERBS_NAMED_METHOD(
+>> +	UVERBS_METHOD_CQ_RESIZE,
+>> +	UVERBS_ATTR_IDR(UVERBS_ATTR_RESIZE_CQ_HANDLE,
+>> +			UVERBS_OBJECT_CQ,
+>> +			UVERBS_ACCESS_READ,
+>> +			UA_MANDATORY),
+>
+>Because of UA_MANDATORY?
 
-Hi Michael,
+Correct, I missed that. Will send v2.
 
-Thanks for looking at this.  A few comments below:
-
-> For RDS_CMSG_RDMA_ARGS, rds_rm_size() calls rds_rdma_extra_size() after
-> only CMSG_OK(), without checking that cmsg_len covers struct
-> rds_rdma_args. rds_rdma_extra_size() reads args->local_vec_addr and
-> args->nr_local, so a short control message reads past the copied control
-> buffer. The value bounds an allocation count, so this is an
-> out-of-bounds read in the kernel, not a leak to user space, and an
-> unprivileged AF_RDS socket can trigger it with one short cmsg.
->=20
-> The two later RDS_RDMA passes (rds_cmsg_rdma_args() and the rdma-bytes
-> loop in rds_sendmsg())=C2=A0
->=20
-
-I puzzled over this line for a bit since rds_sendmsg doesnt call
-rds_cmsg_rdma_args directly.  I think you meant:
-
-"(rds_rdma_bytes() in rds_sendmsg(), and rds_cmsg_rdma_args() in rds_cmsg_s=
-end())"
-
-?
-
-Also, note that rds_rdma_bytes() runs before rds_rm_size(), not later.
-That ordering matters as noted below:
-
-> already reject cmsg_len < CMSG_LEN(sizeof(struct
-> rds_rdma_args)); only this size pass does not. Reject it the same way.
->=20
-> Reproduced under KASAN on QEMU via a KUnit driving the real
-> rds_rm_size(); the out-of-bounds read is gone after this change.
->=20
-> Fixes: ff87e97a9d70 ("RDS: make m_rdma_op a member of rds_message")
-> Cc: stable@vger.kernel.org
-> Assisted-by: Claude:claude-opus-4-8
-> Signed-off-by: Michael Bommarito <michael.bommarito@gmail.com>
-> ---
-> A short RDS_CMSG_RDMA_ARGS placed at a page boundary makes
-> rds_rdma_extra_size() read the args fields past the allocation:
->=20
->   BUG: KASAN: slab-out-of-bounds in rds_rdma_extra_size
->=20
-> an 8-byte read. On stock it faults; patched it returns -EINVAL with no
-> report. Controls (well-formed args; a short cmsg with args still in
-> bounds) drive the same pass cleanly on both trees.
->=20
-> No in-tree selftest exercises rds_rm_size(); I can send the KUnit suite
-> as a separate net-next patch if wanted, kept out so the fix is not held.
->=20
->  net/rds/send.c | 2 ++
->  1 file changed, 2 insertions(+)
-
-
-The code change itself looks ok, but it's not really a bug fix.=C2=A0
-rds_rm_size() is only called from once place: line 1290 in  rds_sendmsg().
-Here, cmsg_len is already verified by rds_rdma_bytes(), which performs the
-same cmsg_len <  CMSG_LEN(sizeof(struct rds_rdma_args)) check for
-RDS_CMSG_RDMA_ARGS before rds_rm_size() ever runs.
-
-
-        ret =3D rds_rdma_bytes(msg, &rdma_payload_len);    <------------ cm=
-sg sanity checking done here
-        if (ret)
-                goto out;
-
-        if (max_t(size_t, payload_len, rdma_payload_len) > RDS_MAX_MSG_SIZE=
-) {
-                ret =3D -EMSGSIZE;
-                goto out;
-        }       =20
-               =20
-        if (payload_len > rds_sk_sndbuf(rs)) {
-                ret =3D -EMSGSIZE;
-                goto out;
-        }      =20
-                       =20
-        if (zcopy) {
-                if (rs->rs_transport->t_type !=3D RDS_TRANS_TCP) {
-                        ret =3D -EOPNOTSUPP;
-                        goto out;
-                }
-                num_sgs =3D iov_iter_npages(&msg->msg_iter, INT_MAX);
-        }
-        /* size of rm including all sgs */
-        ret =3D rds_rm_size(msg, num_sgs, &vct);    <-------------- rds_rm_=
-size only called here
-        if (ret < 0)
-                goto out;
-
-A KUnit test directly calling rds_rm_size() might run across an OOB if it
-shortcuts this pre-check, but this isnt something a user could reach throug=
-h
-sendmesg since the rds_rdma_bytes() check would reject it first.
-
-The patch is still a reasonable hardening fix, it just shouldn't be carryin=
-g
-a fixes tag or targeting net.  Please re-target this patch for net-next ins=
-tead
-of net, and drop the fixes tag.  No need to cc stable.  We should also clar=
-ify
-the commit message as noted above, as well as remove the line about the AF_=
-RDS
-socket.  Other than that, I think it's a good change.
-
-Thanks for working on this!
-Allison
-
-
->=20
-> diff --git a/net/rds/send.c b/net/rds/send.c
-> index d8b14ff9d366b..6ca3192b1d8af 100644
-> --- a/net/rds/send.c
-> +++ b/net/rds/send.c
-> @@ -967,6 +967,8 @@ static int rds_rm_size(struct msghdr *msg, int num_sg=
-s,
->=20
->  		switch (cmsg->cmsg_type) {
->  		case RDS_CMSG_RDMA_ARGS:
-> +			if (cmsg->cmsg_len < CMSG_LEN(sizeof(struct rds_rdma_args)))
-> +				return -EINVAL;
->  			if (vct->indx >=3D vct->len) {
->  				vct->len +=3D vct->incr;
->  				tmp_iov =3D
->=20
-> base-commit: 5200f5f493f79f14bbdc349e402a40dfb32f23c8
+>
+>Jason
