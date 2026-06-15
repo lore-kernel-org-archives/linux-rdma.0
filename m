@@ -1,85 +1,65 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5823B30C143;
-	Mon, 15 Jun 2026 12:51:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+Received: from outbound.baidu.com (mx20.baidu.com [111.202.115.85])
+	by smtp.subspace.kernel.org (Postfix) with SMTP id F1C573033D6;
+	Mon, 15 Jun 2026 13:09:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=111.202.115.85
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781527898; cv=none; b=Ga6cXz4nPnIzK2MDnWUkiQ81PKQ+JnTFNMsT5rL35FS+sjaAIj+CslkJ3Qb1NZU3cYxJrwgsAZzf2VKblh6FeMaTWGE/wWd3+cii9kfhOvbZ6x9VDgG/JciA5Hssv75I7Og9Rv/z23ZEklfVq937EP3hbe2I0QKB0Xz/THUUBww=
+	t=1781529003; cv=none; b=Vm+te4q0ZCig+13jOhedn4j7kF74kVJyLakvVHpLeTnphlyNZp/kZfS4mWwar+ZnU0hDbvsvjytHUM4Ts6XHYK//xfJWhVYeibJHVJiNqiPeRVugxeVs78deBWXkmoVeQFT932a/TXX+og+VqqjnXLvKShx2Cdj/g1xzno2XoEU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781527898; c=relaxed/simple;
-	bh=pYDSdXWHSIEwt9uHynbFQmsVT4AYiA6lTSQKn5Wpwn0=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=BbnD+6ONNmfVNTunrMIoCYDNfQ13dLlYM1iEkE8tCjwqns/6qwerOwul7zlwagdVb9fUr3HNSIlK9a0kI/LBiUWvqkbYT0MTkDSrJB995E77JolcQajGuaQQeMc7+yvkq6zoYQFo9Ii2NmmpTF82zbpBa0Mk/O8450dgXu/x16A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Mr7KAvQC; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1781529003; c=relaxed/simple;
+	bh=yjRveC/Ny5P046IIQQKVErWIjiFRKRLI+nLgEnLfAMI=;
+	h=From:To:Subject:Date:Message-ID:References:In-Reply-To:
+	 Content-Type:MIME-Version; b=XeLLZEfGNvD88iqh/+iwTfK0aLR4pROT3NL8qfK7QzIKAyewE3IMuvHNvM3Lt9KEvHz+KVBNzz5f8eARCYG06Xpsiwx/096e3/c1+Ogtg8x3I8WKJTtzZcydqDXaDcDKLcz1O5AGoKgMSg15Tms3+5wBr/NLWEBbCQb1OUcCiJI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=baidu.com; spf=pass smtp.mailfrom=baidu.com; dkim=pass (2048-bit key) header.d=baidu.com header.i=@baidu.com header.b=Ps+6eyxW; arc=none smtp.client-ip=111.202.115.85
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=baidu.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=baidu.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Mr7KAvQC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2B4D21F000E9;
-	Mon, 15 Jun 2026 12:51:33 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1781527897;
-	bh=i4K+f5gCCnhbLOrjygqtS/KpJ6yUBGuciB7yvW4kNZg=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=Mr7KAvQCBKRS5dSYPrzizqQcNlkc6Q3EvjhwTlakNWJ/SpyjnOPKSZia4v3IIRYTT
-	 ZpVtsRtk9sh2aGwCEQBaGQC3itvijg1E6I1mTVmSGZrKkISZZBuIOYDEz4Jyvq07BQ
-	 w81L2mnGq8+v+Ja8bl/hsoau24odQc2KMvf4Ho9EOIJrtZkQIEet127duOsDiklZoJ
-	 UObX9hhpfz1ImSXnyoz0IMBqTxJsNA7t+L8jpfLe01267kL7BfCQX8D4Ap8+R4pgBw
-	 GdNSJ6hy7/fViOSlIYFssaPqqqtf5ybe8SEanB9d57QoHg6hDLE8tTh7olCNNDVrVE
-	 p22Y4wlqVUtAg==
-Date: Mon, 15 Jun 2026 13:51:31 +0100
-From: Simon Horman <horms@kernel.org>
-To: Haiyang Zhang <haiyangz@linux.microsoft.com>
-Cc: linux-hyperv@vger.kernel.org, netdev@vger.kernel.org,
-	"K. Y. Srinivasan" <kys@microsoft.com>,
-	Haiyang Zhang <haiyangz@microsoft.com>,
-	Wei Liu <wei.liu@kernel.org>, Dexuan Cui <decui@microsoft.com>,
-	Long Li <longli@microsoft.com>, Andrew Lunn <andrew+netdev@lunn.ch>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Konstantin Taranov <kotaranov@microsoft.com>,
-	Shradha Gupta <shradhagupta@linux.microsoft.com>,
-	Erni Sri Satya Vennela <ernis@linux.microsoft.com>,
-	Dipayaan Roy <dipayanroy@linux.microsoft.com>,
-	Aditya Garg <gargaditya@linux.microsoft.com>,
-	Breno Leitao <leitao@debian.org>, linux-kernel@vger.kernel.org,
-	linux-rdma@vger.kernel.org, paulros@microsoft.com
-Subject: Re: [PATCH net-next v4] net: mana: Add Interrupt Moderation support
-Message-ID: <20260615125131.GL712698@horms.kernel.org>
-References: <20260613205812.2659945-1-haiyangz@linux.microsoft.com>
+	dkim=pass (2048-bit key) header.d=baidu.com header.i=@baidu.com header.b="Ps+6eyxW"
+X-MD-Sfrom: lirongqing@baidu.com
+X-MD-SrcIP: 172.31.50.46
+From: "Li,Rongqing" <lirongqing@baidu.com>
+To: Gal Pressman <gal@nvidia.com>, Saeed Mahameed <saeedm@nvidia.com>, "Leon
+ Romanovsky" <leon@kernel.org>, Tariq Toukan <tariqt@nvidia.com>, Mark Bloch
+	<mbloch@nvidia.com>, Andrew Lunn <andrew+netdev@lunn.ch>, "David S . Miller"
+	<davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, Jakub Kicinski
+	<kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, "netdev@vger.kernel.org"
+	<netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org"
+	<linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org"
+	<linux-kernel@vger.kernel.org>
+Subject: =?utf-8?B?562U5aSNOiBb5aSW6YOo6YKu5Lu2XSBSZTogW1BBVENIXSBuZXQvbWx4NTog?=
+ =?utf-8?B?Rml4IHdyb25nIHJlZ2lzdGVyIGFjY2VzcyBpbiBtbHg1X3F1ZXJ5X210cHBz?=
+ =?utf-8?Q?e()?=
+Thread-Topic: =?utf-8?B?W+WklumDqOmCruS7tl0gUmU6IFtQQVRDSF0gbmV0L21seDU6IEZpeCB3cm9u?=
+ =?utf-8?B?ZyByZWdpc3RlciBhY2Nlc3MgaW4gbWx4NV9xdWVyeV9tdHBwc2UoKQ==?=
+Thread-Index: AQHc+0p9Wgl4lHOZMUa1M1jqzwhaL7Y/AR4AgACYlyA=
+Date: Mon, 15 Jun 2026 13:09:38 +0000
+Message-ID: <abd68535f27f41079c6d541924c02121@baidu.com>
+References: <20260613153654.1810-1-lirongqing@baidu.com>
+ <054e047e-84a3-4dab-ad5d-604d16fc347d@nvidia.com>
+In-Reply-To: <054e047e-84a3-4dab-ad5d-604d16fc347d@nvidia.com>
+Accept-Language: zh-CN, en-US
+Content-Language: zh-CN
+X-MS-Has-Attach:
+X-MS-TNEF-Correlator:
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260613205812.2659945-1-haiyangz@linux.microsoft.com>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=baidu.com;
+	s=selector1; t=1781528981;
+	bh=yjRveC/Ny5P046IIQQKVErWIjiFRKRLI+nLgEnLfAMI=;
+	h=From:To:Subject:Date:Message-ID:Content-Type;
+	b=Ps+6eyxWSKec39zRJ/53n/huOaWopBWsY1mWZ1desS8kUrGHypNh/IfYG4DhFIVWD
+	 vuhEDcgwb+Ag/pXWp9ZP0kMGRSxry3CWzZ5CQFy4RZXfbQm3bF6V6faTU3QLGExFCa
+	 fUXEsyMTr1zcOxwmfU3hpm6QjuwMg+jkcJ0f+WO2gT0ioL7BtV0k/XVNh7v53W74LF
+	 pigihYmfUWFHfuRtNFTWjfPZ5KHfdIL5tYJDrhZgGGcgo2XK0uK7JesihP7CgUamZO
+	 z6boZPw7l5pts7fgfB+cp+OwG9UPmwQnoNRZjghqkl5RY4rUUh3QNpC2o/AKD2l7Ya
+	 t/lK8vn5JFqJw==
 
-On Sat, Jun 13, 2026 at 01:57:54PM -0700, Haiyang Zhang wrote:
-> From: Haiyang Zhang <haiyangz@microsoft.com>
-> 
-> Add Static and Dynamic Interrupt Moderation (DIM) support for
-> Rx and Tx.
-> Update queue creation procedure with new data struct with the related
-> settings.
-> Add functions to collect stat for DIM, and workers to update DIM data
-> and settings.
-> Update ethtool handler to get/set the moderation settings from a user.
-> To avoid detach/re-attach ops, ring DIM doorbell to change settings
-> at run time.
-> By default, adaptive-rx/tx (DIM) are enabled if supported by HW.
-> 
-> Signed-off-by: Haiyang Zhang <haiyangz@microsoft.com>
-> ---
-> v4:
->   Fixed tx stat, concurrency, and mb issues from Simon's review.
-
-...
-
-Thanks for your comprehensive reply to the AI-generated review of v3
-that I forwarded. And for fixing the issues present in v3.
-
-Reviewed-by: Simon Horman <horms@kernel.org>
-
+PiBUaGlzIGlzIGNsZWFybHkgY29tcGxldGVseSBicm9rZW4sIHdoaWNoIHBvaW50ZWQgbWUgdG8g
+dGhlIGZhY3QgdGhhdA0KPiBtbHg1X3F1ZXJ5X210cHBzZSgpIGlzIG5vdCB1c2VkIGFueXdoZXJl
+Lg0KPiANCj4gQ2FuIHlvdSBwbGVhc2Ugc3VibWl0IGEgcGF0Y2ggdG8gcmVtb3ZlIGl0Pw0KDQpP
+aywgSSB3aWxsIHJlbW92ZSBpdCAgDQoNCltMaSxSb25ncWluZ10gDQoNCg==
