@@ -1,68 +1,79 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 647BC286D5E;
-	Mon, 15 Jun 2026 20:42:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A42B43B7B93;
+	Mon, 15 Jun 2026 22:50:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781556171; cv=none; b=LbzJ/zHav9oGp4dAD8/Cz3lgPG5odrqHAd/2Y3Tua4sy9fXq5K/xwIg0EEWyppVre6QzVtafx+N60w82VgutiPzwN1JvX8tPRR4+b0cZXQb5PSK54QCcpGqSMDmY4Rr6OwJnya7TpGSdq5xoB/dMPPRi92Zhtk5bLv5yeyJnT7Y=
+	t=1781563848; cv=none; b=qn6kH3Ld9E/cp1KSfg1mGaRwj86o6qWYmiZ492rrFgit/38Cuck63AJZ/ENJismeXizQBGG8dOf8qXbFJEyktOEK6ntcgr1c6iFcUjaBT5C1/HhP5P+Z6GcQZYKQVr11XjyUtX6YohHeCJvLqPn60L7/uqxfHyGBzHPXB/6rq+4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781556171; c=relaxed/simple;
-	bh=aPTdsFC7OL8pWaV8feS5opuevgkA+VecbasCdeVpSeg=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=bnoVxxtM/NOj5nygLqssP6kZ4Fu3/XsV1hA2mtSI0jOt6bKsy5ET6pqxzDpGZ7YuLTcAt96+TxerwPvl/xp5vuxDrGTJlkbQ2KmuYuDvKVjiZ3xXxGH0YwnSzCOHUoVWgHdyqRM/NtzbopHuZLo6c9ff6ahOvOBFvW8zKtjZ34w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=d1HKdjLw; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1781563848; c=relaxed/simple;
+	bh=p8FLiU4qRighnOypaY7NR0/5NBWZCGXJwwEpHiUBIyo=;
+	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc; b=BFXNN+AvVopM5/MieTUr8X1KwHk8Xcry4YzS2xIWaxskxy/kXbTrCFJYJLm1Drh3ohMzjppISc/26jHjj7ivbd22UFF1YFZaw6X07XQMcvDE1HTITTIvalI/nuUoyAWO+uMPtc93Tx+IXUFYj/M3xMH8gdSuOvrvY3JnVaY1Cjo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=MebXbE87; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="d1HKdjLw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 813AE1F00A3D;
-	Mon, 15 Jun 2026 20:42:48 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="MebXbE87"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 580141F00A3D;
+	Mon, 15 Jun 2026 22:50:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1781556170;
-	bh=nMnhxfNIZVyV93CrAHISz+K1WU9OroQwaebImzftECY=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References;
-	b=d1HKdjLwer4f02pwmKsxGAre7uZHyuXLCAFi/cGSJVg9/QJcLIjK1XgQi1MrjpW35
-	 ECfZ/zEhxc2e0rSqjAXLKUqsNdX2CizYp3sUP7X7QCQKH1xDjerrukAAyjJ2dPzAGy
-	 /6ZNzquNxJuNEZOVjDqDSuyOqZUjoaPvfKirr9VSIYC2ghiUz91NdW1kFYA2rDHqAE
-	 zFb13JkG6klttPUh9WjcPyrX9NTacXowa/uYomdRYCTX/4z5UZ5YSSXstiqSJIzmoS
-	 ahHeu5ukRiw0IvdPAj/gIEbEbCNYsLiXQTsCpNGVuB/T+5k5ogh9FOlqw9uOgiz6TA
-	 Z1ikLUSwVDVnA==
-Date: Mon, 15 Jun 2026 13:42:47 -0700
-From: Jakub Kicinski <kuba@kernel.org>
-To: Dipayaan Roy <dipayanroy@linux.microsoft.com>
-Cc: kys@microsoft.com, haiyangz@microsoft.com, wei.liu@kernel.org,
- decui@microsoft.com, andrew+netdev@lunn.ch, davem@davemloft.net,
- edumazet@google.com, pabeni@redhat.com, leon@kernel.org,
- longli@microsoft.com, kotaranov@microsoft.com, horms@kernel.org,
- shradhagupta@linux.microsoft.com, ssengar@linux.microsoft.com,
- ernis@linux.microsoft.com, shirazsaleem@microsoft.com,
- linux-hyperv@vger.kernel.org, netdev@vger.kernel.org,
- linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
- stephen@networkplumber.org, jacob.e.keller@intel.com,
- dipayanroy@microsoft.com, leitao@debian.org, kees@kernel.org,
- john.fastabend@gmail.com, hawk@kernel.org, bpf@vger.kernel.org,
- daniel@iogearbox.net, ast@kernel.org, sdf@fomichev.me,
- yury.norov@gmail.com, pavan.chebbi@broadcom.com
-Subject: Re: [PATCH net-next v10 0/2] net: mana: add ethtool private flag
- for full-page RX buffers
-Message-ID: <20260615134247.0bd7e16e@kernel.org>
-In-Reply-To: <ajBRwYftEol8IE49@linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net>
-References: <20260602202801.1873742-1-dipayanroy@linux.microsoft.com>
-	<ajBRwYftEol8IE49@linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net>
+	s=k20260515; t=1781563847;
+	bh=Vs2DnrZ4H4SkTYrCUzIC5NmYMt6Apu2bz64Tjns+tSQ=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc;
+	b=MebXbE87MEk5ItJdzYYfzIbDDsEn+JTSQrmmPehb6bQj4VXdHv2h/jv3xfrIK5JyB
+	 oF2U8SL1GFQPm+tw6C/ZoYKI50efC5OBTmS84nHDhnOY1eR4G1lPbuyFb2FIYySJT1
+	 ra7FNn067TxCKYTKPfQiVLLPhaiO675W7ut5SLyvzLLS41fjoxCCcuvf2/mEYzhM0U
+	 UxXpunDZykv4kupWz0bD2krEnwlQcgcu67j1r+G+nBzThlg8xMFhBfRd53eyGle+q7
+	 HLRqXZJC0sR4I4lv92xNAkLCOGqwR/gTu4Oylk2hFeG6b4F/AYDDBrbhjd1AMUHLdd
+	 HezXjC8Cnv93A==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 938983839A08;
+	Mon, 15 Jun 2026 22:50:43 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH] net/mlx5: HWS: correct CONFIG_MLX5_HW_STEERING macro name
+ in
+ comment
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <178156384213.325968.5723018336061896610.git-patchwork-notify@kernel.org>
+Date: Mon, 15 Jun 2026 22:50:42 +0000
+References: <20260613225904.140791-1-enelsonmoore@gmail.com>
+In-Reply-To: <20260613225904.140791-1-enelsonmoore@gmail.com>
+To: Ethan Nelson-Moore <enelsonmoore@gmail.com>
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, saeedm@nvidia.com,
+ leon@kernel.org, tariqt@nvidia.com, mbloch@nvidia.com, andrew+netdev@lunn.ch,
+ davem@davemloft.net, edumazet@google.com, kuba@kernel.org, pabeni@redhat.com
 
-On Mon, 15 Jun 2026 12:25:53 -0700 Dipayaan Roy wrote:
-> Just a gentle ping on this series. The approach was agreed upon, and it
-> has picked up a few Reviewed-by tags as well.
+Hello:
+
+This patch was applied to netdev/net-next.git (main)
+by Jakub Kicinski <kuba@kernel.org>:
+
+On Sat, 13 Jun 2026 15:59:00 -0700 you wrote:
+> A comment in
+> drivers/net/ethernet/mellanox/mlx5/core/steering/hws/fs_hws.h
+> incorrectly refers to CONFIG_MLX5_HWS_STEERING instead of
+> CONFIG_MLX5_HW_STEERING. Correct it.
 > 
-> Please let me know if you need anything else from me, or if I should
-> resend it to collect the tags.
+> Discovered while searching for CONFIG_* symbols referenced in code but
+> not defined in any Kconfig file.
+> 
+> [...]
 
-Don't recall now what the exact sequence was but pretty sure this 
-no longer applied after some other mana series was merged.
+Here is the summary with links:
+  - net/mlx5: HWS: correct CONFIG_MLX5_HW_STEERING macro name in comment
+    https://git.kernel.org/netdev/net-next/c/952d66f16dcd
+
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
+
