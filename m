@@ -1,71 +1,71 @@
-Received: from mail-wm1-f42.google.com (mail-wm1-f42.google.com [209.85.128.42])
+Received: from mail-ed1-f47.google.com (mail-ed1-f47.google.com [209.85.208.47])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6223D3BFAD3
-	for <linux-rdma@vger.kernel.org>; Mon, 15 Jun 2026 08:50:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.42
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1FE343D25B6
+	for <linux-rdma@vger.kernel.org>; Mon, 15 Jun 2026 08:51:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.47
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781513457; cv=none; b=eBVGSp00sKQZNlnu/bS8Exbp+l8b/OW3HzdFL+vigpCWUIcE2vZRk85JIdAFa62XoxsQae9HWCpshepH8QxWvCkcNVcreqoTpI3u3pUFCYmiZEGY29D96d0feSO2HkdZdKcLDbfBI9lMmAlG4hFwQ7pCFzPJq5KcJ+EYnbXb2pE=
+	t=1781513466; cv=none; b=ZL0uS6ip5eIEJUeqttsLAukZciR0kUXNjYzuxPjTeUY0RC3Gv/bRjikZNEYLSlT3wtUuwHEC1mxmf1CZDyQ5etBS31hlfhFcvxUxdVrAGzwegCBAcA8KnKREALLvZlwad4DERA+XuXPJ/5qO8DzMtT9xabhu06aZY/RHQ0vweeY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781513457; c=relaxed/simple;
-	bh=1dtjekxpal9QSMlkmnf2TJ7lm8VDz2yYsV9PGORCcMw=;
+	s=arc-20240116; t=1781513466; c=relaxed/simple;
+	bh=eZY3nMYYu0XsCTjxFSnJOkZ4U4sWD9wJsp4R3yD5DEo=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=BSSbmord9rIY4kaMjZLCH9DmjhUAR5KIhjPVQZoKzfHa2Ltc7J92VuWw9aiVc8r7dAAiw1n/YWr/7NVvdT0H1CRPZDOehL+Wc6xSMRL8GUD719AtahKSF7gsrMU98gXW2455CoGJRTtwBjI6yiCnHp0WgIwTS7UAIGLXgKJHT80=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=resnulli.us; spf=none smtp.mailfrom=resnulli.us; dkim=pass (2048-bit key) header.d=resnulli-us.20251104.gappssmtp.com header.i=@resnulli-us.20251104.gappssmtp.com header.b=teb6IziI; arc=none smtp.client-ip=209.85.128.42
+	 MIME-Version; b=tpf+DcW660LPgQTG6ft57sylUY0m81hp/41mVoC0uSUvgUMgO1EcyJOVYOOtjra2FJlCF28ZR0tHekmSYNwJYtCw9OsDARlpopPLH6G4r8Lmu5kVpYD41PPI9wrQhGo9Zfji/VTAxqI+7veCTILqmo6eIf/uqSeN/IfQlH9p+Gk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=resnulli.us; spf=none smtp.mailfrom=resnulli.us; dkim=pass (2048-bit key) header.d=resnulli-us.20251104.gappssmtp.com header.i=@resnulli-us.20251104.gappssmtp.com header.b=GBxIjNKf; arc=none smtp.client-ip=209.85.208.47
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=resnulli.us
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=resnulli.us
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=resnulli-us.20251104.gappssmtp.com header.i=@resnulli-us.20251104.gappssmtp.com header.b="teb6IziI"
-Received: by mail-wm1-f42.google.com with SMTP id 5b1f17b1804b1-490b613a17bso27021455e9.3
-        for <linux-rdma@vger.kernel.org>; Mon, 15 Jun 2026 01:50:54 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=resnulli-us.20251104.gappssmtp.com header.i=@resnulli-us.20251104.gappssmtp.com header.b="GBxIjNKf"
+Received: by mail-ed1-f47.google.com with SMTP id 4fb4d7f45d1cf-693c69b97e7so2556670a12.2
+        for <linux-rdma@vger.kernel.org>; Mon, 15 Jun 2026 01:51:00 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=resnulli-us.20251104.gappssmtp.com; s=20251104; t=1781513453; x=1782118253; darn=vger.kernel.org;
+        d=resnulli-us.20251104.gappssmtp.com; s=20251104; t=1781513459; x=1782118259; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=735A05IgxdrJE6zOTsFT8JH9LSGF0txx0m0v/Bul06A=;
-        b=teb6IziITLl5NhPp+fmVYp2XvhHpSU4GCJtTNWY2pCGOh02jcw4R4qSN3DXxERcERb
-         zDfaUQ+/itmZT4pkdjw2wS99b4gNdIxq+WDrjH9jLLdu8GTb1pCFBvrIr7WXbq5Or/jK
-         5dyxwCNrGJ7WCpaD7UfzG+NYp6UPpUZzQMHQgX3llfLA/k7ZBEWmR2lJnAfZ36c9X0z0
-         lunJxfbunzBxc6VteXnooZ4mz8Hu+YjwsabTuaZicNVMOTbf1P2N2eXm8ggVVl+Spu8l
-         aBibiTViLuQDU+2sqXhTmmFVynYWC36+zGlj9tOwQOUa9GdTYOVlq9IknmryeK5ef7hX
-         606g==
+        bh=tt+Nl8hrtYxjV+kNQIdKAar1UWFKkONb8wO9zXaR26Q=;
+        b=GBxIjNKfpfHVGJKb9Nt1oddEQQMZly2a2JAoSHJTYcQrKh9YGgHdXqA9gw1k6zHjQz
+         8wU1s6NxX5+RJytSmpN8CLJ3j0wcp2S4qbWYCY74FXqG041uJFa3jdMAKm9rIrIwLPZJ
+         5ekuy3P5ojICYDHUad8f1eVObzs8x+v1naSRPwP8pWdKreAopBKb8juOE9XT2taEe/LV
+         1BYbmbkNPvy+LD1PrnlD7SnkySio7jQpDr+UTzyqwwXjjCu5XTY0vRJScP825nccvTqA
+         7ZMCxm9EPQukVGHfegZrT5AVeV1gAQE2Ry6PIefJQI/U4EYdNH+h07O5OturGJ994dvV
+         nFlg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1781513453; x=1782118253;
+        d=1e100.net; s=20251104; t=1781513459; x=1782118259;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=735A05IgxdrJE6zOTsFT8JH9LSGF0txx0m0v/Bul06A=;
-        b=aGfTtjCqscxoqpt/xOvpxrHXkFBWITbpXvzzAV9JvPZ1bYXTI4Dsw66ugse2DtBdTg
-         P8ZhsZu4mPGMGFqTM8XfhJ4Lnzgk2GfAIyKsUFuWYxI1qNlXu0aLlRMw6oLk6oDsl5cz
-         GuUfnbaznkECDonIn5qxFQi8OfOfMupcA5OtfnfDcaoWvLRVVHPS1FS5rOp3dRq0CA5Z
-         dAoVS7G9kyjiVa1TM/aCZvw51+Q8ES6diXclfakOWWLLAs3+xPIIpq+k+t9NQT8bHlIx
-         02anUa+lvP8JkdP9KJHoUpFaOVmW6EUS/bh8kFSp0w1YsxJAOW9Iu3c5KeqpNHJLGfAa
-         av9w==
-X-Gm-Message-State: AOJu0YyrrkhDA6J2webi824Ba9/V7NvEkPYHyz3EEnlPihBgg+uWtEl6
-	Gafr0jx0mMU/Gl6qow/+8ZTkN06XG7qmmyRsDAm3/gZtRg9JVVQgV2ht/UnlhCKjNGHz5xpe+/n
-	JBmC9
-X-Gm-Gg: Acq92OE9Pui+KJtBj9UD3bB66SEL51fVttojeDbxz94L5pHoQ6AwEPly4dTnFYhPGll
-	Yi/HsYmiUHC+5MU2LE5DE+8N8uFl2blnbZChhoeMKsFYXdnC3ruc3auC60jf9cMEhao9BLzUdPE
-	XLZs9ifVpdyKZ+8lnsDXCl5cZ9BV8MFg8BDa3nO8SgUwZIKzmiaDyGFqyaFSPK8Ybwn4QBI0arx
-	fSkgauRxDQ3DZX+lM1wMXD47iVsVFSozioDTDu2e0XHWRo0voT92zqwY7zP4VXJxKWLKGUHYZ8O
-	+AzU3voDNqYB1uAqwAAzyB+8af+dqo3SsRzZouaNqfb1fyvBcJOOrN2YPSA96wQp4wAYT8sPQlX
-	yCvp7YK9/KiaI+5+UAScXBdFXv33ELk8VNqeWS8VLvRn/xkrRDDMieFVj01GLdl36y+3pNxld7z
-	Pu130xYgeRe8r7OJ5dPHIKVXwTonoNPSbL
-X-Received: by 2002:a7b:cbc3:0:b0:48a:5565:ec3d with SMTP id 5b1f17b1804b1-490ec502d01mr119587005e9.22.1781513452545;
-        Mon, 15 Jun 2026 01:50:52 -0700 (PDT)
+        bh=tt+Nl8hrtYxjV+kNQIdKAar1UWFKkONb8wO9zXaR26Q=;
+        b=F3fwRM5esPXf4G6YN77gk7nwTLBJBWNoZuhhjWCDE/UykCzGqBaASfq3bMGOFvebqs
+         zgRV1Emzv+FElOKYA3QrtvKF37g3+1KZlHBF6QFNXxneJ8+HxKpuAxRIlK0q1diYB4ZJ
+         T5k3U8Hh9TXc29qClmspuT8FUhj4ayQuCSECEwdokRP3QkZYbz6lW/+XZA5B4ywgLc9Q
+         n3oXwX8i+Y2ujmRI1ttnFeamGUWgKl7axMr+cdDGzsZZkSNJlEy0SIGyVtGOOu54V4pN
+         sO9+c3MQyI9MiAoFNwqPbE7GXaYZWoZXEeUjjx8DywjNC03I4rUYW8twwZmAMI8yp5D8
+         D6jA==
+X-Gm-Message-State: AOJu0YzrrAkzF1xFZ14mOtn0RoKmozdUUb7/TFm+EIFFMD5H7hBNrDla
+	MY1JkjSpjBMMiPBuNWXUV9EW4fmAQvuF88OYW6d5yn+DGCdMa79bjDK2In6V2KMyOlC7DLXPybY
+	c8T97
+X-Gm-Gg: Acq92OHfEw/oMiRlMLsS3nDWW/Sixm+MmqoI3+cjIou/R9732EwNKqhxTNJr+3caB5H
+	tk7JTvJTDib/XDYUF/HVHN4/Ie79F8ZjJ4AFMgjKJT/bs51g+v0Qe6K3LV4+qcH9gQH604SpTv3
+	UXXT33m3pEObIfWzNBR9VzNZSogrOJd3kVu5iW7NyvgcjPQd2xtth9dGMdkXPmwTGH2yBUorl7Z
+	wvfdzUVdJkqGgm7bkwMC9GGX4d9L8rpfsO/CZN0SgvI6az1q9f2Ps4kc9A4HyL3YB4/Hr7gQk2B
+	t8H+Gz8am7PdGGYzF6dosoK6tzlktqi5X4UcpgXdfJPhLRbDLvK/cRvOM8r/aIGm0Zf3HtuWq+l
+	Kle+ySnkpjd3o/fyk9XWlXcQ8ISNRaAf/81btvqg+uOKxOEwzsbrxNUPzOWnwJM9Rw/wrYTpgEh
+	y2m5kwOWx/JhfAQeaZBHst6Y8xJ2SMdPJlNHPg0KWpJ80=
+X-Received: by 2002:a05:6402:34d1:b0:67f:7e9b:afe8 with SMTP id 4fb4d7f45d1cf-693784ddf38mr5783338a12.6.1781513459490;
+        Mon, 15 Jun 2026 01:50:59 -0700 (PDT)
 Received: from localhost ([140.209.217.212])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-490ea963cf8sm194557865e9.2.2026.06.15.01.50.51
+        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-693794ae998sm3057247a12.30.2026.06.15.01.50.58
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 15 Jun 2026 01:50:52 -0700 (PDT)
+        Mon, 15 Jun 2026 01:50:59 -0700 (PDT)
 From: Jiri Pirko <jiri@resnulli.us>
 To: linux-rdma@vger.kernel.org
 Cc: jgg@ziepe.ca,
 	leon@kernel.org,
 	mrgolin@amazon.com
-Subject: [PATCH rdma-next v2 2/6] RDMA/mlx5: Use UMEM attribute for SRQ buffer in create_srq
-Date: Mon, 15 Jun 2026 10:50:36 +0200
-Message-ID: <20260615085040.1396623-3-jiri@resnulli.us>
+Subject: [PATCH rdma-next v2 4/6] RDMA/uverbs: Add ioctl method for CQ resize
+Date: Mon, 15 Jun 2026 10:50:38 +0200
+Message-ID: <20260615085040.1396623-5-jiri@resnulli.us>
 X-Mailer: git-send-email 2.54.0
 In-Reply-To: <20260615085040.1396623-1-jiri@resnulli.us>
 References: <20260615085040.1396623-1-jiri@resnulli.us>
@@ -79,40 +79,106 @@ Content-Transfer-Encoding: 8bit
 
 From: Jiri Pirko <jiri@nvidia.com>
 
-Use the per-attribute UMEM helper to pin the SRQ buffer umem on demand.
-ib_umem_get_attr_or_va() resolves the new CREATE_SRQ_BUF_UMEM attribute
-when present and otherwise falls back to the existing UHW ucmd->buf_addr
-VA, preserving the legacy behavior.
+Resize CQ is currently only reachable through the legacy write()
+uverbs command (IB_USER_VERBS_CMD_RESIZE_CQ). Add an equivalent modern
+ioctl method, UVERBS_METHOD_CQ_RESIZE, on the CQ object so the
+operation is available through the ioctl interface and can carry
+per-attribute extensions. The handler mirrors the legacy command: it
+looks up the CQ, calls resize_user_cq() and returns the new cqe count.
+The legacy write path is left in place for ABI compatibility.
 
 Signed-off-by: Jiri Pirko <jiri@nvidia.com>
 ---
- drivers/infiniband/hw/mlx5/srq.c | 6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+v1->v2:
+- removed unneeded cq check
+---
+ drivers/infiniband/core/uverbs_std_types_cq.c | 43 ++++++++++++++++++-
+ include/uapi/rdma/ib_user_ioctl_cmds.h        |  7 +++
+ 2 files changed, 49 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/srq.c b/drivers/infiniband/hw/mlx5/srq.c
-index 5bc48fef3744..6fa4c5a9a0d5 100644
---- a/drivers/infiniband/hw/mlx5/srq.c
-+++ b/drivers/infiniband/hw/mlx5/srq.c
-@@ -48,6 +48,8 @@ static int create_srq_user(struct ib_pd *pd, struct mlx5_ib_srq *srq,
- 	struct mlx5_ib_create_srq ucmd;
- 	struct mlx5_ib_ucontext *ucontext = rdma_udata_to_drv_context(
- 		udata, struct mlx5_ib_ucontext, ibucontext);
-+	struct uverbs_attr_bundle *attrs =
-+		rdma_udata_to_uverbs_attr_bundle(udata);
- 	int err;
- 	u32 uidx = MLX5_IB_DEFAULT_UIDX;
+diff --git a/drivers/infiniband/core/uverbs_std_types_cq.c b/drivers/infiniband/core/uverbs_std_types_cq.c
+index 148cdd180dab..4699747f4ad3 100644
+--- a/drivers/infiniband/core/uverbs_std_types_cq.c
++++ b/drivers/infiniband/core/uverbs_std_types_cq.c
+@@ -228,11 +228,52 @@ DECLARE_UVERBS_NAMED_METHOD(
+ 			    UVERBS_ATTR_TYPE(struct ib_uverbs_destroy_cq_resp),
+ 			    UA_MANDATORY));
  
-@@ -66,7 +68,9 @@ static int create_srq_user(struct ib_pd *pd, struct mlx5_ib_srq *srq,
++static int UVERBS_HANDLER(UVERBS_METHOD_CQ_RESIZE)(
++	struct uverbs_attr_bundle *attrs)
++{
++	struct ib_cq *cq =
++		uverbs_attr_get_obj(attrs, UVERBS_ATTR_RESIZE_CQ_HANDLE);
++	u32 cqe;
++	int ret;
++
++	if (!cq->device->ops.resize_user_cq)
++		return -EOPNOTSUPP;
++
++	ret = uverbs_copy_from(&cqe, attrs, UVERBS_ATTR_RESIZE_CQ_CQE);
++	if (ret)
++		return ret;
++
++	if (!cqe)
++		return -EINVAL;
++
++	ret = cq->device->ops.resize_user_cq(cq, cqe, &attrs->driver_udata);
++	if (ret)
++		return ret;
++
++	return uverbs_copy_to(attrs, UVERBS_ATTR_RESIZE_CQ_RESP_CQE,
++			      &cq->cqe, sizeof(cq->cqe));
++}
++
++DECLARE_UVERBS_NAMED_METHOD(
++	UVERBS_METHOD_CQ_RESIZE,
++	UVERBS_ATTR_IDR(UVERBS_ATTR_RESIZE_CQ_HANDLE,
++			UVERBS_OBJECT_CQ,
++			UVERBS_ACCESS_READ,
++			UA_MANDATORY),
++	UVERBS_ATTR_PTR_IN(UVERBS_ATTR_RESIZE_CQ_CQE,
++			   UVERBS_ATTR_TYPE(u32),
++			   UA_MANDATORY),
++	UVERBS_ATTR_PTR_OUT(UVERBS_ATTR_RESIZE_CQ_RESP_CQE,
++			    UVERBS_ATTR_TYPE(u32),
++			    UA_MANDATORY),
++	UVERBS_ATTR_UHW());
++
+ DECLARE_UVERBS_NAMED_OBJECT(
+ 	UVERBS_OBJECT_CQ,
+ 	UVERBS_TYPE_ALLOC_IDR_SZ(sizeof(struct ib_ucq_object), uverbs_free_cq),
+ 	&UVERBS_METHOD(UVERBS_METHOD_CQ_CREATE),
+-	&UVERBS_METHOD(UVERBS_METHOD_CQ_DESTROY)
++	&UVERBS_METHOD(UVERBS_METHOD_CQ_DESTROY),
++	&UVERBS_METHOD(UVERBS_METHOD_CQ_RESIZE)
+ );
  
- 	srq->wq_sig = !!(ucmd.flags & MLX5_SRQ_FLAG_SIGNATURE);
+ const struct uapi_definition uverbs_def_obj_cq[] = {
+diff --git a/include/uapi/rdma/ib_user_ioctl_cmds.h b/include/uapi/rdma/ib_user_ioctl_cmds.h
+index 1fef1e86b302..5d2451a03a83 100644
+--- a/include/uapi/rdma/ib_user_ioctl_cmds.h
++++ b/include/uapi/rdma/ib_user_ioctl_cmds.h
+@@ -125,6 +125,12 @@ enum uverbs_attrs_destroy_cq_cmd_attr_ids {
+ 	UVERBS_ATTR_DESTROY_CQ_RESP,
+ };
  
--	srq->umem = ib_umem_get_va(pd->device, ucmd.buf_addr, buf_size, 0);
-+	srq->umem = ib_umem_get_attr_or_va(pd->device, attrs,
-+					   UVERBS_ATTR_CREATE_SRQ_BUF_UMEM,
-+					   ucmd.buf_addr, buf_size, 0);
- 	if (IS_ERR(srq->umem)) {
- 		mlx5_ib_dbg(dev, "failed umem get, size %d\n", buf_size);
- 		err = PTR_ERR(srq->umem);
++enum uverbs_attrs_resize_cq_cmd_attr_ids {
++	UVERBS_ATTR_RESIZE_CQ_HANDLE,
++	UVERBS_ATTR_RESIZE_CQ_CQE,
++	UVERBS_ATTR_RESIZE_CQ_RESP_CQE,
++};
++
+ enum uverbs_attrs_create_flow_action_esp {
+ 	UVERBS_ATTR_CREATE_FLOW_ACTION_ESP_HANDLE,
+ 	UVERBS_ATTR_FLOW_ACTION_ESP_ATTRS,
+@@ -205,6 +211,7 @@ enum uverbs_methods_srq {
+ enum uverbs_methods_cq {
+ 	UVERBS_METHOD_CQ_CREATE,
+ 	UVERBS_METHOD_CQ_DESTROY,
++	UVERBS_METHOD_CQ_RESIZE,
+ };
+ 
+ enum uverbs_attrs_create_wq_cmd_attr_ids {
 -- 
 2.54.0
 
