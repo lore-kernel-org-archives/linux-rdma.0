@@ -1,134 +1,145 @@
-Received: from mail-dy1-f225.google.com (mail-dy1-f225.google.com [74.125.82.225])
+Received: from mail-pf1-f178.google.com (mail-pf1-f178.google.com [209.85.210.178])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CE9423FCB13
-	for <linux-rdma@vger.kernel.org>; Mon, 15 Jun 2026 17:26:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.225
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 63D3E241695
+	for <linux-rdma@vger.kernel.org>; Mon, 15 Jun 2026 17:46:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.178
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781544377; cv=none; b=aGOXrUnUS4Ug/1xLugh5O9uW5j2IVWsOcw5ChH0Q8PxJ5WeI8NXQcXt8RTKYiuQJKZXspyA+lowIMSghz2/OvsY+giZHuBJfe9g4F9qqvTripSueX0MwnL1MwOobl5IrsW5JJzwxRoyGDBhI3vqQZrgJOElGGsa9RlMmf/1veRE=
+	t=1781545583; cv=none; b=RUoYXwBUYwGrRcndCHega70etwbi7i57BDNWlFsgSuN29e6tSTY/U+Y30J0dvLsWsIIy5AwpRBn0H6ew/fqq3HGPI5FbsJDiPZPT3WNo8rVJwGoxMoNXRKrVQEA29UZIaLQNiXaSkAKCLyxf31EyTAXPALzCrv47SzWtb7WZLtw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781544377; c=relaxed/simple;
-	bh=OMeNb1eyoD1H8YWNR6khCrt6c+4T0bKe2wyW1emQhc4=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=tm8Ohoyh6Dr7pY2IMkzIOIGW8MFD4/MKDRhGSjwqpx3FGIImXWF6MGAuRmeTGFDzm13Z9Djc9RhZiU4FMYvlheZhu/zj2CxFytYqzjzhfitOjnt3L6XRr2mCAOQG+0m64HQZaECDx5wWjwBTz6iBMQyCz4IhWhcfyZtVRv37SAs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com; spf=fail smtp.mailfrom=broadcom.com; dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b=PN+RxPVI; arc=none smtp.client-ip=74.125.82.225
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=broadcom.com
+	s=arc-20240116; t=1781545583; c=relaxed/simple;
+	bh=ocWgTOMXwjI5TVoyjUAYU/X/PDgJy39gHQDLgMO3Sw4=;
+	h=From:Subject:Date:To:Cc:Message-ID; b=YlkGzQL1lU6io0K8psMq4Fk8Q4DhZ8m6A9UWgp4OR35+I6A5bT/2zIe3XHLVb0fMoDMb4voRqesZu+0GJnjDe7rKxnUFNKnRRAMaS4YnpWqLG8SSEWGBqI5sXpkJJGM8ZYf45qu+UfcmpNO1rnsVeHqyfRfEIhZs3oQFEFXjrCk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ankey.net; spf=none smtp.mailfrom=ankey.net; dkim=pass (2048-bit key) header.d=ankey-net.20251104.gappssmtp.com header.i=@ankey-net.20251104.gappssmtp.com header.b=On5wCwtp; arc=none smtp.client-ip=209.85.210.178
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ankey.net
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=ankey.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b="PN+RxPVI"
-Received: by mail-dy1-f225.google.com with SMTP id 5a478bee46e88-3075ce9c05aso9103543eec.1
-        for <linux-rdma@vger.kernel.org>; Mon, 15 Jun 2026 10:26:15 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1781544375; x=1782149175;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:dkim-signature:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=Y+607lBM0qaZBUlOQWmtyd+emmRtM4aZ9kvH82CDVxs=;
-        b=SF6JSKPsriJefB7+R51jw9QSw4iZFCyki/agcOf7bAT9OubgNcuB5839z4kGLewUVI
-         t5o20F6Aoc+Z0nzk2yvG2BZ1r1VCyh3v/mcn/opvY5iBlFBlV2clTHeHkqp7umCw6QEM
-         CpZhF5Dlhz/PECpgIvi00PxlqKb9JfT8AIUwh9nUc5tRINuL0skgbw/oZ8lcSC25IVeu
-         O9Yu03ceaoycSs0jjkpzNe82PO4Q7JgW3DxGECw6O+x21mahBWQuoh24bSgE82jhFrKC
-         PblTyyKoQa4VSlUA4obp6ctTxnL374qZsiJelMK/h/coxOaft6rWciYfKArNWAWrGN2w
-         PQPQ==
-X-Gm-Message-State: AOJu0Yzuzzekhklr0aITL/QK1zwn/WHPSBtw6cWgUBYAp1+q4TcGaaOW
-	AVsT34ykR2Wk8Fn/Yqaf6PSQ3bpsxN/JDv+dS1L7lAnaYYg5nGpuN+4Ohsy4W1KnA1NnI1rr4Os
-	7QO906uCoISYe8U4qTYCsTOfW/RwVWX60TlqXzGeaJslYYUfBo1jPliD2aYlQniAU5uF66wjcMr
-	26jGZMgg592HjUuFek+fWmrh3AQRwnaZPy4pC5e51VcpE5kmKEGGrUm+yu3OUSBoBRUfBAEWG5D
-	0V9eYEgKK31gqnZoA==
-X-Gm-Gg: Acq92OEY8XGqzDwz+jhVCbKyTnt+HuzIIFknoeQ6H0CfZKxYoc399FNQQ/wlU3Pd8Hy
-	+ou1yl8hT5/0mbnKohDVOZCi/fXFGo0mT2kmHTrulNOnjFvaOHt94BfLvXOheAfbl6fd5wnQDT/
-	bRYzePAhNeN07KA72oURptdITLdpUOlfjSkV7+JDz0NU/IEHgIRq2S6RFGHxXiHIrwy3c8xEObQ
-	r0PQpAcwEI/7U412oSjaYD43gidTJe2FAjhrTHQu0HPTbv0pkGQvB8r5YLFanhvRtVMqbPHyjZq
-	8bfb8b3vxlpeAVfRev5J/oeyZmpLVN4gcxTSIKCiFtZ44tbJAblBEhdefEMRkDwp6VuJfE3SFzb
-	wB5wD+7i3dHO75lItLtkuAzSIPQhILz9zAUz/Wu0sN+jNo4PIolfwbLy5abll2HhnBCE2jL36Mb
-	Sj/Yy+4fxULwP0OKHKKRZ8uFKr9hSb5XxuBSkW2XwaS4rgyj0qY8q0Z7IgUURL
-X-Received: by 2002:a05:7300:e402:b0:304:bc25:3d19 with SMTP id 5a478bee46e88-30ba5f61432mr66958eec.32.1781544374949;
-        Mon, 15 Jun 2026 10:26:14 -0700 (PDT)
-Received: from smtp-us-east1-p01-i01-si01.dlp.protect.broadcom.com (address-144-49-247-117.dlp.protect.broadcom.com. [144.49.247.117])
-        by smtp-relay.gmail.com with ESMTPS id 5a478bee46e88-3081ea57109sm623319eec.24.2026.06.15.10.26.14
-        for <linux-rdma@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 15 Jun 2026 10:26:14 -0700 (PDT)
-X-Relaying-Domain: broadcom.com
-X-CFilter-Loop: Reflected
-Received: by mail-pl1-f198.google.com with SMTP id d9443c01a7336-2c10cd7df22so55598395ad.2
-        for <linux-rdma@vger.kernel.org>; Mon, 15 Jun 2026 10:26:13 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=ankey-net.20251104.gappssmtp.com header.i=@ankey-net.20251104.gappssmtp.com header.b="On5wCwtp"
+Received: by mail-pf1-f178.google.com with SMTP id d2e1a72fcca58-842307473b5so2554165b3a.2
+        for <linux-rdma@vger.kernel.org>; Mon, 15 Jun 2026 10:46:21 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=broadcom.com; s=google; t=1781544373; x=1782149173; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+        d=ankey-net.20251104.gappssmtp.com; s=20251104; t=1781545581; x=1782150381; darn=vger.kernel.org;
+        h=message-id:cc:to:date:subject:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=Y+607lBM0qaZBUlOQWmtyd+emmRtM4aZ9kvH82CDVxs=;
-        b=PN+RxPVIDOG8rJSPUzFdS/oQp+zqg+u882eQJwRiNrLjcujqYUAI8B1S6yLo+ePCO4
-         LHgvY7y51HUF8UG6KpDx+wGhUxksV3BD9VcE/3t3Ax3IAA4/3JR5TjP+oPfiO8/MwcY0
-         4d5fHLIYWr7d5hUNNGDm2Z062Z42900epBBZc=
-X-Received: by 2002:a17:903:2452:b0:2bd:c925:3a16 with SMTP id d9443c01a7336-2c69a0dfa0fmr2173535ad.2.1781544373027;
-        Mon, 15 Jun 2026 10:26:13 -0700 (PDT)
-X-Received: by 2002:a17:903:2452:b0:2bd:c925:3a16 with SMTP id d9443c01a7336-2c69a0dfa0fmr2173145ad.2.1781544372463;
-        Mon, 15 Jun 2026 10:26:12 -0700 (PDT)
-Received: from dhcp-10-123-156-114.dhcp.broadcom.net ([192.19.234.250])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2c4328a43c9sm108289285ad.41.2026.06.15.10.26.09
+        bh=qetJH6uAcYEaNA7WIluzKnDC7IXjgavBC++l+5U3BLA=;
+        b=On5wCwtp1pRC//8FxcyVQdPIIYJ8md7OxsbdrFC5TeeDB+qJ7En0EZ+l+966KKogis
+         PV6pOh2cf5bcGKzyuu6B3v6MR+Sld5jzWd3xZLfm4YEkBIIT0dvK1gm+NrgwXX1D+3C3
+         LhEwApg4gRtFX5dO3cdJw4SORuHloUcsTwI3bKFRIsaOEMvWbhQrrPQrK/jHn05fzEZL
+         TkzDLxpziMM/K6Cbq202f2v5FCiqU8tHX5hkMTQPmIlmDfvkcVn8oeMO8nmfmiCtm++F
+         q86y4EbPVZ9LWqDMAi/vT83BO7qLwrKhlDSzsig8m64AtvMeG6YCQaEb/DIKGDeRb/U7
+         IYrg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1781545581; x=1782150381;
+        h=message-id:cc:to:date:subject:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=qetJH6uAcYEaNA7WIluzKnDC7IXjgavBC++l+5U3BLA=;
+        b=m0QuRz+HX7Y9FEpu7dg5G0omM22spwWaRgAhaP60yIyNNn9toq3S/0EukYmGwuTRhY
+         2RziSk1+CTuUrgsLYmiOQbvpiIIWpj6g1PCfXrrjKMHIy2/r++ftuHrOG6yFXDXSlwMN
+         7HiVbvutljt24Xas71no5BX4npckvBvpdyibfy22mOvb8XKK0fvDo9Nr/guhVthSk27O
+         goo1j7micBaxrtMyVmx/Gi+noAnKeXYNxjqQhe6hstXfDYw2UH9blQZRxu1SbDIVkLgC
+         4v1w0Gf2d1z6lnfP45Teymmde+6CGjotTHzlVFCex8D1AYXHJqWj9luvNasN3hFUkjS4
+         cfqA==
+X-Forwarded-Encrypted: i=1; AFNElJ83PyOr8fbr1HLmIidh+/QHnNIw6utSWaoxj6m4XNxOHP8xj9bMLTPYxGoMHAGoj8PBUvvcJrnKFa2w@vger.kernel.org
+X-Gm-Message-State: AOJu0YzcwTIrGSGgsNdoA5A7E8DnlGlpltvI7rtHbg3x6WWEhQidHnFw
+	U/LXhxl8eJIXr75A7BJP2C0mVv7Unfrm2Vc5/A0SVQGfSbqQvwzAAbjjvPTnRmcBbQ==
+X-Gm-Gg: Acq92OFSE7zip1baJ3ROiug3Iq6pLVhAmXc7trZ++SWQ1rKAnZsrpHVteR6Vs7SUHnY
+	HfTKctgT+6VKYbPRPpr3c8PIjo2BN/eQINCm8XVN3S5P8EbBiIDvlr/dp4Mc/DGMb9Xy0oIBR3o
+	jFKWncSc2O/Jwh5pkZ6DSJzfd/XJz2OW+LN+e7XdtBVEhhhgYxtj9a00adff8D5UBHG00HFGcsb
+	B/U9FTCzajG2TOglKfJavBjLkQpy4hjrzoF57yDmn2w0kvn0j8CKLvmBQIxcawSN88o1QMDCRbj
+	BPDSEdynhCJv1CVbPxUIrjEgse2SnvjMGFxxWo3AJVqHdS6Ia999yqJiUtJcQxoetIi//IiMuLX
+	BNUdmryV1tKNBq+6wjbsvmBrQzuljUVbo5dFwLU0o0HKp1rlH3+ya16VaZLqnRD9qKWXi71iuuk
+	kuISAlwMMWQVdQlU1f03Go3ntmEBePfrHC79Or2rzNMoxBlXY43kCqkNIROTC3jXDH7rMetL57b
+	3PVmaIgM3gEm6hC/s2i6gMs9vHO9ZAKZAERL7pQJFnetHA=
+X-Received: by 2002:a05:6a00:1311:b0:842:7867:430b with SMTP id d2e1a72fcca58-8434ce40e46mr16487940b3a.29.1781545580609;
+        Mon, 15 Jun 2026 10:46:20 -0700 (PDT)
+Received: from atimofey-ld1.linkedin.biz ([52.149.25.61])
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-8434accae18sm11214086b3a.17.2026.06.15.10.46.19
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 15 Jun 2026 10:26:12 -0700 (PDT)
-From: Selvin Xavier <selvin.xavier@broadcom.com>
-To: leon@kernel.org,
-	jgg@ziepe.ca
-Cc: linux-rdma@vger.kernel.org,
-	andrew.gospodarek@broadcom.com,
-	kalesh-anakkur.purayil@broadcom.com,
-	sriharsha.basavapatna@broadcom.com,
-	Selvin Xavier <selvin.xavier@broadcom.com>
-Subject: [PATCH rdma-rc v2 15/15] RDMA/bnxt_re: Reject GET_TOGGLE_MEM when toggle page was not allocated
-Date: Mon, 15 Jun 2026 15:47:51 -0700
-Message-Id: <20260615224751.232802-16-selvin.xavier@broadcom.com>
-X-Mailer: git-send-email 2.39.3
-In-Reply-To: <20260615224751.232802-1-selvin.xavier@broadcom.com>
-References: <20260615224751.232802-1-selvin.xavier@broadcom.com>
+        Mon, 15 Jun 2026 10:46:19 -0700 (PDT)
+From: Alex Timofeyev <sashka@ankey.net>
+Subject:
+ [PATCH rdma-next v1 0/2] RDMA: fix cross-NIC same-host IPv6 RDMA-CM connect
+Date: Mon, 15 Jun 2026 17:46:19 +0000
+To: Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>,
+ linux-rdma@vger.kernel.org
+Cc: Parav Pandit <parav@nvidia.com>, Edward Srouji <edwards@nvidia.com>,
+ Vlad Dumitrescu <vdumitrescu@nvidia.com>, stable@vger.kernel.org,
+ linux-kernel@vger.kernel.org
+Message-ID: <1781545579.1-sashka@ankey.net>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-DetectorID-Processed: b00c1d49-9d2e-4205-b15f-d015386d3d5e
 
-If a user calls BNXT_RE_METHOD_GET_TOGGLE_MEM on a device that does not
-support the CQ/SRQ toggle feature, uctx_cq_page or uctx_srq_page will
-be NULL.
+RDMA-CM cannot establish an IPv6 RoCEv2 connection between two NICs that
+live on the same host. This shows up on hosts that pin one process per
+NUMA-local NIC and let those processes talk to each other over each NIC's
+global IPv6 GID (e.g. a storage daemon with one engine per NUMA node on
+dual ConnectX-7). rdma_resolve_addr() and ib_send_cm_req() both return
+success, but the destination NIC silently drops the frame and the peer
+never sees the REQ; the connection times out.
 
-Add an explicit -EOPNOTSUPP return after capturing the address from
-uctx_cq_page / uctx_srq_page if the address is zero.
+The bug has two halves, one on each side of the connection:
 
-Fixes: e275919d9669 ("RDMA/bnxt_re: Share a page to expose per CQ info with userspace")
-Fixes: 181028a0d84c ("RDMA/bnxt_re: Share a page to expose per SRQ info with userspace")
-Signed-off-by: Selvin Xavier <selvin.xavier@broadcom.com>
----
- drivers/infiniband/hw/bnxt_re/uapi.c | 4 ++++
- 1 file changed, 4 insertions(+)
+1) Send side (patch 1, drivers/infiniband/core/addr.c)
 
-diff --git a/drivers/infiniband/hw/bnxt_re/uapi.c b/drivers/infiniband/hw/bnxt_re/uapi.c
-index ef41d6a1a0bb..37997c36c6f8 100644
---- a/drivers/infiniband/hw/bnxt_re/uapi.c
-+++ b/drivers/infiniband/hw/bnxt_re/uapi.c
-@@ -289,6 +289,8 @@ static int UVERBS_HANDLER(BNXT_RE_METHOD_GET_TOGGLE_MEM)(struct uverbs_attr_bund
- 
- 		addr = (u64)cq->uctx_cq_page;
- 		bnxt_re_put_cq(cq);
-+		if (!addr)
-+			return -EOPNOTSUPP;
- 		break;
- 	case BNXT_RE_SRQ_TOGGLE_MEM:
- 		srq = bnxt_re_search_for_srq(rdev, res_id);
-@@ -302,6 +304,8 @@ static int UVERBS_HANDLER(BNXT_RE_METHOD_GET_TOGGLE_MEM)(struct uverbs_attr_bund
- 
- 		addr = (u64)srq->uctx_srq_page;
- 		bnxt_re_put_srq(srq);
-+		if (!addr)
-+			return -EOPNOTSUPP;
- 		break;
- 
- 	default:
+   When the destination address is local, addr_resolve_neigh() copies the
+   *source* device's MAC into the path record's destination MAC. That is
+   right for true loopback (same netdev), but for a destination that lives
+   on a different netdev of the same host the destination NIC will not
+   accept a frame addressed to the source NIC's MAC and drops it in HW.
+   The fix resolves the netdev that owns the destination address and uses
+   its MAC.
+
+2) Receive side (patch 2, drivers/infiniband/core/cma.c)
+
+   Once the REQ does reach the peer, validate_ipv6_net_dev() rejects it:
+   rt6_lookup() of a same-host destination collapses onto the loopback
+   netdev, so the strict rt6i_idev->dev == net_dev check fails with
+   -EHOSTUNREACH even though the REQ arrived on the right net_dev. The fix
+   accepts an RTF_LOCAL route when net_dev itself owns the listener
+   address. This half is only observable once patch 1 lets the REQ arrive.
+
+Both halves are needed for a working connection; patch 1 alone makes the
+REQ reach the peer but it is then rejected by the unfixed receive side.
+
+Verification
+------------
+Measured on two RoCEv2 ConnectX-7 ports on the same host, each with a
+global IPv6 GID (port A "src", port B "dst"), driving a cross-NIC
+RDMA-CM connect (rping, src GID on port A -> dst GID on port B) while
+tracing the destination MAC resolved in addr_resolve():
+
+  without the series:  resolved dst MAC = port A's MAC (the *source* NIC)
+                        -> frame dropped, connect times out
+  with the series:     resolved dst MAC = port B's MAC (the *dest* NIC)
+                        -> connect completes
+
+The kernel under test carried c31e4038c97f and its dst_rtable() prereq
+(i.e. the same addr_resolve_neigh()/is_dst_local() shape as for-next);
+the change applies unmodified to rdma.git for-next.
+
+Note on stable: the Fixes: tags bound the backport to where each construct
+exists in its current form. Trees predating c31e4038c97f have the
+equivalent send-side gap in the older IFF_LOOPBACK form of
+addr_resolve_neigh() and would need a separately shaped backport.
+
+The patches are independent files but should be applied as a pair so the
+connection works end to end.
+
+Alex Timofeyev (2):
+  RDMA/core: use destination netdev MAC for cross-NIC same-host local
+    dst
+  RDMA/cma: accept cross-NIC same-host local dst in
+    validate_ipv6_net_dev
+
+ drivers/infiniband/core/addr.c | 22 +++++++++++++++++++---
+ drivers/infiniband/core/cma.c  | 15 ++++++++++++++-
+ 2 files changed, 33 insertions(+), 4 deletions(-)
+
+
+base-commit: 20ff9350862468af21b46cae2c22d17d6ec637f9
 -- 
-2.39.3
+2.40.4
 
