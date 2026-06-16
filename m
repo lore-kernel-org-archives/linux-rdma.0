@@ -1,40 +1,40 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 18E333D34AD
-	for <linux-rdma@vger.kernel.org>; Tue, 16 Jun 2026 17:50:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2C65D3D5656;
+	Tue, 16 Jun 2026 18:09:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781632240; cv=none; b=kpm5GNCAY/VI5dryHJdmbo3MIr6MUnYuHOIPgMVp7ohvwyiXjAHnt1Sfh7LXRONnM0mmcrX2mmWd99SuJ6nY+KDIzRlURCKs+9NplRmlW7rHozandyewhwmyDl6jEdBRIPZogK7CH205g5F3ZGP6oq+CN5qBwTHcDo2CRpiRAhU=
+	t=1781633376; cv=none; b=MSt21zPIZVZV9z2eUkUU5qp5ESSf3hPq7h4MQsC4lKgJqlIqHEeZOtvS0/tG4ZFZ9YjpGjda/eXM+HUA9IsxoI2uVwMYXl/PrYWhUl4jd1Iytl2AAO8DLs1BCODIRfIfcLMUUyv0+k/sMHsS1x5ptxVzokl8KWVkD5rNHrzzbmk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781632240; c=relaxed/simple;
-	bh=GTYEIxMVmxl0XLgOummXCbQCddXUsKfoRTcdeJpng/I=;
+	s=arc-20240116; t=1781633376; c=relaxed/simple;
+	bh=UJoJC+LPr5JtwIIYHRNLpKRTlx9rR3elzqKtpXIld5k=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=gV553P/y/8NEKnO4YGnmrWK2GbTSyyTJ2cQzRI48P/oSWhjvwS42jmC1sAHIzDy2wRx6mG2lYsdlZ4cyR1/5DJ2Rjni9sKboeEVqeUs8B5WXyV6VmoCRPr4ZVAFNgc7XnHUaShz4Juc8Y5aDrUqPUzHbDpafjDitvBrgDdIwGH4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=CC6Yq4o+; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:Content-Disposition:In-Reply-To; b=kQ+tbAsPDyzvcojmJuvLgkP6M7eSD7Bm3dkkE4tTRNU1OqXKBhIIGXZOBp9lWdKrx/Cu8KVz4rYN1xuzxDTPsLzFmn3Zp8EvBSXtMr6SJ36KtvlF72QHR9Ni07qqfxVZ05v6QJOWkHvATDFjmk4H9e1gihUXjHPj0LpI40UonOs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Y2a8nmRO; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="CC6Yq4o+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F224A1F000E9;
-	Tue, 16 Jun 2026 17:50:37 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Y2a8nmRO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 235891F000E9;
+	Tue, 16 Jun 2026 18:09:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1781632238;
-	bh=m1XA83wDzRlM1YkkW63+kwCWIQ82YPW0y9il5tGC9iA=;
+	s=k20260515; t=1781633375;
+	bh=HFFkLIXvkP/vvJblAmle3/icgdr5AJDzURgkhmjKBSY=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=CC6Yq4o+tAQK8RYJZOARVvo07iVK8DmVxZOYCqy5XQGVikJBdkdnDVhHpf51rMx7h
-	 mgvciHL/NvVrEDhtoDSoSIFrAqoHhP0I/AOtT54gEuI7nbhDaCUrOCkk5g/FZS+kSl
-	 QCuDf7ZbsJ1dIuGmgviDvjiXVFkWYKnCPIg6fVhGSVPlKDIyLFfchrZOmYUfktRrI2
-	 nBf/mQ7gzyVYdd/8XyXBI8BPgnJ1jSwaJA/X0nd8vOeDPY5kid2u6XS43oT5MJSI2K
-	 Iwgtti2JIghTwzooqsQ5QbeVrjH7Wywb9bMJ6NoNnPMtelfsN2xURIXrtFZTXwnni4
-	 2fhisOy0SvTvg==
-Date: Tue, 16 Jun 2026 20:50:33 +0300
+	b=Y2a8nmROpyirnyxwIZC529IvpjKMUhgG/4qT7Ag8oXGSPdofoSPMMmLXViCU3KfOT
+	 XHn97EYh/6IhRoLOUb8Pg9kA0VK0SbIoubG0dvaZ8E896HDP1Q1ynTW7eu0IPggdqM
+	 kAnW9VTPnxAy/bfqqmlTeK8sAi9YnRZrIHAUu24FMCRoH1sLZJbkV0h9vQW4PrHOO0
+	 NxevWZQw6upp/LnB2AhBOZ6kz+AVg7XDj+4x/hvzMaCCLoGI+gct23QInGMg8tnsiT
+	 i6oLFM12ExSXV9qZMUdX3u60pHgyqC04Lt0ApxgevzP9+w31jX7jb4XyUIDm5fwntE
+	 aIwJc+Y+p1YHw==
+Date: Tue, 16 Jun 2026 21:09:29 +0300
 From: Leon Romanovsky <leon@kernel.org>
-To: Yonatan Nachum <ynachum@amazon.com>
-Cc: jgg@nvidia.com, linux-rdma@vger.kernel.org, mrgolin@amazon.com,
-	sleybo@amazon.com, matua@amazon.com, gal.pressman@linux.dev
-Subject: Re: [PATCH for-next v4 0/2] RDMA/efa: Add AH cache for AH reuse
-Message-ID: <20260616175033.GQ327369@unreal>
-References: <20260608071620.1909543-1-ynachum@amazon.com>
- <20260614071229.GA29713@dev-dsk-ynachum-1b-aa121316.eu-west-1.amazon.com>
+To: Wentao Liang <vulab@iscas.ac.cn>
+Cc: jgg@ziepe.ca, fw@strlen.de, kees@kernel.org, linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Subject: Re: [PATCH] RDMA/iwpm: fix kref bypass in
+ iwpm_add_and_query_mapping() error path
+Message-ID: <20260616180929.GR327369@unreal>
+References: <20260608154208.158175-1-vulab@iscas.ac.cn>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -43,71 +43,45 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20260614071229.GA29713@dev-dsk-ynachum-1b-aa121316.eu-west-1.amazon.com>
+In-Reply-To: <20260608154208.158175-1-vulab@iscas.ac.cn>
 
-On Sun, Jun 14, 2026 at 07:12:29AM +0000, Yonatan Nachum wrote:
-> On Mon, Jun 08, 2026 at 07:16:18AM +0000, Yonatan Nachum wrote:
-> > Changelog:
-> > v4:
-> >  * Use kzalloc_obj for AH cache entry allocation instead of kzalloc
-> > v3: https://lore.kernel.org/all/20260607161753.1607559-1-ynachum@amazon.com/
-> >  * Address Sashiko comments in:
-> >    https://sashiko.dev/#/patchset/20260512061121.2177521-1-ynachum%40amazon.com
-> > v2: https://lore.kernel.org/all/20260512061121.2177521-1-ynachum@amazon.com/
-> >  * Zero-initialize AH cache key on cache lookup.
-> > v1: https://lore.kernel.org/all/20260510083035.458081-1-ynachum@amazon.com/
-> > 
-> > -------------------------------------------------------------------------
-> > New EFA devices don't support the creation of multiple AHs to the same
-> > remote on the same PD. To overcome this limitation, introduce an AH
-> > cache that manages AH reuse transparently.
-> > 
-> > The cache uses an rhashtable keyed by (PD, GID) to track active address
-> > handles with refcounts. On create AH, the driver returns an existing AH
-> > number if one is already cached, or creates a new one and caches it. On
-> > destroy AH, the driver only issues the device destroy command when the
-> > last reference is dropped.
-> > 
-> > A per-entry mutex serializes concurrent device commands on the same
-> > cache entry, preventing create-before-destroy races on the device.
-> > 
-> > Yonatan Nachum (2):
-> >   RDMA/efa: Add initialization of AH cache rhashtable
-> >   RDMA/efa: Add AH cache handling on create and destroy AH
-> > 
-> >  drivers/infiniband/hw/efa/Makefile       |   4 +-
-> >  drivers/infiniband/hw/efa/efa_ah_cache.c | 163 +++++++++++++++++++++++
-> >  drivers/infiniband/hw/efa/efa_ah_cache.h |  42 ++++++
-> >  drivers/infiniband/hw/efa/efa_com.c      |  12 +-
-> >  drivers/infiniband/hw/efa/efa_com.h      |   3 +
-> >  drivers/infiniband/hw/efa/efa_com_cmd.c  |  73 +++++++---
-> >  drivers/infiniband/hw/efa/efa_com_cmd.h  |   1 +
-> >  drivers/infiniband/hw/efa/efa_verbs.c    |   9 +-
-> >  8 files changed, 281 insertions(+), 26 deletions(-)
-> >  create mode 100644 drivers/infiniband/hw/efa/efa_ah_cache.c
-> >  create mode 100644 drivers/infiniband/hw/efa/efa_ah_cache.h
-> > 
-> > -- 
-> > 2.50.1
-> >
+On Mon, Jun 08, 2026 at 03:42:08PM +0000, Wentao Liang wrote:
+> iwpm_get_nlmsg_request() returns with kref_init() + kref_get()
+> (refcount=2). iwpm_add_and_query_mapping() calls
+> iwpm_free_nlmsg_request() directly on the error path instead of
+> using kref_put(), freeing the object while the refcount is still
+> non-zero. The success path correctly uses kref_put() via
+> iwpm_wait_complete_req().
 > 
-> Hi, kind reminder.
-> This series blocks merging EFAv4 device ID and we would want it to land
-> for the next merge window if possible.
-
-It is not possible.
-
-The use of entry->lock together with a refcount and an "initialize"
-flag suggests that the refcount is not being used correctly.
-
-I would expect a single ah_cache lock, with the refcount tracking the
-number of users of the entry.
-
-Thanks.
-
+> Replace the direct iwpm_free_nlmsg_request() call with
+> kref_put(&nlmsg_request->kref, iwpm_free_nlmsg_request).
 > 
-> I reviewed the last Sashiko comment and it's not relevant since on
-> destroy AH failure, we keep the entry in the hashtable.
+> Fixes: 30dc5e63d6a5 ("RDMA/core: Add support for iWARP Port Mapper user space service")
+> Cc: stable@vger.kernel.org
+> Signed-off-by: Wentao Liang <vulab@iscas.ac.cn>
+> ---
+>  drivers/infiniband/core/iwpm_msg.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> Thanks
+> diff --git a/drivers/infiniband/core/iwpm_msg.c b/drivers/infiniband/core/iwpm_msg.c
+> index 854c974d6586..bac3d1f321ab 100644
+> --- a/drivers/infiniband/core/iwpm_msg.c
+> +++ b/drivers/infiniband/core/iwpm_msg.c
+> @@ -296,7 +296,7 @@ int iwpm_add_and_query_mapping(struct iwpm_sa_data *pm_msg, u8 nl_client)
+>  query_mapping_error_nowarn:
+>  	dev_kfree_skb(skb);
+>  	if (nlmsg_request)
+> -		iwpm_free_nlmsg_request(&nlmsg_request->kref);
+> +		kref_put(&nlmsg_request->kref, iwpm_free_nlmsg_request);
+
+You should consolidate all related changes in iwpm_msg.c into a single patch.
+You also overlooked updating iwpm_add_mapping().
+
+Thanks
+
+>  	return ret;
+>  }
 >  
+> -- 
+> 2.34.1
+> 
