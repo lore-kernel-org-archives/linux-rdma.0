@@ -1,209 +1,159 @@
-Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
+Received: from BL0PR03CU003.outbound.protection.outlook.com (mail-eastusazon11012027.outbound.protection.outlook.com [52.101.53.27])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 962163A1E69;
-	Tue, 16 Jun 2026 14:27:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.156.1
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781620047; cv=none; b=BpOK4rvl1xVDwTC/8EIuN7XTjqjvyLkbnq9tMJcRVQms3WsSztbpfNmJMbQKMBJh+XZf+LZ5AMTQScQtBnwLoP6pKmWw0z0nVWJyhfjsXFaTdoTXabmlkZdncQ2bU8MDTgg0BgXWiXPkN9jeV7GiA+igk1y2tfEJyCkQcdLsitU=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781620047; c=relaxed/simple;
-	bh=1TEa1AEWrpo5vlROCNgvTad5PWUPE/qQn8wASMr7nCI=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=rYFlxNNljk3OgAb7QSfXwHQsEnK8NOzoBm9Mffvs1wKCnzBXvzLYzZnlbgkNnrnYVtc90cYZhrVnI7ULvtkRHeqyqLq/Zm6NktxUAlXfDhBAQZUBGK0tkizThOcEqnx2N9AJzu2UU4kqUfw70KZUOObfbQRa4RfRSDdtXX/g8TY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=aRI6qfEo; arc=none smtp.client-ip=148.163.156.1
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC21636E46F
+	for <linux-rdma@vger.kernel.org>; Tue, 16 Jun 2026 15:04:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.53.27
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1781622257; cv=fail; b=LnRkZFMTNJpuHwVosja/Tl6k9MSCXbKFOnrznNr4qv6MwKqUgC4wriAaRblXlT34OMIVlOPoPjOtN1A092Bvbla8qYlUbRsK63Ro2SRN16COMtg/CyH3wHWPZwYlo4SAxiEe94BsHfgE5u+hdtfqbEP6XHWHq/Nhg5fcWfjrWc4=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1781622257; c=relaxed/simple;
+	bh=DuPZjPHxPZyhJmZb3Li4tepOiNixJP07jrg4IH88Fcs=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:Content-Type:
+	 Content-Disposition:In-Reply-To:MIME-Version; b=BvWq8gx+IhEMI/NpryRJ2fYDFDTnoVQB8fyMomiC3PUWJKX6mfmzbzAJ4/CrP9GUOs6gNzSvbgwH/63qNKawpFlX6/G9YfjYQCuR2H02VnpdWIIflA8f0VPKqwrKOyM5n7bVdK1K5+dSvtX9FzsoM2QOxbH/ZsBCF3pF6foAvCs=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=cCtzrveK; arc=fail smtp.client-ip=52.101.53.27
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="aRI6qfEo"
-Received: from pps.filterd (m0360083.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 65GEICjj1763843;
-	Tue, 16 Jun 2026 14:27:13 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
-	:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to; s=pp1; bh=IjuEIJ
-	SriwuP01r/+rNqGP9V1B2LCAw9Xpaog56O+38=; b=aRI6qfEoXL+uBKVIlvR1P+
-	DUjnck+WtmfRzEYpFdxNSPPozP25iDNI9i13sKCum7JQbawWmYMynlD0LY3VgFHn
-	/gIWOHDgzEzjXATGUcaePVXKCOxaXSyqmOAF6T7S4qSoZ2irSv49lHGlWi+VygOe
-	VcB9jBZdFUxz1uYJ78unQtBJz/z5abIgfMSv9/kopVLFUsSGonR+pyxn8CRKBbxr
-	CS7J8Lw2uFqokAegqewYMOo1XFHJS1Twfik4nvGw1L1eSPdUsgTppXtu/ruCT6rE
-	MQ5McqFS34VBh3qh3dbheMvlr/6um28nY7GXzxf0lV61jGD59LURWoVRCnmKIGdw
-	==
-Received: from ppma12.dal12v.mail.ibm.com (dc.9e.1632.ip4.static.sl-reverse.com [50.22.158.220])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 4es23np4ef-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Tue, 16 Jun 2026 14:27:12 +0000 (GMT)
-Received: from pps.filterd (ppma12.dal12v.mail.ibm.com [127.0.0.1])
-	by ppma12.dal12v.mail.ibm.com (8.18.1.7/8.18.1.7) with ESMTP id 65GEJd7C032673;
-	Tue, 16 Jun 2026 14:27:11 GMT
-Received: from smtprelay06.fra02v.mail.ibm.com ([9.218.2.230])
-	by ppma12.dal12v.mail.ibm.com (PPS) with ESMTPS id 4eshhq3x7n-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Tue, 16 Jun 2026 14:27:11 +0000 (GMT)
-Received: from smtpav04.fra02v.mail.ibm.com (smtpav04.fra02v.mail.ibm.com [10.20.54.103])
-	by smtprelay06.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 65GER6OE23593388
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Tue, 16 Jun 2026 14:27:06 GMT
-Received: from smtpav04.fra02v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 04EFA20043;
-	Tue, 16 Jun 2026 14:27:06 +0000 (GMT)
-Received: from smtpav04.fra02v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 0205F20040;
-	Tue, 16 Jun 2026 14:27:02 +0000 (GMT)
-Received: from [9.39.16.33] (unknown [9.39.16.33])
-	by smtpav04.fra02v.mail.ibm.com (Postfix) with ESMTP;
-	Tue, 16 Jun 2026 14:27:01 +0000 (GMT)
-Message-ID: <430a9dd9-ecfb-4465-9eeb-f854fbbc2e61@linux.ibm.com>
-Date: Tue, 16 Jun 2026 19:57:00 +0530
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="cCtzrveK"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=CC9zGsKxOFjTftqh0KMGecuVjuZrgUoSbwMhSv+vLrM58zDKUlFvR0LIyf2JG4LxVvyJ5tTvvX1P/F/hXA722eE9FVNftvp0woLbmrNq8EdiPOB7gj5/zIHCpqwjcvXn84Es5zgG7UG5Klwrm8Q0n4/+0d2oqrhOmMdzAYOdmSma/08oPhunUP2ItDN0OuGLHKKvjhj2pr4jbw1d197+ODsc6df5+EfP9HGaXpwOry7GlbDO5nZF8S4Wf/WqCiG9pO/CPtZ7bS704+2k/wR1rdeeA3DFFkQiejpSWBnIyFKD4CO1WKgW/YIyQkaL0gRAIA5MhrOfJMYZtcGz+THiSA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=A3ZQIxs7Upi6RzFtWBRG0m833aMU8Bd/66sc8MBY75s=;
+ b=Wm8cAKafKk8uoVsoOfmzz8AFTfdP3bRIcybTcHqlJKJ4mO9AS89Y7h44n1oYtdwwnk7DT90ahGYY3PtJl7fDGb641pWK9JL2TVHA3E7P3ta5QKnC6v3vOkc/tOu89DDBFjKXx1Uye20kUJQCzjDggIINDCP2diz5GS6Qp2JRbhl4Qhk0rUqeddMP/CP1cr8odWGxkovQQ5U3znRkGSYU4axDlCv39hqK7s8XuAiKRXfSTCrNVVp+UzycN1mT7GvGWeFx/ENTcoaLuE/aYAEFRUIBTS8S9cck4swc+yw8GWiJooygzyjF6ds6k5QDjc+vPjnVC7DG8+4BFyhkROPhJQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=A3ZQIxs7Upi6RzFtWBRG0m833aMU8Bd/66sc8MBY75s=;
+ b=cCtzrveKz04MjUQbiEoNlVCJBSsIQu5Kd+HETHs9LbLw11n1UjAThCcRMpXyL6k8Jv2W/e8NLav1Jh5fbERgLKr/1fBtNFHHICiFq0dfNiSLkL+JcN5bS30BUlz3XVclNTJvB11HpHH21YiA9N3wjKevtKzAsnF2WyvfHB0+S0jI8bJ6vg+CI5wxF8tX56X3YtPqTtt14stE1yiauZWlKbdcXjA+m57fVt9I5thzFUqoLkHF4oiyy4QLeFGxXOjQR852gvhvsaA0zhWRzhOMbW3mW8C9kYTK7zj6Pfaw1GPi2ikAJLsasFKi+5fjIZXMqYR3G85xq0FBoltk/JfDAg==
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from LV8PR12MB9620.namprd12.prod.outlook.com (2603:10b6:408:2a1::19)
+ by CH1PR12MB9671.namprd12.prod.outlook.com (2603:10b6:610:2b0::8) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.113.16; Tue, 16 Jun
+ 2026 15:04:08 +0000
+Received: from LV8PR12MB9620.namprd12.prod.outlook.com
+ ([fe80::299d:f5e0:3550:1528]) by LV8PR12MB9620.namprd12.prod.outlook.com
+ ([fe80::299d:f5e0:3550:1528%4]) with mapi id 15.21.0113.015; Tue, 16 Jun 2026
+ 15:04:08 +0000
+Date: Tue, 16 Jun 2026 12:04:07 -0300
+From: Jason Gunthorpe <jgg@nvidia.com>
+To: Selvin Xavier <selvin.xavier@broadcom.com>
+Cc: leon@kernel.org, linux-rdma@vger.kernel.org,
+	andrew.gospodarek@broadcom.com, kalesh-anakkur.purayil@broadcom.com,
+	sriharsha.basavapatna@broadcom.com
+Subject: Re: [PATCH rdma-rc v2 04/15] RDMA/bnxt_re: Avoid any race while
+ handling the hash list of CQ
+Message-ID: <20260616150407.GA3885854@nvidia.com>
+References: <20260615224751.232802-1-selvin.xavier@broadcom.com>
+ <20260615224751.232802-5-selvin.xavier@broadcom.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260615224751.232802-5-selvin.xavier@broadcom.com>
+X-ClientProxiedBy: BN9PR03CA0085.namprd03.prod.outlook.com
+ (2603:10b6:408:fc::30) To LV8PR12MB9620.namprd12.prod.outlook.com
+ (2603:10b6:408:2a1::19)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net 1/1] net: smc: fix splice entry lifetime imbalance in
- smc_rx_splice
-To: Ren Wei <n05ec@lzu.edu.cn>, linux-rdma@vger.kernel.org,
-        linux-s390@vger.kernel.org, netdev@vger.kernel.org
-Cc: alibuda@linux.alibaba.com, dust.li@linux.alibaba.com, wenjia@linux.ibm.com,
-        mjambigi@linux.ibm.com, tonylu@linux.alibaba.com,
-        guwen@linux.alibaba.com, ubraun@linux.ibm.com,
-        stefan.raspl@linux.ibm.com, davem@davemloft.net, yuantan098@gmail.com,
-        zcliangcn@gmail.com, bird@lzu.edu.cn, lx24@stu.ynu.edu.cn,
-        d4n.for.sec@gmail.com
-References: <cover.1781097957.git.d4n.for.sec@gmail.com>
- <192d1b44ed358ca143f44ef167d14153bccc51e9.1781097957.git.d4n.for.sec@gmail.com>
-Content-Language: en-US
-From: Sidraya Jayagond <sidraya@linux.ibm.com>
-In-Reply-To: <192d1b44ed358ca143f44ef167d14153bccc51e9.1781097957.git.d4n.for.sec@gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-X-TM-AS-GCONF: 00
-X-Proofpoint-Reinject: loops=2 maxloops=12
-X-Authority-Analysis: v=2.4 cv=XtnK/1F9 c=1 sm=1 tr=0 ts=6a315d41 cx=c_pps
- a=bLidbwmWQ0KltjZqbj+ezA==:117 a=bLidbwmWQ0KltjZqbj+ezA==:17
- a=IkcTkHD0fZMA:10 a=FelO9ux0wxsA:10 a=VkNPw1HP01LnGYTKEx00:22
- a=RnoormkPH1_aCDwRdu11:22 a=iQ6ETzBq9ecOQQE5vZCe:22 a=pGLkceISAAAA:8
- a=VwQbUJbxAAAA:8 a=VnNF1IyMAAAA:8 a=lELoO6ydEwu01aG-FtUA:9 a=QEXdDO2ut3YA:10
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNjE2MDE0NSBTYWx0ZWRfX3aLGkuxzoGY9
- nQ8con6vPfodRZHjAhAtq7B5aqdrNqZ/zW0qc9cTwUNyO7feqwS+u93GPdt1URw8RBaxXpOj7Fr
- X5L5sNG0uOvsEdMNpEHhj4AM9/jzwfR9FqMoCMa9ERnTStuqGDTDH2qa7X9zK/rSmMeKuqeG+Yd
- 5SjnfYqRcbTsjn45nFVFAKULD9xAYG2xLe1yS27cjqDHy69YatG5RNatTXs0/hrgChj4oITUF6w
- 3v8FqzTVHQ8nRpMef9lvHqBBN2Y9y4s7PqsC42x0eUwWBLZqAZkV8YHKsnTKmgqHtKMZ+LglcxH
- tYXEtfqj1XiWDUbv0+K8bhv7FK/k6gAVU3Y9lttrfrAVjrDaCvd2fWmUa8lb5o6u58vVSQM5jCb
- OLw6EhPzkZfPh35xxOAWH0+U+fxRN+1Nt0SahssZRagPtrnSjWWHgpdQrMsIIaxURF1Qq46iasi
- zfnpjx4SqoLS2ZfwKjA==
-X-Proofpoint-GUID: c0J0dIn_JX-poNTUfy1y4PPQMiLBYcKK
-X-Proofpoint-ORIG-GUID: 34lRAMndiN_j3wEzws5yH02GX2zEQfeh
-X-Proofpoint-Spam-Info: AW1haW4tMjYwNjE2MDE0NSBTYWx0ZWRfX3rX96ezEwEg0
- ilxy5r6FKDjUmNWIbHrN5zKu99LrCKOY6GjYuY4WsN1epbalw0P14BA6EP8OBjj7uUIFPdQ2Bsk
- hwc90HB8XsyAYAYu3aOpu4NKPTAtOgo=
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1143,Hydra:6.1.125,FMLib:17.12.100.49
- definitions=2026-06-16_04,2026-06-15_04,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- bulkscore=0 adultscore=0 phishscore=0 lowpriorityscore=0 priorityscore=1501
- suspectscore=0 clxscore=1011 malwarescore=0 spamscore=0 impostorscore=0
- classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
- reason=mlx scancount=1 engine=8.22.0-2606040000 definitions=main-2606160145
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: LV8PR12MB9620:EE_|CH1PR12MB9671:EE_
+X-MS-Office365-Filtering-Correlation-Id: 83666d16-831a-4716-44aa-08decbb88430
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|1800799024|366016|23010399003|376014|4143699003|18002099003|56012099006|11063799006|22082099003;
+X-Microsoft-Antispam-Message-Info:
+	DcgVG1EnbZBX9DRXPcgaQX57hbvqqDVZiuVfmGBjCLBcbVpC1olGCgLJsOXLgxq5T+pDJQ7Ju3OUyU1bfyim0ZNs7Eto5+25fD05Z0GXEA7MHAIGUCrhDFdYsTF1iSWdX6he26gGTdWgJ9gvQd9/6KumIwWnDxesr3vzXeSdXIm1LO3o1ADQSkpzK7mCXfkQTaBSZQlAt42kMTUKTHEm9D+830sS29F2HQWL3laualIj4W5afVTumTLDlSYHq0me85US3ksgdCGzlABD4qh2Uw4+RV7pQdo+kx27qW9nxMawHMHj8srU1BipY/HjeYGyW1dL6S6gujs+eJm2OTAHCNMqdGP5j3Z3/nTQHHlAWuqtVRYtupeXa5FpeW4Q4Qr8PH5Cbkinh50aEt0698sTlv/vGEcq5+2ATb1W6yPmwUTh4BWcedhf5znu0JIMYnCJsGIkONbTM9C1clZaXnZQMaRTVWZqjkdC/huhtnyL0GP/nl4YQ3dfTK18a9JvBCPh7l0BGZO9CXFdq8ecbGD4egnOMPcRsLZVRiilkPGkR37RaJgUp2WtoRAPO/XcXF28jZr9ZdSAeDNvnT1fEo2BM+XZytu7gS7QFQh5PaocR1eF8FZ6TZb8gMZA/uLwELQXfsqGle6D6fUkKU+YpUWKRtBorCe4B0Kgp/vUwRmtah8OdZ4RT9rof6t7BxBEfhWo
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:LV8PR12MB9620.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(366016)(23010399003)(376014)(4143699003)(18002099003)(56012099006)(11063799006)(22082099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?us-ascii?Q?F6N6vhf42FbwUmdY3mqm8KQQGJjE8FZBr2wq7scZvG1EVLn3OEct/0kr1oZm?=
+ =?us-ascii?Q?J1fK1KRnlTTP/LNtThMYc3EcgQ+4Zep/4iasF5cZNWT3Rqyr7lNlL8STS58M?=
+ =?us-ascii?Q?soNZRGGmQ08gUOQ1TU6Iq58+X2Amm6tNEDVZqy0RlWuXDAW+nhVjEUgj9BLu?=
+ =?us-ascii?Q?kAzQskyJQAvf2oI531L1hrsWZUio5UBpiwUBf+edTw0OyslZjFZDRO1ELqTU?=
+ =?us-ascii?Q?k5Ulzxc9Xr1riKa0ZH+MGZdkCO/E0cf01QRYD/vmppCuLdcSa0k7wcGkJsCJ?=
+ =?us-ascii?Q?VZ0JKg7vGdPJsRwnegIH1qw0/aDkc2QSnW6OSn2JT9r1kAVuf7sfU5Dogi5a?=
+ =?us-ascii?Q?r/xnw8tav81EGgZZwMhkfK/fQK1BgTEDsBcqDJIaImAQ4SIDyljWFf3ETk2Y?=
+ =?us-ascii?Q?qiDnMYFfuEU64C4JQs3e4IWYB1suXUwwSMBvbgKIXn2SsO9LfzaIYPBFFe5/?=
+ =?us-ascii?Q?13hBig48u9FhvACsqVUjLet8mqKoZdqxbCyeoBKBXmi2LqbMuiFwyb5S98fr?=
+ =?us-ascii?Q?aMcw4wMRqw3Bq5EgOyXprhFSos/iDcrmWgOLsiPgNn9ouMz1VdF+BM9j7DsJ?=
+ =?us-ascii?Q?S17zOzTdlWNmQwEPK5Y2HU5kMeMIClvjO9zr7WeBMSul0DtipGMXt1BUJoKt?=
+ =?us-ascii?Q?QBZoPzOEqaiJayVa0fdXkqe+MKWRq/RHloTdcKuXNEwGf0kruG3BbwNR1Qut?=
+ =?us-ascii?Q?mvkLxKeoTJIeBbxwY//guVSNPM3Tq/B2n/fPS0P2c63T+4cMdoZhJWbqXpHo?=
+ =?us-ascii?Q?GYVVjZS4SP+6+vNOX/XmDlh7FdAcndaf3TlqBREOYlA2RBn/PRiWzojR7NzI?=
+ =?us-ascii?Q?fxLBWan+ovUgyNwCYlJZzxiIzjIDQEK9XPw3aGQb7vEWz0rVPfTwut+rDFOL?=
+ =?us-ascii?Q?bgM0XFK6v3IB9PflwfRYmy0YTDDSqbnDj3Oy7mrYNCexqErU5rRsmlE955BV?=
+ =?us-ascii?Q?baREeFQUGA9NhqmfX01OToHg22zjoKjNVBPy6xQJzAYVKX8X97gfKz6agc7e?=
+ =?us-ascii?Q?aYKgJiQOI29kghI+usDXMIAPWJDaN7grJ8qo+JDc2ls06d+fS2BpcFIuZwOT?=
+ =?us-ascii?Q?1eglD4n4ZAWKtuemAV/c2hklYnp82Kp1O7b6CDfVePP2q+zZBGFyL91OBj8B?=
+ =?us-ascii?Q?RC3oOfG+3+VjNMF/IEusl9CONer/QoqPSJZqI8JoD6ZP+raJp3afLyyJZhpX?=
+ =?us-ascii?Q?uovrnAxLekdqp8cX+Rv1TALIFdGeB+TVQGiQwImWUBXGF02aOCvcOQqOUaTk?=
+ =?us-ascii?Q?dCo0UPd5t0JfChsNRYAoMh0jkSank9si7sd5XxD1Y0nUG/0f1uKHNnXtCDt1?=
+ =?us-ascii?Q?AsAmwNMeIsjVmMuQFyZBYYzNqSDmEDkTXtq10RdF1SfAeXiOazQPLhnnMSti?=
+ =?us-ascii?Q?l6N5f3BlZdufMH8pmhGP499hC4UhwGuzOiTgvwQMrySuIhnaE1ylSUW0L764?=
+ =?us-ascii?Q?8/DhqWzy+DRqH/vi8AvThL2jrZ17QjcSGfx8OtWJgxL0UsPaW+kBllKZHF3L?=
+ =?us-ascii?Q?iatggy0hg4es72K8leThbEoNBj2ZzLe3tSLP37yjDGeHpLm6BXaMRbARBwBY?=
+ =?us-ascii?Q?yogO4ETSTyl3T/HQ6l4528mWLypVooEHWgN1p83KVgc0YXaCvRIXhlBJcwVW?=
+ =?us-ascii?Q?jkboHacTGbnE0fd/Rhp5YgMKr+vmecXR0EgyTUOZfA1XwIYflFGyZmZN95jY?=
+ =?us-ascii?Q?fTV0TTqytp21ZJuG80/FyNzZqeKTFzaWqx2mhqy8SwhgAtYo?=
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 83666d16-831a-4716-44aa-08decbb88430
+X-MS-Exchange-CrossTenant-AuthSource: LV8PR12MB9620.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 16 Jun 2026 15:04:08.8078
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: si5rx7kKZmobAVDfOcNvURQvMW7TH/9hAlzGLnX1NmOVm7SnR0n+g15USOLhLVnH
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CH1PR12MB9671
 
+On Mon, Jun 15, 2026 at 03:47:40PM -0700, Selvin Xavier wrote:
+> Add/Delete to/from hash list needs to be synchronized with the traversing
+> of the hash list. Add a mutex for this synchronization. Also add a
+> reference for the CQ to avoid any usage of the CQ structures after the
+> CQ is freed.
 
+Arg, this is messed up like this because the driver didn't implement
+the uapi properly:
 
-On 10/06/26 11:24 pm, Ren Wei wrote:
-> From: Daming Li <d4n.for.sec@gmail.com>
-> 
-> smc_rx_splice() hands candidate pages to splice_to_pipe() without taking
-> references for the lifetime of each splice entry first. That breaks the
-> splice ownership contract in the VM-backed RMB path.
-> 
-> splice_to_pipe() drops unqueued entries through spd_release(), while
-> queued entries are later dropped through the pipe buffer release
-> callback. The current code only tries to take page references after the
-> splice succeeds, and it derives the number of queued VM pages from a
-> mutated offset value. This can underflow page refcounts and trigger a
-> use-after-free. It also leaves the socket lifetime imbalanced in the
-> multi-page VM case, where one sock_hold() can be followed by multiple
-> sock_put() calls.
-> 
-> Fix this by taking the page and socket references for every candidate
-> splice entry before calling splice_to_pipe(), and by releasing the
-> matching private state, page reference, and socket reference from
-> smc_rx_spd_release() for entries that never get queued. This makes the
-> SMC splice path follow the normal splice lifetime rules and removes the
-> broken post-splice VM page counting entirely.
-> 
-> Fixes: 9014db202cb7 ("smc: add support for splice()")
-> Cc: stable@vger.kernel.org
-> Reported-by: Yuan Tan <yuantan098@gmail.com>
-> Reported-by: Zhengchuan Liang <zcliangcn@gmail.com>
-> Reported-by: Xin Liu <bird@lzu.edu.cn>
-> Assisted-by: Codex:GPT-5.4
-> Co-developed-by: Liu Xiao <lx24@stu.ynu.edu.cn>
-> Signed-off-by: Liu Xiao <lx24@stu.ynu.edu.cn>
-> Signed-off-by: Daming Li <d4n.for.sec@gmail.com>
-> Signed-off-by: Ren Wei <n05ec@lzu.edu.cn>
-> ---
->  net/smc/smc_rx.c | 21 +++++++++++----------
->  1 file changed, 11 insertions(+), 10 deletions(-)
-> 
-> diff --git a/net/smc/smc_rx.c b/net/smc/smc_rx.c
-> index c1d9b923938d..88aee0d93597 100644
-> --- a/net/smc/smc_rx.c
-> +++ b/net/smc/smc_rx.c
-> @@ -150,18 +150,23 @@ static const struct pipe_buf_operations smc_pipe_ops = {
->  static void smc_rx_spd_release(struct splice_pipe_desc *spd,
->  			       unsigned int i)
->  {
-> +	struct smc_spd_priv *priv = (struct smc_spd_priv *)spd->partial[i].private;
-> +	struct sock *sk = &priv->smc->sk;
-> +
-> +	kfree(priv);
->  	put_page(spd->pages[i]);
-> +	sock_put(sk);
->  }
+> @@ -252,6 +255,7 @@ static int UVERBS_HANDLER(BNXT_RE_METHOD_GET_TOGGLE_MEM)(struct uverbs_attr_bund
+>  			return -EINVAL;
 >  
->  static int smc_rx_splice(struct pipe_inode_info *pipe, char *src, size_t len,
->  			 struct smc_sock *smc)
->  {
->  	struct smc_link_group *lgr = smc->conn.lgr;
-> -	int offset = offset_in_page(src);
->  	struct partial_page *partial;
->  	struct splice_pipe_desc spd;
->  	struct smc_spd_priv **priv;
->  	struct page **pages;
-> +	int offset = offset_in_page(src);
->  	int bytes, nr_pages;
->  	int i;
->  
-> @@ -209,6 +214,10 @@ static int smc_rx_splice(struct pipe_inode_info *pipe, char *src, size_t len,
->  			offset = 0;
->  		}
->  	}
-> +	for (i = 0; i < nr_pages; i++) {
-> +		get_page(pages[i]);
-> +		sock_hold(&smc->sk);
-> +	}
->  	spd.nr_pages_max = nr_pages;
->  	spd.nr_pages = nr_pages;
->  	spd.pages = pages;
-> @@ -217,16 +226,8 @@ static int smc_rx_splice(struct pipe_inode_info *pipe, char *src, size_t len,
->  	spd.spd_release = smc_rx_spd_release;
->  
->  	bytes = splice_to_pipe(pipe, &spd);
-> -	if (bytes > 0) {
-> -		sock_hold(&smc->sk);
-> -		if (!lgr->is_smcd && smc->conn.rmb_desc->is_vm) {
-> -			for (i = 0; i < PAGE_ALIGN(bytes + offset) / PAGE_SIZE; i++)
-> -				get_page(pages[i]);
-> -		} else {
-> -			get_page(smc->conn.rmb_desc->pages);
-> -		}
-> +	if (bytes > 0)
->  		atomic_add(bytes, &smc->conn.splice_pending);
-> -	}
->  	kfree(priv);
->  	kfree(partial);
->  	kfree(pages);
-Code changes looks good to me.
-Reviewed-by: Sidraya Jayagond <sidraya@linux.ibm.com>
+>  		addr = (u64)cq->uctx_cq_page;
+> +		bnxt_re_put_cq(cq);
+>  		break;
+
+Passing in uobj's through anything but the normal UVERBS_ATTR_IDR is
+completely wrong.
+
+And now the security model is messed up because the broken
+bnxt_re_search_for_cq() doesn't respect the uctx boundaries and the
+userspace can pass in any cq belonging to any process for this
+operation. That's illegal.
+
+I said the same thing on the dbr patches and they were fixed to use
+
++       uobj = uverbs_attr_get_uobject(attrs, BNXT_RE_ALLOC_DBR_HANDLE);
+
+Which is the correct way to reach into other objects and prevents
+all of these bugs.
+
+Fixing this by adding more mess to the driver isn't right, you need to
+rely on the uobject system to do this. Once you find the driver object
+you'll need to call some new uobject function to validate and lock it
+properly using object locking. Do not add new refcounts and
+completions.
+
+Jason
