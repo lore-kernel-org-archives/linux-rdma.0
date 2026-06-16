@@ -1,131 +1,238 @@
-Received: from DM5PR21CU001.outbound.protection.outlook.com (mail-centralusazon11011032.outbound.protection.outlook.com [52.101.62.32])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 15BA236F42B
-	for <linux-rdma@vger.kernel.org>; Tue, 16 Jun 2026 15:05:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.62.32
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781622302; cv=fail; b=A2d1e1SnWqowM1zlpKzkvSL3VLQvGwF4z2V+6uCKGHZOjkrgZbBiHzrsdajzoYhqsuHEMIJqXY8FJek0AWnrjgrTQw9mZ5NzC1bLSLSP5Ye2VPCDPIX4CIyhV0jGEfai4H2PH+dhoWlt6nYAmeX83N0sZ6XhyJ+Nzzn+ELNHOvE=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781622302; c=relaxed/simple;
-	bh=olQe5i+RakHuFp1YVpvVt2PKdg9mGG5I+77b58ySSFs=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:Content-Type:
-	 Content-Disposition:In-Reply-To:MIME-Version; b=gzdF/BfWRViLYvRvtCwDdVqCP4PKi8237SGWqNeJls1XeED5eRACWvmcVEc3XD5ZMHS/Way9fVjufcw9iM4cTno6miDAWi1xY5rDWAo8pXwtq55fbr+gHBR4qI9NoFcIWr1Z/0NQ12evoNiGZGDv1bTO29PDxwMHK42CbrUgQnU=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=WjVZBGdn; arc=fail smtp.client-ip=52.101.62.32
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 56F6044102E;
+	Tue, 16 Jun 2026 15:19:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1781623169; cv=none; b=aclQcdK8egg+BQRThyS6yRB06fHgMByf2jZkLKOMlbCVcNRIQEClUTPx+iiizUdFO3HE8PMgIaNKS8wVZbmm/MhbdghyLHgzuJbTFJYXtITCvKFkzSwYEQqhSNiutm29up9ppKE12LJgf+w4bv16UNIrigUMruPx1erRVm5xgNg=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1781623169; c=relaxed/simple;
+	bh=UTOyUb4dJRb13JMpHp8QyidOR4r+fHEUWtKHIwqcMNA=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=Y3u/oD6kE4Ux82H7G6q/VEPqzJ7lTp46RtK6GEXq0DstzJ7rYlsMG3GtnwVBXX7AsAiopTlq6QkbL1N5jkVJLsnAMpzBZ3H0dR4H7HWi+1TqtlNxzZtW0Sk2GDvgATbaRBi1ebtlUOYaFjh8DQehLHZiERSvzTa5gCTwTl6f1w8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=WWAYGKYJ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="WjVZBGdn"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=ngusFr3kjPRHq09YLbjuISQuw0szm5cag/Dr+eQzUTJu5NrFjQIKAcpNNgZcDbw6B6GRsjeTxj9gCWqRLU3GkpM/1tC/IrsO7AoM6PZWA3mTi89MGHPWIzgh3npN2tzuU1ZErnLVI7sy5uEwJ4TcgCAecpA2Tj2JokIc4e58gA6liDni5rIzoYhNTDP11DWbagqtnyOOhX8NzGMnNqpLN5S1u+OjkjbbLRa9Xl3urgZSR55Uj8tNEtRbYOVfHoOEFsxuVbgQvMResNl1/iac1g2nX1vgcoNzffqBiIGRhYKxi8ycrXk8lXKge1CbxPrf6V59H+ndDSjAhte+eGWqwA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=olQe5i+RakHuFp1YVpvVt2PKdg9mGG5I+77b58ySSFs=;
- b=imXA1yFIg/wrpMygKUGKXVARnyOEN+Im8yNxFzvwkU9pHpLQ3bU4+uxhYa/1EZCmKsAgFVH1FVi2kx3NmmBDuU0jgGf23ucVUP+blCn90lW5hQUG8jL3RT/drXd3+PEWyXrMXaMJwRPdl99fPcjfgXkLNUIqqxH8Oe8DAE4xs9whtGmey1gQ9Rusm/FJmNNVXjnFeUpwQV+7ULYnfQQyp8J1V6U48IixnumWLSQStUkiN0dnteWjfJgNCOJpSphJ/5ljWtLOkYY3Oy4Mvz8MfykUEMCawmmFmCKYMT4WCk5yRsV1VOXcjIKP9bu8gscVqyLz/H4lL/V3sHzMtHQmBQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=olQe5i+RakHuFp1YVpvVt2PKdg9mGG5I+77b58ySSFs=;
- b=WjVZBGdnxPkzWrLrcRVchsZVNQEiAEIVQzrMNe1WEz1VpG/g3aiqmptLXlTcx76JfeSsA0G2+7rrvVGkb1Ec1SVAzXW/P0gtFjzcQNG336GIYfpt/nt7Cc1iyT9FneHoee4wugkZXOLunQdqAJCu75IzFSF1w+mDHktsNb7l2P9lmANI5T2ZF2kAuuXGykekssaTrq+mVjV449bJVTMrUJZQEs1axiPgpcLMCdurWTiz2STmMjWzskLD+AMFubuCmWRRwgbB6jcQBeBSxdnFBQPFxsuAYV05MiXhluSrkuM1WvX7umIA0imBIjwuO2Uv2jca1nw2hhMacQv9gtNWZA==
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from LV8PR12MB9620.namprd12.prod.outlook.com (2603:10b6:408:2a1::19)
- by CH1PR12MB9671.namprd12.prod.outlook.com (2603:10b6:610:2b0::8) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.113.16; Tue, 16 Jun
- 2026 15:04:55 +0000
-Received: from LV8PR12MB9620.namprd12.prod.outlook.com
- ([fe80::299d:f5e0:3550:1528]) by LV8PR12MB9620.namprd12.prod.outlook.com
- ([fe80::299d:f5e0:3550:1528%4]) with mapi id 15.21.0113.015; Tue, 16 Jun 2026
- 15:04:55 +0000
-Date: Tue, 16 Jun 2026 12:04:54 -0300
-From: Jason Gunthorpe <jgg@nvidia.com>
-To: Selvin Xavier <selvin.xavier@broadcom.com>
-Cc: leon@kernel.org, linux-rdma@vger.kernel.org,
-	andrew.gospodarek@broadcom.com, kalesh-anakkur.purayil@broadcom.com,
-	sriharsha.basavapatna@broadcom.com
-Subject: Re: [PATCH rdma-rc v2 06/15] RDMA/bnxt_re: Add ownership check while
- getting the CQ toggle page
-Message-ID: <20260616150454.GB3885854@nvidia.com>
-References: <20260615224751.232802-1-selvin.xavier@broadcom.com>
- <20260615224751.232802-7-selvin.xavier@broadcom.com>
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260615224751.232802-7-selvin.xavier@broadcom.com>
-X-ClientProxiedBy: MN0PR02CA0002.namprd02.prod.outlook.com
- (2603:10b6:208:530::29) To LV8PR12MB9620.namprd12.prod.outlook.com
- (2603:10b6:408:2a1::19)
+	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="WWAYGKYJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3235B1F00A3D;
+	Tue, 16 Jun 2026 15:19:26 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linuxfoundation.org;
+	s=korg; t=1781623168;
+	bh=NEXUzJ19eGVMUi7TswUQaPRGuuwdjV1nd2fwHKFUFOw=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=WWAYGKYJzAszWSaRZoeIyQ63AFzPhHtEbAPOJaR2KF1Q2ARTMrNnOohTgiq9q0qUd
+	 nRD9VzcDF0X5AI4hg3cNDTB+Ttzz43YTSlIRKEuO4CUeFYLNnEypDc2GHkjdrK5Sne
+	 E9BGfsKuktLezcoSNWZ/UQlTw3NEfOwNk8yrG4SM=
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To: stable@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	patches@lists.linux.dev,
+	Andy Gospodarek <gospo@broadcom.com>,
+	Leon Romanovsky <leonro@nvidia.com>,
+	linux-rdma@vger.kernel.org,
+	Pavan Chebbi <pavan.chebbi@broadcom.com>,
+	Jason Gunthorpe <jgg@nvidia.com>,
+	Sasha Levin <sashal@kernel.org>
+Subject: [PATCH 7.0 072/378] fwctl/bnxt_en: Move common definitions to include/linux/bnxt/
+Date: Tue, 16 Jun 2026 20:25:03 +0530
+Message-ID: <20260616145113.934194834@linuxfoundation.org>
+X-Mailer: git-send-email 2.54.0
+In-Reply-To: <20260616145109.744539446@linuxfoundation.org>
+References: <20260616145109.744539446@linuxfoundation.org>
+User-Agent: quilt/0.69
+X-stable: review
+X-Patchwork-Hint: ignore
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: LV8PR12MB9620:EE_|CH1PR12MB9671:EE_
-X-MS-Office365-Filtering-Correlation-Id: f6d5e2b4-fea5-41eb-f5de-08decbb89fe6
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|1800799024|366016|23010399003|376014|4143699003|18002099003|56012099006|11063799006|22082099003;
-X-Microsoft-Antispam-Message-Info:
-	7C+ZzAAP4yTnwldDq3i0krl/UDLQg3gDT4EbsbQWy0jxsAYS7zhzd0wG8u16enxU6qdLS5heRlN2RognSHd9R31YwLrWMr+bISZSVJZ0HTTBpSavTma6fwL+W+JlEDyWStkFg0W3sUnh8h1N9NOz6dH8FsKf2sRrevutqOsmN/o0lgpsZuA1b6e/7I4ViPRRHBtjyqu7GgiqBh3pfAnuAMZ4NSCJYamd6WqdtwiW7dQpMG6AMrFmPBG6kZi5P4ihtV39TcEr42U3rkE453szHOiLM2M+MLbYvvwAAm9NCJ8HZOvvGa8AaLsHhmONibYEGDvaJjGYOC5X4XPmpvAgc6Z+L/9khOJsutcZOuqlrRQ0/8E4K1t8KcnI20Yiqg717y7xZOkwpjZwdLnusqsQPG9nsDMZv2KBUynKIeMkhgwSZiqjD32O0sF0tfzRQdKtSDKVIieNDNhUCd5Qiz8XfSekvuCISeRT9lNElWCtLvNhDkbxW2F+gMAT6d8TKhPbWGSYoxI9N2uF891f9hZRR8ncVnLPSWre7yHllPMY8+AR+iMNxs8Q5RljJMJdAo5Cn3QWY9mD90+Grq6vgcwzkV5onWR9HKKXi0hj6IRVXT4Oaozv9IGDXOSiT2xbj/rcMwVXaJPqBMj5xNRDGHzyZ0WiKvSM6OiAkW6NCDkzc0jFuopXctrQeM6puthf1cPP
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:LV8PR12MB9620.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(366016)(23010399003)(376014)(4143699003)(18002099003)(56012099006)(11063799006)(22082099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?ErClwGq2RcLc8mMuiWmAn6hMAqPji10Rb7ANew+/pRAANCHpQAe+KFuTUNcR?=
- =?us-ascii?Q?HIY6UOn3BZ2XUfhrqCBuB4y+xyl6cFCNobsuRkIskBsFbuSoGOnoJ41zOd6w?=
- =?us-ascii?Q?57BHDVI1OufGdWrttdQoEyy3O7R5JoADuCeYdt/RQRkSz7MgdbkOj/dSPAui?=
- =?us-ascii?Q?jMTO3lKKyyg7XOtVlJ8VHJmA/UVmugS1bzYbS6XfaBR2FkgIOsZjmmaXTBdp?=
- =?us-ascii?Q?WsZxNI29juE3+BYp7sY11SL9Xuhpnee+YQjY5APwN/NAxrBUf8VDqjrQaxKD?=
- =?us-ascii?Q?AiWwsArpypbmiaVE3P8OdtGJvzNpeW8GxGJ/UxdiRl7GWKF0Y9pyYCeUoncq?=
- =?us-ascii?Q?Qz2rR9Glx+egWHOsERof8TNN12M3vRcvLEMJVjnIx8/lQapJ/nhl538R10Kn?=
- =?us-ascii?Q?zIRHvJ2V2tmpBozPe3Nn3XwlftPfnmCbBH/jvA+1UwwsxQBJY4PPt98xtcK5?=
- =?us-ascii?Q?0wAVB4+ZrSIMhKmQOnTuOYC8UbGpk2V3rx9Mh/7lBJqY9PbjbJRKfj+sdar6?=
- =?us-ascii?Q?oVMqK7Puczrhghw+orx4iNYmknjKs7xp8ve+4UuUIqA9y+Q1JlRxLT/L1uuw?=
- =?us-ascii?Q?3iVZmujF0UbigmqRi7NMa9+AXciAu1KVk8XlD4qkmIbi0ypPci1xbfBYxIJ5?=
- =?us-ascii?Q?EMayy7dHVgkaP3l+uLUFIMvWk+pg96o4sJcc/e+u3bc7sN1DnYuDA8fsABFC?=
- =?us-ascii?Q?6cOFsdChxwcf6+2oDYXYCoakbB4kmBxgQAlw9AtK4n0kj/szUBz2bDFbTyE3?=
- =?us-ascii?Q?ueEUlHDNS4MayG+uFcsRsp7PQAS1bjQsym/BPx8wfpmvaDTQd7GCQIr40CMN?=
- =?us-ascii?Q?ASFH12sXnLWqaQT47Bs8AXfdmJxgXFCLvxlmcu6635xrxLJ2DHk6xM0UJOhw?=
- =?us-ascii?Q?QkZgNgpPZtRryCc/XJZnSRTSlrB9kzytXrCUEhD6eELT0IfqvvsZbkQx1luG?=
- =?us-ascii?Q?n4k1WKswxUhZgivUYqYS/wae8MfrnBLmZPJVtTi+gxfxcfW5AYkZCFCEAiOI?=
- =?us-ascii?Q?8KZ5PIql/FULaEzZpshdx4E2sna4Ap3sdurdLOLya5WpIMx86n/7zcG1j7yl?=
- =?us-ascii?Q?dfw2hXeYyn/1sQo5x4BE1btRXvDZhrUl9Wso5eR7HuE1U2NgTKydKNmi8ARp?=
- =?us-ascii?Q?YIiH61/Wu5PUMo/YLOCmOijV60Qh4ko6Ed8a/CKDkykDzb0wiRe1hHW095Vc?=
- =?us-ascii?Q?bLewP+bPE0saOP1yHF6Myj8mznWr28opNBbcfzOXb5WheRYxmGL1dHyT+lR4?=
- =?us-ascii?Q?7DWgqMQ7dhMfADjHZDGFZfgAnNtY4IkrFOrfybSOB5FmfUh0Mp9UEyDxie0C?=
- =?us-ascii?Q?cgmQtWOJ1Qx0z4XMPik04kQfvDQ81jrWfpwSXiVCykO1lMJzZHIvfAOpqJVI?=
- =?us-ascii?Q?ZPaKVL6f+y8nCK5a3+myNf2KQGgftqwiJkWnRqnKjjb99RA4l27eh7aWJeCI?=
- =?us-ascii?Q?DNrZm+i147iTLee8WOboouydfBTgGCQvp9vrsztQtlkfdJIJxMw24FxNwpcM?=
- =?us-ascii?Q?r1aXyVHOcz17unjrmlsfd/SN/+Oaida1Xgvu2fK95O/znCc279yQtW0n7pBr?=
- =?us-ascii?Q?96j1hIurlqZw9f1HtFLCDBUOENuJh6I+1Zx6xDfwn8Bj3hhBKgR+jA9zv9QH?=
- =?us-ascii?Q?Rw4KWn2V3irzE+qYmveKXj9tkAe/7X2BucpNSrizGiFf2q/PXSkus1MEUaAH?=
- =?us-ascii?Q?lEBU2oiKFDD1pFuTSYOwR9/p1e0su/RVSrjLzBVQ2fuZYg94?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: f6d5e2b4-fea5-41eb-f5de-08decbb89fe6
-X-MS-Exchange-CrossTenant-AuthSource: LV8PR12MB9620.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 16 Jun 2026 15:04:55.2078
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: /ZTj9YaIaTY9RlXrbMBDlRoCnK0eyDqDvYzRLDd5EfixYNeRQNdw8CAXtLullWHS
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CH1PR12MB9671
+Content-Transfer-Encoding: 8bit
 
-On Mon, Jun 15, 2026 at 03:47:42PM -0700, Selvin Xavier wrote:
-> The cq resource id provided by user-space is used for
-> searching the driver CQ structure. Validate if the context
-> currently issuing the request is same as the context
-> created the resource.
+7.0-stable review patch.  If anyone has any objections, please let me know.
 
-Hah, just like I said - again fix it by using uobjects correctly, not
-adding more junk into the driver.
+------------------
 
-Jason
+From: Pavan Chebbi <pavan.chebbi@broadcom.com>
+
+[ Upstream commit 7be18a1fa00eab5283b35c13e26c6b76fcaab9ce ]
+
+We have common definitions that are now going to be used
+by more than one component outside of bnxt (bnxt_re and
+fwctl)
+
+Move bnxt_ulp.h to include/linux/bnxt/ as ulp.h.
+
+Link: https://patch.msgid.link/r/20260314151605.932749-2-pavan.chebbi@broadcom.com
+Reviewed-by: Andy Gospodarek <gospo@broadcom.com>
+Reviewed-by: Leon Romanovsky <leonro@nvidia.com>
+Cc: linux-rdma@vger.kernel.org
+Signed-off-by: Pavan Chebbi <pavan.chebbi@broadcom.com>
+Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
+Stable-dep-of: b6197b386677 ("Reapply "bnxt_en: bring back rtnl_lock() in the bnxt_open() path"")
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ drivers/infiniband/hw/bnxt_re/debugfs.c                         | 2 +-
+ drivers/infiniband/hw/bnxt_re/main.c                            | 2 +-
+ drivers/infiniband/hw/bnxt_re/qplib_fp.c                        | 2 +-
+ drivers/infiniband/hw/bnxt_re/qplib_res.h                       | 2 +-
+ drivers/net/ethernet/broadcom/bnxt/bnxt.c                       | 2 +-
+ drivers/net/ethernet/broadcom/bnxt/bnxt_devlink.c               | 2 +-
+ drivers/net/ethernet/broadcom/bnxt/bnxt_ethtool.c               | 2 +-
+ drivers/net/ethernet/broadcom/bnxt/bnxt_sriov.c                 | 2 +-
+ drivers/net/ethernet/broadcom/bnxt/bnxt_ulp.c                   | 2 +-
+ .../broadcom/bnxt/bnxt_ulp.h => include/linux/bnxt/ulp.h        | 0
+ 10 files changed, 9 insertions(+), 9 deletions(-)
+ rename drivers/net/ethernet/broadcom/bnxt/bnxt_ulp.h => include/linux/bnxt/ulp.h (100%)
+
+diff --git a/drivers/infiniband/hw/bnxt_re/debugfs.c b/drivers/infiniband/hw/bnxt_re/debugfs.c
+index a2ad79c3bbd021..5fed2cf66be30a 100644
+--- a/drivers/infiniband/hw/bnxt_re/debugfs.c
++++ b/drivers/infiniband/hw/bnxt_re/debugfs.c
+@@ -10,8 +10,8 @@
+ #include <linux/pci.h>
+ #include <linux/seq_file.h>
+ #include <rdma/ib_addr.h>
++#include <linux/bnxt/ulp.h>
+ 
+-#include "bnxt_ulp.h"
+ #include "roce_hsi.h"
+ #include "qplib_res.h"
+ #include "qplib_sp.h"
+diff --git a/drivers/infiniband/hw/bnxt_re/main.c b/drivers/infiniband/hw/bnxt_re/main.c
+index b576f05e3b26b2..47afccddf55e57 100644
+--- a/drivers/infiniband/hw/bnxt_re/main.c
++++ b/drivers/infiniband/hw/bnxt_re/main.c
+@@ -55,8 +55,8 @@
+ #include <rdma/ib_umem.h>
+ #include <rdma/ib_addr.h>
+ #include <linux/hashtable.h>
++#include <linux/bnxt/ulp.h>
+ 
+-#include "bnxt_ulp.h"
+ #include "roce_hsi.h"
+ #include "qplib_res.h"
+ #include "qplib_sp.h"
+diff --git a/drivers/infiniband/hw/bnxt_re/qplib_fp.c b/drivers/infiniband/hw/bnxt_re/qplib_fp.c
+index 2d7932b3c492fa..b4c7b8f582ba9f 100644
+--- a/drivers/infiniband/hw/bnxt_re/qplib_fp.c
++++ b/drivers/infiniband/hw/bnxt_re/qplib_fp.c
+@@ -46,6 +46,7 @@
+ #include <linux/delay.h>
+ #include <linux/prefetch.h>
+ #include <linux/if_ether.h>
++#include <linux/bnxt/ulp.h>
+ #include <rdma/ib_mad.h>
+ 
+ #include "roce_hsi.h"
+@@ -55,7 +56,6 @@
+ #include "qplib_sp.h"
+ #include "qplib_fp.h"
+ #include <rdma/ib_addr.h>
+-#include "bnxt_ulp.h"
+ #include "bnxt_re.h"
+ #include "ib_verbs.h"
+ 
+diff --git a/drivers/infiniband/hw/bnxt_re/qplib_res.h b/drivers/infiniband/hw/bnxt_re/qplib_res.h
+index 9a5dcf97b6f440..0a4a03efeb0bab 100644
+--- a/drivers/infiniband/hw/bnxt_re/qplib_res.h
++++ b/drivers/infiniband/hw/bnxt_re/qplib_res.h
+@@ -39,7 +39,7 @@
+ #ifndef __BNXT_QPLIB_RES_H__
+ #define __BNXT_QPLIB_RES_H__
+ 
+-#include "bnxt_ulp.h"
++#include <linux/bnxt/ulp.h>
+ 
+ extern const struct bnxt_qplib_gid bnxt_qplib_gid_zero;
+ 
+diff --git a/drivers/net/ethernet/broadcom/bnxt/bnxt.c b/drivers/net/ethernet/broadcom/bnxt/bnxt.c
+index 3f775196ef8194..5d05084e32d93f 100644
+--- a/drivers/net/ethernet/broadcom/bnxt/bnxt.c
++++ b/drivers/net/ethernet/broadcom/bnxt/bnxt.c
+@@ -59,10 +59,10 @@
+ #include <net/netdev_rx_queue.h>
+ #include <linux/pci-tph.h>
+ #include <linux/bnxt/hsi.h>
++#include <linux/bnxt/ulp.h>
+ 
+ #include "bnxt.h"
+ #include "bnxt_hwrm.h"
+-#include "bnxt_ulp.h"
+ #include "bnxt_sriov.h"
+ #include "bnxt_ethtool.h"
+ #include "bnxt_dcb.h"
+diff --git a/drivers/net/ethernet/broadcom/bnxt/bnxt_devlink.c b/drivers/net/ethernet/broadcom/bnxt/bnxt_devlink.c
+index 15de802bbac48e..230cd95d30a269 100644
+--- a/drivers/net/ethernet/broadcom/bnxt/bnxt_devlink.c
++++ b/drivers/net/ethernet/broadcom/bnxt/bnxt_devlink.c
+@@ -13,12 +13,12 @@
+ #include <net/devlink.h>
+ #include <net/netdev_lock.h>
+ #include <linux/bnxt/hsi.h>
++#include <linux/bnxt/ulp.h>
+ #include "bnxt.h"
+ #include "bnxt_hwrm.h"
+ #include "bnxt_vfr.h"
+ #include "bnxt_devlink.h"
+ #include "bnxt_ethtool.h"
+-#include "bnxt_ulp.h"
+ #include "bnxt_ptp.h"
+ #include "bnxt_coredump.h"
+ #include "bnxt_nvm_defs.h"
+diff --git a/drivers/net/ethernet/broadcom/bnxt/bnxt_ethtool.c b/drivers/net/ethernet/broadcom/bnxt/bnxt_ethtool.c
+index 0407aa1b3190e4..ef646a3463b1ec 100644
+--- a/drivers/net/ethernet/broadcom/bnxt/bnxt_ethtool.c
++++ b/drivers/net/ethernet/broadcom/bnxt/bnxt_ethtool.c
+@@ -27,9 +27,9 @@
+ #include <net/netdev_queues.h>
+ #include <net/netlink.h>
+ #include <linux/bnxt/hsi.h>
++#include <linux/bnxt/ulp.h>
+ #include "bnxt.h"
+ #include "bnxt_hwrm.h"
+-#include "bnxt_ulp.h"
+ #include "bnxt_xdp.h"
+ #include "bnxt_ptp.h"
+ #include "bnxt_ethtool.h"
+diff --git a/drivers/net/ethernet/broadcom/bnxt/bnxt_sriov.c b/drivers/net/ethernet/broadcom/bnxt/bnxt_sriov.c
+index 7f9829287c4950..edcc002e4ca358 100644
+--- a/drivers/net/ethernet/broadcom/bnxt/bnxt_sriov.c
++++ b/drivers/net/ethernet/broadcom/bnxt/bnxt_sriov.c
+@@ -17,9 +17,9 @@
+ #include <linux/etherdevice.h>
+ #include <net/dcbnl.h>
+ #include <linux/bnxt/hsi.h>
++#include <linux/bnxt/ulp.h>
+ #include "bnxt.h"
+ #include "bnxt_hwrm.h"
+-#include "bnxt_ulp.h"
+ #include "bnxt_sriov.h"
+ #include "bnxt_vfr.h"
+ #include "bnxt_ethtool.h"
+diff --git a/drivers/net/ethernet/broadcom/bnxt/bnxt_ulp.c b/drivers/net/ethernet/broadcom/bnxt/bnxt_ulp.c
+index e1e82a72cf1bb8..11ced44ead29b3 100644
+--- a/drivers/net/ethernet/broadcom/bnxt/bnxt_ulp.c
++++ b/drivers/net/ethernet/broadcom/bnxt/bnxt_ulp.c
+@@ -22,10 +22,10 @@
+ #include <linux/auxiliary_bus.h>
+ #include <net/netdev_lock.h>
+ #include <linux/bnxt/hsi.h>
++#include <linux/bnxt/ulp.h>
+ 
+ #include "bnxt.h"
+ #include "bnxt_hwrm.h"
+-#include "bnxt_ulp.h"
+ 
+ static DEFINE_IDA(bnxt_aux_dev_ids);
+ 
+diff --git a/drivers/net/ethernet/broadcom/bnxt/bnxt_ulp.h b/include/linux/bnxt/ulp.h
+similarity index 100%
+rename from drivers/net/ethernet/broadcom/bnxt/bnxt_ulp.h
+rename to include/linux/bnxt/ulp.h
+-- 
+2.53.0
+
+
+
