@@ -1,238 +1,173 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qk1-f202.google.com (mail-qk1-f202.google.com [209.85.222.202])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 56F6044102E;
-	Tue, 16 Jun 2026 15:19:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3043144CF44
+	for <linux-rdma@vger.kernel.org>; Tue, 16 Jun 2026 15:56:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.202
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781623169; cv=none; b=aclQcdK8egg+BQRThyS6yRB06fHgMByf2jZkLKOMlbCVcNRIQEClUTPx+iiizUdFO3HE8PMgIaNKS8wVZbmm/MhbdghyLHgzuJbTFJYXtITCvKFkzSwYEQqhSNiutm29up9ppKE12LJgf+w4bv16UNIrigUMruPx1erRVm5xgNg=
+	t=1781625365; cv=none; b=Pj/qn1IZTqKo7cRvAdxvmCK/OHdKLE5/2p6k9MpiSSOHK9DEyCtG4SaWjlOPClKIffkMnoKxnP33uhx791YEs0MNoMvSugMHPWGQAOPF/jpXsALY1y1V8M4/F6HzS6ddnRypd9/ate9KFi/i/eEoPw7F+0/EgSusqEFG5rIvDBE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781623169; c=relaxed/simple;
-	bh=UTOyUb4dJRb13JMpHp8QyidOR4r+fHEUWtKHIwqcMNA=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=Y3u/oD6kE4Ux82H7G6q/VEPqzJ7lTp46RtK6GEXq0DstzJ7rYlsMG3GtnwVBXX7AsAiopTlq6QkbL1N5jkVJLsnAMpzBZ3H0dR4H7HWi+1TqtlNxzZtW0Sk2GDvgATbaRBi1ebtlUOYaFjh8DQehLHZiERSvzTa5gCTwTl6f1w8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=WWAYGKYJ; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1781625365; c=relaxed/simple;
+	bh=tVZPNwD/V1mksQohZmv8cQN6vUlXaq7quoVsxbrhCiE=;
+	h=Date:Mime-Version:Message-ID:Subject:From:To:Cc:Content-Type; b=U8sOrBTGMzrfigvQo7m4i1CYFhbuRKGMiOearkM81ZxnPb/oB7WqV+hCl/PNErbtL7xwFDImp2fFq3ZjrkoMZ2Ns33h+PR9EH+kuWgeudKCj3JkTKtjxTSODYcoJ4T/DZTUQaVLXurLqhpSuRFzkr8SzF2V8Ty5UEqkbXtIQZuQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--jmoroni.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=nkXKFnCe; arc=none smtp.client-ip=209.85.222.202
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--jmoroni.bounces.google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="WWAYGKYJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3235B1F00A3D;
-	Tue, 16 Jun 2026 15:19:26 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linuxfoundation.org;
-	s=korg; t=1781623168;
-	bh=NEXUzJ19eGVMUi7TswUQaPRGuuwdjV1nd2fwHKFUFOw=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=WWAYGKYJzAszWSaRZoeIyQ63AFzPhHtEbAPOJaR2KF1Q2ARTMrNnOohTgiq9q0qUd
-	 nRD9VzcDF0X5AI4hg3cNDTB+Ttzz43YTSlIRKEuO4CUeFYLNnEypDc2GHkjdrK5Sne
-	 E9BGfsKuktLezcoSNWZ/UQlTw3NEfOwNk8yrG4SM=
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-To: stable@vger.kernel.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	patches@lists.linux.dev,
-	Andy Gospodarek <gospo@broadcom.com>,
-	Leon Romanovsky <leonro@nvidia.com>,
-	linux-rdma@vger.kernel.org,
-	Pavan Chebbi <pavan.chebbi@broadcom.com>,
-	Jason Gunthorpe <jgg@nvidia.com>,
-	Sasha Levin <sashal@kernel.org>
-Subject: [PATCH 7.0 072/378] fwctl/bnxt_en: Move common definitions to include/linux/bnxt/
-Date: Tue, 16 Jun 2026 20:25:03 +0530
-Message-ID: <20260616145113.934194834@linuxfoundation.org>
-X-Mailer: git-send-email 2.54.0
-In-Reply-To: <20260616145109.744539446@linuxfoundation.org>
-References: <20260616145109.744539446@linuxfoundation.org>
-User-Agent: quilt/0.69
-X-stable: review
-X-Patchwork-Hint: ignore
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="nkXKFnCe"
+Received: by mail-qk1-f202.google.com with SMTP id af79cd13be357-915f6ff639aso1311602685a.1
+        for <linux-rdma@vger.kernel.org>; Tue, 16 Jun 2026 08:56:03 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20251104; t=1781625363; x=1782230163; darn=vger.kernel.org;
+        h=cc:to:from:subject:message-id:mime-version:date:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=gMgAvm/mMkJh8aXM5VMx5CRejsrbakwLznhjIQ8or4E=;
+        b=nkXKFnCemwIV6qhQ8CvT/IJ6Yx77gk8DRwoT1G3+faeQlEh7EVjfRm6sOEsdhog+eK
+         Vf32feSBypFIYWhkTXG1MrK+rmZkr0QeZ03z2YWGzooD75n/ZftzQDVrPwHrXcCfLMNN
+         qk7Wa+SNh5Vsh66kISyo4eFWfEoGKLVVrRZdb4eUE9ovi8LQ08b5lvHAICw/nC1NIz9v
+         HgrLLNR5GDpmHzaQLYNihzNmzpqcYqtVT6cKI+sJoeQtBKgaVPYyDpf1ArNOm86nSeMG
+         Fqo5dhR/Qnj8hn+wUrmsmLJWCYoiKMbDdginFR73ZdUUafDAETRHSrjlYpu1cS0+yivL
+         3k1w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1781625363; x=1782230163;
+        h=cc:to:from:subject:message-id:mime-version:date:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=gMgAvm/mMkJh8aXM5VMx5CRejsrbakwLznhjIQ8or4E=;
+        b=jNhf85+S5h7LZimVzEwm4FJQFmhlXKC3a03djDm4/P2mVxWCbQ1oG3gXwh1LAcrFEW
+         Z3WTsSNHAKsWHu6o6Owk5xfM8nR1n2Sbk3I5hs+w7xjVZC+2JShw0IfhKz3ksSmgDH6i
+         nSoCn84muBwH29skHtAgaReBRGiCeM99vGapJ3CPZ+OG+1VKyryUm+kT5GI/yMm1oe0K
+         jaK/XnBaTxg/0puhTqTG+cTTTUXTj3AKbd1oHLYFChbQJSerROQsqYd5uvjnrrmTGMe3
+         10k9j1rVJr1eTcrS8+2ZVUGL9LNd+vO2Pf9hzTxAEAmblnpmjo/1q8ERjQ84K4oz56+D
+         aV7Q==
+X-Gm-Message-State: AOJu0Yz/68gbNqgumcCCmkmuXoH5iPce8b0tGyWKrnYYYBzwPQvaIhaW
+	YOgiTSHB3P378a1ovhWcJ3lkPwrmf5EUWTgwfe3f7zaqf4qUAx9zGfRf0Sic+k/0lWvhU7CCVZ+
+	sECZaayLZtA==
+X-Received: from qkhp4.prod.google.com ([2002:a05:620a:22a4:b0:915:6dc3:adc2])
+ (user=jmoroni job=prod-delivery.src-stubby-dispatcher) by 2002:a05:620a:19a2:b0:916:1306:73e3
+ with SMTP id af79cd13be357-91d8b5b1c4bmr41839485a.21.1781625362617; Tue, 16
+ Jun 2026 08:56:02 -0700 (PDT)
+Date: Tue, 16 Jun 2026 15:56:01 +0000
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Mime-Version: 1.0
+X-Mailer: git-send-email 2.54.0.1136.gdb2ca164c4-goog
+Message-ID: <20260616155601.1081448-1-jmoroni@google.com>
+Subject: [PATCH rdma-next] RDMA/irdma: Replace waitqueue and flag with completion
+From: Jacob Moroni <jmoroni@google.com>
+To: tatyana.e.nikolova@intel.com, jgg@ziepe.ca, leon@kernel.org
+Cc: linux-rdma@vger.kernel.org, Jacob Moroni <jmoroni@google.com>
+Content-Type: text/plain; charset="UTF-8"
 
-7.0-stable review patch.  If anyone has any objections, please let me know.
+The driver previously used a waitqueue along with an explicit
+request_done flag, but without proper barriers around request_done.
 
-------------------
+An earlier patch by Gui-Dong Han <hanguidong02@gmail.com> attempted
+to fix this by adding the missing memory barriers. Rather than
+adding the barriers, this patch replaces the waitqueue+flag with
+a completion, which is designed for this exact purpose.
 
-From: Pavan Chebbi <pavan.chebbi@broadcom.com>
-
-[ Upstream commit 7be18a1fa00eab5283b35c13e26c6b76fcaab9ce ]
-
-We have common definitions that are now going to be used
-by more than one component outside of bnxt (bnxt_re and
-fwctl)
-
-Move bnxt_ulp.h to include/linux/bnxt/ as ulp.h.
-
-Link: https://patch.msgid.link/r/20260314151605.932749-2-pavan.chebbi@broadcom.com
-Reviewed-by: Andy Gospodarek <gospo@broadcom.com>
-Reviewed-by: Leon Romanovsky <leonro@nvidia.com>
-Cc: linux-rdma@vger.kernel.org
-Signed-off-by: Pavan Chebbi <pavan.chebbi@broadcom.com>
-Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
-Stable-dep-of: b6197b386677 ("Reapply "bnxt_en: bring back rtnl_lock() in the bnxt_open() path"")
-Signed-off-by: Sasha Levin <sashal@kernel.org>
+Link: https://lore.kernel.org/linux-rdma/20260604135513.GU2487554@ziepe.ca/T/#t
+Fixes: 44d9e52977a1 ("RDMA/irdma: Implement device initialization definitions")
+Fixes: 915cc7ac0f8e ("RDMA/irdma: Add miscellaneous utility definitions")
+Signed-off-by: Jacob Moroni <jmoroni@google.com>
 ---
- drivers/infiniband/hw/bnxt_re/debugfs.c                         | 2 +-
- drivers/infiniband/hw/bnxt_re/main.c                            | 2 +-
- drivers/infiniband/hw/bnxt_re/qplib_fp.c                        | 2 +-
- drivers/infiniband/hw/bnxt_re/qplib_res.h                       | 2 +-
- drivers/net/ethernet/broadcom/bnxt/bnxt.c                       | 2 +-
- drivers/net/ethernet/broadcom/bnxt/bnxt_devlink.c               | 2 +-
- drivers/net/ethernet/broadcom/bnxt/bnxt_ethtool.c               | 2 +-
- drivers/net/ethernet/broadcom/bnxt/bnxt_sriov.c                 | 2 +-
- drivers/net/ethernet/broadcom/bnxt/bnxt_ulp.c                   | 2 +-
- .../broadcom/bnxt/bnxt_ulp.h => include/linux/bnxt/ulp.h        | 0
- 10 files changed, 9 insertions(+), 9 deletions(-)
- rename drivers/net/ethernet/broadcom/bnxt/bnxt_ulp.h => include/linux/bnxt/ulp.h (100%)
+ drivers/infiniband/hw/irdma/hw.c    |  7 +++----
+ drivers/infiniband/hw/irdma/main.h  |  3 +--
+ drivers/infiniband/hw/irdma/utils.c | 12 +++++-------
+ 3 files changed, 9 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/infiniband/hw/bnxt_re/debugfs.c b/drivers/infiniband/hw/bnxt_re/debugfs.c
-index a2ad79c3bbd021..5fed2cf66be30a 100644
---- a/drivers/infiniband/hw/bnxt_re/debugfs.c
-+++ b/drivers/infiniband/hw/bnxt_re/debugfs.c
-@@ -10,8 +10,8 @@
- #include <linux/pci.h>
- #include <linux/seq_file.h>
- #include <rdma/ib_addr.h>
-+#include <linux/bnxt/ulp.h>
+diff --git a/drivers/infiniband/hw/irdma/hw.c b/drivers/infiniband/hw/irdma/hw.c
+index f9be467d13..c345cc6542 100644
+--- a/drivers/infiniband/hw/irdma/hw.c
++++ b/drivers/infiniband/hw/irdma/hw.c
+@@ -235,8 +235,7 @@ static void irdma_complete_cqp_request(struct irdma_cqp *cqp,
+ 				       struct irdma_cqp_request *cqp_request)
+ {
+ 	if (cqp_request->waiting) {
+-		WRITE_ONCE(cqp_request->request_done, true);
+-		wake_up(&cqp_request->waitq);
++		complete_all(&cqp_request->comp);
+ 	} else if (cqp_request->callback_fcn) {
+ 		cqp_request->callback_fcn(cqp_request);
+ 	}
+@@ -1107,9 +1106,9 @@ static int irdma_create_cqp(struct irdma_pci_f *rf)
+ 	INIT_LIST_HEAD(&cqp->cqp_avail_reqs);
+ 	INIT_LIST_HEAD(&cqp->cqp_pending_reqs);
  
--#include "bnxt_ulp.h"
- #include "roce_hsi.h"
- #include "qplib_res.h"
- #include "qplib_sp.h"
-diff --git a/drivers/infiniband/hw/bnxt_re/main.c b/drivers/infiniband/hw/bnxt_re/main.c
-index b576f05e3b26b2..47afccddf55e57 100644
---- a/drivers/infiniband/hw/bnxt_re/main.c
-+++ b/drivers/infiniband/hw/bnxt_re/main.c
-@@ -55,8 +55,8 @@
- #include <rdma/ib_umem.h>
- #include <rdma/ib_addr.h>
- #include <linux/hashtable.h>
-+#include <linux/bnxt/ulp.h>
+-	/* init the waitqueue of the cqp_requests and add them to the list */
++	/* init the completion of the cqp_requests and add them to the list */
+ 	for (i = 0; i < sqsize; i++) {
+-		init_waitqueue_head(&cqp->cqp_requests[i].waitq);
++		init_completion(&cqp->cqp_requests[i].comp);
+ 		list_add_tail(&cqp->cqp_requests[i].list, &cqp->cqp_avail_reqs);
+ 	}
+ 	init_waitqueue_head(&cqp->remove_wq);
+diff --git a/drivers/infiniband/hw/irdma/main.h b/drivers/infiniband/hw/irdma/main.h
+index 3d49bd57ba..8c17a201c1 100644
+--- a/drivers/infiniband/hw/irdma/main.h
++++ b/drivers/infiniband/hw/irdma/main.h
+@@ -161,13 +161,12 @@ struct irdma_cqp_compl_info {
  
--#include "bnxt_ulp.h"
- #include "roce_hsi.h"
- #include "qplib_res.h"
- #include "qplib_sp.h"
-diff --git a/drivers/infiniband/hw/bnxt_re/qplib_fp.c b/drivers/infiniband/hw/bnxt_re/qplib_fp.c
-index 2d7932b3c492fa..b4c7b8f582ba9f 100644
---- a/drivers/infiniband/hw/bnxt_re/qplib_fp.c
-+++ b/drivers/infiniband/hw/bnxt_re/qplib_fp.c
-@@ -46,6 +46,7 @@
- #include <linux/delay.h>
- #include <linux/prefetch.h>
- #include <linux/if_ether.h>
-+#include <linux/bnxt/ulp.h>
- #include <rdma/ib_mad.h>
+ struct irdma_cqp_request {
+ 	struct cqp_cmds_info info;
+-	wait_queue_head_t waitq;
++	struct completion comp;
+ 	struct list_head list;
+ 	refcount_t refcnt;
+ 	void (*callback_fcn)(struct irdma_cqp_request *cqp_request);
+ 	void *param;
+ 	struct irdma_cqp_compl_info compl_info;
+-	bool request_done; /* READ/WRITE_ONCE macros operate on it */
+ 	bool waiting:1;
+ 	bool dynamic:1;
+ 	bool pending:1;
+diff --git a/drivers/infiniband/hw/irdma/utils.c b/drivers/infiniband/hw/irdma/utils.c
+index 7cc7b107db..e4037d5ef8 100644
+--- a/drivers/infiniband/hw/irdma/utils.c
++++ b/drivers/infiniband/hw/irdma/utils.c
+@@ -442,7 +442,7 @@ struct irdma_cqp_request *irdma_alloc_and_get_cqp_request(struct irdma_cqp *cqp,
+ 		if (cqp_request) {
+ 			cqp_request->dynamic = true;
+ 			if (wait)
+-				init_waitqueue_head(&cqp_request->waitq);
++				init_completion(&cqp_request->comp);
+ 		}
+ 	}
+ 	if (!cqp_request) {
+@@ -480,7 +480,7 @@ void irdma_free_cqp_request(struct irdma_cqp *cqp,
+ 	if (cqp_request->dynamic) {
+ 		kfree(cqp_request);
+ 	} else {
+-		WRITE_ONCE(cqp_request->request_done, false);
++		reinit_completion(&cqp_request->comp);
+ 		cqp_request->callback_fcn = NULL;
+ 		cqp_request->waiting = false;
+ 		cqp_request->pending = false;
+@@ -515,8 +515,7 @@ irdma_free_pending_cqp_request(struct irdma_cqp *cqp,
+ {
+ 	if (cqp_request->waiting) {
+ 		cqp_request->compl_info.error = true;
+-		WRITE_ONCE(cqp_request->request_done, true);
+-		wake_up(&cqp_request->waitq);
++		complete_all(&cqp_request->comp);
+ 	}
+ 	wait_event_timeout(cqp->remove_wq,
+ 			   refcount_read(&cqp_request->refcnt) == 1, 1000);
+@@ -609,9 +608,8 @@ static int irdma_wait_event(struct irdma_pci_f *rf,
+ 	cqp_timeout.compl_cqp_cmds = atomic64_read(&rf->sc_dev.cqp->completed_ops);
+ 	do {
+ 		irdma_cqp_ce_handler(rf, &rf->ccq.sc_cq);
+-		if (wait_event_timeout(cqp_request->waitq,
+-				       READ_ONCE(cqp_request->request_done),
+-				       msecs_to_jiffies(CQP_COMPL_WAIT_TIME_MS)))
++		if (wait_for_completion_timeout(&cqp_request->comp,
++					msecs_to_jiffies(CQP_COMPL_WAIT_TIME_MS)))
+ 			break;
  
- #include "roce_hsi.h"
-@@ -55,7 +56,6 @@
- #include "qplib_sp.h"
- #include "qplib_fp.h"
- #include <rdma/ib_addr.h>
--#include "bnxt_ulp.h"
- #include "bnxt_re.h"
- #include "ib_verbs.h"
- 
-diff --git a/drivers/infiniband/hw/bnxt_re/qplib_res.h b/drivers/infiniband/hw/bnxt_re/qplib_res.h
-index 9a5dcf97b6f440..0a4a03efeb0bab 100644
---- a/drivers/infiniband/hw/bnxt_re/qplib_res.h
-+++ b/drivers/infiniband/hw/bnxt_re/qplib_res.h
-@@ -39,7 +39,7 @@
- #ifndef __BNXT_QPLIB_RES_H__
- #define __BNXT_QPLIB_RES_H__
- 
--#include "bnxt_ulp.h"
-+#include <linux/bnxt/ulp.h>
- 
- extern const struct bnxt_qplib_gid bnxt_qplib_gid_zero;
- 
-diff --git a/drivers/net/ethernet/broadcom/bnxt/bnxt.c b/drivers/net/ethernet/broadcom/bnxt/bnxt.c
-index 3f775196ef8194..5d05084e32d93f 100644
---- a/drivers/net/ethernet/broadcom/bnxt/bnxt.c
-+++ b/drivers/net/ethernet/broadcom/bnxt/bnxt.c
-@@ -59,10 +59,10 @@
- #include <net/netdev_rx_queue.h>
- #include <linux/pci-tph.h>
- #include <linux/bnxt/hsi.h>
-+#include <linux/bnxt/ulp.h>
- 
- #include "bnxt.h"
- #include "bnxt_hwrm.h"
--#include "bnxt_ulp.h"
- #include "bnxt_sriov.h"
- #include "bnxt_ethtool.h"
- #include "bnxt_dcb.h"
-diff --git a/drivers/net/ethernet/broadcom/bnxt/bnxt_devlink.c b/drivers/net/ethernet/broadcom/bnxt/bnxt_devlink.c
-index 15de802bbac48e..230cd95d30a269 100644
---- a/drivers/net/ethernet/broadcom/bnxt/bnxt_devlink.c
-+++ b/drivers/net/ethernet/broadcom/bnxt/bnxt_devlink.c
-@@ -13,12 +13,12 @@
- #include <net/devlink.h>
- #include <net/netdev_lock.h>
- #include <linux/bnxt/hsi.h>
-+#include <linux/bnxt/ulp.h>
- #include "bnxt.h"
- #include "bnxt_hwrm.h"
- #include "bnxt_vfr.h"
- #include "bnxt_devlink.h"
- #include "bnxt_ethtool.h"
--#include "bnxt_ulp.h"
- #include "bnxt_ptp.h"
- #include "bnxt_coredump.h"
- #include "bnxt_nvm_defs.h"
-diff --git a/drivers/net/ethernet/broadcom/bnxt/bnxt_ethtool.c b/drivers/net/ethernet/broadcom/bnxt/bnxt_ethtool.c
-index 0407aa1b3190e4..ef646a3463b1ec 100644
---- a/drivers/net/ethernet/broadcom/bnxt/bnxt_ethtool.c
-+++ b/drivers/net/ethernet/broadcom/bnxt/bnxt_ethtool.c
-@@ -27,9 +27,9 @@
- #include <net/netdev_queues.h>
- #include <net/netlink.h>
- #include <linux/bnxt/hsi.h>
-+#include <linux/bnxt/ulp.h>
- #include "bnxt.h"
- #include "bnxt_hwrm.h"
--#include "bnxt_ulp.h"
- #include "bnxt_xdp.h"
- #include "bnxt_ptp.h"
- #include "bnxt_ethtool.h"
-diff --git a/drivers/net/ethernet/broadcom/bnxt/bnxt_sriov.c b/drivers/net/ethernet/broadcom/bnxt/bnxt_sriov.c
-index 7f9829287c4950..edcc002e4ca358 100644
---- a/drivers/net/ethernet/broadcom/bnxt/bnxt_sriov.c
-+++ b/drivers/net/ethernet/broadcom/bnxt/bnxt_sriov.c
-@@ -17,9 +17,9 @@
- #include <linux/etherdevice.h>
- #include <net/dcbnl.h>
- #include <linux/bnxt/hsi.h>
-+#include <linux/bnxt/ulp.h>
- #include "bnxt.h"
- #include "bnxt_hwrm.h"
--#include "bnxt_ulp.h"
- #include "bnxt_sriov.h"
- #include "bnxt_vfr.h"
- #include "bnxt_ethtool.h"
-diff --git a/drivers/net/ethernet/broadcom/bnxt/bnxt_ulp.c b/drivers/net/ethernet/broadcom/bnxt/bnxt_ulp.c
-index e1e82a72cf1bb8..11ced44ead29b3 100644
---- a/drivers/net/ethernet/broadcom/bnxt/bnxt_ulp.c
-+++ b/drivers/net/ethernet/broadcom/bnxt/bnxt_ulp.c
-@@ -22,10 +22,10 @@
- #include <linux/auxiliary_bus.h>
- #include <net/netdev_lock.h>
- #include <linux/bnxt/hsi.h>
-+#include <linux/bnxt/ulp.h>
- 
- #include "bnxt.h"
- #include "bnxt_hwrm.h"
--#include "bnxt_ulp.h"
- 
- static DEFINE_IDA(bnxt_aux_dev_ids);
- 
-diff --git a/drivers/net/ethernet/broadcom/bnxt/bnxt_ulp.h b/include/linux/bnxt/ulp.h
-similarity index 100%
-rename from drivers/net/ethernet/broadcom/bnxt/bnxt_ulp.h
-rename to include/linux/bnxt/ulp.h
+ 		if (cqp_request->pending)
 -- 
-2.53.0
-
-
+2.54.0.1136.gdb2ca164c4-goog
 
