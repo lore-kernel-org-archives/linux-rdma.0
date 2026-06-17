@@ -1,239 +1,129 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.10])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5782338E10F
-	for <linux-rdma@vger.kernel.org>; Wed, 17 Jun 2026 07:46:07 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.10
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E411D39B4A3;
+	Wed, 17 Jun 2026 09:18:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781682368; cv=none; b=TpOIEU44ciENmaGLm15/aabZNKRY5Il2Wn51jkxhTqM3FkXzm6O9sSmiT5yR/+eFO8Mb5zVXTx5WdkDAiGWaWPjVmdb3cyKM+qQUJ2qC7qnnb61BzHlD+PLSjewG+IRlnDkCsm+Oe6pd8az94454fXzs7aEc1//SS+56VKwktoo=
+	t=1781687908; cv=none; b=p0cn+kwt8jKTV8s6f2Gr7r5s8S/qTWRDqODsjgTZANL0+rTeICufgv33ew9V6l+uM50kX7xFdo4jRMnCb/ge7xvLRvSnvXcuR+x8rbAH9G0kZ4uHjB3gnZCMPf6Yem5QB/jb0WCRPZxIUuZpQ4Vay/IEUiojpS/bHHJCNqg/OU0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781682368; c=relaxed/simple;
-	bh=oRo1c82T9ydU0C/W6NK+A///YBY/5hwb0oz9TyeAAHQ=;
-	h=Date:From:To:Cc:Subject:Message-ID; b=raKWEwR0I3OYBJ/gFkJGTDB+eFWSrYf62Uehy4bpFb+RLXoQszdtKkvMmRU6ZIjEk/kNPEO6gQEn3tJXiQnXkkus5DSfIXPc0FQNZSLQwNrOnuioNk0lLBugpsAYXHRLyPyR1csjjgblfWSSZt01jRQ577iU9ahxcx4w0lJjthk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=C99lun1d; arc=none smtp.client-ip=192.198.163.10
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1781687908; c=relaxed/simple;
+	bh=jU+y4zwGW5m9F+uZkVQ/IsuSU9Z9wtD6LH5H8jCyUPk=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=pu3P5hf+pZsF0KrwxHO5jdst89EYaNvLe2tmNrcBU52qSSUuma17Uy9n0RqKuQq/98xYJZCAJzcWF6kxXqohtXHlDB+FoSZhz9SLjZJsHdAeVo6A14l1aLnM046dw16XAMqwUYCbqhvWzcGyD6dOOxzfQOLWYNY8FEf//PX1+6Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=SKvst9fX; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="C99lun1d"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1781682368; x=1813218368;
-  h=date:from:to:cc:subject:message-id;
-  bh=oRo1c82T9ydU0C/W6NK+A///YBY/5hwb0oz9TyeAAHQ=;
-  b=C99lun1dTWcMjZOu9LQAb21QkUfMmPplqB4dBbiithapsEx1RbJpXXor
-   6H3ybv/0qRT7Fh0Uhz1+lwdVGQg9jZrri1Llj8c44ArZbp0E5C3HPOn8S
-   7GTlhYC1hBVz3KR3l+0Dz0R/3lUi4r9L9mHmjNQEi8WwyRx8pYSfMbJHA
-   LoRGggQF9VEqwz7O7a54koW2LTGU2zoyxteYTOL2U+HKA6HHn8ZESsiit
-   imBB0O3w+Jiz3BmZRkuYXtj3feWqxVnWLy3wSjOWUbInRj2KtUlRJ+spw
-   QB4L3sMg05bl0W4E12nfiLoK/oueglxSd1e2qB0tK74+dH6nwco+MXH2W
-   Q==;
-X-CSE-ConnectionGUID: nqDdyulsQVyggVWtzM8oMg==
-X-CSE-MsgGUID: U/yXiPAcS2mbRNiN/ROp/Q==
-X-IronPort-AV: E=McAfee;i="6800,10657,11819"; a="93843290"
-X-IronPort-AV: E=Sophos;i="6.24,209,1774335600"; 
-   d="scan'208";a="93843290"
-Received: from orviesa006.jf.intel.com ([10.64.159.146])
-  by fmvoesa104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Jun 2026 00:46:07 -0700
-X-CSE-ConnectionGUID: FqOrJRxnRx6hTKR6M0P4Og==
-X-CSE-MsgGUID: t9el5U38REiiL/wgykJfGA==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.24,209,1774335600"; 
-   d="scan'208";a="246858830"
-Received: from lkp-server01.sh.intel.com (HELO f0d55cb201f0) ([10.239.97.150])
-  by orviesa006.jf.intel.com with ESMTP; 17 Jun 2026 00:46:05 -0700
-Received: from kbuild by f0d55cb201f0 with local (Exim 4.98.2)
-	(envelope-from <lkp@intel.com>)
-	id 1wZkyI-00000000UFM-21BL;
-	Wed, 17 Jun 2026 07:46:02 +0000
-Date: Wed, 17 Jun 2026 15:45:39 +0800
-From: kernel test robot <lkp@intel.com>
-To: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org
-Subject: [rdma:wip/jgg-for-next] BUILD SUCCESS
- d9c8c45e6d2f438a3c8e643ae78b59454fa0fadd
-Message-ID: <202606171528.AjsHp8Ql-lkp@intel.com>
-User-Agent: s-nail v14.9.25
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="SKvst9fX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0F21A1F000E9;
+	Wed, 17 Jun 2026 09:18:23 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1781687907;
+	bh=EtNxW7/37fBEOlp38QPfab6gfweMcAFcEQ1RgfKloiU=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=SKvst9fXi2R1TDymljJrc6AzQ+h9tCJfP4PIijyCLDV76XTG3aUP7jios0lc8vvJW
+	 wrRahawIRsQ+OPKPdq7je/hchFPjjHCPZohsuaNjxm1BcPjxTCDVY8n2/mCm2aAM7H
+	 zXLrsbXwC+8ziBuz7+e9gDXD5MCmnpwl3Lju9Y8xKD6VyVNK+tviH3ZXMN+LjOqn30
+	 zjKGX2rO5i/EVprgo85hlksRklXiFopnO57f/mv+7cG+7s0fEDqX6b+LDUE6POjJOg
+	 YGhsPv3hyVNyUXUpEOJqlWfTz0ZBfayCvtda9zGnSUnHNCy5JVQkfNgcospb47T/sG
+	 7cnRM1qBtkO+Q==
+From: Simon Horman <horms@kernel.org>
+To: doruk@0sec.ai
+Cc: Simon Horman <horms@kernel.org>,
+	saeedm@nvidia.com,
+	leon@kernel.org,
+	tariqt@nvidia.com,
+	mbloch@nvidia.com,
+	andrew+netdev@lunn.ch,
+	davem@davemloft.net,
+	edumazet@google.com,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	borisp@nvidia.com,
+	sd@queasysnail.net,
+	raeds@nvidia.com,
+	ehakim@nvidia.com,
+	netdev@vger.kernel.org,
+	linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	stable@vger.kernel.org
+Subject: Re: [PATCH net] net/mlx5e: macsec: fix use-after-free of metadata_dst on RX SC delete
+Date: Wed, 17 Jun 2026 10:16:35 +0100
+Message-ID: <20260617091634.846438-2-horms@kernel.org>
+X-Mailer: git-send-email 2.54.0
+In-Reply-To: <20260615140534.52691-1-doruk@0sec.ai>
+References: <20260615140534.52691-1-doruk@0sec.ai>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git wip/jgg-for-next
-branch HEAD: d9c8c45e6d2f438a3c8e643ae78b59454fa0fadd  RDMA/irdma: Replace waitqueue and flag with completion
+This is an AI-generated review of your patch. The human sending this
+email has considered the AI review valid, or at least plausible.
+Full review at: https://sashiko.dev
+---
+net/mlx5e: macsec: fix use-after-free of metadata_dst on RX SC delete
 
-elapsed time: 729m
+This patch replaces metadata_dst_free() with dst_release() during MACsec
+RX SC deletion. It relies on the dst subsystem's refcounting to defer freeing
+the metadata_dst until the last reference is dropped, aiming to fix a
+use-after-free when an skb still references it.
 
-configs tested: 162
-configs skipped: 2
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/macsec.c b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/macsec.c
+> index 71b3a059c9647..2a4e7ed76d315 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/macsec.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/macsec.c
+> @@ -829,7 +829,7 @@ static void macsec_del_rxsc_ctx(struct mlx5e_macsec *macsec, struct mlx5e_macsec
+>  	 */
+>  	list_del_rcu(&rx_sc->rx_sc_list_element);
+>  	xa_erase(&macsec->sc_xarray, rx_sc->sc_xarray_element->fs_id);
+> -	metadata_dst_free(rx_sc->md_dst);
+> +	dst_release(&rx_sc->md_dst->dst);
 
-The following configs have been built successfully.
-More configs may be tested in the coming days.
+[Severity: High]
+Does this change introduce a new use-after-free in the RX datapath?
 
-tested configs:
-alpha                             allnoconfig    gcc-16.1.0
-alpha                            allyesconfig    gcc-16.1.0
-alpha                               defconfig    gcc-16.1.0
-arc                              allmodconfig    clang-23
-arc                               allnoconfig    gcc-16.1.0
-arc                              allyesconfig    clang-23
-arc                                 defconfig    gcc-16.1.0
-arc                   randconfig-001-20260617    gcc-16.1.0
-arc                   randconfig-002-20260617    gcc-16.1.0
-arm                               allnoconfig    gcc-16.1.0
-arm                              allyesconfig    clang-23
-arm                                 defconfig    gcc-16.1.0
-arm                   randconfig-001-20260617    gcc-16.1.0
-arm                   randconfig-002-20260617    gcc-16.1.0
-arm                   randconfig-003-20260617    gcc-16.1.0
-arm                   randconfig-004-20260617    gcc-16.1.0
-arm                        spear3xx_defconfig    clang-23
-arm64                            allmodconfig    clang-23
-arm64                             allnoconfig    gcc-16.1.0
-arm64                               defconfig    gcc-16.1.0
-arm64                 randconfig-001-20260617    gcc-12.5.0
-arm64                 randconfig-002-20260617    gcc-12.5.0
-arm64                 randconfig-003-20260617    gcc-12.5.0
-arm64                 randconfig-004-20260617    gcc-12.5.0
-csky                             allmodconfig    gcc-16.1.0
-csky                              allnoconfig    gcc-16.1.0
-csky                                defconfig    gcc-16.1.0
-csky                  randconfig-001-20260617    gcc-12.5.0
-csky                  randconfig-002-20260617    gcc-12.5.0
-hexagon                          allmodconfig    gcc-16.1.0
-hexagon                           allnoconfig    gcc-16.1.0
-hexagon                             defconfig    gcc-16.1.0
-hexagon               randconfig-001-20260617    clang-17
-hexagon               randconfig-002-20260617    clang-17
-i386                             allmodconfig    clang-22
-i386                              allnoconfig    gcc-16.1.0
-i386                             allyesconfig    clang-22
-i386        buildonly-randconfig-001-20260617    gcc-14
-i386        buildonly-randconfig-002-20260617    gcc-14
-i386        buildonly-randconfig-003-20260617    gcc-14
-i386        buildonly-randconfig-004-20260617    gcc-14
-i386        buildonly-randconfig-005-20260617    gcc-14
-i386        buildonly-randconfig-006-20260617    gcc-14
-i386                                defconfig    gcc-16.1.0
-i386                  randconfig-011-20260617    clang-22
-i386                  randconfig-012-20260617    clang-22
-i386                  randconfig-013-20260617    clang-22
-i386                  randconfig-014-20260617    clang-22
-i386                  randconfig-015-20260617    clang-22
-i386                  randconfig-016-20260617    clang-22
-i386                  randconfig-017-20260617    clang-22
-loongarch                        allmodconfig    clang-23
-loongarch                         allnoconfig    gcc-16.1.0
-loongarch                           defconfig    clang-23
-loongarch             randconfig-001-20260617    clang-17
-loongarch             randconfig-002-20260617    clang-17
-m68k                             allmodconfig    gcc-16.1.0
-m68k                              allnoconfig    gcc-16.1.0
-m68k                             allyesconfig    clang-23
-m68k                                defconfig    clang-23
-microblaze                        allnoconfig    gcc-16.1.0
-microblaze                       allyesconfig    gcc-16.1.0
-microblaze                          defconfig    clang-23
-mips                             allmodconfig    gcc-16.1.0
-mips                              allnoconfig    gcc-16.1.0
-mips                             allyesconfig    gcc-16.1.0
-nios2                            allmodconfig    clang-20
-nios2                             allnoconfig    clang-23
-nios2                               defconfig    clang-23
-nios2                 randconfig-001-20260617    clang-17
-nios2                 randconfig-002-20260617    clang-17
-openrisc                         allmodconfig    clang-20
-openrisc                          allnoconfig    clang-23
-openrisc                            defconfig    gcc-16.1.0
-parisc                           allmodconfig    gcc-16.1.0
-parisc                            allnoconfig    clang-23
-parisc                           allyesconfig    clang-17
-parisc                              defconfig    gcc-16.1.0
-parisc                randconfig-001-20260617    gcc-15.2.0
-parisc                randconfig-002-20260617    gcc-15.2.0
-parisc64                            defconfig    clang-23
-powerpc                          allmodconfig    gcc-16.1.0
-powerpc                           allnoconfig    clang-23
-powerpc               randconfig-001-20260617    gcc-15.2.0
-powerpc               randconfig-002-20260617    gcc-15.2.0
-powerpc                         wii_defconfig    gcc-16.1.0
-powerpc64             randconfig-001-20260617    gcc-15.2.0
-powerpc64             randconfig-002-20260617    gcc-15.2.0
-riscv                            allmodconfig    clang-23
-riscv                             allnoconfig    clang-23
-riscv                            allyesconfig    clang-23
-riscv                               defconfig    gcc-16.1.0
-riscv                 randconfig-001-20260617    gcc-16.1.0
-riscv                 randconfig-002-20260617    gcc-16.1.0
-s390                             allmodconfig    clang-17
-s390                              allnoconfig    clang-23
-s390                             allyesconfig    gcc-16.1.0
-s390                                defconfig    gcc-16.1.0
-s390                  randconfig-001-20260617    gcc-16.1.0
-s390                  randconfig-002-20260617    gcc-16.1.0
-sh                               allmodconfig    gcc-16.1.0
-sh                                allnoconfig    clang-23
-sh                               allyesconfig    clang-17
-sh                                  defconfig    gcc-14
-sh                    randconfig-001-20260617    gcc-16.1.0
-sh                    randconfig-002-20260617    gcc-16.1.0
-sparc                             allnoconfig    clang-23
-sparc                               defconfig    gcc-16.1.0
-sparc                 randconfig-001-20260617    gcc-16.1.0
-sparc                 randconfig-002-20260617    gcc-16.1.0
-sparc64                          allmodconfig    clang-20
-sparc64                             defconfig    gcc-14
-sparc64               randconfig-001-20260617    gcc-16.1.0
-sparc64               randconfig-002-20260617    gcc-16.1.0
-um                               allmodconfig    clang-17
-um                                allnoconfig    clang-23
-um                               allyesconfig    gcc-16.1.0
-um                                  defconfig    gcc-14
-um                             i386_defconfig    gcc-14
-um                    randconfig-001-20260617    gcc-16.1.0
-um                    randconfig-002-20260617    gcc-16.1.0
-um                           x86_64_defconfig    gcc-14
-x86_64                           allmodconfig    clang-22
-x86_64                            allnoconfig    clang-23
-x86_64                           allyesconfig    clang-22
-x86_64      buildonly-randconfig-001-20260617    clang-22
-x86_64      buildonly-randconfig-002-20260617    clang-22
-x86_64      buildonly-randconfig-003-20260617    clang-22
-x86_64      buildonly-randconfig-004-20260617    clang-22
-x86_64      buildonly-randconfig-005-20260617    clang-22
-x86_64      buildonly-randconfig-006-20260617    clang-22
-x86_64                              defconfig    gcc-14
-x86_64                                  kexec    clang-22
-x86_64                randconfig-001-20260617    clang-22
-x86_64                randconfig-002-20260617    clang-22
-x86_64                randconfig-003-20260617    clang-22
-x86_64                randconfig-004-20260617    clang-22
-x86_64                randconfig-005-20260617    clang-22
-x86_64                randconfig-006-20260617    clang-22
-x86_64                randconfig-011-20260617    clang-22
-x86_64                randconfig-012-20260617    clang-22
-x86_64                randconfig-013-20260617    clang-22
-x86_64                randconfig-014-20260617    clang-22
-x86_64                randconfig-015-20260617    clang-22
-x86_64                randconfig-016-20260617    clang-22
-x86_64                randconfig-071-20260617    clang-22
-x86_64                randconfig-072-20260617    clang-22
-x86_64                randconfig-073-20260617    clang-22
-x86_64                randconfig-074-20260617    clang-22
-x86_64                randconfig-075-20260617    clang-22
-x86_64                randconfig-076-20260617    clang-22
-x86_64                               rhel-9.4    clang-22
-x86_64                           rhel-9.4-bpf    gcc-14
-x86_64                          rhel-9.4-func    clang-22
-x86_64                    rhel-9.4-kselftests    clang-22
-x86_64                         rhel-9.4-kunit    gcc-14
-x86_64                           rhel-9.4-ltp    gcc-14
-x86_64                          rhel-9.4-rust    clang-22
-xtensa                            allnoconfig    clang-23
-xtensa                           allyesconfig    clang-20
-xtensa                randconfig-001-20260617    gcc-16.1.0
-xtensa                randconfig-002-20260617    gcc-16.1.0
+When dst_release() drops the refcount to 0, concurrent readers in
+mlx5e_macsec_offload_handle_rx_skb() can still find the object via RCU
+and call dst_hold(). Because dst_hold() uses rcuref_get(), it fails on a
+0-refcount object without incrementing the count.
 
---
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+However, the datapath still attaches the 0-refcount dst to the skb. When the
+skb is later freed, skb_dst_drop() will call dst_release() on already-freed
+memory.
+
+Should the datapath be updated to use dst_hold_safe() instead?
+
+>  	kfree(rx_sc->sc_xarray_element);
+
+[Severity: High]
+This is a pre-existing issue, but does this synchronous kfree() cause a
+use-after-free for concurrent datapath readers?
+
+The element was just removed from the RCU-protected xarray via xa_erase(),
+but the RX datapath can still be accessing it via xa_load() under
+rcu_read_lock() in mlx5e_macsec_offload_handle_rx_skb().
+
+Should this use an RCU-deferred free mechanism instead?
+
+[Severity: Critical]
+This is a pre-existing issue, but does mlx5e_macsec_offload_handle_rx_skb()
+blindly dereference the result of xa_load()?
+
+drivers/net/ethernet/mellanox/mlx5/core/en_accel/macsec.c:mlx5e_macsec_offload_handle_rx_skb() {
+    ...
+    sc_xarray_element = xa_load(&macsec->sc_xarray, fs_id);
+    rx_sc = sc_xarray_element->rx_sc;
+    ...
+}
+
+If xa_load() returns NULL (e.g., if the entry was concurrently deleted by
+xa_erase() or the packet has an unrecognized fs_id), will this cause a
+deterministic kernel panic?
+
+Is a NULL check needed before accessing the returned element?
+
+>  	kfree_rcu_mightsleep(rx_sc);
+>  }
