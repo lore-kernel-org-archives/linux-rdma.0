@@ -1,125 +1,68 @@
-Received: from pdx-out-002.esa.us-west-2.outbound.mail-perimeter.amazon.com (pdx-out-002.esa.us-west-2.outbound.mail-perimeter.amazon.com [44.246.1.125])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D3D1B388396
-	for <linux-rdma@vger.kernel.org>; Wed, 17 Jun 2026 23:12:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=44.246.1.125
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC740313539;
+	Wed, 17 Jun 2026 23:24:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781737975; cv=none; b=I+H3HK6Jsc4faK0vSR/xwnSVZFmo8t76XN2FnlzejZziCZDVLZ8CDWXrU5cRndcZdbGZI2SVQDJLodDnNv2eIu9VXFcmUpeLb1vhsHJZHuz5z/GMSrz4JLDlFq9hSgpUMPTRmUb8qUorJXMY7QbgZkkkl0V3IEnUGt23OORLdDs=
+	t=1781738697; cv=none; b=j9vtC96NDMIen1Qq66K/rFpOoLUAm3iglXz2gkzcSBhp75RsVEybcMEjKZom/gkli2As/KPYa3FR3qhP7BxhTfHG/gxzDd4pAsaweJw4faEXDRxgtBCYyBf7nTZR80aRINphllnWH5C+H4uqAjk8gOzjFfXVcWI2gEdgqIOAu3U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781737975; c=relaxed/simple;
-	bh=L+B2SLOMh1NxVe97e0ukVO7/L9L3xhDymEbvawpokjk=;
-	h=Date:From:To:CC:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Wx2q/wSrBWDYVYACrpVRifUA2ywpxrSrKakTD0A+ntw6oXsfGgPPLZzDJFm1N1SLR1FMArAzgxq4sxKiQrekq6WkV7TIuesSvKSAv4lbFmcefZpp+WWJWaug6WgfDkPKIsqA13eO9WbwKM8fbkHmM3AuQnOlLhykN8bNS6ZLyDw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com; spf=pass smtp.mailfrom=amazon.com; dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.b=mdY0b4Jq; arc=none smtp.client-ip=44.246.1.125
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazon.com
+	s=arc-20240116; t=1781738697; c=relaxed/simple;
+	bh=+eI17Fy+wVIe18UVPp034CydNAaGOahSn2tIGzBPJCU=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=VTgvhzpbe/7SwHf+yrtZXkSkB4ASDJ5Y6Jr8Vn0H3gMsKbwjSRW1W591GduKwz0xr9xewBt62sUfj/cDmZ+ZbkZgSAFY1FiaPwvjIoUjbBVu7oJtkLfSprNd9meJ/vHBeb1Qvr6PwjAF5gEy5hn49MXvdDQa+QP15vkKUBHxkuc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=YENY/Sh3; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.b="mdY0b4Jq"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazoncorp2;
-  t=1781737974; x=1813273974;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=T95Xz90R9sFG0RNJDdhvSbdu9MyELJ7ZqobeMzYntN0=;
-  b=mdY0b4Jqe+WI29uCwHLCS/rA9WKveVfII1TzEW2zkEigAryyZmVfscDl
-   M1tSiA/5K760HmL8PDWWnZqBYwU5H3hSgJe5mh9sYybRdphUiQPGxZvrV
-   vvCufuSwcK8cJ7zEik3Tm5aP/wkwU5TfOEYlJHu0XSOOVZOF/sqx5e+8a
-   +SSBgbKDX/oujghMm1VO3VwlhOVXsONPMzzq91HtTNgKhZ/Rt5J+8+f0g
-   DdkfKPkz8StqnrexZTT0/Px/3CYK+gwUYj1KECRoe16KVGgFbNnRUoc+q
-   3VNafyHLXRD25u2zxNHmvJVskyhvh84+sX7Y5PrH7t0zCLtJGhFQw6I59
-   g==;
-X-CSE-ConnectionGUID: KfCDOg1YS3OO0BOIFs8BMA==
-X-CSE-MsgGUID: GOPW6NVyTyOiECOGBm+Q2g==
-X-IronPort-AV: E=Sophos;i="6.24,210,1774310400"; 
-   d="scan'208";a="21989666"
-Received: from ip-10-5-12-219.us-west-2.compute.internal (HELO smtpout.naws.us-west-2.prod.farcaster.email.amazon.dev) ([10.5.12.219])
-  by internal-pdx-out-002.esa.us-west-2.outbound.mail-perimeter.amazon.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Jun 2026 23:12:54 +0000
-Received: from EX19MTAUWC002.ant.amazon.com [205.251.233.51:3687]
- by smtpin.naws.us-west-2.prod.farcaster.email.amazon.dev [10.0.31.226:2525] with esmtp (Farcaster)
- id 7fb2e266-cc45-4e0f-8527-9a16e81d8993; Wed, 17 Jun 2026 23:12:54 +0000 (UTC)
-X-Farcaster-Flow-ID: 7fb2e266-cc45-4e0f-8527-9a16e81d8993
-Received: from EX19D001UWA001.ant.amazon.com (10.13.138.214) by
- EX19MTAUWC002.ant.amazon.com (10.250.64.143) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.37;
- Wed, 17 Jun 2026 23:12:54 +0000
-Received: from dev-dsk-mrgolin-1c-b2091117.eu-west-1.amazon.com
- (10.253.103.172) by EX19D001UWA001.ant.amazon.com (10.13.138.214) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.37; Wed, 17 Jun 2026
- 23:12:52 +0000
-Date: Wed, 17 Jun 2026 23:12:43 +0000
-From: Michael Margolin <mrgolin@amazon.com>
-To: Jason Gunthorpe <jgg@nvidia.com>
-CC: tom sela <tomsela@amazon.com>, <leon@kernel.org>,
-	<linux-rdma@vger.kernel.org>, <sleybo@amazon.com>, <matua@amazon.com>,
-	<gal.pressman@linux.dev>, Yonatan Nachum <ynachum@amazon.com>
-Subject: Re: [PATCH for-rc] RDMA/efa: Propagate destroy AH error
-Message-ID: <20260617231243.GA28311@dev-dsk-mrgolin-1c-b2091117.eu-west-1.amazon.com>
-References: <20260526073334.24905-1-tomsela@amazon.com>
- <20260602002223.GA644685@nvidia.com>
- <20260608145738.GA43925@dev-dsk-tomsela-1c-ce9cc34e.eu-west-1.amazon.com>
- <20260608152622.GM1962447@nvidia.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="YENY/Sh3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B561C1F000E9;
+	Wed, 17 Jun 2026 23:24:55 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1781738696;
+	bh=r5uSA66J9ABM/9yH9MNLyLHNRWzKIhhr4br7s8vfmak=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References;
+	b=YENY/Sh3Yed6hgB9DUIcwtRPpc0H+4BrXWXFxaL/P54FnFkM8icFFcQLmWtAvl4tJ
+	 ldF2DhiYUCTuptBfefapfZopXADowAkgq71dMni6QSLpvEDkHSeN9qI3q3CzECu/GH
+	 YOPI76roAKAOh6uBQgfYVmQXNlNPOWT95WlCX0d0oW8Rc6gKUSXV4HeA8owkpBu7k0
+	 rkXneckPctgOlTl/SIv6YM9GtnDvOh6ndBw4kBDTB45zcW7UNzfvsTqbbEuiuD308x
+	 eT3ebr5lWS+l1GGgtzxSXUwbMDQzi+hNVlz21ENIP/5Few58KctkEFHe+r36HmDZEP
+	 W/RtdagPbHo0w==
+Date: Wed, 17 Jun 2026 16:24:54 -0700
+From: Jakub Kicinski <kuba@kernel.org>
+To: Bryam Vargas via B4 Relay <devnull+hexlabsecurity.proton.me@kernel.org>
+Cc: hexlabsecurity@proton.me, Wenjia Zhang <wenjia@linux.ibm.com>, Dust Li
+ <dust.li@linux.alibaba.com>, "D. Wythe" <alibuda@linux.alibaba.com>,
+ Sidraya Jayagond <sidraya@linux.ibm.com>, Eric Dumazet
+ <edumazet@google.com>, "David S. Miller" <davem@davemloft.net>, Mahanta
+ Jambigi <mjambigi@linux.ibm.com>, Wen Gu <guwen@linux.alibaba.com>, Simon
+ Horman <horms@kernel.org>, netdev@vger.kernel.org, Ursula Braun
+ <ubraun@linux.ibm.com>, Stefan Raspl <raspl@linux.ibm.com>,
+ linux-s390@vger.kernel.org, Paolo Abeni <pabeni@redhat.com>,
+ linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, Tony Lu
+ <tonylu@linux.alibaba.com>
+Subject: Re: [PATCH v3 0/3] net/smc: bound wire-controlled CDC cursors
+ against the local buffers
+Message-ID: <20260617162454.33e95c2f@kernel.org>
+In-Reply-To: <20260614-b4-disp-edd64be9-v3-0-551fa514257e@proton.me>
+References: <20260614-b4-disp-edd64be9-v3-0-551fa514257e@proton.me>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Disposition: inline
-In-Reply-To: <20260608152622.GM1962447@nvidia.com>
-User-Agent: Mutt/1.5.21 (2010-09-15)
-X-ClientProxiedBy: EX19D032UWB003.ant.amazon.com (10.13.139.165) To
- EX19D001UWA001.ant.amazon.com (10.13.138.214)
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-On Mon, Jun 08, 2026 at 12:26:22PM -0300, Jason Gunthorpe wrote:
-> On Mon, Jun 08, 2026 at 02:57:38PM +0000, tom sela wrote:
-> > On Mon, Jun 01, 2026 at 09:22:23PM -0300, Jason Gunthorpe wrote:
-> > > On Tue, May 26, 2026 at 07:33:34AM +0000, Tom Sela wrote:
-> > > > AH destruction currently always returns success, ignoring any error
-> > > > from the device. Propagate the actual device error so the caller can
-> > > > handle failures appropriately.
-> > > 
-> > > Callers don't handle failures. Drivers are not permitted to fail
-> > > destroy, if they do it probably will trigger a WARN_ON.
-> > > 
-> > > You can make some of an argument to allow failing destroy for user
-> > > objects only, but not like this in general for kernel objects.
-> > > 
-> > > If your FW fails destroying a kernel object then the device is busted,
-> > > you should reset it and succeed to destroy the kernel object anyhow.
-> > > 
-> > > Jason
-> > 
-> > 
-> > This code is for user objects only. When destroy is called for a
-> > user object, the core code handles the failure gracefully and can
-> > retry cleanup at a later stage.
-> > 
-> > Currently we don't have a code path where destroy_ah actually fails
-> > in device, but we'd like the error propagation in place for
-> > completeness so that if a future FW change can return a transient
-> > error, we handle it correctly rather than silently ignoring it.
-> > 
-> > Would you prefer we explicitly guard this with a check for
-> > ibah->uobject (i.e., only propagate the error when it's a user
-> > object).
-> 
-> Do you ever plan to support kverbs on efa?
+On Sun, 14 Jun 2026 03:23:29 -0500 Bryam Vargas via B4 Relay wrote:
+> A peer's CDC producer/consumer cursors are copied from the wire and used,
+> without an upper bound against the local buffers, as (a) a raw index into the
+> RMB on the urgent path, (b) the receive length in smc_rx_recvmsg(), and (c) the
+> send length in smc_tx_sendmsg() on the SMC-D DMB-merge path.  A malicious or
+> buggy peer can forge a cursor so each of these runs past the relevant buffer:
+> an out-of-bounds read of adjacent kernel memory (disclosed to the peer) on the
+> receive/urgent side, and an out-of-bounds write of attacker-influenced length
+> and content on the send side.
 
-I believe we eventually will.
-
-> 
-> It is still not Ok to propogae all failures even on uobjects, you will
-> still trigger a WARN_ON eventually.. It has to succeed under the retry
-> logic.
-
-So propagating EBUSY/EAGAIN for userspace objects does make sense?
-
-Michael
-
-> 
-> Jason
-
-
+Once again, SMC maintainers -- please review.
+-- 
+mping: SHARED MEMORY COMMUNICATIONS (SMC) SOCKETS
