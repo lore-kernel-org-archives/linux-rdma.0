@@ -1,134 +1,94 @@
-Received: from mail-m155101.qiye.163.com (mail-m155101.qiye.163.com [101.71.155.101])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oo1-f41.google.com (mail-oo1-f41.google.com [209.85.161.41])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D493F38D40D;
-	Thu, 18 Jun 2026 14:21:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=101.71.155.101
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781792516; cv=none; b=PUor9O2WuPDSjLs2NYh24JwM0ub7Eqyxd70IhDx2fTEIz4+8OyUWBUdjVtpYIAIQKnY0rCFJM/5TxeVLUHtw9+UMB0UgecvAubq0OUXZaXTHmEIEpgFGBXMSwZIDnCtERyiB90J3lZkunJzjB8sJRX5eQrqSyVbMVv/68qy/39o=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781792516; c=relaxed/simple;
-	bh=L5U93jZHJyDASCbYgKUYgJLTODAE27QkVBFWgkckHp0=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=EqB2qxVCbzj6ADwEIiu4QUvYQC7JenWK2fCq4HyRTm3iCSmH9riiCQ5GoJ0dem9/RU3EVp+Ql03zWov4vnizM+y57WZbo/V787sZgZDpNKogIiWCq7tTlae40npi6xm5KYyRc00RPOcztY/KLZJ9L8o4w3O+E+tsk5v/qiDcfHE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=seu.edu.cn; spf=pass smtp.mailfrom=seu.edu.cn; dkim=pass (1024-bit key) header.d=seu.edu.cn header.i=@seu.edu.cn header.b=MoqV4MmD; arc=none smtp.client-ip=101.71.155.101
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=seu.edu.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=seu.edu.cn
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C9EA42D7DC8
+	for <linux-rdma@vger.kernel.org>; Thu, 18 Jun 2026 14:28:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.161.41
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1781792893; cv=pass; b=lC6KaHDJEo4m8n5j78jGwiFD5CF3q4inYPNJiiz+E2mTv1YXG9aVXATGSjkmCFXPmIxaJM12IlGNoVqsxigacSG2iajKDuVCZ0Pf6FpgRavU+fDcgrDbRMRRKBID2xov0vS9O+S/qyYIcv059usSvC96khdlieGLarzD5b/ccko=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1781792893; c=relaxed/simple;
+	bh=i2B+NxU0CZTK0xwM8OLVyFfmzdA22KKzORXTSg+xy+M=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=adusba8f0F9ucEm6Fza46P8lCiaaRWbECEugIFOsTD3tg3qdxJLBMj082uJpfqIOcCJypv0RILTAJ0JJFcPDkc7QR4BsuT+wxC7noYXL0F1n1HuewJ96fE16rpVWqOXetkNHM2oSqXyGnXoL+otHJP5pSjtxdGOpBtKRKxf1hMo=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=BTbOpqE/; arc=pass smtp.client-ip=209.85.161.41
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=seu.edu.cn header.i=@seu.edu.cn header.b="MoqV4MmD"
-Received: from PC-202605011814.localdomain (unknown [222.191.246.242])
-	by smtp.qiye.163.com (Hmail) with ESMTP id 42ee4c373;
-	Thu, 18 Jun 2026 22:16:34 +0800 (GMT+08:00)
-From: Runyu Xiao <runyu.xiao@seu.edu.cn>
-To: Mahanta Jambigi <mjambigi@linux.ibm.com>,
-	"D. Wythe" <alibuda@linux.alibaba.com>,
-	Dust Li <dust.li@linux.alibaba.com>,
-	Sidraya Jayagond <sidraya@linux.ibm.com>,
-	Wenjia Zhang <wenjia@linux.ibm.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>
-Cc: Tony Lu <tonylu@linux.alibaba.com>,
-	Wen Gu <guwen@linux.alibaba.com>,
-	Simon Horman <horms@kernel.org>,
-	Karsten Graul <kgraul@linux.ibm.com>,
-	linux-rdma@vger.kernel.org,
-	linux-s390@vger.kernel.org,
-	netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	jianhao.xu@seu.edu.cn,
-	runyu.xiao@seu.edu.cn
-Subject: Re: [PATCH net] net/smc: avoid recursive sk_callback_lock in listen data_ready
-Date: Thu, 18 Jun 2026 22:16:29 +0800
-Message-Id: <20260618141629.2904071-1-runyu.xiao@seu.edu.cn>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <f7e36176-d00a-4471-94ed-d385e579b43d@linux.ibm.com>
-References: <f7e36176-d00a-4471-94ed-d385e579b43d@linux.ibm.com>
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="BTbOpqE/"
+Received: by mail-oo1-f41.google.com with SMTP id 006d021491bc7-69e32df92c1so634089eaf.0
+        for <linux-rdma@vger.kernel.org>; Thu, 18 Jun 2026 07:28:11 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1781792891; cv=none;
+        d=google.com; s=arc-20240605;
+        b=CWuhzI4icHHl8Q8J+3gOQJuN225+NpRL2cGDJ7nJqHHMYkBfzEAs/xaE0LXBJbm35l
+         FsxO2g19GYMtlJlQu+oK3KO03STZP3XByv/7kBiqWWD7GzA+mF0u0w1haUpOgQg5DD+9
+         buR7xtzO64GqoN19c6evp5O+bNGReYJgP9M75RDWswfTADB+R19eMRvBvoxDSmPEcNTN
+         wwfm/0bUY9ggo44CKJxCuoyXgAeFUDCRnlsB9HkvJfvLLH2/qt9OlsQ36k1d0uHzZFwU
+         qkowkNc45JmCj1Ax2U0OPz1SI4Xz5fFpEGjdU8xq1EhV04FT0fQcEAjZZyfI82B4wfm/
+         avPQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:dkim-signature;
+        bh=i2B+NxU0CZTK0xwM8OLVyFfmzdA22KKzORXTSg+xy+M=;
+        fh=E/b4JziRVrSsMDD9PvHrPgyIuxaa4n/33eq4zWTKQGg=;
+        b=SlhQ1rUmGNA7YNK3Bj+NsABmZ7Y+tOrAYymf29VOsDFyHaoC38Wrlt4mItIsKl0YWu
+         hXumkxcUKBVtaHaqNrrJzJM2Q20VOmZZ5+sbwxOFn5LSynNAQBFruF6YG2Z4jEHaq6SC
+         UgnxatXjEuS8xzEymtuXvQOcLEOUEsrnWKbMpX/fOMKy2MRPgN0Bw3ugp6Be+QmL39xO
+         cuKZpVBlv7Es6sHV9UCgvRlzynOWbNZmgXgGJkEIOa40M86DoXlWdGiJNw/5plP0a6LY
+         KTvLb7rT5J/Qlcl1WPSCKKqYcbfBZXDifZ7mmaIJ+uVyXlR/UPy2mtUJCqAjU+WlS+uB
+         /vyA==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20251104; t=1781792891; x=1782397691; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=i2B+NxU0CZTK0xwM8OLVyFfmzdA22KKzORXTSg+xy+M=;
+        b=BTbOpqE/YsvALZwdi0rHQmqIA5V3p99EWmuKWYdgiLPt5MwfVUAzaRnxQkqJtOJpyI
+         tn1zdmwztBX0VxPE7fQLiY7h1TGdndvoNq86kcjQveuGIgMf+uR1+YvyZTf0VkJN+65M
+         lBS4eCwioL5K8pIGZiQEwmvJvD8DtbSyA0V3y+BFlKMRCJPg5vJk5sKonb5USwkBpaqd
+         /H+PsFFLXPIlKkNRtMNqlurAEm6n5Pk71d7bkhbNR+uID5BsHfPjlk6xzaA79gwXRY4D
+         2UmWIgpNWu+5UyBwiD8wF8ie1DZTwggZ3SkviYCRIvXjI3/yARuNTSbTvG1FMPrHOsOo
+         ydjQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1781792891; x=1782397691;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=i2B+NxU0CZTK0xwM8OLVyFfmzdA22KKzORXTSg+xy+M=;
+        b=ffIWUawl4KMmlZ4o/57PLU8+hOKANSDAzKP4eei+fGb1b4ViQboHvcTqWo7Rm21m4/
+         v0QzZ6t0rbpXTYKxhI9s8i7KItLTCEuAuOXxnqpxGqC27N9EY8G+uh7Qf2C3I2cUyTV6
+         oOAt8BIlcpWxkbsnlewMjLW/geAB/fLP5VYSwGOIpvFlDtuqHUzSYelOYUmw9vjWSm6+
+         9miXQK2cD3nly/ZTMCvhug1gafUDY4dxgtnsuG2CS4t/w374YwxXjap+danMOKX63jvQ
+         /YD1xGxaDAgR53jUoGBCq1AHsnN8qcBiNcSgqHKYincaahY4H0ApuuAYvo5/b9QmUg9F
+         k4pg==
+X-Forwarded-Encrypted: i=1; AFNElJ95Q9Jj08TH9ieofezMkSlWcBsaBt1jFB4n+B/EjRybJPAWExGlIRl1Df2MyySUpQmHUXQw+w4KhNcM@vger.kernel.org
+X-Gm-Message-State: AOJu0YwT7BdsL4mzHrJ8IqomVx3EdeukxfGj6MWzg/Lz2odAwYp2WK0O
+	2BOFds8WbXehi0K7AgByfaZLso6THFR2/51WkTQkcHFKljzo6Ei3Smfn/juJrkDgjrn70Xj8YsM
+	T8FaAKWHfJqIdUEzSb4KNq7y1NeE6OI3IDd2arZai
+X-Gm-Gg: Acq92OEH5OMK2094Lxo6/q9Yb3auIfR/9IqCnUAyH18hN2f+sUlLBgTWt73uUUU20hl
+	j3l/tmTjEht7XegveH1hieZgkLC+GvyzrrhvivClTINwAJ++Sv69NEFt5sBHfcGP8sYe0piGFST
+	DdBo35DrIG3uq4FpZkVHfxRMQWWznOYH2Gty2Z2lOxVYyl3HliwIekkLJGmJVSk187WJ++UXEYV
+	fg6XqZNkoBquOUQdbvJ+19bvCsEEtwyi5mspj9lxbOeqnhV/oojBiC13Hy/+PJfVAQvFxJLdQ==
+X-Received: by 2002:a05:6820:906:b0:69e:8afe:e989 with SMTP id
+ 006d021491bc7-6a0b60c5d75mr6777398eaf.30.1781792890090; Thu, 18 Jun 2026
+ 07:28:10 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-HM-Tid: 0a9edb173fd803a1kunmb825a670a55e1
-X-HM-MType: 10
-X-HM-Spam-Status: e1kfGhgUHx5ZQUpXWQgPGg8OCBgUHx5ZQUlOS1dZFg8aDwILHllBWSg2Ly
-	tZV1koWUFITzdXWRgWCB1ZQUpXWS1ZQUlXWQ8JGhUIEh9ZQVkZGE4YVkxKGU9MTB0YSE1DHVYeHw
-	5VEwETFhoSFyQUDg9ZV1kYEgtZQVlJSUlVSkJKVUlPTVVJT0lZV1kWGg8SFR0UWUFZT0tIVUpLSE
-	pPSExVSktLVUpCS0tZBg++
-DKIM-Signature: a=rsa-sha256;
-	b=MoqV4MmDRylUoqoUi+YtDHcBMu14DQc4kKkjuz1YU0otMj8TXwY+HxXTf5/VMCJgubQFjGCt3tHFeYrl5EEsZ9tkpL3WZ6577zEriBUPvds8GKpQEwnePFz4aL9F2DRMJUXyNB06jfdOUEHfithPx4fLeKu6NEppZzBTlAZXfkU=; s=default; c=relaxed/relaxed; d=seu.edu.cn; v=1;
-	bh=GM5MKfzBrLqFzrUns6jEKAvDRObTqAY5/7+P5HHfT8I=;
-	h=date:mime-version:subject:message-id:from;
+References: <20260618045120.51210-1-boshiyu@linux.alibaba.com> <20260618045120.51210-4-boshiyu@linux.alibaba.com>
+In-Reply-To: <20260618045120.51210-4-boshiyu@linux.alibaba.com>
+From: Jacob Moroni <jmoroni@google.com>
+Date: Thu, 18 Jun 2026 10:27:57 -0400
+X-Gm-Features: AVVi8CcdyMecEicEHWhNU69Z7SQQB1zykbolqmG2tPB9UGEo2gSAu2cpDPoB91s
+Message-ID: <CAHYDg1Sqb2XfH8pi12sy3HwrU_WqM+F7NeXmwyW5jDJNNP+s3Q@mail.gmail.com>
+Subject: Re: [PATCH for-next v3 3/3] RDMA/erdma: Implement erdma_reg_user_mr_dmabuf
+To: Boshi Yu <boshiyu@linux.alibaba.com>
+Cc: jgg@ziepe.ca, leon@kernel.org, linux-rdma@vger.kernel.org, 
+	chengyou@linux.alibaba.com, kaishen@linux.alibaba.com
+Content-Type: text/plain; charset="UTF-8"
 
-Hi,
-
-Thanks for taking a look.
-
-The exact Lockdep stack I have is from the grounded reproducer, not from
-a production SMC setup.  The reproducer keeps the same callback shape:
-the close/flush side holds sk_callback_lock and invokes the installed
-sk_data_ready callback, which re-enters smc_clcsock_data_ready() and tries
-to take sk_callback_lock again.
-
-The relevant Lockdep report is:
-
-  WARNING: possible recursive locking detected
-  kworker/u4:3/39 is trying to acquire lock:
-    (sk_callback_lock) at smc_clcsock_data_ready+0xa/0x4d
-
-  but task is already holding lock:
-    (sk_callback_lock) at smc_close_flush_work+0xc/0x30
-
-  Possible unsafe locking scenario:
-
-        CPU0
-        ----
-        lock(sk_callback_lock);
-        lock(sk_callback_lock);
-
-  *** DEADLOCK ***
-
-  Workqueue: smc_close_wq smc_close_flush_work
-
-  Call Trace:
-    dump_stack_lvl
-    __lock_acquire
-    lock_acquire
-    _raw_read_lock_bh
-    smc_clcsock_data_ready+0xa/0x4d
-    smc_close_flush_work+0x1f/0x30
-    process_one_work
-    worker_thread
-    kthread
-    ret_from_fork
-
-The nvmet change I referred to is:
-
-  2fa8961d3a6a ("nvmet-tcp: fixup hang in nvmet_tcp_listen_data_ready()")
-
-The stable/backport patch I originally used as the reference is:
-
-  1c90f930e7b4 ("nvmet-tcp: fixup hang in nvmet_tcp_listen_data_ready()")
-
-Its commit message says that when the socket is closed while in
-TCP_LISTEN, the flush callback can call nvmet_tcp_listen_data_ready()
-with sk_callback_lock already held, so nvmet moved the TCP_LISTEN check
-before taking sk_callback_lock.
-
-For the TCP_LISTEN check: my reasoning was that smc_clcsock_data_ready()
-is installed by smc_listen() on the underlying TCP listen socket and only
-queues smc_tcp_listen_work() for the SMC listen/accept path.  Once that
-underlying socket is no longer in TCP_LISTEN, there should be no SMC
-listen accept work to queue from this callback.  TCP_SYN_RECV and
-TCP_ESTABLISHED are not listen-socket states for this callback path, so I
-did not intend the callback to queue listen work for those states.
-
-That said, if SMC expects smc_clcsock_data_ready() to handle a non-LISTEN
-state during fallback or another transition, then the proposed check is
-too strict and I should rework the fix.
-
-Thanks,
-Runyu
+Reviewed-by: Jacob Moroni <jmoroni@google.com>
