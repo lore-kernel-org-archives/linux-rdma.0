@@ -1,57 +1,50 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mail-m155101.qiye.163.com (mail-m155101.qiye.163.com [101.71.155.101])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E02F3905E0;
-	Thu, 18 Jun 2026 13:26:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D493F38D40D;
+	Thu, 18 Jun 2026 14:21:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=101.71.155.101
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781789210; cv=none; b=tPi3eTdMf0oFa6qd8LcAYJxypUQWbBOXXJ+30EUBlLW3kBrckasQuGrd7IQchJeaO3XKDNsk2CZhRComvxd8q+9VVgWqNnYF+inKlRo9RgafBOSCLDvhdEOJJSxIRnHmnBN3hG2f9/Mf9dTyaqYBExFufIcLw835YUgKG4VvAds=
+	t=1781792516; cv=none; b=PUor9O2WuPDSjLs2NYh24JwM0ub7Eqyxd70IhDx2fTEIz4+8OyUWBUdjVtpYIAIQKnY0rCFJM/5TxeVLUHtw9+UMB0UgecvAubq0OUXZaXTHmEIEpgFGBXMSwZIDnCtERyiB90J3lZkunJzjB8sJRX5eQrqSyVbMVv/68qy/39o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781789210; c=relaxed/simple;
-	bh=QLElcu9hzb0P9ZXwyhxlrodftHCw/3tjsGb+QSKtCgU=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=OkTb5D9RmDLAQXe3WCctNpUh8Nu7HeifXXfNnJP3CtBEvONOrzsGAi2fr9gRXlzDKxicUZcgbqqirNNDlTtojfWHAPmyXob70T6REBWRNn3RAgCqaHUOiYWFgzmI9jwYvXs84Mc3SHOy3mSjWazOnKIIDnvWBLEeXfp3GZAIfQ8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ePH305ta; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1781792516; c=relaxed/simple;
+	bh=L5U93jZHJyDASCbYgKUYgJLTODAE27QkVBFWgkckHp0=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=EqB2qxVCbzj6ADwEIiu4QUvYQC7JenWK2fCq4HyRTm3iCSmH9riiCQ5GoJ0dem9/RU3EVp+Ql03zWov4vnizM+y57WZbo/V787sZgZDpNKogIiWCq7tTlae40npi6xm5KYyRc00RPOcztY/KLZJ9L8o4w3O+E+tsk5v/qiDcfHE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=seu.edu.cn; spf=pass smtp.mailfrom=seu.edu.cn; dkim=pass (1024-bit key) header.d=seu.edu.cn header.i=@seu.edu.cn header.b=MoqV4MmD; arc=none smtp.client-ip=101.71.155.101
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=seu.edu.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=seu.edu.cn
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ePH305ta"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 866741F00ACA;
-	Thu, 18 Jun 2026 13:26:45 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1781789208;
-	bh=oP8CklMUaboQLSuBeJTlR6jjiTi2cbJtmz4ndwNg7Hs=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=ePH305taClEHRX7/p9PObb/G1F17AsBqD1kbzlA8VsxNnxeR/tdpMunsl/VAi3g6c
-	 nCU3YpNI3iOaZZtZ7aVcwhVEyZu24FzADcHAc3LK6j0CKmHYLPyYIhrMdlUd5hfCZN
-	 ah+iD48ZN/VukYANVT49OjnF54g0koiUcAsbdRoz6dle+YDdBYAhEwJEW24Lw4LMGX
-	 9dFfgDwAgENyr8KGA14FItdKASNGvJshTz8VxG3YLMWr4Q6QFe8l+WgE0jq8vw4YAx
-	 23DaOJ+hCdCKO5DCnoeC9K134vJVVDdjOAyeeqcUdUatB5D3BBQloFA9FZcXD85H5Z
-	 cKQl69mYXkSIA==
-From: Simon Horman <horms@kernel.org>
-To: doruk@0sec.ai
-Cc: Simon Horman <horms@kernel.org>,
-	saeedm@nvidia.com,
-	leon@kernel.org,
-	tariqt@nvidia.com,
-	mbloch@nvidia.com,
-	sd@queasysnail.net,
-	andrew+netdev@lunn.ch,
-	davem@davemloft.net,
-	edumazet@google.com,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	borisp@nvidia.com,
-	raeds@nvidia.com,
-	ehakim@nvidia.com,
-	netdev@vger.kernel.org,
+	dkim=pass (1024-bit key) header.d=seu.edu.cn header.i=@seu.edu.cn header.b="MoqV4MmD"
+Received: from PC-202605011814.localdomain (unknown [222.191.246.242])
+	by smtp.qiye.163.com (Hmail) with ESMTP id 42ee4c373;
+	Thu, 18 Jun 2026 22:16:34 +0800 (GMT+08:00)
+From: Runyu Xiao <runyu.xiao@seu.edu.cn>
+To: Mahanta Jambigi <mjambigi@linux.ibm.com>,
+	"D. Wythe" <alibuda@linux.alibaba.com>,
+	Dust Li <dust.li@linux.alibaba.com>,
+	Sidraya Jayagond <sidraya@linux.ibm.com>,
+	Wenjia Zhang <wenjia@linux.ibm.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>
+Cc: Tony Lu <tonylu@linux.alibaba.com>,
+	Wen Gu <guwen@linux.alibaba.com>,
+	Simon Horman <horms@kernel.org>,
+	Karsten Graul <kgraul@linux.ibm.com>,
 	linux-rdma@vger.kernel.org,
+	linux-s390@vger.kernel.org,
+	netdev@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
-	stable@vger.kernel.org
-Subject: Re: [PATCH net v2] net/mlx5e: macsec: fix use-after-free of metadata_dst on RX SC delete
-Date: Thu, 18 Jun 2026 14:18:58 +0100
-Message-ID: <20260618131857.894379-2-horms@kernel.org>
-X-Mailer: git-send-email 2.54.0
-In-Reply-To: <20260617100558.83654-1-doruk@0sec.ai>
-References: <20260617100558.83654-1-doruk@0sec.ai>
+	jianhao.xu@seu.edu.cn,
+	runyu.xiao@seu.edu.cn
+Subject: Re: [PATCH net] net/smc: avoid recursive sk_callback_lock in listen data_ready
+Date: Thu, 18 Jun 2026 22:16:29 +0800
+Message-Id: <20260618141629.2904071-1-runyu.xiao@seu.edu.cn>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <f7e36176-d00a-4471-94ed-d385e579b43d@linux.ibm.com>
+References: <f7e36176-d00a-4471-94ed-d385e579b43d@linux.ibm.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -59,87 +52,83 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+X-HM-Tid: 0a9edb173fd803a1kunmb825a670a55e1
+X-HM-MType: 10
+X-HM-Spam-Status: e1kfGhgUHx5ZQUpXWQgPGg8OCBgUHx5ZQUlOS1dZFg8aDwILHllBWSg2Ly
+	tZV1koWUFITzdXWRgWCB1ZQUpXWS1ZQUlXWQ8JGhUIEh9ZQVkZGE4YVkxKGU9MTB0YSE1DHVYeHw
+	5VEwETFhoSFyQUDg9ZV1kYEgtZQVlJSUlVSkJKVUlPTVVJT0lZV1kWGg8SFR0UWUFZT0tIVUpLSE
+	pPSExVSktLVUpCS0tZBg++
+DKIM-Signature: a=rsa-sha256;
+	b=MoqV4MmDRylUoqoUi+YtDHcBMu14DQc4kKkjuz1YU0otMj8TXwY+HxXTf5/VMCJgubQFjGCt3tHFeYrl5EEsZ9tkpL3WZ6577zEriBUPvds8GKpQEwnePFz4aL9F2DRMJUXyNB06jfdOUEHfithPx4fLeKu6NEppZzBTlAZXfkU=; s=default; c=relaxed/relaxed; d=seu.edu.cn; v=1;
+	bh=GM5MKfzBrLqFzrUns6jEKAvDRObTqAY5/7+P5HHfT8I=;
+	h=date:mime-version:subject:message-id:from;
 
-This is an AI-generated review of your patch. The human sending this
-email has considered the AI review valid, or at least plausible.
-Full review at: https://sashiko.dev
----
-net/mlx5e: macsec: fix use-after-free of metadata_dst on RX SC delete
+Hi,
 
-This commit fixes a use-after-free in the MACsec RX datapath by replacing
-a synchronous metadata_dst_free() with dst_release() when an RX SC is
-deleted. It also updates the datapath to use dst_hold_safe() to avoid
-acquiring a reference to a dying destination entry.
+Thanks for taking a look.
 
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/macsec.c b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/macsec.c
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/macsec.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/macsec.c
-> @@ -829,7 +829,7 @@ static void macsec_del_rxsc_ctx(struct mlx5e_macsec *macsec, struct mlx5e_macsec
->  	 */
->  	list_del_rcu(&rx_sc->rx_sc_list_element);
->  	xa_erase(&macsec->sc_xarray, rx_sc->sc_xarray_element->fs_id);
-> -	metadata_dst_free(rx_sc->md_dst);
-> +	dst_release(&rx_sc->md_dst->dst);
->  	kfree(rx_sc->sc_xarray_element);
+The exact Lockdep stack I have is from the grounded reproducer, not from
+a production SMC setup.  The reproducer keeps the same callback shape:
+the close/flush side holds sk_callback_lock and invokes the installed
+sk_data_ready callback, which re-enters smc_clcsock_data_ready() and tries
+to take sk_callback_lock again.
 
-[Severity: Critical]
-This is a pre-existing issue, but is it safe to synchronously call kfree()
-on rx_sc->sc_xarray_element here?
+The relevant Lockdep report is:
 
-The RX datapath accesses the xarray under rcu_read_lock() in
-mlx5e_macsec_offload_handle_rx_skb(). If sc_xarray_element is fetched via
-xa_load() by a concurrent reader just before xa_erase() runs, won't this
-kfree() free the element while the reader is still accessing it, leading to
-a use-after-free?
+  WARNING: possible recursive locking detected
+  kworker/u4:3/39 is trying to acquire lock:
+    (sk_callback_lock) at smc_clcsock_data_ready+0xa/0x4d
 
->  	kfree_rcu_mightsleep(rx_sc);
->  }
+  but task is already holding lock:
+    (sk_callback_lock) at smc_close_flush_work+0xc/0x30
 
-[ ... ]
+  Possible unsafe locking scenario:
 
-> @@ -1697,8 +1697,8 @@ void mlx5e_macsec_offload_handle_rx_skb(struct net_device *netdev,
->  	sc_xarray_element = xa_load(&macsec->sc_xarray, fs_id);
->  	rx_sc = sc_xarray_element->rx_sc;
+        CPU0
+        ----
+        lock(sk_callback_lock);
+        lock(sk_callback_lock);
 
-[Severity: Critical]
-This isn't a bug introduced by this patch, but does xa_load() return NULL
-if the fs_id has already been erased by xa_erase() in the deletion path?
+  *** DEADLOCK ***
 
-If packets matched by hardware before the rule was deleted are still
-lingering in the software RX queues, xa_load() might return NULL.
-Dereferencing sc_xarray_element->rx_sc immediately after could cause a
-NULL pointer dereference. Could we add a NULL check here before accessing
-sc_xarray_element?
+  Workqueue: smc_close_wq smc_close_flush_work
 
-[Severity: Critical]
-This is also a pre-existing issue, but is rx_sc fully initialized when it
-becomes visible to RCU readers?
+  Call Trace:
+    dump_stack_lvl
+    __lock_acquire
+    lock_acquire
+    _raw_read_lock_bh
+    smc_clcsock_data_ready+0xa/0x4d
+    smc_close_flush_work+0x1f/0x30
+    process_one_work
+    worker_thread
+    kthread
+    ret_from_fork
 
-In mlx5e_macsec_add_rxsc(), it appears sc_xarray_element is published to
-the xarray via xa_alloc() before rx_sc->md_dst is allocated and
-initialized:
+The nvmet change I referred to is:
 
-mlx5e_macsec_add_rxsc() {
-    ...
-    err = xa_alloc(&macsec->sc_xarray, &sc_xarray_element->fs_id, ...);
-    ...
-    rx_sc->md_dst = metadata_dst_alloc(0, METADATA_MACSEC, GFP_KERNEL);
-    ...
-}
+  2fa8961d3a6a ("nvmet-tcp: fixup hang in nvmet_tcp_listen_data_ready()")
 
-Since xa_alloc() assigns the lowest available index, the new fs_id could be
-recycled from a recently deleted SC. If a lingering packet with the old
-fs_id is processed by the datapath, it could find the newly published
-element and attempt to call dst_hold_safe(&rx_sc->md_dst->dst).
+The stable/backport patch I originally used as the reference is:
 
-Because rx_sc->md_dst is still NULL at that moment, could this cause a NULL
-pointer dereference?
+  1c90f930e7b4 ("nvmet-tcp: fixup hang in nvmet_tcp_listen_data_ready()")
 
->  	if (rx_sc) {
-> -		dst_hold(&rx_sc->md_dst->dst);
-> -		skb_dst_set(skb, &rx_sc->md_dst->dst);
-> +		if (dst_hold_safe(&rx_sc->md_dst->dst))
-> +			skb_dst_set(skb, &rx_sc->md_dst->dst);
->  	}
->  
->  	rcu_read_unlock();
+Its commit message says that when the socket is closed while in
+TCP_LISTEN, the flush callback can call nvmet_tcp_listen_data_ready()
+with sk_callback_lock already held, so nvmet moved the TCP_LISTEN check
+before taking sk_callback_lock.
+
+For the TCP_LISTEN check: my reasoning was that smc_clcsock_data_ready()
+is installed by smc_listen() on the underlying TCP listen socket and only
+queues smc_tcp_listen_work() for the SMC listen/accept path.  Once that
+underlying socket is no longer in TCP_LISTEN, there should be no SMC
+listen accept work to queue from this callback.  TCP_SYN_RECV and
+TCP_ESTABLISHED are not listen-socket states for this callback path, so I
+did not intend the callback to queue listen work for those states.
+
+That said, if SMC expects smc_clcsock_data_ready() to handle a non-LISTEN
+state during fallback or another transition, then the proposed check is
+too strict and I should rework the fix.
+
+Thanks,
+Runyu
