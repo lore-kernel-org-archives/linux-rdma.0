@@ -1,68 +1,79 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC740313539;
-	Wed, 17 Jun 2026 23:24:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E9702405E1;
+	Thu, 18 Jun 2026 00:20:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781738697; cv=none; b=j9vtC96NDMIen1Qq66K/rFpOoLUAm3iglXz2gkzcSBhp75RsVEybcMEjKZom/gkli2As/KPYa3FR3qhP7BxhTfHG/gxzDd4pAsaweJw4faEXDRxgtBCYyBf7nTZR80aRINphllnWH5C+H4uqAjk8gOzjFfXVcWI2gEdgqIOAu3U=
+	t=1781742060; cv=none; b=mZMzD/wH8xLBT2KDookno3M/GQeXnxBWwJAZCbGqHodqd0D4AhS2UIcnjnd0KxP+RPoXsqiA2/zfWfDCzld9FFh2o6vADHD35fLZcFmt/YZkF8R0gYwCOxgBaqHXKjYrUIzwWwwtYV4e77kNAzeHbFYBPU6OxLYLusbUNOGpwn0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781738697; c=relaxed/simple;
-	bh=+eI17Fy+wVIe18UVPp034CydNAaGOahSn2tIGzBPJCU=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=VTgvhzpbe/7SwHf+yrtZXkSkB4ASDJ5Y6Jr8Vn0H3gMsKbwjSRW1W591GduKwz0xr9xewBt62sUfj/cDmZ+ZbkZgSAFY1FiaPwvjIoUjbBVu7oJtkLfSprNd9meJ/vHBeb1Qvr6PwjAF5gEy5hn49MXvdDQa+QP15vkKUBHxkuc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=YENY/Sh3; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1781742060; c=relaxed/simple;
+	bh=3arIVhF/67GS9jQgSZLvlfK9B/U7rRqaN5+cBGVj64M=;
+	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc; b=QiakMh7BtFlBFtC/kqM95lppZGfeU2+Q70tW6cEWKR8xQ2kJjv+usNr01Rnmhu1NtHrW+J7rpPmXTsQ/PsVUZM9O+n7g3a+Wsjmy6oKLYFVTfHLb1KXkWyPs4g5y6nLyJPufsKAKEg198dsAuHEZsy579U9/H2iPXtus8Mzlzug=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=LFbIMWXw; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="YENY/Sh3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B561C1F000E9;
-	Wed, 17 Jun 2026 23:24:55 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="LFbIMWXw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 04D7C1F000E9;
+	Thu, 18 Jun 2026 00:20:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1781738696;
-	bh=r5uSA66J9ABM/9yH9MNLyLHNRWzKIhhr4br7s8vfmak=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References;
-	b=YENY/Sh3Yed6hgB9DUIcwtRPpc0H+4BrXWXFxaL/P54FnFkM8icFFcQLmWtAvl4tJ
-	 ldF2DhiYUCTuptBfefapfZopXADowAkgq71dMni6QSLpvEDkHSeN9qI3q3CzECu/GH
-	 YOPI76roAKAOh6uBQgfYVmQXNlNPOWT95WlCX0d0oW8Rc6gKUSXV4HeA8owkpBu7k0
-	 rkXneckPctgOlTl/SIv6YM9GtnDvOh6ndBw4kBDTB45zcW7UNzfvsTqbbEuiuD308x
-	 eT3ebr5lWS+l1GGgtzxSXUwbMDQzi+hNVlz21ENIP/5Few58KctkEFHe+r36HmDZEP
-	 W/RtdagPbHo0w==
-Date: Wed, 17 Jun 2026 16:24:54 -0700
-From: Jakub Kicinski <kuba@kernel.org>
-To: Bryam Vargas via B4 Relay <devnull+hexlabsecurity.proton.me@kernel.org>
-Cc: hexlabsecurity@proton.me, Wenjia Zhang <wenjia@linux.ibm.com>, Dust Li
- <dust.li@linux.alibaba.com>, "D. Wythe" <alibuda@linux.alibaba.com>,
- Sidraya Jayagond <sidraya@linux.ibm.com>, Eric Dumazet
- <edumazet@google.com>, "David S. Miller" <davem@davemloft.net>, Mahanta
- Jambigi <mjambigi@linux.ibm.com>, Wen Gu <guwen@linux.alibaba.com>, Simon
- Horman <horms@kernel.org>, netdev@vger.kernel.org, Ursula Braun
- <ubraun@linux.ibm.com>, Stefan Raspl <raspl@linux.ibm.com>,
- linux-s390@vger.kernel.org, Paolo Abeni <pabeni@redhat.com>,
- linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, Tony Lu
- <tonylu@linux.alibaba.com>
-Subject: Re: [PATCH v3 0/3] net/smc: bound wire-controlled CDC cursors
- against the local buffers
-Message-ID: <20260617162454.33e95c2f@kernel.org>
-In-Reply-To: <20260614-b4-disp-edd64be9-v3-0-551fa514257e@proton.me>
-References: <20260614-b4-disp-edd64be9-v3-0-551fa514257e@proton.me>
+	s=k20260515; t=1781742057;
+	bh=UNPPRd8B/p+uiHWPr1nXLJji67eYPfdSiU/9mrxCDtU=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc;
+	b=LFbIMWXwaQcl5d+wzqdVj3SDIc6JIILH5RpXNWH4/kWSPDNHaFbIJQ4SnPwOIFMH1
+	 kLPBVDc73afoZ6uGveGkjjtVeFVYB4PYNvUcb/9LUut67BJF0oRaAKeK89Mktf66DA
+	 0zyf4g01j/h5vu0kQ4e8bLeef8PsX92Rp+mHnAb9jTrBF3c1g6TsFSRqPlpvFi9fDE
+	 GEAdh6Acv/sMNkIid8bIigYM2eDZS1nPzmAoee2zY2jiLxcg56of7GzgkBratRiPcD
+	 ydy2hGMwxCwwE0DX831YK3YnYNYjIl9vR1phcURtzkdjnc5PMXi2s58tf2nJyf0VNb
+	 HERgt/R7+UcGg==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 1985A393102B;
+	Thu, 18 Jun 2026 00:20:52 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH][net-next] net/mlx5: Remove broken and unused
+ mlx5_query_mtppse()
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <178174205063.1875263.1756685428081420140.git-patchwork-notify@kernel.org>
+Date: Thu, 18 Jun 2026 00:20:50 +0000
+References: <20260615140406.1828-1-lirongqing@baidu.com>
+In-Reply-To: <20260615140406.1828-1-lirongqing@baidu.com>
+To: lirongqing <lirongqing@baidu.com>
+Cc: saeedm@nvidia.com, leon@kernel.org, tariqt@nvidia.com, mbloch@nvidia.com,
+ andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@google.com,
+ kuba@kernel.org, pabeni@redhat.com, netdev@vger.kernel.org, gal@nvidia.com,
+ linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Sun, 14 Jun 2026 03:23:29 -0500 Bryam Vargas via B4 Relay wrote:
-> A peer's CDC producer/consumer cursors are copied from the wire and used,
-> without an upper bound against the local buffers, as (a) a raw index into the
-> RMB on the urgent path, (b) the receive length in smc_rx_recvmsg(), and (c) the
-> send length in smc_tx_sendmsg() on the SMC-D DMB-merge path.  A malicious or
-> buggy peer can forge a cursor so each of these runs past the relevant buffer:
-> an out-of-bounds read of adjacent kernel memory (disclosed to the peer) on the
-> receive/urgent side, and an out-of-bounds write of attacker-influenced length
-> and content on the send side.
+Hello:
 
-Once again, SMC maintainers -- please review.
+This patch was applied to netdev/net.git (main)
+by Jakub Kicinski <kuba@kernel.org>:
+
+On Mon, 15 Jun 2026 22:04:06 +0800 you wrote:
+> From: Li RongQing <lirongqing@baidu.com>
+> 
+> mlx5_query_mtppse() reads the Event Trigger Pin (MTPPSE) register but
+> reads the returned arm and mode values from the input buffer 'in'
+> instead of the output buffer 'out', so it always returns the values
+> that were written rather than the actual hardware state, making the
+> query useless.
+> 
+> [...]
+
+Here is the summary with links:
+  - [net-next] net/mlx5: Remove broken and unused mlx5_query_mtppse()
+    https://git.kernel.org/netdev/net/c/b50fa1e07cf8
+
+You are awesome, thank you!
 -- 
-mping: SHARED MEMORY COMMUNICATIONS (SMC) SOCKETS
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
+
