@@ -1,39 +1,39 @@
 Received: from out30-119.freemail.mail.aliyun.com (out30-119.freemail.mail.aliyun.com [115.124.30.119])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0CF96175A7F
-	for <linux-rdma@vger.kernel.org>; Thu, 18 Jun 2026 04:51:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D8C9E21C173
+	for <linux-rdma@vger.kernel.org>; Thu, 18 Jun 2026 04:51:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.119
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781758294; cv=none; b=tSnpxMSkmY/e9Syq0riFH3BRAiZxP8xrO2Yu5QOCunxHB73PeMOd+UxR99ysRWi5vB3Qkq2YQG6r+u/qrttEyX+ihx591kwS+swd0PQd1NpomSFJSCJShNVnWoA6Hd9LxTtZjc3zzL5HUv+SRx+p4qV9+4TN8Q/ndJwk6UHs+2s=
+	t=1781758296; cv=none; b=cjJF+yT4iFA4k6wrvxJTfRPH+d3ey+EOGA20rJApspWFYyRv/3jDlkC1CGeXI0XesZprKL3nU59HZzMwI/Or1r+pkyD6JICjootQcx8GbFuKzcSiuyu3/quzuensgjKdlSo5s0LYOg66tE/ClJt13RTRWhIxaz6JN3o4uhL254Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781758294; c=relaxed/simple;
-	bh=fPjzeuKdZFou3E6c4l/cdJVjpNq7wPlU253rA9A+7dU=;
+	s=arc-20240116; t=1781758296; c=relaxed/simple;
+	bh=2api4+J8S+Lih8NX90FvmcnjgJ6P6YFBcp0AvquQPsU=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=RxEnRl7b6DWBobGRbMf2r88tqVrjjiJz7xllNu3CwfJfsgiLnD98RKgUaOuLEn172DUjhPJ1D/Kgyc9uTQsL/5Cf6j+O9JhWciuqLZezcRpCzgZOi4SGGR3JeQM8lEMfyQh9QKYn1v1ZJECFCHi1U5v7Y2JzTjK+XdjHKGEOlbM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=gV6C91vo; arc=none smtp.client-ip=115.124.30.119
+	 MIME-Version; b=MiA7zC+SaHl0bvyJVQWS0rQwKjhEwnGuDQtwGGKJ2dvqAq4euO2ksOjaZfyZY8s3NU079fWAOHRK9yYmOxnkv1mzcSQ0931DucFrdEVRJrGUaTDbUvoExbeKO5Ayp+jE7mtbCyPSOuVOdquqV4oWNMjHyh4OYcCxm1/1yVllbWs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=lBuZZVAd; arc=none smtp.client-ip=115.124.30.119
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="gV6C91vo"
+	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="lBuZZVAd"
 DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
 	d=linux.alibaba.com; s=default;
-	t=1781758283; h=From:To:Subject:Date:Message-ID:MIME-Version;
-	bh=lSHMXuodCAUvxQb6yx89FyA+FK/vzHzHOwNE8pObtgs=;
-	b=gV6C91vo7M7kjwQS85nLTRZWwQjZoMNSnCDBfK2XYmYsAXCw0p2LsvxAwMuntu12B1QHqWp3KK++XUuMPrUzIh51GcwA/PoQX/Lar/k2mVKq1thK/YTx9xfNg+pLqM0bUFCSNne6SoXaabF8EGd67eNV/GTZU1XWLP6CZ6b168Y=
-X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R791e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam033037033178;MF=boshiyu@linux.alibaba.com;NM=1;PH=DS;RN=5;SR=0;TI=SMTPD_---0X55fLUJ_1781758281;
-Received: from localhost(mailfrom:boshiyu@linux.alibaba.com fp:SMTPD_---0X55fLUJ_1781758281 cluster:ay36)
+	t=1781758284; h=From:To:Subject:Date:Message-ID:MIME-Version;
+	bh=V46c464CJzfN/r6VmEeSp/nT0LVXSw3nj/ZFKdSDnNk=;
+	b=lBuZZVAdXzOAs+bkANJutOa5Fkev1mcv5QBEdJ7DcT1fWJL3g15HsHCgTSDDRb20ITXnNOkJLbJPhhPaILOwh/WVbj0AKZ5JtVGzGmUsl1PKCjYM0qQZE3Q5BWdi7omJi5vmKeNb3vvBYnZAoxeJRbErAAOWvNA0/bUZCDs0O4Q=
+X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R171e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam011083073210;MF=boshiyu@linux.alibaba.com;NM=1;PH=DS;RN=5;SR=0;TI=SMTPD_---0X55c.JJ_1781758283;
+Received: from localhost(mailfrom:boshiyu@linux.alibaba.com fp:SMTPD_---0X55c.JJ_1781758283 cluster:ay36)
           by smtp.aliyun-inc.com;
-          Thu, 18 Jun 2026 12:51:22 +0800
+          Thu, 18 Jun 2026 12:51:23 +0800
 From: Boshi Yu <boshiyu@linux.alibaba.com>
 To: jgg@ziepe.ca,
 	leon@kernel.org
 Cc: linux-rdma@vger.kernel.org,
 	chengyou@linux.alibaba.com,
 	kaishen@linux.alibaba.com
-Subject: [PATCH for-next v3 1/3] RDMA/erdma: Rename get/put_mtt_entries to erdma_mem_init/uninit
-Date: Thu, 18 Jun 2026 12:51:03 +0800
-Message-ID: <20260618045120.51210-2-boshiyu@linux.alibaba.com>
+Subject: [PATCH for-next v3 3/3] RDMA/erdma: Implement erdma_reg_user_mr_dmabuf
+Date: Thu, 18 Jun 2026 12:51:05 +0800
+Message-ID: <20260618045120.51210-4-boshiyu@linux.alibaba.com>
 X-Mailer: git-send-email 2.46.0
 In-Reply-To: <20260618045120.51210-1-boshiyu@linux.alibaba.com>
 References: <20260618045120.51210-1-boshiyu@linux.alibaba.com>
@@ -45,191 +45,333 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-The get_mtt_entries() interface actually initializes the struct
-erdma_mem. Rename the get_mtt_entries/put_mtt_entries to
-erdma_mem_init/erdma_mem_uninit, respectively.
+Support DMA-BUF based user memory registration using the pinned
+revocable dmabuf interface, so that erdma can import dmabufs from
+exporters that may require revocation, such as VFIO.
+
+On revocation, the revoke callback destroys the MPT entry in hardware
+to stop the device from accessing the revoked memory, while the stag
+index is reserved until the MR is fully deregistered, ensuring the key
+cannot be obtained by a new region in the meantime.
+
+Refactor the existing erdma_reg_user_mr() into a common
+_erdma_reg_user_mr() function that handles both regular and DMA-BUF
+memory registration.
 
 Reviewed-by: Cheng Xu <chengyou@linux.alibaba.com>
 Signed-off-by: Boshi Yu <boshiyu@linux.alibaba.com>
 ---
- drivers/infiniband/hw/erdma/erdma_verbs.c | 64 +++++++++++------------
- 1 file changed, 32 insertions(+), 32 deletions(-)
+ drivers/infiniband/hw/erdma/erdma_main.c  |   1 +
+ drivers/infiniband/hw/erdma/erdma_verbs.c | 189 ++++++++++++++++------
+ drivers/infiniband/hw/erdma/erdma_verbs.h |   4 +
+ 3 files changed, 142 insertions(+), 52 deletions(-)
 
+diff --git a/drivers/infiniband/hw/erdma/erdma_main.c b/drivers/infiniband/hw/erdma/erdma_main.c
+index 7e87a815e853..6e4860428e5b 100644
+--- a/drivers/infiniband/hw/erdma/erdma_main.c
++++ b/drivers/infiniband/hw/erdma/erdma_main.c
+@@ -526,6 +526,7 @@ static const struct ib_device_ops erdma_device_ops = {
+ 	.query_qp = erdma_query_qp,
+ 	.req_notify_cq = erdma_req_notify_cq,
+ 	.reg_user_mr = erdma_reg_user_mr,
++	.reg_user_mr_dmabuf = erdma_reg_user_mr_dmabuf,
+ 	.modify_qp = erdma_modify_qp,
+ 
+ 	INIT_RDMA_OBJ_SIZE(ib_cq, erdma_cq, ibcq),
 diff --git a/drivers/infiniband/hw/erdma/erdma_verbs.c b/drivers/infiniband/hw/erdma/erdma_verbs.c
-index 74afe6eb18b0..92cd8cd846b6 100644
+index 98278432ba80..5c6d84d83fc9 100644
 --- a/drivers/infiniband/hw/erdma/erdma_verbs.c
 +++ b/drivers/infiniband/hw/erdma/erdma_verbs.c
-@@ -828,9 +828,9 @@ static void erdma_destroy_mtt(struct erdma_dev *dev, struct erdma_mtt *mtt)
+@@ -189,6 +189,20 @@ static int regmr_cmd(struct erdma_dev *dev, struct erdma_mr *mr)
+ 				   true);
+ }
+ 
++static int dereg_mr_cmd(struct erdma_dev *dev, struct erdma_mr *mr)
++{
++	struct erdma_cmdq_dereg_mr_req req = {};
++
++	erdma_cmdq_build_reqhdr(&req.hdr, CMDQ_SUBMOD_RDMA,
++				CMDQ_OPCODE_DEREG_MR);
++
++	req.cfg = FIELD_PREP(ERDMA_CMD_MR_MPT_IDX_MASK, mr->ibmr.lkey >> 8) |
++		  FIELD_PREP(ERDMA_CMD_MR_KEY_MASK, mr->ibmr.lkey & 0xFF);
++
++	return erdma_post_cmd_wait(&dev->cmdq, &req, sizeof(req), NULL, NULL,
++				   true);
++}
++
+ static int create_cq_cmd(struct erdma_ucontext *uctx, struct erdma_cq *cq)
+ {
+ 	struct erdma_dev *dev = to_edev(cq->ibcq.device);
+@@ -828,50 +842,50 @@ static void erdma_destroy_mtt(struct erdma_dev *dev, struct erdma_mtt *mtt)
  	}
  }
  
--static int get_mtt_entries(struct erdma_dev *dev, struct erdma_mem *mem,
--			   u64 start, u64 len, int access, u64 virt,
--			   unsigned long req_page_size, bool force_continuous)
-+static int erdma_mem_init(struct erdma_dev *dev, struct erdma_mem *mem,
-+			  u64 start, u64 len, int access, u64 virt,
-+			  unsigned long req_page_size, bool force_continuous)
+-static int erdma_mem_init(struct erdma_dev *dev, struct erdma_mem *mem,
+-			  struct erdma_mem_init_attr *attr)
++static int erdma_mem_init_by_umem(struct erdma_dev *dev, struct erdma_mem *mem,
++				  struct erdma_mem_init_attr *attr,
++				  struct ib_umem *umem)
  {
- 	int ret = 0;
+-	int ret = 0;
+-
+-	mem->umem =
+-		ib_umem_get_va(&dev->ibdev, attr->start, attr->len, attr->access);
+-	if (IS_ERR(mem->umem)) {
+-		ret = PTR_ERR(mem->umem);
+-		mem->umem = NULL;
+-		return ret;
+-	}
+-
++	mem->umem = umem;
+ 	mem->va = attr->virt;
+ 	mem->len = attr->len;
  
-@@ -867,7 +867,7 @@ static int get_mtt_entries(struct erdma_dev *dev, struct erdma_mem *mem,
- 	return ret;
- }
+ 	mem->page_size = ib_umem_find_best_pgsz(mem->umem, attr->req_page_size,
+ 						attr->virt);
+-	if (!mem->page_size) {
+-		ret = -EINVAL;
+-		goto error_ret;
+-	}
++	if (!mem->page_size)
++		return -EINVAL;
  
--static void put_mtt_entries(struct erdma_dev *dev, struct erdma_mem *mem)
-+static void erdma_mem_uninit(struct erdma_dev *dev, struct erdma_mem *mem)
- {
- 	if (mem->mtt)
- 		erdma_destroy_mtt(dev, mem->mtt);
-@@ -951,45 +951,45 @@ static int init_user_qp(struct erdma_qp *qp, struct erdma_ucontext *uctx,
- 		   qp->attrs.rq_size * RQE_SIZE))
- 		return -EINVAL;
+ 	mem->page_offset = attr->start & (mem->page_size - 1);
+ 	mem->mtt_nents = ib_umem_num_dma_blocks(mem->umem, mem->page_size);
+ 	mem->page_cnt = mem->mtt_nents;
+ 	mem->mtt = erdma_create_mtt(dev, MTT_SIZE(mem->page_cnt),
+ 				    attr->flags & ERDMA_MEM_FLAG_MTT_PHYS_CONT);
+-	if (IS_ERR(mem->mtt)) {
+-		ret = PTR_ERR(mem->mtt);
+-		goto error_ret;
+-	}
++	if (IS_ERR(mem->mtt))
++		return PTR_ERR(mem->mtt);
  
--	ret = get_mtt_entries(qp->dev, &qp->user_qp.sq_mem, va,
--			      qp->attrs.sq_size << SQEBB_SHIFT, 0, va,
--			      (SZ_1M - SZ_4K), true);
-+	ret = erdma_mem_init(qp->dev, &qp->user_qp.sq_mem, va,
-+			     qp->attrs.sq_size << SQEBB_SHIFT, 0, va,
-+			     (SZ_1M - SZ_4K), true);
- 	if (ret)
- 		return ret;
- 
- 	rq_offset = ALIGN(qp->attrs.sq_size << SQEBB_SHIFT, ERDMA_HW_PAGE_SIZE);
- 	qp->user_qp.rq_offset = rq_offset;
- 
--	ret = get_mtt_entries(qp->dev, &qp->user_qp.rq_mem, va + rq_offset,
--			      qp->attrs.rq_size << RQE_SHIFT, 0, va + rq_offset,
--			      (SZ_1M - SZ_4K), true);
-+	ret = erdma_mem_init(qp->dev, &qp->user_qp.rq_mem, va + rq_offset,
-+			     qp->attrs.rq_size << RQE_SHIFT, 0, va + rq_offset,
-+			     (SZ_1M - SZ_4K), true);
- 	if (ret)
--		goto put_sq_mtt;
-+		goto uninit_sq_mem;
- 
- 	ret = erdma_map_user_dbrecords(uctx, dbrec_va,
- 				       &qp->user_qp.user_dbr_page,
- 				       &dbrec_dma);
- 	if (ret)
--		goto put_rq_mtt;
-+		goto uninit_rq_mem;
- 
- 	qp->user_qp.sq_dbrec_dma = dbrec_dma;
- 	qp->user_qp.rq_dbrec_dma = dbrec_dma + ERDMA_DB_SIZE;
+ 	erdma_fill_bottom_mtt(dev, mem);
  
  	return 0;
++}
  
--put_rq_mtt:
--	put_mtt_entries(qp->dev, &qp->user_qp.rq_mem);
-+uninit_rq_mem:
-+	erdma_mem_uninit(qp->dev, &qp->user_qp.rq_mem);
+-error_ret:
+-	if (mem->umem) {
+-		ib_umem_release(mem->umem);
+-		mem->umem = NULL;
++static int erdma_mem_init(struct erdma_dev *dev, struct erdma_mem *mem,
++			  struct erdma_mem_init_attr *attr)
++{
++	struct ib_umem *umem;
++	int ret;
++
++	umem = ib_umem_get_va(&dev->ibdev, attr->start, attr->len,
++			      attr->access);
++	if (IS_ERR(umem))
++		return PTR_ERR(umem);
++
++	ret = erdma_mem_init_by_umem(dev, mem, attr, umem);
++	if (ret) {
++		ib_umem_release(umem);
++		return ret;
+ 	}
  
--put_sq_mtt:
--	put_mtt_entries(qp->dev, &qp->user_qp.sq_mem);
-+uninit_sq_mem:
-+	erdma_mem_uninit(qp->dev, &qp->user_qp.sq_mem);
- 
- 	return ret;
+-	return ret;
++	return 0;
  }
  
- static void free_user_qp(struct erdma_qp *qp, struct erdma_ucontext *uctx)
+ static void erdma_mem_uninit(struct erdma_dev *dev, struct erdma_mem *mem)
+@@ -1244,9 +1258,20 @@ int erdma_map_mr_sg(struct ib_mr *ibmr, struct scatterlist *sg, int sg_nents,
+ 	return num;
+ }
+ 
+-struct ib_mr *erdma_reg_user_mr(struct ib_pd *ibpd, u64 start, u64 len,
+-				u64 virt, int access, struct ib_dmah *dmah,
+-				struct ib_udata *udata)
++static void erdma_umem_dmabuf_revoke(void *priv)
++{
++	struct erdma_mr *mr = priv;
++	struct erdma_dev *dev = to_edev(mr->ibmr.device);
++	int ret;
++
++	ret = dereg_mr_cmd(dev, mr);
++	if (ret)
++		ibdev_err(&dev->ibdev, "dmabuf mr revoke failed %d", ret);
++}
++
++static struct ib_mr *
++_erdma_reg_user_mr(struct ib_pd *ibpd, u64 start, u64 len, u64 virt, int access,
++		   struct ib_umem *umem, struct ib_dmah *dmah)
  {
--	put_mtt_entries(qp->dev, &qp->user_qp.sq_mem);
--	put_mtt_entries(qp->dev, &qp->user_qp.rq_mem);
-+	erdma_mem_uninit(qp->dev, &qp->user_qp.sq_mem);
-+	erdma_mem_uninit(qp->dev, &qp->user_qp.rq_mem);
- 	erdma_unmap_user_dbrecords(uctx, &qp->user_qp.user_dbr_page);
- }
+ 	struct erdma_dev *dev = to_edev(ibpd->device);
+ 	struct erdma_mem_init_attr attr = {};
+@@ -1254,12 +1279,6 @@ struct ib_mr *erdma_reg_user_mr(struct ib_pd *ibpd, u64 start, u64 len,
+ 	u32 stag;
+ 	int ret;
  
-@@ -1251,14 +1251,14 @@ struct ib_mr *erdma_reg_user_mr(struct ib_pd *ibpd, u64 start, u64 len,
+-	if (dmah)
+-		return ERR_PTR(-EOPNOTSUPP);
+-
+-	if (!len || len > dev->attrs.max_mr_size)
+-		return ERR_PTR(-EINVAL);
+-
+ 	mr = kzalloc_obj(*mr);
  	if (!mr)
  		return ERR_PTR(-ENOMEM);
- 
--	ret = get_mtt_entries(dev, &mr->mem, start, len, access, virt,
--			      SZ_2G - SZ_4K, false);
-+	ret = erdma_mem_init(dev, &mr->mem, start, len, access, virt,
-+			     SZ_2G - SZ_4K, false);
+@@ -1269,16 +1288,17 @@ struct ib_mr *erdma_reg_user_mr(struct ib_pd *ibpd, u64 start, u64 len,
+ 	attr.start = start;
+ 	attr.access = access;
+ 	attr.req_page_size = SZ_2G - SZ_4K;
+-	ret = erdma_mem_init(dev, &mr->mem, &attr);
++	ret = erdma_mem_init_by_umem(dev, &mr->mem, &attr, umem);
  	if (ret)
  		goto err_out_free;
  
  	ret = erdma_create_stag(dev, &stag);
  	if (ret)
--		goto err_out_put_mtt;
-+		goto err_uninit_mem;
+-		goto err_uninit_mem;
++		goto err_destroy_mtt;
  
  	mr->ibmr.lkey = mr->ibmr.rkey = stag;
  	mr->ibmr.pd = ibpd;
-@@ -1278,8 +1278,8 @@ struct ib_mr *erdma_reg_user_mr(struct ib_pd *ibpd, u64 start, u64 len,
++	mr->ibmr.device = ibpd->device;
+ 	mr->access = ERDMA_MR_ACC_LR | to_erdma_access_flags(access);
+ 	mr->valid = 1;
+ 	mr->type = ERDMA_MR_TYPE_NORMAL;
+@@ -1293,8 +1313,8 @@ struct ib_mr *erdma_reg_user_mr(struct ib_pd *ibpd, u64 start, u64 len,
  	erdma_free_idx(&dev->res_cb[ERDMA_RES_TYPE_STAG_IDX],
  		       mr->ibmr.lkey >> 8);
  
--err_out_put_mtt:
--	put_mtt_entries(dev, &mr->mem);
-+err_uninit_mem:
-+	erdma_mem_uninit(dev, &mr->mem);
+-err_uninit_mem:
+-	erdma_mem_uninit(dev, &mr->mem);
++err_destroy_mtt:
++	erdma_destroy_mtt(dev, mr->mem.mtt);
  
  err_out_free:
  	kfree(mr);
-@@ -1309,7 +1309,7 @@ int erdma_dereg_mr(struct ib_mr *ibmr, struct ib_udata *udata)
+@@ -1302,30 +1322,95 @@ struct ib_mr *erdma_reg_user_mr(struct ib_pd *ibpd, u64 start, u64 len,
+ 	return ERR_PTR(ret);
+ }
+ 
++struct ib_mr *erdma_reg_user_mr(struct ib_pd *ibpd, u64 start, u64 len,
++				u64 virt, int access, struct ib_dmah *dmah,
++				struct ib_udata *udata)
++{
++	struct erdma_dev *dev = to_edev(ibpd->device);
++	struct ib_umem *umem;
++	struct ib_mr *ibmr;
++
++	if (dmah)
++		return ERR_PTR(-EOPNOTSUPP);
++
++	if (!len || len > dev->attrs.max_mr_size)
++		return ERR_PTR(-EINVAL);
++
++	umem = ib_umem_get_va(&dev->ibdev, start, len, access);
++	if (IS_ERR(umem))
++		return ERR_CAST(umem);
++
++	ibmr = _erdma_reg_user_mr(ibpd, start, len, virt, access, umem, dmah);
++	if (IS_ERR(ibmr)) {
++		ib_umem_release(umem);
++		return ibmr;
++	}
++
++	return ibmr;
++}
++
++struct ib_mr *erdma_reg_user_mr_dmabuf(struct ib_pd *ibpd, u64 start, u64 len,
++				       u64 virt, int fd, int access,
++				       struct ib_dmah *dmah,
++				       struct uverbs_attr_bundle *attrs)
++{
++	struct erdma_dev *dev = to_edev(ibpd->device);
++	struct ib_umem_dmabuf *umem_dmabuf;
++	struct ib_mr *ibmr;
++
++	if (dmah)
++		return ERR_PTR(-EOPNOTSUPP);
++
++	if (!len || len > dev->attrs.max_mr_size)
++		return ERR_PTR(-EINVAL);
++
++	umem_dmabuf =
++		ib_umem_dmabuf_get_pinned_revocable_and_lock(&dev->ibdev, start,
++							     len, fd, access);
++	if (IS_ERR(umem_dmabuf))
++		return ERR_CAST(umem_dmabuf);
++
++	ibmr = _erdma_reg_user_mr(ibpd, start, len, virt, access,
++				  &umem_dmabuf->umem, dmah);
++	if (IS_ERR(ibmr)) {
++		ib_umem_dmabuf_revoke_unlock(umem_dmabuf);
++		ib_umem_release(&umem_dmabuf->umem);
++		return ibmr;
++	}
++
++	ib_umem_dmabuf_set_revoke_locked(umem_dmabuf, erdma_umem_dmabuf_revoke,
++					 to_emr(ibmr));
++	ib_umem_dmabuf_revoke_unlock(umem_dmabuf);
++
++	return ibmr;
++}
++
+ int erdma_dereg_mr(struct ib_mr *ibmr, struct ib_udata *udata)
+ {
+-	struct erdma_mr *mr;
+ 	struct erdma_dev *dev = to_edev(ibmr->device);
+-	struct erdma_cmdq_dereg_mr_req req;
++	struct erdma_mr *mr = to_emr(ibmr);
++	bool dmabuf;
+ 	int ret;
+ 
+-	mr = to_emr(ibmr);
+-
+-	erdma_cmdq_build_reqhdr(&req.hdr, CMDQ_SUBMOD_RDMA,
+-				CMDQ_OPCODE_DEREG_MR);
++	dmabuf = mr->mem.umem && mr->mem.umem->is_dmabuf;
++	if (!dmabuf) {
++		ret = dereg_mr_cmd(dev, mr);
++		if (ret)
++			return ret;
++	}
+ 
+-	req.cfg = FIELD_PREP(ERDMA_CMD_MR_MPT_IDX_MASK, ibmr->lkey >> 8) |
+-		  FIELD_PREP(ERDMA_CMD_MR_KEY_MASK, ibmr->lkey & 0xFF);
++	if (mr->mem.umem) {
++		ib_umem_release(mr->mem.umem);
++		mr->mem.umem = NULL;
++	}
+ 
+-	ret = erdma_post_cmd_wait(&dev->cmdq, &req, sizeof(req), NULL, NULL,
+-				  true);
+-	if (ret)
+-		return ret;
++	if (mr->mem.mtt) {
++		erdma_destroy_mtt(dev, mr->mem.mtt);
++		mr->mem.mtt = NULL;
++	}
  
  	erdma_free_idx(&dev->res_cb[ERDMA_RES_TYPE_STAG_IDX], ibmr->lkey >> 8);
  
--	put_mtt_entries(dev, &mr->mem);
-+	erdma_mem_uninit(dev, &mr->mem);
- 
+-	erdma_mem_uninit(dev, &mr->mem);
+-
  	kfree(mr);
  	return 0;
-@@ -1340,7 +1340,7 @@ int erdma_destroy_cq(struct ib_cq *ibcq, struct ib_udata *udata)
- 			      cq->kern_cq.dbrec_dma);
- 	} else {
- 		erdma_unmap_user_dbrecords(ctx, &cq->user_cq.user_dbr_page);
--		put_mtt_entries(dev, &cq->user_cq.qbuf_mem);
-+		erdma_mem_uninit(dev, &cq->user_cq.qbuf_mem);
- 	}
- 
- 	xa_erase(&dev->cq_xa, cq->cqn);
-@@ -1387,8 +1387,8 @@ int erdma_destroy_qp(struct ib_qp *ibqp, struct ib_udata *udata)
- 	if (rdma_is_kernel_res(&qp->ibqp.res)) {
- 		free_kernel_qp(qp);
- 	} else {
--		put_mtt_entries(dev, &qp->user_qp.sq_mem);
--		put_mtt_entries(dev, &qp->user_qp.rq_mem);
-+		erdma_mem_uninit(dev, &qp->user_qp.sq_mem);
-+		erdma_mem_uninit(dev, &qp->user_qp.rq_mem);
- 		erdma_unmap_user_dbrecords(ctx, &qp->user_qp.user_dbr_page);
- 	}
- 
-@@ -1910,9 +1910,9 @@ static int erdma_init_user_cq(struct erdma_ucontext *ctx, struct erdma_cq *cq,
- 	int ret;
- 	struct erdma_dev *dev = to_edev(cq->ibcq.device);
- 
--	ret = get_mtt_entries(dev, &cq->user_cq.qbuf_mem, ureq->qbuf_va,
--			      ureq->qbuf_len, 0, ureq->qbuf_va, SZ_64M - SZ_4K,
--			      true);
-+	ret = erdma_mem_init(dev, &cq->user_cq.qbuf_mem, ureq->qbuf_va,
-+			     ureq->qbuf_len, 0, ureq->qbuf_va, SZ_64M - SZ_4K,
-+			     true);
- 	if (ret)
- 		return ret;
- 
-@@ -1920,7 +1920,7 @@ static int erdma_init_user_cq(struct erdma_ucontext *ctx, struct erdma_cq *cq,
- 				       &cq->user_cq.user_dbr_page,
- 				       &cq->user_cq.dbrec_dma);
- 	if (ret)
--		put_mtt_entries(dev, &cq->user_cq.qbuf_mem);
-+		erdma_mem_uninit(dev, &cq->user_cq.qbuf_mem);
- 
- 	return ret;
  }
-@@ -2011,7 +2011,7 @@ int erdma_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
- err_free_res:
- 	if (!rdma_is_kernel_res(&ibcq->res)) {
- 		erdma_unmap_user_dbrecords(ctx, &cq->user_cq.user_dbr_page);
--		put_mtt_entries(dev, &cq->user_cq.qbuf_mem);
-+		erdma_mem_uninit(dev, &cq->user_cq.qbuf_mem);
- 	} else {
- 		dma_free_coherent(&dev->pdev->dev, depth << CQE_SHIFT,
- 				  cq->kern_cq.qbuf, cq->kern_cq.qbuf_dma_addr);
+diff --git a/drivers/infiniband/hw/erdma/erdma_verbs.h b/drivers/infiniband/hw/erdma/erdma_verbs.h
+index 79b3a90b03e7..f576f062aff3 100644
+--- a/drivers/infiniband/hw/erdma/erdma_verbs.h
++++ b/drivers/infiniband/hw/erdma/erdma_verbs.h
+@@ -467,6 +467,10 @@ int erdma_req_notify_cq(struct ib_cq *ibcq, enum ib_cq_notify_flags flags);
+ struct ib_mr *erdma_reg_user_mr(struct ib_pd *ibpd, u64 start, u64 len,
+ 				u64 virt, int access, struct ib_dmah *dmah,
+ 				struct ib_udata *udata);
++struct ib_mr *erdma_reg_user_mr_dmabuf(struct ib_pd *ibpd, u64 start, u64 len,
++				       u64 virt, int fd, int access,
++				       struct ib_dmah *dmah,
++				       struct uverbs_attr_bundle *attrs);
+ struct ib_mr *erdma_get_dma_mr(struct ib_pd *ibpd, int rights);
+ int erdma_dereg_mr(struct ib_mr *ibmr, struct ib_udata *data);
+ int erdma_mmap(struct ib_ucontext *ctx, struct vm_area_struct *vma);
 -- 
 2.46.0
 
