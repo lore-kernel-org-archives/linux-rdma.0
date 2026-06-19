@@ -1,50 +1,50 @@
-Received: from mail-m49197.qiye.163.com (mail-m49197.qiye.163.com [45.254.49.197])
+Received: from out30-133.freemail.mail.aliyun.com (out30-133.freemail.mail.aliyun.com [115.124.30.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C33923438A4;
-	Fri, 19 Jun 2026 05:53:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.254.49.197
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 74FAA23ED5B;
+	Fri, 19 Jun 2026 06:35:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.133
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781848420; cv=none; b=Astl9+GYtnTypozooQ3npOzQNxxU77MeLjOadepA5M5x/KION9t99jWrWb5GwU1rxITWcUAhEuYCYDQ3oBmFia8ldk2EeKUM0Zh7ZyF7A0I7vnigbdIcVeFMkVLfjIPOwwl7Poj9ZmeHyRXV7SN7sHIK3jnYMgCbbgk3s3EZpPw=
+	t=1781850921; cv=none; b=S1PQ1BVo0yN4wep/C+6bl9Wu/DYSh7tSLP2wlEOGNI+/QsYkyLccljPk7XolExe7W5NF5LJxvvQiEbNtRJIzCcyNhsvaEb2qpgLjOFu8OYjTxngkLZ5WksW8TJ88eTIzzuSW+Cu/XBhf1EHGWZ4VeS5e5kwm8g66VvyYEpJtrrM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781848420; c=relaxed/simple;
-	bh=pwU0m4lyd8j1X2A4VZl6+KScuVNCBF0yEhTZlNEn3+g=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=NLBxUg3Vk3lK3SALyhOvjSQMEx9GwAZN6ykFPhyFufQMLCR4uI2KuaeOlvwbaZGo/3ZDO7rmZ0VnusAXK7iHFiw8705LpxI+wlweeby+T2dMsZ+YOxh1FucjuA5j1st1LK6FYJxaKit4Sbvqhl0XjIxntfPQ2xKNZHnY6dyL+uU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=seu.edu.cn; spf=pass smtp.mailfrom=seu.edu.cn; dkim=pass (1024-bit key) header.d=seu.edu.cn header.i=@seu.edu.cn header.b=c9o4mGhN; arc=none smtp.client-ip=45.254.49.197
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=seu.edu.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=seu.edu.cn
+	s=arc-20240116; t=1781850921; c=relaxed/simple;
+	bh=44fmCjC9fVUGPXXrd3HwQxzlSiz4jyFTZqz1jkBeNqk=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=oHXXFqGDo70l6t6eogrn71dFGVu1lcHkOdGNT41snbNan3bbj31z18RrCbxafi6KG2+9KI6JmT6MmAyb9dZJyWEsYWFcnxLmqBRN3ESjGSfyZQLiMFRppldyrtNoPH4oWx8vpAgXHjlRqF35+re0cRV1oRzfdPO9pr+Z6KAcjgI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=wlhaCKT9; arc=none smtp.client-ip=115.124.30.133
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=seu.edu.cn header.i=@seu.edu.cn header.b="c9o4mGhN"
-Received: from PC-202605011814.localdomain (unknown [223.112.146.162])
-	by smtp.qiye.163.com (Hmail) with ESMTP id 42ff5c258;
-	Fri, 19 Jun 2026 13:48:20 +0800 (GMT+08:00)
-From: Runyu Xiao <runyu.xiao@seu.edu.cn>
-To: "D. Wythe" <alibuda@linux.alibaba.com>,
-	Dust Li <dust.li@linux.alibaba.com>,
+	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="wlhaCKT9"
+DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux.alibaba.com; s=default;
+	t=1781850915; h=Date:From:To:Subject:Message-ID:MIME-Version:Content-Type;
+	bh=45U6L2scHXerIc02dhZiR8csZdzJQqHBYsy1D50eKBQ=;
+	b=wlhaCKT9qF3NlKFKM8/m+0WjD3sfpC6AgxJTnV12LmdMWpwrNC0V3ChYSRa6bfl6MZU7137C29rniDiN8+WuoFiGeEtFV/6LVYQmlWv3e0q190UFAeXaLXse00mebh5wj4oh1kdrQ16KM+mArnfCeJJjJ5EtIEACTIQAs6FvgVU=
+X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R191e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam033037009110;MF=dust.li@linux.alibaba.com;NM=1;PH=DS;RN=19;SR=0;TI=SMTPD_---0X58zH3Z_1781850913;
+Received: from localhost(mailfrom:dust.li@linux.alibaba.com fp:SMTPD_---0X58zH3Z_1781850913 cluster:ay36)
+          by smtp.aliyun-inc.com;
+          Fri, 19 Jun 2026 14:35:14 +0800
+Date: Fri, 19 Jun 2026 14:35:13 +0800
+From: Dust Li <dust.li@linux.alibaba.com>
+To: Runyu Xiao <runyu.xiao@seu.edu.cn>,
+	"D. Wythe" <alibuda@linux.alibaba.com>,
 	Sidraya Jayagond <sidraya@linux.ibm.com>,
 	Wenjia Zhang <wenjia@linux.ibm.com>,
 	"David S. Miller" <davem@davemloft.net>,
 	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>
 Cc: Mahanta Jambigi <mjambigi@linux.ibm.com>,
 	Tony Lu <tonylu@linux.alibaba.com>,
-	Wen Gu <guwen@linux.alibaba.com>,
-	Simon Horman <horms@kernel.org>,
-	Karsten Graul <kgraul@linux.ibm.com>,
-	linux-rdma@vger.kernel.org,
-	linux-s390@vger.kernel.org,
-	netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	jianhao.xu@seu.edu.cn,
-	runyu.xiao@seu.edu.cn,
+	Wen Gu <guwen@linux.alibaba.com>, Simon Horman <horms@kernel.org>,
+	Karsten Graul <kgraul@linux.ibm.com>, linux-rdma@vger.kernel.org,
+	linux-s390@vger.kernel.org, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org, jianhao.xu@seu.edu.cn,
 	stable@vger.kernel.org
-Subject: [PATCH net v2] net/smc: avoid recursive sk_callback_lock in listen data_ready
-Date: Fri, 19 Jun 2026 13:48:15 +0800
-Message-Id: <20260619054815.176764-1-runyu.xiao@seu.edu.cn>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20260617152855.1039151-1-runyu.xiao@seu.edu.cn>
+Subject: Re: [PATCH net] net/smc: avoid recursive sk_callback_lock in listen
+ data_ready
+Message-ID: <ajTjIbm4qPvukJzr@linux.alibaba.com>
+Reply-To: dust.li@linux.alibaba.com
 References: <20260617152855.1039151-1-runyu.xiao@seu.edu.cn>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
@@ -52,108 +52,58 @@ List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-HM-Tid: 0a9ede6c4ccc03a1kunm905fb605c0aad
-X-HM-MType: 10
-X-HM-Spam-Status: e1kfGhgUHx5ZQUpXWQgPGg8OCBgUHx5ZQUlOS1dZFg8aDwILHllBWSg2Ly
-	tZV1koWUFITzdXWRgWCB1ZQUpXWS1ZQUlXWQ8JGhUIEh9ZQVkaH0tOVh5CT0saH0xJGEweTVYeHw
-	5VEwETFhoSFyQUDg9ZV1kYEgtZQVlJSUhVSkpJVUpPTVVKTUlZV1kWGg8SFR0UWUFZT0tIVUpLSE
-	pPSExVSktLVUpCS0tZBg++
-DKIM-Signature: a=rsa-sha256;
-	b=c9o4mGhNnuIp1FH4m4iDWfO8zpzxV8lY6OnmEmhimTACoKeaJ8UmvJsqnqrokI+IvQeveSH8bVWEBwSwlex9k7fhA3Fe2M8y/ylW6xEhO9YQVSbaa8al2E4wshTiiInJdVuHxaQ7NlBoQEaBs8AvU0K9oh2oqARndIOdRP0Zpwg=; s=default; c=relaxed/relaxed; d=seu.edu.cn; v=1;
-	bh=y3r//VB8rHOFLln9YAyOG3ki0d6Mj/h1cPOiZugptRA=;
-	h=date:mime-version:subject:message-id:from;
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260617152855.1039151-1-runyu.xiao@seu.edu.cn>
 
-smc_listen() installs smc_clcsock_data_ready() as the underlying TCP
-listen socket's sk_data_ready callback.  The callback takes
-sk_callback_lock before looking up the SMC listener and queuing
-smc_tcp_listen_work().
+On 2026-06-17 23:28:55, Runyu Xiao wrote:
+>smc_listen() installs smc_clcsock_data_ready() as the underlying TCP
+>listen socket's sk_data_ready callback.  smc_clcsock_data_ready() then
+>immediately takes sk_callback_lock before looking up the SMC listener and
+>queuing smc_tcp_listen_work().
+>
+>That is unsafe once the TCP listen socket is leaving TCP_LISTEN.  The TCP
+>close/flush path can run the installed sk_data_ready callback with
+>sk_callback_lock already held, so entering smc_clcsock_data_ready() again
+>tries to take the same rwlock recursively in the same thread.  The nvmet
+>TCP listener had to make the same state check before taking
+>sk_callback_lock for this reason.
+>
+>This issue was found by our static analysis tool and then manually
+>reviewed against the current tree.
+>
+>The grounded PoC kept the SMC listen callback installation path:
+>
+>  smc_listen()
+>  smc_clcsock_replace_cb()
+>  sk_data_ready = smc_clcsock_data_ready()
+>
+>It then modeled the close/flush carrier that invokes the installed
+>sk_data_ready callback while sk_callback_lock is already held.  Lockdep
+>reported the same-thread recursive acquisition:
+>
+>  WARNING: possible recursive locking detected
+>  smc_clcsock_data_ready+0xa/0x4d [vuln_msv]
+>  smc_close_flush_work+0x1f/0x30 [vuln_msv]
+>  *** DEADLOCK ***
+>
+>Return before taking sk_callback_lock when the underlying TCP socket is no
+>longer in TCP_LISTEN.  In that state there is no listen accept work to
+>queue for SMC, and avoiding the callback lock mirrors the fix used by the
+>TCP nvmet listener.
 
-This can recurse when the underlying TCP listen socket is being closed.
-The close/flush path may invoke the installed sk_data_ready callback with
-sk_callback_lock already held, so smc_clcsock_data_ready() tries to take
-the same rwlock again in the same thread.
+Hi Runyu,
 
-This issue was found by our static analysis tool and then manually
-reviewed against the current tree.  The reproducer keeps the SMC listen
-callback installation path:
+I noticed the lockdep splat comes from your own kernel module
+([vuln_msv]) that models the condition, rather than from a real
+TCP code path.
 
-  smc_listen()
-  smc_clcsock_replace_cb()
-  sk_data_ready = smc_clcsock_data_ready()
+Could you point me to the specific mainline TCP code path that calls
+sk_data_ready() while holding sk_callback_lock? If such a path
+exists, I'm happy to take this patch. But if this is based solely on
+static analysis without a confirmed real call chain, I'd prefer to
+focus our review bandwidth on issues that have demonstrated impact.
 
-It then models the close/flush carrier that invokes the installed
-sk_data_ready callback while sk_callback_lock is already held.  Lockdep
-reports the same-thread recursive acquisition:
+Thanks,
+Dust
 
-  WARNING: possible recursive locking detected
-  kworker/u4:3/39 is trying to acquire lock:
-    (sk_callback_lock) at smc_clcsock_data_ready+0xa/0x4d
-
-  but task is already holding lock:
-    (sk_callback_lock) at smc_close_flush_work+0xc/0x30
-
-  Possible unsafe locking scenario:
-
-        CPU0
-        ----
-        lock(sk_callback_lock);
-        lock(sk_callback_lock);
-
-  *** DEADLOCK ***
-
-  Workqueue: smc_close_wq smc_close_flush_work
-
-  Call Trace:
-    dump_stack_lvl
-    __lock_acquire
-    lock_acquire
-    _raw_read_lock_bh
-    smc_clcsock_data_ready
-    smc_close_flush_work
-    process_one_work
-    worker_thread
-    kthread
-    ret_from_fork
-
-The same pattern was fixed for nvmet TCP by checking TCP_LISTEN before
-taking sk_callback_lock:
-
-  commit 2fa8961d3a6a ("nvmet-tcp: fixup hang in
-  nvmet_tcp_listen_data_ready()")
-
-Do the same for SMC.  smc_clcsock_data_ready() is installed by
-smc_listen() on the underlying TCP listen socket and only queues
-smc_tcp_listen_work() for the SMC listen/accept path.  Once that socket is
-no longer in TCP_LISTEN, there is no listen accept work to queue from this
-callback, and avoiding sk_callback_lock also avoids the recursive locking
-path.
-
-Fixes: 0558226cebee ("net/smc: Fix slab-out-of-bounds issue in fallback")
-Cc: stable@vger.kernel.org
-Signed-off-by: Runyu Xiao <runyu.xiao@seu.edu.cn>
----
-v2:
-- Include the fuller Lockdep stack from the grounded reproducer.
-- Add the related nvmet TCP fix reference.
-- Explain why the TCP_LISTEN check is valid for the SMC listen callback.
-
- net/smc/af_smc.c | 3 +++
- 1 file changed, 3 insertions(+)
-
-diff --git a/net/smc/af_smc.c b/net/smc/af_smc.c
-index 6421c2e1c84d..1af4e3c333ff 100644
---- a/net/smc/af_smc.c
-+++ b/net/smc/af_smc.c
-@@ -2631,6 +2631,9 @@ static void smc_clcsock_data_ready(struct sock *listen_clcsock)
- {
- 	struct smc_sock *lsmc;
- 
-+	if (READ_ONCE(listen_clcsock->sk_state) != TCP_LISTEN)
-+		return;
-+
- 	read_lock_bh(&listen_clcsock->sk_callback_lock);
- 	lsmc = smc_clcsock_user_data(listen_clcsock);
- 	if (!lsmc)
--- 
-2.34.1
