@@ -1,66 +1,66 @@
-Received: from mail-yw1-f178.google.com (mail-yw1-f178.google.com [209.85.128.178])
+Received: from mail-yw1-f172.google.com (mail-yw1-f172.google.com [209.85.128.172])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF1F3364EB8
-	for <linux-rdma@vger.kernel.org>; Sun, 21 Jun 2026 13:08:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.178
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 12E1E366049
+	for <linux-rdma@vger.kernel.org>; Sun, 21 Jun 2026 13:39:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782047320; cv=none; b=au0p6AQauDrkPrrU3MdSEDkH5x3aFV08EB1fJfhlXcgrcsFnTtk44WhrbTuFw/a4olvLvqLasl3T2RJ5csN6eBoI3oo4OxmjRW5Q16KpL8UhqjCEZ/VzDnTO7NqdwEuUD0zeL57ynMYFo+K6AiiLL1zkUfnYet23vhUGjhH28ug=
+	t=1782049160; cv=none; b=qcwweP9ttc8hEZsrLns8yudn7WCaaUqqauZ/U/DgWD+K2r28WPZ6jPqMdZ/REih6pKtvRUuVOumBGzItfRD2VL2yMdVLTz/iRo7NYBXvHttF+E+0foIu1732EClst4CsS3VB5TmXDShrMVyVb0m+1EhE/caOXd2cFK4LZz5kqGs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782047320; c=relaxed/simple;
-	bh=me33Az45dCRutFUzQ4N1c3MdvdJrDzsOWQ4IrxhWNMc=;
+	s=arc-20240116; t=1782049160; c=relaxed/simple;
+	bh=PcEURl2W5mmzOY49oIrDgC4sXuUKEmnXJC+EqHFqIx8=;
 	h=From:Date:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=SQMDQsM/P0S5ptjj6g7tatl2JQ+RMCb04oxPv/GlM0LnAPPIwLR+/2CcsFK9lEn/xNf4H5Eg8XbtXgw9xtfj3nn3C6Bui+JpKkcnfeyKMPdjr1nxeLNpO5VtI64UjMx50RgLUxsOhYKDysxRwSmXY8vVstTyfvO+pXWyH1HQlVM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=nfEhSIE7; arc=none smtp.client-ip=209.85.128.178
+	 Content-Type:Content-Disposition:In-Reply-To; b=AXHrCq0mz4ZITMSrlXZt0c4+eRF04D1tAYnQcMALL3EugwlN+g5WpwLhfns6HFE9/WHnIfcgaACiGEGMXO3Wst+WRBEf+IcbY0kxSudCVDHdx1J8ckxiFTObBYE89EKTwW/Vbh7ZCjVAKtJcG1OMFA2grVroTSEX0vSgUe6ZM7M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=WjSFBVc+; arc=none smtp.client-ip=209.85.128.172
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="nfEhSIE7"
-Received: by mail-yw1-f178.google.com with SMTP id 00721157ae682-7e0b3db3499so29156347b3.0
-        for <linux-rdma@vger.kernel.org>; Sun, 21 Jun 2026 06:08:38 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="WjSFBVc+"
+Received: by mail-yw1-f172.google.com with SMTP id 00721157ae682-7dfceeaf168so43955017b3.0
+        for <linux-rdma@vger.kernel.org>; Sun, 21 Jun 2026 06:39:18 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1782047318; x=1782652118; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1782049158; x=1782653958; darn=vger.kernel.org;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:date:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=JelQF+PgdiILboeOL52+qm2l/XNW/EjjD3ktKV3cKe4=;
-        b=nfEhSIE74z/mf/Z0c5mBSac7i23tgbFrZildwk1bx4AMBh+Zvd6dgn1udde+l8ZPPt
-         0/2MSos+4QuEn79HqB7TNx+LupVlYAuHYCQso+l8Qu24O0nCvNIjadYhVuzQNhGZuGat
-         +imEhhVfRs9k0rJXxvPzJSID5NjBzk6jzcCjfaQVfidNvLI159z3cgw76JnCvUU6svHi
-         o1dWoJaO+ZxaW9xedadD57tLyWjTqjFUTrYt0Z66hkoiPVP+32DBA/zOqd5NzPx4Qo+F
-         elQdARSkMiZK16gZd19EcX5w0Mu5Uesp5bySYww6zgBY9BTejYSEeYeX8mhHvewdew2h
-         YP4g==
+        bh=YUsaj7vv5ecLJDUQ0RmLhOH3YlF5lnncSJLJl2FpGbU=;
+        b=WjSFBVc+x5PQ4eaJ0Sgq53AeKSuFVqLUXt1bdNxYWDgfM9Gd+cbZm9xNx6j0EHdJPE
+         HTww0TPxeWims2viP3NLoABiuxw4YJbyhjsaFbiCmT9CUzuiOMJBall4Ny5+a8n3JoxL
+         RAbWijGhJB9Y959HS7qnPSGQSXUMVj4DJPBFAQ54uygppFKbaRn/JaF2eVX9T+oKy55s
+         5UuvzBs3n9atksSgvIo+LnDIY6WzFlP9VIiHQn/cekRGZeQ/fCZya9JTR/7Go5adjR4K
+         RgwOPTOQfje4Iq1ypeW2heg3nQ4ZNXcxpe/8Sn+A/ACOrH9r4nxxn0LtXIlC4IPvBREK
+         JbsQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1782047318; x=1782652118;
+        d=1e100.net; s=20251104; t=1782049158; x=1782653958;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:date:from:x-gm-gg:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=JelQF+PgdiILboeOL52+qm2l/XNW/EjjD3ktKV3cKe4=;
-        b=fpjDL6fDGDmXxtikK3vt/LKKCYG1Anse4F+5XgflwzwPZ2Jh1B41zIUsasYoc+9gbN
-         xE+OKVaixNsQU9U7Bvy9otiLsjcAanz3stR1C11d+ypErUe5JNK0FUxB8XTvu6eWtnjU
-         f08W2PaLg61t+073WGcZIIP830bFpi9fXHmWBA0OmBqGufX5zlXQgemxyU71WeBr6psv
-         /zxjStFSNbYBiabsa0aVznz7OX7OG2sEizd/DbppqBf+SjNjo6JvQ9ioVayl2SnbGCGm
-         a+bsG8DhESpXbHMXozeHoSWEytDyD+du2DF1V0kAatW87GyuRKMTNkKz04bKeE8Lwud/
-         Gvpw==
-X-Forwarded-Encrypted: i=1; AHgh+Rrgq1No3YXBxe6sFocGUrG17shMK73w0UbJbXREu8b6elledBfrDdRafk6rCIKsOZUm94qVoLxYNL+G@vger.kernel.org
-X-Gm-Message-State: AOJu0Yw78YescYGPgIAl7Db+43sO69jSfpF5aofmVgwcZAGGGuvysyAl
-	uDavpK5RcYOQBV6TxLKYgU+JWwrqGWo8f6FVpvePcuiX+h7QZJ+nwPAJ
-X-Gm-Gg: AfdE7cnH1ATB5Jqq3kfKLJA2nFGMx3xiS+Jqj+iOvY8xHor9MJRH+FkyKwzOm7Od75d
-	5k/RIIuDDoWmlOrUuRY+yDkIXl0jOrwQcmwNUpOztf+IRnsJrJkeFJBBVHbZ6mn1laCZILndWNw
-	d3nCOuXZGJL+gnYqFeEw2tHlao6pp1aAgYVnWzW8lN4uPxpcmkbAWartGywLIBJDwd5KysawLxu
-	f9F3mfXLF2WPApW5/SjnkSDoH9RmjhpQechwxSpHmWVdtbhNroGkn0yr4+fzXjpd6BoXPCFZLPC
-	vDMkCOI3KmzaKDgCwEEEXtM9EEDbkzp8Nw5qJiczfPzxJY0Q2I/O/th3STWesJbPOILeKLcJE2J
-	15Jopg+1uzz+YVdTptO20SGQ+VSNv2cIvWE0GYOl24MXEgBzgwrg27lk1dTYrcqVJzjeVMTQptF
-	Q7ssEoix+7MXilcoGaycG9PtXiS+xKtE3qnfg=
-X-Received: by 2002:a05:690c:6881:b0:7fd:5297:28da with SMTP id 00721157ae682-80139103c73mr119142517b3.49.1782047317965;
-        Sun, 21 Jun 2026 06:08:37 -0700 (PDT)
+        bh=YUsaj7vv5ecLJDUQ0RmLhOH3YlF5lnncSJLJl2FpGbU=;
+        b=rGX7pZQJ/UPgHyqplfR2uZbZRLwwXACB3Y2epHgwM/7egmFoyOpkPr5GGicGky9xk3
+         MviZtbxyqFmPPDCEBjGuxoXANM0psYuDpRhbXbjqIPSmt1Qyx8rAx5VdBUHKEK1zMlXZ
+         NNoBSiGjolSuP9agg+/6V73T/dePdIZxl/aBvtd8TtRuwFauCNLTpkk6TH2XiYVSzjFd
+         L7K910pNE6wSTObx5C1y+XeSPl3GzemIjOFEyuY8YJZrEegcI7wo0IwHOr6BGxrjCKzb
+         7UzuPglA2vPgIrGP+0NhcXvOGfxUPX1nPqNCibK5YP7Mg4b2fVCmi5N+xuso/U/Wb9zc
+         p0Jg==
+X-Forwarded-Encrypted: i=1; AHgh+Ro8BH41XQkOtA1ipD7I5Y5XhebTAFaX6qctCkEfRRlY/iK23ngrFyn2Smqh7L3cjg6oZ+W1lCmwy0yG@vger.kernel.org
+X-Gm-Message-State: AOJu0YwxSYAR1YRlZh3P5o+8kMCIRHocKwEjlG+DD1jSsbWjTnuqZkQh
+	Jg39PXAbOkzpO6wDr6lW7TC2eE65/d5a4rThFR8KJKPz9J0qLqpVL2ZdzMzrdg==
+X-Gm-Gg: AfdE7ckq8QrtQa37B1VCtOxvnCMOCFTKdLnG22Cr6mpK1/c7pvi0O96hyaVn7dX4xWW
+	WyHsXUk8a7OsLanXO2nMwpCB9Hk69pXkfnynfGFAXnbQdWeUbfxsGVoXr4De4S1uKb1uKkrWl2F
+	ooPsJZ72So9SKbw9HE1Ax6Fj9kyMxloxWxsf52ctT0OVZJ0g/Ri15wJCtRZe7C3ug+lTaWp48tV
+	sCZMEgvYJC3gJNQXXGk90PER0SCnVu+O5wyDIo8FQ+EGvKn5RFgRovnRKQnLrlljDuOIag+KVg/
+	7um4WINOy5SOZ5T4yN+584Kzo3Wsg8Ro6x7e6c2REnpT4sKHmjdrp0qmQGerED9FrDGJR3S/wiu
+	+kONSTGZtJWw3X4LJqqm3RMb4KeWNT72XGwgwr6L3ju6FkaMWxr7PVIZm4l3PJ+MZqMeEpT8L43
+	EYlX8xZF6UcrLnoKKR2MC9qA1eRL/r8UD8OZo=
+X-Received: by 2002:a05:690c:e347:b0:7db:ccda:a409 with SMTP id 00721157ae682-801759e5070mr88778787b3.9.1782049157948;
+        Sun, 21 Jun 2026 06:39:17 -0700 (PDT)
 Received: from localhost (user-24-214-85-55.knology.net. [24.214.85.55])
-        by smtp.gmail.com with ESMTPSA id 00721157ae682-8025cf693f8sm20544597b3.15.2026.06.21.06.08.37
+        by smtp.gmail.com with ESMTPSA id 00721157ae682-8025f8dde30sm20893067b3.27.2026.06.21.06.39.17
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 21 Jun 2026 06:08:37 -0700 (PDT)
+        Sun, 21 Jun 2026 06:39:17 -0700 (PDT)
 From: Yury Norov <yury.norov@gmail.com>
 X-Google-Original-From: Yury Norov <ynorov@nvidia.com>
-Date: Sun, 21 Jun 2026 09:08:37 -0400
-To: Steven Rostedt <rostedt@kernel.org>
+Date: Sun, 21 Jun 2026 09:39:17 -0400
+To: Steven Rostedt <rostedt@goodmis.org>
 Cc: linux-kernel@vger.kernel.org, linux-trace-kernel@vger.kernel.org,
 	Masami Hiramatsu <mhiramat@kernel.org>,
 	Mark Rutland <mark.rutland@arm.com>,
@@ -80,11 +80,12 @@ Cc: linux-kernel@vger.kernel.org, linux-trace-kernel@vger.kernel.org,
 	linux-usb@vger.kernel.org, linux-ext4@vger.kernel.org,
 	linux-nfs@vger.kernel.org, kvm@vger.kernel.org,
 	intel-gfx@lists.freedesktop.org
-Subject: Re: [PATCH 1/2] tracing: Move non-trace_printk prototypes back to
- kernel.h
-Message-ID: <ajfiVTlCIVlqW3sh@yury>
+Subject: Re: [PATCH 2/2] tracing: Add CONFIG_TRACE_PRINTK_DEBUGGING to clean
+ up kernel.h
+Message-ID: <ajfphe4Z8BrfYoUX@yury>
 References: <20260621093430.264983361@kernel.org>
- <20260621093811.007634476@kernel.org>
+ <20260621093811.168514984@kernel.org>
+ <20260621054721.7cde38f0@fedora>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -93,99 +94,47 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20260621093811.007634476@kernel.org>
+In-Reply-To: <20260621054721.7cde38f0@fedora>
 
-On Sun, Jun 21, 2026 at 05:34:31AM -0400, Steven Rostedt wrote:
-> From: Steven Rostedt <rostedt@goodmis.org>
+On Sun, Jun 21, 2026 at 05:47:21AM -0400, Steven Rostedt wrote:
+> On Sun, 21 Jun 2026 05:34:32 -0400
+> Steven Rostedt <rostedt@kernel.org> wrote:
 > 
-> In order to remove the include to trace_printk.h from kernel.h the tracing
-> control prototypes need to be moved back into kernel.h. That's because
-
-Please don't. Instead, you can split them out to trace_control.h, and
-include where needed. I actually have a prototype for it, FYI:
-
-https://github.com/norov/linux/tree/trace_pritk3
-
-> they are used in other common header files like rcu.h. There's no point in
-> removing trace_printk.h from kernel.h if it just gets added back to other
-> common headers.
+> > Instead of having trace_printk.h included in kernel.h, create a config
+> > TRACE_PRINTK_DEBUGGING that when set will update the CFLAGS in the
+> > Makefile to allow developers to add trace_printk() without the need to add
+> > the include for it. Having it included in the Makefile keeps it from being
+> > in the dependency chain and it will not waste extra CPU cycles for those
+> > building the kernel without using trace_printk.
 > 
-> Prototypes are very cheap for the compiler and should not be an issue.
+> Bah, I only tested with the config option enabled, and missed some
+> dependencies with it disabled.
 
-It's not about cost, it's about mess. kernel.h is included everywhere.
-Is that API needed everywhere? No, it's needed in literally 10 files.
-So, no place in kernel.h.
+Yes you did.
  
-> Signed-off-by: Steven Rostedt <rostedt@goodmis.org>
-> ---
->  include/linux/kernel.h       | 18 ++++++++++++++++++
->  include/linux/trace_printk.h | 17 -----------------
->  2 files changed, 18 insertions(+), 17 deletions(-)
-> 
-> diff --git a/include/linux/kernel.h b/include/linux/kernel.h
-> index e5570a16cbb1..c3c68128827c 100644
-> --- a/include/linux/kernel.h
-> +++ b/include/linux/kernel.h
-> @@ -194,4 +194,22 @@ extern enum system_states system_state;
->  # define REBUILD_DUE_TO_DYNAMIC_FTRACE
->  #endif
->  
-> +#ifdef CONFIG_TRACING
-> +void tracing_on(void);
-> +void tracing_off(void);
-> +int tracing_is_on(void);
-> +void tracing_snapshot(void);
-> +void tracing_snapshot_alloc(void);
-> +void tracing_start(void);
-> +void tracing_stop(void);
-> +#else
-> +static inline void tracing_start(void) { }
-> +static inline void tracing_stop(void) { }
-> +static inline void tracing_on(void) { }
-> +static inline void tracing_off(void) { }
-> +static inline int tracing_is_on(void) { return 0; }
-> +static inline void tracing_snapshot(void) { }
-> +static inline void tracing_snapshot_alloc(void) { }
-> +#endif
-> +
->  #endif
-> diff --git a/include/linux/trace_printk.h b/include/linux/trace_printk.h
-> index 3d54f440dccf..879fed0805fd 100644
-> --- a/include/linux/trace_printk.h
-> +++ b/include/linux/trace_printk.h
-> @@ -35,15 +35,6 @@ enum ftrace_dump_mode {
->  };
->  
->  #ifdef CONFIG_TRACING
-> -void tracing_on(void);
-> -void tracing_off(void);
-> -int tracing_is_on(void);
-> -void tracing_snapshot(void);
-> -void tracing_snapshot_alloc(void);
-> -
-> -extern void tracing_start(void);
-> -extern void tracing_stop(void);
-> -
->  static inline __printf(1, 2)
->  void ____trace_printk_check_format(const char *fmt, ...)
->  {
-> @@ -176,16 +167,8 @@ __ftrace_vprintk(unsigned long ip, const char *fmt, va_list ap);
->  
->  extern void ftrace_dump(enum ftrace_dump_mode oops_dump_mode);
->  #else
-> -static inline void tracing_start(void) { }
-> -static inline void tracing_stop(void) { }
->  static inline void trace_dump_stack(int skip) { }
->  
-> -static inline void tracing_on(void) { }
-> -static inline void tracing_off(void) { }
-> -static inline int tracing_is_on(void) { return 0; }
-> -static inline void tracing_snapshot(void) { }
-> -static inline void tracing_snapshot_alloc(void) { }
-> -
->  static inline __printf(1, 2)
->  int trace_printk(const char *fmt, ...)
->  {
-> -- 
-> 2.53.0
-> 
+> For instance, rcu.h also uses ftrace_dump() so that too needs to go
+> into kernel.h.
+
+No, it shouldn't.
+
+> I also need to add a few more includes to trace_printk.h.
+
+> OK, I need to run this through all my tests to find where else I missed
+> adding the includes. But the idea should hopefully satisfy everyone.
+
+If you include it under config in kernel.h, to make the kernel buildable,
+you need to include trace_printk.h explicitly where it's actually used.
+IOW, apply my patch v4-7.
+
+Then, developers who use trace_printk() on their development machine,
+will be really frustrated when their debugging code will break client
+build just because CONFIG_TRACE_PRINTK_DEBUGGING is disabled there.
+They will spend a day, at best, communicating with remote managers,
+and end up with adding #include <linux/trace_printk.h> in the files
+they touch. Is that your plan?
+
+If I was one of those developers, the solution would be simple for me:
+don't use trace_printk() at all.
+
+Thanks,
+Yury
