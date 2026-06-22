@@ -1,111 +1,163 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from SA9PR02CU001.outbound.protection.outlook.com (mail-southcentralusazon11013069.outbound.protection.outlook.com [40.93.196.69])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 787FA35BDC7;
-	Mon, 22 Jun 2026 08:05:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782115521; cv=none; b=BOHlFV2qfaWNeL/c6RcCoHApqOBTS0wHKxzCaDlMZuxDoml+sHbi8AeoMgZrPp9g9upRnjSL5+ynltYnWyvoovARZfj0a5Taaar+vbOvZdkYks0UT2mvyJGdPRRAFnfqpkBYAzLbwyZAuHlnj9TN+uDD3mOf7XyAuYVfOPeVqX4=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782115521; c=relaxed/simple;
-	bh=OlSbs9VLtf/8IxeWwRDXkTD/lKuu/eFujrA7c2e9KSI=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=QUigK4pukFvGY8vXstr72PGDapkVBkCkcIOQ0Aa0lzhhrGCoRHtv/L9ZOqlGiED9mSb6ZvdCr4I+wOFRe3vwsXy5K+MsZ/yj137d0ynbvJdujVruZXVAjubcvSXBNoiNKSzJLND1mkf5PHwRLI4QKQ9Dby+fYli3WZnO/1F8E9Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=WKhiDDUd; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED93A238159;
+	Mon, 22 Jun 2026 08:37:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.196.69
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1782117464; cv=fail; b=qomz0mUFnyMPslwxMZPFojku53Numb0uv46NH6Cx66/DenYe6ya34WpkipRSD/RyFxPjtvmt23aY9sCXdKyPiwwGm3V3EJBc9+pTXoNHH0MCh568x/7hh7v1hicYFtfEFaV29ejUq0fj1VfvsDCSctcPnlkjsOH3Put6FeMznh0=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1782117464; c=relaxed/simple;
+	bh=QdZCdSKyHD7H+bOblWH5s7Yq4bJ+CBvbM63Hqu1LceE=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=pudCGxBZKg+zLd/n3Ti2Xr865CSgeVwnC6Cq3BUR+8J8rOc8qmmAgMTMUaiQOK/sKQ+pe/89ZkbJgUglzR08ZMQdFDWgeKrOw7dJ54YOTXoIzPkIyOkZLK0bfm0m1iauqzw7zXpP+JD0U6ulXE9GEj//kQwGmTl4e6rjce6E+xM=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=FQQM83WL; arc=fail smtp.client-ip=40.93.196.69
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="WKhiDDUd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1B84C1F000E9;
-	Mon, 22 Jun 2026 08:05:14 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1782115519;
-	bh=FAbpiNhKVqoEfhFmUfUdlxgESW8QuGiY+lhl+lA+T60=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=WKhiDDUdL0KRgYXfe2WI9TPD1Fcz4Jm9ZEs4TCvppOjXgUFC4H1afMQFw+2v6sbYC
-	 wyKQOW94sIC2JrNxh5T1XMUYBWAlDKC18spHzcXcYSeSIENbdvnOdBeIFeCRHU0wcr
-	 GXhaSILwuzYrxIUKMomqoVtJ32rfzWA7jVghDLmfnz+BZrvg16SiSZpHTKMbep/4WK
-	 cTRFBl6B2TwAUd1X5OjJrSj8wdRtwPxWGGAsp+lGM7jfcHoi8eTosbKCizRmGWHd0+
-	 cQFh5OCUybibOIb31BzksIWMYD20OkhiGIxmv8Z+opVm7KScIv+rhlWvQYzzdL9N23
-	 S4BwD770Utgzw==
-Message-ID: <dbb5915e-6587-4de9-87f3-76bea5024da8@kernel.org>
-Date: Mon, 22 Jun 2026 10:05:13 +0200
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="FQQM83WL"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=ZNkdYZ1/RncAV68vgbONM20WJVMlK36/8+zVp6DeZjgphfAqZl0DpYjR5w1CHBSgXNGg+pU2zySCF2PEHiqOb9lj2ZO+60pWlhgalYfGDwnFILoRvt7vueWXn6DQx9mxYef9GHskWzx3WR1+8raA1iSYAgoZhW3m7xuhe21IhhhDy0AZqvhWvGkU/zEvUYTakHK7YiO+lzRS+41BZOZ+/pBXHoU4CJcBNQWGxVU+H58qaxB8zTdhkGvJ8FErClDVdLacExizu+wCZEJ7sMVT7rE22xvGOttts5ockV/cNaP4/JHopCk8YIIgtCUyJ457MH85yU52CDQEL9B48lfQIw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=We10YSZ+crbmSfe3xBkAOD9Bc4SDWBk8hcW+l4bsiow=;
+ b=GFmpUjC39DZ+/rDWAi8WenQ2H7sMd2D7iF5+iV8II+mdvC74c78O4Yvppr7q1kBAaJNJnAQU0M1tJJotGh66DwGeZ5xYYuc3W1Qmag9JfTHD+9TAgAqPqbOPQ8gnBAso9+u9md47xRV7WoJoB0U1WaSrmNOs6sZUx4qq075JFJNQK1GYDfZwpgAoYay9MpCGa0gB5Wmfn5heiPaC6VgPy8JB4I5XLnWxogDY+oio1VRNbCBIMxw40pvLE080OpkDzyXt8IA+TmiUSzYP7JmUTic4H9dGOHEbU2c/41bpffUqKJTq22G7RH783MQFUwdDeZASxq9qKEvyTSauKwCDcQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 216.228.117.161) smtp.rcpttodomain=lunn.ch smtp.mailfrom=nvidia.com;
+ dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
+ dkim=none (message not signed); arc=none (0)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=We10YSZ+crbmSfe3xBkAOD9Bc4SDWBk8hcW+l4bsiow=;
+ b=FQQM83WLcY4rDoCOukJqdf5kr3421vm2WBzfSOGWtoKCGR+IT5kVq9FVWq3GXT3D8nkzOXq8BaZzi5iccGIAlcEGz1G2NVggvzZN/RnrDBlYY9XRde2C8sHrZa4sNRNaHy8UAzqe2Q4TrfWtDLSGhRtbwMtIKg9aV1aw26XxVGpEIWFL2NO75/u5SweiJZvv0kCGPWiYW9ow6DGosvfreoMC0b1yHZU1LbooSOR1RGz6U4BvaGY+5iY3Sd0yEkv8jCP20n64Ez6Uhvue0RFa3m8BGEvLV4GBI5s0dSefGDh2AP1df1K5MYs6GJEzgc0+3213zgJhJ7ov7wwf8kusTQ==
+Received: from DS1PR02CA0012.namprd02.prod.outlook.com (2603:10b6:8:452::9) by
+ SN7PR12MB6766.namprd12.prod.outlook.com (2603:10b6:806:26a::21) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.139.19; Mon, 22 Jun
+ 2026 08:37:39 +0000
+Received: from DS2PEPF000061C8.namprd02.prod.outlook.com
+ (2603:10b6:8:452:cafe::1b) by DS1PR02CA0012.outlook.office365.com
+ (2603:10b6:8:452::9) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.21.139.20 via Frontend Transport; Mon,
+ 22 Jun 2026 08:37:39 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.161)
+ smtp.mailfrom=nvidia.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=nvidia.com;
+Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
+ 216.228.117.161 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.117.161; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.117.161) by
+ DS2PEPF000061C8.mail.protection.outlook.com (10.167.23.75) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.21.159.10 via Frontend Transport; Mon, 22 Jun 2026 08:37:38 +0000
+Received: from rnnvmail204.nvidia.com (10.129.68.6) by mail.nvidia.com
+ (10.129.200.67) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Mon, 22 Jun
+ 2026 01:37:23 -0700
+Received: from rnnvmail204.nvidia.com (10.129.68.6) by rnnvmail204.nvidia.com
+ (10.129.68.6) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Mon, 22 Jun
+ 2026 01:37:22 -0700
+Received: from vdi.nvidia.com (10.127.8.10) by mail.nvidia.com (10.129.68.6)
+ with Microsoft SMTP Server id 15.2.2562.20 via Frontend Transport; Mon, 22
+ Jun 2026 01:37:16 -0700
+From: Tariq Toukan <tariqt@nvidia.com>
+To: Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller"
+	<davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, Jakub Kicinski
+	<kuba@kernel.org>, <netdev@vger.kernel.org>, Paolo Abeni <pabeni@redhat.com>
+CC: Cosmin Ratiu <cratiu@nvidia.com>, Eran Ben Elisha <eranbe@nvidia.com>,
+	Feng Liu <feliu@nvidia.com>, Haiyang Zhang <haiyangz@microsoft.com>, "Lama
+ Kayal" <lkayal@nvidia.com>, Leon Romanovsky <leon@kernel.org>,
+	<linux-kernel@vger.kernel.org>, <linux-rdma@vger.kernel.org>, Mark Bloch
+	<mbloch@nvidia.com>, Nimrod Oren <noren@nvidia.com>, Saeed Mahameed
+	<saeedm@nvidia.com>, Tariq Toukan <tariqt@nvidia.com>, Gal Pressman
+	<gal@nvidia.com>, Alexei Lazar <alazar@nvidia.com>, Simon Horman
+	<horms@kernel.org>, Carolina Jubran <cjubran@nvidia.com>, Kees Cook
+	<kees@kernel.org>, Eran Ben Elisha <eranbe@mellanox.com>, Saeed Mahameed
+	<saeedm@mellanox.com>
+Subject: [PATCH net V3 0/3] net/mlx5e: Fix crashes in dynamic per-channel stats and HV VHCA agent
+Date: Mon, 22 Jun 2026 11:36:42 +0300
+Message-ID: <20260622083646.593220-1-tariqt@nvidia.com>
+X-Mailer: git-send-email 2.44.0
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 0/2] tracing: Move trace_printk.h out of kernel.h
-To: Steven Rostedt <rostedt@kernel.org>, linux-kernel@vger.kernel.org,
- linux-trace-kernel@vger.kernel.org
-Cc: Masami Hiramatsu <mhiramat@kernel.org>,
- Mark Rutland <mark.rutland@arm.com>,
- Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
- Andrew Morton <akpm@linux-foundation.org>,
- Linus Torvalds <torvalds@linux-foundation.org>,
- Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
- John Ogness <john.ogness@linutronix.de>, Thomas Gleixner <tglx@kernel.org>,
- Peter Zijlstra <peterz@infradead.org>, Julia Lawall <julia.lawall@inria.fr>,
- Yury Norov <yury.norov@gmail.com>, linux-doc@vger.kernel.org,
- linux-kbuild@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
- dri-devel@lists.freedesktop.org, linux-stm32@st-md-mailman.stormreply.com,
- linux-arm-kernel@lists.infradead.org, linux-rdma@vger.kernel.org,
- linux-usb@vger.kernel.org, linux-ext4@vger.kernel.org,
- linux-nfs@vger.kernel.org, kvm@vger.kernel.org,
- intel-gfx@lists.freedesktop.org
-References: <20260621093430.264983361@kernel.org>
-Content-Language: fr-FR
-From: "Christophe Leroy (CS GROUP)" <chleroy@kernel.org>
-In-Reply-To: <20260621093430.264983361@kernel.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-NV-OnPremToCloud: ExternallySecured
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: DS2PEPF000061C8:EE_|SN7PR12MB6766:EE_
+X-MS-Office365-Filtering-Correlation-Id: d65d4818-33f4-4d09-700b-08ded039845a
+X-LD-Processed: 43083d15-7273-40c1-b7db-39efd9ccc17a,ExtAddr
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|23010399003|376014|1800799024|7416014|82310400026|36860700016|13003099007|18002099003|56012099006|11063799006;
+X-Microsoft-Antispam-Message-Info:
+	ceg03sOc/ms1FRgu/AlfgwwcN84ynLXhRUHWpdW6npyfkqLliFm7BXx90a2GMYZIqcVoaf7Ur63FjW1o/oYvWqm3bHbvCcoBfswJY4yFD2sqKFMtM5PZ4lz9au3Az1QV/AiZ2W6VP/zIf31R/kCaYVaeAOQ0a2wQD0WJkcwDWFSQ7/13XzC2dUqQxA56bFX5lSJ1yIGjV5/n6u3hC2cN+XhSp2g88Z24e7fdK13GFwRf9G7s5gFfqO01yvNBYhml7yPEXXn0P5S0Yu29ZxEZCawityIXAn0s7iYMxHYaGv87NOkrfrDFWVDgXIYw/JlHXdsjq3POMlzXUUbkZNYUoFLbEsTHUwYZ7E6bRM90Mbh5X5fPTbJEitZh3AdnNSx2pU2NajuD9z7P0VnPD0+KnZBc5Ts/CjxF7r6tP+E0lWD9MIq+CnoBeDHH3Ze6MXqGDXJUtu8qdxEQLmD58HGKH+TvwIhowSLp0OgSqaMpvlllkNS+Y3RBZCo1J+6POohjVAh3ZPbSpRtbniTxGWqZ+2tF+k6WFPMdXSB9yhZpoTf6rk3hMccCbsjUN9NT4nDbbKG1lGf9fO35FEKQxZkCUpDYogOiWWesT1Vj69dO2o6xIaY+nLwJn3RkTRbQmt8AbZeN32+Cb+CV46fnTlmha954UcvPZODgz2NulPl12baLZgw/xnnSYoYbHTqMAo2lsCa9wXzXrir4mqrpzLNNtw==
+X-Forefront-Antispam-Report:
+	CIP:216.228.117.161;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge2.nvidia.com;CAT:NONE;SFS:(13230040)(23010399003)(376014)(1800799024)(7416014)(82310400026)(36860700016)(13003099007)(18002099003)(56012099006)(11063799006);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	GMN5amI/ORFRf8pZS7I8XTiyc3YwTFDdTsxijhM2cPjCTkxm9CoBAs6lOmi0HniLXV7dBircDq8ESIvHr9CPMJHJr8noSGnGVNKTrZ8JYgt1FGdPxSnDkk254BpqiAaUSSi+BvnGj1dtbg1dpMzbZO/msrjNHV1z+1aqgaGHO0kth+02bjjGZm+ZRik2EzHlbjDwZw8PWPd/O7+n6so0Q4QHqluxHBqpVMb0Y/g+0PNbhtDrKN4uZ0YNC6tz22kYtVT5RV2OGTX6OYIvo0BcBvgtNmNv2zu7DMsRrkiX0yEe01w39xpqPZPwAzK9qJdB0ktL/QPdNfE6YjD8ZNhLMOOoNvKdW+2bJWCL6GLJDffwLoCJAxKQXipZ7nJ7tr732XeWZMyyYgTMmB8ZueGg/tYB6MDNIjfP273S5RnVBkEpYjhTnrisiHtlEpgOFgqq
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 22 Jun 2026 08:37:38.3896
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: d65d4818-33f4-4d09-700b-08ded039845a
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.161];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	DS2PEPF000061C8.namprd02.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SN7PR12MB6766
+
+Hi,
+
+Since per-channel stats were converted to be allocated and published
+lazily at first channel open in commit fa691d0c9c08 ("net/mlx5e:
+Allocate per-channel stats dynamically at first usage"),
+priv->channel_stats[] and priv->stats_nch are filled in
+incrementally during interface bring-up. This opened a window in
+which the various stats readers - most of them reachable from
+userspace via netlink/netdev stats queries - can race with
+mlx5e_open_channel() on another CPU and observe partially
+initialized state. The HV VHCA stats agent, which is created
+before the channels are opened, hits related problems of its own.
+
+This series by Feng fixes the resulting crashes.
+
+Regards,
+Tariq
+
+V3:
+- Rebase on current net.
+
+V2:
+https://lore.kernel.org/all/20260617140127.573117-1-tariqt@nvidia.com/
 
 
+Feng Liu (3):
+  net/mlx5e: Fix HV VHCA stats zero-sized buffer allocation
+  net/mlx5e: Fix HV VHCA stats agent registration race
+  net/mlx5e: Fix publication race for priv->channel_stats[]
 
-Le 21/06/2026 à 11:34, Steven Rostedt a écrit :
-> There's been complaints about trace_printk() being defined in kernel.h as it
-> can increase the compilation time. As it is only used by some developers for
-> debugging purposes, it should not be in kernel.h causing lots of wasted CPU
-> cycles for those that do not ever care about it.
+ drivers/net/ethernet/mellanox/mlx5/core/en.h  | 12 ++++++
+ .../mellanox/mlx5/core/en/hv_vhca_stats.c     | 38 +++++++++++++------
+ .../net/ethernet/mellanox/mlx5/core/en_main.c | 14 ++++---
+ .../ethernet/mellanox/mlx5/core/en_stats.c    |  9 +++--
+ .../ethernet/mellanox/mlx5/core/ipoib/ipoib.c |  3 +-
+ .../ethernet/mellanox/mlx5/core/lib/hv_vhca.c |  8 +++-
+ .../ethernet/mellanox/mlx5/core/lib/hv_vhca.h |  6 ++-
+ 7 files changed, 63 insertions(+), 27 deletions(-)
 
-Do we have a measurement of the increased compilation time ?
 
-Christophe
-
-> 
-> Instead, add a CONFIG_TRACE_PRINTK_DEBUGGING option that developers that do
-> use it can set and not have to always remember to add #include <linux/trace_printk.h>
-> to the files they add trace_printk() while debugging. It also means that
-> those that do not have that config set will not have to worry about wasted
-> CPU cycles as it is only include in the CFLAGS when the option is set, and
-> its completely ignored otherwise.
-> 
-> Steven Rostedt (2):
->        tracing: Move non-trace_printk prototypes back to kernel.h
->        tracing: Add CONFIG_TRACE_PRINTK_DEBUGGING to clean up kernel.h
-> 
-> ----
->   .../driver_development_debugging_guide.rst         |  2 +-
->   Makefile                                           |  5 +++++
->   arch/powerpc/kvm/book3s_xics.c                     |  1 +
->   drivers/gpu/drm/i915/gt/intel_gtt.h                |  1 +
->   drivers/gpu/drm/i915/i915_gem.h                    |  1 +
->   drivers/hwtracing/stm/dummy_stm.c                  |  4 ++++
->   drivers/infiniband/hw/hfi1/trace_dbg.h             |  1 +
->   drivers/usb/early/xhci-dbc.c                       |  1 +
->   fs/ext4/inline.c                                   |  1 +
->   include/linux/kernel.h                             | 19 ++++++++++++++++++-
->   include/linux/sunrpc/debug.h                       |  1 +
->   include/linux/trace_printk.h                       | 22 +++-------------------
->   kernel/trace/Kconfig                               | 10 ++++++++++
->   kernel/trace/ring_buffer_benchmark.c               |  1 +
->   kernel/trace/trace.h                               |  1 +
->   samples/fprobe/fprobe_example.c                    |  1 +
->   samples/ftrace/ftrace-direct-modify.c              |  1 +
->   samples/ftrace/ftrace-direct-multi-modify.c        |  1 +
->   samples/ftrace/ftrace-direct-multi.c               |  2 +-
->   samples/ftrace/ftrace-direct-too.c                 |  2 +-
->   samples/ftrace/ftrace-direct.c                     |  2 +-
->   21 files changed, 56 insertions(+), 24 deletions(-)
-> 
+base-commit: d07d80b6a129a44538cda1549b7acf95154fb197
+-- 
+2.44.0
 
