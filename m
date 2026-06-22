@@ -1,330 +1,228 @@
-Received: from mail-ot1-f98.google.com (mail-ot1-f98.google.com [209.85.210.98])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from PH0PR06CU001.outbound.protection.outlook.com (mail-westus3azon11011064.outbound.protection.outlook.com [40.107.208.64])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2850933ADB3
-	for <linux-rdma@vger.kernel.org>; Mon, 22 Jun 2026 04:43:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.98
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782103394; cv=none; b=Lx20MABgV+bPqq/kknjf67BY8b90nqrtuZmcURQR8eF0i5+pTrrpUFmGuqvvh+K6h5ryR8aBmbtxZC5ZDhNg7Rq1bn0QRNKqi15JeqS4y/3527ptMJZAGtAqzGSskFWQ6nbfUg0SXdJGWdq5RJuDRFYR4ATjBCy+CadWTQB4gFE=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782103394; c=relaxed/simple;
-	bh=zOjE786rVJ/ob1/FltyoBpjzY/+2YifNbUqUhe73z5Y=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=S629g0qk3dySa3AzTq5noVBGh9sJnuFdOND4G9kOB1yxDqJpHeJSbikUYh8SCXgLEYUJ19xcR5/5U0yv4+2SRws+SGx7KY2UCmt1srQqt24G6xtYWT/XEFEiMUws2g5ESXGjLU1npWdjHQXx9wWL/S6Y1Ek9aUl5do0k2iZC8Qw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com; spf=fail smtp.mailfrom=broadcom.com; dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b=RcdGTu0o; arc=none smtp.client-ip=209.85.210.98
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=broadcom.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 40F8735E93C;
+	Mon, 22 Jun 2026 06:41:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.208.64
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1782110481; cv=fail; b=rjJns3GaQTk+GBrrhwI2WP6Nj4oevh8JYvBmjSGnT41Gd0TT72nFIr1ce11G0b0ccgvkpZwmruwBBxXRuDDNgfPHWjXZrGgZGyVKi06doXQnY7+xnM1DYHQPoYd0gntkEiYYSXIRj0ZnLAn1Qzww0DysT6++aE1gmMzn5iM+hmQ=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1782110481; c=relaxed/simple;
+	bh=ekOFwLP9clxETVzZa7YcIJAopmMjRTdVs4ME48YBaQI=;
+	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
+	 In-Reply-To:Content-Type; b=gnMlwo9lO3QjPcZzk7b0bITRbNs4A0KwtGi3xSZk15jOrNC60S07Rop+vXVsJs77smlGl14Nwq0fq8wITLTV2BnhO+spcZkpGAAMn+becI2sz4GiGVczzwfod1qebuC2rDbnVZosfj3PEIpWm3qvJqVsziAtamNnH9QVk81NKmM=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=NDTXgkZK; arc=fail smtp.client-ip=40.107.208.64
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b="RcdGTu0o"
-Received: by mail-ot1-f98.google.com with SMTP id 46e09a7af769-7e6e9408e30so3524733a34.2
-        for <linux-rdma@vger.kernel.org>; Sun, 21 Jun 2026 21:43:12 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1782103392; x=1782708192;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:dkim-signature:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=+t+z3HgUfvygpLIXVucj2RCBcM5wvIk0MxN/oFxilmY=;
-        b=lOGKOu+E7wY8grzVjYcm3O58Dx05BiPZ0p3MzAeNoT7SeAf0pX6oZRJ/3VyqL1eHXq
-         UDZ9G+0SFq0JULf8tE6wY8T+zzvMvLu5bO/QKKoB5lpT21gXbJRzs687aXwsrUnhUaM0
-         3jy1EJfXiLQ6hubfy5wG5ttSj87emFKhTCZ7NbFFFdkjbZ3TiFJkpp/9w2+VYQ4PoRXw
-         9xcZMmpNdx8moKPS8Lu6axP10d12QdwBpjIL4lJDW3VVYeI8AHTobtPrhALBFuPcNpi4
-         gndgE8B+v5awYn+zog0ko6hPYApj7J+9GENvw4fh8ThbzBh4Icv5vGaiMEuFz/KWxVth
-         5VDw==
-X-Gm-Message-State: AOJu0YyY0wPB+UU6US6kUW1aZXpK2K2uvfz1k8lD5bklqJCZqpZCNbqZ
-	8JzA71SrpVum/wSrCsIoEMfwujnJnQSaApPOr0/6Qs9qBb/9icWu9P1wwQPnd9K2HMtSg65n+mm
-	ppJN0IdwVqoNVsCQIvHz89Fjh2mye2aDQUUH1oBXBbCSp7j07uM6XnHbnQ2sUH9uFfO/5yCE9ML
-	DsPpNd0xm14yH9INbruLnqd4N7nKEluMke3MNUMJ8aKCgALVomeWzcatwTW7dApAt1mIO46rZwD
-	DOiyYJdjN+s5NceaA==
-X-Gm-Gg: AfdE7clHyD3oFPZa7W1UB6G1rtwoMZBeqS3sNdnvkaANMYzD6C9qoiMxPO0uEJkvX2j
-	zWg63iU8rZaA4ZlzVMckb9r96LnQhfHev5ZQuq+OiKfJYlkHxwPGoDQZulJtrRXbSoy+WgISfgi
-	zzcaf/PGQ2fkIyJsqmWm846bYdeMiOLaEFo2TiQ5ytLUiJWkAwDm/G5xM3LPn9OpqCT4KTnuNfV
-	kPQHJ1AH0772AoKnXfE3P5j+psbbtbvpx6nGoM5fvBWTA6oPWiEvkTSj7VT6BlKcduuQmde+lIt
-	a+MMBWowNqX2w5DfLqrqvyWXbshjU65LaWMTAI1KaGVLOhBa5ZN9WM7V8iheyC+nVTkYzzAAy7H
-	ivEFSkdsFiyZ+wOvyuPy8SQnbdgOvgg19noLO8JwRATDHXdfs/UkQBKa/B0cxdzlo1RrMbgORrg
-	4znorYudPJ3/CPMQOGfNkaRAmfrbxVP4WCAMHVEZDyhcaoLZU=
-X-Received: by 2002:a05:6830:2641:b0:7e6:cc17:c7ac with SMTP id 46e09a7af769-7e92d9d0145mr12571045a34.22.1782103392028;
-        Sun, 21 Jun 2026 21:43:12 -0700 (PDT)
-Received: from smtp-us-east1-p01-i01-si01.dlp.protect.broadcom.com (address-144-49-247-18.dlp.protect.broadcom.com. [144.49.247.18])
-        by smtp-relay.gmail.com with ESMTPS id 46e09a7af769-7e944205639sm477891a34.3.2026.06.21.21.43.11
-        for <linux-rdma@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Sun, 21 Jun 2026 21:43:12 -0700 (PDT)
-X-Relaying-Domain: broadcom.com
-X-CFilter-Loop: Reflected
-Received: by mail-pl1-f199.google.com with SMTP id d9443c01a7336-2c0d0516ad7so43007015ad.0
-        for <linux-rdma@vger.kernel.org>; Sun, 21 Jun 2026 21:43:11 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=broadcom.com; s=google; t=1782103390; x=1782708190; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=+t+z3HgUfvygpLIXVucj2RCBcM5wvIk0MxN/oFxilmY=;
-        b=RcdGTu0oF17tycClOQZPQ7VjfNHJtatK9XSd6UNN/R+y/kp5AotCG6wXUS1yyD5FHR
-         VizChYjsbBiwzk0URADsqDFdoTOjpuklp0QQGsXHkijg+/fDswePSKje6XhQY/NfTbNS
-         ZpFGhjdNO2ghO5RP/sNJfxuHN+6h43DifXyXU=
-X-Received: by 2002:a17:902:f64e:b0:2c2:8659:da44 with SMTP id d9443c01a7336-2c719054d47mr146981475ad.36.1782103390497;
-        Sun, 21 Jun 2026 21:43:10 -0700 (PDT)
-X-Received: by 2002:a17:902:f64e:b0:2c2:8659:da44 with SMTP id d9443c01a7336-2c719054d47mr146981175ad.36.1782103390007;
-        Sun, 21 Jun 2026 21:43:10 -0700 (PDT)
-Received: from dhcp-10-123-156-114.dhcp.broadcom.net ([192.19.234.250])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2c7439f901bsm60607475ad.44.2026.06.21.21.43.07
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 21 Jun 2026 21:43:09 -0700 (PDT)
-From: Selvin Xavier <selvin.xavier@broadcom.com>
-To: leon@kernel.org,
-	jgg@ziepe.ca
-Cc: linux-rdma@vger.kernel.org,
-	andrew.gospodarek@broadcom.com,
-	kalesh-anakkur.purayil@broadcom.com,
-	sriharsha.basavapatna@broadcom.com,
-	Selvin Xavier <selvin.xavier@broadcom.com>,
-	Jason Gunthorpe <jgg@nvidia.com>
-Subject: [PATCH for-next 2/2] RDMA/bnxt_re: Add uverbs object handle path for CQ/SRQ toggle page
-Date: Mon, 22 Jun 2026 03:05:28 -0700
-Message-Id: <20260622100528.132463-3-selvin.xavier@broadcom.com>
-X-Mailer: git-send-email 2.39.3
-In-Reply-To: <20260622100528.132463-1-selvin.xavier@broadcom.com>
-References: <20260622100528.132463-1-selvin.xavier@broadcom.com>
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="NDTXgkZK"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=EDZNBEb2jzhCUYdL95OyjII4Ja3dom5rReUcMLk8VIp/ai380IdeI38MxhWWm2XxzAk2ZAzKIQ4ALSh6iqLGw8eK8kaCejEk8fBsaUjOjH6jnMxFb4DvYc1lowZRgGDkrjrlI//t08HuTXLP64E7uVQrpF0I7gjdDbneU1kGsUl216BYIrVP1YgnP2hQYfNfd0pc+e1jglfslO+Ls2QZ5+6xh7VRPpw9qpK/LM+uivbMVNYEfVz6eaaLDmr5g7DiTwOnp09k42jX0nMMj6wG1LeXtKF7+OMmXYdI6GlQtdujWYltlhIB4gUah5HCHhMqYEnBXjnLbOdW+fR2qjvjiw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=Qyk49lpKf4aT8J2/GViA71axDLE7tSJZiT/hYKwJLFE=;
+ b=AdCK1PMTd+cjSdjCYYL1rOx1zE2Mc6NGtbRa2z4RMcfstYP+tk6WvDVdZ0gdFZk+Al7W4ZYPPIvCcke+PGYKjGWdAoCNyUe7cn4ZtkloEJOF77zq6zO38Gz68aCSA3cUNnwNomk2v06wOoAwwnlycS+4epE3EVpzGLThacjWN9LdUYh+lJ4nEGO+eWSK/YKFeLGfN3yi1ts7GJTU3RX9n8SXMhUDPtFlMGkAg/2ga7xHw4Kio7qk3zDhT3XyPSK9ZvNk44uA93ulPcH6CzZXQiPUxcEVyETNkS04B9Sj3tqhNL4jA/g+hbAMdtZu6B0z1cwVR1NlxbkAeROy65ErpA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 216.228.117.160) smtp.rcpttodomain=kernel.org smtp.mailfrom=nvidia.com;
+ dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
+ dkim=none (message not signed); arc=none (0)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=Qyk49lpKf4aT8J2/GViA71axDLE7tSJZiT/hYKwJLFE=;
+ b=NDTXgkZKmFktAwC1ZYp4F9vgepygPMf1Uv8hcQkMujMHuJcm2MLyiQ4fn//+x9ES9GWgrxzH8y6u5lq5eZbMXZqxFmksiiwKKJvKAv9uXvtswzQNTqYReBQFp5r2K6ZtUEogwrlkXOl5EulZPdlSTeg9kcDbpzCiKYUf/W7emizfAtEJYPJZRXM8ZGTJJ3POryY5TKEPCBy9rG7A5cC/aHli5C0ldAyx8fd1UB+NfyrUByuAxRtqT20tgozQTdo5+TmbLso/rf4NT7GuDvFaF/w4+/Rh//X1u4HQRwFnc1qk2IPJoQhPfuxmAxPf3C0Qhf44snMdZOCkNsGjW7hjag==
+Received: from BL1PR13CA0379.namprd13.prod.outlook.com (2603:10b6:208:2c0::24)
+ by IA1PR12MB6113.namprd12.prod.outlook.com (2603:10b6:208:3eb::8) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.139.19; Mon, 22 Jun
+ 2026 06:41:13 +0000
+Received: from BL02EPF0001A0FD.namprd03.prod.outlook.com
+ (2603:10b6:208:2c0:cafe::5a) by BL1PR13CA0379.outlook.office365.com
+ (2603:10b6:208:2c0::24) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.21.139.9 via Frontend Transport; Mon, 22
+ Jun 2026 06:41:13 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.160)
+ smtp.mailfrom=nvidia.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=nvidia.com;
+Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
+ 216.228.117.160 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.117.160; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.117.160) by
+ BL02EPF0001A0FD.mail.protection.outlook.com (10.167.242.104) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.21.159.10 via Frontend Transport; Mon, 22 Jun 2026 06:41:12 +0000
+Received: from rnnvmail201.nvidia.com (10.129.68.8) by mail.nvidia.com
+ (10.129.200.66) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Sun, 21 Jun
+ 2026 23:40:55 -0700
+Received: from [10.221.198.2] (10.126.231.37) by rnnvmail201.nvidia.com
+ (10.129.68.8) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Sun, 21 Jun
+ 2026 23:40:46 -0700
+Message-ID: <e18662ac-413e-43f6-ac65-a4e15fd47bb7@nvidia.com>
+Date: Mon, 22 Jun 2026 09:40:44 +0300
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-DetectorID-Processed: b00c1d49-9d2e-4205-b15f-d015386d3d5e
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH net 3/3] net/mlx5e: TC, skip peer flow cleanup when LAG
+ seq is unavailable
+To: Simon Horman <horms@kernel.org>, <tariqt@nvidia.com>
+CC: <edumazet@google.com>, <kuba@kernel.org>, <pabeni@redhat.com>,
+	<andrew+netdev@lunn.ch>, <davem@davemloft.net>, <saeedm@nvidia.com>,
+	<mbloch@nvidia.com>, <leon@kernel.org>, <ohartoov@nvidia.com>,
+	<edwards@nvidia.com>, <msanalla@nvidia.com>, <phaddad@nvidia.com>,
+	<parav@nvidia.com>, <gbayer@linux.ibm.com>, <kees@kernel.org>,
+	<moshe@nvidia.com>, <rongweil@nvidia.com>, <jacob.e.keller@intel.com>,
+	<netdev@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>, <gal@nvidia.com>
+References: <20260617063204.547427-4-tariqt@nvidia.com>
+ <20260618124820.890808-3-horms@kernel.org>
+Content-Language: en-US
+From: Shay Drori <shayd@nvidia.com>
+In-Reply-To: <20260618124820.890808-3-horms@kernel.org>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: rnnvmail203.nvidia.com (10.129.68.9) To
+ rnnvmail201.nvidia.com (10.129.68.8)
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: BL02EPF0001A0FD:EE_|IA1PR12MB6113:EE_
+X-MS-Office365-Filtering-Correlation-Id: 08b0a8ea-651e-4fe4-6a61-08ded02940a7
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|376014|36860700016|1800799024|82310400026|7416014|23010399003|6133799003|3023799007|18002099003|22082099003|5023799004|11063799006|4143699003|56012099006|13003099007;
+X-Microsoft-Antispam-Message-Info:
+	zDY/unD2fZFXZel7fni2yInlgRcfZwZn9Z07LPF69YtJ3Si99W57sR0uWoPxW6dsKXbKyQ4usDbb0WGnzXw+HSYsYDHO35D3WFMu96uVNRW2ktYRRnzxFJW/OxZZwm7BhPnu0wySEBUPJVimni08stoVeo+gUV9Qf0SbUovbrX2xcmyKA/CbyRIUpbyDtFB1em7O8ASfsiTwRAyHletgOlezACJsEzB/tve1yPfYGquHNNUfIGXDvNZ2a3Ed7qChQ7Oi8IlMo7ABLcrbUzKePPYdxEzIlw9oXroEiigJSQI/WKX9qCR9sNAZd7lmEqf8QJNQfjRQDQqzoCgS7inoOmLrf5Wss0DAn893a0RnFL8AQsVXrvmT5/B+TKleCWn5GJRiT5sMVElPcFHxgUJ8cTg3xeCQwhd3P4ZtpewU1l+4PQdvhhsSaUfwhdT8Jaqj5AxFt4Xz0cFZtw+WEGhZc3uR3YybRMqx7hYN9tZoQz41FYH6ITp48TY1czN+DId0dYgxvVe9JSOXunu2VFGk78ZrI/cPrIvoy7sg5gbp2T4fOtuksDvH2c0kdxGFo4hrwJGByuStTdIjkJpCzmWTrsyEcE7a1HQJcqeDdRpyFo8uiqHwtklKeYM1jcp22O/wGYleNymAZafH1QQ/SjUxuZfQKsq0xQ111yzb3dz6AEHKv3Lk07cwrBWM9JbOn6LkSKM9EOVinBLrvoi1Z5t3iA==
+X-Forefront-Antispam-Report:
+	CIP:216.228.117.160;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge1.nvidia.com;CAT:NONE;SFS:(13230040)(376014)(36860700016)(1800799024)(82310400026)(7416014)(23010399003)(6133799003)(3023799007)(18002099003)(22082099003)(5023799004)(11063799006)(4143699003)(56012099006)(13003099007);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	WgarMlrbL4TRqnr11sfb4xuYuLWdXuNnevMxvmcL/IRnNPkD+Eogw1acb5Ajcji+pL7wZ4s6PLnWPlxONZLdIlP1orwG77FCxlLH1mxOG5njwOO7IFSPMn5XWvkd5klgocLD9wru6zvkvsx12toPRA6fsjG+sVn/NitjinUqW74kgQ30/twdWxlPRFHimqR/tX8usQ5Rnxu19yRjepjl05iq8GMFULMMD5FMvuk7dVq8zVT3Zc+Ek7rm8do63WekB/CM6uTQBa0geAtCM7RNnUX5VOHziAjYaXRxmQHi7s681gqpc9OsxUONZqN0P77D+uRkaCGzi8ucmYJJm1OrgGLGPR38avqPUG4yvvY5ApS48lW9VGX8ngBYD9r4xMlakQgwvojKqZar/EZ75zwCh11uAfySh3p6nfHjBggbJYR2GmJGPo+61lBiiHzMOGsX
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 22 Jun 2026 06:41:12.8348
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: 08b0a8ea-651e-4fe4-6a61-08ded02940a7
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.160];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	BL02EPF0001A0FD.namprd03.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA1PR12MB6113
 
-The current GET_TOGGLE_MEM ioctl requires the caller to supply
-a type enum and a raw hardware queue ID (RES_ID). The kernel
-looks up the CQ or SRQ by that ID without verifying that the
-caller owns the resource.
 
-Add a new, preferred code path that accepts standard uverbs
-object handles (BNXT_RE_TOGGLE_MEM_CQ_HANDLE /
-BNXT_RE_TOGGLE_MEM_SRQ_HANDLE) instead.
 
-Only newer rdma-core versions support this path. Capability is
-negotiated during context creation using the req mask
-(BNXT_RE_COMP_MASK_REQ_UCNTX_TOGGLE_MEM_UOBJ_SUPPORT) and resp
-mask (BNXT_RE_UCNTX_CMASK_TOGGLE_MEM_UOBJ_SUPPORT).
-The existing TYPE + RES_ID path is retained for backward
-compatibility with older rdma-core.
+On 18/06/2026 15:48, Simon Horman wrote:
+> External email: Use caution opening links or attachments
+> 
+> 
+> This is an AI-generated review of your patch. The human sending this
+> email has considered the AI review valid, or at least plausible.
+> Full review at: https://sashiko.dev
+> 
+> Simon says: I think the first two issues flagged below warrant
+>              consideration within the context of this patch.
+> 
+>              But the third and final issue flagged below as pre-existing
+>              seems to be something to consider in the context of
+>              possible follow-up.
+> ---
+> net/mlx5e: TC, skip peer flow cleanup when LAG seq is unavailable
+> 
+> This commit addresses a bad memory access crash by skipping peer flows when
+> mlx5_lag_get_dev_seq() returns an error. This occurs when the peer isn't in
+> the LAG or when no device is marked as master.
+> 
+>> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
+>> index a9001d1c902ff..c6e6534a5e23b 100644
+>> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
+>> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
+>> @@ -2155,6 +2155,9 @@ static void mlx5e_tc_del_fdb_peers_flow(struct mlx5e_tc_flow *flow)
+>>        devcom = flow->priv->mdev->priv.eswitch->devcom;
+>>        mlx5_devcom_for_each_peer_entry(devcom, peer_esw, pos) {
+>>                i = mlx5_lag_get_dev_seq(peer_esw->dev);
+>> +             if (i < 0)
+>> +                     continue;
+>> +
+> 
+> [Severity: Critical]
+> Does skipping the remainder of this loop prevent the flow from being
+> unlinked from the doubly-linked list?
+> 
+> By using continue here in mlx5e_tc_del_fdb_peers_flow(), we skip calling
+> mlx5e_tc_del_fdb_peer_flow(), which means flow->peer[i] is never
+> unlinked from the esw->offloads.peer_flows[original_i] list.
 
-Suggested-by: Jason Gunthorpe <jgg@nvidia.com>
-Signed-off-by: Selvin Xavier <selvin.xavier@broadcom.com>
----
- drivers/infiniband/hw/bnxt_re/ib_verbs.c |  7 +-
- drivers/infiniband/hw/bnxt_re/ib_verbs.h |  1 +
- drivers/infiniband/hw/bnxt_re/uapi.c     | 95 ++++++++++++++++--------
- include/uapi/rdma/bnxt_re-abi.h          |  4 +
- 4 files changed, 74 insertions(+), 33 deletions(-)
+only in case a LAG member is removed from ldev, mlx5_lag_get_dev_seq()
+will return error.
+before LAG member is removed, esw->devcom is cleanup, which invoke
+mlx5e_tc_clean_fdb_peer_flows(), which remove all peer flows.
+Hence, no flow remains.
 
-diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-index 72b4c47d694a..301116dcf55f 100644
---- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-+++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-@@ -4825,7 +4825,8 @@ int bnxt_re_alloc_ucontext(struct ib_ucontext *ctx, struct ib_udata *udata)
- 		rc = ib_copy_validate_udata_in_cm(
- 			udata, ureq, comp_mask,
- 			BNXT_RE_COMP_MASK_REQ_UCNTX_POW2_SUPPORT |
--				BNXT_RE_COMP_MASK_REQ_UCNTX_VAR_WQE_SUPPORT);
-+				BNXT_RE_COMP_MASK_REQ_UCNTX_VAR_WQE_SUPPORT |
-+				BNXT_RE_COMP_MASK_REQ_UCNTX_TOGGLE_MEM_UOBJ_SUPPORT);
- 		if (rc)
- 			goto cfail;
- 		if (ureq.comp_mask & BNXT_RE_COMP_MASK_REQ_UCNTX_POW2_SUPPORT) {
-@@ -4838,6 +4839,10 @@ int bnxt_re_alloc_ucontext(struct ib_ucontext *ctx, struct ib_udata *udata)
- 			if (resp.mode == BNXT_QPLIB_WQE_MODE_VARIABLE)
- 				uctx->cmask |= BNXT_RE_UCNTX_CAP_VAR_WQE_ENABLED;
- 		}
-+		if (ureq.comp_mask & BNXT_RE_COMP_MASK_REQ_UCNTX_TOGGLE_MEM_UOBJ_SUPPORT) {
-+			uctx->cmask |= BNXT_RE_UCNTX_CAP_TOGGLE_MEM_UOBJ;
-+			resp.comp_mask |= BNXT_RE_UCNTX_CMASK_TOGGLE_MEM_UOBJ_SUPPORT;
-+		}
- 	}
- 
- 	xa_init(&uctx->cq_xa);
-diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.h b/drivers/infiniband/hw/bnxt_re/ib_verbs.h
-index 76f407cd3435..85e594a25448 100644
---- a/drivers/infiniband/hw/bnxt_re/ib_verbs.h
-+++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.h
-@@ -193,6 +193,7 @@ static inline u16 bnxt_re_get_rwqe_size(int nsge)
- enum {
- 	BNXT_RE_UCNTX_CAP_POW2_DISABLED = 0x1ULL,
- 	BNXT_RE_UCNTX_CAP_VAR_WQE_ENABLED = 0x2ULL,
-+	BNXT_RE_UCNTX_CAP_TOGGLE_MEM_UOBJ = 0x4ULL,
- };
- 
- static inline u32 bnxt_re_init_depth(u32 ent, u32 max,
-diff --git a/drivers/infiniband/hw/bnxt_re/uapi.c b/drivers/infiniband/hw/bnxt_re/uapi.c
-index 9485aa890b04..3109bd511f58 100644
---- a/drivers/infiniband/hw/bnxt_re/uapi.c
-+++ b/drivers/infiniband/hw/bnxt_re/uapi.c
-@@ -216,53 +216,76 @@ static int UVERBS_HANDLER(BNXT_RE_METHOD_GET_TOGGLE_MEM)(struct uverbs_attr_bund
- {
- 	struct ib_uobject *uobj = uverbs_attr_get_uobject(attrs, BNXT_RE_TOGGLE_MEM_HANDLE);
- 	enum bnxt_re_mmap_flag mmap_flag = BNXT_RE_MMAP_TOGGLE_PAGE;
--	enum bnxt_re_get_toggle_mem_type res_type;
- 	struct bnxt_re_user_mmap_entry *entry;
- 	struct bnxt_re_ucontext *uctx;
- 	struct ib_ucontext *ib_uctx;
-+	struct ib_uobject *res_uobj;
- 	u32 length = PAGE_SIZE;
--	struct bnxt_re_srq *srq;
--	struct bnxt_re_cq *cq;
- 	u64 mem_offset;
- 	u32 offset = 0;
- 	u64 addr = 0;
--	u32 res_id;
- 	int err;
- 
- 	ib_uctx = ib_uverbs_get_ucontext(attrs);
- 	if (IS_ERR(ib_uctx))
- 		return PTR_ERR(ib_uctx);
- 
--	err = uverbs_get_const(&res_type, attrs, BNXT_RE_TOGGLE_MEM_TYPE);
--	if (err)
--		return err;
--
- 	uctx = container_of(ib_uctx, struct bnxt_re_ucontext, ib_uctx);
--	err = uverbs_copy_from(&res_id, attrs, BNXT_RE_TOGGLE_MEM_RES_ID);
--	if (err)
--		return err;
-+	res_uobj = uverbs_attr_get_uobject(attrs, BNXT_RE_TOGGLE_MEM_CQ_HANDLE);
-+	if (!IS_ERR(res_uobj)) {
-+		struct bnxt_re_cq *cq =
-+			container_of((struct ib_cq *)res_uobj->object,
-+				     struct bnxt_re_cq, ib_cq);
- 
--	switch (res_type) {
--	case BNXT_RE_CQ_TOGGLE_MEM:
--		cq = xa_load(&uctx->cq_xa, res_id);
--		if (!cq)
--			return -EINVAL;
- 		addr = (u64)cq->uctx_cq_page;
--		if (!addr)
--			return -EOPNOTSUPP;
--		break;
--	case BNXT_RE_SRQ_TOGGLE_MEM:
--		srq = xa_load(&uctx->srq_xa, res_id);
--		if (!srq)
--			return -EINVAL;
--		addr = (u64)srq->uctx_srq_page;
--		if (!addr)
--			return -EOPNOTSUPP;
--		break;
--	default:
--		return -EOPNOTSUPP;
-+	} else {
-+		res_uobj = uverbs_attr_get_uobject(attrs, BNXT_RE_TOGGLE_MEM_SRQ_HANDLE);
-+		if (!IS_ERR(res_uobj)) {
-+			struct bnxt_re_srq *srq =
-+				container_of((struct ib_srq *)res_uobj->object,
-+					     struct bnxt_re_srq, ib_srq);
-+
-+			addr = (u64)srq->uctx_srq_page;
-+		} else {
-+			/*
-+			 * Legacy path: old libbnxt_re sends TYPE + RES_ID.
-+			 * Look up the CQ or SRQ in the per-context XArray
-+			 */
-+			enum bnxt_re_get_toggle_mem_type res_type;
-+			u32 res_id;
-+
-+			err = uverbs_get_const(&res_type, attrs,
-+					       BNXT_RE_TOGGLE_MEM_TYPE);
-+			if (err)
-+				return err;
-+			err = uverbs_copy_from(&res_id, attrs,
-+					       BNXT_RE_TOGGLE_MEM_RES_ID);
-+			if (err)
-+				return err;
-+
-+			if (res_type == BNXT_RE_CQ_TOGGLE_MEM) {
-+				struct bnxt_re_cq *cq =
-+					xa_load(&uctx->cq_xa, res_id);
-+
-+				if (!cq)
-+					return -EINVAL;
-+				addr = (u64)cq->uctx_cq_page;
-+			} else if (res_type == BNXT_RE_SRQ_TOGGLE_MEM) {
-+				struct bnxt_re_srq *srq =
-+					xa_load(&uctx->srq_xa, res_id);
-+
-+				if (!srq)
-+					return -EINVAL;
-+				addr = (u64)srq->uctx_srq_page;
-+			} else {
-+				return -EOPNOTSUPP;
-+			}
-+		}
- 	}
- 
-+	if (!addr)
-+		return -EOPNOTSUPP;
-+
- 	entry = bnxt_re_mmap_entry_insert(uctx, addr, mmap_flag, &mem_offset);
- 	if (!entry)
- 		return -ENOMEM;
-@@ -304,10 +327,10 @@ DECLARE_UVERBS_NAMED_METHOD(BNXT_RE_METHOD_GET_TOGGLE_MEM,
- 					    UA_MANDATORY),
- 			    UVERBS_ATTR_CONST_IN(BNXT_RE_TOGGLE_MEM_TYPE,
- 						 enum bnxt_re_get_toggle_mem_type,
--						 UA_MANDATORY),
-+						 UA_OPTIONAL),
- 			    UVERBS_ATTR_PTR_IN(BNXT_RE_TOGGLE_MEM_RES_ID,
- 					       UVERBS_ATTR_TYPE(u32),
--					       UA_MANDATORY),
-+					       UA_OPTIONAL),
- 			    UVERBS_ATTR_PTR_OUT(BNXT_RE_TOGGLE_MEM_MMAP_PAGE,
- 						UVERBS_ATTR_TYPE(u64),
- 						UA_MANDATORY),
-@@ -316,7 +339,15 @@ DECLARE_UVERBS_NAMED_METHOD(BNXT_RE_METHOD_GET_TOGGLE_MEM,
- 						UA_MANDATORY),
- 			    UVERBS_ATTR_PTR_OUT(BNXT_RE_TOGGLE_MEM_MMAP_LENGTH,
- 						UVERBS_ATTR_TYPE(u32),
--						UA_MANDATORY));
-+						UA_MANDATORY),
-+			    UVERBS_ATTR_IDR(BNXT_RE_TOGGLE_MEM_CQ_HANDLE,
-+					    UVERBS_OBJECT_CQ,
-+					    UVERBS_ACCESS_READ,
-+					    UA_OPTIONAL),
-+			    UVERBS_ATTR_IDR(BNXT_RE_TOGGLE_MEM_SRQ_HANDLE,
-+					    UVERBS_OBJECT_SRQ,
-+					    UVERBS_ACCESS_READ,
-+					    UA_OPTIONAL));
- 
- DECLARE_UVERBS_NAMED_METHOD_DESTROY(BNXT_RE_METHOD_RELEASE_TOGGLE_MEM,
- 				    UVERBS_ATTR_IDR(BNXT_RE_RELEASE_TOGGLE_MEM_HANDLE,
-diff --git a/include/uapi/rdma/bnxt_re-abi.h b/include/uapi/rdma/bnxt_re-abi.h
-index a4599d7b736a..a6cfd68ed8f5 100644
---- a/include/uapi/rdma/bnxt_re-abi.h
-+++ b/include/uapi/rdma/bnxt_re-abi.h
-@@ -57,6 +57,7 @@ enum {
- 	BNXT_RE_UCNTX_CMASK_POW2_DISABLED = 0x10ULL,
- 	BNXT_RE_UCNTX_CMASK_MSN_TABLE_ENABLED = 0x40,
- 	BNXT_RE_UCNTX_CMASK_QP_RATE_LIMIT_ENABLED = 0x80ULL,
-+	BNXT_RE_UCNTX_CMASK_TOGGLE_MEM_UOBJ_SUPPORT = 0x400000ULL,
- };
- 
- enum bnxt_re_wqe_mode {
-@@ -68,6 +69,7 @@ enum bnxt_re_wqe_mode {
- enum {
- 	BNXT_RE_COMP_MASK_REQ_UCNTX_POW2_SUPPORT = 0x01,
- 	BNXT_RE_COMP_MASK_REQ_UCNTX_VAR_WQE_SUPPORT = 0x02,
-+	BNXT_RE_COMP_MASK_REQ_UCNTX_TOGGLE_MEM_UOBJ_SUPPORT = 0x20,
- };
- 
- struct bnxt_re_uctx_req {
-@@ -218,6 +220,8 @@ enum bnxt_re_var_toggle_mem_attrs {
- 	BNXT_RE_TOGGLE_MEM_MMAP_PAGE,
- 	BNXT_RE_TOGGLE_MEM_MMAP_OFFSET,
- 	BNXT_RE_TOGGLE_MEM_MMAP_LENGTH,
-+	BNXT_RE_TOGGLE_MEM_CQ_HANDLE,
-+	BNXT_RE_TOGGLE_MEM_SRQ_HANDLE,
- };
- 
- enum bnxt_re_toggle_mem_attrs {
--- 
-2.39.3
+> 
+> If the flow is subsequently freed via mlx5e_flow_put(), will this leave a
+> freed list node resident in the active list and guarantee a use-after-free
+> list corruption during the next list traversal?
+> 
+>>                mlx5e_tc_del_fdb_peer_flow(flow, i);
+>>        }
+>>   }
+> 
+> [ ... ]
+> 
+>> @@ -5526,6 +5529,9 @@ void mlx5e_tc_clean_fdb_peer_flows(struct mlx5_eswitch *esw)
+>>
+>>        mlx5_devcom_for_each_peer_entry(devcom, peer_esw, pos) {
+>>                i = mlx5_lag_get_dev_seq(peer_esw->dev);
+>> +             if (i < 0)
+>> +                     continue;
+>> +
+> 
+> [Severity: Critical]
+> Similarly to the above, does this skip unlinking during flow cleanup when
+> the LAG sequence is unavailable?
 
+By the time get_dev_seq() can fail, the member is already out of ldev
+- and clean_fdb_peer_flows() (devcom unpair) ran before that, while seq
+was still valid, so the flows are already unlinked.
+The guard just covers that later window; nothing remains to leak.
+
+
+> 
+>>                list_for_each_entry_safe(flow, tmp, &esw->offloads.peer_flows[i], peer[i])
+>>                        mlx5e_tc_del_fdb_peers_flow(flow);
+>>        }
+> 
+> 
+> [Severity: Critical]
+> This isn't a bug introduced by this patch, but is there a similar missing
+> bounds check during flow addition in mlx5e_tc_add_fdb_peer_flow() in this
+> same file?
+> 
+> If a flow is added concurrently with LAG teardown, mlx5_lag_get_dev_seq()
+> can return -ENOENT (-2):
+> 
+> drivers/net/ethernet/mellanox/mlx5/core/en_tc.c:mlx5e_tc_add_fdb_peer_flow() {
+>      ...
+>      int i = mlx5_lag_get_dev_seq(peer_esw->dev);
+>      ...
+>      list_add_tail(&flow->peer[i], &esw->offloads.peer_flows[i]);
+>      ...
+> }
+> 
+> Does this result in an out-of-bounds write to a negative array index?
+
+
+No, if LAG is destroyed, than is_peer_flow_needed will return false and
+we won't enter here.
+the whole peer loop runs under the devcom read lock
+(mlx5_devcom_for_each_peer_begin), while devcom unpair - which is what
+precedes LAG member removal and runs clean_fdb_peer_flows - takes the
+write lock. The read lock therefore blocks teardown for the duration, so
+mlx5_lag_get_dev_seq() can't go negative here.
