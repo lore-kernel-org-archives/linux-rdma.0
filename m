@@ -1,70 +1,77 @@
-Received: from mail-m21468.qiye.163.com (mail-m21468.qiye.163.com [117.135.214.68])
+Received: from smtp-relay-services-0.canonical.com (smtp-relay-services-0.canonical.com [185.125.188.250])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B420D1DFDA1
-	for <linux-rdma@vger.kernel.org>; Wed, 24 Jun 2026 10:42:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=117.135.214.68
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8B0DD2E63C
+	for <linux-rdma@vger.kernel.org>; Wed, 24 Jun 2026 13:03:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.125.188.250
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782297749; cv=none; b=mYTyGF6HioVmOb53xLgQMi7goy/vDhpNsZHwVvfd0FVwppjbomkatVGIt3LbSEqc9BfCX6XzB56D/cf5K84VH/fME7xHYHnM38OA3vTfQWEcFEmGr6BpIWC20i3xzulnBclNvmmMIHT5CDwXsEEDckWqqjPHab9mUFot0+8I/+M=
+	t=1782306210; cv=none; b=THLRnIBKNsdVnMrsTt7usCOKv5oHH8Mx1EYW5wx2CEUdZGsoIIf039T0K98ThsFfuMQWUd89mp69ym59Z0AHbUqMbT5yf9y4vq05ucj7U4HSQw2SDLuo4oUVa5CvH/mLbkVWGitx4lsJ2H7DTI1uaQAhSDZXY3hLu2gqUu2Qy0M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782297749; c=relaxed/simple;
-	bh=H9514nGSNhwuiyLq8W8xnFS2/Eoa3n5BOZ7QZEhq378=;
-	h=Content-Type:Message-ID:To:Cc:Subject:In-Reply-To:References:
-	 MIME-Version:From:Date; b=YFiZp6VWENkkZDqDbakTJQNrnkxNdUjz3bPLnTeql0d/muCLMUR+VixRvxJg4DymUVbRVklIrRI9r5glUlzm03yDu9iwhPcrCdmJw7N4F7pQuZHZJFFSfyyV+5N95zYao6an4WZRpkdDPzzEcI/j8hQhywB/s4KaKoHuSVFC3l0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=seu.edu.cn; spf=pass smtp.mailfrom=seu.edu.cn; dkim=pass (1024-bit key) header.d=seu.edu.cn header.i=@seu.edu.cn header.b=TplEoqGE; arc=none smtp.client-ip=117.135.214.68
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=seu.edu.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=seu.edu.cn
+	s=arc-20240116; t=1782306210; c=relaxed/simple;
+	bh=fZnTtIjSLXpNcuqYBK9JcBPbwHna+kwShW3LM676oas=;
+	h=Content-Type:MIME-Version:To:From:Subject:Message-Id:Date; b=lP/ND+JxtKHMROrte5IGB0SzKvJ2BJwPd3ov5/T7NBH2q+p25y3psUje9z/2zshjZ7EsjTOYo8HjsWPy7LUDHqmOl1C1kMjnR08ayDG6IvkxjsJjSMShC0r0ZUnO9ED4AiE2sXEqg/lkYfqY7XU48mb6xehaSj2t943aAnCKvlE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=launchpad.net; spf=pass smtp.mailfrom=launchpad.net; dkim=pass (2048-bit key) header.d=launchpad.net header.i=@launchpad.net header.b=RPwilU3Y; arc=none smtp.client-ip=185.125.188.250
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=launchpad.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=launchpad.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=seu.edu.cn header.i=@seu.edu.cn header.b="TplEoqGE"
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: base64
-Message-ID: <AIgAEgCHKvkppDB9sUCsTarf.3.1782297429281.Hmail.220255722@seu.edu.cn>
-To: XIAO WU  <xiaowu.417@qq.com>
-Cc: "D. Wythe" <alibuda@linux.alibaba.com>, Dust Li <dust.li@linux.alibaba.com>, 
-	Sidraya Jayagond <sidraya@linux.ibm.com>, 
-	Wenjia Zhang <wenjia@linux.ibm.com>, 
-	"David S. Miller" <davem@davemloft.net>, 
-	Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, 
-	Paolo Abeni <pabeni@redhat.com>, 
-	Mahanta Jambigi <mjambigi@linux.ibm.com>, 
-	Tony Lu <tonylu@linux.alibaba.com>, Wen Gu <guwen@linux.alibaba.com>, 
-	Simon Horman <horms@kernel.org>, 
-	Karsten Graul <kgraul@linux.ibm.com>, 
-	linux-rdma <linux-rdma@vger.kernel.org>, 
-	linux-s390 <linux-s390@vger.kernel.org>, 
-	netdev <netdev@vger.kernel.org>, 
-	linux-kernel <linux-kernel@vger.kernel.org>, 
-	"jianhao.xu" <jianhao.xu@seu.edu.cn>
-Subject: =?UTF-8?B?UmU6IFtQQVRDSCBuZXQgdjJdIG5ldC9zbWM6IGF2b2lkIHJlY3Vyc2l2ZSBza19jYWxsYmFja19sb2NrIGluIGxpc3RlbiBkYXRhX3JlYWR5?=
-X-Priority: 3
-X-Mailer: HMail Webmail Server V2.0 Copyright (c) 2016-163.com Sirius_WEB_WIN_1.64.1
-In-Reply-To: <tencent_BD4B709F8D16281265EDBC0DC9EFC8758808@qq.com>
-References: <20260617152855.1039151-1-runyu.xiao@seu.edu.cn> <20260619054815.176764-1-runyu.xiao@seu.edu.cn> <tencent_BD4B709F8D16281265EDBC0DC9EFC8758808@qq.com>
+	dkim=pass (2048-bit key) header.d=launchpad.net header.i=@launchpad.net header.b="RPwilU3Y"
+Received: from juju-98d295-prod-launchpad-51.localdomain (unknown [10.131.215.15])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-relay-services-0.canonical.com (Postfix) with ESMTPSA id 6A0F340597
+	for <linux-rdma@vger.kernel.org>; Wed, 24 Jun 2026 13:03:21 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=launchpad.net;
+	s=20210803; t=1782306201;
+	bh=fZnTtIjSLXpNcuqYBK9JcBPbwHna+kwShW3LM676oas=;
+	h=Content-Type:MIME-Version:To:From:Subject:Message-Id:Date:
+	 Reply-To;
+	b=RPwilU3Y+e3EL1Fm53a24K93B+qzA2D6NZ4acjAi/coLE/fvHShFV/ZDgHM9xCePO
+	 VH5xIr/SnKkS2Gv96kFLreJGMqzIZo2Xq9SL5o/cZgRlq5qdjLaGHSXbwzt2XKEZLZ
+	 C4xz1IPH5F7bBgL4l1l2jVkuz12DqcPzTrpE7fdItXTQk1dj3sfckGPyClXmTsP3Me
+	 jQdxESTCb1RPEOjR5aAOOhsa884ciBgTKx1Llsf6QpHO0J9Bq9lw9zni5labuCCUno
+	 kBZcEQpa2oaS32ZGuin5Hj97v9TaNsfxPtoHVCtLDX3ORR5Plat0z1vyxnuCi5MTHv
+	 DqMSLC8sHIAvw==
+Received: from [10.131.215.15] (localhost [127.0.0.1])
+	by juju-98d295-prod-launchpad-51.localdomain (Postfix) with ESMTP id 33FF3BDA79
+	for <linux-rdma@vger.kernel.org>; Wed, 24 Jun 2026 13:03:21 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Received: from 220255722@seu.edu.cn( [223.112.146.162] ) by ajax-webmail ( [127.0.0.1] ) ; Wed, 24 Jun 2026 18:37:09 +0800 (GMT+08:00)
-From: Runyu Xiao <runyu.xiao@seu.edu.cn>
-Date: Wed, 24 Jun 2026 18:37:09 +0800 (GMT+08:00)
-X-HM-Tid: 0a9ef8c1fe0e02f2kunmf02bd3cd3a74
-X-HM-MType: 1
-X-HM-NTES-SC: AL0_4z5B86Wr4Tz9jdMF+bhXMTUS6Y2fHkyPT6dc03QDwVaZPGiA09TnwhbhTj
-	hLfuFZO94YXwX6xgvkjGVFFRKj5DZd03xfWxKJ5+5n10A36+gYygBUjfIFA2NppH9Q3clqMzZtZS
-	/wBzHlz2GYWAOTQREDhQH2k3gw2BUVE1M9Rj0=
-X-HM-Spam-Status: e1kfGhgUHx5ZQUpXWQgPGg8OCBgUHx5ZQUlOS1dZFg8aDwILHllBWSg2Ly
-	tZV1koWUFITzdXWRgWCB1ZQUpXWS1ZQUlXWQ8JGhUIEh9ZQVkaTkoaVk8aTk9PSxlOTUtNTFYVFA
-	kWGhdVEwETFhoSFyQUDg9ZV1kYEgtZQVlJSUhVSkpJVUpPTVVKTUlZV1kWGg8SFR0UWUFZT0tIVU
-	pLSEpOT0xVSktLVUpCS0tZBg++
-DKIM-Signature: a=rsa-sha256;
-	b=TplEoqGEnaAu3cY527AA6eQQ+g/Y9YRGy16bvFcwh4XF2JUUVS9ZXO841jY/F7e5cJLjiZBeUoN4pV7fTMLUkXAFlfniqM2VtzvK2UeyQe1X+aRtklPw40tqQnkdpZG+Q7Lx4Hs+lJMBzN66lTAa7m7U2pnAw3nQhia2HHu5P1A=; c=relaxed/relaxed; s=default; d=seu.edu.cn; v=1;
-	bh=H9514nGSNhwuiyLq8W8xnFS2/Eoa3n5BOZ7QZEhq378=;
-	h=date:mime-version:subject:message-id:from;
+Content-Transfer-Encoding: quoted-printable
+X-Launchpad-Message-Rationale: Requester @linux-rdma
+X-Launchpad-Message-For: linux-rdma
+X-Launchpad-Notification-Type: recipe-build-status
+X-Launchpad-Archive: ~linux-rdma/ubuntu/rdma-core-daily
+X-Launchpad-Build-State: MANUALDEPWAIT
+To: Linux RDMA <linux-rdma@vger.kernel.org>
+From: noreply@launchpad.net
+Subject: [recipe build #4056915] of ~linux-rdma rdma-core-daily in xenial: Dependency wait
+Message-Id: <178230620114.2634524.7582466509536963802.launchpad@juju-98d295-prod-launchpad-51>
+Date: Wed, 24 Jun 2026 13:03:21 -0000
+Reply-To: noreply@launchpad.net
+Sender: noreply@launchpad.net
+Errors-To: noreply@launchpad.net
+Precedence: bulk
+X-Generated-By: Launchpad (canonical.com); Revision="b14b31288034a9920506d3068d695d7e27dca403"; Instance="launchpad-buildd-manager"
+X-Launchpad-Hash: cc26f26a5e80418f2b2df8abf1b62a5b3a64e5f5
 
-SGkgWGlhbywKCiZndDsgdGhlIGVycm9yIHBhdGggaW4gc21jX2xpc3RlbigpIGRvZXMgbm90IHJl
-c3RvcmUgaWNza19hZl9vcHMgd2hlbgomZ3Q7IGtlcm5lbF9saXN0ZW4oKSBmYWlscwoKVGhhbmtz
-LCB0aGlzIGxvb2tzIGxpa2UgYSByZWFsIGVycm9yLXBhdGggYnVnLiBJIHdpbGwgcHJlcGFyZSBp
-dCBhcyBhCnNlcGFyYXRlIGZpeCBmb3Igc21jX2xpc3RlbigpIHJhdGhlciB0aGFuIGZvbGRpbmcg
-aXQgaW50byB0aGlzCnNrX2NhbGxiYWNrX2xvY2sgcGF0Y2guCgpSdW55dQoK
+ * State: Dependency wait
+ * Recipe: linux-rdma/rdma-core-daily
+ * Archive: ~linux-rdma/ubuntu/rdma-core-daily
+ * Distroseries: xenial
+ * Duration: 3 minutes
+ * Build Log: https://launchpad.net/~linux-rdma/+archive/ubuntu/rdma-core-d=
+aily/+recipebuild/4056915/+files/buildlog.txt.gz
+ * Upload Log:=20
+ * Builder: https://launchpad.net/builders/lcy02-amd64-063
+
+--=20
+https://launchpad.net/~linux-rdma/+archive/ubuntu/rdma-core-daily/+recipebu=
+ild/4056915
+Your team Linux RDMA is the requester of the build.
+
