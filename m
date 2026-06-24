@@ -1,213 +1,158 @@
-Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 663552C08CF;
-	Wed, 24 Jun 2026 22:26:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782340016; cv=none; b=BFwd11ykxafMUllDssVkSA9BbIb3hTC108nsQDCdilNSyHVCboVPyRqbF6K/8uJ0Uq9A6BHqZjSxFc6UPu8T3a9aCHtr4Av9GunbV3Nu6eb36UnSXfjfN+xup+/ANiXPQfLojYaXTP0koyKoD+t71zxqkj8YpwVPBRm2XwZDiL4=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782340016; c=relaxed/simple;
-	bh=Ho1ZueKN3CtWcD6Wl+WMy04kWDEdxKBqwxdu0vgj/MI=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=fsNUibykpnlr6yUFtEgM/bA+hik9FH+5w8sgBKtcmtBXzabdZMl/wG9gMKo2PvNdufMMagN+HQLe/2siA03RPFXTUr8Q0yFKck/xuDMFgYpijM3p1JCCdEU9sBolOo8msRKjIYWZjxXcDOMSNliAU9SJ7frq0LDCmBSkpyAO/SU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; arc=none smtp.client-ip=13.77.154.182
+Received: from MW6PR02CU001.outbound.protection.outlook.com (mail-westus2azon11022105.outbound.protection.outlook.com [52.101.48.105])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E143274FD1;
+	Wed, 24 Jun 2026 22:50:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.48.105
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1782341435; cv=fail; b=riZSPg4/SFeEM3cOBWAVworNjLya09BYqCZnQ8BTGmFJUefWwkfnr3Q3dOH36pLgKH/3u/Iu9QTMaiw1oaFBwK2yTHKWMq2c75BVLBx6d4x/fnwCE9/4UdH1yx/AKl9W9V7YRwgGDlTloIKL5tMxbn+IWXWVy9x+CpVIpX0AEvg=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1782341435; c=relaxed/simple;
+	bh=aJrmBp1g13oO6oBQB6r/GMwXxDq2mofOtZ1mIht/O2A=;
+	h=From:To:CC:Subject:Date:Message-ID:References:In-Reply-To:
+	 Content-Type:MIME-Version; b=fuo/sZvGpP/PeEFKnTjPCuGsMm9zf3tuPlbSeY/5SkFaUN6i7y0PtQ72lkwoPviGWtjy1U7w06Xmu4RumvinkWHcZGic/KzoUTsokEfbLpVFiR+kBgKLujTT/MtGrKP0KbMZfonzimagymjo3vTe8M1lspZOktSD0WMwLUbTuDs=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com; spf=pass smtp.mailfrom=microsoft.com; dkim=pass (1024-bit key) header.d=microsoft.com header.i=@microsoft.com header.b=ahVe+yan; arc=fail smtp.client-ip=52.101.48.105
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
-Received: by linux.microsoft.com (Postfix, from userid 1009)
-	id D76BA20B7166; Wed, 24 Jun 2026 15:26:50 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com D76BA20B7166
-From: Dexuan Cui <decui@microsoft.com>
-To: kys@microsoft.com,
-	haiyangz@microsoft.com,
-	wei.liu@kernel.org,
-	decui@microsoft.com,
-	longli@microsoft.com,
-	andrew+netdev@lunn.ch,
-	davem@davemloft.net,
-	edumazet@google.com,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	kotaranov@microsoft.com,
-	horms@kernel.org,
-	ernis@linux.microsoft.com,
-	dipayanroy@linux.microsoft.com,
-	kees@kernel.org,
-	jacob.e.keller@intel.com,
-	ssengar@linux.microsoft.com,
-	linux-hyperv@vger.kernel.org,
-	netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	linux-rdma@vger.kernel.org
-Cc: stable@vger.kernel.org
-Subject: [PATCH net v2 1/2] net: mana: Sync page pool RX frags for CPU
-Date: Wed, 24 Jun 2026 15:26:04 -0700
-Message-ID: <20260624222605.1794719-2-decui@microsoft.com>
-X-Mailer: git-send-email 2.43.7
-In-Reply-To: <20260624222605.1794719-1-decui@microsoft.com>
-References: <20260624222605.1794719-1-decui@microsoft.com>
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=microsoft.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=microsoft.com header.i=@microsoft.com header.b="ahVe+yan"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=PBPYdZHiL8Z9TgL56OD3wbSmDzzvIFEOGl3Jr+dOuT294i1WL71dgNFTYfUtdLBpqrmvjNFWH2zXj+bC0ShPNxZq9KYLbYWNhwHHqGNdMUAZSf4YElR/GEyH+39WnYb9+35DLul1q2SfCStElreso/BU/xvKZmQ0gzBF6vRe4ingmIPXbA6K45vEwexEXFMwpQslmtzoksDoEU3KecXyMUXNrICiG3adzV/ku8De9VKXM1nikf8FYZMzqmVMSokvVTIQ0TC2UNSMRDbrvJ8FMeaE/cqcLMlg/dvIIHu8Lo+Unttgd8HqNHXsgRxaljRpDpUX0hrxgKC9n0tBfT7X1g==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=aJrmBp1g13oO6oBQB6r/GMwXxDq2mofOtZ1mIht/O2A=;
+ b=BLh58+Sh7aIwWB0kdm+4Q00apuo8bkZ92nXtTTTSB4r+SnNeiMnZl8WKNYihShUNYAng0n/DnuJdNk7Uz2KROH+YNJ1KVifN1YQXjxOIMcEQ5PZA9jtNFiB5/mnyGI+GLIjzjp+pkQ7kwRwX33aZw3nPT2aZ7PaKUrX2YvOXloraxyP6WCUzrj4dS+T1z5VlxP1cNEosT23Ekk8Lvx2vW0MJuM6lvljaPMPFW5CVhDp3vru/Ksc18FRFsvkWV1A1KVfYm3mq7n6bWXCtv6D3Od9yrOumAZoGTo9R1JQ5x/x7Ax68WnL5IpFRuroJ+yxbt+A11aSnZJCIR8zxW63xFw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=microsoft.com; dmarc=pass action=none
+ header.from=microsoft.com; dkim=pass header.d=microsoft.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=aJrmBp1g13oO6oBQB6r/GMwXxDq2mofOtZ1mIht/O2A=;
+ b=ahVe+yanUws7oyj7swI6glq0NxoHBfwH+Yj5Al8G9io1Fvb8eWodzDlzZcxeamnhwbnsuvrU9GwTCoS5CfCvkMQHa1kAma3JzaY6JAujkhCGAXSxQmYZMer5o3Bhh6k2nD4d0yut3T3havnCQCIAxB2K5Snvw0mPdiP7RWmTOuc=
+Received: from SA1PR21MB6921.namprd21.prod.outlook.com (2603:10b6:806:4a7::11)
+ by SA1PR21MB6201.namprd21.prod.outlook.com (2603:10b6:806:4a3::6) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.181.3; Wed, 24 Jun
+ 2026 22:50:31 +0000
+Received: from SA1PR21MB6921.namprd21.prod.outlook.com
+ ([fe80::648e:8c2b:b5e4:aefc]) by SA1PR21MB6921.namprd21.prod.outlook.com
+ ([fe80::648e:8c2b:b5e4:aefc%5]) with mapi id 15.21.0181.003; Wed, 24 Jun 2026
+ 22:50:30 +0000
+From: Dexuan Cui <DECUI@microsoft.com>
+To: Simon Horman <horms@kernel.org>
+CC: KY Srinivasan <kys@microsoft.com>, Haiyang Zhang <haiyangz@microsoft.com>,
+	"wei.liu@kernel.org" <wei.liu@kernel.org>, Long Li <longli@microsoft.com>,
+	"andrew+netdev@lunn.ch" <andrew+netdev@lunn.ch>, "davem@davemloft.net"
+	<davem@davemloft.net>, "edumazet@google.com" <edumazet@google.com>,
+	"kuba@kernel.org" <kuba@kernel.org>, "pabeni@redhat.com" <pabeni@redhat.com>,
+	Konstantin Taranov <kotaranov@microsoft.com>, "ernis@linux.microsoft.com"
+	<ernis@linux.microsoft.com>, "dipayanroy@linux.microsoft.com"
+	<dipayanroy@linux.microsoft.com>, "kees@kernel.org" <kees@kernel.org>,
+	"jacob.e.keller@intel.com" <jacob.e.keller@intel.com>,
+	"ssengar@linux.microsoft.com" <ssengar@linux.microsoft.com>,
+	"linux-hyperv@vger.kernel.org" <linux-hyperv@vger.kernel.org>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+	"stable@vger.kernel.org" <stable@vger.kernel.org>
+Subject: RE: [EXTERNAL] Re: [PATCH net] net: mana: Sync page pool RX frags for
+ CPU
+Thread-Topic: [EXTERNAL] Re: [PATCH net] net: mana: Sync page pool RX frags
+ for CPU
+Thread-Index: AQHc/8rEsKaflwivok+NQI77f+CD7rZOVvxw
+Date: Wed, 24 Jun 2026 22:50:30 +0000
+Message-ID:
+ <SA1PR21MB6921C97DBB667A6A8C8D89F9BFED2@SA1PR21MB6921.namprd21.prod.outlook.com>
+References: <20260618035029.249361-1-decui@microsoft.com>
+ <20260619090514.GT827683@horms.kernel.org>
+In-Reply-To: <20260619090514.GT827683@horms.kernel.org>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach:
+X-MS-TNEF-Correlator:
+msip_labels:
+ MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_ActionId=d96642d4-0ce9-46f7-acee-c25d07b808c0;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_ContentBits=0;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_Enabled=true;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_Method=Standard;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_Name=Internal;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_SetDate=2026-06-24T22:46:24Z;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_SiteId=72f988bf-86f1-41af-91ab-2d7cd011db47;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_Tag=10,
+ 3, 0, 1;
+authentication-results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=microsoft.com;
+x-ms-publictraffictype: Email
+x-ms-traffictypediagnostic: SA1PR21MB6921:EE_|SA1PR21MB6201:EE_
+x-ms-office365-filtering-correlation-id: 2e56f192-0854-4ebf-d067-08ded242fe3d
+x-ms-exchange-senderadcheck: 1
+x-ms-exchange-antispam-relay: 0
+x-microsoft-antispam:
+ BCL:0;ARA:13230040|376014|7416014|23010399003|366016|1800799024|18002099003|22082099003|56012099006|4143699003|11063799006|38070700021;
+x-microsoft-antispam-message-info:
+ QPGtw73jLnmIJxz2OqrA/pwJeESLsjhzBh/x+a+HlZDegKJAoPUoBjKypUySxznkk5Ai5+TMpgeJQdWjhvMnS9fCa2oggg1FX6yuVIKw1DNSLf0bzlqs5B+eDUz5Nt8mWsUxJ2735vRqh4uXZ+vODNLdc5zx46PSmIWtQIAibtrUcdSPJXsizo40+LrtQc+r00+HnkHdny0yueH7AqVhzi+xcl1ToDgQwVMAuOT7etNXv7kzxWW04G2RmZz4FsXvcAVOhnQVOzghPiHwRv+2SOr1UeWJhcZX+A6JBCg0Q3jsnhc+Qu4y4SYrPnHucx2DxeQSepQXBwDkkHLdTGPZ/LSNSe9qEOkAZq10OdiZ/LkazaaLx7SajlRr6mR6nvphMJ2Fazq4QXPcqpnj7w/fbUdGLzT0BJ8Q4UFKBebxJxbiNNIeTk5S6nzZLUN4FGG1J5eYU0FIqTVaxEMCf14iOq3pnsMSFVmGO+evZaHfvtBgcltzo5XUOtVi1CGwdqcg7gx/AzC0kKtiUkvVZlV1zFgQOzOCewa805Adjb0lAfay1PgO+VMd6xq1ozUpCn9KPqHLXxZQ5LD0797VhXbMOSP3FM8XA2cOKofIh4lmmZIdX4JQVGVI6qlOJsBwnWds/i+nxvzRvJN6PhO6FdzhmNAOFvuf4h8mWWle8mWY8GQZPqFTGeOUly08ba3ePVlm8JWvYqGoDKhDOdriLsKBGpwRkwEGntH6Vnpjr1cVqU4=
+x-forefront-antispam-report:
+ CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SA1PR21MB6921.namprd21.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(7416014)(23010399003)(366016)(1800799024)(18002099003)(22082099003)(56012099006)(4143699003)(11063799006)(38070700021);DIR:OUT;SFP:1102;
+x-ms-exchange-antispam-messagedata-chunkcount: 1
+x-ms-exchange-antispam-messagedata-0:
+ =?us-ascii?Q?ABp7SwJRawF41WdTxcXzL2XbJKi/QJINQTvH5AJCBl/dGN5vEyaXEBb7FA9H?=
+ =?us-ascii?Q?BzpceZ8964gjZWKyCCnNa/YJZXhmzs8zYZjMfTMoH+tqiy+HvnLydgbwrAQP?=
+ =?us-ascii?Q?YnVZ4z0xA2ZaVUK2HAUCDNn23B9D/uM6IT+qX9Wi3iF+3QzRk4M0GXkLBDEz?=
+ =?us-ascii?Q?37wOpdr8DaWnhCQbIKxenA1QzG1LL5uQYSs/r3C0oPm+9UFhF0vDI5kZtv7Z?=
+ =?us-ascii?Q?VbL6QhpofviiOEylB7J42rf2jvG/GdB6CDFlkJTfpSe1U3EMAZGv08NMYjMi?=
+ =?us-ascii?Q?rshb5Folyx9gn4/tzWxP930RH0rJ3xlqrkio6K+JMc4fDCte+Lh4LNLP+N1m?=
+ =?us-ascii?Q?MSift4oqVI2/P5uxdQPa0/pvmnIT9MaxPqnIrbAx5YjtYKuiVT4ZlbAi96K2?=
+ =?us-ascii?Q?w+/EvGZx3+31wl5aabOkatofwRFb15KIBtFG/z0gNpOxNh66bj6rMaBEK2xw?=
+ =?us-ascii?Q?VAxxQCleFkh3ptaaCU17vpFbnL0jPLWroV3hOnohbaSzHbvSRG63wuwd+Trn?=
+ =?us-ascii?Q?ZsF6kJaRuXGLboCbC68yir4IhCpX151iLzmq8MUaBJqirjhGjtFrbrndA7dt?=
+ =?us-ascii?Q?4EB63T5IfAtsc13pLqWBo2VWNOwcBBGMBKRBSRpW8bWafmuoZfZjVmekif0E?=
+ =?us-ascii?Q?WImIvD3kXaVnKBlk6O704qVtnRIePaqznp7cxUj86U5zYcWZ5SdXfSveEBAS?=
+ =?us-ascii?Q?G3+DYOWeE52UzUryyVjCWLejNT6GUFo7BpVwNH6nEfneToB/UoqAvrM4akXE?=
+ =?us-ascii?Q?BOA0xKobB3DLcl2PvxzMBcFXsCzbUPJhzYCt8keAuuaA6wziuzuKXLESuGjm?=
+ =?us-ascii?Q?ugYBlU8V6uQLKZU7AlcxT3THwl920bHFxM2O6mZq43doCJjhjen1A+DBTe9/?=
+ =?us-ascii?Q?HqpJRBPIIIjMPK+0GfOhSJJg8xDexK692VSudrdEaw9YVYDGml8fHnyLVZMn?=
+ =?us-ascii?Q?AlzennBxpviGQ2B+OINrKULxkgLOn+GYKmCoS3fNBhUqMG+3Dqlnbt7gnG27?=
+ =?us-ascii?Q?YJT+rJDznJ7ugoRk3P79zMzdlSkBfk6bnfGblKABJIEdSu+jV5esKLZrIkws?=
+ =?us-ascii?Q?M720wVnHA9ClmJq27sei/3IUjvS+yArusugsjCdWyOOWocNoLForEX3qEVM8?=
+ =?us-ascii?Q?/Nm4ScWiafzVAAepfNA1Ig900xi05tpFuQ4QS7EYC5UDCr7bXLd+wdofuiwb?=
+ =?us-ascii?Q?MDPdihtJG3HcVD9lYYKvvFFTzmgfIRqCxAAXcaJzS0h0OhQjdXvPi5STjvcJ?=
+ =?us-ascii?Q?yUdL91IuaWkaq0UBzgcKQMQvTKdYr2N5JqM3HfUNMk1tINVpgmtpRZrD4a39?=
+ =?us-ascii?Q?M7sS9n44ooRd/9rwAvuP2v3Nov01B6iQ831iKZvYDsC6KrZdej4GXXaLDPun?=
+ =?us-ascii?Q?6J5k1dTn6zoO8ys5W/jza6IL9qA6/30lkYBnB3vZmAbvLkxjgA6Ja5m0qBaN?=
+ =?us-ascii?Q?j+wpGyyDhp/YRu+dsLaE5SUR5IZKue2Qxqe07RJkdwzeWKIOfqSUnxvfB2zn?=
+ =?us-ascii?Q?x5I9I8C0uKNkBEFt89r7UyOsU74HRCKrAdJ/0VfsWFlk3nUPHCGRkww5TuwY?=
+ =?us-ascii?Q?LPoQvehdN2s0J5HArLy43fUgAq70fAlNtPhGfccS6MffusC0QAEK4V3QHadm?=
+ =?us-ascii?Q?aN1LEgkG1/rZ/b8VQxsknb36LU5e6nuwU8idsWgABl3QvZqzL0UB7j+snteT?=
+ =?us-ascii?Q?lAugHRr0VERhB+Add+Lj/jqy9IjKlZxM98zFMv8PVC9xJCnx?=
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-OriginatorOrg: microsoft.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-AuthSource: SA1PR21MB6921.namprd21.prod.outlook.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 2e56f192-0854-4ebf-d067-08ded242fe3d
+X-MS-Exchange-CrossTenant-originalarrivaltime: 24 Jun 2026 22:50:30.8142
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: 72f988bf-86f1-41af-91ab-2d7cd011db47
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: xXzJP6jmr88oY36tX63e/SCcIT/3KM7lDDDmpPtZXnOWPsjda/vuGZO1lgEG4IPXvLNhdkabVRG1FnUUPz106A==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA1PR21MB6201
 
-MANA allocates RX buffers from page pool fragments when frag_count is
-greater than 1. In that case the buffers remain DMA mapped by page pool
-and the RX completion path does not call dma_unmap_single(). As a result,
-the implicit sync-for-CPU normally performed by dma_unmap_single() is
-missing before the packet data is passed to the networking stack.
+> From: Simon Horman <horms@kernel.org>
+> Sent: Friday, June 19, 2026 2:05 AM
+> > ...
+> > Also validate the packet length reported in the RX CQE before using it =
+as
+> > a DMA sync length or passing it to skb processing. The CQE is supplied
+> > by the device and should not be blindly trusted by Confidential VMs.
+>=20
+> I think this last part warrants being split out into a separate patch.
 
-This breaks RX on configurations which require explicit DMA syncing, for
-example when booted with swiotlb=force.
-
-Fix this by recording the page pool page and DMA sync offset when the RX
-buffer is allocated, and syncing the received packet range for CPU access
-before handing the RX buffer to the stack.
-
-Fixes: 730ff06d3f5c ("net: mana: Use page pool fragments for RX buffers instead of full pages to improve memory efficiency.")
-Cc: stable@vger.kernel.org
-Reviewed-by: Haiyang Zhang <haiyangz@microsoft.com>
-Signed-off-by: Dexuan Cui <decui@microsoft.com>
----
-
-Changes since v1:
-    v1 is split into two patches in the v2.
-    Add Haiyang's Reviewed-by.
-
- drivers/net/ethernet/microsoft/mana/mana_en.c | 39 +++++++++++++++----
- include/net/mana/mana.h                       |  8 ++++
- 2 files changed, 40 insertions(+), 7 deletions(-)
-
-diff --git a/drivers/net/ethernet/microsoft/mana/mana_en.c b/drivers/net/ethernet/microsoft/mana/mana_en.c
-index c9b1df1ed109..1875bffd82b7 100644
---- a/drivers/net/ethernet/microsoft/mana/mana_en.c
-+++ b/drivers/net/ethernet/microsoft/mana/mana_en.c
-@@ -2044,12 +2044,16 @@ static void mana_rx_skb(void *buf_va, bool from_pool,
- }
- 
- static void *mana_get_rxfrag(struct mana_rxq *rxq, struct device *dev,
--			     dma_addr_t *da, bool *from_pool)
-+			     dma_addr_t *da, bool *from_pool,
-+			     struct page **pp_page, u32 *dma_sync_offset)
- {
- 	struct page *page;
- 	u32 offset;
- 	void *va;
-+
- 	*from_pool = false;
-+	*pp_page = NULL;
-+	*dma_sync_offset = 0;
- 
- 	/* Don't use fragments for jumbo frames or XDP where it's 1 fragment
- 	 * per page.
-@@ -2087,31 +2091,47 @@ static void *mana_get_rxfrag(struct mana_rxq *rxq, struct device *dev,
- 	va  = page_to_virt(page) + offset;
- 	*da = page_pool_get_dma_addr(page) + offset + rxq->headroom;
- 	*from_pool = true;
-+	*pp_page = page;
-+	*dma_sync_offset = offset + rxq->headroom;
- 
- 	return va;
- }
- 
- /* Allocate frag for rx buffer, and save the old buf */
- static void mana_refill_rx_oob(struct device *dev, struct mana_rxq *rxq,
--			       struct mana_recv_buf_oob *rxoob, void **old_buf,
--			       bool *old_fp)
-+			       struct mana_recv_buf_oob *rxoob, u32 pktlen,
-+			       void **old_buf, bool *old_fp)
- {
-+	struct page *pp_page;
-+	u32 dma_sync_offset;
- 	bool from_pool;
- 	dma_addr_t da;
- 	void *va;
- 
--	va = mana_get_rxfrag(rxq, dev, &da, &from_pool);
-+	va = mana_get_rxfrag(rxq, dev, &da, &from_pool, &pp_page,
-+			     &dma_sync_offset);
- 	if (!va)
- 		return;
--	if (!rxoob->from_pool || rxq->frag_count == 1)
-+	if (!rxoob->from_pool || rxq->frag_count == 1) {
- 		dma_unmap_single(dev, rxoob->sgl[0].address, rxq->datasize,
- 				 DMA_FROM_DEVICE);
-+	} else {
-+		/* The page pool maps the whole page and only syncs for device
-+		 * automatically (PP_FLAG_DMA_SYNC_DEV). Sync the received bytes
-+		 * for the CPU before they are read: this is required if DMA
-+		 * is incoherent or bounce buffers are used.
-+		 */
-+		page_pool_dma_sync_for_cpu(rxq->page_pool, rxoob->pp_page,
-+					   rxoob->dma_sync_offset, pktlen);
-+	}
- 	*old_buf = rxoob->buf_va;
- 	*old_fp = rxoob->from_pool;
- 
- 	rxoob->buf_va = va;
- 	rxoob->sgl[0].address = da;
- 	rxoob->from_pool = from_pool;
-+	rxoob->pp_page = pp_page;
-+	rxoob->dma_sync_offset = dma_sync_offset;
- }
- 
- static void mana_process_rx_cqe(struct mana_rxq *rxq, struct mana_cq *cq,
-@@ -2170,7 +2190,7 @@ static void mana_process_rx_cqe(struct mana_rxq *rxq, struct mana_cq *cq,
- 		rxbuf_oob = &rxq->rx_oobs[curr];
- 		WARN_ON_ONCE(rxbuf_oob->wqe_inf.wqe_size_in_bu != 1);
- 
--		mana_refill_rx_oob(dev, rxq, rxbuf_oob, &old_buf, &old_fp);
-+		mana_refill_rx_oob(dev, rxq, rxbuf_oob, pktlen, &old_buf, &old_fp);
- 
- 		/* Unsuccessful refill will have old_buf == NULL.
- 		 * In this case, mana_rx_skb() will drop the packet.
-@@ -2566,6 +2586,8 @@ static int mana_fill_rx_oob(struct mana_recv_buf_oob *rx_oob, u32 mem_key,
- 			    struct mana_rxq *rxq, struct device *dev)
- {
- 	struct mana_port_context *mpc = netdev_priv(rxq->ndev);
-+	struct page *pp_page = NULL;
-+	u32 dma_sync_offset = 0;
- 	bool from_pool = false;
- 	dma_addr_t da;
- 	void *va;
-@@ -2573,13 +2595,16 @@ static int mana_fill_rx_oob(struct mana_recv_buf_oob *rx_oob, u32 mem_key,
- 	if (mpc->rxbufs_pre)
- 		va = mana_get_rxbuf_pre(rxq, &da);
- 	else
--		va = mana_get_rxfrag(rxq, dev, &da, &from_pool);
-+		va = mana_get_rxfrag(rxq, dev, &da, &from_pool, &pp_page,
-+				     &dma_sync_offset);
- 
- 	if (!va)
- 		return -ENOMEM;
- 
- 	rx_oob->buf_va = va;
- 	rx_oob->from_pool = from_pool;
-+	rx_oob->pp_page = pp_page;
-+	rx_oob->dma_sync_offset = dma_sync_offset;
- 
- 	rx_oob->sgl[0].address = da;
- 	rx_oob->sgl[0].size = rxq->datasize;
-diff --git a/include/net/mana/mana.h b/include/net/mana/mana.h
-index 8f721cd4e4a7..4111b93169d2 100644
---- a/include/net/mana/mana.h
-+++ b/include/net/mana/mana.h
-@@ -305,6 +305,14 @@ struct mana_recv_buf_oob {
- 
- 	void *buf_va;
- 	bool from_pool; /* allocated from a page pool */
-+	/* head page of the page_pool fragment; valid only when
-+	 * from_pool && frag_count > 1.
-+	 */
-+	struct page *pp_page;
-+	/* Fragment offset plus rxq->headroom, passed to
-+	 * page_pool_dma_sync_for_cpu().
-+	 */
-+	u32 dma_sync_offset;
- 
- 	/* SGL of the buffer going to be sent as part of the work request. */
- 	u32 num_sge;
--- 
-2.34.1
-
+Sorry for the late reply. I split v1 into 2 patches of v2, which I just pos=
+ted:
+https://lwn.net/ml/linux-kernel/20260624222605.1794719-1-decui@microsoft.co=
+m/
+=20
+Thanks,
+Dexuan
