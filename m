@@ -1,19 +1,20 @@
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 99E5E2C08CF;
-	Wed, 24 Jun 2026 22:26:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 68EED375F8E;
+	Wed, 24 Jun 2026 22:26:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782340013; cv=none; b=GnpXV2UyppwiX2Cbuk5z8ZVdADUUJL72XfkEIcEmdo2EHouonCobHd8OQCvwkiDfAbHaviRgby3ZFGDvsdr2b0lz9PBk3+Mxd3sRm5BmZwOzci+kBRpP13d7YvxoN4gKmrSLpJVLOkhcdZw5TYa8MuumHlryknqHJqHQS0mMxxE=
+	t=1782340016; cv=none; b=ZDjt3CfWWWhcjwQK8Ba0J4D5X29B18cjoO+fL/2TUaguzs6s0TUe+0iOVto0r03K+2z5KAPDy7I+YaUhn8gX5qm6lCp3RnU6gh5o3Cs1pOwpyxBjo/Q2SammfIlg1sX6giSMsUg32NT3MHFjUIt1/e1jGxwnO3jSA+c87A4BROM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782340013; c=relaxed/simple;
-	bh=Dcemh5adW4aUAyKSjdTU9WEGDohpJ/2reiBtr58yTn4=;
-	h=From:To:Subject:Date:Message-ID:MIME-Version; b=O5JdFLdIzG7BgspkCeOSGIft6h19dSiR5/1P15whmkBndTv3zBItYajZH1qfl4MGCo/C7svhsMSw5D/RwaspXV49Cxf3Bd7Cjw/Yj70sxt2vtnVfMPbruANWdDhg+oas7/JVzLiRMUrL7Bb5kkrosCygNrUMpi4SS4KQLL2/G/Q=
+	s=arc-20240116; t=1782340016; c=relaxed/simple;
+	bh=jDqZRJ4PXdEFuDDYPi1ZXEQJ6F/inovLlss3k9Dw2kE=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=rMU5eXuQz0xt9ywWe2pCLFEf9A6/k0bzmFfFjFUfEqG8wf0AIDXoJsxRKVMx/hO/WndoZwHNFt2jp+XCjW8Mxhvp4Jzi1s4EV4Hr71oQ72S37Oue6v5IU6+kTVOfW8Ci0YwJQYoIKn5GL/pLPTjOgYMiiIZc9Xsd4V3Fh3/IACw=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; arc=none smtp.client-ip=13.77.154.182
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Received: by linux.microsoft.com (Postfix, from userid 1009)
-	id DA54520B7166; Wed, 24 Jun 2026 15:26:47 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com DA54520B7166
+	id E4A2F20B7167; Wed, 24 Jun 2026 15:26:50 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com E4A2F20B7167
 From: Dexuan Cui <decui@microsoft.com>
 To: kys@microsoft.com,
 	haiyangz@microsoft.com,
@@ -36,10 +37,13 @@ To: kys@microsoft.com,
 	netdev@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	linux-rdma@vger.kernel.org
-Subject: [PATCH net v2 0/2] Fix MANA RX with bounce buffering
-Date: Wed, 24 Jun 2026 15:26:03 -0700
-Message-ID: <20260624222605.1794719-1-decui@microsoft.com>
+Cc: stable@vger.kernel.org
+Subject: [PATCH net v2 2/2] net: mana: Validate the packet length reported by the NIC
+Date: Wed, 24 Jun 2026 15:26:05 -0700
+Message-ID: <20260624222605.1794719-3-decui@microsoft.com>
 X-Mailer: git-send-email 2.43.7
+In-Reply-To: <20260624222605.1794719-1-decui@microsoft.com>
+References: <20260624222605.1794719-1-decui@microsoft.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -48,62 +52,58 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-With swiotlb=force, the MANA NIC fails to work properly due to commit
-730ff06d3f5c ("net: mana: Use page pool fragments for RX buffers instead
-of full pages to improve memory efficiency.")
+Validate the packet length reported in the RX CQE before using it as a DMA
+sync length or passing it to skb processing. The CQE is supplied by the
+NIC device and should not be blindly trusted.
 
-Dipayaan tried to fix this by avoiding page pool frags when bounce
-buffering is in use [1][2]. However, that is not a clean solution: no
-other NIC drivers need to explicitly check whether bounce buffering is
-in use. It is also not good for throughput, since
-dma_map_single()/dma_unmap_single() are then called for each incoming
-packet.
+Cc: stable@vger.kernel.org
+Reviewed-by: Haiyang Zhang <haiyangz@microsoft.com>
+Signed-off-by: Dexuan Cui <decui@microsoft.com>
+---
 
-In fact, page pool frags can still be used with the standard MTU of
-1500: all we need is to add page_pool_dma_sync_for_cpu() before the CPU
-reads the incoming packet, so I implemented that in v1 [3].
+Changes since v1:
+    v1 is split into two patches in the v2.
+    Add Haiyang's Reviewed-by.
 
-As Simon suggested [4], this version splits v1 into two patches:
-Patch 1 adds page_pool_dma_sync_for_cpu().
-Patch 2 validates the packet length reported by the NIC.
+ drivers/net/ethernet/microsoft/mana/mana_en.c | 24 +++++++++++++++----
+ 1 file changed, 19 insertions(+), 5 deletions(-)
 
-There is no functional difference between v1 and v2, so I am keeping
-Haiyang's Reviewed-by tag in v2.
-
-Please review. Thanks!
-
-Note that, with jumbo MTU and XDP, page pool frags are not used, and
-dma_map_single()/dma_unmap_single() are still called for each incoming
-packet, causing poor throughput with swiotlb=force; see
-mana_get_rxbuf_cfg() and mana_refill_rx_oob() -> mana_get_rxfrag().
-The jumbo MTU/XDP issue will be addressed later since that needs more
-consideration if we want to use page pool with PP_FLAG_DMA_MAP there:
-e.g., for XDP, the received packet can be transmitted in place, i.e. the
-same RX buffer can be used as a TX buffer:
-mana_rx_skb() -> mana_xdp_tx() -> mana_start_xmit() -> mana_map_skb().
-
-In mana_create_page_pool(), we may have to set pprm.dma_dir to
-DMA_BIDIRECTIONAL if XDP is in use:
-pprm.dma_dir = mana_xdp_get(mpc) ? DMA_BIDIRECTIONAL : DMA_FROM_DEVICE;
-
-In the case of XDP, the next issue is that mana_rx_skb() -> ... ->
-mana_map_skb() appears to call dma_map_single() on an RX buffer allocated
-from a page pool created with PP_FLAG_DMA_MAP, which seems incorrect.
-Any thoughts?
-
-[1] https://lore.kernel.org/all/ae91hyrLf4n23XE6@linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net/#r
-[2] https://lore.kernel.org/all/ae9pxvJfkAZYfKMf@linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net/
-[3] https://lore.kernel.org/all/20260618035029.249361-1-decui@microsoft.com/
-[4] https://lore.kernel.org/all/20260619090514.GT827683@horms.kernel.org/
-
-Dexuan Cui (2):
-  net: mana: Sync page pool RX frags for CPU
-  net: mana: Validate the packet length reported by the NIC
-
- drivers/net/ethernet/microsoft/mana/mana_en.c | 61 +++++++++++++++----
- include/net/mana/mana.h                       |  8 +++
- 2 files changed, 58 insertions(+), 11 deletions(-)
-
+diff --git a/drivers/net/ethernet/microsoft/mana/mana_en.c b/drivers/net/ethernet/microsoft/mana/mana_en.c
+index 1875bffd82b7..0b44c51ae6ec 100644
+--- a/drivers/net/ethernet/microsoft/mana/mana_en.c
++++ b/drivers/net/ethernet/microsoft/mana/mana_en.c
+@@ -2190,12 +2190,26 @@ static void mana_process_rx_cqe(struct mana_rxq *rxq, struct mana_cq *cq,
+ 		rxbuf_oob = &rxq->rx_oobs[curr];
+ 		WARN_ON_ONCE(rxbuf_oob->wqe_inf.wqe_size_in_bu != 1);
+ 
+-		mana_refill_rx_oob(dev, rxq, rxbuf_oob, pktlen, &old_buf, &old_fp);
++		if (unlikely(pktlen > rxq->datasize)) {
++			/* Increase it even if mana_rx_skb() isn't called. */
++			rxq->rx_cq.work_done++;
+ 
+-		/* Unsuccessful refill will have old_buf == NULL.
+-		 * In this case, mana_rx_skb() will drop the packet.
+-		 */
+-		mana_rx_skb(old_buf, old_fp, oob, rxq, i);
++			++ndev->stats.rx_dropped;
++			netdev_warn_once(ndev,
++				"Dropped oversized RX packet: len=%u, datasize=%u\n",
++				pktlen, rxq->datasize);
++
++			/* Reuse the RX buffer since rxbuf_oob is unchanged. */
++		} else {
++
++			mana_refill_rx_oob(dev, rxq, rxbuf_oob, pktlen,
++					   &old_buf, &old_fp);
++
++			/* Unsuccessful refill will have old_buf == NULL.
++			 * In this case, mana_rx_skb() will drop the packet.
++			 */
++			mana_rx_skb(old_buf, old_fp, oob, rxq, i);
++		}
+ 
+ 		mana_move_wq_tail(rxq->gdma_rq,
+ 				  rxbuf_oob->wqe_inf.wqe_size_in_bu);
 -- 
 2.34.1
 
