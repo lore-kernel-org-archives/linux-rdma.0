@@ -1,47 +1,85 @@
-Received: from forward100d.mail.yandex.net (forward100d.mail.yandex.net [178.154.239.211])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pf1-f225.google.com (mail-pf1-f225.google.com [209.85.210.225])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F3E02BDC2F;
-	Wed, 24 Jun 2026 14:49:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.154.239.211
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B45AF265CDD
+	for <linux-rdma@vger.kernel.org>; Wed, 24 Jun 2026 17:17:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.225
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782312547; cv=none; b=k87faDKIfKRfei+sOkQbNmNDocICheAeOpTCHXfWYaIDUNnCm9NrtbzdA4jLu01I5e5EL0i3i/6/lOtNbYQj94BUm8Jd2XXwFQno92I4fh9368qKhl+1frdKSN8GAXzo2dkrBDfbZ4BO/Do6+th1P6Tbs3OyxdkR114EeeTueRk=
+	t=1782321424; cv=none; b=H4PYyTKPvb258Qg2FlbDm6uxZC3pwBEdGCbrSLJxBP7M+RU9suwungNw3j9f4gjiMoHLH9yloN67c2KQctNCMQfe3GkE0Jeq7sR/TTPDcpalzdqfnq+YnWzrCe7JSL8pxcAqOLd2KwICT2OnRMXLXiZ9CgxmmzhS6lFdq5ywO6o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782312547; c=relaxed/simple;
-	bh=i00klzCP9CwLXMYKZNmuASfnbmTqXSmjU6VkBZEQ2LE=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=XXg3GxZ9VsZyb6H93A1An2w7WuEPe805xkrkxR5yCLxsqQRg96H8EmVbV2D7RUA7PIZvwNu6Q3u47e3YX7X70D19olwbA4A+yy2d/U/msSpUZqEUnRzc+JHjPN0kNUtgLq+jTLNGvfoLbM5BlwueDKc0BT9CR4bsaB7CkuNIZj8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=itb.spb.ru; spf=pass smtp.mailfrom=itb.spb.ru; dkim=pass (1024-bit key) header.d=itb.spb.ru header.i=@itb.spb.ru header.b=P/1r03dX; arc=none smtp.client-ip=178.154.239.211
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=itb.spb.ru
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=itb.spb.ru
+	s=arc-20240116; t=1782321424; c=relaxed/simple;
+	bh=Kb05kdShIuc+E7Uzru/2B+0gKdEyMYtbn+kwMUC0ZUk=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=RIwzXDv7tA6Z/uf3xko71YKBXRA2aJMGlzlEI99jVF9jmUFO0BhIXAcvx0vj7SE28uzIjpVbh5fcofwf+C9FXfpVJnbv6hSwZnyiPUUJgIJnpEiewud98WkYLcuKSUziQh0y/XP+wQMHrF2iwlIkPMcf6wzjyGAhnAo/biH/dgY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com; spf=fail smtp.mailfrom=broadcom.com; dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b=PYR3LznY; arc=none smtp.client-ip=209.85.210.225
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=broadcom.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=itb.spb.ru header.i=@itb.spb.ru header.b="P/1r03dX"
-Received: from mail-nwsmtp-smtp-production-main-52.klg.yp-c.yandex.net (mail-nwsmtp-smtp-production-main-52.klg.yp-c.yandex.net [IPv6:2a02:6b8:c42:ea2:0:640:ef77:0])
-	by forward100d.mail.yandex.net (Yandex) with ESMTPS id 0D388C0101;
-	Wed, 24 Jun 2026 17:48:52 +0300 (MSK)
-Received: by mail-nwsmtp-smtp-production-main-52.klg.yp-c.yandex.net (smtp) with ESMTPSA id kmZg0cNgGGk0-HRq8mJA1;
-	Wed, 24 Jun 2026 17:48:51 +0300
-X-Yandex-Fwd: 1
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=itb.spb.ru; s=mail;
-	t=1782312531; bh=Gz3lOv/CI79YjE1aN0wfylGlI3Iny8zFySyBDdhs1Tw=;
-	h=Message-Id:Date:Cc:Subject:To:From;
-	b=P/1r03dXoV5pEzF7MbonCIfV35Odh6IwmwDb0HcRgqDx5T6JGUQoo0NG01DpqmHz7
-	 b6k5qOzAYpuf/Cba9OYTReLtsCeQGO96/8p9ufBXglknhXNDk9RuhCS6/E6GRIE8Ge
-	 cfArRzqBQyH489aNaXwGAwjP1YILJH0NsQkLeSws=
-Authentication-Results: mail-nwsmtp-smtp-production-main-52.klg.yp-c.yandex.net; dkim=pass header.i=@itb.spb.ru
-From: Aleksandrova Alyona <aga@itb.spb.ru>
-To: Krzysztof Czurylo <krzysztof.czurylo@intel.com>,
-	Tatyana Nikolova <tatyana.e.nikolova@intel.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>,
-	Leon Romanovsky <leon@kernel.org>,
-	Mustafa Ismail <mustafa.ismail@intel.com>,
-	Shiraz Saleem <shiraz.saleem@intel.com>,
-	linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	lvc-project@linuxtesting.org
-Subject: [PATCH] RDMA/irdma: Prevent overflows in memory contiguity checks
-Date: Wed, 24 Jun 2026 17:48:46 +0300
-Message-Id: <20260624144846.61242-1-aga@itb.spb.ru>
-X-Mailer: git-send-email 2.26.2
+	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b="PYR3LznY"
+Received: by mail-pf1-f225.google.com with SMTP id d2e1a72fcca58-8423610ec93so1513317b3a.2
+        for <linux-rdma@vger.kernel.org>; Wed, 24 Jun 2026 10:17:03 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1782321423; x=1782926223;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:dkim-signature:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=eyFBwcVILgIVPmyDlAUtHNWHENpOxGXV4IsNvHLlX+E=;
+        b=ioZMDAn7AFmbe9Si2eVPIAlobdt4FROp6fq+38GU9fWLBikGpFQ+0FORnXotxfGdNs
+         +S0tn/7I+UQQQfSlJpQnBzb5a6Bbbhs9ek/G1HJt03/e3F3JMCzh2EwGHV0kcT7BUgv0
+         k/dEPHQ3oBDHVVJvqVvRWiZVhflz/g570AyQWSof7Wn6LruU2O1LKC+zEaE5m7sq7Hyy
+         n5hogJKhPlO1Luir7oAyyF9+bXHqLQe5MRcjXL9RbA6EE+bVyLIQcHgjp5iwXBF1qj5r
+         o0cP8PL1UrZiG4/MCPLycHRdRpj6bdg3NJnr6LxLyi/nmmDjBYknMQel8EBdI9woMm0j
+         F0hw==
+X-Gm-Message-State: AOJu0YyAjzvAHlbOSXGAxzgoBnLEcaEmG6v5q6K/9E6PATfckxQhlY5V
+	T5rSHoDgaabSgapAaEYBNmnKLmXWi5T9Fl4FJI/DI/jVUSAJi8qfFz5SiTyorHZ93zrOu0bGa8F
+	2FD5WBkjTOl7EDYL/30hqKZlMbjzhJE5o9zCCPxnoMx8h905QaX/GODkxO2faG4k7anE27HvJ0D
+	ldv/wL3QSHupyyGIzNUSbXrwqky5RfwK525SNUTqumFzaGWN8VqrS6P4psIKxoKUfKqmVQ8Q+ge
+	jLAH/VCHz6H95slMbDt
+X-Gm-Gg: AfdE7cndt+Mvb2xK0osidyBI7qbyK2/PpTxlXBNEDd6B1nEEB8BGCD49qp1VlheiucR
+	i/qHHGP83fQ/BOH9CLXtFzUf7BG6xBTHKX0WLz1JwtazdVqBZzSlyQvuYntWrndc5ott7fRYry1
+	KLk+HJOZdLk6NKe1DyEYFahscFWufoiTdC+6rAqixrmgqOr8WMR5tv2e77XVmp+LbIzQsh8ySxO
+	oJCpn6KmNClW9eltnRrs7/WTLYFE23drsGL79HQKh5IXtoEnXbJLrUE51WCoNA4ohk8aLY6dftJ
+	qwml4186xeUTSJYHUEXbPCoUbOAdg1YGtO8yxa+SIgolg9NdH8WoFHuqH69WiAfEUfs7u4AHeGH
+	+MRgjE7uYwsuu0KnllXGRVP2ZjmhwRI5KKHEVAQ87HDqFmf8LZnkXiHBMofTgCrIK/D02yudJnA
+	Ybbl03FFvlye6+fm5l9o+O+C/2CcY2ANb/VfC7avqLiK/MWMc=
+X-Received: by 2002:a05:6a00:b4a:b0:843:49f0:f5a0 with SMTP id d2e1a72fcca58-845a2caa198mr5332847b3a.32.1782321422835;
+        Wed, 24 Jun 2026 10:17:02 -0700 (PDT)
+Received: from smtp-us-east1-p01-i01-si01.dlp.protect.broadcom.com (address-144-49-247-23.dlp.protect.broadcom.com. [144.49.247.23])
+        by smtp-relay.gmail.com with ESMTPS id d2e1a72fcca58-845a407d6ccsm296852b3a.4.2026.06.24.10.17.02
+        for <linux-rdma@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 24 Jun 2026 10:17:02 -0700 (PDT)
+X-Relaying-Domain: broadcom.com
+X-CFilter-Loop: Reflected
+Received: by mail-pl1-f199.google.com with SMTP id d9443c01a7336-2c6b7d5118fso19011525ad.0
+        for <linux-rdma@vger.kernel.org>; Wed, 24 Jun 2026 10:17:01 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=broadcom.com; s=google; t=1782321421; x=1782926221; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=eyFBwcVILgIVPmyDlAUtHNWHENpOxGXV4IsNvHLlX+E=;
+        b=PYR3LznYq31yTUt7M6NbFd5JMBQCxGnNaoq5KbTlVs/DonhlX74u5Phrr/6w1EpJTI
+         QOEIbRL1ATXoireF1oKRC8ad9vtHwLc6u9qml/+Q1Npb0X1kXTmuwUewjhzDLROIDnjE
+         lnAVkulExBtAIT6ulh2g40NujqMKmsWm1XtwI=
+X-Received: by 2002:a17:903:2346:b0:2c7:f7e6:99f8 with SMTP id d9443c01a7336-2c7f7e69b08mr326385ad.9.1782321421141;
+        Wed, 24 Jun 2026 10:17:01 -0700 (PDT)
+X-Received: by 2002:a17:903:2346:b0:2c7:f7e6:99f8 with SMTP id d9443c01a7336-2c7f7e69b08mr325975ad.9.1782321420649;
+        Wed, 24 Jun 2026 10:17:00 -0700 (PDT)
+Received: from dhcp-10-123-156-114.dhcp.broadcom.net ([192.19.234.250])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2c7f5afbbd9sm3004965ad.28.2026.06.24.10.16.58
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 24 Jun 2026 10:17:00 -0700 (PDT)
+From: Selvin Xavier <selvin.xavier@broadcom.com>
+To: leon@kernel.org,
+	jgg@ziepe.ca
+Cc: linux-rdma@vger.kernel.org,
+	andrew.gospodarek@broadcom.com,
+	kalesh-anakkur.purayil@broadcom.com,
+	sriharsha.basavapatna@broadcom.com,
+	Selvin Xavier <selvin.xavier@broadcom.com>
+Subject: [PATCH for-next v2 0/2] RDMA/bnxt_re: Update the toggle page handling of CQ and SRQ
+Date: Wed, 24 Jun 2026 15:39:25 -0700
+Message-Id: <20260624223927.521882-1-selvin.xavier@broadcom.com>
+X-Mailer: git-send-email 2.39.3
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -49,56 +87,38 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+X-DetectorID-Processed: b00c1d49-9d2e-4205-b15f-d015386d3d5e
 
-irdma_check_mem_contiguous() and irdma_check_mr_contiguous() verify that
-PBL entries describe physically contiguous memory ranges.
+Based on the suggestion from Jason (
+https://patchwork.kernel.org/project/linux-rdma/patch/20260615224751.232802-5-selvin.xavier@broadcom.com/)
+, adding the uverb object to retrieve the CQ an SRQ structures while getting the
+toggle mem. To work with older rdma-core, retain the existing code with
+modification.
 
-Both functions calculate byte offsets using 32-bit operands. For example,
-with 4 KiB pages, pg_size * pg_idx overflows 32-bit arithmetic when
-pg_idx reaches 1048576. In the level-2 check, PBLE_PER_PAGE is 512, so
-i * pg_size * PBLE_PER_PAGE overflows when i reaches 2048.
+The rdma-core pull request is here: https://github.com/linux-rdma/rdma-core/pull/1761
 
-These values are reachable in the driver. For MRs, palloc->total_cnt
-comes from iwmr->page_cnt, which is calculated by
-ib_umem_num_dma_blocks(). The MR size is limited by IRDMA_MAX_MR_SIZE,
-so a 4 GiB MR with 4 KiB pages can reach page_cnt of 1048576. PBLE
-resources do not exclude this value either: for gen3, the limit is based
-on avail_sds * MAX_PBLE_PER_SD, and MAX_PBLE_PER_SD is 0x40000, so 4 SDs
-are enough for 1048576 PBLEs.
+Please review and apply the series.
 
-Cast one operand to u64 before the multiplications so that the offset
-calculations are performed in 64-bit arithmetic.
+Thanks,
+Selvin Xavier
 
-Found by Linux Verification Center (linuxtesting.org) with SVACE.
+v1->v2 :
+    - Fix the error cleanup for SRQ and CQ create paths
+    - Fix a synchronization issue for the legacy path which can cause a
+      UAF
 
-Fixes: b48c24c2d710 ("RDMA/irdma: Implement device supported verb APIs")
-Signed-off-by: Aleksandrova Alyona <aga@itb.spb.ru>
----
- drivers/infiniband/hw/irdma/verbs.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Selvin Xavier (2):
+  RDMA/bnxt_re: Replace per-device hash tables with per-context XArray
+  RDMA/bnxt_re: Add uverbs object handle path for CQ/SRQ toggle page
 
-diff --git a/drivers/infiniband/hw/irdma/verbs.c b/drivers/infiniband/hw/irdma/verbs.c
-index 17086048d2d7..ab55f674cb63 100644
---- a/drivers/infiniband/hw/irdma/verbs.c
-+++ b/drivers/infiniband/hw/irdma/verbs.c
-@@ -2819,7 +2819,7 @@ static bool irdma_check_mem_contiguous(u64 *arr, u32 npages, u32 pg_size)
- 	u32 pg_idx;
- 
- 	for (pg_idx = 0; pg_idx < npages; pg_idx++) {
--		if ((*arr + (pg_size * pg_idx)) != arr[pg_idx])
-+		if ((*arr + ((u64)pg_size * pg_idx)) != arr[pg_idx])
- 			return false;
- 	}
- 
-@@ -2852,7 +2852,7 @@ static bool irdma_check_mr_contiguous(struct irdma_pble_alloc *palloc,
- 
- 	for (i = 0; i < lvl2->leaf_cnt; i++, leaf++) {
- 		arr = leaf->addr;
--		if ((*start_addr + (i * pg_size * PBLE_PER_PAGE)) != *arr)
-+		if ((*start_addr + ((u64)i * pg_size * PBLE_PER_PAGE)) != *arr)
- 			return false;
- 		ret = irdma_check_mem_contiguous(arr, leaf->cnt, pg_size);
- 		if (!ret)
+ drivers/infiniband/hw/bnxt_re/bnxt_re.h  |   6 --
+ drivers/infiniband/hw/bnxt_re/ib_verbs.c |  91 +++++++++++++----
+ drivers/infiniband/hw/bnxt_re/ib_verbs.h |   5 +-
+ drivers/infiniband/hw/bnxt_re/main.c     |   5 -
+ drivers/infiniband/hw/bnxt_re/uapi.c     | 124 +++++++++++------------
+ include/uapi/rdma/bnxt_re-abi.h          |   4 +
+ 6 files changed, 139 insertions(+), 96 deletions(-)
+
 -- 
-2.26.2
+2.39.3
 
