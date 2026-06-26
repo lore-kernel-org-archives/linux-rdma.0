@@ -1,92 +1,105 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mxct.zte.com.cn (mxct.zte.com.cn [183.62.165.209])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B631F31619C;
-	Fri, 26 Jun 2026 02:31:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1F28770836;
+	Fri, 26 Jun 2026 08:51:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=183.62.165.209
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782441120; cv=none; b=pAumdknMnPBxMDoo2FLdcD21bdDdb+qYgQ2UETmD1xa27Zs4ND1kem42vAhfRIc3hkvFx1JPsG0apDpJJKjNaxLeXjNx7sKppKuZqjX0/Ku4vM6i1O9Nt/6IvV+hVOdpeqbCaEfOJ2xBtpnv7uIuiO4+FopsB3nlvDtTbi148pk=
+	t=1782463868; cv=none; b=uXAPiDYljyw7uGZZS/+CWSNtKL75HS6j/jY0N2xXh1faaoW10QM/V4rc2kxjFBsLcEvQ9nH5gWWMit06uevRUQZ9GnQP7nJ3FwFZqLBLyDhxHWFatOgLJGw2Uj42HaFa1yj/kWANSUfxF0Axe3qUBnGICorQLk8zlbS3tnTMjwQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782441120; c=relaxed/simple;
-	bh=Cu+8ULxgnfPyxokxyZMw5c5021izxVS9EdEkDIfmAzQ=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=jjTBLXCAmup1mfwO5KgBInkfRBfyOe7dV3FG242KcFjMgH5dacu/gpFnVi/w0Qwc0ZuqqUWhshYpjtHtbs2UczEld8efrAIXTvOMeJiele/fNgSdr8tICTl4suoSPzvV52RaPpVryjaXudD1jo1AD+fdCyQgxrtwEypVuiRgkbk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=TSvPnq65; arc=none smtp.client-ip=100.103.45.18
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="TSvPnq65"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5FEB31F000E9;
-	Fri, 26 Jun 2026 02:31:59 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1782441119;
-	bh=8y1WmmNAeCzXid8EtBZSYlMy9wcWQjR0ZVlBu3F3G+s=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc;
-	b=TSvPnq65R5BLi1BlMnwfEIPaaXv008iQkAeDOGvqztjDg2Fd/pbIBjDtovtOZBCp2
-	 0cFX37NwxAM+ZxwIJY8XAzyN+Xg28ztB8Fu5tahOWdRyUItN6JECzNHwVjN083T7NV
-	 ubF6FpJgABuOOJ9lC8TR/atgESb5MUahDJXfdcJwp7WG3XtZg2Uw6Fn0wROTa24XS7
-	 6CAzmIf2YBSYBwoPfCvcJJ5GpmfjP7g+3HINgNfcVSvCQrOo52CrvDDOA9eEkdSaNf
-	 +hmj9Ssxug6MlT1ybGm9+oi3s0IeJmJWfB8jj7spcexXryEXxld1z0MsmGM7hAQczJ
-	 0ATe0ak0+2nMA==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id D0A1339389C4;
-	Fri, 26 Jun 2026 02:31:47 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	s=arc-20240116; t=1782463868; c=relaxed/simple;
+	bh=2AdsBFzDgQC64R9iYg6GXrqm4RJccMBdKhE9okKjxdU=;
+	h=Message-ID:Date:Mime-Version:From:To:Cc:Subject:Content-Type; b=g/55CwVpyOgRIWZvICq9UkO0zFje6a6mY7YQBoWKy8VGdqVNVIEBEF28KZnBd+ta4T7mAEL84DCk1GCXBmy9+VEZRbbY8SXAyYnumYxtzlNmaDMnh5n5/puBwLLpqYu/46tIdiBxvyp6tyJRXDsiL2aKJ7ahEit+vpAalH2cUCk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=zte.com.cn; spf=pass smtp.mailfrom=zte.com.cn; arc=none smtp.client-ip=183.62.165.209
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=zte.com.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zte.com.cn
+Received: from mse-fl1.zte.com.cn (unknown [10.5.228.132])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange x25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by mxct.zte.com.cn (FangMail) with ESMTPS id 4gmqC82fgMz57KTq;
+	Fri, 26 Jun 2026 16:51:00 +0800 (CST)
+Received: from szxl2zmapp07.zte.com.cn ([10.1.32.52])
+	by mse-fl1.zte.com.cn with SMTP id 65Q8oOJj065527;
+	Fri, 26 Jun 2026 16:50:48 +0800 (+08)
+	(envelope-from zhang.yanze@zte.com.cn)
+Received: from mapi (szxl2zmapp07[null])
+	by mapi (Zmail) with MAPI id mid14;
+	Fri, 26 Jun 2026 16:50:50 +0800 (CST)
+X-Zmail-TransId: 2b096a3e3d6a1de-82f8a
+X-Mailer: Zmail v1.0
+Message-ID: <20260626165050955lBuUhmj0yLn5xCsQ-tbx4@zte.com.cn>
+Date: Fri, 26 Jun 2026 16:50:50 +0800 (CST)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net] net: ethtool: keep rtnl_lock for ops using
- ethtool_op_get_link()
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <178244110650.3816447.9959963102868412586.git-patchwork-notify@kernel.org>
-Date: Fri, 26 Jun 2026 02:31:46 +0000
-References: <20260624190439.2521219-1-kuba@kernel.org>
-In-Reply-To: <20260624190439.2521219-1-kuba@kernel.org>
-To: Jakub Kicinski <kuba@kernel.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org, edumazet@google.com,
- pabeni@redhat.com, andrew+netdev@lunn.ch, horms@kernel.org,
- leitao@debian.org, joshwash@google.com, hramamurthy@google.com,
- anthony.l.nguyen@intel.com, przemyslaw.kitszel@intel.com, saeedm@nvidia.com,
- tariqt@nvidia.com, mbloch@nvidia.com, leon@kernel.org, alexanderduyck@fb.com,
- kernel-team@meta.com, kys@microsoft.com, haiyangz@microsoft.com,
- wei.liu@kernel.org, decui@microsoft.com, longli@microsoft.com,
- jordanrhee@google.com, jacob.e.keller@intel.com, nktgrg@google.com,
- debarghyak@google.com, mohsin.bashr@gmail.com, ernis@linux.microsoft.com,
- sdf@fomichev.me, gal@nvidia.com, linux-rdma@vger.kernel.org,
- linux-hyperv@vger.kernel.org
+Mime-Version: 1.0
+From: <zhang.yanze@zte.com.cn>
+To: <jgg@ziepe.ca>, <leon@kernel.org>, <julianbraha@gmail.com>
+Cc: <linux-kernel@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
+        <zhang.yanze@zte.com.cn>, <wei.quan@zte.com.cn>,
+        <han.junyang@zte.com.cn>, <ran.ming@zte.com.cn>,
+        <han.chengfei@zte.com.cn>
+Subject: =?UTF-8?B?W1BBVENIIHJkbWEgdjIgMC8yXSBBZGQgWlRFIERpbmdIYWkgRXRoZXJuZXQgUHJvdG9jb2wgRHJpdmVyIGZvciBSRE1B?=
+Content-Type: text/plain;
+	charset="UTF-8"
+X-MAIL:mse-fl1.zte.com.cn 65Q8oOJj065527
+X-TLS: YES
+X-ENVELOPE-SENDER: zhang.yanze@zte.com.cn
+X-SOURCE-IP: 10.5.228.132 unknown Fri, 26 Jun 2026 16:51:00 +0800
+X-CLEAN: YES
+X-Fangmail-Anti-Spam-Filtered: true
+X-Fangmail-MID-QID: 6A3E3D74.001/4gmqC82fgMz57KTq
 
-Hello:
+From: Yanze Zhang <zhang.yanze@zte.com.cn>
 
-This patch was applied to netdev/net.git (main)
-by Jakub Kicinski <kuba@kernel.org>:
+Hi maintainers and reviewers,
 
-On Wed, 24 Jun 2026 12:04:39 -0700 you wrote:
-> Breno reports following splats on mlx5:
-> 
->   RTNL: assertion failed at net/core/dev.c (2241)
->   WARNING: net/core/dev.c:2241 at netif_state_change+0xed/0x130, CPU#5: ethtool/1335
->   RIP: 0010:netif_state_change+0xf9/0x130
->   Call Trace:
->     <TASK>
->      __linkwatch_sync_dev+0xea/0x120
->      ethtool_op_get_link+0xe/0x20
->      __ethtool_get_link+0x26/0x40
->      linkstate_prepare_data+0x51/0x200
->      ethnl_default_doit+0x213/0x470
->      genl_family_rcv_msg_doit+0xdd/0x110
-> 
-> [...]
+This is v2 of the ZTE DingHai (ZXDH) RDMA driver submission.
+Thank you Julian Braha for the review on v1.
 
-Here is the summary with links:
-  - [net] net: ethtool: keep rtnl_lock for ops using ethtool_op_get_link()
-    https://git.kernel.org/netdev/net/c/1105ef941c1a
+Changes in v2:
+- Removed redundant 'depends on INFINIBAND' from Kconfig as it is already
+  wrapped by the parent if-block (Julian Braha).
 
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
+The driver provides RoCEv2 support for ZTE DingHai network adapters and has
+been tested with perftest and rping utilities.
 
+Best regards,
+Yanze Zhang
 
+Yanze Zhang (2):
+RDMA/zrdma: Add ZTE Dinghai Ethernet Protocol Driver for RDMA
+RDMA/zrdma: Add hardware config code and improve driver init flow
+
+MAINTAINERS                              |   6 +
+drivers/infiniband/Kconfig               |   1 +
+drivers/infiniband/hw/Makefile           |   1 +
+drivers/infiniband/hw/zrdma/Kconfig      |   9 +
+drivers/infiniband/hw/zrdma/Makefile     |   6 +
+drivers/infiniband/hw/zrdma/zrdma_ctrl.h | 248 +++++++++++++++++++++++
+drivers/infiniband/hw/zrdma/zrdma_defs.h |  37 ++++
+drivers/infiniband/hw/zrdma/zrdma_hw.c   | 135 ++++++++++++
+drivers/infiniband/hw/zrdma/zrdma_hw.h   | 156 ++++++++++++++
+drivers/infiniband/hw/zrdma/zrdma_main.c | 156 ++++++++++++++
+drivers/infiniband/hw/zrdma/zrdma_main.h | 140 +++++++++++++
+drivers/infiniband/hw/zrdma/zrdma_mem.h  | 105 ++++++++++
+drivers/infiniband/hw/zrdma/zrdma_type.h | 110 ++++++++++
+drivers/infiniband/hw/zrdma/zrdma_uk.h   |  18 ++
+14 files changed, 1128 insertions(+)
+create mode 100644 drivers/infiniband/hw/zrdma/Kconfig
+create mode 100644 drivers/infiniband/hw/zrdma/Makefile
+create mode 100644 drivers/infiniband/hw/zrdma/zrdma_ctrl.h
+create mode 100644 drivers/infiniband/hw/zrdma/zrdma_defs.h
+create mode 100644 drivers/infiniband/hw/zrdma/zrdma_hw.c
+create mode 100644 drivers/infiniband/hw/zrdma/zrdma_hw.h
+create mode 100644 drivers/infiniband/hw/zrdma/zrdma_main.c
+create mode 100644 drivers/infiniband/hw/zrdma/zrdma_main.h
+create mode 100644 drivers/infiniband/hw/zrdma/zrdma_mem.h
+create mode 100644 drivers/infiniband/hw/zrdma/zrdma_type.h
+create mode 100644 drivers/infiniband/hw/zrdma/zrdma_uk.h
+
+--
+2.27.0
