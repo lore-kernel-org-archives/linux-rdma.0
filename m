@@ -1,105 +1,98 @@
-Received: from mxct.zte.com.cn (mxct.zte.com.cn [183.62.165.209])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1F28770836;
-	Fri, 26 Jun 2026 08:51:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=183.62.165.209
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DDC903E3DAB;
+	Fri, 26 Jun 2026 08:51:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782463868; cv=none; b=uXAPiDYljyw7uGZZS/+CWSNtKL75HS6j/jY0N2xXh1faaoW10QM/V4rc2kxjFBsLcEvQ9nH5gWWMit06uevRUQZ9GnQP7nJ3FwFZqLBLyDhxHWFatOgLJGw2Uj42HaFa1yj/kWANSUfxF0Axe3qUBnGICorQLk8zlbS3tnTMjwQ=
+	t=1782463887; cv=none; b=OTd11UIZpvmCNVNUzzMXj6oCtpU4gRRQKuwXUnGTF/KaCh0ryE2pr4Z0mYVYJld9v9+L856+uC/f8SPR9FFwAIenswL9MUc3vHNPlZ68qa3A9Easa01HMZ3PlC9ml5dy1fv60jpGAbfeFnxLY1HeKBoB5Dcq5svG+XRJgip29no=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782463868; c=relaxed/simple;
-	bh=2AdsBFzDgQC64R9iYg6GXrqm4RJccMBdKhE9okKjxdU=;
-	h=Message-ID:Date:Mime-Version:From:To:Cc:Subject:Content-Type; b=g/55CwVpyOgRIWZvICq9UkO0zFje6a6mY7YQBoWKy8VGdqVNVIEBEF28KZnBd+ta4T7mAEL84DCk1GCXBmy9+VEZRbbY8SXAyYnumYxtzlNmaDMnh5n5/puBwLLpqYu/46tIdiBxvyp6tyJRXDsiL2aKJ7ahEit+vpAalH2cUCk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=zte.com.cn; spf=pass smtp.mailfrom=zte.com.cn; arc=none smtp.client-ip=183.62.165.209
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=zte.com.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zte.com.cn
-Received: from mse-fl1.zte.com.cn (unknown [10.5.228.132])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange x25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by mxct.zte.com.cn (FangMail) with ESMTPS id 4gmqC82fgMz57KTq;
-	Fri, 26 Jun 2026 16:51:00 +0800 (CST)
-Received: from szxl2zmapp07.zte.com.cn ([10.1.32.52])
-	by mse-fl1.zte.com.cn with SMTP id 65Q8oOJj065527;
-	Fri, 26 Jun 2026 16:50:48 +0800 (+08)
-	(envelope-from zhang.yanze@zte.com.cn)
-Received: from mapi (szxl2zmapp07[null])
-	by mapi (Zmail) with MAPI id mid14;
-	Fri, 26 Jun 2026 16:50:50 +0800 (CST)
-X-Zmail-TransId: 2b096a3e3d6a1de-82f8a
-X-Mailer: Zmail v1.0
-Message-ID: <20260626165050955lBuUhmj0yLn5xCsQ-tbx4@zte.com.cn>
-Date: Fri, 26 Jun 2026 16:50:50 +0800 (CST)
+	s=arc-20240116; t=1782463887; c=relaxed/simple;
+	bh=72LW1Sqy+CyJluT8dJ+TRAWGIYqhMfoj0D3AB5ay3hw=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=EqOoRqSNcWYnhnT9yQRZjaV08cPeRk7nSijS+easOoLCIpkZO5ydHJzsmT32rxIHXTjTbyJAqxPpUnJSr5KqlIKkq2WXS7rn79IOk+/KxtkVexSIJ0v6oxfQ3Ci8tlacvSD6G75y+qK7AXN41huxj1mNcTrjjxfWF9qCDwvWpzk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ZuN86shS; arc=none smtp.client-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ZuN86shS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 55C131F000E9;
+	Fri, 26 Jun 2026 08:51:22 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1782463886;
+	bh=dczgg0EG8SzCmQOx10ra7Wu7tyi/QlMQ5W656css9gI=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References;
+	b=ZuN86shSSyy0XeJHxDjAleAAh3O8h5DItrYs4TSav34bAuZW0MAx9ZBBE9S3nKp+q
+	 JUucAqzuWIOp1XCgdpd9P3oFXnLbWNeWduuAN7d3BLmln+qoARZNZxKF2O06nPeYv4
+	 1dAdVGA0JDyuC0sJVCZD2wvL+fK7VqCql7n7upa+dFP/qqyZ8tCeX05jqkcgPFDC5w
+	 tFX0+2mg/DvZd1BW9undZCZbfHnid5R0fV0ghRYpjUgkCITPyYbrNbnJWUD3Su88Bu
+	 iGHlEwHR4XUomu86ZdOshDLSTLNHrTMNbY7gs9BX+9uYtxaMeTpyySj/HlKZUt2HrK
+	 5/RKab/63CQEw==
+Date: Fri, 26 Jun 2026 04:51:19 -0400
+From: Steven Rostedt <rostedt@kernel.org>
+To: Nathan Chancellor <nathan@kernel.org>
+Cc: linux-kernel@vger.kernel.org, linux-trace-kernel@vger.kernel.org, Masami
+ Hiramatsu <mhiramat@kernel.org>, Mark Rutland <mark.rutland@arm.com>,
+ Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, Andrew Morton
+ <akpm@linux-foundation.org>, Linus Torvalds
+ <torvalds@linux-foundation.org>, Sebastian Andrzej Siewior
+ <bigeasy@linutronix.de>, John Ogness <john.ogness@linutronix.de>, Thomas
+ Gleixner <tglx@kernel.org>, Peter Zijlstra <peterz@infradead.org>, Julia
+ Lawall <julia.lawall@inria.fr>, Yury Norov <yury.norov@gmail.com>,
+ linux-doc@vger.kernel.org, linux-kbuild@vger.kernel.org,
+ linuxppc-dev@lists.ozlabs.org, dri-devel@lists.freedesktop.org,
+ linux-stm32@st-md-mailman.stormreply.com,
+ linux-arm-kernel@lists.infradead.org, linux-rdma@vger.kernel.org,
+ linux-usb@vger.kernel.org, linux-ext4@vger.kernel.org,
+ linux-nfs@vger.kernel.org, kvm@vger.kernel.org,
+ intel-gfx@lists.freedesktop.org
+Subject: Re: [PATCH v4 2/2] tracing: Remove trace_printk.h from kernel.h
+Message-ID: <20260626045119.659d1e6b@fedora>
+In-Reply-To: <20260625234158.GA261868@ax162>
+References: <20260625104007.041432666@kernel.org>
+	<20260625104402.210473477@kernel.org>
+	<20260625234158.GA261868@ax162>
+X-Mailer: Claws Mail 4.4.0 (GTK 3.24.52; x86_64-redhat-linux-gnu)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-From: <zhang.yanze@zte.com.cn>
-To: <jgg@ziepe.ca>, <leon@kernel.org>, <julianbraha@gmail.com>
-Cc: <linux-kernel@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
-        <zhang.yanze@zte.com.cn>, <wei.quan@zte.com.cn>,
-        <han.junyang@zte.com.cn>, <ran.ming@zte.com.cn>,
-        <han.chengfei@zte.com.cn>
-Subject: =?UTF-8?B?W1BBVENIIHJkbWEgdjIgMC8yXSBBZGQgWlRFIERpbmdIYWkgRXRoZXJuZXQgUHJvdG9jb2wgRHJpdmVyIGZvciBSRE1B?=
-Content-Type: text/plain;
-	charset="UTF-8"
-X-MAIL:mse-fl1.zte.com.cn 65Q8oOJj065527
-X-TLS: YES
-X-ENVELOPE-SENDER: zhang.yanze@zte.com.cn
-X-SOURCE-IP: 10.5.228.132 unknown Fri, 26 Jun 2026 16:51:00 +0800
-X-CLEAN: YES
-X-Fangmail-Anti-Spam-Filtered: true
-X-Fangmail-MID-QID: 6A3E3D74.001/4gmqC82fgMz57KTq
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-From: Yanze Zhang <zhang.yanze@zte.com.cn>
+On Thu, 25 Jun 2026 16:41:58 -0700
+Nathan Chancellor <nathan@kernel.org> wrote:
 
-Hi maintainers and reviewers,
 
-This is v2 of the ZTE DingHai (ZXDH) RDMA driver submission.
-Thank you Julian Braha for the review on v1.
+> The following diff resolves it for me, should I send it as a separate
+> patch or do you want to just fold it in with a note?
+> 
+> diff --git a/include/linux/lockdep.h b/include/linux/lockdep.h
+> index 621566345406..2301a701ffbb 100644
+> --- a/include/linux/lockdep.h
+> +++ b/include/linux/lockdep.h
+> @@ -10,6 +10,7 @@
+>  #ifndef __LINUX_LOCKDEP_H
+>  #define __LINUX_LOCKDEP_H
+>  
+> +#include <linux/instruction_pointer.h>
 
-Changes in v2:
-- Removed redundant 'depends on INFINIBAND' from Kconfig as it is already
-  wrapped by the parent if-block (Julian Braha).
+Ah, so the reason for this breakage is because lockdep was relying on
+instruction_pointer.h, that just happened to be included in kernel.h
+via trace_printk.h.
 
-The driver provides RoCEv2 support for ZTE DingHai network adapters and has
-been tested with perftest and rping utilities.
+This is a separate issue, so it should be a separate patch. I'll add it
+as patch 1 of this series.
 
-Best regards,
-Yanze Zhang
+Can you send me the config you used. This didn't trigger in my tests.
 
-Yanze Zhang (2):
-RDMA/zrdma: Add ZTE Dinghai Ethernet Protocol Driver for RDMA
-RDMA/zrdma: Add hardware config code and improve driver init flow
+Thanks,
 
-MAINTAINERS                              |   6 +
-drivers/infiniband/Kconfig               |   1 +
-drivers/infiniband/hw/Makefile           |   1 +
-drivers/infiniband/hw/zrdma/Kconfig      |   9 +
-drivers/infiniband/hw/zrdma/Makefile     |   6 +
-drivers/infiniband/hw/zrdma/zrdma_ctrl.h | 248 +++++++++++++++++++++++
-drivers/infiniband/hw/zrdma/zrdma_defs.h |  37 ++++
-drivers/infiniband/hw/zrdma/zrdma_hw.c   | 135 ++++++++++++
-drivers/infiniband/hw/zrdma/zrdma_hw.h   | 156 ++++++++++++++
-drivers/infiniband/hw/zrdma/zrdma_main.c | 156 ++++++++++++++
-drivers/infiniband/hw/zrdma/zrdma_main.h | 140 +++++++++++++
-drivers/infiniband/hw/zrdma/zrdma_mem.h  | 105 ++++++++++
-drivers/infiniband/hw/zrdma/zrdma_type.h | 110 ++++++++++
-drivers/infiniband/hw/zrdma/zrdma_uk.h   |  18 ++
-14 files changed, 1128 insertions(+)
-create mode 100644 drivers/infiniband/hw/zrdma/Kconfig
-create mode 100644 drivers/infiniband/hw/zrdma/Makefile
-create mode 100644 drivers/infiniband/hw/zrdma/zrdma_ctrl.h
-create mode 100644 drivers/infiniband/hw/zrdma/zrdma_defs.h
-create mode 100644 drivers/infiniband/hw/zrdma/zrdma_hw.c
-create mode 100644 drivers/infiniband/hw/zrdma/zrdma_hw.h
-create mode 100644 drivers/infiniband/hw/zrdma/zrdma_main.c
-create mode 100644 drivers/infiniband/hw/zrdma/zrdma_main.h
-create mode 100644 drivers/infiniband/hw/zrdma/zrdma_mem.h
-create mode 100644 drivers/infiniband/hw/zrdma/zrdma_type.h
-create mode 100644 drivers/infiniband/hw/zrdma/zrdma_uk.h
+-- Steve
 
---
-2.27.0
+
+
+>  #include <linux/lockdep_types.h>
+>  #include <linux/smp.h>
+>  #include <asm/percpu.h>
+
