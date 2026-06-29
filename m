@@ -1,77 +1,75 @@
-Received: from smtp-relay-services-1.canonical.com (smtp-relay-services-1.canonical.com [185.125.188.251])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4F83637E30C
-	for <linux-rdma@vger.kernel.org>; Sun,  5 Jul 2026 13:51:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.125.188.251
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 29E2437883E;
+	Sun,  5 Jul 2026 14:00:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783259482; cv=none; b=UDIRLoxLyLmz/KrzhU2K0GlNRt7uw2kzaRQfGtuQB+39UCx1wbCzbtAsYvP1Uh32cDAClf14/1hldJrD9HCWpfQC6stj/ic99hXVIv4Xrn5bXgokm/ERfJv41KOtoB9ca/ogH/AjnvmL+ixphNn6aJEdhwWbSncjRBgM6h50QBw=
+	t=1783260038; cv=none; b=ggZUlrAj/McqlvK9KTGyEPEUgN2r6ijVLncMPQOlzRETMDuczaJTZ+FnYfsQ/bGwVA56aEvYac1dk+EiG1G1uyaAOQ7YJDz5TnEAzPP5xR8LIeqPCfbq2vdhOESqbkGityOnggxX+1EuvpZ0Rh+a1Ve6DSEHNVyEeFrOjcjNoY4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783259482; c=relaxed/simple;
-	bh=sD0Z1lY1wNcolsrvWu5WYi0JpCGE5peZFJTAMioY3AY=;
-	h=Content-Type:MIME-Version:To:From:Subject:Message-Id:Date; b=shhEg7yBW33QWv/li6TH7/FMr0ftAl9mhNx/jU3a2CDtdeCNY+/qCyNkL3pR/NwGuVZocNB8A54eNBGX0Tiia7duYKnKTC5NPB2msFCR9hHwcOvV7eRpreRlfnXN3DX39TxZTso6mebFkLxsAORvkBH4QAqWjTi38N7zfcWabIU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=launchpad.net; spf=pass smtp.mailfrom=launchpad.net; dkim=pass (2048-bit key) header.d=launchpad.net header.i=@launchpad.net header.b=HFfTYojm; arc=none smtp.client-ip=185.125.188.251
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=launchpad.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=launchpad.net
+	s=arc-20240116; t=1783260038; c=relaxed/simple;
+	bh=png50S20ShN43oQFZ0KFX6+JBP2QoOZjdSEZIbE7nGc=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
+	 MIME-Version:Content-Type; b=boGTKIul6O6bwG0oMuGOWmq0vGnqZd8EEAlBdtqyaAnrCAWN7bX4XTz0ZvOCmT1xldpcilDzuOyuXP5rNFxrB3S2/nfk2T8l9vjoEUxH31bVSnFmlJMQEuR2RVUQBMORlhJq3MZML6juOzoTbLTEp/7nZvaUXaTFhE++40rw0s4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Gg3gPeZn; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=launchpad.net header.i=@launchpad.net header.b="HFfTYojm"
-Received: from juju-98d295-prod-launchpad-51.localdomain (unknown [10.131.215.15])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-relay-services-1.canonical.com (Postfix) with ESMTPSA id CEB233F18E
-	for <linux-rdma@vger.kernel.org>; Sun,  5 Jul 2026 13:51:08 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=launchpad.net;
-	s=20210803; t=1783259468;
-	bh=sD0Z1lY1wNcolsrvWu5WYi0JpCGE5peZFJTAMioY3AY=;
-	h=Content-Type:MIME-Version:To:From:Subject:Message-Id:Date:
-	 Reply-To;
-	b=HFfTYojm9tzVikBt7nOz+Z8r4rSx9UFQfNOZpicC3Oozr4u5guEbKGLTSEJSh8lRN
-	 c8mZIP9HkeWqfoTjPTobym0w7Vqj2gd5NYGmrZnVXdoM3EdOm7XBOXAFzKgMn/5XYM
-	 zmVJfTaBGBrZBtF8U87aPsOt7vlpdUIA4c6Fy35bQuw9ijJ10JUKzbuBbq3X+Wx9L6
-	 /+dnKrAFwfLAbE2ubyu3JqmALYkUgtYH8JD/fKWafcv9ZIC5cUJGpNZBQ9sOqHB/50
-	 X7hAikARQIheCkhR8igWy0odCWkyY+zy8nPH5Yj0cbsoHOO62KGhMrl2F6HjlyTuCZ
-	 khUyaYGUESC1A==
-Received: from [10.131.215.15] (localhost [127.0.0.1])
-	by juju-98d295-prod-launchpad-51.localdomain (Postfix) with ESMTP id AC188BD3E2
-	for <linux-rdma@vger.kernel.org>; Sun,  5 Jul 2026 13:51:08 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Gg3gPeZn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 262AB1F000E9;
+	Sun,  5 Jul 2026 14:00:35 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1783260036;
+	bh=5uxf4qWbZxrE+bclyeo+X4WWa+BNtCzdTw3O82BRkVg=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Date;
+	b=Gg3gPeZnv+nztE73c3L1kKLTkcDrfYYajG6/oBuEmNSbAA675tFKtLbraQxpXioYL
+	 DDrq4KywljsnuF8lvsR6ptsUlvT683TOVPDlYuWQqRfZl6leGMszYEXRYgusGVS+RT
+	 MFn4jWKS+wd+Rdww+MNy2VCCCgzqrJUVR8a/uejK7Vbi6VzL/i3SX669H0nHTkAgIN
+	 SLwmJMT+1gDytydeE1z0MnbANUTzPOhj6RR9hEkox3edHHF7OfdFCCW7eft0MJQsEU
+	 b6zjdv0lxWq7SCtcckyji1vl8w/Vo4T6aobJ4w4RU/QavZcxliKwHcxRj9Xt+7Sk86
+	 sDgP7dJFHpmgw==
+From: Leon Romanovsky <leon@kernel.org>
+To: Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>, 
+ Michael Bommarito <michael.bommarito@gmail.com>
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, 
+ stable@vger.kernel.org, Vlad Dumitrescu <vdumitrescu@nvidia.com>, 
+ Or Har-Toov <ohartoov@nvidia.com>, Bob Pearson <rpearsonhpe@gmail.com>, 
+ Sean Hefty <shefty@nvidia.com>, Kees Cook <kees@kernel.org>
+In-Reply-To: <3170ff3bc389a930bb1641f2caa394a0b2241579.1780774907.git.michael.bommarito@gmail.com>
+References: <3170ff3bc389a930bb1641f2caa394a0b2241579.1780774907.git.michael.bommarito@gmail.com>
+Subject: Re: [PATCH v3] IB/mad: drop unmatched RMPP responses before
+ reassembly
+Message-Id: <178273508232.133362.14163993593921420714.b4-ty@kernel.org>
+Date: Mon, 29 Jun 2026 08:11:22 -0400
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-X-Launchpad-Message-Rationale: Requester @linux-rdma
-X-Launchpad-Message-For: linux-rdma
-X-Launchpad-Notification-Type: recipe-build-status
-X-Launchpad-Archive: ~linux-rdma/ubuntu/rdma-core-daily
-X-Launchpad-Build-State: MANUALDEPWAIT
-To: Linux RDMA <linux-rdma@vger.kernel.org>
-From: noreply@launchpad.net
-Subject: [recipe build #4061847] of ~linux-rdma rdma-core-daily in xenial: Dependency wait
-Message-Id: <178325946864.2380793.4517302068963893374.launchpad@juju-98d295-prod-launchpad-51>
-Date: Sun, 05 Jul 2026 13:51:08 -0000
-Reply-To: noreply@launchpad.net
-Sender: noreply@launchpad.net
-Errors-To: noreply@launchpad.net
-Precedence: bulk
-X-Generated-By: Launchpad (canonical.com); Revision="9266e25987148283c3b4dddb06517b57ecf29d92"; Instance="launchpad-buildd-manager"
-X-Launchpad-Hash: 736ad7c5301b6046c3ba7f7f189ae3bfc423030b
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-Mailer: b4 0.15-dev-18f8f
 
- * State: Dependency wait
- * Recipe: linux-rdma/rdma-core-daily
- * Archive: ~linux-rdma/ubuntu/rdma-core-daily
- * Distroseries: xenial
- * Duration: 4 minutes
- * Build Log: https://launchpad.net/~linux-rdma/+archive/ubuntu/rdma-core-d=
-aily/+recipebuild/4061847/+files/buildlog.txt.gz
- * Upload Log:=20
- * Builder: https://launchpad.net/builders/lcy02-amd64-071
 
---=20
-https://launchpad.net/~linux-rdma/+archive/ubuntu/rdma-core-daily/+recipebu=
-ild/4061847
-Your team Linux RDMA is the requester of the build.
+On Sat, 06 Jun 2026 16:01:55 -0400, Michael Bommarito wrote:
+> Kernel-handled RMPP receive processing starts reassembly for active
+> DATA responses before the response is matched to an outstanding send.
+> The normal match happens later, after ib_process_rmpp_recv_wc() has
+> either assembled a complete message or consumed the segment.
+> 
+> That ordering lets an unsolicited response that routes to a kernel
+> RMPP agent by the high TID bits allocate or extend RMPP receive state
+> before the full TID and source address are checked against a real
+> request. A reordered burst can therefore reach the receive-side
+> insertion path even though the response would not match any send.
+> 
+> [...]
+
+Applied, thanks!
+
+[1/1] IB/mad: drop unmatched RMPP responses before reassembly
+      https://git.kernel.org/rdma/rdma/c/d2e52d610b9b09
+
+Best regards,
+-- 
+Leon Romanovsky <leon@kernel.org>
 
