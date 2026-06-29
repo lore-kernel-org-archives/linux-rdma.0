@@ -1,67 +1,67 @@
-Received: from SJ2PR03CU001.outbound.protection.outlook.com (mail-westusazon11012034.outbound.protection.outlook.com [52.101.43.34])
+Received: from SN4PR2101CU001.outbound.protection.outlook.com (mail-southcentralusazon11012063.outbound.protection.outlook.com [40.93.195.63])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0AF8A2E3AF1;
-	Mon, 29 Jun 2026 18:21:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.43.34
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D08238425B;
+	Mon, 29 Jun 2026 18:21:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.195.63
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782757312; cv=fail; b=aXpD4UzTjSAqrsDnRGcxENqVvr7bQJwHwPi67dLHAiBm6Ixqnz1O0tfm0BDD3pLWxDho8S8FbjvLBksljNar3o24Muui8cmRRerYCBwfa/7YHLjRScLE5/NNM77oGyaAXmoXASIMfvDwawoaljMkXwd+MgX+lZjqfr2WXb7/YZs=
+	t=1782757317; cv=fail; b=GwsK+t5Z7CCIo5DAn64JMmtWOxrknzyCTU4cVz1nCYvR5zHH3C/bG0wqFgwncrwZQZLcDayTg8t8uLRSHIhxtDsjMHs6pnltmrNb7EgVcMBTXPwYa04SJZQgrQSmzfvJ+LJU11xpLo2MiuS8j2eBtNulqaNEmAAuiYZ1V9s4JIc=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782757312; c=relaxed/simple;
-	bh=BNvk2Qe1SrZD5aJ4UyW2B+BAG19KDpGTxZ3/BkfzXRA=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=OK2PT/V26NQmskDkwXB8jh8s0dJhK8/vZdhFSPBFFumVgX/CbSK09k+PwP8erEQaFTppEX/b71A7WiQyZ8OySr8wZQpiUR6Bl0+KysJCRt5nsIQZ+PIL4OX7en6pcXbTHnGwiSlCDsiS+Qr0FT1xlra+ZrFVuns3xIF+/Che2Pg=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=CgCQhiSz; arc=fail smtp.client-ip=52.101.43.34
+	s=arc-20240116; t=1782757317; c=relaxed/simple;
+	bh=77WoDUoROSs5e2Qr4EFdIxekUNcoveLfVWLXOQGuBi8=;
+	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=usP7gVx/nrrnTf6FUMDNZFdh7ccFE0NaPlEWw4u1xJVl8jDdpEXrid8w/nRYWlbeuW1tqjYnZB/t5zWnCs77zTPIwHufyLO4bMdzK+Nq5vwT4fcI8P+MwwRbBha7nHZvhM0XL+/DEKi3VSgmLg7rDzFkLBipY2RLT8W2NT9wWV4=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=gvWI7iUd; arc=fail smtp.client-ip=40.93.195.63
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="CgCQhiSz"
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="gvWI7iUd"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=rgNrNcC72iJ968ENoO+eLH/wPAgEXniZC5pGMWBqSwJuXkLNCK1UahI4zgFVljF1OIHfPSlAXcwE/nWnDwykLiMCmfoL8ay3KJy2o5DpxVQm1TehjCCoZV0qnLumV7IpJJMBxDllmKxSgtCXYGd6MntZY/bWmaZ+ngBg0FrE83phHjbDdBoI3N8CUWmByIb5CkfuByeW/E/GD9ZZuL7XjcmvWMF1FnOb4CM4crd8A4Rh3ff3NK7UOsSMFjVFOF4qdSL2yvvM0W6+JYhtJHMNXp1gAJjfTZNJSzTa3dg6EqWkdZrM3G2V8c0MrPjXTBebYGSOD8kHe/+rTsHJ2IVJ6g==
+ b=CLUUXDkVsJY3zAXBDDf7IGec5w9GZo2WVeIcjOyWcPmCurVIANGttL0MjTFo+ZQ3/tWjJFXKCHpztEY3jhzTVZM3+rKwNUkxsvVtdgYHoxDOQuNCjn6WggsNgcXTvQ8wRT/FRzR0jpvsluquwiMGUyXQSl5JkcIv83g4Ydkgv4a5WxN/d8axumPoig1wqrV34iV/ME2vFDhySTq7tqw3JBvKUGJl6kkHTnNMd/gXR9YRwnxEFWNF8a9rtx7MQIsfb4zyCHXYbPn7t8QUnSQzm5F9hwmzjyF09DmFaCGj0DJ1a3TQyWv+Wgzoa6T5uOc9PDgR2QQvqa7XSndHeLyNEQ==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=wrIr/5ttcIiMeCgQH1ghmF1Kq+dzHnRITLs5VyV/OvM=;
- b=aWRGTwUqW9wqPBlVxeblQVV/OAjDIvraDCTzvPM3925M7LUlLaH6sn/K2uKpkHwn5n0C/VIwI4Q23WT/fhZULEMrqFe0njov9nwULlfmeS17hPjLP+iu0hNmkJ1acCZ3FpzFxHg/qjktwp6Pjq0grvdaZe6h/mk6x1GUE5HcExjuPsVis01YinYJ2KQkCh9IFoml6gx5OT7psOoHHJeDJixKJssbpBFpFrnE1YcwMMLlouEao2AV+DQtPSnmMQXytNRJb6la+P6ppfkKVeYrrFXyxo+krhBI1F+i6zwoWgJzdSEmFxYMIyB6TGkgH+wYiewNDdzbGk3j0etRW/el4Q==
+ bh=wioz307rS22NzIh9M8QZMsjvlm3txdgFNxZaQrDJovM=;
+ b=rIU7/ITrsYm0GPZMUalyAy5FHIw2oByBF+IWMcEKi6xCJ1dVRI5nNzpRMKCRwS6/UH8Lvx8Jz0JrLhecq0+aHtxCAbml6pmtJikfgYXY0n1eIeGt4P+QOcLD8Q3zErntmnmB9MIh4hcR4CMlYv8XpxPrwcMWHTX4XGzmqLnZCp+SIAJEEMzv4HbPVoUyQPdQnilMZ4/fuuFRu3PvttdzXF+veDH9N8eEnld/3eiG5M2C1rStk+OKUQqfbTyDOztYPPRoWA7iMI7IU92qtrJ1llL7rW9nNT2IFOjI5kl7s7zAcrn05AmHrpAZT7AS/t1NLRZV1moTta8cnFL4+6iHUQ==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.117.161) smtp.rcpttodomain=resnulli.us smtp.mailfrom=nvidia.com;
+ 216.228.117.160) smtp.rcpttodomain=resnulli.us smtp.mailfrom=nvidia.com;
  dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
  dkim=none (message not signed); arc=none (0)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=wrIr/5ttcIiMeCgQH1ghmF1Kq+dzHnRITLs5VyV/OvM=;
- b=CgCQhiSzyxVBlExLwSd7iAEtkh2NSE6dniDBU5tHJGJhmh3WNxixwYwcLXpFwYVoP3viUsIWCd8tSNUZTbatyMTgosjb/YoI7iWeUC+PRZRgg1CKfUrqkHbs+mYdXnCk+wS26wbfJKtR4wE7vLPYZyi4D7+MSxFtLAd/hCvaKQgSLmYJrwOPfAq2dmy/n2VvLpQt//Jz4QuPtI/awZguQpXkIlANl0HgoQhYDfHFxs6OZocEZbOPx1wh9DYB8fTOSb8vYgr7/XbW6YDtQAT6PMgpniCMyxg86RaRhcJMSp0TYKx8diR3L+/8yaVAkcUccudmV5cTvEzfcTZAuNUFqw==
-Received: from PH7P220CA0127.NAMP220.PROD.OUTLOOK.COM (2603:10b6:510:327::7)
- by DM6PR12MB4106.namprd12.prod.outlook.com (2603:10b6:5:221::7) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.159.19; Mon, 29 Jun
- 2026 18:21:41 +0000
-Received: from CY4PEPF0000FCC1.namprd03.prod.outlook.com
- (2603:10b6:510:327:cafe::d) by PH7P220CA0127.outlook.office365.com
- (2603:10b6:510:327::7) with Microsoft SMTP Server (version=TLS1_3,
+ bh=wioz307rS22NzIh9M8QZMsjvlm3txdgFNxZaQrDJovM=;
+ b=gvWI7iUdYy34yhCd4Lo2eX8sk7TtAeSam7DKvjWt0OTfkAwCfybtPJl2oW1868xD3Wd9iU3rbRDGFrE9K5S8RbtZQNOS8Jf+3djuKmkyshOpxTBgH2Dlol4rcMDPzmAinSOYzmvn91aP6WfLP4sxW2GFx4Z3FNwV6o8QIVVXTNy0xuVqlg2ZcvxBRpoTpADUOYUX6A6pkDtnIg7y96GShsRY//R48slKGuD3Ckjfubf5+XSkmu+4jhqp7cq3/YLqKlnRww/vS1Lpwb16eyo8mqCXGg02XkFXUYYQ5MQ08Q3CFE54oahOXB3LfcCFCR7eSmQhYjsteupYpOrkAT9vyg==
+Received: from CH0P220CA0013.NAMP220.PROD.OUTLOOK.COM (2603:10b6:610:ef::9) by
+ SA0PR12MB4463.namprd12.prod.outlook.com (2603:10b6:806:92::14) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.21.159.19; Mon, 29 Jun 2026 18:21:48 +0000
+Received: from CH1PEPF0000A34A.namprd04.prod.outlook.com
+ (2603:10b6:610:ef:cafe::33) by CH0P220CA0013.outlook.office365.com
+ (2603:10b6:610:ef::9) with Microsoft SMTP Server (version=TLS1_3,
  cipher=TLS_AES_256_GCM_SHA384) id 15.21.159.19 via Frontend Transport; Mon,
- 29 Jun 2026 18:21:40 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.161)
+ 29 Jun 2026 18:21:48 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.160)
  smtp.mailfrom=nvidia.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=nvidia.com;
 Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.117.161 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.117.161; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.117.161) by
- CY4PEPF0000FCC1.mail.protection.outlook.com (10.167.242.103) with Microsoft
+ 216.228.117.160 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.117.160; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.117.160) by
+ CH1PEPF0000A34A.mail.protection.outlook.com (10.167.244.5) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.181.6 via Frontend Transport; Mon, 29 Jun 2026 18:21:40 +0000
+ 15.21.181.6 via Frontend Transport; Mon, 29 Jun 2026 18:21:47 +0000
 Received: from rnnvmail201.nvidia.com (10.129.68.8) by mail.nvidia.com
- (10.129.200.67) with Microsoft SMTP Server (version=TLS1_2,
+ (10.129.200.66) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Mon, 29 Jun
- 2026 11:21:08 -0700
+ 2026 11:21:16 -0700
 Received: from rnnvmail202.nvidia.com (10.129.68.7) by rnnvmail201.nvidia.com
  (10.129.68.8) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Mon, 29 Jun
- 2026 11:21:07 -0700
+ 2026 11:21:16 -0700
 Received: from vdi.nvidia.com (10.127.8.10) by mail.nvidia.com (10.129.68.7)
  with Microsoft SMTP Server id 15.2.2562.20 via Frontend Transport; Mon, 29
- Jun 2026 11:21:03 -0700
+ Jun 2026 11:21:12 -0700
 From: Mark Bloch <mbloch@nvidia.com>
 To: Jiri Pirko <jiri@resnulli.us>, Eric Dumazet <edumazet@google.com>, "Jakub
  Kicinski" <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, Simon Horman
@@ -71,10 +71,12 @@ CC: Saeed Mahameed <saeedm@nvidia.com>, Leon Romanovsky <leon@kernel.org>,
 	Jonathan Corbet <corbet@lwn.net>, Shuah Khan <skhan@linuxfoundation.org>,
 	<netdev@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
 	<linux-doc@vger.kernel.org>, Mark Bloch <mbloch@nvidia.com>
-Subject: [PATCH net-next V4 0/6] evlink: Add boot-time eswitch mode defaults
-Date: Mon, 29 Jun 2026 21:20:55 +0300
-Message-ID: <20260629182102.245150-1-mbloch@nvidia.com>
+Subject: [PATCH net-next V4 2/6] devlink: Factor out eswitch mode setting
+Date: Mon, 29 Jun 2026 21:20:57 +0300
+Message-ID: <20260629182102.245150-3-mbloch@nvidia.com>
 X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20260629182102.245150-1-mbloch@nvidia.com>
+References: <20260629182102.245150-1-mbloch@nvidia.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -86,149 +88,101 @@ Content-Type: text/plain
 X-NV-OnPremToCloud: ExternallySecured
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: CY4PEPF0000FCC1:EE_|DM6PR12MB4106:EE_
-X-MS-Office365-Filtering-Correlation-Id: 10e84036-22eb-46ea-bb4a-08ded60b43fb
+X-MS-TrafficTypeDiagnostic: CH1PEPF0000A34A:EE_|SA0PR12MB4463:EE_
+X-MS-Office365-Filtering-Correlation-Id: 34a1b646-332d-412b-b203-08ded60b485d
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|36860700016|376014|7416014|1800799024|23010399003|82310400026|18002099003|11063799006|56012099006|3023799007|6133799003;
+	BCL:0;ARA:13230040|1800799024|376014|7416014|36860700016|82310400026|23010399003|22082099003|18002099003|11063799006|56012099006;
 X-Microsoft-Antispam-Message-Info:
-	WUfiqNQZPnEpLJhYF6rJbeVObsoiYUHQ+UpuS6gGIlFCrakBbLiQ6sSsiGh5a6OHPCe4Ag/BNZZH/xbEE7A5zxYchh0RvYelEVbCDcOUt4FK45kA72UDl/U3c5+J/VKcSwJIdYleu7dImM5fcwP8PpLWM4Omb/HRLRHPnosJCbuhBH6wJKkLAlfdFuOtxDXyClXwxc3r6RoSo5tPbzyxQJ0YFKfct6hhZ+0IyNoXDrt16Woy/oFKNRQwa/FseiYTpfASvxxgyaoGKnAW1X58O2GH6wCaMXhYSKiU6QNoMKplnUsaosLz/kk7H7YyU6AFxsFIXAwiliIzlexoxPnAtRkAabde9iNQ7u/YLeOx27lCr0a8b70SHqunwVSKLpzR10/j62NxvXigwqHaDa7JBLVnLpZdNAomEDUEshVClTufaTEBDVeLssy65yws/ylcwLRR+wzHne+JECwL5TfRsO4v1Pk/qeVo6i+U25xWRRnYo++rTIlgMVcCI2Z89t+z78NfkG9g9hNx3PtdHgo98Nv0AyKPp/JWmhuqll3AZ1dRFDS4bpMJekVdHbyMzjJLsBHLLuuOuwyQOGCYGArLTvS3L2pxGT48yFIqHFU159HrKcYGZbR1cqJ/vOUhGVIwceAdsApK5t+GdLv5ZRq+0P3T/LaC/C9jWRtDPLJWXk2eClgUfADtgBCtJmcnh8cww4toFgGUrE+MOZIit/YQ2g==
+	KO9NUEmXfj12jtHef3Mavxf6xOfawd9Uis31kBD4EOBogVSioH+rwE/ImG9TxvOwinux0dd9Xrt0ca1wZoIsGxZRbB/p0ZmyrI/logtDnuSDespPJdeM4wsWQbSQhIX+r8IbBIj0FPdFH3uyi05She86fT5VO1qspAbHmfyPBBBSP9wjKZCHYnjolykrxJKyOY1sDpmo7G4apHGBGY0ycO/peMLyN5nuqkKWU/Sm9nXYGg5eu6ALiqReF9fLurMwQJohn+9y8bnJX3BxumCvRriuMVO1u/mtIrItL/zVSzRxKv2c4tHGD9p07S9D7oaFF7Ly9taTzRJ0x/TX1AY7HtqkT16YMA4OlQ2oDdX1CTjVRuwvcrb3cAezHIlr0yrVo91C3kh2n+KpWh+e40+Cj4LzYJ3jwKcZoOCWvunc3UIyXL9DqwhHsaoUQ8i6vopsMKb73eHi2L+8SaJfBidDhX8OCTLhnt49Ql9QYRJH9IQ9NeaYLh1wohd0RGLuIHLW91HayAqDzKk2/zs4mR7kTCv1tdsdWJy0Xxta8chDskX72a1H3CWhrB8og5MHzMPMynNwnTnR4agxU5Ov1n5+O02f4ZGorZ4bUH3Cxy63Lmc6HgTcrU28+1oJbO1PPkJv0qj7+fjts79cKZkOAK6E0BCDgfykZLZQ5CFsBQMMkvfJk+7EbXjJQ0GnlgsThjhT
 X-Forefront-Antispam-Report:
-	CIP:216.228.117.161;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge2.nvidia.com;CAT:NONE;SFS:(13230040)(36860700016)(376014)(7416014)(1800799024)(23010399003)(82310400026)(18002099003)(11063799006)(56012099006)(3023799007)(6133799003);DIR:OUT;SFP:1101;
+	CIP:216.228.117.160;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge1.nvidia.com;CAT:NONE;SFS:(13230040)(1800799024)(376014)(7416014)(36860700016)(82310400026)(23010399003)(22082099003)(18002099003)(11063799006)(56012099006);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	VfJW+qbfGqPB1FnECCsmIs2aJ5ZY+IeusReWP1CeT/y0kSrQLYAq/G6GAI4qFnkba1vKXw2KzHxNaKAzpltm1JiZ6rLQkL86cWjWO67n++fjPgA/8e6trlH7Pvj5zD//EhgW4puFyqKNfN5uXg7WISUiDIIVB8NP5ngotqLPWYP3CrJoSSpxfzo9Mhutmxn6QyAEPzf84bjuA76vvTEmDwdidRf+evMCgrxV52Ke7RxMISxlGzSY2GW5lTrwrpGAKAVfpuzQivPDwjrO/ZP1140ZFgKoqzxNUZ6eNIrnzE3dDILy1cp335ykQxo9cjq1Lp8C68rGeYctNcLm5EZH3MTJT6hTfTkOtVPA0rFQKBFnuTQGuKzIgiJjDT0z3lIat5rPu3ujdLhhqSl5tHUrnywOXA5vIQiJtoPL+t0WoFpgfvCZEdziZNtTU2MBWNv8
+	eSChoOfGilXtszW+peYJRRQOH/3spsAmlCvosUjqAV6m2AFug62P3BZ2Ec9vhGe1JIZS5t2Qo2F0WAAooUYKhO+YLNdxB3y9ax381ZgmDTdCmO0Om9eF77woVUFuD4lLtKOQ+oLQONMjmfCFTgu5FEJaVE8DbCzlzzRuPahmNH/UhL6+HIPgSsiHwHF5vZApksVuKJk4AIUtiZMjTR1Evgy4VviQpX6VORJm4dwhS3uREyXZ1jsr05HUfjBir213ICrMFzT3jE5g5PRkCc36X1hiXZei9Qu64cfqU6v2qjiSH/oyyqC8I8cUSlF5NUYHLAuHNpnd5u0JT0iuqFaV1ahyijBYCxn3Noraq9y7LsuXqNx8jq801+mgk0TVpQ1k7b6igmaw+P8HIPp3Y8/B+mOyPzwVRhMGbIf+mU02rnLnt7slvGG5ig0s5zpM4Ds3
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 29 Jun 2026 18:21:40.5576
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 29 Jun 2026 18:21:47.8623
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 10e84036-22eb-46ea-bb4a-08ded60b43fb
+X-MS-Exchange-CrossTenant-Network-Message-Id: 34a1b646-332d-412b-b203-08ded60b485d
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.161];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.160];Helo=[mail.nvidia.com]
 X-MS-Exchange-CrossTenant-AuthSource:
-	CY4PEPF0000FCC1.namprd03.prod.outlook.com
+	CH1PEPF0000A34A.namprd04.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM6PR12MB4106
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA0PR12MB4463
 
-This series adds a devlink_eswitch_mode= kernel command line parameter
-for setting a default devlink eswitch mode during boot.
+Move the common eswitch mode set checks into a small helper and use it
+from the netlink eswitch set command. Making the same validation
+available to the devlink core path that applies eswitch mode defaults.
 
-Following the discussion with Jakub[1] and the feedback on the RFC
-postings, this version keeps the scope limited to a boot-time devlink
-eswitch mode default only.
+Signed-off-by: Mark Bloch <mbloch@nvidia.com>
+---
+ net/devlink/dev.c           | 27 ++++++++++++++++++++-------
+ net/devlink/devl_internal.h |  3 +++
+ 2 files changed, 23 insertions(+), 7 deletions(-)
 
-The option selects either all devlink handles or an explicit
-comma-separated handle list:
-
-devlink_eswitch_mode=*=switchdev
-devlink_eswitch_mode=pci/0000:08:00.0,pci/0000:09:00.1=switchdev_inactive
-
-The supported modes are legacy, switchdev and switchdev_inactive. The
-selected mode is applied through the existing eswitch_mode_set() devlink
-operation, the same operation used by the devlink eswitch mode command.
-
-Registration may happen before a driver is ready to change eswitch mode,
-so devlink core queues an asynchronous apply request from devl_register().
-The worker takes the devlink instance lock before calling into the driver.
-
-After a successful reload that performed DRIVER_REINIT, devlink core
-already holds the devlink instance lock and the driver completed
-reload_up(), so the default is applied directly from the reload path.
-
-Drivers that know exactly when the device is ready can call
-devl_apply_default_esw_mode() directly. mlx5 uses this after initial
-probe, when the device is initialized and the devlink lock is already
-held.
-
-Patch 1 clears the mlx5 FW reset-in-progress bit before reload.
-
-Patch 2 factors the common eswitch mode set validation into a helper.
-
-Patch 3 adds the devlink_eswitch_mode= parser and documentation.
-
-Patch 4 applies parsed defaults from devlink core.
-
-Patch 5 adds devl_apply_default_esw_mode() for drivers.
-
-Patch 6 wires mlx5 to apply the default after initial probe.
-
-Changelog:
-
-v3 -> v4:
-
-- Rework registration time apply to use per devlink delayed work instead
-  of calling eswitch_mode_set() directly from devl_register().
-
-- Apply the default directly after successful DRIVER_REINIT devlink reload,
-  where the devlink lock is already held and reload_up() has completed.
-
-- Add devl_apply_default_esw_mode() for drivers that know their exact ready
-  point.
-
-- Drop the driver registration-ordering preparation patches that are no
-  longer needed with the async registration apply path.
-
-v2 -> v3:
-
-- Change the devlink_eswitch_mode= API syntax to use <selector>=<mode>
-  instead of [<selector>]:<mode>, following a comment from Randy Dunlap.
-
-v1 -> v2:
-
-- Move default eswitch mode application into devlink core. The default is
-  now applied during devlink registration and after a successful devlink
-  reload that performed DRIVER_REINIT.
-
-- Remove the exported devl_apply_default_esw_mode() driver API and the mlx5
-  driver-side call to it.
-
-- Skip devlink health recovery notifications while the devlink instance is
-  not registered, so drivers can move registration later without early
-  health work hitting registration assertions.
-
-- Move mlx5 devlink registration after device initialization, including the
-  lightweight init path, so the core can apply the default through the
-  normal registration flow.
-
-- Move the matching netdevsim and mlx5 unregister paths before object
-  teardown, so unregister notifications come from devl_unregister() and the
-  later object teardown paths run while the devlink instance is no longer
-  registered.
-
-- Add registration-ordering preparation patches for netdevsim and octeontx2
-  AF/PF, so their eswitch state is ready before registration-time defaults
-  may call eswitch_mode_set().
-
-[1] lore.kernel.org/r/20260502184153.4fd8d06f@kernel.org/
-RFC v1: lore.kernel.org/r/20260506123739.1959770-1-mbloch@nvidia.com/
-RFC v2: lore.kernel.org/r/20260510185424.2041415-1-mbloch@nvidia.com/
-v1: lore.kernel.org/r/20260521072434.362624-1-tariqt@nvidia.com/
-v2: lore.kernel.org/all/20260603193259.3412464-1-mbloch@nvidia.com/
-v3: lore.kernel.org/all/20260605181030.3486619-1-mbloch@nvidia.com/
-
-Mark Bloch (6):
-  net/mlx5: Clear FW reset-in-progress bit before reload
-  devlink: Factor out eswitch mode setting
-  devlink: Parse eswitch mode boot defaults
-  devlink: Apply eswitch mode boot defaults
-  devlink: Add API to apply eswitch mode boot default
-  net/mlx5: Apply devlink eswitch mode boot default on probe
-
- .../admin-guide/kernel-parameters.txt         |  25 ++
- .../networking/devlink/devlink-defaults.rst   |  78 ++++
- Documentation/networking/devlink/index.rst    |   1 +
- .../ethernet/mellanox/mlx5/core/fw_reset.c    |  28 +-
- .../net/ethernet/mellanox/mlx5/core/main.c    |  13 +
- include/net/devlink.h                         |   1 +
- net/devlink/core.c                            | 393 ++++++++++++++++++
- net/devlink/dev.c                             |  33 +-
- net/devlink/devl_internal.h                   |   8 +
- 9 files changed, 562 insertions(+), 18 deletions(-)
- create mode 100644 Documentation/networking/devlink/devlink-defaults.rst
-
-
-base-commit: 805185b7c7a1069e407b6f7b3bc98e44d415f484
+diff --git a/net/devlink/dev.c b/net/devlink/dev.c
+index 57b2b8f03543..4fb02bb993c1 100644
+--- a/net/devlink/dev.c
++++ b/net/devlink/dev.c
+@@ -702,6 +702,25 @@ int devlink_nl_eswitch_get_doit(struct sk_buff *skb, struct genl_info *info)
+ 	return genlmsg_reply(msg, info);
+ }
+ 
++int devlink_eswitch_mode_set(struct devlink *devlink,
++			     enum devlink_eswitch_mode mode,
++			     struct netlink_ext_ack *extack)
++{
++	const struct devlink_ops *ops = devlink->ops;
++	int err;
++
++	devl_assert_locked(devlink);
++
++	if (!ops->eswitch_mode_set)
++		return -EOPNOTSUPP;
++
++	err = devlink_rates_check(devlink, devlink_rate_is_node, extack);
++	if (err)
++		return err;
++
++	return ops->eswitch_mode_set(devlink, mode, extack);
++}
++
+ int devlink_nl_eswitch_set_doit(struct sk_buff *skb, struct genl_info *info)
+ {
+ 	struct devlink *devlink = info->user_ptr[0];
+@@ -712,14 +731,8 @@ int devlink_nl_eswitch_set_doit(struct sk_buff *skb, struct genl_info *info)
+ 	u16 mode;
+ 
+ 	if (info->attrs[DEVLINK_ATTR_ESWITCH_MODE]) {
+-		if (!ops->eswitch_mode_set)
+-			return -EOPNOTSUPP;
+-		err = devlink_rates_check(devlink, devlink_rate_is_node,
+-					  info->extack);
+-		if (err)
+-			return err;
+ 		mode = nla_get_u16(info->attrs[DEVLINK_ATTR_ESWITCH_MODE]);
+-		err = ops->eswitch_mode_set(devlink, mode, info->extack);
++		err = devlink_eswitch_mode_set(devlink, mode, info->extack);
+ 		if (err)
+ 			return err;
+ 	}
+diff --git a/net/devlink/devl_internal.h b/net/devlink/devl_internal.h
+index e4e48ee2da5a..97be77d3ed42 100644
+--- a/net/devlink/devl_internal.h
++++ b/net/devlink/devl_internal.h
+@@ -328,6 +328,9 @@ bool devlink_rate_is_node(const struct devlink_rate *devlink_rate);
+ int devlink_rates_check(struct devlink *devlink,
+ 			bool (*rate_filter)(const struct devlink_rate *),
+ 			struct netlink_ext_ack *extack);
++int devlink_eswitch_mode_set(struct devlink *devlink,
++			     enum devlink_eswitch_mode mode,
++			     struct netlink_ext_ack *extack);
+ 
+ /* Linecards */
+ unsigned int devlink_linecard_index(struct devlink_linecard *linecard);
 -- 
 2.43.0
 
