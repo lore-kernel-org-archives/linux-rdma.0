@@ -1,94 +1,75 @@
-Received: from out-189.mta1.migadu.com (out-189.mta1.migadu.com [95.215.58.189])
+Received: from m16.mail.163.com (m16.mail.163.com [117.135.210.5])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0026B40D58E
-	for <linux-rdma@vger.kernel.org>; Sun, 28 Jun 2026 23:55:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=95.215.58.189
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E184A2AD16;
+	Mon, 29 Jun 2026 02:32:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=117.135.210.5
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782690934; cv=none; b=MK0HCP1sC52Hy9DWEtzNjLRAxCBVNQ5DJIPDDPNtuKHSIZbnSpCdsgGokv5WYZMt02kCfZLkkQXNu3KZ9UzZkb723R9aMNTcge7H9scTyJENBWgS8c5JLI3tapJsYnnKIMtqIdW2nhU1e4b43KJHcNPtM7WIQo7MV0wjFlm8Qzc=
+	t=1782700346; cv=none; b=jxAFlhtr00tTOPQhThq9Qmy3VuX4BbUKxQwM1lVnAh+P88epVsNbOWhst78JeJzXtgekypBQ8uhr/pXhvamBylE/UCetBMIb1wYJiz/GVRhbAVINIoOviNcBibb6EZWGmE1d5L6dn3MK/FlUUbv9OHYLs8zht8GYzFiuaTIMeOM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782690934; c=relaxed/simple;
-	bh=1iGzbc/ihiojGypt1O30+8mo7mH0LgpOsPvWYUZLeCE=;
-	h=Message-ID:Date:MIME-Version:Cc:Subject:To:References:From:
-	 In-Reply-To:Content-Type; b=J1y5X+R0E3VMM1p6EMNMk7ll9fO/ZM1F/tl7ue3k8Q6TPXvjwMsOMos+tGCQpAaOZeve0E0hymK/e2HPJL8UMf12JJIlBgEn+J9G2BZoXOOUcmWeqKgRSbSbfZEnvJe5E5WtKM6cPqZhhyIcjhHjr0YDCp9m8S8RLkYiIX/ik1Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=ml0u0fnx; arc=none smtp.client-ip=95.215.58.189
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+	s=arc-20240116; t=1782700346; c=relaxed/simple;
+	bh=bm87nrqKX2FCApAE4c8gmeMbZP7jGy6nUeJFIFpu2mU=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=c0Bf8cHZOkGOU1sdAlI+Xn9SaI7JMCGABpeFVCYLUDTzBsZRuIGpQn07UJw+zEICgEUGjCjAMNWx7IZKvOd1Dv/ZhEDYIOvRG9aVH9kuA3hEYU9zuJVQZzS8ZiQt87F0HApLv696s8nG/gG4fqDMTcrFq3BNRUymAPIWvPwEN10=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com; spf=pass smtp.mailfrom=163.com; dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b=XSL8UeHE; arc=none smtp.client-ip=117.135.210.5
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="ml0u0fnx"
-Message-ID: <0892f5e8-7ca4-4efc-a002-8c1ed244b18e@linux.dev>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-	t=1782690929;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=EWJ9m0B2lARXAerF+kQRyl3GwQ7mSztH/5H45745C7k=;
-	b=ml0u0fnxeOD3TDUQoQBKFWCstaPO5JjU8s3x+N71MCNi9B9tXSfYscQzhI2Sb1wpggERiC
-	PxpqearG1H4OKQLoskDaWvUI5fW+iWc/VyWFW3yh7Thfhvj2Ncqoz9p+OxDW3zblWY4Jq9
-	ozCEs7Jdoh4uJN+j1BVRpnCSlYs9qXM=
-Date: Mon, 29 Jun 2026 07:55:22 +0800
+	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="XSL8UeHE"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
+	s=s110527; h=From:To:Subject:Date:Message-Id:MIME-Version; bh=6p
+	1iZeodkfjEI8pl/gMI2tdT7NFX9+ctbmApzqqhgL8=; b=XSL8UeHEi6+zGVJZf0
+	6hL7mKnC6DsLEZGrkPhrgmJaem1NKXGB6iiKQ92v7DBOesppBzf130N8km1HllFo
+	iIXjMkCoDYb0oqZH9hn4Bc0Vw5K9rhdaebaGocIvoecE01sWU9HtsTW1HUUniHLF
+	P3ik0Y+v2+ldbjwlQ7bw1jIvs=
+Received: from localhost.localdomain (unknown [])
+	by gzga-smtp-mtada-g0-3 (Coremail) with SMTP id _____wDHzhga2UFqr6_RGQ--.50461S2;
+	Mon, 29 Jun 2026 10:31:56 +0800 (CST)
+From: luoqing <l1138897701@163.com>
+To: jgg@ziepe.ca
+Cc: leon@kernel.org,
+	kees@kernel.org,
+	linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH] IB/iwpm: Fix spelling errors in comments
+Date: Mon, 29 Jun 2026 10:31:53 +0800
+Message-Id: <20260629023153.357709-1-l1138897701@163.com>
+X-Mailer: git-send-email 2.25.1
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Cc: cui.tao@linux.dev, linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
- Tao Cui <cuitao@kylinos.cn>
-Subject: Re: [PATCH iproute2-next v3] rdma: display resource limits in
- curr/max format
-To: David Ahern <dsahern@kernel.org>, leonro@nvidia.com
-References: <20260615005315.169582-1-cui.tao@linux.dev>
- <4d98d9a3-07e1-4333-b040-c72e5f561a63@kernel.org>
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-From: Tao Cui <cui.tao@linux.dev>
-In-Reply-To: <4d98d9a3-07e1-4333-b040-c72e5f561a63@kernel.org>
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-X-Migadu-Flow: FLOW_OUT
+X-CM-TRANSID:_____wDHzhga2UFqr6_RGQ--.50461S2
+X-Coremail-Antispam: 1Uf129KBjvdXoWrZF1fuFy5Wr1UGw1fuF1UGFg_yoWfAFg_ur
+	1agrn7Cr15CF1a9r47uFZ7Zr4qqw1jqw1a9rsrtw15J34DCrnrC3yIyFyruw47Gw1UCFs8
+	Ka1xG34kCFs5CjkaLaAFLSUrUUUUjb8apTn2vfkv8UJUUUU8Yxn0WfASr-VFAUDa7-sFnT
+	9fnUUvcSsGvfC2KfnxnUUI43ZEXa7IU8aNt7UUUUU==
+X-CM-SenderInfo: jorrjmiyzxliqr6rljoofrz/xtbC3RxorGpB2Rx7+AAA3o
 
-Hi David,
+From: luoqing <luoqing@kylinos.cn>
 
-Thanks for taking a look.
+Fix spelling errors in iwpm_msg.c, changing 'quite' to 'quiet'.
 
-The kernel counterpart that introduces this uapi attribute is the
-following patch, currently under review on the rdma list and not yet in
-Linus' tree:
+Signed-off-by: luoqing <luoqing@kylinos.cn>
+---
+ drivers/infiniband/core/iwpm_msg.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-  [PATCH rdma-next v3] RDMA/nldev: add resource summary max values for usage display
-  https://lore.kernel.org/all/20260615003646.168704-1-cui.tao@linux.dev/
-
-That is the one adding RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY_MAX.
-
-You're right that the iproute2 side should reference the kernel patch.
-I'll add a Link to it in the commit log of the next revision, e.g.:
-
-  Link: https://lore.kernel.org/all/20260615003646.168704-1-cui.tao@linux.dev/
-
-If you'd prefer, I can also hold this iproute2 patch until the kernel
-side has landed, so the uapi is already in tree when it goes in. Happy
-to do whichever you think is best.
-
-Thanks,
-Tao
-
-在 2026/6/29 01:22, David Ahern 写道:
-> On 6/14/26 6:53 PM, Tao Cui wrote:
->> diff --git a/rdma/include/uapi/rdma/rdma_netlink.h b/rdma/include/uapi/rdma/rdma_netlink.h
->> index 4356ec4a..e5b8b065 100644
->> --- a/rdma/include/uapi/rdma/rdma_netlink.h
->> +++ b/rdma/include/uapi/rdma/rdma_netlink.h
->> @@ -604,6 +604,11 @@ enum rdma_nldev_attr {
->>  	RDMA_NLDEV_ATTR_FRMR_POOL_PINNED_HANDLES,	/* u32 */
->>  	RDMA_NLDEV_ATTR_FRMR_POOL_KEY_KERNEL_VENDOR_KEY,	/* u64 */
->>  
->> +	/*
->> +	 * Resource summary entry maximum value.
->> +	 */
->> +	RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY_MAX,		/* u64 */
-> 
-> I do not see this uapi in Linus' tree. What is the status of the kernel
-> commit? Put a reference to the kernel patches in the commit message.
-> 
+diff --git a/drivers/infiniband/core/iwpm_msg.c b/drivers/infiniband/core/iwpm_msg.c
+index 4625abd29ac0..1b10f2973ad9 100644
+--- a/drivers/infiniband/core/iwpm_msg.c
++++ b/drivers/infiniband/core/iwpm_msg.c
+@@ -268,7 +268,7 @@ int iwpm_add_and_query_mapping(struct iwpm_sa_data *pm_msg, u8 nl_client)
+ 	if (ret)
+ 		goto query_mapping_error;
+ 
+-	/* If flags are required and we're not V4, then return a quite error */
++	/* If flags are required and we're not V4, then return a quiet error */
+ 	if (pm_msg->flags && iwpm_ulib_version == IWPM_UABI_VERSION_MIN) {
+ 		ret = -EINVAL;
+ 		goto query_mapping_error_nowarn;
+-- 
+2.25.1
 
