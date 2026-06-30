@@ -1,35 +1,34 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0436138C41B;
-	Tue, 30 Jun 2026 10:52:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 05D363A8724;
+	Tue, 30 Jun 2026 10:52:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782816764; cv=none; b=srhtAcshrOQUySXEN7C/YC2bXHenKwvvgHh/0DDtPolwSi14muF29fE4TOYzTyvp6RfCK+k1TxCcyUCO1fcKAXP7wFWOcGC6N5KBllx3mxwaYksNFmXfjGBqqdkXtNkYC46HIneIUrWtrvYQZV7svgjQ4G7E9RLtKUqID/KpY6g=
+	t=1782816766; cv=none; b=jgk14wNCnUWg2Xt1pk+oQUrZCGDxJoBTg+b1qohgr7U3qfwLt1G20gyH3HdfFVe0UYv685HMF7qTnNLhAn6T3XC6Wzzd7xVFt/549LOIjldOvDAVumJuWnbB1C1kHxrlCT+JN8s6RK0dJQ8GAv+0g9NLEA/mnwIRRBzEjtEz5tg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782816764; c=relaxed/simple;
-	bh=HMFf+FOxgexw9evQqbH3lMXr0udh1c1zHa40kS0eSO8=;
+	s=arc-20240116; t=1782816766; c=relaxed/simple;
+	bh=S5WDjUlgtbBIhVPEQY8QOs2RJfuNxo6aUxcl9Ilcxa4=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=JDSNgnDDjvePQ82VTdkuZ9oOwtIVo4UND/uJOJdnDoCgwxnZQNRr16y3HLSI1NyT9GnDyuqSA0wBDFCgI1CoLvVd8nTEXAt+ZQqz5SF0ybE350cpG0zUtqG3E2Jf18FtuUeLX5R6rea6J6CPdnvXOCEkiTSiWtf8gn2FY+wml2E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=M3BTn0r4; arc=none smtp.client-ip=100.103.45.18
+	 In-Reply-To:To:Cc; b=uZf/G/0foNqncKzTPxAxFBH4J+v5Jhp6DMZYT8o7zQCM/W9WeTPnC8soOxX4S0OElgGgQ4zvUWnsZA25qXBRasRLkQ4m0XI6DJvRjX7+E56ON0OL7rAjDGU6AN9m3FpuE5/aC/wFfOs3GrJTegs+GXKrtgMO/h+eCrrtXBL40CA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Y+HU1MCE; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="M3BTn0r4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9D1891F00A3A;
-	Tue, 30 Jun 2026 10:52:34 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Y+HU1MCE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BCBB41F00A3D;
+	Tue, 30 Jun 2026 10:52:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1782816756;
-	bh=RgvAPeibeFQxp8pOU9O5j9nPVFhn3WJwFhauJ32wTvY=;
+	s=k20260515; t=1782816758;
+	bh=9y4x9Z9LfAleq5MGRjUEHqlQfJrq4x0loQabN6bGIV4=;
 	h=From:Date:Subject:References:In-Reply-To:To:Cc;
-	b=M3BTn0r4NqPQw3QUITJfljAld7kLxy1+/Qd1XPHB/Ud0Lg5c2vBkpXMAm8+VLxt6z
-	 IOUy+k5i3XRwFPP0UVKOblQHyU41gg3SPV/7gGa+CUzcA8KBYg6jyfklZCy2Vh8U1/
-	 wg0IRuZzXv+7muzS1ObXYiteA8vilrXM0lpE+Yqg9pZLGmvFO/p77tOu2U/hLmf1V9
-	 DKYHK/QMrc/GSlBd6DfNpJit+3y125TPx0r/zLn5nKYlXpVrVWbUnIYYkEpmFaxZNR
-	 bRv8DBb/NUhsPQDRZPbjRXLL9EdGIUjv/SJ8/VxcRsXq7DL2E3hoggvLeuS1YKUsEi
-	 kQbDKNhNge/mQ==
+	b=Y+HU1MCE4pGfbvjbc9ZSs/nVI7sjDU6dz1seknt/Us0d3sLTr9zJdowDj5hBIttmN
+	 guYqW4UWVgRhsGgr246USmDBhEpu+61v09ZrBf3HpO3RwdLQHBcCFlT4TRJTWN8qJo
+	 rOMZtZj1Hrjd/8VUZdhpiVx53YN6SfAjoWoMNQuTFzxcxEVxLfJlu8g6oxN1eWJY0z
+	 fTEUV1ZAkWf5tI/DEGaMWWHNp4KfV5Oapd/VV5CTRo8V/I9jtQ3aJ3Bwb4sJuTFUBE
+	 sGR0jYPCObvA4sMpSAjxDUvwZ6knEHIaOWcH/yl6RNcytcbvCeupTEm3QFhXZEoSsM
+	 aLNCXdRUf688Q==
 From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Date: Tue, 30 Jun 2026 13:52:29 +0300
-Subject: [PATCH 1/5] RDMA/umem: ib_umem_get(): use kmalloc() to allocate
- page array
+Date: Tue, 30 Jun 2026 13:52:30 +0300
+Subject: [PATCH 2/5] RDMA/mlx5: replace __get_free_page() with kmalloc()
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -38,7 +37,7 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20260630-b4-rdma-v1-1-ab42bcf0de92@kernel.org>
+Message-Id: <20260630-b4-rdma-v1-2-ab42bcf0de92@kernel.org>
 References: <20260630-b4-rdma-v1-0-ab42bcf0de92@kernel.org>
 In-Reply-To: <20260630-b4-rdma-v1-0-ab42bcf0de92@kernel.org>
 To: Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>
@@ -47,10 +46,10 @@ Cc: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
  linux-mm@kvack.org, linux-rdma@vger.kernel.org
 X-Mailer: b4 0.15.2
 
-ib_umem_get() allocates an array of pointers to struct page for
-pin_user_pages_fast() calls during memory registration.
+mlx5_ib_mr_wqe_pfault_handler() allocates a scratch buffer for
+parsing work queue entries during page fault handling.
 
-This array can be allocated with kmalloc() as there's nothing special
+This buffer can be allocated with kmalloc() as there's nothing special
 about it to go directly to the page allocator.
 
 kmalloc() provides a better API that does not require ugly casts and
@@ -69,31 +68,39 @@ kfree().
 Link: https://lore.kernel.org/all/635405e4-9423-4a25-a6e7-e03c8ea0bcbe@redhat.com
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 ---
- drivers/infiniband/core/umem.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/mlx5/odp.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
-index 73498723a5d5..5c42497f32e2 100644
---- a/drivers/infiniband/core/umem.c
-+++ b/drivers/infiniband/core/umem.c
-@@ -209,7 +209,7 @@ static struct ib_umem *__ib_umem_get_va(struct ib_device *device,
+diff --git a/drivers/infiniband/hw/mlx5/odp.c b/drivers/infiniband/hw/mlx5/odp.c
+index 1badec9bf527..90706ff7102a 100644
+--- a/drivers/infiniband/hw/mlx5/odp.c
++++ b/drivers/infiniband/hw/mlx5/odp.c
+@@ -38,6 +38,7 @@
+ #include <linux/hmm-dma.h>
+ #include <linux/pci-p2pdma.h>
  
- 	mmgrab(mm);
++#include <linux/slab.h>
+ #include "mlx5_ib.h"
+ #include "cmd.h"
+ #include "umr.h"
+@@ -1414,7 +1415,7 @@ static void mlx5_ib_mr_wqe_pfault_handler(struct mlx5_ib_dev *dev,
+ 		goto resolve_page_fault;
+ 	}
  
--	page_list = (struct page **) __get_free_page(GFP_KERNEL);
-+	page_list = kmalloc(PAGE_SIZE, GFP_KERNEL);
- 	if (!page_list) {
- 		ret = -ENOMEM;
- 		goto umem_kfree;
-@@ -269,7 +269,7 @@ static struct ib_umem *__ib_umem_get_va(struct ib_device *device,
- 	__ib_umem_release(device, umem, 0);
- 	atomic64_sub(ib_umem_num_pages(umem), &mm->pinned_vm);
- out:
--	free_page((unsigned long) page_list);
-+	kfree(page_list);
- umem_kfree:
- 	if (ret) {
- 		mmdrop(umem->owning_mm);
+-	wqe_start = (void *)__get_free_page(GFP_KERNEL);
++	wqe_start = kmalloc(PAGE_SIZE, GFP_KERNEL);
+ 	if (!wqe_start) {
+ 		mlx5_ib_err(dev, "Error allocating memory for IO page fault handling.\n");
+ 		goto resolve_page_fault;
+@@ -1475,7 +1476,7 @@ static void mlx5_ib_mr_wqe_pfault_handler(struct mlx5_ib_dev *dev,
+ 		    pfault->wqe.wq_num, resume_with_error,
+ 		    pfault->type);
+ 	mlx5_core_res_put(res);
+-	free_page((unsigned long)wqe_start);
++	kfree(wqe_start);
+ }
+ 
+ static void mlx5_ib_mr_rdma_pfault_handler(struct mlx5_ib_dev *dev,
 
 -- 
 2.53.0
