@@ -1,137 +1,138 @@
-Received: from mail-ej1-f51.google.com (mail-ej1-f51.google.com [209.85.218.51])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DD9442ED15F
-	for <linux-rdma@vger.kernel.org>; Wed,  1 Jul 2026 14:09:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.51
+Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id D543A3128D4;
+	Wed,  1 Jul 2026 14:18:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782914962; cv=none; b=Lsk9fcHODHLJ9YLjt5jq4LwfFVybFd4QQO6zc4DO5VsMXMdLz91gzefqAQpQyKE00hWM4oD+7hddxg5dszLQ6zXAP1Q2ulvQ1RHsVVYCgf0USQkmb9FxlnOrGmBJkppLNnTn6Gyll4k8OWEMnFWEgA9N62KEby8uWzV2hRMnQU8=
+	t=1782915519; cv=none; b=qSipxjWGVQiyIZ0GRXdnF9dQpYgwaiSL8/e2v65j4Mfw8erf5Bl2GhYcPiGfHmydnPyp8Gjj41rmFeTCm7J4hztEhSca3oxFOdhO7kyx916JXg5LN+oOW0p2VIzCEHhxtzSguf7gf5OMsD55kyrUFhWpNvt6TIRNVDvxNK3Cssw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782914962; c=relaxed/simple;
-	bh=9573nrWrSx/Y9UOpr/TlheCNkMPqUyYtfuIixr6r3Rg=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=kxEqGHCE9gcgLa5vZy3zQUT1BAkJhnS/tDqi/zxE3w4mC/CVjmv86mKNeeRgkjBY2mXJpgft2QBVEPwIhiPy61d532/Ef9vH+va/UG3377pJueI1CdarTWShTIVCjY7NE+xszfAsXkJhruVryO4SC1VjwbUL0tXxdZi9wkDm4SU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=resnulli.us; spf=none smtp.mailfrom=resnulli.us; dkim=pass (2048-bit key) header.d=resnulli-us.20251104.gappssmtp.com header.i=@resnulli-us.20251104.gappssmtp.com header.b=n41nM9bK; arc=none smtp.client-ip=209.85.218.51
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=resnulli.us
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=resnulli.us
+	s=arc-20240116; t=1782915519; c=relaxed/simple;
+	bh=heRoiy3zZB40MdZMnpzPngg1N524K/AgmHQ6dWsd1Ys=;
+	h=From:To:Subject:Date:Message-ID:MIME-Version; b=YLyAH6Vu3V4ZSRF6o7gz/qgB2y0sOQ3Waiy9+K9ZCR9A6vWQEPdhaHTFI2Lm/eDw1bQFo/B4rAXQip0BElBwslIFqhfoo6BGQ/c04scJ8/sBuIKVhPkICD5LUd+H1GxFhxeRNgZ6XLW6aAgcDTkCTCE1z0oYuBbn754KchrtGuM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=GNueIT/z; arc=none smtp.client-ip=13.77.154.182
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=resnulli-us.20251104.gappssmtp.com header.i=@resnulli-us.20251104.gappssmtp.com header.b="n41nM9bK"
-Received: by mail-ej1-f51.google.com with SMTP id a640c23a62f3a-c126e47a82cso92181466b.2
-        for <linux-rdma@vger.kernel.org>; Wed, 01 Jul 2026 07:09:18 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=resnulli-us.20251104.gappssmtp.com; s=20251104; t=1782914957; x=1783519757; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=h5yGg7xTrcKVGSs2/RAkolvsvNsO9JL3VCUQsl5nfCM=;
-        b=n41nM9bKknfDSII57sUQPENrA4Ng5DsEfRL3eWWCo/bbwhodzoikFkhqKLOweRDaci
-         7pyaqeO+O32WrlUmGJSf46JU91myU51QRi5yMo89WymHVuGtOSiF6gpkg3WTbIcsewnC
-         zzz83E61Q/ukK9yzOE2did4Klq4Bp6TB7RjRXE4LvhS+xDTegZe4CcJmggUaAAS+AfJo
-         8tZPOGn/pVVJkHAKeC3xqzHKuVO0v6pQcrb8gXCI488U1e/bczogCOWyKdyH72/KDAZV
-         7UxEHJC0ctXfPVk0vGJIAfkHsOtIlOlVtnXp445XuNJK3oZCCYMegSj5Ez/nxm7CYYCG
-         tazQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1782914957; x=1783519757;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=h5yGg7xTrcKVGSs2/RAkolvsvNsO9JL3VCUQsl5nfCM=;
-        b=JgQR/y1s/Rp9GaHMLd1fSMaHmfBC3CUA3EnoyBzr9JmQjKWYUKvpOxsBWBFfnjhnzI
-         OFpv9vCYWMmEBZ0tgfqeXb9Ft8veUBZdqIJZTWoW73omcaApWEQtY23KFWFs1MqfDQro
-         uE5z0eTi3/lJhjegAMR37HFO8vXAq8VAhU5az30URY4fLOHh/Op2Tx5a+B09q0NiA6tH
-         kogbIaOSybhwpKorUuo6dsqDO1P9qYAc9IYeBnOdZu94R3VZsw1o8D2pw28B4NbOjGKR
-         zpoUi4gLcp9fw7Gm0fkfFGRLiH5A3mXJ4Jm/N+KOyuMBRogmm9Wa/AXF37qp55H+L7E0
-         aXOQ==
-X-Forwarded-Encrypted: i=1; AHgh+RpeHgqw+6l+fhkaaBNOWCHNseLCyurr4I0aHO9fPwvZ6OIUKPazPftqjEudEmpczpdMDbCz4FKDmlOE@vger.kernel.org
-X-Gm-Message-State: AOJu0Yxz9u5D2m04vjslN9+wz1t8hdLX8rMHinMLDdFfSXtgtq32+Clh
-	GbODKQ/WsbIQukQnk9Tr1YI9iUs0N7cXfIW6B+iRwbw4dL3k5M2ybeF/FeEI/5/QLfY=
-X-Gm-Gg: AfdE7cllWz+5ZK7bkx/5LGk1u0KwUtXIQk2e8CnV8aUEWMuZH31zeazt3QrvYZZX5Dr
-	N3TItwfTnW+MoFBETLInAAIr6wwR8KDaycSqFpi/l/GpYNodZP0vaJmanxlr+WbTZ0oa5QsUOJf
-	cxtZ9wy5+I+vH9UDaqGDXUaDkhhdOGQyyCGX4uT+y2XaFh+/XAzoXSQZGdTtQFxObLknd/dPidR
-	paBLH+t9un66exrmeaxo02ZnM/iVFg7apIYFQGkVLKaEi2YlXBRpCivJNh3t8IPqUNx3KOkEQVi
-	3uQsJ0XgVMLQxf64dH3gHGecJW7eWdjg5rxKkDTbD+ZTPrVJLwnF4SfzATd9oIpP8aKnHyaFtpW
-	CYJ0ljYSyfwma00ybxhw+ys24+YD4SebR7xd1lj+krmL63fiKrNlUIPwGCutFCpwSSytZCM1Wvk
-	UII7twBrOzjnAIPLtBhi2YCQ==
-X-Received: by 2002:a17:906:e907:b0:c12:8ec5:eb8 with SMTP id a640c23a62f3a-c12aa1411eemr71054966b.41.1782914957090;
-        Wed, 01 Jul 2026 07:09:17 -0700 (PDT)
-Received: from localhost ([140.209.217.212])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c1288d6a3e8sm281311366b.19.2026.07.01.07.09.16
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 01 Jul 2026 07:09:16 -0700 (PDT)
-Date: Wed, 1 Jul 2026 16:09:12 +0200
-From: Jiri Pirko <jiri@resnulli.us>
-To: Mark Bloch <mbloch@nvidia.com>
-Cc: Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, 
-	Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>, 
-	Saeed Mahameed <saeedm@nvidia.com>, Leon Romanovsky <leon@kernel.org>, 
-	Tariq Toukan <tariqt@nvidia.com>, Andrew Lunn <andrew+netdev@lunn.ch>, 
-	Jonathan Corbet <corbet@lwn.net>, Shuah Khan <skhan@linuxfoundation.org>, netdev@vger.kernel.org, 
-	linux-rdma@vger.kernel.org, linux-doc@vger.kernel.org
-Subject: Re: [PATCH net-next V4 4/6] devlink: Apply eswitch mode boot defaults
-Message-ID: <akUfXyKioGNAO_iB@FV6GYCPJ69>
-References: <20260629182102.245150-1-mbloch@nvidia.com>
- <20260629182102.245150-5-mbloch@nvidia.com>
- <akThPmvUHvCMT2cp@FV6GYCPJ69>
- <1d4ca929-82b8-4891-9058-1451bf71a660@nvidia.com>
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="GNueIT/z"
+Received: from linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net (linux.microsoft.com [13.77.154.182])
+	by linux.microsoft.com (Postfix) with ESMTPSA id 3036420B7166;
+	Wed,  1 Jul 2026 07:18:36 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 3036420B7166
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
+	s=default; t=1782915516;
+	bh=Du+NRF7xtg2K2CYcpWVIws/M9OP+FXKZDKuDtv+AVg0=;
+	h=From:To:Subject:Date:From;
+	b=GNueIT/zj7ku+iRAhj2uG1RvPLIwgEXBp0TsOn59k0qlxQLGXTRnrUy79WRht6JiV
+	 mQXPmmtE6tHDNIZ8yZPmMYP+cKd3eXnITs6JxGlN7p8fKatBr5blXOIc3hJWY4k3PG
+	 AbsZ5j4wvX8L7WZ87akkSgZvofXsZv79B659x4Yk=
+From: Dipayaan Roy <dipayanroy@linux.microsoft.com>
+To: kys@microsoft.com,
+	haiyangz@microsoft.com,
+	wei.liu@kernel.org,
+	decui@microsoft.com,
+	andrew+netdev@lunn.ch,
+	davem@davemloft.net,
+	edumazet@google.com,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	leon@kernel.org,
+	longli@microsoft.com,
+	kotaranov@microsoft.com,
+	horms@kernel.org,
+	shradhagupta@linux.microsoft.com,
+	ssengar@linux.microsoft.com,
+	ernis@linux.microsoft.com,
+	shirazsaleem@microsoft.com,
+	linux-hyperv@vger.kernel.org,
+	netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	linux-rdma@vger.kernel.org,
+	stephen@networkplumber.org,
+	jacob.e.keller@intel.com,
+	dipayanroy@microsoft.com,
+	leitao@debian.org,
+	kees@kernel.org,
+	john.fastabend@gmail.com,
+	hawk@kernel.org,
+	bpf@vger.kernel.org,
+	daniel@iogearbox.net,
+	ast@kernel.org,
+	sdf@fomichev.me,
+	yury.norov@gmail.com,
+	pavan.chebbi@broadcom.com
+Subject: [PATCH net-next v11 0/2] net: mana: add ethtool private flag for full-page RX buffers
+Date: Wed,  1 Jul 2026 07:15:44 -0700
+Message-ID: <20260701141808.461554-1-dipayanroy@linux.microsoft.com>
+X-Mailer: git-send-email 2.43.7
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1d4ca929-82b8-4891-9058-1451bf71a660@nvidia.com>
+Content-Transfer-Encoding: 8bit
 
-Wed, Jul 01, 2026 at 02:57:21PM +0200, mbloch@nvidia.com wrote:
->
->
->On 01/07/2026 12:48, Jiri Pirko wrote:
->> Mon, Jun 29, 2026 at 08:20:59PM +0200, mbloch@nvidia.com wrote:
->>> Apply parsed devlink_eswitch_mode= defaults after devlink registration
->>> and after successful reload.
->>>
->>> devl_register() may still be called before the device is ready for an
->> 
->> How so? I would assume that driver calls devl_register only after
->> everything is up and running and ready. If not, isn't it a bug?
->> 
->
->You would think so :)
->
->Some drivers, mlx5 included, call devl_register() while holding the
->devlink instance lock and then finish setting up state before releasing
->the lock.
->
->In v3 I tried to enforce exactly that model, move devl_register() to
->be the last thing the driver does. Jakub pushed back on making that a
->general rule. So in v4 I changed the approach. devl_register() only
->schedules the work, and the actual eswitch mode change can run only
->after the driver releases the devlink lock.
+On some ARM64 platforms with 4K PAGE_SIZE, utilizing page_pool
+fragments for allocation in the RX refill path (~2kB buffer per fragment)
+causes 15-20% throughput regression under high connection counts
+(>16 TCP streams at 180+ Gbps). Using full-page buffers on these
+platforms shows no regression and restores line-rate performance.
 
-Wouldn't it make sense to use a completion instead of loop-reschedule of
-delayed work?
+This behavior is observed on a single platform; other platforms
+perform better with page_pool fragments, indicating this is not a
+page_pool issue but platform-specific.
 
->
->Mark
->
->> 
->>> eswitch mode change, so keep a per-devlink delayed work item and pending
->>> flag for the registration path. Registration queues the work, and the
->>> worker tries to take the devlink instance lock.
->>>
->>> If the lock is busy, the worker requeues itself with a delay.
->>>
->>> For successful reloads that performed DRIVER_REINIT, devlink_reload()
->>> already holds the devlink instance lock and the driver has completed
->>> reload_up(). Clear pending work and apply the default directly from the
->>> reload path instead of queueing work.
->>>
->>> If a user sets eswitch mode through netlink before the pending
->>> registration work runs, clear the pending flag so the queued default does
->>> not override that user request. Cancel pending default apply work when
->>> freeing the devlink instance.
->> 
->> These AI generated code descriptive messages are generally not very
->> useful :(
->> 
->
+This series adds an ethtool private flag "full-page-rx" to let the
+user opt in to one RX buffer per page:
+
+  ethtool --set-priv-flags eth0 full-page-rx on
+
+There is no behavioral change by default. The flag can be persisted
+via udev rule for affected platforms.
+
+This series depends on the following fixes now merged in net-next:
+  commit 17bfe0a8c014 ("net: mana: Add NULL guards in teardown path to prevent panic on attach failure")
+  commit 5b05aa36ee24 ("net: mana: Skip redundant detach on already-detached port")
+
+Changes in v11:
+  - Rebased on net-next
+Changes in v10:
+  - Rebased on net-next which now includes the prerequisite fixes.
+  - Recovery logic in mana_set_priv_flags() leverages the idempotent
+    mana_detach() from the merged fixes.
+Changes in v9:
+  - Added correct tree.
+Changes in v8:
+  - Fixed queue_reset_work recovery by restoring port_is_up before
+    scheduling reset so the handler can properly re-attach.
+  - Simplified "err && schedule_port_reset" to "schedule_port_reset".
+Changes in v7:
+  - Rebased onto net-next.
+  - Retained private flag approach after David Wei's testing on
+    Grace (ARM64) confirmed that fragment mode outperforms
+    full-page mode on other platforms, validating this is a
+    single-platform workaround rather than a generic issue.
+Changes in v6:
+  - Added missed maintainers.
+Changes in v5:
+  - Split prep refactor into separate patch (patch 1/2)
+Changes in v4:
+  - Dropping the smbios string parsing and add ethtool priv flag
+    to reconfigure the queues with full page rx buffers.
+Changes in v3:
+  - changed u8* to char*
+Changes in v2:
+  - separate reading string index and the string, remove inline.
+
+Dipayaan Roy (2):
+  net: mana: refactor mana_get_strings() and mana_get_sset_count() to
+    use switch
+  net: mana: force full-page RX buffers via ethtool private flag
+
+ drivers/net/ethernet/microsoft/mana/mana_en.c |  22 ++-
+ .../ethernet/microsoft/mana/mana_ethtool.c    | 178 +++++++++++++++---
+ include/net/mana/mana.h                       |   8 +
+ 3 files changed, 177 insertions(+), 31 deletions(-)
+
+-- 
+2.43.0
+
