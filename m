@@ -1,19 +1,20 @@
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 042C22E0901;
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 0424417A2F6;
 	Thu,  2 Jul 2026 04:13:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782965595; cv=none; b=SJv4yN0Fw8xIIJ66uHxA1zjkzwpLbpr11Ejz3EeT9uZBO+qrt/5Ql7FbRwTezXCRfIaTgmexRK0gXjb6qJk9RnllN1IIUoAEzrKvB8JDV8lJtzKYn4uhtcZ7+zDLEmUYHH9gg/kv5Ya7CjwHUiwbMWUTXMw9R/bpIKWRaIIxZfQ=
+	t=1782965595; cv=none; b=AdgSA7OWDv8T69REQU7EYukWjN6rA1xipbZZT/P2QkVNkdX7aq1bhyNlTXePR9aZ76ClnR4kSSFH5F2iHo8ZMCi8gydszwBRgwZ2mPVlQZMk/lMyzoHchbr11HnrV45UIvIzgpWJjXUrBUGndU2DB3vi2SoiI9UqKdJ3123/kt0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1782965595; c=relaxed/simple;
-	bh=gZPjvKr3IxnQ6hiSUc3ilImgoP+GuC2xkdc+CgjbSWs=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=iFnk5cW6ouFj6lBWVq4CSffzb2BaLnpLxa2XS5/aOCJDmQ5NVV4RV52I/bh+Fb3czZncd0SM+1svtUAkZShzoLir9dMPuhMIwVlzvAYw6+RGbE9oIvAuYqyjcO60vrKcqGVi6Rs7MV5vbhZz6c9KRbJtvP7rDVoigxXg8jgFCQM=
+	bh=a0dMgq+2G2AAP8nxpuoGlbVjKuukbyCRin93jGIQ2Y4=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=l3fOHacOZZ9//74j/BOeuUDIQn7Ml2Mjpgnn+lCtA114B4eG89ppaHP/NEqf4117kQ+g/cxXwYLuW6FPMmcuBH+XM1IpdZqs33tvsVqh3dGEeHRQawX+iBuLUmLzfM+yEwLlCu6X5LwdW3+GfJCIgQazKcSVmKH4t2iAH615jGk=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; arc=none smtp.client-ip=13.77.154.182
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Received: by linux.microsoft.com (Postfix, from userid 1009)
-	id ED9F320B7169; Wed,  1 Jul 2026 21:13:05 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com ED9F320B7169
+	id 1612120B716F; Wed,  1 Jul 2026 21:13:06 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 1612120B716F
 From: Dexuan Cui <decui@microsoft.com>
 To: kys@microsoft.com,
 	haiyangz@microsoft.com,
@@ -37,10 +38,12 @@ To: kys@microsoft.com,
 	linux-kernel@vger.kernel.org,
 	linux-rdma@vger.kernel.org
 Cc: stable@vger.kernel.org
-Subject: [PATCH net v3 0/2] Fix MANA RX with bounce buffering
-Date: Wed,  1 Jul 2026 21:12:35 -0700
-Message-ID: <20260702041237.617719-1-decui@microsoft.com>
+Subject: [PATCH net v3 2/2] net: mana: Sync page pool RX frags for CPU
+Date: Wed,  1 Jul 2026 21:12:37 -0700
+Message-ID: <20260702041237.617719-3-decui@microsoft.com>
 X-Mailer: git-send-email 2.43.7
+In-Reply-To: <20260702041237.617719-1-decui@microsoft.com>
+References: <20260702041237.617719-1-decui@microsoft.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -49,42 +52,167 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-With swiotlb=force, the MANA NIC fails to work properly due to commit
-730ff06d3f5c ("net: mana: Use page pool fragments for RX buffers instead
-of full pages to improve memory efficiency.").
+MANA allocates RX buffers from page pool fragments when frag_count is
+greater than 1. In that case the buffers remain DMA mapped by page pool
+and the RX completion path does not call dma_unmap_single(). As a result,
+the implicit sync-for-CPU normally performed by dma_unmap_single() is
+missing before the packet data is passed to the networking stack.
 
-This happens because, with the standard MTU=1500, the aforementioned
-commit uses page pool frags with PP_FLAG_DMA_MAP, but fails to call
-page_pool_dma_sync_for_cpu() to sync the received packet for CPU acces
+This breaks RX on configurations which require explicit DMA syncing, for
+example when booted with swiotlb=force.
+
+Fix this by recording the page pool page and DMA sync offset when the RX
+buffer is allocated, and syncing the received packet range for CPU access
 before handing the RX buffer to the stack.
 
-Here patch #2 adds the required page_pool_dma_sync_for_cpu().
+Fixes: 730ff06d3f5c ("net: mana: Use page pool fragments for RX buffers instead of full pages to improve memory efficiency.")
+Cc: stable@vger.kernel.org
+Reviewed-by: Haiyang Zhang <haiyangz@microsoft.com>
+Signed-off-by: Dexuan Cui <decui@microsoft.com>
+---
 
-Patch #1 validates the packet length reported by the NIC. With patch #2,
-page_pool_dma_sync_for_cpu() uses the packet length, so we don't want
-to blindly trust the packet length, just in case.
+Changes since v1:
+    v1 is split into two patches in the v2.
+    Add Haiyang's Reviewed-by.
 
-There is no change between v2 and v3.
-v3 just swaps the order of the 2 patches in v2, as suggested by Simon [3].
+Changes since v2:
+    Swapped the order of the 2 patches in v2.
+    No extra change.
 
-Please review.
+ drivers/net/ethernet/microsoft/mana/mana_en.c | 40 +++++++++++++++----
+ include/net/mana/mana.h                       |  8 ++++
+ 2 files changed, 41 insertions(+), 7 deletions(-)
 
-Thanks,
-Dexuan
-
-References:
-[1] v1: https://lore.kernel.org/netdev/20260618035029.249361-1-decui@microsoft.com/
-[2] v2: https://lore.kernel.org/netdev/20260624222605.1794719-1-decui@microsoft.com/
-[3] https://lore.kernel.org/netdev/20260626145048.GB1310988@horms.kernel.org/
-
-Dexuan Cui (2):
-  net: mana: Validate the packet length reported by the NIC
-  net: mana: Sync page pool RX frags for CPU
-
- drivers/net/ethernet/microsoft/mana/mana_en.c | 61 +++++++++++++++----
- include/net/mana/mana.h                       |  8 +++
- 2 files changed, 58 insertions(+), 11 deletions(-)
-
+diff --git a/drivers/net/ethernet/microsoft/mana/mana_en.c b/drivers/net/ethernet/microsoft/mana/mana_en.c
+index edc504b2447a..0b44c51ae6ec 100644
+--- a/drivers/net/ethernet/microsoft/mana/mana_en.c
++++ b/drivers/net/ethernet/microsoft/mana/mana_en.c
+@@ -2044,12 +2044,16 @@ static void mana_rx_skb(void *buf_va, bool from_pool,
+ }
+ 
+ static void *mana_get_rxfrag(struct mana_rxq *rxq, struct device *dev,
+-			     dma_addr_t *da, bool *from_pool)
++			     dma_addr_t *da, bool *from_pool,
++			     struct page **pp_page, u32 *dma_sync_offset)
+ {
+ 	struct page *page;
+ 	u32 offset;
+ 	void *va;
++
+ 	*from_pool = false;
++	*pp_page = NULL;
++	*dma_sync_offset = 0;
+ 
+ 	/* Don't use fragments for jumbo frames or XDP where it's 1 fragment
+ 	 * per page.
+@@ -2087,31 +2091,47 @@ static void *mana_get_rxfrag(struct mana_rxq *rxq, struct device *dev,
+ 	va  = page_to_virt(page) + offset;
+ 	*da = page_pool_get_dma_addr(page) + offset + rxq->headroom;
+ 	*from_pool = true;
++	*pp_page = page;
++	*dma_sync_offset = offset + rxq->headroom;
+ 
+ 	return va;
+ }
+ 
+ /* Allocate frag for rx buffer, and save the old buf */
+ static void mana_refill_rx_oob(struct device *dev, struct mana_rxq *rxq,
+-			       struct mana_recv_buf_oob *rxoob, void **old_buf,
+-			       bool *old_fp)
++			       struct mana_recv_buf_oob *rxoob, u32 pktlen,
++			       void **old_buf, bool *old_fp)
+ {
++	struct page *pp_page;
++	u32 dma_sync_offset;
+ 	bool from_pool;
+ 	dma_addr_t da;
+ 	void *va;
+ 
+-	va = mana_get_rxfrag(rxq, dev, &da, &from_pool);
++	va = mana_get_rxfrag(rxq, dev, &da, &from_pool, &pp_page,
++			     &dma_sync_offset);
+ 	if (!va)
+ 		return;
+-	if (!rxoob->from_pool || rxq->frag_count == 1)
++	if (!rxoob->from_pool || rxq->frag_count == 1) {
+ 		dma_unmap_single(dev, rxoob->sgl[0].address, rxq->datasize,
+ 				 DMA_FROM_DEVICE);
++	} else {
++		/* The page pool maps the whole page and only syncs for device
++		 * automatically (PP_FLAG_DMA_SYNC_DEV). Sync the received bytes
++		 * for the CPU before they are read: this is required if DMA
++		 * is incoherent or bounce buffers are used.
++		 */
++		page_pool_dma_sync_for_cpu(rxq->page_pool, rxoob->pp_page,
++					   rxoob->dma_sync_offset, pktlen);
++	}
+ 	*old_buf = rxoob->buf_va;
+ 	*old_fp = rxoob->from_pool;
+ 
+ 	rxoob->buf_va = va;
+ 	rxoob->sgl[0].address = da;
+ 	rxoob->from_pool = from_pool;
++	rxoob->pp_page = pp_page;
++	rxoob->dma_sync_offset = dma_sync_offset;
+ }
+ 
+ static void mana_process_rx_cqe(struct mana_rxq *rxq, struct mana_cq *cq,
+@@ -2182,7 +2202,8 @@ static void mana_process_rx_cqe(struct mana_rxq *rxq, struct mana_cq *cq,
+ 			/* Reuse the RX buffer since rxbuf_oob is unchanged. */
+ 		} else {
+ 
+-			mana_refill_rx_oob(dev, rxq, rxbuf_oob, &old_buf, &old_fp);
++			mana_refill_rx_oob(dev, rxq, rxbuf_oob, pktlen,
++					   &old_buf, &old_fp);
+ 
+ 			/* Unsuccessful refill will have old_buf == NULL.
+ 			 * In this case, mana_rx_skb() will drop the packet.
+@@ -2579,6 +2600,8 @@ static int mana_fill_rx_oob(struct mana_recv_buf_oob *rx_oob, u32 mem_key,
+ 			    struct mana_rxq *rxq, struct device *dev)
+ {
+ 	struct mana_port_context *mpc = netdev_priv(rxq->ndev);
++	struct page *pp_page = NULL;
++	u32 dma_sync_offset = 0;
+ 	bool from_pool = false;
+ 	dma_addr_t da;
+ 	void *va;
+@@ -2586,13 +2609,16 @@ static int mana_fill_rx_oob(struct mana_recv_buf_oob *rx_oob, u32 mem_key,
+ 	if (mpc->rxbufs_pre)
+ 		va = mana_get_rxbuf_pre(rxq, &da);
+ 	else
+-		va = mana_get_rxfrag(rxq, dev, &da, &from_pool);
++		va = mana_get_rxfrag(rxq, dev, &da, &from_pool, &pp_page,
++				     &dma_sync_offset);
+ 
+ 	if (!va)
+ 		return -ENOMEM;
+ 
+ 	rx_oob->buf_va = va;
+ 	rx_oob->from_pool = from_pool;
++	rx_oob->pp_page = pp_page;
++	rx_oob->dma_sync_offset = dma_sync_offset;
+ 
+ 	rx_oob->sgl[0].address = da;
+ 	rx_oob->sgl[0].size = rxq->datasize;
+diff --git a/include/net/mana/mana.h b/include/net/mana/mana.h
+index 8f721cd4e4a7..4111b93169d2 100644
+--- a/include/net/mana/mana.h
++++ b/include/net/mana/mana.h
+@@ -305,6 +305,14 @@ struct mana_recv_buf_oob {
+ 
+ 	void *buf_va;
+ 	bool from_pool; /* allocated from a page pool */
++	/* head page of the page_pool fragment; valid only when
++	 * from_pool && frag_count > 1.
++	 */
++	struct page *pp_page;
++	/* Fragment offset plus rxq->headroom, passed to
++	 * page_pool_dma_sync_for_cpu().
++	 */
++	u32 dma_sync_offset;
+ 
+ 	/* SGL of the buffer going to be sent as part of the work request. */
+ 	u32 num_sge;
 -- 
 2.34.1
 
