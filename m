@@ -1,925 +1,154 @@
-Received: from mxhk.zte.com.cn (mxhk.zte.com.cn [160.30.148.34])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F3DCE47DFBF;
-	Thu,  2 Jul 2026 12:25:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=160.30.148.34
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B5ABF480973;
+	Thu,  2 Jul 2026 12:46:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782995103; cv=none; b=ZVYoZyETKqBVnUxIEV6jHbOvWHKw8rJNkdGTPVXwkndU8OmEroJ6h9Aag6WbnLlsmfQsUsGRGHIB+kl6w4ezJuC11R6GSPpHTei2rXIxyOOIcsoYr3AmVVo9wfdwd3pMzbTga71H+wz13CyNbR4LYL/QxkSyjKxsoaRp72FPaW8=
+	t=1782996410; cv=none; b=INZpigLzDIZ0hFhj29YjvfPYGf404sfSLD5Bs3TfaCfTibrR+SmO7s3PUwKvfV5qBsSfI+9Y3hNqvJsz6aYAy/duxE74Jm8OTovmFjnrZiTN0LQkkeuvU4HaCO7Y56y1rl5YOFrKE21L4qKZWD8SXb/TRoIdwRUqRNU4EdZrONw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782995103; c=relaxed/simple;
-	bh=oKCtknPq71HhyncFjuSkpq1g3fRQkMdePO+Z09EaVvo=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=jKjnyhvnjNdKaSbHpPCBhpC/sPPCmYbzSPG8jM/cc1dN93mVN5KW3GvBWKZXuA7Ptzm6RHCHN5nZyTrNkCeZC7MqSW3ejmRxle6iBjqRNK/Q70z1EFdTDcW9A5WirQYyPN5fWyghdMSeZJSSvTiXGTN3pS/T83Sk9AMIsaialug=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=zte.com.cn; spf=pass smtp.mailfrom=zte.com.cn; arc=none smtp.client-ip=160.30.148.34
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=zte.com.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zte.com.cn
-Received: from mse-fl1.zte.com.cn (unknown [10.5.228.132])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange x25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by mxhk.zte.com.cn (FangMail) with ESMTPS id 4grbgB1MkLz57DCh;
-	Thu, 02 Jul 2026 20:24:54 +0800 (CST)
-Received: from szxl2zmapp07.zte.com.cn ([10.1.32.52])
-	by mse-fl1.zte.com.cn with SMTP id 662COXO5038520;
-	Thu, 2 Jul 2026 20:24:33 +0800 (+08)
-	(envelope-from zhang.yanze@zte.com.cn)
-Received: from localhost.localdomain (unknown [192.168.6.15])
-	by smtp (Zmail) with SMTP;
-	Thu, 2 Jul 2026 20:24:36 +0800
-X-Zmail-TransId: 3e816a465884008-58194
-X-Zmail-LocalSMTP: 1
-X-Zmail-RealSender: zhang.yanze@zte.com.cn
-From: Yanze Zhang <zhang.yanze@zte.com.cn>
-To: jgg@ziepe.ca, leon@kernel.org, julianbraha@gmail.com,
-        huangjunxian6@hisilicon.com
-Cc: linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
-        wei.quan@zte.com.cn, han.junyang@zte.com.cn, ran.ming@zte.com.cn,
-        han.chengfei@zte.com.cn, zhang.yanze@zte.com.cn
-Subject: [PATCH rdma v3 1/2] RDMA/zrdma: Add ZTE Dinghai Ethernet Protocol Driver for RDMA
-Date: Thu,  2 Jul 2026 20:22:55 +0800
-Message-ID: <20260702122256.569952-2-zhang.yanze@zte.com.cn>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20260702122256.569952-1-zhang.yanze@zte.com.cn>
-References: <20260702122256.569952-1-zhang.yanze@zte.com.cn>
+	s=arc-20240116; t=1782996410; c=relaxed/simple;
+	bh=dt+ca4CC+6slbYrjTN17nZhbRvQsr4mNEjOzoKY7wYA=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=Rv+2ljq50S9wwyuNEwg9MMIfBTPtD4nYqiAw7OVbNqZAEiKxyWQ75F1R4gpuxxhyRP+OdMwsXIqghR7dT/3mzr/BHcM3mgizZTBHY3EZrZH+4fvp3yvyV/jsjaUgZWx6OUv+3VvrrE5oE9+AJLtzUnUq5019AMq2Vwm0efND0YM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=LDhfcnye; arc=none smtp.client-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="LDhfcnye"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A58FE1F000E9;
+	Thu,  2 Jul 2026 12:46:47 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1782996409;
+	bh=YkczrDiyWe96M5D+D9rvpnIW1BoRRZ8dX9nGHodou1E=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To;
+	b=LDhfcnyeRDlUzx2GOlYE+uPNU74rEaXtarIcjC/oR0PAz0peBrTI42X/LYZZmTFov
+	 L4Icx4fv83rn+cKZF/I+S9OIUWo2++VNbNyRidedfcghtka83ZkHpau7K/DL6V9g16
+	 +osycqYePEWB5Awrj91xWMwOkri86wIW1GPyaJmS6GRsKsWy4LU0wxmwg/apLAj/TY
+	 xgHjkOazY16Ghnaud7gL2R19b5rZJapl7Hzv8fmEptDvJ+YlqCkUDDGbT2tX3cZgsa
+	 N+QlKUApeKkqGndAOve8JbPHcmaRZt02ajdZTl3nazuUdFQjLWBb/BOq3kv/6yAg2q
+	 jLyLXgR1E04zw==
+Message-ID: <9cc11eeb-372a-49fb-ba89-486333ac71c4@kernel.org>
+Date: Thu, 2 Jul 2026 14:46:46 +0200
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-ZMAIL-USEORIGINALEMLTOOUTBOUND: 1
-Content-Transfer-Encoding: 8bit
-X-MAIL:mse-fl1.zte.com.cn 662COXO5038520
-X-TLS: YES
-X-ENVELOPE-SENDER: zhang.yanze@zte.com.cn
-X-SOURCE-IP: 10.5.228.132 unknown Thu, 02 Jul 2026 20:24:54 +0800
-X-CLEAN: YES
-X-Fangmail-Anti-Spam-Filtered: true
-X-Fangmail-MID-QID: 6A465896.000/4grbgB1MkLz57DCh
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 1/5] RDMA/umem: ib_umem_get(): use kmalloc() to allocate
+ page array
+Content-Language: en-US
+To: Jason Gunthorpe <jgg@ziepe.ca>, Mike Rapoport <rppt@kernel.org>
+Cc: Leon Romanovsky <leon@kernel.org>,
+ Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
+ linux-kernel@vger.kernel.org, linux-mm@kvack.org,
+ linux-rdma@vger.kernel.org, Matthew Wilcox <willy@infradead.org>,
+ Michal Hocko <mhocko@kernel.org>,
+ "David Hildenbrand (Red Hat)" <david@kernel.org>,
+ Dave Chinner <dgc@kernel.org>
+References: <20260630-b4-rdma-v1-0-ab42bcf0de92@kernel.org>
+ <20260630-b4-rdma-v1-1-ab42bcf0de92@kernel.org>
+ <20260630123150.GB7525@ziepe.ca> <akPaAp-0Zul8uVga@kernel.org>
+ <akPaPaCJdYINBEEV@kernel.org> <20260630153638.GG7525@ziepe.ca>
+From: "Vlastimil Babka (SUSE)" <vbabka@kernel.org>
+Autocrypt: addr=vbabka@kernel.org; keydata=
+ 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
+In-Reply-To: <20260630153638.GG7525@ziepe.ca>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-Add basic framework for ZTE DingHai Ethernet Protocol Driver for RDMA,
-including Kconfig/Makefile build support and auxiliary device probe/remove
-skeleton.
+On 6/30/26 17:36, Jason Gunthorpe wrote:
+> On Tue, Jun 30, 2026 at 06:01:17PM +0300, Mike Rapoport wrote:
+>> (actually adding Vlastimil :) )
+>> 
+>> On Tue, Jun 30, 2026 at 06:00:24PM +0300, Mike Rapoport wrote:
+>> > (adding Vlastimil)
+>> > 
+>> > On Tue, Jun 30, 2026 at 09:31:50AM -0300, Jason Gunthorpe wrote:
+>> > > On Tue, Jun 30, 2026 at 01:52:29PM +0300, Mike Rapoport (Microsoft) wrote:
+>> > > > ib_umem_get() allocates an array of pointers to struct page for
+>> > > > pin_user_pages_fast() calls during memory registration.
+>> > > 
+>> > > A whole bunch of these use cases in rdma are really "give me some
+>> > > temporary memory, I want it fast and as large as possible. In a
+>> > > syscall context I will free it before returning back to userspace"
+>> > 
+>> > Not sure I follow where "as large as possible" comes from. Here it's
+>> > explicitly a page.
+> 
+> It is a page because that is "fast"
+> 
+> There will be a calculation what the upper limit of memory is that
+> this algorithm can use.
+> 
+>> > And does "fast" mean that vmalloc() is not an option?
+> 
+> Yes. The trade off is you do fewer iterations of some loop if you have
+> a bigger temporary buffer. But if it takes longer to allocate than the loop
+> iterations then it doesn't help.
+> 
+>> > > So, how would you feel about a new API?
+>> > > 
+>> > >  void *kmalloc_temporary(size_t min_size, size_t max_size, size_t *actual_size, gfp);
+>> > > 
+>> > > I know of a few other cases like this in the kernel at least.
+>> > > 
+>> > > The implementation could try to find an available high order page and
+>> > > immediately return it, otherwise do a small reclaim allocation?
+>> > 
+>> > How do you suggest to decide how much of reclaim should happen?
+>> > With the usual semantics of gfp?
+> 
+> Yeah, when all options are exhausted you do some allocation with the
+> usual GFP options.
 
-Changes in v3:
-- Verified and ensured 8-character indentation throughout; resent with
-  different MUA to rule out formatting corruption (Junxian, v1).
-- Fixed missing handle release in zxdh_remove() as pointed out by Junxian
-  (v1).
+I think this should be discussed more broadly and not block this change.
+Instead of adding just kmalloc_temporary() we should look at the bigger
+picture where we have manual optimistic nowait attempts with smaller
+fallbacks. Willy's LSF/MM plenary touched on this, as well as recent threads
+with Dave Chinner [1] etc.
 
-Changes in v2:
-- Removed redundant 'depends on INFINIBAND' from Kconfig (Julian, v1).
+With that said, I'm for example not sure if "_temporary()" is really the
+distinguishing characteristic for this to be part of the name.
 
-Signed-off-by: Yanze Zhang <zhang.yanze@zte.com.cn>
----
- MAINTAINERS                              |   6 +
- drivers/infiniband/Kconfig               |   1 +
- drivers/infiniband/hw/Makefile           |   1 +
- drivers/infiniband/hw/zrdma/Kconfig      |   9 +
- drivers/infiniband/hw/zrdma/Makefile     |   4 +
- drivers/infiniband/hw/zrdma/zrdma_ctrl.h | 248 +++++++++++++++++++++++
- drivers/infiniband/hw/zrdma/zrdma_main.c | 135 ++++++++++++
- drivers/infiniband/hw/zrdma/zrdma_main.h | 139 +++++++++++++
- drivers/infiniband/hw/zrdma/zrdma_mem.h  | 103 ++++++++++
- drivers/infiniband/hw/zrdma/zrdma_type.h | 110 ++++++++++
- 10 files changed, 756 insertions(+)
- create mode 100644 drivers/infiniband/hw/zrdma/Kconfig
- create mode 100644 drivers/infiniband/hw/zrdma/Makefile
- create mode 100644 drivers/infiniband/hw/zrdma/zrdma_ctrl.h
- create mode 100644 drivers/infiniband/hw/zrdma/zrdma_main.c
- create mode 100644 drivers/infiniband/hw/zrdma/zrdma_main.h
- create mode 100644 drivers/infiniband/hw/zrdma/zrdma_mem.h
- create mode 100644 drivers/infiniband/hw/zrdma/zrdma_type.h
+[1] https://lore.kernel.org/all/1f50ce04-20e6-46a0-9d8a-00a5f7a74967@suse.com/
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 15011f5752a9..5682b5edc7a6 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -29828,6 +29828,12 @@ S:	Maintained
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/tiwai/sound.git
- F:	sound/hda/codecs/senarytech.c
- 
-+ZTE DINGHAI ZRDMA DRIVER
-+M:	Yanze Zhang <zhang.yanze@zte.com.cn>
-+L:	linux-rdma@vger.kernel.org
-+S:	Supported
-+F:	drivers/infiniband/hw/zrdma/
-+
- THE REST
- M:	Linus Torvalds <torvalds@linux-foundation.org>
- L:	linux-kernel@vger.kernel.org
-diff --git a/drivers/infiniband/Kconfig b/drivers/infiniband/Kconfig
-index 086195758a8a..419dbf742f38 100644
---- a/drivers/infiniband/Kconfig
-+++ b/drivers/infiniband/Kconfig
-@@ -100,6 +100,7 @@ source "drivers/infiniband/hw/ocrdma/Kconfig"
- source "drivers/infiniband/hw/qedr/Kconfig"
- source "drivers/infiniband/hw/usnic/Kconfig"
- source "drivers/infiniband/hw/vmw_pvrdma/Kconfig"
-+source "drivers/infiniband/hw/zrdma/Kconfig"
- source "drivers/infiniband/sw/rdmavt/Kconfig"
- endif # !UML
- source "drivers/infiniband/sw/rxe/Kconfig"
-diff --git a/drivers/infiniband/hw/Makefile b/drivers/infiniband/hw/Makefile
-index c42b22ac3303..a86b867c56d4 100644
---- a/drivers/infiniband/hw/Makefile
-+++ b/drivers/infiniband/hw/Makefile
-@@ -16,3 +16,4 @@ obj-$(CONFIG_INFINIBAND_BNXT_RE)	+= bnxt_re/
- obj-$(CONFIG_INFINIBAND_BNG_RE)		+= bng_re/
- obj-$(CONFIG_INFINIBAND_ERDMA)		+= erdma/
- obj-$(CONFIG_INFINIBAND_IONIC)		+= ionic/
-+obj-$(CONFIG_INFINIBAND_ZRDMA)		+= zrdma/
-diff --git a/drivers/infiniband/hw/zrdma/Kconfig b/drivers/infiniband/hw/zrdma/Kconfig
-new file mode 100644
-index 000000000000..ce1e2606974c
---- /dev/null
-+++ b/drivers/infiniband/hw/zrdma/Kconfig
-@@ -0,0 +1,9 @@
-+# SPDX-License-Identifier: GPL-2.0-only
-+config INFINIBAND_ZRDMA
-+	tristate "ZTE Ethernet Protocol Driver for RDMA"
-+	help
-+		Say Y or M here to enable support for the ZTE DingHai (ZXDH) Ethernet
-+		Protocol Driver for RDMA. This driver provides RDMA over Converged
-+		Ethernet (RoCE) functionality for ZTE DingHai network adapters.
-+		If you choose to build this driver as a module, it will be built as
-+		a module named zrdma.
-diff --git a/drivers/infiniband/hw/zrdma/Makefile b/drivers/infiniband/hw/zrdma/Makefile
-new file mode 100644
-index 000000000000..b5297543e393
---- /dev/null
-+++ b/drivers/infiniband/hw/zrdma/Makefile
-@@ -0,0 +1,4 @@
-+# SPDX-License-Identifier: GPL-2.0 OR BSD-3-Clause
-+
-+obj-$(CONFIG_INFINIBAND_ZRDMA) += zrdma.o
-+zrdma-y := zrdma_main.o
-diff --git a/drivers/infiniband/hw/zrdma/zrdma_ctrl.h b/drivers/infiniband/hw/zrdma/zrdma_ctrl.h
-new file mode 100644
-index 000000000000..1078884de36a
---- /dev/null
-+++ b/drivers/infiniband/hw/zrdma/zrdma_ctrl.h
-@@ -0,0 +1,248 @@
-+/* SPDX-License-Identifier: GPL-2.0-only
-+ *
-+ * ZTE DingHai Rdma driver
-+ * Copyright (c) 2022-2026, ZTE Corporation
-+ */
-+
-+#ifndef ZRDMA_CTRL_H
-+#define ZRDMA_CTRL_H
-+
-+#include "zrdma_mem.h"
-+
-+#define ZXDH_HW_SCHEDULE_OFF 0
-+#define ZXDH_HW_SCHEDULE_ON 1
-+
-+enum zxdh_cqp_op_type {
-+	ZXDH_OP_CEQ_DESTROY = 1,
-+	ZXDH_OP_AEQ_DESTROY = 2,
-+	ZXDH_OP_CEQ_CREATE = 5,
-+	ZXDH_OP_QP_MODIFY = 8,
-+	ZXDH_OP_CQ_CREATE = 10,
-+	ZXDH_OP_CQ_DESTROY = 11,
-+	ZXDH_OP_QP_CREATE = 12,
-+	ZXDH_OP_QP_DESTROY = 13,
-+	ZXDH_OP_ALLOC_STAG = 14,
-+	ZXDH_OP_MR_REG_NON_SHARED = 15,
-+	ZXDH_OP_DEALLOC_STAG = 16,
-+	ZXDH_OP_MW_ALLOC = 17,
-+	ZXDH_OP_QP_FLUSH_WQES = 18,
-+	ZXDH_OP_REQ_CMDS = 28,
-+	ZXDH_OP_CMPL_CMDS = 29,
-+	ZXDH_OP_AH_CREATE = 30,
-+	ZXDH_OP_AH_DESTROY = 32,
-+	ZXDH_OP_CONFIG_PTE_TAB = 51,
-+	ZXDH_OP_CONFIG_PBLE_TAB = 53,
-+	ZXDH_OP_CONFIG_MAILBOX = 54,
-+	ZXDH_OP_DMA_WRITE = 55,
-+	ZXDH_OP_DMA_WRITE32 = 56,
-+	ZXDH_OP_DMA_READ = 58,
-+	ZXDH_OP_DMA_READ_USE_CQE = 59,
-+	ZXDH_OP_QUERY_QPC = 60,
-+	ZXDH_OP_QUERY_CQC = 61,
-+	ZXDH_OP_QUERY_SRQC = 62,
-+	ZXDH_OP_QUERY_CEQC = 63,
-+	ZXDH_OP_QUERY_AEQC = 64,
-+	ZXDH_OP_SRQ_CREATE = 65,
-+	ZXDH_OP_SRQ_DESTROY = 66,
-+	ZXDH_OP_SRQ_MODIFY = 67,
-+	ZXDH_OP_QUERY_MKEY = 68,
-+	ZXDH_OP_CQ_MODIFY_MODERATION = 69,
-+	ZXDH_OP_QUERY_HW_OBJECT_INFO = 71,
-+	ZXDH_OP_CQ_MODIFY_OVERFLOW_CHECK_EN = 72,
-+	/* Must be last entry */
-+	ZXDH_MAX_CQP_OPS = 73,
-+};
-+
-+struct zxdh_hw {
-+	u32 __iomem *hw_addr;
-+	u32 __iomem *pci_hw_addr;
-+	struct device *device;
-+	struct zxdh_hmc_info hmc;
-+};
-+
-+struct zxdh_uk_attrs {
-+	u64 feature_flags;
-+	u32 max_hw_wq_frags;
-+	u32 max_hw_read_sges;
-+	u32 max_hw_inline;
-+	u32 max_hw_srq_quanta;
-+	u32 max_hw_rq_quanta;
-+	u32 max_hw_wq_quanta;
-+	u32 min_hw_cq_size;
-+	u32 max_hw_cq_size;
-+	u16 max_hw_sq_chunk;
-+	u32 max_hw_srq_wr;
-+	u8 hw_rev;
-+};
-+
-+struct zxdh_hw_attrs {
-+	struct zxdh_uk_attrs uk_attrs;
-+	u64 max_hw_outbound_msg_size;
-+	u64 max_hw_inbound_msg_size;
-+	u64 max_mr_size;
-+	u32 min_hw_qp_id;
-+	u32 min_hw_aeq_size;
-+	u32 max_hw_aeq_size;
-+	u32 min_hw_ceq_size;
-+	u32 max_hw_ceq_size;
-+	u32 max_hw_device_pages;
-+	u32 max_hw_vf_fpm_id;
-+	u32 first_hw_vf_fpm_id;
-+	u32 max_hw_ird;
-+	u32 max_hw_ord;
-+	u32 max_hw_wqes;
-+	u32 max_hw_pds;
-+	u32 max_qp_wr;
-+	u32 max_srq_wr;
-+	u32 max_pe_ready_count;
-+	u32 max_done_count;
-+	u32 max_sleep_count;
-+	u32 max_cqp_compl_wait_time_ms;
-+	u16 max_stat_inst;
-+	u16 max_stat_idx;
-+	u32 cqp_timeout_threshold;
-+	u8 skip_hw;
-+};
-+
-+struct zxdh_sc_dev {
-+	struct list_head cqp_cmd_head;
-+	spinlock_t cqp_lock; /* Protects CQP command queue submission */
-+	struct zxdh_dma_mem clear_dpu_mem;
-+	struct zxdh_dma_mem nof_clear_dpu_mem;
-+	u64 pte_l2d_startpa;
-+	u32 pte_l2d_len;
-+	struct zxdh_hw *hw;
-+	u8 __iomem *db_addr;
-+	u32 __iomem *wqe_alloc_db;
-+	u32 __iomem *cq_arm_db;
-+	u32 __iomem *cqp_db;
-+	u32 __iomem *cq_ack_db;
-+	u64 cqp_cmd_stats[ZXDH_MAX_CQP_OPS];
-+	struct zxdh_hw_attrs hw_attrs;
-+	struct zxdh_hmc_info *hmc_info;
-+	struct zxdh_sc_cqp *cqp;
-+	struct zxdh_sc_cq *ccq;
-+	u32 max_ceqs;
-+	u32 base_qpn;
-+	u32 base_cqn;
-+	u32 base_srqn;
-+	u32 base_ceqn;
-+	u32 max_qp;
-+	u32 max_cq;
-+	u32 max_srq;
-+	u16 num_vfs;
-+	u16 active_vfs_num;
-+	u32 hmc_fn_id;
-+	u16 vf_id;
-+	u16 vhca_id;
-+	u16 vhca_id_pf;
-+	u16 cache_id;
-+	u8 ep_id;
-+	u8 hmc_epid;
-+	u16 ird_size;
-+	u32 total_vhca;
-+	u16 vhca_gqp_start;
-+	u16 vhca_gqp_cnt;
-+	u16 vhca_8k_index_start;
-+	u16 vhca_8k_index_cnt;
-+	u16 vhca_ud_gqp;
-+	u16 vhca_ud_8k_index;
-+	u64 nof_ioq_ddr_addr;
-+	u8 chip_version;
-+	u64 l2d_pt_addr;
-+	u32 l2d_pt_l2_offset;
-+	u32 l2_pt_num;
-+	u32 l3_pt_num;
-+	u8 ceq_valid : 1;
-+	u8 privileged : 1;
-+	u8 hmc_use_dpu_ddr : 1;
-+	u8 np_mode_low_lat : 1;
-+	struct mutex vchnl_mutex; /* protects virtual channel operations */
-+	u8 driver_load;
-+};
-+
-+struct cqp_info {
-+	union {
-+		struct {
-+			struct zxdh_sc_cq *cq;
-+			u64 scratch;
-+		} cq_create;
-+
-+		struct {
-+			struct zxdh_sc_cq *cq;
-+			u64 scratch;
-+		} cq_destroy;
-+	} u;
-+};
-+
-+struct cqp_cmds_info {
-+	struct list_head cqp_cmd_entry;
-+	u8 cqp_cmd;
-+	u8 post_sq;
-+	struct cqp_info in;
-+};
-+
-+struct zxdh_cqp_err_info {
-+	u16 maj;
-+	u16 min;
-+	const char *desc;
-+};
-+
-+struct zxdh_cqp_compl_info {
-+	u64 op_ret_val;
-+	u16 maj_err_code;
-+	u16 min_err_code;
-+	bool error;
-+	u8 op_code;
-+	__le64 addrbuf[5];
-+};
-+
-+struct zxdh_cqp_request {
-+	struct cqp_cmds_info info;
-+	wait_queue_head_t waitq;
-+	struct list_head list;
-+	refcount_t refcnt;
-+	void (*callback_fcn)(struct zxdh_cqp_request *cqp_request);
-+	void *param;
-+	struct zxdh_cqp_compl_info compl_info;
-+	u8 waiting : 1;
-+	u8 request_done : 1;
-+	u8 dynamic : 1;
-+};
-+
-+struct zxdh_sc_cqp {
-+	u64 sq_pa;
-+	u64 host_ctx_pa;
-+	void *back_cqp;
-+	struct zxdh_sc_dev *dev;
-+	struct zxdh_ring sq_ring;
-+	struct zxdh_cqp_quanta *sq_base;
-+	__le64 *host_ctx;
-+	u64 *scratch_array;
-+	u32 sq_size;
-+	u32 hw_sq_size;
-+	u8 polarity;
-+	u8 state_cfg : 1;
-+};
-+
-+struct zxdh_cqp {
-+	struct zxdh_sc_cqp sc_cqp;
-+	spinlock_t req_lock; /* protect CQP request list */
-+	spinlock_t compl_lock; /* protect CQP completion processing */
-+	wait_queue_head_t waitq;
-+	wait_queue_head_t remove_wq;
-+	struct zxdh_dma_mem sq;
-+	struct zxdh_dma_mem host_ctx;
-+	u64 *scratch_array;
-+	struct zxdh_cqp_request *cqp_requests;
-+	struct list_head cqp_avail_reqs;
-+	struct list_head cqp_pending_reqs;
-+};
-+
-+struct zxdh_ccq {
-+	struct zxdh_sc_cq sc_cq;
-+	struct zxdh_dma_mem mem_cq;
-+	struct zxdh_dma_mem shadow_area;
-+};
-+
-+#endif
-diff --git a/drivers/infiniband/hw/zrdma/zrdma_main.c b/drivers/infiniband/hw/zrdma/zrdma_main.c
-new file mode 100644
-index 000000000000..d7296437071f
---- /dev/null
-+++ b/drivers/infiniband/hw/zrdma/zrdma_main.c
-@@ -0,0 +1,135 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+/*
-+ * ZTE DingHai Rdma driver
-+ * Copyright (c) 2022-2026, ZTE Corporation
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/auxiliary_bus.h>
-+#include <linux/types.h>
-+#include <linux/netdevice.h>
-+#include <linux/workqueue.h>
-+#include <rdma/ib_verbs.h>
-+
-+#include "zrdma_main.h"
-+
-+MODULE_ALIAS("zrdma");
-+MODULE_AUTHOR("Yanze Zhang <zhang.yanze@zte.com.cn>");
-+MODULE_DESCRIPTION("ZTE Ethernet Protocol Driver for RDMA");
-+MODULE_LICENSE("Dual BSD/GPL");
-+
-+LIST_HEAD(zxdh_handlers);
-+DEFINE_SPINLOCK(zxdh_handler_lock);
-+
-+static void zxdh_add_handler(struct zxdh_handler *hdl)
-+{
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&zxdh_handler_lock, flags);
-+	list_add(&hdl->list, &zxdh_handlers);
-+	spin_unlock_irqrestore(&zxdh_handler_lock, flags);
-+}
-+
-+static void zxdh_del_handler(struct zxdh_handler *hdl)
-+{
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&zxdh_handler_lock, flags);
-+	list_del(&hdl->list);
-+	spin_unlock_irqrestore(&zxdh_handler_lock, flags);
-+}
-+
-+static void zxdh_fill_device_info(struct zxdh_device *zdev,
-+				  struct zxdh_core_dev_info *zdev_info)
-+{
-+	struct zxdh_pci_f *rf = zdev->rf;
-+
-+	rf->ftype = ZXDH_FUNC_TYPE(zdev_info->vport_id);
-+	rf->pf_id = ZXDH_PF_ID(zdev_info->vport_id);
-+	rf->sc_dev.ep_id = ZXDH_EP_ID(zdev_info->vport_id);
-+	rf->ep_id = rf->sc_dev.ep_id;
-+	rf->sc_dev.driver_load = true;
-+	rf->zdev_info = zdev_info;
-+	rf->pcidev = zdev_info->pdev;
-+	rf->hw.pci_hw_addr = zdev_info->hw_addr;
-+	rf->zdev = zdev;
-+
-+	INIT_LIST_HEAD(&zdev->ah_list);
-+	mutex_init(&zdev->ah_list_lock);
-+	zdev->netdev = zdev_info->netdev;
-+	zdev->source_netdev = zdev_info->netdev;
-+	zdev->init_state = INITIAL_STATE;
-+}
-+
-+static int zxdh_probe(struct auxiliary_device *aux_dev,
-+		      const struct auxiliary_device_id *id)
-+{
-+	struct zxdh_auxiliary_dev *zxdh_adev =
-+		container_of(aux_dev, struct zxdh_auxiliary_dev, adev);
-+	struct zxdh_handler *hdl;
-+	struct zxdh_device *zdev;
-+
-+	zdev = ib_alloc_device(zxdh_device, ibdev);
-+	if (!zdev)
-+		return -ENOMEM;
-+
-+	zdev->zxdh_adev = zxdh_adev;
-+
-+	zxdh_fill_device_info(zdev, zxdh_adev->zxdh_info);
-+
-+	hdl = kzalloc_obj(*hdl);
-+	if (!hdl) {
-+		ib_dealloc_device(&zdev->ibdev);
-+		return -ENOMEM;
-+	}
-+
-+	hdl->zdev = zdev;
-+	zdev->hdl = hdl;
-+	zdev->netdev_speed = SPEED_UNKNOWN;
-+
-+	zxdh_add_handler(hdl);
-+
-+	dev_set_drvdata(&aux_dev->dev, zdev);
-+
-+	return 0;
-+}
-+
-+static void zxdh_remove(struct auxiliary_device *aux_dev)
-+{
-+	struct zxdh_device *zdev = dev_get_drvdata(&aux_dev->dev);
-+
-+	if (!zdev) {
-+		dev_err(&aux_dev->dev, "%s: zdev is NULL\n", __func__);
-+		return;
-+	}
-+
-+	zxdh_del_handler(zdev->hdl);
-+	kfree(zdev->hdl);
-+	ib_dealloc_device(&zdev->ibdev);
-+}
-+
-+static void zxdh_shutdown(struct auxiliary_device *aux_dev)
-+{
-+	zxdh_remove(aux_dev);
-+}
-+
-+static const struct auxiliary_device_id zxdh_auxiliary_id_table[] = {
-+	{
-+		.name = ZXDH_PF_NAME "." ZXDH_RDMA_DEV_NAME,
-+	},
-+	{},
-+};
-+
-+MODULE_DEVICE_TABLE(auxiliary, zxdh_auxiliary_id_table);
-+
-+static struct auxiliary_driver zxdh_auxiliary_drv = {
-+	.driver = {
-+		.name = ZXDH_RDMA_DEV_NAME,
-+	},
-+	.id_table = zxdh_auxiliary_id_table,
-+	.probe = zxdh_probe,
-+	.remove = zxdh_remove,
-+	.shutdown = zxdh_shutdown,
-+};
-+
-+module_auxiliary_driver(zxdh_auxiliary_drv);
-diff --git a/drivers/infiniband/hw/zrdma/zrdma_main.h b/drivers/infiniband/hw/zrdma/zrdma_main.h
-new file mode 100644
-index 000000000000..2eb2fc802f5c
---- /dev/null
-+++ b/drivers/infiniband/hw/zrdma/zrdma_main.h
-@@ -0,0 +1,139 @@
-+/* SPDX-License-Identifier: GPL-2.0-only
-+ *
-+ * ZTE DingHai Rdma driver
-+ * Copyright (c) 2022-2026, ZTE Corporation
-+ */
-+
-+#ifndef ZRDMA_MAIN_H
-+#define ZRDMA_MAIN_H
-+
-+#include <linux/auxiliary_bus.h>
-+#include "zrdma_type.h"
-+#include "zrdma_ctrl.h"
-+
-+#define ZXDH_PF_NAME "dinghai10e"
-+#define ZXDH_RDMA_DEV_NAME "rdma_aux"
-+
-+#define ZXDH_FUNC_TYPE(vport_id) (((vport_id) >> 11) & 0x1)
-+#define ZXDH_PF_ID(vport_id) (((vport_id) >> 8) & 0x7)
-+#define ZXDH_EP_ID(vport_id) (((vport_id) >> 12) & 0x7)
-+
-+enum init_completion_state {
-+	INVALID_STATE = 0,
-+	INITIAL_STATE,
-+	CQP_CREATED,
-+	SMMU_PAGETABLE_INITIALIZED,
-+	DATA_CAP_CREATED,
-+	HMC_OBJS_CREATED,
-+	HW_RSRC_INITIALIZED,
-+	CQP_QP_CREATED,
-+	AEQ_CREATED,
-+	CCQ_CREATED,
-+	CEQ0_CREATED,
-+	CEQS_CREATED,
-+	PBLE_CHUNK_MEM,
-+};
-+
-+struct zxdh_fw_compat {
-+	u8 module_id;
-+	u8 major;
-+	u8 fw_minor;
-+	u8 drv_minor;
-+	u16 patch;
-+	u16 rsv;
-+} __packed;
-+
-+struct zxdh_handler {
-+	struct list_head list;
-+	struct zxdh_device *zdev;
-+};
-+
-+struct zxdh_pci_f {
-+	u8 reset : 1;
-+	u8 rsrc_created : 1;
-+	u8 ftype : 1;
-+	u8 max_rdma_vfs;
-+	u8 *hmc_info_mem;
-+	u8 *mem_rsrc;
-+	u8 pf_id;
-+	u8 vf_id;
-+	u8 ep_id;
-+	u32 msix_count;
-+	u32 max_mr;
-+	u32 max_qp;
-+	u32 max_cq;
-+	u32 max_ah;
-+	u32 next_ah;
-+	u32 max_pd;
-+	u32 next_qp;
-+	u32 next_cq;
-+	u32 next_pd;
-+	u32 next_mr;
-+	u32 max_mr_size;
-+	u32 max_cqe;
-+	u32 used_pds;
-+	u32 used_cqs;
-+	u32 used_mrs;
-+	u32 used_qps;
-+	u32 max_srq;
-+	u32 next_srq;
-+	u32 used_srqs;
-+	u32 max_pri;
-+	u16 max_8k_idx;
-+	u32 *qp_cnt_8k_idxs;
-+	u32 ceqs_count;
-+	u64 base_bar_offset;
-+
-+	unsigned long *allocated_qps;
-+	unsigned long *allocated_cqs;
-+	unsigned long *allocated_mrs;
-+	unsigned long *allocated_pds;
-+	unsigned long *allocated_mcgs;
-+	unsigned long *allocated_ahs;
-+	unsigned long *allocated_srqs;
-+	unsigned long *allocated_pris;
-+	unsigned long *allocated_8k_idx;
-+
-+	enum init_completion_state init_state;
-+	struct zxdh_sc_dev sc_dev;
-+	struct zxdh_handler *hdl;
-+	struct pci_dev *pcidev;
-+	struct zxdh_core_dev_info *zdev_info;
-+	struct zxdh_hw hw;
-+	struct zxdh_cqp cqp;
-+	struct zxdh_ccq ccq;
-+	struct zxdh_dma_mem cqp_host_ctx;
-+	spinlock_t rsrc_lock; /* protect HardWare resource array access */
-+	struct workqueue_struct *cqp_cmpl_wq;
-+	struct work_struct cqp_cmpl_work;
-+	struct zxdh_device *zdev;
-+	u8 mcode_type;
-+	u16 pcie_id;
-+	void *dh_dev;
-+};
-+
-+struct zxdh_device {
-+	struct ib_device ibdev;
-+	const struct uverbs_object_tree_def *driver_trees[6];
-+	struct zxdh_pci_f *rf;
-+	struct net_device *netdev;
-+	struct net_device *source_netdev;
-+	struct zxdh_handler *hdl;
-+	struct workqueue_struct *cleanup_wq;
-+	struct list_head ah_list;
-+	struct mutex ah_list_lock; /* protects ah_list operations */
-+	u32 ah_list_cnt;
-+	u32 ah_list_hwm;
-+	u32 vendor_id;
-+	u32 vendor_part_id;
-+	u32 device_cap_flags;
-+	enum init_completion_state init_state;
-+	wait_queue_head_t suspend_wq;
-+	u32 netdev_speed;
-+	struct zxdh_fw_compat fw_ver;
-+	struct zxdh_auxiliary_dev *zxdh_adev;
-+};
-+
-+int zxdh_ctrl_init_hw(struct zxdh_pci_f *rf);
-+
-+#endif /* ZRDMA_MAIN_H */
-diff --git a/drivers/infiniband/hw/zrdma/zrdma_mem.h b/drivers/infiniband/hw/zrdma/zrdma_mem.h
-new file mode 100644
-index 000000000000..b49df6d51d19
---- /dev/null
-+++ b/drivers/infiniband/hw/zrdma/zrdma_mem.h
-@@ -0,0 +1,103 @@
-+/* SPDX-License-Identifier: GPL-2.0-only
-+ *
-+ * ZTE DingHai Rdma driver
-+ * Copyright (c) 2022-2026, ZTE Corporation
-+ */
-+
-+#ifndef ZRDMA_MEM_H
-+#define ZRDMA_MEM_H
-+
-+#define ZXDH_TABLE5_VF_EN 0x04
-+
-+#define ZXDH_HMC_MAX_SD_COUNT 8192
-+
-+enum zxdh_indicate_id {
-+	ZXDH_INDICATE_L2D = 0,
-+	ZXDH_INDICATE_DPU_DDR = ZXDH_INDICATE_L2D,
-+	ZXDH_INDICATE_REGISTER = ZXDH_INDICATE_L2D,
-+	ZXDH_INDICATE_RESERVED = 1,
-+	ZXDH_INDICATE_HOST_NOSMMU = 2,
-+	ZXDH_INDICATE_HOST_SMMU = 3,
-+};
-+
-+enum zxdh_axid_type {
-+	ZXDH_AXID_L2D,
-+	ZXDH_AXID_DPUDDR,
-+	ZXDH_AXID_HOST_EP0,
-+	ZXDH_AXID_HOST_EP1,
-+	ZXDH_AXID_HOST_EP2,
-+	ZXDH_AXID_HOST_EP3,
-+	ZXDH_AXID_HOST_EP4,
-+};
-+
-+enum zxdh_object_id {
-+	ZXDH_PBLE_MR_OBJ_ID = 0,
-+	ZXDH_PBLE_QUEUE_OBJ_ID = 1,
-+	ZXDH_MR_OBJ_ID = 2,
-+	ZXDH_AH_OBJ_ID = 3,
-+	ZXDH_IRD_OBJ_ID = 4,
-+	ZXDH_TX_WINDOW_OBJ_ID = 5,
-+	ZXDH_SRQC_OBJ_ID = 6,
-+	ZXDH_CQC_OBJ_ID = 7,
-+	ZXDH_MG_PAYLOAD_OBJ_ID = 8,
-+	ZXDH_MG_OBJ_ID = 9,
-+	ZXDH_RW_PAYLOAD = 10,
-+	ZXDH_SQ = 11,
-+	ZXDH_SQ_SHADOW_AREA = 12,
-+	ZXDH_RQ = 13,
-+	ZXDH_RQ_SHADOW_AREA = 14,
-+	ZXDH_SRQP = 15,
-+	ZXDH_SRQ = 16,
-+	ZXDH_SRQ_SHADOW_AREA = 17,
-+	ZXDH_CQ = 18,
-+	ZXDH_CQ_SHADOW_AREA = 19,
-+	ZXDH_CEQ = 20,
-+	ZXDH_AEQ = 21,
-+	ZXDH_MG_QPN = 22,
-+	ZXDH_CPU_DDR = 24,
-+	ZXDH_QPC_OBJ_ID = 29,
-+	ZXDH_DMA_OBJ_ID = 30,
-+	ZXDH_L2D_OBJ_ID = 31,
-+	ZXDH_REG_OBJ_ID = ZXDH_L2D_OBJ_ID,
-+};
-+
-+struct zxdh_dma_mem {
-+	void *va;
-+	dma_addr_t pa;
-+	u32 size;
-+} __packed;
-+
-+struct zxdh_virt_mem {
-+	void *va;
-+	u32 size;
-+} __packed;
-+
-+struct zxdh_hmc_sd_entry {
-+	bool valid;
-+	struct zxdh_dma_mem addr;
-+	struct zxdh_dma_mem addr_hardware;
-+};
-+
-+struct zxdh_hmc_sd_table {
-+	struct zxdh_virt_mem addr;
-+	u32 sd_cnt;
-+	struct zxdh_hmc_sd_entry *sd_entry;
-+};
-+
-+struct zxdh_hmc_info {
-+	u32 signature;
-+	u8 hmc_fn_id;
-+	u32 pble_hmc_index;
-+	u32 pble_mr_hmc_index;
-+	u32 hmc_entry_total;
-+	u32 hmc_first_entry_pble;
-+	u32 hmc_first_entry_pble_mr;
-+	struct zxdh_hmc_obj_info *hmc_obj;
-+	struct zxdh_virt_mem hmc_obj_virt_mem;
-+	struct zxdh_hmc_sd_table sd_table;
-+	u16 sd_indexes[ZXDH_HMC_MAX_SD_COUNT];
-+	u8 pble_mr_cachid;
-+	u8 pble_ird_cachid;
-+};
-+
-+#endif
-diff --git a/drivers/infiniband/hw/zrdma/zrdma_type.h b/drivers/infiniband/hw/zrdma/zrdma_type.h
-new file mode 100644
-index 000000000000..b5def5803d1f
---- /dev/null
-+++ b/drivers/infiniband/hw/zrdma/zrdma_type.h
-@@ -0,0 +1,110 @@
-+/* SPDX-License-Identifier: GPL-2.0-only
-+ *
-+ * ZTE DingHai Rdma driver
-+ * Copyright (c) 2022-2026, ZTE Corporation
-+ */
-+
-+#ifndef ZRDMA_TYPE_H
-+#define ZRDMA_TYPE_H
-+
-+#include "zrdma_mem.h"
-+
-+#define ZXDH_CQP_WQE_SIZE 8
-+#define ZXDH_CQE_SIZE 8
-+
-+struct zxdh_ring {
-+	u32 head;
-+	u32 tail;
-+	u32 size;
-+};
-+
-+struct zxdh_cqp_quanta {
-+	__le64 elem[ZXDH_CQP_WQE_SIZE];
-+};
-+
-+struct zxdh_cqe {
-+	__le64 buf[ZXDH_CQE_SIZE];
-+};
-+
-+struct zxdh_cq_uk {
-+	struct zxdh_cqe *cq_base;
-+	u32 __iomem *cqe_alloc_db;
-+	u32 __iomem *cq_ack_db;
-+	__le64 *shadow_area;
-+	u32 cq_id;
-+	u32 cq_size;
-+	u32 cq_log_size;
-+	u32 cqe_rd_cnt;
-+	bool valid_cq;
-+	struct zxdh_ring cq_ring;
-+	u8 polarity;
-+	u8 armed : 1;
-+	u8 cqe_size;
-+};
-+
-+struct zxdh_sc_cq {
-+	struct zxdh_cq_uk cq_uk;
-+	u64 cq_pa;
-+	u64 shadow_area_pa;
-+	struct zxdh_sc_dev *dev;
-+	void *pbl_list;
-+	void *back_cq;
-+	u32 ceq_id;
-+	u32 ceq_index;
-+	u32 shadow_read_threshold;
-+	u8 pbl_chunk_size;
-+	u8 cq_type;
-+	u8 tph_val;
-+	u32 first_pm_pbl_idx;
-+	u8 ceqe_mask : 1;
-+	u8 virtual_map : 1;
-+	u8 ceq_id_valid : 1;
-+	u8 tph_en;
-+	u8 cq_st;
-+	u16 is_in_list_cnt;
-+	u16 cq_max;
-+	u16 cq_period;
-+	u8 scqe_break_moderation_en : 1;
-+	u8 cq_overflow_locked_flag : 1;
-+};
-+
-+struct zxdh_ver_info {
-+	u16 major;
-+	u16 minor;
-+	u64 support;
-+};
-+
-+enum zxdh_function_type {
-+	ZXDH_FUNCTION_TYPE_PF,
-+	ZXDH_FUNCTION_TYPE_VF,
-+};
-+
-+struct zxdh_core_dev_info {
-+	struct pci_dev *pdev;
-+	struct auxiliary_device *adev;
-+	u32 __iomem *hw_addr;
-+	struct zxdh_ver_info ver;
-+	void *auxiliary_priv;
-+	enum zxdh_function_type ftype;
-+	u16 vport_id;
-+	u16 slot_id;
-+	struct net_device *netdev;
-+	struct msix_entry msix_entries;
-+	u16 msix_count;
-+	void *dh_dev;
-+};
-+
-+struct zxdh_rdma_if {
-+	void *(*get_rdma_netdev)(void *dh_dev);
-+};
-+
-+struct zxdh_auxiliary_dev {
-+	struct auxiliary_device adev;
-+	struct zxdh_core_dev_info *zxdh_info;
-+	struct zxdh_rdma_if *rdma_ops;
-+	void *ops;
-+	void *parent;
-+	void *auxiliary_ops[18];
-+};
-+
-+#endif /* ZRDMA_TYPE_H */
--- 
-2.27.0
+> Jason
 
