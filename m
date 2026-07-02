@@ -1,27 +1,28 @@
-Received: from CH4PR04CU002.outbound.protection.outlook.com (mail-northcentralusazon11013035.outbound.protection.outlook.com [40.107.201.35])
+Received: from BL0PR03CU003.outbound.protection.outlook.com (mail-eastusazon11012064.outbound.protection.outlook.com [52.101.53.64])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 72933431E7D;
-	Thu,  2 Jul 2026 11:18:58 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.201.35
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D50E1431E7D;
+	Thu,  2 Jul 2026 11:19:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.53.64
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782991139; cv=fail; b=Z58FXSUpisbzzR5PZxW+TP2XoeRYA+aTISo1+4DF9jufANit9tDHBeh0ryjnwLZDF9Cy99NDyhF5IvD3JKavY/7kIveEJK7PpJ0WNMCgxSrFDFE2y8gMSCMUH7LIOWo78Byi1UMqWlLMaopoYq1Iz3MuOLARq3g1wWlf1g5CcP8=
+	t=1782991156; cv=fail; b=kv5GEilM5zl8cFoER3gexJfSnZRk8b9AtfMG/LyY7ych/D4E1zTYy/3no4i7n9pKyZ+C/JDfdFaQDCZMjl9voBcyQdGxSrYBtrczrS/grRUyFUdMMiCU0kWTpL+vaD+64YxyxKTyoZRwJE3y6w0RzWLyLnqdY4gVbXQEnqa14fQ=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782991139; c=relaxed/simple;
-	bh=L8YSkxS8oI32Yz1GR38dPndNDJv5uBrqqCohDzpt3c0=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=Ard2Q5EFwlTnuISlea/HxxmaXXZfz0rVl+2ta+idqXOJPN4ljNuVxZ1NFZL9dki/4fFt85ypOwR7HFCTLx/quIBm9MTUm4GtRYjNX5PJBM6K1KqlWVstMdRIitynZbiDFEcCznGBogvPplUCylyoxcO2MqTxDQbyREI3UaxvEeQ=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=lfdsvNx5; arc=fail smtp.client-ip=40.107.201.35
+	s=arc-20240116; t=1782991156; c=relaxed/simple;
+	bh=iYESMUYS/KGNxNLJd1dRwji1nFIgAEM4tCbJm1n7Jeg=;
+	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=sB01+aen77Gc8u0WI9CcxoqXi0Evn6eohR4Iw8KAvkw0HbEHEPyTcusqiiP+mM3G+kPca7esjvIwzXKMRaal+EYaVe0XvewGUEtYdYMrEePKBFuBrV/nQyMes2zhr/7lgxbD7KtxgRCn2r3JC2Rg1H6BRh0y+G476GM+/C0PxKg=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=JPmnnA1s; arc=fail smtp.client-ip=52.101.53.64
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="lfdsvNx5"
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="JPmnnA1s"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=Uj8Hm6/6pRYnQ04qrxcr2v62Vlqjw1b7i8ttDQOKioGuRcV+qFgyJKA+mg1W8xMPK2oNkyqXvSA7CJMtCFKHT4/VJn2apYEGfxhOWqAG5nf1oQjRQyuc5GxkvdIRa6hKSF7VnIaS8OI1QAYC4vn+Pr5xa9/BJCkMT0zadogyIYtyB0FGp/fUH7gIMMXKkKvAUbxI6Od9ckKdo1lGQIoDj+UZJCHtdGMjFL2yP8ReuYGNJYP92J/4DxvcDajGlc6+TlBsf3Bg7GHx/FyS9B4AvOf1DzoGVrnAStxF5+6elShPYLu4uBZyivTgEWLTEekarGByyKyz4Hfp+sSoclKTBA==
+ b=H2FTA560+ntZd0oBbI00B9UyeD+3wFjGc7SAgOsb7vN4zVmlIpn16OTjdH7kCSM5+AnX+r++f8yT0WYsZsTkB3NIp0Qfd7EDVZVHRvtNlhwcQYybQOglrePFbupUjRYchIPBm3NzWT1UP5haHbUVb3iXtDwD5oSAuTN1CXj22plcGANs0lv1EsQ1ozHLeheYByKBcSA6BcTX3zfdchc2UfzMKZpDrd9G4TncjVmw/3ybkQ64z43ZSfDG2nMNojUQg6DOA84HuLN1eLvg7RDe7gbE6BCdZcVtGdaKl4V0I6Zj2tb2wGP57+rnE/k9rmg1Jed1UkUfu26qQfXWE0O+QA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=0oeuWF2y0LuirPGi2IWUXw8dm24aHoHveZDJf/RIuss=;
- b=IW2eq7J9qR0QtbLms/3uY2lF0kpCsIlOS8ChDwyJ+OUniTjZp9W47yj6aAEOJY9eBqoLpjpibZJ8yivE9PTwKqvUqncgXIeLca3E6/AB9MM2+xIRs3jPmXBFjopXnuBIR7vKTd2FZFIOxuEIbNzuy+ix6fNKub/hoKMCnEeZs84bBDk26gi3PtLVtgh/E4H4IAOJ40PFRg3uFVBNp3n0fzjZBao+B9mgJuQxH/I8nKpXO/912GFyb6iqTFLOWRqOFS/n3UetOkkgoHXdzb7rEcAmV6scZp1S7AkMjR0FR7bSufnd0c79T+J5kBas+DGm3R2DThVH/gQ+x7zZrFh3mg==
+ bh=0i6p3RtcxGaoPB1RGGNJs9Xw5jZx+a0YeG3jyuRrw8w=;
+ b=kflHYV4mizluoLCIepzsymPHA2ZiEtuwDYg29BfNyOx4wHZ8/kgZOGe/u+R4ZqGlFazPbhCkelXKmNNA7rdQwYU+9KjnoosAP9VFZxsZ7m5oCMHvcxqTMu/WmURo9lrlKZeAEGgHGpvosjMa6j9xtUBhWkamL6GgFgK92Go6/yv5g0fMIdrS4Y4aBGOAfN+yibxlUliZfj21bSpgJPNYxHqI7pglwU90hoF9lmw63mW4TOtFQcjPeqtNjLZNDNfAvkjguv7/zen3wU/iKsNcRQWZeysjuB0PQTAx+xRqf8RAk0tEniMJulg6WMD0tWvzcn/d3oduWyF5XCPXGPVakA==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
  216.228.117.160) smtp.rcpttodomain=lunn.ch smtp.mailfrom=nvidia.com;
  dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
@@ -29,18 +30,18 @@ ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=0oeuWF2y0LuirPGi2IWUXw8dm24aHoHveZDJf/RIuss=;
- b=lfdsvNx55MNuSNeYrE9SHNPGshkzP9fX1IVcO+h4hqCceXii77Sc2+DpKVEI8gn3J6swYIStSLTiyLBPWZfzjywBJHKeU/W8nZuEZSsYuM2wloE9+dmQItSizIjUlRlBv+JMkxS6hKfhmr4RsOxLeJJU5V7Mn6v50UFBOjEn+n56Ir+f1Py2i1+m46iHvdvTHiXaxbnpSuF0XFkVHMr/I1mbtl+UYWRs6ar0WmCFO6AJzNquKyiiA6acoU0oSpS4pWB9swxvr34BoLMuKIvuvfhuIi3eDjkir4oZarCGcLSnsgtsFWVLanIl3c4Nl4PQzlEmj1f1UVvgyxlZnF/x7Q==
-Received: from PH7PR17CA0069.namprd17.prod.outlook.com (2603:10b6:510:325::29)
- by CY5PR12MB6383.namprd12.prod.outlook.com (2603:10b6:930:3d::12) with
+ bh=0i6p3RtcxGaoPB1RGGNJs9Xw5jZx+a0YeG3jyuRrw8w=;
+ b=JPmnnA1suUwuRav7IPem67hl2ptHWUl6aFtXKe5V1Ku4xLrcOQjvD2dc2eAioYLWzezpozrh10LnGpfZEdXQ8MCbj89/Iy2QWxTWoNSPMnfdb0YvY2TR76ByrR/Uk0+440fOH7lQLOyLkw6WXe1rmPAj+iwb9jFToUgLp74SRt0irMgATf1TTj5g/HFxezl2z7L6LFNLUhCzeJzd9MNIuKm/PZDR968+HCEpF9HPmrMDI7DgmlcgWSxZCPLHdyqaUSYZw6jFyjps6Fnjiony5VmC4mZR/rqoJOjvrbvfWgQK/aIBYIumxZtQFwTFJFcVTevS5Y7nGglVZnOJoY0XTA==
+Received: from PH7P221CA0057.NAMP221.PROD.OUTLOOK.COM (2603:10b6:510:33c::20)
+ by PH0PR12MB7905.namprd12.prod.outlook.com (2603:10b6:510:28b::21) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.181.10; Thu, 2 Jul
- 2026 11:18:52 +0000
-Received: from SA2PEPF000015C9.namprd03.prod.outlook.com
- (2603:10b6:510:325:cafe::44) by PH7PR17CA0069.outlook.office365.com
- (2603:10b6:510:325::29) with Microsoft SMTP Server (version=TLS1_3,
+ 2026 11:19:10 +0000
+Received: from SA2PEPF000015C7.namprd03.prod.outlook.com
+ (2603:10b6:510:33c:cafe::23) by PH7P221CA0057.outlook.office365.com
+ (2603:10b6:510:33c::20) with Microsoft SMTP Server (version=TLS1_3,
  cipher=TLS_AES_256_GCM_SHA384) id 15.21.181.10 via Frontend Transport; Thu, 2
- Jul 2026 11:18:51 +0000
+ Jul 2026 11:19:10 +0000
 X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.160)
  smtp.mailfrom=nvidia.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=nvidia.com;
@@ -48,20 +49,20 @@ Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
  216.228.117.160 as permitted sender) receiver=protection.outlook.com;
  client-ip=216.228.117.160; helo=mail.nvidia.com; pr=C
 Received: from mail.nvidia.com (216.228.117.160) by
- SA2PEPF000015C9.mail.protection.outlook.com (10.167.241.199) with Microsoft
+ SA2PEPF000015C7.mail.protection.outlook.com (10.167.241.197) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.181.6 via Frontend Transport; Thu, 2 Jul 2026 11:18:50 +0000
-Received: from rnnvmail202.nvidia.com (10.129.68.7) by mail.nvidia.com
+ 15.21.181.6 via Frontend Transport; Thu, 2 Jul 2026 11:19:09 +0000
+Received: from rnnvmail203.nvidia.com (10.129.68.9) by mail.nvidia.com
  (10.129.200.66) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Thu, 2 Jul
- 2026 04:18:35 -0700
-Received: from rnnvmail203.nvidia.com (10.129.68.9) by rnnvmail202.nvidia.com
- (10.129.68.7) with Microsoft SMTP Server (version=TLS1_2,
+ 2026 04:18:48 -0700
+Received: from rnnvmail203.nvidia.com (10.129.68.9) by rnnvmail203.nvidia.com
+ (10.129.68.9) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Thu, 2 Jul
- 2026 04:18:35 -0700
+ 2026 04:18:48 -0700
 Received: from vdi.nvidia.com (10.127.8.10) by mail.nvidia.com (10.129.68.9)
  with Microsoft SMTP Server id 15.2.2562.20 via Frontend Transport; Thu, 2 Jul
- 2026 04:18:29 -0700
+ 2026 04:18:42 -0700
 From: Tariq Toukan <tariqt@nvidia.com>
 To: Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller"
 	<davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, Jakub Kicinski
@@ -76,10 +77,12 @@ CC: Adithya Jayachandran <ajayachandra@nvidia.com>, Chris Mi <cmi@nvidia.com>,
 	<saeedm@nvidia.com>, Shay Drori <shayd@nvidia.com>, Shuah Khan
 	<skhan@linuxfoundation.org>, Simon Horman <horms@kernel.org>, Tariq Toukan
 	<tariqt@nvidia.com>
-Subject: [PATCH net-next 0/2] devlink: extend phys_port_name controller prefix to non-external ports
-Date: Thu, 2 Jul 2026 14:17:24 +0300
-Message-ID: <20260702111726.816985-1-tariqt@nvidia.com>
+Subject: [PATCH net-next 2/2] net/mlx5: Set satellite PF devlink ports as non-external
+Date: Thu, 2 Jul 2026 14:17:26 +0300
+Message-ID: <20260702111726.816985-3-tariqt@nvidia.com>
 X-Mailer: git-send-email 2.44.0
+In-Reply-To: <20260702111726.816985-1-tariqt@nvidia.com>
+References: <20260702111726.816985-1-tariqt@nvidia.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -91,69 +94,80 @@ Content-Type: text/plain
 X-NV-OnPremToCloud: ExternallySecured
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: SA2PEPF000015C9:EE_|CY5PR12MB6383:EE_
-X-MS-Office365-Filtering-Correlation-Id: c722fd48-03f0-4e04-021c-08ded82bb1cb
+X-MS-TrafficTypeDiagnostic: SA2PEPF000015C7:EE_|PH0PR12MB7905:EE_
+X-MS-Office365-Filtering-Correlation-Id: 0e6b823b-23a9-411d-9730-08ded82bbcc6
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|7416014|1800799024|376014|23010399003|82310400026|36860700016|6133799003|18002099003|11063799006|56012099006;
+	BCL:0;ARA:13230040|36860700016|1800799024|376014|82310400026|7416014|23010399003|11063799006|18002099003|22082099003|56012099006;
 X-Microsoft-Antispam-Message-Info:
-	giADkZxGEEzZLkuIz+PQq65DpM6IJLnRuhzV5x3TJ2uMp6iVnAlVFrV2vrux7RSEq1J3Ca7qnt/XZOCKKG7U/nngBFJ5sake3WSHCi7esedgfWK6ZIQc6yMX4XWZLZuxNyHi+SMGOa9f9ximQqEFdJ8JWNrJODOoh/1p9XX35/naMdM5G72zS8YkpG1ehzfrsGova50tPWFhGwAEB/A/3BK4Ca6UEJoiIZ3gvSfI8LSZPvsTmN55Rg3oiVZVzXrSAJDtLJqu87Vly9+M3FVbfp2cHBg9bQnv9SpkxjuuhPbqom2ykm8TtfFWOmphHsTGpZdV4bM/odPnoXJAp5UoQp6xeeudnmBlft9Pc5DqzTDg9PetjD0AbXAjPwAdpe1e990Bw/2oKzRoX+qShqTbWWgmlV7v9Lx3NhtR9RMM4gojW1dj8FH0kiJnBnIeHON+UO3z9m0CC6wIypchG/1gwuZA+xBSScKawx0YpLL0g6rUIbYfUTSaD7GNCvFApaB5m0XE6mFofR+VLRCcg1mD6DoIiXZZnkjwZkdoKuTtPBF831yS8XKy/JD77mBDOCNhz3sLW2bzckZg9HpAz+70gmLDD03VDgrSFjQEKguokhuYU2Oeo1/5QmUP5UHVTSmX4RzBJMA5D68Qyv2tvcBvd4eutQ/i5gsKvDy9EYGazbyx5weahkmdTEIaJsqh1tlw5hmz1+wYqvFZq5JxT/EBgA==
+	9ciBjS2yLbhXUEqXT4Of20810V1Kpo0m+jMGiPSx6IiXmVTgGMN1fNwwUv1UE5qQsYAe8S0YvkNy601EjO3RAvhNWK+rtwkajP9pHdQ5NeVReEkqsuW2Pgn89HJoW+VDCLjJsqzf5qKJ3xbe25vqX+kgZ3pa2T77cR/aW6OH7s/fSvub/xKMMe0AaBQ6wgcYW0RjC6MmAx8M5RsJU2SygBEElIpqzSCCKQWJg5RHCuDvG/bt6n98YJamI+UXbNHZqExU2+0SlZXKlSix8IZ7Wip5l7ek3t8EkIfk0BPsLzT/17luZw/SVsMmAgJuXNep25E0Jlq5L3sBPvQnjYLYRONnwToCgsqmHVxy6TWaO9bHDbMPXkBeakvBwp6GPJaeNNf3rPuwHGL6ChzPMKnMSbOcWsDGWoKtH1f2klrNClaa4Q4Pl1thu/4GWR97rNvDJPzdgTzfhnwfLRL0Etal631SGYh7x289+9F81Cwb4sBIedxPaelnFd+fr5NJCGMOueyFlCJcTyqk82pXnBNXIgorIUHCSdgOcD3KXQX/sxi8Fj/AUgkhiZGDbhhCR9GEoXIDoI44d65Odum8pUi8tKVh/GfLFUqLVEwcxvUT3nmJXLL/f498rMbZxlTZwAIV50M60gvPeQjmRhvOj1n6HWLVcUHgAqTqmpHmJa4XilwaWtQPyUMVp/ufl0HSM/nYwx6nRT8MBqHIhhN214rjMQ==
 X-Forefront-Antispam-Report:
-	CIP:216.228.117.160;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge1.nvidia.com;CAT:NONE;SFS:(13230040)(7416014)(1800799024)(376014)(23010399003)(82310400026)(36860700016)(6133799003)(18002099003)(11063799006)(56012099006);DIR:OUT;SFP:1101;
+	CIP:216.228.117.160;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge1.nvidia.com;CAT:NONE;SFS:(13230040)(36860700016)(1800799024)(376014)(82310400026)(7416014)(23010399003)(11063799006)(18002099003)(22082099003)(56012099006);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	ke3AS7P5pX3OEszPYn++akO0Iei/MmfFBsgc4bREVLEJWVI5Sq10rvP7in/n+UozpgT/1hF9jL1YRgRzBVe07XmH7FuYVWhARYPXTGj68LLoPH7t8V+HkRSbvaied7FwOBH6EP/Mboz9QUDktLm5GaFJMtAHgHrE/ij1kUTFCPwTewfvumCO5tJ3u6sBPbEKKNQ5nmktDhqC7cVWNi2PJn6yP4HxPYvQhWXaAMR5tZdFt4L+f8KvlIyeeVeBIc5KBMuoQYBsjC6EaT7X2a1fzMvwPvC0rFx48XQeoDZ2GU5F2zzDvkXSLKZayB8lJ86cU+gcbhascE8aMRNEpWVE4iW5mLGqVNrljbql8N72bT5sT/PiS1EbvzAajlsCC/bhv998flweyYJtLMLOb00gjUpIM5AWtmnaGAnOr9AJMPe/XQsQdX6fTb6UWlRn8/S6
+	5/Ydn2oAIs9wXTVT4pYpCtxG+0enCN3KLCa+obghV+IcFjRlTNECUaSyO0cm7HyKjMWPp/n7a2qYeon6jr6qVN57yXbS2P+rBBBCF5biK/kNo5XZb5zpfDP9MzCvktJv+J63WjaSvmE8wlJgIL5Z0fkmj1G7g7Pw1TVi0ltvaLAjND2dKSV/tom2lJr/eTUzccrlX9Xaj4DG7OvvHfdfaaZFDIvi7A/UOreD4NjbAVqlwvQev1EBR/ZA+LOc+UW0NRaNoD/LDCaLWYjSVSQGuQhBedcYKjftZfC9fznxVIrqm+T1CTZ9fyIjbgM89CvghcjovmY8t9bqSCRjdOgytFqfl5tsjkfm9WvyLM3oHf8sbSBLYkQSmjH+chJwwMJ4kH+tcrHNCBfR6K/7LLEM7v0ddWxikfYO5Xg52dk9RmWxYjbwZYmP0gRBJ64PggRm
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 02 Jul 2026 11:18:50.9689
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 02 Jul 2026 11:19:09.3989
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: c722fd48-03f0-4e04-021c-08ded82bb1cb
+X-MS-Exchange-CrossTenant-Network-Message-Id: 0e6b823b-23a9-411d-9730-08ded82bbcc6
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.160];Helo=[mail.nvidia.com]
 X-MS-Exchange-CrossTenant-AuthSource:
-	SA2PEPF000015C9.namprd03.prod.outlook.com
+	SA2PEPF000015C7.namprd03.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CY5PR12MB6383
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH0PR12MB7905
 
-Hi,
+From: Moshe Shemesh <moshe@nvidia.com>
 
-This series by Moshe includes the controller number in phys_port_name 
-for non-external ports with a non-zero controller, and updates the mlx5
-driver to mark satellite PFs as non-external.
+Satellite PFs are local to the DPU and are not on an external host.
+Set their devlink port external attribute to false to reflect this.
 
-The controller prefix (c) in phys_port_name was previously only included
-for ports marked as external. However, newer devices can have multiple
-controllers within the DPU itself, even within a single host
-environment. For example, a SmartNIC may have additional local PCI
-physical functions that are managed by the eswitch but are not on an
-external host. These ports use a non-zero controller number to
-distinguish them from the eswitch manager's own functions, while the
-external flag remains unset.
+For satellite PF SFs, distinguish them from host PF SFs by comparing
+the SF controller number against the host PF controller
+(hpf_host_number + 1). Only SFs whose controller matches the host PF
+are marked external, since their PF resides on an external host.
 
-Patch 1 updates the devlink core to include the controller prefix in
-phys_port_name for any non-zero controller, regardless of the external
-flag. Documentation and kdoc are updated accordingly.
+Signed-off-by: Moshe Shemesh <moshe@nvidia.com>
+Reviewed-by: Parav Pandit <parav@nvidia.com>
+Reviewed-by: Shay Drori <shayd@nvidia.com>
+Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
+---
+ drivers/net/ethernet/mellanox/mlx5/core/esw/devlink_port.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-Patch 2 updates the mlx5 driver to set satellite PF devlink ports as
-non-external, since they are local to the DPU. It also distinguishes
-satellite PF SFs from host PF SFs when setting the external attribute.
-
-Regards,
-Tariq
-
-Moshe Shemesh (2):
-  devlink: print controller prefix for non-zero controller
-  net/mlx5: Set satellite PF devlink ports as non-external
-
- Documentation/networking/devlink/devlink-port.rst        | 9 +++++++++
- .../net/ethernet/mellanox/mlx5/core/esw/devlink_port.c   | 7 +++++--
- include/net/devlink.h                                    | 6 +++---
- net/devlink/port.c                                       | 6 +++---
- 4 files changed, 20 insertions(+), 8 deletions(-)
-
-
-base-commit: 1c664ec4b9ea827b609d296921ed5bad8a40a158
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/esw/devlink_port.c b/drivers/net/ethernet/mellanox/mlx5/core/esw/devlink_port.c
+index 6e50311faa27..4fcad15e7eb6 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/esw/devlink_port.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/esw/devlink_port.c
+@@ -74,7 +74,7 @@ static void mlx5_esw_offloads_pf_vf_devlink_port_attrs_set(struct mlx5_eswitch *
+ 		memcpy(dl_port->attrs.switch_id.id, ppid.id, ppid.id_len);
+ 		dl_port->attrs.switch_id.id_len = ppid.id_len;
+ 		devlink_port_attrs_pci_pf_set(dl_port, controller_num, pfnum,
+-					      true);
++					      false);
+ 	}
+ }
+ 
+@@ -134,13 +134,16 @@ static void mlx5_esw_offloads_sf_devlink_port_attrs_set(struct mlx5_eswitch *esw
+ {
+ 	struct mlx5_core_dev *dev = esw->dev;
+ 	struct netdev_phys_item_id ppid = {};
++	u32 hpf_ctrl;
+ 	u16 pfnum;
+ 
+ 	pfnum = mlx5_esw_sf_controller_to_pfnum(dev, controller);
++	hpf_ctrl = mlx5_esw_get_hpf_host_number(dev) + 1;
+ 	mlx5_esw_get_port_parent_id(dev, &ppid);
+ 	memcpy(dl_port->attrs.switch_id.id, &ppid.id[0], ppid.id_len);
+ 	dl_port->attrs.switch_id.id_len = ppid.id_len;
+-	devlink_port_attrs_pci_sf_set(dl_port, controller, pfnum, sfnum, !!controller);
++	devlink_port_attrs_pci_sf_set(dl_port, controller, pfnum, sfnum,
++				      controller == hpf_ctrl);
+ }
+ 
+ int mlx5_esw_offloads_sf_devlink_port_init(struct mlx5_eswitch *esw, struct mlx5_vport *vport,
 -- 
 2.44.0
 
