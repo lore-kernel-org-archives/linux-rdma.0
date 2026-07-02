@@ -1,53 +1,55 @@
 Received: from mail-qk1-f202.google.com (mail-qk1-f202.google.com [209.85.222.202])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1412A33BBCD
-	for <linux-rdma@vger.kernel.org>; Thu,  2 Jul 2026 17:07:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D4BB633BBCD
+	for <linux-rdma@vger.kernel.org>; Thu,  2 Jul 2026 17:07:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.202
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783012040; cv=none; b=lOgZ0wkQa4rCTNl6BoonxXCoe7b+AeiObMWy45llCGnut8AV3FL49+vlEohtJ42qN/e5zEI0xoeBB/N1j5vguRNaV5jgRUD6SA0BSCiNK3jjrP6OWXKGJkL1yzfSBBuV+zvIsBozpqAWlcZYMszsBYglGlK881fG27ag6WTVrD4=
+	t=1783012044; cv=none; b=CNUQkUQ4yVhHkrR/h/jWFuGxgjnOSb3jhG6WJxRQyuHTCIJ8mS4LypGpRzyvJBGI6TJN/UGnvUxITru7wuV6WdihUymAzh7x3j2fgYN/pssNxRwXApO+5x1CyFvghBNpJictdafjPtq/2i4wyYpXz7sbVvELOGvlEXjitTamQXA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783012040; c=relaxed/simple;
-	bh=77b4DEjKe++cR93KODwOEfOSQWz3rtuxIljYgYHike0=;
+	s=arc-20240116; t=1783012044; c=relaxed/simple;
+	bh=fTKwoA9mpT8BMOzys8v5E9z9suQrC2PwkoCINiWDc0E=;
 	h=Date:In-Reply-To:Mime-Version:References:Message-ID:Subject:From:
-	 To:Cc:Content-Type; b=RDPYtO7PTx9tKwsdxozZwoYifhK299zcGXBOqnC4A1Gysb6QR+7z7v7UT5TT4U361HGxLSIIB8Ed/ZCDOYUufSuyuz4988HqdVOdqTSCZBOSzNbdI/82E1W1w7ihM5LI+HQOcwJ2h6TyjJr+FqatCGhXjTIH/j9/NAP1cd4qt6g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--jmoroni.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=LQM6cCLP; arc=none smtp.client-ip=209.85.222.202
+	 To:Cc:Content-Type; b=dFomhHRp/5Qxm8Wi3Fu8tfEhZEp1OkOv6Kd2MiNXxOyFSkAPiz85vAzsMJVJhLoivbVdTREdgxjtgHogio6AJL/APSaIRIIihEYYs/Ztit7VzqZXwEDlZaYQxq7p48hyNosS1+vSAq7fT3gahC8mR19QydB3RczQdO4ViqHIUCs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--jmoroni.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=oXzgXsVZ; arc=none smtp.client-ip=209.85.222.202
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--jmoroni.bounces.google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="LQM6cCLP"
-Received: by mail-qk1-f202.google.com with SMTP id af79cd13be357-92da6f3cc81so232594685a.2
-        for <linux-rdma@vger.kernel.org>; Thu, 02 Jul 2026 10:07:18 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="oXzgXsVZ"
+Received: by mail-qk1-f202.google.com with SMTP id af79cd13be357-92e8004d60eso173022285a.1
+        for <linux-rdma@vger.kernel.org>; Thu, 02 Jul 2026 10:07:22 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20251104; t=1783012038; x=1783616838; darn=vger.kernel.org;
-        h=cc:to:from:subject:message-id:references:mime-version:in-reply-to
-         :date:from:to:cc:subject:date:message-id:reply-to;
-        bh=GhWOVv+KL4zuExZFk/oHe2JPGTWhuhvyBNDCamcxCUA=;
-        b=LQM6cCLPCPuTzgp04YLjbIm7zmGK+cJw/qN1XcZ4au9MaN9WDVMq/gAZ6BTexrgRpG
-         CiK1T1ohfrTevbn/4xSvqMbJfq9W6a1VaTmu6DvrNvbCLnUWd4IQC9IwCACud50JBisx
-         cdIn3ZmYSqURwQ3yFM6sGN7C0LcKi9QGTNtOzVI38F8fnh2zAny6AfmYPmoaYknyOlKx
-         mCyJTPdv+TaxI5kndqjeRycrbH31ZWkfMr3hYhcjedFQ4c+uod2Htnixb7VwuQKO1P/c
-         Y1TlGJtkb9Gwg7UqxyVjdhnlFmvf/fobRnhP1P4mG+35R4zav0JbH3uOuQW6QZ6125dy
-         oTdA==
+        d=google.com; s=20251104; t=1783012042; x=1783616842; darn=vger.kernel.org;
+        h=content-type:cc:to:from:subject:message-id:references:mime-version
+         :in-reply-to:date:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=gnC9Whs+b5LO8DpvowhIrVoV/wj31cv3J8vOLGiiotU=;
+        b=oXzgXsVZgR66pWmOw/5H5DrVb5s1oD7euCmkybKm3+P9/L9tOzS8P7PY9xC20Ay6LK
+         d0xsQmqSkJ0lNHLnbyFiXv2T5MooXx3p/X8mOyrbjYuOevxvQsV/rjrVhPKf2Rh9q8bb
+         UoqNY75SDiPI+lFzAv/5Ta0/zoRdtmCUFaLh77gLpcNOZXbeITp4CLCZF/Bm++MBbaPS
+         2mpGOZzkIdn3T7wTqPEKCcDyQCSZuAN5KnsqSqULvQGiLLHxSeXCirTU0x7ZB5OWDDEu
+         L1v8uAY7+yEmgLuIbVr4A4bzkxLyEaRZACV+ZAzNeCeOV1p7DcSpCz3bsqHAxIkVncx/
+         BMiQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1783012038; x=1783616838;
-        h=cc:to:from:subject:message-id:references:mime-version:in-reply-to
-         :date:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=GhWOVv+KL4zuExZFk/oHe2JPGTWhuhvyBNDCamcxCUA=;
-        b=ARwkYFBu6TseC6Ffpz1Qn6nIR3GSlRXzJiv9Oo3l9mk4FwwEmdBP2hFnY1rAuXSKSU
-         +iI0a/BN4JOioTIdGhl4Ir4MI7glPtrHythYQo6/u2sy7gg+r6ZOqG1PYIOthX6CTPpT
-         HGn9vAEE1RzA2y3Zlc0zVAh7D3G0W3k4oh7WFk4L/Uj1x8UN9kXdjTG4AF2U3sCIky1S
-         S6TqYsLH3WsWYbaaerc4PxBZ9wKohQK5tHHMuR1FG816nQergmbklRAEuEniZGpqTMXu
-         LMxxRvhPLxHJ8KElXbO4zufd75pDhMboW4OIwSP/LjPO/UXNZOKakutH2dIg7qrRmI+q
-         V0+A==
-X-Gm-Message-State: AOJu0Yx2KSDkL6wMkxB+OFbKKd1hjVR2esZjd6TE6VrdjcUM+jtIaSKf
-	+CIYJfZ3M5efJ7oXOn9rCaCGeOw68jRp0eeGzddJsSLsTurl3ryGpGayrd8L5+tZq/chiZEFz5j
-	DXQeWebqOFQ==
-X-Received: from qknqk10.prod.google.com ([2002:a05:620a:888a:b0:92e:6008:ef8d])
- (user=jmoroni job=prod-delivery.src-stubby-dispatcher) by 2002:a05:620a:28c9:b0:914:bc2f:baf7
- with SMTP id af79cd13be357-92e7b0139b2mr769004185a.4.1783012037749; Thu, 02
- Jul 2026 10:07:17 -0700 (PDT)
-Date: Thu,  2 Jul 2026 17:06:51 +0000
+        d=1e100.net; s=20251104; t=1783012042; x=1783616842;
+        h=content-type:cc:to:from:subject:message-id:references:mime-version
+         :in-reply-to:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=gnC9Whs+b5LO8DpvowhIrVoV/wj31cv3J8vOLGiiotU=;
+        b=WAE/2laequrIAaoPipaAykh6keH+woTQSkijuLrlxV3Wmt3C0ULIJsr8kglyh97O3/
+         7epkwFJt702WVlIfRM6S3yWOtoUVzZD1mx3OVaF06PSYFylj3U1a33UVu2lhurAimnTy
+         u79c2Bvu5UE25mAXDGrOgkngrfCxdW2L+7mOLeoGdfwyTXGq1ElUIPz5oCtnolMYwr0R
+         2NvZTPjAYtFhxbPsdsIJ00iFlRP0gDZM/hlCqzk++FOnO1hwyv3VACB7O0ZlyFtXi5BU
+         KHlTi2pfmUTMPyJVeTaLimOAOzRKy1wHpvg1AF2fVTMj9yRmVsRNkR6smB99x5yRYXUH
+         a5Gg==
+X-Gm-Message-State: AOJu0YxRRRBJPTWHdGEN3BJxzv4aNHKzxshGDrXi9ihq8X3EbHp11CdP
+	s5X1SjPvfPpz4MKSIJveO6EHijemoKFHgk7QBS44zxpDrsQDmg+NDaUTAcoE+SryazLIk0BF7LW
+	ZkthZgv1zhA==
+X-Received: from qkntx6.prod.google.com ([2002:a05:620a:3f06:b0:921:953:afa9])
+ (user=jmoroni job=prod-delivery.src-stubby-dispatcher) by 2002:a05:620a:1794:b0:92a:3679:7978
+ with SMTP id af79cd13be357-92e7afd903amr826247285a.18.1783012041575; Thu, 02
+ Jul 2026 10:07:21 -0700 (PDT)
+Date: Thu,  2 Jul 2026 17:06:52 +0000
 In-Reply-To: <20260702170652.4159201-1-jmoroni@google.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
@@ -57,51 +59,42 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 Mime-Version: 1.0
 References: <20260702170652.4159201-1-jmoroni@google.com>
 X-Mailer: git-send-email 2.55.0.rc0.799.gd6f94ed593-goog
-Message-ID: <20260702170652.4159201-7-jmoroni@google.com>
-Subject: [PATCH rdma-next v3 6/7] RDMA/irdma: Fix legacy i40iw compat check in create_qp
+Message-ID: <20260702170652.4159201-8-jmoroni@google.com>
+Subject: [PATCH rdma-next v3 7/7] RDMA/irdma: Enable uverbs_robust_udata
+ compliance flag
 From: Jacob Moroni <jmoroni@google.com>
 To: tatyana.e.nikolova@intel.com, jgg@ziepe.ca, leon@kernel.org
 Cc: linux-rdma@vger.kernel.org, Jacob Moroni <jmoroni@google.com>
 Content-Type: text/plain; charset="UTF-8"
 
-The irdma driver maintains backward compatibility with the
-legacy i40iw userspace provider by checking the length of
-the user response buffer in irdma_create_qp.
+The irdma driver has been audited to confirm that:
 
-Previously, the check relied on udata->outlen < sizeof(uresp).
-That is technically okay since there have only ever been two
-sizes for the resp struct (legacy and current). However, it
-would be a problem if the resp struct is ever expanded in
-the future because it would end up triggering the legacy
-fallback path for non-legacy irdma providers that just  haven't
-moved over to the newer expanded struct yet.
-
-Fix this by explicitly checking for the exact legacy resp size.
+1. Methods which do not accept udata input perform an explicit
+   check for no (or zero value) input.
+2. Methods which do accept input perform the correct validation
+   to ensure that additional udata beyond the kernel's current
+   ABI definition is zero, and to enforce the required minimum
+   length.
+3. Methods which do not return udata responses use the proper
+   helper.
 
 Signed-off-by: Jacob Moroni <jmoroni@google.com>
 ---
- drivers/infiniband/hw/irdma/verbs.c | 8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/irdma/verbs.c | 1 +
+ 1 file changed, 1 insertion(+)
 
 diff --git a/drivers/infiniband/hw/irdma/verbs.c b/drivers/infiniband/hw/irdma/verbs.c
-index 00a648922c7b..d8374f7afa87 100644
+index d8374f7afa87..99742e7c81f3 100644
 --- a/drivers/infiniband/hw/irdma/verbs.c
 +++ b/drivers/infiniband/hw/irdma/verbs.c
-@@ -1139,8 +1139,12 @@ static int irdma_create_qp(struct ib_qp *ibqp,
- 	init_completion(&iwqp->free_qp);
+@@ -5555,6 +5555,7 @@ static const struct ib_device_ops irdma_dev_ops = {
+ 	.owner = THIS_MODULE,
+ 	.driver_id = RDMA_DRIVER_IRDMA,
+ 	.uverbs_abi_ver = IRDMA_ABI_VER,
++	.uverbs_robust_udata = 1,
  
- 	if (udata) {
--		/* GEN_1 legacy support with libi40iw does not have expanded uresp struct */
--		if (udata->outlen < sizeof(uresp)) {
-+		/* GEN_1 legacy support with libi40iw does not have expanded
-+		 * uresp struct. Check for the exact legacy size (20 bytes) to
-+		 * ensure that newer expanded uresp structs don't accidentally
-+		 * trigger the legacy fallback.
-+		 */
-+		if (udata->outlen == IRDMA_CREATE_QP_MIN_RESP_LEN) {
- 			uresp.lsmm = 1;
- 			uresp.push_idx = IRDMA_INVALID_PUSH_PAGE_INDEX_GEN_1;
- 		} else {
+ 	.alloc_hw_port_stats = irdma_alloc_hw_port_stats,
+ 	.alloc_mr = irdma_alloc_mr,
 -- 
 2.55.0.rc0.799.gd6f94ed593-goog
 
