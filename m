@@ -1,45 +1,41 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1783A3815DD;
-	Sun,  5 Jul 2026 14:00:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7790F3812E9;
+	Sun,  5 Jul 2026 14:01:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783260060; cv=none; b=fi3NWdqopEabJ7PoNSyR6IES8QcsiOO0pH/rv4gQy+U9bKNZXv8He/+lRDebNus2rbiWsq7WD8e10L3Rl3yR9oU5tafDiezG9BSKo/fC3dn1P2JdS5VpsF08vmjEAqDXLoLS9B9wgivuky5ovMMZBgJHWeS/95OubZ8IcJE9CF8=
+	t=1783260063; cv=none; b=WhxRzSAHn+29fLwNHOXky6pXxsgCeRvV9UAGCPhOMS2daMDjjNovvRfITmhrxqHQwiNVUbuz5VkhByVhlXWdYWq3inRj2gdQ+pPyQBW+WkXh7lkcy2+H19GFL8Th0+fafZrO1R0CfXb0P3Ws58vDbvtSeja3ISsXFhbVV+fN3X4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783260060; c=relaxed/simple;
-	bh=f8D3+xN9REuYOdEaTiuV1Y497YUkxMYf+sFbBacpUdU=;
+	s=arc-20240116; t=1783260063; c=relaxed/simple;
+	bh=DlyPBYJlINz7Lg8Mbj8wUArRC1mmNai5tqxowcuOqns=;
 	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
-	 MIME-Version:Content-Type; b=YbM/sQzN2m0Jj3UzsXLFvGzhdjPBdlVUbVtSXVEguDlqHAw7W0U1CV1a6mnB7uSPlnerOi1qOm/XtknRZOHsV4G7K9lOJ2XjrssyKXqxCQDUsqwoiRo1TTKWQliZ468ekZqd7G/YnzfsYI8WjW5ctanCMzYuuBublJud5XMGV44=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=e4sB04bL; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=sV3zfsm5QfbSeRuXLeio4eLseFQWBnJm8Iwn+RfM+/AsXe2icUzXrsyyHrEJfc/GXZIR9ebNeJLq3TuvI0ZakShZ5ubaDJmDUj0Bm/BFARuk5VldVGEDrbnZ8dJlIiQEYbycyHyon7RjE9WjF00ZUQ04gq8epzVY/Cc1sfbdhYk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=lwZYOmD0; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="e4sB04bL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 507F11F00A3F;
-	Sun,  5 Jul 2026 14:00:58 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="lwZYOmD0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 916881F00A3A;
+	Sun,  5 Jul 2026 14:01:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1783260058;
-	bh=I9V4OGY0llBBClorw61zvtdebs7AbefmNKvCwmr+1iI=;
+	s=k20260515; t=1783260062;
+	bh=GWH+Yuzy5R/1k2JotQRq7MsLt5R4bYQCbLWOzloCGcE=;
 	h=From:To:Cc:In-Reply-To:References:Subject:Date;
-	b=e4sB04bLF6nufZ0C7PoK8JX0NKpjIlDkdUeWkKEQSZr1el5s24Y4CO7qMPxn9+cZb
-	 2SvqHj2ooR7RIhU8fdiuFUZ3hu8unv6MW46DYxvSi2OM3dWXyyiTQQX0dwc9qfUcYc
-	 F21YLYm6Ho8+hbX8jO6t+7nhbzaTr81dc9qqmdhcPpuOv2lW2JH69mk5qDGCQ+Howi
-	 EpW8KbXWd0PikV2AL4gx1MjjtCa1aOb+Zw4wsPZDtu3xhcWsBxPJ3QJqcPH8879Dw/
-	 Fy1uiTAtNTBrHN22x15eRntutMg/LLjdZK6YCUtHonXcbKSqnbUcJskk6zYEAkXeeO
-	 w3SeSx4Mwhr2A==
+	b=lwZYOmD0cEb/0TQOHtKZrhldnCB2QsQvNvWOzO6q1MhPzaHvddiYwrfzCmaqRiKXG
+	 /BA3aVMJ702ll3D+nu2cg9KzyR5LtAY/XVomFv1G36sLu8SFahtzEaEKsukimF17Cs
+	 EMYI9OEF0M0wo9vxOE2GrpH49ci/D6W0yp3QzwyKsbdMBsH3ya3LpQy3zqdgTtHf1L
+	 Iei+nQIqk+2JBko3nUadLzLg0W//mFeCAwva9qjKVJC2JRThVQXp3/nH15uADCYGAx
+	 pkSYw53IxxAh1vK/MEIs3cYnkXlU4J5QuuOmKuR/acEmMG9ECvBHJm57NP+XAJdD6d
+	 L4pte16R3JtEQ==
 From: Leon Romanovsky <leon@kernel.org>
-To: Krzysztof Czurylo <krzysztof.czurylo@intel.com>, 
- Tatyana Nikolova <tatyana.e.nikolova@intel.com>, 
- Aleksandrova Alyona <aga@itb.spb.ru>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>, 
- Mustafa Ismail <mustafa.ismail@intel.com>, 
- Shiraz Saleem <shiraz.saleem@intel.com>, linux-rdma@vger.kernel.org, 
- linux-kernel@vger.kernel.org, lvc-project@linuxtesting.org
-In-Reply-To: <20260624144846.61242-1-aga@itb.spb.ru>
-References: <20260624144846.61242-1-aga@itb.spb.ru>
-Subject: Re: [PATCH] RDMA/irdma: Prevent overflows in memory contiguity
- checks
-Message-Id: <178324946774.906796.6761274205609866502.b4-ty@kernel.org>
-Date: Sun, 05 Jul 2026 07:04:27 -0400
+To: Zhu Yanjun <zyjzyj2000@gmail.com>, Jason Gunthorpe <jgg@ziepe.ca>, 
+ Zhiwei Zhang <202275009@qq.com>
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, 
+ Zhu Yanjun <yanjun.zhu@linux.dev>
+In-Reply-To: <tencent_FD4FB25AA4FFA845E63F5AC36CF4A46CDC0A@qq.com>
+References: <tencent_FD4FB25AA4FFA845E63F5AC36CF4A46CDC0A@qq.com>
+Subject: Re: [PATCH v2] RDMA/rxe: Check PDs for memory window binds
+Message-Id: <178325047028.908624.4141497133410727183.b4-ty@kernel.org>
+Date: Sun, 05 Jul 2026 07:21:10 -0400
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -51,21 +47,21 @@ Content-Transfer-Encoding: 7bit
 X-Mailer: b4 0.15-dev-18f8f
 
 
-On Wed, 24 Jun 2026 17:48:46 +0300, Aleksandrova Alyona wrote:
-> irdma_check_mem_contiguous() and irdma_check_mr_contiguous() verify that
-> PBL entries describe physically contiguous memory ranges.
+On Fri, 26 Jun 2026 09:59:20 +0800, Zhiwei Zhang wrote:
+> The IBTA Software Transport Verbs specification requires the QP,
+> Memory Window and Memory Region for a Bind Memory Window operation
+> to belong to the same HCA and protection domain.
 > 
-> Both functions calculate byte offsets using 32-bit operands. For example,
-> with 4 KiB pages, pg_size * pg_idx overflows 32-bit arithmetic when
-> pg_idx reaches 1048576. In the level-2 check, PBLE_PER_PAGE is 512, so
-> i * pg_size * PBLE_PER_PAGE overflows when i reaches 2048.
+> rxe only checked the QP and MW protection domain for type 2 MWs.
+> Move the QP/MW PD check to the common bind path and also reject
+> binding an MW to an MR from a different PD.
 > 
 > [...]
 
 Applied, thanks!
 
-[1/1] RDMA/irdma: Prevent overflows in memory contiguity checks
-      https://git.kernel.org/rdma/rdma/c/3cda0dfe8c651d
+[1/1] RDMA/rxe: Check PDs for memory window binds
+      https://git.kernel.org/rdma/rdma/c/f58ea84a3584d1
 
 Best regards,
 -- 
