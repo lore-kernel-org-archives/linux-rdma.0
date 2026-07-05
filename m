@@ -1,38 +1,38 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A92D285C8B;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A9A2357D08;
 	Sun,  5 Jul 2026 07:54:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783238046; cv=none; b=ccj0bZASGopxV8KVrX31xihnunbNwdOqhINPKugLDJi005xGoQbNvTfZ1dAePSQeED3Ls5okw5seBu5bc8fFAo/OW6rjCmu58WDaIIHqF+ZqlKF1XBC2/N0NRZfm67mxnNEKvgjv6vVI/U2PjMF8scnrgIBZmfnhpgNdcFWC6yU=
+	t=1783238046; cv=none; b=iZHXELYXtN7uiyqPakWbEZwP2c4yIhjK21nIXKtNqigboQwd6gzL5z/e2rolntA4UWEGMrU4YbZWkmq1HUM/92gLtHxEG+5U8NLW5GodVPp48PFiPsf1/SUgKHQIABiRb/ko9pDIbROtMgyClOOVaO4S7UzSdLrPgL+j3gQI41A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1783238046; c=relaxed/simple;
-	bh=dyysRfmK3tbb8Vzxzn802wbSb/HCPq3aBDjjKEzA7GA=;
-	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=UALC35iQT/g650dyEf7VvEDqa1A6iVAWZnoleHkp8uC2XtNP4b08paiQ+DHzwlGG4H22r08NU69dzLLs6/n31Wxr9UC606Y3m5awuhXUgkuRxxJnw9EW0BpN2a53kQXRi8gvgfMiku/hEACy28CtOCL2mSmzlI2b28hi9v1t2iI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Deca1j0U; arc=none smtp.client-ip=10.30.226.201
+	bh=2yJZrJYlSOvTD9TMN8O7XgxA6O99PvYUYtZXpHmawP4=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
+	 In-Reply-To:To:Cc; b=lW8Bl8/Xv5wZrHIid0XtAZs4Mu7eAI7kpXj6jvXruEiJnup+gLZBJiWfyq3zMoy+EVb3I228TRBfyYPSWvTgQKHnrJVJSLEN974exCDy0J7CBnBrAEcT4wX5WSYrkg/ha/73Ppi+BzIQVAXFPmBD55y9Z3uZEgaI+xlJ8TQIAGA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=FML+4ysF; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Deca1j0U"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 13793C2BCB8;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="FML+4ysF"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 36EABC2BCF6;
 	Sun,  5 Jul 2026 07:54:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
 	s=k20201202; t=1783238046;
-	bh=dyysRfmK3tbb8Vzxzn802wbSb/HCPq3aBDjjKEzA7GA=;
-	h=From:Subject:Date:To:Cc:Reply-To:From;
-	b=Deca1j0UTLnflSTWDIcyzmeXEpSb1k1fMN3QI3bRvWPgK5IV9Twsc574ewLJZAU6x
-	 GUJY0HK/ARCA1FyKSgRDL9mJFi7zizc1d7OVlvQGRSckM3QQCP3XMOkSioUG1ZH1eL
-	 JSvhhJla3uAKwEzDaOt3H/ABAVTb4bvJosqZnzW8BMcnBGItpX89/sO7F/WTkk7yB1
-	 u9ukxNLT5Tg54y/IpysQAPlC+DRVsPMOPCyfSjejWmF6ojWcb+hEgLbPrV2E1XmcsU
-	 8zUL9QeccH0aYm8H5SK7OnKmdopSgCFTpZ5gMIw2a2PdpjBivieZp/QDVnHBQGPs//
-	 yXlWsSK7KLoaw==
+	bh=2yJZrJYlSOvTD9TMN8O7XgxA6O99PvYUYtZXpHmawP4=;
+	h=From:Date:Subject:References:In-Reply-To:To:Cc:Reply-To:From;
+	b=FML+4ysFiW8H/Bl56urjLZpoh2QNCtYzL8YCUCngDLZjSCbvKYMZ5326KnQ4evDAO
+	 pNgxJIiw/r5MGQFkN/yD/HTMrfZ2Rq0fuy2asittQj5tscXEyt96Jl0lMGW/RnH3fP
+	 L+yVsNV6skw3XT8GbLrNEQsddIb7xPNUIAtKk3NmZUzg6+yEvqXiqWBrA1D0dKKNsj
+	 /GruKHooZQ/BtDCIa9iqorU+L09qJ2TURHBmwTcnEsRI4PU4LYoRPDljXbYDRVCkMT
+	 LrhYwyDQ0v0aUAVkueBKQeMIoCUX7W613kUXPhf5Z4kIs/l2r7mCKe6BjaI4ORV6+S
+	 28qsYl44gJeFA==
 Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E22AEC43458;
-	Sun,  5 Jul 2026 07:54:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A14CC43602;
+	Sun,  5 Jul 2026 07:54:06 +0000 (UTC)
 From: Bryam Vargas via B4 Relay <devnull+hexlabsecurity.proton.me@kernel.org>
-Subject: [PATCH net v4 0/3] net/smc: bound wire-controlled CDC cursors
- against the local buffers
-Date: Sun, 05 Jul 2026 02:54:04 -0500
-Message-Id: <20260705-b4-disp-28a1bbca-v4-0-be089b98acc6@proton.me>
+Date: Sun, 05 Jul 2026 02:54:07 -0500
+Subject: [PATCH net v4 3/3] net/smc: bound the send length to the send
+ buffer in smc_tx_sendmsg()
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -41,9 +41,9 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-X-B4-Tracking: v=1; b=H4sIAJwNSmoC/x3MOQqAMBBA0avI1A7EGNeriEWWUaeJkogIIXc3W
- L7i/wSRAlOEuUoQ6OHIpy9QdQX20H4nZFcMUsheDKJDo9BxvFCOujHGarR22rpWO1JqhJJdgTZ
- +/+UCnm5Yc/4AfamGPmcAAAA=
+Message-Id: <20260705-b4-disp-28a1bbca-v4-3-be089b98acc6@proton.me>
+References: <20260705-b4-disp-28a1bbca-v4-0-be089b98acc6@proton.me>
+In-Reply-To: <20260705-b4-disp-28a1bbca-v4-0-be089b98acc6@proton.me>
 To: Dust Li <dust.li@linux.alibaba.com>, 
  "David S. Miller" <davem@davemloft.net>, 
  Sidraya Jayagond <sidraya@linux.ibm.com>, 
@@ -56,11 +56,11 @@ Cc: Stefan Raspl <raspl@linux.ibm.com>, Wen Gu <guwen@linux.alibaba.com>,
  Tony Lu <tonylu@linux.alibaba.com>, Ursula Braun <ubraun@linux.ibm.com>, 
  linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org
 X-Mailer: b4 0.13.0
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1783238044; l=3668;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1783238044; l=2608;
  i=hexlabsecurity@proton.me; s=proton; h=from:subject:message-id;
- bh=dyysRfmK3tbb8Vzxzn802wbSb/HCPq3aBDjjKEzA7GA=;
- b=HDewF+Yu/0F2KKKd8NDY4C5jcdeSR0e8yWyf9dOQ6MjpTgWesHZkUaySdrllEV+bbLdT8Mpik
- uFHCMyE++RMCDx5xWNFefKAeCI0nt71WL4UcNCZWfmAkXThb9VqLVRc
+ bh=gofZShwJohwDaGHsZ6HI9Oy7+YnKIapqK8UzB5SRSUM=;
+ b=wYZ0lUVj4rs4m7pA47NnwlkJnZ1zBq1lfAkulVbUwivC1vGL8Fh62x0DUJ7cwtp/3kIC2x1kq
+ eDtoT02N+ojBWl41IBJ9sTeOAJE1QpzpRi9ybnX5gCCymefhYfI+CxM
 X-Developer-Key: i=hexlabsecurity@proton.me; a=ed25519;
  pk=dmppBMZNLLoPzxHi9l8tZDzEZUunPbgsYqIZYXeUrL0=
 X-Endpoint-Received: by B4 Relay for hexlabsecurity@proton.me/proton with
@@ -68,69 +68,59 @@ X-Endpoint-Received: by B4 Relay for hexlabsecurity@proton.me/proton with
 X-Original-From: Bryam Vargas <hexlabsecurity@proton.me>
 Reply-To: hexlabsecurity@proton.me
 
-A peer's CDC producer/consumer cursors are copied from the wire and used,
-without an upper bound against the local buffers, as (a) a raw index into the
-RMB on the urgent path, (b) the receive length in smc_rx_recvmsg(), and (c) the
-send length in smc_tx_sendmsg() on the SMC-D DMB-merge path. A malicious or
-buggy peer can forge a cursor so each runs past the relevant buffer: an
-out-of-bounds read of adjacent kernel memory (disclosed to the peer) on the
-receive/urgent side, and, on the send side, an out-of-bounds write whose
-length the peer controls and whose overflowing bytes are the local sender's
-own outbound data.
+From: Bryam Vargas <hexlabsecurity@proton.me>
 
-This series bounds each length where it is consumed. The clamp is synchronous
-and race-free against the tasklet that advances the cursor, so it is the minimal
-fix for stable. A separate net-next series adds the wire-boundary validation and
-connection abort that Dust Li suggested; those do not replace these clamps.
+On the SMC-D DMB-merge (nocopy) path, smc_cdc_msg_recv_action()
+advances conn->sndbuf_space from the peer's wire-controlled consumer
+cursor via smc_curs_diff(), which can return more than sndbuf_desc->len;
+a forged cursor drives sndbuf_space past the send buffer, and over many
+CDC messages overflows the signed counter negative. smc_tx_sendmsg()
+reads it as the write space and does a wrap-around copy whose second
+chunk is not re-bounded to sndbuf_desc->len, spilling the local
+sender's outbound data past the send buffer at a peer-controlled
+length: a heap out-of-bounds write. The nearby len > sndbuf_desc->len
+test only feeds SMC_STAT_RMB_TX_SIZE_SMALL on the user length; it does
+not bound the copy.
 
-The clamp is not subsumed by validating cursors at the input boundary. A peer
-that only increments prod.wrap with count == 0 hits the differing-wrap branch of
-smc_curs_diff(), which returns (len - 0) + 0 == len every CDC, so bytes_to_rcv
-(and sndbuf_space on the send side) accumulates past the buffer while every
-per-cursor bound sees count == 0 and accepts the message. The overflow lives in
-the accumulator, not the cursor; only the consumer-side clamp bounds it. And
-because a queued abort runs asynchronously (queue_work -> smc_conn_kill) while
-smc_rx_recvmsg() reads the accumulator under lock_sock, only the synchronous
-clamp closes that window. So the clamp goes to stable; the abort is net-next.
+Bound the write space to sndbuf_desc->len at the consumer, treating a
+negative (sign-overflowed) value as out of range too, so the copy can
+never exceed the ring. This enforces the documented
+0 <= sndbuf_space <= sndbuf_desc->len invariant where it is race-free
+against the CDC tasklet; conforming peers are unaffected.
 
-The nearby readable >= rmb_desc->len / len > sndbuf_desc->len tests only feed
-statistics counters (SMC_STAT_RMB_RX_FULL / SMC_STAT_RMB_TX_SIZE_SMALL) on an
-earlier, separate read; they do not bound the copy.
-
-A/B (in-kernel KASAN replaying the sink arithmetic over a real rmb_desc->len /
-sndbuf_desc->len slab; kasan.fault=report kasan_multi_shot, 2026-07-05):
-  - urgent index (1/3):  count = len+1        -> slab-out-of-bounds Read;  clamped -> clean
-  - recv length  (2/3):  bytes_to_rcv = 5*len via wrap++/count=0 -> OOB Read; clamped -> clean
-  - send length  (3/3):  sndbuf_space inflated -> slab-out-of-bounds Write; clamped -> clean
-  - signed overflow:     readable = -1 -> v1 ">len" misses -> OOB; "<0 || >len" -> clean
-  - concurrent TOCTOU race: a producer-side clamp is racy (OOB in a racing consumer
-    kthread on another CPU); the consumer-side clamp is race-free (0 hits / 5,000,000 reads).
-  - every in-bounds / honest-peer arm: clean.
-
-Changes since v3:
-  - split into this stable-bound clamp series and a separate net-next
-    validate/abort series, per Dust Li's review;
-  - tightened the commit messages; noted that the nearby SMC_STAT_* tests are not
-    bounds; no functional change to the three clamps.
-  v3: https://lore.kernel.org/all/20260614-b4-disp-edd64be9-v3-0-551fa514257e@proton.me/
-
+Fixes: cc0ab806fc52 ("net/smc: adapt cursor update when sndbuf and peer DMB are merged")
+Cc: stable@vger.kernel.org
 Signed-off-by: Bryam Vargas <hexlabsecurity@proton.me>
 ---
-Bryam Vargas (3):
-      net/smc: bound the wire-controlled producer cursor to the RMB
-      net/smc: bound the receive length to the RMB in smc_rx_recvmsg()
-      net/smc: bound the send length to the send buffer in smc_tx_sendmsg()
+ net/smc/smc_tx.c | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
- net/smc/smc_cdc.h | 27 ++++++++++++++++++++++++---
- net/smc/smc_rx.c  | 12 ++++++++++++
- net/smc/smc_tx.c  | 13 +++++++++++++
- 3 files changed, 49 insertions(+), 3 deletions(-)
----
-base-commit: d6456743424721a837e1509b912f362caaeecd97
-change-id: 20260705-b4-disp-28a1bbca-cc9f53ade448
+diff --git a/net/smc/smc_tx.c b/net/smc/smc_tx.c
+index 3144b4b1fe29..5916f02060fb 100644
+--- a/net/smc/smc_tx.c
++++ b/net/smc/smc_tx.c
+@@ -233,6 +233,19 @@ int smc_tx_sendmsg(struct smc_sock *smc, struct msghdr *msg, size_t len)
+ 		/* initialize variables for 1st iteration of subsequent loop */
+ 		/* could be just 1 byte, even after smc_tx_wait above */
+ 		writespace = atomic_read(&conn->sndbuf_space);
++		/* sndbuf_space is advanced from the peer's wire-controlled
++		 * consumer cursor on the SMC-D DMB-merge path; a forged cursor
++		 * can inflate it past the send buffer, or overflow the signed
++		 * accumulator to a negative value across many CDC messages
++		 * (which a plain "> len" check would miss before the size_t
++		 * cast below turns it huge).  Bound it to the send buffer in
++		 * either case so the wrap-around write cannot run past
++		 * sndbuf_desc->len.  This enforces the documented
++		 * 0 <= sndbuf_space <= sndbuf_desc->len invariant at the
++		 * producer, race-free against the CDC tasklet.
++		 */
++		if (writespace < 0 || writespace > conn->sndbuf_desc->len)
++			writespace = conn->sndbuf_desc->len;
+ 		/* not more than what user space asked for */
+ 		copylen = min_t(size_t, send_remaining, writespace);
+ 		/* determine start of sndbuf */
 
-Best regards,
 -- 
-Bryam Vargas <hexlabsecurity@proton.me>
+2.43.0
 
 
