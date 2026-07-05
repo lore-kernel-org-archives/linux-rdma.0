@@ -1,108 +1,78 @@
-Received: from pdx-out-002.esa.us-west-2.outbound.mail-perimeter.amazon.com (pdx-out-002.esa.us-west-2.outbound.mail-perimeter.amazon.com [44.246.1.125])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 97DF63644A4
-	for <linux-rdma@vger.kernel.org>; Sun,  5 Jul 2026 14:09:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=44.246.1.125
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD65C3644A4
+	for <linux-rdma@vger.kernel.org>; Sun,  5 Jul 2026 14:09:46 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783260552; cv=none; b=iQpI2TvwXubQlQ8PKusIM7vqYdV7GxEavHQCImCPr/Ti0+bx/6weQ/yYB5A73WogmElGA4tabp5nTHMl7wCfeMD0PraMLEBwT5dZlTH3pf30Rw0L+75LjrhCV7tGQGMXL/lWK7OuSwNqs8c5cic9++FTfatzxm0i+9KiEh6iEGE=
+	t=1783260587; cv=none; b=mdt9vp2t6jl7wLh7P1M0Uhx1jS6aPgaTYEizL5uABtiEtzYd5pCE6oHtyYpZL4GOCvMFRYMzSZFHj88DHJOuXz1MYc63PXqior+dnGGanoG3JcOofJjLaBS1EoIQWfs8DjUGzhEUgDgnjajDmxaXQwg6j2SOEfXl+ZkbauJ1rsY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783260552; c=relaxed/simple;
-	bh=WJtoKtR2DDhu7zLDSsgF/HsXPrQbs3alp9wE24xLx2Y=;
-	h=Date:From:To:CC:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=X+h+BALutIDjKaIK+HXfzBqPjJXbBIrKOw3fM3beq1sBi3xz36/xqS9q5ZyB3IGbEL1MPohuOZexFeyhWzoMhG+G36U3ioCICWQ8IDbN0fqtcAxqtyxL6Q/lWnEha0Lf6jc12IqEPLKRM08ax4ARxhFL5DO/KHA1sWejUbi5UpM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com; spf=pass smtp.mailfrom=amazon.com; dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.b=KIMWx7vR; arc=none smtp.client-ip=44.246.1.125
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazon.com
+	s=arc-20240116; t=1783260587; c=relaxed/simple;
+	bh=9QnA86PjVwx/XfFrgmjKp12l68zJrBcvSGQzTC36iko=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=bWOv7Kd4feJjedPYcw1qzfmkARdy3b32e5slJCtfEEkGIwf17zwWD1KdTrvHftVtTz5+gxJXxRdIg9iN0mwrwCowtI39Ex5ftmER1DlhpC2bR+/rOMyAm1InBgw1/x1Ld1LzT6PsGntZynhV3oqPF/BEv4GvlIV0b9q/tRMpQy4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=KN2QpTZB; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.b="KIMWx7vR"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazoncorp2;
-  t=1783260551; x=1814796551;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=JLMqM4FjSH3zbwr5CEHyqp8LlN+KfTlcF3DDOa6RVVg=;
-  b=KIMWx7vRbKjALP0vlRpe8XQhPrQOCK+3GdxocxGpnLOe0NtFgVsDJtBs
-   QKXaJaTXMvvNu+pmQqgmFHRzArqYqTZeAI2Gtcu2w866WZgJiYoLIGN/A
-   u4WgVfHVZ5PF10ZSNQ0O53zraYFsB0RbEed0DjwWdaCzz4J5kNGtnX4O/
-   oNExWwUcTnTldaqAlLohpEIZYPlPLYrqw80McbgHPuxpf+lt8X4h8n1J7
-   4zxHa1lcn7abtVPV4cti1f+FLdEGf483rjQJ2HPO/wGAOu16wfptBvCLj
-   oNbfKgU0EOjkjRe8aV6GN93vco0dxMh4Hg4U25IcYu8KgpH1QLbQdGKbC
-   w==;
-X-CSE-ConnectionGUID: 4VCFZaplTh2UVneb6qTa/Q==
-X-CSE-MsgGUID: kivPgt64TGyYq0cRVPIvzw==
-X-IronPort-AV: E=Sophos;i="6.25,149,1779148800"; 
-   d="scan'208";a="23096643"
-Received: from ip-10-5-0-115.us-west-2.compute.internal (HELO smtpout.naws.us-west-2.prod.farcaster.email.amazon.dev) ([10.5.0.115])
-  by internal-pdx-out-002.esa.us-west-2.outbound.mail-perimeter.amazon.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Jul 2026 14:09:08 +0000
-Received: from EX19MTAUWA001.ant.amazon.com [205.251.233.182:1076]
- by smtpin.naws.us-west-2.prod.farcaster.email.amazon.dev [10.0.13.18:2525] with esmtp (Farcaster)
- id dcbc347f-cfc6-452c-ac47-1c73fb2fa814; Sun, 5 Jul 2026 14:09:08 +0000 (UTC)
-X-Farcaster-Flow-ID: dcbc347f-cfc6-452c-ac47-1c73fb2fa814
-Received: from EX19D001UWA001.ant.amazon.com (10.13.138.214) by
- EX19MTAUWA001.ant.amazon.com (10.250.64.204) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.43;
- Sun, 5 Jul 2026 14:09:08 +0000
-Received: from dev-dsk-ynachum-1b-aa121316.eu-west-1.amazon.com
- (10.253.69.224) by EX19D001UWA001.ant.amazon.com (10.13.138.214) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.43; Sun, 5 Jul 2026
- 14:09:06 +0000
-Date: Sun, 5 Jul 2026 14:08:52 +0000
-From: Yonatan Nachum <ynachum@amazon.com>
-To: Leon Romanovsky <leon@kernel.org>
-CC: <jgg@nvidia.com>, <linux-rdma@vger.kernel.org>, <mrgolin@amazon.com>,
-	<sleybo@amazon.com>, <matua@amazon.com>, <gal.pressman@linux.dev>, "Firas
- Jahjah" <firasj@amazon.com>
-Subject: Re: [PATCH for-next v5 2/2] RDMA/efa: Add AH cache handling on
- create and destroy AH
-Message-ID: <20260705140852.GA25788@dev-dsk-ynachum-1b-aa121316.eu-west-1.amazon.com>
-References: <20260628133422.523230-1-ynachum@amazon.com>
- <20260628133422.523230-3-ynachum@amazon.com>
- <20260705133506.GF15188@unreal>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="KN2QpTZB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 66FC21F000E9;
+	Sun,  5 Jul 2026 14:09:45 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1783260586;
+	bh=XpUz0K5izmcajqlrTfe9PZlBq7+dYA5eh9xrwlruDsg=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=KN2QpTZBdDj3g7CjCkqUm4Za/kpP4hHwDsSH/JTl4cpNSKzrdtS2CMwT0eWX83I4C
+	 C5bR7J8/8UoUltGMIGOp5Dhe3D+Qx4Oc8CumkNI2NpljRQccRcM6REq0muYaoYFlh7
+	 0ef78S3BkTNgjN1FrdlIi+gzXEIlV1qCrtlkJWEgcoU8AH4ldDXSZmBnsE5hTrVwrM
+	 NMKuUnjPNb32n9ffWc5uUviG6E2uz/BhY/ya7BlPWBifyUlJd3cf4YGjhF4C0crQMA
+	 VYJry28ch8In3hqnaVfkvUsFkGpL5ohu1hto7LA7VpoXJ45rIioBz5cYjbv3Ag94uJ
+	 YWmM2dGYNIPxA==
+Date: Sun, 5 Jul 2026 17:09:40 +0300
+From: Leon Romanovsky <leon@kernel.org>
+To: Jacob Moroni <jmoroni@google.com>
+Cc: tatyana.e.nikolova@intel.com, jgg@ziepe.ca, linux-rdma@vger.kernel.org
+Subject: Re: [PATCH] RDMA/irdma: Check for null udata during reg_user_mr
+Message-ID: <20260705140940.GG15188@unreal>
+References: <20260630154720.1647530-1-jmoroni@google.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20260705133506.GF15188@unreal>
-User-Agent: Mutt/1.5.21 (2010-09-15)
-X-ClientProxiedBy: EX19D032UWB004.ant.amazon.com (10.13.139.136) To
- EX19D001UWA001.ant.amazon.com (10.13.138.214)
+In-Reply-To: <20260630154720.1647530-1-jmoroni@google.com>
 
-On Sun, Jul 05, 2026 at 04:35:06PM +0300, Leon Romanovsky wrote:
-> > +/**
-> > + * efa_ah_cache_put - Put a refcount of an AH cache entry
-> > + * @ah_cache: AH cache
-> > + * @entry: AH cache entry
-> > + *
-> > + * Drop the refcount. If it reaches zero, remove the entry from the hashtable
-> > + * and free it.
-> > + */
-> > +void efa_ah_cache_put(struct efa_ah_cache *ah_cache, struct efa_ah_cache_entry *entry)
-> > +{
-> > +	if (!refcount_dec_and_mutex_lock(&entry->refcount, &ah_cache->lock))
-> > +		return;
-> > +
-> > +	/* AH cache lock is held here */
-> > +	rhashtable_remove_fast(&ah_cache->hashtable, &entry->linkage, ah_cache_params);
-> > +	mutex_unlock(&ah_cache->lock);
-> > +
-> > +	mutex_destroy(&entry->lock);
-> > +	kfree_rcu(entry, rcu_head);
+On Tue, Jun 30, 2026 at 03:47:19PM +0000, Jacob Moroni wrote:
+> The irdma driver requires udata for reg_user_mr. Previously,
+> it was assuming that it was always non-null, but it can actually
+> be null if the user intentionally triggers the UVERBS_METHOD_REG_MR
+> ioctl.
 > 
-> Where do you use RCU locking in this series? Why do you call
-> kfree_rcu() instead of kfree()?
+> Signed-off-by: Jacob Moroni <jmoroni@google.com>
+> ---
+>  drivers/infiniband/hw/irdma/verbs.c | 3 +++
+>  1 file changed, 3 insertions(+)
 > 
-> Thanks
+> diff --git a/drivers/infiniband/hw/irdma/verbs.c b/drivers/infiniband/hw/irdma/verbs.c
+> index cb54c7c8fcd..3bcac68a612 100644
+> --- a/drivers/infiniband/hw/irdma/verbs.c
+> +++ b/drivers/infiniband/hw/irdma/verbs.c
+> @@ -3519,6 +3519,9 @@ static struct ib_mr *irdma_reg_user_mr(struct ib_pd *pd, u64 start, u64 len,
+>  	if (dmah)
+>  		return ERR_PTR(-EOPNOTSUPP);
+>  
+> +	if (!udata)
+> +		return ERR_PTR(-EINVAL);
 
-Originally I used kfree directly, but changed to kfree_rcu in v3
-following this Sashiko review and Jason's comment:
-https://sashiko.dev/#/patchset/20260512061121.2177521-1-ynachum%40amazon.com
-
-If you think its not needed I can delete it.
+Is this check specific to iRDMA?
 
 Thanks
+
+> +
+>  	if (len > iwdev->rf->sc_dev.hw_attrs.max_mr_size)
+>  		return ERR_PTR(-EINVAL);
+>  
+> -- 
+> 2.55.0.rc0.799.gd6f94ed593-goog
+> 
