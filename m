@@ -1,76 +1,78 @@
-Received: from mailhub9-fb.kaspersky-labs.com (mailhub9-fb.kaspersky-labs.com [195.122.169.2])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wm2-f2.google.com (mail-wm2-f2.google.com [74.125.225.130])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0308C41610A;
-	Tue,  7 Jul 2026 14:17:07 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.122.169.2
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 33B3C35FF6E
+	for <linux-rdma@vger.kernel.org>; Tue,  7 Jul 2026 16:15:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.225.130
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783433834; cv=none; b=Ke+1mKKElGo3iR0GIbyh/GMoqcRTZj4b/KaP2QcHJxE4f1EEvtdmxTzOKXZ0DSvCq4qrf3n55GjwGT8fEI8jD6UyWiq46Vsp0thSejiqeNQgZNd6gmKiGLyg61/lE+M6ZkTgTY28Le2mkv/feeu0qY8fxQThG9WZh0jenqKpsPU=
+	t=1783440930; cv=none; b=cX69UQ+3aa0+PbMKXmLGFa7OzXe4GRRBqzGb5IiEXrDHkTqxAl8oUTaFJT4DaVkdVMMXVwr+3n2HGcs7rLKKdgkyXfX1Zt5VdgWUGMK0AeYHjGwGh+4q0zitWBhCOywrkGVWhgnRNeq8Qgbd3t9fa3gJFPak7AsgYolzig734nY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783433834; c=relaxed/simple;
-	bh=yhGQahQOCPZz7JseoaL/a2P5LTYNU3VSFzzv5E3WmmI=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=r2UaGJ4RzZJry4v1elf1k8Gb/x/sP7XVij71wPFQmfnR4mERiyDgqOEXDhdO1tIeqigymM+V9g1krHOlPZu28j7qoqsHvtLv2zlom2DUIXK0apGmX9Lh0B9CfV5r2rHXPx/2oFV/DOBeoxzSSD7gYKW8rj6tfsWsX/U3b5gTd2U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=kaspersky.com; spf=pass smtp.mailfrom=kaspersky.com; dkim=pass (2048-bit key) header.d=kaspersky.com header.i=@kaspersky.com header.b=vRn2Ptud; dkim=pass (2048-bit key) header.d=kaspersky.com header.i=@kaspersky.com header.b=nQqLH7JO; arc=none smtp.client-ip=195.122.169.2
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=kaspersky.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kaspersky.com
+	s=arc-20240116; t=1783440930; c=relaxed/simple;
+	bh=75niY7Ljy7FT8jvSV7EktRwrOBqI3lwLXWuqSCh0cQo=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=gy8P+hWxUohl2/H220JrCmtJ3wq8qR1oQAH4MFajVa5cB2XJO2Amx6XXDj8LqWt6MUqPEvltkv0+LP4wtO+22w5PuSzfBe0k1QBDpVWe7XeX+D2KzzWw5JauG2MEtyB4sOGYaYyodnL6EjzKxMqoyxEieMHfCaO3MRAzkocg0F4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=YgJdEqnl; arc=none smtp.client-ip=74.125.225.130
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kaspersky.com header.i=@kaspersky.com header.b="vRn2Ptud";
-	dkim=pass (2048-bit key) header.d=kaspersky.com header.i=@kaspersky.com header.b="nQqLH7JO"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kaspersky.com;
-	s=mail202505; t=1783433391;
-	bh=KOpTyhoe2Irsyxnw0tccmTf6A2EilUrNjrxf0YkWg60=;
-	h=From:To:Subject:Date:Message-ID:MIME-Version:Content-Type;
-	b=vRn2PtudRID+y3H07nwPKldyUMS5gNf/C8gPqMoD8iByNMDm0S1Ox9Z16LEUIibKk
-	 PXhuhrMjIGbanyh2Nib8KTvfn82xuZkBBZpGs8tecmlZEcfSR6qEpVRZCw8lsjaTJD
-	 QnKsAYiKogj6uD3wAdZ11lfG4THvqhYxGPe08epaexj8c/fA+U/Jnu05F/OTAMYj5h
-	 9GgeN/kgAH/M3olN3RPlJgr/HPxYbg6j5sYklrehkOw1vSblucRuWfcnoXcXvr0AMG
-	 9xRnc2iJ2YZzRlrrb188LVZQms12BLN+kI0tnnPvXQAQrSxYdp+Cvob7vu42+A22Cz
-	 AOd4I3Mdh2dhQ==
-Received: from mailhub9-fb.kaspersky-labs.com (localhost [127.0.0.1])
-	by mailhub9-fb.kaspersky-labs.com (Postfix) with ESMTP id 79A3C900791;
-	Tue,  7 Jul 2026 17:09:51 +0300 (MSK)
-Received: from mx16.kaspersky-labs.com (mx16.kaspersky-labs.com [5.79.125.27])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256
-	 client-signature RSA-PSS (4096 bits) client-digest SHA256)
-	(Client CN "mx16.kaspersky-labs.com", Issuer "Kaspersky MailRelays CA G3" (verified OK))
-	by mailhub9-fb.kaspersky-labs.com (Postfix) with ESMTPS id 524479005B9;
-	Tue,  7 Jul 2026 17:09:51 +0300 (MSK)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kaspersky.com;
-	s=mail202505; t=1783433382;
-	bh=KOpTyhoe2Irsyxnw0tccmTf6A2EilUrNjrxf0YkWg60=;
-	h=From:To:Subject:Date:Message-ID:MIME-Version:Content-Type;
-	b=nQqLH7JOL1XNYiK7NdUdzKmG4EQx/vv9vCEJeXwyrIhlqg3Icq4QrEeAbVyH8l4TO
-	 6LHhz7ySVDFZyqv/YJGiziP7L+9/YTeCw/ComxFDQr2EvIDTinKUWkdrcXDExRFigR
-	 zHYjIWd7+sIu95Qhcko4gKfhxVFkrFwnjgORNUXJHah0gh6CSi67kmz3oBtokrL+pK
-	 qLB+j7H6GA94nHs+4jtvoALxUMDq7vBhRyvoti5j4gLEYNJ61Gsv8Rvm2qMtmYTTVr
-	 g10n4oyC9FqGkloVy6bkw7+pIjNpVNK7elI1krYYKuVlL3SLx7mqHHFQf1I9Hf6qDD
-	 vw2I4XTpJQwgA==
-Received: from relay16.kaspersky-labs.com (localhost [127.0.0.1])
-	by relay16.kaspersky-labs.com (Postfix) with ESMTP id E64E9C07655;
-	Tue,  7 Jul 2026 17:09:42 +0300 (MSK)
-Received: from mail-hq2.kaspersky.com (unknown [91.103.66.200])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(Client CN "mail-hq2.kaspersky.com", Issuer "Kaspersky MailRelays CA G3" (verified OK))
-	by mailhub16.kaspersky-labs.com (Postfix) with ESMTPS id 6C360C07A60;
-	Tue,  7 Jul 2026 17:09:41 +0300 (MSK)
-Received: from chesnokov.avp.ru (10.16.105.7) by HQMAILSRV2.avp.ru
- (10.64.57.52) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.41; Tue, 7 Jul
- 2026 17:09:40 +0300
-From: <Alexander.Chesnokov@kaspersky.com>
-To: <xuhaoyue1@hisilicon.com>
-CC: <lvc-project@linuxtesting.org>, <Oleg.Kazakov@kaspersky.com>,
-	<Pavel.Zhigulin@kaspersky.com>, <stable@vger.kernel.org>, Wenpeng Liang
-	<liangwenpeng@huawei.com>, Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky
-	<leon@kernel.org>, Xi Wang <wangxi11@huawei.com>, Weihang Li
-	<liweihang@huawei.com>, <linux-rdma@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>, Alexander Chesnokov
-	<Alexander.Chesnokov@kaspersky.com>
-Subject: [PATCH] RDMA/hns: Fix arithmetic overflow in hns_roce_v2_set_hem()
-Date: Tue, 7 Jul 2026 17:09:38 +0300
-Message-ID: <20260707140938.3106919-1-Alexander.Chesnokov@kaspersky.com>
-X-Mailer: git-send-email 2.43.0
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="YgJdEqnl"
+Received: by mail-wm2-f2.google.com with SMTP id 5b1f17b1804b1-493b7612512so211245e9.0
+        for <linux-rdma@vger.kernel.org>; Tue, 07 Jul 2026 09:15:29 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1783440928; x=1784045728; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=75niY7Ljy7FT8jvSV7EktRwrOBqI3lwLXWuqSCh0cQo=;
+        b=YgJdEqnlIgXKoytqAB/JelMn0j5QKGOJbMW4x5jKs9vY2rDBuOzJXqRLqqcjuJT5qa
+         1LdqUT+bZVHHLJyn6JrF/NWuZ7TAfG+44wB6UxACyYOz3qxOt45h0vyLxTgr4EcO/FBy
+         lkzsjIqsNpC4MXDpxlLrQIh40A2QnqVyj5JPoLGw3E5BYxGfGvfgyJCtPJn1u9vbj1je
+         GFcenXpHJy9uAIBKoANU9b6P1a+OmxZ0+BzdukwYOYUs1xc1Dr4yZhNiFvDD+RT7mGkF
+         0tf780j7F/EaVN+gICsO7FYkcFoOfNXkI9rNZNF01YsXiiRoPldcZsQ/tII82i3Wssww
+         Dmag==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1783440928; x=1784045728;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=75niY7Ljy7FT8jvSV7EktRwrOBqI3lwLXWuqSCh0cQo=;
+        b=ontoDqTrBmHI9TkWnjdhbN5/T4gtCOPiLOt/9mgUK6RMyTxNpaXdxGlylr8kLW4V2Y
+         CXyFjY9iaT0QhPhgo8bRc0E7iUK2kzDoPlso0FDfUekYHLIXZMhf44RlBZeBxdSQHNvf
+         ShTh8rFj5jisCMxDWDBp6yojLV7hDV6GjAczgdg4ebMxL8A6dFinu8RU7VPQGBs0m4h7
+         patcLIwlQpzvuKdA5NGoX+/qxXuDq4VOpP36uPLSzNOINO6gaw3MkaKju2zSrODaMc4l
+         cPLGAvKHyqryVndXSKgqBVSBfNTuKq73pMICYG7EUkOVgSiIsJyohWASAxZWZi2V1Vwv
+         Gn/w==
+X-Forwarded-Encrypted: i=1; AHgh+RrNFAiJvJPC9uhVHdSpWe31EE0APw49H0M8FqiW25wUWmQsHvuvtMddAiaP9MbtPrtMeLSU7Rblo8HG@vger.kernel.org
+X-Gm-Message-State: AOJu0YzI5GocjBAASaac7ws/l3tHgnXSCgUQ4d0RVv4ubiYS6CZTd0cD
+	GThDyYc2tenBZN3A5A3V2EP/G0aqvgfzXjM2FKXHaQV1+b/cB/x3B8E1
+X-Gm-Gg: AfdE7cnRL3vup4CmfLF3ZlKz9+UsaKdrCYBaf3Rp7b4g1bhKj0nPT0ziaEriaWjgRIt
+	h6kfTpVyV1hKTl5EeKELmkKX1BVHutQKhSb3K6xVuht2iyzx0++W/FVmETZX04SxaJAUK5ujNF3
+	1dTTBUJTod0pOmA3ylMYDZHw3JXVdwidTq/s+KqrIb/4QzYKtmJqyzCkFi7RAN/Pq3Hn12YJAAb
+	VJkJUUQTVOtOBwArU400L1SNVm9BbJ0uW9mHiA4tKONih19k5EbiDmaDbAaBlCqort+OACAGZkb
+	P6xe4tNG5w7DYkUhz9dqSexxdEGNrvmWOL12UVqYq4IO5FCNpKJt6dGy0NRsBb8nllyVLo0Ckg2
+	OPkLA71HWuW/hsWa7ZBQXHZCFNNrUW12TFulZVhuxWidPkWUnKS9BCn8ig7gLZs4K1WvS12iuTX
+	ECGJp8WXRYYBk=
+X-Received: by 2002:a05:600c:8708:b0:493:c991:8e56 with SMTP id 5b1f17b1804b1-493e1008e65mr38795035e9.4.1783440927256;
+        Tue, 07 Jul 2026 09:15:27 -0700 (PDT)
+Received: from fedora ([212.253.209.56])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-493e0aa7da9sm70402585e9.1.2026.07.07.09.15.24
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 07 Jul 2026 09:15:26 -0700 (PDT)
+From: Serhat Kumral <serhatkumral1@gmail.com>
+To: yanjun.zhu@linux.dev
+Cc: zyjzyj2000@gmail.com,
+	jgg@ziepe.ca,
+	leon@kernel.org,
+	dsahern@kernel.org,
+	linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	syzbot+8c9eede336e3a843750e@syzkaller.appspotmail.com
+Subject: Re: [PATCH v2] RDMA/rxe: rework per-net tunnel socket lifetime to fix refcount underflow
+Date: Tue,  7 Jul 2026 18:54:21 +0300
+Message-ID: <20260707155421.18021-1-serhatkumral1@gmail.com>
+X-Mailer: git-send-email 2.54.0
+In-Reply-To: <91a47c3a-d6c5-4998-99e2-fb615253853b@linux.dev>
+References: <91a47c3a-d6c5-4998-99e2-fb615253853b@linux.dev>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -78,91 +80,31 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: HQMAILSRV3.avp.ru (10.64.57.53) To HQMAILSRV2.avp.ru
- (10.64.57.52)
-X-KSE-ServerInfo: HQMAILSRV2.avp.ru, 9
-X-KSE-AntiSpam-Interceptor-Info: scan successful
-X-KSE-AntiSpam-Version: 6.1.1, Database issued on: 07/07/2026 13:52:20
-X-KSE-AntiSpam-Status: KAS_STATUS_NOT_DETECTED
-X-KSE-AntiSpam-Method: none
-X-KSE-AntiSpam-Rate: 0
-X-KSE-AntiSpam-Info: Lua profiles 204297 [Jul 07 2026]
-X-KSE-AntiSpam-Info: Version: 6.1.1.22
-X-KSE-AntiSpam-Info: Envelope from: Alexander.Chesnokov@kaspersky.com
-X-KSE-AntiSpam-Info: LuaCore: 112 0.3.112
- 7c8d497b0e572fbfa504a2ee62037c045a8cb4ec
-X-KSE-AntiSpam-Info: {date_rfc_vio_soft_silent}
-X-KSE-AntiSpam-Info: {Tracking_ml_letters}
-X-KSE-AntiSpam-Info: {Tracking_cluster_exceptions}
-X-KSE-AntiSpam-Info: {Tracking_real_kaspersky_domains}
-X-KSE-AntiSpam-Info: {Tracking_black_eng_exceptions}
-X-KSE-AntiSpam-Info: {Tracking_from_domain_doesnt_match_to}
-X-KSE-AntiSpam-Info: 127.0.0.199:7.1.2;chesnokov.avp.ru:7.1.1,5.0.1;kaspersky.com:7.1.1,5.0.1;d41d8cd98f00b204e9800998ecf8427e.com:7.1.1
-X-KSE-AntiSpam-Info: {Tracking_white_helo}
-X-KSE-AntiSpam-Info: FromAlignment: s
-X-KSE-AntiSpam-Info: Rate: 0
-X-KSE-AntiSpam-Info: Status: not_detected
-X-KSE-AntiSpam-Info: Method: none
-X-KSE-Antiphishing-Info: Clean
-X-KSE-Antiphishing-ScanningType: Deterministic
-X-KSE-Antiphishing-Method: None
-X-KSE-Antiphishing-Bases: 07/07/2026 13:54:00
-X-KSE-AttachmentFiltering-Interceptor-Info: no applicable attachment filtering
- rules found
-X-KSE-Antivirus-Interceptor-Info: scan successful
-X-KSE-Antivirus-Info: Clean, bases: 7/7/2026 1:33:00 PM
-X-KSE-BulkMessagesFiltering-Scan-Result: InTheLimit
-X-KSE-AttachmentFiltering-Interceptor-Info: no applicable attachment filtering
- rules found
-X-KSE-BulkMessagesFiltering-Scan-Result: InTheLimit
-X-KSMG-AntiPhishing: NotDetected
-X-KSMG-AntiSpam-Interceptor-Info: not scanned
-X-KSMG-AntiSpam-Status: not scanned, disabled by settings
-X-KSMG-AntiVirus: Kaspersky Secure Mail Gateway, version 2.1.1.8310, bases: 2026/07/07 13:46:00 #28409727
-X-KSMG-AntiVirus-Status: NotDetected, skipped
-X-KSMG-LinksScanning: NotDetected
-X-KSMG-Message-Action: skipped
-X-KSMG-Rule-ID: 52
 
-From: Alexander Chesnokov <Alexander.Chesnokov@kaspersky.com>
+Hi Yanjun,
 
-If hop_num is 2 or 1, then the expressions like
-i * chunk_ba_num + j are computed in 32-bit
-arithmetic before being assigned to a u64 index field,
-which can lead to overflow.
+> The current ordering introduces a subtle race that
+> can leave an RXE link in an unrecoverable state.
+>
+> If the DELLINK path sets RXE_NET_SK_PUT first and
+> then finds ndev == NULL, it returns without calling rxe_net_uninit().
+>
+> Finally, the per-netns UDP socket reference (nr_sk4/nr_sk6) is never
+> decremented.
 
-Cast the first operand to u64 to ensure the arithmetic
-is performed in 64-bit.
+You are right, thanks for catching this. The once-only bit must not be
+consumed by a path that can then fail to do the actual put.
 
-Found by Linux Verification Center (linuxtesting.org) with SVACE.
+In v3 the put no longer depends on ib_device_get_netdev() at all: the
+struct net pointer is recorded in struct rxe_dev at creation time and
+used for the put directly. That way the invocation that wins the
+test_and_set_bit() can never fail to drop the references, even if the
+queued unregister has already cleared the ib_device -> netdev
+association. I chose this over reordering the bit test against the
+netdev lookup because a reordered lookup still has a smaller window
+where both racing paths see a NULL netdev.
 
-Fixes: a81fba28136d ("RDMA/hns: Configure BT BA and BT attribute for the contexts in hip08")
-Cc: stable@vger.kernel.org
-Signed-off-by: Alexander Chesnokov <Alexander.Chesnokov@kaspersky.com>
----
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+I will send v3 shortly.
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 1c180a6b1c07..b62513b4db09 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -4257,11 +4257,11 @@ static int hns_roce_v2_set_hem(struct hns_roce_dev *hr_dev,
- 	chunk_ba_num = mhop.bt_chunk_size / 8;
- 
- 	if (hop_num == 2) {
--		hem_idx = i * chunk_ba_num * chunk_ba_num + j * chunk_ba_num +
-+		hem_idx = (u64)i * chunk_ba_num * chunk_ba_num + (u64)j * chunk_ba_num +
- 			  k;
--		l1_idx = i * chunk_ba_num + j;
-+		l1_idx = (u64)i * chunk_ba_num + j;
- 	} else if (hop_num == 1) {
--		hem_idx = i * chunk_ba_num + j;
-+		hem_idx = (u64)i * chunk_ba_num + j;
- 	} else if (hop_num == HNS_ROCE_HOP_NUM_0) {
- 		hem_idx = i;
- 	}
--- 
-2.43.0
-
+Thanks,
+Serhat
