@@ -1,228 +1,168 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.15])
+Received: from mailhub9-fb.kaspersky-labs.com (mailhub9-fb.kaspersky-labs.com [195.122.169.2])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F0B8933ADAC;
-	Tue,  7 Jul 2026 14:15:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=192.198.163.15
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783433759; cv=fail; b=kuzwEN3yxUbZ9Or+stkM/kWKCvgegCjwl8rewHbJS8glhR2y4mmcRQ0BxmFBcntfUetQRXlmCKLRwQdpBimhbewZHfWl2L143eF80sFTn69OU+NTeNZd24Y3hlIEFUdzwoqQFp7S0GJ5+MAMxT9KMRFIqIXvnfdfJzUOEkn8dh8=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783433759; c=relaxed/simple;
-	bh=dS/yiVBnIaJSXtSBcWfsh0WWNACq1YwwFxmDrho8DY4=;
-	h=From:To:CC:Subject:Date:Message-ID:References:In-Reply-To:
-	 Content-Type:MIME-Version; b=fKcZfE3FPI/xYXq45eZDFJ64Ih5fwN88Mr20bt/Kf/Y0e9hROUGDys3OEqx3fdKhXNUjnn0/Gm6TAa5l5Mx0ZhrycuNRCNPpNDH9vMJl3TgK8DDk3AO5WIg6R8qi4kh3F7WDo5oimpn1kXAl1ZFChlVHHJtTLBBo6gU1qczfYjU=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=BvjKBCSc; arc=fail smtp.client-ip=192.198.163.15
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0308C41610A;
+	Tue,  7 Jul 2026 14:17:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.122.169.2
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1783433834; cv=none; b=Ke+1mKKElGo3iR0GIbyh/GMoqcRTZj4b/KaP2QcHJxE4f1EEvtdmxTzOKXZ0DSvCq4qrf3n55GjwGT8fEI8jD6UyWiq46Vsp0thSejiqeNQgZNd6gmKiGLyg61/lE+M6ZkTgTY28Le2mkv/feeu0qY8fxQThG9WZh0jenqKpsPU=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1783433834; c=relaxed/simple;
+	bh=yhGQahQOCPZz7JseoaL/a2P5LTYNU3VSFzzv5E3WmmI=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=r2UaGJ4RzZJry4v1elf1k8Gb/x/sP7XVij71wPFQmfnR4mERiyDgqOEXDhdO1tIeqigymM+V9g1krHOlPZu28j7qoqsHvtLv2zlom2DUIXK0apGmX9Lh0B9CfV5r2rHXPx/2oFV/DOBeoxzSSD7gYKW8rj6tfsWsX/U3b5gTd2U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=kaspersky.com; spf=pass smtp.mailfrom=kaspersky.com; dkim=pass (2048-bit key) header.d=kaspersky.com header.i=@kaspersky.com header.b=vRn2Ptud; dkim=pass (2048-bit key) header.d=kaspersky.com header.i=@kaspersky.com header.b=nQqLH7JO; arc=none smtp.client-ip=195.122.169.2
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=kaspersky.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kaspersky.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="BvjKBCSc"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1783433757; x=1814969757;
-  h=from:to:cc:subject:date:message-id:references:
-   in-reply-to:content-transfer-encoding:mime-version;
-  bh=dS/yiVBnIaJSXtSBcWfsh0WWNACq1YwwFxmDrho8DY4=;
-  b=BvjKBCScLszYKHgD/yIEZE9+qKq4c4i7Lm88cBXCkN43xN6IFTq/udEW
-   GCmqq1hNFdX8Kc0c9IhhfCG9ZkTBtzgxM+K8wEMlcohroYB2GVH4q+ZGY
-   9uVvfXBVkxw7cR1tzrXpuqIo9UTU0nWEggAMCHldpqAOCYvGdjuDHfV3Q
-   HJEpY5lTiyDjyQOUppsfPP1iC3V+uWX3IDn2SB8AkmGravhzLs2jLNYpZ
-   CMmESJwJcFJ8yodBmOzlwEEvgkkQS62R5kDtRlTSF9rucUd/E0K6cldrV
-   NqAeul12kl27kwo58FA1rNd44nfVz+T3tNi04OlwLLG6cDX015Cv2ZJIL
-   w==;
-X-CSE-ConnectionGUID: Wnp/4+r9SICTXG9oJTE7CA==
-X-CSE-MsgGUID: /MiLGDuxQZuM2dg9Xpfnzg==
-X-IronPort-AV: E=McAfee;i="6800,10657,11840"; a="84200480"
-X-IronPort-AV: E=Sophos;i="6.25,153,1779174000"; 
-   d="scan'208";a="84200480"
-Received: from fmviesa006.fm.intel.com ([10.60.135.146])
-  by fmvoesa109.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Jul 2026 07:15:56 -0700
-X-CSE-ConnectionGUID: IrEs4ZaOT0u1aybNAwNiFA==
-X-CSE-MsgGUID: SUsB0qcfSXSuGI1tY1Sy3Q==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.25,153,1779174000"; 
-   d="scan'208";a="249579632"
-Received: from fmsmsx902.amr.corp.intel.com ([10.18.126.91])
-  by fmviesa006.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Jul 2026 07:15:56 -0700
-Received: from FMSMSX901.amr.corp.intel.com (10.18.126.90) by
- fmsmsx902.amr.corp.intel.com (10.18.126.91) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.43; Tue, 7 Jul 2026 07:15:55 -0700
-Received: from fmsedg903.ED.cps.intel.com (10.1.192.145) by
- FMSMSX901.amr.corp.intel.com (10.18.126.90) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.43 via Frontend Transport; Tue, 7 Jul 2026 07:15:55 -0700
-Received: from CY3PR05CU001.outbound.protection.outlook.com (40.93.201.22) by
- edgegateway.intel.com (192.55.55.83) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.43; Tue, 7 Jul 2026 07:15:55 -0700
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=PiiDU+xe5jMzZQy4lFHblCaGfGiPLtC63qulO/uJpMRAjwovKdEoHFBv20ac/BdZJ8GATZs9bj9APKvwqiKcDBQPA3tj5NFG5l+exPMW01Q1sTv/Rv7+y54poww2R4d8MfhduvFDEwByY62uJkOW4JNAwlLZW4rjYzW3MuEic5I1EYUwSnpXSScXTbKmvpXrNlo/GnJ5luZ4CDveCJBeKWoVvFPUvWKQrWZEZxWp7e6p85MsAmtiN0Dwn5u8y8nG62kVHVSfnKghUl6804xgZ51Nvn2f1Z+b67dncv6xCEXvEERsKM2r48zJRMkoMNJSaQr9UR9ZzoCEerwBoOOmsA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=l9SMYNLXNQehrPboeD87CaES2Gjzd8AYz0ggwch1GxE=;
- b=RjtDhwk6b8zsgYUgvZCsvGZ7B3VP1C0weWa6LNgKUuCYJn/212iaEGJE835ijRMgDKQc6jXizXRuApCyBmHccyMWseB1eqSDkYu3k27Wf+tz0eEl1Q0oEnaJjBPLhbpHeXDw5hT9zkBTHGXu0HskQZWAU71O9N0OTMC+LEiMMFimkRWW0tc4JXuFb0gmA3MchvqbJ1VPe6lUsxKwELd7DNWNYnaPkBfw28Qo1PPhRGMYv4hr0BDjg5maOQM3PvBwzw5DJN0Fs0qpoi0umM4Ae1eHjBDa2lyczrux15aWuBU1G0MgFlUy/85+dxQyKdoZwFMK1k3YDYYNe3CztAajhA==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-Received: from IA3PR11MB8986.namprd11.prod.outlook.com (2603:10b6:208:577::21)
- by PHXPR11MB9685.namprd11.prod.outlook.com (2603:10b6:510:3ca::7) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.159.18; Tue, 7 Jul
- 2026 14:15:53 +0000
-Received: from IA3PR11MB8986.namprd11.prod.outlook.com
- ([fe80::e6f0:6afb:6ef9:ab5c]) by IA3PR11MB8986.namprd11.prod.outlook.com
- ([fe80::e6f0:6afb:6ef9:ab5c%6]) with mapi id 15.21.0181.008; Tue, 7 Jul 2026
- 14:15:52 +0000
-From: "Loktionov, Aleksandr" <aleksandr.loktionov@intel.com>
-To: Tariq Toukan <tariqt@nvidia.com>, Andrew Lunn <andrew+netdev@lunn.ch>,
-	"David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, "netdev@vger.kernel.org"
-	<netdev@vger.kernel.org>, Paolo Abeni <pabeni@redhat.com>
-CC: Boris Pismenny <borisp@nvidia.com>, Chris Mi <cmi@nvidia.com>, "Cosmin,
- Ratiu" <cratiu@nvidia.com>, Daniel Zahka <daniel.zahka@gmail.com>, "Dragos
- Tatulea" <dtatulea@nvidia.com>, Gal Pressman <gal@nvidia.com>, "Keller, Jacob
- E" <jacob.e.keller@intel.com>, Jianbo Liu <jianbol@nvidia.com>, Lama Kayal
-	<lkayal@nvidia.com>, Leon Romanovsky <leon@kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Mark Bloch
-	<mbloch@nvidia.com>, Raed Salem <raeds@nvidia.com>, Rahul Rameshbabu
-	<rrameshbabu@nvidia.com>, Saeed Mahameed <saeedm@nvidia.com>, "Stanislav
- Fomichev" <sdf@fomichev.me>, Stanislav Fomichev <sdf.kernel@gmail.com>,
-	Willem de Bruijn <willemdebruijn.kernel@gmail.com>
-Subject: RE: [PATCH net-next 03/15] net/mlx5e: psp: Remove unneeded ref
- counting for PSP steering
-Thread-Topic: [PATCH net-next 03/15] net/mlx5e: psp: Remove unneeded ref
- counting for PSP steering
-Thread-Index: AQHdDhIhYWqml6oMEkqLrBDtPcH6o7ZiGf3Q
-Date: Tue, 7 Jul 2026 14:15:52 +0000
-Message-ID: <IA3PR11MB8986BE0665111CF123CD4267E5F02@IA3PR11MB8986.namprd11.prod.outlook.com>
-References: <20260707130858.969928-1-tariqt@nvidia.com>
- <20260707130858.969928-4-tariqt@nvidia.com>
-In-Reply-To: <20260707130858.969928-4-tariqt@nvidia.com>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach:
-X-MS-TNEF-Correlator:
-authentication-results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-x-ms-publictraffictype: Email
-x-ms-traffictypediagnostic: IA3PR11MB8986:EE_|PHXPR11MB9685:EE_
-x-ms-office365-filtering-correlation-id: cc0d9567-5b2f-4609-7a83-08dedc3240e8
-x-ld-processed: 46c98d88-e344-4ed4-8496-4ed7712e255d,ExtAddr
-x-ms-exchange-senderadcheck: 1
-x-ms-exchange-antispam-relay: 0
-x-microsoft-antispam: BCL:0;ARA:13230040|23010399003|1800799024|7416014|376014|366016|38070700021|18002099003|22082099003|6133799003|11063799006|4143699003|56012099006;
-x-microsoft-antispam-message-info: DTIiQWeOy5gUps17X9GyP56V66bwh6NAbXp5sMh7lfxVZGx+jfK+GWzP5j3qPNo0P56qJGi47Wp4GomV+rK3wAqZAVOSKsOOa3OwczCiy16oAnsoD9wuDKFdJ1eqdq0sHYBi4sue3hzcIeZw6cC8M5E1UU5RBq5yYqvIG1Srf+f86cujiAHCnKogkFMbwk2nb9Eao9f0pJB8LVjD40eng/2dqIJGG3DZzRAEspCALbs2KU/4IAEbRbcXSgxHerIcG1BxZSBY658bkutcLqHpNuWGLfkGKY4O2tECQeyFvEcJIJJdPZhTxYpZ7tUDWG+zmuCXrP6qThLQ04ECPZBv+iS2M2ZkqXAyixaiQicq5cR5g77ycoA65LsFyzwUXKQghHpLzbpjdkE+BOtjA4LfjBWaYQsAU2kG7I6zyF73dFD/l3D1nN/HhD5odnC1jTpNFdqLsPhc1cHwoiXOCQ9tOj0yeXoCfbhJ+wlG/VHQdayq2LBbaxTR724TYHRfVC9Vtm1J7kPEHODY7RRkO3iVn/1UD7tmelaco8Dx46JB+7HpWTVyt3tHYuisbls8JoqjoZICVM4z6gdw9/I4cSP2rCUkStPj92qsJt7pu5A8z3Ubfq+lv6RpuEV3YM4gItQF+4cB8mzUtCb7NEgcS2z70dy6T3h5PoJXDhv9Cb07IYMBg3X5+gfDxQa/f6kVsiN1RETlyQslOQsnGXhktgpPuA==
-x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:IA3PR11MB8986.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(23010399003)(1800799024)(7416014)(376014)(366016)(38070700021)(18002099003)(22082099003)(6133799003)(11063799006)(4143699003)(56012099006);DIR:OUT;SFP:1101;
-x-ms-exchange-antispam-messagedata-chunkcount: 1
-x-ms-exchange-antispam-messagedata-0: =?us-ascii?Q?B7r6q3Ev57mXw8rfCFYU942dSsXMsszx71SWSdoFY6zVaH58f1Cvy76J7gjM?=
- =?us-ascii?Q?OW3a7ADoB01K72QCLQGYQDVka9qvfWM0fVMfZrVDeiJQ/l0Pf+uDft27uahZ?=
- =?us-ascii?Q?ytZ/Y/lEuZc8/NFh2VNnx4LjD6fm81EYGcRmvh4nF3HyqWHZGOpTQbYdNCxV?=
- =?us-ascii?Q?8u00ZM/J3JTpXqeCfUsZcb8DX7ceXwnsSD+ahoXwFJHRoWdVBgJLjMfPZ7eY?=
- =?us-ascii?Q?YzuObOr/wVPcrwdnYCyinJpD9QkHEqqt1tTx8JVh9wyz+jXZoHU9KY8k1C/G?=
- =?us-ascii?Q?9RYfL0msLsKrTxYRUMNTjGAlWpQjSSxRC3qTKVtIkSI6RufK2imp6YmnA0kJ?=
- =?us-ascii?Q?N0C55+XpHb5dizA0yqp07Zc2AlWBTfsFBXCqZTOp5FSxZ5KbbaQO+SMUAw/Q?=
- =?us-ascii?Q?CKOTNUdKD0SPe2quGrr8DcxIN3nibWA5lfkbXnuzRhJ4PUzI/Sj7Qfv2xTeF?=
- =?us-ascii?Q?vt/t+Pnu39TKWrlmm1RJYWDzEKqcQaATiqJDHj4L14eyjqOiEm9VbYfV3y7G?=
- =?us-ascii?Q?D379OPv6TdeIUR20ny+CrbSO27TPuUTtgKtwlXQqvZol1jC0XK32+QTgh6xq?=
- =?us-ascii?Q?iTK5dVLsC5Vy+iBbdEtAnTACUrY3LvGHm4a01zoL5pbU49nuwGej/wV/UFXo?=
- =?us-ascii?Q?Hb0gFPEk6NAfRL9xfVPuvbIE7rVQph0nzk85xqkQvH4FlryFxkk6thF7yM3n?=
- =?us-ascii?Q?mX5f1aP6T9QlpA01tzys7gLQf7bqnFcWBeLYNnpTnu2BKEMKTWWRQ9hMZkw5?=
- =?us-ascii?Q?XffNiVD5CPKQmfJo+Gv9UVoTwSzTJhuB9ebww5ZBbASgTnWKEs9rG/7zUmGk?=
- =?us-ascii?Q?Hfd5yDkMOMPetBha5EyL7tuhH0GOQnpuqc9DcbZYR55FTIz0hMUDOcfMzff6?=
- =?us-ascii?Q?W5bKqDir/VCOumGXN1pKIP3TVyhKuM3OAPJrvM+M9rGDNu/XPdYOtESOOU+4?=
- =?us-ascii?Q?L48QXQW5zPTJESSYHHdTg0Ul/R1yWSaBJSNz8DJwTCKiznQxUOZFMsY5uFpo?=
- =?us-ascii?Q?55a4VL8znt4uv7kTp43frNqrIEP6+OZ+XBD5VytFBzm9zpkd+utbX8Xmp/Ih?=
- =?us-ascii?Q?ep3jZCaPVmMrHGXCLE7FoDOHtJP6cMJt+LQv091lpheO2g6FkWeRN7LYwq8K?=
- =?us-ascii?Q?pY6S4L7IE62GvXsA7C3TqRl/X1mtV5jnbTBrQSGlyCwFumxWRryorGs2cI7g?=
- =?us-ascii?Q?SuRKqQryrc9dEELZ95JgBRpHNhMgXaBSUpQniYRVGLOziK+e8nC8ZqHg8a4X?=
- =?us-ascii?Q?xfJXJpWa+xx9sBVbtB2rs0rVrfoRTP1RNdLONP2oJXl0qFxgiwE+7/8KaF+x?=
- =?us-ascii?Q?CH0j1OyuVTv8YsE4eOZ7cKjUrpMJ22hqoA3XJoAvW2Fm/dg0h/aV+cnSo1+A?=
- =?us-ascii?Q?GIcn4i1if7bMvoNVFDH5WqLQUyNGEcQH/sGYbgfRJyho96ELZHBs9ef0aLKk?=
- =?us-ascii?Q?aoXJ0A31Kqj2JsTp6Sphol6gkVOMZJ0jZQ8Nm8+7qbva5xwP0Pul4ozbV/Zr?=
- =?us-ascii?Q?34DHGY4knVp51cng0nqwfuyxq520egrM/Pm2NsmlhisDPdsKox2IIF1JUbav?=
- =?us-ascii?Q?sYhGdo/iha3saEK3KbmeRFYDp0Rcvi2RLazakyUee4CJEB8TQc5FotuwfVOz?=
- =?us-ascii?Q?a24RHqoLchqJB8URafxU7JrhH1DId5ngEF75jJGx/MVeOYGFvbM+fR13uo1E?=
- =?us-ascii?Q?II4y0TBHrHVo5ab6EeEzjIPrcNzyG42icUCNxcF7xjpWEg/pZWMSI2uK6ggF?=
- =?us-ascii?Q?+hKjv+dBvEhGPYpZ3ARE4Z4uXu6h+Ok=3D?=
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+	dkim=pass (2048-bit key) header.d=kaspersky.com header.i=@kaspersky.com header.b="vRn2Ptud";
+	dkim=pass (2048-bit key) header.d=kaspersky.com header.i=@kaspersky.com header.b="nQqLH7JO"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kaspersky.com;
+	s=mail202505; t=1783433391;
+	bh=KOpTyhoe2Irsyxnw0tccmTf6A2EilUrNjrxf0YkWg60=;
+	h=From:To:Subject:Date:Message-ID:MIME-Version:Content-Type;
+	b=vRn2PtudRID+y3H07nwPKldyUMS5gNf/C8gPqMoD8iByNMDm0S1Ox9Z16LEUIibKk
+	 PXhuhrMjIGbanyh2Nib8KTvfn82xuZkBBZpGs8tecmlZEcfSR6qEpVRZCw8lsjaTJD
+	 QnKsAYiKogj6uD3wAdZ11lfG4THvqhYxGPe08epaexj8c/fA+U/Jnu05F/OTAMYj5h
+	 9GgeN/kgAH/M3olN3RPlJgr/HPxYbg6j5sYklrehkOw1vSblucRuWfcnoXcXvr0AMG
+	 9xRnc2iJ2YZzRlrrb188LVZQms12BLN+kI0tnnPvXQAQrSxYdp+Cvob7vu42+A22Cz
+	 AOd4I3Mdh2dhQ==
+Received: from mailhub9-fb.kaspersky-labs.com (localhost [127.0.0.1])
+	by mailhub9-fb.kaspersky-labs.com (Postfix) with ESMTP id 79A3C900791;
+	Tue,  7 Jul 2026 17:09:51 +0300 (MSK)
+Received: from mx16.kaspersky-labs.com (mx16.kaspersky-labs.com [5.79.125.27])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256
+	 client-signature RSA-PSS (4096 bits) client-digest SHA256)
+	(Client CN "mx16.kaspersky-labs.com", Issuer "Kaspersky MailRelays CA G3" (verified OK))
+	by mailhub9-fb.kaspersky-labs.com (Postfix) with ESMTPS id 524479005B9;
+	Tue,  7 Jul 2026 17:09:51 +0300 (MSK)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kaspersky.com;
+	s=mail202505; t=1783433382;
+	bh=KOpTyhoe2Irsyxnw0tccmTf6A2EilUrNjrxf0YkWg60=;
+	h=From:To:Subject:Date:Message-ID:MIME-Version:Content-Type;
+	b=nQqLH7JOL1XNYiK7NdUdzKmG4EQx/vv9vCEJeXwyrIhlqg3Icq4QrEeAbVyH8l4TO
+	 6LHhz7ySVDFZyqv/YJGiziP7L+9/YTeCw/ComxFDQr2EvIDTinKUWkdrcXDExRFigR
+	 zHYjIWd7+sIu95Qhcko4gKfhxVFkrFwnjgORNUXJHah0gh6CSi67kmz3oBtokrL+pK
+	 qLB+j7H6GA94nHs+4jtvoALxUMDq7vBhRyvoti5j4gLEYNJ61Gsv8Rvm2qMtmYTTVr
+	 g10n4oyC9FqGkloVy6bkw7+pIjNpVNK7elI1krYYKuVlL3SLx7mqHHFQf1I9Hf6qDD
+	 vw2I4XTpJQwgA==
+Received: from relay16.kaspersky-labs.com (localhost [127.0.0.1])
+	by relay16.kaspersky-labs.com (Postfix) with ESMTP id E64E9C07655;
+	Tue,  7 Jul 2026 17:09:42 +0300 (MSK)
+Received: from mail-hq2.kaspersky.com (unknown [91.103.66.200])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(Client CN "mail-hq2.kaspersky.com", Issuer "Kaspersky MailRelays CA G3" (verified OK))
+	by mailhub16.kaspersky-labs.com (Postfix) with ESMTPS id 6C360C07A60;
+	Tue,  7 Jul 2026 17:09:41 +0300 (MSK)
+Received: from chesnokov.avp.ru (10.16.105.7) by HQMAILSRV2.avp.ru
+ (10.64.57.52) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.41; Tue, 7 Jul
+ 2026 17:09:40 +0300
+From: <Alexander.Chesnokov@kaspersky.com>
+To: <xuhaoyue1@hisilicon.com>
+CC: <lvc-project@linuxtesting.org>, <Oleg.Kazakov@kaspersky.com>,
+	<Pavel.Zhigulin@kaspersky.com>, <stable@vger.kernel.org>, Wenpeng Liang
+	<liangwenpeng@huawei.com>, Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky
+	<leon@kernel.org>, Xi Wang <wangxi11@huawei.com>, Weihang Li
+	<liweihang@huawei.com>, <linux-rdma@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>, Alexander Chesnokov
+	<Alexander.Chesnokov@kaspersky.com>
+Subject: [PATCH] RDMA/hns: Fix arithmetic overflow in hns_roce_v2_set_hem()
+Date: Tue, 7 Jul 2026 17:09:38 +0300
+Message-ID: <20260707140938.3106919-1-Alexander.Chesnokov@kaspersky.com>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Exchange-RoutingPolicyChecked: MBpuJOZ9pIFHXWTXleIhvLwv2bIAEFl2Y5M47LxUla4+LN3+18iR97AXS3Kz0bN93ynecpyNDHuZFzsUAqtDadgWGEdAjaCLiu6OdJep1GOwObNqLWQvgQbGHuJBMRm1sCXooaeyMMjDGBqUaq4Hku0oZx2SpwjvyPtwKaIQQMi6Q5DpfmWW8kpBQRFFtAAP5S4mf3nb5H/7wsydxryvqRDFk2axJPa6cpTyfRQyg/sj918TwNFTj48W802OqIhKE5YWMuOfTGsvxqOdKJclwzRaayyPv3lJzN/14xHQ6338rI0jqpeqHTHHolDufBrmvyzTMofxxroaFRf98fqOPw==
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-AuthSource: IA3PR11MB8986.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: cc0d9567-5b2f-4609-7a83-08dedc3240e8
-X-MS-Exchange-CrossTenant-originalarrivaltime: 07 Jul 2026 14:15:52.8230
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: MqhgR+qaFkd/b5C1nYqXC/VB9mlx5yBuXU51zQO0a4AOVNcQEIoBTmTW1f/taVoKhr71J/s/6k8S4gFb9NtuWzJ0yxO7H4nxcBpOO2gBoz8=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PHXPR11MB9685
-X-OriginatorOrg: intel.com
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: HQMAILSRV3.avp.ru (10.64.57.53) To HQMAILSRV2.avp.ru
+ (10.64.57.52)
+X-KSE-ServerInfo: HQMAILSRV2.avp.ru, 9
+X-KSE-AntiSpam-Interceptor-Info: scan successful
+X-KSE-AntiSpam-Version: 6.1.1, Database issued on: 07/07/2026 13:52:20
+X-KSE-AntiSpam-Status: KAS_STATUS_NOT_DETECTED
+X-KSE-AntiSpam-Method: none
+X-KSE-AntiSpam-Rate: 0
+X-KSE-AntiSpam-Info: Lua profiles 204297 [Jul 07 2026]
+X-KSE-AntiSpam-Info: Version: 6.1.1.22
+X-KSE-AntiSpam-Info: Envelope from: Alexander.Chesnokov@kaspersky.com
+X-KSE-AntiSpam-Info: LuaCore: 112 0.3.112
+ 7c8d497b0e572fbfa504a2ee62037c045a8cb4ec
+X-KSE-AntiSpam-Info: {date_rfc_vio_soft_silent}
+X-KSE-AntiSpam-Info: {Tracking_ml_letters}
+X-KSE-AntiSpam-Info: {Tracking_cluster_exceptions}
+X-KSE-AntiSpam-Info: {Tracking_real_kaspersky_domains}
+X-KSE-AntiSpam-Info: {Tracking_black_eng_exceptions}
+X-KSE-AntiSpam-Info: {Tracking_from_domain_doesnt_match_to}
+X-KSE-AntiSpam-Info: 127.0.0.199:7.1.2;chesnokov.avp.ru:7.1.1,5.0.1;kaspersky.com:7.1.1,5.0.1;d41d8cd98f00b204e9800998ecf8427e.com:7.1.1
+X-KSE-AntiSpam-Info: {Tracking_white_helo}
+X-KSE-AntiSpam-Info: FromAlignment: s
+X-KSE-AntiSpam-Info: Rate: 0
+X-KSE-AntiSpam-Info: Status: not_detected
+X-KSE-AntiSpam-Info: Method: none
+X-KSE-Antiphishing-Info: Clean
+X-KSE-Antiphishing-ScanningType: Deterministic
+X-KSE-Antiphishing-Method: None
+X-KSE-Antiphishing-Bases: 07/07/2026 13:54:00
+X-KSE-AttachmentFiltering-Interceptor-Info: no applicable attachment filtering
+ rules found
+X-KSE-Antivirus-Interceptor-Info: scan successful
+X-KSE-Antivirus-Info: Clean, bases: 7/7/2026 1:33:00 PM
+X-KSE-BulkMessagesFiltering-Scan-Result: InTheLimit
+X-KSE-AttachmentFiltering-Interceptor-Info: no applicable attachment filtering
+ rules found
+X-KSE-BulkMessagesFiltering-Scan-Result: InTheLimit
+X-KSMG-AntiPhishing: NotDetected
+X-KSMG-AntiSpam-Interceptor-Info: not scanned
+X-KSMG-AntiSpam-Status: not scanned, disabled by settings
+X-KSMG-AntiVirus: Kaspersky Secure Mail Gateway, version 2.1.1.8310, bases: 2026/07/07 13:46:00 #28409727
+X-KSMG-AntiVirus-Status: NotDetected, skipped
+X-KSMG-LinksScanning: NotDetected
+X-KSMG-Message-Action: skipped
+X-KSMG-Rule-ID: 52
 
+From: Alexander Chesnokov <Alexander.Chesnokov@kaspersky.com>
 
+If hop_num is 2 or 1, then the expressions like
+i * chunk_ba_num + j are computed in 32-bit
+arithmetic before being assigned to a u64 index field,
+which can lead to overflow.
 
-> -----Original Message-----
-> From: Tariq Toukan <tariqt@nvidia.com>
-> Sent: Tuesday, July 7, 2026 3:09 PM
-> To: Andrew Lunn <andrew+netdev@lunn.ch>; David S. Miller
-> <davem@davemloft.net>; Eric Dumazet <edumazet@google.com>; Jakub
-> Kicinski <kuba@kernel.org>; netdev@vger.kernel.org; Paolo Abeni
-> <pabeni@redhat.com>
-> Cc: Loktionov, Aleksandr <aleksandr.loktionov@intel.com>; Boris
-> Pismenny <borisp@nvidia.com>; Chris Mi <cmi@nvidia.com>; Cosmin, Ratiu
-> <cratiu@nvidia.com>; Daniel Zahka <daniel.zahka@gmail.com>; Dragos
-> Tatulea <dtatulea@nvidia.com>; Gal Pressman <gal@nvidia.com>; Keller,
-> Jacob E <jacob.e.keller@intel.com>; Jianbo Liu <jianbol@nvidia.com>;
-> Lama Kayal <lkayal@nvidia.com>; Leon Romanovsky <leon@kernel.org>;
-> linux-kernel@vger.kernel.org; linux-rdma@vger.kernel.org; Mark Bloch
-> <mbloch@nvidia.com>; Raed Salem <raeds@nvidia.com>; Rahul Rameshbabu
-> <rrameshbabu@nvidia.com>; Saeed Mahameed <saeedm@nvidia.com>;
-> Stanislav Fomichev <sdf@fomichev.me>; Stanislav Fomichev
-> <sdf.kernel@gmail.com>; Tariq Toukan <tariqt@nvidia.com>; Willem de
-> Bruijn <willemdebruijn.kernel@gmail.com>
-> Subject: [PATCH net-next 03/15] net/mlx5e: psp: Remove unneeded ref
-> counting for PSP steering
->=20
-> From: Cosmin Ratiu <cratiu@nvidia.com>
->=20
-> PSP steering uses reference counting for TX and RX steering tables,
-> but there's only a single reference for each acquired and thus the
-> reference counting is unnecessary.
->=20
-> Remove it and consolidate functions to simplify the code.
->=20
-> Signed-off-by: Cosmin Ratiu <cratiu@nvidia.com>
-> Reviewed-by: Dragos Tatulea <dtatulea@nvidia.com>
-> Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
-> ---
->  .../mellanox/mlx5/core/en_accel/psp.c         | 129 +++++------------
-> -
->  1 file changed, 33 insertions(+), 96 deletions(-)
->=20
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/psp.c
-> b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/psp.c
-> index d4686b5af776..a69c4e2821e9 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/psp.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/psp.c
-> @@ -26,7 +26,6 @@ struct mlx5e_psp_tx {
->  	struct mlx5_flow_table *ft;
->  	struct mlx5_flow_group *fg;
->  	struct mlx5_flow_handle *rule;
+Cast the first operand to u64 to ensure the arithmetic
+is performed in 64-bit.
 
-...
+Found by Linux Verification Center (linuxtesting.org) with SVACE.
 
->  }
->=20
->  static void mlx5e_accel_psp_fs_cleanup(struct mlx5e_psp_fs *fs)
-> --
-> 2.44.0
+Fixes: a81fba28136d ("RDMA/hns: Configure BT BA and BT attribute for the contexts in hip08")
+Cc: stable@vger.kernel.org
+Signed-off-by: Alexander Chesnokov <Alexander.Chesnokov@kaspersky.com>
+---
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-Reviewed-by: Aleksandr Loktionov <aleksandr.loktionov@intel.com>
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index 1c180a6b1c07..b62513b4db09 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -4257,11 +4257,11 @@ static int hns_roce_v2_set_hem(struct hns_roce_dev *hr_dev,
+ 	chunk_ba_num = mhop.bt_chunk_size / 8;
+ 
+ 	if (hop_num == 2) {
+-		hem_idx = i * chunk_ba_num * chunk_ba_num + j * chunk_ba_num +
++		hem_idx = (u64)i * chunk_ba_num * chunk_ba_num + (u64)j * chunk_ba_num +
+ 			  k;
+-		l1_idx = i * chunk_ba_num + j;
++		l1_idx = (u64)i * chunk_ba_num + j;
+ 	} else if (hop_num == 1) {
+-		hem_idx = i * chunk_ba_num + j;
++		hem_idx = (u64)i * chunk_ba_num + j;
+ 	} else if (hop_num == HNS_ROCE_HOP_NUM_0) {
+ 		hem_idx = i;
+ 	}
+-- 
+2.43.0
+
