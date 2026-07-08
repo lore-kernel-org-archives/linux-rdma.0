@@ -1,103 +1,114 @@
-Received: from mail-wm2-f1.google.com (mail-wm2-f1.google.com [74.125.225.129])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from out-176.mta1.migadu.com (out-176.mta1.migadu.com [95.215.58.176])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0AC7743800D
-	for <linux-rdma@vger.kernel.org>; Wed,  8 Jul 2026 18:28:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.225.129
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D2FF33CA497
+	for <linux-rdma@vger.kernel.org>; Wed,  8 Jul 2026 19:32:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=95.215.58.176
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783535327; cv=none; b=qnqCNX1M63P8HRcP60f4M2TAc80l8nnKTJM+vBEeMsRsd9NTTPAbUlAGgeTYZAAEILCUa7ZVUOXsQbfMotVJ3BYBK312RJ6KH6txNOxFsL4d217bCTUmXw2toLR9joztMPqBooC4d0wZfloc6aLAHivtEVn052N+KLlbB4CNC1g=
+	t=1783539182; cv=none; b=WA0AQbkIOF9sDDNqDRpFpqS9WFNhDeDwnfms5t/BP72FhGlgysKtIVJSvEXbXUP6oVvk1d6p0fQHRlraoVLr4QQOKmyqhSPAg6b3kD1Fa2fZtsTmGX5f1LA/4NAdU8ydrUU6Ja67ye6GXv5pYbldLKPlkrNxdSKZaMkeYBLuLdI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783535327; c=relaxed/simple;
-	bh=qznbZWEKvVbYbB3UWzzKOo3tdMbOv/BFQoeRrvOLZXA=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=LpuZtkx1EHICByPSObbHn3QRIROPLagzQ2V5lLfhJp5hrMEoQNUn30B3skfmeqcb1aqIx1RVUuca4RrQOlWqX6Hnb1TqFK8S9GsOEeeLFIX6NIgm8//xtsPLiX5aEMxGR4jd4kUZ0rDKTDw2/ag5lF1jjfGlXp34cVKuskrgkH0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=r5oU935R; arc=none smtp.client-ip=74.125.225.129
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1783539182; c=relaxed/simple;
+	bh=IOS5GN2pONlWzmwhsKZA8OXhk6yaaGtWlzaGSCHwBxk=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=XZpbEfAPfTzN4rBx6+Dxuki9UOj/0kUcC2e3X87jXgDhPmgxcMKR21ASJhCDEJhbAQHdoYact5tircksxnPeFaQBEsEcHfIiV2zfD1+xih8BAacqDEwJHu+0hi0wXzUTM7/YnXJZOIPU7BIVzKV2KDYpTsDL+8MDTfgKfZEFOuQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=eMpN2EiY; arc=none smtp.client-ip=95.215.58.176
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="r5oU935R"
-Received: by mail-wm2-f1.google.com with SMTP id 5b1f17b1804b1-493b7dd83e8so2242955e9.1
-        for <linux-rdma@vger.kernel.org>; Wed, 08 Jul 2026 11:28:45 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1783535324; x=1784140124; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=Gq3cohTqbBoe5iaxO0km5tQIUkVdi62JW772GqwwYl0=;
-        b=r5oU935RvmsEfixZVIKhPNdDrF63hqKBm9ll5p0TflXmwngGm1Ce91L5JqKlvQmygt
-         jAFAZmmqw9i5sm/oSvNbGvwFVUElsk99zpAUxXf6BypiQaS9D9FFLk0lexOJr6Qdgh8e
-         Xl7yTHbshhKIxb0nK5r+FTx/qtgctj+0ojAD4Ml1EiFSCaet5hbdhS9pDpJ8+4CEkaf8
-         6IpHAT+khgYwrXbtnPjXsJ579KNmTV2DKV2V+RWPL9pDLoGhA5ElzoBNMq4VDK5d3eYX
-         /G681XMDwiZtCJok3bRJkh7VRkt6CdYAbzMukRs7FaOhOUUdtVylVmevMyQLd/tbY5MS
-         Ahag==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1783535324; x=1784140124;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=Gq3cohTqbBoe5iaxO0km5tQIUkVdi62JW772GqwwYl0=;
-        b=SxF7u8CQb+bF7ydLepLJNlae8ZSqy+pwspUiiWl05vwoQv3R/nq8MbO3YXlAW32r85
-         xbfIbBqUgobgBUAHa4gt+yRQNwNjNpzM0W4WH30Oqnf9RcK1KAERubv0i5J3b9MM12kN
-         VYIC/OpNZeSjWR5hdP45HkoZcWEWI6hB5Py8z8Ba7zPL6fTpXGTXcVaioNeFOeUACJL8
-         9VIcqzV+qQKDQARlUuJ2/20IYIrG8yJZu5+Ot7HBjaHf+hOxIlJC5w+IxHwkbNIwn7Mx
-         /4XBakqF4vTF03K40ZYzpHfilPaB6H3u3ZSWjOyCUHWiQ8okgEMUmO5Y8BNEtBwiVeob
-         burA==
-X-Forwarded-Encrypted: i=1; AHgh+RrdobpOomylEPoyrH7IlpQgZHr9swzBcgJiixg7iFTsNNcjuNYOyD2JhkpkRYBQ4g9SQTaPEWhw6Yso@vger.kernel.org
-X-Gm-Message-State: AOJu0YyRj2NBjRQeyETK4tR9f6OgsC8bsH1s90LIktmGJ5j5N3hp24Gr
-	E3Vr3r0y7mcyj/5kWH8+04mwSUdMETspQavn1nvDHdpP/4FfXDin8YBP
-X-Gm-Gg: AfdE7clf75u25aD3i7I9BX4DjP6hIpzd9BhsSw1Nec05iSzlFU45mppEBhCM/S+1lEF
-	lyydu92b8VLZ/rcmOAllH8LyPIxpq1olJfch38bcs82bdZEIu0CASR0J7iKxz770hOYPn7o1TXi
-	W36Rh3SEPKHeOUx/RTSNB1NcJLAly1S9qrqXB/e1hkApnJUbrwLvbKDvS8BCGvhbT9oSHsdvLsY
-	G66jsmUw6r//BXwD0vwuefB+c90q696+wiD+rDhd+FqgDfsb+zqPN5a9pSb0jNkoWNMnU2xJRM9
-	pEo4uisen8FfNUiP5bpjQEGnhrnEykorS7O2d6w0uejtqNs/auVoOEN4Gux7kjPpa16PjMsQDhA
-	tHgmicArwoMRgDQW8SkSKkPigf5wwa4ZMucr+xiwuvN2rvCkFrvBDtj0dAo7gl7yytdKQjCs1q1
-	aqShcLaG9WkFg=
-X-Received: by 2002:a05:600c:4743:b0:48f:d5b8:5b07 with SMTP id 5b1f17b1804b1-493e68c4a07mr37875705e9.20.1783535324110;
-        Wed, 08 Jul 2026 11:28:44 -0700 (PDT)
-Received: from fedora ([212.253.209.56])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-493e5a61135sm49702335e9.1.2026.07.08.11.28.42
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 08 Jul 2026 11:28:43 -0700 (PDT)
-From: Serhat Kumral <serhatkumral1@gmail.com>
-To: yanjun.zhu@linux.dev
-Cc: dsahern@kernel.org,
-	jgg@ziepe.ca,
-	leon@kernel.org,
-	linux-kernel@vger.kernel.org,
-	linux-rdma@vger.kernel.org,
-	serhatkumral1@gmail.com,
-	syzbot+8c9eede336e3a843750e@syzkaller.appspotmail.com,
-	zyjzyj2000@gmail.com
-Subject: Re: [PATCH v3] RDMA/rxe: rework per-net tunnel socket lifetime to fix refcount underflow
-Date: Wed,  8 Jul 2026 21:10:07 +0300
-Message-ID: <20260708181007.24280-1-serhatkumral1@gmail.com>
-X-Mailer: git-send-email 2.54.0
-In-Reply-To: <6ced0145-30ab-4af5-9005-9da024933fff@linux.dev>
-References: <6ced0145-30ab-4af5-9005-9da024933fff@linux.dev>
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="eMpN2EiY"
+Date: Wed, 8 Jul 2026 19:32:16 +0000
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
+	t=1783539177;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=ALUaD454sMRQMP0Da2KjIGTgJMad7ivkipowHf/Yitk=;
+	b=eMpN2EiYDIOFvvgoXG+7C/O0zYni/j0H+Qt6Qu9dHkFNb0sWGh+6wiBgBeb4mP1Fsk1x0i
+	CSLdG9ZWkRhTa4vtz8Pn3TSUEiBRXZRn54KRAgwZ+3ZKYe+g5vlcPu3VanyfwyGz0kLqOJ
+	YW6PoKpkeQNGRX+jUWJEs8BA5h2UHxY=
+X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
+From: "Jose Fernandez (Anthropic)" <jose.fernandez@linux.dev>
+To: Dragos Tatulea <dtatulea@nvidia.com>
+Cc: Saeed Mahameed <saeedm@nvidia.com>, Tariq Toukan <tariqt@nvidia.com>, 
+	Mark Bloch <mbloch@nvidia.com>, Leon Romanovsky <leon@kernel.org>, 
+	Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller" <davem@davemloft.net>, 
+	Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, 
+	Paolo Abeni <pabeni@redhat.com>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, Ben Cressey <ben@cressey.dev>
+Subject: Re: [PATCH net-next] net/mlx5e: bound TX CQ poll softirq residency
+ with a time budget
+Message-ID: <ak6efg89Cb1s_TEd@linux.dev>
+References: <20260703-mlx5e-tx-cq-time-budget-v1-1-6da2cfe9c7b1@linux.dev>
+ <5557a08f-6d53-4425-8004-b7f0bbcd8a50@nvidia.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <5557a08f-6d53-4425-8004-b7f0bbcd8a50@nvidia.com>
+X-Migadu-Flow: FLOW_OUT
 
-Hi Yanjun,
+Hi Dragos,
 
-> However, after the network namespace teardown, the associated netdevice
-> is still unregistered, which
-> triggers the NETDEV_UNREGISTER notifier. In rxe_notify(), this event
-> eventually calls rxe_net_del() to
-> remove the RDMA link.
+Thanks for the review.
 
-Isn't the ordering the other way around? The netdevices of a dying
-netns are unregistered by default_device_exit_batch(), a pernet
-device op, while rxe_net_ops is a pernet subsys, and subsys exits
-run after all device exits. So NETDEV_UNREGISTER (and the notifier's
-rxe_net_del()) should have already completed before rxe_ns_exit()
-destroys the mutex. 
+On Mon, Jul 06, 2026 at 01:48:41PM +0200, Dragos Tatulea wrote:
+> This is interesting. I can think of 2 cases here which can overlap:
+>
+> 1) Packets are sent with xmit_more which trigger this many WQEs per
+>   CQE scenario.
+>
+> 2) TSO packets can have many fragments so even a single WQE will have
+>    more than one DMA unmap. For the default GSO size of 64K each TSO
+>    skb will have 2 fragments on your platform. If the GSO is bumped to
+>    256K then you usually get ~5 fragments.
+>
+> Let's first understand if this is a case of 1) (small packets sent
+> with xmit_more) or 2) (many TSO packets) or 1+2) (many TSO packets sent
+> with xmit_more).
 
-Am I missing a path where rxe_net_del() can run after rxe_ns_exit()?
+Likely both, mostly 1). The workload is bursty bulk transfers, and
+the stalls hit while processing a burst's completions: one CQE covers
+a whole xmit_more batch, each TSO skb adds its 2 frag unmaps, so the
+CQE budget bounds entries but not the unmap work behind them.
+
+I don't have the tx_xmit_more / tx_tso_packets ratios handy. I'll
+collect them across a burst window and report back.
+
+> If xmit_more is used then you can actually tune the BQL to avoid this
+> behavior which seems to wreak havoc on your configuration.
+
+We considered that. BQL bounds bytes in flight, but bytes only
+translate into poll time at some assumed per-unmap cost, and that
+cost is the unstable part here: a few us normally, ~100x worse when
+many CPUs contend on the shared SMMU command queue. A BQL setting
+small enough for the worst case would hurt throughput the rest of
+the time.
+
+> The bounded poll is faster because it is interrupted earlier or is
+> it faster because it results in less contention on the IOMMU?
+
+Both, and we tried to separate them. Sweeping the yield cadence
+barely moves the numbers, so it is not just doing less per poll. And
+in A/B runs with the budget armed, the competing side's per-unmap
+cost drops 15-20%, so there is a real contention reduction on top of
+the transmit path getting the core back sooner.
+
+> This change is too invasive in the driver for all the other cases. We have to figure
+> another way to go about this issue.
+
+Fair enough, and the module parameter should not have been there anyway.
+The direction I would rather take: fix the cost instead of capping it,
+by converting the mlx5e TX path to the tso_dma_map helpers (as bnxt
+did), so a TSO skb maps as one IOVA range where the DMA IOVA API is
+available, completing with one sync instead of one per frag.
+
+Once the counters confirm the frag-unmap volume I will prototype that,
+unless you or Tariq/Saeed see a problem with the direction. Happy to
+test on the affected boxes. We have a repro harness.
 
 Thanks,
-Serhat
+Jose
