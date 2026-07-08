@@ -1,169 +1,164 @@
-Received: from mx0.infotecs.ru (mx0.infotecs.ru [91.244.183.115])
+Received: from pdx-out-008.esa.us-west-2.outbound.mail-perimeter.amazon.com (pdx-out-008.esa.us-west-2.outbound.mail-perimeter.amazon.com [52.42.203.116])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6A44043B6CD;
-	Wed,  8 Jul 2026 12:08:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.244.183.115
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EB0A644CAFB
+	for <linux-rdma@vger.kernel.org>; Wed,  8 Jul 2026 12:36:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=52.42.203.116
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783512498; cv=none; b=GF5jKrmnlF5Du2FQry3XeEmEpTnsezG6RHUlGgkch7iKjYGEkjhcOdKo8TVynIfmJH4E/wKQc2XueIInbUqFjVDHVuhNJ7PCEbw94UvMddIn36Oqrf2EONP4L1B30V1eIVjBHFM6fcnjVZgkh3Szpf9O8QkdK17jny1tTfXzPjI=
+	t=1783514215; cv=none; b=XjBPPUBq9QMIJcqKpOf7mUp5g8uP67AyyOVSlI5c5wIUDuYS5z2Gs1dNPuTWzC6zoDq803hCa3TlwHbf5VRn+1L+A116CrOAAiSTUsaBdvy5KSwtG71ESmIx/Aoqbo5GeUepnHdcq4o3KvAbdc5ZfYsbehaKAHAXLSPT+m+en8g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783512498; c=relaxed/simple;
-	bh=rrk2/4gr0Hs3V/kHNY2cTJ3pwwp60vgSfiKMxRSnW8c=;
-	h=From:To:CC:Subject:Date:Message-ID:Content-Type:MIME-Version; b=b/tU4GoyLIDLtBJ6kOvjHLCykxbvApkz3aQD16AnBDW+TPZ+XDRI81czWsRRy97Ut33oDlKzbFGj+yiaL1lRmnysv0I7khzcT63x58yz7Gr4Z+MQ8qhbXyilIg5xncfuwQxeJJdl+uIfMaAMUJspaHlHdZ2L2S1XxVHvMso2hc0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=infotecs.ru; spf=pass smtp.mailfrom=infotecs.ru; dkim=pass (1024-bit key) header.d=infotecs.ru header.i=@infotecs.ru header.b=FCtd1fus; arc=none smtp.client-ip=91.244.183.115
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=infotecs.ru
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=infotecs.ru
+	s=arc-20240116; t=1783514215; c=relaxed/simple;
+	bh=me1bLjmSs3LVsaNhmg1bKd/rZ7YLmtq8am85apxRzCc=;
+	h=Date:From:To:CC:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=Rivvc8vwbm2JQCzSS8AYXsA1J+kbU2Jgo+weuddkh8Qewr58wJzM9PkM9CHc28l07itezgXxCeG0uMbOYlOpdXBvpI+ZCr22nEytCPS6UrUx500vDEpoZW+z8SLjvUdkW2QdnEWGm+34dErSHy6KxOBtxLPf6TaxZ/fOLQG2GAM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com; spf=pass smtp.mailfrom=amazon.com; dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.b=dkH2ywJB; arc=none smtp.client-ip=52.42.203.116
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazon.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=infotecs.ru header.i=@infotecs.ru header.b="FCtd1fus"
-DKIM-Filter: OpenDKIM Filter v2.11.0 mx0.infotecs.ru F19EF2C0BA9
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=infotecs.ru; s=mx;
-	t=1783511994; bh=z8pwacSiX1yXmFvoYo25v1yODLzYm33N/ufx+ubMVkE=;
-	h=From:To:CC:Subject:Date:From;
-	b=FCtd1fusTaUXUHma1IR3xAUIRuyiSABv4IDd1+uCdQihws4SeNTaP+PgT5fdgRoLq
-	 d3u7s174iexiDwyXt02wUNoAxrsntIiiGAet+e++D5OS6RBBYUFdqqCpBJd8eiJPFS
-	 B2A/5xdN7+Et4XuJYWbHm0CZ+EuvqFGiKgvfGVwE=
-Received: from mx0.infotecs-nt (localhost [127.0.0.1])
-	by mx0.infotecs.ru (Postfix) with ESMTP id F19EF2C0BA9;
-	Wed,  8 Jul 2026 14:59:53 +0300 (MSK)
-DKIM-Filter: OpenDKIM Filter v2.11.0 mx0.infotecs-nt A75882C0BA2
-Received: from msk-exch-01.infotecs-nt (msk-exch-01.infotecs-nt [10.0.7.191])
-	by mx0.infotecs-nt (Postfix) with ESMTP id A75882C0BA2;
-	Wed,  8 Jul 2026 14:59:53 +0300 (MSK)
-From: Ilia Gavrilov <Ilia.Gavrilov@infotecs.ru>
-To: Allison Henderson <achender@kernel.org>
-CC: "David S. Miller" <davem@davemloft.net>, Eric Dumazet
-	<edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, Paolo Abeni
-	<pabeni@redhat.com>, Simon Horman <horms@kernel.org>, Ka-Cheong Poon
-	<ka-cheong.poon@oracle.com>, Santosh Shilimkar
-	<santosh.shilimkar@oracle.com>, "netdev@vger.kernel.org"
-	<netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org"
-	<linux-rdma@vger.kernel.org>, "rds-devel@oss.oracle.com"
-	<rds-devel@oss.oracle.com>, "linux-kernel@vger.kernel.org"
-	<linux-kernel@vger.kernel.org>, "lvc-project@linuxtesting.org"
-	<lvc-project@linuxtesting.org>
-Subject: [PATCH net] rds: Fix inet6_addr_lst NULL dereference when IPv6 is
- disabled
-Thread-Topic: [PATCH net] rds: Fix inet6_addr_lst NULL dereference when IPv6
- is disabled
-Thread-Index: AQHdDtFJkzJE74BSrkynIWuhoK5tUg==
-Date: Wed, 8 Jul 2026 11:59:53 +0000
-Message-ID: <20260708115922.2226279-1-Ilia.Gavrilov@infotecs.ru>
-Accept-Language: ru-RU, en-US
-Content-Language: en-US
-X-MS-Has-Attach:
-X-MS-TNEF-Correlator:
-x-exclaimer-md-config: 208ac3cd-1ed4-4982-a353-bdefac89ac0a
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+	dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.b="dkH2ywJB"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazoncorp2;
+  t=1783514212; x=1815050212;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=JU+Q6ddPYgM8RYTpJlxSmv36hOf6HV7YVXcN1LGtofk=;
+  b=dkH2ywJBOT6DGXPCbNndnahov8tvmTIi6pfOo4MJ+ZBAIkUEFqXVEKLh
+   u3D7cKze9yVcFB+yIbUJGBZ3VN6G1LHTi1NOQYuU7CBj3+kw2HSYXGFVf
+   X+YvoBBZk62RofUH/cQ7FaofaFnYD+0GjaOga89hBowyKSByw5yGiulfV
+   yuqE8KXy69ouQSIyiRCPTzNgca0XgEPmeJn8itsDhoABXEOlapL/hpyEW
+   nZrxnHDExQ+rbzc5Cl2R49UuzFiFEBMX2C3dRmKMQ2qYJDCuhNCDjmdMe
+   oGU+RzYqYDql8vDSbetzg91EJYAvaCXmyLMC4G97S0s4byo78WdMbPh6E
+   Q==;
+X-CSE-ConnectionGUID: yrKg9SpqRzGqFsVnRQBZQg==
+X-CSE-MsgGUID: uvI7/bSIQvOE7JbihKyxNA==
+X-IronPort-AV: E=Sophos;i="6.25,153,1779148800"; 
+   d="scan'208";a="23306962"
+Received: from ip-10-5-9-48.us-west-2.compute.internal (HELO smtpout.naws.us-west-2.prod.farcaster.email.amazon.dev) ([10.5.9.48])
+  by internal-pdx-out-008.esa.us-west-2.outbound.mail-perimeter.amazon.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Jul 2026 12:36:49 +0000
+Received: from EX19MTAUWB001.ant.amazon.com [205.251.233.51:10970]
+ by smtpin.naws.us-west-2.prod.farcaster.email.amazon.dev [10.0.46.2:2525] with esmtp (Farcaster)
+ id 74139147-6b28-487e-98ba-275784eb0a22; Wed, 8 Jul 2026 12:36:49 +0000 (UTC)
+X-Farcaster-Flow-ID: 74139147-6b28-487e-98ba-275784eb0a22
+Received: from EX19D001UWA001.ant.amazon.com (10.13.138.214) by
+ EX19MTAUWB001.ant.amazon.com (10.250.64.248) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.43;
+ Wed, 8 Jul 2026 12:36:49 +0000
+Received: from dev-dsk-mrgolin-1c-b2091117.eu-west-1.amazon.com
+ (10.253.103.172) by EX19D001UWA001.ant.amazon.com (10.13.138.214) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.43; Wed, 8 Jul 2026
+ 12:36:47 +0000
+Date: Wed, 8 Jul 2026 12:36:40 +0000
+From: Michael Margolin <mrgolin@amazon.com>
+To: <jgg@nvidia.com>, <leon@kernel.org>, <linux-rdma@vger.kernel.org>
+CC: <sleybo@amazon.com>, <matua@amazon.com>, <gal.pressman@linux.dev>
+Subject: Re: [PATCH for-next v8 0/5] Introduce Completion Counters
+Message-ID: <20260708123640.GA9082@dev-dsk-mrgolin-1c-b2091117.eu-west-1.amazon.com>
+References: <20260707203427.6923-1-mrgolin@amazon.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-KSMG-AntiPhishing: NotDetected
-X-KSMG-AntiSpam-Auth: dkim=none
-X-KSMG-AntiSpam-Envelope-From: Ilia.Gavrilov@infotecs.ru
-X-KSMG-AntiSpam-Info: LuaCore: 112 0.3.112 7c8d497b0e572fbfa504a2ee62037c045a8cb4ec, {Tracking_from_domain_doesnt_match_to}, infotecs.ru:7.1.1;d41d8cd98f00b204e9800998ecf8427e.com:7.1.1;127.0.0.199:7.1.2, FromAlignment: s
-X-KSMG-AntiSpam-Interceptor-Info: scan successful
-X-KSMG-AntiSpam-Lua-Profiles: 204322 [Jul 08 2026]
-X-KSMG-AntiSpam-Method: none
-X-KSMG-AntiSpam-Rate: 0
-X-KSMG-AntiSpam-Status: not_detected
-X-KSMG-AntiSpam-Version: 6.1.1.22
-X-KSMG-AntiVirus: Kaspersky Secure Mail Gateway, version 3.0.0.9059, bases: 2026/07/08 08:32:00 #28418202
-X-KSMG-AntiVirus-Status: NotDetected, skipped
-X-KSMG-LinksScanning: NotDetected
-X-KSMG-Message-Action: skipped
-X-KSMG-Rule-ID: 8
+Content-Type: text/plain; charset="utf-8"
+Content-Disposition: inline
+In-Reply-To: <20260707203427.6923-1-mrgolin@amazon.com>
+User-Agent: Mutt/1.5.21 (2010-09-15)
+X-ClientProxiedBy: EX19D031UWC001.ant.amazon.com (10.13.139.241) To
+ EX19D001UWA001.ant.amazon.com (10.13.138.214)
 
-When booting with the 'ipv6.disable=3D1' parameter, inet6_addr_lst
-is never initialized because inet6_init() exits before addrconf_init()
-is called to initialize it. An attempt to bind an RDS socket to
-an ipv6 address results in a crash in __ipv6_chk_addr_and_flags()
+On Tue, Jul 07, 2026 at 08:34:22PM +0000, Michael Margolin wrote:
+> Add core infrastructure for Completion Counters, a light-weight
+> alternative to polling CQ for tracking operation completions. The
+> related rdma-core support is linked in [1].
+> 
+> Define the UVERBS_OBJECT_COMP_CNTR ioctl object with create, destroy,
+> modify and read methods for both success and error counters. Add a QP
+> attach method on the QP object to associate a completion counter with a
+> queue pair.
+> 
+> Add EFA Completion Counters support as first implementer.
+> 
+> [1] https://github.com/linux-rdma/rdma-core/pull/1701
+> 
 
-KASAN: null-ptr-deref in range [0x0000000000000008-0x000000000000000f]
-RIP: 0010:__ipv6_chk_addr_and_flags+0x1df/0x7e0
-Call Trace:
- <TASK>
- ipv6_chk_addr+0x3b/0x50
- rds_tcp_laddr_check+0x155/0x3b0 [rds_tcp]
- rds_trans_get_preferred+0x15d/0x2d0 [rds]
- ? trace_hardirqs_on+0x2d/0x110
- rds_bind+0x1433/0x1d60 [rds]
- ? rds_remove_bound+0xd50/0xd50 [rds]
- ? aa_af_perm+0x250/0x250
- ? __might_fault+0xde/0x190
- ? __sys_bind+0x1dc/0x210
- __sys_bind+0x1dc/0x210
- ? __ia32_sys_socketpair+0x100/0x100
- ? restore_fpregs_from_fpstate+0x53/0x100
- __x64_sys_bind+0x73/0xb0
- ? syscall_enter_from_user_mode+0x1c/0x50
- do_syscall_64+0x34/0x80
- entry_SYSCALL_64_after_hwframe+0x6e/0xd8
-RIP: 0033:0x7f47f8269ea9
- </TASK>
+Walked over Sashiko's comments, most of them are about usage count
+which is handled in a follow-up patch in the series. The others don't
+seem to be real issues.
 
-The following code reproduces the issue:
+https://sashiko.dev/#/patchset/20260707203427.6923-1-mrgolin%40amazon.com
 
-struct sockaddr_in6 addr;
-s =3D socket(PF_RDS, SOCK_SEQPACKET, 0);
+Jason, Leon do you have any other comments?
 
-memset(&addr, 0, sizeof(addr));
-inet_pton(AF_INET6, ADDRESS, &addr.sin6_addr);
-addr.sin6_family =3D AF_INET6;
-addr.sin6_port =3D htons(PORT);
+Michael
 
-bind(s, &addr, sizeof(addr);
-
-Found by InfoTeCS on behalf of Linux Verification Center
-(linuxtesting.org) with Syzkaller.
-
-Fixes: eee2fa6ab322 ("rds: Changing IP address internal representation to s=
-truct in6_addr")
-Fixes: 1e2b44e78eea ("rds: Enable RDS IPv6 support")
-Signed-off-by: Ilia Gavrilov <Ilia.Gavrilov@infotecs.ru>
----
- net/rds/ib.c  | 4 ++++
- net/rds/tcp.c | 8 +++++---
- 2 files changed, 9 insertions(+), 3 deletions(-)
-
-diff --git a/net/rds/ib.c b/net/rds/ib.c
-index 39f87272e071..8f9cf491984f 100644
---- a/net/rds/ib.c
-+++ b/net/rds/ib.c
-@@ -429,6 +429,10 @@ static int rds_ib_laddr_check_cm(struct net *net, cons=
-t struct in6_addr *addr,
- 		sa =3D (struct sockaddr *)&sin;
- 	} else {
- #if IS_ENABLED(CONFIG_IPV6)
-+		if (!ipv6_mod_enabled()) {
-+			ret =3D -EADDRNOTAVAIL;
-+			goto out;
-+		}
- 		memset(&sin6, 0, sizeof(sin6));
- 		sin6.sin6_family =3D AF_INET6;
- 		sin6.sin6_addr =3D *addr;
-diff --git a/net/rds/tcp.c b/net/rds/tcp.c
-index a1de114d5e2e..955d92277d5a 100644
---- a/net/rds/tcp.c
-+++ b/net/rds/tcp.c
-@@ -366,9 +366,11 @@ int rds_tcp_laddr_check(struct net *net, const struct =
-in6_addr *addr,
- 		rcu_read_unlock();
- 	}
- #if IS_ENABLED(CONFIG_IPV6)
--	ret =3D ipv6_chk_addr(net, addr, dev, 0);
--	if (ret)
--		return 0;
-+	if (ipv6_mod_enabled()) {
-+		ret =3D ipv6_chk_addr(net, addr, dev, 0);
-+		if (ret)
-+			return 0;
-+	}
- #endif
- 	return -EADDRNOTAVAIL;
- }
---=20
-2.47.3
+> ---
+> Changes in v8:
+> - Added device event counter detach support and its use in attach error
+>   handling
+> - Prevented completion counters attach to wrapper QPs
+> - Added max completion counters report in nldev
+> - Link to v7: https://lore.kernel.org/all/20260701103448.17895-1-mrgolin@amazon.com/
+> Changes in v7:
+> - Rebased on latest rdma for-next
+> - Link to v6: https://lore.kernel.org/all/20260604114627.6086-1-mrgolin@amazon.com/
+> Changes in v6:
+> - Moved to using ib_umem_get_attr util
+> - Resolved additional Sashiko comments
+> - Link to v5: https://lore.kernel.org/all/20260526090712.17575-1-mrgolin@amazon.com/
+> Changes in v5:
+> - Fixed Sashiko findings
+> - Minor naming improvements
+> - Link to v4: https://lore.kernel.org/all/20260511223721.18365-1-mrgolin@amazon.com/
+> Changes in v4:
+> - Replaced inc and set commands by a single modify command
+> - Changed to passing buffers as EFA specific attributes using desc
+>   struct aligned with the suggested common method of passing and
+>   consuming umem in RDMA drivers
+> - Link to v2: https://lore.kernel.org/all/20260416212327.18191-1-mrgolin@amazon.com/
+> Changes in v3:
+> - Skipped this version because of a wrong patch list
+> Changes in v2:
+> - United set, inc and read flows for successful and error completions
+>   counters
+> - Added comp_cntr usage count
+> - Minor cleanups
+> - Link to v1: https://lore.kernel.org/all/20260407115424.13359-1-mrgolin@amazon.com/
+> 
+> Michael Margolin (5):
+>   RDMA/core: Add Completion Counters support
+>   RDMA/core: Prevent destroying in-use completion counters
+>   RDMA/core: Add Completion Counters to resource tracking
+>   RDMA/efa: Update device interface
+>   RDMA/efa: Add Completion Counters support
+> 
+>  drivers/infiniband/core/Makefile              |   1 +
+>  drivers/infiniband/core/device.c              |   6 +
+>  drivers/infiniband/core/nldev.c               |   4 +
+>  drivers/infiniband/core/rdma_core.h           |   1 +
+>  drivers/infiniband/core/restrack.c            |   2 +
+>  drivers/infiniband/core/uverbs_cmd.c          |   1 +
+>  .../core/uverbs_std_types_comp_cntr.c         | 182 +++++++++++++++
+>  drivers/infiniband/core/uverbs_std_types_qp.c |  67 +++++-
+>  drivers/infiniband/core/uverbs_uapi.c         |   1 +
+>  drivers/infiniband/core/verbs.c               |   8 +
+>  drivers/infiniband/hw/efa/efa.h               |  15 ++
+>  .../infiniband/hw/efa/efa_admin_cmds_defs.h   | 186 +++++++++++++++-
+>  drivers/infiniband/hw/efa/efa_com_cmd.c       | 134 +++++++++++
+>  drivers/infiniband/hw/efa/efa_com_cmd.h       |  44 ++++
+>  drivers/infiniband/hw/efa/efa_io_defs.h       |  20 +-
+>  drivers/infiniband/hw/efa/efa_main.c          |   5 +
+>  drivers/infiniband/hw/efa/efa_verbs.c         | 209 ++++++++++++++++++
+>  include/rdma/ib_verbs.h                       |  44 ++++
+>  include/rdma/restrack.h                       |   4 +
+>  include/uapi/rdma/efa-abi.h                   |   6 +
+>  include/uapi/rdma/ib_user_ioctl_cmds.h        |  38 ++++
+>  include/uapi/rdma/ib_user_ioctl_verbs.h       |  19 ++
+>  include/uapi/rdma/ib_user_verbs.h             |   2 +-
+>  23 files changed, 993 insertions(+), 6 deletions(-)
+>  create mode 100644 drivers/infiniband/core/uverbs_std_types_comp_cntr.c
+> 
+> -- 
+> 2.47.3
+> 
