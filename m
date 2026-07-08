@@ -1,30 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6CCA5426407;
-	Wed,  8 Jul 2026 10:46:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 565FE3F4DE7;
+	Wed,  8 Jul 2026 10:46:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783507593; cv=none; b=kfz2xqVdNGV6/v1KRPrJ9+TQlU6CjtHcLMRVrEGCJ1UfUXmBUBRWceYnmwumLw+JRFP/yccTQS33AoBTxcuu9S/e75g7GpMbDj64F8lh9ZLSo7OD7zxtjHEjBiIANLeJiYgSDCrxbWjUjPUvIg5KpK5Yso5sfd8sojPNshi6aDI=
+	t=1783507604; cv=none; b=l6YAHiwUkDZbVSHbfE1ut+uynMz4BIQ9KUc0/ZvRJf1bdBPsAkhqz+al1njg3Ro1766Wn7GN1k1VlBRyOd5i6RSFfBWu8LxkgvuXdjTcg069+UcOHl8E412mKuzzItyZCY2NgU2Q8Oe2iOSSU5SoDLB13jJ4iXcYHokeJGjadUU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783507593; c=relaxed/simple;
-	bh=PE0K7deRmx+g/mtQOSFJYB4tapESD9+NQsj189oagYI=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=f+IPUKKpULUiLjGMkVWSPoSUzp/gFdgklsLzYMqMF9NkNY+t5Sd4y8ydZxekQhGg6Lu7jBd2aSmLeA2cs/ZYTcghswrOVeJl1UztPvdYt6JR17u2z8yKIgvXYpcwsPzqucoyH4GltU4wRv3Ak3MRBGh48hmYKdMlAWgl9JQ72WA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Cbg0RvvL; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783507604; c=relaxed/simple;
+	bh=SIkVnsrF37UFvEE2T1hyUULY/RT1TlVLVlxcz/s9DQo=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=sLY6rlSkdBp8q6+jj8iy0DTrTCzZ8AF5xeAHkdkDtJXLrt7+3HAm33CmSfaROWzhVMuF1P9M/Pn+e688O/hLNAJ2NtitoUBvwyPb6VkyVok7OIAlWWkvgEzvLLTyO+rc10yuWQZs728fOLYGr+wn36hWUff9SoumuYSfqyaq2co=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=SxgLZ64n; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Cbg0RvvL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 33CD21F000E9;
-	Wed,  8 Jul 2026 10:46:22 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="SxgLZ64n"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4F64B1F00A3A;
+	Wed,  8 Jul 2026 10:46:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1783507584;
-	bh=8jQlP2AivLKAlkNsQAQ6Q/UWCLRJu5fwXwK76FmCHfU=;
-	h=From:To:Cc:Subject:Date;
-	b=Cbg0RvvLWfIrFNfS6/OTMNi+ddIMvQ2q9Yv02TcafEQ4P4WxgaopohtYK2djjo8wl
-	 FvCmppV/O361RmBeC0WFjug4TkjNfQsicikYZuW//Z+iFAvDRxFKapgoUvqgGrhvLL
-	 7ddRTZO2OAYpizWGdJ2lGk8ggP8UyfpdQTdjPuK+hiLYuYfIscqv05W2nfQS3XfEAB
-	 NJEzyC9zAhDpIsBXf954KGjWyG2uXDWSsn+TWrRRjsaoiewT0NBgdxsBQIQGTJOltc
-	 k/C6YS1NR2Sa8tJF4KvwA4f8K9KETlc7pOvwJJ+CE2g1t+ZR0sqpITh5Rd1JFutw0K
-	 FzSHVBrgVtrDw==
+	s=k20260515; t=1783507589;
+	bh=1n4AdS8vEoszlVzUktAfAp0DGIlgAbsYbugaArfNbuQ=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=SxgLZ64nlgSJzr9pqPoSXPcfO4z86XWn2kWZZ9oXTRpM1DgkDFIPtrtEfYNUbYzhi
+	 dFHRkicGIUEsq/JGU7FgJmYCiGE1IzAwzZ1magKc7noFb3nt+eZK+OZZDgKETuPvi/
+	 dETdfpTQriO0nlfmSoX1RghCSpIninI+DinuYjLJkyy2ULFUbaoX5kQXg1XSL9qKwv
+	 NumYMKSCsQ7H5RPq6IvuUvPjptN7bRGlEsZhn/4E0gCj+RobGigARvnztytT2VGRth
+	 +D0LV5Qy6l0lpOo8ep53i1Z36ANikZF9zQLIFXbtuKhilHC4WecRhEQP49y5/WeiMM
+	 JvY+eQvQCDfOw==
 From: Leon Romanovsky <leon@kernel.org>
 To: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
 	Jason Gunthorpe <jgg@ziepe.ca>,
@@ -41,12 +42,13 @@ To: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
 	Jubin John <jubin.john@intel.com>
 Cc: linux-rdma@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
-	Dennis Dalessandro <dennis.dalessandro@intel.com>,
-	Dawei Feng <dawei.feng@seu.edu.cn>
-Subject: [PATCH rdma-next 00/13] RDMA/hfi1: Make init_one() a sane counterpart of remove_one()
-Date: Wed,  8 Jul 2026 13:45:38 +0300
-Message-ID: <20260708-clean-init-one-hfi1-v1-0-b9e9641268a5@nvidia.com>
+	Dennis Dalessandro <dennis.dalessandro@intel.com>
+Subject: [PATCH rdma-next 02/13] RDMA/hfi1: Preserve unit 0 on allocation failure
+Date: Wed,  8 Jul 2026 13:45:40 +0300
+Message-ID: <20260708-clean-init-one-hfi1-v1-2-b9e9641268a5@nvidia.com>
 X-Mailer: git-send-email 2.55.0
+In-Reply-To: <20260708-clean-init-one-hfi1-v1-0-b9e9641268a5@nvidia.com>
+References: <20260708-clean-init-one-hfi1-v1-0-b9e9641268a5@nvidia.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -54,56 +56,42 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-X-Change-ID: 20260707-clean-init-one-hfi1-e02835d239ad
 X-Mailer: b4 0.15-dev-18f8f
 Content-Transfer-Encoding: 8bit
 
-The hfi1 PCI probe path, init_one(), has accumulated years of ad-hoc
-error handling that no longer matches how a driver probe is expected to
-look. Rather than unwinding each initialization step as it fails, it
-allocated hfi1_devdata up front, ran every stage, and then funneled two
-unrelated failure values (initfail and ret) into one combined cleanup
-block. That block kept the device half-alive "so diags can be used",
-created the character device only to remove it again, flushed a global
-workqueue the driver never queues onto, and diverged from the teardown
-in remove_one() even though both release the same resources.
+From: Leon Romanovsky <leonro@nvidia.com>
 
-The result was hard to reason about and easy to break: a failing stage
-released either too little (leaks) or ran cleanup for resources that were
-never set up. Two real leaks were hiding in there, one of which was
-reported in the mailing list.
+hfi1_free_devdata() assumes that the device was inserted into the unit
+table and unconditionally erases dd->unit. If xa_alloc_irq() fails, the
+zero-initialized unit remains zero, so full cleanup can remove an
+unrelated device from index 0.
 
-Thanks
+Release only the rdmavt allocation and return immediately while the unit
+table has not acquired the device.
 
+Fixes: 03b92789e5cf ("hfi1: Convert hfi1_unit_table to XArray")
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
-Leon Romanovsky (13):
-      RDMA/rvt: Return NULL after port allocation failure
-      RDMA/hfi1: Preserve unit 0 on allocation failure
-      RDMA/hfi1: Remove redundant PCI device ID validation
-      RDMA/hfi1: Pass PCI device to hfi1_pcie_init()
-      RDMA/hfi1: Drop device data from hfi1_validate_rcvhdrcnt()
-      RDMA/hfi1: Create workqueues before device initialization
-      RDMA/hfi1: Free RX data on late probe failure
-      RDMA/hfi1: Allocate device data after PCI initialization
-      RDMA/hfi1: Remove redundant NULL checks in create_workqueues()
-      RDMA/hfi1: Stop flushing the global IB workqueue
-      RDMA/hfi1: Defer device creation until probe succeeds
-      RDMA/hfi1: Initialize debugfs after probe completes
-      RDMA/hfi1: Align probe error unwinding with device removal
+ drivers/infiniband/hw/hfi1/init.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
- drivers/infiniband/hw/hfi1/chip.c |  21 ++---
- drivers/infiniband/hw/hfi1/chip.h |   2 +-
- drivers/infiniband/hw/hfi1/hfi.h  |   4 +-
- drivers/infiniband/hw/hfi1/init.c | 194 +++++++++++++++-----------------------
- drivers/infiniband/hw/hfi1/pcie.c |  32 ++++---
- drivers/infiniband/sw/rdmavt/vt.c |   4 +-
- 6 files changed, 108 insertions(+), 149 deletions(-)
----
-base-commit: 5f9576c6734abca88a02db72c466e09d2eddf160
-change-id: 20260707-clean-init-one-hfi1-e02835d239ad
+diff --git a/drivers/infiniband/hw/hfi1/init.c b/drivers/infiniband/hw/hfi1/init.c
+index b7fd8b1fbbbd..3a408399f9ab 100644
+--- a/drivers/infiniband/hw/hfi1/init.c
++++ b/drivers/infiniband/hw/hfi1/init.c
+@@ -1225,8 +1225,9 @@ static struct hfi1_devdata *hfi1_alloc_devdata(struct pci_dev *pdev,
+ 			GFP_KERNEL);
+ 	if (ret < 0) {
+ 		dev_err(&pdev->dev,
+-			"Could not allocate unit ID: error %d\n", -ret);
+-		goto bail;
++			"Could not allocate unit ID: error %pe\n", ERR_PTR(ret));
++		rvt_dealloc_device(&dd->verbs_dev.rdi);
++		return ERR_PTR(ret);
+ 	}
+ 
+ 	/*
 
-Best regards,
---  
-Leon Romanovsky <leonro@nvidia.com>
+-- 
+2.54.0
 
