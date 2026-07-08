@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 971583CB8E6;
-	Wed,  8 Jul 2026 10:47:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A1D9A42E00F;
+	Wed,  8 Jul 2026 10:47:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783507659; cv=none; b=LaypSL+5heGQg+CQVc8zu16IXqGT5xI//C9i/8BV7ZHeFhVly8y8kzYA9/9xRK+RkTToHt/HbxmqWdrcykTUyhNWnzPY8DojMCjN6tnJHYLIZFxAbZiocFaeCjToCbbmkoE6uMeJX1Lr/XuBsLP693jPmuY7iIAbgRIxXOf+0/M=
+	t=1783507668; cv=none; b=PeK6ApmKBUOLnwXhZn0F7LTVMsIuMyiWdozsxGymU2G+mJ7HgTLZsQE+CYrGyoM739jeihnwMEoFqgwk+xSo1lslVT45DcG62Giiopd79tS8ejgOyX6YDb/XTIppBKXfte6nn2Wwn8mfFfWmo1Nq/KOEfikjhtVmHIYDiUqC0jU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783507659; c=relaxed/simple;
-	bh=8VOxsRkLz4BQOFLpYYKzmnkuVVlMbCtz1cNQAEMdnDA=;
+	s=arc-20240116; t=1783507668; c=relaxed/simple;
+	bh=ey3QISzMcWJZcFy8+5+iVmdEAQSegMqJZwmO3rn/yxQ=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=qjeG6xIY24wr6f90kRILGd67Xfe69QHeLVwfcXMiXc5I4KUFg8dMpDK+LnzgothkI3APqRdYlQD1M57Qzhkotqx3OLvPObCO2FudQ55Y9QU0sZhxKox3UrGwzvDFwJrydMgmAg0SPZ8tBbrHKmKOgPb/DEGefAZZtZfZnx8K74g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Ng/6mLRp; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=dNwHHwR3iN5D+0+7aDqMUrZ39JafOTRf0rofi7H5hMKL3BNM19HN6KwqjU7xR+5JmA9ETHmvKnIoKHLLHuXpfROECa//gQBcDrzvmES+UAgM8wKXVwL/HxIWkTpLuqEeRhPSyNoLlnkUSLu1hxLS2+3O7WxRz82dSw3Ma+GSYZU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=npnZxVaH; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Ng/6mLRp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6AB571F00ACA;
-	Wed,  8 Jul 2026 10:47:26 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="npnZxVaH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7BFD21F00A3D;
+	Wed,  8 Jul 2026 10:47:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1783507647;
-	bh=tmfATRrYSxYs5N8QK4kE7v2SyJjcAvU2cOVJlzX73YM=;
+	s=k20260515; t=1783507652;
+	bh=H0ZPnChJetr/ev1Yw4qYNcMvsvS2Bw12ArYx4uLDnd0=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=Ng/6mLRp0H8Zs2qUOZKVI1ed9JhhwIbK3lFvCSCnsEZVPQmlwhB7MZ/WIo/aEyjhf
-	 uBFD3skckCInMdqwTa9zPhcxDXHKbunYEQYxPkG2eEC5pfeYCHHEf8wQ7ROKh0K1wL
-	 Udg44FlCjZrBImzigpBYvTVAdAItjTT2pT9VNCAyWxhzKFpHo975Yvy9X137eyzcz4
-	 +8PXgIBCrA4kn0Jb6W6TBcBeTEqSzYkzO10vUHTifuFAjxpdtAy83voC0+jlHMOfiB
-	 2DLg9ixEF2XpsjjIvXRKw9Xg0GtkaiWN3h14GYgCPVeG6Ks0YM4r0ICNcHNB7p/DxE
-	 i3UX6t2UJ1W2Q==
+	b=npnZxVaHGIx508hHeYyzWzKJUq/18j1vH44btr4HwHIGPznFgIN4nb5OnQBRXTwgW
+	 4zBDrLs6Z46VyuehAcbcfcWaWklZlQTk8oZK1Evuv6MdV3vXZ42fg4czeruhjdcEcS
+	 MZIGiVvxpakpAad0KLAkSqPkjTxHXeC6BaO1rlS/ICcY7SHc7Tc4t/u55Ca/yrHjDd
+	 fTdzyH0uuE/gTXIF6KF3eQG4IgLgvTZA9PCmDnge/mlsb6JuLgk+nSpBnWs2yNbs0F
+	 +ulOBMGpcxaLf1saSDBAaMTP8nSJkrqvY6jcxik+CO1PY4F/IvZeccpZEt5ltzyGYC
+	 R063bjk4+qpWA==
 From: Leon Romanovsky <leon@kernel.org>
 To: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
 	Jason Gunthorpe <jgg@ziepe.ca>,
@@ -43,9 +43,9 @@ To: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
 Cc: linux-rdma@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	Dennis Dalessandro <dennis.dalessandro@intel.com>
-Subject: [PATCH rdma-next 13/13] RDMA/hfi1: Align probe error unwinding with device removal
-Date: Wed,  8 Jul 2026 13:45:51 +0300
-Message-ID: <20260708-clean-init-one-hfi1-v1-13-b9e9641268a5@nvidia.com>
+Subject: [PATCH rdma-next 10/13] RDMA/hfi1: Stop flushing the global IB workqueue
+Date: Wed,  8 Jul 2026 13:45:48 +0300
+Message-ID: <20260708-clean-init-one-hfi1-v1-10-b9e9641268a5@nvidia.com>
 X-Mailer: git-send-email 2.55.0
 In-Reply-To: <20260708-clean-init-one-hfi1-v1-0-b9e9641268a5@nvidia.com>
 References: <20260708-clean-init-one-hfi1-v1-0-b9e9641268a5@nvidia.com>
@@ -61,118 +61,42 @@ Content-Transfer-Encoding: 8bit
 
 From: Leon Romanovsky <leonro@nvidia.com>
 
-init_one() defers handling errors from hfi1_init() and
-hfi1_register_ib_device() to a combined block. This allows IB registration
-to run after device initialization has failed. Cleanup then depends on two
-unrelated error values.
+hfi1 does not queue work on ib_wq. QSFP and link work run on the per-port
+link_wq, while the remaining device work uses hfi1_wq or dedicated queues.
+The probe failure path destroys both per-port workqueues, and normal device
+removal flushes them in shutdown_device() before destroying them.
 
-The late probe failure path also differs from the common teardown in
-remove_one(), even though both release the same initialized hardware and
-driver resources. Maintaining separate sequences obscures ownership and
-allows the paths to drift whenever initialization changes.
+Remove the flushes of the core-owned global workqueue. Waiting for
+unrelated core or other device work is not part of hfi1 teardown.
 
-Unwind at each failing stage and keep late probe teardown ordered like
-remove_one(), so partial initialization releases exactly the resources it
-owns and normal removal remains the reference cleanup flow.
-
+Fixes: 71d47008ca1b ("IB/hfi1: Create workqueue for link events")
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/hw/hfi1/init.c | 45 ++++++++++++++-------------------------
- 1 file changed, 16 insertions(+), 29 deletions(-)
+ drivers/infiniband/hw/hfi1/init.c | 4 ----
+ 1 file changed, 4 deletions(-)
 
 diff --git a/drivers/infiniband/hw/hfi1/init.c b/drivers/infiniband/hw/hfi1/init.c
-index 9ed7c1ffc93c..f94d896e7212 100644
+index ae30f6dd944c..6c642b68ad86 100644
 --- a/drivers/infiniband/hw/hfi1/init.c
 +++ b/drivers/infiniband/hw/hfi1/init.c
-@@ -1549,18 +1549,14 @@ static void postinit_cleanup(struct hfi1_devdata *dd)
- 	hfi1_dev_affinity_clean_up(dd);
+@@ -1650,7 +1650,6 @@ static int init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
+ 	if (initfail || ret) {
+ 		msix_clean_up_interrupts(dd);
+ 		stop_timers(dd);
+-		flush_workqueue(ib_wq);
+ 		for (pidx = 0; pidx < dd->num_pports; ++pidx) {
+ 			hfi1_quiet_serdes(dd->pport + pidx);
+ 			ppd = dd->pport + pidx;
+@@ -1721,9 +1720,6 @@ static void remove_one(struct pci_dev *pdev)
  
- 	hfi1_pcie_ddcleanup(dd);
--	hfi1_pcie_cleanup(dd->pcidev);
- 
- 	cleanup_device_data(dd);
--
--	hfi1_free_devdata(dd);
- }
- 
- static int init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
- {
--	int ret = 0, pidx, initfail;
-+	int ret;
- 	struct hfi1_devdata *dd;
--	struct hfi1_pportdata *ppd;
- 
- 	/* First, lock the non-writable module parameters */
- 	HFI1_CAP_LOCK();
-@@ -1627,34 +1623,19 @@ static int init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
- 		goto destroy_workqueues; /* error already printed */
- 
- 	/* do the generic initialization */
--	initfail = hfi1_init(dd, 0);
-+	ret = hfi1_init(dd, 0);
-+	if (ret)
-+		goto free_rx;
- 
- 	ret = hfi1_register_ib_device(dd);
-+	if (ret)
-+		goto free_rx;
- 
- 	/*
- 	 * Now ready for use.  this should be cleared whenever we
- 	 * detect a reset, or initiate one.
- 	 */
--	if (!initfail && !ret)
--		dd->flags |= HFI1_INITTED;
--
--	if (initfail || ret) {
--		msix_clean_up_interrupts(dd);
--		stop_timers(dd);
--		for (pidx = 0; pidx < dd->num_pports; ++pidx) {
--			hfi1_quiet_serdes(dd->pport + pidx);
--			ppd = dd->pport + pidx;
--			destroy_workqueue(ppd->hfi1_wq);
--			destroy_workqueue(ppd->link_wq);
--		}
--		if (!ret)
--			hfi1_unregister_ib_device(dd);
--		hfi1_free_rx(dd);
--		postinit_cleanup(dd);
--		if (initfail)
--			ret = initfail;
--		return ret;	/* everything already cleaned */
--	}
-+	dd->flags |= HFI1_INITTED;
- 
- 	ret = hfi1_device_create(dd);
- 	if (ret)
-@@ -1666,6 +1647,12 @@ static int init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
- 
- 	return 0;
- 
-+free_rx:
-+	hfi1_free_rx(dd);
-+	shutdown_device(dd);
-+	stop_timers(dd);
-+	postinit_cleanup(dd);
-+
- destroy_workqueues:
- 	destroy_workqueues(dd);
- free_devdata:
-@@ -1711,11 +1698,11 @@ static void remove_one(struct pci_dev *pdev)
- 	 * clear dma engines, etc.
- 	 */
- 	shutdown_device(dd);
--	destroy_workqueues(dd);
--
  	stop_timers(dd);
+ 
+-	/* wait until all of our (qsfp) queue_work() calls complete */
+-	flush_workqueue(ib_wq);
 -
  	postinit_cleanup(dd);
-+	destroy_workqueues(dd);
-+	hfi1_free_devdata(dd);
-+	hfi1_pcie_cleanup(pdev);
  }
  
- static void shutdown_one(struct pci_dev *pdev)
 
 -- 
 2.54.0
