@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 565FE3F4DE7;
-	Wed,  8 Jul 2026 10:46:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 93B8842F6F9;
+	Wed,  8 Jul 2026 10:46:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783507604; cv=none; b=l6YAHiwUkDZbVSHbfE1ut+uynMz4BIQ9KUc0/ZvRJf1bdBPsAkhqz+al1njg3Ro1766Wn7GN1k1VlBRyOd5i6RSFfBWu8LxkgvuXdjTcg069+UcOHl8E412mKuzzItyZCY2NgU2Q8Oe2iOSSU5SoDLB13jJ4iXcYHokeJGjadUU=
+	t=1783507612; cv=none; b=YRvT2BPqs1zgIXLj3lSnuBdbacskz26KI5Ue4kwAEej1SP8xuKnPoY9X5AjXG6vEUXqELWgnLTCYGrDotkVmdKlEulkUb6RD0eP5SzU+Rd8D4pVqgZgMUB14GF1NkFxnYV+Ghpduq1buCXn5oZAxZPSl0Sq8vhI2UUqVXkpn4oc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783507604; c=relaxed/simple;
-	bh=SIkVnsrF37UFvEE2T1hyUULY/RT1TlVLVlxcz/s9DQo=;
+	s=arc-20240116; t=1783507612; c=relaxed/simple;
+	bh=DuSD1O90tw7ehV47XZMLeukliYvvTMe3va9DrUhipRk=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=sLY6rlSkdBp8q6+jj8iy0DTrTCzZ8AF5xeAHkdkDtJXLrt7+3HAm33CmSfaROWzhVMuF1P9M/Pn+e688O/hLNAJ2NtitoUBvwyPb6VkyVok7OIAlWWkvgEzvLLTyO+rc10yuWQZs728fOLYGr+wn36hWUff9SoumuYSfqyaq2co=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=SxgLZ64n; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=tLaIQtMTazZmAS5KvBZuhsGtjh0i6HLxhyZMzm4UiCtVPCyr1Tz1VsSQ8CW3pkqLeQXcIlGGOUXcB+6fQTdSNilGsHNJNcnScjaM5Mg/WPhBjLuJM67ZWQKwHg33wJXZPNSDSUxyseEjoU2XtDAJB8SNYlRaRWQuT0T3Ufmj5ic=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=NOF74wRw; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="SxgLZ64n"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4F64B1F00A3A;
-	Wed,  8 Jul 2026 10:46:27 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="NOF74wRw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A52C1F00A3A;
+	Wed,  8 Jul 2026 10:46:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1783507589;
-	bh=1n4AdS8vEoszlVzUktAfAp0DGIlgAbsYbugaArfNbuQ=;
+	s=k20260515; t=1783507605;
+	bh=ML/TbO4YSOqW5hl7rFndxG03jdWTecqLMNOh7BIxx1o=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=SxgLZ64nlgSJzr9pqPoSXPcfO4z86XWn2kWZZ9oXTRpM1DgkDFIPtrtEfYNUbYzhi
-	 dFHRkicGIUEsq/JGU7FgJmYCiGE1IzAwzZ1magKc7noFb3nt+eZK+OZZDgKETuPvi/
-	 dETdfpTQriO0nlfmSoX1RghCSpIninI+DinuYjLJkyy2ULFUbaoX5kQXg1XSL9qKwv
-	 NumYMKSCsQ7H5RPq6IvuUvPjptN7bRGlEsZhn/4E0gCj+RobGigARvnztytT2VGRth
-	 +D0LV5Qy6l0lpOo8ep53i1Z36ANikZF9zQLIFXbtuKhilHC4WecRhEQP49y5/WeiMM
-	 JvY+eQvQCDfOw==
+	b=NOF74wRwR+PGXeIUY2QJR/EfvBBjtSY8d7VUGWmJbepdAqAHRMwH5uT1XRUsq+nA8
+	 iV6GgbYG0U4pue3+sPoiBbkjfv8iWCiPT/uJTVZo6vI5xEe66K70ZsBq6vmeLLNW1x
+	 w3H27yUAElqdQmZr2IWDfggtKlcaKFhtDvt45I1At6V1q/wH38RMh9iKT4Epwdh9NS
+	 B4S2ZivKvi3zIE3EjSOlfSCm/eW6zOg0U5OsMlmfwiCKvYqlC62ucRYESV3nscBFRC
+	 1DY6OYf5Vtg3KeQIF2Ors7PCg1EXSCxKi/a8ybV5+CVGyDyqFhMXnt1cYM3c3jcf0o
+	 t9ztaWQpjwUCg==
 From: Leon Romanovsky <leon@kernel.org>
 To: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
 	Jason Gunthorpe <jgg@ziepe.ca>,
@@ -43,9 +43,9 @@ To: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
 Cc: linux-rdma@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	Dennis Dalessandro <dennis.dalessandro@intel.com>
-Subject: [PATCH rdma-next 02/13] RDMA/hfi1: Preserve unit 0 on allocation failure
-Date: Wed,  8 Jul 2026 13:45:40 +0300
-Message-ID: <20260708-clean-init-one-hfi1-v1-2-b9e9641268a5@nvidia.com>
+Subject: [PATCH rdma-next 05/13] RDMA/hfi1: Drop device data from hfi1_validate_rcvhdrcnt()
+Date: Wed,  8 Jul 2026 13:45:43 +0300
+Message-ID: <20260708-clean-init-one-hfi1-v1-5-b9e9641268a5@nvidia.com>
 X-Mailer: git-send-email 2.55.0
 In-Reply-To: <20260708-clean-init-one-hfi1-v1-0-b9e9641268a5@nvidia.com>
 References: <20260708-clean-init-one-hfi1-v1-0-b9e9641268a5@nvidia.com>
@@ -61,36 +61,87 @@ Content-Transfer-Encoding: 8bit
 
 From: Leon Romanovsky <leonro@nvidia.com>
 
-hfi1_free_devdata() assumes that the device was inserted into the unit
-table and unconditionally erases dd->unit. If xa_alloc_irq() fails, the
-zero-initialized unit remains zero, so full cleanup can remove an
-unrelated device from index 0.
+hfi1_validate_rcvhdrcnt() only needs hfi1_devdata to identify the adapter
+in error messages. Requiring the full device data prevents module parameter
+validation from running before hfi1_devdata is allocated.
 
-Release only the rdmavt allocation and return immediately while the unit
-table has not acquired the device.
+Pass pci_dev instead and use dev_err(), allowing validation to move earlier
+without losing the PCI BDF needed on multi-device systems. Use %u for the
+unsigned count while changing the messages.
 
-Fixes: 03b92789e5cf ("hfi1: Convert hfi1_unit_table to XArray")
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/hw/hfi1/init.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/hfi1/chip.c | 17 +++++++++--------
+ drivers/infiniband/hw/hfi1/chip.h |  2 +-
+ drivers/infiniband/hw/hfi1/init.c |  2 +-
+ 3 files changed, 11 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/init.c b/drivers/infiniband/hw/hfi1/init.c
-index b7fd8b1fbbbd..3a408399f9ab 100644
---- a/drivers/infiniband/hw/hfi1/init.c
-+++ b/drivers/infiniband/hw/hfi1/init.c
-@@ -1225,8 +1225,9 @@ static struct hfi1_devdata *hfi1_alloc_devdata(struct pci_dev *pdev,
- 			GFP_KERNEL);
- 	if (ret < 0) {
- 		dev_err(&pdev->dev,
--			"Could not allocate unit ID: error %d\n", -ret);
--		goto bail;
-+			"Could not allocate unit ID: error %pe\n", ERR_PTR(ret));
-+		rvt_dealloc_device(&dd->verbs_dev.rdi);
-+		return ERR_PTR(ret);
+diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
+index 44c524e45396..a41dd67c50bf 100644
+--- a/drivers/infiniband/hw/hfi1/chip.c
++++ b/drivers/infiniband/hw/hfi1/chip.c
+@@ -11929,26 +11929,27 @@ u8 encode_rcv_header_entry_size(u8 size)
+ 
+ /**
+  * hfi1_validate_rcvhdrcnt - validate hdrcnt
+- * @dd: the device data
++ * @pdev: the PCI device
+  * @thecnt: the header count
+  */
+-int hfi1_validate_rcvhdrcnt(struct hfi1_devdata *dd, uint thecnt)
++int hfi1_validate_rcvhdrcnt(struct pci_dev *pdev, uint thecnt)
+ {
+ 	if (thecnt <= HFI1_MIN_HDRQ_EGRBUF_CNT) {
+-		dd_dev_err(dd, "Receive header queue count too small\n");
++		dev_err(&pdev->dev, "Receive header queue count too small\n");
+ 		return -EINVAL;
  	}
  
- 	/*
+ 	if (thecnt > HFI1_MAX_HDRQ_EGRBUF_CNT) {
+-		dd_dev_err(dd,
+-			   "Receive header queue count cannot be greater than %u\n",
+-			   HFI1_MAX_HDRQ_EGRBUF_CNT);
++		dev_err(&pdev->dev,
++			"Receive header queue count cannot be greater than %u\n",
++			HFI1_MAX_HDRQ_EGRBUF_CNT);
+ 		return -EINVAL;
+ 	}
+ 
+ 	if (thecnt % HDRQ_INCREMENT) {
+-		dd_dev_err(dd, "Receive header queue count %d must be divisible by %lu\n",
+-			   thecnt, HDRQ_INCREMENT);
++		dev_err(&pdev->dev,
++			"Receive header queue count %u must be divisible by %lu\n",
++			thecnt, HDRQ_INCREMENT);
+ 		return -EINVAL;
+ 	}
+ 
+diff --git a/drivers/infiniband/hw/hfi1/chip.h b/drivers/infiniband/hw/hfi1/chip.h
+index 56e03d486ace..bc1c9e1c3172 100644
+--- a/drivers/infiniband/hw/hfi1/chip.h
++++ b/drivers/infiniband/hw/hfi1/chip.h
+@@ -660,7 +660,7 @@ static inline u32 chip_rcv_array_count(struct hfi1_devdata *dd)
+ }
+ 
+ u8 encode_rcv_header_entry_size(u8 size);
+-int hfi1_validate_rcvhdrcnt(struct hfi1_devdata *dd, uint thecnt);
++int hfi1_validate_rcvhdrcnt(struct pci_dev *pdev, uint thecnt);
+ void set_hdrq_regs(struct hfi1_devdata *dd, u8 ctxt, u8 entsize, u16 hdrcnt);
+ 
+ u64 create_pbc(struct hfi1_pportdata *ppd, u64 flags, int srate_mbs, u32 vl,
+diff --git a/drivers/infiniband/hw/hfi1/init.c b/drivers/infiniband/hw/hfi1/init.c
+index a37a875736f7..fd91a4b4812d 100644
+--- a/drivers/infiniband/hw/hfi1/init.c
++++ b/drivers/infiniband/hw/hfi1/init.c
+@@ -1580,7 +1580,7 @@ static int init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
+ 	}
+ 
+ 	/* Validate some global module parameters */
+-	ret = hfi1_validate_rcvhdrcnt(dd, rcvhdrcnt);
++	ret = hfi1_validate_rcvhdrcnt(pdev, rcvhdrcnt);
+ 	if (ret)
+ 		goto bail;
+ 
 
 -- 
 2.54.0
