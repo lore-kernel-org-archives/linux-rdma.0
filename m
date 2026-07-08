@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C8D5A423A72;
-	Wed,  8 Jul 2026 10:46:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F0DC427A0F;
+	Wed,  8 Jul 2026 10:47:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783507630; cv=none; b=pi6AjWdTOB+ftTQ6135T4kROAddQjZmX3TcVsky+permxA92MDrmIcGhNi0dVepUvy0AP3itEutdd2v7Cz5v8mpnBTRW5/cuxOMHcuFmmDp55c68YIFTGmeZnRQH86kGw3Q320EgE+pcO/Qc6nTKhRTHHeI3YR8n72lNGXrqUEI=
+	t=1783507633; cv=none; b=d30Dc5AKbgxV1wJppJPPpzTTY03T0tLfJnZZajjP8MF4COtszy4KupeZTGNXdApyiX1WBQIxY+MImFIXL77z/BCPoQDCa7XX33AcRzBMo1mUMGUUZaFqli+JX08tC5zhUYSVzYu/V1PDq1VZXLPyVgcKUudLcLQus6DrnFZfqPU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783507630; c=relaxed/simple;
-	bh=G8YKIp4MjPR2gjSoN7tjv0/83LNxK8t8fh17lKL1xdE=;
+	s=arc-20240116; t=1783507633; c=relaxed/simple;
+	bh=QTEpX5+VEa3Q68rBAv+nEgFWU1X3aCV+CT6RYQtN1Ic=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=ph+pemxUn2mQSPktbN0+XkXIGZW7QODChNjEK6Y+O0AvxLzXocMyg9XXvIlz2OigYJQ+GqgGD58ka2+VFA33tVZ5anuMDeKRRRKt3tzzWimvWHSsmp1mpHe8Upe15bLs8UTjxRDzSnt+XLlrNoi2X2kZvUOTgEYjhI/yd+dYKcM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=CuMG50HZ; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=BX9EdsiytcXT8qrpmrujs4I8yWZJBxKfgp5awZtYv3l7dDcAyj0xSMVnwJ0UZXGBWRif5jctHcKjlYsos5AtOGguXpKPdUG+dqvzie1nQLRTlq/aPgFCndlPLD1n9lHQeoYx2PeF2H4KxHGLGT2fiZRvjMZNaVhNCbvd58TRSuo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=GhQhzeHy; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="CuMG50HZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A5FA01F00A3A;
-	Wed,  8 Jul 2026 10:46:55 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="GhQhzeHy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B1D731F00A3D;
+	Wed,  8 Jul 2026 10:47:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1783507617;
-	bh=Js4cEaVq+i2IIo3UuwfDpTdf5q+yAx0/nkn6tYzd9QM=;
+	s=k20260515; t=1783507627;
+	bh=1DZ1auoBgF4zM/BywSq303vABTGKlgQb3ejIquGJ2BQ=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=CuMG50HZ7JBM+3P8b7A0JxnOIk7UOixiI1nauvvF8HkDpH+KOPrNb3w91Ij0r0nOA
-	 NDC0xAKgVZ0a6nGhBZVZQ0te+hXkGRlVzoRG5krhDHxilIMNqjxB0byhX0ZRN8V19R
-	 caB/kO30XKQzn9A8MejNwjx6Pd9OY6cK8KGu4bedg8HLUWGQI4Mg/4W7PQnfSRhQXE
-	 6XV/wq50xrb/6PZcgevQJHIJrJLK8lvP0xJ0jgNw2wnD0ZFSUEHXaoAo6BtfraWsp6
-	 lMlsU0h7DlrAorAMtMB0xCkusjjy89mEvd9UhfVqXDhu3XlsJpHwII++bM15qrA5IT
-	 Ior/u1hzAGqjA==
+	b=GhQhzeHytMIPnvkosjLK2DM0KGY5zEf3VfhsPJWv5yOwRjnrGbPOyWck15BXYCmHZ
+	 wN9H3iWmCT/Yt/V/QYaiuFHMJkpn27fpQ6UOXq0eaYF+i6oP57fpbNyJdrqdXiXdQT
+	 f35m1fqHoIa3X8NdPPuYF3YKzdqLQRFF0ticcsKOgwBiOAUb/AUGL95Q4/5/GTb92I
+	 VJu0626jKLXV+NevmuxZZ19m1SLkMN6hozHbrAEtWcb8QGs8oreuiC0o8jnWDZqZf8
+	 ga0gvEngROBJaOBFin5UT6CIiut20SmeVY+ozw6UXioEP5fu3d0RNRXc3MOH/63M48
+	 MmHQsssW9qz4Q==
 From: Leon Romanovsky <leon@kernel.org>
 To: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
 	Jason Gunthorpe <jgg@ziepe.ca>,
@@ -43,9 +43,9 @@ To: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
 Cc: linux-rdma@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	Dennis Dalessandro <dennis.dalessandro@intel.com>
-Subject: [PATCH rdma-next 04/13] RDMA/hfi1: Pass PCI device to hfi1_pcie_init()
-Date: Wed,  8 Jul 2026 13:45:42 +0300
-Message-ID: <20260708-clean-init-one-hfi1-v1-4-b9e9641268a5@nvidia.com>
+Subject: [PATCH rdma-next 09/13] RDMA/hfi1: Remove redundant NULL checks in create_workqueues()
+Date: Wed,  8 Jul 2026 13:45:47 +0300
+Message-ID: <20260708-clean-init-one-hfi1-v1-9-b9e9641268a5@nvidia.com>
 X-Mailer: git-send-email 2.55.0
 In-Reply-To: <20260708-clean-init-one-hfi1-v1-0-b9e9641268a5@nvidia.com>
 References: <20260708-clean-init-one-hfi1-v1-0-b9e9641268a5@nvidia.com>
@@ -61,91 +61,90 @@ Content-Transfer-Encoding: 8bit
 
 From: Leon Romanovsky <leonro@nvidia.com>
 
-hfi1_pcie_init() only needs hfi1_devdata to reach the PCI device. This
-unnecessary dependency prevents common PCI setup from running before
-hfi1_devdata is allocated.
-
-Pass pci_dev directly and report failures with dev_err(), preserving the
-device BDF needed to identify the failing adapter on multi-device systems.
-Use %pe while changing the messages so errno values are decoded.
+create_workqueues() is called only from init_one(), immediately after
+hfi1_alloc_devdata() returns a zero-initialized hfi1_devdata. As a
+result, the per-port hfi1_wq and link_wq pointers are always NULL on
+entry, and nothing modifies them between allocation and this call.
 
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/hw/hfi1/hfi.h  |  2 +-
- drivers/infiniband/hw/hfi1/init.c |  2 +-
- drivers/infiniband/hw/hfi1/pcie.c | 12 +++++++-----
- 3 files changed, 9 insertions(+), 7 deletions(-)
+ drivers/infiniband/hw/hfi1/init.c | 56 ++++++++++++++++-----------------------
+ 1 file changed, 23 insertions(+), 33 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/hfi.h b/drivers/infiniband/hw/hfi1/hfi.h
-index 5a0310f758dc..95f86a002a3d 100644
---- a/drivers/infiniband/hw/hfi1/hfi.h
-+++ b/drivers/infiniband/hw/hfi1/hfi.h
-@@ -2132,7 +2132,7 @@ void hfi1_verbs_unregister_sysfs(struct hfi1_devdata *dd);
- /* Hook for sysfs read of QSFP */
- int qsfp_dump(struct hfi1_pportdata *ppd, char *buf, int len);
- 
--int hfi1_pcie_init(struct hfi1_devdata *dd);
-+int hfi1_pcie_init(struct pci_dev *pdev);
- void hfi1_pcie_cleanup(struct pci_dev *pdev);
- int hfi1_pcie_ddinit(struct hfi1_devdata *dd, struct pci_dev *pdev);
- void hfi1_pcie_ddcleanup(struct hfi1_devdata *);
 diff --git a/drivers/infiniband/hw/hfi1/init.c b/drivers/infiniband/hw/hfi1/init.c
-index 7c0383657ad0..a37a875736f7 100644
+index 0545180b5a11..ae30f6dd944c 100644
 --- a/drivers/infiniband/hw/hfi1/init.c
 +++ b/drivers/infiniband/hw/hfi1/init.c
-@@ -1620,7 +1620,7 @@ static int init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
- 	/* restrict value of hfi1_rcvarr_split */
- 	hfi1_rcvarr_split = clamp_val(hfi1_rcvarr_split, 0, 100);
+@@ -738,31 +738,27 @@ static int create_workqueues(struct hfi1_devdata *dd)
  
--	ret = hfi1_pcie_init(dd);
-+	ret = hfi1_pcie_init(pdev);
- 	if (ret)
- 		goto bail;
- 
-diff --git a/drivers/infiniband/hw/hfi1/pcie.c b/drivers/infiniband/hw/hfi1/pcie.c
-index 7133964749f8..7ca8f07ba43e 100644
---- a/drivers/infiniband/hw/hfi1/pcie.c
-+++ b/drivers/infiniband/hw/hfi1/pcie.c
-@@ -21,10 +21,9 @@
- /*
-  * Do all the common PCIe setup and initialization.
-  */
--int hfi1_pcie_init(struct hfi1_devdata *dd)
-+int hfi1_pcie_init(struct pci_dev *pdev)
- {
- 	int ret;
--	struct pci_dev *pdev = dd->pcidev;
- 
- 	ret = pci_enable_device(pdev);
- 	if (ret) {
-@@ -40,13 +39,15 @@ int hfi1_pcie_init(struct hfi1_devdata *dd)
- 		 * about that, it appears.  If the original BAR was retained
- 		 * in the kernel data structures, this may be OK.
- 		 */
--		dd_dev_err(dd, "pci enable failed: error %d\n", -ret);
-+		dev_err(&pdev->dev, "pci enable failed: error %pe\n",
-+			ERR_PTR(ret));
- 		return ret;
+ 	for (pidx = 0; pidx < dd->num_pports; ++pidx) {
+ 		ppd = dd->pport + pidx;
+-		if (!ppd->hfi1_wq) {
+-			ppd->hfi1_wq =
+-				alloc_workqueue(
+-				    "hfi%d_%d",
+-				    WQ_SYSFS | WQ_HIGHPRI | WQ_CPU_INTENSIVE | WQ_MEM_RECLAIM |
+-				    WQ_PERCPU,
+-				    HFI1_MAX_ACTIVE_WORKQUEUE_ENTRIES,
+-				    dd->unit, pidx);
+-			if (!ppd->hfi1_wq)
+-				goto wq_error;
+-		}
+-		if (!ppd->link_wq) {
+-			/*
+-			 * Make the link workqueue single-threaded to enforce
+-			 * serialization.
+-			 */
+-			ppd->link_wq =
+-				alloc_workqueue(
+-				    "hfi_link_%d_%d",
+-				    WQ_SYSFS | WQ_MEM_RECLAIM | WQ_UNBOUND,
+-				    1, /* max_active */
+-				    dd->unit, pidx);
+-			if (!ppd->link_wq)
+-				goto wq_error;
+-		}
++		ppd->hfi1_wq =
++			alloc_workqueue(
++			    "hfi%d_%d",
++			    WQ_SYSFS | WQ_HIGHPRI | WQ_CPU_INTENSIVE | WQ_MEM_RECLAIM |
++			    WQ_PERCPU,
++			    HFI1_MAX_ACTIVE_WORKQUEUE_ENTRIES,
++			    dd->unit, pidx);
++		if (!ppd->hfi1_wq)
++			goto wq_error;
++		/*
++		 * Make the link workqueue single-threaded to enforce
++		 * serialization.
++		 */
++		ppd->link_wq =
++			alloc_workqueue(
++			    "hfi_link_%d_%d",
++			    WQ_SYSFS | WQ_MEM_RECLAIM | WQ_UNBOUND,
++			    1, /* max_active */
++			    dd->unit, pidx);
++		if (!ppd->link_wq)
++			goto wq_error;
  	}
- 
- 	ret = pci_request_regions(pdev, DRIVER_NAME);
- 	if (ret) {
--		dd_dev_err(dd, "pci_request_regions fails: err %d\n", -ret);
-+		dev_err(&pdev->dev, "pci_request_regions fails: err %pe\n",
-+			ERR_PTR(ret));
- 		goto bail;
- 	}
- 
-@@ -59,7 +60,8 @@ int hfi1_pcie_init(struct hfi1_devdata *dd)
- 		 */
- 		ret = dma_set_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(32));
- 		if (ret) {
--			dd_dev_err(dd, "Unable to set DMA mask: %d\n", ret);
-+			dev_err(&pdev->dev, "Unable to set DMA mask: %pe\n",
-+				ERR_PTR(ret));
- 			goto bail;
+ 	return 0;
+ wq_error:
+@@ -1658,14 +1654,8 @@ static int init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
+ 		for (pidx = 0; pidx < dd->num_pports; ++pidx) {
+ 			hfi1_quiet_serdes(dd->pport + pidx);
+ 			ppd = dd->pport + pidx;
+-			if (ppd->hfi1_wq) {
+-				destroy_workqueue(ppd->hfi1_wq);
+-				ppd->hfi1_wq = NULL;
+-			}
+-			if (ppd->link_wq) {
+-				destroy_workqueue(ppd->link_wq);
+-				ppd->link_wq = NULL;
+-			}
++			destroy_workqueue(ppd->hfi1_wq);
++			destroy_workqueue(ppd->link_wq);
  		}
- 	}
+ 		if (!j)
+ 			hfi1_device_remove(dd);
 
 -- 
 2.54.0
