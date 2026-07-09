@@ -1,43 +1,41 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6EC4630CD82;
-	Thu,  9 Jul 2026 09:07:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EDC7B3FF889
+	for <linux-rdma@vger.kernel.org>; Thu,  9 Jul 2026 09:09:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783588035; cv=none; b=ZnBI3XxcPUY+EUgkoQ54FEkV6It5IU2Uoqn/tEWl2XW2C3/xeMbBgJJCLqrgLpPDCR/WorvRlJwsKWtvtoJdrdofl3q3vCbDzVjHUCCNbwL+oSz+ilgFW2175/TGQ6wh6QXs9jqQXbSC6SktgIyXGUrrPuKUWuD+Y1tAX01Uln8=
+	t=1783588183; cv=none; b=kg8s2hUPLXu/+NbBzv+1LXnDLOiBZ10cWaWHltDkJiTJ5ZQIXAU5X6ucc3fHETESDwueOp2pA3FqEbXIxBdulUzskGzBoDSlrCH3Tg1UsZDNNHDthV9umZ9YCBsx3eexkq29t0AG+fqXYydsVNUwGDss4IkN4Gyx8Xxdg2Z4bGg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783588035; c=relaxed/simple;
-	bh=R8O+gNyxyQ3mFzwYKMnSBrWNskGC33HSzINn7n78du8=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=J+8H4snd8Ppg9ToGhRJKtOJ2+9+wSTJH18lpMzNZz0/ppYeahheuWAwkNZ+Q8JuZFBLFjl83atZK86FijIddQtUB1NwrcbnHShakOBfEZgJMP9WUywXQlsImuQYn/XouBMXcFrFo7bWvLxZe6rqtq5D2xe5PLwMq4kE2CnJVjdE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=jmgEXgVW; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783588183; c=relaxed/simple;
+	bh=9thf/Ejhc35ynH9M61FWBd4ZmZ4cOOx2yKw+7ihsenk=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
+	 MIME-Version:Content-Type; b=aJo+4GpWpsfG0HsZBybuDHW3oW0Xkq7TFubFPF4gm3pbaYeDwqEwKq/VHqtCkvzb+oEwn5mJ/3hZogrzNhkG2WklPwOtil+O9LfdWro6YLoc/udMZlFrsyF3zOsp0xpl3qY/FlrAkMXPurYj6YqOPeg1ftR+N/0prqKMEckSE4o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=BQg1OTCU; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="jmgEXgVW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 846F61F00A3A;
-	Thu,  9 Jul 2026 09:07:10 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="BQg1OTCU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 130FE1F000E9;
+	Thu,  9 Jul 2026 09:09:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1783588031;
-	bh=FnbpN+0s4pl5QfhdDEGmVWpJlqoYMnQ1UMGEML7kqgA=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=jmgEXgVWqpyrAP4Ogm2k+uufJ6TXDR2fII0uiPZkPq4vA0BGYuS4bbjmnaOGjSPSF
-	 tBXHWISVlMXP6nWzqqNdZSsytYM7uGMlhTVqltTmIvx9DrpfGX9Q6pLAF2NZOYzjAm
-	 1RJ1Hzvs/euM93PKY/pl+6MAzoTxUMuqcB1wG6BM0TI9sL33BPc7F7E6abt5u/FMSf
-	 P49QXzgOlHzzkMjYuIVnks30aAvThRAzuYXLDu/Mb6RSKTeJLhPieJEPl3rloo9n2A
-	 PRgwlhEDo4802boZfsa8mJE5yCmhD6oSTA44KOuq9Fmp/vz8X2Ua4AA/h0qqQ4iAhp
-	 CW9De6Od+lsgA==
+	s=k20260515; t=1783588181;
+	bh=YULGzDcHM1TLPJpT1xYVlD9gHE+0cZICsht6KLUJ/N4=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Date;
+	b=BQg1OTCU2Q8w8y2M92mZmF+irSVNmsg3ruh0qpb8eAcdWCKXEtGJUfU+Coq6qYz2n
+	 dqmZ+gHoSXRD1ZeMxpD2iTTSqVEb8u2AQwsIKZrs8wCKDMZC/5nY/SCIKCkKzPW/tG
+	 JiCEcn/QwjXB2NTxwrhtLyLbZl2H/7vOy5Y+khh7vc1Zeiwg5e1oT+4JQJXmwKAa8n
+	 Yjg5Bd45GucJgSzkDOP/ZUv9GNmPNXPKxTc0xOOe46dbsYfFzwd9mmrtK82KVERK8/
+	 Q3jO2OjxemfMeifu7+E4Q/6fgf97hLRDqz3MYG+ljdwegPIUw6i+ZZ67bxA20hZgx1
+	 E2c36rlps4tMA==
 From: Leon Romanovsky <leon@kernel.org>
-To: Jason Gunthorpe <jgg@ziepe.ca>,
-	Leon Romanovsky <leon@kernel.org>
-Cc: linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: [PATCH rdma-rc 3/3] RDMA/ipoib: Drain RCU callbacks during module teardown
-Date: Thu,  9 Jul 2026 12:06:49 +0300
-Message-ID: <20260709-unload-rcu-v1-3-fccd27211e5a@nvidia.com>
-X-Mailer: git-send-email 2.55.0
-In-Reply-To: <20260709-unload-rcu-v1-0-fccd27211e5a@nvidia.com>
-References: <20260709-unload-rcu-v1-0-fccd27211e5a@nvidia.com>
+To: linux-rdma@vger.kernel.org, Kamal Heib <kheib@redhat.com>
+Cc: Abhijit Gangurde <abhijit.gangurde@amd.com>, 
+ Allen Hubbe <allen.hubbe@amd.com>, Jason Gunthorpe <jgg@ziepe.ca>
+In-Reply-To: <20260708210734.641411-1-kheib@redhat.com>
+References: <20260708210734.641411-1-kheib@redhat.com>
+Subject: Re: [PATCH rdma-next] RDMA/ionic: Remove duplicate IONIC_SPEC_HIGH
+ definition
+Message-Id: <178358817866.1471117.4445800976843457612.b4-ty@kernel.org>
+Date: Thu, 09 Jul 2026 05:09:38 -0400
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -45,47 +43,19 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 X-Mailer: b4 0.15-dev-18f8f
-Content-Transfer-Encoding: 8bit
 
-From: Leon Romanovsky <leonro@nvidia.com>
 
-IPoIB reclamation completions can be signaled from inside an RCU callback.
-Teardown can wake before the callback returns and unload ib_ipoib while its
-code is still executing.
+On Wed, 08 Jul 2026 17:07:34 -0400, Kamal Heib wrote:
+> The macro IONIC_SPEC_HIGH is defined twice - remove it.
 
-Client registration failure can also remove already-added devices and queue
-callbacks. Wait after client and workqueue teardown.
+Applied, thanks!
 
-Fixes: b63b70d87741 ("IPoIB: Use a private hash table for path lookup in xmit path")
-Reported-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Closes: https://lore.kernel.org/linux-rdma/20260708092316.Qb39F_B0@linutronix.de/
-Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
----
- drivers/infiniband/ulp/ipoib/ipoib_main.c | 2 ++
- 1 file changed, 2 insertions(+)
+[1/1] RDMA/ionic: Remove duplicate IONIC_SPEC_HIGH definition
+      https://git.kernel.org/rdma/rdma/c/b21d9bf627dd41
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-index 16a015b67206..6c14246befb1 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-@@ -2783,6 +2783,7 @@ static int __init ipoib_init_module(void)
- err_sa:
- 	ib_sa_unregister_client(&ipoib_sa_client);
- 	destroy_workqueue(ipoib_workqueue);
-+	rcu_barrier();
- 
- err_fs:
- 	ipoib_unregister_debugfs();
-@@ -2800,6 +2801,7 @@ static void __exit ipoib_cleanup_module(void)
- 	ib_sa_unregister_client(&ipoib_sa_client);
- 	ipoib_unregister_debugfs();
- 	destroy_workqueue(ipoib_workqueue);
-+	rcu_barrier();
- }
- 
- module_init(ipoib_init_module);
-
+Best regards,
 -- 
-2.54.0
+Leon Romanovsky <leon@kernel.org>
 
