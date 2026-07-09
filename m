@@ -1,54 +1,80 @@
-Received: from sender-op-o19.zoho.eu (sender-op-o19.zoho.eu [136.143.169.19])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pf1-f171.google.com (mail-pf1-f171.google.com [209.85.210.171])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B02AC1E4AF
-	for <linux-rdma@vger.kernel.org>; Thu,  9 Jul 2026 07:38:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=136.143.169.19
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783582716; cv=pass; b=iPtBf7Io1Wm0BP4TRppGlFeBa7N5tvfle+uEHF3zj+JQfZlwBWmAwk2tlGZuBdcaQoDfL3ZCzuWvmtiFoN29C+0nBpqdvhNqEz8AAsMF2qJYTRnYWWqYXaiFRjduk9k3ZFCql21RzqXBAWynyXnlI+8wPag6mQBzGLTVa0HQ/mU=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783582716; c=relaxed/simple;
-	bh=rYXFS9xHWuxQzCIZzhwsqpVUQPKRsFxknlyN1JD5Vos=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=TaQ5qnP88Yq2afFGyYY3cu/KCiwTs/FT51hWbIjTg3Ik8Hk4ATvu7A45tZjeGcuCe14ZlBPb8gmrhMr3QskrYiAgEs94BN4nXVJkqQi2e/9FUBKlIkgIeDLcRNucSCuQNTr+9x/QBr+Enij6571U37/UoI2lmuLHEE5oOXlcX8Y=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=auditcode.ai; spf=pass smtp.mailfrom=auditcode.ai; dkim=pass (1024-bit key) header.d=auditcode.ai header.i=security@auditcode.ai header.b=VIS+K0JE; arc=pass smtp.client-ip=136.143.169.19
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=auditcode.ai
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=auditcode.ai
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 77A6D3CCFD4
+	for <linux-rdma@vger.kernel.org>; Thu,  9 Jul 2026 07:45:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.171
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1783583106; cv=none; b=d679vVzqXXhfqVIHID6/G99QVorLHfv/xabG8fg+VPSYbfrJ/6dkWPIHEpJvKWVoXkdokf4DqIykMFJAH5yRTVuQYRFGcvsXkbb9Tqtg9PYfXNT8erD0QuAT4RvvHQqdrs54RExaZzssW+nlXR5Km6X3rpWpCg79+v/jFhnydbQ=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1783583106; c=relaxed/simple;
+	bh=ljQxIHA11d7j3UwD5SUG7PWcXQCYFxsNMhqkVbdm2WA=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=QpkFCKRkOP1dvPADbfQqgW8iBHJcJ1EDm/FS2xshqJV8HbjSByG8F99jmxvXALr1lpZiosBJiAYqc/32SX/NXtuGNG8SBs5x8cQrk6OrFYPekLFYV7ESMDTF1ElUC15MYogM10YoG3L3CwkWbg/ZeSCoBhBQ+FbSiUItGVOb4WI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=asu.edu; spf=pass smtp.mailfrom=asu.edu; dkim=pass (2048-bit key) header.d=asu.edu header.i=@asu.edu header.b=k/R1qZ8E; arc=none smtp.client-ip=209.85.210.171
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=asu.edu
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=asu.edu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=auditcode.ai header.i=security@auditcode.ai header.b="VIS+K0JE"
-ARC-Seal: i=1; a=rsa-sha256; t=1783581779; cv=none; 
-	d=zohomail.eu; s=zohoarc; 
-	b=VK21chKWofYbNuJIrzzGpsRRVvHoqOi+e6wXH1BWKh4LB7/UZ7VL1cXqbSj2ObBR9WvPplyYuKKIWi29nOOi/zFerjGiiINthO4HrDtV3rY3zucH+RAQQUnhIKHPfXehqHd6036pcjjgLSuFm2hG8emUBH/tmxDTS2E0Uzx3ly8=
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zohomail.eu; s=zohoarc; 
-	t=1783581779; h=Content-Transfer-Encoding:Cc:Cc:Date:Date:From:From:In-Reply-To:MIME-Version:Message-ID:References:Subject:Subject:To:To:Message-Id:Reply-To; 
-	bh=VFtLFkRLEWW8l7BwPhVXWJVcL1yGskcHu0COgJoFJaw=; 
-	b=leuhatw7b67vDhbFlfCyG2s9zDd+q6T1sQ5dVwlS5WqRKZ1N4xdFvUTO01WSjQwCGSRJQ39nEYXon12zRl6hP+9gpBiaXFW9cYMbN06YxgTYqg329Ar2zQbPntsdS2d84zjXN0ISs6pjSriBD5TYqAPnfJrIRI+j0UGWx9azpa4=
-ARC-Authentication-Results: i=1; mx.zohomail.eu;
-	dkim=pass  header.i=auditcode.ai;
-	spf=pass  smtp.mailfrom=security@auditcode.ai;
-	dmarc=pass header.from=<security@auditcode.ai>
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1783581779;
-	s=zmail; d=auditcode.ai; i=security@auditcode.ai;
-	h=From:From:To:To:Cc:Cc:Subject:Subject:Date:Date:Message-ID:In-Reply-To:References:MIME-Version:Content-Transfer-Encoding:Message-Id:Reply-To;
-	bh=VFtLFkRLEWW8l7BwPhVXWJVcL1yGskcHu0COgJoFJaw=;
-	b=VIS+K0JEDOAfm7QoGp134j5BPE88sBezBKc+E4lxROnWoooj+UD2INEh+yYOQ9sW
-	1F2h+mPbUTQsvOG95UhLo1VqURjB8FTCWLMJvvGam8NN6JjNDp1T/DHrOrsEsI+RYh+
-	UgPkKd/ns3XSayic4fI4YwSnyX9iPqql+7ufVcLc=
-Received: by mx.zoho.eu with SMTPS id 1783581778052657.1501097294694;
-	Thu, 9 Jul 2026 09:22:58 +0200 (CEST)
-From: Ibrahim Hashimov <security@auditcode.ai>
-To: yanjun.zhu@linux.dev,
-	zyjzyj2000@gmail.com,
-	jgg@ziepe.ca,
-	leon@kernel.org
-Cc: linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] RDMA/rxe: fix responder UAF on IB_QP_MAX_DEST_RD_ATOMIC modify_qp
-Date: Thu,  9 Jul 2026 09:22:53 +0200
-Message-ID: <20260709072253.8918-1-security@auditcode.ai>
-X-Mailer: git-send-email 2.50.1
-In-Reply-To: <d4af0c54-3bd6-401c-905a-ce546f2da475@linux.dev>
-References: <20260708224550.1281-1-security@auditcode.ai> <d4af0c54-3bd6-401c-905a-ce546f2da475@linux.dev>
+	dkim=pass (2048-bit key) header.d=asu.edu header.i=@asu.edu header.b="k/R1qZ8E"
+Received: by mail-pf1-f171.google.com with SMTP id d2e1a72fcca58-8485b80f8f0so288005b3a.1
+        for <linux-rdma@vger.kernel.org>; Thu, 09 Jul 2026 00:45:03 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=asu.edu; s=google; t=1783583103; x=1784187903; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=j3pmlo/oWq2uNWTooLbzNWToUXky3k5pknmZssX/yPA=;
+        b=k/R1qZ8Eov4b7hTEpg6BojLWtq2FsUkfqz9KCFcoPdTz/2jT9BGUzEHaWyzqE13HfR
+         Vi60NSdYWz8XgMpRizJzpW9NFWnhcIGRuCpMfPeBPVh2/VLyH6Bu27lDDfRN5xT93u88
+         GyTZkyHFh9A8gKji+Lv1SqlnZG5hzD1JR/janhBiI37HI0NvKxL2UMwoqmSKgOtNWj2v
+         Hu754VoCscGCDLn63rPmfpP5DULW5+wDqgLgZ+vUq3CosmMC7JeBr8Lk1c+9acWfcxL7
+         PVJyGHtwacnTd8ZI05Ap1g6BNBtrvRwO5k7TKn3ibxLcNZcBEeM2G5dAudcdGZWkbJ95
+         ENJw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1783583103; x=1784187903;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=j3pmlo/oWq2uNWTooLbzNWToUXky3k5pknmZssX/yPA=;
+        b=ooAReq0yHTZt/r+tO1Kya3Su6RAVsradPvwSs3os54DkViD4E2KI9NhExK74NfX7Tn
+         CW+cYlS1nrf13r/QOixvlN2lbR6p7xgeDQpnq7wPsY6nvDN18A7xzWva9cziS43Q4xmN
+         ZqTbVXMLs/oGrg/10mKWKu+hEtH1o+NukZocMBbP7Xop6yftARyjVUT5from7k33jonE
+         GDrVtTwtBtcgDsOAry+FnJID9jG4u05u740VLomc7MLYFTaeAJ3jozCfJ7pKWFCTxJES
+         rPQlPZQd9NDp7T58Bs2ozQMi7nKh9ffVLTsz5xaMJ8HMYNOW9YT0/aNcMZ9KOIUCD8q3
+         /kdw==
+X-Forwarded-Encrypted: i=1; AHgh+RrbSBu8P/HkVKJ5+zDAKI0uXq4O3IMT9IwavQ1dP4/NiN5+juCNoFk5Ssg2ZAaZH/rnx5M71Cg0/4ud@vger.kernel.org
+X-Gm-Message-State: AOJu0YzpQrw93M+Yb6Jh0tutp4XfNB1vLym6BsU/HQQrWTamD+ug3mkv
+	hNsodm94xstdOdfUrJVNkryenSxxu8PdKwc0LBjedY8qS9JrXqWO55r5jkEKEeOTKg==
+X-Gm-Gg: AfdE7clhIyJuyuWiUGuMuFfptCqH/+Z9T6XrpCCB+YqGzpmmtPDkrKfBHaEX38W5ACd
+	aiebIgWr9v567uS+Pw98qNN7wvZT9O2c1LG0eGJ2Az7AToile4XYTQQyLuscNecsrlzdqilqlGi
+	O3qDkkVkPGezcAe3jB2jAscHRN+qmQc662G/Xs9UkBXXqafAna/QGg2K4i/wp3CYAwtccgAYkmu
+	aI8nb/0UTN/bII9cUMq4NSO2rTC58LswIdtYw8LfYj03yphJgBI6jVvZYC3RaUAXbKUUK77qVeZ
+	TXrN/faJmC2xieNH2ge0x7dHCr3jjh620H4yCArcWIRWrmTe39f8Ye2KBpWqjHFpeDunLizHeER
+	/dfm5296aiRqJTyQWdrqw9WumRS4OEP+2vKVbIw9SxEB9J7KE0CP/1nLPrhegHF37DuoxNTjcqQ
+	==
+X-Received: by 2002:a05:6a00:1bc9:b0:848:42c4:d8c8 with SMTP id d2e1a72fcca58-848437a26bamr6023748b3a.68.1783583102879;
+        Thu, 09 Jul 2026 00:45:02 -0700 (PDT)
+Received: from p1.. ([2601:600:a402:c8a0:214c:bc6d:954f:ba01])
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-8483dc66f2asm2501048b3a.24.2026.07.09.00.45.02
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 09 Jul 2026 00:45:02 -0700 (PDT)
+From: Xiang Mei <xmei5@asu.edu>
+To: Allison Henderson <achender@kernel.org>,
+	"David S . Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>
+Cc: netdev@vger.kernel.org,
+	linux-rdma@vger.kernel.org,
+	rds-devel@oss.oracle.com,
+	linux-kernel@vger.kernel.org,
+	Santosh Shilimkar <santosh.shilimkar@oracle.com>,
+	Ka-Cheong Poon <ka-cheong.poon@oracle.com>,
+	bestswngs@gmail.com,
+	Xiang Mei <xmei5@asu.edu>
+Subject: [PATCH net] rds: tcp: hold the net_device across ipv6_chk_addr() in rds_tcp_laddr_check()
+Date: Thu,  9 Jul 2026 00:44:59 -0700
+Message-ID: <20260709074459.326345-1-xmei5@asu.edu>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -56,75 +82,65 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-ZohoMailClient: External
 
-Hi Zhu Yanjun, thanks for the review.
+rds_tcp_laddr_check() looks up a scoped IPv6 interface with
+dev_get_by_index_rcu(), drops the RCU read-side lock, and only then
+passes the bare struct net_device * into ipv6_chk_addr().
 
-> > BUG: KASAN: slab-use-after-free in rxe_receiver+0x4f78/0x89e0 [rdma_rxe]
-> > Workqueue: rxe_wq do_work [rdma_rxe]
-> Can you share all the stack trace with us? Thanks a lot.
+dev_get_by_index_rcu() only keeps the device alive within the same RCU
+read-side section. After rcu_read_unlock(), a concurrent RTM_DELLINK can
+free the net_device; ipv6_chk_addr() then dereferences the stale pointer
+in __ipv6_chk_addr_and_flags() (e.g. l3mdev_master_dev_rcu(dev)), reading
+freed memory.
 
-Sure. The read side -- the recv_task kworker running rxe_receiver() on
-the freed rd_atomic resource array -- from the pre-fix v6.19 kernel
-(CONFIG_KASAN generic, rxe loopback):
+Take a reference with dev_hold() before dropping the RCU lock and release
+it with dev_put() after ipv6_chk_addr(), so the device cannot be freed
+while in use. dev_put(NULL) is a no-op, so the scope_id == 0 path is
+unaffected.
 
-  BUG: KASAN: slab-use-after-free in rxe_receiver+0x4f78/0x89e0 [rdma_rxe]
-  Read of size 4 at addr ffff88800b79f84c by task kworker/u8:2/51
-  CPU: 0 UID: 0 PID: 51 Comm: kworker/u8:2 Not tainted 6.19.0 #1
-  Workqueue: rxe_wq do_work [rdma_rxe]
+  BUG: KASAN: slab-use-after-free in __ipv6_chk_addr_and_flags (... net/ipv6/addrconf.c:1998)
+  Read of size 8 at addr ffff8880106ec000 by task exploit/153
   Call Trace:
-   <TASK>
-   dump_stack_lvl+0x4d/0x70
-   print_report+0x170/0x4f3
-   kasan_report+0xda/0x110
-   rxe_receiver+0x4f78/0x89e0 [rdma_rxe]
-   do_work+0x144/0x470 [rdma_rxe]
-   process_one_work+0x611/0xe80
-   worker_thread+0x52e/0xdc0
-   kthread+0x30c/0x630
-   ret_from_fork+0x2fd/0x3e0
-   ret_from_fork_asm+0x1a/0x30
-   </TASK>
+   ...
+   kasan_report (mm/kasan/report.c:595)
+   __ipv6_chk_addr_and_flags (... net/ipv6/addrconf.c:1998)
+   ipv6_chk_addr (net/ipv6/addrconf.c:2031 net/ipv6/addrconf.c:1972)
+   rds_tcp_laddr_check (net/rds/tcp.c:370)
+   rds_bind (net/rds/bind.c:248)
+   __sys_bind (net/socket.c:1920)
+   __x64_sys_bind (net/socket.c:1956)
+   do_syscall_64 (arch/x86/entry/syscall_64.c:63)
+   entry_SYSCALL_64_after_hwframe (arch/x86/entry/entry_64.S:121)
 
-  The buggy address belongs to the object at ffff88800b79f800
-   which belongs to the cache kmalloc-1k of size 1024
-  The buggy address is located 76 bytes inside of
-   freed 1024-byte region [ffff88800b79f800, ffff88800b79fc00)
+Fixes: eee2fa6ab322 ("rds: Changing IP address internal representation to struct in6_addr")
+Reported-by: Weiming Shi <bestswngs@gmail.com>
+Assisted-by: Claude:claude-opus-4-8
+Signed-off-by: Xiang Mei <xmei5@asu.edu>
+---
+ net/rds/tcp.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-The freed kmalloc-1k object is qp->resp.resources[] (the rd_atomic
-array); it is freed by the concurrent
-ib_modify_qp(IB_QP_MAX_DEST_RD_ATOMIC) thread in
-free_rd_atomic_resources() <- rxe_qp_from_attr(), while this recv_task
-kworker reads it. This was a kasan_multi_shot run and the per-object
-Allocated-by/Freed-by backtraces were lost in the splat storm -- I can
-send a single-shot capture that includes those two stacks if it would
-help.
+diff --git a/net/rds/tcp.c b/net/rds/tcp.c
+index a1de114d5e2e..204dcdc33c27 100644
+--- a/net/rds/tcp.c
++++ b/net/rds/tcp.c
+@@ -363,12 +363,16 @@ int rds_tcp_laddr_check(struct net *net, const struct in6_addr *addr,
+ 			rcu_read_unlock();
+ 			return -EADDRNOTAVAIL;
+ 		}
++		dev_hold(dev);
+ 		rcu_read_unlock();
+ 	}
+ #if IS_ENABLED(CONFIG_IPV6)
+ 	ret = ipv6_chk_addr(net, addr, dev, 0);
++	dev_put(dev);
+ 	if (ret)
+ 		return 0;
++#else
++	dev_put(dev);
+ #endif
+ 	return -EADDRNOTAVAIL;
+ }
+-- 
+2.43.0
 
-> If alloc_rd_atomic_resources fails, that is, qp->resp.resources is NULL.
-> After rxe_enable_task(&qp->recv_task);  qp->resp.resources(NULL) will be
-> used in resp. This will cause problems.
-> drivers/infiniband/sw/rxe/rxe_resp.c:656:    res = &qp->resp.resources[qp->resp.res_head];
-> drivers/infiniband/sw/rxe/rxe_resp.c:1325:        struct resp_res *res = &qp->resp.resources[i];
-
-Good catch -- you're right. Re-enabling recv_task before the error
-check resumes the responder against a NULL qp->resp.resources on the
-ENOMEM path. v2 moves rxe_enable_task() below the error check, so the
-responder is re-enabled only once a fresh array has been installed and
-stays quiesced on failure:
-
-	rxe_disable_task(&qp->recv_task);
-	free_rd_atomic_resources(qp);
-	err = alloc_rd_atomic_resources(qp, max_dest_rd_atomic);
-	if (err)
-		return err;
-	rxe_enable_task(&qp->recv_task);
-
-rxe_disable_task()/rxe_enable_task() are state-based (TASK_STATE_DRAINED
-/IDLE), not refcounted, so leaving recv_task drained on the failed
-modify is safe and recoverable: a subsequent successful modify_qp or a
-QP destroy both handle the DRAINED state.
-
-I'll send this as [PATCH v2].
-
-Thanks,
-Ibrahim
