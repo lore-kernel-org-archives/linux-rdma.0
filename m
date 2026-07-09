@@ -1,40 +1,43 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0B93A3FE650;
-	Thu,  9 Jul 2026 09:06:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 004823A9637;
+	Thu,  9 Jul 2026 09:07:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783588023; cv=none; b=LALOw33kIscqenomJ4/rMekB7ucomO21S5mq4UhsOkY+cUEmKw2BShMNsVeLq+FzcUQL2RKoL/5ac86CyDc0KVrWWzH54+7eVK00d6BG7EyXPlqqPZl+yPaDrgDgfhmwAIHN2edPJRj/S97P0u6va1UlPoHcarpLA19VgnK4q98=
+	t=1783588030; cv=none; b=oIpxCtdaG3KWqnndsav/S9R7Kj19cS/gr6v4nwvwzAkNRVp/dJm1i31hS1U7V6rimFnLWfYzoFN1HUY1YjDSWcJh+4aT2jNy/f/MsN4MUFXgyUTPxmcLyHntAr7UKPFZoK8wcjfdAlQmBW4g2c9scfr4GqX2DgR9E9hF+IwKXC8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783588023; c=relaxed/simple;
-	bh=z9gR4RJsNzffr/vVvx0UgKTJQmCW5wSGTUORrslbYyQ=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=ArWsID07ziZnO/MNoggOxthZD/ZY2DabaUmspKfejh0E8cLuvYMDMQdKxX4kgLb+ET72KeyYCtz/ZgtaWV2PunhOw8aGEsJgyAqx3eAjatOvmoKlVzqDHDhb6kjQanHIX3QC8b98XrDOE1GvqgfgipWP2RIB01ig/mwk6yRTxWU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=RC4/PBz+; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783588030; c=relaxed/simple;
+	bh=YqGTFXXwaBxejDhGIlAmgJGgYNQNb2l6zWVKumm7B3I=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=lSdTDl9NJBNX8QImlQUDxM5mQMM/YBXVZmBhmzzEUTm9WvcRqqO6zMZ89be+GqLMPK9sGuZPvp4CBLPZrDG2PbswOAxMbcgBbhBmhHQ3a8ZZ26AEqTJ7ItnsoGOCOKfW+QbKOdgJbNbYApRBNYcGgaY5heaDop/vODzMWlCA7pg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Wzp5ehyT; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="RC4/PBz+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DE6261F000E9;
-	Thu,  9 Jul 2026 09:06:56 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Wzp5ehyT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9886B1F00A3A;
+	Thu,  9 Jul 2026 09:07:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1783588017;
-	bh=S7zCCobLmQHdomwmvPxBcx9vY9o+6XVxT/i9YM/J9es=;
-	h=From:To:Cc:Subject:Date;
-	b=RC4/PBz+LSsvoH+V/vjJcT+33pQcREEP3YTaC7f319KOUzX4qIKFc83eNUdaaPU6K
-	 WsoS0azaV+lcymdPMnNwF7KfimekIHVYuBfO2sdt8IefabLAGgFWR11/ocVEx3BVk2
-	 VoJNZGsANgbg5/JoG38pP19wLrH8wJf3eT3zPI9NjTueLM66F4lKSx0gWlrsaOvUqM
-	 Dne1b0/2/mo+X4jQOfrbcku1rX2zb3Ca9Srchh80t4pJM9I8voIGXCZx+iGLjup9uW
-	 n+FXX8SJjaNrCyS6QC/OYHCgpbhT3CJYEmBXyYuo733P/mWvrRNRu6AKyBKUMS/TlC
-	 4XpRQ6BglH1hg==
+	s=k20260515; t=1783588022;
+	bh=U3XOGRaR0N21rRliS5SFngFh7cxtdsXZfiNTup9fft8=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=Wzp5ehyT6lCOqDIzn7EO+I0kcJtqJrrLmBB2TsLXhkvCg+5meUCl4F4xiiOjatch9
+	 9onBVkDX6PBGX37lpIl57lHGLG4CNQD+9kCYKope9srIFuYg6ksBkg/WECjiPnypPS
+	 2hZ1DReVKdb1gceCopKmdNzV09m9aAS5W6uzKrgXPkhEyg0o3w2ZYnN2n82yGmLAQ0
+	 27AcrplfdXrv6RefQCCdPnf+eK1sBPDh1Xz1C5GMSZ9P3tc5ZS38ghSrVYL7+CqZ83
+	 BA8KNdzpP4YppljYQQltE/HlBkmBLXL/cbKXnfRZg4K8ZBDu4WMVITw4FpXX3rkDnk
+	 tclLFxflX8t6A==
 From: Leon Romanovsky <leon@kernel.org>
 To: Jason Gunthorpe <jgg@ziepe.ca>,
 	Leon Romanovsky <leon@kernel.org>
 Cc: linux-rdma@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: [PATCH rdma-rc 0/3] RDMA: Prevent RCU callbacks from outliving modules
-Date: Thu,  9 Jul 2026 12:06:46 +0300
-Message-ID: <20260709-unload-rcu-v1-0-fccd27211e5a@nvidia.com>
+Subject: [PATCH rdma-rc 2/3] RDMA/mlx5: Drain RCU callbacks during module teardown
+Date: Thu,  9 Jul 2026 12:06:48 +0300
+Message-ID: <20260709-unload-rcu-v1-2-fccd27211e5a@nvidia.com>
 X-Mailer: git-send-email 2.55.0
+In-Reply-To: <20260709-unload-rcu-v1-0-fccd27211e5a@nvidia.com>
+References: <20260709-unload-rcu-v1-0-fccd27211e5a@nvidia.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -42,41 +45,48 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-X-Change-ID: 20260709-unload-rcu-67c6de79b589
 X-Mailer: b4 0.15-dev-18f8f
 Content-Transfer-Encoding: 8bit
 
-ib_core, mlx5_ib, and ib_ipoib use call_rcu() with callbacks implemented by
-their modules. Stopping callback producers does not drain callbacks already
-queued. If module unload completes first, RCU can later invoke code that has
-been unloaded. synchronize_rcu() and SRCU waits do not wait for queued
-callbacks.
+From: Leon Romanovsky <leonro@nvidia.com>
 
-IPoIB reclamation completions are signaled from inside the callbacks, so
-they can wake teardown before a callback returns. Initialization unwind
-also needs protection because registration can attach existing devices and
-undo their setup on failure.
+devx_free_subscription() can remain queued after the last DevX event file
+drops its module reference or an auxiliary driver detaches its devices.
+mlx5_ib can then unload before the callback runs.
 
-Wait for queued callbacks after all producers have stopped.
+Registration error unwind has the same risk because driver registration
+can attach existing devices before failing. Wait after all drivers have
+stopped.
 
+Fixes: 6898d1c661d7 ("RDMA/mlx5: Use RCU and direct refcounts to keep memory alive")
 Reported-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Closes: https://lore.kernel.org/linux-rdma/20260708092316.Qb39F_B0@linutronix.de/
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
-Leon Romanovsky (3):
-      RDMA/core: Wait for RCU callbacks before unloading ib_core
-      RDMA/mlx5: Drain RCU callbacks during module teardown
-      RDMA/ipoib: Drain RCU callbacks during module teardown
+ drivers/infiniband/hw/mlx5/main.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
- drivers/infiniband/core/device.c          | 1 +
- drivers/infiniband/hw/mlx5/main.c         | 2 ++
- drivers/infiniband/ulp/ipoib/ipoib_main.c | 2 ++
- 3 files changed, 5 insertions(+)
----
-base-commit: 5f9576c6734abca88a02db72c466e09d2eddf160
-change-id: 20260709-unload-rcu-67c6de79b589
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 02809114fc79..4ff6cca7e581 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -5538,6 +5538,7 @@ static int __init mlx5_ib_init(void)
+ dd_err:
+ 	mlx5r_rep_cleanup();
+ rep_err:
++	rcu_barrier();
+ 	mlx5_ib_qp_event_cleanup();
+ qp_event_err:
+ 	destroy_workqueue(mlx5_ib_event_wq);
+@@ -5551,6 +5552,7 @@ static void __exit mlx5_ib_cleanup(void)
+ 	auxiliary_driver_unregister(&mlx5r_driver);
+ 	auxiliary_driver_unregister(&mlx5r_mp_driver);
+ 	mlx5r_rep_cleanup();
++	rcu_barrier();
+ 
+ 	mlx5_ib_qp_event_cleanup();
+ 	destroy_workqueue(mlx5_ib_event_wq);
 
-Best regards,
---  
-Leon Romanovsky <leonro@nvidia.com>
+-- 
+2.54.0
 
