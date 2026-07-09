@@ -1,40 +1,40 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 40D863E317B;
-	Thu,  9 Jul 2026 09:07:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6EC4630CD82;
+	Thu,  9 Jul 2026 09:07:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783588031; cv=none; b=YDTR5KiK3JvdT28BisMqaOJOAwsVG01/jKSVLosJjB9PXfpVi10IXyTG4UWLqGyX/kjx30V78WXG9n7MvR9WP0aaD4FWxV5flEES7TBPSi5wSTo4eobH4n3thINzacsQ/yZbGepFTNrHKHy4jxv+Gbs2EWuiXCg/cI2NVLDMjCo=
+	t=1783588035; cv=none; b=ZnBI3XxcPUY+EUgkoQ54FEkV6It5IU2Uoqn/tEWl2XW2C3/xeMbBgJJCLqrgLpPDCR/WorvRlJwsKWtvtoJdrdofl3q3vCbDzVjHUCCNbwL+oSz+ilgFW2175/TGQ6wh6QXs9jqQXbSC6SktgIyXGUrrPuKUWuD+Y1tAX01Uln8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783588031; c=relaxed/simple;
-	bh=hjVEz5BlncyGAFoUfNZgxqqdRkYkFLytvRCg+vPzHi4=;
+	s=arc-20240116; t=1783588035; c=relaxed/simple;
+	bh=R8O+gNyxyQ3mFzwYKMnSBrWNskGC33HSzINn7n78du8=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=JHuNXwApk5gBWAZUUuBrgVw2Z5kIRIpkBykxcXuRypgNFmUPPgoTwHmLoBwcq7OZiTSCE6ZkFlc8EAnoB8fHNrWv8is/iL//x9PO6is+OKC6HZPPYWymaE6cIhDnfDWv51g8EC3xdnxUeI5okq/GIAvhyBWgh9bwkxPPxzq+/yM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=fsz8ONpS; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=J+8H4snd8Ppg9ToGhRJKtOJ2+9+wSTJH18lpMzNZz0/ppYeahheuWAwkNZ+Q8JuZFBLFjl83atZK86FijIddQtUB1NwrcbnHShakOBfEZgJMP9WUywXQlsImuQYn/XouBMXcFrFo7bWvLxZe6rqtq5D2xe5PLwMq4kE2CnJVjdE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=jmgEXgVW; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="fsz8ONpS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F0CF61F000E9;
-	Thu,  9 Jul 2026 09:07:05 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="jmgEXgVW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 846F61F00A3A;
+	Thu,  9 Jul 2026 09:07:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1783588026;
-	bh=jidoqdeZHZw4TpWtPyn9fssGkEWIzNrMJvRkmLNC0ng=;
+	s=k20260515; t=1783588031;
+	bh=FnbpN+0s4pl5QfhdDEGmVWpJlqoYMnQ1UMGEML7kqgA=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=fsz8ONpSqkrplwEmkt7z8iENBhwyjJEjCTMBgxIeSmDuC0vCb5cvudHnzRnWruIic
-	 BnzxNYevMY/Tx1S1UWNJ8WSElklDNeyg21pC2niG3XE8otQGJsIJt3kTzkQq2a5zK/
-	 QgvYQJ8c+OBW170FVSVWNOw78GA1EwTM/lj5Dw0Dp0BfHv3IVXYz4CwvcLYlXFUo1g
-	 RIAitqnbZC9OfjXqonIo33Mxcakzjg9xP6ls0+b/VUBG36NsmJ5v8CApoKhRUa2Z9R
-	 n8Sw4EhHtYuaSimwYeuMw4nOxNXpWOXMPtvPXSM7RvIsQBgGJGgd4o3Qpz2M4qxYRo
-	 feZ57lABckU+Q==
+	b=jmgEXgVWqpyrAP4Ogm2k+uufJ6TXDR2fII0uiPZkPq4vA0BGYuS4bbjmnaOGjSPSF
+	 tBXHWISVlMXP6nWzqqNdZSsytYM7uGMlhTVqltTmIvx9DrpfGX9Q6pLAF2NZOYzjAm
+	 1RJ1Hzvs/euM93PKY/pl+6MAzoTxUMuqcB1wG6BM0TI9sL33BPc7F7E6abt5u/FMSf
+	 P49QXzgOlHzzkMjYuIVnks30aAvThRAzuYXLDu/Mb6RSKTeJLhPieJEPl3rloo9n2A
+	 PRgwlhEDo4802boZfsa8mJE5yCmhD6oSTA44KOuq9Fmp/vz8X2Ua4AA/h0qqQ4iAhp
+	 CW9De6Od+lsgA==
 From: Leon Romanovsky <leon@kernel.org>
 To: Jason Gunthorpe <jgg@ziepe.ca>,
 	Leon Romanovsky <leon@kernel.org>
 Cc: linux-rdma@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: [PATCH rdma-rc 1/3] RDMA/core: Wait for RCU callbacks before unloading ib_core
-Date: Thu,  9 Jul 2026 12:06:47 +0300
-Message-ID: <20260709-unload-rcu-v1-1-fccd27211e5a@nvidia.com>
+Subject: [PATCH rdma-rc 3/3] RDMA/ipoib: Drain RCU callbacks during module teardown
+Date: Thu,  9 Jul 2026 12:06:49 +0300
+Message-ID: <20260709-unload-rcu-v1-3-fccd27211e5a@nvidia.com>
 X-Mailer: git-send-email 2.55.0
 In-Reply-To: <20260709-unload-rcu-v1-0-fccd27211e5a@nvidia.com>
 References: <20260709-unload-rcu-v1-0-fccd27211e5a@nvidia.com>
@@ -50,33 +50,41 @@ Content-Transfer-Encoding: 8bit
 
 From: Leon Romanovsky <leonro@nvidia.com>
 
-put_gid_ndev() is queued with call_rcu() and implemented in ib_core.
-Stopping the workqueues does not drain callbacks already queued, so RCU
-could invoke it after the module code has been unloaded.
+IPoIB reclamation completions can be signaled from inside an RCU callback.
+Teardown can wake before the callback returns and unload ib_ipoib while its
+code is still executing.
 
-synchronize_rcu() does not wait for callbacks. Wait for them after all
-producers have stopped.
+Client registration failure can also remove already-added devices and queue
+callbacks. Wait after client and workqueue teardown.
 
-Fixes: 943bd984b108 ("RDMA/core: Allow detaching gid attribute netdevice for RoCE")
+Fixes: b63b70d87741 ("IPoIB: Use a private hash table for path lookup in xmit path")
 Reported-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Closes: https://lore.kernel.org/linux-rdma/20260708092316.Qb39F_B0@linutronix.de/
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/core/device.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/infiniband/ulp/ipoib/ipoib_main.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-index b8193e077a74..d954eda63134 100644
---- a/drivers/infiniband/core/device.c
-+++ b/drivers/infiniband/core/device.c
-@@ -3150,6 +3150,7 @@ static void __exit ib_core_cleanup(void)
- 	/* Make sure that any pending umem accounting work is done. */
- 	destroy_workqueue(ib_wq);
- 	destroy_workqueue(ib_unreg_wq);
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+index 16a015b67206..6c14246befb1 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+@@ -2783,6 +2783,7 @@ static int __init ipoib_init_module(void)
+ err_sa:
+ 	ib_sa_unregister_client(&ipoib_sa_client);
+ 	destroy_workqueue(ipoib_workqueue);
 +	rcu_barrier();
- 	WARN_ON(!xa_empty(&clients));
- 	WARN_ON(!xa_empty(&devices));
+ 
+ err_fs:
+ 	ipoib_unregister_debugfs();
+@@ -2800,6 +2801,7 @@ static void __exit ipoib_cleanup_module(void)
+ 	ib_sa_unregister_client(&ipoib_sa_client);
+ 	ipoib_unregister_debugfs();
+ 	destroy_workqueue(ipoib_workqueue);
++	rcu_barrier();
  }
+ 
+ module_init(ipoib_init_module);
 
 -- 
 2.54.0
