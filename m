@@ -1,29 +1,29 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4070E390CB0;
-	Fri, 10 Jul 2026 22:12:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A3F473D8907;
+	Fri, 10 Jul 2026 22:12:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783721539; cv=none; b=KeuOA2FC5tNq/HOW9CSl0/Yoa4N+/udGJ0j4/p7jhKLO5t50yPrSz84Q898/JmNt/1HGy3JtNtr6C1faWb1E8WecF9T0pvoBeSTPNKgWaL4y6lva3OD+NOcvXyTVgJn665ormvm7cGDiGNncAL+TJjrv29TtGU94Du3SBs+jFWc=
+	t=1783721546; cv=none; b=h4R1xQRsxwYWExI/OxNuzlNm5/tNiLjLpRHjr2Klo3eOYmuaVWn4wQMB2DZe+JXO4/IWfVVdaIIx4V9OP11R2S6+o2N7Y8UKUkl2By7br8yllE5cOgSQzNW2UETSNV5ejijmud6PPvXxj2PAEQ8DdRRFhie0DRFKDgoZibWw7Dg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783721539; c=relaxed/simple;
-	bh=DfwO7lvIA/c3YQWaQKhwtD7+4prB1pmA4pglMn75P6s=;
+	s=arc-20240116; t=1783721546; c=relaxed/simple;
+	bh=Bvo3BBYIfYfnIocNC/TX96Ycnc2dBwJEFYKQSta3yr4=;
 	h=Date:From:To:Cc:Subject:Message-Id:In-Reply-To:References:
-	 Mime-Version:Content-Type; b=XQl7Rqr46hdc4PefC1Ry09KDfAnhy4exsf1CzDBaEQlNwAtvC08VGMGDWyjr4n4FAkPN3ykp+AXee3ovxtEKiBTpvdT9C2nDsGQGqrdeHlKeZSMeRAO+tPAzRC9ExG8zrEKsJEH+PaF5HK+IRCIgH8ZWHpjuqGQQcVOGraq2KMk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vrKNqD/R; arc=none smtp.client-ip=100.103.45.18
+	 Mime-Version:Content-Type; b=HWE30Q34UQ7WffIDZrXiWildCT75GiK++QpSeN5VU36ZUq/jkUu7XwWg8GqCnKSP236leaCbr0z+KZYpZcc0hFZb8H2Syx1Cpw74C1yPI86apraRKQhJOerGz7cVTHkKUpJXvM9+HFyX2Bt/641yX6UaeoZTNdeyc1wdkPl+bSo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VJe81GYb; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vrKNqD/R"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C384A1F00A3E;
-	Fri, 10 Jul 2026 22:12:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VJe81GYb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D32471F000E9;
+	Fri, 10 Jul 2026 22:12:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783721538;
-	bh=vZPCZ7vPd1NuY/NOvoRK1wg4DzJ9OfLHTV03rmwvPpc=;
+	d=linux-foundation.org; s=korg; t=1783721544;
+	bh=2wQB/oFYBFS3GQeSmu/3oRAdk1WgygnNAOd7kwV5jaQ=;
 	h=Date:From:To:Cc:Subject:In-Reply-To:References;
-	b=vrKNqD/RSYZafjQOwVndW01m5aLwswfnuVAfqI5wWJJiUGxMunb7KBRBbR+vIavWm
-	 Jwjm7GTEqUP54kAGt2vK1og8+S0X4K5USi4sGzpjMkFtbq+y8rgsLvuLfwWeKzYqds
-	 EILDdi2jW5IYL94/XhZxUobGPOo9gvao6LZmzPYg=
-Date: Fri, 10 Jul 2026 15:12:16 -0700
+	b=VJe81GYbWd6zLU/0Oy3lq6fNYK/xvVwqq20qidN2/oL2icncQaYqK1Fe+uvqBiFrT
+	 IBcwSe/+HNIab8r7fGPOpavS+7+qhyYVJipwSJrqT9iWJDM6ku4YDxNdGO4WQA2ORB
+	 9VskKFPVtZ6W0Ang1vDmufbj4+l2UBAJGLgWU3LE=
+Date: Fri, 10 Jul 2026 15:12:22 -0700
 From: Andrew Morton <akpm@linux-foundation.org>
 To: Stanislav Kinsburskii <skinsburskii@gmail.com>
 Cc: airlied@gmail.com, akhilesh@ee.iitb.ac.in, corbet@lwn.net,
@@ -39,12 +39,12 @@ Cc: airlied@gmail.com, akhilesh@ee.iitb.ac.in, corbet@lwn.net,
  linux-mm@kvack.org, linux-doc@vger.kernel.org,
  linux-hyperv@vger.kernel.org, linux-kernel@vger.kernel.org,
  linux-kselftest@vger.kernel.org, linux-rdma@vger.kernel.org
-Subject: Re: [PATCH v8 4/8] mshv: Use hmm_range_fault_unlocked_timeout() for
- region faults
-Message-Id: <20260710151216.0397a6f9ac5c7b4ccd274cc1@linux-foundation.org>
-In-Reply-To: <178371881034.900500.5214601525971121683.stgit@skinsburskii>
+Subject: Re: [PATCH v8 5/8] drm/nouveau: Use
+ hmm_range_fault_unlocked_timeout() for SVM faults
+Message-Id: <20260710151222.ddb35eab9c81a8720491464a@linux-foundation.org>
+In-Reply-To: <178371881847.900500.8789369230260725500.stgit@skinsburskii>
 References: <178371866223.900500.12312667138651735591.stgit@skinsburskii>
-	<178371881034.900500.5214601525971121683.stgit@skinsburskii>
+	<178371881847.900500.8789369230260725500.stgit@skinsburskii>
 X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
@@ -55,49 +55,21 @@ Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 
-On Fri, 10 Jul 2026 14:26:50 -0700 Stanislav Kinsburskii <skinsburskii@gmail.com> wrote:
+On Fri, 10 Jul 2026 14:26:58 -0700 Stanislav Kinsburskii <skinsburskii@gmail.com> wrote:
 
-> MSHV currently faults movable memory regions by taking mmap_read_lock()
-> around hmm_range_fault(). That prevents the fault path from handling VMAs
-> whose fault handlers need to drop mmap_lock, such as userfaultfd-backed
-> mappings.
-> 
-> Use hmm_range_fault_unlocked_timeout() instead. Passing a timeout of 0
-> preserves MSHV's existing unbounded retry behavior while letting the HMM
-> helper own mmap_lock acquisition and refresh range->notifier_seq internally
-> before walking the range. After the fault succeeds, MSHV still takes
-> mreg_mutex and checks mmu_interval_read_retry() before installing the pages
-> into the region, so the existing invalidation synchronization is preserved.
-> 
-> Fold the small fault-and-lock helper into mshv_region_range_fault(), since
-> the remaining retry path is just the standard "fault, take the driver lock,
-> check the interval notifier sequence" pattern.
-> 
-> ...
->
-> @@ -452,13 +412,19 @@ static int mshv_region_range_fault(struct mshv_mem_region *region,
->  	range.start = region->start_uaddr + page_offset * HV_HYP_PAGE_SIZE;
->  	range.end = range.start + page_count * HV_HYP_PAGE_SIZE;
+> @@ -683,15 +683,11 @@ static int nouveau_range_fault(struct nouveau_svmm *svmm,
+>  			goto out;
+>  		}
 >  
-> -	do {
-> -		ret = mshv_region_hmm_fault_and_lock(region, &range);
-> -	} while (ret == -EBUSY);
-> -
-> +again:
-> +	ret = hmm_range_fault_unlocked_timeout(&range, 0);
->  	if (ret)
->  		goto out;
->  
-> +	mutex_lock(&region->mreg_mutex);
-> +
-> +	if (mmu_interval_read_retry(range.notifier, range.notifier_seq)) {
-> +		mutex_unlock(&region->mreg_mutex);
-> +		cond_resched();
-> +		goto again;
-> +	}
-> +
+> -		range.notifier_seq = mmu_interval_read_begin(range.notifier);
+> -		mmap_read_lock(mm);
+> -		ret = hmm_range_fault(&range);
+> -		mmap_read_unlock(mm);
+> -		if (ret) {
+> -			if (ret == -EBUSY)
+> -				continue;
+> +		ret = hmm_range_fault_unlocked_timeout(&range,
+> +						       max(timeout - jiffies,
+> +							   1L));
 
-If the calling process has realtime scheduling policy and either a)
-we're uniprocessor or b) this process and the holder of
-interval_sub->invalidate_seq are both pinned to the same CPU then
-cond_resched() won't do anything, and this might be an infinite loop?
+"1UL" here?  I'd have expected min() to warn, as it likes to do.
