@@ -1,140 +1,117 @@
-Received: from mail-4316.protonmail.ch (mail-4316.protonmail.ch [185.70.43.16])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C0C3733B6F9;
-	Sat, 11 Jul 2026 10:43:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.70.43.16
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C8236287247;
+	Sat, 11 Jul 2026 16:54:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783766623; cv=none; b=fDICSMjKDLV3bsO0wVnsBVowOVl8CdyLr+u8uL2ii9Tomx4PFaGfwuFINz37vK2Ca45pn4Q4B4QoNc7uuera9Dstfp8VGgLEQfGYBa8WW9+tMCT9iV2hop5wPe4xzm1Z3AKFPDAiGBculWMZJTe59A9rmVF4EnWWYlOV8QQwJEQ=
+	t=1783788861; cv=none; b=RuURI20h4ahKVi0rQ72tKyK91PwD2+eAwz5MueCkDFwO1NSOXni3SxILZa6o43y5TQwSauUSOiJta8EOhUmfQRZpCfZwxcHfRrK6exJFo63VJkBnJIw2T2EzPy5GnAZQSa///RcNl1m7R4DsfBhllF/OIwst8qgaO5Zj5ildufM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783766623; c=relaxed/simple;
-	bh=wMESLLx2bBOpenDSD5/Jp55qgZ2QSMmUYynjIj2Jx3o=;
-	h=Date:To:From:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=eJCUBikryALzN9ctdOUBzjjQZPKLgziBbSPhTVWKAqZElx4gxDAElo30Lg6of4/wv3bG4XEpWdW+aOcQHtfaz0f2mweqFXpMyw1Bnsyipv9jTsaS6EkRhPX4/4+CE95xV8c/AZlcy2jWwpEQTOYRZnIYVl32Q5Ad6Sg7IIadw+o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=proton.me; spf=pass smtp.mailfrom=proton.me; dkim=pass (2048-bit key) header.d=proton.me header.i=@proton.me header.b=eTuZKyr6; arc=none smtp.client-ip=185.70.43.16
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=proton.me
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=proton.me
+	s=arc-20240116; t=1783788861; c=relaxed/simple;
+	bh=RPG4mK1iavRNNS/of6gO5cwEu5csBBoQKZmKdSLLxY0=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=os4yPLu5B07wfEyM4FeA970XVDvP6AfvOrgRBxpIhnJEI/yPeC6AahWrobdXqzOcO40dUHNvQokWu4BIAerCL0rbjehFj5sRrGlRYMRwIlRCT5YEIOm501WdaRyHKeIDNV+pih8oGlejDtbr/vp05j5tXy+cyha/ugnccxbwyAI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Mn1iK46k; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=proton.me header.i=@proton.me header.b="eTuZKyr6"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=proton.me;
-	s=protonmail; t=1783766613; x=1784025813;
-	bh=jkcAeCtdaIBL453JvBHZ7QHpOsA9URVgLRmr4A57c9A=;
-	h=Date:To:From:Cc:Subject:Message-ID:In-Reply-To:References:
-	 Feedback-ID:From:To:Cc:Date:Subject:Reply-To:Feedback-ID:
-	 Message-ID:BIMI-Selector;
-	b=eTuZKyr6YNHQ1zYN694Z5bwUCIuqrTw40KOw1Bf5QDHCL77pCIegCFoZKz5iwJqkF
-	 7u9U/sDCCp/949JQAg+8dJmN9j0PeifBFrUoBqh9hrDpzMngBhX7pMhi9g1hi7NUFU
-	 YSNtH9fwZnd6VtG3fGO08ClKwQBqFFNhiTf67BFMKGHLn7ittgqNJNA2dckOQ1kTuw
-	 9nMA/iAOvwaqBayfdpRtJTTiE/OSFAxWzOdvznsNfD9bJ+QlGiegj30h/rK13kZxuO
-	 taJQrF71DTxbjSDVLB9wbVJPypiweOu/+ClDKtCz6pY7pCZgrq7PWoo9bOtRoTHWjD
-	 DpTzzitAY+uDA==
-Date: Sat, 11 Jul 2026 10:43:26 +0000
-To: Dust Li <dust.li@linux.alibaba.com>
-From: Bryam Vargas <hexlabsecurity@proton.me>
-Cc: Wenjia Zhang <wenjia@linux.ibm.com>, "D . Wythe" <alibuda@linux.alibaba.com>, Sidraya Jayagond <sidraya@linux.ibm.com>, Eric Dumazet <edumazet@google.com>, "David S . Miller" <davem@davemloft.net>, Mahanta Jambigi <mjambigi@linux.ibm.com>, Wen Gu <guwen@linux.alibaba.com>, Simon Horman <horms@kernel.org>, Ursula Braun <ubraun@linux.ibm.com>, Stefan Raspl <raspl@linux.ibm.com>, Tony Lu <tonylu@linux.alibaba.com>, Paolo Abeni <pabeni@redhat.com>, Jakub Kicinski <kuba@kernel.org>, netdev@vger.kernel.org, linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH net v4 0/3] net/smc: bound wire-controlled CDC cursors against the local buffers
-Message-ID: <20260711104315.82912-1-hexlabsecurity@proton.me>
-In-Reply-To: <akzG4Hfeom6fNzFX@linux.alibaba.com>
-References: <20260705-b4-disp-28a1bbca-v4-0-be089b98acc6@proton.me> <akzG4Hfeom6fNzFX@linux.alibaba.com>
-Feedback-ID: 199661219:user:proton
-X-Pm-Message-ID: b5d2950248f52f23efe53d3fa9731dba1629dc0c
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Mn1iK46k"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0C9721F000E9;
+	Sat, 11 Jul 2026 16:54:20 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1783788860;
+	bh=6uAeZnUIlVawIsyK/ey6kUbvgIVzicvXV8yWYRQ/FWU=;
+	h=From:To:Cc:Subject:Date;
+	b=Mn1iK46k19EV89VDyHaEV0oZTKMSvmjxIxuKOaLXJO2dVnZcLXkOq35YLlwtfVmOg
+	 NupyE0DdkHONwq4eNStSaj35jKzhJJ+bDikc4CGQLoYpcZGCGHVL2/Y71DShbOffEF
+	 6XU4s3b7ar6QOkyuM0M8T/jBNvxiB5QkCjWdVxGmybLBe7NmaKYfU18KtEm6LhXKSO
+	 iNRN8CFoDEL7sRDQimmxZqAG5cpMR5JPGdWcGsBE24G9+T9OyUQe4amGLci5NA4cR9
+	 eb/3YmEQJhvbZj5H7WrEsmNc3sxjXCau+p4edNnPtQzWRpe9QoAYjesAW92D2QdUdi
+	 hX/9H9BfnZqGQ==
+From: Allison Henderson <achender@kernel.org>
+To: Zhu Yanjun <zyjzyj2000@gmail.com>,
+	Jason Gunthorpe <jgg@ziepe.ca>,
+	Leon Romanovsky <leon@kernel.org>
+Cc: Bob Pearson <rpearsonhpe@gmail.com>,
+	Ian Ziemba <ian.ziemba@hpe.com>,
+	linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Allison Henderson <achender@kernel.org>
+Subject: [PATCH for-rc] RDMA/rxe: don't re-execute the current packet after the QP moved to error state
+Date: Sat, 11 Jul 2026 09:54:19 -0700
+Message-Id: <20260711165419.13486-1-achender@kernel.org>
+X-Mailer: git-send-email 2.25.1
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-On Tue, 7 Jul 2026 17:29:04 +0800, Dust Li wrote:
-> Are you planning to land these clamps first, and then follow up with a
-> separate validate/abort series?
+When do_complete() finds the QP in the error state it returns
+RESPST_CHK_RESOURCE.  Before commit 49dc9c1f0c7e ("RDMA/rxe: Cleanup
+reset state handling in rxe_resp.c") this was the flush loop:
+check_resource() had an error-state branch that fetched each remaining
+recv WQE and completed it with IB_WC_WR_FLUSH_ERR, without touching
+the current packet.  That commit removed the error-state branch from
+check_resource() (draining is now done at rxe_receiver() entry) but
+kept the do_complete() error-state return.
 
-Yes -- clamp series to net (Cc: stable), then the wire-boundary validate/ab=
-ort to
-net-next, which is the split from your v3 review. If you'd rather have the
-validate/abort as the primary fix, or both in one series, say so and I'll
-restructure it.
+As a result, when a QP moves to the error state while a packet is
+being completed - e.g. an rdma_cm disconnect racing with receive
+processing - the responder state machine loops back into the request
+processing chain with the already-completed packet still in hand:
+check_resource() fetches a fresh recv WQE, execute()/send_data_in()
+copies the same packet payload again, do_complete() posts another
+IB_WC_SUCCESS CQE (qp->resp.status is still 0), and control returns
+to the error-state check.  The loop re-executes the same packet once
+per posted recv WQE (observed: ~1000 duplicate IB_WC_SUCCESS
+completions of one SEND, one per ~8us, matching the RQ occupancy)
+until the RQ is exhausted, after which qp->resp.wqe is NULL and
+send_data_in() dereferences it:
 
-> Looking at your earlier A/B test, it simulates this logic in userspace to
-> demonstrate the bug, but it doesn't actually trigger the bug in our
-> current kernel.
+  BUG: kernel NULL pointer dereference, address: 0000000000000014
+  Workqueue: rxe_wq do_work
+  RIP: copy_data+0x29/0x1f0
+  Call Trace:
+   send_data_in+0x25/0x50
+   rxe_receiver+0xf36/0x1dd0
 
-Right -- the earlier one replayed the smc_curs_diff/copy arithmetic over a =
-kmalloc
-buffer. I built the end-to-end version: two AF_SMC sockets over the SMC-D l=
-oopback
-(dibs), CONFIG_SMC=3Dm with KASAN, receive path unmodified. Only the sender=
-'s on-wire
-producer cursor is forged, modelling what a misbehaving peer sends:
+The duplicate completions are indistinguishable from real receives to
+the ULP.  During an rds stress test, the message was accepted as new and
+delivered the same datagram to user space hundreds of times, corrupting
+the stream; any ULP that relies on RC exactly-once delivery is affected.
 
-  cdc.prod.wrap =3D curs.wrap;
-  cdc.prod.count =3D curs.count;
-+ if (forge) {                 /* peer just bumps the wrap, count stays 0 *=
-/
-+     static u16 w;
-+     cdc.prod.wrap =3D ++w;
-+     cdc.prod.count =3D 0;
-+ }
+A live packet reaching the error-state check in do_complete() has
+been executed and completed exactly once and must be consumed, not
+re-processed.  Return RESPST_CLEANUP for it (dequeue and free); keep
+returning RESPST_CHK_RESOURCE for the pkt == NULL case.
 
-The client sends six 1-byte messages, the server recvs into a 2 MB buffer.
-rmb_desc->len =3D 65504; the three arms on 7.2-rc1:
+Fixes: 49dc9c1f0c7e ("RDMA/rxe: Cleanup reset state handling in rxe_resp.c")
+Assisted-by: Claude-Code:claude-fable-5
+Signed-off-by: Allison Henderson <achender@kernel.org>
+---
+ drivers/infiniband/sw/rxe/rxe_resp.c | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-  honest (no forge)            recv 6        clean
-  forged, patch 2/3 clamp on   recv 65504    clean   (=3D=3D rmb_desc->len)
-  forged, no clamp             recv 393024   KASAN
-
-In the last arm bytes_to_rcv reaches 6*len, so smc_rx_recvmsg()'s second wr=
-ap-around
-chunk (copylen - first_chunk =3D 393024 - 65504) is read from ring offset 0=
-, past the
-RMB page:
-
-  BUG: KASAN: slab-use-after-free in _copy_to_iter
-  Read of size 327520 ... smc_rx_recvmsg <- smc_recvmsg <- __sys_recvfrom
-
-(use-after-free rather than out-of-bounds only because the over-read lands =
-in a freed
-adjacent slab.) Happy to send the driver.
-
-> the security risk here doesn't seem high to me, since SMC is only meant t=
-o
-> be deployed in trusted environments.
-
-Agreed it's low urgency there. The reason I'd still keep the bound in stabl=
-e: it's a
-peer-driven out-of-bounds read of kernel memory that a buggy, not only mali=
-cious,
-peer can hit, and the clamp never resets an honest connection. The stable t=
-ag is
-your call.
-
-> once this is actually triggered, it means the data we've been handing to
-> userspace is already wrong ... the connection should be terminated. So I
-> don't really see much value in merging the bound-clamp patches first.
-
-I'm not arguing against the abort -- a bad CDC means the connection can't b=
-e trusted
-and should go down, and that's the net-next work. Two points on it.
-
-The predicate has to test the accumulator, not the cursor. Every forged CDC=
- here
-carries count =3D=3D 0, which is in [0, rmb_desc->len), so it passes any pe=
-r-cursor
-input check, including patch 1/3; only bytes_to_rcv goes out of range. A
-cursor-boundary abort wouldn't catch this vector.
-
-And placement: if the abort is queued (queue_work -> smc_conn_kill) after t=
-he
-atomic_add, a recvmsg() under lock_sock can still read the inflated accumul=
-ator in
-the window before teardown runs. A synchronous check that bails before the
-atomic_add avoids that, and so does the consumer clamp.
-
-If you'd prefer a single accumulator-abort in place of the -stable clamp, I=
-'ll
-respin it that way and run the same A/B.
-
-Bryam
+diff --git a/drivers/infiniband/sw/rxe/rxe_resp.c b/drivers/infiniband/sw/rxe/rxe_resp.c
+index d8cbdfa70cdbd..02b16e2b49b8f 100644
+--- a/drivers/infiniband/sw/rxe/rxe_resp.c
++++ b/drivers/infiniband/sw/rxe/rxe_resp.c
+@@ -1217,7 +1217,14 @@ static enum resp_states do_complete(struct rxe_qp *qp,
+ 	spin_lock_irqsave(&qp->state_lock, flags);
+ 	if (unlikely(qp_state(qp) == IB_QPS_ERR)) {
+ 		spin_unlock_irqrestore(&qp->state_lock, flags);
+-		return RESPST_CHK_RESOURCE;
++		/* The packet was executed and completed before the QP
++		 * moved to ERROR; it must be consumed exactly once.
++		 * Re-entering the request chain with the stale packet
++		 * would copy it into every remaining recv WQE as a new
++		 * completion.  Remaining WQEs are flushed by the drain
++		 * path at rxe_receiver() entry.
++		 */
++		return pkt ? RESPST_CLEANUP : RESPST_CHK_RESOURCE;
+ 	}
+ 	spin_unlock_irqrestore(&qp->state_lock, flags);
+ 
+-- 
+2.25.1
 
