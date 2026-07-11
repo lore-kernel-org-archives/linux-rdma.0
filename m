@@ -1,326 +1,200 @@
-Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id AA9CA282F38;
-	Sat, 11 Jul 2026 04:14:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783743285; cv=none; b=SlR6c/p9JjqQOJzp999Jg7QYSE2rZmIRxMkVnFIPpLRZgq/jw4d7Wrfs4SVcfbDCanGis0wQ6xlaE5/dp4Ger3JoLBLZKduVALiCVg2gaqXjU3XOd112spU/PBCdXDHCImN9i5yB7/WPunE53fcvtLPAfNOOZ+aeKxfkfKKJ//g=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783743285; c=relaxed/simple;
-	bh=X7QJjvpvHjHpmWwuzRa5CsPYmJlLpSeLC9bJMVdAJCM=;
-	h=From:To:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=CejGaAvaR1ugsiG23lhbPZeKDWkCI5YVII1ec/6dSy39bCn4DidwY2uTKk4J0g/q7lQl/v8kWQ+ygnEejIZ1UP2Ejm0JkiOg6Y0nC+7SvnLJkEYH5djCgwF1sQ54TO0Wrts055wm9rXjtQ1eQG+M9Gjt0Zuuunwcm6KsPnM04zc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=mnBHH7sY; arc=none smtp.client-ip=13.77.154.182
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.13])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 31F4914E2F2;
+	Sat, 11 Jul 2026 04:16:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=198.175.65.13
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1783743402; cv=fail; b=ou35GqBgB9qnwb700F66Raoa54b/Lji/m/NzmVbI0Lgu2nZQcjSZDe3E4YT3JW0a0xOBJ6MZnQ7SssFnf1sUeskChUKdulT73PBn3mC5DFjFeMUr+eTQW/QSboxPU/vMotDtIhvTwRjz2tc8AmpPTRxO9b1PHGeNuVkTNKWsJQQ=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1783743402; c=relaxed/simple;
+	bh=PXqaVcOj36uBIlJZ1shLvZd8j7hc4dFuShtdb3aM4/0=;
+	h=Message-ID:Date:Subject:To:CC:References:From:In-Reply-To:
+	 Content-Type:MIME-Version; b=EqgnGSmcbKGTr9IC4rlYTezvowIC7/z8iUQFH6Mkqx2Kc6+wbD8TB7+Awqtl8px0tzs0EzXckB46aGZE+/iJAFw2xyXN1BA9PDsOcJ2YgyeZnuJpqhUjYE1wgIgXyXI1wOTtvuZyIZ0Ps3zubkgtOb5fx8LjQfd8AhXLVNm5fP8=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=jiW1ZmdX; arc=fail smtp.client-ip=198.175.65.13
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="mnBHH7sY"
-Received: from linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net (linux.microsoft.com [13.77.154.182])
-	by linux.microsoft.com (Postfix) with ESMTPSA id E60AE20B7179;
-	Fri, 10 Jul 2026 21:14:33 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com E60AE20B7179
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
-	s=default; t=1783743274;
-	bh=u8EOU44g1FOdRu0Bw54fL30NJMc8hT6UXleCv4VS1+k=;
-	h=From:To:Subject:Date:In-Reply-To:References:From;
-	b=mnBHH7sYLx5C+iGfTLsA3EWKsEPX0ghFpuDWJHIK1mMZ1yAjGfT8ANstAQNGurO2Z
-	 4hBRifwBw0SsJ0Etu4aMeNyCj86FI58/j+6USjzKb+wj8REJm2JNzhas2quDLqNumA
-	 VUqT5G9n92F/j/DSanNl3zjx/I+Ej9OPOlXQ8r/8=
-From: Dipayaan Roy <dipayanroy@linux.microsoft.com>
-To: kys@microsoft.com,
-	haiyangz@microsoft.com,
-	wei.liu@kernel.org,
-	decui@microsoft.com,
-	andrew+netdev@lunn.ch,
-	davem@davemloft.net,
-	edumazet@google.com,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	leon@kernel.org,
-	longli@microsoft.com,
-	kotaranov@microsoft.com,
-	horms@kernel.org,
-	shradhagupta@linux.microsoft.com,
-	ssengar@linux.microsoft.com,
-	ernis@linux.microsoft.com,
-	shirazsaleem@microsoft.com,
-	linux-hyperv@vger.kernel.org,
-	netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	linux-rdma@vger.kernel.org,
-	stephen@networkplumber.org,
-	jacob.e.keller@intel.com,
-	dipayanroy@microsoft.com,
-	leitao@debian.org,
-	kees@kernel.org,
-	john.fastabend@gmail.com,
-	hawk@kernel.org,
-	bpf@vger.kernel.org,
-	daniel@iogearbox.net,
-	ast@kernel.org,
-	sdf@fomichev.me,
-	yury.norov@gmail.com,
-	pavan.chebbi@broadcom.com,
-	schakrabarti@linux.microsoft.com,
-	gargaditya@linux.microsoft.com
-Subject: [PATCH net-next v12 3/4] net: mana: force full-page RX buffers via ethtool private flag
-Date: Fri, 10 Jul 2026 21:10:23 -0700
-Message-ID: <20260711041415.3008868-4-dipayanroy@linux.microsoft.com>
-X-Mailer: git-send-email 2.43.7
-In-Reply-To: <20260711041415.3008868-1-dipayanroy@linux.microsoft.com>
-References: <20260711041415.3008868-1-dipayanroy@linux.microsoft.com>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="jiW1ZmdX"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1783743401; x=1815279401;
+  h=message-id:date:subject:to:cc:references:from:
+   in-reply-to:content-transfer-encoding:mime-version;
+  bh=PXqaVcOj36uBIlJZ1shLvZd8j7hc4dFuShtdb3aM4/0=;
+  b=jiW1ZmdXVhZwu3ZUYxHUYAEakXbWzHzjKe9YwrfPGjlSoUdPf4jX7G2w
+   VjsRf/BUdXMqFusDaqlqWzbPXq6MCz+RgfbczBr5eYxYxZDv6LOE6mEQi
+   vA+hQBo4IixRPKfm9x6lMSXPDdPSxwrENbMk9idwrFUQ+krbY4/4MJejw
+   Yvkyo3hR5fJVKzkj3NAphtmuZf19VHWr+6fUJdHZa1QjQjrqvKefxSvwz
+   WXmO7l08ftAg/UZjPmt3OgqrBpnLZbGrhFUQA5tPls/vsCII8+Ev0UlW8
+   gW2FKXFVHRq9fB6dFhTTTv25ctXUf/u/cWFYvcgVQzzdBaPBUlKVrgt2L
+   w==;
+X-CSE-ConnectionGUID: LWz2BNvIS7SPrZGgyPAiXw==
+X-CSE-MsgGUID: vBuKdXB+Sq+dWYCAfNOzFA==
+X-IronPort-AV: E=McAfee;i="6800,10657,11841"; a="95589400"
+X-IronPort-AV: E=Sophos;i="6.25,154,1779174000"; 
+   d="scan'208";a="95589400"
+Received: from fmviesa010.fm.intel.com ([10.60.135.150])
+  by orvoesa105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Jul 2026 21:16:40 -0700
+X-CSE-ConnectionGUID: DqikGKsPSsyKjRtMpUdxhw==
+X-CSE-MsgGUID: DLOMx09QRomDijz102Q4ew==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.25,154,1779174000"; 
+   d="scan'208";a="251072401"
+Received: from fmsmsx902.amr.corp.intel.com ([10.18.126.91])
+  by fmviesa010.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Jul 2026 21:16:40 -0700
+Received: from FMSMSX903.amr.corp.intel.com (10.18.126.92) by
+ fmsmsx902.amr.corp.intel.com (10.18.126.91) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.43; Fri, 10 Jul 2026 21:16:40 -0700
+Received: from fmsedg902.ED.cps.intel.com (10.1.192.144) by
+ FMSMSX903.amr.corp.intel.com (10.18.126.92) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.43 via Frontend Transport; Fri, 10 Jul 2026 21:16:40 -0700
+Received: from CH5PR02CU005.outbound.protection.outlook.com (40.107.200.58) by
+ edgegateway.intel.com (192.55.55.82) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.43; Fri, 10 Jul 2026 21:16:39 -0700
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=DqnZaoUiFFFI9O3UixZfYMvAE6QPMdmUi12j4PynMNYEfLsEGlI9/S7mBoQrh3DWlwslX2yT7fTGnadeuhvQhSJp4ppwO75ipp0zVlAcjEs4emHFY083xhmqzTu9aD/OjoZ2uN5tRsQOGbeSbY2/T5AqLbRwxbGIrMvouABkT/dg1vOHPF+tuQNQc/ejsn5XLAAL1QBlF+pgYDKtRFhJWrh/tLZiIjT/gWxq+VACQ+xIOpJkLWrLL0TE3nS/Y+gadjMdyleEULMWKOGS9HYFEX+t1hJAf6Agg822J9r/SOm8ZndKqewxoimrd6N6uAvlXZaW4viObilQSquaV+plGA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=E5VRnN32hcKy/8AkYoF6OpixZjB405H6D4IDCidoJ6w=;
+ b=J/riq39OL7NYaxAdyFYx5jk4vZ42KfV6QuHEBkssWSjrs89bxuC4mSWwHaD+PuLsIKfTqTMx+JpTuHPdE10QppbS6Xwe43WjQnV+qUjzhHt9b6ZvmqxmiDSAaKuxU1ABOJLnRUUnxCPYtoIieQnGM0Be6aqlHrj8jSP26I0iQctBq87JSTcg0jYl+Qjaf/fPRgkXNuRonndqcK94mEIViqxd3XU3Urqfb/tkqQQvW/nKgD+Qaenhf8ZbdzGsWlyqIb7iY+uhXg8BtHhmmOaSI7SZkeWuVMhZnVZNWFtp4qzHt+A2uiDJvpXet4dUYq2VnymIXIMTCJ7w5Aq3OyngNQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+Received: from LV3PR11MB8508.namprd11.prod.outlook.com (2603:10b6:408:1b4::8)
+ by SA1PR11MB7086.namprd11.prod.outlook.com (2603:10b6:806:2b3::10) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.181.8; Sat, 11 Jul
+ 2026 04:16:31 +0000
+Received: from LV3PR11MB8508.namprd11.prod.outlook.com
+ ([fe80::a1e8:1786:e5d1:8e51]) by LV3PR11MB8508.namprd11.prod.outlook.com
+ ([fe80::a1e8:1786:e5d1:8e51%5]) with mapi id 15.21.0181.008; Sat, 11 Jul 2026
+ 04:16:30 +0000
+Message-ID: <73e4895c-4d07-4841-92eb-2bcb61ca4d38@intel.com>
+Date: Sat, 11 Jul 2026 06:16:24 +0200
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH net v2] bnge/bng_re: fix ring ID widths
+To: Vikas Gupta <vikas.gupta@broadcom.com>
+CC: <netdev@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-rdma@vger.kernel.org>, <leonro@nvidia.com>, <jgg@nvidia.com>,
+	<bhargava.marreddy@broadcom.com>, <rahul-rg.gupta@broadcom.com>,
+	<vsrama-krishna.nemani@broadcom.com>, <rajashekar.hudumula@broadcom.com>,
+	<ajit.khaparde@broadcom.com>, Siva Reddy Kallam <siva.kallam@broadcom.com>,
+	Dharmender Garg <dharmender.garg@broadcom.com>, "Yendapally Reddy Dhananjaya
+ Reddy" <yendapally.reddy@broadcom.com>, <davem@davemloft.net>,
+	<edumazet@google.com>, <kuba@kernel.org>, <pabeni@redhat.com>,
+	<andrew+netdev@lunn.ch>, <horms@kernel.org>
+References: <20260704164747.1995227-1-vikas.gupta@broadcom.com>
+ <c108a5ec-8740-431e-849d-581c136f404d@intel.com>
+ <CAHLZf_tTVipQZ_MX-gud5GhqHE7KDV=44N=17mZgsrWoJfa_Gw@mail.gmail.com>
+From: Przemek Kitszel <przemyslaw.kitszel@intel.com>
+Content-Language: en-US
+In-Reply-To: <CAHLZf_tTVipQZ_MX-gud5GhqHE7KDV=44N=17mZgsrWoJfa_Gw@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 8bit
+X-ClientProxiedBy: DUZPR01CA0249.eurprd01.prod.exchangelabs.com
+ (2603:10a6:10:4b5::10) To LV3PR11MB8508.namprd11.prod.outlook.com
+ (2603:10b6:408:1b4::8)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: LV3PR11MB8508:EE_|SA1PR11MB7086:EE_
+X-MS-Office365-Filtering-Correlation-Id: a16ded9e-5dc0-4a32-2696-08dedf032f38
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;ARA:13230040|23010399003|366016|376014|1800799024|7416014|4143699003|11063799006|56012099006|22082099003|18002099003;
+X-Microsoft-Antispam-Message-Info: +fvIeWTKiNhCS2VKFdxZkGswfEDjEb0mC2ZGAqW4sQb8EMhgUNPBlZz8l6jr3ymslUpO/U0WrQBQNyj1okonfb2IetNNbakDHg7dyBMO3wMlSvBpgEJanLV948Enk07A1QzWNoIjZAUU/pPoOueqTZ3P5dFjk0NxQl1gIBhc0IsgWc/7L5Xf+hZsTbPGWe9KjAv31f6SMbElDBiIHVYO6HyH7ixi6JLu6TvgEs0KJG8Bo4krYhL1ycqJq1X0Wi9T5arvXUvOpEaBh75ae3qWPG13FGxt060QX+QaWtA5qqmEno37gFD5taf2Zdq+FYbUgOvbsl5WLzVxN5R1ug1CBBDFbvmwIV3ElMpNSNlH/xYxkUPOKzGSidt4PcHG7k0rkDm5WZa+ktAMeye6q/Q9aFfXLOdmQ42bLdK0sFWCV44nNItXLfqm/VYICNWYHF2iLN5gQZjPSgA7FgAjknmIjnWwdLsH2VTgKAlxORfGeD2RuzIG0Y8bcQWhwaKmV3qHm3ynuwzKZEmIjp3jpKzL/kIzMk3GGwMBUYJnm0X0+gnfdPei5Ubhu3dOQ4HAT4LjGYnxCfExCEf+wDkRwJJTzJthcGZwA5RAkgwy0PuN6jqKSWGhCtDFE3Ljvvet0Mo86w9xLCX1VEUcRcuZ1YBGmwEZyYAUdPreQtB8qPSsxvA=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:LV3PR11MB8508.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(23010399003)(366016)(376014)(1800799024)(7416014)(4143699003)(11063799006)(56012099006)(22082099003)(18002099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?d2t1YVFkbXFqNk9aYW94aWlGbzlsbHMzNEhuRFRpTWpsSkVSRHdMTmhYNmFF?=
+ =?utf-8?B?elNMVVluakw3VzNMNS9rSDEzQjUrQVBnOUVJcVRNM3pSMzZhcVBjTjFHQ2pM?=
+ =?utf-8?B?QXFMTWJsTWtDZ2dkYVd1UHQyUjRqcDVReG5lZ0ppWXU4N2VuUXZDdWYrUHRD?=
+ =?utf-8?B?SXRmTXZoRElZMlNIeHBPTEFGWjlPdFJOV1Q3WStIK0h6YXV3NGMzRk9jamNW?=
+ =?utf-8?B?TzZoeDQ5T3JqbUpOSUZsc2xSZnFNaUNBM3FWZjBMaVNJK1p4dnd0SmFQSnVB?=
+ =?utf-8?B?Y3I2eEJqVmhqaWdxSlBFNWxENFc4aUIzNjFFQzdzV1hobW5QRGozMUhRaTM0?=
+ =?utf-8?B?c3hxUlo2L1gybVgrM1ZJZ1Q1SHAvNmhkVTZlREY4ZlRmQkgzcmNOZXF1ck5V?=
+ =?utf-8?B?WkliMUhRSGx3bzFNZlkvdE9oTEZnOEhTenczd3VOdUFVUzluMnlGN1h3WW9N?=
+ =?utf-8?B?cE04SzVBdWE3LzJnREcxWk1JL1dzR3N3TVJFTmlGaUUwdkNBVXBkSXMxcFJq?=
+ =?utf-8?B?cGoxbitvL0NmN3hhVzR0VndxU3lhMTFFSkxUajZyUVNNRU1ROGF0dy83WnZJ?=
+ =?utf-8?B?SHFIb1pNUFN2TWxHVXZHQ1QweHVLL2U0bHcyWG1aL05FWWZwUFFBckt3Rk9z?=
+ =?utf-8?B?czFXa1BUeWg5ZkNLWTVmQlNzQ2N6clVZTGp2eXFUODJBN2s1S1h3d1V6Y1I0?=
+ =?utf-8?B?Z0NMRG9Falo0cXdTejdxS1JvdGlKZERicjZ5RHR0TDlGSU1RWEVvQldtcS9a?=
+ =?utf-8?B?MHZjVENaeHZNOGVyckxSMGVWWVdMRTd5Y2JzTUJ0RkpyMTdkKzc2Z1FQTE12?=
+ =?utf-8?B?MytLYmhYTG1neWZXNjNQNVFHdC8xR0F5ZjNtaDhCVXNpY3hGSkRKaGFkbUw4?=
+ =?utf-8?B?dmh6cEI2M1ducC92aTBiQjZZaXI4VmovblJwc3ppZWR5VFN4QVMzcUpVM01r?=
+ =?utf-8?B?cWhaZFhIK1RJR3hUUDB4eTJGclBUNW0rKzFRc0xScWFnaWFKNDRnUWxBcjlk?=
+ =?utf-8?B?Q3d1TkNnMklJclRwRXluaDFRS0pUWGNLUXRvRENSdkQwMTlxQ1J3ZlZJR2s0?=
+ =?utf-8?B?aFRsUEVMRnplYVk4VGk1WHIvQml0eEJQb24wWmF1UmFsWndyc1FsbTBtNTBP?=
+ =?utf-8?B?OVU0ckJzZEI2NUlhL2FUekM3dkJDUXliTVhUYUdLRmNLS2hEZFJiUXpYVFc1?=
+ =?utf-8?B?Z1o1YWN4cTdsMEpMQ3JUZHM5ZjF0QU9FUjlDSlpjQUx6Q3ZvOHY2V3VTQ0xR?=
+ =?utf-8?B?aDBjY1RHMGZ1WmRURUZUWXcrMmhiTDZMSU54S0Fqa1hTcno0VlhyUUpHYi9Y?=
+ =?utf-8?B?aXpxWGoyaDZsR0Yxd0R1ODY3RFRkL2hTSW9HRHRRWTgrbk5tTUcvS09xSWxF?=
+ =?utf-8?B?QzV3NzIxVUN5c2Q0Y1g2QmMzcStXVWlOV2wwS0hCdTQvb1lieFlsUkZHMUJL?=
+ =?utf-8?B?NWxjSHQ3MnZsRW5WVmNNVGQ1cmgreXVCampzejFmVkRNOUtxV2R3aExhTmQz?=
+ =?utf-8?B?SzV0SjgvQ01lRlFwSGdSMWs0VDlyclBQbVpaSXJ6QkJhRXByRG14Wm5iUFZM?=
+ =?utf-8?B?TU43WGlYNTI0K25QdVp2ajRCNTVicEMxakVoSm1UWE90NVhjODNjNW9BeCtx?=
+ =?utf-8?B?SnhNamxVVFBDeHdCRmNaSHh0WnFSNEhGbnRMWERLUVp1dlhGWGFlc2RxSDla?=
+ =?utf-8?B?cWtwQVYwd3BqWUxjaG1mdDg2Nnp2VDErZ1hJbWxQTGNseHVJdnI3aDVjcmFi?=
+ =?utf-8?B?RTg5RkdNQ0VTc1U4bGJkR0tFMGNLRXUzM2JpNkk2cmFZQnBvRXlMT29aT1BQ?=
+ =?utf-8?B?eHpaSXJYMGRuSHVBaHNsamk4MG1Za1FGUkRuOXNtcTFQUzR2S25nNmV4Vnpq?=
+ =?utf-8?B?S1JZYXRWT0FiSWJ3bWhhNHFoc1FqQThNQ2lhM2FxY2pDUHpzVnMrZU5yTVpG?=
+ =?utf-8?B?OTJ1K0RJS1pvaHdIMEFrSWVkMEpCOGJpUlRSOXlLRXJFT2hHYTEwdlZvV3dr?=
+ =?utf-8?B?eTFyMER1T2RHcDRhdzJWOUxWSEk3TUZndFNETVZBbXVRTlhzYzdndHd1WWpi?=
+ =?utf-8?B?S2dFQnZtYmZhOFFFSWd0RUJQMFJZT0Rzc2tXdmtseHA2VHBsdnJvemtyVGp2?=
+ =?utf-8?B?L1NFS2pXN05xSjNEV2g3cFMwdUlDcWFNU3VOUjFhSjB3dEFEc2t4aWdVMjhT?=
+ =?utf-8?B?dnk5Q0MzMi9SZnZLeXlWajRPSGp1SElqQ2dkWFJzU3I1TjY2YmJ0dEk0NHVE?=
+ =?utf-8?B?SWFvV0RiZG9IcXBwdyt3RXRsamZHdEFmS1NOdUdYWEVVdGQzUXhUMjd3SCtS?=
+ =?utf-8?B?YmlnMDlrTFNISXFLcGlzb0F0KzhrYkxibnk4WUhDVDA4NE9KMjZVNEZOVTlQ?=
+ =?utf-8?Q?CAZPvoHKZdjZ7JVc=3D?=
+X-Exchange-RoutingPolicyChecked: fecdYJOj9eRNAnTpUnvTUD4jkZ43Rjy14aI3eSmak/CgojYTo4hMdF+g/bZlV1yn3k5OTlRDoMJDQa7zAxSabbBO+9h2eq7EBK98kNyFxRqwtOBye3bh+gS0+uK4z77PN/C0lHdH9YDlfwyAKs1rqUzzgv9ZebGKzqeg6iRB3xaXhxKq4qh3Un5zb6gGpxcTobxzZGIhJrDRU+JfXEgMHSG/8angaz5gx3zl6PqKQgbQgBS+zcf/vVCIqVVDhP11UKSD/Tf514GYguRNBfYkdkqC17iNytjcAASHUbstp/eOsxWRpK7xLkSgKXakodfZNR6GjuQSBHTucqS+7m980g==
+X-MS-Exchange-CrossTenant-Network-Message-Id: a16ded9e-5dc0-4a32-2696-08dedf032f38
+X-MS-Exchange-CrossTenant-AuthSource: LV3PR11MB8508.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 11 Jul 2026 04:16:30.4895
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: wvziUWFDVlLS8IyNBIBePZwooHDJ3S/1X7HJ9J2LFH7h4n+ltDFE6mG07dArdimhZnYOYvGyIWZkl2RsOPHz3K0J3zhpPPzqJ1mAlm1deho=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA1PR11MB7086
+X-OriginatorOrg: intel.com
 
-On some ARM64 platforms with 4K PAGE_SIZE, page_pool fragment
-allocation in the RX refill path can cause 15-20% throughput
-regression under high connection counts (>16 TCP streams).
+On 7/10/26 16:25, Vikas Gupta wrote:
+> On Fri, Jul 10, 2026 at 3:36 PM Przemek Kitszel
+> <przemyslaw.kitszel@intel.com> wrote:
+>>
+>> On 7/4/26 18:47, Vikas Gupta wrote:
+>>> Firmware requires more than 16 bits to address TX ring IDs for its
+>>> internal QP management. Widen the associated HSI ring ID fields to
+>>> 32 bits. The values firmware assigns remain within 24 bits, bounded
+>>> by the hardware doorbell XID field.
+>>>
+>>> RX, completion, and NQ ring IDs are unaffected and remain 16-bit.
+>>
+>> Here you mention Rx is unaffected. But you touch multiple places that
+>> are Rx specific (some comments below).
+> 
+> The fw_ring_id field belongs to bnge_ring_struct, a common struct
+> shared by all ring types. Widening it to u32 applies uniformly across
+> TX, RX, CP, and NQ rings at the struct level.
+> I believe the commit message is incomplete but the intent was that
+> firmware assigns values within 16-bit range for all ring types
+> except TX, which requires the wider field.
+> Please let me know if this clarifies.
 
-Add an ethtool private flag "full-page-rx" that allows the user to
-force one RX buffer per page, bypassing the page_pool fragment path.
-This restores line-rate (180+ Gbps) performance on affected platforms.
+Thank you, it does clarify.
 
-Usage:
-  ethtool --set-priv-flags eth0 full-page-rx on
+Would be nice to extend commit message to include that and also the
+info about HW not yet being released. Not sure if it is worth v2 though.
 
-There is no behavioral change by default. The flag must be explicitly
-enabled by the user or udev rule.
-
-The existing single-buffer-per-page logic for XDP and jumbo frames is
-consolidated into a new helper mana_use_single_rxbuf_per_page() which
-is now the single decision point for both the automatic and
-user-controlled paths.
-
-Reviewed-by: Jacob Keller <jacob.e.keller@intel.com>
-Reviewed-by: Haiyang Zhang <haiyangz@microsoft.com>
-Signed-off-by: Dipayaan Roy <dipayanroy@linux.microsoft.com>
----
- drivers/net/ethernet/microsoft/mana/mana_en.c |  22 +++-
- .../ethernet/microsoft/mana/mana_ethtool.c    | 100 ++++++++++++++++++
- include/net/mana/mana.h                       |   8 ++
- 3 files changed, 128 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/net/ethernet/microsoft/mana/mana_en.c b/drivers/net/ethernet/microsoft/mana/mana_en.c
-index 5e3c7a2a2b49..3e5c52e4886b 100644
---- a/drivers/net/ethernet/microsoft/mana/mana_en.c
-+++ b/drivers/net/ethernet/microsoft/mana/mana_en.c
-@@ -755,6 +755,25 @@ static void *mana_get_rxbuf_pre(struct mana_rxq *rxq, dma_addr_t *da)
- 	return va;
- }
- 
-+static bool
-+mana_use_single_rxbuf_per_page(struct mana_port_context *apc, u32 mtu)
-+{
-+	/* On some platforms with 4K PAGE_SIZE, page_pool fragment allocation
-+	 * in the RX refill path (~2kB buffer) can cause significant throughput
-+	 * regression under high connection counts. Allow user to force one RX
-+	 * buffer per page via ethtool private flag to bypass the fragment
-+	 * path.
-+	 */
-+	if (apc->priv_flags & BIT(MANA_PRIV_FLAG_USE_FULL_PAGE_RXBUF))
-+		return true;
-+
-+	/* For xdp and jumbo frames make sure only one packet fits per page. */
-+	if (mtu + MANA_RXBUF_PAD > PAGE_SIZE / 2 || mana_xdp_get(apc))
-+		return true;
-+
-+	return false;
-+}
-+
- /* Get RX buffer's data size, alloc size, XDP headroom based on MTU */
- static void mana_get_rxbuf_cfg(struct mana_port_context *apc,
- 			       int mtu, u32 *datasize, u32 *alloc_size,
-@@ -765,8 +784,7 @@ static void mana_get_rxbuf_cfg(struct mana_port_context *apc,
- 	/* Calculate datasize first (consistent across all cases) */
- 	*datasize = mtu + ETH_HLEN;
- 
--	/* For xdp and jumbo frames make sure only one packet fits per page */
--	if (mtu + MANA_RXBUF_PAD > PAGE_SIZE / 2 || mana_xdp_get(apc)) {
-+	if (mana_use_single_rxbuf_per_page(apc, mtu)) {
- 		if (mana_xdp_get(apc)) {
- 			*headroom = XDP_PACKET_HEADROOM;
- 			*alloc_size = PAGE_SIZE;
-diff --git a/drivers/net/ethernet/microsoft/mana/mana_ethtool.c b/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
-index 482cd16009ab..f77509818d07 100644
---- a/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
-+++ b/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
-@@ -133,6 +133,10 @@ static const struct mana_stats_desc mana_phy_stats[] = {
- 	{ "hc_tc7_tx_pause_phy", offsetof(struct mana_ethtool_phy_stats, tx_pause_tc7_phy) },
- };
- 
-+static const char mana_priv_flags[MANA_PRIV_FLAG_MAX][ETH_GSTRING_LEN] = {
-+	[MANA_PRIV_FLAG_USE_FULL_PAGE_RXBUF] = "full-page-rx"
-+};
-+
- static int mana_get_sset_count(struct net_device *ndev, int stringset)
- {
- 	struct mana_port_context *apc = netdev_priv(ndev);
-@@ -144,6 +148,10 @@ static int mana_get_sset_count(struct net_device *ndev, int stringset)
- 		       ARRAY_SIZE(mana_phy_stats) +
- 		       ARRAY_SIZE(mana_hc_stats)  +
- 		       num_queues * (MANA_STATS_RX_COUNT + MANA_STATS_TX_COUNT);
-+
-+	case ETH_SS_PRIV_FLAGS:
-+		return MANA_PRIV_FLAG_MAX;
-+
- 	default:
- 		return -EINVAL;
- 	}
-@@ -192,6 +200,14 @@ static void mana_get_strings_stats(struct mana_port_context *apc, u8 **data)
- 	}
- }
- 
-+static void mana_get_strings_priv_flags(u8 **data)
-+{
-+	int i;
-+
-+	for (i = 0; i < MANA_PRIV_FLAG_MAX; i++)
-+		ethtool_puts(data, mana_priv_flags[i]);
-+}
-+
- static void mana_get_strings(struct net_device *ndev, u32 stringset, u8 *data)
- {
- 	struct mana_port_context *apc = netdev_priv(ndev);
-@@ -200,6 +216,9 @@ static void mana_get_strings(struct net_device *ndev, u32 stringset, u8 *data)
- 	case ETH_SS_STATS:
- 		mana_get_strings_stats(apc, &data);
- 		break;
-+	case ETH_SS_PRIV_FLAGS:
-+		mana_get_strings_priv_flags(&data);
-+		break;
- 	default:
- 		break;
- 	}
-@@ -756,6 +775,84 @@ static int mana_get_link_ksettings(struct net_device *ndev,
- 	return 0;
- }
- 
-+static u32 mana_get_priv_flags(struct net_device *ndev)
-+{
-+	struct mana_port_context *apc = netdev_priv(ndev);
-+
-+	return apc->priv_flags;
-+}
-+
-+static int mana_set_priv_flags(struct net_device *ndev, u32 priv_flags)
-+{
-+	struct mana_port_context *apc = netdev_priv(ndev);
-+	u32 changed = apc->priv_flags ^ priv_flags;
-+	u32 old_priv_flags = apc->priv_flags;
-+	bool schedule_port_reset = false;
-+	int err = 0;
-+
-+	if (!changed)
-+		return 0;
-+
-+	/* Reject unknown bits */
-+	if (priv_flags & ~GENMASK(MANA_PRIV_FLAG_MAX - 1, 0))
-+		return -EINVAL;
-+
-+	apc->priv_flags = priv_flags;
-+
-+	if (changed & BIT(MANA_PRIV_FLAG_USE_FULL_PAGE_RXBUF)) {
-+		if (!apc->port_is_up)
-+			return 0;
-+
-+		/* If XDP is attached or MTU is jumbo, single-buffer-per-page
-+		 * is already forced regardless of this flag. Skip the
-+		 * expensive detach/attach cycle since nothing changes.
-+		 */
-+		if (ndev->mtu + MANA_RXBUF_PAD > PAGE_SIZE / 2 ||
-+		    mana_xdp_get(apc))
-+			return 0;
-+
-+		/* Block RDMA from grabbing the vport during detach/attach */
-+		mutex_lock(&apc->vport_mutex);
-+		apc->channel_changing = true;
-+		mutex_unlock(&apc->vport_mutex);
-+
-+		err = mana_pre_alloc_rxbufs(apc, ndev->mtu, apc->num_queues);
-+		if (err) {
-+			netdev_err(ndev,
-+				   "Insufficient memory for new allocations\n");
-+			apc->priv_flags = old_priv_flags;
-+			goto clear_flag;
-+		}
-+
-+		err = mana_detach(ndev, false);
-+		if (err) {
-+			netdev_err(ndev, "mana_detach failed: %d\n", err);
-+			apc->priv_flags = old_priv_flags;
-+			goto out;
-+		}
-+
-+		err = mana_attach(ndev);
-+		if (err) {
-+			netdev_err(ndev, "mana_attach failed: %d\n", err);
-+			apc->priv_flags = old_priv_flags;
-+			schedule_port_reset = true;
-+		}
-+	}
-+
-+out:
-+	mana_pre_dealloc_rxbufs(apc);
-+clear_flag:
-+	mutex_lock(&apc->vport_mutex);
-+	apc->channel_changing = false;
-+	mutex_unlock(&apc->vport_mutex);
-+
-+	if (schedule_port_reset)
-+		queue_work(apc->ac->per_port_queue_reset_wq,
-+			   &apc->queue_reset_work);
-+
-+	return err;
-+}
-+
- const struct ethtool_ops mana_ethtool_ops = {
- 	.supported_coalesce_params = ETHTOOL_COALESCE_RX_CQE_FRAMES |
- 				     ETHTOOL_COALESCE_RX_USECS |
-@@ -766,6 +863,7 @@ const struct ethtool_ops mana_ethtool_ops = {
- 				     ETHTOOL_COALESCE_USE_ADAPTIVE_TX,
- 	.op_needs_rtnl		= ETHTOOL_OP_NEEDS_RTNL_SCHANNELS |
- 				  ETHTOOL_OP_NEEDS_RTNL_SRINGPARAM |
-+				  ETHTOOL_OP_NEEDS_RTNL_SPFLAGS |
- 				  ETHTOOL_OP_NEEDS_RTNL_GLINK,
- 	.get_ethtool_stats	= mana_get_ethtool_stats,
- 	.get_sset_count		= mana_get_sset_count,
-@@ -783,4 +881,6 @@ const struct ethtool_ops mana_ethtool_ops = {
- 	.set_ringparam          = mana_set_ringparam,
- 	.get_link_ksettings	= mana_get_link_ksettings,
- 	.get_link		= ethtool_op_get_link,
-+	.get_priv_flags		= mana_get_priv_flags,
-+	.set_priv_flags		= mana_set_priv_flags,
- };
-diff --git a/include/net/mana/mana.h b/include/net/mana/mana.h
-index 226b61504596..768d9f9bf167 100644
---- a/include/net/mana/mana.h
-+++ b/include/net/mana/mana.h
-@@ -31,6 +31,12 @@ enum TRI_STATE {
- 	TRI_STATE_TRUE = 1
- };
- 
-+/* MANA ethtool private flag bit positions */
-+enum mana_priv_flag_bits {
-+	MANA_PRIV_FLAG_USE_FULL_PAGE_RXBUF = 0,
-+	MANA_PRIV_FLAG_MAX,
-+};
-+
- /* Number of entries for hardware indirection table must be in power of 2 */
- #define MANA_INDIRECT_TABLE_MAX_SIZE 512
- #define MANA_INDIRECT_TABLE_DEF_SIZE 64
-@@ -565,6 +571,8 @@ struct mana_port_context {
- 	u32 rxbpre_headroom;
- 	u32 rxbpre_frag_count;
- 
-+	u32 priv_flags;
-+
- 	struct bpf_prog *bpf_prog;
- 
- 	/* Create num_queues EQs, SQs, SQ-CQs, RQs and RQ-CQs, respectively. */
--- 
-2.43.0
-
+Reviewed-by: Przemek Kitszel <przemyslaw.kitszel@intel.com>
