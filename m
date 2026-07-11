@@ -1,30 +1,30 @@
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id BEC2F29E116;
-	Sat, 11 Jul 2026 04:14:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id AD1CB2D9484;
+	Sat, 11 Jul 2026 04:14:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783743284; cv=none; b=cL4a9B75jq0dYdkNDHwDDl2KgP40/DiK0TgANXKY5JC0E3GYxfRmbUI1/Navgll2RMjqnzq/2SdjTLRb1lLSJkr7vPd+7lYCNSg8brBHTl/Sg5RgFASMFZAFO8VgiDiJggYcqkHTq9RQ4Na/UlZyc1BH1mLkOqOy6FEIM4zt0Wk=
+	t=1783743285; cv=none; b=WQX7Qnu7/CHDfZjkfQWxkCqhUBr9gT8wpiEsldwXziytO1gnzP5i3qYQpHewcW0US1saAKSwqXj6QNpyBLSaqRFAkaZIT+iarB6GxU3cgGT4bTDFV2QX0Tz/wUeHeLIdcGAL6XQIKYlq8EfBbc1XJKd/f1gZ050shg4f5ImDvYA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783743284; c=relaxed/simple;
-	bh=Y2ytEviYtuEfInxxVrHmxYK/yDakQ+T4iS/+B5gW8bs=;
+	s=arc-20240116; t=1783743285; c=relaxed/simple;
+	bh=GI4xE8tLcJ3I5eTnTFZUtvazG4zrp4dA7vaT/I8J+R0=;
 	h=From:To:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=Pu/MrrXoNAI2CPF2P/O+623TD1cTnO3TK0Qn7H7jIzg+xuNwHo8XTYtKVUpaAVfd+2rwGZ0e8rdHdzO8vwHpuPHf8b9pyWLnrBZAB4pXNMJBj7BsYKzALaRdxmCSE6PPwZaNVT/R2mmME29nQgxJLeOGkekd2b8UJg3Y47MG/p8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=F7EmHu22; arc=none smtp.client-ip=13.77.154.182
+	 MIME-Version; b=amvV1rvQIIZyuaekvYd7KJGErloviRcnShOwsaC5JZo9MnmCb7A1SfRud13jqzWecFZdKpBHLqem0gbRauRCOrjv93TUubE/sXfOT7yxqx8TiQZGKrexqVLp76YVhJiiuktNk/oH6xjnpp9eLLRdYdzufynDktRZv6aWTjj6EkU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=bxGnGysD; arc=none smtp.client-ip=13.77.154.182
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="F7EmHu22"
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="bxGnGysD"
 Received: from linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net (linux.microsoft.com [13.77.154.182])
-	by linux.microsoft.com (Postfix) with ESMTPSA id 14CE320B716F;
-	Fri, 10 Jul 2026 21:14:33 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 14CE320B716F
+	by linux.microsoft.com (Postfix) with ESMTPSA id 842F120B7171;
+	Fri, 10 Jul 2026 21:14:34 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 842F120B7171
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
-	s=default; t=1783743273;
-	bh=Q7aELUN/m5GYjnuqRTtkZe028YJFzr253JFbIINDFFo=;
+	s=default; t=1783743274;
+	bh=pUTgPHbBLdDpOumpYw+qKCD/KZRKukRKQBAkcVeS4C8=;
 	h=From:To:Subject:Date:In-Reply-To:References:From;
-	b=F7EmHu22NHGVGtKBTGf2P2dlqAzLXKnI9utnt+7YMYoWJaM8MK1+DqM699JDIOysZ
-	 2beXYCLiU8Gle4mvQzuBAuRZlli+f+OPgT9E3N7QtPjsferspT035NMSmWEh5UkcwG
-	 7GlyfJmy1QP5KkPBK5/FkSA74tX8W9R8RyZ22HUY=
+	b=bxGnGysDK4Lbc3yD+AqAKLAPTiHQOYBywtg/IOt18hqW1+7GCJyd+Qzfg9bb8VLiC
+	 wohnPPSIJQUz2WA0SOyd+me9KOybVla2JdBg3vQdyCL97XFXWRNmQoPDfJsK0yomB7
+	 0YjroI9WJ9FbZdAymPDdEseGmmGQd+fyODMpb85Y=
 From: Dipayaan Roy <dipayanroy@linux.microsoft.com>
 To: kys@microsoft.com,
 	haiyangz@microsoft.com,
@@ -62,9 +62,9 @@ To: kys@microsoft.com,
 	pavan.chebbi@broadcom.com,
 	schakrabarti@linux.microsoft.com,
 	gargaditya@linux.microsoft.com
-Subject: [PATCH net-next v12 1/4] net: mana: refactor mana_get_strings() and mana_get_sset_count() to use switch
-Date: Fri, 10 Jul 2026 21:10:21 -0700
-Message-ID: <20260711041415.3008868-2-dipayanroy@linux.microsoft.com>
+Subject: [PATCH net-next v12 4/4] net: mana: recover port on attach failure in ethtool operations
+Date: Fri, 10 Jul 2026 21:10:24 -0700
+Message-ID: <20260711041415.3008868-5-dipayanroy@linux.microsoft.com>
 X-Mailer: git-send-email 2.43.7
 In-Reply-To: <20260711041415.3008868-1-dipayanroy@linux.microsoft.com>
 References: <20260711041415.3008868-1-dipayanroy@linux.microsoft.com>
@@ -76,120 +76,120 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Refactor mana_get_strings() and mana_get_sset_count() from if/else to
-switch statements in preparation for adding ethtool private flags
-support which requires handling ETH_SS_PRIV_FLAGS.
+When mana_attach() fails during ethtool ring size or channel count
+changes, the port is left in a broken state with no recovery
+mechanism, requiring manual intervention to bring the port back up.
 
-No functional change.
+On VM SKUs without a netvsc fallback interface, this results in
+complete loss of network connectivity to the VM.
+
+Fix by scheduling queue_reset_work when mana_attach() fails. The
+preceding patch ensures mana_detach() always completes its full
+teardown (netif_device_detach + cleanup), so the reset handler's
+mana_detach() takes the "already detached" early return, preserving
+port_st_save for a successful mana_attach() recovery.
+
+When mana_attach() fails, choose retry values that maximize recovery
+chances: if the operation was an increase, fall back to the previous
+working values; if it was a decrease but still above default, fall
+back to defaults; otherwise use the minimum supported values.
 
 Reviewed-by: Haiyang Zhang <haiyangz@microsoft.com>
+Tested-by: Aditya Garg <gargaditya@linux.microsoft.com>
 Signed-off-by: Dipayaan Roy <dipayanroy@linux.microsoft.com>
 ---
- .../ethernet/microsoft/mana/mana_ethtool.c    | 75 ++++++++++++-------
- 1 file changed, 46 insertions(+), 29 deletions(-)
+ .../ethernet/microsoft/mana/mana_ethtool.c    | 48 +++++++++++++++++--
+ 1 file changed, 45 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/net/ethernet/microsoft/mana/mana_ethtool.c b/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
-index 9e31e2595ae3..482cd16009ab 100644
+index f77509818d07..71e69d5a9a04 100644
 --- a/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
 +++ b/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
-@@ -138,53 +138,70 @@ static int mana_get_sset_count(struct net_device *ndev, int stringset)
+@@ -646,6 +646,7 @@ static int mana_set_channels(struct net_device *ndev,
  	struct mana_port_context *apc = netdev_priv(ndev);
- 	unsigned int num_queues = apc->num_queues;
+ 	unsigned int new_count = channels->combined_count;
+ 	unsigned int old_count = apc->num_queues;
++	bool schedule_port_reset = false;
+ 	int err;
  
--	if (stringset != ETH_SS_STATS)
-+	switch (stringset) {
-+	case ETH_SS_STATS:
-+		return ARRAY_SIZE(mana_eth_stats) +
-+		       ARRAY_SIZE(mana_phy_stats) +
-+		       ARRAY_SIZE(mana_hc_stats)  +
-+		       num_queues * (MANA_STATS_RX_COUNT + MANA_STATS_TX_COUNT);
-+	default:
- 		return -EINVAL;
--
--	return ARRAY_SIZE(mana_eth_stats) + ARRAY_SIZE(mana_phy_stats) + ARRAY_SIZE(mana_hc_stats) +
--			num_queues * (MANA_STATS_RX_COUNT + MANA_STATS_TX_COUNT);
-+	}
+ 	/* Set channel_changing to block RDMA from grabbing the vport
+@@ -675,8 +676,19 @@ static int mana_set_channels(struct net_device *ndev,
+ 	apc->num_queues = new_count;
+ 	err = mana_attach(ndev);
+ 	if (err) {
+-		apc->num_queues = old_count;
+ 		netdev_err(ndev, "mana_attach failed: %d\n", err);
++
++		/* Choose a retry queue count that maximizes recovery
++		 * chances in the reset work handler.
++		 */
++		if (old_count < new_count)
++			apc->num_queues = old_count;
++		else if (new_count > MANA_DEF_NUM_QUEUES)
++			apc->num_queues = MANA_DEF_NUM_QUEUES;
++		else
++			apc->num_queues = 1;
++
++		schedule_port_reset = true;
+ 	}
+ 
+ out:
+@@ -685,6 +697,11 @@ static int mana_set_channels(struct net_device *ndev,
+ 	mutex_lock(&apc->vport_mutex);
+ 	apc->channel_changing = false;
+ 	mutex_unlock(&apc->vport_mutex);
++
++	if (schedule_port_reset)
++		queue_work(apc->ac->per_port_queue_reset_wq,
++			   &apc->queue_reset_work);
++
+ 	return err;
  }
  
--static void mana_get_strings(struct net_device *ndev, u32 stringset, u8 *data)
-+static void mana_get_strings_stats(struct mana_port_context *apc, u8 **data)
+@@ -707,6 +724,7 @@ static int mana_set_ringparam(struct net_device *ndev,
+ 			      struct netlink_ext_ack *extack)
  {
--	struct mana_port_context *apc = netdev_priv(ndev);
- 	unsigned int num_queues = apc->num_queues;
- 	int i, j;
- 
--	if (stringset != ETH_SS_STATS)
--		return;
- 	for (i = 0; i < ARRAY_SIZE(mana_eth_stats); i++)
--		ethtool_puts(&data, mana_eth_stats[i].name);
-+		ethtool_puts(data, mana_eth_stats[i].name);
- 
- 	for (i = 0; i < ARRAY_SIZE(mana_hc_stats); i++)
--		ethtool_puts(&data, mana_hc_stats[i].name);
-+		ethtool_puts(data, mana_hc_stats[i].name);
- 
- 	for (i = 0; i < ARRAY_SIZE(mana_phy_stats); i++)
--		ethtool_puts(&data, mana_phy_stats[i].name);
-+		ethtool_puts(data, mana_phy_stats[i].name);
- 
- 	for (i = 0; i < num_queues; i++) {
--		ethtool_sprintf(&data, "rx_%d_packets", i);
--		ethtool_sprintf(&data, "rx_%d_bytes", i);
--		ethtool_sprintf(&data, "rx_%d_xdp_drop", i);
--		ethtool_sprintf(&data, "rx_%d_xdp_tx", i);
--		ethtool_sprintf(&data, "rx_%d_xdp_redirect", i);
--		ethtool_sprintf(&data, "rx_%d_pkt_len0_err", i);
-+		ethtool_sprintf(data, "rx_%d_packets", i);
-+		ethtool_sprintf(data, "rx_%d_bytes", i);
-+		ethtool_sprintf(data, "rx_%d_xdp_drop", i);
-+		ethtool_sprintf(data, "rx_%d_xdp_tx", i);
-+		ethtool_sprintf(data, "rx_%d_xdp_redirect", i);
-+		ethtool_sprintf(data, "rx_%d_pkt_len0_err", i);
- 		for (j = 0; j < MANA_RXCOMP_OOB_NUM_PPI - 1; j++)
--			ethtool_sprintf(&data, "rx_%d_coalesced_cqe_%d", i, j + 2);
-+			ethtool_sprintf(data,
-+					"rx_%d_coalesced_cqe_%d",
-+					i,
-+					j + 2);
- 	}
- 
- 	for (i = 0; i < num_queues; i++) {
--		ethtool_sprintf(&data, "tx_%d_packets", i);
--		ethtool_sprintf(&data, "tx_%d_bytes", i);
--		ethtool_sprintf(&data, "tx_%d_xdp_xmit", i);
--		ethtool_sprintf(&data, "tx_%d_tso_packets", i);
--		ethtool_sprintf(&data, "tx_%d_tso_bytes", i);
--		ethtool_sprintf(&data, "tx_%d_tso_inner_packets", i);
--		ethtool_sprintf(&data, "tx_%d_tso_inner_bytes", i);
--		ethtool_sprintf(&data, "tx_%d_long_pkt_fmt", i);
--		ethtool_sprintf(&data, "tx_%d_short_pkt_fmt", i);
--		ethtool_sprintf(&data, "tx_%d_csum_partial", i);
--		ethtool_sprintf(&data, "tx_%d_mana_map_err", i);
-+		ethtool_sprintf(data, "tx_%d_packets", i);
-+		ethtool_sprintf(data, "tx_%d_bytes", i);
-+		ethtool_sprintf(data, "tx_%d_xdp_xmit", i);
-+		ethtool_sprintf(data, "tx_%d_tso_packets", i);
-+		ethtool_sprintf(data, "tx_%d_tso_bytes", i);
-+		ethtool_sprintf(data, "tx_%d_tso_inner_packets", i);
-+		ethtool_sprintf(data, "tx_%d_tso_inner_bytes", i);
-+		ethtool_sprintf(data, "tx_%d_long_pkt_fmt", i);
-+		ethtool_sprintf(data, "tx_%d_short_pkt_fmt", i);
-+		ethtool_sprintf(data, "tx_%d_csum_partial", i);
-+		ethtool_sprintf(data, "tx_%d_mana_map_err", i);
-+	}
-+}
+ 	struct mana_port_context *apc = netdev_priv(ndev);
++	bool schedule_port_reset = false;
+ 	u32 new_tx, new_rx;
+ 	u32 old_tx, old_rx;
+ 	int err;
+@@ -752,11 +770,35 @@ static int mana_set_ringparam(struct net_device *ndev,
+ 	err = mana_attach(ndev);
+ 	if (err) {
+ 		netdev_err(ndev, "mana_attach failed: %d\n", err);
+-		apc->tx_queue_size = old_tx;
+-		apc->rx_queue_size = old_rx;
++		NL_SET_ERR_MSG_FMT(extack, "failed to change ring params: %d",
++				   err);
 +
-+static void mana_get_strings(struct net_device *ndev, u32 stringset, u8 *data)
-+{
-+	struct mana_port_context *apc = netdev_priv(ndev);
++		/* Choose retry ring sizes that maximize recovery
++		 * chances in the reset work handler. Handle RX and
++		 * TX independently.
++		 */
++		if (old_rx < new_rx)
++			apc->rx_queue_size = old_rx;
++		else if (new_rx > DEF_RX_BUFFERS_PER_QUEUE)
++			apc->rx_queue_size = DEF_RX_BUFFERS_PER_QUEUE;
++		else
++			apc->rx_queue_size = MIN_RX_BUFFERS_PER_QUEUE;
 +
-+	switch (stringset) {
-+	case ETH_SS_STATS:
-+		mana_get_strings_stats(apc, &data);
-+		break;
-+	default:
-+		break;
++		if (old_tx < new_tx)
++			apc->tx_queue_size = old_tx;
++		else if (new_tx > DEF_TX_BUFFERS_PER_QUEUE)
++			apc->tx_queue_size = DEF_TX_BUFFERS_PER_QUEUE;
++		else
++			apc->tx_queue_size = MIN_TX_BUFFERS_PER_QUEUE;
++
++		schedule_port_reset = true;
  	}
+ out:
+ 	mana_pre_dealloc_rxbufs(apc);
++
++	if (schedule_port_reset)
++		queue_work(apc->ac->per_port_queue_reset_wq,
++			   &apc->queue_reset_work);
+ 	return err;
  }
  
 -- 
