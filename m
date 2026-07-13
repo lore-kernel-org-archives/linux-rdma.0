@@ -1,39 +1,65 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from pdx-out-009.esa.us-west-2.outbound.mail-perimeter.amazon.com (pdx-out-009.esa.us-west-2.outbound.mail-perimeter.amazon.com [35.155.198.111])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A1BD83D25A6;
-	Mon, 13 Jul 2026 11:47:47 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7BB093F4DEA
+	for <linux-rdma@vger.kernel.org>; Mon, 13 Jul 2026 12:18:53 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=35.155.198.111
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783943268; cv=none; b=NqzGtfsLGww3+x7YAsLUZ7z97AOe5P5dBK0I2A9uVcrR+tjetfz9+sXOclqMmQtQXsYUBGW2nzvsJKEWTBzS0mtMHXHl9TXVSVIu4znBxqKa0tCjCmp+Zz42extdlcUCZmXkOf+xroGSgnbuLzMBH9ga9eE41ncvgWfsElz2BZo=
+	t=1783945134; cv=none; b=Ex7jg094SpTRkwwyCDSRuDciirnDiQItA4hjpVSfpudCPRpSum8DY8dnXBW75NRao/W32ZkUFHxge7AuG6V9ZnX6XCQRAocop+E2Pw2WM3u/S3KGh+iL6KY8n0mE2ANwtjFQhV/4vkVa4MuMdK2Zy5E+C296dOUyYA1eAF6UCI8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783943268; c=relaxed/simple;
-	bh=KNTdMzPJoS1a0KZptLeVMG73JxnVvViaOd4eSzzzVS0=;
-	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
-	 MIME-Version:Content-Type; b=Ex5I/YLmphAbjXD3MLKGpIvPA4tTOzhq8/AzslVKc7HNdy9XRwZ3diik4RTpbzNEVj4Sj74E933UOeJrnUXLNvW4QdibKZDB394kvjLDzBpUazHorI6HBaaCZiCB0DFrrdIK3W3SJtdoTpdNua7Wp+/yi05K6HyAZrcz6KYnDwE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9F4A41F00A3A;
-	Mon, 13 Jul 2026 11:47:46 +0000 (UTC)
-From: Leon Romanovsky <leonro@nvidia.com>
-To: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>, 
- Jason Gunthorpe <jgg@ziepe.ca>, Ira Weiny <iweiny@kernel.org>, 
- Doug Ledford <dledford@redhat.com>, Matthew Wilcox <willy@infradead.org>, 
- Grzegorz Andrejczuk <grzegorz.andrejczuk@intel.com>, 
- Mike Marciniszyn <mike.marciniszyn@intel.com>, 
- Sadanand Warrier <sadanand.warrier@intel.com>, 
- "Michael J. Ruhl" <michael.j.ruhl@intel.com>, 
- Dean Luick <dean.luick@intel.com>, 
- Sebastian Sanchez <sebastian.sanchez@intel.com>, 
- Jubin John <jubin.john@intel.com>, Leon Romanovsky <leon@kernel.org>
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, 
- Dennis Dalessandro <dennis.dalessandro@intel.com>, 
- Dawei Feng <dawei.feng@seu.edu.cn>
-In-Reply-To: <20260708-clean-init-one-hfi1-v1-0-b9e9641268a5@nvidia.com>
-References: <20260708-clean-init-one-hfi1-v1-0-b9e9641268a5@nvidia.com>
-Subject: Re: [PATCH rdma-next 00/13] RDMA/hfi1: Make init_one() a sane
- counterpart of remove_one()
-Message-Id: <178394326416.1700515.8921906634161250041.b4-ty@nvidia.com>
-Date: Mon, 13 Jul 2026 07:47:44 -0400
+	s=arc-20240116; t=1783945134; c=relaxed/simple;
+	bh=v8K1RZjqsuuTkvZLOcZtaxbyBp3qpIOADeJsSZnjUXg=;
+	h=Date:From:To:CC:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=gm7YAYSqmBdlUg1vfpCDHQfZaSU7zN+f06giCQe9IcxMhoQgkfhewfr5mtjFZgUJvYP5g75/URzFF005eW2QGgBoB4iHUYS+jFl7sIPQ15Aj5Twv2qX9azFV+ejv8r60BA31XdIiyzutqRlDNh64Cpk1mBFERrm15EHt8k8lfUk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com; spf=pass smtp.mailfrom=amazon.com; dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.b=dzL+F479; arc=none smtp.client-ip=35.155.198.111
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazon.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.b="dzL+F479"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazoncorp2;
+  t=1783945133; x=1815481133;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=oPNMzxcMnpmXVvQYtZ2ugB80SgODB2VhYp3YVBMA2CQ=;
+  b=dzL+F479W6SwtNa5HuCihVmJOkmy2rpgC5ANpf0tMiKQQbHa120yKhdY
+   5A+7bI41ikM1N4q66spyOV9a3MYGR8ctGoImrRmiD0ItRY5sKHERZ3U1v
+   7CxQrWINzqGajnam3KVwVOa33u1DDIE+c1GF1UgeCDO1Aelsmh3PnxoIY
+   Q/VeZ1Jyjs6FPeiQB82e3mjAqZhIJFEfHS8IngHwTPWvX8qTkhDq7fMga
+   Q25O9YpVG8qqjTAeWXhbkjw9lH8Q2fZKxk2LZZKNzqGXZoirWrIRtwtVZ
+   ISY2v7wHSzCi+vwoNvwRM2EDOr1SAjKhpQQCIN+hgDvz2YmRCsxOo3wpx
+   A==;
+X-CSE-ConnectionGUID: bVfN1HF9S4C/f8iTs+iuuQ==
+X-CSE-MsgGUID: hvnp83dqSKCTBNbkHleTYQ==
+X-IronPort-AV: E=Sophos;i="6.25,154,1779148800"; 
+   d="scan'208";a="23455761"
+Received: from ip-10-5-12-219.us-west-2.compute.internal (HELO smtpout.naws.us-west-2.prod.farcaster.email.amazon.dev) ([10.5.12.219])
+  by internal-pdx-out-009.esa.us-west-2.outbound.mail-perimeter.amazon.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Jul 2026 12:18:50 +0000
+Received: from EX19MTAUWA002.ant.amazon.com [205.251.233.234:6745]
+ by smtpin.naws.us-west-2.prod.farcaster.email.amazon.dev [10.0.11.115:2525] with esmtp (Farcaster)
+ id 74b2adc8-f70c-4fc6-aa8b-ad9aef56b710; Mon, 13 Jul 2026 12:18:50 +0000 (UTC)
+X-Farcaster-Flow-ID: 74b2adc8-f70c-4fc6-aa8b-ad9aef56b710
+Received: from EX19D001UWA001.ant.amazon.com (10.13.138.214) by
+ EX19MTAUWA002.ant.amazon.com (10.250.64.202) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.43;
+ Mon, 13 Jul 2026 12:18:49 +0000
+Received: from dev-dsk-mrgolin-1c-b2091117.eu-west-1.amazon.com
+ (10.253.103.172) by EX19D001UWA001.ant.amazon.com (10.13.138.214) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.43; Mon, 13 Jul 2026
+ 12:18:48 +0000
+Date: Mon, 13 Jul 2026 12:18:40 +0000
+From: Michael Margolin <mrgolin@amazon.com>
+To: Leon Romanovsky <leon@kernel.org>
+CC: <jgg@nvidia.com>, <linux-rdma@vger.kernel.org>, <sleybo@amazon.com>,
+	<matua@amazon.com>, <gal.pressman@linux.dev>, Yonatan Nachum
+	<ynachum@amazon.com>
+Subject: Re: [PATCH for-next 1/2] RDMA/efa: Extend page-shift field in MR
+ registration
+Message-ID: <20260713121840.GA2442@dev-dsk-mrgolin-1c-b2091117.eu-west-1.amazon.com>
+References: <20260712134413.19226-1-mrgolin@amazon.com>
+ <20260712134413.19226-2-mrgolin@amazon.com>
+ <20260713093118.GK33197@unreal>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -41,53 +67,57 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-X-Mailer: b4 0.15-dev-18f8f
+Content-Disposition: inline
+In-Reply-To: <20260713093118.GK33197@unreal>
+User-Agent: Mutt/1.5.21 (2010-09-15)
+X-ClientProxiedBy: EX19D032UWA003.ant.amazon.com (10.13.139.37) To
+ EX19D001UWA001.ant.amazon.com (10.13.138.214)
 
-
-On Wed, 08 Jul 2026 13:45:38 +0300, Leon Romanovsky wrote:
-> The hfi1 PCI probe path, init_one(), has accumulated years of ad-hoc
-> error handling that no longer matches how a driver probe is expected to
-> look. Rather than unwinding each initialization step as it fails, it
-> allocated hfi1_devdata up front, ran every stage, and then funneled two
-> unrelated failure values (initfail and ret) into one combined cleanup
-> block. That block kept the device half-alive "so diags can be used",
-> created the character device only to remove it again, flushed a global
-> workqueue the driver never queues onto, and diverged from the teardown
-> in remove_one() even though both release the same resources.
+On Mon, Jul 13, 2026 at 12:31:18PM +0300, Leon Romanovsky wrote:
+> On Sun, Jul 12, 2026 at 01:44:12PM +0000, Michael Margolin wrote:
+> > Update device interface adding one more bit from reserved to enable
+> > >4GB page sizes that can be supported on 0xefa4 devices.
+> > 
+> > Reviewed-by: Yonatan Nachum <ynachum@amazon.com>
+> > Signed-off-by: Michael Margolin <mrgolin@amazon.com>
+> > ---
+> >  drivers/infiniband/hw/efa/efa_admin_cmds_defs.h | 6 +++---
+> >  1 file changed, 3 insertions(+), 3 deletions(-)
+> > 
+> > diff --git a/drivers/infiniband/hw/efa/efa_admin_cmds_defs.h b/drivers/infiniband/hw/efa/efa_admin_cmds_defs.h
+> > index 826790ca9d83..3eb3a4de8912 100644
+> > --- a/drivers/infiniband/hw/efa/efa_admin_cmds_defs.h
+> > +++ b/drivers/infiniband/hw/efa/efa_admin_cmds_defs.h
+> > @@ -367,10 +367,10 @@ struct efa_admin_reg_mr_cmd {
+> >  
+> >  	/*
+> >  	 * flags and page size
+> > -	 * 4:0 : phys_page_size_shift - page size is (1 <<
+> > +	 * 5:0 : phys_page_size_shift - page size is (1 <<
+> >  	 *    phys_page_size_shift). Page size is used for
+> >  	 *    building the Virtual to Physical address mapping
+> > -	 * 6:5 : reserved - MBZ
+> > +	 * 6 : reserved - MBZ
+> >  	 * 7 : mem_addr_phy_mode_en - Enable bit for physical
+> >  	 *    memory registration (no translation), can be used
+> >  	 *    only by privileged clients. If set, PBL must
+> > @@ -1103,7 +1103,7 @@ struct efa_admin_host_info {
+> >  #define EFA_ADMIN_MODIFY_QP_CMD_RNR_RETRY_MASK              BIT(5)
+> >  
+> >  /* reg_mr_cmd */
+> > -#define EFA_ADMIN_REG_MR_CMD_PHYS_PAGE_SIZE_SHIFT_MASK      GENMASK(4, 0)
+> > +#define EFA_ADMIN_REG_MR_CMD_PHYS_PAGE_SIZE_SHIFT_MASK      GENMASK(5, 0)
 > 
-> [...]
+> How will the new kernel behave on non-0xefa4 devices? The new
+> kernel sets one additional bit that these devices do not expect.
 
-Applied, thanks!
+In the kernel, it is handled by using the supported page sizes mask
+returned by the device (page_size_cap) when calling
+ib_umem_find_best_pgsz(), so the kernel should never set this bit on
+non supporting devices. In parallel, the device validates inputs on its
+end.
 
-[01/13] RDMA/rvt: Return NULL after port allocation failure
-        https://git.kernel.org/rdma/rdma/c/2982eaf3b9d2d9
-[02/13] RDMA/hfi1: Preserve unit 0 on allocation failure
-        https://git.kernel.org/rdma/rdma/c/2e3809ad8911f5
-[03/13] RDMA/hfi1: Remove redundant PCI device ID validation
-        https://git.kernel.org/rdma/rdma/c/af9117d02f5051
-[04/13] RDMA/hfi1: Pass PCI device to hfi1_pcie_init()
-        https://git.kernel.org/rdma/rdma/c/b9cb5e81f7d90f
-[05/13] RDMA/hfi1: Drop device data from hfi1_validate_rcvhdrcnt()
-        https://git.kernel.org/rdma/rdma/c/4ebd241071af81
-[06/13] RDMA/hfi1: Create workqueues before device initialization
-        https://git.kernel.org/rdma/rdma/c/0d5618c1b2fc9d
-[07/13] RDMA/hfi1: Free RX data on late probe failure
-        https://git.kernel.org/rdma/rdma/c/8e17e101e04a3d
-[08/13] RDMA/hfi1: Allocate device data after PCI initialization
-        https://git.kernel.org/rdma/rdma/c/9f674ba674a0d1
-[09/13] RDMA/hfi1: Remove redundant NULL checks in create_workqueues()
-        https://git.kernel.org/rdma/rdma/c/22113f3f55a1f4
-[10/13] RDMA/hfi1: Stop flushing the global IB workqueue
-        https://git.kernel.org/rdma/rdma/c/d43b1c17f9e1b9
-[11/13] RDMA/hfi1: Defer device creation until probe succeeds
-        https://git.kernel.org/rdma/rdma/c/9bab31776ae60a
-[12/13] RDMA/hfi1: Initialize debugfs after probe completes
-        https://git.kernel.org/rdma/rdma/c/bb18740b302f6f
-[13/13] RDMA/hfi1: Align probe error unwinding with device removal
-        https://git.kernel.org/rdma/rdma/c/e26c48cf23a494
+Michael
 
-Best regards,
--- 
-Leon Romanovsky <leonro@nvidia.com>
-
+> 
+> Thanks
