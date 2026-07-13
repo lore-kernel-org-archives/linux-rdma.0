@@ -1,35 +1,35 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 59A89367B7B;
-	Mon, 13 Jul 2026 07:17:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E707381AE2;
+	Mon, 13 Jul 2026 07:17:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783927054; cv=none; b=qN7ph7hQxpD4V9dPwjyD5dd7f1zQLS0QLUNzdtPszfnFgL6cweQfqUH02CPY3vkdcJdccPIWwm7XePoejDMQLqjj39NVE9eIoNS7+Ix8Qw6OQWIbWY8l9M38JbLCzFSdRh9dVRXkLO0pRJb0wP5kVJcbe4H4OB1z+U4T/LZSk4U=
+	t=1783927056; cv=none; b=ifPkwdZ/3/cs3/rZy0g1GVQANxFoQ+3oVni+b4AMt22pNYY7zhnp/2adGptH54Uf1k3hTwyfCr432S/VsjeOm3KJ041cZZQoovT6jl2xUAh8DTE9KNoiCXf+7hY7F9yAUY7iAp/KeMPbl3xNEe6tOsQ9w2oiePzHwql5UT6zXUs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783927054; c=relaxed/simple;
-	bh=dU8D4V8tvsrJySrwR2gVQPb9mt0ZOvQF8iVTdyhEZdQ=;
+	s=arc-20240116; t=1783927056; c=relaxed/simple;
+	bh=ZnUyjYJQ9FcxnRevoO+HwNPLSapZWFHPNg2h7hIMPmE=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=jolRQPoryNAo3X4kOSD2LMgHsQA5YEUHSN6P28OUHAPGHRTFxdHqgYenARdqdiQxpUoSswf9Yg1HOWrWU4mDJJTWCJ275UXqA2rbbzFx1SAVqV/Ds1vfopIhQ/omLHUK3BISgnsEfPupj+AKTtNmd8OXPkxV8PQ3R7ogXaeJja0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=mVklzPwn; arc=none smtp.client-ip=100.103.45.18
+	 In-Reply-To:To:Cc; b=WzGAd7KNZsTC3DMb1ZUd5PyLSOLfgk8Myv7SFswBHbMFvCHlS2GV/BjO7/AJXFTV/eKDCWl4QwlGb2+GPudMvIxlJtyUqPrzqj/G8jOib/02r2tpDxe0IzpNazdUbihaJ9aIZAM4MlxITh3fvcRLRTVInLCOJQ825/509KmRNBs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=IEu/n99Q; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="mVklzPwn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 864261F00A3A;
-	Mon, 13 Jul 2026 07:17:31 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="IEu/n99Q"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A64671F00A3D;
+	Mon, 13 Jul 2026 07:17:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1783927053;
-	bh=N1GD0Oj81wk33gSXNYFk26bc8DHHpPqcq8HMI+cgJUQ=;
+	s=k20260515; t=1783927055;
+	bh=KFYeKargova8Ud8wjAeX+s1i+b6lKR01HyMHcvbV2VQ=;
 	h=From:Date:Subject:References:In-Reply-To:To:Cc;
-	b=mVklzPwnjtBYd+N3Q1NTXm8l+G32kSV0uADFNMVZ8zoEX2vISW7RRd4d/NPd12JOh
-	 DzxIKDw/Yt++8V/vrQHUfVzIi6FQ5tiWtLY0oMeG9eE25+rSnBmB6k1lqEcHp3Ko+M
-	 SDTuufoH7QqmiMlseyEIUUScT72Gq+35ghE6HXuXL0Y8HPFf0//qsgaGGQ5PsrymfU
-	 RkhBMQlqCLUqscttXvtCJU/wbAbnoqr29BiiAi1Q53EE56nvDVnArYJIWay2NOIyLo
-	 Y5h+aMGGNZPCE5Q1kaPFlT+G2B17cd8C2zP+4/u0Q7m3D7ITJXHilhhJh96jwlzB/g
-	 qT0T1CnxHBwHg==
+	b=IEu/n99QuYXkErMNPS34wGG3wPAoz82f+IKjx411LSqg1hg5PAvx1ZTiomc+LcMEa
+	 0mLgjz4z8EU3xipYaZCuZ7XzAsbHNzfCpwM9Y9UA/WuFfE/uemo+5ng3eVB31CHKPE
+	 INQF5CBkEc0Sqq/F/wtcEU3xoJp5eCIypyNFGX0u+b2QPeBVQ1pttYlvIMwS5cz3DP
+	 0A7IEOLI6EfULdREoJj4q33cmplEHixakuAkPYaRsrViOhQxf99BE+Y1NFufAZQAfI
+	 NjldmWm1CyhuI4njvRw1N1JSf9S8OcrwlTcqcoO+XkiksVyvUi7zuykHoajCIvxTBJ
+	 8UXFi9SMQftrw==
 From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Date: Mon, 13 Jul 2026 10:17:24 +0300
-Subject: [PATCH v2 3/5] IB/mthca: mthca_reg_user_mr(): use kmalloc() to
- allocate addresses array
+Date: Mon, 13 Jul 2026 10:17:25 +0300
+Subject: [PATCH v2 4/5] IB/mthca: allocate mthca_array memory with
+ kzalloc()
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -38,7 +38,7 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20260713-b4-rdma-v2-3-65d2a1a5180c@kernel.org>
+Message-Id: <20260713-b4-rdma-v2-4-65d2a1a5180c@kernel.org>
 References: <20260713-b4-rdma-v2-0-65d2a1a5180c@kernel.org>
 In-Reply-To: <20260713-b4-rdma-v2-0-65d2a1a5180c@kernel.org>
 To: Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>
@@ -47,11 +47,8 @@ Cc: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
  linux-mm@kvack.org, linux-rdma@vger.kernel.org
 X-Mailer: b4 0.16-dev
 
-mthca_reg_user_mr() allocates an array of DMA addresses during memory
-registration.
-
-This buffer can be allocated with kmalloc() as there's nothing special
-about it to go directly to the page allocator.
+mthca_array is essentially a sparse array of pointers and there is no
+need to allocate its memory using page allocator.
 
 kmalloc() provides a better API that does not require ugly casts and
 kfree() does not need to know the size of the freed object.
@@ -63,38 +60,46 @@ fast path allocations.
 For the slow path the performance is anyway determined by the amount of
 reclaim involved rather than by what allocator is used.
 
-Replace use of __get_free_page() with kmalloc() and free_page() with
+Replace use of get_zeroed_page() with kzalloc() and free_page() with
 kfree().
 
 Link: https://lore.kernel.org/all/635405e4-9423-4a25-a6e7-e03c8ea0bcbe@redhat.com
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 ---
- drivers/infiniband/hw/mthca/mthca_provider.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/mthca/mthca_allocator.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mthca/mthca_provider.c b/drivers/infiniband/hw/mthca/mthca_provider.c
-index f90f67afc8fa..9940165781e1 100644
---- a/drivers/infiniband/hw/mthca/mthca_provider.c
-+++ b/drivers/infiniband/hw/mthca/mthca_provider.c
-@@ -895,7 +895,8 @@ static struct ib_mr *mthca_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
- 		goto err_umem;
- 	}
+diff --git a/drivers/infiniband/hw/mthca/mthca_allocator.c b/drivers/infiniband/hw/mthca/mthca_allocator.c
+index dedc301235a0..117a070e784e 100644
+--- a/drivers/infiniband/hw/mthca/mthca_allocator.c
++++ b/drivers/infiniband/hw/mthca/mthca_allocator.c
+@@ -126,7 +126,7 @@ int mthca_array_set(struct mthca_array *array, int index, void *value)
  
--	pages = (u64 *) __get_free_page(GFP_KERNEL);
-+	/* TODO: switch to "fast and as large as possible" allocation helper */
-+	pages = kmalloc(PAGE_SIZE, GFP_KERNEL);
- 	if (!pages) {
- 		err = -ENOMEM;
- 		goto err_mtt;
-@@ -924,7 +925,7 @@ static struct ib_mr *mthca_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
- 	if (i)
- 		err = mthca_write_mtt(dev, mr->mtt, n, pages, i);
- mtt_done:
--	free_page((unsigned long) pages);
-+	kfree(pages);
- 	if (err)
- 		goto err_mtt;
+ 	/* Allocate with GFP_ATOMIC because we'll be called with locks held. */
+ 	if (!array->page_list[p].page)
+-		array->page_list[p].page = (void **) get_zeroed_page(GFP_ATOMIC);
++		array->page_list[p].page = kzalloc(PAGE_SIZE, GFP_ATOMIC);
  
+ 	if (!array->page_list[p].page)
+ 		return -ENOMEM;
+@@ -142,7 +142,7 @@ void mthca_array_clear(struct mthca_array *array, int index)
+ 	int p = (index * sizeof (void *)) >> PAGE_SHIFT;
+ 
+ 	if (--array->page_list[p].used == 0) {
+-		free_page((unsigned long) array->page_list[p].page);
++		kfree(array->page_list[p].page);
+ 		array->page_list[p].page = NULL;
+ 	} else
+ 		array->page_list[p].page[index & MTHCA_ARRAY_MASK] = NULL;
+@@ -174,7 +174,7 @@ void mthca_array_cleanup(struct mthca_array *array, int nent)
+ 	int i;
+ 
+ 	for (i = 0; i < (nent * sizeof (void *) + PAGE_SIZE - 1) / PAGE_SIZE; ++i)
+-		free_page((unsigned long) array->page_list[i].page);
++		kfree(array->page_list[i].page);
+ 
+ 	kfree(array->page_list);
+ }
 
 -- 
 2.53.0
