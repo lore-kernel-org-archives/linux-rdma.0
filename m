@@ -1,92 +1,86 @@
-Received: from mail-pj1-f98.google.com (mail-pj1-f98.google.com [209.85.216.98])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from SA9PR02CU001.outbound.protection.outlook.com (mail-southcentralusazon11013022.outbound.protection.outlook.com [40.93.196.22])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C31903B3898
-	for <linux-rdma@vger.kernel.org>; Mon, 13 Jul 2026 08:36:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.98
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783931819; cv=none; b=QJ1AAFt3/0qZfiCUMKrftkBrP3KEFIzJHZrV9m5NbX/QYouXLdt7tDHWIiVHN8za8vPl1FdqZ2Rk4w5Wsd5fAeL2f5twc0w2F4ErEXVx0LebX9n5VQcNOniOL9XCVb27P0YwfeDNu+43lMYf04+RnPcUSosn474wr6pSY2/nwKY=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783931819; c=relaxed/simple;
-	bh=v6Py6piCLbfjk3Yz1PDMFjs0/S0Nk54JNZXcdkQfEOc=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=lr+Sc7leytETcyD4SX65XHNHTDLJHQsd1dx10OQjYPOZJSQb5XO2R05NZcVmKGGKSC8soqZBZiq1QKqYHVG7ggRDboVPR+xyVm8Z/gk6gyKgtPyIGm7WnYOqsaLrRhym+GPwCCShSQQ55nMW4etDndxp/fiAtGfaAeo2gEwL6cw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com; spf=fail smtp.mailfrom=broadcom.com; dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b=LhOxxhai; arc=none smtp.client-ip=209.85.216.98
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=broadcom.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 14B433C109F;
+	Mon, 13 Jul 2026 08:44:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.196.22
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1783932277; cv=fail; b=EFi46vv0RmaehkfCw5C3+NfLd/l3j1F4FWFEq5fvPVm5KJMfGNmdWGNCmqU47Qn1I4XKdzYfJSMPPFRTKYWXogK/x6metUX4UNVBRvavZWuNMzf4yb36e76CEwDbUTfPXN4m/ciQBeoZGxRqAoStZAFEnTf2bo2cxzYuD2E4HPg=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1783932277; c=relaxed/simple;
+	bh=qY8uoAs38pCzHVqpTrVQSb0ZhjNZXI40aQUJOBu35iQ=;
+	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=YnaeidMyBN9PRJ/auG4onrirnA7GUSa3BBsOnRcNypfmoj/fYcOwAUqstfYW9Mykh81TZuhWtJ3uEVz789u8ZHjwZNDlhJxDEOo7vYUei2qZDlSm3XV/RM3orHLJwtN/wBClQ5Ay3lW/rGCQfToCZy9KqhivoChnAskobU2b5oU=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=TpF0ikFy; arc=fail smtp.client-ip=40.93.196.22
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b="LhOxxhai"
-Received: by mail-pj1-f98.google.com with SMTP id 98e67ed59e1d1-38175907a56so2990096a91.0
-        for <linux-rdma@vger.kernel.org>; Mon, 13 Jul 2026 01:36:57 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1783931817; x=1784536617;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:dkim-signature:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=U+gbVVFnkRkL5gRb9a5Pe4EqjjItfnauRx3Kz+IJN7s=;
-        b=Z57RFhJqZd+3tgJLvXK9jzAPwP7w1uBP/Wokcmm5WJ022uhJVBm2ZD9TCYBFK9Cykr
-         Yb55Wwak92k/ozlOgh52mHqfu9Y2M3pzDxT2akhafxEzoEL6BwiJO74pXejCb3Jg5yAY
-         0MMeyoPXfIYkDOZAjEMMr2qosNjWAxHuBhSM+tDQOBBdsAnAU/+45qxQpLm1MsX+PHSz
-         qqyk+FhycAcNli3gAd1HavX3r9/nfI7rh06ntsmPY87X4WzI+L4YXf98YpC0YC+m5h8p
-         j4rpOJjeEefPedacN73QT01QCzcAjVfc+dsH+X3c3JVyo+iAnxrbTXMhen3WuzwPNBwK
-         xOIg==
-X-Gm-Message-State: AOJu0Yze8CGPhb5v0zZfLRj6LNcxHVkStARdNJL8Rdm++QCljSgL5Ckx
-	4Vv/0qHpe8UhdI4yDAPKz4mBjGVbhrBdUU5BAvdM2OJnbsx9DRJrfsY3Uda1wAK87FaUbGD5QEo
-	3PuKFE6hYQ079yWAp1NcpElPVOc6oqyb//CeFNdhWEByRjG6njIDLvTLv2q0uKaQcqcwQg8O28b
-	AyXzPFyprq6zhDu48utTiRwLaT+310SqKOuavNQdxR3FTqbX0WVws9bbuEGzgvHTpkzFmrf6JFF
-	+xuqk9F5wbL/pZVIg==
-X-Gm-Gg: AfdE7clHrZOmUtuX0mIRxCEP8z8sqFfgOlL1La4hqldwgxn9EjOaIDLVvFiBjBunjuF
-	Q1jH6f9FKVeWVQEnBJ6gQ2cqUgeyn0tHzNTKM9UITPGwIBwGMHk6V9X7RRI1soPBuyBKS5kzdRe
-	tBU9gGM1eAjvWKj1DTkWjo3EyEdtEch33jOa0QOe9iGvVl2T8cM3+GwMa09edQzsmFJMuF1lRZs
-	JBgdrcNbJ6CbMDnX7VtVgx4MBJ1uJ2JwxB7Ls4kR0RykDU/muTn1fyDIpMISBZCvMeBO7usTX5y
-	pWbplMM16wJ2D/cS7YMt1KKtyXYvCTttez+G+lDWo8rKhAh7WOqsLvVYSbPTQzdnq/dTQc0TR8s
-	pvzrFii2qYCSiGAbU6uDM4bxSlJNA8JKVizzMDaru7tPIBwAwGKAKoOjKjFf8qozFHAE2ol8dFq
-	K2j5S8Ql2YOn7dd4SAAOYRerCdipuhpLAktfPN5UZZVeIKGyqLfQ==
-X-Received: by 2002:a17:90b:3d86:b0:36a:caf2:3815 with SMTP id 98e67ed59e1d1-38d15876f4amr13797476a91.15.1783931816848;
-        Mon, 13 Jul 2026 01:36:56 -0700 (PDT)
-Received: from smtp-us-east1-p01-i01-si01.dlp.protect.broadcom.com (address-144-49-247-117.dlp.protect.broadcom.com. [144.49.247.117])
-        by smtp-relay.gmail.com with ESMTPS id 5a478bee46e88-31174a86714sm1026585eec.27.2026.07.13.01.36.56
-        for <linux-rdma@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 13 Jul 2026 01:36:56 -0700 (PDT)
-X-Relaying-Domain: broadcom.com
-X-CFilter-Loop: Reflected
-Received: by mail-pl1-f198.google.com with SMTP id d9443c01a7336-2cce14a21faso50404515ad.0
-        for <linux-rdma@vger.kernel.org>; Mon, 13 Jul 2026 01:36:55 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=broadcom.com; s=google; t=1783931815; x=1784536615; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=U+gbVVFnkRkL5gRb9a5Pe4EqjjItfnauRx3Kz+IJN7s=;
-        b=LhOxxhai2u4KREzhWSAhEuZdiA7z5z2m0mHNJ8CQ+uQdQuuZ22R1KNwQjPDdTxl2Cv
-         Kdy82Txgc18v1RwXeFSeVX4AWpS0bLay7+6KchpIzF0wl9ozf48UUrZ/p2kLnOaOwfPa
-         We514cGw5Ra8PScfzuUXmtzIAfmJ57KkNPc6A=
-X-Received: by 2002:a17:903:2b0d:b0:2ca:e496:5f19 with SMTP id d9443c01a7336-2cea18375e9mr71685495ad.19.1783931815173;
-        Mon, 13 Jul 2026 01:36:55 -0700 (PDT)
-X-Received: by 2002:a17:903:2b0d:b0:2ca:e496:5f19 with SMTP id d9443c01a7336-2cea18375e9mr71685305ad.19.1783931814636;
-        Mon, 13 Jul 2026 01:36:54 -0700 (PDT)
-Received: from dhcp-10-123-156-114.dhcp.broadcom.net ([192.19.234.250])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2ccc9d3bbaesm95005385ad.57.2026.07.13.01.36.51
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 13 Jul 2026 01:36:54 -0700 (PDT)
-From: Selvin Xavier <selvin.xavier@broadcom.com>
-To: leon@kernel.org,
-	jgg@ziepe.ca
-Cc: linux-rdma@vger.kernel.org,
-	andrew.gospodarek@broadcom.com,
-	kalesh-anakkur.purayil@broadcom.com,
-	sriharsha.basavapatna@broadcom.com,
-	alhouseenyousef@gmail.com,
-	Selvin Xavier <selvin.xavier@broadcom.com>,
-	Jason Gunthorpe <jgg@nvidia.com>
-Subject: [PATCH for-next v3 4/4] RDMA/bnxt_re: Add uverbs object handle path for CQ/SRQ toggle page
-Date: Mon, 13 Jul 2026 06:58:30 -0700
-Message-Id: <20260713135830.1934471-5-selvin.xavier@broadcom.com>
-X-Mailer: git-send-email 2.39.3
-In-Reply-To: <20260713135830.1934471-1-selvin.xavier@broadcom.com>
-References: <20260713135830.1934471-1-selvin.xavier@broadcom.com>
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="TpF0ikFy"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=p9/+01PkEK3a3zGusCJHPZIjgS7co6izGPd58BZgDRGSoYaxPtLwmGyaerwcat4OTChRwk0c8dzyBdjP2VJz34nz2vDcDT49FnQVAItvEKrgAUXB2oJrQTE7Yug8NAxn4210Innx/M5e04gn/VhgLXGDm9vNMAJMDkrjF+q4U1edHzxkO1RMACiNWY06aATAKn1Df0jaZaXdr+jgQYS8Ht8auLydjmL+G8CttedHPmI8iSs8G+MF36c+ykH0nHNb4ymnyHmFuYCuP3Q/RWi4jyycS9EJpUesm9vQ2daAjyVqOA+SI074IFyp8d8xPAXwV77D+6Uxj/kCcamieX4LKw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=XOiEZHT53l8YKrUVjmeYrA2xeEBpLgteFshysnEE9Jk=;
+ b=V5QudP0qpLAO+044idkWw9PInyiym66lOjHI1mKWeFwtt4C6cVYYeUauiGwrQZhxzC5PKRnXRR2CbEpO74ueNVAcNm0Pox3OYChhV4BJnCuOkHt3HlYVwSE/SNrEIo9WRlw5IWxLDH30zNFy4Yb6QoAV+HK6PZq8SQzf0XxS5kc2G+09ytOEoItRLtcqFfacnHu/Xn9LtnE0BbguJ05B3msPlMQtbG6lvjAeOu8JRRixYN4F2zPqBhRm80JhAIGI2HOR6/aMFp/wn1o6AUEc3gp/M799Qos4HytI00Dfq1a5DmmA3BJnB4zOQ8fopkkf1n0q9tdSMcvHpfjfiqdOUQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 216.228.117.161) smtp.rcpttodomain=kernel.org smtp.mailfrom=nvidia.com;
+ dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
+ dkim=none (message not signed); arc=none (0)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=XOiEZHT53l8YKrUVjmeYrA2xeEBpLgteFshysnEE9Jk=;
+ b=TpF0ikFy2Lh6WcGkOXX5F/38Sl1lxanlnzddL8oCTqfYQ02+Nx4WSUH6lG5QBjdQEHgyBgJQWAdTnD3t7wI7BI3kHOtvevSRPwyfYAXMKcqtC44OASCRat/bGSaGQbB1Fs2d95usy4UiF3Iw5zx+MpFhze2nTA1QASwSrn+MqN7Acun8suE2cllxoeJVPor9fNdcq2zczDNKVfJDHxx8HJX9fOz40MZE1tehmW5e04OyZmrBIKAnr/2RzzqZLyrJYUawUZfK4gMt4hMf8KWSLcArj+u2jln0SM97yH9vTyEbk4zO7hJRZHU3OidxysZGMbDpagNroCHb1Ex9mX4ZwA==
+Received: from PH7PR02CA0016.namprd02.prod.outlook.com (2603:10b6:510:33d::15)
+ by PH7PR12MB6668.namprd12.prod.outlook.com (2603:10b6:510:1aa::12) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.202.18; Mon, 13 Jul
+ 2026 08:44:13 +0000
+Received: from SJ1PEPF000023D8.namprd21.prod.outlook.com
+ (2603:10b6:510:33d:cafe::9f) by PH7PR02CA0016.outlook.office365.com
+ (2603:10b6:510:33d::15) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.21.202.19 via Frontend Transport; Mon,
+ 13 Jul 2026 08:44:13 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.161)
+ smtp.mailfrom=nvidia.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=nvidia.com;
+Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
+ 216.228.117.161 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.117.161; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.117.161) by
+ SJ1PEPF000023D8.mail.protection.outlook.com (10.167.244.73) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.21.245.3 via Frontend Transport; Mon, 13 Jul 2026 08:44:13 +0000
+Received: from rnnvmail204.nvidia.com (10.129.68.6) by mail.nvidia.com
+ (10.129.200.67) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Mon, 13 Jul
+ 2026 01:43:57 -0700
+Received: from rnnvmail201.nvidia.com (10.129.68.8) by rnnvmail204.nvidia.com
+ (10.129.68.6) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Mon, 13 Jul
+ 2026 01:43:56 -0700
+Received: from vdi.nvidia.com (10.127.8.10) by mail.nvidia.com (10.129.68.8)
+ with Microsoft SMTP Server id 15.2.2562.20 via Frontend Transport; Mon, 13
+ Jul 2026 01:43:51 -0700
+From: Tariq Toukan <tariqt@nvidia.com>
+To: Leon Romanovsky <leon@kernel.org>, <linux-rdma@vger.kernel.org>, "Mark
+ Bloch" <mbloch@nvidia.com>, <netdev@vger.kernel.org>, Saeed Mahameed
+	<saeedm@nvidia.com>, Tariq Toukan <tariqt@nvidia.com>
+CC: Alexei Lazar <alazar@nvidia.com>, Alex Vesker <valex@nvidia.com>, "Andrew
+ Lunn" <andrew+netdev@lunn.ch>, Cosmin Ratiu <cratiu@nvidia.com>, "David S.
+ Miller" <davem@davemloft.net>, Dragos Tatulea <dtatulea@nvidia.com>, "Eric
+ Dumazet" <edumazet@google.com>, Feng Liu <feliu@nvidia.com>, Jakub Kicinski
+	<kuba@kernel.org>, Kees Cook <kees@kernel.org>,
+	<linux-kernel@vger.kernel.org>, Paolo Abeni <pabeni@redhat.com>, Parav Pandit
+	<parav@nvidia.com>, Shay Drory <shayd@nvidia.com>, Simon Horman
+	<horms@kernel.org>, Yevgeny Kliteynik <kliteyn@nvidia.com>
+Subject: [PATCH mlx5-next 1/2] net/mlx5: Drop redundant esw_cap, reuse e_switch_cap
+Date: Mon, 13 Jul 2026 11:43:19 +0300
+Message-ID: <20260713084320.1015240-2-tariqt@nvidia.com>
+X-Mailer: git-send-email 2.44.0
+In-Reply-To: <20260713084320.1015240-1-tariqt@nvidia.com>
+References: <20260713084320.1015240-1-tariqt@nvidia.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -94,168 +88,122 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-DetectorID-Processed: b00c1d49-9d2e-4205-b15f-d015386d3d5e
+Content-Type: text/plain
+X-NV-OnPremToCloud: ExternallySecured
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: SJ1PEPF000023D8:EE_|PH7PR12MB6668:EE_
+X-MS-Office365-Filtering-Correlation-Id: bc7653f9-0ee2-4b5e-2e9b-08dee0baea7c
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|1800799024|36860700016|82310400026|23010399003|7416014|376014|3023799007|18002099003|22082099003|56012099006|11063799006;
+X-Microsoft-Antispam-Message-Info:
+	EgoEa5IEnUJ8nsyitoQPHPBiByR3Nl+LqjToTdxn5dAODs/cSZWukOQothqdEuRiW+6dMx8jbrP1xhjlHszX8JSl2SZwWXx/ypYqXRBO3kCKB8/ACEZknv7cwhebCrM8UAF9sJT5edy5cNSsH3/fP0C9Pj0Ml95+PrCx1LmFRJWZ6VGk765pW4Y0cFXzf2VTLWP2PnryG5PoehNU5rWGFIMILdk6xM1Il48ZDq7pUnbG4EXu/9tZVa33QHolAsuA++Ueo3TdUJbrUX4nN4lQU5LzgtPpnxOcRYrtxAmMAwx3ASLKR7vf6pgXbkxCtwxTKLPK60nfRIN3FceRrkD/7Jv7KDBmAc4AHlvLT9tIsUITJ3sZ+5keo4zp7OI8PycnTIaxgK8sM3XrPyueIpDVrUzGj+h/pLHPg2Ef6z0+oIXnnJ1q66J6Z7owSiQbHJ9XLBbzEt4dqMTNKXSUd99oaYN6hAawtb0SfRQbAh+KhLh8h1LnMHqILuiKrHJDedqqhV2xBqS7lpVQjR9N6krTT1nXYwUwmLeyfvVSxNVuKRtd9+jIvSmUyb7uzzPpIOjs+cR6cETJylIw2j0QTAhqXzGtXq/oivv1k62uu+8AgsbDAsbdWYpcD54mnbGbtZunqlzRDFSYfMgyydRuYO6wo9m/Y0MiJOh2A5HZgWFxb+WGsccS2P0N5oQ2ofl8Np0Vl+bAyhmLhjqUGkGzMnXlFg==
+X-Forefront-Antispam-Report:
+	CIP:216.228.117.161;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge2.nvidia.com;CAT:NONE;SFS:(13230040)(1800799024)(36860700016)(82310400026)(23010399003)(7416014)(376014)(3023799007)(18002099003)(22082099003)(56012099006)(11063799006);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	b9XntSK31k+GrlYkNnRw7+XZittxDP4RMPXZrMRbLuVKoPo2OLrOsISfUACnYuCDGso6Ea21kPbgmByPLRiuE4/3cwdhwkndOImoiL6nZcSBZOSfpcsCGQYbVzwclwV5hQzvh7rP4OF/OhDbwU6305o3/fOonXrnvvjJPCcUKu8/8FuVMC7MkttiKpk1+PHxuO5+riTQ+d709ti3Nu+MNMj4c/MZs0Y7wsatKqBkcL0QMRriKMBXXM60yqC+ytxdn/dFtiavfyRIHREqzSlN5NQH082NQIc+AbLJoNeEv6HqhK6do9YpEMRqmRtUlMEmlT43lpDI2Dcorbl6w/rdDWz80wfk0mABjEtm/YOvWfl52EYLH90oLj4+ArnL6ghjflB86s2KI16KoqRDellq4hB/jMySlVh14siPmxrOPrRaOqaX6m7m22AGgXmUWS1k
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 13 Jul 2026 08:44:13.5326
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: bc7653f9-0ee2-4b5e-2e9b-08dee0baea7c
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.161];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	SJ1PEPF000023D8.namprd21.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH7PR12MB6668
 
-The current GET_TOGGLE_MEM ioctl requires the caller to supply
-a type enum and a raw hardware queue ID (RES_ID). The kernel
-looks up the CQ or SRQ by that ID without verifying that the
-caller owns the resource.
+From: Shay Drory <shayd@nvidia.com>
 
-Add a new, preferred code path that accepts standard uverbs
-object handles (BNXT_RE_TOGGLE_MEM_CQ_HANDLE /
-BNXT_RE_TOGGLE_MEM_SRQ_HANDLE) instead. The uverbs core validates
-that the handle belongs to the calling context as part of resolving
-it, so this path no longer needs the driver's own XArray lookup for
-ownership checking. As with the legacy path, the toggle_entry's own
-mmap-entry refcount (not a CQ/SRQ uobject reference) is what pins
-the toggle page for the life of the GET_TOGGLE_MEM handle.
+esw_manager_vport_number{,_valid} and merged_eswitch were read through a
+separate mlx5_ifc_esw_cap_bits struct, but these bits live in the
+e-switch capability that mlx5_ifc_e_switch_cap_bits already describes
+(both overlay the same QUERY_HCA_CAP op_mod 0x9 output).
 
-Only newer rdma-core versions support this path, if the
-driver reports the supported resp mask
-(BNXT_RE_UCNTX_CMASK_TOGGLE_MEM_UOBJ_SUPPORT).
-The existing TYPE + RES_ID path is retained for backward
-compatibility with older rdma-core.
+Add esw_manager_vport_number{,_valid} to mlx5_ifc_e_switch_cap_bits at
+the same offsets, drop the redundant mlx5_ifc_esw_cap_bits and its
+hca_cap_union member, and switch the only user (hws/cmd.c) to
+capability.e_switch_cap.
 
-Suggested-by: Jason Gunthorpe <jgg@nvidia.com>
-Signed-off-by: Selvin Xavier <selvin.xavier@broadcom.com>
+Signed-off-by: Shay Drory <shayd@nvidia.com>
+Reviewed-by: Yevgeny Kliteynik <kliteyn@nvidia.com>
+Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
 ---
- drivers/infiniband/hw/bnxt_re/ib_verbs.c |  2 +
- drivers/infiniband/hw/bnxt_re/uapi.c     | 55 +++++++++++++++++++++---
- include/uapi/rdma/bnxt_re-abi.h          |  4 ++
- 3 files changed, 56 insertions(+), 5 deletions(-)
+ .../mellanox/mlx5/core/steering/hws/cmd.c     |  6 +++---
+ include/linux/mlx5/mlx5_ifc.h                 | 21 +++++--------------
+ 2 files changed, 8 insertions(+), 19 deletions(-)
 
-diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-index 9ee2cd0fcda8..a65f0c9ee6d7 100644
---- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-+++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-@@ -4862,6 +4862,8 @@ int bnxt_re_alloc_ucontext(struct ib_ucontext *ctx, struct ib_udata *udata)
- 	if (_is_modify_qp_rate_limit_supported(dev_attr->dev_cap_flags2))
- 		resp.comp_mask |= BNXT_RE_UCNTX_CMASK_QP_RATE_LIMIT_ENABLED;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/cmd.c b/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/cmd.c
+index e624f5da96c8..8fae90101653 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/cmd.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/cmd.c
+@@ -1172,13 +1172,13 @@ int mlx5hws_cmd_query_caps(struct mlx5_core_dev *mdev,
+ 		}
  
-+	resp.comp_mask |= BNXT_RE_UCNTX_CMASK_TOGGLE_MEM_UOBJ_SUPPORT;
-+
- 	if (udata->inlen) {
- 		rc = ib_copy_validate_udata_in_cm(
- 			udata, ureq, comp_mask,
-diff --git a/drivers/infiniband/hw/bnxt_re/uapi.c b/drivers/infiniband/hw/bnxt_re/uapi.c
-index c13497b187b5..c740059ff1ed 100644
---- a/drivers/infiniband/hw/bnxt_re/uapi.c
-+++ b/drivers/infiniband/hw/bnxt_re/uapi.c
-@@ -237,16 +237,52 @@ static int UVERBS_HANDLER(BNXT_RE_METHOD_GET_TOGGLE_MEM)(struct uverbs_attr_bund
- 	if (IS_ERR(ib_uctx))
- 		return PTR_ERR(ib_uctx);
+ 		if (MLX5_GET(query_hca_cap_out, out,
+-			     capability.esw_cap.esw_manager_vport_number_valid))
++			     capability.e_switch_cap.esw_manager_vport_number_valid))
+ 			caps->eswitch_manager_vport_number =
+ 				MLX5_GET(query_hca_cap_out, out,
+-					 capability.esw_cap.esw_manager_vport_number);
++					 capability.e_switch_cap.esw_manager_vport_number);
  
-+	uctx = container_of(ib_uctx, struct bnxt_re_ucontext, ib_uctx);
-+
-+	/* New path: updated libbnxt_re passes the CQ or SRQ uverbs handle */
-+	if (uverbs_attr_is_valid(attrs, BNXT_RE_TOGGLE_MEM_CQ_HANDLE)) {
-+		struct bnxt_re_cq *cq;
-+
-+		res_uobj = uverbs_attr_get_uobject(attrs,
-+						   BNXT_RE_TOGGLE_MEM_CQ_HANDLE);
-+		if (IS_ERR(res_uobj))
-+			return PTR_ERR(res_uobj);
-+		cq = container_of(res_uobj->object, struct bnxt_re_cq, ib_cq);
-+		if (!cq->toggle_entry)
-+			return -EOPNOTSUPP;
-+		mmap_offset = rdma_user_mmap_get_offset(&cq->toggle_entry->rdma_entry);
-+		if (!mmap_offset)
-+			return -EOPNOTSUPP;
-+		kref_get(&cq->toggle_entry->rdma_entry.ref);
-+		toggle_entry = cq->toggle_entry;
-+		goto alloc_tmem;
-+	} else if (uverbs_attr_is_valid(attrs, BNXT_RE_TOGGLE_MEM_SRQ_HANDLE)) {
-+		struct bnxt_re_srq *srq;
-+
-+		res_uobj = uverbs_attr_get_uobject(attrs,
-+						   BNXT_RE_TOGGLE_MEM_SRQ_HANDLE);
-+		if (IS_ERR(res_uobj))
-+			return PTR_ERR(res_uobj);
-+		srq = container_of(res_uobj->object, struct bnxt_re_srq, ib_srq);
-+		if (!srq->toggle_entry)
-+			return -EOPNOTSUPP;
-+		mmap_offset = rdma_user_mmap_get_offset(&srq->toggle_entry->rdma_entry);
-+		if (!mmap_offset)
-+			return -EOPNOTSUPP;
-+		kref_get(&srq->toggle_entry->rdma_entry.ref);
-+		toggle_entry = srq->toggle_entry;
-+		goto alloc_tmem;
-+	}
-+
- 	err = uverbs_get_const(&res_type, attrs, BNXT_RE_TOGGLE_MEM_TYPE);
- 	if (err)
- 		return err;
+ 		caps->merged_eswitch = MLX5_GET(query_hca_cap_out, out,
+-						capability.esw_cap.merged_eswitch);
++						capability.e_switch_cap.merged_eswitch);
+ 	}
+ 
+ 	ret = mlx5_cmd_exec(mdev, in, sizeof(in), out, out_size);
+diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
+index 4f59b7e8a3d5..7de01d4f1b5e 100644
+--- a/include/linux/mlx5/mlx5_ifc.h
++++ b/include/linux/mlx5/mlx5_ifc.h
+@@ -1042,20 +1042,6 @@ struct mlx5_ifc_wqe_based_flow_table_cap_bits {
+ 	u8         reserved_at_1c1[0x1f];
+ };
+ 
+-struct mlx5_ifc_esw_cap_bits {
+-	u8         reserved_at_0[0x1d];
+-	u8         merged_eswitch[0x1];
+-	u8         reserved_at_1e[0x2];
 -
--	uctx = container_of(ib_uctx, struct bnxt_re_ucontext, ib_uctx);
- 	err = uverbs_copy_from(&res_id, attrs, BNXT_RE_TOGGLE_MEM_RES_ID);
- 	if (err)
- 		return err;
+-	u8         reserved_at_20[0x40];
+-
+-	u8         esw_manager_vport_number_valid[0x1];
+-	u8         reserved_at_61[0xf];
+-	u8         esw_manager_vport_number[0x10];
+-
+-	u8         reserved_at_80[0x780];
+-};
+-
+ enum {
+ 	MLX5_COUNTER_SOURCE_ESWITCH = 0x0,
+ 	MLX5_COUNTER_FLOW_ESWITCH   = 0x1,
+@@ -1096,7 +1082,11 @@ struct mlx5_ifc_e_switch_cap_bits {
+ 	u8         log_max_esw_sf[0x5];
+ 	u8         esw_sf_base_id[0x10];
  
- 	/*
-+	 * Legacy path: old libbnxt_re sends TYPE + RES_ID.
- 	 * Hold xa_lock across xa_load + kref_get so that a concurrent
- 	 * bnxt_re_destroy_cq/srq cannot call __xa_erase and remove the
- 	 * toggle_entry between our load and our reference on it.
-@@ -290,6 +326,7 @@ static int UVERBS_HANDLER(BNXT_RE_METHOD_GET_TOGGLE_MEM)(struct uverbs_attr_bund
- 	if (!mmap_offset)
- 		return -EOPNOTSUPP;
+-	u8         reserved_at_60[0x7a0];
++	u8         esw_manager_vport_number_valid[0x1];
++	u8         reserved_at_61[0xf];
++	u8         esw_manager_vport_number[0x10];
++
++	u8         reserved_at_80[0x780];
  
-+alloc_tmem:
- 	tmem = kzalloc_obj(*tmem);
- 	if (!tmem) {
- 		rdma_user_mmap_entry_put(&toggle_entry->rdma_entry);
-@@ -336,10 +373,10 @@ DECLARE_UVERBS_NAMED_METHOD(BNXT_RE_METHOD_GET_TOGGLE_MEM,
- 					    UA_MANDATORY),
- 			    UVERBS_ATTR_CONST_IN(BNXT_RE_TOGGLE_MEM_TYPE,
- 						 enum bnxt_re_get_toggle_mem_type,
--						 UA_MANDATORY),
-+						 UA_OPTIONAL),
- 			    UVERBS_ATTR_PTR_IN(BNXT_RE_TOGGLE_MEM_RES_ID,
- 					       UVERBS_ATTR_TYPE(u32),
--					       UA_MANDATORY),
-+					       UA_OPTIONAL),
- 			    UVERBS_ATTR_PTR_OUT(BNXT_RE_TOGGLE_MEM_MMAP_PAGE,
- 						UVERBS_ATTR_TYPE(u64),
- 						UA_MANDATORY),
-@@ -348,7 +385,15 @@ DECLARE_UVERBS_NAMED_METHOD(BNXT_RE_METHOD_GET_TOGGLE_MEM,
- 						UA_MANDATORY),
- 			    UVERBS_ATTR_PTR_OUT(BNXT_RE_TOGGLE_MEM_MMAP_LENGTH,
- 						UVERBS_ATTR_TYPE(u32),
--						UA_MANDATORY));
-+						UA_MANDATORY),
-+			    UVERBS_ATTR_IDR(BNXT_RE_TOGGLE_MEM_CQ_HANDLE,
-+					    UVERBS_OBJECT_CQ,
-+					    UVERBS_ACCESS_READ,
-+					    UA_OPTIONAL),
-+			    UVERBS_ATTR_IDR(BNXT_RE_TOGGLE_MEM_SRQ_HANDLE,
-+					    UVERBS_OBJECT_SRQ,
-+					    UVERBS_ACCESS_READ,
-+					    UA_OPTIONAL));
- 
- DECLARE_UVERBS_NAMED_METHOD_DESTROY(BNXT_RE_METHOD_RELEASE_TOGGLE_MEM,
- 				    UVERBS_ATTR_IDR(BNXT_RE_RELEASE_TOGGLE_MEM_HANDLE,
-diff --git a/include/uapi/rdma/bnxt_re-abi.h b/include/uapi/rdma/bnxt_re-abi.h
-index a4599d7b736a..c0ee9ce389ac 100644
---- a/include/uapi/rdma/bnxt_re-abi.h
-+++ b/include/uapi/rdma/bnxt_re-abi.h
-@@ -57,6 +57,8 @@ enum {
- 	BNXT_RE_UCNTX_CMASK_POW2_DISABLED = 0x10ULL,
- 	BNXT_RE_UCNTX_CMASK_MSN_TABLE_ENABLED = 0x40,
- 	BNXT_RE_UCNTX_CMASK_QP_RATE_LIMIT_ENABLED = 0x80ULL,
-+	 /* Some reserved fields to manage compatibility with Out of tree drivers */
-+	BNXT_RE_UCNTX_CMASK_TOGGLE_MEM_UOBJ_SUPPORT = 0x400000ULL,
  };
  
- enum bnxt_re_wqe_mode {
-@@ -218,6 +220,8 @@ enum bnxt_re_var_toggle_mem_attrs {
- 	BNXT_RE_TOGGLE_MEM_MMAP_PAGE,
- 	BNXT_RE_TOGGLE_MEM_MMAP_OFFSET,
- 	BNXT_RE_TOGGLE_MEM_MMAP_LENGTH,
-+	BNXT_RE_TOGGLE_MEM_CQ_HANDLE,
-+	BNXT_RE_TOGGLE_MEM_SRQ_HANDLE,
- };
- 
- enum bnxt_re_toggle_mem_attrs {
+@@ -3855,7 +3845,6 @@ union mlx5_ifc_hca_cap_union_bits {
+ 	struct mlx5_ifc_flow_table_nic_cap_bits flow_table_nic_cap;
+ 	struct mlx5_ifc_flow_table_eswitch_cap_bits flow_table_eswitch_cap;
+ 	struct mlx5_ifc_wqe_based_flow_table_cap_bits wqe_based_flow_table_cap;
+-	struct mlx5_ifc_esw_cap_bits esw_cap;
+ 	struct mlx5_ifc_e_switch_cap_bits e_switch_cap;
+ 	struct mlx5_ifc_port_selection_cap_bits port_selection_cap;
+ 	struct mlx5_ifc_qos_cap_bits qos_cap;
 -- 
-2.39.3
+2.44.0
 
