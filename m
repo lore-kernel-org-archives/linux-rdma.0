@@ -1,58 +1,58 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.13])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.15])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE7B0EACD
-	for <linux-rdma@vger.kernel.org>; Mon, 13 Jul 2026 05:42:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.13
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8B317360EC6
+	for <linux-rdma@vger.kernel.org>; Mon, 13 Jul 2026 05:45:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.15
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783921355; cv=none; b=lqAKPRkjjLurMW9Ekpgz2Fo9N5Bov7Wfa7ZomhXdQ+3mr2tZkuMYbiLvwraQxhXW33i4QUDErTIhVoJBAklqSJTB/4/3QC3zt/C9ca44tWshmTO6NfLAmdCrvVAp5KhxBYTp13il7YyzCQvgBUnn8WbngxeWa7QssACogWK+RWM=
+	t=1783921507; cv=none; b=f1EonrH2bMJ8+nSTpv+AOzeuqUYtCDZuMVrfzl5GVQrxVpEE8lGt9tbI58SH7+NXgLc1/EmrEnHeMrWYGLgj2D545JRHnLiK8YBPZs8kllrm9LawZgstZ+izU1i7ziYkXkf0n/b7GhPzDJtup6iU4HBh5ZGOc8Grm83kqso6JrI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783921355; c=relaxed/simple;
-	bh=iehA4BVD3IGjHeCt8ROhl3LlqNonmNOrubntvkl8tQo=;
-	h=Date:From:To:Cc:Subject:Message-ID; b=MPoQOcymbtYjfwZLHnQCNtyi3+L6wXbk6HuTu5A4PjaSE5jGfFNKgTABotkWfZXN4ojTXPmPMfDZQh0Z1SU8+kX9WppO9o/Fb1Jmi8vC4yE27PY1w7Q3X/HVL1NHggPfL55gGAA6r88R+DfNgxZU8zteX8uVYR3Yd7IB8Ol+0b8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=V0rvh3NE; arc=none smtp.client-ip=198.175.65.13
+	s=arc-20240116; t=1783921507; c=relaxed/simple;
+	bh=VLeXyO+t5U7L/1UekbXSM4uakm7KAKuYSl6khDTOwxs=;
+	h=Date:From:To:Cc:Subject:Message-ID; b=KokMNs/oDZjhIpPKR/n9lw/kSBGhKWwT/+x3r1m1JjwXslyINvbaQyOWnqz49fpHJKKlvxRBT1MdpxbjClK4q+4IxsbgKsuR5zv6eg5G/uf29t850kscVIdWaW1jWnuFBhY/loWjsvhzQFtS1rEjmE6h0A9/339YdHInHivLbOQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=fucNh/52; arc=none smtp.client-ip=198.175.65.15
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="V0rvh3NE"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="fucNh/52"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1783921354; x=1815457354;
+  t=1783921506; x=1815457506;
   h=date:from:to:cc:subject:message-id;
-  bh=iehA4BVD3IGjHeCt8ROhl3LlqNonmNOrubntvkl8tQo=;
-  b=V0rvh3NEUdKxdKP27uHk8ZnvJgY4syFFSGpbHiNvieaGBuYlIzo8uvjC
-   zEAm9wDPG4ZWksUduRJtCqbSBgF1ChpFdbNiFIcYPCpMvAsY2VYyI9D4J
-   qKQRG12TVYZYW594Bwcj2/RrvgPa9EX+xbHLWcZZmj8DSFB/Odv3Hi+Mj
-   rnhtwgNjtV5nzQPwx49mpoQmoTYS8X2MXEQ3kYROfcyxLjeHCMBsko7FW
-   2IhVi0VFqbtTy1zh8fHtELa9QBvL557iT3oytwN4L5fw5ZeonuMBRpgEO
-   w3feu8kEBZdO6PvMgt4KITU7PuQJPu5bvMASDtS5ptz5fTcJR/0dOY0lZ
-   Q==;
-X-CSE-ConnectionGUID: mv7pWeYOQW+PYEnfgBd/Yw==
-X-CSE-MsgGUID: m7M9nM5MThiA5JIZFh6tPQ==
-X-IronPort-AV: E=McAfee;i="6800,10657,11841"; a="95670224"
+  bh=VLeXyO+t5U7L/1UekbXSM4uakm7KAKuYSl6khDTOwxs=;
+  b=fucNh/52aUrPa+3dAJDzUTq7HxBNp8ZatOiP5soWsnP/tiNnkn+6+UXO
+   OahYO5dI58E876WzOHSsycf27ziBqK9KTk1x1Z0s9nF/d0QKgxkB0DvMT
+   RQjQ1EMPmfT8aIlXVOcXAY74UGKecUmPoHdAg4dnUp7Z8hzP/43s4N2Xr
+   V9caWGsLAjtwPInKmcYjSbiZKuTFZiPbvlBv9S5WGA85sqxeOzDaoS/J0
+   JqOMZLIhAyZnVMWhmUjfLezABi61LvdxoJjVsOljspx5WAc1I+uRHBGsw
+   4w7cMNaaygJIEOQd0Kng685juQUiaZNs38Pv8aAy+Zdn+36fWMDVoZN0I
+   g==;
+X-CSE-ConnectionGUID: AY/6LjpyTyedk3lUuBgmiw==
+X-CSE-MsgGUID: Gn8aywG3RaSI9YziYQ3V7A==
+X-IronPort-AV: E=McAfee;i="6800,10657,11841"; a="88204861"
 X-IronPort-AV: E=Sophos;i="6.25,154,1779174000"; 
-   d="scan'208";a="95670224"
-Received: from fmviesa007.fm.intel.com ([10.60.135.147])
-  by orvoesa105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Jul 2026 22:42:22 -0700
-X-CSE-ConnectionGUID: 29rOwlcuT2yPf1swpmFi1g==
-X-CSE-MsgGUID: CBfTWRNBRPGMD7PNttFsrw==
+   d="scan'208";a="88204861"
+Received: from orviesa009.jf.intel.com ([10.64.159.149])
+  by orvoesa107.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Jul 2026 22:45:05 -0700
+X-CSE-ConnectionGUID: eK3wgHLsQ3Ch5zBYBa3MDQ==
+X-CSE-MsgGUID: nPiXhBaoS6yWw17q8cJBDQ==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.25,154,1779174000"; 
-   d="scan'208";a="252066853"
+   d="scan'208";a="256090836"
 Received: from lkp-server02.sh.intel.com (HELO ea128546eb3d) ([10.239.97.151])
-  by fmviesa007.fm.intel.com with ESMTP; 12 Jul 2026 22:42:20 -0700
+  by orviesa009.jf.intel.com with ESMTP; 12 Jul 2026 22:45:03 -0700
 Received: from kbuild by ea128546eb3d with local (Exim 4.98.2)
 	(envelope-from <lkp@intel.com>)
-	id 1wj9Qn-00000000LPS-1ynQ;
-	Mon, 13 Jul 2026 05:42:17 +0000
-Date: Mon, 13 Jul 2026 13:41:52 +0800
+	id 1wj9TI-00000000LPu-3k5v;
+	Mon, 13 Jul 2026 05:44:54 +0000
+Date: Mon, 13 Jul 2026 13:44:24 +0800
 From: kernel test robot <lkp@intel.com>
-To: Leon Romanovsky <leonro@nvidia.com>
+To: Leon Romanovsky <leon@kernel.org>
 Cc: Doug Ledford <dledford@redhat.com>,
  Jason Gunthorpe <jgg+lists@ziepe.ca>, linux-rdma@vger.kernel.org
-Subject: [rdma:wip/leon-for-rc] BUILD SUCCESS
- 31b7c700670830a0e8a4cdcd451c88a13cc5dc48
-Message-ID: <202607131340.DU7yRgLy-lkp@intel.com>
+Subject: [rdma:wip/leon-for-next] BUILD SUCCESS
+ 15ae32c4a3551c4c9da457370bdfdd65d171e512
+Message-ID: <202607131312.6hGqBwKl-lkp@intel.com>
 User-Agent: s-nail v14.9.25
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
@@ -60,10 +60,10 @@ List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git wip/leon-for-rc
-branch HEAD: 31b7c700670830a0e8a4cdcd451c88a13cc5dc48  RDMA/ipoib: Drain RCU callbacks during module teardown
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git wip/leon-for-next
+branch HEAD: 15ae32c4a3551c4c9da457370bdfdd65d171e512  RDMA/rxe: Avoid reprocessing the current packet after the QP enters the error state
 
-elapsed time: 728m
+elapsed time: 731m
 
 configs tested: 201
 configs skipped: 5
