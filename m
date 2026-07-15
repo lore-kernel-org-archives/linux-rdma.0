@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 63F712931D7;
-	Wed, 15 Jul 2026 11:03:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C29A5334692;
+	Wed, 15 Jul 2026 11:03:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784113414; cv=none; b=NyW9PlSvMwjrtnxWIASWp10jy7r66KCbxHagRzUbptUq06K8Fmlk1LCIHKVHa74IrvEUyJMQLMTc9EhpaRkqBiYM5LdFAjEje8ShgHyKWSWdmA/s3ziiGpLkygVJ+QuakvLaW1JvyYwn8a1b+cmShVmwdWaH6LIc0gbyUDTnpk4=
+	t=1784113419; cv=none; b=geiUYtZm6ZyK950YVrUcZ+x7BfSFuIYUSIa9VjHMDKID0ERGCtgHLNCIaOGcUu8d5/ivdV+Qq4PY/SoTT6gke58kSSkFDTJO+QuSNJVswyKYIzvvVdO6bthCeRBBtIjsQ0nOp7+6kC9N4DbzVOODsROt42i1IMoVWHZwCsuA6j4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784113414; c=relaxed/simple;
-	bh=YVfNgKLJqLMc3cgYjhzOYCdFXrpn8ajwevb61bQVXV8=;
+	s=arc-20240116; t=1784113419; c=relaxed/simple;
+	bh=mIpyjSxJCIDvrqI9R1Kq81l9GrFi0L+7TF/IXvrEpXo=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=OlbcZwYlAjbqzPrB7lHbWzUWPsCu55MotXXQjud82a7bgLc1CJ4JY63Gwbhrj2EHeuH8sNIizcxzyS5wQQofGR0VdRs08P/jk9SB2xq9240Yh+oY76dhzq9wzGfCyYgL2Q3M4eKmQZk4DOTDOjZrP/JODNgCsvfxnuCQTqGhp0g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=FqO6427z; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=KaYAUlT340fYy8cm6WJ9CJrSSn5yHnaibz0Cef+a9ZCWn1Ziv9yvSPIOMsN1cIWTjimNnycbzjnjQT4VYJzx5VV0c5M3jHBODUZrwzlwcudf8ehCHUiLiQskdmS8SoniDz5dQPIUZltYBNn/+b3n96r2P5tAV4HeYh/S3ZZcqP0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=FijBLDHi; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="FqO6427z"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A87E1F000E9;
-	Wed, 15 Jul 2026 11:03:31 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="FijBLDHi"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 858861F000E9;
+	Wed, 15 Jul 2026 11:03:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1784113413;
-	bh=oQkZyUXmELQN2zMIAqet4gZF6hrG+qrP9SS1Y/vJinM=;
+	s=k20260515; t=1784113418;
+	bh=CA2d2kU1oTVwSL1+B4sDmaQjh3T/3PPYj8qWh2dEGxw=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=FqO6427zEcFyWwsUFlMdV3S0o5lVjm9vAF3xG7TLvhLLWDFNUNSq6w2EBONEpXOLf
-	 cVGlXcbkwQRcqv+zduLbKKWuNayczM0a3JWCydjyAKsEU9ZKq4ZACGXLKr86BTLbyZ
-	 tRWVDWbDfGIBoHQ85Mt48InzRsPJ/W7+jJGx7QSr3KMicxWg15fLsSbF+ITleEwmk4
-	 9bfdDewy9LzQ1pRD47f3/iwy29ygICVDosMmGAKlvFgwOeEtU8+75tAfa1UiFEp0yj
-	 GDPOyrwgJ0NGUnPPhFe3T+nQewzgmBqAlGxKmgoSwmq880hPbjQ1HQY56ykFeVbrPs
-	 8yjRjn8MEdHWQ==
+	b=FijBLDHi3oiIEPNxkrWpk2SFIneNFQXitLXJSUuRh3KY/FNwz8cE3nz8Zb5PJiyso
+	 Obz2fSg0VUTkK6VdNIJc0QSGIMyzK5hZuTeINTo1Udt62izMmgxnfkyCi30suVWi3+
+	 33FX82L9TF4wubAmzEHQtz5BA5hRFkZG+PuJmzN7OBwihR3kNNhpKzfaEhuqRdWk8w
+	 h9zSTacVogivN80NGtTUsf/l73UBnxkVESv97hxVvXTmdAxx6wMDxlkGUSzLMaK+Ba
+	 y4mh5J/tla5zKFRmcMU6Vj+AXsEsgpg6+lZ54K78aaduP1GNPZi6OFfdVYWZknyFQj
+	 BvCU8rk61aCMw==
 From: Leon Romanovsky <leon@kernel.org>
 To: Potnuri Bharat Teja <bharat@chelsio.com>,
 	Jason Gunthorpe <jgg@ziepe.ca>,
@@ -35,9 +35,9 @@ To: Potnuri Bharat Teja <bharat@chelsio.com>,
 Cc: linux-rdma@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	Mike Rapoport <rppt@kernel.org>
-Subject: [PATCH rdma-next 2/4] RDMA/mlx4: use kzalloc() for the fast registration page list
-Date: Wed, 15 Jul 2026 14:03:10 +0300
-Message-ID: <20260715-get_pages-to-kmalloc-v1-2-b0b7fce288be@nvidia.com>
+Subject: [PATCH rdma-next 4/4] RDMA/mlx5: use kmalloc() for UMR translation buffers
+Date: Wed, 15 Jul 2026 14:03:12 +0300
+Message-ID: <20260715-get_pages-to-kmalloc-v1-4-b0b7fce288be@nvidia.com>
 X-Mailer: git-send-email 2.55.0
 In-Reply-To: <20260715-get_pages-to-kmalloc-v1-0-b0b7fce288be@nvidia.com>
 References: <20260715-get_pages-to-kmalloc-v1-0-b0b7fce288be@nvidia.com>
@@ -53,49 +53,106 @@ Content-Transfer-Encoding: 8bit
 
 From: Leon Romanovsky <leonro@nvidia.com>
 
-mlx4_alloc_priv_pages() allocates a zeroed, page-sized buffer for a
-DMA-to-device page list. kmalloc() provides the required physical
-contiguity, and a PAGE_SIZE allocation retains the alignment needed to
-keep the list within one page.
+mlx5r_umr_alloc_xlt() allocates physically contiguous scratch buffers
+that are DMA mapped only in the DMA_TO_DEVICE direction. kmalloc()
+provides the required contiguity and alignment for these sizes while
+preserving the existing GFP allocation policy.
 
-Use kzalloc() for the buffer and kfree() on the error and teardown paths.
+The emergency translation buffer has the same requirements. Convert all
+of these UMR buffers to kmalloc() and release them with kfree(), which no
+longer requires the caller to supply the allocation order.
 
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/hw/mlx4/mr.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/infiniband/hw/mlx5/main.c |  8 ++++----
+ drivers/infiniband/hw/mlx5/umr.c  | 11 +++++------
+ 2 files changed, 9 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx4/mr.c b/drivers/infiniband/hw/mlx4/mr.c
-index 761e2c05dd0f..a6b4abce1bfe 100644
---- a/drivers/infiniband/hw/mlx4/mr.c
-+++ b/drivers/infiniband/hw/mlx4/mr.c
-@@ -313,7 +313,7 @@ mlx4_alloc_priv_pages(struct ib_device *device,
- 				    MLX4_MR_PAGES_ALIGN);
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index e8bba5a76d4e..d65ebdef2823 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -5500,13 +5500,13 @@ static int __init mlx5_ib_init(void)
+ {
+ 	int ret;
  
- 	/* Prevent cross page boundary allocation. */
--	mr->pages = (__be64 *)get_zeroed_page(GFP_KERNEL);
-+	mr->pages = kzalloc(PAGE_SIZE, GFP_KERNEL);
- 	if (!mr->pages)
+-	xlt_emergency_page = (void *)__get_free_page(GFP_KERNEL);
++	xlt_emergency_page = kmalloc(PAGE_SIZE, GFP_KERNEL);
+ 	if (!xlt_emergency_page)
  		return -ENOMEM;
  
-@@ -328,7 +328,7 @@ mlx4_alloc_priv_pages(struct ib_device *device,
- 	return 0;
+ 	mlx5_ib_event_wq = alloc_ordered_workqueue("mlx5_ib_event_wq", 0);
+ 	if (!mlx5_ib_event_wq) {
+-		free_page((unsigned long)xlt_emergency_page);
++		kfree(xlt_emergency_page);
+ 		return -ENOMEM;
+ 	}
  
- err:
--	free_page((unsigned long)mr->pages);
-+	kfree(mr->pages);
+@@ -5540,7 +5540,7 @@ static int __init mlx5_ib_init(void)
+ 	mlx5_ib_qp_event_cleanup();
+ qp_event_err:
+ 	destroy_workqueue(mlx5_ib_event_wq);
+-	free_page((unsigned long)xlt_emergency_page);
++	kfree(xlt_emergency_page);
  	return ret;
  }
  
-@@ -340,7 +340,7 @@ mlx4_free_priv_pages(struct mlx4_ib_mr *mr)
+@@ -5553,7 +5553,7 @@ static void __exit mlx5_ib_cleanup(void)
  
- 		dma_unmap_single(device->dev.parent, mr->page_map,
- 				 mr->page_map_size, DMA_TO_DEVICE);
--		free_page((unsigned long)mr->pages);
-+		kfree(mr->pages);
- 		mr->pages = NULL;
- 	}
+ 	mlx5_ib_qp_event_cleanup();
+ 	destroy_workqueue(mlx5_ib_event_wq);
+-	free_page((unsigned long)xlt_emergency_page);
++	kfree(xlt_emergency_page);
  }
+ 
+ module_init(mlx5_ib_init);
+diff --git a/drivers/infiniband/hw/mlx5/umr.c b/drivers/infiniband/hw/mlx5/umr.c
+index c595b85b428c..80d0d190b26c 100644
+--- a/drivers/infiniband/hw/mlx5/umr.c
++++ b/drivers/infiniband/hw/mlx5/umr.c
+@@ -1,6 +1,7 @@
+ // SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB
+ /* Copyright (c) 2022, NVIDIA CORPORATION & AFFILIATES. */
+ 
++#include <linux/slab.h>
+ #include <rdma/ib_umem_odp.h>
+ #include <rdma/iter.h>
+ #include "mlx5_ib.h"
+@@ -517,22 +518,20 @@ static void *mlx5r_umr_alloc_xlt(size_t *nents, size_t ent_size, gfp_t gfp_mask)
+ 	size = min_t(size_t, ent_size * ALIGN(*nents, xlt_chunk_align),
+ 		     MLX5_MAX_UMR_CHUNK);
+ 	*nents = size / ent_size;
+-	res = (void *)__get_free_pages(gfp_mask | __GFP_NOWARN,
+-				       get_order(size));
++	res = kmalloc(size, gfp_mask | __GFP_NOWARN);
+ 	if (res)
+ 		return res;
+ 
+ 	if (size > MLX5_SPARE_UMR_CHUNK) {
+ 		size = MLX5_SPARE_UMR_CHUNK;
+ 		*nents = size / ent_size;
+-		res = (void *)__get_free_pages(gfp_mask | __GFP_NOWARN,
+-					       get_order(size));
++		res = kmalloc(size, gfp_mask | __GFP_NOWARN);
+ 		if (res)
+ 			return res;
+ 	}
+ 
+ 	*nents = PAGE_SIZE / ent_size;
+-	res = (void *)__get_free_page(gfp_mask);
++	res = kmalloc(PAGE_SIZE, gfp_mask);
+ 	if (res)
+ 		return res;
+ 
+@@ -548,7 +547,7 @@ static void mlx5r_umr_free_xlt(void *xlt, size_t length)
+ 		return;
+ 	}
+ 
+-	free_pages((unsigned long)xlt, get_order(length));
++	kfree(xlt);
+ }
+ 
+ static void mlx5r_umr_unmap_free_xlt(struct mlx5_ib_dev *dev, void *xlt,
 
 -- 
 2.55.0
