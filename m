@@ -1,20 +1,20 @@
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 1E1B63AB5B7;
-	Wed, 15 Jul 2026 03:30:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id D5AD93A7F7A;
+	Wed, 15 Jul 2026 03:30:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784086211; cv=none; b=DorEQMxXN22eddcvZ4ggXGpEi84tIpUl/Ey9jpGsdvIM5h54+nWluZhWjYqFiTf/KNHGVXqpsUT8TU0AtLT22mngieDRvvgDDPV/SAk2vcrqfiLf9+VCYzgI+IOL+ssnjXfy1p5dB8U0VoZEeOIi8XyBjfEaatsRP+2nRG4ACJs=
+	t=1784086216; cv=none; b=Jehfu1h75pgQOsl/LasKVQyAFONIeo6UldHwOEYsJPBwzbyU6A0mx9bTfAU7s8isk8xitJf3G45PAUpMXy9GlERjmAQW6kQnDaTqEo7pqSITWdP+N7eQb2jzFdho16upF6mggYbCL/EdhnX03m1/WkB0geU+ZbzbYWeqbqRXLIc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784086211; c=relaxed/simple;
-	bh=fW7MLrkN3fiIRL1AdvJb2iiQxx8j5Cs8dbZRl/K2E04=;
+	s=arc-20240116; t=1784086216; c=relaxed/simple;
+	bh=2zJR6uxy0j0AruNUd8uJFxVj6MIqqnp1SzBCRWyjCYw=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=fG1SOnrDb0DZUS4AfzLo8+nKK/Bapss67UAnhSmTTu3+tl+DcvMuNmBby3+vrwJkGZmREWNVF/Bd/m2t/vAnGSofyIpLD75pQgaYXQ9rJtzlSihuXAi2ulIA9B9LG5wiICiJLtrT/K4DtZqEwRLTfIHjkIWL6JdSe14Bolwa4e8=
+	 MIME-Version:Content-Type; b=hUtM6DFB0mMLv30IUtt+aG5KD7HHKQGFug50Em8FsSrLcRFfXbQRJU6qkWtrj4rt+mqp7mrFKzUSpu9WjDsRoGgvY9y1xNa8c2E0KMGZ4i0XAHe9eTVMKhITmgqpgvN6hb8nSkManAYRBxVNamWUReRuw/0yoTQLSxRqENs/m20=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; arc=none smtp.client-ip=13.77.154.182
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Received: by linux.microsoft.com (Postfix, from userid 1202)
-	id A379A20B716C; Tue, 14 Jul 2026 20:29:59 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com A379A20B716C
+	id 4FA5120B716B; Tue, 14 Jul 2026 20:30:02 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 4FA5120B716B
 From: Long Li <longli@microsoft.com>
 To: Long Li <longli@microsoft.com>,
 	Konstantin Taranov <kotaranov@microsoft.com>,
@@ -35,9 +35,9 @@ Cc: netdev@vger.kernel.org,
 	linux-rdma@vger.kernel.org,
 	linux-hyperv@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH net-next 3/7] net: mana: free HWC comp_buf after destroying the EQ
-Date: Tue, 14 Jul 2026 20:29:37 -0700
-Message-ID: <20260715032942.3945317-4-longli@microsoft.com>
+Subject: [PATCH net-next 5/7] net: mana: fix HWC teardown safety with setup_active flag and destroy ordering
+Date: Tue, 14 Jul 2026 20:29:39 -0700
+Message-ID: <20260715032942.3945317-6-longli@microsoft.com>
 X-Mailer: git-send-email 2.43.7
 In-Reply-To: <20260715032942.3945317-1-longli@microsoft.com>
 References: <20260715032942.3945317-1-longli@microsoft.com>
@@ -47,48 +47,236 @@ List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-mana_hwc_destroy_cq() freed hwc_cq->comp_buf before destroying the CQ and
-EQ.  comp_buf is dereferenced by mana_hwc_comp_event(), which the EQ
-interrupt handler invokes; freeing it while the EQ was still registered
-let a late handler touch freed memory.
+Two teardown hazards let the hardware touch memory the driver freed.
 
-Destroy the CQ and EQ first -- the EQ teardown deregisters the IRQ and
-fences in-flight handlers -- then free comp_buf and hwc_cq.
+First, once mana_smc_setup_hwc() succeeds the device has active MST
+entries and can DMA into the HWC queue buffers.  If a later step in
+mana_hwc_establish_channel() fails, the caller had no reliable way to
+know teardown was required and could free those buffers while the
+mappings were still live -- a DMA-after-free.  max_num_cqs was used as a
+"HWC is up" proxy, but it is only set when the init EQE arrives.
+
+Add a setup_active flag, set the moment setup_hwc activates MST entries.
+establish_channel() now tears down on any later failure and clears
+setup_active once teardown succeeds; destroy_channel() gates teardown on
+setup_active.  max_num_cqs is no longer reset: it is an immutable bound
+(see gdma.h) and cq_table == NULL is the sole teardown signal.
+
+Second, destroy_channel() freed the TXQ/RXQ buffers while the HWC EQ was
+still on the interrupt dispatch list, so an in-flight interrupt could run
+the handler against freed buffers:
+
+  CPU A (mana_gd_intr, hard IRQ)        CPU B (destroy_channel)
+  ----------------------------------    ------------------------------
+                                        free TXQ/RXQ DMA buffers
+  handler accesses RQ/TXQ buffers       (EQ still registered)
+
+Destroy the CQ first: mana_hwc_destroy_cq() -> mana_gd_deregister_irq()
+removes the EQ via list_del_rcu() + synchronize_rcu(), after which no
+handler can reach the queues; only then free the TXQ and RXQ.
 
 Fixes: ca9c54d2d6a5 ("net: mana: Add a driver for Microsoft Azure Network Adapter (MANA)")
 Signed-off-by: Long Li <longli@microsoft.com>
 ---
- drivers/net/ethernet/microsoft/mana/hw_channel.c | 10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ .../net/ethernet/microsoft/mana/hw_channel.c  | 106 ++++++++++++++----
+ include/net/mana/gdma.h                       |   8 +-
+ include/net/mana/hw_channel.h                 |   8 ++
+ 3 files changed, 100 insertions(+), 22 deletions(-)
 
 diff --git a/drivers/net/ethernet/microsoft/mana/hw_channel.c b/drivers/net/ethernet/microsoft/mana/hw_channel.c
-index 3f011ebbe7b3..2239fdeda57c 100644
+index 68236727aee8..b26c2122ebf5 100644
 --- a/drivers/net/ethernet/microsoft/mana/hw_channel.c
 +++ b/drivers/net/ethernet/microsoft/mana/hw_channel.c
-@@ -384,14 +384,20 @@ static void mana_hwc_comp_event(void *ctx, struct gdma_queue *q_self)
+@@ -4,6 +4,7 @@
+ #include <net/mana/gdma.h>
+ #include <net/mana/mana.h>
+ #include <net/mana/hw_channel.h>
++#include <linux/pci.h>
+ #include <linux/vmalloc.h>
  
- static void mana_hwc_destroy_cq(struct gdma_context *gc, struct hwc_cq *hwc_cq)
- {
--	kfree(hwc_cq->comp_buf);
--
- 	if (hwc_cq->gdma_cq)
- 		mana_gd_destroy_queue(gc, hwc_cq->gdma_cq);
+ static int mana_hwc_get_msg_index(struct hw_channel_context *hwc, u16 *msg_id)
+@@ -744,20 +745,33 @@ static int mana_hwc_establish_channel(struct gdma_context *gc, u16 *q_depth,
+ 	if (err)
+ 		return err;
  
-+	/* comp_buf is reached only by mana_hwc_comp_event(), which the
-+	 * EQ handler invokes via cq_table[id].  The CQ destroy above
-+	 * already cleared that slot and ran synchronize_rcu(), so no
-+	 * handler can reach comp_buf once it returns.  Destroying the EQ
-+	 * here additionally tears down the IRQ (defense in depth) before
-+	 * comp_buf and hwc_cq are freed below.
+-	if (!wait_for_completion_timeout(&hwc->hwc_init_eqe_comp, 60 * HZ))
+-		return -ETIMEDOUT;
++	/* setup_hwc activated MST entries — hardware can now DMA into
++	 * our queue buffers.  If anything below fails, we must tear
++	 * down before returning so the caller doesn't need to track
++	 * whether setup_hwc succeeded.
 +	 */
- 	if (hwc_cq->gdma_eq)
- 		mana_gd_destroy_queue(gc, hwc_cq->gdma_eq);
++	hwc->setup_active = true;
++
++	if (!wait_for_completion_timeout(&hwc->hwc_init_eqe_comp, 60 * HZ)) {
++		err = -ETIMEDOUT;
++		goto teardown;
++	}
  
-+	kfree(hwc_cq->comp_buf);
- 	kfree(hwc_cq);
+ 	*q_depth = hwc->hwc_init_q_depth_max;
+ 	*max_req_msg_size = hwc->hwc_init_max_req_msg_size;
+ 	*max_resp_msg_size = hwc->hwc_init_max_resp_msg_size;
+ 
+ 	/* Both were set in mana_hwc_init_event_handler(). */
+-	if (WARN_ON(cq->id >= gc->max_num_cqs))
+-		return -EPROTO;
++	if (WARN_ON(cq->id >= gc->max_num_cqs)) {
++		err = -EPROTO;
++		goto teardown;
++	}
+ 
+ 	cq_table = vcalloc(gc->max_num_cqs, sizeof(*cq_table));
+-	if (!cq_table)
+-		return -ENOMEM;
++	if (!cq_table) {
++		err = -ENOMEM;
++		goto teardown;
++	}
+ 
+ 	rcu_assign_pointer(cq_table[cq->id], cq);
+ 	/* Publish the fully-initialised table last; pairs with the
+@@ -766,6 +780,16 @@ static int mana_hwc_establish_channel(struct gdma_context *gc, u16 *q_depth,
+ 	rcu_assign_pointer(gc->cq_table, cq_table);
+ 
+ 	return 0;
++
++teardown:
++	{
++		int td_err = mana_smc_teardown_hwc(&gc->shm_channel, false);
++
++		if (!td_err)
++			hwc->setup_active = false;
++
++		return td_err ? td_err : err;
++	}
  }
+ 
+ static int mana_hwc_init_queues(struct hw_channel_context *hwc, u16 q_depth,
+@@ -878,11 +902,62 @@ void mana_hwc_destroy_channel(struct gdma_context *gc)
+ 	if (!hwc)
+ 		return;
+ 
+-	/* gc->max_num_cqs is set in mana_hwc_init_event_handler(). If it's
+-	 * non-zero, the HWC worked and we should tear down the HWC here.
++	/* Tear down the HWC if setup_hwc previously activated MST entries.
++	 * This is the definitive flag — unlike max_num_cqs which depends
++	 * on the init EQE arriving.
+ 	 */
+-	if (gc->max_num_cqs > 0)
+-		mana_smc_teardown_hwc(&gc->shm_channel, false);
++	if (hwc->setup_active) {
++		int td_err = mana_smc_teardown_hwc(&gc->shm_channel, false);
++
++		if (td_err) {
++			dev_err(gc->dev, "HWC teardown failed: %d, issuing FLR\n",
++				td_err);
++
++			/* On systems without IOMMU, freeing DMA memory with
++			 * active hardware MST mappings risks memory corruption.
++			 * Issue FLR to force-reset the device and invalidate
++			 * all hardware state including MST entries.
++			 */
++			td_err = pcie_flr(to_pci_dev(gc->dev));
++			if (td_err) {
++				/* Device is wedged: teardown and FLR both failed.
++				 * Hardware may still have active MST entries that
++				 * allow DMA into our queue buffers.
++				 *
++				 * On IOMMU systems: dma_free_coherent() would unmap
++				 * the IOVA, causing hardware DMA to fault at the
++				 * IOMMU (safe). But on non-IOMMU systems, freeing
++				 * the physical pages allows them to be reused for
++				 * other purposes while hardware can still DMA to
++				 * them (unsafe).
++				 *
++				 * but leak all DMA buffers to prevent corruption.
++				 */
++
++				dev_warn(gc->dev,
++					 "Leaked HWC DMA buffers (CQ/RQ/TXQ) to prevent memory corruption. Device is no longer usable.\n");
++
++				/* Do NOT proceed to mana_hwc_destroy_cq/wq — they
++				 * would call dma_free_coherent().  Leave hwc, cq,
++				 * rxq, txq allocated forever.
++				 */
++				return;
++			}
++
++			dev_info(gc->dev, "FLR succeeded, hardware state cleared\n");
++		}
++
++		hwc->setup_active = false;
++	}
++
++	/* Tear down the HWC CQ object first — mana_hwc_destroy_cq()
++	 * both unpublishes the CQ from cq_table (+synchronize_rcu) and
++	 * deregisters the HWC EQ from the interrupt handler list (via
++	 * mana_gd_deregister_irq + synchronize_rcu), guaranteeing no
++	 * interrupt handler can access RQ/TXQ buffers after this point.
++	 */
++	if (hwc->cq)
++		mana_hwc_destroy_cq(hwc->gdma_dev->gdma_context, hwc->cq);
+ 
+ 	if (hwc->txq)
+ 		mana_hwc_destroy_wq(hwc, hwc->txq);
+@@ -890,17 +965,6 @@ void mana_hwc_destroy_channel(struct gdma_context *gc)
+ 	if (hwc->rxq)
+ 		mana_hwc_destroy_wq(hwc, hwc->rxq);
+ 
+-	if (hwc->cq)
+-		mana_hwc_destroy_cq(hwc->gdma_dev->gdma_context, hwc->cq);
+-
+-	/* Reset only after mana_hwc_destroy_cq() above has run with a valid
+-	 * max_num_cqs so mana_gd_destroy_cq() clears the CQ table slot and
+-	 * waits out in-flight EQ handlers (synchronize_rcu) before the CQ is
+-	 * freed.  Clearing it earlier would make that path early-return and
+-	 * skip the slot clear, leaving a dangling cq_table entry.
+-	 */
+-	gc->max_num_cqs = 0;
+-
+ 	kfree(hwc->caller_ctx);
+ 	hwc->caller_ctx = NULL;
+ 
+diff --git a/include/net/mana/gdma.h b/include/net/mana/gdma.h
+index da52701e7816..9ca7cf523366 100644
+--- a/include/net/mana/gdma.h
++++ b/include/net/mana/gdma.h
+@@ -428,7 +428,13 @@ struct gdma_context {
+ 	/* L2 MTU */
+ 	u16 adapter_mtu;
+ 
+-	/* This maps a CQ index to the queue structure. */
++	/* Size of cq_table, i.e. the largest valid CQ index + 1.  Set once
++	 * when cq_table is allocated and treated as immutable for the
++	 * table's lifetime (a bound only) -- it is never reset on teardown.
++	 * cq_table == NULL is the sole "table torn down" signal, so every
++	 * cq_table[id] access must guard with both !cq_table (gone) and
++	 * id >= max_num_cqs (out of bounds).
++	 */
+ 	unsigned int		max_num_cqs;
+ 	/* Both the base pointer and each entry are RCU-managed.  The fast
+ 	 * path (mana_gd_process_eqe) reads the base via rcu_dereference()
+diff --git a/include/net/mana/hw_channel.h b/include/net/mana/hw_channel.h
+index 73671f479399..684dcec8e612 100644
+--- a/include/net/mana/hw_channel.h
++++ b/include/net/mana/hw_channel.h
+@@ -200,6 +200,14 @@ struct hw_channel_context {
+ 	u32 pf_dest_vrcq_id;
+ 	u32 hwc_timeout;
+ 
++	/* Set after mana_smc_setup_hwc() succeeds (hardware has active
++	 * MST entries).  On recoverable paths (establish_channel)
++	 * cleared only after successful teardown so a retry remains
++	 * possible.  On the terminal destroy_channel path, cleared
++	 * unconditionally since hwc is about to be freed.
++	 */
++	bool setup_active;
++
+ 	struct hwc_caller_ctx *caller_ctx;
+ };
  
 -- 
 2.43.0
