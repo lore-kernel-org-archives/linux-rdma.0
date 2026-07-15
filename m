@@ -1,861 +1,229 @@
-Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 1F4E03AE1BB;
-	Wed, 15 Jul 2026 03:30:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 36C13231A21;
+	Wed, 15 Jul 2026 04:34:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784086227; cv=none; b=T3jsZAUvKqW7w1orlR49AL1IWVJgBp/Gd5i0Hv499MLKtMvRflk6sbcnfqGD5Gjd8BnVzXYuXNnfLkXF7SfqYw59OwNw5eEEA4zpsIkqfbCzStnQFTVZkSyNO9Jt9WY87qUg3a9zHYYg8z1JJLuX5RP0up7Q8Jaei93i0Giv/YU=
+	t=1784090083; cv=none; b=KBtfjALDZSMsRlGCSJ78H0xulMQggvs/E8wShDcB3hfExMXcDJajU4kq87nx2VnDtzIz+qwPbujbgbh6tHHRdkV7amUXq74rHSD24QFC+5preUfucVouo38fBp5THnyFUBtVR2lU43pc4T+hchS2k6WTw18dY1iOnU3EVpr+kkM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784086227; c=relaxed/simple;
-	bh=q7xlc0jgLWkQEZnLwUwGoguyH0ciJn5gJSXrvkEj6fk=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=HJd1wIz6C9Tofo2vxDqTLtFwhBnlTtOPbk8e7NTVah/VuyeOZsCcjz3dflKADr3I3vRyb8l3lI5wz5UH64UsFr0zjRmO0oHAY+BxtTVvODcADxpXnbVziYprwyLKZv57hwbn/Ez/Zh3KEAqBeYtIxAXeB11bvPA6PH4NbSOl3YM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; arc=none smtp.client-ip=13.77.154.182
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
-Received: by linux.microsoft.com (Postfix, from userid 1202)
-	id 5285C20B716F; Tue, 14 Jul 2026 20:30:03 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 5285C20B716F
-From: Long Li <longli@microsoft.com>
-To: Long Li <longli@microsoft.com>,
-	Konstantin Taranov <kotaranov@microsoft.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	"David S . Miller" <davem@davemloft.net>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Eric Dumazet <edumazet@google.com>,
-	Andrew Lunn <andrew+netdev@lunn.ch>,
-	Jason Gunthorpe <jgg@ziepe.ca>,
-	Leon Romanovsky <leon@kernel.org>,
-	Haiyang Zhang <haiyangz@microsoft.com>,
-	"K . Y . Srinivasan" <kys@microsoft.com>,
-	Wei Liu <wei.liu@kernel.org>,
-	Dexuan Cui <decui@microsoft.com>,
-	shradhagupta@linux.microsoft.com,
-	Simon Horman <horms@kernel.org>
-Cc: netdev@vger.kernel.org,
-	linux-rdma@vger.kernel.org,
-	linux-hyperv@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH net-next 6/7] net: mana: support concurrent HWC requests with proper synchronization
-Date: Tue, 14 Jul 2026 20:29:40 -0700
-Message-ID: <20260715032942.3945317-7-longli@microsoft.com>
-X-Mailer: git-send-email 2.43.7
-In-Reply-To: <20260715032942.3945317-1-longli@microsoft.com>
-References: <20260715032942.3945317-1-longli@microsoft.com>
+	s=arc-20240116; t=1784090083; c=relaxed/simple;
+	bh=rH+f3KaxbEK3Yk7pODNj76lVdviFxGc5DFDvPRSqoBA=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=umgTB3l8ZZalM+biDoYpgBDmf14wUPQIpugcNN/a5NfLS3wK7JQ+/81A5i/KuGjuaG0dL3ysWvLOscbF5xlNET5l9lcfvdwmuzmywDQp20SXGBX59tA8udjDvLKvcgDWXBpfSrBt/ajs1Dtl72j2WFfRCC+2Ci7X2nrd/o9KE+s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=sUyrUB8e; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="sUyrUB8e"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 8ECB1C2BCB7;
+	Wed, 15 Jul 2026 04:34:42 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1784090082;
+	bh=rH+f3KaxbEK3Yk7pODNj76lVdviFxGc5DFDvPRSqoBA=;
+	h=From:Date:Subject:To:Cc:Reply-To:From;
+	b=sUyrUB8eir7gHAuvp5pg37VL0xsZrwzXixr9oZ9xhQT/KIQ4Np7NmW0wLvK3Ar3Je
+	 7llnD8E9fembGx3Cecc/c2Ein8OiFwschIb+TW5foitRQcIsdcyuBNlFJM4hzA3v1B
+	 NcPS2PonIXunDfnUQAeuwNd/krI2YAmcuJVe6u7GbFN7Wq2Jq6n80BRkv+CTw2g4RB
+	 n/Tr8KcYPRnppvXEX6VwvdpGgn+wGfGW1aqZDgu6fcTN9Le3cBv/70NsUsDL7xUOo0
+	 tq3WsiS/Ci+Hg2sD0RsBB9UYkr9sR1gCU1Q3+sHj1CR/hBs6W8sxTLGcLheJl9ERqH
+	 rDrEcIx0uYPvQ==
+Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 68733C4450A;
+	Wed, 15 Jul 2026 04:34:42 +0000 (UTC)
+From: Bryam Vargas via B4 Relay <devnull+hexlabsecurity.proton.me@kernel.org>
+Date: Tue, 14 Jul 2026 23:34:42 -0500
+Subject: [PATCH net v2] net/smc: order the CDC receive path against buffer
+ publication
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <20260714-b4-disp-835288a6-v2-1-581555ef2145@proton.me>
+X-B4-Tracking: v=1; b=H4sIAOENV2oC/x3MTQqAIBBA4avErBvI6UfpKtHCcqzZWGhEEN49a
+ fkt3nshcRROMFYvRL4lyREKqK5g3W3YGMUVAzU0NFp1uHToJJ1o2p6MsQMqr8l747TVCkp2Rvb
+ y/MsJAl8w5/wBB6Gs1mcAAAA=
+To: Sidraya Jayagond <sidraya@linux.ibm.com>, 
+ Wenjia Zhang <wenjia@linux.ibm.com>, Dust Li <dust.li@linux.alibaba.com>, 
+ "D. Wythe" <alibuda@linux.alibaba.com>, Paolo Abeni <pabeni@redhat.com>, 
+ "David S. Miller" <davem@davemloft.net>, Jakub Kicinski <kuba@kernel.org>, 
+ Mahanta Jambigi <mjambigi@linux.ibm.com>, Wen Gu <guwen@linux.alibaba.com>, 
+ Eric Dumazet <edumazet@google.com>, Tony Lu <tonylu@linux.alibaba.com>
+Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org, 
+ Simon Horman <horms@kernel.org>, linux-s390@vger.kernel.org, 
+ linux-rdma@vger.kernel.org
+X-Mailer: b4 0.13.0
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1784090081; l=7310;
+ i=hexlabsecurity@proton.me; s=proton; h=from:subject:message-id;
+ bh=2xz4cjDnqoAG1H/FZ06+DlrFtR6erHNnU+ZElifwqQs=;
+ b=1ZcEFXlHow9qiTEgF62ozWBR3XP1RmBrt3w4BuchwclJvBZ5VwhHh4vUPYdZCfZpWAYZSDbXU
+ 1vUitCp2sylCks4GvsFDSIS0P7jVG+BS99BotcywZGX1OQAQ8mlklP1
+X-Developer-Key: i=hexlabsecurity@proton.me; a=ed25519;
+ pk=dmppBMZNLLoPzxHi9l8tZDzEZUunPbgsYqIZYXeUrL0=
+X-Endpoint-Received: by B4 Relay for hexlabsecurity@proton.me/proton with
+ auth_id=814
+X-Original-From: Bryam Vargas <hexlabsecurity@proton.me>
+Reply-To: hexlabsecurity@proton.me
 
-The HWC serialized all management commands behind a depth-1 semaphore, a
-bottleneck when many commands must be issued concurrently.  Allowing
-multiple in-flight requests exposes several shared-state races that this
-patch addresses together.
+From: Bryam Vargas <hexlabsecurity@proton.me>
 
-  - Replace the semaphore with a waitqueue + bitmap scheme so senders
-    acquire message slots in parallel and sleep only when all slots are
-    busy.
+The SMC CDC receive handlers dereference conn->rmb_desc, and on the
+SMC-D DMB-nocopy path conn->sndbuf_desc, but both are published after
+the connection is already reachable to a peer: rmb_desc after
+smc_conn_create() registers it in the link group's token tree,
+sndbuf_desc after __smc_buf_create() arms the ISM tasklet via
+smc_ism_set_conn().  A CDC in that window reaches the handlers with the
+buffer unset.  The store is plain, so a handler can load it as NULL, or
+on a weakly ordered CPU see it non-NULL while its buffer is still
+uninitialised -- a host crash or a stale-buffer read.
 
-  - A response is delivered by handle_resp() in CQ interrupt context
-    while the issuing sender may concurrently time out and return; both
-    touch the same caller_ctx slot (output_buf, output_buflen, error):
+Publish both buffers with smp_store_release() and consume them with
+smp_load_acquire(), bailing while unset as the handlers already do for
+a killed or out-of-sync connection.  Conforming peers are unaffected.
 
-      CPU A (sender timeout)            CPU B (handle_resp, IRQ)
-      ------------------------------    ------------------------------
-      read/clear output_buf             write response into output_buf,
-                                        complete the slot
-
-    Add a per-slot spinlock to make these mutually exclusive, a per-slot
-    refcount so the last of {sender, handle_resp} releases the bitmap
-    slot (no double-release, no stuck slot), and an embedded completion
-    the sender waits on.  The sender always NULLs output_buf after
-    waking, so a late handle_resp() skips the copy.
-
-  - Add a per-queue lock to hwc_wq; mana_gd_post_and_ring() is not safe
-    to call concurrently on the same queue.
-
-  - Add channel_up (cleared under the bitmap lock in destroy_channel) and
-    hwc_timed_out flags so new slot acquisitions are rejected during
-    teardown and after a timeout.
-
-  - destroy_channel() must not free the HWC while senders are still in
-    flight.  Track senders with an atomic refcount; destroy_channel()
-    force-completes the in-flight slots (-ENODEV) and then waits for the
-    count to reach zero before freeing.  The drain waitqueue lives on
-    gdma_context, not hwc, so the final wake_up() after the last
-    atomic_dec does not dereference freed hwc memory.
-
-  - The sender looks up the channel via gc->hwc.driver_data, which
-    destroy_channel() clears and then frees.  Without serialization the
-    lookup and the reference can straddle the free:
-
-      CPU A (mana_gd_send_request)      CPU B (destroy_channel)
-      ------------------------------    ------------------------------
-      hwc = gc->hwc.driver_data;  // ok
-                                        driver_data = NULL;
-                                        wait active_senders == 0;  // 0!
-                                        kfree(hwc);
-      atomic_inc(&hwc->active_senders); // use-after-free
-
-    Guard driver_data with a new gc->hwc_lock spinlock, taken by the
-    readers (mana_gd_send_request, mana_need_log, mana_serv_reset) and by
-    the publish/clear, so "load the pointer + take a sender reference" is
-    atomic against the clear.  After the clear a sender either already
-    holds a reference (and is waited for) or observes NULL and returns
-    -ENODEV.  These are all control-plane paths (HWC commands sleep,
-    reset runs on a workqueue), so a plain spinlock -- not RCU -- is
-    sufficient.
-
-This adds the concurrency infrastructure at the bootstrap queue depth of
-1; the next patch raises it to the device-reported maximum.
-
-Signed-off-by: Long Li <longli@microsoft.com>
+Closes: https://sashiko.dev/#/patchset/20260711-b4-disp-c36a9798-v1-1-340b0c6053fb@proton.me?part=1
+Cc: stable@vger.kernel.org
+Signed-off-by: Bryam Vargas <hexlabsecurity@proton.me>
 ---
- .../net/ethernet/microsoft/mana/gdma_main.c   |  53 ++-
- .../net/ethernet/microsoft/mana/hw_channel.c  | 314 +++++++++++++++---
- include/net/mana/gdma.h                       |  15 +
- include/net/mana/hw_channel.h                 |  29 +-
- 4 files changed, 365 insertions(+), 46 deletions(-)
+v2: order both CDC-reachable buffers with smp_store_release()/smp_load_acquire()
+    instead of the plain NULL guard v1 used.  The rmb_desc ordering is what the
+    Sashiko review of v1 asked for (the Closes: link above); the sndbuf_desc case
+    (SMC-D DMB-nocopy, smc_cdc_msg_recv_action()) is the same-window sibling found
+    by inspection -- smcd_buf_attach() sets the ghost sndbuf_desc after
+    smc_ism_set_conn() already armed the tasklet.  Release/acquire closes the NULL
+    deref on all arches and the stale-buffer read on weakly ordered ones.
+    v1: https://lore.kernel.org/all/20260711-b4-disp-c36a9798-v1-1-340b0c6053fb@proton.me/
 
-diff --git a/drivers/net/ethernet/microsoft/mana/gdma_main.c b/drivers/net/ethernet/microsoft/mana/gdma_main.c
-index c52ef566dc0c..d44a3e2c4add 100644
---- a/drivers/net/ethernet/microsoft/mana/gdma_main.c
-+++ b/drivers/net/ethernet/microsoft/mana/gdma_main.c
-@@ -161,6 +161,8 @@ static int mana_gd_init_registers(struct pci_dev *pdev)
- bool mana_need_log(struct gdma_context *gc, int err)
+Happy to split this: the sndbuf_desc hunks only apply where the DMB-nocopy path
+exists and can carry their own Fixes: tag for a cleaner stable backport, while the
+rmb_desc ordering predates the git history here.  No Fixes: added -- please add
+whichever you prefer.
+
+Both orderings are modelled with LKMM message-passing litmus tests (herd7): plain
+accesses allow the "pointer published, buffer stale" outcome and flag a data race;
+smp_store_release()/smp_load_acquire() forbid it.  The patched build was exercised
+over an SMC-D loopback under KASAN with no regression; the rmb_desc NULL-deref arm
+is reproduced with an in-kernel KASAN model faulting at the ->cpu_addr / ->len
+offsets.  af_smc runs over an RDMA fabric or an ISM device, so the weak-memory arm
+is model-level; litmus tests and reproducer available on request.
+---
+ net/smc/smc_cdc.c  | 29 +++++++++++++++++++++++++----
+ net/smc/smc_core.c | 16 ++++++++++++++--
+ 2 files changed, 39 insertions(+), 6 deletions(-)
+
+diff --git a/net/smc/smc_cdc.c b/net/smc/smc_cdc.c
+index 32d6d03df321..2cd0ee7b51c2 100644
+--- a/net/smc/smc_cdc.c
++++ b/net/smc/smc_cdc.c
+@@ -332,6 +332,7 @@ static void smc_cdc_msg_recv_action(struct smc_sock *smc,
  {
- 	struct hw_channel_context *hwc;
-+	bool need_log = true;
-+	unsigned long flags;
+ 	union smc_host_cursor cons_old, prod_old;
+ 	struct smc_connection *conn = &smc->conn;
++	struct smc_buf_desc *sndbuf_desc;
+ 	int diff_cons, diff_prod, diff_tx;
  
- 	if (err != -ETIMEDOUT)
- 		return true;
-@@ -168,11 +170,13 @@ bool mana_need_log(struct gdma_context *gc, int err)
- 	if (!gc)
- 		return true;
- 
-+	spin_lock_irqsave(&gc->hwc_lock, flags);
- 	hwc = gc->hwc.driver_data;
- 	if (hwc && hwc->hwc_timeout == 0)
--		return false;
-+		need_log = false;
-+	spin_unlock_irqrestore(&gc->hwc_lock, flags);
- 
--	return true;
-+	return need_log;
- }
- 
- static int mana_gd_query_max_resources(struct pci_dev *pdev)
-@@ -367,9 +371,25 @@ static int mana_gd_detect_devices(struct pci_dev *pdev)
- int mana_gd_send_request(struct gdma_context *gc, u32 req_len, const void *req,
- 			 u32 resp_len, void *resp)
+ 	smc_curs_copy(&prod_old, &conn->local_rx_ctrl.prod, conn);
+@@ -353,12 +354,20 @@ static void smc_cdc_msg_recv_action(struct smc_sock *smc,
+ 		 * peer RMB, then update tx_curs_fin and sndbuf_space
+ 		 * here since peer has already consumed the data.
+ 		 */
++		/* Pair with smp_store_release() in smcd_buf_attach(): the ghost
++		 * sndbuf_desc is attached after the connection is reachable to
++		 * the ISM device, so acquire it and skip the update while it is
++		 * unset -- avoids a NULL deref and a load of an uninitialised
++		 * buffer.
++		 */
++		sndbuf_desc = smp_load_acquire(&conn->sndbuf_desc);
+ 		if (conn->lgr->is_smcd &&
+-		    smc_ism_support_dmb_nocopy(conn->lgr->smcd)) {
++		    smc_ism_support_dmb_nocopy(conn->lgr->smcd) &&
++		    sndbuf_desc) {
+ 			/* Calculate consumed data and
+ 			 * increment free send buffer space.
+ 			 */
+-			diff_tx = smc_curs_diff(conn->sndbuf_desc->len,
++			diff_tx = smc_curs_diff(sndbuf_desc->len,
+ 						&conn->tx_curs_fin,
+ 						&conn->local_rx_ctrl.cons);
+ 			/* increase local sndbuf space and fin_curs */
+@@ -443,13 +452,21 @@ static void smcd_cdc_rx_tsklet(struct tasklet_struct *t)
  {
--	struct hw_channel_context *hwc = gc->hwc.driver_data;
-+	struct hw_channel_context *hwc;
-+	unsigned long flags;
-+	int err;
-+
-+	spin_lock_irqsave(&gc->hwc_lock, flags);
-+	hwc = gc->hwc.driver_data;
-+	if (!hwc) {
-+		spin_unlock_irqrestore(&gc->hwc_lock, flags);
-+		return -ENODEV;
-+	}
-+	atomic_inc(&hwc->active_senders);
-+	spin_unlock_irqrestore(&gc->hwc_lock, flags);
-+
-+	err = mana_hwc_send_request(hwc, req_len, req, resp_len, resp);
+ 	struct smc_connection *conn = from_tasklet(conn, t, rx_tsklet);
+ 	struct smcd_cdc_msg *data_cdc;
++	struct smc_buf_desc *rmb_desc;
+ 	struct smcd_cdc_msg cdc;
+ 	struct smc_sock *smc;
  
--	return mana_hwc_send_request(hwc, req_len, req, resp_len, resp);
-+	if (atomic_dec_and_test(&hwc->active_senders))
-+		wake_up(&gc->hwc_drain_waitq);
-+
-+	return err;
- }
- EXPORT_SYMBOL_NS(mana_gd_send_request, "NET_MANA");
+ 	if (!conn || conn->killed)
+ 		return;
++	/* Pair with smp_store_release() in __smc_buf_create(): the connection
++	 * is published before its RMB is allocated, so bail while rmb_desc is
++	 * unset to avoid a NULL deref and a load of an uninitialised buffer.
++	 */
++	rmb_desc = smp_load_acquire(&conn->rmb_desc);
++	if (!rmb_desc)
++		return;
  
-@@ -622,6 +642,7 @@ static void mana_serv_reset(struct pci_dev *pdev)
- {
- 	struct gdma_context *gc = pci_get_drvdata(pdev);
- 	struct hw_channel_context *hwc;
-+	unsigned long flags;
- 	int ret;
- 
- 	if (!gc) {
-@@ -631,14 +652,17 @@ static void mana_serv_reset(struct pci_dev *pdev)
+-	data_cdc = (struct smcd_cdc_msg *)conn->rmb_desc->cpu_addr;
++	data_cdc = (struct smcd_cdc_msg *)rmb_desc->cpu_addr;
+ 	smcd_curs_copy(&cdc.prod, &data_cdc->prod, conn);
+ 	smcd_curs_copy(&cdc.cons, &data_cdc->cons, conn);
+ 	smc = container_of(conn, struct smc_sock, conn);
+@@ -483,7 +500,11 @@ static void smc_cdc_rx_handler(struct ib_wc *wc, void *buf)
+ 	lgr = smc_get_lgr(link);
+ 	read_lock_bh(&lgr->conns_lock);
+ 	conn = smc_lgr_find_conn(ntohl(cdc->token), lgr);
+-	if (!conn || conn->out_of_sync) {
++	/* Pair with smp_store_release() in __smc_buf_create(): bail while the
++	 * RMB is unset (smc_cdc_msg_recv_action() dereferences it) to avoid a
++	 * NULL deref and a stale-buffer read in the connection setup window.
++	 */
++	if (!conn || conn->out_of_sync || !smp_load_acquire(&conn->rmb_desc)) {
+ 		read_unlock_bh(&lgr->conns_lock);
  		return;
  	}
- 
-+	spin_lock_irqsave(&gc->hwc_lock, flags);
- 	hwc = gc->hwc.driver_data;
- 	if (!hwc) {
-+		spin_unlock_irqrestore(&gc->hwc_lock, flags);
- 		dev_err(&pdev->dev, "MANA service: no HWC\n");
- 		goto out;
+diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
+index cf6b620fef05..d94b728c0d68 100644
+--- a/net/smc/smc_core.c
++++ b/net/smc/smc_core.c
+@@ -2499,7 +2499,13 @@ static int __smc_buf_create(struct smc_sock *smc, bool is_smcd, bool is_rmb)
  	}
  
- 	/* HWC is not responding in this case, so don't wait */
- 	hwc->hwc_timeout = 0;
-+	spin_unlock_irqrestore(&gc->hwc_lock, flags);
- 
- 	dev_info(&pdev->dev, "MANA reset cycle start\n");
- 
-@@ -1200,6 +1224,16 @@ static int mana_gd_create_dma_region(struct gdma_dev *gd,
- 	if (!MANA_PAGE_ALIGNED(gmi->virt_addr))
- 		return -EINVAL;
- 
-+	/* No RCU needed: this runs only on the data-path queue-creation
-+	 * path (mana_gd_create_mana_eq/mana_gd_create_mana_wq_cq, called
-+	 * by mana_en under RTNL and by mana_ib RDMA verbs, or during
-+	 * init).  Every teardown path — mana_gd_remove, mana_gd_suspend,
-+	 * and the HWC reset/service path (which goes through
-+	 * mana_gd_suspend) — drains those consumers via mana_rdma_remove()
-+	 * + mana_remove() before mana_hwc_destroy_channel() clears
-+	 * gc->hwc.driver_data, so no concurrent destroy can race with
-+	 * this dereference.
+ 	if (is_rmb) {
+-		conn->rmb_desc = buf_desc;
++		/* Publish with release semantics: the connection is already in
++		 * the link group's token tree, so a concurrent CDC receive
++		 * handler must observe a fully initialised buffer once it sees
++		 * a non-NULL rmb_desc.  Pairs with the smp_load_acquire() in
++		 * the CDC receive path.
++		 */
++		smp_store_release(&conn->rmb_desc, buf_desc);
+ 		conn->rmbe_size_comp = bufsize_comp;
+ 		smc->sk.sk_rcvbuf = bufsize * 2;
+ 		atomic_set(&conn->bytes_to_rcv, 0);
+@@ -2599,7 +2605,13 @@ int smcd_buf_attach(struct smc_sock *smc)
+ 	buf_desc->cpu_addr =
+ 		(u8 *)buf_desc->cpu_addr + sizeof(struct smcd_cdc_msg);
+ 	buf_desc->len -= sizeof(struct smcd_cdc_msg);
+-	conn->sndbuf_desc = buf_desc;
++	/* Publish with release semantics: the connection is already reachable
++	 * to the ISM device (smc_ism_set_conn() ran in __smc_buf_create()), so
++	 * the CDC receive tasklet must observe a fully initialised ghost buffer
++	 * once it sees a non-NULL sndbuf_desc.  Pairs with smp_load_acquire()
++	 * in smc_cdc_msg_recv_action().
 +	 */
- 	hwc = gc->hwc.driver_data;
- 	req_msg_size = struct_size(req, page_addr_list, num_page);
- 	if (req_msg_size > hwc->max_req_msg_size)
-@@ -1389,7 +1423,17 @@ int mana_gd_verify_vf_version(struct pci_dev *pdev)
- 	struct hw_channel_context *hwc;
- 	int err;
- 
-+	/* No RCU needed: this runs only inside mana_gd_setup, on the
-+	 * probe and resume paths.  The PCI/PM core holds device_lock
-+	 * across .probe/.resume and .remove/.suspend, so setup cannot
-+	 * overlap teardown of the same device.  The HWC reset/service
-+	 * path is additionally serialized by GC_IN_SERVICE and runs
-+	 * suspend (destroy) then resume (this) sequentially in one work
-+	 * item.  driver_data was just set by mana_hwc_create_channel
-+	 * earlier in this same setup call, so it is live here.
-+	 */
- 	hwc = gc->hwc.driver_data;
-+
- 	mana_gd_init_req_hdr(&req.hdr, GDMA_VERIFY_VF_DRIVER_VERSION,
- 			     sizeof(req), sizeof(resp));
- 
-@@ -2379,6 +2423,7 @@ static int mana_gd_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
- 
- 	mutex_init(&gc->eq_test_event_mutex);
- 	mutex_init(&gc->gic_mutex);
-+	spin_lock_init(&gc->hwc_lock);
- 	pci_set_drvdata(pdev, gc);
- 	gc->bar0_pa = pci_resource_start(pdev, 0);
- 	gc->bar0_size = pci_resource_len(pdev, 0);
-diff --git a/drivers/net/ethernet/microsoft/mana/hw_channel.c b/drivers/net/ethernet/microsoft/mana/hw_channel.c
-index b26c2122ebf5..9ba4e75a4dd3 100644
---- a/drivers/net/ethernet/microsoft/mana/hw_channel.c
-+++ b/drivers/net/ethernet/microsoft/mana/hw_channel.c
-@@ -7,25 +7,52 @@
- #include <linux/pci.h>
- #include <linux/vmalloc.h>
- 
-+/* Acquire a free message slot from the inflight bitmap.  Returns
-+ * -ENODEV if the channel is torn down, or -ETIMEDOUT if a prior HWC
-+ * command has timed out (preserving the error code callers expect).
-+ */
- static int mana_hwc_get_msg_index(struct hw_channel_context *hwc, u16 *msg_id)
- {
- 	struct gdma_resource *r = &hwc->inflight_msg_res;
- 	unsigned long flags;
- 	u32 index;
- 
--	down(&hwc->sema);
-+	for (;;) {
-+		spin_lock_irqsave(&r->lock, flags);
- 
--	spin_lock_irqsave(&r->lock, flags);
-+		if (!hwc->channel_up || hwc->hwc_timed_out) {
-+			spin_unlock_irqrestore(&r->lock, flags);
-+			return hwc->channel_up ? -ETIMEDOUT : -ENODEV;
-+		}
- 
--	index = find_first_zero_bit(hwc->inflight_msg_res.map,
--				    hwc->inflight_msg_res.size);
-+		index = find_first_zero_bit(r->map, r->size);
-+		if (index < r->size) {
-+			struct hwc_caller_ctx *ctx;
-+
-+			bitmap_set(r->map, index, 1);
-+			ctx = &hwc->caller_ctx[index];
-+			reinit_completion(&ctx->comp_event);
-+			refcount_set(&ctx->refcnt, 1);
-+			ctx->msg_id = index;
-+			ctx->error = -EINPROGRESS;
-+			spin_unlock_irqrestore(&r->lock, flags);
-+			break;
-+		}
-+		spin_unlock_irqrestore(&r->lock, flags);
- 
--	bitmap_set(hwc->inflight_msg_res.map, index, 1);
-+		wait_event(hwc->msg_waitq,
-+			   !hwc->channel_up ||
-+			   hwc->hwc_timed_out ||
-+			   !bitmap_full(r->map, r->size));
- 
--	spin_unlock_irqrestore(&r->lock, flags);
-+		if (!hwc->channel_up)
-+			return -ENODEV;
- 
--	*msg_id = index;
-+		if (hwc->hwc_timed_out)
-+			return -ETIMEDOUT;
-+	}
- 
-+	*msg_id = index;
++	smp_store_release(&conn->sndbuf_desc, buf_desc);
+ 	conn->sndbuf_desc->used = 1;
+ 	atomic_set(&conn->sndbuf_space, conn->sndbuf_desc->len);
  	return 0;
- }
- 
-@@ -35,10 +62,17 @@ static void mana_hwc_put_msg_index(struct hw_channel_context *hwc, u16 msg_id)
- 	unsigned long flags;
- 
- 	spin_lock_irqsave(&r->lock, flags);
--	bitmap_clear(hwc->inflight_msg_res.map, msg_id, 1);
-+	bitmap_clear(r->map, msg_id, 1);
- 	spin_unlock_irqrestore(&r->lock, flags);
- 
--	up(&hwc->sema);
-+	wake_up(&hwc->msg_waitq);
-+}
-+
-+static void hwc_ctx_put(struct hw_channel_context *hwc,
-+			struct hwc_caller_ctx *ctx)
-+{
-+	if (refcount_dec_and_test(&ctx->refcnt))
-+		mana_hwc_put_msg_index(hwc, ctx->msg_id);
- }
- 
- static int mana_hwc_verify_resp_msg(const struct hwc_caller_ctx *caller_ctx,
-@@ -114,22 +148,32 @@ static void mana_hwc_handle_resp(struct hw_channel_context *hwc, u32 resp_len,
- 		resp_len = 0;
- 	}
- 
--	err = mana_hwc_verify_resp_msg(ctx, resp_msg, resp_len);
--	if (err)
--		goto out;
-+	spin_lock(&ctx->lock);
- 
--	ctx->status_code = resp_msg->status;
-+	err = mana_hwc_verify_resp_msg(ctx, resp_msg, resp_len);
- 
--	memcpy(ctx->output_buf, resp_msg, resp_len);
--out:
--	ctx->error = err;
-+	if (!err && ctx->output_buf) {
-+		ctx->status_code = resp_msg->status;
-+		memcpy(ctx->output_buf, resp_msg, resp_len);
-+		ctx->error = 0;
-+	} else if (ctx->output_buf) {
-+		/* Only overwrite error if the sender hasn't timed out
-+		 * or been force-completed by destroy.  When output_buf
-+		 * is NULL, a terminal error (-ENODEV or timeout) has
-+		 * already been set — preserve it so the sender doesn't
-+		 * see a spurious success.
-+		 */
-+		ctx->error = err;
-+	}
- 
--	/* Must post rx wqe before complete(), otherwise the next rx may
--	 * hit no_wqe error.
-+	/* Post RX WQE before completing — the next response may arrive
-+	 * immediately and needs a posted buffer.
- 	 */
- 	mana_hwc_post_rx_wqe(hwc->rxq, rx_req);
--
- 	complete(&ctx->comp_event);
-+	spin_unlock(&ctx->lock);
-+
-+	hwc_ctx_put(hwc, ctx);
- }
- 
- static void mana_hwc_init_event_handler(void *ctx, struct gdma_queue *q_self,
-@@ -617,6 +661,7 @@ static int mana_hwc_create_wq(struct hw_channel_context *hwc,
- 	hwc_wq->gdma_wq = queue;
- 	hwc_wq->queue_depth = q_depth;
- 	hwc_wq->hwc_cq = hwc_cq;
-+	spin_lock_init(&hwc_wq->lock);
- 
- 	err = mana_hwc_alloc_dma_buf(hwc, q_depth, max_msg_size,
- 				     &hwc_wq->msg_buf);
-@@ -634,7 +679,7 @@ static int mana_hwc_create_wq(struct hw_channel_context *hwc,
- 	return err;
- }
- 
--static int mana_hwc_post_tx_wqe(const struct hwc_wq *hwc_txq,
-+static int mana_hwc_post_tx_wqe(struct hwc_wq *hwc_txq,
- 				struct hwc_work_request *req,
- 				u32 dest_virt_rq_id, u32 dest_virt_rcq_id,
- 				bool dest_pf)
-@@ -673,7 +718,11 @@ static int mana_hwc_post_tx_wqe(const struct hwc_wq *hwc_txq,
- 	req->wqe_req.inline_oob_data = tx_oob;
- 	req->wqe_req.client_data_unit = 0;
- 
-+	/* Serialize WQE posting — multiple senders may call concurrently. */
-+	spin_lock(&hwc_txq->lock);
- 	err = mana_gd_post_and_ring(hwc_txq->gdma_wq, &req->wqe_req, NULL);
-+	spin_unlock(&hwc_txq->lock);
-+
- 	if (err)
- 		dev_err(dev, "Failed to post WQE on HWC SQ: %d\n", err);
- 	return err;
-@@ -684,7 +733,7 @@ static int mana_hwc_init_inflight_msg(struct hw_channel_context *hwc,
- {
- 	int err;
- 
--	sema_init(&hwc->sema, num_msg);
-+	init_waitqueue_head(&hwc->msg_waitq);
- 
- 	err = mana_gd_alloc_res_map(num_msg, &hwc->inflight_msg_res);
- 	if (err)
-@@ -714,18 +763,34 @@ static int mana_hwc_test_channel(struct hw_channel_context *hwc, u16 q_depth,
- 	if (!ctx)
- 		return -ENOMEM;
- 
--	for (i = 0; i < q_depth; ++i)
-+	for (i = 0; i < q_depth; ++i) {
-+		spin_lock_init(&ctx[i].lock);
- 		init_completion(&ctx[i].comp_event);
-+	}
- 
- 	hwc->caller_ctx = ctx;
- 
--	return mana_gd_test_eq(gc, hwc->cq->gdma_eq);
-+	/* channel_up must be set before the test EQ request, because
-+	 * the request goes through mana_hwc_get_msg_index() which
-+	 * checks channel_up.  caller_ctx is allocated above, so
-+	 * concurrent access to a NULL caller_ctx is not possible.
-+	 */
-+	hwc->channel_up = true;
-+
-+	err = mana_gd_test_eq(gc, hwc->cq->gdma_eq);
-+	if (err)
-+		hwc->channel_up = false;
-+
-+	return err;
- }
- 
- static int mana_hwc_establish_channel(struct gdma_context *gc, u16 *q_depth,
- 				      u32 *max_req_msg_size,
- 				      u32 *max_resp_msg_size)
- {
-+	/* No RCU needed: called only from mana_hwc_create_channel
-+	 * during init, before the channel is published to senders.
-+	 */
- 	struct hw_channel_context *hwc = gc->hwc.driver_data;
- 	struct gdma_queue *rq = hwc->rxq->gdma_wq;
- 	struct gdma_queue *sq = hwc->txq->gdma_wq;
-@@ -842,6 +907,7 @@ int mana_hwc_create_channel(struct gdma_context *gc)
- 	u32 max_req_msg_size, max_resp_msg_size;
- 	struct gdma_dev *gd = &gc->hwc;
- 	struct hw_channel_context *hwc;
-+	unsigned long flags;
- 	u16 q_depth_max;
- 	int err;
- 
-@@ -850,10 +916,11 @@ int mana_hwc_create_channel(struct gdma_context *gc)
- 		return -ENOMEM;
- 
- 	gd->gdma_context = gc;
--	gd->driver_data = hwc;
- 	hwc->gdma_dev = gd;
- 	hwc->dev = gc->dev;
- 	hwc->hwc_timeout = HW_CHANNEL_WAIT_RESOURCE_TIMEOUT_MS;
-+	atomic_set(&hwc->active_senders, 0);
-+	init_waitqueue_head(&gc->hwc_drain_waitq);
- 
- 	/* HWC's instance number is always 0. */
- 	gd->dev_id.as_uint32 = 0;
-@@ -862,6 +929,15 @@ int mana_hwc_create_channel(struct gdma_context *gc)
- 	gd->pdid = INVALID_PDID;
- 	gd->doorbell = INVALID_DOORBELL;
- 
-+	/* Publish driver_data last, under hwc_lock: the lock orders the hwc
-+	 * initialisation above before the pointer becomes visible and
-+	 * serialises the publish against the control-plane readers in
-+	 * mana_gd_send_request(), mana_need_log() and mana_serv_reset().
-+	 */
-+	spin_lock_irqsave(&gc->hwc_lock, flags);
-+	gc->hwc.driver_data = hwc;
-+	spin_unlock_irqrestore(&gc->hwc_lock, flags);
-+
- 	/* mana_hwc_init_queues() only creates the required data structures,
- 	 * and doesn't touch the HWC device.
- 	 */
-@@ -898,13 +974,47 @@ void mana_hwc_destroy_channel(struct gdma_context *gc)
- {
- 	struct hw_channel_context *hwc = gc->hwc.driver_data;
- 	struct gdma_queue __rcu **old_cq_table;
-+	unsigned long flags;
- 
- 	if (!hwc)
- 		return;
- 
-+	/* Prevent new requests from starting and wake any
-+	 * threads waiting for a free msg slot.  Set channel_up under
-+	 * the bitmap lock so get_msg_index() cannot acquire a slot
-+	 * and increment active_senders after this point.
-+	 *
-+	 * If channel_up is already false (e.g. init failed before
-+	 * the channel was established), skip the lock — it may not
-+	 * have been initialized yet, and no senders can be active.
-+	 */
-+	if (hwc->channel_up) {
-+		spin_lock_irqsave(&hwc->inflight_msg_res.lock, flags);
-+		hwc->channel_up = false;
-+		spin_unlock_irqrestore(&hwc->inflight_msg_res.lock, flags);
-+		wake_up_all(&hwc->msg_waitq);
-+	}
-+
-+	/* Clear the pointer under hwc_lock so new callers in
-+	 * mana_gd_send_request() see NULL and return -ENODEV.  The lock
-+	 * makes the readers' "load driver_data + atomic_inc(active_senders)"
-+	 * atomic against this store, so once it returns no new sender can
-+	 * take a reference; the active_senders drain below waits out those
-+	 * that already did, before their hwc is freed.
-+	 */
-+	spin_lock_irqsave(&gc->hwc_lock, flags);
-+	gc->hwc.driver_data = NULL;
-+	spin_unlock_irqrestore(&gc->hwc_lock, flags);
-+
- 	/* Tear down the HWC if setup_hwc previously activated MST entries.
- 	 * This is the definitive flag — unlike max_num_cqs which depends
- 	 * on the init EQE arriving.
-+	 *
-+	 * The return value is intentionally not checked.  This is the
-+	 * terminal cleanup path — resources must be freed regardless.
-+	 * If teardown fails, hardware may still have active MST entries,
-+	 * but the EQ deregistration and IOMMU unmapping below prevent
-+	 * stale hardware accesses from reaching kernel memory.
- 	 */
- 	if (hwc->setup_active) {
- 		int td_err = mana_smc_teardown_hwc(&gc->shm_channel, false);
-@@ -950,11 +1060,49 @@ void mana_hwc_destroy_channel(struct gdma_context *gc)
- 		hwc->setup_active = false;
- 	}
- 
-+	/* After SMC teardown, no more hardware events should arrive.
-+	 * Force-complete any remaining in-flight senders so they can
-+	 * exit and drop their refs.
-+	 */
-+	if (hwc->caller_ctx) {
-+		struct hwc_caller_ctx *ctx;
-+		int i;
-+
-+		for (i = 0; i < hwc->num_inflight_msg; i++) {
-+			if (!test_bit(i, hwc->inflight_msg_res.map))
-+				continue;
-+
-+			ctx = &hwc->caller_ctx[i];
-+
-+			/* Wake senders blocked on wait_for_completion.
-+			 * Set error under lock to avoid racing with
-+			 * handle_resp() which writes error under the
-+			 * same lock.  The sender NULLs output_buf
-+			 * after waking — doing it here would race
-+			 * with a sender that hasn't set output_buf yet.
-+			 */
-+			spin_lock_irqsave(&ctx->lock, flags);
-+			ctx->error = -ENODEV;
-+			complete(&ctx->comp_event);
-+			spin_unlock_irqrestore(&ctx->lock, flags);
-+		}
-+	}
-+
-+	/* Wait for all sender threads to finish and drop their refs.
-+	 * After this, only slots held by timed-out senders whose
-+	 * handle_resp() never ran remain in the bitmap.
-+	 */
-+	wait_event(gc->hwc_drain_waitq,
-+		   atomic_read(&hwc->active_senders) == 0);
-+
- 	/* Tear down the HWC CQ object first — mana_hwc_destroy_cq()
- 	 * both unpublishes the CQ from cq_table (+synchronize_rcu) and
--	 * deregisters the HWC EQ from the interrupt handler list (via
--	 * mana_gd_deregister_irq + synchronize_rcu), guaranteeing no
--	 * interrupt handler can access RQ/TXQ buffers after this point.
-+	 * deregisters the HWC EQ from the interrupt handler's RCU list
-+	 * (via mana_gd_deregister_irq + synchronize_rcu), guaranteeing
-+	 * no interrupt handler can access RQ/TXQ buffers after this
-+	 * point.  The active_senders drain above ensures no sender is
-+	 * accessing the CQ via txq->hwc_cq when it is destroyed.  Then
-+	 * destroy TXQ and RQ safely.
- 	 */
- 	if (hwc->cq)
- 		mana_hwc_destroy_cq(hwc->gdma_dev->gdma_context, hwc->cq);
-@@ -965,6 +1113,23 @@ void mana_hwc_destroy_channel(struct gdma_context *gc)
- 	if (hwc->rxq)
- 		mana_hwc_destroy_wq(hwc, hwc->rxq);
- 
-+	/* Release any slots still held — these belong to timed-out
-+	 * senders where handle_resp() never ran (refcount = 1 with
-+	 * handle_resp's ref still outstanding).
-+	 */
-+	if (hwc->caller_ctx) {
-+		struct hwc_caller_ctx *ctx;
-+		int i;
-+
-+		for (i = 0; i < hwc->num_inflight_msg; i++) {
-+			if (!test_bit(i, hwc->inflight_msg_res.map))
-+				continue;
-+
-+			ctx = &hwc->caller_ctx[i];
-+			hwc_ctx_put(hwc, ctx);
-+		}
-+	}
-+
- 	kfree(hwc->caller_ctx);
- 	hwc->caller_ctx = NULL;
- 
-@@ -978,7 +1143,6 @@ void mana_hwc_destroy_channel(struct gdma_context *gc)
- 	hwc->hwc_timeout = 0;
- 
- 	kfree(hwc);
--	gc->hwc.driver_data = NULL;
- 	gc->hwc.gdma_context = NULL;
- 
- 	old_cq_table = rcu_replace_pointer(gc->cq_table, NULL, true);
-@@ -994,13 +1158,17 @@ int mana_hwc_send_request(struct hw_channel_context *hwc, u32 req_len,
- 	struct hwc_wq *txq = hwc->txq;
- 	struct gdma_req_hdr *req_msg;
- 	struct hwc_caller_ctx *ctx;
-+	unsigned long flags;
- 	u32 dest_vrcq = 0;
- 	u32 dest_vrq = 0;
- 	u32 command;
-+	u32 status;
- 	u16 msg_id;
- 	int err;
- 
--	mana_hwc_get_msg_index(hwc, &msg_id);
-+	err = mana_hwc_get_msg_index(hwc, &msg_id);
-+	if (err)
-+		return err;
- 
- 	tx_wr = &txq->msg_buf->reqs[msg_id];
- 
-@@ -1012,8 +1180,11 @@ int mana_hwc_send_request(struct hw_channel_context *hwc, u32 req_len,
- 	}
- 
- 	ctx = hwc->caller_ctx + msg_id;
-+
-+	spin_lock_irqsave(&ctx->lock, flags);
- 	ctx->output_buf = resp;
- 	ctx->output_buflen = resp_len;
-+	spin_unlock_irqrestore(&ctx->lock, flags);
- 
- 	req_msg = (struct gdma_req_hdr *)tx_wr->buf_va;
- 	if (req)
-@@ -1029,8 +1200,14 @@ int mana_hwc_send_request(struct hw_channel_context *hwc, u32 req_len,
- 		dest_vrcq = hwc->pf_dest_vrcq_id;
- 	}
- 
-+	/* Take handle_resp's ref before posting — hardware can respond
-+	 * immediately after the doorbell ring.
-+	 */
-+	refcount_inc(&ctx->refcnt);
-+
- 	err = mana_hwc_post_tx_wqe(txq, tx_wr, dest_vrq, dest_vrcq, false);
- 	if (err) {
-+		refcount_dec(&ctx->refcnt);
- 		dev_err(hwc->dev, "HWC: Failed to post send WQE: %d\n", err);
- 		goto out;
- 	}
-@@ -1041,31 +1218,86 @@ int mana_hwc_send_request(struct hw_channel_context *hwc, u32 req_len,
- 			dev_err(hwc->dev, "Command 0x%x timed out: %u ms\n",
- 				command, hwc->hwc_timeout);
- 
--		/* Reduce further waiting if HWC no response */
-+		/* NULL out output_buf so a late handle_resp() won't write
-+		 * into the caller's buffer after the sender returns, then
-+		 * check whether handle_resp() already delivered a valid
-+		 * response between the timeout firing and this lock
-+		 * acquisition — ctx->error != -EINPROGRESS means it ran.
-+		 */
-+		spin_lock_irqsave(&ctx->lock, flags);
-+		ctx->output_buf = NULL;
-+		err = ctx->error;
-+		status = ctx->status_code;
-+		spin_unlock_irqrestore(&ctx->lock, flags);
-+
-+		if (err != -EINPROGRESS) {
-+			/* handle_resp() delivered a valid response just after
-+			 * the timeout fired.  The hardware is alive, so use the
-+			 * response and leave the channel usable — do not latch
-+			 * hwc_timed_out or degrade hwc_timeout for what turned
-+			 * out to be a transient race.
-+			 */
-+			hwc_ctx_put(hwc, ctx);
-+			goto check_status;
-+		}
-+
-+		/* Genuine timeout: no response arrived.  Reduce further
-+		 * waiting, and mark the channel timed out under the bitmap
-+		 * lock so get_msg_index() cannot acquire new slots after this.
-+		 */
- 		if (hwc->hwc_timeout > 1)
- 			hwc->hwc_timeout = 1;
- 
-+		spin_lock_irqsave(&hwc->inflight_msg_res.lock, flags);
-+		hwc->hwc_timed_out = true;
-+		spin_unlock_irqrestore(&hwc->inflight_msg_res.lock, flags);
-+		wake_up_all(&hwc->msg_waitq);
-+
- 		err = -ETIMEDOUT;
--		goto out;
-+		hwc_ctx_put(hwc, ctx);
-+		goto done;
- 	}
- 
--	if (ctx->error) {
--		err = ctx->error;
--		goto out;
--	}
-+	/* NULL output_buf so a late handle_resp() won't memcpy into
-+	 * the caller's buffer after the sender exits.  Read error and
-+	 * status_code under the same lock — after hwc_ctx_put the slot
-+	 * may be reused and these fields overwritten.
-+	 */
-+	spin_lock_irqsave(&ctx->lock, flags);
-+	ctx->output_buf = NULL;
-+	err = ctx->error;
-+	status = ctx->status_code;
-+	spin_unlock_irqrestore(&ctx->lock, flags);
-+	hwc_ctx_put(hwc, ctx);
-+
-+check_status:
-+	if (err)
-+		goto done;
- 
--	if (ctx->status_code && ctx->status_code != GDMA_STATUS_MORE_ENTRIES) {
--		if (ctx->status_code == GDMA_STATUS_CMD_UNSUPPORTED) {
-+	if (status && status != GDMA_STATUS_MORE_ENTRIES) {
-+		if (status == GDMA_STATUS_CMD_UNSUPPORTED) {
- 			err = -EOPNOTSUPP;
--			goto out;
-+			goto done;
- 		}
-+
- 		if (command != MANA_QUERY_PHY_STAT)
- 			dev_err(hwc->dev, "Command 0x%x failed with status: 0x%x\n",
--				command, ctx->status_code);
-+				command, status);
- 		err = -EPROTO;
--		goto out;
-+		goto done;
- 	}
-+
-+	err = 0;
-+	goto done;
- out:
--	mana_hwc_put_msg_index(hwc, msg_id);
-+	/* Pre-post error paths: no WQE was submitted so handle_resp()
-+	 * cannot race here.  refcount is 1 (no second ref taken).
-+	 */
-+	ctx = hwc->caller_ctx + msg_id;
-+	spin_lock_irqsave(&ctx->lock, flags);
-+	ctx->output_buf = NULL;
-+	spin_unlock_irqrestore(&ctx->lock, flags);
-+	hwc_ctx_put(hwc, ctx);
-+done:
- 	return err;
- }
-diff --git a/include/net/mana/gdma.h b/include/net/mana/gdma.h
-index 9ca7cf523366..01e845237b6a 100644
---- a/include/net/mana/gdma.h
-+++ b/include/net/mana/gdma.h
-@@ -481,6 +481,21 @@ struct gdma_context {
- 	/* Hardware communication channel (HWC) */
- 	struct gdma_dev		hwc;
- 
-+	/* destroy_channel() waits here for all HWC senders to exit.
-+	 * Lives on gc (not hwc) so wake_up() after the last sender's
-+	 * atomic_dec doesn't dereference freed hwc memory.
-+	 */
-+	wait_queue_head_t	hwc_drain_waitq;
-+
-+	/* Serializes hwc.driver_data (the hw_channel_context pointer)
-+	 * between the control-plane readers in mana_gd_send_request(),
-+	 * mana_need_log() and mana_serv_reset() and the publish/clear in
-+	 * mana_hwc_create_channel()/mana_hwc_destroy_channel().  All users
-+	 * are control-plane (HWC commands sleep; reset runs on a workqueue),
-+	 * so a plain spinlock -- not RCU -- is sufficient.
-+	 */
-+	spinlock_t		hwc_lock;
-+
- 	/* Azure network adapter */
- 	struct gdma_dev		mana;
- 
-diff --git a/include/net/mana/hw_channel.h b/include/net/mana/hw_channel.h
-index 684dcec8e612..bc62d1ce7bd4 100644
---- a/include/net/mana/hw_channel.h
-+++ b/include/net/mana/hw_channel.h
-@@ -164,6 +164,9 @@ struct hwc_wq {
- 	u16 queue_depth;
- 
- 	struct hwc_cq *hwc_cq;
-+
-+	/* Serializes concurrent mana_gd_post_and_ring() calls. */
-+	spinlock_t lock;
- };
- 
- struct hwc_caller_ctx {
-@@ -173,6 +176,17 @@ struct hwc_caller_ctx {
- 
- 	u32 error; /* Linux error code */
- 	u32 status_code;
-+
-+	/* Protects output_buf against concurrent access from
-+	 * handle_resp() (CQ interrupt) and the sender timeout path.
-+	 */
-+	spinlock_t lock;
-+
-+	/* Tracks sender + handle_resp ownership.  The last put
-+	 * (refcount reaches 0) releases the bitmap slot.
-+	 */
-+	refcount_t refcnt;
-+	u16 msg_id;
- };
- 
- struct hw_channel_context {
-@@ -193,13 +207,24 @@ struct hw_channel_context {
- 	struct hwc_wq *txq;
- 	struct hwc_cq *cq;
- 
--	struct semaphore sema;
- 	struct gdma_resource inflight_msg_res;
-+	/* Waitqueue for senders blocked on a full inflight bitmap. */
-+	wait_queue_head_t msg_waitq;
- 
- 	u32 pf_dest_vrq_id;
- 	u32 pf_dest_vrcq_id;
- 	u32 hwc_timeout;
- 
-+	/* Set after channel is fully established; cleared on teardown to
-+	 * abort waiters in mana_hwc_get_msg_index() and reject new sends.
-+	 */
-+	bool channel_up;
-+
-+	/* Set on first HWC timeout.  Causes get_msg_index() to return
-+	 * -ETIMEDOUT instead of waiting, draining all queued senders.
-+	 */
-+	bool hwc_timed_out;
-+
- 	/* Set after mana_smc_setup_hwc() succeeds (hardware has active
- 	 * MST entries).  On recoverable paths (establish_channel)
- 	 * cleared only after successful teardown so a retry remains
-@@ -208,6 +233,8 @@ struct hw_channel_context {
- 	 */
- 	bool setup_active;
- 
-+	atomic_t active_senders;
-+
- 	struct hwc_caller_ctx *caller_ctx;
- };
- 
+
+---
+base-commit: 3f1f755366687d051174739fb99f7d560202f60b
+change-id: 20260714-b4-disp-835288a6-1f72ff8d7a71
+
+Best regards,
 -- 
-2.43.0
+Bryam Vargas <hexlabsecurity@proton.me>
+
 
