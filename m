@@ -1,20 +1,20 @@
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 45D0A768EA;
-	Wed, 15 Jul 2026 03:30:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 1E1B63AB5B7;
+	Wed, 15 Jul 2026 03:30:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784086208; cv=none; b=YJfPgDi8Fk3FlJ/ow8DnMj0UeijrYG4jByrIs1QjmB4pba8wYOjhD8NAg+6beK+RY4hDTQ1V14/8Gum08qU0XOhr3exPtgqhXRBt0xXIybVhMq8Qvqn8RLX2a00EB4mykn69eRcA73IBT1Qw8QMWwyFZrDZSSA1SGEr/nYn8X9k=
+	t=1784086211; cv=none; b=DorEQMxXN22eddcvZ4ggXGpEi84tIpUl/Ey9jpGsdvIM5h54+nWluZhWjYqFiTf/KNHGVXqpsUT8TU0AtLT22mngieDRvvgDDPV/SAk2vcrqfiLf9+VCYzgI+IOL+ssnjXfy1p5dB8U0VoZEeOIi8XyBjfEaatsRP+2nRG4ACJs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784086208; c=relaxed/simple;
-	bh=7FKTfx250qyVsvYI+9PE7/vy/6joX/+tUb06W0+xzno=;
+	s=arc-20240116; t=1784086211; c=relaxed/simple;
+	bh=fW7MLrkN3fiIRL1AdvJb2iiQxx8j5Cs8dbZRl/K2E04=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=Gcs8iEMwft2ENH+0t+ueCgB1xcHVcIKqDERqfIEDkQJ1dgF2C9GxSQGX6TCKn9CfhxPljYBkJU+hTJ7dBjRVlDhiV2JncBemAdpX8tyKqM/HgUmeYS3v1bRRQoidlO+AQraUozW31WLqeq9xm4+ssQRSzkI6q7z1OfIZRrvaKq4=
+	 MIME-Version; b=fG1SOnrDb0DZUS4AfzLo8+nKK/Bapss67UAnhSmTTu3+tl+DcvMuNmBby3+vrwJkGZmREWNVF/Bd/m2t/vAnGSofyIpLD75pQgaYXQ9rJtzlSihuXAi2ulIA9B9LG5wiICiJLtrT/K4DtZqEwRLTfIHjkIWL6JdSe14Bolwa4e8=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; arc=none smtp.client-ip=13.77.154.182
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Received: by linux.microsoft.com (Postfix, from userid 1202)
-	id 9D84F20B7185; Tue, 14 Jul 2026 20:29:58 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 9D84F20B7185
+	id A379A20B716C; Tue, 14 Jul 2026 20:29:59 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com A379A20B716C
 From: Long Li <longli@microsoft.com>
 To: Long Li <longli@microsoft.com>,
 	Konstantin Taranov <kotaranov@microsoft.com>,
@@ -35,9 +35,9 @@ Cc: netdev@vger.kernel.org,
 	linux-rdma@vger.kernel.org,
 	linux-hyperv@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH net-next 2/7] net: mana: fix HWC RQ/SQ buffer size swap
-Date: Tue, 14 Jul 2026 20:29:36 -0700
-Message-ID: <20260715032942.3945317-3-longli@microsoft.com>
+Subject: [PATCH net-next 3/7] net: mana: free HWC comp_buf after destroying the EQ
+Date: Tue, 14 Jul 2026 20:29:37 -0700
+Message-ID: <20260715032942.3945317-4-longli@microsoft.com>
 X-Mailer: git-send-email 2.43.7
 In-Reply-To: <20260715032942.3945317-1-longli@microsoft.com>
 References: <20260715032942.3945317-1-longli@microsoft.com>
@@ -49,73 +49,47 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-The HWC RQ receives responses and the SQ sends requests, but
-mana_hwc_init_queues() sized the RQ with max_req_msg_size and the SQ with
-max_resp_msg_size -- backwards.  A response larger than the undersized RQ
-buffer could overflow it, and mana_hwc_rx_event_handler() recovered the
-RX slot index by dividing by the wrong size (max_req_msg_size).
+mana_hwc_destroy_cq() freed hwc_cq->comp_buf before destroying the CQ and
+EQ.  comp_buf is dereferenced by mana_hwc_comp_event(), which the EQ
+interrupt handler invokes; freeing it while the EQ was still registered
+let a late handler touch freed memory.
 
-Size the RQ by max_resp_msg_size and the SQ by max_req_msg_size, store
-max_resp_msg_size in hw_channel_context, and use it as the RX slot
-stride.
+Destroy the CQ and EQ first -- the EQ teardown deregisters the IRQ and
+fences in-flight handlers -- then free comp_buf and hwc_cq.
 
 Fixes: ca9c54d2d6a5 ("net: mana: Add a driver for Microsoft Azure Network Adapter (MANA)")
 Signed-off-by: Long Li <longli@microsoft.com>
 ---
- drivers/net/ethernet/microsoft/mana/hw_channel.c | 7 ++++---
- include/net/mana/hw_channel.h                    | 1 +
- 2 files changed, 5 insertions(+), 3 deletions(-)
+ drivers/net/ethernet/microsoft/mana/hw_channel.c | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/net/ethernet/microsoft/mana/hw_channel.c b/drivers/net/ethernet/microsoft/mana/hw_channel.c
-index 409e20caeccd..3f011ebbe7b3 100644
+index 3f011ebbe7b3..2239fdeda57c 100644
 --- a/drivers/net/ethernet/microsoft/mana/hw_channel.c
 +++ b/drivers/net/ethernet/microsoft/mana/hw_channel.c
-@@ -263,7 +263,7 @@ static void mana_hwc_rx_event_handler(void *ctx, u32 gdma_rxq_id,
+@@ -384,14 +384,20 @@ static void mana_hwc_comp_event(void *ctx, struct gdma_queue *q_self)
  
- 	/* Select the RX work request for virtual address and for reposting. */
- 	rq_base_addr = hwc_rxq->msg_buf->mem_info.dma_handle;
--	rx_req_idx = (sge->address - rq_base_addr) / hwc->max_req_msg_size;
-+	rx_req_idx = (sge->address - rq_base_addr) / hwc->max_resp_msg_size;
+ static void mana_hwc_destroy_cq(struct gdma_context *gc, struct hwc_cq *hwc_cq)
+ {
+-	kfree(hwc_cq->comp_buf);
+-
+ 	if (hwc_cq->gdma_cq)
+ 		mana_gd_destroy_queue(gc, hwc_cq->gdma_cq);
  
- 	if (rx_req_idx >= hwc_rxq->msg_buf->num_reqs) {
- 		dev_err(hwc->dev, "HWC RX: wrong rx_req_idx=%llu, num_reqs=%u\n",
-@@ -733,14 +733,14 @@ static int mana_hwc_init_queues(struct hw_channel_context *hwc, u16 q_depth,
- 		goto out;
- 	}
++	/* comp_buf is reached only by mana_hwc_comp_event(), which the
++	 * EQ handler invokes via cq_table[id].  The CQ destroy above
++	 * already cleared that slot and ran synchronize_rcu(), so no
++	 * handler can reach comp_buf once it returns.  Destroying the EQ
++	 * here additionally tears down the IRQ (defense in depth) before
++	 * comp_buf and hwc_cq are freed below.
++	 */
+ 	if (hwc_cq->gdma_eq)
+ 		mana_gd_destroy_queue(gc, hwc_cq->gdma_eq);
  
--	err = mana_hwc_create_wq(hwc, GDMA_RQ, q_depth, max_req_msg_size,
-+	err = mana_hwc_create_wq(hwc, GDMA_RQ, q_depth, max_resp_msg_size,
- 				 hwc->cq, &hwc->rxq);
- 	if (err) {
- 		dev_err(hwc->dev, "Failed to create HWC RQ: %d\n", err);
- 		goto out;
- 	}
++	kfree(hwc_cq->comp_buf);
+ 	kfree(hwc_cq);
+ }
  
--	err = mana_hwc_create_wq(hwc, GDMA_SQ, q_depth, max_resp_msg_size,
-+	err = mana_hwc_create_wq(hwc, GDMA_SQ, q_depth, max_req_msg_size,
- 				 hwc->cq, &hwc->txq);
- 	if (err) {
- 		dev_err(hwc->dev, "Failed to create HWC SQ: %d\n", err);
-@@ -749,6 +749,7 @@ static int mana_hwc_init_queues(struct hw_channel_context *hwc, u16 q_depth,
- 
- 	hwc->num_inflight_msg = q_depth;
- 	hwc->max_req_msg_size = max_req_msg_size;
-+	hwc->max_resp_msg_size = max_resp_msg_size;
- 
- 	return 0;
- out:
-diff --git a/include/net/mana/hw_channel.h b/include/net/mana/hw_channel.h
-index 16feb39616c1..73671f479399 100644
---- a/include/net/mana/hw_channel.h
-+++ b/include/net/mana/hw_channel.h
-@@ -181,6 +181,7 @@ struct hw_channel_context {
- 
- 	u16 num_inflight_msg;
- 	u32 max_req_msg_size;
-+	u32 max_resp_msg_size;
- 
- 	u16 hwc_init_q_depth_max;
- 	u32 hwc_init_max_req_msg_size;
 -- 
 2.43.0
 
