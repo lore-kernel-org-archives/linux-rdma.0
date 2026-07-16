@@ -1,257 +1,320 @@
-Received: from m16.mail.163.com (m16.mail.163.com [220.197.31.4])
+Received: from out-172.mta0.migadu.com (out-172.mta0.migadu.com [91.218.175.172])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED49A26738C
-	for <linux-rdma@vger.kernel.org>; Thu, 16 Jul 2026 03:11:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=220.197.31.4
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E5AF71A6813
+	for <linux-rdma@vger.kernel.org>; Thu, 16 Jul 2026 03:17:53 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784171524; cv=none; b=VzT6sIBGaREAjIsPoYVzjdeopPxMv29G6kapvBksuMxkJJgEbGjcNPStyld+NPh8uMqzO6JMYoy34LFC++L/JSbnt31dxQPpveMG/zYGWUnz5OvYmeMWumJz/nhd4mTw1i5eP/MJeVLEOCsSVXv+YLJEGUOYN33qJYyMxbC24gI=
+	t=1784171876; cv=none; b=Tk+QW+rtsgeMC+4e5cfx0b+JW0d/X/u8DUm3pHNSqooYYljaP9LPsZBW3IsRWe3iZBMWGAau/Hfk5S7Fl3QskLtq1Jsya32cnqWP6p1PlGOvuoBFm1s5CCef1MAspOw7WgOuO/zCkw5Ab+xwuudRZULX0Ow5+yqpq7G7fb5VJAY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784171524; c=relaxed/simple;
-	bh=tMNI74FjxHLZbx+c2icCEaeyRw6ot1AuE/fgJCA4MHs=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:Content-Type:
-	 MIME-Version:Message-ID; b=gEgNuoQaFUH2HD7AToEXJn+/qBJx3G6LDVuDmoSVdamwX7Lbib6hH2R0IRM9BU+BvpsLFnHJEn60k3tmpvfUSSOCN68XpgoMpP8eF3Ip6+ljUlpOauQ/DEqjFz8UBkiaKa07sERDcUIk1Eeld2TEbjS4O4+HbFmPe6a42sBDXsY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com; spf=pass smtp.mailfrom=163.com; dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b=H+CFBHqb; arc=none smtp.client-ip=220.197.31.4
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
+	s=arc-20240116; t=1784171876; c=relaxed/simple;
+	bh=V4ievHFjUEIYTEdUO30x0i9t5/xFnZN5DSF17NHRYlE=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=GJqWSXbpEeOGt2P37XILBksW1gpQ6XPj8CWOi7kK+4oTsRF2uKPFnu/Z9Owj03JEC44h1bN1ukYSWzyr7oLiEHISYqzqpw7lgsSTcRAzoXDNXjC0o7BqtMnXvAgP53jgh4BHsy4NZKpzCdivDl21m7Ufn1ITNfQUVpB7/EdkQ28=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=WaB2Mq3/; arc=none smtp.client-ip=91.218.175.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="H+CFBHqb"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
-	s=s110527; h=Date:From:To:Subject:Content-Type:MIME-Version:
-	Message-ID; bh=tMNI74FjxHLZbx+c2icCEaeyRw6ot1AuE/fgJCA4MHs=; b=H
-	+CFBHqbbg7vDKLArJB4ImxTK7cZU5kfbzKETjqQ4XijN4oxUg/vCjYbDn3M0Bekr
-	4bGH7D15EQ/sw9BebGZzpUHjeuMaJh94k+fTJaFsQ/OQlCr6axF0myJEgdxhzkDS
-	Aky/zDlwR/J1ngcWmnblAhiO0GImkR459Pqe2bHlJI=
-Received: from 15927021679$163.com ( [116.128.244.169] ) by
- ajax-webmail-wmsvr-40-101 (Coremail) ; Thu, 16 Jul 2026 11:11:34 +0800
- (CST)
-Date: Thu, 16 Jul 2026 11:11:34 +0800 (CST)
-From: "Xiong Weimin" <15927021679@163.com>
-To: "Yanjun.Zhu" <yanjun.zhu@linux.dev>
-Cc: linux-rdma@vger.kernel.org, jgg@nvidia.com, zyjzyj2000@gmail.com,
-	xiongweimin <xiongweimin@kylinos.cn>,
-	"Leon Romanovsky" <leon@kernel.org>
-Subject: Re:Re: [PATCH v3] RDMA/rxe: Hold netdev reference for transmit skbs
-X-Priority: 3
-X-Mailer: Coremail Webmail Server Version 2023.4-cmXT build
- 20260511(2e539873) Copyright (c) 2002-2026 www.mailtech.cn 163com
-In-Reply-To: <be8b5c24-2a54-41eb-a292-3fc09c6ae1ae@linux.dev>
-References: <20260714015554.174436-1-15927021679@163.com>
- <20260715064149.283009-1-15927021679@163.com>
- <e1a0dbd3-a576-41c4-9ca7-a20afda49f1f@linux.dev>
- <be8b5c24-2a54-41eb-a292-3fc09c6ae1ae@linux.dev>
-X-NTES-SC: AL_Qu2TBv2cvkwi4iSeZukckk8Ugeg8Xsewsvgh249ec+oElCzLwgYgQV1lHn/7yMKGGQGTlyCPbBR29cJYdId1mRf2Mzo8QNPMOXxudbqugA==
-Content-Transfer-Encoding: base64
-Content-Type: text/plain; charset=UTF-8
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="WaB2Mq3/"
+Message-ID: <be5db399-5dd3-4714-b790-dc15b11e46bf@linux.dev>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
+	t=1784171872;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=uT1ZgaPZBvPVOF0mHoU9tZ8/hIQnVgWG9mQETNu/HuU=;
+	b=WaB2Mq3/aUJG6wDqlfFFimtNJbw1QcxxeEUqRfQINVpBeyKbP1gywT5SwTCi2ljo7CgirY
+	A2McsX/sSqcGzZkoBAxNja350rvkoSrAeNwKnE2WR/27NoCA1GpkWfZFs7LS9omMAbvgrb
+	MqgVj8Ew137bgOxsBv7hUztvnmr/6nw=
+Date: Wed, 15 Jul 2026 20:17:41 -0700
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Message-ID: <33806ed7.2bb9.19f68e87c48.Coremail.15927021679@163.com>
-X-Coremail-Locale: zh_CN
-X-CM-TRANSID:ZSgvCgBn73fnS1hqqAwfAA--.15129W
-X-CM-SenderInfo: jprvmjixqsilmxzbiqqrwthudrp/xtbC0ge8RWpYS+el1wAA3A
-X-Coremail-Antispam: 1U5529EdanIXcx71UUUUU7vcSsGvfC2KfnxnUU==
+Subject: Re: [PATCH v3] RDMA/rxe: Hold netdev reference for transmit skbs
+To: Xiong Weimin <15927021679@163.com>
+Cc: linux-rdma@vger.kernel.org, jgg@nvidia.com, zyjzyj2000@gmail.com,
+ xiongweimin <xiongweimin@kylinos.cn>, Leon Romanovsky <leon@kernel.org>
+References: <20260714015554.174436-1-15927021679@163.com>
+ <20260715064149.283009-1-15927021679@163.com>
+ <e1a0dbd3-a576-41c4-9ca7-a20afda49f1f@linux.dev>
+ <be8b5c24-2a54-41eb-a292-3fc09c6ae1ae@linux.dev>
+ <33806ed7.2bb9.19f68e87c48.Coremail.15927021679@163.com>
+Content-Language: en-US
+X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
+From: "Yanjun.Zhu" <yanjun.zhu@linux.dev>
+In-Reply-To: <33806ed7.2bb9.19f68e87c48.Coremail.15927021679@163.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
+X-Migadu-Flow: FLOW_OUT
 
-CgoKU3ViamVjdDogUmU6IFtQQVRDSCB2M10gUkRNQS9yeGU6IEhvbGQgbmV0ZGV2IHJlZmVyZW5j
-ZSBmb3IgdHJhbnNtaXQgc2ticwpIaSBZYW5qdW4sClRoYW5rcyBmb3IgdGFraW5nIHRoZSB0aW1l
-IHRvIHJldmlldy4gTGV0IG1lIGNsYXJpZnkgdGhlIHF1ZXN0aW9uIGFib3V0IHRoZcKgbmRldsKg
-cG9pbnRlci4KVGhlwqBuZGV2wqBwb2ludGVyIChzdHJ1Y3QgbmV0X2RldmljZSAqKSBpcyBhIGtl
-cm5lbCB2aXJ0dWFsIGFkZHJlc3MgdGhhdMKgbGl2ZXMgZW50aXJlbHkgaW4gdGhlIGxvY2FsIGhv
-c3QncyBrZXJuZWwgYWRkcmVzcyBzcGFjZS4gSXQgaXPCoG5ldmVyIHNlcmlhbGl6ZWQgb3IgdHJh
-bnNtaXR0ZWQgb3ZlciB0aGUgd2lyZS4gVGhlIFJETUEvUm9DRSBwYWNrZXQgb24gdGhlIHdpcmUg
-b25seSBjb250YWlucyBwcm90b2NvbCBoZWFkZXJzIChFVEgsIElQLCBVRFAsIEJUSCkgYW5kIHBh
-eWxvYWQgZGF0YSDigJQgbm8ga2VybmVsIHBvaW50ZXJzLgpUaGUgZmxvdyBpczoKICAxLiByeGVf
-aW5pdF9wYWNrZXQoKcKgYWxsb2NhdGVzIGFuIHNrYiBhbmQgY2FsbHPCoGRldl9ob2xkKG5kZXYp
-wqB0byB0YWtlIGEgcmVmZXJlbmNlIG9uIHRoZSBsb2NhbCBuZXRfZGV2aWNlLiBUaGlzIHByZXZl
-bnRzIHRoZSBuZXRfZGV2aWNlIGZyb20gYmVpbmcgdW5yZWdpc3RlcmVkIChmcmVlaW5nIHRoZcKg
-c3RydWN0IG5ldF9kZXZpY2XCoG1lbW9yeSkgd2hpbGUgdGhlIHNrYiBzdGlsbCByZWZlcmVuY2Vz
-IGl0LgogIDIuIFRoZSBza2IgaXMgcGFzc2VkIHRvIHRoZSBrZXJuZWwncyBJUCBzdGFjayB2aWHC
-oGlwX2xvY2FsX291dCgpLiBUaGUgSVAgc3RhY2sgbWF5IHJld3JpdGXCoHNrYi0+ZGV2wqBkdXJp
-bmcgcHJvY2Vzc2luZyAoZS5nLiwgVkxBTiwgYm9uZGluZywgdHVubmVsIGVuY2Fwc3VsYXRpb24p
-IOKAlCB0aGlzIGlzIHdoeSB3ZSBzdGFzaCB0aGUgaGVsZMKgbmRldsKgaW7CoHNrYl9zaGluZm8o
-KS0+ZGVzdHJ1Y3Rvcl9hcmcuCiAgMy4gV2hlbiB0aGUgVFggY29tcGxldGVzLMKgcnhlX3NrYl90
-eF9kdG9yKCnCoGNhbGxzwqBkZXZfcHV0KCnCoG9uIHRoZcKgc3Rhc2hlZMKgbmRldsKgZnJvbcKg
-ZGVzdHJ1Y3Rvcl9hcmfCoChub3QgdGhlIGxpdmXCoHNrYi0+ZGV2KSwgcmVsZWFzaW5nIHRoZSBy
-ZWZlcmVuY2UuCiAgNC4gSG9zdCBCwqBoYXMgaXRzIG93biBjb21wbGV0ZWx5IHNlcGFyYXRlwqBz
-dHJ1Y3QgbmV0X2RldmljZcKgaW5zdGFuY2VzIGluIGl0cyBvd24ga2VybmVsIGFkZHJlc3Mgc3Bh
-Y2UuIEl0IG5ldmVyIHNlZXMgb3IgcmVjZWl2ZXMgSG9zdCBBJ3PCoG5kZXbCoHBvaW50ZXIgdmFs
-dWUuClRoaXMgaXMgcHVyZWx5IGHCoHJlZmVyZW5jZSBjb3VudGluZyBmaXjCoGZvciB0aGUgbG9j
-YWwgaG9zdCdzIG5ldGRldiBsaWZldGltZSDigJQgaXQgZW5zdXJlcyB0aGUgbmV0X2RldmljZSBz
-dHJ1Y3R1cmUgZG9lc24ndCBkaXNhcHBlYXIgd2hpbGUgYW4gaW4tZmxpZ2h0IFRYIHNrYiBzdGls
-bCBob2xkcyBhIHBvaW50ZXIgdG8gaXQuCkhvcGUgdGhpcyBjbGFyaWZpZXMuIFBsZWFzZSBsZXQg
-bWUga25vdyBpZiB5b3UgaGF2ZSBmdXJ0aGVyIHF1ZXN0aW9ucy4KCkJlc3QgcmVnYXJkcywKeGlv
-bmd3ZWltaW4KCgpBdCAyMDI2LTA3LTE2IDEwOjU2OjIwLCAiWWFuanVuLlpodSIgPHlhbmp1bi56
-aHVAbGludXguZGV2PiB3cm90ZToKPgo+T24gNy8xNS8yNiA3OjI3IFBNLCB5YW5qdW4uemh1IHdy
-b3RlOgo+PiBPbiA3LzE0LzI2IDExOjQxIFBNLCB3ZWltaW4geGlvbmcgd3JvdGU6Cj4+PiBGcm9t
-OiB4aW9uZ3dlaW1pbiA8eGlvbmd3ZWltaW5Aa3lsaW5vcy5jbj4KPj4+Cj4+PiByeGVfaW5pdF9w
-YWNrZXQoKSBhc3NpZ25zIHNrYi0+ZGV2IGZyb20gYW4gUkNVLXByb3RlY3RlZCBHSUQgYXR0cmli
-dXRlCj4+PiB3aXRob3V0IGhvbGRpbmcgYSBuZXRkZXYgcmVmZXJlbmNlLiBJZiB0aGUgbmV0ZGV2
-IGlzIHVucmVnaXN0ZXJlZCBiZWZvcmUKPj4+IHRoZSBza2IgaXMgZnJlZWQsIHN1YnNlcXVlbnQg
-YWNjZXNzZXMgdG8gc2tiLT5kZXYgYXJlIHVuc2FmZS4KPj4+Cj4+PiBIb2xkIGEgcmVmZXJlbmNl
-IHdpdGggZGV2X2hvbGQoKSB3aGVuIHRoZSBza2IgaXMgaW5pdGlhbGl6ZWQgYW5kIHJlbGVhc2UK
-Pj4+IGl0IGZyb20gdGhlIHRyYW5zbWl0IGRlc3RydWN0b3Igb3IgdmlhIHJ4ZV9wdXRfc2tiKCkg
-b24gZXJyb3IgcGF0aHMgdGhhdAo+Pj4gcnVuIGJlZm9yZSB0aGUgZGVzdHJ1Y3RvciBpcyBpbnN0
-YWxsZWQuCj4+Pgo+Pj4gc2tiLT5kZXYgY2FuIGNoYW5nZSBvbiB0aGUgVFggcGF0aCAoVkxBTi9i
-b25kL3R1bm5lbCwgaXBfZmluaXNoX291dHB1dDIsCj4+PiBldGMuKSwgc28gcHV0IG11c3QgdXNl
-IHRoZSBzYW1lIG5ldGRldiB0aGF0IHdhcyBoZWxkLiBTdGFzaCB0aGF0IHBvaW50ZXIKPj4+IGlu
-IHNrYl9zaGluZm8oKS0+ZGVzdHJ1Y3Rvcl9hcmc6IHNrYi0+Y2IgaXMgYWxyZWFkeSB1c2VkIGJ5
-Cj4+PiByeGVfcGt0X2luZm8gYW5kIGlzIHJld3JpdHRlbiBieSBJUCBjb250cm9sIGJsb2Nrcy4K
-Pj4+Cj4+PiBUbyBhdm9pZCBibG9ja2luZyBuZXRkZXYgdW5yZWdpc3RyYXRpb24gb24gaGVsZCBz
-a2JzLCBmbHVzaCBhbGwgUVBzIHRvCj4+PiB0aGUgZXJyb3Igc3RhdGUgb24gTkVUREVWX0dPSU5H
-X0RPV04gYW5kIE5FVERFVl9VTlJFR0lTVEVSIHNvIHBlbmRpbmcgVFgKPj4+IHdvcmsgaXMgZHJh
-aW5lZCBhbmQgcmVmZXJlbmNlcyBjYW4gYmUgZHJvcHBlZC4KPj4+Cj4+PiBTaWduZWQtb2ZmLWJ5
-OiB4aW9uZ3dlaW1pbiA8eGlvbmd3ZWltaW5Aa3lsaW5vcy5jbj4KPj4+IC0tLQo+Pj4gdjM6Cj4+
-PiAtIHB1dCB0aGUgaGVsZCBuZXRkZXYgZnJvbSBkZXN0cnVjdG9yX2FyZywgbm90IGxpdmUgc2ti
-LT5kZXYKPj4+IMKgwqAgKHNrYi0+ZGV2IG1heSBiZSByZXdyaXR0ZW4gYnkgdGhlIFRYIHN0YWNr
-KQo+Pgo+PiBJIGFtIGZpbmUgd2l0aCB0aGlzIGNvbW1pdC4gSnVzdCBhIHJlbWluZGVyOiBwbGVh
-c2Ugc2VuZCBhIG5ldyB2ZXJzaW9uIAo+PiBvZiBhIHBhdGNoIGluIGEgbmV3IGVtYWlsIHRocmVh
-ZC4gSXQgaXMgYmV0dGVyIG5vdCB0byBzZW5kIG11bHRpcGxlIAo+PiB2ZXJzaW9ucyBvZiB0aGUg
-c2FtZSBwYXRjaCBpbiB0aGUgc2FtZSB0aHJlYWQuCj4+Cj4+IE90aGVyIHRoYW4gdGhhdCwgdGhh
-bmtzIGEgbG90IQo+PiBMZXQgdXMgd2FpdCBmb3IgdGhlIGZlZWRiYWNrIGZyb20gTGVvbiBhbmQg
-SmFzb24uCj4+Cj4+IFJldmlld2VkLWJ5OiBaaHUgWWFuanVuIDx5YW5qdW4uemh1QGxpbnV4LmRl
-dj4KPj4KPj4gWmh1IFlhbmp1bgo+Pgo+Pj4KPj4+IHYyOgo+Pj4gLSByZWJhc2Ugb24gY3VycmVu
-dCBtYWlubGluZSBzbyB0aGUgcGF0Y2ggYXBwbGllcyBjbGVhbmx5Cj4+PiAtIGZsdXNoIGFsbCBR
-UHMgb24gTkVUREVWX0dPSU5HX0RPV04gYW5kIE5FVERFVl9VTlJFR0lTVEVSIHRvCj4+PiDCoMKg
-IHJlbGVhc2UgcGVuZGluZyBUWCBza2JzIGJlZm9yZSBuZXRkZXYgdW5yZWdpc3Rlcgo+Pj4gLS0t
-Cj4+PiDCoCBkcml2ZXJzL2luZmluaWJhbmQvc3cvcnhlL3J4ZV9sb2MuaMKgIHzCoCAxICsKPj4+
-IMKgIGRyaXZlcnMvaW5maW5pYmFuZC9zdy9yeGUvcnhlX25ldC5jwqAgfCA2OCArKysrKysrKysr
-KysrKysrKysrKysrKysrKy0tCj4+PiDCoCBkcml2ZXJzL2luZmluaWJhbmQvc3cvcnhlL3J4ZV9y
-ZXEuY8KgIHzCoCAyICstCj4+PiDCoCBkcml2ZXJzL2luZmluaWJhbmQvc3cvcnhlL3J4ZV9yZXNw
-LmMgfMKgIDQgKy0KPj4+IMKgIDQgZmlsZXMgY2hhbmdlZCwgNjggaW5zZXJ0aW9ucygrKSwgNyBk
-ZWxldGlvbnMoLSkKPj4+Cj4+PiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9pbmZpbmliYW5kL3N3L3J4
-ZS9yeGVfbG9jLmggCj4+PiBiL2RyaXZlcnMvaW5maW5pYmFuZC9zdy9yeGUvcnhlX2xvYy5oCj4+
-PiBpbmRleCA2NGQ2MzZiZjguLjdjM2NjNDhlOCAxMDA2NDQKPj4+IC0tLSBhL2RyaXZlcnMvaW5m
-aW5pYmFuZC9zdy9yeGUvcnhlX2xvYy5oCj4+PiArKysgYi9kcml2ZXJzL2luZmluaWJhbmQvc3cv
-cnhlL3J4ZV9sb2MuaAo+Pj4gQEAgLTkyLDYgKzkyLDcgQEAgdm9pZCByeGVfbXdfY2xlYW51cChz
-dHJ1Y3QgcnhlX3Bvb2xfZWxlbSAqZWxlbSk7Cj4+PiDCoCAvKiByeGVfbmV0LmMgKi8KPj4+IMKg
-IHN0cnVjdCBza19idWZmICpyeGVfaW5pdF9wYWNrZXQoc3RydWN0IHJ4ZV9kZXYgKnJ4ZSwgc3Ry
-dWN0IHJ4ZV9hdiAKPj4+ICphdiwKPj4+IMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqAgaW50IHBheWxlbiwgc3RydWN0IHJ4ZV9wa3RfaW5mbyAqcGt0KTsKPj4+ICt2b2lkIHJ4ZV9w
-dXRfc2tiKHN0cnVjdCBza19idWZmICpza2IpOwo+Pj4gwqAgaW50IHJ4ZV9wcmVwYXJlKHN0cnVj
-dCByeGVfYXYgKmF2LCBzdHJ1Y3QgcnhlX3BrdF9pbmZvICpwa3QsCj4+PiDCoMKgwqDCoMKgwqDC
-oMKgwqAgc3RydWN0IHNrX2J1ZmYgKnNrYik7Cj4+PiDCoCBpbnQgcnhlX3htaXRfcGFja2V0KHN0
-cnVjdCByeGVfcXAgKnFwLCBzdHJ1Y3QgcnhlX3BrdF9pbmZvICpwa3QsCj4+PiBkaWZmIC0tZ2l0
-IGEvZHJpdmVycy9pbmZpbmliYW5kL3N3L3J4ZS9yeGVfbmV0LmMgCj4+PiBiL2RyaXZlcnMvaW5m
-aW5pYmFuZC9zdy9yeGUvcnhlX25ldC5jCj4+PiBpbmRleCAzNzQxYjJjNGIuLjg2YzliMTlmNiAx
-MDA2NDQKPj4+IC0tLSBhL2RyaXZlcnMvaW5maW5pYmFuZC9zdy9yeGUvcnhlX25ldC5jCj4+PiAr
-KysgYi9kcml2ZXJzL2luZmluaWJhbmQvc3cvcnhlL3J4ZV9uZXQuYwo+Pj4gQEAgLTQyOSw2ICs0
-MjksMjkgQEAgaW50IHJ4ZV9wcmVwYXJlKHN0cnVjdCByeGVfYXYgKmF2LCBzdHJ1Y3QgCj4+PiBy
-eGVfcGt0X2luZm8gKnBrdCwKPj4+IMKgwqDCoMKgwqAgcmV0dXJuIGVycjsKPj4+IMKgIH0KPj4+
-IMKgICsvKgo+Pj4gKyAqIHNrYi0+ZGV2IG1heSBiZSByZXdyaXR0ZW4gb24gdGhlIFRYIHBhdGgg
-KFZMQU4vYm9uZC90dW5uZWwsIGV0Yy4pLgo+Pj4gKyAqIFRoZSBuZXRkZXYgd2UgaGVsZCBpbiBy
-eGVfaW5pdF9wYWNrZXQoKSBpcyBrZXB0IGluIGRlc3RydWN0b3JfYXJnIHNvCj4+PiArICogdGhh
-dCBwdXQgYWx3YXlzIG1hdGNoZXMgaG9sZC4gc2tiLT5jYiBjYW5ub3QgYmUgdXNlZDogaXQgaXMg
-YWxyZWFkeQo+Pj4gKyAqIG9jY3VwaWVkIGJ5IHN0cnVjdCByeGVfcGt0X2luZm8gYW5kIHJld3Jp
-dHRlbiBieSBJUCBjb250cm9sIGJsb2Nrcy4KPj4+ICsgKi8KPj4+ICtzdGF0aWMgdm9pZCByeGVf
-c2tiX3NldF9oZWxkX25kZXYoc3RydWN0IHNrX2J1ZmYgKnNrYiwgc3RydWN0IAo+Pj4gbmV0X2Rl
-dmljZSAqbmRldikKPj4+ICt7Cj4+PiArwqDCoMKgIGRldl9ob2xkKG5kZXYpOwo+Pj4gK8KgwqDC
-oCBza2ItPmRldiA9IG5kZXY7Cj4+PiArwqDCoMKgIHNrYl9zaGluZm8oc2tiKS0+ZGVzdHJ1Y3Rv
-cl9hcmcgPSBuZGV2Owo+Cj5UbyBiZSBob25lc3QsIEknbSBjb25mdXNlZCBhYm91dCB0aGlzIGBu
-ZGV2YCBwb2ludGVyLgo+Cj5gbmRldmAgaXMgYSBwb2ludGVyIHRvIGEgYHN0cnVjdCBuZXRfZGV2
-aWNlYCBvbiBIb3N0IEEgKHRoZSBzb3VyY2UgCj5ob3N0KS4gRnJvbSB3aGF0IEkgdW5kZXJzdGFu
-ZCwgdGhlIGN1cnJlbnQgY29kZSBhcHBlYXJzIHRvIHRyYW5zZmVyIHRoaXMgCj5gbmRldmAgcG9p
-bnRlciB0byBIb3N0IEIgKHRoZSBkZXN0aW5hdGlvbiBob3N0KS4KPgo+T24gSG9zdCBBLCBgZGV2
-X2hvbGQobmRldilgIGlzIGNhbGxlZCwgd2hpbGUgb24gSG9zdCBCLCBgZGV2X3B1dChuZGV2KWAg
-Cj5pcyBjYWxsZWQuCj4KPkkgZG9uJ3QgdW5kZXJzdGFuZCBob3cgdGhpcyBjYW4gd29yay4gSG9z
-dCBBIGFuZCBIb3N0IEIgaGF2ZSBjb21wbGV0ZWx5IAo+c2VwYXJhdGUgdmlydHVhbCBhZGRyZXNz
-IHNwYWNlcywgc28gYSBwb2ludGVyIHZhbHVlIGZyb20gSG9zdCBBIHNob3VsZCAKPmJlIG1lYW5p
-bmdsZXNzIG9uIEhvc3QgQi4gQ291bGQgeW91IGV4cGxhaW4gaG93IHRoaXMgcG9pbnRlciByZW1h
-aW5zIAo+dmFsaWQgYWNyb3NzIHR3byBkaWZmZXJlbnQgaG9zdHM/Cj4KPlpodSBZYW5qdW4KPgo+
-Pj4gK30KPj4+ICsKPj4+ICtzdGF0aWMgdm9pZCByeGVfc2tiX3B1dF9oZWxkX25kZXYoc3RydWN0
-IHNrX2J1ZmYgKnNrYikKPj4+ICt7Cj4+PiArwqDCoMKgIHN0cnVjdCBuZXRfZGV2aWNlICpuZGV2
-ID0gc2tiX3NoaW5mbyhza2IpLT5kZXN0cnVjdG9yX2FyZzsKPj4+ICsKPj4+ICvCoMKgwqAgaWYg
-KG5kZXYpIHsKPj4+ICvCoMKgwqDCoMKgwqDCoCBza2Jfc2hpbmZvKHNrYiktPmRlc3RydWN0b3Jf
-YXJnID0gTlVMTDsKPj4+ICvCoMKgwqDCoMKgwqDCoCBkZXZfcHV0KG5kZXYpOwo+Pj4gK8KgwqDC
-oCB9Cj4+PiArfQo+Pj4gKwo+Pj4gwqAgc3RhdGljIHZvaWQgcnhlX3NrYl90eF9kdG9yKHN0cnVj
-dCBza19idWZmICpza2IpCj4+PiDCoCB7Cj4+PiDCoMKgwqDCoMKgIHN0cnVjdCByeGVfcXAgKnFw
-ID0gc2tiLT5zay0+c2tfdXNlcl9kYXRhOwo+Pj4gQEAgLTQ0MSw2ICs0NjQsMTggQEAgc3RhdGlj
-IHZvaWQgcnhlX3NrYl90eF9kdG9yKHN0cnVjdCBza19idWZmICpza2IpCj4+PiDCoCDCoMKgwqDC
-oMKgIHJ4ZV9wdXQocXApOwo+Pj4gwqDCoMKgwqDCoCBzb2NrX3B1dChza2ItPnNrKTsKPj4+ICvC
-oMKgwqAgcnhlX3NrYl9wdXRfaGVsZF9uZGV2KHNrYik7Cj4+PiArfQo+Pj4gKwo+Pj4gKy8qCj4+
-PiArICogRnJlZSBhbiBza2IgdGhhdCBzdGlsbCBob2xkcyBhIG5ldGRldiByZWZlcmVuY2UgZnJv
-bSAKPj4+IHJ4ZV9pbml0X3BhY2tldCgpCj4+PiArICogYW5kIGRvZXMgbm90IHlldCBoYXZlIHJ4
-ZV9za2JfdHhfZHRvcigpIGluc3RhbGxlZC4gT25jZSB0aGUgVFgKPj4+ICsgKiBkZXN0cnVjdG9y
-IGlzIHNldCwgY2FsbGVycyBtdXN0IHVzZSBrZnJlZV9za2IoKSBpbnN0ZWFkLgo+Pj4gKyAqLwo+
-Pj4gK3ZvaWQgcnhlX3B1dF9za2Ioc3RydWN0IHNrX2J1ZmYgKnNrYikKPj4+ICt7Cj4+PiArwqDC
-oMKgIHJ4ZV9za2JfcHV0X2hlbGRfbmRldihza2IpOwo+Pj4gK8KgwqDCoCBrZnJlZV9za2Ioc2ti
-KTsKPj4+IMKgIH0KPj4+IMKgIMKgIHN0YXRpYyBpbnQgcnhlX3NlbmQoc3RydWN0IHNrX2J1ZmYg
-KnNrYiwgc3RydWN0IHJ4ZV9wa3RfaW5mbyAqcGt0KQo+Pj4gQEAgLTUyOSw3ICs1NjQsNyBAQCBp
-bnQgcnhlX3htaXRfcGFja2V0KHN0cnVjdCByeGVfcXAgKnFwLCBzdHJ1Y3QgCj4+PiByeGVfcGt0
-X2luZm8gKnBrdCwKPj4+IMKgwqDCoMKgwqAgZ290byBkb25lOwo+Pj4gwqAgwqAgZHJvcDoKPj4+
-IC3CoMKgwqAga2ZyZWVfc2tiKHNrYik7Cj4+PiArwqDCoMKgIHJ4ZV9wdXRfc2tiKHNrYik7Cj4+
-PiDCoMKgwqDCoMKgIGVyciA9IDA7Cj4+PiDCoCBkb25lOgo+Pj4gwqDCoMKgwqDCoCByZXR1cm4g
-ZXJyOwo+Pj4gQEAgLTU3NCw4ICs2MDksNyBAQCBzdHJ1Y3Qgc2tfYnVmZiAqcnhlX2luaXRfcGFj
-a2V0KHN0cnVjdCByeGVfZGV2IAo+Pj4gKnJ4ZSwgc3RydWN0IHJ4ZV9hdiAqYXYsCj4+PiDCoCDC
-oMKgwqDCoMKgIHNrYl9yZXNlcnZlKHNrYiwgaGRyX2xlbiArIExMX1JFU0VSVkVEX1NQQUNFKG5k
-ZXYpKTsKPj4+IMKgIC3CoMKgwqAgLyogRklYTUU6IGhvbGQgcmVmZXJlbmNlIHRvIHRoaXMgbmV0
-ZGV2IHVudGlsIGxpZmUgb2YgdGhpcyAKPj4+IHNrYi4gKi8KPj4+IC3CoMKgwqAgc2tiLT5kZXbC
-oMKgwqAgPSBuZGV2Owo+Pj4gK8KgwqDCoCByeGVfc2tiX3NldF9oZWxkX25kZXYoc2tiLCBuZGV2
-KTsKPj4+IMKgwqDCoMKgwqAgcmN1X3JlYWRfdW5sb2NrKCk7Cj4+PiDCoCDCoMKgwqDCoMKgIGlm
-IChhdi0+bmV0d29ya190eXBlID09IFJYRV9ORVRXT1JLX1RZUEVfSVBWNCkKPj4+IEBAIC03MTAs
-NiArNzQ0LDI4IEBAIHZvaWQgcnhlX3NldF9wb3J0X3N0YXRlKHN0cnVjdCByeGVfZGV2ICpyeGUp
-Cj4+PiDCoMKgwqDCoMKgIGRldl9wdXQobmRldik7Cj4+PiDCoCB9Cj4+PiDCoCArLyoKPj4+ICsg
-KiBNb3ZlIGFsbCBRUHMgdG8gdGhlIGVycm9yIHN0YXRlIHNvIHBlbmRpbmcgc2VuZC9yZWN2IHdv
-cmsgaXMgCj4+PiBkcmFpbmVkIGFuZAo+Pj4gKyAqIGluLWZsaWdodCBUWCBza2JzICh3aGljaCBo
-b2xkIGEgbmV0ZGV2IHJlZmVyZW5jZSkgY2FuIGJlIAo+Pj4gcmVsZWFzZWQuIENhbGxlZAo+Pj4g
-KyAqIGZyb20gdGhlIG5ldGRldiBub3RpZmllciBzbyB1bnJlZ2lzdGVyIGNhbm5vdCBzdGFsbCBv
-biBoZWxkIHNrYnMuCj4+PiArICovCj4+PiArc3RhdGljIHZvaWQgcnhlX2ZsdXNoX3FwcyhzdHJ1
-Y3QgcnhlX2RldiAqcnhlKQo+Pj4gK3sKPj4+ICvCoMKgwqAgc3RydWN0IHJ4ZV9wb29sX2VsZW0g
-KmVsZW07Cj4+PiArwqDCoMKgIHN0cnVjdCByeGVfcXAgKnFwOwo+Pj4gK8KgwqDCoCB1bnNpZ25l
-ZCBsb25nIGluZGV4Owo+Pj4gKwo+Pj4gK8KgwqDCoCByY3VfcmVhZF9sb2NrKCk7Cj4+PiArwqDC
-oMKgIHhhX2Zvcl9lYWNoKCZyeGUtPnFwX3Bvb2wueGEsIGluZGV4LCBlbGVtKSB7Cj4+PiArwqDC
-oMKgwqDCoMKgwqAgaWYgKCFlbGVtIHx8ICFrcmVmX2dldF91bmxlc3NfemVybygmZWxlbS0+cmVm
-X2NudCkpCj4+PiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCBjb250aW51ZTsKPj4+ICvCoMKgwqDC
-oMKgwqDCoCBxcCA9IGVsZW0tPm9iajsKPj4+ICvCoMKgwqDCoMKgwqDCoCByeGVfcXBfZXJyb3Io
-cXApOwo+Pj4gK8KgwqDCoMKgwqDCoMKgIHJ4ZV9wdXQocXApOwo+Pj4gK8KgwqDCoCB9Cj4+PiAr
-wqDCoMKgIHJjdV9yZWFkX3VubG9jaygpOwo+Pj4gK30KPj4+ICsKPj4+IMKgIHN0YXRpYyBpbnQg
-cnhlX25vdGlmeShzdHJ1Y3Qgbm90aWZpZXJfYmxvY2sgKm5vdF9ibGssCj4+PiDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqAgdW5zaWduZWQgbG9uZyBldmVudCwKPj4+IMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoCB2b2lkICphcmcpCj4+PiBAQCAtNzIxLDcgKzc3NywxMiBAQCBz
-dGF0aWMgaW50IHJ4ZV9ub3RpZnkoc3RydWN0IG5vdGlmaWVyX2Jsb2NrIAo+Pj4gKm5vdF9ibGss
-Cj4+PiDCoMKgwqDCoMKgwqDCoMKgwqAgcmV0dXJuIE5PVElGWV9PSzsKPj4+IMKgIMKgwqDCoMKg
-wqAgc3dpdGNoIChldmVudCkgewo+Pj4gK8KgwqDCoCBjYXNlIE5FVERFVl9HT0lOR19ET1dOOgo+
-Pj4gK8KgwqDCoMKgwqDCoMKgIC8qIFN0YXJ0IGRyYWluaW5nIFRYIHF1ZXVlcyBiZWZvcmUgdGhl
-IG5ldGRldiBkaXNhcHBlYXJzLiAqLwo+Pj4gK8KgwqDCoMKgwqDCoMKgIHJ4ZV9mbHVzaF9xcHMo
-cnhlKTsKPj4+ICvCoMKgwqDCoMKgwqDCoCBicmVhazsKPj4+IMKgwqDCoMKgwqAgY2FzZSBORVRE
-RVZfVU5SRUdJU1RFUjoKPj4+ICvCoMKgwqDCoMKgwqDCoCByeGVfZmx1c2hfcXBzKHJ4ZSk7Cj4+
-PiDCoMKgwqDCoMKgwqDCoMKgwqAgaWJfdW5yZWdpc3Rlcl9kZXZpY2VfcXVldWVkKCZyeGUtPmli
-X2Rldik7Cj4+PiDCoMKgwqDCoMKgwqDCoMKgwqAgcnhlX25ldF9kZWwoJnJ4ZS0+aWJfZGV2KTsK
-Pj4+IMKgwqDCoMKgwqDCoMKgwqDCoCBicmVhazsKPj4+IEBAIC03MzUsNyArNzk2LDYgQEAgc3Rh
-dGljIGludCByeGVfbm90aWZ5KHN0cnVjdCBub3RpZmllcl9ibG9jayAKPj4+ICpub3RfYmxrLAo+
-Pj4gwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgcnhlX2NvdW50ZXJfaW5jKHJ4ZSwgUlhFX0NO
-VF9MSU5LX0RPV05FRCk7Cj4+PiDCoMKgwqDCoMKgwqDCoMKgwqAgYnJlYWs7Cj4+PiDCoMKgwqDC
-oMKgIGNhc2UgTkVUREVWX1JFQk9PVDoKPj4+IC3CoMKgwqAgY2FzZSBORVRERVZfR09JTkdfRE9X
-TjoKPj4+IMKgwqDCoMKgwqAgY2FzZSBORVRERVZfQ0hBTkdFQUREUjoKPj4+IMKgwqDCoMKgwqAg
-Y2FzZSBORVRERVZfQ0hBTkdFTkFNRToKPj4+IMKgwqDCoMKgwqAgY2FzZSBORVRERVZfRkVBVF9D
-SEFOR0U6Cj4+PiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9pbmZpbmliYW5kL3N3L3J4ZS9yeGVfcmVx
-LmMgCj4+PiBiL2RyaXZlcnMvaW5maW5pYmFuZC9zdy9yeGUvcnhlX3JlcS5jCj4+PiBpbmRleCAx
-MmQwM2YzOTAuLjkyN2VmNjhkZSAxMDA2NDQKPj4+IC0tLSBhL2RyaXZlcnMvaW5maW5pYmFuZC9z
-dy9yeGUvcnhlX3JlcS5jCj4+PiArKysgYi9kcml2ZXJzL2luZmluaWJhbmQvc3cvcnhlL3J4ZV9y
-ZXEuYwo+Pj4gQEAgLTc5Niw3ICs3OTYsNyBAQCBpbnQgcnhlX3JlcXVlc3RlcihzdHJ1Y3Qgcnhl
-X3FwICpxcCkKPj4+IMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIHdxZS0+c3RhdHVzID0gSUJf
-V0NfTE9DX1BST1RfRVJSOwo+Pj4gwqDCoMKgwqDCoMKgwqDCoMKgIGVsc2UKPj4+IMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgIHdxZS0+c3RhdHVzID0gSUJfV0NfTE9DX1FQX09QX0VSUjsKPj4+
-IC3CoMKgwqDCoMKgwqDCoCBrZnJlZV9za2Ioc2tiKTsKPj4+ICvCoMKgwqDCoMKgwqDCoCByeGVf
-cHV0X3NrYihza2IpOwo+Pj4gwqDCoMKgwqDCoMKgwqDCoMKgIGlmIChhaCkKPj4+IMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgIHJ4ZV9wdXQoYWgpOwo+Pj4gwqDCoMKgwqDCoMKgwqDCoMKgIGdv
-dG8gZXJyOwo+Pj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvaW5maW5pYmFuZC9zdy9yeGUvcnhlX3Jl
-c3AuYyAKPj4+IGIvZHJpdmVycy9pbmZpbmliYW5kL3N3L3J4ZS9yeGVfcmVzcC5jCj4+PiBpbmRl
-eCBkOGNiZGZhNzAuLmVlMzYzMGU0YiAxMDA2NDQKPj4+IC0tLSBhL2RyaXZlcnMvaW5maW5pYmFu
-ZC9zdy9yeGUvcnhlX3Jlc3AuYwo+Pj4gKysrIGIvZHJpdmVycy9pbmZpbmliYW5kL3N3L3J4ZS9y
-eGVfcmVzcC5jCj4+PiBAQCAtODY2LDcgKzg2Niw3IEBAIHN0YXRpYyBzdHJ1Y3Qgc2tfYnVmZiAq
-cHJlcGFyZV9hY2tfcGFja2V0KHN0cnVjdCAKPj4+IHJ4ZV9xcCAqcXAsCj4+PiDCoCDCoMKgwqDC
-oMKgIGVyciA9IHJ4ZV9wcmVwYXJlKCZxcC0+cHJpX2F2LCBhY2ssIHNrYik7Cj4+PiDCoMKgwqDC
-oMKgIGlmIChlcnIpIHsKPj4+IC3CoMKgwqDCoMKgwqDCoCBrZnJlZV9za2Ioc2tiKTsKPj4+ICvC
-oMKgwqDCoMKgwqDCoCByeGVfcHV0X3NrYihza2IpOwo+Pj4gwqDCoMKgwqDCoMKgwqDCoMKgIHJl
-dHVybiBOVUxMOwo+Pj4gwqDCoMKgwqDCoCB9Cj4+PiDCoCBAQCAtOTk0LDcgKzk5NCw3IEBAIHN0
-YXRpYyBlbnVtIHJlc3Bfc3RhdGVzIHJlYWRfcmVwbHkoc3RydWN0IAo+Pj4gcnhlX3FwICpxcCwK
-Pj4+IMKgwqDCoMKgwqAgZXJyID0gcnhlX21yX2NvcHkobXIsIHJlcy0+cmVhZC52YSwgcGF5bG9h
-ZF9hZGRyKCZhY2tfcGt0KSwKPj4+IMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCBwYXls
-b2FkLCBSWEVfRlJPTV9NUl9PQkopOwo+Pj4gwqDCoMKgwqDCoCBpZiAoZXJyKSB7Cj4+PiAtwqDC
-oMKgwqDCoMKgwqAga2ZyZWVfc2tiKHNrYik7Cj4+PiArwqDCoMKgwqDCoMKgwqAgcnhlX3B1dF9z
-a2Ioc2tiKTsKPj4+IMKgwqDCoMKgwqDCoMKgwqDCoCBzdGF0ZSA9IFJFU1BTVF9FUlJfUktFWV9W
-SU9MQVRJT047Cj4+PiDCoMKgwqDCoMKgwqDCoMKgwqAgZ290byBlcnJfb3V0Owo+Pj4gwqDCoMKg
-wqDCoCB9Cj4+Cg==
+
+On 7/15/26 8:11 PM, Xiong Weimin wrote:
+>
+>
+> Subject: Re: [PATCH v3] RDMA/rxe: Hold netdev reference for transmit skbs
+> Hi Yanjun,
+> Thanks for taking the time to review. Let me clarify the question about the ndev pointer.
+> The ndev pointer (struct net_device *) is a kernel virtual address that lives entirely in the local host's kernel address space. It is never serialized or transmitted over the wire. The RDMA/RoCE packet on the wire only contains protocol headers (ETH, IP, UDP, BTH) and payload data — no kernel pointers.
+> The flow is:
+>    1. rxe_init_packet() allocates an skb and calls dev_hold(ndev) to take a reference on the local net_device. This prevents the net_device from being unregistered (freeing the struct net_device memory) while the skb still references it.
+>    2. The skb is passed to the kernel's IP stack via ip_local_out(). The IP stack may rewrite skb->dev during processing (e.g., VLAN, bonding, tunnel encapsulation) — this is why we stash the held ndev in skb_shinfo()->destructor_arg.
+>    3. When the TX completes, rxe_skb_tx_dtor() calls dev_put() on the stashed ndev from destructor_arg (not the live skb->dev), releasing the reference.
+>    4. Host B has its own completely separate struct net_device instances in its own kernel address space. It never sees or receives Host A's ndev pointer value.
+> This is purely a reference counting fix for the local host's netdev lifetime — it ensures the net_device structure doesn't disappear while an in-flight TX skb still holds a pointer to it.
+> Hope this clarifies. Please let me know if you have further questions.
+
+
+Thanks a lot.
+
+Zhu Yanjun
+
+
+>
+> Best regards,
+> xiongweimin
+>
+>
+> At 2026-07-16 10:56:20, "Yanjun.Zhu" <yanjun.zhu@linux.dev> wrote:
+>> On 7/15/26 7:27 PM, yanjun.zhu wrote:
+>>> On 7/14/26 11:41 PM, weimin xiong wrote:
+>>>> From: xiongweimin <xiongweimin@kylinos.cn>
+>>>>
+>>>> rxe_init_packet() assigns skb->dev from an RCU-protected GID attribute
+>>>> without holding a netdev reference. If the netdev is unregistered before
+>>>> the skb is freed, subsequent accesses to skb->dev are unsafe.
+>>>>
+>>>> Hold a reference with dev_hold() when the skb is initialized and release
+>>>> it from the transmit destructor or via rxe_put_skb() on error paths that
+>>>> run before the destructor is installed.
+>>>>
+>>>> skb->dev can change on the TX path (VLAN/bond/tunnel, ip_finish_output2,
+>>>> etc.), so put must use the same netdev that was held. Stash that pointer
+>>>> in skb_shinfo()->destructor_arg: skb->cb is already used by
+>>>> rxe_pkt_info and is rewritten by IP control blocks.
+>>>>
+>>>> To avoid blocking netdev unregistration on held skbs, flush all QPs to
+>>>> the error state on NETDEV_GOING_DOWN and NETDEV_UNREGISTER so pending TX
+>>>> work is drained and references can be dropped.
+>>>>
+>>>> Signed-off-by: xiongweimin <xiongweimin@kylinos.cn>
+>>>> ---
+>>>> v3:
+>>>> - put the held netdev from destructor_arg, not live skb->dev
+>>>>     (skb->dev may be rewritten by the TX stack)
+>>> I am fine with this commit. Just a reminder: please send a new version
+>>> of a patch in a new email thread. It is better not to send multiple
+>>> versions of the same patch in the same thread.
+>>>
+>>> Other than that, thanks a lot!
+>>> Let us wait for the feedback from Leon and Jason.
+>>>
+>>> Reviewed-by: Zhu Yanjun <yanjun.zhu@linux.dev>
+>>>
+>>> Zhu Yanjun
+>>>
+>>>> v2:
+>>>> - rebase on current mainline so the patch applies cleanly
+>>>> - flush all QPs on NETDEV_GOING_DOWN and NETDEV_UNREGISTER to
+>>>>     release pending TX skbs before netdev unregister
+>>>> ---
+>>>>    drivers/infiniband/sw/rxe/rxe_loc.h  |  1 +
+>>>>    drivers/infiniband/sw/rxe/rxe_net.c  | 68 ++++++++++++++++++++++++++--
+>>>>    drivers/infiniband/sw/rxe/rxe_req.c  |  2 +-
+>>>>    drivers/infiniband/sw/rxe/rxe_resp.c |  4 +-
+>>>>    4 files changed, 68 insertions(+), 7 deletions(-)
+>>>>
+>>>> diff --git a/drivers/infiniband/sw/rxe/rxe_loc.h
+>>>> b/drivers/infiniband/sw/rxe/rxe_loc.h
+>>>> index 64d636bf8..7c3cc48e8 100644
+>>>> --- a/drivers/infiniband/sw/rxe/rxe_loc.h
+>>>> +++ b/drivers/infiniband/sw/rxe/rxe_loc.h
+>>>> @@ -92,6 +92,7 @@ void rxe_mw_cleanup(struct rxe_pool_elem *elem);
+>>>>    /* rxe_net.c */
+>>>>    struct sk_buff *rxe_init_packet(struct rxe_dev *rxe, struct rxe_av
+>>>> *av,
+>>>>                    int paylen, struct rxe_pkt_info *pkt);
+>>>> +void rxe_put_skb(struct sk_buff *skb);
+>>>>    int rxe_prepare(struct rxe_av *av, struct rxe_pkt_info *pkt,
+>>>>            struct sk_buff *skb);
+>>>>    int rxe_xmit_packet(struct rxe_qp *qp, struct rxe_pkt_info *pkt,
+>>>> diff --git a/drivers/infiniband/sw/rxe/rxe_net.c
+>>>> b/drivers/infiniband/sw/rxe/rxe_net.c
+>>>> index 3741b2c4b..86c9b19f6 100644
+>>>> --- a/drivers/infiniband/sw/rxe/rxe_net.c
+>>>> +++ b/drivers/infiniband/sw/rxe/rxe_net.c
+>>>> @@ -429,6 +429,29 @@ int rxe_prepare(struct rxe_av *av, struct
+>>>> rxe_pkt_info *pkt,
+>>>>        return err;
+>>>>    }
+>>>>    +/*
+>>>> + * skb->dev may be rewritten on the TX path (VLAN/bond/tunnel, etc.).
+>>>> + * The netdev we held in rxe_init_packet() is kept in destructor_arg so
+>>>> + * that put always matches hold. skb->cb cannot be used: it is already
+>>>> + * occupied by struct rxe_pkt_info and rewritten by IP control blocks.
+>>>> + */
+>>>> +static void rxe_skb_set_held_ndev(struct sk_buff *skb, struct
+>>>> net_device *ndev)
+>>>> +{
+>>>> +    dev_hold(ndev);
+>>>> +    skb->dev = ndev;
+>>>> +    skb_shinfo(skb)->destructor_arg = ndev;
+>> To be honest, I'm confused about this `ndev` pointer.
+>>
+>> `ndev` is a pointer to a `struct net_device` on Host A (the source
+>> host). From what I understand, the current code appears to transfer this
+>> `ndev` pointer to Host B (the destination host).
+>>
+>> On Host A, `dev_hold(ndev)` is called, while on Host B, `dev_put(ndev)`
+>> is called.
+>>
+>> I don't understand how this can work. Host A and Host B have completely
+>> separate virtual address spaces, so a pointer value from Host A should
+>> be meaningless on Host B. Could you explain how this pointer remains
+>> valid across two different hosts?
+>>
+>> Zhu Yanjun
+>>
+>>>> +}
+>>>> +
+>>>> +static void rxe_skb_put_held_ndev(struct sk_buff *skb)
+>>>> +{
+>>>> +    struct net_device *ndev = skb_shinfo(skb)->destructor_arg;
+>>>> +
+>>>> +    if (ndev) {
+>>>> +        skb_shinfo(skb)->destructor_arg = NULL;
+>>>> +        dev_put(ndev);
+>>>> +    }
+>>>> +}
+>>>> +
+>>>>    static void rxe_skb_tx_dtor(struct sk_buff *skb)
+>>>>    {
+>>>>        struct rxe_qp *qp = skb->sk->sk_user_data;
+>>>> @@ -441,6 +464,18 @@ static void rxe_skb_tx_dtor(struct sk_buff *skb)
+>>>>          rxe_put(qp);
+>>>>        sock_put(skb->sk);
+>>>> +    rxe_skb_put_held_ndev(skb);
+>>>> +}
+>>>> +
+>>>> +/*
+>>>> + * Free an skb that still holds a netdev reference from
+>>>> rxe_init_packet()
+>>>> + * and does not yet have rxe_skb_tx_dtor() installed. Once the TX
+>>>> + * destructor is set, callers must use kfree_skb() instead.
+>>>> + */
+>>>> +void rxe_put_skb(struct sk_buff *skb)
+>>>> +{
+>>>> +    rxe_skb_put_held_ndev(skb);
+>>>> +    kfree_skb(skb);
+>>>>    }
+>>>>      static int rxe_send(struct sk_buff *skb, struct rxe_pkt_info *pkt)
+>>>> @@ -529,7 +564,7 @@ int rxe_xmit_packet(struct rxe_qp *qp, struct
+>>>> rxe_pkt_info *pkt,
+>>>>        goto done;
+>>>>      drop:
+>>>> -    kfree_skb(skb);
+>>>> +    rxe_put_skb(skb);
+>>>>        err = 0;
+>>>>    done:
+>>>>        return err;
+>>>> @@ -574,8 +609,7 @@ struct sk_buff *rxe_init_packet(struct rxe_dev
+>>>> *rxe, struct rxe_av *av,
+>>>>          skb_reserve(skb, hdr_len + LL_RESERVED_SPACE(ndev));
+>>>>    -    /* FIXME: hold reference to this netdev until life of this
+>>>> skb. */
+>>>> -    skb->dev    = ndev;
+>>>> +    rxe_skb_set_held_ndev(skb, ndev);
+>>>>        rcu_read_unlock();
+>>>>          if (av->network_type == RXE_NETWORK_TYPE_IPV4)
+>>>> @@ -710,6 +744,28 @@ void rxe_set_port_state(struct rxe_dev *rxe)
+>>>>        dev_put(ndev);
+>>>>    }
+>>>>    +/*
+>>>> + * Move all QPs to the error state so pending send/recv work is
+>>>> drained and
+>>>> + * in-flight TX skbs (which hold a netdev reference) can be
+>>>> released. Called
+>>>> + * from the netdev notifier so unregister cannot stall on held skbs.
+>>>> + */
+>>>> +static void rxe_flush_qps(struct rxe_dev *rxe)
+>>>> +{
+>>>> +    struct rxe_pool_elem *elem;
+>>>> +    struct rxe_qp *qp;
+>>>> +    unsigned long index;
+>>>> +
+>>>> +    rcu_read_lock();
+>>>> +    xa_for_each(&rxe->qp_pool.xa, index, elem) {
+>>>> +        if (!elem || !kref_get_unless_zero(&elem->ref_cnt))
+>>>> +            continue;
+>>>> +        qp = elem->obj;
+>>>> +        rxe_qp_error(qp);
+>>>> +        rxe_put(qp);
+>>>> +    }
+>>>> +    rcu_read_unlock();
+>>>> +}
+>>>> +
+>>>>    static int rxe_notify(struct notifier_block *not_blk,
+>>>>                  unsigned long event,
+>>>>                  void *arg)
+>>>> @@ -721,7 +777,12 @@ static int rxe_notify(struct notifier_block
+>>>> *not_blk,
+>>>>            return NOTIFY_OK;
+>>>>          switch (event) {
+>>>> +    case NETDEV_GOING_DOWN:
+>>>> +        /* Start draining TX queues before the netdev disappears. */
+>>>> +        rxe_flush_qps(rxe);
+>>>> +        break;
+>>>>        case NETDEV_UNREGISTER:
+>>>> +        rxe_flush_qps(rxe);
+>>>>            ib_unregister_device_queued(&rxe->ib_dev);
+>>>>            rxe_net_del(&rxe->ib_dev);
+>>>>            break;
+>>>> @@ -735,7 +796,6 @@ static int rxe_notify(struct notifier_block
+>>>> *not_blk,
+>>>>                rxe_counter_inc(rxe, RXE_CNT_LINK_DOWNED);
+>>>>            break;
+>>>>        case NETDEV_REBOOT:
+>>>> -    case NETDEV_GOING_DOWN:
+>>>>        case NETDEV_CHANGEADDR:
+>>>>        case NETDEV_CHANGENAME:
+>>>>        case NETDEV_FEAT_CHANGE:
+>>>> diff --git a/drivers/infiniband/sw/rxe/rxe_req.c
+>>>> b/drivers/infiniband/sw/rxe/rxe_req.c
+>>>> index 12d03f390..927ef68de 100644
+>>>> --- a/drivers/infiniband/sw/rxe/rxe_req.c
+>>>> +++ b/drivers/infiniband/sw/rxe/rxe_req.c
+>>>> @@ -796,7 +796,7 @@ int rxe_requester(struct rxe_qp *qp)
+>>>>                wqe->status = IB_WC_LOC_PROT_ERR;
+>>>>            else
+>>>>                wqe->status = IB_WC_LOC_QP_OP_ERR;
+>>>> -        kfree_skb(skb);
+>>>> +        rxe_put_skb(skb);
+>>>>            if (ah)
+>>>>                rxe_put(ah);
+>>>>            goto err;
+>>>> diff --git a/drivers/infiniband/sw/rxe/rxe_resp.c
+>>>> b/drivers/infiniband/sw/rxe/rxe_resp.c
+>>>> index d8cbdfa70..ee3630e4b 100644
+>>>> --- a/drivers/infiniband/sw/rxe/rxe_resp.c
+>>>> +++ b/drivers/infiniband/sw/rxe/rxe_resp.c
+>>>> @@ -866,7 +866,7 @@ static struct sk_buff *prepare_ack_packet(struct
+>>>> rxe_qp *qp,
+>>>>          err = rxe_prepare(&qp->pri_av, ack, skb);
+>>>>        if (err) {
+>>>> -        kfree_skb(skb);
+>>>> +        rxe_put_skb(skb);
+>>>>            return NULL;
+>>>>        }
+>>>>    @@ -994,7 +994,7 @@ static enum resp_states read_reply(struct
+>>>> rxe_qp *qp,
+>>>>        err = rxe_mr_copy(mr, res->read.va, payload_addr(&ack_pkt),
+>>>>                  payload, RXE_FROM_MR_OBJ);
+>>>>        if (err) {
+>>>> -        kfree_skb(skb);
+>>>> +        rxe_put_skb(skb);
+>>>>            state = RESPST_ERR_RKEY_VIOLATION;
+>>>>            goto err_out;
+>>>>        }
