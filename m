@@ -1,48 +1,49 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F312C3B19B7;
-	Thu, 16 Jul 2026 08:21:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE02E3DC4A4;
+	Thu, 16 Jul 2026 08:25:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784190082; cv=none; b=XKM6Ic9BSHU7D1PHbsM3kYAd445FF18oxmJkt6Tun01SHniQB9RHA4JiQ9DI0C2EsGd0SwVLSXFIsiA5zh1fLln17agKsHtmB4iVsenBNOr123Y/Ss9VkN4A5J0/o6SWyoPfliL98bz/B0i4X4820MrMdd7upMvuLK4NOWPocrQ=
+	t=1784190313; cv=none; b=UahOELgzjvEmSXLxqFQ4WA8RuM5RPU6Yb+8/XZlVFZQll2mPvWR/I+SGOihFD8KO19k/ycg8s/icB7TkBWv6pqTHevpaXxqiokAKtC7uDqfqEwKl84Movxsxd+F+MMYLZRYDSXxiwWGBDuLH41mlyI8PB0RDh66fbPJYyUGdFh8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784190082; c=relaxed/simple;
-	bh=PDfri8wa717gTXI3Hdd3xp/ZmvF6HLJ8rN2mfoj6idc=;
+	s=arc-20240116; t=1784190313; c=relaxed/simple;
+	bh=hTseHX9McpunvK9ku+Y1VPRrEwU9kKTwkoegTw9D25A=;
 	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
-	 MIME-Version:Content-Type; b=rGCCUiBdryPvxYrqy9XfsVuEHyQJzkRej0/Z5it9Bibj/VrYMRd26NX0/2Y4v3+A6v+WuW6H8o+l169mKPNhIW+TfoQl8gSmM1SCsB1PsDZs5whJ9lnmSnU+QDqloa9E3qlG0QFjePixSLmXmiScQ5VAHI3tTPHWy57opPDw9f0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1795F1F000E9;
-	Thu, 16 Jul 2026 08:21:21 +0000 (UTC)
-From: Leon Romanovsky <leonro@nvidia.com>
-To: Potnuri Bharat Teja <bharat@chelsio.com>, 
- Jason Gunthorpe <jgg@ziepe.ca>, Cheng Xu <chengyou@linux.alibaba.com>, 
- Kai Shen <kaishen@linux.alibaba.com>, 
- Chengchang Tang <tangchengchang@huawei.com>, 
- Junxian Huang <huangjunxian6@hisilicon.com>, 
- Abhijit Gangurde <abhijit.gangurde@amd.com>, 
- Allen Hubbe <allen.hubbe@amd.com>, 
- Tatyana Nikolova <tatyana.e.nikolova@intel.com>, 
- Long Li <longli@microsoft.com>, 
- Konstantin Taranov <kotaranov@microsoft.com>, 
- Selvin Xavier <selvin.xavier@broadcom.com>, 
- Michal Kalderon <mkalderon@marvell.com>, 
- Nelson Escobar <neescoba@cisco.com>, Satish Kharat <satishkh@cisco.com>, 
- Bryan Tan <bryan-bt.tan@broadcom.com>, 
- Vishnu Dasa <vishnu.dasa@broadcom.com>, 
- Broadcom internal kernel review list <bcm-kernel-feedback-list@broadcom.com>, 
- Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>, 
- Zhu Yanjun <zyjzyj2000@gmail.com>, 
- Bernard Metzler <bernard.metzler@linux.dev>, 
- Leon Romanovsky <leon@kernel.org>
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, 
- linux-hyperv@vger.kernel.org
-In-Reply-To: <20260714-convert-to-noio-udata-v1-1-f1f6b6c7c988@nvidia.com>
-References: <20260714-convert-to-noio-udata-v1-1-f1f6b6c7c988@nvidia.com>
-Subject: Re: [PATCH rdma-next] RDMA: Use ib_no_udata_io() in query_device
- callbacks
-Message-Id: <178419007897.294005.10803717095218159202.b4-ty@nvidia.com>
-Date: Thu, 16 Jul 2026 04:21:18 -0400
+	 MIME-Version:Content-Type; b=UjdP1H3eSuOry4db7QRePIFpZ5f6Czq/8q4jf/NRBZtqfNJTjuKq7iyKuhfjZysgMAI/KhBVQzsotCUyQTWXQnwTJyFKm3phQ8Ofg4rK0STg+hYF+fNeERRrhhjGhjIY0TeNb8oYiTxUH1uRvkAQ25MG1iaZBA68ZSksAicqyEg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ClylrU35; arc=none smtp.client-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ClylrU35"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6F1A21F000E9;
+	Thu, 16 Jul 2026 08:25:09 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1784190310;
+	bh=qZW+M3P/+ig7Jw2pQiKmK7s0foyMbhMBzVV1CbKMT3E=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Date;
+	b=ClylrU35aD3TpVVZALIA2ckGp9CRCh09VF2wBVSTSEUxIbmy/6oa9ffsv2biR4hWM
+	 z1FaYeivzfuFKmcc5/evqUqTh/n5g8INlko/0dWmkpuf+xO8rwIuLT0FUZlRSc0u8Q
+	 bjlNeW7j7jmeHrORuxS74ueqRkqbJ19Kcv2zjj7tufaYD4avswEXhFay4tlMCiuaTE
+	 D3VyIphHz94R1Ry/9eAhfgZUb/dpdZjnNyUmceTCBhe6m1T746WGf/1Ap6ty40jWTE
+	 qK1ql19tdcHKg5CZwXu9sjptrwNLqwXMUFkNkr7XAdSh3fNBLuCSNl9+Nf20WIFYiF
+	 /JKjjp5CX+Afg==
+From: Leon Romanovsky <leon@kernel.org>
+To: linux-rdma@vger.kernel.org, Mark Bloch <mbloch@nvidia.com>, 
+ netdev@vger.kernel.org, Saeed Mahameed <saeedm@nvidia.com>, 
+ Tariq Toukan <tariqt@nvidia.com>
+Cc: Alexei Lazar <alazar@nvidia.com>, Alex Vesker <valex@nvidia.com>, 
+ Andrew Lunn <andrew+netdev@lunn.ch>, Cosmin Ratiu <cratiu@nvidia.com>, 
+ "David S. Miller" <davem@davemloft.net>, 
+ Dragos Tatulea <dtatulea@nvidia.com>, Eric Dumazet <edumazet@google.com>, 
+ Feng Liu <feliu@nvidia.com>, Jakub Kicinski <kuba@kernel.org>, 
+ Kees Cook <kees@kernel.org>, linux-kernel@vger.kernel.org, 
+ Paolo Abeni <pabeni@redhat.com>, Parav Pandit <parav@nvidia.com>, 
+ Shay Drory <shayd@nvidia.com>, Simon Horman <horms@kernel.org>, 
+ Yevgeny Kliteynik <kliteyn@nvidia.com>
+In-Reply-To: <20260713084320.1015240-1-tariqt@nvidia.com>
+References: <20260713084320.1015240-1-tariqt@nvidia.com>
+Subject: Re: [PATCH mlx5-next 0/2] mlx5-next updates 2026-07-13
+Message-Id: <178419030714.296156.690668882209911823.b4-ty@kernel.org>
+Date: Thu, 16 Jul 2026 04:25:07 -0400
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -54,22 +55,25 @@ Content-Transfer-Encoding: 7bit
 X-Mailer: b4 0.15-dev-18f8f
 
 
-On Tue, 14 Jul 2026 14:46:58 +0300, Leon Romanovsky wrote:
-> The query_device callbacks that neither accept driver-specific input nor
-> return a driver-specific response open-code the empty udata handling as
-> ib_is_udata_in_empty() on entry and ib_respond_empty_udata() on exit.
+On Mon, 13 Jul 2026 11:43:18 +0300, Tariq Toukan wrote:
+> This series contains mlx5 shared updates.
 > 
-> ib_no_udata_io() already combines both steps, so replace the entry check
-> with it and simply return 0 on success.
+> Regards,
+> Tariq
+> 
+> Cosmin Ratiu (1):
+>   net/mlx5: ifc: Add PSP related fields
 > 
 > [...]
 
 Applied, thanks!
 
-[1/1] RDMA: Use ib_no_udata_io() in query_device callbacks
-      https://git.kernel.org/rdma/rdma/c/b12985a0473a2f
+[1/2] net/mlx5: Drop redundant esw_cap, reuse e_switch_cap
+      https://git.kernel.org/rdma/rdma/c/0b7b17502300f7
+[2/2] net/mlx5: ifc: Add PSP related fields
+      https://git.kernel.org/rdma/rdma/c/bee40a7d0bd126
 
 Best regards,
 -- 
-Leon Romanovsky <leonro@nvidia.com>
+Leon Romanovsky <leon@kernel.org>
 
