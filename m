@@ -1,485 +1,281 @@
-Received: from mail-wr1-f45.google.com (mail-wr1-f45.google.com [209.85.221.45])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 94C8542A16D
-	for <linux-rdma@vger.kernel.org>; Thu, 16 Jul 2026 13:24:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.45
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4FF6A42A17D;
+	Thu, 16 Jul 2026 13:50:47 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784208261; cv=none; b=MKqpNVOlmGYPGGwc/ZUMBFNZDxnvl0h0TfI3bo+D0h95xPeMM0S8h7RZ0pQbUTr4sSufvNvM/j9tq6rsaib5KD3r6FVacRhbmz8+072y9iC0xl97vnvUDuG+4o0+/2sHiFpVBuHSTWkhl2cf4rFtZ5vBc9cVtPFFM3hqY0zyPsk=
+	t=1784209847; cv=none; b=ZkTQe2N33WYfj8CQpi7gHUzgMozICTXp3cmVPcmogMdmY92vcB6rcWYp6qRdbxg4evSlfGKJchoDNaRlsEdl5j5EpgCKv1xPxy3//Xz36bvNKu3lpoDUKVlDkoSQl4NA7OIzehEnWiyoRG9uShKHkAml1LBQzbDu8rSlXzROc8k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784208261; c=relaxed/simple;
-	bh=twRURTDJ/5mjryqyEE5G8bGbsMrfIX8bKO9DFB7ZQbA=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=q/DHBKw6FWHLoDAfnJuTIsUrGhES63RLknCidpI9pzWmVnN3iqNgPU06LpVRg43nVVJ8eUb3L7fU7JgqJ6+N8MM/5ColjhGniai3qP+7rYMr9ClCnl353jHEaND6cUBuqrACK8F2FBNF8Fd9eP80EdF+xZxmrYq27NaJ0ThhbiI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=resnulli.us; spf=none smtp.mailfrom=resnulli.us; dkim=pass (2048-bit key) header.d=resnulli-us.20251104.gappssmtp.com header.i=@resnulli-us.20251104.gappssmtp.com header.b=W06YgJh9; arc=none smtp.client-ip=209.85.221.45
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=resnulli.us
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=resnulli.us
+	s=arc-20240116; t=1784209847; c=relaxed/simple;
+	bh=UzpmWiDSqqP+iFkA0R8h+A1fwholsVskgVIc/9kF5Vw=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=N1z9Etd42cmlAgpQ9lAgCGkAW6FnBGFRqW/y5QKUMq45sAmqx6gP7s48EQkG8pCUdRibJF8yDRywgoIAspiWt4Wy0gZV4fv8faGs73cik3uFRziiTb8jSuoSlh2zh0kPDQ4qnnD8Q1Avyin2JDzI35dcB0n2FigFjgtk1uhTUJ0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=DqH+9tSA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=resnulli-us.20251104.gappssmtp.com header.i=@resnulli-us.20251104.gappssmtp.com header.b="W06YgJh9"
-Received: by mail-wr1-f45.google.com with SMTP id ffacd0b85a97d-47df43bfb07so1751993f8f.1
-        for <linux-rdma@vger.kernel.org>; Thu, 16 Jul 2026 06:24:18 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=resnulli-us.20251104.gappssmtp.com; s=20251104; t=1784208257; x=1784813057; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=SkIgdZHasNjIyn1ZP3a3yKWYiQkNI/IXycTrMI5IrYQ=;
-        b=W06YgJh9LPK68BH88YFbEQ9W1tbSKeqCdNjxwLILVgCOgeYhwi4PMos943yBhzkj7U
-         EA0gQiHpqldUNWDlRcnCynmQszLE+yBrjEfjR29XKTTljtgtpky/FmYjq8DzlH8XFbyd
-         E2E4psGmWkHslsQdILLgbVNTJAaAlscLU+XakBN8JiieTR62ajHEcYanfGvvZHOV97Dq
-         UTD9lYsoXmrlm/SqsonHwdIw6cIJBk1udm2BEWT5ApF9YKnptBhONw4QddCZF+RlpryP
-         Vd022sa4nZbYnfo0NHaCxO6coIC+LsdSsISTLcKhYSj8janxTjvuw3m5f/xrxEJqLV1p
-         OqDQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1784208257; x=1784813057;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=SkIgdZHasNjIyn1ZP3a3yKWYiQkNI/IXycTrMI5IrYQ=;
-        b=b7zaGlhqByqohrrg822WGNIXKj08zgzJnFy37LQYGMfYg3vVwYf9GJG3sXx8nGCi4y
-         sbssBsbuLwLpI/4Nm+6rXt0pXLC8+TANUGZlCjQALZ752yZJLAE8RnzLnUuMsXZz+VYN
-         nBvVjrjAazg51tXIvzhXbB4myKR6ciSQX/I6aqLYYUjsncnjWdxwNqm2G2m/Mt56XjSW
-         VNfeyby83NVyzZsCZQNBUEC0jGz/ZKKHMTy429kbpdUM4YD2R3nAntsLlmwzeQ6+zSzG
-         VQLTm3R+P47gaOaBJZSgIOArAurzhSEZCazXeduMjgDMYxeFvWclb2xddFjZZUrQ7s0l
-         d4qA==
-X-Gm-Message-State: AOJu0YwSC8CAmljoRkyLf5mw36xTVZwbmuUf9Qawp6Y5yflkJrEIt7ka
-	DcBGxqpikVi943EH53eXq2NnXzuUhV/ah9Fih5UMNj5xQSfa+7DYESc4TV3hQ/Dd8H59BcZvdo1
-	r+5Iw
-X-Gm-Gg: AfdE7cmy3LkvDL1RQrxrOD9P5SSwvrpKnma5H+HrouEWHcHmoI3CjIryTXSO8kGDnQU
-	ZrBQc7Sx6uGMcG8seImb4g2zSRBEGi9Hj5h5lcqcCeEJJgErdQ/GIQtqn+GzOMMWZ4xG/a61Mjl
-	OOB5IEiZH+IhremYpHeiW88xLSVjYorRekG+h9tjwP3ILGjVcjPv0+PZ3/ySmkaJkL9J5NrPdy1
-	EaBiH7pGznwN2njcrm073dQE/1qEGdiAQkG6Rdq9toLsh6ElbWn61A0iuXwXMUhqPTk9EdzfZc+
-	T1IlsjuMfW7hiONFxFjRJKu1Yi0ZdIXSFqe7yWjNnC2ooatH2AeQLVVXH6+lJ3KK8A4GSZ766W4
-	mxwjErA/+Cf1MARN+09ff42tTKayRfS87mzqPMRrLHpTXsNcw4e3O/IazB68rs8wm1XMw/cfDH7
-	EKUc+VZBWINOI=
-X-Received: by 2002:a05:6000:2c10:b0:47d:ed40:a94e with SMTP id ffacd0b85a97d-47f463409e5mr17099014f8f.22.1784208256780;
-        Thu, 16 Jul 2026 06:24:16 -0700 (PDT)
-Received: from localhost ([140.209.217.211])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-47f464b7f09sm24849479f8f.26.2026.07.16.06.24.15
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 16 Jul 2026 06:24:16 -0700 (PDT)
-From: Jiri Pirko <jiri@resnulli.us>
-To: linux-rdma@vger.kernel.org
-Cc: cgroups@vger.kernel.org,
-	netdev@vger.kernel.org,
-	linux-s390@vger.kernel.org,
-	linux-kselftest@vger.kernel.org,
-	jgg@ziepe.ca,
-	leon@kernel.org,
-	parav@nvidia.com,
-	mbloch@nvidia.com,
-	cmeiohas@nvidia.com,
-	roman.gushchin@linux.dev,
-	bvanassche@acm.org,
-	zyjzyj2000@gmail.com,
-	shuah@kernel.org,
-	tj@kernel.org,
-	mkoutny@suse.com,
-	hannes@cmpxchg.org,
-	alibuda@linux.alibaba.com,
-	dust.li@linux.alibaba.com,
-	sidraya@linux.ibm.com,
-	wenjia@linux.ibm.com,
-	yanjun.zhu@linux.dev,
-	cui.tao@linux.dev
-Subject: [PATCH rdma-next v3 14/14] RDMA/selftests: Add rxe_netns_names test
-Date: Thu, 16 Jul 2026 15:23:15 +0200
-Message-ID: <20260716132316.1495242-15-jiri@resnulli.us>
-X-Mailer: git-send-email 2.54.0
-In-Reply-To: <20260716132316.1495242-1-jiri@resnulli.us>
-References: <20260716132316.1495242-1-jiri@resnulli.us>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="DqH+9tSA"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id DD414C2BCC9;
+	Thu, 16 Jul 2026 13:50:46 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1784209846;
+	bh=UzpmWiDSqqP+iFkA0R8h+A1fwholsVskgVIc/9kF5Vw=;
+	h=From:Date:Subject:To:Cc:Reply-To:From;
+	b=DqH+9tSASMiBBT8QaBwrJ1N16EKSOEY5CdaDQLN0pbSkXZV/RlJIqZ6E/d2kq8Cz3
+	 wI6cmtMqKQXyL4RTP4dUz1j6Ywt9jrosIBXGuVgEcPgj7aJlyv304WAYAOQcJP8fuU
+	 zy1Mjgo1FCF6D1CVKbXyUvvMkQkmnaV5VZwl0q3LIbY+4/a9CZ3tQerILQUVrhhNxo
+	 YbAXbyugDIqzyV5NrhFkMHFCOIesrAHkBoqxNu4KKrb74tcNSpKJph0+8fMv2uEk3B
+	 ISNTr7RS8iLHl2CupY/lWyy/M7PI8dRBsgrRh7y8lXAOTOEnw+j/dn5S9iS+uldJu1
+	 HIUlCpH3gs0xQ==
+Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B64AC4450A;
+	Thu, 16 Jul 2026 13:50:46 +0000 (UTC)
+From: Bryam Vargas via B4 Relay <devnull+hexlabsecurity.proton.me@kernel.org>
+Date: Thu, 16 Jul 2026 08:50:45 -0500
+Subject: [PATCH net v3] net/smc: order the CDC receive path against buffer
+ publication
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <20260716-b4-disp-aa52955a-v3-1-03a4411a7549@proton.me>
+X-B4-Tracking: v=1; b=H4sIALThWGoC/x3MPQqAMAxA4atIZgP9sRW9ijhEjZqlllZEEO9uc
+ fyG9x7InIQz9NUDiS/JcoQCW1cw7xQ2RlmKwSjjVas9Tg0ukiMSOdM5R+i8WnU3N5YMQcli4lX
+ ufzlA4BPG9/0AAXzEXWcAAAA=
+To: "D. Wythe" <alibuda@linux.alibaba.com>, Paolo Abeni <pabeni@redhat.com>, 
+ Jakub Kicinski <kuba@kernel.org>, Eric Dumazet <edumazet@google.com>, 
+ Mahanta Jambigi <mjambigi@linux.ibm.com>, 
+ Dust Li <dust.li@linux.alibaba.com>, Wen Gu <guwen@linux.alibaba.com>, 
+ "David S. Miller" <davem@davemloft.net>, 
+ Sidraya Jayagond <sidraya@linux.ibm.com>, 
+ Wenjia Zhang <wenjia@linux.ibm.com>, Tony Lu <tonylu@linux.alibaba.com>
+Cc: netdev@vger.kernel.org, Simon Horman <horms@kernel.org>, 
+ linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org, 
+ linux-kernel@vger.kernel.org
+X-Mailer: b4 0.13.0
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1784209844; l=9556;
+ i=hexlabsecurity@proton.me; s=proton; h=from:subject:message-id;
+ bh=8rdrQeoqAP//SANKUMiO9RanFoUJmkH6UG4jV/txETM=;
+ b=WGVanU1Q5UWJ0VRvNyWdONdPuWe9Xe37CaN5HmENvtKiROmzY1mWgJbjTt8OaCpH4IYzvwtfY
+ 0YsU/ji30l+DzxmUSROprHb3c8ZKYjXfm/f/zOr+dIS3pJrXjbJzgIt
+X-Developer-Key: i=hexlabsecurity@proton.me; a=ed25519;
+ pk=dmppBMZNLLoPzxHi9l8tZDzEZUunPbgsYqIZYXeUrL0=
+X-Endpoint-Received: by B4 Relay for hexlabsecurity@proton.me/proton with
+ auth_id=814
+X-Original-From: Bryam Vargas <hexlabsecurity@proton.me>
+Reply-To: hexlabsecurity@proton.me
 
-From: Jiri Pirko <jiri@nvidia.com>
+From: Bryam Vargas <hexlabsecurity@proton.me>
 
-Add a kselftest script that exercises per-netns RDMA device naming
-with RXE. Cover duplicate names across namespaces, move conflict
-handling, move-with-rename, and same-namespace rename requests.
+The SMC CDC receive handlers dereference conn->rmb_desc, and on the
+SMC-D DMB-nocopy path conn->sndbuf_desc, but both are published after the
+connection is already reachable to a peer: rmb_desc once the connection
+is in the link group's token tree, the nocopy ghost sndbuf_desc later
+still, in smcd_buf_attach() after the ISM receive tasklet is armed. A CDC
+in that window hits a handler with the buffer unset -- a NULL dereference
+and host DoS -- or, on a weakly ordered CPU, non-NULL but not yet
+initialised. Both are also published before the receive state
+(bytes_to_rcv, sndbuf_space), so an early CDC's accounting can be
+overwritten by setup.
 
-Signed-off-by: Jiri Pirko <jiri@nvidia.com>
+Initialise the receive state first and publish both buffers last with
+smp_store_release(), consuming them with smp_load_acquire() and bailing
+while unset, as the handlers already do for a killed connection. Gate the
+whole sndbuf consumer trigger on the send buffer, not just the nocopy
+accounting: smc_tx_prepared_sends() and smc_tx_pending() dereference it
+too. Conforming peers are unaffected.
+
+Closes: https://sashiko.dev/#/patchset/20260714-b4-disp-835288a6-v2-1-581555ef2145@proton.me?part=1
+Cc: stable@vger.kernel.org
+Signed-off-by: Bryam Vargas <hexlabsecurity@proton.me>
 ---
-v2->v3:
-- added wait for rdma devices are removed
-- added retry for old rdma netns mode restore
-v1->v2:
-- fixed ktap_set_plan
-- s/RXE_A/RXE_SAME/ in dup rename
----
- tools/testing/selftests/rdma/Makefile         |   3 +-
- tools/testing/selftests/rdma/config           |   2 +
- .../testing/selftests/rdma/rxe_netns_names.sh | 334 ++++++++++++++++++
- 3 files changed, 338 insertions(+), 1 deletion(-)
- create mode 100755 tools/testing/selftests/rdma/rxe_netns_names.sh
+v3:
+ - Publish rmb_desc and the ghost sndbuf_desc after the receive state is
+   initialised, not before. The earlier revision released the pointer first,
+   which let an early CDC's accounting be overwritten by setup.
+ - Gate the whole sndbuf consumer trigger on sndbuf_desc, not only the nocopy
+   accounting: smc_tx_prepared_sends() and smc_tx_pending() dereference it too.
+ The v2 review raised both.
+v2: https://lore.kernel.org/all/20260714-b4-disp-835288a6-v2-1-581555ef2145@proton.me/
+v1: https://lore.kernel.org/all/20260711-b4-disp-c36a9798-v1-1-340b0c6053fb@proton.me/
 
-diff --git a/tools/testing/selftests/rdma/Makefile b/tools/testing/selftests/rdma/Makefile
-index 07af7f15c1bf..a91c14c45006 100644
---- a/tools/testing/selftests/rdma/Makefile
-+++ b/tools/testing/selftests/rdma/Makefile
-@@ -3,6 +3,7 @@ TEST_PROGS := rxe_rping_between_netns.sh \
- 		rxe_ipv6.sh \
- 		rxe_socket_with_netns.sh \
- 		rxe_test_NETDEV_UNREGISTER.sh \
--		rxe_sent_rcvd_bytes.sh
-+		rxe_sent_rcvd_bytes.sh \
-+		rxe_netns_names.sh
+herd7 models both orderings. Plain accesses allow the "pointer published, buffer
+stale" outcome and flag a data race; release/acquire forbid it. A publish-order
+litmus shows the lost update is allowed with the store released first and never
+with it released last. af_smc runs over an RDMA fabric or an ISM device, so the
+weak-memory arm is model-level; litmus tests and reproducer on request.
+
+No Fixes: tag -- the rmb_desc ordering is foundational (predates the git history
+here); the sndbuf_desc hunks additionally cover the later SMC-D DMB-nocopy path.
+Happy to split rmb/sndbuf for a cleaner stable backport.
+---
+ net/smc/smc_cdc.c  | 50 +++++++++++++++++++++++++++++++++++++++++---------
+ net/smc/smc_core.c | 26 ++++++++++++++++++++++----
+ 2 files changed, 63 insertions(+), 13 deletions(-)
+
+diff --git a/net/smc/smc_cdc.c b/net/smc/smc_cdc.c
+index 32d6d03df321..ea61b1e75c72 100644
+--- a/net/smc/smc_cdc.c
++++ b/net/smc/smc_cdc.c
+@@ -332,8 +332,20 @@ static void smc_cdc_msg_recv_action(struct smc_sock *smc,
+ {
+ 	union smc_host_cursor cons_old, prod_old;
+ 	struct smc_connection *conn = &smc->conn;
++	struct smc_buf_desc *sndbuf_desc;
+ 	int diff_cons, diff_prod, diff_tx;
  
- include ../lib.mk
-diff --git a/tools/testing/selftests/rdma/config b/tools/testing/selftests/rdma/config
-index 4ffb814e253b..e1ff54ec0f57 100644
---- a/tools/testing/selftests/rdma/config
-+++ b/tools/testing/selftests/rdma/config
-@@ -1,3 +1,5 @@
- CONFIG_TUN
- CONFIG_VETH
-+CONFIG_DUMMY
-+CONFIG_NET_NS
- CONFIG_RDMA_RXE
-diff --git a/tools/testing/selftests/rdma/rxe_netns_names.sh b/tools/testing/selftests/rdma/rxe_netns_names.sh
-new file mode 100755
-index 000000000000..f40118407f4c
---- /dev/null
-+++ b/tools/testing/selftests/rdma/rxe_netns_names.sh
-@@ -0,0 +1,334 @@
-+#!/bin/bash
-+# SPDX-License-Identifier: GPL-2.0
-+#
-+# Exercise RDMA device name handling across network namespaces.
++	/* Acquire the send buffer once, pairing with the smp_store_release() in
++	 * __smc_buf_create()/smcd_buf_attach().  On the SMC-D DMB-nocopy path
++	 * the ghost sndbuf_desc is attached only after the connection is already
++	 * reachable to the ISM device, so it can still be unset here; every
++	 * sndbuf_desc consumer below (the nocopy accounting and the sndbuf
++	 * consumer trigger, which dereferences it via smc_tx_prepared_sends())
++	 * is skipped while it is NULL to avoid a NULL deref and a load of an
++	 * uninitialised buffer.
++	 */
++	sndbuf_desc = smp_load_acquire(&conn->sndbuf_desc);
 +
-+source "$(dirname "$0")/../kselftest/ktap_helpers.sh"
-+
-+NAME_PREFIX="rxe_netns_names_$$"
-+NETDEV_PREFIX="rxn$$"
-+NS1="${NAME_PREFIX}ns1"
-+NS2="${NAME_PREFIX}ns2"
-+RXE_A="${NAME_PREFIX}rxe_a"
-+RXE_B="${NAME_PREFIX}rxe_b"
-+RXE_SAME="${NAME_PREFIX}rxe_same"
-+RXE_NEW="${NAME_PREFIX}rxe_new"
-+DUMMY_A="${NETDEV_PREFIX}a"
-+DUMMY_B="${NETDEV_PREFIX}b"
-+OLD_MODE=""
-+MODE_CHANGED=0
-+MODS=("dummy" "rdma_rxe")
-+TEST_SAME_NAMES="same RDMA device name can exist in two net namespaces"
-+TEST_MOVE_CONFLICT="move without rename fails on destination name conflict"
-+TEST_MOVE_RENAME="move then rename succeeds"
-+TEST_COMBINED_MOVE_RENAME="move with requested destination name succeeds"
-+TEST_SAME_NETNS_DUP_RENAME="same-netns rename rejects duplicate name"
-+TEST_TEARDOWN_RETURN="netns delete returns device to init_net and renames on conflict"
-+
-+ksft_skip()
-+{
-+	ktap_skip_all "$*"
-+	exit "$KSFT_SKIP"
-+}
-+
-+fail()
-+{
-+	ktap_exit_fail_msg "$*"
-+}
-+
-+need_cmd()
-+{
-+	command -v "$1" >/dev/null 2>&1 || ksft_skip "missing command: $1"
-+}
-+
-+rdma_ns()
-+{
-+	local ns=$1
-+
-+	shift
-+	ip netns exec "$ns" rdma "$@"
-+}
-+
-+rdma_dev_exists()
-+{
-+	local ns=$1
-+	local dev=$2
-+
-+	if [ -n "$ns" ]; then
-+		rdma_ns "$ns" dev show "$dev" >/dev/null 2>&1
-+	else
-+		rdma dev show "$dev" >/dev/null 2>&1
-+	fi
-+}
-+
-+add_dummy()
-+{
-+	local netdev=$1
-+
-+	ip link add "$netdev" type dummy || return 1
-+	ip link set "$netdev" up || return 1
-+}
-+
-+add_rxe()
-+{
-+	local dev=$1
-+	local netdev=$2
-+
-+	rdma link add "$dev" type rxe netdev "$netdev"
-+}
-+
-+rdma_dev_on_netdev()
-+{
-+	local netdev=$1
-+
-+	rdma link show 2>/dev/null | awk -v want="$netdev" '
-+		{
-+			for (i = 1; i < NF; i++)
-+				if ($i == "netdev" && $(i + 1) == want) {
-+					dev = $2
-+					sub(/\/.*/, "", dev)
-+					print dev
-+					exit
-+				}
-+		}'
-+}
-+
-+wait_rdma_dev_on_netdev()
-+{
-+	local netdev=$1
-+	local dev
-+	local i
-+
-+	for i in $(seq 1 50); do
-+		dev=$(rdma_dev_on_netdev "$netdev")
-+		if [ -n "$dev" ]; then
-+			echo "$dev"
-+			return 0
-+		fi
-+		sleep 0.1
-+	done
-+
-+	return 1
-+}
-+
-+# ip link del returns after NETDEV_UNREGISTER, but rxe tears the RDMA device
-+# down asynchronously via ib_unregister_device_queued(). Wait until our names
-+# are gone.
-+wait_rdma_devs_gone()
-+{
-+	local i name ns
-+	local names=("$RXE_A" "$RXE_B" "$RXE_SAME" "$RXE_NEW")
-+
-+	for i in $(seq 1 50); do
-+		local found=0
-+
-+		for name in "${names[@]}"; do
-+			if rdma_dev_exists "" "$name"; then
-+				found=1
-+				break
-+			fi
-+			for ns in "$NS1" "$NS2"; do
-+				ip netns exec "$ns" true 2>/dev/null || continue
-+				if rdma_dev_exists "$ns" "$name"; then
-+					found=1
-+					break 2
-+				fi
-+			done
-+		done
-+
-+		[ "$found" -eq 0 ] && return 0
-+		sleep 0.1
-+	done
-+
-+	return 1
-+}
-+
-+setup_devs()
-+{
-+	cleanup_devs || return 1
-+
-+	add_dummy "$DUMMY_A" || return 1
-+	add_dummy "$DUMMY_B" || return 1
-+
-+	add_rxe "$RXE_A" "$DUMMY_A" || return 1
-+	add_rxe "$RXE_B" "$DUMMY_B" || return 1
-+}
-+
-+cleanup_devs()
-+{
-+	ip link del "$DUMMY_A" 2>/dev/null
-+	ip link del "$DUMMY_B" 2>/dev/null
-+	wait_rdma_devs_gone
-+}
-+
-+setup()
-+{
-+	OLD_MODE=$(rdma system show 2>/dev/null |
-+		   sed -n 's/.*netns \([^ ]*\).*/\1/p')
-+	[ -n "$OLD_MODE" ] || ksft_skip "failed to read RDMA netns mode"
-+
-+	rdma system set netns exclusive >/dev/null 2>&1 ||
-+		ksft_skip "rdma netns exclusive mode is not supported"
-+	MODE_CHANGED=1
-+
-+	ip netns add "$NS1" || return 1
-+	ip netns add "$NS2" || return 1
-+}
-+
-+# ip netns del returns before rdma_dev_exit_net() removes the net from
-+# rdma_nets. rdma_compatdev_set() returns -EBUSY until that completes, so
-+# retry the mode restore instead of leaving the system in exclusive mode.
-+restore_netns_mode()
-+{
-+	local i
-+
-+	[ "$MODE_CHANGED" -eq 1 ] || return 0
-+
-+	for i in $(seq 1 50); do
-+		if rdma system set netns "$OLD_MODE" >/dev/null 2>&1; then
-+			MODE_CHANGED=0
-+			return 0
-+		fi
-+		sleep 0.1
-+	done
-+
-+	echo "warning: failed to restore RDMA netns mode to $OLD_MODE" >&2
-+	return 1
-+}
-+
-+cleanup()
-+{
-+	cleanup_devs
-+
-+	ip netns del "$NS1" 2>/dev/null
-+	ip netns del "$NS2" 2>/dev/null
-+
-+	restore_netns_mode
-+
-+	for m in "${MODS[@]}"; do
-+		modprobe -r "$m" 2>/dev/null
-+	done
-+}
-+
-+rdma_supports_combined_move_rename()
-+{
-+	rdma dev help 2>&1 | grep -Eq 'netns .*name|name .*netns'
-+}
-+
-+[ "$(id -u)" -eq 0 ] || ksft_skip "must be run as root"
-+need_cmd ip
-+need_cmd rdma
-+need_cmd modprobe
-+
-+trap cleanup EXIT
-+
-+for m in "${MODS[@]}"; do
-+	modinfo "$m" >/dev/null 2>&1 || ksft_skip "module $m not found"
-+	modprobe "$m" || fail "failed to load $m"
-+done
-+
-+setup || fail "failed to create net namespaces"
-+
-+ktap_print_header
-+ktap_set_plan 6
-+
-+if setup_devs &&
-+   rdma dev set "$RXE_A" netns "$NS1" &&
-+   rdma_ns "$NS1" dev set "$RXE_A" name "$RXE_SAME" &&
-+   rdma dev set "$RXE_B" netns "$NS2" &&
-+   rdma_ns "$NS2" dev set "$RXE_B" name "$RXE_SAME" &&
-+   rdma_dev_exists "$NS1" "$RXE_SAME" &&
-+   rdma_dev_exists "$NS2" "$RXE_SAME"; then
-+	ktap_test_pass "$TEST_SAME_NAMES"
-+else
-+	ktap_test_fail "$TEST_SAME_NAMES"
-+fi
-+cleanup_devs
-+
-+if ! setup_devs ||
-+   ! rdma dev set "$RXE_A" netns "$NS1" ||
-+   ! rdma_ns "$NS1" dev set "$RXE_A" name "$RXE_SAME" ||
-+   ! rdma dev set "$RXE_B" netns "$NS2" ||
-+   ! rdma_ns "$NS2" dev set "$RXE_B" name "$RXE_SAME"; then
-+	ktap_test_fail "$TEST_MOVE_CONFLICT"
-+elif rdma_ns "$NS1" dev set "$RXE_SAME" netns "$NS2" >/dev/null 2>&1; then
-+	ktap_test_fail "$TEST_MOVE_CONFLICT"
-+elif rdma_dev_exists "$NS1" "$RXE_SAME" &&
-+     rdma_dev_exists "$NS2" "$RXE_SAME"; then
-+	ktap_test_pass "$TEST_MOVE_CONFLICT"
-+else
-+	ktap_test_fail "$TEST_MOVE_CONFLICT"
-+fi
-+cleanup_devs
-+
-+if ! setup_devs; then
-+	ktap_test_fail "$TEST_MOVE_RENAME"
-+elif rdma dev set "$RXE_A" netns "$NS2" &&
-+     rdma_ns "$NS2" dev set "$RXE_A" name "$RXE_NEW"; then
-+	if rdma_dev_exists "$NS2" "$RXE_NEW" &&
-+	   ! rdma_dev_exists "" "$RXE_A"; then
-+		ktap_test_pass "$TEST_MOVE_RENAME"
-+	else
-+		ktap_test_fail "$TEST_MOVE_RENAME"
-+	fi
-+else
-+	ktap_test_fail "$TEST_MOVE_RENAME"
-+fi
-+cleanup_devs
-+
-+if ! rdma_supports_combined_move_rename; then
-+	ktap_test_skip "$TEST_COMBINED_MOVE_RENAME"
-+elif ! setup_devs; then
-+	ktap_test_fail "$TEST_COMBINED_MOVE_RENAME"
-+elif rdma dev set "$RXE_A" netns "$NS2" name "$RXE_NEW"; then
-+	if rdma_dev_exists "$NS2" "$RXE_NEW" &&
-+	   ! rdma_dev_exists "" "$RXE_A"; then
-+		ktap_test_pass "$TEST_COMBINED_MOVE_RENAME"
-+	else
-+		ktap_test_fail "$TEST_COMBINED_MOVE_RENAME"
-+	fi
-+else
-+	ktap_test_fail "$TEST_COMBINED_MOVE_RENAME"
-+fi
-+cleanup_devs
-+
-+if ! setup_devs; then
-+	ktap_test_fail "$TEST_SAME_NETNS_DUP_RENAME"
-+elif rdma dev set "$RXE_A" name "$RXE_SAME" &&
-+     rdma dev set "$RXE_B" name "$RXE_NEW"; then
-+	if rdma dev set "$RXE_SAME" name "$RXE_NEW" >/dev/null 2>&1; then
-+		ktap_test_fail "$TEST_SAME_NETNS_DUP_RENAME"
-+	elif rdma_dev_exists "" "$RXE_SAME" &&
-+	     rdma_dev_exists "" "$RXE_NEW"; then
-+		ktap_test_pass "$TEST_SAME_NETNS_DUP_RENAME"
-+	else
-+		ktap_test_fail "$TEST_SAME_NETNS_DUP_RENAME"
-+	fi
-+else
-+	ktap_test_fail "$TEST_SAME_NETNS_DUP_RENAME"
-+fi
-+cleanup_devs
-+
-+if ! setup_devs; then
-+	ktap_test_fail "$TEST_TEARDOWN_RETURN"
-+elif ! rdma dev set "$RXE_A" name "$RXE_SAME" ||
-+     ! rdma dev set "$RXE_B" netns "$NS2" ||
-+     ! rdma_ns "$NS2" dev set "$RXE_B" name "$RXE_SAME" ||
-+     ! rdma_dev_exists "$NS2" "$RXE_SAME"; then
-+	ktap_test_fail "$TEST_TEARDOWN_RETURN"
-+else
-+	ip netns del "$NS2"
-+	returned=$(wait_rdma_dev_on_netdev "$DUMMY_B")
-+	ktap_print_msg "device returned to init_net as '${returned:-<missing>}'"
-+	if rdma_dev_exists "" "$RXE_SAME" &&
-+	   [ -n "$returned" ] &&
-+	   [ "$returned" != "$RXE_SAME" ] &&
-+	   [ "${returned#ibdev}" != "$returned" ]; then
-+		ktap_test_pass "$TEST_TEARDOWN_RETURN"
-+	else
-+		ktap_test_fail "$TEST_TEARDOWN_RETURN"
-+	fi
-+fi
-+cleanup_devs
-+
-+ktap_finished
+ 	smc_curs_copy(&prod_old, &conn->local_rx_ctrl.prod, conn);
+ 	smc_curs_copy(&cons_old, &conn->local_rx_ctrl.cons, conn);
+ 	smc_cdc_msg_to_host(&conn->local_rx_ctrl, cdc, conn);
+@@ -351,14 +363,17 @@ static void smc_cdc_msg_recv_action(struct smc_sock *smc,
+ 
+ 		/* if local sndbuf shares the same memory region with
+ 		 * peer RMB, then update tx_curs_fin and sndbuf_space
+-		 * here since peer has already consumed the data.
++		 * here since peer has already consumed the data.  The ghost
++		 * sndbuf_desc (acquired above) may still be unset in the SMC-D
++		 * DMB-nocopy setup window, so skip the update while it is NULL.
+ 		 */
+ 		if (conn->lgr->is_smcd &&
+-		    smc_ism_support_dmb_nocopy(conn->lgr->smcd)) {
++		    smc_ism_support_dmb_nocopy(conn->lgr->smcd) &&
++		    sndbuf_desc) {
+ 			/* Calculate consumed data and
+ 			 * increment free send buffer space.
+ 			 */
+-			diff_tx = smc_curs_diff(conn->sndbuf_desc->len,
++			diff_tx = smc_curs_diff(sndbuf_desc->len,
+ 						&conn->tx_curs_fin,
+ 						&conn->local_rx_ctrl.cons);
+ 			/* increase local sndbuf space and fin_curs */
+@@ -391,10 +406,15 @@ static void smc_cdc_msg_recv_action(struct smc_sock *smc,
+ 			conn->urg_state = SMC_URG_NOTYET;
+ 	}
+ 
+-	/* trigger sndbuf consumer: RDMA write into peer RMBE and CDC */
+-	if ((diff_cons && smc_tx_prepared_sends(conn)) ||
+-	    conn->local_rx_ctrl.prod_flags.cons_curs_upd_req ||
+-	    conn->local_rx_ctrl.prod_flags.urg_data_pending) {
++	/* trigger sndbuf consumer: RDMA write into peer RMBE and CDC.
++	 * smc_tx_prepared_sends() and smc_tx_pending() dereference sndbuf_desc,
++	 * so skip the whole trigger while it is unset (the SMC-D DMB-nocopy
++	 * setup window): there is nothing to send without a send buffer.
++	 */
++	if (sndbuf_desc &&
++	    ((diff_cons && smc_tx_prepared_sends(conn)) ||
++	     conn->local_rx_ctrl.prod_flags.cons_curs_upd_req ||
++	     conn->local_rx_ctrl.prod_flags.urg_data_pending)) {
+ 		if (!sock_owned_by_user(&smc->sk))
+ 			smc_tx_pending(conn);
+ 		else
+@@ -443,13 +463,21 @@ static void smcd_cdc_rx_tsklet(struct tasklet_struct *t)
+ {
+ 	struct smc_connection *conn = from_tasklet(conn, t, rx_tsklet);
+ 	struct smcd_cdc_msg *data_cdc;
++	struct smc_buf_desc *rmb_desc;
+ 	struct smcd_cdc_msg cdc;
+ 	struct smc_sock *smc;
+ 
+ 	if (!conn || conn->killed)
+ 		return;
++	/* Pair with smp_store_release() in __smc_buf_create(): the connection
++	 * is published before its RMB is allocated, so bail while rmb_desc is
++	 * unset to avoid a NULL deref and a load of an uninitialised buffer.
++	 */
++	rmb_desc = smp_load_acquire(&conn->rmb_desc);
++	if (!rmb_desc)
++		return;
+ 
+-	data_cdc = (struct smcd_cdc_msg *)conn->rmb_desc->cpu_addr;
++	data_cdc = (struct smcd_cdc_msg *)rmb_desc->cpu_addr;
+ 	smcd_curs_copy(&cdc.prod, &data_cdc->prod, conn);
+ 	smcd_curs_copy(&cdc.cons, &data_cdc->cons, conn);
+ 	smc = container_of(conn, struct smc_sock, conn);
+@@ -483,7 +511,11 @@ static void smc_cdc_rx_handler(struct ib_wc *wc, void *buf)
+ 	lgr = smc_get_lgr(link);
+ 	read_lock_bh(&lgr->conns_lock);
+ 	conn = smc_lgr_find_conn(ntohl(cdc->token), lgr);
+-	if (!conn || conn->out_of_sync) {
++	/* Pair with smp_store_release() in __smc_buf_create(): bail while the
++	 * RMB is unset (smc_cdc_msg_recv_action() dereferences it) to avoid a
++	 * NULL deref and a stale-buffer read in the connection setup window.
++	 */
++	if (!conn || conn->out_of_sync || !smp_load_acquire(&conn->rmb_desc)) {
+ 		read_unlock_bh(&lgr->conns_lock);
+ 		return;
+ 	}
+diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
+index cf6b620fef05..0561f83be327 100644
+--- a/net/smc/smc_core.c
++++ b/net/smc/smc_core.c
+@@ -2499,15 +2499,26 @@ static int __smc_buf_create(struct smc_sock *smc, bool is_smcd, bool is_rmb)
+ 	}
+ 
+ 	if (is_rmb) {
+-		conn->rmb_desc = buf_desc;
+ 		conn->rmbe_size_comp = bufsize_comp;
+ 		smc->sk.sk_rcvbuf = bufsize * 2;
+ 		atomic_set(&conn->bytes_to_rcv, 0);
+ 		conn->rmbe_update_limit =
+ 			smc_rmb_wnd_update_limit(buf_desc->len);
++		/* Publish the receive buffer last, with release semantics: the
++		 * connection is already in the link group's token tree, so a
++		 * concurrent CDC receive handler must observe the fully
++		 * initialised receive state above (and the buffer) once it sees
++		 * a non-NULL rmb_desc.  Pairs with the smp_load_acquire() in the
++		 * CDC receive path.
++		 */
++		smp_store_release(&conn->rmb_desc, buf_desc);
+ 		if (is_smcd)
+ 			smc_ism_set_conn(conn); /* map RMB/smcd_dev to conn */
+ 	} else {
++		/* Plain store: this send-buffer pass runs before the RMB pass,
++		 * whose smp_store_release(&conn->rmb_desc) then publishes this
++		 * store too, and the CDC receive path is gated on rmb_desc.
++		 */
+ 		conn->sndbuf_desc = buf_desc;
+ 		smc->sk.sk_sndbuf = bufsize * 2;
+ 		atomic_set(&conn->sndbuf_space, bufsize);
+@@ -2599,9 +2610,16 @@ int smcd_buf_attach(struct smc_sock *smc)
+ 	buf_desc->cpu_addr =
+ 		(u8 *)buf_desc->cpu_addr + sizeof(struct smcd_cdc_msg);
+ 	buf_desc->len -= sizeof(struct smcd_cdc_msg);
+-	conn->sndbuf_desc = buf_desc;
+-	conn->sndbuf_desc->used = 1;
+-	atomic_set(&conn->sndbuf_space, conn->sndbuf_desc->len);
++	buf_desc->used = 1;
++	atomic_set(&conn->sndbuf_space, buf_desc->len);
++	/* Publish the ghost send buffer last, with release semantics: the
++	 * connection is already reachable to the ISM device (smc_ism_set_conn()
++	 * ran in __smc_buf_create()), so the CDC receive tasklet must observe
++	 * the fully initialised ghost buffer once it sees a non-NULL
++	 * sndbuf_desc.  Pairs with smp_load_acquire() in
++	 * smc_cdc_msg_recv_action().
++	 */
++	smp_store_release(&conn->sndbuf_desc, buf_desc);
+ 	return 0;
+ 
+ free:
+
+---
+base-commit: 3f1f755366687d051174739fb99f7d560202f60b
+change-id: 20260716-b4-disp-aa52955a-560f19c43a2a
+
+Best regards,
 -- 
-2.54.0
+Bryam Vargas <hexlabsecurity@proton.me>
+
 
