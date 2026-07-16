@@ -1,259 +1,134 @@
-Received: from m16.mail.163.com (m16.mail.163.com [220.197.31.2])
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5152D32B130
-	for <linux-rdma@vger.kernel.org>; Thu, 16 Jul 2026 05:53:07 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=220.197.31.2
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0EDD4346AED;
+	Thu, 16 Jul 2026 06:57:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.156.1
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784181192; cv=none; b=jsDwaTbAFPlGkYq8IeChFeK/IfLZRo8jtt3y4Im8QL8Uc/p5zB/jWQ8vOne9kWyU8OUq1zFZyLOPM/2amqOAggqL3K7D5Xi1yr5alDflMr00knK+NiUl3GnjUW8OwUlKZ2kUgFAQ+pDRGKBbRfKYjuKTS6XvealmVbDm19q2oxo=
+	t=1784185055; cv=none; b=JZEz7iAfqW9TeArCWSoTf24IfRNTKE4G8AZx0wZLsFVuqqiwcY1uu6OpcKgGYwSX0fCXApNBbxfKZQ8QkPYbbwJQxN87igz/U45xXjUQLpPl6OH82VPxUk1qaoAKl4fTVXBiuUcpwXq010c0UP8BVztovdcYSSbs8gZ8hMcPDm0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784181192; c=relaxed/simple;
-	bh=uo4vAUXs7BOqcGQGztUnzHRUWaI2aWPIzosDYE1Q7JQ=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=URfVAjJ+6rgKz+UIY/jMywblniHTAlv88Kn5obavZm8Khs12hXyqnjrKZEF9zxXVx8c1rCEWwRm14I9Q3OuTHbVKFBljyJA6ogMNP92LDm5H8nftSDOwyVHl+8+JKNpK3t8Ww7TpCgJ5A+qzhLBUgx0KNtT4IMWvfuzfQ28YxoE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com; spf=pass smtp.mailfrom=163.com; dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b=e/S+ymFO; arc=none smtp.client-ip=220.197.31.2
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
+	s=arc-20240116; t=1784185055; c=relaxed/simple;
+	bh=ErF52CX+fFgofAQMX/JrPKF4sF23WdI5fdgXAc4dzdw=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=nIVDTIGY+VmyoIwIEhPznPPpHqvR9sQepg+/DdpwM7SdijWkMapkkYRFkW6lkeVXyph1MazwFjFm1CHAhXldoGrsCaSlMIzQQS9olG2yaP+Rg7izy4pEWEJUyP3bNTP2K02BzU7PqVI4NxbS7gQaLlq21rCHVJFPv8TJ6YJbZkQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=ogeLC8o2; arc=none smtp.client-ip=148.163.156.1
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="e/S+ymFO"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
-	s=s110527; h=From:To:Subject:Date:Message-ID:MIME-Version; bh=0r
-	X1vxiKF5okFBs2tmircIVhQADPoEvN22PWgv7tOAI=; b=e/S+ymFOQfPFHpLWFM
-	Y2IHFhgKnIZxpAJataw1H5SDMatA+AIZBiTu1HSeaVdRlfk9jNtwRU4NTjZnYRMs
-	x1gJsL8PqhdwwV5skGxIycr7R1gvev39MNe3K1//Gr05kQd4AISKyq6HjIkZ/aCL
-	ehSJSsfhQGADRNb8BSQEl3Das=
-Received: from xwm-TianYi510Pro-14IMB.. (unknown [])
-	by gzga-smtp-mtada-g1-1 (Coremail) with SMTP id _____wD3t2eycVhq65V9Jg--.762S2;
-	Thu, 16 Jul 2026 13:52:50 +0800 (CST)
-From: Weimin Xiong <xiongwm2026@163.com>
-To: linux-rdma@vger.kernel.org
-Cc: jgg@nvidia.com,
-	leonro@nvidia.com,
-	yanjun.zhu@linux.dev,
-	xiongweimin <xiongweimin@kylinos.cn>
-Subject: [PATCH v3] RDMA/rxe: Hold netdev reference for transmit skbs
-Date: Thu, 16 Jul 2026 13:52:55 +0800
-Message-ID: <20260716055255.157674-1-xiongwm2026@163.com>
-X-Mailer: git-send-email 2.43.0
+	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="ogeLC8o2"
+Received: from pps.filterd (m0353729.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 66G4BwZc260731;
+	Thu, 16 Jul 2026 06:57:24 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
+	:content-transfer-encoding:content-type:date:from:in-reply-to
+	:message-id:mime-version:references:subject:to; s=pp1; bh=snMTDz
+	bwNNdymeS84mQCskZpkjKf/Sl4uqcM+jXOw90=; b=ogeLC8o29AZXJHVIYCrhNa
+	o3y7jL8p41uQ+8iNgvrv0o3KV7VDLsHADgDoLSl5DVuoNGka2g9PBTXZqi4Uj4ww
+	5xysOwim8ulCb9zTFXP0Bt/7wS5aWxByszNv+FRq3DdCGIUDoUr3h1vobJQ5XLIr
+	wvXL6Z8iciNr1JWE8o25lyT5X2ttASy0ovSZAooKHsnn0jdLP78gmMxfVPP4AyOK
+	NuLqPk+kvxC1YISEv6pGVb+JRQfsc5R8t62ioL7X6Bi97vV/rbwNEe3T4PGSOT3c
+	myE40mF3GOI6JUNfNn+WOzKFeGqeGOKlulkry0fY369r2OIX5DnMaQGxQdtHux0Q
+	==
+Received: from ppma22.wdc07v.mail.ibm.com (5c.69.3da9.ip4.static.sl-reverse.com [169.61.105.92])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 4fcv33fxcp-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Thu, 16 Jul 2026 06:57:23 +0000 (GMT)
+Received: from pps.filterd (ppma22.wdc07v.mail.ibm.com [127.0.0.1])
+	by ppma22.wdc07v.mail.ibm.com (8.18.1.7/8.18.1.7) with ESMTP id 66G6nafc030076;
+	Thu, 16 Jul 2026 06:57:22 GMT
+Received: from smtprelay05.fra02v.mail.ibm.com ([9.218.2.225])
+	by ppma22.wdc07v.mail.ibm.com (PPS) with ESMTPS id 4fc0hwbwrk-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Thu, 16 Jul 2026 06:57:22 +0000 (GMT)
+Received: from smtpav07.fra02v.mail.ibm.com (smtpav07.fra02v.mail.ibm.com [10.20.54.106])
+	by smtprelay05.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 66G6vKxt45351322
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Thu, 16 Jul 2026 06:57:20 GMT
+Received: from smtpav07.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 42BFE2004B;
+	Thu, 16 Jul 2026 06:57:20 +0000 (GMT)
+Received: from smtpav07.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 1106620043;
+	Thu, 16 Jul 2026 06:57:20 +0000 (GMT)
+Received: from [9.224.77.173] (unknown [9.224.77.173])
+	by smtpav07.fra02v.mail.ibm.com (Postfix) with ESMTP;
+	Thu, 16 Jul 2026 06:57:19 +0000 (GMT)
+Message-ID: <6e100e63-5985-4438-bb38-8dc7b0afed05@linux.ibm.com>
+Date: Thu, 16 Jul 2026 08:57:19 +0200
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:_____wD3t2eycVhq65V9Jg--.762S2
-X-Coremail-Antispam: 1Uf129KBjvJXoW3Jw48CFyftrykWF1DAF4kCrg_yoWxuFWkpa
-	1UGay5Kr4xXa129Fn0yrWUZFWay3W8Ja98KF9Fq34Yvrn8Cw47WFsxuryUZF45CFZ5Gw1a
-	qF1jyr98Ga1fGFJanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x07jZL0OUUUUU=
-X-CM-SenderInfo: x0lr0wdzpsijqw6rljoofrz/xtbC8BI5yGpYcbLoaQAA3j
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH net] net/mlx5: Use unique names for software steering
+ caches
+To: Leon Romanovsky <leon@kernel.org>, Saeed Mahameed <saeedm@nvidia.com>,
+        Tariq Toukan <tariqt@nvidia.com>, Mark Bloch <mbloch@nvidia.com>,
+        Andrew Lunn <andrew+netdev@lunn.ch>,
+        "David S. Miller"
+ <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>, Alex Vesker <valex@nvidia.com>,
+        Yevgeny Kliteynik <kliteyn@nvidia.com>
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+References: <20260715-kmem-dupliate-name-v1-1-85551c328155@nvidia.com>
+Content-Language: en-US
+From: Christian Borntraeger <borntraeger@linux.ibm.com>
+In-Reply-To: <20260715-kmem-dupliate-name-v1-1-85551c328155@nvidia.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-TM-AS-GCONF: 00
+X-Proofpoint-Reinject: loops=2 maxloops=12
+X-Proofpoint-Spam-Info: AW1haW4tMjYwNzE2MDA2NyBTYWx0ZWRfXzishSvp8nUU9
+ Brv8Yan1mmrbTjKkEV1KbjM+b8OOPWQ8gA8T3jPdpbeh6Jgc+ZNQOuZyTttlRFNoOsU01Id7Y9M
+ 3Pi9rwLS0DhUmErhOOb55a9Yd+HamUU=
+X-Authority-Analysis: v=2.4 cv=Mp1iLWae c=1 sm=1 tr=0 ts=6a5880d4 cx=c_pps
+ a=5BHTudwdYE3Te8bg5FgnPg==:117 a=5BHTudwdYE3Te8bg5FgnPg==:17
+ a=IkcTkHD0fZMA:10 a=RAioF0-LDSMA:10 a=VkNPw1HP01LnGYTKEx00:22
+ a=RnoormkPH1_aCDwRdu11:22 a=uAbxVGIbfxUO_5tXvNgY:22 a=VwQbUJbxAAAA:8
+ a=VnNF1IyMAAAA:8 a=Ikd4Dj_1AAAA:8 a=T3xCB02hYxg-SKxtKl8A:9 a=QEXdDO2ut3YA:10
+X-Proofpoint-GUID: NInK9OtOZWU8BZ3B6N3W5g3eEgMmkv9Y
+X-Proofpoint-ORIG-GUID: idGo9oa_uhq6jdnNcrI-1o_PtYr-JbRK
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNzE2MDA2NyBTYWx0ZWRfX4lhDyGYGneaV
+ vjuMeORHarKj6WOiiunVxACmiGXJgtJpz/54V0j1G1NXpYFr8/H+WFMD1qJ/FHEUQDmVHLxsBng
+ MfxPR/+9fyZ5OVvqk14KmXEVnFbTyHCVXbkG9D8cAidZjwWeyVlfiFXqIY5tmZE9eT3ROnAVupT
+ uAVPZ6aE+icAPLYh8Jtzzo24EsRFnKUuMfVxvmWs3TIP9rg6CgUwlmgnH8ZvtcVICBEDFuwgwdR
+ mLU1LBLvv94pdgD8kqUzHGjHdtIArFxLMft3rJqK/SgqF0/WpKOwy0GFk+JyBt0xxlN0wE2c3bT
+ aFTj6o+TyeVf6kcMajhPrEP25bCEmhLzfzo4zieAtYbZpOuPxLvNiIB8zMu1WNz3goGXczp52iw
+ lyR1g3jSV5JLkoHqYIQGrjNHYF+CklnwzJnFrrQJ8Llw4r+ngSvV53/8xP3ugRnN4KZ0uKJPnCB
+ s8aOyROTSAC2zAOfeYQ==
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1143,Hydra:6.1.134,FMLib:17.12.100.49
+ definitions=2026-07-16_02,2026-07-15_02,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ adultscore=0 bulkscore=0 spamscore=0 malwarescore=0 lowpriorityscore=0
+ impostorscore=0 priorityscore=1501 suspectscore=0 clxscore=1011 phishscore=0
+ classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
+ reason=mlx scancount=1 engine=8.22.0-2606150000 definitions=main-2607160067
 
-From: xiongweimin <xiongweimin@kylinos.cn>
 
-rxe_init_packet() assigns skb->dev from an RCU-protected GID attribute
-without holding a netdev reference. If the netdev is unregistered before
-the skb is freed, subsequent accesses to skb->dev are unsafe.
 
-Hold a reference with dev_hold() when the skb is initialized and release
-it from the transmit destructor or via rxe_put_skb() on error paths that
-run before the destructor is installed.
+Am 15.07.26 um 10:22 schrieb Leon Romanovsky:
+> From: Leon Romanovsky <leonro@nvidia.com>
+> 
+> Each software steering domain creates its own slab caches, but all
+> domains use the same names. When domains for two devices are alive at
+> once, the second kmem_cache_create() triggers the following splat:
+[...]
 
-skb->dev can change on the TX path (VLAN/bond/tunnel, ip_finish_output2,
-etc.), so put must use the same netdev that was held. Stash that pointer
-in skb_shinfo()->destructor_arg: skb->cb is already used by
-rxe_pkt_info and is rewritten by IP control blocks.
+> 
+> Prefix each cache name with the device name to make it unique.
+> 
+> Fixes: fd785e5213f0 ("net/mlx5: DR, Allocate icm_chunks from their own slab allocator")
+> Fixes: fb628b71fb2a ("net/mlx5: DR, Allocate htbl from its own slab allocator")
+> Reported-by: Christian Borntraeger <borntraeger@linux.ibm.com>
+> Closes: https://lore.kernel.org/all/a3cea501-4d1f-47d5-b6d0-fcda9a0aab16@linux.ibm.com/
+> Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 
-To avoid blocking netdev unregistration on held skbs, flush all QPs to
-the error state on NETDEV_GOING_DOWN and NETDEV_UNREGISTER so pending TX
-work is drained and references can be dropped.
+Tested-by: Christian Borntraeger <borntraeger@linux.ibm.com>
 
-Signed-off-by: xiongweimin <xiongweimin@kylinos.cn>
-Reviewed-by: Zhu Yanjun <yanjun.zhu@linux.dev>
----
-v3:
-- put the held netdev from destructor_arg, not live skb->dev
-  (skb->dev may be rewritten by the TX stack)
-
-v2:
-- rebase on current mainline so the patch applies cleanly
-- flush all QPs on NETDEV_GOING_DOWN and NETDEV_UNREGISTER to
-  release pending TX skbs before netdev unregister
----
- drivers/infiniband/sw/rxe/rxe_loc.h  |  1 +
- drivers/infiniband/sw/rxe/rxe_net.c  | 68 ++++++++++++++++++++++++++--
- drivers/infiniband/sw/rxe/rxe_req.c  |  2 +-
- drivers/infiniband/sw/rxe/rxe_resp.c |  4 +-
- 4 files changed, 68 insertions(+), 7 deletions(-)
-
-diff --git a/drivers/infiniband/sw/rxe/rxe_loc.h b/drivers/infiniband/sw/rxe/rxe_loc.h
-index 64d636bf8..7c3cc48e8 100644
---- a/drivers/infiniband/sw/rxe/rxe_loc.h
-+++ b/drivers/infiniband/sw/rxe/rxe_loc.h
-@@ -92,6 +92,7 @@ void rxe_mw_cleanup(struct rxe_pool_elem *elem);
- /* rxe_net.c */
- struct sk_buff *rxe_init_packet(struct rxe_dev *rxe, struct rxe_av *av,
- 				int paylen, struct rxe_pkt_info *pkt);
-+void rxe_put_skb(struct sk_buff *skb);
- int rxe_prepare(struct rxe_av *av, struct rxe_pkt_info *pkt,
- 		struct sk_buff *skb);
- int rxe_xmit_packet(struct rxe_qp *qp, struct rxe_pkt_info *pkt,
-diff --git a/drivers/infiniband/sw/rxe/rxe_net.c b/drivers/infiniband/sw/rxe/rxe_net.c
-index 3741b2c4b..86c9b19f6 100644
---- a/drivers/infiniband/sw/rxe/rxe_net.c
-+++ b/drivers/infiniband/sw/rxe/rxe_net.c
-@@ -429,6 +429,29 @@ int rxe_prepare(struct rxe_av *av, struct rxe_pkt_info *pkt,
- 	return err;
- }
- 
-+/*
-+ * skb->dev may be rewritten on the TX path (VLAN/bond/tunnel, etc.).
-+ * The netdev we held in rxe_init_packet() is kept in destructor_arg so
-+ * that put always matches hold. skb->cb cannot be used: it is already
-+ * occupied by struct rxe_pkt_info and rewritten by IP control blocks.
-+ */
-+static void rxe_skb_set_held_ndev(struct sk_buff *skb, struct net_device *ndev)
-+{
-+	dev_hold(ndev);
-+	skb->dev = ndev;
-+	skb_shinfo(skb)->destructor_arg = ndev;
-+}
-+
-+static void rxe_skb_put_held_ndev(struct sk_buff *skb)
-+{
-+	struct net_device *ndev = skb_shinfo(skb)->destructor_arg;
-+
-+	if (ndev) {
-+		skb_shinfo(skb)->destructor_arg = NULL;
-+		dev_put(ndev);
-+	}
-+}
-+
- static void rxe_skb_tx_dtor(struct sk_buff *skb)
- {
- 	struct rxe_qp *qp = skb->sk->sk_user_data;
-@@ -441,6 +464,18 @@ static void rxe_skb_tx_dtor(struct sk_buff *skb)
- 
- 	rxe_put(qp);
- 	sock_put(skb->sk);
-+	rxe_skb_put_held_ndev(skb);
-+}
-+
-+/*
-+ * Free an skb that still holds a netdev reference from rxe_init_packet()
-+ * and does not yet have rxe_skb_tx_dtor() installed. Once the TX
-+ * destructor is set, callers must use kfree_skb() instead.
-+ */
-+void rxe_put_skb(struct sk_buff *skb)
-+{
-+	rxe_skb_put_held_ndev(skb);
-+	kfree_skb(skb);
- }
- 
- static int rxe_send(struct sk_buff *skb, struct rxe_pkt_info *pkt)
-@@ -529,7 +564,7 @@ int rxe_xmit_packet(struct rxe_qp *qp, struct rxe_pkt_info *pkt,
- 	goto done;
- 
- drop:
--	kfree_skb(skb);
-+	rxe_put_skb(skb);
- 	err = 0;
- done:
- 	return err;
-@@ -574,8 +609,7 @@ struct sk_buff *rxe_init_packet(struct rxe_dev *rxe, struct rxe_av *av,
- 
- 	skb_reserve(skb, hdr_len + LL_RESERVED_SPACE(ndev));
- 
--	/* FIXME: hold reference to this netdev until life of this skb. */
--	skb->dev	= ndev;
-+	rxe_skb_set_held_ndev(skb, ndev);
- 	rcu_read_unlock();
- 
- 	if (av->network_type == RXE_NETWORK_TYPE_IPV4)
-@@ -710,6 +744,28 @@ void rxe_set_port_state(struct rxe_dev *rxe)
- 	dev_put(ndev);
- }
- 
-+/*
-+ * Move all QPs to the error state so pending send/recv work is drained and
-+ * in-flight TX skbs (which hold a netdev reference) can be released. Called
-+ * from the netdev notifier so unregister cannot stall on held skbs.
-+ */
-+static void rxe_flush_qps(struct rxe_dev *rxe)
-+{
-+	struct rxe_pool_elem *elem;
-+	struct rxe_qp *qp;
-+	unsigned long index;
-+
-+	rcu_read_lock();
-+	xa_for_each(&rxe->qp_pool.xa, index, elem) {
-+		if (!elem || !kref_get_unless_zero(&elem->ref_cnt))
-+			continue;
-+		qp = elem->obj;
-+		rxe_qp_error(qp);
-+		rxe_put(qp);
-+	}
-+	rcu_read_unlock();
-+}
-+
- static int rxe_notify(struct notifier_block *not_blk,
- 		      unsigned long event,
- 		      void *arg)
-@@ -721,7 +777,12 @@ static int rxe_notify(struct notifier_block *not_blk,
- 		return NOTIFY_OK;
- 
- 	switch (event) {
-+	case NETDEV_GOING_DOWN:
-+		/* Start draining TX queues before the netdev disappears. */
-+		rxe_flush_qps(rxe);
-+		break;
- 	case NETDEV_UNREGISTER:
-+		rxe_flush_qps(rxe);
- 		ib_unregister_device_queued(&rxe->ib_dev);
- 		rxe_net_del(&rxe->ib_dev);
- 		break;
-@@ -735,7 +796,6 @@ static int rxe_notify(struct notifier_block *not_blk,
- 			rxe_counter_inc(rxe, RXE_CNT_LINK_DOWNED);
- 		break;
- 	case NETDEV_REBOOT:
--	case NETDEV_GOING_DOWN:
- 	case NETDEV_CHANGEADDR:
- 	case NETDEV_CHANGENAME:
- 	case NETDEV_FEAT_CHANGE:
-diff --git a/drivers/infiniband/sw/rxe/rxe_req.c b/drivers/infiniband/sw/rxe/rxe_req.c
-index 12d03f390..927ef68de 100644
---- a/drivers/infiniband/sw/rxe/rxe_req.c
-+++ b/drivers/infiniband/sw/rxe/rxe_req.c
-@@ -796,7 +796,7 @@ int rxe_requester(struct rxe_qp *qp)
- 			wqe->status = IB_WC_LOC_PROT_ERR;
- 		else
- 			wqe->status = IB_WC_LOC_QP_OP_ERR;
--		kfree_skb(skb);
-+		rxe_put_skb(skb);
- 		if (ah)
- 			rxe_put(ah);
- 		goto err;
-diff --git a/drivers/infiniband/sw/rxe/rxe_resp.c b/drivers/infiniband/sw/rxe/rxe_resp.c
-index d8cbdfa70..ee3630e4b 100644
---- a/drivers/infiniband/sw/rxe/rxe_resp.c
-+++ b/drivers/infiniband/sw/rxe/rxe_resp.c
-@@ -866,7 +866,7 @@ static struct sk_buff *prepare_ack_packet(struct rxe_qp *qp,
- 
- 	err = rxe_prepare(&qp->pri_av, ack, skb);
- 	if (err) {
--		kfree_skb(skb);
-+		rxe_put_skb(skb);
- 		return NULL;
- 	}
- 
-@@ -994,7 +994,7 @@ static enum resp_states read_reply(struct rxe_qp *qp,
- 	err = rxe_mr_copy(mr, res->read.va, payload_addr(&ack_pkt),
- 			  payload, RXE_FROM_MR_OBJ);
- 	if (err) {
--		kfree_skb(skb);
-+		rxe_put_skb(skb);
- 		state = RESPST_ERR_RKEY_VIOLATION;
- 		goto err_out;
- 	}
--- 
-2.43.0
+error is gone in our CI when the patch is applied.
 
