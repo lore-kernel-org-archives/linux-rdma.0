@@ -1,370 +1,259 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from CH1PR05CU001.outbound.protection.outlook.com (mail-northcentralusazon11010031.outbound.protection.outlook.com [52.101.193.31])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F1563F44FF;
-	Thu, 16 Jul 2026 08:48:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784191744; cv=none; b=Ph0rVIpgnKRneuPGu/Ror7DcdvRNr1rOboRiULgLUTOXXf/SpMvWnkZlrObAehrhjKcs2DUrOE3cdJPWROX8W1T87gy59Xmk8LMU3zHkBVJ4XnE4/XKd9n8a5gtKJ6xWlgNkhK7/jlRR5m1Br+F87T66PGK2tgknhBi/M8k9tjs=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784191744; c=relaxed/simple;
-	bh=hLp+PybCHCtVaCleIYF2wKftHYP0X7h/yf9Y4sLQRF0=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Fool2YdspWUzXlH+gy6rUAIgscJkqWmpPVmCSj0ZsRHTwr365Kemze1lD4D2dBZQNLfTyOYDNG6jb4QsNcddCOWTfVjMPdAlFH1IE4NLoehef9aqaywmXTsFm21w78B37QKJz8KhF7VLTKWC9Wl1sDRafG+k2bAvE68aJGljwbg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Ta4qhwCG; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 78E832EC54C;
+	Thu, 16 Jul 2026 08:49:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.193.31
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1784191777; cv=fail; b=LIrjAUdYmzAhZ4rD46eu1zzTCqaF2HZQENG+V754FjhSVvRv1kUqhR/AAGnvYDx6BcqmsbChZXwB6r3+pb5hfaVgFc0VB6J5sSfyWtyw2JHA8s5QMgi7wZs8F/ldVxq/nOjDEQNv+DRalIGgBjiAy2PgosBaLY1lDm3a149wboQ=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1784191777; c=relaxed/simple;
+	bh=+JB5Qr3QgkF1ZA+XwmyMehgPa7kaYaHSnt46FkMHXjI=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=VassVfDXbKAykGonWi12GKE+jNFWcE3dbAz+VWaOThL3dO67iIQMAF/PDC+Mrtnv7gP9e1w+2sqC5qASzyJ2juPmrDrP1ywaOoUix9r/iVzbTEEfy8CHYTDNm/CX6yWPLx3fjCDJ+XObFCsV0NleUNdFiMS9wQa/E/sMBbM7Wig=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=aYVl9Udd; arc=fail smtp.client-ip=52.101.193.31
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Ta4qhwCG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4606A1F00A3A;
-	Thu, 16 Jul 2026 08:48:53 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1784191735;
-	bh=ZqqlpTdbq81wO6ZyctFhU08s1DQ3cUKDS1ZmqwjQrd4=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=Ta4qhwCG88gN6hmJhCVwhu5LQhZUH+5KiOSpkyx9U1TxqUEUH0nv3Ob23zz3awOCj
-	 9nDFGVv8IS6pBlmcyWF+B+R8Z+1DaAdI2IVvzCIhY50UpWsjaDJJFxM7mXeGNoMn4J
-	 ViCWqZCAh92XE/caQr0JE8/a8DluWMWi5xsRLPvGq1GN5XRHVCeXy++gMz23BXtEOF
-	 7rL8nd+qcI+Xz1bUBVHzvDoQ7260TkGW2pI6t12fyVejU7h2C8qYUH+3siUbr+HHh1
-	 C1nisk9NsRzwVcsXSDB3IDK+DGi11OOpj+y+dw1TP1Dkgmg8E6oKzZQvIOkJ3qqDNJ
-	 EBaTIGKMS8esA==
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="aYVl9Udd"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=PDS62scX2piLzLZ2t9yhSGru1c9ia489k1wJaSWgSRTrEdWgkqF/OmkWdOW90Lef+RpQaKL1qbDYLfiDPLsIBSO4/conFveZpO0DBqxJBLDQKtzuyheYTRRqnHZUtddbe/7n0NJDtz++Fh75RNeG5h+YWWMRunLJXyiFvXXuXPM1xYoV46awUYTXXU9ijXPY2jU7/rfYxpa0VpwwWZQrknUWCP8w9q1Q/T2HKWImDsG/ipEmsxAFVwzF2q89+AWB5ArzsmnN2uv7eKZ7OGj+kReVmZpDwXHpml84axOS9gcLZLvKSR+GBWmtiWgeFvsjFfa4Gr57n/SRxccVdO5syw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=ObWxo8yNDID3QqO+0uIlX6pfxAOL9uSO/3LkXGR3rks=;
+ b=Y/aND48ivFYdKBVrrySaSyotZFNx+5gqOLVhLrHVCo1wT+xp1bJND9dFCXs63HjlEjfbj2Sl3R1dR9u3ydi4ekj4JYCxHydowyXZRstGhkXHpPzAqVvRyu3SRigwzxS6p1FT0xkcRZRMR9czPIpaLA+G8VkJ84Q8lOtJbQPt3q3XeT7h2hksZN3S7rRvAR3wLIKncVN3pNxBw+eigsWxbhnyHp+CNjOT/szhFCM8EVkMsQfQAf8oQM1MDJNt/qEcG6T8rtew3vPHD0ioTcZBJQAExa4RA/u3UQDjrRMM5BeaOCOB3JDZ/IdJ4yMmhVzR53bcquxlV+zGm7mVj/X0QQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 216.228.118.233) smtp.rcpttodomain=resnulli.us smtp.mailfrom=nvidia.com;
+ dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
+ dkim=none (message not signed); arc=none (0)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=ObWxo8yNDID3QqO+0uIlX6pfxAOL9uSO/3LkXGR3rks=;
+ b=aYVl9Udd6MQsKJ07Qgll/am+FJm0T+UWN/hby8hglzyUaGYi/iHGgcR9c8vVx3VSpJBiZ61gZXAWsfmSc53xxz4371/SZIxINnVWqgnCeglVxUaR/HvoTcifJPSJ5Ar3Qoqb/sSlBTY4JZ+mtLy5gi8i25Vr7PA9SHvaFOTvkYIp4AZk/UwVXkDJeMlnC1vQfB+ZG+8uDDRa4kWAiRAWmPc7SYEMajUMyCANmMTdf51XlL9iLVBuN9g9t7/grGjTngTaU/eAexgw06G7IclioK5DuNX9Hdty1UUmYOlzA8Ep10mth37DEi50BKptC5SacXlolipxz83ikHxDD1ocOA==
+Received: from SJ0PR05CA0157.namprd05.prod.outlook.com (2603:10b6:a03:339::12)
+ by MN0PR12MB5715.namprd12.prod.outlook.com (2603:10b6:208:372::11) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.223.12; Thu, 16 Jul
+ 2026 08:49:16 +0000
+Received: from CO1PEPF000075F1.namprd03.prod.outlook.com
+ (2603:10b6:a03:339:cafe::6) by SJ0PR05CA0157.outlook.office365.com
+ (2603:10b6:a03:339::12) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.21.245.4 via Frontend Transport; Thu, 16
+ Jul 2026 08:49:16 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.118.233)
+ smtp.mailfrom=nvidia.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=nvidia.com;
+Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
+ 216.228.118.233 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.118.233; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.118.233) by
+ CO1PEPF000075F1.mail.protection.outlook.com (10.167.249.40) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.21.223.9 via Frontend Transport; Thu, 16 Jul 2026 08:49:15 +0000
+Received: from drhqmail202.nvidia.com (10.126.190.181) by mail.nvidia.com
+ (10.127.129.6) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Thu, 16 Jul
+ 2026 01:49:00 -0700
+Received: from drhqmail202.nvidia.com (10.126.190.181) by
+ drhqmail202.nvidia.com (10.126.190.181) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.20; Thu, 16 Jul 2026 01:48:59 -0700
+Received: from vdi.nvidia.com (10.127.8.10) by mail.nvidia.com
+ (10.126.190.181) with Microsoft SMTP Server id 15.2.2562.20 via Frontend
+ Transport; Thu, 16 Jul 2026 01:48:56 -0700
+From: Mark Bloch <mbloch@nvidia.com>
+To: Jiri Pirko <jiri@resnulli.us>, Eric Dumazet <edumazet@google.com>, "Jakub
+ Kicinski" <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, Simon Horman
+	<horms@kernel.org>
+CC: Saeed Mahameed <saeedm@nvidia.com>, Leon Romanovsky <leon@kernel.org>,
+	Tariq Toukan <tariqt@nvidia.com>, Andrew Lunn <andrew+netdev@lunn.ch>,
+	Jonathan Corbet <corbet@lwn.net>, Shuah Khan <skhan@linuxfoundation.org>,
+	<netdev@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
+	<linux-doc@vger.kernel.org>, Mark Bloch <mbloch@nvidia.com>
+Subject: [PATCH net-next V7 0/4] devlink: Add boot-time eswitch mode defaults
 Date: Thu, 16 Jul 2026 11:48:48 +0300
-From: Leon Romanovsky <leon@kernel.org>
-To: Konstantin Taranov <kotaranov@linux.microsoft.com>
-Cc: kotaranov@microsoft.com, longli@microsoft.com, jgg@ziepe.ca,
-	linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH rdma-next v3] RDMA/mana_ib: Adopt robust udata
-Message-ID: <20260716084848.GD70906@unreal>
-References: <20260714123113.3792099-1-kotaranov@linux.microsoft.com>
+Message-ID: <20260716084852.549909-1-mbloch@nvidia.com>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260714123113.3792099-1-kotaranov@linux.microsoft.com>
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-NV-OnPremToCloud: ExternallySecured
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: CO1PEPF000075F1:EE_|MN0PR12MB5715:EE_
+X-MS-Office365-Filtering-Correlation-Id: 1302fdf9-a885-4258-9aaf-08dee3171dda
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|1800799024|23010399003|36860700016|82310400026|376014|7416014|13003099007|3023799007|6133799003|10067099003|56012099006|18002099003|11063799006;
+X-Microsoft-Antispam-Message-Info:
+	7CDHgmmjI8k7ALigRZ1pAdCxI3BBzeVWdust9n+mDcs+iZWFAXHvYTXyRKcuxAuIAJ/JyxRqE9OKYLf/44qo3nznc/axcvJfjx1xQp084wj0Nju3VxrKyV78ysXDo8GMTpWOB/PQkO3ii7IV7mZ/4ehcWSW7sYC0WMYZU4+myNq0v7GQk1sbtdwoIVJn6yX312XIxU4u3eQUIL0YZOVOYq43iKV9hRBeaX99ZZ1hn6l2CF98lrLoGi188rGLkGPsOqVGfxu5muP59VCUlzcIKVZ1KEM+SeYyNcoGr61A3nuQWdV/XwYFXulWL6GyVZyxIzEMl5+5n641wFwr/gciQOOM/wwGWKzEU3Jnw7Z0stquCBQCflqnhC+Od1VpeMVkj89kJP8zH8/GL3zRytv/LAiXUW1YMMbNXvJoOVxKFTdUf6H3opn5t6MM43jyY67UbbPWG3fTfrySj2OICSPAKrhT9l8LadnUc/tOB6vQdrh2K09uVgvTA8Pb3/tnKq8DjXNllou2pgUCwfyNpzlssO54tdTmdFZAu5Xu7fVR6bPShPTy+lRCy2Zx4aXb4cRdajyDGyO+dNgBNkPHYujzcnQL1Pr+8xeyhsduZut4ciCMDM6HtH+VSUiJ7M7HvBCp0QtMsemeDY1LKRXJCcfjrpH6j6XcZamE9ENa3sOlkp/Sgdd3NOpGDtqvq45qsksmESfWWFSOF7fv1E6Ms9XrUA==
+X-Forefront-Antispam-Report:
+	CIP:216.228.118.233;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc7edge2.nvidia.com;CAT:NONE;SFS:(13230040)(1800799024)(23010399003)(36860700016)(82310400026)(376014)(7416014)(13003099007)(3023799007)(6133799003)(10067099003)(56012099006)(18002099003)(11063799006);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	wzAA10hU6/qs0xwML4iSlKddRa9Ojet5S8dlEu3jBohdZBIMGyr8+MRls9izhteSZx7qRp5xA8ImGgc5pkqIfAZL75UMEZ5NNctDmmRxSJpSNyO6vs8OnUieOx0fPCCFDx8E9hL9uenygcSXiNCAHMHWT4FKwEtEn3WhYBCv6SXTMogqow7zHbeUd9EMrTE/ZuTdPBb5G4DStJEgtyJiuqBQMGAmjXnZhoe1u8mZ988g2PvuNz/E38hTZZxh4hnCq0+4VG9d65YH0OO2ybTYi5WVY2tJViL5ypKt72PFDQmCsEzsmovaU9tRKdafL/2R3cCuvaz2edG6AwhbG+nooGigZMiWSLUKpIWDngkhqGcX+D27190l0sE1IKPudlL4q4mDuksDWngmQ3EIPvpnqP8gMVKxNPWI81uUDkzRSIvKmGqAbPHpEOK572daBvtP
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 16 Jul 2026 08:49:15.6613
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: 1302fdf9-a885-4258-9aaf-08dee3171dda
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.118.233];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	CO1PEPF000075F1.namprd03.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: MN0PR12MB5715
 
-On Tue, Jul 14, 2026 at 05:31:13AM -0700, Konstantin Taranov wrote:
-> From: Konstantin Taranov <kotaranov@microsoft.com>
-> 
-> Enable the uverbs robust udata interface in mana_ib by setting
-> uverbs_robust_udata and converting the driver to the new udata
-> handling model.
+This series adds a devlink_eswitch_mode= kernel command line parameter
+for setting a default devlink eswitch mode during boot.
 
-Why didn't you set ".uverbs_robust_udata = true" in this patch?
+Following the discussion with Jakub[1] and the feedback on the RFC
+postings, this version keeps the scope limited to a boot-time devlink
+eswitch mode default only.
 
-Thanks
+The option selects either all devlink handles or an explicit
+comma-separated handle list:
 
-> 
-> Signed-off-by: Konstantin Taranov <kotaranov@microsoft.com>
-> ---
-> v3: use ib_no_udata_io
-> v2: Removed the udata request for alloc ucontext
->  drivers/infiniband/hw/mana/cq.c     |  8 +++++-
->  drivers/infiniband/hw/mana/device.c |  1 +
->  drivers/infiniband/hw/mana/main.c   | 29 ++++++++++++++++------
->  drivers/infiniband/hw/mana/mr.c     | 13 ++++++++++
->  drivers/infiniband/hw/mana/qp.c     | 38 +++++++++++++++++++++++------
->  drivers/infiniband/hw/mana/wq.c     | 12 +++++++++
->  include/uapi/rdma/mana-abi.h        |  2 +-
->  7 files changed, 86 insertions(+), 17 deletions(-)
-> 
-> diff --git a/drivers/infiniband/hw/mana/cq.c b/drivers/infiniband/hw/mana/cq.c
-> index f2547989f..d4e5e3f91 100644
-> --- a/drivers/infiniband/hw/mana/cq.c
-> +++ b/drivers/infiniband/hw/mana/cq.c
-> @@ -27,7 +27,8 @@ int mana_ib_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
->  	is_rnic_cq = mana_ib_is_rnic(mdev);
->  
->  	if (udata) {
-> -		err = ib_copy_validate_udata_in(udata, ucmd, buf_addr);
-> +		err = ib_copy_validate_udata_in_cm(udata, ucmd, buf_addr,
-> +						   MANA_IB_CREATE_RNIC_CQ);
->  		if (err)
->  			return err;
->  
-> @@ -105,6 +106,11 @@ int mana_ib_destroy_cq(struct ib_cq *ibcq, struct ib_udata *udata)
->  	struct mana_ib_cq *cq = container_of(ibcq, struct mana_ib_cq, ibcq);
->  	struct ib_device *ibdev = ibcq->device;
->  	struct mana_ib_dev *mdev;
-> +	int err;
-> +
-> +	err = ib_no_udata_io(udata);
-> +	if (err)
-> +		return err;
->  
->  	mdev = container_of(ibdev, struct mana_ib_dev, ib_dev);
->  
-> diff --git a/drivers/infiniband/hw/mana/device.c b/drivers/infiniband/hw/mana/device.c
-> index 9811570ab..a8d19586a 100644
-> --- a/drivers/infiniband/hw/mana/device.c
-> +++ b/drivers/infiniband/hw/mana/device.c
-> @@ -15,6 +15,7 @@ static const struct ib_device_ops mana_ib_dev_ops = {
->  	.owner = THIS_MODULE,
->  	.driver_id = RDMA_DRIVER_MANA,
->  	.uverbs_abi_ver = MANA_IB_UVERBS_ABI_VERSION,
-> +	.uverbs_robust_udata = true,
->  
->  	.add_gid = mana_ib_gd_add_gid,
->  	.alloc_mw = mana_ib_alloc_mw,
-> diff --git a/drivers/infiniband/hw/mana/main.c b/drivers/infiniband/hw/mana/main.c
-> index efe2935bd..e645b7637 100644
-> --- a/drivers/infiniband/hw/mana/main.c
-> +++ b/drivers/infiniband/hw/mana/main.c
-> @@ -101,6 +101,10 @@ int mana_ib_alloc_pd(struct ib_pd *ibpd, struct ib_udata *udata)
->  	struct gdma_context *gc;
->  	int err;
->  
-> +	err = ib_no_udata_io(udata);
-> +	if (err)
-> +		return err;
-> +
->  	dev = container_of(ibdev, struct mana_ib_dev, ib_dev);
->  	gc = mdev_to_gc(dev);
->  
-> @@ -133,6 +137,11 @@ int mana_ib_dealloc_pd(struct ib_pd *ibpd, struct ib_udata *udata)
->  	struct gdma_destroy_pd_req req = {};
->  	struct mana_ib_dev *dev;
->  	struct gdma_context *gc;
-> +	int err;
-> +
-> +	err = ib_no_udata_io(udata);
-> +	if (err)
-> +		return err;
->  
->  	dev = container_of(ibdev, struct mana_ib_dev, ib_dev);
->  	gc = mdev_to_gc(dev);
-> @@ -142,7 +151,11 @@ int mana_ib_dealloc_pd(struct ib_pd *ibpd, struct ib_udata *udata)
->  
->  	req.pd_handle = pd->pd_handle;
->  
-> -	return mana_gd_send_request(gc, sizeof(req), &req, sizeof(resp), &resp);
-> +	err = mana_gd_send_request(gc, sizeof(req), &req, sizeof(resp), &resp);
-> +	if (err)
-> +		return err;
-> +
-> +	return 0;
->  }
->  
->  static int mana_gd_destroy_doorbell_page(struct gdma_context *gc,
-> @@ -198,17 +211,17 @@ int mana_ib_alloc_ucontext(struct ib_ucontext *ibcontext,
->  	int doorbell_page;
->  	int ret;
->  
-> +	ret = ib_no_udata_io(udata);
-> +	if (ret)
-> +		return ret;
-> +
->  	mdev = container_of(ibdev, struct mana_ib_dev, ib_dev);
->  	gc = mdev_to_gc(mdev);
->  
->  	/* Allocate a doorbell page index */
->  	ret = mana_gd_allocate_doorbell_page(gc, &doorbell_page);
-> -	if (ret) {
-> -		ibdev_dbg(ibdev, "Failed to allocate doorbell page %d\n", ret);
-> +	if (ret)
->  		return ret;
-> -	}
-> -
-> -	ibdev_dbg(ibdev, "Doorbell page allocated %d\n", doorbell_page);
->  
->  	ucontext->doorbell = doorbell_page;
->  
-> @@ -575,7 +588,7 @@ int mana_ib_query_device(struct ib_device *ibdev, struct ib_device_attr *props,
->  	struct pci_dev *pdev = to_pci_dev(mdev_to_gc(dev)->dev);
->  	int err;
->  
-> -	err = ib_is_udata_in_empty(uhw);
-> +	err = ib_no_udata_io(uhw);
->  	if (err)
->  		return err;
->  
-> @@ -605,7 +618,7 @@ int mana_ib_query_device(struct ib_device *ibdev, struct ib_device_attr *props,
->  	if (!mana_ib_is_rnic(dev))
->  		props->raw_packet_caps = IB_RAW_PACKET_CAP_IP_CSUM;
->  
-> -	return ib_respond_empty_udata(uhw);
-> +	return 0;
->  }
->  
->  int mana_ib_query_port(struct ib_device *ibdev, u32 port,
-> diff --git a/drivers/infiniband/hw/mana/mr.c b/drivers/infiniband/hw/mana/mr.c
-> index 030bfdcff..1233685b4 100644
-> --- a/drivers/infiniband/hw/mana/mr.c
-> +++ b/drivers/infiniband/hw/mana/mr.c
-> @@ -113,6 +113,10 @@ struct ib_mr *mana_ib_reg_user_mr(struct ib_pd *ibpd, u64 start, u64 length,
->  	if (dmah)
->  		return ERR_PTR(-EOPNOTSUPP);
->  
-> +	err = ib_no_udata_io(udata);
-> +	if (err)
-> +		return ERR_PTR(err);
-> +
->  	dev = container_of(ibdev, struct mana_ib_dev, ib_dev);
->  
->  	ibdev_dbg(ibdev,
-> @@ -327,6 +331,11 @@ int mana_ib_alloc_mw(struct ib_mw *ibmw, struct ib_udata *udata)
->  {
->  	struct mana_ib_dev *mdev = container_of(ibmw->device, struct mana_ib_dev, ib_dev);
->  	struct mana_ib_pd *pd = container_of(ibmw->pd, struct mana_ib_pd, ibpd);
-> +	int err;
-> +
-> +	err = ib_no_udata_io(udata);
-> +	if (err)
-> +		return err;
->  
->  	return mana_ib_gd_create_mw(mdev, pd, ibmw);
->  }
-> @@ -346,6 +355,10 @@ int mana_ib_dereg_mr(struct ib_mr *ibmr, struct ib_udata *udata)
->  	struct mana_ib_dev *dev;
->  	int err;
->  
-> +	err = ib_no_udata_io(udata);
-> +	if (err)
-> +		return err;
-> +
->  	dev = container_of(ibdev, struct mana_ib_dev, ib_dev);
->  
->  	err = mana_ib_gd_destroy_mr(dev, mr->mr_handle);
-> diff --git a/drivers/infiniband/hw/mana/qp.c b/drivers/infiniband/hw/mana/qp.c
-> index 60926f39a..b5ff07e34 100644
-> --- a/drivers/infiniband/hw/mana/qp.c
-> +++ b/drivers/infiniband/hw/mana/qp.c
-> @@ -651,10 +651,8 @@ static int mana_ib_create_ud_qp(struct ib_qp *ibqp, struct ib_pd *ibpd,
->  	u32 doorbell, queue_size;
->  	int i, err;
->  
-> -	if (udata) {
-> -		ibdev_dbg(&mdev->ib_dev, "User-level UD QPs are not supported\n");
-> +	if (udata)
->  		return -EOPNOTSUPP;
-> -	}
->  
->  	for (i = 0; i < MANA_UD_QUEUE_TYPE_MAX; ++i) {
->  		queue_size = mana_ib_queue_size(attr, i);
-> @@ -745,6 +743,11 @@ static int mana_ib_gd_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
->  	struct gdma_context *gc = mdev_to_gc(mdev);
->  	struct mana_port_context *mpc;
->  	struct net_device *ndev;
-> +	int err;
-> +
-> +	err = ib_no_udata_io(udata);
-> +	if (err)
-> +		return err;
->  
->  	mana_gd_init_req_hdr(&req.hdr, MANA_IB_SET_QP_STATE, sizeof(req), sizeof(resp));
->  
-> @@ -797,7 +800,11 @@ static int mana_ib_gd_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
->  		req.ah_attr.flow_label = attr->ah_attr.grh.flow_label;
->  	}
->  
-> -	return mana_gd_send_request(gc, sizeof(req), &req, sizeof(resp), &resp);
-> +	err = mana_gd_send_request(gc, sizeof(req), &req, sizeof(resp), &resp);
-> +	if (err)
-> +		return err;
-> +
-> +	return 0;
->  }
->  
->  int mana_ib_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
-> @@ -826,7 +833,11 @@ static int mana_ib_destroy_qp_rss(struct mana_ib_qp *qp,
->  	struct mana_ib_pd *pd;
->  	struct mana_ib_wq *wq;
->  	struct ib_wq *ibwq;
-> -	int i;
-> +	int i, err;
-> +
-> +	err = ib_no_udata_io(udata);
-> +	if (err)
-> +		return err;
->  
->  	ndev = mana_ib_get_netdev(qp->ibqp.device, qp->port);
->  	mpc = netdev_priv(ndev);
-> @@ -872,6 +883,11 @@ static int mana_ib_destroy_qp_raw(struct mana_ib_qp *qp, struct ib_udata *udata)
->  	struct mana_port_context *mpc;
->  	struct net_device *ndev;
->  	struct mana_ib_pd *pd;
-> +	int err;
-> +
-> +	err = ib_no_udata_io(udata);
-> +	if (err)
-> +		return err;
->  
->  	ndev = mana_ib_get_netdev(qp->ibqp.device, qp->port);
->  	mpc = netdev_priv(ndev);
-> @@ -890,7 +906,11 @@ static int mana_ib_destroy_rc_qp(struct mana_ib_qp *qp, struct ib_udata *udata)
->  {
->  	struct mana_ib_dev *mdev =
->  		container_of(qp->ibqp.device, struct mana_ib_dev, ib_dev);
-> -	int i;
-> +	int i, err;
-> +
-> +	err = ib_no_udata_io(udata);
-> +	if (err)
-> +		return err;
->  
->  	mana_table_remove_qp(mdev, qp);
->  
-> @@ -908,7 +928,11 @@ static int mana_ib_destroy_ud_qp(struct mana_ib_qp *qp, struct ib_udata *udata)
->  {
->  	struct mana_ib_dev *mdev =
->  		container_of(qp->ibqp.device, struct mana_ib_dev, ib_dev);
-> -	int i;
-> +	int i, err;
-> +
-> +	err = ib_no_udata_io(udata);
-> +	if (err)
-> +		return err;
->  
->  	mana_remove_qp_from_cqs(qp);
->  	mana_table_remove_qp(mdev, qp);
-> diff --git a/drivers/infiniband/hw/mana/wq.c b/drivers/infiniband/hw/mana/wq.c
-> index 5c2134a0b..6b066d605 100644
-> --- a/drivers/infiniband/hw/mana/wq.c
-> +++ b/drivers/infiniband/hw/mana/wq.c
-> @@ -55,6 +55,11 @@ int mana_ib_destroy_wq(struct ib_wq *ibwq, struct ib_udata *udata)
->  	struct mana_ib_wq *wq = container_of(ibwq, struct mana_ib_wq, ibwq);
->  	struct ib_device *ib_dev = ibwq->device;
->  	struct mana_ib_dev *mdev;
-> +	int err;
-> +
-> +	err = ib_no_udata_io(udata);
-> +	if (err)
-> +		return err;
->  
->  	mdev = container_of(ib_dev, struct mana_ib_dev, ib_dev);
->  
-> @@ -69,10 +74,17 @@ int mana_ib_create_rwq_ind_table(struct ib_rwq_ind_table *ib_rwq_ind_table,
->  				 struct ib_rwq_ind_table_init_attr *init_attr,
->  				 struct ib_udata *udata)
->  {
-> +	int err;
-> +
-> +	err = ib_no_udata_io(udata);
-> +	if (err)
-> +		return err;
-> +
->  	/*
->  	 * There is no additional data in ind_table to be maintained by this
->  	 * driver, do nothing
->  	 */
-> +
->  	return 0;
->  }
->  
-> diff --git a/include/uapi/rdma/mana-abi.h b/include/uapi/rdma/mana-abi.h
-> index a75bf32b8..8336bf51b 100644
-> --- a/include/uapi/rdma/mana-abi.h
-> +++ b/include/uapi/rdma/mana-abi.h
-> @@ -25,7 +25,7 @@ enum mana_ib_create_cq_flags {
->  
->  struct mana_ib_create_cq {
->  	__aligned_u64 buf_addr;
-> -	__u16	flags;
-> +	__u16	comp_mask;
->  	__u16	reserved0;
->  	__u32	reserved1;
->  };
-> -- 
-> 2.43.0
-> 
+devlink_eswitch_mode=*=switchdev
+devlink_eswitch_mode=pci/0000:08:00.0,pci/0000:09:00.1=switchdev_inactive
+
+The supported modes are legacy, switchdev and switchdev_inactive. The
+selected mode is applied through the existing eswitch_mode_set() devlink
+operation, the same operation used by the devlink eswitch mode command.
+
+Registration may happen while a driver holds the devlink lock and
+continues device initialization. Devlink core marks the default as
+pending and applies it from devl_unlock() once the instance is
+registered, before releasing the lock. This prevents userspace from
+racing with the boot default.
+
+After a successful reload that performed DRIVER_REINIT, devlink core
+already holds the devlink instance lock and the driver completed
+reload_up(), so the default is applied directly from the reload path.
+
+Patch 1 clears the mlx5 FW reset-in-progress bit before reload.
+
+Patch 2 factors the common eswitch mode set validation into a helper.
+
+Patch 3 adds the devlink_eswitch_mode= parser and documentation.
+
+Patch 4 applies parsed defaults from devlink core.
+
+Changelog:
+
+v6 -> v7:
+
+- Added Reviewed-by tags from Jiri Pirko.
+
+- Renamed the default eswitch mode functions to spell out eswitch instead
+  of esw.
+
+- Renamed the per-devlink initialization helper to
+  devlink_default_eswitch_mode_init(), dropping instance from its name.
+
+v5 -> v6:
+
+- Dropped regular work and applied a pending default directly from
+  devl_unlock() while the devlink instance lock is still held.
+
+- Dropped the driver API and mlx5-specific default application patches.
+
+v4 -> v5:
+
+- Moved the default eswitch mode code into a separate file, per Jiri's
+  comment.
+
+- Dropped the delayed workqueue and switched to regular work triggered
+  via devl_unlock(), per Jiri's comment.
+
+- Renamed some functions to better align with devlink code.
+
+v3 -> v4:
+
+- Rework registration time apply to use per devlink work queued from
+  devl_unlock(), instead of calling eswitch_mode_set() directly from
+  devl_register().
+
+- Apply the default directly after successful DRIVER_REINIT devlink reload,
+  where the devlink lock is already held and reload_up() has completed.
+
+- Add devl_apply_default_esw_mode() for drivers that know their exact ready
+  point.
+
+- Drop the driver registration-ordering preparation patches that are no
+  longer needed with the async registration apply path.
+
+v2 -> v3:
+
+- Change the devlink_eswitch_mode= API syntax to use <selector>=<mode>
+  instead of [<selector>]:<mode>, following a comment from Randy Dunlap.
+
+v1 -> v2:
+
+- Move default eswitch mode application into devlink core. The default is
+  now applied during devlink registration and after a successful devlink
+  reload that performed DRIVER_REINIT.
+
+- Remove the exported devl_apply_default_esw_mode() driver API and the mlx5
+  driver-side call to it.
+
+- Skip devlink health recovery notifications while the devlink instance is
+  not registered, so drivers can move registration later without early
+  health work hitting registration assertions.
+
+- Move mlx5 devlink registration after device initialization, including the
+  lightweight init path, so the core can apply the default through the
+  normal registration flow.
+
+- Move the matching netdevsim and mlx5 unregister paths before object
+  teardown, so unregister notifications come from devl_unregister() and the
+  later object teardown paths run while the devlink instance is no longer
+  registered.
+
+- Add registration-ordering preparation patches for netdevsim and octeontx2
+  AF/PF, so their eswitch state is ready before registration-time defaults
+  may call eswitch_mode_set().
+
+[1] lore.kernel.org/r/20260502184153.4fd8d06f@kernel.org/
+RFC v1: lore.kernel.org/r/20260506123739.1959770-1-mbloch@nvidia.com/
+RFC v2: lore.kernel.org/r/20260510185424.2041415-1-mbloch@nvidia.com/
+v1: lore.kernel.org/r/20260521072434.362624-1-tariqt@nvidia.com/
+v2: lore.kernel.org/all/20260603193259.3412464-1-mbloch@nvidia.com/
+v3: lore.kernel.org/all/20260605181030.3486619-1-mbloch@nvidia.com/
+v4: lore.kernel.org/all/20260629182102.245150-1-mbloch@nvidia.com/
+v5: lore.kernel.org/all/20260707174527.425134-1-mbloch@nvidia.com/
+v6: lore.kernel.org/all/20260714061731.531849-1-mbloch@nvidia.com/
+
+Signed-off-by: Mark Bloch <mbloch@nvidia.com>
+
+Mark Bloch (4):
+  net/mlx5: Clear FW reset-in-progress bit before reload
+  devlink: Factor out eswitch mode setting
+  devlink: Parse eswitch mode boot defaults
+  devlink: Apply eswitch mode boot defaults
+
+ .../admin-guide/kernel-parameters.txt         |  25 ++
+ .../networking/devlink/devlink-defaults.rst   |  78 +++++
+ Documentation/networking/devlink/index.rst    |   1 +
+ .../ethernet/mellanox/mlx5/core/fw_reset.c    |  28 +-
+ net/devlink/Makefile                          |   2 +-
+ net/devlink/core.c                            |  10 +
+ net/devlink/default.c                         | 303 ++++++++++++++++++
+ net/devlink/dev.c                             |  33 +-
+ net/devlink/devl_internal.h                   |  10 +
+ 9 files changed, 471 insertions(+), 19 deletions(-)
+ create mode 100644 Documentation/networking/devlink/devlink-defaults.rst
+ create mode 100644 net/devlink/default.c
+
+
+base-commit: f6f3b36c15ed44de1fbb44e645e4fae8c4a4453e
+-- 
+2.43.0
+
