@@ -1,130 +1,98 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from out30-98.freemail.mail.aliyun.com (out30-98.freemail.mail.aliyun.com [115.124.30.98])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B92872E7368;
-	Thu, 16 Jul 2026 10:50:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EAD4E41B8E0;
+	Thu, 16 Jul 2026 11:38:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.98
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784199016; cv=none; b=RrTeE+AjX1U9fZzIHCXnxcbhCH9Wb2wYe9Ug1lxR0taqZO8zq4osP9tcoSR0DCVN61BtxNp8BD0mtKJLvjz41antDiYbKg6JbLAfTptrx1JLeLF2RTN0tnHg1uE4FnQpW8VHZZLfk57HcwhpYK8HGbPKkYLTLrlU9wS9XvGSEVM=
+	t=1784201885; cv=none; b=senC1NgWohtssEDPDU99wU7MZztiG+RW6Vza+aaN8C3i9gAtlP95K6l4m6Mi+JZYkQu2nxsZZS6RQjOGJsVWweK+WKgDds2CnDrY0Trs9X9JJ7h5ipF0fMAyt9inuZEneXoj54PBkDGdvf3VAj4tEgCFHE4BS7RRnbkcSNLRZvY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784199016; c=relaxed/simple;
-	bh=l/CAFPX+3wzfGA7GQQv7QLTlLECJJ2OZI0iTW/zeoSA=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=iyWI1MwG9zWii5ndJzj2rwalwQZjAwb6+/CHLb4fyrc3Cxabdu26rnOWXLVz3lr7ozfmleJyy5BYepuGLvaf/QGYtiOBODzZhtzXAwqJ3W1rASVh8t3Y0aS0r0Axzp7pL83kxIBU3EiRRgjqei18aG4W2EoQPGR0RjYk+2qBUu4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=cEM0Q00D; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784201885; c=relaxed/simple;
+	bh=c79NboGB9hiWAfaIsyeo/tCz8oZPzdohQeOauPBTh3M=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=f/c8Q9CzxFBi2voeUrnaA5Fii86/y8CFPnKV55pKuTeeWszDqfHbuSI69zZZqtI9awnxcXajfipVQ9k2K6ET2TZZ/1DBzHOgBG3tTBBFqiMcradgKa16zyKNrvqcf1A+B8QlCFBRyseNvUSLm97myCjB/NOS52jkQaA0JptzUZQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=FlZaCUVh; arc=none smtp.client-ip=115.124.30.98
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="cEM0Q00D"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 78A921F000E9;
-	Thu, 16 Jul 2026 10:50:14 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1784199015;
-	bh=0xvySaEqarBgFceDdKkgAiCmMCUO1cbSbfqzLAmtXMs=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=cEM0Q00Dl518+KV5XCLr2F+KOZAIWB40dgNb3iHaA+TE1QJ646oyPDK6CZvh3ssJX
-	 IlijWAy68AU9ryANoHBmoXAOj7Nc9x2HQE5IM6fjCtLXVhzs9L9IqUVEmO/CuApQKI
-	 SA5zU/kXHBFrgy/ocvpBOx4cdG3WGtXTS2xmVwCFD2Ex4FlWbAbVxhBBpHU4eJsAqn
-	 mb+EBiQ6B99dsGWjRHEQ8bcZ360voOqxpKuDeCPcU3Kdkpsb/uuD7fcnhu4vNVswIk
-	 1ikQN0onQ2IaONUvKkqzWizgJhtOWAWrcYrNUDcXOL+xcyopqScaA803MC4v8dZxeS
-	 DuxGImKzMZlgQ==
-Date: Thu, 16 Jul 2026 13:50:08 +0300
-From: Leon Romanovsky <leon@kernel.org>
-To: Chenguang Zhao <chenguang.zhao@linux.dev>
-Cc: jgg@ziepe.ca, andrew+netdev@lunn.ch, davem@davemloft.net,
-	edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
-	linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
-	tariqt@nvidia.com, mbloch@nvidia.com, dtatulea@nvidia.com,
-	shayd@nvidia.com, moshe@nvidia.com,
-	Chenguang Zhao <zhaochenguang@kylinos.cn>
-Subject: Re: [PATCH rdma-next v3] RDMA/mlx5: quiesce CQ polling before device
- shutdown on reboot
-Message-ID: <20260716105008.GD357857@unreal>
-References: <20260715082307.1593915-1-chenguang.zhao@linux.dev>
- <20260716084211.GC70906@unreal>
- <c2c5dda9-3228-44a3-a4c9-89e8cc4501bc@linux.dev>
+	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="FlZaCUVh"
+DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux.alibaba.com; s=default;
+	t=1784201877; h=From:To:Subject:Date:Message-ID:MIME-Version;
+	bh=P3n9AlLqwVjZ1NPxmow6M+93yquqP1fL1996Mg02wXE=;
+	b=FlZaCUVhQE/kiLrBCfuqIjzDs707tuys9/LmYxClb9BMPbIdPD+oR5cJuAr4kRygXT/umc+p1UbR4JlMv6AkQys/D9NXLWkqeRY03pow9Pz/4pfoP3/C4/2wNJbogzoLk0SiX2I//rWMMTfxj6P8nAv8s09fvWafYsRc5WxOFog=
+X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R181e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam033032089153;MF=alibuda@linux.alibaba.com;NM=1;PH=DS;RN=17;SR=0;TI=SMTPD_---0X7EH86i_1784201876;
+Received: from j66a10360.sqa.eu95.tbsite.net(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0X7EH86i_1784201876 cluster:ay36)
+          by smtp.aliyun-inc.com;
+          Thu, 16 Jul 2026 19:37:56 +0800
+From: "D. Wythe" <alibuda@linux.alibaba.com>
+To: mjambigi@linux.ibm.com,
+	wenjia@linux.ibm.com,
+	wintera@linux.ibm.com,
+	dust.li@linux.alibaba.com,
+	tonylu@linux.alibaba.com,
+	guwen@linux.alibaba.com
+Cc: kuba@kernel.org,
+	davem@davemloft.net,
+	netdev@vger.kernel.org,
+	linux-s390@vger.kernel.org,
+	linux-rdma@vger.kernel.org,
+	leonro@nvidia.com,
+	pabeni@redhat.com,
+	edumazet@google.com,
+	sidraya@linux.ibm.com,
+	jaka@linux.ibm.com,
+	oliver.yang@linux.alibaba.com
+Subject: [PATCH net-next v4 1/3] net/smc: clear the correct v2 slot and buffer in smc_wr_tx_put_slot()
+Date: Thu, 16 Jul 2026 19:37:43 +0800
+Message-ID: <20260716113745.65234-2-alibuda@linux.alibaba.com>
+X-Mailer: git-send-email 2.45.0
+In-Reply-To: <20260716113745.65234-1-alibuda@linux.alibaba.com>
+References: <20260716113745.65234-1-alibuda@linux.alibaba.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <c2c5dda9-3228-44a3-a4c9-89e8cc4501bc@linux.dev>
 
-On Thu, Jul 16, 2026 at 05:03:37PM +0800, Chenguang Zhao wrote:
-> Hi, Leon
-> reboot -f skips orderly shutdown and goes directly to:
-> 
-> kernel_restart_prepare() -> device_shutdown() -> mlx5 shutdown
-> Upper layers may still hold live CQs, while ib-comp-wq keeps
-> polling — a use-after-free race.
+smc_wr_tx_put_slot() tries to reset the v2 pending slot and buffer with
+memset(&link->wr_tx_v2_pend, 0, sizeof(link->wr_tx_v2_pend)) and the
+equivalent for wr_tx_buf_v2. Both are pointers, so this zeroes the 8-byte
+pointer variable instead of the structure it points to. The pending slot
+and buffer are therefore never actually cleared, and the pointers get
+overwritten with NULL.
 
-The point is that this flow is neither RDMA- nor mlx5-specific, and it
-works as expected. mlx5 shutdown() stops the FW/HW, while the kernel
-stops and tears down the running threads.
+Pass the pointers directly and use sizeof(*pointer) so the intended
+structures are cleared.
 
-> 
-> Normal reboot usually works because userspace has already
-> torn down RDMA and called ib_free_cq().
+Fixes: 8799e310fb3f ("net/smc: add v2 support to the work request layer")
+Signed-off-by: D. Wythe <alibuda@linux.alibaba.com>
+Reviewed-by: Dust Li <dust.li@linux.alibaba.com>
+---
+ net/smc/smc_wr.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-There is no difference, from the kernel's perspective, between a
-normal and a forced reboot, except that the former bypasses
-userspace shutdown.
+diff --git a/net/smc/smc_wr.c b/net/smc/smc_wr.c
+index 59c92b46945c..6b5add922993 100644
+--- a/net/smc/smc_wr.c
++++ b/net/smc/smc_wr.c
+@@ -288,10 +288,10 @@ int smc_wr_tx_put_slot(struct smc_link *link,
+ 	} else if (link->lgr->smc_version == SMC_V2 &&
+ 		   pend->idx == link->wr_tx_cnt) {
+ 		/* Large v2 buffer */
+-		memset(&link->wr_tx_v2_pend, 0,
+-		       sizeof(link->wr_tx_v2_pend));
+-		memset(&link->lgr->wr_tx_buf_v2, 0,
+-		       sizeof(link->lgr->wr_tx_buf_v2));
++		memset(link->wr_tx_v2_pend, 0,
++		       sizeof(*link->wr_tx_v2_pend));
++		memset(link->lgr->wr_tx_buf_v2, 0,
++		       sizeof(*link->lgr->wr_tx_buf_v2));
+ 		return 1;
+ 	}
+ 
+-- 
+2.45.0
 
-Thanks
-
-> 
-> Thanks
-> 
-> 在 2026/7/16 16:42, Leon Romanovsky 写道:
-> > On Wed, Jul 15, 2026 at 04:23:07PM +0800, Chenguang Zhao wrote:
-> >> From: Chenguang Zhao <zhaochenguang@kylinos.cn>
-> >>
-> >> On reboot -f with NFS over RDMA, mlx5 shutdown can tear the device
-> >> down while ib-comp-wq still polls live CQs, leading to UAF in
-> >> wr_cqe->done().
-> >>
-> >> Mark the device shutting down before teardown, flush completion
-> >> workqueues so in-flight pollers observe the flag, skip SYS_ERROR
-> >> completion delivery, and make poll/arm CQ a no-op under the CQ lock
-> >> while shutting down.
-> >>
-> >> Signed-off-by: Chenguang Zhao <zhaochenguang@kylinos.cn>
-> >> ---
-> >> changelog:
-> >>  - Fix the race on MLX5_INTERFACE_STATE_SHUTTING_DOWN: set the
-> >>    flag, then flush ib-comp / mlx5_ib event workqueues via an
-> >>    mlx5_ib quiesce hook before fast_unload/teardown.
-> >>  - Check shutting-down under cq->lock in mlx5_ib_poll_cq/arm_cq.
-> >>  - Export ib_comp_wq and ib_comp_unbound_wq so modular mlx5_ib
-> >>    can flush them.
-> >>
-> >> v2:
-> >>  https://lore.kernel.org/all/20260714075558.1420384-1-chenguang.zhao@linux.dev/
-> >>
-> >> v1:
-> >>  https://lore.kernel.org/all/20260702073422.279820-1-chenguang.zhao@linux.dev/
-> >>
-> >>  drivers/infiniband/core/device.c              |  2 ++
-> >>  drivers/infiniband/hw/mlx5/cq.c               | 11 ++++++++++
-> >>  drivers/infiniband/hw/mlx5/main.c             | 20 +++++++++++++++++++
-> >>  .../net/ethernet/mellanox/mlx5/core/health.c  |  3 +++
-> >>  .../net/ethernet/mellanox/mlx5/core/main.c    | 10 ++++++++++
-> >>  .../mellanox/mlx5/core/sf/dev/driver.c        |  3 +++
-> >>  include/linux/mlx5/driver.h                   | 11 ++++++++++
-> >>  7 files changed, 60 insertions(+)
-> > <...>
-> >
-> >> +static void mlx5_ib_shutdown_quiesce(void)
-> >> +{
-> >> +	flush_workqueue(ib_comp_wq);
-> >> +	flush_workqueue(ib_comp_unbound_wq);
-> >> +	flush_workqueue(mlx5_ib_event_wq);
-> >> +}
-> > These workqueues are shared by all IB drivers and the core. Drivers
-> > must not flush or destroy them.
-> >
-> > Why this is not FW issue?
-> >
-> > Thanks
