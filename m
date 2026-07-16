@@ -1,79 +1,83 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 324293DCDBF;
-	Thu, 16 Jul 2026 08:25:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E4133E023E
+	for <linux-rdma@vger.kernel.org>; Thu, 16 Jul 2026 08:29:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784190340; cv=none; b=IQhCGiw/T+aQB8bO+qEzbYqvENcvdjqK8Csuy2NveWZRZ8DoeUihfOO2vT3ZfD2R0lFxjpekQ21i2vlzR4bmnsOTupx38XiP96rAy47E2Paksb8Ct/I8NHSQ5EJwTscJu6hb30nqTfrq73I0qbMWRSplIHJSNMxGrgFQsBhQI5o=
+	t=1784190580; cv=none; b=CSTd4lF8O20gbe1YVBXCvWsuiDExs0Ptgxj2X5ZBqIV+ViYw/5SL1BXA5d19eQz5ybjbnvP6QoXOjFQeghnRHG052WLkt8c2Dw7TNbpEClfatcVNJIGw1xpEYmwkRMrnoXJqkB66jZSI6j58F4NpYs26NARzFELp6sSRfwyK8aI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784190340; c=relaxed/simple;
-	bh=hTseHX9McpunvK9ku+Y1VPRrEwU9kKTwkoegTw9D25A=;
-	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
-	 MIME-Version:Content-Type; b=o7M9T11XfAoUwJzIhB29Wzx6lBefww7eQz1yPXEeLphBHlGftKio/yJHNx+HF6JnRILqmP8aREAmgiGl4e1PmxLx6KVAxz/9VH9PkxXO15khm3O2SRh9J8bL/EK8P9Fnovgj7yh7RGzatfy+LOvMp3Q3uMkIPAiNkJj0BI1yxHs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=VooyUSBA; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784190580; c=relaxed/simple;
+	bh=e2hvFdm0Hw4Ak9kfR1ipcVfTicVokFl6sE2LDdeLcQI=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=sJDvMjOfShJJr6ULE+jZr+W6ko8Z35+7Ea2dQerKUmYLIuzu/oi40Ebf/OzA2E/AOfbxEDJ0hD2cYPBhXPz5/FTFtoyUQjGurglveJUKqBkP6Uq+G/1ADVL//85c/2DMpzOe8PrGNpTCxJenz1kE5XUSD6DCmPJqNRJ4kKe5tW8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=fwd2vaF5; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="VooyUSBA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8DD811F000E9;
-	Thu, 16 Jul 2026 08:25:36 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="fwd2vaF5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 82CE51F000E9;
+	Thu, 16 Jul 2026 08:29:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1784190337;
-	bh=qZW+M3P/+ig7Jw2pQiKmK7s0foyMbhMBzVV1CbKMT3E=;
-	h=From:To:Cc:In-Reply-To:References:Subject:Date;
-	b=VooyUSBA/aLIk7mc+S7WnuDjCbhI35Nu6XJ2T22OUncxNcM8AHbPLnL9rxFMJ2Ni8
-	 IxYp4a0Ys7A6skJwtWLeJIzs8i0+xe9OlXnWT7jfgfFzo3DczBYl0jYCs9itTDYwDL
-	 9yR3Or5pChF+13gfprcjNptw0790sfLtZwZVjAHc3rauxCBJo86VwCQi50xeyZVITm
-	 EVH9V8D1Z1UdNHNh+M2M42pkWiTxDaY9jX9VL7EYBYIdGUtOb5XYTiWzFbWddsIkW6
-	 XzVTTS7uhtt5gIKzODRUT1ZI77MyuUKVQQZ76JjaN4+3OcatdYzxznsMijie4TUkge
-	 Gpi4tTECObiAQ==
+	s=k20260515; t=1784190579;
+	bh=d7wvA4lxw+og79HUyAcWK3sODR5pGlJfUOAmer1mla0=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=fwd2vaF52NFXi5fV9Ka89aWNeKcwxynA0hWGBrsM7F05bMDWuttPfCOMJAMQke9Jw
+	 Lf7POAv+yCi+773On4VNCoVEpz6r6V7HpzhxnIowr8LsN1YOmGBZ2rSsery9xPKHs/
+	 SkjKIvTGofYv/4FWsQChihVNqS7Vh6BBWWqYRWsTYg+VhsCf9ny2h2X7F0fAFgsJ0o
+	 wgf8mbW+cZ20bPSf5pMatuJ3yzDWdQGhLnST6v9inooOrjg/ipSSjqjqQlGovMo98N
+	 HRoWMv6Wf0kbfCMlrpIvOJP1fvz7ieNoTUuSvBBYjOtTyQGCzYsPoTFiHytjgL48gu
+	 1tSe9ACl+aUUQ==
+Date: Thu, 16 Jul 2026 11:29:34 +0300
 From: Leon Romanovsky <leon@kernel.org>
-To: linux-rdma@vger.kernel.org, Mark Bloch <mbloch@nvidia.com>, 
- netdev@vger.kernel.org, Saeed Mahameed <saeedm@nvidia.com>, 
- Tariq Toukan <tariqt@nvidia.com>
-Cc: Alexei Lazar <alazar@nvidia.com>, Alex Vesker <valex@nvidia.com>, 
- Andrew Lunn <andrew+netdev@lunn.ch>, Cosmin Ratiu <cratiu@nvidia.com>, 
- "David S. Miller" <davem@davemloft.net>, 
- Dragos Tatulea <dtatulea@nvidia.com>, Eric Dumazet <edumazet@google.com>, 
- Feng Liu <feliu@nvidia.com>, Jakub Kicinski <kuba@kernel.org>, 
- Kees Cook <kees@kernel.org>, linux-kernel@vger.kernel.org, 
- Paolo Abeni <pabeni@redhat.com>, Parav Pandit <parav@nvidia.com>, 
- Shay Drory <shayd@nvidia.com>, Simon Horman <horms@kernel.org>, 
- Yevgeny Kliteynik <kliteyn@nvidia.com>
-In-Reply-To: <20260713084320.1015240-1-tariqt@nvidia.com>
-References: <20260713084320.1015240-1-tariqt@nvidia.com>
-Subject: Re: [PATCH mlx5-next 0/2] mlx5-next updates 2026-07-13
-Message-Id: <178419033442.296394.4741555309463988362.b4-ty@kernel.org>
-Date: Thu, 16 Jul 2026 04:25:34 -0400
+To: Michael Margolin <mrgolin@amazon.com>
+Cc: jgg@nvidia.com, linux-rdma@vger.kernel.org, sleybo@amazon.com,
+	matua@amazon.com, gal.pressman@linux.dev
+Subject: Re: [PATCH for-next v8 0/5] Introduce Completion Counters
+Message-ID: <20260716082934.GB70906@unreal>
+References: <20260707203427.6923-1-mrgolin@amazon.com>
+ <20260708123640.GA9082@dev-dsk-mrgolin-1c-b2091117.eu-west-1.amazon.com>
+ <20260715073958.GA21197@dev-dsk-mrgolin-1c-b2091117.eu-west-1.amazon.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-X-Mailer: b4 0.15-dev-18f8f
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260715073958.GA21197@dev-dsk-mrgolin-1c-b2091117.eu-west-1.amazon.com>
 
-
-On Mon, 13 Jul 2026 11:43:18 +0300, Tariq Toukan wrote:
-> This series contains mlx5 shared updates.
+On Wed, Jul 15, 2026 at 07:39:58AM +0000, Michael Margolin wrote:
+> On Wed, Jul 08, 2026 at 12:36:40PM +0000, Michael Margolin wrote:
+> > On Tue, Jul 07, 2026 at 08:34:22PM +0000, Michael Margolin wrote:
+> > > Add core infrastructure for Completion Counters, a light-weight
+> > > alternative to polling CQ for tracking operation completions. The
+> > > related rdma-core support is linked in [1].
+> > > 
+> > > Define the UVERBS_OBJECT_COMP_CNTR ioctl object with create, destroy,
+> > > modify and read methods for both success and error counters. Add a QP
+> > > attach method on the QP object to associate a completion counter with a
+> > > queue pair.
+> > > 
+> > > Add EFA Completion Counters support as first implementer.
+> > > 
+> > > [1] https://github.com/linux-rdma/rdma-core/pull/1701
+> > > 
+> > 
+> > Walked over Sashiko's comments, most of them are about usage count
+> > which is handled in a follow-up patch in the series. The others don't
+> > seem to be real issues.
+> > 
+> > https://sashiko.dev/#/patchset/20260707203427.6923-1-mrgolin%40amazon.com
+> > 
+> > Jason, Leon do you have any other comments?
+> > 
+> > Michael
+> >
 > 
-> Regards,
-> Tariq
-> 
-> Cosmin Ratiu (1):
->   net/mlx5: ifc: Add PSP related fields
-> 
-> [...]
+> I need your feedback on this series, specifically on the ABI changes
+> (and libibverbs), to unblock progress in upper layers that depend on
+> this support (libfabric, NCCL).
 
-Applied, thanks!
+We are primarily waiting for the relevant rdma-core PR to be ready.
 
-[1/2] net/mlx5: Drop redundant esw_cap, reuse e_switch_cap
-      https://git.kernel.org/rdma/rdma/c/0b7b17502300f7
-[2/2] net/mlx5: ifc: Add PSP related fields
-      https://git.kernel.org/rdma/rdma/c/bee40a7d0bd126
-
-Best regards,
--- 
-Leon Romanovsky <leon@kernel.org>
-
+Thanks
