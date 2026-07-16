@@ -1,45 +1,46 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB10E38C40E;
-	Thu, 16 Jul 2026 09:19:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B92872E7368;
+	Thu, 16 Jul 2026 10:50:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784193564; cv=none; b=Lf+fsXiv1X2TJoYiW2EGpL3UncetxJK3NnI2ZpW8i8Ev0XRyuQGdMYOvr1+a4OJ9jvschrP3YsdlxAr2MbOjGqb1vI+2oD/SwO9cztXmQuwjcG4HOVlngV/jN19oJMaZwjMztm1HF8MCyLDZlpR2OV5elo/LqbkNdPY4RNtEHUI=
+	t=1784199016; cv=none; b=RrTeE+AjX1U9fZzIHCXnxcbhCH9Wb2wYe9Ug1lxR0taqZO8zq4osP9tcoSR0DCVN61BtxNp8BD0mtKJLvjz41antDiYbKg6JbLAfTptrx1JLeLF2RTN0tnHg1uE4FnQpW8VHZZLfk57HcwhpYK8HGbPKkYLTLrlU9wS9XvGSEVM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784193564; c=relaxed/simple;
-	bh=7hM35br6HtICzkAqAj9MjZkQWaP2xLwxcfpqwL7oI4E=;
+	s=arc-20240116; t=1784199016; c=relaxed/simple;
+	bh=l/CAFPX+3wzfGA7GQQv7QLTlLECJJ2OZI0iTW/zeoSA=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=dGI8Z7JbrgaXRpHyHmh3w7p0UKgqpQ5SS4p1VArQMqNQl4uMaTVcTUEZ5lt4NKJ9jE2O8DNz0YzWqsS7SKha9H1S6eAoJ6GGrJ+KnEMGEOIu4QG45g/o4L9KvCHHJ7FKqXjmGqOLELjoqpnLUXtf9Nj7h8JfmaStmVxayCO0XTE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=VIon6jat; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:Content-Disposition:In-Reply-To; b=iyWI1MwG9zWii5ndJzj2rwalwQZjAwb6+/CHLb4fyrc3Cxabdu26rnOWXLVz3lr7ozfmleJyy5BYepuGLvaf/QGYtiOBODzZhtzXAwqJ3W1rASVh8t3Y0aS0r0Axzp7pL83kxIBU3EiRRgjqei18aG4W2EoQPGR0RjYk+2qBUu4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=cEM0Q00D; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="VIon6jat"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3E2FA1F000E9;
-	Thu, 16 Jul 2026 09:19:20 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="cEM0Q00D"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 78A921F000E9;
+	Thu, 16 Jul 2026 10:50:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1784193562;
-	bh=/Mz+kdlqEOGvVMYDCuZiJbAp0mTFr2/gm6t0R06rrdE=;
+	s=k20260515; t=1784199015;
+	bh=0xvySaEqarBgFceDdKkgAiCmMCUO1cbSbfqzLAmtXMs=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=VIon6jat+8GjU7kXwTDMEbVuB3ABUUjfrkE0z9mcFF6PRS5zsLx6XRKnUPHsHChj3
-	 qw0PTXIKN3+j1kk5J3xlw6agzmWEEOsoF+dgtXI4G0fJAoaTlnP1kZQOoQN3Z/cioC
-	 mkAe+r29t3C0qZU7+rCm6FJciduT6Unf+iNriDhY/OrspJGKNV9GE2LoguZlgacJsW
-	 odHTZEi8EHGiLb/B8Q/5JF26RNA7DR4/nVwb87uj+CEq0jWs5SzU4aNYuzzy1FOrHY
-	 jpQppAzgmKeRSRdiKroJa/6CIS9mK2bseQDyVC5T+mY9B7ZdJNVByd28L0OE9Nlz+r
-	 x7JF8MY/ZblqQ==
-Date: Thu, 16 Jul 2026 12:19:16 +0300
+	b=cEM0Q00Dl518+KV5XCLr2F+KOZAIWB40dgNb3iHaA+TE1QJ646oyPDK6CZvh3ssJX
+	 IlijWAy68AU9ryANoHBmoXAOj7Nc9x2HQE5IM6fjCtLXVhzs9L9IqUVEmO/CuApQKI
+	 SA5zU/kXHBFrgy/ocvpBOx4cdG3WGtXTS2xmVwCFD2Ex4FlWbAbVxhBBpHU4eJsAqn
+	 mb+EBiQ6B99dsGWjRHEQ8bcZ360voOqxpKuDeCPcU3Kdkpsb/uuD7fcnhu4vNVswIk
+	 1ikQN0onQ2IaONUvKkqzWizgJhtOWAWrcYrNUDcXOL+xcyopqScaA803MC4v8dZxeS
+	 DuxGImKzMZlgQ==
+Date: Thu, 16 Jul 2026 13:50:08 +0300
 From: Leon Romanovsky <leon@kernel.org>
-To: Abhijit Gangurde <abhijit.gangurde@amd.com>
-Cc: jgg@ziepe.ca, kuba@kernel.org, davem@davemloft.net, allen.hubbe@amd.com,
-	andrew+netdev@lunn.ch, brett.creeley@amd.com, edumazet@google.com,
-	pabeni@redhat.com, nikhil.agarwal@amd.com,
+To: Chenguang Zhao <chenguang.zhao@linux.dev>
+Cc: jgg@ziepe.ca, andrew+netdev@lunn.ch, davem@davemloft.net,
+	edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
 	linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org, dwmw2@infradead.org
-Subject: Re: [for-next v4 0/5] ionic: RDMA completion timestamping support
-Message-ID: <20260716091916.GC357857@unreal>
-References: <20260610154216.712374-1-abhijit.gangurde@amd.com>
- <7c9dea7d-a551-6f6a-3c3a-e0b55497c645@amd.com>
- <20260716080110.GA70906@unreal>
- <7b5f02bb-26db-175e-34cc-40318b0752b2@amd.com>
+	tariqt@nvidia.com, mbloch@nvidia.com, dtatulea@nvidia.com,
+	shayd@nvidia.com, moshe@nvidia.com,
+	Chenguang Zhao <zhaochenguang@kylinos.cn>
+Subject: Re: [PATCH rdma-next v3] RDMA/mlx5: quiesce CQ polling before device
+ shutdown on reboot
+Message-ID: <20260716105008.GD357857@unreal>
+References: <20260715082307.1593915-1-chenguang.zhao@linux.dev>
+ <20260716084211.GC70906@unreal>
+ <c2c5dda9-3228-44a3-a4c9-89e8cc4501bc@linux.dev>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -49,86 +50,81 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <7b5f02bb-26db-175e-34cc-40318b0752b2@amd.com>
+In-Reply-To: <c2c5dda9-3228-44a3-a4c9-89e8cc4501bc@linux.dev>
 
-On Thu, Jul 16, 2026 at 02:26:22PM +0530, Abhijit Gangurde wrote:
-> Thanks Leon. This is already addressed in https://patchwork.kernel.org/project/linux-rdma/patch/20260617132605.1888205-3-abhijit.gangurde@amd.com/
-> which was sent after this series. Happy to rebase if needed.
+On Thu, Jul 16, 2026 at 05:03:37PM +0800, Chenguang Zhao wrote:
+> Hi, Leon
+> reboot -f skips orderly shutdown and goes directly to:
+> 
+> kernel_restart_prepare() -> device_shutdown() -> mlx5 shutdown
+> Upper layers may still hold live CQs, while ib-comp-wq keeps
+> polling — a use-after-free race.
 
-You need to rebase this, as we moved ib_respond_empty_udata()
-from the end of the function to the beginning.
-
-Also, please send this as a separate patch or series.
-
-Thanks.
+The point is that this flow is neither RDMA- nor mlx5-specific, and it
+works as expected. mlx5 shutdown() stops the FW/HW, while the kernel
+stops and tears down the running threads.
 
 > 
+> Normal reboot usually works because userspace has already
+> torn down RDMA and called ib_free_cq().
+
+There is no difference, from the kernel's perspective, between a
+normal and a forced reboot, except that the former bypasses
+userspace shutdown.
+
+Thanks
+
 > 
-> On 7/16/26 13:31, Leon Romanovsky wrote:
-> > On Wed, Jul 15, 2026 at 06:38:06PM +0530, Abhijit Gangurde wrote:
-> > > Hi Jason, Jakub,
-> > > 
-> > > Gentle ping — if there are no further concerns, could this series be merged
-> > > through the rdma tree?
-> > Jason requested converting any driver that extends udata to
-> > use uverbs_robust_udata.
-> > 
-> > https://lore.kernel.org/linux-rdma/13-v3-bd56dd443069+49-bnxt_re_uapi_jgg@nvidia.com/
-> > 
+> Thanks
+> 
+> 在 2026/7/16 16:42, Leon Romanovsky 写道:
+> > On Wed, Jul 15, 2026 at 04:23:07PM +0800, Chenguang Zhao wrote:
+> >> From: Chenguang Zhao <zhaochenguang@kylinos.cn>
+> >>
+> >> On reboot -f with NFS over RDMA, mlx5 shutdown can tear the device
+> >> down while ib-comp-wq still polls live CQs, leading to UAF in
+> >> wr_cqe->done().
+> >>
+> >> Mark the device shutting down before teardown, flush completion
+> >> workqueues so in-flight pollers observe the flag, skip SYS_ERROR
+> >> completion delivery, and make poll/arm CQ a no-op under the CQ lock
+> >> while shutting down.
+> >>
+> >> Signed-off-by: Chenguang Zhao <zhaochenguang@kylinos.cn>
+> >> ---
+> >> changelog:
+> >>  - Fix the race on MLX5_INTERFACE_STATE_SHUTTING_DOWN: set the
+> >>    flag, then flush ib-comp / mlx5_ib event workqueues via an
+> >>    mlx5_ib quiesce hook before fast_unload/teardown.
+> >>  - Check shutting-down under cq->lock in mlx5_ib_poll_cq/arm_cq.
+> >>  - Export ib_comp_wq and ib_comp_unbound_wq so modular mlx5_ib
+> >>    can flush them.
+> >>
+> >> v2:
+> >>  https://lore.kernel.org/all/20260714075558.1420384-1-chenguang.zhao@linux.dev/
+> >>
+> >> v1:
+> >>  https://lore.kernel.org/all/20260702073422.279820-1-chenguang.zhao@linux.dev/
+> >>
+> >>  drivers/infiniband/core/device.c              |  2 ++
+> >>  drivers/infiniband/hw/mlx5/cq.c               | 11 ++++++++++
+> >>  drivers/infiniband/hw/mlx5/main.c             | 20 +++++++++++++++++++
+> >>  .../net/ethernet/mellanox/mlx5/core/health.c  |  3 +++
+> >>  .../net/ethernet/mellanox/mlx5/core/main.c    | 10 ++++++++++
+> >>  .../mellanox/mlx5/core/sf/dev/driver.c        |  3 +++
+> >>  include/linux/mlx5/driver.h                   | 11 ++++++++++
+> >>  7 files changed, 60 insertions(+)
+> > <...>
+> >
+> >> +static void mlx5_ib_shutdown_quiesce(void)
+> >> +{
+> >> +	flush_workqueue(ib_comp_wq);
+> >> +	flush_workqueue(ib_comp_unbound_wq);
+> >> +	flush_workqueue(mlx5_ib_event_wq);
+> >> +}
+> > These workqueues are shared by all IB drivers and the core. Drivers
+> > must not flush or destroy them.
+> >
+> > Why this is not FW issue?
+> >
 > > Thanks
-> > 
-> > > Thanks,
-> > > Abhijit
-> > > 
-> > > On 6/10/26 21:12, Abhijit Gangurde wrote:
-> > > > Hi,
-> > > > 
-> > > > This series adds RDMA completion timestamp support for ionic.
-> > > > 
-> > > > It enables PHC registration for RDMA timestamp capability, exposes a PHC
-> > > > state page for safe user-space reads, maps that PHC state through RDMA
-> > > > ucontext mmap, and extends the RDMA CQE format to carry completion
-> > > > timestamps.
-> > > > 
-> > > > With this, user space can read completion timestamps and convert them to
-> > > > wall time with low overhead.
-> > > > 
-> > > > Provider's PR: https://github.com/linux-rdma/rdma-core/pull/1724
-> > > > 
-> > > > v4:
-> > > >     - Added alias mapping of mlx5_ib_clock_info to ib_uverbs_clock_info
-> > > > v3:
-> > > >     - Renamed ib_uverbs_phc_state to ib_uverbs_clock_info
-> > > >     - Moved mlx5 to use the common clock info structure
-> > > >     - Addressed review feedback from Sashiko
-> > > >     - https://lore.kernel.org/linux-rdma/20260606050003.3648306-1-abhijit.gangurde@amd.com/
-> > > > v2:
-> > > >     - changed ionic_phc_state to ib_uverbs_phc_state and moved it under
-> > > >       ib_user_verbs.h
-> > > >     - https://lore.kernel.org/linux-rdma/20260512092623.1157199-1-abhijit.gangurde@amd.com/
-> > > > v1:
-> > > >     - https://lore.kernel.org/all/20260401102501.3395305-1-abhijit.gangurde@amd.com/
-> > > > 
-> > > > Abhijit Gangurde (5):
-> > > >     net: ionic: register PHC for rdma timestamping
-> > > >     net: ionic: Add PHC state page for user space access
-> > > >     RDMA/ionic: map PHC state into user space
-> > > >     RDMA/ionic: add completion timestamp to CQE format
-> > > >     RDMA/mlx5: move mlx5 clock info to common struct ib_uverbs_clock_info
-> > > > 
-> > > >    .../infiniband/hw/ionic/ionic_controlpath.c   | 34 ++++++++++
-> > > >    drivers/infiniband/hw/ionic/ionic_datapath.c  | 43 ++++++-------
-> > > >    drivers/infiniband/hw/ionic/ionic_fw.h        | 12 +++-
-> > > >    drivers/infiniband/hw/ionic/ionic_ibdev.h     |  2 +
-> > > >    drivers/infiniband/hw/ionic/ionic_lif_cfg.c   |  2 +
-> > > >    drivers/infiniband/hw/ionic/ionic_lif_cfg.h   |  1 +
-> > > >    .../ethernet/pensando/ionic/ionic_ethtool.c   | 12 ++--
-> > > >    .../net/ethernet/pensando/ionic/ionic_if.h    |  1 +
-> > > >    .../net/ethernet/pensando/ionic/ionic_lif.c   |  5 +-
-> > > >    .../net/ethernet/pensando/ionic/ionic_lif.h   |  3 +-
-> > > >    .../net/ethernet/pensando/ionic/ionic_phc.c   | 63 ++++++++++++++++---
-> > > >    include/uapi/rdma/ib_user_verbs.h             | 33 ++++++++++
-> > > >    include/uapi/rdma/ionic-abi.h                 |  1 +
-> > > >    include/uapi/rdma/mlx5-abi.h                  | 15 ++---
-> > > >    14 files changed, 179 insertions(+), 48 deletions(-)
-> > > > 
