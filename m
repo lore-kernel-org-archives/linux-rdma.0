@@ -1,243 +1,270 @@
-Received: from canpmsgout05.his.huawei.com (canpmsgout05.his.huawei.com [113.46.200.220])
+Received: from out-182.mta1.migadu.com (out-182.mta1.migadu.com [95.215.58.182])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 296F030D411;
-	Thu, 16 Jul 2026 01:07:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.220
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3D98F2EC083
+	for <linux-rdma@vger.kernel.org>; Thu, 16 Jul 2026 02:27:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=95.215.58.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784164064; cv=none; b=o1pntPcW7GL/4ieBDEFm5m8JSt9gS52QwC2GIxtw5h+Q/gz6hqNZ3zAuKye+Tjrpxw3T5V+I0ghbxZqkHSKGamjJvpXio0oLxpBlLu24qZNoqU3khDCnkmOEZFGY8fonYiz3qUqjgkIT6Yj6SdhCME/XHdgJVZOK5OURiG/zDug=
+	t=1784168862; cv=none; b=DqUCXc/5Y8UqglX9kby6CJzhWdrCTzu4BEc9xztYfvm3ZDDnxmpimN7MJ9IBuFt69xacMvGvIMm2TjnTxOvcLD5RRm2v4LLzV9vKrQgpSTyhfLptzTPFL3rJXfhRtQJfGwR362QABdJ0g07qaPjU33qGbfT91QkueZCI+t96sA8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784164064; c=relaxed/simple;
-	bh=5mGPqdBzgZCU76/AXTHqb90cph8IhAIk4vJhe8ZEpn0=;
-	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
-	 In-Reply-To:Content-Type; b=M60z6JerwzYfyxFrYe1CG3er6Y4BimREn/PCRr4aRDJDVpw7xPbeAv926WD24sFOKwESl/ZugBGwp19To5+v/inUnssmhyAU+vpcas5d73cCWl6WiUE2+kJaqYn2jVXzsCO0MAq7u13e2zTgBZKogai4kuk4Wj/tAxWW8AwNuCA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b=yR6iu4+m; arc=none smtp.client-ip=113.46.200.220
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+	s=arc-20240116; t=1784168862; c=relaxed/simple;
+	bh=t77FC5bnTJgqfpAGHveYCh68rr9vrbcggO2s9aIdfRY=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=rAXUE2HtKY2beE4+sM3NX58cN9JgTaDM3EnRcLKWNBbXRuMxRpdkwUYAtYh7rpXC6w70omZQW6m9tEWVrgoNSRyAX8ZIxbp+bW8VT803JUs3cRkSt8Fom8ObPnNC24pjJnaLym7bkk1Y1NN23AE8fwyu9WWpfswGpVwqA2M6Sbc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=P8ZFYPbR; arc=none smtp.client-ip=95.215.58.182
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b="yR6iu4+m"
-dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
-	c=relaxed/relaxed; q=dns/txt;
-	h=From;
-	bh=u3hQkWIKM9rLk74FG4EzV/OU5cfjkjl4u73zLaFEaew=;
-	b=yR6iu4+m0jMMxlXtzIE64e3SQGhOy7b0OXPc3EROVeSAetdOJW1Ez4f1Yky9iTxCpPHDn3jMy
-	MYc/BTrazH8jDTO5q7Ch0H7/mqR1HiC929kYLr0AvvmMxcFl9J5Gws2ihLLpJSZ/PifIi6VfS8J
-	LjcGst1AhoMzV6H1djNFEuA=
-Received: from mail.maildlp.com (unknown [172.19.162.223])
-	by canpmsgout05.his.huawei.com (SkyGuard) with ESMTPS id 4h0vm74C2kz12LCc;
-	Thu, 16 Jul 2026 08:57:59 +0800 (CST)
-Received: from kwepemo500009.china.huawei.com (unknown [7.202.194.199])
-	by mail.maildlp.com (Postfix) with ESMTPS id EBA3440575;
-	Thu, 16 Jul 2026 09:07:36 +0800 (CST)
-Received: from [10.67.121.161] (10.67.121.161) by
- kwepemo500009.china.huawei.com (7.202.194.199) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.36; Thu, 16 Jul 2026 09:07:36 +0800
-Message-ID: <7dd5c995-a23c-4d3a-9ba0-7fc77972339f@huawei.com>
-Date: Thu, 16 Jul 2026 09:07:35 +0800
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="P8ZFYPbR"
+Message-ID: <e1a0dbd3-a576-41c4-9ca7-a20afda49f1f@linux.dev>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
+	t=1784168855;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=8ScW/TqxmoGM3w+67OoIohwnMXFd3pUsVwO0MlJRqhA=;
+	b=P8ZFYPbR1FhiJhyAJ6wQjY6Wl16qJD+3B5fQ1UFUAPP4glV6K20wCWvJ7tEdX+AIGKdsYq
+	cwLaof3S6mxZ2Ak3d3fq/017/066qbdqdm6CKYdOFGu9M2H/IIzvaEu0aiJKvqbAXJYcVT
+	r8EOUkvb/LPZLgkT39cwnlA5DOzUqi8=
+Date: Wed, 15 Jul 2026 19:27:24 -0700
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v12 0/4] vfio/dma-buf: add TPH support for peer-to-peer
- access
-To: Zhiping Zhang <zhipingz@meta.com>, Jason Gunthorpe <jgg@ziepe.ca>, Leon
- Romanovsky <leon@kernel.org>, Michael Guralnik <michaelgur@nvidia.com>, Sumit
- Semwal <sumit.semwal@linaro.org>, Christian Konig <christian.koenig@amd.com>,
-	Alex Williamson <alex@shazbot.org>, Bjorn Helgaas <bhelgaas@google.com>
-CC: <kvm@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
-	<linux-pci@vger.kernel.org>, <dri-devel@lists.freedesktop.org>
-References: <20260715204008.3911275-1-zhipingz@meta.com>
+Subject: Re: [PATCH v3] RDMA/rxe: Hold netdev reference for transmit skbs
+To: weimin xiong <15927021679@163.com>, linux-rdma@vger.kernel.org,
+ Zhu Yanjun <yanjun.zhu@linux.dev>
+Cc: jgg@nvidia.com, zyjzyj2000@gmail.com, xiongweimin
+ <xiongweimin@kylinos.cn>, Leon Romanovsky <leon@kernel.org>
+References: <20260714015554.174436-1-15927021679@163.com>
+ <20260715064149.283009-1-15927021679@163.com>
 Content-Language: en-US
-From: fengchengwen <fengchengwen@huawei.com>
-In-Reply-To: <20260715204008.3911275-1-zhipingz@meta.com>
-Content-Type: text/plain; charset="UTF-8"
+X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
+From: "yanjun.zhu" <yanjun.zhu@linux.dev>
+In-Reply-To: <20260715064149.283009-1-15927021679@163.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: kwepems500002.china.huawei.com (7.221.188.17) To
- kwepemo500009.china.huawei.com (7.202.194.199)
+X-Migadu-Flow: FLOW_OUT
 
-Hi Zhiping,
+On 7/14/26 11:41 PM, weimin xiong wrote:
+> From: xiongweimin <xiongweimin@kylinos.cn>
+> 
+> rxe_init_packet() assigns skb->dev from an RCU-protected GID attribute
+> without holding a netdev reference. If the netdev is unregistered before
+> the skb is freed, subsequent accesses to skb->dev are unsafe.
+> 
+> Hold a reference with dev_hold() when the skb is initialized and release
+> it from the transmit destructor or via rxe_put_skb() on error paths that
+> run before the destructor is installed.
+> 
+> skb->dev can change on the TX path (VLAN/bond/tunnel, ip_finish_output2,
+> etc.), so put must use the same netdev that was held. Stash that pointer
+> in skb_shinfo()->destructor_arg: skb->cb is already used by
+> rxe_pkt_info and is rewritten by IP control blocks.
+> 
+> To avoid blocking netdev unregistration on held skbs, flush all QPs to
+> the error state on NETDEV_GOING_DOWN and NETDEV_UNREGISTER so pending TX
+> work is drained and references can be dropped.
+> 
+> Signed-off-by: xiongweimin <xiongweimin@kylinos.cn>
+> ---
+> v3:
+> - put the held netdev from destructor_arg, not live skb->dev
+>    (skb->dev may be rewritten by the TX stack)
 
-One concern I'd like to raise is the implicit topology constraint of the
-TPH P2P path. TPH Steering Tag only works reliably when both importer and
-exporter devices sit under the same Root Port (or same TPH-aware switch).
+I am fine with this commit. Just a reminder: please send a new version 
+of a patch in a new email thread. It is better not to send multiple 
+versions of the same patch in the same thread.
 
-For cross-Root-Port P2P traffic (e.g. P2P devices located in different
-RC or even socket), most server-grade Root Complexes do not forward TPH
-prefixes through their internal routing. The ST field gets silently
-stripped before reaching the target device, so all TPH setup becomes
-ineffective with no error reported to user.
+Other than that, thanks a lot!
+Let us wait for the feedback from Leon and Jason.
 
-Because cross-Root-Port P2P traffic with ST does not affect the host, but
-merely the completer may experience some performance degradation because
-it lacks the TPH hint. In this case, I suggest adding restrictions in the
-uAPI.
+Reviewed-by: Zhu Yanjun <yanjun.zhu@linux.dev>
 
-A further step is to check whether the importer and exporter are under
-the same root port. However, this verification will cause the P2P TPH
-to be unsupported in the case of multi-host or multi-root PCIe switch.
+Zhu Yanjun
 
-Thanks
-
-On 7/16/2026 4:39 AM, Zhiping Zhang wrote:
-> This series adds TLP Processing Hints (TPH) support to the VFIO dma-buf
-> export path, allowing importing drivers (e.g. mlx5) to use the
-> exporter's steering tag when performing peer-to-peer DMA into a
-> VFIO-owned device.
 > 
-> There is no separate in-tree vendor kernel driver for the target device:
-> vfio-pci is the in-tree driver and the targeted device is managed
-> from userspace via VFIO passthrough. That is why the ST has to flow
-> through a uAPI: userspace owns the device and its ST table, so it is the
-> entity that can configure a meaningful value for a given dma-buf. The
-> kernel-visible participants are still in-tree: vfio-pci exports the
-> dma-buf and mlx5 imports it.
+> v2:
+> - rebase on current mainline so the patch applies cleanly
+> - flush all QPs on NETDEV_GOING_DOWN and NETDEV_UNREGISTER to
+>    release pending TX skbs before netdev unregister
+> ---
+>   drivers/infiniband/sw/rxe/rxe_loc.h  |  1 +
+>   drivers/infiniband/sw/rxe/rxe_net.c  | 68 ++++++++++++++++++++++++++--
+>   drivers/infiniband/sw/rxe/rxe_req.c  |  2 +-
+>   drivers/infiniband/sw/rxe/rxe_resp.c |  4 +-
+>   4 files changed, 68 insertions(+), 7 deletions(-)
 > 
-> On the effect: the endpoint's PCIe ingress block uses the ST as
-> an in-band instruction for the incoming P2P TLP -- selecting a target
-> cache partition and, on writes, an in-flight operation on the data
-> before it lands. The dma-buf callback keeps this opaque to the
-> framework -- only the producer (userspace owner of the VFIO device)
-> and the consumer (endpoint block) need to interpret the value. The
-> dma-buf get_pci_tph callback itself is optional, but workloads that
-> depend on the endpoint's in-flight operation need it because fallback
-> does not produce the same result.
-> 
-> The dma-buf hook is intentionally generic and discoverable rather than
-> a private side channel. The exporter owns the completing address
-> space for the dma-buf and decides whether it can provide a meaningful
-> ST/PH tuple for that completer; the dma-buf core keeps the tuple opaque,
-> and importers merely request the namespace they support and place the
-> returned value on generated TLPs. Exporters that cannot derive a
-> meaningful tuple simply return -EOPNOTSUPP.
-> 
-> Patch 1 adds small PCI/TPH type helpers so drivers can query the enabled
-> TPH requester mode and the device's TPH Completer Supported field
-> without reaching into pci_dev internals (and so callers in
-> CONFIG_PCIE_TPH=n builds get a clean fallback). pcie_tph_completer_type()
-> reuses the reserved-encoding fold introduced by the separately-submitted
-> folding patch rather than duplicating the completer decode.
-> Patch 2 adds the optional dma_buf_ops::get_pci_tph callback plus the
-> dma_buf_get_pci_tph() importer wrapper so importers can fetch TPH
-> metadata from an exporter under dmabuf->resv.
-> Patch 3 implements get_pci_tph in vfio-pci and adds the new uAPI
-> (VFIO_DEVICE_FEATURE_DMA_BUF_TPH) for userspace to attach the metadata.
-> Patch 4 wires up the mlx5 RDMA driver as a consumer. It also enforces the
-> dma_buf_get_pci_tph() steering-tag lifetime: the tag is only valid for the
-> mapping it was queried against, and the mkey's TPH fields cannot be
-> reprogrammed in place. mlx5 therefore records the registration-time tuple
-> and re-queries after each dma-buf mapping is established under dmabuf->resv;
-> unchanged tuples continue with the existing mkey, while changed or missing
-> tuples fail the remap rather than continue with a stale hint. For vfio-pci
-> BAR dma-bufs this is expected to be a no-op because invalidation is
-> revoke/quiesce, not movement to a new backing placement, and the
-> userspace-provided tuple is not changed by the revoke/un-revoke path.
-> 
-> Build-tested with both CONFIG_PCIE_TPH=y and CONFIG_PCIE_TPH=n.
-> Functional validation on the target topology: PCIe analyzer captures
-> on the P2P TLPs confirm the ST emitted by mlx5 matches the value
-> configured through VFIO_DEVICE_FEATURE_DMA_BUF_TPH, and the end-to-end
-> P2P workload only produces results consistent with the endpoint's
-> ST-selected in-flight operation. For example, with userspace
-> configuring 8-bit ST=0xf0 and PH=2, an analyzer capture of a peer-to-
-> peer MWr64 shows "STP MWr64 TC=0 OHC=2 ..." followed by "OHC-B
-> ST=F0h PH=2 HV=1":
-> (TLP Captures)
-> 08000260 -> STP MWr64 TC=0 OHC=2 TS=0 Attr=0 L=8
-> F0000004 -> RID=4h:0h.0h EP- Tag=F0h
-> E0200000 -> AddrH=000020E0h
-> 00080006 -> AddrL=06000800h
-> 90F00000 -> OHC-B ST=F0h PH=2 HV=1 AMA=0 AV-
-> 
-> The dma-buf get_pci_tph interface has also been exercised by a second,
-> independent importer: a different vendor's NIC whose driver is not yet
-> upstream, locally taught to call dma_buf_get_pci_tph(). A PCIe analyzer
-> confirmed the ST it placed on outbound P2P TLPs matches the value
-> configured through VFIO_DEVICE_FEATURE_DMA_BUF_TPH, the same result as
-> with mlx5. Two unrelated importer drivers exercising the callback
-> end-to-end shows the interface is not tied to a single consumer. That
-> importer change is out-of-tree and not part of this series. For that
-> second importer, with userspace configuring 8-bit ST=0xe0 and PH=0,
-> an analyzer capture shows:
-> (TLP Captures)
-> 08200260 -> STP MWr64 TC=0 OHC=2 TS=1 Attr=0 L=8
-> 4E00004C -> RID=4Ch:0h.0h EP- Tag=4Eh
-> 00170000 -> AddrH=00001700h
-> 00200006 -> AddrL=06002000h
-> 10E00000 -> OHC-B ST=E0h PH=0 HV=1 AMA=0 AV-
-> 
-> Depends on (submitted separately):
->   net/mlx5: free mlx5_st_idx_data on final dealloc
->     https://lore.kernel.org/linux-rdma/20260612170406.3339093-1-zhipingz@meta.com
->   PCI/TPH: fold reserved completer encoding in get_rp_completer_type()
->     https://lore.kernel.org/linux-pci/20260715202409.3767494-1-zhipingz@meta.com
-> 
-> Changes since v11:
->   Patch 1 (PCI/TPH): add pcie_tph_completer_type() and
->   pcie_tph_enabled_req_type(); pcie_tph_completer_type() reuses the
->   reserved-encoding fold from the separately-submitted folding patch
->   rather than duplicating the completer decode.
-> 
->   Patch 2 (dma-buf): fix the kernel-doc to reference
->   &dma_buf_attach_ops.invalidate_mappings instead of the non-existent
->   move_notify callback (reported by Sashiko and Alex Williamson).
-> 
->   Patch 3 (vfio/pci): hold memory_lock while validating dma-buf ownership
->   and publishing TPH metadata, so cleanup cannot disassociate the dma-buf
->   from the VFIO device under the SET path. Also use WRITE_ONCE() for
->   revoked-state writers to pair with the lockless attach-path READ_ONCE().
-> 
->   Patch 4 (mlx5): enforce the steering-tag lifetime documented in patch 2
->   (addresses the lifecycle gap Sashiko and Alex noted on v11). mlx5 now
->   stores the registration-time TPH tuple and re-queries the exporter after
->   each dma-buf mapping is established under dmabuf->resv. If the tuple is
->   unchanged, the existing mkey continues to be used. If it changed or
->   disappeared, mlx5 unmaps the pages and returns -EFAULT because the
->   existing mkey cannot be updated in place (no UMR update mask for TPH
->   fields, and rebuilding the mkey would change the rkey/lkey). The exporter
->   query runs under dmabuf->resv, but the ST-index allocation is done
->   outside it so no GFP_KERNEL allocation is held under dmabuf->resv. For
->   vfio-pci BAR dma-bufs this validation is expected to be a no-op because
->   the tuple is stable across revoke/un-revoke.
-> 
-> Previous link:
-> v11: https://lore.kernel.org/linux-pci/20260702181025.2694961-1-zhipingz@meta.com/
-> v10: https://lore.kernel.org/linux-pci/20260630224328.3218796-1-zhipingz@meta.com/
-> v9: https://lore.kernel.org/dri-devel/20260622184211.2229399-1-zhipingz@meta.com/
-> v8: https://lore.kernel.org/dri-devel/20260615065912.2177918-1-zhipingz@meta.com/
-> v7: https://lore.kernel.org/dri-devel/20260611161546.4075580-1-zhipingz@meta.com/
-> v6: https://lore.kernel.org/dri-devel/20260608185646.4085127-1-zhipingz@meta.com/
-> v5: https://lore.kernel.org/dri-devel/20260526144401.1485788-1-zhipingz@meta.com/
-> v4: https://lore.kernel.org/linux-pci/20260519201401.1558410-1-zhipingz@meta.com/
-> v3: https://lore.kernel.org/linux-pci/20260512184755.4137227-1-zhipingz@meta.com/
-> v2: https://lore.kernel.org/linux-pci/20260430200704.352228-1-zhipingz@meta.com/
-> 
-> Zhiping Zhang (4):
->   PCI/TPH: Add requester/completer type helpers
->   dma-buf: add optional get_pci_tph() callback
->   vfio/pci: implement get_pci_tph and DMA_BUF_TPH feature
->   RDMA/mlx5: get tph for p2p access when registering dma-buf mr
-> 
->  drivers/dma-buf/dma-buf.c                     |  32 ++++
->  drivers/infiniband/hw/mlx5/main.c             |   1 +
->  drivers/infiniband/hw/mlx5/mlx5_ib.h          |  11 ++
->  drivers/infiniband/hw/mlx5/mr.c               | 151 +++++++++++++++++--
->  drivers/infiniband/hw/mlx5/odp.c              |   7 +
->  .../net/ethernet/mellanox/mlx5/core/lib/st.c  |  49 +++++-
->  drivers/pci/tph.c                             |  39 ++++++
->  drivers/vfio/pci/vfio_pci_core.c              |   3 +
->  drivers/vfio/pci/vfio_pci_dmabuf.c            | 117 ++++++++++++-
->  drivers/vfio/pci/vfio_pci_priv.h              |  13 ++
->  include/linux/dma-buf.h                       |  25 +++
->  include/linux/mlx5/driver.h                   |  15 ++
->  include/linux/pci-tph.h                       |   8 +
->  include/uapi/linux/vfio.h                     |  43 +++++
->  14 files changed, 496 insertions(+), 18 deletions(-)
-> 
-> --
-> 2.53.0-Meta
-> 
+> diff --git a/drivers/infiniband/sw/rxe/rxe_loc.h b/drivers/infiniband/sw/rxe/rxe_loc.h
+> index 64d636bf8..7c3cc48e8 100644
+> --- a/drivers/infiniband/sw/rxe/rxe_loc.h
+> +++ b/drivers/infiniband/sw/rxe/rxe_loc.h
+> @@ -92,6 +92,7 @@ void rxe_mw_cleanup(struct rxe_pool_elem *elem);
+>   /* rxe_net.c */
+>   struct sk_buff *rxe_init_packet(struct rxe_dev *rxe, struct rxe_av *av,
+>   				int paylen, struct rxe_pkt_info *pkt);
+> +void rxe_put_skb(struct sk_buff *skb);
+>   int rxe_prepare(struct rxe_av *av, struct rxe_pkt_info *pkt,
+>   		struct sk_buff *skb);
+>   int rxe_xmit_packet(struct rxe_qp *qp, struct rxe_pkt_info *pkt,
+> diff --git a/drivers/infiniband/sw/rxe/rxe_net.c b/drivers/infiniband/sw/rxe/rxe_net.c
+> index 3741b2c4b..86c9b19f6 100644
+> --- a/drivers/infiniband/sw/rxe/rxe_net.c
+> +++ b/drivers/infiniband/sw/rxe/rxe_net.c
+> @@ -429,6 +429,29 @@ int rxe_prepare(struct rxe_av *av, struct rxe_pkt_info *pkt,
+>   	return err;
+>   }
+>   
+> +/*
+> + * skb->dev may be rewritten on the TX path (VLAN/bond/tunnel, etc.).
+> + * The netdev we held in rxe_init_packet() is kept in destructor_arg so
+> + * that put always matches hold. skb->cb cannot be used: it is already
+> + * occupied by struct rxe_pkt_info and rewritten by IP control blocks.
+> + */
+> +static void rxe_skb_set_held_ndev(struct sk_buff *skb, struct net_device *ndev)
+> +{
+> +	dev_hold(ndev);
+> +	skb->dev = ndev;
+> +	skb_shinfo(skb)->destructor_arg = ndev;
+> +}
+> +
+> +static void rxe_skb_put_held_ndev(struct sk_buff *skb)
+> +{
+> +	struct net_device *ndev = skb_shinfo(skb)->destructor_arg;
+> +
+> +	if (ndev) {
+> +		skb_shinfo(skb)->destructor_arg = NULL;
+> +		dev_put(ndev);
+> +	}
+> +}
+> +
+>   static void rxe_skb_tx_dtor(struct sk_buff *skb)
+>   {
+>   	struct rxe_qp *qp = skb->sk->sk_user_data;
+> @@ -441,6 +464,18 @@ static void rxe_skb_tx_dtor(struct sk_buff *skb)
+>   
+>   	rxe_put(qp);
+>   	sock_put(skb->sk);
+> +	rxe_skb_put_held_ndev(skb);
+> +}
+> +
+> +/*
+> + * Free an skb that still holds a netdev reference from rxe_init_packet()
+> + * and does not yet have rxe_skb_tx_dtor() installed. Once the TX
+> + * destructor is set, callers must use kfree_skb() instead.
+> + */
+> +void rxe_put_skb(struct sk_buff *skb)
+> +{
+> +	rxe_skb_put_held_ndev(skb);
+> +	kfree_skb(skb);
+>   }
+>   
+>   static int rxe_send(struct sk_buff *skb, struct rxe_pkt_info *pkt)
+> @@ -529,7 +564,7 @@ int rxe_xmit_packet(struct rxe_qp *qp, struct rxe_pkt_info *pkt,
+>   	goto done;
+>   
+>   drop:
+> -	kfree_skb(skb);
+> +	rxe_put_skb(skb);
+>   	err = 0;
+>   done:
+>   	return err;
+> @@ -574,8 +609,7 @@ struct sk_buff *rxe_init_packet(struct rxe_dev *rxe, struct rxe_av *av,
+>   
+>   	skb_reserve(skb, hdr_len + LL_RESERVED_SPACE(ndev));
+>   
+> -	/* FIXME: hold reference to this netdev until life of this skb. */
+> -	skb->dev	= ndev;
+> +	rxe_skb_set_held_ndev(skb, ndev);
+>   	rcu_read_unlock();
+>   
+>   	if (av->network_type == RXE_NETWORK_TYPE_IPV4)
+> @@ -710,6 +744,28 @@ void rxe_set_port_state(struct rxe_dev *rxe)
+>   	dev_put(ndev);
+>   }
+>   
+> +/*
+> + * Move all QPs to the error state so pending send/recv work is drained and
+> + * in-flight TX skbs (which hold a netdev reference) can be released. Called
+> + * from the netdev notifier so unregister cannot stall on held skbs.
+> + */
+> +static void rxe_flush_qps(struct rxe_dev *rxe)
+> +{
+> +	struct rxe_pool_elem *elem;
+> +	struct rxe_qp *qp;
+> +	unsigned long index;
+> +
+> +	rcu_read_lock();
+> +	xa_for_each(&rxe->qp_pool.xa, index, elem) {
+> +		if (!elem || !kref_get_unless_zero(&elem->ref_cnt))
+> +			continue;
+> +		qp = elem->obj;
+> +		rxe_qp_error(qp);
+> +		rxe_put(qp);
+> +	}
+> +	rcu_read_unlock();
+> +}
+> +
+>   static int rxe_notify(struct notifier_block *not_blk,
+>   		      unsigned long event,
+>   		      void *arg)
+> @@ -721,7 +777,12 @@ static int rxe_notify(struct notifier_block *not_blk,
+>   		return NOTIFY_OK;
+>   
+>   	switch (event) {
+> +	case NETDEV_GOING_DOWN:
+> +		/* Start draining TX queues before the netdev disappears. */
+> +		rxe_flush_qps(rxe);
+> +		break;
+>   	case NETDEV_UNREGISTER:
+> +		rxe_flush_qps(rxe);
+>   		ib_unregister_device_queued(&rxe->ib_dev);
+>   		rxe_net_del(&rxe->ib_dev);
+>   		break;
+> @@ -735,7 +796,6 @@ static int rxe_notify(struct notifier_block *not_blk,
+>   			rxe_counter_inc(rxe, RXE_CNT_LINK_DOWNED);
+>   		break;
+>   	case NETDEV_REBOOT:
+> -	case NETDEV_GOING_DOWN:
+>   	case NETDEV_CHANGEADDR:
+>   	case NETDEV_CHANGENAME:
+>   	case NETDEV_FEAT_CHANGE:
+> diff --git a/drivers/infiniband/sw/rxe/rxe_req.c b/drivers/infiniband/sw/rxe/rxe_req.c
+> index 12d03f390..927ef68de 100644
+> --- a/drivers/infiniband/sw/rxe/rxe_req.c
+> +++ b/drivers/infiniband/sw/rxe/rxe_req.c
+> @@ -796,7 +796,7 @@ int rxe_requester(struct rxe_qp *qp)
+>   			wqe->status = IB_WC_LOC_PROT_ERR;
+>   		else
+>   			wqe->status = IB_WC_LOC_QP_OP_ERR;
+> -		kfree_skb(skb);
+> +		rxe_put_skb(skb);
+>   		if (ah)
+>   			rxe_put(ah);
+>   		goto err;
+> diff --git a/drivers/infiniband/sw/rxe/rxe_resp.c b/drivers/infiniband/sw/rxe/rxe_resp.c
+> index d8cbdfa70..ee3630e4b 100644
+> --- a/drivers/infiniband/sw/rxe/rxe_resp.c
+> +++ b/drivers/infiniband/sw/rxe/rxe_resp.c
+> @@ -866,7 +866,7 @@ static struct sk_buff *prepare_ack_packet(struct rxe_qp *qp,
+>   
+>   	err = rxe_prepare(&qp->pri_av, ack, skb);
+>   	if (err) {
+> -		kfree_skb(skb);
+> +		rxe_put_skb(skb);
+>   		return NULL;
+>   	}
+>   
+> @@ -994,7 +994,7 @@ static enum resp_states read_reply(struct rxe_qp *qp,
+>   	err = rxe_mr_copy(mr, res->read.va, payload_addr(&ack_pkt),
+>   			  payload, RXE_FROM_MR_OBJ);
+>   	if (err) {
+> -		kfree_skb(skb);
+> +		rxe_put_skb(skb);
+>   		state = RESPST_ERR_RKEY_VIOLATION;
+>   		goto err_out;
+>   	}
 
