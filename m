@@ -1,103 +1,72 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4DE303B9DA1;
-	Thu, 16 Jul 2026 08:42:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 088F03D2FE6;
+	Thu, 16 Jul 2026 08:42:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784191339; cv=none; b=cF5erCRCgboTkrk/6o/trCgAZm0S2CkiigIoLYK7tbZGzTE1hvVcogb3WgLS0SGgsnvnnh3HeT6TMA6SxAwsbJ/5AkvZxVcC3mwfdaX2NRnPd6mSFBaYwt7aoCkqNVXkx9KFypVK4DYKGUfmvM0m/2/nvgnRpdD0+rwEtQ1LHjw=
+	t=1784191374; cv=none; b=nYPOClfuS7KARbbHmV8r8uY+qL1bulusta4OPDXsNJGlUqfemj81f3dDSHZNGf3XcOI/QPnPE0VQ5ZL/rrQuC55zjj0xJrFSx5BmcgUgs8I5KpTfAQB/RF9u5ODmtSg7RcakvgkyFqRDtw3xE2frRLTNlQchuh0nVt3rQ8dp/vY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784191339; c=relaxed/simple;
-	bh=/WJ6v8OiP1dG88iZG6/FmNP2+uNq82s7SuBsLJmN47I=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=CCLTjaGuiglLWNJJqG6GPIbYOu4gv0ARAHQ/gTGa708/ONtgLUWk4zrP6VaeS8ajsgfr6fGW9EjmeEoES5/KRajmajyqbI0ijjWt8RfdXjj/C3uH3vm+Q7qZMRjTrzCDAlqgr87nKOjXVmWQjV8vmA1fSrCxvVwoCqmKnvXAlfg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=MUXF49ry; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784191374; c=relaxed/simple;
+	bh=mO1ugmJMOIgDvwuoGXBqJLesL2L2+cfgVEU6JNPjrdI=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
+	 MIME-Version:Content-Type; b=hFpUT4OA1TqqH2tWWsF2lCiqFSzwZ2Z2FZk2mn2nHDEvhB1Y1Mv1H5pMHl8tH8kc/b+5lrldd4oN3JAgskTWVgq6JuV9luD9+iNmK2VO0kksFQhfr54ZMV1F8C10rV22bpLz/a6iluOjd9bDhtAiRRKGzE3eu9KIkUKdBX2B/k4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=gp/cyVJb; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="MUXF49ry"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BC0901F000E9;
-	Thu, 16 Jul 2026 08:42:16 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="gp/cyVJb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2E23C1F000E9;
+	Thu, 16 Jul 2026 08:42:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1784191338;
-	bh=3ToGe4A0EsTBqwccr1e+Ux9VSyh42DWrvI/hBctj49w=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=MUXF49rybLPh7K6d88bginMe/FijhXGqMyyHVJ6vqwyBMJ9VYU3wmSKilhoGBSWxw
-	 ziNplZtyVe+mrfElDH9fIVQ0Nm28C5h2MAp/UI5jw4kPFEHID9umZM5QKsfP2ZwSBq
-	 1Tn9/hgzBTqa/tHiULuYLCdDanMf3/8/Ag8ScTpLYPiqy6zH5GWag5E/7w+NtjeZeU
-	 Oy80sdYn0x8EBkHVA/3vRxBXOpLga9UX1XvRY9cON/uhHJD+MDLaBgueG7QgQ144ja
-	 cV0b2L7AA1SQdpZVj536KCH6qX8aL6oAGZIqRAClg9Ynq/gI54ifUvvufcVUMwtn22
-	 cC8vtIVQGop4Q==
-Date: Thu, 16 Jul 2026 11:42:11 +0300
+	s=k20260515; t=1784191372;
+	bh=EMzqKP1/SRJEhxF2BAlQCy7KtBfz5+Lgc/jGjP09H4o=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Date;
+	b=gp/cyVJb6uafhQ5PogxpH9DaFweHMk1XVCgjhNbh3ebRMrK0GjJ6NaCKbz5Ssd7az
+	 h8QaFAGzlwtVP+52L1z07E9ywedlDw2MmKWu+1yLJa0mp2tUFliizJLQuFEIsINhmv
+	 xE885Goo1gS4TVOdEJplM2MhC/EexKPCBfUgVTFjqK+9/5YL7EvrWIpakkSuoG5pNH
+	 TV1Yj5+Vq9OKNTcLcFuSBMz9djRp44lkEc26g0JF1gdaR2Hy15JjttZ8MR4KUdP5xP
+	 1oJJMl3uGWVVeBYxVEtAc9bFadlAf+cBrEmBrAouokfDf8eR7IjDUQdUBwhhEcsSDK
+	 SK5AIcW0ICnGQ==
 From: Leon Romanovsky <leon@kernel.org>
-To: Chenguang Zhao <chenguang.zhao@linux.dev>
-Cc: jgg@ziepe.ca, andrew+netdev@lunn.ch, davem@davemloft.net,
-	edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
-	linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
-	tariqt@nvidia.com, mbloch@nvidia.com, dtatulea@nvidia.com,
-	shayd@nvidia.com, moshe@nvidia.com,
-	Chenguang Zhao <zhaochenguang@kylinos.cn>
-Subject: Re: [PATCH rdma-next v3] RDMA/mlx5: quiesce CQ polling before device
- shutdown on reboot
-Message-ID: <20260716084211.GC70906@unreal>
-References: <20260715082307.1593915-1-chenguang.zhao@linux.dev>
+To: Selvin Xavier <selvin.xavier@broadcom.com>, 
+ Kalesh AP <kalesh-anakkur.purayil@broadcom.com>, 
+ Jason Gunthorpe <jgg@ziepe.ca>, Jacob Moroni <jmoroni@google.com>, 
+ Leon Romanovsky <leon@kernel.org>
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <20260714-fix-destroy-no-udata-v2-1-734fdcf667d5@kernel.org>
+References: <20260714-fix-destroy-no-udata-v2-1-734fdcf667d5@kernel.org>
+Subject: Re: [PATCH rdma-next v2] RDMA/bnxt_re: Validate udata before
+ executing commands
+Message-Id: <178419136985.300669.8668153347545684841.b4-ty@kernel.org>
+Date: Thu, 16 Jul 2026 04:42:49 -0400
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260715082307.1593915-1-chenguang.zhao@linux.dev>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-Mailer: b4 0.15-dev-18f8f
 
-On Wed, Jul 15, 2026 at 04:23:07PM +0800, Chenguang Zhao wrote:
-> From: Chenguang Zhao <zhaochenguang@kylinos.cn>
-> 
-> On reboot -f with NFS over RDMA, mlx5 shutdown can tear the device
-> down while ib-comp-wq still polls live CQs, leading to UAF in
-> wr_cqe->done().
-> 
-> Mark the device shutting down before teardown, flush completion
-> workqueues so in-flight pollers observe the flag, skip SYS_ERROR
-> completion delivery, and make poll/arm CQ a no-op under the CQ lock
-> while shutting down.
-> 
-> Signed-off-by: Chenguang Zhao <zhaochenguang@kylinos.cn>
-> ---
-> changelog:
->  - Fix the race on MLX5_INTERFACE_STATE_SHUTTING_DOWN: set the
->    flag, then flush ib-comp / mlx5_ib event workqueues via an
->    mlx5_ib quiesce hook before fast_unload/teardown.
->  - Check shutting-down under cq->lock in mlx5_ib_poll_cq/arm_cq.
->  - Export ib_comp_wq and ib_comp_unbound_wq so modular mlx5_ib
->    can flush them.
-> 
-> v2:
->  https://lore.kernel.org/all/20260714075558.1420384-1-chenguang.zhao@linux.dev/
-> 
-> v1:
->  https://lore.kernel.org/all/20260702073422.279820-1-chenguang.zhao@linux.dev/
-> 
->  drivers/infiniband/core/device.c              |  2 ++
->  drivers/infiniband/hw/mlx5/cq.c               | 11 ++++++++++
->  drivers/infiniband/hw/mlx5/main.c             | 20 +++++++++++++++++++
->  .../net/ethernet/mellanox/mlx5/core/health.c  |  3 +++
->  .../net/ethernet/mellanox/mlx5/core/main.c    | 10 ++++++++++
->  .../mellanox/mlx5/core/sf/dev/driver.c        |  3 +++
->  include/linux/mlx5/driver.h                   | 11 ++++++++++
->  7 files changed, 60 insertions(+)
 
-<...>
+On Tue, 14 Jul 2026 13:50:00 +0300, Leon Romanovsky wrote:
+> The destroy callbacks currently zero the udata output after tearing down
+> driver resources. If the userspace access fails, uverbs preserves the
+> uobject and allows the destroy callback to run again, even though the
+> driver resource has already been freed.
+> 
+> Call ib_no_udata_io() before teardown so udata failures are detected
+> while the resource is still intact, then return success after teardown
+> completes.
+> 
+> [...]
 
-> +static void mlx5_ib_shutdown_quiesce(void)
-> +{
-> +	flush_workqueue(ib_comp_wq);
-> +	flush_workqueue(ib_comp_unbound_wq);
-> +	flush_workqueue(mlx5_ib_event_wq);
-> +}
+Applied, thanks!
 
-These workqueues are shared by all IB drivers and the core. Drivers
-must not flush or destroy them.
+[1/1] RDMA/bnxt_re: Validate udata before executing commands
+      https://git.kernel.org/rdma/rdma/c/36a29408795fe2
 
-Why this is not FW issue?
+Best regards,
+-- 
+Leon Romanovsky <leon@kernel.org>
 
-Thanks
