@@ -1,324 +1,269 @@
-Received: from BN8PR05CU002.outbound.protection.outlook.com (mail-eastus2azon11011000.outbound.protection.outlook.com [52.101.57.0])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-vs1-f102.google.com (mail-vs1-f102.google.com [209.85.217.102])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C0BC83F4DD4;
-	Thu, 16 Jul 2026 08:49:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.57.0
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784191790; cv=fail; b=gVsMVBLXLU6xb5D8B+ma87hJ74Mdgs6dgMECJvzYjgc+MrCLtV8zgmPUCnodrYS3DMUSgQsVBSmijx3NG2PunsLHQGxXshd05M++pGmp9aGLbalIeWkbRWyfwaMR/G3w3CTFdZDLagud+faRXPfj5Vlv3TnqBoV8fsjfwttgpzk=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784191790; c=relaxed/simple;
-	bh=RaDIcGiKSn2n2iFkLULtWlPwZwkorx/MQjGmFbzzrbQ=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=H+kmXV+OnXy5E3X/sDgsEVS/J1aotShI0GRJlmrsFPko6A7C+Rvrb9FzBb1LjFajYGtFi+aoMHiJ7xGWLwZFUZSOZ0dWmX6Fi+Xj+0x7zZuTX9V0XgfOm5MejdZ3m26vjfR3IHq+rfDnezoOUMrZp6fp9qq8JMsK/XZSeVJxjMU=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=X+/YL77L; arc=fail smtp.client-ip=52.101.57.0
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C3D13B0AF5
+	for <linux-rdma@vger.kernel.org>; Thu, 16 Jul 2026 08:52:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.217.102
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1784191972; cv=none; b=XGfx7MNA2H0qw6MKsfUacUz8FcXXeurOBMrteNxoCi9f8Mk26k3+WH6xTGAqluh2DUuup/1Fr9dEOseQ93UugpWT0Xv7KEvUXQeXmED/PHAE6MDXyR8/EMlqnAjOYF0jX72W/2DGQfSdVhXt0IIXrlMvAaoYbpJA9Gd1ith7444=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1784191972; c=relaxed/simple;
+	bh=YBfSQrsHanj55qP/LI0ee8uE94CoE4yYz4PoQbCcrMA=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=LuWussF9jaP5kuO7SBgW0AEJPos852qc1DwjkK6nYUX2kovhVzvcMlEjFBpnRB312C3/cGuYa2Msm2MFN9iVldgfkmZWoZjo2KVb+oux3tTYwnAXSmGXYO1TZZOsXI8EfTZ79aPSrGG7jHs28mB9I0U2rk0lmdb9c4xDzdrYWBA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com; spf=fail smtp.mailfrom=broadcom.com; dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b=NCN3noCQ; arc=none smtp.client-ip=209.85.217.102
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=broadcom.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="X+/YL77L"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=hpPR6vGGp5cnNy/XdsCouAZ5myqmg6BfrJzCBKthv3tNSbHlsCLbC2XyRZZUa8a4q1pFT3hDY2WGYScWPukMjuhiCTxv9BDjYDOfORaCnImzWXDC5SHcAJArdBy8JqQYe6wkPmf9JRFDzAXT1lMvhtZdI9Q66mO3PSJZbjo/Zqc7sTao8ZZhf2D3zZQ7dlBLs6wzpEXsmgdpNbKpoN9X1EvyAm0QuNZpRkerujcVsK27MuW0XqZdw0Tvly+xKbShpC7IUzsVWXu3xwQ4cItq6itwBBnMMXYqGaVAo+NazN6dEyr0K4aeL1gJfbyxYQzJDINkquDSDT9NQqM2RiEwyA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=OD1rZ1o16Rdsk0xsGncmdhNFcvvAzepUIG+zy3M18Jc=;
- b=LU3RoDOnVeL00+/7onDxJJWjCFjQAZClngy4c44FZnz1Wo/0rAPB7dwNNJgipJczNedNFOBgtJ5S/oqnK6iRiR5YaqSZAd6FBiT7RRYP+313z/QOigQazwfpT9ggy9beooxaFctJ74VamZ5corneEz+h39s2xk0kCEoF6DqvBOnMfQgwsPn5WKY5PM2MMWNi0AyRi34qw7tkt8JZ1a03+rVbhZTDqTbI/Zf/MZjuA8TJqhA59xp1WKHRKV8B4Y2nn63tmL2mlXRe4eJfCmj0+mTzJY7jxIY3IDG4C1LKFpjG9ATSi3VEyQH8gMp5D2E9vlfsSLuolp2Mr5e8A3QWpg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.118.232) smtp.rcpttodomain=resnulli.us smtp.mailfrom=nvidia.com;
- dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
- dkim=none (message not signed); arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=OD1rZ1o16Rdsk0xsGncmdhNFcvvAzepUIG+zy3M18Jc=;
- b=X+/YL77LkrZYwDuXPP/unbB96SPOaUd3Id95jrPtJIQ8hPlDa0/AivZKyGM50GSalI2nBK0sQA0Fqaj4OaJ9z4+MznmOlfIpgtw0afTjAnEdNh8fZJoHjGW6c4M2PGzxp9/OAFS6obmKQpTf7oqLysumgAAWKh0SKuFOHfVkt9jnSSnFFPFD/dDRMebuBVHSI0+GjQbBU9zQuuDqu9xbgRRpETB0fHyy/g6enInzDTneBse6sk6/cajHYbfX7yPOPkBMs2u6vDQ2ZwJPtpluxwKhYUuSCTdePXDuC7CXYhSW8Fy3Z182v34pqzQtJWGjtQ+RqcsOFG26w2PJuPBExg==
-Received: from SJ2P221CA0014.NAMP221.PROD.OUTLOOK.COM (2603:10b6:a03:5db::9)
- by PH0PR12MB999114.namprd12.prod.outlook.com (2603:10b6:510:390::9) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.181.16; Thu, 16 Jul
- 2026 08:49:33 +0000
-Received: from MWH0EPF000A6733.namprd04.prod.outlook.com
- (2603:10b6:a03:5db:cafe::5d) by SJ2P221CA0014.outlook.office365.com
- (2603:10b6:a03:5db::9) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.223.12 via Frontend Transport; Thu,
- 16 Jul 2026 08:49:33 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.118.232)
- smtp.mailfrom=nvidia.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=nvidia.com;
-Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.118.232 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.118.232; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.118.232) by
- MWH0EPF000A6733.mail.protection.outlook.com (10.167.249.25) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.245.5 via Frontend Transport; Thu, 16 Jul 2026 08:49:33 +0000
-Received: from drhqmail202.nvidia.com (10.126.190.181) by mail.nvidia.com
- (10.127.129.5) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.43; Thu, 16 Jul
- 2026 01:49:17 -0700
-Received: from drhqmail202.nvidia.com (10.126.190.181) by
- drhqmail202.nvidia.com (10.126.190.181) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.20; Thu, 16 Jul 2026 01:49:16 -0700
-Received: from vdi.nvidia.com (10.127.8.10) by mail.nvidia.com
- (10.126.190.181) with Microsoft SMTP Server id 15.2.2562.20 via Frontend
- Transport; Thu, 16 Jul 2026 01:49:13 -0700
-From: Mark Bloch <mbloch@nvidia.com>
-To: Jiri Pirko <jiri@resnulli.us>, Eric Dumazet <edumazet@google.com>, "Jakub
- Kicinski" <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, Simon Horman
-	<horms@kernel.org>
-CC: Saeed Mahameed <saeedm@nvidia.com>, Leon Romanovsky <leon@kernel.org>,
-	Tariq Toukan <tariqt@nvidia.com>, Andrew Lunn <andrew+netdev@lunn.ch>,
-	Jonathan Corbet <corbet@lwn.net>, Shuah Khan <skhan@linuxfoundation.org>,
-	<netdev@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
-	<linux-doc@vger.kernel.org>, Mark Bloch <mbloch@nvidia.com>, Jiri Pirko
-	<jiri@nvidia.com>
-Subject: [PATCH net-next V7 4/4] devlink: Apply eswitch mode boot defaults
-Date: Thu, 16 Jul 2026 11:48:52 +0300
-Message-ID: <20260716084852.549909-5-mbloch@nvidia.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20260716084852.549909-1-mbloch@nvidia.com>
-References: <20260716084852.549909-1-mbloch@nvidia.com>
+	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b="NCN3noCQ"
+Received: by mail-vs1-f102.google.com with SMTP id ada2fe7eead31-726840fb461so1398575137.0
+        for <linux-rdma@vger.kernel.org>; Thu, 16 Jul 2026 01:52:49 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1784191968; x=1784796768;
+        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
+         :references:mime-version:dkim-signature:x-gm-gg:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=jc8mw3EqnoWydlxKptJbJcRU3c/fKvlPkUzV7fFetTE=;
+        b=em1L0lnfiaTaUyjTbgtF4Wmkk9guhTCXqBqFhVdcKedFtceD9zEkndnoZMxiXo5Law
+         ITGOtvmJbIuar4qe2CyVguu4e8ITAmUTvtDpDQQoXkQ7qHOfNIdpAvGpplhahEXD25d8
+         oUjAqQLfoB+9pjO3BuwrA8OUZH0fnEjczmjFBcMKzSdPh5KLeNt96s+fmfleSq+SMIia
+         OSib/r4z95lGw50NPbDK18Hnym9ST3j9kwPmBpY0eRIglzvuDcsBbSDbLwVCZlBqPmNk
+         8wex1dt2FJXjfaixNWNtVCA0NINxkjSlFkldk9ST74v+Zi0fPOGWb5GZRoVhfKXoyeg1
+         nSpg==
+X-Forwarded-Encrypted: i=1; AHgh+Rogh+vPz2vSocsGbtgzKLRNXyfu2ljbbkB1tr7W5GPL5lLouhKiOHjoMKeEBk20GP6T0qcdkCoG1j6x@vger.kernel.org
+X-Gm-Message-State: AOJu0YylrErwag9ZEUo7q6L1u6Wi34oOVxX4iLGKwl9MA4P16w4/yd6L
+	M/qESwFTXF00QTqDcHdt5ep333YTpl+O08WR3PRosomGU9Z7ExfHMmuO7LY77TjvrNVx9k+ETCX
+	bZPATPX1H90hzZrwZjrNZEoa/1EQt5qGQjjjHK2Ht+ay44YnQ4KFnwtIFqh/eut1b0CsV7uel0V
+	l2cQvKWKTagRdFUnQckg103OCkI6YcTsmTo/3tu3zgT1t9DWWK5pX6h2gBxbXGLX9xWSmUsPu78
+	mnz15PRHY9sVJlfV9Q8
+X-Gm-Gg: AfdE7cmBy1P+zhHvO5T8d/KYtLrtyTG6+BqsM6VqTHvQuyUtarYNCgh3nItSvN1tWoj
+	Ny4Yz9fXafkossbt2k1nQym66fz493ydu3GTBdYQGfI6tJt+Hd6PEHD/0KiaUNQ3ssj1uzGUcks
+	NcxpWtqO0KyOmjjLXRsN9Uv2A6jaks2gI2TCVWPu7fr5vvvAmuCwIPi+6dLA6QB6C+YaMamnqNM
+	yysaf72USLw2QL1HgiMLjYvaSlZJwydKqMahZg8oRIdOKLsdtpJdM2em7ClSL16EARN+unJfomq
+	V8m1WJefAbFE6PF3uH+cbAes0fbQNSzT4YY0vcPpKYc5MF91Hc+bxWofgtrZmhSp2P6o0J3+Cee
+	pC6S/lchL942obqF/G9FAE//o3KwgJlqU/qYqU+HcIGykdd91Jc6fjG7lYa5lDatUN0qIiIcpUQ
+	a8Od2/NYFj27kdkElFOuwneEo83MGF8VJUuftP7ic=
+X-Received: by 2002:a05:6102:5691:b0:736:7e78:cf7f with SMTP id ada2fe7eead31-7457ea123aamr5613396137.25.1784191967933;
+        Thu, 16 Jul 2026 01:52:47 -0700 (PDT)
+Received: from smtp-us-east1-p01-i01-si01.dlp.protect.broadcom.com (address-144-49-247-117.dlp.protect.broadcom.com. [144.49.247.117])
+        by smtp-relay.gmail.com with ESMTPS id ada2fe7eead31-74507010231sm1594165137.8.2026.07.16.01.52.47
+        for <linux-rdma@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Thu, 16 Jul 2026 01:52:47 -0700 (PDT)
+X-Relaying-Domain: broadcom.com
+X-CFilter-Loop: Reflected
+Received: by mail-oo1-f70.google.com with SMTP id 006d021491bc7-6a3c96e87c9so815239eaf.0
+        for <linux-rdma@vger.kernel.org>; Thu, 16 Jul 2026 01:52:47 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=broadcom.com; s=google; t=1784191967; x=1784796767; darn=vger.kernel.org;
+        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
+         :references:mime-version:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=jc8mw3EqnoWydlxKptJbJcRU3c/fKvlPkUzV7fFetTE=;
+        b=NCN3noCQn4iEw0M7D03WHJ//soJpQXmnI2jDRwKYvKvgggcHQ6daIhHtwoZL5FblBL
+         S3xq3WZbcWQjM2ziIpnQRF3eX2DxNjN7WOn4ickoBkX1MJBAaIxs6KxJBJnp/PTbu/bh
+         4AtHBEn7OKeBHAajveSd7rJ3h+Mxtu07hg/TU=
+X-Forwarded-Encrypted: i=1; AHgh+RphFAa2BkEYlqng9eZZhYozdhUNTBEEB/7R+FUML66GelV20lbye93Cjx33RMB2Ms9PPigWqpaIiny4@vger.kernel.org
+X-Received: by 2002:a05:6820:4dc7:b0:6a3:1e40:6332 with SMTP id 006d021491bc7-6a3c620b79fmr7373278eaf.59.1784191966892;
+        Thu, 16 Jul 2026 01:52:46 -0700 (PDT)
+X-Received: by 2002:a05:6820:4dc7:b0:6a3:1e40:6332 with SMTP id
+ 006d021491bc7-6a3c620b79fmr7373251eaf.59.1784191966419; Thu, 16 Jul 2026
+ 01:52:46 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-NV-OnPremToCloud: ExternallySecured
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: MWH0EPF000A6733:EE_|PH0PR12MB999114:EE_
-X-MS-Office365-Filtering-Correlation-Id: 562d444e-e5d2-4fe7-96bd-08dee317286a
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|1800799024|36860700016|376014|7416014|82310400026|23010399003|22082099003|18002099003|11063799006|56012099006|10067099003;
-X-Microsoft-Antispam-Message-Info:
-	QmN2sr4cv75LHRj28EBCm8EbVE+T3UTY0QD5TzbRrty8oJ6c/2V1pvzf+Mtx9kL+vY4UGCrbmaSuPJopdArvaF4+9xB9LIlSuZa4/BguXQ8isegdUlbjrQ9s/9VjDSCNoFkDsoshw5IuS8GrDvVKbYAV9HnyXcF+oKHxcL1gMSbs2GdFfy8UEmPhlCU+eBkGKTJo68wd5AOgVbiCozvamnHQQ8Q3Vc1pqfMp+oazf+E8T9eIXBoYBnEJaNM+CSiJR5GNiI/EQlvL+WxizPjZtElxFGHhWu8zK0nBqpLo/Ao5ndv8wGUGPbP/nhR5BtwolJg1yi/T3BgdwP6Gj+EyLBQpogp4x9RXFv2zMGXbh8YH2o/FWB1qYRjLib8d1qIXAj8eFitJx+A/w1tT5mxGeVZ+QDA1qcj/Xh1n2Qp01qcUmL4+IZ6zdqqvd/0sdTipE0VUTw3T7xnHnZsD/Vus76P8DDpgSQ11Z5+LKOXAildzd2WEmSqB5SUx1vu+H9IUBAHxWEzCnvcjlrHDqcizAjEF6RAcH+qACoVwM9JKK43zKQwi11NtJ8c5zp8e95YIbNYCVly3j/KnWcCGTRLJOWN++tMiPYSea1myOU/A1Ppum/JZFFiKkCG3T5jATCHH4mC4jshuA7nS4pj4pCayfgKqGVC8h3lqAjwN+4/X4CxAoC9EKuffbHC9LXPY7W7IReAQ3U1LcTZIFIhjpCiOCg==
-X-Forefront-Antispam-Report:
-	CIP:216.228.118.232;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc7edge1.nvidia.com;CAT:NONE;SFS:(13230040)(1800799024)(36860700016)(376014)(7416014)(82310400026)(23010399003)(22082099003)(18002099003)(11063799006)(56012099006)(10067099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	eXWLVs8CbRBll55OW1K5+CvpdhDZzeSqAo0zLzNDel/PkkWuI80CKKQBTqkq50TMM8jo3MyAHQwWUl9TAOKtsznFrfsvxoJNrerVzPBO2acToaZUYkOLjNHDWcMZ1UCwcz5FIbeDfXPUQmUShaA3r5XkPZoJNY35bnH5J/z3QT7uC7nNXhZ6Vj8c2J8tYmF1q9FdDWqNOEUnJU7eV6oiG6s5QFBqZdtFr3QIAmfZuS7fSJXK1w7KMiaTtdDkaFipIuZ03A6RWu1heSM1kC2W+I6qdoGAByTY/gIbTutv4saBpU/WAHKxtGhI64UmdWVNrq+u5UYA3IW5QEmVqEl6c59zCXEMqKrSo1KlJjrLTqxHESltzJC5XQq9G6KcDD6T8KvtYzkO218d8M3/prFCCxfGeH7Xb+UyvtXrijUXUOCeCXPMCE8cjA+uUZ5rnvnJ
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 16 Jul 2026 08:49:33.3950
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 562d444e-e5d2-4fe7-96bd-08dee317286a
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.118.232];Helo=[mail.nvidia.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	MWH0EPF000A6733.namprd04.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH0PR12MB999114
+References: <20260713135830.1934471-1-selvin.xavier@broadcom.com>
+ <20260713135830.1934471-2-selvin.xavier@broadcom.com> <20260714121944.GC19233@unreal>
+In-Reply-To: <20260714121944.GC19233@unreal>
+From: Selvin Xavier <selvin.xavier@broadcom.com>
+Date: Thu, 16 Jul 2026 14:22:34 +0530
+X-Gm-Features: AUfX_mz15UVBYvxJfAJbhXYoac0wehCLVO_Ys-NAvkKZTp0sKgDUy8ebAVYdrtY
+Message-ID: <CA+sbYW2N_uGeHuqdh1Ca+cNED1huqeVbf3QNTx1dQpUv8Zi7uA@mail.gmail.com>
+Subject: Re: [PATCH for-next v3 1/4] RDMA/bnxt_re: Replace per-device hash
+ tables with per-context XArrays
+To: Leon Romanovsky <leon@kernel.org>
+Cc: jgg@ziepe.ca, linux-rdma@vger.kernel.org, andrew.gospodarek@broadcom.com, 
+	kalesh-anakkur.purayil@broadcom.com, sriharsha.basavapatna@broadcom.com, 
+	alhouseenyousef@gmail.com
+X-DetectorID-Processed: b00c1d49-9d2e-4205-b15f-d015386d3d5e
+Content-Type: multipart/signed; protocol="application/pkcs7-signature"; micalg=sha-256;
+	boundary="0000000000006be8680656b69058"
 
-Apply parsed devlink_eswitch_mode= defaults after devlink registration
-and after successful reload.
+--0000000000006be8680656b69058
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Mark the default as pending when a devlink instance is allocated. Before
-devl_unlock() releases the instance lock, apply a pending default when
-the instance is registered. Since the default is applied while the lock
-is still held, userspace cannot race with it.
+On Tue, Jul 14, 2026 at 5:49=E2=80=AFPM Leon Romanovsky <leon@kernel.org> w=
+rote:
+>
+> On Mon, Jul 13, 2026 at 06:58:27AM -0700, Selvin Xavier wrote:
+> > The CQ and SRQ hash tables (cq_hash, srq_hash) on struct bnxt_re_dev
+> > were used exclusively to look up a toggle-page pointer from a
+> > user-space-supplied hardware queue ID in the GET_TOGGLE_MEM
+> > ioctl handler. This approach has couple of problems. First,
+> > because the tables are per-device, any user can look up another
+> > user's CQ or SRQ by guessing the hardware queue ID. Second,
+> > concurrent add and remove operations on the hash table are not
+> > protected by any lock, leaving a race window.
+> >
+> > The correct fix is to retrieve the CQ and SRQ objects via the uverbs
+> > object handle, which gives built-in ownership verification and referenc=
+e
+> > pinning for the duration of the ioctl. That is added in the next patch =
+of
+> > this series.
+> >
+> > To maintain backward compatibility with older rdma-core versions that
+> > do not send a uverbs object handle, the driver must continue to support
+> > the existing TYPE + RES_ID lookup path. This patch replaces the per-dev=
+ice
+> > hash tables with per-ucontext XArrays (cq_xa and srq_xa on struct
+> > bnxt_re_ucontext), which narrows the lookup scope to the calling contex=
+t,
+> > eliminating the cross-user visibility. Also adds Xarray locking mechani=
+sm
+> > for synchronization.
+> >
+> > The GET_TOGGLE_MEM ioctl handler is updated to call xa_load()
+> > in place of the now-removed bnxt_re_search_for_cq()/
+> > bnxt_re_search_for_srq() helpers. No ABI changes are required.
+> >
+> > Signed-off-by: Selvin Xavier <selvin.xavier@broadcom.com>
+> > ---
+> >  drivers/infiniband/hw/bnxt_re/bnxt_re.h  |  5 --
+> >  drivers/infiniband/hw/bnxt_re/ib_verbs.c | 76 ++++++++++++++++++------
+> >  drivers/infiniband/hw/bnxt_re/ib_verbs.h |  6 +-
+> >  drivers/infiniband/hw/bnxt_re/main.c     |  4 --
+> >  drivers/infiniband/hw/bnxt_re/uapi.c     | 75 ++++++++---------------
+> >  5 files changed, 87 insertions(+), 79 deletions(-)
+>
+> <...>
+>
+> > +             if (uctx) {
+> > +                     xa_lock(&uctx->srq_xa);
+> > +                     __xa_erase(&uctx->srq_xa, srq->qplib_srq.id);
+> > +                     xa_unlock(&uctx->srq_xa);
+>
+> Something very minor, there is no need in this lock->__erase->unlock
+> pattern, use xa_erase() directly as it will perform locking internally.
+>
+> > +                     free_page((unsigned long)srq->uctx_srq_page);
+>
+> It is worth to get rid of get_zeroed_page/free_page too.
+> https://lore.kernel.org/linux-rdma/20260713-b4-rdma-v2-0-65d2a1a5180c@ker=
+nel.org/T/#t
+Leon,
+Do you want me to take care of this in the next version of this series
+or should i wait till you post the series that makes this change
+across all drivers in rdma tree?
 
-Clear the pending state before calling into the driver so the boot
-default remains a one-shot operation even if the mode change fails.
+>
+> Thanks
 
-For successful reloads that performed DRIVER_REINIT, devlink_reload()
-already holds the devlink instance lock and the driver has completed
-reload_up(). Clear the pending state and apply the default directly from
-the reload path.
+--0000000000006be8680656b69058
+Content-Type: application/pkcs7-signature; name="smime.p7s"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="smime.p7s"
+Content-Description: S/MIME Cryptographic Signature
 
-Treat an explicit userspace eswitch mode request as consuming the pending
-default, and clear it when unregistering the devlink instance.
-
-Reviewed-by: Jiri Pirko <jiri@nvidia.com>
-Signed-off-by: Mark Bloch <mbloch@nvidia.com>
----
- net/devlink/core.c          |  3 ++
- net/devlink/default.c       | 70 +++++++++++++++++++++++++++++++++++--
- net/devlink/dev.c           |  6 ++++
- net/devlink/devl_internal.h |  5 +++
- 4 files changed, 82 insertions(+), 2 deletions(-)
-
-diff --git a/net/devlink/core.c b/net/devlink/core.c
-index d791a8e4317d..02e6d3ef32f8 100644
---- a/net/devlink/core.c
-+++ b/net/devlink/core.c
-@@ -317,6 +317,7 @@ EXPORT_SYMBOL_GPL(devl_trylock);
- 
- void devl_unlock(struct devlink *devlink)
- {
-+	devlink_default_eswitch_mode_apply_pending(devlink);
- 	mutex_unlock(&devlink->lock);
- }
- EXPORT_SYMBOL_GPL(devl_unlock);
-@@ -429,6 +430,7 @@ void devl_unregister(struct devlink *devlink)
- 	ASSERT_DEVLINK_REGISTERED(devlink);
- 	devl_assert_locked(devlink);
- 
-+	devlink_default_eswitch_mode_apply_pending_clear(devlink);
- 	devlink_notify_unregister(devlink);
- 	xa_clear_mark(&devlinks, devlink->index, DEVLINK_REGISTERED);
- 	devlink_rel_put(devlink);
-@@ -490,6 +492,7 @@ struct devlink *__devlink_alloc(const struct devlink_ops *ops, size_t priv_size,
- 	INIT_LIST_HEAD(&devlink->trap_group_list);
- 	INIT_LIST_HEAD(&devlink->trap_policer_list);
- 	INIT_RCU_WORK(&devlink->rwork, devlink_release);
-+	devlink_default_eswitch_mode_init(devlink);
- 	lockdep_register_key(&devlink->lock_key);
- 	mutex_init(&devlink->lock);
- 	lockdep_set_class(&devlink->lock, &devlink->lock_key);
-diff --git a/net/devlink/default.c b/net/devlink/default.c
-index 9b15b7b23e00..b80e3d0399e1 100644
---- a/net/devlink/default.c
-+++ b/net/devlink/default.c
-@@ -10,6 +10,7 @@
- 
- static char *devlink_default_esw_mode_param;
- static bool devlink_default_esw_mode_match_all;
-+static bool devlink_default_esw_mode_enabled;
- static enum devlink_eswitch_mode devlink_default_esw_mode;
- static LIST_HEAD(devlink_default_esw_mode_nodes);
- 
-@@ -154,6 +155,7 @@ static void __init devlink_default_eswitch_mode_nodes_clear(void)
- 	}
- 
- 	devlink_default_esw_mode_match_all = false;
-+	devlink_default_esw_mode_enabled = false;
- }
- 
- static int __init devlink_default_eswitch_mode_parse(char *str)
-@@ -180,14 +182,78 @@ static int __init devlink_default_eswitch_mode_parse(char *str)
- 		return err;
- 
- 	err = devlink_default_eswitch_mode_handles_parse(handles);
--	if (err)
-+	if (err) {
- 		devlink_default_eswitch_mode_nodes_clear();
--	else
-+	} else {
- 		devlink_default_esw_mode = esw_mode;
-+		devlink_default_esw_mode_enabled = true;
-+	}
- 
- 	return err;
- }
- 
-+static bool devlink_default_eswitch_mode_match(struct devlink *devlink)
-+{
-+	const char *bus_name = devlink_bus_name(devlink);
-+	const char *dev_name = devlink_dev_name(devlink);
-+	struct devlink_default_esw_mode_node *node;
-+
-+	if (devlink_default_esw_mode_match_all)
-+		return true;
-+
-+	node = devlink_default_eswitch_mode_node_find(bus_name, dev_name);
-+	return !!node;
-+}
-+
-+void devlink_default_eswitch_mode_apply_locked(struct devlink *devlink)
-+{
-+	const struct devlink_ops *ops = devlink->ops;
-+	int err;
-+
-+	devl_assert_locked(devlink);
-+
-+	if (!devlink_default_eswitch_mode_match(devlink))
-+		return;
-+
-+	if (!ops->eswitch_mode_set) {
-+		if (!devlink_default_esw_mode_match_all)
-+			devl_warn(devlink,
-+				  "devlink_eswitch_mode= selected this device but eswitch mode setting is not supported\n");
-+		return;
-+	}
-+
-+	err = devlink_eswitch_mode_set(devlink, devlink_default_esw_mode, NULL);
-+	if (err)
-+		devl_warn(devlink,
-+			  "Couldn't apply default eswitch mode, err %d\n",
-+			  err);
-+}
-+
-+void devlink_default_eswitch_mode_apply_pending(struct devlink *devlink)
-+{
-+	devl_assert_locked(devlink);
-+
-+	if (!devlink->default_esw_mode_apply_pending ||
-+	    !__devl_is_registered(devlink))
-+		return;
-+
-+	devlink->default_esw_mode_apply_pending = false;
-+	devlink_default_eswitch_mode_apply_locked(devlink);
-+}
-+
-+void devlink_default_eswitch_mode_init(struct devlink *devlink)
-+{
-+	devlink->default_esw_mode_apply_pending =
-+		devlink_default_esw_mode_enabled;
-+}
-+
-+void devlink_default_eswitch_mode_apply_pending_clear(struct devlink *devlink)
-+{
-+	devl_assert_locked(devlink);
-+
-+	devlink->default_esw_mode_apply_pending = false;
-+}
-+
- static int __init devlink_default_eswitch_mode_setup(char *str)
- {
- 	devlink_default_esw_mode_param = str;
-diff --git a/net/devlink/dev.c b/net/devlink/dev.c
-index 119ef105d0a7..6a8d4e1100c2 100644
---- a/net/devlink/dev.c
-+++ b/net/devlink/dev.c
-@@ -478,6 +478,11 @@ int devlink_reload(struct devlink *devlink, struct net *dest_net,
- 		return err;
- 
- 	WARN_ON(!(*actions_performed & BIT(action)));
-+	if (*actions_performed & BIT(DEVLINK_RELOAD_ACTION_DRIVER_REINIT)) {
-+		devlink_default_eswitch_mode_apply_pending_clear(devlink);
-+		devlink_default_eswitch_mode_apply_locked(devlink);
-+	}
-+
- 	/* Catch driver on updating the remote action within devlink reload */
- 	WARN_ON(memcmp(remote_reload_stats, devlink->stats.remote_reload_stats,
- 		       sizeof(remote_reload_stats)));
-@@ -731,6 +736,7 @@ int devlink_nl_eswitch_set_doit(struct sk_buff *skb, struct genl_info *info)
- 	u16 mode;
- 
- 	if (info->attrs[DEVLINK_ATTR_ESWITCH_MODE]) {
-+		devlink_default_eswitch_mode_apply_pending_clear(devlink);
- 		mode = nla_get_u16(info->attrs[DEVLINK_ATTR_ESWITCH_MODE]);
- 		err = devlink_eswitch_mode_set(devlink, mode, info->extack);
- 		if (err)
-diff --git a/net/devlink/devl_internal.h b/net/devlink/devl_internal.h
-index 8fde867f2c14..8270f91c9e84 100644
---- a/net/devlink/devl_internal.h
-+++ b/net/devlink/devl_internal.h
-@@ -58,6 +58,7 @@ struct devlink {
- 	struct mutex lock;
- 	struct lock_class_key lock_key;
- 	u8 reload_failed:1;
-+	u8 default_esw_mode_apply_pending:1;
- 	refcount_t refcount;
- 	struct rcu_work rwork;
- 	struct devlink_rel *rel;
-@@ -73,6 +74,10 @@ struct devlink *__devlink_alloc(const struct devlink_ops *ops, size_t priv_size,
- 				const struct device_driver *dev_driver);
- int devlink_default_eswitch_mode_cmdline_init(void);
- void devlink_default_eswitch_mode_cleanup(void);
-+void devlink_default_eswitch_mode_init(struct devlink *devlink);
-+void devlink_default_eswitch_mode_apply_locked(struct devlink *devlink);
-+void devlink_default_eswitch_mode_apply_pending(struct devlink *devlink);
-+void devlink_default_eswitch_mode_apply_pending_clear(struct devlink *devlink);
- 
- #define devl_warn(devlink, format, args...)				\
- 	do {								\
--- 
-2.43.0
-
+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
+zJH6Ivyz2skA36zh/px/UmF2ORX4Y0CY6GtU8/vxuN2j4rd2medlyifwALUm+KI3SsD782IwKLCf
+8bNhYGiw4YxsbyX7dV7O4SNQc5U9ktrSKH3D4SuTnK/xdjca5PiNI2NTcBVmP7+u2bvVLdRqISop
+9dpRkJ6xxhGJjxakljIxHdcZLXltxX4YM0Onf3agcjY3boIqnVlDjBwSZX674ZU+YVrcIlcRcqs/
+W83e6PmIRFwpkKOhuLNKSpW5mZoEQdpnxGwE9U7qLGECAwEAAaOCAd4wggHaMA4GA1UdDwEB/wQE
+AwIFoDAMBgNVHRMBAf8EAjAAMIGTBggrBgEFBQcBAQSBhjCBgzBGBggrBgEFBQcwAoY6aHR0cDov
+L3NlY3VyZS5nbG9iYWxzaWduLmNvbS9jYWNlcnQvZ3NnY2NyNnNtaW1lY2EyMDIzLmNydDA5Bggr
+BgEFBQcwAYYtaHR0cDovL29jc3AuZ2xvYmFsc2lnbi5jb20vZ3NnY2NyNnNtaW1lY2EyMDIzMGUG
+A1UdIAReMFwwCQYHZ4EMAQUDAzALBgkrBgEEAaAyASgwQgYKKwYBBAGgMgoDAjA0MDIGCCsGAQUF
+BwIBFiZodHRwczovL3d3dy5nbG9iYWxzaWduLmNvbS9yZXBvc2l0b3J5LzBBBgNVHR8EOjA4MDag
+NKAyhjBodHRwOi8vY3JsLmdsb2JhbHNpZ24uY29tL2dzZ2NjcjZzbWltZWNhMjAyMy5jcmwwJQYD
+VR0RBB4wHIEac2VsdmluLnhhdmllckBicm9hZGNvbS5jb20wEwYDVR0lBAwwCgYIKwYBBQUHAwQw
+HwYDVR0jBBgwFoAUACk2nlx6ug+vLVAt26AjhRiwoJIwHQYDVR0OBBYEFJA9fV7cOoiN64ws5XPC
+J5qtayo5MA0GCSqGSIb3DQEBCwUAA4ICAQBFCIF4AxAiXVz6gX5YfFEbIYtbGFifcfe+QGc5cfac
+CSzIrQWUPXAYAef3G5WouD2AKwa2tPGJgK2L7n1r2W4NIvr93588EDVnGgfMfWaFsB8VlLsPlH8Y
+fLfaTdN3OQPnFFp54yK9wv8AtTIiTQcailMw7QX5x5GE6HVZElxf0V0Ljc2NrUQLoYzHzAU+sysl
+6JQzomxjIfuXiIiUfmnWQdhO95kQchRdOUAaguLTV+RRfPZ1p54dRmgGEpJtzjGLdsrLkZ2rCN5j
+cOTTXyxJmvlgm9jfT0Uy5SOPHdq1jtZbQyXrNT4fQ07Odmq3xQCUTi+a59IiC+6V7nFJ8zyCSk+p
+n/iGouvun/owYzTmFxB6sVLWZcaWz2Ufcm7b6nOYV+pwUS/n6+6oFRKmGLrl0CRCF0AOph5p81aV
+kgKuS5oXBoDefJfjKHuu5lJVelBx3n++iMGMW9FWFmXErCHy2d+L42Raai5X2PL8jAmh+lpPRDX4
+CT9jL6xWM5QkCBtxyVKuxGxxUY2wczmVcQ1nGh9mGghI04Scs4OtE8Qh9LMOe2PXzxcV6lpF+yay
+B3fwJWxl7miwNFjWuu9M6Z+rcjm3JF5srcAu2fp/VzQD4AE5Kq7ywukMvlU4Y3X2t+D2eU1DH8pk
+c8mM1CtQWfWUboaoLABVmYmYfihDvTURkzGCAlcwggJTAgEBMGIwUjELMAkGA1UEBhMCQkUxGTAX
+BgNVBAoTEEdsb2JhbFNpZ24gbnYtc2ExKDAmBgNVBAMTH0dsb2JhbFNpZ24gR0NDIFI2IFNNSU1F
+IENBIDIwMjMCDDy76dRYp65lyF2c4zANBglghkgBZQMEAgEFAKCBxzAvBgkqhkiG9w0BCQQxIgQg
+vmAALYRUoHFeNyhVrfO7wlkk94J7vjzRdB8gNCrUyLQwGAYJKoZIhvcNAQkDMQsGCSqGSIb3DQEH
+ATAcBgkqhkiG9w0BCQUxDxcNMjYwNzE2MDg1MjQ3WjBcBgkqhkiG9w0BCQ8xTzBNMAsGCWCGSAFl
+AwQBKjALBglghkgBZQMEARYwCwYJYIZIAWUDBAECMAoGCCqGSIb3DQMHMAsGCSqGSIb3DQEBBzAL
+BglghkgBZQMEAgEwDQYJKoZIhvcNAQEBBQAEggEAd5wvhg70xJ+aRHO9KHbBPCJJuu4hhjCLYzle
++kzn8H0ynug46P/AbUL6cOAipe2N1WNDisIDCJirXbeKq+PZtU5S2TM99i0RxMVrBJ8W2ceVbrUx
+Jq8X+/rWg+ZAaNC+sor8YvnvTDuNOjLo3pZullEy6MxDJ9dszXDWsAtxg8azNTLNxkemJpHQVYM2
+J8rzJtHZjwoWCpshQkDSd+fSoXyXiIML+jCeSp3gqGM4jETXt5FTtSUwiyXoGpDZYyMWiK1S2mbT
+auIVEwV9dmz63k00jUHWW6l/CokMhXYlhzW8Vq0mNde2TqHiI2RoTaedwYV2mePBuZjMYkVlQB2W
+/A==
+--0000000000006be8680656b69058--
