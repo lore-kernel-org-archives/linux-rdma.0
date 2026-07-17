@@ -1,43 +1,39 @@
 Received: from m16.mail.163.com (m16.mail.163.com [117.135.210.5])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8AFAA28640B;
-	Fri, 17 Jul 2026 02:25:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C76F81EB1AA;
+	Fri, 17 Jul 2026 02:54:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=117.135.210.5
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784255162; cv=none; b=D1mZSoSNerfw6KlvbIN1cgoGnxUY9UcsmC+qEdrJW3Xgcudz88+oIg88hmTJ8jayA7fqyS4a/S+qRdwUbGj3crL8EG6iFGSRpGSLXuDnFQy4YeHQHNT9d5Q24Jt624zTiWLvk5J2c4HRRbYe55ThKSVzYQOI3Y4AlDQj9LExDGE=
+	t=1784256890; cv=none; b=eIYpOqXbTgrdyuQlZALkhoi0yM3VVo3GGo+VhK6uZ0r6U57NpXX83NG1mQaG75atB+WmDb4FcS32nM1l/+nuVx5fljggWgs6z2QF33xhoBFczXPhpM9h6nt8xB0sb5SNWj7MTNmFOdibjkd4u4bq5hTsafkwVbEWxvwKxigF/UE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784255162; c=relaxed/simple;
-	bh=7BH44toD02/hpqrQK29UP85kPSUxVy8sa5IiveoK47Y=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=dSedQrQWGT/a8Ss4Ua2N8n99EgR2BvPJFXqAbhDk2a4GEzjNWK4jdAymVibvADeEd1cNUR9pEYYxJQrabfmbc8/Dzlc7yLTRbXJK6AOlWYh7Q3fcb5EvtUKXk78JSm7CG9GcoIF8e0bvubfdUo++GgmshkYlP+1ktRCL1Yejs5M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com; spf=pass smtp.mailfrom=163.com; dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b=pl13OoFD; arc=none smtp.client-ip=117.135.210.5
+	s=arc-20240116; t=1784256890; c=relaxed/simple;
+	bh=ruUowAkyqKA7NKa3m7eil0W2+uoXBzWKb8QGDGBChgY=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=E4aDqWQzwJt5jNjcsO4gvQVsDK5BkTdG1vUBaCKNT6fFwVMqK+33JO/nbng15vFeRKttf6T0Lf/HzYeKJ155mwqZj23l2BR261I0pMBYIyfrPGYTRkmOLOdE2uJ1gdeAnyHR+GIkSLLwFtYuHO5K6bKhk1T1JxO7gXZcn4tbB0I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com; spf=pass smtp.mailfrom=163.com; dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b=ZOLimY0k; arc=none smtp.client-ip=117.135.210.5
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="pl13OoFD"
+	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="ZOLimY0k"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
-	s=s110527; h=From:To:Subject:Date:Message-ID:MIME-Version; bh=ow
-	/DjgFL5xgyty9oVKvPCB18FikVfpXISPMnhNy94M8=; b=pl13OoFDHZctrP/rYh
-	MEY3l52gNMhyiQqFPfUNjC2tenP7B3rtdL41hQJ9WpkDaMK8YQh2rPSFx+tR1UKH
-	AlZYG9Cn5W1GzxWS9526bBqtR5dCUP9mcgqW/maMGSpmiB7/vxcnEzOvFhn2Jm+L
-	WMlOnNSRe+pqylkqvMDxy0Nao=
-Received: from xwm-TianYi510Pro-14IMB.. (unknown [])
-	by gzga-smtp-mtada-g0-1 (Coremail) with SMTP id _____wAH9nKgkllq1rGDJg--.64750S2;
-	Fri, 17 Jul 2026 10:25:36 +0800 (CST)
-From: Weimin Xiong <xiongwm2026@163.com>
-To: netdev@vger.kernel.org
-Cc: linux-rdma@vger.kernel.org,
-	rds-devel@oss.oracle.com,
-	linux-kernel@vger.kernel.org,
-	davem@davemloft.net,
-	edumazet@google.com,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	horms@kernel.org
-Subject: [PATCH net-next v2] net/rds: use krealloc_array() for iovector growth
-Date: Fri, 17 Jul 2026 10:25:37 +0800
-Message-ID: <20260717022537.331863-1-xiongwm2026@163.com>
-X-Mailer: git-send-email 2.43.0
+	s=s110527; h=From:To:Subject:Date:Message-Id:MIME-Version; bh=9Y
+	cwQVqszbwi7hoEczqm77ptCr5GT38QypRMSU2uiRc=; b=ZOLimY0khr/6A3s8aS
+	hVaLIzmkC3ezVgrLUOW0E32ee+5y1jbLcViZz5QfCRwrxHU6v5cG0FH6extvUwtu
+	9433G1ETGu58k1oYwyH0CpwqqP64LHnB/CBV4+wLTaQx6UGKqt0Ua/Hug4F3n1Sq
+	MJKW9I/SqC0TMGUnm3VxQJdBw=
+Received: from localhost.localdomain (unknown [])
+	by gzga-smtp-mtada-g0-3 (Coremail) with SMTP id _____wA39tRKmVlq+Q4FKA--.32863S2;
+	Fri, 17 Jul 2026 10:54:03 +0800 (CST)
+From: kensanya@163.com
+To: linux-rdma@vger.kernel.org,
+	target-devel@vger.kernel.org
+Cc: bvanassche@acm.org,
+	jgg@ziepe.ca,
+	leon@kernel.org
+Subject: [QUESTION] RDMA/srpt: is target_send_busy() safe before target_init_cmd()?
+Date: Fri, 17 Jul 2026 10:54:02 +0800
+Message-Id: <20260717025402.64054-1-kensanya@163.com>
+X-Mailer: git-send-email 2.25.1
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -45,41 +41,58 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:_____wAH9nKgkllq1rGDJg--.64750S2
-X-Coremail-Antispam: 1Uf129KBjvdXoW7JF17AFW8WF13Cw4xGr1xXwb_yoWfWFc_GF
-	WIqas7W343tF45Aw1xCr43tr9xtF4rua1fu343KrWSq3y8JFs8ZrWkJrn5AFZxWw4xur1Y
-	yr1DZrn2y39xGjkaLaAFLSUrUUUUjb8apTn2vfkv8UJUUUU8Yxn0WfASr-VFAUDa7-sFnT
-	9fnUUvcSsGvfC2KfnxnUUI43ZEXa7IUnbtxDUUUUU==
-X-CM-SenderInfo: x0lr0wdzpsijqw6rljoofrz/xtbC7wC9TWpZkqC+owAA3D
+X-CM-TRANSID:_____wA39tRKmVlq+Q4FKA--.32863S2
+X-Coremail-Antispam: 1Uf129KBjvJXoW7KF17uF1rWFW3Xw4fJr13Jwb_yoW8Xry7pa
+	90q3sFkrs5trWSyws7Xa17ArW8t34Uur4jyF4Sqw1kAa1rKry3Ar18KrWaqF97AFW8ua48
+	Wan7Z3Z0yFWDGaDanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x07ULL0OUUUUU=
+X-CM-SenderInfo: 5nhq2txq1dqiywtou0bp/xtbCwgxqRmpZmUw+wgAA34
 
-Use krealloc_array() for growing the RDS iovector array. This makes the
-array allocation overflow-safe and derives the element size from the
-array pointer.
+Hi,
 
-Reviewed-by: Allison Henderson <achender@kernel.org>
-Signed-off-by: Weimin Xiong <xiongwm2026@163.com>
----
- net/rds/send.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+While working on an unrelated target/stat change, Sashiko flagged a
+pre-existing issue in ib_srpt.c:
+  https://lore.kernel.org/all/20260709073426.5E7021F000E9@smtp.kernel.org/
 
-diff --git a/net/rds/send.c b/net/rds/send.c
-index 68be1bf0e..a567c97a 100644
---- a/net/rds/send.c
-+++ b/net/rds/send.c
-@@ -971,11 +971,8 @@ static int rds_rm_size(struct msghdr *msg, int num_sgs,
- 				return -EINVAL;
- 			if (vct->indx >= vct->len) {
- 				vct->len += vct->incr;
--				tmp_iov =
--					krealloc(vct->vec,
--						 vct->len *
--						 sizeof(struct rds_iov_vector),
--						 GFP_KERNEL);
-+				tmp_iov = krealloc_array(vct->vec, vct->len,
-+							 sizeof(*vct->vec), GFP_KERNEL);
- 				if (!tmp_iov) {
- 					vct->len -= vct->incr;
- 					return -ENOMEM;
---
-2.39.3
+I would like to confirm with RDMA/srpt maintainers whether this is a real
+bug.
+
+In srpt_handle_cmd():
+  rc = srpt_get_desc_tbl(...);
+  if (rc)
+          goto busy;
+  rc = target_init_cmd(...);
+  if (rc != 0)
+          goto busy;
+  ...
+busy:
+  target_send_busy(cmd);
+srpt_get_send_ioctx() zero-initializes se_cmd with memset(). cmd->se_tfo
+appears to be set only later in target_init_cmd() -> __target_init_cmd().
+
+So if srpt_get_desc_tbl() fails, target_send_busy() may run with
+cmd->se_tfo still NULL:
+  target_send_busy()
+    -> cmd->se_tfo->queue_status(cmd)
+Also, target_send_busy() is documented as:
+  "Only call this function if target_submit_cmd*() failed."
+
+That seems to cover the target_init_cmd() failure path, but not the
+srpt_get_desc_tbl() failure path before init.
+
+This goes back to:
+  8b8807b9e982 ("scsi: RDMA/srpt: Fix handling of command / TMF submission failure")
+
+Questions:
+1. Is calling target_send_busy() before target_init_cmd() intentional /
+   known-safe?
+2. If not, should ib_srpt.c send a fabric-local SRP_RSP BUSY (or otherwise
+   free the send ioctx) when se_tfo is unset, and keep target_send_busy()
+   only for the post-init failure path?
+
+I have not reproduced a crash on hardware yet; this is from code review of
+the Sashiko report.
+
+Thanks,
+TanZheng
 
