@@ -1,95 +1,84 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.17])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4AE913DD525
-	for <linux-rdma@vger.kernel.org>; Fri, 17 Jul 2026 11:04:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.17
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C6C673F12FC;
+	Fri, 17 Jul 2026 11:30:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784286274; cv=none; b=g4CpF8QQPNxUD1c+tpaM3Nc2QNskdJH0xbSlTbVEC6AitxFSVGP3rRXnh1k4YNssjU1bdfef9s7X8gUlUky+urUBRs3FI25Jd+4dNq52+V955AR0PJT08UyWShjVUz9VtfnUWLxkkpM1p4Tv7RH//YOcLc7Xn7CLdhJX5o13tyI=
+	t=1784287840; cv=none; b=s3EdlqFcmeViEv0C/gc/fYxIixntSZIUZ4tP/ZdkBl/sHV/QPrM1mMLuEE0PW6CZvO17CqYGPuPZGm+SmvGt1h2BdfQa3aNPAfSnSbWtJlNLcvQmetDL+6J78SKAoCMmBi4luOsjv2kRjY0IfMfxNZvcsUpEO+k/c8u6U+Fr3iQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784286274; c=relaxed/simple;
-	bh=0+DFrTuFElXxDGGuOCsjlXbyfigMk5A+r3bWyZaBXeQ=;
-	h=Date:From:To:Cc:Subject:Message-ID; b=KxtwXCnDTQSRLYIiHXzrIJk0RNhLHI3wgZD6aqaQnF9bVD37fET0WhG07A+i2gzvXoU/MicKaTm5oeH0AyWWjiTm1RaDNxNKBghYKi1xzR21t1Wnn4uUljblu5RLcKMVjHGv4wN5NyaUixdWtGXLU+Sdtxj+5nYNbSN6IHXLPmA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=JTpeD4S5; arc=none smtp.client-ip=192.198.163.17
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1784287840; c=relaxed/simple;
+	bh=tCCW51UQqRAnCV9+aWPOkYDX40/UE0vGzPRCVq3yr5M=;
+	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc; b=bSA+1IZ0bzBTs+mE2KPh5so2hgIkIl5/6ktqtwHR9CcdaTg0pa53etfCCZFFWyVojw8qkyJsAlB6+ZTqSHvh5azVU0p5vPvAYbjRLlu8lOmW+7NZQIqeFaFD6eIy7gqweYSZXLI7SAJUAtVNaCMOSkTt6oXYTXBfoLGhmPEsRQs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=OSvzOZUZ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="JTpeD4S5"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1784286265; x=1815822265;
-  h=date:from:to:cc:subject:message-id;
-  bh=0+DFrTuFElXxDGGuOCsjlXbyfigMk5A+r3bWyZaBXeQ=;
-  b=JTpeD4S54dYV4ctPK8ojVjYiRm/JPoFRoM12Vo2zDJpjnfz9UvLIxrET
-   itPdl3/BIOl7AyLfko49QuJe0Nm9Zy/GXlMh/ovw84vNoQKdeZ2cEAWzf
-   m2WYF/IvmD3qjJTwJckmAQKwI3qzVDdr+V2mf9u7pEmJ76hERYEeguZk7
-   Dlt8MwbQNH0saXuoFqSO7NBJh6PzWJPKHj/lstSmzR/ppTf13OsaLQu0s
-   M6x1FNLIJoWYiULA72XcnGCGJmkc3vasoD52AtOaLie/sftIRu4YMXbYO
-   HEPykhRM8L7Ev37iktn/sVJffPtDaPZMBIVjXYc6XHI7srAn1lgDztUwU
-   w==;
-X-CSE-ConnectionGUID: YMAN8rTGT0WOLoNDAIVtZQ==
-X-CSE-MsgGUID: 4IRKRHEmQLatn4t5/2AeQw==
-X-IronPort-AV: E=McAfee;i="6800,10657,11848"; a="84834135"
-X-IronPort-AV: E=Sophos;i="6.25,169,1779174000"; 
-   d="scan'208";a="84834135"
-Received: from fmviesa008.fm.intel.com ([10.60.135.148])
-  by fmvoesa111.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Jul 2026 04:04:20 -0700
-X-CSE-ConnectionGUID: ck+bbC18RfqQGcZIpX3JpA==
-X-CSE-MsgGUID: txic0AQcRkCMkCuH7r2LEg==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.25,169,1779174000"; 
-   d="scan'208";a="254126169"
-Received: from lkp-server02.sh.intel.com (HELO ea128546eb3d) ([10.239.97.151])
-  by fmviesa008.fm.intel.com with ESMTP; 17 Jul 2026 04:04:18 -0700
-Received: from kbuild by ea128546eb3d with local (Exim 4.98.2)
-	(envelope-from <lkp@intel.com>)
-	id 1wkgMa-00000000Sf6-0pVN;
-	Fri, 17 Jul 2026 11:04:16 +0000
-Date: Fri, 17 Jul 2026 19:03:25 +0800
-From: kernel test robot <lkp@intel.com>
-To: Leon Romanovsky <leonro@nvidia.com>
-Cc: Doug Ledford <dledford@redhat.com>,
- Jason Gunthorpe <jgg+lists@ziepe.ca>, linux-rdma@vger.kernel.org
-Subject: [rdma:wip/leon-for-next] BUILD SUCCESS
- dab886bc4fab45b84d893aea81a86074a57d848b
-Message-ID: <202607171910.ViEauuUt-lkp@intel.com>
-User-Agent: s-nail v14.9.25
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="OSvzOZUZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5985D1F000E9;
+	Fri, 17 Jul 2026 11:30:38 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1784287838;
+	bh=MI9UFehpVJgBRPPNLEaHUq+huwF0X6pl2FktHqQ844Y=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc;
+	b=OSvzOZUZWS3+F9kl+ZzWFW9Qe5knFbSkLKNReYFdC46rpsZKMG70TA82LOe47x2XE
+	 ra0SeSvimTQID+D1hGDee01zYlX+sitxpaRHhe9Cp5MGvKXjOi5/KhtYBHUu5K6764
+	 F2vaPIFke5HQpwovmiS928EuUorn2gzX0s0VmjUS65YpKWowe1/aqNgpwGets46lpz
+	 /NVtKohTblYqcjk1Iv9ff1mdt/NoPYF9980q7zZ9GM5kce1fFsMOA201uzAfmpBvol
+	 AoboEwsj1WvnFnTWw3tmfqGuj0TinD7sc+SZudqi8EFxnY4m4063AtL8CAMvprFDcA
+	 4dprWjrKTRs8A==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 19B0F380CED4;
+	Fri, 17 Jul 2026 11:30:12 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net-next] net: mana: Add debug knob to skip TX timeout
+ recovery reset
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <178428781064.1678100.7570986576117461503.git-patchwork-notify@kernel.org>
+Date: Fri, 17 Jul 2026 11:30:10 +0000
+References: <20260710132229.2851441-1-gargaditya@linux.microsoft.com>
+In-Reply-To: <20260710132229.2851441-1-gargaditya@linux.microsoft.com>
+To: Aditya Garg <gargaditya@linux.microsoft.com>
+Cc: kys@microsoft.com, haiyangz@microsoft.com, wei.liu@kernel.org,
+ decui@microsoft.com, longli@microsoft.com, andrew+netdev@lunn.ch,
+ davem@davemloft.net, edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
+ kotaranov@microsoft.com, horms@kernel.org, ernis@linux.microsoft.com,
+ dipayanroy@linux.microsoft.com, ssengar@linux.microsoft.com,
+ gargaditya@microsoft.com, linux-hyperv@vger.kernel.org,
+ netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+ linux-rdma@vger.kernel.org
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git wip/leon-for-next
-branch HEAD: dab886bc4fab45b84d893aea81a86074a57d848b  RDMA/mana_ib: Adopt robust udata
+Hello:
 
-elapsed time: 876m
+This patch was applied to netdev/net-next.git (main)
+by Paolo Abeni <pabeni@redhat.com>:
 
-configs tested: 17
-configs skipped: 1
+On Fri, 10 Jul 2026 06:22:29 -0700 you wrote:
+> Add a per-port debugfs boolean "tx_timeout_skip_reset" that, when
+> enabled, makes mana_tx_timeout() log the TX timeout and return without
+> queueing the per-port detach/attach recovery work.
+> 
+> This is a debug-only aid for bringup and qualification: skipping the
+> recovery reset keeps the device and queue state intact so a TX timeout
+> can be correlated with hardware telemetry. The knob defaults to false,
+> so production recovery behaviour is unchanged.
+> 
+> [...]
 
-The following configs have been built successfully.
-More configs may be tested in the coming days.
+Here is the summary with links:
+  - [net-next] net: mana: Add debug knob to skip TX timeout recovery reset
+    https://git.kernel.org/netdev/net-next/c/922cc43c6243
 
-tested configs:
-alpha                  allnoconfig    gcc-16.1.0
-alpha                 allyesconfig    gcc-16.1.0
-alpha                    defconfig    gcc-16.1.0
-arc                   allmodconfig    gcc-16.1.0
-arc                   allyesconfig    gcc-16.1.0
-csky                  allmodconfig    gcc-16.1.0
-i386                  allmodconfig    gcc-14
-i386       randconfig-006-20260717    gcc-14
-loongarch                defconfig    clang-24
-loongarch  randconfig-002-20260717    clang-24
-nios2                 allmodconfig    gcc-11.5.0
-nios2                  allnoconfig    gcc-11.5.0
-parisc                allmodconfig    gcc-16.1.0
-parisc                allyesconfig    gcc-16.1.0
-parisc                   defconfig    gcc-16.1.0
-sh                       defconfig    gcc-16.1.0
-xtensa       audio_kc705_defconfig    gcc-16.1.0
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
 
---
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+
