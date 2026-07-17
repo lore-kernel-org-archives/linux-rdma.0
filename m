@@ -1,81 +1,94 @@
-Received: from canpmsgout01.his.huawei.com (canpmsgout01.his.huawei.com [113.46.200.216])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1242523EA9B;
-	Fri, 17 Jul 2026 00:59:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.216
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 635DF274B3C;
+	Fri, 17 Jul 2026 01:00:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784249983; cv=none; b=DIbXbXKeV4BwGScYyFc9LaglA8VbzcElNgWrTl8yGhWC04VN96mh0S+YES0GWBTsDT6QIP9H4m+rpAPwUQwtbcvif3igpmf5KD3n9W/s9aubvBOZ6qGq8mtFjSq+EwD4Hi+NHDdXYcc3/Pe4KA5fn/swJuiniC18KFrHTeppB80=
+	t=1784250009; cv=none; b=XwoqBDuQeBMNLd/rRek0bYArWtjE9sqnCi9Yxv0IG2sajVCF/Ami748U35QXsJl8jawD4NO6eXWjgSmiMz+dsoSldFoV3BdjcILVkPOSxSy4NxUlrRozvc8G75UgNvYuKFL8FFSaRzryRTFof5wjEQQZd4GVDktGZJpxbEuIgKQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784249983; c=relaxed/simple;
-	bh=C70pd21lKM/GbcDiuX1tX6jo8exVdW5d0qTXY2wTvl0=;
-	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
-	 In-Reply-To:Content-Type; b=nfCAyDtE03JmT4bAyQ0L3OL5d0DG4/8bhagA7BYf8i9d6LXRQqGI1ROhn3wCptGYAD12f+er3BnaIjCejJv18/aVMtt94wQMUa+caYiB08nJIC8DKe6/2kJ+OZ8CNiMed2VZfgmlqytovQKxl+6Uv5fta8cttdGOucVivt9KNlg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b=6BBT39xb; arc=none smtp.client-ip=113.46.200.216
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+	s=arc-20240116; t=1784250009; c=relaxed/simple;
+	bh=rF5NNlqdfSIzaV3JN5AZXZrtIVkCvCuqGmW+6Pw9XIo=;
+	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=bzC5jSf7rzY0bm1/y4DgmtDfLpxKUD+dZHb3dobYUvVGsCo+TlnWnpZpJZz+DHoWIYkvsvHvg4t++qVRShR0wlcFpqu9YLKcKAjKW5JXoGyEFcDNKs/zZboS1nK7PCxUaExKgZnHUREARM0b2MKSG92HoqyUdOhqG97DkYdAR60=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=BWF6q4MT; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b="6BBT39xb"
-dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
-	c=relaxed/relaxed; q=dns/txt;
-	h=From;
-	bh=nWoZa2YysZYvHhIKyBXhQj2SUK0JAZADfZa/bF6lYtU=;
-	b=6BBT39xbWNCt7O0eJH0Jgdc3NtOekMzUgen41y1SfouXyku128rBE2UJLg0LWwom2pJJ2zjJY
-	W5zOOCbMRpNTslnTsRyL297Tn35E55/hXfGUaxb5SzJeqs2iph4PIcg1GgEST7LF+QrN7W/nzFW
-	6/di4e+HDSqrEIjqwGPP6+0=
-Received: from mail.maildlp.com (unknown [172.19.163.104])
-	by canpmsgout01.his.huawei.com (SkyGuard) with ESMTPS id 4h1WXw10csz1T4LH;
-	Fri, 17 Jul 2026 08:50:24 +0800 (CST)
-Received: from kwepemo500009.china.huawei.com (unknown [7.202.194.199])
-	by mail.maildlp.com (Postfix) with ESMTPS id 2187E4058C;
-	Fri, 17 Jul 2026 08:59:37 +0800 (CST)
-Received: from [10.67.121.161] (10.67.121.161) by
- kwepemo500009.china.huawei.com (7.202.194.199) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.36; Fri, 17 Jul 2026 08:59:36 +0800
-Message-ID: <126de128-9090-455a-ba79-14c5a53ad444@huawei.com>
-Date: Fri, 17 Jul 2026 08:59:36 +0800
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="BWF6q4MT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 81FE31F000E9;
+	Fri, 17 Jul 2026 01:00:07 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1784250008;
+	bh=9eV+HhwTzn56N6JyUndCid0i54M08XVrElfAjn9eZoE=;
+	h=Subject:From:To:Cc:Date:In-Reply-To:References;
+	b=BWF6q4MTgZwppUnQzE7gV+/XZSCZ5l1Ux7bzlziwVtxwGmLSnkBW/Oe+EODhme+0W
+	 mtiHOZswBmf54Wu8hRBM1opjeFPkmV1xqXQXIOVyttLVPgGdYD/D8MdsLPc8ocGlIh
+	 7KtOXDYoqpEpeyIopKPaZLul1cBQOCeeke3IF6SmwsDHxfESiVGZYz0Poe8vJGrEkZ
+	 NqBe7K/dKm3blmN8ZYo6FA6QRUFoRoHv5CGCOsfIGyVYA+6Wgr7lRY5b51CmktMUea
+	 C1c96oycHhl8mQXYhTFtUwedFk18U29ZkF46P+li9BaLsP5akaJwoKQC8fJwLOUu1x
+	 E4Oox9gse+mvQ==
+Message-ID: <428d61ca599cdcb5f42818af5a9c7e80d4eef5dc.camel@kernel.org>
+Subject: Re: [PATCH] rds: use krealloc_array() for iovector growth
+From: Allison Henderson <achender@kernel.org>
+To: Weimin Xiong <xiongwm2026@163.com>
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, 
+	rds-devel@oss.oracle.com, linux-kernel@vger.kernel.org, "David S . Miller"
+	 <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, Jakub Kicinski
+	 <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, Simon Horman
+	 <horms@kernel.org>
+Date: Thu, 16 Jul 2026 18:00:06 -0700
+In-Reply-To: <20260716025101.118159-1-xiongwm2026@163.com>
+References: <20260716025101.118159-1-xiongwm2026@163.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+User-Agent: Evolution 3.52.3-0ubuntu1.1 
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v12 2/4] dma-buf: add optional get_pci_tph() callback
-To: Zhiping Zhang <zhipingz@meta.com>, Jason Gunthorpe <jgg@ziepe.ca>, Leon
- Romanovsky <leon@kernel.org>, Michael Guralnik <michaelgur@nvidia.com>, Sumit
- Semwal <sumit.semwal@linaro.org>, Christian Konig <christian.koenig@amd.com>,
-	Alex Williamson <alex@shazbot.org>, Bjorn Helgaas <bhelgaas@google.com>
-CC: <kvm@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
-	<linux-pci@vger.kernel.org>, <dri-devel@lists.freedesktop.org>
-References: <20260715204008.3911275-1-zhipingz@meta.com>
- <20260715204008.3911275-3-zhipingz@meta.com>
-Content-Language: en-US
-From: fengchengwen <fengchengwen@huawei.com>
-In-Reply-To: <20260715204008.3911275-3-zhipingz@meta.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: kwepems200001.china.huawei.com (7.221.188.67) To
- kwepemo500009.china.huawei.com (7.202.194.199)
 
-Acked-by: Chengwen Feng <fengchengwen@huawei.com>
+On Thu, 2026-07-16 at 10:51 +0800, Weimin Xiong wrote:
+> Use krealloc_array() for growing the RDS iovector array. This makes the
+> array allocation overflow-safe and derives the element size from the
+> array pointer.
+>=20
+> Signed-off-by: Weimin Xiong <xiongwm2026@163.com>
 
-On 7/16/2026 4:39 AM, Zhiping Zhang wrote:
-> Add an optional dma_buf_ops.get_pci_tph callback and a
-> DMA-buf importer wrapper, dma_buf_get_pci_tph().
-> 
-> TPH is PCIe TLP Processing Hint. 8-bit ST and 16-bit Extended ST are
-> distinct PCIe TPH namespaces, so the importer requests the namespace it
-> can emit and the exporter returns the matching ST/PH tuple or
-> -EOPNOTSUPP.
-> 
-> dma_buf_get_pci_tph() is the importer entry point. It requires
-> &dmabuf->resv to be held while the callback runs and returns
-> -EOPNOTSUPP when the exporter does not provide PCI TPH metadata.
-> 
-> The first user is VFIO_DEVICE_FEATURE_DMA_BUF_TPH in vfio-pci, with
-> mlx5 as the first importer.
-> 
-> Signed-off-by: Zhiping Zhang <zhipingz@meta.com>
+Hi Weinmin,
+
+Thanks for working on this.  This looks mostly good to me, the conversion
+looks correct.  Just one nit, since this is a hardening fix
+and not a bug fix, it should target the net-next branch in the subject
+line like this:
+
+[PATCH net-next v2] net/rds: use krealloc_array() for iovector growth
+
+With that fixed, you can add my rvb:
+Reviewed-by: Allison Henderson <achender@kernel.org>
+
+Thanks!
+Allison
+
+> ---
+> diff --git a/net/rds/send.c b/net/rds/send.c
+> index 68be1bf0e..6a567c97a 100644
+> --- a/net/rds/send.c
+> +++ b/net/rds/send.c
+> @@ -971,11 +971,8 @@ static int rds_rm_size(struct msghdr *msg, int num_s=
+gs,
+>  				return -EINVAL;
+>  			if (vct->indx >=3D vct->len) {
+>  				vct->len +=3D vct->incr;
+> -				tmp_iov =3D
+> -					krealloc(vct->vec,
+> -						 vct->len *
+> -						 sizeof(struct rds_iov_vector),
+> -						 GFP_KERNEL);
+> +				tmp_iov =3D krealloc_array(vct->vec, vct->len,
+> +							 sizeof(*vct->vec), GFP_KERNEL);
+>  				if (!tmp_iov) {
+>  					vct->len -=3D vct->incr;
+>  					return -ENOMEM;
+>=20
 
