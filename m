@@ -1,29 +1,28 @@
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id A5B5131AAAA;
-	Fri, 17 Jul 2026 19:17:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 23EDF3164A9;
+	Fri, 17 Jul 2026 20:08:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784315837; cv=none; b=HY34KH2qEcSBerJus48qeKZiGjXhAOjejgFtnxsXRlHdayUR7Dt8Ghj796M8kwgw2P7A25sBP1Fg5HTW3cuvOjVkP/PQdo2JpRDsboOf/OEMnX8w1gA0M5OkEnKuDMI/aozmsZ26e7GI4eCRs6fxxvmKYFqiHYlOjF9LAdXoWr4=
+	t=1784318931; cv=none; b=lXJxnfCH2z9ini86WjFBc8F5aPg2Fq87P7nkbahbdWsQlCeQ3VVLVVZqoClNJZxTTJ2xZzFOUgffFSl/3RgSa6FJKKDG9U2zYhaLWDXUb2Eyt3aTP7GN3hjtYUuZKqQDFVaIHpjr9w4DH+bTaWFNLdoGuWI/ukWL66W9+KnIBR0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784315837; c=relaxed/simple;
-	bh=fxBeUAmDsTOexpx7mLXtsMm8JXX7cSF3QB8rraXTPLg=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=KoXPuIqmnua8UzA32bGs3KZZ35jhmOKe0oEc5p4zkDfZuDHzRG+llQG6zNiqZMCS4UWl1izkcpPB1hWwnPErs1BycwuQaHHbTpJrY3aHpRlRfhArwyc66xACGovZLIHvKp/nNmwVsnHnQHrrDN7aFGeK38YI/rma0zChePZnMr0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=gEzD4DlP; arc=none smtp.client-ip=13.77.154.182
+	s=arc-20240116; t=1784318931; c=relaxed/simple;
+	bh=XkmTW/zLN211sMyeR3E5YqsjmfM4Q7mO8s331xIwxc4=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=DeKxxsNoKPhbwz98FYwb7zBpRIO/F/RG2iogkTxdAAuLTy5r1NlZnAw7DpF1MrAUtLbq1gFa4nRA+58cBGYoUdWN+8vbyhZnF4WR5LOKCVrdOeTvOk8l3pzuxdxCvEVfLWQ5XJTAN9PbEJ5zwE7d0NtdYHvSFyuAgVKreweSpn4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=LnYf8HBX; arc=none smtp.client-ip=13.77.154.182
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="gEzD4DlP"
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="LnYf8HBX"
 Received: by linux.microsoft.com (Postfix, from userid 1186)
-	id 55D3C20B716B; Fri, 17 Jul 2026 12:16:59 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 55D3C20B716B
+	id E460E20B7169; Fri, 17 Jul 2026 13:08:39 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com E460E20B7169
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
-	s=default; t=1784315819;
-	bh=kZ+CSsUSlkK3qsjZNOGYZvCVaCmPGe0mZTwvbD8joEk=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=gEzD4DlPUEcENHNms/TGHvOck2/9HbMPqTMyeXjRY/JwbsuDkjmT5Wt8goFx6Ysq8
-	 jrtHy/H4yzNsfidTvWd+36T5XKCXM6t46kDrMQqQAENa6748V+nrGU+/bYlHVbbNvh
-	 +jXuYrOXX4W6UvwKLjZA1q8B0aKuO51q3DTBsNuE=
+	s=default; t=1784318919;
+	bh=lzYd7HXJAv1CmOcE6SAirwqAapuTq3aKUkuJIs6O7RY=;
+	h=From:To:Cc:Subject:Date:From;
+	b=LnYf8HBX8dFInM5AUcmRJOhAuohLifuzjnEknTH4tFqn5+S20Y41Fx9Zv/5k/UayJ
+	 0ys70+ZYQ2RlmAdEmVaXNW5wz/dzudCQHEuxdrstWT2/69HJKr99tYrbXMSX67YEic
+	 46aimwfzzDNzpaj2s/gOxlh6e8Y9zWbPNYTlqX34=
 From: Konstantin Taranov <kotaranov@linux.microsoft.com>
 To: kotaranov@microsoft.com,
 	longli@microsoft.com,
@@ -31,12 +30,10 @@ To: kotaranov@microsoft.com,
 	leon@kernel.org
 Cc: linux-rdma@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH rdma-next v4 2/2] RDMA/mana_ib: UC QP support for UAPI
-Date: Fri, 17 Jul 2026 12:16:59 -0700
-Message-ID: <20260717191659.486802-3-kotaranov@linux.microsoft.com>
+Subject: [PATCH rdma-next v4 1/1] RDMA/mana_ib: return PD number to the user
+Date: Fri, 17 Jul 2026 13:08:39 -0700
+Message-ID: <20260717200839.495327-1-kotaranov@linux.microsoft.com>
 X-Mailer: git-send-email 2.43.7
-In-Reply-To: <20260717191659.486802-1-kotaranov@linux.microsoft.com>
-References: <20260717191659.486802-1-kotaranov@linux.microsoft.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -47,355 +44,210 @@ Content-Transfer-Encoding: 8bit
 
 From: Konstantin Taranov <kotaranov@microsoft.com>
 
-Implement UC QP creation in the RNIC HW for user API.
-An UC QP is exposed as three work queues: send, receive,
-and memory management. The latter is used for bind and
-invalidate WQEs to support memory windows.
+Implement returning to userspace applications PDNs of created PDs.
+The PDN is used by applications that build work requests outside of the
+rdma-core code base. The PDN is used to build work requests that require
+mentioning the PD. The HW still ensures PD isolation using PDN attached
+to MRs and WRs, therefore the PDN mentioned in the work request must match
+the PDN of the used work queue. The work requests can fit only 16 bit PDNs.
+Allow users to request short PDNs which are 16 bits.
+
+The capability to request short PDN and get PDN is encoded in the response
+of alloc user context IOCTL.
 
 Signed-off-by: Konstantin Taranov <kotaranov@microsoft.com>
 ---
- drivers/infiniband/hw/mana/main.c    | 49 ++++++++++++++--
- drivers/infiniband/hw/mana/mana_ib.h | 53 ++++++++++++++++--
- drivers/infiniband/hw/mana/qp.c      | 84 +++++++++++++++++++++++++++-
- include/uapi/rdma/mana-abi.h         | 11 ++++
- 4 files changed, 184 insertions(+), 13 deletions(-)
+v4: follow robust udata. Return the capability in ucontext response.
+v3: updated commit message
+v2: updated commit message
+ drivers/infiniband/hw/mana/main.c | 62 ++++++++++++++++++++++---------
+ include/net/mana/gdma.h           |  6 +--
+ include/uapi/rdma/mana-abi.h      | 22 +++++++++++
+ 3 files changed, 69 insertions(+), 21 deletions(-)
 
 diff --git a/drivers/infiniband/hw/mana/main.c b/drivers/infiniband/hw/mana/main.c
-index 0bfb1883a..52feb474b 100644
+index c52e436d8..2d0947aab 100644
 --- a/drivers/infiniband/hw/mana/main.c
 +++ b/drivers/infiniband/hw/mana/main.c
-@@ -1046,16 +1046,55 @@ int mana_ib_gd_create_rc_qp(struct mana_ib_dev *mdev, struct mana_ib_qp *qp,
- 	return 0;
- }
- 
--int mana_ib_gd_destroy_rc_qp(struct mana_ib_dev *mdev, struct mana_ib_qp *qp)
-+int mana_ib_gd_create_uc_qp(struct mana_ib_dev *mdev, struct mana_ib_qp *qp,
-+			    struct ib_qp_init_attr *attr, u32 doorbell, u64 flags)
- {
--	struct mana_rnic_destroy_rc_qp_resp resp = {0};
--	struct mana_rnic_destroy_rc_qp_req req = {0};
-+	struct mana_ib_cq *send_cq = container_of(qp->ibqp.send_cq, struct mana_ib_cq, ibcq);
-+	struct mana_ib_cq *recv_cq = container_of(qp->ibqp.recv_cq, struct mana_ib_cq, ibcq);
-+	struct mana_ib_pd *pd = container_of(qp->ibqp.pd, struct mana_ib_pd, ibpd);
- 	struct gdma_context *gc = mdev_to_gc(mdev);
-+	struct mana_rnic_create_uc_qp_resp resp = {};
-+	struct mana_rnic_create_uc_qp_req req = {};
-+	int err, i;
- 
--	mana_gd_init_req_hdr(&req.hdr, MANA_IB_DESTROY_RC_QP, sizeof(req), sizeof(resp));
-+	mana_gd_init_req_hdr(&req.hdr, MANA_IB_CREATE_UC_QP, sizeof(req), sizeof(resp));
- 	req.hdr.dev_id = mdev->gdma_dev->dev_id;
- 	req.adapter = mdev->adapter_handle;
--	req.rc_qp_handle = qp->qp_handle;
-+	req.pd_handle = pd->pd_handle;
-+	req.send_cq_handle = send_cq->cq_handle;
-+	req.recv_cq_handle = recv_cq->cq_handle;
-+	for (i = 0; i < MANA_UC_QUEUE_TYPE_MAX; i++)
-+		req.dma_region[i] = qp->uc_qp.queues[i].gdma_region;
-+	req.doorbell_page = doorbell;
-+	req.max_send_wr = attr->cap.max_send_wr;
-+	req.max_recv_wr = attr->cap.max_recv_wr;
-+	req.max_send_sge = attr->cap.max_send_sge;
-+	req.max_recv_sge = attr->cap.max_recv_sge;
-+	req.flags = flags;
-+
-+	err = mana_gd_send_request(gc, sizeof(req), &req, sizeof(resp), &resp);
-+	if (err)
-+		return err;
-+
-+	qp->qp_handle = resp.qp_handle;
-+	for (i = 0; i < MANA_UC_QUEUE_TYPE_MAX; i++) {
-+		qp->uc_qp.queues[i].id = resp.queue_ids[i];
-+		/* The GDMA regions are now owned by the RNIC QP handle */
-+		qp->uc_qp.queues[i].gdma_region = GDMA_INVALID_DMA_REGION;
-+	}
-+	return 0;
-+}
-+
-+int mana_ib_gd_destroy_rnic_qp(struct mana_ib_dev *mdev, struct mana_ib_qp *qp)
-+{
-+	struct mana_rnic_destroy_rnic_qp_resp resp = {0};
-+	struct mana_rnic_destroy_rnic_qp_req req = {0};
-+	struct gdma_context *gc = mdev_to_gc(mdev);
-+
-+	mana_gd_init_req_hdr(&req.hdr, MANA_IB_DESTROY_RNIC_QP, sizeof(req), sizeof(resp));
-+	req.hdr.dev_id = mdev->gdma_dev->dev_id;
-+	req.adapter = mdev->adapter_handle;
-+	req.qp_handle = qp->qp_handle;
- 
- 	return mana_gd_send_request(gc, sizeof(req), &req, sizeof(resp), &resp);
- }
-diff --git a/drivers/infiniband/hw/mana/mana_ib.h b/drivers/infiniband/hw/mana/mana_ib.h
-index 18688072f..f69866696 100644
---- a/drivers/infiniband/hw/mana/mana_ib.h
-+++ b/drivers/infiniband/hw/mana/mana_ib.h
-@@ -182,6 +182,17 @@ struct mana_ib_rc_qp {
- 	struct mana_ib_queue queues[MANA_RC_QUEUE_TYPE_MAX];
- };
- 
-+enum mana_uc_queue_type {
-+	MANA_UC_SEND_QUEUE_REQUESTER = 0,
-+	MANA_UC_RECV_QUEUE_RESPONDER,
-+	MANA_UC_SEND_QUEUE_MMQ,
-+	MANA_UC_QUEUE_TYPE_MAX,
-+};
-+
-+struct mana_ib_uc_qp {
-+	struct mana_ib_queue queues[MANA_UC_QUEUE_TYPE_MAX];
-+};
-+
- enum mana_ud_queue_type {
- 	MANA_UD_SEND_QUEUE = 0,
- 	MANA_UD_RECV_QUEUE,
-@@ -200,6 +211,7 @@ struct mana_ib_qp {
- 	union {
- 		struct mana_ib_queue raw_sq;
- 		struct mana_ib_rc_qp rc_qp;
-+		struct mana_ib_uc_qp uc_qp;
- 		struct mana_ib_ud_qp ud_qp;
- 	};
- 
-@@ -235,8 +247,9 @@ enum mana_ib_command_code {
- 	MANA_IB_CREATE_CQ       = 0x30008,
- 	MANA_IB_DESTROY_CQ      = 0x30009,
- 	MANA_IB_CREATE_RC_QP    = 0x3000a,
--	MANA_IB_DESTROY_RC_QP   = 0x3000b,
-+	MANA_IB_DESTROY_RNIC_QP = 0x3000b,
- 	MANA_IB_SET_QP_STATE	= 0x3000d,
-+	MANA_IB_CREATE_UC_QP    = 0x30020,
- 	MANA_IB_QUERY_VF_COUNTERS = 0x30022,
- 	MANA_IB_QUERY_DEVICE_COUNTERS = 0x30023,
- };
-@@ -386,16 +399,39 @@ struct mana_rnic_create_qp_resp {
- 	u32 reserved;
- }; /* HW Data*/
- 
--struct mana_rnic_destroy_rc_qp_req {
-+struct mana_rnic_destroy_rnic_qp_req {
- 	struct gdma_req_hdr hdr;
- 	mana_handle_t adapter;
--	mana_handle_t rc_qp_handle;
-+	mana_handle_t qp_handle;
- }; /* HW Data */
- 
--struct mana_rnic_destroy_rc_qp_resp {
-+struct mana_rnic_destroy_rnic_qp_resp {
- 	struct gdma_resp_hdr hdr;
- }; /* HW Data */
- 
-+struct mana_rnic_create_uc_qp_req {
-+	struct gdma_req_hdr hdr;
-+	mana_handle_t adapter;
-+	mana_handle_t pd_handle;
-+	mana_handle_t send_cq_handle;
-+	mana_handle_t recv_cq_handle;
-+	u64 dma_region[MANA_UC_QUEUE_TYPE_MAX];
-+	u64 flags;
-+	u32 doorbell_page;
-+	u32 max_send_wr;
-+	u32 max_recv_wr;
-+	u32 max_send_sge;
-+	u32 max_recv_sge;
-+	u32 reserved;
-+}; /* HW Data */
-+
-+struct mana_rnic_create_uc_qp_resp {
-+	struct gdma_resp_hdr hdr;
-+	mana_handle_t qp_handle;
-+	u32 queue_ids[MANA_UC_QUEUE_TYPE_MAX];
-+	u32 reserved;
-+}; /* HW Data*/
-+
- struct mana_rnic_create_udqp_req {
- 	struct gdma_req_hdr hdr;
- 	mana_handle_t adapter;
-@@ -589,6 +625,8 @@ static inline struct mana_ib_queue *mana_qp_get_sq(struct mana_ib_qp *qp)
- 	switch (qp->ibqp.qp_type) {
- 	case IB_QPT_RC:
- 		return &qp->rc_qp.queues[MANA_RC_SEND_QUEUE_REQUESTER];
-+	case IB_QPT_UC:
-+		return &qp->uc_qp.queues[MANA_UC_SEND_QUEUE_REQUESTER];
- 	case IB_QPT_UD:
- 	case IB_QPT_GSI:
- 		return &qp->ud_qp.queues[MANA_UD_SEND_QUEUE];
-@@ -602,6 +640,8 @@ static inline struct mana_ib_queue *mana_qp_get_rq(struct mana_ib_qp *qp)
- 	switch (qp->ibqp.qp_type) {
- 	case IB_QPT_RC:
- 		return &qp->rc_qp.queues[MANA_RC_RECV_QUEUE_RESPONDER];
-+	case IB_QPT_UC:
-+		return &qp->uc_qp.queues[MANA_UC_RECV_QUEUE_RESPONDER];
- 	case IB_QPT_UD:
- 	case IB_QPT_GSI:
- 		return &qp->ud_qp.queues[MANA_UD_RECV_QUEUE];
-@@ -766,8 +806,9 @@ int mana_ib_gd_destroy_cq(struct mana_ib_dev *mdev, struct mana_ib_cq *cq);
- 
- int mana_ib_gd_create_rc_qp(struct mana_ib_dev *mdev, struct mana_ib_qp *qp,
- 			    struct ib_qp_init_attr *attr, u32 doorbell, u64 flags);
--int mana_ib_gd_destroy_rc_qp(struct mana_ib_dev *mdev, struct mana_ib_qp *qp);
--
-+int mana_ib_gd_destroy_rnic_qp(struct mana_ib_dev *mdev, struct mana_ib_qp *qp);
-+int mana_ib_gd_create_uc_qp(struct mana_ib_dev *mdev, struct mana_ib_qp *qp,
-+			    struct ib_qp_init_attr *attr, u32 doorbell, u64 flags);
- int mana_ib_gd_create_ud_qp(struct mana_ib_dev *mdev, struct mana_ib_qp *qp,
- 			    struct ib_qp_init_attr *attr, u32 doorbell, u32 type);
- int mana_ib_gd_destroy_ud_qp(struct mana_ib_dev *mdev, struct mana_ib_qp *qp);
-diff --git a/drivers/infiniband/hw/mana/qp.c b/drivers/infiniband/hw/mana/qp.c
-index 5e53f6ac2..95f070c50 100644
---- a/drivers/infiniband/hw/mana/qp.c
-+++ b/drivers/infiniband/hw/mana/qp.c
-@@ -594,13 +594,67 @@ static int mana_ib_create_rc_qp(struct ib_qp *ibqp, struct ib_pd *ibpd,
- 	return 0;
- 
- destroy_qp:
--	mana_ib_gd_destroy_rc_qp(mdev, qp);
-+	mana_ib_gd_destroy_rnic_qp(mdev, qp);
- destroy_queues:
- 	while (i-- > 0)
- 		mana_ib_destroy_queue(mdev, &qp->rc_qp.queues[i]);
+@@ -90,20 +90,41 @@ int mana_ib_cfg_vport(struct mana_ib_dev *dev, u32 port, struct mana_ib_pd *pd,
  	return err;
  }
  
-+static int mana_ib_create_uc_qp(struct ib_qp *ibqp, struct ib_pd *ibpd,
-+				struct ib_qp_init_attr *attr, struct ib_udata *udata)
++static int mana_gd_destroy_pd(struct mana_ib_dev *mdev, u64 pd_handle)
 +{
-+	struct mana_ib_dev *mdev = container_of(ibpd->device, struct mana_ib_dev, ib_dev);
-+	struct mana_ib_qp *qp = container_of(ibqp, struct mana_ib_qp, ibqp);
-+	struct mana_ib_create_uc_qp_resp resp = {};
-+	struct mana_ib_ucontext *mana_ucontext;
-+	struct mana_ib_create_uc_qp ucmd;
-+	u64 flags = 0;
-+	u32 doorbell;
-+	int err, i;
++	struct gdma_destroy_pd_resp resp = {};
++	struct gdma_destroy_pd_req req = {};
 +
-+	if (!udata)
-+		return -EINVAL;
++	mana_gd_init_req_hdr(&req.hdr, GDMA_DESTROY_PD, sizeof(req),
++			     sizeof(resp));
 +
-+	mana_ucontext = rdma_udata_to_drv_context(udata, struct mana_ib_ucontext, ibucontext);
-+	doorbell = mana_ucontext->doorbell;
-+	err = ib_copy_validate_udata_in_cm(udata, ucmd, comp_mask, 0);
-+	if (err)
-+		return err;
++	req.pd_handle = pd_handle;
 +
-+	for (i = 0; i < MANA_UC_QUEUE_TYPE_MAX; ++i) {
-+		err = mana_ib_create_queue(mdev, ucmd.queue_buf[i], ucmd.queue_size[i],
-+					   &qp->uc_qp.queues[i]);
-+		if (err)
-+			goto destroy_queues;
-+	}
-+
-+	err = mana_ib_gd_create_uc_qp(mdev, qp, attr, doorbell, flags);
-+	if (err)
-+		goto destroy_queues;
-+
-+	qp->ibqp.qp_num = qp->uc_qp.queues[MANA_UC_RECV_QUEUE_RESPONDER].id;
-+	qp->port = attr->port_num;
-+
-+	for (i = 0; i < MANA_UC_QUEUE_TYPE_MAX; ++i)
-+		resp.queue_id[i] = qp->uc_qp.queues[i].id;
-+
-+	err = ib_respond_udata(udata, resp);
-+	if (err)
-+		goto destroy_qp;
-+
-+	err = mana_table_store_qp(mdev, qp);
-+	if (err)
-+		goto destroy_qp;
-+	return 0;
-+destroy_qp:
-+	mana_ib_gd_destroy_rnic_qp(mdev, qp);
-+destroy_queues:
-+	while (i-- > 0)
-+		mana_ib_destroy_queue(mdev, &qp->uc_qp.queues[i]);
-+	return err;
++	return mana_gd_send_request(mdev_to_gc(mdev), sizeof(req), &req, sizeof(resp), &resp);
 +}
 +
- static void mana_add_qp_to_cqs(struct mana_ib_qp *qp)
+ int mana_ib_alloc_pd(struct ib_pd *ibpd, struct ib_udata *udata)
  {
- 	struct mana_ib_cq *send_cq = container_of(qp->ibqp.send_cq, struct mana_ib_cq, ibcq);
-@@ -710,6 +764,8 @@ int mana_ib_create_qp(struct ib_qp *ibqp, struct ib_qp_init_attr *attr,
- 		return mana_ib_create_qp_raw(ibqp, ibqp->pd, attr, udata);
- 	case IB_QPT_RC:
- 		return mana_ib_create_rc_qp(ibqp, ibqp->pd, attr, udata);
-+	case IB_QPT_UC:
-+		return mana_ib_create_uc_qp(ibqp, ibqp->pd, attr, udata);
- 	case IB_QPT_UD:
- 	case IB_QPT_GSI:
- 		return mana_ib_create_ud_qp(ibqp, ibqp->pd, attr, udata);
-@@ -800,6 +856,7 @@ int mana_ib_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+ 	struct mana_ib_pd *pd = container_of(ibpd, struct mana_ib_pd, ibpd);
++	struct mana_ib_alloc_pd_resp ucmd_resp = {};
+ 	struct ib_device *ibdev = ibpd->device;
+ 	struct gdma_create_pd_resp resp = {};
+ 	struct gdma_create_pd_req req = {};
++	struct mana_ib_alloc_pd ucmd;
+ 	enum gdma_pd_flags flags = 0;
+ 	struct mana_ib_dev *dev;
+ 	struct gdma_context *gc;
+ 	int err;
+ 
+-	err = ib_no_udata_io(udata);
+-	if (err)
+-		return err;
++	if (udata && udata->inlen) {
++		err = ib_copy_validate_udata_in_cm(udata, ucmd, reserved,
++						   MANA_IB_PD_SHORT_PDN);
++		if (err)
++			return err;
++
++		if (ucmd.comp_mask & MANA_IB_PD_SHORT_PDN)
++			flags |= GDMA_PD_FLAG_SHORT_PDN;
++	}
+ 
+ 	dev = container_of(ibdev, struct mana_ib_dev, ib_dev);
+ 	gc = mdev_to_gc(dev);
+@@ -121,22 +142,29 @@ int mana_ib_alloc_pd(struct ib_pd *ibpd, struct ib_udata *udata)
+ 
+ 	pd->pd_handle = resp.pd_handle;
+ 	pd->pdn = resp.pd_id;
+-	ibdev_dbg(&dev->ib_dev, "pd_handle 0x%llx pd_id %d\n",
+-		  pd->pd_handle, pd->pdn);
+-
+ 	mutex_init(&pd->vport_mutex);
+ 	pd->vport_use_count = 0;
++
++	if (udata) {
++		ucmd_resp.pdn = pd->pdn;
++		err = ib_respond_udata(udata, ucmd_resp);
++		if (err)
++			goto destroy_pd;
++	}
++
+ 	return 0;
++
++destroy_pd:
++	mana_gd_destroy_pd(dev, pd->pd_handle);
++
++	return err;
+ }
+ 
+ int mana_ib_dealloc_pd(struct ib_pd *ibpd, struct ib_udata *udata)
  {
- 	switch (ibqp->qp_type) {
- 	case IB_QPT_RC:
-+	case IB_QPT_UC:
- 	case IB_QPT_UD:
- 	case IB_QPT_GSI:
- 		return mana_ib_gd_modify_qp(ibqp, attr, attr_mask, udata);
-@@ -905,13 +962,34 @@ static int mana_ib_destroy_rc_qp(struct mana_ib_qp *qp, struct ib_udata *udata)
- 	/* Ignore return code as there is not much we can do about it.
- 	 * The error message is printed inside.
- 	 */
--	mana_ib_gd_destroy_rc_qp(mdev, qp);
-+	mana_ib_gd_destroy_rnic_qp(mdev, qp);
- 	for (i = 0; i < MANA_RC_QUEUE_TYPE_MAX; ++i)
- 		mana_ib_destroy_queue(mdev, &qp->rc_qp.queues[i]);
+ 	struct mana_ib_pd *pd = container_of(ibpd, struct mana_ib_pd, ibpd);
+ 	struct ib_device *ibdev = ibpd->device;
+-	struct gdma_destory_pd_resp resp = {};
+-	struct gdma_destroy_pd_req req = {};
+ 	struct mana_ib_dev *dev;
+-	struct gdma_context *gc;
+ 	int err;
+ 
+ 	err = ib_no_udata_io(udata);
+@@ -144,14 +172,7 @@ int mana_ib_dealloc_pd(struct ib_pd *ibpd, struct ib_udata *udata)
+ 		return err;
+ 
+ 	dev = container_of(ibdev, struct mana_ib_dev, ib_dev);
+-	gc = mdev_to_gc(dev);
+-
+-	mana_gd_init_req_hdr(&req.hdr, GDMA_DESTROY_PD, sizeof(req),
+-			     sizeof(resp));
+-
+-	req.pd_handle = pd->pd_handle;
+-
+-	err = mana_gd_send_request(gc, sizeof(req), &req, sizeof(resp), &resp);
++	err = mana_gd_destroy_pd(dev, pd->pd_handle);
+ 	if (err)
+ 		return err;
+ 
+@@ -205,13 +226,14 @@ int mana_ib_alloc_ucontext(struct ib_ucontext *ibcontext,
+ {
+ 	struct mana_ib_ucontext *ucontext =
+ 		container_of(ibcontext, struct mana_ib_ucontext, ibucontext);
++	struct mana_ib_alloc_ucontext_resp ucmd_resp = {};
+ 	struct ib_device *ibdev = ibcontext->device;
+ 	struct mana_ib_dev *mdev;
+ 	struct gdma_context *gc;
+ 	int doorbell_page;
+ 	int ret;
+ 
+-	ret = ib_no_udata_io(udata);
++	ret = ib_is_udata_in_empty(udata);
+ 	if (ret)
+ 		return ret;
+ 
+@@ -224,6 +246,10 @@ int mana_ib_alloc_ucontext(struct ib_ucontext *ibcontext,
+ 		return ret;
+ 
+ 	ucontext->doorbell = doorbell_page;
++	ucmd_resp.comp_mask = MANA_IB_UCNTX_ALLOC_PDN_SUPPORT;
++	ret = ib_respond_udata(udata, ucmd_resp);
++	if (ret)
++		return ret;
  
  	return 0;
  }
+diff --git a/include/net/mana/gdma.h b/include/net/mana/gdma.h
+index 0c395917b..de17c9bba 100644
+--- a/include/net/mana/gdma.h
++++ b/include/net/mana/gdma.h
+@@ -867,8 +867,8 @@ struct gdma_destroy_dma_region_req {
+ }; /* HW DATA */
  
-+static int mana_ib_destroy_uc_qp(struct mana_ib_qp *qp, struct ib_udata *udata)
-+{
-+	struct mana_ib_dev *mdev =
-+		container_of(qp->ibqp.device, struct mana_ib_dev, ib_dev);
-+	int i, err;
-+
-+	err = ib_no_udata_io(udata);
-+	if (err)
-+		return err;
-+
-+	mana_table_remove_qp(mdev, qp);
-+	/* Ignore return code as there is not much we can do about it.
-+	 * The error message is printed inside.
-+	 */
-+	mana_ib_gd_destroy_rnic_qp(mdev, qp);
-+	for (i = 0; i < MANA_UC_QUEUE_TYPE_MAX; ++i)
-+		mana_ib_destroy_queue(mdev, &qp->uc_qp.queues[i]);
-+
-+	return 0;
-+}
-+
- static int mana_ib_destroy_ud_qp(struct mana_ib_qp *qp, struct ib_udata *udata)
- {
- 	struct mana_ib_dev *mdev =
-@@ -951,6 +1029,8 @@ int mana_ib_destroy_qp(struct ib_qp *ibqp, struct ib_udata *udata)
- 		return mana_ib_destroy_qp_raw(qp, udata);
- 	case IB_QPT_RC:
- 		return mana_ib_destroy_rc_qp(qp, udata);
-+	case IB_QPT_UC:
-+		return mana_ib_destroy_uc_qp(qp, udata);
- 	case IB_QPT_UD:
- 	case IB_QPT_GSI:
- 		return mana_ib_destroy_ud_qp(qp, udata);
-diff --git a/include/uapi/rdma/mana-abi.h b/include/uapi/rdma/mana-abi.h
-index 8336bf51b..169bf91b3 100644
---- a/include/uapi/rdma/mana-abi.h
-+++ b/include/uapi/rdma/mana-abi.h
-@@ -57,6 +57,17 @@ struct mana_ib_create_rc_qp_resp {
- 	__u32 queue_id[4];
+ enum gdma_pd_flags {
+-	GDMA_PD_FLAG_INVALID = 0,
+-	GDMA_PD_FLAG_ALLOW_GPA_MR = 1,
++	GDMA_PD_FLAG_ALLOW_GPA_MR = BIT(0),
++	GDMA_PD_FLAG_SHORT_PDN = BIT(2),
  };
  
-+struct mana_ib_create_uc_qp {
-+	__aligned_u64 queue_buf[3];
-+	__u32 queue_size[3];
-+	__u32 comp_mask;
+ struct gdma_create_pd_req {
+@@ -889,7 +889,7 @@ struct gdma_destroy_pd_req {
+ 	u64 pd_handle;
+ };/* HW DATA */
+ 
+-struct gdma_destory_pd_resp {
++struct gdma_destroy_pd_resp {
+ 	struct gdma_resp_hdr hdr;
+ };/* HW DATA */
+ 
+diff --git a/include/uapi/rdma/mana-abi.h b/include/uapi/rdma/mana-abi.h
+index 169bf91b3..32cbbfc80 100644
+--- a/include/uapi/rdma/mana-abi.h
++++ b/include/uapi/rdma/mana-abi.h
+@@ -98,4 +98,26 @@ struct mana_ib_create_qp_rss_resp {
+ 	struct rss_resp_entry entries[64];
+ };
+ 
++enum mana_ib_ucontext_support {
++	MANA_IB_UCNTX_ALLOC_PDN_SUPPORT = 1 << 0,
 +};
 +
-+struct mana_ib_create_uc_qp_resp {
-+	__u32 queue_id[3];
++struct mana_ib_alloc_ucontext_resp {
++	__aligned_u64 comp_mask;
++};
++
++enum mana_ib_create_pd_flags {
++	MANA_IB_PD_SHORT_PDN = 1 << 0,
++};
++
++struct mana_ib_alloc_pd {
++	__u32 comp_mask;
 +	__u32 reserved;
 +};
 +
- struct mana_ib_create_wq {
- 	__aligned_u64 wq_buf_addr;
- 	__u32 wq_buf_size;
++struct mana_ib_alloc_pd_resp {
++	__u32 pdn;
++	__u32 reserved;
++};
++
+ #endif
 -- 
 2.43.0
 
