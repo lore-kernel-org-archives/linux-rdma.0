@@ -1,79 +1,80 @@
-Received: from SA9PR02CU001.outbound.protection.outlook.com (mail-southcentralusazon11013023.outbound.protection.outlook.com [40.93.196.23])
+Received: from PH0PR06CU001.outbound.protection.outlook.com (mail-westus3azon11011038.outbound.protection.outlook.com [40.107.208.38])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C7D683DEAE3;
-	Fri, 17 Jul 2026 07:24:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.196.23
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45808384242;
+	Fri, 17 Jul 2026 07:26:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.208.38
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784273072; cv=fail; b=GEQLBqGHLCrt+LXO5oYGOr/i9GtfX87YJpwU7m6IpGisUV2AjHS1YcsBvElwjWd0UJsvAxvdSj3ms7hjFYl/YuICHHzrfLx7G5ouWdFi1Bzb9HwCxtIFFb62aR66+p8TMW5l6NUVZIQtaSEES6bMW8QKoBj1KQ33yCFsENSNsUU=
+	t=1784273177; cv=fail; b=ci4VqVZufE+uCbF2rcUAi+SEQ/x228LlG16kVNllFtqNfx6BKtV/ZhjmfWCI01Vj0VvLMMkXOcfinoVuDmwRtjtu/dU48NoxSDSrteBCKTJ2McbIJ/oaLm0JhA50dk/vhSI3wcd11znu0MMY5kfKKNPgZ8UNmF3ueF9M1vv89pA=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784273072; c=relaxed/simple;
-	bh=rohrswExmgo+bdtTCx51iXdChWihYmipQqJcktGHub4=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=QLdfOPLRAFK52mvBD50NJ5qDePbMjjV7TBz79po1MxI5ggyab+cVg7EeB1Xav4L2TypDYf0HCGCfkMfDmkQb1nGlAG16705766biDrmxoknKdL7pDWJ+hkBXOQZfpM92HRm1txB/IeOUTkMBxZY7FfBNMPWDx7B5YJWHZnH0kuo=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=H0MxHhmc; arc=fail smtp.client-ip=40.93.196.23
+	s=arc-20240116; t=1784273177; c=relaxed/simple;
+	bh=l6+LdZitRyzcr/60pIJSskgYvRlw6hGaIBXUIm5hlMY=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=qUu/a+KR1Km/RWGfKqT/3bJy9m2raVYGSubSW5i3QokYW83klPsebbYioBo9Zr9ug2/1LDfSbl3PV6iBRtSFmmZQloZl9XdXPrgqWNRBBt0FulSfFk6uAVv0cjY6xg4C1hE/w1GjtxtnEAIP9W82pq42U0w7L/z0Wq+9d+EZa2Y=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=fMpHzhFy; arc=fail smtp.client-ip=40.107.208.38
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="H0MxHhmc"
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="fMpHzhFy"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=aA75Ia7KmhdtJGvbvhG0aC7T/qQC+WW50EYq64EC9/ClsVkeFdFy0uWztEyYXvmnHHsVs7oFTq/z3MSyxjGlvTiUqJgI2I1zXCm0sSWqla8/nkCezzsQxNpwIYipSipBdUgmK4sncqBWh+zgmCOx80B40MuSyLwrdxIkr+c2B2UsZp/SVdZmvPjuXbeKdBJbLeX1txPxYjBruq2xoYWzgDXlJaLIAi8huKIy6adXxkmDzLtpeb2OcOaftAEeXBMKWF9NdDxZPconfonzrNO3y5NxDXZhSnJ88a/7viApOKiYSVE9OCIXUrTrwawSA6C38xcEfR/RX/g2t4imtde1Yw==
+ b=pdtlm9zni94YgQf29bXh0zBPBbg4MKu4Mq/TslQj72FS5p0NPDIA1pPy1eTOwRqHSJRzQSTXhQE46NWIOU8aeQY3XBwHDZ/CTH+ET2jdXQH0IclSv4+cTzd6zCUwbyYIRylC+FmO2ELSa2kG5XAmn6B4weHI+IEegO1aLJ+jzwNFYIxbMcxZrEKtsVwo/fD6+HmCA1omwxSShg9O1FVZGwIcsNg6pMoBRa6Tvm1KqG1jI3eVfGhwckYWMpzcXZziwzwMyeib1RD5Wv1rgX1EuY5F81oh1bs9I1tG/Y1QJV13EVOEiSjignfUPhVzET1Q9CyPHtUVVL3yxPppw19WDg==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=/jMXMG1BHZIfci6MwwsTypL4XMCJ47XD8WbHwWeKodo=;
- b=OX9pnvDdKRARnNj7HxkhMazyPT0pxBtQs9tvZHm8BBIhG7fRgaZUHLZNmkVRbUxlNxBAcY6RN39f+axoM25iG003WS0o0bH0SxdMWQIUfRLVtQTg0SKEcdE5czSQUP8xkDVw3ALIRY8thIEiOVy6Y0xlVy4g0znr4j5VqgS/Ia29vALnBVadozq8dEG2cjKTLs6XRwZq8iro3Gu0Ww0BVnhWnDZCPOyslpr/YOZAx+IGe9GxH+ncttmUtCfT0wwC+67RjcBZkZ7D6pElQVuLfSIEnbV4MFFmMlvWkuU4CYeuYdDtC1KwT5817r8doZMUm9x/Gf5Fz0pG6m9Mc+IgAQ==
+ bh=L3sFaiZREPO/BWL/2RI8dALv43+/vn1l8G5eIS3HYc8=;
+ b=o3kJNcCYvqfsNW0XOj3p8ZDrppDCgPOW7y+bHpjAb5cIit2emtixt2Z5QBFzuQP1Bg5KfbZXLvQZ/ni8wflI3A024SM6RsEfjwg9TDlKsBRK/OklN2qwSv4G6PLTHD1ALAQeG3OD6Q/VsBWbfuUdEzoqm+mqrfYl88NLEFXOtzuTrz63/erqt/E9wmM+En0PsOJTNS9mTB1da1y4XhpZahAWU8SGyl9a9kM7NQ8in6D54q93fSc2IuzhZEnznsmDigvWePLWH20L6qypzFktsvtrF66xQeD4TLeQDmic9nR6b6f8s3ezRkUv9GDLsQPwHEBGIgO5ytA4k1F5ra1Aig==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.117.161) smtp.rcpttodomain=lunn.ch smtp.mailfrom=nvidia.com;
+ 216.228.118.233) smtp.rcpttodomain=lunn.ch smtp.mailfrom=nvidia.com;
  dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
  dkim=none (message not signed); arc=none (0)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=/jMXMG1BHZIfci6MwwsTypL4XMCJ47XD8WbHwWeKodo=;
- b=H0MxHhmc2t6psoXy32C0Xzj0bNDykuUG1XdkdlSGk3VcpCS8QnhBJdFrXdEg27jO/NKCU1+ePWJ43eqzhRLDV+GcCk8Bt0YPJOIsC2q1Rrlt5yD9sXdzdi1OtoghMQtmf3CO6dxpfzAsWyGacZtrlixyjUHlktgDUsUZszia0R+tadOHv5W4UJxOLLucuBdbfONYtbCFgCpC4wrGxfX2srLlwivBZ6CWDAftoRKGQMI9MZKmpCI25/RBjrgTzlFONA3EpnlMM0PjgCuqj7euiA/rBbwXIzQrcpbvJ6WT4dA1C4SopMlNLUdyqEVisgQL73Ax8Dc7NBbEVQk+Hho2+g==
-Received: from BN0PR10CA0018.namprd10.prod.outlook.com (2603:10b6:408:143::29)
- by DS7PR12MB6047.namprd12.prod.outlook.com (2603:10b6:8:84::22) with
+ bh=L3sFaiZREPO/BWL/2RI8dALv43+/vn1l8G5eIS3HYc8=;
+ b=fMpHzhFyKxU9BWJ9YenGOXLNCDGCvkOBApswITju2u4Gg6GdBa9UrrLitPRajyvuPC0Jta3mrcxls2WlyS/2Wyh0s6tEZqAynjjPwwRuGTYRRlUlcJ9jjIfQQyFNWBCtgtsVSSjxLU6YcW+j1u42+iwmD+xgjHbJmRqdczEQFX1gbJXdYUq+PkaImzskuAF7AYwsEeec1yGv8NjBlkOIU5VXd2pBRvcF+9IRA8D86Z4TKv+6CPo24ULUuS3qGb61W9GuieY/50NayZTFGMuUJXirOyAxTudX3E8F/UZwjSmfvE0aof7sN+XvWS/jSorLGJ+r8v4gvxYXrYmcpAE0iw==
+Received: from DS7PR05CA0069.namprd05.prod.outlook.com (2603:10b6:8:57::21) by
+ LV2PR12MB5920.namprd12.prod.outlook.com (2603:10b6:408:172::20) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.223.12; Fri, 17 Jul
- 2026 07:24:22 +0000
-Received: from BN1PEPF00004686.namprd03.prod.outlook.com
- (2603:10b6:408:143:cafe::50) by BN0PR10CA0018.outlook.office365.com
- (2603:10b6:408:143::29) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.223.13 via Frontend Transport; Fri,
- 17 Jul 2026 07:24:21 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.161)
+ 2026 07:26:12 +0000
+Received: from DS1PEPF00017095.namprd03.prod.outlook.com
+ (2603:10b6:8:57:cafe::8d) by DS7PR05CA0069.outlook.office365.com
+ (2603:10b6:8:57::21) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.21.245.6 via Frontend Transport; Fri, 17
+ Jul 2026 07:26:11 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.118.233)
  smtp.mailfrom=nvidia.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=nvidia.com;
 Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.117.161 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.117.161; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.117.161) by
- BN1PEPF00004686.mail.protection.outlook.com (10.167.243.91) with Microsoft
+ 216.228.118.233 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.118.233; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.118.233) by
+ DS1PEPF00017095.mail.protection.outlook.com (10.167.17.138) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.245.5 via Frontend Transport; Fri, 17 Jul 2026 07:24:21 +0000
-Received: from rnnvmail202.nvidia.com (10.129.68.7) by mail.nvidia.com
- (10.129.200.67) with Microsoft SMTP Server (version=TLS1_2,
+ 15.21.245.5 via Frontend Transport; Fri, 17 Jul 2026 07:26:11 +0000
+Received: from drhqmail201.nvidia.com (10.126.190.180) by mail.nvidia.com
+ (10.127.129.6) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Fri, 17 Jul
- 2026 00:24:01 -0700
-Received: from rnnvmail203.nvidia.com (10.129.68.9) by rnnvmail202.nvidia.com
- (10.129.68.7) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Fri, 17 Jul
- 2026 00:24:00 -0700
-Received: from vdi.nvidia.com (10.127.8.10) by mail.nvidia.com (10.129.68.9)
- with Microsoft SMTP Server id 15.2.2562.20 via Frontend Transport; Fri, 17
- Jul 2026 00:23:57 -0700
+ 2026 00:25:57 -0700
+Received: from drhqmail203.nvidia.com (10.126.190.182) by
+ drhqmail201.nvidia.com (10.126.190.180) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.20; Fri, 17 Jul 2026 00:25:56 -0700
+Received: from vdi.nvidia.com (10.127.8.10) by mail.nvidia.com
+ (10.126.190.182) with Microsoft SMTP Server id 15.2.2562.20 via Frontend
+ Transport; Fri, 17 Jul 2026 00:25:52 -0700
 From: Tariq Toukan <tariqt@nvidia.com>
 To: Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller"
 	<davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, Jakub Kicinski
 	<kuba@kernel.org>, <netdev@vger.kernel.org>, Paolo Abeni <pabeni@redhat.com>
-CC: Alex Lazar <alazar@nvidia.com>, Gal Pressman <gal@nvidia.com>, "Leon
- Romanovsky" <leon@kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-rdma@vger.kernel.org>, Mark Bloch <mbloch@nvidia.com>, "Maxim
- Mikityanskiy" <maxtram95@gmail.com>, Saeed Mahameed <saeedm@nvidia.com>,
-	"Tariq Toukan" <tariqt@nvidia.com>
-Subject: [PATCH net] net/mlx5: Fix MCIA register buffer overflow on 32 dword reads
-Date: Fri, 17 Jul 2026 10:23:38 +0300
-Message-ID: <20260717072338.1240582-1-tariqt@nvidia.com>
+CC: Akiva Goldberger <agoldberger@nvidia.com>, Gal Pressman <gal@nvidia.com>,
+	Kees Cook <kees@kernel.org>, Leon Romanovsky <leon@kernel.org>,
+	<linux-kernel@vger.kernel.org>, <linux-rdma@vger.kernel.org>, Mark Bloch
+	<mbloch@nvidia.com>, Moshe Shemesh <moshe@nvidia.com>, Saeed Mahameed
+	<saeedm@nvidia.com>, Shay Drori <shayd@nvidia.com>, Tariq Toukan
+	<tariqt@nvidia.com>
+Subject: [PATCH net] net/mlx5: FW tracer, clamp firmware-reported num_string_db
+Date: Fri, 17 Jul 2026 10:25:43 +0300
+Message-ID: <20260717072543.1241094-1-tariqt@nvidia.com>
 X-Mailer: git-send-email 2.44.0
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
@@ -86,111 +87,70 @@ Content-Type: text/plain
 X-NV-OnPremToCloud: ExternallySecured
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: BN1PEPF00004686:EE_|DS7PR12MB6047:EE_
-X-MS-Office365-Filtering-Correlation-Id: e9bababb-af24-468a-7fb1-08dee3d46be3
+X-MS-TrafficTypeDiagnostic: DS1PEPF00017095:EE_|LV2PR12MB5920:EE_
+X-MS-Office365-Filtering-Correlation-Id: 899c1e7d-9510-428b-2f0a-08dee3d4ad68
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|36860700016|376014|7416014|23010399003|82310400026|1800799024|11063799006|56012099006|10067099003|18002099003;
+	BCL:0;ARA:13230040|23010399003|1800799024|36860700016|376014|82310400026|7416014|56012099006|11063799006|10067099003|6133799003|18002099003;
 X-Microsoft-Antispam-Message-Info:
-	Q7QZCkrAvS45ahWGosq5HZasu6nl5zqMlfih7+msTrBopyXG1BYIlQGomZntli2lqi12jf3Zxeux73XLYZSPc9Lmd7aQZKA5zFUWKu69R+ojENg57o9pFRgMvJ08N10PRlpY7oZNrZ8SYgjh/OTu5dcP0Mpjno8VHZJpkNoYpaL1HuH/lk3ggmhsIlMryrYxx+iuA/+HcE6z4oleiBrAcbGSTWbprUwUSvLX3I6PxbLY9b9VaU+5/JKHCXrA49ZniEiIWfNPVMf5X1G/W2teparqM+RIMCnK3c7REonKbbWr8vbpQBPQC82FGr6+g8ANYGkP2T+7IndZW0LlhbDHCp/MDO1szUpGsXIZzLHEgnOktNBiWeK6Uxw4oC/tMG7eAmuY5DYW9nj1NwIoFG0V9xC4SczOOpws1xWGdcpAlx8r+o+qPdCfl25aw4EAY8yqjbdM1wjGEj7Z5G13+dumQ+GOAlSz7kI+fBQynbGxqvTLOAj+PPR7WjsSewVa/WcDrYjIT6aAEedffh98N/Wl/8xDotK5sTwdK797Z+ICk9+2E7NlQEhkNIl6rT92Hea+ulkEVYVT7IoanIS1Ew8E+GTko4fzcAd61PQfDafj98DE3RT3Jkk1+N19cvQUgRowDPJ77jAC30lVl7EbywqwWzZprv3UxtNhls3DcwwKgakESIVtr9HYBgMAxmf4Ya/G9WNlXLn9VN2UJ+NZbpre4g==
+	eIDSTNACit2w8VaaNbSW9RpBreUj00lxPm+1V7w52LD8i/MK++2UVnLoYhVLIOVmsUgXsimx6prcwTum73nFQvXLvqx4wkHF1+I8+lvn/cqqOILztuJ5QJqbtY8x22qkPoFQ0agfliZHesZ6cUZ+tl4axg9rtK1YHbvSXL5D8/AH6ZRRhheT7J4wICYPg5DSE+sYXLjkIvdi8QreWUGxPJgJOc6i/Yzc9YJVUvP7wr2mUwwupBPIl1J3DIY8oMD7scA5E8V3AEsPQ1fYXLEBhDqyuFbB5ygdIBehDugXS+b9jTt5OlMoCrbriuSASFiyz/8codHqIux4AHaQJBjw154J/4iUoiZp08UkUyxKg86qf/VnbFA8q9rg1TsE8lUwoIO5FOEX5CqTqTXioLmLNEQlC9KzSQvnVYoB2/EXS5myKNGdik7MbqGgzvaGKTu7NADsX+avbooJpUZ3TJxqg7gYTikD6onHqDpr4VOJbOEEleYnDatGpYX1zRZHsLnJ8ioxiTNkEVKZ5/m7jd1WVquuBKH2Ol7Jj+nuwNwGsiJeG8dq7YDbLuXZJonoTmmhBr/iYNy6t7vL6AJVcdKCoWNnGpkS5y5FFXDxnat3kZvdyRCEf/POcYCcq8Yj8BY07PR+t/68qWjkvkbofTJoY6aYzzG/rIXfGNKmn2MZv1Dogh77JyazYLHi3F2T5apBpXN6aPq4cEQF9lkLMKwzTw==
 X-Forefront-Antispam-Report:
-	CIP:216.228.117.161;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge2.nvidia.com;CAT:NONE;SFS:(13230040)(36860700016)(376014)(7416014)(23010399003)(82310400026)(1800799024)(11063799006)(56012099006)(10067099003)(18002099003);DIR:OUT;SFP:1101;
+	CIP:216.228.118.233;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc7edge2.nvidia.com;CAT:NONE;SFS:(13230040)(23010399003)(1800799024)(36860700016)(376014)(82310400026)(7416014)(56012099006)(11063799006)(10067099003)(6133799003)(18002099003);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	SLMOM8HsTqbhUa1y4RRSMdbSDU6DeQDIFrYfYcw/puH4Eh9i4fONtK6OUlFzRR8XE8E+210S90lbyT/oOQQx9KNo4XKQ2Ji6AH5Gq4jAS/OoAWviOy1NT0Q1ZGJggpKzVraFNa3bjQAK/yn/Iyb0BVE9V0ux8Ml/eM4pKoAGM5UqmrRaAshHU4VfiClD0MpUGCYhlyu8ZVgFowrpoPAea0nQDKy/UEstWo+Mm3SLRvRI+TNuxumqYnAlZ94nTN1UzuDdvkoeEA7LBJPKobss4SSDNk8Z8WJvUkTBa3E5hwemdbBED8id4nOshNob5889D5XrX592kmlMRsS8/SCfzxpNKTB/vyEu1IL8Hiv98/Msx1ZMUyGhHSgqNVnquYYO8fh78dNuvZ6YtAWkiU/geT0Vm8c1ree4X/wj0WiAG6/GLL/BShermKOvVRJ5e+Kn
+	sJjcQ1ZDj6g+D+1X0+XdyVqR116JW4Lzgnc+ikOwKRGOApLMRt+/zt7ltA6zKUvNX0AtU4jupZgIe4XzSXzGXFuntNkGw1ca2a4JcwiX+w+zf4myq2YhYuU/rylfFmXP2QoJZpGH+UJKb5BKXNnYw165JCumfp8493W7cZhvtYmTN6VYkEyYcsTUmOaZ+r2pPxfo1pTIRZLpwpniWCIaIfk88/SGE8k5Y8VDdGX+vZrsb1SAEbj8EvyknZa56es9NdT/n2pgvzCIsmB/XmNrUH3GwftDqj5IaFM82jh6a59KHoLbFeaxw2dFGjg/I1g9v8jkBuA4xW6bJWZYpjazRSaSHcF3YkmGdkCKlPr1Xy4tbBCjsfa6a1a0jhmu6NsPAQho0ZT0ykIigTO2DyblxOJ2TkA3skYYIQtRiY+VjSy7+fpl2OvqetERocOLevId
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 17 Jul 2026 07:24:21.3926
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 17 Jul 2026 07:26:11.3568
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: e9bababb-af24-468a-7fb1-08dee3d46be3
+X-MS-Exchange-CrossTenant-Network-Message-Id: 899c1e7d-9510-428b-2f0a-08dee3d4ad68
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.161];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.118.233];Helo=[mail.nvidia.com]
 X-MS-Exchange-CrossTenant-AuthSource:
-	BN1PEPF00004686.namprd03.prod.outlook.com
+	DS1PEPF00017095.namprd03.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS7PR12MB6047
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: LV2PR12MB5920
 
-From: Gal Pressman <gal@nvidia.com>
+From: Akiva Goldberger <agoldberger@nvidia.com>
 
-The MCIA register can return up to 32 dwords (128 bytes) when the device
-advertises the mcia_32dwords capability, but struct
-mlx5_ifc_mcia_reg_bits only defines dword_0..11, leaving room for just
-12 dwords (48 bytes) of data.
+mlx5_query_mtrc_caps() reads num_string_db from the MTRC capabilities
+register and uses it directly as a loop bound to populate the fixed-size
+base_address_out[STRINGS_DB_SECTIONS_NUM] and
+size_out[STRINGS_DB_SECTIONS_NUM] arrays in the tracer's str_db
+structure (STRINGS_DB_SECTIONS_NUM == 8).
 
-mlx5_query_mcia() clamps the read size to mlx5_mcia_max_bytes() and then
-memcpy()s that many bytes out of the register, potentially reading past
-the end of the 'out' buffer. On kernels built with FORTIFY_SOURCE this
-is caught as a buffer overflow while reading the module EEPROM via
-ethtool:
+The field is 4 bits wide, so firmware can report up to 15. A value
+greater than STRINGS_DB_SECTIONS_NUM makes the loop write past the end
+of those arrays, corrupting adjacent fields of the fw_tracer structure
+on the kernel heap. Clamp the firmware-reported value before it is used.
 
-  detected buffer overflow in memcpy
-  kernel BUG at lib/string_helpers.c:1048!
-  RIP: 0010:fortify_panic+0x13/0x20
-  Call Trace:
-   mlx5_query_mcia.isra.0+0x200/0x210 [mlx5_core]
-   mlx5_query_module_eeprom_by_page+0x4a/0xa0 [mlx5_core]
-   mlx5e_get_module_eeprom_by_page+0xbb/0x120 [mlx5_core]
-   eeprom_prepare_data+0xf3/0x170
-   ethnl_default_doit+0xf1/0x3b0
-
-Extend the mcia_reg layout to 32 dwords.
-
-Fixes: 271907ee2f29 ("net/mlx5: Query the maximum MCIA register read size from firmware")
-Signed-off-by: Gal Pressman <gal@nvidia.com>
-Reviewed-by: Alex Lazar <alazar@nvidia.com>
+Fixes: f53aaa31cce7 ("net/mlx5: FW tracer, implement tracer logic")
+Signed-off-by: Akiva Goldberger <agoldberger@nvidia.com>
+Reviewed-by: Shay Drori <shayd@nvidia.com>
 Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/port.c |  4 ++--
- include/linux/mlx5/mlx5_ifc.h                  | 13 +------------
- 2 files changed, 3 insertions(+), 14 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/diag/fw_tracer.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/port.c b/drivers/net/ethernet/mellanox/mlx5/core/port.c
-index ddbe9ca8971d..9f682f6bdb50 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/port.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/port.c
-@@ -314,7 +314,7 @@ static int mlx5_query_module_id(struct mlx5_core_dev *dev, int module_num,
- 		return -EIO;
- 	}
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/diag/fw_tracer.c b/drivers/net/ethernet/mellanox/mlx5/core/diag/fw_tracer.c
+index adcc73e2a5b3..404736c46adf 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/diag/fw_tracer.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/diag/fw_tracer.c
+@@ -64,6 +64,13 @@ static int mlx5_query_mtrc_caps(struct mlx5_fw_tracer *tracer)
+ 	tracer->str_db.num_string_trace =
+ 			MLX5_GET(mtrc_cap, out, num_string_trace);
+ 	tracer->str_db.num_string_db = MLX5_GET(mtrc_cap, out, num_string_db);
++	if (tracer->str_db.num_string_db > STRINGS_DB_SECTIONS_NUM) {
++		mlx5_core_warn(dev,
++			       "FWTracer: Firmware reports num_string_db (%u) > (%u), clamping\n",
++			       tracer->str_db.num_string_db,
++			       STRINGS_DB_SECTIONS_NUM);
++		tracer->str_db.num_string_db = STRINGS_DB_SECTIONS_NUM;
++	}
+ 	tracer->owner = !!MLX5_GET(mtrc_cap, out, trace_owner);
+ 	tracer->str_db.loaded = false;
  
--	ptr = MLX5_ADDR_OF(mcia_reg, out, dword_0);
-+	ptr = MLX5_ADDR_OF(mcia_reg, out, dwords);
- 
- 	*module_id = ptr[0];
- 
-@@ -399,7 +399,7 @@ static int mlx5_query_mcia(struct mlx5_core_dev *dev,
- 		return -EIO;
- 	}
- 
--	ptr = MLX5_ADDR_OF(mcia_reg, out, dword_0);
-+	ptr = MLX5_ADDR_OF(mcia_reg, out, dwords);
- 	memcpy(data, ptr, size);
- 
- 	return size;
-diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
-index 695c86ee6d7a..8f18a508320d 100644
---- a/include/linux/mlx5/mlx5_ifc.h
-+++ b/include/linux/mlx5/mlx5_ifc.h
-@@ -12215,18 +12215,7 @@ struct mlx5_ifc_mcia_reg_bits {
- 
- 	u8         reserved_at_60[0x20];
- 
--	u8         dword_0[0x20];
--	u8         dword_1[0x20];
--	u8         dword_2[0x20];
--	u8         dword_3[0x20];
--	u8         dword_4[0x20];
--	u8         dword_5[0x20];
--	u8         dword_6[0x20];
--	u8         dword_7[0x20];
--	u8         dword_8[0x20];
--	u8         dword_9[0x20];
--	u8         dword_10[0x20];
--	u8         dword_11[0x20];
-+	u8         dwords[0x400];
- };
- 
- struct mlx5_ifc_dcbx_param_bits {
 
 base-commit: 3f1f755366687d051174739fb99f7d560202f60b
 -- 
