@@ -1,242 +1,142 @@
-Received: from CY3PR05CU001.outbound.protection.outlook.com (mail-westcentralusazon11013044.outbound.protection.outlook.com [40.93.201.44])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CFE5F3BFE21;
-	Fri, 17 Jul 2026 09:24:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.201.44
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784280287; cv=fail; b=jUn9dEUBCDqQqU6IKeUXJcgBKZlEsFQqpsKFFjyIFPaS2H0Oe+AmMtP7ZgZxDl9icGYr/cyNVbMGPkh9JVPT9LziEc4PQU35yGbvfuXZaA0/ZsbX7248US1KMIrsO4blkz9MYHkwla2LIVSWLG4A2ybtpumpfy1flhFbK25UmH8=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784280287; c=relaxed/simple;
-	bh=lWnvE0Y1rdaHf3TkqBgBjipA32TrDwqmsmEByNBlvII=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=VoZR95l8WM6oMhVLLgQQLCUXqPcDpFEsYAUmE6fKGn1wMT+uOH4P3gpe5Q+Y/+MYZ7czrf8hykUwqFWvYLyfa6it4pA52F38NYoeKxnpXjQU94nkTC+sUCn0MrBWzGGL+S9/Me6SMeN+dBj7XinIsY4xqhIkK1HWboIOwZrtQiM=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=0x8HlWw/; arc=fail smtp.client-ip=40.93.201.44
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4213A3E92B7
+	for <linux-rdma@vger.kernel.org>; Fri, 17 Jul 2026 09:47:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1784281662; cv=none; b=jqGSpZxN9u9EWHTVX+3qT7fMvcATwHy5hfuJpOMD0lN2GhIu1xGSPl71pmzHlsMaOYadnsge6WpTST8/kIAzoPX4jwuCskVxqWTs/COvhag7ryh3XZ3ndjOMBYORXc3FFWqZl7yKT8+nS94ROawjwajQvyEA9lIwGGM9HIDVH+A=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1784281662; c=relaxed/simple;
+	bh=SA1xMJwP+nvYyGy44ETv4g2iY2c92GT627gCU7j/mvk=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=sEPiRV5piRDyr7gH99HFqDHaY3pRGNAGKujzpMLKewTxxbRtNQPRgnjWUHBr89VNDE4gGOfOFTiNStR10ZPH0Rc9TRAQHQ3JoZSw8IvyW7gMvivrW2PgwjMnxAbQlXPsFWo7ddIVeRYkXSTawpPgp5ztXoajjGM7Gxs2mTgsgeQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=UU7k55Gb; dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b=itb+PeJS; arc=none smtp.client-ip=170.10.129.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="0x8HlWw/"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=DSJnJ8JD2dVUmFQI+c1O4gxVPTg+nCH20Y5AaTtpBgirVVmtay3ENIxHMvNBzWlWEwieEok2DP6J/inIUPHFgJ7EreVUeHNQys//f1trTAaz4VbP4IfkZKZD16frO/4bgKfk0Yp3vgwjpl6paueennaajcXZht7U9yhZ0DCzpSfHHVxaiyK+cPTckPguX/uR1Te95UwaJTSs/RE67/oN9ioc98NfHTcWHJrEAwcmlPjGU5rPkExC4FumkuwnJ1eRkFIzfYrBXEYUl4sIHqZansfsnZ8SHA/183EmryJ29pI/znRtgmrF76SnvpnqozR52GEuEt6OdVL2mqrg7M1CUg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=S0oPoM4t9rDtIuZGTjIiOE8m/MRclPalszjDCSMiZmE=;
- b=i0uo1s0FstDp4WksPEnyE7ZVRhcigXup6t2npDF06CxrFKm5cG9O3aSpgyJNyYF2ovgHHCOsI9VhC+VbuW0U/ScbOFqNd51JaMuU1pDc8VjKBP6gDXPqMNFvwdShUL8z8z6SwSHYflfNIO4vu10Wl6ZnZ4n4ZkqwSYzwQR/9lccF0W2U0R4A56Cr6pZnewMU2YEVkUHvapNOtgU9MIvonr7Q5ptSet/26LOFx9/eROtPptxdFOGNMpD4gKEYj/xogHLYqpxYHgElx4keYdPYcfTyrnb6xQvcmUKpJ8LSNlqf3r4KDmR6d0Z8mu3oiATLKu6VNTTGD8LxUuPF+lrD2w==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 165.204.84.17) smtp.rcpttodomain=ziepe.ca smtp.mailfrom=amd.com; dmarc=pass
- (p=quarantine sp=quarantine pct=100) action=none header.from=amd.com;
- dkim=none (message not signed); arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=S0oPoM4t9rDtIuZGTjIiOE8m/MRclPalszjDCSMiZmE=;
- b=0x8HlWw/iqKiQvMCvCMb7IAv3LZbchVhvx1gJHFNf6lLrqyeBDxfYe7Vsjs7xSrbNrhvcHLbVUPcq0dhgX5wkH4n0oB/XU/gWP1nMg9YAfGCy0RVy5Eg9Nu2kXsYkjYhMKYZCHpJKh1ZnIlAkEEBJyCKVyjfpeU4wFxxiF5zCWc=
-Received: from MN2PR06CA0011.namprd06.prod.outlook.com (2603:10b6:208:23d::16)
- by SA1PR12MB7040.namprd12.prod.outlook.com (2603:10b6:806:24f::13) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.223.12; Fri, 17 Jul
- 2026 09:24:37 +0000
-Received: from BL6PEPF0001AB74.namprd02.prod.outlook.com
- (2603:10b6:208:23d:cafe::53) by MN2PR06CA0011.outlook.office365.com
- (2603:10b6:208:23d::16) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.223.12 via Frontend Transport; Fri,
- 17 Jul 2026 09:24:33 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
- smtp.mailfrom=amd.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=amd.com;
-Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
- 165.204.84.17 as permitted sender) receiver=protection.outlook.com;
- client-ip=165.204.84.17; helo=satlexmb08.amd.com; pr=C
-Received: from satlexmb08.amd.com (165.204.84.17) by
- BL6PEPF0001AB74.mail.protection.outlook.com (10.167.242.167) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.245.5 via Frontend Transport; Fri, 17 Jul 2026 09:24:33 +0000
-Received: from satlexmb10.amd.com (10.181.42.219) by satlexmb08.amd.com
- (10.181.42.217) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.41; Fri, 17 Jul
- 2026 04:24:32 -0500
-Received: from satlexmb07.amd.com (10.181.42.216) by satlexmb10.amd.com
- (10.181.42.219) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.41; Fri, 17 Jul
- 2026 04:24:32 -0500
-Received: from xhdipdslab46.xilinx.com (10.180.168.240) by satlexmb07.amd.com
- (10.181.42.216) with Microsoft SMTP Server id 15.2.2562.41 via Frontend
- Transport; Fri, 17 Jul 2026 04:24:30 -0500
-From: Abhijit Gangurde <abhijit.gangurde@amd.com>
-To: <jgg@ziepe.ca>, <leon@kernel.org>
-CC: <allen.hubbe@amd.com>, <nikhil.agarwal@amd.com>,
-	<linux-rdma@vger.kernel.org>, <linux-kernel@vger.kernel.org>, "Abhijit
- Gangurde" <abhijit.gangurde@amd.com>
-Subject: [for-next 1/1] RDMA/ionic: Add robust udata compatibility checks to all uapi verbs
-Date: Fri, 17 Jul 2026 14:53:45 +0530
-Message-ID: <20260717092345.2533564-1-abhijit.gangurde@amd.com>
-X-Mailer: git-send-email 2.43.0
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="UU7k55Gb";
+	dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b="itb+PeJS"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1784281658;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=9UfOzvi3ApW9raJzhRo6rILl0ALfG4yRcSmV5u5K+uI=;
+	b=UU7k55GbCcSkwBq5uFBCnKdeGSmiqvR6lew60/LXquZdfA59qwPQRi8PGY2l2etTvNMjbY
+	y2akSSbghmrEn8yn177ChV45PfTFAGpjHrwVktKugfeqKqt+JZn/EnZdRT4XgcxdiNvAJ5
+	Aevjkb/xrUqR9au4dQ1C9s5rfy2NqK8=
+Received: from mail-wr1-f69.google.com (mail-wr1-f69.google.com
+ [209.85.221.69]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-641-02-JOSjXMlSUdWUWc-rKig-1; Fri, 17 Jul 2026 05:47:36 -0400
+X-MC-Unique: 02-JOSjXMlSUdWUWc-rKig-1
+X-Mimecast-MFC-AGG-ID: 02-JOSjXMlSUdWUWc-rKig_1784281656
+Received: by mail-wr1-f69.google.com with SMTP id ffacd0b85a97d-4729d2a64efso817210f8f.0
+        for <linux-rdma@vger.kernel.org>; Fri, 17 Jul 2026 02:47:36 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=redhat.com; s=google; t=1784281655; x=1784886455; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:in-reply-to:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=9UfOzvi3ApW9raJzhRo6rILl0ALfG4yRcSmV5u5K+uI=;
+        b=itb+PeJSzc6EZjwvg/qhcMyQ0i1CtsU6aXAZNGj1z5fB6qiMdxz8y893yYzTxgokoL
+         g9OMYcRFMNCnsyVTTXVHRSsf254/J1JW1uFVGyRpZ9KQnH+abAiVfQZhcrtWhm/cipfX
+         sSYzdUMEmzxM32TXpUu10CcGBmpTGYbPbAvG0I0DL2ZO7pOoIVbhsMfsgm5qngFxPhea
+         4AFddnfu1QW5A7CgsgdZcOMXyyt6ORY+Ie7g0qk8ZsEFP1+pmAjzzppa/YRp2oPBa9DF
+         +U4Dwigs19DXAtIRRoidbdQSBK1JBoPamZ3EO9xNJdyvh4TiZ4XFWKqLbInVSDj3aEjw
+         rQEw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1784281655; x=1784886455;
+        h=content-transfer-encoding:content-type:in-reply-to:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=9UfOzvi3ApW9raJzhRo6rILl0ALfG4yRcSmV5u5K+uI=;
+        b=FT7K1fZ5TvrtiOTlj0Pds6DfyhyipP81SJX7dVy96GicEPNnHh6fJi+TWXWts5u0up
+         9RTDpSa5SCj/20TYoPWjUMYFlaKnYhYCJUyMPyXx88eq4x/ZAg7YUJm88YPT2nuyRgs8
+         XLDqjUm6bc8Q2cHvh3CVDDXocFDc6OVnKJGMVDxqdY0neGSNKdNYl3FRO3Z0d4e1rFkr
+         71ur1e8FSyTtsULDpbc78C+WtXhvMtQx4x6V3CG+P+XZRWK/G2mTedh7Yy9wgxBH6y0A
+         r4952Y4g4gRYBRNb7iMvcTh9DNgJTKCPor0wO2slbgUBPwx7+R5UzTMyv/PRFMJqB6HE
+         lFKA==
+X-Forwarded-Encrypted: i=1; AHgh+Rrky+d8a/ChCCiGmK3WO8gLIwtij+kI9kAzB+CQOLIv4ofFxeuzx+VyQzCivbuQn2k7XzNDb1uRnqt5@vger.kernel.org
+X-Gm-Message-State: AOJu0Yxr2a20CAyp58K9K/VKgT0zJHQzQ8rg36c/duo46OVqc4t/4pr5
+	uSYmXqWJEVLt8uLBUc7+Fd4EiqInqjj9uywUN73RDzRgxAMHbn7PBlSTcGE/m7VazmRfv0QPlHw
+	I3QNMhCnQhmvYjkmB8sNSkHZMVXccb9hW41/RrNrnxPEtU+lX6R91ij8v+0HGvmQ=
+X-Gm-Gg: AfdE7cnqaL8fq/9c5hHzQalyP3ZXO+PA434D6ZVp3Zez/VrjhQZtM/aEvV4gQf2zHee
+	WF2Ulq9Dk4qHJl6LbLK6jG8JF/Apd2Oc3fVemBuYjmNNDkzj46QhwDTw7rYzectGfsCLO/+smmg
+	bFCn45ic9NEA/ZDMkCCXEvzRGIVKqJefyAA7AucXTHAtWOj5LBde0811+PPCBlO0LJQoNfyKj7Q
+	izHcU/NFkEgR5o4Ljiy1wOxF5X1NmSfzs2402ASTK93H2ni3VXGCWATiUw3F6NhjQ8PVsNUwBKm
+	8/Z8zhJPVfljqQf368D1gQVfYH+UiXQ5lxhhDPzg5PWIcxQSpRpMXpxHeYJH338YaZtNjyN/5Tv
+	tmd0TDI8MHoLcqxsdwgeO+5ttveZ5tExYAPtGgiP0O1JVDjuOKetFqpwMe9sc8IcR8aWsei9jkH
+	qLyA==
+X-Received: by 2002:a05:600c:35d1:b0:495:3a52:71b1 with SMTP id 5b1f17b1804b1-4954aa1a34fmr16278975e9.5.1784281655572;
+        Fri, 17 Jul 2026 02:47:35 -0700 (PDT)
+X-Received: by 2002:a05:600c:35d1:b0:495:3a52:71b1 with SMTP id 5b1f17b1804b1-4954aa1a34fmr16278655e9.5.1784281655105;
+        Fri, 17 Jul 2026 02:47:35 -0700 (PDT)
+Received: from ?IPV6:2a0d:3344:5521:6b10:58fd:68f:7756:389d? ([2a0d:3344:5521:6b10:58fd:68f:7756:389d])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4954a2edbe4sm35888375e9.12.2026.07.17.02.47.33
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Fri, 17 Jul 2026 02:47:34 -0700 (PDT)
+Message-ID: <62b9c471-e6a0-472b-a549-81128cb9a8ac@redhat.com>
+Date: Fri, 17 Jul 2026 11:47:33 +0200
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: BL6PEPF0001AB74:EE_|SA1PR12MB7040:EE_
-X-MS-Office365-Filtering-Correlation-Id: 6b510ab1-7c13-43b8-2736-08dee3e5366f
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|376014|23010399003|82310400026|36860700016|1800799024|6133799003|56012099006|11063799006|10067099003|18002099003|3023799007;
-X-Microsoft-Antispam-Message-Info:
-	tgn3NK3rRmq04TurfHEYPkTGSPsbqZO73fNIIxjQoQcqfIwzB80gwu4qVToL2CE05bvhauyUU/jrt6I03EeZnA+wx1dUaYkGG7lKmE7eZO6f1vW2tjJ3eVctGLhE7tEMnpkv4/yNWGVkbRj6/1BxhKfuVIJnaJm/FO+uhUgA0pNdI+oQhqB7pG3xq6kVHJkx7io0bMFGLH4SXTyOcvDfbsYrGT2/HIvQEvjyrRh5W68bdMzDoxR/l3ZSYpBdEYIg92i64LbWX2Bsv+ZDk3QW91662sBgr7x175yGmnfwpgCu6SQXEVfiDlPLpL/4x62UQfqheN3xCxB74wWaVipUFhtj742RgncjMIZV83xLQepdVu91TmT9Lq4H3FcdAN6VwnXQlSlD1WsYy1bKrUO7YbtLlHoUcWmmWqeQJPBSmcr4ngPJ6iwoXzMXJHQNrK9kxc5YZeDrKo5uGwArHmpGb47BhAY/4B7dpug/nvhhr1BnqvYX7SjvY8UGLYcaQkBo9dd6tol3kbgoc2G2DPaK+55bkdNoawRUSwjT+nUL/6oUR26OC7HxQQJ9TlvUATV3O3aKYGFUAgbZUPwtNNU7IISV2/19l+nkms3izqy8fnXaaMjTXiW/F8uuHU4F5jnXTgQas5UVz8xOp3cbuQBxY7se0EEKU84hQRXKZrY8jazz97CRY+2hWxLtc9Gbal2t+ga36Q28DRnVSuMgYsXTIg==
-X-Forefront-Antispam-Report:
-	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:satlexmb08.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(376014)(23010399003)(82310400026)(36860700016)(1800799024)(6133799003)(56012099006)(11063799006)(10067099003)(18002099003)(3023799007);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	dJUUhlwNskBQrmGOR+lqTPgHD5aEol9KMFAfQDpZ0oy0PbJHlClV0UKNqC6ewzOmvgINv2Glu9X+AkdbOdcjwxVB/tvasn5h41Ln/SW9X84qICYHN0/uEwZm9i76tVzWGIrJj7syC03hliaybHYvWDdICCzi6akOpub4BXffza1WHsLxq5/UbW3Z4Iy07GLFlu9pkeXRnPN9QDtj4EbDlnE1Y2LopW8pylL0a8hZwgDiQj7C8FvB1/chjGdDLHKIDMLVErifVoVs76Ffdio+svaqC2OEqPQAE7m95rWXoJ7dyp/cDptE9xqnbh3fKBiFlCo9qJ/vXjo42FVxHT2LXChjOSZop/27hAGRSg48/MEsJVvKSKSJwNBWw+lLporgjRW8JQue9j5F70nd18jPWjFM4raVG9KUeUJ4oKDmafeKLFmqnbPtke58FSJ5WAr3
-X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 17 Jul 2026 09:24:33.3019
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 6b510ab1-7c13-43b8-2736-08dee3e5366f
-X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[satlexmb08.amd.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	BL6PEPF0001AB74.namprd02.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA1PR12MB7040
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH net v2] net/mlx5: free mlx5_st_idx_data on final dealloc
+To: Leon Romanovsky <leon@kernel.org>
+Cc: Zhiping Zhang <zhipingz@meta.com>, Jason Gunthorpe <jgg@ziepe.ca>,
+ Saeed Mahameed Michael <saeedm@nvidia.com>, Tariq Toukan
+ <tariqt@nvidia.com>, Mark Bloch <mbloch@nvidia.com>,
+ Michael Guralnik <michaelgur@nvidia.com>, netdev@vger.kernel.org,
+ linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
+ stable@vger.kernel.org
+References: <20260702222507.1234467-1-zhipingz@meta.com>
+ <9e4e455b-c10b-447e-9fe6-80672f26fd8a@redhat.com>
+ <20260713080816.GA327832@unreal>
+Content-Language: en-US
+From: Paolo Abeni <pabeni@redhat.com>
+In-Reply-To: <20260713080816.GA327832@unreal>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-Enable the robust udata contract by setting uverbs_robust_udata and
-adding proper input validation and output handling to all verbs that
-accept struct ib_udata.
+On 7/13/26 10:08 AM, Leon Romanovsky wrote:
+> On Fri, Jul 10, 2026 at 01:25:45PM +0200, Paolo Abeni wrote:
+>> On 7/3/26 12:24 AM, Zhiping Zhang wrote:
+>>> Workloads that repeatedly allocate and release mkeys carrying TPH
+>>> steering-tag hints (e.g. churning RDMA MRs) leak one
+>>> struct mlx5_st_idx_data per cycle; kmemleak flags it as unreferenced
+>>> and the kmalloc slab grows over time.
+>>>
+>>> When the last reference to an ST table entry is dropped,
+>>> mlx5_st_dealloc_index() removed the entry from idx_xa but the backing
+>>> mlx5_st_idx_data allocation was never freed.
+>>>
+>>> Free idx_data after the xa_erase() so the lifetime of the bookkeeping
+>>> struct matches the lifetime of the ST entry it tracks.
+>>>
+>>> Cc: stable@vger.kernel.org
+>>> Fixes: 888a7776f4fb ("net/mlx5: Add support for device steering tag")
+>>> Reviewed-by: Michael Gur <michaelgur@nvidia.com>
+>>> Signed-off-by: Zhiping Zhang <zhipingz@meta.com>
+>> @Leon, @Saeed, @Tariq: just in case this fell under the radar, it's
+>> waiting for your ack.
+> 
+> Tariq and I completed this on Jul 5 and Jul 6.
+> 
+> https://lore.kernel.org/linux-rdma/20260705141920.GI15188@unreal/
+> https://lore.kernel.org/linux-rdma/0bb37f75-c94a-4a10-b115-186b71daf14f@nvidia.com/
+Thank you for pointing out and for the review. PW lost track of it,
+likely because there are multiple copies of the same patch/revision and
+only one of them landed on the netdev ML.
 
-For verbs with no driver request or response struct, add
-ib_no_udata_io(). For create_ah, which already responds with
-ionic_ah_resp, add the missing input validation via
-ib_is_udata_in_empty().
+Applying right now.
 
-Signed-off-by: Abhijit Gangurde <abhijit.gangurde@amd.com>
----
- .../infiniband/hw/ionic/ionic_controlpath.c   | 38 +++++++++++++++++++
- drivers/infiniband/hw/ionic/ionic_ibdev.c     |  1 +
- 2 files changed, 39 insertions(+)
-
-diff --git a/drivers/infiniband/hw/ionic/ionic_controlpath.c b/drivers/infiniband/hw/ionic/ionic_controlpath.c
-index 9d91f7667d4f..42b02ee643ad 100644
---- a/drivers/infiniband/hw/ionic/ionic_controlpath.c
-+++ b/drivers/infiniband/hw/ionic/ionic_controlpath.c
-@@ -487,6 +487,11 @@ int ionic_alloc_pd(struct ib_pd *ibpd, struct ib_udata *udata)
- {
- 	struct ionic_ibdev *dev = to_ionic_ibdev(ibpd->device);
- 	struct ionic_pd *pd = to_ionic_pd(ibpd);
-+	int rc;
-+
-+	rc = ib_no_udata_io(udata);
-+	if (rc)
-+		return rc;
- 
- 	return ionic_get_pdid(dev, &pd->pdid);
- }
-@@ -495,6 +500,11 @@ int ionic_dealloc_pd(struct ib_pd *ibpd, struct ib_udata *udata)
- {
- 	struct ionic_ibdev *dev = to_ionic_ibdev(ibpd->device);
- 	struct ionic_pd *pd = to_ionic_pd(ibpd);
-+	int rc;
-+
-+	rc = ib_no_udata_io(udata);
-+	if (rc)
-+		return rc;
- 
- 	ionic_put_pdid(dev, pd->pdid);
- 
-@@ -741,6 +751,10 @@ int ionic_create_ah(struct ib_ah *ibah, struct rdma_ah_init_attr *init_attr,
- 	u32 flags = init_attr->flags;
- 	int rc;
- 
-+	rc = ib_is_udata_in_empty(udata);
-+	if (rc)
-+		return rc;
-+
- 	rc = ionic_get_ahid(dev, &ah->ahid);
- 	if (rc)
- 		return rc;
-@@ -877,6 +891,10 @@ struct ib_mr *ionic_reg_user_mr(struct ib_pd *ibpd, u64 start, u64 length,
- 	unsigned long pg_sz;
- 	int rc;
- 
-+	rc = ib_no_udata_io(udata);
-+	if (rc)
-+		return ERR_PTR(rc);
-+
- 	if (dmah)
- 		return ERR_PTR(-EOPNOTSUPP);
- 
-@@ -1008,6 +1026,10 @@ int ionic_dereg_mr(struct ib_mr *ibmr, struct ib_udata *udata)
- 	struct ionic_mr *mr = to_ionic_mr(ibmr);
- 	int rc;
- 
-+	rc = ib_no_udata_io(udata);
-+	if (rc)
-+		return rc;
-+
- 	if (!mr->ibmr.lkey)
- 		goto out;
- 
-@@ -1120,6 +1142,10 @@ int ionic_alloc_mw(struct ib_mw *ibmw, struct ib_udata *udata)
- 	struct ionic_mr *mr = to_ionic_mw(ibmw);
- 	int rc;
- 
-+	rc = ib_no_udata_io(udata);
-+	if (rc)
-+		return rc;
-+
- 	rc = ionic_get_mrid(dev, &mr->mrid);
- 	if (rc)
- 		return rc;
-@@ -1292,6 +1318,10 @@ int ionic_destroy_cq(struct ib_cq *ibcq, struct ib_udata *udata)
- 	struct ionic_vcq *vcq = to_ionic_vcq(ibcq);
- 	int udma_idx, rc_tmp, rc = 0;
- 
-+	rc = ib_no_udata_io(udata);
-+	if (rc)
-+		return rc;
-+
- 	for (udma_idx = dev->lif_cfg.udma_count; udma_idx; ) {
- 		--udma_idx;
- 
-@@ -2585,6 +2615,10 @@ int ionic_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr, int mask,
- 	struct ionic_qp *qp = to_ionic_qp(ibqp);
- 	int rc;
- 
-+	rc = ib_no_udata_io(udata);
-+	if (rc)
-+		return rc;
-+
- 	rc = ionic_check_modify_qp(qp, attr, mask);
- 	if (rc)
- 		return rc;
-@@ -2658,6 +2692,10 @@ int ionic_destroy_qp(struct ib_qp *ibqp, struct ib_udata *udata)
- 	struct ionic_cq *cq;
- 	int rc;
- 
-+	rc = ib_no_udata_io(udata);
-+	if (rc)
-+		return rc;
-+
- 	rc = ionic_destroy_qp_cmd(dev, qp->qpid);
- 	if (rc)
- 		return rc;
-diff --git a/drivers/infiniband/hw/ionic/ionic_ibdev.c b/drivers/infiniband/hw/ionic/ionic_ibdev.c
-index b0449c75f893..ad4e9abb5bf4 100644
---- a/drivers/infiniband/hw/ionic/ionic_ibdev.c
-+++ b/drivers/infiniband/hw/ionic/ionic_ibdev.c
-@@ -216,6 +216,7 @@ static const struct ib_device_ops ionic_dev_ops = {
- 	.owner = THIS_MODULE,
- 	.driver_id = RDMA_DRIVER_IONIC,
- 	.uverbs_abi_ver = IONIC_ABI_VERSION,
-+	.uverbs_robust_udata = true,
- 
- 	.alloc_ucontext = ionic_alloc_ucontext,
- 	.dealloc_ucontext = ionic_dealloc_ucontext,
--- 
-2.43.0
+/P
 
