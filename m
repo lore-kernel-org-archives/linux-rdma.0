@@ -1,79 +1,95 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.17])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E5303E9C16;
-	Fri, 17 Jul 2026 10:00:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4AE913DD525
+	for <linux-rdma@vger.kernel.org>; Fri, 17 Jul 2026 11:04:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.17
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784282437; cv=none; b=im3xSo5hmvr0O+SrBMC/5e6wlhNmqbGJi53FxPVfIoTh7nrB/h3NGtzkiaKBIERU5vGbppgTEi/xmcxBXopK2gUzc7chyeekjNAeqjikLBwhrc06fxUOBsJSFcA8FnI11jQ6ogtGW/oTnFyfrUoXiypoM7dFgo/WAsoSw7Tvdto=
+	t=1784286274; cv=none; b=g4CpF8QQPNxUD1c+tpaM3Nc2QNskdJH0xbSlTbVEC6AitxFSVGP3rRXnh1k4YNssjU1bdfef9s7X8gUlUky+urUBRs3FI25Jd+4dNq52+V955AR0PJT08UyWShjVUz9VtfnUWLxkkpM1p4Tv7RH//YOcLc7Xn7CLdhJX5o13tyI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784282437; c=relaxed/simple;
-	bh=4jCBcRVrlaLOBYAzTmCWXlcxLi58obhrcv78JY6m11w=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=c5YPcMkkIAgtbUJfR1uxFfLiKYMjlXPAZGA7uFwjiU+kcVhoCsHoQS/PVDuJ3SLSM+m46+5h+bsYvbPpzX8UtAIcJwhEVRkTo4QuPSp/Aq62oTsR2eq6NjeMGJcFY9S7j0SQ810Ux+KRj2rm5KylSl1at3xFskzXorqyQ6I4Hlc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=kGy1Rgez; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784286274; c=relaxed/simple;
+	bh=0+DFrTuFElXxDGGuOCsjlXbyfigMk5A+r3bWyZaBXeQ=;
+	h=Date:From:To:Cc:Subject:Message-ID; b=KxtwXCnDTQSRLYIiHXzrIJk0RNhLHI3wgZD6aqaQnF9bVD37fET0WhG07A+i2gzvXoU/MicKaTm5oeH0AyWWjiTm1RaDNxNKBghYKi1xzR21t1Wnn4uUljblu5RLcKMVjHGv4wN5NyaUixdWtGXLU+Sdtxj+5nYNbSN6IHXLPmA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=JTpeD4S5; arc=none smtp.client-ip=192.198.163.17
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="kGy1Rgez"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 039571F00A3D;
-	Fri, 17 Jul 2026 10:00:36 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1784282436;
-	bh=R169iEgJLSTU6BsFVGZtAdHBaDZjsfylReCCD0K+Uo4=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc;
-	b=kGy1Rgezx3zfwFJoiBo2kQErslDHZ6iRMb5LFAgsbZUwUqkoQ3JcSAOhXDnb1lqsK
-	 vKWC6oemOyzJIy6KqhldbN7mEeesYY5c0QmWovmcc0zkkKlDGGBNGpvhxiJAzQv1mA
-	 vE36Zl4/VFZIF6ZSNH2v3HS85/1p8ngO1Hqse83hDUBs1a2RBghAixtIKbZeosOLgv
-	 4UDek3q4xdS8ZogKyKrK3st26sE1/qqIEFNAiIPHWeBNoPKxrlhOuGwpGZ28CsGe92
-	 AnslXJLRQ4eSJpF7Hn/Zu4e5sCiRN4wFdSUgHURyLhGO7PVFTrjLTiReev+UqjexDn
-	 fBqUmv6Mu7CZg==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id C1D34380CED1;
-	Fri, 17 Jul 2026 10:00:09 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="JTpeD4S5"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1784286265; x=1815822265;
+  h=date:from:to:cc:subject:message-id;
+  bh=0+DFrTuFElXxDGGuOCsjlXbyfigMk5A+r3bWyZaBXeQ=;
+  b=JTpeD4S54dYV4ctPK8ojVjYiRm/JPoFRoM12Vo2zDJpjnfz9UvLIxrET
+   itPdl3/BIOl7AyLfko49QuJe0Nm9Zy/GXlMh/ovw84vNoQKdeZ2cEAWzf
+   m2WYF/IvmD3qjJTwJckmAQKwI3qzVDdr+V2mf9u7pEmJ76hERYEeguZk7
+   Dlt8MwbQNH0saXuoFqSO7NBJh6PzWJPKHj/lstSmzR/ppTf13OsaLQu0s
+   M6x1FNLIJoWYiULA72XcnGCGJmkc3vasoD52AtOaLie/sftIRu4YMXbYO
+   HEPykhRM8L7Ev37iktn/sVJffPtDaPZMBIVjXYc6XHI7srAn1lgDztUwU
+   w==;
+X-CSE-ConnectionGUID: YMAN8rTGT0WOLoNDAIVtZQ==
+X-CSE-MsgGUID: 4IRKRHEmQLatn4t5/2AeQw==
+X-IronPort-AV: E=McAfee;i="6800,10657,11848"; a="84834135"
+X-IronPort-AV: E=Sophos;i="6.25,169,1779174000"; 
+   d="scan'208";a="84834135"
+Received: from fmviesa008.fm.intel.com ([10.60.135.148])
+  by fmvoesa111.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Jul 2026 04:04:20 -0700
+X-CSE-ConnectionGUID: ck+bbC18RfqQGcZIpX3JpA==
+X-CSE-MsgGUID: txic0AQcRkCMkCuH7r2LEg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.25,169,1779174000"; 
+   d="scan'208";a="254126169"
+Received: from lkp-server02.sh.intel.com (HELO ea128546eb3d) ([10.239.97.151])
+  by fmviesa008.fm.intel.com with ESMTP; 17 Jul 2026 04:04:18 -0700
+Received: from kbuild by ea128546eb3d with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1wkgMa-00000000Sf6-0pVN;
+	Fri, 17 Jul 2026 11:04:16 +0000
+Date: Fri, 17 Jul 2026 19:03:25 +0800
+From: kernel test robot <lkp@intel.com>
+To: Leon Romanovsky <leonro@nvidia.com>
+Cc: Doug Ledford <dledford@redhat.com>,
+ Jason Gunthorpe <jgg+lists@ziepe.ca>, linux-rdma@vger.kernel.org
+Subject: [rdma:wip/leon-for-next] BUILD SUCCESS
+ dab886bc4fab45b84d893aea81a86074a57d848b
+Message-ID: <202607171910.ViEauuUt-lkp@intel.com>
+User-Agent: s-nail v14.9.25
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net v2] net/mlx5: free mlx5_st_idx_data on final dealloc
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <178428240839.1642910.17157981121127705010.git-patchwork-notify@kernel.org>
-Date: Fri, 17 Jul 2026 10:00:08 +0000
-References: <20260702222507.1234467-1-zhipingz@meta.com>
-In-Reply-To: <20260702222507.1234467-1-zhipingz@meta.com>
-To: Zhiping Zhang <zhipingz@meta.com>
-Cc: jgg@ziepe.ca, leon@kernel.org, saeedm@nvidia.com, tariqt@nvidia.com,
- mbloch@nvidia.com, michaelgur@nvidia.com, netdev@vger.kernel.org,
- linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
- stable@vger.kernel.org
 
-Hello:
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git wip/leon-for-next
+branch HEAD: dab886bc4fab45b84d893aea81a86074a57d848b  RDMA/mana_ib: Adopt robust udata
 
-This patch was applied to netdev/net.git (main)
-by Paolo Abeni <pabeni@redhat.com>:
+elapsed time: 876m
 
-On Thu, 2 Jul 2026 15:24:58 -0700 you wrote:
-> Workloads that repeatedly allocate and release mkeys carrying TPH
-> steering-tag hints (e.g. churning RDMA MRs) leak one
-> struct mlx5_st_idx_data per cycle; kmemleak flags it as unreferenced
-> and the kmalloc slab grows over time.
-> 
-> When the last reference to an ST table entry is dropped,
-> mlx5_st_dealloc_index() removed the entry from idx_xa but the backing
-> mlx5_st_idx_data allocation was never freed.
-> 
-> [...]
+configs tested: 17
+configs skipped: 1
 
-Here is the summary with links:
-  - [net,v2] net/mlx5: free mlx5_st_idx_data on final dealloc
-    https://git.kernel.org/netdev/net/c/df6134b527a8
+The following configs have been built successfully.
+More configs may be tested in the coming days.
 
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
+tested configs:
+alpha                  allnoconfig    gcc-16.1.0
+alpha                 allyesconfig    gcc-16.1.0
+alpha                    defconfig    gcc-16.1.0
+arc                   allmodconfig    gcc-16.1.0
+arc                   allyesconfig    gcc-16.1.0
+csky                  allmodconfig    gcc-16.1.0
+i386                  allmodconfig    gcc-14
+i386       randconfig-006-20260717    gcc-14
+loongarch                defconfig    clang-24
+loongarch  randconfig-002-20260717    clang-24
+nios2                 allmodconfig    gcc-11.5.0
+nios2                  allnoconfig    gcc-11.5.0
+parisc                allmodconfig    gcc-16.1.0
+parisc                allyesconfig    gcc-16.1.0
+parisc                   defconfig    gcc-16.1.0
+sh                       defconfig    gcc-16.1.0
+xtensa       audio_kc705_defconfig    gcc-16.1.0
 
-
+--
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
