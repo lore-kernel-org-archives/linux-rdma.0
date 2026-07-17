@@ -1,93 +1,115 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from canpmsgout10.his.huawei.com (canpmsgout10.his.huawei.com [113.46.200.225])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7787D3C5849;
-	Thu, 16 Jul 2026 23:22:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1EE2B16DEB1;
+	Fri, 17 Jul 2026 00:16:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.225
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784244138; cv=none; b=XquskYr4NSzZbN5RuMrU65rKzkszw04sMvN8MbNoVkgqlLxcq+hGSem6B+Oz4vhrJOev7AbccyNavWVyGc+DzVSq9ioAYim6ERq4k1XJw7/lbFUQuW05+JoQ+G3qUCJURx+eTOn9d0ldo4UpbUHncvTm5EiAW3iuocC+yd0eqME=
+	t=1784247404; cv=none; b=GeJbzyCxn3vTq11CaTXDgvs0exCiRXhIci4S7VIu8LkM85pUsfQr69k4AyjLRCXd6g+8fnVRWqVYBZAh+LDgOKCfspp4FduouGLNML8LSqyw4cuTnHkhxDRx2PocRAAvI/mPYGS4My3clQTZg97hICXCW+vLpY5cp+4NFsv+G7I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784244138; c=relaxed/simple;
-	bh=Gfn0/+CmqhHCqdMGbsdfpLCBDcASJ2iWJ2fc/bSCHVY=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=HCEqq1HS0qpLAt2woe7z4FZOnUxfEETlMJex3ZWAzNPMp+UZwzPXpG34MrTC62wEtwms7mmzOpIeVC/NvhQ7GxbYG6Xak2RxEkAxDPxxmEQDYbsninCwsvKfIcNBKapJo4oaANsnxqEv7VY5BSJVS1jsE/D+2Pva1mpSbEW+xjs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=aY295KNW; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784247404; c=relaxed/simple;
+	bh=dDkeumXBcxxpV+nysA0bxBOdPtfCfPkslKv643IhY80=;
+	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
+	 In-Reply-To:Content-Type; b=IrKDhCLWT6FUdWMzbq8TgzIIw0LkhrUFdZNKbkfzFXN7HYZMZpy9A1HMXizuzaSP6sc3FTH+hyceeVo6mK35iBvQJK82PCCI/8G5JNc+t7JEaRAEPq3P6utbB3Q/PzwKqhmmNOXtImiHuX1jM9qbSKOv7x5QJX/WRjJx7r0K3BI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b=AvWpgteR; arc=none smtp.client-ip=113.46.200.225
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="aY295KNW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B0EFE1F000E9;
-	Thu, 16 Jul 2026 23:22:13 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1784244137;
-	bh=g/aghe2CnYgAgeQmYgALqhq56GHiof2OpgCCZVP+lpM=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=aY295KNWGTg7rHwOF9SQrkFe9qsMOcWiDvxQy1RueBU616Hy+ntLOh2STTvSTmRUv
-	 8Aay4O0FpoXViQ1fIJgyL0Loi+6xW05HVu1spdTGIHQYk7wafJQIAmqdAAClxKd28B
-	 eIeRaIVVvlCpad+sjt5y0Ccfy/LThbqGTSqcThxohlKQxuPP0qEsyUCYwznViGdqm3
-	 L/9OpYVhORRqfRbW/bOjaGuu5LkoOdB8jwjys+myrSerA0t+fW8yRUVKg2Q/yWHzVa
-	 ywJIX2HE8NKRwtkiC1oBCfWzppdmOFQCltYScz8QCe3vEjHhSUTMA8rEuM3hjOx6BT
-	 W7gKabgtgH5NA==
-Date: Thu, 16 Jul 2026 16:22:10 -0700
-From: Nathan Chancellor <nathan@kernel.org>
-To: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Alex Williamson <alex@shazbot.org>, David Matlack <dmatlack@google.com>,
-	Justin Stitt <justinstitt@google.com>, kvm@vger.kernel.org,
-	Leon Romanovsky <leon@kernel.org>, linux-kselftest@vger.kernel.org,
-	linux-rdma@vger.kernel.org, llvm@lists.linux.dev,
-	Mark Bloch <mbloch@nvidia.com>, Bill Wendling <morbo@google.com>,
-	Nick Desaulniers <ndesaulniers@google.com>, netdev@vger.kernel.org,
-	Saeed Mahameed <saeedm@nvidia.com>, Shuah Khan <shuah@kernel.org>,
-	Tariq Toukan <tariqt@nvidia.com>, patches@lists.linux.dev
-Subject: Re: [PATCH v3 06/11] selftests: Fix arm64 IO barriers to match kernel
-Message-ID: <20260716232210.GA700430@ax162>
-References: <0-v3-76f117ad04f1+28a90-mlx5st_jgg@nvidia.com>
- <6-v3-76f117ad04f1+28a90-mlx5st_jgg@nvidia.com>
+	dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b="AvWpgteR"
+dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
+	c=relaxed/relaxed; q=dns/txt;
+	h=From;
+	bh=SYwy6QobYtfLX+TFA3XAHC6CKwVcv5/eHXjCp5polzo=;
+	b=AvWpgteRLh7Ai4tN3A9nHSUkPydX2mLUe2z2zpVVLaUx5yc4C9x0rCidbQmHPcMnz2puAedBQ
+	oMijff9E3RIGFU6YWhyhDXAbDMcxlwX9mohFxxfX7zmi8yfmIX6GnsEVyOxbNtfNRiD8H2z8QfC
+	KrxmpFGDKkc7NUvBhT47PNk=
+Received: from mail.maildlp.com (unknown [172.19.163.127])
+	by canpmsgout10.his.huawei.com (SkyGuard) with ESMTPS id 4h1VbB6yjCz1K96b;
+	Fri, 17 Jul 2026 08:07:18 +0800 (CST)
+Received: from kwepemo500009.china.huawei.com (unknown [7.202.194.199])
+	by mail.maildlp.com (Postfix) with ESMTPS id 18D4540572;
+	Fri, 17 Jul 2026 08:16:37 +0800 (CST)
+Received: from [10.67.121.161] (10.67.121.161) by
+ kwepemo500009.china.huawei.com (7.202.194.199) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1544.36; Fri, 17 Jul 2026 08:16:36 +0800
+Message-ID: <a855b8da-5ec5-433b-b5cf-177034ae5392@huawei.com>
+Date: Fri, 17 Jul 2026 08:16:35 +0800
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <6-v3-76f117ad04f1+28a90-mlx5st_jgg@nvidia.com>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v12 0/4] vfio/dma-buf: add TPH support for peer-to-peer
+ access
+To: Zhiping Zhang <zhipingz@meta.com>
+CC: Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>, Michael
+ Guralnik <michaelgur@nvidia.com>, Sumit Semwal <sumit.semwal@linaro.org>,
+	Christian Konig <christian.koenig@amd.com>, Alex Williamson
+	<alex@shazbot.org>, Bjorn Helgaas <bhelgaas@google.com>,
+	<kvm@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
+	<linux-pci@vger.kernel.org>, <dri-devel@lists.freedesktop.org>
+References: <20260715204008.3911275-1-zhipingz@meta.com>
+ <7dd5c995-a23c-4d3a-9ba0-7fc77972339f@huawei.com>
+ <CAH3zFs0Wbz5EYUMQArmUtT-jdAtisafw6e89RWKZJrJpipYQoA@mail.gmail.com>
+Content-Language: en-US
+From: fengchengwen <fengchengwen@huawei.com>
+In-Reply-To: <CAH3zFs0Wbz5EYUMQArmUtT-jdAtisafw6e89RWKZJrJpipYQoA@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+X-ClientProxiedBy: kwepems100001.china.huawei.com (7.221.188.238) To
+ kwepemo500009.china.huawei.com (7.202.194.199)
 
-On Thu, Jul 16, 2026 at 02:03:22PM -0300, Jason Gunthorpe wrote:
-> The tools/include readl/writel MMIO accessors on arm64 use
-> inner-shareable barriers (dmb ish) while the kernel uses
-> outer-shareable (dmb osh).  Fix them to match.
+On 7/17/2026 4:08 AM, Zhiping Zhang wrote:
+> On Wed, Jul 15, 2026 at 6:07 PM fengchengwen <fengchengwen@huawei.com> wrote:
+>>
+>>>
+>> Hi Zhiping,
+>>
+>> One concern I'd like to raise is the implicit topology constraint of the
+>> TPH P2P path. TPH Steering Tag only works reliably when both importer and
+>> exporter devices sit under the same Root Port (or same TPH-aware switch).
+>>
+>> For cross-Root-Port P2P traffic (e.g. P2P devices located in different
+>> RC or even socket), most server-grade Root Complexes do not forward TPH
+>> prefixes through their internal routing. The ST field gets silently
+>> stripped before reaching the target device, so all TPH setup becomes
+>> ineffective with no error reported to user.
+>>
+>> Because cross-Root-Port P2P traffic with ST does not affect the host, but
+>> merely the completer may experience some performance degradation because
+>> it lacks the TPH hint. In this case, I suggest adding restrictions in the
+>> uAPI.
+>>
+>> A further step is to check whether the importer and exporter are under
+>> the same root port. However, this verification will cause the P2P TPH
+>> to be unsupported in the case of multi-host or multi-root PCIe switch.
+>>
+>> Thanks
 > 
-> Add __io_bw() and __io_ar() definitions matching the kernel's
-> arch/arm64/include/asm/io.h, including the dummy control dependency
-> in __io_ar() that orders MMIO reads against all subsequent
-> instructions.
+> Hi Fengcheng,
 > 
-> Assisted-by: Claude:claude-opus-4.6
-> Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
-...
-> diff --git a/tools/testing/selftests/lib.mk b/tools/testing/selftests/lib.mk
-> index f02cc8a2e4ae32..fdd22df9174b88 100644
-> --- a/tools/testing/selftests/lib.mk
-> +++ b/tools/testing/selftests/lib.mk
-> @@ -5,9 +5,14 @@ ifneq ($(filter %/,$(LLVM)),)
->  LLVM_PREFIX := $(LLVM)
->  else ifneq ($(filter -%,$(LLVM)),)
->  LLVM_SUFFIX := $(LLVM)
-> +else ifneq ($(LLVM),1)
-> +$(error Invalid value for LLVM, see Documentation/kbuild/llvm.rst)
->  endif
->  
->  CLANG := $(LLVM_PREFIX)clang$(LLVM_SUFFIX)
-> +LD := $(LLVM_PREFIX)ld.lld$(LLVM_SUFFIX)
-> +# Selftests link through $(CC), so point clang at the LLVM linker.
-> +LDFLAGS += --ld-path=$(LD)
->  
->  CLANG_TARGET_FLAGS_arm          := arm-linux-gnueabi
->  CLANG_TARGET_FLAGS_arm64        := aarch64-linux-gnu
+> Agreed the RC may not preserve TPH across Root Ports (PCIe Base Spec
+> r6.4 §6.17.4 requires all intermediate routing elements to support
+> TPH, and cross-RP forwarding is optional/implementation-dependent, cf.
+> §2.2.10.4.2). But the uAPI can't gate it: there's no discoverable "TPH
+> routing" capability -- DevCap2[13:12] (r6.4 §7.5.3.15) describes the
+> completer, not P2P forwarding -- and a same-Root-Port check would
+> wrongly reject switch and multi-root topologies where ST does forward.
+> 
+> And it's harmless anyway: per r6.4 §2.2.7.1 an element without TPH
+> support ignores the TH bit and completes as if unhinted, so a stripped
+> ST just degrades to the non-TPH baseline.
 
-Was this hunk intended to be included in this change? It is not
-mentioned anywhere. I assume this is the only reason that the LLVM folks
-were CC'd on this series.
+Thank you for your detailed explanation. I agree to maintain the current
+implementation.
 
--- 
-Cheers,
-Nathan
+Thanks
+
+> 
+> Thanks,
+> Zhiping
+> 
+
