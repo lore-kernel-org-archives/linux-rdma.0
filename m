@@ -1,28 +1,28 @@
-Received: from CY3PR05CU001.outbound.protection.outlook.com (mail-westcentralusazon11023142.outbound.protection.outlook.com [40.93.201.142])
+Received: from SN4PR2101CU001.outbound.protection.outlook.com (mail-southcentralusazon11022118.outbound.protection.outlook.com [40.93.195.118])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F0FAF375ADF
-	for <linux-rdma@vger.kernel.org>; Fri, 17 Jul 2026 03:20:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.201.142
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4F157374A06
+	for <linux-rdma@vger.kernel.org>; Fri, 17 Jul 2026 03:20:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.195.118
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784258455; cv=fail; b=BABasf+7TSF56Jt8tOeJ5zTcrAgWlop4KeK1wLKP+lEGQE6mXA5AnV8kAsZwpIwUvEFQVJCnxM4AcyqNfa4c9z5rJjXU++7RYBfurTRT9WAU0mF8mDUjh6OGe7wqgu9iqqfxkRdTap21HCWkOe2aW+xMmYjxGIq9DULdhg/S9Po=
+	t=1784258456; cv=fail; b=oXVKetdl4FX2PYdFc6ttpIJkpJnPTR+5wq1tXT2XGPDjhMME/31ilg/1EhITtJnVz4Q35E7Pz7pfwx+ExmpTIOrAzlrZ1JkUDCEF0xlM/d3mf3Q64ns+UHb9Ss/k/6Bf5AZnAUV6ABB7EVoE0ilJnLDghOppnHOQj36CMP0pf0c=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784258455; c=relaxed/simple;
-	bh=gM4GFnN0zxqskIxT+Zr5PAkzPVXsapvzzafGUTylzfs=;
+	s=arc-20240116; t=1784258456; c=relaxed/simple;
+	bh=g8sOV5B/CXA1qnhuRlKLHszsn25kklK3y1tp7+67iFI=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=pxfUOs2LqkTYOBD20vJIIG0N6zj2XZrjtpzj3NUNirpFYQ5K2jmqQiML/fTJpvUDFGxgPPRkKey1AFZE21QrSo6AuW6L0ZrlHNeYb0y0bWDrhtVjOM4Hyk91eIcLeUG77Vda/nuFbFxLawX58uz17LWqB/ctFHxuuI9coD4XL8o=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=thelustrecollective.com; spf=pass smtp.mailfrom=thelustrecollective.com; dkim=pass (2048-bit key) header.d=thelustrecollective.com header.i=@thelustrecollective.com header.b=bSfHPAg1; arc=fail smtp.client-ip=40.93.201.142
+	 Content-Type:MIME-Version; b=ejChJ25Y2TzarCMz2sMSk5Xi+Svx4TYIQhmQuz53QxWUueUlJlf8CYm30TFoECJ1TrbdbQpZg+/gxOHaCFyoD+wusski0zW7xMs6DKisutVLfiLEXrXorrBXFNcae12D1FMVfdGRkkIS0yTyrzURKsnNdaZVlHGVslV6Qd/fyI0=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=thelustrecollective.com; spf=pass smtp.mailfrom=thelustrecollective.com; dkim=pass (2048-bit key) header.d=thelustrecollective.com header.i=@thelustrecollective.com header.b=mLKWOb0T; arc=fail smtp.client-ip=40.93.195.118
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=thelustrecollective.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=thelustrecollective.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=thelustrecollective.com header.i=@thelustrecollective.com header.b="bSfHPAg1"
+	dkim=pass (2048-bit key) header.d=thelustrecollective.com header.i=@thelustrecollective.com header.b="mLKWOb0T"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=iNa3BHv9SIIPpgPRDr/dswEUhLJr37tbK502PTuxN3LPwUDVEepTIFV0NQ1NTTQsTeR80952SsscRKmoh069i6+DwFJObJ2Lz6WorDGz/3SfIRcco7qr4T3eOQn69ccb0MzKKtjTHQc6dthd/ZkMthSYKuSfQFvgf8q0KcuAtc0y9L+Ip0PD9vzxanC99vvuKEzsL/DS1Y/hwa8QqdnaTPPusywFrXFIoLQ748OHaI9midQtCaPc5xPpNlR2MURnSm7QGR2cwVEv9ur11EnOBUDMbUGcDbiPnf8F2DAkL/GzcaYGT40RgWb3JLmgmlyu/l0A6UwhmfovQNgVVls6HA==
+ b=p4BOBkJ+27IzBxzBzPtymCf4gPhe5nn0ZsuWDRlcT7ucErgoGuf1xsICbqYphopPCWxSjJBp3LI1EHTMvVuY4s/f/6moswdMnLpSQTm5/eYr04WzGoAA5poSp6nKyOLIwUKENqxb3IIMISwhAUXwjVZm5kzCFZAi32Fiwhu+Fy/EOKrnTH4Dpd7N/B+XoJZmxmQT1NhOj0t728SVY3zOQx4RLRJV9ktrXExqPzQFvi2nVvvb7/OEg3mWy2LOlbqd/eoOO3G4HsXREkfr32nxe8t4L+x+mx0NNSA5OnAyKjtBBGtiFup3iLE8e0uvoFw8jtIpNHTa1lGkPggWZ9Jyrw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=gkzZCpLTNo65HJ+7r9P0jKYo3oice17P/sIaG9glwm0=;
- b=WFCuUMLPi/tpGORwbNR+pXH64XcFKMNcbSpGMc0YFXNNf2OMovjhOQTwMvxv4FIDeBLTG5SSDV9DLd139CUKjyG/sYcId/KW2RBNoBNLgNKKb9DxSkR1e1k1K9Lv3eU0KHRfk1UwScXNVbYkl1ezynXuiPrbCb2m8uQG2aPV1u10Iaswp7WWlZeFsFkcRZAdN2uY/3aay8FiNzZE3CBghILaI6PuB5c8JJNZm6QxXBa8lqn2qQEHsXQUUlnHKAF0JHX7BYg8AQf0BxgWN7ty4iQHmH2IykbfdmMOHFDqZfxrXHMMw89wBd2T93NnTUJaybV4ixXjV5cj6SSXZVjEmQ==
+ bh=sXqLm7oVe+pBO1aXs/zrf+rgEyEsdx5R1l7mxCebEAE=;
+ b=GuOPBWY0avmJ7+4/svocyVPdBMQ3SH4gkkDnURjwLOPYsfZnXiIOsKCAKJCMQq2fI3DFx1dkR/Labvec+eNu0ZdAmHUaXw4ZOaHNNKIFXuAkIu3aWQ9aNod3f5F9LP2gjUF6qQDXSvvP2xdXOGY41Gqy/ZO2a5KUJf/MtVC9T/PLQv1pwfPt7IX6ZRAs8KwzZRpaQ/M3fCqbQ09DT9pt3VVYPzrNbXCt1WDwSZXesSKMhVrvVXwFPPn/bgrjObBIzLstSpZ6wWLM2iWKObbiWN3QvjrMi1hI9DjAQDNh0aonYGsm7Zh7diJ5moL+m9d7uaVi2MX7RT5zl0ZoMVIKIw==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=thelustrecollective.com; dmarc=pass action=none
  header.from=thelustrecollective.com; dkim=pass
@@ -30,18 +30,18 @@ ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
  d=thelustrecollective.com; s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=gkzZCpLTNo65HJ+7r9P0jKYo3oice17P/sIaG9glwm0=;
- b=bSfHPAg14VNILWwyrDcFlvbwrcZxpm/ELpL0k7cTrBNUF9XhAcYAvV5W+ZVvyv+4VZRbYIfYDaDb8Rz25I7pVrRxmWOO2UiKh5SCx/lDM3K4D+NFl5+8B7MsIhhwWjXiuCZxCkhC8dY+tcxzqnnTKQlpPSw4Pk3VXoIR5Pp0Dw+xfRyyYSiYD9AAzhu6HgCg0/Gz2E3HHX/hvHGeVhhwRMUsJ+8ckYEkeYKFSNuDz+AYRTfqGBobm5YCez+UF87LpSkcsSILqgEOkh36EoYteAijboRC66+Rqtbmi2Xpn7pEmGUNrqqk8ivEKBJElYn/ilWL+JB/nVqr07Z3X95bdA==
+ bh=sXqLm7oVe+pBO1aXs/zrf+rgEyEsdx5R1l7mxCebEAE=;
+ b=mLKWOb0TS0++0NwpHLjj2T5ifB5vfSrbDUBiwMka9WdGrzIIl8L4hTa5vqz55DUnWeEFgzjb3sEbtyRkfzniYT4OIdS1umjKz1MJbQL0j9kYkJmHC9ELf5ySRtIjhMLmW1vPWxTX+a8qaQZMyO3s5uozIyLcvbVAcOBt7bBGv7fabc0o6cuD/yRLzHf/aK31nVKyK06+lt5wlKDD8LwLyOaPGd6o037LSORD9SP09c4XefdXJ9TKtOqzF3VNZJ03MHt4SLo8UF8OZcIv8xSh8z7te4m9i2LNyArI86Mq4xLCkZzsHXS/UBuk0vf2saO+aCHtAQj0W+t36pudHx+Dxg==
 Authentication-Results: dkim=none (message not signed)
  header.d=none;dmarc=none action=none header.from=thelustrecollective.com;
 Received: from DM6PR04MB4682.namprd04.prod.outlook.com (2603:10b6:5:24::20) by
  DM8PR04MB7992.namprd04.prod.outlook.com (2603:10b6:8:7::17) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.223.12; Fri, 17 Jul 2026 03:20:49 +0000
+ 15.21.223.12; Fri, 17 Jul 2026 03:20:50 +0000
 Received: from DM6PR04MB4682.namprd04.prod.outlook.com
  ([fe80::fa5e:6e7f:2655:bfee]) by DM6PR04MB4682.namprd04.prod.outlook.com
  ([fe80::fa5e:6e7f:2655:bfee%3]) with mapi id 15.21.0223.008; Fri, 17 Jul 2026
- 03:20:49 +0000
+ 03:20:50 +0000
 From: Timothy Day <timday@thelustrecollective.com>
 To: Michael Margolin <mrgolin@amazon.com>,
 	Jason Gunthorpe <jgg@nvidia.com>,
@@ -51,9 +51,9 @@ Cc: Gal Pressman <gal.pressman@linux.dev>,
 	Yossi Leybovich <sleybo@amazon.com>,
 	Marco Elver <elver@google.com>,
 	Timothy Day <timday@thelustrecollective.com>
-Subject: [PATCH v1 4/5] RDMA/efa: mark admin SQ producer state as guarded by the ASQ lock
-Date: Thu, 16 Jul 2026 23:16:57 -0400
-Message-Id: <20260717031658.477397-5-timday@thelustrecollective.com>
+Subject: [PATCH v1 5/5] RDMA/efa: enable context analysis support for efa driver
+Date: Thu, 16 Jul 2026 23:16:58 -0400
+Message-Id: <20260717031658.477397-6-timday@thelustrecollective.com>
 X-Mailer: git-send-email 2.39.5
 In-Reply-To: <20260717031658.477397-1-timday@thelustrecollective.com>
 References: <20260717031658.477397-1-timday@thelustrecollective.com>
@@ -70,167 +70,81 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
 X-MS-TrafficTypeDiagnostic: DM6PR04MB4682:EE_|DM8PR04MB7992:EE_
-X-MS-Office365-Filtering-Correlation-Id: a3ea21b8-da5b-40e3-51cd-08dee3b26627
+X-MS-Office365-Filtering-Correlation-Id: b27e4b27-ddf3-4fe1-6414-08dee3b26690
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|366016|1800799024|23010399003|376014|18002099003|22082099003|56012099006|10067099003;
+	BCL:0;ARA:13230040|366016|1800799024|23010399003|376014|18002099003|22082099003|56012099006|10067099003|6133799003;
 X-Microsoft-Antispam-Message-Info:
-	RAh9xo9LeOiThEk/n452OqJ9Dz8GAwlWA67xTqpwxuAfF8ZovgAlIhjFPzVGUW63a1bi5iErkM4JnBzljDoVzXWczg0WeeR1I/WFrslFxsEH/gOaiT/MiFcdLi/SRo8ePd2cDRZDuohmc8BXUR2UUFKFsioAC20cFrn/6PSelugE4BxVsSXW0sxbDfldCmYqwCbBY53cZ6YkOWniDV3Rz/f3szcXvN6Np8ZHRmF3XeqIVn6wqMv/HwChvc099qa05MJFjxiB07w2iEiEbzO+DyfXfHEdvH08qphfTm+ilPYPV1LOjqQXugsGphSBARAQXK1K4mX3/Z/JBMOluQxrUzEGz35xiZ132ZGFoJeYl7dxkCgFTMA8OTusCcD4yAYJhaYnBW5N2jTBhSQZ5tKWj0Sr/C1EaDKUd2mP9S5a8pbE9GW/chkCv70p6/slVm/oDaLyLmnFSXimn/Gy8hY8A3tA7FI0p68M6F3gMyTyTySj8vmjscoysVmqkn0kI7fiLEXxa8TWAkNa/ywgXsIDrZtgTS8y2CAOYQgH/QExGW8fL44QUcQr8X+tbHQvvEHzugYZXoVilBzEqDEsEyZ+IVY3V5PqjtC2pxLUakbJmVo/KG4B90qBox0+87vjtAMKATbpHqls9t5VsWWgnCnYW7e7M65Q+V+VNGYO1fgVfso=
+	kOruuNTnwXH8BjJJmp72YTnyDOh2EV9efRJeSL4fYDuiedmx98WVVD8gGm7z4QodzKmNaPS/IAZ5a9HKc7F8kcuByfd3fOqNTc/yjZFkoWGFnI752EcoW6S6I24lcss+c+PznAR7u+m7xIjTEFgUxaYj/xWZduvLVaAxx5uCfY6eVB3R8ImH6hHOSKOFx1iGmiKViq8PpgHX2ZAOCTSfG1nepOnF0hnpc+FRetZulBJBZtJ9mzC8oKSOg+Oxh66nn11oz13HTMg0CIqoWCb4w51IDo/mB2DlkLpHes4Hvr6QY8bWlQj+o5jSU70XydfRadRYmhXVj5AWc2Bsiki6fTwLWMvB3gInXNaQtKptHFshpkytuGkMsAalm3o4O/xHoSRtTIyyLzpaHmjTeN3ZADe5nYbFgtL08i6ptu9hqg/q/yRkQETcyDQEMM6HWYL36AmHH7XDxGwYFG5ULDC8kAo63EG7jNBj1GYmzwGWvd+aKXQaZNIIxrWtGbgs4DC6Ajrq5SOKTGIcsPklvt9ib/KqrGuzvKS5XCQVRr0Ed9S88wsp7IZY7CiucDga54EHfVLCXQCGJ1FclaOMbEmAC/nEYTp8yPTVXMqXsWTK4ilunPMw9MHWXXTdcQuspcRwxiRpgxMLz7rvxcWYzwOv8Ysy63chBrMShq5fWlkKJmo=
 X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DM6PR04MB4682.namprd04.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(1800799024)(23010399003)(376014)(18002099003)(22082099003)(56012099006)(10067099003);DIR:OUT;SFP:1102;
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DM6PR04MB4682.namprd04.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(1800799024)(23010399003)(376014)(18002099003)(22082099003)(56012099006)(10067099003)(6133799003);DIR:OUT;SFP:1102;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?avBxpIKQRhkzpTSb0PI8TooyGsicCqireSrULZ4Axr5KI/0W5RIkAbqsTWeM?=
- =?us-ascii?Q?4TYdi89vlmAiFxWuOjSMY+B+MJE2leoYAcU/2s7aj46hPCU2QtiECqWbjV0j?=
- =?us-ascii?Q?tDHvL1kd/Cdv4MbbmY0ioKCgMS/VKzwrHCo3jKBGidaDxWZHutrvFoo3lG/R?=
- =?us-ascii?Q?X0NupwAXW0FTctBzefq3/D94oOlZwTtDtxyT0LiObx1btvDVNKhI9qDNmqiN?=
- =?us-ascii?Q?4qrugCuYIgPTo36hJlEwEMrLB02un09vuKfTJoxJ3gE7snEFs8KkA/r4jIlf?=
- =?us-ascii?Q?064SUhMGki7kgKIAdV0MvjX8z4XFKMKzUtNQvQ5SfW1XZzhnY01S2dyRJwtP?=
- =?us-ascii?Q?plGa9Ami4x5d2SCSYE0uni31pr+zfSnt4/6CjHwOWraUfEQU8cQDeNMvsWoy?=
- =?us-ascii?Q?2WFN7xvVE8T3a+04jpdwpl9zWidp2aPb/yA4jhp1MmQkl1g3aIIECmNaUDdR?=
- =?us-ascii?Q?wRS/N0lVXu0JK0ozsdIso0GkkeEFahCunVPKNM/7utJTwt+qlTYjBDXSZ0m0?=
- =?us-ascii?Q?okdYfLVMYvrmCZ01yuC5imdJFoAD5l998nn7Jr7HZRD1vr4AOcpYNtOZm++l?=
- =?us-ascii?Q?TBzLVGyNWItybPmRse72XlEUjHG3A0kaQSY+HcaSzbIwT4plRP3fPVDeJPSa?=
- =?us-ascii?Q?pXs2AojlvgyvHX7Rh32dvsq1d1DY7FAd6YhjPo7QgP/LofzvkiuM2JoPB4Po?=
- =?us-ascii?Q?NWmbRIIMf31zJc6AdDVPqvB4/AsKB8jBch/tJDDjKBnWdtxgEBy6wFEmQBUI?=
- =?us-ascii?Q?WA8KzoNoUS3rzWPg+Tnec0b/ey1L8DAluYXNJYjx1zLKe/s6ypLM37qkAuXU?=
- =?us-ascii?Q?bES7pzBTp98808ZJIJ2jCj3FdPNtQKptCV9sYZxa9wdL4ziLMS1BlW7ot0Kg?=
- =?us-ascii?Q?0wnDjIUKT3u2pA1NMl/yzubiRhdaGNNpFJGGHH1/jCQPkMeY8OzaXktLzqV0?=
- =?us-ascii?Q?gjWoEvKBmr7+aKYBvRxvtAvwb88DJFlFo7pXgiPUpdU+ldL2ZTo6YEqJiCwk?=
- =?us-ascii?Q?O3nRUvYketYd35h/iJ7Ra/qzxjSHaNiQHMgYp+5Cv904McUYm/cG/P/8E/NF?=
- =?us-ascii?Q?h2WYBbEm+YCNwEz1zBPZJ9JA8sYD1hcBGcA1SY4JZ8HhzmIfITRUkoEQ7CUg?=
- =?us-ascii?Q?ELsXG1U2inOuKp1vu1pe8ME/6YRu+tIKLmL8iQuq+t7ON/lhOO1rYHjJ1poh?=
- =?us-ascii?Q?4W72Yt13gjyJJq+cpy5Bhf4Ls2dUPxoQLgHTnAvhSJqAqKl/4SJhCKZO74sO?=
- =?us-ascii?Q?+i6qw3w+0xxCWwB4icn9uEkYjJLsdZ563U/Q9sV+IdF5dyWZ1XpZRj0tKrVD?=
- =?us-ascii?Q?w2o9orSmlw/wtZfrfhf5njzcRpnTgwr73U/r5U/ufv0oz4kicdYH87kSCv6N?=
- =?us-ascii?Q?QvP9oC04VWBpy6u4u6lA6yyHKPC/9vGbjlJOjMaSQqn2HRR8WTbdaZE2UfmL?=
- =?us-ascii?Q?r8NrwNQz1TdjRv3X6m1Kkw6D/w+J7CSdnY8L4epL4yNhkoC1MafQfssFv7y2?=
- =?us-ascii?Q?3IOHEXtXV8AwyrdwjobOmb/KumXbiXsXD/QtFgZwAzrvZNRlfln7bILuwWU3?=
- =?us-ascii?Q?DtNt3EmdMxw765TdXUK6Mhmp9JbFZ5sS4xcZlKYi93FZ5gjZof1KCKwM3+Oo?=
- =?us-ascii?Q?RSrBqYITP/OPcfk30JlspK7pY0AT/2ln1vM7Vrk31O1IXfu7qUWGErvCAde1?=
- =?us-ascii?Q?83gWnyYJzMxnawHhnEx/nFiFObxmBdax0qWgBRmmO7s9kidz6I+OboTtgxJa?=
- =?us-ascii?Q?HfPOkZl8mAkULbUMlzAcN/I9RxUUch8=3D?=
+	=?us-ascii?Q?cFD00Ad8E/8HNxIMxZE/pzbPaxLIfbj/wl+3F58pIuC/JmpkuC3qzMgA4A4Q?=
+ =?us-ascii?Q?mfBC4N6iZ+8v46YvGoA9aNiKTuszv3y95geHlR9eEJZVl0o1NAee7zRfxB8p?=
+ =?us-ascii?Q?dH06EmbQZItnkP8jNmTPq1ywC8GLshymA7euO43NiuYES4hpgGsXDgOBaB0w?=
+ =?us-ascii?Q?ApR7Jt2e6l9caXwBdyJiCxAjcwLsonk8rVJvN8ImeQuOTwfiq/SjuQFo0zeD?=
+ =?us-ascii?Q?GraISoGt/khJL7wQODeNaFY0lD+8guRKYnQfJMHhXgl6PhkF/is5gnBfLQi/?=
+ =?us-ascii?Q?10j07KTNMZm0PARVDBMatXjycJJMVTPF/XHMr+d1eI+uOPTpZKMtoPDa7fxN?=
+ =?us-ascii?Q?fTpfzjAGrmA8nuGkoLfZsH9nniFqoWSxi8g8TyIg7/BtxYRVExVGV9IUfecf?=
+ =?us-ascii?Q?UHNsmqZgm9c8/3fT8XG+JXjmpKqhiD9TBvTdyVWqZPcpa8B5IhcVakzmFCAH?=
+ =?us-ascii?Q?WPhrL4LCQYOuLgvAivaEX2ntpo6qzmps+8Ax4jv/VzjQOBO0/gEvB8yt4rCm?=
+ =?us-ascii?Q?Av8kcXInwzPn3yJEIfD4jjBY6U7u0b40+VmL/TMpurKrBIyZqAbHcbefEne4?=
+ =?us-ascii?Q?4c3zHpwgUkihWoRiUurQBGMRzzhhwhw4w9RjBPIkrNsXnV8mnfsNyTNdzTkj?=
+ =?us-ascii?Q?LkUXkN+6AYadsrZQWscaX98ViwAh2K7dBcCwVp7Kak0veA3VT/msU5ZQldBg?=
+ =?us-ascii?Q?XjAnqCx+v43d1VSnd1fweJn3WSxcwmVPrye0vwFm9XICEaLNesSteBjvIDys?=
+ =?us-ascii?Q?MTmh1+H8pbr93BcAV1qINsJ4BtVRr/xlJ7u/ix2q/UGEZWh5pErlpwVDGufX?=
+ =?us-ascii?Q?vQJoRREU1ORfFuL/QRyLJSqTF0IzNuDUMrhLWZgjH0llaAikgwF2OcoFawpd?=
+ =?us-ascii?Q?cL0AX6BhMicMSZi83bByvymAZUjbhA2JUi6fiiqfzL6R1Ow5thnDC3zsN7Xn?=
+ =?us-ascii?Q?BoxDsPid0YQcHlZD7HDW7ZuclH9RttIgfffd+GdPLRWQCqyRNO8AhKnRI4dY?=
+ =?us-ascii?Q?Vj5z5J0P3o78vLq/YCkoFnrPVQi57QMQjFeectD3hZV9x995Iy2e1LxGQ/9V?=
+ =?us-ascii?Q?dhGrOzgApbqNyJTJ7RXKbql5IlUOeF1GaWW16iftID4MQqmW6zhrUPQ6yYGv?=
+ =?us-ascii?Q?IS7za2oXWRHLWvcULR7gUfnJ3ZHj70Vepwyz0YyP68GuB6CAm/LZ75ExCwYo?=
+ =?us-ascii?Q?jVXMWIPJ7D2VFRh+rmZkm/q/DMc8LUWx+fTKNmxRkyz+x2TMiEohijQLd3o9?=
+ =?us-ascii?Q?v7emrxzEcZVcdzrOrGf5+YB2fdfLPO/IpuqLlwyWyJmGsdvuYMnLiLs63Who?=
+ =?us-ascii?Q?2P2DCH/WYyg/4OAEZMeWDftJFwEqHzKMbUE/YYMhDOsSiTz752GILmhHAiht?=
+ =?us-ascii?Q?j6ngThrD6+E0zYwIub6WHJZ73lYsQOYn6/E5ni4cvGkOJ1dLCpc0GP74GX2H?=
+ =?us-ascii?Q?9kGhatIpFQYyk2YbjmxOAAcVcpzFdeIqauxrnG0TGOLWh3OuODaDucLXgNUW?=
+ =?us-ascii?Q?94ObXh6KQozf+RoVr3u+Ei9sgvz40N2DSCnqRcwifJJdTbM/99KGDhTSoVCh?=
+ =?us-ascii?Q?9GLwYR0iDUcri5u+BsZ5eQxS8J+lyPlnEUfcIKzV3DvldN0FKEI7FCY6KdKQ?=
+ =?us-ascii?Q?r8lnvaZPLwikjYMJQm/E7ZcIU0Mu2JJBya7u5/ZafGy0U1aZeCsEkZjzPuqZ?=
+ =?us-ascii?Q?0t2TYIDqDOPNLJj2YwNe3UVO5G31m2mCPUs8+6n8BZQI98q5gbAS5wzF4CnR?=
+ =?us-ascii?Q?lDMvXXJ9XMU81YOBzFgUZgX0dxxHSpo=3D?=
 X-OriginatorOrg: thelustrecollective.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: a3ea21b8-da5b-40e3-51cd-08dee3b26627
+X-MS-Exchange-CrossTenant-Network-Message-Id: b27e4b27-ddf3-4fe1-6414-08dee3b26690
 X-MS-Exchange-CrossTenant-AuthSource: DM6PR04MB4682.namprd04.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 17 Jul 2026 03:20:49.1537
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 17 Jul 2026 03:20:49.9686
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 4c9dec06-8f2c-4233-98d5-ca3cb36218fc
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: APe6W06OUQD31pMiLn33+Ce3BVq+429YvO5OBllIz5Ytul1u1hAGU2okhEd/cEQ+0bsCDVOZswRtQMxWoutk04vf5yutuWjJsotCY33Boow=
+X-MS-Exchange-CrossTenant-UserPrincipalName: eBjeP0IgYIL1F9J3N2sAedq8DuqSXgfE7Fytv8WANezVdn8y/yQBe5BMdg8XGKqXWXWGnR9Q04UiUcUw46jEzHfNxrws5LqcjZ/hs6peDLo=
 X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM8PR04MB7992
 
-The admin submission queue producer counter and phase bit are
-accessed with the ASQ lock held. Annotate both fields with
-__guarded_by() and __efa_com_submit_admin_cmd() with __must_hold()
-for Clang's context analysis.
+Update efa Makefile to support context analysis [1].
 
-The initialisation in efa_com_admin_init_sq() runs before the
-admin queue is live. No concurrent access is possible. The
-ASQ lock is marked guard(spinlock_init) to silence the context
-analysis warning.
-
-The prints in efa_com_cqe_checksum_valid(),
-efa_com_handle_single_admin_completion() and
-efa_com_wait_and_process_admin_cq_interrupts() are diagnostics on
-the error path, where a racy read of the producer counter is
-acceptable. Since the lock isn't being taken, wrap them in
-context_unsafe().
+[1] https://docs.kernel.org/dev-tools/context-analysis.html
 
 Signed-off-by: Timothy Day <timday@thelustrecollective.com>
 ---
- drivers/infiniband/hw/efa/efa_com.c | 21 ++++++++++++---------
- drivers/infiniband/hw/efa/efa_com.h |  4 ++--
- 2 files changed, 14 insertions(+), 11 deletions(-)
+ drivers/infiniband/hw/efa/Makefile | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/infiniband/hw/efa/efa_com.c b/drivers/infiniband/hw/efa/efa_com.c
-index 27be07e757e26..047b378f88045 100644
---- a/drivers/infiniband/hw/efa/efa_com.c
-+++ b/drivers/infiniband/hw/efa/efa_com.c
-@@ -148,7 +148,7 @@ static int efa_com_admin_init_sq(struct efa_com_dev *edev)
- 	if (!sq->entries)
- 		return -ENOMEM;
+diff --git a/drivers/infiniband/hw/efa/Makefile b/drivers/infiniband/hw/efa/Makefile
+index a6a433b0ba2f1..0a6843f3c5e1d 100644
+--- a/drivers/infiniband/hw/efa/Makefile
++++ b/drivers/infiniband/hw/efa/Makefile
+@@ -4,6 +4,8 @@
+ # Makefile for Amazon Elastic Fabric Adapter (EFA) device driver.
+ #
  
--	spin_lock_init(&sq->lock);
-+	guard(spinlock_init)(&sq->lock);
++CONTEXT_ANALYSIS := y
++
+ obj-$(CONFIG_INFINIBAND_EFA) += efa.o
  
- 	sq->cc = 0;
- 	sq->pc = 0;
-@@ -329,6 +329,7 @@ static void __efa_com_submit_admin_cmd(struct efa_com_admin_queue *aq,
- 				       size_t cmd_size_in_bytes,
- 				       struct efa_admin_acq_entry *comp,
- 				       size_t comp_size_in_bytes)
-+	__must_hold(&aq->sq.lock)
- {
- 	struct efa_admin_aq_entry *aqe;
- 	u16 queue_size_mask;
-@@ -433,10 +434,11 @@ static bool efa_com_cqe_checksum_valid(struct efa_com_admin_queue *aq,
- 
- 	calc_checksum = crc16(EFA_CRC16_INIT_VAL, (u8 *)cqe, sizeof(*cqe)) ^ EFA_CRC16_INIT_VAL;
- 	if (calc_checksum != cqe_checksum) {
-+		/* racy read of the SQ producer counter for diagnostics only */
- 		ibdev_err(aq->efa_dev,
- 			  "Received completion with invalid checksum, cqe[%u], calc[%u], sq producer[%d], sq consumer[%d], cq consumer[%d]\n",
--			  cqe_checksum, calc_checksum, aq->sq.pc, aq->sq.cc,
--			  aq->cq.cc);
-+			  cqe_checksum, calc_checksum,
-+			  context_unsafe(aq->sq.pc), aq->sq.cc, aq->cq.cc);
- 		return false;
- 	}
- 
-@@ -458,10 +460,11 @@ static int efa_com_handle_single_admin_completion(struct efa_com_admin_queue *aq
- 
- 	comp_ctx = efa_com_get_comp_ctx_by_cmd_id(aq, cmd_id);
- 	if (comp_ctx->status != EFA_CMD_SUBMITTED || comp_ctx->cmd_id != cmd_id) {
-+		/* racy read of the SQ producer counter for diagnostics only */
- 		ibdev_err(aq->efa_dev,
- 			  "Received completion with unexpected command id[%x], status[%d] sq producer[%d], sq consumer[%d], cq consumer[%d]\n",
--			  cmd_id, comp_ctx->status, aq->sq.pc, aq->sq.cc,
--			  aq->cq.cc);
-+			  cmd_id, comp_ctx->status,
-+			  context_unsafe(aq->sq.pc), aq->sq.cc, aq->cq.cc);
- 		return -EINVAL;
- 	}
- 
-@@ -599,16 +602,16 @@ static int efa_com_wait_and_process_admin_cq_interrupts(struct efa_comp_ctx *com
- 				"The device sent a completion but the driver didn't receive any MSI-X interrupt for admin cmd %s(%d) status %d (id: %d, sq producer: %d, sq consumer: %d, cq consumer: %d)\n",
- 				efa_com_cmd_str(comp_ctx->cmd_opcode),
- 				comp_ctx->cmd_opcode, comp_ctx->status,
--				comp_ctx->cmd_id, aq->sq.pc, aq->sq.cc,
--				context_unsafe(aq->cq.cc));
-+				comp_ctx->cmd_id, context_unsafe(aq->sq.pc),
-+				aq->sq.cc, context_unsafe(aq->cq.cc));
- 		else
- 			ibdev_err_ratelimited(
- 				aq->efa_dev,
- 				"The device didn't send any completion for admin cmd %s(%d) status %d (id: %d, sq producer: %d, sq consumer: %d, cq consumer: %d)\n",
- 				efa_com_cmd_str(comp_ctx->cmd_opcode),
- 				comp_ctx->cmd_opcode, comp_ctx->status,
--				comp_ctx->cmd_id, aq->sq.pc, aq->sq.cc,
--				context_unsafe(aq->cq.cc));
-+				comp_ctx->cmd_id, context_unsafe(aq->sq.pc),
-+				aq->sq.cc, context_unsafe(aq->cq.cc));
- 
- 		clear_bit(EFA_AQ_STATE_RUNNING_BIT, &aq->state);
- 		return -ETIME;
-diff --git a/drivers/infiniband/hw/efa/efa_com.h b/drivers/infiniband/hw/efa/efa_com.h
-index 39302559a7a98..2306666c86c80 100644
---- a/drivers/infiniband/hw/efa/efa_com.h
-+++ b/drivers/infiniband/hw/efa/efa_com.h
-@@ -40,8 +40,8 @@ struct efa_com_admin_sq {
- 	u32 __iomem *db_addr;
- 
- 	u16 cc; /* consumer counter */
--	u16 pc; /* producer counter */
--	u8 phase;
-+	u16 pc __guarded_by(&lock); /* producer counter */
-+	u8 phase __guarded_by(&lock);
- 
- };
- 
+ efa-y := efa_com_cmd.o efa_ah_cache.o efa_com.o efa_main.o efa_verbs.o
 -- 
 2.39.5
 
