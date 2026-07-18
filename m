@@ -1,92 +1,153 @@
-Received: from 011.lax.mailroute.net (011.lax.mailroute.net [199.89.1.14])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yw1-f175.google.com (mail-yw1-f175.google.com [209.85.128.175])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D83E23D955B;
-	Fri, 17 Jul 2026 22:14:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=199.89.1.14
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784326482; cv=none; b=ZHCpBfW67Wy4xbOhDpjn9f4wZqpgyCuRSv0SKYj79GpJriTLXSWeShcLu9nlkYfwWk1IWShMywmYxnwcEWhEXe3clMZzqOd561VWfKqQ1T1V1Lq8RDFGhtllwkLhfWUJO0mZYErxhLhfqY4ydXN55vn1iwDJxBQrH1x1Se4GUXk=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784326482; c=relaxed/simple;
-	bh=FfMxDUrSdhWAf6OR6jQrQ6w9/VS83JRakkNOo1x64JQ=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=k9isLS6hNwiXwxxqyc0GD2GaZ7kFbJgRyiNJLwmorSNenl9zxq+yRUVq8yErORwZ5y0kFB0vVLDsKPWe6WMG/UoyL97uVXYkyRn7RSW/v4AEgg+USjDSUhkXm9DcNCQ+R6T7Xyy0iGWn6U+XnXiXtSVKeM7St+Fb1lS1DyT/3rQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=acm.org; spf=pass smtp.mailfrom=acm.org; dkim=pass (2048-bit key) header.d=acm.org header.i=@acm.org header.b=Wrutee8i; arc=none smtp.client-ip=199.89.1.14
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=acm.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=acm.org
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F312F369980
+	for <linux-rdma@vger.kernel.org>; Sat, 18 Jul 2026 06:55:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.128.175
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1784357717; cv=pass; b=eyao3H588UU549xnGyUeKeoQB0paq+sLp5eq2RST9z2Q3j0E6S47IQfxwD7Uy0p+1x4v9wDRJT4a+KiRUJv4UlYcrlegHlrxa3/hqWKrCi77DAvRvzhAhlU4BsTfF3QYadloJg1tPwMrY6sXTR5sMGFP6F/J471DhOXS6mVEskY=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1784357717; c=relaxed/simple;
+	bh=3HXuM0xbB9ZjYajXsFxIO364Ea85v7v2vlxwbYKFREw=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=LhzMp2MY9Pt6oIS1JKdFJ2E8GLxh+NRg6LFoEAi6axdeICENZK0Y0WpSXguvLKZH921PiMXjyo4cgDFhOzRi0m+Z9wIf2T2G0tEF2JNtx7WndYi+FUol5TWKwbVpQUMW9cz7T8bGoBVRunqwqr19RNFvRWuYyjBIXGlgx03tBHI=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=bGPNKJf8; arc=pass smtp.client-ip=209.85.128.175
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=acm.org header.i=@acm.org header.b="Wrutee8i"
-Received: from localhost (localhost [127.0.0.1])
-	by 011.lax.mailroute.net (Postfix) with ESMTP id 4h242m2STCz1XM0p3;
-	Fri, 17 Jul 2026 22:14:40 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=acm.org; h=
-	content-transfer-encoding:content-type:content-type:in-reply-to
-	:from:from:content-language:references:subject:subject
-	:user-agent:mime-version:date:date:message-id:received:received;
-	 s=mr01; t=1784326476; x=1786918477; bh=Xe8CKg0qGwTZ35OCNQ1sXkC6
-	T13Z2+hE48McJ+l7AHs=; b=Wrutee8ic+zeFMcdwG4aKniiUXcskm90Oh7fq6tY
-	4l3VL1/DkF6FOKVKdFCH8xJUEeRU96AqflaxBX0lgMfEz7Qh9ygqsLbtYKKUr/Yo
-	gAORnAI5CLSm0kr9N65xr8GSTKwHMiCR4Nf56Qssxr+Nq1OL8NBp+M6NtqgiPQD/
-	pMZKRYNVidP6NA/t5WMr462pH0Jq6z4sVNGAGwNK3PfXq09TmyUl41ZWHdGcfeyT
-	KsxsvjhrhjViDosIQ31LcXu2HKC7DMoYSO1vq94V3P8YMxv15PUOzAoCqpYtqpTI
-	kLQomUe8ZjqlcivIz7zCdpkQ4ed5rd/77LaDN6hNsDyLRQ==
-X-Virus-Scanned: by MailRoute
-Received: from 011.lax.mailroute.net ([127.0.0.1])
- by localhost (011.lax [127.0.0.1]) (mroute_mailscanner, port 10029) with LMTP
- id FhdtpCaa3grW; Fri, 17 Jul 2026 22:14:36 +0000 (UTC)
-Received: from [100.119.48.131] (unknown [104.135.180.219])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	(Authenticated sender: bvanassche@acm.org)
-	by 011.lax.mailroute.net (Postfix) with ESMTPSA id 4h242f5v9lz1XM0ny;
-	Fri, 17 Jul 2026 22:14:34 +0000 (UTC)
-Message-ID: <0ff08421-b325-4d5d-adf1-e6ae94516b39@acm.org>
-Date: Fri, 17 Jul 2026 15:14:33 -0700
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="bGPNKJf8"
+Received: by mail-yw1-f175.google.com with SMTP id 00721157ae682-81eaf3709b4so62350247b3.0
+        for <linux-rdma@vger.kernel.org>; Fri, 17 Jul 2026 23:55:15 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1784357715; cv=none;
+        d=google.com; s=arc-20260327;
+        b=ZqqWMQx4+lJz96Ww1ehum6w2RBwAePC+0uyf7hsTVi6c6gcP5n2NOVxCKVt4ZeTcaK
+         PkHsEPtBIbE/E/WtD27ag8FetzJ1FTtkQJuBuYIFXHUCb0xod8Ih4ZzX+j916q4Bh2mY
+         2xzC6gt0+wih5ej20z1tJAjIHWrB0ptbQmnOf6K6LiF7A1aDvEH3t6eMpjkwu+HfnYQX
+         olbu8T5wJUQit1no4atvXyXsBGEup1ZZ4PFniJNp18nvy0fnzKk/I+2GOj2QmdSGvsFV
+         JzrHWe8XITT/bBfTHpudr756F6QFUwQ15/8DAUFbVSGbPz6UH1jFEy5I++Rl/0yFwy7f
+         cFbw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:dkim-signature;
+        bh=6SRa8XLwCo7Ic+ETUfDLMv0LJrBGSH7qHZ3uFel85Ng=;
+        fh=/5F0FlBmg0XtzkPZJRBzs3AuDR+EFKZX2aCo621Ke9A=;
+        b=pMLMf1rL5n/a/ieDGCqo7aV3YP8PrxOlGOwwRuO9lpdNhab+rnO/3oFnYGzmo/vHPF
+         uAhTpjl4dtA6ppuWphJ9GndESFtW1wsE0hDcpJrzm6bYTBwTlko7imC9u6no7mK+WK5T
+         DQAb474VMJQqY+tCW4sqim05Lu5Vj7aMQ5vxLXcA7GfxQ8+fjTjdvChz3sI5nzo8iRGv
+         vtf+O+kFcJQnD0duIJpHDU+/geWOh55oh1PNgyD33fF7bYxcdiHjIb/+K7noZeSED5fA
+         DzNbmxSLTBGuB7aZ4cEE7eLF1WEdoitYJ5Hdb8y3Z5bqnCyufIgrqDIgVO9+EXO9l/J5
+         txhg==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1784357715; x=1784962515; darn=vger.kernel.org;
+        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
+         :references:mime-version:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=6SRa8XLwCo7Ic+ETUfDLMv0LJrBGSH7qHZ3uFel85Ng=;
+        b=bGPNKJf8W3vy10kz0ppyevyo9d9Z3sNs0rxclKE8jK/pg2P6r/nedYyHdPljhHA/sq
+         Lmm48iXNLZRQhs7/spbIkpnPCbKQqx3eK2YK4Vo0kN2VLRr9wvSve7b3qs0R9eH3BpkI
+         KFRM1z84lOMsEv1DTcM9atQSw9XIiFW9FD1C53+/TF7CtbNFBpZweid+1F5TDyjD1vM3
+         X5OSdRoc8WnJUqDWlYoXsdCLDNw3RxPr/pmiF4LcZ6+jl9FDjHChQA4eVDllzddfm++B
+         lCb82Fb/8w5r6JpkbBDWZxaMSL9F1r5SDxT7k3SzS2HuD+SkKalceb2wMtGLHoUt5Elr
+         7WFw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1784357715; x=1784962515;
+        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
+         :references:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to:content-type;
+        bh=6SRa8XLwCo7Ic+ETUfDLMv0LJrBGSH7qHZ3uFel85Ng=;
+        b=jOBC4oDMbG3yvJuTqzvsrLTFwQ4XpFNSI9M6mPMpRr9+Hxd8rLcn1Verl1TpG3/G48
+         nigsTcKz4Zj1u3qfZc/SCa/B0HDs2r4usBIdNImnGcjkIz6vNGUWZpKB6NAClj7cW14u
+         IjXKa3Px5jb4mK21j8cW4IaYlFGFeP0IdKDRDEjMpv1vHKWP4AD15NXQA+gVvC/hADpl
+         DLUF3nqNrOP/Cdm0WIGpLNEJdYYczccQFUisan0XMfxmDqoVnLyAZVtabS+CvlhaMYew
+         I70bUEPJyTIoe7b8ci/7efiyVySmZCRAnLq9Rfj31Vqiyc0E0j81ypUDJmWk2JFfJR0m
+         gAjg==
+X-Forwarded-Encrypted: i=1; AHgh+Rp/M5+G0MC6aWA4lIT+RhyLxrsbwYrCjuDC8CxSIcR+oEan42MovosJ9wi46WgJ3QNhyAKn9oiwXS39@vger.kernel.org
+X-Gm-Message-State: AOJu0YxlEI6rGluONiMElydvJS2cpHNvlGQjNBa46UIvcbCe3bhl2XFs
+	8drIJSkDGvVd8d/Po1XNiXy+x4a29RSgz9P103jBYd8ySedAovQi/xg402Xmyj1BLHyUGLGOjiy
+	ky6Sw9gSnafEshHmv/niScV/fKrJNzxRAjZjxF1sxhw==
+X-Gm-Gg: AfdE7cnkbcDZFQGtJV7TvXJTGxuX42Q7JCiazvDa/PZnO/nqqiZJXP0zaY9EyB5pvvL
+	pPMCD1SGeBD65/9Zuv3zvAhpOAtrjvVqTgN2CkEouk5XQgvVfNxc2O02SOa8eEWT9Ligg7Sxg/b
+	2yFUsmHEGuLjubPsTetoy0puPGQioJAu1+vSNUkgtKa0RpCv48ea+Tby7tjGdzqAjdW9l0Zb3uU
+	qzYJ8mTCRM4wQragh31LMMT2XfTgu5aOf6kimEcbz35H+j9w373r0peFhrzWkMg
+X-Received: by 2002:a05:690c:63c6:b0:81e:cf49:99ff with SMTP id
+ 00721157ae682-81ef286ec6emr21309927b3.67.1784357714872; Fri, 17 Jul 2026
+ 23:55:14 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2] RDMA/srpt: Fix srpt_alloc_rw_ctxs() unwind counters
-To: kensanya <kensanya@163.com>
-Cc: jgg@ziepe.ca, leon@kernel.org, linux-rdma@vger.kernel.org,
- target-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
- TanZheng <tanzheng@kylinos.cn>
-References: <20260715101550.45345-1-kensanya@163.com>
- <e29b0d9f-177f-431d-9411-66057f536bf1@acm.org>
- <386585bd.1730.19f6dcdb6cf.Coremail.kensanya@163.com>
-Content-Language: en-US
-From: Bart Van Assche <bvanassche@acm.org>
-In-Reply-To: <386585bd.1730.19f6dcdb6cf.Coremail.kensanya@163.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+References: <20260714142838.1723076-1-lgs201920130244@gmail.com> <20260715081720.GD21348@unreal>
+In-Reply-To: <20260715081720.GD21348@unreal>
+From: Guangshuo Li <lgs201920130244@gmail.com>
+Date: Sat, 18 Jul 2026 14:55:02 +0800
+X-Gm-Features: AUfX_mxMF7nFpP0bJZj1JVWIBUvABoRUFoZzHni9Wgp1pj-15GIHaV9qe4mob_E
+Message-ID: <CANUHTR-wDnrAYQuFvM+PEyZL6SyovFRb-FqVyiBV=1CKUvDG1Q@mail.gmail.com>
+Subject: Re: [PATCH] RDMA/rtrs-clt: Fix double free on path sysfs failure
+To: Leon Romanovsky <leon@kernel.org>
+Cc: "Md. Haris Iqbal" <haris.iqbal@ionos.com>, Jack Wang <jinpu.wang@ionos.com>, 
+	Jason Gunthorpe <jgg@ziepe.ca>, Gioh Kim <gi-oh.kim@cloud.ionos.com>, linux-rdma@vger.kernel.org, 
+	linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 
-On 7/16/26 7:00 PM, kensanya wrote:
-> I have a question about restoring n_rw_ctx/n_rdma from local
-> snapshots versus clearing them to 0 on the unwind path.
-> 
-> Looking at the call chain:
->    srpt_handle_new_iu()
->      -> srpt_get_send_ioctx()   /* sets n_rdma = 0, n_rw_ctx = 0 */
->      -> srpt_get_desc_tbl()
->           -> srpt_alloc_rw_ctxs()
-> 
-> so when srpt_alloc_rw_ctxs() is entered, both counters are already
-> 0.  On the current call path, assigning 0 on unwind seems
-> equivalent to restoring the values saved at function entry.
-> 
-> Is the save/restore preferred because the loop starts from
-> ioctx->n_rw_ctx (i.e. the function is written as if it may extend
-> an existing allocation), or is there another reason to prefer it
-> over clearing to 0?
+Hi Leon,
 
-Your analysis seems correct to me. I misremembered how the code works
-when I wrote the message you replied to. It was a while ago when I
-implemented srpt_get_send_ioctx() - in 2010 according to the git
-history of the original implementation
-(https://github.com/SCST-project/scst).
+Thanks for reviewing.
 
-Bart.
+On Wed, 15 Jul 2026 at 16:17, Leon Romanovsky <leon@kernel.org> wrote:
+>
+> On Tue, Jul 14, 2026 at 10:28:38PM +0800, Guangshuo Li wrote:
+> > alloc_path() allocates clt_path before rtrs_clt_create_path_files()
+> > initializes its embedded kobject.
+> >
+> > If path sysfs creation fails, rtrs_clt_create_path_files() calls
+> > kobject_put(). The final reference invokes rtrs_clt_path_release(),
+> > which calls free_path() and frees clt_path for the first time.
+> >
+> > After the helper returns, both rtrs_clt_open() and
+> > rtrs_clt_create_path_from_sysfs() continue to access clt_path and call
+> > free_path() again, resulting in a use-after-free and double free.
+> >
+> > Let the sysfs helper undo the sysfs and stats setup while retaining the
+> > path kobject reference. After removing the path and closing its
+> > connections, release that reference with kobject_put() so
+> > rtrs_clt_path_release() remains the sole owner of the final free.
+> >
+> > This issue was found by a static analysis tool I am developing.
+> >
+> > Fixes: 7ecd7e290bee ("RDMA/rtrs-clt: Fix memory leak of not-freed sess->stats and stats->pcpu_stats")
+> > Signed-off-by: Guangshuo Li <lgs201920130244@gmail.com>
+> > ---
+> >  drivers/infiniband/ulp/rtrs/rtrs-clt-sysfs.c | 20 +++++++++++++++-----
+> >  drivers/infiniband/ulp/rtrs/rtrs-clt.c       | 12 +++++++++---
+> >  2 files changed, 24 insertions(+), 8 deletions(-)
+>
+>
+> We have already discussed this multiple times. What is still
+> missing?
+> https://lore.kernel.org/linux-rdma/20260428105515.362051-1-lgs201920130244@gmail.com/
+> https://lore.kernel.org/linux-rdma/20260511130804.773204-1-lgs201920130244@gmail.com/
+> https://lore.kernel.org/linux-rdma/20260514113834.865530-1-lgs201920130244@gmail.com/
+>
+> Thanks
+
+The previous discussions addressed the server-side path,
+rtrs_srv_create_path_files(), involving struct rtrs_srv_path.
+
+This patch addresses a different client-side failure path in
+rtrs_clt_create_path_files(), involving struct rtrs_clt_path. Here,
+the helper may release clt_path through kobject_put(), while its
+callers continue to access and free the same object, resulting in a UAF
+and double free.
+
+Although both issues involve kobject lifetime handling, the affected
+object and call path are different.
+
+Sorry that I did not make this distinction clear enough in the commit
+message.
+
+Thanks,
+Guangshuo
