@@ -1,130 +1,114 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8038D353EE0;
-	Sun, 19 Jul 2026 08:13:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A6E73563EB;
+	Sun, 19 Jul 2026 09:26:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784448834; cv=none; b=Chr2QXS1jJgcXHMq2MI7Yi7tmP6piyOtntumSWLsGF5/wtIaareHgAZ5HuNO7b2h6a1gYFp0MTP8Qkqq6elcdsANwfF6ZjUTsZChQEavs2feP/VwHi9aFWdotPuJM6DwtsG23GjA/i6r9Csyu6ZQPE4ZjrgM+PFsYP79sDzHucM=
+	t=1784453207; cv=none; b=rWxbem6+Xj4F1R1i0Fcs0dXb/eWTt26AQ92Xtyf1xdkfAOZsYajIFs/9NzMppLkQRI1Ex92KymzfYOCYrTxalqijLJHKfro6c0/Iu9UJ8NCQa3WM1HV6BOLckDvSVEVR2xu1riA1wq7Aa1tFfWtf8akdlcUs8BtF7b3sTbC5UuI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784448834; c=relaxed/simple;
-	bh=LKvbheQlpzwmbZtr03LNfZ8JGkOHDWA/9mAx1fqSrqI=;
-	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=n4g7kjQ0BeBvidOGw910BzY6DWxEOtfNfrtWuEk1SvTvDFwdx8xAaOIQR8bDQRDKlHsAH/QXALhQryxX1306vbfvVqkb3djy/dID+2RJQCHkVLVqNmcTGQbMfTU6NzYla92AJ+1fan9ianCOhd224sfSuL0WamhAKdm9mjf6s00=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=cEUpTeZY; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784453207; c=relaxed/simple;
+	bh=sMW3QJus+b44frmJOKMargkP+aScshjZ4nX32X50DuE=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=Qog6bP/DONDQvjKdFFomF1MoZ+9x/fVIA4DlvO/N7g0wnZr5fTVndLhoWCR53gfSRAS/QhkqLJ1gJdy7+zXakdgIi8x5AT1cdzuDQkOn4KAQALAOxvBlQNg0WXdqDy+VlN1pBX6VEMvmSO64NTgqA5RUsipevzP6Oa3IFTnlouU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Wwv1YzjZ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="cEUpTeZY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6E19D1F000E9;
-	Sun, 19 Jul 2026 08:13:52 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Wwv1YzjZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A7E8A1F000E9;
+	Sun, 19 Jul 2026 09:26:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1784448833;
-	bh=yPO5j6jDNZ1b8+1u9JOWqVZP2nKox7P+Uj+qtNTQe8k=;
-	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=cEUpTeZY1LlOQ9QXPTqv2d1v0fptj6K6iwIWGb3xN/YXCNh2uTwj/KgS7kMGtndIc
-	 1KtzbjBcjGgKZ3RPchTumh7jhYr6QEuTRI98sz0G5ROfFwtx0nqSiaKOd+EFaQ7PBA
-	 TRrSLkpo9QtHKIftJOOBmUHmRNCS8I1PIawU74QK2k52J+U4Ho5/AsgVwX9/ie30aU
-	 KPCEBcyed32ldnFmTcCjdf4x2XK2tt5eb3Kaj8LQd2Ylp6EFodoNVIvRyO4aAxIPja
-	 iddO0QEzkPHMJj/RvEoxSjwqpICTOc7fFLSmbMLyvXjow4xRBJibKlsWQGDSnqEhqp
-	 tzYu2NAQ9GMPg==
-Message-ID: <259284aa1280d387c413cc34fa5e4b11ad28379d.camel@kernel.org>
-Subject: Re: [PATCH net] rds: tcp: unregister sysctl before tearing down
- listen socket
-From: Allison Henderson <achender@kernel.org>
-To: "Cen Zhang (Microsoft)" <blbllhy@gmail.com>
-Cc: davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
- pabeni@redhat.com,  horms@kernel.org, netdev@vger.kernel.org,
- linux-rdma@vger.kernel.org,  rds-devel@oss.oracle.com,
- linux-kernel@vger.kernel.org,  AutonomousCodeSecurity@microsoft.com,
- tgopinath@linux.microsoft.com,  kys@microsoft.com
-Date: Sun, 19 Jul 2026 01:13:51 -0700
-In-Reply-To: <20260718183420.13301-1-blbllhy@gmail.com>
-References: <20260718183420.13301-1-blbllhy@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.52.3-0ubuntu1.1 
+	s=k20260515; t=1784453205;
+	bh=Z6CVcW2Mj6rNVFJ3aanBTM5gmTtw0teGttT7Uf5GtjQ=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=Wwv1YzjZiw86S3+VeFJxGS1AG7ETfAT+S5mrIo78WxO6tjkAo9sOnqODO7Ladbxye
+	 6jspizWM6Fu00Vu/zTQqD7UlV4ZNLPmfYGA3GgtNtJB8sgI/AHX9nDr5O09swxerC9
+	 0+5bnT9KsJ8z8uRcSJOU/8nZnqLzq1JXdIPflFkDLuSkYFl5cDm6cM/eD3dd6eQbNA
+	 LUWL4NoJaVFICnXklFnkhUrfiTfm+WGBcKfTkfG1bF7ztbMzMgxgmci3wH00tlEQfC
+	 CwyrXFVWRRFOYtN+yq0BSzw0LvA7ercbyQKOPRr2SUnjwkw+HGSGa7TmHu0glHD7qV
+	 fevkQtnadM7pg==
+Date: Sun, 19 Jul 2026 12:26:38 +0300
+From: Leon Romanovsky <leon@kernel.org>
+To: Guangshuo Li <lgs201920130244@gmail.com>
+Cc: "Md. Haris Iqbal" <haris.iqbal@ionos.com>,
+	Jack Wang <jinpu.wang@ionos.com>, Jason Gunthorpe <jgg@ziepe.ca>,
+	Gioh Kim <gi-oh.kim@cloud.ionos.com>, linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] RDMA/rtrs-clt: Fix double free on path sysfs failure
+Message-ID: <20260719092638.GC110966@unreal>
+References: <20260714142838.1723076-1-lgs201920130244@gmail.com>
+ <20260715081720.GD21348@unreal>
+ <CANUHTR-wDnrAYQuFvM+PEyZL6SyovFRb-FqVyiBV=1CKUvDG1Q@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CANUHTR-wDnrAYQuFvM+PEyZL6SyovFRb-FqVyiBV=1CKUvDG1Q@mail.gmail.com>
 
-On Sat, 2026-07-18 at 14:34 -0400, Cen Zhang (Microsoft) wrote:
-> rds_tcp_exit_net() frees the per-netns RDS TCP listen socket via
-> rds_tcp_kill_sock() before unregistering the per-netns sysctl table.  Sin=
-ce
-> rds_tcp_skbuf_handler() derives the netns from rtn->rds_tcp_listen_sock->=
-sk,
-> a concurrent sysctl write can race with netns teardown and dereference th=
-e
-> freed socket/sk.
+On Sat, Jul 18, 2026 at 02:55:02PM +0800, Guangshuo Li wrote:
+> Hi Leon,
+> 
+> Thanks for reviewing.
+> 
+> On Wed, 15 Jul 2026 at 16:17, Leon Romanovsky <leon@kernel.org> wrote:
+> >
+> > On Tue, Jul 14, 2026 at 10:28:38PM +0800, Guangshuo Li wrote:
+> > > alloc_path() allocates clt_path before rtrs_clt_create_path_files()
+> > > initializes its embedded kobject.
+> > >
+> > > If path sysfs creation fails, rtrs_clt_create_path_files() calls
+> > > kobject_put(). The final reference invokes rtrs_clt_path_release(),
+> > > which calls free_path() and frees clt_path for the first time.
+> > >
+> > > After the helper returns, both rtrs_clt_open() and
+> > > rtrs_clt_create_path_from_sysfs() continue to access clt_path and call
+> > > free_path() again, resulting in a use-after-free and double free.
+> > >
+> > > Let the sysfs helper undo the sysfs and stats setup while retaining the
+> > > path kobject reference. After removing the path and closing its
+> > > connections, release that reference with kobject_put() so
+> > > rtrs_clt_path_release() remains the sole owner of the final free.
+> > >
+> > > This issue was found by a static analysis tool I am developing.
+> > >
+> > > Fixes: 7ecd7e290bee ("RDMA/rtrs-clt: Fix memory leak of not-freed sess->stats and stats->pcpu_stats")
+> > > Signed-off-by: Guangshuo Li <lgs201920130244@gmail.com>
+> > > ---
+> > >  drivers/infiniband/ulp/rtrs/rtrs-clt-sysfs.c | 20 +++++++++++++++-----
+> > >  drivers/infiniband/ulp/rtrs/rtrs-clt.c       | 12 +++++++++---
+> > >  2 files changed, 24 insertions(+), 8 deletions(-)
+> >
+> >
+> > We have already discussed this multiple times. What is still
+> > missing?
+> > https://lore.kernel.org/linux-rdma/20260428105515.362051-1-lgs201920130244@gmail.com/
+> > https://lore.kernel.org/linux-rdma/20260511130804.773204-1-lgs201920130244@gmail.com/
+> > https://lore.kernel.org/linux-rdma/20260514113834.865530-1-lgs201920130244@gmail.com/
+> >
+> > Thanks
+> 
+> The previous discussions addressed the server-side path,
+> rtrs_srv_create_path_files(), involving struct rtrs_srv_path.
+> 
+> This patch addresses a different client-side failure path in
+> rtrs_clt_create_path_files(), involving struct rtrs_clt_path. Here,
+> the helper may release clt_path through kobject_put(), while its
+> callers continue to access and free the same object, resulting in a UAF
+> and double free.
+> 
+> Although both issues involve kobject lifetime handling, the affected
+> object and call path are different.
+> 
+> Sorry that I did not make this distinction clear enough in the commit
+> message.
 
-Hi Cen,
+You likely need to apply the same fix as in the srv patch.
 
-Thanks for working on this.  The race is real and the analysis is right.
-Some comments below:
+Thanks
 
->=20
-> KASAN reports the race as:
->=20
->   BUG: KASAN: slab-use-after-free in rds_tcp_skbuf_handler+0x2aa/0x2e0
->   rds_tcp_skbuf_handler              net/rds/tcp.c:721
->   proc_sys_call_handler              fs/proc/proc_sysctl.c
->   vfs_write                          fs/read_write.c
->   __x64_sys_pwrite64                 fs/read_write.c
-
-Was this stack actually observed or was it derived from an analysis? If it =
-was
-derived that's fine but just note it somewhere so that someone doesnt end u=
-p
-chasing a synthesized stack trace.  If you did actually hit it though, plea=
-se
-include the full report and a reproducer if you have it.
-
->=20
-> Fix this by unregistering the RDS TCP sysctl table before calling
-> rds_tcp_kill_sock().  unregister_net_sysctl_table() prevents new sysctl
-> handlers from starting and waits for in-flight handlers to finish, so
-> the listen socket can then be released safely.
->=20
-> Fixes: 7f5611cbc487 ("rds: sysctl: rds_tcp_{rcv,snd}buf: avoid using curr=
-ent->nsproxy")
-> Reported-by: AutonomousCodeSecurity@microsoft.com
-Check patch generates a warning here for a Closes: or Link: tag. =C2=A0
-If the reporting tool you're using generates a public report, please includ=
-e the link here
-
-> Signed-off-by: Cen Zhang (Microsoft) <blbllhy@gmail.com>
-
-Other than that I think the fix is ok.  With the above fixed, you can add m=
-y rvb:
-Reviewed-by: Allison Henderson <achender@kernel.org>
-
-Thanks!
-Allison
-> ---
->  net/rds/tcp.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
->=20
-> diff --git a/net/rds/tcp.c b/net/rds/tcp.c
-> index a1de114d5e2e..453d4077a85e 100644
-> --- a/net/rds/tcp.c
-> +++ b/net/rds/tcp.c
-> @@ -655,13 +655,13 @@ static void __net_exit rds_tcp_exit_net(struct net =
-*net)
->  {
->  	struct rds_tcp_net *rtn =3D net_generic(net, rds_tcp_netid);
-> =20
-> -	rds_tcp_kill_sock(net);
-> -
->  	if (rtn->rds_tcp_sysctl)
->  		unregister_net_sysctl_table(rtn->rds_tcp_sysctl);
-> =20
->  	if (net !=3D &init_net)
->  		kfree(rtn->ctl_table);
-> +
-> +	rds_tcp_kill_sock(net);
->  }
-> =20
->  static struct pernet_operations rds_tcp_net_ops =3D {
-
+> 
+> Thanks,
+> Guangshuo
