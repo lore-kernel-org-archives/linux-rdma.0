@@ -1,62 +1,62 @@
 Received: from mail-pl1-f169.google.com (mail-pl1-f169.google.com [209.85.214.169])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 52D073B6360
-	for <linux-rdma@vger.kernel.org>; Sun, 19 Jul 2026 18:00:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F0D3F3B71C8
+	for <linux-rdma@vger.kernel.org>; Sun, 19 Jul 2026 18:01:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.169
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784484059; cv=none; b=pVTPKLx71ZOJOXf7USKKYtJ9OkZqIAfvvVoPJI4p9EVf7cR8dxPDzzzHZgPOkpl2xh+6c8KWnh025fvYusfTzjW8USWGnUbEkVd1QsSPakJ/NifdXsTOu6LpodxG2rzX7mcQAWW/8Q37NlIflfJj71vdRPBCklsm51WMptfWdo4=
+	t=1784484078; cv=none; b=e0Do7uQZqkwjf4gdfTFuwSeBbSZR6ei6lUUM9iXOYxmTE8FpgnysbswtBlfFrRrdOYt5EXU7o+pgi9eOpX4ka1Cx9IBoBh1g7GbtCJRQlc0SF5m5a3zfJlSRpGAuA/GMytfseweMa6JNqdN0oleHW87sBFhfbfcnVlj/Lmt7sxA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784484059; c=relaxed/simple;
-	bh=NrtEpgxQUFrRc1uTeZZtwhQVm6kBTpOeb6Zgg5an5FE=;
+	s=arc-20240116; t=1784484078; c=relaxed/simple;
+	bh=ah0JiDYJJ/aQNUbXioQROndNCndE69hAQp4JNbJsErY=;
 	h=From:To:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=e0xmCPYfv6nO7aRLjz8riIJyhRhuRj0j0kwh8cwU1EOO4KEv4cIMOm/kunplSJjD9j63FDAUCCyudYc8FHohg88o8AniWwVu4j5BWsChlWqZ0W+NCx7SZE9Ny6WiGpQ5B7vM4RP7nXWsEh42nt/NN2Khk8okbxbZg/i4TXMqJYY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=UfIbyMaw; arc=none smtp.client-ip=209.85.214.169
+	 MIME-Version; b=shrQ9IqyCFwW/LcKeWYzDeR+un2Ba2Uofk4DzyIxy2USut2sRivID2G4jSY5lnUrJKXw7q+ezW0bmIboJ9Slu6Rik6D2YBh4/A6djiVBAtvltWHdxAYXEsN487WdrTszAOKL+q5F8yq6CDSv89SypqbxHseFKY2gdnOCym2Jce4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=CWejZZBD; arc=none smtp.client-ip=209.85.214.169
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="UfIbyMaw"
-Received: by mail-pl1-f169.google.com with SMTP id d9443c01a7336-2cacf197759so100679295ad.2
-        for <linux-rdma@vger.kernel.org>; Sun, 19 Jul 2026 11:00:51 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="CWejZZBD"
+Received: by mail-pl1-f169.google.com with SMTP id d9443c01a7336-2cad8076b01so113853245ad.2
+        for <linux-rdma@vger.kernel.org>; Sun, 19 Jul 2026 11:01:03 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1784484050; x=1785088850; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1784484063; x=1785088863; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:to:from:from:to:cc:subject:date:message-id
          :reply-to:content-type;
-        bh=xWOKjN21n342CNCWn9TzH0J09vI9mPVEGuCL2DJh7/4=;
-        b=UfIbyMawCJcA7TNUIk4vhveVttM+K31M83v+ZIRteW5hIg/GlEXNM2souZCurveLo8
-         DjGDBZosXPgqLhymMbkj8xAiMnR+XuRzYKojTMzQWtOy/pjo22PV1+PsXD7Th7h6FqX4
-         sAMyFPSpwTrAksv7B5K692GtnAr64r8t5S1FXOJX1/aJmsusMY85Pt6kC3lA1wcnUWmv
-         UmLuwk6Acq1B5FUbXHFgYfSfm+BiMwpKNw3dKNjnhf4Ai8LsIv5FH/0vToWVH+g91B6q
-         nUBKW8Yj6z5trdH6n4UCSF0al6dEMa50I+VNS9N4GIgjO6kXJSc72b/vXeDnkQ7PC2ds
-         mogw==
+        bh=W1yw2ovWVlZBikeiXxsUocrBF67xVKX5IYM7DkLC69s=;
+        b=CWejZZBDzWqfcg1Tjm8SC2G/zTbBZOVx/TUodYPba+ciiWG7qvPzdAo72hDvqsKJvq
+         eJmY9s/d96Ul8vm/xKGPnqqpo/Ijp9lLSrdPyEqpymleAl7GykmoyCLyX+C5eC7MCMOK
+         gHkO651WxkPw7iFteiKt+jmHJeCO6tARsorbF7EaV+9k1ojQhDXs/0nZG22sIxa1Ny2+
+         F9roAbXxWTFKC+yLLqmLL9Du6tVj+vzW/hPGWQEw1fvX1hrYbCeALsxHbBEXAHyCTK7L
+         bTgNN3LHv5RqrcL2hZfD+q6cEzaMGMMDruPAtUDVJZuKrTnlURSoy+j6ot09pVEuqMUt
+         UjkQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1784484050; x=1785088850;
+        d=1e100.net; s=20251104; t=1784484063; x=1785088863;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:to:from:x-gm-gg:x-gm-message-state:from:to
          :cc:subject:date:message-id:reply-to:content-type;
-        bh=xWOKjN21n342CNCWn9TzH0J09vI9mPVEGuCL2DJh7/4=;
-        b=tL5qIm0VRNjRMmFIy9EWm+fZbFIPpz/J+3lPe5klOgmC5h+88HjwGD+jTQSqz/Ecm2
-         ZU9h3gGI7FAGHAN1t6kJeyMkAWGmzYVD/57mJKXuAoxCQA6CpEIRzLKGlp84B26Bzbqy
-         H5fX0Fcucbb7dM/t2hlfOsw7cKZNj2gujIsMUwgHGNcpiq47ZGi7vxa8FnmfdsGOURuQ
-         nmTFqgbCC/863rVv42yVmn9CclGyZN8mRdsk8+tx44A4qEwSldW26NGQFOz/vx7ouxca
-         4ObDinYd98VVuOpyaTKb/4GGpi7B+E9ukC9cHzzA5gVqCemJautPi4QotYQMZVjHYuxS
-         vneA==
-X-Forwarded-Encrypted: i=1; AHgh+RqjTA4jvIL4iILLMu4H1c8088WZZKtzV9vuWQuwi6+JKHQhFpz5HnzSYHEW1U0w9sVz565I6M3gC6o8@vger.kernel.org
-X-Gm-Message-State: AOJu0Yy+RvNPapE1twbpocUZWEd75I1MTGPM3NpRmi9Cc6fP3ckQP1sO
-	1PHJ9Iv0HMZZg1paO2sHbg/bNyoG7NTa+Z59UaAHc4sjpFa4DqQF4myv
-X-Gm-Gg: AfdE7cm+1B4SvGNKCCRbPpr6q8AGBvDXG1buFiBNHupxLHxrNL3iMnh1fUKyKC2YCh9
-	jIFA14vAbwMosHUtoURVHg9yGiXdYVrrkglXREC2Dbz1+hJ1/Z4hdA9ctHzYKUmXXsjTjZjq6l2
-	tW3a60X5bGaUV/soRE8Cl5zg5hSAMFr1CTefU9Ofswb89B12NOjUw+Ar3Pl/TqyPDJy6NCW+pNC
-	M+ltdqPe8io6MvDdjz5VfN9xnBtXpv1e6TAlLvW3b8tr+GousWSAl4OlTxj+0zX7eow0huDdt8Z
-	NKBX2mCluLBYesXyF2sHYlrIIkkHI5zIdec8Gw7PA6j4n04UGWzxfvKa0GPp3EJVEAEdipcrHrK
-	aw6A+ZVIcjEupHUF6oXR6QbvPpjm0PPNejXrGk8Q9nze4HUqbsFskfIzqq9+VRsVLzg==
-X-Received: by 2002:a17:902:c411:b0:2c9:97a9:2096 with SMTP id d9443c01a7336-2cf349edab6mr112140895ad.42.1784484049397;
-        Sun, 19 Jul 2026 11:00:49 -0700 (PDT)
+        bh=W1yw2ovWVlZBikeiXxsUocrBF67xVKX5IYM7DkLC69s=;
+        b=aRDuVYWsHUZhJGrA+bj6mENFAw9n+dYSnefda/mlLD7tHKU0M/gIWwcAwNGUlXfCnT
+         4WH4URJzSEf9B0lFl3d1f3WEpiynnrAgdC64e/uOsxpAk9hQtaZuGVVpqXEvt4E8Btt+
+         a4Gt5mwzoCyg4Wxb4jESl9BU6wzGWJO3etBD9E5rT+uKlXgyoxxWmTq015EXKS9Ww6ZJ
+         esavSSDpjU5q/HHy/GW6e3Ra+O5IdivPxEM8imnwxS8tHFvUJTRAXk3zb8I5Rf52Wkb2
+         Vy5+tTnli9zBDjH3mu7wewvK4/gQuWcCTuDnwW67RPBTzwkeGgYMvoRkwqFmrDXSldb+
+         Y8Mw==
+X-Forwarded-Encrypted: i=1; AHgh+Rq4O7JQ20DiJ/lnZk0/tiWqbCfG2gXiUpuRwzTDdmedtsmtDAVjx13JHjdAcWQ9xmpg45yMiq18x+LY@vger.kernel.org
+X-Gm-Message-State: AOJu0YxOqQlQaRShtBdcqmBYvMSnTC25R99p1zBS3KYconAY4G7bhU3A
+	+/q9/fbord6yVvoyRVOUh2Z7j6RneUMEHtjkbc2zcbG92MxjC9y+PCNf
+X-Gm-Gg: AfdE7cmZO0/wwt28ftxsWrhQLR68O1QBt5PuN6fGEa7Y9bJRDVpvigWUCFEzTUxh59U
+	wqJHgC09q0zXJIT8mpJHlDe6rsFxWUYCybcvg4/cDuPib0QHCFLTuy/dK15WxACQouo6IS0Cnjt
+	UYtRIwhHTM6eshj/KW2V4uLc2O1paugF+e6+1PDrtSL+kTeclPbRKtl05XpyErhO6bh+Mt8pOAO
+	7s1Kg+B+s916CDr5cAHgm+G0qKjIGHkUBsaIuI48iqV/agDTkiHCs0wzXtXqe6ZlEL6wqeWDs4r
+	WCAQ3mK6E6ZvETyP4S+OTfOCP8+xgr+doir5hfA/9E0ZngCWxzO8NhWUcAE74ymKzhokXaNCpKM
+	4jl7xzQ17qc9nZDjLRoBmdpG5/TwX+L1/KlXUqXDUWsqjU1MebcNDajRiSnnNUrhBYQ==
+X-Received: by 2002:a17:902:e80e:b0:2ca:d666:df72 with SMTP id d9443c01a7336-2cf3489ae91mr117260965ad.21.1784484061981;
+        Sun, 19 Jul 2026 11:01:01 -0700 (PDT)
 Received: from ap.. ([182.213.254.91])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2cf34769bd6sm43511065ad.74.2026.07.19.11.00.37
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2cf34769bd6sm43511065ad.74.2026.07.19.11.00.49
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 19 Jul 2026 11:00:48 -0700 (PDT)
+        Sun, 19 Jul 2026 11:01:00 -0700 (PDT)
 From: Taehee Yoo <ap420073@gmail.com>
 To: Alex Deucher <alexander.deucher@amd.com>,
 	Alexei Starovoitov <ast@kernel.org>,
@@ -110,9 +110,9 @@ To: Alex Deucher <alexander.deucher@amd.com>,
 	Taehee Yoo <ap420073@gmail.com>,
 	Tariq Toukan <tariqt@nvidia.com>,
 	Yonghong Song <yonghong.song@linux.dev>
-Subject: [RFC PATCH net-next 06/13] drm/amdkfd: prepare kfd core for the knod provider
-Date: Sun, 19 Jul 2026 17:58:50 +0000
-Message-ID: <20260719175857.4071636-7-ap420073@gmail.com>
+Subject: [RFC PATCH net-next 07/13] drm/amdkfd: add knod provider core
+Date: Sun, 19 Jul 2026 17:58:51 +0000
+Message-ID: <20260719175857.4071636-8-ap420073@gmail.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20260719175857.4071636-1-ap420073@gmail.com>
 References: <20260719175857.4071636-1-ap420073@gmail.com>
@@ -124,1182 +124,2550 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Expose the kfd internals the knod provider needs to build and run GPU
-queues on behalf of the kernel: kernel-side event waiting, GPUVM
-allocation for VRAM/GTT, doorbell access, and the HSA queue/packet
-layout (kfd_hsa.h).  No functional change for existing user-mode
-queue users; the provider itself is added in a following patch.
+Add the knod accelerator provider, built into amdgpu.  It allocates and
+drives GPU AQL/SDMA queues, manages GPU memory for the RX data path,
+and registers a knod accelerator that binds to a NIC via the knod core.
+Feature workers (BPF, IPsec) plug in on top through the accel ops.
 
 Signed-off-by: Taehee Yoo <ap420073@gmail.com>
-(cherry picked from commit 7d2c7cbfbb2a4a80052b5793841f6a229271973d)
+(cherry picked from commit acaff825a0e87188906fd59f8a377c04d0b0ed2e)
 ---
- drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd.h    |  13 +-
- .../gpu/drm/amd/amdgpu/amdgpu_amdkfd_gpuvm.c  |  65 +++
- drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c       |   3 +
- drivers/gpu/drm/amd/amdkfd/kfd_chardev.c      | 117 ++---
- drivers/gpu/drm/amd/amdkfd/kfd_doorbell.c     |  20 +-
- drivers/gpu/drm/amd/amdkfd/kfd_events.c       | 112 ++++-
- drivers/gpu/drm/amd/amdkfd/kfd_events.h       |   4 +
- drivers/gpu/drm/amd/amdkfd/kfd_hsa.h          | 451 ++++++++++++++++++
- drivers/gpu/drm/amd/amdkfd/kfd_module.c       |   1 +
- drivers/gpu/drm/amd/amdkfd/kfd_priv.h         |  34 ++
- drivers/gpu/drm/amd/amdkfd/kfd_process.c      |  26 +-
- 11 files changed, 778 insertions(+), 68 deletions(-)
- create mode 100644 drivers/gpu/drm/amd/amdkfd/kfd_hsa.h
+ drivers/gpu/drm/amd/amdgpu/Makefile        |    1 +
+ drivers/gpu/drm/amd/amdkfd/Kconfig         |   11 +
+ drivers/gpu/drm/amd/amdkfd/Makefile        |    4 +
+ drivers/gpu/drm/amd/amdkfd/kfd_knod.c      | 2202 ++++++++++++++++++++
+ drivers/gpu/drm/amd/amdkfd/knod/kfd_knod.h |  270 +++
+ 5 files changed, 2488 insertions(+)
+ create mode 100644 drivers/gpu/drm/amd/amdkfd/kfd_knod.c
+ create mode 100644 drivers/gpu/drm/amd/amdkfd/knod/kfd_knod.h
 
-diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd.h b/drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd.h
-index e443a7277299..cf906b32eacb 100644
---- a/drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd.h
-+++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd.h
-@@ -328,6 +328,8 @@ int amdgpu_amdkfd_gpuvm_sync_memory(
- 		struct amdgpu_device *adev, struct kgd_mem *mem, bool intr);
- int amdgpu_amdkfd_gpuvm_map_gtt_bo_to_kernel(struct kgd_mem *mem,
- 					     void **kptr, uint64_t *size);
-+int amdgpu_amdkfd_gpuvm_map_vram_bo_to_kernel(struct kgd_mem *mem,
-+					      void **kptr, uint64_t *size);
- void amdgpu_amdkfd_gpuvm_unmap_gtt_bo_from_kernel(struct kgd_mem *mem);
+diff --git a/drivers/gpu/drm/amd/amdgpu/Makefile b/drivers/gpu/drm/amd/amdgpu/Makefile
+index ba80542ead9d..7a9826df9f37 100644
+--- a/drivers/gpu/drm/amd/amdgpu/Makefile
++++ b/drivers/gpu/drm/amd/amdgpu/Makefile
+@@ -42,6 +42,7 @@ ccflags-y := -I$(FULL_AMD_PATH)/include/asic_reg \
+ 	-I$(FULL_AMD_DISPLAY_PATH)/dc \
+ 	-I$(FULL_AMD_DISPLAY_PATH)/amdgpu_dm \
+ 	-I$(FULL_AMD_PATH)/amdkfd \
++	-I$(FULL_AMD_PATH)/amdkfd/knod \
+ 	-I$(FULL_AMD_PATH)/ras/ras_mgr
  
- int amdgpu_amdkfd_map_gtt_bo_to_gart(struct amdgpu_bo *bo, struct amdgpu_bo **bo_gart);
-@@ -446,7 +448,6 @@ bool kgd2kfd_vmfault_fast_path(struct amdgpu_device *adev, struct amdgpu_iv_entr
- 			       bool retry_fault);
- void kgd2kfd_lock_kfd(void);
- void kgd2kfd_teardown_processes(struct amdgpu_device *adev);
--
- #else
- static inline int kgd2kfd_init(void)
- {
-@@ -576,5 +577,15 @@ static inline void kgd2kfd_teardown_processes(struct amdgpu_device *adev)
- {
- }
+ # Locally disable W=1 warnings enabled in drm subsystem Makefile
+diff --git a/drivers/gpu/drm/amd/amdkfd/Kconfig b/drivers/gpu/drm/amd/amdkfd/Kconfig
+index a5d7467c2f34..d93f1af749ff 100644
+--- a/drivers/gpu/drm/amd/amdkfd/Kconfig
++++ b/drivers/gpu/drm/amd/amdkfd/Kconfig
+@@ -38,3 +38,14 @@ config HSA_AMD_P2P
+ 	  GPUs with large memory BARs that expose the entire VRAM in PCIe bus
+ 	  address space within the physical address limits of the GPUs.
  
-+#endif
++config HSA_AMD_KNOD
++	bool "KNOD GPU network offload core"
++	depends on HSA_AMD
++	default y
++	help
++	  Core framework for KNOD, GPU-accelerated zero-copy network packet
++	  processing on AMD GPUs.  It is built into amdgpu and cannot be a
++	  module because it relies on non-exported amdgpu/amdkfd internals.
 +
-+#if defined(CONFIG_HSA_AMD_KNOD)
-+int knod_init(struct amdgpu_device *adev);
-+void knod_fini(struct amdgpu_device *adev);
-+void knod_exit(void);
-+#else
-+static inline int knod_init(struct amdgpu_device *adev) { return 0; }
-+static inline void knod_fini(struct amdgpu_device *adev) { }
-+static inline void knod_exit(void) { }
- #endif
- #endif /* AMDGPU_AMDKFD_H_INCLUDED */
-diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd_gpuvm.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd_gpuvm.c
-index 35fe2c974699..79fd0ce7fc24 100644
---- a/drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd_gpuvm.c
-+++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd_gpuvm.c
-@@ -2336,6 +2336,71 @@ int amdgpu_amdkfd_gpuvm_map_gtt_bo_to_kernel(struct kgd_mem *mem,
- 	return ret;
- }
- 
-+/** amdgpu_amdkfd_gpuvm_map_vram_bo_to_kernel() - Map a VRAM BO for kernel CPU access
++	  Say N to drop the KNOD core along with the BPF and IPsec offloads
++	  layered on top of it.  If unsure, say Y.
+diff --git a/drivers/gpu/drm/amd/amdkfd/Makefile b/drivers/gpu/drm/amd/amdkfd/Makefile
+index 85fc67d521e5..1834faa54863 100644
+--- a/drivers/gpu/drm/amd/amdkfd/Makefile
++++ b/drivers/gpu/drm/amd/amdkfd/Makefile
+@@ -71,3 +71,7 @@ ifneq ($(CONFIG_HSA_AMD_SVM),)
+ AMDKFD_FILES += $(AMDKFD_PATH)/kfd_svm.o \
+ 		$(AMDKFD_PATH)/kfd_migrate.o
+ endif
++
++ifneq ($(CONFIG_HSA_AMD_KNOD),)
++AMDKFD_FILES += $(AMDKFD_PATH)/kfd_knod.o
++endif
+diff --git a/drivers/gpu/drm/amd/amdkfd/kfd_knod.c b/drivers/gpu/drm/amd/amdkfd/kfd_knod.c
+new file mode 100644
+index 000000000000..03fff054dcb9
+--- /dev/null
++++ b/drivers/gpu/drm/amd/amdkfd/kfd_knod.c
+@@ -0,0 +1,2202 @@
++// SPDX-License-Identifier: GPL-2.0 OR MIT
++/*
++ * Copyright (c) 2021 Taehee Yoo <ap420073@gmail.com>
++ * Copyright (c) 2021 Hoyeon Lee <hoyeon.rhee@gmail.com>
 + *
-+ * @mem: Buffer object to be mapped for CPU access
-+ * @kptr[out]: pointer in kernel CPU address space
-+ * @size[out]: size of the buffer
++ * Permission is hereby granted, free of charge, to any person obtaining a
++ * copy of this software and associated documentation files (the "Software"),
++ * to deal in the Software without restriction, including without limitation
++ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
++ * and/or sell copies of the Software, and to permit persons to whom the
++ * Software is furnished to do so, subject to the following conditions:
 + *
-+ * Pins the BO and maps it for kernel CPU access. The eviction fence is removed
-+ * from the BO, since pinned BOs cannot be evicted. The bo must remain on the
-+ * validate_list, so the GPU mapping can be restored after a page table was
-+ * evicted.
++ * The above copyright notice and this permission notice shall be included in
++ * all copies or substantial portions of the Software.
 + *
-+ * Return: 0 on success, error code on failure
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
++ * THE COPYRIGHT HOLDER(S) OR AUTHOR(S) BE LIABLE FOR ANY CLAIM, DAMAGES OR
++ * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
++ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
++ * OTHER DEALINGS IN THE SOFTWARE.
++ *
 + */
-+int amdgpu_amdkfd_gpuvm_map_vram_bo_to_kernel(struct kgd_mem *mem,
-+					      void **kptr, uint64_t *size)
++
++#include <linux/types.h>
++#include <linux/mutex.h>
++#include <linux/slab.h>
++#include <linux/sched.h>
++#include <linux/workqueue.h>
++#include <linux/file.h>
++#include <linux/dma-buf.h>
++#include <crypto/algapi.h>
++#include <crypto/internal/simd.h>
++#include "kfd_priv.h"
++#include "kfd_hsa.h"
++#include "kfd_knod.h"
++#include "kfd_topology.h"
++#include "kfd_device_queue_manager.h"
++#include "kfd_events.h"
++#include <crypto/skcipher.h>
++#include <crypto/internal/skcipher.h>
++#include <linux/pid.h>
++#include <linux/debugfs.h>
++#include <linux/sched/signal.h>
++#include "../amdgpu/amdgpu_amdkfd.h"
++#include "../amdgpu/amdgpu_gfx.h"
++#include "../amdgpu/./navi10_sdma_pkt_open.h"
++#include "amdgpu_dpm.h"
++#include "kgd_pp_interface.h"
++#include <linux/kthread.h>
++#include <linux/delay.h>
++#include <drm/ttm/ttm_tt.h>
++#include <linux/seq_file.h>
++#include "knod_bpf.h"
++#include <net/page_pool/helpers.h>
++#include <linux/netdevice.h>
++
++struct umh_data {
++	pid_t pid;
++};
++
++LIST_HEAD(ctx_list);
++
++/*
++ * AQL/SDMA queue pair count requested by the highest-demand accel
++ * consumer (currently knod_ipsec's parallel-dispatcher machinery).
++ * Each accel module sets this via knod_request_queue_cnt() during its
++ * module_init BEFORE the NOD attach happens, so knod_attach() creates
++ * a context with enough kaql[]/sdma[] pairs for the worst-case
++ * consumer.
++ *
++ * The value is a high-water mark across all accel types - whichever
++ * consumer asks for the most queue pairs wins; a consumer that needs
++ * fewer just leaves the extra pairs unused (a minor, harmless GPU
++ * resource waste).
++ *
++ * Default is 1 when nothing has called the setter - mirrors the
++ * historical single-queue behaviour.
++ */
++static int knod_requested_queue_cnt = 1;
++
++static struct knod_accel *accels[KNOD_MAX_AQL];
++static int nr_accels;
++static struct knod_accel_ops accel_ops;
++
++/*
++ * Thin wrappers around the KFD core entry points.  knod drives KFD from
++ * kernel context using kernel-internal types, so it calls these directly
++ * instead of going through the kfd_ioctl_* handlers (which marshal user
++ * data and stay static to KFD).
++ */
++static int knod_create_queue(struct kfd_process *p,
++			     struct queue_properties *qp, u32 gpu_id,
++			     u32 *queue_id, u64 *doorbell_offset)
++{
++	return kfd_create_queue(p, qp, gpu_id, queue_id, doorbell_offset);
++}
++
++static int knod_destroy_queue(struct kfd_process *p, u32 queue_id)
 +{
 +	int ret;
-+	struct amdgpu_bo *bo = mem->bo;
 +
-+	if (amdgpu_ttm_tt_get_usermm(bo->tbo.ttm)) {
-+		pr_err("userptr can't be mapped to kernel\n");
++	mutex_lock(&p->mutex);
++	ret = pqm_destroy_queue(&p->pqm, queue_id);
++	mutex_unlock(&p->mutex);
++	return ret;
++}
++
++static int knod_create_event(struct kfd_process *p, u32 event_type,
++			     bool auto_reset, u32 node_id,
++			     struct knod_event *event)
++{
++	u32 event_trigger_data;
++	u64 event_page_offset = 0;
++
++	return kfd_event_create(NULL, p, event_type, auto_reset, node_id,
++				&event->id, &event_trigger_data,
++				&event_page_offset, &event->slot);
++}
++
++static int knod_destroy_event(struct kfd_process *p, u32 event_id)
++{
++	return kfd_event_destroy(p, event_id);
++}
++
++struct knod_mem *__knod_alloc_mem(struct knod *knod, size_t size,
++				  int flags)
++{
++	struct kfd_process_device *pdd = knod->process->pdds[0];
++	struct kfd_node *kdev = pdd->dev;
++	struct knod_mem *mem;
++	int err;
++
++	mem = kzalloc_obj(struct knod_mem, GFP_KERNEL);
++	if (!mem)
++		return ERR_PTR(-ENOMEM);
++
++	size = ALIGN(size, PAGE_SIZE);
++	mem->flags = flags;
++	mem->size = size;
++	mem->gaddr = gen_pool_alloc(knod->pool, size);
++	if (!mem->gaddr) {
++		kfree(mem);
++		return ERR_PTR(-ENOMEM);
++	}
++
++	err = amdgpu_amdkfd_gpuvm_alloc_memory_of_gpu(kdev->adev, mem->gaddr,
++						      size, pdd->drm_priv,
++						      &mem->mem, NULL, flags,
++						      false);
++	if (err) {
++		knod_err(" failed to alloc mem\n");
++		gen_pool_free(knod->pool, mem->gaddr, mem->size);
++		kfree(mem);
++		return ERR_PTR(-ENOMEM);
++	}
++
++	err = amdgpu_amdkfd_gpuvm_sync_memory(kdev->adev, mem->mem, true);
++	if (err) {
++		pr_debug("Sync memory failed, wait interrupted by user signal\n");
++		amdgpu_amdkfd_gpuvm_free_memory_of_gpu(kdev->adev, mem->mem,
++						       pdd->drm_priv, NULL);
++		gen_pool_free(knod->pool, mem->gaddr, mem->size);
++		kfree(mem);
++		return ERR_PTR(-ENOMEM);
++	}
++
++	list_add_tail(&mem->list, &knod->active_list);
++
++	return mem;
++}
++
++int __knod_export_dma_buf(struct knod *knod, struct knod_mem *mem)
++{
++	struct dma_buf *dmabuf;
++	int err;
++
++	err = amdgpu_amdkfd_gpuvm_export_dmabuf(mem->mem, &dmabuf);
++	if (err) {
++		pr_debug("export dmabuf failed\n");
++		return -ENOMEM;
++	}
++
++	dma_buf_put(dmabuf);
++
++	return 0;
++}
++
++struct knod_mem *knod_alloc_mem(struct knod *knod, size_t size, int flags)
++{
++	struct knod_mem *mem;
++	int err;
++
++	mem = kzalloc_obj(struct knod_mem, GFP_KERNEL);
++	if (!mem)
++		return ERR_PTR(-ENOMEM);
++
++	size = ALIGN(size, PAGE_SIZE);
++	mem->flags = flags;
++	mem->size = size;
++	mem->gaddr = gen_pool_alloc(knod->pool, size);
++	if (!mem->gaddr) {
++		kfree(mem);
++		return ERR_PTR(-ENOMEM);
++	}
++
++	err = kfd_process_alloc_gpuvm(knod->process->pdds[0],
++				      mem->gaddr,
++				      mem->size,
++				      flags,
++				      &mem->mem,
++				      &mem->kaddr);
++
++	if (err) {
++		knod_err(" err = %d\n", err);
++		gen_pool_free(knod->pool, mem->gaddr, mem->size);
++		kfree(mem);
++		return ERR_PTR(-ENOMEM);
++	}
++
++	list_add_tail(&mem->list, &knod->active_list);
++
++	return mem;
++}
++EXPORT_SYMBOL(knod_alloc_mem);
++
++int __knod_map_kaddr(struct knod *knod, struct knod_mem *mem)
++{
++	int err = 0;
++
++	if (mem->flags & KFD_IOC_ALLOC_MEM_FLAGS_GTT) {
++		err = amdgpu_amdkfd_gpuvm_map_gtt_bo_to_kernel(mem->mem,
++							       &mem->kaddr,
++							       NULL);
++		if (err) {
++			pr_debug("Map GTT BO to kernel failed\n");
++			err = -ENOMEM;
++		}
++	} else if (mem->flags & KFD_IOC_ALLOC_MEM_FLAGS_VRAM) {
++		err = amdgpu_amdkfd_gpuvm_map_vram_bo_to_kernel(mem->mem,
++								&mem->kaddr,
++								NULL);
++		if (err) {
++			pr_debug("Map VRAM BO to kernel failed\n");
++			err = -ENOMEM;
++		}
++	}
++
++	return err;
++}
++
++int __knod_map_mem(struct knod *knod, struct knod_mem *mem)
++{
++	struct kfd_process_device *pdd = knod->process->pdds[0];
++	struct kfd_node *kdev = pdd->dev;
++	int err;
++
++	err = amdgpu_amdkfd_gpuvm_map_memory_to_gpu(kdev->adev, mem->mem,
++						    pdd->drm_priv);
++	if (err) {
++		knod_err(" failed to map gpu\n");
++		return 1;
++	}
++
++	err = amdgpu_amdkfd_gpuvm_sync_memory(kdev->adev, mem->mem, true);
++	if (err) {
++		pr_debug("Sync memory failed, wait interrupted by user signal\n");
++		return 1;
++	}
++
++	return 0;
++}
++EXPORT_SYMBOL(__knod_map_mem);
++
++void knod_free_mem(struct knod *knod, struct knod_mem *mem)
++{
++	if (mem) {
++		list_del_init(&mem->list);
++		kfd_process_free_gpuvm(mem->mem, knod->process->pdds[0],
++				       &mem->kaddr);
++		gen_pool_free(knod->pool, mem->gaddr, mem->size);
++		kfree(mem);
++	}
++}
++EXPORT_SYMBOL(knod_free_mem);
++
++void knod_sdma_copy(struct knod *knod, u64 dst_offset,
++		    u64 src_offset, int idx, int size)
++{
++	struct knod_sdma *sdma = &knod->sdma[idx];
++	u32 ring_mask = (sdma->sdma->size / 4) - 1;
++	u64 *wptr = (u64 *)sdma->queue->kaddr + 1;
++	u32 *ptr = sdma->sdma->kaddr;
++
++	ptr[sdma->idx++ & ring_mask] = SDMA_PKT_HEADER_OP(SDMA_OP_COPY) |
++		SDMA_PKT_HEADER_SUB_OP(SDMA_SUBOP_COPY_LINEAR) |
++		SDMA_PKT_COPY_LINEAR_HEADER_TMZ((0));
++	ptr[sdma->idx++ & ring_mask] = size - 1;
++	ptr[sdma->idx++ & ring_mask] = 0; /* src/dst endian swap */
++	ptr[sdma->idx++ & ring_mask] = lower_32_bits(src_offset);
++	ptr[sdma->idx++ & ring_mask] = upper_32_bits(src_offset);
++	ptr[sdma->idx++ & ring_mask] = lower_32_bits(dst_offset);
++	ptr[sdma->idx++ & ring_mask] = upper_32_bits(dst_offset);
++
++	*wptr += 7 * 4;
++}
++
++void knod_sdma_fence(struct knod *knod, u64 fence_addr, u32 fence_val,
++		     int idx)
++{
++	struct knod_sdma *sdma = &knod->sdma[idx];
++	u32 ring_mask = (sdma->sdma->size / 4) - 1;
++	u64 *wptr = (u64 *)sdma->queue->kaddr + 1;
++	u32 *ptr = sdma->sdma->kaddr;
++	u32 hdr = SDMA_PKT_HEADER_OP(SDMA_OP_FENCE);
++
++	if (knod->isa_version >= 10)
++		hdr |= SDMA_PKT_FENCE_HEADER_MTYPE(3);
++
++	ptr[sdma->idx++ & ring_mask] = hdr;
++	ptr[sdma->idx++ & ring_mask] = lower_32_bits(fence_addr);
++	ptr[sdma->idx++ & ring_mask] = upper_32_bits(fence_addr);
++	ptr[sdma->idx++ & ring_mask] = fence_val;
++
++	*wptr += 4 * 4;
++}
++
++void knod_sdma_trap(struct knod *knod, int idx)
++{
++	struct knod_sdma *sdma = &knod->sdma[idx];
++	u32 ring_mask = (sdma->sdma->size / 4) - 1;
++	u64 *wptr = (u64 *)sdma->queue->kaddr + 1;
++	u32 *ptr = sdma->sdma->kaddr;
++	u32 ctx = knod->sdma_event[idx].id & 0x0fffffff;
++	u64 slot_addr = knod->mailbox->gaddr +
++		knod->sdma_event[idx].slot * 8;
++	u32 hdr;
++
++	/* Write 0 to the signal page slot so lookup_signaled_event
++	 * sees it as non-UNSIGNALED (0xFFFFFFFFFFFFFFFF).
++	 */
++	hdr = SDMA_PKT_HEADER_OP(SDMA_OP_FENCE);
++	if (knod->isa_version >= 10)
++		hdr |= SDMA_PKT_FENCE_HEADER_MTYPE(3);
++
++	ptr[sdma->idx++ & ring_mask] = hdr;
++	ptr[sdma->idx++ & ring_mask] = lower_32_bits(slot_addr);
++	ptr[sdma->idx++ & ring_mask] = upper_32_bits(slot_addr);
++	ptr[sdma->idx++ & ring_mask] = 0;
++
++	ptr[sdma->idx++ & ring_mask] = SDMA_PKT_HEADER_OP(SDMA_OP_TRAP);
++	ptr[sdma->idx++ & ring_mask] = ctx;
++
++	*wptr += 6 * 4;
++}
++
++void knod_sdma_doorbell(struct knod *knod, int idx)
++{
++	struct knod_sdma *sdma = &knod->sdma[idx];
++	u64 *wptr = (u64 *)sdma->queue->kaddr + 1;
++
++	/* ensure the SDMA ring writes are visible before ringing doorbell */
++	wmb();
++	writeq(*wptr, sdma->doorbell);
++}
++
++u32 knod_sdma_submit(struct knod *knod, int idx,
++		     const struct knod_sdma_copy_desc *copies, int n)
++{
++	struct knod_sdma *sdma = &knod->sdma[idx];
++	u32 capacity = sdma->sdma->size / 4;
++	u32 completed, inflight;
++	int i;
++
++	/*
++	 * knod_sdma_copy has no overflow guard (sdma->idx is the dword write
++	 * cursor that just wraps), so drop the whole batch once the ring is
++	 * near full.  @completed is the last fenced cursor (knod_sdma_kick
++	 * writes sdma->idx into the signal), so @inflight is the unprocessed
++	 * span; reserve room for these @n copies (7 dwords each) plus a fence.
++	 * Signed compare so a stale signal ahead of the cursor (e.g. at
++	 * startup) reads as "negative" inflight rather than a false full.
++	 */
++	completed = (u32)READ_ONCE(((struct amd_signal *)
++				    sdma->queue_signal->kaddr)->value);
++	inflight = (u32)sdma->idx - completed;
++	if ((s32)(inflight + n * 7) >= (s32)(capacity - 64))
++		return 0;
++
++	for (i = 0; i < n; i++)
++		knod_sdma_copy(knod, copies[i].dst, copies[i].src, idx,
++			       copies[i].len);
++
++	return (u32)sdma->idx;
++}
++EXPORT_SYMBOL(knod_sdma_submit);
++
++void knod_sdma_kick(struct knod *knod, int idx)
++{
++	struct knod_sdma *sdma = &knod->sdma[idx];
++	u64 fence_addr;
++
++	fence_addr = sdma->queue_signal->gaddr +
++		     offsetof(struct amd_signal, value);
++	knod_sdma_fence(knod, fence_addr, (u32)sdma->idx, idx);
++	knod_sdma_doorbell(knod, idx);
++}
++EXPORT_SYMBOL(knod_sdma_kick);
++
++int knod_gart_map(struct amdgpu_device *adev, u64 npages,
++		  dma_addr_t *addr, u64 *gart_addr, u64 flags)
++{
++	struct amdgpu_ring *ring =
++		to_amdgpu_ring(adev->mman.buffer_funcs_scheds[0]);
++	struct amdgpu_job *job;
++	unsigned int num_dw, num_bytes;
++	struct dma_fence *fence;
++	u64 src_addr, dst_addr;
++	u64 pte_flags;
++	void *cpu_addr;
++	int r;
++
++	/* use gart window 0 */
++	*gart_addr = adev->gmc.gart_start;
++
++	num_dw = ALIGN(adev->mman.buffer_funcs->copy_num_dw, 8);
++	num_bytes = npages * 8;
++
++	r = amdgpu_job_alloc_with_ib(adev, &adev->mman.default_entity.base,
++				     AMDGPU_FENCE_OWNER_UNDEFINED,
++				     num_dw * 4 + num_bytes,
++				     AMDGPU_IB_POOL_DELAYED,
++				     &job,
++				     AMDGPU_KERNEL_JOB_ID_TTM_MAP_BUFFER);
++	if (r)
++		return r;
++
++	src_addr = num_dw * 4;
++	src_addr += job->ibs[0].gpu_addr;
++
++	dst_addr = amdgpu_bo_gpu_offset(adev->gart.bo);
++	amdgpu_emit_copy_buffer(adev, &job->ibs[0], src_addr,
++				dst_addr, num_bytes, 0);
++
++	amdgpu_ring_pad_ib(ring, &job->ibs[0]);
++	WARN_ON(job->ibs[0].length_dw > num_dw);
++
++	pte_flags = AMDGPU_PTE_VALID | AMDGPU_PTE_READABLE;
++	pte_flags |= AMDGPU_PTE_SYSTEM | AMDGPU_PTE_SNOOPED;
++	if (!(flags & KFD_IOCTL_SVM_FLAG_GPU_RO))
++		pte_flags |= AMDGPU_PTE_WRITEABLE;
++	pte_flags |= adev->gart.gart_pte_flags;
++
++	cpu_addr = &job->ibs[0].ptr[num_dw];
++
++	amdgpu_gart_map(adev, 0, npages, addr, pte_flags, cpu_addr);
++	fence = amdgpu_job_submit(job);
++	dma_fence_put(fence);
++
++	return r;
++}
++
++static void knod_init_aql_queue(struct knod *knod, int qid, int idx)
++{
++	struct amd_queue *amd_queue =
++		(struct amd_queue *)knod->kaql[idx].queue->kaddr;
++	union knod_aql_rsrc1 rsrc1;
++	u32 scratch_gaddr;
++	int i;
++
++	for (i = 0; i < knod->nr_aql_ring; i++)
++		knod_setup_invalidate(knod, i, idx);
++
++	amd_queue->hsa_queue.type = HSA_QUEUE_TYPE_MULTI;
++	amd_queue->hsa_queue.features = HSA_QUEUE_FEATURE_KERNEL_DISPATCH;
++	amd_queue->hsa_queue.base_address = (void *)knod->kaql[idx].aql->gaddr;
++	amd_queue->hsa_queue.doorbell_signal =
++		knod->kaql[idx].queue_signal->gaddr;
++	amd_queue->hsa_queue.size = knod->nr_aql_ring;
++	amd_queue->hsa_queue.reserved1 = 0;
++	amd_queue->hsa_queue.id = qid;
++
++	amd_queue->write_dispatch_id = 0; /* id is index */
++	amd_queue->group_segment_aperture_base_hi = 0;
++	amd_queue->private_segment_aperture_base_hi = 0;
++	amd_queue->max_cu_id = -1;
++	amd_queue->max_wave_id = -1;
++	amd_queue->max_legacy_doorbell_dispatch_id_plus_1 = 0;
++	amd_queue->legacy_doorbell_lock = 0;
++	amd_queue->read_dispatch_id = 0; /* id is index */
++	amd_queue->read_dispatch_id_field_base_byte_offset = 0x80;
++	/* scratch resource descriptor - use allocated scratch BO address */
++	scratch_gaddr = (u32)(knod->kaql[idx].scratch->gaddr & 0xffffffff);
++	amd_queue->scratch_resource_descriptor[0] = scratch_gaddr;
++	scratch_gaddr = (u32)((knod->kaql[idx].scratch->gaddr >> 32) & 0xffff);
++	rsrc1.base_address_hi = scratch_gaddr;
++	rsrc1.stride = 0;
++	rsrc1.cache_swizzle = 0;
++	rsrc1.swizzle_enable = 1;
++	memcpy(&amd_queue->scratch_resource_descriptor[1], &rsrc1, sizeof(u32));
++	amd_queue->scratch_resource_descriptor[2] =
++		knod->kaql[idx].scratch->size;
++	amd_queue->scratch_resource_descriptor[3] = 0x00ffffff;
++	amd_queue->scratch_backing_memory_location =
++		knod->kaql[idx].scratch->gaddr;
++	amd_queue->scratch_backing_memory_byte_size =
++		knod->kaql[idx].scratch->size;
++	amd_queue->scratch_wave64_lane_byte_size = 64;
++
++	amd_queue->queue_properties.is_ptr64 = 1;
++	amd_queue->queue_properties.enable_trap_handler_debug_sgprs = 0;
++}
++
++static void knod_init_sdma_queue(struct knod *knod, int qid, int idx)
++{
++}
++
++static void knod_init_queue(struct knod *knod, int qid, int idx, int type)
++{
++	if (type == KFD_IOC_QUEUE_TYPE_COMPUTE_AQL)
++		knod_init_aql_queue(knod, qid, idx);
++	else if (type == KFD_IOC_QUEUE_TYPE_SDMA)
++		knod_init_sdma_queue(knod, qid, idx);
++}
++
++static void stop_umh(pid_t umh_pid)
++{
++	struct pid *p = find_get_pid(umh_pid);
++
++	if (!p)
++		return;
++
++	kill_pid(p, SIGKILL, 1);
++	put_pid(p);
++}
++
++static int umh_init(struct subprocess_info *info, struct cred *new)
++{
++	struct umh_data *d = info->data;
++
++	d->pid = current->pid;
++
++	return 0;
++}
++
++static int launch_and_get_pid(void)
++{
++	static const char * const argv[] = { "/bin/sleep", "2147483647", NULL };
++	static const char * const envp[] = { "HOME=/", "PATH=/sbin:/bin", NULL };
++	struct umh_data data = { .pid = -1 };
++	struct subprocess_info *info;
++	int ret;
++
++	info = call_usermodehelper_setup(argv[0], (char **)argv,
++					 (char **)envp, GFP_KERNEL,
++					 umh_init, NULL, &data);
++	if (!info) {
++		pr_err("UMH setup failed\n");
++		return 0;
++	}
++
++	ret = call_usermodehelper_exec(info, UMH_WAIT_EXEC);
++	if (ret < 0) {
++		pr_err("UMH exec failed: %d\n", ret);
++		return 0;
++	}
++
++	return data.pid;
++}
++
++static int knod_set_isa(struct knod *knod)
++{
++	enum amd_asic_type asic_type;
++
++	asic_type = knod->process->pdds[0]->dev->adev->asic_type;
++	if (knod->isa_version != 9 && knod->isa_version != 10)
++		knod->isa_version = 0;
++	if (knod->isa_version == 0) {
++		if (asic_type <= CHIP_VEGAM) {
++			pr_err("Not supported chip");
++			return -EOPNOTSUPP;
++		} else if (asic_type == CHIP_VEGA10 ||
++				asic_type == CHIP_VEGA12 ||
++				asic_type == CHIP_VEGA20 ||
++				asic_type == CHIP_RAVEN ||
++				asic_type == CHIP_RENOIR) {
++			pr_debug("GCN5 is detected");
++			knod->isa_version = 9;
++		} else if (asic_type == CHIP_NAVI10 ||
++				asic_type == CHIP_NAVI12 ||
++				asic_type == CHIP_NAVI14 ||
++				asic_type == CHIP_CYAN_SKILLFISH) {
++			pr_err("RDNA1 is not supported yet");
++			return -EOPNOTSUPP;
++		} else if (asic_type == CHIP_SIENNA_CICHLID ||
++				asic_type == CHIP_NAVY_FLOUNDER ||
++				asic_type == CHIP_DIMGREY_CAVEFISH ||
++				asic_type == CHIP_BEIGE_GOBY ||
++				asic_type == CHIP_YELLOW_CARP) {
++			pr_debug("RDNA2 is detected");
++			knod->isa_version = 10;
++		} else if (asic_type == CHIP_ARCTURUS ||
++				asic_type == CHIP_ALDEBARAN) {
++			pr_err("CDNA is not supported yet");
++			return -EOPNOTSUPP;
++		} else if (asic_type == CHIP_IP_DISCOVERY) {
++			pr_err("Can't detect chip version, firmware update may be needed");
++			return -EOPNOTSUPP;
++		} else {
++			pr_err("Not supported chip");
++			return -EOPNOTSUPP;
++		}
++	}
++
++	knod->igpu = false;
++	if (asic_type == CHIP_RENOIR || asic_type == CHIP_RAVEN ||
++	    asic_type == CHIP_CYAN_SKILLFISH || asic_type == CHIP_BEIGE_GOBY ||
++	    asic_type == CHIP_YELLOW_CARP) {
++		pr_debug("iGPU is detected");
++		knod->igpu = true;
++	}
++
++	return 0;
++}
++
++static void knod_destroy_one_queue(struct knod *knod, int idx)
++{
++	/* Destroy queue and event BEFORE freeing BOs.
++	 * Queue holds references to BO VAs; freeing BOs first causes
++	 * NULL deref in kfd_queue_unref_bo_vas when UMH exits.
++	 * Use the created flag (not queue_id value) since KFD IDR can
++	 * assign queue_id=0 to the first queue.
++	 */
++	if (knod->aql_queue_created[idx]) {
++		int ret;
++
++		ret = knod_destroy_queue(knod->process,
++					 knod->aql_queue_id[idx]);
++		if (ret)
++			pr_err("knod: destroy_queue failed: %d (queue_id=%u)\n",
++			       ret, knod->aql_queue_id[idx]);
++		knod->aql_queue_created[idx] = false;
++		knod->aql_queue_id[idx] = 0;
++	}
++	if (knod->aql_event[idx].id) {
++		knod_destroy_event(knod->process, knod->aql_event[idx].id);
++		knod->aql_event[idx].id = 0;
++	}
++
++	knod_free_mem(knod, knod->kaql[idx].aql);
++	knod_free_mem(knod, knod->kaql[idx].queue);
++	knod_free_mem(knod, knod->kaql[idx].eop);
++	knod_free_mem(knod, knod->kaql[idx].ctx);
++	knod_free_mem(knod, knod->kaql[idx].queue_signal);
++	knod_free_mem(knod, knod->kaql[idx].amd_queue);
++	knod_free_mem(knod, knod->kaql[idx].scratch);
++}
++
++static int knod_alloc_one_queue(struct knod *knod, int idx,
++				struct kfd_topology_device *topo_dev,
++				struct kfd_process_device *pdd, void *ptr)
++{
++	int buf_flags = KFD_IOC_ALLOC_MEM_FLAGS_WRITABLE |
++			KFD_IOC_ALLOC_MEM_FLAGS_COHERENT |
++			KFD_IOC_ALLOC_MEM_FLAGS_VRAM;
++	int flags = KFD_IOC_ALLOC_MEM_FLAGS_EXECUTABLE |
++		    KFD_IOC_ALLOC_MEM_FLAGS_WRITABLE |
++		    KFD_IOC_ALLOC_MEM_FLAGS_COHERENT |
++		    KFD_IOC_ALLOC_MEM_FLAGS_GTT;
++	struct amd_signal *queue_signal;
++	struct amd_queue *amd_queue;
++	struct queue_properties qp;
++	u32 total_cwsr_size;
++	int err;
++
++	knod->kaql[idx].aql = knod_alloc_mem(knod,
++		(NR_AQL_RING *
++		 sizeof(struct hsa_kernel_dispatch_packet) * 2),
++		KFD_IOC_ALLOC_MEM_FLAGS_GTT |
++		KFD_IOC_ALLOC_MEM_FLAGS_WRITABLE |
++		KFD_IOC_ALLOC_MEM_FLAGS_COHERENT |
++		KFD_IOC_ALLOC_MEM_FLAGS_UNCACHED |
++		KFD_IOC_ALLOC_MEM_FLAGS_AQL_QUEUE_MEM |
++		KFD_IOC_ALLOC_MEM_FLAGS_EXECUTABLE);
++	if (IS_ERR(knod->kaql[idx].aql)) {
++		err = PTR_ERR(knod->kaql[idx].aql);
++		knod->kaql[idx].aql = NULL;
++		goto err_mem;
++	}
++
++	knod->kaql[idx].queue = knod_alloc_mem(knod, PAGE_SIZE, flags);
++	if (IS_ERR(knod->kaql[idx].queue)) {
++		err = PTR_ERR(knod->kaql[idx].queue);
++		knod->kaql[idx].queue = NULL;
++		goto err_mem;
++	}
++
++	knod->kaql[idx].eop = knod_alloc_mem(knod, PAGE_SIZE, flags);
++	if (IS_ERR(knod->kaql[idx].eop)) {
++		err = PTR_ERR(knod->kaql[idx].eop);
++		knod->kaql[idx].eop = NULL;
++		goto err_mem;
++	}
++
++	total_cwsr_size = (topo_dev->node_props.cwsr_size +
++			   topo_dev->node_props.debug_memory_size)
++			  * NUM_XCC(pdd->dev->xcc_mask);
++	total_cwsr_size = ALIGN(total_cwsr_size, PAGE_SIZE);
++
++	knod->kaql[idx].ctx = knod_alloc_mem(knod, total_cwsr_size, buf_flags);
++	if (IS_ERR(knod->kaql[idx].ctx)) {
++		err = PTR_ERR(knod->kaql[idx].ctx);
++		knod->kaql[idx].ctx = NULL;
++		goto err_mem;
++	}
++
++	knod->kaql[idx].queue_signal = knod_alloc_mem(knod,
++		PAGE_SIZE << 5,
++		KFD_IOC_ALLOC_MEM_FLAGS_GTT |
++		KFD_IOC_ALLOC_MEM_FLAGS_COHERENT |
++		KFD_IOC_ALLOC_MEM_FLAGS_EXECUTABLE |
++		KFD_IOC_ALLOC_MEM_FLAGS_WRITABLE);
++	if (IS_ERR(knod->kaql[idx].queue_signal)) {
++		err = PTR_ERR(knod->kaql[idx].queue_signal);
++		knod->kaql[idx].queue_signal = NULL;
++		goto err_mem;
++	}
++
++	knod->kaql[idx].amd_queue = knod_alloc_mem(knod,
++		PAGE_SIZE << 5,
++		KFD_IOC_ALLOC_MEM_FLAGS_GTT |
++		KFD_IOC_ALLOC_MEM_FLAGS_COHERENT);
++	if (IS_ERR(knod->kaql[idx].amd_queue)) {
++		err = PTR_ERR(knod->kaql[idx].amd_queue);
++		knod->kaql[idx].amd_queue = NULL;
++		goto err_mem;
++	}
++
++	knod->kaql[idx].scratch = knod_alloc_mem(knod,
++		PAGE_SIZE << 5,
++		KFD_IOC_ALLOC_MEM_FLAGS_VRAM |
++		KFD_IOC_ALLOC_MEM_FLAGS_WRITABLE |
++		KFD_IOC_ALLOC_MEM_FLAGS_COHERENT);
++	if (IS_ERR(knod->kaql[idx].scratch)) {
++		err = PTR_ERR(knod->kaql[idx].scratch);
++		knod->kaql[idx].scratch = NULL;
++		goto err_mem;
++	}
++
++	knod->kaql[idx].idx = 0;
++
++	/*
++	 * KNOD dispatchers poll queue_signal->value directly. Do not attach a
++	 * KFD signal event to every AQL completion; at high packet rates the
++	 * unused event notifications overflow the KFD interrupt/event path and
++	 * add latency without contributing to completion detection.
++	 */
++	knod->aql_event[idx].id = 0;
++	knod->aql_event[idx].slot = 0;
++	knod->signal_eid = 0;
++
++	/* Zero ALL queue-related GPU memory BEFORE creating the HW queue.
++	 * kfd_ioctl_create_queue loads HQD immediately - if the memory
++	 * contains stale data from a previous session (write/read pointers,
++	 * AQL dispatch packets, doorbell values), the GPU starts processing
++	 * garbage packets and goes to 100%.
++	 */
++	memset(knod->kaql[idx].queue->kaddr, 0, knod->kaql[idx].queue->size);
++	/* AQL ring is allocated 2x with AQL_QUEUE_MEM flag; the second
++	 * half is a GPU-side mirror for wrap-around.  kaddr only covers
++	 * the first half.
++	 */
++	memset(knod->kaql[idx].aql->kaddr, 0, knod->kaql[idx].aql->size / 2);
++	memset(knod->kaql[idx].eop->kaddr, 0, knod->kaql[idx].eop->size);
++	memset(knod->kaql[idx].amd_queue->kaddr, 0,
++	       knod->kaql[idx].amd_queue->size);
++	knod_init_queue(knod, idx, idx, KFD_IOC_QUEUE_TYPE_COMPUTE_AQL);
++
++	memset(&qp, 0, sizeof(qp));
++	qp.type = KFD_QUEUE_TYPE_COMPUTE;
++	qp.format = KFD_QUEUE_FORMAT_AQL;
++	qp.queue_percent = 100;
++	qp.priority = 15;
++	qp.ctl_stack_size = topo_dev->node_props.ctl_stack_size;
++	qp.ctx_save_restore_area_size = topo_dev->node_props.cwsr_size;
++	qp.ctx_save_restore_area_address = (u64)knod->kaql[idx].ctx->gaddr;
++	qp.queue_address = (u64)knod->kaql[idx].aql->gaddr;
++	qp.queue_size = knod->kaql[idx].aql->size / 2;
++	qp.write_ptr =
++		(void __user *)((u64)knod->kaql[idx].queue->gaddr + 0x38);
++	qp.read_ptr = (void __user *)((u64)knod->kaql[idx].queue->gaddr + 0x80);
++	qp.eop_ring_buffer_address = (u64)knod->kaql[idx].eop->gaddr;
++	qp.eop_ring_buffer_size = knod->kaql[idx].eop->size;
++
++	err = knod_create_event(knod->process, KFD_IOC_EVENT_SIGNAL, true, 1,
++				&knod->aql_event[idx]);
++	if (err) {
++		knod_err(" failed to create AQL event[%d] err=%d\n", idx, err);
++		goto err_mem;
++	}
++
++	queue_signal = (struct amd_signal *)knod->kaql[idx].queue_signal->kaddr;
++	queue_signal->kind = AMD_SIGNAL_KIND_USER;
++	if (queue_signal->kind == AMD_SIGNAL_KIND_DOORBELL) {
++		queue_signal->value = 0;
++		queue_signal->event_id = 0;
++		queue_signal->queue_ptr = (void *)knod->kaql[idx].queue->gaddr;
++		queue_signal->hardware_doorbell_ptr = ptr;
++		queue_signal->event_mailbox_ptr = 0;
++	} else if (queue_signal->kind == AMD_SIGNAL_KIND_USER) {
++		queue_signal->event_id = knod->aql_event[idx].id;
++		queue_signal->queue_ptr = 0;
++		queue_signal->event_mailbox_ptr = knod->mailbox->gaddr +
++			knod->aql_event[idx].slot * 8;
++		/* value is in union with hardware_doorbell_ptr - set last */
++		queue_signal->value = 0xffffffffffffffff;
++	}
++	knod_dbg(" pre-create-queue signal=%lld kaddr=%p gaddr=0x%llx\n",
++		 READ_ONCE(queue_signal->value), queue_signal,
++		 knod->kaql[idx].queue_signal->gaddr);
++
++	err = knod_create_queue(knod->process, &qp, pdd->user_gpu_id,
++				&knod->aql_queue_id[idx],
++				&knod->aql_doorbell_offset[idx]);
++	if (err) {
++		knod_err(" failed to create queue, err = %d\n", err);
++		goto err_mem;
++	}
++	knod->aql_queue_created[idx] = true;
++
++	knod_dbg(" post-create-queue signal=%lld queue_id=%d\n",
++		 READ_ONCE(queue_signal->value), knod->aql_queue_id[idx]);
++
++	/* Update queue id with the actual KFD-assigned value */
++	amd_queue = (struct amd_queue *)knod->kaql[idx].queue->kaddr;
++	amd_queue->hsa_queue.id = knod->aql_queue_id[idx];
++	return 0;
++
++err_mem:
++	if (knod->aql_event[idx].id) {
++		knod_destroy_event(knod->process, knod->aql_event[idx].id);
++		knod->aql_event[idx].id = 0;
++	}
++	knod_free_mem(knod, knod->kaql[idx].aql);
++	knod_free_mem(knod, knod->kaql[idx].queue);
++	knod_free_mem(knod, knod->kaql[idx].eop);
++	knod_free_mem(knod, knod->kaql[idx].ctx);
++	knod_free_mem(knod, knod->kaql[idx].queue_signal);
++	knod_free_mem(knod, knod->kaql[idx].amd_queue);
++	knod_free_mem(knod, knod->kaql[idx].scratch);
++	memset(&knod->kaql[idx], 0, sizeof(knod->kaql[idx]));
++	return err;
++}
++
++/*
++ * Write a minimal no-op kernel into the kernel BO so that any dispatch
++ * before a real shader (BPF/IPsec/MACsec/WG) is loaded executes a
++ * harmless s_endpgm instead of faulting on uninitialised VRAM.
++ *
++ * Layout:
++ *   [0..63]     kernel_descriptor  (kernel_code_entry_byte_offset = 256)
++ *   [256..259]  s_endpgm           (0xBF810000)
++ *   [260..1023] s_code_end padding (GFX10 SQC prefetch safety)
++ */
++#define KNOD_DEFAULT_KD_ENTRY_OFFSET	256
++#define KNOD_S_ENDPGM			0xBF810000u
++#define KNOD_S_CODE_END			0xBF9F0000u
++
++static void knod_init_default_kernel(struct knod *knod)
++{
++	struct kernel_descriptor *kd = knod->kernels[0]->kaddr;
++	u32 *code = (u32 *)((u8 *)knod->kernels[0]->kaddr +
++			    KNOD_DEFAULT_KD_ENTRY_OFFSET);
++	int i;
++
++	memset(kd, 0, sizeof(*kd));
++	kd->kernel_code_entry_byte_offset = KNOD_DEFAULT_KD_ENTRY_OFFSET;
++	kd->compute_pgm_rsrc1.granulated_workitem_vgpr_count = 0;
++	kd->compute_pgm_rsrc1.granulated_wavefront_sgpr_count = 0;
++	kd->compute_pgm_rsrc1.float_denorm_mode_32 = 3;
++	kd->compute_pgm_rsrc1.float_denorm_mode_16_64 = 3;
++	kd->compute_pgm_rsrc1.enable_dx10_clamp = 1;
++	kd->compute_pgm_rsrc1.enable_ieee_mode = 1;
++	if (knod->isa_version >= 10)
++		kd->compute_pgm_rsrc1.mem_ordered = 1;
++	kd->compute_pgm_rsrc2.enable_sgpr_workgroup_id_x = 1;
++
++	code[0] = KNOD_S_ENDPGM;
++	for (i = 1; i < (1024 - KNOD_DEFAULT_KD_ENTRY_OFFSET) / 4; i++)
++		code[i] = KNOD_S_CODE_END;
++}
++
++#define KNOD_DEFAULT_BATCH	64
++
++static struct knod_accel_xdp_ops *registered_xdp_ops;
++
++/*
++ * feature=none has no per-feature ops: the default worker stamps XDP_PASS and
++ * the NIC act handler delivers via knod_d2h_copy / knod_d2h_drain.
++ */
++static struct knod_accel_xdp_ops default_xdp_ops = {
++};
++
++static int knod_default_worker(void *arg)
++{
++	struct knod *knod = arg;
++	struct spsc_bd *bds[KNOD_DEFAULT_BATCH];
++	struct knod_dev *knodev;
++	unsigned int cnt;
++	int qi, i;
++
++	while (!kthread_should_stop()) {
++		knodev = READ_ONCE(knod->accel->knodev);
++		if (!knodev || !knodev->started) {
++			usleep_range(1000, 2000);
++			continue;
++		}
++
++		for (qi = 0; qi < knod->channels; qi++) {
++			struct knod_work_priv *wpriv = &knodev->wpriv[qi];
++
++			if (!wpriv->napi)
++				continue;
++
++			if (spsc_peek(&wpriv->spsc_bds, (void **)bds,
++				      KNOD_DEFAULT_BATCH, &cnt))
++				continue;
++
++			/*
++			 * feature=none has no program, so every packet passes.
++			 * Stamp the verdict before advancing the consumer
++			 * cursor: spsc_acquire() publishes the window with a
++			 * release barrier the act handler pairs with, so the
++			 * verdict has to be written first or the act handler
++			 * races a POISON read.  The NIC act handler does the
++			 * device->host delivery via knod_d2h_copy.
++			 */
++			for (i = 0; i < cnt; i++)
++				WRITE_ONCE(bds[i]->act, XDP_PASS);
++
++			spsc_acquire(&wpriv->spsc_bds, NULL, cnt, NULL);
++			knod_napi_kick(wpriv);
++		}
++
++		usleep_range(100, 200);
++	}
++	return 0;
++}
++
++static int knod_start_default_worker(struct knod *knod)
++{
++	struct task_struct *p;
++
++	knod->worker_fn = knod_default_worker;
++	knod->flush_fn = NULL;
++	knod->worker_ctx = knod;
++	p = kthread_run(knod_default_worker, knod, "knod_dflt_%d",
++			knod->accel->id);
++	if (IS_ERR(p))
++		return PTR_ERR(p);
++
++	get_task_struct(p);
++	knod->worker = p;
++	return 0;
++}
++
++static void knod_stop_worker(struct knod *knod)
++{
++	if (!knod->worker)
++		return;
++
++	if (knod->flush_fn)
++		knod->flush_fn(knod->worker_ctx);
++
++	kthread_stop(knod->worker);
++	put_task_struct(knod->worker);
++	knod->worker = NULL;
++	knod->worker_fn = NULL;
++	knod->flush_fn = NULL;
++	knod->worker_ctx = NULL;
++}
++
++int knod_register_worker(struct knod *knod, knod_worker_fn_t fn,
++			 knod_flush_fn_t flush, void *ctx)
++{
++	struct task_struct *p;
++
++	knod_stop_worker(knod);
++
++	knod->worker_fn = fn;
++	knod->flush_fn = flush;
++	knod->worker_ctx = ctx;
++	p = kthread_run(fn, ctx, "knod_%d", knod->accel->id);
++	if (IS_ERR(p)) {
++		knod->worker_fn = NULL;
++		knod->flush_fn = NULL;
++		knod->worker_ctx = NULL;
++		return PTR_ERR(p);
++	}
++
++	get_task_struct(p);
++	knod->worker = p;
++	return 0;
++}
++
++void knod_unregister_worker(struct knod *knod)
++{
++	knod_stop_worker(knod);
++	knod_start_default_worker(knod);
++}
++
++int knod_wait_on_events(struct kfd_process *p, u32 num_events,
++			void __user *data, bool all, u32 *user_timeout_ms,
++			u32 *wait_result)
++{
++	return kfd_wait_on_events_kernel(p, num_events, data, all,
++					 user_timeout_ms, wait_result);
++}
++EXPORT_SYMBOL(knod_wait_on_events);
++
++static int knod_alloc_ctx_init(struct knod *knod, int id, void **doorbell,
++			       struct kfd_topology_device **out_topo_dev,
++			       struct kfd_process_device **out_pdd)
++{
++	struct kfd_topology_device *topo_dev;
++	struct kfd_process_device *pdd;
++	struct file *drm_file;
++	size_t mem_size;
++	char path[64];
++	int err;
++
++	sprintf(path, "/dev/dri/renderD%d", id);
++
++	drm_file = filp_open(path, O_RDWR, 0);
++	if (IS_ERR(drm_file))
++		return PTR_ERR(drm_file);
++
++	knod->drm_file = drm_file;
++
++	knod->process = kfd_create_process(knod->umh_task);
++	if (IS_ERR(knod->process)) {
++		err = PTR_ERR(knod->process);
++		goto err_filp_close;
++	}
++	kref_get(&knod->process->ref);
++
++	err = knod_set_isa(knod);
++	if (err < 0)
++		goto err_unref_process;
++
++	pdd = knod->process->pdds[0];
++
++	topo_dev = kfd_topology_device_by_id(pdd->dev->id);
++	if (!topo_dev) {
++		pr_err("knod: can't find topo_dev for dev id %u\n",
++		       pdd->dev->id);
++		err = -ENODEV;
++		goto err_unref_process;
++	}
++
++	/* Acquire VM directly without installing an fd into any process's
++	 * fdtable.  get_file() provides the ref that pdd->drm_file will own.
++	 * kfd_process_destroy_pdds will fput it during process cleanup.
++	 */
++	get_file(drm_file);
++	mutex_lock(&knod->process->mutex);
++	err = kfd_process_device_init_vm(pdd, drm_file);
++	mutex_unlock(&knod->process->mutex);
++	if (err) {
++		fput(drm_file);
++		goto err_unref_process;
++	}
++
++	*doorbell = kfd_kernel_doorbell_mmap(pdd->dev, knod->process);
++	if (!*doorbell) {
++		err = -ENOMEM;
++		goto err_unref_process;
++	}
++
++	knod->pool = gen_pool_create(PAGE_SHIFT,
++				     dev_to_node(pdd->dev->adev->dev));
++	if (!knod->pool) {
++		err = -ENOMEM;
++		goto err_release_doorbell;
++	}
++
++	knod->dev = pdd->dev;
++	knod->reserved_addr = pdd->gpuvm_base << 2;
++	knod->limit_addr = pdd->gpuvm_limit;
++	mem_size = knod->limit_addr - knod->reserved_addr;
++
++	err = gen_pool_add(knod->pool, knod->reserved_addr, mem_size,
++			   dev_to_node(pdd->dev->adev->dev));
++	if (err)
++		goto err_gen_pool_destroy;
++
++	knod->kernels[0] = knod_alloc_mem(knod, PAGE_SIZE << 10,
++				      KFD_IOC_ALLOC_MEM_FLAGS_VRAM |
++				      KFD_IOC_ALLOC_MEM_FLAGS_COHERENT |
++				      KFD_IOC_ALLOC_MEM_FLAGS_WRITABLE |
++				      KFD_IOC_ALLOC_MEM_FLAGS_EXECUTABLE);
++	if (IS_ERR(knod->kernels[0])) {
++		err = PTR_ERR(knod->kernels[0]);
++		knod->kernels[0] = NULL;
++		goto err_gen_pool_destroy;
++	}
++	knod_init_default_kernel(knod);
++
++	/*
++	 * Second dispatch slot for the BPF ping-pong swap, allocated right
++	 * after knod->kernels[0] so both kernel BOs sit in the same low VA
++	 * region.
++	 * Allocating it later (at feature activate, past the RX buffers) put it
++	 * at a high VA, and switching the dispatch kernel_object to that BO
++	 * mid-stream wedged the compute queue.
++	 */
++	knod->kernels[1] = knod_alloc_mem(knod, PAGE_SIZE << 10,
++					  KFD_IOC_ALLOC_MEM_FLAGS_VRAM |
++					  KFD_IOC_ALLOC_MEM_FLAGS_COHERENT |
++					  KFD_IOC_ALLOC_MEM_FLAGS_WRITABLE |
++					  KFD_IOC_ALLOC_MEM_FLAGS_EXECUTABLE);
++	if (IS_ERR(knod->kernels[1])) {
++		err = PTR_ERR(knod->kernels[1]);
++		knod->kernels[1] = NULL;
++		goto err_free_kernel;
++	}
++
++	knod->mailbox = knod_alloc_mem(knod, PAGE_SIZE << 5,
++				       KFD_IOC_ALLOC_MEM_FLAGS_EXECUTABLE |
++				       KFD_IOC_ALLOC_MEM_FLAGS_WRITABLE |
++				       KFD_IOC_ALLOC_MEM_FLAGS_COHERENT |
++				       KFD_IOC_ALLOC_MEM_FLAGS_VRAM);
++	if (IS_ERR(knod->mailbox)) {
++		err = PTR_ERR(knod->mailbox);
++		knod->mailbox = NULL;
++		goto err_free_kernel;
++	}
++
++	*out_topo_dev = topo_dev;
++	*out_pdd = pdd;
++	return 0;
++
++err_free_kernel:
++	if (knod->kernels[1])
++		knod_free_mem(knod, knod->kernels[1]);
++	knod->kernels[1] = NULL;
++	knod_free_mem(knod, knod->kernels[0]);
++	knod->kernels[0] = NULL;
++err_gen_pool_destroy:
++	gen_pool_destroy(knod->pool);
++	knod->pool = NULL;
++err_release_doorbell:
++	iounmap(*doorbell);
++	*doorbell = NULL;
++err_unref_process:
++	kfd_unref_process(knod->process);
++err_filp_close:
++	fput(knod->drm_file);
++	return err;
++}
++
++struct knod *knod_alloc_ctx(struct knod_dev *knodev, int queue_cnt, int id,
++			    int channels)
++{
++	int buf_flags = KFD_IOC_ALLOC_MEM_FLAGS_WRITABLE |
++			KFD_IOC_ALLOC_MEM_FLAGS_COHERENT |
++			KFD_IOC_ALLOC_MEM_FLAGS_VRAM;
++	struct kfd_topology_device *topo_dev;
++	struct kfd_process_device *pdd;
++	struct process_queue_node *pqn;
++	struct knod_work_priv *wpriv;
++	struct task_struct *task;
++	unsigned int sdma_cnt;
++	void *ptr = NULL;
++	struct knod *knod;
++	struct knod_mem *buf;
++	struct pid *spid;
++	struct queue *q;
++	int err, size;
++	pid_t pid;
++	int idx;
++
++	pid = launch_and_get_pid();
++	if (!pid) {
++		knod_err(" failed to create UMH\n");
++		return ERR_PTR(-EINVAL);
++	}
++
++	spid = find_get_pid(pid);
++	if (!spid) {
++		knod_err(" failed to find pid\n");
++		return ERR_PTR(-ESRCH);
++	}
++
++	task = get_pid_task(spid, PIDTYPE_PID);
++	put_pid(spid);
++	if (!task) {
++		knod_err(" no task found\n");
++		return ERR_PTR(-ESRCH);
++	}
++
++	knod = kzalloc(sizeof(struct knod), GFP_KERNEL);
++	if (!knod) {
++		put_task_struct(task);
++		return ERR_PTR(-ENOMEM);
++	}
++
++	knod->queue_cnt = queue_cnt;
++	knod->sdma_cnt = queue_cnt;
++	knod->channels = channels;
++	knod->umh_pid = pid;
++	knod->umh_task = task;
++	knod->nr_aql_ring = NR_AQL_RING;
++	INIT_LIST_HEAD(&knod->list);
++	INIT_LIST_HEAD(&knod->active_list);
++
++	err = knod_alloc_ctx_init(knod, id, &ptr, &topo_dev, &pdd);
++	if (err)
++		goto err_free_knod;
++
++	sdma_cnt = topo_dev->node_props.num_sdma_engines *
++		   topo_dev->node_props.num_sdma_queues_per_engine;
++	if (!sdma_cnt)
++		sdma_cnt = queue_cnt;
++	knod->sdma_cnt = min_t(int, queue_cnt, sdma_cnt);
++	if (!knod->sdma_cnt)
++		knod->sdma_cnt = 1;
++	pr_info("knod: AQL queues=%d SDMA queues=%d channels=%d\n",
++		queue_cnt, knod->sdma_cnt, channels);
++
++	knod->doorbell_base = ptr;
++
++	knod->buf = kmalloc_array(channels, sizeof(struct knod_mem *),
++				  GFP_KERNEL | __GFP_ZERO);
++	if (!knod->buf) {
++		err = -ENOMEM;
++		goto err_free_mailbox;
++	}
++
++	if (knod->igpu)
++		size = PAGE_SIZE << MAX_PAGE_ORDER;
++	else
++		size = PAGE_SIZE << 14;
++
++	for (idx = 0; idx < channels; idx++) {
++		wpriv = &knodev->wpriv[idx];
++		buf = __knod_alloc_mem(knod, size, buf_flags);
++		if (IS_ERR(buf)) {
++			err = PTR_ERR(buf);
++			goto err_free_bufs;
++		}
++		if (__knod_export_dma_buf(knod, buf)) {
++			knod_free_mem(knod, buf);
++			err = -ENOMEM;
++			goto err_free_bufs;
++		}
++		if (__knod_map_kaddr(knod, buf)) {
++			knod_free_mem(knod, buf);
++			err = -ENOMEM;
++			goto err_free_bufs;
++		}
++		if (__knod_map_mem(knod, buf)) {
++			knod_free_mem(knod, buf);
++			err = -ENOMEM;
++			goto err_free_bufs;
++		}
++		wpriv->dmabuf = buf->mem->dmabuf;
++		wpriv->index = idx;
++		knod->buf[idx] = buf;
++	}
++
++	/*
++	 * GPU->host delivery buffer + per-queue page_pools are owned by the
++	 * NOD framework (knod_pass_attach), allocated via accel_ops->alloc_mem.
++	 */
++
++	memset(knod->mailbox->kaddr, 0, knod->mailbox->size);
++
++	err = kfd_event_page_set(knod->process,
++				 knod->mailbox->kaddr,
++				 KFD_SIGNAL_EVENT_LIMIT * 8,
++				 knod->mailbox->gaddr);
++	if (err < 0)
++		goto err_free_bufs;
++
++	for (idx = 0; idx < queue_cnt; idx++) {
++		err = knod_alloc_one_queue(knod, idx, topo_dev, pdd, ptr);
++		if (err)
++			goto err_free_queues;
++	}
++
++	/* Allocate only the SDMA queues the device can actually provide. BPF
++	 * XDP_TX does not use SDMA for the verdict path, while PASS/d2h maps RX
++	 * queues onto the available SDMA queues modulo sdma_cnt.
++	 */
++	for (idx = 0; idx < knod->sdma_cnt; idx++) {
++		struct amd_signal *sdma_signal;
++		struct queue_properties qp;
++		long *sdma_lptr;
++		int sdma_flags = KFD_IOC_ALLOC_MEM_FLAGS_EXECUTABLE |
++				 KFD_IOC_ALLOC_MEM_FLAGS_WRITABLE |
++				 KFD_IOC_ALLOC_MEM_FLAGS_COHERENT |
++				 KFD_IOC_ALLOC_MEM_FLAGS_GTT;
++
++		knod->sdma[idx].sdma = knod_alloc_mem(knod, PAGE_SIZE << 4,
++			KFD_IOC_ALLOC_MEM_FLAGS_GTT |
++			KFD_IOC_ALLOC_MEM_FLAGS_WRITABLE |
++			KFD_IOC_ALLOC_MEM_FLAGS_COHERENT |
++			KFD_IOC_ALLOC_MEM_FLAGS_UNCACHED |
++			KFD_IOC_ALLOC_MEM_FLAGS_EXECUTABLE);
++		if (IS_ERR(knod->sdma[idx].sdma)) {
++			err = PTR_ERR(knod->sdma[idx].sdma);
++			knod->sdma[idx].sdma = NULL;
++			goto err_free_sdma;
++		}
++		knod->sdma[idx].queue = knod_alloc_mem(knod, PAGE_SIZE,
++						       sdma_flags);
++		if (IS_ERR(knod->sdma[idx].queue)) {
++			err = PTR_ERR(knod->sdma[idx].queue);
++			knod->sdma[idx].queue = NULL;
++			goto err_free_sdma;
++		}
++		knod->sdma[idx].queue_signal = knod_alloc_mem(knod,
++			PAGE_SIZE << 5,
++			KFD_IOC_ALLOC_MEM_FLAGS_GTT |
++			KFD_IOC_ALLOC_MEM_FLAGS_COHERENT |
++			KFD_IOC_ALLOC_MEM_FLAGS_EXECUTABLE |
++			KFD_IOC_ALLOC_MEM_FLAGS_WRITABLE);
++		if (IS_ERR(knod->sdma[idx].queue_signal)) {
++			err = PTR_ERR(knod->sdma[idx].queue_signal);
++			knod->sdma[idx].queue_signal = NULL;
++			goto err_free_sdma;
++		}
++		knod->sdma[idx].idx = 0;
++
++		err = knod_create_event(knod->process, KFD_IOC_EVENT_SIGNAL,
++					true, 1, &knod->sdma_event[idx]);
++		if (err) {
++			knod_err(" failed to create SDMA event[%d] err=%d\n",
++				 idx, err);
++			goto err_free_sdma;
++		}
++
++		memset(&qp, 0, sizeof(qp));
++		qp.type = KFD_QUEUE_TYPE_SDMA;
++		qp.format = KFD_QUEUE_FORMAT_PM4;
++		qp.queue_percent = 100;
++		qp.priority = 15;
++		qp.queue_address = (u64)knod->sdma[idx].sdma->gaddr;
++		qp.queue_size = knod->sdma[idx].sdma->size;
++		qp.write_ptr = (void __user *)
++			((u64)knod->sdma[idx].queue->gaddr + 0x08);
++		qp.read_ptr = (void __user *)
++			((u64)knod->sdma[idx].queue->gaddr + 0x10);
++
++		sdma_signal = (struct amd_signal *)
++			knod->sdma[idx].queue_signal->kaddr;
++		sdma_signal->kind = AMD_SIGNAL_KIND_USER;
++		sdma_signal->event_id = knod->sdma_event[idx].id;
++		sdma_signal->queue_ptr = 0;
++		sdma_signal->event_mailbox_ptr = knod->mailbox->gaddr +
++			(knod->sdma_event[idx].slot * 8);
++		/* SDMA fence writes u32 to low 32 bits of value.
++		 * Init to 0 (not -1 like AQL) so comparison works.
++		 * value is in union with hardware_doorbell_ptr - set last.
++		 */
++		sdma_signal->value = 0;
++		sdma_lptr = knod->mailbox->kaddr + (idx * 8);
++		sdma_lptr[knod->sdma_event[idx].slot] = 0;
++
++		err = knod_create_queue(knod->process, &qp, pdd->user_gpu_id,
++					&knod->sdma_queue_id[idx],
++					&knod->sdma_doorbell_offset[idx]);
++		if (err) {
++			knod_err(" failed to create SDMA queue[%d] err=%d\n",
++				 idx, err);
++			goto err_free_sdma;
++		}
++		knod->sdma_queue_created[idx] = true;
++
++		knod_init_queue(knod, knod->sdma_queue_id[idx], idx,
++				KFD_IOC_QUEUE_TYPE_SDMA);
++		knod->sdma[idx].doorbell =
++			(u64 *)((u8 *)ptr +
++				(u32)knod->sdma_doorbell_offset[idx]);
++		knod_dbg(" SDMA queue[%d] created: id=%d doorbell_offset=0x%x doorbell=%p\n",
++			 idx, knod->sdma_queue_id[idx],
++			 (u32)knod->sdma_doorbell_offset[idx],
++			 knod->sdma[idx].doorbell);
++	}
++
++	list_for_each_entry(pqn, &knod->process->pqm.queues,
++			    process_queue_list) {
++		if (!pqn->q)
++			continue;
++		q = pqn->q;
++		for (idx = 0; idx < queue_cnt; idx++) {
++			if (q->properties.queue_id == idx) {
++				knod->kaql[idx].doorbell =
++					(u64 *)((u8 *)ptr +
++					(u32)knod->aql_doorbell_offset[idx]);
++				q->properties.doorbell_ptr =
++					knod->kaql[idx].doorbell;
++				knod_dbg(" doorbell: idx=%d qid=%d door_off=0x%x doorbell=%p\n",
++					 idx, q->properties.queue_id,
++					 (u32)knod->aql_doorbell_offset[idx],
++					 knod->kaql[idx].doorbell);
++			}
++		}
++	}
++
++	list_add_tail(&knod->list, &ctx_list);
++
++	/* Create shared debugfs directory under dri/<N>/knod/ */
++	{
++		struct drm_minor *minor = adev_to_drm(pdd->dev->adev)->render;
++
++		if (minor && minor->debugfs_root) {
++			struct dentry *dir;
++
++			dir = debugfs_lookup("knod", minor->debugfs_root);
++			if (!dir) {
++				dir = debugfs_create_dir("knod",
++							 minor->debugfs_root);
++				if (IS_ERR(dir))
++					dir = NULL;
++			}
++			knod->debug_dir = dir;
++		}
++	}
++
++	return knod;
++
++err_free_sdma:
++	{
++		int j;
++
++		for (j = idx; j >= 0; j--) {
++			if (knod->sdma_queue_created[j]) {
++				knod_destroy_queue(knod->process,
++						   knod->sdma_queue_id[j]);
++				knod->sdma_queue_created[j] = false;
++			}
++			if (knod->sdma_event[j].id) {
++				knod_destroy_event(knod->process,
++						   knod->sdma_event[j].id);
++				knod->sdma_event[j].id = 0;
++			}
++			knod_free_mem(knod, knod->sdma[j].sdma);
++			knod_free_mem(knod, knod->sdma[j].queue);
++			knod_free_mem(knod, knod->sdma[j].queue_signal);
++		}
++	}
++	idx = queue_cnt;
++err_free_queues:
++	while (idx-- > 0)
++		knod_destroy_one_queue(knod, idx);
++err_free_bufs:
++	for (idx = 0; idx < channels; idx++)
++		knod_free_mem(knod, knod->buf[idx]);
++	kfree(knod->buf);
++err_free_mailbox:
++	knod_free_mem(knod, knod->mailbox);
++	knod_free_mem(knod, knod->kernels[1]);
++	knod_free_mem(knod, knod->kernels[0]);
++	gen_pool_destroy(knod->pool);
++	iounmap(ptr);
++	kfd_unref_process(knod->process);
++	fput(knod->drm_file);
++err_free_knod:
++	put_task_struct(knod->umh_task);
++	stop_umh(knod->umh_pid);
++	kfree(knod);
++	return ERR_PTR(err);
++}
++EXPORT_SYMBOL(knod_alloc_ctx);
++
++void knod_release_ctx(struct knod *knod)
++{
++	int idx;
++
++	list_del(&knod->list);
++
++	debugfs_remove_recursive(knod->debug_dir);
++
++	/* Release SDMA queues - destroy queue/event BEFORE freeing BOs.
++	 * Same ordering as knod_destroy_one_queue() for AQL: the queue
++	 * holds references to BO VAs, so freeing BOs first causes the
++	 * queue destroy to fail and leaves internal BOs in kfd_bo_list.
++	 */
++	for (idx = 0; idx < knod->sdma_cnt; idx++) {
++		knod_destroy_queue(knod->process, knod->sdma_queue_id[idx]);
++		knod_destroy_event(knod->process, knod->sdma_event[idx].id);
++		knod_free_mem(knod, knod->sdma[idx].sdma);
++		knod_free_mem(knod, knod->sdma[idx].queue);
++		knod_free_mem(knod, knod->sdma[idx].queue_signal);
++	}
++
++	for (idx = 0; idx < knod->queue_cnt; idx++)
++		knod_destroy_one_queue(knod, idx);
++
++	for (idx = 0; idx < knod->channels; idx++)
++		knod_free_mem(knod, knod->buf[idx]);
++	kfree(knod->buf);
++
++	knod_free_mem(knod, knod->mailbox);
++	knod_free_mem(knod, knod->kernels[1]);
++	knod_free_mem(knod, knod->kernels[0]);
++	gen_pool_destroy(knod->pool);
++	iounmap(knod->doorbell_base);
++
++	/* Tear down the KFD process.  It holds 3 refs:
++	 *   ref 1: "open" ref from kfd_create_process (normally dropped
++	 *           by kfd_release when /dev/kfd is closed - KNOD never
++	 *           opens /dev/kfd so we must drop this ourselves)
++	 *   ref 2: KNOD's explicit kref_get in knod_alloc_ctx
++	 *   ref 3: mmu_notifier alloc_notifier ref (dropped by
++	 *           free_notifier callback via SRCU after mmu_notifier_put)
++	 *
++	 * kfd_process_notifier_release_internal removes from hash,
++	 * destroys queues, and calls mmu_notifier_put which schedules
++	 * the SRCU callback to drop ref 3.  We drop refs 1 and 2 here.
++	 * After SRCU fires, ref reaches 0 -> kfd_process_wq_release
++	 * runs (sysfs removal, BO/PDD/doorbell/event cleanup, kfree).
++	 *
++	 * kfd_process_destroy_pdds fput's pdd->drm_file (the get_file
++	 * ref from init_vm), bringing the DRM file ref from 2->1.
++	 * The file/VM stays alive until we fput the filp_open ref below.
++	 */
++	kfd_process_notifier_release_internal(knod->process);
++	kfd_unref_process(knod->process);
++	kfd_unref_process(knod->process);
++	mmu_notifier_synchronize();
++	kfd_process_flush_wq();
++
++	/* Drop the filp_open ref (file ref 1->0).  kfd_process_destroy_pdds
++	 * already fput'd the get_file ref during wq_release above.
++	 */
++	fput(knod->drm_file);
++	flush_delayed_fput();
++
++	stop_umh(knod->umh_pid);
++	put_task_struct(knod->umh_task);
++	kfree(knod);
++}
++EXPORT_SYMBOL(knod_release_ctx);
++
++/* ---- feature control (knod genetlink) ---- */
++
++static void *knod_feature_ops(enum knod_feature feat)
++{
++	switch (feat) {
++	case KNOD_FEATURE_BPF:
++		return registered_xdp_ops;
++	case KNOD_FEATURE_IPSEC:
++		return accel_ops.ipsec_ops;
++	default:
++		return NULL;
++	}
++}
++
++/*
++ * Feature lifecycle across three independent axes:
++ *   init/exit            attach/detach      permanent per-attach state
++ *   activate/deactivate  feature select     feature GPU resources
++ *   start/stop           interface up/down  worker + GPU in-flight drain
++ *
++ * The worker only does useful work while (interface up AND a feature is
++ * selected), so a feature switch is bracketed stop -> change -> start: the
++ * worker is stopped and its GPU dispatch drained before deactivate() frees
++ * the resources it used, then restarted afterwards.  start/stop never touch
++ * the framework/NIC-owned RX SPSC ring (mlx5 co-owns it via rq->knodev), so
++ * they are safe to run while the interface is up and traffic is flowing.
++ */
++static void knod_feature_stop(struct knod *knod)
++{
++	struct knod_dev *knodev = knod->accel->knodev;
++
++	knod_stop_worker(knod);
++
++	switch (knod->active_feature) {
++	case KNOD_FEATURE_BPF:
++		if (registered_xdp_ops && registered_xdp_ops->stop)
++			registered_xdp_ops->stop(knodev);
++		break;
++	case KNOD_FEATURE_IPSEC:
++		if (accel_ops.ipsec_ops && accel_ops.ipsec_ops->stop)
++			accel_ops.ipsec_ops->stop(knodev);
++		break;
++	default:
++		break;
++	}
++}
++
++static void knod_feature_start(struct knod *knod)
++{
++	struct knod_dev *knodev = knod->accel->knodev;
++
++	switch (knod->active_feature) {
++	case KNOD_FEATURE_BPF:
++		if (registered_xdp_ops && registered_xdp_ops->start)
++			registered_xdp_ops->start(knodev);
++		break;
++	case KNOD_FEATURE_IPSEC:
++		if (accel_ops.ipsec_ops && accel_ops.ipsec_ops->start)
++			accel_ops.ipsec_ops->start(knodev);
++		break;
++	default:
++		knod_start_default_worker(knod);
++		break;
++	}
++}
++
++static void knod_feature_deactivate(struct knod *knod)
++{
++	struct knod_dev *knodev = knod->accel->knodev;
++
++	switch (knod->active_feature) {
++	case KNOD_FEATURE_BPF:
++		/*
++		 * Phase 1: unregister the offload dev - this force-frees any
++		 * user XDP progs/maps still bound.  The map-free ndo routes
++		 * back through accel_ops.xdp_ops->xdp_install, so xdp_ops must
++		 * still point at the BPF ops (and priv must be alive) here.
++		 */
++		if (registered_xdp_ops &&
++		    registered_xdp_ops->xdp_offload_uninit)
++			registered_xdp_ops->xdp_offload_uninit(knodev);
++		/*
++		 * Phase 2: repoint RX delivery at the default drain_pass and
++		 * wait out the in-flight NAPI readers.
++		 */
++		WRITE_ONCE(accel_ops.xdp_ops, &default_xdp_ops);
++		synchronize_net();
++		knod_stop_worker(knod);
++		if (registered_xdp_ops && registered_xdp_ops->deactivate)
++			registered_xdp_ops->deactivate(knodev);
++		break;
++	case KNOD_FEATURE_IPSEC:
++		/*
++		 * knod_ipsec_detach() clears the netdev xfrm flags and runs
++		 * ->deactivate(), which NULLs ipsec_priv and does its own
++		 * synchronize_net() before freeing.
++		 */
++		knod_ipsec_detach(knodev);
++		break;
++	default:
++		break;
++	}
++}
++
++static int knod_feature_activate(struct knod *knod)
++{
++	struct knod_dev *knodev = knod->accel->knodev;
++	int err;
++
++	switch (knod->active_feature) {
++	case KNOD_FEATURE_BPF:
++		if (!registered_xdp_ops)
++			return -ENODEV;
++		/* Phase A: GPU compute buffers. */
++		if (registered_xdp_ops->activate) {
++			err = registered_xdp_ops->activate(knodev);
++			if (err)
++				return err;
++		}
++		/*
++		 * Publish xdp_ops, then phase B: register the offload dev so
++		 * user XDP progs/maps can bind (their install/free route
++		 * through accel_ops.xdp_ops->xdp_install).
++		 */
++		WRITE_ONCE(accel_ops.xdp_ops, registered_xdp_ops);
++		if (registered_xdp_ops->xdp_offload_init) {
++			err = registered_xdp_ops->xdp_offload_init(knodev);
++			if (err) {
++				WRITE_ONCE(accel_ops.xdp_ops, &default_xdp_ops);
++				synchronize_net();
++				knod_stop_worker(knod);
++				if (registered_xdp_ops->deactivate)
++					registered_xdp_ops->deactivate(knodev);
++				return err;
++			}
++		}
++		return 0;
++	case KNOD_FEATURE_IPSEC:
++		if (!accel_ops.ipsec_ops)
++			return -ENODEV;
++		/* knod_ipsec_attach() runs ->activate() + sets netdev flags. */
++		return knod_ipsec_attach(knodev);
++	case KNOD_FEATURE_NONE:
++		return 0;
++	default:
++		return -EINVAL;
++	}
++}
++
++static int knod_accel_feature_get(struct knod_accel *accel,
++				u32 *ena, u32 *cap)
++{
++	struct knod *knod = READ_ONCE(accel->priv);
++	u32 mask = 0;
++	int i;
++
++	/* A registered-but-not-attached accel has no context yet. */
++	*ena = knod ? knod->active_feature : KNOD_FEATURE_NONE;
++	for (i = 0; i < KNOD_FEATURE_MAX; i++)
++		if (i == KNOD_FEATURE_NONE || knod_feature_ops(i))
++			mask |= BIT(i);
++	*cap = mask;
++	return 0;
++}
++
++static int knod_accel_feature_set(struct knod_accel *accel, u32 feature,
++				struct netlink_ext_ack *extack)
++{
++	struct knod *knod = READ_ONCE(accel->priv);
++	struct knod_dev *knodev;
++	bool started;
++	int err = 0;
++
++	if (feature >= KNOD_FEATURE_MAX) {
++		NL_SET_ERR_MSG(extack, "unknown feature");
++		return -EINVAL;
++	}
++	if (feature != KNOD_FEATURE_NONE && !knod_feature_ops(feature)) {
++		NL_SET_ERR_MSG(extack, "feature not available on this accelerator");
++		return -ENOENT;
++	}
++	knodev = knod ? READ_ONCE(knod->accel->knodev) : NULL;
++	if (!knod || !knodev) {
++		NL_SET_ERR_MSG(extack, "accelerator not attached to a NIC");
++		return -ENODEV;
++	}
++	if (feature == knod->active_feature)
++		return 0;
++
++	/*
++	 * Refuse to leave BPF while a user XDP prog or offloaded map is still
++	 * bound - tearing the offload down underneath them is unsafe (the GPU
++	 * dispatch keeps running against freed state).  The user must detach
++	 * first, e.g. "ip link set dev <if> xdp off".
++	 */
++	if (knod->active_feature == KNOD_FEATURE_BPF && registered_xdp_ops &&
++	    registered_xdp_ops->busy && registered_xdp_ops->busy(knodev)) {
++		NL_SET_ERR_MSG(extack, "detach the XDP program/maps first");
++		return -EBUSY;
++	}
++	if (knod->active_feature == KNOD_FEATURE_IPSEC && accel_ops.ipsec_ops &&
++	    accel_ops.ipsec_ops->busy && accel_ops.ipsec_ops->busy(knodev)) {
++		NL_SET_ERR_MSG(extack, "remove the offloaded xfrm SAs first");
++		return -EBUSY;
++	}
++
++	/*
++	 * stop -> change -> start.  The worker only runs while the interface
++	 * is up; bracket the resource change with worker stop/start in that
++	 * case.  stop() drains the GPU in-flight so deactivate() frees safely.
++	 */
++	started = READ_ONCE(knodev->started);
++	if (started)
++		knod_feature_stop(knod);
++	knod_feature_deactivate(knod);
++	knod->active_feature = KNOD_FEATURE_NONE;
++
++	if (feature != KNOD_FEATURE_NONE) {
++		knod->active_feature = feature;
++		err = knod_feature_activate(knod);
++		if (err) {
++			knod->active_feature = KNOD_FEATURE_NONE;
++			NL_SET_ERR_MSG(extack, "failed to activate feature");
++		}
++	}
++	if (started)
++		knod_feature_start(knod);
++	return err;
++}
++
++static int knod_attach(struct knod_dev *knodev)
++{
++	struct knod_accel *accel = knodev->accel;
++	int render_idx = accel->id / KNOD_MAX_AQL;
++	struct net_device *netdev = knodev->netdev;
++	struct amdgpu_device *adev;
++	struct knod *knod;
++
++	{
++		int q_cnt = clamp(READ_ONCE(knod_requested_queue_cnt), 1,
++				      KNOD_MAX_QUEUE_CNT);
++
++		knod = knod_alloc_ctx(knodev, q_cnt, render_idx,
++				      min(netdev->num_rx_queues,
++					  KNOD_SPSC_MAX));
++	}
++	if (IS_ERR(knod)) {
++		pr_err("knod: Failed to allocate context\n");
 +		return -EINVAL;
 +	}
 +
-+	mutex_lock(&mem->process_info->lock);
++	accel->priv = knod;
++	knod->accel = accel;
 +
-+	ret = amdgpu_bo_reserve(bo, true);
-+	if (ret) {
-+		pr_err("Failed to reserve bo. ret %d\n", ret);
-+		goto bo_reserve_failed;
++	/*
++	 * Keep GFX engine out of GFXOFF while a KNOD accel is attached.
++	 * On RDNA2 (tested RX6600 / gfx1032) the very first AQL dispatch
++	 * after boot hangs with signal=-1 when GFXOFF is active - SMU exit
++	 * from GFXOFF races with the doorbell ring and the completion
++	 * signal is never decremented. Forcing GFXOFF off for the attached
++	 * lifetime avoids the race entirely.
++	 *
++	 * Pin MCLK soft-min to HW max. KNOD's RX path is bandwidth-bound
++	 * on VRAM (NIC->GPU p2pdma delivers frames directly to VRAM, then
++	 * the shader streams them back out) but the individual dispatches
++	 * are too short for SMU's activity monitor to react - MCLK sticks
++	 * at the lowest DPM (~96 MHz on RX6600) in AUTO mode and caps
++	 * throughput far below what the compute path can sustain. Switching
++	 * to the COMPUTE power profile did not help on RDNA2: the COMPUTE
++	 * DpmActivityMonitor coefficients tune GFX upclock aggressively
++	 * but leave memory activity detection conservative.
++	 *
++	 * Setting soft_min via SetSoftMinByFreq is independent of
++	 * pp_power_profile_mode and of power_dpm_force_performance_level,
++	 * so AUTO governance stays in effect for SCLK/voltage - we get the
++	 * same 30W full-throughput state the user reaches via "force
++	 * performance = manual + echo 3 > pp_dpm_mclk", without the 75W
++	 * voltage pin that PROFILE_PEAK imposes. Passing 0xFFFF MHz lets
++	 * SMU firmware clamp to the actual hardware max.
++	 */
++	adev = knod->process->pdds[0]->dev->adev;
++	amdgpu_gfx_off_ctrl_immediate(adev, false);
++	amdgpu_dpm_set_soft_freq_range(adev, PP_MCLK, 0xFFFF, 0xFFFF);
++
++	/*
++	 * Attach settles in KNOD_FEATURE_NONE with no worker running.  The
++	 * worker is started by the NIC driver bringing the interface up
++	 * (knod_dev_start -> ->dev_start), and each feature's GPU resources
++	 * are allocated when the feature is selected (->activate).
++	 */
++	knod->active_feature = KNOD_FEATURE_NONE;
++
++	/*
++	 * Permanent per-attach feature state (e.g. the BPF bpf_offload_dev,
++	 * which must outlive feature switches so user XDP progs/maps survive).
++	 */
++	if (registered_xdp_ops && registered_xdp_ops->init)
++		registered_xdp_ops->init(knodev);
++	return 0;
++}
++
++static void knod_pre_detach(struct knod_dev *knodev)
++{
++	struct knod *knod = knodev->accel->priv;
++
++	/*
++	 * Detach requires the interface down, so the worker is already
++	 * stopped; stop again defensively, free the active feature's
++	 * resources, then tear down the permanent per-attach state.
++	 */
++	knod_feature_stop(knod);
++	knod_feature_deactivate(knod);
++	knod->active_feature = KNOD_FEATURE_NONE;
++
++	if (registered_xdp_ops && registered_xdp_ops->exit)
++		registered_xdp_ops->exit(knodev);
++}
++
++static void knod_dev_start_worker(struct knod_dev *knodev)
++{
++	struct knod *knod = knodev->accel->priv;
++
++	/* Interface up: start the current feature's worker. */
++	if (knod)
++		knod_feature_start(knod);
++}
++
++static void knod_dev_stop_worker(struct knod_dev *knodev)
++{
++	struct knod *knod = knodev->accel->priv;
++
++	/* Interface down: stop the worker + drain the GPU in-flight. */
++	if (knod)
++		knod_feature_stop(knod);
++}
++
++static void knod_detach(struct knod_dev *knodev)
++{
++	struct knod_accel *accel = knodev->accel;
++	struct knod *knod = accel->priv;
++	struct amdgpu_device *adev = knod->process->pdds[0]->dev->adev;
++
++	knod_stop_worker(knod);
++	knod_release_ctx(knod);
++	WRITE_ONCE(accel->priv, NULL);
++
++	/*
++	 * Restore default MCLK range. min=1 triggers SetSoftMinByFreq (the
++	 * API skips the call when min==0) and SMU clamps to HW min; max
++	 * 0xFFFF clamps to HW max. Together this matches the pre-attach
++	 * "no soft constraint" state so DPM can idle MCLK back down.
++	 */
++	amdgpu_dpm_set_soft_freq_range(adev, PP_MCLK, 1, 0xFFFF);
++	amdgpu_gfx_off_ctrl(adev, true);
++}
++
++static void *knod_accel_alloc_mem(struct knod_dev *knodev, size_t size,
++				  u64 *gaddr, struct page ***pages, void **priv)
++{
++	struct knod_accel *accel = knodev->accel;
++	struct knod *knod = accel->priv;
++	struct knod_mem *mem;
++	struct ttm_tt *tt;
++	u32 flags;
++
++	/* SPSC rings are hot producer/consumer control data. Keep them plain
++	 * GTT; only host-read delivery buffers need coherent CPU visibility.
++	 */
++	flags = KFD_IOC_ALLOC_MEM_FLAGS_GTT | KFD_IOC_ALLOC_MEM_FLAGS_WRITABLE;
++	if (pages)
++		flags |= KFD_IOC_ALLOC_MEM_FLAGS_COHERENT;
++
++	mem = knod_alloc_mem(knod, size, flags);
++	if (IS_ERR(mem))
++		return NULL;
++
++	if (pages) {
++		tt = mem->mem->bo ? mem->mem->bo->tbo.ttm : NULL;
++		if (!tt || !tt->pages) {
++			knod_free_mem(knod, mem);
++			return NULL;
++		}
++		*pages = tt->pages;
 +	}
 +
-+	ret = amdgpu_bo_pin(bo, AMDGPU_GEM_DOMAIN_VRAM);
-+	if (ret) {
-+		pr_err("Failed to pin bo. ret %d\n", ret);
-+		goto pin_failed;
++	*gaddr = mem->gaddr;
++	*priv = mem;
++	return mem->kaddr;
++}
++
++static void knod_accel_free_mem(struct knod_dev *knodev, void *priv)
++{
++	struct knod_accel *accel = knodev->accel;
++	struct knod *knod = accel->priv;
++	struct knod_mem *mem = priv;
++
++	knod_free_mem(knod, mem);
++}
++
++/*
++ * Device->host copy primitives for the common knod_d2h_copy/knod_d2h_drain
++ * path.  Thin wrappers over the SDMA engine (sdma[0]); the framework owns the
++ * pending ring, fence counter and dst pool.
++ */
++static u32 knod_accel_d2h_submit(struct knod_dev *knodev, u64 dst, int queue,
++				 u32 page_idx, u16 off, u32 len)
++{
++	struct knod *knod = knodev->accel->priv;
++	struct knod_sdma_copy_desc c;
++
++	/* The netmem page_pool dma_addr is the NIC address; SDMA needs
++	 * the GPU VM address, so derive the source from buf[queue].
++	 */
++	c.src = knod->buf[queue]->gaddr + ((u64)page_idx << PAGE_SHIFT) + off;
++	c.dst = dst;
++	c.len = len;
++	return knod_sdma_submit(knod, 0, &c, 1);
++}
++
++static void knod_accel_d2h_kick(struct knod_dev *knodev)
++{
++	knod_sdma_kick(knodev->accel->priv, 0);
++}
++
++static u32 knod_accel_d2h_fence(struct knod_dev *knodev, int sdma_idx)
++{
++	struct knod *knod = READ_ONCE(knodev->accel->priv);
++	struct knod_mem *signal;
++
++	if (!knod || sdma_idx < 0 || sdma_idx >= READ_ONCE(knod->sdma_cnt))
++		return 0;
++	signal = READ_ONCE(knod->sdma[sdma_idx].queue_signal);
++	if (!signal || !signal->kaddr)
++		return 0;
++
++	return (u32)READ_ONCE(((struct amd_signal *)signal->kaddr)->value);
++}
++
++static int knod_accel_mp_map(struct knod_dev *knodev)
++{
++	struct knod *knod = knodev->accel->priv;
++	int i;
++
++	if (!knod)
++		return -ENODEV;
++
++	for (i = 0; i < knod->channels; i++)
++		if (__knod_map_mem(knod, knod->buf[i]))
++			knod_err(" mp_map failed ch %d\n", i);
++
++	return 0;
++}
++
++static struct knod_accel_ops accel_ops = {
++	.attach = knod_attach,
++	.pre_detach = knod_pre_detach,
++	.detach = knod_detach,
++	.dev_start = knod_dev_start_worker,
++	.dev_stop = knod_dev_stop_worker,
++	.alloc_mem = knod_accel_alloc_mem,
++	.free_mem = knod_accel_free_mem,
++	.mp_map = knod_accel_mp_map,
++	.d2h_submit = knod_accel_d2h_submit,
++	.d2h_kick = knod_accel_d2h_kick,
++	.d2h_fence = knod_accel_d2h_fence,
++	.xdp_ops = &default_xdp_ops,
++	.feature_get = knod_accel_feature_get,
++	.feature_set = knod_accel_feature_set,
++};
++
++/*
++ * Tear a feature down on every accel still using it before its ops pointer
++ * is cleared (module unload).  Mirrors the feature_set transition to NONE.
++ */
++static void knod_feature_force_none(enum knod_feature feat)
++{
++	int i;
++
++	for (i = 0; i < nr_accels; i++) {
++		struct knod_dev *knodev;
++		struct knod *knod;
++		bool started;
++
++		if (!accels[i])
++			continue;
++		knod = READ_ONCE(accels[i]->priv);
++		knodev = knod ? READ_ONCE(accels[i]->knodev) : NULL;
++		if (!knod || !knodev || knod->active_feature != feat)
++			continue;
++		started = READ_ONCE(knodev->started);
++		if (started)
++			knod_feature_stop(knod);
++		knod_feature_deactivate(knod);
++		knod->active_feature = KNOD_FEATURE_NONE;
++		if (started)
++			knod_feature_start(knod);
 +	}
++}
 +
-+	ret = amdgpu_bo_kmap(bo, kptr);
-+	if (ret) {
-+		pr_err("Failed to map bo to kernel. ret %d\n", ret);
-+		goto kmap_failed;
++void knod_accel_xdp_register(struct knod_accel_xdp_ops *xdp_ops)
++{
++	int i;
++
++	/*
++	 * Module load advertises the feature and sets up the permanent
++	 * per-attach state (bpf_offload_dev) on already-attached accels;
++	 * GPU compute resources wait for ->activate() on feature select.
++	 */
++	WRITE_ONCE(registered_xdp_ops, xdp_ops);
++	for (i = 0; i < nr_accels; i++) {
++		struct knod_dev *knodev;
++
++		if (!accels[i])
++			continue;
++		knodev = READ_ONCE(accels[i]->knodev);
++		if (knodev && xdp_ops->init)
++			xdp_ops->init(knodev);
 +	}
++}
++EXPORT_SYMBOL(knod_accel_xdp_register);
 +
-+	amdgpu_amdkfd_remove_eviction_fence(
-+		bo, mem->process_info->eviction_fence);
++void knod_accel_xdp_unregister(void)
++{
++	int i;
 +
-+	if (size)
-+		*size = amdgpu_bo_size(bo);
++	/* Force any active BPF feature off, then drop the permanent state. */
++	knod_feature_force_none(KNOD_FEATURE_BPF);
++	for (i = 0; i < nr_accels; i++) {
++		struct knod_dev *knodev;
 +
-+	amdgpu_bo_unreserve(bo);
++		if (!accels[i])
++			continue;
++		knodev = READ_ONCE(accels[i]->knodev);
++		if (knodev && registered_xdp_ops && registered_xdp_ops->exit)
++			registered_xdp_ops->exit(knodev);
++	}
++	WRITE_ONCE(registered_xdp_ops, NULL);
++}
++EXPORT_SYMBOL(knod_accel_xdp_unregister);
 +
-+	mutex_unlock(&mem->process_info->lock);
++void knod_accel_ipsec_register(struct knod_accel_ipsec_ops *ipsec_ops)
++{
++	/* Advertise only; resources are allocated by ->activate() on select. */
++	WRITE_ONCE(accel_ops.ipsec_ops, ipsec_ops);
++}
++EXPORT_SYMBOL(knod_accel_ipsec_register);
++
++void knod_accel_ipsec_unregister(void)
++{
++	knod_feature_force_none(KNOD_FEATURE_IPSEC);
++	WRITE_ONCE(accel_ops.ipsec_ops, NULL);
++}
++EXPORT_SYMBOL(knod_accel_ipsec_unregister);
++
++/*
++ * Accel modules call this from their module_init before NOD attach to
++ * request the minimum AQL/SDMA queue pair count their dispatcher
++ * infrastructure needs. The value is a high-water mark: multiple
++ * callers raise it but never lower it, so whichever module needs the
++ * most queues wins.
++ *
++ * Must be called before knod_attach() runs - i.e. before any
++ * `echo X,0 > /sys/kernel/debug/knod_dev/attach` - otherwise
++ * the already-created knod context keeps its old queue_cnt and the
++ * caller must unbind/rebind to pick up the new value.
++ *
++ * Clamped to [1, KNOD_MAX_QUEUE_CNT]. Values outside that range are ignored
++ * (the internal cap can grow later without ABI break).
++ */
++void knod_request_queue_cnt(int n)
++{
++	int cur;
++
++	if (n < 1 || n > KNOD_MAX_QUEUE_CNT)
++		return;
++
++	do {
++		cur = READ_ONCE(knod_requested_queue_cnt);
++		if (n <= cur)
++			return;
++	} while (cmpxchg(&knod_requested_queue_cnt, cur, n) != cur);
++}
++EXPORT_SYMBOL(knod_request_queue_cnt);
++
++int knod_init(struct amdgpu_device *adev)
++{
++	int base_id = adev_to_drm(adev)->render->index * KNOD_MAX_AQL;
++	struct knod_accel *accel;
++	int i, n;
++
++	n = KNOD_MAX_AQL;
++
++	for (i = 0; i < n; i++) {
++		accel = kzalloc_obj(struct knod_accel, GFP_KERNEL);
++		if (!accel) {
++			pr_err("knod: Failed to allocate accel node %d\n", i);
++			goto err;
++		}
++
++		INIT_LIST_HEAD(&accel->list);
++		accel->type = KNOD_TYPE_GPU;
++		accel->accel_ops = &accel_ops;
++		accel->owner = THIS_MODULE;
++		accel->id = base_id + i;
++		snprintf(accel->name, sizeof(accel->name), "amdgpu-%d", i);
++		knod_accel_register(accel);
++		accels[i] = accel;
++	}
++	nr_accels = n;
++
 +	return 0;
 +
-+kmap_failed:
-+	amdgpu_bo_unpin(bo);
-+pin_failed:
-+	amdgpu_bo_unreserve(bo);
-+bo_reserve_failed:
-+	mutex_unlock(&mem->process_info->lock);
-+
-+	return ret;
++err:
++	while (i-- > 0) {
++		knod_accel_unregister(accels[i]);
++		kfree(accels[i]);
++		accels[i] = NULL;
++	}
++	return 0;
 +}
 +
- /** amdgpu_amdkfd_gpuvm_map_gtt_bo_to_kernel() - Unmap a GTT BO for kernel CPU access
-  *
-  * @mem: Buffer object to be unmapped for CPU access
-diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
-index 4c0c77eafbd1..aa974929d22a 100644
---- a/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
-+++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
-@@ -2480,6 +2480,8 @@ static int amdgpu_pci_probe(struct pci_dev *pdev,
- 		drm_client_setup(adev_to_drm(adev), format);
- 	}
- 
-+	knod_init(adev);
-+
- 	ret = amdgpu_debugfs_init(adev);
- 	if (ret)
- 		DRM_ERROR("Creating debugfs files failed (%d).\n", ret);
-@@ -2540,6 +2542,7 @@ amdgpu_pci_remove(struct pci_dev *pdev)
- 	struct drm_device *dev = pci_get_drvdata(pdev);
- 	struct amdgpu_device *adev = drm_to_adev(dev);
- 
-+	knod_fini(adev);
- 	amdgpu_ras_eeprom_check_and_recover(adev);
- 	amdgpu_xcp_dev_unplug(adev);
- 	amdgpu_gmc_prepare_nps_mode_change(adev);
-diff --git a/drivers/gpu/drm/amd/amdkfd/kfd_chardev.c b/drivers/gpu/drm/amd/amdkfd/kfd_chardev.c
-index c7edebd2fd8a..7879a6ffaa76 100644
---- a/drivers/gpu/drm/amd/amdkfd/kfd_chardev.c
-+++ b/drivers/gpu/drm/amd/amdkfd/kfd_chardev.c
-@@ -335,32 +335,27 @@ static int set_queue_properties_from_user(struct queue_properties *q_properties,
- 	return 0;
- }
- 
--static int kfd_ioctl_create_queue(struct file *filep, struct kfd_process *p,
--					void *data)
-+/*
-+ * Create a queue from a kernel-filled queue_properties.  @q_properties is
-+ * owned by the caller and must already be populated (the ioctl handler does
-+ * this from user args via set_queue_properties_from_user(); in-kernel callers
-+ * fill it directly).  On success *@queue_id_out and *@doorbell_offset_out are
-+ * set.
-+ */
-+int kfd_create_queue(struct kfd_process *p, struct queue_properties *q_properties,
-+		     u32 gpu_id, u32 *queue_id_out, u64 *doorbell_offset_out)
- {
--	struct kfd_ioctl_create_queue_args *args = data;
- 	struct kfd_node *dev;
- 	int err = 0;
- 	unsigned int queue_id;
- 	struct kfd_process_device *pdd;
--	struct queue_properties q_properties;
- 	uint32_t doorbell_offset_in_process = 0;
- 
--	memset(&q_properties, 0, sizeof(struct queue_properties));
--
--	pr_debug("Creating queue ioctl\n");
--
--	err = set_queue_properties_from_user(&q_properties, args);
--	if (err)
--		return err;
--
--	pr_debug("Looking for gpu id 0x%x\n", args->gpu_id);
--
- 	mutex_lock(&p->mutex);
- 
--	pdd = kfd_process_device_data_by_id(p, args->gpu_id);
-+	pdd = kfd_process_device_data_by_id(p, gpu_id);
- 	if (!pdd) {
--		pr_debug("Could not find gpu id 0x%x\n", args->gpu_id);
-+		pr_debug("Could not find gpu id 0x%x\n", gpu_id);
- 		err = -EINVAL;
- 		goto err_pdd;
- 	}
-@@ -372,14 +367,14 @@ static int kfd_ioctl_create_queue(struct file *filep, struct kfd_process *p,
- 		goto err_bind_process;
- 	}
- 
--	if (q_properties.type == KFD_QUEUE_TYPE_SDMA_BY_ENG_ID) {
-+	if (q_properties->type == KFD_QUEUE_TYPE_SDMA_BY_ENG_ID) {
- 		int max_sdma_eng_id = kfd_get_num_sdma_engines(dev) +
- 				      kfd_get_num_xgmi_sdma_engines(dev) - 1;
- 
--		if (q_properties.sdma_engine_id > max_sdma_eng_id) {
-+		if (q_properties->sdma_engine_id > max_sdma_eng_id) {
- 			err = -EINVAL;
- 			pr_err("sdma_engine_id %i exceeds maximum id of %i\n",
--			       q_properties.sdma_engine_id, max_sdma_eng_id);
-+			       q_properties->sdma_engine_id, max_sdma_eng_id);
- 			goto err_sdma_engine_id;
- 		}
- 	}
-@@ -392,7 +387,7 @@ static int kfd_ioctl_create_queue(struct file *filep, struct kfd_process *p,
- 		}
- 	}
- 
--	err = kfd_queue_acquire_buffers(pdd, &q_properties);
-+	err = kfd_queue_acquire_buffers(pdd, q_properties);
- 	if (err) {
- 		pr_debug("failed to acquire user queue buffers\n");
- 		goto err_acquire_queue_buf;
-@@ -402,42 +397,32 @@ static int kfd_ioctl_create_queue(struct file *filep, struct kfd_process *p,
- 			p->lead_thread->pid,
- 			dev->id);
- 
--	err = pqm_create_queue(&p->pqm, dev, &q_properties, &queue_id,
-+	err = pqm_create_queue(&p->pqm, dev, q_properties, &queue_id,
- 			NULL, NULL, NULL, &doorbell_offset_in_process);
- 	if (err != 0)
- 		goto err_create_queue;
- 
--	args->queue_id = queue_id;
--
-+	*queue_id_out = queue_id;
- 
- 	/* Return gpu_id as doorbell offset for mmap usage */
--	args->doorbell_offset = KFD_MMAP_TYPE_DOORBELL;
--	args->doorbell_offset |= KFD_MMAP_GPU_ID(args->gpu_id);
-+	*doorbell_offset_out = KFD_MMAP_TYPE_DOORBELL;
-+	*doorbell_offset_out |= KFD_MMAP_GPU_ID(gpu_id);
- 	if (KFD_IS_SOC15(dev))
- 		/* On SOC15 ASICs, include the doorbell offset within the
- 		 * process doorbell frame, which is 2 pages.
- 		 */
--		args->doorbell_offset |= doorbell_offset_in_process;
-+		*doorbell_offset_out |= doorbell_offset_in_process;
- 
- 	mutex_unlock(&p->mutex);
- 
--	pr_debug("Queue id %d was created successfully\n", args->queue_id);
--
--	pr_debug("Ring buffer address == 0x%016llX\n",
--			args->ring_base_address);
--
--	pr_debug("Read ptr address    == 0x%016llX\n",
--			args->read_pointer_address);
--
--	pr_debug("Write ptr address   == 0x%016llX\n",
--			args->write_pointer_address);
-+	pr_debug("Queue id %d was created successfully\n", queue_id);
- 
- 	kfd_dbg_ev_raise(KFD_EC_MASK(EC_QUEUE_NEW), p, dev, queue_id, false, NULL, 0);
- 	return 0;
- 
- err_create_queue:
--	kfd_queue_unref_bo_vas(pdd, &q_properties);
--	kfd_queue_release_buffers(pdd, &q_properties);
-+	kfd_queue_unref_bo_vas(pdd, q_properties);
-+	kfd_queue_release_buffers(pdd, q_properties);
- err_acquire_queue_buf:
- err_sdma_engine_id:
- err_bind_process:
-@@ -446,6 +431,23 @@ static int kfd_ioctl_create_queue(struct file *filep, struct kfd_process *p,
- 	return err;
- }
- 
-+static int kfd_ioctl_create_queue(struct file *filep, struct kfd_process *p,
-+				  void *data)
++void knod_fini(struct amdgpu_device *adev)
 +{
-+	struct kfd_ioctl_create_queue_args *args = data;
-+	struct queue_properties q_properties;
-+	int err;
++	int base_id = adev_to_drm(adev)->render->index * KNOD_MAX_AQL;
++	int i;
 +
-+	memset(&q_properties, 0, sizeof(q_properties));
-+
-+	err = set_queue_properties_from_user(&q_properties, args);
-+	if (err)
-+		return err;
-+
-+	return kfd_create_queue(p, &q_properties, args->gpu_id,
-+				&args->queue_id, &args->doorbell_offset);
++	for (i = 0; i < nr_accels; i++) {
++		if (!accels[i] ||
++		    accels[i]->id / KNOD_MAX_AQL != base_id / KNOD_MAX_AQL)
++			continue;
++		knod_accel_unregister(accels[i]);
++		kfree(accels[i]);
++		accels[i] = NULL;
++	}
 +}
 +
- static int kfd_ioctl_destroy_queue(struct file *filp, struct kfd_process *p,
- 					void *data)
- {
-@@ -643,7 +645,7 @@ static int kfd_ioctl_set_memory_policy(struct file *filep,
- 	return err;
- }
- 
--static int kfd_ioctl_set_trap_handler(struct file *filep,
-+int kfd_ioctl_set_trap_handler(struct file *filep,
- 					struct kfd_process *p, void *data)
- {
- 	struct kfd_ioctl_set_trap_handler_args *args = data;
-@@ -726,7 +728,7 @@ static int kfd_ioctl_get_clock_counters(struct file *filep,
- 
- 
- static int kfd_ioctl_get_process_apertures(struct file *filp,
--				struct kfd_process *p, void *data)
-+					   struct kfd_process *p, void *data)
- {
- 	struct kfd_ioctl_get_process_apertures_args *args = data;
- 	struct kfd_process_device_apertures *pAperture;
-@@ -859,7 +861,7 @@ static int kfd_ioctl_get_process_apertures_new(struct file *filp,
- }
- 
- static int kfd_ioctl_create_event(struct file *filp, struct kfd_process *p,
--					void *data)
-+				  void *data)
- {
- 	struct kfd_ioctl_create_event_args *args = data;
- 	int err;
-@@ -894,24 +896,24 @@ static int kfd_ioctl_destroy_event(struct file *filp, struct kfd_process *p,
- 	return kfd_event_destroy(p, args->event_id);
- }
- 
--static int kfd_ioctl_set_event(struct file *filp, struct kfd_process *p,
--				void *data)
-+int kfd_ioctl_set_event(struct file *filp, struct kfd_process *p,
-+			void *data)
- {
- 	struct kfd_ioctl_set_event_args *args = data;
- 
- 	return kfd_set_event(p, args->event_id);
- }
- 
--static int kfd_ioctl_reset_event(struct file *filp, struct kfd_process *p,
--				void *data)
-+int kfd_ioctl_reset_event(struct file *filp, struct kfd_process *p,
-+			  void *data)
- {
- 	struct kfd_ioctl_reset_event_args *args = data;
- 
- 	return kfd_reset_event(p, args->event_id);
- }
- 
--static int kfd_ioctl_wait_events(struct file *filp, struct kfd_process *p,
--				void *data)
-+int kfd_ioctl_wait_events(struct file *filp, struct kfd_process *p,
-+			  void *data)
- {
- 	struct kfd_ioctl_wait_events_args *args = data;
- 
-@@ -920,8 +922,9 @@ static int kfd_ioctl_wait_events(struct file *filp, struct kfd_process *p,
- 			(args->wait_for_all != 0),
- 			&args->timeout, &args->wait_result);
- }
--static int kfd_ioctl_set_scratch_backing_va(struct file *filep,
--					struct kfd_process *p, void *data)
-+
-+int kfd_ioctl_set_scratch_backing_va(struct file *filep,
-+				     struct kfd_process *p, void *data)
- {
- 	struct kfd_ioctl_set_scratch_backing_va_args *args = data;
- 	struct kfd_process_device *pdd;
-@@ -1003,8 +1006,8 @@ static int kfd_ioctl_get_tile_config(struct file *filep,
- 	return 0;
- }
- 
--static int kfd_ioctl_acquire_vm(struct file *filep, struct kfd_process *p,
--				void *data)
-+int kfd_ioctl_acquire_vm(struct file *filep, struct kfd_process *p,
-+			 void *data)
- {
- 	struct kfd_ioctl_acquire_vm_args *args = data;
- 	struct kfd_process_device *pdd;
-@@ -1078,8 +1081,8 @@ static int kfd_ioctl_get_available_memory(struct file *filep,
- 	return 0;
- }
- 
--static int kfd_ioctl_alloc_memory_of_gpu(struct file *filep,
--					struct kfd_process *p, void *data)
-+int kfd_ioctl_alloc_memory_of_gpu(struct file *filep,
-+				  struct kfd_process *p, void *data)
- {
- 	struct kfd_ioctl_alloc_memory_of_gpu_args *args = data;
- 	struct kfd_process_device *pdd;
-@@ -1279,8 +1282,8 @@ static int kfd_ioctl_free_memory_of_gpu(struct file *filep,
- 	return ret;
- }
- 
--static int kfd_ioctl_map_memory_to_gpu(struct file *filep,
--					struct kfd_process *p, void *data)
-+int kfd_ioctl_map_memory_to_gpu(struct file *filep,
-+				struct kfd_process *p, void *data)
- {
- 	struct kfd_ioctl_map_memory_to_gpu_args *args = data;
- 	struct kfd_process_device *pdd, *peer_pdd;
-@@ -1624,8 +1627,8 @@ static int kfd_ioctl_import_dmabuf(struct file *filep,
- 	return r;
- }
- 
--static int kfd_ioctl_export_dmabuf(struct file *filep,
--				   struct kfd_process *p, void *data)
-+int kfd_ioctl_export_dmabuf(struct file *filep,
-+			    struct kfd_process *p, void *data)
- {
- 	struct kfd_ioctl_export_dmabuf_args *args = data;
- 	struct kfd_process_device *pdd;
-diff --git a/drivers/gpu/drm/amd/amdkfd/kfd_doorbell.c b/drivers/gpu/drm/amd/amdkfd/kfd_doorbell.c
-index fdcf7f2d1b5b..78b7e956f590 100644
---- a/drivers/gpu/drm/amd/amdkfd/kfd_doorbell.c
-+++ b/drivers/gpu/drm/amd/amdkfd/kfd_doorbell.c
-@@ -145,10 +145,28 @@ int kfd_doorbell_mmap(struct kfd_node *dev, struct kfd_process *process,
- 				vma->vm_page_prot);
- }
- 
-+void __iomem *kfd_kernel_doorbell_mmap(struct kfd_node *dev,
-+				       struct kfd_process *process)
++void knod_exit(void)
 +{
-+	phys_addr_t address;
-+	struct kfd_process_device *pdd;
++	struct knod *knod, *tmp;
++	int i;
 +
-+	pdd = kfd_get_process_device_data(dev, process);
-+	if (!pdd)
-+		return NULL;
++	for (i = 0; i < nr_accels; i++) {
++		if (!accels[i])
++			continue;
++		knod_accel_unregister(accels[i]);
++		kfree(accels[i]);
++		accels[i] = NULL;
++	}
++	nr_accels = 0;
 +
-+	/* Calculate physical address of doorbell */
-+	address = kfd_get_process_doorbells(pdd);
-+	if (!address)
-+		return NULL;
-+
-+	return ioremap(address, kfd_doorbell_process_slice(dev->kfd));
++	list_for_each_entry_safe(knod, tmp, &ctx_list, list) {
++		knod_release_ctx(knod);
++	}
 +}
-+
- 
- /* get kernel iomem pointer for a doorbell */
- void __iomem *kfd_get_kernel_doorbell(struct kfd_dev *kfd,
--					unsigned int *doorbell_off)
-+				      unsigned int *doorbell_off)
- {
- 	u32 inx;
- 
-diff --git a/drivers/gpu/drm/amd/amdkfd/kfd_events.c b/drivers/gpu/drm/amd/amdkfd/kfd_events.c
-index 81900b49d9d5..91ef4c61a8bc 100644
---- a/drivers/gpu/drm/amd/amdkfd/kfd_events.c
-+++ b/drivers/gpu/drm/amd/amdkfd/kfd_events.c
-@@ -326,7 +326,7 @@ static bool event_can_be_cpu_signaled(const struct kfd_event *ev)
- 	return ev->type == KFD_EVENT_TYPE_SIGNAL;
- }
- 
--static int kfd_event_page_set(struct kfd_process *p, void *kernel_address,
-+int kfd_event_page_set(struct kfd_process *p, void *kernel_address,
- 		       uint64_t size, uint64_t user_handle)
- {
- 	struct kfd_signal_page *page;
-@@ -1068,6 +1068,116 @@ int kfd_wait_on_events(struct kfd_process *p,
- 	return ret;
- }
- 
-+int kfd_wait_on_events_kernel(struct kfd_process *p,
-+			      uint32_t num_events, void __user *data,
-+			      bool all, uint32_t *user_timeout_ms,
-+			      uint32_t *wait_result)
-+{
-+	struct kfd_event_data *events = (struct kfd_event_data *) data;
-+	uint32_t i;
-+	int ret = 0;
-+
-+	struct kfd_event_waiter *event_waiters = NULL;
-+	long timeout = user_timeout_to_jiffies(*user_timeout_ms);
-+
-+	event_waiters = alloc_event_waiters(num_events);
-+	if (!event_waiters) {
-+		ret = -ENOMEM;
-+		goto out;
-+	}
-+
-+	/* Use p->event_mutex here to protect against concurrent creation and
-+	 * destruction of events while we initialize event_waiters.
-+	 */
-+	mutex_lock(&p->event_mutex);
-+
-+	for (i = 0; i < num_events; i++) {
-+		struct kfd_event_data event_data;
-+
-+		memcpy(&event_data, &events[i], sizeof(struct kfd_event_data));
-+		ret = init_event_waiter(p, &event_waiters[i], &event_data);
-+		if (ret)
-+			goto out_unlock;
-+	}
-+
-+	/* Check condition once. */
-+	*wait_result = test_event_condition(all, num_events, event_waiters);
-+	if (*wait_result == KFD_IOC_WAIT_RESULT_COMPLETE) {
-+		ret = copy_signaled_event_data(num_events,
-+					       event_waiters, events);
-+		goto out_unlock;
-+	} else if (WARN_ON(*wait_result == KFD_IOC_WAIT_RESULT_FAIL)) {
-+		/* This should not happen. Events shouldn't be
-+		 * destroyed while we're holding the event_mutex
-+		 */
-+		goto out_unlock;
-+	}
-+
-+	mutex_unlock(&p->event_mutex);
-+
-+	while (true) {
-+		if (fatal_signal_pending(current)) {
-+			ret = -EINTR;
-+			break;
-+		}
-+
-+		if (signal_pending(current)) {
-+			ret = -ERESTARTSYS;
-+			if (*user_timeout_ms != KFD_EVENT_TIMEOUT_IMMEDIATE &&
-+			    *user_timeout_ms != KFD_EVENT_TIMEOUT_INFINITE)
-+				*user_timeout_ms = jiffies_to_msecs(
-+					max(0l, timeout-1));
-+			break;
-+		}
-+
-+		/* Set task state to interruptible sleep before
-+		 * checking wake-up conditions. A concurrent wake-up
-+		 * will put the task back into runnable state. In that
-+		 * case schedule_timeout will not put the task to
-+		 * sleep and we'll get a chance to re-check the
-+		 * updated conditions almost immediately. Otherwise,
-+		 * this race condition would lead to a soft hang or a
-+		 * very long sleep.
-+		 */
-+		set_current_state(TASK_INTERRUPTIBLE);
-+
-+		*wait_result = test_event_condition(all, num_events,
-+						    event_waiters);
-+		if (*wait_result != KFD_IOC_WAIT_RESULT_TIMEOUT)
-+			break;
-+
-+		if (timeout <= 0)
-+			break;
-+
-+		timeout = schedule_timeout(timeout);
-+	}
-+	__set_current_state(TASK_RUNNING);
-+
-+	mutex_lock(&p->event_mutex);
-+	/* copy_signaled_event_data may sleep. So this has to happen
-+	 * after the task state is set back to RUNNING.
-+	 *
-+	 * The event may also have been destroyed after signaling. So
-+	 * copy_signaled_event_data also must confirm that the event
-+	 * still exists. Therefore this must be under the p->event_mutex
-+	 * which is also held when events are destroyed.
-+	 */
-+	if (!ret && *wait_result == KFD_IOC_WAIT_RESULT_COMPLETE)
-+		ret = copy_signaled_event_data(num_events,
-+					       event_waiters, events);
-+
-+out_unlock:
-+	free_waiters(num_events, event_waiters, ret == -ERESTARTSYS);
-+	mutex_unlock(&p->event_mutex);
-+out:
-+	if (ret)
-+		*wait_result = KFD_IOC_WAIT_RESULT_FAIL;
-+	else if (*wait_result == KFD_IOC_WAIT_RESULT_FAIL)
-+		ret = -EIO;
-+
-+	return ret;
-+}
-+
- int kfd_event_mmap(struct kfd_process *p, struct vm_area_struct *vma)
- {
- 	unsigned long pfn;
-diff --git a/drivers/gpu/drm/amd/amdkfd/kfd_events.h b/drivers/gpu/drm/amd/amdkfd/kfd_events.h
-index 1dc21c13833b..aa6ead122084 100644
---- a/drivers/gpu/drm/amd/amdkfd/kfd_events.h
-+++ b/drivers/gpu/drm/amd/amdkfd/kfd_events.h
-@@ -87,5 +87,9 @@ struct kfd_event {
- extern void kfd_signal_event_interrupt(u32 pasid, uint32_t partial_id,
- 				       uint32_t valid_id_bits,
- 				       bool signal_mailbox_updated);
-+int kfd_wait_on_events_kernel(struct kfd_process *p,
-+			      uint32_t num_events, void __user *data,
-+			      bool all, uint32_t *user_timeout_ms,
-+			      uint32_t *wait_result);
- 
- #endif
-diff --git a/drivers/gpu/drm/amd/amdkfd/kfd_hsa.h b/drivers/gpu/drm/amd/amdkfd/kfd_hsa.h
+diff --git a/drivers/gpu/drm/amd/amdkfd/knod/kfd_knod.h b/drivers/gpu/drm/amd/amdkfd/knod/kfd_knod.h
 new file mode 100644
-index 000000000000..794688c615f0
+index 000000000000..a1eafb13a410
 --- /dev/null
-+++ b/drivers/gpu/drm/amd/amdkfd/kfd_hsa.h
-@@ -0,0 +1,451 @@
++++ b/drivers/gpu/drm/amd/amdkfd/knod/kfd_knod.h
+@@ -0,0 +1,270 @@
 +/* SPDX-License-Identifier: GPL-2.0-or-later */
-+#ifndef KFD_HSA_CODE_H_
-+#define KFD_HSA_CODE_H_
++/* Copyright (c) 2021 Taehee Yoo <ap420073@gmail.com>
++ * Copyright (c) 2021 Hoyeon Lee <hoyeon.rhee@gmail.com>
++ */
 +
-+struct amd_queue_properties {
-+	u32 enable_trap_handler:1,
-+	    is_ptr64:1,
-+	    enable_trap_handler_debug_sgprs:1,
-+	    enable_profiling:1,
-+	    use_scratch_once:1,
-+	    reserved1:27;
++#ifndef KFD_KNOD_H_
++#define KFD_KNOD_H_
++#include <linux/kfd_ioctl.h>
++#include <net/knod.h>
++#include <linux/genalloc.h>
++#include "kfd_hsa.h"
++#include <linux/completion.h>
++
++/*
++ * knod_dbg() is a pr_debug(), so it is off by default and toggled with
++ * dynamic debug; knod_err() always fires.
++ */
++#define knod_dbg(fmt, ...)						\
++	pr_debug("knod %s:%d" fmt, __func__, __LINE__, ##__VA_ARGS__)
++#define knod_err(fmt, ...)						\
++	pr_err("knod %s:%d" fmt, __func__, __LINE__, ##__VA_ARGS__)
++
++struct page_pool;
++
++struct knod_mem {
++	struct list_head list;
++	struct kgd_mem *mem;
++	void *kaddr;
++	u32 flags;
++	u32 size;
++	u32 order;
++	u64 gaddr;
 +};
 +
-+enum hsa_packet_type {
-+	/*
-+	 * Vendor-specific packet.
-+	 */
-+	HSA_PACKET_TYPE_VENDOR_SPECIFIC = 0,
-+	/*
-+	 * The packet has been processed in the past, but has not been reassigned to
-+	 * the packet processor. A packet processor must not process a packet of this
-+	 * type. All queues support this packet type.
-+	 */
-+	HSA_PACKET_TYPE_INVALID = 1,
-+	/*
-+	 * Packet used by agents for dispatching jobs to kernel agents. Not all
-+	 * queues support packets of this type (see ::hsa_queue_feature_t).
-+	 */
-+	HSA_PACKET_TYPE_KERNEL_DISPATCH = 2,
-+	/*
-+	 * Packet used by agents to delay processing of subsequent packets, and to
-+	 * express complex dependencies between multiple packets. All queues support
-+	 * this packet type.
-+	 */
-+	HSA_PACKET_TYPE_BARRIER_AND = 3,
-+	/*
-+	 * Packet used by agents for dispatching jobs to agents.  Not all
-+	 * queues support packets of this type (see ::hsa_queue_feature_t).
-+	 */
-+	HSA_PACKET_TYPE_AGENT_DISPATCH = 4,
-+	/*
-+	 * Packet used by agents to delay processing of subsequent packets, and to
-+	 * express complex dependencies between multiple packets. All queues support
-+	 * this packet type.
-+	 */
-+	HSA_PACKET_TYPE_BARRIER_OR = 5
++union knod_aql_rsrc1 {
++	struct {
++#if defined(__LITTLE_ENDIAN)
++		unsigned int base_address_hi : 16;
++		unsigned int stride : 14;
++		unsigned int cache_swizzle : 1;
++		unsigned int swizzle_enable : 1;
++#elif defined(__LITTLE_ENDIAN)
++		unsigned int swizzle_enable : 1;
++		unsigned int cache_swizzle : 1;
++		unsigned int stride : 14;
++		unsigned int base_address_hi : 16;
++#endif
++	};
 +};
 +
-+enum hsa_packet_header {
-+	/*
-+	 * Packet type. The value of this sub-field must be one of
-+	 * ::hsa_packet_type_t. If the type is ::HSA_PACKET_TYPE_VENDOR_SPECIFIC, the
-+	 * packet layout is vendor-specific.
-+	 */
-+	HSA_PACKET_HEADER_TYPE = 0,
-+	/*
-+	 * Barrier bit. If the barrier bit is set, the processing of the current
-+	 * packet only launches when all preceding packets (within the same queue) are
-+	 * complete.
-+	 */
-+	HSA_PACKET_HEADER_BARRIER = 8,
-+	/*
-+	 * Acquire fence scope. The value of this sub-field determines the scope and
-+	 * type of the memory fence operation applied before the packet enters the
-+	 * active phase. An acquire fence ensures that any subsequent global segment
-+	 * or image loads by any unit of execution that belongs to a dispatch that has
-+	 * not yet entered the active phase on any queue of the same kernel agent,
-+	 * sees any data previously released at the scopes specified by the acquire
-+	 * fence. The value of this sub-field must be one of ::hsa_fence_scope_t.
-+	 */
-+	HSA_PACKET_HEADER_ACQUIRE_FENCE_SCOPE = 9,
-+	/*
-+	 * Release fence scope, The value of this sub-field determines the scope and
-+	 * type of the memory fence operation applied after kernel completion but
-+	 * before the packet is completed. A release fence makes any global segment or
-+	 * image data that was stored by any unit of execution that belonged to a
-+	 * dispatch that has completed the active phase on any queue of the same
-+	 * kernel agent visible in all the scopes specified by the release fence. The
-+	 * value of this sub-field must be one of ::hsa_fence_scope_t.
-+	 */
-+	HSA_PACKET_HEADER_RELEASE_FENCE_SCOPE = 11
++struct knod_aql {
++	struct knod_mem *aql;
++	struct knod_mem *ctx;
++	struct knod_mem *queue;
++	struct knod_mem *scratch;
++	struct knod_mem *eop;
++	struct knod_mem *queue_signal;
++	struct knod_mem *tba;
++	struct knod_mem *tma;
++	struct knod_mem *amd_queue;
++	u64 *doorbell;
++	int idx;
 +};
 +
-+struct code_properties {
-+	    /* 4-sgprs */
-+	u16 enable_sgpr_private_segment_buffer:1,
-+	    /* 2-sgprs */
-+	    enable_sgpr_dispatch_ptr:1,
-+	    /* 2-sgprs */
-+	    enable_sgpr_queue_ptr:1,
-+	    /* 2-sgprs */
-+	    enable_sgpr_kernarg_segment_ptr:1,
-+	    /* 2-sgprs */
-+	    enable_sgpr_dispatch_id:1,
-+	    /* 2-sgprs */
-+	    enable_sgpr_flat_scratch_init:1,
-+	    /* 2-sgprs */
-+	    enable_sgpr_private_segment_size:1,
-+	    reserved0:3,
-+	    enable_wavefront_size32:1, // gfx10+
-+	    uses_dynamic_stack:1,
-+	    reserved1:4;
++struct knod_sdma {
++	struct knod_mem *sdma;
++	struct knod_mem *queue;
++	struct knod_mem *queue_signal;
++	u64 *doorbell;
++	int idx;
 +};
 +
-+struct compute_pgm_rsrc1 {
-+	u32 granulated_workitem_vgpr_count:6,
-+	    granulated_wavefront_sgpr_count:4,
-+	    priority:2,
-+	    float_round_mode_32:2,
-+	    float_round_mode_16_64:2,
-+	    float_denorm_mode_32:2,
-+	    float_denorm_mode_16_64:2,
-+	    priv:1,
-+	    enable_dx10_clamp:1,
-+	    debug_mode:1,
-+	    enable_ieee_mode:1,
-+	    bulky:1,
-+	    cdbg_user:1,
-+	    fp16_ovfl:1,	/* gfx9+ */
-+	    reserved0:2,
-+	    wgp_mode:1,		/* gfx10+ */
-+	    mem_ordered:1,	/* gfx10+ */
-+	    fwd_progress:1;	/* gfx10+ */
++/* KFD event handle as knod tracks it: signal event id + its slot index. */
++struct knod_event {
++	u32 id;
++	u32 slot;
 +};
 +
-+struct compute_pgm_rsrc2 {
-+	    /* 1-sgprs
-+	     * enable_sgpr_private_segment_wavefront_offset
-+	     */
-+	u32 enable_private_segment:1,
-+	    /* More or equal to enable_sgpr_*.
-+	     * Exceed 16 will be ignored.
-+	     */
-+	    user_sgpr_count:5,
-+	    enable_trap_handler:1,
-+	    /* 1-sgpr */
-+	    enable_sgpr_workgroup_id_x:1,
-+	    /* 1-sgpr */
-+	    enable_sgpr_workgroup_id_y:1,
-+	    /* 1-sgpr */
-+	    enable_sgpr_workgroup_id_z:1,
-+	    /* 1-sgpr */
-+	    enable_sgpr_workgroup_info:1,
-+	    enable_vgpr_workitem_id:2,
-+	    enable_exception_address_watch:1,
-+	    enable_exception_memory:1,
-+	    granulated_lds_size:9,
-+	    enable_exception_ieee_754_fp_invalid_operation:1,
-+	    enable_exception_fp_denormal_source:1,
-+	    enable_exception_ieee_754_fp_division_by_zero:1,
-+	    enable_exception_ieee_754_fp_overflow:1,
-+	    enable_exception_ieee_754_fp_underflow:1,
-+	    enable_exception_ieee_754_fp_inexact:1,
-+	    enable_exception_int_divide_by_zero:1,
-+	    reserved0:1;
++typedef int (*knod_worker_fn_t)(void *ctx);
++typedef void (*knod_flush_fn_t)(void *ctx);
++
++enum knod_feature {
++	KNOD_FEATURE_NONE = 0,
++	KNOD_FEATURE_BPF,
++	KNOD_FEATURE_IPSEC,
++	KNOD_FEATURE_MAX,
 +};
 +
-+struct compute_pgm_rsrc3 {
-+	u32 accum_offset:6,
-+	    reserved0:10,
-+	    tg_split:1,
-+	    reserved1:15;
++/*
++ * One accel per GPU: NIC:GPU is fixed 1:1 so a single NIC owns the whole
++ * device. The accel id is just the DRM render index (stride 1). Pipeline
++ * depth within the one accel is provided by KNOD_MAX_QUEUE_CNT HW queues,
++ * unrelated to this stride.
++ */
++#define KNOD_MAX_AQL  1
++
++/* Internal AQL/SDMA queue pairs per attached knod context. BPF can keep these
++ * queues in flight independently while the public accel-id ABI remains stable.
++ */
++#define KNOD_MAX_QUEUE_CNT  32
++
++#define NR_AQL_RING 16384
++#define AQL_STRUCT_SIZE 128
++struct knod {
++	struct list_head list;
++	struct list_head active_list;
++
++	struct gen_pool *pool;
++
++	struct hsa_kernel_dispatch_packet *dp;
++	pid_t umh_pid;
++	struct task_struct *umh_task;
++	u32 nr_aql_ring;
++	/* AQLs */
++	int queue_cnt;
++	int sdma_cnt;
++	int igpu;
++	int isa_version;
++	/* NAPIs */
++	int channels;
++	struct kfd_process *process;
++	struct mm_struct *mm;
++	struct kfd_node *dev;
++	struct file *drm_file;
++	void __iomem *doorbell_base;
++	u64 reserved_addr;
++	u64 limit_addr;
++	struct mutex lock;
++	struct hsa_event *event;
++	struct knod_mem *kernels[2];	/* dispatch slots: [0] default/pass, [1] BPF alt */
++	struct knod_mem *mailbox;
++	/* packet data path buf */
++	struct knod_mem **buf;
++
++	u32 signal_eid;
++	u32 completion_eid;
++	struct knod_aql kaql[NR_CPUS];
++	struct knod_sdma sdma[NR_CPUS];
++	struct knod_event aql_event[NR_CPUS];
++	struct knod_event sdma_event[NR_CPUS];
++	u32 aql_queue_id[NR_CPUS];
++	u32 sdma_queue_id[NR_CPUS];
++	u64 aql_doorbell_offset[NR_CPUS];
++	u64 sdma_doorbell_offset[NR_CPUS];
++	bool aql_queue_created[NR_CPUS];
++	bool sdma_queue_created[NR_CPUS];
++	struct kfd_event_data *event_data;
++	struct knod_accel *accel;
++	struct dentry *debug_dir;
++	/* Worker callback - one active worker at a time */
++	enum knod_feature active_feature;
++	knod_worker_fn_t worker_fn;
++	knod_flush_fn_t flush_fn;
++	void *worker_ctx;
++	struct task_struct *worker;
 +};
 +
-+struct kernel_descriptor {
-+	u32 group_segment_fixed_size;
-+	u32 private_segment_fixed_size;
-+	u32 kernarg_size;
-+	u8 reserved0[4];
-+	s64 kernel_code_entry_byte_offset;
-+	u8 reserved1[20];
-+	struct compute_pgm_rsrc3 compute_pgm_rsrc3; /* GFX10+ and GFX90A+ */
-+	struct compute_pgm_rsrc1 compute_pgm_rsrc1;
-+	struct compute_pgm_rsrc2 compute_pgm_rsrc2;
-+	struct code_properties code_properties;
-+	u8 reserved2[6];
-+};
-+
-+enum hsa_queue_type {
-+	HSA_QUEUE_TYPE_MULTI = 0,
-+	HSA_QUEUE_TYPE_SINGLE = 1
-+};
-+
-+enum hsa_queue_feature {
-+	HSA_QUEUE_FEATURE_KERNEL_DISPATCH = 1,
-+	HSA_QUEUE_FEATURE_AGENT_DISPATCH = 2
-+};
-+
-+struct hsa_kernel_dispatch_packet {
-+	u16 header;
-+	u16 setup;
++struct knod_dispatch_params {
 +	u16 workgroup_size_x;
-+	u16 workgroup_size_y;
-+	u16 workgroup_size_z;
-+	u16 reserved0;
 +	u32 grid_size_x;
 +	u32 grid_size_y;
-+	u32 grid_size_z;
 +	u32 private_segment_size;
 +	u32 group_segment_size;
 +	u64 kernel_object;
-+	void *kernarg_address;
-+	u64 reserved2;
-+	u64 completion_signal;
++	u64 kernarg_address;
 +};
 +
-+enum amd_signal_kind {
-+	AMD_SIGNAL_KIND_INVALID = 0,
-+	AMD_SIGNAL_KIND_USER = 1,
-+	AMD_SIGNAL_KIND_DOORBELL = -1,
-+	AMD_SIGNAL_KIND_LEGACY_DOORBELL = -2
-+};
-+
-+/* An AMD Signal object must always be 64 byte aligned to ensure it cannot
-+ * span a page boundary. This is required by CP microcode which optimizes
-+ * access to the structure by only doing a single SUA (System Uniform Address)
-+ * translation when accessing signal fields. This optimization is used in GFX8.
-+ */
-+struct amd_signal {
-+	u64 kind;
-+	union {
-+		volatile s64 value;
-+		volatile u32 *legacy_hardware_doorbell_ptr;
-+		volatile u64 *hardware_doorbell_ptr;
-+	};
-+	/* For AMD_SIGNAL_KIND_USER: mailbox address for event notification
-+	 * in Signal operations.
-+	 */
-+	u64 event_mailbox_ptr;
-+	/* For AMD_SIGNAL_KIND_USER: event id for event notification in Signal
-+	 * operations.
-+	 */
-+	u32 event_id;
-+	u32 reserved1;
-+	/* Start of the AQL packet timestamp, when profiled. */
-+	u64 start_ts;
-+	/* End of the AQL packet timestamp, when profiled. */
-+	u64 end_ts;
-+	union {
-+		/* For AMD_SIGNAL_KIND_*DOORBELL: the address of the associated
-+		 * amd_queue, otherwise reserved and must be 0.
-+		 */
-+		void *queue_ptr;
-+		u64 reserved2;
-+	};
-+	u32 reserved3[2];
-+} __aligned(64);
-+
-+struct hsa_queue {
-+	u32 type;
-+
-+	u32 features;
-+
-+	void *base_address;
-+	/*
-+	 * Signal object used by the application to indicate the ID of a packet that
-+	 * is ready to be processed. The HSA runtime manages the doorbell signal. If
-+	 * the application tries to replace or destroy this signal, the behavior is
-+	 * undefined.
-+	 *
-+	 * If @a type is ::HSA_QUEUE_TYPE_SINGLE, the doorbell signal value must be
-+	 * updated in a monotonically increasing fashion. If @a type is
-+	 * ::HSA_QUEUE_TYPE_MULTI, the doorbell signal value can be updated with any
-+	 * value.
-+	 */
-+	u64 doorbell_signal;
-+
-+	/*
-+	 * Maximum number of packets the queue can hold. Must be a power of 2.
-+	 */
-+	u32 size;
-+	/* Reserved. Must be 0. */
-+	u32 reserved1;
-+	/*
-+	 * Queue identifier, which is unique over the lifetime of the application.
-+	 */
-+	u64 id;
-+
-+};
-+
-+enum hsa_fence_scope {
-+	HSA_FENCE_SCOPE_NONE = 0,
-+	HSA_FENCE_SCOPE_AGENT = 1,
-+	HSA_FENCE_SCOPE_SYSTEM = 2
-+};
-+
-+struct amd_queue {
-+	struct hsa_queue hsa_queue;
-+	u32 reserved1[4];
-+	volatile u64 write_dispatch_id;
-+	u32 group_segment_aperture_base_hi;
-+	u32 private_segment_aperture_base_hi;
-+	u32 max_cu_id;
-+	u32 max_wave_id;
-+	volatile u64 max_legacy_doorbell_dispatch_id_plus_1;
-+	volatile u32 legacy_doorbell_lock;
-+	u32 reserved2[9];
-+	volatile u64 read_dispatch_id;
-+	u32 read_dispatch_id_field_base_byte_offset;
-+	u32 compute_tmpring_size;
-+	u32 scratch_resource_descriptor[4];
-+	u64 scratch_backing_memory_location;
-+	u64 scratch_backing_memory_byte_size;
-+	u32 scratch_wave64_lane_byte_size;
-+	struct amd_queue_properties queue_properties;
-+	u32 reserved3[2];
-+	u64 queue_inactive_signal;
-+	u32 reserved4[14];
-+} __aligned(64);
-+
-+struct hsa_sync_var {
-+	union {
-+		/* pointer to user mode data */
-+		void *user_data;
-+		/* 64bit compatibility of value */
-+		u64 user_data_ptr_value;
-+	};
-+	u64 SyncVarSize;
-+};
-+
-+enum hsa_event_type {
-+	/* user-mode generated GPU signal */
-+	HSA_EVENTTYPE_SIGNAL		= 0,
-+	/* HSA node change (attach/detach) */
-+	HSA_EVENTTYPE_NODECHANGE	= 1,
-+	/* HSA device state change( start/stop ) */
-+	HSA_EVENTTYPE_DEVICESTATECHANGE = 2,
-+	/* GPU shader exception event   */
-+	HSA_EVENTTYPE_HW_EXCEPTION	= 3,
-+	/* GPU SYSCALL with parameter info */
-+	HSA_EVENTTYPE_SYSTEM_EVENT	= 4,
-+	/* GPU signal for debugging     */
-+	HSA_EVENTTYPE_DEBUG_EVENT	= 5,
-+	/* GPU signal for profiling     */
-+	HSA_EVENTTYPE_PROFILE_EVENT	= 6,
-+	/* GPU signal queue idle state (EOP pm4) */
-+	HSA_EVENTTYPE_QUEUE_EVENT	= 7,
-+	/* GPU signal for signaling memory access faults and memory subsystem issues */
-+	HSA_EVENTTYPE_MEMORY		= 8,
-+	/* ... */
-+	HSA_EVENTTYPE_MAXID,
-+	HSA_EVENTTYPE_TYPE_SIZE		= 0xffffffff
-+};
-+
-+enum hsa_eventtype_nodechange_flags {
-+	HSA_EVENTTYPE_NODECHANGE_ADD	= 0,
-+	HSA_EVENTTYPE_NODECHANGE_REMOVE	= 1,
-+	HSA_EVENTTYPE_NODECHANGE_SIZE	= 0xffffffff
-+};
-+
-+struct hsa_node_change {
-+	/* HSA node added/removed on the platform */
-+	enum hsa_eventtype_nodechange_flags flags;
-+};
-+
-+enum hsa_device {
-+	HSA_DEVICE_CPU	= 0,
-+	HSA_DEVICE_GPU	= 1,
-+	MAX_HSA_DEVICE	= 2
-+};
-+
-+enum hsa_eventtype_devicestatechange_flags {
-+	/* device started (and available) */
-+	HSA_EVENTTYPE_DEVICESTATUSCHANGE_START	= 0,
-+	/* device stopped (i.e. unavailable) */
-+	HSA_EVENTTYPE_DEVICESTATUSCHANGE_STOP	= 1,
-+	HSA_EVENTTYPE_DEVICESTATUSCHANGE_SIZE	= 0xffffffff
-+};
-+
-+struct hsa_device_state_change {
-+	/* F-NUMA node that contains the device */
-+	u32 node_id;
-+	/* device type: GPU or CPU */
-+	enum hsa_device device;
-+	/* event flags */
-+	enum hsa_eventtype_devicestatechange_flags flags;
-+};
-+
-+struct hsa_access_attribute_failure {
-+	/* Page not present or supervisor privilege */
-+	unsigned int not_present:1;
-+	/* Write access to a read-only page */
-+	unsigned int readonly:1;
-+	/* Execute access to a page marked NX */
-+	unsigned int no_execute:1;
-+	/* Host access only */
-+	unsigned int gpu_access:1;
-+	/* RAS ECC failure (notification of DRAM ECC - non-recoverable -
-+	 * error, if supported by HW)
-+	 */
-+	unsigned int ecc:1;
-+	/* Can't determine the exact fault address */
-+	unsigned int imprecise:1;
-+	/* Indicates RAS errors or other errors causing the access to GPU to fail
-+	 * 0 = no RAS error,
-+	 * 1 = ECC_SRAM,
-+	 * 2 = Link_SYNFLOOD (poison),
-+	 * 3 = GPU hang (not attributable to a specific cause), other values reserved
-+	 */
-+	unsigned int error_type:3;
-+	/* must be 0 */
-+	unsigned int Reserved:23;
-+};
-+
-+enum hsa_eventid_memory_flags {
-+	/* access fault, recoverable after page adjustment */
-+	HSA_EVENTID_MEMORY_RECOVERABLE		= 0,
-+	/* memory access requires process context destruction, unrecoverable */
-+	HSA_EVENTID_MEMORY_FATAL_PROCESS	= 1,
-+	/* memory access requires all GPU VA context destruction, unrecoverable */
-+	HSA_EVENTID_MEMORY_FATAL_VM		= 2,
-+};
-+
-+struct hsa_memory_access_fault {
-+	/* H-NUMA node that contains the device where the memory access occurred */
-+	u32 node_id;
-+	/* virtual address this occurred on */
-+	u64 virtual_address;
-+	/* failure attribute */
-+	struct hsa_access_attribute_failure failure;
-+	/* event flags */
-+	enum hsa_eventid_memory_flags flags;
-+};
-+
-+struct hsa_event_data {
-+	enum hsa_event_type event_type;
-+
-+	union {
-+		/* return data associated with HSA_EVENTTYPE_SIGNAL and other events */
-+		struct hsa_sync_var sync_var;
-+		/* data associated with HSA_EVENTTYPE_NODE_CHANGE */
-+		struct hsa_node_change node_change_state;
-+		/* data associated with HSA_EVENTTYPE_DEVICE_STATE_CHANGE */
-+		struct hsa_device_state_change    device_state;
-+		/* data associated with HSA_EVENTTYPE_MEMORY */
-+		struct hsa_memory_access_fault    memory_access_fault;
-+	};
-+
-+	// the following data entries are internal to the KFD & thunk itself.
-+
-+	u64 hw_data1; // internal thunk store for Event data  (OsEventHandle)
-+	u64 hw_data2; // internal thunk store for Event data  (HWAddress)
-+	u32 hw_data3; // internal thunk store for Event data  (HWData)
-+};
-+
-+struct hsa_event {
-+	u32 event_id;
-+	struct hsa_event_data event_data;
-+};
-+
-+#endif /* KFD_HSA_CODE_H_ */
-diff --git a/drivers/gpu/drm/amd/amdkfd/kfd_module.c b/drivers/gpu/drm/amd/amdkfd/kfd_module.c
-index 33aa23450b3f..2a2405db5b9c 100644
---- a/drivers/gpu/drm/amd/amdkfd/kfd_module.c
-+++ b/drivers/gpu/drm/amd/amdkfd/kfd_module.c
-@@ -77,6 +77,7 @@ static int kfd_init(void)
- 
- static void kfd_exit(void)
- {
-+	knod_exit();
- 	kfd_cleanup_processes();
- 	kfd_process_destroy_wq();
- 	kfd_debugfs_fini();
-diff --git a/drivers/gpu/drm/amd/amdkfd/kfd_priv.h b/drivers/gpu/drm/amd/amdkfd/kfd_priv.h
-index acd0e41e744c..4f5d4b0bfa89 100644
---- a/drivers/gpu/drm/amd/amdkfd/kfd_priv.h
-+++ b/drivers/gpu/drm/amd/amdkfd/kfd_priv.h
-@@ -1069,6 +1069,7 @@ bool kfd_dev_is_large_bar(struct kfd_node *dev);
- struct kfd_process *create_process(const struct task_struct *thread, bool primary);
- int kfd_process_create_wq(void);
- void kfd_process_destroy_wq(void);
-+void kfd_process_flush_wq(void);
- void kfd_cleanup_processes(void);
- struct kfd_process *kfd_create_process(struct task_struct *thread);
- int kfd_create_process_sysfs(struct kfd_process *process);
-@@ -1536,6 +1537,9 @@ void kfd_signal_hw_exception_event(u32 pasid);
- int kfd_set_event(struct kfd_process *p, uint32_t event_id);
- int kfd_reset_event(struct kfd_process *p, uint32_t event_id);
- int kfd_kmap_event_page(struct kfd_process *p, uint64_t event_page_offset);
-+int kfd_event_page_set(struct kfd_process *p, void *kernel_address,
-+		       uint64_t size, uint64_t user_handle);
-+
- 
- int kfd_event_create(struct file *devkfd, struct kfd_process *p,
- 		     uint32_t event_type, bool auto_reset, uint32_t node_id,
-@@ -1641,3 +1645,33 @@ static inline void kfd_debugfs_remove_process(struct kfd_process *p) {}
- #endif
- 
- #endif
-+
-+int kfd_process_alloc_gpuvm(struct kfd_process_device *pdd,
-+			    uint64_t gpu_va, uint32_t size,
-+			    uint32_t flags, struct kgd_mem **mem, void **kptr);
-+void kfd_process_free_gpuvm(struct kgd_mem *mem,
-+			    struct kfd_process_device *pdd, void **kptr);
-+int kfd_create_queue(struct kfd_process *p, struct queue_properties *q_properties,
-+		     u32 gpu_id, u32 *queue_id_out, u64 *doorbell_offset_out);
-+int kfd_ioctl_set_event(struct file *filp, struct kfd_process *p,
-+			void *data);
-+int kfd_ioctl_reset_event(struct file *filp, struct kfd_process *p,
-+			  void *data);
-+int kfd_ioctl_wait_events(struct file *filp, struct kfd_process *p, void *data);
-+
-+int kfd_ioctl_set_trap_handler(struct file *filep,
-+			       struct kfd_process *p, void *data);
-+int kfd_ioctl_set_scratch_backing_va(struct file *filep,
-+				     struct kfd_process *p, void *data);
-+
-+
-+int kfd_ioctl_acquire_vm(struct file *filep, struct kfd_process *p, void *data);
-+int kfd_ioctl_map_memory_to_gpu(struct file *filep, struct kfd_process *p,
-+				void *data);
-+int kfd_ioctl_alloc_memory_of_gpu(struct file *filep, struct kfd_process *p,
-+				  void *data);
-+int kfd_ioctl_export_dmabuf(struct file *filep,
-+			    struct kfd_process *p, void *data);
-+
-+void __iomem *kfd_kernel_doorbell_mmap(struct kfd_node *dev,
-+				       struct kfd_process *process);
-diff --git a/drivers/gpu/drm/amd/amdkfd/kfd_process.c b/drivers/gpu/drm/amd/amdkfd/kfd_process.c
-index ca71fa726e32..3c9268241800 100644
---- a/drivers/gpu/drm/amd/amdkfd/kfd_process.c
-+++ b/drivers/gpu/drm/amd/amdkfd/kfd_process.c
-@@ -715,8 +715,14 @@ void kfd_process_destroy_wq(void)
- 	}
- }
- 
--static void kfd_process_free_gpuvm(struct kgd_mem *mem,
--			struct kfd_process_device *pdd, void **kptr)
-+void kfd_process_flush_wq(void)
++static inline void
++knod_setup_invalidate(struct knod *knod, int idx, int q_idx)
 +{
-+	if (kfd_process_wq)
-+		flush_workqueue(kfd_process_wq);
++	struct hsa_kernel_dispatch_packet *dp = knod->kaql[q_idx].aql->kaddr;
++
++	dp += idx;
++	dp->header = HSA_PACKET_TYPE_INVALID << HSA_PACKET_HEADER_TYPE;
 +}
 +
-+void kfd_process_free_gpuvm(struct kgd_mem *mem,
-+			    struct kfd_process_device *pdd, void **kptr)
- {
- 	struct kfd_node *dev = pdd->dev;
- 
-@@ -736,9 +742,9 @@ static void kfd_process_free_gpuvm(struct kgd_mem *mem,
-  *	to avoid concurrency. Because of that exclusiveness, we do
-  *	not need to take p->mutex.
-  */
--static int kfd_process_alloc_gpuvm(struct kfd_process_device *pdd,
--				   uint64_t gpu_va, uint32_t size,
--				   uint32_t flags, struct kgd_mem **mem, void **kptr)
-+int kfd_process_alloc_gpuvm(struct kfd_process_device *pdd,
-+			    uint64_t gpu_va, uint32_t size,
-+			    uint32_t flags, struct kgd_mem **mem, void **kptr)
- {
- 	struct kfd_node *kdev = pdd->dev;
- 	int err;
-@@ -761,10 +767,14 @@ static int kfd_process_alloc_gpuvm(struct kfd_process_device *pdd,
- 	}
- 
- 	if (kptr) {
--		err = amdgpu_amdkfd_gpuvm_map_gtt_bo_to_kernel(
--				(struct kgd_mem *)*mem, kptr, NULL);
-+		if (flags & KFD_IOC_ALLOC_MEM_FLAGS_VRAM)
-+			err = amdgpu_amdkfd_gpuvm_map_vram_bo_to_kernel(
-+					(struct kgd_mem *)*mem, kptr, NULL);
-+		else
-+			err = amdgpu_amdkfd_gpuvm_map_gtt_bo_to_kernel(
-+					(struct kgd_mem *)*mem, kptr, NULL);
- 		if (err) {
--			pr_debug("Map GTT BO to kernel failed\n");
-+			pr_debug("Map BO to kernel failed\n");
- 			goto sync_memory_failed;
- 		}
- 	}
++static inline void
++knod_setup_dispatch(struct knod *knod, int idx,
++		    const struct knod_dispatch_params *p, int q_idx)
++{
++	struct hsa_kernel_dispatch_packet *dp = knod->kaql[q_idx].aql->kaddr;
++
++	dp += idx;
++	dp->setup = 2;
++	dp->workgroup_size_x = p->workgroup_size_x;
++	dp->workgroup_size_y = 1;
++	dp->workgroup_size_z = 1;
++	dp->grid_size_x = p->grid_size_x;
++	dp->grid_size_y = p->grid_size_y;
++	dp->grid_size_z = 1;
++	dp->private_segment_size = p->private_segment_size;
++	dp->group_segment_size = p->group_segment_size;
++	dp->kernel_object = p->kernel_object;
++	dp->kernarg_address = (void *)p->kernarg_address;
++	dp->completion_signal = knod->kaql[q_idx].queue_signal->gaddr;
++	/* publish the packet body before the valid header (WRITE_ONCE below) */
++	wmb();
++	WRITE_ONCE(dp->header,
++		   (HSA_PACKET_TYPE_KERNEL_DISPATCH <<
++		    HSA_PACKET_HEADER_TYPE) |
++		   (HSA_FENCE_SCOPE_SYSTEM <<
++		    HSA_PACKET_HEADER_ACQUIRE_FENCE_SCOPE) |
++		   (HSA_FENCE_SCOPE_SYSTEM <<
++		    HSA_PACKET_HEADER_RELEASE_FENCE_SCOPE));
++}
++
++static inline void
++knod_setup_header(struct knod *knod,
++		  const struct knod_dispatch_params *p, int q_idx)
++{
++	struct amd_queue *amd_queue = (struct amd_queue *)knod->kaql[q_idx].amd_queue->kaddr;
++	int curr_idx = knod->kaql[q_idx].idx;
++	int next_idx = curr_idx + 1;
++	u64 *ptr = knod->kaql[q_idx].doorbell;
++
++	knod_setup_invalidate(knod, next_idx % knod->nr_aql_ring, q_idx);
++	knod_setup_dispatch(knod, curr_idx % knod->nr_aql_ring, p, q_idx);
++	WRITE_ONCE(amd_queue->write_dispatch_id, curr_idx);
++	writeq(curr_idx, ptr);
++	knod->kaql[q_idx].idx = next_idx;
++}
++
++#define KNOD_NR_AQL_DEFAULT   1
++struct knod *knod_alloc_ctx(struct knod_dev *knodev, int queue_cnt, int id,
++			    int channels);
++void knod_release_ctx(struct knod *knod);
++void knod_accel_xdp_register(struct knod_accel_xdp_ops *xdp_ops);
++void knod_accel_xdp_unregister(void);
++void knod_accel_ipsec_register(struct knod_accel_ipsec_ops *ipsec_ops);
++void knod_accel_ipsec_unregister(void);
++void knod_request_queue_cnt(int n);
++struct knod_mem *knod_alloc_mem(struct knod *knod, size_t size, int flags);
++struct knod_mem *__knod_alloc_mem(struct knod *knod, size_t size, int flags);
++int __knod_map_mem(struct knod *knod, struct knod_mem *mem);
++int __knod_export_dma_buf(struct knod *knod, struct knod_mem *mem);
++int __knod_map_kaddr(struct knod *knod, struct knod_mem *mem);
++void knod_free_mem(struct knod *pknod, struct knod_mem *mem);
++void knod_sdma_copy(struct knod *knod, u64 dst_gart_addr, u64 src_gart_addr,
++		    int idx, int size);
++void knod_sdma_fence(struct knod *knod, u64 fence_addr, u32 fence_val,
++		     int idx);
++void knod_sdma_trap(struct knod *knod, int idx);
++void knod_sdma_doorbell(struct knod *knod, int idx);
++
++/* One linear GPU->host SDMA copy (GPU VM addresses). */
++struct knod_sdma_copy_desc {
++	u64 dst;
++	u64 src;
++	u32 len;
++};
++
++/*
++ * Emit @n copies on sdma[@idx] as one batch with ring backpressure.
++ * Returns the post-batch ring position to fence/await, or 0 if the ring
++ * is too full (caller drops the whole batch).  Pair with knod_sdma_kick().
++ */
++u32 knod_sdma_submit(struct knod *knod, int idx,
++		     const struct knod_sdma_copy_desc *copies, int n);
++void knod_sdma_kick(struct knod *knod, int idx);
++
++int knod_gart_map(struct amdgpu_device *adev, u64 npages,
++		  dma_addr_t *addr, u64 *gart_addr, u64 flags);
++int knod_register_worker(struct knod *knod, knod_worker_fn_t fn,
++			 knod_flush_fn_t flush, void *ctx);
++void knod_unregister_worker(struct knod *knod);
++int knod_wait_on_events(struct kfd_process *p, u32 num_events,
++			void __user *data, bool all, u32 *user_timeout_ms,
++			u32 *wait_result);
++
++#endif /* KFD_KNOD_H_ */
 -- 
 2.43.0
 
