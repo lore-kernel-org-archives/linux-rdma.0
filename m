@@ -1,62 +1,63 @@
-Received: from mail-pl1-f177.google.com (mail-pl1-f177.google.com [209.85.214.177])
+Received: from mail-pl1-f175.google.com (mail-pl1-f175.google.com [209.85.214.175])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AEBEA3B3BEB
-	for <linux-rdma@vger.kernel.org>; Sun, 19 Jul 2026 18:01:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.177
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A5A13AFD12
+	for <linux-rdma@vger.kernel.org>; Sun, 19 Jul 2026 18:01:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.175
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784484117; cv=none; b=cer8+l/HlIsHpmNg3IkDL0zx2jUCVGhEmNpgdBsrgeLwNFEfM175Z0aB9msUo+GuZikPszbM96lzD5LHnzvYz4XdGqxepOAlnGfZACgy/Yp+zj+xtYwnnuwSTX58NjzUfk6HrVK5s8cO75NHNqgydyy+mwWhuBIE5wbQ70EgYwQ=
+	t=1784484134; cv=none; b=VQ8RRLBx/arttycdEEn0dK9NdB4YshD7v1K8PSjoLva/H6o1d4RTbDrKYQKOMqo9YqmG3TadQZiQzUOqBOiup1XPCllV4urzGzut265ecsaR/CaI1b1ZB1f/dtMR8DS3Rs4mIeHfYPXkCSj0eKnqWTiVDT9PjmWqMqMKJANm18s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784484117; c=relaxed/simple;
-	bh=iJlLK+zT6pOkAKcyL3dSdt3Ey5y77wGrNw+PwirXbBA=;
+	s=arc-20240116; t=1784484134; c=relaxed/simple;
+	bh=9x+KxMip3DrZ2abMwha3hDKHh9v0LyqG+xlGpmM7+7s=;
 	h=From:To:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=iP3CoJX2BGgdJ9WAXXXqZtf1g9I7t0trnbJenNM+1upn7WKwTX2VkDF+01EUujASS4vqiVXcSTB21mJ512fXZYfddAV3hbeTml4kWjGMQIcUtgzZypLa4M+nERTUuG9eOeN78l4it0zRCRlVL8D8XklhlWU7CxMTOCa4f+WBUIs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=rlZ/hw2i; arc=none smtp.client-ip=209.85.214.177
+	 MIME-Version; b=sRpVpxZpUB7Zez5PeQPIsVeaCuyhmNLtSWNtziLSWlMkABEYi9yHkReKtd3CveteZ9qSgZD5TsqBUqkQNm0WMntRJGoJGbN92SyYjdHwARcDRzfy7aDJ7Nt2wulq91eMkrXJmSwA7ralqnPHG/E30s2HLYCDYFOBr7/byNNi8qU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=rY+RQRwm; arc=none smtp.client-ip=209.85.214.175
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="rlZ/hw2i"
-Received: by mail-pl1-f177.google.com with SMTP id d9443c01a7336-2ccf2360620so53577375ad.3
-        for <linux-rdma@vger.kernel.org>; Sun, 19 Jul 2026 11:01:44 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="rY+RQRwm"
+Received: by mail-pl1-f175.google.com with SMTP id d9443c01a7336-2cf50c6f235so9784855ad.0
+        for <linux-rdma@vger.kernel.org>; Sun, 19 Jul 2026 11:01:54 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1784484102; x=1785088902; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1784484113; x=1785088913; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:to:from:from:to:cc:subject:date:message-id
          :reply-to:content-type;
-        bh=Mn9ILc7KfHYPQN6h07+6ERrU/MrbOq4Gmsuwq4UE7rc=;
-        b=rlZ/hw2i4piMPY6y/ki04yW0MoWxVxDOsWzF2l8FUO3hiiy0ia5TCGA7i4a4wTWZjA
-         Oe6Rq1O5yCsu1hQaKMVh2Fmgy5NogpndpfuJgRN52G9hgRYsVkYjoxjzoTuFJUUJM5XJ
-         vjXBQszYQzV3W2XQKPeSBYS94L9B+HIDF4rLSDdWxqioVDyb0ixzc5UlJmA4bwFVlOEb
-         ZSyQmzCG+Ud0qts+HSfp2ECvls+04tIGjTn/fRHZ6O9gF6fBtdx+zi7shDmIj9HQFZYk
-         Kp/C+c/1/k5Wqg0flp0SFLbLK1gVSy3WVaRvJUB7W1R8V/k2Drk49a6+ERd7S+rrEv9q
-         J9xw==
+        bh=/kzD1p6yL30PU6FFChKoKisLHf+QG0tGQ4P1mDlrkEk=;
+        b=rY+RQRwm+Deo9laNwaLOgUpSG4troWaCbZFkDTZZRRgI1MJXP3Xik9CT27C3JFkIJA
+         IeGneALsthSD8DXfFfdV6IxEZ9VPzunuAp/Y/hsu+yDjTTjqIJqQ1Xq+yhm6HuQ5GcOb
+         A0ZihB0eIKqp8lvmhceCOA4Chmv82br6+uCYnLgTWPiGhdbKCKBjjWLzyhtpY/Zf6reB
+         BdEcJjYwDKYCAYa25NOwznSf9r4dzyT6U3MsrsDqoTKiU+lv2Qd7nQXmPqdJ0U3FMuxJ
+         PMIUeZVlcBkQjzw9gKGKlQwzM4Secj+kSKZtOUAkNcPOmTal7RMFMSIZ49/iLcg9bt9f
+         EN0A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1784484102; x=1785088902;
+        d=1e100.net; s=20251104; t=1784484113; x=1785088913;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:to:from:x-gm-gg:x-gm-message-state:from:to
          :cc:subject:date:message-id:reply-to:content-type;
-        bh=Mn9ILc7KfHYPQN6h07+6ERrU/MrbOq4Gmsuwq4UE7rc=;
-        b=IQ6GEUpSYlN5lAt+VSt3gXyDBwZRNeUX+SKfH7q11/hTCAlkvCKd1CPKAc9bNqZfOY
-         2eRiyvI6MVUMd+oVAbIL08YfWJJ6Iz6ys1exV/nbUG10/XAVsrH7xDQ3gua4iAiR1dWb
-         iiRSEzt+S1yK+ZqZmsBJChiM6GrEDeHGjWJZy5BHCDSyLUcFOozhPpKlGsX8V5i7D2qk
-         H7Cj/8nvuYhwcYv85vdL0nE90h50x5hBqJ7MVvFrJV6g6uW5u0ywW8JaA+SL/DkrJA1v
-         KXTqAyi1twxwmHlGGZqXKZEEocvWfNeG2Poq2cshqNgyU8BULX9YUiC4PSgeqR9WbjzR
-         Ui5g==
-X-Forwarded-Encrypted: i=1; AHgh+RqhkYpNSyHUyPu8FHPPYI2mGC56Ihk0g18X/1DySQrblXnN9csXt7Zcjn6UTxu85EzRpkc29bh/j7wf@vger.kernel.org
-X-Gm-Message-State: AOJu0YyLCUcH+GD+3qp5Et494CJGJ52tYcX0XFCHVKL+1kBusAISU5th
-	IOUPMqY7EyTWuZG8Oa/bUu1/dVhcFALa3lzktxw3MJfYMGSazT4xFH+q
-X-Gm-Gg: AfdE7clubmIVpcz/bkPT8OyRUgiGm0BrgOISkhYboijN1poaYVNbLo+Xk50yPJnLA6o
-	nrENr2nSYf084yT5Sifx4oz4HHH3OJLDQ8ouAMkqlxs3607d2dpmUXDgp3qhHh8sDvuXEJ8Qp66
-	lsyCyPx1bbzlfaxOfPItflYaPoO+pXGRaPr3s20hIy/NZm0qUXb6uKmGfLCb9PIiC4vcpfPB7fo
-	V5c5jAXUfPECnUMm5MK6pFlph3amBmwInnNiZC0tm1kGcPnm6jbjYLzhTOAk4I/l3K8jC/ULrLM
-	xTp8bqfYI4HpW+rzcQXEQcDCFo0Gk1HERmvwQny6nq2ZvuG3Heui7akmV73JKE0nVYmlpQQuecI
-	fL0KuyydBJQnTYrAL4S2AggRWyxLAZHBPsck1xMUf5OLsI5ompVDtcj9820fvAs/GTw==
-X-Received: by 2002:a17:902:d586:b0:2ca:4cfd:a6df with SMTP id d9443c01a7336-2cf34a0b335mr124560325ad.43.1784484101843;
-        Sun, 19 Jul 2026 11:01:41 -0700 (PDT)
+        bh=/kzD1p6yL30PU6FFChKoKisLHf+QG0tGQ4P1mDlrkEk=;
+        b=heXciVu61zovQXRW9NFr8NWHxXxy/DixcSMiFH+/HgxFiqSiTQT4MH+AS5UsBfV5jT
+         8wSdQS6chxNZIn+K8pctUjEm2E96ustb5EHJnyxJq19A+NTifiAsCPdqkTYrK2N/1XhE
+         0xpFjlUxbI0ZOyMQKFQIUHXGBQDhg1diGlR+Szb+83E1SHOI0OdWsN8Hj+Glr9WTY/S1
+         gkqXFIsBJmnkUg9FV+370jlMXAwf1c6Qw4RGLeo34l/FdlzQzdB28gnvgnFgCV/q2rhY
+         0chbXCfJUaQq1nnezNeGpuOBnTMxbDFV7ciRl1OkS7vDpf52f1BP3TODPkQcS+czNePK
+         DgSQ==
+X-Forwarded-Encrypted: i=1; AHgh+RozWMxOLpjDHBYfWae0qOpfKtDL9dvBG9jq9jrhJVyTWVH7cQun3WG0EtMdFVJKyoqGe0Ta/DQgG5Sg@vger.kernel.org
+X-Gm-Message-State: AOJu0YxXSGRkvp6bmANGyb7aNOrfvRDP7VB6NPxvmmLp4dpDv8esw+ZT
+	BkXXbHbWBpILHMuhn+xYefNj1mldXHM3jI3H0tMdMCD944aPyzirimmE
+X-Gm-Gg: AfdE7ckQh7MvvawZwnx/OmRBhmeaVFvg5GGq7aBuAggoPxbGd+Syfihvtm8jaAT4FoY
+	HlWWkAx9uVn4ZeDZD31uGnkNKHaji5lHiqiqgfYJnv8DqCY6udUna+7bmXH9JnhAnj7+cR2Zvs4
+	SDQ/+Hi5nVtabWfl6PmpS95zmkjsZajhAfE9bOBjAomfUxOZDz2sV4EEzXMMVvgOobITveKE8ex
+	NBRxNkUwdwbM7WDTLJCv8fhKsC3Z3bwhedkYG4ZXcugl9vTIwblaeTKejTH6mKI93nzk+/Ohuly
+	NYrVuTxuBExQFu+zXpGIDia1hfefHEg8IY1Uyp0YvUnK06pEXnT1XSnj0ktKViZqsH+2CqYJkHw
+	1E56+A1Du5CalKJBwSVIISoyF4akwmycSzgPNfJJAmMeIOcDED2LVYNElaP7NkWfxmiLYV5iJon
+	OW
+X-Received: by 2002:a17:903:46c3:b0:2cf:4c0f:5129 with SMTP id d9443c01a7336-2cf4c0f5449mr64949115ad.17.1784484113118;
+        Sun, 19 Jul 2026 11:01:53 -0700 (PDT)
 Received: from ap.. ([182.213.254.91])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2cf34769bd6sm43511065ad.74.2026.07.19.11.01.29
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2cf34769bd6sm43511065ad.74.2026.07.19.11.01.42
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 19 Jul 2026 11:01:40 -0700 (PDT)
+        Sun, 19 Jul 2026 11:01:52 -0700 (PDT)
 From: Taehee Yoo <ap420073@gmail.com>
 To: Alex Deucher <alexander.deucher@amd.com>,
 	Alexei Starovoitov <ast@kernel.org>,
@@ -110,9 +111,9 @@ To: Alex Deucher <alexander.deucher@amd.com>,
 	Taehee Yoo <ap420073@gmail.com>,
 	Tariq Toukan <tariqt@nvidia.com>,
 	Yonghong Song <yonghong.song@linux.dev>
-Subject: [RFC PATCH net-next 10/13] net/mlx5e: add knod XDP offload support
-Date: Sun, 19 Jul 2026 17:58:54 +0000
-Message-ID: <20260719175857.4071636-11-ap420073@gmail.com>
+Subject: [RFC PATCH net-next 11/13] bnxt_en: add knod XDP offload support
+Date: Sun, 19 Jul 2026 17:58:55 +0000
+Message-ID: <20260719175857.4071636-12-ap420073@gmail.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20260719175857.4071636-1-ap420073@gmail.com>
 References: <20260719175857.4071636-1-ap420073@gmail.com>
@@ -124,350 +125,712 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Let mlx5e act as a knod NIC: register with the knod core, feed received
-packets to the accelerator over the per-queue SPSC ring, and transmit
-accelerator verdicts (XDP_TX) back through the XDP SQ.  Restricted to
-inline-none TX and single-page MTU.
+Let bnxt_en act as a knod NIC: register with the knod core, feed
+received packets to the accelerator over the per-queue SPSC ring, and
+transmit accelerator verdicts back through the XDP TX ring.  Restricted
+to page-mode MTU.
 
 Signed-off-by: Taehee Yoo <ap420073@gmail.com>
-(cherry picked from commit 218c3a122d6b53638b99441560b7a0da65f6d8c1)
+(cherry picked from commit c9ef892dd5859cc71b0f8a546d87032cf70bb442)
 ---
- drivers/net/ethernet/mellanox/mlx5/core/en.h  |  10 +
- .../net/ethernet/mellanox/mlx5/core/en/xdp.c  | 351 ++++++++++++++++++
- .../net/ethernet/mellanox/mlx5/core/en/xdp.h  |  19 +-
- .../net/ethernet/mellanox/mlx5/core/en_main.c |  38 +-
- .../net/ethernet/mellanox/mlx5/core/en_rx.c   | 107 +++++-
- .../net/ethernet/mellanox/mlx5/core/en_txrx.c |  45 +++
- 6 files changed, 564 insertions(+), 6 deletions(-)
+ drivers/net/ethernet/broadcom/bnxt/bnxt.c     | 155 +++++++++-
+ drivers/net/ethernet/broadcom/bnxt/bnxt.h     |  12 +-
+ drivers/net/ethernet/broadcom/bnxt/bnxt_xdp.c | 274 +++++++++++++++++-
+ drivers/net/ethernet/broadcom/bnxt/bnxt_xdp.h |  12 +-
+ 4 files changed, 442 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en.h b/drivers/net/ethernet/mellanox/mlx5/core/en.h
-index d507289096c2..1401a24e1740 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en.h
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en.h
-@@ -48,6 +48,7 @@
- #include <net/udp_tunnel.h>
- #include <net/switchdev.h>
- #include <net/psp/types.h>
-+#include <net/knod.h>
- #include <net/xdp.h>
- #include <linux/dim.h>
- #include <linux/bits.h>
-@@ -568,6 +569,8 @@ struct mlx5e_icosq {
- 
- struct mlx5e_frag_page {
- 	netmem_ref netmem;
-+	struct page_pool *pp;
-+	u32 page_idx;
- 	u16 frags;
- };
- 
-@@ -739,6 +742,11 @@ struct mlx5e_rq {
- 
- 	struct mlx5e_xdp_buff mxbuf;
- 
-+	struct knod_dev *knodev;
-+	struct knod_netdev *knetdev;
-+	u32                    knod_spsc_prod_head;
-+	bool                   knod_spsc_prod_valid;
-+
- 	/* AF_XDP zero-copy */
- 	struct xsk_buff_pool  *xsk_pool;
- 
-@@ -985,6 +993,8 @@ struct mlx5e_priv {
- 	struct dentry             *dfs_root;
- 	struct mlx5_devcom_comp_dev *devcom;
- 	struct ethtool_fec_hist_range *fec_ranges;
-+	struct knod_dev *knodev;
-+	struct knod_netdev *knetdev;
- };
- 
- static inline u16 mlx5e_stats_nch_read(const struct mlx5e_priv *priv)
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en/xdp.c b/drivers/net/ethernet/mellanox/mlx5/core/en/xdp.c
-index d8c7cb8837d7..82adfc9b7c1b 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en/xdp.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en/xdp.c
-@@ -35,8 +35,18 @@
- #include "en/xdp.h"
- #include "en/params.h"
- #include <linux/bitfield.h>
-+#include <linux/module.h>
- #include <net/page_pool/helpers.h>
- 
-+INDIRECT_CALLABLE_SCOPE bool
-+mlx5e_xmit_xdp_frame(struct mlx5e_xdpsq *sq, struct mlx5e_xmit_data *xdptxd,
-+		     int check_result, struct xsk_tx_metadata *meta);
-+
-+static inline struct page_pool *mlx5e_knod_bd_pp(struct spsc_bd *bd)
-+{
-+	return likely(bd->pp) ? bd->pp : netmem_get_pp(bd->netmem);
-+}
-+
- int mlx5e_xdp_max_mtu(struct mlx5e_params *params,
- 		      struct mlx5e_rq_opt_param *rqo)
- {
-@@ -58,6 +68,36 @@ int mlx5e_xdp_max_mtu(struct mlx5e_params *params,
- 	return MLX5E_HW2SW_MTU(params, SKB_MAX_HEAD(hr));
+diff --git a/drivers/net/ethernet/broadcom/bnxt/bnxt.c b/drivers/net/ethernet/broadcom/bnxt/bnxt.c
+index 7513618793da..6ddf4bafc3d4 100644
+--- a/drivers/net/ethernet/broadcom/bnxt/bnxt.c
++++ b/drivers/net/ethernet/broadcom/bnxt/bnxt.c
+@@ -993,11 +993,36 @@ static inline u8 *__bnxt_alloc_rx_frag(struct bnxt *bp, dma_addr_t *mapping,
+ 	return page_address(page) + offset;
  }
  
-+static inline bool mlx5e_xmit_xdp_offload_buff(struct mlx5e_xdpsq *sq,
-+					       struct mlx5e_rq *rq,
-+					       struct spsc_bd *bd)
++static int bnxt_alloc_rx_off_netmem(struct bnxt *bp,
++				    struct bnxt_rx_ring_info *rxr,
++				    u16 prod, gfp_t gfp)
 +{
-+	struct mlx5e_xmit_data_frags xdptxdf = {};
-+	struct mlx5e_xmit_data *xdptxd;
++	struct rx_bd *rxbd =
++		&rxr->rx_desc_ring[RX_RING(bp, prod)][RX_IDX(prod)];
++	struct bnxt_sw_rx_bd *rx_buf = &rxr->rx_buf_ring[RING_RX(bp, prod)];
++	unsigned int offset = 0;
++	dma_addr_t mapping;
++	netmem_ref netmem;
 +
-+	/* attach is restricted to inline-none NICs, so the WQE inlines no
-+	 * header and xdptxd->data is never read (left NULL here).
-+	 */
-+	xdptxd = &xdptxdf.xd;
-+	xdptxd->len = bd->len;
-+	xdptxd->has_frags = 0;
-+	xdptxd->dma_addr = netmem_to_net_iov(bd->netmem)->desc.dma_addr +
-+			   bd->off;
++	netmem = __bnxt_alloc_rx_netmem(bp, &mapping, rxr, &offset, gfp);
++	if (!netmem)
++		return -ENOMEM;
 +
-+	if (!mlx5e_xmit_xdp_frame(sq, xdptxd, 0, NULL))
-+		return false;
++	mapping += bp->rx_dma_offset;
++	rx_buf->data = (void *)netmem;
++	rx_buf->data_ptr = netmem_address(netmem) + bp->rx_offset;
++	rx_buf->mapping = mapping;
 +
-+	mlx5e_xdpi_fifo_push(&sq->db.xdpi_fifo,
-+			     (union mlx5e_xdp_info) {
-+				.mode = MLX5E_XDP_XMIT_MODE_OFFLOAD });
-+	mlx5e_xdpi_fifo_push(&sq->db.xdpi_fifo,
-+			     (union mlx5e_xdp_info) {
-+				.offload.netmem = bd->netmem,
-+				.offload.pp = mlx5e_knod_bd_pp(bd) });
-+
-+	return true;
++	rxbd->rx_bd_haddr = cpu_to_le64(mapping);
++	return 0;
 +}
 +
- static inline bool
- mlx5e_xmit_xdp_buff(struct mlx5e_xdpsq *sq, struct mlx5e_rq *rq,
- 		    struct xdp_buff *xdp)
-@@ -353,6 +393,154 @@ bool mlx5e_xdp_handle(struct mlx5e_rq *rq,
+ int bnxt_alloc_rx_data(struct bnxt *bp, struct bnxt_rx_ring_info *rxr,
+ 		       u16 prod, gfp_t gfp)
+ {
+ 	struct rx_bd *rxbd = &rxr->rx_desc_ring[RX_RING(bp, prod)][RX_IDX(prod)];
+ 	struct bnxt_sw_rx_bd *rx_buf = &rxr->rx_buf_ring[RING_RX(bp, prod)];
++	unsigned int offset = 0;
+ 	dma_addr_t mapping;
+ 
+ 	if (BNXT_RX_PAGE_MODE(bp)) {
+@@ -1012,6 +1037,16 @@ int bnxt_alloc_rx_data(struct bnxt *bp, struct bnxt_rx_ring_info *rxr,
+ 		rx_buf->data = page;
+ 		rx_buf->data_ptr = page_address(page) + offset + bp->rx_offset;
+ 		rx_buf->offset = offset;
++	} else if (BNXT_RX_OFFLOAD_MODE(bp)) {
++		netmem_ref netmem = __bnxt_alloc_rx_netmem(bp, &mapping, rxr,
++							   &offset, gfp);
++		if (!netmem)
++			return -ENOMEM;
++
++		mapping += bp->rx_dma_offset;
++		rx_buf->data = (void *)netmem;
++		rx_buf->data_ptr = netmem_address(netmem) + bp->rx_offset;
++		rx_buf->offset = offset;
+ 	} else {
+ 		u8 *data = __bnxt_alloc_rx_frag(bp, &mapping, rxr, gfp);
+ 
+@@ -1250,6 +1285,25 @@ static struct sk_buff *bnxt_rx_page_skb(struct bnxt *bp,
+ 	return skb;
+ }
+ 
++static struct sk_buff *bnxt_rx_offload_netmem(struct bnxt *bp,
++					      struct bnxt_rx_ring_info *rxr,
++					      u16 cons, void *data,
++					      u8 *data_ptr,
++					      dma_addr_t dma_addr,
++					      unsigned int offset_and_len)
++{
++	u16 prod = rxr->rx_prod;
++	int err;
++
++	err = bnxt_alloc_rx_off_netmem(bp, rxr, prod, GFP_ATOMIC);
++	if (unlikely(err)) {
++		bnxt_reuse_rx_data(rxr, cons, data);
++		return NULL;
++	}
++
++	return NULL;
++}
++
+ static struct sk_buff *bnxt_rx_skb(struct bnxt *bp,
+ 				   struct bnxt_rx_ring_info *rxr, u16 cons,
+ 				   void *data, u8 *data_ptr,
+@@ -2249,6 +2303,36 @@ static int bnxt_rx_pkt(struct bnxt *bp, struct bnxt_cp_ring_info *cpr,
+ 	len = flags >> RX_CMP_LEN_SHIFT;
+ 	dma_addr = rx_buf->mapping;
+ 
++	if (BNXT_RX_OFFLOAD_MODE(bp)) {
++		if (bnxt_alloc_rx_off_netmem(bp, rxr, rxr->rx_prod,
++					     GFP_ATOMIC)) {
++			bnxt_reuse_rx_data(rxr, cons, data);
++			bnapi->cp_ring.sw_stats->rx.rx_buf_errors++;
++		} else {
++			struct knod_work_priv *wpriv;
++			struct spsc_bd *bd;
++
++			if (bnapi->index >= KNOD_SPSC_MAX) {
++				rc = 1;
++				goto next_rx;
++			}
++
++			wpriv = &bp->knodev->wpriv[bnapi->index];
++			if (spsc_produce(&wpriv->spsc_bds, (void **)&bd)) {
++				bnxt_reuse_rx_data(rxr, cons, data);
++			} else {
++				bd->netmem = (netmem_ref)data;
++				bd->len = len;
++				bd->off = bp->rx_offset;
++				bd->page_idx = net_iov_binding_idx(
++					netmem_to_net_iov((netmem_ref)data));
++				spsc_produce_commit(&wpriv->spsc_bds);
++			}
++		}
++		rc = 1;
++		goto next_rx;
++	}
++
+ 	if (bnxt_xdp_attached(bp, rxr)) {
+ 		bnxt_xdp.rxcmp = rxcmp;
+ 		bnxt_xdp.rxcmp1 = rxcmp1;
+@@ -3272,6 +3356,11 @@ static int bnxt_poll(struct napi_struct *napi, int budget)
+ 		napi_complete(napi);
+ 		return 0;
+ 	}
++
++	if (BNXT_RX_OFFLOAD_MODE(bp))
++		work_done += bnxt_rx_offload_act_handler(bnapi,
++							 budget - work_done);
++
+ 	while (1) {
+ 		work_done += bnxt_poll_work(bp, cpr, budget - work_done);
+ 
+@@ -3296,6 +3385,7 @@ static int bnxt_poll(struct napi_struct *napi, int budget)
+ 				  &dim_sample);
+ 		net_dim(&cpr->dim, &dim_sample);
+ 	}
++
+ 	return work_done;
+ }
+ 
+@@ -3363,6 +3453,11 @@ static int bnxt_poll_p5(struct napi_struct *napi, int budget)
+ 		cpr->has_more_work = 0;
+ 		work_done = __bnxt_poll_cqs(bp, bnapi, budget);
+ 	}
++
++	if (BNXT_RX_OFFLOAD_MODE(bp))
++		work_done += bnxt_rx_offload_act_handler(bnapi,
++							 budget - work_done);
++
+ 	while (1) {
+ 		u16 type;
+ 
+@@ -3427,6 +3522,7 @@ static int bnxt_poll_p5(struct napi_struct *napi, int budget)
+ 				  &dim_sample);
+ 		net_dim(&cpr->dim, &dim_sample);
+ 	}
++
+ 	return work_done;
+ }
+ 
+@@ -3458,6 +3554,13 @@ static void bnxt_free_one_tx_ring_skbs(struct bnxt *bp,
+ 			tx_buf->xdpf = NULL;
+ 			i++;
+ 			continue;
++		} else if (tx_buf->action == BNXT_NETMEM_TX) {
++			page_pool_recycle_direct_netmem(
++				netmem_get_pp(tx_buf->netmem),
++				tx_buf->netmem);
++			tx_buf->action = 0;
++			tx_buf->netmem = 0;
++			continue;
+ 		}
+ 
+ 		skb = tx_buf->skb;
+@@ -3551,6 +3654,10 @@ static void bnxt_free_one_rx_ring(struct bnxt *bp, struct bnxt_rx_ring_info *rxr
+ 		rx_buf->data = NULL;
+ 		if (BNXT_RX_PAGE_MODE(bp))
+ 			page_pool_recycle_direct(rxr->page_pool, data);
++		else if (BNXT_RX_OFFLOAD_MODE(bp))
++			page_pool_put_full_netmem(
++				netmem_get_pp((netmem_ref)data),
++				(netmem_ref)data, false);
+ 		else
+ 			page_pool_free_va(rxr->head_pool, data, true);
+ 	}
+@@ -3905,7 +4012,7 @@ static int bnxt_alloc_rx_page_pool(struct bnxt *bp,
+ 	struct page_pool *pool;
+ 
+ 	pp.pool_size = bnxt_rx_agg_ring_fill_level(bp, rxr) / agg_size_fac;
+-	if (BNXT_RX_PAGE_MODE(bp))
++	if (BNXT_RX_PAGE_MODE(bp) || BNXT_RX_OFFLOAD_MODE(bp))
+ 		pp.pool_size += bp->rx_ring_size / rx_size_fac;
+ 
+ 	pp.order = get_order(rxr->rx_page_size);
+@@ -3923,8 +4030,10 @@ static int bnxt_alloc_rx_page_pool(struct bnxt *bp,
+ 		return PTR_ERR(pool);
+ 	rxr->page_pool = pool;
+ 
+-	rxr->need_head_pool = page_pool_is_unreadable(pool);
+-	rxr->need_head_pool |= !!pp.order;
++	if (!BNXT_RX_OFFLOAD_MODE(bp)) {
++		rxr->need_head_pool = page_pool_is_unreadable(pool);
++		rxr->need_head_pool |= !!pp.order;
++	}
+ 	if (bnxt_separate_head_pool(rxr)) {
+ 		pp.order = 0;
+ 		pp.max_len = PAGE_SIZE;
+@@ -4673,6 +4782,9 @@ static int bnxt_init_rx_rings(struct bnxt *bp)
+ 	if (BNXT_RX_PAGE_MODE(bp)) {
+ 		bp->rx_offset = NET_IP_ALIGN + XDP_PACKET_HEADROOM;
+ 		bp->rx_dma_offset = XDP_PACKET_HEADROOM;
++	} else if (BNXT_RX_OFFLOAD_MODE(bp)) {
++		bp->rx_offset = NET_IP_ALIGN + XDP_PACKET_HEADROOM;
++		bp->rx_dma_offset = XDP_PACKET_HEADROOM;
+ 	} else {
+ 		bp->rx_offset = BNXT_RX_OFFSET;
+ 		bp->rx_dma_offset = BNXT_RX_DMA_OFFSET;
+@@ -4961,12 +5073,14 @@ void bnxt_set_ring_params(struct bnxt *bp)
+ /* Changing allocation mode of RX rings.
+  * TODO: Update when extending xdp_rxq_info to support allocation modes.
+  */
+-static void __bnxt_set_rx_skb_mode(struct bnxt *bp, bool page_mode)
++static void __bnxt_set_rx_skb_mode(struct bnxt *bp, int page_mode)
+ {
+ 	struct net_device *dev = bp->dev;
+ 
+-	if (page_mode) {
+-		bp->flags &= ~(BNXT_FLAG_AGG_RINGS | BNXT_FLAG_NO_AGG_RINGS);
++	if (page_mode & BNXT_FLAG_RX_PAGE_MODE) {
++		bp->flags &= ~(BNXT_FLAG_AGG_RINGS |
++			       BNXT_FLAG_NO_AGG_RINGS |
++			       BNXT_FLAG_RX_OFFLOAD_MODE);
+ 		bp->flags |= BNXT_FLAG_RX_PAGE_MODE;
+ 
+ 		if (bp->xdp_prog->aux->xdp_has_frags)
+@@ -4982,15 +5096,24 @@ static void __bnxt_set_rx_skb_mode(struct bnxt *bp, bool page_mode)
+ 			bp->rx_skb_func = bnxt_rx_page_skb;
+ 		}
+ 		bp->rx_dir = DMA_BIDIRECTIONAL;
++	} else if (page_mode & BNXT_FLAG_RX_OFFLOAD_MODE) {
++		bp->flags &= ~(BNXT_FLAG_AGG_RINGS |
++			       BNXT_FLAG_RX_PAGE_MODE);
++		bp->flags |= (BNXT_FLAG_RX_OFFLOAD_MODE |
++			      BNXT_FLAG_NO_AGG_RINGS);
++		dev->max_mtu = min_t(u16, bp->max_mtu, BNXT_MAX_PAGE_MODE_MTU);
++		bp->rx_skb_func = bnxt_rx_offload_netmem;
++		bp->rx_dir = DMA_BIDIRECTIONAL;
+ 	} else {
+ 		dev->max_mtu = bp->max_mtu;
+ 		bp->flags &= ~BNXT_FLAG_RX_PAGE_MODE;
++		bp->flags &= ~BNXT_FLAG_RX_OFFLOAD_MODE;
+ 		bp->rx_dir = DMA_FROM_DEVICE;
+ 		bp->rx_skb_func = bnxt_rx_skb;
  	}
  }
  
-+static inline u16 mlx5e_xdpsq_get_avail(struct mlx5e_xdpsq *sq)
-+{
-+	if (sq->pc == sq->cc)
-+		return sq->wq.fbc.sz_m1 + 1;
-+
-+	return sq->wq.fbc.sz_m1 & (sq->cc - sq->pc);
-+}
-+
-+static inline u16 mlx5e_xdpsq_get_avail_after_poll(struct mlx5e_xdpsq *sq)
-+{
-+	u16 avail = mlx5e_xdpsq_get_avail(sq);
-+
-+	if (likely(avail))
-+		return avail;
-+
-+	mlx5e_xmit_xdp_doorbell(sq);
-+	mlx5e_poll_xdpsq_cq(&sq->cq);
-+
-+	return mlx5e_xdpsq_get_avail(sq);
-+}
-+
-+struct mlx5e_knod_release_batch {
-+	struct spsc_bd *bds[NAPI_POLL_WEIGHT];
-+	struct spsc_pass_bd pass[NAPI_POLL_WEIGHT];
-+};
-+
-+static struct mlx5e_knod_release_batch
-+mlx5e_knod_release_batch[KNOD_SPSC_MAX];
-+
-+static noinline int
-+mlx5e_rx_offload_release_pending(struct mlx5e_rq *rq,
-+				 struct knod_work_priv *wpriv,
-+				 bool flush, int budget)
-+{
-+	struct knod_dev *knodev = rq->knodev;
-+	struct mlx5e_xdpsq *sq = rq->xdpsq;
-+	struct mlx5e_knod_release_batch *batch =
-+		&mlx5e_knod_release_batch[rq->ix];
-+	struct spsc_bd **bds = batch->bds;
-+	struct spsc_pass_bd *pass = batch->pass;
-+	int cnt, i, done = 0;
-+
-+	while (done < budget) {
-+		int pass_cnt = 0;
-+
-+		if (!mlx5e_xdpsq_get_avail_after_poll(sq))
-+			break;
-+		cnt = min(NAPI_POLL_WEIGHT, budget - done);
-+
-+		spsc_release(&wpriv->spsc_bds, (void **)bds, cnt, &cnt);
-+		if (!cnt)
-+			break;
-+
-+		for (i = 0; i < cnt; i++) {
-+			switch ((u32)bds[i]->act) {
-+			case KNOD_ACT_INFLIGHT:
-+				fallthrough;
-+			case KNOD_IPSEC_INFLIGHT:
-+				goto stop_release;
-+			case KNOD_IPSEC_PASS:
-+				fallthrough;
-+			case KNOD_IPSEC_DROP:
-+				/* Finish worker has set the final verdict.
-+				 * Safe to recycle the netmem page now.
-+				 */
-+				page_pool_recycle_direct_netmem(
-+					mlx5e_knod_bd_pp(bds[i]),
-+					bds[i]->netmem);
-+				break;
-+			case KNOD_TX:
-+				if (!mlx5e_xmit_xdp_offload_buff(rq->xdpsq, rq,
-+								 bds[i]))
-+					goto stop_release;
-+				break;
-+			case XDP_DROP:
-+				fallthrough;
-+			case XDP_ABORTED:
-+				rq->stats->xdp_drop++;
-+				page_pool_recycle_direct_netmem(
-+					mlx5e_knod_bd_pp(bds[i]),
-+					bds[i]->netmem);
-+				break;
-+			case XDP_PASS:
-+				/* Hand to the common device->host delivery:
-+				 * accumulate here, flush to knod_d2h_copy
-+				 * after the bd loop.  The source page is
-+				 * recycled by knod_d2h_drain once the copy
-+				 * has landed, so it is NOT recycled here.
-+				 */
-+				pass[pass_cnt].netmem = bds[i]->netmem;
-+				pass[pass_cnt].page_idx = bds[i]->page_idx;
-+				pass[pass_cnt].off = bds[i]->off;
-+				pass[pass_cnt].len = bds[i]->len;
-+				pass_cnt++;
-+				break;
-+			case XDP_REDIRECT:
-+				/* No redirect delivery path yet; recycle. */
-+				page_pool_recycle_direct_netmem(
-+					mlx5e_knod_bd_pp(bds[i]),
-+					bds[i]->netmem);
-+				break;
-+			default:
-+				/* Unknown value: either the accel shader
-+				 * did not stamp a verdict for this slot
-+				 * (lane skip bug) or the slot never went
-+				 * through an accel at all. Treat as DROP +
-+				 * recycle + WARN so the ring keeps advancing.
-+				 */
-+				rq->stats->xdp_drop++;
-+				pr_warn_ratelimited("mlx5 nod: invalid bd->act=0x%llx rq%d, treating as DROP\n",
-+						    bds[i]->act, rq->ix);
-+				page_pool_recycle_direct_netmem(
-+					mlx5e_knod_bd_pp(bds[i]),
-+					bds[i]->netmem);
-+				break;
-+			}
-+		}
-+stop_release:
-+		spsc_release_commit(&wpriv->spsc_bds, i);
-+		done += i;
-+
-+		/* Issue the device->host copies for this batch's PASS bds. */
-+		if (pass_cnt)
-+			knod_d2h_copy(knodev, rq->ix, pass, pass_cnt);
-+
-+		if (i < cnt)
-+			break;
-+	}
-+
-+	if (flush)
-+		mlx5e_xmit_xdp_doorbell(sq);
-+
-+	return done;
-+}
-+
-+int mlx5e_rx_offload_act_handler(struct mlx5e_rq *rq, bool flush, int budget)
-+{
-+	struct knod_work_priv *wpriv = &rq->knodev->wpriv[rq->ix];
-+
-+	if (!spsc_pending(&wpriv->spsc_bds)) {
-+		if (flush)
-+			mlx5e_xmit_xdp_doorbell(rq->xdpsq);
-+		return 0;
-+	}
-+
-+	return mlx5e_rx_offload_release_pending(rq, wpriv, flush, budget);
-+}
-+
- static u16 mlx5e_xdpsq_get_next_pi(struct mlx5e_xdpsq *sq, u16 size)
+-void bnxt_set_rx_skb_mode(struct bnxt *bp, bool page_mode)
++void bnxt_set_rx_skb_mode(struct bnxt *bp, int page_mode)
  {
- 	struct mlx5_wq_cyc *wq = &sq->wq;
-@@ -741,6 +929,18 @@ static void mlx5e_free_xdpsq_desc(struct mlx5e_xdpsq *sq,
- 			(*xsk_frames)++;
- 			break;
+ 	__bnxt_set_rx_skb_mode(bp, page_mode);
+ 
+@@ -5663,6 +5786,12 @@ static int bnxt_alloc_mem(struct bnxt *bp, bool irq_re_init)
+ 					BNXT_RING_TO_TC(bp, txr->txq_index);
+ 				bnapi2->tx_ring[txr->tx_napi_idx] = txr;
+ 				bnapi2->tx_int = bnxt_tx_int;
++			} else if (BNXT_RX_OFFLOAD_MODE(bp)) {
++				bnapi2 = bp->bnapi[j];
++				bnapi2->flags |= BNXT_NAPI_FLAG_XDP;
++				bnapi2->tx_ring[0] = txr;
++				bnapi2->tx_int = bnxt_tx_int_xdp;
++				j++;
+ 			} else {
+ 				bnapi2 = bp->bnapi[j];
+ 				bnapi2->flags |= BNXT_NAPI_FLAG_XDP;
+@@ -11958,6 +12087,8 @@ static void bnxt_del_napi(struct bnxt *bp)
+ 	if (!bp->bnapi)
+ 		return;
+ 
++	bnxt_rx_offload_clear_napi(bp);
++
+ 	for (i = 0; i < bp->rx_nr_rings; i++)
+ 		netif_queue_set_napi(bp->dev, i, NETDEV_QUEUE_TYPE_RX, NULL);
+ 	for (i = 0; i < bp->tx_nr_rings - bp->tx_nr_rings_xdp; i++)
+@@ -11997,6 +12128,8 @@ static void bnxt_init_napi(struct bnxt *bp)
+ 		bnapi = bp->bnapi[cp_nr_rings];
+ 		netif_napi_add_locked(bp->dev, &bnapi->napi, bnxt_poll_nitroa0);
+ 	}
++
++	bnxt_rx_offload_set_napi(bp);
+ }
+ 
+ static void bnxt_disable_napi(struct bnxt *bp)
+@@ -13356,6 +13489,7 @@ static int bnxt_open(struct net_device *dev)
+ 						   BNXT_RESTART_ULP_SP_EVENT);
  		}
-+		case MLX5E_XDP_XMIT_MODE_OFFLOAD: {
-+			netmem_ref netmem;
-+			struct page_pool *pp;
+ 	}
++	bnxt_rx_offload_start(bp);
+ 
+ 	return rc;
+ }
+@@ -13443,6 +13577,7 @@ static int bnxt_close(struct net_device *dev)
+ {
+ 	struct bnxt *bp = netdev_priv(dev);
+ 
++	bnxt_rx_offload_stop(bp);
+ 	bnxt_close_nic(bp, true, true);
+ 	bnxt_hwrm_shutdown_link(bp);
+ 	bnxt_hwrm_if_change(bp, false);
+@@ -13643,6 +13778,8 @@ bnxt_get_stats64(struct net_device *dev, struct rtnl_link_stats64 *stats)
+ 		stats->tx_errors = BNXT_GET_TX_PORT_STATS64(tx, tx_err);
+ 	}
+ 	clear_bit(BNXT_STATE_READ_STATS, &bp->state);
++	if (BNXT_RX_OFFLOAD_MODE(bp))
++		knod_dev_get_stats64(bp->knodev, stats);
+ }
+ 
+ static void bnxt_get_one_ring_drv_stats(struct bnxt *bp,
+@@ -16518,6 +16655,7 @@ static void bnxt_remove_one(struct pci_dev *pdev)
+ 
+ 	bnxt_aux_devices_del(bp);
+ 
++	bnxt_knod_uninit(bp);
+ 	unregister_netdev(dev);
+ 	bnxt_ptp_clear(bp);
+ 
+@@ -17080,7 +17218,7 @@ static int bnxt_init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
+ 	}
+ 
+ 	dev->xdp_features = NETDEV_XDP_ACT_BASIC | NETDEV_XDP_ACT_REDIRECT |
+-			    NETDEV_XDP_ACT_RX_SG;
++			    NETDEV_XDP_ACT_RX_SG | NETDEV_XDP_ACT_HW_OFFLOAD;
+ 
+ #ifdef CONFIG_BNXT_SRIOV
+ 	init_waitqueue_head(&bp->sriov_cfg_wait);
+@@ -17198,6 +17336,7 @@ static int bnxt_init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
+ 	bnxt_print_device_info(bp);
+ 
+ 	pci_save_state(pdev);
++	bnxt_knod_init(bp);
+ 
+ 	return 0;
+ init_err_cleanup:
+diff --git a/drivers/net/ethernet/broadcom/bnxt/bnxt.h b/drivers/net/ethernet/broadcom/bnxt/bnxt.h
+index 6335dfc14c98..d99590db6efa 100644
+--- a/drivers/net/ethernet/broadcom/bnxt/bnxt.h
++++ b/drivers/net/ethernet/broadcom/bnxt/bnxt.h
+@@ -29,6 +29,8 @@
+ #include <net/devlink.h>
+ #include <net/dst_metadata.h>
+ #include <net/xdp.h>
++#include <net/knod.h>
++#include <net/spsc_ring.h>
+ #include <linux/dim.h>
+ #include <linux/io-64-nonatomic-lo-hi.h>
+ #include <linux/bnxt/ulp.h>
+@@ -884,10 +886,14 @@ struct nqe_cn {
+ #define BNXT_REDIRECT_EVENT	8
+ #define BNXT_TX_CMP_EVENT	0x10
+ 
++#define BNXT_NETMEM_ACT		0xf0
++#define BNXT_NETMEM_TX		(XDP_TX + BNXT_NETMEM_ACT)
 +
-+			xdpi = mlx5e_xdpi_fifo_pop(xdpi_fifo);
-+			netmem = xdpi.offload.netmem;
-+			pp = xdpi.offload.pp;
+ struct bnxt_sw_tx_bd {
+ 	union {
+ 		struct sk_buff		*skb;
+ 		struct xdp_frame	*xdpf;
++		netmem_ref		netmem;
+ 	};
+ 	DEFINE_DMA_UNMAP_ADDR(mapping);
+ 	DEFINE_DMA_UNMAP_LEN(len);
+@@ -2300,6 +2306,7 @@ struct bnxt {
+ 	#define BNXT_FLAG_TX_COAL_CMPL	0x8000000
+ 	#define BNXT_FLAG_PORT_STATS_EXT	0x10000000
+ 	#define BNXT_FLAG_HDS		0x20000000
++	#define BNXT_FLAG_RX_OFFLOAD_MODE	0x40000000
+ 	#define BNXT_FLAG_AGG_RINGS	(BNXT_FLAG_JUMBO | BNXT_FLAG_GRO | \
+ 					 BNXT_FLAG_LRO | BNXT_FLAG_HDS)
+ 
+@@ -2324,6 +2331,7 @@ struct bnxt {
+ 				 (bp)->link_info.phy_state == BNXT_PHY_STATE_ENABLED)
+ #define BNXT_CHIP_TYPE_NITRO_A0(bp) ((bp)->flags & BNXT_FLAG_CHIP_NITRO_A0)
+ #define BNXT_RX_PAGE_MODE(bp)	((bp)->flags & BNXT_FLAG_RX_PAGE_MODE)
++#define BNXT_RX_OFFLOAD_MODE(bp)	((bp)->flags & BNXT_FLAG_RX_OFFLOAD_MODE)
+ #define BNXT_SUPPORTS_TPA(bp)	(!BNXT_CHIP_TYPE_NITRO_A0(bp) &&	\
+ 				 (!((bp)->flags & BNXT_FLAG_CHIP_P5_PLUS) ||\
+ 				  (bp)->max_tpa_v2) && !is_kdump_kernel())
+@@ -2748,6 +2756,8 @@ struct bnxt {
+ #define BNXT_DUMP_LIVE_WITH_CTX_L1_CACHE	3
+ 
+ 	struct bpf_prog		*xdp_prog;
++	struct knod_netdev	*knetdev;
++	struct knod_dev	*knodev;
+ 
+ 	struct bnxt_ptp_cfg	*ptp_cfg;
+ 	u8			ptp_all_rx_tstamp;
+@@ -2964,7 +2974,7 @@ u32 bnxt_fw_health_readl(struct bnxt *bp, int reg_idx);
+ bool bnxt_bs_trace_avail(struct bnxt *bp, u16 type);
+ void bnxt_set_tpa_flags(struct bnxt *bp);
+ void bnxt_set_ring_params(struct bnxt *);
+-void bnxt_set_rx_skb_mode(struct bnxt *bp, bool page_mode);
++void bnxt_set_rx_skb_mode(struct bnxt *bp, int page_mode);
+ void bnxt_insert_usr_fltr(struct bnxt *bp, struct bnxt_filter_base *fltr);
+ void bnxt_del_one_usr_fltr(struct bnxt *bp, struct bnxt_filter_base *fltr);
+ int bnxt_hwrm_func_drv_rgtr(struct bnxt *bp, unsigned long *bmap,
+diff --git a/drivers/net/ethernet/broadcom/bnxt/bnxt_xdp.c b/drivers/net/ethernet/broadcom/bnxt/bnxt_xdp.c
+index 9e5009be8e98..a264a2cf8302 100644
+--- a/drivers/net/ethernet/broadcom/bnxt/bnxt_xdp.c
++++ b/drivers/net/ethernet/broadcom/bnxt/bnxt_xdp.c
+@@ -156,6 +156,11 @@ void bnxt_tx_int_xdp(struct bnxt *bp, struct bnxt_napi *bnapi, int budget)
+ 				tx_buf = &txr->tx_buf_ring[RING_TX(bp, tx_cons)];
+ 				page_pool_recycle_direct(rxr->page_pool, tx_buf->page);
+ 			}
++		} else if (tx_buf->action == BNXT_NETMEM_TX) {
++			page_pool_recycle_direct_netmem(rxr->page_pool,
++							tx_buf->netmem);
++			tx_buf->action = 0;
++			tx_buf->netmem = 0;
+ 		} else {
+ 			bnxt_sched_reset_txr(bp, txr, tx_cons);
+ 			return;
+@@ -423,7 +428,7 @@ static int bnxt_xdp_set(struct bnxt *bp, struct bpf_prog *prog)
+ 		bpf_prog_put(old);
+ 
+ 	if (prog) {
+-		bnxt_set_rx_skb_mode(bp, true);
++		bnxt_set_rx_skb_mode(bp, BNXT_FLAG_RX_PAGE_MODE);
+ 		xdp_features_set_redirect_target_locked(dev, true);
+ 	} else {
+ 		xdp_features_clear_redirect_target_locked(dev);
+@@ -441,19 +446,123 @@ static int bnxt_xdp_set(struct bnxt *bp, struct bpf_prog *prog)
+ 	return 0;
+ }
+ 
 +
-+			page_pool_recycle_direct_netmem(pp, netmem);
++static int bnxt_xdp_offload_set(struct bnxt *bp, int enable)
++{
++	struct net_device *dev = bp->dev;
++	int tx_xdp = 0, tx_cp, rc, tc;
 +
-+			break;
-+		}
- 		default:
- 			WARN_ON_ONCE(true);
- 		}
-@@ -974,3 +1174,154 @@ void mlx5e_set_xmit_fp(struct mlx5e_xdpsq *sq, bool is_mpw)
- 	sq->xmit_xdp_frame = is_mpw ?
- 		mlx5e_xmit_xdp_frame_mpwqe : mlx5e_xmit_xdp_frame;
++	netdev_assert_locked(dev);
++
++	if (!(bp->flags & BNXT_FLAG_SHARED_RINGS)) {
++		netdev_warn(dev, "ethtool rx/tx channels must be combined to support XDP.\n");
++		return -EOPNOTSUPP;
++	}
++	if (enable && dev->mtu > BNXT_MAX_PAGE_MODE_MTU) {
++		netdev_warn(dev, "MTU %d larger than %d for single-page RX offload.\n",
++			    dev->mtu, BNXT_MAX_PAGE_MODE_MTU);
++		return -EOPNOTSUPP;
++	}
++	if (enable)
++		tx_xdp = bp->rx_nr_rings;
++
++	tc = bp->num_tc;
++	if (!tc)
++		tc = 1;
++	rc = bnxt_check_rings(bp, bp->tx_nr_rings_per_tc, bp->rx_nr_rings,
++			      true, tc, tx_xdp);
++	if (rc) {
++		netdev_warn(dev, "Unable to reserve enough TX rings to support XDP.\n");
++		return rc;
++	}
++	if (netif_running(dev))
++		bnxt_close_nic(bp, true, false);
++
++	if (enable) {
++		bnxt_set_rx_skb_mode(bp, BNXT_FLAG_RX_OFFLOAD_MODE);
++		xdp_features_set_redirect_target_locked(dev, true);
++	} else {
++		xdp_features_clear_redirect_target_locked(dev);
++		bnxt_set_rx_skb_mode(bp, false);
++	}
++	bp->tx_nr_rings_xdp = tx_xdp;
++	bp->tx_nr_rings = bp->tx_nr_rings_per_tc * tc + tx_xdp;
++	tx_cp = bnxt_num_tx_to_cp(bp, bp->tx_nr_rings);
++	bp->cp_nr_rings = max_t(int, tx_cp, bp->rx_nr_rings);
++	bnxt_set_tpa_flags(bp);
++	bnxt_set_ring_params(bp);
++
++	if (netif_running(dev))
++		return bnxt_open_nic(bp, true, false);
++
++	return 0;
++}
++
++void bnxt_rx_offload_set_napi(struct bnxt *bp)
++{
++	struct knod_dev *knodev = bp->knodev;
++	int i;
++
++	if (!BNXT_RX_OFFLOAD_MODE(bp))
++		return;
++
++	for (i = 0; i < KNOD_SPSC_MAX && i < bp->cp_nr_rings; i++)
++		WRITE_ONCE(knodev->wpriv[i].napi, &bp->bnapi[i]->napi);
++}
++
++void bnxt_rx_offload_clear_napi(struct bnxt *bp)
++{
++	struct knod_dev *knodev = bp->knodev;
++	int i;
++
++	if (!BNXT_RX_OFFLOAD_MODE(bp))
++		return;
++
++	for (i = 0; i < KNOD_SPSC_MAX; i++)
++		WRITE_ONCE(knodev->wpriv[i].napi, NULL);
++}
++
++void bnxt_rx_offload_start(struct bnxt *bp)
++{
++	if (!BNXT_RX_OFFLOAD_MODE(bp))
++		return;
++
++	knod_dev_start(bp->knodev);
++}
++
++void bnxt_rx_offload_stop(struct bnxt *bp)
++{
++	if (!BNXT_RX_OFFLOAD_MODE(bp))
++		return;
++
++	knod_dev_stop(bp->knodev);
++}
++
+ int bnxt_xdp(struct net_device *dev, struct netdev_bpf *xdp)
+ {
+ 	struct bnxt *bp = netdev_priv(dev);
++	struct knod_dev *knodev;
+ 	int rc;
+ 
++	knodev = bp->knodev;
++
+ 	switch (xdp->command) {
+ 	case XDP_SETUP_PROG:
+ 		rc = bnxt_xdp_set(bp, xdp->prog);
+ 		break;
++	case XDP_SETUP_PROG_HW:
++	case BPF_OFFLOAD_MAP_ALLOC:
++	case BPF_OFFLOAD_MAP_FREE:
++		if (!knodev)
++			return -EOPNOTSUPP;
++
++		rc = knod_dev_xdp_install(knodev, xdp);
++		break;
+ 	default:
+ 		rc = -EINVAL;
+ 		break;
+ 	}
++
+ 	return rc;
+ }
+ 
+@@ -528,3 +637,166 @@ int bnxt_xdp_rx_hash(const struct xdp_md *ctx, u32 *hash,
+ 	*rss_type = hash_type;
+ 	return 0;
  }
 +
-+static int mlx5e_rx_offload_xdp_attach(struct knod_dev *knodev)
++int bnxt_rx_offload_xdp(struct bnxt *bp, struct bnxt_rx_ring_info *rxr,
++			u16 cons, void *data, unsigned int len, int index,
++			u8 *event)
 +{
-+	struct mlx5e_priv *priv = netdev_priv(knodev->netdev);
-+	struct mlx5e_params *params = &priv->channels.params;
-+	int max_mtu = mlx5e_xdp_max_mtu(params, NULL);
++	struct knod_dev *knodev = READ_ONCE(bp->knodev);
 +
-+	if (knodev->netdev->mtu > max_mtu) {
-+		netdev_warn(knodev->netdev,
-+			    "MTU %u too big for single-page RX offload (max %d)\n",
-+			    knodev->netdev->mtu, max_mtu);
-+		return -EOPNOTSUPP;
-+	}
++	return knodev->accel_ops->xdp_ops->rx_netmem(bp->knodev, (netmem_ref)data, len,
++					  bp->rx_offset, index);
++}
 +
-+	/* The offload TX WQE carries the packet only in a data segment; the
-+	 * eth header is not inlined (a zero dummy stands in). NICs that require
-+	 * a minimum inline header (e.g. ConnectX-4) would transmit that dummy,
-+	 * so only allow attach when the device needs no inline header.
-+	 */
-+	if (params->tx_min_inline_mode != MLX5_INLINE_MODE_NONE) {
-+		netdev_warn(knodev->netdev,
-+			    "knod offload requires a NIC with inline header mode 'none'\n");
-+		return -EOPNOTSUPP;
-+	}
++static int bnxt_rx_offload_xdp_attach(struct knod_dev *knodev)
++{
++	struct bnxt *bp = netdev_priv(knodev->netdev);
++	int rc;
 +
-+	pr_debug("Attaching XDP offload to netdev %s\n", knodev->netdev->name);
-+	WRITE_ONCE(priv->knodev, knodev);
++	WRITE_ONCE(bp->knodev, knodev);
++	rc = bnxt_xdp_offload_set(bp, true);
++	if (rc)
++		WRITE_ONCE(bp->knodev, NULL);
++
++	return rc;
++}
++
++static int bnxt_rx_offload_xdp_detach(struct knod_dev *knodev)
++{
++	struct bnxt *bp = netdev_priv(knodev->netdev);
++
++	WRITE_ONCE(bp->knodev, NULL);
++	bnxt_xdp_offload_set(bp, false);
 +
 +	return 0;
 +}
 +
-+static int mlx5e_rx_offload_xdp_detach(struct knod_dev *knodev)
++static void __bnxt_xmit_netmem(struct bnxt *bp, struct bnxt_tx_ring_info *txr,
++			       dma_addr_t mapping, u32 len,
++			       netmem_ref netmem)
 +{
-+	struct mlx5e_priv *priv = netdev_priv(knodev->netdev);
++	struct bnxt_sw_tx_bd *tx_buf;
 +
-+	pr_debug("Detaching XDP offload from netdev %s\n",
-+		 knodev->netdev->name);
-+	WRITE_ONCE(priv->knodev, NULL);
-+
-+	return 0;
++	tx_buf = bnxt_xmit_bd(bp, txr, mapping, len, NULL);
++	tx_buf->action = BNXT_NETMEM_TX;
++	tx_buf->netmem = netmem;
++	netmem_dma_unmap_addr_set(netmem, tx_buf, mapping, mapping);
++	dma_unmap_len_set(tx_buf, len, 0);
 +}
 +
 +struct knod_nic_ops nic_ops = {
-+	.attach = mlx5e_rx_offload_xdp_attach,
-+	.detach = mlx5e_rx_offload_xdp_detach,
++	.attach = bnxt_rx_offload_xdp_attach,
++	.detach = bnxt_rx_offload_xdp_detach,
 +};
 +
-+int mlx5e_knod_init(struct mlx5e_priv *priv)
++int bnxt_rx_offload_act_handler(struct bnxt_napi *bnapi, int budget)
++{
++	struct bnxt_tx_ring_info *txr = bnapi->tx_ring[0];
++	struct bnxt_rx_ring_info *rxr = bnapi->rx_ring;
++	struct spsc_bd *bds[NAPI_POLL_WEIGHT];
++	u32 tx_avail, cnt, i, nxmit = 0;
++	struct knod_dev *knodev;
++	struct knod_work_priv *wpriv;
++	struct napi_struct *napi;
++	struct bnxt *bp = bnapi->bp;
++	dma_addr_t mapping;
++
++	knodev = bp->knodev;
++	if (!knodev)
++		return 0;
++
++	if (bnapi->index >= bp->dev->real_num_tx_queues) {
++		this_cpu_inc(knodev->stats->tx_dropped);
++		return 0;
++	}
++
++	wpriv = &knodev->wpriv[bnapi->index];
++	napi = READ_ONCE(wpriv->napi);
++	if (!napi)
++		return 0;
++
++	tx_avail = bnxt_tx_avail(bp, txr);
++	cnt = min_t(u32, NAPI_POLL_WEIGHT, tx_avail);
++	cnt = min_t(u32, cnt, budget);
++	if (!cnt)
++		return 0;
++
++	spsc_release(&wpriv->spsc_bds, (void **)bds, cnt, &cnt);
++	if (!cnt)
++		return 0;
++
++	for (i = 0; i < cnt; i++) {
++		switch (bds[i]->act) {
++		case KNOD_ACT_INFLIGHT:
++		case KNOD_IPSEC_INFLIGHT:
++			goto stop_release;
++		case XDP_TX:
++			mapping = netmem_to_net_iov(bds[i]->netmem)->desc.dma_addr +
++				  bds[i]->off;
++			__bnxt_xmit_netmem(bp, txr, mapping, bds[i]->len,
++					   bds[i]->netmem);
++			nxmit++;
++			break;
++		case XDP_ABORTED:
++			fallthrough;
++		case XDP_DROP:
++			fallthrough;
++		case XDP_PASS:
++			fallthrough;
++		case XDP_REDIRECT:
++			fallthrough;
++		default:
++			page_pool_recycle_direct_netmem(rxr->page_pool,
++							bds[i]->netmem);
++			this_cpu_inc(knodev->stats->tx_dropped);
++			break;
++		}
++	}
++stop_release:
++	if (nxmit) {
++		wmb();
++		bnxt_db_write(bp, &txr->tx_db, txr->tx_prod);
++	}
++	spsc_release_commit(&wpriv->spsc_bds, i);
++
++	/*
++	 * Device->host delivery: drain the framework pending ring for this NIC
++	 * RX queue and push the built skbs up the stack.  Covers all features
++	 * (bpf/none deliver directly, ipsec via knod_dev->post_copy); no-op
++	 * when nothing is attached.
++	 */
++	knod_dev_xdp_drain_pass(knodev, napi, bnapi->index, budget);
++
++	return i;
++}
++
++int bnxt_knod_init(struct bnxt *bp)
 +{
 +	struct knod_netdev *knetdev;
 +
@@ -478,516 +841,56 @@ index d8c7cb8837d7..82adfc9b7c1b 100644
 +	}
 +
 +	INIT_LIST_HEAD(&knetdev->list);
-+	knetdev->dev = priv->netdev;
-+	knetdev->priv = priv;
++	knetdev->dev = bp->dev;
++	knetdev->priv = bp;
 +	knetdev->nic_ops = &nic_ops;
 +	knetdev->owner = THIS_MODULE;
 +	knetdev->flags |= KNOD_FLAGS_XDP;
 +	knod_netdev_register(knetdev);
-+	priv->knetdev = knetdev;
++	bp->knetdev = knetdev;
 +
 +	return 0;
 +}
 +
-+void mlx5e_knod_uninit(struct mlx5e_priv *priv)
++void bnxt_knod_uninit(struct bnxt *bp)
 +{
-+	knod_netdev_unregister(priv->knetdev);
-+	kfree(priv->knetdev);
-+	priv->knetdev = NULL;
-+	kfree(priv->knodev);
-+	WRITE_ONCE(priv->knodev, NULL);
++	knod_netdev_unregister(bp->knetdev);
++	kfree(bp->knetdev);
++	bp->knetdev = NULL;
++	kfree(bp->knodev);
++	WRITE_ONCE(bp->knodev, NULL);
 +}
-+
-+void mlx5e_rx_offload_set_napi(struct mlx5e_priv *priv)
-+{
-+	struct knod_dev *knodev = priv->knodev;
-+	int i;
-+
-+	if (!knodev)
-+		return;
-+
-+	for (i = 0; i < priv->channels.num; i++) {
-+		struct mlx5e_channel *c = priv->channels.c[i];
-+		struct spsc_ring *r = &knodev->wpriv[i].spsc_bds;
-+
-+		WRITE_ONCE(knodev->wpriv[i].napi, &c->napi);
-+		c->rq.knod_spsc_prod_head = READ_ONCE(r->head);
-+		c->rq.knod_spsc_prod_valid = true;
-+	}
-+}
-+
-+void mlx5e_rx_offload_clear_napi(struct mlx5e_priv *priv)
-+{
-+	struct knod_dev *knodev = priv->knodev;
-+	int i;
-+
-+	if (!knodev)
-+		return;
-+
-+	for (i = 0; i < KNOD_SPSC_MAX; i++)
-+		WRITE_ONCE(knodev->wpriv[i].napi, NULL);
-+}
-+
-+void mlx5e_rx_offload_start(struct mlx5e_priv *priv)
-+{
-+	if (!priv->knodev)
-+		return;
-+
-+	knod_dev_start(priv->knodev);
-+}
-+
-+void mlx5e_rx_offload_stop(struct mlx5e_priv *priv)
-+{
-+	struct knod_dev *knodev = priv->knodev;
-+	int i;
-+
-+	if (!priv->knodev)
-+		return;
-+
-+	knod_dev_stop(knodev);
-+
-+	synchronize_net();
-+	for (i = 0; i < KNOD_SPSC_MAX; i++) {
-+		struct spsc_bd *bd;
-+
-+		if (i < priv->channels.num) {
-+			struct mlx5e_rq *rq = &priv->channels.c[i]->rq;
-+
-+			mlx5e_knod_spsc_flush(rq);
-+			rq->knod_spsc_prod_head = 0;
-+			rq->knod_spsc_prod_valid = false;
-+		}
-+
-+		WRITE_ONCE(knodev->wpriv[i].napi, NULL);
-+		/*
-+		 * RX is quiesced now (worker stopped by knod_dev_stop, NAPI
-+		 * drained by synchronize_net).  Return any frames the GPU
-+		 * worker did not consume back to the page_pool before the RX
-+		 * page_pool is torn down on interface down.
-+		 */
-+		spsc_rewind(&knodev->wpriv[i].spsc_bds);
-+		while (!spsc_pop(&knodev->wpriv[i].spsc_bds, (void **)&bd))
-+			page_pool_put_full_netmem(netmem_get_pp(bd->netmem),
-+						  bd->netmem, true);
-+	}
-+}
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en/xdp.h b/drivers/net/ethernet/mellanox/mlx5/core/en/xdp.h
-index 3c54f8962664..4de6babdafc5 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en/xdp.h
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en/xdp.h
-@@ -34,6 +34,7 @@
- 
- #include <linux/indirect_call_wrapper.h>
- #include <net/xdp_sock.h>
-+#include <net/knod.h>
- 
- #include "en.h"
- #include "en/txrx.h"
-@@ -64,6 +65,8 @@ enum mlx5e_xdp_xmit_mode {
- 	 * page. The UMEM Completion Ring producer pointer has to be increased.
- 	 */
- 	MLX5E_XDP_XMIT_MODE_XSK,
-+
-+	MLX5E_XDP_XMIT_MODE_OFFLOAD,
- };
- 
- /* xmit_mode entry is pushed to the fifo per packet, followed by multiple
-@@ -78,6 +81,9 @@ enum mlx5e_xdp_xmit_mode {
-  *
-  * MLX5E_XDP_XMIT_MODE_XSK:
-  *    frame.xsk_meta.
-+ *
-+ * MLX5E_XDP_XMIT_MODE_OFFLOAD:
-+ *    offload.netmem.
-  */
- #define MLX5E_XDP_FIFO_ENTRIES2DS_MAX_RATIO 4
- 
-@@ -93,6 +99,10 @@ union mlx5e_xdp_info {
- 		struct page *page;
- 	} page;
- 	struct xsk_tx_metadata_compl xsk_meta;
-+	struct {
-+		netmem_ref netmem;
-+		struct page_pool *pp;
-+	} offload;
- };
- 
- struct mlx5e_xsk_param;
-@@ -100,14 +110,21 @@ int mlx5e_xdp_max_mtu(struct mlx5e_params *params,
- 		      struct mlx5e_rq_opt_param *rqo);
- bool mlx5e_xdp_handle(struct mlx5e_rq *rq,
- 		      struct bpf_prog *prog, struct mlx5e_xdp_buff *mlctx);
-+int mlx5e_rx_offload_act_handler(struct mlx5e_rq *rq, bool flush, int budget);
-+void mlx5e_knod_spsc_flush(struct mlx5e_rq *rq);
- void mlx5e_xdp_mpwqe_complete(struct mlx5e_xdpsq *sq);
- bool mlx5e_poll_xdpsq_cq(struct mlx5e_cq *cq);
- void mlx5e_free_xdpsq_descs(struct mlx5e_xdpsq *sq);
- void mlx5e_set_xmit_fp(struct mlx5e_xdpsq *sq, bool is_mpw);
-+int mlx5e_knod_init(struct mlx5e_priv *priv);
-+void mlx5e_knod_uninit(struct mlx5e_priv *priv);
- void mlx5e_xdp_rx_poll_complete(struct mlx5e_rq *rq);
- int mlx5e_xdp_xmit(struct net_device *dev, int n, struct xdp_frame **frames,
- 		   u32 flags);
+diff --git a/drivers/net/ethernet/broadcom/bnxt/bnxt_xdp.h b/drivers/net/ethernet/broadcom/bnxt/bnxt_xdp.h
+index fb4f9143929f..7f2a850e4787 100644
+--- a/drivers/net/ethernet/broadcom/bnxt/bnxt_xdp.h
++++ b/drivers/net/ethernet/broadcom/bnxt/bnxt_xdp.h
+@@ -24,9 +24,14 @@ struct bnxt_sw_tx_bd *bnxt_xmit_bd(struct bnxt *bp,
+ 				   dma_addr_t mapping, u32 len,
+ 				   struct xdp_buff *xdp);
+ void bnxt_tx_int_xdp(struct bnxt *bp, struct bnxt_napi *bnapi, int budget);
++void bnxt_tx_int_offload(struct bnxt *bp, struct bnxt_napi *bnapi, int budget);
+ bool bnxt_rx_xdp(struct bnxt *bp, struct bnxt_rx_ring_info *rxr, u16 cons,
+ 		 struct xdp_buff *xdp, struct page *page, u8 **data_ptr,
+ 		 unsigned int *len, u8 *event);
++void bnxt_rx_offload_stop(struct bnxt *bp);
++void bnxt_rx_offload_start(struct bnxt *bp);
++void bnxt_rx_offload_set_napi(struct bnxt *bp);
++void bnxt_rx_offload_clear_napi(struct bnxt *bp);
+ int bnxt_xdp(struct net_device *dev, struct netdev_bpf *xdp);
+ int bnxt_xdp_xmit(struct net_device *dev, int num_frames,
+ 		  struct xdp_frame **frames, u32 flags);
+@@ -43,5 +48,10 @@ struct sk_buff *bnxt_xdp_build_skb(struct bnxt *bp, struct sk_buff *skb,
+ 				   struct xdp_buff *xdp);
+ int bnxt_xdp_rx_hash(const struct xdp_md *ctx, u32 *hash,
+ 		     enum xdp_rss_hash_type *rss_type);
 -
-+void mlx5e_rx_offload_start(struct mlx5e_priv *priv);
-+void mlx5e_rx_offload_stop(struct mlx5e_priv *priv);
-+void mlx5e_rx_offload_set_napi(struct mlx5e_priv *priv);
-+void mlx5e_rx_offload_clear_napi(struct mlx5e_priv *priv);
- extern const struct xdp_metadata_ops mlx5e_xdp_metadata_ops;
- extern const struct xsk_tx_metadata_ops mlx5e_xsk_tx_metadata_ops;
- 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-index aa8610cedaa8..cfc6ba6dc492 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-@@ -918,6 +918,7 @@ static int mlx5e_alloc_rq(struct mlx5e_params *params,
- 	pool_size = 1 << params->log_rq_mtu_frames;
- 
- 	rq->mkey_be = cpu_to_be32(mdev->mlx5e_res.hw_objs.mkey);
-+	rq->knodev = rq->priv->knodev;
- 
- 	switch (rq->wq_type) {
- 	case MLX5_WQ_TYPE_LINKED_LIST_STRIDING_RQ:
-@@ -1022,7 +1023,7 @@ static int mlx5e_alloc_rq(struct mlx5e_params *params,
- 		pp_params.queue_idx = rq->ix;
- 
- 		/* Shampo header data split allow for unreadable netmem */
--		if (test_bit(MLX5E_RQ_STATE_SHAMPO, &rq->state))
-+		if (test_bit(MLX5E_RQ_STATE_SHAMPO, &rq->state) || rq->knodev)
- 			pp_params.flags |= PP_FLAG_ALLOW_UNREADABLE_NETMEM;
- 
- 		/* page_pool can be used even when there is no rq->xdp_prog,
-@@ -2873,7 +2874,7 @@ static int mlx5e_open_channel(struct mlx5e_priv *priv, int ix,
- 	c->netdev   = priv->netdev;
- 	c->mkey_be  = cpu_to_be32(mdev->mlx5e_res.hw_objs.mkey);
- 	c->num_tc   = mlx5e_get_dcb_num_tc(params);
--	c->xdp      = !!params->xdp_prog;
-+	c->xdp      = !!params->xdp_prog || !!priv->knodev;
- 	c->stats    = &priv->channel_stats[ix]->ch;
- 	c->aff_mask = irq_get_effective_affinity_mask(irq);
- 	c->lag_port = mlx5e_enumerate_lag_port(mdev, ix);
-@@ -3365,6 +3366,8 @@ void mlx5e_activate_priv_channels(struct mlx5e_priv *priv)
- 
- 	if (priv->rx_res)
- 		mlx5e_rx_res_channels_activate(priv->rx_res, &priv->channels);
-+
-+	mlx5e_rx_offload_set_napi(priv);
- }
- 
- static void mlx5e_cancel_tx_timeout_work(struct mlx5e_priv *priv)
-@@ -3376,6 +3379,8 @@ static void mlx5e_cancel_tx_timeout_work(struct mlx5e_priv *priv)
- 
- void mlx5e_deactivate_priv_channels(struct mlx5e_priv *priv)
- {
-+	mlx5e_rx_offload_clear_napi(priv);
-+
- 	if (priv->rx_res)
- 		mlx5e_rx_res_channels_deactivate(priv->rx_res);
- 
-@@ -3592,6 +3597,7 @@ int mlx5e_open(struct net_device *netdev)
- 		mlx5e_modify_admin_state(priv->mdev, MLX5_PORT_UP);
- 	mutex_unlock(&priv->state_lock);
- 
-+	mlx5e_rx_offload_start(priv);
- 	return err;
- }
- 
-@@ -3623,6 +3629,7 @@ int mlx5e_close(struct net_device *netdev)
- 	if (!netif_device_present(netdev))
- 		return -ENODEV;
- 
-+	mlx5e_rx_offload_stop(priv);
- 	mutex_lock(&priv->state_lock);
- 	mlx5e_modify_admin_state(priv->mdev, MLX5_PORT_DOWN);
- 	err = mlx5e_close_locked(netdev);
-@@ -4475,7 +4482,7 @@ void mlx5e_set_xdp_feature(struct mlx5e_priv *priv)
- 	    params->packet_merge.type == MLX5E_PACKET_MERGE_NONE)
- 		val = NETDEV_XDP_ACT_BASIC | NETDEV_XDP_ACT_REDIRECT |
- 		      NETDEV_XDP_ACT_XSK_ZEROCOPY |
--		      NETDEV_XDP_ACT_RX_SG;
-+		      NETDEV_XDP_ACT_RX_SG | NETDEV_XDP_ACT_HW_OFFLOAD;
- 
- 	if (netdev->netdev_ops->ndo_xdp_xmit && params->xdp_prog)
- 		val |= NETDEV_XDP_ACT_NDO_XMIT |
-@@ -4738,6 +4745,14 @@ int mlx5e_change_mtu(struct net_device *netdev, int new_mtu,
- 		goto out;
- 	}
- 
-+	if (priv->knodev && new_mtu > mlx5e_xdp_max_mtu(&new_params, NULL)) {
-+		netdev_warn(netdev,
-+			    "MTU %d too big for single-page RX offload (max %d)\n",
-+			    new_mtu, mlx5e_xdp_max_mtu(&new_params, NULL));
-+		err = -EINVAL;
-+		goto out;
-+	}
-+
- 	if (priv->xsk.refcnt &&
- 	    !mlx5e_xsk_validate_mtu(netdev, &priv->channels,
- 				    &new_params, priv->mdev)) {
-@@ -5261,15 +5276,30 @@ static int mlx5e_xdp_set(struct net_device *netdev, struct bpf_prog *prog)
- 
- static int mlx5e_xdp(struct net_device *dev, struct netdev_bpf *xdp)
- {
-+	struct mlx5e_priv *priv = netdev_priv(dev);
-+	struct knod_dev *knodev = priv->knodev;
-+	int rc;
-+
- 	switch (xdp->command) {
- 	case XDP_SETUP_PROG:
- 		return mlx5e_xdp_set(dev, xdp->prog);
- 	case XDP_SETUP_XSK_POOL:
- 		return mlx5e_xsk_setup_pool(dev, xdp->xsk.pool,
- 					    xdp->xsk.queue_id);
-+	case XDP_SETUP_PROG_HW:
-+	case BPF_OFFLOAD_MAP_ALLOC:
-+	case BPF_OFFLOAD_MAP_FREE:
-+		if (!knodev)
-+			return -EOPNOTSUPP;
-+
-+		rc = knod_dev_xdp_install(knodev, xdp);
-+		break;
-+
- 	default:
- 		return -EINVAL;
- 	}
-+
-+	return rc;
- }
- 
- #ifdef CONFIG_MLX5_ESWITCH
-@@ -6931,6 +6961,7 @@ static int _mlx5e_probe(struct auxiliary_device *adev)
- 	mlx5e_dcbnl_init_app(priv);
- 	mlx5_core_uplink_netdev_set(mdev, netdev);
- 	mlx5e_params_print_info(mdev, &priv->channels.params);
-+	mlx5e_knod_init(priv);
- 	return 0;
- 
- err_resume:
-@@ -6982,6 +7013,7 @@ static void _mlx5e_remove(struct auxiliary_device *adev)
- 	struct mlx5e_priv *priv = netdev_priv(netdev);
- 	struct mlx5_core_dev *mdev = edev->mdev;
- 
-+	mlx5e_knod_uninit(priv);
- 	mlx5_eswitch_safe_aux_devs_remove(mdev);
- 	mlx5_core_uplink_netdev_set(mdev, NULL);
- 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c b/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
-index 6fbc0441c4b8..ff4627a0895c 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
-@@ -276,15 +276,20 @@ static int mlx5e_page_alloc_fragmented(struct page_pool *pp,
- 				       struct mlx5e_frag_page *frag_page)
- {
- 	netmem_ref netmem = page_pool_dev_alloc_netmems(pp);
-+	u32 page_idx = 0;
- 
- 	if (unlikely(!netmem))
- 		return -ENOMEM;
- 
- 	page_pool_fragment_netmem(netmem, MLX5E_PAGECNT_BIAS_MAX);
-+	if (netmem_is_net_iov(netmem))
-+		page_idx = net_iov_binding_idx(netmem_to_net_iov(netmem));
- 
- 	*frag_page = (struct mlx5e_frag_page) {
--		.netmem	= netmem,
--		.frags	= 0,
-+		.netmem		= netmem,
-+		.pp		= pp,
-+		.page_idx	= page_idx,
-+		.frags		= 0,
- 	};
- 
- 	return 0;
-@@ -1572,19 +1577,92 @@ static void mlx5e_fill_mxbuf(struct mlx5e_rq *rq, struct mlx5_cqe64 *cqe,
- 	mxbuf->rq = rq;
- }
- 
-+static inline int mlx5e_knod_spsc_produce_defer(struct mlx5e_rq *rq,
-+						struct knod_work_priv *wpriv,
-+						struct spsc_bd **bd)
-+{
-+	struct spsc_ring *r = &wpriv->spsc_bds;
-+	unsigned int head;
-+	unsigned int tail;
-+
-+	if (unlikely(!rq->knod_spsc_prod_valid)) {
-+		rq->knod_spsc_prod_head = READ_ONCE(r->head);
-+		rq->knod_spsc_prod_valid = true;
-+	}
-+
-+	head = rq->knod_spsc_prod_head;
-+	/* acquire tail to observe the slots the GPU worker has released */
-+	tail = smp_load_acquire(&r->tail);
-+	if (unlikely(head - tail > r->mask))
-+		return -ENOSPC;
-+
-+	*bd = r->slots[head & r->mask];
-+	rq->knod_spsc_prod_head = head + 1;
-+
-+	return 0;
-+}
-+
-+void mlx5e_knod_spsc_flush(struct mlx5e_rq *rq)
-+{
-+	struct knod_work_priv *wpriv;
-+	struct spsc_ring *r;
-+	unsigned int head;
-+
-+	if (unlikely(!rq->knodev || !rq->knod_spsc_prod_valid))
-+		return;
-+
-+	wpriv = &rq->knodev->wpriv[rq->ix];
-+	r = &wpriv->spsc_bds;
-+	head = rq->knod_spsc_prod_head;
-+	if (head == READ_ONCE(r->head))
-+		return;
-+
-+	/* drain WC descriptor stores before publishing the new head */
-+	wmb();
-+	/* release: publish the produced descriptors to the GPU worker */
-+	smp_store_release(&r->head, head);
-+}
-+
- static struct sk_buff *
- mlx5e_skb_from_cqe_linear(struct mlx5e_rq *rq, struct mlx5e_wqe_frag_info *wi,
- 			  struct mlx5_cqe64 *cqe, u32 cqe_bcnt)
- {
- 	struct mlx5e_frag_page *frag_page = wi->frag_page;
- 	u16 rx_headroom = rq->buff.headroom;
-+	struct knod_work_priv *wpriv;
- 	struct bpf_prog *prog;
- 	struct sk_buff *skb;
-+	struct spsc_bd *bd;
- 	u32 metasize = 0;
- 	void *va, *data;
- 	dma_addr_t addr;
- 	u32 frag_size;
- 
-+	if (likely(rq->knodev)) {
-+		wpriv = &rq->knodev->wpriv[rq->ix];
-+		if (unlikely(mlx5e_knod_spsc_produce_defer(rq, wpriv, &bd))) {
-+			mlx5e_knod_spsc_flush(rq);
-+			mlx5e_rx_offload_act_handler(rq, false, INT_MAX);
-+			if (mlx5e_knod_spsc_produce_defer(rq, wpriv, &bd)) {
-+				rq->stats->buff_alloc_err++;
-+				return NULL;
-+			}
-+		}
-+
-+		bd->netmem = frag_page->netmem;
-+		bd->pp = frag_page->pp;
-+		bd->len = cqe_bcnt;
-+		bd->off = wi->offset + rx_headroom;
-+		bd->page_idx = frag_page->page_idx;
-+		frag_page->frags++;
-+		rq->stats->packets++;
-+		rq->stats->bytes += cqe_bcnt;
-+		pr_debug("mlx5_nod: spsc produce q=%d len=%u\n",
-+			 rq->ix, cqe_bcnt);
-+
-+		return NULL;
-+	}
-+
- 	va             = netmem_address(frag_page->netmem) + wi->offset;
- 	data           = va + rx_headroom;
- 	frag_size      = MLX5_SKB_FRAG_SZ(rx_headroom + cqe_bcnt);
-@@ -2101,8 +2179,10 @@ mlx5e_skb_from_cqe_mpwrq_linear(struct mlx5e_rq *rq, struct mlx5e_mpw_info *wi,
- {
- 	struct mlx5e_frag_page *frag_page = &wi->alloc_units.frag_pages[page_idx];
- 	u16 rx_headroom = rq->buff.headroom;
-+	struct knod_work_priv *wpriv;
- 	struct bpf_prog *prog;
- 	struct sk_buff *skb;
-+	struct spsc_bd *bd;
- 	u32 metasize = 0;
- 	void *va, *data;
- 	dma_addr_t addr;
-@@ -2114,6 +2194,29 @@ mlx5e_skb_from_cqe_mpwrq_linear(struct mlx5e_rq *rq, struct mlx5e_mpw_info *wi,
- 		return NULL;
- 	}
- 
-+	if (likely(rq->knodev)) {
-+		wpriv = &rq->knodev->wpriv[rq->ix];
-+		if (unlikely(mlx5e_knod_spsc_produce_defer(rq, wpriv, &bd))) {
-+			mlx5e_knod_spsc_flush(rq);
-+			mlx5e_rx_offload_act_handler(rq, false, INT_MAX);
-+			if (mlx5e_knod_spsc_produce_defer(rq, wpriv, &bd)) {
-+				rq->stats->buff_alloc_err++;
-+				return NULL;
-+			}
-+		}
-+
-+		bd->netmem = frag_page->netmem;
-+		bd->pp = frag_page->pp;
-+		bd->len = cqe_bcnt;
-+		bd->off = head_offset + rx_headroom;
-+		bd->page_idx = frag_page->page_idx;
-+		frag_page->frags++;
-+		rq->stats->packets++;
-+		rq->stats->bytes += cqe_bcnt;
-+
-+		return NULL;
-+	}
-+
- 	va             = netmem_address(frag_page->netmem) + head_offset;
- 	data           = va + rx_headroom;
- 	frag_size      = MLX5_SKB_FRAG_SZ(rx_headroom + cqe_bcnt);
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_txrx.c b/drivers/net/ethernet/mellanox/mlx5/core/en_txrx.c
-index 185105606469..10c2ffd93dab 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_txrx.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_txrx.c
-@@ -177,6 +177,51 @@ int mlx5e_napi_poll(struct napi_struct *napi, int budget)
- 	if (likely(budget - work_done))
- 		work_done += mlx5e_poll_rx_cq(&rq->cq, budget - work_done);
- 
-+	if (likely(rq->knodev))
-+		mlx5e_knod_spsc_flush(rq);
-+
-+	/* KNOD release can process thousands of completed verdicts and enqueue
-+	 * XDP_TX MPWQEs. Refill RX WQEs first so the NIC is not left waiting
-+	 * for descriptors while the release side drains. The normal post below
-+	 * stays in place to publish pages recycled by this release pass.
-+	 */
-+	if (likely(rq->knodev))
-+		busy |= INDIRECT_CALL_2(rq->post_wqes,
-+					mlx5e_post_rx_mpwqes,
-+					mlx5e_post_rx_wqes,
-+					rq);
-+
-+	/* Drain SPSC bd ring + IPsec desc_ring unconditionally.
-+	 * napi_schedule from the GPU finish_worker may wake us with
-+	 * zero new CQEs, so act_handler (called per-CQE inside
-+	 * poll_rx_cq) won't run.  Without this top-level call,
-+	 * PASS/DROP-stamped bds are never recycled after traffic stops
-+	 * and the SPSC ring fills up.
-+	 */
-+	if (likely(rq->knodev)) {
-+		struct knod_work_priv *wpriv = &rq->knodev->wpriv[rq->ix];
-+		struct napi_struct *napi;
-+
-+		work_done += mlx5e_rx_offload_act_handler(rq, true,
-+							  budget - work_done);
-+
-+		/* KNOD direct XDP_TX keeps the RX netmem owned by the TX SQ
-+		 * until the NIC reports TX completion.  The normal NAPI order
-+		 * polls the XDP SQ before RX CQ processing, then the KNOD
-+		 * release pass can enqueue and doorbell a large burst of
-+		 * MPWQEs.  Poll once more here so completions that arrived
-+		 * during RX/release processing are visible before the final
-+		 * RX repost below.
-+		 */
-+		if (rq->xdpsq)
-+			busy |= mlx5e_poll_xdpsq_cq(&rq->xdpsq->cq);
-+
-+		napi = READ_ONCE(wpriv->napi);
-+		if (napi)
-+			knod_dev_xdp_drain_pass(rq->knodev, napi, rq->ix,
-+						budget);
-+	}
-+
- 	busy |= work_done == budget;
- 
- 	mlx5e_poll_ico_cq(&c->icosq.cq);
++int bnxt_rx_offload_xdp(struct bnxt *bp, struct bnxt_rx_ring_info *rxr,
++			u16 cons, void *data, unsigned int len, int index,
++			u8 *event);
++int bnxt_rx_offload_act_handler(struct bnxt_napi *bnapi, int budget);
++int bnxt_knod_init(struct bnxt *bp);
++void bnxt_knod_uninit(struct bnxt *bp);
+ #endif
 -- 
 2.43.0
 
