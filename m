@@ -1,63 +1,62 @@
-Received: from mail-pl1-f170.google.com (mail-pl1-f170.google.com [209.85.214.170])
+Received: from mail-pl1-f171.google.com (mail-pl1-f171.google.com [209.85.214.171])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 96DDD3B3BE4
-	for <linux-rdma@vger.kernel.org>; Sun, 19 Jul 2026 18:01:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.170
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1F69E3B3C06
+	for <linux-rdma@vger.kernel.org>; Sun, 19 Jul 2026 18:02:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.171
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784484148; cv=none; b=Ea/kB28b0MsfOPtOqorlsh01JlSu/QVwY3qS5q+/YjDB4EDlBO2aW2nVTY4AVRSFcjLLYX8kSqsPW3O3vfSdIBsHTFsnNVIgNPWgDwjbwtTNmggw6BsDQlyIznHnOahiZdmBCcZM7F1q+K0ylrsSMkJxdzh3W3qwkUfJbRddzdA=
+	t=1784484191; cv=none; b=HLSshWvbedoYQkNd3zIIebhIozwFWKKGgIkm1Ogd+rSZFYWSlJX7EPBr5W5jyzY3h58pvBXPNhWlkNPJw0LBOPE7jB54MmpB/LJvagzGfT/r4ijZ4mL2Q+E9yn+oITzoZeQI6RufyiH++PAV0C1ehU1h8VK+8W56tu7IC9b59YA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784484148; c=relaxed/simple;
-	bh=3dv/ffJumcA7GMH0JRcM4W9HUXMxzguBrELKWNvRCeE=;
+	s=arc-20240116; t=1784484191; c=relaxed/simple;
+	bh=kw8RXLQJ5L/pi5bv+kifeE7bwsxh0qwnPTg/JisPKls=;
 	h=From:To:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=bEKGsbadSFtQQAhRgubz5Brd8TyKI2UHPsAgzwOOjQiDQyOMXVrO3zyS6yc9ypKVsK9qEM0gEFIQMGBjy1vUF09dUS26EXR4r8bu/BUFjG1x3xWTt+V4v/9AbeC8D9E7/anYJk0ODjERPA5U/pOciZRvz9LSZhT7OZNw59Wa3jE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=f2Z1haqy; arc=none smtp.client-ip=209.85.214.170
+	 MIME-Version; b=tlSLcBp4lGRxw4jIEKLRccG6h41EIeHJndbhZuV9qVV7cAaJYuhrEnMUzM0I2jZAbwjige7l2gjumzuSlnDNcGHlemFJW5vBlg5lXVyaziVnBuTzD1Y3PM9x6jih9nrtCzqZXS3ykMAraZLLl9zyV8YJHRczFxsfXbyRwLe1R1w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=QtG4dukU; arc=none smtp.client-ip=209.85.214.171
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="f2Z1haqy"
-Received: by mail-pl1-f170.google.com with SMTP id d9443c01a7336-2cacf197759so100683845ad.2
-        for <linux-rdma@vger.kernel.org>; Sun, 19 Jul 2026 11:01:34 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="QtG4dukU"
+Received: by mail-pl1-f171.google.com with SMTP id d9443c01a7336-2cf27856f9cso36569045ad.2
+        for <linux-rdma@vger.kernel.org>; Sun, 19 Jul 2026 11:02:21 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1784484091; x=1785088891; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1784484141; x=1785088941; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:to:from:from:to:cc:subject:date:message-id
          :reply-to:content-type;
-        bh=azzV2bYeVsLKU7C2phxsGcESC9yqicjrMHqaNHRc6gc=;
-        b=f2Z1haqy7ya7uCoe5IRLGsUVinghy7bzLydr0Te+d4jseB/eQIeFWHBWlOFt9SuciJ
-         TGTp9lvxkgXfKbMcEMYBzfp1IAiW81LYXhpAitoOld/Gi0+RRFdEBoFl+w10aRpSKw0M
-         +09mwgGY5Mr4XsLmhxAj8CxsCHhlYuUphGfcB9dxj0+/7JPG2MXhFC2OLK+6CKU3ehOI
-         dkgq6IRuoAIBhkTlaVJiRecJ7HypG/EBRykBHeAGJJqv6WuXQGqgTH5PUZRfdN/e3Omn
-         pJryOcNHKYeVqvFMYXzfCbP6qDj1i+scGmZDPkbS8/jrm9uUJcCpwJmA/8Dcz1+HIf9z
-         Q2IA==
+        bh=zg6prSrF11vlTrFRmegzqdrSMPgY3uw3Tb6xFm9uGhI=;
+        b=QtG4dukUIT/ZO5h1AX8N4Y+Eaiahn6jkNfyn36vu5gQAmt8eng4eVFrYSK8O+SbEPu
+         uGCE83T4hLunv4Ufi1NJxoN4l+esfdYDF+bC8yefHhxone/5C3CUT4/604CUfaPsdSwx
+         CwTDj2wrA0hKLbxYg3Jw9j/Go/t+hcc6eFRYUtRVoJwZVTuUFvyxnD2YOjZkKwFQFARe
+         4FKh4KXQOW642G08AHE/YJC/EGo0tHgzwxycoLU9ymjNwU+W6Lai+cfxDxM/OyRY51L9
+         6ibEp6aYrV50yS+Wv8FVLoowv61MQ/A7gVp/Hwg505v1vRFhJG4oAAreItCWJrpLmDv0
+         OzFg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1784484091; x=1785088891;
+        d=1e100.net; s=20251104; t=1784484141; x=1785088941;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:to:from:x-gm-gg:x-gm-message-state:from:to
          :cc:subject:date:message-id:reply-to:content-type;
-        bh=azzV2bYeVsLKU7C2phxsGcESC9yqicjrMHqaNHRc6gc=;
-        b=oP8U5uGWgcfHS09A9jnJPw6ECFjJ/D0Hz3Ra9OS6+OuaGszzTyOVj1OMTpjqbHj/An
-         c6DxONo8PXgypjsBj/o8uIFFULo2KtcfYNePACd/n6iVYnyFJdsa6UGxDTxxGMWEUHhI
-         xXxoMNGP3SaE1qP7hl3ZH1e2YmL1XRws5VxseiIaDCnhG2uM93HFHBhYEyAq/nZ2NzWo
-         eegX1botPBqNOdgtF8n8FMI8x9s6RgmlS4UCtKuBnAO/YXzSbF8XDrvi68c0fXXtJQnN
-         VvHR0l0AkBmNFKiM95i43Yh/CYI38W7Ndxjn3l7cCNY+BMFFTip7K6gQpgf65metcFD3
-         ruYw==
-X-Forwarded-Encrypted: i=1; AHgh+RoMEdaHAfOy22kcZGZAhRrSsUM1Rg9QRKTiVPK8W/i1QCGC9hRdppeYMslcxSvNvt9eiSrLkEXWSxyk@vger.kernel.org
-X-Gm-Message-State: AOJu0YyYR8mhVLgUr8eE4rbkNTUUbaQdrPM9b/7Qv+joymqeltBejQPq
-	E6iWx5s1SjXvgK+klusW117FbxEHodCQ8JiJdK2cd1N93+0pdlpjkptc
-X-Gm-Gg: AfdE7ckCgKmbJhifvxk5GiF4uP1P7+iSoj3hLWP6I5n9kciGsJf33i/UKMFZ86ZTYJx
-	pqcsyGdFAO6M1HrX4/ZftiXtlvAxuBm/lnNzUt12u5n1N4DkKa0q7IQis53lONY7GR+hi3OtzbC
-	dkWaTWymy1ri+BGFypxLqkWSSPg1RGVxP5YVuROenc8B3OBmzKMzH3sTUoTi9yo4lGx8JnsQ4wz
-	zgJWjntmDjJ79Yt1bP4xP+kM1rnty8OQU+RxWg7aacfH4hwOpN8EjvXvjzYTq5yjCufa7enSTfq
-	vPey4fpnt1iG07HjRVRhARTobalx1/bESbHLFud/Jff9+yRtH08LWXGPW1gSUXPrCEq6603tbSj
-	hTkIAt4rE7yH4izS3nRDhB9WUVCBRyV4+ALQWDXB24tgzXuZF9VBsXmaGKi0BHzAuSCqNS4fCca
-	8G
-X-Received: by 2002:a17:903:3807:b0:2ce:9439:59a5 with SMTP id d9443c01a7336-2cf349a15c6mr111239485ad.36.1784484089456;
-        Sun, 19 Jul 2026 11:01:29 -0700 (PDT)
+        bh=zg6prSrF11vlTrFRmegzqdrSMPgY3uw3Tb6xFm9uGhI=;
+        b=sb61bHqQ4fKanl6W0TqWHhR1PA0GzYBg0D2csuvsRBbX03kFYPnVFaaAPAuGgaTawg
+         xm5MV4QPeJwtSrq+G8MGfamS6lyBuD3H4WJXFK6r5yWz3PKgOpcEjuzYQLU+GyRkAraw
+         jRyIGgRlTJpz7FzKUoi55vKsjxYNRao+psqrowSCOHNnAgxqgonxhFURhVC7XeVerNLy
+         zcGMjN3CFzrWUudYzOKjCjZN8e3qX9iCYIhuCQLO4V9yr+jw6pvdQYDXyX/MQzkSTW8b
+         oGOvnvwJUevUoIV6uy0QBeesqnubYn43ZCkB1681hZuiHQEw9y3D8UFvim9o+pKQp6wi
+         eRng==
+X-Forwarded-Encrypted: i=1; AHgh+RrKJKgQTAF6c2YGGquXYvt0glUVcv9HcnWplyPyBNKDsewmhkNE5eCbAlDh7L3ssVZJkMsIbdgUrqrL@vger.kernel.org
+X-Gm-Message-State: AOJu0YwZq6cLGiRzwhQVQIirzjxIH5NAS/9ATjT/5dpGKVzv575/6p1/
+	CmVfsEwjr2S1pbXvH9xtiajyx8m7qYN33CnrDk/ssUx7itc8vBBfg8uH
+X-Gm-Gg: AfdE7ckmAaAtZ7cg7zM9NdIzACRbrBVVQwrC5nFonputcObJSagJ25+zwvEgsLtfFw9
+	BcIUUFR4W4DZ6t8nZKNy3ITeBw6uWjnAHXISx+e/u2oLaHIK6ww+nRsMTU8x5nUHI6FEXBMeV1C
+	tftAzF01AVoXhMq3gxcPDDValwY//Lhi7dqcmR1Jb63yX3a7aAICcDwhSiTOsqcbOFu/6x8kdn7
+	v6l3ybuiSDxuUKcP1uwRt8jsI4Nrw31iwHzn53JoIm30FyRSQjoMQXp7njm6lNGR6X9vgohRaVG
+	yvwnifGJSgTM6MdCaR882d7gj1y7Qwu4zEamresucbXVaCsYKcjpsEG7liersYVZxXCEoc8uOeY
+	ICkcuq71OVIkjI//8Fr3CpO/Vg9C5CIXusEfdXpOj/XsvPCezcCaHH/Z71hnZOA8t0Q==
+X-Received: by 2002:a17:903:2986:b0:2ce:b7b7:30e3 with SMTP id d9443c01a7336-2cf348575cbmr130100785ad.17.1784484138203;
+        Sun, 19 Jul 2026 11:02:18 -0700 (PDT)
 Received: from ap.. ([182.213.254.91])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2cf34769bd6sm43511065ad.74.2026.07.19.11.01.16
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2cf34769bd6sm43511065ad.74.2026.07.19.11.02.05
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 19 Jul 2026 11:01:27 -0700 (PDT)
+        Sun, 19 Jul 2026 11:02:16 -0700 (PDT)
 From: Taehee Yoo <ap420073@gmail.com>
 To: Alex Deucher <alexander.deucher@amd.com>,
 	Alexei Starovoitov <ast@kernel.org>,
@@ -111,9 +110,9 @@ To: Alex Deucher <alexander.deucher@amd.com>,
 	Taehee Yoo <ap420073@gmail.com>,
 	Tariq Toukan <tariqt@nvidia.com>,
 	Yonghong Song <yonghong.song@linux.dev>
-Subject: [RFC PATCH net-next 09/13] drm/amdkfd: add BPF-to-GPU JIT offload
-Date: Sun, 19 Jul 2026 17:58:53 +0000
-Message-ID: <20260719175857.4071636-10-ap420073@gmail.com>
+Subject: [RFC PATCH net-next 13/13] drm/amdkfd: add IPsec full-packet offload
+Date: Sun, 19 Jul 2026 17:58:57 +0000
+Message-ID: <20260719175857.4071636-14-ap420073@gmail.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20260719175857.4071636-1-ap420073@gmail.com>
 References: <20260719175857.4071636-1-ap420073@gmail.com>
@@ -125,12214 +124,9100 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Add the knod BPF feature: an XDP program attached in offload mode is
-JIT-compiled from eBPF to an AMD GCN shader and dispatched on the GPU
-against packets DMA'd into GPU memory, keeping the PASS/DROP/TX verdict
-path off the host CPU.  Built as a separate module (knod_bpf).
+Add a second knod feature, alongside BPF, to show the accel ops are not
+tied to a single use case: GPU-offloaded IPsec ESP.  xfrm SAs installed
+with XFRM_DEV_OFFLOAD_PACKET are handed to the GPU, which parses ESP,
+looks up the SA, checks anti-replay, does AES-GCM decrypt and writes the
+verdict back.  Built as a separate module (knod_ipsec).
+
+This is a functional proof of concept: it demonstrates that a
+full-packet crypto feature can run on top of the knod accelerator, not
+a hardened, production-ready implementation.
 
 Signed-off-by: Taehee Yoo <ap420073@gmail.com>
-(cherry picked from commit 132d51819ffced59b5890e14bd39cab2e9c12eb4)
+(cherry picked from commit 56ea4f90b43677e6944f1bc3ca4cf02e736ec340)
 ---
- drivers/gpu/drm/amd/amdkfd/Kconfig         |    11 +
- drivers/gpu/drm/amd/amdkfd/Makefile        |     2 +
- drivers/gpu/drm/amd/amdkfd/knod/knod_bpf.c | 11554 +++++++++++++++++++
- drivers/gpu/drm/amd/amdkfd/knod/knod_bpf.h |   597 +
- 4 files changed, 12164 insertions(+)
- create mode 100644 drivers/gpu/drm/amd/amdkfd/knod/knod_bpf.c
- create mode 100644 drivers/gpu/drm/amd/amdkfd/knod/knod_bpf.h
+ drivers/gpu/drm/amd/amdkfd/Kconfig            |    9 +
+ drivers/gpu/drm/amd/amdkfd/Makefile           |    3 +
+ .../gpu/drm/amd/amdkfd/knod/aesgcm_shader.h   |  984 ++++
+ .../drm/amd/amdkfd/knod/ipsec_fused_gfx10.h   | 1796 +++++++
+ .../drm/amd/amdkfd/knod/ipsec_fused_gfx9.h    | 1349 ++++++
+ drivers/gpu/drm/amd/amdkfd/knod/knod_ipsec.c  | 4273 +++++++++++++++++
+ drivers/gpu/drm/amd/amdkfd/knod/knod_ipsec.h  |  596 +++
+ .../testing/selftests/drivers/net/knod/config |    1 +
+ 8 files changed, 9011 insertions(+)
+ create mode 100644 drivers/gpu/drm/amd/amdkfd/knod/aesgcm_shader.h
+ create mode 100644 drivers/gpu/drm/amd/amdkfd/knod/ipsec_fused_gfx10.h
+ create mode 100644 drivers/gpu/drm/amd/amdkfd/knod/ipsec_fused_gfx9.h
+ create mode 100644 drivers/gpu/drm/amd/amdkfd/knod/knod_ipsec.c
+ create mode 100644 drivers/gpu/drm/amd/amdkfd/knod/knod_ipsec.h
 
 diff --git a/drivers/gpu/drm/amd/amdkfd/Kconfig b/drivers/gpu/drm/amd/amdkfd/Kconfig
-index d93f1af749ff..708aa5fc051b 100644
+index 708aa5fc051b..67efae53e395 100644
 --- a/drivers/gpu/drm/amd/amdkfd/Kconfig
 +++ b/drivers/gpu/drm/amd/amdkfd/Kconfig
-@@ -49,3 +49,14 @@ config HSA_AMD_KNOD
+@@ -60,3 +60,12 @@ config HSA_AMD_KNOD_BPF
+ 	  the verdict path (PASS/DROP/TX) off the host CPU.
  
- 	  Say N to drop the KNOD core along with the BPF and IPsec offloads
- 	  layered on top of it.  If unsure, say Y.
+ 	  If unsure, say N.
 +
-+config HSA_AMD_KNOD_BPF
-+	tristate "KNOD BPF"
-+	depends on HSA_AMD_KNOD
++config HSA_AMD_KNOD_IPSEC
++	tristate "KNOD IPsec (xfrm) full-packet offload"
++	depends on HSA_AMD_KNOD && XFRM_OFFLOAD && INET_ESP
 +	help
-+	  GPU-accelerated XDP/BPF packet processing via KNOD.  BPF programs
-+	  attached in XDP mode are JIT-compiled to AMD GCN shaders and run
-+	  on the GPU against packets DMA'd directly into GPU memory, keeping
-+	  the verdict path (PASS/DROP/TX) off the host CPU.
-+
-+	  If unsure, say N.
++	  GPU-accelerated IPsec ESP full-packet offload via KNOD.
++	  Accepts xfrm SAs configured with XFRM_DEV_OFFLOAD_PACKET and
++	  performs ESP parse, SA lookup, anti-replay, AES-GCM decrypt and
++	  verdict writeback on the GPU.
 diff --git a/drivers/gpu/drm/amd/amdkfd/Makefile b/drivers/gpu/drm/amd/amdkfd/Makefile
-index 1834faa54863..4df3850e1466 100644
+index 4df3850e1466..c5d801ddabb7 100644
 --- a/drivers/gpu/drm/amd/amdkfd/Makefile
 +++ b/drivers/gpu/drm/amd/amdkfd/Makefile
-@@ -75,3 +75,5 @@ endif
- ifneq ($(CONFIG_HSA_AMD_KNOD),)
- AMDKFD_FILES += $(AMDKFD_PATH)/kfd_knod.o
+@@ -77,3 +77,6 @@ AMDKFD_FILES += $(AMDKFD_PATH)/kfd_knod.o
  endif
+ 
+ obj-$(CONFIG_HSA_AMD_KNOD_BPF) += $(AMDKFD_PATH)/knod/knod_bpf.o
 +
-+obj-$(CONFIG_HSA_AMD_KNOD_BPF) += $(AMDKFD_PATH)/knod/knod_bpf.o
-diff --git a/drivers/gpu/drm/amd/amdkfd/knod/knod_bpf.c b/drivers/gpu/drm/amd/amdkfd/knod/knod_bpf.c
++
++obj-$(CONFIG_HSA_AMD_KNOD_IPSEC) += $(AMDKFD_PATH)/knod/knod_ipsec.o
+diff --git a/drivers/gpu/drm/amd/amdkfd/knod/aesgcm_shader.h b/drivers/gpu/drm/amd/amdkfd/knod/aesgcm_shader.h
 new file mode 100644
-index 000000000000..f4f48e1b9f1c
+index 000000000000..ae5276edb9fd
 --- /dev/null
-+++ b/drivers/gpu/drm/amd/amdkfd/knod/knod_bpf.c
-@@ -0,0 +1,11554 @@
++++ b/drivers/gpu/drm/amd/amdkfd/knod/aesgcm_shader.h
+@@ -0,0 +1,984 @@
++/* SPDX-License-Identifier: GPL-2.0-or-later */
++/* Copyright (c) 2021 Taehee Yoo <ap420073@gmail.com>
++ * Copyright (c) 2021 Hoyeon Lee <hoyeon.rhee@gmail.com>
++ */
++
++/*
++ * AES-GCM GPU shader emit helpers for GFX9 (Vega) / GFX10 (RDNA)
++ *
++ * Per-step emitters (AES rounds, encrypt block, GHASH gfmul, T-table
++ * lookup) shared by the IPsec fused shaders.
++ */
++
++#ifndef AESGCM_SHADER_H_
++#define AESGCM_SHADER_H_
++
++#include <linux/types.h>
++#include <asm/byteorder.h>
++#include "knod_amdgpu_insn.h"
++
++/* ======================================================================
++ * Emit pattern macros (file-local)
++ *
++ * _E(fn, ...)   - emit instruction, advance n by instruction size
++ * _BR(fn, ...)  - emit branch, save position, advance n
++ * ======================================================================
++ */
++
++#define _E(fn, ...) (n += fn(__VA_ARGS__) / 4)
++#define _BR(fn, ...) ({ int _p = n; n += fn(__VA_ARGS__) / 4; _p; })
++
++/* ======================================================================
++ * AES T-table Round Helper
++ *
++ * Emits one AES round using T-table lookups from LDS.
++ *
++ * T-table layout in LDS (4KB total):
++ *   T0: offset 0..1023     (256 x 4 bytes)
++ *   T1: offset 1024..2047
++ *   T2: offset 2048..3071
++ *   T3: offset 3072..4095
++ *
++ * AES round function:
++ *   new[0] = T0[s0.b0] ^ T1[s1.b1] ^ T2[s2.b2] ^ T3[s3.b3] ^ rk[0]
++ *   new[1] = T0[s1.b0] ^ T1[s2.b1] ^ T2[s3.b2] ^ T3[s0.b3] ^ rk[1]
++ *   new[2] = T0[s2.b0] ^ T1[s3.b1] ^ T2[s0.b2] ^ T3[s1.b3] ^ rk[2]
++ *   new[3] = T0[s3.b0] ^ T1[s0.b1] ^ T2[s1.b2] ^ T3[s2.b3] ^ rk[3]
++ * ======================================================================
++ */
++
++/*
++ * Emit code to extract a byte from a VGPR and compute LDS T-table address.
++ *
++ * @buf:        instruction buffer
++ * @n:          current position
++ * @vdst_addr:  output VGPR for LDS address
++ * @vdst_val:   output VGPR for loaded T-table value (ds_read destination)
++ * @v_state:    input VGPR (state word)
++ * @byte_pos:   byte position (0, 1, 2, 3)
++ * @table_base: LDS base offset for this table (0, 1024, 2048, 3072)
++ * @s_mask:     SGPR holding 0xFF
++ * @v_tmp:      temp VGPR for byte extraction
++ */
++static int emit_ttable_lookup_gfx9(u32 *buf, int n,
++				   int v_addr, int v_val,
++				   int v_state, int byte_pos,
++				   int table_base, int s_mask, int v_tmp)
++{
++	/*
++	 * Extract byte: result = (state >> (byte_pos*8)) & 0xFF
++	 * Then: LDS addr = result * 4 + table_base
++	 */
++	if (byte_pos == 0) {
++		/* byte 0: just mask, no shift needed */
++		/* v_and_b32: src0=SGPR(mask), vsrc1=VGPR(state) */
++		_E(emit_gfx9_v_and_b32_e32, I9(buf, n), P_V(v_tmp), P_S(s_mask),
++		   P_V(v_state));
++	} else if (byte_pos == 3) {
++		/* byte 3: shift right 24, no mask needed */
++		/* v_lshrrev: vdst = vsrc1 >> src0 = v_state >> 24 */
++		_E(emit_gfx9_v_lshrrev_b32, I9(buf, n), P_V(v_tmp), P_I(24),
++		   P_V(v_state));
++	} else {
++		/* byte 1 or 2: shift then mask */
++		_E(emit_gfx9_v_lshrrev_b32, I9(buf, n), P_V(v_tmp),
++		   P_I(byte_pos * 8), P_V(v_state));
++		_E(emit_gfx9_v_and_b32_e32, I9(buf, n), P_V(v_tmp), P_S(s_mask),
++		   P_V(v_tmp));
++	}
++
++	/* LDS addr = byte * 4 + table_base */
++	/* v_lshlrev: vdst = vsrc1 << src0 = v_tmp << 2 */
++	_E(emit_gfx9_v_lshlrev_b32, I9(buf, n), P_V(v_addr), P_I(2),
++	   P_V(v_tmp));
++	if (table_base > 0)
++		_E(emit_gfx9_v_add_u32, I9(buf, n), P_V(v_addr),
++		   P_L(table_base), P_V(v_addr));
++
++	/* Issue LDS read (don't wait yet -- caller batches reads) */
++	_E(emit_gfx9_ds_read_b32, I9(buf, n), v_val, v_addr, 0);
++
++	return n;
++}
++
++/*
++ * Emit one full AES round (rounds 1 to Nr-1).
++ *
++ * @buf, @n:    instruction buffer and position
++ * @s0-s3:      input state VGPRs
++ * @d0-d3:      output state VGPRs (new state)
++ * @rk:         SGPR base for round key (4 consecutive SGPRs)
++ * @s_mask:     SGPR holding 0xFF
++ * @v_tmp:      temp VGPR for byte extraction
++ * @v_addr:     temp VGPR for LDS address
++ * @vt0-vt3:    temp VGPRs for 4 T-table values per column
++ */
++static int emit_aes_round_gfx9(u32 *buf, int n,
++			       int s0, int s1, int s2, int s3,
++			       int d0, int d1, int d2, int d3,
++			       int rk, int s_mask, int v_tmp, int v_addr,
++			       int vt0, int vt1, int vt2, int vt3)
++{
++	/*
++	 * Issue all 16 LDS reads (4 per column), then wait once.
++	 * This maximizes LDS throughput by overlapping reads.
++	 *
++	 * Column 0: T0[s0.b0] ^ T1[s1.b1] ^ T2[s2.b2] ^ T3[s3.b3]
++	 * Column 1: T0[s1.b0] ^ T1[s2.b1] ^ T2[s3.b2] ^ T3[s0.b3]
++	 * Column 2: T0[s2.b0] ^ T1[s3.b1] ^ T2[s0.b2] ^ T3[s1.b3]
++	 * Column 3: T0[s3.b0] ^ T1[s0.b1] ^ T2[s1.b2] ^ T3[s2.b3]
++	 *
++	 * We reuse d0-d3 and vt0-vt3 as temporaries for the 16 results.
++	 * Process column by column to minimize register pressure.
++	 */
++
++	/* ---- Column 0 ---- */
++	n = emit_ttable_lookup_gfx9(buf, n, v_addr, vt0, s0, 0, 0, s_mask,
++				    v_tmp);
++	n = emit_ttable_lookup_gfx9(buf, n, v_addr, vt1, s1, 1, 1024, s_mask,
++				    v_tmp);
++	n = emit_ttable_lookup_gfx9(buf, n, v_addr, vt2, s2, 2, 2048, s_mask,
++				    v_tmp);
++	n = emit_ttable_lookup_gfx9(buf, n, v_addr, vt3, s3, 3, 3072, s_mask,
++				    v_tmp);
++	_E(emit_gfx9_s_waitcnt, I9(buf, n), 0xF, 0);  /* lgkmcnt=0 */
++
++	/* XOR: d0 = vt0 ^ vt1 ^ vt2 ^ vt3 ^ rk */
++	_E(emit_gfx9_v_xor_b32_e32, I9(buf, n), P_V(d0), P_V(vt0), P_V(vt1));
++	_E(emit_gfx9_v_xor_b32_e32, I9(buf, n), P_V(d0), P_V(d0), P_V(vt2));
++	_E(emit_gfx9_v_xor_b32_e32, I9(buf, n), P_V(d0), P_V(d0), P_V(vt3));
++	_E(emit_gfx9_v_xor_b32_e32, I9(buf, n), P_V(d0), P_S(rk), P_V(d0));
++
++	/* ---- Column 1 ---- */
++	n = emit_ttable_lookup_gfx9(buf, n, v_addr, vt0, s1, 0, 0, s_mask,
++				    v_tmp);
++	n = emit_ttable_lookup_gfx9(buf, n, v_addr, vt1, s2, 1, 1024, s_mask,
++				    v_tmp);
++	n = emit_ttable_lookup_gfx9(buf, n, v_addr, vt2, s3, 2, 2048, s_mask,
++				    v_tmp);
++	n = emit_ttable_lookup_gfx9(buf, n, v_addr, vt3, s0, 3, 3072, s_mask,
++				    v_tmp);
++	_E(emit_gfx9_s_waitcnt, I9(buf, n), 0xF, 0);
++
++	_E(emit_gfx9_v_xor_b32_e32, I9(buf, n), P_V(d1), P_V(vt0), P_V(vt1));
++	_E(emit_gfx9_v_xor_b32_e32, I9(buf, n), P_V(d1), P_V(d1), P_V(vt2));
++	_E(emit_gfx9_v_xor_b32_e32, I9(buf, n), P_V(d1), P_V(d1), P_V(vt3));
++	_E(emit_gfx9_v_xor_b32_e32, I9(buf, n), P_V(d1), P_S(rk + 1), P_V(d1));
++
++	/* ---- Column 2 ---- */
++	n = emit_ttable_lookup_gfx9(buf, n, v_addr, vt0, s2, 0, 0, s_mask,
++				    v_tmp);
++	n = emit_ttable_lookup_gfx9(buf, n, v_addr, vt1, s3, 1, 1024, s_mask,
++				    v_tmp);
++	n = emit_ttable_lookup_gfx9(buf, n, v_addr, vt2, s0, 2, 2048, s_mask,
++				    v_tmp);
++	n = emit_ttable_lookup_gfx9(buf, n, v_addr, vt3, s1, 3, 3072, s_mask,
++				    v_tmp);
++	_E(emit_gfx9_s_waitcnt, I9(buf, n), 0xF, 0);
++
++	_E(emit_gfx9_v_xor_b32_e32, I9(buf, n), P_V(d2), P_V(vt0), P_V(vt1));
++	_E(emit_gfx9_v_xor_b32_e32, I9(buf, n), P_V(d2), P_V(d2), P_V(vt2));
++	_E(emit_gfx9_v_xor_b32_e32, I9(buf, n), P_V(d2), P_V(d2), P_V(vt3));
++	_E(emit_gfx9_v_xor_b32_e32, I9(buf, n), P_V(d2), P_S(rk + 2), P_V(d2));
++
++	/* ---- Column 3 ---- */
++	n = emit_ttable_lookup_gfx9(buf, n, v_addr, vt0, s3, 0, 0, s_mask,
++				    v_tmp);
++	n = emit_ttable_lookup_gfx9(buf, n, v_addr, vt1, s0, 1, 1024, s_mask,
++				    v_tmp);
++	n = emit_ttable_lookup_gfx9(buf, n, v_addr, vt2, s1, 2, 2048, s_mask,
++				    v_tmp);
++	n = emit_ttable_lookup_gfx9(buf, n, v_addr, vt3, s2, 3, 3072, s_mask,
++				    v_tmp);
++	_E(emit_gfx9_s_waitcnt, I9(buf, n), 0xF, 0);
++
++	_E(emit_gfx9_v_xor_b32_e32, I9(buf, n), P_V(d3), P_V(vt0), P_V(vt1));
++	_E(emit_gfx9_v_xor_b32_e32, I9(buf, n), P_V(d3), P_V(d3), P_V(vt2));
++	_E(emit_gfx9_v_xor_b32_e32, I9(buf, n), P_V(d3), P_V(d3), P_V(vt3));
++	_E(emit_gfx9_v_xor_b32_e32, I9(buf, n), P_V(d3), P_S(rk + 3), P_V(d3));
++
++	return n;
++}
++
++/*
++ * Emit the last AES round (SubBytes + ShiftRows + AddRoundKey, no MixColumns).
++ *
++ * S-box is extracted from T0: S(x) = (T0[x] >> 8) & 0xFF
++ * (In standard AES T-table encoding: T0[x] = {2*S(x), S(x), S(x), 3*S(x)})
++ *
++ * Last round output:
++ *   d[c] = S(s[c].b0) | (S(s[(c+1)%4].b1)<<8) |
++ *          (S(s[(c+2)%4].b2)<<16) | (S(s[(c+3)%4].b3)<<24) ^ rk[c]
++ */
++static int emit_aes_last_round_gfx9(u32 *buf, int n,
++				    int s0, int s1, int s2, int s3,
++				    int d0, int d1, int d2, int d3,
++				    int rk, int s_mask, int v_tmp, int v_addr,
++				    int vt0, int vt1, int vt2, int vt3)
++{
++	/*
++	 * For each column, look up T0 for all 4 bytes,
++	 * extract S(x) = (T0[x] >> 8) & 0xFF, then assemble.
++	 */
++	int cols[4][4] = {
++		{s0, s1, s2, s3},  /* column 0 */
++		{s1, s2, s3, s0},  /* column 1 */
++		{s2, s3, s0, s1},  /* column 2 */
++		{s3, s0, s1, s2},  /* column 3 */
++	};
++	int dsts[4] = {d0, d1, d2, d3};
++	int col;
++
++	for (col = 0; col < 4; col++) {
++		/* Look up T0 for all 4 bytes of this column */
++		n = emit_ttable_lookup_gfx9(buf, n, v_addr, vt0, cols[col][0],
++					    0, 0, s_mask, v_tmp);
++		n = emit_ttable_lookup_gfx9(buf, n, v_addr, vt1, cols[col][1],
++					    1, 0, s_mask, v_tmp);
++		n = emit_ttable_lookup_gfx9(buf, n, v_addr, vt2, cols[col][2],
++					    2, 0, s_mask, v_tmp);
++		n = emit_ttable_lookup_gfx9(buf, n, v_addr, vt3, cols[col][3],
++					    3, 0, s_mask, v_tmp);
++		_E(emit_gfx9_s_waitcnt, I9(buf, n), 0xF, 0);
++
++		/*
++		 * Extract S(x) from T0[x]:
++		 *   S(x) = (T0[x] >> 8) & 0xFF
++		 */
++		/* byte 0: S(x) in bits [15:8] of T0, place in bits [7:0] */
++		_E(emit_gfx9_v_lshrrev_b32, I9(buf, n), P_V(vt0), P_I(8),
++		   P_V(vt0));
++		_E(emit_gfx9_v_and_b32_e32, I9(buf, n), P_V(vt0), P_S(s_mask),
++		   P_V(vt0));
++
++		/* byte 1: S(x) in bits [15:8], place in bits [15:8] */
++		_E(emit_gfx9_v_and_b32_e32, I9(buf, n), P_V(vt1), P_L(0xFF00),
++		   P_V(vt1));
++
++		/* byte 2: S(x) in bits [15:8], place in bits [23:16] */
++		_E(emit_gfx9_v_lshlrev_b32, I9(buf, n), P_V(vt2), P_I(8),
++		   P_V(vt2));
++		_E(emit_gfx9_v_and_b32_e32, I9(buf, n), P_V(vt2), P_L(0xFF0000),
++		   P_V(vt2));
++
++		/* byte 3: S(x) in bits [15:8], place in bits [31:24] */
++		_E(emit_gfx9_v_lshlrev_b32, I9(buf, n), P_V(vt3), P_I(16),
++		   P_V(vt3));
++		_E(emit_gfx9_v_and_b32_e32, I9(buf, n), P_V(vt3),
++		   P_L(0xFF000000), P_V(vt3));
++
++		/* Assemble: d = b0 | b1 | b2 | b3 ^ rk */
++		_E(emit_gfx9_v_or_b32_e32, I9(buf, n), P_V(dsts[col]), P_V(vt0),
++		   P_V(vt1));
++		_E(emit_gfx9_v_or_b32_e32, I9(buf, n), P_V(dsts[col]),
++		   P_V(dsts[col]), P_V(vt2));
++		_E(emit_gfx9_v_or_b32_e32, I9(buf, n), P_V(dsts[col]),
++		   P_V(dsts[col]), P_V(vt3));
++		_E(emit_gfx9_v_xor_b32_e32, I9(buf, n), P_V(dsts[col]),
++		   P_S(rk + col), P_V(dsts[col]));
++	}
++
++	return n;
++}
++
++/* ======================================================================
++ * GFX9 AES-GCM emit helpers
++ * ======================================================================
++ */
++
++/*
++ * Register allocation:
++ *
++ * SGPRs:
++ *   s[0:3]    system: private_segment_buffer
++ *   s[4:5]    system: dispatch_ptr
++ *   s[6:7]    system: queue_ptr
++ *   s[8:9]    system: kernarg_segment_ptr
++ *   s[10:11]  system: dispatch_id
++ *   s[12:13]  system: flat_scratch_init
++ *   s14       system: private_segment_size
++ *   s15       system: workgroup_id_x
++ *   s16       system: workgroup_id_y (batch lane)
++ *   s17       system: workgroup_id_z
++ *
++ *   s[18:19]  subparam base address (computed)
++ *   s[20:21]  input buffer address (from subparam)
++ *   s[22:23]  output buffer address (from subparam)
++ *   s[24:25]  round keys address (from subparam)
++ *   s26       nbytes (from subparam)
++ *   s27       temp / block count
++ *   s[28:31]  current round key (loaded per-round)
++ *   s32       0xFF constant
++ *   s[34:35]  T-table VRAM address pair (temp)
++ *   s[36:37]  IV word 0-1 (from subparam.iv)
++ *   s38       IV word 2 (from subparam.iv, 4 bytes)
++ *   s[48:49]  saved EXEC
++ *
++ * VGPRs:
++ *   v0        workitem_id_x (tid)
++ *   v[1:4]    AES state A
++ *   v[5:8]    AES state B / T-table results
++ *   v9        byte extraction temp
++ *   v10       LDS address temp
++ *   v11       block_id (global)
++ *   v[12:13]  64-bit global memory address
++ *   v[14:17]  data words (plaintext/ciphertext)
++ *   v18       temp
++ */
++
++#define SR_KEYS		24	/* s[24:25] */
++#define SR_NBLOCKS	27
++#define SR_RK		28	/* s[28:31] round key */
++#define SR_MASK		32	/* s32 = 0xFF */
++#define SR_LOOP_CTR	33	/* s33 = loop counter (Phase 4) */
++#define SR_T_ADDR	34	/* s[34:35] temp for T-table load */
++#define SR_IV0		36	/* s36 = IV word 0 */
++#define SR_IV1		37	/* s37 = IV word 1 */
++#define SR_IV2		38	/* s38 = IV word 2 */
++#define SR_NR_ROUNDS	39	/* s39 = nr_rounds from subparam */
++#define SR_EXEC_SAVE	48	/* s[48:49] */
++
++#define VR_TID		0	/* workitem_id_x */
++#define VR_S0		1	/* state A: v[1:4] */
++#define VR_S1		2
++#define VR_S2		3
++#define VR_S3		4
++#define VR_D0		5	/* state B / T-table: v[5:8] */
++#define VR_D1		6
++#define VR_D2		7
++#define VR_D3		8
++#define VR_TMP		9	/* byte extraction temp */
++#define VR_ADDR		10	/* LDS address temp */
++#define VR_BLK		11	/* block_id */
++#define VR_GA_LO	12	/* 64-bit global addr lo */
++#define VR_GA_HI	13	/* 64-bit global addr hi */
++#define VR_DATA0	14	/* plaintext/ciphertext v[14:17] */
++#define VR_DATA1	15
++#define VR_DATA2	16
++#define VR_DATA3	17
++#define VR_TMP2		18
++/* Phase 5.5: saved AES(K, J0) result for ICV finalization */
++#define VR_J0_0		19
++#define VR_J0_1		20
++#define VR_J0_2		21
++#define VR_J0_3		22
++
++/* Phase 7 GHASH: additional SGPR for exec save during sub-masking */
++#define SR_GHASH_EXEC	40	/* s[40:41] */
++#define SR_BSWAP	44	/* s44 = 0x00010203 (bswap32 selector for v_perm_b32) */
++#define SR_RK2		56	/* s[56:59] alternate round key for double-buffered AES */
++
++/*
++ * sizeof(knod_aesgcm_subparam) = 80
++ * Offsets within subparam:
++ *   0:  u64 in
++ *   8:  u64 out
++ *   16: u64 keys
++ *   24: u64 h_table
++ *   32: u64 aad
++ *   40: u64 tag
++ *   48: u32 nbytes
++ *   52: u32 aad_len
++ *   56: u8  iv[12]  (3 words at offsets 56, 60, 64 -- last only 4 bytes)
++ *   68: u32 op
++ *   72: u32 nr_rounds  (10 or 14)
++ *   76: u32 _pad
++ *
++ * T-table addresses in knod_aesgcm_param (after sub[128]):
++ *   128 * 80 = 10240: u64 t0
++ *   10248: u64 t1
++ *   10256: u64 t2
++ *   10264: u64 t3
++ */
++#define SUBPARAM_SIZE		80
++
++#define OFF_T0			(AESGCM_MAX_DIM_Y * SUBPARAM_SIZE)
++
++/* ======================================================================
++ * GFX9 AES Block Encrypt Helper
++ *
++ * Encrypts the 128-bit block in v[VR_S0:VR_S3] using T-tables in LDS.
++ * Expects SR_KEYS = round keys GPU addr (will be advanced).
++ * Expects SR_NR_ROUNDS = number of AES rounds.
++ * Result in v[VR_S0:VR_S3].
++ * Clobbers: v[VR_D0:VR_D3], v[VR_DATA0:VR_DATA3], v[VR_TMP], v[VR_ADDR],
++ *           s[SR_RK:SR_RK+3], s[SR_NBLOCKS], s[SR_LOOP_CTR], s[SR_KEYS+1]
++ * ======================================================================
++ */
++static int emit_aes_encrypt_block_gfx9(u32 *buf, int n)
++{
++	int br_loop, loop_top;
++
++	/* Round 0: XOR with first round key */
++	_E(emit_gfx9_s_load_dwordx4, I9(buf, n), P_S(SR_RK), P_S(SR_KEYS), 0);
++	_E(emit_gfx9_s_waitcnt_lgkmcnt, I9(buf, n));
++	_E(emit_gfx9_v_xor_b32_e32, I9(buf, n), P_V(VR_S0), P_S(SR_RK),
++	   P_V(VR_S0));
++	_E(emit_gfx9_v_xor_b32_e32, I9(buf, n), P_V(VR_S1), P_S(SR_RK + 1),
++	   P_V(VR_S1));
++	_E(emit_gfx9_v_xor_b32_e32, I9(buf, n), P_V(VR_S2), P_S(SR_RK + 2),
++	   P_V(VR_S2));
++	_E(emit_gfx9_v_xor_b32_e32, I9(buf, n), P_V(VR_S3), P_S(SR_RK + 3),
++	   P_V(VR_S3));
++
++	_E(emit_gfx9_s_add_u32, I9(buf, n), P_S(SR_KEYS), P_I(16),
++	   P_S(SR_KEYS));
++	_E(emit_gfx9_s_addc_u32, I9(buf, n), P_S(SR_KEYS + 1), P_I(0),
++	   P_S(SR_KEYS + 1));
++
++	/* pair_count = nr_rounds / 2 - 1 */
++	_E(emit_gfx9_s_lshr_b32, I9(buf, n), P_S(SR_NBLOCKS), P_S(SR_NR_ROUNDS),
++	   P_I(1));
++	_E(emit_gfx9_s_add_u32, I9(buf, n), P_S(SR_NBLOCKS), P_L(0xFFFFFFFFu),
++	   P_S(SR_NBLOCKS));
++
++	_E(emit_gfx9_s_mov_b32, I9(buf, n), P_S(SR_LOOP_CTR), P_I(0));
++
++	/* Prefetch round 1 key - overlaps with loop-entry overhead */
++	_E(emit_gfx9_s_load_dwordx4, I9(buf, n), P_S(SR_RK), P_S(SR_KEYS), 0);
++
++	loop_top = n;
++
++	/* Odd round: S -> D  (SR_RK was prefetched) */
++	_E(emit_gfx9_s_waitcnt_lgkmcnt, I9(buf, n));
++	_E(emit_gfx9_s_add_u32, I9(buf, n), P_S(SR_KEYS), P_I(16),
++	   P_S(SR_KEYS));
++	_E(emit_gfx9_s_addc_u32, I9(buf, n), P_S(SR_KEYS + 1), P_I(0),
++	   P_S(SR_KEYS + 1));
++	_E(emit_gfx9_s_load_dwordx4, I9(buf, n), P_S(SR_RK2), P_S(SR_KEYS), 0);
++	n = emit_aes_round_gfx9(buf, n, VR_S0, VR_S1, VR_S2, VR_S3,
++				VR_D0, VR_D1, VR_D2, VR_D3,
++				SR_RK, SR_MASK, VR_TMP, VR_ADDR,
++				VR_DATA0, VR_DATA1, VR_DATA2, VR_DATA3);
++
++	/* Even round: D -> S  (SR_RK2 was prefetched during odd round) */
++	_E(emit_gfx9_s_waitcnt_lgkmcnt, I9(buf, n));
++	_E(emit_gfx9_s_add_u32, I9(buf, n), P_S(SR_KEYS), P_I(16),
++	   P_S(SR_KEYS));
++	_E(emit_gfx9_s_addc_u32, I9(buf, n), P_S(SR_KEYS + 1), P_I(0),
++	   P_S(SR_KEYS + 1));
++	_E(emit_gfx9_s_load_dwordx4, I9(buf, n), P_S(SR_RK), P_S(SR_KEYS), 0);
++	n = emit_aes_round_gfx9(buf, n, VR_D0, VR_D1, VR_D2, VR_D3,
++				VR_S0, VR_S1, VR_S2, VR_S3,
++				SR_RK2, SR_MASK, VR_TMP, VR_ADDR,
++				VR_DATA0, VR_DATA1, VR_DATA2, VR_DATA3);
++
++	_E(emit_gfx9_s_add_u32, I9(buf, n), P_S(SR_LOOP_CTR), P_I(1),
++	   P_S(SR_LOOP_CTR));
++	_E(emit_gfx9_s_cmp_lt_u32, I9(buf, n), P_S(SR_LOOP_CTR),
++	   P_S(SR_NBLOCKS));
++	br_loop = _BR(emit_gfx9_s_cbranch_scc1, I9(buf, n), 0);
++	patch_branch(buf, br_loop, loop_top);
++
++	/* Final odd round: S -> D  (SR_RK prefetched from last even) */
++	_E(emit_gfx9_s_waitcnt_lgkmcnt, I9(buf, n));
++	_E(emit_gfx9_s_add_u32, I9(buf, n), P_S(SR_KEYS), P_I(16),
++	   P_S(SR_KEYS));
++	_E(emit_gfx9_s_addc_u32, I9(buf, n), P_S(SR_KEYS + 1), P_I(0),
++	   P_S(SR_KEYS + 1));
++	_E(emit_gfx9_s_load_dwordx4, I9(buf, n), P_S(SR_RK2), P_S(SR_KEYS), 0);
++	n = emit_aes_round_gfx9(buf, n, VR_S0, VR_S1, VR_S2, VR_S3,
++				VR_D0, VR_D1, VR_D2, VR_D3,
++				SR_RK, SR_MASK, VR_TMP, VR_ADDR,
++				VR_DATA0, VR_DATA1, VR_DATA2, VR_DATA3);
++
++	/* Last round: D -> S  (SR_RK2 prefetched during final odd) */
++	_E(emit_gfx9_s_waitcnt_lgkmcnt, I9(buf, n));
++	n = emit_aes_last_round_gfx9(buf, n, VR_D0, VR_D1, VR_D2, VR_D3,
++				      VR_S0, VR_S1, VR_S2, VR_S3,
++				      SR_RK2, SR_MASK, VR_TMP, VR_ADDR,
++				      VR_DATA0, VR_DATA1, VR_DATA2, VR_DATA3);
++
++	return n;
++}
++
++/* ======================================================================
++ * GFX9 GF(2^128) Multiply Helper
++ *
++ * Computes Z = X * Y in GF(2^128) with GCM polynomial.
++ *
++ * Input:  X in v[VR_DATA0:VR_DATA3], Y in v[VR_D0:VR_D3]
++ * Output: Z in v[VR_S0:VR_S3]
++ * Clobbers: v[VR_TMP], v[VR_TMP2], v[VR_ADDR] (holds 0xE1000000),
++ *           v[VR_DATA0:VR_DATA3] (shifted), v[VR_D0:VR_D3] (shifted),
++ *           s[SR_LOOP_CTR]
++ *
++ * GCM bit ordering: bit 0 = MSB of first byte.
++ * Algorithm: Shoup's method (right-shift V, test MSB of X).
++ *   Z = 0, V = Y
++ *   for i = 0..127:
++ *     if MSB(X) set: Z ^= V
++ *     lsb = V[3] & 1
++ *     V >>= 1  (128-bit right shift)
++ *     if lsb: V[0] ^= 0xE1000000
++ *     X <<= 1  (128-bit left shift)
++ * ======================================================================
++ */
++static int emit_gfmul_128_gfx9(u32 *buf, int n)
++{
++	int loop_top, br_loop;
++
++	/* Z = 0 */
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n), P_V(VR_S0), P_I(0));
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n), P_V(VR_S1), P_I(0));
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n), P_V(VR_S2), P_I(0));
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n), P_V(VR_S3), P_I(0));
++
++	/* Preload reduction constant into VR_ADDR (v10) */
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n), P_V(VR_ADDR), P_L(0xE1000000));
++
++	/* Loop counter */
++	_E(emit_gfx9_s_mov_b32, I9(buf, n), P_S(SR_LOOP_CTR), P_I(0));
++
++	loop_top = n;
++
++	/* Step 1: Test MSB of X[0] via signed compare (bit 31 set = negative) */
++	_E(emit_gfx9_v_cmp_gt_i32, I9(buf, n), P_I(0), P_V(VR_DATA0));
++
++	/*
++	 * Step 2: Conditional Z ^= V.
++	 * v_cndmask selects V[i] or 0 based on VCC, then XOR into Z.
++	 * v_cndmask_b32: vdst = VCC ? vsrc1 : src0
++	 * We want: VR_TMP2 = VCC ? VR_D0 : 0
++	 * So src0=0, vsrc1=VR_D0
++	 */
++	_E(emit_gfx9_v_cndmask_b32_e32, I9(buf, n), P_V(VR_TMP2), P_I(0),
++	   P_V(VR_D0));
++	_E(emit_gfx9_v_xor_b32_e32, I9(buf, n), P_V(VR_S0), P_V(VR_S0),
++	   P_V(VR_TMP2));
++	_E(emit_gfx9_v_cndmask_b32_e32, I9(buf, n), P_V(VR_TMP2), P_I(0),
++	   P_V(VR_D1));
++	_E(emit_gfx9_v_xor_b32_e32, I9(buf, n), P_V(VR_S1), P_V(VR_S1),
++	   P_V(VR_TMP2));
++	_E(emit_gfx9_v_cndmask_b32_e32, I9(buf, n), P_V(VR_TMP2), P_I(0),
++	   P_V(VR_D2));
++	_E(emit_gfx9_v_xor_b32_e32, I9(buf, n), P_V(VR_S2), P_V(VR_S2),
++	   P_V(VR_TMP2));
++	_E(emit_gfx9_v_cndmask_b32_e32, I9(buf, n), P_V(VR_TMP2), P_I(0),
++	   P_V(VR_D3));
++	_E(emit_gfx9_v_xor_b32_e32, I9(buf, n), P_V(VR_S3), P_V(VR_S3),
++	   P_V(VR_TMP2));
++
++	/*
++	 * Step 3: Save LSB of V[3] for reduction.
++	 */
++	_E(emit_gfx9_v_and_b32_e32, I9(buf, n), P_V(VR_TMP), P_I(1), P_V(VR_D3));
++
++	/*
++	 * Step 4: 128-bit right shift V (v[D0:D3]).
++	 * v_alignbit_b32(dst, hi, lo, 1) = {hi,lo} >> 1 (lower 32 bits).
++	 */
++	_E(emit_gfx9_v_alignbit_b32, I9(buf, n), P_V(VR_D3), P_V(VR_D2),
++	   P_V(VR_D3), P_I(1));
++	_E(emit_gfx9_v_alignbit_b32, I9(buf, n), P_V(VR_D2), P_V(VR_D1),
++	   P_V(VR_D2), P_I(1));
++	_E(emit_gfx9_v_alignbit_b32, I9(buf, n), P_V(VR_D1), P_V(VR_D0),
++	   P_V(VR_D1), P_I(1));
++	_E(emit_gfx9_v_lshrrev_b32, I9(buf, n), P_V(VR_D0), P_I(1), P_V(VR_D0));
++
++	/*
++	 * Step 5: Conditional reduction V[0] ^= 0xE1000000.
++	 * If saved LSB was 1, XOR with reduction polynomial.
++	 * 0xE1000000 is preloaded in VR_ADDR (v10).
++	 */
++	_E(emit_gfx9_v_cmp_ne_u32, I9(buf, n), P_I(0), P_V(VR_TMP));
++	/* VR_TMP2 = VCC ? VR_ADDR : 0 */
++	_E(emit_gfx9_v_cndmask_b32_e32, I9(buf, n), P_V(VR_TMP2), P_I(0),
++	   P_V(VR_ADDR));
++	_E(emit_gfx9_v_xor_b32_e32, I9(buf, n), P_V(VR_D0), P_V(VR_D0),
++	   P_V(VR_TMP2));
++
++	/*
++	 * Step 6: 128-bit left shift X (v[DATA0:DATA3]).
++	 * X[0] = (X[0] << 1) | (X[1] >> 31)
++	 * X[1] = (X[1] << 1) | (X[2] >> 31)
++	 * X[2] = (X[2] << 1) | (X[3] >> 31)
++	 * X[3] = X[3] << 1
++	 */
++	_E(emit_gfx9_v_alignbit_b32, I9(buf, n), P_V(VR_DATA0), P_V(VR_DATA0),
++	   P_V(VR_DATA1), P_I(31));
++	_E(emit_gfx9_v_alignbit_b32, I9(buf, n), P_V(VR_DATA1), P_V(VR_DATA1),
++	   P_V(VR_DATA2), P_I(31));
++	_E(emit_gfx9_v_alignbit_b32, I9(buf, n), P_V(VR_DATA2), P_V(VR_DATA2),
++	   P_V(VR_DATA3), P_I(31));
++	_E(emit_gfx9_v_lshlrev_b32, I9(buf, n), P_V(VR_DATA3), P_I(1),
++	   P_V(VR_DATA3));
++
++	/* Loop control: 128 iterations */
++	_E(emit_gfx9_s_add_u32, I9(buf, n), P_S(SR_LOOP_CTR), P_I(1),
++	   P_S(SR_LOOP_CTR));
++	_E(emit_gfx9_s_cmp_lt_u32, I9(buf, n), P_S(SR_LOOP_CTR), P_L(128));
++	br_loop = _BR(emit_gfx9_s_cbranch_scc1, I9(buf, n), 0);
++	patch_branch(buf, br_loop, loop_top);
++
++	return n;
++}
++
++/* ======================================================================
++ * GFX10 (RDNA) AES-GCM emit helpers
++ *
++ * Same as GFX9 but with GFX10 encodings; GLOBAL saddr mode (scalar base
++ * + VGPR offset) avoids VOP3B v_add_co_u32 for 64-bit addresses.
++ * ======================================================================
++ */
++
++/* ---- GFX10 T-table lookup ---- */
++
++static int emit_ttable_lookup_gfx10(u32 *buf, int n,
++				    int v_addr, int v_val,
++				    int v_state, int byte_pos,
++				    int table_base, int s_mask,
++				    int v_tmp)
++{
++	if (byte_pos == 0) {
++		_E(emit_gfx10_v_and_b32_e32, I10(buf, n), P_V(v_tmp),
++		   P_S(s_mask), P_V(v_state));
++	} else if (byte_pos == 3) {
++		_E(emit_gfx10_v_lshrrev_b32, I10(buf, n), P_V(v_tmp), P_I(24),
++		   P_V(v_state));
++	} else {
++		_E(emit_gfx10_v_lshrrev_b32, I10(buf, n), P_V(v_tmp),
++		   P_I(byte_pos * 8), P_V(v_state));
++		_E(emit_gfx10_v_and_b32_e32, I10(buf, n), P_V(v_tmp),
++		   P_S(s_mask), P_V(v_tmp));
++	}
++
++	_E(emit_gfx10_v_lshlrev_b32, I10(buf, n), P_V(v_addr), P_I(2),
++	   P_V(v_tmp));
++	if (table_base > 0)
++		_E(emit_gfx10_v_add_nc_u32, I10(buf, n), P_V(v_addr),
++		   P_L(table_base), P_V(v_addr));
++
++	_E(emit_gfx10_ds_read_b32, I10(buf, n), v_val, v_addr);
++
++	return n;
++}
++
++/* ---- GFX10 AES round ---- */
++
++static int emit_aes_round_gfx10(u32 *buf, int n,
++				int s0, int s1, int s2, int s3,
++				int d0, int d1, int d2, int d3,
++				int rk, int s_mask, int v_tmp, int v_addr,
++				int vt0, int vt1, int vt2, int vt3)
++{
++	/* Column 0: T0[s0.b0] ^ T1[s1.b1] ^ T2[s2.b2] ^ T3[s3.b3] */
++	n = emit_ttable_lookup_gfx10(buf, n, v_addr, vt0, s0, 0, 0, s_mask,
++				     v_tmp);
++	n = emit_ttable_lookup_gfx10(buf, n, v_addr, vt1, s1, 1, 1024, s_mask,
++				     v_tmp);
++	n = emit_ttable_lookup_gfx10(buf, n, v_addr, vt2, s2, 2, 2048, s_mask,
++				     v_tmp);
++	n = emit_ttable_lookup_gfx10(buf, n, v_addr, vt3, s3, 3, 3072, s_mask,
++				     v_tmp);
++	_E(emit_gfx10_s_waitcnt, I10(buf, n), 0x3F, 0);
++
++	_E(emit_gfx10_v_xor_b32_e32, I10(buf, n), P_V(d0), P_V(vt0), P_V(vt1));
++	_E(emit_gfx10_v_xor_b32_e32, I10(buf, n), P_V(d0), P_V(d0), P_V(vt2));
++	_E(emit_gfx10_v_xor_b32_e32, I10(buf, n), P_V(d0), P_V(d0), P_V(vt3));
++	_E(emit_gfx10_v_xor_b32_e32, I10(buf, n), P_V(d0), P_S(rk), P_V(d0));
++
++	/* Column 1: T0[s1.b0] ^ T1[s2.b1] ^ T2[s3.b2] ^ T3[s0.b3] */
++	n = emit_ttable_lookup_gfx10(buf, n, v_addr, vt0, s1, 0, 0, s_mask,
++				     v_tmp);
++	n = emit_ttable_lookup_gfx10(buf, n, v_addr, vt1, s2, 1, 1024, s_mask,
++				     v_tmp);
++	n = emit_ttable_lookup_gfx10(buf, n, v_addr, vt2, s3, 2, 2048, s_mask,
++				     v_tmp);
++	n = emit_ttable_lookup_gfx10(buf, n, v_addr, vt3, s0, 3, 3072, s_mask,
++				     v_tmp);
++	_E(emit_gfx10_s_waitcnt, I10(buf, n), 0x3F, 0);
++
++	_E(emit_gfx10_v_xor_b32_e32, I10(buf, n), P_V(d1), P_V(vt0), P_V(vt1));
++	_E(emit_gfx10_v_xor_b32_e32, I10(buf, n), P_V(d1), P_V(d1), P_V(vt2));
++	_E(emit_gfx10_v_xor_b32_e32, I10(buf, n), P_V(d1), P_V(d1), P_V(vt3));
++	_E(emit_gfx10_v_xor_b32_e32, I10(buf, n), P_V(d1), P_S(rk + 1),
++	   P_V(d1));
++
++	/* Column 2 */
++	n = emit_ttable_lookup_gfx10(buf, n, v_addr, vt0, s2, 0, 0, s_mask,
++				     v_tmp);
++	n = emit_ttable_lookup_gfx10(buf, n, v_addr, vt1, s3, 1, 1024, s_mask,
++				     v_tmp);
++	n = emit_ttable_lookup_gfx10(buf, n, v_addr, vt2, s0, 2, 2048, s_mask,
++				     v_tmp);
++	n = emit_ttable_lookup_gfx10(buf, n, v_addr, vt3, s1, 3, 3072, s_mask,
++				     v_tmp);
++	_E(emit_gfx10_s_waitcnt, I10(buf, n), 0x3F, 0);
++
++	_E(emit_gfx10_v_xor_b32_e32, I10(buf, n), P_V(d2), P_V(vt0), P_V(vt1));
++	_E(emit_gfx10_v_xor_b32_e32, I10(buf, n), P_V(d2), P_V(d2), P_V(vt2));
++	_E(emit_gfx10_v_xor_b32_e32, I10(buf, n), P_V(d2), P_V(d2), P_V(vt3));
++	_E(emit_gfx10_v_xor_b32_e32, I10(buf, n), P_V(d2), P_S(rk + 2),
++	   P_V(d2));
++
++	/* Column 3 */
++	n = emit_ttable_lookup_gfx10(buf, n, v_addr, vt0, s3, 0, 0, s_mask,
++				     v_tmp);
++	n = emit_ttable_lookup_gfx10(buf, n, v_addr, vt1, s0, 1, 1024, s_mask,
++				     v_tmp);
++	n = emit_ttable_lookup_gfx10(buf, n, v_addr, vt2, s1, 2, 2048, s_mask,
++				     v_tmp);
++	n = emit_ttable_lookup_gfx10(buf, n, v_addr, vt3, s2, 3, 3072, s_mask,
++				     v_tmp);
++	_E(emit_gfx10_s_waitcnt, I10(buf, n), 0x3F, 0);
++
++	_E(emit_gfx10_v_xor_b32_e32, I10(buf, n), P_V(d3), P_V(vt0), P_V(vt1));
++	_E(emit_gfx10_v_xor_b32_e32, I10(buf, n), P_V(d3), P_V(d3), P_V(vt2));
++	_E(emit_gfx10_v_xor_b32_e32, I10(buf, n), P_V(d3), P_V(d3), P_V(vt3));
++	_E(emit_gfx10_v_xor_b32_e32, I10(buf, n), P_V(d3), P_S(rk + 3),
++	   P_V(d3));
++
++	return n;
++}
++
++/* ---- GFX10 AES last round ---- */
++
++static int emit_aes_last_round_gfx10(u32 *buf, int n,
++				     int s0, int s1, int s2, int s3,
++				     int d0, int d1, int d2, int d3,
++				     int rk, int s_mask, int v_tmp, int v_addr,
++				     int vt0, int vt1, int vt2, int vt3)
++{
++	int cols[4][4] = {
++		{s0, s1, s2, s3},
++		{s1, s2, s3, s0},
++		{s2, s3, s0, s1},
++		{s3, s0, s1, s2},
++	};
++	int dsts[4] = {d0, d1, d2, d3};
++	int col;
++
++	for (col = 0; col < 4; col++) {
++		n = emit_ttable_lookup_gfx10(buf, n, v_addr, vt0, cols[col][0],
++					     0, 0, s_mask, v_tmp);
++		n = emit_ttable_lookup_gfx10(buf, n, v_addr, vt1, cols[col][1],
++					     1, 0, s_mask, v_tmp);
++		n = emit_ttable_lookup_gfx10(buf, n, v_addr, vt2, cols[col][2],
++					     2, 0, s_mask, v_tmp);
++		n = emit_ttable_lookup_gfx10(buf, n, v_addr, vt3, cols[col][3],
++					     3, 0, s_mask, v_tmp);
++		_E(emit_gfx10_s_waitcnt, I10(buf, n), 0x3F, 0);
++
++		/* S(x) = (T0[x] >> 8) & 0xFF */
++		_E(emit_gfx10_v_lshrrev_b32, I10(buf, n), P_V(vt0), P_I(8),
++		   P_V(vt0));
++		_E(emit_gfx10_v_and_b32_e32, I10(buf, n), P_V(vt0), P_S(s_mask),
++		   P_V(vt0));
++
++		_E(emit_gfx10_v_and_b32_e32, I10(buf, n), P_V(vt1), P_L(0xFF00),
++		   P_V(vt1));
++
++		_E(emit_gfx10_v_lshlrev_b32, I10(buf, n), P_V(vt2), P_I(8),
++		   P_V(vt2));
++		_E(emit_gfx10_v_and_b32_e32, I10(buf, n), P_V(vt2),
++		   P_L(0xFF0000), P_V(vt2));
++
++		_E(emit_gfx10_v_lshlrev_b32, I10(buf, n), P_V(vt3), P_I(16),
++		   P_V(vt3));
++		_E(emit_gfx10_v_and_b32_e32, I10(buf, n), P_V(vt3),
++		   P_L(0xFF000000), P_V(vt3));
++
++		_E(emit_gfx10_v_or_b32_e32, I10(buf, n), P_V(dsts[col]),
++		   P_V(vt0), P_V(vt1));
++		_E(emit_gfx10_v_or_b32_e32, I10(buf, n), P_V(dsts[col]),
++		   P_V(dsts[col]), P_V(vt2));
++		_E(emit_gfx10_v_or_b32_e32, I10(buf, n), P_V(dsts[col]),
++		   P_V(dsts[col]), P_V(vt3));
++		_E(emit_gfx10_v_xor_b32_e32, I10(buf, n), P_V(dsts[col]),
++		   P_S(rk + col), P_V(dsts[col]));
++	}
++
++	return n;
++}
++
++/* ======================================================================
++ * GFX10 AES Encrypt Block Helper
++ *
++ * Same as emit_aes_encrypt_block_gfx9 but with GFX10 instructions.
++ * Input:  plaintext in v[VR_S0:VR_S3]
++ * Output: ciphertext in v[VR_S0:VR_S3]
++ * Requires: SR_KEYS, SR_NR_ROUNDS set. T-tables in LDS.
++ * ======================================================================
++ */
++static int emit_aes_encrypt_block_gfx10(u32 *buf, int n)
++{
++	int br_loop, loop_top;
++
++	/* Round 0: XOR with first round key */
++	_E(emit_gfx10_s_load_dwordx4, I10(buf, n), P_S(SR_RK), P_S(SR_KEYS), 0);
++	_E(emit_gfx10_s_waitcnt_lgkmcnt, I10(buf, n));
++	_E(emit_gfx10_v_xor_b32_e32, I10(buf, n), P_V(VR_S0), P_S(SR_RK),
++	   P_V(VR_S0));
++	_E(emit_gfx10_v_xor_b32_e32, I10(buf, n), P_V(VR_S1), P_S(SR_RK + 1),
++	   P_V(VR_S1));
++	_E(emit_gfx10_v_xor_b32_e32, I10(buf, n), P_V(VR_S2), P_S(SR_RK + 2),
++	   P_V(VR_S2));
++	_E(emit_gfx10_v_xor_b32_e32, I10(buf, n), P_V(VR_S3), P_S(SR_RK + 3),
++	   P_V(VR_S3));
++
++	_E(emit_gfx10_s_add_u32, I10(buf, n), P_S(SR_KEYS), P_I(16),
++	   P_S(SR_KEYS));
++	_E(emit_gfx10_s_addc_u32, I10(buf, n), P_S(SR_KEYS + 1), P_I(0),
++	   P_S(SR_KEYS + 1));
++
++	/* pair_count = nr_rounds / 2 - 1 */
++	_E(emit_gfx10_s_lshr_b32, I10(buf, n), P_S(SR_NBLOCKS),
++	   P_S(SR_NR_ROUNDS), P_I(1));
++	_E(emit_gfx10_s_add_u32, I10(buf, n), P_S(SR_NBLOCKS), P_L(0xFFFFFFFFu),
++	   P_S(SR_NBLOCKS));
++
++	_E(emit_gfx10_s_mov_b32, I10(buf, n), P_S(SR_LOOP_CTR), P_I(0));
++
++	/* Prefetch round 1 key - overlaps with loop-entry overhead */
++	_E(emit_gfx10_s_load_dwordx4, I10(buf, n), P_S(SR_RK), P_S(SR_KEYS), 0);
++
++	loop_top = n;
++
++	/* Odd round: S -> D  (SR_RK was prefetched) */
++	_E(emit_gfx10_s_waitcnt_lgkmcnt, I10(buf, n));
++	_E(emit_gfx10_s_add_u32, I10(buf, n), P_S(SR_KEYS), P_I(16),
++	   P_S(SR_KEYS));
++	_E(emit_gfx10_s_addc_u32, I10(buf, n), P_S(SR_KEYS + 1), P_I(0),
++	   P_S(SR_KEYS + 1));
++	_E(emit_gfx10_s_load_dwordx4, I10(buf, n), P_S(SR_RK2), P_S(SR_KEYS),
++	   0);
++	n = emit_aes_round_gfx10(buf, n, VR_S0, VR_S1, VR_S2, VR_S3,
++				 VR_D0, VR_D1, VR_D2, VR_D3,
++				 SR_RK, SR_MASK, VR_TMP, VR_ADDR,
++				 VR_DATA0, VR_DATA1, VR_DATA2, VR_DATA3);
++
++	/* Even round: D -> S  (SR_RK2 was prefetched during odd round) */
++	_E(emit_gfx10_s_waitcnt_lgkmcnt, I10(buf, n));
++	_E(emit_gfx10_s_add_u32, I10(buf, n), P_S(SR_KEYS), P_I(16),
++	   P_S(SR_KEYS));
++	_E(emit_gfx10_s_addc_u32, I10(buf, n), P_S(SR_KEYS + 1), P_I(0),
++	   P_S(SR_KEYS + 1));
++	_E(emit_gfx10_s_load_dwordx4, I10(buf, n), P_S(SR_RK), P_S(SR_KEYS), 0);
++	n = emit_aes_round_gfx10(buf, n, VR_D0, VR_D1, VR_D2, VR_D3,
++				 VR_S0, VR_S1, VR_S2, VR_S3,
++				 SR_RK2, SR_MASK, VR_TMP, VR_ADDR,
++				 VR_DATA0, VR_DATA1, VR_DATA2, VR_DATA3);
++
++	_E(emit_gfx10_s_add_u32, I10(buf, n), P_S(SR_LOOP_CTR), P_I(1),
++	   P_S(SR_LOOP_CTR));
++	_E(emit_gfx10_s_cmp_lt_u32, I10(buf, n), P_S(SR_LOOP_CTR),
++	   P_S(SR_NBLOCKS));
++	br_loop = _BR(emit_gfx10_s_cbranch_scc1, I10(buf, n), 0);
++	patch_branch(buf, br_loop, loop_top);
++
++	/* Final odd round: S -> D  (SR_RK prefetched from last even) */
++	_E(emit_gfx10_s_waitcnt_lgkmcnt, I10(buf, n));
++	_E(emit_gfx10_s_add_u32, I10(buf, n), P_S(SR_KEYS), P_I(16),
++	   P_S(SR_KEYS));
++	_E(emit_gfx10_s_addc_u32, I10(buf, n), P_S(SR_KEYS + 1), P_I(0),
++	   P_S(SR_KEYS + 1));
++	_E(emit_gfx10_s_load_dwordx4, I10(buf, n), P_S(SR_RK2), P_S(SR_KEYS),
++	   0);
++	n = emit_aes_round_gfx10(buf, n, VR_S0, VR_S1, VR_S2, VR_S3,
++				 VR_D0, VR_D1, VR_D2, VR_D3,
++				 SR_RK, SR_MASK, VR_TMP, VR_ADDR,
++				 VR_DATA0, VR_DATA1, VR_DATA2, VR_DATA3);
++
++	/* Last round: D -> S  (SR_RK2 prefetched during final odd) */
++	_E(emit_gfx10_s_waitcnt_lgkmcnt, I10(buf, n));
++	n = emit_aes_last_round_gfx10(buf, n, VR_D0, VR_D1, VR_D2, VR_D3,
++				      VR_S0, VR_S1, VR_S2, VR_S3,
++				      SR_RK2, SR_MASK, VR_TMP, VR_ADDR,
++				      VR_DATA0, VR_DATA1, VR_DATA2, VR_DATA3);
++
++	return n;
++}
++
++/* ======================================================================
++ * GFX10 GF(2^128) Multiply Helper
++ *
++ * Same algorithm as GFX9 version but with GFX10 instructions.
++ * Input:  X in v[VR_DATA0:VR_DATA3], Y in v[VR_D0:VR_D3]
++ * Output: Z in v[VR_S0:VR_S3]
++ * ======================================================================
++ */
++static int emit_gfmul_128_gfx10(u32 *buf, int n)
++{
++	int loop_top, br_loop;
++
++	/* Z = 0 */
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(VR_S0), P_I(0));
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(VR_S1), P_I(0));
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(VR_S2), P_I(0));
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(VR_S3), P_I(0));
++
++	/* Preload reduction constant into VR_ADDR (v10) */
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(VR_ADDR),
++	   P_L(0xE1000000));
++
++	_E(emit_gfx10_s_mov_b32, I10(buf, n), P_S(SR_LOOP_CTR), P_I(0));
++
++	loop_top = n;
++
++	/* Step 1: Test MSB of X[0] via signed compare (bit 31 set = negative) */
++	_E(emit_gfx10_v_cmp_gt_i32, I10(buf, n), P_I(0), P_V(VR_DATA0));
++
++	/* Step 2: Conditional Z ^= V */
++	_E(emit_gfx10_v_cndmask_b32_e32, I10(buf, n), P_V(VR_TMP2), P_I(0),
++	   P_V(VR_D0));
++	_E(emit_gfx10_v_xor_b32_e32, I10(buf, n), P_V(VR_S0), P_V(VR_S0),
++	   P_V(VR_TMP2));
++	_E(emit_gfx10_v_cndmask_b32_e32, I10(buf, n), P_V(VR_TMP2), P_I(0),
++	   P_V(VR_D1));
++	_E(emit_gfx10_v_xor_b32_e32, I10(buf, n), P_V(VR_S1), P_V(VR_S1),
++	   P_V(VR_TMP2));
++	_E(emit_gfx10_v_cndmask_b32_e32, I10(buf, n), P_V(VR_TMP2), P_I(0),
++	   P_V(VR_D2));
++	_E(emit_gfx10_v_xor_b32_e32, I10(buf, n), P_V(VR_S2), P_V(VR_S2),
++	   P_V(VR_TMP2));
++	_E(emit_gfx10_v_cndmask_b32_e32, I10(buf, n), P_V(VR_TMP2), P_I(0),
++	   P_V(VR_D3));
++	_E(emit_gfx10_v_xor_b32_e32, I10(buf, n), P_V(VR_S3), P_V(VR_S3),
++	   P_V(VR_TMP2));
++
++	/* Step 3: Save LSB of V[3] */
++	_E(emit_gfx10_v_and_b32_e32, I10(buf, n), P_V(VR_TMP), P_I(1),
++	   P_V(VR_D3));
++
++	/* Step 4: 128-bit right shift V */
++	_E(emit_gfx10_v_alignbit_b32, I10(buf, n), P_V(VR_D3), P_V(VR_D2),
++	   P_V(VR_D3), P_I(1));
++	_E(emit_gfx10_v_alignbit_b32, I10(buf, n), P_V(VR_D2), P_V(VR_D1),
++	   P_V(VR_D2), P_I(1));
++	_E(emit_gfx10_v_alignbit_b32, I10(buf, n), P_V(VR_D1), P_V(VR_D0),
++	   P_V(VR_D1), P_I(1));
++	_E(emit_gfx10_v_lshrrev_b32, I10(buf, n), P_V(VR_D0), P_I(1),
++	   P_V(VR_D0));
++
++	/* Step 5: Conditional reduction V[0] ^= 0xE1000000 */
++	_E(emit_gfx10_v_cmp_ne_u32, I10(buf, n), P_I(0), P_V(VR_TMP));
++	_E(emit_gfx10_v_cndmask_b32_e32, I10(buf, n), P_V(VR_TMP2), P_I(0),
++	   P_V(VR_ADDR));
++	_E(emit_gfx10_v_xor_b32_e32, I10(buf, n), P_V(VR_D0), P_V(VR_D0),
++	   P_V(VR_TMP2));
++
++	/* Step 6: 128-bit left shift X */
++	_E(emit_gfx10_v_alignbit_b32, I10(buf, n), P_V(VR_DATA0), P_V(VR_DATA0),
++	   P_V(VR_DATA1), P_I(31));
++	_E(emit_gfx10_v_alignbit_b32, I10(buf, n), P_V(VR_DATA1), P_V(VR_DATA1),
++	   P_V(VR_DATA2), P_I(31));
++	_E(emit_gfx10_v_alignbit_b32, I10(buf, n), P_V(VR_DATA2), P_V(VR_DATA2),
++	   P_V(VR_DATA3), P_I(31));
++	_E(emit_gfx10_v_lshlrev_b32, I10(buf, n), P_V(VR_DATA3), P_I(1),
++	   P_V(VR_DATA3));
++
++	/* Loop control: 128 iterations */
++	_E(emit_gfx10_s_add_u32, I10(buf, n), P_S(SR_LOOP_CTR), P_I(1),
++	   P_S(SR_LOOP_CTR));
++	_E(emit_gfx10_s_cmp_lt_u32, I10(buf, n), P_S(SR_LOOP_CTR), P_L(128));
++	br_loop = _BR(emit_gfx10_s_cbranch_scc1, I10(buf, n), 0);
++	patch_branch(buf, br_loop, loop_top);
++
++	return n;
++}
++
++#undef _E
++#undef _BR
++
++#endif /* AESGCM_SHADER_H_ */
+diff --git a/drivers/gpu/drm/amd/amdkfd/knod/ipsec_fused_gfx10.h b/drivers/gpu/drm/amd/amdkfd/knod/ipsec_fused_gfx10.h
+new file mode 100644
+index 000000000000..555bf2962f73
+--- /dev/null
++++ b/drivers/gpu/drm/amd/amdkfd/knod/ipsec_fused_gfx10.h
+@@ -0,0 +1,1796 @@
++/* SPDX-License-Identifier: GPL-2.0-or-later */
++/* Copyright (c) 2021 Taehee Yoo <ap420073@gmail.com>
++ * Copyright (c) 2021 Hoyeon Lee <hoyeon.rhee@gmail.com>
++ */
++
++/*
++ * KNOD IPsec fused RX shader - GFX9 (Vega10/20).
++ *
++ * Full AES-GCM decrypt pipeline for inbound ESP packets:
++ *   1) ESP header parse -> SPI + seq extract
++ *   2) SA table linear scan -> resolve SPI to slot index
++ *   3) Cooperative T-table load (VRAM -> LDS, 256 threads)
++ *   4) AES-CTR decrypt ciphertext -> out_addr
++ *   5) Parallel GHASH over (AAD || ciphertext || len)
++ *   6) ICV verify (GHASH ^ AES(K,J0) vs received tag)
++ *   7) ESP trailer strip -> inner_len
++ *   8) Write verdict to bd->act, inner_len to bd->len
++ *
++ * Dispatch geometry:
++ *   workgroup  = (256, 1, 1)     - 256 threads = 1 AES block per thread
++ *   grid       = (256, nr_pkts, 1)
++ *   workgroup_id_y == packet index in the batch
++ *
++ * Anti-replay is NOT in the shader - CPU-side sliding window in NIC NAPI.
++ *
++ * Verdict encoding in bd->act high32:
++ *   0..NR_SA-1  - SA hit + ICV pass, value is slot_idx
++ *   0xFFFFFFFF  - SA miss (no entry for this SPI)
++ *   0xFFFFFFFE  - non-IPv4/IPv6 bypass (unknown L3 protocol)
++ *   0xFFFFFFFD  - ICV mismatch (decrypt succeeded but tag wrong)
++ *
++ * bd->len is set to inner_len on success (decrypted payload minus ESP
++ * trailer and padding). On miss/bypass/ICV-fail, bd->len is left as-is.
++ */
++
++#ifndef KNOD_HELPERS_IPSEC_FUSED_GFX10_H_
++#define KNOD_HELPERS_IPSEC_FUSED_GFX10_H_
++
++#include <linux/types.h>
++#include "knod_amdgpu_insn.h"
++/* Provide AESGCM_MAX_DIM_Y so aesgcm_shader.h compiles (OFF_T0 macro).
++ * Only emit_aes_encrypt_block_gfx10 / emit_gfmul_128_gfx10 are used here;
++ * the full aesgcm_gen_shader_* functions are unreferenced.
++ */
++#ifndef AESGCM_MAX_DIM_Y
++#define AESGCM_MAX_DIM_Y	1024
++#endif
++#include "aesgcm_shader.h"
++
++/* SA entry constants - must match knod_ipsec.h */
++#define KNOD_IPSEC_SHADER_NR_SA	256
++#define KNOD_IPSEC_SHADER_SA_ENTRY_SZ	104
++
++/* SA entry field offsets (struct knod_ipsec_sa_entry) */
++#define SA_OFF_SPI		0
++#define SA_OFF_KEY_ADDR		16
++#define SA_OFF_HTABLE_ADDR	24
++#define SA_OFF_T_TABLES_ADDR	32
++#define SA_OFF_SALT		40
++#define SA_OFF_KEY_LEN		44
++#define SA_OFF_NR_ROUNDS	48
++#define SA_OFF_MODE		52	/* XFRM_MODE_TRANSPORT=0, TUNNEL=1 */
++#define SA_OFF_STATS_ADDR	88	/* per-SA GPU stats (u64 gpu addr) */
++
++/* ESP packet geometry (ETH=14, IPv4=20 / IPv6=40, no VLAN/opts).
++ * IPv4: ESP header starts at offset 34 (14+20).
++ * IPv6: ESP header starts at offset 54 (14+40).
++ * Within ESP header: SPI+0, seq+4, IV+8, ctext+16.
++ * The shader dynamically computes offsets based on IP version.
++ */
++#define ESP_HDR_OFF_V4		34	/* ETH(14) + IPv4(20) */
++#define ESP_HDR_OFF_V6		54	/* ETH(14) + IPv6(40) */
++#define ESP_REL_SPI		0
++#define ESP_REL_SEQ		4
++#define ESP_REL_IV		8
++#define ESP_REL_CTEXT		16	/* SPI(4)+seq(4)+IV(8) */
++#define ESP_ICV_LEN		16
++
++/* Fixed IPv4 layout offsets used by the crypto KAT */
++#define ESP_SPI_OFF		34
++#define ESP_SEQ_OFF		38
++#define ESP_IV_OFF		42
++#define ESP_CTEXT_OFF		50
++
++/* Fused sub[] offsets within kernarg (sub[i] = kernarg + 40 + i*32) */
++#define SUB_BASE_OFF		40
++#define SUB_STRIDE		32
++#define SUB_OFF_PKT_ADDR	0
++#define SUB_OFF_OUT_ADDR	8
++#define SUB_OFF_BD_ADDR		16
++#define SUB_OFF_PKT_LEN		24
++#define SUB_OFF_RESULT_SEQ	28
++
++/* ICV-fail sentinel (distinct from MISS=0xFFFFFFFF and BYPASS=0xFFFFFFFE) */
++#define VERDICT_ICV_FAIL	0xFFFFFFFDu
++
++/* High VGPRs for saving pre-crypto IPsec state (above AES v0-v22 range) */
++#define VR_SAVE_SLOT		30
++#define VR_SAVE_BD_LO		31
++#define VR_SAVE_BD_HI		32
++#define VR_SAVE_PKT_LO		33
++#define VR_SAVE_PKT_HI		34
++#define VR_SAVE_PKTLEN		35
++#define VR_SAVE_OUT_LO		36
++#define VR_SAVE_OUT_HI		37
++#define VR_SAVE_SEQ		38
++#define VR_SAVE_SPI		39
++#define VR_SAVE_STATS_LO	40	/* per-SA stats GPU addr low */
++#define VR_SAVE_STATS_HI	41	/* per-SA stats GPU addr high */
++/* ESP header offset: 34(v4) or 54(v6) */
++#define VR_SAVE_ESP_OFF		42
++/* Ciphertext prefetch destination - free v23-v27, outside AES v0-v22 range */
++#define VR_PREFETCH0		23
++#define VR_PREFETCH1		24
++#define VR_PREFETCH2		25
++#define VR_PREFETCH3		26
++/* extra dword for GFX10 unaligned fix */
++#define VR_PREFETCH4		27
++
++/* Extra SGPRs for IPsec-specific state that survives into AES phases.
++ * These must NOT collide with SR_* from aesgcm_shader.h (s18-s49, s56-s59).
++ * s50-s55 are IPsec-specific. s56-s59 = SR_RK2 (AES round key double-buffer).
++ */
++#define SR_CTEXT_LEN		50	/* ciphertext length in bytes */
++#define SR_NBLOCKS_GCM		51	/* ceil(ctext_len/16) */
++#define SR_HTABLE_LO		52	/* H-power table GPU addr */
++#define SR_HTABLE_HI		53
++#define SR_TOTAL_GHASH_BLK	54	/* nblocks + 2 (AAD + ctext + len) */
++#define SR_SA_MODE		55	/* XFRM_MODE_TRANSPORT=0, TUNNEL=1 */
++
++/* File-local emit helpers */
++#ifndef _KNOD_IPSEC_EMIT
++#define _KNOD_IPSEC_EMIT
++#define _E(fn, ...) (n += fn(__VA_ARGS__) / 4)
++#define _BR(fn, ...) ({ int _p = n; n += fn(__VA_ARGS__) / 4; _p; })
++#endif
++
++/*
++ * KNOD_IPSEC_GFX10_DIAG_STUB - graduated diagnostic stubs.
++ * Uncomment exactly one level to bisect the SQC inst-fault:
++ *
++ *  Level 1: bare s_endpgm - tests KD, entry offset, BO mapping.
++ *  Level 2: compute bd_addr from kernarg, store 0xDEAD0001, endpgm.
++ *           Tests SGPR layout, VOP2/VOP1 ALU, GLOBAL load/store.
++ *  Level 3: full Phase 0 (parse + SA scan) + write result, endpgm.
++ *           Tests branches, patch_branch, VOP3B carry, SOPC.
++ *
++ * Leave all commented out for the real shader.
++ */
++/* #define KNOD_IPSEC_GFX10_DIAG_STUB 1 */
++/* #define KNOD_IPSEC_GFX10_DIAG_STUB 7 */
++/* #define KNOD_IPSEC_GFX10_DIAG_STUB 2 */
++/* #define KNOD_IPSEC_GFX10_DIAG_STUB 3 */
++/* #define KNOD_IPSEC_GFX10_DIAG_STUB 4 */
++/* #define KNOD_IPSEC_GFX10_DIAG_STUB 5 */
++
++static inline int kfd_ipsec_gen_fused_shader_gfx10(void *vbuf)
++{
++	int br_skip12, br_skip14, br_skip15, br_skip18, br_skip16, br_skip13;
++	int br_skip_aad, br_skip_ctext, br_skip_len;
++	int loop_top, br_match, br_loop, br_end;
++	int br_no_sdma, br_no_copy, br_not_last;
++	int br_ipv4, br_bypass, br_crypto_end;
++	int br_ipv6, br_v6_to_common;
++	int br_not_transport, li;
++	const int L3_TMP_BASE = 14;	/* v14..v23 */
++	u32 *buf = (u32 *)vbuf;
++	int br_crypto_done;
++	int br_execz_ctr;
++	int br_execz2;
++	int br_icv_bad;
++	int br_icv_ok;
++	int br_tid0;
++	int br_skip;
++	int br_ok;
++	int level;
++	int n = 0;
++
++#if defined(KNOD_IPSEC_GFX10_DIAG_STUB) && KNOD_IPSEC_GFX10_DIAG_STUB == 1
++	/* LEVEL 1: bare s_endpgm - if this faults, KD or BO mapping is
++	 * wrong
++	 */
++	_E(emit_gfx10_s_endpgm, I10(buf, n));
++	while (n % 256)
++		_E(emit_gfx10_s_code_end, I10(buf, n));
++	pr_info("knod_ipsec: GFX10 DIAG STUB level 1 (bare endpgm), %d bytes\n",
++		n * 4);
++	return n * 4;
++#endif
++
++#if defined(KNOD_IPSEC_GFX10_DIAG_STUB) && KNOD_IPSEC_GFX10_DIAG_STUB == 2
++	/* LEVEL 2: load bd_addr from kernarg, write 0xDEAD0001 to bd+8.
++	 * Tests: s8/s9 kernarg ptr, s16 workgroup_id_y, VOP1/VOP2 ALU,
++	 * GLOBAL_LOAD_DWORDX2, GLOBAL_STORE_DWORD, s_waitcnt.
++	 */
++	_E(emit_gfx10_s_waitcnt_vmcnt_lgkmcnt, I10(buf, n));
++	/* v1 = sub offset = 40 + wg_id_y * 32 */
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(1), P_S(16));
++	_E(emit_gfx10_v_lshlrev_b32, I10(buf, n), P_V(1), P_I(5), P_V(1));
++	_E(emit_gfx10_v_add_nc_u32, I10(buf, n), P_V(1), P_L(SUB_BASE_OFF),
++	   P_V(1));
++	/* v[3:4] = &sub[wg_id_y] */
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(2), P_S(9));
++	_E(emit_gfx10_v_add_co_u32, I10(buf, n), P_V(3), P_S(8), P_V(1));
++	_E(emit_gfx10_v_add_co_ci_u32_e32, I10(buf, n), P_V(4), P_I(0), P_V(2));
++	/* v[5:6] = sub[].bd_addr */
++	_E(emit_gfx10_global_load_dwordx2, I10(buf, n), P_V(5), P_V(3),
++	   SUB_OFF_BD_ADDR);
++	_E(emit_gfx10_s_waitcnt_vmcnt, I10(buf, n));
++	/* v0 = 0 for lane check: only lane 0 writes */
++	_E(emit_gfx10_v_cmp_eq_u32, I10(buf, n), P_I(0), P_V(0));
++	br_skip = _BR(emit_gfx10_s_cbranch_vccz, I10(buf, n), 0);
++	/* write 0xDEAD0001 to bd->act (offset +8) */
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(7),
++	   P_L(0xDEAD0001u));
++	_E(emit_gfx10_global_store_dword, I10(buf, n), P_V(5), P_V(7), 8);
++	_E(emit_gfx10_s_waitcnt_vmcnt, I10(buf, n));
++	patch_branch(buf, br_skip, n);
++	_E(emit_gfx10_s_endpgm, I10(buf, n));
++	while (n % 256)
++		_E(emit_gfx10_s_code_end, I10(buf, n));
++	pr_info("knod_ipsec: GFX10 DIAG STUB level 2 (bd write), %d bytes\n",
++		n * 4);
++	return n * 4;
++#endif
++
++#if defined(KNOD_IPSEC_GFX10_DIAG_STUB) && KNOD_IPSEC_GFX10_DIAG_STUB == 3
++	/* LEVEL 3: s_dcache_inv (SMEM 8-byte) + Level 2 body.
++	 * If this faults but Level 2 passed, SMEM encoding is the culprit.
++	 */
++	_E(emit_gfx10_s_dcache_inv, I10(buf, n));
++	_E(emit_gfx10_s_waitcnt_lgkmcnt, I10(buf, n));
++	/* --- Level 2 body below --- */
++	_E(emit_gfx10_s_waitcnt_vmcnt_lgkmcnt, I10(buf, n));
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(1), P_S(16));
++	_E(emit_gfx10_v_lshlrev_b32, I10(buf, n), P_V(1), P_I(5), P_V(1));
++	_E(emit_gfx10_v_add_nc_u32, I10(buf, n), P_V(1), P_L(SUB_BASE_OFF),
++	   P_V(1));
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(2), P_S(9));
++	_E(emit_gfx10_v_add_co_u32, I10(buf, n), P_V(3), P_S(8), P_V(1));
++	_E(emit_gfx10_v_add_co_ci_u32_e32, I10(buf, n), P_V(4), P_I(0), P_V(2));
++	_E(emit_gfx10_global_load_dwordx2, I10(buf, n), P_V(5), P_V(3),
++	   SUB_OFF_BD_ADDR);
++	_E(emit_gfx10_s_waitcnt_vmcnt, I10(buf, n));
++	_E(emit_gfx10_v_cmp_eq_u32, I10(buf, n), P_I(0), P_V(0));
++	br_skip = _BR(emit_gfx10_s_cbranch_vccz, I10(buf, n), 0);
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(7),
++	   P_L(0xDEAD0003u));
++	_E(emit_gfx10_global_store_dword, I10(buf, n), P_V(5), P_V(7), 8);
++	_E(emit_gfx10_s_waitcnt_vmcnt, I10(buf, n));
++	patch_branch(buf, br_skip, n);
++	_E(emit_gfx10_s_endpgm, I10(buf, n));
++	while (n % 256)
++		_E(emit_gfx10_s_code_end, I10(buf, n));
++	pr_info("knod_ipsec: GFX10 DIAG STUB level 3 (SMEM + bd write), %d bytes\n",
++		n * 4);
++	return n * 4;
++#endif
++
++#if defined(KNOD_IPSEC_GFX10_DIAG_STUB) && KNOD_IPSEC_GFX10_DIAG_STUB == 4
++	/* LEVEL 4: SOP1 + SOP2 + SOPC + SMEM + Level 2 body.
++	 * Tests the three scalar encoding formats not covered by Levels 1-3.
++	 *   SOP1: s_mov_b32 (encoding 0x17D)
++	 *   SOP2: s_add_u32, s_lshr_b32 (encoding 0x2)
++	 *   SOPC: s_cmp_eq_u32 + s_cbranch_scc1 (encoding 0x17E)
++	 */
++	_E(emit_gfx10_s_dcache_inv, I10(buf, n));
++	_E(emit_gfx10_s_waitcnt_lgkmcnt, I10(buf, n));
++
++	/* SOP1: s_mov_b32 s28, 0xCAFE0004 (literal) */
++	_E(emit_gfx10_s_mov_b32, I10(buf, n), P_S(28), P_L(0xCAFE0004u));
++	/* SOP2: s_add_u32 s28, s28, 1 (inline const) */
++	_E(emit_gfx10_s_add_u32, I10(buf, n), P_S(28), P_S(28), P_I(1));
++	/* SOP2: s_lshr_b32 s28, s28, 0 (nop shift) */
++	_E(emit_gfx10_s_lshr_b32, I10(buf, n), P_S(28), P_S(28), P_I(0));
++	/* SOPC: s_cmp_eq_u32 s28, 0xCAFE0005 - should set SCC=1 */
++	_E(emit_gfx10_s_cmp_eq_u32, I10(buf, n), P_S(28), P_L(0xCAFE0005u));
++	br_ok = _BR(emit_gfx10_s_cbranch_scc1, I10(buf, n), 0);
++	/* SCC=0 path: write 0xBAD00004 as error marker */
++	_E(emit_gfx10_s_mov_b32, I10(buf, n), P_S(28), P_L(0xBAD00004u));
++	_E(emit_gfx10_s_endpgm, I10(buf, n));
++	patch_branch(buf, br_ok, n);
++
++	/* --- Level 2 body: bd write --- */
++	_E(emit_gfx10_s_waitcnt_vmcnt_lgkmcnt, I10(buf, n));
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(1), P_S(16));
++	_E(emit_gfx10_v_lshlrev_b32, I10(buf, n), P_V(1), P_I(5), P_V(1));
++	_E(emit_gfx10_v_add_nc_u32, I10(buf, n), P_V(1), P_L(SUB_BASE_OFF),
++	   P_V(1));
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(2), P_S(9));
++	_E(emit_gfx10_v_add_co_u32, I10(buf, n), P_V(3), P_S(8), P_V(1));
++	_E(emit_gfx10_v_add_co_ci_u32_e32, I10(buf, n), P_V(4), P_I(0), P_V(2));
++	_E(emit_gfx10_global_load_dwordx2, I10(buf, n), P_V(5), P_V(3),
++	   SUB_OFF_BD_ADDR);
++	_E(emit_gfx10_s_waitcnt_vmcnt, I10(buf, n));
++	_E(emit_gfx10_v_cmp_eq_u32, I10(buf, n), P_I(0), P_V(0));
++	br_skip = _BR(emit_gfx10_s_cbranch_vccz, I10(buf, n), 0);
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(7),
++	   P_L(0xDEAD0004u));
++	_E(emit_gfx10_global_store_dword, I10(buf, n), P_V(5), P_V(7), 8);
++	_E(emit_gfx10_s_waitcnt_vmcnt, I10(buf, n));
++	patch_branch(buf, br_skip, n);
++	_E(emit_gfx10_s_endpgm, I10(buf, n));
++	while (n % 256)
++		_E(emit_gfx10_s_code_end, I10(buf, n));
++	pr_info("knod_ipsec: GFX10 DIAG STUB level 4 (SOP1/SOP2/SOPC + bd), %d bytes\n",
++		n * 4);
++	return n * 4;
++#endif
++
++	/* ================================================================
++	 * Phase 0: Parse ESP header + SA table lookup
++	 *
++	 * s_dcache_inv: flush K$ so s_load reads fresh round keys.
++	 * ================================================================
++	 */
++	_E(emit_gfx10_s_dcache_inv, I10(buf, n));
++	_E(emit_gfx10_s_waitcnt_lgkmcnt, I10(buf, n));
++	_E(emit_gfx10_s_mov_b32, I10(buf, n), P_S(SR_BSWAP), P_L(0x00010203));
++
++	/* v1 = 40 + wg_id_y*32 = offset of sub[wg_id_y] within kernarg */
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(1), P_S(16));
++	_E(emit_gfx10_v_lshlrev_b32, I10(buf, n), P_V(1), P_I(5), P_V(1));
++	_E(emit_gfx10_v_add_nc_u32, I10(buf, n), P_V(1), P_L(SUB_BASE_OFF),
++	   P_V(1));
++
++	/* v[3:4] = kernarg_ptr + v1 = &sub[wg_id_y] */
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(2), P_S(9));
++	_E(emit_gfx10_v_add_co_u32, I10(buf, n), P_V(3), P_S(8), P_V(1));
++	_E(emit_gfx10_v_add_co_ci_u32_e32, I10(buf, n), P_V(4), P_I(0), P_V(2));
++
++	/* Load sub[].pkt_addr -> v[9:10], sub[].bd_addr -> v[5:6] */
++	_E(emit_gfx10_global_load_dwordx2, I10(buf, n), P_V(9), P_V(3),
++	   SUB_OFF_PKT_ADDR);
++	_E(emit_gfx10_global_load_dwordx2, I10(buf, n), P_V(5), P_V(3),
++	   SUB_OFF_BD_ADDR);
++	_E(emit_gfx10_s_waitcnt_vmcnt, I10(buf, n));
++
++	/* Seed v[11:12] with pkt_addr as a safe default BEFORE the IP
++	 * version branch. The bypass path (non-v4/v6 packets like ARP)
++	 * unconditionally branches past the v[11:12] setup at line ~195
++	 * and later Phase 1 does a global_load at v[11:12]+ESP_REL_SEQ to
++	 * read the ESP sequence number. Without this seed v[11:12] would
++	 * hold uninitialised VGPR state (wave launch garbage), producing
++	 * a fault at ~0x{random}_00000000. For valid v4/v6 packets the
++	 * common path below overwrites v[11:12] with pkt+esp_hdr_off so
++	 * this seed is harmless.
++	 */
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(11), P_V(9));
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(12), P_V(10));
++
++	/* IP version gate: load dword at pkt+12 to get first byte of L3
++	 * header (byte[14]). Extract version nibble -> s28.
++	 */
++	_E(emit_gfx10_global_load_dword, I10(buf, n), P_V(15), P_V(9), 12);
++	_E(emit_gfx10_s_waitcnt_vmcnt, I10(buf, n));
++
++	_E(emit_gfx10_v_readfirstlane_b32, I10(buf, n), 28, 15);
++	_E(emit_gfx10_s_lshr_b32, I10(buf, n), P_S(28), P_S(28), P_I(20));
++	_E(emit_gfx10_s_and_b32_p, I10(buf, n), P_S(28), P_I(0xF), P_S(28));
++
++	/* Check IPv4 (version==4) */
++	_E(emit_gfx10_s_cmp_eq_u32, I10(buf, n), P_S(28), P_I(4));
++	br_ipv4 = _BR(emit_gfx10_s_cbranch_scc1, I10(buf, n), 0);
++
++	/* Check IPv6 (version==6) */
++	_E(emit_gfx10_s_cmp_eq_u32, I10(buf, n), P_S(28), P_I(6));
++	br_ipv6 = _BR(emit_gfx10_s_cbranch_scc1, I10(buf, n), 0);
++
++	/* Bypass: neither IPv4 nor IPv6 */
++	_E(emit_gfx10_s_mov_b32, I10(buf, n), P_S(26), P_L(0xFFFFFFFEu));
++	br_bypass = _BR(emit_gfx10_s_branch, I10(buf, n), 0);
++
++	/* IPv6 landing: esp_hdr_off = 54 */
++	patch_branch(buf, br_ipv6, n);
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(VR_SAVE_ESP_OFF),
++	   P_L(ESP_HDR_OFF_V6));
++	br_v6_to_common = _BR(emit_gfx10_s_branch, I10(buf, n), 0);
++
++	/* IPv4 landing: esp_hdr_off = 34 */
++	patch_branch(buf, br_ipv4, n);
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(VR_SAVE_ESP_OFF),
++	   P_L(ESP_HDR_OFF_V4));
++
++	/* Common path: both IPv4 and IPv6 converge here */
++	patch_branch(buf, br_v6_to_common, n);
++
++	/* v[11:12] = pkt_addr + esp_hdr_off (dynamic) */
++	_E(emit_gfx10_v_add_co_u32, I10(buf, n), P_V(11),
++	   P_V(VR_SAVE_ESP_OFF), P_V(9));
++	_E(emit_gfx10_v_add_co_ci_u32_e32, I10(buf, n), P_V(12), P_I(0),
++	   P_V(10));
++
++	/* v13 = *(u32*)(pkt + esp_hdr_off) - SPI in big-endian.
++	 *
++	 * GFX10 (RDNA2) quirk: global_load_dword silently clears EA's
++	 * low 2 bits, so loading at v[11:12] = pkt + 34 (v4) or pkt + 54
++	 * (v6) would actually read pkt + 32 / pkt + 52. Both ESP offsets
++	 * are 2 mod 4, so the shift to reconstruct the target dword is
++	 * always 16 bits. Use dwordx2 (HW still clears low 2 bits, but
++	 * we get enough data) + v_alignbit_b32 to extract bytes
++	 * [addr..addr+3] from the 8-byte window.
++	 */
++	_E(emit_gfx10_global_load_dwordx2, I10(buf, n), P_V(20), P_V(11), 0);
++	_E(emit_gfx10_s_waitcnt_vmcnt, I10(buf, n));
++	/* v_alignbit_b32 D, HIGH, LOW, shift: D = ({HIGH, LOW} >> shift)[31:0].
++	 * tmp_lo = v20 (memory-low dword), tmp_hi = v21 (memory-high dword).
++	 */
++	_E(emit_gfx10_v_alignbit_b32, I10(buf, n), P_V(13), P_V(21), P_V(20),
++	   P_I(16));
++
++	/* Byteswap SPI: v13 = bswap32(v13) via v_perm_b32 */
++	_E(emit_gfx10_v_perm_b32, I10(buf, n), P_V(13), P_V(13), P_V(13),
++	   P_S(SR_BSWAP));
++
++	/* SA table linear scan (VMEM path for K$ coherence).
++	 * s22 = target SPI, s[24:25] = sa_table_addr, s23 = counter,
++	 * s26 = result (slot_idx or 0xFFFFFFFF), v[16:17] = running ptr.
++	 */
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(16), P_S(8));
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(17), P_S(9));
++	_E(emit_gfx10_global_load_dwordx2, I10(buf, n), P_V(18), P_V(16), 0);
++	_E(emit_gfx10_s_waitcnt_vmcnt, I10(buf, n));
++	_E(emit_gfx10_v_readfirstlane_b32, I10(buf, n), 24, 18);
++	_E(emit_gfx10_v_readfirstlane_b32, I10(buf, n), 25, 19);
++
++	_E(emit_gfx10_v_readfirstlane_b32, I10(buf, n), 22, 13);
++	_E(emit_gfx10_s_mov_b32, I10(buf, n), P_S(23), P_I(0));
++	_E(emit_gfx10_s_mov_b32, I10(buf, n), P_S(26), P_L(0xFFFFFFFFu));
++
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(16), P_S(24));
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(17), P_S(25));
++
++	loop_top = n;
++	_E(emit_gfx10_global_load_dword, I10(buf, n), P_V(20), P_V(16),
++	   SA_OFF_SPI);
++	_E(emit_gfx10_s_waitcnt_vmcnt, I10(buf, n));
++	_E(emit_gfx10_v_readfirstlane_b32, I10(buf, n), 27, 20);
++
++	_E(emit_gfx10_v_add_co_u32, I10(buf, n), P_V(16),
++	   P_L(KNOD_IPSEC_SHADER_SA_ENTRY_SZ), P_V(16));
++	_E(emit_gfx10_v_add_co_ci_u32_e32, I10(buf, n), P_V(17), P_I(0),
++	   P_V(17));
++	_E(emit_gfx10_s_add_u32, I10(buf, n), P_S(23), P_I(1), P_S(23));
++	_E(emit_gfx10_s_nop, I10(buf, n));
++
++	_E(emit_gfx10_s_cmp_eq_u32, I10(buf, n), P_S(27), P_S(22));
++	br_match = _BR(emit_gfx10_s_cbranch_scc1, I10(buf, n), 0);
++
++	_E(emit_gfx10_s_cmp_lt_u32, I10(buf, n), P_S(23),
++	   P_L(KNOD_IPSEC_SHADER_NR_SA));
++	br_loop = _BR(emit_gfx10_s_cbranch_scc1, I10(buf, n), 0);
++	patch_branch(buf, br_loop, loop_top);
++
++	br_end = _BR(emit_gfx10_s_branch, I10(buf, n), 0);
++
++	/* Match: s26 = s23 - 1 */
++	patch_branch(buf, br_match, n);
++	_E(emit_gfx10_s_sub_u32_p, I10(buf, n), P_S(26), P_S(23), P_I(1));
++
++	patch_branch(buf, br_end, n);
++
++	patch_branch(buf, br_bypass, n);
++
++#if defined(KNOD_IPSEC_GFX10_DIAG_STUB) && KNOD_IPSEC_GFX10_DIAG_STUB == 5
++	/* LEVEL 5: early exit after real Phase 0.
++	 * s26 = slot_idx (or 0xFFFFFFFF if no match).
++	 * Write s26 to bd->act via v[5:6] (bd_addr loaded during Phase 0).
++	 */
++	_E(emit_gfx10_v_cmp_eq_u32, I10(buf, n), P_I(0), P_V(0));
++	br_skip = _BR(emit_gfx10_s_cbranch_vccz, I10(buf, n), 0);
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(7),
++	   P_L(0xDEAD0005u));
++	_E(emit_gfx10_global_store_dword, I10(buf, n), P_V(5), P_V(7), 8);
++	_E(emit_gfx10_s_waitcnt_vmcnt, I10(buf, n));
++	patch_branch(buf, br_skip, n);
++	_E(emit_gfx10_s_endpgm, I10(buf, n));
++	while (n % 256)
++		_E(emit_gfx10_s_code_end, I10(buf, n));
++	pr_info("knod_ipsec: GFX10 DIAG STUB level 5 (Phase 0 + exit), %d bytes\n",
++		n * 4);
++	return n * 4;
++#endif
++
++	/* ================================================================
++	 * Phase 1: Save pre-crypto state + load extra sub[] fields
++	 *
++	 * Move IPsec-specific values to v30+ so v1-v22 and s18-s49 are
++	 * free for AES-GCM helpers from aesgcm_shader.h.
++	 * ================================================================
++	 */
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(VR_SAVE_SLOT), P_S(26));
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(VR_SAVE_BD_LO), P_V(5));
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(VR_SAVE_BD_HI), P_V(6));
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(VR_SAVE_PKT_LO), P_V(9));
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(VR_SAVE_PKT_HI), P_V(10));
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(VR_SAVE_SPI), P_V(13));
++
++	/* Load sub[].out_addr -> v[VR_SAVE_OUT_LO:VR_SAVE_OUT_HI] */
++	_E(emit_gfx10_global_load_dwordx2, I10(buf, n), P_V(VR_SAVE_OUT_LO),
++	   P_V(3), SUB_OFF_OUT_ADDR);
++	/* Load sub[].pkt_len -> v[VR_SAVE_PKTLEN] */
++	_E(emit_gfx10_global_load_dword, I10(buf, n), P_V(VR_SAVE_PKTLEN),
++	   P_V(3), SUB_OFF_PKT_LEN);
++	_E(emit_gfx10_s_waitcnt_vmcnt, I10(buf, n));
++
++	/* Load ESP seq number: pkt + esp_hdr_off + 4, BE -> bswap ->
++	 * v[VR_SAVE_SEQ].
++	 * v[11:12] still holds pkt_addr + esp_hdr_off from Phase 0.
++	 *
++	 * GFX10 unaligned load fix: esp_hdr_off is 34(v4) or 54(v6),
++	 * both == 2 mod 4. EA = pkt+38 clips to pkt+36. Load dwordx2
++	 * from the clipped addr, then v_alignbit_b32 shift=16 to
++	 * reconstruct the target dword.  v[20:21] are free scratch.
++	 */
++	_E(emit_gfx10_global_load_dwordx2, I10(buf, n), P_V(20), P_V(11),
++	   ESP_REL_SEQ);
++	_E(emit_gfx10_s_waitcnt_vmcnt, I10(buf, n));
++	_E(emit_gfx10_v_alignbit_b32, I10(buf, n), P_V(VR_SAVE_SEQ), P_V(21),
++	   P_V(20), P_I(16));
++
++	_E(emit_gfx10_v_perm_b32, I10(buf, n), P_V(VR_SAVE_SEQ),
++	   P_V(VR_SAVE_SEQ), P_V(VR_SAVE_SEQ), P_S(SR_BSWAP));
++
++	/* Write bswapped seq back into sub[].result_seq for CPU finish worker.
++	 * v[3:4] still points to &sub[wg_id_y].
++	 */
++	_E(emit_gfx10_global_store_dword, I10(buf, n), P_V(3),
++	   P_V(VR_SAVE_SEQ), SUB_OFF_RESULT_SEQ);
++
++	/* ================================================================
++	 * Phase 2: Branch on miss/bypass - skip crypto entirely
++	 * ================================================================
++	 */
++	_E(emit_gfx10_v_readfirstlane_b32, I10(buf, n), 26, VR_SAVE_SLOT);
++	_E(emit_gfx10_s_cmp_ge_u32, I10(buf, n), P_S(26),
++	   P_L(KNOD_IPSEC_SHADER_NR_SA));
++	br_crypto_end = _BR(emit_gfx10_s_cbranch_scc1, I10(buf, n), 0);
++
++	/* ================================================================
++	 * Phase 3: Load SA entry fields for the matched slot
++	 *
++	 * entry_addr = sa_table_addr + slot_idx * SA_ENTRY_SIZE
++	 * Load: key_gpu_addr, salt, nr_rounds, t_tables_gpu_addr,
++	 *       htable_gpu_addr
++	 * ================================================================
++	 */
++	/* s27 = slot_idx * SA_ENTRY_SIZE (scalar mul) */
++	_E(emit_gfx10_s_mul_i32, I10(buf, n), P_S(27), P_S(26),
++	   P_L(KNOD_IPSEC_SHADER_SA_ENTRY_SZ));
++	/* s[24:25] = sa_table_addr (already there from Phase 0 scan) */
++	_E(emit_gfx10_s_add_u32, I10(buf, n), P_S(24), P_S(24), P_S(27));
++	_E(emit_gfx10_s_addc_u32, I10(buf, n), P_S(25), P_S(25), P_I(0));
++
++	/* Use VMEM for coherence: stage entry addr into VGPR pair */
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(VR_GA_LO), P_S(24));
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(VR_GA_HI), P_S(25));
++
++	/* Batched SA entry loads: issue all 4 loads to different
++	 * VGPR destinations, then single waitcnt. v1-v8 (S0-S3,
++	 * D0-D3) are free at Phase 3 - not used until Phase 7.
++	 *
++	 * Layout:
++	 *   dwordx4 @+16 -> v[1:4]: key_lo, key_hi, htable_lo, htable_hi
++	 *   dwordx4 @+32 -> v[5:8]: ttables_lo, ttables_hi, salt, key_len
++	 *   dwordx2 @+48 -> v[14:15]: nr_rounds, mode
++	 *   dwordx2 @+88 -> v[16:17]: stats_lo, stats_hi
++	 */
++	_E(emit_gfx10_global_load_dwordx4, I10(buf, n), P_V(VR_S0),
++	   P_V(VR_GA_LO), SA_OFF_KEY_ADDR);
++	_E(emit_gfx10_global_load_dwordx4, I10(buf, n), P_V(VR_D0),
++	   P_V(VR_GA_LO), SA_OFF_T_TABLES_ADDR);
++	_E(emit_gfx10_global_load_dwordx2, I10(buf, n), P_V(VR_DATA0),
++	   P_V(VR_GA_LO), SA_OFF_NR_ROUNDS);
++	_E(emit_gfx10_global_load_dwordx2, I10(buf, n), P_V(VR_DATA2),
++	   P_V(VR_GA_LO), SA_OFF_STATS_ADDR);
++	_E(emit_gfx10_s_waitcnt_vmcnt, I10(buf, n));
++
++	/* key_addr: v1=lo, v2=hi */
++	_E(emit_gfx10_v_readfirstlane_b32, I10(buf, n), SR_KEYS, VR_S0);
++	_E(emit_gfx10_v_readfirstlane_b32, I10(buf, n), SR_KEYS + 1, VR_S1);
++	/* htable_addr: v3=lo, v4=hi */
++	_E(emit_gfx10_v_readfirstlane_b32, I10(buf, n), SR_HTABLE_LO, VR_S2);
++	_E(emit_gfx10_v_readfirstlane_b32, I10(buf, n), SR_HTABLE_HI, VR_S3);
++	/* t_tables_addr: v5=lo, v6=hi */
++	_E(emit_gfx10_v_readfirstlane_b32, I10(buf, n), SR_T_ADDR, VR_D0);
++	_E(emit_gfx10_v_readfirstlane_b32, I10(buf, n), SR_T_ADDR + 1, VR_D1);
++	/* salt: v7 */
++	_E(emit_gfx10_v_readfirstlane_b32, I10(buf, n), SR_IV0, VR_D2);
++	/* nr_rounds: v14, mode: v15 */
++	_E(emit_gfx10_v_readfirstlane_b32, I10(buf, n), SR_NR_ROUNDS, VR_DATA0);
++	_E(emit_gfx10_v_readfirstlane_b32, I10(buf, n), SR_SA_MODE, VR_DATA1);
++	/* stats_addr: v16=lo, v17=hi -> save VGPRs for Phase 10 */
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(VR_SAVE_STATS_LO),
++	   P_V(VR_DATA2));
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(VR_SAVE_STATS_HI),
++	   P_V(VR_DATA3));
++
++	/* ================================================================
++	 * Phase 4: Build AES-GCM nonce
++	 *
++	 * nonce[12] = salt[4] || IV[8]
++	 * salt is already in s[SR_IV0]. Load IV from pkt + esp_hdr_off + 8.
++	 * Recompute ESP base from saved pkt_addr + VR_SAVE_ESP_OFF since
++	 * v[11:12] were clobbered by Phase 3 SA loads (VR_GA_LO=12).
++	 * IV goes to s[SR_IV1] (bytes 4-7) and s[SR_IV2] (bytes 8-11).
++	 * ================================================================
++	 */
++	_E(emit_gfx10_v_add_co_u32, I10(buf, n), P_V(VR_GA_LO),
++	   P_V(VR_SAVE_ESP_OFF), P_V(VR_SAVE_PKT_LO));
++	_E(emit_gfx10_v_add_co_ci_u32_e32, I10(buf, n), P_V(VR_GA_HI),
++	   P_I(0), P_V(VR_SAVE_PKT_HI));
++	/* GFX10 unaligned load fix: EA = pkt+42/62 == 2 mod 4, clips
++	 * to pkt+40/60. Load dwordx4 (16B from clipped addr), then
++	 * alignbit shift=16 to reconstruct IV[0:3] and IV[4:7].
++	 */
++	_E(emit_gfx10_global_load_dwordx4, I10(buf, n), P_V(VR_DATA0),
++	   P_V(VR_GA_LO), ESP_REL_IV);
++	_E(emit_gfx10_s_waitcnt_vmcnt, I10(buf, n));
++	_E(emit_gfx10_v_alignbit_b32, I10(buf, n), P_V(VR_DATA0),
++	   P_V(VR_DATA1), P_V(VR_DATA0), P_I(16));
++	_E(emit_gfx10_v_alignbit_b32, I10(buf, n), P_V(VR_DATA1),
++	   P_V(VR_DATA2), P_V(VR_DATA1), P_I(16));
++	_E(emit_gfx10_v_readfirstlane_b32, I10(buf, n), SR_IV1, VR_DATA0);
++	_E(emit_gfx10_v_readfirstlane_b32, I10(buf, n), SR_IV2, VR_DATA1);
++
++	/* ================================================================
++	 * Phase 5: Compute ciphertext bounds
++	 *
++	 * ctext_off = esp_hdr_off + 16 (SPI+seq+IV)
++	 * ctext_len = pkt_len - ctext_off - ICV_LEN
++	 * nblocks = (ctext_len + 15) >> 4
++	 *
++	 * s28 is free here (last used in version gate) - use as scratch.
++	 * ================================================================
++	 */
++	_E(emit_gfx10_v_readfirstlane_b32, I10(buf, n), 28, VR_SAVE_ESP_OFF);
++	_E(emit_gfx10_s_add_u32, I10(buf, n), P_S(28),
++	   P_I(ESP_REL_CTEXT + ESP_ICV_LEN),
++	   P_S(28));  /* s28 = ctext_off + ICV_LEN = overhead to subtract */
++	_E(emit_gfx10_v_readfirstlane_b32, I10(buf, n), SR_CTEXT_LEN,
++	   VR_SAVE_PKTLEN);
++	_E(emit_gfx10_s_sub_u32_p, I10(buf, n), P_S(SR_CTEXT_LEN),
++	   P_S(SR_CTEXT_LEN), P_S(28));
++	/* s[SR_NBLOCKS_GCM] = (ctext_len + 15) >> 4 */
++	_E(emit_gfx10_s_add_u32, I10(buf, n), P_S(SR_NBLOCKS_GCM), P_I(15),
++	   P_S(SR_CTEXT_LEN));
++	_E(emit_gfx10_s_lshr_b32, I10(buf, n), P_S(SR_NBLOCKS_GCM),
++	   P_S(SR_NBLOCKS_GCM), P_I(4));
++	/* total GHASH blocks = 1(AAD) + nblocks(ctext) + 1(len) = nblocks + 2
++	 */
++	_E(emit_gfx10_s_add_u32, I10(buf, n), P_S(SR_TOTAL_GHASH_BLK),
++	   P_I(2), P_S(SR_NBLOCKS_GCM));
++
++	/* ================================================================
++	 * Phase 6: Cooperative T-table load (VRAM -> LDS)
++	 *
++	 * All 256 threads load from SA's t_tables_gpu_addr. Each thread
++	 * loads one u32 per table (4 tables x 256 entries = 4KB).
++	 * ================================================================
++	 */
++	_E(emit_gfx10_s_mov_b32, I10(buf, n), P_S(SR_MASK), P_L(0xFF));
++
++	/* v[VR_TMP] = tid * 4 (byte offset within each 1KB table) */
++	_E(emit_gfx10_v_lshlrev_b32, I10(buf, n), P_V(VR_TMP), P_I(2),
++	   P_V(VR_TID));
++
++	/* T0: VRAM[t_tables + tid*4] -> LDS[tid*4] */
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(VR_GA_LO),
++	   P_S(SR_T_ADDR));
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(VR_GA_HI),
++	   P_S(SR_T_ADDR + 1));
++	_E(emit_gfx10_v_add_co_u32, I10(buf, n), P_V(VR_GA_LO), P_V(VR_GA_LO),
++	   P_V(VR_TMP));
++	_E(emit_gfx10_v_add_co_ci_u32_e32, I10(buf, n), P_V(VR_GA_HI), P_I(0),
++	   P_V(VR_GA_HI));
++	/* GFX10 GLOBAL offset is 12-bit signed (-2048..+2047).
++	 * Offsets 2048 and 3072 overflow, so advance the base VGPR
++	 * after the first two loads.
++	 */
++	_E(emit_gfx10_global_load_dword, I10(buf, n), P_V(VR_DATA0),
++	   P_V(VR_GA_LO), 0);
++	_E(emit_gfx10_global_load_dword, I10(buf, n), P_V(VR_DATA1),
++	   P_V(VR_GA_LO), 1024);
++	_E(emit_gfx10_v_add_co_u32, I10(buf, n), P_V(VR_GA_LO), P_L(2048),
++	   P_V(VR_GA_LO));
++	_E(emit_gfx10_v_add_co_ci_u32_e32, I10(buf, n), P_V(VR_GA_HI), P_I(0),
++	   P_V(VR_GA_HI));
++	_E(emit_gfx10_global_load_dword, I10(buf, n), P_V(VR_DATA2),
++	   P_V(VR_GA_LO), 0);
++	_E(emit_gfx10_global_load_dword, I10(buf, n), P_V(VR_DATA3),
++	   P_V(VR_GA_LO), 1024);
++	_E(emit_gfx10_s_waitcnt_vmcnt, I10(buf, n));
++
++	/* Write to LDS: T0 at +0, T1 at +1024, T2 at +2048, T3 at +3072 */
++	_E(emit_gfx10_ds_write_b32, I10(buf, n), VR_TMP, VR_DATA0);
++	_E(emit_gfx10_v_add_nc_u32, I10(buf, n), P_V(VR_ADDR), P_L(1024),
++	   P_V(VR_TMP));
++	_E(emit_gfx10_ds_write_b32, I10(buf, n), VR_ADDR, VR_DATA1);
++	_E(emit_gfx10_v_add_nc_u32, I10(buf, n), P_V(VR_ADDR), P_L(2048),
++	   P_V(VR_TMP));
++	_E(emit_gfx10_ds_write_b32, I10(buf, n), VR_ADDR, VR_DATA2);
++	_E(emit_gfx10_v_add_nc_u32, I10(buf, n), P_V(VR_ADDR), P_L(3072),
++	   P_V(VR_TMP));
++	_E(emit_gfx10_ds_write_b32, I10(buf, n), VR_ADDR, VR_DATA3);
++
++	_E(emit_gfx10_s_waitcnt_lgkmcnt, I10(buf, n));
++	_E(emit_gfx10_s_barrier, I10(buf, n));
++
++#if defined(KNOD_IPSEC_GFX10_DIAG_STUB) && KNOD_IPSEC_GFX10_DIAG_STUB == 6
++	/* LEVEL 6: early exit after Phase 6 (T-table -> LDS + barrier).
++	 * Tests Phase 1-6: SA loads, nonce build, DS writes, s_barrier.
++	 * bd_addr is in v[VR_SAVE_BD_LO:VR_SAVE_BD_HI] = v[31:32].
++	 */
++	_E(emit_gfx10_v_cmp_eq_u32, I10(buf, n), P_I(0), P_V(0));
++	br_skip = _BR(emit_gfx10_s_cbranch_vccz, I10(buf, n), 0);
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(7),
++	   P_L(0xDEAD0006u));
++	_E(emit_gfx10_global_store_dword, I10(buf, n), P_V(VR_SAVE_BD_LO),
++	   P_V(7), 8);
++	_E(emit_gfx10_s_waitcnt_vmcnt, I10(buf, n));
++	patch_branch(buf, br_skip, n);
++	_E(emit_gfx10_s_endpgm, I10(buf, n));
++	while (n % 256)
++		_E(emit_gfx10_s_code_end, I10(buf, n));
++	pr_info("knod_ipsec: GFX10 DIAG STUB level 6 (Phase 0-6 + exit), %d bytes\n",
++		n * 4);
++	return n * 4;
++#endif
++
++	/* ================================================================
++	 * Phase 7: AES-CTR decrypt
++	 *
++	 * Each thread handles block_id = tid. Only threads with tid <
++	 * nblocks are active. Counter = nonce[12] || bswap32(tid+2).
++	 * AES-encrypt the counter -> keystream. XOR with ciphertext ->
++	 * plaintext. Store to out_addr + tid*16.
++	 * ================================================================
++	 */
++	/* VCC = (nblocks > tid) i.e. tid < nblocks - selects active CTR lanes
++	 */
++	_E(emit_gfx10_v_cmp_gt_u32, I10(buf, n), P_S(SR_NBLOCKS_GCM),
++	   P_V(VR_TID));
++	_E(emit_gfx10_s_and_saveexec_b64, I10(buf, n), SR_EXEC_SAVE,
++	   106 /* VCC_LO */);
++	br_execz_ctr = _BR(emit_gfx10_s_cbranch_execz, I10(buf, n), 0);
++
++	/* Save SR_KEYS for reload after this block encrypt */
++	_E(emit_gfx10_s_mov_b32, I10(buf, n), P_S(SR_T_ADDR), P_S(SR_KEYS));
++	_E(emit_gfx10_s_mov_b32, I10(buf, n), P_S(SR_T_ADDR + 1),
++	   P_S(SR_KEYS + 1));
++
++	/* Prefetch ciphertext into v[23:27] before AES.
++	 * GFX10 unaligned fix: ctext addr == 2 mod 4, so load
++	 * dwordx4 (clips to aligned) + extra dword at +16.
++	 * The ~200+ cycle AES encrypt hides the VMEM latency.
++	 * v23-v27 are not touched by AES rounds (which use
++	 * v1-v10 only). VR_GA/VR_BLK are also AES-safe.
++	 */
++	_E(emit_gfx10_v_lshlrev_b32, I10(buf, n), P_V(VR_BLK), P_I(4),
++	   P_V(VR_TID));
++	_E(emit_gfx10_v_add_co_u32, I10(buf, n), P_V(VR_GA_LO),
++	   P_V(VR_SAVE_ESP_OFF), P_V(VR_SAVE_PKT_LO));
++	_E(emit_gfx10_v_add_co_ci_u32_e32, I10(buf, n), P_V(VR_GA_HI),
++	   P_I(0), P_V(VR_SAVE_PKT_HI));
++	_E(emit_gfx10_v_add_co_u32, I10(buf, n), P_V(VR_GA_LO),
++	   P_I(ESP_REL_CTEXT), P_V(VR_GA_LO));
++	_E(emit_gfx10_v_add_co_ci_u32_e32, I10(buf, n), P_V(VR_GA_HI),
++	   P_I(0), P_V(VR_GA_HI));
++	_E(emit_gfx10_v_add_co_u32, I10(buf, n), P_V(VR_GA_LO),
++	   P_V(VR_GA_LO), P_V(VR_BLK));
++	_E(emit_gfx10_v_add_co_ci_u32_e32, I10(buf, n), P_V(VR_GA_HI),
++	   P_I(0), P_V(VR_GA_HI));
++	_E(emit_gfx10_global_load_dwordx4, I10(buf, n), P_V(VR_PREFETCH0),
++	   P_V(VR_GA_LO), 0);
++	_E(emit_gfx10_global_load_dword, I10(buf, n), P_V(VR_PREFETCH4),
++	   P_V(VR_GA_LO), 16);
++
++	/* Build AES counter block in v[VR_S0:VR_S3]:
++	 * VR_S0 = nonce[0:3] = salt (SR_IV0)
++	 * VR_S1 = nonce[4:7] = IV[0:3] (SR_IV1)
++	 * VR_S2 = nonce[8:11] = IV[4:7] (SR_IV2)
++	 * VR_S3 = bswap32(tid + 2)
++	 */
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(VR_S0), P_S(SR_IV0));
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(VR_S1), P_S(SR_IV1));
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(VR_S2), P_S(SR_IV2));
++
++	/* v[VR_S3] = bswap32(tid + 2) */
++	_E(emit_gfx10_v_add_nc_u32, I10(buf, n), P_V(VR_S3), P_I(2),
++	   P_V(VR_TID));
++	_E(emit_gfx10_v_perm_b32, I10(buf, n), P_V(VR_S3), P_V(VR_S3),
++	   P_V(VR_S3), P_S(SR_BSWAP));
++
++	/* AES encrypt the counter block -> result in v[VR_S0:VR_S3] */
++#if defined(KNOD_IPSEC_GFX10_DIAG_STUB) && KNOD_IPSEC_GFX10_DIAG_STUB == 7
++	/* LEVEL 7: exit just before emit_aes_encrypt_block_gfx10.
++	 * If this passes but Level 8 (after encrypt) faults,
++	 * the AES block cipher GFX10 code is the culprit.
++	 */
++	_E(emit_gfx10_v_cmp_eq_u32, I10(buf, n), P_I(0), P_V(0));
++	br_skip = _BR(emit_gfx10_s_cbranch_vccz, I10(buf, n), 0);
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(7),
++	   P_L(0xDEAD0007u));
++	_E(emit_gfx10_global_store_dword, I10(buf, n),
++	   P_V(VR_SAVE_BD_LO), P_V(7), 8);
++	_E(emit_gfx10_s_waitcnt_vmcnt, I10(buf, n));
++	patch_branch(buf, br_skip, n);
++	_E(emit_gfx10_s_endpgm, I10(buf, n));
++	while (n % 256)
++		_E(emit_gfx10_s_code_end, I10(buf, n));
++	pr_info("knod_ipsec: GFX10 DIAG STUB level 7 (before AES encrypt), %d bytes\n",
++		n * 4);
++	return n * 4;
++#endif
++	n = emit_aes_encrypt_block_gfx10(buf, n);
++
++#if defined(KNOD_IPSEC_GFX10_DIAG_STUB) && KNOD_IPSEC_GFX10_DIAG_STUB == 8
++	/* LEVEL 8: exit right after first emit_aes_encrypt_block_gfx10.
++	 * If this faults, the illegal insn is inside the AES block cipher.
++	 */
++	_E(emit_gfx10_v_cmp_eq_u32, I10(buf, n), P_I(0), P_V(0));
++	br_skip = _BR(emit_gfx10_s_cbranch_vccz, I10(buf, n), 0);
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(7),
++	   P_L(0xDEAD0008u));
++	_E(emit_gfx10_global_store_dword, I10(buf, n),
++	   P_V(VR_SAVE_BD_LO), P_V(7), 8);
++	_E(emit_gfx10_s_waitcnt_vmcnt, I10(buf, n));
++	patch_branch(buf, br_skip, n);
++	_E(emit_gfx10_s_endpgm, I10(buf, n));
++	while (n % 256)
++		_E(emit_gfx10_s_code_end, I10(buf, n));
++	pr_info("knod_ipsec: GFX10 DIAG STUB level 8 (after AES encrypt), %d bytes\n",
++		n * 4);
++	return n * 4;
++#endif
++
++	/* Ciphertext arrived during AES - drain vmcnt */
++	_E(emit_gfx10_s_waitcnt_vmcnt, I10(buf, n));
++
++	/* GFX10 unaligned fix: 4x alignbit on prefetched data */
++	_E(emit_gfx10_v_alignbit_b32, I10(buf, n), P_V(VR_PREFETCH0),
++	   P_V(VR_PREFETCH1), P_V(VR_PREFETCH0), P_I(16));
++	_E(emit_gfx10_v_alignbit_b32, I10(buf, n), P_V(VR_PREFETCH1),
++	   P_V(VR_PREFETCH2), P_V(VR_PREFETCH1), P_I(16));
++	_E(emit_gfx10_v_alignbit_b32, I10(buf, n), P_V(VR_PREFETCH2),
++	   P_V(VR_PREFETCH3), P_V(VR_PREFETCH2), P_I(16));
++	_E(emit_gfx10_v_alignbit_b32, I10(buf, n), P_V(VR_PREFETCH3),
++	   P_V(VR_PREFETCH4), P_V(VR_PREFETCH3), P_I(16));
++
++	/* XOR keystream with ciphertext -> plaintext */
++	_E(emit_gfx10_v_xor_b32_e32, I10(buf, n), P_V(VR_PREFETCH0),
++	   P_V(VR_S0), P_V(VR_PREFETCH0));
++	_E(emit_gfx10_v_xor_b32_e32, I10(buf, n), P_V(VR_PREFETCH1),
++	   P_V(VR_S1), P_V(VR_PREFETCH1));
++	_E(emit_gfx10_v_xor_b32_e32, I10(buf, n), P_V(VR_PREFETCH2),
++	   P_V(VR_S2), P_V(VR_PREFETCH2));
++	_E(emit_gfx10_v_xor_b32_e32, I10(buf, n), P_V(VR_PREFETCH3),
++	   P_V(VR_S3), P_V(VR_PREFETCH3));
++
++	/* Store plaintext to out_addr + tid*16 */
++	_E(emit_gfx10_v_add_co_u32, I10(buf, n), P_V(VR_GA_LO),
++	   P_V(VR_BLK), P_V(VR_SAVE_OUT_LO));
++	_E(emit_gfx10_v_add_co_ci_u32_e32, I10(buf, n), P_V(VR_GA_HI),
++	   P_I(0), P_V(VR_SAVE_OUT_HI));
++	_E(emit_gfx10_global_store_dwordx4, I10(buf, n), P_V(VR_GA_LO),
++	   P_V(VR_PREFETCH0), 0);
++
++	patch_branch(buf, br_execz_ctr, n);
++
++	/* ================================================================
++	 * Phase 7.5: Compute AES(K, J0) for ICV finalization
++	 *
++	 * J0 = nonce[12] || 0x00000001 (BE). Only thread 0 needs this
++	 * but all active lanes can compute it; we just save the result.
++	 * ================================================================
++	 */
++	/* Restore SR_KEYS (consumed by encrypt_block) */
++	_E(emit_gfx10_s_mov_b32, I10(buf, n), P_S(SR_KEYS), P_S(SR_T_ADDR));
++	_E(emit_gfx10_s_mov_b32, I10(buf, n), P_S(SR_KEYS + 1),
++	   P_S(SR_T_ADDR + 1));
++
++	/* Restore full EXEC for J0 encrypt (all 256 threads) */
++	_E(emit_gfx10_s_or_b64, I10(buf, n), 126 /* EXEC_LO */, SR_EXEC_SAVE,
++	   SR_EXEC_SAVE);
++
++	/* J0 block: nonce || bswap32(1) = nonce || 0x01000000 */
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(VR_S0), P_S(SR_IV0));
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(VR_S1), P_S(SR_IV1));
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(VR_S2), P_S(SR_IV2));
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(VR_S3), P_L(0x01000000u));
++
++	n = emit_aes_encrypt_block_gfx10(buf, n);
++
++	/* Save AES(K, J0) -> v[VR_J0_0:VR_J0_3] */
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(VR_J0_0), P_V(VR_S0));
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(VR_J0_1), P_V(VR_S1));
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(VR_J0_2), P_V(VR_S2));
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(VR_J0_3), P_V(VR_S3));
++
++	_E(emit_gfx10_s_barrier, I10(buf, n));
++
++#if defined(KNOD_IPSEC_GFX10_DIAG_STUB) && KNOD_IPSEC_GFX10_DIAG_STUB == 9
++	/* LEVEL 9: exit after Phase 7.5 (J0 encrypt + barrier).
++	 * Tests Phase 7 ctext XOR+store, Phase 7.5 second AES encrypt,
++	 * s_or_b64 EXEC restore, s_barrier.
++	 */
++	_E(emit_gfx10_v_cmp_eq_u32, I10(buf, n), P_I(0), P_V(0));
++	br_skip = _BR(emit_gfx10_s_cbranch_vccz, I10(buf, n), 0);
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(7),
++	   P_L(0xDEAD0009u));
++	_E(emit_gfx10_global_store_dword, I10(buf, n),
++	   P_V(VR_SAVE_BD_LO), P_V(7), 8);
++	_E(emit_gfx10_s_waitcnt_vmcnt, I10(buf, n));
++	patch_branch(buf, br_skip, n);
++	_E(emit_gfx10_s_endpgm, I10(buf, n));
++	while (n % 256)
++		_E(emit_gfx10_s_code_end, I10(buf, n));
++	pr_info("knod_ipsec: GFX10 DIAG STUB level 9 (Phase 7.5 + exit), %d bytes\n",
++		n * 4);
++	return n * 4;
++#endif
++
++	/* ================================================================
++	 * Phase 8: Parallel GHASH
++	 *
++	 * GHASH input blocks (total_blocks = nblocks + 2):
++	 *   tid 0            -> AAD: SPI(4B,BE)||seq(4B,BE)||0s (16B)
++	 *   tid 1..nblocks   -> ciphertext block (tid-1)
++	 *   tid nblocks+1    -> len: AAD_bitlen(64b)||ctext_bitlen(64b)
++	 *   tid > nblocks+1  -> zero (does not participate)
++	 *
++	 * Each thread loads its block -> v[VR_DATA0:VR_DATA3] (big-endian
++	 * for GF multiply), loads H^(total-tid) -> v[VR_D0:VR_D3], runs
++	 * GF multiply -> v[VR_S0:VR_S3], then tree-reduces via LDS XOR.
++	 * ================================================================
++	 */
++	/* Prefetch H^(total-tid) from H-power table before data selection.
++	 * The ~60 ALU instructions in the data selection block below
++	 * cover the VMEM latency. Result lands in VR_D0:D3, which
++	 * data selection does not touch. VR_TMP/VR_GA are consumed
++	 * here then free for reuse by the ctext section.
++	 */
++	_E(emit_gfx10_v_sub_nc_u32, I10(buf, n), P_V(VR_TMP),
++	   P_S(SR_TOTAL_GHASH_BLK), P_V(VR_TID));
++	_E(emit_gfx10_v_add_nc_u32, I10(buf, n), P_V(VR_TMP),
++	   P_L(0xFFFFFFFF), P_V(VR_TMP));
++	_E(emit_gfx10_v_max_i32, I10(buf, n), P_V(VR_TMP), P_I(0), P_V(VR_TMP));
++	_E(emit_gfx10_v_lshlrev_b32, I10(buf, n), P_V(VR_TMP), P_I(4),
++	   P_V(VR_TMP));
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(VR_GA_LO),
++	   P_S(SR_HTABLE_LO));
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(VR_GA_HI),
++	   P_S(SR_HTABLE_HI));
++	_E(emit_gfx10_v_add_co_u32, I10(buf, n), P_V(VR_GA_LO),
++	   P_V(VR_GA_LO), P_V(VR_TMP));
++	_E(emit_gfx10_v_add_co_ci_u32_e32, I10(buf, n), P_V(VR_GA_HI),
++	   P_I(0), P_V(VR_GA_HI));
++	_E(emit_gfx10_global_load_dwordx4, I10(buf, n), P_V(VR_D0),
++	   P_V(VR_GA_LO), 0);
++
++	/* EXEC-based per-lane data selection. Default = zero, then
++	 * each case narrows EXEC to matching lanes and writes data.
++	 * This avoids scalar VCC branching (s_cbranch_vccnz) which
++	 * makes the entire wave take one path, not individual lanes.
++	 */
++	/* Default: all threads get zero (non-participating) */
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(VR_DATA0), P_I(0));
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(VR_DATA1), P_I(0));
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(VR_DATA2), P_I(0));
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(VR_DATA3), P_I(0));
++
++	/* ---- AAD: tid == 0 ---- */
++	_E(emit_gfx10_v_cmp_eq_u32, I10(buf, n), P_I(0), P_V(VR_TID));
++	_E(emit_gfx10_s_and_saveexec_b64, I10(buf, n), SR_GHASH_EXEC,
++	   106 /* VCC */);
++	br_skip_aad = _BR(emit_gfx10_s_cbranch_execz, I10(buf, n), 0);
++
++	/* VR_SAVE_SPI/SEQ are already in BE register convention:
++	 * raw LE load from packet (BE wire bytes) + bswap = byte[0]
++	 * in bits[31:24]. No second bswap needed - use directly.
++	 */
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(VR_DATA0),
++	   P_V(VR_SAVE_SPI));
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(VR_DATA1),
++	   P_V(VR_SAVE_SEQ));
++	/* DATA2, DATA3 already 0 */
++
++	patch_branch(buf, br_skip_aad, n);
++	_E(emit_gfx10_s_mov_b64, I10(buf, n), 126 /* EXEC */,
++	   SR_GHASH_EXEC);
++
++#if defined(KNOD_IPSEC_GFX10_DIAG_STUB) && KNOD_IPSEC_GFX10_DIAG_STUB == 12
++	_E(emit_gfx10_v_cmp_eq_u32, I10(buf, n), P_I(0), P_V(0));
++	br_skip12 = _BR(emit_gfx10_s_cbranch_vccz, I10(buf, n), 0);
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(7), P_L(0xDEAD000Cu));
++	_E(emit_gfx10_global_store_dword, I10(buf, n), P_V(VR_SAVE_BD_LO),
++	   P_V(7), 8);
++	_E(emit_gfx10_s_waitcnt_vmcnt, I10(buf, n));
++	patch_branch(buf, br_skip12, n);
++	_E(emit_gfx10_s_endpgm, I10(buf, n));
++	while (n % 256)
++		_E(emit_gfx10_s_code_end, I10(buf, n));
++	return n * 4;
++#endif
++	/* ---- Ctext: 1 <= tid <= nblocks ---- */
++	/* block_idx = tid - 1 (unsigned; tid==0 -> 0xFFFFFFFF > nblocks) */
++	_E(emit_gfx10_v_add_nc_u32, I10(buf, n), P_V(VR_TMP), P_L(0xFFFFFFFF),
++	   P_V(VR_TID));
++	_E(emit_gfx10_v_cmp_gt_u32, I10(buf, n), P_S(SR_NBLOCKS_GCM),
++	   P_V(VR_TMP));
++	_E(emit_gfx10_s_and_saveexec_b64, I10(buf, n), SR_GHASH_EXEC,
++	   106 /* VCC */);
++	br_skip_ctext = _BR(emit_gfx10_s_cbranch_execz, I10(buf, n), 0);
++
++#if defined(KNOD_IPSEC_GFX10_DIAG_STUB) && KNOD_IPSEC_GFX10_DIAG_STUB == 14
++	_E(emit_gfx10_s_mov_b64, I10(buf, n), 126 /* EXEC */,
++	   SR_GHASH_EXEC);
++	_E(emit_gfx10_v_cmp_eq_u32, I10(buf, n), P_I(0), P_V(0));
++	br_skip14 = _BR(emit_gfx10_s_cbranch_vccz, I10(buf, n), 0);
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(7), P_L(0xDEAD000Eu));
++	_E(emit_gfx10_global_store_dword, I10(buf, n), P_V(VR_SAVE_BD_LO),
++	   P_V(7), 8);
++	_E(emit_gfx10_s_waitcnt_vmcnt, I10(buf, n));
++	patch_branch(buf, br_skip14, n);
++	_E(emit_gfx10_s_endpgm, I10(buf, n));
++	while (n % 256)
++		_E(emit_gfx10_s_code_end, I10(buf, n));
++	return n * 4;
++#endif
++	/* Load ctext block: pkt + esp_hdr_off + 16 + block_idx*16 */
++	_E(emit_gfx10_v_lshlrev_b32, I10(buf, n), P_V(VR_TMP), P_I(4),
++	   P_V(VR_TMP));
++	_E(emit_gfx10_v_add_co_u32, I10(buf, n), P_V(VR_GA_LO),
++	   P_V(VR_SAVE_ESP_OFF), P_V(VR_SAVE_PKT_LO));
++	_E(emit_gfx10_v_add_co_ci_u32_e32, I10(buf, n), P_V(VR_GA_HI),
++	   P_I(0), P_V(VR_SAVE_PKT_HI));
++	_E(emit_gfx10_v_add_co_u32, I10(buf, n), P_V(VR_GA_LO),
++	   P_I(ESP_REL_CTEXT), P_V(VR_GA_LO));
++	_E(emit_gfx10_v_add_co_ci_u32_e32, I10(buf, n), P_V(VR_GA_HI),
++	   P_I(0), P_V(VR_GA_HI));
++	_E(emit_gfx10_v_add_co_u32, I10(buf, n), P_V(VR_GA_LO),
++	   P_V(VR_GA_LO), P_V(VR_TMP));
++	_E(emit_gfx10_v_add_co_ci_u32_e32, I10(buf, n), P_V(VR_GA_HI),
++	   P_I(0), P_V(VR_GA_HI));
++	/* GFX10 unaligned load fix: ctext addr == 2 mod 4.
++	 * dwordx4 + extra dword + 4x alignbit. VR_BLK is free.
++	 */
++	_E(emit_gfx10_global_load_dwordx4, I10(buf, n), P_V(VR_DATA0),
++	   P_V(VR_GA_LO), 0);
++	_E(emit_gfx10_global_load_dword, I10(buf, n), P_V(VR_BLK),
++	   P_V(VR_GA_LO), 16);
++	_E(emit_gfx10_s_waitcnt_vmcnt, I10(buf, n));
++	_E(emit_gfx10_v_alignbit_b32, I10(buf, n), P_V(VR_DATA0),
++	   P_V(VR_DATA1), P_V(VR_DATA0), P_I(16));
++	_E(emit_gfx10_v_alignbit_b32, I10(buf, n), P_V(VR_DATA1),
++	   P_V(VR_DATA2), P_V(VR_DATA1), P_I(16));
++	_E(emit_gfx10_v_alignbit_b32, I10(buf, n), P_V(VR_DATA2),
++	   P_V(VR_DATA3), P_V(VR_DATA2), P_I(16));
++	_E(emit_gfx10_v_alignbit_b32, I10(buf, n), P_V(VR_DATA3),
++	   P_V(VR_BLK), P_V(VR_DATA3), P_I(16));
++
++#if defined(KNOD_IPSEC_GFX10_DIAG_STUB) && KNOD_IPSEC_GFX10_DIAG_STUB == 15
++	_E(emit_gfx10_s_mov_b64, I10(buf, n), 126 /* EXEC */,
++	   SR_GHASH_EXEC);
++	_E(emit_gfx10_v_cmp_eq_u32, I10(buf, n), P_I(0), P_V(0));
++	br_skip15 = _BR(emit_gfx10_s_cbranch_vccz, I10(buf, n), 0);
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(7), P_L(0xDEAD000Fu));
++	_E(emit_gfx10_global_store_dword, I10(buf, n), P_V(VR_SAVE_BD_LO),
++	   P_V(7), 8);
++	_E(emit_gfx10_s_waitcnt_vmcnt, I10(buf, n));
++	patch_branch(buf, br_skip15, n);
++	_E(emit_gfx10_s_endpgm, I10(buf, n));
++	while (n % 256)
++		_E(emit_gfx10_s_code_end, I10(buf, n));
++	return n * 4;
++#endif
++	/* Zero trailing dwords in the last partial ctext block.
++	 * The load above reads 16 raw bytes, but for the last block
++	 * only (ctext_len % 16) bytes are ciphertext - the rest are
++	 * ICV bytes which must NOT enter GHASH.  ESP ctext is always
++	 * 4-byte aligned so the partial count is 4, 8 or 12 - pure
++	 * dword-level zeroing suffices, no byte masking needed.
++	 *
++	 * VR_TMP still holds block_idx * 16 from the address calc.
++	 * remaining = ctext_len - block_idx*16. For full blocks
++	 * (remaining >= 16) every v_cmp evaluates true -> no change.
++	 */
++	_E(emit_gfx10_v_sub_nc_u32, I10(buf, n), P_V(VR_TMP),
++	   P_S(SR_CTEXT_LEN), P_V(VR_TMP));
++	/* VR_TMP = remaining bytes in this block */
++
++	/* DATA3 (bytes 12-15): keep only if remaining > 12 */
++	_E(emit_gfx10_v_cmp_lt_u32, I10(buf, n), P_I(12), P_V(VR_TMP));
++#if defined(KNOD_IPSEC_GFX10_DIAG_STUB) && KNOD_IPSEC_GFX10_DIAG_STUB == 18
++	_E(emit_gfx10_s_mov_b64, I10(buf, n), 126 /* EXEC */,
++	   SR_GHASH_EXEC);
++	_E(emit_gfx10_v_cmp_eq_u32, I10(buf, n), P_I(0), P_V(0));
++	br_skip18 = _BR(emit_gfx10_s_cbranch_vccz, I10(buf, n), 0);
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(7), P_L(0xDEAD0012u));
++	_E(emit_gfx10_global_store_dword, I10(buf, n), P_V(VR_SAVE_BD_LO),
++	   P_V(7), 8);
++	_E(emit_gfx10_s_waitcnt_vmcnt, I10(buf, n));
++	patch_branch(buf, br_skip18, n);
++	_E(emit_gfx10_s_endpgm, I10(buf, n));
++	while (n % 256)
++		_E(emit_gfx10_s_code_end, I10(buf, n));
++	return n * 4;
++#endif
++	_E(emit_gfx10_v_cndmask_b32_e32, I10(buf, n),
++	   P_V(VR_DATA3), P_I(0), P_V(VR_DATA3));
++
++	/* DATA2 (bytes 8-11): keep only if remaining > 8 */
++	_E(emit_gfx10_v_cmp_lt_u32, I10(buf, n), P_I(8), P_V(VR_TMP));
++	_E(emit_gfx10_v_cndmask_b32_e32, I10(buf, n),
++	   P_V(VR_DATA2), P_I(0), P_V(VR_DATA2));
++
++	/* DATA1 (bytes 4-7): keep only if remaining > 4 */
++	_E(emit_gfx10_v_cmp_lt_u32, I10(buf, n), P_I(4), P_V(VR_TMP));
++	_E(emit_gfx10_v_cndmask_b32_e32, I10(buf, n),
++	   P_V(VR_DATA1), P_I(0), P_V(VR_DATA1));
++
++	/* DATA0 (bytes 0-3): always valid (ESP 4-byte alignment) */
++
++#if defined(KNOD_IPSEC_GFX10_DIAG_STUB) && KNOD_IPSEC_GFX10_DIAG_STUB == 16
++	_E(emit_gfx10_s_mov_b64, I10(buf, n), 126 /* EXEC */,
++	   SR_GHASH_EXEC);
++	_E(emit_gfx10_v_cmp_eq_u32, I10(buf, n), P_I(0), P_V(0));
++	br_skip16 = _BR(emit_gfx10_s_cbranch_vccz, I10(buf, n), 0);
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(7), P_L(0xDEAD0010u));
++	_E(emit_gfx10_global_store_dword, I10(buf, n), P_V(VR_SAVE_BD_LO),
++	   P_V(7), 8);
++	_E(emit_gfx10_s_waitcnt_vmcnt, I10(buf, n));
++	patch_branch(buf, br_skip16, n);
++	_E(emit_gfx10_s_endpgm, I10(buf, n));
++	while (n % 256)
++		_E(emit_gfx10_s_code_end, I10(buf, n));
++	return n * 4;
++#endif
++	/* bswap each dword for GHASH (big-endian GF arithmetic) */
++	_E(emit_gfx10_v_perm_b32, I10(buf, n), P_V(VR_DATA0),
++	   P_V(VR_DATA0), P_V(VR_DATA0), P_S(SR_BSWAP));
++	_E(emit_gfx10_v_perm_b32, I10(buf, n), P_V(VR_DATA1),
++	   P_V(VR_DATA1), P_V(VR_DATA1), P_S(SR_BSWAP));
++	_E(emit_gfx10_v_perm_b32, I10(buf, n), P_V(VR_DATA2),
++	   P_V(VR_DATA2), P_V(VR_DATA2), P_S(SR_BSWAP));
++	_E(emit_gfx10_v_perm_b32, I10(buf, n), P_V(VR_DATA3),
++	   P_V(VR_DATA3), P_V(VR_DATA3), P_S(SR_BSWAP));
++
++	patch_branch(buf, br_skip_ctext, n);
++	_E(emit_gfx10_s_mov_b64, I10(buf, n), 126 /* EXEC */,
++	   SR_GHASH_EXEC);
++
++#if defined(KNOD_IPSEC_GFX10_DIAG_STUB) && KNOD_IPSEC_GFX10_DIAG_STUB == 13
++	_E(emit_gfx10_v_cmp_eq_u32, I10(buf, n), P_I(0), P_V(0));
++	br_skip13 = _BR(emit_gfx10_s_cbranch_vccz, I10(buf, n), 0);
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(7), P_L(0xDEAD000Du));
++	_E(emit_gfx10_global_store_dword, I10(buf, n), P_V(VR_SAVE_BD_LO),
++	   P_V(7), 8);
++	_E(emit_gfx10_s_waitcnt_vmcnt, I10(buf, n));
++	patch_branch(buf, br_skip13, n);
++	_E(emit_gfx10_s_endpgm, I10(buf, n));
++	while (n % 256)
++		_E(emit_gfx10_s_code_end, I10(buf, n));
++	return n * 4;
++#endif
++	/* ---- Len block: tid == nblocks + 1 ---- */
++	/* Compute nblocks+1 in s42 (scratch) */
++	_E(emit_gfx10_s_add_u32, I10(buf, n), P_S(42), P_I(1),
++	   P_S(SR_NBLOCKS_GCM));
++	_E(emit_gfx10_v_cmp_eq_u32, I10(buf, n), P_S(42),
++	   P_V(VR_TID));
++	_E(emit_gfx10_s_and_saveexec_b64, I10(buf, n), SR_GHASH_EXEC,
++	   106 /* VCC */);
++	br_skip_len = _BR(emit_gfx10_s_cbranch_execz, I10(buf, n), 0);
++
++	/* Length block format (GCM big-endian):
++	 *   DATA0 = AAD_bits[63:32] = 0
++	 *   DATA1 = AAD_bits[31:0]  = 64  (8 bytes AAD x 8)
++	 *   DATA2 = ctext_bits[63:32] = 0
++	 *   DATA3 = ctext_bits[31:0] = ctext_len * 8
++	 *
++	 * No bswap32: length values are computed integers already
++	 * in the correct big-endian register representation.
++	 * bswap32 is only needed for data loaded from LE memory.
++	 */
++	/* DATA0, DATA2 already 0 from default init */
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(VR_DATA1),
++	   P_L(0x00000040u));
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(VR_DATA3),
++	   P_S(SR_CTEXT_LEN));
++	_E(emit_gfx10_v_lshlrev_b32, I10(buf, n), P_V(VR_DATA3), P_I(3),
++	   P_V(VR_DATA3));
++
++	patch_branch(buf, br_skip_len, n);
++	_E(emit_gfx10_s_mov_b64, I10(buf, n), 126 /* EXEC */,
++	   SR_GHASH_EXEC);
++
++#if defined(KNOD_IPSEC_GFX10_DIAG_STUB) && KNOD_IPSEC_GFX10_DIAG_STUB == 11
++	_E(emit_gfx10_v_cmp_eq_u32, I10(buf, n), P_I(0), P_V(0));
++	br_skip = _BR(emit_gfx10_s_cbranch_vccz, I10(buf, n), 0);
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(7), P_L(0xDEAD000Bu));
++	_E(emit_gfx10_global_store_dword, I10(buf, n), P_V(VR_SAVE_BD_LO),
++	   P_V(7), 8);
++	_E(emit_gfx10_s_waitcnt_vmcnt, I10(buf, n));
++	patch_branch(buf, br_skip, n);
++	_E(emit_gfx10_s_endpgm, I10(buf, n));
++	while (n % 256)
++		_E(emit_gfx10_s_code_end, I10(buf, n));
++	return n * 4;
++#endif
++	/* H-table data was prefetched before data selection; drain + bswap */
++	_E(emit_gfx10_s_waitcnt_vmcnt, I10(buf, n));
++	_E(emit_gfx10_v_perm_b32, I10(buf, n), P_V(VR_D0),
++	   P_V(VR_D0), P_V(VR_D0), P_S(SR_BSWAP));
++	_E(emit_gfx10_v_perm_b32, I10(buf, n), P_V(VR_D1),
++	   P_V(VR_D1), P_V(VR_D1), P_S(SR_BSWAP));
++	_E(emit_gfx10_v_perm_b32, I10(buf, n), P_V(VR_D2),
++	   P_V(VR_D2), P_V(VR_D2), P_S(SR_BSWAP));
++	_E(emit_gfx10_v_perm_b32, I10(buf, n), P_V(VR_D3),
++	   P_V(VR_D3), P_V(VR_D3), P_S(SR_BSWAP));
++
++	/* ---- GF(2^128) multiply: Z = DATA * H^k ---- */
++#if defined(KNOD_IPSEC_GFX10_DIAG_STUB) && KNOD_IPSEC_GFX10_DIAG_STUB == 10
++	_E(emit_gfx10_v_cmp_eq_u32, I10(buf, n), P_I(0), P_V(0));
++	br_skip = _BR(emit_gfx10_s_cbranch_vccz, I10(buf, n), 0);
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(7), P_L(0xDEAD000Au));
++	_E(emit_gfx10_global_store_dword, I10(buf, n), P_V(VR_SAVE_BD_LO),
++	   P_V(7), 8);
++	_E(emit_gfx10_s_waitcnt_vmcnt, I10(buf, n));
++	patch_branch(buf, br_skip, n);
++	_E(emit_gfx10_s_endpgm, I10(buf, n));
++	while (n % 256)
++		_E(emit_gfx10_s_code_end, I10(buf, n));
++	return n * 4;
++#endif
++	n = emit_gfmul_128_gfx10(buf, n);
++	/* Result in v[VR_S0:VR_S3] */
++
++	/* ---- Tree reduction via LDS XOR (8 levels for 256 threads) ---- */
++	/* Write v[VR_S0:VR_S3] to LDS at tid * 16 */
++	_E(emit_gfx10_v_lshlrev_b32, I10(buf, n), P_V(VR_ADDR), P_I(4),
++	   P_V(VR_TID));
++	_E(emit_gfx10_ds_write_b128, I10(buf, n), VR_ADDR, VR_S0);
++	_E(emit_gfx10_s_waitcnt_lgkmcnt, I10(buf, n));
++	_E(emit_gfx10_s_barrier, I10(buf, n));
++
++	for (level = 1; level <= 128; level <<= 1) {
++		/* if (tid & level) skip */
++		_E(emit_gfx10_v_and_b32_e32, I10(buf, n), P_V(VR_TMP),
++		   P_L(level), P_V(VR_TID));
++		_E(emit_gfx10_v_cmp_eq_u32, I10(buf, n), P_I(0), P_V(VR_TMP));
++		_E(emit_gfx10_s_and_saveexec_b64, I10(buf, n), SR_GHASH_EXEC,
++		   106 /* VCC */);
++		br_skip = _BR(emit_gfx10_s_cbranch_execz, I10(buf, n), 0);
++
++		/* Compute both addresses up front */
++		_E(emit_gfx10_v_add_nc_u32, I10(buf, n), P_V(VR_TMP),
++		   P_L(level), P_V(VR_TID));
++		_E(emit_gfx10_v_lshlrev_b32, I10(buf, n), P_V(VR_TMP),
++		   P_I(4), P_V(VR_TMP));
++		_E(emit_gfx10_v_lshlrev_b32, I10(buf, n), P_V(VR_ADDR),
++		   P_I(4), P_V(VR_TID));
++
++		/* Issue both reads, single wait */
++		_E(emit_gfx10_ds_read_b128, I10(buf, n), VR_D0, VR_TMP);
++		_E(emit_gfx10_ds_read_b128, I10(buf, n), VR_S0, VR_ADDR);
++		_E(emit_gfx10_s_waitcnt_lgkmcnt, I10(buf, n));
++
++		/* XOR */
++		_E(emit_gfx10_v_xor_b32_e32, I10(buf, n), P_V(VR_S0),
++		   P_V(VR_S0), P_V(VR_D0));
++		_E(emit_gfx10_v_xor_b32_e32, I10(buf, n), P_V(VR_S1),
++		   P_V(VR_S1), P_V(VR_D1));
++		_E(emit_gfx10_v_xor_b32_e32, I10(buf, n), P_V(VR_S2),
++		   P_V(VR_S2), P_V(VR_D2));
++		_E(emit_gfx10_v_xor_b32_e32, I10(buf, n), P_V(VR_S3),
++		   P_V(VR_S3), P_V(VR_D3));
++
++		/* Write back */
++		_E(emit_gfx10_ds_write_b128, I10(buf, n), VR_ADDR, VR_S0);
++		_E(emit_gfx10_s_waitcnt_lgkmcnt, I10(buf, n));
++
++		patch_branch(buf, br_skip, n);
++		/* Restore EXEC */
++		_E(emit_gfx10_s_mov_b64, I10(buf, n), 126 /* EXEC */,
++		   SR_GHASH_EXEC);
++		_E(emit_gfx10_s_barrier, I10(buf, n));
++	}
++
++	/* Thread 0 now has the final GHASH in LDS[0..15]. Read it. */
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(VR_TMP), P_I(0));
++	_E(emit_gfx10_ds_read_b128, I10(buf, n), VR_S0, VR_TMP);
++	_E(emit_gfx10_s_waitcnt_lgkmcnt, I10(buf, n));
++
++	/* ================================================================
++	 * Phase 9: ICV verify (thread 0 only)
++	 *
++	 * computed_tag = bswap(GHASH) XOR AES(K, J0)
++	 * received_tag = last 16 bytes of ESP packet
++	 * ================================================================
++	 */
++	_E(emit_gfx10_v_cmp_eq_u32, I10(buf, n), P_I(0), P_V(VR_TID));
++	_E(emit_gfx10_s_and_saveexec_b64, I10(buf, n), SR_EXEC_SAVE, 106);
++	br_tid0 = _BR(emit_gfx10_s_cbranch_execz, I10(buf, n), 0);
++
++	/* bswap GHASH from big-endian to little-endian */
++	_E(emit_gfx10_v_perm_b32, I10(buf, n), P_V(VR_S0), P_V(VR_S0),
++	   P_V(VR_S0), P_S(SR_BSWAP));
++	_E(emit_gfx10_v_perm_b32, I10(buf, n), P_V(VR_S1), P_V(VR_S1),
++	   P_V(VR_S1), P_S(SR_BSWAP));
++	_E(emit_gfx10_v_perm_b32, I10(buf, n), P_V(VR_S2), P_V(VR_S2),
++	   P_V(VR_S2), P_S(SR_BSWAP));
++	_E(emit_gfx10_v_perm_b32, I10(buf, n), P_V(VR_S3), P_V(VR_S3),
++	   P_V(VR_S3), P_S(SR_BSWAP));
++
++	/* computed_tag = GHASH XOR AES(K, J0) */
++	_E(emit_gfx10_v_xor_b32_e32, I10(buf, n), P_V(VR_S0),
++	   P_V(VR_S0), P_V(VR_J0_0));
++	_E(emit_gfx10_v_xor_b32_e32, I10(buf, n), P_V(VR_S1),
++	   P_V(VR_S1), P_V(VR_J0_1));
++	_E(emit_gfx10_v_xor_b32_e32, I10(buf, n), P_V(VR_S2),
++	   P_V(VR_S2), P_V(VR_J0_2));
++	_E(emit_gfx10_v_xor_b32_e32, I10(buf, n), P_V(VR_S3),
++	   P_V(VR_S3), P_V(VR_J0_3));
++
++	/* Load received ICV: pkt + pkt_len - 16.
++	 * GFX10 unaligned load fix: ICV addr == 2 mod 4.
++	 * dwordx4 + extra dword + 4x alignbit. VR_TMP is
++	 * free after address calc; use VR_BLK for 5th dword.
++	 */
++	_E(emit_gfx10_v_add_nc_u32, I10(buf, n), P_V(VR_TMP),
++	   P_L(0xFFFFFFF0u), P_V(VR_SAVE_PKTLEN)); /* pkt_len - 16 */
++	_E(emit_gfx10_v_add_co_u32, I10(buf, n), P_V(VR_GA_LO),
++	   P_V(VR_TMP), P_V(VR_SAVE_PKT_LO));
++	_E(emit_gfx10_v_add_co_ci_u32_e32, I10(buf, n), P_V(VR_GA_HI),
++	   P_I(0), P_V(VR_SAVE_PKT_HI));
++	_E(emit_gfx10_global_load_dwordx4, I10(buf, n), P_V(VR_DATA0),
++	   P_V(VR_GA_LO), 0);
++	_E(emit_gfx10_global_load_dword, I10(buf, n), P_V(VR_BLK),
++	   P_V(VR_GA_LO), 16);
++	_E(emit_gfx10_s_waitcnt_vmcnt, I10(buf, n));
++	_E(emit_gfx10_v_alignbit_b32, I10(buf, n), P_V(VR_DATA0),
++	   P_V(VR_DATA1), P_V(VR_DATA0), P_I(16));
++	_E(emit_gfx10_v_alignbit_b32, I10(buf, n), P_V(VR_DATA1),
++	   P_V(VR_DATA2), P_V(VR_DATA1), P_I(16));
++	_E(emit_gfx10_v_alignbit_b32, I10(buf, n), P_V(VR_DATA2),
++	   P_V(VR_DATA3), P_V(VR_DATA2), P_I(16));
++	_E(emit_gfx10_v_alignbit_b32, I10(buf, n), P_V(VR_DATA3),
++	   P_V(VR_BLK), P_V(VR_DATA3), P_I(16));
++
++	/* Compare: XOR each dword, OR together; if any non-zero -> fail */
++	_E(emit_gfx10_v_xor_b32_e32, I10(buf, n), P_V(VR_DATA0),
++	   P_V(VR_DATA0), P_V(VR_S0));
++	_E(emit_gfx10_v_xor_b32_e32, I10(buf, n), P_V(VR_DATA1),
++	   P_V(VR_DATA1), P_V(VR_S1));
++	_E(emit_gfx10_v_xor_b32_e32, I10(buf, n), P_V(VR_DATA2),
++	   P_V(VR_DATA2), P_V(VR_S2));
++	_E(emit_gfx10_v_xor_b32_e32, I10(buf, n), P_V(VR_DATA3),
++	   P_V(VR_DATA3), P_V(VR_S3));
++	_E(emit_gfx10_v_or_b32_e32, I10(buf, n), P_V(VR_DATA0),
++	   P_V(VR_DATA0), P_V(VR_DATA1));
++	_E(emit_gfx10_v_or_b32_e32, I10(buf, n), P_V(VR_DATA0),
++	   P_V(VR_DATA0), P_V(VR_DATA2));
++	_E(emit_gfx10_v_or_b32_e32, I10(buf, n), P_V(VR_DATA0),
++	   P_V(VR_DATA0), P_V(VR_DATA3));
++
++	/* If VR_DATA0 != 0 -> ICV fail: overwrite verdict with sentinel */
++	_E(emit_gfx10_v_cmp_ne_u32, I10(buf, n), P_I(0), P_V(VR_DATA0));
++	br_icv_ok = _BR(emit_gfx10_s_cbranch_vccz, I10(buf, n), 0);
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(VR_SAVE_SLOT),
++	   P_L(VERDICT_ICV_FAIL));
++	patch_branch(buf, br_icv_ok, n);
++
++	/* ================================================================
++	 * Phase 10: ESP trailer strip + write verdict (thread 0)
++	 *
++	 * Decrypted tail: pad_len at out + ctext_len - 2
++	 *                 next_hdr at out + ctext_len - 1
++	 * inner_len = ctext_len - pad_len - 2
++	 * ================================================================
++	 */
++	/* Only strip if ICV passed (slot < NR_SA) */
++	_E(emit_gfx10_v_readfirstlane_b32, I10(buf, n), 27, VR_SAVE_SLOT);
++	_E(emit_gfx10_s_cmp_ge_u32, I10(buf, n), P_S(27),
++	   P_L(KNOD_IPSEC_SHADER_NR_SA));
++	br_icv_bad = _BR(emit_gfx10_s_cbranch_scc1, I10(buf, n), 0);
++
++	/* Load last 4 bytes of decrypted payload: out + ctext_len - 4.
++	 * VOP2 src1 must be VGPR, so move SGPR to VR_TMP first.
++	 */
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(VR_TMP),
++	   P_S(SR_CTEXT_LEN));
++	_E(emit_gfx10_v_add_nc_u32, I10(buf, n), P_V(VR_TMP),
++	   P_L(0xFFFFFFFC), P_V(VR_TMP)); /* ctext_len - 4 */
++	_E(emit_gfx10_v_add_co_u32, I10(buf, n), P_V(VR_GA_LO),
++	   P_V(VR_TMP), P_V(VR_SAVE_OUT_LO));
++	_E(emit_gfx10_v_add_co_ci_u32_e32, I10(buf, n), P_V(VR_GA_HI),
++	   P_I(0), P_V(VR_SAVE_OUT_HI));
++	_E(emit_gfx10_global_load_dword, I10(buf, n), P_V(VR_DATA0),
++	   P_V(VR_GA_LO), 0);
++	_E(emit_gfx10_s_waitcnt_vmcnt, I10(buf, n));
++
++	/* On LE: loaded dword has byte layout [b0,b1,b2,b3].
++	 * We loaded from (ctext_len - 4), so:
++	 *   b2 = pad_len (at ctext_len - 2)
++	 *   b3 = next_hdr (at ctext_len - 1)
++	 * pad_len = (dword >> 16) & 0xFF
++	 */
++	_E(emit_gfx10_v_lshrrev_b32, I10(buf, n), P_V(VR_TMP),
++	   P_I(16), P_V(VR_DATA0));
++	_E(emit_gfx10_v_and_b32_e32, I10(buf, n), P_V(VR_TMP),
++	   P_L(0xFF), P_V(VR_TMP));
++
++	/* inner_len = ctext_len - pad_len - 2 */
++	_E(emit_gfx10_v_sub_nc_u32, I10(buf, n), P_V(VR_DATA1),
++	   P_S(SR_CTEXT_LEN), P_V(VR_TMP));
++	_E(emit_gfx10_v_add_nc_u32, I10(buf, n), P_V(VR_DATA1),
++	   P_L(0xFFFFFFFE), P_V(VR_DATA1)); /* -2 */
++
++	/* Write bd->len = inner_len (u16 at bd + 18) */
++	_E(emit_gfx10_v_add_co_u32, I10(buf, n), P_V(VR_GA_LO),
++	   P_L(18), P_V(VR_SAVE_BD_LO));
++	_E(emit_gfx10_v_add_co_ci_u32_e32, I10(buf, n), P_V(VR_GA_HI),
++	   P_I(0), P_V(VR_SAVE_BD_HI));
++	_E(emit_gfx10_global_store_short, I10(buf, n), P_V(VR_GA_LO),
++	   P_V(VR_DATA1), 0);
++
++	/* Write bd->off = mode | (next_hdr << 8) (u16 at bd + 16).
++	 * next_hdr = byte[3] of the ESP trailer dword (VR_DATA0).
++	 * mode from s[SR_SA_MODE].
++	 */
++	_E(emit_gfx10_v_lshrrev_b32, I10(buf, n), P_V(VR_TMP),
++	   P_I(24), P_V(VR_DATA0));
++	_E(emit_gfx10_v_lshlrev_b32, I10(buf, n), P_V(VR_TMP),
++	   P_I(8), P_V(VR_TMP));
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(VR_DATA2),
++	   P_S(SR_SA_MODE));
++	_E(emit_gfx10_v_or_b32_e32, I10(buf, n), P_V(VR_TMP),
++	   P_V(VR_DATA2), P_V(VR_TMP));
++	_E(emit_gfx10_v_add_co_u32, I10(buf, n), P_V(VR_GA_LO),
++	   P_L(16), P_V(VR_SAVE_BD_LO));
++	_E(emit_gfx10_v_add_co_ci_u32_e32, I10(buf, n), P_V(VR_GA_HI),
++	   P_I(0), P_V(VR_SAVE_BD_HI));
++	_E(emit_gfx10_global_store_short, I10(buf, n), P_V(VR_GA_LO),
++	   P_V(VR_TMP), 0);
++
++	/* Per-SA GPU stats: atomically increment rx_packets
++	 * and rx_bytes at stats_addr. VR_DATA1 still holds
++	 * inner_len from the bd->len computation above.
++	 *
++	 * global_atomic_add_x2 uses v[data:data+1] as u64.
++	 * Save inner_len to VR_TMP before clobbering DATA1.
++	 *
++	 * stats layout (knod_ipsec_sa_gpu_stats):
++	 *   +0: rx_packets (u64, LE)
++	 *   +8: rx_bytes   (u64, LE)
++	 */
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(VR_TMP),
++	   P_V(VR_DATA1));	/* save inner_len */
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(VR_GA_LO),
++	   P_V(VR_SAVE_STATS_LO));
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(VR_GA_HI),
++	   P_V(VR_SAVE_STATS_HI));
++
++	/* rx_packets += 1: v[DATA0:DATA1] = {1, 0} */
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(VR_DATA0), P_I(1));
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(VR_DATA1), P_I(0));
++	_E(emit_gfx10_global_atomic_add_x2, I10(buf, n),
++	   P_V(VR_DATA2), P_V(VR_GA_LO), P_V(VR_DATA0), 0, 0);
++
++	/* rx_bytes += inner_len: v[DATA0:DATA1] = {inner_len, 0} */
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(VR_DATA0),
++	   P_V(VR_TMP));
++	/* DATA1 already 0 from above */
++	_E(emit_gfx10_global_atomic_add_x2, I10(buf, n),
++	   P_V(VR_DATA2), P_V(VR_GA_LO), P_V(VR_DATA0), 8, 0);
++
++	/* ================================================================
++	 * L3 header passthrough (transport mode only).
++	 *
++	 * Copy 20 B of the outer IPv4 L3 header from
++	 * pkt + 14 (skip ETH) to out_addr - 20. In shader-GTT
++	 * direct mode (knod_ipsec_sdma=0), out_addr - 20 is
++	 * pass_buf_slot + 0 so the host-side finalise can skip
++	 * the per-packet L3 SDMA copy entirely - the only
++	 * remaining SDMA call on the transport IPv4 fast path.
++	 *
++	 * Tunnel-mode SAs (SR_SA_MODE != 0) skip this write
++	 * because for tunnel the destination at slot+0 wants
++	 * the *inner* packet, not an outer IP header.
++	 *
++	 * The VRAM staging path (knod_ipsec_sdma=1) also runs
++	 * this copy, but the destination is the 20-byte
++	 * headroom knod_ipsec.c reserves at the front of
++	 * the decrypt pool; CPU finalise still SDMAs the real
++	 * L3 header from the raw packet into the GTT pass_buf
++	 * so the shader's write is harmless wasted work.
++	 *
++	 * Alignment: pkt + 14 is only 2-byte aligned (ETH hdr
++	 * = 14 bytes != 4-byte multiple), so dword / dwordx4
++	 * loads would fault. Use 10 x global_load_ushort at
++	 * offsets 14,16,...,32, paired with 10 x store_short
++	 * at slot + 0,2,...,18. 10 scratch VGPRs (v14..v23),
++	 * all free by Phase 10 since AES-GCM / GHASH state is
++	 * done. One waitcnt between loads and stores.
++	 * ================================================================
++	 */
++
++	_E(emit_gfx10_s_cmp_eq_u32, I10(buf, n),
++	   P_S(SR_SA_MODE), P_I(0));
++	br_not_transport = _BR(emit_gfx10_s_cbranch_scc0,
++			       I10(buf, n), 0);
++
++	/* src = pkt_addr + 14 */
++	_E(emit_gfx10_v_add_co_u32, I10(buf, n),
++	   P_V(VR_GA_LO), P_I(14),
++	   P_V(VR_SAVE_PKT_LO));
++	_E(emit_gfx10_v_add_co_ci_u32_e32, I10(buf, n),
++	   P_V(VR_GA_HI), P_I(0),
++	   P_V(VR_SAVE_PKT_HI));
++
++	/* 10 x 2-byte loads from src+0..+18 */
++	for (li = 0; li < 10; li++) {
++		_E(emit_gfx10_global_load_ushort,
++		   I10(buf, n),
++		   P_V(L3_TMP_BASE + li),
++		   P_V(VR_GA_LO), li * 2);
++	}
++	_E(emit_gfx10_s_waitcnt_vmcnt, I10(buf, n));
++
++	/* dst = out_addr - 20.
++	 *
++	 * Two GFX9 landmines here:
++	 *
++	 *  1. v_add_co_u32 can't take a 32-bit
++	 *     literal src together with implicit VCC
++	 *     - same class as the v_cndmask literal
++	 *     restriction.
++	 *  2. P_I(n) is a raw initializer that always
++	 *     sets type=INTEGER_0 and stores n in .v.
++	 *     For negative inline constants the
++	 *     encoder must flip to INTEGER_MINUS_1
++	 *     with v=~n, which P_I does NOT do.
++	 *     P_I(-1) therefore encodes as
++	 *     GFX9_SRC_INTEGER_0 + (-1) = 127, a
++	 *     bogus register that gave us random
++	 *     high-32 bits and page-faulted stores.
++	 *
++	 * Dodge both by materialising -20 into VR_TMP
++	 * and -1 into VR_TMP2 via v_mov_b32 literals
++	 * (VOP1, no VCC, literals fine), then pure
++	 * VGPR+VGPR add_co / addc_co. Borrow flows
++	 * through VCC as the carry-in to addc_co.
++	 */
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n),
++	   P_V(VR_TMP), P_L(0xFFFFFFECu));
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n),
++	   P_V(VR_TMP2), P_L(0xFFFFFFFFu));
++	_E(emit_gfx10_v_add_co_u32, I10(buf, n),
++	   P_V(VR_GA_LO),
++	   P_V(VR_TMP), P_V(VR_SAVE_OUT_LO));
++	_E(emit_gfx10_v_add_co_ci_u32_e32, I10(buf, n),
++	   P_V(VR_GA_HI),
++	   P_V(VR_TMP2), P_V(VR_SAVE_OUT_HI));
++
++	/* 10 x 2-byte stores to dst+0..+18 */
++	for (li = 0; li < 10; li++) {
++		_E(emit_gfx10_global_store_short,
++		   I10(buf, n),
++		   P_V(VR_GA_LO),
++		   P_V(L3_TMP_BASE + li),
++		   li * 2);
++	}
++
++	patch_branch(buf, br_not_transport, n);
++
++	patch_branch(buf, br_icv_bad, n);
++
++	/* Write bd->act (u64 at bd + 8):
++	 * high32 = slot_idx (or sentinel),
++	 * low32 = KNOD_IPSEC_INFLIGHT so NIC NAPI recognises
++	 * this slot as in-flight until the finish worker stamps
++	 * the final PASS/DROP.
++	 */
++	_E(emit_gfx10_v_add_co_u32, I10(buf, n), P_V(VR_GA_LO),
++	   P_L(8), P_V(VR_SAVE_BD_LO));
++	_E(emit_gfx10_v_add_co_ci_u32_e32, I10(buf, n), P_V(VR_GA_HI),
++	   P_I(0), P_V(VR_SAVE_BD_HI));
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(VR_DATA0),
++	   P_L(KNOD_IPSEC_INFLIGHT));
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(VR_DATA1),
++	   P_V(VR_SAVE_SLOT));
++	_E(emit_gfx10_global_store_dwordx2, I10(buf, n), P_V(VR_GA_LO),
++	   P_V(VR_DATA0), 0);
++	_E(emit_gfx10_s_waitcnt_vmcnt, I10(buf, n));
++
++	patch_branch(buf, br_tid0, n);
++
++	/* ================================================================
++	 * Phase 11: Miss/bypass path verdict - thread 0 only
++	 *
++	 * If we skipped crypto (Phase 2 branch), write the miss/bypass
++	 * sentinel that's still in v[VR_SAVE_SLOT].
++	 * ================================================================
++	 */
++	br_crypto_done = _BR(emit_gfx10_s_branch, I10(buf, n), 0);
++
++	patch_branch(buf, br_crypto_end, n);
++
++	/* Thread 0 writes bd->act with miss/bypass sentinel */
++	_E(emit_gfx10_v_cmp_eq_u32, I10(buf, n), P_I(0), P_V(VR_TID));
++	_E(emit_gfx10_s_and_saveexec_b64, I10(buf, n), SR_EXEC_SAVE, 106);
++	br_execz2 = _BR(emit_gfx10_s_cbranch_execz, I10(buf, n), 0);
++
++	_E(emit_gfx10_v_add_co_u32, I10(buf, n), P_V(VR_GA_LO),
++	   P_L(8), P_V(VR_SAVE_BD_LO));
++	_E(emit_gfx10_v_add_co_ci_u32_e32, I10(buf, n), P_V(VR_GA_HI),
++	   P_I(0), P_V(VR_SAVE_BD_HI));
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(VR_DATA0),
++	   P_L(KNOD_IPSEC_INFLIGHT));
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(VR_DATA1),
++	   P_V(VR_SAVE_SLOT));
++	_E(emit_gfx10_global_store_dwordx2, I10(buf, n), P_V(VR_GA_LO),
++	   P_V(VR_DATA0), 0);
++	_E(emit_gfx10_s_waitcnt_vmcnt, I10(buf, n));
++
++	patch_branch(buf, br_execz2, n);
++
++	patch_branch(buf, br_crypto_done, n);
++
++	/* ================================================================
++	 * Phase 12: GPU-initiated SDMA dispatch (thread 0 only)
++	 *
++	 * Identical logic to GFX9 Phase 12.  See ipsec_fused_gfx9.h
++	 * for the full protocol description.
++	 *
++	 * GPU writes SDMA COPY_LINEAR packets only.  FENCE, wptr update,
++	 * and doorbell are left to the CPU.
++	 *
++	 * GFX10 differences:
++	 *  - v_add_nc_u32 / v_sub_nc_u32 (no-carry variants)
++	 *  - v_add_co_ci_u32_e32 for carry-in addition
++	 *  - s_or_b64 for 64-bit zero test (no s_or_b32 helper)
++	 *  - GFX10 global offset is 12-bit signed (all offsets <=56 OK)
++	 * ================================================================
++	 */
++	/* --- kernarg loads ---------------------------------------- */
++	_E(emit_gfx10_s_load_dwordx2, I10(buf, n),
++	   P_S(24), P_S(8), 16);		/* s[24:25] = sdma_ring_addr */
++	_E(emit_gfx10_s_load_dwordx2, I10(buf, n),
++	   P_S(26), P_S(8), 32);		/* s[26:27] = sdma_ctl_addr */
++	_E(emit_gfx10_s_waitcnt_lgkmcnt, I10(buf, n));
++
++	/* s_or_b64 sets SCC = (s[26:27] != 0) */
++	_E(emit_gfx10_s_or_b64, I10(buf, n), 28, 26, 26);
++	br_no_sdma = _BR(emit_gfx10_s_cbranch_scc0, I10(buf, n), 0);
++
++	/* --- load sdma_ctl into VGPRs ----------------------------- */
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(1), P_S(26));
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(2), P_S(27));
++
++	/* ctl+28: wptr_base_dw(4) ring_mask(4) nr_total_wg(4) copy_hdr(4)
++	 * -> v[3:6]
++	 */
++	_E(emit_gfx10_global_load_dwordx4, I10(buf, n),
++	   P_V(3), P_V(1), 28);
++	_E(emit_gfx10_s_waitcnt_vmcnt, I10(buf, n));
++
++	/* v3=wptr_base_dw  v4=ring_mask  v5=nr_total_wg  v6=copy_hdr */
++
++	_E(emit_gfx10_v_readfirstlane_b32, I10(buf, n),
++	   28, 5);				/* s28 = nr_total_wg */
++
++	/* --- verdict check ---------------------------------------- */
++	_E(emit_gfx10_v_readfirstlane_b32, I10(buf, n),
++	   29, VR_SAVE_SLOT);			/* s29 = verdict */
++	_E(emit_gfx10_s_cmp_ge_u32, I10(buf, n),
++	   P_S(29), P_L(0xFFFFFFFEu));		/* MISS|BYPASS? */
++	br_no_copy = _BR(emit_gfx10_s_cbranch_scc0, I10(buf, n), 0);
++
++	/* === This WG needs SDMA copy === */
++
++	/* atomic_add(&ctl->claim_counter, 1, GLC=1) -> my_idx */
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(7), P_I(1));
++	_E(emit_gfx10_global_atomic_add, I10(buf, n),
++	   P_V(7), P_V(1), P_V(7), 0, 1);
++	_E(emit_gfx10_s_waitcnt_vmcnt, I10(buf, n));
++	/* v7 = my_idx (old claim_counter) */
++
++	/* ring dword position: (wptr_base_dw + my_idx*7) & ring_mask */
++	_E(emit_gfx10_v_lshlrev_b32, I10(buf, n),
++	   P_V(8), P_I(3), P_V(7));		/* my_idx * 8 */
++	_E(emit_gfx10_v_sub_nc_u32, I10(buf, n),
++	   P_V(8), P_V(8), P_V(7));		/* my_idx * 7 */
++	_E(emit_gfx10_v_add_nc_u32, I10(buf, n),
++	   P_V(8), P_V(3), P_V(8));		/* + wptr_base_dw */
++	_E(emit_gfx10_v_and_b32_e32, I10(buf, n),
++	   P_V(8), P_V(4), P_V(8));		/* & ring_mask */
++	_E(emit_gfx10_v_lshlrev_b32, I10(buf, n),
++	   P_V(8), P_I(2), P_V(8));		/* * 4 -> byte offset */
++
++	/* v[9:10] = sdma_ring_addr + byte_offset */
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(14), P_S(25));
++	_E(emit_gfx10_v_add_co_u32, I10(buf, n),
++	   P_V(9), P_S(24), P_V(8));
++	_E(emit_gfx10_v_add_co_ci_u32_e32, I10(buf, n),
++	   P_V(10), P_I(0), P_V(14));
++
++	/* DW0: copy_hdr */
++	_E(emit_gfx10_global_store_dword, I10(buf, n),
++	   P_V(9), P_V(6), 0);
++
++	/* DW1: nbytes - 1 */
++	_E(emit_gfx10_v_add_nc_u32, I10(buf, n),
++	   P_V(14), P_L(0xFFFFFFFFu), P_V(VR_SAVE_PKTLEN));
++	_E(emit_gfx10_global_store_dword, I10(buf, n),
++	   P_V(9), P_V(14), 4);
++
++	/* DW2: 0 (sub-op parameter) */
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(14), P_I(0));
++	_E(emit_gfx10_global_store_dword, I10(buf, n),
++	   P_V(9), P_V(14), 8);
++
++	/* DW3-4: src = pkt_addr (VRAM) */
++	_E(emit_gfx10_global_store_dword, I10(buf, n),
++	   P_V(9), P_V(VR_SAVE_PKT_LO), 12);
++	_E(emit_gfx10_global_store_dword, I10(buf, n),
++	   P_V(9), P_V(VR_SAVE_PKT_HI), 16);
++
++	/* DW5-6: dst = out_addr - 20 (GTT slot start) */
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n),
++	   P_V(14), P_L(0xFFFFFFECu));		/* -20 */
++	_E(emit_gfx10_v_add_co_u32, I10(buf, n),
++	   P_V(15), P_V(14), P_V(VR_SAVE_OUT_LO));
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n),
++	   P_V(14), P_L(0xFFFFFFFFu));		/* -1 */
++	_E(emit_gfx10_v_add_co_ci_u32_e32, I10(buf, n),
++	   P_V(16), P_V(14), P_V(VR_SAVE_OUT_HI));
++
++	_E(emit_gfx10_global_store_dword, I10(buf, n),
++	   P_V(9), P_V(15), 20);
++	_E(emit_gfx10_global_store_dword, I10(buf, n),
++	   P_V(9), P_V(16), 24);
++
++	_E(emit_gfx10_s_waitcnt_vmcnt, I10(buf, n));
++
++	/* --- done counter (all WGs) ------------------------------- */
++	patch_branch(buf, br_no_copy, n);
++
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(7), P_I(1));
++	_E(emit_gfx10_global_atomic_add, I10(buf, n),
++	   P_V(7), P_V(1), P_V(7), 4, 1);	/* ctl+4 = done_counter */
++	_E(emit_gfx10_s_waitcnt_vmcnt, I10(buf, n));
++
++	/* Last WG check: my_done + 1 == nr_total_wg? */
++	_E(emit_gfx10_v_add_nc_u32, I10(buf, n),
++	   P_V(7), P_I(1), P_V(7));
++	_E(emit_gfx10_v_readfirstlane_b32, I10(buf, n), 29, 7);
++	_E(emit_gfx10_s_cmp_eq_u32, I10(buf, n), P_S(29), P_S(28));
++	br_not_last = _BR(emit_gfx10_s_cbranch_scc0, I10(buf, n), 0);
++
++	/* === Last WG - publish counters for CPU === */
++
++	/* Read final claim_counter (atomic add 0, GLC=1) */
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(7), P_I(0));
++	_E(emit_gfx10_global_atomic_add, I10(buf, n),
++	   P_V(7), P_V(1), P_V(7), 0, 1);
++	_E(emit_gfx10_s_waitcnt_vmcnt, I10(buf, n));
++
++	/* Store final_sdma_count (ctl+52) and gpu_sdma_ready (ctl+48) */
++	_E(emit_gfx10_global_store_dword, I10(buf, n),
++	   P_V(1), P_V(7), 52);
++	_E(emit_gfx10_v_mov_b32_e32, I10(buf, n), P_V(7), P_I(1));
++	_E(emit_gfx10_global_store_dword, I10(buf, n),
++	   P_V(1), P_V(7), 48);
++	_E(emit_gfx10_s_waitcnt_vmcnt, I10(buf, n));
++
++	patch_branch(buf, br_not_last, n);
++	patch_branch(buf, br_no_sdma, n);
++
++	_E(emit_gfx10_s_endpgm, I10(buf, n));
++
++	/* GFX10 RDNA2 prefetches instructions aggressively past s_endpgm.
++	 * Without an s_code_end cushion the SQC fetches garbage beyond the
++	 * shader and raises an SQC(inst) page fault at a seemingly random
++	 * address. Pad to a 256-dword boundary - same pattern the BPF GFX10
++	 * emitter (knod_bpf.c) uses on working shaders.
++	 */
++	while (n % 256)
++		_E(emit_gfx10_s_code_end, I10(buf, n));
++
++	return n * 4;
++}
++
++#endif /* KNOD_HELPERS_IPSEC_FUSED_GFX10_H_ */
+diff --git a/drivers/gpu/drm/amd/amdkfd/knod/ipsec_fused_gfx9.h b/drivers/gpu/drm/amd/amdkfd/knod/ipsec_fused_gfx9.h
+new file mode 100644
+index 000000000000..5121ece1f2eb
+--- /dev/null
++++ b/drivers/gpu/drm/amd/amdkfd/knod/ipsec_fused_gfx9.h
+@@ -0,0 +1,1349 @@
++/* SPDX-License-Identifier: GPL-2.0-or-later */
++/* Copyright (c) 2021 Taehee Yoo <ap420073@gmail.com>
++ * Copyright (c) 2021 Hoyeon Lee <hoyeon.rhee@gmail.com>
++ */
++
++/*
++ * KNOD IPsec fused RX shader - GFX9 (Vega10/20).
++ *
++ * Full AES-GCM decrypt pipeline for inbound ESP packets:
++ *   1) ESP header parse -> SPI + seq extract
++ *   2) SA table linear scan -> resolve SPI to slot index
++ *   3) Cooperative T-table load (VRAM -> LDS, 256 threads)
++ *   4) AES-CTR decrypt ciphertext -> out_addr
++ *   5) Parallel GHASH over (AAD || ciphertext || len)
++ *   6) ICV verify (GHASH ^ AES(K,J0) vs received tag)
++ *   7) ESP trailer strip -> inner_len
++ *   8) Write verdict to bd->act, inner_len to bd->len
++ *
++ * Dispatch geometry:
++ *   workgroup  = (256, 1, 1)     - 256 threads = 1 AES block per thread
++ *   grid       = (256, nr_pkts, 1)
++ *   workgroup_id_y == packet index in the batch
++ *
++ * Anti-replay is NOT in the shader - CPU-side sliding window in NIC NAPI.
++ *
++ * Verdict encoding in bd->act high32:
++ *   0..NR_SA-1  - SA hit + ICV pass, value is slot_idx
++ *   0xFFFFFFFF  - SA miss (no entry for this SPI)
++ *   0xFFFFFFFE  - non-IPv4/IPv6 bypass (unknown L3 protocol)
++ *   0xFFFFFFFD  - ICV mismatch (decrypt succeeded but tag wrong)
++ *
++ * bd->len is set to inner_len on success (decrypted payload minus ESP
++ * trailer and padding). On miss/bypass/ICV-fail, bd->len is left as-is.
++ */
++
++#ifndef KNOD_HELPERS_IPSEC_FUSED_GFX9_H_
++#define KNOD_HELPERS_IPSEC_FUSED_GFX9_H_
++
++#include <linux/types.h>
++#include "knod_amdgpu_insn.h"
++/* Provide AESGCM_MAX_DIM_Y so aesgcm_shader.h compiles (OFF_T0 macro).
++ * Only emit_aes_encrypt_block_gfx9 / emit_gfmul_128_gfx9 are used here;
++ * the full aesgcm_gen_shader_* functions are unreferenced.
++ */
++#ifndef AESGCM_MAX_DIM_Y
++#define AESGCM_MAX_DIM_Y	1024
++#endif
++#include "aesgcm_shader.h"
++
++/* SA entry constants - must match knod_ipsec.h */
++#define KNOD_IPSEC_SHADER_NR_SA	256
++#define KNOD_IPSEC_SHADER_SA_ENTRY_SZ	104
++
++/* SA entry field offsets (struct knod_ipsec_sa_entry) */
++#define SA_OFF_SPI		0
++#define SA_OFF_KEY_ADDR		16
++#define SA_OFF_HTABLE_ADDR	24
++#define SA_OFF_T_TABLES_ADDR	32
++#define SA_OFF_SALT		40
++#define SA_OFF_KEY_LEN		44
++#define SA_OFF_NR_ROUNDS	48
++#define SA_OFF_MODE		52	/* XFRM_MODE_TRANSPORT=0, TUNNEL=1 */
++#define SA_OFF_STATS_ADDR	88	/* per-SA GPU stats (u64 gpu addr) */
++
++/* ESP packet geometry (ETH=14, IPv4=20 / IPv6=40, no VLAN/opts).
++ * IPv4: ESP header starts at offset 34 (14+20).
++ * IPv6: ESP header starts at offset 54 (14+40).
++ * Within ESP header: SPI+0, seq+4, IV+8, ctext+16.
++ * The shader dynamically computes offsets based on IP version.
++ */
++#define ESP_HDR_OFF_V4		34	/* ETH(14) + IPv4(20) */
++#define ESP_HDR_OFF_V6		54	/* ETH(14) + IPv6(40) */
++#define ESP_REL_SPI		0
++#define ESP_REL_SEQ		4
++#define ESP_REL_IV		8
++#define ESP_REL_CTEXT		16	/* SPI(4)+seq(4)+IV(8) */
++#define ESP_ICV_LEN		16
++
++/* Fixed IPv4 layout offsets used by the crypto KAT */
++#define ESP_SPI_OFF		34
++#define ESP_SEQ_OFF		38
++#define ESP_IV_OFF		42
++#define ESP_CTEXT_OFF		50
++
++/* Fused sub[] offsets within kernarg (sub[i] = kernarg + 40 + i*32) */
++#define SUB_BASE_OFF		40
++#define SUB_STRIDE		32
++#define SUB_OFF_PKT_ADDR	0
++#define SUB_OFF_OUT_ADDR	8
++#define SUB_OFF_BD_ADDR		16
++#define SUB_OFF_PKT_LEN		24
++#define SUB_OFF_RESULT_SEQ	28
++
++/* ICV-fail sentinel (distinct from MISS=0xFFFFFFFF and BYPASS=0xFFFFFFFE) */
++#define VERDICT_ICV_FAIL	0xFFFFFFFDu
++
++/* High VGPRs for saving pre-crypto IPsec state (above AES v0-v22 range) */
++#define VR_SAVE_SLOT		30
++#define VR_SAVE_BD_LO		31
++#define VR_SAVE_BD_HI		32
++#define VR_SAVE_PKT_LO		33
++#define VR_SAVE_PKT_HI		34
++#define VR_SAVE_PKTLEN		35
++#define VR_SAVE_OUT_LO		36
++#define VR_SAVE_OUT_HI		37
++#define VR_SAVE_SEQ		38
++#define VR_SAVE_SPI		39
++#define VR_SAVE_STATS_LO	40	/* per-SA stats GPU addr low */
++#define VR_SAVE_STATS_HI	41	/* per-SA stats GPU addr high */
++/* ESP header offset: 34(v4) or 54(v6) */
++#define VR_SAVE_ESP_OFF		42
++/* Ciphertext prefetch destination - free v23-v26, inside AES v0-v22 gap */
++#define VR_PREFETCH0		23
++#define VR_PREFETCH1		24
++#define VR_PREFETCH2		25
++#define VR_PREFETCH3		26
++
++/* Extra SGPRs for IPsec-specific state that survives into AES phases.
++ * These must NOT collide with SR_* from aesgcm_shader.h (s18-s49, s56-s59).
++ * s50-s55 are IPsec-specific. s56-s59 = SR_RK2 (AES round key double-buffer).
++ */
++#define SR_CTEXT_LEN		50	/* ciphertext length in bytes */
++#define SR_NBLOCKS_GCM		51	/* ceil(ctext_len/16) */
++#define SR_HTABLE_LO		52	/* H-power table GPU addr */
++#define SR_HTABLE_HI		53
++#define SR_TOTAL_GHASH_BLK	54	/* nblocks + 2 (AAD + ctext + len) */
++#define SR_SA_MODE		55	/* XFRM_MODE_TRANSPORT=0, TUNNEL=1 */
++
++/* File-local emit helpers */
++#ifndef _KNOD_IPSEC_EMIT
++#define _KNOD_IPSEC_EMIT
++#define _E(fn, ...) (n += fn(__VA_ARGS__) / 4)
++#define _BR(fn, ...) ({ int _p = n; n += fn(__VA_ARGS__) / 4; _p; })
++#endif
++
++static inline int kfd_ipsec_gen_fused_shader_gfx9(void *vbuf)
++{
++	int br_skip_aad, br_skip_ctext, br_skip_len;
++	int loop_top, br_match, br_loop, br_end;
++	int br_no_sdma, br_no_copy, br_not_last;
++	int br_ipv4, br_bypass, br_crypto_end;
++	const int L3_TMP_BASE = 14;   /* v14..v23 */
++	int br_ipv6, br_v6_to_common;
++	int br_not_transport, li;
++	u32 *buf = (u32 *)vbuf;
++	int br_crypto_done;
++	int br_execz_ctr;
++	int br_execz2;
++	int br_icv_bad;
++	int br_icv_ok;
++	int br_tid0;
++	int level;
++	int n = 0;
++
++	/* ================================================================
++	 * Phase 0: Parse ESP header + SA table lookup
++	 *
++	 * s_dcache_inv: flush K$ so s_load reads fresh round keys.
++	 * ================================================================
++	 */
++	_E(emit_gfx9_s_dcache_inv, I9(buf, n));
++	_E(emit_gfx9_s_waitcnt_lgkmcnt, I9(buf, n));
++
++	/* Cache bswap32 selector in SR_BSWAP for reuse across all phases */
++	_E(emit_gfx9_s_mov_b32, I9(buf, n), P_S(SR_BSWAP), P_L(0x00010203));
++
++	/* v1 = 40 + wg_id_y*32 = offset of sub[wg_id_y] within kernarg */
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n), P_V(1), P_S(16));
++	_E(emit_gfx9_v_lshlrev_b32, I9(buf, n), P_V(1), P_I(5), P_V(1));
++	_E(emit_gfx9_v_add_u32, I9(buf, n), P_V(1), P_L(SUB_BASE_OFF), P_V(1));
++
++	/* v[3:4] = kernarg_ptr + v1 = &sub[wg_id_y] */
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n), P_V(2), P_S(9));
++	_E(emit_gfx9_v_add_co_u32, I9(buf, n), P_V(3), P_S(8), P_V(1));
++	_E(emit_gfx9_v_addc_co_u32, I9(buf, n), P_V(4), P_I(0), P_V(2));
++
++	/* Load sub[].pkt_addr -> v[9:10], sub[].bd_addr -> v[5:6] */
++	_E(emit_gfx9_global_load_dwordx2, I9(buf, n), P_V(9), P_V(3),
++	   SUB_OFF_PKT_ADDR);
++	_E(emit_gfx9_global_load_dwordx2, I9(buf, n), P_V(5), P_V(3),
++	   SUB_OFF_BD_ADDR);
++	_E(emit_gfx9_s_waitcnt_vmcnt, I9(buf, n));
++
++	/* Seed v[11:12] with pkt_addr as a safe default BEFORE the IP
++	 * version branch. The bypass path (non-v4/v6 packets like ARP)
++	 * unconditionally branches past the v[11:12] setup at line ~195
++	 * and later Phase 1 does a global_load at v[11:12]+ESP_REL_SEQ to
++	 * read the ESP sequence number. Without this seed v[11:12] would
++	 * hold uninitialised VGPR state (wave launch garbage), producing
++	 * a fault at ~0x{random}_00000000. For valid v4/v6 packets the
++	 * common path below overwrites v[11:12] with pkt+esp_hdr_off so
++	 * this seed is harmless.
++	 */
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n), P_V(11), P_V(9));
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n), P_V(12), P_V(10));
++
++	/* IP version gate: load dword at pkt+12 to get first byte of L3
++	 * header (byte[14]). Extract version nibble -> s28.
++	 */
++	_E(emit_gfx9_global_load_dword, I9(buf, n), P_V(15), P_V(9), 12);
++	_E(emit_gfx9_s_waitcnt_vmcnt, I9(buf, n));
++
++	_E(emit_gfx9_v_readfirstlane_b32, I9(buf, n), 28, 15);
++	_E(emit_gfx9_s_lshr_b32, I9(buf, n), P_S(28), P_S(28), P_I(20));
++	_E(emit_gfx9_s_and_b32_p, I9(buf, n), P_S(28), P_I(0xF), P_S(28));
++
++	/* Check IPv4 (version==4) */
++	_E(emit_gfx9_s_cmp_eq_u32, I9(buf, n), P_S(28), P_I(4));
++	br_ipv4 = _BR(emit_gfx9_s_cbranch_scc1, I9(buf, n), 0);
++
++	/* Check IPv6 (version==6) */
++	_E(emit_gfx9_s_cmp_eq_u32, I9(buf, n), P_S(28), P_I(6));
++	br_ipv6 = _BR(emit_gfx9_s_cbranch_scc1, I9(buf, n), 0);
++
++	/* Bypass: neither IPv4 nor IPv6 */
++	_E(emit_gfx9_s_mov_b32, I9(buf, n), P_S(26), P_L(0xFFFFFFFEu));
++	br_bypass = _BR(emit_gfx9_s_branch, I9(buf, n), 0);
++
++	/* IPv6 landing: esp_hdr_off = 54 */
++	patch_branch(buf, br_ipv6, n);
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n), P_V(VR_SAVE_ESP_OFF),
++	   P_L(ESP_HDR_OFF_V6));
++	br_v6_to_common = _BR(emit_gfx9_s_branch, I9(buf, n), 0);
++
++	/* IPv4 landing: esp_hdr_off = 34 */
++	patch_branch(buf, br_ipv4, n);
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n), P_V(VR_SAVE_ESP_OFF),
++	   P_L(ESP_HDR_OFF_V4));
++
++	/* Common path: both IPv4 and IPv6 converge here */
++	patch_branch(buf, br_v6_to_common, n);
++
++	/* v[11:12] = pkt_addr + esp_hdr_off (dynamic) */
++	_E(emit_gfx9_v_add_co_u32, I9(buf, n), P_V(11),
++	   P_V(VR_SAVE_ESP_OFF), P_V(9));
++	_E(emit_gfx9_v_addc_co_u32, I9(buf, n), P_V(12), P_I(0), P_V(10));
++
++	/* v13 = *(u32*)(pkt + esp_hdr_off) - SPI in big-endian */
++	_E(emit_gfx9_global_load_dword, I9(buf, n), P_V(13), P_V(11), 0);
++	_E(emit_gfx9_s_waitcnt_vmcnt, I9(buf, n));
++
++	/* Byteswap SPI: v13 = bswap32(v13) via v_perm_b32 */
++	_E(emit_gfx9_v_perm_b32, I9(buf, n), P_V(13), P_V(13), P_V(13),
++	   P_S(SR_BSWAP));
++
++	/* SA table linear scan (VMEM path for K$ coherence).
++	 * s22 = target SPI, s[24:25] = sa_table_addr, s23 = counter,
++	 * s26 = result (slot_idx or 0xFFFFFFFF), v[16:17] = running ptr.
++	 */
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n), P_V(16), P_S(8));
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n), P_V(17), P_S(9));
++	_E(emit_gfx9_global_load_dwordx2, I9(buf, n), P_V(18), P_V(16), 0);
++	_E(emit_gfx9_s_waitcnt_vmcnt, I9(buf, n));
++	_E(emit_gfx9_v_readfirstlane_b32, I9(buf, n), 24, 18);
++	_E(emit_gfx9_v_readfirstlane_b32, I9(buf, n), 25, 19);
++
++	_E(emit_gfx9_v_readfirstlane_b32, I9(buf, n), 22, 13);
++	_E(emit_gfx9_s_mov_b32, I9(buf, n), P_S(23), P_I(0));
++	_E(emit_gfx9_s_mov_b32, I9(buf, n), P_S(26), P_L(0xFFFFFFFFu));
++
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n), P_V(16), P_S(24));
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n), P_V(17), P_S(25));
++
++	loop_top = n;
++	_E(emit_gfx9_global_load_dword, I9(buf, n), P_V(20), P_V(16),
++	   SA_OFF_SPI);
++	_E(emit_gfx9_s_waitcnt_vmcnt, I9(buf, n));
++	_E(emit_gfx9_v_readfirstlane_b32, I9(buf, n), 27, 20);
++
++	_E(emit_gfx9_v_add_co_u32, I9(buf, n), P_V(16),
++	   P_L(KNOD_IPSEC_SHADER_SA_ENTRY_SZ), P_V(16));
++	_E(emit_gfx9_v_addc_co_u32, I9(buf, n), P_V(17), P_I(0), P_V(17));
++	_E(emit_gfx9_s_add_u32, I9(buf, n), P_S(23), P_I(1), P_S(23));
++	_E(emit_gfx9_s_nop, I9(buf, n));
++
++	_E(emit_gfx9_s_cmp_eq_u32, I9(buf, n), P_S(27), P_S(22));
++	br_match = _BR(emit_gfx9_s_cbranch_scc1, I9(buf, n), 0);
++
++	_E(emit_gfx9_s_cmp_lt_u32, I9(buf, n), P_S(23),
++	   P_L(KNOD_IPSEC_SHADER_NR_SA));
++	br_loop = _BR(emit_gfx9_s_cbranch_scc1, I9(buf, n), 0);
++	patch_branch(buf, br_loop, loop_top);
++
++	br_end = _BR(emit_gfx9_s_branch, I9(buf, n), 0);
++
++	/* Match: s26 = s23 - 1 */
++	patch_branch(buf, br_match, n);
++	_E(emit_gfx9_s_sub_u32_p, I9(buf, n), P_S(26), P_S(23), P_I(1));
++
++	patch_branch(buf, br_end, n);
++
++	patch_branch(buf, br_bypass, n);
++
++	/* ================================================================
++	 * Phase 1: Save pre-crypto state + load extra sub[] fields
++	 *
++	 * Move IPsec-specific values to v30+ so v1-v22 and s18-s49 are
++	 * free for AES-GCM helpers from aesgcm_shader.h.
++	 * ================================================================
++	 */
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n), P_V(VR_SAVE_SLOT), P_S(26));
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n), P_V(VR_SAVE_BD_LO), P_V(5));
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n), P_V(VR_SAVE_BD_HI), P_V(6));
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n), P_V(VR_SAVE_PKT_LO), P_V(9));
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n), P_V(VR_SAVE_PKT_HI), P_V(10));
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n), P_V(VR_SAVE_SPI), P_V(13));
++
++	/* Load sub[].out_addr -> v[VR_SAVE_OUT_LO:VR_SAVE_OUT_HI] */
++	_E(emit_gfx9_global_load_dwordx2, I9(buf, n), P_V(VR_SAVE_OUT_LO),
++	   P_V(3), SUB_OFF_OUT_ADDR);
++	/* Load sub[].pkt_len -> v[VR_SAVE_PKTLEN] */
++	_E(emit_gfx9_global_load_dword, I9(buf, n), P_V(VR_SAVE_PKTLEN),
++	   P_V(3), SUB_OFF_PKT_LEN);
++	_E(emit_gfx9_s_waitcnt_vmcnt, I9(buf, n));
++
++	/* Load ESP seq number: pkt + esp_hdr_off + 4, BE -> bswap ->
++	 * v[VR_SAVE_SEQ].
++	 * v[11:12] still holds pkt_addr + esp_hdr_off from Phase 0.
++	 */
++	_E(emit_gfx9_global_load_dword, I9(buf, n), P_V(VR_SAVE_SEQ), P_V(11),
++	   ESP_REL_SEQ);
++	_E(emit_gfx9_s_waitcnt_vmcnt, I9(buf, n));
++
++	_E(emit_gfx9_v_perm_b32, I9(buf, n), P_V(VR_SAVE_SEQ),
++	   P_V(VR_SAVE_SEQ), P_V(VR_SAVE_SEQ), P_S(SR_BSWAP));
++
++	/* Write bswapped seq back into sub[].result_seq for CPU finish worker.
++	 * v[3:4] still points to &sub[wg_id_y].
++	 */
++	_E(emit_gfx9_global_store_dword, I9(buf, n), P_V(3),
++	   P_V(VR_SAVE_SEQ), SUB_OFF_RESULT_SEQ);
++
++	/* ================================================================
++	 * Phase 2: Branch on miss/bypass - skip crypto entirely
++	 * ================================================================
++	 */
++	_E(emit_gfx9_v_readfirstlane_b32, I9(buf, n), 26, VR_SAVE_SLOT);
++	_E(emit_gfx9_s_cmp_ge_u32, I9(buf, n), P_S(26),
++	   P_L(KNOD_IPSEC_SHADER_NR_SA));
++	br_crypto_end = _BR(emit_gfx9_s_cbranch_scc1, I9(buf, n), 0);
++
++	/* ================================================================
++	 * Phase 3: Load SA entry fields for the matched slot
++	 *
++	 * entry_addr = sa_table_addr + slot_idx * SA_ENTRY_SIZE
++	 * Load: key_gpu_addr, salt, nr_rounds, t_tables_gpu_addr,
++	 *       htable_gpu_addr
++	 * ================================================================
++	 */
++	/* s27 = slot_idx * SA_ENTRY_SIZE (scalar mul) */
++	_E(emit_gfx9_s_mul_i32, I9(buf, n), P_S(27), P_S(26),
++	   P_L(KNOD_IPSEC_SHADER_SA_ENTRY_SZ));
++	/* s[24:25] = sa_table_addr (already there from Phase 0 scan) */
++	_E(emit_gfx9_s_add_u32, I9(buf, n), P_S(24), P_S(24), P_S(27));
++	_E(emit_gfx9_s_addc_u32, I9(buf, n), P_S(25), P_S(25), P_I(0));
++
++	/* Use VMEM for coherence: stage entry addr into VGPR pair */
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n), P_V(VR_GA_LO), P_S(24));
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n), P_V(VR_GA_HI), P_S(25));
++
++	/* Batched SA entry loads: issue all 4 loads to different
++	 * VGPR destinations, then single waitcnt. v1-v8 (S0-S3,
++	 * D0-D3) are free at Phase 3 - not used until Phase 7.
++	 *
++	 * Layout:
++	 *   dwordx4 @+16 -> v[1:4]: key_lo, key_hi, htable_lo, htable_hi
++	 *   dwordx4 @+32 -> v[5:8]: ttables_lo, ttables_hi, salt, key_len
++	 *   dwordx2 @+48 -> v[14:15]: nr_rounds, mode
++	 *   dwordx2 @+88 -> v[16:17]: stats_lo, stats_hi
++	 */
++	_E(emit_gfx9_global_load_dwordx4, I9(buf, n), P_V(VR_S0),
++	   P_V(VR_GA_LO), SA_OFF_KEY_ADDR);
++	_E(emit_gfx9_global_load_dwordx4, I9(buf, n), P_V(VR_D0),
++	   P_V(VR_GA_LO), SA_OFF_T_TABLES_ADDR);
++	_E(emit_gfx9_global_load_dwordx2, I9(buf, n), P_V(VR_DATA0),
++	   P_V(VR_GA_LO), SA_OFF_NR_ROUNDS);
++	_E(emit_gfx9_global_load_dwordx2, I9(buf, n), P_V(VR_DATA2),
++	   P_V(VR_GA_LO), SA_OFF_STATS_ADDR);
++	_E(emit_gfx9_s_waitcnt_vmcnt, I9(buf, n));
++
++	/* key_addr: v1=lo, v2=hi */
++	_E(emit_gfx9_v_readfirstlane_b32, I9(buf, n), SR_KEYS, VR_S0);
++	_E(emit_gfx9_v_readfirstlane_b32, I9(buf, n), SR_KEYS + 1, VR_S1);
++	/* htable_addr: v3=lo, v4=hi */
++	_E(emit_gfx9_v_readfirstlane_b32, I9(buf, n), SR_HTABLE_LO, VR_S2);
++	_E(emit_gfx9_v_readfirstlane_b32, I9(buf, n), SR_HTABLE_HI, VR_S3);
++	/* t_tables_addr: v5=lo, v6=hi */
++	_E(emit_gfx9_v_readfirstlane_b32, I9(buf, n), SR_T_ADDR, VR_D0);
++	_E(emit_gfx9_v_readfirstlane_b32, I9(buf, n), SR_T_ADDR + 1, VR_D1);
++	/* salt: v7 */
++	_E(emit_gfx9_v_readfirstlane_b32, I9(buf, n), SR_IV0, VR_D2);
++	/* nr_rounds: v14, mode: v15 */
++	_E(emit_gfx9_v_readfirstlane_b32, I9(buf, n), SR_NR_ROUNDS, VR_DATA0);
++	_E(emit_gfx9_v_readfirstlane_b32, I9(buf, n), SR_SA_MODE, VR_DATA1);
++	/* stats_addr: v16=lo, v17=hi -> save VGPRs for Phase 10 */
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n), P_V(VR_SAVE_STATS_LO),
++	   P_V(VR_DATA2));
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n), P_V(VR_SAVE_STATS_HI),
++	   P_V(VR_DATA3));
++
++	/* ================================================================
++	 * Phase 4: Build AES-GCM nonce
++	 *
++	 * nonce[12] = salt[4] || IV[8]
++	 * salt is already in s[SR_IV0]. Load IV from pkt + esp_hdr_off + 8.
++	 * Recompute ESP base from saved pkt_addr + VR_SAVE_ESP_OFF since
++	 * v[11:12] were clobbered by Phase 3 SA loads (VR_GA_LO=12).
++	 * IV goes to s[SR_IV1] (bytes 4-7) and s[SR_IV2] (bytes 8-11).
++	 * ================================================================
++	 */
++	_E(emit_gfx9_v_add_co_u32, I9(buf, n), P_V(VR_GA_LO),
++	   P_V(VR_SAVE_ESP_OFF), P_V(VR_SAVE_PKT_LO));
++	_E(emit_gfx9_v_addc_co_u32, I9(buf, n), P_V(VR_GA_HI),
++	   P_I(0), P_V(VR_SAVE_PKT_HI));
++	_E(emit_gfx9_global_load_dwordx2, I9(buf, n), P_V(VR_DATA0),
++	   P_V(VR_GA_LO), ESP_REL_IV);
++	_E(emit_gfx9_s_waitcnt_vmcnt, I9(buf, n));
++	_E(emit_gfx9_v_readfirstlane_b32, I9(buf, n), SR_IV1, VR_DATA0);
++	_E(emit_gfx9_v_readfirstlane_b32, I9(buf, n), SR_IV2, VR_DATA1);
++
++	/* ================================================================
++	 * Phase 5: Compute ciphertext bounds
++	 *
++	 * ctext_off = esp_hdr_off + 16 (SPI+seq+IV)
++	 * ctext_len = pkt_len - ctext_off - ICV_LEN
++	 * nblocks = (ctext_len + 15) >> 4
++	 *
++	 * s28 is free here (last used in version gate) - use as scratch.
++	 * ================================================================
++	 */
++	_E(emit_gfx9_v_readfirstlane_b32, I9(buf, n), 28, VR_SAVE_ESP_OFF);
++	_E(emit_gfx9_s_add_u32, I9(buf, n), P_S(28),
++	   P_I(ESP_REL_CTEXT + ESP_ICV_LEN),
++	   P_S(28));  /* s28 = ctext_off + ICV_LEN = overhead to subtract */
++	_E(emit_gfx9_v_readfirstlane_b32, I9(buf, n), SR_CTEXT_LEN,
++	   VR_SAVE_PKTLEN);
++	_E(emit_gfx9_s_sub_u32_p, I9(buf, n), P_S(SR_CTEXT_LEN),
++	   P_S(SR_CTEXT_LEN), P_S(28));
++	/* s[SR_NBLOCKS_GCM] = (ctext_len + 15) >> 4 */
++	_E(emit_gfx9_s_add_u32, I9(buf, n), P_S(SR_NBLOCKS_GCM), P_I(15),
++	   P_S(SR_CTEXT_LEN));
++	_E(emit_gfx9_s_lshr_b32, I9(buf, n), P_S(SR_NBLOCKS_GCM),
++	   P_S(SR_NBLOCKS_GCM), P_I(4));
++	/* total GHASH blocks = 1(AAD) + nblocks(ctext) + 1(len) = nblocks + 2
++	 */
++	_E(emit_gfx9_s_add_u32, I9(buf, n), P_S(SR_TOTAL_GHASH_BLK),
++	   P_I(2), P_S(SR_NBLOCKS_GCM));
++
++	/* ================================================================
++	 * Phase 6: Cooperative T-table load (VRAM -> LDS)
++	 *
++	 * All 256 threads load from SA's t_tables_gpu_addr. Each thread
++	 * loads one u32 per table (4 tables x 256 entries = 4KB).
++	 * ================================================================
++	 */
++	_E(emit_gfx9_s_mov_b32, I9(buf, n), P_S(SR_MASK), P_L(0xFF));
++
++	/* v[VR_TMP] = tid * 4 (byte offset within each 1KB table) */
++	_E(emit_gfx9_v_lshlrev_b32, I9(buf, n), P_V(VR_TMP), P_I(2),
++	   P_V(VR_TID));
++
++	/* T0: VRAM[t_tables + tid*4] -> LDS[tid*4] */
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n), P_V(VR_GA_LO), P_S(SR_T_ADDR));
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n), P_V(VR_GA_HI),
++	   P_S(SR_T_ADDR + 1));
++	_E(emit_gfx9_v_add_co_u32, I9(buf, n), P_V(VR_GA_LO), P_V(VR_GA_LO),
++	   P_V(VR_TMP));
++	_E(emit_gfx9_v_addc_co_u32, I9(buf, n), P_V(VR_GA_HI), P_I(0),
++	   P_V(VR_GA_HI));
++	_E(emit_gfx9_global_load_dword, I9(buf, n), P_V(VR_DATA0),
++	   P_V(VR_GA_LO), 0);
++	_E(emit_gfx9_global_load_dword, I9(buf, n), P_V(VR_DATA1),
++	   P_V(VR_GA_LO), 1024);
++	_E(emit_gfx9_global_load_dword, I9(buf, n), P_V(VR_DATA2),
++	   P_V(VR_GA_LO), 2048);
++	_E(emit_gfx9_global_load_dword, I9(buf, n), P_V(VR_DATA3),
++	   P_V(VR_GA_LO), 3072);
++	_E(emit_gfx9_s_waitcnt_vmcnt, I9(buf, n));
++
++	/* Write to LDS: T0 at +0, T1 at +1024, T2 at +2048, T3 at +3072 */
++	_E(emit_gfx9_ds_write_b32, I9(buf, n), VR_TMP, VR_DATA0);
++	_E(emit_gfx9_v_add_u32, I9(buf, n), P_V(VR_ADDR), P_L(1024),
++	   P_V(VR_TMP));
++	_E(emit_gfx9_ds_write_b32, I9(buf, n), VR_ADDR, VR_DATA1);
++	_E(emit_gfx9_v_add_u32, I9(buf, n), P_V(VR_ADDR), P_L(2048),
++	   P_V(VR_TMP));
++	_E(emit_gfx9_ds_write_b32, I9(buf, n), VR_ADDR, VR_DATA2);
++	_E(emit_gfx9_v_add_u32, I9(buf, n), P_V(VR_ADDR), P_L(3072),
++	   P_V(VR_TMP));
++	_E(emit_gfx9_ds_write_b32, I9(buf, n), VR_ADDR, VR_DATA3);
++
++	_E(emit_gfx9_s_waitcnt_lgkmcnt, I9(buf, n));
++	_E(emit_gfx9_s_barrier, I9(buf, n));
++
++	/* ================================================================
++	 * Phase 7: AES-CTR decrypt
++	 *
++	 * Each thread handles block_id = tid. Only threads with tid <
++	 * nblocks are active. Counter = nonce[12] || bswap32(tid+2).
++	 * AES-encrypt the counter -> keystream. XOR with ciphertext ->
++	 * plaintext. Store to out_addr + tid*16.
++	 * ================================================================
++	 */
++	/* VCC = (nblocks > tid) i.e. tid < nblocks - selects active CTR lanes
++	 */
++	_E(emit_gfx9_v_cmp_gt_u32, I9(buf, n), P_S(SR_NBLOCKS_GCM),
++	   P_V(VR_TID));
++	_E(emit_gfx9_s_and_saveexec_b64, I9(buf, n), SR_EXEC_SAVE,
++	   106 /* VCC_LO */);
++	br_execz_ctr = _BR(emit_gfx9_s_cbranch_execz, I9(buf, n), 0);
++
++	/* Save SR_KEYS for reload after this block encrypt */
++	_E(emit_gfx9_s_mov_b32, I9(buf, n), P_S(SR_T_ADDR), P_S(SR_KEYS));
++	_E(emit_gfx9_s_mov_b32, I9(buf, n), P_S(SR_T_ADDR + 1),
++	   P_S(SR_KEYS + 1));
++
++	/* Prefetch ciphertext into v[23:26] before AES.
++	 * The ~200+ cycle AES encrypt hides the VMEM latency.
++	 * v23-v26 are not touched by AES rounds (which use
++	 * v1-v18 only). VR_GA/VR_BLK are also AES-safe.
++	 */
++	_E(emit_gfx9_v_lshlrev_b32, I9(buf, n), P_V(VR_BLK), P_I(4),
++	   P_V(VR_TID));
++	_E(emit_gfx9_v_add_co_u32, I9(buf, n), P_V(VR_GA_LO),
++	   P_V(VR_SAVE_ESP_OFF), P_V(VR_SAVE_PKT_LO));
++	_E(emit_gfx9_v_addc_co_u32, I9(buf, n), P_V(VR_GA_HI),
++	   P_I(0), P_V(VR_SAVE_PKT_HI));
++	_E(emit_gfx9_v_add_co_u32, I9(buf, n), P_V(VR_GA_LO),
++	   P_I(ESP_REL_CTEXT), P_V(VR_GA_LO));
++	_E(emit_gfx9_v_addc_co_u32, I9(buf, n), P_V(VR_GA_HI),
++	   P_I(0), P_V(VR_GA_HI));
++	_E(emit_gfx9_v_add_co_u32, I9(buf, n), P_V(VR_GA_LO),
++	   P_V(VR_GA_LO), P_V(VR_BLK));
++	_E(emit_gfx9_v_addc_co_u32, I9(buf, n), P_V(VR_GA_HI),
++	   P_I(0), P_V(VR_GA_HI));
++	_E(emit_gfx9_global_load_dwordx4, I9(buf, n), P_V(VR_PREFETCH0),
++	   P_V(VR_GA_LO), 0);
++
++	/* Build AES counter block in v[VR_S0:VR_S3]:
++	 * VR_S0 = nonce[0:3] = salt (SR_IV0)
++	 * VR_S1 = nonce[4:7] = IV[0:3] (SR_IV1)
++	 * VR_S2 = nonce[8:11] = IV[4:7] (SR_IV2)
++	 * VR_S3 = bswap32(tid + 2)
++	 */
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n), P_V(VR_S0), P_S(SR_IV0));
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n), P_V(VR_S1), P_S(SR_IV1));
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n), P_V(VR_S2), P_S(SR_IV2));
++
++	/* v[VR_S3] = bswap32(tid + 2) */
++	_E(emit_gfx9_v_add_u32, I9(buf, n), P_V(VR_S3), P_I(2), P_V(VR_TID));
++	_E(emit_gfx9_v_perm_b32, I9(buf, n), P_V(VR_S3), P_V(VR_S3),
++	   P_V(VR_S3), P_S(SR_BSWAP));
++
++	/* AES encrypt the counter block -> result in v[VR_S0:VR_S3] */
++	n = emit_aes_encrypt_block_gfx9(buf, n);
++
++	/* Ciphertext arrived during AES - drain vmcnt */
++	_E(emit_gfx9_s_waitcnt_vmcnt, I9(buf, n));
++
++	/* XOR keystream with prefetched ciphertext -> plaintext */
++	_E(emit_gfx9_v_xor_b32_e32, I9(buf, n), P_V(VR_PREFETCH0),
++	   P_V(VR_S0), P_V(VR_PREFETCH0));
++	_E(emit_gfx9_v_xor_b32_e32, I9(buf, n), P_V(VR_PREFETCH1),
++	   P_V(VR_S1), P_V(VR_PREFETCH1));
++	_E(emit_gfx9_v_xor_b32_e32, I9(buf, n), P_V(VR_PREFETCH2),
++	   P_V(VR_S2), P_V(VR_PREFETCH2));
++	_E(emit_gfx9_v_xor_b32_e32, I9(buf, n), P_V(VR_PREFETCH3),
++	   P_V(VR_S3), P_V(VR_PREFETCH3));
++
++	/* Store plaintext to out_addr + tid*16 */
++	_E(emit_gfx9_v_add_co_u32, I9(buf, n), P_V(VR_GA_LO),
++	   P_V(VR_BLK), P_V(VR_SAVE_OUT_LO));
++	_E(emit_gfx9_v_addc_co_u32, I9(buf, n), P_V(VR_GA_HI),
++	   P_I(0), P_V(VR_SAVE_OUT_HI));
++	_E(emit_gfx9_global_store_dwordx4, I9(buf, n), P_V(VR_GA_LO),
++	   P_V(VR_PREFETCH0), 0);
++
++	patch_branch(buf, br_execz_ctr, n);
++
++	/* ================================================================
++	 * Phase 7.5: Compute AES(K, J0) for ICV finalization
++	 *
++	 * J0 = nonce[12] || 0x00000001 (BE). Only thread 0 needs this
++	 * but all active lanes can compute it; we just save the result.
++	 * ================================================================
++	 */
++	/* Restore SR_KEYS (consumed by encrypt_block) */
++	_E(emit_gfx9_s_mov_b32, I9(buf, n), P_S(SR_KEYS), P_S(SR_T_ADDR));
++	_E(emit_gfx9_s_mov_b32, I9(buf, n), P_S(SR_KEYS + 1),
++	   P_S(SR_T_ADDR + 1));
++
++	/* Restore full EXEC for J0 encrypt (all 256 threads) */
++	_E(emit_gfx9_s_or_b64, I9(buf, n), 126 /* EXEC_LO */, SR_EXEC_SAVE,
++	   SR_EXEC_SAVE);
++
++	/* J0 block: nonce || bswap32(1) = nonce || 0x01000000 */
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n), P_V(VR_S0), P_S(SR_IV0));
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n), P_V(VR_S1), P_S(SR_IV1));
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n), P_V(VR_S2), P_S(SR_IV2));
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n), P_V(VR_S3), P_L(0x01000000u));
++
++	n = emit_aes_encrypt_block_gfx9(buf, n);
++
++	/* Save AES(K, J0) -> v[VR_J0_0:VR_J0_3] */
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n), P_V(VR_J0_0), P_V(VR_S0));
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n), P_V(VR_J0_1), P_V(VR_S1));
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n), P_V(VR_J0_2), P_V(VR_S2));
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n), P_V(VR_J0_3), P_V(VR_S3));
++
++	_E(emit_gfx9_s_barrier, I9(buf, n));
++
++	/* ================================================================
++	 * Phase 8: Parallel GHASH
++	 *
++	 * GHASH input blocks (total_blocks = nblocks + 2):
++	 *   tid 0            -> AAD: SPI(4B,BE)||seq(4B,BE)||0s (16B)
++	 *   tid 1..nblocks   -> ciphertext block (tid-1)
++	 *   tid nblocks+1    -> len: AAD_bitlen(64b)||ctext_bitlen(64b)
++	 *   tid > nblocks+1  -> zero (does not participate)
++	 *
++	 * Each thread loads its block -> v[VR_DATA0:VR_DATA3] (big-endian
++	 * for GF multiply), loads H^(total-tid) -> v[VR_D0:VR_D3], runs
++	 * GF multiply -> v[VR_S0:VR_S3], then tree-reduces via LDS XOR.
++	 * ================================================================
++	 */
++	/* Prefetch H^(total-tid) from H-power table before data selection.
++	 * The ~60 ALU instructions in the data selection block below
++	 * cover the VMEM latency. Result lands in VR_D0:D3, which
++	 * data selection does not touch. VR_TMP/VR_GA are consumed
++	 * here then free for reuse by the ctext section.
++	 */
++	_E(emit_gfx9_v_sub_u32, I9(buf, n), P_V(VR_TMP),
++	   P_S(SR_TOTAL_GHASH_BLK), P_V(VR_TID));
++	_E(emit_gfx9_v_add_u32, I9(buf, n), P_V(VR_TMP),
++	   P_L(0xFFFFFFFF), P_V(VR_TMP));
++	_E(emit_gfx9_v_max_i32, I9(buf, n), P_V(VR_TMP), P_I(0), P_V(VR_TMP));
++	_E(emit_gfx9_v_lshlrev_b32, I9(buf, n), P_V(VR_TMP), P_I(4),
++	   P_V(VR_TMP));
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n), P_V(VR_GA_LO),
++	   P_S(SR_HTABLE_LO));
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n), P_V(VR_GA_HI),
++	   P_S(SR_HTABLE_HI));
++	_E(emit_gfx9_v_add_co_u32, I9(buf, n), P_V(VR_GA_LO),
++	   P_V(VR_GA_LO), P_V(VR_TMP));
++	_E(emit_gfx9_v_addc_co_u32, I9(buf, n), P_V(VR_GA_HI),
++	   P_I(0), P_V(VR_GA_HI));
++	_E(emit_gfx9_global_load_dwordx4, I9(buf, n), P_V(VR_D0),
++	   P_V(VR_GA_LO), 0);
++
++	/* EXEC-based per-lane data selection. Default = zero, then
++	 * each case narrows EXEC to matching lanes and writes data.
++	 * This avoids scalar VCC branching (s_cbranch_vccnz) which
++	 * makes the entire wave take one path, not individual lanes.
++	 */
++	/* Default: all threads get zero (non-participating) */
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n), P_V(VR_DATA0), P_I(0));
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n), P_V(VR_DATA1), P_I(0));
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n), P_V(VR_DATA2), P_I(0));
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n), P_V(VR_DATA3), P_I(0));
++
++	/* ---- AAD: tid == 0 ---- */
++	_E(emit_gfx9_v_cmp_eq_u32, I9(buf, n), P_I(0), P_V(VR_TID));
++	_E(emit_gfx9_s_and_saveexec_b64, I9(buf, n), SR_GHASH_EXEC,
++	   106 /* VCC */);
++	br_skip_aad = _BR(emit_gfx9_s_cbranch_execz, I9(buf, n), 0);
++
++	/* VR_SAVE_SPI/SEQ are already in BE register convention:
++	 * raw LE load from packet (BE wire bytes) + bswap = byte[0]
++	 * in bits[31:24]. No second bswap needed - use directly.
++	 */
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n), P_V(VR_DATA0),
++	   P_V(VR_SAVE_SPI));
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n), P_V(VR_DATA1),
++	   P_V(VR_SAVE_SEQ));
++	/* DATA2, DATA3 already 0 */
++
++	patch_branch(buf, br_skip_aad, n);
++	_E(emit_gfx9_s_mov_b64, I9(buf, n), 126 /* EXEC */,
++	   SR_GHASH_EXEC);
++
++	/* ---- Ctext: 1 <= tid <= nblocks ---- */
++	/* block_idx = tid - 1 (unsigned; tid==0 -> 0xFFFFFFFF > nblocks) */
++	_E(emit_gfx9_v_add_u32, I9(buf, n), P_V(VR_TMP), P_L(0xFFFFFFFF),
++	   P_V(VR_TID));
++	_E(emit_gfx9_v_cmp_gt_u32, I9(buf, n), P_S(SR_NBLOCKS_GCM),
++	   P_V(VR_TMP));
++	_E(emit_gfx9_s_and_saveexec_b64, I9(buf, n), SR_GHASH_EXEC,
++	   106 /* VCC */);
++	br_skip_ctext = _BR(emit_gfx9_s_cbranch_execz, I9(buf, n), 0);
++
++	/* Load ctext block: pkt + esp_hdr_off + 16 + block_idx*16 */
++	_E(emit_gfx9_v_lshlrev_b32, I9(buf, n), P_V(VR_TMP), P_I(4),
++	   P_V(VR_TMP));
++	_E(emit_gfx9_v_add_co_u32, I9(buf, n), P_V(VR_GA_LO),
++	   P_V(VR_SAVE_ESP_OFF), P_V(VR_SAVE_PKT_LO));
++	_E(emit_gfx9_v_addc_co_u32, I9(buf, n), P_V(VR_GA_HI),
++	   P_I(0), P_V(VR_SAVE_PKT_HI));
++	_E(emit_gfx9_v_add_co_u32, I9(buf, n), P_V(VR_GA_LO),
++	   P_I(ESP_REL_CTEXT), P_V(VR_GA_LO));
++	_E(emit_gfx9_v_addc_co_u32, I9(buf, n), P_V(VR_GA_HI),
++	   P_I(0), P_V(VR_GA_HI));
++	_E(emit_gfx9_v_add_co_u32, I9(buf, n), P_V(VR_GA_LO),
++	   P_V(VR_GA_LO), P_V(VR_TMP));
++	_E(emit_gfx9_v_addc_co_u32, I9(buf, n), P_V(VR_GA_HI),
++	   P_I(0), P_V(VR_GA_HI));
++	_E(emit_gfx9_global_load_dwordx4, I9(buf, n), P_V(VR_DATA0),
++	   P_V(VR_GA_LO), 0);
++	_E(emit_gfx9_s_waitcnt_vmcnt, I9(buf, n));
++
++	/* Zero trailing dwords in the last partial ctext block.
++	 * The load above reads 16 raw bytes, but for the last block
++	 * only (ctext_len % 16) bytes are ciphertext - the rest are
++	 * ICV bytes which must NOT enter GHASH.  ESP ctext is always
++	 * 4-byte aligned so the partial count is 4, 8 or 12 - pure
++	 * dword-level zeroing suffices, no byte masking needed.
++	 *
++	 * VR_TMP still holds block_idx * 16 from the address calc.
++	 * remaining = ctext_len - block_idx*16. For full blocks
++	 * (remaining >= 16) every v_cmp evaluates true -> no change.
++	 */
++	_E(emit_gfx9_v_sub_u32, I9(buf, n), P_V(VR_TMP),
++	   P_S(SR_CTEXT_LEN), P_V(VR_TMP));
++	/* VR_TMP = remaining bytes in this block */
++
++	/* DATA3 (bytes 12-15): keep only if remaining > 12 */
++	_E(emit_gfx9_v_cmp_lt_u32, I9(buf, n), P_I(12), P_V(VR_TMP));
++	_E(emit_gfx9_v_cndmask_b32_e32, I9(buf, n),
++	   P_V(VR_DATA3), P_I(0), P_V(VR_DATA3));
++
++	/* DATA2 (bytes 8-11): keep only if remaining > 8 */
++	_E(emit_gfx9_v_cmp_lt_u32, I9(buf, n), P_I(8), P_V(VR_TMP));
++	_E(emit_gfx9_v_cndmask_b32_e32, I9(buf, n),
++	   P_V(VR_DATA2), P_I(0), P_V(VR_DATA2));
++
++	/* DATA1 (bytes 4-7): keep only if remaining > 4 */
++	_E(emit_gfx9_v_cmp_lt_u32, I9(buf, n), P_I(4), P_V(VR_TMP));
++	_E(emit_gfx9_v_cndmask_b32_e32, I9(buf, n),
++	   P_V(VR_DATA1), P_I(0), P_V(VR_DATA1));
++
++	/* DATA0 (bytes 0-3): always valid (ESP 4-byte alignment) */
++
++	/* bswap each dword for GHASH (big-endian GF arithmetic) */
++	_E(emit_gfx9_v_perm_b32, I9(buf, n), P_V(VR_DATA0),
++	   P_V(VR_DATA0), P_V(VR_DATA0), P_S(SR_BSWAP));
++	_E(emit_gfx9_v_perm_b32, I9(buf, n), P_V(VR_DATA1),
++	   P_V(VR_DATA1), P_V(VR_DATA1), P_S(SR_BSWAP));
++	_E(emit_gfx9_v_perm_b32, I9(buf, n), P_V(VR_DATA2),
++	   P_V(VR_DATA2), P_V(VR_DATA2), P_S(SR_BSWAP));
++	_E(emit_gfx9_v_perm_b32, I9(buf, n), P_V(VR_DATA3),
++	   P_V(VR_DATA3), P_V(VR_DATA3), P_S(SR_BSWAP));
++
++	patch_branch(buf, br_skip_ctext, n);
++	_E(emit_gfx9_s_mov_b64, I9(buf, n), 126 /* EXEC */,
++	   SR_GHASH_EXEC);
++
++	/* ---- Len block: tid == nblocks + 1 ---- */
++	/* Compute nblocks+1 in s42 (scratch) */
++	_E(emit_gfx9_s_add_u32, I9(buf, n), P_S(42), P_I(1),
++	   P_S(SR_NBLOCKS_GCM));
++	_E(emit_gfx9_v_cmp_eq_u32, I9(buf, n), P_S(42),
++	   P_V(VR_TID));
++	_E(emit_gfx9_s_and_saveexec_b64, I9(buf, n), SR_GHASH_EXEC,
++	   106 /* VCC */);
++	br_skip_len = _BR(emit_gfx9_s_cbranch_execz, I9(buf, n), 0);
++
++	/* Length block format (GCM big-endian):
++	 *   DATA0 = AAD_bits[63:32] = 0
++	 *   DATA1 = AAD_bits[31:0]  = 64  (8 bytes AAD x 8)
++	 *   DATA2 = ctext_bits[63:32] = 0
++	 *   DATA3 = ctext_bits[31:0] = ctext_len * 8
++	 *
++	 * No bswap32: length values are computed integers already
++	 * in the correct big-endian register representation.
++	 * bswap32 is only needed for data loaded from LE memory.
++	 */
++	/* DATA0, DATA2 already 0 from default init */
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n), P_V(VR_DATA1),
++	   P_L(0x00000040u));
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n), P_V(VR_DATA3),
++	   P_S(SR_CTEXT_LEN));
++	_E(emit_gfx9_v_lshlrev_b32, I9(buf, n), P_V(VR_DATA3), P_I(3),
++	   P_V(VR_DATA3));
++
++	patch_branch(buf, br_skip_len, n);
++	_E(emit_gfx9_s_mov_b64, I9(buf, n), 126 /* EXEC */,
++	   SR_GHASH_EXEC);
++
++	/* H-table data was prefetched before data selection; drain + bswap */
++	_E(emit_gfx9_s_waitcnt_vmcnt, I9(buf, n));
++	_E(emit_gfx9_v_perm_b32, I9(buf, n), P_V(VR_D0),
++	   P_V(VR_D0), P_V(VR_D0), P_S(SR_BSWAP));
++	_E(emit_gfx9_v_perm_b32, I9(buf, n), P_V(VR_D1),
++	   P_V(VR_D1), P_V(VR_D1), P_S(SR_BSWAP));
++	_E(emit_gfx9_v_perm_b32, I9(buf, n), P_V(VR_D2),
++	   P_V(VR_D2), P_V(VR_D2), P_S(SR_BSWAP));
++	_E(emit_gfx9_v_perm_b32, I9(buf, n), P_V(VR_D3),
++	   P_V(VR_D3), P_V(VR_D3), P_S(SR_BSWAP));
++
++	/* ---- GF(2^128) multiply: Z = DATA * H^k ---- */
++	n = emit_gfmul_128_gfx9(buf, n);
++	/* Result in v[VR_S0:VR_S3] */
++
++	/* ---- Tree reduction via LDS XOR (8 levels for 256 threads) ---- */
++	/* Write v[VR_S0:VR_S3] to LDS at tid * 16 */
++	_E(emit_gfx9_v_lshlrev_b32, I9(buf, n), P_V(VR_ADDR), P_I(4),
++	   P_V(VR_TID));
++	_E(emit_gfx9_ds_write_b128, I9(buf, n), VR_ADDR, VR_S0);
++	_E(emit_gfx9_s_waitcnt_lgkmcnt, I9(buf, n));
++	_E(emit_gfx9_s_barrier, I9(buf, n));
++
++	for (level = 1; level <= 128; level <<= 1) {
++		int br_skip;
++
++		/* if (tid & level) skip */
++		_E(emit_gfx9_v_and_b32_e32, I9(buf, n), P_V(VR_TMP),
++		   P_L(level), P_V(VR_TID));
++		_E(emit_gfx9_v_cmp_eq_u32, I9(buf, n), P_I(0), P_V(VR_TMP));
++		_E(emit_gfx9_s_and_saveexec_b64, I9(buf, n), SR_GHASH_EXEC,
++		   106 /* VCC */);
++		br_skip = _BR(emit_gfx9_s_cbranch_execz, I9(buf, n), 0);
++
++		/* Compute both addresses up front */
++		_E(emit_gfx9_v_add_u32, I9(buf, n), P_V(VR_TMP),
++		   P_L(level), P_V(VR_TID));
++		_E(emit_gfx9_v_lshlrev_b32, I9(buf, n), P_V(VR_TMP),
++		   P_I(4), P_V(VR_TMP));
++		_E(emit_gfx9_v_lshlrev_b32, I9(buf, n), P_V(VR_ADDR),
++		   P_I(4), P_V(VR_TID));
++
++		/* Issue both reads, single wait */
++		_E(emit_gfx9_ds_read_b128, I9(buf, n), VR_D0, VR_TMP);
++		_E(emit_gfx9_ds_read_b128, I9(buf, n), VR_S0, VR_ADDR);
++		_E(emit_gfx9_s_waitcnt_lgkmcnt, I9(buf, n));
++
++		/* XOR */
++		_E(emit_gfx9_v_xor_b32_e32, I9(buf, n), P_V(VR_S0),
++		   P_V(VR_S0), P_V(VR_D0));
++		_E(emit_gfx9_v_xor_b32_e32, I9(buf, n), P_V(VR_S1),
++		   P_V(VR_S1), P_V(VR_D1));
++		_E(emit_gfx9_v_xor_b32_e32, I9(buf, n), P_V(VR_S2),
++		   P_V(VR_S2), P_V(VR_D2));
++		_E(emit_gfx9_v_xor_b32_e32, I9(buf, n), P_V(VR_S3),
++		   P_V(VR_S3), P_V(VR_D3));
++
++		/* Write back */
++		_E(emit_gfx9_ds_write_b128, I9(buf, n), VR_ADDR, VR_S0);
++		_E(emit_gfx9_s_waitcnt_lgkmcnt, I9(buf, n));
++
++		patch_branch(buf, br_skip, n);
++		/* Restore EXEC */
++		_E(emit_gfx9_s_mov_b64, I9(buf, n), 126 /* EXEC */,
++		   SR_GHASH_EXEC);
++		_E(emit_gfx9_s_barrier, I9(buf, n));
++	}
++
++	/* Thread 0 now has the final GHASH in LDS[0..15]. Read it. */
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n), P_V(VR_TMP), P_I(0));
++	_E(emit_gfx9_ds_read_b128, I9(buf, n), VR_S0, VR_TMP);
++	_E(emit_gfx9_s_waitcnt_lgkmcnt, I9(buf, n));
++
++	/* ================================================================
++	 * Phase 9: ICV verify (thread 0 only)
++	 *
++	 * computed_tag = bswap(GHASH) XOR AES(K, J0)
++	 * received_tag = last 16 bytes of ESP packet
++	 * ================================================================
++	 */
++	_E(emit_gfx9_v_cmp_eq_u32, I9(buf, n), P_I(0), P_V(VR_TID));
++	_E(emit_gfx9_s_and_saveexec_b64, I9(buf, n), SR_EXEC_SAVE, 106);
++	br_tid0 = _BR(emit_gfx9_s_cbranch_execz, I9(buf, n), 0);
++
++	/* bswap GHASH from big-endian to little-endian */
++	_E(emit_gfx9_v_perm_b32, I9(buf, n), P_V(VR_S0), P_V(VR_S0),
++	   P_V(VR_S0), P_S(SR_BSWAP));
++	_E(emit_gfx9_v_perm_b32, I9(buf, n), P_V(VR_S1), P_V(VR_S1),
++	   P_V(VR_S1), P_S(SR_BSWAP));
++	_E(emit_gfx9_v_perm_b32, I9(buf, n), P_V(VR_S2), P_V(VR_S2),
++	   P_V(VR_S2), P_S(SR_BSWAP));
++	_E(emit_gfx9_v_perm_b32, I9(buf, n), P_V(VR_S3), P_V(VR_S3),
++	   P_V(VR_S3), P_S(SR_BSWAP));
++
++	/* computed_tag = GHASH XOR AES(K, J0) */
++	_E(emit_gfx9_v_xor_b32_e32, I9(buf, n), P_V(VR_S0),
++	   P_V(VR_S0), P_V(VR_J0_0));
++	_E(emit_gfx9_v_xor_b32_e32, I9(buf, n), P_V(VR_S1),
++	   P_V(VR_S1), P_V(VR_J0_1));
++	_E(emit_gfx9_v_xor_b32_e32, I9(buf, n), P_V(VR_S2),
++	   P_V(VR_S2), P_V(VR_J0_2));
++	_E(emit_gfx9_v_xor_b32_e32, I9(buf, n), P_V(VR_S3),
++	   P_V(VR_S3), P_V(VR_J0_3));
++
++	/* Load received ICV: pkt + pkt_len - 16 */
++	_E(emit_gfx9_v_add_u32, I9(buf, n), P_V(VR_TMP),
++	   P_L(0xFFFFFFF0u), P_V(VR_SAVE_PKTLEN)); /* pkt_len - 16 */
++	_E(emit_gfx9_v_add_co_u32, I9(buf, n), P_V(VR_GA_LO),
++	   P_V(VR_TMP), P_V(VR_SAVE_PKT_LO));
++	_E(emit_gfx9_v_addc_co_u32, I9(buf, n), P_V(VR_GA_HI),
++	   P_I(0), P_V(VR_SAVE_PKT_HI));
++	_E(emit_gfx9_global_load_dwordx4, I9(buf, n), P_V(VR_DATA0),
++	   P_V(VR_GA_LO), 0);
++	_E(emit_gfx9_s_waitcnt_vmcnt, I9(buf, n));
++
++	/* Compare: XOR each dword, OR together; if any non-zero -> fail */
++	_E(emit_gfx9_v_xor_b32_e32, I9(buf, n), P_V(VR_DATA0),
++	   P_V(VR_DATA0), P_V(VR_S0));
++	_E(emit_gfx9_v_xor_b32_e32, I9(buf, n), P_V(VR_DATA1),
++	   P_V(VR_DATA1), P_V(VR_S1));
++	_E(emit_gfx9_v_xor_b32_e32, I9(buf, n), P_V(VR_DATA2),
++	   P_V(VR_DATA2), P_V(VR_S2));
++	_E(emit_gfx9_v_xor_b32_e32, I9(buf, n), P_V(VR_DATA3),
++	   P_V(VR_DATA3), P_V(VR_S3));
++	_E(emit_gfx9_v_or_b32_e32, I9(buf, n), P_V(VR_DATA0),
++	   P_V(VR_DATA0), P_V(VR_DATA1));
++	_E(emit_gfx9_v_or_b32_e32, I9(buf, n), P_V(VR_DATA0),
++	   P_V(VR_DATA0), P_V(VR_DATA2));
++	_E(emit_gfx9_v_or_b32_e32, I9(buf, n), P_V(VR_DATA0),
++	   P_V(VR_DATA0), P_V(VR_DATA3));
++
++	/* If VR_DATA0 != 0 -> ICV fail: overwrite verdict with sentinel */
++	_E(emit_gfx9_v_cmp_ne_u32, I9(buf, n), P_I(0), P_V(VR_DATA0));
++	br_icv_ok = _BR(emit_gfx9_s_cbranch_vccz, I9(buf, n), 0);
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n), P_V(VR_SAVE_SLOT),
++	   P_L(VERDICT_ICV_FAIL));
++	patch_branch(buf, br_icv_ok, n);
++
++	/* ================================================================
++	 * Phase 10: ESP trailer strip + write verdict (thread 0)
++	 *
++	 * Decrypted tail: pad_len at out + ctext_len - 2
++	 *                 next_hdr at out + ctext_len - 1
++	 * inner_len = ctext_len - pad_len - 2
++	 * ================================================================
++	 */
++	/* Only strip if ICV passed (slot < NR_SA) */
++	_E(emit_gfx9_v_readfirstlane_b32, I9(buf, n), 27, VR_SAVE_SLOT);
++	_E(emit_gfx9_s_cmp_ge_u32, I9(buf, n), P_S(27),
++	   P_L(KNOD_IPSEC_SHADER_NR_SA));
++	br_icv_bad = _BR(emit_gfx9_s_cbranch_scc1, I9(buf, n), 0);
++
++	/* Load last 4 bytes of decrypted payload: out + ctext_len - 4.
++	 * VOP2 src1 must be VGPR, so move SGPR to VR_TMP first.
++	 */
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n), P_V(VR_TMP),
++	   P_S(SR_CTEXT_LEN));
++	_E(emit_gfx9_v_add_u32, I9(buf, n), P_V(VR_TMP),
++	   P_L(0xFFFFFFFC), P_V(VR_TMP)); /* ctext_len - 4 */
++	_E(emit_gfx9_v_add_co_u32, I9(buf, n), P_V(VR_GA_LO),
++	   P_V(VR_TMP), P_V(VR_SAVE_OUT_LO));
++	_E(emit_gfx9_v_addc_co_u32, I9(buf, n), P_V(VR_GA_HI),
++	   P_I(0), P_V(VR_SAVE_OUT_HI));
++	_E(emit_gfx9_global_load_dword, I9(buf, n), P_V(VR_DATA0),
++	   P_V(VR_GA_LO), 0);
++	_E(emit_gfx9_s_waitcnt_vmcnt, I9(buf, n));
++
++	/* On LE: loaded dword has byte layout [b0,b1,b2,b3].
++	 * We loaded from (ctext_len - 4), so:
++	 *   b2 = pad_len (at ctext_len - 2)
++	 *   b3 = next_hdr (at ctext_len - 1)
++	 * pad_len = (dword >> 16) & 0xFF
++	 */
++	_E(emit_gfx9_v_lshrrev_b32, I9(buf, n), P_V(VR_TMP),
++	   P_I(16), P_V(VR_DATA0));
++	_E(emit_gfx9_v_and_b32_e32, I9(buf, n), P_V(VR_TMP),
++	   P_L(0xFF), P_V(VR_TMP));
++
++	/* inner_len = ctext_len - pad_len - 2 */
++	_E(emit_gfx9_v_sub_u32, I9(buf, n), P_V(VR_DATA1),
++	   P_S(SR_CTEXT_LEN), P_V(VR_TMP));
++	_E(emit_gfx9_v_add_u32, I9(buf, n), P_V(VR_DATA1),
++	   P_L(0xFFFFFFFE), P_V(VR_DATA1)); /* -2 */
++
++	/* Write bd->len = inner_len (u16 at bd + 18) */
++	_E(emit_gfx9_v_add_co_u32, I9(buf, n), P_V(VR_GA_LO),
++	   P_L(18), P_V(VR_SAVE_BD_LO));
++	_E(emit_gfx9_v_addc_co_u32, I9(buf, n), P_V(VR_GA_HI),
++	   P_I(0), P_V(VR_SAVE_BD_HI));
++	_E(emit_gfx9_global_store_short, I9(buf, n), P_V(VR_GA_LO),
++	   P_V(VR_DATA1), 0);
++
++	/* Write bd->off = mode | (next_hdr << 8) (u16 at bd + 16).
++	 * next_hdr = byte[3] of the ESP trailer dword (VR_DATA0).
++	 * mode from s[SR_SA_MODE].
++	 */
++	_E(emit_gfx9_v_lshrrev_b32, I9(buf, n), P_V(VR_TMP),
++	   P_I(24), P_V(VR_DATA0));
++	_E(emit_gfx9_v_lshlrev_b32, I9(buf, n), P_V(VR_TMP),
++	   P_I(8), P_V(VR_TMP));
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n), P_V(VR_DATA2),
++	   P_S(SR_SA_MODE));
++	_E(emit_gfx9_v_or_b32_e32, I9(buf, n), P_V(VR_TMP),
++	   P_V(VR_DATA2), P_V(VR_TMP));
++	_E(emit_gfx9_v_add_co_u32, I9(buf, n), P_V(VR_GA_LO),
++	   P_L(16), P_V(VR_SAVE_BD_LO));
++	_E(emit_gfx9_v_addc_co_u32, I9(buf, n), P_V(VR_GA_HI),
++	   P_I(0), P_V(VR_SAVE_BD_HI));
++	_E(emit_gfx9_global_store_short, I9(buf, n), P_V(VR_GA_LO),
++	   P_V(VR_TMP), 0);
++
++	/* Per-SA GPU stats: atomically increment rx_packets
++	 * and rx_bytes at stats_addr. VR_DATA1 still holds
++	 * inner_len from the bd->len computation above.
++	 *
++	 * global_atomic_add_x2 uses v[data:data+1] as u64.
++	 * Save inner_len to VR_TMP before clobbering DATA1.
++	 *
++	 * stats layout (knod_ipsec_sa_gpu_stats):
++	 *   +0: rx_packets (u64, LE)
++	 *   +8: rx_bytes   (u64, LE)
++	 */
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n), P_V(VR_TMP),
++	   P_V(VR_DATA1));	/* save inner_len */
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n), P_V(VR_GA_LO),
++	   P_V(VR_SAVE_STATS_LO));
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n), P_V(VR_GA_HI),
++	   P_V(VR_SAVE_STATS_HI));
++
++	/* rx_packets += 1: v[DATA0:DATA1] = {1, 0} */
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n), P_V(VR_DATA0), P_I(1));
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n), P_V(VR_DATA1), P_I(0));
++	_E(emit_gfx9_global_atomic_add_x2, I9(buf, n),
++	   P_V(VR_DATA2), P_V(VR_GA_LO), P_V(VR_DATA0), 0, 0);
++
++	/* rx_bytes += inner_len: v[DATA0:DATA1] = {inner_len, 0} */
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n), P_V(VR_DATA0),
++	   P_V(VR_TMP));
++	/* DATA1 already 0 from above */
++	_E(emit_gfx9_global_atomic_add_x2, I9(buf, n),
++	   P_V(VR_DATA2), P_V(VR_GA_LO), P_V(VR_DATA0), 8, 0);
++
++	/* ================================================================
++	 * L3 header passthrough (transport mode only).
++	 *
++	 * Copy 20 B of the outer IPv4 L3 header from
++	 * pkt + 14 (skip ETH) to out_addr - 20. In shader-GTT
++	 * direct mode (knod_ipsec_sdma=0), out_addr - 20 is
++	 * pass_buf_slot + 0 so the host-side finalise can skip
++	 * the per-packet L3 SDMA copy entirely - the only
++	 * remaining SDMA call on the transport IPv4 fast path.
++	 *
++	 * Tunnel-mode SAs (SR_SA_MODE != 0) skip this write
++	 * because for tunnel the destination at slot+0 wants
++	 * the *inner* packet, not an outer IP header.
++	 *
++	 * The VRAM staging path (knod_ipsec_sdma=1) also runs
++	 * this copy, but the destination is the 20-byte
++	 * headroom knod_ipsec.c reserves at the front of
++	 * the decrypt pool; CPU finalise still SDMAs the real
++	 * L3 header from the raw packet into the GTT pass_buf
++	 * so the shader's write is harmless wasted work.
++	 *
++	 * Alignment: pkt + 14 is only 2-byte aligned (ETH hdr
++	 * = 14 bytes != 4-byte multiple), so dword / dwordx4
++	 * loads would fault. Use 10 x global_load_ushort at
++	 * offsets 14,16,...,32, paired with 10 x store_short
++	 * at slot + 0,2,...,18. 10 scratch VGPRs (v14..v23),
++	 * all free by Phase 10 since AES-GCM / GHASH state is
++	 * done. One waitcnt between loads and stores.
++	 * ================================================================
++	 */
++	_E(emit_gfx9_s_cmp_eq_u32, I9(buf, n),
++	   P_S(SR_SA_MODE), P_I(0));
++	br_not_transport = _BR(emit_gfx9_s_cbranch_scc0,
++			       I9(buf, n), 0);
++
++	/* src = pkt_addr + 14 */
++	_E(emit_gfx9_v_add_co_u32, I9(buf, n),
++	   P_V(VR_GA_LO), P_I(14),
++	   P_V(VR_SAVE_PKT_LO));
++	_E(emit_gfx9_v_addc_co_u32, I9(buf, n),
++	   P_V(VR_GA_HI), P_I(0),
++	   P_V(VR_SAVE_PKT_HI));
++
++	/* 10 x 2-byte loads from src+0..+18 */
++	for (li = 0; li < 10; li++) {
++		_E(emit_gfx9_global_load_ushort,
++		   I9(buf, n),
++		   P_V(L3_TMP_BASE + li),
++		   P_V(VR_GA_LO), li * 2);
++	}
++	_E(emit_gfx9_s_waitcnt_vmcnt, I9(buf, n));
++
++	/* dst = out_addr - 20.
++	 *
++	 * Two GFX9 landmines here:
++	 *
++	 *  1. v_add_co_u32 can't take a 32-bit
++	 *     literal src together with implicit VCC
++	 *     - same class as the v_cndmask literal
++	 *     restriction.
++	 *  2. P_I(n) is a raw initializer that always
++	 *     sets type=INTEGER_0 and stores n in .v.
++	 *     For negative inline constants the
++	 *     encoder must flip to INTEGER_MINUS_1
++	 *     with v=~n, which P_I does NOT do.
++	 *     P_I(-1) therefore encodes as
++	 *     GFX9_SRC_INTEGER_0 + (-1) = 127, a
++	 *     bogus register that gave us random
++	 *     high-32 bits and page-faulted stores.
++	 *
++	 * Dodge both by materialising -20 into VR_TMP
++	 * and -1 into VR_TMP2 via v_mov_b32 literals
++	 * (VOP1, no VCC, literals fine), then pure
++	 * VGPR+VGPR add_co / addc_co. Borrow flows
++	 * through VCC as the carry-in to addc_co.
++	 */
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n),
++	   P_V(VR_TMP), P_L(0xFFFFFFECu));
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n),
++	   P_V(VR_TMP2), P_L(0xFFFFFFFFu));
++	_E(emit_gfx9_v_add_co_u32, I9(buf, n),
++	   P_V(VR_GA_LO),
++	   P_V(VR_TMP), P_V(VR_SAVE_OUT_LO));
++	_E(emit_gfx9_v_addc_co_u32, I9(buf, n),
++	   P_V(VR_GA_HI),
++	   P_V(VR_TMP2), P_V(VR_SAVE_OUT_HI));
++
++	/* 10 x 2-byte stores to dst+0..+18 */
++	for (li = 0; li < 10; li++) {
++		_E(emit_gfx9_global_store_short,
++		   I9(buf, n),
++		   P_V(VR_GA_LO),
++		   P_V(L3_TMP_BASE + li),
++		   li * 2);
++	}
++
++	patch_branch(buf, br_not_transport, n);
++
++	patch_branch(buf, br_icv_bad, n);
++
++	/* Write bd->act (u64 at bd + 8):
++	 * high32 = slot_idx (or sentinel),
++	 * low32 = KNOD_IPSEC_INFLIGHT so NIC NAPI recognises
++	 * this slot as in-flight until the finish worker stamps
++	 * the final PASS/DROP.
++	 */
++	_E(emit_gfx9_v_add_co_u32, I9(buf, n), P_V(VR_GA_LO),
++	   P_L(8), P_V(VR_SAVE_BD_LO));
++	_E(emit_gfx9_v_addc_co_u32, I9(buf, n), P_V(VR_GA_HI),
++	   P_I(0), P_V(VR_SAVE_BD_HI));
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n), P_V(VR_DATA0),
++	   P_L(KNOD_IPSEC_INFLIGHT));
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n), P_V(VR_DATA1),
++	   P_V(VR_SAVE_SLOT));
++	_E(emit_gfx9_global_store_dwordx2, I9(buf, n), P_V(VR_GA_LO),
++	   P_V(VR_DATA0), 0);
++	_E(emit_gfx9_s_waitcnt_vmcnt, I9(buf, n));
++
++	patch_branch(buf, br_tid0, n);
++
++	/* ================================================================
++	 * Phase 11: Miss/bypass path verdict - thread 0 only
++	 *
++	 * If we skipped crypto (Phase 2 branch), write the miss/bypass
++	 * sentinel that's still in v[VR_SAVE_SLOT].
++	 * ================================================================
++	 */
++	br_crypto_done = _BR(emit_gfx9_s_branch, I9(buf, n), 0);
++
++	patch_branch(buf, br_crypto_end, n);
++
++	/* Thread 0 writes bd->act with miss/bypass sentinel */
++	_E(emit_gfx9_v_cmp_eq_u32, I9(buf, n), P_I(0), P_V(VR_TID));
++	_E(emit_gfx9_s_and_saveexec_b64, I9(buf, n), SR_EXEC_SAVE, 106);
++
++	br_execz2 = _BR(emit_gfx9_s_cbranch_execz, I9(buf, n), 0);
++
++	_E(emit_gfx9_v_add_co_u32, I9(buf, n), P_V(VR_GA_LO),
++	   P_L(8), P_V(VR_SAVE_BD_LO));
++	_E(emit_gfx9_v_addc_co_u32, I9(buf, n), P_V(VR_GA_HI),
++	   P_I(0), P_V(VR_SAVE_BD_HI));
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n), P_V(VR_DATA0),
++	   P_L(KNOD_IPSEC_INFLIGHT));
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n), P_V(VR_DATA1),
++	   P_V(VR_SAVE_SLOT));
++	_E(emit_gfx9_global_store_dwordx2, I9(buf, n), P_V(VR_GA_LO),
++	   P_V(VR_DATA0), 0);
++	_E(emit_gfx9_s_waitcnt_vmcnt, I9(buf, n));
++
++	patch_branch(buf, br_execz2, n);
++
++	patch_branch(buf, br_crypto_done, n);
++
++	/* ================================================================
++	 * Phase 12: GPU-initiated SDMA dispatch (thread 0 only)
++	 *
++	 * Both merge paths (crypto-done, bypass/miss) arrive here with
++	 * EXEC restricted to lane 0 of wave 0; waves 1-3 have EXEC=0.
++	 * Scalar instructions fire on every wave but are side-effect-free;
++	 * vector memory ops are NOPs when EXEC=0.
++	 *
++	 * The GPU writes SDMA COPY_LINEAR packets only.  FENCE, wptr
++	 * update, and doorbell are left to the CPU - this avoids a race
++	 * where a GPU-emitted FENCE would prematurely satisfy the CPU
++	 * fence poll before CPU-added SDMA copies (e.g. IPv6 transport
++	 * L3 header) complete.
++	 *
++	 * Protocol per work-group (= per packet):
++	 *  1. Load sdma_ring_addr (kernarg+16) and sdma_ctl_addr (+32).
++	 *  2. If sdma_ctl_addr == 0, gpu_sdma disabled - skip.
++	 *  3. Load sdma_ctl fields (wptr_base_dw, ring_mask, etc.).
++	 *  4. If verdict is MISS/BYPASS, claim a ring slot via
++	 *     atomic_add(&claim_counter) and write a 7-dword
++	 *     SDMA COPY_LINEAR packet.
++	 *  5. ALL WGs atomic_add(&done_counter).
++	 *  6. Last WG: read final claim_counter, store
++	 *     final_sdma_count + gpu_sdma_ready for CPU.
++	 * ================================================================
++	 */
++	/* --- kernarg loads ---------------------------------------- */
++	_E(emit_gfx9_s_load_dwordx2, I9(buf, n),
++	   P_S(24), P_S(8), 16);		/* s[24:25] = sdma_ring_addr */
++	_E(emit_gfx9_s_load_dwordx2, I9(buf, n),
++	   P_S(26), P_S(8), 32);		/* s[26:27] = sdma_ctl_addr */
++	_E(emit_gfx9_s_waitcnt_lgkmcnt, I9(buf, n));
++
++	/* Skip Phase 12 entirely if sdma_ctl_addr == 0 */
++	_E(emit_gfx9_s_or_b32, I9(buf, n), 28, 26, 27);
++	_E(emit_gfx9_s_cmp_eq_u32, I9(buf, n), P_S(28), P_I(0));
++	br_no_sdma = _BR(emit_gfx9_s_cbranch_scc1, I9(buf, n), 0);
++
++	/* --- load sdma_ctl into VGPRs ----------------------------- */
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n), P_V(1), P_S(26));
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n), P_V(2), P_S(27));
++
++	/* ctl+28: wptr_base_dw(4) ring_mask(4) nr_total_wg(4) copy_hdr(4)
++	 * -> v[3:6]
++	 */
++	_E(emit_gfx9_global_load_dwordx4, I9(buf, n),
++	   P_V(3), P_V(1), 28);
++	_E(emit_gfx9_s_waitcnt_vmcnt, I9(buf, n));
++
++	/* v3=wptr_base_dw  v4=ring_mask  v5=nr_total_wg  v6=copy_hdr */
++
++	_E(emit_gfx9_v_readfirstlane_b32, I9(buf, n),
++	   28, 5);				/* s28 = nr_total_wg */
++
++	/* --- verdict check ---------------------------------------- */
++	_E(emit_gfx9_v_readfirstlane_b32, I9(buf, n),
++	   29, VR_SAVE_SLOT);			/* s29 = verdict */
++	_E(emit_gfx9_s_cmp_ge_u32, I9(buf, n),
++	   P_S(29), P_L(0xFFFFFFFEu));		/* MISS|BYPASS? */
++	br_no_copy = _BR(emit_gfx9_s_cbranch_scc0, I9(buf, n), 0);
++
++	/* === This WG needs SDMA copy === */
++
++	/* atomic_add(&ctl->claim_counter, 1, GLC=1) -> my_idx */
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n), P_V(7), P_I(1));
++	_E(emit_gfx9_global_atomic_add, I9(buf, n),
++	   P_V(7), P_V(1), P_V(7), 0, 1);
++	_E(emit_gfx9_s_waitcnt_vmcnt, I9(buf, n));
++	/* v7 = my_idx (old claim_counter) */
++
++	/* ring dword position: (wptr_base_dw + my_idx*7) & ring_mask */
++	_E(emit_gfx9_v_lshlrev_b32, I9(buf, n),
++	   P_V(8), P_I(3), P_V(7));		/* my_idx * 8 */
++	_E(emit_gfx9_v_sub_u32, I9(buf, n),
++	   P_V(8), P_V(8), P_V(7));		/* my_idx * 7 */
++	_E(emit_gfx9_v_add_u32, I9(buf, n),
++	   P_V(8), P_V(3), P_V(8));		/* + wptr_base_dw */
++	_E(emit_gfx9_v_and_b32_e32, I9(buf, n),
++	   P_V(8), P_V(4), P_V(8));		/* & ring_mask */
++	_E(emit_gfx9_v_lshlrev_b32, I9(buf, n),
++	   P_V(8), P_I(2), P_V(8));		/* * 4 -> byte offset */
++
++	/* v[9:10] = sdma_ring_addr + byte_offset */
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n), P_V(14), P_S(25));
++	_E(emit_gfx9_v_add_co_u32, I9(buf, n),
++	   P_V(9), P_S(24), P_V(8));
++	_E(emit_gfx9_v_addc_co_u32, I9(buf, n),
++	   P_V(10), P_I(0), P_V(14));
++
++	/* DW0: copy_hdr */
++	_E(emit_gfx9_global_store_dword, I9(buf, n),
++	   P_V(9), P_V(6), 0);
++
++	/* DW1: nbytes - 1 */
++	_E(emit_gfx9_v_add_u32, I9(buf, n),
++	   P_V(14), P_L(0xFFFFFFFFu), P_V(VR_SAVE_PKTLEN));
++	_E(emit_gfx9_global_store_dword, I9(buf, n),
++	   P_V(9), P_V(14), 4);
++
++	/* DW2: 0 (sub-op parameter) */
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n), P_V(14), P_I(0));
++	_E(emit_gfx9_global_store_dword, I9(buf, n),
++	   P_V(9), P_V(14), 8);
++
++	/* DW3-4: src = pkt_addr (VRAM) */
++	_E(emit_gfx9_global_store_dword, I9(buf, n),
++	   P_V(9), P_V(VR_SAVE_PKT_LO), 12);
++	_E(emit_gfx9_global_store_dword, I9(buf, n),
++	   P_V(9), P_V(VR_SAVE_PKT_HI), 16);
++
++	/* DW5-6: dst = out_addr - 20 (GTT slot start) */
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n),
++	   P_V(14), P_L(0xFFFFFFECu));		/* -20 */
++	_E(emit_gfx9_v_add_co_u32, I9(buf, n),
++	   P_V(15), P_V(14), P_V(VR_SAVE_OUT_LO));
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n),
++	   P_V(14), P_L(0xFFFFFFFFu));		/* -1 */
++	_E(emit_gfx9_v_addc_co_u32, I9(buf, n),
++	   P_V(16), P_V(14), P_V(VR_SAVE_OUT_HI));
++
++	_E(emit_gfx9_global_store_dword, I9(buf, n),
++	   P_V(9), P_V(15), 20);
++	_E(emit_gfx9_global_store_dword, I9(buf, n),
++	   P_V(9), P_V(16), 24);
++
++	_E(emit_gfx9_s_waitcnt_vmcnt, I9(buf, n));
++
++	/* --- done counter (all WGs) ------------------------------- */
++	patch_branch(buf, br_no_copy, n);
++
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n), P_V(7), P_I(1));
++	_E(emit_gfx9_global_atomic_add, I9(buf, n),
++	   P_V(7), P_V(1), P_V(7), 4, 1);	/* ctl+4 = done_counter */
++	_E(emit_gfx9_s_waitcnt_vmcnt, I9(buf, n));
++
++	/* Last WG check: my_done + 1 == nr_total_wg? */
++	_E(emit_gfx9_v_add_u32, I9(buf, n),
++	   P_V(7), P_I(1), P_V(7));
++	_E(emit_gfx9_v_readfirstlane_b32, I9(buf, n), 29, 7);
++	_E(emit_gfx9_s_cmp_eq_u32, I9(buf, n), P_S(29), P_S(28));
++	br_not_last = _BR(emit_gfx9_s_cbranch_scc0, I9(buf, n), 0);
++
++	/* === Last WG - publish counters for CPU === */
++
++	/* Read final claim_counter (atomic add 0, GLC=1) */
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n), P_V(7), P_I(0));
++	_E(emit_gfx9_global_atomic_add, I9(buf, n),
++	   P_V(7), P_V(1), P_V(7), 0, 1);
++	_E(emit_gfx9_s_waitcnt_vmcnt, I9(buf, n));
++
++	/* Store final_sdma_count (ctl+52) and gpu_sdma_ready (ctl+48) */
++	_E(emit_gfx9_global_store_dword, I9(buf, n),
++	   P_V(1), P_V(7), 52);
++	_E(emit_gfx9_v_mov_b32_e32, I9(buf, n), P_V(7), P_I(1));
++	_E(emit_gfx9_global_store_dword, I9(buf, n),
++	   P_V(1), P_V(7), 48);
++	_E(emit_gfx9_s_waitcnt_vmcnt, I9(buf, n));
++
++	patch_branch(buf, br_not_last, n);
++	patch_branch(buf, br_no_sdma, n);
++
++	_E(emit_gfx9_s_endpgm, I9(buf, n));
++
++	return n * 4;
++}
++
++#endif /* KNOD_HELPERS_IPSEC_FUSED_GFX9_H_ */
+diff --git a/drivers/gpu/drm/amd/amdkfd/knod/knod_ipsec.c b/drivers/gpu/drm/amd/amdkfd/knod/knod_ipsec.c
+new file mode 100644
+index 000000000000..f67e7e4299f2
+--- /dev/null
++++ b/drivers/gpu/drm/amd/amdkfd/knod/knod_ipsec.c
+@@ -0,0 +1,4273 @@
 +// SPDX-License-Identifier: GPL-2.0-or-later
 +/* Copyright (c) 2021 Taehee Yoo <ap420073@gmail.com>
 + * Copyright (c) 2021 Hoyeon Lee <hoyeon.rhee@gmail.com>
 + */
 +
-+#include <linux/cpumask.h>
++/*
++ * KNOD IPsec (xfrm) full-packet GPU offload.
++ *
++ * Accepts xfrm SAs configured with XFRM_DEV_OFFLOAD_PACKET and runs
++ * ESP parse / SA lookup / AES-GCM decrypt on the GPU. Anti-replay is
++ * handled CPU-side in the NIC dd NAPI (see knod_ipsec_sa_window_check)
++ * after the finish worker has SDMA-copied decrypted inner packets into
++ * the per-queue framework delivery pool (pass_pool). Control plane allocates
++ * per-SA key and GHASH H-power tables in VRAM (via the AES-GCM helpers below)
++ * and mirrors SA state into a GPU-visible SA table consumed by the
++ * fused RX shader.
++ *
++ * RX path: the GPU shader decrypts in place in VRAM and flags per-packet
++ * verdicts (ICV ok / malformed / no SA). A CPU finish worker then SDMA-
++ * bulk-copies successfully decrypted inner packets into per-queue host pages
++ * from the framework delivery pool (pass_pool, page_pool-backed) and pushes
++ * a knod_pass_desc onto the framework per-queue pass_pending ring. The NIC
++ * dd drains that ring from its own NAPI (knod_d2h_drain), which builds the
++ * zero-copy head_frag skb (knod_pass_build_skb) and runs the ipsec
++ * finalisation hook (knod_ipsec_post_copy): RFC 4303 sliding-window
++ * anti-replay, cleartext L3 fix-up and secpath attach. The page recycles
++ * to the pool on skb free.
++ *
++ * The original p2pdma bd ring is only used for NIC netmem lifecycle /
++ * recycle and is completely decoupled from verdict delivery.
++ */
++
 +#include <linux/types.h>
-+#include <linux/mutex.h>
++#include <linux/module.h>
 +#include <linux/slab.h>
++#include <linux/mutex.h>
++#include <linux/debugfs.h>
++#include <linux/seq_file.h>
++#include <linux/jump_label.h>
++#include <linux/xarray.h>
++#include <linux/netdevice.h>
++#include <linux/etherdevice.h>
++#include <linux/skbuff.h>
++#include <linux/percpu.h>
++#include <linux/kthread.h>
 +#include <linux/delay.h>
-+#include <linux/sched.h>
-+#include <linux/workqueue.h>
-+#include <linux/file.h>
-+#include <linux/jhash.h>
-+#include <drm/ttm/ttm_tt.h>
++#include <linux/ip.h>
++#include <linux/ipv6.h>
++#include <net/ip.h>
++#include <net/dst.h>
++#include <net/neighbour.h>
++#include <net/xfrm.h>
 +#include <net/page_pool/helpers.h>
++#include <net/esp.h>
++#include <net/gso.h>
++#include <net/knod.h>
++#include <linux/random.h>
++#include <linux/unaligned.h>
++#include <crypto/aes.h>
++#include <linux/bitops.h>
++#include <linux/string.h>
++#include <drm/ttm/ttm_tt.h>
++
 +#include "kfd_priv.h"
 +#include "kfd_hsa.h"
-+#include "knod_bpf.h"
-+#include "kfd_migrate.h"
-+#include "kfd_events.h"
-+#include "kfd_device_queue_manager.h"
-+#include <linux/reciprocal_div.h>
-+#include <linux/jhash.h>
-+#include <net/knod.h>
-+#include <net/netdev_rx_queue.h>
++#include "kfd_knod.h"
++#include "knod_ipsec.h"
++#include "ipsec_fused_gfx9.h"
++#include "ipsec_fused_gfx10.h"
 +
-+/*+--------+---------+-------+------+--+-----+------+------+--------+
-+ *| v0-v21 | v22-v59 |v60-v61| v62  |63|64-65|66-67 |68-69 | v70-127|
-+ *+--------+---------+-------+------+--+-----+------+------+--------+
-+ *|BPF REGS|TMP REGS |CTX REG| WIDX |R |DATA |D_END |PGBASE|PKTCACHE|
-+ *+--------+---------+-------+------+--+-----+------+------+--------+
-+ *+-----------------+
-+ *| v128-v255       |
-+ *+-----------------+
-+ *| BPF STACK(512B) |
-+ *+-----------------+
++/* ====================================================================
++ * AES-GCM core helpers: AES T-tables in VRAM and GHASH H-power table
++ * precomputation.  IPsec ESP is the only KNOD GCM consumer, so these
++ * live here rather than in the always-builtin KNOD core.
++ * ====================================================================
 + */
 +
-+/* Temp register map
-+ *+-------------+-------------+---------------+---------------+
-+ *|TREG0 - TREG2|TREG3 - TREG9|TREG10 - TREG16|TREG17 - TREG18|
-+ *+-------------+-------------+---------------+---------------+
-+ *| General Use | Key cache A |   Key in MAP  | JHASH Temp Reg|
-+ *+-------------+-------------+---------------+---------------+
-+ * Available Key cache size is 56.
-+ * So, key size of map can't be exceed 56B.
++/* AES T-tables: 4 tables * 256 entries * 4 bytes = 4KB, laid out as
++ * T0 | T1 | T2 | T3 in a single VRAM page.
 + */
++#define KNOD_GCM_T_TABLE_SIZE		(256 * sizeof(u32))
++#define KNOD_GCM_T_TABLE_COUNT		4
++#define KNOD_GCM_T_TABLES_TOTAL		\
++	(KNOD_GCM_T_TABLE_SIZE * KNOD_GCM_T_TABLE_COUNT)
 +
-+#define KNOD_AMDGPU_VREG0_LO		0 /* v0 */
-+#define KNOD_AMDGPU_VREG0_HI		1
-+#define KNOD_AMDGPU_VREG1_LO		2
-+#define KNOD_AMDGPU_VREG1_HI		3
-+#define KNOD_AMDGPU_VREG2_LO		4
-+#define KNOD_AMDGPU_VREG2_HI		5
-+#define KNOD_AMDGPU_VREG3_LO		6
-+#define KNOD_AMDGPU_VREG3_HI		7
-+#define KNOD_AMDGPU_VREG4_LO		8
-+#define KNOD_AMDGPU_VREG4_HI		9
-+#define KNOD_AMDGPU_VREG5_LO		10
-+#define KNOD_AMDGPU_VREG5_HI		11
-+#define KNOD_AMDGPU_VREG6_LO		12
-+#define KNOD_AMDGPU_VREG6_HI		13
-+#define KNOD_AMDGPU_VREG7_LO		14
-+#define KNOD_AMDGPU_VREG7_HI		15
-+#define KNOD_AMDGPU_VREG8_LO		16
-+#define KNOD_AMDGPU_VREG8_HI		17
-+#define KNOD_AMDGPU_VREG9_LO		18
-+#define KNOD_AMDGPU_VREG9_HI		19
-+#define KNOD_AMDGPU_FRAME_POINTER_VREG_LO 20 /* v20 */
-+#define KNOD_AMDGPU_FRAME_POINTER_VREG_HI 21 /* v20 */
++/* GHASH H-power table: H^1 .. H^256, each 16 bytes. */
++#define KNOD_GCM_H_POWER_COUNT		256
++#define KNOD_GCM_H_POWER_SIZE		16
++#define KNOD_GCM_H_TABLE_SIZE		\
++	(KNOD_GCM_H_POWER_COUNT * KNOD_GCM_H_POWER_SIZE)
 +
-+#define KNOD_AMDGPU_TMP_VREG0_LO	22
-+#define KNOD_AMDGPU_TMP_VREG0_HI	23
-+#define KNOD_AMDGPU_TMP_VREG1_LO	24
-+#define KNOD_AMDGPU_TMP_VREG1_HI	25
-+#define KNOD_AMDGPU_TMP_VREG2_LO	26
-+#define KNOD_AMDGPU_TMP_VREG2_HI	27
-+#define KNOD_AMDGPU_TMP_VREG3_LO	28
-+#define KNOD_AMDGPU_TMP_VREG3_HI	29
-+#define KNOD_AMDGPU_TMP_VREG4_LO	30
-+#define KNOD_AMDGPU_TMP_VREG4_HI	31
-+#define KNOD_AMDGPU_TMP_VREG5_LO	32
-+#define KNOD_AMDGPU_TMP_VREG5_HI	33
-+#define KNOD_AMDGPU_TMP_VREG6_LO	34
-+#define KNOD_AMDGPU_TMP_VREG6_HI	35
-+#define KNOD_AMDGPU_TMP_VREG7_LO	36
-+#define KNOD_AMDGPU_TMP_VREG7_HI	37
-+#define KNOD_AMDGPU_TMP_VREG8_LO	38
-+#define KNOD_AMDGPU_TMP_VREG8_HI	39
-+#define KNOD_AMDGPU_TMP_VREG9_LO	40
-+#define KNOD_AMDGPU_TMP_VREG9_HI	41
-+#define KNOD_AMDGPU_TMP_VREG10_LO	42
-+#define KNOD_AMDGPU_TMP_VREG10_HI	43
-+#define KNOD_AMDGPU_TMP_VREG11_LO	44
-+#define KNOD_AMDGPU_TMP_VREG11_HI	45
-+#define KNOD_AMDGPU_TMP_VREG12_LO	46
-+#define KNOD_AMDGPU_TMP_VREG12_HI	47
-+#define KNOD_AMDGPU_TMP_VREG13_LO	48
-+#define KNOD_AMDGPU_TMP_VREG13_HI	49
-+#define KNOD_AMDGPU_TMP_VREG14_LO	50
-+#define KNOD_AMDGPU_TMP_VREG14_HI	51
-+#define KNOD_AMDGPU_TMP_VREG15_LO	52
-+#define KNOD_AMDGPU_TMP_VREG15_HI	53
-+#define KNOD_AMDGPU_TMP_VREG16_LO	54
-+#define KNOD_AMDGPU_TMP_VREG16_HI	55
-+#define KNOD_AMDGPU_TMP_VREG17_LO	56
-+#define KNOD_AMDGPU_TMP_VREG17_HI	57
-+#define KNOD_AMDGPU_TMP_VREG18_LO	58
-+#define KNOD_AMDGPU_TMP_VREG18_HI	59
-+#define KNOD_AMDGPU_TMP_VREG_MAX	KNOD_AMDGPU_TMP_VREG18_HI
-+#define KNOD_AMDGPU_CTX_VREG_LO		60
-+#define KNOD_AMDGPU_CTX_VREG_HI		61
-+#define KNOD_AMDGPU_IDX_VREG		62
-+#define KNOD_AMDGPU_RESERVED		63
++static struct knod_mem *knod_gcm_alloc_tables(struct knod *knod)
++{
++	struct knod_mem *tables;
++	u32 *p;
++	int i;
++
++	tables = knod_alloc_mem(knod, PAGE_SIZE, KFD_IOC_ALLOC_MEM_FLAGS_VRAM);
++	if (IS_ERR(tables))
++		return tables;
++
++	p = (u32 *)tables->kaddr;
++
++	/*
++	 * Four rotated versions of aes_enc_tab matching the kernel
++	 * enc_quarterround() convention (lib/crypto/aes.c):
++	 *   T0[x] = aes_enc_tab[x]
++	 *   Tk[x] = rol32(T0[x], k * 8)
++	 * The GPU shader performs one AES round as four table lookups and
++	 * four XORs per column.
++	 */
++	for (i = 0; i < 256; i++)
++		p[i] = aes_enc_tab[i];
++	for (i = 0; i < 256; i++)
++		p[256 + i] = rol32(aes_enc_tab[i], 8);
++	for (i = 0; i < 256; i++)
++		p[512 + i] = rol32(aes_enc_tab[i], 16);
++	for (i = 0; i < 256; i++)
++		p[768 + i] = rol32(aes_enc_tab[i], 24);
++
++	return tables;
++}
++
++static void knod_gcm_free_tables(struct knod *knod, struct knod_mem *tables)
++{
++	if (tables)
++		knod_free_mem(knod, tables);
++}
++
 +/*
-+ * After prologue step 4, IDX_VREG is no longer needed.
-+ * v62:v63 are repurposed to hold slot_addr (spsc_bd GTT address)
-+ * through BPF execution and into the epilogue.
++ * Multiply a by b in GF(2^128) with the GCM polynomial
++ *   x^128 + x^7 + x^2 + x + 1
++ * Both inputs and the output are stored as two big-endian u64.
++ */
++static void gf128_mul(u64 r[2], const u64 a[2], const u64 b[2])
++{
++	u64 v[2], z[2];
++	int i, j;
++
++	v[0] = a[0];
++	v[1] = a[1];
++	z[0] = 0;
++	z[1] = 0;
++
++	for (i = 0; i < 2; i++) {
++		u64 x = b[i];
++
++		for (j = 63; j >= 0; j--) {
++			if ((x >> j) & 1) {
++				z[0] ^= v[0];
++				z[1] ^= v[1];
++			}
++
++			/* v >>= 1 (128-bit) with GCM reduction */
++			if (v[1] & 1) {
++				v[1] = (v[1] >> 1) | (v[0] << 63);
++				v[0] = (v[0] >> 1) ^ ((u64)0xe1 << 56);
++			} else {
++				v[1] = (v[1] >> 1) | (v[0] << 63);
++				v[0] = v[0] >> 1;
++			}
++		}
++	}
++
++	r[0] = z[0];
++	r[1] = z[1];
++}
++
++static void knod_gcm_precompute_h_table(const u8 *key, int key_len,
++					u8 *h_table_buf)
++{
++	struct aes_enckey enc_key;
++	u8 h_block[AES_BLOCK_SIZE] = {};
++	u64 h[2], h_power[2];
++	int i;
++
++	/* H = AES_K(0^128) */
++	aes_prepareenckey(&enc_key, key, key_len);
++	aes_encrypt(&enc_key, h_block, h_block);
++
++	h[0] = get_unaligned_be64(h_block);
++	h[1] = get_unaligned_be64(h_block + 8);
++
++	/* H^1 = H, then H^(i+1) = H^i * H */
++	h_power[0] = h[0];
++	h_power[1] = h[1];
++
++	for (i = 0; i < KNOD_GCM_H_POWER_COUNT; i++) {
++		u64 next[2];
++
++		put_unaligned_be64(h_power[0],
++				   h_table_buf + i * KNOD_GCM_H_POWER_SIZE);
++		put_unaligned_be64(h_power[1],
++				   h_table_buf + i * KNOD_GCM_H_POWER_SIZE + 8);
++
++		gf128_mul(next, h_power, h);
++		h_power[0] = next[0];
++		h_power[1] = next[1];
++	}
++
++	memzero_explicit(&enc_key, sizeof(enc_key));
++	memzero_explicit(h_block, sizeof(h_block));
++}
++
++/* Single AQL queue on purpose: CPU parallelism is provided by per-queue
++ * double-buffering through `nr_aql_ring` slots inside this one queue, not
++ * by multiple AQL queues. Multiple AQL queues cause ordering / contention
++ * issues with the fused RX dispatch path - stick to one.
++ */
++/*
++ * Dispatcher idle strategy toggle. Exposed as a debugfs toggle
++ * (knod_ipsec/poll) so it can be flipped mid-run without reloading
++ * the module and without the sysfs-module-param discoverability cost.
 + *
-+ * BACKLOG_IDX_VREG (v58) saves the backlog index from IDX_VREG
-+ * before step 6 overwrites it.  Used in epilogue for XDP_PASS.
-+ */
-+#define KNOD_AMDGPU_BACKLOG_IDX_VREG	KNOD_AMDGPU_TMP_VREG18_LO /* v58 */
-+#define KNOD_AMDGPU_SLOT_VREG_LO	KNOD_AMDGPU_IDX_VREG	/* v62 */
-+#define KNOD_AMDGPU_SLOT_VREG_HI	KNOD_AMDGPU_RESERVED	/* v63 */
-+/*
-+ * DATA/DATA_END VGPRs: hold packet gaddr and end address.
-+ * Set in prologue, read by BPF ctx->data / ctx->data_end accesses.
-+ * Replaces GTT round-trip (prologue store -> BPF load).
-+ */
-+#define KNOD_AMDGPU_DATA_VREG_LO	64
-+#define KNOD_AMDGPU_DATA_VREG_HI	65
-+#define KNOD_AMDGPU_DATA_END_VREG_LO	66
-+#define KNOD_AMDGPU_DATA_END_VREG_HI	67
-+#define KNOD_AMDGPU_PAGE_BASE_VREG_LO	68
-+#define KNOD_AMDGPU_PAGE_BASE_VREG_HI	69
-+#define KNOD_AMDGPU_PKT_CACHE_VREG0	70
-+#define KNOD_AMDGPU_PKT_CACHE_VREG_MAX	127 /* 0 ~ 127 vgprs are available */
-+#define KNOD_AMDGPU_STACK_VREG0		128
-+#define KNOD_AMDGPU_STACK_VREG_MAX	255 /* 128 ~ 255 vgprs are available */
-+
-+#define KNOD_BPF_PROG_BUF_SIZE		32768
-+
-+/* Index for r64.
-+ * r64[TREG64_0]
-+ */
-+#define TREG64_0			0
-+#define TREG64_1			1
-+#define TREG64_2			2
-+#define TREG64_3			3
-+#define KEY_IN_PKT_64			TREG64_3
-+#define TREG64_4			4
-+#define TREG64_5			5
-+#define TREG64_6			6
-+#define TREG64_7			7
-+#define TREG64_8			8
-+#define TREG64_9			9
-+#define TREG64_10			10
-+#define KEY_IN_MAP_64			TREG64_10
-+#define TREG64_11			11
-+#define TREG64_12			12
-+#define TREG64_13			13
-+#define TREG64_14			14
-+#define TREG64_15			15
-+#define TREG64_16			16
-+#define TREG64_17			17
-+#define TREG64_18			18
-+
-+#define MAX_MAP_KEY_SIZE		56
-+
-+/* Index for r32.
-+ * r32[TREG32_0_LO]
-+ */
-+#define TREG32_0_LO			0
-+#define TREG32_0_HI			1
-+#define TREG32_1_LO			2
-+#define TREG32_1_HI			3
-+#define TREG32_2_LO			4
-+#define TREG32_2_HI			5
-+#define TREG32_3_LO			6
-+#define KEY_IN_PKT_32			TREG32_3_LO
-+#define TREG32_3_HI			7
-+#define TREG32_4_LO			8
-+#define TREG32_4_HI			9
-+#define TREG32_5_LO			10
-+#define TREG32_5_HI			11
-+#define TREG32_6_LO			12
-+#define TREG32_6_HI			13
-+#define TREG32_7_LO			14
-+#define TREG32_7_HI			15
-+#define TREG32_8_LO			16
-+#define TREG32_8_HI			17
-+#define TREG32_9_LO			18
-+#define TREG32_9_HI			19
-+#define TREG32_10_LO			20
-+#define KEY_IN_MAP_32			TREG32_10_LO
-+#define TREG32_10_HI			21
-+#define TREG32_11_LO			22
-+#define TREG32_11_HI			23
-+#define TREG32_12_LO			24
-+#define TREG32_12_HI			25
-+#define TREG32_13_LO			26
-+#define TREG32_13_HI			27
-+#define TREG32_14_LO			28
-+#define TREG32_14_HI			29
-+#define TREG32_15_LO			30
-+#define TREG32_15_HI			31
-+#define TREG32_16_LO			32
-+#define TREG32_16_HI			33
-+#define TREG32_17_LO			34
-+#define TREG32_17_HI			35
-+#define TREG32_18_LO			36
-+#define TREG32_18_HI			37
-+#define TREG32_MAX			TREG32_18_HI
-+
-+/*+--------+--------------------------------------+---+---+
-+ *| s[0:3] |s[4:5] s[6:7] s[8:9] s[10:11] s[12:13]|s14|s15|
-+ *+--------+--------------------------------------+---+---+
-+ *|  PSB   | USER SGPRs (disp/queue/karg/id/flat) |WGX|QID|
-+ *+--------+--------------------------------------+---+---+
-+ *+----------------+------+---+---+------+-------+-------------------+
-+ *|   s[16:27]     |s28:29|s30|s31|s32:33|s34:35 |    s[36:105]      |
-+ *+----------------+------+---+---+------+-------+-------------------+
-+ *|TMP_SREG 0-5    |PARAM |FP | - | GFX9 | DONE  | EXEC_SAVE PAIRS   |
-+ *|(6 x 64-bit)    |SREG  |   |   |BROKE!| MASK  | (max 35, GFX10)   |
-+ *+----------------+------+---+---+------+-------+-------------------+
-+ * Implicit: VCC = s[106:107]  EXEC = s[126:127]
++ * - poll_mode=false (default): when try_rx finds no work,
++ *   sleep via usleep_range(20, 100). Lets the CPU idle but adds up to
++ *   ~100us latency between a packet landing in the SPSC ring and the
++ *   dispatcher picking it up.
 + *
-+ * user_sgpr_count=14, same on GFX9 and GFX10.
-+ * enable_sgpr_private_segment_size is disabled so that workgroup_id_y
-+ * lands at s15 and TMP_SREG0_LO stays at s16 (keeps 64-bit SGPR pair
-+ * alignment; avoids shifting the entire TMP/PARAM/FRAME layout).
-+ */
-+#define KNOD_AMDGPU_PSB_SREG		0  /* s[0:3] private_segment_buffer */
-+#define KNOD_AMDGPU_DISPATCH_PTR_SREG	4  /* s[4:5] dispatch_ptr */
-+#define KNOD_AMDGPU_ARG_SREG		4  /* alias for dispatch_ptr */
-+#define KNOD_AMDGPU_QUEUE_PTR_SREG	6  /* s[6:7] queue_ptr */
-+#define KNOD_AMDGPU_KERNARG_PTR_SREG	8  /* s[8:9] kernarg_segment_ptr */
-+#define KNOD_AMDGPU_DISPATCH_ID_SREG	10 /* s[10:11] dispatch_id */
-+#define KNOD_AMDGPU_FLAT_SCR_INIT_SREG	12 /* s[12:13] flat_scratch_init */
-+#define KNOD_AMDGPU_WORKGROUP_ID_X_SREG	14 /* s14 workgroup_id_x */
-+#define KNOD_AMDGPU_WORKGROUP_ID_Y_SREG	15 /* s15 workgroup_id_y = queue_id */
-+#define KNOD_AMDGPU_TMP_SREG0_LO	16
-+#define KNOD_AMDGPU_TMP_SREG0_HI	17
-+#define KNOD_AMDGPU_TMP_SREG1_LO	18
-+#define KNOD_AMDGPU_TMP_SREG1_HI	19
-+#define KNOD_AMDGPU_TMP_SREG2_LO	20
-+#define KNOD_AMDGPU_TMP_SREG2_HI	21
-+#define KNOD_AMDGPU_TMP_SREG3_LO	22
-+#define KNOD_AMDGPU_TMP_SREG3_HI	23
-+#define KNOD_AMDGPU_TMP_SREG4_LO	24
-+#define KNOD_AMDGPU_TMP_SREG4_HI	25
-+#define KNOD_AMDGPU_TMP_SREG5_LO	26
-+#define KNOD_AMDGPU_TMP_SREG5_HI	27
-+#define KNOD_AMDGPU_PARAM_SREG_LO	28 /* s28 */
-+#define KNOD_AMDGPU_PARAM_SREG_HI	29 /* s29 */
-+#define KNOD_AMDGPU_FRAME_POINTER_SREG	30 /* s30 */
-+
-+/* Structurized CFG: EXEC mask save/restore SGPRs.
-+ * done_mask tracks lanes that have reached BPF_EXIT.
-+ * exec_save pairs store EXEC at branch points for restore at merge points.
-+ * GFX9: s[0:101] addressable (102 SGPRs), GFX10: s[0:105] (106 SGPRs).
-+ * NOTE: s[32:33] is corrupted by GFX9 hardware - do NOT use on GFX9.
-+ * GFX10 uses s[32:33] for done_mask and starts exec_save at s[34].
-+ */
-+/* Common SGPR special register indices (same on GFX9 and GFX10) */
-+#define AMDGCN_SREG_VCC_LO		106
-+#define AMDGCN_SREG_EXEC_LO		126
-+#define AMDGCN_SREG_INTEGER_0		128
-+#define AMDGCN_SREG_INTEGER_1		129
-+
-+/* s[34:35] - must not overlap TMP_SREGs */
-+#define KNOD_AMDGPU_DONE_MASK_SREG	34
-+#define KNOD_AMDGPU_EXEC_SAVE_SREG_BASE 36 /* s[36:37], s[38:39], ... */
-+#define KNOD_AMDGPU_INITIAL_EXEC_SREG_GFX9 100
-+#define KNOD_AMDGPU_INITIAL_EXEC_SREG_GFX10 104
-+/* exec_save can fill up to each ISA's top usable SGPR pair. GFX9 lays the
-+ * initial in-bounds EXEC snapshot immediately after the pairs a program
-+ * actually uses, so small programs keep the old 64-SGPR occupancy window.
-+ * GFX10 keeps the original high fixed snapshot pair.
-+ */
-+#define KNOD_AMDGPU_EXEC_SAVE_SREG_MAX_GFX9  99
-+#define KNOD_AMDGPU_EXEC_SAVE_SREG_MAX_GFX10 103
-+#define KNOD_AMDGPU_MAX_EXEC_SAVE_PAIRS_GFX9 \
-+	((KNOD_AMDGPU_EXEC_SAVE_SREG_MAX_GFX9 - KNOD_AMDGPU_EXEC_SAVE_SREG_BASE + 1) / 2)
-+#define KNOD_AMDGPU_MAX_EXEC_SAVE_PAIRS_GFX10 \
-+	((KNOD_AMDGPU_EXEC_SAVE_SREG_MAX_GFX10 - KNOD_AMDGPU_EXEC_SAVE_SREG_BASE + 1) / 2)
-+
-+static u8 knod_bpf_gfx9_sgpr_granule(unsigned int sgprs_used)
-+{
-+	if (sgprs_used <= 16)
-+		return 0;
-+
-+	return 2 * (DIV_ROUND_UP(sgprs_used, 16) - 1);
-+}
-+
-+unsigned int knod_bpf_workgroups = KNOD_BPF_WORKGROUPS_DEFAULT;
-+MODULE_PARM_DESC(workgroups, "Workgroup size, multiple of 64, Min(64) Default/Max(256)");
-+module_param_named(workgroups, knod_bpf_workgroups, int, 0600);
-+
-+unsigned int knod_bpf_expire = KNOD_BPF_EXPIRE_DEFAULT;
-+MODULE_PARM_DESC(queue_expire, "Queue expire time(ms), Min(1), Default(10), Max(1000)");
-+module_param_named(queue_expire, knod_bpf_expire, int, 0600);
-+
-+unsigned int knod_bpf_pkt_cache;
-+MODULE_PARM_DESC(packet_cache, "Use packet cache, 0=Off(Default), 1=On");
-+module_param_named(packet_cache, knod_bpf_pkt_cache, int, 0600);
-+
-+unsigned int knod_bpf_wave32;
-+MODULE_PARM_DESC(wave32, "Use wave32 0=Off(Default), 1=On");
-+module_param_named(wave32, knod_bpf_wave32, int, 0600);
-+
-+#define KNOD_EA(extack, msg)   NL_SET_ERR_MSG_MOD((extack), msg)
-+
-+DEFINE_STATIC_KEY_FALSE(knod_stats_key);
-+
-+static const u32 bl_bounds[KNOD_BL_BUCKETS - 1] = {
-+	16, 64, 256, 1024, 4096, 8192, 16384
-+};
-+
-+static const char * const lat_labels[] = {
-+	"< 1us", "1-2us", "2-4us", "4-8us", "8-16us",
-+	"16-32us", "32-64us", "64-128us", "128-256us", ">= 256us",
-+};
-+
-+static const char * const bl_labels[] = {
-+	"1-16", "17-64", "65-256", "257-1K",
-+	"1K-4K", "4K-8K", "8K-16K", ">= 16K",
-+};
-+
-+static LIST_HEAD(priv_list);
-+struct amdgcn_param64 r64[20], sr64[6], p64[4], bpf_reg64[11];
-+struct amdgcn_param32 r32[40]; /* last two is CTX */
-+struct amdgcn_param32 stack[128];
-+struct amdgcn_param32 pkt_cache[64];
-+
-+struct amdgcn_label {
-+	struct knod_insn_meta *meta;
-+	int insn_idx;
-+};
-+
-+struct amdgcn_branch_fixup {
-+	struct amdgcn_label *target_label;
-+	struct knod_insn_meta *meta;
-+	int insn_idx;
-+};
-+
-+struct knod_accel_xdp_ops accel_xdp_ops;
-+
-+static int knod_prog_prepare_insns(struct knod_bpf_priv *priv,
-+				   struct knod_prog *knod_prog);
-+static int knod_bpf_worker(void *arg);
-+static void knod_bpf_drain_worker(struct knod_bpf_priv *priv);
-+static void knod_prog_free(struct knod_prog *knod_prog);
-+static void knod_emit_pass_addr_store(struct knod_bpf_priv *priv,
-+				      struct knod_insn_meta *meta);
-+static void knod_setup_bpf_prog(struct bpf_prog *prog);
-+
-+static void knod_bpf_gpu_mem_fence(struct knod_bpf_priv *priv)
-+{
-+	if (!priv)
-+		return;
-+
-+	/* drain the WC store buffer before the GPU reads the map */
-+	wmb();
-+}
-+
-+static unsigned int knod_bpf_active_rxq_count(struct net_device *netdev)
-+{
-+	unsigned int nr_rxq;
-+
-+	if (!netdev)
-+		return 0;
-+
-+	nr_rxq = READ_ONCE(netdev->real_num_rx_queues);
-+	if (!nr_rxq)
-+		nr_rxq = netdev->num_rx_queues;
-+
-+	return min_t(unsigned int, nr_rxq, KNOD_SPSC_MAX);
-+}
-+
-+static void knod_bpf_fill_dispatch(struct knod_bpf_priv *priv,
-+				   struct knod_bpf_work_sq *sqw,
-+				   struct knod_dispatch_params *p)
-+{
-+	struct knod_bpf_param *param = sqw->param->kaddr;
-+
-+	p->workgroup_size_x = knod_bpf_workgroups;
-+	p->grid_size_x = priv->batch_size;
-+	p->grid_size_y = param->nr_queues;
-+	p->private_segment_size = 8192;
-+	p->group_segment_size = 8192;
-+	p->kernel_object =
-+		(u64)priv->knod->kernels[READ_ONCE(priv->active_idx)]->gaddr;
-+	p->kernarg_address = sqw->param->gaddr;
-+}
-+
-+static void debug_kernel_descriptor(struct kernel_descriptor *kernel_code)
-+{
-+	knod_jit_dbg(" kernel_code->group_segment_fixed_size = %d\n",
-+		kernel_code->group_segment_fixed_size);
-+	knod_jit_dbg(" kernel_code->private_segment_fixed_size = %d\n",
-+		kernel_code->private_segment_fixed_size);
-+	knod_jit_dbg(" kernel_code->kernarg_size = %d\n",
-+		kernel_code->kernarg_size);
-+	knod_jit_dbg(" kernel_code->kernel_code_entry_byte_offset = %lld\n",
-+		kernel_code->kernel_code_entry_byte_offset);
-+	knod_jit_dbg(" kernel_code->compute_pgm_rsrc3.accum_offset = %d\n",
-+		kernel_code->compute_pgm_rsrc3.accum_offset);
-+	knod_jit_dbg(" kernel_code->compute_pgm_rsrc3.reserved0 = %d\n",
-+		kernel_code->compute_pgm_rsrc3.reserved0);
-+	knod_jit_dbg(" kernel_code->compute_pgm_rsrc3.tg_split = %d\n",
-+		kernel_code->compute_pgm_rsrc3.tg_split);
-+	knod_jit_dbg(" kernel_code->compute_pgm_rsrc3.reserved1 = %d\n",
-+		kernel_code->compute_pgm_rsrc3.reserved1);
-+	knod_jit_dbg(" kernel_code->compute_pgm_rsrc1.granulated_workitem_vgpr_count = %d\n",
-+		kernel_code->compute_pgm_rsrc1.granulated_workitem_vgpr_count);
-+	knod_jit_dbg(" kernel_code->compute_pgm_rsrc1.granulated_wavefront_sgpr_count = %d\n",
-+		kernel_code->compute_pgm_rsrc1.granulated_wavefront_sgpr_count);
-+	knod_jit_dbg(" kernel_code->compute_pgm_rsrc1.priority = %d\n",
-+		kernel_code->compute_pgm_rsrc1.priority);
-+	knod_jit_dbg(" kernel_code->compute_pgm_rsrc1.float_round_mode_32 = %d\n",
-+		kernel_code->compute_pgm_rsrc1.float_round_mode_32);
-+	knod_jit_dbg(" kernel_code->compute_pgm_rsrc1.float_round_mode_16_64 = %d\n",
-+		kernel_code->compute_pgm_rsrc1.float_round_mode_16_64);
-+	knod_jit_dbg(" kernel_code->compute_pgm_rsrc1.float_denorm_mode_32 = %d\n",
-+		kernel_code->compute_pgm_rsrc1.float_denorm_mode_32);
-+	knod_jit_dbg(" kernel_code->compute_pgm_rsrc1.float_denorm_mode_16_64 = %d\n",
-+		kernel_code->compute_pgm_rsrc1.float_denorm_mode_16_64);
-+	knod_jit_dbg(" kernel_code->compute_pgm_rsrc1.priv = %d\n",
-+		kernel_code->compute_pgm_rsrc1.priv);
-+	knod_jit_dbg(" kernel_code->compute_pgm_rsrc1.enable_dx10_clamp = %d\n",
-+		kernel_code->compute_pgm_rsrc1.enable_dx10_clamp);
-+	knod_jit_dbg(" kernel_code->compute_pgm_rsrc1.debug_mode = %d\n",
-+		kernel_code->compute_pgm_rsrc1.debug_mode);
-+	knod_jit_dbg(" kernel_code->compute_pgm_rsrc1.enable_ieee_mode = %d\n",
-+		kernel_code->compute_pgm_rsrc1.enable_ieee_mode);
-+	knod_jit_dbg(" kernel_code->compute_pgm_rsrc1.bulky = %d\n",
-+		kernel_code->compute_pgm_rsrc1.bulky);
-+	knod_jit_dbg(" kernel_code->compute_pgm_rsrc1.cdbg_user = %d\n",
-+		kernel_code->compute_pgm_rsrc1.cdbg_user);
-+	knod_jit_dbg(" kernel_code->compute_pgm_rsrc1.fp16_ovfl = %d\n",
-+		kernel_code->compute_pgm_rsrc1.fp16_ovfl);
-+	knod_jit_dbg(" kernel_code->compute_pgm_rsrc1.reserved0 = %d\n",
-+		kernel_code->compute_pgm_rsrc1.reserved0);
-+	knod_jit_dbg(" kernel_code->compute_pgm_rsrc1.wgp_mode = %d\n",
-+		kernel_code->compute_pgm_rsrc1.wgp_mode);
-+	knod_jit_dbg(" kernel_code->compute_pgm_rsrc1.mem_ordered = %d\n",
-+		kernel_code->compute_pgm_rsrc1.mem_ordered);
-+	knod_jit_dbg(" kernel_code->compute_pgm_rsrc1.fwd_progress = %d\n",
-+		kernel_code->compute_pgm_rsrc1.fwd_progress);
-+	knod_jit_dbg(" kernel_code->compute_pgm_rsrc2.enable_private_segment = %d\n",
-+		kernel_code->compute_pgm_rsrc2.enable_private_segment);
-+	knod_jit_dbg(" kernel_code->compute_pgm_rsrc2.user_sgpr_count = %d\n",
-+		kernel_code->compute_pgm_rsrc2.user_sgpr_count);
-+	knod_jit_dbg(" kernel_code->compute_pgm_rsrc2.enable_trap_handler = %d\n",
-+		kernel_code->compute_pgm_rsrc2.enable_trap_handler);
-+	knod_jit_dbg(" kernel_code->compute_pgm_rsrc2.enable_sgpr_workgroup_id_x = %d\n",
-+		kernel_code->compute_pgm_rsrc2.enable_sgpr_workgroup_id_x);
-+	knod_jit_dbg(" kernel_code->compute_pgm_rsrc2.enable_sgpr_workgroup_id_y = %d\n",
-+		kernel_code->compute_pgm_rsrc2.enable_sgpr_workgroup_id_y);
-+	knod_jit_dbg(" kernel_code->compute_pgm_rsrc2.enable_sgpr_workgroup_id_z = %d\n",
-+		kernel_code->compute_pgm_rsrc2.enable_sgpr_workgroup_id_z);
-+	knod_jit_dbg(" kernel_code->compute_pgm_rsrc2.enable_sgpr_workgroup_info = %d\n",
-+		kernel_code->compute_pgm_rsrc2.enable_sgpr_workgroup_info);
-+	knod_jit_dbg(" kernel_code->compute_pgm_rsrc2.enable_vgpr_workitem_id = %d\n",
-+		kernel_code->compute_pgm_rsrc2.enable_vgpr_workitem_id);
-+	knod_jit_dbg(" kernel_code->compute_pgm_rsrc2.enable_exception_address_watch = %d\n",
-+		kernel_code->compute_pgm_rsrc2.enable_exception_address_watch);
-+	knod_jit_dbg(" kernel_code->compute_pgm_rsrc2.enable_exception_memory = %d\n",
-+		kernel_code->compute_pgm_rsrc2.enable_exception_memory);
-+	knod_jit_dbg(" kernel_code->compute_pgm_rsrc2.granulated_lds_size = %d\n",
-+		kernel_code->compute_pgm_rsrc2.granulated_lds_size);
-+	knod_jit_dbg(" kernel_code->compute_pgm_rsrc2.enable_exception_ieee_754_fp_invalid_operation = %d\n",
-+		kernel_code->compute_pgm_rsrc2
-+			.enable_exception_ieee_754_fp_invalid_operation);
-+	knod_jit_dbg(" kernel_code->compute_pgm_rsrc2.enable_exception_fp_denormal_source = %d\n",
-+		kernel_code->compute_pgm_rsrc2
-+			.enable_exception_fp_denormal_source);
-+	knod_jit_dbg(" kernel_code->compute_pgm_rsrc2.enable_exception_ieee_754_fp_division_by_zero = %d\n",
-+		kernel_code->compute_pgm_rsrc2
-+			.enable_exception_ieee_754_fp_division_by_zero);
-+	knod_jit_dbg(" kernel_code->compute_pgm_rsrc2.enable_exception_ieee_754_fp_overflow = %d\n",
-+		kernel_code->compute_pgm_rsrc2
-+			.enable_exception_ieee_754_fp_overflow);
-+	knod_jit_dbg(" kernel_code->compute_pgm_rsrc2.enable_exception_ieee_754_fp_underflow = %d\n",
-+		kernel_code->compute_pgm_rsrc2
-+			.enable_exception_ieee_754_fp_underflow);
-+	knod_jit_dbg(" kernel_code->compute_pgm_rsrc2.enable_exception_ieee_754_fp_inexact = %d\n",
-+		kernel_code->compute_pgm_rsrc2
-+			.enable_exception_ieee_754_fp_inexact);
-+	knod_jit_dbg(" kernel_code->compute_pgm_rsrc2.enable_exception_int_divide_by_zero = %d\n",
-+		kernel_code->compute_pgm_rsrc2
-+			.enable_exception_int_divide_by_zero);
-+	knod_jit_dbg(" kernel_code->compute_pgm_rsrc2.reserved0 = %d\n",
-+		kernel_code->compute_pgm_rsrc2.reserved0);
-+	knod_jit_dbg(" kernel_code->code_properties.enable_sgpr_private_segment_buffer = %d\n",
-+		kernel_code->code_properties
-+			.enable_sgpr_private_segment_buffer);
-+	knod_jit_dbg(" kernel_code->code_properties.enable_sgpr_dispatch_ptr = %d\n",
-+		kernel_code->code_properties.enable_sgpr_dispatch_ptr);
-+	knod_jit_dbg(" kernel_code->code_properties.enable_sgpr_queue_ptr = %d\n",
-+		kernel_code->code_properties.enable_sgpr_queue_ptr);
-+	knod_jit_dbg(" kernel_code->code_properties.enable_sgpr_kernarg_segment_ptr = %d\n",
-+		kernel_code->code_properties.enable_sgpr_kernarg_segment_ptr);
-+	knod_jit_dbg(" kernel_code->code_properties.enable_sgpr_dispatch_id = %d\n",
-+		kernel_code->code_properties.enable_sgpr_dispatch_id);
-+	knod_jit_dbg(" kernel_code->code_properties.enable_sgpr_flat_scratch_init = %d\n",
-+		kernel_code->code_properties.enable_sgpr_flat_scratch_init);
-+	knod_jit_dbg(" kernel_code->code_properties.enable_sgpr_private_segment_size = %d\n",
-+		kernel_code->code_properties.enable_sgpr_private_segment_size);
-+	knod_jit_dbg(" kernel_code->code_properties.reserved0 = %d\n",
-+		kernel_code->code_properties.reserved0);
-+	knod_jit_dbg(" kernel_code->code_properties.enable_wavefront_size32 = %d\n",
-+		kernel_code->code_properties.enable_wavefront_size32);
-+	knod_jit_dbg(" kernel_code->code_properties.uses_dynamic_stack = %d\n",
-+		kernel_code->code_properties.uses_dynamic_stack);
-+	knod_jit_dbg(" kernel_code->code_properties.reserved1 = %d\n",
-+		kernel_code->code_properties.reserved1);
-+}
-+
-+static void kfd_kernel_gfx9_init(struct knod *knod)
-+{
-+	struct kernel_descriptor *kernel_code = knod->kernels[0]->kaddr;
-+
-+	kernel_code->group_segment_fixed_size = 0;
-+	kernel_code->private_segment_fixed_size = 8192;
-+	kernel_code->kernarg_size = 64;
-+	kernel_code->kernel_code_entry_byte_offset = 1024;
-+
-+	/* GFX10+ or GFX90A+ */
-+	kernel_code->compute_pgm_rsrc3.accum_offset = 0;
-+	kernel_code->compute_pgm_rsrc3.reserved0 = 0;
-+	kernel_code->compute_pgm_rsrc3.tg_split = 0;
-+	kernel_code->compute_pgm_rsrc3.reserved1 = 0;
-+
-+	kernel_code->compute_pgm_rsrc1.granulated_workitem_vgpr_count =
-+		(256 / 4) - 1;
-+	/*
-+	 * Start with the small GFX9 window. BPF install updates each slot
-+	 * descriptor when a program needs a larger exec_save/initial_exec
-+	 * range.
-+	 */
-+	kernel_code->compute_pgm_rsrc1.granulated_wavefront_sgpr_count =
-+		knod_bpf_gfx9_sgpr_granule(52);
-+	kernel_code->compute_pgm_rsrc1.priority = 0;
-+	kernel_code->compute_pgm_rsrc1.float_round_mode_32 = 0;
-+	kernel_code->compute_pgm_rsrc1.float_round_mode_16_64 = 0;
-+	kernel_code->compute_pgm_rsrc1.float_denorm_mode_32 = 3;
-+	kernel_code->compute_pgm_rsrc1.float_denorm_mode_16_64 = 3;
-+	kernel_code->compute_pgm_rsrc1.priv = 0;
-+	kernel_code->compute_pgm_rsrc1.enable_dx10_clamp = 1;
-+	kernel_code->compute_pgm_rsrc1.debug_mode = 0;
-+	kernel_code->compute_pgm_rsrc1.enable_ieee_mode = 1;
-+	kernel_code->compute_pgm_rsrc1.bulky = 0;
-+	kernel_code->compute_pgm_rsrc1.cdbg_user = 0;
-+	kernel_code->compute_pgm_rsrc1.fp16_ovfl = 0;
-+	kernel_code->compute_pgm_rsrc1.reserved0 = 0;
-+	kernel_code->compute_pgm_rsrc1.wgp_mode = 0;
-+	kernel_code->compute_pgm_rsrc1.mem_ordered = 0;
-+	kernel_code->compute_pgm_rsrc1.fwd_progress = 0;
-+
-+	kernel_code->compute_pgm_rsrc2.enable_private_segment = 0;
-+	kernel_code->compute_pgm_rsrc2.user_sgpr_count = 14; /* 4+2+2+2+2+2 */
-+	kernel_code->compute_pgm_rsrc2.enable_trap_handler = 0;
-+	kernel_code->compute_pgm_rsrc2.enable_sgpr_workgroup_id_x = 1;
-+	kernel_code->compute_pgm_rsrc2.enable_sgpr_workgroup_id_y = 1;
-+	kernel_code->compute_pgm_rsrc2.enable_sgpr_workgroup_id_z = 0;
-+	kernel_code->compute_pgm_rsrc2.enable_sgpr_workgroup_info = 0;
-+	kernel_code->compute_pgm_rsrc2.enable_vgpr_workitem_id = 0;
-+	kernel_code->compute_pgm_rsrc2.enable_exception_address_watch = 0;
-+	kernel_code->compute_pgm_rsrc2.enable_exception_memory = 0;
-+	kernel_code->compute_pgm_rsrc2.granulated_lds_size = 0;
-+	kernel_code->compute_pgm_rsrc2
-+		.enable_exception_ieee_754_fp_invalid_operation = 0;
-+	kernel_code->compute_pgm_rsrc2.enable_exception_fp_denormal_source = 0;
-+	kernel_code->compute_pgm_rsrc2
-+		.enable_exception_ieee_754_fp_division_by_zero = 0;
-+	kernel_code->compute_pgm_rsrc2
-+		.enable_exception_ieee_754_fp_overflow = 0;
-+	kernel_code->compute_pgm_rsrc2
-+		.enable_exception_ieee_754_fp_underflow = 0;
-+	kernel_code->compute_pgm_rsrc2.enable_exception_ieee_754_fp_inexact = 0;
-+	kernel_code->compute_pgm_rsrc2.enable_exception_int_divide_by_zero = 0;
-+	kernel_code->compute_pgm_rsrc2.reserved0 = 0;
-+
-+	/*
-+	 * User SGPR layout - loaded in fixed order, disabled entries are
-+	 * skipped (not reserved).  The resulting SGPR map depends on which
-+	 * flags are enabled:
-+	 *
-+	 *   enable_sgpr_private_segment_buffer  -> 4 SGPRs  (s[0:3])
-+	 *   enable_sgpr_dispatch_ptr            -> 2 SGPRs  (s[4:5])
-+	 *   enable_sgpr_queue_ptr               -> 2 SGPRs
-+	 *   enable_sgpr_kernarg_segment_ptr     -> 2 SGPRs
-+	 *   enable_sgpr_dispatch_id             -> 2 SGPRs
-+	 *   enable_sgpr_flat_scratch_init       -> 2 SGPRs
-+	 *   enable_sgpr_private_segment_size    -> 1 SGPR
-+	 *
-+	 * System SGPRs (WorkgroupId etc.) follow immediately after the
-+	 * last user SGPR.  user_sgpr_count must match the total above.
-+	 */
-+	/* 4 SGPRs */
-+	kernel_code->code_properties.enable_sgpr_private_segment_buffer = 1;
-+	/* 2 SGPRs */
-+	kernel_code->code_properties.enable_sgpr_dispatch_ptr = 1;
-+	/* 2 SGPRs */
-+	kernel_code->code_properties.enable_sgpr_queue_ptr = 1;
-+	/* 2 SGPRs */
-+	kernel_code->code_properties.enable_sgpr_kernarg_segment_ptr = 1;
-+	/* 2 SGPRs */
-+	kernel_code->code_properties.enable_sgpr_dispatch_id = 1;
-+	/* 2 SGPRs */
-+	kernel_code->code_properties.enable_sgpr_flat_scratch_init = 1;
-+	/* disabled -> s14/s15 free for workgroup_id */
-+	kernel_code->code_properties.enable_sgpr_private_segment_size = 0;
-+	/* total = 14 SGPRs */
-+	kernel_code->code_properties.reserved0 = 0;
-+	/* GFX10+ */
-+	kernel_code->code_properties.enable_wavefront_size32 = 0;
-+	kernel_code->code_properties.uses_dynamic_stack = 0;
-+	kernel_code->code_properties.reserved1 = 0;
-+
-+	debug_kernel_descriptor(kernel_code);
-+}
-+
-+static void kfd_kernel_gfx10_init(struct knod *knod)
-+{
-+	struct kernel_descriptor *kernel_code = knod->kernels[0]->kaddr;
-+
-+	kernel_code->group_segment_fixed_size = 0;
-+	kernel_code->private_segment_fixed_size = 8192;
-+	kernel_code->kernarg_size = 64;
-+	kernel_code->kernel_code_entry_byte_offset = 1024;
-+
-+	/*
-+	 * User SGPR layout - loaded in fixed order, disabled entries are
-+	 * skipped (not reserved).  The resulting SGPR map depends on which
-+	 * flags are enabled:
-+	 *
-+	 *   enable_sgpr_private_segment_buffer  -> 4 SGPRs  (s[0:3])
-+	 *   enable_sgpr_dispatch_ptr            -> 2 SGPRs  (s[4:5])
-+	 *   enable_sgpr_queue_ptr               -> 2 SGPRs
-+	 *   enable_sgpr_kernarg_segment_ptr     -> 2 SGPRs
-+	 *   enable_sgpr_dispatch_id             -> 2 SGPRs
-+	 *   enable_sgpr_flat_scratch_init       -> 2 SGPRs
-+	 *   enable_sgpr_private_segment_size    -> 1 SGPR
-+	 *
-+	 * System SGPRs (WorkgroupId etc.) follow immediately after the
-+	 * last user SGPR.  user_sgpr_count must match the total above.
-+	 */
-+	/* 4 SGPRs */
-+	kernel_code->code_properties.enable_sgpr_private_segment_buffer = 1;
-+	/* 2 SGPRs */
-+	kernel_code->code_properties.enable_sgpr_dispatch_ptr = 1;
-+	/* 2 SGPRs */
-+	kernel_code->code_properties.enable_sgpr_queue_ptr = 1;
-+	/* 2 SGPRs */
-+	kernel_code->code_properties.enable_sgpr_kernarg_segment_ptr = 1;
-+	/* 2 SGPRs */
-+	kernel_code->code_properties.enable_sgpr_dispatch_id = 1;
-+	/* 2 SGPRs */
-+	kernel_code->code_properties.enable_sgpr_flat_scratch_init = 1;
-+	/* disabled -> s14/s15 free for workgroup_id */
-+	kernel_code->code_properties.enable_sgpr_private_segment_size = 0;
-+	/* total = 14 SGPRs */
-+	kernel_code->code_properties.reserved0 = 0;
-+	if (knod_bpf_wave32)
-+		kernel_code->code_properties.enable_wavefront_size32 = 1;
-+	else
-+		kernel_code->code_properties.enable_wavefront_size32 = 0;
-+	kernel_code->code_properties.uses_dynamic_stack = 0;
-+	kernel_code->code_properties.reserved1 = 0;
-+
-+	kernel_code->compute_pgm_rsrc3.accum_offset = 0;
-+	kernel_code->compute_pgm_rsrc3.reserved0 = 0;
-+	kernel_code->compute_pgm_rsrc3.tg_split = 0;
-+	kernel_code->compute_pgm_rsrc3.reserved1 = 0;
-+
-+	if (kernel_code->code_properties.enable_wavefront_size32 == 1)
-+		kernel_code->compute_pgm_rsrc1.granulated_workitem_vgpr_count =
-+			(256 / 8) - 1;
-+	else
-+		kernel_code->compute_pgm_rsrc1.granulated_workitem_vgpr_count =
-+			(256 / 4) - 1;
-+	kernel_code->compute_pgm_rsrc1.granulated_wavefront_sgpr_count = 0;
-+	kernel_code->compute_pgm_rsrc1.priority = 0;
-+	kernel_code->compute_pgm_rsrc1.float_round_mode_32 = 0;
-+	kernel_code->compute_pgm_rsrc1.float_round_mode_16_64 = 0;
-+	kernel_code->compute_pgm_rsrc1.float_denorm_mode_32 = 3;
-+	kernel_code->compute_pgm_rsrc1.float_denorm_mode_16_64 = 3;
-+	kernel_code->compute_pgm_rsrc1.priv = 0;
-+	kernel_code->compute_pgm_rsrc1.enable_dx10_clamp = 1;
-+	kernel_code->compute_pgm_rsrc1.debug_mode = 0;
-+	kernel_code->compute_pgm_rsrc1.enable_ieee_mode = 1;
-+	kernel_code->compute_pgm_rsrc1.bulky = 0;
-+	kernel_code->compute_pgm_rsrc1.cdbg_user = 0;
-+	kernel_code->compute_pgm_rsrc1.fp16_ovfl = 0;
-+	kernel_code->compute_pgm_rsrc1.reserved0 = 0;
-+	kernel_code->compute_pgm_rsrc1.wgp_mode = 0;
-+	kernel_code->compute_pgm_rsrc1.mem_ordered = 1;
-+	kernel_code->compute_pgm_rsrc1.fwd_progress = 0;
-+
-+	kernel_code->compute_pgm_rsrc2.enable_private_segment = 0;
-+	kernel_code->compute_pgm_rsrc2.user_sgpr_count = 14; /* 4+2+2+2+2+2 */
-+	kernel_code->compute_pgm_rsrc2.enable_trap_handler = 0;
-+	kernel_code->compute_pgm_rsrc2.enable_sgpr_workgroup_id_x = 1;
-+	kernel_code->compute_pgm_rsrc2.enable_sgpr_workgroup_id_y = 1;
-+	kernel_code->compute_pgm_rsrc2.enable_sgpr_workgroup_id_z = 0;
-+	kernel_code->compute_pgm_rsrc2.enable_sgpr_workgroup_info = 0;
-+	kernel_code->compute_pgm_rsrc2.enable_vgpr_workitem_id = 1;
-+	kernel_code->compute_pgm_rsrc2.enable_exception_address_watch = 0;
-+	kernel_code->compute_pgm_rsrc2.enable_exception_memory = 0;
-+	kernel_code->compute_pgm_rsrc2.granulated_lds_size = 0;
-+	kernel_code->compute_pgm_rsrc2
-+		.enable_exception_ieee_754_fp_invalid_operation = 0;
-+	kernel_code->compute_pgm_rsrc2.enable_exception_fp_denormal_source = 0;
-+	kernel_code->compute_pgm_rsrc2
-+		.enable_exception_ieee_754_fp_division_by_zero = 0;
-+	kernel_code->compute_pgm_rsrc2
-+		.enable_exception_ieee_754_fp_overflow = 0;
-+	kernel_code->compute_pgm_rsrc2
-+		.enable_exception_ieee_754_fp_underflow = 0;
-+	kernel_code->compute_pgm_rsrc2.enable_exception_ieee_754_fp_inexact = 0;
-+	kernel_code->compute_pgm_rsrc2.enable_exception_int_divide_by_zero = 0;
-+	kernel_code->compute_pgm_rsrc2.reserved0 = 0;
-+
-+	debug_kernel_descriptor(kernel_code);
-+}
-+
-+static int kfd_kernel_init(struct knod *knod, struct knod_bpf_priv *priv)
-+{
-+	struct kernel_descriptor *kd;
-+
-+	if (!knod->kernels[1])
-+		return -ENOMEM;
-+
-+	/*
-+	 * Pass-through starts on slot 0; the first XDP prog attach stages into
-+	 * slot 1 and flips the active index there, ping-ponging on each
-+	 * install.
-+	 */
-+	priv->active_idx = 0;
-+
-+	if (priv->isa_version == 9)
-+		kfd_kernel_gfx9_init(knod);
-+	else if (priv->isa_version == 10)
-+		kfd_kernel_gfx10_init(knod);
-+
-+	/*
-+	 * Slot 1 must carry the same kernel-descriptor as slot 0 -- gfx init
-+	 * only touches slot 0, and slot 1's BO is otherwise uninitialised,
-+	 * which stalls the compute queue.  Copy the kd + pre-code region.
-+	 */
-+	kd = knod->kernels[0]->kaddr;
-+	memcpy(knod->kernels[1]->kaddr, knod->kernels[0]->kaddr,
-+	       kd->kernel_code_entry_byte_offset);
-+	knod_bpf_gpu_mem_fence(priv);
-+
-+	return 0;
-+}
-+
-+static struct knod_bpf_work_sq *
-+__knod_get_free_work_sq(struct knod_bpf_priv *priv)
-+{
-+	return list_first_entry_or_null(&priv->free_list_sqw,
-+					struct knod_bpf_work_sq, list);
-+}
-+
-+/* Prepare a dispatch: peek SPSC rings and fill params, but do not submit.
-+ * Returns the prepared sqw (with backlogs > 0), or NULL if nothing to do.
++ * - poll_mode=true: busy-poll with cpu_relax() instead of sleeping. Pins
++ *   one CPU core at 100% even when no traffic is flowing, but removes
++ *   the handoff latency entirely.
 + *
-+ * A single in-flight AQL queue means the worker never has to reserve SPSC
-+ * ranges ahead of the current dispatch. The SPSC acquired pointer is advanced
-+ * only after the GPU finishes the dispatch that consumed those entries.
++ * GPU completion wait (knod_ipsec_dispatch_and_wait) is always polled -
++ * this switch only affects the between-dispatch idle path.
 + */
-+static struct knod_bpf_work_sq *knod_prepare_bpf(struct knod_bpf_priv *priv)
-+{
-+	int i, cnt, backlogs = 0;
-+	struct knod_dev *knodev = priv->knodev;
-+	struct knod_bpf_work_sq *sqw;
-+	struct knod_bpf_param *param;
++static bool knod_ipsec_poll_mode;
 +
-+	if (READ_ONCE(priv->installing_kernel))
-+		return NULL;
-+
-+	if (!priv->pass_prog_buf && !READ_ONCE(priv->prog))
-+		return NULL;
-+
-+	sqw = __knod_get_free_work_sq(priv);
-+	if (!sqw)
-+		return NULL;
-+
-+	param = (struct knod_bpf_param *)sqw->param->kaddr;
-+	memset(sqw->queue_idx, 0, sizeof(sqw->queue_idx));
-+
-+	/* 2D dispatch: queue_id = workgroup_id_y, tid = workitem within WG.
-+	 * Per-queue bds live in sqw->bds[i * batch_size + tid] and shader
-+	 * indexes sub[] / sqw->bds[] using (queue_id * batch_size + tid).
-+	 * No cumulative start_idx -- each queue's slot range is fixed by i.
-+	 */
-+	for (i = 0; i < priv->nr_works; i++) {
-+		int slot = i * priv->batch_size;
-+		unsigned int skip = 0, j;
-+
-+		/* Stage past every in-flight dispatch's claim on this queue so
-+		 * the new sqw reads disjoint SPSC slots.  Peek self-limits: if
-+		 * the ring holds fewer entries past @skip, cnt shrinks (or 0).
-+		 */
-+		for (j = 0; j < priv->inflight_cnt; j++)
-+			skip += priv->inflight[j]->queue_idx[i];
-+
-+		param->queues[i].count = 0;
-+		spsc_peek_at(&knodev->wpriv[i].spsc_bds, skip,
-+			     (void **)&sqw->bds[slot],
-+			     priv->batch_size, &cnt);
-+		if (!cnt) {
-+			sqw->queue_idx[i] = 0;
-+			param->queues[i].count = 0;
-+			continue;
-+		}
-+
-+		/* Fill queue descriptor for GPU direct SPSC read.
-+		 * ring_start is the absolute ring position where this sqw
-+		 * begins - shader reads slots[(ring_start + tid) & mask].
-+		 * Offset by skip to keep staged sqws disjoint.
-+		 */
-+		param->queues[i].pool_gaddr = knodev->wpriv[i].spsc_pool_gaddr;
-+		param->queues[i].base_gaddr = priv->queue_base_gaddr[i];
-+		param->queues[i].count = cnt;
-+		param->queues[i].ring_start =
-+			knodev->wpriv[i].spsc_bds.acquired + skip;
-+		param->queues[i].ring_mask =
-+			knodev->wpriv[i].spsc_bds.mask;
-+
-+		backlogs += cnt;
-+		sqw->queue_idx[i] = cnt;
-+	}
-+	sqw->backlogs = backlogs;
-+	param->nr_backlogs = backlogs;
-+	param->nr_queues = priv->nr_works;
-+	param->spsc_stride = ALIGN(sizeof(struct spsc_bd), SMP_CACHE_BYTES);
-+	for (i = 0; i < priv->nr_works; i++) {
-+		param->pass_count[i] = 0;
-+		param->pass_meta_buf_gaddr[i] = priv->pass_meta_buf ?
-+			priv->pass_meta_buf->gaddr +
-+			(u64)i * priv->pass_pkts_per_queue *
-+			KNOD_PASS_SLOT_SIZE :
-+			0;
-+	}
-+	param->ktime_ns = ktime_get_ns();
-+
-+	if (!sqw->backlogs)
-+		return NULL;
-+
-+	list_del_init(&sqw->list);
-+	return sqw;
-+}
-+
-+/* Submit a prepared sqw: write AQL packet, ring doorbell, record stats. */
-+static void knod_submit_bpf(struct knod_bpf_priv *priv,
-+			     struct knod_bpf_work_sq *sqw)
-+{
-+	struct amd_signal *signal =
-+		(struct amd_signal *)priv->knod->kaql[0].queue_signal->kaddr;
-+	struct knod_bpf_stats *stats = &priv->stats;
-+	struct knod_dispatch_params p;
-+	int i, bucket = KNOD_BL_BUCKETS - 1;
-+
-+	/* The @inflight_cnt dispatches already in flight decrement the signal
-+	 * before this one, so this sqw completes when the signal drops below
-+	 * (current value - inflight_cnt).
-+	 */
-+	sqw->sigval = signal->value - priv->inflight_cnt;
-+	sqw->expire = jiffies + msecs_to_jiffies(knod_bpf_expire);
-+	if (static_branch_unlikely(&knod_stats_key)) {
-+		sqw->dispatch_time = ktime_get();
-+
-+		stats->backlogs_total += sqw->backlogs;
-+		for (i = 0; i < KNOD_BL_BUCKETS - 1; i++) {
-+			if (sqw->backlogs <= bl_bounds[i]) {
-+				bucket = i;
-+				break;
-+			}
-+		}
-+		stats->backlogs_hist[bucket]++;
-+	}
-+
-+	knod_bpf_fill_dispatch(priv, sqw, &p);
-+	/* publish dispatch params before the AQL packet becomes visible */
-+	wmb();
-+	knod_setup_header(priv->knod, &p, 0);
-+}
-+
-+/* Phase 1: advance SPSC consumer pointers so next dispatch can peek
-+ * new entries.
++/*
++ * RX decrypt output: the shader decrypts ESP payloads into a per-work VRAM
++ * output buffer; the finish worker SDMA-copies the result into a framework
++ * delivery-pool page.  For BYPASS/MISS traffic, the shader's Phase 12 writes
++ * SDMA COPY_LINEAR packets directly into the SDMA ring, and the CPU only adds
++ * FENCE + doorbell.
 + */
-+static void knod_complete_acquire(struct knod_bpf_priv *priv,
-+				  struct knod_bpf_work_sq *sqw)
++
++/*
++ * Parallel RX dispatcher count. Each dispatcher gets its own kaql
++ * AQL queue on the GPU, its own SDMA queue for finalise copies, its
++ * own work_pool slice and pool BOs, and an exclusive contiguous range
++ * of NIC RX queues. Two dispatchers running on kaql[0] and
++ * kaql[1] can execute dispatches in true parallel on disjoint CU
++ * slices, which is the only way to break the single-kaql FIFO
++ * throughput ceiling observed at ~60 Gbps (UDP) / ~41 Gbps (TCP) on
++ * the current test rig.
++ *
++ * The number must be fixed at module_init time because it drives
++ * knod_alloc_ctx() which creates the kaql[]/sdma[] pairs when NOD
++ * attaches. Hot-path code reads priv->nr_dispatchers which is
++ * initialised from priv->knod->queue_cnt.
++ *
++ * Load-time only (0444) - flipping between 1 and N at runtime would
++ * require tearing down / re-creating the knod context, which means
++ * unbinding NOD on the NIC. Reload the module instead.
++ */
++static int nr_dispatch = 1;
++module_param(nr_dispatch, int, 0444);
++MODULE_PARM_DESC(nr_dispatch,
++		 "Number of parallel KNOD IPsec dispatchers (1..4, default: 1). Each runs on its own AQL queue for real GPU parallelism.");
++
++static DEFINE_STATIC_KEY_FALSE(ipsec_stats_enabled_key);
++
++#define IPSEC_STAT_INC(s, field) do {					\
++	if (static_branch_unlikely(&ipsec_stats_enabled_key))		\
++		this_cpu_inc((s)->field);				\
++} while (0)
++#define IPSEC_STAT_ADD(s, field, val) do {				\
++	if (static_branch_unlikely(&ipsec_stats_enabled_key))		\
++		this_cpu_add((s)->field, (val));			\
++} while (0)
++
++static struct knod_ipsec_priv *ipsec_priv;
++
++static int knod_ipsec_nod_init(struct knod_dev *knodev);
++static void knod_ipsec_nod_exit(struct knod_dev *knodev);
++static bool knod_ipsec_post_copy(struct knod_dev *knodev, struct sk_buff *skb,
++				 const struct knod_pass_desc *desc,
++				 int queue_idx);
++static int knod_ipsec_init_shader_gfx9(struct knod *knod);
++static int knod_ipsec_init_shader_gfx10(struct knod *knod);
++static int knod_ipsec_work_pool_alloc(struct knod_ipsec_priv *priv);
++static void knod_ipsec_work_pool_free(struct knod_ipsec_priv *priv);
++static int knod_ipsec_dispatcher(void *arg);
++static void knod_ipsec_dispatcher_drain(struct knod_ipsec_dispatcher *disp);
++static int knod_ipsec_disp_create_all(struct knod_ipsec_priv *priv);
++static void knod_ipsec_disp_destroy_all(struct knod_ipsec_priv *priv);
++static void knod_ipsec_debugfs_init(struct knod_ipsec_priv *priv);
++static void knod_ipsec_debugfs_exit(struct knod_ipsec_priv *priv);
++
++/* ========================================================================
++ * Slot management
++ * ========================================================================
++ */
++
++static int knod_ipsec_find_free_slot(struct knod_ipsec_priv *priv)
 +{
-+	struct knod_dev *knodev = priv->knodev;
 +	int i;
 +
-+	for (i = 0; i < priv->nr_works; i++) {
-+		if (sqw->queue_idx[i] >= 1) {
-+			spsc_acquire(&knodev->wpriv[i].spsc_bds, NULL,
-+				     sqw->queue_idx[i], NULL);
-+		}
++	/*
++	 * Reuse only fully-freed slots (key_mem cleared by state_free); a
++	 * deactivated slot whose free is still pending (an in-flight skb holds
++	 * the xfrm_state) would be memset here, leaking its BOs.
++	 */
++	for (i = 0; i < KNOD_IPSEC_NR_SA; i++) {
++		if (!priv->slots[i].active && !priv->slots[i].key_mem)
++			return i;
 +	}
++	return -ENOSPC;
 +}
 +
-+/* Phase 2: schedule NAPI and free sqw.  Can run after the next dispatch
-+ * has been submitted - napi_schedule overlaps with GPU execution.
-+ */
-+static void knod_complete_napi(struct knod_bpf_priv *priv,
-+			       struct knod_bpf_work_sq *sqw)
++static struct knod_ipsec_sa_slot *
++knod_ipsec_lookup_slot_by_spi(struct knod_ipsec_priv *priv, u32 spi)
 +{
-+	struct knod_dev *knodev = priv->knodev;
-+	struct knod_bpf_stats *stats = &priv->stats;
-+	ktime_t start;
-+	int i;
-+
-+	if (static_branch_unlikely(&knod_stats_key))
-+		start = ktime_get();
-+
-+	for (i = 0; i < priv->nr_works; i++) {
-+		if (sqw->queue_idx[i] >= 1)
-+			knod_napi_kick(&knodev->wpriv[i]);
-+	}
-+
-+	sqw->backlogs = 0;
-+	sqw->expire = 0;
-+	list_add_tail_rcu(&sqw->list, &priv->free_list_sqw);
-+
-+	if (static_branch_unlikely(&knod_stats_key)) {
-+		u64 ns = ktime_to_ns(ktime_sub(ktime_get(), start));
-+
-+		stats->decode_act_total_ns += ns;
-+		stats->decode_act_count++;
-+		if (ns > stats->decode_act_max_ns)
-+			stats->decode_act_max_ns = ns;
-+	}
-+}
-+
-+static void knod_bpf_update_kernel_descriptor(struct knod_bpf_priv *priv,
-+					      struct kernel_descriptor *kd,
-+					      const struct knod_prog *knod_prog)
-+{
-+	unsigned int sgprs_used;
-+
-+	if (priv->isa_version != 9 || !knod_prog)
-+		return;
-+
-+	sgprs_used = knod_prog->initial_exec_sreg + 2;
-+	kd->compute_pgm_rsrc1.granulated_wavefront_sgpr_count =
-+		knod_bpf_gfx9_sgpr_granule(sgprs_used);
++	return xa_load(&priv->spi_to_slot, spi);
 +}
 +
 +/*
-+ * Install kernel code into the inactive slot and atomically flip the active
-+ * index.  The active slot is never modified while the GPU dispatches it, so
-+ * the swap never races the live pipeline, and the worker is not touched: new
-+ * dispatches pick up the new slot, the in-flight one finishes on the old slot.
++ * Write (or clear) a slot entry into the GPU-visible SA table via the
++ * kernel mapping. SDMA flush is not required - the VRAM mapping used
++ * here is coherent and the shader re-reads per-dispatch.
 + */
-+static void knod_bpf_install_kernel(struct knod_bpf_priv *priv,
-+				    const struct knod_prog *knod_prog,
-+				    const void *code, u32 size)
++static void knod_ipsec_write_sa_entry(struct knod_ipsec_priv *priv,
++				      int slot_idx,
++				      const struct knod_ipsec_sa_slot *slot,
++				      struct xfrm_state *x)
 +{
-+	struct kernel_descriptor *kd;
-+	struct knod *knod = priv->knod;
-+	struct knod_mem *slot;
-+	u32 entry_off;
-+	u32 image_len;
-+	int idx;
++	struct knod_ipsec_sa_entry *e;
++	u32 flags = 0;
 +
-+	if (!code || !size || !knod->kernels[1])
++	e = (struct knod_ipsec_sa_entry *)priv->sa_table->kaddr;
++	e += slot_idx;
++	memset(e, 0, sizeof(*e));
++
++	if (!slot || !x) {
++		e->active = cpu_to_le32(0);
++		/* Zero per-SA stats on delete */
++		memset((u8 *)priv->sa_table->kaddr +
++		       KNOD_IPSEC_STATS_REGION_OFF +
++		       slot_idx * KNOD_IPSEC_SA_STATS_SIZE, 0,
++		       KNOD_IPSEC_SA_STATS_SIZE);
 +		return;
-+
-+	/*
-+	 * Before the worker runs, install in place; once it is dispatching,
-+	 * stage into the inactive slot and flip the active index so the live
-+	 * pipeline never reads a half-written slot.
-+	 */
-+	if (!priv->start || !knod->worker)
-+		idx = priv->active_idx;
-+	else
-+		idx = priv->active_idx ^ 1;
-+
-+	slot = knod->kernels[idx];
-+	kd = slot->kaddr;
-+	knod_bpf_update_kernel_descriptor(priv, kd, knod_prog);
-+	entry_off = kd->kernel_code_entry_byte_offset;
-+	if (WARN_ON(entry_off >= slot->size))
-+		return;
-+	if (WARN_ON(size > slot->size - entry_off))
-+		size = slot->size - entry_off;
-+	image_len = entry_off + size;
-+
-+	memcpy(slot->kaddr + entry_off, code, size);
-+	if (image_len < slot->size) {
-+		u32 clear_end = min_t(u32, slot->size,
-+					  entry_off + KNOD_BPF_PROG_BUF_SIZE);
-+
-+		if (image_len < clear_end)
-+			memset(slot->kaddr + image_len, 0,
-+			       clear_end - image_len);
 +	}
-+	/*
-+	 * kernels[] is write-combining VRAM.  smp_wmb() is only a compiler
-+	 * barrier on x86 and does NOT drain the WC buffers, so the GPU could
-+	 * fetch half-written code and spin.  wmb() (sfence) flushes WC to VRAM
-+	 * before we publish the new slot; the dispatch doorbell is ordered
-+	 * behind it.
-+	 */
-+	wmb();
-+	knod_bpf_gpu_mem_fence(priv);
-+	WRITE_ONCE(priv->kernel_image_len[idx], image_len);
 +
-+	if (idx != priv->active_idx)
-+		WRITE_ONCE(priv->active_idx, idx);
++	if (x->props.flags & XFRM_STATE_ESN)
++		flags |= 1u << 0;
++
++	/* Store SPI in host byte order (little-endian on this platform).
++	 * The GPU shader byteswaps the raw BE SPI from the packet header
++	 * before comparing, so the table entry must be in the same
++	 * host-order form. cpu_to_le32(be32_to_cpu()) converts BE->host->LE
++	 * which on LE is a no-op for the numeric value.
++	 */
++	e->spi              = cpu_to_le32(be32_to_cpu(x->id.spi));
++	e->dir              = cpu_to_le32(0);
++	e->family           = cpu_to_le32(x->props.family);
++	e->flags            = cpu_to_le32(flags);
++	e->key_gpu_addr     = cpu_to_le64(slot->key_mem ?
++					  slot->key_mem->gaddr : 0);
++	e->htable_gpu_addr  = cpu_to_le64(slot->htable_mem ?
++					  slot->htable_mem->gaddr : 0);
++	e->t_tables_gpu_addr = cpu_to_le64(priv->t_tables ?
++					   priv->t_tables->gaddr : 0);
++	e->replay_bitmap_addr = cpu_to_le64(slot->replay_mem ?
++					    slot->replay_mem->gaddr : 0);
++	e->replay_window    = cpu_to_le32(x->replay_esn ?
++					  x->replay_esn->replay_window : 64);
++
++	if (x->aead) {
++		int key_len = (x->aead->alg_key_len + 7) / 8;
++
++		/* AES-GCM: last 4 bytes of keymat are the salt. */
++		if (key_len >= 4) {
++			memcpy(e->salt,
++			       x->aead->alg_key + key_len - 4, 4);
++			key_len -= 4;
++		}
++		e->key_len = cpu_to_le32(key_len);
++		/* nr_rounds: AES-128->10, AES-192->12, AES-256->14 */
++		e->nr_rounds = cpu_to_le32(6 + key_len / 4);
++	}
++
++	e->mode             = cpu_to_le32(x->props.mode);
++	e->stats_addr       = cpu_to_le64(priv->sa_table->gaddr +
++					   KNOD_IPSEC_STATS_REGION_OFF +
++					   slot_idx * KNOD_IPSEC_SA_STATS_SIZE);
++	/* Zero per-SA stats on (re)key */
++	memset((u8 *)priv->sa_table->kaddr + KNOD_IPSEC_STATS_REGION_OFF +
++	       slot_idx * KNOD_IPSEC_SA_STATS_SIZE, 0,
++	       KNOD_IPSEC_SA_STATS_SIZE);
++	e->version          = cpu_to_le32(slot->version);
++	e->active           = cpu_to_le32(1);
 +}
 +
-+/*
-+ * Keep the just-built pass-kernel IR for the debugfs "insn" dump, so it can
-+ * show the pass-through kernel when no XDP prog is attached.  The machine code
-+ * already lives in the kernel slot; this only retains the meta list.  Rebuilt
-+ * on every start (old metas freed first), released in knod_priv_exit().
++/* ========================================================================
++ * xfrmdev_ops callbacks
++ * ========================================================================
 + */
-+static void knod_bpf_retain_pass_ir(struct knod_bpf_priv *priv,
-+				    struct knod_prog *src)
++
++static int knod_ipsec_xdo_state_add(struct knod_dev *knodev,
++				    struct xfrm_state *x,
++				    struct netlink_ext_ack *extack)
 +{
-+	struct knod_insn_meta *meta, *tmp;
-+	struct knod_prog *dst = priv->pass_knod_prog;
-+
-+	if (!dst) {
-+		dst = kzalloc_obj(*dst, GFP_KERNEL);
-+		if (!dst)
-+			return;
-+		INIT_LIST_HEAD(&dst->pre_insns);
-+		INIT_LIST_HEAD(&dst->insns);
-+		INIT_LIST_HEAD(&dst->post_insns);
-+		priv->pass_knod_prog = dst;
-+	} else {
-+		list_for_each_entry_safe(meta, tmp, &dst->pre_insns, l) {
-+			list_del(&meta->l);
-+			kfree(meta);
-+		}
-+		list_for_each_entry_safe(meta, tmp, &dst->insns, l) {
-+			list_del(&meta->l);
-+			kfree(meta);
-+		}
-+		list_for_each_entry_safe(meta, tmp, &dst->post_insns, l) {
-+			list_del(&meta->l);
-+			kfree(meta);
-+		}
-+	}
-+	list_splice_init(&src->pre_insns, &dst->pre_insns);
-+	list_splice_init(&src->insns, &dst->insns);
-+	list_splice_init(&src->post_insns, &dst->post_insns);
-+}
-+
-+static void knod_bpf_layout_sregs(struct knod_bpf_priv *priv,
-+				  struct knod_prog *knod_prog)
-+{
-+	if (priv->isa_version != 9)
-+		return;
-+
-+	knod_prog->initial_exec_sreg =
-+		knod_prog->exec_save_base + knod_prog->exec_save_pairs_used * 2;
-+}
-+
-+static int knod_bpf_jit_pass_kernel(struct knod_bpf_priv *priv)
-+{
-+	struct list_head *lists[2];
-+	struct knod_insn_meta *meta, *tmp, *epi;
-+	struct amdgcn_param32 p[3];
-+	struct knod *knod = priv->knod;
-+	struct knod_prog pass_prog;
-+	int pass_branch_idx;
-+	u32 pass_dwords;
-+	u8 *buf, *ptr;
-+	u32 total = 0;
-+	int i, j, li, err;
-+
-+	memset(&pass_prog, 0, sizeof(pass_prog));
-+	INIT_LIST_HEAD(&pass_prog.pre_insns);
-+	INIT_LIST_HEAD(&pass_prog.insns);
-+	INIT_LIST_HEAD(&pass_prog.post_insns);
-+	pass_prog.knod = knod;
-+	pass_prog.knodev = priv->knodev;
-+	if (priv->isa_version == 10) {
-+		pass_prog.done_mask_sreg = 32;
-+		pass_prog.exec_save_base = 34;
-+		pass_prog.initial_exec_sreg =
-+			KNOD_AMDGPU_INITIAL_EXEC_SREG_GFX10;
-+	} else {
-+		pass_prog.done_mask_sreg = KNOD_AMDGPU_DONE_MASK_SREG;
-+		pass_prog.exec_save_base = KNOD_AMDGPU_EXEC_SAVE_SREG_BASE;
-+		pass_prog.initial_exec_sreg =
-+			KNOD_AMDGPU_INITIAL_EXEC_SREG_GFX9;
-+	}
-+
-+	knod_bpf_layout_sregs(priv, &pass_prog);
-+	err = knod_prog_prepare_insns(priv, &pass_prog);
-+	if (err)
-+		return err;
-+
-+	epi = kzalloc_obj(*epi, GFP_KERNEL);
-+	if (!epi) {
-+		err = -ENOMEM;
-+		goto free_pro;
-+	}
-+
-+	/* BPF/XDP actions are 32-bit values; mlx5 consumes bd->act as low32. */
-+	knod_vset32(&p[0], KNOD_AMDGPU_VREG0_LO);
-+	knod_iset32(&p[1], XDP_PASS);
-+	knod_emit(priv, epi, v_mov_b32_e32, p[0], p[1]);
-+
-+	knod_vset32(&p[0], KNOD_AMDGPU_VREG0_LO);
-+	knod_vset32(&p[1], KNOD_AMDGPU_SLOT_VREG_LO);
-+	knod_emit(priv, epi, global_store_dword, p[0], p[1],
-+		  offsetof(struct spsc_bd, act));
-+
-+	/* XDP_PASS detection: v_cmp_eq_u32 XDP_PASS, R0 -> VCC */
-+	knod_iset32(&p[0], XDP_PASS);
-+	knod_vset32(&p[1], KNOD_AMDGPU_VREG0_LO);
-+	knod_emit(priv, epi, v_cmp_eq_u32, p[0], p[1]);
-+
-+	pass_branch_idx = epi->amdgpu_insns;
-+	knod_emit(priv, epi, s_cbranch_vccz, 0);
-+
-+	/* EXEC &= VCC - only PASS lanes proceed */
-+	knod_emit(priv, epi, s_and_b64, AMDGCN_SREG_EXEC_LO,
-+		  AMDGCN_SREG_EXEC_LO, AMDGCN_SREG_VCC_LO);
-+
-+	/* v_mov param addr to VGPR pair for pass_count atomic */
-+	knod_vset32(&p[0], KNOD_AMDGPU_TMP_VREG9_LO);
-+	knod_sset32(&p[1], KNOD_AMDGPU_PARAM_SREG_LO);
-+	knod_emit(priv, epi, v_mov_b32_e32, p[0], p[1]);
-+
-+	knod_vset32(&p[0], KNOD_AMDGPU_TMP_VREG9_HI);
-+	knod_sset32(&p[1], KNOD_AMDGPU_PARAM_SREG_HI);
-+	knod_emit(priv, epi, v_mov_b32_e32, p[0], p[1]);
-+
-+	/* v_mov v2, s15 (queue_idx -> VGPR) */
-+	knod_vset32(&p[0], KNOD_AMDGPU_VREG1_LO);
-+	knod_sset32(&p[1], KNOD_AMDGPU_WORKGROUP_ID_Y_SREG);
-+	knod_emit(priv, epi, v_mov_b32_e32, p[0], p[1]);
-+
-+	/* v_lshlrev_b32 v2, 2, v2 (queue_idx * 4) */
-+	knod_vset32(&p[0], KNOD_AMDGPU_VREG1_LO);
-+	knod_iset32(&p[1], 2);
-+	knod_vset32(&p[2], KNOD_AMDGPU_VREG1_LO);
-+	knod_emit(priv, epi, v_lshlrev_b32, p[0], p[1], p[2]);
-+
-+	/* v_add_u32 TMP9_LO, v2, TMP9_LO (param_addr += queue_idx * 4) */
-+	knod_vset32(&p[0], KNOD_AMDGPU_TMP_VREG9_LO);
-+	knod_vset32(&p[1], KNOD_AMDGPU_VREG1_LO);
-+	knod_vset32(&p[2], KNOD_AMDGPU_TMP_VREG9_LO);
-+	knod_emit(priv, epi, v_add_u32, p[0], p[1], p[2]);
-+
-+	/* v_mov TMP10_LO, 1 */
-+	knod_vset32(&p[0], KNOD_AMDGPU_TMP_VREG10_LO);
-+	knod_iset32(&p[1], 1);
-+	knod_emit(priv, epi, v_mov_b32_e32, p[0], p[1]);
-+
-+	/* global_atomic_add pass_count[q]++, GLC=1 -> old_val in TMP10_LO */
-+	knod_vset32(&p[0], KNOD_AMDGPU_TMP_VREG10_LO);
-+	knod_vset32(&p[1], KNOD_AMDGPU_TMP_VREG9_LO);
-+	knod_vset32(&p[2], KNOD_AMDGPU_TMP_VREG10_LO);
-+	knod_emit(priv, epi, global_atomic_add, p[0], p[1], p[2],
-+		  offsetof(struct knod_bpf_param, pass_count), 1);
-+
-+	/* s_waitcnt vmcnt(0) */
-+	knod_emit(priv, epi, s_waitcnt_vmcnt);
-+
-+	/* v_sub_u32 TMP9_LO, TMP9_LO, v2 (restore param_addr_lo) */
-+	knod_vset32(&p[0], KNOD_AMDGPU_TMP_VREG9_LO);
-+	knod_vset32(&p[1], KNOD_AMDGPU_TMP_VREG9_LO);
-+	knod_vset32(&p[2], KNOD_AMDGPU_VREG1_LO);
-+	knod_emit(priv, epi, v_sub_u32, p[0], p[1], p[2]);
-+
-+	/* old_val * 2 for pass_indices u16 stride */
-+	knod_vset32(&p[0], KNOD_AMDGPU_TMP_VREG10_LO);
-+	knod_iset32(&p[1], 1);
-+	knod_vset32(&p[2], KNOD_AMDGPU_TMP_VREG10_LO);
-+	knod_emit(priv, epi, v_lshlrev_b32, p[0], p[1], p[2]);
-+
-+	/* addr_lo += old_val * 2 */
-+	knod_vset32(&p[0], KNOD_AMDGPU_TMP_VREG9_LO);
-+	knod_vset32(&p[1], KNOD_AMDGPU_TMP_VREG10_LO);
-+	knod_vset32(&p[2], KNOD_AMDGPU_TMP_VREG9_LO);
-+	knod_emit(priv, epi, v_add_u32, p[0], p[1], p[2]);
-+
-+	/* global_store_short pass_indices[old_val], BACKLOG_IDX_VREG */
-+	knod_vset32(&p[0], KNOD_AMDGPU_BACKLOG_IDX_VREG);
-+	knod_vset32(&p[1], KNOD_AMDGPU_TMP_VREG9_LO);
-+	knod_emit(priv, epi, global_store_short, p[0], p[1],
-+		  offsetof(struct knod_bpf_param, pass_indices));
-+
-+	/* Store len + src_addr to pass_meta_buf slot header */
-+	knod_emit_pass_addr_store(priv, epi);
-+
-+	/* Patch s_cbranch_vccz offset (skip pass handling) */
-+	pass_dwords = 0;
-+	for (j = pass_branch_idx + 1; j < epi->amdgpu_insns; j++)
-+		pass_dwords += epi->amdgpu_insn[j].size / 4;
-+	emit_s_cbranch_vccz(priv->isa_version,
-+			    &epi->amdgpu_insn[pass_branch_idx], pass_dwords);
-+
-+	knod_emit(priv, epi, s_endpgm);
-+
-+	if (priv->isa_version >= 10) {
-+		for (j = 0; j < 16 && epi->amdgpu_insns < KNOD_META_INSNS; j++)
-+			knod_emit(priv, epi, s_code_end);
-+	}
-+	list_add_tail(&epi->l, &pass_prog.post_insns);
-+
-+	/* Linearize prologue + epilogue into pass_prog_buf */
-+	lists[0] = &pass_prog.pre_insns;
-+	lists[1] = &pass_prog.post_insns;
-+
-+	for (li = 0; li < 2; li++) {
-+		list_for_each_entry(meta, lists[li], l)
-+			for (i = 0; i < meta->amdgpu_insns; i++)
-+				total += meta->amdgpu_insn[i].size;
-+	}
-+
-+	kfree(priv->pass_prog_buf);
-+	buf = kzalloc(total, GFP_KERNEL);
-+	if (!buf) {
-+		err = -ENOMEM;
-+		goto free_all;
-+	}
-+
-+	ptr = buf;
-+	for (li = 0; li < 2; li++) {
-+		list_for_each_entry(meta, lists[li], l)
-+			for (i = 0; i < meta->amdgpu_insns; i++) {
-+				memcpy(ptr, &meta->amdgpu_insn[i],
-+				       meta->amdgpu_insn[i].size);
-+				ptr += meta->amdgpu_insn[i].size;
-+			}
-+	}
-+
-+	priv->pass_prog_buf = buf;
-+	priv->pass_prog_size = total;
-+
-+	knod_bpf_install_kernel(priv, &pass_prog, priv->pass_prog_buf,
-+				priv->pass_prog_size);
-+	/* Remember which slot now holds pass so detach can flip back to it. */
-+	priv->pass_idx = priv->active_idx;
-+
-+	pr_info("knod_bpf: pass kernel JIT'd %u bytes\n", priv->pass_prog_size);
-+	err = 0;
-+	/* Retain the IR (moves the lists out) before the cleanup below
-+	 * frees.
-+	 */
-+	knod_bpf_retain_pass_ir(priv, &pass_prog);
-+
-+free_all:
-+	list_for_each_entry_safe(meta, tmp, &pass_prog.post_insns, l) {
-+		list_del_init(&meta->l);
-+		kfree(meta);
-+	}
-+free_pro:
-+	list_for_each_entry_safe(meta, tmp, &pass_prog.pre_insns, l) {
-+		list_del_init(&meta->l);
-+		kfree(meta);
-+	}
-+	return err;
-+}
-+
-+static void knod_bpf_reset_sqw(struct knod_bpf_work_sq *sqw)
-+{
-+	if (!sqw)
-+		return;
-+
-+	sqw->backlogs = 0;
-+	sqw->expire = 0;
-+}
-+
-+static void knod_bpf_wait_sqw(struct knod_bpf_priv *priv,
-+			      struct knod_bpf_work_sq *sqw)
-+{
-+	struct amd_signal *signal;
-+	unsigned long deadline;
-+
-+	if (!sqw)
-+		return;
-+
-+	signal = (struct amd_signal *)
-+		priv->knod->kaql[0].queue_signal->kaddr;
-+	deadline = jiffies + msecs_to_jiffies(1000);
-+
-+	while (sqw->sigval <= READ_ONCE(signal->value) &&
-+	       time_before(jiffies, deadline))
-+		usleep_range(100, 200);
-+
-+	if (sqw->sigval <= READ_ONCE(signal->value))
-+		pr_warn("knod: timed out waiting for GPU dispatch completion\n");
-+}
-+
-+static void knod_bpf_drain_worker(struct knod_bpf_priv *priv)
-+{
-+	struct knod_bpf_work_sq *sqw;
-+
-+	/* stop() runs on interface-down AND on every feature switch, both
-+	 * with mlx5 RX possibly still producing into knodev->wpriv[].spsc_bds.
-+	 * So we only quiesce the GPU here; the NIC-owned RX SPSC rings are
-+	 * drained on interface-down by mlx5e_rx_offload_stop().
-+	 */
-+	while (priv->inflight_cnt) {
-+		sqw = priv->inflight[--priv->inflight_cnt];
-+		priv->inflight[priv->inflight_cnt] = NULL;
-+		knod_bpf_wait_sqw(priv, sqw);
-+		knod_bpf_reset_sqw(sqw);
-+		list_add_tail_rcu(&sqw->list, &priv->free_list_sqw);
-+	}
-+}
-+
-+static void knod_bpf_drain(struct knod_bpf_priv *priv)
-+{
-+	knod_bpf_drain_worker(priv);
-+}
-+
-+static void knod_bpf_stop_worker(struct knod_bpf_priv *priv)
-+{
-+	priv->start = 0;
-+	if (priv->worker_task) {
-+		kthread_stop(priv->worker_task);
-+		put_task_struct(priv->worker_task);
-+		priv->worker_task = NULL;
-+	}
-+	synchronize_net();
-+}
-+
-+static void knod_bpf_configure_worker(struct knod_bpf_priv *priv)
-+{
-+	knod_bpf_stop_worker(priv);
-+	knod_bpf_drain(priv);
-+
-+	priv->inflight_cnt = 0;
-+}
-+
-+static int knod_bpf_start_worker(struct knod_bpf_priv *priv)
-+{
-+	struct task_struct *p;
-+
-+	p = kthread_run(knod_bpf_worker, priv, "knod_%d_0",
-+			priv->knodev->accel->id);
-+	if (IS_ERR(p))
-+		return PTR_ERR(p);
-+
-+	get_task_struct(p);
-+	priv->worker_task = p;
-+	return 0;
-+}
-+
-+static bool knod_bpf_uses_percpu(struct knod_bpf_priv *priv)
-+{
-+	struct knod_bpf_map *knod_map;
-+
-+	list_for_each_entry(knod_map, &priv->knodev->accel->xdp.bound_maps,
-+			    list)
-+		if (knod_map->knod_map_obj->map_type ==
-+		    BPF_MAP_TYPE_PERCPU_ARRAY)
-+			return true;
-+	return false;
-+}
-+
-+/* Fan out one workgroup per CU (rounded down to a power of two).  PERCPU maps
-+ * keep one instance per RX queue, so a queue must stay on a single workgroup;
-+ * force xgroups=1 when the program uses them.  Non-PERCPU maps are globally
-+ * shared with atomics, so fan-out is safe there.  This replaces the old manual
-+ * xgroups knob.
-+ */
-+static unsigned int knod_bpf_auto_xgroups(struct knod_bpf_priv *priv)
-+{
-+	struct amdgpu_device *adev = NULL;
-+	unsigned int cus, xgroups;
-+
-+	if (knod_bpf_uses_percpu(priv))
-+		return 1;
-+
-+	if (priv->knod->dev)
-+		adev = priv->knod->dev->adev;
-+	else if (priv->knod->process && priv->knod->process->pdds[0])
-+		adev = priv->knod->process->pdds[0]->dev->adev;
-+	if (!adev || !priv->nr_works)
-+		return 1;
-+
-+	cus = adev->gfx.cu_info.number;
-+	xgroups = cus / priv->nr_works;
-+	if (!xgroups)
-+		xgroups = 1;
-+	return rounddown_pow_of_two(xgroups);
-+}
-+
-+/* Per-queue dispatch batch = workgroups * xgroups packets, capped by the
-+ * static descriptor array and rounded down to a power of two (the shader
-+ * derives the flat slot as queue_id << ilog2(batch_size) + local_idx).
-+ */
-+static unsigned int knod_bpf_batch_size(struct knod_bpf_priv *priv)
-+{
-+	unsigned int xgroups = knod_bpf_auto_xgroups(priv);
-+	unsigned int max_flat = KNOD_BPF_BACKLOGS_MAX / priv->nr_works;
-+	unsigned int batch = min_t(unsigned int,
-+				   knod_bpf_workgroups * xgroups, max_flat);
-+
-+	if (!batch)
-+		batch = knod_bpf_workgroups;
-+	return rounddown_pow_of_two(batch);
-+}
-+
-+static void knod_bpf_start(struct knod_dev *knodev)
-+{
-+	struct knod_bpf_priv *priv =
-+		(struct knod_bpf_priv *)knodev->accel->xdp.priv;
-+	struct bpf_prog *prog;
-+	unsigned int active_rxq;
-+	int err;
-+
-+	priv->start = 1;
-+	active_rxq = knod_bpf_active_rxq_count(knodev->netdev);
-+	if (active_rxq && active_rxq != priv->nr_works)
-+		pr_warn("knod_bpf: active rx queues changed from %d to %u; using initialized count\n",
-+			priv->nr_works, active_rxq);
-+
-+	priv->batch_size = knod_bpf_batch_size(priv);
-+
-+	knod_jit_dbg(" batch_size = %d\n", priv->batch_size);
-+	knod_bpf_configure_worker(priv);
-+	pr_info("knod_bpf: using single AQL queue, rx_works=%d active_rxq=%u batch_size=%d xgroups=%u\n",
-+		priv->nr_works, active_rxq, priv->batch_size,
-+		priv->batch_size / knod_bpf_workgroups);
-+
-+	if (knod_bpf_jit_pass_kernel(priv))
-+		pr_warn("knod_bpf: pass kernel JIT failed\n");
-+
-+	prog = READ_ONCE(priv->prog);
-+	if (prog)
-+		knod_setup_bpf_prog(prog);
-+
-+	priv->start = 1;
-+	err = knod_bpf_start_worker(priv);
-+	if (err) {
-+		pr_err("knod_bpf: start_worker failed: %d\n", err);
-+		priv->start = 0;
-+		return;
-+	}
-+}
-+
-+static void knod_bpf_stop(struct knod_dev *knodev)
-+{
-+	struct knod_bpf_priv *priv =
-+		(struct knod_bpf_priv *)knodev->accel->xdp.priv;
-+
-+	knod_bpf_stop_worker(priv);
-+	knod_bpf_drain(priv);
-+
-+	kfree(priv->pass_prog_buf);
-+	priv->pass_prog_buf = NULL;
-+	priv->pass_prog_size = 0;
-+}
-+
-+/*
-+ * Flip the dispatched kernel back to pass-through when the XDP prog is
-+ * detached.  The pass slot already holds the pass code, so this is just an
-+ * atomic index flip -- no re-copy.
-+ */
-+static void knod_bpf_reload_pass(struct knod_dev *knodev)
-+{
-+	struct knod_bpf_priv *priv = knodev->accel->xdp.priv;
-+
-+	if (priv)
-+		WRITE_ONCE(priv->active_idx, priv->pass_idx);
-+}
-+
-+static void knod_setup_bpf_prog(struct bpf_prog *prog)
-+{
-+	struct knod_prog *knod_prog = prog->aux->offload->dev_priv;
-+	struct knod_dev *knodev = knod_prog->knodev;
-+	struct knod_insn_meta *meta, *tmp;
-+	struct knod_bpf_priv *priv;
-+	u8 *kernel_ptr, *ptr;
-+	u32 total_bytes;
-+	u32 *debug_ptr;
-+	int i;
-+
-+	priv = (struct knod_bpf_priv *)knodev->accel->xdp.priv;
-+	WRITE_ONCE(priv->installing_kernel, true);
-+
-+	if (prog) {
-+		WRITE_ONCE(priv->prog, NULL);
-+		kernel_ptr = priv->prog_buf;
-+		memset(priv->prog_buf, 0, KNOD_BPF_PROG_BUF_SIZE);
-+
-+		list_for_each_entry(meta, &priv->knod_prog->pre_insns, l) {
-+			for (i = 0; i < meta->amdgpu_insns; i++) {
-+				ptr = (u8 *)&meta->amdgpu_insn[i];
-+				debug_ptr = (u32 *)ptr;
-+
-+				memcpy(kernel_ptr, ptr,
-+				       meta->amdgpu_insn[i].size);
-+				kernel_ptr += meta->amdgpu_insn[i].size;
-+
-+				if (meta->amdgpu_insn[i].size == 4) {
-+					knod_jit_dbg(" 0x%.8X\t%.8X\n",
-+						meta->amdgpu_insn_idx,
-+						debug_ptr[0]);
-+				} else if (meta->amdgpu_insn[i].size == 8) {
-+					knod_jit_dbg(" 0x%.8X\t%.8X %.8X\n",
-+						meta->amdgpu_insn_idx,
-+						debug_ptr[0], debug_ptr[1]);
-+				} else if (meta->amdgpu_insn[i].size == 12) {
-+					knod_jit_dbg(" 0x%.8X\t%.8X %.8X %.8X\n",
-+						meta->amdgpu_insn_idx,
-+						debug_ptr[0],
-+						debug_ptr[1], debug_ptr[2]);
-+				} else {
-+					WARN_ON_ONCE(1);
-+				}
-+			}
-+		}
-+
-+		list_for_each_entry(meta, &priv->knod_prog->insns, l) {
-+			for (i = 0; i < meta->amdgpu_insns; i++) {
-+				ptr = (u8 *)&meta->amdgpu_insn[i];
-+				debug_ptr = (u32 *)ptr;
-+
-+				memcpy(kernel_ptr, ptr,
-+				       meta->amdgpu_insn[i].size);
-+				kernel_ptr += meta->amdgpu_insn[i].size;
-+				if (meta->amdgpu_insn[i].size == 4) {
-+					knod_jit_dbg(" 0x%.8X\t%.8X\n",
-+						meta->amdgpu_insn_idx,
-+						debug_ptr[0]);
-+				} else if (meta->amdgpu_insn[i].size == 8) {
-+					knod_jit_dbg(" 0x%.8X\t%.8X %.8X\n",
-+						meta->amdgpu_insn_idx,
-+						debug_ptr[0], debug_ptr[1]);
-+				} else if (meta->amdgpu_insn[i].size == 12) {
-+					knod_jit_dbg(" 0x%.8X\t%.8X %.8X %.8X\n",
-+						meta->amdgpu_insn_idx,
-+						debug_ptr[0],
-+						debug_ptr[1], debug_ptr[2]);
-+				} else {
-+					WARN_ON_ONCE(1);
-+				}
-+			}
-+		}
-+
-+		list_for_each_entry(meta, &priv->knod_prog->post_insns, l) {
-+			for (i = 0; i < meta->amdgpu_insns; i++) {
-+				ptr = (u8 *)&meta->amdgpu_insn[i];
-+				debug_ptr = (u32 *)ptr;
-+
-+				memcpy(kernel_ptr, ptr,
-+				       meta->amdgpu_insn[i].size);
-+				kernel_ptr += meta->amdgpu_insn[i].size;
-+				if (meta->amdgpu_insn[i].size == 4) {
-+					knod_jit_dbg(" %.8X\n", debug_ptr[0]);
-+				} else if (meta->amdgpu_insn[i].size == 8) {
-+					knod_jit_dbg(" %.8X %.8X\n",
-+						debug_ptr[0], debug_ptr[1]);
-+				} else if (meta->amdgpu_insn[i].size == 12) {
-+					knod_jit_dbg(" %.8X %.8X %.8X\n",
-+						debug_ptr[0],
-+						debug_ptr[1], debug_ptr[2]);
-+				} else {
-+					WARN_ON_ONCE(1);
-+				}
-+			}
-+		}
-+		total_bytes = kernel_ptr - (u8 *)priv->prog_buf;
-+
-+		pr_debug("KNOD JIT: total binary size = %u bytes (limit %u)\n",
-+			 total_bytes, KNOD_BPF_PROG_BUF_SIZE);
-+		if (WARN_ON(total_bytes > KNOD_BPF_PROG_BUF_SIZE))
-+			total_bytes = KNOD_BPF_PROG_BUF_SIZE;
-+		knod_bpf_install_kernel(priv, knod_prog, priv->prog_buf,
-+					total_bytes);
-+		WRITE_ONCE(priv->prog, prog);
-+	} else {
-+		WRITE_ONCE(priv->prog, NULL);
-+		list_for_each_entry_safe(meta, tmp, &priv->knod_prog->pre_insns,
-+					 l) {
-+			list_del_init(&meta->l);
-+			kfree(meta);
-+		}
-+
-+		list_for_each_entry_safe(meta, tmp, &priv->knod_prog->insns,
-+					 l) {
-+			list_del_init(&meta->l);
-+			kfree(meta);
-+		}
-+
-+		list_for_each_entry_safe(meta, tmp,
-+					 &priv->knod_prog->post_insns, l) {
-+			list_del_init(&meta->l);
-+			kfree(meta);
-+		}
-+
-+		/* bbs points into the metas just freed */
-+		kfree(priv->knod_prog->bbs);
-+		priv->knod_prog->bbs = NULL;
-+		priv->knod_prog->n_bbs = 0;
-+
-+		if (priv->pass_prog_buf)
-+			knod_bpf_install_kernel(priv, priv->pass_knod_prog,
-+						priv->pass_prog_buf,
-+						priv->pass_prog_size);
-+	}
-+	WRITE_ONCE(priv->installing_kernel, false);
-+}
-+
-+static int knod_bpf_map_hash_init_elem(struct knod_bpf_map *knod_map,
-+				       struct knod_bpf_map_obj *knod_map_obj)
-+{
-+	unsigned int *queue = (unsigned int *)knod_map->queue_mem->kaddr;
-+	unsigned int *bucket = (unsigned int *)&knod_map_obj->bucket[0];
-+	void *elems = knod_map->hash_elems_mem->kaddr;
-+	struct knod_bpf_hash_elem_obj *e;
-+	int i, elem_size;
-+
-+	elem_size = sizeof(struct knod_bpf_hash_elem_obj) +
-+			   roundup(knod_map_obj->key_size, 4) +
-+			   roundup(knod_map_obj->value_size, 4);
-+	knod_map_obj->meta.hmeta.elem_size = elem_size;
-+
-+	for (i = 0; i < knod_map_obj->meta.hmeta.n_buckets; i++)
-+		bucket[i] = KNOD_BPF_HASH_NEXT_END;
-+
-+	for (i = 0; i < knod_map_obj->max_entries; i++) {
-+		e = elems + (i * elem_size);
-+		e->next = KNOD_BPF_HASH_NEXT_END;
-+		queue[i] = i;
-+	}
-+	knod_map_obj->meta.hmeta.cur = knod_map_obj->max_entries - 1;
-+
-+	return 0;
-+}
-+
-+static inline unsigned char *
-+knod_bpf_hash_elem_kv(struct knod_bpf_hash_elem_obj *e)
-+{
-+	return (unsigned char *)e + offsetof(struct knod_bpf_hash_elem_obj, kv);
-+}
-+
-+static inline void *
-+knod_bpf_array_value_ptr(struct knod_bpf_map_obj *knod_map_obj,
-+			 unsigned int idx)
-+{
-+	return (unsigned char *)knod_map_obj +
-+	       offsetof(struct knod_bpf_map_obj, bucket) +
-+	       (size_t)idx * knod_map_obj->value_size;
-+}
-+
-+static int __knod_bpf_map_alloc(struct knod_dev *knodev,
-+				struct bpf_offloaded_map *offmap)
-+{
-+	struct knod_bpf_priv *priv =
-+		(struct knod_bpf_priv *)knodev->accel->xdp.priv;
-+	struct knod_mem *mem, *queue_mem, *hash_elems_mem, *gc_mem;
-+	int order, size, queue_size, i, value_size, nents, err;
-+	int n_instances = 1;
-+	int flags = KFD_IOC_ALLOC_MEM_FLAGS_WRITABLE |
-+		    KFD_IOC_ALLOC_MEM_FLAGS_COHERENT |
-+		    KFD_IOC_ALLOC_MEM_FLAGS_PUBLIC |
-+		    KFD_IOC_ALLOC_MEM_FLAGS_VRAM;
-+	struct knod_bpf_map_obj *knod_map_obj;
-+	struct knod *knod = priv->knod;
-+	struct knod_bpf_map *knod_map;
-+	unsigned int gc_size;
-+	unsigned int *q;
-+
-+	if (offmap->map.map_type == BPF_MAP_TYPE_HASH) {
-+		value_size = sizeof(unsigned int);
-+		nents = roundup_pow_of_two(offmap->map.max_entries);
-+	} else {
-+		value_size = offmap->map.value_size;
-+		nents = offmap->map.max_entries;
-+	}
-+
-+	/* PERCPU_ARRAY keeps one value array per GPU workgroup (percpu
-+	 * instance) so each CU updates its own copy - no cross-CU atomic
-+	 * contention.  Instances map 1:1 to the per-cpu value buffer, so
-+	 * allocate num_possible_cpus of them (workgroup_id_y indexes into it).
-+	 */
-+	if (offmap->map.map_type == BPF_MAP_TYPE_PERCPU_ARRAY)
-+		n_instances = num_possible_cpus();
-+
-+	size = sizeof(struct knod_bpf_map_obj) +
-+	       (value_size * nents * n_instances);
-+	if (offmap->map.map_type == BPF_MAP_TYPE_HASH)
-+		size += sizeof(unsigned int) * nents;
-+	order = get_order(size);
-+
-+	mem = knod_alloc_mem(knod, PAGE_SIZE << order, flags);
-+	if (IS_ERR(mem))
-+		return -ENOMEM;
-+
-+	memset(mem->kaddr, 0, size);
-+	knod_map = kzalloc_obj(struct knod_bpf_map, GFP_KERNEL);
-+	if (!knod_map) {
-+		knod_free_mem(knod, mem);
-+		return -ENOMEM;
-+	}
-+
-+	knod_map->mem = mem;
-+	knod_map->queue_mem = NULL;
-+	knod_map->hash_elems_mem = NULL;
-+	knod_map->offmap = offmap;
-+	knod_map->priv = priv;
-+	if (offmap->dev_priv)
-+		WARN_ON_ONCE(1);
-+	offmap->dev_priv = knod_map;
-+
-+	knod_map_obj = (struct knod_bpf_map_obj *)mem->kaddr;
-+	knod_map_obj->key_size = offmap->map.key_size;
-+	if (knod_map_obj->key_size > MAX_MAP_KEY_SIZE) {
-+		pr_warn("request key size is %d, but max key size is %d\n",
-+			knod_map_obj->key_size, MAX_MAP_KEY_SIZE);
-+		return -ENOMEM;
-+	}
-+	knod_map_obj->value_size = offmap->map.value_size;
-+	knod_map_obj->max_entries = nents;
-+	knod_map_obj->id = offmap->map.id;
-+	knod_map_obj->map_type = offmap->map.map_type;
-+	if (knod_map_obj->map_type == BPF_MAP_TYPE_HASH) {
-+		knod_map_obj->meta.hmeta.n_buckets = nents;
-+		if (offmap->map.map_flags & BPF_F_ZERO_SEED)
-+			knod_map_obj->meta.hmeta.hashrnd = 0;
-+		else
-+			knod_map_obj->meta.hmeta.hashrnd = get_random_u32();
-+	} else {
-+		knod_map_obj->meta.ameta.per_instance_size = value_size * nents;
-+		knod_map_obj->meta.ameta.n_instances = n_instances;
-+	}
-+	knod_map->knod_map_obj = knod_map_obj;
-+	/* map->flags = ? */
-+	knod_jit_dbg(" map_id = %d\n", knod_map_obj->id);
-+
-+	if (knod_map_obj->map_type == BPF_MAP_TYPE_HASH) {
-+		queue_size = sizeof(unsigned int) * nents;
-+		queue_size = PAGE_SIZE << get_order(queue_size);
-+		queue_mem = knod_alloc_mem(knod, queue_size, flags);
-+		if (IS_ERR(queue_mem)) {
-+			knod_free_mem(knod, mem);
-+			kfree(knod_map);
-+			return -ENOMEM;
-+		}
-+
-+		memset(queue_mem->kaddr, 0, queue_mem->size);
-+		q = queue_mem->kaddr;
-+		for (i = 0; i < knod_map_obj->meta.hmeta.n_buckets; i++)
-+			q[i] = i;
-+		knod_map->queue_mem = queue_mem;
-+		knod_map_obj->meta.hmeta.q = (struct _queue *)queue_mem->gaddr;
-+
-+		queue_size = (sizeof(struct knod_bpf_hash_elem_obj) +
-+			      roundup(knod_map_obj->key_size, 4) +
-+			      roundup(knod_map_obj->value_size, 4)) *
-+			      knod_map_obj->max_entries;
-+		queue_size = PAGE_SIZE << get_order(queue_size);
-+
-+		hash_elems_mem = knod_alloc_mem(knod, queue_size, flags);
-+		if (IS_ERR(hash_elems_mem)) {
-+			knod_free_mem(knod, queue_mem);
-+			knod_free_mem(knod, mem);
-+			kfree(knod_map);
-+			return -ENOMEM;
-+		}
-+
-+		memset(hash_elems_mem->kaddr, 0, queue_size);
-+		knod_map->hash_elems_mem = hash_elems_mem;
-+		knod_map_obj->meta.hmeta.elems = (void *)hash_elems_mem->gaddr;
-+		knod_bpf_map_hash_init_elem(knod_map, knod_map_obj);
-+
-+		/* GC list for GPU-side delete: elem_ids pending unlink */
-+		gc_size = sizeof(unsigned int) * nents;
-+		gc_size = PAGE_SIZE << get_order(gc_size);
-+		gc_mem = knod_alloc_mem(knod, gc_size, flags);
-+		if (IS_ERR(gc_mem)) {
-+			knod_free_mem(knod, hash_elems_mem);
-+			knod_free_mem(knod, queue_mem);
-+			knod_free_mem(knod, mem);
-+			kfree(knod_map);
-+			return -ENOMEM;
-+		}
-+		memset(gc_mem->kaddr, 0, gc_size);
-+		knod_map->gc_mem = gc_mem;
-+		knod_map_obj->meta.hmeta.gc_count = 0;
-+		knod_map_obj->meta.hmeta.gc_list = (void *)gc_mem->gaddr;
-+	}
-+
-+	err = __knod_map_mem(knod, mem);
-+	if (err) {
-+		pr_err("knod_bpf: failed to GPU-map map BO\n");
-+		goto err_map;
-+	}
-+	if (knod_map_obj->map_type == BPF_MAP_TYPE_HASH) {
-+		err = __knod_map_mem(knod, queue_mem);
-+		if (err) {
-+			pr_err("knod_bpf: failed to GPU-map queue BO\n");
-+			goto err_map;
-+		}
-+		err = __knod_map_mem(knod, hash_elems_mem);
-+		if (err) {
-+			pr_err("knod_bpf: failed to GPU-map hash_elems BO\n");
-+			goto err_map;
-+		}
-+		err = __knod_map_mem(knod, knod_map->gc_mem);
-+		if (err) {
-+			pr_err("knod_bpf: failed to GPU-map gc BO\n");
-+			goto err_map;
-+		}
-+	}
-+	knod_bpf_gpu_mem_fence(priv);
-+
-+	mutex_lock(&knodev->lock);
-+	list_add(&knod_map->list, &knodev->accel->xdp.bound_maps);
-+	mutex_unlock(&knodev->lock);
-+	return 0;
-+
-+err_map:
-+	if (knod_map_obj->map_type == BPF_MAP_TYPE_HASH) {
-+		knod_free_mem(knod, knod_map->gc_mem);
-+		knod_free_mem(knod, hash_elems_mem);
-+		knod_free_mem(knod, queue_mem);
-+	}
-+	knod_free_mem(knod, mem);
-+	kfree(knod_map);
-+	return err;
-+}
-+
-+static void knod_bpf_map_setup(struct bpf_prog *prog)
-+{
-+	struct knod_prog *knod_prog = prog->aux->offload->dev_priv;
-+	struct knod_dev *knodev = knod_prog->knodev;
-+	struct knod_bpf_map *knod_map;
-+	struct knod_bpf_map_obj *map;
-+	struct knod_mem *mem;
-+
-+	mutex_lock(&knodev->lock);
-+	list_for_each_entry(knod_map, &knodev->accel->xdp.bound_maps, list) {
-+		mem = knod_map->mem;
-+		map = mem->kaddr;
-+		map->id = knod_map->offmap->map.id;
-+		map->map_type = knod_map->offmap->map.map_type;
-+		knod_jit_dbg(" id = %d type = %d\n", knod_map->offmap->map.id,
-+			knod_map->offmap->map.map_type);
-+	}
-+	mutex_unlock(&knodev->lock);
-+}
-+
-+static struct knod_bpf_hash_elem_obj *
-+knod_bpf_map_hash_pop(struct knod_bpf_map *knod_map,
-+		      struct knod_bpf_map_obj *knod_map_obj)
-+{
-+	void *elems = knod_map->hash_elems_mem->kaddr;
-+	unsigned int *queue = (unsigned int *)knod_map->queue_mem->kaddr;
-+	struct knod_bpf_hash_elem_obj *e;
-+	int elem_id;
-+
-+	if (knod_map_obj->meta.hmeta.cur < 1)
-+		return NULL;
-+
-+	elem_id = queue[knod_map_obj->meta.hmeta.cur];
-+	knod_jit_dbg(" elem_id = 0x%x\n", elem_id);
-+	e = elems + (elem_id * knod_map_obj->meta.hmeta.elem_size);
-+	knod_map_obj->meta.hmeta.cur--;
-+	e->next = KNOD_BPF_HASH_NEXT_END;
-+
-+	return e;
-+}
-+
-+static struct knod_bpf_hash_elem_obj *
-+knod_bpf_map_hash_alloc_elem(struct knod_bpf_map *knod_map,
-+			     struct knod_bpf_map_obj *knod_map_obj,
-+			     void *key, void *value)
-+{
-+	struct knod_bpf_hash_elem_obj *e;
-+
-+	e = knod_bpf_map_hash_pop(knod_map, knod_map_obj);
-+	if (!e)
-+		return NULL;
-+
-+	unsafe_memcpy(knod_bpf_hash_elem_kv(e), key, knod_map_obj->key_size,
-+		      "knod hash elems are variable-sized GPU map records");
-+	unsafe_memcpy(knod_bpf_hash_elem_kv(e) + knod_map_obj->key_size,
-+		      value, knod_map_obj->value_size,
-+		      "knod hash elems are variable-sized GPU map records");
-+	/* VRAM is ioremap_wc - drain new elem's next and kv stores before
-+	 * the caller publishes a pointer to this elem.
-+	 */
-+	wmb();
-+	return e;
-+}
-+
-+static int knod_bpf_map_hash_lookup_elem(struct knod_bpf_map *knod_map,
-+					 struct knod_bpf_map_obj *knod_map_obj,
-+					 void *key,
-+					 void *value)
-+{
-+	void *elems = knod_map->hash_elems_mem->kaddr;
-+	unsigned int hash, elem_id, elem_size;
-+	struct knod_bpf_hash_elem_obj *e;
-+	unsigned int *bucket;
-+
-+	hash = jhash((const void *)key, knod_map_obj->key_size,
-+		     knod_map_obj->meta.hmeta.hashrnd);
-+	knod_jit_dbg(" hash = %x\n", hash);
-+	hash = hash & (knod_map_obj->meta.hmeta.n_buckets - 1);
-+	knod_jit_dbg(" hash = %x\n", hash);
-+	bucket = (unsigned int *)&knod_map_obj->bucket[0];
-+
-+	elem_id = bucket[hash];
-+	if (elem_id == KNOD_BPF_HASH_NEXT_END)
-+		return -ENOENT;
-+
-+	elem_size = knod_map_obj->meta.hmeta.elem_size;
-+
-+	e = elems + (elem_id * elem_size);
-+	while (1) {
-+		if (!(e->next & KNOD_BPF_HASH_NEXT_DELETED) &&
-+		    !memcmp(&e->kv[0], (const unsigned char *)key,
-+			    knod_map_obj->key_size)) {
-+			memcpy(value,
-+			       (unsigned char *)&e->kv[0] +
-+			       knod_map_obj->key_size,
-+			       knod_map_obj->value_size);
-+			return 0;
-+		}
-+		unsigned int real_next = e->next & KNOD_BPF_HASH_NEXT_MASK;
-+
-+		if (real_next == KNOD_BPF_HASH_NEXT_END)
-+			return -ENOENT;
-+		e = elems + (real_next * elem_size);
-+	}
-+
-+	return -ENOENT;
-+}
-+
-+static int knod_bpf_map_hash_update_elem(struct knod_bpf_map *knod_map,
-+					 struct knod_bpf_map_obj *knod_map_obj,
-+					 void *key,
-+					 void *value)
-+{
-+	void *elems = knod_map->hash_elems_mem->kaddr;
-+	unsigned int hash, elem_id, elem_size;
-+	struct knod_bpf_hash_elem_obj *e, *ne;
-+	unsigned int *bucket;
-+
-+	hash = jhash((const void *)key, knod_map_obj->key_size,
-+		     knod_map_obj->meta.hmeta.hashrnd);
-+	hash = hash & (knod_map_obj->meta.hmeta.n_buckets - 1);
-+	bucket = (unsigned int *)&knod_map_obj->bucket[0];
-+
-+	elem_size = knod_map_obj->meta.hmeta.elem_size;
-+	elem_id = bucket[hash];
-+	if (elem_id == KNOD_BPF_HASH_NEXT_END) {
-+		ne = knod_bpf_map_hash_alloc_elem(knod_map, knod_map_obj, key,
-+						  value);
-+		if (!ne)
-+			return -ENOMEM;
-+		bucket[hash] = ((void *)ne - (void *)elems) / elem_size;
-+		return 0;
-+	}
-+
-+	e = elems + (elem_id * elem_size);
-+	while (1) {
-+		if (!(e->next & KNOD_BPF_HASH_NEXT_DELETED) &&
-+		    !memcmp(&e->kv[0], (const unsigned char *)key,
-+			    knod_map_obj->key_size)) {
-+			unsafe_memcpy(knod_bpf_hash_elem_kv(e) +
-+				      knod_map_obj->key_size,
-+				      value, knod_map_obj->value_size,
-+				      "knod hash elems are variable-sized GPU map records");
-+			return 0;
-+		}
-+		unsigned int real_next = e->next & KNOD_BPF_HASH_NEXT_MASK;
-+
-+		if (real_next == KNOD_BPF_HASH_NEXT_END) {
-+			ne = knod_bpf_map_hash_alloc_elem(knod_map,
-+							  knod_map_obj,
-+							  key, value);
-+			if (!ne)
-+				return -ENOMEM;
-+			e->next = (e->next & KNOD_BPF_HASH_NEXT_DELETED) |
-+				  (((void *)ne - (void *)elems) / elem_size);
-+			return 0;
-+		}
-+		e = elems + (real_next * elem_size);
-+	}
-+
-+	return -ENOENT;
-+}
-+
-+static int knod_bpf_map_hash_delete_elem(struct knod_bpf_map *knod_map,
-+					 struct knod_bpf_map_obj *knod_map_obj,
-+					 void *key)
-+{
-+	void *elems = knod_map->hash_elems_mem->kaddr;
-+	unsigned int *queue = knod_map->queue_mem->kaddr;
-+	unsigned int hash, elem_id, elem_size, cur;
-+	struct knod_bpf_hash_elem_obj *e, *pe;
-+	unsigned int *bucket;
-+
-+	hash = jhash((const void *)key, knod_map_obj->key_size,
-+		     knod_map_obj->meta.hmeta.hashrnd);
-+	hash = hash & (knod_map_obj->meta.hmeta.n_buckets - 1);
-+	bucket = (unsigned int *)&knod_map_obj->bucket[0];
-+
-+	elem_id = bucket[hash];
-+	if (elem_id == KNOD_BPF_HASH_NEXT_END)
-+		return -ENOENT;
-+
-+	elem_size = knod_map_obj->meta.hmeta.elem_size;
-+
-+	e = elems + (elem_id * elem_size);
-+	pe = e;
-+	while (1) {
-+		if (!(e->next & KNOD_BPF_HASH_NEXT_DELETED) &&
-+		    !memcmp(&e->kv[0], (const unsigned char *)key,
-+			    knod_map_obj->key_size)) {
-+			unsigned int e_next = e->next & KNOD_BPF_HASH_NEXT_MASK;
-+			unsigned int del_id = ((void *)e - elems) / elem_size;
-+
-+			/* Unlink (GPU is paused - safe) */
-+			if (pe != e)
-+				pe->next = (pe->next &
-+					    KNOD_BPF_HASH_NEXT_DELETED) |
-+					   e_next;
-+			else
-+				bucket[hash] = e_next;
-+
-+			e->next = KNOD_BPF_HASH_NEXT_END;
-+
-+			/* Return elem to queue */
-+			cur = knod_map_obj->meta.hmeta.cur;
-+			queue[cur] = del_id;
-+			knod_map_obj->meta.hmeta.cur = cur + 1;
-+			return 0;
-+		}
-+		unsigned int real_next = e->next & KNOD_BPF_HASH_NEXT_MASK;
-+
-+		if (real_next == KNOD_BPF_HASH_NEXT_END)
-+			return -ENOENT;
-+		pe = e;
-+		e = elems + (real_next * elem_size);
-+	}
-+
-+	return -ENOENT;
-+}
-+
-+static int knod_bpf_map_hash_get_first_key(struct bpf_offloaded_map *offmap,
-+					   void *nkey)
-+{
-+	struct knod_bpf_map *knod_map = (struct knod_bpf_map *)offmap->dev_priv;
-+	struct knod_bpf_map_obj *knod_map_obj;
-+	unsigned int *bucket, elem_size, i;
-+	struct knod_bpf_hash_elem_obj *e;
-+	void *elems;
-+
-+	knod_map_obj = knod_map->knod_map_obj;
-+	bucket =  (unsigned int *)&knod_map_obj->bucket[0];
-+	elems = knod_map->hash_elems_mem->kaddr;
-+
-+	elem_size = knod_map_obj->meta.hmeta.elem_size;
-+
-+	for (i = 0; i < knod_map_obj->meta.hmeta.n_buckets; i++) {
-+		unsigned int eid;
-+
-+		if (bucket[i] == KNOD_BPF_HASH_NEXT_END)
-+			continue;
-+		eid = bucket[i];
-+		while (eid != KNOD_BPF_HASH_NEXT_END) {
-+			e = elems + (eid * elem_size);
-+			if (!(e->next & KNOD_BPF_HASH_NEXT_DELETED)) {
-+				unsafe_memcpy(nkey, knod_bpf_hash_elem_kv(e),
-+					      knod_map_obj->key_size,
-+					      "knod hash elems are variable-sized GPU map records");
-+				return 0;
-+			}
-+			eid = e->next & KNOD_BPF_HASH_NEXT_MASK;
-+		}
-+	}
-+
-+	return -ENOENT;
-+}
-+
-+static int knod_bpf_map_hash_get_next_key(struct bpf_offloaded_map *offmap,
-+					  void *key, void *nkey)
-+{
-+	struct knod_bpf_map *knod_map = (struct knod_bpf_map *)offmap->dev_priv;
-+	struct knod_bpf_map_obj *knod_map_obj;
-+	unsigned int *bucket, elem_size, i;
-+	struct knod_bpf_hash_elem_obj *e;
-+	bool found = false;
-+	unsigned int hash;
-+	void *elems;
-+
-+	knod_map_obj = knod_map->knod_map_obj;
-+
-+	bucket =  (unsigned int *)&knod_map_obj->bucket[0];
-+	elems = knod_map->hash_elems_mem->kaddr;
-+
-+	hash = jhash((const void *)key, knod_map_obj->key_size,
-+		     knod_map_obj->meta.hmeta.hashrnd);
-+	hash = hash & (knod_map_obj->meta.hmeta.n_buckets - 1);
-+	elem_size = knod_map_obj->meta.hmeta.elem_size;
-+
-+	for (i = hash; i < knod_map_obj->meta.hmeta.n_buckets; i++) {
-+		unsigned int eid;
-+
-+		if (bucket[i] == KNOD_BPF_HASH_NEXT_END)
-+			continue;
-+
-+		eid = bucket[i];
-+		while (eid != KNOD_BPF_HASH_NEXT_END) {
-+			e = elems + (eid * elem_size);
-+			if (!(e->next & KNOD_BPF_HASH_NEXT_DELETED)) {
-+				if (found &&
-+				    memcmp(&e->kv[0],
-+					   (const unsigned char *)key,
-+					   knod_map_obj->key_size)) {
-+					unsafe_memcpy(nkey,
-+						      knod_bpf_hash_elem_kv(e),
-+						      knod_map_obj->key_size,
-+						      "knod hash elems are variable-sized GPU map records");
-+					return 0;
-+				}
-+				if (!memcmp(&e->kv[0],
-+					    (const unsigned char *)key,
-+					    knod_map_obj->key_size))
-+					found = true;
-+			}
-+			eid = e->next & KNOD_BPF_HASH_NEXT_MASK;
-+		}
-+	}
-+
-+	return -ENOENT;
-+}
-+
-+static void knod_bpf_map_free(struct knod_dev *knodev,
-+			      struct bpf_offloaded_map *offmap)
-+{
-+	struct knod_bpf_map *knod_map = offmap->dev_priv;
-+	struct knod_bpf_priv *priv = knodev->accel->xdp.priv;
-+
-+	if (!knod_map)
-+		return;
-+	/*
-+	 * Defer the BO free: an in-flight prog dispatch may still reference
-+	 * this map's VRAM.  Move it from bound_maps onto dead_maps under
-+	 * knodev->lock (the lock that guards the add); the worker reaps it
-+	 * from there after its next completion, by which point the in-flight
-+	 * dispatch on the old slot has retired (clean atomic flip).
-+	 */
-+	mutex_lock(&knodev->lock);
-+	list_del(&knod_map->list);
-+	list_add(&knod_map->list, &priv->dead_maps);
-+	mutex_unlock(&knodev->lock);
-+	offmap->dev_priv = NULL;
-+}
-+
-+static int __knod_bpf_map_lookup_elem(struct bpf_offloaded_map *offmap,
-+				      void *key, void *value)
-+{
-+	unsigned int idx = *(unsigned int *)key;
-+	struct knod_bpf_map_obj *knod_map_obj;
-+	struct knod_bpf_map *knod_map;
-+	void *bucket;
-+	u32 stride;
-+	int i;
-+
-+	knod_map = (struct knod_bpf_map *)offmap->dev_priv;
-+	if (!knod_map || !knod_map->mem || !knod_map->mem->kaddr ||
-+	    (knod_map->hash_elems_mem && !knod_map->hash_elems_mem->kaddr)) {
-+		pr_err("knod_bpf: lookup on freed/invalid map (dev_priv=%p)\n",
-+		       offmap->dev_priv);
++	struct knod_ipsec_priv *priv = ipsec_priv;
++	struct knod_ipsec_sa_entry *e_dbg;
++	struct crypto_aes_ctx aes_ctx;
++	struct knod_ipsec_sa_slot *slot;
++	int slot_idx, key_len, err;
++	u32 spi;
++
++	if (!priv || !priv->knod) {
++		NL_SET_ERR_MSG(extack, "knod_ipsec: not initialized");
 +		return -ENODEV;
 +	}
-+	knod_map_obj = knod_map->knod_map_obj;
 +
-+	if (knod_map_obj->map_type == BPF_MAP_TYPE_ARRAY) {
-+		if (*(unsigned int *)key >= knod_map_obj->max_entries)
-+			return -ENOENT;
-+		bucket = knod_bpf_array_value_ptr(knod_map_obj, idx);
-+
-+		unsafe_memcpy(value, bucket, knod_map_obj->value_size,
-+			      "knod array values live in a variable-sized GPU map tail");
-+	} else if (knod_map_obj->map_type == BPF_MAP_TYPE_PERCPU_ARRAY) {
-+		if (idx >= knod_map_obj->max_entries)
-+			return -ENOENT;
-+		stride = round_up(knod_map_obj->value_size, 8);
-+		bucket = &knod_map_obj->bucket[0];
-+		bucket += (idx * knod_map_obj->value_size);
-+		for (i = 0; i < knod_map_obj->meta.ameta.n_instances; i++)
-+			unsafe_memcpy(value + i * stride,
-+				      bucket + i *
-+				      knod_map_obj->meta.ameta
-+				      .per_instance_size,
-+				      knod_map_obj->value_size,
-+				      "knod percpu array values live in a variable-sized GPU map tail");
-+	} else if (knod_map_obj->map_type == BPF_MAP_TYPE_HASH) {
-+		return knod_bpf_map_hash_lookup_elem(knod_map, knod_map_obj,
-+						     key, value);
++	/* Only support AEAD AES-GCM in packet offload mode. */
++	if (x->xso.type != XFRM_DEV_OFFLOAD_PACKET) {
++		NL_SET_ERR_MSG(extack, "knod_ipsec: only packet offload supported");
++		return -EINVAL;
 +	}
-+
-+	return 0;
-+}
-+
-+static void knod_bpf_map_op_begin(struct knod_bpf_priv *priv)
-+{
-+	/*
-+	 * Serialize concurrent map ops but do NOT park the worker: stopping it
-+	 * mid-flight strands the in-flight dispatch and stalls the GPU compute
-+	 * queue.  A map value updated while the GPU reads it may be seen torn,
-+	 * which is a transient inconsistency the BPF prog tolerates.
-+	 */
-+	mutex_lock(&priv->map_op_lock);
-+}
-+
-+static void knod_bpf_map_op_end(struct knod_bpf_priv *priv)
-+{
-+	knod_bpf_gpu_mem_fence(priv);
-+	mutex_unlock(&priv->map_op_lock);
-+}
-+
-+static int __knod_bpf_map_update_elem(struct bpf_offloaded_map *offmap,
-+				      void *key, void *value, u64 flags)
-+{
-+	struct knod_bpf_map *knod_map = (struct knod_bpf_map *)offmap->dev_priv;
-+	struct knod_bpf_map_obj *knod_map_obj;
-+	struct knod_bpf_priv *priv;
-+	unsigned int idx = *(unsigned int *)key;
-+	struct knod_dev *knodev;
-+	void *bucket;
-+	u32 stride;
-+	int i;
-+
-+	if (!knod_map || !knod_map->mem || !knod_map->mem->kaddr)
-+		return -ENODEV;
-+	knod_map_obj = knod_map->knod_map_obj;
-+	priv = knod_map->priv;
-+	knodev = priv->knodev;
-+	if (knod_map_obj->map_type == BPF_MAP_TYPE_ARRAY) {
-+		if (idx >= knod_map_obj->max_entries)
-+			return -ENOENT;
-+
-+		bucket = knod_bpf_array_value_ptr(knod_map_obj, idx);
-+		unsafe_memcpy(bucket, value, knod_map_obj->value_size,
-+			      "knod array values live in a variable-sized GPU map tail");
-+		knod_bpf_gpu_mem_fence(priv);
-+		return 0;
-+	} else if (knod_map_obj->map_type == BPF_MAP_TYPE_PERCPU_ARRAY) {
-+		if (idx >= knod_map_obj->max_entries)
-+			return -ENOENT;
-+		stride = round_up(knod_map_obj->value_size, 8);
-+		bucket = &knod_map_obj->bucket[0];
-+		bucket += (idx * knod_map_obj->value_size);
-+		for (i = 0; i < knod_map_obj->meta.ameta.n_instances; i++)
-+			unsafe_memcpy(bucket + i *
-+				      knod_map_obj->meta.ameta
-+				      .per_instance_size,
-+				      value + i * stride,
-+				      knod_map_obj->value_size,
-+				      "knod percpu array values live in a variable-sized GPU map tail");
-+		knod_bpf_gpu_mem_fence(priv);
-+		return 0;
-+	} else if (knod_map_obj->map_type == BPF_MAP_TYPE_HASH) {
-+		int ret = -ENOENT;
-+
-+		mutex_lock(&knodev->lock);
-+		list_for_each_entry(knod_map, &knodev->accel->xdp.bound_maps,
-+				    list) {
-+			if (knod_map->knod_map_obj == knod_map_obj) {
-+				mutex_unlock(&knodev->lock);
-+				knod_bpf_map_op_begin(priv);
-+				ret = knod_bpf_map_hash_update_elem(knod_map,
-+						knod_map_obj,
-+								    key, value);
-+				knod_bpf_map_op_end(priv);
-+				return ret;
-+			}
-+		}
-+		mutex_unlock(&knodev->lock);
++	if (x->xso.dir != XFRM_DEV_OFFLOAD_IN) {
++		NL_SET_ERR_MSG(extack,
++			       "knod_ipsec: only inbound (RX decrypt) offload supported");
++		return -EINVAL;
 +	}
-+
-+	return -ENOENT;
-+}
-+
-+static int __knod_bpf_map_delete_elem(struct bpf_offloaded_map *offmap,
-+				      void *key)
-+{
-+	struct knod_bpf_map *knod_map = (struct knod_bpf_map *)offmap->dev_priv;
-+	struct knod_bpf_map_obj *knod_map_obj;
-+	struct knod_bpf_priv *priv;
-+	int ret;
-+
-+	if (!knod_map || !knod_map->mem || !knod_map->mem->kaddr)
-+		return -ENODEV;
-+	knod_map_obj = knod_map->knod_map_obj;
-+	priv = knod_map->priv;
-+
-+	if (knod_map_obj->map_type == BPF_MAP_TYPE_ARRAY ||
-+	    knod_map_obj->map_type == BPF_MAP_TYPE_PERCPU_ARRAY)
-+		return 0;
-+	else if (knod_map_obj->map_type == BPF_MAP_TYPE_HASH) {
-+		knod_bpf_map_op_begin(priv);
-+		ret = knod_bpf_map_hash_delete_elem(knod_map, knod_map_obj,
-+						    key);
-+		knod_bpf_map_op_end(priv);
-+		return ret;
++	if (!x->aead ||
++	    strcmp(x->aead->alg_name, "rfc4106(gcm(aes))")) {
++		NL_SET_ERR_MSG(extack, "knod_ipsec: only rfc4106(gcm(aes)) supported");
++		return -EINVAL;
 +	}
-+
-+	return -ENOENT;
-+}
-+
-+static void knod_bpf_map_gc_process(struct knod_bpf_map *knod_map)
-+{
-+	struct knod_bpf_map_obj *knod_map_obj = knod_map->knod_map_obj;
-+	unsigned int *gc_list = knod_map->gc_mem->kaddr;
-+	unsigned int *queue = knod_map->queue_mem->kaddr;
-+	void *elems = knod_map->hash_elems_mem->kaddr;
-+	unsigned int *bucket = (unsigned int *)&knod_map_obj->bucket[0];
-+	unsigned int elem_size = knod_map_obj->meta.hmeta.elem_size;
-+	unsigned int gc_count, cur, i;
-+
-+	gc_count = READ_ONCE(knod_map_obj->meta.hmeta.gc_count);
-+	if (!gc_count)
-+		return;
-+
-+	for (i = 0; i < gc_count; i++) {
-+		unsigned int del_id = gc_list[i];
-+		struct knod_bpf_hash_elem_obj *del_elem =
-+			elems + (del_id * elem_size);
-+		unsigned int hash, eid;
-+		struct knod_bpf_hash_elem_obj *e, *pe;
-+
-+		hash = jhash(&del_elem->kv[0], knod_map_obj->key_size,
-+			     knod_map_obj->meta.hmeta.hashrnd);
-+		hash = hash & (knod_map_obj->meta.hmeta.n_buckets - 1);
-+
-+		eid = bucket[hash];
-+		pe = NULL;
-+		while (eid != KNOD_BPF_HASH_NEXT_END) {
-+			e = elems + (eid * elem_size);
-+			if (e == del_elem) {
-+				unsigned int next = e->next &
-+						   KNOD_BPF_HASH_NEXT_MASK;
-+				if (pe)
-+					pe->next =
-+						(pe->next &
-+						 KNOD_BPF_HASH_NEXT_DELETED) |
-+						next;
-+				else
-+					bucket[hash] = next;
-+
-+				e->next = KNOD_BPF_HASH_NEXT_END;
-+
-+				cur = knod_map_obj->meta.hmeta.cur;
-+				queue[cur] = del_id;
-+				knod_map_obj->meta.hmeta.cur = cur + 1;
-+				break;
-+			}
-+			pe = e;
-+			eid = e->next & KNOD_BPF_HASH_NEXT_MASK;
-+		}
-+	}
-+
-+	WRITE_ONCE(knod_map_obj->meta.hmeta.gc_count, 0);
-+}
-+
-+/*
-+ * Per-loop map maintenance, run from the worker loop head (outside any
-+ * rcu_read_lock_bh, since knod_free_mem() may sleep).  All bound_maps access
-+ * is serialized under knodev->lock -- the same lock map_alloc/map_free use:
-+ * GC live HASH maps, then reap maps that detach moved onto dead_maps.  The
-+ * worker only reaches here after completing the previous dispatch, so the
-+ * clean atomic flip guarantees the GPU no longer reads a reaped map's BOs.
-+ */
-+#define KNOD_BPF_MAPS_TICK_INTERVAL 65536
-+
-+static void knod_bpf_maps_tick(struct knod_bpf_priv *priv)
-+{
-+	struct knod_dev *knodev = priv->knodev;
-+	struct knod_bpf_map *knod_map, *tmp;
-+	LIST_HEAD(reap);
-+
-+	if (list_empty(&knodev->accel->xdp.bound_maps) &&
-+	    list_empty(&priv->dead_maps))
-+		return;
-+
-+	if (list_empty(&priv->dead_maps) &&
-+	    (++priv->maps_tick_skip & (KNOD_BPF_MAPS_TICK_INTERVAL - 1)))
-+		return;
-+
-+	mutex_lock(&knodev->lock);
-+	list_for_each_entry(knod_map, &knodev->accel->xdp.bound_maps, list) {
-+		if (knod_map->knod_map_obj->map_type == BPF_MAP_TYPE_HASH)
-+			knod_bpf_map_gc_process(knod_map);
-+	}
-+	list_splice_init(&priv->dead_maps, &reap);
-+	mutex_unlock(&knodev->lock);
-+
-+	list_for_each_entry_safe(knod_map, tmp, &reap, list) {
-+		if (knod_map->gc_mem)
-+			knod_free_mem(priv->knod, knod_map->gc_mem);
-+		if (knod_map->queue_mem)
-+			knod_free_mem(priv->knod, knod_map->queue_mem);
-+		if (knod_map->hash_elems_mem)
-+			knod_free_mem(priv->knod, knod_map->hash_elems_mem);
-+		if (knod_map->mem)
-+			knod_free_mem(priv->knod, knod_map->mem);
-+		kfree(knod_map);
-+	}
-+}
-+
-+/* Completion mode: 0 = event (default, sleep on the AQL signal interrupt),
-+ * 1 = poll (busy-spin the signal value).  Selectable via debugfs.
-+ */
-+static bool knod_bpf_poll_mode;
-+
-+/* Max spacing (microseconds) between dispatch-ahead submissions.  Once a
-+ * dispatch is in flight the worker waits up to this long before submitting
-+ * the next so it batches the packets arriving meanwhile, letting inflight
-+ * grow >= 2 without degenerating into one-packet dispatches.  This is a
-+ * ceiling only: an empty pipe submits at once to keep the GPU fed, and a
-+ * completed dispatch is always retired without waiting.  To actually build
-+ * depth the value must be below the GPU execution time of a dispatch.
-+ * 0 disables spacing (submit as soon as the ring has anything).
-+ */
-+static u32 knod_bpf_dispatch_delay_us = 20;
-+
-+static void knod_bpf_wait_event(struct knod_bpf_priv *priv)
-+{
-+	struct kfd_event_data events = {
-+		.event_id = priv->knod->aql_event[0].id,
-+	};
-+	u32 timeout_ms = knod_bpf_expire;
-+	u32 wait_result;
-+
-+	knod_wait_on_events(priv->knod->process, 1, &events, true,
-+			    &timeout_ms, &wait_result);
-+}
-+
-+static bool knod_bpf_submit_work(struct knod_bpf_priv *priv)
-+{
-+	struct knod_bpf_work_sq *sqw;
-+	struct knod_bpf_stats *stats = &priv->stats;
-+	ktime_t dispatch_start;
-+
-+	if (priv->inflight_cnt >= KNOD_BPF_INFLIGHT)
-+		return false;
-+
-+	/* Pace dispatch-ahead so the next dispatch batches the packets that
-+	 * arrive during this window instead of firing one-packet dispatches.
-+	 * An empty pipe skips the wait so the GPU is never left idle.
-+	 */
-+	if (priv->inflight_cnt &&
-+	    ktime_before(ktime_get(), priv->next_dispatch_time))
-+		return false;
-+
-+	if (static_branch_unlikely(&knod_stats_key))
-+		dispatch_start = ktime_get();
-+
-+	sqw = knod_prepare_bpf(priv);
-+	if (!sqw)
-+		return false;
-+
-+	if (static_branch_unlikely(&knod_stats_key)) {
-+		u64 dns = ktime_to_ns(ktime_sub(ktime_get(),
-+						dispatch_start));
-+
-+		stats->dispatch_total_ns += dns;
-+		stats->dispatch_count++;
-+		if (dns > stats->dispatch_max_ns)
-+			stats->dispatch_max_ns = dns;
-+	}
-+
-+	knod_submit_bpf(priv, sqw);
-+	priv->inflight[priv->inflight_cnt++] = sqw;
-+	priv->next_dispatch_time =
-+		ktime_add_us(ktime_get(),
-+			     READ_ONCE(knod_bpf_dispatch_delay_us));
-+	return true;
-+}
-+
-+static void knod_bpf_record_completion(struct knod_bpf_priv *priv,
-+				       struct knod_bpf_work_sq *sqw)
-+{
-+	struct knod_bpf_stats *stats = &priv->stats;
-+	u64 ns;
-+	int bucket;
-+
-+	if (!static_branch_unlikely(&knod_stats_key))
-+		return;
-+
-+	ns = ktime_to_ns(ktime_sub(ktime_get(), sqw->dispatch_time));
-+	stats->completion_total_ns += ns;
-+	stats->completion_count++;
-+
-+	if (ns > stats->completion_max_ns)
-+		stats->completion_max_ns = ns;
-+
-+	if (ns < 1000)
-+		bucket = 0;
-+	else
-+		bucket = min(ilog2(ns / 1000) + 1,
-+			     KNOD_LAT_BUCKETS - 1);
-+	stats->completion_hist[bucket]++;
-+}
-+
-+static bool knod_bpf_poll_complete(struct knod_bpf_priv *priv,
-+				   struct knod_bpf_work_sq *sqw)
-+{
-+	struct amd_signal *signal;
-+
-+	if (!sqw)
-+		return false;
-+
-+	signal = (struct amd_signal *)
-+		priv->knod->kaql[0].queue_signal->kaddr;
-+
-+	if (sqw->sigval > READ_ONCE(signal->value)) {
-+		knod_bpf_record_completion(priv, sqw);
-+		return true;
-+	}
-+
-+	if (time_after(jiffies, sqw->expire)) {
-+		pr_warn_ratelimited("knod_bpf: poll expire (sigval=%lld signal=%lld expire_ms=%u)\n",
-+			sqw->sigval, READ_ONCE(signal->value), knod_bpf_expire);
-+		knod_bpf_record_completion(priv, sqw);
-+		return true;
-+	}
-+
-+	return false;
-+}
-+
-+static void knod_bpf_schedule_pending_napi(struct knod_bpf_priv *priv)
-+{
-+	struct knod_dev *knodev = priv->knodev;
-+	int qi;
-+
-+	for (qi = 0; qi < priv->nr_works; qi++) {
-+		if (spsc_pending(&knodev->wpriv[qi].spsc_bds) &&
-+		    knodev->wpriv[qi].napi)
-+			napi_schedule(knodev->wpriv[qi].napi);
-+	}
-+}
-+
-+static int knod_bpf_worker(void *arg)
-+{
-+	struct knod_bpf_priv *priv = arg;
-+	struct knod_bpf_work_sq *sqw;
-+	bool progressed;
-+
-+	while (!kthread_should_stop()) {
-+		if (kthread_should_park()) {
-+			knod_bpf_drain_worker(priv);
-+			kthread_parkme();
-+			continue;
-+		}
-+
-+		knod_bpf_maps_tick(priv);
-+
-+		progressed = false;
-+
-+		rcu_read_lock_bh();
-+		/* Retire completed dispatches oldest-first: the signal is
-+		 * monotonic so inflight[0] finishes before inflight[1..].
-+		 */
-+		while (priv->inflight_cnt &&
-+		       knod_bpf_poll_complete(priv, priv->inflight[0])) {
-+			sqw = priv->inflight[0];
-+			if (--priv->inflight_cnt)
-+				memmove(priv->inflight, priv->inflight + 1,
-+					priv->inflight_cnt *
-+					sizeof(priv->inflight[0]));
-+			priv->inflight[priv->inflight_cnt] = NULL;
-+			knod_complete_acquire(priv, sqw);
-+			knod_complete_napi(priv, sqw);
-+			progressed = true;
-+		}
-+
-+		/* Keep the pipe full: dispatch ahead up to KNOD_BPF_INFLIGHT.
-+		 * Staging self-limits, so this stops once the ring is drained.
-+		 */
-+		while (knod_bpf_submit_work(priv))
-+			progressed = true;
-+		rcu_read_unlock_bh();
-+
-+		if (!priv->inflight_cnt) {
-+			knod_bpf_schedule_pending_napi(priv);
-+			usleep_range(100, 200);
-+		} else if (!progressed) {
-+			/* Room to dispatch ahead but the pacing window has not
-+			 * opened yet: spin so the next submit fires on time and
-+			 * a completion is retired the instant it lands.  Block
-+			 * on the event only when the pipe is full (nothing to
-+			 * submit) or spacing is disabled.
-+			 */
-+			if (priv->inflight_cnt < KNOD_BPF_INFLIGHT &&
-+			    ktime_before(ktime_get(), priv->next_dispatch_time))
-+				cpu_relax();
-+			else if (knod_bpf_poll_mode)
-+				cpu_relax();
-+			else
-+				knod_bpf_wait_event(priv);
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+static void knod_bpf_sq_init(struct knod_bpf_priv *priv)
-+{
-+	struct knod_bpf_work_sq *sqw;
-+	int i;
-+
-+	priv->worker_task = NULL;
-+	priv->inflight_cnt = 0;
-+	INIT_LIST_HEAD(&priv->free_list_sqw);
-+
-+	for (i = 0; i < 32; i++) {
-+		sqw = kvzalloc_obj(struct knod_bpf_work_sq, GFP_KERNEL);
-+		if (!sqw)
-+			continue;
-+
-+		sqw->param = knod_alloc_mem(priv->knod,
-+					    sizeof(struct knod_bpf_param),
-+					    KFD_IOC_ALLOC_MEM_FLAGS_GTT |
-+					    KFD_IOC_ALLOC_MEM_FLAGS_WRITABLE |
-+					    KFD_IOC_ALLOC_MEM_FLAGS_COHERENT);
-+		if (!sqw->param) {
-+			kvfree(sqw);
-+			continue;
-+		}
-+		memset(sqw->param->kaddr, 0, sizeof(struct knod_bpf_param));
-+		INIT_LIST_HEAD(&sqw->list);
-+		list_add(&sqw->list, &priv->free_list_sqw);
-+		sqw->backlogs = 0;
-+	}
-+}
-+
-+static void knod_bpf_free_sqw(struct knod_bpf_priv *priv,
-+			      struct knod_bpf_work_sq *sqw)
-+{
-+	if (!sqw)
-+		return;
-+
-+	knod_free_mem(priv->knod, sqw->param);
-+	kfree(sqw);
-+}
-+
-+static void knod_bpf_free_sqw_list(struct knod_bpf_priv *priv,
-+				   struct list_head *head)
-+{
-+	struct knod_bpf_work_sq *sqw, *tmp;
-+
-+	list_for_each_entry_safe(sqw, tmp, head, list) {
-+		list_del(&sqw->list);
-+		knod_bpf_free_sqw(priv, sqw);
-+	}
-+}
-+
-+static void knod_bpf_sq_exit(struct knod_bpf_priv *priv)
-+{
-+	if (!priv->knod)
-+		return;
-+
-+	knod_bpf_stop_worker(priv);
-+	knod_bpf_drain(priv);
-+
-+	knod_bpf_free_sqw_list(priv, &priv->free_list_sqw);
-+	priv->inflight_cnt = 0;
-+}
-+
-+static void knod_priv_exit(struct knod_bpf_priv *priv)
-+{
-+	struct knod_dev *knodev = priv->knodev;
-+	struct knod_bpf_map *knod_map, *tmp;
-+	LIST_HEAD(reap);
-+
-+	knod_bpf_sq_exit(priv);
-+
-+	/*
-+	 * The dispatch worker is not stopped until the next feature registers
-+	 * its own worker, so it may still be running knod_bpf_maps_tick() here.
-+	 * Serialize under knodev->lock and splice both lists to a local one:
-+	 * whichever side splices first frees them, the other sees them empty.
-+	 * Free outside the lock since knod_free_mem() may sleep.
-+	 */
-+	mutex_lock(&knodev->lock);
-+	list_splice_init(&knodev->accel->xdp.bound_maps, &reap);
-+	list_splice_init(&priv->dead_maps, &reap);
-+	mutex_unlock(&knodev->lock);
-+
-+	list_for_each_entry_safe(knod_map, tmp, &reap, list) {
-+		if (knod_map->gc_mem)
-+			knod_free_mem(priv->knod, knod_map->gc_mem);
-+		if (knod_map->queue_mem)
-+			knod_free_mem(priv->knod, knod_map->queue_mem);
-+		if (knod_map->hash_elems_mem)
-+			knod_free_mem(priv->knod, knod_map->hash_elems_mem);
-+		if (knod_map->mem)
-+			knod_free_mem(priv->knod, knod_map->mem);
-+		kfree(knod_map);
-+	}
-+
-+	kfree(priv->prog_buf);
-+	kfree(priv->pass_prog_buf);
-+	if (priv->pass_knod_prog) {
-+		knod_prog_free(priv->pass_knod_prog);
-+		priv->pass_knod_prog = NULL;
-+	}
-+	/* kernels[] are owned by knod (freed in knod_release_ctx), not here */
-+	if (priv->pass_meta_buf)
-+		knod_free_mem(priv->knod, priv->pass_meta_buf);
-+}
-+
-+static int knod_priv_init(struct knod_bpf_priv *priv)
-+{
-+	struct knod_dev *knodev = priv->knodev;
-+	int pass_meta_buf_size;
-+	int index;
-+
-+	priv->prog = NULL;
-+	mutex_init(&priv->map_op_lock);
-+	INIT_LIST_HEAD(&priv->dead_maps);
-+	priv->maps_tick_skip = 0;
-+
-+	priv->nr_works = knod_bpf_active_rxq_count(knodev->netdev);
-+	if (!priv->nr_works) {
-+		pr_warn("knod_bpf: no active RX queues for %s\n",
-+			knodev->netdev ? knodev->netdev->name : "<null>");
++	if (x->id.proto != IPPROTO_ESP) {
++		NL_SET_ERR_MSG(extack, "knod_ipsec: only ESP supported");
 +		return -EINVAL;
 +	}
 +
-+	priv->prog_buf = kzalloc(KNOD_BPF_PROG_BUF_SIZE, GFP_KERNEL);
-+	if (!priv->prog_buf)
-+		return -ENOMEM;
-+
-+	for (index = 0; index < priv->nr_works; index++)
-+		priv->queue_base_gaddr[index] = priv->knod->buf[index]->gaddr;
-+
-+	/* Per-queue PASS slot count; sizes the shader pass_meta_buf below.
-+	 * At most one PASS packet per dispatched slot, i.e. batch_size.
-+	 */
-+	priv->pass_pkts_per_queue = knod_bpf_batch_size(priv);
-+
-+	/* Allocate GTT buffer for per-queue shader PASS copy */
-+	pass_meta_buf_size = priv->nr_works * priv->pass_pkts_per_queue *
-+			KNOD_PASS_SLOT_SIZE;
-+	priv->pass_meta_buf = knod_alloc_mem(priv->knod, pass_meta_buf_size,
-+					KFD_IOC_ALLOC_MEM_FLAGS_GTT |
-+					KFD_IOC_ALLOC_MEM_FLAGS_WRITABLE |
-+					KFD_IOC_ALLOC_MEM_FLAGS_COHERENT);
-+	if (IS_ERR(priv->pass_meta_buf)) {
-+		pr_warn("KNOD: failed to allocate pass_meta_buf\n");
-+		priv->pass_meta_buf = NULL;
-+		knod_priv_exit(priv);
-+		return -ENOMEM;
++	key_len = (x->aead->alg_key_len + 7) / 8;
++	if (key_len < 4) {
++		NL_SET_ERR_MSG(extack, "knod_ipsec: key too short");
++		return -EINVAL;
 +	}
-+	pr_debug("KNOD: pass_meta_buf gaddr=0x%llx..0x%llx size=%d nr_q=%d pass_pkts_per_queue=%u\n",
-+		 priv->pass_meta_buf->gaddr,
-+		 priv->pass_meta_buf->gaddr + pass_meta_buf_size,
-+		 priv->pass_meta_buf->size, priv->nr_works,
-+		 priv->pass_pkts_per_queue);
++	key_len -= 4; /* strip salt */
++	if (key_len != 16 && key_len != 24 && key_len != 32) {
++		NL_SET_ERR_MSG(extack, "knod_ipsec: unsupported AES key length");
++		return -EINVAL;
++	}
 +
-+	/* GPU->host delivery pages come from the framework per-queue page_pool
-+	 * (knodev->wpriv[q].pass_pool): the producer allocs from it and the
-+	 * NAPI drain recycles, so no per-feature delivery BO is allocated here.
++	spi = be32_to_cpu(x->id.spi);
++
++	mutex_lock(&priv->slot_lock);
++
++	if (knod_ipsec_lookup_slot_by_spi(priv, spi)) {
++		mutex_unlock(&priv->slot_lock);
++		NL_SET_ERR_MSG(extack, "knod_ipsec: SPI already offloaded");
++		return -EEXIST;
++	}
++
++	slot_idx = knod_ipsec_find_free_slot(priv);
++	if (slot_idx < 0) {
++		mutex_unlock(&priv->slot_lock);
++		NL_SET_ERR_MSG(extack, "knod_ipsec: SA table full");
++		return -ENOSPC;
++	}
++
++	slot = &priv->slots[slot_idx];
++	memset(slot, 0, sizeof(*slot));
++	slot->slot_idx = slot_idx;
++	slot->spi = spi;
++
++	/* Expanded round key buffer (VRAM). The GPU shader loads round keys
++	 * via s_load_dwordx4 (16 bytes per round), so we expand up front
++	 * rather than shipping raw key material. AES-128 is 176B,
++	 * AES-256 is 240B; a full PAGE_SIZE allocation leaves room and
++	 * avoids the VRAM
++	 * 7-page alloc trap.
 +	 */
++	slot->key_mem = knod_alloc_mem(priv->knod, PAGE_SIZE,
++				       KFD_IOC_ALLOC_MEM_FLAGS_VRAM |
++				       KFD_IOC_ALLOC_MEM_FLAGS_WRITABLE |
++				       KFD_IOC_ALLOC_MEM_FLAGS_COHERENT);
++	if (IS_ERR(slot->key_mem)) {
++		err = PTR_ERR(slot->key_mem);
++		slot->key_mem = NULL;
++		goto err_slot;
++	}
++	err = aes_expandkey(&aes_ctx, x->aead->alg_key, key_len);
++	if (err) {
++		NL_SET_ERR_MSG(extack, "knod_ipsec: AES key expand failed");
++		goto err_key;
++	}
++	/* Store the encryption schedule. Nr+1 round keys x 16 bytes.
++	 * The shader reads s[SR_NR_ROUNDS] to know how many rounds.
++	 */
++	memcpy(slot->key_mem->kaddr, aes_ctx.key_enc,
++	       (aes_ctx.key_length / 4 + 7) * 16);
++	memzero_explicit(&aes_ctx, sizeof(aes_ctx));
 +
-+	knod_bpf_sq_init(priv);
++	/* H-power table (VRAM) */
++	slot->htable_mem = knod_alloc_mem(priv->knod, KNOD_GCM_H_TABLE_SIZE,
++					  KFD_IOC_ALLOC_MEM_FLAGS_VRAM |
++					  KFD_IOC_ALLOC_MEM_FLAGS_WRITABLE |
++					  KFD_IOC_ALLOC_MEM_FLAGS_COHERENT);
++	if (IS_ERR(slot->htable_mem)) {
++		err = PTR_ERR(slot->htable_mem);
++		slot->htable_mem = NULL;
++		goto err_key;
++	}
++	knod_gcm_precompute_h_table(x->aead->alg_key, key_len,
++				    (u8 *)slot->htable_mem->kaddr);
 +
++	/* Replay bitmap (VRAM) */
++	slot->replay_mem = knod_alloc_mem(priv->knod, PAGE_SIZE,
++					  KFD_IOC_ALLOC_MEM_FLAGS_VRAM |
++					  KFD_IOC_ALLOC_MEM_FLAGS_WRITABLE |
++					  KFD_IOC_ALLOC_MEM_FLAGS_COHERENT);
++	if (IS_ERR(slot->replay_mem)) {
++		err = PTR_ERR(slot->replay_mem);
++		slot->replay_mem = NULL;
++		goto err_htable;
++	}
++	memset(slot->replay_mem->kaddr, 0, PAGE_SIZE);
++
++	slot->x = x;
++	slot->version = 1;
++	slot->active = true;
++
++	knod_ipsec_write_sa_entry(priv, slot_idx, slot, x);
++
++	err = xa_insert(&priv->spi_to_slot, spi, slot, GFP_KERNEL);
++	if (err)
++		goto err_replay;
++
++	x->xso.offload_handle = (unsigned long)slot;
++
++	mutex_unlock(&priv->slot_lock);
++
++	this_cpu_inc(priv->stats->sa_add);
++
++	e_dbg = (struct knod_ipsec_sa_entry *)priv->sa_table->kaddr + slot_idx;
++
++	pr_info("knod_ipsec: SA added spi=0x%08x slot=%d dir=%d\n",
++		spi, slot_idx, x->xso.dir);
++	pr_info("  sa_entry: spi_le=0x%08x active=%u nr_rounds=%u key_len=%u\n",
++		le32_to_cpu(e_dbg->spi), le32_to_cpu(e_dbg->active),
++		le32_to_cpu(e_dbg->nr_rounds), le32_to_cpu(e_dbg->key_len));
++	pr_info("  sa_entry: key_addr=0x%llx htable_addr=0x%llx salt=%*ph\n",
++		le64_to_cpu(e_dbg->key_gpu_addr),
++		le64_to_cpu(e_dbg->htable_gpu_addr),
++		4, e_dbg->salt);
++	return 0;
++
++err_replay:
++	knod_free_mem(priv->knod, slot->replay_mem);
++err_htable:
++	knod_free_mem(priv->knod, slot->htable_mem);
++err_key:
++	knod_free_mem(priv->knod, slot->key_mem);
++err_slot:
++	memset(slot, 0, sizeof(*slot));
++	mutex_unlock(&priv->slot_lock);
++	return err;
++}
++
++static void knod_ipsec_xdo_state_delete(struct knod_dev *knodev,
++					struct xfrm_state *x)
++{
++	struct knod_ipsec_priv *priv = ipsec_priv;
++	struct knod_ipsec_sa_slot *slot;
++	u32 spi;
++
++	if (!priv)
++		return;
++
++	spi = be32_to_cpu(x->id.spi);
++
++	mutex_lock(&priv->slot_lock);
++	slot = knod_ipsec_lookup_slot_by_spi(priv, spi);
++	if (!slot) {
++		mutex_unlock(&priv->slot_lock);
++		return;
++	}
++
++	/* Deactivate first so GPU shaders skip this slot on next dispatch. */
++	slot->active = false;
++	slot->version++;
++	knod_ipsec_write_sa_entry(priv, slot->slot_idx, NULL, NULL);
++
++	xa_erase(&priv->spi_to_slot, spi);
++
++	mutex_unlock(&priv->slot_lock);
++
++	this_cpu_inc(priv->stats->sa_del);
++}
++
++static void knod_ipsec_xdo_state_free(struct knod_dev *knodev,
++				      struct xfrm_state *x)
++{
++	struct knod_ipsec_priv *priv = ipsec_priv;
++	struct knod_ipsec_sa_slot *slot;
++
++	if (!priv)
++		return;
++
++	slot = (struct knod_ipsec_sa_slot *)x->xso.offload_handle;
++	if (!slot)
++		return;
++
++	mutex_lock(&priv->slot_lock);
++
++	if (slot->replay_mem)
++		knod_free_mem(priv->knod, slot->replay_mem);
++	if (slot->htable_mem)
++		knod_free_mem(priv->knod, slot->htable_mem);
++	if (slot->key_mem)
++		knod_free_mem(priv->knod, slot->key_mem);
++
++	memset(slot, 0, sizeof(*slot));
++	x->xso.offload_handle = 0;
++
++	mutex_unlock(&priv->slot_lock);
++}
++
++static bool knod_ipsec_xdo_offload_ok(struct knod_dev *knodev,
++				      struct sk_buff *skb,
++				      struct xfrm_state *x)
++{
++	/* We support only ESP / AES-GCM / packet offload; state_add
++	 * already filtered unsupported cases. Offload OK for matching SA.
++	 */
++	return x->xso.type == XFRM_DEV_OFFLOAD_PACKET &&
++	       x->id.proto == IPPROTO_ESP && x->aead;
++}
++
++static void knod_ipsec_xdo_state_advance_esn(struct knod_dev *knodev,
++					     struct xfrm_state *x)
++{
++	struct knod_ipsec_priv *priv = ipsec_priv;
++	struct knod_ipsec_sa_slot *slot;
++	struct knod_ipsec_sa_entry *e;
++
++	if (!priv || !x->replay_esn)
++		return;
++	slot = (struct knod_ipsec_sa_slot *)x->xso.offload_handle;
++	if (!slot || !slot->active)
++		return;
++
++	e = (struct knod_ipsec_sa_entry *)priv->sa_table->kaddr;
++	e += slot->slot_idx;
++
++	/* xfrm calls advance_esn whenever the inbound ESN high-32 bits
++	 * change. The GPU reads seq_hi/seq_last via VMEM (global_load) so
++	 * the COHERENT VRAM mapping ensures visibility without SDMA.
++	 */
++	WRITE_ONCE(e->seq_hi, cpu_to_le32(x->replay_esn->seq_hi));
++	WRITE_ONCE(e->seq_last, cpu_to_le64(
++		((u64)x->replay_esn->seq_hi << 32) |
++		 (u64)x->replay_esn->seq));
++	/* Ensure both fields are visible to GPU before returning. */
++	wmb();
++}
++
++static void knod_ipsec_xdo_state_update_stats(struct knod_dev *knodev,
++					      struct xfrm_state *x)
++{
++	struct knod_ipsec_priv *priv = ipsec_priv;
++	struct knod_ipsec_sa_slot *slot;
++	struct knod_ipsec_sa_gpu_stats *gs;
++	u32 spi;
++
++	if (!priv || !priv->sa_table)
++		return;
++
++	spi = be32_to_cpu(x->id.spi);
++	slot = xa_load(&priv->spi_to_slot, spi);
++	if (!slot || !slot->active)
++		return;
++
++	/* Read GPU-side per-SA counters (atomically updated by shader). */
++	gs = (struct knod_ipsec_sa_gpu_stats *)
++		((u8 *)priv->sa_table->kaddr + KNOD_IPSEC_STATS_REGION_OFF +
++		 slot->slot_idx * KNOD_IPSEC_SA_STATS_SIZE);
++
++	x->curlft.packets = le64_to_cpu(READ_ONCE(gs->rx_packets));
++	x->curlft.bytes   = le64_to_cpu(READ_ONCE(gs->rx_bytes));
++}
++
++/* ========================================================================
++ * RX delivery queues (host SPSC descriptor ring; pages from pass_pool)
++ * ========================================================================
++ */
++
++/*
++ * RFC 4303 anti-replay window check + update (single-writer, lockless).
++ * Returns true if the packet is accepted (not a replay and in window),
++ * false if it must be dropped.
++ *
++ * Caller guarantees that RSS pins the SA to a single RX queue, so the
++ * only writer to `win` on this CPU is the NAPI for this queue. The
++ * function both tests and updates - NIC dd calls it exactly once per
++ * desc, either to accept or to drop.
++ */
++static inline bool knod_ipsec_sa_window_check(struct knod_ipsec_sa_window *win,
++					      u64 seq)
++{
++	const unsigned int nwords = KNOD_IPSEC_CPU_REPLAY_WORDS;
++	unsigned int diff;
++	unsigned int w;
++	u64 bit;
++	int i;
++
++	if (seq == 0)
++		return false;
++
++	if (seq > win->top_seq) {
++		diff = (unsigned int)(seq - win->top_seq);
++		if (diff >= KNOD_IPSEC_CPU_REPLAY_BITS) {
++			memset(win->bitmap, 0, sizeof(win->bitmap));
++		} else {
++			unsigned int word_shift = diff >> 6;   /* diff / 64 */
++			unsigned int bit_shift  = diff & 63;   /* diff % 64 */
++
++			/* Shift the whole bitmap left by `diff` bits. bit at
++			 * position p in bitmap[w] moves to p + diff. Work
++			 * from the high word downwards so we don't overwrite
++			 * source words before reading them.
++			 */
++			if (bit_shift == 0) {
++				for (i = (int)nwords - 1; i >= 0; i--) {
++					int src = i - (int)word_shift;
++
++					win->bitmap[i] = (src >= 0)
++						? win->bitmap[src] : 0;
++				}
++			} else {
++				for (i = (int)nwords - 1; i >= 0; i--) {
++					int src_hi = i - (int)word_shift;
++					int src_lo = src_hi - 1;
++					u64 hi = 0, lo = 0;
++
++					if (src_hi >= 0)
++						hi = win->bitmap[src_hi] <<
++						     bit_shift;
++					if (src_lo >= 0)
++						lo = win->bitmap[src_lo] >>
++						     (64 - bit_shift);
++					win->bitmap[i] = hi | lo;
++				}
++			}
++		}
++		win->top_seq = seq;
++		win->bitmap[0] |= 1ull;
++		return true;
++	}
++
++	diff = (unsigned int)(win->top_seq - seq);
++	if (diff >= KNOD_IPSEC_CPU_REPLAY_BITS)
++		return false;	/* too old */
++	w = diff >> 6;
++	bit = 1ull << (diff & 63);
++
++	if (win->bitmap[w] & bit)
++		return false;	/* replay */
++	win->bitmap[w] |= bit;
++	return true;
++}
++
++static int knod_ipsec_rxq_init_all(struct knod_ipsec_priv *priv)
++{
++	/* One delivery queue per NIC RX queue, capped at KNOD_SPSC_MAX to
++	 * match the rest of the NOD/offmem/bd ring infrastructure.  Per-queue
++	 * delivery now flows through the framework pass_pending ring, so this
++	 * only records the queue count for the finish-worker bounds check.
++	 */
++	int nr = priv->knodev && priv->knodev->netdev
++		? (int)priv->knodev->netdev->num_rx_queues : 1;
++
++	if (nr > KNOD_SPSC_MAX)
++		nr = KNOD_SPSC_MAX;
++	if (nr < 1)
++		nr = 1;
++
++	priv->nr_rxq = nr;
 +	return 0;
 +}
 +
-+static struct knod_bpf_priv *__knod_accel_xdp_init(struct knod_accel *accel,
-+						   struct knod_dev *knodev)
++static void knod_ipsec_rxq_exit_all(struct knod_ipsec_priv *priv)
 +{
-+	struct knod *knod = (struct knod *)knodev->accel->priv;
-+	struct knod_bpf_priv *priv;
-+
-+	priv = kzalloc_obj(struct knod_bpf_priv, GFP_KERNEL);
-+	if (!priv)
-+		return ERR_PTR(-ENOMEM);
-+
-+	INIT_LIST_HEAD(&priv->list);
-+	if (knod_bpf_workgroups % 64) {
-+		knod_bpf_workgroups /= 64;
-+		knod_bpf_workgroups++;
-+		knod_bpf_workgroups *= 64;
-+	}
-+
-+	if (knod_bpf_workgroups < KNOD_BPF_WORKGROUPS_MIN ||
-+	    knod_bpf_workgroups > KNOD_BPF_WORKGROUPS_MAX)
-+		knod_bpf_workgroups = KNOD_BPF_WORKGROUPS_DEFAULT;
-+
-+	if (knod_bpf_expire < KNOD_BPF_EXPIRE_MIN ||
-+	    knod_bpf_expire > KNOD_BPF_EXPIRE_MAX)
-+		knod_bpf_expire = KNOD_BPF_EXPIRE_DEFAULT;
-+	pr_debug("workgroup size %d\n", knod_bpf_workgroups);
-+	pr_debug("expire time = %dms\n", knod_bpf_expire);
-+	pr_debug("packet cache = %d", knod_bpf_pkt_cache);
-+
-+	INIT_LIST_HEAD(&accel->xdp.bound_maps);
-+	accel->flags |= KNOD_FLAGS_XDP;
-+	accel->xdp.priv = priv;
-+	list_add(&priv->list, &priv_list);
-+
-+	priv->knod = knod;
-+	priv->accel = accel;
-+	priv->knodev = knodev;
-+	priv->dev = knodev->netdev;
-+
-+	priv->isa_version = knod->isa_version;
-+
-+	/*
-+	 * Only permanent per-attach state is set up here; the GPU compute
-+	 * buffers (knod_priv_init/kfd_kernel_init) are allocated by
-+	 * ->activate() when the BPF feature is selected.
-+	 */
-+
-+	return priv;
++	priv->nr_rxq = 0;
 +}
 +
-+/* Feature select: allocate the BPF GPU compute resources. */
-+static int knod_bpf_activate(struct knod_dev *knodev)
++/* ========================================================================
++ * NOD init / exit - allocate SA table and shared T-tables
++ * ========================================================================
++ */
++
++static int knod_ipsec_nod_init(struct knod_dev *knodev)
 +{
-+	struct knod_accel *accel = knodev->accel;
-+	struct knod_bpf_priv *priv = accel->xdp.priv;
-+	struct knod *knod = accel->priv;
++	struct amdgpu_device *adev;
++	struct knod_ipsec_priv *priv;
++	int err;
++
++	if (ipsec_priv) {
++		pr_warn("knod_ipsec: priv already initialized\n");
++		return -EBUSY;
++	}
 +
 +	/*
-+	 * Pin the module while BPF is the selected feature: the core calls
++	 * Pin the module while IPsec is the selected feature: the core calls
 +	 * into these ops, so it must not be unloaded until feature->none.
 +	 * (No-op when built in - THIS_MODULE is NULL.)
 +	 */
 +	if (!try_module_get(THIS_MODULE))
 +		return -ENODEV;
 +
-+	if (knod_priv_init(priv)) {
-+		WARN_ON_ONCE(1);
-+		module_put(THIS_MODULE);
-+		return -EINVAL;
-+	}
-+	if (kfd_kernel_init(knod, priv)) {
-+		knod_priv_exit(priv);
++	/* kvzalloc because priv has grown large (slots[NR_SA] each with
++	 * win[KNOD_SPSC_MAX] sliding windows - a couple of MB now). kzalloc
++	 * may succeed but kvzalloc falls back to vmalloc if kmalloc can't
++	 * find contiguous pages, which is safer under memory pressure.
++	 */
++	priv = kvzalloc_obj(*priv, GFP_KERNEL);
++	if (!priv) {
 +		module_put(THIS_MODULE);
 +		return -ENOMEM;
 +	}
 +
-+	priv->start = 0;
++	priv->stats = alloc_percpu(struct knod_ipsec_stats);
++	if (!priv->stats) {
++		err = -ENOMEM;
++		goto err_priv;
++	}
++
++	priv->knod = knodev->accel->priv;
++	if (!priv->knod) {
++		pr_err("knod_ipsec: no knod context (NOD not attached?)\n");
++		err = -ENODEV;
++		goto err_stats;
++	}
++	priv->knodev = knodev;
++	mutex_init(&priv->slot_lock);
++	xa_init(&priv->spi_to_slot);
++
++	/* Number of parallel dispatchers = number of AQL/SDMA queue pairs
++	 * that the accel was allocated with, capped at the ipsec module's
++	 * compile-time limit. Falls back to 1 when the knod layer reports
++	 * 0 or the clamp leaves nothing usable.
++	 */
++	priv->nr_dispatchers = priv->knod->queue_cnt;
++	if (priv->nr_dispatchers > KNOD_IPSEC_MAX_DISPATCHERS)
++		priv->nr_dispatchers = KNOD_IPSEC_MAX_DISPATCHERS;
++	if (priv->nr_dispatchers < 1)
++		priv->nr_dispatchers = 1;
++	priv->pkt_batch = KNOD_IPSEC_PKT_BATCH;
++
++	priv->t_tables = knod_gcm_alloc_tables(priv->knod);
++	if (IS_ERR(priv->t_tables)) {
++		err = PTR_ERR(priv->t_tables);
++		priv->t_tables = NULL;
++		goto err_ctx;
++	}
++
++	adev = priv->knod->process->pdds[0]->dev->adev;
++
++	if (adev->asic_type == CHIP_VEGA10 ||
++	    adev->asic_type == CHIP_VEGA20) {
++		priv->isa_version = 9;
++		priv->shader_size = knod_ipsec_init_shader_gfx9(priv->knod);
++	} else {
++		priv->isa_version = 10;
++		priv->shader_size = knod_ipsec_init_shader_gfx10(priv->knod);
++	}
++
++	err = knod_ipsec_work_pool_alloc(priv);
++	if (err) {
++		knod_ipsec_work_pool_free(priv);
++		goto err_ttables;
++	}
++
++	/* Persistent KAT scratch BO. Sized for the largest nr
++	 * (KNOD_IPSEC_PKT_BATCH=64 bd slots at 64B stride, plus a matching
++	 * per-packet dummy area at 128B stride for IPv6 ESP minimum).
++	 * 4 pages = 16KB to fit max batch. Keeping it as a single long-lived
++	 * BO avoids the per-KAT alloc/free dance that retriggers the
++	 * multi-BO mapping bug.
++	 */
++	priv->kat_scratch = knod_alloc_mem(priv->knod, PAGE_SIZE * 4,
++					   KFD_IOC_ALLOC_MEM_FLAGS_VRAM |
++					   KFD_IOC_ALLOC_MEM_FLAGS_WRITABLE |
++					   KFD_IOC_ALLOC_MEM_FLAGS_COHERENT);
++	if (IS_ERR(priv->kat_scratch)) {
++		err = PTR_ERR(priv->kat_scratch);
++		priv->kat_scratch = NULL;
++		goto err_works;
++	}
++
++	/*
++	 * Allocate sa_table LAST. The GTT/VRAM multi-BO mapping bug
++	 * (memory/gtt_multi_bo_bug.md) makes some BOs allocated mid-init fail
++	 * to bind their backing pages at the returned gaddr even though the
++	 * CPU kaddr is valid. Empirically, BOs allocated after all other init
++	 * BOs (knod ctx, t_tables, shader init, work pool, kat_scratch) bind
++	 * reliably. Allocating sa_table last sidesteps this.
++	 */
++	/* DIAGNOSTIC bisect step 1b: BO size is still ENLARGED, but rounded up
++	 * to the next power-of-two (8 pages = 32 KB) instead of the natural
++	 * 7 pages = 28 KB. Exact-7-page (0x7000) sa_table alloc empirically
++	 * corrupts the subsequent dispatch (kernarg TCP fault at 0x01af5000);
++	 * 6 pages (0x6000) is fine. Suspicion: amdgpu VRAM/GTT path handles
++	 * non-power-of-two sizes differently for mappings of this scale.
++	 */
++	/* RX delivery desc rings (host kvmalloc; payload pages come from the
++	 * framework pass_pool, no per-queue GTT BO). Set up before sa_table,
++	 * which must stay the last BO bound on this KFD process VM per the
++	 * "sa_table last" constraint in memory/gtt_multi_bo_bug.md.
++	 */
++	err = knod_ipsec_rxq_init_all(priv);
++	if (err)
++		goto err_kat_scratch;
++
++	priv->sa_table = knod_alloc_mem(priv->knod,
++					ALIGN(KNOD_IPSEC_SA_BO_SIZE,
++					      8 * PAGE_SIZE),
++					KFD_IOC_ALLOC_MEM_FLAGS_VRAM |
++					KFD_IOC_ALLOC_MEM_FLAGS_WRITABLE |
++					KFD_IOC_ALLOC_MEM_FLAGS_COHERENT);
++	if (IS_ERR(priv->sa_table)) {
++		err = PTR_ERR(priv->sa_table);
++		priv->sa_table = NULL;
++		goto err_rxq;
++	}
++	memset(priv->sa_table->kaddr, 0, KNOD_IPSEC_SA_BO_SIZE);
++	pr_info("knod_ipsec: sa_table gaddr=0x%llx kaddr=%p size=%u\n",
++		priv->sa_table->gaddr, priv->sa_table->kaddr,
++		(u32)KNOD_IPSEC_SA_BO_SIZE);
++
++	err = knod_ipsec_disp_create_all(priv);
++	if (err)
++		goto err_sa_table;
++
++	ipsec_priv = priv;
++	knodev->post_copy = knod_ipsec_post_copy;
++	knod_ipsec_debugfs_init(priv);
++	pr_info("knod_ipsec: initialized on %s (gfx%d, single dispatcher)\n",
++		netdev_name(knodev->netdev), priv->isa_version);
 +	return 0;
-+}
 +
-+/* Feature deselect: free the BPF GPU compute resources. */
-+static void knod_bpf_deactivate(struct knod_dev *knodev)
-+{
-+	struct knod_bpf_priv *priv = knodev->accel->xdp.priv;
-+
-+	knod_priv_exit(priv);
++err_sa_table:
++	knod_free_mem(priv->knod, priv->sa_table);
++	priv->sa_table = NULL;
++err_rxq:
++	knod_ipsec_rxq_exit_all(priv);
++err_kat_scratch:
++	knod_free_mem(priv->knod, priv->kat_scratch);
++err_works:
++	knod_ipsec_work_pool_free(priv);
++err_ttables:
++	knod_gcm_free_tables(priv->knod, priv->t_tables);
++err_ctx:
++	priv->knod = NULL;
++err_stats:
++	free_percpu(priv->stats);
++err_priv:
++	kvfree(priv);
 +	module_put(THIS_MODULE);
++	return err;
 +}
 +
-+/* True while a user XDP prog or offloaded map is still bound to this accel. */
-+static bool knod_bpf_busy(struct knod_dev *knodev)
++static void knod_ipsec_nod_exit(struct knod_dev *knodev)
 +{
-+	struct knod_accel *accel = knodev->accel;
-+	struct knod_bpf_priv *priv = accel->xdp.priv;
++	struct knod_ipsec_priv *priv = ipsec_priv;
++	int i;
++
++	if (!priv)
++		return;
++
++	knod_ipsec_debugfs_exit(priv);
++
++	/*
++	 * Publish the NULL and wait a grace period before freeing: the
++	 * softirq RX reader (knod_ipsec_post_copy) samples ipsec_priv and must
++	 * not touch it once it is freed.  Runs under rtnl (feature_set/detach),
++	 * so the synchronize_net() is expedited.
++	 */
++	knodev->post_copy = NULL;
++	WRITE_ONCE(ipsec_priv, NULL);
++	synchronize_net();
++
++	knod_ipsec_disp_destroy_all(priv);
++
++	/* Free any leftover slots (should be none if xfrm tore down SAs). */
++	mutex_lock(&priv->slot_lock);
++	for (i = 0; i < KNOD_IPSEC_NR_SA; i++) {
++		struct knod_ipsec_sa_slot *slot = &priv->slots[i];
++
++		if (!slot->active && !slot->key_mem)
++			continue;
++		if (slot->replay_mem)
++			knod_free_mem(priv->knod, slot->replay_mem);
++		if (slot->htable_mem)
++			knod_free_mem(priv->knod, slot->htable_mem);
++		if (slot->key_mem)
++			knod_free_mem(priv->knod, slot->key_mem);
++		memset(slot, 0, sizeof(*slot));
++	}
++	xa_destroy(&priv->spi_to_slot);
++	mutex_unlock(&priv->slot_lock);
++
++	knod_ipsec_work_pool_free(priv);
++
++	knod_ipsec_rxq_exit_all(priv);
++
++	if (priv->kat_scratch) {
++		knod_free_mem(priv->knod, priv->kat_scratch);
++		priv->kat_scratch = NULL;
++	}
++	if (priv->sa_table)
++		knod_free_mem(priv->knod, priv->sa_table);
++	if (priv->t_tables)
++		knod_gcm_free_tables(priv->knod, priv->t_tables);
++	/* knod context is owned by NOD core (knod_attach), don't free */
++	priv->knod = NULL;
++	if (priv->stats)
++		free_percpu(priv->stats);
++
++	kvfree(priv);
++	module_put(THIS_MODULE);
++	pr_info("knod_ipsec: torn down\n");
++}
++
++/* True while an offloaded xfrm SA is still bound to this accel. */
++static bool knod_ipsec_nod_busy(struct knod_dev *knodev)
++{
++	struct knod_ipsec_priv *priv = ipsec_priv;
 +
 +	if (!priv)
 +		return false;
-+	return READ_ONCE(priv->prog) || !list_empty(&accel->xdp.bound_maps);
++	return !xa_empty(&priv->spi_to_slot);
 +}
 +
-+static void __knod_accel_xdp_exit(struct knod_accel *accel,
-+				  struct knod_bpf_priv *priv)
++static int knod_ipsec_disp_create_all(struct knod_ipsec_priv *priv)
 +{
-+	/* GPU compute buffers are freed by ->deactivate(); free the rest. */
-+	memset(&accel->xdp, 0, sizeof(struct knod_accel_xdp));
-+	accel->flags &= ~KNOD_FLAGS_XDP;
-+	list_del(&priv->list);
-+	kfree(priv);
-+}
++	int d, i;
 +
-+static struct knod_insn_meta *knod_bpf_goto_meta(struct knod_prog *knod_prog,
-+						 struct knod_insn_meta *meta,
-+						 unsigned int insn_idx)
-+{
-+	unsigned int forward, backward, i;
++	for (d = 0; d < priv->nr_dispatchers; d++) {
++		struct knod_ipsec_dispatcher *disp = &priv->disp[d];
++		struct task_struct *p;
 +
-+	backward = meta->bpf_insn_idx - insn_idx;
-+	forward = insn_idx - meta->bpf_insn_idx;
-+
-+	if (min(forward, backward) > knod_prog->n_insns - insn_idx - 1) {
-+		backward = knod_prog->n_insns - insn_idx - 1;
-+		meta = knod_prog_last_meta(knod_prog);
++		p = kthread_create(knod_ipsec_dispatcher, disp,
++				   "knod_ipsec-d%d", d);
++		if (IS_ERR(p)) {
++			pr_warn("knod_ipsec: failed to create dispatcher %d: %ld\n",
++				d, PTR_ERR(p));
++			for (i = 0; i < d; i++) {
++				kthread_stop(priv->disp[i].kthread);
++				priv->disp[i].kthread = NULL;
++			}
++			return PTR_ERR(p);
++		}
++		kthread_park(p);
++		disp->kthread = p;
 +	}
-+	if (min(forward, backward) > insn_idx && backward > insn_idx) {
-+		forward = insn_idx;
-+		meta = knod_prog_first_meta(knod_prog);
-+	}
-+
-+	if (forward < backward)
-+		for (i = 0; i < forward; i++)
-+			meta = knod_meta_next(meta);
-+	else
-+		for (i = 0; i < backward; i++)
-+			meta = knod_meta_prev(meta);
-+
-+	return meta;
++	return 0;
 +}
 +
-+static int knod_bpf_check_stack_access(struct knod_prog *knod_prog,
-+				       struct knod_insn_meta *meta,
-+				       const struct bpf_reg_state *reg,
-+				       struct bpf_verifier_env *env)
++static void knod_ipsec_disp_destroy_all(struct knod_ipsec_priv *priv)
 +{
-+	s32 old_off, new_off;
++	int d;
 +
-+	if (reg->frameno != env->cur_state->curframe)
-+		meta->flags |= FLAG_INSN_PTR_CALLER_STACK_FRAME;
++	for (d = 0; d < priv->nr_dispatchers; d++) {
++		struct knod_ipsec_dispatcher *disp = &priv->disp[d];
 +
-+	if (!tnum_is_const(reg->var_off)) {
-+		knod_jit_dbg(" variable ptr stack access\n");
-+		return -EINVAL;
++		if (disp->kthread) {
++			kthread_stop(disp->kthread);
++			disp->kthread = NULL;
++		}
 +	}
-+
-+	if (meta->ptr.type == NOT_INIT)
-+		return 0;
-+
-+	old_off = meta->ptr.var_off.value;
-+	new_off = reg->var_off.value;
-+
-+	meta->ptr_not_const |= old_off != new_off;
-+
-+	if (!meta->ptr_not_const)
-+		return 0;
-+
-+	if (old_off % 4 == new_off % 4)
-+		return 0;
-+
-+	knod_jit_dbg(" stack access changed location was:%d is:%d\n",
-+		old_off, new_off);
-+	return -EINVAL;
 +}
 +
-+static struct knod_insn_meta *
-+knod_bpf_lookup_prev_meta_by_dreg(struct knod_prog *knod_prog,
-+				  struct knod_insn_meta *meta,
-+				  int dreg_id)
++static void knod_ipsec_nod_start(struct knod_dev *knodev)
 +{
-+	list_for_each_entry_continue_reverse(meta, &knod_prog->insns, l) {
-+		if (!is_mbpf_alu(meta) &&
-+		    !is_mbpf_load(meta) &&
-+		    !is_mbpf_store(meta))
++	struct knod_ipsec_priv *priv = ipsec_priv;
++	int base_rx, rem_rx;
++	int off_rx;
++	struct knod *knod;
++	int d, nr_rxq;
++
++	if (!priv || READ_ONCE(priv->running))
++		return;
++
++	knod = priv->knod;
++
++	/* Partition RX queues across dispatchers. Each disp
++	 * owns a contiguous range of queues so the per-SPSC single-
++	 * consumer invariant holds without cross-dispatcher locking.
++	 * Leftover (when the total isn't a multiple of nr_dispatchers)
++	 * lands on the first few disps, one extra each.
++	 */
++	nr_rxq = knodev->netdev ? knodev->netdev->real_num_rx_queues : 0;
++	if (nr_rxq > KNOD_SPSC_MAX)
++		nr_rxq = KNOD_SPSC_MAX;
++	if (nr_rxq > knod->channels)
++		nr_rxq = knod->channels;
++	if (nr_rxq < 0)
++		nr_rxq = 0;
++
++	base_rx = nr_rxq / priv->nr_dispatchers;
++	rem_rx  = nr_rxq % priv->nr_dispatchers;
++	off_rx = 0;
++
++	for (d = 0; d < priv->nr_dispatchers; d++) {
++		struct knod_ipsec_dispatcher *disp = &priv->disp[d];
++		int n_rx = base_rx + (d < rem_rx ? 1 : 0);
++
++		disp->rxq_first = off_rx;
++		disp->rxq_count = n_rx;
++		off_rx += n_rx;
++	}
++
++	WRITE_ONCE(priv->running, true);
++	for (d = 0; d < priv->nr_dispatchers; d++) {
++		struct knod_ipsec_dispatcher *disp = &priv->disp[d];
++
++		if (!disp->kthread)
 +			continue;
-+		if (meta->insn.dst_reg == dreg_id)
-+			return meta;
++		kthread_unpark(disp->kthread);
++		pr_info("knod_ipsec: disp[%d] started rxq[%d..%d) kaql=%d\n",
++			d, disp->rxq_first,
++			disp->rxq_first + disp->rxq_count,
++			disp->kaql_idx);
 +	}
-+
-+	return NULL;
 +}
 +
-+static int knod_bpf_check_ptr(struct knod_prog *knod_prog,
-+			      struct knod_insn_meta *meta,
-+			      struct bpf_verifier_env *env, u8 reg_no)
++static void knod_ipsec_nod_stop(struct knod_dev *knodev)
 +{
-+	const struct bpf_reg_state *reg = cur_regs(env) + reg_no;
-+	int err;
++	struct knod_ipsec_priv *priv = ipsec_priv;
++	int d;
 +
-+	if (reg->type != PTR_TO_CTX &&
-+	    reg->type != PTR_TO_STACK &&
-+	    reg->type != PTR_TO_MAP_VALUE &&
-+	    reg->type != PTR_TO_PACKET) {
-+		knod_jit_dbg(" unsupported ptr type: %d\n", reg->type);
-+		return -EINVAL;
++	if (!priv || !READ_ONCE(priv->running))
++		return;
++
++	WRITE_ONCE(priv->running, false);
++	for (d = 0; d < priv->nr_dispatchers; d++) {
++		struct knod_ipsec_dispatcher *disp = &priv->disp[d];
++
++		if (!disp->kthread)
++			continue;
++		kthread_park(disp->kthread);
 +	}
-+
-+	if (reg->type == PTR_TO_STACK) {
-+		err = knod_bpf_check_stack_access(knod_prog, meta, reg, env);
-+		if (err)
-+			return err;
-+	}
-+
-+	if (meta->ptr.type != NOT_INIT && meta->ptr.type != reg->type) {
-+		knod_jit_dbg(" ptr type changed for instruction %d -> %d\n",
-+			meta->ptr.type,
-+			reg->type);
-+		return -EINVAL;
-+	}
-+
-+	meta->ptr = *reg;
-+
-+	return 0;
 +}
 +
-+static int knod_bpf_update_ptr_off(struct knod_prog *knod_prog,
-+				   struct knod_insn_meta *meta,
-+				   struct bpf_verifier_env *env)
-+{
-+	struct knod_bpf_reg_state *sreg = &meta->sreg;
-+	struct knod_bpf_reg_state *dreg = &meta->dreg;
-+	struct knod_insn_meta *prev_meta;
-+
-+	if (is_mbpf_load(meta)) {
-+		if (sreg->reg.type == PTR_TO_PACKET ||
-+		    sreg->reg.type == PTR_TO_STACK) {
-+			prev_meta = knod_bpf_lookup_prev_meta_by_dreg(
-+				knod_prog, meta, meta->insn.src_reg);
-+			if (!prev_meta) {
-+				knod_jit_dbg(" Invalid\n");
-+				return -EINVAL;
-+			}
-+			if (sreg->reg.type == PTR_TO_PACKET)
-+				sreg->packet_off = prev_meta->dreg.packet_off;
-+			else
-+				sreg->stack_off = prev_meta->dreg.stack_off;
-+		}
-+	} else if (is_mbpf_store(meta)) {
-+		if (dreg->reg.type == PTR_TO_PACKET ||
-+		    dreg->reg.type == PTR_TO_PACKET) {
-+			prev_meta = knod_bpf_lookup_prev_meta_by_dreg(
-+				knod_prog, meta, meta->insn.dst_reg);
-+			if (!prev_meta) {
-+				knod_jit_dbg(" Invalid\n");
-+				return -EINVAL;
-+			}
-+			if (dreg->reg.type == PTR_TO_PACKET)
-+				dreg->packet_off = prev_meta->dreg.packet_off;
-+			else
-+				dreg->stack_off = prev_meta->dreg.stack_off;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+static int knod_bpf_check_store(struct knod_prog *knod_prog,
-+				struct knod_insn_meta *meta,
-+				struct bpf_verifier_env *env)
-+{
-+	const struct bpf_reg_state *reg = cur_regs(env) + meta->insn.dst_reg;
-+
-+	if (reg->type == PTR_TO_CTX) {
-+		if (knod_prog->type == BPF_PROG_TYPE_XDP) {
-+			/* XDP ctx accesses must be 4B in size */
-+			switch (meta->insn.off) {
-+			case offsetof(struct xdp_md, rx_queue_index):
-+				knod_jit_dbg(" queue selection not supported by FW\n");
-+				return -EOPNOTSUPP;
-+			}
-+		}
-+		knod_jit_dbg(" unsupported store to context field\n");
-+		return -EOPNOTSUPP;
-+	}
-+
-+	return knod_bpf_check_ptr(knod_prog, meta, env, meta->insn.dst_reg);
-+}
-+
-+/* NOTE:
-+ * knod_bpf_lookup_prev_meta_by_dreg(), src_reg vs dst_reg ???????/
++/* ========================================================================
++ * Phase 3: fused RX shader load + dispatch
++ * ========================================================================
++ *
++ * The fused RX shader parses ESP, resolves the SA via SPI lookup, and
++ * (in follow-up work) runs AES-GCM decrypt/ICV. The resulting inner
++ * packet lives in VRAM; the CPU finish worker SDMA-copies it into a
++ * per-queue delivery-pool page and publishes a knod_pass_desc onto the
++ * framework pass_pending ring. Anti-replay and skb build happen in the NIC
++ * dd NAPI consumer - the shader does neither. See knod_ipsec.h for the
++ * full data-flow description.
 + */
-+static int knod_bpf_check_alu(struct knod_prog *knod_prog,
-+			      struct knod_insn_meta *meta,
-+			      struct bpf_verifier_env *env)
++
++static int knod_ipsec_init_shader_gfx9(struct knod *knod)
 +{
-+	const struct bpf_reg_state *sreg = cur_regs(env) + meta->insn.src_reg;
-+	const struct bpf_reg_state *dreg = cur_regs(env) + meta->insn.dst_reg;
-+	struct knod_bpf_reg_state *ksreg = &meta->sreg;
-+	struct knod_bpf_reg_state *kdreg = &meta->dreg;
-+	struct knod_insn_meta *prev_meta;
-+	int imm;
++	struct compute_pgm_rsrc1 rsrc1 = {};
++	struct compute_pgm_rsrc2 rsrc2 = {};
++	struct kernel_descriptor *kd = knod->kernels[0]->kaddr;
++	struct code_properties props = {};
++	int shader_size;
 +
-+	meta->umin_src = min(meta->umin_src, reg_umin(sreg));
-+	meta->umax_src = max(meta->umax_src, reg_umax(sreg));
-+	meta->umin_dst = min(meta->umin_dst, reg_umin(dreg));
-+	meta->umax_dst = max(meta->umax_dst, reg_umax(dreg));
++	memset(kd, 0, sizeof(*kd));
++	kd->kernel_code_entry_byte_offset = 1024;
++	kd->group_segment_fixed_size = KNOD_GCM_T_TABLES_TOTAL;
 +
-+	/* AMDGPU doesn't have divide instructions, we support divide by
-+	 * constant through reciprocal multiplication. Given NFP support
-+	 * multiplication no bigger than u32, we'd require divisor and dividend
-+	 * no bigger than that as well.
++	/* VGPRs: (gran+1)*4. Need v0-v42 (43 VGPRs) -> gran=12 -> 52.
++	 * SGPRs: (gran+1)*8. Need s0-s59 (SR_RK2) -> gran=7 -> 64.
++	 */
++	rsrc1.granulated_workitem_vgpr_count = 12;
++	rsrc1.granulated_wavefront_sgpr_count = 7;
++	rsrc1.float_denorm_mode_32 = 3;
++	rsrc1.float_denorm_mode_16_64 = 3;
++	rsrc1.enable_dx10_clamp = 1;
++	rsrc1.enable_ieee_mode = 1;
++
++	rsrc2.user_sgpr_count = 15;
++	rsrc2.enable_sgpr_workgroup_id_x = 1;
++	rsrc2.enable_sgpr_workgroup_id_y = 1;
++	rsrc2.enable_sgpr_workgroup_id_z = 1;
++	rsrc2.granulated_lds_size = 8;
++
++	props.enable_sgpr_private_segment_buffer = 1;
++	props.enable_sgpr_dispatch_ptr = 1;
++	props.enable_sgpr_queue_ptr = 1;
++	props.enable_sgpr_kernarg_segment_ptr = 1;
++	props.enable_sgpr_dispatch_id = 1;
++	props.enable_sgpr_flat_scratch_init = 1;
++	props.enable_sgpr_private_segment_size = 1;
++
++	memcpy(&kd->compute_pgm_rsrc1, &rsrc1, sizeof(rsrc1));
++	memcpy(&kd->compute_pgm_rsrc2, &rsrc2, sizeof(rsrc2));
++	memcpy(&kd->code_properties, &props, sizeof(props));
++
++	memset(knod->kernels[0]->kaddr + kd->kernel_code_entry_byte_offset,
++	       0, (PAGE_SIZE << 4) - kd->kernel_code_entry_byte_offset);
++	shader_size = kfd_ipsec_gen_fused_shader_gfx9(
++		knod->kernels[0]->kaddr + kd->kernel_code_entry_byte_offset);
++	pr_debug("knod_ipsec: GFX9 RX shader generated, %d bytes\n",
++		 shader_size);
++
++	return shader_size;
++}
++
++static int knod_ipsec_init_shader_gfx10(struct knod *knod)
++{
++	struct compute_pgm_rsrc1 rsrc1 = {};
++	struct compute_pgm_rsrc2 rsrc2 = {};
++	struct kernel_descriptor *kd = knod->kernels[0]->kaddr;
++	struct code_properties props = {};
++	int shader_size;
++	u32 rsrc1_raw;
++
++	memset(kd, 0, sizeof(*kd));
++	kd->kernel_code_entry_byte_offset = 1024;
++	kd->group_segment_fixed_size = KNOD_GCM_T_TABLES_TOTAL;
++
++	/* VGPRs: Wave64, granularity=4. (12+1)*4 = 52 VGPRs.
++	 * Shader uses v0-v42 (VR_SAVE_ESP_OFF).
 +	 *
-+	 * Also eBPF doesn't support signed divide and has enforced this on C
-+	 * language level by failing compilation. However LLVM assembler hasn't
-+	 * enforced this, so it is possible for negative constant to leak in as
-+	 * a BPF_K operand through assembly code, we reject such cases as well.
++	 * SGPRs: RDNA2 ignores granulated_wavefront_sgpr_count -
++	 * SGPRs come from a flat 106-entry pool. Field is reserved
++	 * and must be 0 (non-zero corrupts RSRC1 interpretation on
++	 * some RDNA2 steppings, causing SQC inst-fetch faults).
 +	 */
-+	if (is_mbpf_div(meta)) {
-+		if (meta->umax_dst > U32_MAX) {
-+			knod_jit_dbg(" dividend is not within u32 value range\n");
-+			return -EINVAL;
-+		}
-+		if (mbpf_src(meta) == BPF_X) {
-+			if (meta->umin_src != meta->umax_src) {
-+				knod_jit_dbg(" divisor is not constant\n");
-+				return -EINVAL;
-+			}
-+			if (meta->umax_src > U32_MAX) {
-+				knod_jit_dbg(" divisor is not within u32 value range\n");
-+				return -EINVAL;
-+			}
-+		}
-+		if (mbpf_src(meta) == BPF_K && meta->insn.imm < 0) {
-+			knod_jit_dbg(" divide by negative constant is not supported\n");
-+			return -EINVAL;
-+		}
-+	}
-+
-+	if (dreg->type == PTR_TO_STACK) {
-+		imm = meta->insn.imm;
-+
-+		switch (meta->insn.code) {
-+		/* ALU
-+		 * If a destination register contains a pointer of STACK,
-+		 * offset should not be minus.
-+		 */
-+		case BPF_ALU | BPF_MOV | BPF_X:
-+		case BPF_ALU64 | BPF_MOV | BPF_X:
-+			//r[d] = r[s];
-+			kdreg->stack_off = ksreg->stack_off;
-+			break;
-+		case BPF_ALU | BPF_MOV | BPF_K:
-+		case BPF_ALU64 | BPF_MOV | BPF_K:
-+			//r[d] = imm;
-+			kdreg->stack_off = ksreg->stack_off;
-+			break;
-+		case BPF_ALU | BPF_XOR | BPF_X:
-+		case BPF_ALU64 | BPF_XOR | BPF_X:
-+			//r[d] ^= r[s];
-+			knod_jit_dbg(" PTR_TO_STACK with BPF_X is not supported\n");
-+			return -EINVAL;
-+		case BPF_ALU | BPF_XOR | BPF_K:
-+		case BPF_ALU64 | BPF_XOR | BPF_K:
-+			//r[d] ^= imm;
-+			prev_meta = knod_bpf_lookup_prev_meta_by_dreg(
-+				knod_prog, meta, meta->insn.dst_reg);
-+			if (!prev_meta) {
-+				knod_jit_dbg(" Invalid\n");
-+				return -EINVAL;
-+			}
-+			kdreg->stack_off = prev_meta->dreg.stack_off ^ imm;
-+			break;
-+		case BPF_ALU | BPF_MOD | BPF_X:
-+		case BPF_ALU64 | BPF_MOD | BPF_X:
-+			//r[d] %= r[s];
-+			knod_jit_dbg(" PTR_TO_STACK with BPF_X is not supported\n");
-+			return -EINVAL;
-+		case BPF_ALU | BPF_MOD | BPF_K:
-+		case BPF_ALU64 | BPF_MOD | BPF_K:
-+			//r[d] %= imm;
-+			prev_meta = knod_bpf_lookup_prev_meta_by_dreg(
-+				knod_prog, meta, meta->insn.dst_reg);
-+			if (!prev_meta) {
-+				knod_jit_dbg(" Invalid\n");
-+				return -EINVAL;
-+			}
-+			kdreg->stack_off = prev_meta->dreg.stack_off % imm;
-+			break;
-+		case BPF_ALU | BPF_AND | BPF_X:
-+		case BPF_ALU64 | BPF_AND | BPF_X:
-+			//r[d] &= r[s];
-+			knod_jit_dbg(" PTR_TO_STACK with BPF_X is not supported\n");
-+			return -EINVAL;
-+		case BPF_ALU | BPF_AND | BPF_K:
-+		case BPF_ALU64 | BPF_AND | BPF_K:
-+			//r[d] &= imm;
-+			prev_meta = knod_bpf_lookup_prev_meta_by_dreg(
-+				knod_prog, meta, meta->insn.dst_reg);
-+			if (!prev_meta) {
-+				knod_jit_dbg(" Invalid\n");
-+				return -EINVAL;
-+			}
-+			kdreg->stack_off = prev_meta->dreg.stack_off & imm;
-+			break;
-+		case BPF_ALU | BPF_OR | BPF_X:
-+		case BPF_ALU64 | BPF_OR | BPF_X:
-+			//r[d] |= r[s];
-+			knod_jit_dbg(" PTR_TO_STACK with BPF_X is not supported\n");
-+			return -EINVAL;
-+		case BPF_ALU | BPF_OR | BPF_K:
-+		case BPF_ALU64 | BPF_OR | BPF_K:
-+			//r[d] |= imm;
-+			prev_meta = knod_bpf_lookup_prev_meta_by_dreg(
-+				knod_prog, meta, meta->insn.dst_reg);
-+			if (!prev_meta) {
-+				knod_jit_dbg(" Invalid\n");
-+				return -EINVAL;
-+			}
-+			kdreg->stack_off = prev_meta->dreg.stack_off | imm;
-+			break;
-+		case BPF_ALU | BPF_ADD | BPF_X:
-+		case BPF_ALU64 | BPF_ADD | BPF_X:
-+			//r[d] += r[s];
-+			knod_jit_dbg(" PTR_TO_STACK with BPF_X is not supported\n");
-+			return -EINVAL;
-+		case BPF_ALU | BPF_ADD | BPF_K:
-+		case BPF_ALU64 | BPF_ADD | BPF_K:
-+			//r[d] += imm;
-+			prev_meta = knod_bpf_lookup_prev_meta_by_dreg(
-+				knod_prog, meta, meta->insn.dst_reg);
-+			if (!prev_meta) {
-+				knod_jit_dbg(" Invalid\n");
-+				return -EINVAL;
-+			}
-+			kdreg->stack_off = prev_meta->dreg.stack_off + imm;
-+			break;
-+		case BPF_ALU | BPF_SUB | BPF_X:
-+		case BPF_ALU64 | BPF_SUB | BPF_X:
-+			//r[d] -= r[s];
-+			knod_jit_dbg(" PTR_TO_STACK with BPF_X is not supported\n");
-+			return -EINVAL;
-+		case BPF_ALU | BPF_SUB | BPF_K:
-+		case BPF_ALU64 | BPF_SUB | BPF_K:
-+			//r[d] -= imm;
-+			prev_meta = knod_bpf_lookup_prev_meta_by_dreg(
-+				knod_prog, meta, meta->insn.dst_reg);
-+			if (!prev_meta) {
-+				knod_jit_dbg(" Invalid\n");
-+				return -EINVAL;
-+			}
-+			kdreg->stack_off = prev_meta->dreg.stack_off - imm;
-+			break;
-+		case BPF_ALU | BPF_MUL | BPF_X:
-+		case BPF_ALU64 | BPF_MUL | BPF_X:
-+			//r[d] *= r[s];
-+			knod_jit_dbg(" PTR_TO_STACK with BPF_X is not supported\n");
-+			return -EINVAL;
-+		case BPF_ALU | BPF_MUL | BPF_K:
-+		case BPF_ALU64 | BPF_MUL | BPF_K:
-+			//r[d] *= imm;
-+			prev_meta = knod_bpf_lookup_prev_meta_by_dreg(
-+				knod_prog, meta, meta->insn.dst_reg);
-+			if (!prev_meta) {
-+				knod_jit_dbg(" Invalid\n");
-+				return -EINVAL;
-+			}
-+			kdreg->stack_off = prev_meta->dreg.stack_off * imm;
-+			break;
-+		case BPF_ALU | BPF_DIV | BPF_X:
-+		case BPF_ALU64 | BPF_DIV | BPF_X:
-+			//r[d] /= r[s];
-+			knod_jit_dbg(" PTR_TO_STACK with BPF_X is not supported\n");
-+			return -EINVAL;
-+		case BPF_ALU | BPF_DIV | BPF_K:
-+		case BPF_ALU64 | BPF_DIV | BPF_K:
-+			//r[d] /= imm;
-+			prev_meta = knod_bpf_lookup_prev_meta_by_dreg(
-+				knod_prog, meta, meta->insn.dst_reg);
-+			if (!prev_meta) {
-+				knod_jit_dbg(" Invalid\n");
-+				return -EINVAL;
-+			}
-+			kdreg->stack_off = prev_meta->dreg.stack_off / imm;
-+			break;
-+		case BPF_ALU | BPF_NEG:
-+		case BPF_ALU64 | BPF_NEG:
-+			//r[d] = -r[d];
-+			break;
-+		case BPF_ALU | BPF_LSH | BPF_X:
-+		case BPF_ALU64 | BPF_LSH | BPF_X:
-+			//r[d] <<= r[s];
-+			knod_jit_dbg(" PTR_TO_STACK with BPF_X is not supported\n");
-+			return -EINVAL;
-+		case BPF_ALU | BPF_LSH | BPF_K:
-+		case BPF_ALU64 | BPF_LSH | BPF_K:
-+			//r[d] <<= imm;
-+			prev_meta = knod_bpf_lookup_prev_meta_by_dreg(
-+				knod_prog, meta, meta->insn.dst_reg);
-+			if (!prev_meta) {
-+				knod_jit_dbg(" Invalid\n");
-+				return -EINVAL;
-+			}
-+			kdreg->stack_off = prev_meta->dreg.stack_off << imm;
-+			break;
-+		case BPF_ALU | BPF_RSH | BPF_X:
-+		case BPF_ALU64 | BPF_RSH | BPF_X:
-+			//r[d] >>= r[s];
-+			knod_jit_dbg(" PTR_TO_STACK with BPF_X is not supported\n");
-+			return -EINVAL;
-+		case BPF_ALU | BPF_RSH | BPF_K:
-+		case BPF_ALU64 | BPF_RSH | BPF_K:
-+			//r[d] >>= imm;
-+			prev_meta = knod_bpf_lookup_prev_meta_by_dreg(
-+				knod_prog, meta, meta->insn.dst_reg);
-+			if (!prev_meta) {
-+				knod_jit_dbg(" Invalid\n");
-+				return -EINVAL;
-+			}
-+			kdreg->stack_off = prev_meta->dreg.stack_off >> imm;
-+			break;
-+		case BPF_ALU | BPF_ARSH | BPF_X:
-+		case BPF_ALU64 | BPF_ARSH | BPF_X:
-+			//r[d] >>= r[s];
-+			knod_jit_dbg(" PTR_TO_STACK with BPF_X is not supported\n");
-+			return -EINVAL;
-+		case BPF_ALU | BPF_ARSH | BPF_K:
-+		case BPF_ALU64 | BPF_ARSH | BPF_K:
-+			//r[d] >>= imm;
-+			prev_meta = knod_bpf_lookup_prev_meta_by_dreg(
-+				knod_prog, meta, meta->insn.dst_reg);
-+			if (!prev_meta) {
-+				knod_jit_dbg(" Invalid\n");
-+				return -EINVAL;
-+			}
-+			kdreg->stack_off = prev_meta->dreg.stack_off >> imm;
-+			break;
-+		}
-+		knod_jit_dbg(" %d: dreg->stack_off = %d\n", meta->bpf_insn_idx,
-+			kdreg->stack_off);
-+	}
-+
-+	if (dreg->type == PTR_TO_PACKET) {
-+		imm = meta->insn.imm;
-+
-+		switch (meta->insn.code) {
-+		/* ALU
-+		 * If a destination register contains a pointer of STACK,
-+		 * offset should not be minus.
-+		 */
-+		case BPF_ALU | BPF_MOV | BPF_X:
-+		case BPF_ALU64 | BPF_MOV | BPF_X:
-+			//r[d] = r[s];
-+			kdreg->packet_off = ksreg->packet_off;
-+			break;
-+		case BPF_ALU | BPF_MOV | BPF_K:
-+		case BPF_ALU64 | BPF_MOV | BPF_K:
-+			//r[d] = imm;
-+			kdreg->packet_off = ksreg->packet_off;
-+			break;
-+		case BPF_ALU | BPF_XOR | BPF_X:
-+		case BPF_ALU64 | BPF_XOR | BPF_X:
-+			//r[d] ^= r[s];
-+			knod_jit_dbg(" PTR_TO_STACK with BPF_X is not supported\n");
-+			return -EINVAL;
-+		case BPF_ALU | BPF_XOR | BPF_K:
-+		case BPF_ALU64 | BPF_XOR | BPF_K:
-+			//r[d] ^= imm;
-+			prev_meta = knod_bpf_lookup_prev_meta_by_dreg(
-+				knod_prog, meta, meta->insn.dst_reg);
-+			if (!prev_meta) {
-+				knod_jit_dbg(" Invalid\n");
-+				return -EINVAL;
-+			}
-+			kdreg->packet_off = prev_meta->dreg.packet_off ^ imm;
-+			break;
-+		case BPF_ALU | BPF_MOD | BPF_X:
-+		case BPF_ALU64 | BPF_MOD | BPF_X:
-+			//r[d] %= r[s];
-+			knod_jit_dbg(" PTR_TO_STACK with BPF_X is not supported\n");
-+			return -EINVAL;
-+		case BPF_ALU | BPF_MOD | BPF_K:
-+		case BPF_ALU64 | BPF_MOD | BPF_K:
-+			//r[d] %= imm;
-+			prev_meta = knod_bpf_lookup_prev_meta_by_dreg(
-+				knod_prog, meta, meta->insn.dst_reg);
-+			if (!prev_meta) {
-+				knod_jit_dbg(" Invalid\n");
-+				return -EINVAL;
-+			}
-+			kdreg->packet_off = prev_meta->dreg.packet_off % imm;
-+			break;
-+		case BPF_ALU | BPF_AND | BPF_X:
-+		case BPF_ALU64 | BPF_AND | BPF_X:
-+			//r[d] &= r[s];
-+			knod_jit_dbg(" PTR_TO_STACK with BPF_X is not supported\n");
-+			return -EINVAL;
-+		case BPF_ALU | BPF_AND | BPF_K:
-+		case BPF_ALU64 | BPF_AND | BPF_K:
-+			//r[d] &= imm;
-+			prev_meta = knod_bpf_lookup_prev_meta_by_dreg(
-+				knod_prog, meta, meta->insn.dst_reg);
-+			if (!prev_meta) {
-+				knod_jit_dbg(" Invalid\n");
-+				return -EINVAL;
-+			}
-+			kdreg->packet_off = prev_meta->dreg.packet_off & imm;
-+			break;
-+		case BPF_ALU | BPF_OR | BPF_X:
-+		case BPF_ALU64 | BPF_OR | BPF_X:
-+			//r[d] |= r[s];
-+			knod_jit_dbg(" PTR_TO_STACK with BPF_X is not supported\n");
-+			return -EINVAL;
-+		case BPF_ALU | BPF_OR | BPF_K:
-+		case BPF_ALU64 | BPF_OR | BPF_K:
-+			//r[d] |= imm;
-+			prev_meta = knod_bpf_lookup_prev_meta_by_dreg(
-+				knod_prog, meta, meta->insn.dst_reg);
-+			if (!prev_meta) {
-+				knod_jit_dbg(" Invalid\n");
-+				return -EINVAL;
-+			}
-+			kdreg->packet_off = prev_meta->dreg.packet_off | imm;
-+			break;
-+		case BPF_ALU | BPF_ADD | BPF_X:
-+		case BPF_ALU64 | BPF_ADD | BPF_X:
-+			//r[d] += r[s];
-+			knod_jit_dbg(" PTR_TO_STACK with BPF_X is not supported\n");
-+			return -EINVAL;
-+		case BPF_ALU | BPF_ADD | BPF_K:
-+		case BPF_ALU64 | BPF_ADD | BPF_K:
-+			//r[d] += imm;
-+			prev_meta = knod_bpf_lookup_prev_meta_by_dreg(
-+				knod_prog, meta, meta->insn.dst_reg);
-+			if (!prev_meta) {
-+				knod_jit_dbg(" Invalid\n");
-+				return -EINVAL;
-+			}
-+			kdreg->packet_off = prev_meta->dreg.packet_off + imm;
-+			break;
-+		case BPF_ALU | BPF_SUB | BPF_X:
-+		case BPF_ALU64 | BPF_SUB | BPF_X:
-+			//r[d] -= r[s];
-+			knod_jit_dbg(" PTR_TO_STACK with BPF_X is not supported\n");
-+			return -EINVAL;
-+		case BPF_ALU | BPF_SUB | BPF_K:
-+		case BPF_ALU64 | BPF_SUB | BPF_K:
-+			//r[d] -= imm;
-+			prev_meta = knod_bpf_lookup_prev_meta_by_dreg(
-+				knod_prog, meta, meta->insn.dst_reg);
-+			if (!prev_meta) {
-+				knod_jit_dbg(" Invalid\n");
-+				return -EINVAL;
-+			}
-+			kdreg->packet_off = prev_meta->dreg.packet_off - imm;
-+			break;
-+		case BPF_ALU | BPF_MUL | BPF_X:
-+		case BPF_ALU64 | BPF_MUL | BPF_X:
-+			//r[d] *= r[s];
-+			knod_jit_dbg(" PTR_TO_STACK with BPF_X is not supported\n");
-+			return -EINVAL;
-+		case BPF_ALU | BPF_MUL | BPF_K:
-+		case BPF_ALU64 | BPF_MUL | BPF_K:
-+			//r[d] *= imm;
-+			prev_meta = knod_bpf_lookup_prev_meta_by_dreg(
-+				knod_prog, meta, meta->insn.dst_reg);
-+			if (!prev_meta) {
-+				knod_jit_dbg(" Invalid\n");
-+				return -EINVAL;
-+			}
-+			kdreg->packet_off = prev_meta->dreg.packet_off * imm;
-+			break;
-+		case BPF_ALU | BPF_DIV | BPF_X:
-+		case BPF_ALU64 | BPF_DIV | BPF_X:
-+			//r[d] /= r[s];
-+			knod_jit_dbg(" PTR_TO_STACK with BPF_X is not supported\n");
-+			return -EINVAL;
-+		case BPF_ALU | BPF_DIV | BPF_K:
-+		case BPF_ALU64 | BPF_DIV | BPF_K:
-+			//r[d] /= imm;
-+			prev_meta = knod_bpf_lookup_prev_meta_by_dreg(
-+				knod_prog, meta, meta->insn.dst_reg);
-+			if (!prev_meta) {
-+				knod_jit_dbg(" Invalid\n");
-+				return -EINVAL;
-+			}
-+			kdreg->packet_off = prev_meta->dreg.packet_off / imm;
-+			break;
-+		case BPF_ALU | BPF_NEG:
-+		case BPF_ALU64 | BPF_NEG:
-+			//r[d] = -r[d];
-+			break;
-+		case BPF_ALU | BPF_LSH | BPF_X:
-+		case BPF_ALU64 | BPF_LSH | BPF_X:
-+			//r[d] <<= r[s];
-+			knod_jit_dbg(" PTR_TO_STACK with BPF_X is not supported\n");
-+			return -EINVAL;
-+		case BPF_ALU | BPF_LSH | BPF_K:
-+		case BPF_ALU64 | BPF_LSH | BPF_K:
-+			//r[d] <<= imm;
-+			prev_meta = knod_bpf_lookup_prev_meta_by_dreg(
-+				knod_prog, meta, meta->insn.dst_reg);
-+			if (!prev_meta) {
-+				knod_jit_dbg(" Invalid\n");
-+				return -EINVAL;
-+			}
-+			kdreg->packet_off = prev_meta->dreg.packet_off << imm;
-+			break;
-+		case BPF_ALU | BPF_RSH | BPF_X:
-+		case BPF_ALU64 | BPF_RSH | BPF_X:
-+			//r[d] >>= r[s];
-+			knod_jit_dbg(" PTR_TO_STACK with BPF_X is not supported\n");
-+			return -EINVAL;
-+		case BPF_ALU | BPF_RSH | BPF_K:
-+		case BPF_ALU64 | BPF_RSH | BPF_K:
-+			//r[d] >>= imm;
-+			prev_meta = knod_bpf_lookup_prev_meta_by_dreg(
-+				knod_prog, meta, meta->insn.dst_reg);
-+			if (!prev_meta) {
-+				knod_jit_dbg(" Invalid\n");
-+				return -EINVAL;
-+			}
-+			kdreg->packet_off = prev_meta->dreg.packet_off >> imm;
-+			break;
-+		case BPF_ALU | BPF_ARSH | BPF_X:
-+		case BPF_ALU64 | BPF_ARSH | BPF_X:
-+			//r[d] >>= r[s];
-+			knod_jit_dbg(" PTR_TO_STACK with BPF_X is not supported\n");
-+			return -EINVAL;
-+		case BPF_ALU | BPF_ARSH | BPF_K:
-+		case BPF_ALU64 | BPF_ARSH | BPF_K:
-+			//r[d] >>= imm;
-+			prev_meta = knod_bpf_lookup_prev_meta_by_dreg(
-+				knod_prog, meta, meta->insn.dst_reg);
-+			if (!prev_meta) {
-+				knod_jit_dbg(" Invalid\n");
-+				return -EINVAL;
-+			}
-+			kdreg->packet_off = prev_meta->dreg.packet_off >> imm;
-+			break;
-+		}
-+		knod_jit_dbg(" %d: dreg->packet_off = %d\n", meta->bpf_insn_idx,
-+			kdreg->packet_off);
-+	}
-+	return 0;
-+}
-+
-+static int knod_bpf_verify_insn(struct bpf_verifier_env *env,
-+				int insn_idx, int prev_insn)
-+{
-+	struct knod_prog *knod_prog = env->prog->aux->offload->dev_priv;
-+	const struct bpf_reg_state *sreg, *dreg, *kreg, *vreg;
-+	struct knod_insn_meta *meta = knod_prog->meta;
-+	struct knod_insn_meta *prev_meta;
-+	int err = 0;
-+
-+	meta = knod_bpf_goto_meta(knod_prog, meta, insn_idx);
-+	sreg = cur_regs(env) + meta->insn.src_reg;
-+	dreg = cur_regs(env) + meta->insn.dst_reg;
-+	knod_prog->meta = meta;
-+	meta->sreg.reg = *sreg;
-+	meta->dreg.reg = *dreg;
-+
-+	knod_bpf_update_ptr_off(knod_prog, meta, env);
-+
-+	if (meta->insn.src_reg >= MAX_BPF_REG ||
-+			meta->insn.dst_reg >= MAX_BPF_REG) {
-+		knod_jit_dbg(" program uses extended registers - jit hardening?\n");
-+		err = -EINVAL;
-+		goto out;
-+	}
-+
-+	if (is_mbpf_load(meta)) {
-+		err = knod_bpf_check_ptr(knod_prog, meta, env,
-+					 meta->insn.src_reg);
-+		goto out;
-+	}
-+	if (is_mbpf_store(meta)) {
-+		err = knod_bpf_check_store(knod_prog, meta, env);
-+		goto out;
-+	}
-+
-+	if (is_mbpf_map_call(meta)) {
-+		kreg = cur_regs(env) + 2;
-+		meta->kreg.reg = *kreg;
-+
-+		prev_meta = knod_bpf_lookup_prev_meta_by_dreg(knod_prog,
-+							      meta,
-+							      2);
-+		if (!prev_meta) {
-+			knod_jit_dbg(" Invalid\n");
-+			err = -EINVAL;
-+			goto out;
-+		}
-+		if (kreg->type == PTR_TO_PACKET)
-+			meta->kreg.packet_off = prev_meta->dreg.packet_off;
-+		else
-+			meta->kreg.stack_off = prev_meta->dreg.stack_off;
-+		if (knod_prog->max_stack_off > meta->kreg.stack_off)
-+			knod_prog->max_stack_off = meta->kreg.stack_off;
-+		if (knod_prog->max_packet_off < meta->kreg.packet_off)
-+			knod_prog->max_packet_off = meta->kreg.packet_off;
-+
-+		/* bpf_map_update_elem: track r3 (value pointer) */
-+		if (meta->insn.imm == 2) {
-+			vreg = cur_regs(env) + 3;
-+			meta->vreg.reg = *vreg;
-+
-+			prev_meta = knod_bpf_lookup_prev_meta_by_dreg(knod_prog,
-+								      meta,
-+								      3);
-+			if (!prev_meta) {
-+				knod_jit_dbg(" Invalid vreg\n");
-+				err = -EINVAL;
-+				goto out;
-+			}
-+			if (vreg->type == PTR_TO_PACKET)
-+				meta->vreg.packet_off =
-+					prev_meta->dreg.packet_off;
-+			else
-+				meta->vreg.stack_off =
-+					prev_meta->dreg.stack_off;
-+			if (knod_prog->max_stack_off > meta->vreg.stack_off)
-+				knod_prog->max_stack_off = meta->vreg.stack_off;
-+			if (knod_prog->max_packet_off < meta->vreg.packet_off)
-+				knod_prog->max_packet_off =
-+					meta->vreg.packet_off;
-+		}
-+	}
-+
-+	if (is_mbpf_alu(meta))
-+		err = knod_bpf_check_alu(knod_prog, meta, env);
-+
-+	/* less stack offset is bigger */
-+	if (knod_prog->max_stack_off > meta->sreg.stack_off)
-+		knod_prog->max_stack_off = meta->sreg.stack_off;
-+	if (knod_prog->max_stack_off > meta->dreg.stack_off)
-+		knod_prog->max_stack_off = meta->dreg.stack_off;
-+	if (knod_prog->max_packet_off < meta->sreg.packet_off)
-+		knod_prog->max_packet_off = meta->sreg.packet_off;
-+	if (knod_prog->max_packet_off < meta->dreg.packet_off)
-+		knod_prog->max_packet_off = meta->dreg.packet_off;
-+
-+out:
-+	if (err)
-+		pr_warn("knod_bpf: verifier rejected bpf insn %d (code 0x%02x off %d imm %d): %d\n",
-+			insn_idx, meta->insn.code, meta->insn.off,
-+			meta->insn.imm, err);
-+	return err;
-+}
-+
-+static int knod_bpf_finalize(struct bpf_verifier_env *env)
-+{
-+	return 0;
-+}
-+
-+static int knod_bpf_offload(struct knod_dev *knodev,
-+			    struct bpf_prog *prog, bool oldprog)
-+{
-+	struct knod_bpf_priv *priv = knodev->accel->xdp.priv;
-+
-+	WARN(!!knod_dev_offloaded(knodev) != oldprog,
-+	     "bad offload state, expected offload %sto be active",
-+	     oldprog ? "" : "not ");
-+
-+	WRITE_ONCE(priv->prog, prog);
-+	knod_dev_offload(knodev, prog);
-+
-+	/*
-+	 * Uninstalling the prog: reload the pass kernel now, while the prog's
-+	 * maps are still valid, so the worker stops dispatching prog code that
-+	 * is about to reference freed maps.
-+	 */
-+	if (!prog)
-+		knod_bpf_reload_pass(knodev);
-+
-+	return 0;
-+}
-+
-+static int knod_bpf_xdp_offload_prog(struct knod_dev *knodev,
-+				     struct netdev_bpf *bpf)
-+{
-+	if (!knod_dev_active(knodev) && !bpf->prog)
-+		return 0;
-+
-+	if (!knod_dev_active(knodev) && bpf->prog &&
-+	    knodev->accel->xdp.bpf_offloaded) {
-+		return -EBUSY;
-+	}
-+
-+	return knod_bpf_offload(knodev, bpf->prog, knod_dev_active(knodev));
-+}
-+
-+static int knod_bpf_xdp_set_prog(struct knod_dev *knodev,
-+				 struct netdev_bpf *bpf)
-+{
-+	int err;
-+
-+	if (bpf->command == XDP_SETUP_PROG_HW) {
-+		err = knod_bpf_xdp_offload_prog(knodev, bpf);
-+		if (err)
-+			return err;
-+	}
-+
-+	xdp_attachment_setup(&knodev->accel->xdp.xdp_hw, bpf);
-+
-+	return 0;
-+}
-+
-+static void knod_wait_vmcnt(struct knod_bpf_priv *priv,
-+			   struct knod_insn_meta *meta)
-+{
-+	knod_emit(priv, meta, s_waitcnt_vmcnt);
-+}
-+
-+static void knod_global_load_size_cache(struct knod_bpf_priv *priv,
-+					struct knod_insn_meta *meta,
-+					struct amdgcn_param32 *d,
-+					struct amdgcn_param32 s,
-+					int dst_idx, int start_off, int length)
-+{
-+	int off = start_off;
-+
-+	/* length is 4B aligned */
-+	while (length) {
-+		if (length >= 16) {
-+			knod_emit(priv, meta, global_load_dwordx4, d[dst_idx],
-+				  s, off);
-+			length -= 16;
-+			off += 16;
-+			dst_idx += 4;
-+		} else if (length >= 8) {
-+			knod_emit(priv, meta, global_load_dwordx2, d[dst_idx],
-+				  s, off);
-+			length -= 8;
-+			off += 8;
-+			dst_idx += 2;
-+		} else if (length >= 4) {
-+			knod_emit(priv, meta, global_load_dword, d[dst_idx],
-+				  s, off);
-+			length -= 4;
-+			off += 4;
-+			dst_idx += 1;
-+		}
-+	}
-+
-+	knod_wait_vmcnt(priv, meta);
-+}
-+
-+static void knod_global_store_size_cache(struct knod_bpf_priv *priv,
-+					 struct knod_insn_meta *meta,
-+					 struct amdgcn_param32 *d,
-+					 struct amdgcn_param32 s,
-+					 int dst_idx, int start_off, int length)
-+{
-+	int off = start_off;
-+
-+	/* length is 4B aligned */
-+	while (length) {
-+		if (length >= 16) {
-+			knod_emit(priv, meta, global_store_dwordx4, d[dst_idx],
-+				  s, off);
-+			length -= 16;
-+			off += 16;
-+			dst_idx += 4;
-+		} else if (length >= 8) {
-+			knod_emit(priv, meta, global_store_dwordx2, d[dst_idx],
-+				  s, off);
-+			length -= 8;
-+			off += 8;
-+			dst_idx += 2;
-+		} else if (length >= 4) {
-+			knod_emit(priv, meta, global_store_dword, d[dst_idx],
-+				  s, off);
-+			length -= 4;
-+			off += 4;
-+			dst_idx += 1;
-+		}
-+	}
-+
-+	knod_wait_vmcnt(priv, meta);
-+}
-+
-+static int knod_prog_prepare_insns(struct knod_bpf_priv *priv,
-+				   struct knod_prog *knod_prog)
-+{
-+	struct amdgcn_param64 param64[3];
-+	struct amdgcn_param32 param[10];
-+	struct knod_insn_meta *meta;
-+	int bs_shift;
-+
-+	meta = kzalloc_obj(*meta, GFP_KERNEL);
-+	if (!meta)
-+		return -ENOMEM;
-+
-+	meta->amdgpu_insn_idx = 0;
-+
-+	/* Invalidate SQC instruction cache so that a re-uploaded shader
-+	 * at the same VRAM address is fetched from memory, not from the
-+	 * stale I-cache.  Must be the very first instruction at the entry
-+	 * point so that every shader version has s_icache_inv at the same
-+	 * offset - the cached old version executes s_icache_inv too,
-+	 * which flushes the cache before divergent code is reached.
-+	 */
-+	knod_emit(priv, meta, s_icache_inv);
-+	knod_emit(priv, meta, s_waitcnt_vmcnt_lgkmcnt);
-+
-+	knod_sset32(&param[0], KNOD_AMDGPU_PARAM_SREG_LO);
-+	knod_sset32(&param[1], KNOD_AMDGPU_ARG_SREG);
-+	/* param = (__global struct _knod_bpf_param *)pkt.kernarg_address; */
-+	knod_emit(priv, meta, s_load_dwordx2, param[0], param[1],
-+		  offsetof(struct hsa_kernel_dispatch_packet, kernarg_address));
-+
-+	knod_vset32(&param[0], KNOD_AMDGPU_IDX_VREG);
-+	knod_vset32(&param[1], KNOD_AMDGPU_VREG0_LO);
-+	knod_iset32(&param[2], 0);
-+	/* 10bits, lidx can up to 1024, Do not edit */
-+	knod_iset32(&param[3], 10);
-+	/* extract workitem ID to reserved vgpr register.
-+	 * In the 2D-dispatch layout, IDX_VREG holds the per-workgroup tid
-+	 * (0..workgroup_size_x-1).  queue_id = workgroup_id_y (s15).  The
-+	 * flat index (queue_id * batch_size + local_idx) is computed later,
-+	 * after queue_desc has been loaded and the v_cmpx bounds check has
-+	 * narrowed EXEC to lanes with local_idx < count.
-+	 */
-+	knod_emit(priv, meta, v_bfe_i32, param[0], param[1], param[2],
-+		  param[3]);
-+	if (priv->batch_size > knod_bpf_workgroups) {
-+		/* local_idx = workgroup_id_x * workgroup_size_x
-+		 * + workitem_id.
-+		 */
-+		knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG5_LO);
-+		knod_sset32(&param[1], KNOD_AMDGPU_WORKGROUP_ID_X_SREG);
-+		knod_iset32(&param[2], knod_bpf_workgroups);
-+		knod_emit(priv, meta,
-+			v_mul_lo_u32, param[0], param[1], param[2]);
-+		knod_vset32(&param[0], KNOD_AMDGPU_IDX_VREG);
-+		knod_vset32(&param[1], KNOD_AMDGPU_TMP_VREG5_LO);
-+		knod_vset32(&param[2], KNOD_AMDGPU_IDX_VREG);
-+		knod_emit(priv, meta, v_add_u32, param[0], param[1], param[2]);
-+	}
-+	/* set frame pointer to 0 */
-+	knod_sset32(&param[0], KNOD_AMDGPU_FRAME_POINTER_SREG);
-+	knod_iset32(&param[1], 0);
-+	knod_emit(priv, meta, s_mov_b32, param[0], param[1]);
-+	/* wait for s_load_dwordx2 (kernarg_address) */
-+	knod_emit(priv, meta, s_waitcnt_vmcnt_lgkmcnt);
-+
-+	/* load {nr_backlogs, _pad} from param (offset 0, 8-byte aligned) */
-+	knod_sset32(&param[0], KNOD_AMDGPU_TMP_SREG1_LO);
-+	knod_sset32(&param[1], KNOD_AMDGPU_PARAM_SREG_LO);
-+	knod_emit(priv, meta, s_load_dwordx2, param[0], param[1], 0);
-+	knod_emit(priv, meta, s_waitcnt_vmcnt_lgkmcnt);
-+
-+	/* NOTE: the bounds check `EXEC &= (tid < count)` is deferred until
-+	 * after the queue descriptor load (queue<->workgroup binding).
-+	 * nr_backlogs is no longer the right upper bound because lanes with
-+	 * tid > this queue's count must be masked, not just the ones past
-+	 * the aggregate backlog total.
-+	 */
-+
-+	/* Initialize done_mask to 0 for structurized CFG */
-+	knod_emit(priv, meta, s_mov_b64, knod_prog->done_mask_sreg,
-+		  AMDGCN_SREG_INTEGER_0);
-+
-+	/* =========================================================
-+	 * Queue-descriptor prep (2D dispatch: queue_id = workgroup_id_y)
-+	 *
-+	 * Loads this WG's queue descriptor from VRAM, performs the
-+	 * per-lane bounds check (local_idx < queues[queue_id].count), and
-+	 * converts IDX_VREG from local_idx to flat_IDX (queue_id *
-+	 * batch_size + local_idx) which the rest of the prologue/BPF body
-+	 * expects.  TMP_VREG9_LO is repurposed to hold the saved local
-+	 * tid for use as local_idx in the slot-address step.
-+	 * =========================================================
-+	 */
-+	bs_shift = ilog2(priv->batch_size);
-+
-+	/* a. queue_id = workgroup_id_y (broadcast scalar to VGPR LO). */
-+	knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_LO);
-+	knod_sset32(&param[1], KNOD_AMDGPU_WORKGROUP_ID_Y_SREG);
-+	knod_emit(priv, meta, v_mov_b32_e32, param[0], param[1]);
-+	knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_HI);
-+	knod_iset32(&param[1], 0);
-+	knod_emit(priv, meta, v_mov_b32_e32, param[0], param[1]);
-+
-+	/* b. Copy queue_id into TMP_VREG5_LO - separate scratch used as
-+	 *    the v_mad src-multiplicand.  Avoids dst/src1 overlap on the
-+	 *    following v_mad_u64_u32 (dst=TMP_VREG0_LO:HI).
-+	 */
-+	knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG5_LO);
-+	knod_vset32(&param[1], KNOD_AMDGPU_TMP_VREG0_LO);
-+	knod_emit(priv, meta, v_mov_b32_e32, param[0], param[1]);
-+
-+	/* c. TMP_VREG0 = PARAM + queue_id * sizeof(queue_desc). */
-+	knod_vset64(&param64[0], KNOD_AMDGPU_TMP_VREG0_LO);
-+	knod_sset32(&param[0], KNOD_AMDGPU_TMP_SREG0_LO);
-+	knod_iset32(&param[1],
-+				 sizeof(struct knod_bpf_queue_desc));
-+	knod_vset32(&param[2], KNOD_AMDGPU_TMP_VREG5_LO);
-+	knod_sset64(&param64[1], KNOD_AMDGPU_PARAM_SREG_LO);
-+	knod_emit(priv, meta, v_mad_u64_u32, param64[0], param[0],
-+		  param[1], param[2], param64[1]);
-+
-+	/* d. TMP_VREG0 += offsetof(queues). */
-+	knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_LO);
-+	knod_iset32(&param[1],
-+				 offsetof(struct knod_bpf_param, queues));
-+	knod_vset32(&param[2], KNOD_AMDGPU_TMP_VREG0_LO);
-+	knod_emit(priv, meta, v_add_co_u32, param[0], param[1], param[2]);
-+	knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_HI);
-+	knod_iset32(&param[1], 0);
-+	knod_emit(priv, meta, v_add_co_ci_u32_e32, param[0], param[1],
-+		  param[0]);
-+
-+	/* e. Load pool_gaddr + base_gaddr (offset 0, 16 bytes) into
-+	 *    TMP_VREG1_LO..TMP_VREG2_HI (v24..v27 - must be consecutive).
-+	 */
-+	knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG1_LO);
-+	knod_vset32(&param[1], KNOD_AMDGPU_TMP_VREG0_LO);
-+	knod_emit(priv, meta, global_load_dwordx4, param[0], param[1], 0);
-+
-+	/* f. Load count + _pad + ring_start + ring_mask (offset 16, 16
-+	 *    bytes) into TMP_VREG3_LO..TMP_VREG4_HI.
-+	 */
-+	knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG3_LO);
-+	knod_vset32(&param[1], KNOD_AMDGPU_TMP_VREG0_LO);
-+	knod_emit(priv, meta, global_load_dwordx4, param[0], param[1],
-+		  offsetof(struct knod_bpf_queue_desc, count));
-+	knod_emit(priv, meta, s_waitcnt_vmcnt);
-+
-+	/* g. Bounds check: EXEC &= (workitem_id < count). */
-+	knod_vset32(&param[0], KNOD_AMDGPU_IDX_VREG);
-+	knod_vset32(&param[1], KNOD_AMDGPU_TMP_VREG3_LO);
-+	knod_emit(priv, meta, v_cmpx_lt_u32, param[0], param[1]);
-+
-+	/* Snapshot the in-bounds lane mask.  The unified epilogue uses this
-+	 * to publish one verdict for every lane the dispatch claimed, even if
-+	 * a malformed or newly added CFG path fails to join done_mask.
-+	 */
-+	knod_emit(priv, meta, s_mov_b64, knod_prog->initial_exec_sreg,
-+		  AMDGCN_SREG_EXEC_LO);
-+
-+	/* h. Save per-queue local_idx to TMP_VREG9_LO.
-+	 *    The slot-address step consumes this value; keeping it in a
-+	 *    dedicated VGPR lets us overwrite IDX_VREG with flat_IDX for
-+	 *    the CTX address computation that immediately follows.
-+	 */
-+	knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG9_LO);
-+	knod_vset32(&param[1], KNOD_AMDGPU_IDX_VREG);
-+	knod_emit(priv, meta, v_mov_b32_e32, param[0], param[1]);
-+
-+	/* i. IDX_VREG = (queue_id << ilog2(batch_size)) + local_idx
-+	 *    -> flat_IDX into the sub[] / sqw->bds[] arrays, matching the
-+	 *    CPU-side layout `sqw->bds[queue_id * batch_size + local_idx]`.
-+	 *    batch_size is rounded down to a power of two at start so the
-+	 *    shift is exact.
-+	 */
-+	knod_vset32(&param[0], KNOD_AMDGPU_IDX_VREG);
-+	knod_sset32(&param[1], KNOD_AMDGPU_WORKGROUP_ID_Y_SREG);
-+	knod_iset32(&param[2], bs_shift);
-+	knod_vset32(&param[3], KNOD_AMDGPU_IDX_VREG);
-+	knod_emit(priv, meta, v_lshl_add_u32, param[0], param[1],
-+		  param[2], param[3]);
-+
-+	/* ctx = &param->sub[flat_IDX].ctx;
-+	 * v_mad: VREG1 = sizeof(sub_obj) * flat_IDX + PARAM_SREG
-+	 * then add offsetof(sub) = 8 to account for nr_backlogs/_pad
-+	 */
-+	knod_vset64(&param64[0], KNOD_AMDGPU_VREG1_LO);
-+	knod_sset32(&param[0], KNOD_AMDGPU_TMP_SREG0_LO);
-+	knod_iset32(&param[1], sizeof(struct knod_bpf_subparam_obj));
-+	knod_vset32(&param[2], KNOD_AMDGPU_IDX_VREG);
-+	knod_sset64(&param64[1], KNOD_AMDGPU_PARAM_SREG_LO);
-+	knod_emit(priv, meta, v_mad_u64_u32, param64[0], param[0],
-+		  param[1], param[2], param64[1]);
-+	/* + offsetof(struct knod_bpf_param, sub) */
-+	knod_vset32(&param[0], KNOD_AMDGPU_VREG1_LO);
-+	knod_iset32(&param[1], offsetof(struct knod_bpf_param, sub));
-+	knod_vset32(&param[2], KNOD_AMDGPU_VREG1_LO);
-+	knod_emit(priv, meta, v_add_co_u32, param[0], param[1], param[2]);
-+	knod_vset32(&param[0], KNOD_AMDGPU_VREG1_HI);
-+	knod_iset32(&param[1], 0);
-+	knod_emit(priv, meta, v_add_co_ci_u32_e32, param[0], param[1],
-+		  param[0]);
-+	knod_vset32(&param[0], KNOD_AMDGPU_CTX_VREG_LO);
-+	knod_vset32(&param[1], KNOD_AMDGPU_VREG1_LO);
-+	knod_emit(priv, meta, v_mov_b32_e32, param[0], param[1]);
-+	knod_vset32(&param[0], KNOD_AMDGPU_CTX_VREG_HI);
-+	knod_vset32(&param[1], KNOD_AMDGPU_VREG1_HI);
-+	knod_emit(priv, meta, v_mov_b32_e32, param[0], param[1]);
-+	knod_vset32(&param[0], KNOD_AMDGPU_FRAME_POINTER_VREG_LO);
-+	knod_iset32(&param[1], 0x200);
-+	knod_emit(priv, meta, v_mov_b32_e32, param[0], param[1]);
-+	knod_vset32(&param[0], KNOD_AMDGPU_FRAME_POINTER_VREG_HI);
-+	knod_iset32(&param[1], 0);
-+	knod_emit(priv, meta, v_mov_b32_e32, param[0], param[1]);
-+
-+	/* 5. slot = (ring_start + local_idx) & ring_mask.
-+	 *    local_idx = saved per-queue local_idx in TMP_VREG9_LO.
-+	 */
-+	knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG5_LO);
-+	knod_vset32(&param[1], KNOD_AMDGPU_TMP_VREG4_LO);
-+	knod_vset32(&param[2], KNOD_AMDGPU_TMP_VREG9_LO);
-+	knod_emit(priv, meta, v_add_u32, param[0], param[1], param[2]);
-+	knod_vset32(&param[1], KNOD_AMDGPU_TMP_VREG4_HI);
-+	knod_vset32(&param[2], KNOD_AMDGPU_TMP_VREG5_LO);
-+	knod_emit(priv, meta, v_and_b32_e32, param[0], param[1], param[2]);
-+
-+	/* Save backlog index before step 6 overwrites IDX_VREG -> SLOT_VREG.
-+	 * v_mov_b32 BACKLOG_IDX_VREG(v58), IDX_VREG(v62)
-+	 * Used in epilogue for XDP_PASS pass_indices[] write.
-+	 */
-+	knod_vset32(&param[0], KNOD_AMDGPU_BACKLOG_IDX_VREG);
-+	knod_vset32(&param[1], KNOD_AMDGPU_IDX_VREG);
-+	knod_emit(priv, meta, v_mov_b32_e32, param[0], param[1]);
-+
-+	/* 6. slot_addr = pool_gaddr + slot * spsc_stride, where
-+	 *    spsc_stride = ALIGN(sizeof(spsc_bd), SMP_CACHE_BYTES)
-+	 *    Compute directly into SLOT_VREG (v62:v63).
-+	 */
-+	knod_vset32(&param[0], KNOD_AMDGPU_SLOT_VREG_LO);
-+	knod_iset32(&param[1],
-+		ilog2(ALIGN(sizeof(struct spsc_bd), SMP_CACHE_BYTES)));
-+	knod_emit(priv, meta, v_lshlrev_b32, param[0], param[1], param[2]);
-+	/* slot_addr = pool_gaddr + slot_offset */
-+	knod_vset32(&param[1], KNOD_AMDGPU_TMP_VREG1_LO);
-+	knod_emit(priv, meta, v_add_co_u32, param[0], param[0], param[1]);
-+	knod_vset32(&param[0], KNOD_AMDGPU_SLOT_VREG_HI);
-+	knod_iset32(&param[1], 0);
-+	knod_vset32(&param[2], KNOD_AMDGPU_TMP_VREG1_HI);
-+	knod_emit(priv, meta, v_add_co_ci_u32_e32, param[0], param[1],
-+		  param[2]);
-+
-+	/* 7. Load spsc_bd: {off(u16)|len(u16), page_idx} via single dwordx2
-+	 *    TMP_VREG6_LO (v34) = off|len, TMP_VREG6_HI (v35) = page_idx
-+	 */
-+	knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG6_LO);
-+	knod_vset32(&param[1], KNOD_AMDGPU_SLOT_VREG_LO);
-+	knod_emit(priv, meta, global_load_dwordx2, param[0], param[1],
-+		  offsetof(struct spsc_bd, off));
-+	knod_emit(priv, meta, s_waitcnt_vmcnt);
-+
-+	/* 8. data = base_gaddr + (page_idx << PAGE_SHIFT) + off
-+	 *    Compute directly into DATA_VREG (v64:v65).
-+	 */
-+	knod_vset32(&param[0], KNOD_AMDGPU_DATA_VREG_LO);
-+	knod_iset32(&param[1], PAGE_SHIFT);
-+	knod_vset32(&param[2], KNOD_AMDGPU_TMP_VREG6_HI);
-+	knod_emit(priv, meta, v_lshlrev_b32, param[0], param[1], param[2]);
-+	knod_vset32(&param[0], KNOD_AMDGPU_DATA_VREG_HI);
-+	knod_iset32(&param[1], 32 - PAGE_SHIFT);
-+	knod_emit(priv, meta, v_lshrrev_b32, param[0], param[1], param[2]);
-+
-+	/* data = base_gaddr + page_gaddr */
-+	knod_vset32(&param[0], KNOD_AMDGPU_DATA_VREG_LO);
-+	knod_vset32(&param[1], KNOD_AMDGPU_TMP_VREG2_LO);
-+	knod_vset32(&param[2], KNOD_AMDGPU_DATA_VREG_LO);
-+	knod_emit(priv, meta, v_add_co_u32, param[0], param[1], param[2]);
-+	knod_vset32(&param[0], KNOD_AMDGPU_DATA_VREG_HI);
-+	knod_vset32(&param[1], KNOD_AMDGPU_TMP_VREG2_HI);
-+	knod_vset32(&param[2], KNOD_AMDGPU_DATA_VREG_HI);
-+	knod_emit(priv, meta, v_add_co_ci_u32_e32, param[0], param[1],
-+		  param[2]);
-+
-+	if (knod_prog->uses_adjust) {
-+		/* Save page_base to PAGE_BASE_VREG before adding off */
-+		knod_vset32(&param[0], KNOD_AMDGPU_PAGE_BASE_VREG_LO);
-+		knod_vset32(&param[1], KNOD_AMDGPU_DATA_VREG_LO);
-+		knod_emit(priv, meta, v_mov_b32_e32, param[0], param[1]);
-+		knod_vset32(&param[0], KNOD_AMDGPU_PAGE_BASE_VREG_HI);
-+		knod_vset32(&param[1], KNOD_AMDGPU_DATA_VREG_HI);
-+		knod_emit(priv, meta, v_mov_b32_e32, param[0], param[1]);
-+	}
-+
-+	/* extract off (lower 16 bits of TMP_VREG6_LO) */
-+	knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG8_LO);
-+	knod_iset32(&param[1], 0xffff);
-+	knod_vset32(&param[2], KNOD_AMDGPU_TMP_VREG6_LO);
-+	knod_emit(priv, meta, v_and_b32_e32, param[0], param[1], param[2]);
-+
-+	/* data += off */
-+	knod_vset32(&param[0], KNOD_AMDGPU_DATA_VREG_LO);
-+	knod_vset32(&param[1], KNOD_AMDGPU_TMP_VREG8_LO);
-+	knod_vset32(&param[2], KNOD_AMDGPU_DATA_VREG_LO);
-+	knod_emit(priv, meta, v_add_co_u32, param[0], param[1], param[2]);
-+	knod_vset32(&param[0], KNOD_AMDGPU_DATA_VREG_HI);
-+	knod_iset32(&param[1], 0);
-+	knod_emit(priv, meta, v_add_co_ci_u32_e32, param[0], param[1],
-+		  param[0]);
-+
-+	/* 9. data_end = data + len (upper 16 bits of TMP_VREG6_LO)
-+	 *    Compute directly into DATA_END_VREG (v66:v67).
-+	 */
-+	knod_vset32(&param[0], KNOD_AMDGPU_DATA_END_VREG_LO);
-+	knod_iset32(&param[1], 16);
-+	knod_vset32(&param[2], KNOD_AMDGPU_TMP_VREG6_LO);
-+	knod_emit(priv, meta, v_lshrrev_b32, param[0], param[1], param[2]);
-+	knod_vset32(&param[0], KNOD_AMDGPU_DATA_END_VREG_LO);
-+	knod_vset32(&param[1], KNOD_AMDGPU_DATA_VREG_LO);
-+	knod_vset32(&param[2], KNOD_AMDGPU_DATA_END_VREG_LO);
-+	knod_emit(priv, meta, v_add_co_u32, param[0], param[1], param[2]);
-+	knod_vset32(&param[0], KNOD_AMDGPU_DATA_END_VREG_HI);
-+	knod_iset32(&param[1], 0);
-+	knod_vset32(&param[2], KNOD_AMDGPU_DATA_VREG_HI);
-+	knod_emit(priv, meta, v_add_co_ci_u32_e32, param[0], param[1],
-+		  param[2]);
-+
-+	/* Step 10 eliminated: data->DATA_VREG, data_end->DATA_END_VREG,
-+	 * slot_addr->SLOT_VREG computed directly in steps 6/8/9 above.
-+	 */
-+
-+	pr_debug("knod_bpf DEBUG: prologue emitted idx=%u (KNOD_META_INSNS=%d)\n",
-+		 meta->amdgpu_insns, KNOD_META_INSNS);
-+	if (WARN_ON(meta->amdgpu_insns > KNOD_META_INSNS))
-+		return -ENOSPC;
-+	list_add_tail(&meta->l, &knod_prog->pre_insns);
-+
-+	return 0;
-+}
-+
-+static int knod_prog_prepare(struct knod_bpf_priv *priv,
-+			     struct knod_prog *knod_prog,
-+			     const struct bpf_insn *prog,
-+			     unsigned int cnt)
-+{
-+	struct knod_insn_meta *meta;
-+	unsigned int i;
-+
-+	/* Pre-scan: detect helper 44/65 to set uses_adjust early */
-+	for (i = 0; i < cnt; i++) {
-+		if (prog[i].code == (BPF_JMP | BPF_CALL) &&
-+		    (prog[i].imm == 44 || prog[i].imm == 65)) {
-+			knod_prog->uses_adjust = true;
-+			break;
-+		}
-+	}
-+
-+	knod_vset64(&r64[0], KNOD_AMDGPU_TMP_VREG0_LO);
-+	knod_vset64(&r64[1], KNOD_AMDGPU_TMP_VREG1_LO);
-+	knod_vset64(&r64[2], KNOD_AMDGPU_TMP_VREG2_LO);
-+	knod_vset64(&r64[3], KNOD_AMDGPU_TMP_VREG3_LO);
-+	knod_vset64(&r64[4], KNOD_AMDGPU_TMP_VREG4_LO);
-+	knod_vset64(&r64[5], KNOD_AMDGPU_TMP_VREG5_LO);
-+	knod_vset64(&r64[6], KNOD_AMDGPU_TMP_VREG6_LO);
-+	knod_vset64(&r64[7], KNOD_AMDGPU_TMP_VREG7_LO);
-+	knod_vset64(&r64[8], KNOD_AMDGPU_TMP_VREG8_LO);
-+	knod_vset64(&r64[9], KNOD_AMDGPU_TMP_VREG9_LO);
-+	knod_vset64(&r64[10], KNOD_AMDGPU_TMP_VREG10_LO);
-+	knod_vset64(&r64[11], KNOD_AMDGPU_TMP_VREG11_LO);
-+	knod_vset64(&r64[12], KNOD_AMDGPU_TMP_VREG12_LO);
-+	knod_vset64(&r64[13], KNOD_AMDGPU_TMP_VREG13_LO);
-+	knod_vset64(&r64[14], KNOD_AMDGPU_TMP_VREG14_LO);
-+	knod_vset64(&r64[15], KNOD_AMDGPU_TMP_VREG15_LO);
-+	knod_vset64(&r64[16], KNOD_AMDGPU_TMP_VREG16_LO);
-+	knod_vset64(&r64[17], KNOD_AMDGPU_TMP_VREG17_LO);
-+	knod_vset64(&r64[18], KNOD_AMDGPU_TMP_VREG18_LO);
-+	knod_vset64(&r64[19], KNOD_AMDGPU_CTX_VREG_LO);
-+
-+	knod_sset64(&sr64[0], KNOD_AMDGPU_TMP_SREG0_LO);
-+	knod_sset64(&sr64[1], KNOD_AMDGPU_TMP_SREG1_LO);
-+	knod_sset64(&sr64[2], KNOD_AMDGPU_TMP_SREG2_LO);
-+	knod_sset64(&sr64[3], KNOD_AMDGPU_TMP_SREG3_LO);
-+	knod_sset64(&sr64[4], KNOD_AMDGPU_TMP_SREG4_LO);
-+	knod_sset64(&sr64[5], KNOD_AMDGPU_TMP_SREG5_LO);
-+
-+	knod_vset64(&bpf_reg64[0], KNOD_AMDGPU_VREG0_LO);
-+	knod_vset64(&bpf_reg64[1], KNOD_AMDGPU_VREG1_LO);
-+	knod_vset64(&bpf_reg64[2], KNOD_AMDGPU_VREG2_LO);
-+	knod_vset64(&bpf_reg64[3], KNOD_AMDGPU_VREG3_LO);
-+	knod_vset64(&bpf_reg64[4], KNOD_AMDGPU_VREG4_LO);
-+	knod_vset64(&bpf_reg64[5], KNOD_AMDGPU_VREG5_LO);
-+	knod_vset64(&bpf_reg64[6], KNOD_AMDGPU_VREG6_LO);
-+	knod_vset64(&bpf_reg64[7], KNOD_AMDGPU_VREG7_LO);
-+	knod_vset64(&bpf_reg64[8], KNOD_AMDGPU_VREG8_LO);
-+	knod_vset64(&bpf_reg64[9], KNOD_AMDGPU_VREG9_LO);
-+	knod_vset64(&bpf_reg64[10], KNOD_AMDGPU_FRAME_POINTER_VREG_LO);
-+
-+	knod_vset32(&r32[0], KNOD_AMDGPU_TMP_VREG0_LO);
-+	for (i = 1; i < 40; i++)
-+		knod_vset32(&r32[i], r32[i - 1].v + 1);
-+
-+	if (knod_bpf_pkt_cache) {
-+		int pkt_cache_start = knod_prog->uses_adjust ?
-+			KNOD_AMDGPU_PKT_CACHE_VREG0 :
-+			KNOD_AMDGPU_PAGE_BASE_VREG_LO;
-+
-+		knod_vset32(&pkt_cache[0], pkt_cache_start);
-+		for (i = 1; i < 64; i++)
-+			knod_vset32(&pkt_cache[i],
-+						 pkt_cache[i - 1].v + 1);
-+	}
-+
-+	knod_vset32(&stack[0], KNOD_AMDGPU_STACK_VREG0);
-+	for (i = 1; i < 128; i++)
-+		knod_vset32(&stack[i], stack[i - 1].v + 1);
-+
-+	for (i = 0; i < cnt; i++) {
-+		meta = kzalloc_obj(*meta, GFP_KERNEL);
-+		if (!meta)
-+			return -ENOMEM;
-+
-+		meta->insn = prog[i];
-+		meta->bpf_insn_idx = i;
-+
-+		list_add_tail(&meta->l, &knod_prog->insns);
-+	}
-+	knod_prog->n_insns = cnt;
-+
-+	return 0;
-+}
-+
-+static void knod_prog_free(struct knod_prog *knod_prog)
-+{
-+	struct knod_insn_meta *meta, *tmp;
-+
-+	//kfree(knod_prog->subprog);
-+
-+	list_for_each_entry_safe(meta, tmp, &knod_prog->pre_insns, l) {
-+		list_del(&meta->l);
-+		kfree(meta);
-+	}
-+	list_for_each_entry_safe(meta, tmp, &knod_prog->insns, l) {
-+		list_del(&meta->l);
-+		kfree(meta);
-+	}
-+	list_for_each_entry_safe(meta, tmp, &knod_prog->post_insns, l) {
-+		list_del(&meta->l);
-+		kfree(meta);
-+	}
-+	kfree(knod_prog);
-+}
-+
-+static int knod_bpf_verifier_prep(struct bpf_prog *prog)
-+{
-+	struct knod_prog *knod_prog;
-+	struct knod_bpf_priv *priv;
-+	int err;
-+
-+	knod_prog = kzalloc_obj(struct knod_prog, GFP_KERNEL);
-+	if (!knod_prog)
-+		return -ENOMEM;
-+
-+	INIT_LIST_HEAD(&knod_prog->insns);
-+	INIT_LIST_HEAD(&knod_prog->pre_insns);
-+	INIT_LIST_HEAD(&knod_prog->post_insns);
-+	prog->aux->offload->dev_priv = knod_prog;
-+	priv = bpf_offload_dev_priv(prog->aux->offload->offdev);
-+	knod_prog->knodev = priv->knodev;
-+	WRITE_ONCE(priv->knod_prog, knod_prog);
-+	knod_prog->knod = priv->knod;
-+	knod_prog->insn_idx = 0;
-+
-+	if (priv->isa_version == 10) {
-+		knod_prog->done_mask_sreg = 32;
-+		knod_prog->exec_save_base = 34;
-+		knod_prog->initial_exec_sreg =
-+			KNOD_AMDGPU_INITIAL_EXEC_SREG_GFX10;
-+	} else {
-+		knod_prog->done_mask_sreg = KNOD_AMDGPU_DONE_MASK_SREG;
-+		knod_prog->exec_save_base = KNOD_AMDGPU_EXEC_SAVE_SREG_BASE;
-+		knod_prog->initial_exec_sreg =
-+			KNOD_AMDGPU_INITIAL_EXEC_SREG_GFX9;
-+	}
-+
-+	err = knod_prog_prepare(priv, knod_prog, prog->insnsi, prog->len);
-+	if (err)
-+		goto err_free;
-+
-+	knod_prog->meta = knod_prog_first_meta(knod_prog);
-+
-+	return 0;
-+
-+err_free:
-+	knod_prog_free(knod_prog);
-+
-+	return err;
-+}
-+
-+static struct knod_insn_meta *knod_bpf_lookup_meta(struct knod_prog *knod_prog,
-+						   short idx)
-+{
-+	struct knod_insn_meta *meta;
-+
-+	list_for_each_entry(meta, &knod_prog->insns, l) {
-+		if (meta->amdgpu_insn_idx == AMDGPU_INSN_SKIP)
-+			continue;
-+		if (meta->bpf_insn_idx == idx)
-+			return meta;
-+	}
-+
-+	return NULL;
-+}
-+
-+static void knod_mov64_imm(struct knod_bpf_priv *priv,
-+			  struct knod_insn_meta *meta,
-+			  int d, u64 imm64)
-+{
-+	struct amdgcn_param32 param[2];
-+
-+	knod_vset32(&param[0], d);
-+	knod_iset32(&param[1], imm64 & ~0U);
-+	knod_emit(priv, meta, v_mov_b32_e32, param[0], param[1]);
-+	knod_vset32(&param[0], d + 1);
-+	knod_iset32(&param[1], imm64 >> 32);
-+	knod_emit(priv, meta, v_mov_b32_e32, param[0], param[1]);
-+}
-+
-+static void knod_mov32(struct knod_bpf_priv *priv,
-+		      struct knod_insn_meta *meta,
-+		      struct amdgcn_param32 dst,
-+		      struct amdgcn_param32 src)
-+{
-+	knod_emit(priv, meta, v_mov_b32_e32, dst, src);
-+}
-+
-+static void knod_mov64(struct knod_bpf_priv *priv,
-+		      struct knod_insn_meta *meta,
-+		      struct amdgcn_param64 dst,
-+		      struct amdgcn_param64 src)
-+{
-+	knod_mov32(priv, meta, dst.lo, src.lo);
-+	knod_mov32(priv, meta, dst.hi, src.hi);
-+}
-+
-+static void knod_add64(struct knod_bpf_priv *priv,
-+		      struct knod_insn_meta *meta,
-+		      struct amdgcn_param64 dst,
-+		      struct amdgcn_param64 src0,
-+		      struct amdgcn_param64 src1)
-+{
-+	knod_emit(priv, meta, v_add_co_u32, dst.lo, src0.lo, src1.lo);
-+	knod_emit(priv, meta, v_add_co_ci_u32_e32, dst.hi, src0.hi,
-+		  src1.hi);
-+}
-+
-+/* No carry out/in */
-+static void knod_add32(struct knod_bpf_priv *priv,
-+		      struct knod_insn_meta *meta,
-+		      struct amdgcn_param32 dst,
-+		      struct amdgcn_param32 src0,
-+		      struct amdgcn_param32 src1)
-+{
-+	knod_emit(priv, meta, v_add_u32, dst, src0, src1);
-+}
-+
-+static void knod_xor32(struct knod_bpf_priv *priv,
-+		      struct knod_insn_meta *meta,
-+		      struct amdgcn_param32 dst,
-+		      struct amdgcn_param32 src0,
-+		      struct amdgcn_param32 src1)
-+{
-+	knod_emit(priv, meta, v_xor_b32_e32, dst, src0, src1);
-+}
-+
-+static void knod_alignbit32(struct knod_bpf_priv *priv,
-+			   struct knod_insn_meta *meta,
-+			   struct amdgcn_param32 dst,
-+			   struct amdgcn_param32 src0,
-+			   struct amdgcn_param32 src1,
-+			   struct amdgcn_param32 src2)
-+{
-+	knod_emit(priv, meta, v_alignbit_b32, dst, src0, src1, src2);
-+}
-+
-+static void knod_bfe32(struct knod_bpf_priv *priv,
-+			   struct knod_insn_meta *meta,
-+			   struct amdgcn_param32 dst,
-+			   struct amdgcn_param32 src0,
-+			   struct amdgcn_param32 src1,
-+			   struct amdgcn_param32 src2)
-+{
-+	knod_emit(priv, meta, v_bfe_u32, dst, src0, src1, src2);
-+}
-+
-+static void knod_bfi32(struct knod_bpf_priv *priv,
-+			   struct knod_insn_meta *meta,
-+			   struct amdgcn_param32 dst,
-+			   struct amdgcn_param32 src0,
-+			   struct amdgcn_param32 src1,
-+			   struct amdgcn_param32 src2)
-+{
-+	knod_emit(priv, meta, v_bfi_b32, dst, src0, src1, src2);
-+}
-+
-+static void knod_lshrrev32(struct knod_bpf_priv *priv,
-+			   struct knod_insn_meta *meta,
-+			   struct amdgcn_param32 dst,
-+			   struct amdgcn_param32 src0,
-+			   struct amdgcn_param32 src1)
-+{
-+	knod_emit(priv, meta, v_lshrrev_b32, dst, src0, src1);
-+}
-+
-+static void knod_lshrrev64(struct knod_bpf_priv *priv,
-+			   struct knod_insn_meta *meta,
-+			   struct amdgcn_param64 dst,
-+			   struct amdgcn_param64 src0,
-+			   struct amdgcn_param64 src1)
-+{
-+	knod_emit(priv, meta, v_lshrrev_b64, dst, src0, src1);
-+}
-+
-+static void knod_ashrrev32(struct knod_bpf_priv *priv,
-+			   struct knod_insn_meta *meta,
-+			   struct amdgcn_param32 dst,
-+			   struct amdgcn_param32 src0,
-+			   struct amdgcn_param32 src1)
-+{
-+	knod_emit(priv, meta, v_ashrrev_i32, dst, src0, src1);
-+}
-+
-+static void knod_ashrrev64(struct knod_bpf_priv *priv,
-+			   struct knod_insn_meta *meta,
-+			   struct amdgcn_param64 dst,
-+			   struct amdgcn_param64 src0,
-+			   struct amdgcn_param64 src1)
-+{
-+	knod_emit(priv, meta, v_ashrrev_i64, dst, src0, src1);
-+}
-+
-+static void knod_lshlrev32(struct knod_bpf_priv *priv,
-+			   struct knod_insn_meta *meta,
-+			   struct amdgcn_param32 dst,
-+			   struct amdgcn_param32 src0,
-+			   struct amdgcn_param32 src1)
-+{
-+	knod_emit(priv, meta, v_lshlrev_b32, dst, src0, src1);
-+}
-+
-+static void knod_lshlrev64(struct knod_bpf_priv *priv,
-+			   struct knod_insn_meta *meta,
-+			   struct amdgcn_param64 dst,
-+			   struct amdgcn_param64 src0,
-+			   struct amdgcn_param64 src1)
-+{
-+	knod_emit(priv, meta, v_lshlrev_b64, dst, src0, src1);
-+}
-+
-+/* No carry out/in */
-+static void knod_sub32(struct knod_bpf_priv *priv,
-+		      struct knod_insn_meta *meta,
-+		      struct amdgcn_param32 dst,
-+		      struct amdgcn_param32 src0,
-+		      struct amdgcn_param32 src1)
-+{
-+	knod_emit(priv, meta, v_sub_u32, dst, src0, src1);
-+}
-+
-+static void knod_and32(struct knod_bpf_priv *priv,
-+		      struct knod_insn_meta *meta,
-+		      struct amdgcn_param32 dst,
-+		      struct amdgcn_param32 src0,
-+		      struct amdgcn_param32 src1)
-+{
-+	knod_emit(priv, meta, v_and_b32_e32, dst, src0, src1);
-+}
-+
-+static void knod_and64(struct knod_bpf_priv *priv,
-+		      struct knod_insn_meta *meta,
-+		      struct amdgcn_param64 dst,
-+		      struct amdgcn_param64 src0,
-+		      struct amdgcn_param64 src1)
-+{
-+	knod_and32(priv, meta, dst.lo, src0.lo, src1.lo);
-+	knod_and32(priv, meta, dst.hi, src0.hi, src1.hi);
-+}
-+
-+static void knod_or32(struct knod_bpf_priv *priv,
-+		      struct knod_insn_meta *meta,
-+		      struct amdgcn_param32 dst,
-+		      struct amdgcn_param32 src0,
-+		      struct amdgcn_param32 src1)
-+{
-+	knod_emit(priv, meta, v_or_b32_e32, dst, src0, src1);
-+}
-+
-+static void knod_sub64(struct knod_bpf_priv *priv,
-+		      struct knod_insn_meta *meta,
-+		      struct amdgcn_param64 dst,
-+		      struct amdgcn_param64 src0,
-+		      struct amdgcn_param64 src1)
-+{
-+	knod_emit(priv, meta, v_sub_co_u32, dst.lo, src0.lo, src1.lo);
-+	knod_emit(priv, meta, v_sub_co_ci_u32_e32, dst.hi, src0.hi,
-+		  src1.hi);
-+}
-+
-+static void knod_subrev64(struct knod_bpf_priv *priv,
-+			 struct knod_insn_meta *meta,
-+			 struct amdgcn_param64 dst,
-+			 struct amdgcn_param64 src0,
-+			 struct amdgcn_param64 src1)
-+{
-+	knod_emit(priv, meta, v_subrev_co_u32, dst.lo, src0.lo, src1.lo);
-+	knod_emit(priv, meta, v_subrev_co_ci_u32_e32, dst.hi, src0.hi,
-+		  src1.hi);
-+}
-+
-+static void knod_mul_lo32(struct knod_bpf_priv *priv,
-+			 struct knod_insn_meta *meta,
-+			 struct amdgcn_param32 dst,
-+			 struct amdgcn_param32 src1,
-+			 struct amdgcn_param32 src2)
-+{
-+	knod_emit(priv, meta, v_mul_lo_u32, dst, src1, src2);
-+}
-+
-+static void knod_mul_hi32(struct knod_bpf_priv *priv,
-+			 struct knod_insn_meta *meta,
-+			 struct amdgcn_param32 dst,
-+			 struct amdgcn_param32 src1,
-+			 struct amdgcn_param32 src2)
-+{
-+	knod_emit(priv, meta, v_mul_hi_u32, dst, src1, src2);
-+}
-+
-+static void knod_mul64(struct knod_bpf_priv *priv,
-+		      struct knod_insn_meta *meta,
-+		      struct amdgcn_param64 dst,
-+		      struct amdgcn_param64 src1,
-+		      struct amdgcn_param64 src2,
-+		      struct amdgcn_param64 tmp)
-+{
-+	/*
-+	 * v_mul_lo_u32 v1, v2, v1
-+	 * v_mul_hi_u32 v5, v2, v0
-+	 * v_mul_lo_u32 v3, v3, v0
-+	 * v_mul_lo_u32 v0, v2, v0
-+	 * v_add_u32_e32 v1, v5, v1
-+	 * v_add_u32_e32 v1, v1, v3
-+	 *
-+	 * v[0:1] = src1, dst
-+	 * v[2:3] = src2
-+	 * v5 = tmp
-+	 */
-+
-+	/* v_mul_lo_u32 v1, v2, v1 */
-+	knod_mul_lo32(priv, meta, src2.hi, src1.lo, src2.hi);
-+	/* v_mul_hi_u32 v5, v2, v0 */
-+	knod_mul_hi32(priv, meta, tmp.lo, src1.lo, src2.lo);
-+	/* v_mul_lo_u32 v3, v3, v0 */
-+	knod_mul_lo32(priv, meta, src1.hi, src1.hi, src2.lo);
-+	/* v_mul_lo_u32 v0, v2, v0 */
-+	knod_mul_lo32(priv, meta, src1.lo, src1.lo, src2.lo);
-+	/* v_add_u32_e32 v1, v5, v1 */
-+	knod_add32(priv, meta, src2.lo, tmp.lo, src2.hi);
-+	/* v_add_u32_e32 v1, v1, v3 */
-+	knod_add32(priv, meta, src1.hi, src2.lo, src1.hi);
-+	knod_mov32(priv, meta, dst.lo, src1.lo);
-+	knod_mov32(priv, meta, dst.hi, src1.hi);
-+}
-+
-+static void knod_div(struct knod_bpf_priv *priv,
-+		    struct knod_insn_meta *meta,
-+		    struct amdgcn_param64 dst,
-+		    struct amdgcn_param64 imm,
-+		    struct amdgcn_param64 tmp_reg0,
-+		    struct amdgcn_param64 tmp_reg1,
-+		    struct amdgcn_param64 tmp_reg2,
-+		    struct amdgcn_param64 tmp_reg3)
-+{
-+	struct reciprocal_value_adv rvalue;
-+	struct amdgcn_param64 p64[4];
-+	u8 pre_shift, exp;
-+
-+	WARN_ON((imm.lo.type != AMDGCN_PARAM_TYPE_INTEGER_0) &&
-+		     (imm.lo.type != AMDGCN_PARAM_TYPE_LITERAL_CONST));
-+	WARN_ON((imm.hi.type != AMDGCN_PARAM_TYPE_INTEGER_0) &&
-+		     (imm.hi.type != AMDGCN_PARAM_TYPE_LITERAL_CONST));
-+	knod_iset64(&p64[0], 0);
-+	knod_iset64(&p64[1], 0);
-+	knod_iset64(&p64[2], 0);
-+	knod_iset64(&p64[3], 0);
-+	/*
-+	 * dst := imm
-+	 * n := dst_reg
-+	 */
-+	if (imm.imm > U32_MAX) {
-+		knod_mov64(priv, meta, dst, p64[0]);
-+		return;
-+	}
-+
-+	if (imm.imm >= 1U << 31) {
-+		/* result = n >= dst; */
-+		knod_mov64(priv, meta, tmp_reg0, imm);
-+		knod_emit(priv, meta, v_cmp_ge_u64, dst, tmp_reg0);
-+		return;
-+	}
-+
-+	rvalue = reciprocal_value_adv(imm.lo.v, 32);
-+	exp = rvalue.exp;
-+	if (rvalue.is_wide_m && !(imm.lo.v & 1)) {
-+		pre_shift = fls(imm.lo.v & -imm.lo.v) - 1;
-+		rvalue = reciprocal_value_adv(imm.lo.v >> pre_shift,
-+					      32 - pre_shift);
-+	} else {
-+		pre_shift = 0;
-+	}
-+
-+	if (imm.lo.v == 1U << exp) {
-+		knod_iset64(&p64[0], exp);
-+		/* n = n >> exp */
-+		knod_lshrrev64(priv, meta, dst, p64[0], dst);
-+		return;
-+	} else if (rvalue.is_wide_m) {
-+		/*
-+		 * pre_shift must be zero when reached here.
-+		 * t = (n * rvalue.m) >> 32;
-+		 * result = n - t;
-+		 * result >>= 1;
-+		 * result += t;
-+		 * result >>= rvalue.sh - 1;
-+		 */
-+
-+		/*
-+		 * n := VREG0
-+		 * t := VREG1
-+		 * rvalue.m := VREG2
-+		 * tmp := VREG3
-+		 */
-+
-+		/* n := TMP_VREG0 */
-+		knod_mov64(priv, meta, tmp_reg0, dst);
-+
-+		knod_iset64(&p64[0], rvalue.m);
-+		/* rvalue.m := TMP_VREG2 */
-+		knod_mov64(priv, meta, tmp_reg2, p64[0]);
-+
-+		/* t = n * rvalue.m; */
-+		knod_mul64(priv, meta,
-+			   tmp_reg1, /* t */
-+			   tmp_reg0, /* n */
-+			   tmp_reg2, /* rvalue.m */
-+			   tmp_reg3); /* tmp */
-+
-+		/* t >>= 32; */
-+		knod_iset64(&p64[0], 0);
-+		knod_mov32(priv, meta, tmp_reg1.lo, tmp_reg1.hi);
-+		knod_mov32(priv, meta, tmp_reg1.hi, p64[0].lo);
-+
-+		/* result = n - t */
-+		knod_sub64(priv, meta, dst, dst, tmp_reg1);
-+
-+		/* result >>= 1 */
-+		knod_iset64(&p64[0], 1);
-+		knod_lshrrev64(priv, meta, dst, p64[0], dst);
-+
-+		/* result += t; */
-+		knod_add64(priv, meta,
-+			   dst,
-+			   dst, /* result */
-+			   tmp_reg1); /* t */
-+
-+		/* result >>= rvalue.sh - 1; */
-+		knod_iset64(&p64[0], rvalue.sh - 1);
-+		WARN_ON(rvalue.sh - 1 > 31);
-+		knod_lshrrev64(priv, meta, dst, p64[0], dst);
-+		return;
-+	}
-+
-+	/*
-+	 * if (pre_shift)
-+	 *   result = n >> pre_shift;
-+	 * result = ((u64)result * rvalue.m) >> 32;
-+	 * result >>= rvalue.sh;
-+	 */
-+
-+	/*
-+	 * n := VREG0
-+	 * <NONE> := VREG1
-+	 * rvalue.m := VREG2
-+	 * tmp := VREG3
-+	 * result := dst * 2
-+	 */
-+
-+	/* n := TMP_VREG0 */
-+	knod_mov64(priv, meta, tmp_reg0, dst);
-+
-+	/* rvalue.m := TMP_VREG2 */
-+	knod_iset64(&p64[0], rvalue.m);
-+	knod_mov64(priv, meta, tmp_reg2, p64[0]);
-+
-+	if (pre_shift) {
-+		/* result = n >> pre_shift; */
-+		knod_iset64(&p64[0], pre_shift);
-+		knod_lshrrev64(priv, meta, dst, p64[0],
-+			       tmp_reg0); /* n */
-+	} else {
-+		/* tmp = 0 */
-+		knod_iset64(&p64[0], 0);
-+		knod_mov64(priv, meta, tmp_reg0, p64[0]);
-+	}
-+
-+	/* result = result * rvalue.m; */
-+	knod_mul64(priv, meta,
-+		   dst, /* result */
-+		   dst, /* result */
-+		   tmp_reg2, /* rvalue.m */
-+		   tmp_reg3); /* tmp */
-+
-+	/* result >>= (32 + rvalue.sh); */
-+	knod_iset64(&p64[0], 32 + rvalue.sh);
-+	knod_lshrrev64(priv, meta, dst, p64[0], dst);
-+}
-+
-+static void knod_mod(struct knod_bpf_priv *priv,
-+		    struct knod_insn_meta *meta,
-+		    struct amdgcn_param64 dst,
-+		    struct amdgcn_param64 imm,
-+		    struct amdgcn_param64 tmp_reg0,
-+		    struct amdgcn_param64 tmp_reg1,
-+		    struct amdgcn_param64 tmp_reg2,
-+		    struct amdgcn_param64 tmp_reg3,
-+		    struct amdgcn_param64 tmp_reg4)
-+{
-+	WARN_ON((imm.lo.type != AMDGCN_PARAM_TYPE_INTEGER_0) &&
-+		     (imm.lo.type != AMDGCN_PARAM_TYPE_LITERAL_CONST));
-+	WARN_ON((imm.hi.type != AMDGCN_PARAM_TYPE_INTEGER_0) &&
-+		     (imm.hi.type != AMDGCN_PARAM_TYPE_LITERAL_CONST));
-+	/* q := tmp_reg0 */
-+	knod_mov64(priv, meta, tmp_reg0, dst);
-+	/* q = n / imm */
-+	knod_div(priv, meta, tmp_reg0, imm,
-+		     tmp_reg1, tmp_reg2, tmp_reg3, tmp_reg4);
-+
-+	/* tmp_reg1 := imm_reg */
-+	knod_mov64(priv, meta, tmp_reg1, imm);
-+
-+	/* imm * q := tmp_reg3 */
-+	knod_mul64(priv, meta,
-+		   tmp_reg3, /* imm * q */
-+		   tmp_reg0, /* q */
-+		   tmp_reg1, /* imm_reg */
-+		   tmp_reg2); /* tmp */
-+
-+	knod_sub64(priv, meta, dst, dst, tmp_reg3);
++	rsrc1.granulated_workitem_vgpr_count = 12;
++	rsrc1.granulated_wavefront_sgpr_count = 0;
++	rsrc1.float_denorm_mode_32 = 3;
++	rsrc1.float_denorm_mode_16_64 = 3;
++	rsrc1.enable_dx10_clamp = 1;
++	rsrc1.enable_ieee_mode = 1;
++	rsrc1.wgp_mode = 0;
++	rsrc1.mem_ordered = 1;
++
++	rsrc2.user_sgpr_count = 15;
++	rsrc2.enable_sgpr_workgroup_id_x = 1;
++	rsrc2.enable_sgpr_workgroup_id_y = 1;
++	rsrc2.enable_sgpr_workgroup_id_z = 1;
++	rsrc2.granulated_lds_size = 8;
++
++	props.enable_sgpr_private_segment_buffer = 1;
++	props.enable_sgpr_dispatch_ptr = 1;
++	props.enable_sgpr_queue_ptr = 1;
++	props.enable_sgpr_kernarg_segment_ptr = 1;
++	props.enable_sgpr_dispatch_id = 1;
++	props.enable_sgpr_flat_scratch_init = 1;
++	props.enable_sgpr_private_segment_size = 1;
++
++	memcpy(&kd->compute_pgm_rsrc1, &rsrc1, sizeof(rsrc1));
++	memcpy(&kd->compute_pgm_rsrc2, &rsrc2, sizeof(rsrc2));
++	memcpy(&kd->code_properties, &props, sizeof(props));
++
++	memset(knod->kernels[0]->kaddr + kd->kernel_code_entry_byte_offset,
++	       0, (PAGE_SIZE << 4) - kd->kernel_code_entry_byte_offset);
++	shader_size = kfd_ipsec_gen_fused_shader_gfx10(
++		knod->kernels[0]->kaddr + kd->kernel_code_entry_byte_offset);
++	memcpy(&rsrc1_raw, &kd->compute_pgm_rsrc1, 4);
++	pr_info("knod_ipsec: GFX10 shader %d bytes, RSRC1=0x%08x (vgpr=%u sgpr=%u wgp=%u mem=%u)\n",
++		shader_size, rsrc1_raw,
++		rsrc1_raw & 0x3F,
++		(rsrc1_raw >> 6) & 0xF,
++		(rsrc1_raw >> 29) & 1,
++		(rsrc1_raw >> 30) & 1);
++
++	return shader_size;
 +}
 +
 +/*
-+ * Fast constant modulo on the 32-bit value in @dst.lo for divisors of a
-+ * special form, avoiding knod_mod's reciprocal divide + 64-bit multiply:
-+ *   2^k     -> dst & (2^k-1)                     (mask)
-+ *   2^k + 1 -> lo - hi (+C if lo<hi)             (Fermat: 2^k = -1 mod C)
-+ *   2^k - 1 -> lo + hi (-C while >=C)            (Mersenne: 2^k = 1 mod C)
-+ * lo/hi are the low/high k-bit halves.  One fold is exact for a 32-bit
-+ * dividend when 2^k covers the high half (true for e.g. 65537 = 2^16+1,
-+ * kondor's per-packet `hash % RING_SIZE`).  Returns false for other
-+ * divisors (caller falls back to knod_mod).  Scratch: r64[0], r64[1].
++ * Single-dispatcher AQL machinery.
++ *
++ * One AQL queue (kaql[0]), one in-flight dispatch, one kthread that owns
++ * everything. The dispatcher drains per-queue NIC RX SPSC bd rings, builds one
++ * dispatch, kicks the GPU, spins on the completion signal, finalises, and
++ * loops. No lock on the hot path.
++ *
++ * KAT paths park the dispatcher with kthread_park() for exclusive ownership
++ * of the queue and the work slot.
 + */
-+static bool knod_mod_k32(struct knod_bpf_priv *priv,
-+			 struct knod_insn_meta *meta,
-+			 struct amdgcn_param64 dst, u32 imm)
-+{
-+	struct amdgcn_param32 p;
-+	int i;
 +
-+	if (is_power_of_2(imm)) {
-+		knod_iset32(&p, imm - 1);
-+		knod_and32(priv, meta, dst.lo, p, dst.lo);
-+	} else if (is_power_of_2(imm - 1) && (imm - 1) >= (1u << 16)) {
-+		knod_iset32(&p, imm - 2);			/* mask 2^k-1 */
-+		knod_and32(priv, meta, r64[0].lo, p, dst.lo);	/* lo */
-+		knod_iset32(&p, ilog2(imm - 1));		/* k */
-+		knod_emit(priv, meta, v_lshrrev_b32, r64[1].lo, p, dst.lo);
-+		/* lo-hi */
-+		knod_sub32(priv, meta, dst.lo, r64[0].lo, r64[1].lo);
-+		knod_emit(priv, meta, v_cmp_lt_u32, r64[0].lo, r64[1].lo);
-+		knod_iset32(&p, imm);
-+		knod_add32(priv, meta, r64[1].lo, p, dst.lo);	/* +C */
-+		knod_emit(priv, meta, v_cndmask_b32_e32, dst.lo, dst.lo,
-+			  r64[1].lo);
-+	} else if (is_power_of_2(imm + 1) && (imm + 1) >= (1u << 16)) {
-+		knod_iset32(&p, imm);				/* mask 2^k-1 */
-+		knod_and32(priv, meta, r64[0].lo, p, dst.lo);	/* lo */
-+		knod_iset32(&p, ilog2(imm + 1));		/* k */
-+		knod_emit(priv, meta, v_lshrrev_b32, r64[1].lo, p, dst.lo);
-+		/* lo+hi */
-+		knod_add32(priv, meta, dst.lo, r64[0].lo, r64[1].lo);
-+		knod_iset32(&p, imm);
-+		knod_mov32(priv, meta, r64[0].lo, p);		/* C in VGPR */
-+		for (i = 0; i < 2; i++) {			/* r < 2C */
-+			knod_emit(priv, meta, v_cmp_le_u32, r64[0].lo, dst.lo);
-+			knod_sub32(priv, meta, r64[1].lo, dst.lo, r64[0].lo);
-+			knod_emit(priv, meta, v_cndmask_b32_e32, dst.lo,
-+				  dst.lo, r64[1].lo);
++static void knod_ipsec_fill_dispatch(struct knod *knod,
++				     struct knod_ipsec_work *work,
++				     struct knod_dispatch_params *p)
++{
++	p->workgroup_size_x = 256;
++	p->grid_size_x = 256;
++	p->grid_size_y = max(work->nr_packets, 1);
++	p->private_segment_size = 0;
++	p->group_segment_size = KNOD_GCM_T_TABLES_TOTAL;
++	p->kernel_object = (u64)knod->kernels[0]->gaddr;
++	p->kernarg_address = work->param.gaddr;
++}
++
++/*
++ * Prepare the dispatcher's single work slot to run the fused RX shader
++ * over `sub[0..nr)`. Must be called from dispatcher context only (or while
++ * the dispatcher is parked - e.g. from KAT). `bds` may be NULL for the
++ * in-kernel KAT path; in that case the KAT owns out_addr and this helper
++ * leaves it untouched.
++ */
++static void knod_ipsec_prepare_rx_dispatch(struct knod_ipsec_priv *priv,
++					   struct knod_ipsec_work *work,
++					   struct knod_ipsec_fused_sub *sub,
++					   struct spsc_bd **bds, int nr,
++					   struct napi_struct *napi,
++					   int queue_idx)
++{
++	struct knod_ipsec_fused_param *param;
++	struct amd_signal *signal;
++
++	if (nr > (int)READ_ONCE(priv->pkt_batch))
++		nr = (int)READ_ONCE(priv->pkt_batch);
++
++	param = (struct knod_ipsec_fused_param *)work->param.kaddr;
++	memset(param, 0, sizeof(*param));
++	param->sa_table_addr = cpu_to_le64(priv->sa_table->gaddr);
++	param->t_tables_addr = cpu_to_le64(priv->t_tables->gaddr);
++	param->nr_sa         = cpu_to_le32(KNOD_IPSEC_NR_SA);
++	memcpy(param->sub, sub, sizeof(sub[0]) * nr);
++
++	/* Patch out_addr to point to the per-work decrypt output buffer
++	 * instead of pkt_addr. AES-CTR writes plaintext here; GHASH reads
++	 * the original ciphertext from pkt_addr. In-place would corrupt
++	 * the ciphertext before GHASH could read it.
++	 *
++	 * Skip for KAT (bds==NULL): the KAT manages out_addr itself.
++	 */
++	if (bds) {
++		int pi;
++
++		for (pi = 0; pi < nr; pi++)
++			param->sub[pi].out_addr = cpu_to_le64(
++				work->rx_out_gaddr +
++				(u64)pi * KNOD_IPSEC_DECRYPT_PKT_SIZE);
++	}
++
++	work->nr_packets = nr;
++	work->rx_napi = napi;
++	work->rx_queue_idx = queue_idx;
++	if (bds) {
++		int bi;
++
++		for (bi = 0; bi < nr; bi++) {
++			work->rx_bds[bi] = bds[bi];
++			/* Single-queue legacy/KAT path: all packets belong
++			 * to queue_idx. Multi-queue dispatches populate
++			 * rx_pkt_queue[] directly in try_rx and never call
++			 * this function.
++			 */
++			work->rx_pkt_queue[bi] = (u8)queue_idx;
 +		}
 +	} else {
++		memset(work->rx_bds, 0, sizeof(work->rx_bds[0]) * nr);
++		memset(work->rx_pkt_queue, (u8)queue_idx,
++		       sizeof(work->rx_pkt_queue[0]) * nr);
++	}
++	signal = (struct amd_signal *)priv->knod->kaql[0].queue_signal->kaddr;
++	work->sigval = READ_ONCE(signal->value);
++	if (static_branch_unlikely(&ipsec_stats_enabled_key))
++		work->dispatch_ts = ktime_to_ns(ktime_get());
++}
++
++/*
++ * Legacy exported entry points. With the single-dispatcher architecture,
++ * NICs publish bds into knodev->wpriv[].spsc_bds and the dispatcher polls
++ * them directly - no NIC driver actually calls these anymore, but keep the
++ * exports so external out-of-tree builds don't break while they transition.
++ */
++int knod_ipsec_rx_submit(struct knod_ipsec_fused_sub *sub, int nr,
++			 struct napi_struct *napi, int queue_idx)
++{
++	return 0;
++}
++EXPORT_SYMBOL_GPL(knod_ipsec_rx_submit);
++
++int knod_ipsec_rx_submit_bds(struct knod_ipsec_fused_sub *sub,
++			     struct spsc_bd **bds, int nr,
++			     struct napi_struct *napi, int queue_idx)
++{
++	return 0;
++}
++EXPORT_SYMBOL_GPL(knod_ipsec_rx_submit_bds);
++
++/*
++ * Shader verdict sentinels (low-side) - kept in lockstep with
++ * ipsec_fused_gfx9.h. `bd->act` is packed as (low32=snapshot, high32=
++ * slot_idx|sentinel); we only read the high half here.
++ */
++#define KNOD_IPSEC_SHADER_VERDICT_MISS		0xFFFFFFFFu
++#define KNOD_IPSEC_SHADER_VERDICT_BYPASS	0xFFFFFFFEu
++#define KNOD_IPSEC_SHADER_VERDICT_ICV_FAIL	0xFFFFFFFDu
++
++/*
++ * The dispatcher fences each RX batch at the SDMA ring position that
++ * knod_sdma_submit() returned (a 32-bit dword cursor that wraps), so the
++ * completion test is a signed-32 compare against the signal's low word.
++ */
++static bool knod_ipsec_fence_passed(struct knod_ipsec_work *w)
++{
++	return (s32)((u32)READ_ONCE(*w->sdma_fence_ptr) -
++		     w->sdma_fence_target) >= 0;
++}
++
++/* Bounded spin until @w's RX-batch SDMA fence fires (teardown path only). */
++static void knod_ipsec_fence_wait(struct knod_ipsec_work *w)
++{
++	int timeout = 100000;
++
++	while (!knod_ipsec_fence_passed(w)) {
++		if (--timeout <= 0)
++			break;
++		cpu_relax();
++	}
++}
++
++/*
++ * RX finish: GPU is done writing verdicts for this batch. For every
++ * packet that the shader flagged as a hit, SDMA-copy the decrypted
++ * inner payload from VRAM to a per-queue delivery-pool (pass_pool) page,
++ * then push a knod_pass_desc onto the framework pass_pending ring so the
++ * NIC dd NAPI picks it up via knod_d2h_drain() + knod_ipsec_post_copy().
++ *
++ * Packets with a miss/bypass/malformed verdict never reach the pending
++ * ring; they just get accounted here and the bd is recycled by the
++ * NIC dd through its normal bd ring path (unchanged).
++ */
++static void knod_ipsec_finish_rx_deliver(struct knod_ipsec_dispatcher *disp,
++					 struct knod_ipsec_work *work)
++{
++	struct knod_ipsec_priv *priv = disp->priv;
++	struct knod_ipsec_fused_param *param;
++	struct knod_ipsec_stats *s = NULL;
++	struct knod *knod = priv->knod;
++	int sdma_idx = disp->kaql_idx;
++	struct knod_sdma *sdma_q = &knod->sdma[sdma_idx];
++	struct knod_sdma_copy_desc copies[2];
++	u32 batch_fence = 0;
++	int i;
++	bool stats_on = static_branch_unlikely(&ipsec_stats_enabled_key);
++	int n_sdma = 0;
++	u32 sdma_copies = 0;
++	u32 sdma_bytes = 0;
++	int pkt_idx_of[KNOD_IPSEC_PKT_BATCH];
++	struct knod_ipsec_rx_pending *pending = work->rx_pending;
++
++	if (stats_on)
++		s = this_cpu_ptr(priv->stats);
++
++	param = (struct knod_ipsec_fused_param *)work->param.kaddr;
++
++	/* Step 1: classify + schedule SDMA for hits. Each packet in the
++	 * batch may belong to a different NIC RX queue, so rxq routing
++	 * happens per-packet via work->rx_pkt_queue[i] -> priv->rxq[].
++	 */
++	for (i = 0; i < work->nr_packets; i++) {
++		struct knod_ipsec_sa_slot *sa_slot;
++		struct spsc_bd *bd = work->rx_bds[i];
++		struct page_pool *pool;
++		netmem_ref netmem;
++		u64 pkt_gaddr, out_gaddr;
++		u64 dst_base;
++		u8 pkt_next_hdr;
++		u32 verdict_hi;
++		u32 inner_len;
++		u32 pend_inner_len;
++		u32 fv;
++		int ncopy;
++		u8 pkt_family;
++		u8 pkt_mode;
++		unsigned int rxq_idx = work->rx_pkt_queue[i];
++
++		if (!bd)
++			continue;
++		if ((int)rxq_idx >= priv->nr_rxq)
++			continue;
++		pool = READ_ONCE(priv->knodev->wpriv[rxq_idx].pass_pool);
++
++		verdict_hi = (u32)(bd->act >> 32);
++
++		if (verdict_hi == KNOD_IPSEC_SHADER_VERDICT_MISS ||
++		    verdict_hi == KNOD_IPSEC_SHADER_VERDICT_BYPASS) {
++			u32 raw_len = bd->len;
++			u64 pkt_gaddr;
++			u64 dst_gaddr;
++
++			if (raw_len == 0 || raw_len > PAGE_SIZE) {
++				if (stats_on)
++					s->rx_drop_malformed++;
++				pr_warn_ratelimited("knod_ipsec: malform-A bypass raw_len=%u pkt[%d] act=0x%llx q%u\n",
++					raw_len, i, bd->act, rxq_idx);
++				bd->act = KNOD_IPSEC_DROP;
++				continue;
++			}
++			netmem = pool ? page_pool_dev_alloc_netmems(pool) : 0;
++			if (!netmem) {
++				if (stats_on)
++					s->rx_drop_malformed++;
++				pr_warn_ratelimited("knod_ipsec: malform-bypass-nomem pkt[%d] raw_len=%u q%u\n",
++						    i, raw_len, rxq_idx);
++				bd->act = KNOD_IPSEC_DROP;
++				continue;
++			}
++			pkt_gaddr = le64_to_cpu(param->sub[i].pkt_addr);
++			dst_gaddr = page_pool_get_dma_addr_netmem(netmem);
++			copies[0].dst = dst_gaddr;
++			copies[0].src = pkt_gaddr;
++			copies[0].len = raw_len;
++			fv = knod_sdma_submit(knod, sdma_idx, copies, 1);
++			if (!fv) {
++				page_pool_put_full_netmem(pool, netmem, false);
++				if (stats_on)
++					s->rx_drop_sdma_full++;
++				bd->act = KNOD_IPSEC_DROP;
++				continue;
++			}
++			batch_fence = fv;
++			sdma_copies++;
++			sdma_bytes += raw_len;
++
++			pending[n_sdma].inner_len = raw_len;
++			pending[n_sdma].netmem    = netmem;
++			pending[n_sdma].sa_slot   = KNOD_IPSEC_NR_SA;
++			pending[n_sdma].rxq_idx   = (u16)rxq_idx;
++			pending[n_sdma].mode      = 0;
++			pending[n_sdma].next_hdr  = 0;
++			pending[n_sdma].family    = 0;
++			pending[n_sdma].inner_off = 0;
++			pkt_idx_of[n_sdma] = i;
++			n_sdma++;
++
++			bd->act = KNOD_IPSEC_PASS;
++			continue;
++		}
++		if (verdict_hi == KNOD_IPSEC_SHADER_VERDICT_ICV_FAIL) {
++			if (stats_on)
++				s->rx_drop_icv++;
++			pr_warn_ratelimited("knod_ipsec: RX ICV fail pkt[%d] act=0x%llx len=%u off=%u\n",
++					    i, bd->act, bd->len, bd->off);
++			bd->act = KNOD_IPSEC_DROP;
++			continue;
++		}
++		if (verdict_hi >= KNOD_IPSEC_NR_SA) {
++			if (stats_on)
++				s->rx_drop_malformed++;
++			pr_warn_ratelimited("knod_ipsec: malform-B verdict_hi=%u pkt[%d] act=0x%llx len=%u q%u\n",
++				verdict_hi, i, bd->act, bd->len, rxq_idx);
++			bd->act = KNOD_IPSEC_DROP;
++			continue;
++		}
++
++		inner_len = bd->len;
++		if (inner_len == 0 || inner_len > PAGE_SIZE) {
++			if (stats_on)
++				s->rx_drop_malformed++;
++			pr_warn_ratelimited("knod_ipsec: malform-C inner_len=%u pkt[%d] act=0x%llx slot=%u q%u\n",
++				inner_len, i, bd->act, verdict_hi, rxq_idx);
++			continue;
++		}
++
++		pkt_mode = bd->off & 0xFF;
++		pkt_next_hdr = (bd->off >> 8) & 0xFF;
++
++		sa_slot = &priv->slots[verdict_hi];
++		pkt_family = sa_slot->x ? sa_slot->x->props.family : AF_INET;
++
++		netmem = pool ? page_pool_dev_alloc_netmems(pool) : 0;
++		if (!netmem) {
++			if (stats_on)
++				s->rx_drop_malformed++;
++			pr_warn_ratelimited("knod_ipsec: malform-decrypt-nomem pkt[%d] slot=%u inner_len=%u q%u\n",
++					    i, verdict_hi, inner_len, rxq_idx);
++			bd->act = KNOD_IPSEC_DROP;
++			continue;
++		}
++		pkt_gaddr = le64_to_cpu(param->sub[i].pkt_addr);
++		out_gaddr = le64_to_cpu(param->sub[i].out_addr);
++		dst_base = page_pool_get_dma_addr_netmem(netmem);
++
++		if (pkt_mode == XFRM_MODE_TRANSPORT) {
++			u32 l3_hdr_len = (pkt_family == AF_INET6) ? 40 : 20;
++
++			copies[0].dst = dst_base + l3_hdr_len;
++			copies[0].src = out_gaddr;
++			copies[0].len = inner_len;
++			copies[1].dst = dst_base;
++			copies[1].src = pkt_gaddr + 14;
++			copies[1].len = l3_hdr_len;
++			ncopy = 2;
++			pend_inner_len = l3_hdr_len + inner_len;
++		} else {
++			copies[0].dst = dst_base + KNOD_IPSEC_GTT_OUT_L3_OFF;
++			copies[0].src = out_gaddr;
++			copies[0].len = inner_len;
++			ncopy = 1;
++			pend_inner_len = inner_len;
++		}
++
++		fv = knod_sdma_submit(knod, sdma_idx, copies, ncopy);
++		if (!fv) {
++			page_pool_put_full_netmem(pool, netmem, false);
++			if (stats_on)
++				s->rx_drop_sdma_full++;
++			bd->act = KNOD_IPSEC_DROP;
++			continue;
++		}
++		batch_fence = fv;
++		sdma_copies += ncopy;
++		sdma_bytes += pend_inner_len;
++
++		pending[n_sdma].inner_len = pend_inner_len;
++		pending[n_sdma].netmem = netmem;
++		pending[n_sdma].sa_slot = verdict_hi;
++		pending[n_sdma].rxq_idx = (u16)rxq_idx;
++		pending[n_sdma].mode = pkt_mode;
++		pending[n_sdma].next_hdr = pkt_next_hdr;
++		pending[n_sdma].family = pkt_family;
++		pending[n_sdma].inner_off =
++			(pkt_mode != XFRM_MODE_TRANSPORT) ?
++			KNOD_IPSEC_GTT_OUT_L3_OFF : 0;
++		pkt_idx_of[n_sdma] = i;
++		n_sdma++;
++	}
++
++	if (stats_on) {
++		work->rx_sdma_copies = sdma_copies;
++		work->rx_sdma_bytes  = sdma_bytes;
++	}
++
++	/* Step 2: FENCE + doorbell.  knod_sdma_submit() emitted the copies
++	 * above; kick fences the ring position it returned (batch_fence).
++	 */
++	if (n_sdma == 0)
++		return;
++	knod_sdma_kick(knod, sdma_idx);
++	work->sdma_fence_target = batch_fence;
++
++	work->sdma_fence_ptr = (s64 *)&((struct amd_signal *)
++		sdma_q->queue_signal->kaddr)->value;
++	work->sdma_submit_ns = stats_on ? ktime_get_ns() : 0;
++	work->n_sdma_pending = n_sdma;
++	for (i = 0; i < n_sdma; i++)
++		work->sdma_pkt_idx_of[i] = (u16)pkt_idx_of[i];
++}
++
++/*
++ * Deferred SDMA completion: publish to pass_pending and mark bds PASS.
++ *
++ * Called from the dispatcher loop once work->sdma_fence_ptr shows the
++ * SDMA fence has fired. All SDMA copies have landed in the delivery pages
++ * so the drain path can now read from them.
++ */
++static void knod_ipsec_finish_rx_complete(struct knod_ipsec_dispatcher *disp,
++					  struct knod_ipsec_work *work)
++{
++	struct knod_ipsec_priv *priv = disp->priv;
++	struct knod_ipsec_fused_param *param =
++		(struct knod_ipsec_fused_param *)work->param.kaddr;
++	struct knod_ipsec_rx_pending *pending = work->rx_pending;
++	bool stats_on = static_branch_unlikely(&ipsec_stats_enabled_key);
++	struct knod_ipsec_stats *s = NULL;
++	int n_sdma = work->n_sdma_pending;
++	int i;
++
++	if (stats_on) {
++		s = this_cpu_ptr(priv->stats);
++		if (work->sdma_submit_ns)
++			work->sdma_wait_ns =
++				ktime_get_ns() - work->sdma_submit_ns;
++	}
++
++	/* Publish each decrypted packet onto its RX queue's common pending
++	 * ring; knod_d2h_drain delivers it through knod_ipsec_post_copy.  The
++	 * SDMA fence already fired (the dispatcher waited), so the descriptor
++	 * is tagged already-landed and the drain's fence check is a no-op.
++	 */
++	for (i = 0; i < n_sdma; i++) {
++		u16 rxq = pending[i].rxq_idx;
++		struct knod_work_priv *wpriv = &priv->knodev->wpriv[rxq];
++		int src_j = work->sdma_pkt_idx_of[i];
++		struct knod_pass_desc *d;
++
++		if (spsc_produce(&wpriv->pass_pending, (void **)&d)) {
++			struct page_pool *pool = READ_ONCE(wpriv->pass_pool);
++
++			/* ring full: return the undelivered page */
++			if (pool)
++				page_pool_put_full_netmem(pool,
++							  pending[i].netmem,
++							  false);
++			if (stats_on)
++				s->rx_drop_desc_full++;
++			continue;
++		}
++		d->netmem = pending[i].netmem;
++		d->src = 0;		/* NIC act handler recycles the RX bd */
++		d->len = pending[i].inner_len;
++		d->off = pending[i].inner_off;
++		d->fence_val = work->sdma_fence_target;
++		d->sdma_idx = disp->kaql_idx;
++		d->feat.sa_slot = pending[i].sa_slot;
++		if (pending[i].sa_slot < KNOD_IPSEC_NR_SA) {
++			struct knod_ipsec_sa_slot *sa =
++				&priv->slots[pending[i].sa_slot];
++
++			d->feat.seq_lo =
++				le32_to_cpu(param->sub[src_j].result_seq);
++			d->feat.seq_hi = (sa->x && sa->x->replay_esn) ?
++					 sa->x->replay_esn->seq_hi : 0;
++		} else {
++			d->feat.seq_lo = 0;
++			d->feat.seq_hi = 0;
++		}
++		d->feat.mode = pending[i].mode;
++		d->feat.next_hdr = pending[i].next_hdr;
++		d->feat.family = pending[i].family;
++		spsc_produce_commit(&wpriv->pass_pending);
++	}
++
++	if (stats_on) {
++		s->rx_packets += n_sdma;
++		s->finish_produced += n_sdma;
++	}
++
++	/* Mark all bds as KNOD_IPSEC_PASS so the NIC act_handler recycles
++	 * the netmem on the next NAPI poll.
++	 */
++	for (i = 0; i < work->nr_packets; i++) {
++		if (work->rx_bds[i])
++			work->rx_bds[i]->act = KNOD_IPSEC_PASS;
++	}
++	memset(work->rx_bds, 0,
++	       sizeof(work->rx_bds[0]) * work->nr_packets);
++
++	work->n_sdma_pending = 0;
++}
++
++/*
++ * NIC dd NAPI consumer: drain the per-queue host desc ring, run the
++ * RFC 4303 sliding window check on each descriptor, and deliver the
++ * inner packet up the stack as a zero-copy head_frag skb wrapping the
++ * delivery-pool page (knod_pass_build_skb); the page recycles to the
++ * pool on skb free.
++ *
++ * Safe to call before knod_ipsec_priv has been created: returns 0.
++ * NIC drivers can therefore wire this call unconditionally from their
++ * NAPI poll without extra gating.
++ *
++ * Ordering w.r.t. the bd recycle ring: the NIC driver should drain its
++ * bd ring *first* (to recycle netmem back into the page_pool) and then
++ * call drain_rx. The two rings are independent - bd ring delivers no
++ * verdicts, desc ring carries only PASS candidates.
++ */
++/*
++ * Feature delivery hook (knod_dev->post_copy) for the ipsec RX path.
++ * knod_d2h_drain has already built the head_frag skb wrapping the delivery
++ * page; here we run the SA lookup, RFC 4303 anti-replay window, cleartext
++ * L3 fix-up and secpath attach.  Returns false to drop the packet (the
++ * drain frees the skb, which recycles the page).
++ */
++static bool knod_ipsec_post_copy(struct knod_dev *knodev, struct sk_buff *skb,
++				 const struct knod_pass_desc *desc,
++				 int queue_idx)
++{
++	struct knod_ipsec_priv *priv = ipsec_priv;
++	struct knod_ipsec_stats *s = NULL;
++	struct knod_ipsec_sa_slot *slot;
++	bool stats_on = static_branch_unlikely(&ipsec_stats_enabled_key);
++	u32 sa_slot = desc->feat.sa_slot;
++	u64 seq;
++
++	if (stats_on)
++		s = this_cpu_ptr(priv->stats);
++
++	/* Raw bypass: packet was not IPsec (ARP, non-ESP IP, ESP with an
++	 * unknown SPI).  The page holds the full Ethernet frame; deliver it
++	 * with no IPsec state.
++	 */
++	if (sa_slot == KNOD_IPSEC_NR_SA) {
++		skb->dev = knodev->netdev;
++		skb->protocol = eth_type_trans(skb, knodev->netdev);
++		skb_reset_network_header(skb);
++		return true;
++	}
++	if (sa_slot > KNOD_IPSEC_NR_SA) {
++		if (stats_on)
++			s->rx_drop_malformed++;
++		pr_warn_ratelimited("knod_ipsec: malform-pc-saslot sa_slot=%u len=%u q%d\n",
++				    sa_slot, desc->len, queue_idx);
 +		return false;
 +	}
 +
-+	knod_iset32(&p, 0);
-+	knod_mov32(priv, meta, dst.hi, p);
++	slot = &priv->slots[sa_slot];
++	if (!slot->active) {
++		if (stats_on)
++			s->rx_drop_no_sa++;
++		return false;
++	}
++
++	seq = ((u64)desc->feat.seq_hi << 32) | (u64)desc->feat.seq_lo;
++	if (!knod_ipsec_sa_window_check(&slot->win[queue_idx], seq)) {
++		if (stats_on)
++			s->rx_drop_replay++;
++		return false;
++	}
++
++	/* skb->data is the decrypted inner packet (head_frag at inner_off). */
++	if (desc->feat.mode == XFRM_MODE_TRANSPORT) {
++		/* Transport: the page holds the outer L3 header (20B IPv4 or
++		 * 40B IPv6) followed by the decrypted payload; patch the
++		 * next-header and length fields to describe the cleartext.
++		 */
++		if (desc->feat.family == AF_INET6) {
++			struct ipv6hdr *ip6h;
++
++			if (desc->len < 40) {
++				if (stats_on)
++					s->rx_drop_malformed++;
++				pr_warn_ratelimited("knod_ipsec: malform-pc-v6len len=%u q%d\n",
++						    desc->len, queue_idx);
++				return false;
++			}
++			ip6h = (struct ipv6hdr *)skb->data;
++			ip6h->nexthdr = desc->feat.next_hdr;
++			ip6h->payload_len = htons(desc->len - 40);
++			skb->protocol = htons(ETH_P_IPV6);
++		} else {
++			struct iphdr *iph;
++
++			if (desc->len < 20) {
++				if (stats_on)
++					s->rx_drop_malformed++;
++				pr_warn_ratelimited("knod_ipsec: malform-pc-v4len len=%u q%d\n",
++						    desc->len, queue_idx);
++				return false;
++			}
++			iph = (struct iphdr *)skb->data;
++			iph->protocol = desc->feat.next_hdr;
++			iph->tot_len = htons(desc->len);
++			iph->check = 0;
++			iph->check = ip_fast_csum((u8 *)iph, iph->ihl);
++			skb->protocol = htons(ETH_P_IP);
++		}
++	} else {
++		/* Tunnel: decrypted payload is a bare inner L3 packet; infer
++		 * v4/v6 from the IP version nibble.
++		 */
++		u8 first = *(const u8 *)skb->data;
++
++		if ((first >> 4) == 4) {
++			skb->protocol = htons(ETH_P_IP);
++		} else if ((first >> 4) == 6) {
++			skb->protocol = htons(ETH_P_IPV6);
++		} else {
++			if (stats_on)
++				s->rx_drop_malformed++;
++			pr_warn_ratelimited("knod_ipsec: malform-pc-tunver first=0x%02x len=%u off=%u q%d\n",
++				first, desc->len, desc->off, queue_idx);
++			return false;
++		}
++	}
++
++	skb->dev = knodev->netdev;
++	skb_reset_mac_header(skb);
++	skb_reset_network_header(skb);
++
++	/* The inner L4 checksum was computed by the sender before encryption
++	 * and ESP authentication guarantees the decrypted payload is byte-
++	 * identical, so trust it instead of recomputing (saves ~1.8% CPU at
++	 * 45+ Gbps UDP).
++	 */
++	skb->ip_summed = CHECKSUM_UNNECESSARY;
++
++	/* Attach secpath so xfrm_policy_check() recognises this packet as
++	 * decrypted by an offload engine; without it the inbound policy
++	 * drops the cleartext.
++	 */
++	if (slot->x) {
++		struct sec_path *sp;
++		struct xfrm_offload *xo;
++
++		sp = secpath_set(skb);
++		if (unlikely(!sp)) {
++			if (stats_on)
++				s->rx_drop_malformed++;
++			pr_warn_ratelimited("knod_ipsec: malform-pc-secpath len=%u q%d\n",
++					    desc->len, queue_idx);
++			return false;
++		}
++		xfrm_state_hold(slot->x);
++		sp->xvec[sp->len++] = slot->x;
++		sp->olen++;
++
++		xo = xfrm_offload(skb);
++		xo->flags = CRYPTO_DONE;
++		xo->status = CRYPTO_SUCCESS;
++	}
++
++	if (stats_on) {
++		s->rx_bytes += desc->len;
++		s->drain_delivered++;
++	}
 +	return true;
 +}
 +
-+/* Considered to be able to use all temporary vregisters
-+ * Also, key is stack pointer, not global
++/*
++ * After the GPU completion signal has fired for `work`, finalise it:
++ * SDMA-copy decrypted RX inner packets into per-queue delivery-pool pages
++ * and publish them on the host desc ring. Called only from dispatcher
++ * context. No lock needed: the dispatcher is the sole accessor.
 + */
-+static void knod_jhash(struct knod_bpf_priv *priv,
-+		      struct knod_insn_meta *meta,
-+		      u32 dst_idx, u32 length, u32 initval)
++static void knod_ipsec_finalise_work(struct knod_ipsec_dispatcher *disp,
++				     struct knod_ipsec_work *work)
 +{
-+	u32 a_reg = TREG32_MAX - 3, b_reg = TREG32_MAX - 2;
-+	u32 c_reg = TREG32_MAX - 1, d_reg = TREG32_MAX;
-+	u32 key_in_pkt = KEY_IN_PKT_32;
-+	struct amdgcn_param32 p32;
++	knod_ipsec_finish_rx_deliver(disp, work);
 +
-+	knod_iset32(&p32, JHASH_INITVAL + length + initval);
-+	knod_mov32(priv, meta, r32[a_reg], p32);
-+	knod_mov32(priv, meta, r32[b_reg], p32);
-+	knod_mov32(priv, meta, r32[c_reg], p32);
-+	knod_iset32(&p32, 0);
-+
-+	while (length > 12) {
-+		/* a += *key; */
-+		knod_add32(priv, meta, r32[a_reg], r32[a_reg],
-+			       r32[key_in_pkt]);
-+		/* b += *(key + 4); */
-+		knod_add32(priv, meta, r32[b_reg], r32[b_reg],
-+			       r32[key_in_pkt + 1]);
-+		/* c += *(key + 8); */
-+		knod_add32(priv, meta, r32[c_reg], r32[c_reg],
-+			       r32[key_in_pkt + 2]);
-+		/* a -= c; */
-+		knod_sub32(priv, meta, r32[a_reg], r32[a_reg], r32[c_reg]);
-+		/* a ^= rol32(c, 4); */
-+		knod_iset32(&p32, 32 - 4);
-+		knod_alignbit32(priv, meta, r32[d_reg], r32[c_reg],
-+				    r32[c_reg], p32);
-+		knod_xor32(priv, meta,
-+			       r32[a_reg], r32[a_reg], r32[d_reg]);
-+		/* c += b; */
-+		knod_add32(priv, meta, r32[c_reg], r32[c_reg], r32[b_reg]);
-+		/* b -= a; */
-+		knod_sub32(priv, meta, r32[b_reg], r32[b_reg], r32[a_reg]);
-+		/* b ^= rol32(a, 6); */
-+		knod_iset32(&p32, 32 - 6);
-+		knod_alignbit32(priv, meta, r32[d_reg], r32[a_reg],
-+				    r32[a_reg], p32);
-+		knod_xor32(priv, meta,
-+			       r32[b_reg], r32[b_reg], r32[d_reg]);
-+		/*a += c; */
-+		knod_add32(priv, meta, r32[a_reg], r32[a_reg], r32[c_reg]);
-+		/* c -= b; */
-+		knod_sub32(priv, meta, r32[c_reg], r32[c_reg], r32[b_reg]);
-+		/* c ^= rol32(b, 8); */
-+		knod_iset32(&p32, 32 - 8);
-+		knod_alignbit32(priv, meta, r32[d_reg], r32[b_reg],
-+				    r32[b_reg], p32);
-+		knod_xor32(priv, meta,
-+			       r32[c_reg], r32[c_reg], r32[d_reg]);
-+		/* b += a; */
-+		knod_add32(priv, meta, r32[b_reg], r32[b_reg], r32[a_reg]);
-+		/* a -= c; */
-+		knod_sub32(priv, meta, r32[a_reg], r32[a_reg], r32[c_reg]);
-+		/* a ^= rol32(c, 16); */
-+		knod_iset32(&p32, 32 - 16);
-+		knod_alignbit32(priv, meta, r32[d_reg], r32[c_reg],
-+				    r32[c_reg], p32);
-+		knod_xor32(priv, meta, r32[a_reg], r32[a_reg], r32[d_reg]);
-+		/* c += b; */
-+		knod_add32(priv, meta, r32[c_reg], r32[c_reg], r32[b_reg]);
-+		/* b -= a; */
-+		knod_sub32(priv, meta, r32[b_reg], r32[b_reg], r32[a_reg]);
-+		/* b ^= rol32(a, 19); */
-+		knod_iset32(&p32, 32 - 19);
-+		knod_alignbit32(priv, meta, r32[d_reg], r32[a_reg],
-+				    r32[a_reg], p32);
-+		knod_xor32(priv, meta, r32[b_reg], r32[b_reg], r32[d_reg]);
-+		/* a += c; */
-+		knod_add32(priv, meta, r32[a_reg], r32[a_reg], r32[c_reg]);
-+		/* c -= b; */
-+		knod_sub32(priv, meta, r32[c_reg], r32[c_reg], r32[b_reg]);
-+		/* c ^= rol32(b, 4); */
-+		knod_iset32(&p32, 32 - 4);
-+		knod_alignbit32(priv, meta, r32[d_reg], r32[b_reg],
-+				    r32[b_reg], p32);
-+		knod_xor32(priv, meta, r32[c_reg], r32[c_reg], r32[d_reg]);
-+		/* b += a; */
-+		knod_add32(priv, meta, r32[b_reg], r32[b_reg], r32[a_reg]);
-+		length -= 12;
-+		key_in_pkt += 3;
++	if (work->rx_napi) {
++		napi_schedule(work->rx_napi);
++		work->rx_napi = NULL;
 +	}
++	/* rx_bds[] clear is deferred to finish_rx_complete /
++	 * finalise_sdma_done for the SDMA path, because the bd
++	 * pointers are needed to mark bd->act = PASS after SDMA
++	 * completes. For the no-SDMA path (n_sdma_pending == 0),
++	 * finalise_inflight clears them inline before returning
++	 * EMPTY.
++	 */
++	if (work->n_sdma_pending == 0)
++		memset(work->rx_bds, 0,
++		       sizeof(work->rx_bds[0]) * work->nr_packets);
 +
-+	switch (length) {
-+	case 12:
-+		/* c += (unsigned int)k[11]<<24; */
-+		fallthrough;
-+	case 11:
-+		/* c += (unsigned int)k[10]<<16; */
-+		fallthrough;
-+	case 10:
-+		/* c += (unsigned int)k[9]<<8; */
-+		fallthrough;
-+	case 9:
-+		/* c += k[8]; */
-+		knod_add32(priv, meta, r32[c_reg], r32[c_reg],
-+			       r32[key_in_pkt + 2]);
-+		fallthrough;
-+	case 8:
-+		/* b += (unsigned int)k[7]<<24; */
-+		fallthrough;
-+	case 7:
-+		/* b += (unsigned int)k[6]<<16; */
-+		fallthrough;
-+	case 6:
-+		/* b += (unsigned int)k[5]<<8; */
-+		fallthrough;
-+	case 5:
-+		/* b += k[4]; */
-+		knod_add32(priv, meta, r32[b_reg], r32[b_reg],
-+			       r32[key_in_pkt + 1]);
-+		fallthrough;
-+	case 4:
-+		/* a += (unsigned int)k[3]<<24; */
-+		fallthrough;
-+	case 3:
-+		/* a += (unsigned int)k[2]<<16; */
-+		fallthrough;
-+	case 2:
-+		/* a += (unsigned int)k[1]<<8; */
-+		fallthrough;
-+	case 1:
-+		/* a += k[0]; */
-+		knod_add32(priv, meta, r32[a_reg], r32[a_reg],
-+			       r32[key_in_pkt]);
-+		/* c ^= b; */
-+		knod_xor32(priv, meta, r32[c_reg], r32[c_reg], r32[b_reg]);
-+		/* c -= rol32(b, 14); */
-+		knod_iset32(&p32, 32 - 14);
-+		knod_alignbit32(priv, meta, r32[d_reg], r32[b_reg],
-+				    r32[b_reg], p32);
-+		knod_sub32(priv, meta, r32[c_reg], r32[c_reg], r32[d_reg]);
-+		/* a ^= c; */
-+		knod_xor32(priv, meta, r32[a_reg], r32[a_reg], r32[c_reg]);
-+		/* a -= rol32(c, 11); */
-+		knod_iset32(&p32, 32 - 11);
-+		knod_alignbit32(priv, meta, r32[d_reg], r32[c_reg],
-+				    r32[c_reg], p32);
-+		knod_sub32(priv, meta, r32[a_reg], r32[a_reg], r32[d_reg]);
-+		/* b ^= a; */
-+		knod_xor32(priv, meta, r32[b_reg], r32[b_reg], r32[a_reg]);
-+		/* b -= rol32(a, 25); */
-+		knod_iset32(&p32, 32 - 25);
-+		knod_alignbit32(priv, meta, r32[d_reg], r32[a_reg],
-+				    r32[a_reg], p32);
-+		knod_sub32(priv, meta, r32[b_reg], r32[b_reg], r32[d_reg]);
-+		/* c ^= b; */
-+		knod_xor32(priv, meta, r32[c_reg], r32[c_reg], r32[b_reg]);
-+		/* c -= rol32(b, 16); */
-+		knod_iset32(&p32, 32 - 16);
-+		knod_alignbit32(priv, meta, r32[d_reg], r32[b_reg],
-+				    r32[b_reg], p32);
-+		knod_sub32(priv, meta, r32[c_reg], r32[c_reg], r32[d_reg]);
-+		/* a ^= c; */
-+		knod_xor32(priv, meta, r32[a_reg], r32[a_reg], r32[c_reg]);
-+		/* a -= rol32(c, 4); */
-+		knod_iset32(&p32, 32 - 4);
-+		knod_alignbit32(priv, meta, r32[d_reg], r32[c_reg],
-+				    r32[c_reg], p32);
-+		knod_sub32(priv, meta, r32[a_reg], r32[a_reg], r32[d_reg]);
-+		/* b ^= a; */
-+		knod_xor32(priv, meta, r32[b_reg], r32[b_reg], r32[a_reg]);
-+		/* b -= rol32(a, 14); */
-+		knod_iset32(&p32, 32 - 14);
-+		knod_alignbit32(priv, meta, r32[d_reg], r32[a_reg],
-+				    r32[a_reg], p32);
-+		knod_sub32(priv, meta, r32[b_reg], r32[b_reg], r32[d_reg]);
-+		/* c ^= b; */
-+		knod_xor32(priv, meta, r32[c_reg], r32[c_reg], r32[b_reg]);
-+		/* c -= rol32(b, 24); */
-+		knod_iset32(&p32, 32 - 24);
-+		knod_alignbit32(priv, meta, r32[d_reg], r32[b_reg],
-+				    r32[b_reg], p32);
-+		knod_sub32(priv, meta, r32[c_reg], r32[c_reg], r32[d_reg]);
-+		break;
-+	case 0: /* Nothing left to add */
-+		break;
-+	}
-+
-+	knod_mov32(priv, meta, r64[dst_idx].lo, r32[c_reg]);
-+}
-+
-+static u64 knod_bpf_map_gaddr(struct knod_bpf_priv *priv, int id)
-+{
-+	struct knod_dev *knodev = priv->knodev;
-+	struct knod_bpf_map *knod_map;
-+	struct knod_mem *mem;
-+
-+	mutex_lock(&knodev->lock);
-+	list_for_each_entry(knod_map, &knodev->accel->xdp.bound_maps, list) {
-+		if (knod_map->offmap->map.id == id) {
-+			mem = knod_map->mem;
-+			mutex_unlock(&knodev->lock);
-+			return (u64)mem->gaddr;
-+		}
-+	}
-+	mutex_unlock(&knodev->lock);
-+
-+	return 0;
-+}
-+
-+static void *knod_bpf_map_kaddr(struct knod_bpf_priv *priv, int id)
-+{
-+	struct knod_dev *knodev = priv->knodev;
-+	struct knod_bpf_map *knod_map;
-+	struct knod_mem *mem;
-+
-+	mutex_lock(&knodev->lock);
-+	list_for_each_entry(knod_map, &knodev->accel->xdp.bound_maps, list) {
-+		if (knod_map->offmap->map.id == id) {
-+			mem = knod_map->mem;
-+
-+			/* GPUVM */
-+			mutex_unlock(&knodev->lock);
-+			return (void *)mem->kaddr;
-+		}
-+	}
-+	mutex_unlock(&knodev->lock);
-+
-+	return NULL;
-+}
-+
-+static u64 knod_bpf_get_map_gaddr(struct knod_bpf_priv *priv,
-+				  struct knod_insn_meta *meta1,
-+				  struct knod_insn_meta *meta2)
-+{
-+	struct bpf_map *map;
-+
-+	map = (void *)(unsigned long)((u32)meta1->insn.imm |
-+			(u64)meta2->insn.imm << 32);
-+
-+	return knod_bpf_map_gaddr(priv, map->id);
-+}
-+
-+static int knod_bpf_get_map_id(struct knod_bpf_priv *priv,
-+			       struct knod_insn_meta *meta1,
-+			       struct knod_insn_meta *meta2)
-+{
-+	struct bpf_map *map;
-+
-+	map = (void *)(unsigned long)((u32)meta1->insn.imm |
-+			(u64)meta2->insn.imm << 32);
-+
-+	return map->id;
-+}
-+
-+static int knod_bpf_get_amdgpu_insn_idx(struct knod_bpf_priv *priv,
-+					struct knod_insn_meta *meta,
-+					int t)
-+{
-+	int i, insn_idx = meta->amdgpu_insn_idx;
-+
-+	for (i = 0; i < t; i++)
-+		insn_idx += meta->amdgpu_insn[i].size / 4;
-+
-+	return insn_idx;
-+}
-+
-+static void knod_bpf_fixup_branch(struct knod_bpf_priv *priv,
-+				  struct amdgcn_branch_fixup *fixup)
-+{
-+	int target_off = knod_bpf_get_amdgpu_insn_idx(priv,
-+						      fixup->target_label->meta,
-+			fixup->target_label->insn_idx);
-+	int cur_off = knod_bpf_get_amdgpu_insn_idx(priv,
-+						   fixup->meta,
-+						   fixup->insn_idx);
-+	cur_off++;
-+
-+	target_off -= cur_off;
-+	emit_branch_fixup(priv->isa_version,
-+			  &fixup->meta->amdgpu_insn[fixup->insn_idx],
-+			  target_off);
-+	knod_jit_dbg(" target_off was updated to %d\n", target_off);
-+}
-+
-+static void knod_bpf_set_fixup(struct knod_insn_meta *meta,
-+			       struct amdgcn_branch_fixup *fixup,
-+			       struct amdgcn_label *target_label,
-+			       int insn_idx)
-+{
-+	fixup->meta = meta;
-+	fixup->insn_idx = insn_idx;
-+	fixup->target_label = target_label;
-+}
-+
-+static void knod_bpf_set_label(struct knod_insn_meta *meta,
-+			       struct amdgcn_label *label,
-+			       int insn_idx)
-+{
-+	label->meta = meta;
-+	label->insn_idx = insn_idx;
++	/* Timing stats are now accumulated by the dispatcher
++	 * (try_rx) which has visibility into all phases -
++	 * build / gpu / sdma / finalise. This function no longer
++	 * touches *_gpu_ns.
++	 */
 +}
 +
 +/*
-+ * knod_bpf_emit_offlen_writeback - Write updated off/len to spsc_bd.
++ * Kick the GPU using kaql[disp->kaql_idx]. Assigns a forward-looking
++ * sigval by decrementing disp->dispatch_sigval_next so each in-flight
++ * slot has a distinct target - required for depth-N pipelining where
++ * multiple dispatches are queued on the same AQL queue and GPU
++ * decrements signal->value by 1 per completion.
 + *
-+ * Uses PAGE_BASE_VREG (set once in prologue), computes
-+ * new_off = DATA_VREG_LO - PAGE_BASE_VREG_LO and
-+ * new_len = DATA_END_VREG_LO - DATA_VREG_LO, packs them as (len<<16)|off,
-+ * and stores the result at spsc_bd.off via SLOT_VREG.
-+ *
-+ * Clobbers: TMP_VREG2 (v26:v27).
++ * Submit-only: does not wait. The caller is responsible for polling
++ * knod_ipsec_dispatch_done() or blocking via knod_ipsec_dispatch_wait().
 + */
-+static void knod_bpf_emit_offlen_writeback(struct knod_bpf_priv *priv,
-+					  struct knod_insn_meta *meta)
++static void knod_ipsec_dispatch_submit(struct knod_ipsec_dispatcher *disp,
++				       struct knod_ipsec_work *work)
 +{
-+	struct amdgcn_param32 s0, s1, data_lo, data_end_lo, pbase_lo, slot_lo;
-+	struct amdgcn_param32 imm;
++	struct knod_dispatch_params p;
 +
-+	knod_vset32(&s0, KNOD_AMDGPU_TMP_VREG2_LO);
-+	knod_vset32(&s1, KNOD_AMDGPU_TMP_VREG2_HI);
-+	knod_vset32(&data_lo, KNOD_AMDGPU_DATA_VREG_LO);
-+	knod_vset32(&data_end_lo, KNOD_AMDGPU_DATA_END_VREG_LO);
-+	knod_vset32(&pbase_lo, KNOD_AMDGPU_PAGE_BASE_VREG_LO);
-+	knod_vset32(&slot_lo, KNOD_AMDGPU_SLOT_VREG_LO);
-+
-+	/* s0 = len = DATA_END_LO - DATA_LO */
-+	knod_sub32(priv, meta, s0, data_end_lo, data_lo);
-+
-+	/* s0 = len << 16 */
-+	knod_iset32(&imm, 16);
-+	knod_lshlrev32(priv, meta, s0, imm, s0);
-+
-+	/* s1 = off = DATA_LO - page_base_lo */
-+	knod_sub32(priv, meta, s1, data_lo, pbase_lo);
-+
-+	/* s0 = (len << 16) | off */
-+	knod_or32(priv, meta, s0, s0, s1);
-+
-+	/* Store packed {off, len} to spsc_bd */
-+	knod_emit(priv, meta, global_store_dword, s0, slot_lo,
-+		  offsetof(struct spsc_bd, off));
++	disp->dispatch_sigval_next--;
++	work->sigval = disp->dispatch_sigval_next;
++	knod_ipsec_fill_dispatch(disp->priv->knod, work, &p);
++	knod_setup_header(disp->priv->knod, &p, disp->kaql_idx);
 +}
 +
 +/*
-+ * knod_bpf_xdp_adjust_head - JIT bpf_xdp_adjust_head (helper 44).
-+ *
-+ * R2 = delta (signed 32-bit).  Adjusts DATA_VREG by delta.
-+ * Bounds: page_base <= DATA_VREG <= DATA_END_VREG - ETH_HLEN.
-+ * Each bound is checked with its own VOPC, but VCC is captured into
-+ * VGPRs via v_cndmask (VALU) rather than SGPRs via s_mov_b64 (SALU).
-+ * VALU reads VCC correctly after VOPC; only SALU suffers the GFX10
-+ * dual-VOPC stale-read hazard.
-+ * page_base is reloaded on demand from param + spsc_bd.
-+ * On failure, DATA_VREG is restored and R0 = -EINVAL.
-+ * On success, R0 = 0.
-+ *
-+ * Clobbers: TMP_VREG0 (v22:v23), TMP_VREG1 (v24:v25), TMP_VREG2 (v26:v27),
-+ *           TMP_SREG0 (s16), TMP_SREG2 (s20:s21).
++ * Non-blocking completion check. Returns true if the kernel dispatch
++ * for `work` has finished. Used by the pipelined dispatcher loop to
++ * poll in-flight slots without stalling the build side.
 + */
-+static void knod_bpf_xdp_adjust_head(struct knod_bpf_priv *priv,
-+				    struct knod_insn_meta *meta)
++static bool knod_ipsec_dispatch_done(struct knod_ipsec_dispatcher *disp,
++				     struct knod_ipsec_work *work)
 +{
-+	struct amdgcn_param32 ub_lo, ub_hi, dend_lo, dend_hi, sext_dst;
-+	struct amdgcn_param32 shift_amt;
-+	struct amdgcn_param32 tmp0_lo, tmp0_hi, data_lo, data_hi, fail_lo;
-+	struct amdgcn_param32 fail_hi;
-+	struct amdgcn_param64 data_vreg, pbase_vreg, ub;
-+	struct amdgcn_param32 r0_lo, r0_hi, imm, delta;
++	struct amd_signal *signal =
++		(struct amd_signal *)disp->priv->knod->kaql[disp->kaql_idx]
++			.queue_signal->kaddr;
 +
-+	knod_vset64(&data_vreg, KNOD_AMDGPU_DATA_VREG_LO);
-+
-+	knod_vset32(&tmp0_lo, KNOD_AMDGPU_TMP_VREG0_LO);
-+	knod_vset32(&tmp0_hi, KNOD_AMDGPU_TMP_VREG0_HI);
-+	knod_vset32(&data_lo, KNOD_AMDGPU_DATA_VREG_LO);
-+	knod_vset32(&data_hi, KNOD_AMDGPU_DATA_VREG_HI);
-+	knod_vset32(&r0_lo, KNOD_AMDGPU_VREG0_LO);
-+	knod_vset32(&r0_hi, KNOD_AMDGPU_VREG0_HI);
-+	knod_vset32(&delta, bpf_reg64[2].lo.v);
-+	knod_vset32(&fail_lo, KNOD_AMDGPU_TMP_VREG2_LO);
-+	knod_vset32(&fail_hi, KNOD_AMDGPU_TMP_VREG2_HI);
-+
-+	/* 1. Save original DATA_VREG -> TMP_VREG0 */
-+	knod_mov32(priv, meta, tmp0_lo, data_lo);
-+	knod_mov32(priv, meta, tmp0_hi, data_hi);
-+
-+	/* 2. DATA_VREG += delta (R2.lo, sign-extended to 64-bit) */
-+	knod_emit(priv, meta, v_add_co_u32, data_lo, delta, data_lo);
-+
-+	knod_vset32(&sext_dst, KNOD_AMDGPU_TMP_VREG1_LO);
-+	knod_iset32(&shift_amt, 31);
-+	knod_emit(priv, meta, v_ashrrev_i32, sext_dst, shift_amt, delta);
-+
-+	knod_emit(priv, meta, v_add_co_ci_u32_e32, data_hi, sext_dst,
-+		  data_hi);
-+
-+	/* 3. Lower bound: DATA_VREG < page_base -> VCC = fail */
-+	knod_vset64(&pbase_vreg, KNOD_AMDGPU_PAGE_BASE_VREG_LO);
-+	knod_emit(priv, meta, v_cmp_lt_u64, data_vreg, pbase_vreg);
-+
-+	/*
-+	 * Capture VCC -> VGPR via v_cndmask (VALU reads VCC correctly,
-+	 * unlike SALU which suffers the dual-VOPC stale-read hazard).
-+	 */
-+	knod_iset32(&imm, 1);
-+	knod_mov32(priv, meta, fail_hi, imm);
-+	knod_iset32(&imm, 0);
-+	knod_emit(priv, meta, v_cndmask_b32_e32, fail_lo, imm, fail_hi);
-+
-+	/* 5. Upper bound: DATA_VREG > DATA_END_VREG - ETH_HLEN */
-+	knod_vset32(&ub_lo, KNOD_AMDGPU_TMP_VREG1_LO);
-+	knod_vset32(&ub_hi, KNOD_AMDGPU_TMP_VREG1_HI);
-+	knod_vset32(&dend_lo, KNOD_AMDGPU_DATA_END_VREG_LO);
-+	knod_vset32(&dend_hi, KNOD_AMDGPU_DATA_END_VREG_HI);
-+
-+	knod_iset32(&imm, ETH_HLEN);
-+	/*
-+	 * v_sub_co_u32 is VOP2 on GFX9, whose vsrc1 must be a VGPR (a literal
-+	 * there reads v0). Subtraction is not commutative, so materialise
-+	 * ETH_HLEN into a scratch VGPR (ub_hi, overwritten by the high half
-+	 * below) and use it as src1 instead of an immediate.
-+	 */
-+	knod_mov32(priv, meta, ub_hi, imm);
-+	knod_emit(priv, meta, v_sub_co_u32, ub_lo, dend_lo, ub_hi);
-+	knod_iset32(&imm, 0);
-+	knod_mov32(priv, meta, delta, imm);
-+	knod_emit(priv, meta, v_sub_co_ci_u32_e32, ub_hi, dend_hi, delta);
-+
-+	knod_vset64(&ub, KNOD_AMDGPU_TMP_VREG1_LO);
-+	knod_emit(priv, meta, v_cmp_gt_u64, data_vreg, ub);
-+
-+	/* Capture upper_fail via v_cndmask, combine, convert to VCC */
-+	knod_iset32(&imm, 0);
-+	knod_emit(priv, meta, v_cndmask_b32_e32, fail_hi, imm, fail_hi);
-+
-+	knod_emit(priv, meta, v_or_b32_e32, fail_lo, fail_lo, fail_hi);
-+
-+	knod_emit(priv, meta, v_cmp_lt_u32, imm, fail_lo);
-+
-+	/* 6. Conditional restore: VCC=1(fail) -> original,
-+	 *    VCC=0(pass) -> adjusted
-+	 */
-+	knod_emit(priv, meta, v_cndmask_b32_e32, data_lo, data_lo,
-+		  tmp0_lo);
-+	knod_emit(priv, meta, v_cndmask_b32_e32, data_hi, data_hi,
-+		  tmp0_hi);
-+
-+	/* 7. R0 = VCC ? -EINVAL : 0 */
-+	knod_iset32(&imm, -EINVAL);
-+	knod_mov32(priv, meta, tmp0_lo, imm);
-+	knod_iset32(&imm, 0);
-+	knod_emit(priv, meta, v_cndmask_b32_e32, r0_lo, imm, tmp0_lo);
-+
-+	knod_iset32(&imm, -1);
-+	knod_mov32(priv, meta, tmp0_hi, imm);
-+	knod_iset32(&imm, 0);
-+	knod_emit(priv, meta, v_cndmask_b32_e32, r0_hi, imm, tmp0_hi);
++	return READ_ONCE(signal->value) <= work->sigval;
 +}
 +
 +/*
-+ * knod_bpf_xdp_adjust_tail - JIT bpf_xdp_adjust_tail (helper 65).
-+ *
-+ * R2 = delta (signed 32-bit).  Adjusts DATA_END_VREG by delta.
-+ * Bounds: DATA_VREG + ETH_HLEN <= DATA_END_VREG <= page_base + PAGE_SIZE.
-+ * Each bound is checked with its own VOPC, but VCC is captured into
-+ * VGPRs via v_cndmask (VALU) rather than SGPRs via s_mov_b64 (SALU).
-+ * VALU reads VCC correctly after VOPC; only SALU suffers the GFX10
-+ * dual-VOPC stale-read hazard.
-+ * page_base is reloaded on demand from param + spsc_bd.
-+ * On failure, DATA_END_VREG is restored and R0 = -EINVAL.
-+ * On success, R0 = 0.
-+ *
-+ * Clobbers: TMP_VREG0 (v22:v23), TMP_VREG1 (v24:v25), TMP_VREG2 (v26:v27),
-+ *           TMP_SREG0 (s16), TMP_SREG2 (s20:s21).
++ * Blocking wait. Synchronous path used by the KAT selftest where we
++ * don't want pipelining. Spin-waits with cpu_relax and a best-effort
++ * timeout. In production, the dispatcher uses the non-blocking
++ * dispatch_done() check instead.
 + */
-+static void knod_bpf_xdp_adjust_tail(struct knod_bpf_priv *priv,
-+				    struct knod_insn_meta *meta)
++static void knod_ipsec_dispatch_wait(struct knod_ipsec_dispatcher *disp,
++				     struct knod_ipsec_work *work)
 +{
-+	struct amdgcn_param32 tmp0_lo, tmp0_hi, dend_lo, dend_hi, fail_lo;
-+	struct amdgcn_param32 fail_hi;
-+	struct amdgcn_param32 lb_lo, lb_hi, d_lo, d_hi, sext_dst, shift_amt;
-+	struct amdgcn_param32 pb_src_lo, pb_src_hi;
-+	struct amdgcn_param32 r0_lo, r0_hi;
-+	struct amdgcn_param32 imm, delta;
-+	struct amdgcn_param64 dend_vreg, lb;
-+
-+	knod_vset32(&tmp0_lo, KNOD_AMDGPU_TMP_VREG0_LO);
-+	knod_vset32(&tmp0_hi, KNOD_AMDGPU_TMP_VREG0_HI);
-+	knod_vset32(&dend_lo, KNOD_AMDGPU_DATA_END_VREG_LO);
-+	knod_vset32(&dend_hi, KNOD_AMDGPU_DATA_END_VREG_HI);
-+	knod_vset32(&r0_lo, KNOD_AMDGPU_VREG0_LO);
-+	knod_vset32(&r0_hi, KNOD_AMDGPU_VREG0_HI);
-+	knod_vset32(&delta, bpf_reg64[2].lo.v);
-+	knod_vset32(&fail_lo, KNOD_AMDGPU_TMP_VREG2_LO);
-+	knod_vset32(&fail_hi, KNOD_AMDGPU_TMP_VREG2_HI);
-+	knod_vset64(&dend_vreg, KNOD_AMDGPU_DATA_END_VREG_LO);
-+
-+	/* 1. Save original DATA_END_VREG -> TMP_VREG0 */
-+	knod_mov32(priv, meta, tmp0_lo, dend_lo);
-+	knod_mov32(priv, meta, tmp0_hi, dend_hi);
-+
-+	/* 2. DATA_END_VREG += delta (R2.lo, sign-extended) */
-+	knod_emit(priv, meta, v_add_co_u32, dend_lo, delta, dend_lo);
-+
-+	knod_vset32(&sext_dst, KNOD_AMDGPU_TMP_VREG1_LO);
-+	knod_iset32(&shift_amt, 31);
-+	knod_emit(priv, meta, v_ashrrev_i32, sext_dst, shift_amt, delta);
-+
-+	knod_emit(priv, meta, v_add_co_ci_u32_e32, dend_hi, sext_dst,
-+		  dend_hi);
-+
-+	/* 3. Lower bound: lb = DATA + ETH_HLEN -> TMP_VREG1 */
-+	knod_vset32(&lb_lo, KNOD_AMDGPU_TMP_VREG1_LO);
-+	knod_vset32(&lb_hi, KNOD_AMDGPU_TMP_VREG1_HI);
-+	knod_vset32(&d_lo, KNOD_AMDGPU_DATA_VREG_LO);
-+	knod_vset32(&d_hi, KNOD_AMDGPU_DATA_VREG_HI);
-+
-+	knod_iset32(&imm, ETH_HLEN);
-+	knod_emit(priv, meta, v_add_co_u32, lb_lo, imm, d_lo);
-+	knod_iset32(&imm, 0);
-+	knod_emit(priv, meta, v_add_co_ci_u32_e32, lb_hi, imm, d_hi);
-+
-+	/* VOPC#1: DATA_END < lb -> VCC = lower_fail */
-+	knod_vset64(&lb, KNOD_AMDGPU_TMP_VREG1_LO);
-+	knod_emit(priv, meta, v_cmp_lt_u64, dend_vreg, lb);
-+
-+	/*
-+	 * Capture VCC -> VGPR via v_cndmask (VALU reads VCC correctly,
-+	 * unlike SALU which suffers the GFX10 dual-VOPC stale-read hazard).
-+	 */
-+	knod_iset32(&imm, 1);
-+	knod_mov32(priv, meta, fail_hi, imm);
-+	knod_iset32(&imm, 0);
-+	knod_emit(priv, meta, v_cndmask_b32_e32, fail_lo, imm, fail_hi);
-+
-+	/* 4. Upper bound: ub = page_base + PAGE_SIZE -> TMP_VREG1 */
-+	knod_vset32(&pb_src_lo, KNOD_AMDGPU_PAGE_BASE_VREG_LO);
-+	knod_vset32(&pb_src_hi, KNOD_AMDGPU_PAGE_BASE_VREG_HI);
-+	knod_mov32(priv, meta, lb_lo, pb_src_lo);
-+	knod_mov32(priv, meta, lb_hi, pb_src_hi);
-+
-+	knod_iset32(&imm, PAGE_SIZE);
-+	knod_emit(priv, meta, v_add_co_u32, lb_lo, imm, lb_lo);
-+	knod_iset32(&imm, 0);
-+	knod_emit(priv, meta, v_add_co_ci_u32_e32, lb_hi, imm, lb_hi);
-+
-+	/* VOPC#2: DATA_END > ub -> VCC = upper_fail */
-+	knod_emit(priv, meta, v_cmp_gt_u64, dend_vreg, lb);
-+
-+	/* Capture upper_fail via v_cndmask, combine, convert to VCC */
-+	knod_iset32(&imm, 0);
-+	knod_emit(priv, meta, v_cndmask_b32_e32, fail_hi, imm, fail_hi);
-+
-+	knod_emit(priv, meta, v_or_b32_e32, fail_lo, fail_lo, fail_hi);
-+
-+	knod_emit(priv, meta, v_cmp_lt_u32, imm, fail_lo);
-+
-+	/* 5. Conditional restore: VCC=1(fail) -> original,
-+	 *    VCC=0(pass) -> adjusted
-+	 */
-+	knod_emit(priv, meta, v_cndmask_b32_e32, dend_lo, dend_lo,
-+		  tmp0_lo);
-+	knod_emit(priv, meta, v_cndmask_b32_e32, dend_hi, dend_hi,
-+		  tmp0_hi);
-+
-+	/* 6. R0 = VCC ? -EINVAL : 0 */
-+	knod_iset32(&imm, -EINVAL);
-+	knod_mov32(priv, meta, tmp0_lo, imm);
-+	knod_iset32(&imm, 0);
-+	knod_emit(priv, meta, v_cndmask_b32_e32, r0_lo, imm, tmp0_lo);
-+
-+	knod_iset32(&imm, -1);
-+	knod_mov32(priv, meta, tmp0_hi, imm);
-+	knod_iset32(&imm, 0);
-+	knod_emit(priv, meta, v_cndmask_b32_e32, r0_hi, imm, tmp0_hi);
-+}
-+
-+static void knod_bpf_load_size(struct knod_bpf_priv *priv,
-+			      struct knod_insn_meta *meta,
-+			      struct amdgcn_param64 *dst,
-+			      /* packet or stack */
-+			      struct amdgcn_param32 *cache,
-+			      int size, int off)
-+{
-+	struct amdgcn_param32 p32[2];
-+
-+	knod_jit_dbg(" %d: off = %d off_4 = %d size = %d\n", meta->bpf_insn_idx,
-+		off, off%4, size);
-+	switch (size) {
-+	case sizeof(unsigned long):
-+		if ((off % 4) == 0) {
-+			knod_mov32(priv, meta, dst->lo, cache[off / 4]);
-+			knod_mov32(priv, meta, dst->hi,
-+				       cache[(off / 4) + 1]);
-+		} else if ((off % 4) == 1) {
-+			WARN_ON_ONCE(1);
-+		} else if ((off % 4) == 2) {
-+			WARN_ON_ONCE(1);
-+		} else {
-+			WARN_ON_ONCE(1);
-+		}
-+		break;
-+	case sizeof(unsigned int):
-+		if ((off % 4) == 0) {
-+			knod_mov32(priv, meta, dst->lo, cache[off / 4]);
-+		} else if ((off % 4) == 1) {
-+			knod_iset32(&p32[0], 8);
-+			knod_lshrrev32(priv, meta, r32[0], p32[0],
-+					   cache[off / 4]);
-+			knod_iset32(&p32[0], 24);
-+			knod_lshlrev32(priv, meta, dst->lo, p32[0],
-+					   cache[(off / 4) + 1]);
-+			knod_or32(priv, meta, dst->lo, dst->lo, r32[0]);
-+		} else if ((off % 4) == 2) {
-+			knod_iset32(&p32[0], 16);
-+			knod_lshrrev32(priv, meta, r32[0], p32[0],
-+					   cache[off / 4]);
-+			knod_lshlrev32(priv, meta, dst->lo, p32[0],
-+					   cache[(off / 4) + 1]);
-+			knod_or32(priv, meta, dst->lo, dst->lo, r32[0]);
-+		} else {
-+			knod_iset32(&p32[0], 24);
-+			knod_lshrrev32(priv, meta, r32[0], p32[0],
-+					   cache[off / 4]);
-+			knod_iset32(&p32[0], 8);
-+			knod_lshlrev32(priv, meta, dst->lo, p32[0],
-+					   cache[(off / 4) + 1]);
-+			knod_or32(priv, meta, dst->lo, dst->lo, r32[0]);
-+		}
-+		break;
-+	case sizeof(unsigned short):
-+		if ((off % 4) == 3) {
-+			knod_iset32(&p32[0], 24);
-+			knod_iset32(&p32[1], 8);
-+			knod_bfe32(priv, meta, r64[0].lo, cache[off / 4],
-+				       p32[0], p32[1]);
-+			knod_iset32(&p32[0], 0);
-+			knod_bfe32(priv, meta, r64[0].hi,
-+				       cache[(off / 4) + 1], p32[0], p32[1]);
-+			/* bpf_reg64[d].lo = (r64[0].hi << 8) | r64[0].lo. */
-+			knod_emit(priv, meta, v_lshl_or_b32, dst->lo,
-+				  r64[0].hi, p32[1], r64[0].lo);
-+		} else {
-+			if (!(off % 4))
-+				knod_iset32(&p32[0], 0);
-+			else if ((off % 4) == 1)
-+				knod_iset32(&p32[0], 8);
-+			else if ((off % 4) == 2)
-+				knod_iset32(&p32[0], 16);
-+			knod_iset32(&p32[1], 16);
-+			knod_bfe32(priv, meta, dst->lo, cache[off / 4],
-+				       p32[0], p32[1]);
-+		}
-+		break;
-+	case sizeof(unsigned char):
-+		if ((off % 4) == 0)
-+			knod_iset32(&p32[0], 0);
-+		else if ((off % 4) == 1)
-+			knod_iset32(&p32[0], 8);
-+		else if ((off % 4) == 2)
-+			knod_iset32(&p32[0], 16);
-+		else
-+			knod_iset32(&p32[0], 24);
-+		knod_iset32(&p32[1], 8);
-+		knod_bfe32(priv, meta, dst->lo, cache[off / 4], p32[0],
-+			       p32[1]);
-+		break;
-+	default:
-+		WARN_ON_ONCE(1);
-+		break;
-+	}
-+
-+	if (size != sizeof(unsigned long)) {
-+		knod_iset32(&p32[0], 0);
-+		knod_mov32(priv, meta, dst->hi, p32[0]);
-+	}
-+}
-+
-+/*
-+ * GFX10 (RDNA2) quirk: global_load_{dword,dwordx2,dwordx4} silently
-+ * clear the low 2 bits of the effective address, forcing Dword
-+ * alignment. For PTR_TO_PACKET loads at a byte offset that is not
-+ * Dword-aligned, round the offset down to the nearest 4-byte boundary,
-+ * load enough contiguous dwords to cover the requested range, then use
-+ * v_alignbit_b32 to extract the byte-aligned result. For size < 4 a
-+ * final v_and_b32 masks the result to the correct width.
-+ *
-+ * Caller is responsible for zeroing dst.hi for size < 8; this helper
-+ * only writes dst.lo (and dst.hi when size == 8).
-+ *
-+ * Scratch: up to 4 contiguous VGPRs at v32..v35
-+ * (TMP_VREG5_LO..TMP_VREG6_HI).
-+ */
-+static void knod_bpf_emit_gfx10_unaligned_load(struct knod_bpf_priv *priv,
-+					      struct knod_insn_meta *meta,
-+					      int size,
-+					      struct amdgcn_param64 dst,
-+					      struct amdgcn_param32 src_lo,
-+					      int off)
-+{
-+	int off_a = off & ~3;
-+	int shift_bits = (off - off_a) * 8;
-+	int needed = DIV_ROUND_UP((off & 3) + size, 4);
-+	struct amdgcn_param32 tmp[4];
-+	struct amdgcn_param32 shift_imm, mask_imm;
-+
-+	knod_vset32(&tmp[0], KNOD_AMDGPU_TMP_VREG5_LO);
-+	knod_vset32(&tmp[1], KNOD_AMDGPU_TMP_VREG5_HI);
-+	knod_vset32(&tmp[2], KNOD_AMDGPU_TMP_VREG6_LO);
-+	knod_vset32(&tmp[3], KNOD_AMDGPU_TMP_VREG6_HI);
-+	knod_iset32(&shift_imm, shift_bits);
-+
-+	if (needed <= 1) {
-+		knod_emit(priv, meta, global_load_dword, tmp[0], src_lo,
-+			  off_a);
-+	} else if (needed == 2) {
-+		knod_emit(priv, meta, global_load_dwordx2, tmp[0], src_lo,
-+			  off_a);
-+	} else {
-+		/* needed == 3: no dwordx3, widen to dwordx4. */
-+		knod_emit(priv, meta, global_load_dwordx4, tmp[0], src_lo,
-+			  off_a);
-+	}
-+	knod_wait_vmcnt(priv, meta);
-+
-+	if (size <= 4) {
-+		/* v_alignbit_b32 D, S0, S1, S2:
-+		 *   D = ({S0, S1} >> S2)[31:0]
-+		 * S0 is HIGH, S1 is LOW. tmp[0] holds
-+		 * bytes[off_a..+4) (memory-low) and tmp[1] holds
-+		 * bytes[off_a+4..+8) (memory-high), so
-+		 * src0=tmp[1], src1=tmp[0].
-+		 */
-+		if (shift_bits == 0)
-+			knod_mov32(priv, meta, dst.lo, tmp[0]);
-+		else
-+			knod_alignbit32(priv, meta, dst.lo,
-+					    tmp[1], tmp[0], shift_imm);
-+
-+		if (size == 1) {
-+			knod_iset32(&mask_imm, 0xff);
-+			knod_and32(priv, meta, dst.lo, dst.lo,
-+				       mask_imm);
-+		} else if (size == 2) {
-+			knod_iset32(&mask_imm, 0xffff);
-+			knod_and32(priv, meta, dst.lo, dst.lo,
-+				       mask_imm);
-+		}
-+	} else {
-+		/* size == 8: two alignbits for low / high output dwords. */
-+		if (shift_bits == 0) {
-+			knod_mov32(priv, meta, dst.lo, tmp[0]);
-+			knod_mov32(priv, meta, dst.hi, tmp[1]);
-+		} else {
-+			knod_alignbit32(priv, meta, dst.lo,
-+					    tmp[1], tmp[0], shift_imm);
-+			knod_alignbit32(priv, meta, dst.hi,
-+					    tmp[2], tmp[1], shift_imm);
-+		}
-+	}
-+}
-+
-+#define LABEL_NEXT	8
-+#define LABEL_OUT	9
-+static void knod_bpf_ktime_get_ns(struct knod_bpf_priv *priv,
-+				 struct knod_insn_meta *meta)
-+{
-+	struct amdgcn_param32 p[2];
-+
-+	knod_sset32(&p[0], KNOD_AMDGPU_TMP_SREG0_LO);
-+	knod_sset32(&p[1], KNOD_AMDGPU_PARAM_SREG_LO);
-+	knod_emit(priv, meta, s_load_dwordx2, p[0], p[1],
-+		  offsetof(struct knod_bpf_param, ktime_ns));
-+
-+	knod_emit(priv, meta, s_waitcnt_lgkmcnt);
-+
-+	knod_sset32(&p[0], KNOD_AMDGPU_TMP_SREG0_LO);
-+	knod_mov32(priv, meta, bpf_reg64[0].lo, p[0]);
-+	knod_sset32(&p[0], KNOD_AMDGPU_TMP_SREG0_HI);
-+	knod_mov32(priv, meta, bpf_reg64[0].hi, p[0]);
-+}
-+
-+static void knod_bpf_map_lookup(struct knod_bpf_priv *priv,
-+			       struct knod_insn_meta *meta,
-+			       int map_id)
-+{
-+	struct knod_bpf_map_obj *knod_map_obj_k, *knod_map_obj_g;
-+	int off, len, _len, idx, key_in_pkt, key_in_map;
-+	bool first_cmp;
-+	struct amdgcn_branch_fixup fixups[12] = {0,};
-+	struct amdgcn_label labels[10] = {0,};
-+	u32 stack_off = meta->kreg.stack_off;
-+	unsigned long bucket_gaddr;
-+	struct amdgcn_param32 p32;
-+	int fixup_idx = 0;
-+
-+	knod_map_obj_k =
-+		(struct knod_bpf_map_obj *)knod_bpf_map_kaddr(priv, map_id);
-+	knod_map_obj_g =
-+		(struct knod_bpf_map_obj *)knod_bpf_map_gaddr(priv, map_id);
-+	bucket_gaddr = (unsigned long)knod_map_obj_g +
-+		       offsetof(struct knod_bpf_map_obj, bucket);
-+
-+	knod_jit_dbg(" stack_off = %d map_id = %d\n", stack_off, map_id);
-+	if (!knod_map_obj_g || !knod_map_obj_k)
-+		WARN_ON_ONCE(1);
-+
-+	knod_bpf_load_size(priv, meta,
-+			       &r64[2],
-+			       &stack[0],
-+			       sizeof(unsigned int),
-+			       512 + stack_off);
-+	/* reg1 := bucket
-+	 * NOTE: bucket_gaddr is greater than X
-+	 */
-+	knod_iset64(&p64[0], bucket_gaddr);
-+	knod_mov64(priv, meta, r64[1], p64[0]);
-+	knod_iset64(&p64[1], 0);
-+	knod_mov32(priv, meta, r64[2].hi, p64[1].lo);
-+
-+	knod_iset64(&p64[1], 0);
-+	knod_mov64(priv, meta, bpf_reg64[0], p64[1]);
-+
-+	/* BPF_REG0 = 0
-+	 * TMP_REG1 = bucket_gaddr
-+	 * TMP_REG2 = key
-+	 */
-+
-+	if (knod_map_obj_k->map_type == BPF_MAP_TYPE_ARRAY ||
-+	    knod_map_obj_k->map_type == BPF_MAP_TYPE_PERCPU_ARRAY) {
-+		/* if (key > knod_map_obj_k.max_entries)
-+		 * NOTE: integer
-+		 */
-+		knod_iset64(&p64[1], knod_map_obj_k->max_entries);
-+		knod_mov64(priv, meta, r64[3], p64[1]);
-+		knod_emit(priv, meta, v_cmp_ge_u64, r64[2], r64[3]);
-+		/* structurized CFG: save OOB lanes, narrow exec */
-+		knod_emit(priv, meta, s_and_b64, KNOD_AMDGPU_TMP_SREG3_LO,
-+			  AMDGCN_SREG_EXEC_LO, AMDGCN_SREG_VCC_LO);
-+		knod_emit(priv, meta, s_andn2_b64, AMDGCN_SREG_EXEC_LO,
-+			  AMDGCN_SREG_EXEC_LO, AMDGCN_SREG_VCC_LO);
-+			emit_s_cbranch_execz(priv->isa_version,
-+				     &meta->amdgpu_insn[meta->amdgpu_insns],
-+				     0); /* update required */
-+		knod_bpf_set_fixup(meta, &fixups[fixup_idx],
-+				   &labels[LABEL_OUT], meta->amdgpu_insns);
-+		debug_insn(priv->isa_version,
-+			   &meta->amdgpu_insn[meta->amdgpu_insns]);
-+		meta->amdgpu_insns++;
-+		fixup_idx++;
-+		/* PERCPU_ARRAY: bucket += workgroup_id_y * per_instance_size so
-+		 * each RX queue addresses its own instance and the atomic
-+		 * update after the lookup has no cross-CU contention.  Auto
-+		 * xgroups keeps PERCPU programs at one workgroup per queue, so
-+		 * the queue id (workgroup_id_y) is the instance index.
-+		 */
-+		if (knod_map_obj_k->map_type == BPF_MAP_TYPE_PERCPU_ARRAY) {
-+			/* r64[3] is scratch after the bounds check: .lo =
-+			 * workgroup_id_y, .hi = per_instance_size (too large
-+			 * for an inline constant, so stage both in VGPRs
-+			 * first).
-+			 */
-+			knod_sset32(&p32, KNOD_AMDGPU_WORKGROUP_ID_Y_SREG);
-+			knod_emit(priv, meta, v_mov_b32_e32, r64[3].lo, p32);
-+			knod_iset64(&p64[1],
-+				    knod_map_obj_k->meta.ameta
-+				    .per_instance_size);
-+			knod_mov32(priv, meta, r64[3].hi, p64[1].lo);
-+			emit_v_mad_u64_u32(priv->isa_version,
-+					&meta->amdgpu_insn[meta->amdgpu_insns],
-+					   r64[1],
-+					   sr64[0].lo,
-+					   r64[3].hi, /* per_instance_size */
-+					   r64[3].lo, /* workgroup_id_y */
-+					   r64[1]); /* bucket */
-+			debug_insn(priv->isa_version,
-+				   &meta->amdgpu_insn[meta->amdgpu_insns]);
-+			meta->amdgpu_insns++;
-+		}
-+		/* elem_id = &bucket[key]; */
-+		knod_iset64(&p64[1], knod_map_obj_k->value_size);
-+		emit_v_mad_u64_u32(priv->isa_version,
-+				   &meta->amdgpu_insn[meta->amdgpu_insns],
-+				   bpf_reg64[0],
-+				   sr64[0].lo,
-+				   p64[1].lo, /* value_size */
-+				   r64[2].lo, /* key */
-+				   r64[1]); /* bucket */
-+		debug_insn(priv->isa_version,
-+			   &meta->amdgpu_insn[meta->amdgpu_insns]);
-+		meta->amdgpu_insns++;
-+		/* structurized CFG: restore OOB lanes */
-+		knod_bpf_set_label(meta, &labels[LABEL_OUT],
-+				   meta->amdgpu_insns);
-+		knod_emit(priv, meta, s_or_b64, AMDGCN_SREG_EXEC_LO,
-+			  AMDGCN_SREG_EXEC_LO, KNOD_AMDGPU_TMP_SREG3_LO);
-+		for (idx = 0; idx < fixup_idx; idx++)
-+			knod_bpf_fixup_branch(priv, &fixups[idx]);
-+	} else if (knod_map_obj_k->map_type == BPF_MAP_TYPE_HASH) {
-+		key_in_pkt = KEY_IN_PKT_64;
-+		len = knod_map_obj_k->key_size;
-+		off = stack_off;
-+
-+		/* TMP_VREGs(vgpr-pair)
-+		 * |0|1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17|18|
-+		 * | | | |K|K|K|K|K|K|K|K |K |K |K |K |K |K |K |K |
-+		 */
-+		while (len) {
-+			if (len >= sizeof(unsigned long))
-+				_len = sizeof(unsigned long);
-+			else
-+				_len = len;
-+			knod_bpf_load_size(priv, meta,
-+					       &r64[key_in_pkt],
-+					       &stack[0],
-+					       _len,
-+					       512 + off);
-+			key_in_pkt++;
-+			len -= _len;
-+			off += _len;
-+		}
-+
-+		knod_jhash(priv, meta,
-+			       2,
-+			       knod_map_obj_k->key_size,
-+			       knod_map_obj_k->meta.hmeta.hashrnd);
-+		/* clear hi register of r64[2] because hash is 32bit */
-+		knod_iset64(&p64[0], 0);
-+		knod_mov32(priv, meta, r64[2].hi, p64[0].lo);
-+
-+		/* hash = hash & (n_buckets - 1) before indexing the bucket
-+		 * array -- jhash returns the full 32-bit hash and the update
-+		 * and delete emitters mask it too; without this
-+		 * bucket_gaddr[hash] runs off the end of the bucket array.
-+		 */
-+		knod_iset32(&p64[0].lo,
-+			    knod_map_obj_k->meta.hmeta.n_buckets - 1);
-+		knod_and32(priv, meta, r64[2].lo, p64[0].lo, r64[2].lo);
-+
-+		/* elem_id = bucket_gaddr[hash]; */
-+		knod_iset64(&p64[1], sizeof(int));
-+		emit_v_mad_u64_u32(priv->isa_version,
-+				   &meta->amdgpu_insn[meta->amdgpu_insns],
-+				   r64[2],
-+				   sr64[0].lo,
-+				   p64[1].lo, /* sizeof(int) */
-+				   r64[2].lo, /* hash */
-+				   r64[1]); /* bucket */
-+		debug_insn(priv->isa_version,
-+			   &meta->amdgpu_insn[meta->amdgpu_insns]);
-+		meta->amdgpu_insns++;
-+
-+		/* bpf_reg64[0] = 0 (default return for not-found lanes) */
-+		knod_iset64(&p64[0], 0);
-+		knod_mov64(priv, meta, bpf_reg64[0], p64[0]);
-+
-+		/* structurized CFG: save initial exec for restoring at end */
-+		knod_emit(priv, meta, s_mov_b64, KNOD_AMDGPU_TMP_SREG3_LO,
-+			  AMDGCN_SREG_EXEC_LO);
-+
-+		knod_bpf_set_label(meta, &labels[LABEL_NEXT],
-+				   meta->amdgpu_insns);
-+		/* load elem_id from elem structure */
-+		knod_emit(priv, meta, global_load_dword, r64[2].lo,
-+			  r64[2].lo, 0);
-+		knod_wait_vmcnt(priv, meta);
-+
-+		/* mask out DELETED bit from next field */
-+		knod_iset32(&p32, KNOD_BPF_HASH_NEXT_MASK);
-+		knod_emit(priv, meta, v_and_b32_e32, r64[2].lo, p32,
-+			  r64[2].lo);
-+
-+		/* if (r64[2].lo == KNOD_BPF_HASH_NEXT_END)
-+		 *	goto out;
-+		 * VOPC cannot encode literal constants - move to VGPR first.
-+		 * NEXT_MASK == NEXT_END (0x7FFFFFFF), reuse p32 from v_and
-+		 * above.
-+		 */
-+		knod_emit(priv, meta, v_mov_b32_e32, r64[0].hi, p32);
-+		knod_emit(priv, meta, v_cmp_eq_u32, r64[0].hi, r64[2].lo);
-+		/* structurized CFG: remove end-of-chain lanes */
-+		knod_emit(priv, meta, s_andn2_b64, AMDGCN_SREG_EXEC_LO,
-+			  AMDGCN_SREG_EXEC_LO, AMDGCN_SREG_VCC_LO);
-+
-+		emit_s_cbranch_execz(priv->isa_version,
-+				     &meta->amdgpu_insn[meta->amdgpu_insns],
-+				     0); /* update required */
-+		knod_bpf_set_fixup(meta, &fixups[fixup_idx],
-+				   &labels[LABEL_OUT], meta->amdgpu_insns);
-+		debug_insn(priv->isa_version,
-+			   &meta->amdgpu_insn[meta->amdgpu_insns]);
-+		meta->amdgpu_insns++;
-+		fixup_idx++;
-+
-+		knod_iset64(&p64[0],
-+			    (unsigned long)knod_map_obj_k->meta.hmeta.elems);
-+		knod_mov64(priv, meta, r64[1], p64[0]);
-+		knod_iset64(&p64[0], knod_map_obj_k->meta.hmeta.elem_size);
-+		knod_mov64(priv, meta, r64[0], p64[0]);
-+
-+		key_in_map = KEY_IN_MAP_32;
-+		len = knod_map_obj_k->key_size;
-+		off = offsetof(struct knod_bpf_hash_elem_obj, kv);
-+
-+		/* elem = &elems[elem_id]; */
-+		emit_v_mad_u64_u32(priv->isa_version,
-+				   &meta->amdgpu_insn[meta->amdgpu_insns],
-+				   r64[2], /* elem */
-+				   sr64[0].lo,
-+				   r64[0].lo, /* elem_size */
-+				   r64[2].lo, /* elem_id */
-+				   r64[1]); /* elem_gaddr */
-+		debug_insn(priv->isa_version,
-+			   &meta->amdgpu_insn[meta->amdgpu_insns]);
-+		meta->amdgpu_insns++;
-+
-+		/* load elem.next for DELETED check (parallel with key loads) */
-+		knod_emit(priv, meta, global_load_dword, r64[0].hi,
-+			  r64[2].lo, 0);
-+		while (len >= 16) {
-+			knod_emit(priv, meta, global_load_dwordx4,
-+				  r32[key_in_map],
-+				  r64[2].lo, /* elem ptr */ off);
-+			off += 16;
-+			len -= 16;
-+			key_in_map += 4;
-+		}
-+
-+		if (len >= 8) {
-+			knod_emit(priv, meta, global_load_dwordx2,
-+				  r32[key_in_map],
-+				  /* elem_id */ r64[2].lo, /* elem ptr */ off);
-+			off += 8;
-+			len -= 8;
-+			key_in_map += 2;
-+		}
-+
-+		if (len >= 4) {
-+			knod_emit(priv, meta, global_load_dword,
-+				  r32[key_in_map],
-+				  /* elem_id */ r64[2].lo, /* elem ptr */ off);
-+			off += 4;
-+			len -= 4;
-+			key_in_map += 1;
-+		}
-+
-+		/* map key padding was inited to zero, no AND is required */
-+		if (len) {
-+			knod_emit(priv, meta, global_load_dword,
-+				  r32[key_in_map],
-+				  /* elem_id */ r64[2].lo, /* elem ptr */ off);
-+		}
-+
-+		knod_wait_vmcnt(priv, meta);
-+
-+		/* structurized CFG: accumulate key match into TMP_SREG4
-+		 * instead of early-exit branching per key part
-+		 */
-+		key_in_map = KEY_IN_MAP_32;
-+		key_in_pkt = KEY_IN_PKT_32;
-+		len = knod_map_obj_k->key_size;
-+		first_cmp = true;
-+
-+		while (len >= 8) {
-+			knod_emit(priv, meta, v_cmp_eq_u64, r32[key_in_map],
-+				  r32[key_in_pkt]);
-+
-+			if (first_cmp) {
-+				knod_emit(priv, meta, s_and_b64,
-+					  KNOD_AMDGPU_TMP_SREG4_LO,
-+					  AMDGCN_SREG_EXEC_LO,
-+					  AMDGCN_SREG_VCC_LO);
-+				first_cmp = false;
-+			} else {
-+				knod_emit(priv, meta, s_and_b64,
-+					  KNOD_AMDGPU_TMP_SREG4_LO,
-+					  KNOD_AMDGPU_TMP_SREG4_LO,
-+					  AMDGCN_SREG_VCC_LO);
-+			}
-+
-+			key_in_map += 2;
-+			key_in_pkt += 2;
-+			len -= 8;
-+		}
-+
-+		if (len >= 4) {
-+			knod_emit(priv, meta, v_cmp_eq_u32, r32[key_in_map],
-+				  r32[key_in_pkt]);
-+
-+			if (first_cmp) {
-+				knod_emit(priv, meta, s_and_b64,
-+					  KNOD_AMDGPU_TMP_SREG4_LO,
-+					  AMDGCN_SREG_EXEC_LO,
-+					  AMDGCN_SREG_VCC_LO);
-+				first_cmp = false;
-+			} else {
-+				knod_emit(priv, meta, s_and_b64,
-+					  KNOD_AMDGPU_TMP_SREG4_LO,
-+					  KNOD_AMDGPU_TMP_SREG4_LO,
-+					  AMDGCN_SREG_VCC_LO);
-+			}
-+
-+			key_in_map += 1;
-+			key_in_pkt += 1;
-+			len -= 4;
-+		}
-+
-+		if (len) {
-+			knod_emit(priv, meta, v_cmp_eq_u32, r32[key_in_map],
-+				  r32[key_in_pkt]);
-+
-+			if (first_cmp) {
-+				knod_emit(priv, meta, s_and_b64,
-+					  KNOD_AMDGPU_TMP_SREG4_LO,
-+					  AMDGCN_SREG_EXEC_LO,
-+					  AMDGCN_SREG_VCC_LO);
-+				first_cmp = false;
-+			} else {
-+				knod_emit(priv, meta, s_and_b64,
-+					  KNOD_AMDGPU_TMP_SREG4_LO,
-+					  KNOD_AMDGPU_TMP_SREG4_LO,
-+					  AMDGCN_SREG_VCC_LO);
-+			}
-+		}
-+
-+		/* DELETED check: remove deleted lanes from match result.
-+		 * r64[0].hi = elem.next (loaded in parallel with key).
-+		 * Deleted elems have bit 31 set - exclude them from SREG4.
-+		 */
-+		knod_iset32(&p32, KNOD_BPF_HASH_NEXT_DELETED);
-+		knod_emit(priv, meta, v_and_b32_e32, r64[0].hi, p32,
-+			  r64[0].hi);
-+		knod_iset32(&p32, 0);
-+		knod_emit(priv, meta, v_cmp_eq_u32, p32, r64[0].hi);
-+		knod_emit(priv, meta, s_and_b64, KNOD_AMDGPU_TMP_SREG4_LO,
-+			  KNOD_AMDGPU_TMP_SREG4_LO, AMDGCN_SREG_VCC_LO);
-+
-+		/* TMP_SREG4 = lanes where key matched AND not deleted.
-+		 * Save current exec, narrow to matched lanes for value
-+		 * computation.
-+		 */
-+		knod_emit(priv, meta, s_mov_b64, KNOD_AMDGPU_TMP_SREG5_LO,
-+			  AMDGCN_SREG_EXEC_LO);
-+		knod_emit(priv, meta, s_and_b64, AMDGCN_SREG_EXEC_LO,
-+			  AMDGCN_SREG_EXEC_LO, KNOD_AMDGPU_TMP_SREG4_LO);
-+
-+		/* bpf_reg64[0] = value address (only for matched lanes) */
-+		knod_iset64(&p64[1],
-+				offsetof(struct knod_bpf_hash_elem_obj, kv) +
-+					 knod_map_obj_k->key_size);
-+		knod_add64(priv, meta, bpf_reg64[0], p64[1], r64[2]);
-+
-+		/* set exec to unmatched lanes for next loop iteration */
-+		knod_emit(priv, meta, s_andn2_b64, AMDGCN_SREG_EXEC_LO,
-+			  KNOD_AMDGPU_TMP_SREG5_LO, KNOD_AMDGPU_TMP_SREG4_LO);
-+			/* loop back if any unmatched lanes remain */
-+		emit_s_cbranch_execnz(priv->isa_version,
-+				      &meta->amdgpu_insn[meta->amdgpu_insns],
-+				      0); /* update required */
-+		knod_bpf_set_fixup(meta, &fixups[fixup_idx],
-+				   &labels[LABEL_NEXT], meta->amdgpu_insns);
-+		debug_insn(priv->isa_version,
-+			   &meta->amdgpu_insn[meta->amdgpu_insns]);
-+		meta->amdgpu_insns++;
-+		fixup_idx++;
-+		/* structurized CFG: restore all original lanes */
-+		knod_bpf_set_label(meta, &labels[LABEL_OUT],
-+				   meta->amdgpu_insns);
-+		knod_emit(priv, meta, s_or_b64, AMDGCN_SREG_EXEC_LO,
-+			  AMDGCN_SREG_EXEC_LO, KNOD_AMDGPU_TMP_SREG3_LO);
-+		for (idx = 0; idx < fixup_idx; idx++)
-+			knod_bpf_fixup_branch(priv, &fixups[idx]);
-+
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static void knod_bpf_map_update_array(struct knod_bpf_priv *priv,
-+				     struct knod_insn_meta *meta,
-+				     int map_id)
-+{
-+	struct knod_bpf_map_obj *knod_map_obj_k, *knod_map_obj_g;
-+	struct amdgcn_branch_fixup fixups[4] = {0,};
-+	u32 key_stack_off = meta->kreg.stack_off;
-+	u32 val_stack_off = meta->vreg.stack_off;
-+	struct amdgcn_label labels[10] = {0,};
-+	int idx, val_off, val_len;
-+	unsigned long bucket_gaddr;
-+	int fixup_idx = 0;
-+
-+	knod_map_obj_k =
-+		(struct knod_bpf_map_obj *)knod_bpf_map_kaddr(priv, map_id);
-+	knod_map_obj_g =
-+		(struct knod_bpf_map_obj *)knod_bpf_map_gaddr(priv, map_id);
-+	bucket_gaddr = (unsigned long)knod_map_obj_g +
-+		       offsetof(struct knod_bpf_map_obj, bucket);
-+
-+	if (!knod_map_obj_g || !knod_map_obj_k)
-+		WARN_ON_ONCE(1);
-+
-+	/* load key from stack -> r64[2] */
-+	knod_bpf_load_size(priv, meta,
-+			       &r64[2],
-+			       &stack[0],
-+			       sizeof(unsigned int),
-+			       512 + key_stack_off);
-+
-+	/* r64[1] = bucket_gaddr */
-+	knod_iset64(&p64[0], bucket_gaddr);
-+	knod_mov64(priv, meta, r64[1], p64[0]);
-+
-+	/* clear r64[2].hi (key is 32-bit) */
-+	knod_iset64(&p64[1], 0);
-+	knod_mov32(priv, meta, r64[2].hi, p64[1].lo);
-+
-+	/* bpf_reg64[0] = 0 (return value) */
-+	knod_mov64(priv, meta, bpf_reg64[0], p64[1]);
-+
-+	/* bounds check: if (key >= max_entries) -> skip */
-+	knod_iset64(&p64[1], knod_map_obj_k->max_entries);
-+	knod_mov64(priv, meta, r64[3], p64[1]);
-+	knod_emit(priv, meta, v_cmp_ge_u64, r64[2], r64[3]);
-+
-+	/* structurized CFG: save OOB lanes, narrow exec */
-+	knod_emit(priv, meta, s_and_b64, KNOD_AMDGPU_TMP_SREG3_LO,
-+		  AMDGCN_SREG_EXEC_LO, AMDGCN_SREG_VCC_LO);
-+	knod_emit(priv, meta, s_andn2_b64, AMDGCN_SREG_EXEC_LO,
-+		  AMDGCN_SREG_EXEC_LO, AMDGCN_SREG_VCC_LO);
-+	emit_s_cbranch_execz(priv->isa_version,
-+			     &meta->amdgpu_insn[meta->amdgpu_insns],
-+			     0);
-+	knod_bpf_set_fixup(meta, &fixups[fixup_idx],
-+			   &labels[LABEL_OUT], meta->amdgpu_insns);
-+	debug_insn(priv->isa_version, &meta->amdgpu_insn[meta->amdgpu_insns]);
-+	meta->amdgpu_insns++;
-+	fixup_idx++;
-+
-+	/* dest = bucket_gaddr + key * value_size -> r64[0] */
-+	knod_iset64(&p64[1], knod_map_obj_k->value_size);
-+	knod_emit(priv, meta, v_mad_u64_u32, r64[0], sr64[0].lo,
-+		  p64[1].lo, r64[2].lo, r64[1]);
-+
-+	/* load value from stack and store to dest */
-+	val_off = 0;
-+	val_len = knod_map_obj_k->value_size;
-+
-+	while (val_len >= 16) {
-+		knod_bpf_load_size(priv, meta,
-+				       &r64[3],
-+				       &stack[0],
-+				       sizeof(unsigned long),
-+				       512 + val_stack_off + val_off);
-+		knod_bpf_load_size(priv, meta,
-+				       &r64[4],
-+				       &stack[0],
-+				       sizeof(unsigned long),
-+				       512 + val_stack_off + val_off + 8);
-+		knod_emit(priv, meta, global_store_dwordx4, r64[3].lo,
-+			  r64[0].lo, val_off);
-+		val_off += 16;
-+		val_len -= 16;
-+	}
-+
-+	if (val_len >= 8) {
-+		knod_bpf_load_size(priv, meta,
-+				       &r64[3],
-+				       &stack[0],
-+				       sizeof(unsigned long),
-+				       512 + val_stack_off + val_off);
-+		knod_emit(priv, meta, global_store_dwordx2, r64[3].lo,
-+			  r64[0].lo, val_off);
-+		val_off += 8;
-+		val_len -= 8;
-+	}
-+
-+	if (val_len >= 4) {
-+		knod_bpf_load_size(priv, meta,
-+				       &r64[3],
-+				       &stack[0],
-+				       sizeof(unsigned int),
-+				       512 + val_stack_off + val_off);
-+		knod_emit(priv, meta, global_store_dword, r64[3].lo,
-+			  r64[0].lo, val_off);
-+		val_off += 4;
-+		val_len -= 4;
-+	}
-+
-+	if (val_len >= 2) {
-+		knod_bpf_load_size(priv, meta,
-+				       &r64[3],
-+				       &stack[0],
-+				       sizeof(unsigned short),
-+				       512 + val_stack_off + val_off);
-+		knod_emit(priv, meta, global_store_short, r64[3].lo,
-+			  r64[0].lo, val_off);
-+		val_off += 2;
-+		val_len -= 2;
-+	}
-+
-+	if (val_len >= 1) {
-+		knod_bpf_load_size(priv, meta,
-+				       &r64[3],
-+				       &stack[0],
-+				       sizeof(unsigned char),
-+				       512 + val_stack_off + val_off);
-+		knod_emit(priv, meta, global_store_byte, r64[3].lo,
-+			  r64[0].lo, val_off);
-+	}
-+
-+	/* structurized CFG: restore OOB lanes */
-+	knod_bpf_set_label(meta, &labels[LABEL_OUT], meta->amdgpu_insns);
-+	knod_emit(priv, meta, s_or_b64, AMDGCN_SREG_EXEC_LO,
-+		  AMDGCN_SREG_EXEC_LO, KNOD_AMDGPU_TMP_SREG3_LO);
-+
-+	for (idx = 0; idx < fixup_idx; idx++)
-+		knod_bpf_fixup_branch(priv, &fixups[idx]);
-+}
-+
-+static void knod_bpf_map_update_hash(struct knod_bpf_priv *priv,
-+				     struct knod_insn_meta *meta,
-+				     int map_id)
-+{
-+#define LABEL_BUCKET_LOOP	0
-+#define LABEL_LOCK_RETRY	1
-+#define LABEL_INSERT_LANE	2
-+#define LABEL_CHAIN_NEXT	3
-+#define LABEL_ALLOC_INSERT	4
-+#define LABEL_LANE_DONE		5
-+#define LABEL_UNLOCK		6
-+	struct knod_bpf_map_obj *knod_map_obj_k, *knod_map_obj_g;
-+	struct amdgcn_param32 s_bucket_lo, v_tmp, v_zero, v_one;
-+	int off, len, _len, idx, key_in_pkt, key_in_map;
-+	struct amdgcn_param32 s_exec_lo, s_exec_hi, s_elem_id;
-+	struct amdgcn_branch_fixup fixups[12] = {0,};
-+	u32 key_stack_off = meta->kreg.stack_off;
-+	u32 val_stack_off = meta->vreg.stack_off;
-+	unsigned long queue_gaddr, elems_gaddr;
-+	unsigned long bucket_gaddr, cur_gaddr;
-+	struct amdgcn_label labels[12] = {0,};
-+	struct amdgcn_param32 v_minus_one;
-+	struct amdgcn_param64 sr64_carry;
-+	struct amdgcn_param32 p32;
-+	unsigned long lock_offset;
-+	unsigned int elem_size;
-+	int val_off, val_len;
-+	int fixup_idx = 0;
-+	bool first_cmp;
-+	int koff, voff;
-+
-+	knod_map_obj_k =
-+		(struct knod_bpf_map_obj *)knod_bpf_map_kaddr(priv, map_id);
-+	knod_map_obj_g =
-+		(struct knod_bpf_map_obj *)knod_bpf_map_gaddr(priv, map_id);
-+	bucket_gaddr = (unsigned long)knod_map_obj_g +
-+		       offsetof(struct knod_bpf_map_obj, bucket);
-+	cur_gaddr = (unsigned long)knod_map_obj_g +
-+		    offsetof(struct knod_bpf_map_obj, meta.hmeta.cur);
-+	queue_gaddr = (unsigned long)knod_map_obj_k->meta.hmeta.q;
-+	elems_gaddr = (unsigned long)knod_map_obj_k->meta.hmeta.elems;
-+	elem_size = knod_map_obj_k->meta.hmeta.elem_size;
-+
-+	if (!knod_map_obj_g || !knod_map_obj_k)
-+		WARN_ON_ONCE(1);
-+
-+	/* ======== Phase 1: Setup ======== */
-+
-+	/* Load key from stack -> r64[3..9] (KEY_IN_PKT) */
-+	key_in_pkt = KEY_IN_PKT_64;
-+	len = knod_map_obj_k->key_size;
-+	off = key_stack_off;
-+	while (len) {
-+		if (len >= sizeof(unsigned long))
-+			_len = sizeof(unsigned long);
-+		else
-+			_len = len;
-+		knod_bpf_load_size(priv, meta,
-+				       &r64[key_in_pkt],
-+				       &stack[0],
-+				       _len,
-+				       512 + off);
-+		key_in_pkt++;
-+		len -= _len;
-+		off += _len;
-+	}
-+
-+	/* jhash -> r64[2].lo = hash */
-+	knod_jhash(priv, meta,
-+		       2,
-+		       knod_map_obj_k->key_size,
-+		       knod_map_obj_k->meta.hmeta.hashrnd);
-+	knod_iset64(&p64[0], 0);
-+	knod_mov32(priv, meta, r64[2].hi, p64[0].lo);
-+
-+	/* hash = hash & (n_buckets - 1) */
-+	knod_iset32(&p64[0].lo,
-+				 knod_map_obj_k->meta.hmeta.n_buckets - 1);
-+	knod_and32(priv, meta, r64[2].lo, p64[0].lo, r64[2].lo);
-+
-+	/* r64[1] = bucket_gaddr */
-+	knod_iset64(&p64[0], bucket_gaddr);
-+	knod_mov64(priv, meta, r64[1], p64[0]);
-+
-+	/* bucket_addr = bucket_gaddr + hash * sizeof(int) -> r64[2] */
-+	knod_iset64(&p64[1], sizeof(int));
-+	knod_emit(priv, meta, v_mad_u64_u32, r64[2], sr64[0].lo,
-+		  p64[1].lo, r64[2].lo, r64[1]);
-+
-+	/* Save bucket_addr to r64[15] for CAS insert */
-+	knod_mov64(priv, meta, r64[15], r64[2]);
-+
-+	/* SREG3 = initial exec */
-+	knod_emit(priv, meta, s_mov_b64, KNOD_AMDGPU_TMP_SREG3_LO,
-+		  AMDGCN_SREG_EXEC_LO);
-+
-+	/* ======== Phase 2: Sequential per-lane processing ======== */
-+
-+	/* SREG5 = exec (all lanes to process, for BUCKET_LOOP) */
-+	knod_emit(priv, meta, s_mov_b64, KNOD_AMDGPU_TMP_SREG5_LO,
-+		  AMDGCN_SREG_EXEC_LO);
-+
-+	/* ---- BUCKET_LOOP: process one unique bucket per iteration ---- */
-+	knod_bpf_set_label(meta, &labels[LABEL_BUCKET_LOOP],
-+			   meta->amdgpu_insns);
-+
-+	lock_offset =
-+		(unsigned long)knod_map_obj_k->meta.hmeta.n_buckets *
-+		sizeof(unsigned int);
-+
-+	knod_sset32(&s_bucket_lo,
-+				 KNOD_AMDGPU_TMP_SREG1_HI);
-+	knod_vset32(&v_tmp, KNOD_AMDGPU_TMP_VREG0_HI);
-+	knod_iset32(&v_zero, 0);
-+	knod_iset32(&v_one, 1);
-+	knod_sset32(&s_exec_lo, AMDGCN_SREG_EXEC_LO);
-+	knod_sset32(&s_exec_hi,
-+				 AMDGCN_SREG_EXEC_LO + 1);
-+	knod_sset32(&s_elem_id,
-+				 KNOD_AMDGPU_TMP_SREG1_LO);
-+	knod_sset64(&sr64_carry,
-+				 KNOD_AMDGPU_TMP_SREG1_LO);
-+
-+	/* Pick first active lane's bucket addr */
-+	knod_emit(priv, meta, v_readfirstlane_b32, KNOD_AMDGPU_TMP_SREG1_HI,
-+		  r64[15].lo.v);
-+
-+	/* vcc = lanes with same bucket */
-+	knod_emit(priv, meta, v_cmp_eq_u32, s_bucket_lo, r64[15].lo);
-+
-+	/* SREG5 = remaining lanes; exec = same-bucket lanes */
-+	knod_emit(priv, meta, s_and_saveexec_b64, KNOD_AMDGPU_TMP_SREG5_LO,
-+		  AMDGCN_SREG_VCC_LO);
-+
-+	/* SREG0 = same-bucket lanes */
-+	knod_emit(priv, meta, s_mov_b64, KNOD_AMDGPU_TMP_SREG0_LO,
-+		  AMDGCN_SREG_EXEC_LO);
-+
-+	/* ---- Lock acquire ---- */
-+	/* r64[10] = r64[15] + lock_offset */
-+	knod_iset64(&p64[0], lock_offset);
-+	knod_add64(priv, meta, r64[10], p64[0], r64[15]);
-+
-+	/* r64[11].lo = 1 (swap data) */
-+	knod_emit(priv, meta, v_mov_b32_e32, r64[11].lo, v_one);
-+
-+	/* First-lane isolation via mbcnt */
-+	knod_emit(priv, meta, v_mbcnt_lo_u32_b32, v_tmp, s_exec_lo,
-+		  v_zero);
-+	knod_emit(priv, meta, v_mbcnt_hi_u32_b32, v_tmp, s_exec_hi, v_tmp);
-+	knod_emit(priv, meta, v_cmp_eq_u32, v_zero, v_tmp);
-+	knod_emit(priv, meta, s_and_b64, AMDGCN_SREG_EXEC_LO,
-+		  AMDGCN_SREG_EXEC_LO, AMDGCN_SREG_VCC_LO);
-+
-+	/* LOCK_RETRY: spin until lock acquired */
-+	knod_bpf_set_label(meta, &labels[LABEL_LOCK_RETRY], meta->amdgpu_insns);
-+
-+	knod_emit(priv, meta, global_atomic_swap, r64[11].hi, r64[10].lo,
-+		  r64[11].lo, 0, 1);
-+	knod_wait_vmcnt(priv, meta);
-+
-+	meta->amdgpu_insn[meta->amdgpu_insns].size =
-+		emit_gfx10_v_cmp_ne_u32(
-+			&meta->amdgpu_insn[meta->amdgpu_insns].gfx10,
-+			v_zero, r64[11].hi);
-+	meta->amdgpu_insn[meta->amdgpu_insns].type = AMDGCN_INSN_TYPE_VOPC;
-+	debug_insn(priv->isa_version, &meta->amdgpu_insn[meta->amdgpu_insns]);
-+	meta->amdgpu_insns++;
-+
-+	emit_s_cbranch_vccnz(priv->isa_version,
-+			     &meta->amdgpu_insn[meta->amdgpu_insns],
-+			     0);
-+	knod_bpf_set_fixup(meta, &fixups[fixup_idx],
-+			   &labels[LABEL_LOCK_RETRY], meta->amdgpu_insns);
-+	debug_insn(priv->isa_version, &meta->amdgpu_insn[meta->amdgpu_insns]);
-+	meta->amdgpu_insns++;
-+	fixup_idx++;
-+
-+	/* Lock acquired - restore same-bucket lanes */
-+	knod_emit(priv, meta, s_mov_b64, AMDGCN_SREG_EXEC_LO,
-+		  KNOD_AMDGPU_TMP_SREG0_LO);
-+
-+	/* ---- INSERT_LANE: process one lane at a time ---- */
-+	knod_bpf_set_label(meta, &labels[LABEL_INSERT_LANE],
-+			   meta->amdgpu_insns);
-+
-+	/* SREG4 = exec (remaining same-bucket lanes) */
-+	knod_emit(priv, meta, s_mov_b64, KNOD_AMDGPU_TMP_SREG4_LO,
-+		  AMDGCN_SREG_EXEC_LO);
-+
-+	/* Pick first active lane via mbcnt */
-+	knod_emit(priv, meta, v_mbcnt_lo_u32_b32, v_tmp, s_exec_lo,
-+		  v_zero);
-+	knod_emit(priv, meta, v_mbcnt_hi_u32_b32, v_tmp, s_exec_hi, v_tmp);
-+	knod_emit(priv, meta, v_cmp_eq_u32, v_zero, v_tmp);
-+	knod_emit(priv, meta, s_and_b64, AMDGCN_SREG_EXEC_LO,
-+		  AMDGCN_SREG_EXEC_LO, AMDGCN_SREG_VCC_LO);
-+
-+	/* SREG2 = exec (single-lane mask) */
-+	knod_emit(priv, meta, s_mov_b64, KNOD_AMDGPU_TMP_SREG2_LO,
-+		  AMDGCN_SREG_EXEC_LO);
-+
-+	/* r64[2] = r64[15] (bucket_addr for chain walk start) */
-+	knod_mov64(priv, meta, r64[2], r64[15]);
-+
-+	/* ---- CHAIN_NEXT: walk chain ---- */
-+	knod_bpf_set_label(meta, &labels[LABEL_CHAIN_NEXT], meta->amdgpu_insns);
-+
-+	knod_emit(priv, meta, global_load_dword, r64[0].lo, r64[2].lo, 0);
-+	knod_wait_vmcnt(priv, meta);
-+
-+	/* Mask out DELETED bit */
-+	knod_iset32(&p32, KNOD_BPF_HASH_NEXT_MASK);
-+	knod_emit(priv, meta, v_and_b32_e32, r64[0].lo, p32, r64[0].lo);
-+
-+	/* End-of-chain check (VOPC literal workaround) */
-+	knod_emit(priv, meta, v_mov_b32_e32, r64[0].hi, p32);
-+	knod_emit(priv, meta, v_cmp_eq_u32, r64[0].hi, r64[0].lo);
-+	knod_emit(priv, meta, s_andn2_b64, AMDGCN_SREG_EXEC_LO,
-+		  AMDGCN_SREG_EXEC_LO, AMDGCN_SREG_VCC_LO);
-+	emit_s_cbranch_execz(priv->isa_version,
-+			     &meta->amdgpu_insn[meta->amdgpu_insns],
-+			     0);
-+	knod_bpf_set_fixup(meta, &fixups[fixup_idx],
-+			   &labels[LABEL_ALLOC_INSERT], meta->amdgpu_insns);
-+	debug_insn(priv->isa_version, &meta->amdgpu_insn[meta->amdgpu_insns]);
-+	meta->amdgpu_insns++;
-+	fixup_idx++;
-+
-+	/* elem_addr = elems + elem_id * elem_size -> r64[2] */
-+	knod_iset64(&p64[0], elems_gaddr);
-+	knod_mov64(priv, meta, r64[1], p64[0]);
-+	knod_iset64(&p64[0], elem_size);
-+	knod_mov32(priv, meta, r64[10].lo, p64[0].lo);
-+	knod_emit(priv, meta, v_mad_u64_u32, r64[2], sr64_carry.lo,
-+		  r64[10].lo, r64[0].lo, r64[1]);
-+
-+	/* Load elem.next for DELETED check */
-+	knod_emit(priv, meta, global_load_dword, r64[0].hi, r64[2].lo, 0);
-+
-+	/* Load key from map element -> KEY_IN_MAP */
-+	key_in_map = KEY_IN_MAP_32;
-+	len = knod_map_obj_k->key_size;
-+	off = offsetof(struct knod_bpf_hash_elem_obj, kv);
-+
-+	while (len >= 16) {
-+		knod_emit(priv, meta, global_load_dwordx4, r32[key_in_map],
-+			  r64[2].lo, off);
-+		off += 16;
-+		len -= 16;
-+		key_in_map += 4;
-+	}
-+
-+	if (len >= 8) {
-+		knod_emit(priv, meta, global_load_dwordx2, r32[key_in_map],
-+			  r64[2].lo, off);
-+		off += 8;
-+		len -= 8;
-+		key_in_map += 2;
-+	}
-+
-+	if (len >= 4) {
-+		knod_emit(priv, meta, global_load_dword, r32[key_in_map],
-+			  r64[2].lo, off);
-+		off += 4;
-+		len -= 4;
-+		key_in_map += 1;
-+	}
-+
-+	if (len) {
-+		knod_emit(priv, meta, global_load_dword, r32[key_in_map],
-+			  r64[2].lo, off);
-+	}
-+
-+	knod_wait_vmcnt(priv, meta);
-+
-+	/* Key comparison -> SREG1 */
-+	key_in_map = KEY_IN_MAP_32;
-+	key_in_pkt = KEY_IN_PKT_32;
-+	len = knod_map_obj_k->key_size;
-+	first_cmp = true;
-+
-+	while (len >= 8) {
-+		knod_emit(priv, meta, v_cmp_eq_u64, r32[key_in_map],
-+			  r32[key_in_pkt]);
-+
-+		if (first_cmp) {
-+			emit_s_and_b64(priv->isa_version,
-+				       &meta->amdgpu_insn[meta->amdgpu_insns],
-+				       KNOD_AMDGPU_TMP_SREG1_LO,
-+				       AMDGCN_SREG_EXEC_LO,
-+				       AMDGCN_SREG_VCC_LO);
-+			first_cmp = false;
-+		} else {
-+			emit_s_and_b64(priv->isa_version,
-+				       &meta->amdgpu_insn[meta->amdgpu_insns],
-+				       KNOD_AMDGPU_TMP_SREG1_LO,
-+				       KNOD_AMDGPU_TMP_SREG1_LO,
-+				       AMDGCN_SREG_VCC_LO);
-+		}
-+		debug_insn(priv->isa_version,
-+			   &meta->amdgpu_insn[meta->amdgpu_insns]);
-+		meta->amdgpu_insns++;
-+
-+		key_in_map += 2;
-+		key_in_pkt += 2;
-+		len -= 8;
-+	}
-+
-+	if (len >= 4) {
-+		knod_emit(priv, meta, v_cmp_eq_u32, r32[key_in_map],
-+			  r32[key_in_pkt]);
-+
-+		if (first_cmp) {
-+			emit_s_and_b64(priv->isa_version,
-+				       &meta->amdgpu_insn[meta->amdgpu_insns],
-+				       KNOD_AMDGPU_TMP_SREG1_LO,
-+				       AMDGCN_SREG_EXEC_LO,
-+				       AMDGCN_SREG_VCC_LO);
-+			first_cmp = false;
-+		} else {
-+			emit_s_and_b64(priv->isa_version,
-+				       &meta->amdgpu_insn[meta->amdgpu_insns],
-+				       KNOD_AMDGPU_TMP_SREG1_LO,
-+				       KNOD_AMDGPU_TMP_SREG1_LO,
-+				       AMDGCN_SREG_VCC_LO);
-+		}
-+		debug_insn(priv->isa_version,
-+			   &meta->amdgpu_insn[meta->amdgpu_insns]);
-+		meta->amdgpu_insns++;
-+
-+		key_in_map += 1;
-+		key_in_pkt += 1;
-+		len -= 4;
-+	}
-+
-+	if (len) {
-+		knod_emit(priv, meta, v_cmp_eq_u32, r32[key_in_map],
-+			  r32[key_in_pkt]);
-+
-+		if (first_cmp) {
-+			emit_s_and_b64(priv->isa_version,
-+				       &meta->amdgpu_insn[meta->amdgpu_insns],
-+				       KNOD_AMDGPU_TMP_SREG1_LO,
-+				       AMDGCN_SREG_EXEC_LO,
-+				       AMDGCN_SREG_VCC_LO);
-+			first_cmp = false;
-+		} else {
-+			emit_s_and_b64(priv->isa_version,
-+				       &meta->amdgpu_insn[meta->amdgpu_insns],
-+				       KNOD_AMDGPU_TMP_SREG1_LO,
-+				       KNOD_AMDGPU_TMP_SREG1_LO,
-+				       AMDGCN_SREG_VCC_LO);
-+		}
-+		debug_insn(priv->isa_version,
-+			   &meta->amdgpu_insn[meta->amdgpu_insns]);
-+		meta->amdgpu_insns++;
-+	}
-+
-+	/* DELETED check: SREG1 &= not_deleted */
-+	knod_iset32(&p32,
-+				 KNOD_BPF_HASH_NEXT_DELETED);
-+	knod_emit(priv, meta, v_and_b32_e32, r64[0].hi, p32, r64[0].hi);
-+	knod_iset32(&p32, 0);
-+	knod_emit(priv, meta, v_cmp_eq_u32, p32, r64[0].hi);
-+	knod_emit(priv, meta, s_and_b64, KNOD_AMDGPU_TMP_SREG1_LO,
-+		  KNOD_AMDGPU_TMP_SREG1_LO, AMDGCN_SREG_VCC_LO);
-+
-+	/* Narrow exec to matched lane */
-+	knod_emit(priv, meta, s_and_b64, AMDGCN_SREG_EXEC_LO,
-+		  AMDGCN_SREG_EXEC_LO, KNOD_AMDGPU_TMP_SREG1_LO);
-+
-+	/* Value overwrite for matched lane (exec-masked, skipped if no
-+	 * match)
-+	 */
-+	knod_iset64(&p64[1],
-+				 offsetof(struct knod_bpf_hash_elem_obj,
-+					  kv) +
-+				 knod_map_obj_k->key_size);
-+	knod_add64(priv, meta, r64[0], p64[1], r64[2]);
-+
-+	val_off = 0;
-+	val_len = knod_map_obj_k->value_size;
-+
-+	while (val_len >= 16) {
-+		knod_bpf_load_size(priv, meta,
-+				       &r64[10], &stack[0],
-+				       sizeof(unsigned long),
-+				       512 + val_stack_off + val_off);
-+		knod_bpf_load_size(priv, meta,
-+				       &r64[11], &stack[0],
-+				       sizeof(unsigned long),
-+				       512 + val_stack_off + val_off + 8);
-+		knod_emit(priv, meta, global_store_dwordx4, r64[10].lo,
-+			  r64[0].lo, val_off);
-+		val_off += 16;
-+		val_len -= 16;
-+	}
-+
-+	if (val_len >= 8) {
-+		knod_bpf_load_size(priv, meta,
-+				       &r64[10], &stack[0],
-+				       sizeof(unsigned long),
-+				       512 + val_stack_off + val_off);
-+		knod_emit(priv, meta, global_store_dwordx2, r64[10].lo,
-+			  r64[0].lo, val_off);
-+		val_off += 8;
-+		val_len -= 8;
-+	}
-+
-+	if (val_len >= 4) {
-+		knod_bpf_load_size(priv, meta,
-+				       &r64[10], &stack[0],
-+				       sizeof(unsigned int),
-+				       512 + val_stack_off + val_off);
-+		knod_emit(priv, meta, global_store_dword, r64[10].lo,
-+			  r64[0].lo, val_off);
-+		val_off += 4;
-+		val_len -= 4;
-+	}
-+
-+	if (val_len >= 2) {
-+		knod_bpf_load_size(priv, meta,
-+				       &r64[10], &stack[0],
-+				       sizeof(unsigned short),
-+				       512 + val_stack_off + val_off);
-+		knod_emit(priv, meta, global_store_short, r64[10].lo,
-+			  r64[0].lo, val_off);
-+		val_off += 2;
-+		val_len -= 2;
-+	}
-+
-+	if (val_len >= 1) {
-+		knod_bpf_load_size(priv, meta,
-+				       &r64[10], &stack[0],
-+				       sizeof(unsigned char),
-+				       512 + val_stack_off + val_off);
-+		knod_emit(priv, meta, global_store_byte, r64[10].lo,
-+			  r64[0].lo, val_off);
-+	}
-+
-+	/* If matched, done with this lane */
-+	emit_s_cbranch_execnz(priv->isa_version,
-+			      &meta->amdgpu_insn[meta->amdgpu_insns],
-+			      0);
-+	knod_bpf_set_fixup(meta, &fixups[fixup_idx],
-+			   &labels[LABEL_LANE_DONE], meta->amdgpu_insns);
-+	debug_insn(priv->isa_version, &meta->amdgpu_insn[meta->amdgpu_insns]);
-+	meta->amdgpu_insns++;
-+	fixup_idx++;
-+
-+	/* No match: restore lane, continue chain walk */
-+	knod_emit(priv, meta, s_mov_b64, AMDGCN_SREG_EXEC_LO,
-+		  KNOD_AMDGPU_TMP_SREG2_LO);
-+
-+	emit_s_cbranch_execnz(priv->isa_version,
-+			      &meta->amdgpu_insn[meta->amdgpu_insns],
-+			      0);
-+	knod_bpf_set_fixup(meta, &fixups[fixup_idx],
-+			   &labels[LABEL_CHAIN_NEXT], meta->amdgpu_insns);
-+	debug_insn(priv->isa_version, &meta->amdgpu_insn[meta->amdgpu_insns]);
-+	meta->amdgpu_insns++;
-+	fixup_idx++;
-+
-+	/* ---- ALLOC_INSERT: key not found, insert new elem ---- */
-+	knod_bpf_set_label(meta, &labels[LABEL_ALLOC_INSERT],
-+			   meta->amdgpu_insns);
-+
-+	/* Restore single-lane exec */
-+	knod_emit(priv, meta, s_mov_b64, AMDGCN_SREG_EXEC_LO,
-+		  KNOD_AMDGPU_TMP_SREG2_LO);
-+
-+	/* Alloc from free pool: atomic_add(cur, -1) */
-+	knod_iset32(&v_minus_one, -1);
-+	knod_emit(priv, meta, v_mov_b32_e32, r64[11].lo, v_minus_one);
-+
-+	knod_iset64(&p64[0], cur_gaddr);
-+	knod_mov64(priv, meta, r64[1], p64[0]);
-+
-+	knod_emit(priv, meta, global_atomic_add, r64[11].lo, r64[1].lo,
-+		  r64[11].lo, 0, 1);
-+	knod_wait_vmcnt(priv, meta);
-+
-+	/* my_cur = old_cur - 1 -> r64[0].lo */
-+	knod_emit(priv, meta, v_mov_b32_e32, r64[0].lo, v_one);
-+	knod_emit(priv, meta, v_sub_u32, r64[0].lo, r64[11].lo, r64[0].lo);
-+
-+	/* OOM check: if (my_cur < 0) -> skip insert */
-+	knod_emit(priv, meta, v_cmp_gt_i32, v_zero, r64[0].lo);
-+	knod_emit(priv, meta, s_andn2_b64, AMDGCN_SREG_EXEC_LO,
-+		  AMDGCN_SREG_EXEC_LO, AMDGCN_SREG_VCC_LO);
-+	emit_s_cbranch_execz(priv->isa_version,
-+			     &meta->amdgpu_insn[meta->amdgpu_insns],
-+			     0);
-+	knod_bpf_set_fixup(meta, &fixups[fixup_idx],
-+			   &labels[LABEL_LANE_DONE], meta->amdgpu_insns);
-+	debug_insn(priv->isa_version, &meta->amdgpu_insn[meta->amdgpu_insns]);
-+	meta->amdgpu_insns++;
-+	fixup_idx++;
-+
-+	/* queue_addr = queue_gaddr + my_cur * 4 -> r64[1] */
-+	knod_iset64(&p64[0], queue_gaddr);
-+	knod_mov64(priv, meta, r64[1], p64[0]);
-+	knod_iset64(&p64[1], sizeof(unsigned int));
-+	knod_emit(priv, meta, v_mad_u64_u32, r64[1], sr64_carry.lo,
-+		  p64[1].lo, r64[0].lo, r64[1]);
-+
-+	/* elem_id = queue[my_cur] -> r64[0].lo */
-+	knod_emit(priv, meta, global_load_dword, r64[0].lo, r64[1].lo, 0);
-+	knod_wait_vmcnt(priv, meta);
-+
-+	/* new_elem_addr = elems + elem_id * elem_size -> r64[2] */
-+	knod_iset64(&p64[0], elems_gaddr);
-+	knod_mov64(priv, meta, r64[1], p64[0]);
-+	knod_iset64(&p64[0], elem_size);
-+	knod_mov32(priv, meta, r64[10].lo, p64[0].lo);
-+	knod_emit(priv, meta, v_mad_u64_u32, r64[2], sr64_carry.lo,
-+		  r64[10].lo, r64[0].lo, r64[1]);
-+
-+	/* Save elem_id to SGPR (v_mad carry already done) */
-+	knod_emit(priv, meta, v_readfirstlane_b32, KNOD_AMDGPU_TMP_SREG1_LO,
-+		  r64[0].lo.v);
-+
-+	/* Load current bucket head -> r64[1].lo */
-+	knod_emit(priv, meta, global_load_dword, r64[1].lo, r64[15].lo, 0);
-+	knod_wait_vmcnt(priv, meta);
-+
-+	/* new_elem.next = old_head */
-+	knod_emit(priv, meta, global_store_dword, r64[1].lo, r64[2].lo, 0);
-+
-+	/* Write key to new element */
-+	koff = offsetof(struct knod_bpf_hash_elem_obj, kv);
-+
-+	key_in_pkt = KEY_IN_PKT_32;
-+	len = knod_map_obj_k->key_size;
-+
-+	while (len >= 8) {
-+		knod_emit(priv, meta, global_store_dwordx2, r32[key_in_pkt],
-+			  r64[2].lo, koff);
-+		koff += 8;
-+		len -= 8;
-+		key_in_pkt += 2;
-+	}
-+
-+	if (len >= 4) {
-+		knod_emit(priv, meta, global_store_dword, r32[key_in_pkt],
-+			  r64[2].lo, koff);
-+		koff += 4;
-+		len -= 4;
-+		key_in_pkt += 1;
-+	}
-+
-+	if (len >= 2) {
-+		knod_emit(priv, meta, global_store_short, r32[key_in_pkt],
-+			  r64[2].lo, koff);
-+		koff += 2;
-+		len -= 2;
-+	}
-+
-+	if (len >= 1) {
-+		knod_emit(priv, meta, global_store_byte, r32[key_in_pkt],
-+			  r64[2].lo, koff);
-+	}
-+
-+	/* Write value to new element */
-+	voff = offsetof(struct knod_bpf_hash_elem_obj, kv) +
-+	       knod_map_obj_k->key_size;
-+
-+	val_off = 0;
-+	val_len = knod_map_obj_k->value_size;
-+
-+	knod_iset64(&p64[1], voff);
-+	knod_add64(priv, meta, r64[0], p64[1], r64[2]);
-+
-+	while (val_len >= 16) {
-+		knod_bpf_load_size(priv, meta,
-+				       &r64[10], &stack[0],
-+				       sizeof(unsigned long),
-+				       512 + val_stack_off + val_off);
-+		knod_bpf_load_size(priv, meta,
-+				       &r64[11], &stack[0],
-+				       sizeof(unsigned long),
-+				       512 + val_stack_off + val_off + 8);
-+		knod_emit(priv, meta, global_store_dwordx4, r64[10].lo,
-+			  r64[0].lo, val_off);
-+		val_off += 16;
-+		val_len -= 16;
-+	}
-+
-+	if (val_len >= 8) {
-+		knod_bpf_load_size(priv, meta,
-+				       &r64[10], &stack[0],
-+				       sizeof(unsigned long),
-+				       512 + val_stack_off + val_off);
-+		knod_emit(priv, meta, global_store_dwordx2, r64[10].lo,
-+			  r64[0].lo, val_off);
-+		val_off += 8;
-+		val_len -= 8;
-+	}
-+
-+	if (val_len >= 4) {
-+		knod_bpf_load_size(priv, meta,
-+				       &r64[10], &stack[0],
-+				       sizeof(unsigned int),
-+				       512 + val_stack_off + val_off);
-+		knod_emit(priv, meta, global_store_dword, r64[10].lo,
-+			  r64[0].lo, val_off);
-+		val_off += 4;
-+		val_len -= 4;
-+	}
-+
-+	if (val_len >= 2) {
-+		knod_bpf_load_size(priv, meta,
-+				       &r64[10], &stack[0],
-+				       sizeof(unsigned short),
-+				       512 + val_stack_off + val_off);
-+		knod_emit(priv, meta, global_store_short, r64[10].lo,
-+			  r64[0].lo, val_off);
-+		val_off += 2;
-+		val_len -= 2;
-+	}
-+
-+	if (val_len >= 1) {
-+		knod_bpf_load_size(priv, meta,
-+				       &r64[10], &stack[0],
-+				       sizeof(unsigned char),
-+				       512 + val_stack_off + val_off);
-+		knod_emit(priv, meta, global_store_byte, r64[10].lo,
-+			  r64[0].lo, val_off);
-+	}
-+
-+	knod_wait_vmcnt(priv, meta);
-+
-+	/* Update bucket[hash] = new elem_id */
-+	knod_emit(priv, meta, v_mov_b32_e32, r64[1].lo, s_elem_id);
-+	knod_emit(priv, meta, global_store_dword, r64[1].lo, r64[15].lo,
-+		  0);
-+	knod_wait_vmcnt(priv, meta);
-+
-+	/* ---- LANE_DONE: remove this lane, next lane ---- */
-+	knod_bpf_set_label(meta, &labels[LABEL_LANE_DONE], meta->amdgpu_insns);
-+
-+	knod_emit(priv, meta, s_andn2_b64, AMDGCN_SREG_EXEC_LO,
-+		  KNOD_AMDGPU_TMP_SREG4_LO, KNOD_AMDGPU_TMP_SREG2_LO);
-+
-+	emit_s_cbranch_execnz(priv->isa_version,
-+			      &meta->amdgpu_insn[meta->amdgpu_insns],
-+			      0);
-+	knod_bpf_set_fixup(meta, &fixups[fixup_idx],
-+			   &labels[LABEL_INSERT_LANE], meta->amdgpu_insns);
-+	debug_insn(priv->isa_version, &meta->amdgpu_insn[meta->amdgpu_insns]);
-+	meta->amdgpu_insns++;
-+	fixup_idx++;
-+
-+	/* ---- UNLOCK: release lock + next bucket ---- */
-+	knod_bpf_set_label(meta, &labels[LABEL_UNLOCK], meta->amdgpu_insns);
-+
-+	knod_emit(priv, meta, s_mov_b64, AMDGCN_SREG_EXEC_LO,
-+		  KNOD_AMDGPU_TMP_SREG0_LO);
-+
-+	/* Recompute lock_addr (r64[10] clobbered) */
-+	knod_iset64(&p64[0], lock_offset);
-+	knod_add64(priv, meta, r64[10], p64[0], r64[15]);
-+
-+	knod_emit(priv, meta, v_mov_b32_e32, r64[1].lo, v_zero);
-+	knod_emit(priv, meta, global_store_dword, r64[1].lo, r64[10].lo,
-+		  0);
-+	knod_wait_vmcnt(priv, meta);
-+
-+	/* Next bucket */
-+	knod_emit(priv, meta, s_andn2_b64, AMDGCN_SREG_EXEC_LO,
-+		  KNOD_AMDGPU_TMP_SREG5_LO, KNOD_AMDGPU_TMP_SREG0_LO);
-+
-+	emit_s_cbranch_execnz(priv->isa_version,
-+			      &meta->amdgpu_insn[meta->amdgpu_insns],
-+			      0);
-+	knod_bpf_set_fixup(meta, &fixups[fixup_idx],
-+			   &labels[LABEL_BUCKET_LOOP], meta->amdgpu_insns);
-+	debug_insn(priv->isa_version, &meta->amdgpu_insn[meta->amdgpu_insns]);
-+	meta->amdgpu_insns++;
-+	fixup_idx++;
-+
-+	/* ======== Phase 5: Restore ======== */
-+
-+	knod_bpf_set_label(meta, &labels[LABEL_OUT], meta->amdgpu_insns);
-+	/* exec = SREG3 (restore all original lanes) */
-+	knod_emit(priv, meta, s_or_b64, AMDGCN_SREG_EXEC_LO,
-+		  AMDGCN_SREG_EXEC_LO, KNOD_AMDGPU_TMP_SREG3_LO);
-+
-+	/* bpf_reg64[0] = 0 (return value for all lanes) */
-+	knod_iset64(&p64[0], 0);
-+	knod_mov64(priv, meta, bpf_reg64[0], p64[0]);
-+
-+	for (idx = 0; idx < fixup_idx; idx++)
-+		knod_bpf_fixup_branch(priv, &fixups[idx]);
-+
-+	return;
-+#undef LABEL_BUCKET_LOOP
-+#undef LABEL_LOCK_RETRY
-+#undef LABEL_INSERT_LANE
-+#undef LABEL_CHAIN_NEXT
-+#undef LABEL_ALLOC_INSERT
-+#undef LABEL_LANE_DONE
-+#undef LABEL_UNLOCK
-+}
-+
-+static void knod_bpf_map_delete_hash(struct knod_bpf_priv *priv,
-+				     struct knod_insn_meta *meta,
-+				     int map_id)
-+{
-+#define LABEL_BUCKET_LOOP	0
-+#define LABEL_LOCK_RETRY	1
-+#define LABEL_DELETE_LANE	2
-+#define LABEL_CHAIN_NEXT	3
-+#define LABEL_LANE_DONE		4
-+#define LABEL_UNLOCK		5
-+	struct knod_bpf_map_obj *knod_map_obj_k, *knod_map_obj_g;
-+	struct amdgcn_param32 s_bucket_lo, v_tmp, v_zero, v_one;
-+	int off, len, _len, idx, key_in_pkt, key_in_map;
-+	struct amdgcn_branch_fixup fixups[12] = {0,};
-+	unsigned long bucket_gaddr, gc_count_gaddr;
-+	struct amdgcn_param32 s_exec_lo, s_exec_hi;
-+	unsigned long gc_list_gaddr, elems_gaddr;
-+	u32 key_stack_off = meta->kreg.stack_off;
-+	struct amdgcn_label labels[12] = {0,};
-+	struct amdgcn_param64 sr64_carry;
-+	struct amdgcn_param32 v_del;
-+	struct amdgcn_param32 p32;
-+	unsigned long lock_offset;
-+	unsigned int elem_size;
-+	int fixup_idx = 0;
-+	bool first_cmp;
-+
-+	knod_map_obj_k =
-+		(struct knod_bpf_map_obj *)knod_bpf_map_kaddr(priv, map_id);
-+	knod_map_obj_g =
-+		(struct knod_bpf_map_obj *)knod_bpf_map_gaddr(priv, map_id);
-+	bucket_gaddr = (unsigned long)knod_map_obj_g +
-+		       offsetof(struct knod_bpf_map_obj, bucket);
-+	gc_count_gaddr = (unsigned long)knod_map_obj_g +
-+			 offsetof(struct knod_bpf_map_obj, meta.hmeta.gc_count);
-+	gc_list_gaddr = (unsigned long)knod_map_obj_k->meta.hmeta.gc_list;
-+	elems_gaddr = (unsigned long)knod_map_obj_k->meta.hmeta.elems;
-+	elem_size = knod_map_obj_k->meta.hmeta.elem_size;
-+
-+	if (!knod_map_obj_g || !knod_map_obj_k)
-+		WARN_ON_ONCE(1);
-+
-+	/* ======== Phase 1: Setup ======== */
-+
-+	/* Load key from stack -> r64[3..9] (KEY_IN_PKT) */
-+	key_in_pkt = KEY_IN_PKT_64;
-+	len = knod_map_obj_k->key_size;
-+	off = key_stack_off;
-+	while (len) {
-+		if (len >= sizeof(unsigned long))
-+			_len = sizeof(unsigned long);
-+		else
-+			_len = len;
-+		knod_bpf_load_size(priv, meta,
-+				       &r64[key_in_pkt],
-+				       &stack[0],
-+				       _len,
-+				       512 + off);
-+		key_in_pkt++;
-+		len -= _len;
-+		off += _len;
-+	}
-+
-+	/* jhash -> r64[2].lo = hash */
-+	knod_jhash(priv, meta,
-+		       2,
-+		       knod_map_obj_k->key_size,
-+		       knod_map_obj_k->meta.hmeta.hashrnd);
-+	knod_iset64(&p64[0], 0);
-+	knod_mov32(priv, meta, r64[2].hi, p64[0].lo);
-+
-+	/* hash = hash & (n_buckets - 1) */
-+	knod_iset32(&p64[0].lo,
-+				 knod_map_obj_k->meta.hmeta.n_buckets - 1);
-+	knod_and32(priv, meta, r64[2].lo, p64[0].lo, r64[2].lo);
-+
-+	/* r64[1] = bucket_gaddr */
-+	knod_iset64(&p64[0], bucket_gaddr);
-+	knod_mov64(priv, meta, r64[1], p64[0]);
-+
-+	/* bucket_addr = bucket_gaddr + hash * sizeof(int) -> r64[2] */
-+	knod_iset64(&p64[1], sizeof(int));
-+	knod_emit(priv, meta, v_mad_u64_u32, r64[2], sr64[0].lo,
-+		  p64[1].lo, r64[2].lo, r64[1]);
-+
-+	/* Save bucket_addr to r64[15] */
-+	knod_mov64(priv, meta, r64[15], r64[2]);
-+
-+	/* SREG3 = initial exec */
-+	knod_emit(priv, meta, s_mov_b64, KNOD_AMDGPU_TMP_SREG3_LO,
-+		  AMDGCN_SREG_EXEC_LO);
-+
-+	/* ======== Phase 2: Sequential per-lane processing ======== */
-+
-+	/* SREG5 = exec (all lanes to process, for BUCKET_LOOP) */
-+	knod_emit(priv, meta, s_mov_b64, KNOD_AMDGPU_TMP_SREG5_LO,
-+		  AMDGCN_SREG_EXEC_LO);
-+
-+	/* ---- BUCKET_LOOP: process one unique bucket per iteration ---- */
-+	knod_bpf_set_label(meta, &labels[LABEL_BUCKET_LOOP],
-+			   meta->amdgpu_insns);
-+
-+	lock_offset =
-+		(unsigned long)knod_map_obj_k->meta.hmeta.n_buckets *
-+		sizeof(unsigned int);
-+
-+	knod_sset32(&s_bucket_lo,
-+				 KNOD_AMDGPU_TMP_SREG1_HI);
-+	knod_vset32(&v_tmp, KNOD_AMDGPU_TMP_VREG0_HI);
-+	knod_iset32(&v_zero, 0);
-+	knod_iset32(&v_one, 1);
-+	knod_sset32(&s_exec_lo, AMDGCN_SREG_EXEC_LO);
-+	knod_sset32(&s_exec_hi,
-+				 AMDGCN_SREG_EXEC_LO + 1);
-+	knod_sset64(&sr64_carry,
-+				 KNOD_AMDGPU_TMP_SREG1_LO);
-+
-+	/* Pick first active lane's bucket addr */
-+	knod_emit(priv, meta, v_readfirstlane_b32, KNOD_AMDGPU_TMP_SREG1_HI,
-+		  r64[15].lo.v);
-+
-+	/* vcc = lanes with same bucket */
-+	knod_emit(priv, meta, v_cmp_eq_u32, s_bucket_lo, r64[15].lo);
-+
-+	/* SREG5 = remaining lanes; exec = same-bucket lanes */
-+	knod_emit(priv, meta, s_and_saveexec_b64, KNOD_AMDGPU_TMP_SREG5_LO,
-+		  AMDGCN_SREG_VCC_LO);
-+
-+	/* SREG0 = same-bucket lanes */
-+	knod_emit(priv, meta, s_mov_b64, KNOD_AMDGPU_TMP_SREG0_LO,
-+		  AMDGCN_SREG_EXEC_LO);
-+
-+	/* ---- Lock acquire ---- */
-+	/* r64[10] = r64[15] + lock_offset */
-+	knod_iset64(&p64[0], lock_offset);
-+	knod_add64(priv, meta, r64[10], p64[0], r64[15]);
-+
-+	/* r64[11].lo = 1 (swap data) */
-+	knod_emit(priv, meta, v_mov_b32_e32, r64[11].lo, v_one);
-+
-+	/* First-lane isolation via mbcnt */
-+	knod_emit(priv, meta, v_mbcnt_lo_u32_b32, v_tmp, s_exec_lo,
-+		  v_zero);
-+	knod_emit(priv, meta, v_mbcnt_hi_u32_b32, v_tmp, s_exec_hi, v_tmp);
-+	knod_emit(priv, meta, v_cmp_eq_u32, v_zero, v_tmp);
-+	knod_emit(priv, meta, s_and_b64, AMDGCN_SREG_EXEC_LO,
-+		  AMDGCN_SREG_EXEC_LO, AMDGCN_SREG_VCC_LO);
-+
-+	/* LOCK_RETRY: spin until lock acquired */
-+	knod_bpf_set_label(meta, &labels[LABEL_LOCK_RETRY], meta->amdgpu_insns);
-+
-+	knod_emit(priv, meta, global_atomic_swap, r64[11].hi, r64[10].lo,
-+		  r64[11].lo, 0, 1);
-+	knod_wait_vmcnt(priv, meta);
-+
-+	meta->amdgpu_insn[meta->amdgpu_insns].size =
-+		emit_gfx10_v_cmp_ne_u32(
-+			&meta->amdgpu_insn[meta->amdgpu_insns].gfx10,
-+			v_zero, r64[11].hi);
-+	meta->amdgpu_insn[meta->amdgpu_insns].type = AMDGCN_INSN_TYPE_VOPC;
-+	debug_insn(priv->isa_version, &meta->amdgpu_insn[meta->amdgpu_insns]);
-+	meta->amdgpu_insns++;
-+
-+	emit_s_cbranch_vccnz(priv->isa_version,
-+			     &meta->amdgpu_insn[meta->amdgpu_insns],
-+			     0);
-+	knod_bpf_set_fixup(meta, &fixups[fixup_idx],
-+			   &labels[LABEL_LOCK_RETRY], meta->amdgpu_insns);
-+	debug_insn(priv->isa_version, &meta->amdgpu_insn[meta->amdgpu_insns]);
-+	meta->amdgpu_insns++;
-+	fixup_idx++;
-+
-+	/* Lock acquired - restore same-bucket lanes */
-+	knod_emit(priv, meta, s_mov_b64, AMDGCN_SREG_EXEC_LO,
-+		  KNOD_AMDGPU_TMP_SREG0_LO);
-+
-+	/* ---- DELETE_LANE: process one lane at a time ---- */
-+	knod_bpf_set_label(meta, &labels[LABEL_DELETE_LANE],
-+			   meta->amdgpu_insns);
-+
-+	/* SREG4 = exec (remaining same-bucket lanes) */
-+	knod_emit(priv, meta, s_mov_b64, KNOD_AMDGPU_TMP_SREG4_LO,
-+		  AMDGCN_SREG_EXEC_LO);
-+
-+	/* Pick first active lane via mbcnt */
-+	knod_emit(priv, meta, v_mbcnt_lo_u32_b32, v_tmp, s_exec_lo,
-+		  v_zero);
-+	knod_emit(priv, meta, v_mbcnt_hi_u32_b32, v_tmp, s_exec_hi, v_tmp);
-+	knod_emit(priv, meta, v_cmp_eq_u32, v_zero, v_tmp);
-+	knod_emit(priv, meta, s_and_b64, AMDGCN_SREG_EXEC_LO,
-+		  AMDGCN_SREG_EXEC_LO, AMDGCN_SREG_VCC_LO);
-+
-+	/* SREG2 = exec (single-lane mask) */
-+	knod_emit(priv, meta, s_mov_b64, KNOD_AMDGPU_TMP_SREG2_LO,
-+		  AMDGCN_SREG_EXEC_LO);
-+
-+	/* r64[2] = r64[15] (bucket_addr for chain walk start) */
-+	knod_mov64(priv, meta, r64[2], r64[15]);
-+
-+	/* ---- CHAIN_NEXT: walk chain ---- */
-+	knod_bpf_set_label(meta, &labels[LABEL_CHAIN_NEXT], meta->amdgpu_insns);
-+
-+	knod_emit(priv, meta, global_load_dword, r64[0].lo, r64[2].lo, 0);
-+	knod_wait_vmcnt(priv, meta);
-+
-+	/* Mask out DELETED bit */
-+	knod_iset32(&p32, KNOD_BPF_HASH_NEXT_MASK);
-+	knod_emit(priv, meta, v_and_b32_e32, r64[0].lo, p32, r64[0].lo);
-+
-+	/* End-of-chain check (VOPC literal workaround) */
-+	knod_emit(priv, meta, v_mov_b32_e32, r64[0].hi, p32);
-+	knod_emit(priv, meta, v_cmp_eq_u32, r64[0].hi, r64[0].lo);
-+	knod_emit(priv, meta, s_andn2_b64, AMDGCN_SREG_EXEC_LO,
-+		  AMDGCN_SREG_EXEC_LO, AMDGCN_SREG_VCC_LO);
-+	emit_s_cbranch_execz(priv->isa_version,
-+			     &meta->amdgpu_insn[meta->amdgpu_insns],
-+			     0);
-+	knod_bpf_set_fixup(meta, &fixups[fixup_idx],
-+			   &labels[LABEL_LANE_DONE], meta->amdgpu_insns);
-+	debug_insn(priv->isa_version, &meta->amdgpu_insn[meta->amdgpu_insns]);
-+	meta->amdgpu_insns++;
-+	fixup_idx++;
-+
-+	/* elem_addr = elems + elem_id * elem_size -> r64[2] */
-+	knod_iset64(&p64[0], elems_gaddr);
-+	knod_mov64(priv, meta, r64[1], p64[0]);
-+	knod_iset64(&p64[0], elem_size);
-+	knod_mov32(priv, meta, r64[10].lo, p64[0].lo);
-+	knod_emit(priv, meta, v_mad_u64_u32, r64[2], sr64_carry.lo,
-+		  r64[10].lo, r64[0].lo, r64[1]);
-+
-+	/* Load elem.next for DELETED check */
-+	knod_emit(priv, meta, global_load_dword, r64[0].hi, r64[2].lo, 0);
-+
-+	/* Load key from map element -> KEY_IN_MAP */
-+	key_in_map = KEY_IN_MAP_32;
-+	len = knod_map_obj_k->key_size;
-+	off = offsetof(struct knod_bpf_hash_elem_obj, kv);
-+
-+	while (len >= 16) {
-+		knod_emit(priv, meta, global_load_dwordx4, r32[key_in_map],
-+			  r64[2].lo, off);
-+		off += 16;
-+		len -= 16;
-+		key_in_map += 4;
-+	}
-+
-+	if (len >= 8) {
-+		knod_emit(priv, meta, global_load_dwordx2, r32[key_in_map],
-+			  r64[2].lo, off);
-+		off += 8;
-+		len -= 8;
-+		key_in_map += 2;
-+	}
-+
-+	if (len >= 4) {
-+		knod_emit(priv, meta, global_load_dword, r32[key_in_map],
-+			  r64[2].lo, off);
-+		off += 4;
-+		len -= 4;
-+		key_in_map += 1;
-+	}
-+
-+	if (len) {
-+		knod_emit(priv, meta, global_load_dword, r32[key_in_map],
-+			  r64[2].lo, off);
-+	}
-+
-+	knod_wait_vmcnt(priv, meta);
-+
-+	/* Key comparison -> SREG1 */
-+	key_in_map = KEY_IN_MAP_32;
-+	key_in_pkt = KEY_IN_PKT_32;
-+	len = knod_map_obj_k->key_size;
-+	first_cmp = true;
-+
-+	while (len >= 8) {
-+		knod_emit(priv, meta, v_cmp_eq_u64, r32[key_in_map],
-+			  r32[key_in_pkt]);
-+
-+		if (first_cmp) {
-+			emit_s_and_b64(priv->isa_version,
-+				       &meta->amdgpu_insn[meta->amdgpu_insns],
-+				       KNOD_AMDGPU_TMP_SREG1_LO,
-+				       AMDGCN_SREG_EXEC_LO,
-+				       AMDGCN_SREG_VCC_LO);
-+			first_cmp = false;
-+		} else {
-+			emit_s_and_b64(priv->isa_version,
-+				       &meta->amdgpu_insn[meta->amdgpu_insns],
-+				       KNOD_AMDGPU_TMP_SREG1_LO,
-+				       KNOD_AMDGPU_TMP_SREG1_LO,
-+				       AMDGCN_SREG_VCC_LO);
-+		}
-+		debug_insn(priv->isa_version,
-+			   &meta->amdgpu_insn[meta->amdgpu_insns]);
-+		meta->amdgpu_insns++;
-+
-+		key_in_map += 2;
-+		key_in_pkt += 2;
-+		len -= 8;
-+	}
-+
-+	if (len >= 4) {
-+		knod_emit(priv, meta, v_cmp_eq_u32, r32[key_in_map],
-+			  r32[key_in_pkt]);
-+
-+		if (first_cmp) {
-+			emit_s_and_b64(priv->isa_version,
-+				       &meta->amdgpu_insn[meta->amdgpu_insns],
-+				       KNOD_AMDGPU_TMP_SREG1_LO,
-+				       AMDGCN_SREG_EXEC_LO,
-+				       AMDGCN_SREG_VCC_LO);
-+			first_cmp = false;
-+		} else {
-+			emit_s_and_b64(priv->isa_version,
-+				       &meta->amdgpu_insn[meta->amdgpu_insns],
-+				       KNOD_AMDGPU_TMP_SREG1_LO,
-+				       KNOD_AMDGPU_TMP_SREG1_LO,
-+				       AMDGCN_SREG_VCC_LO);
-+		}
-+		debug_insn(priv->isa_version,
-+			   &meta->amdgpu_insn[meta->amdgpu_insns]);
-+		meta->amdgpu_insns++;
-+
-+		key_in_map += 1;
-+		key_in_pkt += 1;
-+		len -= 4;
-+	}
-+
-+	if (len) {
-+		knod_emit(priv, meta, v_cmp_eq_u32, r32[key_in_map],
-+			  r32[key_in_pkt]);
-+
-+		if (first_cmp) {
-+			emit_s_and_b64(priv->isa_version,
-+				       &meta->amdgpu_insn[meta->amdgpu_insns],
-+				       KNOD_AMDGPU_TMP_SREG1_LO,
-+				       AMDGCN_SREG_EXEC_LO,
-+				       AMDGCN_SREG_VCC_LO);
-+			first_cmp = false;
-+		} else {
-+			emit_s_and_b64(priv->isa_version,
-+				       &meta->amdgpu_insn[meta->amdgpu_insns],
-+				       KNOD_AMDGPU_TMP_SREG1_LO,
-+				       KNOD_AMDGPU_TMP_SREG1_LO,
-+				       AMDGCN_SREG_VCC_LO);
-+		}
-+		debug_insn(priv->isa_version,
-+			   &meta->amdgpu_insn[meta->amdgpu_insns]);
-+		meta->amdgpu_insns++;
-+	}
-+
-+	/* DELETED check: SREG1 &= not_deleted */
-+	knod_iset32(&p32,
-+				 KNOD_BPF_HASH_NEXT_DELETED);
-+	knod_emit(priv, meta, v_and_b32_e32, r64[0].hi, p32, r64[0].hi);
-+	knod_iset32(&p32, 0);
-+	knod_emit(priv, meta, v_cmp_eq_u32, p32, r64[0].hi);
-+	knod_emit(priv, meta, s_and_b64, KNOD_AMDGPU_TMP_SREG1_LO,
-+		  KNOD_AMDGPU_TMP_SREG1_LO, AMDGCN_SREG_VCC_LO);
-+
-+	/* Narrow exec to matched lane */
-+	knod_emit(priv, meta, s_and_b64, AMDGCN_SREG_EXEC_LO,
-+		  AMDGCN_SREG_EXEC_LO, KNOD_AMDGPU_TMP_SREG1_LO);
-+
-+	/* ---- Match path: set DELETED + append to gc_list ---- */
-+
-+	/* atomic_or(elem.next, DELETED_BIT) - mark deleted */
-+	knod_lset32(&v_del,
-+				 KNOD_BPF_HASH_NEXT_DELETED);
-+	knod_emit(priv, meta, v_mov_b32_e32, r64[11].lo, v_del);
-+	knod_emit(priv, meta, global_atomic_or, r64[11].hi, r64[2].lo,
-+		  r64[11].lo, 0, 0);
-+
-+	/* atomic_add(gc_count, 1) -> old_count in r64[11].lo */
-+	knod_emit(priv, meta, v_mov_b32_e32, r64[11].lo, v_one);
-+
-+	knod_iset64(&p64[0], gc_count_gaddr);
-+	knod_mov64(priv, meta, r64[1], p64[0]);
-+
-+	knod_emit(priv, meta, global_atomic_add, r64[11].lo, r64[1].lo,
-+		  r64[11].lo, 0, 1);
-+	knod_wait_vmcnt(priv, meta);
-+
-+	/* Store elem_id to gc_list[old_count] */
-+	knod_iset64(&p64[0], gc_list_gaddr);
-+	knod_mov64(priv, meta, r64[10], p64[0]);
-+
-+	knod_iset64(&p64[0], sizeof(unsigned int));
-+	knod_emit(priv, meta, v_mad_u64_u32, r64[1], sr64_carry.lo,
-+		  p64[0].lo, r64[11].lo, r64[10]);
-+
-+	knod_emit(priv, meta, global_store_dword, r64[0].lo, r64[1].lo, 0);
-+	knod_wait_vmcnt(priv, meta);
-+
-+	/* If matched, done with this lane */
-+	emit_s_cbranch_execnz(priv->isa_version,
-+			      &meta->amdgpu_insn[meta->amdgpu_insns],
-+			      0);
-+	knod_bpf_set_fixup(meta, &fixups[fixup_idx],
-+			   &labels[LABEL_LANE_DONE], meta->amdgpu_insns);
-+	debug_insn(priv->isa_version, &meta->amdgpu_insn[meta->amdgpu_insns]);
-+	meta->amdgpu_insns++;
-+	fixup_idx++;
-+
-+	/* No match: restore lane, continue chain walk */
-+	knod_emit(priv, meta, s_mov_b64, AMDGCN_SREG_EXEC_LO,
-+		  KNOD_AMDGPU_TMP_SREG2_LO);
-+
-+	emit_s_cbranch_execnz(priv->isa_version,
-+			      &meta->amdgpu_insn[meta->amdgpu_insns],
-+			      0);
-+	knod_bpf_set_fixup(meta, &fixups[fixup_idx],
-+			   &labels[LABEL_CHAIN_NEXT], meta->amdgpu_insns);
-+	debug_insn(priv->isa_version, &meta->amdgpu_insn[meta->amdgpu_insns]);
-+	meta->amdgpu_insns++;
-+	fixup_idx++;
-+
-+	/* ---- LANE_DONE: remove this lane, next lane ---- */
-+	knod_bpf_set_label(meta, &labels[LABEL_LANE_DONE], meta->amdgpu_insns);
-+
-+	knod_emit(priv, meta, s_andn2_b64, AMDGCN_SREG_EXEC_LO,
-+		  KNOD_AMDGPU_TMP_SREG4_LO, KNOD_AMDGPU_TMP_SREG2_LO);
-+
-+	emit_s_cbranch_execnz(priv->isa_version,
-+			      &meta->amdgpu_insn[meta->amdgpu_insns],
-+			      0);
-+	knod_bpf_set_fixup(meta, &fixups[fixup_idx],
-+			   &labels[LABEL_DELETE_LANE], meta->amdgpu_insns);
-+	debug_insn(priv->isa_version, &meta->amdgpu_insn[meta->amdgpu_insns]);
-+	meta->amdgpu_insns++;
-+	fixup_idx++;
-+
-+	/* ---- UNLOCK: release lock + next bucket ---- */
-+	knod_bpf_set_label(meta, &labels[LABEL_UNLOCK], meta->amdgpu_insns);
-+
-+	knod_emit(priv, meta, s_mov_b64, AMDGCN_SREG_EXEC_LO,
-+		  KNOD_AMDGPU_TMP_SREG0_LO);
-+
-+	/* Recompute lock_addr (r64[10] clobbered) */
-+	knod_iset64(&p64[0], lock_offset);
-+	knod_add64(priv, meta, r64[10], p64[0], r64[15]);
-+
-+	knod_emit(priv, meta, v_mov_b32_e32, r64[1].lo, v_zero);
-+	knod_emit(priv, meta, global_store_dword, r64[1].lo, r64[10].lo,
-+		  0);
-+	knod_wait_vmcnt(priv, meta);
-+
-+	/* Next bucket */
-+	knod_emit(priv, meta, s_andn2_b64, AMDGCN_SREG_EXEC_LO,
-+		  KNOD_AMDGPU_TMP_SREG5_LO, KNOD_AMDGPU_TMP_SREG0_LO);
-+
-+	emit_s_cbranch_execnz(priv->isa_version,
-+			      &meta->amdgpu_insn[meta->amdgpu_insns],
-+			      0);
-+	knod_bpf_set_fixup(meta, &fixups[fixup_idx],
-+			   &labels[LABEL_BUCKET_LOOP], meta->amdgpu_insns);
-+	debug_insn(priv->isa_version, &meta->amdgpu_insn[meta->amdgpu_insns]);
-+	meta->amdgpu_insns++;
-+	fixup_idx++;
-+
-+	/* ======== Phase 3: Restore ======== */
-+
-+	/* exec = SREG3 (restore all original lanes) */
-+	knod_emit(priv, meta, s_or_b64, AMDGCN_SREG_EXEC_LO,
-+		  AMDGCN_SREG_EXEC_LO, KNOD_AMDGPU_TMP_SREG3_LO);
-+
-+	/* bpf_reg64[0] = 0 (return value) */
-+	knod_iset64(&p64[0], 0);
-+	knod_mov64(priv, meta, bpf_reg64[0], p64[0]);
-+
-+	for (idx = 0; idx < fixup_idx; idx++)
-+		knod_bpf_fixup_branch(priv, &fixups[idx]);
-+
-+	return;
-+#undef LABEL_BUCKET_LOOP
-+#undef LABEL_LOCK_RETRY
-+#undef LABEL_DELETE_LANE
-+#undef LABEL_CHAIN_NEXT
-+#undef LABEL_LANE_DONE
-+#undef LABEL_UNLOCK
-+}
-+
-+static void knod_bpf_map_delete_array(struct knod_bpf_priv *priv,
-+				      struct knod_insn_meta *meta,
-+				      int map_id)
-+{
-+	struct knod_bpf_map_obj *knod_map_obj_k, *knod_map_obj_g;
-+	struct amdgcn_branch_fixup fixups[4] = {0,};
-+	u32 key_stack_off = meta->kreg.stack_off;
-+	struct amdgcn_label labels[10] = {0,};
-+	int idx, val_off, val_len;
-+	struct amdgcn_param32 v_zero;
-+	unsigned long bucket_gaddr;
-+	int fixup_idx = 0;
-+
-+	knod_map_obj_k =
-+		(struct knod_bpf_map_obj *)knod_bpf_map_kaddr(priv, map_id);
-+	knod_map_obj_g =
-+		(struct knod_bpf_map_obj *)knod_bpf_map_gaddr(priv, map_id);
-+	bucket_gaddr = (unsigned long)knod_map_obj_g +
-+		       offsetof(struct knod_bpf_map_obj, bucket);
-+
-+	if (!knod_map_obj_g || !knod_map_obj_k)
-+		WARN_ON_ONCE(1);
-+
-+	/* load key from stack -> r64[2] */
-+	knod_bpf_load_size(priv, meta,
-+			       &r64[2],
-+			       &stack[0],
-+			       sizeof(unsigned int),
-+			       512 + key_stack_off);
-+
-+	/* r64[1] = bucket_gaddr */
-+	knod_iset64(&p64[0], bucket_gaddr);
-+	knod_mov64(priv, meta, r64[1], p64[0]);
-+
-+	/* clear r64[2].hi (key is 32-bit) */
-+	knod_iset64(&p64[1], 0);
-+	knod_mov32(priv, meta, r64[2].hi, p64[1].lo);
-+
-+	/* bpf_reg64[0] = 0 (return value) */
-+	knod_mov64(priv, meta, bpf_reg64[0], p64[1]);
-+
-+	/* bounds check: if (key >= max_entries) -> skip */
-+	knod_iset64(&p64[1], knod_map_obj_k->max_entries);
-+	knod_mov64(priv, meta, r64[3], p64[1]);
-+	knod_emit(priv, meta, v_cmp_ge_u64, r64[2], r64[3]);
-+
-+	/* structurized CFG: save OOB lanes, narrow exec */
-+	knod_emit(priv, meta, s_and_b64, KNOD_AMDGPU_TMP_SREG3_LO,
-+		  AMDGCN_SREG_EXEC_LO, AMDGCN_SREG_VCC_LO);
-+	knod_emit(priv, meta, s_andn2_b64, AMDGCN_SREG_EXEC_LO,
-+		  AMDGCN_SREG_EXEC_LO, AMDGCN_SREG_VCC_LO);
-+	emit_s_cbranch_execz(priv->isa_version,
-+			     &meta->amdgpu_insn[meta->amdgpu_insns],
-+			     0);
-+	knod_bpf_set_fixup(meta, &fixups[fixup_idx],
-+			   &labels[LABEL_OUT], meta->amdgpu_insns);
-+	debug_insn(priv->isa_version, &meta->amdgpu_insn[meta->amdgpu_insns]);
-+	meta->amdgpu_insns++;
-+	fixup_idx++;
-+
-+	/* dest = bucket_gaddr + key * value_size -> r64[0] */
-+	knod_iset64(&p64[1], knod_map_obj_k->value_size);
-+	knod_emit(priv, meta, v_mad_u64_u32, r64[0], sr64[0].lo,
-+		  p64[1].lo, r64[2].lo, r64[1]);
-+
-+	/* Zero out value at dest */
-+	knod_iset32(&v_zero, 0);
-+	knod_emit(priv, meta, v_mov_b32_e32, r64[3].lo, v_zero);
-+	knod_emit(priv, meta, v_mov_b32_e32, r64[3].hi, v_zero);
-+	knod_emit(priv, meta, v_mov_b32_e32, r64[4].lo, v_zero);
-+	knod_emit(priv, meta, v_mov_b32_e32, r64[4].hi, v_zero);
-+
-+	val_off = 0;
-+	val_len = knod_map_obj_k->value_size;
-+
-+	while (val_len >= 16) {
-+		knod_emit(priv, meta, global_store_dwordx4, r64[3].lo,
-+			  r64[0].lo, val_off);
-+		val_off += 16;
-+		val_len -= 16;
-+	}
-+
-+	if (val_len >= 8) {
-+		knod_emit(priv, meta, global_store_dwordx2, r64[3].lo,
-+			  r64[0].lo, val_off);
-+		val_off += 8;
-+		val_len -= 8;
-+	}
-+
-+	if (val_len >= 4) {
-+		knod_emit(priv, meta, global_store_dword, r64[3].lo,
-+			  r64[0].lo, val_off);
-+		val_off += 4;
-+		val_len -= 4;
-+	}
-+
-+	if (val_len >= 2) {
-+		knod_emit(priv, meta, global_store_short, r64[3].lo,
-+			  r64[0].lo, val_off);
-+		val_off += 2;
-+		val_len -= 2;
-+	}
-+
-+	if (val_len >= 1) {
-+		knod_emit(priv, meta, global_store_byte, r64[3].lo,
-+			  r64[0].lo, val_off);
-+	}
-+
-+	knod_wait_vmcnt(priv, meta);
-+
-+	/* structurized CFG: restore OOB lanes */
-+	knod_bpf_set_label(meta, &labels[LABEL_OUT], meta->amdgpu_insns);
-+	knod_emit(priv, meta, s_or_b64, AMDGCN_SREG_EXEC_LO,
-+		  AMDGCN_SREG_EXEC_LO, KNOD_AMDGPU_TMP_SREG3_LO);
-+
-+	for (idx = 0; idx < fixup_idx; idx++)
-+		knod_bpf_fixup_branch(priv, &fixups[idx]);
-+}
-+
-+static void knod_bpf_store_cache_size(struct knod_bpf_priv *priv,
-+				     struct knod_insn_meta *meta,
-+				     struct amdgcn_param64 *src,
-+				     /* packet or stack */
-+				     struct amdgcn_param32 *cache,
-+				     int size, int off)
-+{
-+	struct amdgcn_param32 p32[2];
-+
-+	knod_jit_dbg(" %d: off = %d off_4 = %d size = %d\n", meta->bpf_insn_idx,
-+		off, off%4, size);
-+	WARN_ON(knod_param_is_literal(src->lo) ||
-+		knod_param_is_literal(src->hi));
-+	switch (size) {
-+	case sizeof(unsigned long):
-+		if ((off % 4) == 0) {
-+			knod_mov32(priv, meta,
-+				       cache[off / 4],
-+				       src->lo);
-+			knod_mov32(priv, meta,
-+				       cache[(off / 4) + 1],
-+				       src->hi);
-+		} else if ((off % 4) == 1) {
-+			WARN_ON_ONCE(1);
-+		} else if ((off % 4) == 2) {
-+			WARN_ON_ONCE(1);
-+		} else {
-+			WARN_ON_ONCE(1);
-+		}
-+		break;
-+	case sizeof(unsigned int):
-+		if ((off % 4) == 0) {
-+			knod_mov32(priv, meta,
-+				       cache[off / 4],
-+				       src->lo);
-+		} else if ((off % 4) == 1) {
-+			knod_iset64(&p64[0], 8);
-+			knod_lshlrev64(priv, meta, r64[0], p64[0], *src);
-+
-+			knod_iset32(&p32[0], 0xffffff00);
-+			knod_mov32(priv, meta, r32[2], p32[0]);
-+			knod_bfi32(priv, meta, cache[off / 4],
-+				       r32[2], r64[0].lo, cache[off / 4]);
-+			knod_iset32(&p32[0], 0x000000ff);
-+			knod_mov32(priv, meta, r32[2], p32[0]);
-+			knod_bfi32(priv, meta, cache[(off / 4) + 1], r32[2],
-+				       r64[0].hi, cache[(off / 4) + 1]);
-+		} else if ((off % 4) == 2) {
-+			knod_iset64(&p64[0], 16);
-+			knod_lshlrev64(priv, meta, r64[0], p64[0], *src);
-+
-+			knod_iset32(&p32[0], 0xffff0000);
-+			knod_mov32(priv, meta, r32[2], p32[0]);
-+			knod_bfi32(priv, meta, cache[off / 4], r32[2],
-+				       r64[0].lo, cache[off / 4]);
-+			knod_iset32(&p32[0], 0x0000ffff);
-+			knod_mov32(priv, meta, r32[2], p32[0]);
-+			knod_bfi32(priv, meta, cache[(off / 4) + 1], r32[2],
-+				       r64[0].hi, cache[(off / 4) + 1]);
-+		} else {
-+			knod_iset64(&p64[0], 24);
-+			knod_lshlrev64(priv, meta, r64[0], p64[0], *src);
-+
-+			knod_iset32(&p32[0], 0xffff0000);
-+			knod_mov32(priv, meta, r32[2], p32[0]);
-+			knod_bfi32(priv, meta, cache[off / 4], r32[2],
-+				       r64[0].lo, cache[off / 4]);
-+			knod_iset32(&p32[0], 0x00ffffff);
-+			knod_mov32(priv, meta, r32[2], p32[0]);
-+			knod_bfi32(priv, meta, cache[(off / 4) + 1], r32[2],
-+				       r64[0].hi, cache[(off / 4) + 1]);
-+		}
-+		break;
-+	case sizeof(unsigned short):
-+		if ((off % 4) == 0) {
-+			knod_iset32(&p32[0], 0x0000ffff);
-+			knod_mov32(priv, meta, r32[2], p32[0]);
-+			knod_bfi32(priv, meta, cache[off / 4], r32[2],
-+				       src->lo, cache[off / 4]);
-+		} else if ((off % 4) == 1) {
-+			knod_iset32(&p32[0], 8);
-+			knod_lshlrev32(priv, meta, r32[0], p32[0],
-+					   src->lo);
-+			knod_iset32(&p32[0], 0x00ffff00);
-+			knod_mov32(priv, meta, r32[2], p32[0]);
-+			knod_bfi32(priv, meta, cache[off / 4], r32[2],
-+				       r32[0], cache[off / 4]);
-+		} else if ((off % 4) == 2) {
-+			knod_iset32(&p32[0], 16);
-+			knod_lshlrev32(priv, meta, r32[0], p32[0],
-+					   src->lo);
-+			knod_iset32(&p32[0], 0xffff0000);
-+			knod_mov32(priv, meta, r32[2], p32[0]);
-+			knod_bfi32(priv, meta, cache[off / 4], r32[2],
-+				       r32[0], cache[off / 4]);
-+		} else {
-+			knod_iset64(&p64[0], 24);
-+			knod_lshlrev64(priv, meta, r64[0], p64[0], *src);
-+
-+			knod_iset32(&p32[0], 0xff000000);
-+			knod_mov32(priv, meta, r32[2], p32[0]);
-+			knod_bfi32(priv, meta, cache[off / 4], r32[2],
-+				       r64[0].lo, cache[off / 4]);
-+			knod_iset32(&p32[0], 0x000000ff);
-+			knod_mov32(priv, meta, r32[2], p32[0]);
-+			knod_bfi32(priv, meta, cache[(off / 4) + 1], r32[2],
-+				       r64[0].hi, cache[(off / 4) + 1]);
-+		}
-+		break;
-+	case sizeof(unsigned char):
-+		if ((off % 4) == 0) {
-+			knod_iset32(&p32[0], 0x000000ff);
-+			knod_mov32(priv, meta, r32[2], p32[0]);
-+			knod_bfi32(priv, meta, cache[off / 4], r32[2],
-+				       src->lo, cache[off / 4]);
++	struct amd_signal *signal =
++		(struct amd_signal *)disp->priv->knod->kaql[disp->kaql_idx]
++			.queue_signal->kaddr;
++	int timeout = 1000000;
++
++	while (READ_ONCE(signal->value) > work->sigval) {
++		if (--timeout <= 0) {
++			pr_warn_ratelimited("knod_ipsec: GPU signal timeout nr=%d\n",
++					    work->nr_packets);
 +			return;
-+		} else if ((off % 4) == 1) {
-+			knod_iset32(&p32[0], 8);
-+			knod_lshlrev32(priv, meta, r32[0], p32[0],
-+					   src->lo);
-+
-+			knod_iset32(&p32[0], 0x0000ff00);
-+		} else if ((off % 4) == 2) {
-+			knod_iset32(&p32[0], 16);
-+			knod_lshlrev32(priv, meta, r32[0], p32[0],
-+					   src->lo);
-+
-+			knod_iset32(&p32[0], 0x00ff0000);
-+		} else {
-+			knod_iset32(&p32[0], 24);
-+			knod_lshlrev32(priv, meta, r32[0], p32[0],
-+					   src->lo);
-+			knod_iset32(&p32[0], 0xff000000);
 +		}
-+
-+		knod_mov32(priv, meta, r32[2], p32[0]);
-+		knod_bfi32(priv, meta, cache[off / 4], r32[2], r32[0],
-+			       cache[off / 4]);
-+		break;
-+	default:
-+		WARN_ON_ONCE(1);
++		cpu_relax();
 +	}
 +}
-+
-+static bool knod_meta_is_exit(const struct knod_insn_meta *meta);
-+static bool knod_bpf_is_retval_move_to_r0(const struct knod_insn_meta *meta);
 +
 +/*
-+ * knod_bpf_emit_branch_tail - Emit EXEC mask manipulation after v_cmp for
-+ * structurized per-lane branching. Replaces the old s_cbranch_vccnz/vccz.
-+ *
-+ * For FORWARD_SKIP:
-+ *   Save jumping lanes -> narrow EXEC -> s_cbranch_execz
-+ *   (skip if no active lanes)
-+ *
-+ * For DIRECT_EXIT:
-+ *   Compute exit lanes -> update done_mask -> remove from EXEC (no branch)
-+ *
-+ * Emits the required EXEC mask manipulation in-place.
++ * Convenience wrapper: submit + block until done. Keeps the existing
++ * KAT / selftest call sites that expect a synchronous dispatch.
 + */
-+static void knod_bpf_emit_direct_exit_retval(struct knod_bpf_priv *priv,
-+					     struct knod_insn_meta *emit_meta,
-+					     struct knod_insn_meta *target)
++static void knod_ipsec_dispatch_and_wait(struct knod_ipsec_dispatcher *disp,
++					 struct knod_ipsec_work *work)
 +{
-+	struct amdgcn_param64 dst, src;
-+	s64 imm;
-+
-+	if (!target || knod_meta_is_exit(target))
-+		return;
-+
-+	if (WARN_ON_ONCE(!knod_bpf_is_retval_move_to_r0(target)))
-+		return;
-+
-+	knod_vset64(&dst, KNOD_AMDGPU_VREG0_LO);
-+
-+	switch (target->insn.code) {
-+	case BPF_ALU | BPF_MOV | BPF_X:
-+	case BPF_ALU64 | BPF_MOV | BPF_X:
-+		knod_vset64(&src, target->insn.src_reg * 2);
-+		knod_mov64(priv, emit_meta, dst, src);
-+		break;
-+	case BPF_ALU | BPF_MOV | BPF_K:
-+		imm = (u32)target->insn.imm;
-+		knod_iset64(&src, imm);
-+		knod_mov64(priv, emit_meta, dst, src);
-+		break;
-+	case BPF_ALU64 | BPF_MOV | BPF_K:
-+		imm = (s64)(s32)target->insn.imm;
-+		knod_iset64(&src, imm);
-+		knod_mov64(priv, emit_meta, dst, src);
-+		break;
-+	default:
-+		WARN_ON_ONCE(1);
-+		break;
-+	}
++	knod_ipsec_dispatch_submit(disp, work);
++	knod_ipsec_dispatch_wait(disp, work);
 +}
 +
-+static void knod_bpf_emit_branch_tail(struct knod_bpf_priv *priv,
-+				      struct knod_insn_meta *meta,
-+				      struct knod_prog *knod_prog,
-+				      short off)
++/*
++ * Multi-queue RX drain into one GPU dispatch.
++ *
++ * For each NIC RX queue round-robin'd from *rx_rr, peek up to
++ * `cap_per_q = KNOD_IPSEC_PKT_BATCH / nr_queues` packets and stage them
++ * directly into the fused-shader kernarg sub[] array. This gives strict
++ * per-queue fairness: no single queue can monopolise the batch even if
++ * it has 10k packets backed up. When cap_per_q < 1 we fall back to 1 so
++ * that PKT_BATCH < nr_queues setups still drain something per queue.
++ *
++ * All queues drained in one dispatch must share the same SA table, but
++ * their packets may be for different SAs (each sub[].pkt_addr is an
++ * independent ESP frame with its own SPI); the shader performs the SPI
++ * scan per workgroup. Per-packet rx_pkt_queue[i] is recorded so
++ * finish_rx_deliver() routes each decrypted packet to the matching
++ * priv->rxq[q] delivery pool + desc_ring.
++ *
++ * NAPIs for every queue we touched are scheduled at the end so the
++ * driver-side act_handler sees the INFLIGHT -> PASS/DROP transition and
++ * recycles the netmem pages.
++ */
++static bool knod_ipsec_dispatcher_try_rx(struct knod_ipsec_dispatcher *disp,
++					 struct knod_ipsec_work *work)
 +{
-+	switch (meta->branch_type) {
-+	case KNOD_BR_FORWARD_SKIP:
-+		if (meta->jump_neg_op) {
-+			/* JNE: VCC=0 -> jump, VCC=1 -> fall-through.
-+			 * Save jump lanes (VCC=0): s[n] = exec & ~vcc
-+			 */
-+			knod_emit(priv, meta, s_andn2_b64,
-+				  meta->exec_save_sreg,
-+				  AMDGCN_SREG_EXEC_LO,
-+				  AMDGCN_SREG_VCC_LO);
++	struct knod_ipsec_priv *priv = disp->priv;
++	struct knod_dev *knodev = priv->knodev;
++	struct knod_ipsec_fused_param *param;
++	struct {
++		u16 q;
++		u16 count;
++	} per_q[KNOD_SPSC_MAX];
++	int nr_queues, nr_disp_queues, i, q = -1, start;
++	int active, pass, pi;
++	unsigned int total_n = 0;
++	unsigned int cap_per_q;
++	int per_q_n = 0;
++	bool stats_on = static_branch_unlikely(&ipsec_stats_enabled_key);
++	u64 t_start = 0, t_build_end = 0;
 +
-+			/* Keep fall-through (VCC=1): exec = exec & vcc */
-+			knod_emit(priv, meta, s_and_b64,
-+				  AMDGCN_SREG_EXEC_LO,
-+				  AMDGCN_SREG_EXEC_LO,
-+				  AMDGCN_SREG_VCC_LO);
-+		} else {
-+			/* Normal: VCC=1 -> jump, VCC=0 -> fall-through.
-+			 * Save jump lanes (VCC=1): s[n] = exec & vcc
-+			 */
-+			knod_emit(priv, meta, s_and_b64,
-+				  meta->exec_save_sreg,
-+				  AMDGCN_SREG_EXEC_LO,
-+				  AMDGCN_SREG_VCC_LO);
++	if (!knodev || !priv->knod || !priv->knod->buf)
++		return false;
 +
-+			/* Keep fall-through (VCC=0): exec = exec & ~vcc */
-+			knod_emit(priv, meta, s_andn2_b64,
-+				  AMDGCN_SREG_EXEC_LO,
-+				  AMDGCN_SREG_EXEC_LO,
-+				  AMDGCN_SREG_VCC_LO);
++	if (stats_on) {
++		t_start = ktime_get_ns();
++		work->sdma_wait_ns = 0;
++		work->rx_sdma_copies = 0;
++		work->rx_sdma_bytes  = 0;
++	}
++
++	nr_queues = knodev->netdev ? knodev->netdev->real_num_rx_queues : 0;
++	if (nr_queues > KNOD_SPSC_MAX)
++		nr_queues = KNOD_SPSC_MAX;
++	if (nr_queues > priv->knod->channels)
++		nr_queues = priv->knod->channels;
++	if (nr_queues <= 0)
++		return false;
++
++	/* This dispatcher's window into the global queue set. Everything
++	 * below indexes with `disp->rxq_first + (rr_offset % nr_disp_queues)`
++	 * so dispatcher N only ever touches queues it owns.
++	 */
++	nr_disp_queues = disp->rxq_count;
++	if (nr_disp_queues > nr_queues - disp->rxq_first)
++		nr_disp_queues = nr_queues - disp->rxq_first;
++	if (nr_disp_queues <= 0)
++		return false;
++
++	/* Count active (non-empty) queues within this dispatcher's range
++	 * so the fair-share cap reflects actual demand. Without this, a
++	 * single-flow iperf3 that only populates 1 out of N RX queues
++	 * would be limited to BATCH/N per dispatch.
++	 */
++	active = 0;
++	for (i = 0; i < nr_disp_queues; i++) {
++		int qi = disp->rxq_first +
++			 ((disp->rx_rr + i) % nr_disp_queues);
++		struct knod_work_priv *wp = &knodev->wpriv[qi];
++		struct spsc_ring *rr = &wp->spsc_bds;
++
++		if (!wp->napi || !rr->slots || rr->mask == 0)
++			continue;
++		if (!priv->knod->buf[qi])
++			continue;
++		if (spsc_count(rr) > 0)
++			active++;
++	}
++	if (active == 0)
++		return false;
++	cap_per_q = DIV_ROUND_UP(READ_ONCE(priv->pkt_batch), active);
++
++	/* Build fused_param directly into kernarg. Zero the entire struct
++	 * so stale sub[batch_n..BATCH-1] entries from previous dispatches
++	 * cannot be picked up by a GPU kernarg prefetch - the GFX9 CP may
++	 * speculatively read beyond grid_size_y into the kernarg buffer,
++	 * and a stale sub[].pkt_addr pointing at valid VRAM could cause
++	 * the shader to process garbage packets (observed as ICV failures
++	 * when the memset was removed).
++	 */
++	param = (struct knod_ipsec_fused_param *)work->param.kaddr;
++	memset(param, 0, sizeof(*param));
++	param->sa_table_addr = cpu_to_le64(priv->sa_table->gaddr);
++	param->t_tables_addr = cpu_to_le64(priv->t_tables->gaddr);
++	param->nr_sa         = cpu_to_le32(KNOD_IPSEC_NR_SA);
++
++	/* Two-pass fair drain.
++	 *
++	 * Pass 1 caps each queue at cap_per_q (= BATCH / active_queues) so
++	 * one queue cannot monopolise the batch when several queues have
++	 * traffic.
++	 *
++	 * Pass 2 fills any remaining batch budget greedily from queues
++	 * that still have packets. This matters for single-flow iperf3
++	 * where only one RX queue is active: pass 1 fills that queue up
++	 * to its fair share (= BATCH for active=1) and pass 2 is a no-op,
++	 * but with a few active queues pass 2 picks up the slack left by
++	 * queues that had fewer than their fair share.
++	 *
++	 * IMPORTANT: we advance the SPSC acquired cursor IMMEDIATELY after
++	 * each per-queue peek so that a subsequent pass re-visiting the
++	 * same queue never re-reads the same packets. Earlier naive 2-pass
++	 * without this acquire double-processed packets and caused ~50%
++	 * anti-replay drops downstream.
++	 */
++	start = disp->rx_rr;
++	for (pass = 0; pass < 2; pass++) {
++		unsigned int per_q_cap = (pass == 0) ?
++			cap_per_q : READ_ONCE(priv->pkt_batch);
++
++		for (i = 0; i < nr_disp_queues; i++) {
++			struct knod_work_priv *wpriv;
++			struct spsc_ring *r;
++			u64 base_gaddr;
++			unsigned int cnt = 0;
++			unsigned int acq_start;
++			unsigned int remaining, budget;
++			int err, k, pi;
++			bool found;
++
++			q = disp->rxq_first +
++			    ((start + i) % nr_disp_queues);
++			wpriv = &knodev->wpriv[q];
++			r = &wpriv->spsc_bds;
++
++			if (!wpriv->napi || !r->slots || r->mask == 0)
++				continue;
++			if (!priv->knod->buf[q])
++				continue;
++
++			remaining = READ_ONCE(priv->pkt_batch) - total_n;
++			if (remaining == 0)
++				break;
++			budget = min(per_q_cap, remaining);
++
++			base_gaddr = priv->knod->buf[q]->gaddr;
++			acq_start = r->acquired;
++
++			err = spsc_peek(r, (void **)&work->rx_bds[total_n],
++					budget, &cnt);
++			if (err || cnt == 0)
++				continue;
++
++			/* Delivery pages are allocated lazily at finish time
++			 * from the framework page_pool; no per-packet slot
++			 * reservation here.
++			 */
++			for (k = 0; k < (int)cnt; k++) {
++				struct spsc_bd *bd = work->rx_bds[total_n + k];
++				u32 ring_idx = (acq_start + k) & r->mask;
++				u64 pkt_addr, bd_gaddr, out_gaddr;
++				unsigned int si = total_n + k;
++
++				pkt_addr = base_gaddr +
++					   ((u64)bd->page_idx << PAGE_SHIFT) +
++					   bd->off;
++				bd_gaddr = wpriv->spsc_pool_gaddr +
++					   (u64)ring_idx * r->elem_stride;
++
++				out_gaddr = work->rx_out_gaddr +
++					    (u64)si *
++					    KNOD_IPSEC_DECRYPT_PKT_SIZE;
++
++				param->sub[si].pkt_addr =
++					cpu_to_le64(pkt_addr);
++				param->sub[si].out_addr =
++					cpu_to_le64(out_gaddr);
++				param->sub[si].bd_addr  =
++					cpu_to_le64(bd_gaddr);
++				param->sub[si].pkt_len  =
++					cpu_to_le32(bd->len);
++				param->sub[si].result_seq = 0;
++
++				work->rx_pkt_queue[si] = (u8)q;
++				bd->act = KNOD_IPSEC_INFLIGHT;
++			}
++
++			/* Advance r->acquired now so pass 2 never
++			 * re-peeks the same entries.
++			 */
++			spsc_acquire(r, NULL, cnt, NULL);
++
++			found = false;
++			for (pi = 0; pi < per_q_n; pi++) {
++				if (per_q[pi].q == (u16)q) {
++					per_q[pi].count += (u16)cnt;
++					found = true;
++					break;
++				}
++			}
++			if (!found) {
++				per_q[per_q_n].q = (u16)q;
++				per_q[per_q_n].count = (u16)cnt;
++				per_q_n++;
++			}
++			total_n += cnt;
++		}
++
++		if (total_n >= READ_ONCE(priv->pkt_batch))
++			break;
++	}
++
++	if (total_n == 0)
++		return false;
++
++	if (static_branch_unlikely(&ipsec_stats_enabled_key)) {
++		struct knod_ipsec_stats *cs = this_cpu_ptr(priv->stats);
++
++		cs->rx_peek_total += total_n;
++	}
++
++	/* spsc_acquire was already called per-queue inside the drain loop
++	 * to prevent the two-pass logic from re-peeking the same entries,
++	 * so there is nothing to commit here.
++	 */
++
++	work->nr_packets = (int)total_n;
++	/* Multi-queue: no single napi. finalise_work will skip its
++	 * rx_napi kick and we schedule per-queue napis below.
++	 */
++	work->rx_napi = NULL;
++	work->rx_queue_idx = per_q[0].q; /* used only by single-queue KAT */
++
++	if (stats_on) {
++		t_build_end = ktime_get_ns();
++		work->t_build_end = t_build_end;
++	}
++
++	if (stats_on) {
++		struct knod_ipsec_stats *s = this_cpu_ptr(priv->stats);
++
++		s->rx_dispatches++;
++		s->rx_batch_total += total_n;
++		if ((u64)total_n > s->rx_batch_max)
++			s->rx_batch_max = total_n;
++	}
++
++	/* Stash per-queue drain bookkeeping so the deferred finalise
++	 * path (called when the dispatch completes, possibly in a later
++	 * dispatcher iteration) can wake the touched NAPIs and attribute
++	 * stats back to this slot.
++	 */
++	work->per_q_n = per_q_n;
++	for (pi = 0; pi < per_q_n; pi++)
++		work->per_q_touched[pi] = per_q[pi].q;
++	work->t_build_start = t_start;
++	work->t_submit = stats_on ? ktime_get_ns() : 0;
++
++	param->sdma_ring_addr = 0;
++	param->sdma_ctl_addr  = 0;
++
++	/* Submit-only: do not wait, do not finalise. The dispatcher loop
++	 * polls knod_ipsec_dispatch_done() and runs finalise via
++	 * knod_ipsec_finalise_inflight() once the completion signal fires.
++	 */
++	knod_ipsec_dispatch_submit(disp, work);
++
++	disp->rx_rr = nr_disp_queues > 0
++		? ((q - disp->rxq_first + 1) % nr_disp_queues)
++		: 0;
++	return true;
++}
++
++/*
++ * Deferred finalise for a slot whose GPU dispatch has completed (signal
++ * fired). Runs finish_rx_deliver(), wakes per-queue
++ * napis tracked by try_rx, and accumulates per-phase timing stats.
++ * Called from the pipelined dispatcher loop once
++ * knod_ipsec_dispatch_done() returns true for the slot.
++ */
++/*
++ * Called when GPU dispatch completes. For RX with SDMA copies, this
++ * transitions to SDMA_PENDING (the dispatcher loop polls the fence
++ * and calls knod_ipsec_finalise_sdma_done when ready). For RX without
++ * SDMA, completes everything inline and returns true so the
++ * caller can transition directly to EMPTY.
++ *
++ * Returns true if fully done (-> EMPTY), false if -> SDMA_PENDING.
++ */
++static bool knod_ipsec_finalise_inflight(struct knod_ipsec_dispatcher *disp,
++					 struct knod_ipsec_work *work)
++{
++	struct knod_ipsec_priv *priv = disp->priv;
++	struct knod_dev *knodev = priv->knodev;
++	bool stats_on = static_branch_unlikely(&ipsec_stats_enabled_key);
++	u64 t_gpu_end = 0, t_end = 0;
++	int i;
++
++	if (stats_on)
++		t_gpu_end = ktime_get_ns();
++
++	work->t_finalise_start = t_gpu_end;
++	knod_ipsec_finalise_work(disp, work);
++
++	/* RX path with SDMA copies pending - defer completion until the
++	 * SDMA fence fires. The dispatcher loop will poll sdma_fence_ptr
++	 * and call knod_ipsec_finalise_sdma_done().
++	 */
++	if (work->n_sdma_pending > 0) {
++		if (stats_on) {
++			struct knod_ipsec_stats *s = this_cpu_ptr(priv->stats);
++			u64 build_ns = work->t_build_end - work->t_build_start;
++			u64 gpu_ns = t_gpu_end > work->t_submit
++				? t_gpu_end - work->t_submit : 0;
++
++			s->rx_build_ns += build_ns;
++			s->rx_gpu_ns   += gpu_ns;
++			s->rx_sdma_copies_total += work->rx_sdma_copies;
++			s->rx_sdma_bytes_total  += work->rx_sdma_bytes;
++			if (work->rx_sdma_copies > s->rx_sdma_copies_max)
++				s->rx_sdma_copies_max = work->rx_sdma_copies;
++		}
++		return false;   /* -> SDMA_PENDING */
++	}
++
++	/* No SDMA copies - mark bds PASS and schedule NAPIs. */
++	for (i = 0; i < work->nr_packets; i++) {
++		if (work->rx_bds[i])
++			work->rx_bds[i]->act = KNOD_IPSEC_PASS;
++	}
++	if (knodev) {
++		for (i = 0; i < work->per_q_n; i++) {
++			struct knod_work_priv *wpriv =
++				&knodev->wpriv[work->per_q_touched[i]];
++
++			knod_napi_kick(wpriv);
++		}
++	}
++
++	if (stats_on) {
++		struct knod_ipsec_stats *s = this_cpu_ptr(priv->stats);
++
++		t_end = ktime_get_ns();
++
++		/* RX no-SDMA: all stats fit here. The SDMA path
++		 * records build/gpu stats in the early-return above
++		 * and sdma/finalise stats in finalise_sdma_done().
++		 */
++		u64 build_ns = work->t_build_end - work->t_build_start;
++		u64 gpu_ns = t_gpu_end > work->t_submit
++			? t_gpu_end - work->t_submit : 0;
++		u64 finalise_ns = t_end > t_gpu_end
++			? t_end - t_gpu_end : 0;
++
++		s->rx_build_ns    += build_ns;
++		s->rx_gpu_ns      += gpu_ns;
++		s->rx_finalise_ns += finalise_ns;
++		s->rx_total_ns    += t_end - work->t_build_start;
++	}
++
++	/* Clear slot state so the dispatcher can reuse this work entry. */
++	work->per_q_n = 0;
++	work->nr_packets = 0;
++	work->sdma_wait_ns = 0;
++	work->rx_sdma_copies = 0;
++	work->rx_sdma_bytes = 0;
++	work->n_sdma_pending = 0;
++
++	return true;  /* -> EMPTY */
++}
++
++/*
++ * SDMA fence has fired for a slot in SDMA_PENDING. Publish desc_ring
++ * entries, mark bds PASS, schedule NAPIs, accumulate remaining stats,
++ * and clear the slot for reuse.
++ */
++static void knod_ipsec_finalise_sdma_done(struct knod_ipsec_dispatcher *disp,
++					  struct knod_ipsec_work *work)
++{
++	struct knod_ipsec_priv *priv = disp->priv;
++	bool stats_on = static_branch_unlikely(&ipsec_stats_enabled_key);
++
++	knod_ipsec_finish_rx_complete(disp, work);
++
++	/* Schedule NAPIs now that bds are marked PASS. */
++	if (priv->knodev) {
++		int i;
++
++		for (i = 0; i < work->per_q_n; i++) {
++			struct knod_work_priv *wpriv =
++				&priv->knodev->wpriv[work->per_q_touched[i]];
++
++			knod_napi_kick(wpriv);
++		}
++	}
++
++	if (stats_on) {
++		struct knod_ipsec_stats *s = this_cpu_ptr(priv->stats);
++		u64 t_end = ktime_get_ns();
++		u64 finalise_ns = t_end > work->t_finalise_start
++			? t_end - work->t_finalise_start : 0;
++
++		if (finalise_ns > work->sdma_wait_ns)
++			finalise_ns -= work->sdma_wait_ns;
++		else
++			finalise_ns = 0;
++
++		s->rx_sdma_ns     += work->sdma_wait_ns;
++		s->rx_finalise_ns += finalise_ns;
++		s->rx_total_ns    += t_end - work->t_build_start;
++	}
++
++	work->per_q_n = 0;
++	work->nr_packets = 0;
++	work->sdma_wait_ns = 0;
++	work->rx_sdma_copies = 0;
++	work->rx_sdma_bytes = 0;
++	work->n_sdma_pending = 0;
++}
++
++/*
++ * Pipelined dispatcher kthread. Each dispatcher owns one kaql[i] /
++ * sdma[i] pair, a private slice of the work_pool, and a contiguous
++ * range of RX queues. Up to KNOD_IPSEC_NR_WORK dispatches
++ * may be in-flight on this AQL queue at once. Each iteration:
++ *
++ *   1) Scan INFLIGHT slots within this disp's slice, finalise any
++ *      whose completion signal fired.
++ *   2) Scan EMPTY slots in the same slice, try to build+submit one RX
++ *      batch into it.
++ *   3) If nothing happened (no work to finalise, nothing to build),
++ *      idle (usleep or cpu_relax spins).
++ *
++ * With nr_dispatchers > 1 the AQL queues run independently on the
++ * GPU - disjoint CU allocations per kaql - so two dispatchers get
++ * real parallel execution on the GPU. Within a single dispatcher,
++ * kaql[i] is FIFO: dispatches complete in submission order, and each
++ * slot's work->sigval is assigned a distinct target by
++ * dispatch_submit() so dispatch_done() can distinguish completions
++ * of different in-flight slots.
++ *
++ * No cross-dispatcher synchronisation on the hot path: each disp
++ * only touches its own rxq range and its own work slice.
++ * The shared SA table, slot array and per-CPU stats are read-mostly
++ * or percpu respectively.
++ */
++static int knod_ipsec_dispatcher(void *arg)
++{
++	struct knod_ipsec_dispatcher *disp = arg;
++	struct knod_ipsec_priv *priv = disp->priv;
++	int i;
++
++	while (!kthread_should_stop()) {
++		bool did_work = false;
++
++		if (kthread_should_park()) {
++			knod_ipsec_dispatcher_drain(disp);
++			kthread_parkme();
++			continue;
++		}
++
++		/* Phase 1a: finalise any INFLIGHT slot whose GPU work done. */
++		for (i = 0; i < disp->work_count; i++) {
++			struct knod_ipsec_work *w =
++				&priv->work_pool[disp->work_first + i];
++
++			if (w->state != KNOD_WORK_INFLIGHT)
++				continue;
++			if (!knod_ipsec_dispatch_done(disp, w))
++				continue;
++
++			if (knod_ipsec_finalise_inflight(disp, w))
++				w->state = KNOD_WORK_EMPTY;
++			else
++				w->state = KNOD_WORK_SDMA_PENDING;
++			did_work = true;
 +		}
 +
 +		/*
-+		 * No GPU branch.  After the RPO reorder, branch scopes
-+		 * interleave, so the jumping lanes must flow through every
-+		 * following block under the EXEC mask and rejoin at their merge
-+		 * point.  An s_cbranch_execz skipping ahead to the merge would
-+		 * jump over other scopes' merge points and strand their saved
-+		 * lanes (EXEC never restored -> act=0).
++		 * Phase 1b: complete any SDMA_PENDING slot whose fence
++		 * fired.
 +		 */
-+		break;
++		for (i = 0; i < disp->work_count; i++) {
++			struct knod_ipsec_work *w =
++				&priv->work_pool[disp->work_first + i];
 +
-+	case KNOD_BR_DIRECT_EXIT:
-+		if (meta->jump_neg_op) {
-+			/* JNE: VCC=0 -> exit. exit_lanes = exec & ~vcc */
-+			knod_emit(priv, meta, s_andn2_b64,
-+				  KNOD_AMDGPU_TMP_SREG0_LO,
-+				  AMDGCN_SREG_EXEC_LO,
-+				  AMDGCN_SREG_VCC_LO);
-+		} else {
-+			/* Normal: VCC=1 -> exit. exit_lanes = exec & vcc */
-+			knod_emit(priv, meta, s_and_b64,
-+				  KNOD_AMDGPU_TMP_SREG0_LO,
-+				  AMDGCN_SREG_EXEC_LO,
-+				  AMDGCN_SREG_VCC_LO);
-+		}
-+
-+		/* Keep the lanes that did not take the exit path. */
-+		knod_emit(priv, meta, s_andn2_b64,
-+			  KNOD_AMDGPU_TMP_SREG1_LO,
-+			  AMDGCN_SREG_EXEC_LO,
-+			  KNOD_AMDGPU_TMP_SREG0_LO);
-+
-+		/* Replay a shared "r0 = action; exit" target under the
-+		 * exiting lanes before marking them done.  Otherwise a direct
-+		 * branch to the common exit can publish stale r0 scratch state.
-+		 */
-+		knod_emit(priv, meta, s_mov_b64, AMDGCN_SREG_EXEC_LO,
-+			  KNOD_AMDGPU_TMP_SREG0_LO);
-+		knod_bpf_emit_direct_exit_retval(priv, meta, meta->merge_point);
-+
-+		/* done_mask |= exit_lanes */
-+		knod_emit(priv, meta, s_or_b64,
-+			  knod_prog->done_mask_sreg,
-+			  knod_prog->done_mask_sreg,
-+			  AMDGCN_SREG_EXEC_LO);
-+
-+		/* Continue with the non-exit lanes. */
-+		knod_emit(priv, meta, s_mov_b64, AMDGCN_SREG_EXEC_LO,
-+			  KNOD_AMDGPU_TMP_SREG1_LO);
-+
-+		/* No branch - fall through with reduced EXEC.
-+		 * No fixup needed.
-+		 */
-+		meta->jmp_dst = NULL;
-+		break;
-+
-+	default:
-+		WARN_ON_ONCE(1);
-+		break;
-+	}
-+}
-+
-+/*
-+ * --- Basic-block CFG analysis (foundation for block reordering) ---
-+ *
-+ * The emitter is a linear SIMT machine: instructions run in list order under
-+ * an EXEC mask.  A *forward* jump is realized by masking off the jumping
-+ * lanes and restoring them at the merge point.  A *backward* jump has no such
-+ * realization unless it is a loop (real GPU branch + EXEC convergence, not yet
-+ * implemented).
-+ *
-+ * LLVM tail-sharing and block placement routinely emit jumps that are
-+ * backward in BPF byte order but are NOT loops - e.g. a UDP bounds check that
-+ * jumps back to a shared XDP_PASS tail.  Classifying those as "exit" (the
-+ * jmp_off < 0 heuristic in knod_bpf_analyze_cfg) silently miscompiles them:
-+ * the jumping lanes exit carrying whatever R0 happened to hold instead of
-+ * flowing to the real target.
-+ *
-+ * The fix is to classify by control-flow, not byte order:
-+ *   1. partition the instruction stream into basic blocks,
-+ *   2. build the control-flow graph (successor edges),
-+ *   3. DFS for a reverse-postorder (RPO) and detect back-edges,
-+ *   4. no back-edges (a DAG)  -> reorder blocks into RPO so every edge points
-+ *      forward, then classify by linear position,
-+ *   5. a real loop is present -> bail (-EOPNOTSUPP) until loop emission lands.
-+ *
-+ * Loop emission (step 5) is not implemented yet, so programs containing a
-+ * loop are rejected with -EOPNOTSUPP.
-+ */
-+struct knod_bb {
-+	struct knod_insn_meta *leader;	/* first instruction of the block */
-+	struct knod_insn_meta *last;	/* last instruction of the block */
-+	/* successors: [0] not-taken, [1] taken */
-+	struct knod_bb *succ[2];
-+	int n_succ;
-+	/* reverse-postorder rank, -1 if unreachable */
-+	int rpo;
-+	/* DFS color: 0 white, 1 gray, 2 black */
-+	int dfs;
-+	bool loop_header;		/* target of a back-edge */
-+	/* scratch: member of the loop being walked */
-+	bool in_loop;
-+	/* immediate dominator (self for entry) */
-+	struct knod_bb *idom;
-+};
-+
-+static bool knod_meta_is_exit(const struct knod_insn_meta *meta)
-+{
-+	u8 code = meta->insn.code;
-+
-+	return code == (BPF_JMP | BPF_EXIT) || code == (BPF_JMP32 | BPF_EXIT);
-+}
-+
-+static struct knod_insn_meta *
-+knod_bpf_next_meta(struct knod_prog *knod_prog, struct knod_insn_meta *meta)
-+{
-+	if (!meta || list_is_last(&meta->l, &knod_prog->insns))
-+		return NULL;
-+
-+	return list_next_entry(meta, l);
-+}
-+
-+static bool knod_bpf_is_retval_move_to_r0(const struct knod_insn_meta *meta)
-+{
-+	u8 code;
-+
-+	if (!meta || meta->insn.dst_reg != BPF_REG_0)
-+		return false;
-+
-+	code = meta->insn.code;
-+	return code == (BPF_ALU | BPF_MOV | BPF_X) ||
-+	       code == (BPF_ALU64 | BPF_MOV | BPF_X) ||
-+	       code == (BPF_ALU | BPF_MOV | BPF_K) ||
-+	       code == (BPF_ALU64 | BPF_MOV | BPF_K);
-+}
-+
-+static bool knod_bpf_is_direct_exit_target(struct knod_prog *knod_prog,
-+					   struct knod_insn_meta *target)
-+{
-+	if (knod_meta_is_exit(target))
-+		return true;
-+
-+	if (!knod_bpf_is_retval_move_to_r0(target))
-+		return false;
-+
-+	return knod_meta_is_exit(knod_bpf_next_meta(knod_prog, target));
-+}
-+
-+static bool knod_meta_is_ja(const struct knod_insn_meta *meta)
-+{
-+	u8 code = meta->insn.code;
-+
-+	return code == (BPF_JMP | BPF_JA | BPF_K) ||
-+	       code == (BPF_JMP32 | BPF_JA | BPF_K);
-+}
-+
-+/* A block ends after a terminator; the next instruction starts a new block. */
-+static bool knod_meta_is_terminator(const struct knod_insn_meta *meta)
-+{
-+	return is_mbpf_cond_jump(meta) || knod_meta_is_ja(meta) ||
-+	       knod_meta_is_exit(meta);
-+}
-+
-+/* Target instruction index of a conditional jump or BPF_JA. */
-+static short knod_meta_jump_target_idx(const struct knod_insn_meta *meta)
-+{
-+	if (meta->insn.code == (BPF_JMP32 | BPF_JA | BPF_K))
-+		return meta->bpf_insn_idx + meta->insn.imm + 1;
-+	return meta->bpf_insn_idx + meta->insn.off + 1;
-+}
-+
-+static struct knod_bb *knod_bb_of_leader(struct knod_bb *bbs, int n_bbs,
-+					 const struct knod_insn_meta *meta)
-+{
-+	int i;
-+
-+	for (i = 0; i < n_bbs; i++)
-+		if (bbs[i].leader == meta)
-+			return &bbs[i];
-+	return NULL;
-+}
-+
-+/* Resolve the block a conditional jump / BPF_JA at @jmp transfers to. */
-+static struct knod_bb *knod_bb_jump_target(struct knod_prog *knod_prog,
-+					   struct knod_bb *bbs, int n_bbs,
-+					   const struct knod_insn_meta *jmp)
-+{
-+	struct knod_insn_meta *tgt;
-+
-+	tgt = knod_bpf_lookup_meta(knod_prog, knod_meta_jump_target_idx(jmp));
-+	return tgt ? knod_bb_of_leader(bbs, n_bbs, tgt) : NULL;
-+}
-+
-+/*
-+ * Partition knod_prog->insns into basic blocks.  A leader is the first
-+ * instruction, any jump target, or the instruction after a terminator.
-+ * Returns the block count or a negative errno; @bbs holds >= n_insns blocks.
-+ */
-+static int knod_bpf_build_bbs(struct knod_prog *knod_prog, struct knod_bb *bbs)
-+{
-+	struct knod_insn_meta *meta, *tgt;
-+	struct knod_bb *cur = NULL;
-+	int n_bbs = 0;
-+	short tgt_idx;
-+
-+	/* Pass A: mark every jump target as a leader. */
-+	list_for_each_entry(meta, &knod_prog->insns, l)
-+		meta->flags &= ~FLAG_INSN_IS_JUMP_DST;
-+
-+	list_for_each_entry(meta, &knod_prog->insns, l) {
-+		if (!is_mbpf_cond_jump(meta) && !knod_meta_is_ja(meta))
-+			continue;
-+		tgt_idx = knod_meta_jump_target_idx(meta);
-+		tgt = knod_bpf_lookup_meta(knod_prog, tgt_idx);
-+		if (!tgt) {
-+			pr_warn("knod_cfg: bpf#%d jump target %d unresolved\n",
-+				meta->bpf_insn_idx, tgt_idx);
-+			return -EINVAL;
-+		}
-+		tgt->flags |= FLAG_INSN_IS_JUMP_DST;
-+	}
-+
-+	/* Pass B: cut the list into blocks. */
-+	list_for_each_entry(meta, &knod_prog->insns, l) {
-+		if (!cur || (meta->flags & FLAG_INSN_IS_JUMP_DST)) {
-+			cur = &bbs[n_bbs++];
-+			cur->leader = meta;
-+			cur->n_succ = 0;
-+		}
-+		cur->last = meta;
-+
-+		if (knod_meta_is_terminator(meta))
-+			/* next instruction starts a new block */
-+			cur = NULL;
-+	}
-+
-+	return n_bbs;
-+}
-+
-+/* Build successor edges for every block from its terminator. */
-+static int knod_bpf_build_edges(struct knod_prog *knod_prog,
-+				struct knod_bb *bbs, int n_bbs)
-+{
-+	struct knod_bb *bb, *fall, *tgt_bb;
-+	struct knod_insn_meta *last;
-+	int i;
-+
-+	for (i = 0; i < n_bbs; i++) {
-+		bb = &bbs[i];
-+		last = bb->last;
-+		bb->n_succ = 0;
-+
-+		if (knod_meta_is_exit(last))
-+			continue;			/* no successors */
-+
-+		/* Successor in list order: block led by the next
-+		 * instruction.
-+		 */
-+		fall = NULL;
-+		if (!list_is_last(&last->l, &knod_prog->insns))
-+			fall = knod_bb_of_leader(bbs, n_bbs,
-+						 list_next_entry(last, l));
-+
-+		if (is_mbpf_cond_jump(last)) {
-+			tgt_bb = knod_bb_jump_target(knod_prog, bbs, n_bbs,
-+						     last);
-+			if (!fall || !tgt_bb)
-+				return -EINVAL;
-+			bb->succ[bb->n_succ++] = fall;		/* not taken */
-+			bb->succ[bb->n_succ++] = tgt_bb;	/* taken */
-+		} else if (knod_meta_is_ja(last)) {
-+			tgt_bb = knod_bb_jump_target(knod_prog, bbs, n_bbs,
-+						     last);
-+			if (!tgt_bb)
-+				return -EINVAL;
-+			bb->succ[bb->n_succ++] = tgt_bb;
-+		} else {
-+			if (!fall)			/* fell off the end */
-+				return -EINVAL;
-+			bb->succ[bb->n_succ++] = fall;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+/*
-+ * Iterative DFS from the entry block.  Computes a reverse-postorder rank for
-+ * every reachable block and flags back-edge targets as loop headers.  Returns
-+ * the number of back-edges in *n_back, or a negative errno.
-+ */
-+static int knod_bpf_compute_rpo(struct knod_bb *bbs, int n_bbs,
-+				struct knod_bb *entry, int *n_back)
-+{
-+	struct knod_bb **stack;
-+	int *cursor;
-+	int top = 0, post = 0, nb = 0, i;
-+
-+	for (i = 0; i < n_bbs; i++) {
-+		bbs[i].dfs = 0;
-+		bbs[i].rpo = -1;
-+		bbs[i].loop_header = false;
-+	}
-+
-+	stack = kcalloc(n_bbs, sizeof(*stack), GFP_KERNEL);
-+	cursor = kcalloc(n_bbs, sizeof(*cursor), GFP_KERNEL);
-+	if (!stack || !cursor) {
-+		kfree(stack);
-+		kfree(cursor);
-+		return -ENOMEM;
-+	}
-+
-+	entry->dfs = 1;
-+	stack[top] = entry;
-+	cursor[top] = 0;
-+	top++;
-+
-+	while (top > 0) {
-+		struct knod_bb *bb = stack[top - 1];
-+
-+		if (cursor[top - 1] < bb->n_succ) {
-+			struct knod_bb *s = bb->succ[cursor[top - 1]++];
-+
-+			if (s->dfs == 0) {		/* tree edge */
-+				s->dfs = 1;
-+				stack[top] = s;
-+				cursor[top] = 0;
-+				top++;
-+			} else if (s->dfs == 1) {	/* gray -> back-edge */
-+				s->loop_header = true;
-+				nb++;
-+			}
-+			/* s->dfs == 2 -> forward/cross edge, nothing to do */
-+		} else {
-+			/* finished: postorder */
-+			bb->dfs = 2;
-+			bb->rpo = post++;
-+			top--;
-+		}
-+	}
-+
-+	/* postorder -> reverse-postorder rank */
-+	for (i = 0; i < n_bbs; i++)
-+		if (bbs[i].rpo >= 0)
-+			bbs[i].rpo = post - 1 - bbs[i].rpo;
-+
-+	kfree(stack);
-+	kfree(cursor);
-+	*n_back = nb;
-+	return 0;
-+}
-+
-+/*
-+ * Cooper-Harvey-Kennedy dominator intersect: walk the two fingers up the idom
-+ * chain (toward the entry, which has the lowest RPO) until they meet.
-+ */
-+static struct knod_bb *knod_dom_intersect(struct knod_bb *a, struct knod_bb *b)
-+{
-+	while (a != b) {
-+		while (a->rpo > b->rpo)
-+			a = a->idom;
-+		while (b->rpo > a->rpo)
-+			b = b->idom;
-+	}
-+	return a;
-+}
-+
-+/*
-+ * Compute the immediate dominator of every reachable block (Cooper, Harvey,
-+ * Kennedy, "A Simple, Fast Dominance Algorithm").  Iterates over RPO to a
-+ * fixpoint; bb->idom is the block's immediate dominator, the entry dominating
-+ * itself.  Requires bb->rpo from knod_bpf_compute_rpo.
-+ */
-+static int knod_bpf_compute_dom(struct knod_bb *bbs, int n_bbs,
-+				struct knod_bb *entry)
-+{
-+	struct knod_bb **order;
-+	int i, k, n_order = 0;
-+	bool changed;
-+
-+	order = kcalloc(n_bbs, sizeof(*order), GFP_KERNEL);
-+	if (!order)
-+		return -ENOMEM;
-+
-+	for (i = 0; i < n_bbs; i++) {
-+		bbs[i].idom = NULL;
-+		if (bbs[i].rpo >= 0) {
-+			order[bbs[i].rpo] = &bbs[i];
-+			n_order++;
-+		}
-+	}
-+	entry->idom = entry;
-+
-+	do {
-+		changed = false;
-+
-+		/* process every reachable block but the entry, in RPO order */
-+		for (k = 1; k < n_order; k++) {
-+			struct knod_bb *n = order[k];
-+			struct knod_bb *new_idom = NULL;
-+			int b, s;
-+
-+			/* intersect over already-processed predecessors */
-+			for (b = 0; b < n_bbs; b++) {
-+				for (s = 0; s < bbs[b].n_succ; s++) {
-+					if (bbs[b].succ[s] != n || !bbs[b].idom)
-+						continue;
-+					new_idom = new_idom ?
-+						knod_dom_intersect(&bbs[b],
-+								   new_idom) :
-+						&bbs[b];
-+				}
-+			}
-+
-+			if (new_idom && n->idom != new_idom) {
-+				n->idom = new_idom;
-+				changed = true;
-+			}
-+		}
-+	} while (changed);
-+
-+	kfree(order);
-+	return 0;
-+}
-+
-+/* Does block @a dominate block @b?  Walk @b up the idom chain to the entry. */
-+static bool knod_dom_dominates(struct knod_bb *a, struct knod_bb *b)
-+{
-+	for (;;) {
-+		if (b == a)
-+			return true;
-+		if (b->idom == b)	/* reached the entry */
-+			return false;
-+		b = b->idom;
-+	}
-+}
-+
-+/*
-+ * Mark the natural loop body of back-edge @latch->@hdr in bb->in_loop: the
-+ * header plus every block that reaches the latch without passing through the
-+ * header, found by walking predecessors back from the latch.  @stack is
-+ * caller-provided scratch of at least @n_bbs entries.
-+ */
-+static void knod_loop_mark_body(struct knod_bb *bbs, int n_bbs,
-+				struct knod_bb *latch, struct knod_bb *hdr,
-+				struct knod_bb **stack)
-+{
-+	int b, sp, k, top = 0;
-+
-+	for (k = 0; k < n_bbs; k++)
-+		bbs[k].in_loop = false;
-+
-+	hdr->in_loop = true;
-+	if (latch != hdr) {
-+		latch->in_loop = true;
-+		stack[top++] = latch;
-+	}
-+
-+	while (top > 0) {
-+		struct knod_bb *d = stack[--top];
-+
-+		for (b = 0; b < n_bbs; b++) {
-+			if (bbs[b].in_loop)
++			if (w->state != KNOD_WORK_SDMA_PENDING)
 +				continue;
-+			for (sp = 0; sp < bbs[b].n_succ; sp++) {
-+				if (bbs[b].succ[sp] != d)
-+					continue;
-+				bbs[b].in_loop = true;
-+				stack[top++] = &bbs[b];
-+				break;
-+			}
-+		}
-+	}
-+}
++			if (!knod_ipsec_fence_passed(w))
++				continue;
 +
-+/*
-+ * Detect natural loops from the dominator tree and report their structure.
-+ *
-+ * A back-edge is an edge u->v whose target v dominates its source u - v is
-+ * the loop header, u the latch.  Its natural loop body is the header plus the
-+ * blocks that reach the latch without passing through the header; an exit edge
-+ * leaves a body block for a non-body block.
-+ *
-+ * Loops are still rejected by the reorder (-EOPNOTSUPP); this only reports what
-+ * was found (to dmesg, since a rejected program never attaches so /bpf/cfg is
-+ * unavailable) so the detection can be verified before emission is built.
-+ */
-+static int knod_bpf_detect_loops(struct knod_bb *bbs, int n_bbs)
-+{
-+	struct knod_bb **stack;
-+	int u, s, k, n_be = 0;
-+
-+	stack = kcalloc(n_bbs, sizeof(*stack), GFP_KERNEL);
-+	if (!stack)
-+		return -ENOMEM;
-+
-+	for (u = 0; u < n_bbs; u++) {
-+		for (s = 0; s < bbs[u].n_succ; s++) {
-+			struct knod_bb *hdr = bbs[u].succ[s];
-+			int body = 0, exits = 0, sp;
-+
-+			if (!knod_dom_dominates(hdr, &bbs[u]))
-+				continue;	/* not a back-edge */
-+			n_be++;
-+
-+			knod_loop_mark_body(bbs, n_bbs, &bbs[u], hdr, stack);
-+
-+			for (k = 0; k < n_bbs; k++) {
-+				if (!bbs[k].in_loop)
-+					continue;
-+				body++;
-+				for (sp = 0; sp < bbs[k].n_succ; sp++)
-+					if (!bbs[k].succ[sp]->in_loop)
-+						exits++;
-+			}
-+
-+			pr_info("knod_loop: back-edge bpf#%d -> bpf#%d (latch->header) body=%d exits=%d\n",
-+				bbs[u].leader->bpf_insn_idx,
-+				hdr->leader->bpf_insn_idx, body, exits);
-+		}
-+	}
-+
-+	kfree(stack);
-+
-+	if (n_be)
-+		pr_info("knod_loop: %d back-edge(s) - %s\n", n_be,
-+			n_be == 1 ? "single loop (simple-shape candidate)" :
-+				    "nested/multiple loops (complex)");
-+	return 0;
-+}
-+
-+/*
-+ * Block that lanes fall into in list order when the terminator is not taken:
-+ * the not-taken successor of a conditional jump, or the sole successor of a
-+ * block that ended only because the next instruction was a leader.  BPF_JA and
-+ * EXIT have no such successor (control leaves explicitly).
-+ */
-+static struct knod_bb *knod_bb_fall_succ(struct knod_bb *bb)
-+{
-+	if (knod_meta_is_exit(bb->last) || knod_meta_is_ja(bb->last))
-+		return NULL;
-+	return bb->n_succ ? bb->succ[0] : NULL;
-+}
-+
-+/*
-+ * Reorder the instruction list into reverse-postorder so every control-flow
-+ * edge points forward, and splice in a synthetic BPF_JA wherever a block's
-+ * not-taken successor no longer follows it in list order.  After this the
-+ * emitter's forward-only machinery (FORWARD_SKIP / FORWARD_GOTO) handles the
-+ * whole program - including the backward-in-byte-order, non-loop jumps that
-+ * the old jmp_off < 0 heuristic miscompiled.
-+ *
-+ * Loops (back-edges) are rejected with -EOPNOTSUPP until loop emission lands.
-+ */
-+static int knod_bpf_reorder_rpo(struct knod_prog *knod_prog,
-+				struct knod_bb *bbs, int n_bbs, int n_back)
-+{
-+	struct knod_insn_meta *m, *nx, *sj;
-+	struct knod_bb **order;
-+	int n_order = 0, r, i, k, idx = 0;
-+	LIST_HEAD(new_list);
-+
-+	if (n_back) {
-+		pr_warn("knod_cfg: %d loop back-edge(s) - block reorder cannot lower loops yet (-EOPNOTSUPP)\n",
-+			n_back);
-+		return -EOPNOTSUPP;
-+	}
-+
-+	order = kcalloc(n_bbs, sizeof(*order), GFP_KERNEL);
-+	if (!order)
-+		return -ENOMEM;
-+
-+	/* Reachable blocks in RPO, then any unreachable ones so no instruction
-+	 * is dropped from the list.
-+	 */
-+	for (r = 0; r < n_bbs; r++)
-+		for (i = 0; i < n_bbs; i++)
-+			if (bbs[i].rpo == r) {
-+				order[n_order++] = &bbs[i];
-+				break;
-+			}
-+	for (i = 0; i < n_bbs; i++)
-+		if (bbs[i].rpo < 0)
-+			order[n_order++] = &bbs[i];
-+
-+	for (k = 0; k < n_order; k++) {
-+		struct knod_bb *bb = order[k];
-+		struct knod_bb *next = (k + 1 < n_order) ? order[k + 1] : NULL;
-+		struct knod_bb *fall;
-+
-+		m = bb->leader;
-+		while (true) {
-+			nx = (m == bb->last) ? NULL : knod_meta_next(m);
-+			list_move_tail(&m->l, &new_list);
-+			if (m == bb->last)
-+				break;
-+			m = nx;
++			knod_ipsec_finalise_sdma_done(disp, w);
++			w->state = KNOD_WORK_EMPTY;
++			did_work = true;
 +		}
 +
-+		fall = knod_bb_fall_succ(bb);
-+		if (!fall || (next && next->leader == fall->leader))
-+			continue;
-+
-+		/* Not-taken successor no longer adjacent: route it
-+		 * explicitly.
++		/* Phase 2: try to build + submit into at most one EMPTY slot
++		 * per iteration. Limiting to one per iteration keeps phase-1
++		 * polling responsive so completions don't queue up while we
++		 * greedily fill every empty slot.
 +		 */
-+		sj = kzalloc_obj(*sj, GFP_KERNEL);
-+		if (!sj) {
-+			list_splice(&new_list, &knod_prog->insns);
-+			kfree(order);
-+			return -ENOMEM;
-+		}
-+		sj->insn.code = BPF_JMP | BPF_JA | BPF_K;
-+		/* synthetic, never a jump target */
-+		sj->bpf_insn_idx = -1;
-+		/* consumed by classify_linear */
-+		sj->jmp_dst = fall->leader;
-+		INIT_LIST_HEAD(&sj->l);
-+		list_add_tail(&sj->l, &new_list);
-+	}
++		for (i = 0; i < disp->work_count; i++) {
++			int idx = (disp->build_cursor + i) % disp->work_count;
++			struct knod_ipsec_work *w =
++				&priv->work_pool[disp->work_first + idx];
 +
-+	list_splice(&new_list, &knod_prog->insns);
++			if (w->state != KNOD_WORK_EMPTY)
++				continue;
 +
-+	list_for_each_entry(m, &knod_prog->insns, l)
-+		m->linear_idx = idx++;
-+
-+	kfree(order);
-+	return 0;
-+}
-+
-+/*
-+ * Classify branches by linear position after the RPO reorder.  Every edge is
-+ * now forward, so a conditional jump is FORWARD_SKIP (or DIRECT_EXIT when it
-+ * targets the exit), and every BPF_JA - real or synthetic - is FORWARD_GOTO
-+ * (or DIRECT_EXIT).
-+ */
-+static int knod_bpf_classify_linear(struct knod_prog *knod_prog)
-+{
-+	struct knod_insn_meta *meta, *target;
-+	short ti;
-+
-+	list_for_each_entry(meta, &knod_prog->insns, l) {
-+		if (is_mbpf_cond_jump(meta)) {
-+			meta->jump_neg_op = (mbpf_op(meta) == BPF_JNE);
-+			ti = knod_meta_jump_target_idx(meta);
-+			target = knod_bpf_lookup_meta(knod_prog, ti);
-+		} else if (knod_meta_is_ja(meta)) {
-+			/* synthetic JA carries its destination in jmp_dst;
-+			 * a real BPF_JA is resolved from its offset.
-+			 */
-+			if (meta->jmp_dst) {
-+				target = meta->jmp_dst;
-+			} else {
-+				ti = knod_meta_jump_target_idx(meta);
-+				target = knod_bpf_lookup_meta(knod_prog, ti);
++			if (knod_ipsec_dispatcher_try_rx(disp, w)) {
++				w->state = KNOD_WORK_INFLIGHT;
++				did_work = true;
++				disp->build_cursor =
++					(idx + 1) % disp->work_count;
++				break;
 +			}
-+		} else {
-+			continue;
 +		}
 +
-+		if (!target) {
-+			pr_err("knod_cfg: bpf#%d unresolved branch target\n",
-+			       meta->bpf_insn_idx);
-+			return -EINVAL;
++		if (priv->knodev) {
++			int q;
++
++			for (q = disp->rxq_first;
++			     q < disp->rxq_first + disp->rxq_count;
++			     q++) {
++				struct knod_work_priv *wp =
++					&priv->knodev->wpriv[q];
++
++				if (!spsc_empty(&wp->pass_pending))
++					knod_napi_kick(wp);
++			}
 +		}
 +
-+		if (target->linear_idx <= meta->linear_idx)
-+			pr_warn("knod_cfg: bpf#%d -> #%d still backward after reorder (linear %d -> %d)\n",
-+				meta->bpf_insn_idx, target->bpf_insn_idx,
-+				meta->linear_idx, target->linear_idx);
++		if (!did_work) {
++			u64 idle_t0 = 0;
++			bool stats_on =
++			    static_branch_unlikely(&ipsec_stats_enabled_key);
 +
-+		if (knod_bpf_is_direct_exit_target(knod_prog, target)) {
-+			meta->branch_type = KNOD_BR_DIRECT_EXIT;
-+			meta->merge_point = target;
-+			continue;
++			if (stats_on)
++				idle_t0 = ktime_get_ns();
++
++			if (READ_ONCE(knod_ipsec_poll_mode)) {
++				/* Busy-poll: spin a small number of times with
++				 * cpu_relax() so newly-produced SPSC entries or
++				 * completions are picked up in <1us.
++				 */
++				int spins = 64;
++
++				while (spins-- > 0)
++					cpu_relax();
++			} else {
++				usleep_range(20, 100);
++			}
++
++			if (stats_on)
++				this_cpu_ptr(priv->stats)->rx_idle_ns +=
++					ktime_get_ns() - idle_t0;
++		}
++	}
++
++	knod_ipsec_dispatcher_drain(disp);
++	return 0;
++}
++
++static void knod_ipsec_dispatcher_drain(struct knod_ipsec_dispatcher *disp)
++{
++	struct knod_ipsec_priv *priv = disp->priv;
++	int i;
++
++	for (i = 0; i < disp->work_count; i++) {
++		struct knod_ipsec_work *w =
++			&priv->work_pool[disp->work_first + i];
++
++		if (w->state == KNOD_WORK_INFLIGHT) {
++			knod_ipsec_dispatch_wait(disp, w);
++			if (!knod_ipsec_finalise_inflight(disp, w)) {
++				/*
++				 * SDMA started - spin-wait, we can't
++				 * defer.
++				 */
++				knod_ipsec_fence_wait(w);
++				knod_ipsec_finalise_sdma_done(disp, w);
++			}
++			w->state = KNOD_WORK_EMPTY;
++		} else if (w->state == KNOD_WORK_SDMA_PENDING) {
++			knod_ipsec_fence_wait(w);
++			knod_ipsec_finalise_sdma_done(disp, w);
++			w->state = KNOD_WORK_EMPTY;
++		}
++	}
++}
++
++/*
++ * Work slot pool allocator.
++ *
++ * `work_pool[0..KNOD_IPSEC_NR_WORK-1]` are pipelined work slots owned by
++ * the dispatcher kthread. Each slot gets its own slice of the param /
++ * decrypt pool BOs - single large BOs avoid the multi-BO GPU-VA
++ * mapping bug. KAT / selftest code paths always run against slot 0.
++ *
++ */
++static int knod_ipsec_work_pool_alloc(struct knod_ipsec_priv *priv)
++{
++	/* Round the kernarg pool up to a power-of-two page count so we never
++	 * hit the 7-page (or other non-pow2) VRAM alloc bug the KNOD
++	 * allocator triggers on certain sizes. At PKT_BATCH=512 fused_param
++	 * is ~16 KB = 4 pages (already pow2). At BATCH=1024 it is ~32 KB = 8
++	 * pages. Harmless extra slack otherwise.
++	 */
++	const size_t param_raw_bytes =
++		ALIGN(sizeof(struct knod_ipsec_fused_param), PAGE_SIZE);
++	const unsigned long param_raw_pages = param_raw_bytes >> PAGE_SHIFT;
++	const unsigned long param_pages =
++		param_raw_pages <= 1 ? 1 : roundup_pow_of_two(param_raw_pages);
++	const size_t param_stride = param_pages << PAGE_SHIFT;
++	struct amd_signal *signal;
++	int nr_disp = priv->nr_dispatchers;
++	int d, i;
++
++	if (nr_disp < 1)
++		nr_disp = 1;
++	if (nr_disp > KNOD_IPSEC_MAX_DISPATCHERS)
++		nr_disp = KNOD_IPSEC_MAX_DISPATCHERS;
++	priv->nr_dispatchers = nr_disp;
++
++	memset(priv->work_pool, 0, sizeof(priv->work_pool));
++
++	for (d = 0; d < nr_disp; d++) {
++		struct knod_ipsec_dispatcher *disp = &priv->disp[d];
++
++		disp->priv = priv;
++		disp->kthread = NULL;
++		disp->kaql_idx = d;
++		disp->work_first = d * KNOD_IPSEC_NR_WORK;
++		disp->work_count = KNOD_IPSEC_NR_WORK;
++		disp->rx_rr = 0;
++		disp->build_cursor = 0;
++
++		/* GTT (not VRAM) for param_pool so the dispatcher CPU
++		 * can read sub[].pkt_addr / sub[].out_addr back in
++		 * finish_rx_deliver via WB cache rather than WC PCIe.
++		 */
++		disp->param_pool = knod_alloc_mem(priv->knod,
++			ALIGN(param_stride * KNOD_IPSEC_NR_WORK, PAGE_SIZE),
++			KFD_IOC_ALLOC_MEM_FLAGS_GTT |
++			KFD_IOC_ALLOC_MEM_FLAGS_WRITABLE |
++			KFD_IOC_ALLOC_MEM_FLAGS_COHERENT);
++		if (IS_ERR(disp->param_pool)) {
++			int err = PTR_ERR(disp->param_pool);
++
++			disp->param_pool = NULL;
++			return err;
 +		}
 +
-+		meta->branch_type = is_mbpf_cond_jump(meta) ?
-+			KNOD_BR_FORWARD_SKIP : KNOD_BR_FORWARD_GOTO;
-+		meta->merge_point = target;
-+		target->is_merge_point = true;
++		/* +KNOD_IPSEC_GTT_OUT_L3_OFF: 20 B headroom so the
++		 * shader's "L3 header -> out_addr - L3_OFF" write has a
++		 * valid GPU VM target when a SLOT_NONE fallback directs
++		 * output here. Each work slot's rx_out_gaddr includes
++		 * this offset.
++		 */
++		disp->decrypt_pool = knod_alloc_mem(priv->knod,
++			KNOD_IPSEC_DECRYPT_WORK_SIZE * KNOD_IPSEC_NR_WORK +
++				KNOD_IPSEC_GTT_OUT_L3_OFF,
++			KFD_IOC_ALLOC_MEM_FLAGS_VRAM |
++			KFD_IOC_ALLOC_MEM_FLAGS_WRITABLE |
++			KFD_IOC_ALLOC_MEM_FLAGS_COHERENT);
++		if (IS_ERR(disp->decrypt_pool)) {
++			int err = PTR_ERR(disp->decrypt_pool);
++
++			disp->decrypt_pool = NULL;
++			return err;
++		}
++
++		for (i = 0; i < KNOD_IPSEC_NR_WORK; i++) {
++			struct knod_ipsec_work *work =
++				&priv->work_pool[disp->work_first + i];
++
++			memset(work, 0, sizeof(*work));
++			work->state = KNOD_WORK_EMPTY;
++			work->param.kaddr = (u8 *)disp->param_pool->kaddr +
++					    (size_t)i * param_stride;
++			work->param.gaddr = disp->param_pool->gaddr +
++					    (u64)i * param_stride;
++			work->rx_out_gaddr = disp->decrypt_pool->gaddr +
++				KNOD_IPSEC_GTT_OUT_L3_OFF +
++				(u64)i * KNOD_IPSEC_DECRYPT_WORK_SIZE;
++		}
++
++		/* Initialise this dispatcher's forward-looking sigval
++		 * counter from its kaql[d] completion signal. Every
++		 * submit decrements this so each in-flight slot has a
++		 * distinct target.
++		 */
++		signal = (struct amd_signal *)
++			priv->knod->kaql[d].queue_signal->kaddr;
++		disp->dispatch_sigval_next = READ_ONCE(signal->value);
++
++		pr_info("knod_ipsec: disp[%d] param=0x%llx decrypt=0x%llx kaql=%d\n",
++			d, (u64)disp->param_pool->gaddr,
++			(u64)disp->decrypt_pool->gaddr,
++			disp->kaql_idx);
 +	}
 +
 +	return 0;
 +}
 +
-+/*
-+ * Build the basic-block CFG, compute RPO, reorder the instruction list into
-+ * RPO and insert synthetic jumps.  Returns 0, or a negative errno (a loop
-+ * yields -EOPNOTSUPP).
-+ */
-+static int knod_bpf_build_cfg(struct knod_prog *knod_prog)
++static void knod_ipsec_work_pool_free(struct knod_ipsec_priv *priv)
 +{
-+	struct knod_insn_meta *meta;
-+	int n_insns = 0, n_bbs, n_back = 0, ret;
-+	struct knod_bb *bbs;
++	int d;
 +
-+	list_for_each_entry(meta, &knod_prog->insns, l)
-+		n_insns++;
-+	if (!n_insns)
-+		return 0;
++	for (d = 0; d < KNOD_IPSEC_MAX_DISPATCHERS; d++) {
++		struct knod_ipsec_dispatcher *disp = &priv->disp[d];
 +
-+	bbs = kcalloc(n_insns, sizeof(*bbs), GFP_KERNEL);
-+	if (!bbs)
-+		return -ENOMEM;
-+
-+	n_bbs = knod_bpf_build_bbs(knod_prog, bbs);
-+	if (n_bbs < 0) {
-+		ret = n_bbs;
-+		goto out_free;
++		if (disp->decrypt_pool) {
++			knod_free_mem(priv->knod, disp->decrypt_pool);
++			disp->decrypt_pool = NULL;
++		}
++		if (disp->param_pool) {
++			knod_free_mem(priv->knod, disp->param_pool);
++			disp->param_pool = NULL;
++		}
 +	}
++	memset(priv->work_pool, 0, sizeof(priv->work_pool));
++}
 +
-+	ret = knod_bpf_build_edges(knod_prog, bbs, n_bbs);
-+	if (ret)
-+		goto out_free;
 +
-+	ret = knod_bpf_compute_rpo(bbs, n_bbs, &bbs[0], &n_back);
-+	if (ret)
-+		goto out_free;
++/* ========================================================================
++ * Phase 5: in-kernel KAT (randomized + dispatch smoke)
++ * ========================================================================
++ *
++ * Two-layer validation:
++ *
++ *   1) CPU layer - randomized H-table check
++ *      For each supported AES key length (128/192/256), run N iterations:
++ *      generate a fresh random key, compute the reference H = AES_K(0^128)
++ *      via the kernel's verified <crypto/aes.h> library, then recompute the
++ *      same H via our gcm_core helper (which will be used on the GPU path)
++ *      and require a bytewise match. This exercises aes_prepareenckey /
++ *      aes_encrypt for every round count and the downstream gf128 squaring
++ *      chain that builds the H-power table. No hand-computed constants.
++ *
++ *   2) GPU layer - multi-packet shader dispatch smoke test
++ *      Run the fused RX shader at several batch sizes (1, 8, 32, 64) with
++ *      each sub[i].bd_addr pointing at a distinct fake spsc_bd slot inside
++ *      a single scratch BO. Pre-stamp each bd->act with a UNIQUE sentinel
++ *      (sentinel base XORed with packet index) and verify the shader
++ *      rewrites ALL slots to XDP_PASS. This covers workgroup_id_y indexing
++ *      in the shader + variable grid dimensions in the AQL packet. When
++ *      the real RX crypto shader lands, the per-slot verification can be
++ *      upgraded to "decrypted inner packet matches expected plaintext".
++ *
++ * Randomness seeds vary per run so repeated `echo 1 > selftest` covers a
++ * widening input space over time. The shader layer is O(ms); the CPU
++ * layer runs in microseconds per iteration.
++ */
 +
-+	ret = knod_bpf_compute_dom(bbs, n_bbs, &bbs[0]);
-+	if (ret)
-+		goto out_free;
++#define KNOD_IPSEC_KAT_RAND_ROUNDS	16
 +
-+	if (n_back) {
-+		ret = knod_bpf_detect_loops(bbs, n_bbs);
-+		if (ret)
-+			goto out_free;
++static int knod_ipsec_last_kat_result = -1;
++static char knod_ipsec_last_kat_detail[256];
++
++static int knod_ipsec_kat_h_one(const u8 *key, int key_len)
++{
++	u8 h_table[KNOD_GCM_H_TABLE_SIZE];
++	struct aes_enckey enckey;
++	u8 zero[AES_BLOCK_SIZE] = {};
++	u8 h_ref[AES_BLOCK_SIZE];
++	int rc;
++
++	rc = aes_prepareenckey(&enckey, key, key_len);
++	if (rc)
++		return rc;
++	aes_encrypt(&enckey, h_ref, zero);
++	memzero_explicit(&enckey, sizeof(enckey));
++
++	memset(h_table, 0, sizeof(h_table));
++	knod_gcm_precompute_h_table(key, key_len, h_table);
++
++	return memcmp(h_table, h_ref, AES_BLOCK_SIZE) == 0 ? 0 : -EBADMSG;
++}
++
++static int knod_ipsec_run_cpu_kat(void)
++{
++	static const int key_lens[] = { 16, 24, 32 };
++	u8 key[32];
++	int i, r, failed = 0;
++
++	for (i = 0; i < ARRAY_SIZE(key_lens); i++) {
++		int kl = key_lens[i];
++		int round_fail = 0;
++
++		for (r = 0; r < KNOD_IPSEC_KAT_RAND_ROUNDS; r++) {
++			get_random_bytes(key, kl);
++			if (knod_ipsec_kat_h_one(key, kl)) {
++				pr_err("knod_ipsec: H-KAT aes%d round=%d FAIL\n",
++				       kl * 8, r);
++				round_fail++;
++			}
++		}
++		if (round_fail) {
++			failed += round_fail;
++		} else {
++			pr_info("knod_ipsec: H-KAT aes%d ok (%d random rounds)\n",
++				kl * 8, KNOD_IPSEC_KAT_RAND_ROUNDS);
++		}
 +	}
++	memzero_explicit(key, sizeof(key));
++	return failed;
++}
 +
-+	/* Hand the block array to the prog for the /bpf/cfg view (freed at
-+	 * teardown); kept even if the reorder below rejects a loop, so the
-+	 * rejection can be inspected.
++/*
++ * Shader-dispatch smoke test (post 32d.2 architecture pivot).
++ *
++ * Uses the persistent priv->kat_scratch BO as a private sandbox for both
++ * per-packet spsc_bd slots and synthetic ESP packet buffers:
++ *
++ *   scratch[0 .. nr*64)                 -- spsc_bd slots (act at +i*64+8)
++ *   scratch[pkt_region_base + i*64 ..)  -- ETH+IPv4+ESP synthetic packet
++ *
++ * Each synthetic packet gets a unique SPI = SPI_KAT_BASE | i written in
++ * network byte order at ESP header offset (14 ETH + 20 IPv4 = 34). The
++ * corresponding slot in priv->sa_table is pre-populated with the same
++ * SPI (in host byte order) at index i. The fused RX shader reads
++ * sub[wg_id_y].pkt_addr, loads the BE SPI from pkt+34, byteswaps it,
++ * linear-scans priv->sa_table for a match, and writes the matching
++ * slot_idx (as u64) into bd->act.
++ *
++ * Verification scope (single pass):
++ *   - even i (IPv4): bd->act high32 == 0xFFFFFFFD (ICV fail - garbage
++ *     keys mean decryption produces wrong tag, but the full crypto
++ *     pipeline runs to completion proving SPI scan + dispatch work)
++ *   - odd  i (IPv6): bd->act high32 == 0xFFFFFFFD (ICV fail - same as
++ *     IPv4 but exercises the IPv6 ESP offset path; SPI at +54)
++ *
++ * The 32d.1/32d.2 in-shader replay bitmap path has been removed (the
++ * sliding window now lives CPU-side in the NIC dd NAPI), so the
++ * second dispatch pass and the replay_bitmap_addr/readback block have
++ * been dropped. End-to-end worker->desc_ring->NIC-dd delivery is covered
++ * by the userspace selftest `knod_ipsec_offload.sh`, not by this KAT.
++ */
++static int knod_ipsec_run_shader_kat_n(struct knod_ipsec_priv *priv, int nr)
++{
++	static const u64 SENTINEL_BASE = 0xDEADBEEFCAFEBABEULL;
++	static const u32 SPI_KAT_BASE  = 0xDECAF000u;
++	const size_t SLOT_STRIDE = 64;
++	/* must fit IPv6 ESP minimum (86B overhead) */
++	const size_t PKT_STRIDE  = 128;
++	/* Heap-backed sub[] - at BATCH=512 the stack copy would be 16 KB
++	 * and overflow the dispatcher kernel stack. KAT is cold path, so
++	 * kvmalloc is fine.
 +	 */
-+	kfree(knod_prog->bbs);
-+	knod_prog->bbs = bbs;
-+	knod_prog->n_bbs = n_bbs;
-+	knod_prog->n_back = n_back;
++	struct knod_ipsec_sa_entry *e_dbg;
++	struct knod_ipsec_sa_entry *e;
++	struct knod_ipsec_work *dbg_work;
++	struct knod_ipsec_fused_sub *sub;
++	struct amd_signal *sig;
++	struct knod_mem *scratch;
++	void *sa_backup = NULL;
++	size_t bd_region;
++	size_t pkt_region_base;
++	int written_final = 0;
++	s64 sig_before;
++	u64 dbg16 = 0;
++	int ret = 0;
++	int tries, i;
 +
-+	return knod_bpf_reorder_rpo(knod_prog, bbs, n_bbs, n_back);
++	if (nr < 1 || nr > KNOD_IPSEC_KAT_MAX_BATCH)
++		return -EINVAL;
++
++	sub = kvcalloc(KNOD_IPSEC_KAT_MAX_BATCH, sizeof(*sub), GFP_KERNEL);
++	if (!sub) {
++		scnprintf(knod_ipsec_last_kat_detail,
++			  sizeof(knod_ipsec_last_kat_detail),
++			  "shader-dispatch[%d] FAIL: sub alloc", nr);
++		return -ENOMEM;
++	}
++
++	bd_region       = SLOT_STRIDE * nr;
++	pkt_region_base = ALIGN(bd_region, 64);
++	if (pkt_region_base + nr * PKT_STRIDE > PAGE_SIZE * 4) {
++		ret = -EINVAL; /* defensive; kat_scratch is 4 pages */
++		goto out_free;
++	}
++
++	/* Reuse the persistent per-priv scratch BO - see priv->kat_scratch */
++	scratch = priv->kat_scratch;
++	if (!scratch) {
++		scnprintf(knod_ipsec_last_kat_detail,
++			  sizeof(knod_ipsec_last_kat_detail),
++			  "shader-dispatch[%d] FAIL: kat_scratch not allocated",
++			  nr);
++		ret = -ENOMEM;
++		goto out_free;
++	}
++	memset(scratch->kaddr, 0, PAGE_SIZE * 4);
++
++	/* Back up the production SA table before trashing it with KAT
++	 * fixtures. Without this, any production SA installed by the user
++	 * (e.g. via `ip xfrm state add`) gets wiped when the KAT wipes the
++	 * SA BO at exit, which causes a subsequent production dispatch
++	 * to load key_gpu_addr=0 -> VM fault at address 0.
++	 */
++	sa_backup = kvmalloc(KNOD_IPSEC_SA_BO_SIZE, GFP_KERNEL);
++	if (!sa_backup) {
++		scnprintf(knod_ipsec_last_kat_detail,
++			  sizeof(knod_ipsec_last_kat_detail),
++			  "shader-dispatch[%d] FAIL: sa_backup alloc", nr);
++		ret = -ENOMEM;
++		goto out_free;
++	}
++	memcpy(sa_backup, priv->sa_table->kaddr, KNOD_IPSEC_SA_BO_SIZE);
++
++	/* Pre-populate priv->sa_table[0..nr) with one entry per synthetic
++	 * packet. Entry i carries spi = SPI_KAT_BASE | i in host byte order
++	 * (the table is CPU-side LE and the shader reads it as a host u32).
++	 * Higher-index slots are zeroed first so a previous KAT iteration
++	 * at larger nr cannot leak into a smaller one.
++	 */
++	BUILD_BUG_ON(sizeof(struct knod_ipsec_sa_entry) != 104);
++	BUILD_BUG_ON(KNOD_IPSEC_NR_SA < KNOD_IPSEC_KAT_MAX_BATCH);
++	e = (struct knod_ipsec_sa_entry *)priv->sa_table->kaddr;
++
++	/* Wipe entries + replay bitmap region (one BO). Size is
++	 * ALIGNed to 8 pages in the alloc path to dodge the KNOD VRAM
++	 * 7-page alloc bug; the logical payload is still SA_BO_SIZE.
++	 */
++	memset(e, 0, KNOD_IPSEC_SA_BO_SIZE);
++	for (i = 0; i < nr; i++) {
++		e[i].spi    = cpu_to_le32(SPI_KAT_BASE | (u32)i);
++		e[i].active = cpu_to_le32(1);
++		/* Full crypto shader loads key/htable/t_tables from
++		 * the SA entry after scan hit. Point them at valid
++		 * GPU addresses to avoid NULL page faults. The data
++		 * is garbage so decryption will produce ICV mismatch,
++		 * but the dispatch will complete without a VM fault.
++		 */
++		e[i].key_gpu_addr = cpu_to_le64(scratch->gaddr);
++		e[i].htable_gpu_addr = cpu_to_le64(scratch->gaddr);
++		e[i].t_tables_gpu_addr = cpu_to_le64(
++			priv->t_tables ? priv->t_tables->gaddr :
++			scratch->gaddr);
++		e[i].key_len    = cpu_to_le32(16);
++		e[i].nr_rounds  = cpu_to_le32(10);
++	}
++	/* publish the key-table writes to WC VRAM before dispatch */
++	wmb();
++
++	/* sub was zero-filled by kvcalloc at entry. */
++	for (i = 0; i < nr; i++) {
++		u64 *act_i = (u64 *)((u8 *)scratch->kaddr +
++				     i * SLOT_STRIDE + 8);
++		u8  *pkt_i = (u8 *)scratch->kaddr +
++			     pkt_region_base + i * PKT_STRIDE;
++		__be32 spi_be = cpu_to_be32(SPI_KAT_BASE | (u32)i);
++		bool is_ipv4 = !(i & 1);
++
++		/* Pre-stamp bd->act with a sentinel so an untouched slot is
++		 * distinguishable from one that was overwritten with the SPI.
++		 */
++		*act_i = SENTINEL_BASE ^ (u64)i;
++
++		/* Alternate IPv4 / IPv6 packets per slot to exercise both
++		 * code paths in the same batch. Even i: standard IPv4 header
++		 * (version=4, IHL=5 -> byte 0x45), SPI at offset 34.
++		 * Odd i: IPv6 header (version=6 -> byte 0x60), SPI at
++		 * offset 54. Both hit the SA scan, both get ICV fail
++		 * (since ciphertext is garbage).
++		 */
++		pkt_i[14] = is_ipv4 ? 0x45 : 0x60;
++		if (is_ipv4)
++			memcpy(pkt_i + 34, &spi_be, sizeof(spi_be));
++		else
++			memcpy(pkt_i + 54, &spi_be, sizeof(spi_be));
++
++		sub[i].pkt_addr = cpu_to_le64(scratch->gaddr +
++					      pkt_region_base + i * PKT_STRIDE);
++		sub[i].out_addr = sub[i].pkt_addr;
++		sub[i].bd_addr  = cpu_to_le64(scratch->gaddr +
++					      i * SLOT_STRIDE);
++		sub[i].pkt_len  = cpu_to_le32(PKT_STRIDE);
++	}
++	/* publish the sub-descriptor writes to WC VRAM before dispatch */
++	wmb();
++
++	/* Single dispatch: post-32d.2 architecture has no in-shader replay,
++	 * so the KAT only validates the fresh scan-hit path (+ the IPv6
++	 * IPv6 ESP offset path). End-to-end worker->desc_ring->NAPI delivery
++	 * is covered by the userspace selftest, not here.
++	 */
++	/* Force the dispatch onto queue 0 so the signal we observe below is
++	 * actually the one CP updates. The public rx_submit() picks a queue
++	 * by smp_processor_id(), which would let the KAT measure a queue it
++	 * never submitted to and see a stale sig=-1 forever.
++	 */
++	sig = (struct amd_signal *)
++		priv->knod->kaql[0].queue_signal->kaddr;
++	sig_before = READ_ONCE(sig->value);
++	dbg_work = &priv->work_pool[0];
++
++	e_dbg = (struct knod_ipsec_sa_entry *)priv->sa_table->kaddr;
++
++	pr_info("knod_ipsec: KAT[%d] scratch.gaddr=0x%llx work.param.gaddr=0x%llx kernel.gaddr=0x%llx sa_table.gaddr=0x%llx cpu-readback: entry[0].spi=0x%08x entry[1].spi=0x%08x\n",
++		nr,
++		(u64)scratch->gaddr,
++		(u64)dbg_work->param.gaddr,
++		(u64)priv->knod->kernels[0]->gaddr,
++		(u64)priv->sa_table->gaddr,
++		le32_to_cpu(e_dbg[0].spi),
++		le32_to_cpu(e_dbg[1].spi));
++
++	if (priv->disp[0].kthread)
++		kthread_park(priv->disp[0].kthread);
++	knod_ipsec_prepare_rx_dispatch(priv, dbg_work, sub, NULL,
++				       nr, NULL, 0);
++	knod_ipsec_dispatch_and_wait(&priv->disp[0], dbg_work);
++	if (priv->disp[0].kthread)
++		kthread_unpark(priv->disp[0].kthread);
++	ret = 0;
++	pr_info("knod_ipsec: shader-dispatch[%d] submitted, signal %lld -> (done)\n",
++		nr, sig_before);
++
++	/* bd->act is packed as
++	 *    low  = s22 = scan target SPI
++	 *    high = s26 = final result
++	 *      even i (IPv4): ICV fail -> 0xFFFFFFFD
++	 *      odd  i (IPv6): ICV fail -> 0xFFFFFFFD
++	 *      scan miss    : 0xFFFFFFFF
++	 *
++	 * Both IPv4 and IPv6 paths run the full crypto pipeline. The SPI
++	 * is placed at the correct offset (34 for v4, 54 for v6) so the
++	 * SA scan finds a match, then decrypt + ICV check fails on garbage.
++	 */
++	written_final = 0;
++#define KAT_EXPECT_LOW_MASK  (0ULL)
++/* Both IPv4 and IPv6 slots: full crypto pipeline -> ICV mismatch
++ * -> verdict = VERDICT_ICV_FAIL (0xFFFFFFFD).
++ */
++#define KAT_EXPECT_FOR_SLOT						\
++	(((u64)KNOD_IPSEC_SHADER_VERDICT_ICV_FAIL << 32) | 0ULL)
++
++	for (tries = 0; tries < 500; tries++) {
++		int w = 0;
++
++		for (i = 0; i < nr; i++) {
++			u64 expect = KAT_EXPECT_FOR_SLOT;
++			u64 mask = 0xFFFFFFFF00000000ULL |
++				   KAT_EXPECT_LOW_MASK;
++			u64 v = READ_ONCE(*(u64 *)(
++				(u8 *)scratch->kaddr +
++				i * SLOT_STRIDE + 8));
++			if ((v & mask) == (expect & mask))
++				w++;
++		}
++		if (w == nr) {
++			written_final = w;
++			break;
++		}
++		written_final = w;
++		usleep_range(500, 1000);
++	}
++
++	if (written_final != nr) {
++		int first_ok = -1, first_bad = -1, last_ok = -1;
++		u64 first_bad_val = 0;
++		u64 first_bad_expect = 0;
++		struct amd_signal *sig = (struct amd_signal *)
++			priv->knod->kaql[0].queue_signal->kaddr;
++		s64 sig_after = READ_ONCE(sig->value);
++
++		for (i = 0; i < nr; i++) {
++			u64 expect = KAT_EXPECT_FOR_SLOT;
++			u64 mask = 0xFFFFFFFF00000000ULL |
++				   KAT_EXPECT_LOW_MASK;
++			u64 v = READ_ONCE(*(u64 *)(
++				(u8 *)scratch->kaddr +
++				i * SLOT_STRIDE + 8));
++			if ((v & mask) == (expect & mask)) {
++				if (first_ok < 0)
++					first_ok = i;
++				last_ok = i;
++			} else if (first_bad < 0) {
++				first_bad = i;
++				first_bad_val = v;
++				first_bad_expect = expect;
++			}
++		}
++		dbg16 = 0;
++		if (first_bad >= 0) {
++			dbg16 = READ_ONCE(*(u64 *)(
++				(u8 *)scratch->kaddr +
++				first_bad * SLOT_STRIDE + 16));
++		}
++		scnprintf(knod_ipsec_last_kat_detail,
++			  sizeof(knod_ipsec_last_kat_detail),
++			  "shader-dispatch[%d] FAIL written=%d/%d first_bad=%d got=0x%llx (low=0x%08x high=0x%08x) expect=0x%llx sig_after=%lld first_ok=%d last_ok=%d dbg[s27,s23]=0x%08x 0x%08x",
++			  nr, written_final, nr,
++			  first_bad, first_bad_val,
++			  (u32)first_bad_val,
++			  (u32)(first_bad_val >> 32),
++			  first_bad_expect, sig_after,
++			  first_ok, last_ok,
++			  (u32)dbg16,
++			  (u32)(dbg16 >> 32));
++		pr_err("knod_ipsec: %s\n", knod_ipsec_last_kat_detail);
++		ret = -EIO;
++		goto out_free;
++	}
++#undef KAT_EXPECT_FOR_SLOT
++#undef KAT_EXPECT_LOW_MASK
++
++	pr_info("knod_ipsec: shader-dispatch[%d] ok (%d slots, %d us poll)\n",
++		nr, nr, tries * 750);
 +
 +out_free:
-+	kfree(bbs);
++	/* Restore the production SA table we saved at entry. Never wipe -
++	 * wiping would destroy any live xfrm SAs installed by userspace.
++	 */
++	if (sa_backup) {
++		memcpy(priv->sa_table->kaddr, sa_backup, KNOD_IPSEC_SA_BO_SIZE);
++		/* publish the restored SA table to the GPU */
++		wmb();
++		kvfree(sa_backup);
++	}
++	kvfree(sub);
 +	return ret;
 +}
 +
-+/*
-+ * Assign exec_save SGPR pairs to the forward branches, recycling a pair once
-+ * its merge point has been passed.  The peak concurrent live count is the
-+ * actual SGPR requirement - usually far less than the total branch count.
++/* ========================================================================
++ * Crypto KAT: end-to-end AES-GCM decrypt verification via GPU shader
++ *
++ * Builds a synthetic ESP packet with known AES-128-GCM ciphertext+ICV,
++ * dispatches the fused RX shader, and verifies the decrypted output
++ * matches the expected plaintext. This exercises the full decrypt
++ * pipeline: T-table load, CTR decrypt, parallel GHASH, ICV verify,
++ * ESP trailer strip.
++ *
++ * Layout in kat_scratch (2 pages = 8192B):
++ *   [0x0000..0x003F]  bd slot (64B, act at +8)
++ *   [0x0040..0x00FF]  out buffer for decrypted output (192B)
++ *   [0x0100..0x01FF]  expanded AES round keys (256B)
++ *   [0x0200..0x02FF]  synthetic ESP packet (256B)
++ *   [0x1000..0x1FFF]  GHASH H-power table (4096B)
++ * ========================================================================
 + */
-+static int knod_bpf_alloc_exec_sregs(struct knod_bpf_priv *priv,
-+				     struct knod_prog *knod_prog)
++
++/* GF(2^128) multiply for reference GHASH - identical to gcm_core but
++ * local to avoid exporting an internal helper for test-only use.
++ */
++static void kat_gf128_mul(u64 r[2], const u64 a[2], const u64 b[2])
 +{
-+	struct {
-+		u8 sreg;
-+		struct knod_insn_meta *merge;
-+	} live[72];
-+	int exec_save_max, max_pairs, n_live, peak, j;
-+	struct knod_insn_meta *meta;
-+	u8 free_stack[72];
-+	int free_top;
++	u64 v[2], z[2];
++	int i, j;
 +
-+	exec_save_max = (priv->isa_version == 10) ?
-+		KNOD_AMDGPU_EXEC_SAVE_SREG_MAX_GFX10 :
-+		KNOD_AMDGPU_EXEC_SAVE_SREG_MAX_GFX9;
-+	max_pairs = (exec_save_max - knod_prog->exec_save_base + 1) / 2;
++	v[0] = a[0]; v[1] = a[1];
++	z[0] = 0;    z[1] = 0;
 +
-+	for (free_top = 0; free_top < max_pairs; free_top++)
-+		free_stack[free_top] = knod_prog->exec_save_base +
-+			(max_pairs - 1 - free_top) * 2;
++	for (i = 0; i < 2; i++) {
++		u64 x = b[i];
 +
-+	n_live = 0;
-+	peak = 0;
-+
-+	list_for_each_entry(meta, &knod_prog->insns, l) {
-+		/* Reclaim pairs from scopes that merge at this insn */
-+		for (j = n_live - 1; j >= 0; j--) {
-+			if (live[j].merge == meta) {
-+				free_stack[free_top++] = live[j].sreg;
-+				live[j] = live[--n_live];
++		for (j = 63; j >= 0; j--) {
++			if ((x >> j) & 1) {
++				z[0] ^= v[0];
++				z[1] ^= v[1];
++			}
++			if (v[1] & 1) {
++				v[1] = (v[1] >> 1) | (v[0] << 63);
++				v[0] = (v[0] >> 1) ^ ((u64)0xe1 << 56);
++			} else {
++				v[1] = (v[1] >> 1) | (v[0] << 63);
++				v[0] = v[0] >> 1;
 +			}
 +		}
-+
-+		if (meta->branch_type != KNOD_BR_FORWARD_SKIP &&
-+		    meta->branch_type != KNOD_BR_FORWARD_GOTO)
-+			continue;
-+
-+		if (free_top == 0) {
-+			pr_err("knod_cfg: exec_save exhausted, peak %d concurrent scopes (max %d)\n",
-+			       peak, max_pairs);
-+			return -ENOSPC;
-+		}
-+
-+		meta->exec_save_sreg = free_stack[--free_top];
-+		live[n_live].sreg = meta->exec_save_sreg;
-+		live[n_live].merge = meta->merge_point;
-+		n_live++;
-+
-+		if (n_live > peak)
-+			peak = n_live;
 +	}
-+
-+	knod_prog->exec_save_pairs_used = peak;
-+	pr_debug("knod_cfg: done, peak %d concurrent scopes (total fwd jumps: %d+%d)\n",
-+		 peak, peak, n_live);
-+	return 0;
++	r[0] = z[0];
++	r[1] = z[1];
 +}
 +
-+/*
-+ * knod_bpf_analyze_cfg - Classify branches and allocate SGPRs for
-+ * structurized CFG.
-+ *
-+ * Runs before instruction emission. For each conditional branch:
-+ *   - Backward jump or jump to EXIT -> DIRECT_EXIT (no SGPR needed)
-+ *   - Forward jump to non-EXIT -> FORWARD_SKIP, allocate SGPR pair
-+ *
-+ * The "save jumping lanes" pattern handles crossing scopes correctly:
-+ *   branch: s_and_b64 s[n], exec, vcc; s_andn2_b64 exec, exec, vcc
-+ *   merge:  s_or_b64 exec, exec, s[n]
-+ *
-+ * For JNE (jump_neg_op): VCC=0 -> jump, so lanes are swapped.
++/* GHASH: hash `data` (must be multiple of 16 bytes) with key H.
++ * Result is stored in `out` (16 bytes, big-endian).
 + */
-+static int knod_bpf_analyze_cfg(struct knod_bpf_priv *priv,
-+				struct knod_prog *knod_prog)
++static void kat_ghash(const u8 *h, const u8 *data, int data_len, u8 *out)
 +{
-+	int ret;
++	u64 y[2] = { 0, 0 };
++	u64 hh[2];
++	int i;
 +
-+	/* Build the basic-block CFG, reorder the instruction list into RPO so
-+	 * every branch is forward (inserting synthetic jumps where a not-taken
-+	 * successor would no longer be adjacent), then classify each branch by
-+	 * linear position.  A loop in the program is rejected (-EOPNOTSUPP).
-+	 */
-+	ret = knod_bpf_build_cfg(knod_prog);
-+	if (ret)
-+		return ret;
-+	ret = knod_bpf_classify_linear(knod_prog);
-+	if (ret)
-+		return ret;
++	hh[0] = get_unaligned_be64(h);
++	hh[1] = get_unaligned_be64(h + 8);
 +
-+	return knod_bpf_alloc_exec_sregs(priv, knod_prog);
++	for (i = 0; i < data_len; i += 16) {
++		u64 d[2], r[2];
++
++		d[0] = get_unaligned_be64(data + i);
++		d[1] = get_unaligned_be64(data + i + 8);
++		y[0] ^= d[0];
++		y[1] ^= d[1];
++		kat_gf128_mul(r, y, hh);
++		y[0] = r[0];
++		y[1] = r[1];
++	}
++	put_unaligned_be64(y[0], out);
++	put_unaligned_be64(y[1], out + 8);
 +}
 +
-+/*
-+ * Shader stores packet address and length into pass_meta_buf slot header.
-+ * Host-side SDMA engine does the actual copy to the delivery page.
-+ *
-+ * At entry:
-+ *   TMP_VREG10_LO (v42) = old_val * 2 (from pass_indices addressing)
-+ *   DATA_VREG (v64:v65) = packet source VRAM address
-+ *   DATA_END_VREG (v66:v67) = packet end address
-+ *   PARAM_SREG (s28:s29) = param GTT address
-+ *
-+ * Stores at slot header:
-+ *   +0: u32 len (DATA_END_LO - DATA_LO)
-+ *   +8: u64 src_addr (DATA_VREG)
-+ */
-+static void knod_emit_pass_addr_store(struct knod_bpf_priv *priv,
-+				      struct knod_insn_meta *meta)
++static int knod_ipsec_run_crypto_kat(struct knod_ipsec_priv *priv)
 +{
-+	struct amdgcn_param32 p[3];
-+
-+	/* s_lshl_b32 s18, s15, 3 - queue_idx * 8 for pass_meta_buf_gaddr
-+	 * stride
++	/* Fixed AES-128 key + 4-byte salt (from RFC 4106 conventions). */
++	static const u8 kat_key[16] = {
++		0xfe, 0xff, 0xe9, 0x92, 0x86, 0x65, 0x73, 0x1c,
++		0x6d, 0x6a, 0x8f, 0x94, 0x67, 0x30, 0x83, 0x08
++	};
++	static const u8 kat_salt[4] = { 0xca, 0xfe, 0xba, 0xbe };
++	static const u8 kat_iv[8] = {
++		0xfa, 0xce, 0xdb, 0xad, 0xde, 0xca, 0xf8, 0x88
++	};
++	/* 32-byte plaintext (2 AES blocks) + ESP trailer (pad_len=0,
++	 * next_hdr=4).
++	 * Total decrypted payload = 34 bytes, but ciphertext is padded to
++	 * block boundary: 48 bytes (3 blocks) with 14 pad bytes + trailer.
++	 * Actually simpler: use exactly 32 bytes of payload + 2 bytes trailer
++	 * = 34 bytes, which is NOT block-aligned. The shader handles this
++	 * because nblocks = ceil(34/16) = 3, and the last partial block is
++	 * XORed with only the relevant bytes.
++	 *
++	 * Simplification: use 32 bytes ciphertext (2 full blocks) where
++	 * the last 2 bytes are ESP trailer: byte[30]=pad_len=0, byte[31]=4
++	 * (IPv4 next header). inner_len = 32 - 0 - 2 = 30.
 +	 */
-+	knod_sset32(&p[0], KNOD_AMDGPU_TMP_SREG1_LO);
-+	knod_sset32(&p[1], KNOD_AMDGPU_WORKGROUP_ID_Y_SREG);
-+	knod_iset32(&p[2], 3);
-+	knod_emit(priv, meta, s_lshl_b32, p[0], p[1], p[2]);
-+
-+	/* s_load_dwordx2 s[16:17], s[28:29], offsetof(pass_meta_buf_gaddr)
-+	 * soffset=s18
-+	 */
-+	knod_sset32(&p[0], KNOD_AMDGPU_TMP_SREG0_LO);
-+	knod_sset32(&p[1], KNOD_AMDGPU_PARAM_SREG_LO);
-+	knod_emit(priv, meta, s_load_dwordx2_soff, p[0], p[1],
-+		  offsetof(struct knod_bpf_param, pass_meta_buf_gaddr),
-+		  KNOD_AMDGPU_TMP_SREG1_LO);
-+
-+	/* s_waitcnt lgkmcnt(0) */
-+	knod_emit(priv, meta, s_waitcnt_lgkmcnt);
-+
-+	/* Compute slot offset: old_val << 12 = (old_val*2) << 11
-+	 * v_lshlrev_b32 v44, 11, v42
-+	 */
-+	knod_vset32(&p[0], KNOD_AMDGPU_TMP_VREG11_LO);
-+	knod_iset32(&p[1], 11);
-+	knod_vset32(&p[2], KNOD_AMDGPU_TMP_VREG10_LO);
-+	knod_emit(priv, meta, v_lshlrev_b32, p[0], p[1], p[2]);
-+
-+	/* v_mov_b32 v45, 0 */
-+	knod_vset32(&p[0], KNOD_AMDGPU_TMP_VREG11_HI);
-+	knod_iset32(&p[1], 0);
-+	knod_emit(priv, meta, v_mov_b32_e32, p[0], p[1]);
-+
-+	/* v_add_co_u32 v44, s16, v44 */
-+	knod_vset32(&p[0], KNOD_AMDGPU_TMP_VREG11_LO);
-+	knod_sset32(&p[1], KNOD_AMDGPU_TMP_SREG0_LO);
-+	knod_vset32(&p[2], KNOD_AMDGPU_TMP_VREG11_LO);
-+	knod_emit(priv, meta, v_add_co_u32, p[0], p[1], p[2]);
-+
-+	/*
-+	 * slot_hi = base_hi (NOT base_hi + carry).  The slot offset is at
-+	 * most (pass_pkts_per_queue-1)*KNOD_PASS_SLOT_SIZE and the whole
-+	 * pass_meta_buf is a single contiguous allocation that never straddles
-+	 * a 4GiB boundary, so base_lo + offset never wraps and the carry is
-+	 * always 0.  Avoid the v_add_co/v_addc carry chain entirely: on GFX9
-+	 * the v_addc here was picking up a stale VCC (from the preceding
-+	 * XDP_PASS v_cmp) instead of the v_add_co carry-out, setting slot_hi=1
-+	 * and faulting at 0x1_xxxx.
-+	 * v_mov_b32 v45, s17
-+	 */
-+	knod_vset32(&p[0], KNOD_AMDGPU_TMP_VREG11_HI);
-+	knod_sset32(&p[1], KNOD_AMDGPU_TMP_SREG0_HI);
-+	knod_emit(priv, meta, v_mov_b32_e32, p[0], p[1]);
-+
-+	/* v44:v45 = slot_addr in pass_meta_buf */
-+
-+	/* Store len: v_sub_u32 v0, DATA_END_LO, DATA_LO */
-+	knod_vset32(&p[0], KNOD_AMDGPU_VREG0_LO);
-+	knod_vset32(&p[1], KNOD_AMDGPU_DATA_END_VREG_LO);
-+	knod_vset32(&p[2], KNOD_AMDGPU_DATA_VREG_LO);
-+	knod_emit(priv, meta, v_sub_u32, p[0], p[1], p[2]);
-+
-+	/* global_store_dword [slot+0], len */
-+	knod_vset32(&p[0], KNOD_AMDGPU_VREG0_LO);
-+	knod_vset32(&p[1], KNOD_AMDGPU_TMP_VREG11_LO);
-+	knod_emit(priv, meta, global_store_dword, p[0], p[1],
-+		  offsetof(struct knod_pass_slot_hdr, len));
-+
-+	/* global_store_dwordx2 [slot+8], DATA_VREG (src_addr) */
-+	knod_vset32(&p[0], KNOD_AMDGPU_DATA_VREG_LO);
-+	knod_vset32(&p[1], KNOD_AMDGPU_TMP_VREG11_LO);
-+	knod_emit(priv, meta, global_store_dwordx2, p[0], p[1],
-+		  offsetof(struct knod_pass_slot_hdr, src_addr));
-+}
-+
-+static int knod_bpf_jit(struct knod_dev *knodev,
-+			struct knod_prog *knod_prog)
-+{
-+	struct knod_bpf_priv *priv =
-+		(struct knod_bpf_priv *)knodev->accel->xdp.priv;
-+	short off, packet_off, stack_off;
-+	struct knod_insn_meta *meta, *meta2;
-+	struct amdgcn_param64 param64[2];
-+	u32 insn_idx = 0, i;
-+	struct amdgcn_param32 param[3];
-+	struct amdgcn_param32 p32[2];
-+	struct amdgcn_param32 p[3];
-+	int s, d, imm, imm2;
-+	int pass_branch_idx;
-+	bool is_dw, fetch;
-+	bool skip = false;
-+	int pass_dwords;
-+	int atomic_op;
-+	int j;
-+	int map_id;
-+	u64 imm64;
-+	int ret;
-+
-+	/* Analyze CFG before instruction emission */
-+	ret = knod_bpf_analyze_cfg(priv, knod_prog);
-+
-+	if (ret)
-+		return ret;
-+
-+	knod_bpf_layout_sregs(priv, knod_prog);
-+	ret = knod_prog_prepare_insns(priv, knod_prog);
-+	if (ret)
-+		return ret;
-+
-+	knod_prog->max_stack_off = -knod_prog->max_stack_off;
-+	knod_prog->max_stack_off = ALIGN(knod_prog->max_stack_off, 4);
-+	knod_prog->max_packet_off = ALIGN(knod_prog->max_packet_off, 4);
-+	/* NOTE:
-+	 * packet is accessed with packet_off + size
-+	 * largest size of it is unsigned long
-+	 */
-+	knod_prog->max_packet_off += sizeof(unsigned long);
-+	if (knod_prog->max_packet_off > MAX_PACKET_CACHE) {
-+		WARN_ON_ONCE(1);
-+		knod_bpf_pkt_cache = 0;
-+	}
-+
-+	/* Initialize all exec_save SGPRs to 0.
-+	 * Without this, merge points that restore from exec_save SGPRs
-+	 * of branches that were skipped (by an outer s_cbranch_execz)
-+	 * would OR garbage into EXEC, enabling invalid lanes.
-+	 * In the old code, BPF_EXIT used s_endpgm so execution never
-+	 * reached those merge points; now it does.
-+	 */
-+	if (knod_prog->exec_save_pairs_used > 0) {
-+		u8 sreg;
-+
-+		meta = knod_prog_pre_last_meta(knod_prog);
-+
-+		for (sreg = knod_prog->exec_save_base;
-+		     sreg < knod_prog->exec_save_base +
-+			    knod_prog->exec_save_pairs_used * 2;
-+		     sreg += 2)
-+			knod_emit(priv, meta, s_mov_b64, sreg,
-+				  AMDGCN_SREG_INTEGER_0);
-+	}
-+
-+	if (knod_bpf_pkt_cache) {
-+		meta = knod_prog_pre_last_meta(knod_prog);
-+
-+		/* ctx->data is in DATA_VREG -> copy to r32[0] via v_mov */
-+		knod_vset32(&param[0], r32[0].v);
-+		knod_vset32(&param[1], KNOD_AMDGPU_DATA_VREG_LO);
-+		knod_emit(priv, meta, v_mov_b32_e32, param[0], param[1]);
-+		knod_vset32(&param[0], r32[0].v + 1);
-+		knod_vset32(&param[1], KNOD_AMDGPU_DATA_VREG_HI);
-+		knod_emit(priv, meta, v_mov_b32_e32, param[0], param[1]);
-+
-+		knod_global_load_size_cache(priv, meta,
-+					    &pkt_cache[0],
-+					    r32[0],
-+					    0, /* dst index */
-+					    0, /* start offset */
-+					    knod_prog->max_packet_off);
-+	}
-+
-+	insn_idx = 0;
-+	list_for_each_entry(meta, &knod_prog->pre_insns, l) {
-+		for (i = 0; i < meta->amdgpu_insns; i++)
-+			insn_idx += (meta->amdgpu_insn[i].size / 4);
-+	}
-+
-+	list_for_each_entry(meta, &knod_prog->insns, l) {
-+		if (skip) {
-+			skip = false;
-+			meta->amdgpu_insn_idx = AMDGPU_INSN_SKIP;
-+			continue;
-+		}
-+		s = meta->insn.src_reg;
-+		d = meta->insn.dst_reg;
-+		imm = meta->insn.imm;
-+		off = meta->insn.off;
-+
-+		meta->amdgpu_insn_idx = insn_idx;
-+		meta->amdgpu_insns = 0;
-+
-+		/* Structurized CFG: restore EXEC at merge points */
-+		if (meta->is_merge_point) {
-+			struct knod_insn_meta *br;
-+
-+			list_for_each_entry(br, &knod_prog->insns, l) {
-+				if ((br->branch_type == KNOD_BR_FORWARD_SKIP ||
-+				     br->branch_type == KNOD_BR_FORWARD_GOTO) &&
-+				    br->merge_point == meta) {
-+					knod_emit(priv, meta, s_or_b64,
-+						  AMDGCN_SREG_EXEC_LO,
-+						  AMDGCN_SREG_EXEC_LO,
-+						  br->exec_save_sreg);
-+				}
-+			}
-+			/* Remove done lanes from restored EXEC */
-+			knod_emit(priv, meta, s_andn2_b64, AMDGCN_SREG_EXEC_LO,
-+				  AMDGCN_SREG_EXEC_LO,
-+				  knod_prog->done_mask_sreg);
-+				}
-+
-+		switch (meta->insn.code) {
-+		/* ALU
-+		 * If a destination register contains a pointer of STACK,
-+		 * offset should not be minus.
-+		 */
-+		case BPF_ALU | BPF_MOV | BPF_X:
-+		case BPF_ALU64 | BPF_MOV | BPF_X:
-+			//r[d] = r[s];
-+			knod_mov64(priv, meta, bpf_reg64[d], bpf_reg64[s]);
-+			break;
-+		case BPF_ALU | BPF_MOV | BPF_K:
-+		case BPF_ALU64 | BPF_MOV | BPF_K:
-+			//r[d] = imm;
-+			knod_iset64(&p64[0], imm);
-+			knod_mov64(priv, meta, bpf_reg64[d], p64[0]);
-+			break;
-+		case BPF_ALU | BPF_XOR | BPF_X:
-+			knod_xor32(priv, meta,
-+				       bpf_reg64[d].lo, bpf_reg64[d].lo,
-+				       bpf_reg64[s].lo);
-+			knod_iset64(&p64[0], 0);
-+			knod_mov32(priv, meta, bpf_reg64[d].hi, p64[0].lo);
-+			break;
-+		case BPF_ALU64 | BPF_XOR | BPF_X:
-+			//r[d] ^= r[s];
-+			knod_xor32(priv, meta,
-+				       bpf_reg64[d].lo, bpf_reg64[d].lo,
-+				       bpf_reg64[s].lo);
-+			knod_xor32(priv, meta,
-+				       bpf_reg64[d].hi, bpf_reg64[d].hi,
-+				       bpf_reg64[s].hi);
-+			break;
-+		case BPF_ALU | BPF_XOR | BPF_K:
-+		case BPF_ALU64 | BPF_XOR | BPF_K:
-+			knod_iset64(&p64[0], imm);
-+			knod_mov64(priv, meta, bpf_reg64[d], p64[0]);
-+			knod_xor32(priv, meta, bpf_reg64[d].lo,
-+				       bpf_reg64[d].lo, r64[0].lo);
-+			break;
-+			//r[d] ^= imm;
-+			break;
-+		case BPF_ALU | BPF_MOD | BPF_X:
-+		case BPF_ALU64 | BPF_MOD | BPF_X:
-+			//r[d] %= r[s];
-+			knod_iset64(&p64[0], meta->umin_src);
-+			knod_mod(priv, meta, bpf_reg64[d], p64[0],
-+				     r64[0], r64[1], r64[2], r64[3], r64[4]);
-+			break;
-+		case BPF_ALU | BPF_MOD | BPF_K:
-+		case BPF_ALU64 | BPF_MOD | BPF_K:
-+			//r[d] %= imm;
-+			/* The dividend fits 32 bits (verifier rejects wider
-+			 * div/mod), so the 32-bit fold is valid even when
-+			 * clang emitted this as a 64-bit ALU op (e.g. u32
-+			 * hash % 65537 -> `r2 %= 65537`).
-+			 */
-+			if (meta->umax_dst <= U32_MAX && imm &&
-+			    knod_mod_k32(priv, meta, bpf_reg64[d], imm))
-+				break;
-+			knod_iset64(&p64[0], imm);
-+			knod_mod(priv, meta, bpf_reg64[d], p64[0],
-+				     r64[0], r64[1], r64[2], r64[3], r64[4]);
-+			break;
-+		case BPF_ALU | BPF_AND | BPF_X:
-+			knod_and32(priv, meta, bpf_reg64[d].lo,
-+				       bpf_reg64[d].lo, bpf_reg64[s].lo);
-+			knod_iset32(&p32[0], 0);
-+			knod_mov32(priv, meta, bpf_reg64[d].hi, p32[0]);
-+			break;
-+		case BPF_ALU64 | BPF_AND | BPF_X:
-+			//r[d] &= r[s];
-+			knod_and64(priv, meta, bpf_reg64[d],
-+				       bpf_reg64[d], bpf_reg64[s]);
-+			break;
-+		case BPF_ALU | BPF_AND | BPF_K:
-+		case BPF_ALU64 | BPF_AND | BPF_K:
-+			//r[d] &= imm;
-+			knod_iset32(&p32[0], imm);
-+			knod_and32(priv, meta, bpf_reg64[d].lo, p32[0],
-+				       bpf_reg64[d].lo);
-+			knod_iset32(&p32[0], 0);
-+			knod_mov32(priv, meta, bpf_reg64[d].hi, p32[0]);
-+			break;
-+		case BPF_ALU | BPF_OR | BPF_X:
-+			knod_or32(priv, meta, bpf_reg64[d].lo,
-+				  bpf_reg64[d].lo, bpf_reg64[s].lo);
-+			knod_iset32(&p32[0], 0);
-+			knod_mov32(priv, meta, bpf_reg64[d].hi, p32[0]);
-+			break;
-+		case BPF_ALU64 | BPF_OR | BPF_X:
-+			//r[d] |= r[s];
-+			knod_or32(priv, meta, bpf_reg64[d].lo,
-+				  bpf_reg64[d].lo, bpf_reg64[s].lo);
-+			knod_or32(priv, meta, bpf_reg64[d].hi,
-+				  bpf_reg64[d].hi, bpf_reg64[s].hi);
-+			break;
-+		case BPF_ALU | BPF_OR | BPF_K:
-+		case BPF_ALU64 | BPF_OR | BPF_K:
-+			//r[d] |= imm;
-+			knod_iset32(&p32[0], imm);
-+			knod_or32(priv, meta,
-+				bpf_reg64[d].lo, p32[0], bpf_reg64[d].lo);
-+			knod_iset32(&p32[0], 0);
-+			knod_mov32(priv, meta, bpf_reg64[d].hi, p32[0]);
-+			break;
-+		case BPF_ALU | BPF_ADD | BPF_X:
-+			knod_add32(priv, meta, bpf_reg64[d].lo,
-+				       bpf_reg64[d].lo, bpf_reg64[s].lo);
-+			knod_iset32(&p32[0], 0);
-+			knod_mov32(priv, meta, bpf_reg64[d].hi, p32[0]);
-+			break;
-+		case BPF_ALU64 | BPF_ADD | BPF_X:
-+			knod_add64(priv, meta, bpf_reg64[d],
-+				       bpf_reg64[d],
-+				       bpf_reg64[s]);
-+
-+			//r[d] += r[s];
-+			break;
-+		case BPF_ALU | BPF_ADD | BPF_K:
-+		case BPF_ALU64 | BPF_ADD | BPF_K:
-+			//r[d] += imm;
-+			knod_iset32(&p32[0], imm);
-+			knod_add32(priv, meta, bpf_reg64[d].lo,
-+				       p32[0], bpf_reg64[d].lo);
-+			/* NOTE:
-+			 * imm is 24bit.
-+			 * But should we set hi to 0?
-+			 */
-+			knod_iset32(&p32[0], 0);
-+			knod_mov32(priv, meta, bpf_reg64[d].hi, p32[0]);
-+			break;
-+		case BPF_ALU | BPF_SUB | BPF_X:
-+			//r[d] -= r[s];
-+			knod_sub32(priv, meta, bpf_reg64[d].lo,
-+				       bpf_reg64[d].lo, bpf_reg64[s].lo);
-+			knod_iset32(&p32[0], 0);
-+			knod_mov32(priv, meta, bpf_reg64[d].hi, p32[0]);
-+			break;
-+		case BPF_ALU64 | BPF_SUB | BPF_X:
-+			//r[d] -= r[s];
-+
-+			knod_sub64(priv, meta, bpf_reg64[d], bpf_reg64[d],
-+				       bpf_reg64[s]);
-+			break;
-+		case BPF_ALU | BPF_SUB | BPF_K:
-+		case BPF_ALU64 | BPF_SUB | BPF_K:
-+			//r[d] -= imm;
-+			knod_iset64(&p64[0], imm);
-+			knod_subrev64(priv, meta, bpf_reg64[d], p64[0],
-+					  bpf_reg64[s]);
-+			break;
-+		case BPF_ALU | BPF_MUL | BPF_X:
-+			knod_mul_lo32(priv, meta, bpf_reg64[d].lo,
-+					  bpf_reg64[d].lo, bpf_reg64[s].lo);
-+			break;
-+		case BPF_ALU64 | BPF_MUL | BPF_X:
-+			//r[d] *= r[s];
-+			knod_mov64(priv, meta, r64[0], bpf_reg64[d]);
-+			knod_mov64(priv, meta, r64[1], bpf_reg64[s]);
-+			knod_mul64(priv, meta,
-+				       bpf_reg64[d],
-+				       r64[0],
-+				       r64[1],
-+				       r64[2]);
-+			break;
-+		case BPF_ALU | BPF_MUL | BPF_K:
-+			knod_iset32(&p32[0], imm);
-+			knod_mul_lo32(priv, meta, bpf_reg64[d].lo,
-+					  p32[0], bpf_reg64[d].lo);
-+			knod_iset32(&p32[0], 0);
-+			knod_mov32(priv, meta, bpf_reg64[d].hi, p32[0]);
-+			break;
-+		case BPF_ALU64 | BPF_MUL | BPF_K:
-+			//r[d] *= imm;
-+			knod_iset64(&p64[0], imm);
-+			knod_mov64(priv, meta, r64[0], bpf_reg64[d]);
-+			knod_mov64(priv, meta, r64[1], p64[0]);
-+			knod_mul64(priv, meta,
-+				       bpf_reg64[d],
-+				       r64[0],
-+				       r64[1],
-+				       r64[2]);
-+			break;
-+		case BPF_ALU | BPF_DIV | BPF_X:
-+		case BPF_ALU64 | BPF_DIV | BPF_X:
-+			//r[d] /= r[s];
-+			knod_iset64(&p64[0], meta->umin_src);
-+			knod_div(priv, meta, bpf_reg64[d], p64[0],
-+				     r64[0], r64[1], r64[2], r64[3]);
-+			break;
-+		case BPF_ALU | BPF_DIV | BPF_K:
-+		case BPF_ALU64 | BPF_DIV | BPF_K:
-+			//r[d] /= imm;
-+			knod_iset64(&p64[0], imm);
-+			knod_div(priv, meta, bpf_reg64[d], p64[0],
-+				     r64[0], r64[1], r64[2], r64[3]);
-+			break;
-+		case BPF_ALU | BPF_NEG:
-+			knod_iset32(&p32[0], 0);
-+			knod_sub32(priv, meta, bpf_reg64[d].lo, p32[0],
-+				       bpf_reg64[d].lo);
-+			knod_iset32(&p32[0], 0);
-+			knod_mov32(priv, meta, bpf_reg64[d].hi, p32[0]);
-+			break;
-+		case BPF_ALU64 | BPF_NEG:
-+			//r[d] = -r[d];
-+			WARN_ON_ONCE(1);
-+			break;
-+		case BPF_ALU | BPF_LSH | BPF_X:
-+			knod_lshlrev32(priv, meta, bpf_reg64[d].lo,
-+					   bpf_reg64[s].lo, bpf_reg64[d].lo);
-+			knod_iset32(&p32[0], 0);
-+			knod_mov32(priv, meta, bpf_reg64[d].hi, p32[0]);
-+			break;
-+		case BPF_ALU64 | BPF_LSH | BPF_X:
-+			//r[d] <<= r[s];
-+			knod_lshlrev64(priv, meta, bpf_reg64[d],
-+					   bpf_reg64[s], bpf_reg64[d]);
-+			break;
-+		case BPF_ALU | BPF_LSH | BPF_K:
-+			knod_iset32(&p32[0], imm);
-+			knod_lshlrev32(priv, meta, bpf_reg64[d].lo, p32[0],
-+					   bpf_reg64[d].lo);
-+			knod_iset32(&p32[0], 0);
-+			knod_mov32(priv, meta, bpf_reg64[d].hi, p32[0]);
-+			break;
-+		case BPF_ALU64 | BPF_LSH | BPF_K:
-+			//r[d] <<= imm;
-+			knod_iset64(&p64[0], imm);
-+			knod_lshlrev64(priv, meta, bpf_reg64[d], p64[0],
-+					   bpf_reg64[d]);
-+			break;
-+		case BPF_ALU | BPF_RSH | BPF_X:
-+			knod_lshrrev32(priv, meta, bpf_reg64[d].lo,
-+				       bpf_reg64[s].lo,
-+				       bpf_reg64[d].lo);
-+			knod_iset32(&p32[0], 0);
-+			knod_mov32(priv, meta, bpf_reg64[d].hi, p32[0]);
-+			break;
-+		case BPF_ALU64 | BPF_RSH | BPF_X:
-+			//r[d] >>= r[s];
-+			knod_lshrrev64(priv, meta, bpf_reg64[d],
-+					   bpf_reg64[s], bpf_reg64[d]);
-+			break;
-+		case BPF_ALU | BPF_RSH | BPF_K:
-+			knod_iset32(&p32[0], imm);
-+			knod_lshrrev32(priv, meta, bpf_reg64[d].lo, p32[0],
-+					   bpf_reg64[d].lo);
-+			knod_iset32(&p32[0], 0);
-+			knod_mov32(priv, meta, bpf_reg64[d].hi, p32[0]);
-+			break;
-+		case BPF_ALU64 | BPF_RSH | BPF_K:
-+			//r[d] >>= imm;
-+			knod_iset64(&p64[0], imm);
-+			knod_lshrrev64(priv, meta, bpf_reg64[d],
-+					   p64[0], bpf_reg64[d]);
-+			break;
-+		case BPF_ALU | BPF_ARSH | BPF_X:
-+			knod_ashrrev32(priv, meta, bpf_reg64[d].lo,
-+					   bpf_reg64[s].lo, bpf_reg64[d].lo);
-+			knod_iset32(&p32[0], 0);
-+			knod_mov32(priv, meta, bpf_reg64[d].hi, p32[0]);
-+			break;
-+		case BPF_ALU64 | BPF_ARSH | BPF_X:
-+			//r[d] >>= r[s];
-+			knod_ashrrev64(priv, meta, bpf_reg64[d],
-+					   bpf_reg64[s], bpf_reg64[d]);
-+			break;
-+		case BPF_ALU | BPF_ARSH | BPF_K:
-+			knod_iset32(&p32[0], imm);
-+			knod_ashrrev32(priv, meta, bpf_reg64[d].lo,
-+					   p32[0], bpf_reg64[d].lo);
-+			knod_iset32(&p32[0], 0);
-+			knod_mov32(priv, meta, bpf_reg64[d].hi, p32[0]);
-+			break;
-+		case BPF_ALU64 | BPF_ARSH | BPF_K:
-+			//r[d] >>= imm;
-+			knod_iset64(&p64[0], imm);
-+			knod_ashrrev64(priv, meta, bpf_reg64[d],
-+					   p64[0], bpf_reg64[d]);
-+			break;
-+		case BPF_LD | BPF_IMM | BPF_DW:
-+			meta2 = list_next_entry(meta, l);
-+			if (WARN_ON_ONCE(!meta2))
-+				return -EINVAL;
-+			imm2 = meta2->insn.imm;
-+			skip = true;
-+			imm64 = (u64)imm2 << 32 | (u32)imm;
-+			switch (s) {
-+			case 0x00:
-+				//r[d] = imm64;
-+				knod_mov64_imm(priv, meta, d * 2,
-+						   imm64);
-+
-+				break;
-+			case 0x01:
-+				/* r[d] = param->maps[imm]; */
-+				imm64 = knod_bpf_get_map_gaddr(priv,
-+							       meta,
-+							       meta2);
-+				map_id = knod_bpf_get_map_id(priv,
-+							     meta,
-+							     meta2);
-+				knod_mov64_imm(priv, meta, d * 2,
-+						   imm64);
-+				break;
-+			default:
-+				WARN_ON_ONCE(1);
-+				break;
-+			}
-+			break;
-+			/* Legacy BPF packet access, not needed */
-+		case BPF_LD | BPF_ABS | BPF_B:
-+		case BPF_LD | BPF_ABS | BPF_H:
-+		case BPF_LD | BPF_ABS | BPF_W:
-+		case BPF_LD | BPF_IND | BPF_B:
-+		case BPF_LD | BPF_IND | BPF_H:
-+		case BPF_LD | BPF_IND | BPF_W:
-+			//err = pc | 0x0700;
-+			//exit = true;
-+			WARN_ON_ONCE(1);
-+			break;
-+		case BPF_LDX | BPF_MEM | BPF_B:
-+			if (meta->ptr.type == PTR_TO_STACK) {
-+				stack_off = meta->sreg.stack_off + off;
-+				knod_bpf_load_size(priv, meta,
-+						       &bpf_reg64[d],
-+						       &stack[0],
-+						       sizeof(unsigned char),
-+						       512 + stack_off);
-+			} else if (meta->ptr.type == PTR_TO_CTX) {
-+				knod_emit(priv, meta, global_load_ubyte,
-+					  bpf_reg64[d].lo,
-+					  bpf_reg64[s].lo, off * 2);
-+			} else if (meta->ptr.type == PTR_TO_MAP_VALUE) {
-+				knod_emit(priv, meta, global_load_ubyte,
-+					  bpf_reg64[d].lo,
-+					  bpf_reg64[s].lo, off);
-+			} else if (meta->ptr.type == PTR_TO_MAP_KEY) {
-+				knod_emit(priv, meta, global_load_ubyte,
-+					  bpf_reg64[d].lo,
-+					  bpf_reg64[s].lo, off);
-+			} else if (meta->ptr.type == PTR_TO_PACKET) {
-+				if (knod_bpf_pkt_cache) {
-+					packet_off = meta->sreg.packet_off +
-+						off;
-+					knod_bpf_load_size(priv, meta,
-+							       &bpf_reg64[d],
-+							       &pkt_cache[0],
-+							sizeof(unsigned char),
-+							       packet_off);
-+				} else {
-+					knod_emit(priv, meta, global_load_ubyte,
-+						  bpf_reg64[d].lo,
-+						  bpf_reg64[s].lo, off);
-+				}
-+			} else {
-+				WARN_ON_ONCE(1);
-+			}
-+			knod_wait_vmcnt(priv, meta);
-+			knod_iset32(&p32[0], 0);
-+			knod_mov32(priv, meta, bpf_reg64[d].hi, p32[0]);
-+			//ptr = (__global void *)r[s] + off;
-+			//r[d] = *(__global unsigned char *)ptr;
-+			break;
-+		case BPF_LDX | BPF_MEM | BPF_H:
-+			if (meta->ptr.type == PTR_TO_STACK) {
-+				stack_off = meta->sreg.stack_off + off;
-+				knod_bpf_load_size(priv, meta,
-+						       &bpf_reg64[d],
-+						       &stack[0],
-+						       sizeof(unsigned short),
-+						       512 + stack_off);
-+			} else if (meta->ptr.type == PTR_TO_CTX) {
-+				knod_emit(priv, meta, global_load_ushort,
-+					  bpf_reg64[d].lo,
-+					  bpf_reg64[s].lo, off * 2);
-+			} else if (meta->ptr.type == PTR_TO_MAP_VALUE) {
-+				knod_emit(priv, meta, global_load_ushort,
-+					  bpf_reg64[d].lo,
-+					  bpf_reg64[s].lo, off);
-+			} else if (meta->ptr.type == PTR_TO_MAP_KEY) {
-+				knod_emit(priv, meta, global_load_ushort,
-+					  bpf_reg64[d].lo,
-+					  bpf_reg64[s].lo, off);
-+			} else if (meta->ptr.type == SCALAR_VALUE) {
-+				knod_emit(priv, meta, global_load_ushort,
-+					  bpf_reg64[d].lo,
-+					  bpf_reg64[s].lo, off);
-+			} else if (meta->ptr.type == PTR_TO_PACKET) {
-+				if (knod_bpf_pkt_cache) {
-+					packet_off = meta->sreg.packet_off +
-+						off;
-+					knod_bpf_load_size(priv, meta,
-+							       &bpf_reg64[d],
-+							       &pkt_cache[0],
-+							sizeof(unsigned short),
-+							       packet_off);
-+				} else if (priv->isa_version == 10 &&
-+					   (off & 1)) {
-+					knod_bpf_emit_gfx10_unaligned_load(
-+						priv, meta,
-+						sizeof(unsigned short),
-+						bpf_reg64[d],
-+						bpf_reg64[s].lo, off);
-+				} else {
-+					knod_emit(priv, meta,
-+						  global_load_ushort,
-+						  bpf_reg64[d].lo,
-+						  bpf_reg64[s].lo, off);
-+				}
-+			} else {
-+				knod_jit_err(" type = %d\n", meta->ptr.type);
-+				WARN_ON_ONCE(1);
-+			}
-+			//ptr = (__global void *)r[s] + off;
-+			//r[d] = *(__global unsigned short *)ptr;
-+			knod_iset32(&p32[0], 0);
-+			knod_mov32(priv, meta, bpf_reg64[d].hi, p32[0]);
-+			knod_wait_vmcnt(priv, meta);
-+			break;
-+		case BPF_LDX | BPF_MEM | BPF_W:
-+			if (meta->ptr.type == PTR_TO_STACK) {
-+				stack_off = meta->sreg.stack_off + off;
-+				knod_bpf_load_size(priv, meta,
-+						       &bpf_reg64[d],
-+						       &stack[0],
-+						       sizeof(unsigned int),
-+						       512 + stack_off);
-+			} else if (meta->ptr.type == PTR_TO_CTX) {
-+				if (off == offsetof(struct xdp_md, data)) {
-+					knod_mov32(priv, meta,
-+						bpf_reg64[d].lo,
-+					    (struct amdgcn_param32){
-+					    .v = KNOD_AMDGPU_DATA_VREG_LO,
-+					    .type = AMDGCN_PARAM_TYPE_VGPR});
-+					knod_mov32(priv, meta,
-+						bpf_reg64[d].hi,
-+					    (struct amdgcn_param32){
-+					    .v = KNOD_AMDGPU_DATA_VREG_HI,
-+					    .type = AMDGCN_PARAM_TYPE_VGPR});
-+				} else if (off == offsetof(struct xdp_md,
-+							   data_end)) {
-+					knod_mov32(priv, meta,
-+						bpf_reg64[d].lo,
-+					    (struct amdgcn_param32){
-+					    .v = KNOD_AMDGPU_DATA_END_VREG_LO,
-+					    .type = AMDGCN_PARAM_TYPE_VGPR});
-+					knod_mov32(priv, meta,
-+						bpf_reg64[d].hi,
-+					    (struct amdgcn_param32){
-+					    .v = KNOD_AMDGPU_DATA_END_VREG_HI,
-+					    .type = AMDGCN_PARAM_TYPE_VGPR});
-+				} else {
-+					emit_global_load_dwordx2(
-+						priv->isa_version,
-+						&meta->amdgpu_insn[meta->amdgpu_insns],
-+						bpf_reg64[d].lo,
-+						bpf_reg64[s].lo,
-+						off * 2);
-+					debug_insn(priv->isa_version,
-+						   &meta->amdgpu_insn[meta->amdgpu_insns]);
-+					meta->amdgpu_insns++;
-+				}
-+			} else if (meta->ptr.type == PTR_TO_MAP_VALUE) {
-+				knod_emit(priv, meta, global_load_dword,
-+					  bpf_reg64[d].lo,
-+					  bpf_reg64[s].lo, off);
-+			} else if (meta->ptr.type == PTR_TO_MAP_KEY) {
-+				knod_emit(priv, meta, global_load_dword,
-+					  bpf_reg64[d].lo,
-+					  bpf_reg64[s].lo, off);
-+			} else if (meta->ptr.type == PTR_TO_PACKET) {
-+				if (knod_bpf_pkt_cache) {
-+					packet_off = meta->sreg.packet_off +
-+						off;
-+					knod_bpf_load_size(priv, meta,
-+							       &bpf_reg64[d],
-+							       &pkt_cache[0],
-+							sizeof(unsigned int),
-+							       packet_off);
-+				} else if (priv->isa_version == 10 &&
-+					   (off & 3)) {
-+					knod_bpf_emit_gfx10_unaligned_load(
-+						priv, meta,
-+						sizeof(unsigned int),
-+						bpf_reg64[d],
-+						bpf_reg64[s].lo, off);
-+				} else {
-+					knod_emit(priv, meta, global_load_dword,
-+						  bpf_reg64[d].lo,
-+						  bpf_reg64[s].lo, off);
-+				}
-+			} else {
-+				WARN_ON_ONCE(1);
-+			}
-+			//ptr = (__global void *)r[s] + off;
-+			//r[d] = *(__global unsigned int *)ptr;
-+			if (meta->ptr.type != PTR_TO_CTX) {
-+				knod_iset32(&p32[0], 0);
-+				knod_mov32(priv, meta, bpf_reg64[d].hi,
-+					       p32[0]);
-+			}
-+			knod_wait_vmcnt(priv, meta);
-+			break;
-+		case BPF_LDX | BPF_MEM | BPF_DW:
-+			if (meta->ptr.type == PTR_TO_STACK) {
-+				stack_off = meta->sreg.stack_off + off;
-+				knod_bpf_load_size(priv, meta,
-+						       &bpf_reg64[d],
-+						       &stack[0],
-+						       sizeof(unsigned long),
-+						       512+stack_off);
-+			} else if (meta->ptr.type == PTR_TO_CTX) {
-+				if (off == offsetof(struct xdp_md, data)) {
-+					knod_mov32(priv, meta,
-+						bpf_reg64[d].lo,
-+					    (struct amdgcn_param32){
-+					    .v = KNOD_AMDGPU_DATA_VREG_LO,
-+					    .type = AMDGCN_PARAM_TYPE_VGPR});
-+					knod_mov32(priv, meta,
-+						bpf_reg64[d].hi,
-+					    (struct amdgcn_param32){
-+					    .v = KNOD_AMDGPU_DATA_VREG_HI,
-+					    .type = AMDGCN_PARAM_TYPE_VGPR});
-+				} else if (off == offsetof(struct xdp_md,
-+							   data_end)) {
-+					knod_mov32(priv, meta,
-+						bpf_reg64[d].lo,
-+					    (struct amdgcn_param32){
-+					    .v = KNOD_AMDGPU_DATA_END_VREG_LO,
-+					    .type = AMDGCN_PARAM_TYPE_VGPR});
-+					knod_mov32(priv, meta,
-+						bpf_reg64[d].hi,
-+					    (struct amdgcn_param32){
-+					    .v = KNOD_AMDGPU_DATA_END_VREG_HI,
-+					    .type = AMDGCN_PARAM_TYPE_VGPR});
-+				} else {
-+					knod_emit(priv, meta,
-+						  global_load_dwordx2,
-+						  bpf_reg64[d].lo,
-+						  bpf_reg64[s].lo, off * 2);
-+				}
-+			} else if (meta->ptr.type == PTR_TO_MAP_VALUE) {
-+				knod_emit(priv, meta, global_load_dwordx2,
-+					  bpf_reg64[d].lo,
-+					  bpf_reg64[s].lo, off);
-+			} else if (meta->ptr.type == PTR_TO_MAP_KEY) {
-+				knod_emit(priv, meta, global_load_dwordx2,
-+					  bpf_reg64[d].lo,
-+					  bpf_reg64[s].lo, off);
-+			} else if (meta->ptr.type == PTR_TO_PACKET) {
-+				if (knod_bpf_pkt_cache) {
-+					packet_off = meta->sreg.packet_off +
-+						off;
-+					knod_bpf_load_size(priv, meta,
-+							       &bpf_reg64[d],
-+							       &pkt_cache[0],
-+							sizeof(unsigned long),
-+							       packet_off);
-+				} else if (priv->isa_version == 10 &&
-+					   (off & 3)) {
-+					knod_bpf_emit_gfx10_unaligned_load(
-+						priv, meta,
-+						sizeof(unsigned long),
-+						bpf_reg64[d],
-+						bpf_reg64[s].lo, off);
-+				} else {
-+					knod_emit(priv, meta,
-+						  global_load_dwordx2,
-+						  bpf_reg64[d].lo,
-+						  bpf_reg64[s].lo, off);
-+				}
-+			} else {
-+				WARN_ON_ONCE(1);
-+			}
-+			//ptr = (__global void *)r[s] + off;
-+			//r[d] = *(__global unsigned long *)ptr;
-+			knod_wait_vmcnt(priv, meta);
-+			break;
-+		case BPF_STX | BPF_MEM | BPF_B:
-+			if (meta->ptr.type == PTR_TO_STACK) {
-+				stack_off = meta->dreg.stack_off + off;
-+				knod_bpf_store_cache_size(priv, meta,
-+						&bpf_reg64[s],
-+						&stack[0],
-+						sizeof(u8),
-+						512 + stack_off);
-+			} else if (meta->ptr.type == PTR_TO_CTX) {
-+				knod_emit(priv, meta, global_store_byte,
-+					  bpf_reg64[s].lo,
-+					  bpf_reg64[d].lo, off * 2);
-+			} else if (meta->ptr.type == PTR_TO_MAP_VALUE) {
-+				knod_emit(priv, meta, global_store_byte,
-+					  bpf_reg64[s].lo,
-+					  bpf_reg64[d].lo, off);
-+			} else if (meta->ptr.type == PTR_TO_MAP_KEY) {
-+				knod_emit(priv, meta, global_store_byte,
-+					  bpf_reg64[s].lo,
-+					  bpf_reg64[d].lo, off);
-+			} else if (meta->ptr.type == PTR_TO_PACKET) {
-+				if (knod_bpf_pkt_cache) {
-+					packet_off = meta->dreg.packet_off +
-+						off;
-+					knod_bpf_store_cache_size(priv,
-+							meta,
-+							&bpf_reg64[s],
-+							&pkt_cache[0],
-+							sizeof(u8),
-+							packet_off);
-+				} else {
-+					knod_emit(priv, meta, global_store_byte,
-+						  bpf_reg64[s].lo,
-+						  bpf_reg64[d].lo, off);
-+				}
-+			} else {
-+				WARN_ON_ONCE(1);
-+			}
-+			break;
-+		case BPF_STX | BPF_MEM | BPF_H:
-+			if (meta->ptr.type == PTR_TO_STACK) {
-+				stack_off = meta->dreg.stack_off + off;
-+				knod_bpf_store_cache_size(priv, meta,
-+						&bpf_reg64[s],
-+						&stack[0],
-+						sizeof(u16),
-+						512 + stack_off);
-+			} else if (meta->ptr.type == PTR_TO_CTX) {
-+				knod_emit(priv, meta, global_store_short,
-+					  bpf_reg64[s].lo,
-+					  bpf_reg64[d].lo, off * 2);
-+			} else if (meta->ptr.type == PTR_TO_MAP_VALUE) {
-+				knod_emit(priv, meta, global_store_short,
-+					  bpf_reg64[s].lo,
-+					  bpf_reg64[d].lo, off);
-+			} else if (meta->ptr.type == PTR_TO_MAP_KEY) {
-+				knod_emit(priv, meta, global_store_short,
-+					  bpf_reg64[s].lo,
-+					  bpf_reg64[d].lo, off);
-+			} else if (meta->ptr.type == PTR_TO_PACKET) {
-+				if (knod_bpf_pkt_cache) {
-+					packet_off = meta->dreg.packet_off +
-+						off;
-+					knod_bpf_store_cache_size(priv,
-+							meta,
-+							&bpf_reg64[s],
-+							&pkt_cache[0],
-+							sizeof(u16),
-+							packet_off);
-+				} else {
-+					knod_emit(priv, meta,
-+						  global_store_short,
-+						  bpf_reg64[s].lo,
-+						  bpf_reg64[d].lo, off);
-+				}
-+			} else {
-+				WARN_ON_ONCE(1);
-+			}
-+			break;
-+		case BPF_STX | BPF_MEM | BPF_W:
-+			if (meta->ptr.type == PTR_TO_STACK) {
-+				stack_off = meta->dreg.stack_off + off;
-+				knod_bpf_store_cache_size(priv, meta,
-+						&bpf_reg64[s],
-+						&stack[0],
-+						sizeof(u32),
-+						512 + stack_off);
-+			} else if (meta->ptr.type == PTR_TO_CTX) {
-+				knod_emit(priv, meta, global_store_dword,
-+					  bpf_reg64[s].lo,
-+					  bpf_reg64[d].lo, off * 2);
-+			} else if (meta->ptr.type == PTR_TO_MAP_VALUE) {
-+				knod_emit(priv, meta, global_store_dword,
-+					  bpf_reg64[s].lo,
-+					  bpf_reg64[d].lo, off);
-+			} else if (meta->ptr.type == PTR_TO_MAP_KEY) {
-+				knod_emit(priv, meta, global_store_dword,
-+					  bpf_reg64[s].lo,
-+					  bpf_reg64[d].lo, off);
-+			} else if (meta->ptr.type == PTR_TO_PACKET) {
-+				if (knod_bpf_pkt_cache) {
-+					packet_off = meta->dreg.packet_off +
-+						off;
-+					knod_bpf_store_cache_size(priv,
-+							meta,
-+							&bpf_reg64[s],
-+							&pkt_cache[0],
-+							sizeof(u32),
-+							packet_off);
-+				} else {
-+					knod_emit(priv, meta,
-+						  global_store_dword,
-+						  bpf_reg64[s].lo,
-+						  bpf_reg64[d].lo, off);
-+				}
-+			} else {
-+				WARN_ON_ONCE(1);
-+			}
-+			break;
-+		case BPF_STX | BPF_MEM | BPF_DW:
-+			if (meta->ptr.type == PTR_TO_STACK) {
-+				stack_off = meta->dreg.stack_off + off;
-+				knod_bpf_store_cache_size(priv, meta,
-+						&bpf_reg64[s],
-+						&stack[0],
-+						sizeof(u64),
-+						512 + stack_off);
-+			} else if (meta->ptr.type == PTR_TO_CTX) {
-+				knod_emit(priv, meta, global_store_dwordx2,
-+					  bpf_reg64[s].lo,
-+					  bpf_reg64[d].lo, off * 2);
-+			} else if (meta->ptr.type == PTR_TO_MAP_VALUE) {
-+				knod_emit(priv, meta, global_store_dwordx2,
-+					  bpf_reg64[s].lo,
-+					  bpf_reg64[d].lo, off);
-+			} else if (meta->ptr.type == PTR_TO_MAP_KEY) {
-+				knod_emit(priv, meta, global_store_dwordx2,
-+					  bpf_reg64[s].lo,
-+					  bpf_reg64[d].lo, off);
-+			} else if (meta->ptr.type == PTR_TO_PACKET) {
-+				if (knod_bpf_pkt_cache) {
-+					packet_off = meta->dreg.packet_off +
-+						off;
-+					knod_bpf_store_cache_size(priv, meta,
-+							&bpf_reg64[s],
-+							&pkt_cache[0],
-+							sizeof(u64),
-+							packet_off);
-+				} else {
-+					knod_emit(priv, meta,
-+						  global_store_dwordx2,
-+						  bpf_reg64[s].lo,
-+						  bpf_reg64[d].lo, off);
-+				}
-+			} else {
-+				WARN_ON_ONCE(1);
-+			}
-+			break;
-+		case BPF_STX | BPF_ATOMIC | BPF_W:
-+		case BPF_STX | BPF_ATOMIC | BPF_DW:
-+			is_dw = BPF_SIZE(meta->insn.code) == BPF_DW;
-+			atomic_op = imm & ~BPF_FETCH;
-+			fetch = imm & BPF_FETCH;
-+
-+			/*
-+			 * BPF atomic: *(dst_reg + off) op= src_reg
-+			 * If BPF_FETCH: src_reg = old value
-+			 * BPF_CMPXCHG: expect in r0, new in src_reg,
-+			 *   old value returned in r0.
-+			 *
-+			 * global_atomic_* with glc=1 returns old value in vdst.
-+			 * For non-FETCH ops use glc=0 (fire-and-forget).
-+			 *
-+			 * 64-bit atomics (global_atomic_*_x2) hang on GFX9
-+			 * VRAM. GFX10+ supports them.
-+			 */
-+			if (is_dw && priv->isa_version == 9) {
-+				pr_err("knod: 64-bit atomic not supported on GFX9\n");
-+				return -EOPNOTSUPP;
-+			}
-+
-+			/*
-+			 * For CMPXCHG/FETCH: drain pending loads so addr/data
-+			 * VGPRs are ready. For non-fetch ADD wave reduction,
-+			 * addr was already waited for at map_lookup, and data
-+			 * is from ALU - no waitcnt needed.
-+			 */
-+			if (imm == BPF_CMPXCHG || fetch)
-+				knod_wait_vmcnt(priv, meta);
-+
-+			if (imm == BPF_CMPXCHG) {
-+				/* cmpswap: data = {expect(r0), new(src)}.
-+				 * AMD cmpswap data reg pair must be
-+				 * consecutive:
-+				 *   32-bit: {cmp, new} = 2 consecutive VGPRs
-+				 *   64-bit: {cmp_lo, cmp_hi, new_lo, new_hi}
-+				 * Copy r0 and src into TMP consecutive pair.
-+				 */
-+				struct amdgcn_param32 tmp0_lo, tmp0_hi,
-+						      tmp1_lo, tmp1_hi;
-+
-+				knod_vset32(&tmp0_lo,
-+					KNOD_AMDGPU_TMP_VREG0_LO);
-+				knod_vset32(&tmp0_hi,
-+					KNOD_AMDGPU_TMP_VREG0_HI);
-+				knod_vset32(&tmp1_lo,
-+					KNOD_AMDGPU_TMP_VREG1_LO);
-+				knod_vset32(&tmp1_hi,
-+					KNOD_AMDGPU_TMP_VREG1_HI);
-+
-+				if (!is_dw) {
-+					/* TMP0_LO = r0 (expect),
-+					 * TMP0_HI = src (new)
-+					 */
-+					knod_mov32(priv, meta,
-+						       tmp0_lo,
-+						       bpf_reg64[0].lo);
-+					knod_mov32(priv, meta,
-+						       tmp0_hi,
-+						       bpf_reg64[s].lo);
-+
-+					emit_global_atomic_cmpswap(
-+						priv->isa_version,
-+						&meta->amdgpu_insn[meta->amdgpu_insns],
-+						tmp0_lo, bpf_reg64[d].lo,
-+						tmp0_lo, off, 1);
-+					debug_insn(priv->isa_version,
-+						   &meta->amdgpu_insn[meta->amdgpu_insns]);
-+					meta->amdgpu_insns++;
-+					knod_wait_vmcnt(priv, meta);
-+					/* Return old value in r0 */
-+					knod_mov32(priv, meta,
-+						       bpf_reg64[0].lo,
-+						       tmp0_lo);
-+				} else {
-+					/* 64-bit:
-+					 * {r0_lo, r0_hi, src_lo, src_hi}
-+					 */
-+					knod_mov32(priv, meta,
-+						       tmp0_lo,
-+						       bpf_reg64[0].lo);
-+					knod_mov32(priv, meta,
-+						       tmp0_hi,
-+						       bpf_reg64[0].hi);
-+					knod_mov32(priv, meta,
-+						       tmp1_lo,
-+						       bpf_reg64[s].lo);
-+					knod_mov32(priv, meta,
-+						       tmp1_hi,
-+						       bpf_reg64[s].hi);
-+
-+					emit_global_atomic_cmpswap_x2(
-+						priv->isa_version,
-+						&meta->amdgpu_insn[meta->amdgpu_insns],
-+						tmp0_lo, bpf_reg64[d].lo,
-+						tmp0_lo, off, 1);
-+					debug_insn(priv->isa_version,
-+						   &meta->amdgpu_insn[meta->amdgpu_insns]);
-+					meta->amdgpu_insns++;
-+					knod_wait_vmcnt(priv, meta);
-+					knod_mov32(priv, meta,
-+						       bpf_reg64[0].lo,
-+						       tmp0_lo);
-+					knod_mov32(priv, meta,
-+						       bpf_reg64[0].hi,
-+						       tmp0_hi);
-+				}
-+			} else if (!fetch && atomic_op == BPF_ADD) {
-+				/*
-+				 * Wave reduction for BPF_ADD (non-fetch):
-+				 * Instead of all lanes doing atomic_add(val),
-+				 * count active lanes, multiply by val, and
-+				 * have a single lane do atomic_add(count*val).
-+				 *
-+				 * Assumes src_reg is uniform across all active
-+				 * lanes (true for constant increments like
-+				 * +=1).
-+				 *
-+				 *   s_bcnt1_i32_b64 s_tmp, exec
-+				 *   v_mul_lo_u32    v_tmp, s_tmp, v_src
-+				 *   v_mbcnt_lo      v_tmp2, exec_lo, 0
-+				 *   v_mbcnt_hi      v_tmp2, exec_hi, v_tmp2
-+				 *   v_cmp_eq_u32    vcc, v_tmp2, 0
-+				 *   s_and_saveexec  s_save, vcc
-+				 *   global_atomic_add addr, v_tmp, off
-+				 *   s_waitcnt       vmcnt(0)
-+				 *   s_mov_b64       exec, s_save
-+				 */
-+				struct amdgcn_param32 v_tmp, v_tmp2,
-+						      s_count, s_exec_lo,
-+						      s_exec_hi, v_zero;
-+
-+				knod_vset32(&v_tmp,
-+					KNOD_AMDGPU_TMP_VREG0_LO);
-+				knod_vset32(&v_tmp2,
-+					KNOD_AMDGPU_TMP_VREG0_HI);
-+				knod_sset32(&s_count,
-+					KNOD_AMDGPU_TMP_SREG0_LO);
-+				knod_sset32(&s_exec_lo,
-+					AMDGCN_SREG_EXEC_LO);
-+				knod_sset32(&s_exec_hi,
-+					AMDGCN_SREG_EXEC_LO + 1);
-+				knod_iset32(&v_zero, 0);
-+
-+				/* s_bcnt1_i32_b64 s_count, exec */
-+				knod_emit(priv, meta, s_bcnt1_i32_b64,
-+					  KNOD_AMDGPU_TMP_SREG0_LO,
-+					  AMDGCN_SREG_EXEC_LO);
-+
-+				/* v_mul_lo_u32 v_tmp, s_count, v_src */
-+				knod_emit(priv, meta, v_mul_lo_u32, v_tmp,
-+					  s_count, bpf_reg64[s].lo);
-+
-+				/* v_mbcnt_lo_u32_b32 v_tmp2, exec_lo, 0 */
-+				knod_emit(priv, meta, v_mbcnt_lo_u32_b32,
-+					  v_tmp2, s_exec_lo, v_zero);
-+
-+				/* v_mbcnt_hi_u32_b32 v_tmp2, exec_hi, v_tmp2 */
-+				knod_emit(priv, meta, v_mbcnt_hi_u32_b32,
-+					  v_tmp2, s_exec_hi, v_tmp2);
-+
-+				/* v_cmp_eq_u32 vcc, 0, v_tmp2 ->
-+				 * first active lane
-+				 */
-+				knod_emit(priv, meta, v_cmp_eq_u32, v_zero,
-+					  v_tmp2);
-+
-+				/* s_and_saveexec_b64 s_save, vcc */
-+				knod_emit(priv, meta, s_and_saveexec_b64,
-+					  KNOD_AMDGPU_TMP_SREG0_LO,
-+					  AMDGCN_SREG_VCC_LO);
-+
-+				if (is_dw) {
-+					struct amdgcn_param32 v_tmp_hi;
-+
-+					knod_vset32(&v_tmp_hi,
-+						KNOD_AMDGPU_TMP_VREG0_HI);
-+					/*
-+					 * x2 atomics consume a consecutive
-+					 * VGPR pair, and the 32-bit addend
-+					 * lands in the host-visible low dword
-+					 * when it is placed in the second
-+					 * register.
-+					 */
-+					knod_emit(priv, meta, v_mov_b32_e32,
-+						  v_tmp_hi, v_tmp);
-+					knod_emit(priv, meta, v_mov_b32_e32,
-+						  v_tmp, v_zero);
-+					/* global_atomic_add_x2 addr,
-+					 * {0, v_tmp_hi}, off
-+					 */
-+					knod_emit(priv, meta,
-+						  global_atomic_add_x2, v_tmp,
-+						  bpf_reg64[d].lo, v_tmp, off,
-+						  0);
-+				} else {
-+					/* global_atomic_add addr, v_tmp, off
-+					 * (single lane)
-+					 */
-+					knod_emit(priv, meta, global_atomic_add,
-+						  v_tmp,
-+						  bpf_reg64[d].lo, v_tmp, off,
-+						  0);
-+				}
-+
-+				/*
-+				 * No s_waitcnt needed: glc=0 atomic doesn't
-+				 * increment vmcnt. The GPU guarantees all
-+				 * pending ops complete before wave exit.
-+				 */
-+
-+				/* s_mov_b64 exec, s_save */
-+				knod_emit(priv, meta, s_mov_b64,
-+					  AMDGCN_SREG_EXEC_LO,
-+					  KNOD_AMDGPU_TMP_SREG0_LO);
-+			} else if (!is_dw) {
-+				/* 32-bit: AND, OR, XOR, XCHG, or fetch ops */
-+				struct amdgcn_param32 vdst, data_p;
-+
-+				if (fetch) {
-+					vdst = bpf_reg64[s].lo;
-+				} else {
-+					knod_vset32(&vdst,
-+						KNOD_AMDGPU_TMP_VREG0_LO);
-+				}
-+				data_p = bpf_reg64[s].lo;
-+
-+				switch (atomic_op) {
-+				case BPF_ADD:
-+					emit_global_atomic_add(
-+						priv->isa_version,
-+						&meta->amdgpu_insn[meta->amdgpu_insns],
-+						vdst, bpf_reg64[d].lo,
-+						data_p, off, fetch);
-+					break;
-+				case BPF_AND:
-+					emit_global_atomic_and(
-+						priv->isa_version,
-+						&meta->amdgpu_insn[meta->amdgpu_insns],
-+						vdst, bpf_reg64[d].lo,
-+						data_p, off, fetch);
-+					break;
-+				case BPF_OR:
-+					emit_global_atomic_or(
-+						priv->isa_version,
-+						&meta->amdgpu_insn[meta->amdgpu_insns],
-+						vdst, bpf_reg64[d].lo,
-+						data_p, off, fetch);
-+					break;
-+				case BPF_XOR:
-+					emit_global_atomic_xor(
-+						priv->isa_version,
-+						&meta->amdgpu_insn[meta->amdgpu_insns],
-+						vdst, bpf_reg64[d].lo,
-+						data_p, off, fetch);
-+					break;
-+				default: /* BPF_XCHG */
-+					emit_global_atomic_swap(
-+						priv->isa_version,
-+						&meta->amdgpu_insn[meta->amdgpu_insns],
-+						vdst, bpf_reg64[d].lo,
-+						data_p, off, fetch);
-+					break;
-+				}
-+			} else {
-+				/* 64-bit: AND, OR, XOR, XCHG, or fetch ops */
-+				struct amdgcn_param32 vdst, data_p;
-+
-+				if (fetch) {
-+					vdst = bpf_reg64[s].lo;
-+				} else {
-+					knod_vset32(&vdst,
-+						KNOD_AMDGPU_TMP_VREG0_LO);
-+				}
-+				data_p = bpf_reg64[s].lo;
-+
-+				switch (atomic_op) {
-+				case BPF_ADD:
-+					emit_global_atomic_add_x2(
-+						priv->isa_version,
-+						&meta->amdgpu_insn[meta->amdgpu_insns],
-+						vdst, bpf_reg64[d].lo,
-+						data_p, off, fetch);
-+					break;
-+				case BPF_AND:
-+					emit_global_atomic_and_x2(
-+						priv->isa_version,
-+						&meta->amdgpu_insn[meta->amdgpu_insns],
-+						vdst, bpf_reg64[d].lo,
-+						data_p, off, fetch);
-+					break;
-+				case BPF_OR:
-+					emit_global_atomic_or_x2(
-+						priv->isa_version,
-+						&meta->amdgpu_insn[meta->amdgpu_insns],
-+						vdst, bpf_reg64[d].lo,
-+						data_p, off, fetch);
-+					break;
-+				case BPF_XOR:
-+					emit_global_atomic_xor_x2(
-+						priv->isa_version,
-+						&meta->amdgpu_insn[meta->amdgpu_insns],
-+						vdst, bpf_reg64[d].lo,
-+						data_p, off, fetch);
-+					break;
-+				default: /* BPF_XCHG */
-+					emit_global_atomic_swap_x2(
-+						priv->isa_version,
-+						&meta->amdgpu_insn[meta->amdgpu_insns],
-+						vdst, bpf_reg64[d].lo,
-+						data_p, off, fetch);
-+					break;
-+				}
-+				debug_insn(priv->isa_version,
-+					   &meta->amdgpu_insn[meta->amdgpu_insns]);
-+				meta->amdgpu_insns++;
-+				/* Always wait for atomic completion */
-+				knod_wait_vmcnt(priv, meta);
-+			}
-+			break;
-+		case BPF_ST | BPF_MEM | BPF_B:
-+			knod_iset32(&p32[0], imm);
-+			if (meta->ptr.type == PTR_TO_STACK) {
-+				stack_off = meta->dreg.stack_off + off;
-+				knod_iset64(&p64[0], imm);
-+				knod_bpf_store_cache_size(priv, meta,
-+						&p64[0],
-+						&stack[0],
-+						sizeof(u8),
-+						512 + stack_off);
-+			} else if (meta->ptr.type == PTR_TO_CTX) {
-+				knod_emit(priv, meta, global_store_byte, p32[0],
-+					  bpf_reg64[d].lo, off * 2);
-+			} else if (meta->ptr.type == PTR_TO_MAP_VALUE) {
-+				knod_emit(priv, meta, global_store_byte, p32[0],
-+					  bpf_reg64[d].lo, off);
-+			} else if (meta->ptr.type == PTR_TO_MAP_KEY) {
-+				knod_emit(priv, meta, global_store_byte, p32[0],
-+					  bpf_reg64[d].lo, off);
-+			} else if (meta->ptr.type == PTR_TO_PACKET) {
-+				knod_iset64(&p64[0], imm);
-+				if (knod_bpf_pkt_cache) {
-+					packet_off = meta->dreg.packet_off +
-+						off;
-+					knod_bpf_store_cache_size(priv,
-+							meta,
-+							&p64[0],
-+							&pkt_cache[0],
-+							sizeof(u8),
-+							packet_off);
-+				} else {
-+					knod_emit(priv, meta, global_store_byte,
-+						  p64[0].lo,
-+						  bpf_reg64[d].lo, off);
-+				}
-+			} else {
-+				WARN_ON_ONCE(1);
-+			}
-+			break;
-+		case BPF_ST | BPF_MEM | BPF_H:
-+			knod_iset32(&p32[0], imm);
-+			if (meta->ptr.type == PTR_TO_STACK) {
-+				stack_off = meta->dreg.stack_off + off;
-+				knod_iset64(&p64[0], imm);
-+				knod_bpf_store_cache_size(priv, meta,
-+						&p64[0],
-+						&stack[0],
-+						sizeof(u16),
-+						512 + stack_off);
-+			} else if (meta->ptr.type == PTR_TO_CTX) {
-+				knod_emit(priv, meta, global_store_short,
-+					  p32[0], bpf_reg64[d].lo, off * 2);
-+			} else if (meta->ptr.type == PTR_TO_MAP_VALUE) {
-+				knod_emit(priv, meta, global_store_short,
-+					  p32[0], bpf_reg64[d].lo, off);
-+			} else if (meta->ptr.type == PTR_TO_MAP_KEY) {
-+				knod_emit(priv, meta, global_store_short,
-+					  p32[0], bpf_reg64[d].lo, off);
-+			} else if (meta->ptr.type == PTR_TO_PACKET) {
-+				knod_iset64(&p64[0], imm);
-+				if (knod_bpf_pkt_cache) {
-+					packet_off = meta->dreg.packet_off +
-+						off;
-+					knod_bpf_store_cache_size(priv,
-+							meta,
-+							&p64[0],
-+							&pkt_cache[0],
-+							sizeof(u16),
-+							packet_off);
-+				} else {
-+					knod_emit(priv, meta,
-+						  global_store_short, p64[0].lo,
-+						  bpf_reg64[d].lo, off);
-+				}
-+			} else {
-+				WARN_ON_ONCE(1);
-+			}
-+			break;
-+		case BPF_ST | BPF_MEM | BPF_W:
-+			knod_iset32(&p32[0], imm);
-+			if (meta->ptr.type == PTR_TO_STACK) {
-+				stack_off = meta->dreg.stack_off + off;
-+				knod_iset64(&p64[0], imm);
-+				knod_bpf_store_cache_size(priv, meta,
-+						&p64[0],
-+						&stack[0],
-+						sizeof(u32),
-+						512 + stack_off);
-+			} else if (meta->ptr.type == PTR_TO_CTX) {
-+				knod_emit(priv, meta, global_store_dword,
-+					  p32[0], bpf_reg64[d].lo, off * 2);
-+			} else if (meta->ptr.type == PTR_TO_MAP_VALUE) {
-+				knod_emit(priv, meta, global_store_dword,
-+					  p32[0], bpf_reg64[d].lo, off);
-+			} else if (meta->ptr.type == PTR_TO_MAP_KEY) {
-+				knod_emit(priv, meta, global_store_dword,
-+					  p32[0], bpf_reg64[d].lo, off);
-+			} else if (meta->ptr.type == PTR_TO_PACKET) {
-+				knod_iset64(&p64[0], imm);
-+				if (knod_bpf_pkt_cache) {
-+					packet_off = meta->dreg.packet_off +
-+						off;
-+					knod_bpf_store_cache_size(priv,
-+							meta,
-+							&p64[0],
-+							&pkt_cache[0],
-+							sizeof(u32),
-+							packet_off);
-+				} else {
-+					knod_emit(priv, meta,
-+						  global_store_dword, p64[0].lo,
-+						  bpf_reg64[d].lo, off);
-+				}
-+			} else {
-+				WARN_ON_ONCE(1);
-+			}
-+			break;
-+		case BPF_ST | BPF_MEM | BPF_DW:
-+			knod_iset32(&p32[0], imm);
-+			if (meta->ptr.type == PTR_TO_STACK) {
-+				stack_off = meta->dreg.stack_off + off;
-+				knod_iset64(&p64[0], imm);
-+				knod_bpf_store_cache_size(priv, meta,
-+						&p64[0],
-+						&stack[0],
-+						sizeof(u64),
-+						512 + stack_off);
-+			} else if (meta->ptr.type == PTR_TO_CTX) {
-+				knod_emit(priv, meta, global_store_dwordx2,
-+					  p32[0], bpf_reg64[d].lo, off * 2);
-+			} else if (meta->ptr.type == PTR_TO_MAP_VALUE) {
-+				knod_emit(priv, meta, global_store_dwordx2,
-+					  p32[0], bpf_reg64[d].lo, off);
-+			} else if (meta->ptr.type == PTR_TO_MAP_KEY) {
-+				knod_emit(priv, meta, global_store_dwordx2,
-+					  p32[0], bpf_reg64[d].lo, off);
-+			} else if (meta->ptr.type == PTR_TO_PACKET) {
-+				knod_iset64(&p64[0], imm);
-+				if (knod_bpf_pkt_cache) {
-+					packet_off = meta->dreg.packet_off +
-+						off;
-+					knod_bpf_store_cache_size(priv, meta,
-+							&p64[0],
-+							&pkt_cache[0],
-+							sizeof(u64),
-+							packet_off);
-+				} else {
-+					knod_emit(priv, meta,
-+						  global_store_dwordx2,
-+						  p64[0].lo,
-+						  bpf_reg64[d].lo, off);
-+				}
-+				knod_iset32(&p32[0], imm);
-+			} else {
-+				WARN_ON_ONCE(1);
-+			}
-+			break;
-+		case BPF_JMP32 | BPF_JA | BPF_K:
-+			if (meta->branch_type == KNOD_BR_DIRECT_EXIT) {
-+				knod_bpf_emit_direct_exit_retval(priv, meta,
-+						meta->merge_point);
-+
-+				/* Unconditional goto exit:
-+				 * all active lanes done
-+				 */
-+				knod_emit(priv, meta, s_or_b64,
-+					  knod_prog->done_mask_sreg,
-+					  knod_prog->done_mask_sreg,
-+					  AMDGCN_SREG_EXEC_LO);
-+				knod_emit(priv, meta, s_mov_b64,
-+					  AMDGCN_SREG_EXEC_LO,
-+					  AMDGCN_SREG_INTEGER_0);
-+			} else if (meta->branch_type == KNOD_BR_FORWARD_GOTO) {
-+				/* Structurized: save all active lanes, clear
-+				 * EXEC.  Lanes resume at merge_point (target).
-+				 */
-+				knod_emit(priv, meta, s_mov_b64,
-+					  meta->exec_save_sreg,
-+					  AMDGCN_SREG_EXEC_LO);
-+				knod_emit(priv, meta, s_mov_b64,
-+					  AMDGCN_SREG_EXEC_LO,
-+					  AMDGCN_SREG_INTEGER_0);
-+			} else {
-+				/* Reorder classifies every JA as FORWARD_GOTO
-+				 * or DIRECT_EXIT; reaching here is a bug.
-+				 */
-+				WARN_ON_ONCE(1);
-+			}
-+			break;
-+		case BPF_JMP | BPF_JA | BPF_K:
-+			if (meta->branch_type == KNOD_BR_DIRECT_EXIT) {
-+				knod_bpf_emit_direct_exit_retval(priv, meta,
-+						meta->merge_point);
-+
-+				/* Unconditional goto exit:
-+				 * all active lanes done
-+				 */
-+				knod_emit(priv, meta, s_or_b64,
-+					  knod_prog->done_mask_sreg,
-+					  knod_prog->done_mask_sreg,
-+					  AMDGCN_SREG_EXEC_LO);
-+				knod_emit(priv, meta, s_mov_b64,
-+					  AMDGCN_SREG_EXEC_LO,
-+					  AMDGCN_SREG_INTEGER_0);
-+			} else if (meta->branch_type == KNOD_BR_FORWARD_GOTO) {
-+				/* Structurized: save all active lanes, clear
-+				 * EXEC.  Lanes resume at merge_point (target).
-+				 */
-+				knod_emit(priv, meta, s_mov_b64,
-+					  meta->exec_save_sreg,
-+					  AMDGCN_SREG_EXEC_LO);
-+				knod_emit(priv, meta, s_mov_b64,
-+					  AMDGCN_SREG_EXEC_LO,
-+					  AMDGCN_SREG_INTEGER_0);
-+			} else {
-+				/* Reorder classifies every JA as FORWARD_GOTO
-+				 * or DIRECT_EXIT; reaching here is a bug.
-+				 */
-+				WARN_ON_ONCE(1);
-+			}
-+			break;
-+		case BPF_JMP32 | BPF_JEQ | BPF_K:
-+			knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_LO);
-+			knod_iset32(&param[1], imm);
-+			knod_emit(priv, meta, v_mov_b32_e32, param[0],
-+				  param[1]);
-+			knod_vset32(&param[0], d * 2);
-+			knod_vset32(&param[1], KNOD_AMDGPU_TMP_VREG0_LO);
-+			knod_emit(priv, meta, v_cmp_eq_u32, param[0],
-+				  param[1]);
-+			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
-+			break;
-+		case BPF_JMP | BPF_JEQ | BPF_K:
-+			knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_LO);
-+			knod_iset32(&param[1], imm);
-+			knod_emit(priv, meta, v_mov_b32_e32, param[0],
-+				  param[1]);
-+			knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_HI);
-+			knod_iset32(&param[1], 0);
-+			knod_emit(priv, meta, v_mov_b32_e32, param[0],
-+				  param[1]);
-+			knod_vset32(&param[0], d * 2);
-+			knod_vset32(&param[1], KNOD_AMDGPU_TMP_VREG0_LO);
-+			knod_emit(priv, meta, v_cmp_eq_u64, param[0],
-+				  param[1]);
-+			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
-+			break;
-+		case BPF_JMP32 | BPF_JEQ | BPF_X:
-+			knod_vset32(&param[0], d * 2);
-+			knod_vset32(&param[1], s * 2);
-+			knod_emit(priv, meta, v_cmp_eq_u32, param[0],
-+				  param[1]);
-+			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
-+			break;
-+		case BPF_JMP | BPF_JEQ | BPF_X:
-+			knod_vset32(&param[0], d * 2);
-+			knod_vset32(&param[1], s * 2);
-+			knod_emit(priv, meta, v_cmp_eq_u64, param[0],
-+				  param[1]);
-+			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
-+			break;
-+		case BPF_JMP32 | BPF_JGT | BPF_K:
-+			knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_LO);
-+			knod_iset32(&param[1], imm);
-+			knod_emit(priv, meta, v_mov_b32_e32, param[0],
-+				  param[1]);
-+			knod_vset32(&param[0], d * 2);
-+			knod_vset32(&param[1], KNOD_AMDGPU_TMP_VREG0_LO);
-+			knod_emit(priv, meta, v_cmp_gt_u32, param[0],
-+				  param[1]);
-+			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
-+			break;
-+		case BPF_JMP | BPF_JGT | BPF_K:
-+			knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_LO);
-+			knod_iset32(&param[1], imm);
-+			knod_emit(priv, meta, v_mov_b32_e32, param[0],
-+				  param[1]);
-+			knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_HI);
-+			knod_iset32(&param[1], 0);
-+			knod_emit(priv, meta, v_mov_b32_e32, param[0],
-+				  param[1]);
-+			knod_vset64(&param64[0], d * 2);
-+			knod_vset64(&param64[1], KNOD_AMDGPU_TMP_VREG0_LO);
-+			knod_emit(priv, meta, v_cmp_gt_u64, param64[0],
-+				  param64[1]);
-+			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
-+			break;
-+		case BPF_JMP32 | BPF_JGT | BPF_X:
-+			knod_vset32(&param[0], d * 2);
-+			knod_vset32(&param[1], s * 2);
-+			knod_emit(priv, meta, v_cmp_gt_u32, param[0],
-+				  param[1]);
-+			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
-+			break;
-+		case BPF_JMP | BPF_JGT | BPF_X:
-+			knod_vset64(&param64[0], d * 2);
-+			knod_vset64(&param64[1], s * 2);
-+			knod_emit(priv, meta, v_cmp_gt_u64, param64[0],
-+				  param64[1]);
-+			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
-+			break;
-+		case BPF_JMP32 | BPF_JGE | BPF_K:
-+			knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_LO);
-+			knod_iset32(&param[1], imm);
-+			knod_emit(priv, meta, v_mov_b32_e32, param[0],
-+				  param[1]);
-+			knod_vset32(&param[0], d * 2);
-+			knod_vset32(&param[1], KNOD_AMDGPU_TMP_VREG0_LO);
-+			knod_emit(priv, meta, v_cmp_ge_u32, param[0],
-+				  param[1]);
-+			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
-+			break;
-+		case BPF_JMP | BPF_JGE | BPF_K:
-+			knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_LO);
-+			knod_iset32(&param[1], imm);
-+			knod_emit(priv, meta, v_mov_b32_e32, param[0],
-+				  param[1]);
-+			knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_HI);
-+			knod_iset32(&param[1], 0);
-+			knod_emit(priv, meta, v_mov_b32_e32, param[0],
-+				  param[1]);
-+			knod_vset64(&param64[0], d * 2);
-+			knod_vset64(&param64[1], KNOD_AMDGPU_TMP_VREG0_LO);
-+			knod_emit(priv, meta, v_cmp_ge_u64, param64[0],
-+				  param64[1]);
-+			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
-+			break;
-+		case BPF_JMP32 | BPF_JGE | BPF_X:
-+			knod_vset32(&param[0], d * 2);
-+			knod_vset32(&param[1], s * 2);
-+			knod_emit(priv, meta, v_cmp_ge_u32, param[0],
-+				  param[1]);
-+			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
-+			break;
-+		case BPF_JMP | BPF_JGE | BPF_X:
-+			knod_vset64(&param64[0], d * 2);
-+			knod_vset64(&param64[1], s * 2);
-+			knod_emit(priv, meta, v_cmp_ge_u64, param64[0],
-+				  param64[1]);
-+			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
-+			break;
-+		case BPF_JMP32 | BPF_JLT | BPF_K:
-+			knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_LO);
-+			knod_iset32(&param[1], imm);
-+			knod_emit(priv, meta, v_mov_b32_e32, param[0],
-+				  param[1]);
-+			knod_vset32(&param[0], d * 2);
-+			knod_vset32(&param[1], KNOD_AMDGPU_TMP_VREG0_LO);
-+			knod_emit(priv, meta, v_cmp_lt_u32, param[0],
-+				  param[1]);
-+			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
-+			break;
-+		case BPF_JMP | BPF_JLT | BPF_K:
-+			knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_LO);
-+			knod_iset32(&param[1], imm);
-+			knod_emit(priv, meta, v_mov_b32_e32, param[0],
-+				  param[1]);
-+			knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_HI);
-+			knod_iset32(&param[1], 0);
-+			knod_emit(priv, meta, v_mov_b32_e32, param[0],
-+				  param[1]);
-+			knod_vset64(&param64[0], d * 2);
-+			knod_vset64(&param64[1], KNOD_AMDGPU_TMP_VREG0_LO);
-+			knod_emit(priv, meta, v_cmp_lt_u64, param64[0],
-+				  param64[1]);
-+			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
-+			break;
-+		case BPF_JMP32 | BPF_JLT | BPF_X:
-+			knod_vset32(&param[0], d * 2);
-+			knod_vset32(&param[1], s * 2);
-+			knod_emit(priv, meta, v_cmp_lt_u32, param[0],
-+				  param[1]);
-+			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
-+			break;
-+		case BPF_JMP | BPF_JLT | BPF_X:
-+			knod_vset64(&param64[0], d * 2);
-+			knod_vset64(&param64[1], s * 2);
-+			knod_emit(priv, meta, v_cmp_lt_u64, param64[0],
-+				  param64[1]);
-+			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
-+			break;
-+		case BPF_JMP32 | BPF_JLE | BPF_K:
-+			knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_LO);
-+			knod_iset32(&param[1], imm);
-+			knod_emit(priv, meta, v_mov_b32_e32, param[0],
-+				  param[1]);
-+			knod_vset32(&param[0], d * 2);
-+			knod_vset32(&param[1], KNOD_AMDGPU_TMP_VREG0_LO);
-+			knod_emit(priv, meta, v_cmp_le_u32, param[0],
-+				  param[1]);
-+			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
-+			break;
-+		case BPF_JMP | BPF_JLE | BPF_K:
-+			knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_LO);
-+			knod_iset32(&param[1], imm);
-+			knod_emit(priv, meta, v_mov_b32_e32, param[0],
-+				  param[1]);
-+			knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_HI);
-+			knod_iset32(&param[1], 0);
-+			knod_emit(priv, meta, v_mov_b32_e32, param[0],
-+				  param[1]);
-+			knod_vset64(&param64[0], d * 2);
-+			knod_vset64(&param64[1], KNOD_AMDGPU_TMP_VREG0_LO);
-+			knod_emit(priv, meta, v_cmp_le_u64, param64[0],
-+				  param64[1]);
-+			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
-+			break;
-+		case BPF_JMP32 | BPF_JLE | BPF_X:
-+			knod_vset32(&param[0], d * 2);
-+			knod_vset32(&param[1], s * 2);
-+			knod_emit(priv, meta, v_cmp_le_u32, param[0],
-+				  param[1]);
-+			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
-+			break;
-+		case BPF_JMP | BPF_JLE | BPF_X:
-+			knod_vset64(&param64[0], d * 2);
-+			knod_vset64(&param64[1], 2 * 2);
-+			knod_emit(priv, meta, v_cmp_le_u64, param64[0],
-+				  param64[1]);
-+			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
-+			break;
-+		case BPF_JMP32 | BPF_JSGT | BPF_K:
-+			knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_LO);
-+			knod_iset32(&param[1], imm);
-+			knod_emit(priv, meta, v_mov_b32_e32, param[0],
-+				  param[1]);
-+			knod_vset32(&param[0], d * 2);
-+			knod_vset32(&param[1], KNOD_AMDGPU_TMP_VREG0_LO);
-+			knod_emit(priv, meta, v_cmp_gt_i32, param[0],
-+				  param[1]);
-+			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
-+			break;
-+		case BPF_JMP | BPF_JSGT | BPF_K:
-+			knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_LO);
-+			knod_iset32(&param[1], imm);
-+			knod_emit(priv, meta, v_mov_b32_e32, param[0],
-+				  param[1]);
-+			knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_HI);
-+			knod_iset32(&param[1], 0);
-+			knod_emit(priv, meta, v_mov_b32_e32, param[0],
-+				  param[1]);
-+			knod_vset64(&param64[0], d * 2);
-+			knod_vset64(&param64[1], KNOD_AMDGPU_TMP_VREG0_LO);
-+			knod_emit(priv, meta, v_cmp_gt_i64, param64[0],
-+				  param64[1]);
-+			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
-+			break;
-+		case BPF_JMP32 | BPF_JSGT | BPF_X:
-+			knod_vset32(&param[0], d * 2);
-+			knod_vset32(&param[1], s * 2);
-+			knod_emit(priv, meta, v_cmp_gt_i32, param[0],
-+				  param[1]);
-+			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
-+			break;
-+		case BPF_JMP | BPF_JSGT | BPF_X:
-+			knod_vset64(&param64[0], d * 2);
-+			knod_vset64(&param64[1], s * 2);
-+			knod_emit(priv, meta, v_cmp_gt_i64, param64[0],
-+				  param64[1]);
-+			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
-+			break;
-+		case BPF_JMP32 | BPF_JSGE | BPF_K:
-+			knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_LO);
-+			knod_iset32(&param[1], imm);
-+			knod_emit(priv, meta, v_mov_b32_e32, param[0],
-+				  param[1]);
-+			knod_vset32(&param[0], d * 2);
-+			knod_vset32(&param[1], KNOD_AMDGPU_TMP_VREG0_LO);
-+			knod_emit(priv, meta, v_cmp_ge_i32, param[0],
-+				  param[1]);
-+			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
-+			break;
-+		case BPF_JMP | BPF_JSGE | BPF_K:
-+			knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_LO);
-+			knod_iset32(&param[1], imm);
-+			knod_emit(priv, meta, v_mov_b32_e32, param[0],
-+				  param[1]);
-+			knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_HI);
-+			knod_iset32(&param[1], 0);
-+			knod_emit(priv, meta, v_mov_b32_e32, param[0],
-+				  param[1]);
-+			knod_vset64(&param64[0], d * 2);
-+			knod_vset64(&param64[1], KNOD_AMDGPU_TMP_VREG0_LO);
-+			knod_emit(priv, meta, v_cmp_ge_i64, param64[0],
-+				  param64[1]);
-+			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
-+			break;
-+		case BPF_JMP32 | BPF_JSGE | BPF_X:
-+			knod_vset32(&param[0], d * 2);
-+			knod_vset32(&param[1], s * 2);
-+			knod_emit(priv, meta, v_cmp_ge_i32, param[0],
-+				  param[1]);
-+			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
-+			break;
-+		case BPF_JMP | BPF_JSGE | BPF_X:
-+			knod_vset64(&param64[0], d * 2);
-+			knod_vset64(&param64[1], s * 2);
-+			knod_emit(priv, meta, v_cmp_ge_i64, param64[0],
-+				  param64[1]);
-+			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
-+			break;
-+		case BPF_JMP32 | BPF_JSLT | BPF_K:
-+			knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_LO);
-+			knod_iset32(&param[1], imm);
-+			knod_emit(priv, meta, v_mov_b32_e32, param[0],
-+				  param[1]);
-+			knod_vset32(&param[0], d * 2);
-+			knod_vset32(&param[1], KNOD_AMDGPU_TMP_VREG0_LO);
-+			knod_emit(priv, meta, v_cmp_lt_i32, param[0],
-+				  param[1]);
-+			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
-+			break;
-+		case BPF_JMP | BPF_JSLT | BPF_K:
-+			knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_LO);
-+			knod_iset32(&param[1], imm);
-+			knod_emit(priv, meta, v_mov_b32_e32, param[0],
-+				  param[1]);
-+			knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_HI);
-+			knod_iset32(&param[1], 0);
-+			knod_emit(priv, meta, v_mov_b32_e32, param[0],
-+				  param[1]);
-+			knod_vset64(&param64[0], d * 2);
-+			knod_vset64(&param64[1], KNOD_AMDGPU_TMP_VREG0_LO);
-+			knod_emit(priv, meta, v_cmp_lt_i64, param64[0],
-+				  param64[1]);
-+			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
-+			break;
-+		case BPF_JMP32 | BPF_JSLT | BPF_X:
-+			knod_vset32(&param[0], d * 2);
-+			knod_vset32(&param[1], s * 2);
-+			knod_emit(priv, meta, v_cmp_lt_i32, param[0],
-+				  param[1]);
-+			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
-+			break;
-+		case BPF_JMP | BPF_JSLT | BPF_X:
-+			knod_vset64(&param64[0], d * 2);
-+			knod_vset64(&param64[1], s * 2);
-+			knod_emit(priv, meta, v_cmp_lt_i64, param64[0],
-+				  param64[1]);
-+			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
-+			break;
-+		case BPF_JMP32 | BPF_JSLE | BPF_K:
-+			knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_LO);
-+			knod_iset32(&param[1], imm);
-+			knod_emit(priv, meta, v_mov_b32_e32, param[0],
-+				  param[1]);
-+			knod_vset32(&param[0], d * 2);
-+			knod_vset32(&param[1], KNOD_AMDGPU_TMP_VREG0_LO);
-+			knod_emit(priv, meta, v_cmp_le_i32, param[0],
-+				  param[1]);
-+			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
-+			break;
-+		case BPF_JMP | BPF_JSLE | BPF_K:
-+			knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_LO);
-+			knod_iset32(&param[1], imm);
-+			knod_emit(priv, meta, v_mov_b32_e32, param[0],
-+				  param[1]);
-+			knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_HI);
-+			knod_iset32(&param[1], 0);
-+			knod_emit(priv, meta, v_mov_b32_e32, param[0],
-+				  param[1]);
-+			knod_vset64(&param64[0], d * 2);
-+			knod_vset64(&param64[1], KNOD_AMDGPU_TMP_VREG0_LO);
-+			knod_emit(priv, meta, v_cmp_le_i64, param64[0],
-+				  param64[1]);
-+			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
-+			break;
-+		case BPF_JMP32 | BPF_JSLE | BPF_X:
-+			knod_vset32(&param[0], d * 2);
-+			knod_vset32(&param[1], s * 2);
-+			knod_emit(priv, meta, v_cmp_le_i32, param[0],
-+				  param[1]);
-+			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
-+			break;
-+		case BPF_JMP | BPF_JSLE | BPF_X:
-+			knod_vset64(&param64[0], d * 2);
-+			knod_vset64(&param64[1], s * 2);
-+			knod_emit(priv, meta, v_cmp_le_i64, param64[0],
-+				  param64[1]);
-+			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
-+			break;
-+		case BPF_JMP32 | BPF_JSET | BPF_K:
-+			knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_LO);
-+			knod_iset32(&param[1], imm);
-+			knod_emit(priv, meta, v_mov_b32_e32, param[0],
-+				  param[1]);
-+			knod_vset32(&param[0], d * 2);
-+			knod_vset32(&param[1], d * 2);
-+			knod_vset32(&param[2], KNOD_AMDGPU_TMP_VREG0_LO);
-+			knod_emit(priv, meta, v_and_b32_e32, param[0],
-+				  param[1], param[2]);
-+			knod_vset32(&param[0], d * 2);
-+			knod_vset32(&param[1], KNOD_AMDGPU_TMP_VREG0_LO);
-+			knod_emit(priv, meta, v_cmp_eq_u32, param[0],
-+				  param[1]);
-+			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
-+			break;
-+		case BPF_JMP | BPF_JSET | BPF_K:
-+			knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_LO);
-+			knod_iset32(&param[1], imm);
-+			knod_emit(priv, meta, v_mov_b32_e32, param[0],
-+				  param[1]);
-+			knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_HI);
-+			knod_iset32(&param[1], 0);
-+			knod_emit(priv, meta, v_mov_b32_e32, param[0],
-+				  param[1]);
-+			knod_vset32(&param[0], d * 2);
-+			knod_vset32(&param[1], d * 2);
-+			knod_vset32(&param[2], KNOD_AMDGPU_TMP_VREG0_LO);
-+			knod_emit(priv, meta, v_and_b32_e32, param[0],
-+				  param[1], param[2]);
-+			knod_vset32(&param[0], (d * 2) + 1);
-+			knod_vset32(&param[1], (d * 2) + 1);
-+			knod_vset32(&param[2], KNOD_AMDGPU_TMP_VREG0_HI);
-+			knod_emit(priv, meta, v_and_b32_e32, param[0],
-+				  param[1], param[2]);
-+			knod_vset32(&param[0], d * 2);
-+			knod_vset32(&param[1], KNOD_AMDGPU_TMP_VREG0_LO);
-+			knod_emit(priv, meta, v_cmp_eq_u64, param[0],
-+				  param[1]);
-+			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
-+			break;
-+		case BPF_JMP32 | BPF_JSET | BPF_X:
-+			knod_vset32(&param[0], d * 2);
-+			knod_vset32(&param[1], d * 2);
-+			knod_vset32(&param[2], s * 2);
-+			knod_emit(priv, meta, v_and_b32_e32, param[0],
-+				  param[1], param[2]);
-+			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
-+			break;
-+		case BPF_JMP | BPF_JSET | BPF_X:
-+			knod_vset32(&param[0], d * 2);
-+			knod_vset32(&param[1], d * 2);
-+			knod_vset32(&param[2], s * 2);
-+			knod_emit(priv, meta, v_and_b32_e32, param[0],
-+				  param[1], param[2]);
-+			knod_vset32(&param[0], (d * 2) + 1);
-+			knod_vset32(&param[1], (d * 2) + 1);
-+			knod_vset32(&param[2], (s * 2) + 1);
-+			knod_emit(priv, meta, v_and_b32_e32, param[0],
-+				  param[1], param[2]);
-+			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
-+			break;
-+		case BPF_JMP32 | BPF_JNE | BPF_K:
-+			knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_LO);
-+			knod_iset32(&param[1], imm);
-+			knod_emit(priv, meta, v_mov_b32_e32, param[0],
-+				  param[1]);
-+			knod_vset32(&param[0], d * 2);
-+			knod_vset32(&param[1], KNOD_AMDGPU_TMP_VREG0_LO);
-+			knod_emit(priv, meta, v_cmp_eq_u32, param[0],
-+				  param[1]);
-+			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
-+			break;
-+		case BPF_JMP | BPF_JNE | BPF_K:
-+			knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_LO);
-+			knod_iset32(&param[1], imm);
-+			knod_emit(priv, meta, v_mov_b32_e32, param[0],
-+				  param[1]);
-+			knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_HI);
-+			knod_iset32(&param[1], 0);
-+			knod_emit(priv, meta, v_mov_b32_e32, param[0],
-+				  param[1]);
-+			knod_vset32(&param[0], d * 2);
-+			knod_vset32(&param[1], KNOD_AMDGPU_TMP_VREG0_LO);
-+			knod_emit(priv, meta, v_cmp_eq_u64, param[0],
-+				  param[1]);
-+			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
-+			break;
-+		case BPF_JMP32 | BPF_JNE | BPF_X:
-+			knod_vset32(&param[0], d * 2);
-+			knod_vset32(&param[1], s * 2);
-+			knod_emit(priv, meta, v_cmp_eq_u32, param[0],
-+				  param[1]);
-+			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
-+			break;
-+		case BPF_JMP | BPF_JNE | BPF_X:
-+			knod_vset32(&param[0], d * 2);
-+			knod_vset32(&param[1], s * 2);
-+			knod_emit(priv, meta, v_cmp_eq_u64, param[0],
-+				  param[1]);
-+			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
-+			break;
-+		case BPF_JMP32 | BPF_CALL:
-+		case BPF_JMP | BPF_CALL:
-+			switch (imm) {
-+			case 1:
-+				if (map_id == -1) {
-+					WARN_ON_ONCE(1);
-+					break;
-+				}
-+				knod_bpf_map_lookup(priv, meta, map_id);
-+				map_id = -1;
-+				break;
-+			case 2: {
-+				struct knod_bpf_map_obj *_map_obj;
-+
-+				if (map_id == -1) {
-+					WARN_ON_ONCE(1);
-+					break;
-+				}
-+				_map_obj = knod_bpf_map_kaddr(priv, map_id);
-+				if (!_map_obj) {
-+					WARN_ON_ONCE(1);
-+					break;
-+				}
-+				if (_map_obj->map_type == BPF_MAP_TYPE_ARRAY)
-+					knod_bpf_map_update_array(priv, meta,
-+						map_id);
-+				else if (_map_obj->map_type ==
-+					 BPF_MAP_TYPE_HASH)
-+					knod_bpf_map_update_hash(priv, meta,
-+						map_id);
-+				else
-+					WARN_ON_ONCE(1);
-+				map_id = -1;
-+				break;
-+			}
-+			case 3: {
-+				struct knod_bpf_map_obj *_map_obj;
-+
-+				if (map_id == -1) {
-+					WARN_ON_ONCE(1);
-+					break;
-+				}
-+				_map_obj = knod_bpf_map_kaddr(priv, map_id);
-+				if (!_map_obj) {
-+					WARN_ON_ONCE(1);
-+					break;
-+				}
-+				if (_map_obj->map_type == BPF_MAP_TYPE_ARRAY)
-+					knod_bpf_map_delete_array(priv, meta,
-+						map_id);
-+				else if (_map_obj->map_type ==
-+					 BPF_MAP_TYPE_HASH)
-+					knod_bpf_map_delete_hash(priv, meta,
-+						map_id);
-+				else
-+					WARN_ON_ONCE(1);
-+				map_id = -1;
-+				break;
-+			}
-+			case 5:
-+				knod_bpf_ktime_get_ns(priv, meta);
-+				break;
-+			case 44:
-+				knod_bpf_xdp_adjust_head(priv, meta);
-+				break;
-+			case 65:
-+				knod_bpf_xdp_adjust_tail(priv, meta);
-+				break;
-+			default:
-+				WARN_ON_ONCE(1);
-+				break;
-+			}
-+			break;
-+		case BPF_JMP32 | BPF_EXIT:
-+		case BPF_JMP | BPF_EXIT:
-+			/* Structurized CFG: BPF_EXIT is NOT a terminator.
-+			 * Mark all active lanes as done and clear EXEC.
-+			 * Actual exit handling (retval store, pkt_cache,
-+			 * PASS block, s_endpgm) is in the unified
-+			 * fallthrough EXIT at the end of the stream.
-+			 * This follows the LLVM StructurizeCFG model where
-+			 * all lanes must reach the single exit point.
-+			 */
-+			knod_emit(priv, meta, s_or_b64,
-+				  knod_prog->done_mask_sreg,
-+				  knod_prog->done_mask_sreg,
-+				  AMDGCN_SREG_EXEC_LO);
-+
-+			knod_emit(priv, meta, s_mov_b64, AMDGCN_SREG_EXEC_LO,
-+				  AMDGCN_SREG_INTEGER_0);
-+			break;
-+		case BPF_ALU | BPF_END | BPF_TO_BE: {
-+			struct amdgcn_param32 v_dst_lo, v_dst_hi, v_tmp, s_sel;
-+
-+			knod_vset32(&v_dst_lo, d * 2);
-+			knod_vset32(&v_dst_hi, d * 2 + 1);
-+			knod_vset32(&v_tmp, KNOD_AMDGPU_TMP_VREG0_LO);
-+			knod_sset32(&s_sel, KNOD_AMDGPU_TMP_SREG0_LO);
-+
-+			switch (imm) {
-+			case 16:
-+				/* bswap16+zext: {0,0,byte0,byte1} */
-+				knod_iset32(&param[0], 0x0C0C0001);
-+				knod_emit(priv, meta, s_mov_b32, s_sel,
-+					  param[0]);
-+
-+				knod_emit(priv, meta, v_perm_b32, v_dst_lo,
-+					  v_dst_lo, v_dst_lo, s_sel);
-+
-+				knod_iset32(&param[0], 0);
-+				knod_emit(priv, meta, v_mov_b32_e32, v_dst_hi,
-+					  param[0]);
-+				break;
-+			case 32:
-+				/* bswap32+zext */
-+				knod_iset32(&param[0], 0x00010203);
-+				knod_emit(priv, meta, s_mov_b32, s_sel,
-+					  param[0]);
-+
-+				knod_emit(priv, meta, v_perm_b32, v_dst_lo,
-+					  v_dst_lo, v_dst_lo, s_sel);
-+
-+				knod_iset32(&param[0], 0);
-+				knod_emit(priv, meta, v_mov_b32_e32, v_dst_hi,
-+					  param[0]);
-+				break;
-+			case 64: {
-+				struct amdgcn_param32 v_src_hi;
-+
-+				knod_vset32(&v_src_hi, d * 2 + 1);
-+
-+				/* bswap32 selector */
-+				knod_iset32(&param[0], 0x00010203);
-+				knod_emit(priv, meta, s_mov_b32, s_sel,
-+					  param[0]);
-+
-+				/* tmp = bswap32(lo) */
-+				knod_emit(priv, meta, v_perm_b32, v_tmp,
-+					  v_dst_lo, v_dst_lo, s_sel);
-+
-+				/* new_lo = bswap32(hi) */
-+				knod_emit(priv, meta, v_perm_b32, v_dst_lo,
-+					  v_src_hi, v_src_hi, s_sel);
-+
-+				/* new_hi = tmp (bswap32(old_lo)) */
-+				knod_emit(priv, meta, v_mov_b32_e32, v_dst_hi,
-+					  v_tmp);
-+				break;
-+			}
-+			default:
-+				WARN_ON_ONCE(1);
-+				break;
-+			}
-+			break;
-+		}
-+		case BPF_ALU | BPF_END | BPF_TO_LE: {
-+			struct amdgcn_param32 v_dst_lo, v_dst_hi;
-+
-+			knod_vset32(&v_dst_lo, d * 2);
-+			knod_vset32(&v_dst_hi, d * 2 + 1);
-+
-+			switch (imm) {
-+			case 16:
-+				knod_iset32(&param[0], 0xFFFF);
-+				knod_emit(priv, meta, v_and_b32_e32, v_dst_lo,
-+					  param[0], v_dst_lo);
-+
-+				knod_iset32(&param[0], 0);
-+				knod_emit(priv, meta, v_mov_b32_e32, v_dst_hi,
-+					  param[0]);
-+				break;
-+			case 32:
-+				knod_iset32(&param[0], 0);
-+				knod_emit(priv, meta, v_mov_b32_e32, v_dst_hi,
-+					  param[0]);
-+				break;
-+			case 64:
-+				break;
-+			default:
-+				WARN_ON_ONCE(1);
-+				break;
-+			}
-+			break;
-+		}
-+		default:
-+			WARN_ON_ONCE(1);
-+			break;
-+		}
-+
-+		WARN_ON(meta->amdgpu_insns >= KNOD_META_INSNS);
-+		for (i = 0; i < meta->amdgpu_insns; i++)
-+			insn_idx += (meta->amdgpu_insn[i].size / 4);
-+	}
-+
-+	/* Fallthrough EXIT: publish a verdict for every in-bounds lane.
-+	 * Lanes that did not reach BPF_EXIT are forced to XDP_DROP below.
-+	 */
-+	meta = kzalloc(sizeof(*meta), GFP_KERNEL);
-+	if (!meta)
++	static const u8 kat_plain[32] = {
++		0xd9, 0x31, 0x32, 0x25, 0xf8, 0x84, 0x06, 0xe5,
++		0xa5, 0x59, 0x09, 0xc5, 0xaf, 0xf5, 0x26, 0x9a,
++		0x86, 0xa7, 0xa9, 0x53, 0x15, 0x34, 0xf7, 0xda,
++		0x2e, 0x4c, 0x30, 0x3d, 0x8a, 0x31,
++		0x00,   /* pad_len = 0 */
++		0x04,   /* next_hdr = IPPROTO_IPIP (IPv4 tunnel) */
++	};
++	static const u32 kat_spi = 0xA5A5A5A5u;
++	static const u32 kat_seq = 0x00000001u;
++
++#define CRYPTO_KAT_BD_OFF	0x0000
++#define CRYPTO_KAT_OUT_OFF	0x0040
++#define CRYPTO_KAT_KEY_OFF	0x0100
++#define CRYPTO_KAT_PKT_OFF	0x0200
++#define CRYPTO_KAT_HTABLE_OFF	0x1000
++
++	struct knod_ipsec_sa_gpu_stats *gs;
++	struct knod_mem *scratch = priv->kat_scratch;
++	struct knod_ipsec_sa_entry *sa_entry;
++	struct knod_ipsec_fused_sub sub[1];
++	struct crypto_aes_ctx aes_ctx;
++	struct aes_enckey enckey;
++	void *sa_backup = NULL;
++	u8 nonce[12], ctr_blk[16], keystream[16];
++	u8 ciphertext[32], icv[16];
++	u8 ghash_input[80];
++	u8 h_block[16], ghash_out[16], j0_enc[16];
++	u8 *pkt, *out_buf, *key_buf, *htable_buf;
++	u64 *act_ptr;
++	u32 j0_ctr;
++	int ret, tries, i, b;
++
++	if (!scratch) {
++		scnprintf(knod_ipsec_last_kat_detail,
++			  sizeof(knod_ipsec_last_kat_detail),
++			  "crypto-kat FAIL: kat_scratch not allocated");
 +		return -ENOMEM;
-+	list_add_tail(&meta->l, &knod_prog->post_insns);
-+
-+	/* Any in-bounds lane outside done_mask gets a conservative DROP
-+	 * verdict instead of publishing stale VGPR state or leaving the
-+	 * recycle-time poison in bd->act.
-+	 */
-+	knod_emit(priv, meta, s_andn2_b64, AMDGCN_SREG_EXEC_LO,
-+		  knod_prog->initial_exec_sreg, knod_prog->done_mask_sreg);
-+	knod_vset32(&p[0], KNOD_AMDGPU_VREG0_LO);
-+	knod_iset32(&p[1], XDP_DROP);
-+	knod_emit(priv, meta, v_mov_b32_e32, p[0], p[1]);
-+
-+	/* Store bd->act for every lane that participated in this dispatch.
-+	 * Done lanes retain their low32 action in v0; unfinished lanes publish
-+	 * the fallback DROP written above.
-+	 */
-+	knod_emit(priv, meta, s_mov_b64, AMDGCN_SREG_EXEC_LO,
-+		  knod_prog->initial_exec_sreg);
-+
-+	/* BPF/XDP verdicts are low32; do not spend a second GTT dword per
-+	 * packet.
-+	 */
-+	knod_vset32(&p[0], KNOD_AMDGPU_VREG0_LO);
-+	knod_vset32(&p[1], KNOD_AMDGPU_SLOT_VREG_LO);
-+	knod_emit(priv, meta, global_store_dword, p[0], p[1],
-+		  offsetof(struct spsc_bd, act));
-+
-+	if (knod_prog->uses_adjust)
-+		knod_bpf_emit_offlen_writeback(priv, meta);
-+
-+	/* pkt_cache writeback: flush modified packet data back to VRAM */
-+	if (knod_bpf_pkt_cache) {
-+		knod_vset32(&p[0], r32[0].v);
-+		knod_vset32(&p[1],
-+					 KNOD_AMDGPU_DATA_VREG_LO);
-+		knod_emit(priv, meta, v_mov_b32_e32, p[0], p[1]);
-+		knod_vset32(&p[0], r32[0].v + 1);
-+		knod_vset32(&p[1],
-+					 KNOD_AMDGPU_DATA_VREG_HI);
-+		knod_emit(priv, meta, v_mov_b32_e32, p[0], p[1]);
-+
-+		knod_global_store_size_cache(priv, meta,
-+					     &pkt_cache[0],
-+					     r32[0],
-+					     0, /* dst index */
-+					     0, /* start offset */
-+					     knod_prog->max_packet_off);
++	}
++	if (!priv->t_tables) {
++		scnprintf(knod_ipsec_last_kat_detail,
++			  sizeof(knod_ipsec_last_kat_detail),
++			  "crypto-kat FAIL: t_tables not allocated");
++		return -ENOMEM;
 +	}
 +
-+	/* XDP_PASS detection */
-+	knod_iset32(&p[0], XDP_PASS);
-+	knod_vset32(&p[1], KNOD_AMDGPU_VREG0_LO);
-+	knod_emit(priv, meta, v_cmp_eq_u32, p[0], p[1]);
++	memset(scratch->kaddr, 0, PAGE_SIZE * 4);
 +
-+	pass_branch_idx = meta->amdgpu_insns;
-+	knod_emit(priv, meta, s_cbranch_vccz, 0);
++	pkt        = (u8 *)scratch->kaddr + CRYPTO_KAT_PKT_OFF;
++	out_buf    = (u8 *)scratch->kaddr + CRYPTO_KAT_OUT_OFF;
++	key_buf    = (u8 *)scratch->kaddr + CRYPTO_KAT_KEY_OFF;
++	htable_buf = (u8 *)scratch->kaddr + CRYPTO_KAT_HTABLE_OFF;
++	act_ptr    = (u64 *)((u8 *)scratch->kaddr + CRYPTO_KAT_BD_OFF + 8);
 +
-+	/* EXEC &= VCC (only PASS lanes) */
-+	knod_emit(priv, meta, s_and_b64, AMDGCN_SREG_EXEC_LO,
-+		  AMDGCN_SREG_EXEC_LO, AMDGCN_SREG_VCC_LO);
-+
-+	/* v_mov param addr to VGPR pair */
-+	knod_vset32(&p[0], KNOD_AMDGPU_TMP_VREG9_LO);
-+	knod_sset32(&p[1], KNOD_AMDGPU_PARAM_SREG_LO);
-+	knod_emit(priv, meta, v_mov_b32_e32, p[0], p[1]);
-+
-+	knod_vset32(&p[0], KNOD_AMDGPU_TMP_VREG9_HI);
-+	knod_sset32(&p[1], KNOD_AMDGPU_PARAM_SREG_HI);
-+	knod_emit(priv, meta, v_mov_b32_e32, p[0], p[1]);
-+
-+	/* Per-queue pass_count: offset TMP_VREG9 by queue_idx * 4 */
-+	/* v_mov_b32 v2, s15 (queue_idx -> VGPR) */
-+	knod_vset32(&p[0], KNOD_AMDGPU_VREG1_LO);
-+	knod_sset32(&p[1],
-+				 KNOD_AMDGPU_WORKGROUP_ID_Y_SREG);
-+	knod_emit(priv, meta, v_mov_b32_e32, p[0], p[1]);
-+
-+	/* v_lshlrev_b32 v2, 2, v2 (queue_idx * 4) */
-+	knod_vset32(&p[0], KNOD_AMDGPU_VREG1_LO);
-+	knod_iset32(&p[1], 2);
-+	knod_vset32(&p[2], KNOD_AMDGPU_VREG1_LO);
-+	knod_emit(priv, meta, v_lshlrev_b32, p[0], p[1], p[2]);
-+
-+	/* v_add_u32 v40, v2, v40 (param_addr_lo += queue_idx * 4) */
-+	knod_vset32(&p[0], KNOD_AMDGPU_TMP_VREG9_LO);
-+	knod_vset32(&p[1], KNOD_AMDGPU_VREG1_LO);
-+	knod_vset32(&p[2], KNOD_AMDGPU_TMP_VREG9_LO);
-+	knod_emit(priv, meta, v_add_u32, p[0], p[1], p[2]);
-+
-+	/* v_mov TMP10_LO, 1 */
-+	knod_vset32(&p[0], KNOD_AMDGPU_TMP_VREG10_LO);
-+	knod_iset32(&p[1], 1);
-+	knod_emit(priv, meta, v_mov_b32_e32, p[0], p[1]);
-+
-+	/* global_atomic_add TMP10_LO, TMP9, TMP10_LO,
-+	 *                   offsetof(pass_count)
-+	 * GLC=1 to receive old_val in vdst (needed for per-lane slot
-+	 * index).  With GLC=0 vdst is NOT written, leaving TMP10_LO
-+	 * as the addend (1) -- every PASS lane then computes slot=1
-+	 * and races on the same pass_meta_buf entry, leaving slot 0 empty.
++	/* ---- Step 1: Expand AES key into kat_scratch ---- */
++	/* GPU round-key format uses crypto_aes_ctx.key_enc
++	 * (matches xdo_state_add)
 +	 */
-+	knod_vset32(&p[0], KNOD_AMDGPU_TMP_VREG10_LO);
-+	knod_vset32(&p[1], KNOD_AMDGPU_TMP_VREG9_LO);
-+	knod_vset32(&p[2], KNOD_AMDGPU_TMP_VREG10_LO);
-+	knod_emit(priv, meta, global_atomic_add, p[0], p[1], p[2],
-+		  offsetof(struct knod_bpf_param, pass_count), 1);
-+
-+	/* s_waitcnt vmcnt(0) */
-+	knod_emit(priv, meta, s_waitcnt_vmcnt);
-+
-+	/* v_sub_u32 v40, v40, v2 (restore param_addr_lo) */
-+	knod_vset32(&p[0], KNOD_AMDGPU_TMP_VREG9_LO);
-+	knod_vset32(&p[1], KNOD_AMDGPU_TMP_VREG9_LO);
-+	knod_vset32(&p[2], KNOD_AMDGPU_VREG1_LO);
-+	knod_emit(priv, meta, v_sub_u32, p[0], p[1], p[2]);
-+
-+	/* old_val * 2 */
-+	knod_vset32(&p[0], KNOD_AMDGPU_TMP_VREG10_LO);
-+	knod_iset32(&p[1], 1);
-+	knod_vset32(&p[2], KNOD_AMDGPU_TMP_VREG10_LO);
-+	knod_emit(priv, meta, v_lshlrev_b32, p[0], p[1], p[2]);
-+
-+	/* addr_lo += old_val * 2 */
-+	knod_vset32(&p[0], KNOD_AMDGPU_TMP_VREG9_LO);
-+	knod_vset32(&p[1], KNOD_AMDGPU_TMP_VREG10_LO);
-+	knod_vset32(&p[2], KNOD_AMDGPU_TMP_VREG9_LO);
-+	knod_emit(priv, meta, v_add_u32, p[0], p[1], p[2]);
-+
-+	/* global_store_short pass_indices[old_val],
-+	 *                    BACKLOG_IDX_VREG
-+	 * dst=data, src=addr in wrapper convention
-+	 */
-+	knod_vset32(&p[0],
-+				 KNOD_AMDGPU_BACKLOG_IDX_VREG);
-+	knod_vset32(&p[1], KNOD_AMDGPU_TMP_VREG9_LO);
-+	knod_emit(priv, meta, global_store_short, p[0], p[1],
-+		  offsetof(struct knod_bpf_param, pass_indices));
-+
-+	/* Copy PASS packet data (shader mode) or store src addr (SDMA mode) */
-+	knod_emit_pass_addr_store(priv, meta);
-+
-+	/* Patch branch offset */
-+	pass_dwords = 0;
-+
-+	for (j = pass_branch_idx + 1; j < meta->amdgpu_insns; j++)
-+		pass_dwords += meta->amdgpu_insn[j].size / 4;
-+	emit_s_cbranch_vccz(priv->isa_version,
-+			    &meta->amdgpu_insn[pass_branch_idx],
-+			    pass_dwords);
-+
-+	knod_emit(priv, meta, s_endpgm);
-+
-+	for (j = 0; j < meta->amdgpu_insns; j++)
-+		insn_idx += meta->amdgpu_insn[j].size / 4;
-+
-+	if (priv->isa_version == 10) {
-+		if (insn_idx % 256) {
-+			meta = kzalloc_obj(*meta, GFP_KERNEL);
-+			if (!meta)
-+				return -ENOMEM;
-+			list_add_tail(&meta->l, &knod_prog->post_insns);
-+		}
-+
-+		while (insn_idx % 256) {
-+			if (meta->amdgpu_insns >= KNOD_META_INSNS) {
-+				meta = kzalloc_obj(*meta, GFP_KERNEL);
-+				if (!meta)
-+					return -ENOMEM;
-+				list_add_tail(&meta->l, &knod_prog->post_insns);
-+			}
-+			knod_emit(priv, meta, s_code_end);
-+			insn_idx +=
-+				meta->amdgpu_insn[meta->amdgpu_insns - 1].size /
-+				4;
-+		}
++	ret = aes_expandkey(&aes_ctx, kat_key, sizeof(kat_key));
++	if (ret) {
++		scnprintf(knod_ipsec_last_kat_detail,
++			  sizeof(knod_ipsec_last_kat_detail),
++			  "crypto-kat FAIL: aes_expandkey=%d", ret);
++		return ret;
 +	}
-+
-+	return 0;
-+}
-+
-+static int knod_bpf_translate(struct bpf_prog *prog)
-+{
-+	struct knod_prog *knod_prog = prog->aux->offload->dev_priv;
-+	struct knod_dev *knodev = knod_prog->knodev;
-+	int ret;
-+
-+	knod_bpf_map_setup(prog);
-+	ret = knod_bpf_jit(knodev, knod_prog);
-+	if (ret < 0) {
-+		pr_err("knod: failed to JIT: %d\n", ret);
++	/* AES-128: 11 round keys x 4 u32 = 44 u32 = 176B */
++	memcpy(key_buf, aes_ctx.key_enc,
++	       (aes_ctx.key_length / 4 + 7) * 16);
++	/* Also prepare aes_enckey for CPU-side reference encryption */
++	ret = aes_prepareenckey(&enckey, kat_key, sizeof(kat_key));
++	if (ret) {
++		memzero_explicit(&aes_ctx, sizeof(aes_ctx));
 +		return ret;
 +	}
 +
-+	knod_setup_bpf_prog(prog);
++	/* ---- Step 2: Precompute H-power table into kat_scratch page 2 ---- */
++	knod_gcm_precompute_h_table(kat_key, sizeof(kat_key), htable_buf);
 +
-+	return 0;
-+}
++	/* ---- Step 3: CPU-side AES-GCM encrypt to produce ciphertext + ICV */
++	/* H = AES_K(0^128) */
++	memset(h_block, 0, 16);
++	aes_encrypt(&enckey, h_block, h_block);
 +
-+static void knod_bpf_destroy_prog(struct bpf_prog *prog)
-+{
-+	struct knod_prog *knod_prog = prog->aux->offload->dev_priv;
-+	struct knod_dev *knodev = knod_prog->knodev;
-+	struct knod_bpf_priv *priv = knodev->accel->xdp.priv;
++	/* Nonce = salt || IV */
++	memcpy(nonce, kat_salt, 4);
++	memcpy(nonce + 4, kat_iv, 8);
 +
-+	/*
-+	 * Normally the prog was already uninstalled (offload with a NULL prog
-+	 * flipped back to pass).  Guard the abnormal path where the prog is
-+	 * freed while still tracked: flip to pass first so the worker stops
-+	 * dispatching this code.  The compiled code lives in a kernel slot and
-+	 * is no longer read once we flip away; knod_prog is CPU-only IR the GPU
-+	 * never touches, so it is safe to free synchronously.
++	/* CTR encrypt: counter starts at 2 for payload blocks */
++	for (i = 0; i < 2; i++) {
++		u32 ctr_val = cpu_to_be32(i + 2);
++
++		memcpy(ctr_blk, nonce, 12);
++		memcpy(ctr_blk + 12, &ctr_val, 4);
++		aes_encrypt(&enckey, keystream, ctr_blk);
++
++		/* C_i = P_i XOR keystream */
++		for (b = 0; b < 16; b++)
++			ciphertext[i * 16 + b] =
++				kat_plain[i * 16 + b] ^ keystream[b];
++	}
++
++	/* GHASH over AAD(16) || ciphertext(32) || len_block(16) */
++	memset(ghash_input, 0, sizeof(ghash_input));
++	/* AAD = SPI(4B,BE) || seq(4B,BE) || zero-pad to 16B */
++	put_unaligned_be32(kat_spi, ghash_input);
++	put_unaligned_be32(kat_seq, ghash_input + 4);
++	/* ciphertext blocks */
++	memcpy(ghash_input + 16, ciphertext, 32);
++	/* len block: AAD_bitlen(64b) || ctext_bitlen(64b) */
++	/* 8 bytes AAD = 64 bits */
++	put_unaligned_be64(8ULL * 8, ghash_input + 48);
++	/* 32 bytes ctext = 256 bits */
++	put_unaligned_be64(32ULL * 8, ghash_input + 56);
++
++	kat_ghash(h_block, ghash_input, 64, ghash_out);
++
++	/* ICV = GHASH XOR AES_K(J0), where J0 = nonce || 0x00000001 (BE) */
++	j0_ctr = cpu_to_be32(1);
++	memcpy(ctr_blk, nonce, 12);
++	memcpy(ctr_blk + 12, &j0_ctr, 4);
++	aes_encrypt(&enckey, j0_enc, ctr_blk);
++	for (b = 0; b < 16; b++)
++		icv[b] = ghash_out[b] ^ j0_enc[b];
++	memzero_explicit(&enckey, sizeof(enckey));
++	memzero_explicit(&aes_ctx, sizeof(aes_ctx));
++
++	/* ---- Step 4: Build synthetic ESP packet ---- */
++	/* ETH header (14B): dst=00:..., src=00:..., ethertype=0x0800 */
++	pkt[12] = 0x08; pkt[13] = 0x00;
++	/* IPv4 header (20B): version=4, IHL=5, protocol=50(ESP) */
++	pkt[14] = 0x45;
++	/* total_length (network order):
++	 * 20(IP) + 8(ESP) + 8(IV) + 32(ctext) + 16(ICV) = 84
 +	 */
-+	if (priv && READ_ONCE(priv->prog) == prog) {
-+		WRITE_ONCE(priv->prog, NULL);
-+		knod_bpf_reload_pass(knodev);
++	pkt[16] = 0x00; pkt[17] = 84;
++	/* protocol = 50 (ESP) */
++	pkt[23] = 50;
++	/* SPI at +34 (network byte order) */
++	put_unaligned_be32(kat_spi, pkt + ESP_SPI_OFF);
++	/* Seq at +38 */
++	put_unaligned_be32(kat_seq, pkt + ESP_SEQ_OFF);
++	/* IV at +42 (8 bytes) */
++	memcpy(pkt + ESP_IV_OFF, kat_iv, 8);
++	/* Ciphertext at +50 (32 bytes) */
++	memcpy(pkt + ESP_CTEXT_OFF, ciphertext, 32);
++	/* ICV at +82 (16 bytes) */
++	memcpy(pkt + ESP_CTEXT_OFF + 32, icv, 16);
++
++	/* total pkt len = 14 + 84 = 98 bytes */
++#define CRYPTO_KAT_PKT_LEN	98
++
++	/* ---- Step 5: Set up SA entry (slot 0) in sa_table ---- */
++	BUILD_BUG_ON(sizeof(struct knod_ipsec_sa_entry) != 104);
++
++	/* Back up production SA table before trashing slot 0 with the KAT SA.
++	 * Restored at out_wipe. Without this, any live xfrm SA in slot 0
++	 * gets wiped and subsequent production dispatch faults on key=0.
++	 */
++	sa_backup = kvmalloc(KNOD_IPSEC_SA_BO_SIZE, GFP_KERNEL);
++	if (!sa_backup) {
++		scnprintf(knod_ipsec_last_kat_detail,
++			  sizeof(knod_ipsec_last_kat_detail),
++			  "crypto-kat FAIL: sa_backup alloc");
++		return -ENOMEM;
 +	}
-+	knod_prog_free(knod_prog);
++	memcpy(sa_backup, priv->sa_table->kaddr, KNOD_IPSEC_SA_BO_SIZE);
++	memset(priv->sa_table->kaddr, 0, KNOD_IPSEC_SA_BO_SIZE);
++
++	sa_entry = (struct knod_ipsec_sa_entry *)priv->sa_table->kaddr;
++	sa_entry->spi           = cpu_to_le32(kat_spi);
++	sa_entry->dir           = cpu_to_le32(0);
++	sa_entry->family        = cpu_to_le32(AF_INET);
++	sa_entry->flags         = cpu_to_le32(0);
++	sa_entry->key_gpu_addr  = cpu_to_le64(scratch->gaddr +
++					      CRYPTO_KAT_KEY_OFF);
++	sa_entry->htable_gpu_addr = cpu_to_le64(scratch->gaddr +
++						CRYPTO_KAT_HTABLE_OFF);
++	sa_entry->t_tables_gpu_addr = cpu_to_le64(priv->t_tables->gaddr);
++	memcpy(sa_entry->salt, kat_salt, 4);
++	sa_entry->key_len       = cpu_to_le32(16);
++	sa_entry->nr_rounds     = cpu_to_le32(10); /* AES-128 */
++	/* KAT uses tunnel mode */
++	sa_entry->mode          = cpu_to_le32(XFRM_MODE_TUNNEL);
++	sa_entry->stats_addr    = cpu_to_le64(priv->sa_table->gaddr +
++					      KNOD_IPSEC_STATS_REGION_OFF);
++	sa_entry->active        = cpu_to_le32(1);
++	sa_entry->version       = cpu_to_le32(1);
++	/* publish the SA entry to the GPU before it becomes live */
++	wmb();
++
++	/* Pre-stamp bd->act with sentinel */
++	*act_ptr = 0xDEADDEADDEADDEADULL;
++
++	/* ---- Step 6: Build sub[] and dispatch ---- */
++	memset(sub, 0, sizeof(sub));
++	sub[0].pkt_addr = cpu_to_le64(scratch->gaddr + CRYPTO_KAT_PKT_OFF);
++	sub[0].out_addr = cpu_to_le64(scratch->gaddr + CRYPTO_KAT_OUT_OFF);
++	sub[0].bd_addr  = cpu_to_le64(scratch->gaddr + CRYPTO_KAT_BD_OFF);
++	sub[0].pkt_len  = cpu_to_le32(CRYPTO_KAT_PKT_LEN);
++	sub[0].result_seq = 0;
++
++	pr_info("knod_ipsec: crypto-kat: dispatching AES-128-GCM decrypt (spi=0x%08x, %d bytes ctext)\n",
++		kat_spi, 32);
++
++	if (priv->disp[0].kthread)
++		kthread_park(priv->disp[0].kthread);
++	knod_ipsec_prepare_rx_dispatch(priv, &priv->work_pool[0], sub, NULL,
++				       1, NULL, 0);
++	knod_ipsec_dispatch_and_wait(&priv->disp[0], &priv->work_pool[0]);
++	if (priv->disp[0].kthread)
++		kthread_unpark(priv->disp[0].kthread);
++	ret = 0;
++
++	/* ---- Step 7: Poll for completion ---- */
++	for (tries = 0; tries < 500; tries++) {
++		u64 v = READ_ONCE(*act_ptr);
++		u32 verdict_hi = (u32)(v >> 32);
++
++		if (verdict_hi != 0xDEADDEAD) {
++			if (verdict_hi == 0) {
++				/*
++				 * Slot 0 = ICV passed!
++				 * Verify decrypted output.
++				 */
++				if (memcmp(out_buf, kat_plain, 32) != 0) {
++					pr_err("knod_ipsec: crypto-kat FAIL: plaintext mismatch\n");
++					print_hex_dump(KERN_ERR, "  expected: ",
++						       DUMP_PREFIX_NONE,
++						       16, 1, kat_plain, 32,
++						       false);
++					print_hex_dump(KERN_ERR, "  got:      ",
++						       DUMP_PREFIX_NONE,
++						       16, 1, out_buf, 32,
++						       false);
++					scnprintf(knod_ipsec_last_kat_detail,
++					  sizeof(knod_ipsec_last_kat_detail),
++					  "crypto-kat FAIL: plaintext mismatch (verdict ok)");
++					ret = -EBADMSG;
++					goto out_wipe;
++				}
++				gs = (struct knod_ipsec_sa_gpu_stats *)
++					((u8 *)priv->sa_table->kaddr +
++					 KNOD_IPSEC_STATS_REGION_OFF);
++				pr_info("knod_ipsec: crypto-kat PASS: AES-128-GCM decrypt verified (%d us poll, gpu_stats: pkts=%llu bytes=%llu)\n",
++					tries * 750,
++					le64_to_cpu(gs->rx_packets),
++					le64_to_cpu(gs->rx_bytes));
++				ret = 0;
++				goto out_wipe;
++			} else if (verdict_hi == VERDICT_ICV_FAIL) {
++				pr_err("knod_ipsec: crypto-kat FAIL: ICV mismatch (verdict=0x%08x)\n",
++				       verdict_hi);
++				print_hex_dump(KERN_ERR, "  ref-icv:  ",
++					       DUMP_PREFIX_NONE,
++					       16, 1, icv, 16, false);
++				print_hex_dump(KERN_ERR, "  out-buf:  ",
++					       DUMP_PREFIX_NONE,
++					       16, 1, out_buf, 32, false);
++				print_hex_dump(KERN_ERR, "  ref-plain:",
++					       DUMP_PREFIX_NONE,
++					       16, 1, kat_plain, 32, false);
++				scnprintf(knod_ipsec_last_kat_detail,
++					  sizeof(knod_ipsec_last_kat_detail),
++					  "crypto-kat FAIL: shader ICV mismatch");
++				ret = -EBADMSG;
++				goto out_wipe;
++			} else {
++				pr_err("knod_ipsec: crypto-kat FAIL: unexpected verdict=0x%08x (low=0x%08x)\n",
++				       verdict_hi, (u32)v);
++				scnprintf(knod_ipsec_last_kat_detail,
++					  sizeof(knod_ipsec_last_kat_detail),
++					  "crypto-kat FAIL: verdict=0x%08x",
++					  verdict_hi);
++				ret = -EIO;
++				goto out_wipe;
++			}
++		}
++		usleep_range(500, 1000);
++	}
++
++	pr_err("knod_ipsec: crypto-kat FAIL: timeout (bd->act=0x%016llx)\n",
++	       READ_ONCE(*act_ptr));
++	scnprintf(knod_ipsec_last_kat_detail,
++		  sizeof(knod_ipsec_last_kat_detail),
++		  "crypto-kat FAIL: timeout");
++	ret = -ETIMEDOUT;
++
++out_wipe:
++	if (sa_backup) {
++		memcpy(priv->sa_table->kaddr, sa_backup, KNOD_IPSEC_SA_BO_SIZE);
++		/* publish the restored SA table to the GPU */
++		wmb();
++		kvfree(sa_backup);
++	}
++	return ret;
++
++#undef CRYPTO_KAT_BD_OFF
++#undef CRYPTO_KAT_OUT_OFF
++#undef CRYPTO_KAT_KEY_OFF
++#undef CRYPTO_KAT_PKT_OFF
++#undef CRYPTO_KAT_HTABLE_OFF
++#undef CRYPTO_KAT_PKT_LEN
 +}
 +
-+static const struct bpf_prog_offload_ops knod_bpf_dev_ops = {
-+	.insn_hook      = knod_bpf_verify_insn,
-+	.finalize       = knod_bpf_finalize,
-+	.prepare        = knod_bpf_verifier_prep,
-+	.translate      = knod_bpf_translate,
-+	.destroy        = knod_bpf_destroy_prog,
-+};
-+
-+static int knod_bpf_setup_prog_hw_checks(struct knod_dev *knodev,
-+					 struct netdev_bpf *bpf)
++static int knod_ipsec_run_shader_kat(struct knod_ipsec_priv *priv)
 +{
-+	if (!bpf->prog)
++	static const int batch_sizes[] = { 1, 8, 32, KNOD_IPSEC_KAT_MAX_BATCH };
++	int i, failed = 0;
++	int last_ok = 0;
++
++	if (!priv->work_pool[0].param.kaddr) {
++		scnprintf(knod_ipsec_last_kat_detail,
++			  sizeof(knod_ipsec_last_kat_detail),
++			  "shader-dispatch SKIPPED (NOD not attached)");
++		pr_info("knod_ipsec: %s\n", knod_ipsec_last_kat_detail);
 +		return 0;
++	}
 +
-+	return 0;
-+}
++	for (i = 0; i < ARRAY_SIZE(batch_sizes); i++) {
++		int rc = knod_ipsec_run_shader_kat_n(priv, batch_sizes[i]);
 +
-+static int knod_bpf_map_get_next_key(struct bpf_offloaded_map *offmap,
-+				     void *key, void *next_key)
-+{
-+	unsigned int *nkey = (unsigned int *)next_key;
-+	unsigned int *_key = (unsigned int *)key;
-+
-+	if (offmap->map.map_type == BPF_MAP_TYPE_ARRAY ||
-+	    offmap->map.map_type == BPF_MAP_TYPE_PERCPU_ARRAY) {
-+		if (key == NULL)
-+			*nkey = 0;
++		if (rc)
++			failed++;
 +		else
-+			*nkey = (*_key) + 1;
++			last_ok = batch_sizes[i];
++	}
 +
-+		if (*nkey >= offmap->map.max_entries)
-+			return -ENOENT;
-+	} else if (offmap->map.map_type == BPF_MAP_TYPE_HASH) {
-+		if (key == NULL)
-+			return knod_bpf_map_hash_get_first_key(offmap,
-+							       next_key);
++	if (!failed) {
++		scnprintf(knod_ipsec_last_kat_detail,
++			  sizeof(knod_ipsec_last_kat_detail),
++			  "shader-dispatch PASS (batch sizes 1/8/32/%d, last_ok=%d)",
++			  KNOD_IPSEC_PKT_BATCH, last_ok);
++		pr_info("knod_ipsec: %s\n", knod_ipsec_last_kat_detail);
++	}
++	return failed;
++}
++
++static int knod_ipsec_run_kat(void)
++{
++	struct knod_ipsec_priv *priv = ipsec_priv;
++	int failed = 0;
++
++	failed += knod_ipsec_run_cpu_kat();
++
++	if (priv) {
++		failed += knod_ipsec_run_shader_kat(priv);
++		if (priv->work_pool[0].param.kaddr)
++			failed += knod_ipsec_run_crypto_kat(priv);
 +		else
-+			return knod_bpf_map_hash_get_next_key(offmap, key,
-+							      nkey);
++			pr_info("knod_ipsec: crypto-kat SKIPPED (NOD not attached)\n");
++	} else {
++		scnprintf(knod_ipsec_last_kat_detail,
++			  sizeof(knod_ipsec_last_kat_detail),
++			  "shader-dispatch SKIPPED (priv not initialized)");
 +	}
 +
-+	return 0;
++	knod_ipsec_last_kat_result = failed;
++	return failed;
 +}
 +
-+static int knod_bpf_map_lookup_elem(struct bpf_offloaded_map *offmap,
-+				       void *key, void *value)
++static void knod_ipsec_stats_sum(struct knod_ipsec_priv *priv,
++				 struct knod_ipsec_stats *dst)
 +{
-+	return __knod_bpf_map_lookup_elem(offmap, key, value);
-+}
++	int cpu;
 +
-+static int knod_bpf_map_update_elem(struct bpf_offloaded_map *offmap,
-+				    void *key, void *value, u64 flags)
-+{
-+	return __knod_bpf_map_update_elem(offmap, key, value, flags);
-+}
++	memset(dst, 0, sizeof(*dst));
++	if (!priv)
++		return;
 +
-+static int knod_bpf_map_delete_elem(struct bpf_offloaded_map *offmap, void *key)
-+{
-+	return __knod_bpf_map_delete_elem(offmap, key);
-+}
++	for_each_possible_cpu(cpu) {
++		struct knod_ipsec_stats *s = per_cpu_ptr(priv->stats, cpu);
 +
-+static const struct bpf_map_dev_ops knod_bpf_map_ops = {
-+	.map_get_next_key       = knod_bpf_map_get_next_key,
-+	.map_lookup_elem        = knod_bpf_map_lookup_elem,
-+	.map_update_elem        = knod_bpf_map_update_elem,
-+	.map_delete_elem        = knod_bpf_map_delete_elem,
-+};
-+
-+static int knod_bpf_map_alloc(struct knod_dev *knodev,
-+			      struct bpf_offloaded_map *offmap)
-+{
-+	int err;
-+
-+	if (offmap->map.map_type != BPF_MAP_TYPE_ARRAY &&
-+	    offmap->map.map_type != BPF_MAP_TYPE_HASH &&
-+	    offmap->map.map_type != BPF_MAP_TYPE_PERCPU_ARRAY) {
-+		knod_jit_dbg(" unsupported map type: %d\n",
-+			offmap->map.map_type);
-+		return -EOPNOTSUPP;
-+	}
-+
-+	err = __knod_bpf_map_alloc(knodev, offmap);
-+	if (err) {
-+		knod_jit_dbg(" err = %d\n", err);
-+		return err;
-+	}
-+
-+	offmap->dev_ops = &knod_bpf_map_ops;
-+	return 0;
-+}
-+
-+static int knod_bpf_xdp_install(struct knod_dev *knodev,
-+				struct netdev_bpf *bpf)
-+{
-+	int err = 0;
-+
-+	ASSERT_RTNL();
-+
-+	switch (bpf->command) {
-+	case XDP_SETUP_PROG:
-+		WARN_ON_ONCE(1);
-+		break;
-+	case XDP_SETUP_PROG_HW:
-+		err = knod_bpf_setup_prog_hw_checks(knodev, bpf);
-+		if (err)
-+			return err;
-+
-+		err = knod_bpf_xdp_set_prog(knodev, bpf);
-+		break;
-+	case BPF_OFFLOAD_MAP_ALLOC:
-+		err = knod_bpf_map_alloc(knodev, bpf->offmap);
-+		break;
-+	case BPF_OFFLOAD_MAP_FREE:
-+		knod_bpf_map_free(knodev, bpf->offmap);
-+		break;
-+	default:
-+		knod_jit_dbg(" bpf->command = %d\n", bpf->command);
-+		err = -EINVAL;
-+		break;
-+	}
-+
-+	return err;
-+}
-+
-+static inline int bpf_debugfs_insn(struct knod_bpf_priv *priv,
-+				   struct knod_insn_meta *meta,
-+				   struct seq_file *m,
-+				   int insn_idx)
-+{
-+	struct amdgcn_insn *insn = &meta->amdgpu_insn[insn_idx];
-+
-+	if (priv->isa_version == 10)
-+		gfx10_debugfs_insn(insn, m);
-+	else if (priv->isa_version == 9)
-+		gfx9_debugfs_insn(insn, m);
-+	else
-+		WARN_ON_ONCE(1);
-+
-+	return insn->size;
-+}
-+
-+/*
-+ * Print one disassembled GPU instruction at @offset, then drop the disasm's
-+ * trailing newline and append @tag as a right-hand comment aligned to a fixed
-+ * column (tabs expand to 8) so the origin lines up regardless of mnemonic
-+ * width.  Returns the instruction size in dwords.
-+ */
-+static int bpf_debugfs_insn_tagged(struct knod_bpf_priv *priv,
-+				   struct knod_insn_meta *meta,
-+				   struct seq_file *m, int j,
-+				   int offset, const char *tag)
-+{
-+	size_t col, p, line_start = m->count;
-+	int sz;
-+
-+	seq_printf(m, "%d:\t", offset);
-+	sz = bpf_debugfs_insn(priv, meta, m, j);
-+	if (seq_has_overflowed(m))
-+		return sz;
-+
-+	if (m->count > line_start && m->buf[m->count - 1] == '\n')
-+		m->count--;
-+	col = 0;
-+	for (p = line_start; p < m->count; p++)
-+		col = m->buf[p] == '\t' ? (col + 8) & ~(size_t)7 : col + 1;
-+	while (col < 96) {
-+		seq_putc(m, ' ');
-+		col++;
-+	}
-+	seq_printf(m, " ; %s\n", tag);
-+
-+	return sz;
-+}
-+
-+/*
-+ * Print the instructions a second time, re-sorted into BPF source order so the
-+ * dump reads like the program.  The offsets are the real (reordered) GPU
-+ * offsets, so they appear out of sequence - that shows where the reorder
-+ * placed each block.  Synthetic jumps have no BPF source insn and are last.
-+ */
-+static void bpf_insn_show_bpf_order(struct knod_bpf_priv *priv,
-+				    struct seq_file *m)
-+{
-+	struct knod_insn_meta *meta;
-+	int idx, max_idx = -1, off2, i;
-+	bool synth_hdr = false;
-+	char tag[24];
-+
-+	seq_puts(m, "===[INSTRUCTIONS (bpf order)]===\n");
-+
-+	list_for_each_entry(meta, &priv->knod_prog->insns, l)
-+		if (meta->bpf_insn_idx > max_idx)
-+			max_idx = meta->bpf_insn_idx;
-+
-+	for (idx = 0; idx <= max_idx; idx++) {
-+		list_for_each_entry(meta, &priv->knod_prog->insns, l) {
-+			if (meta->bpf_insn_idx != idx || !meta->amdgpu_insns)
-+				continue;
-+			scnprintf(tag, sizeof(tag), "bpf#%d", idx);
-+			off2 = meta->amdgpu_insn_idx;
-+			for (i = 0; i < meta->amdgpu_insns; i++)
-+				off2 += bpf_debugfs_insn_tagged(priv, meta, m,
-+								i, off2, tag);
-+		}
-+	}
-+
-+	list_for_each_entry(meta, &priv->knod_prog->insns, l) {
-+		if (meta->bpf_insn_idx >= 0 || !meta->amdgpu_insns)
-+			continue;
-+		if (!synth_hdr) {
-+			seq_puts(m, "  [synthetic jumps]\n");
-+			synth_hdr = true;
-+		}
-+		scnprintf(tag, sizeof(tag), "synth JA->#%d",
-+			  meta->jmp_dst ? meta->jmp_dst->bpf_insn_idx : -1);
-+		off2 = meta->amdgpu_insn_idx;
-+		for (i = 0; i < meta->amdgpu_insns; i++)
-+			off2 += bpf_debugfs_insn_tagged(priv, meta, m,
-+							i, off2, tag);
++		dst->rx_packets		+= s->rx_packets;
++		dst->rx_bytes		+= s->rx_bytes;
++		dst->rx_dispatches	+= s->rx_dispatches;
++		dst->rx_batch_total	+= s->rx_batch_total;
++		if (s->rx_batch_max > dst->rx_batch_max)
++			dst->rx_batch_max = s->rx_batch_max;
++		dst->rx_sdma_copies_total += s->rx_sdma_copies_total;
++		dst->rx_sdma_bytes_total  += s->rx_sdma_bytes_total;
++		if (s->rx_sdma_copies_max > dst->rx_sdma_copies_max)
++			dst->rx_sdma_copies_max = s->rx_sdma_copies_max;
++		dst->rx_drop_icv	+= s->rx_drop_icv;
++		dst->rx_drop_replay	+= s->rx_drop_replay;
++		dst->rx_drop_no_sa	+= s->rx_drop_no_sa;
++		dst->rx_drop_malformed	+= s->rx_drop_malformed;
++		dst->rx_drop_desc_full	+= s->rx_drop_desc_full;
++		dst->rx_drop_sdma_full	+= s->rx_drop_sdma_full;
++		dst->rx_build_ns	+= s->rx_build_ns;
++		dst->rx_gpu_ns		+= s->rx_gpu_ns;
++		dst->rx_sdma_ns		+= s->rx_sdma_ns;
++		dst->rx_finalise_ns	+= s->rx_finalise_ns;
++		dst->rx_total_ns	+= s->rx_total_ns;
++		dst->rx_idle_ns		+= s->rx_idle_ns;
++		dst->sa_add		+= s->sa_add;
++		dst->sa_del		+= s->sa_del;
++		dst->sa_rekey		+= s->sa_rekey;
++		dst->drain_calls	+= s->drain_calls;
++		dst->drain_found	+= s->drain_found;
++		dst->drain_delivered	+= s->drain_delivered;
++		dst->drain_alloc_ns	+= s->drain_alloc_ns;
++		dst->drain_copy_ns	+= s->drain_copy_ns;
++		dst->drain_proto_ns	+= s->drain_proto_ns;
++		dst->drain_gro_ns	+= s->drain_gro_ns;
++		dst->drain_total_ns	+= s->drain_total_ns;
++		dst->drain_zc_ok	+= s->drain_zc_ok;
++		dst->drain_zc_fallback	+= s->drain_zc_fallback;
++		dst->finish_produced	+= s->finish_produced;
++		dst->rx_peek_total	+= s->rx_peek_total;
++		dst->rx_submit_fail	+= s->rx_submit_fail;
 +	}
 +}
 +
-+static int bpf_insn_show(struct seq_file *m, void *v)
++static int knod_ipsec_stats_show(struct seq_file *s, void *v)
 +{
-+	struct knod_bpf_priv *priv = (struct knod_bpf_priv *)m->private;
-+	struct knod_insn_meta *meta;
-+	struct knod_prog *kp;
-+	int i, insn_idx = 0;
-+	bool have_prog;
++	struct knod_ipsec_priv *priv = s->private;
++	struct knod_ipsec_stats tot;
++	int i;
 +
 +	if (!priv)
-+		return 0;
++		return -ENODEV;
 +
-+	/*
-+	 * Show the kernel the GPU actually dispatches: the XDP prog when one is
-+	 * attached, otherwise the retained pass-through kernel.
-+	 */
-+	have_prog = READ_ONCE(priv->prog);
-+	if (have_prog) {
-+		kp = priv->knod_prog;
-+	} else {
-+		kp = priv->pass_knod_prog;
-+		seq_puts(m, "no XDP prog attached -- pass-through kernel:\n");
++	knod_ipsec_stats_sum(priv, &tot);
++
++	seq_printf(s, "stats_enabled  : %d\n",
++		   static_branch_unlikely(&ipsec_stats_enabled_key) ? 1 : 0);
++	seq_puts(s, "== RX ==\n");
++	seq_printf(s, "rx_packets     : %llu\n", tot.rx_packets);
++	seq_printf(s, "rx_bytes       : %llu\n", tot.rx_bytes);
++	seq_printf(s, "rx_dispatches  : %llu\n", tot.rx_dispatches);
++	seq_printf(s, "rx_batch_total : %llu\n", tot.rx_batch_total);
++	seq_printf(s, "rx_batch_max   : %llu\n", tot.rx_batch_max);
++	if (tot.rx_dispatches)
++		seq_printf(s, "rx_batch_avg   : %llu\n",
++			   tot.rx_batch_total / tot.rx_dispatches);
++	seq_printf(s, "rx_sdma_copies : %llu\n", tot.rx_sdma_copies_total);
++	seq_printf(s, "rx_sdma_cp_max : %llu\n", tot.rx_sdma_copies_max);
++	seq_printf(s, "rx_sdma_bytes  : %llu\n", tot.rx_sdma_bytes_total);
++	if (tot.rx_dispatches) {
++		seq_printf(s, "rx_sdma_cp_avg : %llu\n",
++			   tot.rx_sdma_copies_total / tot.rx_dispatches);
++		seq_printf(s, "rx_sdma_by_avg : %llu\n",
++			   tot.rx_sdma_bytes_total / tot.rx_dispatches);
 +	}
-+	if (!kp)
-+		return 0;
++	if (tot.rx_sdma_copies_total)
++		seq_printf(s, "rx_sdma_by_per : %llu\n",
++			   tot.rx_sdma_bytes_total / tot.rx_sdma_copies_total);
++	seq_printf(s, "rx_drop_icv    : %llu\n", tot.rx_drop_icv);
++	seq_printf(s, "rx_drop_replay : %llu\n", tot.rx_drop_replay);
++	seq_printf(s, "rx_drop_no_sa  : %llu\n", tot.rx_drop_no_sa);
++	seq_printf(s, "rx_drop_malform: %llu\n", tot.rx_drop_malformed);
++	seq_printf(s, "rx_drop_descful: %llu\n", tot.rx_drop_desc_full);
++	seq_printf(s, "rx_drop_sdmaful: %llu\n", tot.rx_drop_sdma_full);
++	seq_puts(s, "-- RX timing (ns, summed across dispatches) --\n");
++	seq_printf(s, "rx_build_ns    : %llu\n", tot.rx_build_ns);
++	seq_printf(s, "rx_gpu_ns      : %llu\n", tot.rx_gpu_ns);
++	seq_printf(s, "rx_sdma_ns     : %llu\n", tot.rx_sdma_ns);
++	seq_printf(s, "rx_finalise_ns : %llu\n", tot.rx_finalise_ns);
++	seq_printf(s, "rx_total_ns    : %llu\n", tot.rx_total_ns);
++	seq_printf(s, "rx_idle_ns     : %llu\n", tot.rx_idle_ns);
++	if (tot.rx_dispatches) {
++		seq_printf(s, "rx_build_avg_ns  : %llu\n",
++			   tot.rx_build_ns / tot.rx_dispatches);
++		seq_printf(s, "rx_gpu_avg_ns    : %llu\n",
++			   tot.rx_gpu_ns / tot.rx_dispatches);
++		seq_printf(s, "rx_sdma_avg_ns   : %llu\n",
++			   tot.rx_sdma_ns / tot.rx_dispatches);
++		seq_printf(s, "rx_finalise_avg_ns: %llu\n",
++			   tot.rx_finalise_ns / tot.rx_dispatches);
++		seq_printf(s, "rx_total_avg_ns  : %llu\n",
++			   tot.rx_total_ns / tot.rx_dispatches);
++	}
++	seq_puts(s, "== Control ==\n");
++	seq_printf(s, "sa_add         : %llu\n", tot.sa_add);
++	seq_printf(s, "sa_del         : %llu\n", tot.sa_del);
++	seq_printf(s, "sa_rekey       : %llu\n", tot.sa_rekey);
++	seq_puts(s, "== Debug ==\n");
++	seq_printf(s, "drain_calls    : %llu\n", tot.drain_calls);
++	seq_printf(s, "drain_found    : %llu\n", tot.drain_found);
++	seq_printf(s, "drain_delivered: %llu\n", tot.drain_delivered);
++	seq_puts(s, "-- drain_rx timing (ns, summed) --\n");
++	seq_printf(s, "drain_alloc_ns : %llu\n", tot.drain_alloc_ns);
++	seq_printf(s, "drain_copy_ns  : %llu\n", tot.drain_copy_ns);
++	seq_printf(s, "drain_proto_ns : %llu\n", tot.drain_proto_ns);
++	seq_printf(s, "drain_gro_ns   : %llu\n", tot.drain_gro_ns);
++	seq_printf(s, "drain_total_ns : %llu\n", tot.drain_total_ns);
++	if (tot.drain_delivered) {
++		seq_printf(s, "drain_alloc_per: %llu\n",
++			   tot.drain_alloc_ns / tot.drain_delivered);
++		seq_printf(s, "drain_copy_per : %llu\n",
++			   tot.drain_copy_ns / tot.drain_delivered);
++		seq_printf(s, "drain_proto_per: %llu\n",
++			   tot.drain_proto_ns / tot.drain_delivered);
++		seq_printf(s, "drain_gro_per  : %llu\n",
++			   tot.drain_gro_ns / tot.drain_delivered);
++		seq_printf(s, "drain_total_per: %llu\n",
++			   tot.drain_total_ns / tot.drain_delivered);
++	}
++	if (tot.drain_calls)
++		seq_printf(s, "drain_pkts_call: %llu\n",
++			   tot.drain_delivered / tot.drain_calls);
++	seq_printf(s, "finish_produced: %llu\n", tot.finish_produced);
++	seq_printf(s, "rx_peek_total  : %llu\n", tot.rx_peek_total);
++	seq_printf(s, "rx_submit_fail : %llu\n", tot.rx_submit_fail);
++	seq_printf(s, "drain_zc_ok    : %llu\n", tot.drain_zc_ok);
++	seq_printf(s, "drain_zc_fallback: %llu\n", tot.drain_zc_fallback);
 +
-+	seq_puts(m, "===[PROLOGUE]===\n");
-+	list_for_each_entry(meta, &kp->pre_insns, l) {
-+		for (i = 0; i < meta->amdgpu_insns; i++) {
-+			seq_printf(m, "%d:\t", insn_idx);
-+			insn_idx += bpf_debugfs_insn(priv, meta, m, i);
++	/* Per-queue SPSC ring state - shows where bds are stuck */
++	if (priv && priv->knodev) {
++		int nr_q = priv->knodev->netdev ?
++			priv->knodev->netdev->real_num_rx_queues : 0;
++
++		if (nr_q > KNOD_SPSC_MAX)
++			nr_q = KNOD_SPSC_MAX;
++		seq_puts(s, "== SPSC per-queue ==\n");
++		for (i = 0; i < nr_q; i++) {
++			struct spsc_ring *r = &priv->knodev->wpriv[i].spsc_bds;
++
++			if (!r->slots || r->mask == 0)
++				continue;
++			/* Only show queues with non-zero activity */
++			if (r->head == 0 && r->acquired == 0 && r->tail == 0)
++				continue;
++			seq_printf(s, "  q%02d: head=%u acq=%u tail=%u (unpeek=%u inflight=%u)\n",
++				   i, r->head, r->acquired, r->tail,
++				   r->head - r->acquired,
++				   r->acquired - r->tail);
 +		}
 +	}
 +
-+	/* Emission (RPO) order - the actual GPU layout.  Each line is tagged
-+	 * with its origin BPF insn since the reorder makes this differ from the
-+	 * BPF byte order; synthetic jumps inserted by the reorder have none.
-+	 */
-+	seq_puts(m, "===[INSTRUCTIONS]===\n");
-+	list_for_each_entry(meta, &kp->insns, l) {
-+		char tag[24];
++	/* Dispatcher */
++	if (priv) {
++		int d, n_running = 0;
 +
-+		if (meta->bpf_insn_idx < 0)
-+			scnprintf(tag, sizeof(tag), "synth JA->#%d",
-+				  meta->jmp_dst ?
-+				  meta->jmp_dst->bpf_insn_idx : -1);
-+		else
-+			scnprintf(tag, sizeof(tag), "bpf#%d",
-+				  meta->bpf_insn_idx);
++		for (d = 0; d < priv->nr_dispatchers; d++)
++			if (priv->disp[d].kthread)
++				n_running++;
++		seq_printf(s, "== Dispatchers ==\n  running=%d/%d\n",
++			   n_running, priv->nr_dispatchers);
++		for (d = 0; d < priv->nr_dispatchers; d++) {
++			struct knod_ipsec_dispatcher *disp = &priv->disp[d];
 +
-+		for (i = 0; i < meta->amdgpu_insns; i++)
-+			insn_idx += bpf_debugfs_insn_tagged(priv, meta, m, i,
-+							    insn_idx, tag);
-+	}
-+
-+	seq_puts(m, "===[EPILOG]===\n");
-+	list_for_each_entry(meta, &kp->post_insns, l) {
-+		for (i = 0; i < meta->amdgpu_insns; i++) {
-+			seq_printf(m, "%d:\t", insn_idx);
-+			insn_idx += bpf_debugfs_insn(priv, meta, m, i);
++			seq_printf(s,
++				"  disp[%d]: kaql=%d work=[%d..%d) rxq=[%d..%d)\n",
++				d, disp->kaql_idx,
++				disp->work_first,
++				disp->work_first + disp->work_count,
++				disp->rxq_first,
++				disp->rxq_first + disp->rxq_count);
 +		}
 +	}
-+
-+	if (have_prog)
-+		bpf_insn_show_bpf_order(priv, m);
 +
 +	return 0;
 +}
 +
-+static int bpf_insn_open(struct inode *inode, struct file *file)
++static int knod_ipsec_stats_open(struct inode *inode, struct file *file)
 +{
-+	return single_open(file, bpf_insn_show, inode->i_private);
++	return single_open(file, knod_ipsec_stats_show, inode->i_private);
 +}
 +
-+static const struct file_operations bpf_insn_fops = {
++static const struct file_operations knod_ipsec_stats_fops = {
 +	.owner   = THIS_MODULE,
-+	.open    = bpf_insn_open,
++	.open    = knod_ipsec_stats_open,
 +	.read    = seq_read,
 +	.llseek  = seq_lseek,
 +	.release = single_release,
 +};
 +
-+static const char *knod_branch_type_str(enum knod_branch_type type)
++static ssize_t knod_ipsec_stats_enable_write(struct file *file,
++					     const char __user *ubuf,
++					     size_t len, loff_t *ppos)
 +{
-+	switch (type) {
-+	case KNOD_BR_NONE:		return "NONE";
-+	case KNOD_BR_DIRECT_EXIT:	return "DIRECT_EXIT";
-+	case KNOD_BR_FORWARD_SKIP:	return "FORWARD_SKIP";
-+	case KNOD_BR_FORWARD_GOTO:	return "FORWARD_GOTO";
-+	default:			return "UNKNOWN";
-+	}
-+}
++	char buf[4] = {};
++	int val;
 +
-+static int bpf_cfg_show(struct seq_file *m, void *v)
-+{
-+	struct knod_bpf_priv *priv = (struct knod_bpf_priv *)m->private;
-+	struct knod_insn_meta *meta;
-+
-+	if (!priv || !priv->knod_prog)
-+		return 0;
-+
-+	seq_puts(m, "===[STRUCTURIZED CFG]===\n");
-+	seq_printf(m, "exec_save_pairs_used: %u\n",
-+		   priv->knod_prog->exec_save_pairs_used);
-+	seq_printf(m, "done_mask: s[%d:%d]\n",
-+		   priv->knod_prog->done_mask_sreg,
-+		   priv->knod_prog->done_mask_sreg + 1);
-+	seq_printf(m, "initial_exec: s[%d:%d]\n",
-+		   priv->knod_prog->initial_exec_sreg,
-+		   priv->knod_prog->initial_exec_sreg + 1);
-+	seq_puts(m, "\n");
-+
-+	seq_printf(m, "%-6s %-8s %-14s %-10s %-10s %-8s\n",
-+		   "bpf#", "opcode", "branch_type", "exec_save", "merge_pt",
-+		   "is_merge");
-+
-+	list_for_each_entry(meta, &priv->knod_prog->insns, l) {
-+		bool is_jmp = is_mbpf_jmp(meta);
-+
-+		if (!is_jmp && !meta->is_merge_point)
-+			continue;
-+
-+		seq_printf(m, "%-6d 0x%02x     ",
-+			   meta->bpf_insn_idx, meta->insn.code);
-+
-+		if (meta->branch_type != KNOD_BR_NONE) {
-+			seq_printf(m, "%-14s s[%d:%d]    ",
-+				   knod_branch_type_str(meta->branch_type),
-+				   meta->exec_save_sreg,
-+				   meta->exec_save_sreg + 1);
-+			if (meta->merge_point)
-+				seq_printf(m, "%-10d ",
-+					   meta->merge_point->bpf_insn_idx);
-+			else
-+				seq_printf(m, "%-10s ", "-");
-+		} else if (is_jmp) {
-+			seq_printf(m, "%-14s %-10s %-10s ",
-+				   knod_branch_type_str(KNOD_BR_NONE),
-+				   "-", "-");
-+		} else {
-+			seq_printf(m, "%-14s %-10s %-10s ",
-+				   "", "", "");
-+		}
-+
-+		if (meta->is_merge_point) {
-+			struct knod_insn_meta *br;
-+
-+			seq_puts(m, "YES      restore:");
-+			list_for_each_entry(br, &priv->knod_prog->insns, l) {
-+				if ((br->branch_type == KNOD_BR_FORWARD_SKIP ||
-+				     br->branch_type == KNOD_BR_FORWARD_GOTO) &&
-+				    br->merge_point == meta)
-+					seq_printf(m, " s[%d:%d](from bpf#%d)",
-+						   br->exec_save_sreg,
-+						   br->exec_save_sreg + 1,
-+						   br->bpf_insn_idx);
-+			}
-+			seq_puts(m, "\n");
-+		} else {
-+			seq_puts(m, "\n");
-+		}
-+	}
-+
-+	/* Basic-block CFG from the reorder analysis (origin BPF order). */
-+	if (priv->knod_prog->bbs) {
-+		struct knod_bb *bbs = priv->knod_prog->bbs;
-+		int nb = priv->knod_prog->n_bbs;
-+		int k, s;
-+
-+		seq_printf(m, "\n[BASIC BLOCKS]  %d blocks, %d back-edge(s) -> %s\n",
-+			   nb, priv->knod_prog->n_back,
-+			   priv->knod_prog->n_back ? "HAS LOOP" : "DAG");
-+
-+		for (k = 0; k < nb; k++) {
-+			struct knod_bb *bb = &bbs[k];
-+
-+			seq_printf(m, "BB%-3d bpf#%d..#%d  rpo=%d  idom=#%d  succ={",
-+				   k, bb->leader->bpf_insn_idx,
-+				   bb->last->bpf_insn_idx, bb->rpo,
-+				   bb->idom ?
-+				   bb->idom->leader->bpf_insn_idx : -1);
-+			for (s = 0; s < bb->n_succ; s++)
-+				seq_printf(m, "%s#%d", s ? "," : "",
-+					   bb->succ[s]->leader->bpf_insn_idx);
-+			seq_printf(m, "}%s\n",
-+				   bb->loop_header ? "  LOOP_HDR" : "");
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+DEFINE_SHOW_ATTRIBUTE(bpf_cfg);
-+
-+static int knod_stats_show(struct seq_file *s, void *unused)
-+{
-+	struct knod_bpf_priv *priv = s->private;
-+	u64 p50 = 0, p99 = 0, p999 = 0, acc;
-+	struct knod_bpf_stats *stats;
-+	u64 ccnt, dcnt;
-+	int i;
-+
-+	stats = &priv->stats;
-+	ccnt = stats->completion_count;
-+	dcnt = stats->dispatch_count;
-+	seq_printf(s, "enabled:             %s\n",
-+		   static_branch_unlikely(&knod_stats_key) ? "yes" : "no");
-+
-+	seq_puts(s, "\n--- dispatch ---\n");
-+	seq_printf(s, "count:               %llu\n", dcnt);
-+	seq_printf(s, "avg_ns:              %llu\n",
-+		   dcnt ? stats->dispatch_total_ns / dcnt : 0);
-+	seq_printf(s, "max_ns:              %llu\n", stats->dispatch_max_ns);
-+	seq_printf(s, "backlogs_avg:        %llu\n",
-+		   dcnt ? stats->backlogs_total / dcnt : 0);
-+
-+	seq_puts(s, "\nbacklogs histogram:\n");
-+	for (i = 0; i < KNOD_BL_BUCKETS; i++)
-+		seq_printf(s, "  %-10s %llu\n",
-+			   bl_labels[i], stats->backlogs_hist[i]);
-+
-+	seq_puts(s, "\n--- completion ---\n");
-+	seq_printf(s, "count:               %llu\n", ccnt);
-+	seq_printf(s, "avg_ns:              %llu\n",
-+		   ccnt ? stats->completion_total_ns / ccnt : 0);
-+	seq_printf(s, "max_ns:              %llu\n",
-+		   stats->completion_max_ns);
-+
-+	seq_puts(s, "\nlatency histogram:\n");
-+	for (i = 0; i < KNOD_LAT_BUCKETS; i++)
-+		seq_printf(s, "  %-10s %llu\n",
-+			   lat_labels[i], stats->completion_hist[i]);
-+
-+	if (ccnt) {
-+		acc = 0;
-+		for (i = 0; i < KNOD_LAT_BUCKETS; i++) {
-+			acc += stats->completion_hist[i];
-+			if (!p50 && acc * 1000 >= ccnt * 500)
-+				p50 = i;
-+			if (!p99 && acc * 1000 >= ccnt * 990)
-+				p99 = i;
-+			if (!p999 && acc * 1000 >= ccnt * 999)
-+				p999 = i;
-+		}
-+		seq_printf(s, "\np50:  %s\n", lat_labels[p50]);
-+		seq_printf(s, "p99:  %s\n", lat_labels[p99]);
-+		seq_printf(s, "p999: %s\n", lat_labels[p999]);
-+	}
-+
-+	seq_puts(s, "\n--- decode_act ---\n");
-+	seq_printf(s, "count:               %llu\n", stats->decode_act_count);
-+	seq_printf(s, "avg_ns:              %llu\n",
-+		   stats->decode_act_count ?
-+		   stats->decode_act_total_ns / stats->decode_act_count : 0);
-+	seq_printf(s, "max_ns:              %llu\n", stats->decode_act_max_ns);
-+
-+	return 0;
-+}
-+
-+DEFINE_SHOW_ATTRIBUTE(knod_stats);
-+
-+static ssize_t knod_stats_enable_write(struct file *file,
-+				       const char __user *buf,
-+				       size_t count, loff_t *ppos)
-+{
-+	bool val;
-+
-+	if (kstrtobool_from_user(buf, count, &val))
++	if (len == 0 || len > sizeof(buf) - 1)
++		return -EINVAL;
++	if (copy_from_user(buf, ubuf, len))
++		return -EFAULT;
++	if (kstrtoint(strim(buf), 0, &val))
 +		return -EINVAL;
 +
 +	if (val)
-+		static_branch_enable(&knod_stats_key);
++		static_branch_enable(&ipsec_stats_enabled_key);
 +	else
-+		static_branch_disable(&knod_stats_key);
-+
-+	return count;
++		static_branch_disable(&ipsec_stats_enabled_key);
++	return len;
 +}
 +
-+static ssize_t knod_stats_enable_read(struct file *file,
-+				      char __user *buf,
-+				      size_t count, loff_t *ppos)
++static int knod_ipsec_stats_enable_show(struct seq_file *s, void *v)
 +{
-+	char tmp[4];
-+	int len;
-+
-+	len = scnprintf(tmp, sizeof(tmp), "%d\n",
-+			static_branch_unlikely(&knod_stats_key) ? 1 : 0);
-+
-+	return simple_read_from_buffer(buf, count, ppos, tmp, len);
++	seq_printf(s, "%d\n",
++		   static_branch_unlikely(&ipsec_stats_enabled_key) ? 1 : 0);
++	return 0;
 +}
 +
-+static const struct file_operations knod_stats_enable_fops = {
-+	.owner = THIS_MODULE,
-+	.read  = knod_stats_enable_read,
-+	.write = knod_stats_enable_write,
++static int knod_ipsec_stats_enable_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, knod_ipsec_stats_enable_show, NULL);
++}
++
++static const struct file_operations knod_ipsec_stats_enable_fops = {
++	.owner   = THIS_MODULE,
++	.open    = knod_ipsec_stats_enable_open,
++	.read    = seq_read,
++	.write   = knod_ipsec_stats_enable_write,
++	.llseek  = seq_lseek,
++	.release = single_release,
 +};
 +
-+static ssize_t knod_stats_reset_write(struct file *file,
-+		const char __user *buf,
-+		size_t count, loff_t *ppos)
++static ssize_t knod_ipsec_poll_write(struct file *file,
++				     const char __user *ubuf,
++				     size_t len, loff_t *ppos)
 +{
-+	struct knod_bpf_priv *priv = file->private_data;
++	char buf[4] = {};
++	int val;
 +
-+	memset(&priv->stats, 0, sizeof(priv->stats));
-+	return count;
++	if (len == 0 || len > sizeof(buf) - 1)
++		return -EINVAL;
++	if (copy_from_user(buf, ubuf, len))
++		return -EFAULT;
++	if (kstrtoint(strim(buf), 0, &val))
++		return -EINVAL;
++
++	WRITE_ONCE(knod_ipsec_poll_mode, !!val);
++	return len;
 +}
 +
-+static const struct file_operations knod_stats_reset_fops = {
++static int knod_ipsec_poll_show(struct seq_file *s, void *v)
++{
++	seq_printf(s, "%d\n", READ_ONCE(knod_ipsec_poll_mode) ? 1 : 0);
++	return 0;
++}
++
++static int knod_ipsec_poll_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, knod_ipsec_poll_show, NULL);
++}
++
++static const struct file_operations knod_ipsec_poll_fops = {
++	.owner   = THIS_MODULE,
++	.open    = knod_ipsec_poll_open,
++	.read    = seq_read,
++	.write   = knod_ipsec_poll_write,
++	.llseek  = seq_lseek,
++	.release = single_release,
++};
++
++static ssize_t knod_ipsec_pkt_batch_write(struct file *file,
++					  const char __user *ubuf,
++					  size_t len, loff_t *ppos)
++{
++	struct knod_ipsec_priv *priv = file_inode(file)->i_private;
++	char buf[8] = {};
++	u32 val;
++
++	if (!priv)
++		return -ENODEV;
++	if (len == 0 || len > sizeof(buf) - 1)
++		return -EINVAL;
++	if (copy_from_user(buf, ubuf, len))
++		return -EFAULT;
++	if (kstrtou32(strim(buf), 0, &val))
++		return -EINVAL;
++	if (val < 1 || val > KNOD_IPSEC_PKT_BATCH)
++		return -ERANGE;
++
++	WRITE_ONCE(priv->pkt_batch, val);
++	return len;
++}
++
++static int knod_ipsec_pkt_batch_show(struct seq_file *s, void *v)
++{
++	struct knod_ipsec_priv *priv = s->private;
++
++	if (!priv)
++		return -ENODEV;
++	seq_printf(s, "%u\n", READ_ONCE(priv->pkt_batch));
++	return 0;
++}
++
++static int knod_ipsec_pkt_batch_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, knod_ipsec_pkt_batch_show, inode->i_private);
++}
++
++static const struct file_operations knod_ipsec_pkt_batch_fops = {
++	.owner   = THIS_MODULE,
++	.open    = knod_ipsec_pkt_batch_open,
++	.read    = seq_read,
++	.write   = knod_ipsec_pkt_batch_write,
++	.llseek  = seq_lseek,
++	.release = single_release,
++};
++
++static ssize_t knod_ipsec_stats_reset_write(struct file *file,
++					    const char __user *ubuf,
++					    size_t len, loff_t *ppos)
++{
++	struct knod_ipsec_priv *priv = file_inode(file)->i_private;
++	int cpu;
++
++	if (!priv)
++		return -ENODEV;
++
++	for_each_possible_cpu(cpu) {
++		struct knod_ipsec_stats *s = per_cpu_ptr(priv->stats, cpu);
++		u64 sa_add = s->sa_add, sa_del = s->sa_del;
++		u64 sa_rekey = s->sa_rekey;
++
++		memset(s, 0, sizeof(*s));
++		s->sa_add = sa_add;
++		s->sa_del = sa_del;
++		s->sa_rekey = sa_rekey;
++	}
++	return len;
++}
++
++static const struct file_operations knod_ipsec_stats_reset_fops = {
 +	.owner = THIS_MODULE,
 +	.open  = simple_open,
-+	.write = knod_stats_reset_write,
++	.write = knod_ipsec_stats_reset_write,
 +};
 +
-+static int knod_debugfs_init(struct knod_bpf_priv *priv)
++static int knod_ipsec_sa_table_show(struct seq_file *s, void *v)
 +{
-+	struct dentry *dir = priv->knod->debug_dir;
-+	struct dentry *bpf_dir;
++	struct knod_ipsec_priv *priv = s->private;
++	int i, used = 0;
 +
-+	if (!dir)
-+		return -ENOENT;
++	if (!priv)
++		return -ENODEV;
 +
-+	bpf_dir = debugfs_create_dir("bpf", dir);
-+	if (IS_ERR(bpf_dir))
-+		return PTR_ERR(bpf_dir);
++	mutex_lock(&priv->slot_lock);
++	for (i = 0; i < KNOD_IPSEC_NR_SA; i++) {
++		struct knod_ipsec_sa_slot *slot = &priv->slots[i];
 +
-+	priv->debug_dir = bpf_dir;
++		if (!slot->active)
++			continue;
++		seq_printf(s, "slot[%3d] spi=0x%08x version=%u\n",
++			   i, slot->spi, slot->version);
++		used++;
++	}
++	mutex_unlock(&priv->slot_lock);
++	seq_printf(s, "used: %d / %d\n", used, KNOD_IPSEC_NR_SA);
++	return 0;
++}
 +
-+	debugfs_create_file("insn", 0644,
-+			    bpf_dir, priv, &bpf_insn_fops);
-+	debugfs_create_file("cfg", 0444, bpf_dir, priv,
-+			    &bpf_cfg_fops);
-+	debugfs_create_file("stats", 0444, bpf_dir, priv,
-+			    &knod_stats_fops);
-+	debugfs_create_file("stats_enable", 0644, bpf_dir, priv,
-+			    &knod_stats_enable_fops);
-+	debugfs_create_file("stats_reset", 0200, bpf_dir, priv,
-+			    &knod_stats_reset_fops);
-+	debugfs_create_bool("poll_mode", 0644, bpf_dir, &knod_bpf_poll_mode);
-+	debugfs_create_u32("dispatch_delay_us", 0644, bpf_dir,
-+			   &knod_bpf_dispatch_delay_us);
++static int knod_ipsec_sa_table_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, knod_ipsec_sa_table_show, inode->i_private);
++}
++
++static const struct file_operations knod_ipsec_sa_table_fops = {
++	.owner   = THIS_MODULE,
++	.open    = knod_ipsec_sa_table_open,
++	.read    = seq_read,
++	.llseek  = seq_lseek,
++	.release = single_release,
++};
++
++/*
++ * Disassembly goes through the shared amdgcn_disasm_raw() (knod_amdgpu_insn.h):
++ * it classifies each raw instruction into a struct amdgcn_insn and prints it
++ * via the complete-opnames disassembler, so every feature shares one decoder
++ * instead of the old per-feature hand-rolled hex re-parsers.
++ */
++static int knod_ipsec_insn_show(struct seq_file *s, void *v)
++{
++	struct knod_ipsec_priv *priv = s->private;
++	struct kernel_descriptor *kd;
++	u32 *code;
++	int ndw, off;
++
++	if (!priv || !priv->knod || !priv->knod->kernels[0])
++		return -ENODEV;
++
++	kd = priv->knod->kernels[0]->kaddr;
++	code = priv->knod->kernels[0]->kaddr +
++	       kd->kernel_code_entry_byte_offset;
++	ndw = max_t(int, 1, (int)priv->shader_size / 4);
++
++	seq_printf(s, "=== IPsec fused RX shader (GFX%d, %zu bytes, %d dwords) ===\n",
++		   priv->isa_version, priv->shader_size, ndw);
++	seq_printf(s, "kernel_code_gaddr: 0x%llx\n\n",
++		   priv->knod->kernels[0]->gaddr +
++		   kd->kernel_code_entry_byte_offset);
++
++	off = 0;
++	while (off < ndw) {
++		int adv;
++
++		seq_printf(s, "%04x: ", off * 4);
++		adv = amdgcn_disasm_raw(priv->isa_version, &code[off],
++					ndw - off, s);
++		if (adv <= 0)
++			break;
++		off += adv;
++	}
++
++	if (ndw == 1 && code[0] == 0xBF810000)
++		seq_puts(s, "\n(empty shader: single s_endpgm)\n");
 +
 +	return 0;
 +}
 +
-+static void knod_debugfs_cleanup(struct knod_bpf_priv *priv)
++static int knod_ipsec_insn_open(struct inode *inode, struct file *file)
 +{
-+	if (!priv->debug_dir)
++	return single_open(file, knod_ipsec_insn_show, inode->i_private);
++}
++
++static const struct file_operations knod_ipsec_insn_fops = {
++	.owner   = THIS_MODULE,
++	.open    = knod_ipsec_insn_open,
++	.read    = seq_read,
++	.llseek  = seq_lseek,
++	.release = single_release,
++};
++
++static ssize_t knod_ipsec_selftest_write(struct file *file,
++					 const char __user *ubuf,
++					 size_t len, loff_t *ppos)
++{
++	char buf[4] = {};
++	int val;
++
++	if (len == 0 || len > sizeof(buf) - 1)
++		return -EINVAL;
++	if (copy_from_user(buf, ubuf, len))
++		return -EFAULT;
++	if (kstrtoint(strim(buf), 0, &val))
++		return -EINVAL;
++	if (val)
++		knod_ipsec_run_kat();
++	return len;
++}
++
++static int knod_ipsec_selftest_show(struct seq_file *s, void *v)
++{
++	seq_puts(s, "write 1 to trigger in-kernel KAT\n");
++	seq_puts(s, "  cpu layer   : H = AES_K(0^128) for aes128/192/256, ");
++	seq_printf(s, "%d random keys each\n", KNOD_IPSEC_KAT_RAND_ROUNDS);
++	seq_printf(s, "  gpu layer   : fused-shader dispatch at batch sizes 1/8/32/%d\n",
++		   KNOD_IPSEC_PKT_BATCH);
++	seq_puts(s, "  crypto layer: AES-128-GCM full decrypt+ICV verify via GPU shader\n");
++	seq_puts(s, "  tx-crypto   : AES-128-GCM full encrypt+ICV generate via GPU shader\n");
++	if (knod_ipsec_last_kat_result < 0) {
++		seq_puts(s, "last run: never\n");
++	} else if (knod_ipsec_last_kat_result == 0) {
++		seq_puts(s, "last run: PASS\n");
++	} else {
++		seq_printf(s, "last run: FAIL (%d checks failed)\n",
++			   knod_ipsec_last_kat_result);
++	}
++	if (knod_ipsec_last_kat_detail[0])
++		seq_printf(s, "detail: %s\n", knod_ipsec_last_kat_detail);
++	return 0;
++}
++
++static int knod_ipsec_selftest_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, knod_ipsec_selftest_show, NULL);
++}
++
++static const struct file_operations knod_ipsec_selftest_fops = {
++	.owner   = THIS_MODULE,
++	.open    = knod_ipsec_selftest_open,
++	.read    = seq_read,
++	.write   = knod_ipsec_selftest_write,
++	.llseek  = seq_lseek,
++	.release = single_release,
++};
++
++/*
++ * debugfs lives under the shared knod ctx dir so IPsec files coexist
++ * with MACsec (aesgcm_selftest) and WG (wg subdir) under one tree:
++ *   /sys/kernel/debug/dri/<N>/knod/ipsec/{stats,selftest,insn,...}
++ *
++ * The knod ctx is owned by knod_init/knod_exit, so debugfs lifecycle is
++ * tied to those callbacks rather than module init/exit.
++ */
++static void knod_ipsec_debugfs_init(struct knod_ipsec_priv *priv)
++{
++	struct dentry *parent;
++
++	if (!priv || !priv->knod || !priv->knod->debug_dir)
 +		return;
 +
++	parent = debugfs_create_dir("ipsec", priv->knod->debug_dir);
++	if (IS_ERR_OR_NULL(parent))
++		return;
++	priv->debug_dir = parent;
++
++	/* Populate this module's opcode-name tables for the shared
++	 * disassembler (amdgcn_disasm_raw, used by the "insn" file). Each
++	 * feature module carries its own copy of the opnames_gfx9/10 tables
++	 * (knod_amdgpu_insn.h), so the tables must be initialised here rather
++	 * than relying on the BPF module having done it.
++	 */
++
++	debugfs_create_file("stats", 0444, parent,
++			    priv, &knod_ipsec_stats_fops);
++	debugfs_create_file("stats_enable", 0644, parent,
++			    priv, &knod_ipsec_stats_enable_fops);
++	debugfs_create_file("stats_reset", 0200, parent,
++			    priv, &knod_ipsec_stats_reset_fops);
++	debugfs_create_file("sa_table", 0444, parent,
++			    priv, &knod_ipsec_sa_table_fops);
++	debugfs_create_file("insn", 0444, parent,
++			    priv, &knod_ipsec_insn_fops);
++	debugfs_create_file("selftest", 0644, parent,
++			    priv, &knod_ipsec_selftest_fops);
++	debugfs_create_file("poll", 0644, parent,
++			    priv, &knod_ipsec_poll_fops);
++	debugfs_create_file("pkt_batch", 0644, parent,
++			    priv, &knod_ipsec_pkt_batch_fops);
++}
++
++static void knod_ipsec_debugfs_exit(struct knod_ipsec_priv *priv)
++{
++	if (!priv)
++		return;
 +	debugfs_remove_recursive(priv->debug_dir);
 +	priv->debug_dir = NULL;
 +}
 +
-+/* Called when attached or module loading time */
-+/* attach: allocate the permanent per-attach priv struct. */
-+static int knod_accel_xdp_init(struct knod_dev *knodev)
-+{
-+	struct knod_accel *accel = knodev->accel;
-+	struct knod_bpf_priv *priv;
-+
-+	priv = __knod_accel_xdp_init(accel, knodev);
-+	if (IS_ERR(priv))
-+		return PTR_ERR(priv);
-+	return 0;
-+}
-+
-+/* detach: free the permanent priv struct. */
-+static void knod_accel_xdp_exit(struct knod_dev *knodev)
-+{
-+	struct knod_accel *accel = knodev->accel;
-+	struct knod_bpf_priv *priv = accel->xdp.priv;
-+
-+	__knod_accel_xdp_exit(accel, priv);
-+}
-+
-+/*
-+ * Feature select, phase B: register the BPF offload device so user XDP
-+ * progs/maps can bind to it.  Called after ->activate() set up the GPU
-+ * buffers, while xdp_ops already points at the BPF ops.
++/* ========================================================================
++ * Policy offload - accept PACKET-mode policies so xfrm_state_find()
++ * will match our PACKET-mode SAs. No GPU-side action needed; we just
++ * return 0 to let the kernel record the offload type on the policy.
++ * ========================================================================
 + */
-+static int knod_bpf_offload_init(struct knod_dev *knodev)
++static int knod_ipsec_xdo_policy_add(struct knod_dev *knodev,
++				     struct xfrm_policy *xp,
++				     struct netlink_ext_ack *extack)
 +{
-+	struct knod_accel *accel = knodev->accel;
-+	struct knod_bpf_priv *priv = accel->xdp.priv;
-+	struct bpf_offload_dev *bpf_dev;
-+	int err;
-+
-+	bpf_dev = bpf_offload_dev_create(&knod_bpf_dev_ops, priv);
-+	err = PTR_ERR_OR_ZERO(bpf_dev);
-+	if (err)
-+		return err;
-+	err = bpf_offload_dev_netdev_register(bpf_dev, knodev->netdev);
-+	if (err) {
-+		bpf_offload_dev_destroy(bpf_dev);
-+		return err;
-+	}
-+	knod_debugfs_init(priv);
-+	accel->xdp.bpf_dev = bpf_dev;
-+	return 0;
++	return 0; /* accept unconditionally */
 +}
 +
-+/*
-+ * Feature deselect, phase 1: unregister the BPF offload device.  This
-+ * force-frees any user XDP progs/maps still bound; the map-free ndo is
-+ * routed back through accel_ops.xdp_ops->xdp_install, so the caller keeps
-+ * xdp_ops pointed at the BPF ops until this returns.
++static void knod_ipsec_xdo_policy_delete(struct knod_dev *knodev,
++					 struct xfrm_policy *xp)
++{
++	/* nothing to clean up on the GPU side */
++}
++
++static void knod_ipsec_xdo_policy_free(struct knod_dev *knodev,
++				       struct xfrm_policy *xp)
++{
++	/* nothing to free */
++}
++
++/* ========================================================================
++ * knod_accel_ipsec_ops registration
++ * ========================================================================
 + */
-+static void knod_bpf_offload_uninit(struct knod_dev *knodev)
-+{
-+	struct knod_accel *accel = knodev->accel;
-+	struct knod_bpf_priv *priv = accel->xdp.priv;
 +
-+	knod_debugfs_cleanup(priv);
-+	bpf_offload_dev_netdev_unregister(accel->xdp.bpf_dev, knodev->netdev);
-+	bpf_offload_dev_destroy(accel->xdp.bpf_dev);
-+	accel->xdp.bpf_dev = NULL;
-+}
-+
-+struct knod_accel_xdp_ops accel_xdp_ops = {
-+	/* attach/detach: permanent priv struct */
-+	.init = &knod_accel_xdp_init,
-+	.exit = &knod_accel_xdp_exit,
-+	/* feature select: GPU compute buffers (A) + offload dev (B) */
-+	.activate = &knod_bpf_activate,
-+	.deactivate = &knod_bpf_deactivate,
-+	.busy = &knod_bpf_busy,
-+	.xdp_offload_init = &knod_bpf_offload_init,
-+	.xdp_offload_uninit = &knod_bpf_offload_uninit,
-+	/* interface up/down (or feature switch): worker + GPU drain */
-+	.start = &knod_bpf_start,
-+	.stop = &knod_bpf_stop,
-+	.xdp_install = &knod_bpf_xdp_install,
++static struct knod_accel_ipsec_ops knod_ipsec_ops = {
++	/* feature select: alloc/free the IPsec GPU resources */
++	.activate		       = knod_ipsec_nod_init,
++	.deactivate		       = knod_ipsec_nod_exit,
++	.busy			       = knod_ipsec_nod_busy,
++	/* interface up/down (or feature switch): dispatchers + GPU drain */
++	.start			       = knod_ipsec_nod_start,
++	.stop			       = knod_ipsec_nod_stop,
++	.xdo_dev_state_add	       = knod_ipsec_xdo_state_add,
++	.xdo_dev_state_delete	       = knod_ipsec_xdo_state_delete,
++	.xdo_dev_state_free	       = knod_ipsec_xdo_state_free,
++	.xdo_dev_offload_ok	       = knod_ipsec_xdo_offload_ok,
++	.xdo_dev_state_advance_esn     = knod_ipsec_xdo_state_advance_esn,
++	.xdo_dev_state_update_stats    = knod_ipsec_xdo_state_update_stats,
++	.xdo_dev_policy_add	       = knod_ipsec_xdo_policy_add,
++	.xdo_dev_policy_delete	       = knod_ipsec_xdo_policy_delete,
++	.xdo_dev_policy_free	       = knod_ipsec_xdo_policy_free,
 +};
 +
-+static int __init knod_bpf_init_module(void)
++static int __init knod_ipsec_init(void)
 +{
-+	pr_info("knod-bpf module load\n");
++	pr_debug("knod_ipsec: module load\n");
 +
-+	/* knod_accel_xdp_register() already calls xdp_ops->init() on every
-+	 * registered accel, so a second per-accel init loop here would just
-+	 * re-create the "bpf" debugfs dir ("already exists" warning) and leak
-+	 * a duplicate offload dev.
++	/* Publish our dispatcher-count requirement to the shared knod
++	 * core before any NOD attach happens so knod_attach() creates a
++	 * context with enough kaql/sdma pairs. knod_request_queue_cnt
++	 * is a high-water mark so raising it here is idempotent and
++	 * won't stomp on a larger value from another accel.
++	 */
++	knod_request_queue_cnt(clamp(nr_dispatch, 1,
++				     KNOD_IPSEC_MAX_DISPATCHERS));
++
++	/* knod_accel_ipsec_register() already attaches and inits the ipsec
++	 * ops on every registered accel via knod_ipsec_attach(), so there is no
++	 * separate per-accel init loop here: a second init() would only be
++	 * rejected with -EBUSY by the ipsec_priv guard and log a misleading
++	 * "init failed (-16)".
 +	 */
 +	knod_dev_lock();
-+	knod_accel_xdp_register(&accel_xdp_ops);
++	knod_accel_ipsec_register(&knod_ipsec_ops);
 +	knod_dev_unlock();
-+
 +	return 0;
 +}
-+late_initcall(knod_bpf_init_module);
 +
-+static void __exit knod_bpf_cleanup_module(void)
++static void __exit knod_ipsec_exit(void)
 +{
-+	struct knod_bpf_priv *priv, *tmp;
 +	struct knod_accel *accel;
 +
 +	rtnl_lock();
 +	knod_dev_lock();
-+	list_for_each_entry_safe(priv, tmp, &priv_list, list) {
-+		accel = priv->accel;
-+		if (accel->knodev)
-+			accel_xdp_ops.exit(accel->knodev);
++	for_each_accel(accel) {
++		if (!strncmp(accel->name, "amdgpu-", 7) && accel->knodev) {
++			if (accel->accel_ops->ipsec_ops)
++				accel->accel_ops->ipsec_ops->exit(
++					accel->knodev);
++		}
 +	}
-+	knod_accel_xdp_unregister();
++	knod_accel_ipsec_unregister();
 +	knod_dev_unlock();
 +	rtnl_unlock();
-+	pr_info("knod-bpf module unload\n");
-+}
-+module_exit(knod_bpf_cleanup_module);
 +
-+MODULE_LICENSE("GPL");
++	pr_debug("knod_ipsec: module unload\n");
++}
++
++module_init(knod_ipsec_init);
++module_exit(knod_ipsec_exit);
++
++MODULE_DESCRIPTION("AMDGPU IPsec (xfrm) full-packet offload via KNOD");
 +MODULE_AUTHOR("Taehee Yoo <ap420073@gmail.com>");
-+MODULE_DESCRIPTION("AMDGPU BPF offload backend");
-+MODULE_VERSION("multi-aql");
-diff --git a/drivers/gpu/drm/amd/amdkfd/knod/knod_bpf.h b/drivers/gpu/drm/amd/amdkfd/knod/knod_bpf.h
++MODULE_LICENSE("GPL");
+diff --git a/drivers/gpu/drm/amd/amdkfd/knod/knod_ipsec.h b/drivers/gpu/drm/amd/amdkfd/knod/knod_ipsec.h
 new file mode 100644
-index 000000000000..de6df06c4f2f
+index 000000000000..3754a86d6c63
 --- /dev/null
-+++ b/drivers/gpu/drm/amd/amdkfd/knod/knod_bpf.h
-@@ -0,0 +1,597 @@
++++ b/drivers/gpu/drm/amd/amdkfd/knod/knod_ipsec.h
+@@ -0,0 +1,596 @@
 +/* SPDX-License-Identifier: GPL-2.0-or-later */
 +/* Copyright (c) 2021 Taehee Yoo <ap420073@gmail.com>
 + * Copyright (c) 2021 Hoyeon Lee <hoyeon.rhee@gmail.com>
 + */
 +
-+#ifndef KFD_BPF_H_INCLUDED
-+#define KFD_BPF_H_INCLUDED
++#ifndef KNOD_IPSEC_H_
++#define KNOD_IPSEC_H_
 +
-+#include <uapi/linux/bpf.h>
-+#include <net/xdp.h>
-+#include <net/netmem.h>
-+#include <net/netlink.h>
-+#include <net/page_pool/helpers.h>
-+#include <net/ip.h>
-+#include <net/net_namespace.h>
-+#include <net/gro_cells.h>
-+#include <net/rtnetlink.h>
-+#include <net/protocol.h>
-+#include <net/netns/generic.h>
-+#include <net/xdp.h>
-+#include <net/netdev_lock.h>
-+#include <net/spsc_ring.h>
-+#include <linux/bpf.h>
-+#include <linux/bpf_verifier.h>
-+#include <linux/kthread.h>
-+#include <linux/sched.h>
-+#include <linux/skbuff.h>
-+#include <linux/net.h>
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/etherdevice.h>
-+#include <linux/hash.h>
-+#include <linux/netdevice.h>
 +#include <linux/types.h>
-+#include <linux/bpf.h>
-+#include <linux/bpf_verifier.h>
-+#include <linux/debugfs.h>
-+#include <linux/kernel.h>
++#include <linux/xarray.h>
 +#include <linux/mutex.h>
-+#include <linux/rtnetlink.h>
-+#include <linux/workqueue.h>
++#include <linux/jump_label.h>
++#include <linux/list.h>
++#include <linux/spinlock.h>
 +#include <linux/ktime.h>
-+#include <linux/static_key.h>
-+#include "knod_amdgpu_insn.h"
-+#include "../../../../../../net/core/devmem.h"
-+#include "../amdgpu/amdgpu_vm.h"
-+#include "knod_bpf.h"
-+#include "kfd_knod.h"
++#include <linux/mmzone.h>
++#include <net/spsc_ring.h>
++#include <net/knod.h>		/* KNOD_SPSC_MAX */
 +
-+#define KNOD_BPF_BACKLOGS_MAX		65536
-+#define KNOD_BPF_INFLIGHT		3	/* triple-buffered dispatches */
-+#define KNOD_BPF_WORKGROUPS_DEFAULT     256
-+#define KNOD_BPF_WORKGROUPS_MIN         64
-+#define KNOD_BPF_WORKGROUPS_MAX         256
-+#define KNOD_BPF_EXPIRE_DEFAULT		10
-+#define KNOD_BPF_EXPIRE_MIN		1
-+#define KNOD_BPF_EXPIRE_MAX		1000
-+#define QUEUE_SIZE_DGPU			8192
-+#define QUEUE_SIZE_IGPU			2048
-+#define KNOD_MAX_BDS			(KNOD_BPF_BACKLOGS_MAX / KNOD_SPSC_MAX)
++struct knod;
++struct knod_mem;
++struct dentry;
++struct xfrm_state;
++struct sk_buff;
++struct task_struct;
++struct net_device;
++struct napi_struct;
++struct knod_ipsec_priv;
 +
-+#define MAX_KEY_SIZE		64 /* 64Bytes */
-+#define MAX_PACKET_CACHE	256 /* 256Bytes */
-+
-+#define knod_prog_first_meta(knod_prog)					\
-+	list_first_entry(&(knod_prog)->insns, struct knod_insn_meta, l)
-+#define knod_prog_last_meta(knod_prog)					\
-+	list_last_entry(&(knod_prog)->insns, struct knod_insn_meta, l)
-+#define knod_prog_pre_last_meta(knod_prog)				\
-+	list_last_entry(&(knod_prog)->pre_insns, struct knod_insn_meta, l)
-+#define knod_meta_next(meta)     list_next_entry(meta, l)
-+#define knod_meta_prev(meta)     list_prev_entry(meta, l)
-+
-+#define knod_for_each_insn_walk2(knod_prog, pos, next)			  \
-+	for (pos = list_first_entry(&(knod_prog)->insns, typeof(*pos), l),\
-+			next = list_next_entry(pos, l);			  \
-+			&(knod_prog)->insns != &pos->l &&                 \
-+			&(knod_prog)->insns != &next->l;                  \
-+			pos = knod_meta_next(pos),                        \
-+			next = knod_meta_next(pos))
-+
-+#define knod_for_each_insn_walk3(knod_prog, pos, next, next2)		  \
-+	for (pos = list_first_entry(&(knod_prog)->insns, typeof(*pos), l),\
-+			next = list_next_entry(pos, l),			  \
-+			next2 = list_next_entry(next, l);		  \
-+			&(knod_prog)->insns != &pos->l &&		  \
-+			&(knod_prog)->insns != &next->l &&		  \
-+			&(knod_prog)->insns != &next2->l;		  \
-+			pos = knod_meta_next(pos),			  \
-+			next = knod_meta_next(pos),			  \
-+			next2 = knod_meta_next(next))
-+
-+struct xdp_md_obj {
-+	u64 data;
-+	u64 data_end;
-+	u64 data_meta;
-+	/* Below access go through struct xdp_rxq_info */
-+	u64 ingress_ifindex; /* rxq->dev->ifindex */
-+	u64 rx_queue_index;  /* rxq->queue_index  */
-+
-+	u64 egress_ifindex;  /* txq->dev->ifindex */
-+	u64 retval;
-+};
-+
-+struct knod_bpf_subparam_obj {
-+	struct xdp_md_obj ctx;
-+};
-+
-+#define KNOD_BPF_HASH_NEXT_END		0x7FFFFFFFU
-+#define KNOD_BPF_HASH_NEXT_DELETED	0x80000000U
-+#define KNOD_BPF_HASH_NEXT_MASK		0x7FFFFFFFU
-+
-+struct knod_bpf_hash_elem_obj {
-+	unsigned int next;
-+	unsigned char kv[];
-+};
-+
-+struct knod_bpf_map_hash_meta_obj {
-+	unsigned int n_buckets;
-+	unsigned int hashrnd;
-+	unsigned int cur;
-+	unsigned int elem_size;
-+	void *q;
-+	void *elems;
-+	unsigned int gc_count;
-+	void *gc_list;
-+};
-+
-+struct knod_bpf_map_array_meta_obj {
-+	u32 per_instance_size;	/* value_size * max_entries (one instance) */
-+	u32 n_instances;	/* 1 for ARRAY, num_possible_cpus for PERCPU */
-+};
-+
-+union knod_bpf_map_meta_obj {
-+	struct knod_bpf_map_hash_meta_obj hmeta;
-+	struct knod_bpf_map_array_meta_obj ameta;
-+};
-+
-+struct knod_bpf_map_obj {
-+	enum bpf_map_type map_type;
-+	unsigned int key_size;
-+	unsigned int value_size;
-+	unsigned int max_entries;
-+	unsigned int id;
-+	unsigned long map_extra; /* any per-map-type extra fields */
-+	unsigned int map_flags;
-+	union knod_bpf_map_meta_obj meta;
-+	int mutex;
-+	unsigned char bucket[];
-+};
-+
-+struct knod_bpf_map {
-+	struct list_head list;
-+	struct knod_mem *mem, *queue_mem, *hash_elems_mem, *gc_mem;
-+	/* ptr to mem_k->kaddr */
-+	struct knod_bpf_map_obj *knod_map_obj;
-+	struct bpf_offloaded_map *offmap;
-+	struct knod_bpf_priv *priv;
-+};
-+
-+struct knod_bpf_queue_desc {
-+	u64 pool_gaddr;		/* SPSC pool GTT address for this queue */
-+	u64 base_gaddr;		/* dma-buf base address for this queue */
-+	u32 count;		/* number of packets from this queue */
-+	/* was start_idx; kept for global_load_dwordx4 layout */
-+	u32 _pad;
-+	u32 ring_start;		/* acquired cursor at peek time */
-+	u32 ring_mask;		/* capacity - 1 */
-+};
-+
-+struct knod_bpf_param {
-+	u32 nr_backlogs;
-+	u32 nr_queues;
-+	u32 spsc_stride;
-+	u32 _pad0;
-+	u64 ktime_ns;		/* snapshot of ktime_get_ns() at dispatch */
-+	u32 pass_count[KNOD_SPSC_MAX];	/* per-queue atomic XDP_PASS counter */
-+	/* per-queue GTT pass_meta_buf GPU addr */
-+	u64 pass_meta_buf_gaddr[KNOD_SPSC_MAX];
-+	struct knod_bpf_queue_desc queues[KNOD_SPSC_MAX];
-+	/* backlog indices of PASS packets */
-+	u16 pass_indices[KNOD_BPF_BACKLOGS_MAX];
-+	struct knod_bpf_subparam_obj sub[KNOD_BPF_BACKLOGS_MAX];
-+};
-+
-+struct knod_packet {
-+	union {
-+		netmem_ref netmem;
-+		void *kaddr;
-+	};
-+	u16 len;
-+	u16 off;
-+};
-+
-+/* Single Queue Worok */
-+struct knod_bpf_work_sq {
-+	struct list_head list;
-+	struct knod_mem *param;
-+	int queue_idx[KNOD_SPSC_MAX];
-+	struct spsc_bd *bds[KNOD_BPF_BACKLOGS_MAX];
-+	ktime_t dispatch_time;
-+	s64 sigval;
-+	unsigned long expire;
-+	int backlogs;
-+};
-+
-+struct knod_bpf_reg_state {
-+	struct bpf_reg_state reg;
-+	int stack_off;
-+	int packet_off;
-+	bool var_off;
-+};
-+
-+/* Structurized CFG branch types */
-+enum knod_branch_type {
-+	KNOD_BR_NONE = 0,	/* not a branch */
-+	/* backward jump to exit: inline retval + done_mask update */
-+	KNOD_BR_DIRECT_EXIT,
-+	KNOD_BR_FORWARD_SKIP,	/* forward jump: skip region via EXEC mask */
-+	KNOD_BR_FORWARD_GOTO,	/* forward jump crossing other branch scopes */
-+};
-+
-+#define KNOD_META_INSNS		1024
-+#define AMDGPU_INSN_SKIP	-1
-+struct knod_insn_meta {
-+	struct bpf_insn insn;
-+	short bpf_insn_idx;
-+
-+	struct amdgcn_insn amdgpu_insn[KNOD_META_INSNS];
-+	u32 amdgpu_insn_idx;
-+	u32 amdgpu_insns;
-+
-+	union {
-+		/* pointer ops (ld/st/xadd) */
-+		struct {
-+			struct bpf_reg_state ptr;
-+			struct bpf_insn *paired_st;
-+			s16 ldst_gather_len;
-+			bool ptr_not_const;
-+			struct {
-+				s16 range_start;
-+				s16 range_end;
-+				bool do_init;
-+			} pkt_cache;
-+			bool xadd_over_16bit;
-+			bool xadd_maybe_16bit;
-+		};
-+		/* jump */
-+		struct {
-+			struct knod_insn_meta *jmp_dst;
-+			bool jump_neg_op;
-+			u32 num_insns_after_br; /* only for BPF-to-BPF calls */
-+			/* structurized CFG */
-+			enum knod_branch_type branch_type;
-+			/* SGPR index for s_and_saveexec_b64 */
-+			u8 exec_save_sreg;
-+			/* where EXEC is restored */
-+			struct knod_insn_meta *merge_point;
-+		};
-+		/* function calls */
-+		struct {
-+			u32 func_id;
-+			struct bpf_reg_state arg1;
-+			struct knod_bpf_reg_state arg2;
-+		};
-+		/* We are interested in range info for operands of ALU
-+		 * operations. For example, shift amount, multiplicand and
-+		 * multiplier etc.
-+		 */
-+		struct {
-+			u64 umin_src;
-+			u64 umax_src;
-+			u64 umin_dst;
-+			u64 umax_dst;
-+		};
-+	};
-+
-+	struct knod_bpf_reg_state sreg;
-+	struct knod_bpf_reg_state dreg;
-+	struct knod_bpf_reg_state kreg;
-+	struct knod_bpf_reg_state vreg;
-+	unsigned int off;
-+	unsigned short flags;
-+	unsigned short subprog_idx;
-+	bool is_merge_point;	/* EXEC restore target */
-+	u8 restore_sreg;	/* SGPR to restore EXEC from at merge point */
-+	int linear_idx;		/* position in the (reordered) emission list */
-+	struct list_head l;
-+};
-+
-+/* Encode one GPU instruction at @meta's running slot and advance it.
-+ * @meta->amdgpu_insns is both the cursor during emission and the final
-+ * instruction count afterwards.  @fn names a knod_amdgpu_insn.h encoder
-+ * without its emit_ prefix (e.g. v_add32 for emit_v_add32); the macro
-+ * pastes it back, so call sites read knod_emit(priv, meta, v_add32, ...).
++#define KNOD_IPSEC_NR_SA		256
++/* The shader-dispatch KAT installs one fake SA per fused_sub entry, so
++ * its maximum batch size is bounded by NR_SA. Keep separate from
++ * KNOD_IPSEC_PKT_BATCH so production can run larger batches without
++ * growing the SA table BO.
 + */
-+#define knod_emit(priv, meta, fn, ...)					\
-+	do {								\
-+		struct knod_insn_meta *__m = (meta);			\
-+									\
-+		emit_##fn((priv)->isa_version,				\
-+			  &__m->amdgpu_insn[__m->amdgpu_insns],		\
-+			  ##__VA_ARGS__);				\
-+		debug_insn((priv)->isa_version,				\
-+			   &__m->amdgpu_insn[__m->amdgpu_insns]);	\
-+		__m->amdgpu_insns++;					\
-+	} while (0)
++#define KNOD_IPSEC_KAT_MAX_BATCH	64
++/* 128-bit window, 4 u32 words */
++#define KNOD_IPSEC_REPLAY_WORDS		4
++#define KNOD_IPSEC_REPLAY_BITS		(KNOD_IPSEC_REPLAY_WORDS * 32)
++#define KNOD_IPSEC_REPLAY_BYTES		(KNOD_IPSEC_REPLAY_WORDS * 4)
 +
-+/* JIT debug/error trace: auto-prefix with "knod_jit <func>:<line>".
-+ * knod_jit_dbg() is a pr_debug(), so it is off by default and toggled
-+ * with dynamic debug; knod_jit_err() always fires.
++/*
++ * CPU-side per-queue sliding anti-replay window (knod_ipsec_sa_window).
++ * Independent from the GPU-side REPLAY_BITS above - the shader's
++ * replay region stays 128 bits for GPU-visible state, but the CPU path
++ * needs a much larger window because with multi-queue RSS the packets
++ * of a single SA may land on several RX queues due to NIC hash
++ * collisions. Each per-queue window then sees only a sparse subset of
++ * the SA's monotonic seq stream, and the seq gap between consecutive
++ * packets arriving at one queue can exceed 128 easily. 2048 bits lets
++ * the window absorb worst-case gaps (e.g. 8 queues x 256 batch).
++ *
++ * Sized as u64 words for easier bit-shift logic in the check function.
 + */
-+#define knod_jit_dbg(fmt, ...)						\
-+	pr_debug("knod_jit %s:%d" fmt, __func__, __LINE__, ##__VA_ARGS__)
-+#define knod_jit_err(fmt, ...)						\
-+	pr_err("knod_jit %s:%d" fmt, __func__, __LINE__, ##__VA_ARGS__)
++#define KNOD_IPSEC_CPU_REPLAY_WORDS	32	/* 32 * 64 = 2048 bits */
++#define KNOD_IPSEC_CPU_REPLAY_BITS	\
++	(KNOD_IPSEC_CPU_REPLAY_WORDS * 64)
 +
-+#define BPF_SIZE_MASK   0x18
-+
-+struct knod_bb;		/* basic-block CFG analysis (knod_bpf.c) */
-+
-+struct knod_prog {
-+	struct knod *knod;
-+	struct knod_dev *knodev;
-+
-+	u64 *prog;
-+	unsigned int prog_len;
-+	unsigned int __prog_alloc_len;
-+	int max_stack_off;
-+	int max_packet_off;
-+
-+	struct knod_insn_meta *meta;
-+	enum bpf_prog_type type;
-+	struct list_head pre_insns;
-+	struct list_head post_insns;
-+	struct list_head insns;
-+	unsigned int n_insns;
-+	unsigned int pre_n_insns;
-+	int insn_idx;
-+
-+	/* Structurized CFG state */
-+	/* GFX9: 34, GFX10: 32 (s[32:33] safe on RDNA) */
-+	u8 done_mask_sreg;
-+	u8 exec_save_base;        /* GFX9: 36, GFX10: 34 */
-+	/* in-bounds EXEC snapshot for verdict publish */
-+	u8 initial_exec_sreg;
-+	/* number of SGPR pairs allocated for EXEC saves */
-+	u8 exec_save_pairs_used;
-+	bool uses_adjust;
-+
-+	/* Basic-block CFG analysis, retained for the /bpf/cfg view. */
-+	struct knod_bb *bbs;
-+	int n_bbs;
-+	int n_back;
-+};
-+
-+#define KNOD_XDP_MEMCPY 0
-+#define KNOD_XDP_PT	1
-+#define KNOD_XDP_NETMEM	2
-+#define KNOD_XDP_NONE	3
-+#define KNOD_XDP_DEFAULT	KNOD_XDP_PT
-+
-+#define KNOD_LAT_BUCKETS 10
-+#define KNOD_BL_BUCKETS  8
-+
-+struct knod_bpf_stats {
-+	u64 dispatch_total_ns;
-+	u64 dispatch_count;
-+	u64 dispatch_max_ns;
-+
-+	u64 completion_total_ns;
-+	u64 completion_count;
-+	u64 completion_max_ns;
-+	u64 completion_hist[KNOD_LAT_BUCKETS];
-+
-+	u64 backlogs_total;
-+	u64 backlogs_hist[KNOD_BL_BUCKETS];
-+
-+	u64 decode_act_total_ns;
-+	u64 decode_act_count;
-+	u64 decode_act_max_ns;
-+};
-+
-+#define KNOD_PASS_SLOT_SIZE	PAGE_SIZE
-+
-+/* pass_meta_buf slot header, written by the shader (offsetof used by the
-+ * codegen).  The host read path is gone now that PASS delivery goes via the
-+ * NIC act handler + knod_d2h_copy; the shader still stores {len, src_addr}
-+ * here pending removal of that store.
++/*
++ * Per-dispatch packet batch. The RX fused shader launches grid_y=nr_packets
++ * workgroups and each workgroup indexes its own sub[wg_y] entry, so batch
++ * scales linearly with GPU occupancy up to the LDS-bound concurrent
++ * workgroup limit (~1024 on 64-CU gfx9 with 4 KB LDS per WG). Bumping this
++ * grows:
++ *   - struct knod_ipsec_fused_param  (sub[] inline in kernarg)
++ *   - work_decrypt_pool VRAM          (BATCH * DECRYPT_PKT_SIZE)
++ *   - struct knod_ipsec_work          (rx_bds[], rx_pkt_queue[], rx_pending[])
 + */
-+struct knod_pass_slot_hdr {
-+	u32 len;		/* packet length */
-+	u32 _pad;
-+	u64 src_addr;		/* VRAM source address (SDMA mode only) */
++#define KNOD_IPSEC_PKT_BATCH		512
++
++/*
++ * Kernarg layout consumed by the fused RX shader.
++ *
++ * The shader dereferences sa_table_addr/t_tables_addr from the top-level
++ * struct and then iterates `sub[]` for per-packet work. Decrypted inner
++ * packets are written to `out_addr` (VRAM); a CPU finish worker later
++ * SDMA-copies them into a per-queue framework delivery-pool page and
++ * publishes a `knod_pass_desc` onto the framework pass_pending ring. The
++ * bd ring is not used for verdict delivery.
++ */
++struct knod_ipsec_fused_sub {
++	__le64	pkt_addr;	/* raw packet VRAM addr (ETH start) */
++	__le64	out_addr;	/* decrypted inner packet dest */
++	__le64	bd_addr;	/* SPSC bd for direct verdict write */
++	__le32	pkt_len;
++	__le32	result_seq;	/* shader writes bswapped ESP seq here */
 +};
 +
-+struct knod_bpf_priv {
-+	struct list_head list;
-+	struct knod *knod;
-+	struct knod_accel *accel;
-+	struct knod_dev *knodev;
-+	struct net_device *dev;
-+	struct knod_prog *knod_prog;
-+	/* retained pass IR for debugfs insn dump */
-+	struct knod_prog *pass_knod_prog;
-+	struct bpf_prog *prog;
-+	struct amdgpu_vm *vm;
-+	u64 queue_base_gaddr[KNOD_SPSC_MAX];
-+	struct knod_bpf_work_sq *inflight[KNOD_BPF_INFLIGHT];
-+	unsigned int inflight_cnt;
-+	ktime_t next_dispatch_time;
-+	struct task_struct *worker_task;
-+	struct list_head free_list_sqw;
-+	struct mutex map_op_lock;
-+	/* maps awaiting deferred free by the worker */
-+	struct list_head dead_maps;
-+	u32 maps_tick_skip;
-+	struct dentry *debug_dir;
-+	struct knod_bpf_stats stats;
-+	void *prog_buf;
-+	void *pass_prog_buf;
-+	u32 pass_prog_size;
-+	/* descriptor + live shader bytes per kernel slot */
-+	u32 kernel_image_len[2];
-+	/* knod->kernels[] slot the GPU dispatches */
-+	int active_idx;
-+	/* knod->kernels[] slot holding the pass kernel */
-+	int pass_idx;
-+	/*
-+	 * XDP_PASS shader-to-GTT metadata (shader-written; host read path
-+	 * removed). GTT metadata: shader-written headers.
++struct knod_ipsec_fused_param {
++	__le64	sa_table_addr;		/* 0 */
++	__le64	t_tables_addr;		/* 8 */
++	__le64	sdma_ring_addr;		/* 16: SDMA ring buffer gaddr */
++	__le32	nr_sa;			/* 24 */
++	__le32	family_filter;		/* 28 */
++	__le64	sdma_ctl_addr;		/* 32: GPU VA of sdma_ctl region */
++	struct knod_ipsec_fused_sub sub[KNOD_IPSEC_PKT_BATCH]; /* 40 */
++};
++
++/*
++ * GPU-visible SA table entry. Layout is shared with the GPU shader and
++ * must remain stable / packed.
++ */
++struct knod_ipsec_sa_entry {
++	/* network byte order in wire, LE in table */
++	__le32	spi;
++	__le32	dir;			/* 0=IN, 1=OUT */
++	__le32	family;			/* AF_INET=2, AF_INET6=10 */
++	__le32	flags;			/* bit0: ESN, bit1: CRYPT_ONLY */
++	__le64	key_gpu_addr;		/* AES key buffer (VRAM) */
++	__le64	htable_gpu_addr;	/* GHASH H-power table (VRAM) */
++	__le64	t_tables_gpu_addr;	/* shared T-tables (VRAM) */
++	u8	salt[4];
++	__le32	key_len;		/* 16/24/32 */
++	__le32	nr_rounds;		/* AES rounds: 10/12/14 */
++	/* XFRM_MODE_TRANSPORT=0, XFRM_MODE_TUNNEL=1 */
++	__le32	mode;
++	__le64	replay_bitmap_addr;	/* GPU-visible replay bitmap */
++	__le32	replay_window;		/* 64/128/256 */
++	__le32	seq_hi;			/* ESN high-32 */
++	__le64	seq_last;		/* last accepted sequence number */
++	__le32	active;
++	__le32	version;		/* rekey protection */
++	__le64	stats_addr;		/* per-SA counters (optional) */
++	__le64	_pad1;
++};
++
++#define KNOD_IPSEC_SA_ENTRY_SIZE	sizeof(struct knod_ipsec_sa_entry)
++#define KNOD_IPSEC_SA_TABLE_SIZE	\
++	(KNOD_IPSEC_NR_SA * KNOD_IPSEC_SA_ENTRY_SIZE)
++
++/*
++ * Replay bitmap + per-SA stats regions are appended to the SA entry table
++ * inside the same backing BO. Keeping everything in one BO avoids the
++ * multi-BO GPU VA mapping bug (see gtt_multi_bo_bug.md).
++ */
++#define KNOD_IPSEC_REPLAY_REGION_SIZE	\
++	(KNOD_IPSEC_NR_SA * KNOD_IPSEC_REPLAY_BYTES)
++#define KNOD_IPSEC_REPLAY_REGION_OFF	KNOD_IPSEC_SA_TABLE_SIZE
++
++/*
++ * Per-SA GPU-visible stats. The shader atomically increments these via
++ * global_atomic_add_x2 on every successful decrypt. CPU reads them back
++ * in xdo_state_update_stats to feed x->curlft.
++ */
++struct knod_ipsec_sa_gpu_stats {
++	__le64	rx_packets;
++	__le64	rx_bytes;
++};
++
++#define KNOD_IPSEC_SA_STATS_SIZE	sizeof(struct knod_ipsec_sa_gpu_stats)
++#define KNOD_IPSEC_STATS_REGION_SIZE	\
++	(KNOD_IPSEC_NR_SA * KNOD_IPSEC_SA_STATS_SIZE)
++#define KNOD_IPSEC_STATS_REGION_OFF	\
++	(KNOD_IPSEC_REPLAY_REGION_OFF + KNOD_IPSEC_REPLAY_REGION_SIZE)
++
++#define KNOD_IPSEC_SA_BO_SIZE		\
++	(KNOD_IPSEC_SA_TABLE_SIZE + KNOD_IPSEC_REPLAY_REGION_SIZE + \
++	 KNOD_IPSEC_STATS_REGION_SIZE)
++
++/*
++ * RFC 4303 anti-replay sliding window - CPU-side, per-SA, per-RXQ.
++ *
++ * RSS hashes ESP flows on (saddr, daddr, proto, SPI) so that every packet
++ * of a given SA lands on the same NIC RX queue. That means a single writer
++ * (the NIC dd NAPI for that queue) owns the window and no locking is
++ * required on the fast path. Replicated per queue because different SAs
++ * may still be hashed to different queues, and we do not want false
++ * sharing between queues on a shared cacheline.
++ */
++struct knod_ipsec_sa_window {
++	u64 top_seq;			/* highest accepted seq */
++	/* N*64-bit sliding window */
++	u64 bitmap[KNOD_IPSEC_CPU_REPLAY_WORDS];
++};
++
++/* CPU-side slot metadata */
++struct knod_ipsec_sa_slot {
++	struct xfrm_state *x;		/* back pointer (CPU only) */
++	struct knod_mem *key_mem;
++	struct knod_mem *htable_mem;
++	struct knod_mem *replay_mem;
++	u32 spi;			/* host order */
++	u32 slot_idx;
++	u32 version;
++	bool active;
++	/* Per-RXQ sliding window state. Owned by the NIC dd NAPI for that
++	 * queue - do not touch from control plane while SA is active.
 +	 */
-+	struct knod_mem *pass_meta_buf;
-+	u32 pass_pkts_per_queue;	/* backlogs / nr_works */
-+	/* batch size per queue */
-+	int batch_size;
-+	int nr_works;
-+	int isa_version;
-+	bool installing_kernel;
-+	int start;
++	struct knod_ipsec_sa_window win[KNOD_SPSC_MAX];
 +};
 +
-+static inline u8 mbpf_class(const struct knod_insn_meta *meta)
-+{
-+	return BPF_CLASS(meta->insn.code);
-+}
++/* Percpu stats for observability */
++struct knod_ipsec_stats {
++	/* RX */
++	u64 rx_packets;
++	u64 rx_bytes;
++	u64 rx_dispatches;
++	u64 rx_batch_total;
++	u64 rx_batch_max;
++	/* SDMA copy observability: per dispatch we emit 1 copy per raw-bypass
++	 * or tunnel packet, 2 copies per transport packet (outer L3 + inner
++	 * payload). rx_sdma_copies_total accumulates every call; max tracks
++	 * the peak single-dispatch count; bytes tracks total DMA volume.
++	 */
++	u64 rx_sdma_copies_total;
++	u64 rx_sdma_copies_max;
++	u64 rx_sdma_bytes_total;
++	u64 rx_drop_icv;
++	u64 rx_drop_replay;
++	u64 rx_drop_no_sa;
++	u64 rx_drop_malformed;
++	u64 rx_drop_desc_full;
++	u64 rx_drop_sdma_full;
++	/* Per-phase RX dispatch timings, accumulated per percpu counter.
++	 * Hot path guarded by ipsec_stats_enabled_key static branch so
++	 * they cost zero cycles when disabled.
++	 *
++	 * rx_build_ns     : try_rx pre-scan + per-queue drain loop
++	 *                   (CPU staging work into kernarg sub[]).
++	 * rx_gpu_ns       : spin on GPU completion signal.
++	 * rx_sdma_ns      : spin on SDMA fence after finish scheduled
++	 *                   per-packet SDMA copies.
++	 * rx_finalise_ns  : finish_rx_deliver CPU work excluding SDMA
++	 *                   fence wait (verdict loop + desc publish +
++	 *                   per-queue NAPI schedule).
++	 * rx_total_ns     : end-to-end try_rx call time (build + dispatch
++	 *                   wait + finalise + napi kicks).
++	 * rx_idle_ns      : time the dispatcher spent in usleep_range
++	 *                   waiting for work when both try_tx and
++	 *                   try_rx returned false.
++	 */
++	u64 rx_build_ns;
++	u64 rx_gpu_ns;
++	u64 rx_sdma_ns;
++	u64 rx_finalise_ns;
++	u64 rx_total_ns;
++	u64 rx_idle_ns;
++	/* Control plane */
++	u64 sa_add;
++	u64 sa_del;
++	u64 sa_rekey;
++	/* Debug: drain_rx pipeline visibility */
++	u64 drain_calls;
++	u64 drain_found;
++	u64 drain_delivered;
++	u64 finish_produced;
++	u64 rx_peek_total;
++	u64 rx_submit_fail;
++	/* drain_rx per-phase timing (ns, summed). Each drain_rx call
++	 * processes `drain_found` descriptors; these buckets split the
++	 * CPU work per-phase so we can see which step dominates:
++	 *   drain_alloc_ns  : knod_pass_build_skb cost
++	 *   drain_copy_ns   : legacy copy cost (0 - delivery is zero-copy)
++	 *   drain_proto_ns  : L3 header patch + secpath setup
++	 *   drain_gro_ns    : netif_receive_skb_list (stack entry)
++	 *   drain_total_ns  : end-to-end drain_rx call time
++	 * Guarded by ipsec_stats_enabled_key so zero cost when off.
++	 */
++	u64 drain_alloc_ns;
++	u64 drain_copy_ns;
++	u64 drain_proto_ns;
++	u64 drain_gro_ns;
++	u64 drain_total_ns;
++	u64 drain_zc_ok;
++	u64 drain_zc_fallback;
++};
 +
-+static inline u8 mbpf_src(const struct knod_insn_meta *meta)
-+{
-+	return BPF_SRC(meta->insn.code);
-+}
++/*
++ * Work-slot pool owned by the dispatcher kthread. Depth-2 pipelining:
++ * while one slot is executing on the GPU, the dispatcher can build and
++ * submit the next batch into the other slot and finalise the one that
++ * just completed. kaql[0] is still a single AQL queue; multiple
++ * in-flight dispatches are queued in-order and complete in-order.
++ *
++ * A slot's lifecycle:
++ *   EMPTY          -> try_tx/try_rx fills kernarg and submits -> INFLIGHT
++ *   INFLIGHT       -> GPU running; dispatcher polls completion signal
++ *   INFLIGHT       -> signal fires -> start SDMA copies + fence (no spin)
++ *                    -> SDMA_PENDING
++ *   SDMA_PENDING   -> dispatcher polls SDMA fence (non-blocking)
++ *   SDMA_PENDING   -> fence done -> desc publish, napi kicks, bd PASS,
++ *                    stats -> EMPTY
++ *
++ * The SDMA_PENDING state decouples the SDMA fence wait from the
++ * dispatcher loop so the CPU never busy-spins on the fence. While
++ * one slot sits in SDMA_PENDING, the dispatcher can build and
++ * submit the next batch into another EMPTY slot - true 3-way
++ * parallelism of GPU execution, SDMA transfer, and CPU build.
++ */
++#define KNOD_IPSEC_NR_WORK		4
 +
-+static inline u8 mbpf_op(const struct knod_insn_meta *meta)
-+{
-+	return BPF_OP(meta->insn.code);
-+}
++/*
++ * Front offset reserved in each delivery page (= IPv4 transport L3 size).
++ * The shader decrypts into a per-work VRAM output buffer; finish_rx_deliver
++ * then SDMA-lays the packet into the delivery page by mode:
++ *
++ *   transport: outer L3 header (20B IPv4 / 40B IPv6) to page+0, decrypted
++ *              L4 payload to page+l3_len; inner_off = 0.
++ *   tunnel:    decrypted inner L3 packet to page+GTT_OUT_L3_OFF, leaving
++ *              20B of headroom at the front; inner_off = 20.
++ *
++ * (The name is a holdover from a removed mode where the shader wrote
++ * straight into a GTT slot at this offset.)
++ */
++#define KNOD_IPSEC_GTT_OUT_L3_OFF	20
 +
-+static inline u8 mbpf_mode(const struct knod_insn_meta *meta)
-+{
-+	return BPF_MODE(meta->insn.code);
-+}
++/*
++ * GPU-initiated SDMA control block, placed at a fixed offset after
++ * knod_ipsec_fused_param in the same kernarg BO.  The shader's Phase 12
++ * uses atomic counters here to coordinate multi-workgroup SDMA ring
++ * writes without CPU involvement.
++ */
++#define KNOD_IPSEC_SDMA_CTL_OFF \
++	ALIGN(sizeof(struct knod_ipsec_fused_param), 64)
 +
-+static inline bool is_mbpf_alu(const struct knod_insn_meta *meta)
-+{
-+	return mbpf_class(meta) == BPF_ALU64 || mbpf_class(meta) == BPF_ALU;
-+}
++struct knod_ipsec_sdma_ctl {
++	/*  0: atomic - SDMA-needing WGs increment */
++	__le32	claim_counter;
++	__le32	done_counter;		/*  4: atomic - ALL WGs increment */
++	/*  8: current wptr byte offset (CPU snapshot) */
++	__le64	wptr_val;
++	__le64	fence_addr;		/* 16: SDMA fence write target GPU VA */
++	/* 24: value SDMA writes on completion */
++	__le32	fence_val;
++	/* 28: wptr_val / 4 (dword index into ring) */
++	__le32	wptr_base_dw;
++	__le32	ring_mask;		/* 32: (ring_size_bytes/4) - 1 */
++	__le32	nr_total_wg;		/* 36: grid_size_y = nr_packets */
++	__le32	copy_hdr;		/* 40: SDMA COPY_LINEAR header dword */
++	__le32	fence_hdr;		/* 44: SDMA FENCE header dword */
++	__le32	gpu_sdma_ready;		/* 48: last WG sets 1 -> CPU polls */
++	/* 52: total SDMA COPY packets emitted */
++	__le32	final_sdma_count;
++	/* 56: GPU VA of HW wptr (queue->gaddr+8) */
++	__le64	wptr_gpu_addr;
++};
 +
-+static inline bool is_mbpf_load(const struct knod_insn_meta *meta)
-+{
-+	return (meta->insn.code & ~BPF_SIZE_MASK) == (BPF_LDX | BPF_MEM);
-+}
++enum knod_ipsec_work_state {
++	KNOD_WORK_EMPTY = 0,
++	KNOD_WORK_INFLIGHT,
++	KNOD_WORK_SDMA_PENDING,
++};
 +
-+static inline bool is_mbpf_jmp32(const struct knod_insn_meta *meta)
-+{
-+	return mbpf_class(meta) == BPF_JMP32;
-+}
++/*
++ * Per-work RX decrypt output buffer size. AES-CTR decrypt writes plaintext
++ * here instead of overwriting the ciphertext in-place (which would corrupt
++ * the data before GHASH reads it). One slot per packet in the batch.
++ *
++ * Must hold the largest expected plaintext (ctext_len, before ESP trailer
++ * strip). Sized for MTU 9000 ESP jumbo frames (up to ~9200B total),
++ * rounded up to 16 KB. At PKT_BATCH=64 the total pool is 1 MB of VRAM.
++ * Smaller values silently corrupt adjacent slots and eventually fault
++ * past the end of the pool BO.
++ */
++#define KNOD_IPSEC_DECRYPT_PKT_SIZE	16384
++#define KNOD_IPSEC_DECRYPT_WORK_SIZE	\
++	((size_t)KNOD_IPSEC_PKT_BATCH * KNOD_IPSEC_DECRYPT_PKT_SIZE)
 +
-+static inline bool is_mbpf_jmp64(const struct knod_insn_meta *meta)
-+{
-+	return mbpf_class(meta) == BPF_JMP;
-+}
++/*
++ * Per-work kernarg and decrypt buffers are SLICES of a single large
++ * BO owned by `struct knod_ipsec_works`, not individual BOs. Allocating
++ * many small BOs and mapping them all to the KFD process GPU VA hits a
++ * long-standing AMDKFD issue where only the first BO is reliably mapped
++ * (see memory/gtt_multi_bo_bug.md) - subsequent BOs fault on GPU access.
++ * One large pool BO, sliced at fixed offsets, sidesteps this entirely.
++ */
++struct knod_ipsec_slice {
++	void	*kaddr;
++	u64	gaddr;
++};
 +
-+static inline bool is_mbpf_jmp(const struct knod_insn_meta *meta)
-+{
-+	return is_mbpf_jmp32(meta) || is_mbpf_jmp64(meta);
-+}
++/*
++ * Per-packet finish state built by knod_ipsec_finish_rx_deliver() while it
++ * schedules SDMA copies, then read back to publish desc_ring entries.
++ *
++ * Kept as an array inside struct knod_ipsec_work so the dispatcher does
++ * not have to stack-allocate BATCH * sizeof(...) on every finalise - at
++ * large PKT_BATCH values (512+) stack allocation would overflow the
++ * 16 KB kernel stack.
++ */
++struct knod_ipsec_rx_pending {
++	netmem_ref netmem;	/* delivery page from framework pass_pool */
++	u32	inner_len;	/* bytes copied into the delivery page   */
++	u32	sa_slot;	/* SA table index, or KNOD_IPSEC_NR_SA (raw) */
++	u16	rxq_idx;	/* which priv->rxq[] this packet belongs to */
++	u8	mode;		/* XFRM_MODE_TRANSPORT / TUNNEL          */
++	u8	next_hdr;	/* ESP trailer next_hdr                  */
++	u8	family;		/* AF_INET / AF_INET6                    */
++	u8	inner_off;	/* byte offset within the delivery page  */
++	u8	_pad[2];
++};
 +
-+static inline bool is_mbpf_store(const struct knod_insn_meta *meta)
-+{
-+	return (meta->insn.code & ~BPF_SIZE_MASK) == (BPF_STX | BPF_MEM);
-+}
++struct knod_ipsec_work {
++	/* Views into the shared pools in priv. No per-work BO. */
++	struct knod_ipsec_slice	param;	/* kernarg slice (VRAM pool) */
++	/* RX decrypt output (VRAM pool) */
++	u64			rx_out_gaddr;
++	/* Pipelined slot state + deferred finalise tracking. The dispatcher
++	 * sets state to INFLIGHT on submit, polls completion, then flips to
++	 * EMPTY after finalise. Timestamps / per-queue napi info captured
++	 * at build time get consumed when finalise runs later.
++	 */
++	enum knod_ipsec_work_state state;
++	u64			t_build_start;
++	u64			t_build_end;
++	u64			t_submit;
++	u64			t_finalise_start;
++	/* Per-queue tracker for deferred napi_schedule. try_rx records
++	 * which NIC RX queues had packets drained into this slot so the
++	 * finalise path (running later, possibly one iteration later) can
++	 * wake those NAPIs after finalise completes.
++	 */
++	u16			per_q_touched[KNOD_SPSC_MAX];
++	int			per_q_n;
++	/* Per-dispatch state (owned by dispatcher) */
++	s64			sigval;
++	u64			dispatch_ts;
++	/* SDMA deferred-fence state. When the work transitions from
++	 * INFLIGHT -> SDMA_PENDING, finish_rx_deliver queues copies +
++	 * fence but does NOT spin. The dispatcher checks sdma_fence_ptr
++	 * on the next iteration and transitions to EMPTY once the fence
++	 * fires. sdma_fence_target is the expected fence value; the
++	 * pointer is the host-visible signal->value location.
++	 */
++	u32			sdma_fence_target;
++	s64			*sdma_fence_ptr;
++	u64			sdma_submit_ns;
++	/* Carry the SDMA fence wait time out of finish_rx_deliver so
++	 * the caller (try_rx) can subtract it from the finalise phase
++	 * and report it as rx_sdma_ns. Zero when stats are disabled.
++	 */
++	u64			sdma_wait_ns;
++	/* Per-dispatch SDMA copy accounting (populated by finish_rx_deliver).
++	 * rx_sdma_copies = number of knod_sdma_copy() calls issued this
++	 * batch (1 per raw/tunnel packet, 2 per transport packet). bytes =
++	 * total bytes DMA'd. Zero when stats are disabled.
++	 */
++	u32			rx_sdma_copies;
++	u32			rx_sdma_bytes;
++	/* Deferred SDMA completion state. finish_rx_deliver stores
++	 * n_sdma_pending + pkt_idx_of[] so the dispatcher's
++	 * SDMA_PENDING -> EMPTY transition can publish descs and mark
++	 * bds without re-scanning the verdict loop.
++	 */
++	int			n_sdma_pending;
++	u16			sdma_pkt_idx_of[KNOD_IPSEC_PKT_BATCH];
++	int			nr_packets;
++	/* RX: napi to kick after GPU writes verdicts (single-queue fallback
++	 * for KAT; production multi-queue dispatch schedules per-queue napis
++	 * at dispatcher level and leaves rx_napi == NULL).
++	 */
++	struct napi_struct	*rx_napi;
++	int			rx_queue_idx;
++	struct spsc_bd		*rx_bds[KNOD_IPSEC_PKT_BATCH];
++	/* Per-packet queue index for multi-queue batched RX dispatches.
++	 * finish_rx_deliver uses this to route each decrypted packet to
++	 * the correct priv->rxq[] delivery pool + desc_ring.
++	 */
++	u8			rx_pkt_queue[KNOD_IPSEC_PKT_BATCH];
++	/* Heap-backed finish-state scratchpad used by finish_rx_deliver.
++	 * Sized to KNOD_IPSEC_PKT_BATCH so we never overflow the dispatcher
++	 * kernel stack when BATCH grows.
++	 */
++	struct knod_ipsec_rx_pending rx_pending[KNOD_IPSEC_PKT_BATCH];
++};
 +
-+static inline bool is_mbpf_load_pkt(const struct knod_insn_meta *meta)
-+{
-+	return is_mbpf_load(meta) && meta->ptr.type == PTR_TO_PACKET;
-+}
++/*
++ * Hard upper bound on parallel dispatchers. Each dispatcher owns one
++ * kaql[i] / sdma[i] pair, one private slice of work_pool and the
++ * backing pool BOs, and one contiguous range of RX queues. The actual
++ * count is knod_ipsec_priv::nr_dispatchers, set at
++ * start time from knod->queue_cnt.
++ *
++ * Bumped beyond 1 for real parallelism: one GPU AQL queue is a
++ * hardware FIFO, so throughput is single-kaql drain rate bound. Two
++ * kaqls let the GPU scheduler run two dispatches on disjoint CUs in
++ * parallel, subject to CU / memory bandwidth contention.
++ */
++#define KNOD_IPSEC_MAX_DISPATCHERS	4
 +
-+static inline bool is_mbpf_store_pkt(const struct knod_insn_meta *meta)
-+{
-+	return is_mbpf_store(meta) && meta->ptr.type == PTR_TO_PACKET;
-+}
++/*
++ * Per-dispatcher runtime state. Each dispatcher kthread owns exactly
++ * one of these and never shares hot-path state with any other
++ * dispatcher - cursors, in-flight work slots, pool BOs, fence counters
++ * and the kaql/sdma index are all private.
++ *
++ * Cross-dispatcher sharing lives in knod_ipsec_priv: the SA table +
++ * slot array + spi_to_slot xarray (read-mostly), the per-CPU stats,
++ * and the delivery pool / desc_ring for RX delivery (but each rxq slot is
++ * only drained by the owning dispatcher, so no locking needed inside
++ * a queue).
++ */
++struct knod_ipsec_dispatcher {
++	struct knod_ipsec_priv	*priv;
++	struct task_struct	*kthread;
 +
-+static inline bool is_mbpf_classic_load(const struct knod_insn_meta *meta)
-+{
-+	u8 code = meta->insn.code;
++	/* kaql[kaql_idx] + sdma[kaql_idx] owned exclusively by this disp. */
++	int			kaql_idx;
 +
-+	return BPF_CLASS(code) == BPF_LD &&
-+	       (BPF_MODE(code) == BPF_ABS || BPF_MODE(code) == BPF_IND);
-+}
++	/* Slice into priv->work_pool[]. Dispatcher N uses slots
++	 * [work_first, work_first+work_count). work_count is usually
++	 * KNOD_IPSEC_NR_WORK but can be smaller if the final dispatcher
++	 * got a partial slice.
++	 */
++	int			work_first;
++	int			work_count;
 +
-+static inline bool is_mbpf_classic_store(const struct knod_insn_meta *meta)
-+{
-+	u8 code = meta->insn.code;
++	/* Private backing BOs for this dispatcher's work slice. Each
++	 * slot within [work_first, work_first+work_count) gets its own
++	 * sub-range of these BOs, so no cross-dispatcher aliasing.
++	 */
++	struct knod_mem		*param_pool;
++	struct knod_mem		*decrypt_pool;
 +
-+	return BPF_CLASS(code) == BPF_ST && BPF_MODE(code) == BPF_MEM;
-+}
++	/* RX queue range this dispatcher drains. [rxq_first, rxq_first+
++	 * rxq_count) indexes into priv->rxq[] and knodev->wpriv[].spsc_bds.
++	 */
++	int			rxq_first;
++	int			rxq_count;
 +
-+static inline bool is_mbpf_classic_store_pkt(const struct knod_insn_meta *meta)
-+{
-+	return is_mbpf_classic_store(meta) && meta->ptr.type == PTR_TO_PACKET;
-+}
++	/* Hot-path cursors, previously locals in the dispatcher loop. */
++	int			rx_rr;
++	int			build_cursor;
 +
-+static inline bool is_mbpf_atomic(const struct knod_insn_meta *meta)
-+{
-+	return (meta->insn.code & ~BPF_SIZE_MASK) == (BPF_STX | BPF_ATOMIC);
-+}
++	/* Forward-looking AQL completion-signal counter. See old priv->
++	 * dispatch_sigval_next comment; now per-dispatcher because each
++	 * disp has its own kaql signal.
++	 */
++	s64			dispatch_sigval_next;
++};
 +
-+static inline bool is_mbpf_mul(const struct knod_insn_meta *meta)
-+{
-+	return is_mbpf_alu(meta) && mbpf_op(meta) == BPF_MUL;
-+}
++struct knod_ipsec_priv {
++	struct knod *knod;
++	struct knod_dev *knodev;
 +
-+static inline bool is_mbpf_div(const struct knod_insn_meta *meta)
-+{
-+	return is_mbpf_alu(meta) && mbpf_op(meta) == BPF_DIV;
-+}
++	/* Shared GCM tables (VRAM, one per priv, owned by knod ctx) */
++	struct knod_mem *t_tables;
 +
-+static inline bool is_mbpf_mod(const struct knod_insn_meta *meta)
-+{
-+	return is_mbpf_alu(meta) && mbpf_op(meta) == BPF_MOD;
-+}
++	/* GPU-visible SA table */
++	struct knod_mem *sa_table;
 +
-+static inline bool is_mbpf_cond_jump(const struct knod_insn_meta *meta)
-+{
-+	u8 op;
++	/* CPU-side slot metadata */
++	struct knod_ipsec_sa_slot slots[KNOD_IPSEC_NR_SA];
++	struct xarray spi_to_slot;
++	struct mutex slot_lock;
 +
-+	if (is_mbpf_jmp32(meta))
-+		return true;
++	/*
++	 * Work pool is sized NR_WORK * MAX_DISPATCHERS so each
++	 * dispatcher gets its own NR_WORK-sized slice via work_first.
++	 * With nr_dispatchers=1 only the first slice is populated, so
++	 * runtime cost is identical to the old single-slot layout when
++	 * a single dispatcher is in use.
++	 */
++	struct knod_ipsec_work	work_pool[KNOD_IPSEC_NR_WORK *
++					  KNOD_IPSEC_MAX_DISPATCHERS];
 +
-+	if (!is_mbpf_jmp64(meta))
-+		return false;
++	/* Number of NIC RX queues bound to the NOD (<= KNOD_SPSC_MAX); the
++	 * finish worker bounds-checks the shader's queue index against it.
++	 */
++	int			nr_rxq;
 +
-+	op = mbpf_op(meta);
-+	return op != BPF_JA && op != BPF_EXIT && op != BPF_CALL;
-+}
++	/* Dispatcher state. nr_dispatchers <= KNOD_IPSEC_MAX_DISPATCHERS,
++	 * set at start time from the knod queue_cnt the accel was
++	 * created with. Each disp[i] owns kaql[i] / sdma[i].
++	 */
++	struct knod_ipsec_dispatcher disp[KNOD_IPSEC_MAX_DISPATCHERS];
++	int			nr_dispatchers;
++	bool			running;
++	u32			pkt_batch;
 +
-+static inline bool is_mbpf_helper_call(const struct knod_insn_meta *meta)
-+{
-+	struct bpf_insn insn = meta->insn;
++	/* Shaders */
++	size_t shader_size;
++	int isa_version;
 +
-+	return insn.code == (BPF_JMP | BPF_CALL) &&
-+		insn.src_reg != BPF_PSEUDO_CALL;
-+}
++	/* Observability */
++	struct dentry *debug_dir;
++	struct knod_ipsec_stats __percpu *stats;
 +
-+static inline bool is_mbpf_pseudo_call(const struct knod_insn_meta *meta)
-+{
-+	struct bpf_insn insn = meta->insn;
++	/* Persistent KAT scratch BO. Allocated once at priv init, reused on
++	 * every KAT invocation. Re-allocating per-KAT re-triggers the GTT/VRAM
++	 * multi-BO mapping symptom (only the first BO is reliably mapped on
++	 * the KFD process VM), which is the same class of bug documented for
++	 * the BPF delivery path. One long-lived BO sidesteps it entirely.
++	 */
++	struct knod_mem *kat_scratch;
++};
 +
-+	return insn.code == (BPF_JMP | BPF_CALL) &&
-+		insn.src_reg == BPF_PSEUDO_CALL;
-+}
++/* Public entry points for NIC consumers. */
++struct spsc_bd;
++int knod_ipsec_rx_submit(struct knod_ipsec_fused_sub *sub, int nr,
++			 struct napi_struct *napi, int queue_idx);
++int knod_ipsec_rx_submit_bds(struct knod_ipsec_fused_sub *sub,
++			     struct spsc_bd **bds, int nr,
++			     struct napi_struct *napi, int queue_idx);
 +
-+static inline bool is_mbpf_map_call(const struct knod_insn_meta *meta)
-+{
-+	struct bpf_insn insn = meta->insn;
-+
-+	return insn.code == (BPF_JMP | BPF_CALL) && insn.imm <= 3;
-+}
-+
-+#define STACK_FRAME_ALIGN 64
-+
-+#define FLAG_INSN_IS_JUMP_DST                   BIT(0)
-+#define FLAG_INSN_IS_SUBPROG_START              BIT(1)
-+#define FLAG_INSN_PTR_CALLER_STACK_FRAME        BIT(2)
-+/* Instruction is pointless, noop even on its own */
-+#define FLAG_INSN_SKIP_NOOP                     BIT(3)
-+/* Instruction is optimized out based on preceding instructions */
-+#define FLAG_INSN_SKIP_PREC_DEPENDENT           BIT(4)
-+/* Instruction is optimized by the verifier */
-+#define FLAG_INSN_SKIP_VERIFIER_OPT             BIT(5)
-+/* Instruction needs to zero extend to high 32-bit */
-+#define FLAG_INSN_DO_ZEXT                       BIT(6)
-+
-+#define FLAG_INSN_SKIP_MASK             (FLAG_INSN_SKIP_NOOP | \
-+					 FLAG_INSN_SKIP_PREC_DEPENDENT | \
-+					 FLAG_INSN_SKIP_VERIFIER_OPT)
-+#endif
++#endif /* KNOD_IPSEC_H_ */
+diff --git a/tools/testing/selftests/drivers/net/knod/config b/tools/testing/selftests/drivers/net/knod/config
+index a60ece9da112..837187205f89 100644
+--- a/tools/testing/selftests/drivers/net/knod/config
++++ b/tools/testing/selftests/drivers/net/knod/config
+@@ -4,4 +4,5 @@ CONFIG_XDP_SOCKETS=y
+ CONFIG_KNOD=m
+ CONFIG_HSA_AMD=y
+ CONFIG_HSA_AMD_KNOD_BPF=m
++CONFIG_HSA_AMD_KNOD_IPSEC=m
+ CONFIG_DEBUG_FS=y
 -- 
 2.43.0
 
