@@ -1,78 +1,78 @@
-Received: from mail-wm2-f9.google.com (mail-wm2-f9.google.com [74.125.225.137])
+Received: from mail-wr2-f0.google.com (mail-wr2-f0.google.com [74.125.225.64])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3CF8438E8AB
-	for <linux-rdma@vger.kernel.org>; Sun, 19 Jul 2026 18:09:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.225.137
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2FEDC3B2FF1
+	for <linux-rdma@vger.kernel.org>; Sun, 19 Jul 2026 18:13:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.225.64
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784484588; cv=none; b=s6uFOzcRQPMT1k+w2K4TkIBjeABUrp4QfQBqV85ksOplt9qWlPEh0VY/d5BO8Kxv8qqU/Yplpz4YYYlhqVMkNhm7HopjMLvwp5py2Bb1VXGKEhqVLZ9+esN0GcysNiIJdOA5Z0a4laDJLZql1c61AMTH0WYWFfKu+r1YpankN1Y=
+	t=1784484840; cv=none; b=HLj+euWu3qCzzU13v2JqEcD0eNzZU75R/Xrn9M6kc7iaYFE7yXYyeU0t0PSh0grN4zgL1G7SOH7yFExaQ541aNIagWzkJ8vT5jXlmvVskGH3SZIuj55/r8q5c+D47gS9uFH+uitQOukL8hPpKvYoVxeSluvoeh4a7e2Iro3w5tk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784484588; c=relaxed/simple;
-	bh=RcuCVJLUxcCDd1eWJ/F0/033hxnFIW+7FtOC8MWJx2c=;
+	s=arc-20240116; t=1784484840; c=relaxed/simple;
+	bh=3YWMa6Tdi07wjaonknTwQWF1etydIJ8Jvb8Tg47AmrI=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=PnsJJmUcrYVK/e9nimMbhHfY0qeVVeydqTyfUHzvxkyD5LkCWkt5sB9kPzyPIMpcFhaJ0ZUsz3FzQIiJg97/j/IRDUw7Quifi/qIvJZDxYpT+R26hINb6G8cTOUkYJ7iw7r/rY1BFPdzEgWf9BaqglhYP7a6N3ESYtMJMZ7JANk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=JQ7ySA0B; arc=none smtp.client-ip=74.125.225.137
+	 MIME-Version; b=i7PBiy2K/sKQSoHzkhgndEQ2EwyCs8YHDpb5Kf+kmucx4sdsdVP/lfJNaa6EwTilBkapVKo4mo46Ip/PKYzKTB07zYnwDgCLX3oa1X7YPO2+4sBGLVuy4H0GOubl7UDpDJVRKEZrF2WS33S+Tqznjoy88GFiPTyxye8NDEPZOdo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=XLEKygbz; arc=none smtp.client-ip=74.125.225.64
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="JQ7ySA0B"
-Received: by mail-wm2-f9.google.com with SMTP id 5b1f17b1804b1-49553da76dcso4232545e9.1
-        for <linux-rdma@vger.kernel.org>; Sun, 19 Jul 2026 11:09:43 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="XLEKygbz"
+Received: by mail-wr2-f0.google.com with SMTP id ffacd0b85a97d-46e260f9e57so2072864f8f.0
+        for <linux-rdma@vger.kernel.org>; Sun, 19 Jul 2026 11:13:56 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1784484581; x=1785089381; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1784484835; x=1785089635; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=RcuCVJLUxcCDd1eWJ/F0/033hxnFIW+7FtOC8MWJx2c=;
-        b=JQ7ySA0Bvkd1lzXjNs2QQKPBkXN0jbOfH7A4QBF5oHqh+4L8+WTOzxZa2FgAyjwqJu
-         CQSpGUK+gKs3w6KS46uAwjsEDxeAsJwEvsD1QqITXdwAyiz71+HX70Uto2JvGA0efMpk
-         M4BO2kCbBkR0etoI71Ivzmk9Du+nfyaIwYxBvHRYpHUJXUeq19Lc5z/SdIToCzVVHuOG
-         RGw92jAkdY5onh6wvJL/JyH/pHtOrmTs8pYlPZjIfSrE9RqcoMBe9baLO5LzdHRoGRT6
-         qC0RcDeNY5H95vFDAdS7xfiAs6NDNGTVWgqVxI8IXOLSHic1u98jzVchO1IYQoLM+QMM
-         9s9Q==
+        bh=3YWMa6Tdi07wjaonknTwQWF1etydIJ8Jvb8Tg47AmrI=;
+        b=XLEKygbzGvW9h2KimbCivMFs4cWQTQ+k1otEpyL6zLCb62y3sDoLQd9m5ukjdmD3/U
+         HV0Cn/qcpRuFE1Td82yuqGTif/Zz/vUk9D6VCdFfyK669SqDTc/fuElWxXoCpE67qi8S
+         GpMJ1FZl+WHe2MVVz7/aavdk5y86ZCyeg4ryifxvU5u7c4CE7FSkQuNCkIbPq3cVzplI
+         Zo60nraUXd0BeIIWv+XdjRU6GUfhmziCdMQlT05G9LQsgOExfIvHQJ5dGEI9PMDx4jjx
+         qUqe3sM8BCAIGsFwiWP7isp8aLS6/MwiRiusIH/J1YoRAZEYZzNPmwq5U3B3/Vv/Npgd
+         gd+Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1784484581; x=1785089381;
+        d=1e100.net; s=20251104; t=1784484835; x=1785089635;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=RcuCVJLUxcCDd1eWJ/F0/033hxnFIW+7FtOC8MWJx2c=;
-        b=ikImqfruTUw2vVkDQnofkuDoi0wDEWklk+yCJRE+rX7az/6jXeWzlM62EKw0PhH2y8
-         w1QeK9PJId66bSv8cv7bkxdQOV77mDFQn6P8mCjsZHnMv9aCu0mJwelYzZ0fIl1Aryar
-         bPqK9/mMhQBtry0TXJrbC0sWn9WftD2Fhzttr83orW7KDHJ5G/JUZb8oRhUowRV4AF+F
-         mxzDqyDA6lfm+XQRUO6CdQYcRJHMDfD9elan3v3F2Sys7W1RCWhcQaDA3R4x1fmzRg4r
-         3c/Rc8RomUNG5oy/+/WZNwlBwjpsg/z9OuLEd5K5UsdXvF1CSk5p8CQrD6GM1frCt6Nk
-         oN2Q==
-X-Forwarded-Encrypted: i=1; AHgh+RoO636Zb3s7PMlB7VljCR+ImTD08Zuz5u9ZNACulU9ynLVYKWdlUR/FySA9EdnQ+oe+LvNOXuNcUnbX@vger.kernel.org
-X-Gm-Message-State: AOJu0Yx/unlGwcQxslv3PZz8V2sDWW4al42GWTvY5TNO+KnfFK0RL78H
-	O0sFkv+vZ09Zd3XWh28xSnLr3OVjnG298N0opZ10a6oJCb8WWuMb3o9M
-X-Gm-Gg: AfdE7cls7uVLM9ykUiuqUtMOSD7b/ff3bdITwLH1OD8kI1/QXrS/X20vDCaSu05mJgW
-	7zNVlYYlUCpiZSwiAPzVPiV+LtYskLVVzV7c9/VP75SLQZjI/lwdkjNw4GmAJKn9qBJIyh3rjz2
-	GdzYnSH3KOym48aI/7yHOpzqNGXAFC5pE8FR4muIIDG+9/mFX7EwCv19j+zF4nD5vl6xKySxxzv
-	EI/Z1ZHjGdaPskN9tNrCCmR9tspk3OIWTPCkZPMR/ANksPd0QlCOdpY2Hs4F8U3Z63PYoWw6/mn
-	oep//YdZyyKjQ2d09QcqSv0nGwTVGUHJYGX6TOL46I3OM/iX2IBC6C6YtAHoI0eRPmzWU616Kwh
-	b0HACLJcqaZdWnvLCEMdkfDerpPGkk0718g5bVE/FOrSzWsDtlNzGgmOFbjb6M+B2hVs8BYHjkY
-	Bo
-X-Received: by 2002:a05:600c:b85:b0:495:5365:c0d1 with SMTP id 5b1f17b1804b1-49553d85ea0mr67524515e9.14.1784484581394;
-        Sun, 19 Jul 2026 11:09:41 -0700 (PDT)
+        bh=3YWMa6Tdi07wjaonknTwQWF1etydIJ8Jvb8Tg47AmrI=;
+        b=gXwl/08Ec5uJiTgvrbzDSzLIltiDCel1TVt6rEO+9Y3ob0aDdv7KjKQhseJjzrcw93
+         w8gRaTXFJZdgurc8/b29g9XJ5gWoEdVKAPrzFEeqfrRUw1lrFlGtg90N+Ah/3YtTJANv
+         ENpQkf/mWS2qte8tKuuF7zLkGinIa4NtxXqWZE78/2j1HfqhxISej1fhxnkur8ClGjK4
+         J0IKAztNX74hG8s0Vzhe6PtgmngZ+jDFCe1dDda2OFNNckfXlpzouNX/NiD27ByDfPRY
+         ZvcHgNhuVjF6xg1OMcCjgC07DylGC9fXFbF5DeyWZ6DGy8GzfMu+heUuLTlRhExV+NxG
+         xk0Q==
+X-Forwarded-Encrypted: i=1; AHgh+RryrNW3BbLtcJ0wsDamq017KkcRqR2vAudmV7F6HjVIYT/Awb9ymuUv4lHWbkT0POe9077F7ax3j/Lz@vger.kernel.org
+X-Gm-Message-State: AOJu0Ywnrx2q7OTErB4Ed2DgMeoDwRa1dHfAqgT+N9rs/Xt7ECvib1qJ
+	TkznWufenwD8bBnXA9kXak6Ky3q33VjAz6Vl2SZRL8dw0RkH8h4fDakm
+X-Gm-Gg: AfdE7cmjzGuNHJIEyrX9dbdl9f6YoEdAfzO7ILSdmX7G4MRjXHqyQCGnWx1MlJIlT+s
+	iC/eUFOIH4Eg5DgNOn1pmIUMn074WTtkzc45tOZzWP5DocpcBT6ivNzvmvX61QT7FT9oibmQ+UE
+	6cTmmPrAkYOMubEaGSG8VuyP2gFBeigheLPmztxBN+BbAOWSnqwuFZutXWki5o3HFwVp26fe6Ga
+	hW8+eNkm4xpxeK3n5Vk23hJI9HU2gyBc4uciYq8NAjeo237LniIiKPQM2vJFsExhyZUuDOI4vOH
+	652XQ1X37FIsTmcHmeUCXfXIrH7wvDzDXsGWozVM+ubJ4yNtq1OoTkrO9fEH8yKReo8xQM6Tx6Q
+	9BMKaD97h/g41Q6vD51coWC4BB1cqYsKGXAQjRAkWUoomf3fvdPdvKgwXsL9GAczN9jv3na/2gw
+	KC
+X-Received: by 2002:a05:6000:2dc5:b0:47f:73dc:c5aa with SMTP id ffacd0b85a97d-47f73dcc5d1mr2608566f8f.30.1784484834517;
+        Sun, 19 Jul 2026 11:13:54 -0700 (PDT)
 Received: from fedora ([212.253.209.56])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-47f63edda29sm23296214f8f.32.2026.07.19.11.09.38
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-47f63e496afsm23601948f8f.1.2026.07.19.11.13.52
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 19 Jul 2026 11:09:40 -0700 (PDT)
+        Sun, 19 Jul 2026 11:13:52 -0700 (PDT)
 From: Serhat Kumral <serhatkumral1@gmail.com>
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Leon Romanovsky <leon@kernel.org>,
-	Zhu Yanjun <yanjun.zhu@linux.dev>,
-	Zhu Yanjun <zyjzyj2000@gmail.com>,
+To: Zhu Yanjun <yanjun.zhu@linux.dev>,
+	Zhu Yanjun <zyjzyj2000@gmail.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>,
+	Leon Romanovsky <leon@kernel.org>,
 	David Ahern <dsahern@kernel.org>,
 	linux-rdma@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	syzbot+8c9eede336e3a843750e@syzkaller.appspotmail.com
 Subject: Re: [RFC PATCH 1/2] RDMA/rxe: drive UDP tunnel socket lifetime from the GID table
-Date: Sun, 19 Jul 2026 20:54:47 +0300
-Message-ID: <20260719175447.196499-1-serhatkumral1@gmail.com>
+Date: Sun, 19 Jul 2026 20:59:19 +0300
+Message-ID: <20260719175919.196814-1-serhatkumral1@gmail.com>
 X-Mailer: git-send-email 2.54.0
-In-Reply-To: <20260718153927.GF701389@ziepe.ca>
-References: <20260718153927.GF701389@ziepe.ca>
+In-Reply-To: <59a73ba7-52f3-44bc-80b9-98ff2a6aa771@linux.dev>
+References: <59a73ba7-52f3-44bc-80b9-98ff2a6aa771@linux.dev>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -81,30 +81,28 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-> Don't get this, GID removal is asynchronous, so it will eventually
-> complete, what is wrong with leaving the socks around but unsuable for
-> a little bit? Does something break?
+> Could you please run this selftest in your environment to see if you can
+> reproduce the deadlock/hang and capture the stack trace?
 
-I checked this more closely. You are right that a kernel socket's
-passive net reference keeps struct net itself allocated, so my
-wording about closing the sockets before the net is freed was
-inaccurate.
+I could not reproduce this.
 
-However, the passive reference does not defer the pernet exit
-callbacks. cleanup_net runs those callbacks before dropping its base
-passive reference. With CONFIG_PROC_FS, sock_inuse_exit_net() frees
-net->core.prot_inuse; when per-netns UDP hash tables are enabled,
-udp_pernet_table_free() also frees net->ipv4.udp_table. The eventual
-udp_tunnel_sock_release() reaches udp_lib_unhash(), which accesses
-this state while unhashing a still-hashed socket. A sufficiently
-delayed close can therefore access freed pernet storage even though
-struct net itself remains allocated.
+I ran the exact sequence from rxe_rping_between_netns.sh, including
+its cleanup order and module unload, on arm64 QEMU with KASAN,
+lockdep and a 30-second hung-task timeout. rdma_rxe was built as a
+module and the test used rdma-core's rping.
 
-The backstop is therefore intended to close any remaining hashed
-sockets while the required protocol pernet state is still alive, not
-to prevent a direct struct net UAF. I will reword the comment and
-commit message accordingly in the next version.
+I ran it 15 consecutive times, followed by a variant that unloads
+the module while the netns and RXE devices are still alive. The
+rping transfers completed, the unload succeeded, and there were no
+hangs or splats.
 
-Regarding the per-QP TX socket in init_net, agreed that it should be
-investigated separately. I will keep that out of this series and look
-at selecting the TX socket from the relevant GID/netns as a follow-up.
+The series was based on b21d9bf627dd. Could you share your exact
+base commit and .config, and confirm whether the same test passes
+on that tree without this series?
+
+The script redirects stdout to /dev/null, so could you also identify
+the command at which it stops, for example by temporarily removing
+the redirections and running it with bash -x? If it hangs again,
+"echo w > /proc/sysrq-trigger" and, if possible,
+"echo t > /proc/sysrq-trigger" from the console should provide the
+blocked-task stacks without requiring kdump.
