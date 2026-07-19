@@ -1,62 +1,63 @@
-Received: from mail-pl1-f180.google.com (mail-pl1-f180.google.com [209.85.214.180])
+Received: from mail-pl1-f170.google.com (mail-pl1-f170.google.com [209.85.214.170])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 48A4F3B7779
-	for <linux-rdma@vger.kernel.org>; Sun, 19 Jul 2026 18:01:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.180
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 96DDD3B3BE4
+	for <linux-rdma@vger.kernel.org>; Sun, 19 Jul 2026 18:01:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.170
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784484145; cv=none; b=dPUPtw8Nqf9AK0HeuJ42ZFlzV7VZpH9Ohe23dP4x6HDRDxLbgthcw5KpQIyHYgglxH8ZWptc8wFddo6EJssN5NoHmGVTngw31dRgHk/ZMNNMriLv8fY/gtx9J5ehAJv5zRyjTJtYSv8/PJUUpwdnrFqeWeT9f4YM8xx8THgvQn0=
+	t=1784484148; cv=none; b=Ea/kB28b0MsfOPtOqorlsh01JlSu/QVwY3qS5q+/YjDB4EDlBO2aW2nVTY4AVRSFcjLLYX8kSqsPW3O3vfSdIBsHTFsnNVIgNPWgDwjbwtTNmggw6BsDQlyIznHnOahiZdmBCcZM7F1q+K0ylrsSMkJxdzh3W3qwkUfJbRddzdA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784484145; c=relaxed/simple;
-	bh=zSTt7WOeYt4J4cXT77K8J8ALOPiZfSdpI7rMkfg6IHE=;
+	s=arc-20240116; t=1784484148; c=relaxed/simple;
+	bh=3dv/ffJumcA7GMH0JRcM4W9HUXMxzguBrELKWNvRCeE=;
 	h=From:To:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=FpBjAlyhQU/KqvWACyRbl++aMWLSVIFEBsdVbYvNxskXNN1YuJzoc0HGaehZ/KvZn6yZhIF22H8epcZmOwGSwDm/RIhLfkoUb/NpysJqAAqxE6u9KQ2Fh1XFd1pPJpwbPoQKFAc7/YQ094DUvo+KcGgf26b7vKf2Bze4pq1016A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=OMu9beJI; arc=none smtp.client-ip=209.85.214.180
+	 MIME-Version; b=bEKGsbadSFtQQAhRgubz5Brd8TyKI2UHPsAgzwOOjQiDQyOMXVrO3zyS6yc9ypKVsK9qEM0gEFIQMGBjy1vUF09dUS26EXR4r8bu/BUFjG1x3xWTt+V4v/9AbeC8D9E7/anYJk0ODjERPA5U/pOciZRvz9LSZhT7OZNw59Wa3jE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=f2Z1haqy; arc=none smtp.client-ip=209.85.214.170
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="OMu9beJI"
-Received: by mail-pl1-f180.google.com with SMTP id d9443c01a7336-2cc891373e0so114314175ad.2
-        for <linux-rdma@vger.kernel.org>; Sun, 19 Jul 2026 11:01:18 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="f2Z1haqy"
+Received: by mail-pl1-f170.google.com with SMTP id d9443c01a7336-2cacf197759so100683845ad.2
+        for <linux-rdma@vger.kernel.org>; Sun, 19 Jul 2026 11:01:34 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1784484077; x=1785088877; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1784484091; x=1785088891; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:to:from:from:to:cc:subject:date:message-id
          :reply-to:content-type;
-        bh=OFMO/6wAurP0TcklziZGT9lYnZVfFUdBzO/mH5p+qV0=;
-        b=OMu9beJI4fwf4T8QGkIxf/+YofVii/mOTeme8+y5D0DJ4M1Rglh+1fL3/dvTcEKor7
-         Ykjzhe2JOL4yVTrkMX8sMx04iROD1SG4HJu0cbF2ml2laybQ2NaX9JN6XWNwEZzYGSnZ
-         1IXZtsSM4gUZaExwXGiJVwerVQdvvnhQ2sv7vKSms7hIauLuqSdm14sS51eEH1ddlyD5
-         6gsA0D4eFjo9Nz0QetISkcJzpTCu7kBdSycAjkUEub3EzOe8zZE7wREVbSWTBb4pAXe0
-         tTszUMKARAnQ60j0fNGqr98zqHk2qYOb78Iwd2D9SCbmSgRFrkMFzH0qPSHR5GrbrDEP
-         uw6A==
+        bh=azzV2bYeVsLKU7C2phxsGcESC9yqicjrMHqaNHRc6gc=;
+        b=f2Z1haqy7ya7uCoe5IRLGsUVinghy7bzLydr0Te+d4jseB/eQIeFWHBWlOFt9SuciJ
+         TGTp9lvxkgXfKbMcEMYBzfp1IAiW81LYXhpAitoOld/Gi0+RRFdEBoFl+w10aRpSKw0M
+         +09mwgGY5Mr4XsLmhxAj8CxsCHhlYuUphGfcB9dxj0+/7JPG2MXhFC2OLK+6CKU3ehOI
+         dkgq6IRuoAIBhkTlaVJiRecJ7HypG/EBRykBHeAGJJqv6WuXQGqgTH5PUZRfdN/e3Omn
+         pJryOcNHKYeVqvFMYXzfCbP6qDj1i+scGmZDPkbS8/jrm9uUJcCpwJmA/8Dcz1+HIf9z
+         Q2IA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1784484077; x=1785088877;
+        d=1e100.net; s=20251104; t=1784484091; x=1785088891;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:to:from:x-gm-gg:x-gm-message-state:from:to
          :cc:subject:date:message-id:reply-to:content-type;
-        bh=OFMO/6wAurP0TcklziZGT9lYnZVfFUdBzO/mH5p+qV0=;
-        b=ZBgYczzTPFjO9s+HCbyFIfAhthsQvRebn3ws+vVIIwo5yPyA5AnqLMSndSnkFtOAVe
-         bw32ZrAsq7cDJTO2VvcIu4jNRipWg06s4HrKrlK3m2323gCE+8HCjrmz/xGj4Ft9TngN
-         dFZY5V9ihcXUo8tKCmGcRTf95Bj3RNF0j5hEenxrCeuM1dsuC9dsZ4nlUJTe6eRaAgaa
-         JNUk06oi9q206YdB3pt9mewwbYmIV4ojD+GaBtOAhVR+20kAgh8YZL3bUGvTSqXulpyj
-         LeflE3Vw0hXbTLl1KMtkYFrJv+BkSGK5DPGm6Mkf4xJrbs3YCFVq2JXdKuKdnWDoEvAU
-         JP6g==
-X-Forwarded-Encrypted: i=1; AHgh+RpYdV84B3TzCaZkQlO5PXE28ztegijs431hi82biBsIELzQJPmlcrtuxaM0S8a1+BeqRk+mfgi+0jd7@vger.kernel.org
-X-Gm-Message-State: AOJu0YzS31MEXc5CmmyFJHPpyfKd6ykyLb5N5hYTU8lvP2LOIAtA3NYa
-	ucwv7LBI2E5CenFZrz/z1+wSgReyD84KttIUqPaNkihmMvOxjL5yR2uE
-X-Gm-Gg: AfdE7cn7aHLCqJ4um39+n8XnQ3RvYXnI27dvbtwqTR75j638jv+ue+GehqP35bI4pr2
-	iD67t5YvFi7BICebgVaKKWMGEqDtKEGZ8IhWHS+kYhBxVtwrlyhqmeOd4QuQHpP0QLY62T5pRXi
-	D8ae1AEXh8L2u1H4TasI9IXC+dWDp9MGQP19VbWnAItydcYUetSNKrY72Fb4ZpgbxauLtsh+tUI
-	KPPouosTwuhkAaVtK+5Knw2UPCsQlZjPgigxoLdfBqxzYbz0kAuEdGKPd6slvMAagnIh85VcjCv
-	BAuTfFFFEEl+CGFt/wQ2a/tRzPRxsLb9DGlT8yNfWC53w6Pn8QoXnDXdbV0H+uXsPtsMNzVo8E3
-	ZJ1UF7w7dYTJSm/eJez+bdSDxKpu8UiRcEQhnYdcf6OtHiQW0BAOecdWXQhs4YsaxQw==
-X-Received: by 2002:a17:902:e5cb:b0:2cc:9763:e607 with SMTP id d9443c01a7336-2cf349bc5c8mr112975505ad.27.1784484075635;
-        Sun, 19 Jul 2026 11:01:15 -0700 (PDT)
+        bh=azzV2bYeVsLKU7C2phxsGcESC9yqicjrMHqaNHRc6gc=;
+        b=oP8U5uGWgcfHS09A9jnJPw6ECFjJ/D0Hz3Ra9OS6+OuaGszzTyOVj1OMTpjqbHj/An
+         c6DxONo8PXgypjsBj/o8uIFFULo2KtcfYNePACd/n6iVYnyFJdsa6UGxDTxxGMWEUHhI
+         xXxoMNGP3SaE1qP7hl3ZH1e2YmL1XRws5VxseiIaDCnhG2uM93HFHBhYEyAq/nZ2NzWo
+         eegX1botPBqNOdgtF8n8FMI8x9s6RgmlS4UCtKuBnAO/YXzSbF8XDrvi68c0fXXtJQnN
+         VvHR0l0AkBmNFKiM95i43Yh/CYI38W7Ndxjn3l7cCNY+BMFFTip7K6gQpgf65metcFD3
+         ruYw==
+X-Forwarded-Encrypted: i=1; AHgh+RoMEdaHAfOy22kcZGZAhRrSsUM1Rg9QRKTiVPK8W/i1QCGC9hRdppeYMslcxSvNvt9eiSrLkEXWSxyk@vger.kernel.org
+X-Gm-Message-State: AOJu0YyYR8mhVLgUr8eE4rbkNTUUbaQdrPM9b/7Qv+joymqeltBejQPq
+	E6iWx5s1SjXvgK+klusW117FbxEHodCQ8JiJdK2cd1N93+0pdlpjkptc
+X-Gm-Gg: AfdE7ckCgKmbJhifvxk5GiF4uP1P7+iSoj3hLWP6I5n9kciGsJf33i/UKMFZ86ZTYJx
+	pqcsyGdFAO6M1HrX4/ZftiXtlvAxuBm/lnNzUt12u5n1N4DkKa0q7IQis53lONY7GR+hi3OtzbC
+	dkWaTWymy1ri+BGFypxLqkWSSPg1RGVxP5YVuROenc8B3OBmzKMzH3sTUoTi9yo4lGx8JnsQ4wz
+	zgJWjntmDjJ79Yt1bP4xP+kM1rnty8OQU+RxWg7aacfH4hwOpN8EjvXvjzYTq5yjCufa7enSTfq
+	vPey4fpnt1iG07HjRVRhARTobalx1/bESbHLFud/Jff9+yRtH08LWXGPW1gSUXPrCEq6603tbSj
+	hTkIAt4rE7yH4izS3nRDhB9WUVCBRyV4+ALQWDXB24tgzXuZF9VBsXmaGKi0BHzAuSCqNS4fCca
+	8G
+X-Received: by 2002:a17:903:3807:b0:2ce:9439:59a5 with SMTP id d9443c01a7336-2cf349a15c6mr111239485ad.36.1784484089456;
+        Sun, 19 Jul 2026 11:01:29 -0700 (PDT)
 Received: from ap.. ([182.213.254.91])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2cf34769bd6sm43511065ad.74.2026.07.19.11.01.02
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2cf34769bd6sm43511065ad.74.2026.07.19.11.01.16
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 19 Jul 2026 11:01:14 -0700 (PDT)
+        Sun, 19 Jul 2026 11:01:27 -0700 (PDT)
 From: Taehee Yoo <ap420073@gmail.com>
 To: Alex Deucher <alexander.deucher@amd.com>,
 	Alexei Starovoitov <ast@kernel.org>,
@@ -110,9 +111,9 @@ To: Alex Deucher <alexander.deucher@amd.com>,
 	Taehee Yoo <ap420073@gmail.com>,
 	Tariq Toukan <tariqt@nvidia.com>,
 	Yonghong Song <yonghong.song@linux.dev>
-Subject: [RFC PATCH net-next 08/13] drm/amdkfd: add GPU instruction emitter and disassembler
-Date: Sun, 19 Jul 2026 17:58:52 +0000
-Message-ID: <20260719175857.4071636-9-ap420073@gmail.com>
+Subject: [RFC PATCH net-next 09/13] drm/amdkfd: add BPF-to-GPU JIT offload
+Date: Sun, 19 Jul 2026 17:58:53 +0000
+Message-ID: <20260719175857.4071636-10-ap420073@gmail.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20260719175857.4071636-1-ap420073@gmail.com>
 References: <20260719175857.4071636-1-ap420073@gmail.com>
@@ -124,14627 +125,12213 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Add the AMD GCN (gfx9/gfx10) instruction encoder used to build the GPU
-shaders that knod dispatches, plus a matching disassembler used for
-debugging the generated code.
+Add the knod BPF feature: an XDP program attached in offload mode is
+JIT-compiled from eBPF to an AMD GCN shader and dispatched on the GPU
+against packets DMA'd into GPU memory, keeping the PASS/DROP/TX verdict
+path off the host CPU.  Built as a separate module (knod_bpf).
 
 Signed-off-by: Taehee Yoo <ap420073@gmail.com>
-(cherry picked from commit bbbe8531de11017f565a922b072d4aa5f99674fc)
+(cherry picked from commit 132d51819ffced59b5890e14bd39cab2e9c12eb4)
 ---
- drivers/gpu/drm/amd/amdkfd/knod/knod_amdgpu.h |  173 +
- .../drm/amd/amdkfd/knod/knod_amdgpu_insn.h    | 6362 +++++++++++++++++
- .../gpu/drm/amd/amdkfd/knod/knod_gfx10_insn.h | 3978 +++++++++++
- .../gpu/drm/amd/amdkfd/knod/knod_gfx9_insn.h  | 4068 +++++++++++
- 4 files changed, 14581 insertions(+)
- create mode 100644 drivers/gpu/drm/amd/amdkfd/knod/knod_amdgpu.h
- create mode 100644 drivers/gpu/drm/amd/amdkfd/knod/knod_amdgpu_insn.h
- create mode 100644 drivers/gpu/drm/amd/amdkfd/knod/knod_gfx10_insn.h
- create mode 100644 drivers/gpu/drm/amd/amdkfd/knod/knod_gfx9_insn.h
+ drivers/gpu/drm/amd/amdkfd/Kconfig         |    11 +
+ drivers/gpu/drm/amd/amdkfd/Makefile        |     2 +
+ drivers/gpu/drm/amd/amdkfd/knod/knod_bpf.c | 11554 +++++++++++++++++++
+ drivers/gpu/drm/amd/amdkfd/knod/knod_bpf.h |   597 +
+ 4 files changed, 12164 insertions(+)
+ create mode 100644 drivers/gpu/drm/amd/amdkfd/knod/knod_bpf.c
+ create mode 100644 drivers/gpu/drm/amd/amdkfd/knod/knod_bpf.h
 
-diff --git a/drivers/gpu/drm/amd/amdkfd/knod/knod_amdgpu.h b/drivers/gpu/drm/amd/amdkfd/knod/knod_amdgpu.h
+diff --git a/drivers/gpu/drm/amd/amdkfd/Kconfig b/drivers/gpu/drm/amd/amdkfd/Kconfig
+index d93f1af749ff..708aa5fc051b 100644
+--- a/drivers/gpu/drm/amd/amdkfd/Kconfig
++++ b/drivers/gpu/drm/amd/amdkfd/Kconfig
+@@ -49,3 +49,14 @@ config HSA_AMD_KNOD
+ 
+ 	  Say N to drop the KNOD core along with the BPF and IPsec offloads
+ 	  layered on top of it.  If unsure, say Y.
++
++config HSA_AMD_KNOD_BPF
++	tristate "KNOD BPF"
++	depends on HSA_AMD_KNOD
++	help
++	  GPU-accelerated XDP/BPF packet processing via KNOD.  BPF programs
++	  attached in XDP mode are JIT-compiled to AMD GCN shaders and run
++	  on the GPU against packets DMA'd directly into GPU memory, keeping
++	  the verdict path (PASS/DROP/TX) off the host CPU.
++
++	  If unsure, say N.
+diff --git a/drivers/gpu/drm/amd/amdkfd/Makefile b/drivers/gpu/drm/amd/amdkfd/Makefile
+index 1834faa54863..4df3850e1466 100644
+--- a/drivers/gpu/drm/amd/amdkfd/Makefile
++++ b/drivers/gpu/drm/amd/amdkfd/Makefile
+@@ -75,3 +75,5 @@ endif
+ ifneq ($(CONFIG_HSA_AMD_KNOD),)
+ AMDKFD_FILES += $(AMDKFD_PATH)/kfd_knod.o
+ endif
++
++obj-$(CONFIG_HSA_AMD_KNOD_BPF) += $(AMDKFD_PATH)/knod/knod_bpf.o
+diff --git a/drivers/gpu/drm/amd/amdkfd/knod/knod_bpf.c b/drivers/gpu/drm/amd/amdkfd/knod/knod_bpf.c
 new file mode 100644
-index 000000000000..77d1c6afdd0a
+index 000000000000..f4f48e1b9f1c
 --- /dev/null
-+++ b/drivers/gpu/drm/amd/amdkfd/knod/knod_amdgpu.h
-@@ -0,0 +1,173 @@
-+/* SPDX-License-Identifier: GPL-2.0-or-later */
++++ b/drivers/gpu/drm/amd/amdkfd/knod/knod_bpf.c
+@@ -0,0 +1,11554 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
 +/* Copyright (c) 2021 Taehee Yoo <ap420073@gmail.com>
 + * Copyright (c) 2021 Hoyeon Lee <hoyeon.rhee@gmail.com>
 + */
 +
-+#ifndef KFD_AMDGPU_H_INCLUDED
-+#define KFD_AMDGPU_H_INCLUDED
++#include <linux/cpumask.h>
++#include <linux/types.h>
++#include <linux/mutex.h>
++#include <linux/slab.h>
++#include <linux/delay.h>
++#include <linux/sched.h>
++#include <linux/workqueue.h>
++#include <linux/file.h>
++#include <linux/jhash.h>
++#include <drm/ttm/ttm_tt.h>
++#include <net/page_pool/helpers.h>
++#include "kfd_priv.h"
++#include "kfd_hsa.h"
++#include "knod_bpf.h"
++#include "kfd_migrate.h"
++#include "kfd_events.h"
++#include "kfd_device_queue_manager.h"
++#include <linux/reciprocal_div.h>
++#include <linux/jhash.h>
++#include <net/knod.h>
++#include <net/netdev_rx_queue.h>
 +
-+#define KNOD_AMDGPU_REG_PAIR(x)         ((x) / 2)
++/*+--------+---------+-------+------+--+-----+------+------+--------+
++ *| v0-v21 | v22-v59 |v60-v61| v62  |63|64-65|66-67 |68-69 | v70-127|
++ *+--------+---------+-------+------+--+-----+------+------+--------+
++ *|BPF REGS|TMP REGS |CTX REG| WIDX |R |DATA |D_END |PGBASE|PKTCACHE|
++ *+--------+---------+-------+------+--+-----+------+------+--------+
++ *+-----------------+
++ *| v128-v255       |
++ *+-----------------+
++ *| BPF STACK(512B) |
++ *+-----------------+
++ */
 +
-+enum amdgcn_param_type {
-+	AMDGCN_PARAM_TYPE_SGPR,
-+	AMDGCN_PARAM_TYPE_VCC_LO,
-+	AMDGCN_PARAM_TYPE_VCC_HI,
-+	AMDGCN_PARAM_TYPE_TTPM_BASE,
-+	AMDGCN_PARAM_TYPE_M0,
-+	AMDGCN_PARAM_TYPE_NULL,
-+	AMDGCN_PARAM_TYPE_EXEC_LO,
-+	AMDGCN_PARAM_TYPE_EXEC_HI,
-+	AMDGCN_PARAM_TYPE_INTEGER_0,
-+	AMDGCN_PARAM_TYPE_INTEGER_MINUS_1,
-+	AMDGCN_PARAM_TYPE_SHARED_BASE,
-+	AMDGCN_PARAM_TYPE_SHARED_LIMIT,
-+	AMDGCN_PARAM_TYPE_PRIVATE_BASE,
-+	AMDGCN_PARAM_TYPE_PRIVATE_LIMIT,
-+	AMDGCN_PARAM_TYPE_POPS_EXITING_WAVE_ID,
-+	AMDGCN_PARAM_TYPE_SDWA,
-+	AMDGCN_PARAM_TYPE_DPP16,
-+	AMDGCN_PARAM_TYPE_VCCZ,
-+	AMDGCN_PARAM_TYPE_EXECZ,
-+	AMDGCN_PARAM_TYPE_SCC,
-+	AMDGCN_PARAM_TYPE_LITERAL_CONST,
-+	AMDGCN_PARAM_TYPE_VGPR,
-+	__AMDGCN_PARAM_TYPE_MAX,
-+};
++/* Temp register map
++ *+-------------+-------------+---------------+---------------+
++ *|TREG0 - TREG2|TREG3 - TREG9|TREG10 - TREG16|TREG17 - TREG18|
++ *+-------------+-------------+---------------+---------------+
++ *| General Use | Key cache A |   Key in MAP  | JHASH Temp Reg|
++ *+-------------+-------------+---------------+---------------+
++ * Available Key cache size is 56.
++ * So, key size of map can't be exceed 56B.
++ */
 +
-+struct amdgcn_param32 {
-+	enum amdgcn_param_type type;
-+	int v;
-+};
++#define KNOD_AMDGPU_VREG0_LO		0 /* v0 */
++#define KNOD_AMDGPU_VREG0_HI		1
++#define KNOD_AMDGPU_VREG1_LO		2
++#define KNOD_AMDGPU_VREG1_HI		3
++#define KNOD_AMDGPU_VREG2_LO		4
++#define KNOD_AMDGPU_VREG2_HI		5
++#define KNOD_AMDGPU_VREG3_LO		6
++#define KNOD_AMDGPU_VREG3_HI		7
++#define KNOD_AMDGPU_VREG4_LO		8
++#define KNOD_AMDGPU_VREG4_HI		9
++#define KNOD_AMDGPU_VREG5_LO		10
++#define KNOD_AMDGPU_VREG5_HI		11
++#define KNOD_AMDGPU_VREG6_LO		12
++#define KNOD_AMDGPU_VREG6_HI		13
++#define KNOD_AMDGPU_VREG7_LO		14
++#define KNOD_AMDGPU_VREG7_HI		15
++#define KNOD_AMDGPU_VREG8_LO		16
++#define KNOD_AMDGPU_VREG8_HI		17
++#define KNOD_AMDGPU_VREG9_LO		18
++#define KNOD_AMDGPU_VREG9_HI		19
++#define KNOD_AMDGPU_FRAME_POINTER_VREG_LO 20 /* v20 */
++#define KNOD_AMDGPU_FRAME_POINTER_VREG_HI 21 /* v20 */
 +
-+struct amdgcn_param64 {
-+	struct amdgcn_param32 lo;
-+	struct amdgcn_param32 hi;
-+	u64 imm;
-+};
-+
-+inline void knod_set(struct amdgcn_param32 *param,
-+				  enum amdgcn_param_type type, int v)
-+{
-+	param->type = type;
-+	param->v = v;
-+}
-+
-+inline void knod_vset32(struct amdgcn_param32 *param, int v)
-+{
-+	param->type = AMDGCN_PARAM_TYPE_VGPR;
-+	param->v = v;
-+}
-+
-+inline void knod_vset64(struct amdgcn_param64 *param, int v)
-+{
-+	param->lo.type = AMDGCN_PARAM_TYPE_VGPR;
-+	param->lo.v = v;
-+	param->hi.type = AMDGCN_PARAM_TYPE_VGPR;
-+	param->hi.v = v + 1;
-+}
-+
-+inline void knod_sset32(struct amdgcn_param32 *param, int v)
-+{
-+	param->type = AMDGCN_PARAM_TYPE_SGPR;
-+	param->v = v;
-+}
-+
-+inline void knod_sset64(struct amdgcn_param64 *param, int v)
-+{
-+	param->lo.type = AMDGCN_PARAM_TYPE_SGPR;
-+	param->lo.v = v;
-+	param->hi.type = AMDGCN_PARAM_TYPE_SGPR;
-+	param->hi.v = v + 1;
-+}
-+
-+inline void knod_iset32(struct amdgcn_param32 *param, int v)
-+{
-+	if (v > 64 || v < -16) {
-+		param->type = AMDGCN_PARAM_TYPE_LITERAL_CONST;
-+		param->v = v;
-+	} else if (v >= 0) {
-+		param->type = AMDGCN_PARAM_TYPE_INTEGER_0;
-+		param->v = v;
-+	} else {
-+		param->type = AMDGCN_PARAM_TYPE_INTEGER_MINUS_1;
-+		param->v = ~v;
-+	}
-+}
-+
-+inline void knod_iset64(struct amdgcn_param64 *param,
-+				     u64 v)
-+{
-+	int imm0 = v & ~0U;
-+	int imm1 = v >> 32;
-+
-+	param->imm = v;
-+
-+	if (imm0 > 64 || imm0 < -16) {
-+		param->lo.type = AMDGCN_PARAM_TYPE_LITERAL_CONST;
-+		param->lo.v = imm0;
-+	} else if (imm0 >= 0) {
-+		param->lo.type = AMDGCN_PARAM_TYPE_INTEGER_0;
-+		param->lo.v = imm0;
-+	} else {
-+		param->lo.type = AMDGCN_PARAM_TYPE_INTEGER_MINUS_1;
-+		param->lo.v = ~imm0;
-+	}
-+
-+	if (imm1 > 64 || imm1 < -16) {
-+		param->hi.type = AMDGCN_PARAM_TYPE_LITERAL_CONST;
-+		WARN_ON_ONCE(1);
-+		param->hi.v = imm1;
-+	} else if (imm1 >= 0) {
-+		param->hi.type = AMDGCN_PARAM_TYPE_INTEGER_0;
-+		param->hi.v = imm1;
-+	} else {
-+		param->hi.type = AMDGCN_PARAM_TYPE_INTEGER_MINUS_1;
-+		param->hi.v = ~imm1;
-+	}
-+}
-+
-+inline void knod_lset32(struct amdgcn_param32 *param, int v)
-+{
-+	param->type = AMDGCN_PARAM_TYPE_LITERAL_CONST;
-+	param->v = v;
-+}
-+
-+inline void knod_vccset(struct amdgcn_param32 *param)
-+{
-+	param->type = AMDGCN_PARAM_TYPE_VCC_LO;
-+	param->v = 0;
-+}
-+
-+inline bool knod_param_is_literal(struct amdgcn_param32 param)
-+{
-+	return param.type == AMDGCN_PARAM_TYPE_LITERAL_CONST;
-+}
-+
-+/* ======================================================================
-+ * Param constructors - common to GFX9/GFX10 shader emitters.
++#define KNOD_AMDGPU_TMP_VREG0_LO	22
++#define KNOD_AMDGPU_TMP_VREG0_HI	23
++#define KNOD_AMDGPU_TMP_VREG1_LO	24
++#define KNOD_AMDGPU_TMP_VREG1_HI	25
++#define KNOD_AMDGPU_TMP_VREG2_LO	26
++#define KNOD_AMDGPU_TMP_VREG2_HI	27
++#define KNOD_AMDGPU_TMP_VREG3_LO	28
++#define KNOD_AMDGPU_TMP_VREG3_HI	29
++#define KNOD_AMDGPU_TMP_VREG4_LO	30
++#define KNOD_AMDGPU_TMP_VREG4_HI	31
++#define KNOD_AMDGPU_TMP_VREG5_LO	32
++#define KNOD_AMDGPU_TMP_VREG5_HI	33
++#define KNOD_AMDGPU_TMP_VREG6_LO	34
++#define KNOD_AMDGPU_TMP_VREG6_HI	35
++#define KNOD_AMDGPU_TMP_VREG7_LO	36
++#define KNOD_AMDGPU_TMP_VREG7_HI	37
++#define KNOD_AMDGPU_TMP_VREG8_LO	38
++#define KNOD_AMDGPU_TMP_VREG8_HI	39
++#define KNOD_AMDGPU_TMP_VREG9_LO	40
++#define KNOD_AMDGPU_TMP_VREG9_HI	41
++#define KNOD_AMDGPU_TMP_VREG10_LO	42
++#define KNOD_AMDGPU_TMP_VREG10_HI	43
++#define KNOD_AMDGPU_TMP_VREG11_LO	44
++#define KNOD_AMDGPU_TMP_VREG11_HI	45
++#define KNOD_AMDGPU_TMP_VREG12_LO	46
++#define KNOD_AMDGPU_TMP_VREG12_HI	47
++#define KNOD_AMDGPU_TMP_VREG13_LO	48
++#define KNOD_AMDGPU_TMP_VREG13_HI	49
++#define KNOD_AMDGPU_TMP_VREG14_LO	50
++#define KNOD_AMDGPU_TMP_VREG14_HI	51
++#define KNOD_AMDGPU_TMP_VREG15_LO	52
++#define KNOD_AMDGPU_TMP_VREG15_HI	53
++#define KNOD_AMDGPU_TMP_VREG16_LO	54
++#define KNOD_AMDGPU_TMP_VREG16_HI	55
++#define KNOD_AMDGPU_TMP_VREG17_LO	56
++#define KNOD_AMDGPU_TMP_VREG17_HI	57
++#define KNOD_AMDGPU_TMP_VREG18_LO	58
++#define KNOD_AMDGPU_TMP_VREG18_HI	59
++#define KNOD_AMDGPU_TMP_VREG_MAX	KNOD_AMDGPU_TMP_VREG18_HI
++#define KNOD_AMDGPU_CTX_VREG_LO		60
++#define KNOD_AMDGPU_CTX_VREG_HI		61
++#define KNOD_AMDGPU_IDX_VREG		62
++#define KNOD_AMDGPU_RESERVED		63
++/*
++ * After prologue step 4, IDX_VREG is no longer needed.
++ * v62:v63 are repurposed to hold slot_addr (spsc_bd GTT address)
++ * through BPF execution and into the epilogue.
 + *
-+ * Usage: pass directly to emit_gfx{9,10}_* functions that take
-+ *        struct amdgcn_param32 operands.
-+ * ======================================================================
++ * BACKLOG_IDX_VREG (v58) saves the backlog index from IDX_VREG
++ * before step 6 overwrites it.  Used in epilogue for XDP_PASS.
 + */
-+
-+#define P_S(n)	((struct amdgcn_param32){ AMDGCN_PARAM_TYPE_SGPR, (n) })
-+#define P_V(n)	((struct amdgcn_param32){ AMDGCN_PARAM_TYPE_VGPR, (n) })
-+#define P_I(n)	((struct amdgcn_param32){ AMDGCN_PARAM_TYPE_INTEGER_0, (n) })
-+#define P_L(v)	((struct amdgcn_param32){ AMDGCN_PARAM_TYPE_LITERAL_CONST, (v) })
-+#define P_VCC	((struct amdgcn_param32){ AMDGCN_PARAM_TYPE_VCC_LO, 0 })
-+#define P_EXEC	((struct amdgcn_param32){ AMDGCN_PARAM_TYPE_EXEC_LO, 0 })
-+
-+/* ======================================================================
-+ * Branch patching - operates directly on u32 *buf
-+ * ======================================================================
++#define KNOD_AMDGPU_BACKLOG_IDX_VREG	KNOD_AMDGPU_TMP_VREG18_LO /* v58 */
++#define KNOD_AMDGPU_SLOT_VREG_LO	KNOD_AMDGPU_IDX_VREG	/* v62 */
++#define KNOD_AMDGPU_SLOT_VREG_HI	KNOD_AMDGPU_RESERVED	/* v63 */
++/*
++ * DATA/DATA_END VGPRs: hold packet gaddr and end address.
++ * Set in prologue, read by BPF ctx->data / ctx->data_end accesses.
++ * Replaces GTT round-trip (prologue store -> BPF load).
 + */
++#define KNOD_AMDGPU_DATA_VREG_LO	64
++#define KNOD_AMDGPU_DATA_VREG_HI	65
++#define KNOD_AMDGPU_DATA_END_VREG_LO	66
++#define KNOD_AMDGPU_DATA_END_VREG_HI	67
++#define KNOD_AMDGPU_PAGE_BASE_VREG_LO	68
++#define KNOD_AMDGPU_PAGE_BASE_VREG_HI	69
++#define KNOD_AMDGPU_PKT_CACHE_VREG0	70
++#define KNOD_AMDGPU_PKT_CACHE_VREG_MAX	127 /* 0 ~ 127 vgprs are available */
++#define KNOD_AMDGPU_STACK_VREG0		128
++#define KNOD_AMDGPU_STACK_VREG_MAX	255 /* 128 ~ 255 vgprs are available */
 +
-+static inline void patch_branch(u32 *buf, int patch_pos, int target_pos)
++#define KNOD_BPF_PROG_BUF_SIZE		32768
++
++/* Index for r64.
++ * r64[TREG64_0]
++ */
++#define TREG64_0			0
++#define TREG64_1			1
++#define TREG64_2			2
++#define TREG64_3			3
++#define KEY_IN_PKT_64			TREG64_3
++#define TREG64_4			4
++#define TREG64_5			5
++#define TREG64_6			6
++#define TREG64_7			7
++#define TREG64_8			8
++#define TREG64_9			9
++#define TREG64_10			10
++#define KEY_IN_MAP_64			TREG64_10
++#define TREG64_11			11
++#define TREG64_12			12
++#define TREG64_13			13
++#define TREG64_14			14
++#define TREG64_15			15
++#define TREG64_16			16
++#define TREG64_17			17
++#define TREG64_18			18
++
++#define MAX_MAP_KEY_SIZE		56
++
++/* Index for r32.
++ * r32[TREG32_0_LO]
++ */
++#define TREG32_0_LO			0
++#define TREG32_0_HI			1
++#define TREG32_1_LO			2
++#define TREG32_1_HI			3
++#define TREG32_2_LO			4
++#define TREG32_2_HI			5
++#define TREG32_3_LO			6
++#define KEY_IN_PKT_32			TREG32_3_LO
++#define TREG32_3_HI			7
++#define TREG32_4_LO			8
++#define TREG32_4_HI			9
++#define TREG32_5_LO			10
++#define TREG32_5_HI			11
++#define TREG32_6_LO			12
++#define TREG32_6_HI			13
++#define TREG32_7_LO			14
++#define TREG32_7_HI			15
++#define TREG32_8_LO			16
++#define TREG32_8_HI			17
++#define TREG32_9_LO			18
++#define TREG32_9_HI			19
++#define TREG32_10_LO			20
++#define KEY_IN_MAP_32			TREG32_10_LO
++#define TREG32_10_HI			21
++#define TREG32_11_LO			22
++#define TREG32_11_HI			23
++#define TREG32_12_LO			24
++#define TREG32_12_HI			25
++#define TREG32_13_LO			26
++#define TREG32_13_HI			27
++#define TREG32_14_LO			28
++#define TREG32_14_HI			29
++#define TREG32_15_LO			30
++#define TREG32_15_HI			31
++#define TREG32_16_LO			32
++#define TREG32_16_HI			33
++#define TREG32_17_LO			34
++#define TREG32_17_HI			35
++#define TREG32_18_LO			36
++#define TREG32_18_HI			37
++#define TREG32_MAX			TREG32_18_HI
++
++/*+--------+--------------------------------------+---+---+
++ *| s[0:3] |s[4:5] s[6:7] s[8:9] s[10:11] s[12:13]|s14|s15|
++ *+--------+--------------------------------------+---+---+
++ *|  PSB   | USER SGPRs (disp/queue/karg/id/flat) |WGX|QID|
++ *+--------+--------------------------------------+---+---+
++ *+----------------+------+---+---+------+-------+-------------------+
++ *|   s[16:27]     |s28:29|s30|s31|s32:33|s34:35 |    s[36:105]      |
++ *+----------------+------+---+---+------+-------+-------------------+
++ *|TMP_SREG 0-5    |PARAM |FP | - | GFX9 | DONE  | EXEC_SAVE PAIRS   |
++ *|(6 x 64-bit)    |SREG  |   |   |BROKE!| MASK  | (max 35, GFX10)   |
++ *+----------------+------+---+---+------+-------+-------------------+
++ * Implicit: VCC = s[106:107]  EXEC = s[126:127]
++ *
++ * user_sgpr_count=14, same on GFX9 and GFX10.
++ * enable_sgpr_private_segment_size is disabled so that workgroup_id_y
++ * lands at s15 and TMP_SREG0_LO stays at s16 (keeps 64-bit SGPR pair
++ * alignment; avoids shifting the entire TMP/PARAM/FRAME layout).
++ */
++#define KNOD_AMDGPU_PSB_SREG		0  /* s[0:3] private_segment_buffer */
++#define KNOD_AMDGPU_DISPATCH_PTR_SREG	4  /* s[4:5] dispatch_ptr */
++#define KNOD_AMDGPU_ARG_SREG		4  /* alias for dispatch_ptr */
++#define KNOD_AMDGPU_QUEUE_PTR_SREG	6  /* s[6:7] queue_ptr */
++#define KNOD_AMDGPU_KERNARG_PTR_SREG	8  /* s[8:9] kernarg_segment_ptr */
++#define KNOD_AMDGPU_DISPATCH_ID_SREG	10 /* s[10:11] dispatch_id */
++#define KNOD_AMDGPU_FLAT_SCR_INIT_SREG	12 /* s[12:13] flat_scratch_init */
++#define KNOD_AMDGPU_WORKGROUP_ID_X_SREG	14 /* s14 workgroup_id_x */
++#define KNOD_AMDGPU_WORKGROUP_ID_Y_SREG	15 /* s15 workgroup_id_y = queue_id */
++#define KNOD_AMDGPU_TMP_SREG0_LO	16
++#define KNOD_AMDGPU_TMP_SREG0_HI	17
++#define KNOD_AMDGPU_TMP_SREG1_LO	18
++#define KNOD_AMDGPU_TMP_SREG1_HI	19
++#define KNOD_AMDGPU_TMP_SREG2_LO	20
++#define KNOD_AMDGPU_TMP_SREG2_HI	21
++#define KNOD_AMDGPU_TMP_SREG3_LO	22
++#define KNOD_AMDGPU_TMP_SREG3_HI	23
++#define KNOD_AMDGPU_TMP_SREG4_LO	24
++#define KNOD_AMDGPU_TMP_SREG4_HI	25
++#define KNOD_AMDGPU_TMP_SREG5_LO	26
++#define KNOD_AMDGPU_TMP_SREG5_HI	27
++#define KNOD_AMDGPU_PARAM_SREG_LO	28 /* s28 */
++#define KNOD_AMDGPU_PARAM_SREG_HI	29 /* s29 */
++#define KNOD_AMDGPU_FRAME_POINTER_SREG	30 /* s30 */
++
++/* Structurized CFG: EXEC mask save/restore SGPRs.
++ * done_mask tracks lanes that have reached BPF_EXIT.
++ * exec_save pairs store EXEC at branch points for restore at merge points.
++ * GFX9: s[0:101] addressable (102 SGPRs), GFX10: s[0:105] (106 SGPRs).
++ * NOTE: s[32:33] is corrupted by GFX9 hardware - do NOT use on GFX9.
++ * GFX10 uses s[32:33] for done_mask and starts exec_save at s[34].
++ */
++/* Common SGPR special register indices (same on GFX9 and GFX10) */
++#define AMDGCN_SREG_VCC_LO		106
++#define AMDGCN_SREG_EXEC_LO		126
++#define AMDGCN_SREG_INTEGER_0		128
++#define AMDGCN_SREG_INTEGER_1		129
++
++/* s[34:35] - must not overlap TMP_SREGs */
++#define KNOD_AMDGPU_DONE_MASK_SREG	34
++#define KNOD_AMDGPU_EXEC_SAVE_SREG_BASE 36 /* s[36:37], s[38:39], ... */
++#define KNOD_AMDGPU_INITIAL_EXEC_SREG_GFX9 100
++#define KNOD_AMDGPU_INITIAL_EXEC_SREG_GFX10 104
++/* exec_save can fill up to each ISA's top usable SGPR pair. GFX9 lays the
++ * initial in-bounds EXEC snapshot immediately after the pairs a program
++ * actually uses, so small programs keep the old 64-SGPR occupancy window.
++ * GFX10 keeps the original high fixed snapshot pair.
++ */
++#define KNOD_AMDGPU_EXEC_SAVE_SREG_MAX_GFX9  99
++#define KNOD_AMDGPU_EXEC_SAVE_SREG_MAX_GFX10 103
++#define KNOD_AMDGPU_MAX_EXEC_SAVE_PAIRS_GFX9 \
++	((KNOD_AMDGPU_EXEC_SAVE_SREG_MAX_GFX9 - KNOD_AMDGPU_EXEC_SAVE_SREG_BASE + 1) / 2)
++#define KNOD_AMDGPU_MAX_EXEC_SAVE_PAIRS_GFX10 \
++	((KNOD_AMDGPU_EXEC_SAVE_SREG_MAX_GFX10 - KNOD_AMDGPU_EXEC_SAVE_SREG_BASE + 1) / 2)
++
++static u8 knod_bpf_gfx9_sgpr_granule(unsigned int sgprs_used)
 +{
-+	int offset = target_pos - (patch_pos + 1);
++	if (sgprs_used <= 16)
++		return 0;
 +
-+	buf[patch_pos] = (buf[patch_pos] & 0xFFFF0000u) | (offset & 0xFFFF);
++	return 2 * (DIV_ROUND_UP(sgprs_used, 16) - 1);
 +}
 +
-+#endif
-diff --git a/drivers/gpu/drm/amd/amdkfd/knod/knod_amdgpu_insn.h b/drivers/gpu/drm/amd/amdkfd/knod/knod_amdgpu_insn.h
-new file mode 100644
-index 000000000000..9703bf781ff5
---- /dev/null
-+++ b/drivers/gpu/drm/amd/amdkfd/knod/knod_amdgpu_insn.h
-@@ -0,0 +1,6362 @@
-+/* SPDX-License-Identifier: GPL-2.0-or-later */
-+/* Copyright (c) 2021 Taehee Yoo <ap420073@gmail.com>
-+ * Copyright (c) 2021 Hoyeon Lee <hoyeon.rhee@gmail.com>
++unsigned int knod_bpf_workgroups = KNOD_BPF_WORKGROUPS_DEFAULT;
++MODULE_PARM_DESC(workgroups, "Workgroup size, multiple of 64, Min(64) Default/Max(256)");
++module_param_named(workgroups, knod_bpf_workgroups, int, 0600);
++
++unsigned int knod_bpf_expire = KNOD_BPF_EXPIRE_DEFAULT;
++MODULE_PARM_DESC(queue_expire, "Queue expire time(ms), Min(1), Default(10), Max(1000)");
++module_param_named(queue_expire, knod_bpf_expire, int, 0600);
++
++unsigned int knod_bpf_pkt_cache;
++MODULE_PARM_DESC(packet_cache, "Use packet cache, 0=Off(Default), 1=On");
++module_param_named(packet_cache, knod_bpf_pkt_cache, int, 0600);
++
++unsigned int knod_bpf_wave32;
++MODULE_PARM_DESC(wave32, "Use wave32 0=Off(Default), 1=On");
++module_param_named(wave32, knod_bpf_wave32, int, 0600);
++
++#define KNOD_EA(extack, msg)   NL_SET_ERR_MSG_MOD((extack), msg)
++
++DEFINE_STATIC_KEY_FALSE(knod_stats_key);
++
++static const u32 bl_bounds[KNOD_BL_BUCKETS - 1] = {
++	16, 64, 256, 1024, 4096, 8192, 16384
++};
++
++static const char * const lat_labels[] = {
++	"< 1us", "1-2us", "2-4us", "4-8us", "8-16us",
++	"16-32us", "32-64us", "64-128us", "128-256us", ">= 256us",
++};
++
++static const char * const bl_labels[] = {
++	"1-16", "17-64", "65-256", "257-1K",
++	"1K-4K", "4K-8K", "8K-16K", ">= 16K",
++};
++
++static LIST_HEAD(priv_list);
++struct amdgcn_param64 r64[20], sr64[6], p64[4], bpf_reg64[11];
++struct amdgcn_param32 r32[40]; /* last two is CTX */
++struct amdgcn_param32 stack[128];
++struct amdgcn_param32 pkt_cache[64];
++
++struct amdgcn_label {
++	struct knod_insn_meta *meta;
++	int insn_idx;
++};
++
++struct amdgcn_branch_fixup {
++	struct amdgcn_label *target_label;
++	struct knod_insn_meta *meta;
++	int insn_idx;
++};
++
++struct knod_accel_xdp_ops accel_xdp_ops;
++
++static int knod_prog_prepare_insns(struct knod_bpf_priv *priv,
++				   struct knod_prog *knod_prog);
++static int knod_bpf_worker(void *arg);
++static void knod_bpf_drain_worker(struct knod_bpf_priv *priv);
++static void knod_prog_free(struct knod_prog *knod_prog);
++static void knod_emit_pass_addr_store(struct knod_bpf_priv *priv,
++				      struct knod_insn_meta *meta);
++static void knod_setup_bpf_prog(struct bpf_prog *prog);
++
++static void knod_bpf_gpu_mem_fence(struct knod_bpf_priv *priv)
++{
++	if (!priv)
++		return;
++
++	/* drain the WC store buffer before the GPU reads the map */
++	wmb();
++}
++
++static unsigned int knod_bpf_active_rxq_count(struct net_device *netdev)
++{
++	unsigned int nr_rxq;
++
++	if (!netdev)
++		return 0;
++
++	nr_rxq = READ_ONCE(netdev->real_num_rx_queues);
++	if (!nr_rxq)
++		nr_rxq = netdev->num_rx_queues;
++
++	return min_t(unsigned int, nr_rxq, KNOD_SPSC_MAX);
++}
++
++static void knod_bpf_fill_dispatch(struct knod_bpf_priv *priv,
++				   struct knod_bpf_work_sq *sqw,
++				   struct knod_dispatch_params *p)
++{
++	struct knod_bpf_param *param = sqw->param->kaddr;
++
++	p->workgroup_size_x = knod_bpf_workgroups;
++	p->grid_size_x = priv->batch_size;
++	p->grid_size_y = param->nr_queues;
++	p->private_segment_size = 8192;
++	p->group_segment_size = 8192;
++	p->kernel_object =
++		(u64)priv->knod->kernels[READ_ONCE(priv->active_idx)]->gaddr;
++	p->kernarg_address = sqw->param->gaddr;
++}
++
++static void debug_kernel_descriptor(struct kernel_descriptor *kernel_code)
++{
++	knod_jit_dbg(" kernel_code->group_segment_fixed_size = %d\n",
++		kernel_code->group_segment_fixed_size);
++	knod_jit_dbg(" kernel_code->private_segment_fixed_size = %d\n",
++		kernel_code->private_segment_fixed_size);
++	knod_jit_dbg(" kernel_code->kernarg_size = %d\n",
++		kernel_code->kernarg_size);
++	knod_jit_dbg(" kernel_code->kernel_code_entry_byte_offset = %lld\n",
++		kernel_code->kernel_code_entry_byte_offset);
++	knod_jit_dbg(" kernel_code->compute_pgm_rsrc3.accum_offset = %d\n",
++		kernel_code->compute_pgm_rsrc3.accum_offset);
++	knod_jit_dbg(" kernel_code->compute_pgm_rsrc3.reserved0 = %d\n",
++		kernel_code->compute_pgm_rsrc3.reserved0);
++	knod_jit_dbg(" kernel_code->compute_pgm_rsrc3.tg_split = %d\n",
++		kernel_code->compute_pgm_rsrc3.tg_split);
++	knod_jit_dbg(" kernel_code->compute_pgm_rsrc3.reserved1 = %d\n",
++		kernel_code->compute_pgm_rsrc3.reserved1);
++	knod_jit_dbg(" kernel_code->compute_pgm_rsrc1.granulated_workitem_vgpr_count = %d\n",
++		kernel_code->compute_pgm_rsrc1.granulated_workitem_vgpr_count);
++	knod_jit_dbg(" kernel_code->compute_pgm_rsrc1.granulated_wavefront_sgpr_count = %d\n",
++		kernel_code->compute_pgm_rsrc1.granulated_wavefront_sgpr_count);
++	knod_jit_dbg(" kernel_code->compute_pgm_rsrc1.priority = %d\n",
++		kernel_code->compute_pgm_rsrc1.priority);
++	knod_jit_dbg(" kernel_code->compute_pgm_rsrc1.float_round_mode_32 = %d\n",
++		kernel_code->compute_pgm_rsrc1.float_round_mode_32);
++	knod_jit_dbg(" kernel_code->compute_pgm_rsrc1.float_round_mode_16_64 = %d\n",
++		kernel_code->compute_pgm_rsrc1.float_round_mode_16_64);
++	knod_jit_dbg(" kernel_code->compute_pgm_rsrc1.float_denorm_mode_32 = %d\n",
++		kernel_code->compute_pgm_rsrc1.float_denorm_mode_32);
++	knod_jit_dbg(" kernel_code->compute_pgm_rsrc1.float_denorm_mode_16_64 = %d\n",
++		kernel_code->compute_pgm_rsrc1.float_denorm_mode_16_64);
++	knod_jit_dbg(" kernel_code->compute_pgm_rsrc1.priv = %d\n",
++		kernel_code->compute_pgm_rsrc1.priv);
++	knod_jit_dbg(" kernel_code->compute_pgm_rsrc1.enable_dx10_clamp = %d\n",
++		kernel_code->compute_pgm_rsrc1.enable_dx10_clamp);
++	knod_jit_dbg(" kernel_code->compute_pgm_rsrc1.debug_mode = %d\n",
++		kernel_code->compute_pgm_rsrc1.debug_mode);
++	knod_jit_dbg(" kernel_code->compute_pgm_rsrc1.enable_ieee_mode = %d\n",
++		kernel_code->compute_pgm_rsrc1.enable_ieee_mode);
++	knod_jit_dbg(" kernel_code->compute_pgm_rsrc1.bulky = %d\n",
++		kernel_code->compute_pgm_rsrc1.bulky);
++	knod_jit_dbg(" kernel_code->compute_pgm_rsrc1.cdbg_user = %d\n",
++		kernel_code->compute_pgm_rsrc1.cdbg_user);
++	knod_jit_dbg(" kernel_code->compute_pgm_rsrc1.fp16_ovfl = %d\n",
++		kernel_code->compute_pgm_rsrc1.fp16_ovfl);
++	knod_jit_dbg(" kernel_code->compute_pgm_rsrc1.reserved0 = %d\n",
++		kernel_code->compute_pgm_rsrc1.reserved0);
++	knod_jit_dbg(" kernel_code->compute_pgm_rsrc1.wgp_mode = %d\n",
++		kernel_code->compute_pgm_rsrc1.wgp_mode);
++	knod_jit_dbg(" kernel_code->compute_pgm_rsrc1.mem_ordered = %d\n",
++		kernel_code->compute_pgm_rsrc1.mem_ordered);
++	knod_jit_dbg(" kernel_code->compute_pgm_rsrc1.fwd_progress = %d\n",
++		kernel_code->compute_pgm_rsrc1.fwd_progress);
++	knod_jit_dbg(" kernel_code->compute_pgm_rsrc2.enable_private_segment = %d\n",
++		kernel_code->compute_pgm_rsrc2.enable_private_segment);
++	knod_jit_dbg(" kernel_code->compute_pgm_rsrc2.user_sgpr_count = %d\n",
++		kernel_code->compute_pgm_rsrc2.user_sgpr_count);
++	knod_jit_dbg(" kernel_code->compute_pgm_rsrc2.enable_trap_handler = %d\n",
++		kernel_code->compute_pgm_rsrc2.enable_trap_handler);
++	knod_jit_dbg(" kernel_code->compute_pgm_rsrc2.enable_sgpr_workgroup_id_x = %d\n",
++		kernel_code->compute_pgm_rsrc2.enable_sgpr_workgroup_id_x);
++	knod_jit_dbg(" kernel_code->compute_pgm_rsrc2.enable_sgpr_workgroup_id_y = %d\n",
++		kernel_code->compute_pgm_rsrc2.enable_sgpr_workgroup_id_y);
++	knod_jit_dbg(" kernel_code->compute_pgm_rsrc2.enable_sgpr_workgroup_id_z = %d\n",
++		kernel_code->compute_pgm_rsrc2.enable_sgpr_workgroup_id_z);
++	knod_jit_dbg(" kernel_code->compute_pgm_rsrc2.enable_sgpr_workgroup_info = %d\n",
++		kernel_code->compute_pgm_rsrc2.enable_sgpr_workgroup_info);
++	knod_jit_dbg(" kernel_code->compute_pgm_rsrc2.enable_vgpr_workitem_id = %d\n",
++		kernel_code->compute_pgm_rsrc2.enable_vgpr_workitem_id);
++	knod_jit_dbg(" kernel_code->compute_pgm_rsrc2.enable_exception_address_watch = %d\n",
++		kernel_code->compute_pgm_rsrc2.enable_exception_address_watch);
++	knod_jit_dbg(" kernel_code->compute_pgm_rsrc2.enable_exception_memory = %d\n",
++		kernel_code->compute_pgm_rsrc2.enable_exception_memory);
++	knod_jit_dbg(" kernel_code->compute_pgm_rsrc2.granulated_lds_size = %d\n",
++		kernel_code->compute_pgm_rsrc2.granulated_lds_size);
++	knod_jit_dbg(" kernel_code->compute_pgm_rsrc2.enable_exception_ieee_754_fp_invalid_operation = %d\n",
++		kernel_code->compute_pgm_rsrc2
++			.enable_exception_ieee_754_fp_invalid_operation);
++	knod_jit_dbg(" kernel_code->compute_pgm_rsrc2.enable_exception_fp_denormal_source = %d\n",
++		kernel_code->compute_pgm_rsrc2
++			.enable_exception_fp_denormal_source);
++	knod_jit_dbg(" kernel_code->compute_pgm_rsrc2.enable_exception_ieee_754_fp_division_by_zero = %d\n",
++		kernel_code->compute_pgm_rsrc2
++			.enable_exception_ieee_754_fp_division_by_zero);
++	knod_jit_dbg(" kernel_code->compute_pgm_rsrc2.enable_exception_ieee_754_fp_overflow = %d\n",
++		kernel_code->compute_pgm_rsrc2
++			.enable_exception_ieee_754_fp_overflow);
++	knod_jit_dbg(" kernel_code->compute_pgm_rsrc2.enable_exception_ieee_754_fp_underflow = %d\n",
++		kernel_code->compute_pgm_rsrc2
++			.enable_exception_ieee_754_fp_underflow);
++	knod_jit_dbg(" kernel_code->compute_pgm_rsrc2.enable_exception_ieee_754_fp_inexact = %d\n",
++		kernel_code->compute_pgm_rsrc2
++			.enable_exception_ieee_754_fp_inexact);
++	knod_jit_dbg(" kernel_code->compute_pgm_rsrc2.enable_exception_int_divide_by_zero = %d\n",
++		kernel_code->compute_pgm_rsrc2
++			.enable_exception_int_divide_by_zero);
++	knod_jit_dbg(" kernel_code->compute_pgm_rsrc2.reserved0 = %d\n",
++		kernel_code->compute_pgm_rsrc2.reserved0);
++	knod_jit_dbg(" kernel_code->code_properties.enable_sgpr_private_segment_buffer = %d\n",
++		kernel_code->code_properties
++			.enable_sgpr_private_segment_buffer);
++	knod_jit_dbg(" kernel_code->code_properties.enable_sgpr_dispatch_ptr = %d\n",
++		kernel_code->code_properties.enable_sgpr_dispatch_ptr);
++	knod_jit_dbg(" kernel_code->code_properties.enable_sgpr_queue_ptr = %d\n",
++		kernel_code->code_properties.enable_sgpr_queue_ptr);
++	knod_jit_dbg(" kernel_code->code_properties.enable_sgpr_kernarg_segment_ptr = %d\n",
++		kernel_code->code_properties.enable_sgpr_kernarg_segment_ptr);
++	knod_jit_dbg(" kernel_code->code_properties.enable_sgpr_dispatch_id = %d\n",
++		kernel_code->code_properties.enable_sgpr_dispatch_id);
++	knod_jit_dbg(" kernel_code->code_properties.enable_sgpr_flat_scratch_init = %d\n",
++		kernel_code->code_properties.enable_sgpr_flat_scratch_init);
++	knod_jit_dbg(" kernel_code->code_properties.enable_sgpr_private_segment_size = %d\n",
++		kernel_code->code_properties.enable_sgpr_private_segment_size);
++	knod_jit_dbg(" kernel_code->code_properties.reserved0 = %d\n",
++		kernel_code->code_properties.reserved0);
++	knod_jit_dbg(" kernel_code->code_properties.enable_wavefront_size32 = %d\n",
++		kernel_code->code_properties.enable_wavefront_size32);
++	knod_jit_dbg(" kernel_code->code_properties.uses_dynamic_stack = %d\n",
++		kernel_code->code_properties.uses_dynamic_stack);
++	knod_jit_dbg(" kernel_code->code_properties.reserved1 = %d\n",
++		kernel_code->code_properties.reserved1);
++}
++
++static void kfd_kernel_gfx9_init(struct knod *knod)
++{
++	struct kernel_descriptor *kernel_code = knod->kernels[0]->kaddr;
++
++	kernel_code->group_segment_fixed_size = 0;
++	kernel_code->private_segment_fixed_size = 8192;
++	kernel_code->kernarg_size = 64;
++	kernel_code->kernel_code_entry_byte_offset = 1024;
++
++	/* GFX10+ or GFX90A+ */
++	kernel_code->compute_pgm_rsrc3.accum_offset = 0;
++	kernel_code->compute_pgm_rsrc3.reserved0 = 0;
++	kernel_code->compute_pgm_rsrc3.tg_split = 0;
++	kernel_code->compute_pgm_rsrc3.reserved1 = 0;
++
++	kernel_code->compute_pgm_rsrc1.granulated_workitem_vgpr_count =
++		(256 / 4) - 1;
++	/*
++	 * Start with the small GFX9 window. BPF install updates each slot
++	 * descriptor when a program needs a larger exec_save/initial_exec
++	 * range.
++	 */
++	kernel_code->compute_pgm_rsrc1.granulated_wavefront_sgpr_count =
++		knod_bpf_gfx9_sgpr_granule(52);
++	kernel_code->compute_pgm_rsrc1.priority = 0;
++	kernel_code->compute_pgm_rsrc1.float_round_mode_32 = 0;
++	kernel_code->compute_pgm_rsrc1.float_round_mode_16_64 = 0;
++	kernel_code->compute_pgm_rsrc1.float_denorm_mode_32 = 3;
++	kernel_code->compute_pgm_rsrc1.float_denorm_mode_16_64 = 3;
++	kernel_code->compute_pgm_rsrc1.priv = 0;
++	kernel_code->compute_pgm_rsrc1.enable_dx10_clamp = 1;
++	kernel_code->compute_pgm_rsrc1.debug_mode = 0;
++	kernel_code->compute_pgm_rsrc1.enable_ieee_mode = 1;
++	kernel_code->compute_pgm_rsrc1.bulky = 0;
++	kernel_code->compute_pgm_rsrc1.cdbg_user = 0;
++	kernel_code->compute_pgm_rsrc1.fp16_ovfl = 0;
++	kernel_code->compute_pgm_rsrc1.reserved0 = 0;
++	kernel_code->compute_pgm_rsrc1.wgp_mode = 0;
++	kernel_code->compute_pgm_rsrc1.mem_ordered = 0;
++	kernel_code->compute_pgm_rsrc1.fwd_progress = 0;
++
++	kernel_code->compute_pgm_rsrc2.enable_private_segment = 0;
++	kernel_code->compute_pgm_rsrc2.user_sgpr_count = 14; /* 4+2+2+2+2+2 */
++	kernel_code->compute_pgm_rsrc2.enable_trap_handler = 0;
++	kernel_code->compute_pgm_rsrc2.enable_sgpr_workgroup_id_x = 1;
++	kernel_code->compute_pgm_rsrc2.enable_sgpr_workgroup_id_y = 1;
++	kernel_code->compute_pgm_rsrc2.enable_sgpr_workgroup_id_z = 0;
++	kernel_code->compute_pgm_rsrc2.enable_sgpr_workgroup_info = 0;
++	kernel_code->compute_pgm_rsrc2.enable_vgpr_workitem_id = 0;
++	kernel_code->compute_pgm_rsrc2.enable_exception_address_watch = 0;
++	kernel_code->compute_pgm_rsrc2.enable_exception_memory = 0;
++	kernel_code->compute_pgm_rsrc2.granulated_lds_size = 0;
++	kernel_code->compute_pgm_rsrc2
++		.enable_exception_ieee_754_fp_invalid_operation = 0;
++	kernel_code->compute_pgm_rsrc2.enable_exception_fp_denormal_source = 0;
++	kernel_code->compute_pgm_rsrc2
++		.enable_exception_ieee_754_fp_division_by_zero = 0;
++	kernel_code->compute_pgm_rsrc2
++		.enable_exception_ieee_754_fp_overflow = 0;
++	kernel_code->compute_pgm_rsrc2
++		.enable_exception_ieee_754_fp_underflow = 0;
++	kernel_code->compute_pgm_rsrc2.enable_exception_ieee_754_fp_inexact = 0;
++	kernel_code->compute_pgm_rsrc2.enable_exception_int_divide_by_zero = 0;
++	kernel_code->compute_pgm_rsrc2.reserved0 = 0;
++
++	/*
++	 * User SGPR layout - loaded in fixed order, disabled entries are
++	 * skipped (not reserved).  The resulting SGPR map depends on which
++	 * flags are enabled:
++	 *
++	 *   enable_sgpr_private_segment_buffer  -> 4 SGPRs  (s[0:3])
++	 *   enable_sgpr_dispatch_ptr            -> 2 SGPRs  (s[4:5])
++	 *   enable_sgpr_queue_ptr               -> 2 SGPRs
++	 *   enable_sgpr_kernarg_segment_ptr     -> 2 SGPRs
++	 *   enable_sgpr_dispatch_id             -> 2 SGPRs
++	 *   enable_sgpr_flat_scratch_init       -> 2 SGPRs
++	 *   enable_sgpr_private_segment_size    -> 1 SGPR
++	 *
++	 * System SGPRs (WorkgroupId etc.) follow immediately after the
++	 * last user SGPR.  user_sgpr_count must match the total above.
++	 */
++	/* 4 SGPRs */
++	kernel_code->code_properties.enable_sgpr_private_segment_buffer = 1;
++	/* 2 SGPRs */
++	kernel_code->code_properties.enable_sgpr_dispatch_ptr = 1;
++	/* 2 SGPRs */
++	kernel_code->code_properties.enable_sgpr_queue_ptr = 1;
++	/* 2 SGPRs */
++	kernel_code->code_properties.enable_sgpr_kernarg_segment_ptr = 1;
++	/* 2 SGPRs */
++	kernel_code->code_properties.enable_sgpr_dispatch_id = 1;
++	/* 2 SGPRs */
++	kernel_code->code_properties.enable_sgpr_flat_scratch_init = 1;
++	/* disabled -> s14/s15 free for workgroup_id */
++	kernel_code->code_properties.enable_sgpr_private_segment_size = 0;
++	/* total = 14 SGPRs */
++	kernel_code->code_properties.reserved0 = 0;
++	/* GFX10+ */
++	kernel_code->code_properties.enable_wavefront_size32 = 0;
++	kernel_code->code_properties.uses_dynamic_stack = 0;
++	kernel_code->code_properties.reserved1 = 0;
++
++	debug_kernel_descriptor(kernel_code);
++}
++
++static void kfd_kernel_gfx10_init(struct knod *knod)
++{
++	struct kernel_descriptor *kernel_code = knod->kernels[0]->kaddr;
++
++	kernel_code->group_segment_fixed_size = 0;
++	kernel_code->private_segment_fixed_size = 8192;
++	kernel_code->kernarg_size = 64;
++	kernel_code->kernel_code_entry_byte_offset = 1024;
++
++	/*
++	 * User SGPR layout - loaded in fixed order, disabled entries are
++	 * skipped (not reserved).  The resulting SGPR map depends on which
++	 * flags are enabled:
++	 *
++	 *   enable_sgpr_private_segment_buffer  -> 4 SGPRs  (s[0:3])
++	 *   enable_sgpr_dispatch_ptr            -> 2 SGPRs  (s[4:5])
++	 *   enable_sgpr_queue_ptr               -> 2 SGPRs
++	 *   enable_sgpr_kernarg_segment_ptr     -> 2 SGPRs
++	 *   enable_sgpr_dispatch_id             -> 2 SGPRs
++	 *   enable_sgpr_flat_scratch_init       -> 2 SGPRs
++	 *   enable_sgpr_private_segment_size    -> 1 SGPR
++	 *
++	 * System SGPRs (WorkgroupId etc.) follow immediately after the
++	 * last user SGPR.  user_sgpr_count must match the total above.
++	 */
++	/* 4 SGPRs */
++	kernel_code->code_properties.enable_sgpr_private_segment_buffer = 1;
++	/* 2 SGPRs */
++	kernel_code->code_properties.enable_sgpr_dispatch_ptr = 1;
++	/* 2 SGPRs */
++	kernel_code->code_properties.enable_sgpr_queue_ptr = 1;
++	/* 2 SGPRs */
++	kernel_code->code_properties.enable_sgpr_kernarg_segment_ptr = 1;
++	/* 2 SGPRs */
++	kernel_code->code_properties.enable_sgpr_dispatch_id = 1;
++	/* 2 SGPRs */
++	kernel_code->code_properties.enable_sgpr_flat_scratch_init = 1;
++	/* disabled -> s14/s15 free for workgroup_id */
++	kernel_code->code_properties.enable_sgpr_private_segment_size = 0;
++	/* total = 14 SGPRs */
++	kernel_code->code_properties.reserved0 = 0;
++	if (knod_bpf_wave32)
++		kernel_code->code_properties.enable_wavefront_size32 = 1;
++	else
++		kernel_code->code_properties.enable_wavefront_size32 = 0;
++	kernel_code->code_properties.uses_dynamic_stack = 0;
++	kernel_code->code_properties.reserved1 = 0;
++
++	kernel_code->compute_pgm_rsrc3.accum_offset = 0;
++	kernel_code->compute_pgm_rsrc3.reserved0 = 0;
++	kernel_code->compute_pgm_rsrc3.tg_split = 0;
++	kernel_code->compute_pgm_rsrc3.reserved1 = 0;
++
++	if (kernel_code->code_properties.enable_wavefront_size32 == 1)
++		kernel_code->compute_pgm_rsrc1.granulated_workitem_vgpr_count =
++			(256 / 8) - 1;
++	else
++		kernel_code->compute_pgm_rsrc1.granulated_workitem_vgpr_count =
++			(256 / 4) - 1;
++	kernel_code->compute_pgm_rsrc1.granulated_wavefront_sgpr_count = 0;
++	kernel_code->compute_pgm_rsrc1.priority = 0;
++	kernel_code->compute_pgm_rsrc1.float_round_mode_32 = 0;
++	kernel_code->compute_pgm_rsrc1.float_round_mode_16_64 = 0;
++	kernel_code->compute_pgm_rsrc1.float_denorm_mode_32 = 3;
++	kernel_code->compute_pgm_rsrc1.float_denorm_mode_16_64 = 3;
++	kernel_code->compute_pgm_rsrc1.priv = 0;
++	kernel_code->compute_pgm_rsrc1.enable_dx10_clamp = 1;
++	kernel_code->compute_pgm_rsrc1.debug_mode = 0;
++	kernel_code->compute_pgm_rsrc1.enable_ieee_mode = 1;
++	kernel_code->compute_pgm_rsrc1.bulky = 0;
++	kernel_code->compute_pgm_rsrc1.cdbg_user = 0;
++	kernel_code->compute_pgm_rsrc1.fp16_ovfl = 0;
++	kernel_code->compute_pgm_rsrc1.reserved0 = 0;
++	kernel_code->compute_pgm_rsrc1.wgp_mode = 0;
++	kernel_code->compute_pgm_rsrc1.mem_ordered = 1;
++	kernel_code->compute_pgm_rsrc1.fwd_progress = 0;
++
++	kernel_code->compute_pgm_rsrc2.enable_private_segment = 0;
++	kernel_code->compute_pgm_rsrc2.user_sgpr_count = 14; /* 4+2+2+2+2+2 */
++	kernel_code->compute_pgm_rsrc2.enable_trap_handler = 0;
++	kernel_code->compute_pgm_rsrc2.enable_sgpr_workgroup_id_x = 1;
++	kernel_code->compute_pgm_rsrc2.enable_sgpr_workgroup_id_y = 1;
++	kernel_code->compute_pgm_rsrc2.enable_sgpr_workgroup_id_z = 0;
++	kernel_code->compute_pgm_rsrc2.enable_sgpr_workgroup_info = 0;
++	kernel_code->compute_pgm_rsrc2.enable_vgpr_workitem_id = 1;
++	kernel_code->compute_pgm_rsrc2.enable_exception_address_watch = 0;
++	kernel_code->compute_pgm_rsrc2.enable_exception_memory = 0;
++	kernel_code->compute_pgm_rsrc2.granulated_lds_size = 0;
++	kernel_code->compute_pgm_rsrc2
++		.enable_exception_ieee_754_fp_invalid_operation = 0;
++	kernel_code->compute_pgm_rsrc2.enable_exception_fp_denormal_source = 0;
++	kernel_code->compute_pgm_rsrc2
++		.enable_exception_ieee_754_fp_division_by_zero = 0;
++	kernel_code->compute_pgm_rsrc2
++		.enable_exception_ieee_754_fp_overflow = 0;
++	kernel_code->compute_pgm_rsrc2
++		.enable_exception_ieee_754_fp_underflow = 0;
++	kernel_code->compute_pgm_rsrc2.enable_exception_ieee_754_fp_inexact = 0;
++	kernel_code->compute_pgm_rsrc2.enable_exception_int_divide_by_zero = 0;
++	kernel_code->compute_pgm_rsrc2.reserved0 = 0;
++
++	debug_kernel_descriptor(kernel_code);
++}
++
++static int kfd_kernel_init(struct knod *knod, struct knod_bpf_priv *priv)
++{
++	struct kernel_descriptor *kd;
++
++	if (!knod->kernels[1])
++		return -ENOMEM;
++
++	/*
++	 * Pass-through starts on slot 0; the first XDP prog attach stages into
++	 * slot 1 and flips the active index there, ping-ponging on each
++	 * install.
++	 */
++	priv->active_idx = 0;
++
++	if (priv->isa_version == 9)
++		kfd_kernel_gfx9_init(knod);
++	else if (priv->isa_version == 10)
++		kfd_kernel_gfx10_init(knod);
++
++	/*
++	 * Slot 1 must carry the same kernel-descriptor as slot 0 -- gfx init
++	 * only touches slot 0, and slot 1's BO is otherwise uninitialised,
++	 * which stalls the compute queue.  Copy the kd + pre-code region.
++	 */
++	kd = knod->kernels[0]->kaddr;
++	memcpy(knod->kernels[1]->kaddr, knod->kernels[0]->kaddr,
++	       kd->kernel_code_entry_byte_offset);
++	knod_bpf_gpu_mem_fence(priv);
++
++	return 0;
++}
++
++static struct knod_bpf_work_sq *
++__knod_get_free_work_sq(struct knod_bpf_priv *priv)
++{
++	return list_first_entry_or_null(&priv->free_list_sqw,
++					struct knod_bpf_work_sq, list);
++}
++
++/* Prepare a dispatch: peek SPSC rings and fill params, but do not submit.
++ * Returns the prepared sqw (with backlogs > 0), or NULL if nothing to do.
++ *
++ * A single in-flight AQL queue means the worker never has to reserve SPSC
++ * ranges ahead of the current dispatch. The SPSC acquired pointer is advanced
++ * only after the GPU finishes the dispatch that consumed those entries.
 + */
++static struct knod_bpf_work_sq *knod_prepare_bpf(struct knod_bpf_priv *priv)
++{
++	int i, cnt, backlogs = 0;
++	struct knod_dev *knodev = priv->knodev;
++	struct knod_bpf_work_sq *sqw;
++	struct knod_bpf_param *param;
 +
-+#ifndef KFD_AMDGPU_INSN_H_INCLUDED
-+#define KFD_AMDGPU_INSN_H_INCLUDED
++	if (READ_ONCE(priv->installing_kernel))
++		return NULL;
 +
-+#include "knod_amdgpu.h"
-+#include "knod_gfx10_insn.h"
-+#include "knod_gfx9_insn.h"
++	if (!priv->pass_prog_buf && !READ_ONCE(priv->prog))
++		return NULL;
 +
-+enum amdgcn_insn_type {
-+	AMDGCN_INSN_TYPE_SOP2,
-+	AMDGCN_INSN_TYPE_SOPK,
-+	AMDGCN_INSN_TYPE_SOP1,
-+	AMDGCN_INSN_TYPE_SOPC,
-+	AMDGCN_INSN_TYPE_SOPP,
-+	AMDGCN_INSN_TYPE_SMEM,
-+	AMDGCN_INSN_TYPE_VOP2,
-+	AMDGCN_INSN_TYPE_VOP1,
-+	AMDGCN_INSN_TYPE_VOPC,
-+	AMDGCN_INSN_TYPE_VOP3A,
-+	AMDGCN_INSN_TYPE_VOP3B,
-+	AMDGCN_INSN_TYPE_VOP3P,
-+	AMDGCN_INSN_TYPE_SDWA,
-+	AMDGCN_INSN_TYPE_SDWAB,
-+	AMDGCN_INSN_TYPE_DPP16,
-+	AMDGCN_INSN_TYPE_DPP8,
-+	AMDGCN_INSN_TYPE_VINTRP,
-+	AMDGCN_INSN_TYPE_DS,
-+	AMDGCN_INSN_TYPE_MTBUF,
-+	AMDGCN_INSN_TYPE_MUBUF,
-+	AMDGCN_INSN_TYPE_MIMG,
-+	AMDGCN_INSN_TYPE_FLAT,
-+	AMDGCN_INSN_TYPE_EXP,
-+	__AMDGCN_INSN_TYPE_MAX,
-+};
++	sqw = __knod_get_free_work_sq(priv);
++	if (!sqw)
++		return NULL;
 +
-+static const char opnames_gfx10[__AMDGCN_INSN_TYPE_MAX][900][30] = {
-+	[AMDGCN_INSN_TYPE_VOP3A] = {
-+		[GFX10_V_FMA_LEGACY_F32] = "v_fma_legacy_f32",
-+		[GFX10_V_MAD_I32_I24] = "V_MAD_I32_I24",
-+		[GFX10_V_MAD_U32_U24] = "v_mad_u32_u24",
-+		[GFX10_V_CUBEID_F32] = "v_cubeid_f32",
-+		[GFX10_V_CUBESC_F32] = "v_cubesc_f32",
-+		[GFX10_V_CUBETC_F32] = "v_cubetc_f32",
-+		[GFX10_V_CUBEMA_F32] = "v_cubema_f32",
-+		[GFX10_V_BFE_U32] = "v_bfe_u32",
-+		[GFX10_V_BFE_I32] = "v_bfe_i32",
-+		[GFX10_V_BFI_B32] = "v_bfi_b32",
-+		[GFX10_V_FMA_F32] = "v_fma_f32",
-+		[GFX10_V_FMA_F64] = "v_fma_f64",
-+		[GFX10_V_LERP_U8] = "v_lerp_u8",
-+		[GFX10_V_ALIGNBIT_B32] = "v_alignbit_b32",
-+		[GFX10_V_ALIGNBYTE_B32] = "v_alignbyte_b32",
-+		[GFX10_V_MULLIT_F32] = "v_mullit_f32",
-+		[GFX10_V_MIN3_F32] = "v_min3_f32",
-+		[GFX10_V_MIN3_I32] = "v_min3_i32",
-+		[GFX10_V_MIN3_U32] = "v_min3_u32",
-+		[GFX10_V_MAX3_F32] = "v_max3_f32",
-+		[GFX10_V_MAX3_I32] = "v_max3_i32",
-+		[GFX10_V_MAX3_U32] = "v_max3_u32",
-+		[GFX10_V_MED3_F32] = "v_med3_f32",
-+		[GFX10_V_MED3_I32] = "v_med3_i32",
-+		[GFX10_V_MED3_U32] = "v_med3_u32",
-+		[GFX10_V_SAD_U8] = "v_sad_u8",
-+		[GFX10_V_SAD_HI_U8] = "v_sad_hi_u8",
-+		[GFX10_V_SAD_U16] = "v_sad_u16",
-+		[GFX10_V_SAD_U32] = "v_sad_u32",
-+		[GFX10_V_CVT_PK_U8_F32] = "v_cvt_pk_u8_f32",
-+		[GFX10_V_DIV_FIXUP_F32] = "v_div_fixup_f32",
-+		[GFX10_V_DIV_FIXUP_F64] = "v_div_fixup_f64",
-+		[GFX10_V_ADD_F64] = "v_add_f64",
-+		[GFX10_V_MUL_F64] = "v_mul_f64",
-+		[GFX10_V_MIN_F64] = "v_min_f64",
-+		[GFX10_V_MAX_F64] = "v_max_f64",
-+		[GFX10_V_LDEXP_F64] = "v_ldexp_f64",
-+		[GFX10_V_MUL_LO_U32] = "v_mul_lo_u32",
-+		[GFX10_V_MUL_HI_U32] = "v_mul_hi_u32",
-+		[GFX10_V_MUL_HI_I32] = "v_mul_hi_i32",
-+		[GFX10_V_DIV_FMAS_F32] = "v_div_fmas_f32",
-+		[GFX10_V_DIV_FMAS_F64] = "v_div_fmas_f64",
-+		[GFX10_V_MSAD_U8] = "v_msad_u8",
-+		[GFX10_V_QSAD_PK_U16_U8] = "v_qsad_pk_u16_u8",
-+		[GFX10_V_MQSAD_PK_U16_U8] = "v_mqsad_pk_u16_u8",
-+		[GFX10_V_TRIG_PREOP_F64] = "v_trig_preop_f64",
-+		[GFX10_V_MQSAD_U32_U8] = "v_mqsad_u32_u8",
-+		[GFX10_V_XOR3_B32] = "v_xor3_b32",
-+		[GFX10_V_LSHLREV_B64] = "v_lshlrev_b64",
-+		[GFX10_V_LSHRREV_B64] = "v_lshrrev_b64",
-+		[GFX10_V_ASHRREV_I64] = "v_ashrrev_i64",
-+		[GFX10_V_ADD_NC_U16] = "v_add_nc_u16",
-+		[GFX10_V_SUB_NC_U16] = "v_sub_nc_u16",
-+		[GFX10_V_MUL_LO_U16] = "v_mul_lo_u16",
-+		[GFX10_V_LSHRREV_B16] = "v_lshrrev_b16",
-+		[GFX10_V_ASHRREV_I16] = "v_ashrrev_i16",
-+		[GFX10_V_MAX_U16] = "v_max_u16",
-+		[GFX10_V_MAX_I16] = "v_max_i16",
-+		[GFX10_V_MIN_U16] = "v_min_u16",
-+		[GFX10_V_MIN_I16] = "v_min_i16",
-+		[GFX10_V_ADD_NC_I16] = "v_add_nc_i16",
-+		[GFX10_V_SUB_NC_I16] = "v_sub_nc_i16",
-+		[GFX10_V_PACK_B32_F16] = "v_pack_b32_f16",
-+		[GFX10_V_CVT_PKNORM_I16_F16] = "v_cvt_pknorm_i16_f16",
-+		[GFX10_V_CVT_PKNORM_U16_F16] = "v_cvt_pknorm_u16_f16",
-+		[GFX10_V_LSHLREV_B16] = "v_lshlrev_b16",
-+		[GFX10_V_MAD_U16] = "v_mad_u16",
-+		[GFX10_V_INTERP_P1LL_F16] = "v_interp_p1ll_f16",
-+		[GFX10_V_INTERP_P1LV_F16] = "v_interp_p1lv_f16",
-+		[GFX10_V_PERM_B32] = "v_perm_b32",
-+		[GFX10_V_XAD_U32] = "v_xad_u32",
-+		[GFX10_V_LSHL_ADD_U32] = "v_lshl_add_u32",
-+		[GFX10_V_ADD_LSHL_U32] = "v_add_lshl_u32",
-+		[GFX10_V_FMA_F16] = "v_fma_f16",
-+		[GFX10_V_MIN3_F16] = "v_min3_f16",
-+		[GFX10_V_MIN3_I16] = "v_min3_i16",
-+		[GFX10_V_MIN3_U16] = "v_min3_u16",
-+		[GFX10_V_MAX3_F16] = "v_max3_f16",
-+		[GFX10_V_MAX3_I16] = "v_max3_i16",
-+		[GFX10_V_MAX3_U16] = "v_max3_u16",
-+		[GFX10_V_MED3_F16] = "v_med3_f16",
-+		[GFX10_V_MED3_I16] = "v_med3_i16",
-+		[GFX10_V_MED3_U16] = "v_med3_u16",
-+		[GFX10_V_INTERP_P2_F16] = "v_interp_p2_f16",
-+		[GFX10_V_MAD_I16] = "v_mad_i16",
-+		[GFX10_V_DIV_FIXUP_F16] = "v_div_fixup_f16",
-+		[GFX10_V_READLANE_B32] = "v_readlane_b32",
-+		[GFX10_V_WRITELANE_B32] = "v_writelane_b32",
-+		[GFX10_V_LDEXP_F32] = "v_ldexp_f32",
-+		[GFX10_V_BFM_B32] = "v_bfm_b32",
-+		[GFX10_V_BCNT_U32_B32] = "v_bcnt_u32_b32",
-+		[GFX10_V_MBCNT_LO_U32_B32] = "v_mbcnt_lo_u32_b32",
-+		[GFX10_V_MBCNT_HI_U32_B32] = "v_mbcnt_hi_u32_b32",
-+		[GFX10_V_CVT_PKNORM_I16_F32] = "v_cvt_pknorm_i16_f32",
-+		[GFX10_V_CVT_PKNORM_U16_F32] = "v_cvt_pknorm_u16_f32",
-+		[GFX10_V_CVT_PK_U16_U32] = "v_cvt_pk_u16_u32",
-+		[GFX10_V_CVT_PK_I16_I32] = "v_cvt_pk_i16_i32",
-+		[GFX10_V_ADD3_U32] = "v_add3_u32",
-+		[GFX10_V_LSHL_OR_B32] = "v_lshl_or_b32",
-+		[GFX10_V_AND_OR_B32] = "v_and_or_b32",
-+		[GFX10_V_OR3_B32] = "v_or3_b32",
-+		[GFX10_V_MAD_U32_U16] = "v_mad_u32_u16",
-+		[GFX10_V_MAD_I32_I16] = "v_mad_i32_i16",
-+		[GFX10_V_SUB_NC_I32] = "v_sub_nc_i32",
-+		[GFX10_V_PERMLANE16_B32] = "v_permlane16_b32",
-+		[GFX10_V_PERMLANEX16_B32] = "v_permlanex16_b32",
-+		[GFX10_V_ADD_NC_I32] = "v_add_nc_i32",
-+	},
-+	[AMDGCN_INSN_TYPE_SOP2] = {
-+		[GFX10_S_ADD_U32] = "s_add_u32",
-+		[GFX10_S_SUB_U32] = "s_sub_u32",
-+		[GFX10_S_ADD_I32] = "s_add_i32",
-+		[GFX10_S_SUB_I32] = "s_sub_i32",
-+		[GFX10_S_ADDC_U32] = "s_addc_u32",
-+		[GFX10_S_SUBB_U32] = "s_subb_u32",
-+		[GFX10_S_MIN_I32] = "s_min_i32",
-+		[GFX10_S_MIN_U32] = "s_min_u32",
-+		[GFX10_S_MAX_I32] = "s_max_i32",
-+		[GFX10_S_MAX_U32] = "s_max_u32",
-+		[GFX10_S_CSELECT_B32] = "s_cselect_b32",
-+		[GFX10_S_CELECT_B64] = "s_celect_b64",
-+		[GFX10_S_AND_B32] = "s_and_b32",
-+		[GFX10_S_AND_B64] = "s_and_b64",
-+		[GFX10_S_OR_B32] = "s_or_b32",
-+		[GFX10_S_OR_B64] = "s_or_b64",
-+		[GFX10_S_XOR_B32] = "s_xor_b32",
-+		[GFX10_S_XOR_B64] = "s_xor_b64",
-+		[GFX10_S_ANDN2_B32] = "s_andn2_b32",
-+		[GFX10_S_ANDN2_B64] = "s_andn2_b64",
-+		[GFX10_S_ORN2_B32] = "s_orn2_b32",
-+		[GFX10_S_ORN2_B64] = "s_orn2_b64",
-+		[GFX10_S_NAND_B32] = "s_nand_b32",
-+		[GFX10_S_NAND_B64] = "s_nand_b64",
-+		[GFX10_S_NOR_B32] = "s_nor_b32",
-+		[GFX10_S_NOR_B64] = "s_nor_b64",
-+		[GFX10_S_XNOR_B32] = "s_xnor_b32",
-+		[GFX10_S_XNOR_B64] = "s_xnor_b64",
-+		[GFX10_S_LSHL_B32] = "s_lshl_b32",
-+		[GFX10_S_LSHL_B64] = "s_lshl_b64",
-+		[GFX10_S_LSHR_B32] = "s_lshr_b32",
-+		[GFX10_S_LSHR_B64] = "s_lshr_b64",
-+		[GFX10_S_ASHR_I32] = "s_ashr_i32",
-+		[GFX10_S_ASHR_I64] = "s_ashr_i64",
-+		[GFX10_S_BFM_B32] = "s_bfm_b32",
-+		[GFX10_S_BFM_B64] = "s_bfm_b64",
-+		[GFX10_S_MUL_I32] = "s_mul_i32",
-+		[GFX10_S_MUL_I64] = "s_mul_i64",
-+		[GFX10_S_BFE_U32] = "s_bfe_u32",
-+		[GFX10_S_BFE_I32] = "s_bfe_i32",
-+		[GFX10_S_BFE_U64] = "s_bfe_u64",
-+		[GFX10_S_ABSDIFF_I32] = "s_absdiff_i32",
-+		[GFX10_S_LSHL1_ADD_U32] = "s_lshl1_add_u32",
-+		[GFX10_S_LSHL2_ADD_U32] = "s_lshl2_add_u32",
-+		[GFX10_S_LSHL3_ADD_U32] = "s_lshl3_add_u32",
-+		[GFX10_S_LSHL4_ADD_U32] = "s_lshl4_add_u32",
-+		[GFX10_S_PACK_LL_B32_B16] = "s_pack_ll_b32_b16",
-+		[GFX10_S_PACK_LH_B32_B16] = "s_pack_lh_b32_b16",
-+		[GFX10_S_MUL_HI_U32] = "s_mul_hi_u32",
-+		[GFX10_S_MUL_HI_I32] = "s_mul_hi_i32",
-+	},
-+	[AMDGCN_INSN_TYPE_SOPK] = {
-+		[GFX10_S_MOVK_I32] = "s_movk_i32",
-+		[GFX10_S_VERSION] = "s_version",
-+		[GFX10_S_CMOVK_I32] = "s_cmovk_i32",
-+		[GFX10_S_CMPK_EQ_I32] = "s_cmpk_eq_i32",
-+		[GFX10_S_CMPK_LG_I32] = "s_cmpk_lg_i32",
-+		[GFX10_S_CMPK_GT_I32] = "s_cmpk_gt_i32",
-+		[GFX10_S_CMPK_GE_I32] = "s_cmpk_ge_i32",
-+		[GFX10_S_CMPK_LT_I32] = "s_cmpk_lt_i32",
-+		[GFX10_S_CMPK_LE_I32] = "s_cmpk_le_i32",
-+		[GFX10_S_CMPK_EQ_U32] = "s_cmpk_eq_u32",
-+		[GFX10_S_CMPK_LG_U32] = "s_cmpk_lg_u32",
-+		[GFX10_S_CMPK_GT_U32] = "s_cmpk_gt_u32",
-+		[GFX10_S_CMPK_GE_U32] = "s_cmpk_ge_u32",
-+		[GFX10_S_CMPK_LT_U32] = "s_cmpk_lt_u32",
-+		[GFX10_S_CMPK_LE_U32] = "s_cmpk_le_u32",
-+		[GFX10_S_ADDK_I32] = "s_addk_i32",
-+		[GFX10_S_MULK_I32] = "s_mulk_i32",
-+		[GFX10_S_GETREG_B32] = "s_getreg_b32",
-+		[GFX10_S_SETREG_B32] = "s_setreg_b32",
-+		[GFX10_S_SETREG_IMM32_B32] = "s_setreg_imm32_b32",
-+		[GFX10_S_CALL_B64] = "s_call_b64",
-+		[GFX10_S_WAITCNT_VSCNT] = "s_waitcnt_vscnt",
-+		[GFX10_S_WAITCNT_VMCNT] = "s_waitcnt_vmcnt",
-+		[GFX10_S_WAITCNT_EXPCNT] = "s_waitcnt_expcnt",
-+		[GFX10_S_WAITCNT_LGKMCNT] = "s_waitcnt_lgkmcnt",
-+		[GFX10_S_SUBVECTOR_LOOP_BEGIN] = "s_subvector_loop_begin",
-+		[GFX10_S_SUBVECTOR_LOOP_END] = "s_subvector_loop_end",
-+	},
-+	[AMDGCN_INSN_TYPE_SOP1] = {
-+		[GFX10_S_MOV_B32] = "s_mov_b32",
-+		[GFX10_S_MOV_B64] = "s_mov_b64",
-+		[GFX10_S_CMOV_B32] = "s_cmov_b32",
-+		[GFX10_S_CMOV_B64] = "s_cmov_b64",
-+		[GFX10_S_NOT_B32] = "s_not_b32",
-+		[GFX10_S_NOT_B64] = "s_not_b64",
-+		[GFX10_S_WQM_B32] = "s_wqm_b32",
-+		[GFX10_S_WQM_B64] = "s_wqm_b64",
-+		[GFX10_S_BREV_B32] = "s_brev_b32",
-+		[GFX10_S_BREV_B64] = "s_brev_b64",
-+		[GFX10_S_BCNT0_I32_B32] = "s_bcnt0_i32_b32",
-+		[GFX10_S_BCNT0_I32_B64] = "s_bcnt0_i32_b64",
-+		[GFX10_S_BCNT1_I32_B32] = "s_bcnt1_i32_b32",
-+		[GFX10_S_BCNT1_I32_B64] = "s_bcnt1_i32_b64",
-+		[GFX10_S_FF0_I32_B32] = "s_ff0_i32_b32",
-+		[GFX10_S_FF0_I32_B64] = "s_ff0_i32_b64",
-+		[GFX10_S_FF1_I32_B32] = "s_ff1_i32_b32",
-+		[GFX10_S_FF1_I32_B64] = "s_ff1_i32_b64",
-+		[GFX10_S_FLBIT_I32_B32] = "s_flbit_i32_b32",
-+		[GFX10_S_FLBIT_I32_B64] = "s_flbit_i32_b64",
-+		[GFX10_S_FLBIT_I32] = "s_flbit_i32",
-+		[GFX10_S_FLBIT_I32_I64] = "s_flbit_i32_i64",
-+		[GFX10_S_SEXT_I32_I8] = "s_sext_i32_i8",
-+		[GFX10_S_SEXT_I32_I16] = "s_sext_i32_i16",
-+		[GFX10_S_BITSET0_B32] = "s_bitset0_b32",
-+		[GFX10_S_BITSET0_B64] = "s_bitset0_b64",
-+		[GFX10_S_BITSET1_B32] = "s_bitset1_b32",
-+		[GFX10_S_BITSET1_B64] = "s_bitset1_b64",
-+		[GFX10_S_GETPC_B64] = "s_getpc_b64",
-+		[GFX10_S_SETPC_B64] = "s_setpc_b64",
-+		[GFX10_S_SWAPPC_B64] = "s_swappc_b64",
-+		[GFX10_S_RFE_B64] = "s_rfe_b64",
-+		[GFX10_S_AND_SAVEEXEC_B64] = "s_and_saveexec_b64",
-+		[GFX10_S_XNOR_SAVEEXEC_B64] = "s_xnor_saveexec_b64",
-+		[GFX10_S_QUADMASK_B32] = "s_quadmask_b32",
-+		[GFX10_S_QUADMASK_B64] = "s_quadmask_b64",
-+		[GFX10_S_MOVRELS_B32] = "s_movrels_b32",
-+		[GFX10_S_MOVRELS_B64] = "s_movrels_b64",
-+		[GFX10_S_MOVRELD_B32] = "s_movreld_b32",
-+		[GFX10_S_MOVRELD_B64] = "s_movreld_b64",
-+		[GFX10_S_ABS_I32] = "s_abs_i32",
-+		[GFX10_S_ANDN1_SAVEEXEC_B64] = "s_andn1_saveexec_b64",
-+		[GFX10_S_ORN1_SAVEEXEC_B64] = "s_orn1_saveexec_b64",
-+		[GFX10_S_ANDN1_WREXEC_B64] = "s_andn1_wrexec_b64",
-+		[GFX10_S_ANDN2_WREXEC_B64] = "s_andn2_wrexec_b64",
-+		[GFX10_S_BITREPLICATE_B64_B32] = "s_bitreplicate_b64_b32",
-+		[GFX10_S_AND_SAVEEXEC_B32] = "s_and_saveexec_b32",
-+		[GFX10_S_OR_SAVEEXEC_B32] = "s_or_saveexec_b32",
-+		[GFX10_S_XOR_SAVEEXEC_B32] = "s_xor_saveexec_b32",
-+		[GFX10_S_ANDN2_SAVEEXEC_B32] = "s_andn2_saveexec_b32",
-+		[GFX10_S_ORN2_SAVEEXEC_B32] = "s_orn2_saveexec_b32",
-+		[GFX10_S_NAND_SAVEEXEC_B32] = "s_nand_saveexec_b32",
-+		[GFX10_S_NOR_SAVEEXEC_B32] = "s_nor_saveexec_b32",
-+		[GFX10_S_XNOR_SAVEEXEC_B32] = "s_xnor_saveexec_b32",
-+		[GFX10_S_ANDN1_SAVEEXEC_B32] = "s_andn1_saveexec_b32",
-+		[GFX10_S_ORN1_SAVEEXEC_B32] = "s_orn1_saveexec_b32",
-+		[GFX10_S_ANDN1_WREXEC_B32] = "s_andn1_wrexec_b32",
-+		[GFX10_S_ANDN2_WREXEC_B32] = "s_andn2_wrexec_b32",
-+		[GFX10_S_MOVRELSD_2_B32] = "s_movrelsd_2_b32",
-+	},
-+	[AMDGCN_INSN_TYPE_SOPC] = {
-+		[GFX10_S_CMP_EQ_I32] = "s_cmp_eq_i32",
-+		[GFX10_S_CMP_LG_I32] = "s_cmp_lg_i32",
-+		[GFX10_S_CMP_GT_I32] = "s_cmp_gt_i32",
-+		[GFX10_S_CMP_GE_I32] = "s_cmp_ge_i32",
-+		[GFX10_S_CMP_LT_I32] = "s_cmp_lt_i32",
-+		[GFX10_S_CMP_LE_I32] = "s_cmp_le_i32",
-+		[GFX10_S_CMP_EQ_U32] = "s_cmp_eq_u32",
-+		[GFX10_S_CMP_LG_U32] = "s_cmp_lg_u32",
-+		[GFX10_S_CMP_GT_U32] = "s_cmp_gt_u32",
-+		[GFX10_S_CMP_GE_U32] = "s_cmp_ge_u32",
-+		[GFX10_S_CMP_LT_U32] = "s_cmp_lt_u32",
-+		[GFX10_S_CMP_LE_U32] = "s_cmp_le_u32",
-+		[GFX10_S_BITCMP0_B32] = "s_bitcmp0_b32",
-+		[GFX10_S_BITCMP1_B32] = "s_bitcmp1_b32",
-+		[GFX10_S_BITCMP0_B64] = "s_bitcmp0_b64",
-+		[GFX10_S_BITCMP1_B64] = "s_bitcmp1_b64",
-+		[GFX10_S_CMP_EQ_U64] = "s_cmp_eq_u64",
-+		[GFX10_S_CMP_LG_U64] = "s_cmp_lg_u64",
-+	},
-+	[AMDGCN_INSN_TYPE_SOPP] = {
-+		[GFX10_S_NOP] = "s_nop",
-+		[GFX10_S_ENDPGM] = "s_endpgm",
-+		[GFX10_S_BRANCH] = "s_branch",
-+		[GFX10_S_WAKEUP] = "s_wakeup",
-+		[GFX10_S_CBRANCH_SCC0] = "s_cbranch_scc0",
-+		[GFX10_S_CBRANCH_SCC1] = "s_cbranch_scc1",
-+		[GFX10_S_CBRANCH_VCCZ] = "s_cbranch_vccz",
-+		[GFX10_S_CBRANCH_VCCNZ] = "s_cbranch_vccnz",
-+		[GFX10_S_CBRANCH_EXECZ] = "s_cbranch_execz",
-+		[GFX10_S_CBRANCH_EXECNZ] = "s_cbranch_execnz",
-+		[GFX10_S_BARRIER] = "s_barrier",
-+		[GFX10_S_SETKILL] = "s_setkill",
-+		[GFX10_S_WAITCNT] = "s_waitcnt",
-+		[GFX10_S_SETHALT] = "s_sethalt",
-+		[GFX10_S_SLEEP] = "s_sleep",
-+		[GFX10_S_SETPRIO] = "s_setprio",
-+		[GFX10_S_SENDMSG] = "s_sendmsg",
-+		[GFX10_S_SENDMSGHALT] = "s_sendmsghalt",
-+		[GFX10_S_TRAP] = "s_trap",
-+		[GFX10_S_ICACHE_INV] = "s_icache_inv",
-+		[GFX10_S_INCPERFLEVEL] = "s_incperflevel",
-+		[GFX10_S_DECPERFLEVEL] = "s_decperflevel",
-+		[GFX10_S_TTRACEDATA] = "s_ttracedata",
-+		[GFX10_S_CBRANCH_CDBGSYS] = "s_cbranch_cdbgsys",
-+		[GFX10_S_CBRANCH_CDBGUSER] = "s_cbranch_cdbguser",
-+		[GFX10_S_CBRANCH_CDBGSYS_OR_USER] = "s_cbranch_cdbgsys_or_user",
-+		[GFX10_S_CBRANCH_CDBGSYS_AND_USER] = "s_cbranch_cdbgsys_and_user",
-+		[GFX10_S_ENDPGM_SAVED] = "s_endpgm_saved",
-+		[GFX10_S_ENDPGM_ORDERED_PS_DONE] = "s_endpgm_ordered_ps_done",
-+		[GFX10_S_CODE_END] = "s_code_end",
-+		[GFX10_S_INST_PREFETCH] = "s_inst_prefetch",
-+		[GFX10_S_CLAUSE] = "s_clause",
-+		[GFX10_S_WAITCNT_DEPCTR] = "s_waitcnt_depctr",
-+		[GFX10_S_ROUND_MODE] = "s_round_mode",
-+		[GFX10_S_DENORM_MODE] = "s_denorm_mode",
-+		[GFX10_S_TTRACEDATA_IMM] = "s_ttracedata_imm",
-+	},
-+	[AMDGCN_INSN_TYPE_SMEM] = {
-+		[GFX10_S_LOAD_DWORD] = "s_load_dword",
-+		[GFX10_S_LOAD_DWORDX2] = "s_load_dwordx2",
-+		[GFX10_S_LOAD_DWORDX4] = "s_load_dwordx4",
-+		[GFX10_S_LOAD_DWORDX8] = "s_load_dwordx8",
-+		[GFX10_S_LOAD_DWORDX16] = "s_load_dwordx16",
-+		[GFX10_S_BUFFER_LOAD_DWORD] = "s_buffer_load_dword",
-+		[GFX10_S_BUFFER_LOAD_DWORDX2] = "s_buffer_load_dwordx2",
-+		[GFX10_S_BUFFER_LOAD_DWORDX4] = "s_buffer_load_dwordx4",
-+		[GFX10_S_BUFFER_LOAD_DWORDX8] = "s_buffer_load_dwordx8",
-+		[GFX10_S_BUFFER_LOAD_DWORDX16] = "s_buffer_load_dwordx16",
-+		[GFX10_S_GL1_INV] = "s_gl1_inv",
-+		[GFX10_S_DCACHE_INV] = "s_dcache_inv",
-+		[GFX10_S_MEMTIME] = "s_memtime",
-+		[GFX10_S_MEMREALTIME] = "s_memrealtime",
-+		[GFX10_S_ATC_PROBE] = "s_atc_probe",
-+		[GFX10_S_ATC_PROBE_BUFFER] = "s_atc_probe_buffer",
-+	},
-+	[AMDGCN_INSN_TYPE_VOP2] = {
-+		[GFX10_V_CNDMASK_B32] = "v_cndmask_b32",
-+		[GFX10_V_DOT2C_F32_F16] = "v_dot2c_f32_f16",
-+		[GFX10_V_ADD_F32] = "v_add_f32",
-+		[GFX10_V_SUB_F32] = "v_sub_f32",
-+		[GFX10_V_SUBREV_F32] = "v_subrev_f32",
-+		[GFX10_V_FMAC_LEGACY_F32] = "v_fmac_legacy_f32",
-+		[GFX10_V_MUL_LEGACY_F32] = "v_mul_legacy_f32",
-+		[GFX10_V_MUL_F32] = "v_mul_f32",
-+		[GFX10_V_MUL_I32_I24] = "v_mul_i32_i24",
-+		[GFX10_V_MUL_HI_I32_I24] = "v_mul_hi_i32_i24",
-+		[GFX10_V_MUL_U32_U24] = "v_mul_u32_u24",
-+		[GFX10_V_MUL_HI_U32_U24] = "v_mul_hi_u32_u24",
-+		[GFX10_V_DOT4C_I32_I8] = "v_dot4c_i32_i8",
-+		[GFX10_V_MIN_F32] = "v_min_f32",
-+		[GFX10_V_MAX_F32] = "v_max_f32",
-+		[GFX10_V_MIN_I32] = "v_min_i32",
-+		[GFX10_V_MAX_I32] = "v_max_i32",
-+		[GFX10_V_MIN_U32] = "v_min_u32",
-+		[GFX10_V_MAX_U32] = "v_max_u32",
-+		[GFX10_V_LSHRREV_B32] = "v_lshrrev_b32",
-+		[GFX10_V_ASHRREV_I32] = "v_ashrrev_i32",
-+		[GFX10_V_LSHLREV_B32] = "v_lshlrev_b32",
-+		[GFX10_V_AND_B32] = "v_and_b32",
-+		[GFX10_V_OR_B32] = "v_or_b32",
-+		[GFX10_V_XOR_B32] = "v_xor_b32",
-+		[GFX10_V_XNOR_B32] = "v_xnor_b32",
-+		[GFX10_V_ADD_NC_U32] = "v_add_nc_u32",
-+		[GFX10_V_SUB_NC_U32] = "v_sub_nc_u32",
-+		[GFX10_V_SUBREV_NC_U32] = "v_subrev_nc_u32",
-+		[GFX10_V_ADD_CO_CI_U32] = "v_add_co_ci_u32",
-+		[GFX10_V_SUB_CO_CI_U32] = "v_sub_co_ci_u32",
-+		[GFX10_V_SUBREV_CO_CI_U32] = "v_subrev_co_ci_u32",
-+		[GFX10_V_FMAC_F32] = "v_fmac_f32",
-+		[GFX10_V_FMAMK_F32] = "v_fmamk_f32",
-+		[GFX10_V_FMAAK_F32] = "v_fmaak_f32",
-+		[GFX10_V_CVT_PKRTZ_F16_F32] = "v_cvt_pkrtz_f16_f32",
-+		[GFX10_V_ADD_F16] = "v_add_f16",
-+		[GFX10_V_SUB_F16] = "v_sub_f16",
-+		[GFX10_V_SUBREV_F16] = "v_subrev_f16",
-+		[GFX10_V_MUL_F16] = "v_mul_f16",
-+		[GFX10_V_FMAC_F16] = "v_fmac_f16",
-+		[GFX10_V_FMAMK_F16] = "v_fmamk_f16",
-+		[GFX10_V_FMAAK_F16] = "v_fmaak_f16",
-+		[GFX10_V_MAX_F16] = "v_max_f16",
-+		[GFX10_V_MIN_F16] = "v_min_f16",
-+		[GFX10_V_LDEXP_F16] = "v_ldexp_f16",
-+		[GFX10_V_PK_FMAC_F16] = "v_pk_fmac_f16",
-+	},
-+	[AMDGCN_INSN_TYPE_VOP1] = {
-+		[GFX10_V_NOP] = "v_nop",
-+		[GFX10_V_MOV_B32] = "v_mov_b32",
-+		[GFX10_V_READFIRSTLANE_B32] = "v_readfirstlane_b32",
-+		[GFX10_V_CVT_I32_F64] = "v_cvt_i32_f64",
-+		[GFX10_V_CVT_F64_I32] = "v_cvt_f64_i32",
-+		[GFX10_V_CVT_F32_I32] = "v_cvt_f32_i32",
-+		[GFX10_V_CVT_F32_U32] = "v_cvt_f32_u32",
-+		[GFX10_V_CVT_U32_F32] = "v_cvt_u32_f32",
-+		[GFX10_V_CVT_I32_F32] = "v_cvt_i32_f32",
-+		[GFX10_V_CVT_F16_F32] = "v_cvt_f16_f32",
-+		[GFX10_V_CVT_F32_F16] = "v_cvt_f32_f16",
-+		[GFX10_V_CVT_RPI_I32_F32] = "v_cvt_rpi_i32_f32",
-+		[GFX10_V_CVT_FLR_I32_F32] = "v_cvt_flr_i32_f32",
-+		[GFX10_V_CVT_OFF_F32_I4] = "v_cvt_off_f32_i4",
-+		[GFX10_V_CVT_F32_F64] = "v_cvt_f32_f64",
-+		[GFX10_V_CVT_F64_F32] = "v_cvt_f64_f32",
-+		[GFX10_V_CVT_F32_UBYTE0] = "v_cvt_f32_ubyte0",
-+		[GFX10_V_CVT_F32_UBYTE1] = "v_cvt_f32_ubyte1",
-+		[GFX10_V_CVT_F32_UBYTE2] = "v_cvt_f32_ubyte2",
-+		[GFX10_V_CVT_F32_UBYTE3] = "v_cvt_f32_ubyte3",
-+		[GFX10_V_CVT_U32_F64] = "v_cvt_u32_f64",
-+		[GFX10_V_CVT_F64_U32] = "v_cvt_f64_u32",
-+		[GFX10_V_TRUNC_F64] = "v_trunc_f64",
-+		[GFX10_V_CEIL_F64] = "v_ceil_f64",
-+		[GFX10_V_RNDNE_F64] = "v_rndne_f64",
-+		[GFX10_V_FLOOR_F64] = "v_floor_f64",
-+		[GFX10_V_PIPEFLUSH] = "v_pipeflush",
-+		[GFX10_V_FRACT_F32] = "v_fract_f32",
-+		[GFX10_V_TRUNC_F32] = "v_trunc_f32",
-+		[GFX10_V_CEIL_F32] = "v_ceil_f32",
-+		[GFX10_V_RNDNE_F32] = "v_rndne_f32",
-+		[GFX10_V_FLOOR_F32] = "v_floor_f32",
-+		[GFX10_V_EXP_F32] = "v_exp_f32",
-+		[GFX10_V_LOG_F32] = "v_log_f32",
-+		[GFX10_V_RCP_F32] = "v_rcp_f32",
-+		[GFX10_V_RCP_IFLAG_F32] = "v_rcp_iflag_f32",
-+		[GFX10_V_RSQ_F32] = "v_rsq_f32",
-+		[GFX10_V_RCP_F64] = "v_rcp_f64",
-+		[GFX10_V_RSQ_F64] = "v_rsq_f64",
-+		[GFX10_V_SQRT_F32] = "v_sqrt_f32",
-+		[GFX10_V_SQRT_F64] = "v_sqrt_f64",
-+		[GFX10_V_SIN_F32] = "v_sin_f32",
-+		[GFX10_V_COS_F32] = "v_cos_f32",
-+		[GFX10_V_NOT_B32] = "v_not_b32",
-+		[GFX10_V_BFREV_B32] = "v_bfrev_b32",
-+		[GFX10_V_FFBH_U32] = "v_ffbh_u32",
-+		[GFX10_V_FFBL_B32] = "v_ffbl_b32",
-+		[GFX10_V_FFBH_I32] = "v_ffbh_i32",
-+		[GFX10_V_FREXP_EXP_I32_F64] = "v_frexp_exp_i32_f64",
-+		[GFX10_V_FREXP_MANT_F64] = "v_frexp_mant_f64",
-+		[GFX10_V_FRACT_F64] = "v_fract_f64",
-+		[GFX10_V_FREXP_EXP_I32_F32] = "v_frexp_exp_i32_f32",
-+		[GFX10_V_FREXP_MANT_F32] = "v_frexp_mant_f32",
-+		[GFX10_V_CLREXCP] = "v_clrexcp",
-+		[GFX10_V_MOVRELD_B32] = "v_movreld_b32",
-+		[GFX10_V_MOVRELS_B32] = "v_movrels_b32",
-+		[GFX10_V_MOVRELSD_B32] = "v_movrelsd_b32",
-+		[GFX10_V_MOVRELSD_2_B32] = "v_movrelsd_2_b32",
-+		[GFX10_V_CVT_F16_U16] = "v_cvt_f16_u16",
-+		[GFX10_V_CVT_F16_I16] = "v_cvt_f16_i16",
-+		[GFX10_V_CVT_U16_F16] = "v_cvt_u16_f16",
-+		[GFX10_V_CVT_I16_F16] = "v_cvt_i16_f16",
-+		[GFX10_V_RCP_F16] = "v_rcp_f16",
-+		[GFX10_V_SQRT_F16] = "v_sqrt_f16",
-+		[GFX10_V_RSQ_F16] = "v_rsq_f16",
-+		[GFX10_V_LOG_F16] = "v_log_f16",
-+		[GFX10_V_EXP_F16] = "v_exp_f16",
-+		[GFX10_V_FREXP_MANT_F16] = "v_frexp_mant_f16",
-+		[GFX10_V_FREXP_EXP_I16_F16] = "v_frexp_exp_i16_f16",
-+		[GFX10_V_FLOOR_F16] = "v_floor_f16",
-+		[GFX10_V_CEIL_F16] = "v_ceil_f16",
-+		[GFX10_V_TRUNC_F16] = "v_trunc_f16",
-+		[GFX10_V_RNDNE_F16] = "v_rndne_f16",
-+		[GFX10_V_FRACT_F16] = "v_fract_f16",
-+		[GFX10_V_SIN_F16] = "v_sin_f16",
-+		[GFX10_V_COS_F16] = "v_cos_f16",
-+		[GFX10_V_SAT_PK_U8_I16] = "v_sat_pk_u8_i16",
-+		[GFX10_V_CVT_NORM_I16_F16] = "v_cvt_norm_i16_f16",
-+		[GFX10_V_CVT_NORM_U16_F16] = "v_cvt_norm_u16_f16",
-+		[GFX10_V_SWAP_B32] = "v_swap_b32",
-+		[GFX10_V_SWAPREL_B32] = "v_swaprel_b32",
-+	},
-+	[AMDGCN_INSN_TYPE_VOPC] = {
-+		[GFX10_V_CMP_F_F32] = "v_cmp_f_f32",
-+		[GFX10_V_CMP_LT_F32] = "v_cmp_lt_f32",
-+		[GFX10_V_CMP_EQ_F32] = "v_cmp_eq_f32",
-+		[GFX10_V_CMP_LE_F32] = "v_cmp_le_f32",
-+		[GFX10_V_CMP_GT_F32] = "v_cmp_gt_f32",
-+		[GFX10_V_CMP_LG_F32] = "v_cmp_lg_f32",
-+		[GFX10_V_CMP_GE_F32] = "v_cmp_ge_f32",
-+		[GFX10_V_CMP_O_F32] = "v_cmp_o_f32",
-+		[GFX10_V_CMP_U_F32] = "v_cmp_u_f32",
-+		[GFX10_V_CMP_NGE_F32] = "v_cmp_nge_f32",
-+		[GFX10_V_CMP_NLG_F32] = "v_cmp_nlg_f32",
-+		[GFX10_V_CMP_NGT_F32] = "v_cmp_ngt_f32",
-+		[GFX10_V_CMP_NLE_F32] = "v_cmp_nle_f32",
-+		[GFX10_V_CMP_NEQ_F32] = "v_cmp_neq_f32",
-+		[GFX10_V_CMP_NLT_F32] = "v_cmp_nlt_f32",
-+		[GFX10_V_CMP_TRU_F32] = "v_cmp_tru_f32",
-+		[GFX10_V_CMPX_F_F32] = "v_cmpx_f_f32",
-+		[GFX10_V_CMPX_LT_F32] = "v_cmpx_lt_f32",
-+		[GFX10_V_CMPX_EQ_F32] = "v_cmpx_eq_f32",
-+		[GFX10_V_CMPX_LE_F32] = "v_cmpx_le_f32",
-+		[GFX10_V_CMPX_GT_F32] = "v_cmpx_gt_f32",
-+		[GFX10_V_CMPX_LG_F32] = "v_cmpx_lg_f32",
-+		[GFX10_V_CMPX_GE_F32] = "v_cmpx_ge_f32",
-+		[GFX10_V_CMPX_O_F32] = "v_cmpx_o_f32",
-+		[GFX10_V_CMPX_U_F32] = "v_cmpx_u_f32",
-+		[GFX10_V_CMPX_NGE_F32] = "v_cmpx_nge_f32",
-+		[GFX10_V_CMPX_NLG_F32] = "v_cmpx_nlg_f32",
-+		[GFX10_V_CMPX_NGT_F32] = "v_cmpx_ngt_f32",
-+		[GFX10_V_CMPX_NLE_F32] = "v_cmpx_nle_f32",
-+		[GFX10_V_CMPX_NEQ_F32] = "v_cmpx_neq_f32",
-+		[GFX10_V_CMPX_NLT_F32] = "v_cmpx_nlt_f32",
-+		[GFX10_V_CMPX_TRU_F32] = "v_cmpx_tru_f32",
-+		[GFX10_V_CMP_F_F64] = "v_cmp_f_f64",
-+		[GFX10_V_CMP_LT_F64] = "v_cmp_lt_f64",
-+		[GFX10_V_CMP_EQ_F64] = "v_cmp_eq_f64",
-+		[GFX10_V_CMP_LE_F64] = "v_cmp_le_f64",
-+		[GFX10_V_CMP_GT_F64] = "v_cmp_gt_f64",
-+		[GFX10_V_CMP_LG_F64] = "v_cmp_lg_f64",
-+		[GFX10_V_CMP_GE_F64] = "v_cmp_ge_f64",
-+		[GFX10_V_CMP_O_F64] = "v_cmp_o_f64",
-+		[GFX10_V_CMP_U_F64] = "v_cmp_u_f64",
-+		[GFX10_V_CMP_NGE_F64] = "v_cmp_nge_f64",
-+		[GFX10_V_CMP_NLG_F64] = "v_cmp_nlg_f64",
-+		[GFX10_V_CMP_NGT_F64] = "v_cmp_ngt_f64",
-+		[GFX10_V_CMP_NLE_F64] = "v_cmp_nle_f64",
-+		[GFX10_V_CMP_NEQ_F64] = "v_cmp_neq_f64",
-+		[GFX10_V_CMP_NLT_F64] = "v_cmp_nlt_f64",
-+		[GFX10_V_CMP_TRU_F64] = "v_cmp_tru_f64",
-+		[GFX10_V_CMPX_F_F64] = "v_cmpx_f_f64",
-+		[GFX10_V_CMPX_LT_F64] = "v_cmpx_lt_f64",
-+		[GFX10_V_CMPX_EQ_F64] = "v_cmpx_eq_f64",
-+		[GFX10_V_CMPX_LE_F64] = "v_cmpx_le_f64",
-+		[GFX10_V_CMPX_GT_F64] = "v_cmpx_gt_f64",
-+		[GFX10_V_CMPX_LG_F64] = "v_cmpx_lg_f64",
-+		[GFX10_V_CMPX_GE_F64] = "v_cmpx_ge_f64",
-+		[GFX10_V_CMPX_O_F64] = "v_cmpx_o_f64",
-+		[GFX10_V_CMPX_U_F64] = "v_cmpx_u_f64",
-+		[GFX10_V_CMPX_NGE_F64] = "v_cmpx_nge_f64",
-+		[GFX10_V_CMPX_NLG_F64] = "v_cmpx_nlg_f64",
-+		[GFX10_V_CMPX_NGT_F64] = "v_cmpx_ngt_f64",
-+		[GFX10_V_CMPX_NLE_F64] = "v_cmpx_nle_f64",
-+		[GFX10_V_CMPX_NEQ_F64] = "v_cmpx_neq_f64",
-+		[GFX10_V_CMPX_NLT_F64] = "v_cmpx_nlt_f64",
-+		[GFX10_V_CMPX_TRU_F64] = "v_cmpx_tru_f64",
-+		[GFX10_V_CMP_F_I32] = "v_cmp_f_i32",
-+		[GFX10_V_CMP_LT_I32] = "v_cmp_lt_i32",
-+		[GFX10_V_CMP_EQ_I32] = "v_cmp_eq_i32",
-+		[GFX10_V_CMP_LE_I32] = "v_cmp_le_i32",
-+		[GFX10_V_CMP_GT_I32] = "v_cmp_gt_i32",
-+		[GFX10_V_CMP_NE_I32] = "v_cmp_ne_i32",
-+		[GFX10_V_CMP_GE_I32] = "v_cmp_ge_i32",
-+		[GFX10_V_CMP_T_I32] = "v_cmp_t_i32",
-+		[GFX10_V_CMP_CLASS_F32] = "v_cmp_class_f32",
-+		[GFX10_V_CMP_LT_I16] = "v_cmp_lt_i16",
-+		[GFX10_V_CMP_EQ_I16] = "v_cmp_eq_i16",
-+		[GFX10_V_CMP_LE_I16] = "v_cmp_le_i16",
-+		[GFX10_V_CMP_GT_I16] = "v_cmp_gt_i16",
-+		[GFX10_V_CMP_NE_I16] = "v_cmp_ne_i16",
-+		[GFX10_V_CMP_GE_I16] = "v_cmp_ge_i16",
-+		[GFX10_V_CMP_CLASS_F16] = "v_cmp_class_f16",
-+		[GFX10_V_CMPX_F_I32] = "v_cmpx_f_i32",
-+		[GFX10_V_CMPX_LT_I32] = "v_cmpx_lt_i32",
-+		[GFX10_V_CMPX_EQ_I32] = "v_cmpx_eq_i32",
-+		[GFX10_V_CMPX_LE_I32] = "v_cmpx_le_i32",
-+		[GFX10_V_CMPX_GT_I32] = "v_cmpx_gt_i32",
-+		[GFX10_V_CMPX_NE_I32] = "v_cmpx_ne_i32",
-+		[GFX10_V_CMPX_GE_I32] = "v_cmpx_ge_i32",
-+		[GFX10_V_CMPX_T_I32] = "v_cmpx_t_i32",
-+		[GFX10_V_CMPX_CLASS_F32] = "v_cmpx_class_f32",
-+		[GFX10_V_CMPX_LT_I16] = "v_cmpx_lt_i16",
-+		[GFX10_V_CMPX_EQ_I16] = "v_cmpx_eq_i16",
-+		[GFX10_V_CMPX_LE_I16] = "v_cmpx_le_i16",
-+		[GFX10_V_CMPX_GT_I16] = "v_cmpx_gt_i16",
-+		[GFX10_V_CMPX_NE_I16] = "v_cmpx_ne_i16",
-+		[GFX10_V_CMPX_GE_I16] = "v_cmpx_ge_i16",
-+		[GFX10_V_CMPX_CLASS_F16] = "v_cmpx_class_f16",
-+		[GFX10_V_CMP_F_I64] = "v_cmp_f_i64",
-+		[GFX10_V_CMP_LT_I64] = "v_cmp_lt_i64",
-+		[GFX10_V_CMP_EQ_I64] = "v_cmp_eq_i64",
-+		[GFX10_V_CMP_LE_I64] = "v_cmp_le_i64",
-+		[GFX10_V_CMP_GT_I64] = "v_cmp_gt_i64",
-+		[GFX10_V_CMP_NE_I64] = "v_cmp_ne_i64",
-+		[GFX10_V_CMP_GE_I64] = "v_cmp_ge_i64",
-+		[GFX10_V_CMP_T_I64] = "v_cmp_t_i64",
-+		[GFX10_V_CMP_CLASS_F64] = "v_cmp_class_f64",
-+		[GFX10_V_CMP_LT_U16] = "v_cmp_lt_u16",
-+		[GFX10_V_CMP_EQ_U16] = "v_cmp_eq_u16",
-+		[GFX10_V_CMP_LE_U16] = "v_cmp_le_u16",
-+		[GFX10_V_CMP_GT_U16] = "v_cmp_gt_u16",
-+		[GFX10_V_CMP_NE_U16] = "v_cmp_ne_u16",
-+		[GFX10_V_CMP_GE_U16] = "v_cmp_ge_u16",
-+		[GFX10_V_CMPX_F_I64] = "v_cmpx_f_i64",
-+		[GFX10_V_CMPX_LT_I64] = "v_cmpx_lt_i64",
-+		[GFX10_V_CMPX_EQ_I64] = "v_cmpx_eq_i64",
-+		[GFX10_V_CMPX_LE_I64] = "v_cmpx_le_i64",
-+		[GFX10_V_CMPX_GT_I64] = "v_cmpx_gt_i64",
-+		[GFX10_V_CMPX_NE_I64] = "v_cmpx_ne_i64",
-+		[GFX10_V_CMPX_GE_I64] = "v_cmpx_ge_i64",
-+		[GFX10_V_CMPX_T_I64] = "v_cmpx_t_i64",
-+		[GFX10_V_CMPX_CLASS_F64] = "v_cmpx_class_f64",
-+		[GFX10_V_CMPX_LT_U16] = "v_cmpx_lt_u16",
-+		[GFX10_V_CMPX_EQ_U16] = "v_cmpx_eq_u16",
-+		[GFX10_V_CMPX_LE_U16] = "v_cmpx_le_u16",
-+		[GFX10_V_CMPX_GT_U16] = "v_cmpx_gt_u16",
-+		[GFX10_V_CMPX_NE_U16] = "v_cmpx_ne_u16",
-+		[GFX10_V_CMPX_GE_U16] = "v_cmpx_ge_u16",
-+		[GFX10_V_CMP_F_U32] = "v_cmp_f_u32",
-+		[GFX10_V_CMP_LT_U32] = "v_cmp_lt_u32",
-+		[GFX10_V_CMP_EQ_U32] = "v_cmp_eq_u32",
-+		[GFX10_V_CMP_LE_U32] = "v_cmp_le_u32",
-+		[GFX10_V_CMP_GT_U32] = "v_cmp_gt_u32",
-+		[GFX10_V_CMP_NE_U32] = "v_cmp_ne_u32",
-+		[GFX10_V_CMP_GE_U32] = "v_cmp_ge_u32",
-+		[GFX10_V_CMP_T_U32] = "v_cmp_t_u32",
-+		[GFX10_V_CMP_F_F16] = "v_cmp_f_f16",
-+		[GFX10_V_CMP_LT_F16] = "v_cmp_lt_f16",
-+		[GFX10_V_CMP_EQ_F16] = "v_cmp_eq_f16",
-+		[GFX10_V_CMP_LE_F16] = "v_cmp_le_f16",
-+		[GFX10_V_CMP_GT_F16] = "v_cmp_gt_f16",
-+		[GFX10_V_CMP_LG_F16] = "v_cmp_lg_f16",
-+		[GFX10_V_CMP_GE_F16] = "v_cmp_ge_f16",
-+		[GFX10_V_CMP_O_F16] = "v_cmp_o_f16",
-+		[GFX10_V_CMPX_F_U32] = "v_cmpx_f_u32",
-+		[GFX10_V_CMPX_LT_U32] = "v_cmpx_lt_u32",
-+		[GFX10_V_CMPX_EQ_U32] = "v_cmpx_eq_u32",
-+		[GFX10_V_CMPX_LE_U32] = "v_cmpx_le_u32",
-+		[GFX10_V_CMPX_GT_U32] = "v_cmpx_gt_u32",
-+		[GFX10_V_CMPX_NE_U32] = "v_cmpx_ne_u32",
-+		[GFX10_V_CMPX_GE_U32] = "v_cmpx_ge_u32",
-+		[GFX10_V_CMPX_T_U32] = "v_cmpx_t_u32",
-+		[GFX10_V_CMPX_F_F16] = "v_cmpx_f_f16",
-+		[GFX10_V_CMPX_LT_F16] = "v_cmpx_lt_f16",
-+		[GFX10_V_CMPX_EQ_F16] = "v_cmpx_eq_f16",
-+		[GFX10_V_CMPX_LE_F16] = "v_cmpx_le_f16",
-+		[GFX10_V_CMPX_GT_F16] = "v_cmpx_gt_f16",
-+		[GFX10_V_CMPX_LG_F16] = "v_cmpx_lg_f16",
-+		[GFX10_V_CMPX_GE_F16] = "v_cmpx_ge_f16",
-+		[GFX10_V_CMPX_O_F16] = "v_cmpx_o_f16",
-+		[GFX10_V_CMP_F_U64] = "v_cmp_f_u64",
-+		[GFX10_V_CMP_LT_U64] = "v_cmp_lt_u64",
-+		[GFX10_V_CMP_EQ_U64] = "v_cmp_eq_u64",
-+		[GFX10_V_CMP_LE_U64] = "v_cmp_le_u64",
-+		[GFX10_V_CMP_GT_U64] = "v_cmp_gt_u64",
-+		[GFX10_V_CMP_NE_U64] = "v_cmp_ne_u64",
-+		[GFX10_V_CMP_GE_U64] = "v_cmp_ge_u64",
-+		[GFX10_V_CMP_T_U64] = "v_cmp_t_u64",
-+		[GFX10_V_CMP_U_F16] = "v_cmp_u_f16",
-+		[GFX10_V_CMP_NGE_F16] = "v_cmp_nge_f16",
-+		[GFX10_V_CMP_NLG_F16] = "v_cmp_nlg_f16",
-+		[GFX10_V_CMP_NGT_F16] = "v_cmp_ngt_f16",
-+		[GFX10_V_CMP_NLE_F16] = "v_cmp_nle_f16",
-+		[GFX10_V_CMP_NEQ_F16] = "v_cmp_neq_f16",
-+		[GFX10_V_CMP_NLT_F16] = "v_cmp_nlt_f16",
-+		[GFX10_V_CMP_TRU_F16] = "v_cmp_tru_f16",
-+		[GFX10_V_CMPX_F_U64] = "v_cmpx_f_u64",
-+		[GFX10_V_CMPX_LT_U64] = "v_cmpx_lt_u64",
-+		[GFX10_V_CMPX_EQ_U64] = "v_cmpx_eq_u64",
-+		[GFX10_V_CMPX_LE_U64] = "v_cmpx_le_u64",
-+		[GFX10_V_CMPX_GT_U64] = "v_cmpx_gt_u64",
-+		[GFX10_V_CMPX_NE_U64] = "v_cmpx_ne_u64",
-+		[GFX10_V_CMPX_GE_U64] = "v_cmpx_ge_u64",
-+		[GFX10_V_CMPX_T_U64] = "v_cmpx_t_u64",
-+		[GFX10_V_CMPX_U_F16] = "v_cmpx_u_f16",
-+		[GFX10_V_CMPX_NGE_F16] = "v_cmpx_nge_f16",
-+		[GFX10_V_CMPX_NLG_F16] = "v_cmpx_nlg_f16",
-+		[GFX10_V_CMPX_NGT_F16] = "v_cmpx_ngt_f16",
-+		[GFX10_V_CMPX_NLE_F16] = "v_cmpx_nle_f16",
-+		[GFX10_V_CMPX_NEQ_F16] = "v_cmpx_neq_f16",
-+		[GFX10_V_CMPX_NLT_F16] = "v_cmpx_nlt_f16",
-+		[GFX10_V_CMPX_TRU_F16] = "v_cmpx_tru_f16",
-+	},
-+	[AMDGCN_INSN_TYPE_VOP3B] = {
-+		[GFX10_V_DIV_SCALE_F32] = "v_div_scale_f32",
-+		[GFX10_V_DIV_SCALE_F64] = "v_div_scale_f64",
-+		[GFX10_V_MAD_U64_U32] = "v_mad_u64_u32",
-+		[GFX10_V_MAD_I64_I32] = "v_mad_i64_i32",
-+		[GFX10_V_ADD_CO_U32] = "v_add_co_u32",
-+		[GFX10_V_SUB_CO_U32] = "v_sub_co_u32",
-+		[GFX10_V_SUBREV_CO_U32] = "v_subrev_co_u32",
-+	},
-+	[AMDGCN_INSN_TYPE_VOP3P] = {
-+		[GFX10_V_PK_MAD_I16] = "v_pk_mad_i16",
-+		[GFX10_V_PK_MUL_LO_U16] = "v_pk_mul_lo_u16",
-+		[GFX10_V_PK_ADD_I16] = "v_pk_add_i16",
-+		[GFX10_V_PK_SUB_I16] = "v_pk_sub_i16",
-+		[GFX10_V_PK_LSHLREV_B16] = "v_pk_lshlrev_b16",
-+		[GFX10_V_PK_LSHRREV_B16] = "v_pk_lshrrev_b16",
-+		[GFX10_V_PK_ASHRREV_I16] = "v_pk_ashrrev_i16",
-+		[GFX10_V_PK_MAX_I16] = "v_pk_max_i16",
-+		[GFX10_V_PK_MIN_I16] = "v_pk_min_i16",
-+		[GFX10_V_PK_MAD_U16] = "v_pk_mad_u16",
-+		[GFX10_V_PK_ADD_U16] = "v_pk_add_u16",
-+		[GFX10_V_PK_SUB_U16] = "v_pk_sub_u16",
-+		[GFX10_V_PK_MAX_U16] = "v_pk_max_u16",
-+		[GFX10_V_PK_MIN_U16] = "v_pk_min_u16",
-+		[GFX10_V_PK_FMA_F16] = "v_pk_fma_f16",
-+		[GFX10_V_PK_ADD_F16] = "v_pk_add_f16",
-+		[GFX10_V_PK_MUL_F16] = "v_pk_mul_f16",
-+		[GFX10_V_PK_MIN_F16] = "v_pk_min_f16",
-+		[GFX10_V_PK_MAX_F16] = "v_pk_max_f16",
-+		[GFX10_V_DOT2_F32_F16] = "v_dot2_f32_f16",
-+		[GFX10_V_DOT2_I32_I16] = "v_dot2_i32_i16",
-+		[GFX10_V_DOT2_U32_U16] = "v_dot2_u32_u16",
-+		[GFX10_V_DOT4_I32_I8] = "v_dot4_i32_i8",
-+		[GFX10_V_DOT4_U32_U8] = "v_dot4_u32_u8",
-+		[GFX10_V_DOT8_I32_I4] = "v_dot8_i32_i4",
-+		[GFX10_V_DOT8_U32_U4] = "v_dot8_u32_u4",
-+		[GFX10_V_FMA_MIX_F32] = "v_fma_mix_f32",
-+		[GFX10_V_FMA_MIXLO_F16] = "v_fma_mixlo_f16",
-+		[GFX10_V_FMA_MIXHI_F16] = "v_fma_mixhi_f16",
-+	},
-+	[AMDGCN_INSN_TYPE_MUBUF] = {
-+		[GFX10_BUFFER_LOAD_FORMAT_X] = "buffer_load_format_x",
-+		[GFX10_BUFFER_LOAD_FORMAT_XY] = "buffer_load_format_xy",
-+		[GFX10_BUFFER_LOAD_FORMAT_XYZ] = "buffer_load_format_xyz",
-+		[GFX10_BUFFER_LOAD_FORMAT_XYZW] = "buffer_load_format_xyzw",
-+		[GFX10_BUFFER_STORE_FORMAT_X] = "buffer_store_format_x",
-+		[GFX10_BUFFER_STORE_FORMAT_XY] = "buffer_store_format_xy",
-+		[GFX10_BUFFER_STORE_FORMAT_XYZ] = "buffer_store_format_xyz",
-+		[GFX10_BUFFER_STORE_FORMAT_XYZW] = "buffer_store_format_xyzw",
-+		[GFX10_BUFFER_LOAD_UBYTE] = "buffer_load_ubyte",
-+		[GFX10_BUFFER_LOAD_SBYTE] = "buffer_load_sbyte",
-+		[GFX10_BUFFER_LOAD_USHORT] = "buffer_load_ushort",
-+		[GFX10_BUFFER_LOAD_SSHORT] = "buffer_load_sshort",
-+		[GFX10_BUFFER_LOAD_DWORD] = "buffer_load_dword",
-+		[GFX10_BUFFER_LOAD_DWORDX2] = "buffer_load_dwordx2",
-+		[GFX10_BUFFER_LOAD_DWORDX4] = "buffer_load_dwordx4",
-+		[GFX10_BUFFER_LOAD_DWORDX3] = "buffer_load_dwordx3",
-+		[GFX10_BUFFER_STORE_BYTE] = "buffer_store_byte",
-+		[GFX10_BUFFER_STORE_BYTE_D16_HI] = "buffer_store_byte_d16_hi",
-+		[GFX10_BUFFER_STORE_SHORT] = "buffer_store_short",
-+		[GFX10_BUFFER_STORE_SHORT_D16_HI] = "buffer_store_short_d16_hi",
-+		[GFX10_BUFFER_STORE_DWORD] = "buffer_store_dword",
-+		[GFX10_BUFFER_STORE_DWORDX2] = "buffer_store_dwordx2",
-+		[GFX10_BUFFER_STORE_DWORDX4] = "buffer_store_dwordx4",
-+		[GFX10_BUFFER_STORE_DWORDX3] = "buffer_store_dwordx3",
-+		[GFX10_BUFFER_LOAD_UBYTE_D16] = "buffer_load_ubyte_d16",
-+		[GFX10_BUFFER_LOAD_UBYTE_D16_HI] = "buffer_load_ubyte_d16_hi",
-+		[GFX10_BUFFER_LOAD_SBYTE_D16] = "buffer_load_sbyte_d16",
-+		[GFX10_BUFFER_LOAD_SBYTE_D16_HI] = "buffer_load_sbyte_d16_hi",
-+		[GFX10_BUFFER_LOAD_SHORT_D16] = "buffer_load_short_d16",
-+		[GFX10_BUFFER_LOAD_SHORT_D16_HI] = "buffer_load_short_d16_hi",
-+		[GFX10_BUFFER_LOAD_FORMAT_D16_HI_X] = "buffer_load_format_d16_hi_x",
-+		[GFX10_BUFFER_STORE_FORMAT_D16_HI_X] = "buffer_store_format_d16_hi_x",
-+		[GFX10_BUFFER_ATOMIC_SWAP] = "buffer_atomic_swap",
-+		[GFX10_BUFFER_ATOMIC_CMPSWAP] = "buffer_atomic_cmpswap",
-+		[GFX10_BUFFER_ATOMIC_ADD] = "buffer_atomic_add",
-+		[GFX10_BUFFER_ATOMIC_SUB] = "buffer_atomic_sub",
-+		[GFX10_BUFFER_ATOMIC_CSUB] = "buffer_atomic_csub",
-+		[GFX10_BUFFER_ATOMIC_SMIN] = "buffer_atomic_smin",
-+		[GFX10_BUFFER_ATOMIC_UMIN] = "buffer_atomic_umin",
-+		[GFX10_BUFFER_ATOMIC_SMAX] = "buffer_atomic_smax",
-+		[GFX10_BUFFER_ATOMIC_UMAX] = "buffer_atomic_umax",
-+		[GFX10_BUFFER_ATOMIC_AND] = "buffer_atomic_and",
-+		[GFX10_BUFFER_ATOMIC_OR] = "buffer_atomic_or",
-+		[GFX10_BUFFER_ATOMIC_XOR] = "buffer_atomic_xor",
-+		[GFX10_BUFFER_ATOMIC_INC] = "buffer_atomic_inc",
-+		[GFX10_BUFFER_ATOMIC_DEC] = "buffer_atomic_dec",
-+		[GFX10_BUFFER_ATOMIC_FCMPSWAP] = "buffer_atomic_fcmpswap",
-+		[GFX10_BUFFER_ATOMIC_FMIN] = "buffer_atomic_fmin",
-+		[GFX10_BUFFER_ATOMIC_FMAX] = "buffer_atomic_fmax",
-+		[GFX10_BUFFER_ATOMIC_SWAP_X2] = "buffer_atomic_swap_x2",
-+		[GFX10_BUFFER_ATOMIC_CMPSWAP_X2] = "buffer_atomic_cmpswap_x2",
-+		[GFX10_BUFFER_ATOMIC_ADD_X2] = "buffer_atomic_add_x2",
-+		[GFX10_BUFFER_ATOMIC_SUB_X2] = "buffer_atomic_sub_x2",
-+		[GFX10_BUFFER_ATOMIC_SMIN_X2] = "buffer_atomic_smin_x2",
-+		[GFX10_BUFFER_ATOMIC_UMIN_X2] = "buffer_atomic_umin_x2",
-+		[GFX10_BUFFER_ATOMIC_SMAX_X2] = "buffer_atomic_smax_x2",
-+		[GFX10_BUFFER_ATOMIC_UMAX_X2] = "buffer_atomic_umax_x2",
-+		[GFX10_BUFFER_ATOMIC_AND_X2] = "buffer_atomic_and_x2",
-+		[GFX10_BUFFER_ATOMIC_OR_X2] = "buffer_atomic_or_x2",
-+		[GFX10_BUFFER_ATOMIC_XOR_X2] = "buffer_atomic_xor_x2",
-+		[GFX10_BUFFER_ATOMIC_INC_X2] = "buffer_atomic_inc_x2",
-+		[GFX10_BUFFER_ATOMIC_DEC_X2] = "buffer_atomic_dec_x2",
-+		[GFX10_BUFFER_ATOMIC_FCMPSWAP_X2] = "buffer_atomic_fcmpswap_x2",
-+		[GFX10_BUFFER_ATOMIC_FMIN_X2] = "buffer_atomic_fmin_x2",
-+		[GFX10_BUFFER_ATOMIC_FMAX_X2] = "buffer_atomic_fmax_x2",
-+		[GFX10_BUFFER_GL0_INV] = "buffer_gl0_inv",
-+		[GFX10_BUFFER_GL1_INV] = "buffer_gl1_inv",
-+		[GFX10_BUFFER_LOAD_FORMAT_D16_X] = "buffer_load_format_d16_x",
-+		[GFX10_BUFFER_LOAD_FORMAT_D16_XY] = "buffer_load_format_d16_xy",
-+		[GFX10_BUFFER_LOAD_FORMAT_D16_XYZ] = "buffer_load_format_d16_xyz",
-+		[GFX10_BUFFER_LOAD_FORMAT_D16_XYZW] = "buffer_load_format_d16_xyzw",
-+		[GFX10_BUFFER_STORE_FORMAT_D16_X] = "buffer_store_format_d16_x",
-+		[GFX10_BUFFER_STORE_FORMAT_D16_XY] = "buffer_store_format_d16_xy",
-+		[GFX10_BUFFER_STORE_FORMAT_D16_XYZ] = "buffer_store_format_d16_xyz",
-+		[GFX10_BUFFER_STORE_FORMAT_D16_XYZW] = "buffer_store_format_d16_xyzw",
-+	},
-+	[AMDGCN_INSN_TYPE_FLAT] = {
-+		[GFX10_GLOBAL_LOAD_UBYTE] = "global_load_ubyte",
-+		[GFX10_GLOBAL_LOAD_SBYTE] = "global_load_sbyte",
-+		[GFX10_GLOBAL_LOAD_USHORT] = "global_load_ushort",
-+		[GFX10_GLOBAL_LOAD_SSHORT] = "global_load_sshort",
-+		[GFX10_GLOBAL_LOAD_DWORD] = "global_load_dword",
-+		[GFX10_GLOBAL_LOAD_DWORDX2] = "global_load_dwordx2",
-+		[GFX10_GLOBAL_LOAD_DWORDX4] = "global_load_dwordx4",
-+		[GFX10_GLOBAL_LOAD_DWORDX3] = "global_load_dwordx3",
-+		[GFX10_GLOBAL_LOAD_DWORD_ADDTID] = "global_load_dword_addtid",
-+		[GFX10_GLOBAL_STORE_DWORD_ADDTID] = "global_store_dword_addtid",
-+		[GFX10_GLOBAL_STORE_BYTE] = "global_store_byte",
-+		[GFX10_GLOBAL_STORE_BYTE_D16_HI] = "global_store_byte_d16_hi",
-+		[GFX10_GLOBAL_STORE_SHORT] = "global_store_short",
-+		[GFX10_GLOBAL_STORE_SHORT_D16_HI] = "global_store_short_d16_hi",
-+		[GFX10_GLOBAL_STORE_DWORD] = "global_store_dword",
-+		[GFX10_GLOBAL_STORE_DWORDX2] = "global_store_dwordx2",
-+		[GFX10_GLOBAL_STORE_DWORDX4] = "global_store_dwordx4",
-+		[GFX10_GLOBAL_STORE_DWORDX3] = "global_store_dwordx3",
-+		[GFX10_GLOBAL_LOAD_UBYTE_D16] = "global_load_ubyte_d16",
-+		[GFX10_GLOBAL_LOAD_UBYTE_D16_HI] = "global_load_ubyte_d16_hi",
-+		[GFX10_GLOBAL_LOAD_SBYTE_D16] = "global_load_sbyte_d16",
-+		[GFX10_GLOBAL_LOAD_SBYTE_D16_HI] = "global_load_sbyte_d16_hi",
-+		[GFX10_GLOBAL_LOAD_SHORT_D16] = "global_load_short_d16",
-+		[GFX10_GLOBAL_LOAD_SHORT_D16_HI] = "global_load_short_d16_hi",
-+		[GFX10_GLOBAL_ATOMIC_SWAP] = "global_atomic_swap",
-+		[GFX10_GLOBAL_ATOMIC_CMPSWAP] = "global_atomic_cmpswap",
-+		[GFX10_GLOBAL_ATOMIC_ADD] = "global_atomic_add",
-+		[GFX10_GLOBAL_ATOMIC_SUB] = "global_atomic_sub",
-+		[GFX10_GLOBAL_ATOMIC_CSUB] = "global_atomic_csub",
-+		[GFX10_GLOBAL_ATOMIC_SMIN] = "global_atomic_smin",
-+		[GFX10_GLOBAL_ATOMIC_UMIN] = "global_atomic_umin",
-+		[GFX10_GLOBAL_ATOMIC_SMAX] = "global_atomic_smax",
-+		[GFX10_GLOBAL_ATOMIC_UMAX] = "global_atomic_umax",
-+		[GFX10_GLOBAL_ATOMIC_AND] = "global_atomic_and",
-+		[GFX10_GLOBAL_ATOMIC_OR] = "global_atomic_or",
-+		[GFX10_GLOBAL_ATOMIC_XOR] = "global_atomic_xor",
-+		[GFX10_GLOBAL_ATOMIC_INC] = "global_atomic_inc",
-+		[GFX10_GLOBAL_ATOMIC_DEC] = "global_atomic_dec",
-+		[GFX10_GLOBAL_ATOMIC_FCMPSWAP] = "global_atomic_fcmpswap",
-+		[GFX10_GLOBAL_ATOMIC_FMIN] = "global_atomic_fmin",
-+		[GFX10_GLOBAL_ATOMIC_FMAX] = "global_atomic_fmax",
-+		[GFX10_GLOBAL_ATOMIC_SWAP_X2] = "global_atomic_swap_x2",
-+		[GFX10_GLOBAL_ATOMIC_CMPSWAP_X2] = "global_atomic_cmpswap_x2",
-+		[GFX10_GLOBAL_ATOMIC_ADD_X2] = "global_atomic_add_x2",
-+		[GFX10_GLOBAL_ATOMIC_SUB_X2] = "global_atomic_sub_x2",
-+		[GFX10_GLOBAL_ATOMIC_SMIN_X2] = "global_atomic_smin_x2",
-+		[GFX10_GLOBAL_ATOMIC_UMIN_X2] = "global_atomic_umin_x2",
-+		[GFX10_GLOBAL_ATOMIC_SMAX_X2] = "global_atomic_smax_x2",
-+		[GFX10_GLOBAL_ATOMIC_UMAX_X2] = "global_atomic_umax_x2",
-+		[GFX10_GLOBAL_ATOMIC_AND_X2] = "global_atomic_and_x2",
-+		[GFX10_GLOBAL_ATOMIC_OR_X2] = "global_atomic_or_x2",
-+		[GFX10_GLOBAL_ATOMIC_XOR_X2] = "global_atomic_xor_x2",
-+		[GFX10_GLOBAL_ATOMIC_INC_X2] = "global_atomic_inc_x2",
-+		[GFX10_GLOBAL_ATOMIC_DEC_X2] = "global_atomic_dec_x2",
-+		[GFX10_GLOBAL_ATOMIC_FCMPSWAP_X2] = "global_atomic_fcmpswap_x2",
-+		[GFX10_GLOBAL_ATOMIC_FMIN_X2] = "global_atomic_fmin_x2",
-+		[GFX10_GLOBAL_ATOMIC_FMAX_X2] = "global_atomic_fmax_x2",
-+	},
-+};
++	param = (struct knod_bpf_param *)sqw->param->kaddr;
++	memset(sqw->queue_idx, 0, sizeof(sqw->queue_idx));
 +
-+static const char opnames_gfx9[__AMDGCN_INSN_TYPE_MAX][900][30] = {
-+	[AMDGCN_INSN_TYPE_SOP2] = {
-+		[GFX9_S_ADD_U32] = "s_add_u32",
-+		[GFX9_S_SUB_U32] = "s_sub_u32",
-+		[GFX9_S_ADD_I32] = "s_add_i32",
-+		[GFX9_S_SUB_I32] = "s_sub_i32",
-+		[GFX9_S_ADDC_U32] = "s_addc_u32",
-+		[GFX9_S_SUBB_U32] = "s_subb_u32",
-+		[GFX9_S_MIN_I32] = "s_min_i32",
-+		[GFX9_S_MIN_U32] = "s_min_u32",
-+		[GFX9_S_MAX_I32] = "s_max_i32",
-+		[GFX9_S_MAX_U32] = "s_max_u32",
-+		[GFX9_S_CSELECT_B32] = "s_cselect_b32",
-+		[GFX9_S_CSELECT_B64] = "s_cselect_b64",
-+		[GFX9_S_AND_B32] = "s_and_b32",
-+		[GFX9_S_AND_B64] = "s_and_b64",
-+		[GFX9_S_OR_B32] = "s_or_b32",
-+		[GFX9_S_OR_B64] = "s_or_b64",
-+		[GFX9_S_XOR_B32] = "s_xor_b32",
-+		[GFX9_S_XOR_B64] = "s_xor_b64",
-+		[GFX9_S_ANDN2_B32] = "s_andn2_b32",
-+		[GFX9_S_ANDN2_B64] = "s_andn2_b64",
-+		[GFX9_S_ORN2_B32] = "s_orn2_b32",
-+		[GFX9_S_ORN2_B64] = "s_orn2_b64",
-+		[GFX9_S_NAND_B32] = "s_nand_b32",
-+		[GFX9_S_NAND_B64] = "s_nand_b64",
-+		[GFX9_S_NOR_B32] = "s_nor_b32",
-+		[GFX9_S_NOR_B64] = "s_nor_b64",
-+		[GFX9_S_XNOR_B32] = "s_xnor_b32",
-+		[GFX9_S_XNOR_B64] = "s_xnor_b64",
-+		[GFX9_S_LSHL_B32] = "s_lshl_b32",
-+		[GFX9_S_LSHL_B64] = "s_lshl_b64",
-+		[GFX9_S_LSHR_B32] = "s_lshr_b32",
-+		[GFX9_S_LSHR_B64] = "s_lshr_b64",
-+		[GFX9_S_ASHR_I32] = "s_ashr_i32",
-+		[GFX9_S_ASHR_I64] = "s_ashr_i64",
-+		[GFX9_S_BFM_B32] = "s_bfm_b32",
-+		[GFX9_S_BFM_B64] = "s_bfm_b64",
-+		[GFX9_S_MUL_I32] = "s_mul_i32",
-+		[GFX9_S_BFE_U32] = "s_bfe_u32",
-+		[GFX9_S_BFE_I32] = "s_bfe_i32",
-+		[GFX9_S_BFE_U64] = "s_bfe_u64",
-+		[GFX9_S_BFE_I64] = "s_bfe_i64",
-+		[GFX9_S_CBRANCH_G_FORK] = "s_cbranch_g_fork",
-+		[GFX9_S_ABSDIFF_I32] = "s_absdiff_i32",
-+		[GFX9_S_RFE_RESTORE_B64] = "s_rfe_restore_b64",
-+		[GFX9_S_MUL_HI_U32] = "s_mul_hi_u32",
-+		[GFX9_S_MUL_HI_I32] = "s_mul_hi_i32",
-+		[GFX9_S_LSHL1_ADD_U32] = "s_lshl1_add_u32",
-+		[GFX9_S_LSHL2_ADD_U32] = "s_lshl2_add_u32",
-+		[GFX9_S_LSHL3_ADD_U32] = "s_lshl3_add_u32",
-+		[GFX9_S_LSHL4_ADD_U32] = "s_lshl4_add_u32",
-+		[GFX9_S_PACK_LL_B32_B16] = "s_pack_ll_b32_b16",
-+		[GFX9_S_PACK_LH_B32_B16] = "s_pack_lh_b32_b16",
-+		[GFX9_S_PACK_HH_B32_B16] = "s_pack_hh_b32_b16",
-+	},
-+	[AMDGCN_INSN_TYPE_SOPK] = {
-+		[GFX9_S_MOVK_I32] = "s_movk_i32",
-+		[GFX9_S_CMOVK_I32] = "s_cmovk_i32",
-+		[GFX9_S_CMPK_EQ_I32] = "s_cmpk_eq_i32",
-+		[GFX9_S_CMPK_LG_I32] = "s_cmpk_lg_i32",
-+		[GFX9_S_CMPK_GT_I32] = "s_cmpk_gt_i32",
-+		[GFX9_S_CMPK_GE_I32] = "s_cmpk_ge_i32",
-+		[GFX9_S_CMPK_LT_I32] = "s_cmpk_lt_i32",
-+		[GFX9_S_CMPK_LE_I32] = "s_cmpk_le_i32",
-+		[GFX9_S_CMPK_EQ_U32] = "s_cmpk_eq_u32",
-+		[GFX9_S_CMPK_LG_U32] = "s_cmpk_lg_u32",
-+		[GFX9_S_CMPK_GT_U32] = "s_cmpk_gt_u32",
-+		[GFX9_S_CMPK_GE_U32] = "s_cmpk_ge_u32",
-+		[GFX9_S_CMPK_LT_U32] = "s_cmpk_lt_u32",
-+		[GFX9_S_CMPK_LE_U32] = "s_cmpk_le_u32",
-+		[GFX9_S_ADDK_I32] = "s_addk_i32",
-+		[GFX9_S_MULK_I32] = "s_mulk_i32",
-+		[GFX9_S_CBRANCH_I_FORK] = "s_cbranch_i_fork",
-+		[GFX9_S_GETREG_B32] = "s_getreg_b32",
-+		[GFX9_S_SETREG_B32] = "s_setreg_b32",
-+		[GFX9_S_SETREG_IMM32_B32] = "s_setreg_imm32_b32",
-+		[GFX9_S_CALL_B64] = "s_call_b64",
-+	},
-+	[AMDGCN_INSN_TYPE_SOP1] = {
-+		[GFX9_S_MOV_B32] = "s_mov_b32",
-+		[GFX9_S_MOV_B64] = "s_mov_b64",
-+		[GFX9_S_CMOV_B32] = "s_cmov_b32",
-+		[GFX9_S_CMOV_B64] = "s_cmov_b64",
-+		[GFX9_S_NOT_B32] = "s_not_b32",
-+		[GFX9_S_NOT_B64] = "s_not_b64",
-+		[GFX9_S_WQM_B32] = "s_wqm_b32",
-+		[GFX9_S_WQM_B64] = "s_wqm_b64",
-+		[GFX9_S_BREV_B32] = "s_brev_b32",
-+		[GFX9_S_BREV_B64] = "s_brev_b64",
-+		[GFX9_S_BCNT0_I32_B32] = "s_bcnt0_i32_b32",
-+		[GFX9_S_BCNT0_I32_B64] = "s_bcnt0_i32_b64",
-+		[GFX9_S_BCNT1_I32_B32] = "s_bcnt1_i32_b32",
-+		[GFX9_S_BCNT1_I32_B64] = "s_bcnt1_i32_b64",
-+		[GFX9_S_FF0_I32_B32] = "s_ff0_i32_b32",
-+		[GFX9_S_FF0_I32_B64] = "s_ff0_i32_b64",
-+		[GFX9_S_FF1_I32_B32] = "s_ff1_i32_b32",
-+		[GFX9_S_FF1_I32_B64] = "s_ff1_i32_b64",
-+		[GFX9_S_FLBIT_I32_B32] = "s_flbit_i32_b32",
-+		[GFX9_S_FLBIT_I32_B64] = "s_flbit_i32_b64",
-+		[GFX9_S_FLBIT_I32] = "s_flbit_i32",
-+		[GFX9_S_FLBIT_I32_I64] = "s_flbit_i32_i64",
-+		[GFX9_S_SEXT_I32_I8] = "s_sext_i32_i8",
-+		[GFX9_S_SEXT_I32_I16] = "s_sext_i32_i16",
-+		[GFX9_S_BITSET0_B32] = "s_bitset0_b32",
-+		[GFX9_S_BITSET0_B64] = "s_bitset0_b64",
-+		[GFX9_S_BITSET1_B32] = "s_bitset1_b32",
-+		[GFX9_S_BITSET1_B64] = "s_bitset1_b64",
-+		[GFX9_S_GETPC_B64] = "s_getpc_b64",
-+		[GFX9_S_SETPC_B64] = "s_setpc_b64",
-+		[GFX9_S_SWAPPC_B64] = "s_swappc_b64",
-+		[GFX9_S_RFE_B64] = "s_rfe_b64",
-+		[GFX9_S_AND_SAVEEXEC_B64] = "s_and_saveexec_b64",
-+		[GFX9_S_XNOR_SAVEEXEC_B64] = "s_xnor_saveexec_b64",
-+		[GFX9_S_QUADMASK_B32] = "s_quadmask_b32",
-+		[GFX9_S_QUADMASK_B64] = "s_quadmask_b64",
-+		[GFX9_S_MOVRELS_B32] = "s_movrels_b32",
-+		[GFX9_S_MOVRELS_B64] = "s_movrels_b64",
-+		[GFX9_S_MOVRELD_B32] = "s_movreld_b32",
-+		[GFX9_S_MOVRELD_B64] = "s_movreld_b64",
-+		[GFX9_S_ABS_I32] = "s_abs_i32",
-+		[GFX9_S_ANDN1_SAVEEXEC_B64] = "s_andn1_saveexec_b64",
-+		[GFX9_S_ORN1_SAVEEXEC_B64] = "s_orn1_saveexec_b64",
-+		[GFX9_S_ANDN1_WREXEC_B64] = "s_andn1_wrexec_b64",
-+		[GFX9_S_ANDN2_WREXEC_B64] = "s_andn2_wrexec_b64",
-+		[GFX9_S_BITREPLICATE_B64_B32] = "s_bitreplicate_b64_b32",
-+		/* SOP1 opcodes missing from the table (Vega ISA 12.3). */
-+		[GFX9_S_OR_SAVEEXEC_B64] = "s_or_saveexec_b64",
-+		[GFX9_S_XOR_SAVEEXEC_B64] = "s_xor_saveexec_b64",
-+		[GFX9_S_ANDN2_SAVEEXEC_B64] = "s_andn2_saveexec_b64",
-+		[GFX9_S_ORN2_SAVEEXEC_B64] = "s_orn2_saveexec_b64",
-+		[GFX9_S_NAND_SAVEEXEC_B64] = "s_nand_saveexec_b64",
-+		[GFX9_S_NOR_SAVEEXEC_B64] = "s_nor_saveexec_b64",
-+		[GFX9_S_SET_GPR_IDX_IDX] = "s_set_gpr_idx_idx",
-+	},
-+	[AMDGCN_INSN_TYPE_SOPC] = {
-+		[GFX9_S_CMP_EQ_I32] = "s_cmp_eq_i32",
-+		[GFX9_S_CMP_LG_I32] = "s_cmp_lg_i32",
-+		[GFX9_S_CMP_GT_I32] = "s_cmp_gt_i32",
-+		[GFX9_S_CMP_GE_I32] = "s_cmp_ge_i32",
-+		[GFX9_S_CMP_LT_I32] = "s_cmp_lt_i32",
-+		[GFX9_S_CMP_LE_I32] = "s_cmp_le_i32",
-+		[GFX9_S_CMP_EQ_U32] = "s_cmp_eq_u32",
-+		[GFX9_S_CMP_LG_U32] = "s_cmp_lg_u32",
-+		[GFX9_S_CMP_GT_U32] = "s_cmp_gt_u32",
-+		[GFX9_S_CMP_GE_U32] = "s_cmp_ge_u32",
-+		[GFX9_S_CMP_LT_U32] = "s_cmp_lt_u32",
-+		[GFX9_S_CMP_LE_U32] = "s_cmp_le_u32",
-+		[GFX9_S_BITCMP0_B32] = "s_bitcmp0_b32",
-+		[GFX9_S_BITCMP1_B32] = "s_bitcmp1_b32",
-+		[GFX9_S_BITCMP0_B64] = "s_bitcmp0_b64",
-+		[GFX9_S_BITCMP1_B64] = "s_bitcmp1_b64",
-+		[GFX9_S_SETVSKIP] = "s_setvskip",
-+		[GFX9_S_SET_GPR_IDX_ON] = "s_set_gpr_idx_on",
-+		[GFX9_S_CMP_EQ_U64] = "s_cmp_eq_u64",
-+		[GFX9_S_CMP_LG_U64] = "s_cmp_lg_u64",
-+	},
-+	[AMDGCN_INSN_TYPE_SOPP] = {
-+		[GFX9_S_NOP] = "s_nop",
-+		[GFX9_S_ENDPGM] = "s_endpgm",
-+		[GFX9_S_BRANCH] = "s_branch",
-+		[GFX9_S_WAKEUP] = "s_wakeup",
-+		[GFX9_S_CBRANCH_SCC0] = "s_cbranch_scc0",
-+		[GFX9_S_CBRANCH_SCC1] = "s_cbranch_scc1",
-+		[GFX9_S_CBRANCH_VCCZ] = "s_cbranch_vccz",
-+		[GFX9_S_CBRANCH_VCCNZ] = "s_cbranch_vccnz",
-+		[GFX9_S_CBRANCH_EXECZ] = "s_cbranch_execz",
-+		[GFX9_S_CBRANCH_EXECNZ] = "s_cbranch_execnz",
-+		[GFX9_S_BARRIER] = "s_barrier",
-+		[GFX9_S_SETKILL] = "s_setkill",
-+		[GFX9_S_WAITCNT] = "s_waitcnt",
-+		[GFX9_S_SETHALT] = "s_sethalt",
-+		[GFX9_S_SLEEP] = "s_sleep",
-+		[GFX9_S_SETPRIO] = "s_setprio",
-+		[GFX9_S_SENDMSG] = "s_sendmsg",
-+		[GFX9_S_SENDMSGHALT] = "s_sendmsghalt",
-+		[GFX9_S_TRAP] = "s_trap",
-+		[GFX9_S_ICACHE_INV] = "s_icache_inv",
-+		[GFX9_S_INCPERFLEVEL] = "s_incperflevel",
-+		[GFX9_S_DECPERFLEVEL] = "s_decperflevel",
-+		[GFX9_S_TTRACEDATA] = "s_ttracedata",
-+		[GFX9_S_CBRANCH_CDBGSYS] = "s_cbranch_cdbgsys",
-+		[GFX9_S_CBRANCH_CDBGUSER] = "s_cbranch_cdbguser",
-+		[GFX9_S_CBRANCH_CDBGSYS_OR_USER] = "s_cbranch_cdbgsys_or_user",
-+		[GFX9_S_CBRANCH_CDBGSYS_AND_USER] = "s_cbranch_cdbgsys_and_user",
-+		[GFX9_S_ENDPGM_SAVED] = "s_endpgm_saved",
-+		[GFX9_S_SET_GPR_IDX_OFF] = "s_set_gpr_idx_off",
-+		[GFX9_S_SET_GPR_IDX_MODE] = "s_set_gpr_idx_mode",
-+		[GFX9_S_ENDPGM_ORDERED_PS_DONE] = "s_endpgm_ordered_ps_done",
-+	},
-+	[AMDGCN_INSN_TYPE_SMEM] = {
-+		[GFX9_S_LOAD_DWORD] = "s_load_dword",
-+		[GFX9_S_LOAD_DWORDX2] = "s_load_dwordx2",
-+		[GFX9_S_LOAD_DWORDX4] = "s_load_dwordx4",
-+		[GFX9_S_LOAD_DWORDX8] = "s_load_dwordx8",
-+		[GFX9_S_LOAD_DWORDX16] = "s_load_dwordx16",
-+		[GFX9_S_SCRATCH_LOAD_DWORD] = "s_scratch_load_dword",
-+		[GFX9_S_SCRATCH_LOAD_DWORDX2] = "s_scratch_load_dwordx2",
-+		[GFX9_S_SCRATCH_LOAD_DWORDX4] = "s_scratch_load_dwordx4",
-+		[GFX9_S_BUFFER_LOAD_DWORD] = "s_buffer_load_dword",
-+		[GFX9_S_BUFFER_LOAD_DWORDX2] = "s_buffer_load_dwordx2",
-+		[GFX9_S_BUFFER_LOAD_DWORDX4] = "s_buffer_load_dwordx4",
-+		[GFX9_S_BUFFER_LOAD_DWORDX8] = "s_buffer_load_dwordx8",
-+		[GFX9_S_BUFFER_LOAD_DWORDX16] = "s_buffer_load_dwordx16",
-+		[GFX9_S_STORE_DWORD] = "s_store_dword",
-+		[GFX9_S_STORE_DWORDX2] = "s_store_dwordx2",
-+		[GFX9_S_STORE_DWORDX4] = "s_store_dwordx4",
-+		[GFX9_S_SCRATCH_STORE_DWORD] = "s_scratch_store_dword",
-+		[GFX9_S_SCRATCH_STORE_DWORDX2] = "s_scratch_store_dwordx2",
-+		[GFX9_S_SCRATCH_STORE_DWORDX4] = "s_scratch_store_dwordx4",
-+		[GFX9_S_BUFFER_STORE_DWORD] = "s_buffer_store_dword",
-+		[GFX9_S_BUFFER_STORE_DWORDX2] = "s_buffer_store_dwordx2",
-+		[GFX9_S_BUFFER_STORE_DWORDX4] = "s_buffer_store_dwordx4",
-+		[GFX9_S_DCACHE_INV] = "s_dcache_inv",
-+		[GFX9_S_DCACHE_WB] = "s_dcache_wb",
-+		[GFX9_S_DCACHE_INV_VOL] = "s_dcache_inv_vol",
-+		[GFX9_S_DCACHE_WB_VOL] = "s_dcache_wb_vol",
-+		[GFX9_S_MEMTIME] = "s_memtime",
-+		[GFX9_S_MEMREALTIME] = "s_memrealtime",
-+		[GFX9_S_ATC_PROBE] = "s_atc_probe",
-+		[GFX9_S_ATC_PROBE_BUFFER] = "s_atc_probe_buffer",
-+		[GFX9_S_DCACHE_DISCARD] = "s_dcache_discard",
-+		[GFX9_S_DCACHE_DISCARD_X2] = "s_dcache_discard_x2",
-+		[GFX9_S_BUFFER_ATOMIC_SWAP] = "s_buffer_atomic_swap",
-+		[GFX9_S_BUFFER_ATOMIC_CMPSWAP] = "s_buffer_atomic_cmpswap",
-+		[GFX9_S_BUFFER_ATOMIC_ADD] = "s_buffer_atomic_add",
-+		[GFX9_S_BUFFER_ATOMIC_SUB] = "s_buffer_atomic_sub",
-+		[GFX9_S_BUFFER_ATOMIC_SMIN] = "s_buffer_atomic_smin",
-+		[GFX9_S_BUFFER_ATOMIC_UMIN] = "s_buffer_atomic_umin",
-+		[GFX9_S_BUFFER_ATOMIC_SMAX] = "s_buffer_atomic_smax",
-+		[GFX9_S_BUFFER_ATOMIC_UMAX] = "s_buffer_atomic_umax",
-+		[GFX9_S_BUFFER_ATOMIC_AND] = "s_buffer_atomic_and",
-+		[GFX9_S_BUFFER_ATOMIC_OR] = "s_buffer_atomic_or",
-+		[GFX9_S_BUFFER_ATOMIC_XOR] = "s_buffer_atomic_xor",
-+		[GFX9_S_BUFFER_ATOMIC_INC] = "s_buffer_atomic_inc",
-+		[GFX9_S_BUFFER_ATOMIC_DEC] = "s_buffer_atomic_dec",
-+		[GFX9_S_BUFFER_ATOMIC_SWAP_X2] = "s_buffer_atomic_swap_x2",
-+		[GFX9_S_BUFFER_ATOMIC_CMPSWAP_X2] = "s_buffer_atomic_cmpswap_x2",
-+		[GFX9_S_BUFFER_ATOMIC_ADD_X2] = "s_buffer_atomic_add_x2",
-+		[GFX9_S_BUFFER_ATOMIC_SUB_X2] = "s_buffer_atomic_sub_x2",
-+		[GFX9_S_BUFFER_ATOMIC_SMIN_X2] = "s_buffer_atomic_smin_x2",
-+		[GFX9_S_BUFFER_ATOMIC_UMIN_X2] = "s_buffer_atomic_umin_x2",
-+		[GFX9_S_BUFFER_ATOMIC_SMAX_X2] = "s_buffer_atomic_smax_x2",
-+		[GFX9_S_BUFFER_ATOMIC_UMAX_X2] = "s_buffer_atomic_umax_x2",
-+		[GFX9_S_BUFFER_ATOMIC_AND_X2] = "s_buffer_atomic_and_x2",
-+		[GFX9_S_BUFFER_ATOMIC_OR_X2] = "s_buffer_atomic_or_x2",
-+		[GFX9_S_BUFFER_ATOMIC_XOR_X2] = "s_buffer_atomic_xor_x2",
-+		[GFX9_S_BUFFER_ATOMIC_INC_X2] = "s_buffer_atomic_inc_x2",
-+		[GFX9_S_BUFFER_ATOMIC_DEC_X2] = "s_buffer_atomic_dec_x2",
-+		[GFX9_S_ATOMIC_SWAP] = "s_atomic_swap",
-+		[GFX9_S_ATOMIC_CMPSWAP] = "s_atomic_cmpswap",
-+		[GFX9_S_ATOMIC_ADD] = "s_atomic_add",
-+		[GFX9_S_ATOMIC_SUB] = "s_atomic_sub",
-+		[GFX9_S_ATOMIC_SMIN] = "s_atomic_smin",
-+		[GFX9_S_ATOMIC_UMIN] = "s_atomic_umin",
-+		[GFX9_S_ATOMIC_SMAX] = "s_atomic_smax",
-+		[GFX9_S_ATOMIC_UMAX] = "s_atomic_umax",
-+		[GFX9_S_ATOMIC_AND] = "s_atomic_and",
-+		[GFX9_S_ATOMIC_OR] = "s_atomic_or",
-+		[GFX9_S_ATOMIC_XOR] = "s_atomic_xor",
-+		[GFX9_S_ATOMIC_INC] = "s_atomic_inc",
-+		[GFX9_S_ATOMIC_DEC] = "s_atomic_dec",
-+		[GFX9_S_ATOMIC_SWAP_X2] = "s_atomic_swap_x2",
-+		[GFX9_S_ATOMIC_CMPSWAP_X2] = "s_atomic_cmpswap_x2",
-+		[GFX9_S_ATOMIC_ADD_X2] = "s_atomic_add_x2",
-+		[GFX9_S_ATOMIC_SUB_X2] = "s_atomic_sub_x2",
-+		[GFX9_S_ATOMIC_SMIN_X2] = "s_atomic_smin_x2",
-+		[GFX9_S_ATOMIC_UMIN_X2] = "s_atomic_umin_x2",
-+		[GFX9_S_ATOMIC_SMAX_X2] = "s_atomic_smax_x2",
-+		[GFX9_S_ATOMIC_UMAX_X2] = "s_atomic_umax_x2",
-+		[GFX9_S_ATOMIC_AND_X2] = "s_atomic_and_x2",
-+		[GFX9_S_ATOMIC_OR_X2] = "s_atomic_or_x2",
-+		[GFX9_S_ATOMIC_XOR_X2] = "s_atomic_xor_x2",
-+		[GFX9_S_ATOMIC_INC_X2] = "s_atomic_inc_x2",
-+		[GFX9_S_ATOMIC_DEC_X2] = "s_atomic_dec_x2",
-+	},
-+	[AMDGCN_INSN_TYPE_VOP2] = {
-+		[GFX9_V_CNDMASK_B32] = "v_cndmask_b32",
-+		[GFX9_V_ADD_F32] = "v_add_f32",
-+		[GFX9_V_SUB_F32] = "v_sub_f32",
-+		[GFX9_V_SUBREV_F32] = "v_subrev_f32",
-+		[GFX9_V_MUL_LEGACY_F32] = "v_mul_legacy_f32",
-+		[GFX9_V_MUL_F32] = "v_mul_f32",
-+		[GFX9_V_MUL_I32_I24] = "v_mul_i32_i24",
-+		[GFX9_V_MUL_HI_I32_I24] = "v_mul_hi_i32_i24",
-+		[GFX9_V_MUL_U32_U24] = "v_mul_u32_u24",
-+		[GFX9_V_MUL_HI_U32_U24] = "v_mul_hi_u32_u24",
-+		[GFX9_V_MIN_F32] = "v_min_f32",
-+		[GFX9_V_MAX_F32] = "v_max_f32",
-+		[GFX9_V_MIN_I32] = "v_min_i32",
-+		[GFX9_V_MAX_I32] = "v_max_i32",
-+		[GFX9_V_MIN_U32] = "v_min_u32",
-+		[GFX9_V_MAX_U32] = "v_max_u32",
-+		[GFX9_V_LSHRREV_B32] = "v_lshrrev_b32",
-+		[GFX9_V_ASHRREV_I32] = "v_ashrrev_i32",
-+		[GFX9_V_LSHLREV_B32] = "v_lshlrev_b32",
-+		[GFX9_V_AND_B32] = "v_and_b32",
-+		[GFX9_V_OR_B32] = "v_or_b32",
-+		[GFX9_V_XOR_B32] = "v_xor_b32",
-+		[GFX9_V_MAC_F32] = "v_mac_f32",
-+		[GFX9_V_MADMK_F32] = "v_madmk_f32",
-+		[GFX9_V_MADAK_F32] = "v_madak_f32",
-+		[GFX9_V_ADD_CO_U32] = "v_add_co_u32",
-+		[GFX9_V_SUB_CO_U32] = "v_sub_co_u32",
-+		[GFX9_V_SUBREV_CO_U32] = "v_subrev_co_u32",
-+		[GFX9_V_ADDC_CO_U32] = "v_addc_co_u32",
-+		[GFX9_V_SUBB_CO_U32] = "v_subb_co_u32",
-+		[GFX9_V_SUBBREV_CO_U32] = "v_subbrev_co_u32",
-+		[GFX9_V_ADD_F16] = "v_add_f16",
-+		[GFX9_V_SUB_F16] = "v_sub_f16",
-+		[GFX9_V_SUBREV_F16] = "v_subrev_f16",
-+		[GFX9_V_MUL_F16] = "v_mul_f16",
-+		[GFX9_V_MAC_F16] = "v_mac_f16",
-+		[GFX9_V_MADMK_F16] = "v_madmk_f16",
-+		[GFX9_V_MADAK_F16] = "v_madak_f16",
-+		[GFX9_V_ADD_U16] = "v_add_u16",
-+		[GFX9_V_SUB_U16] = "v_sub_u16",
-+		[GFX9_V_SUBREV_U16] = "v_subrev_u16",
-+		[GFX9_V_MUL_LO_U16] = "v_mul_lo_u16",
-+		[GFX9_V_LSHLREV_B16] = "v_lshlrev_b16",
-+		[GFX9_V_LSHRREV_B16] = "v_lshrrev_b16",
-+		[GFX9_V_ASHRREV_I16] = "v_ashrrev_i16",
-+		[GFX9_V_MAX_F16] = "v_max_f16",
-+		[GFX9_V_MIN_F16] = "v_min_f16",
-+		[GFX9_V_MAX_U16] = "v_max_u16",
-+		[GFX9_V_MAX_I16] = "v_max_i16",
-+		[GFX9_V_MIN_U16] = "v_min_u16",
-+		[GFX9_V_MIN_I16] = "v_min_i16",
-+		[GFX9_V_LDEXP_F16] = "v_ldexp_f16",
-+		[GFX9_V_ADD_U32] = "v_add_u32",
-+		[GFX9_V_SUB_U32] = "v_sub_u32",
-+		[GFX9_V_SUBREV_U32] = "v_subrev_u32",
-+	},
-+	[AMDGCN_INSN_TYPE_VOP1] = {
-+		[GFX9_V_NOP] = "v_nop",
-+		[GFX9_V_MOV_B32] = "v_mov_b32",
-+		[GFX9_V_READFIRSTLANE_B32] = "v_readfirstlane_b32",
-+		[GFX9_V_CVT_I32_F64] = "v_cvt_i32_f64",
-+		[GFX9_V_CVT_F64_I32] = "v_cvt_f64_i32",
-+		[GFX9_V_CVT_F32_I32] = "v_cvt_f32_i32",
-+		[GFX9_V_CVT_F32_U32] = "v_cvt_f32_u32",
-+		[GFX9_V_CVT_U32_F32] = "v_cvt_u32_f32",
-+		[GFX9_V_CVT_I32_F32] = "v_cvt_i32_f32",
-+		[GFX9_V_CVT_F16_F32] = "v_cvt_f16_f32",
-+		[GFX9_V_CVT_F32_F16] = "v_cvt_f32_f16",
-+		[GFX9_V_CVT_RPI_I32_F32] = "v_cvt_rpi_i32_f32",
-+		[GFX9_V_CVT_FLR_I32_F32] = "v_cvt_flr_i32_f32",
-+		[GFX9_V_CVT_OFF_F32_I4] = "v_cvt_off_f32_i4",
-+		[GFX9_V_CVT_F32_F64] = "v_cvt_f32_f64",
-+		[GFX9_V_CVT_F64_F32] = "v_cvt_f64_f32",
-+		[GFX9_V_CVT_F32_UBYTE0] = "v_cvt_f32_ubyte0",
-+		[GFX9_V_CVT_F32_UBYTE1] = "v_cvt_f32_ubyte1",
-+		[GFX9_V_CVT_F32_UBYTE2] = "v_cvt_f32_ubyte2",
-+		[GFX9_V_CVT_F32_UBYTE3] = "v_cvt_f32_ubyte3",
-+		[GFX9_V_CVT_U32_F64] = "v_cvt_u32_f64",
-+		[GFX9_V_CVT_F64_U32] = "v_cvt_f64_u32",
-+		[GFX9_V_TRUNC_F64] = "v_trunc_f64",
-+		[GFX9_V_CEIL_F64] = "v_ceil_f64",
-+		[GFX9_V_RNDNE_F64] = "v_rndne_f64",
-+		[GFX9_V_FLOOR_F64] = "v_floor_f64",
-+		[GFX9_V_FRACT_F32] = "v_fract_f32",
-+		[GFX9_V_TRUNC_F32] = "v_trunc_f32",
-+		[GFX9_V_CEIL_F32] = "v_ceil_f32",
-+		[GFX9_V_RNDNE_F32] = "v_rndne_f32",
-+		[GFX9_V_FLOOR_F32] = "v_floor_f32",
-+		[GFX9_V_EXP_F32] = "v_exp_f32",
-+		[GFX9_V_LOG_F32] = "v_log_f32",
-+		[GFX9_V_RCP_F32] = "v_rcp_f32",
-+		[GFX9_V_RCP_IFLAG_F32] = "v_rcp_iflag_f32",
-+		[GFX9_V_RSQ_F32] = "v_rsq_f32",
-+		[GFX9_V_RCP_F64] = "v_rcp_f64",
-+		[GFX9_V_RSQ_F64] = "v_rsq_f64",
-+		[GFX9_V_SQRT_F32] = "v_sqrt_f32",
-+		[GFX9_V_SQRT_F64] = "v_sqrt_f64",
-+		[GFX9_V_SIN_F32] = "v_sin_f32",
-+		[GFX9_V_COS_F32] = "v_cos_f32",
-+		[GFX9_V_NOT_B32] = "v_not_b32",
-+		[GFX9_V_BFREV_B32] = "v_bfrev_b32",
-+		[GFX9_V_FFBH_U32] = "v_ffbh_u32",
-+		[GFX9_V_FFBL_B32] = "v_ffbl_b32",
-+		[GFX9_V_FFBH_I32] = "v_ffbh_i32",
-+		[GFX9_V_FREXP_EXP_I32_F64] = "v_frexp_exp_i32_f64",
-+		[GFX9_V_FREXP_MANT_F64] = "v_frexp_mant_f64",
-+		[GFX9_V_FRACT_F64] = "v_fract_f64",
-+		[GFX9_V_FREXP_EXP_I32_F32] = "v_frexp_exp_i32_f32",
-+		[GFX9_V_FREXP_MANT_F32] = "v_frexp_mant_f32",
-+		[GFX9_V_CLREXCP] = "v_clrexcp",
-+		[GFX9_V_SCREEN_PARTITION_4SE_B32] = "v_screen_partition_4se_b32",
-+		[GFX9_V_CVT_F16_U16] = "v_cvt_f16_u16",
-+		[GFX9_V_CVT_F16_I16] = "v_cvt_f16_i16",
-+		[GFX9_V_CVT_U16_F16] = "v_cvt_u16_f16",
-+		[GFX9_V_CVT_I16_F16] = "v_cvt_i16_f16",
-+		[GFX9_V_RCP_F16] = "v_rcp_f16",
-+		[GFX9_V_SQRT_F16] = "v_sqrt_f16",
-+		[GFX9_V_RSQ_F16] = "v_rsq_f16",
-+		[GFX9_V_LOG_F16] = "v_log_f16",
-+		[GFX9_V_EXP_F16] = "v_exp_f16",
-+		[GFX9_V_FREXP_MANT_F16] = "v_frexp_mant_f16",
-+		[GFX9_V_FREXP_EXP_I16_F16] = "v_frexp_exp_i16_f16",
-+		[GFX9_V_FLOOR_F16] = "v_floor_f16",
-+		[GFX9_V_CEIL_F16] = "v_ceil_f16",
-+		[GFX9_V_TRUNC_F16] = "v_trunc_f16",
-+		[GFX9_V_RNDNE_F16] = "v_rndne_f16",
-+		[GFX9_V_FRACT_F16] = "v_fract_f16",
-+		[GFX9_V_SIN_F16] = "v_sin_f16",
-+		[GFX9_V_COS_F16] = "v_cos_f16",
-+		[GFX9_V_EXP_LEGACY_F32] = "v_exp_legacy_f32",
-+		[GFX9_V_LOG_LEGACY_F32] = "v_log_legacy_f32",
-+		[GFX9_V_CVT_NORM_I16_F16] = "v_cvt_norm_i16_f16",
-+		[GFX9_V_CVT_NORM_U16_F16] = "v_cvt_norm_u16_f16",
-+		[GFX9_V_SAT_PK_U8_I16] = "v_sat_pk_u8_i16",
-+		[GFX9_V_SWAP_B32] = "v_swap_b32",
-+	},
-+	[AMDGCN_INSN_TYPE_VOPC] = {
-+		[GFX9_V_CMP_CLASS_F32] = "v_cmp_class_f32",
-+		[GFX9_V_CMPX_CLASS_F32] = "v_cmpx_class_f32",
-+		[GFX9_V_CMP_CLASS_F64] = "v_cmp_class_f64",
-+		[GFX9_V_CMPX_CLASS_F64] = "v_cmpx_class_f64",
-+		[GFX9_V_CMP_CLASS_F16] = "v_cmp_class_f16",
-+		[GFX9_V_CMPX_CLASS_F16] = "v_cmpx_class_f16",
-+		[GFX9_V_CMP_F_F16] = "v_cmp_f_f16",
-+		[GFX9_V_CMP_LT_F16] = "v_cmp_lt_f16",
-+		[GFX9_V_CMP_EQ_F16] = "v_cmp_eq_f16",
-+		[GFX9_V_CMP_LE_F16] = "v_cmp_le_f16",
-+		[GFX9_V_CMP_GT_F16] = "v_cmp_gt_f16",
-+		[GFX9_V_CMP_LG_F16] = "v_cmp_lg_f16",
-+		[GFX9_V_CMP_GE_F16] = "v_cmp_ge_f16",
-+		[GFX9_V_CMP_O_F16] = "v_cmp_o_f16",
-+		[GFX9_V_CMP_U_F16] = "v_cmp_u_f16",
-+		[GFX9_V_CMP_NGE_F16] = "v_cmp_nge_f16",
-+		[GFX9_V_CMP_NLG_F16] = "v_cmp_nlg_f16",
-+		[GFX9_V_CMP_NGT_F16] = "v_cmp_ngt_f16",
-+		[GFX9_V_CMP_NLE_F16] = "v_cmp_nle_f16",
-+		[GFX9_V_CMP_NEQ_F16] = "v_cmp_neq_f16",
-+		[GFX9_V_CMP_NLT_F16] = "v_cmp_nlt_f16",
-+		[GFX9_V_CMP_TRU_F16] = "v_cmp_tru_f16",
-+		[GFX9_V_CMPX_F_F16] = "v_cmpx_f_f16",
-+		[GFX9_V_CMPX_LT_F16] = "v_cmpx_lt_f16",
-+		[GFX9_V_CMPX_EQ_F16] = "v_cmpx_eq_f16",
-+		[GFX9_V_CMPX_LE_F16] = "v_cmpx_le_f16",
-+		[GFX9_V_CMPX_GT_F16] = "v_cmpx_gt_f16",
-+		[GFX9_V_CMPX_LG_F16] = "v_cmpx_lg_f16",
-+		[GFX9_V_CMPX_GE_F16] = "v_cmpx_ge_f16",
-+		[GFX9_V_CMPX_O_F16] = "v_cmpx_o_f16",
-+		[GFX9_V_CMPX_U_F16] = "v_cmpx_u_f16",
-+		[GFX9_V_CMPX_NGE_F16] = "v_cmpx_nge_f16",
-+		[GFX9_V_CMPX_NLG_F16] = "v_cmpx_nlg_f16",
-+		[GFX9_V_CMPX_NGT_F16] = "v_cmpx_ngt_f16",
-+		[GFX9_V_CMPX_NLE_F16] = "v_cmpx_nle_f16",
-+		[GFX9_V_CMPX_NEQ_F16] = "v_cmpx_neq_f16",
-+		[GFX9_V_CMPX_NLT_F16] = "v_cmpx_nlt_f16",
-+		[GFX9_V_CMPX_TRU_F16] = "v_cmpx_tru_f16",
-+		[GFX9_V_CMP_F_F32] = "v_cmp_f_f32",
-+		[GFX9_V_CMP_LT_F32] = "v_cmp_lt_f32",
-+		[GFX9_V_CMP_EQ_F32] = "v_cmp_eq_f32",
-+		[GFX9_V_CMP_LE_F32] = "v_cmp_le_f32",
-+		[GFX9_V_CMP_GT_F32] = "v_cmp_gt_f32",
-+		[GFX9_V_CMP_LG_F32] = "v_cmp_lg_f32",
-+		[GFX9_V_CMP_GE_F32] = "v_cmp_ge_f32",
-+		[GFX9_V_CMP_O_F32] = "v_cmp_o_f32",
-+		[GFX9_V_CMP_U_F32] = "v_cmp_u_f32",
-+		[GFX9_V_CMP_NGE_F32] = "v_cmp_nge_f32",
-+		[GFX9_V_CMP_NLG_F32] = "v_cmp_nlg_f32",
-+		[GFX9_V_CMP_NGT_F32] = "v_cmp_ngt_f32",
-+		[GFX9_V_CMP_NLE_F32] = "v_cmp_nle_f32",
-+		[GFX9_V_CMP_NEQ_F32] = "v_cmp_neq_f32",
-+		[GFX9_V_CMP_NLT_F32] = "v_cmp_nlt_f32",
-+		[GFX9_V_CMP_TRU_F32] = "v_cmp_tru_f32",
-+		[GFX9_V_CMPX_F_F32] = "v_cmpx_f_f32",
-+		[GFX9_V_CMPX_LT_F32] = "v_cmpx_lt_f32",
-+		[GFX9_V_CMPX_EQ_F32] = "v_cmpx_eq_f32",
-+		[GFX9_V_CMPX_LE_F32] = "v_cmpx_le_f32",
-+		[GFX9_V_CMPX_GT_F32] = "v_cmpx_gt_f32",
-+		[GFX9_V_CMPX_LG_F32] = "v_cmpx_lg_f32",
-+		[GFX9_V_CMPX_GE_F32] = "v_cmpx_ge_f32",
-+		[GFX9_V_CMPX_O_F32] = "v_cmpx_o_f32",
-+		[GFX9_V_CMPX_U_F32] = "v_cmpx_u_f32",
-+		[GFX9_V_CMPX_NGE_F32] = "v_cmpx_nge_f32",
-+		[GFX9_V_CMPX_NLG_F32] = "v_cmpx_nlg_f32",
-+		[GFX9_V_CMPX_NGT_F32] = "v_cmpx_ngt_f32",
-+		[GFX9_V_CMPX_NLE_F32] = "v_cmpx_nle_f32",
-+		[GFX9_V_CMPX_NEQ_F32] = "v_cmpx_neq_f32",
-+		[GFX9_V_CMPX_NLT_F32] = "v_cmpx_nlt_f32",
-+		[GFX9_V_CMPX_TRU_F32] = "v_cmpx_tru_f32",
-+		[GFX9_V_CMP_F_F64] = "v_cmp_f_f64",
-+		[GFX9_V_CMP_LT_F64] = "v_cmp_lt_f64",
-+		[GFX9_V_CMP_EQ_F64] = "v_cmp_eq_f64",
-+		[GFX9_V_CMP_LE_F64] = "v_cmp_le_f64",
-+		[GFX9_V_CMP_GT_F64] = "v_cmp_gt_f64",
-+		[GFX9_V_CMP_LG_F64] = "v_cmp_lg_f64",
-+		[GFX9_V_CMP_GE_F64] = "v_cmp_ge_f64",
-+		[GFX9_V_CMP_O_F64] = "v_cmp_o_f64",
-+		[GFX9_V_CMP_U_F64] = "v_cmp_u_f64",
-+		[GFX9_V_CMP_NGE_F64] = "v_cmp_nge_f64",
-+		[GFX9_V_CMP_NLG_F64] = "v_cmp_nlg_f64",
-+		[GFX9_V_CMP_NGT_F64] = "v_cmp_ngt_f64",
-+		[GFX9_V_CMP_NLE_F64] = "v_cmp_nle_f64",
-+		[GFX9_V_CMP_NEQ_F64] = "v_cmp_neq_f64",
-+		[GFX9_V_CMP_NLT_F64] = "v_cmp_nlt_f64",
-+		[GFX9_V_CMP_TRU_F64] = "v_cmp_tru_f64",
-+		[GFX9_V_CMPX_F_F64] = "v_cmpx_f_f64",
-+		[GFX9_V_CMPX_LT_F64] = "v_cmpx_lt_f64",
-+		[GFX9_V_CMPX_EQ_F64] = "v_cmpx_eq_f64",
-+		[GFX9_V_CMPX_LE_F64] = "v_cmpx_le_f64",
-+		[GFX9_V_CMPX_GT_F64] = "v_cmpx_gt_f64",
-+		[GFX9_V_CMPX_LG_F64] = "v_cmpx_lg_f64",
-+		[GFX9_V_CMPX_GE_F64] = "v_cmpx_ge_f64",
-+		[GFX9_V_CMPX_O_F64] = "v_cmpx_o_f64",
-+		[GFX9_V_CMPX_U_F64] = "v_cmpx_u_f64",
-+		[GFX9_V_CMPX_NGE_F64] = "v_cmpx_nge_f64",
-+		[GFX9_V_CMPX_NLG_F64] = "v_cmpx_nlg_f64",
-+		[GFX9_V_CMPX_NGT_F64] = "v_cmpx_ngt_f64",
-+		[GFX9_V_CMPX_NLE_F64] = "v_cmpx_nle_f64",
-+		[GFX9_V_CMPX_NEQ_F64] = "v_cmpx_neq_f64",
-+		[GFX9_V_CMPX_NLT_F64] = "v_cmpx_nlt_f64",
-+		[GFX9_V_CMPX_TRU_F64] = "v_cmpx_tru_f64",
-+		[GFX9_V_CMP_F_I16] = "v_cmp_f_i16",
-+		[GFX9_V_CMP_LT_I16] = "v_cmp_lt_i16",
-+		[GFX9_V_CMP_EQ_I16] = "v_cmp_eq_i16",
-+		[GFX9_V_CMP_LE_I16] = "v_cmp_le_i16",
-+		[GFX9_V_CMP_GT_I16] = "v_cmp_gt_i16",
-+		[GFX9_V_CMP_NE_I16] = "v_cmp_ne_i16",
-+		[GFX9_V_CMP_GE_I16] = "v_cmp_ge_i16",
-+		[GFX9_V_CMP_T_I16] = "v_cmp_t_i16",
-+		[GFX9_V_CMP_F_U16] = "v_cmp_f_u16",
-+		[GFX9_V_CMP_LT_U16] = "v_cmp_lt_u16",
-+		[GFX9_V_CMP_EQ_U16] = "v_cmp_eq_u16",
-+		[GFX9_V_CMP_LE_U16] = "v_cmp_le_u16",
-+		[GFX9_V_CMP_GT_U16] = "v_cmp_gt_u16",
-+		[GFX9_V_CMP_NE_U16] = "v_cmp_ne_u16",
-+		[GFX9_V_CMP_GE_U16] = "v_cmp_ge_u16",
-+		[GFX9_V_CMP_T_U16] = "v_cmp_t_u16",
-+		[GFX9_V_CMPX_F_I16] = "v_cmpx_f_i16",
-+		[GFX9_V_CMPX_LT_I16] = "v_cmpx_lt_i16",
-+		[GFX9_V_CMPX_EQ_I16] = "v_cmpx_eq_i16",
-+		[GFX9_V_CMPX_LE_I16] = "v_cmpx_le_i16",
-+		[GFX9_V_CMPX_GT_I16] = "v_cmpx_gt_i16",
-+		[GFX9_V_CMPX_NE_I16] = "v_cmpx_ne_i16",
-+		[GFX9_V_CMPX_GE_I16] = "v_cmpx_ge_i16",
-+		[GFX9_V_CMPX_T_I16] = "v_cmpx_t_i16",
-+		[GFX9_V_CMPX_F_U16] = "v_cmpx_f_u16",
-+		[GFX9_V_CMPX_LT_U16] = "v_cmpx_lt_u16",
-+		[GFX9_V_CMPX_EQ_U16] = "v_cmpx_eq_u16",
-+		[GFX9_V_CMPX_LE_U16] = "v_cmpx_le_u16",
-+		[GFX9_V_CMPX_GT_U16] = "v_cmpx_gt_u16",
-+		[GFX9_V_CMPX_NE_U16] = "v_cmpx_ne_u16",
-+		[GFX9_V_CMPX_GE_U16] = "v_cmpx_ge_u16",
-+		[GFX9_V_CMPX_T_U16] = "v_cmpx_t_u16",
-+		[GFX9_V_CMP_F_I32] = "v_cmp_f_i32",
-+		[GFX9_V_CMP_LT_I32] = "v_cmp_lt_i32",
-+		[GFX9_V_CMP_EQ_I32] = "v_cmp_eq_i32",
-+		[GFX9_V_CMP_LE_I32] = "v_cmp_le_i32",
-+		[GFX9_V_CMP_GT_I32] = "v_cmp_gt_i32",
-+		[GFX9_V_CMP_NE_I32] = "v_cmp_ne_i32",
-+		[GFX9_V_CMP_GE_I32] = "v_cmp_ge_i32",
-+		[GFX9_V_CMP_T_I32] = "v_cmp_t_i32",
-+		[GFX9_V_CMP_F_U32] = "v_cmp_f_u32",
-+		[GFX9_V_CMP_LT_U32] = "v_cmp_lt_u32",
-+		[GFX9_V_CMP_EQ_U32] = "v_cmp_eq_u32",
-+		[GFX9_V_CMP_LE_U32] = "v_cmp_le_u32",
-+		[GFX9_V_CMP_GT_U32] = "v_cmp_gt_u32",
-+		[GFX9_V_CMP_NE_U32] = "v_cmp_ne_u32",
-+		[GFX9_V_CMP_GE_U32] = "v_cmp_ge_u32",
-+		[GFX9_V_CMP_T_U32] = "v_cmp_t_u32",
-+		[GFX9_V_CMPX_F_I32] = "v_cmpx_f_i32",
-+		[GFX9_V_CMPX_LT_I32] = "v_cmpx_lt_i32",
-+		[GFX9_V_CMPX_EQ_I32] = "v_cmpx_eq_i32",
-+		[GFX9_V_CMPX_LE_I32] = "v_cmpx_le_i32",
-+		[GFX9_V_CMPX_GT_I32] = "v_cmpx_gt_i32",
-+		[GFX9_V_CMPX_NE_I32] = "v_cmpx_ne_i32",
-+		[GFX9_V_CMPX_GE_I32] = "v_cmpx_ge_i32",
-+		[GFX9_V_CMPX_T_I32] = "v_cmpx_t_i32",
-+		[GFX9_V_CMPX_F_U32] = "v_cmpx_f_u32",
-+		[GFX9_V_CMPX_LT_U32] = "v_cmpx_lt_u32",
-+		[GFX9_V_CMPX_EQ_U32] = "v_cmpx_eq_u32",
-+		[GFX9_V_CMPX_LE_U32] = "v_cmpx_le_u32",
-+		[GFX9_V_CMPX_GT_U32] = "v_cmpx_gt_u32",
-+		[GFX9_V_CMPX_NE_U32] = "v_cmpx_ne_u32",
-+		[GFX9_V_CMPX_GE_U32] = "v_cmpx_ge_u32",
-+		[GFX9_V_CMPX_T_U32] = "v_cmpx_t_u32",
-+		[GFX9_V_CMP_F_I64] = "v_cmp_f_i64",
-+		[GFX9_V_CMP_LT_I64] = "v_cmp_lt_i64",
-+		[GFX9_V_CMP_EQ_I64] = "v_cmp_eq_i64",
-+		[GFX9_V_CMP_LE_I64] = "v_cmp_le_i64",
-+		[GFX9_V_CMP_GT_I64] = "v_cmp_gt_i64",
-+		[GFX9_V_CMP_NE_I64] = "v_cmp_ne_i64",
-+		[GFX9_V_CMP_GE_I64] = "v_cmp_ge_i64",
-+		[GFX9_V_CMP_T_I64] = "v_cmp_t_i64",
-+		[GFX9_V_CMP_F_U64] = "v_cmp_f_u64",
-+		[GFX9_V_CMP_LT_U64] = "v_cmp_lt_u64",
-+		[GFX9_V_CMP_EQ_U64] = "v_cmp_eq_u64",
-+		[GFX9_V_CMP_LE_U64] = "v_cmp_le_u64",
-+		[GFX9_V_CMP_GT_U64] = "v_cmp_gt_u64",
-+		[GFX9_V_CMP_NE_U64] = "v_cmp_ne_u64",
-+		[GFX9_V_CMP_GE_U64] = "v_cmp_ge_u64",
-+		[GFX9_V_CMP_T_U64] = "v_cmp_t_u64",
-+		[GFX9_V_CMPX_F_I64] = "v_cmpx_f_i64",
-+		[GFX9_V_CMPX_LT_I64] = "v_cmpx_lt_i64",
-+		[GFX9_V_CMPX_EQ_I64] = "v_cmpx_eq_i64",
-+		[GFX9_V_CMPX_LE_I64] = "v_cmpx_le_i64",
-+		[GFX9_V_CMPX_GT_I64] = "v_cmpx_gt_i64",
-+		[GFX9_V_CMPX_NE_I64] = "v_cmpx_ne_i64",
-+		[GFX9_V_CMPX_GE_I64] = "v_cmpx_ge_i64",
-+		[GFX9_V_CMPX_T_I64] = "v_cmpx_t_i64",
-+		[GFX9_V_CMPX_F_U64] = "v_cmpx_f_u64",
-+		[GFX9_V_CMPX_LT_U64] = "v_cmpx_lt_u64",
-+		[GFX9_V_CMPX_EQ_U64] = "v_cmpx_eq_u64",
-+		[GFX9_V_CMPX_LE_U64] = "v_cmpx_le_u64",
-+		[GFX9_V_CMPX_GT_U64] = "v_cmpx_gt_u64",
-+		[GFX9_V_CMPX_NE_U64] = "v_cmpx_ne_u64",
-+		[GFX9_V_CMPX_GE_U64] = "v_cmpx_ge_u64",
-+		[GFX9_V_CMPX_T_U64] = "v_cmpx_t_u64",
-+	},
-+	[AMDGCN_INSN_TYPE_VOP3A] = {
-+		[GFX9_V_MAD_LEGACY_F32] = "v_mad_legacy_f32",
-+		[GFX9_V_MAD_F32] = "v_mad_f32",
-+		[GFX9_V_MAD_I32_I24] = "v_mad_i32_i24",
-+		[GFX9_V_MAD_U32_U24] = "v_mad_u32_u24",
-+		[GFX9_V_CUBEID_F32] = "v_cubeid_f32",
-+		[GFX9_V_CUBESC_F32] = "v_cubesc_f32",
-+		[GFX9_V_CUBETC_F32] = "v_cubetc_f32",
-+		[GFX9_V_CUBEMA_F32] = "v_cubema_f32",
-+		[GFX9_V_BFE_U32] = "v_bfe_u32",
-+		[GFX9_V_BFE_I32] = "v_bfe_i32",
-+		[GFX9_V_BFI_B32] = "v_bfi_b32",
-+		[GFX9_V_FMA_F32] = "v_fma_f32",
-+		[GFX9_V_FMA_F64] = "v_fma_f64",
-+		[GFX9_V_LERP_U8] = "v_lerp_u8",
-+		[GFX9_V_ALIGNBIT_B32] = "v_alignbit_b32",
-+		[GFX9_V_ALIGNBYTE_B32] = "v_alignbyte_b32",
-+		[GFX9_V_MIN3_F32] = "v_min3_f32",
-+		[GFX9_V_MIN3_I32] = "v_min3_i32",
-+		[GFX9_V_MIN3_U32] = "v_min3_u32",
-+		[GFX9_V_MAX3_F32] = "v_max3_f32",
-+		[GFX9_V_MAX3_I32] = "v_max3_i32",
-+		[GFX9_V_MAX3_U32] = "v_max3_u32",
-+		[GFX9_V_MED3_F32] = "v_med3_f32",
-+		[GFX9_V_MED3_I32] = "v_med3_i32",
-+		[GFX9_V_MED3_U32] = "v_med3_u32",
-+		[GFX9_V_SAD_U8] = "v_sad_u8",
-+		[GFX9_V_SAD_HI_U8] = "v_sad_hi_u8",
-+		[GFX9_V_SAD_U16] = "v_sad_u16",
-+		[GFX9_V_SAD_U32] = "v_sad_u32",
-+		[GFX9_V_CVT_PK_U8_F32] = "v_cvt_pk_u8_f32",
-+		[GFX9_V_DIV_FIXUP_F32] = "v_div_fixup_f32",
-+		[GFX9_V_DIV_FIXUP_F64] = "v_div_fixup_f64",
-+		[GFX9_V_DIV_FMAS_F32] = "v_div_fmas_f32",
-+		[GFX9_V_DIV_FMAS_F64] = "v_div_fmas_f64",
-+		[GFX9_V_MSAD_U8] = "v_msad_u8",
-+		[GFX9_V_QSAD_PK_U16_U8] = "v_qsad_pk_u16_u8",
-+		[GFX9_V_MQSAD_PK_U16_U8] = "v_mqsad_pk_u16_u8",
-+		[GFX9_V_MQSAD_U32_U8] = "v_mqsad_u32_u8",
-+		[GFX9_V_MAD_LEGACY_F16] = "v_mad_legacy_f16",
-+		[GFX9_V_MAD_LEGACY_U16] = "v_mad_legacy_u16",
-+		[GFX9_V_MAD_LEGACY_I16] = "v_mad_legacy_i16",
-+		[GFX9_V_PERM_B32] = "v_perm_b32",
-+		[GFX9_V_FMA_LEGACY_F16] = "v_fma_legacy_f16",
-+		[GFX9_V_DIV_FIXUP_LEGACY_F16] = "v_div_fixup_legacy_f16",
-+		[GFX9_V_CVT_PKACCUM_U8_F32] = "v_cvt_pkaccum_u8_f32",
-+		[GFX9_V_MAD_U32_U16] = "v_mad_u32_u16",
-+		[GFX9_V_MAD_I32_I16] = "v_mad_i32_i16",
-+		[GFX9_V_XAD_U32] = "v_xad_u32",
-+		[GFX9_V_MIN3_F16] = "v_min3_f16",
-+		[GFX9_V_MIN3_I16] = "v_min3_i16",
-+		[GFX9_V_MIN3_U16] = "v_min3_u16",
-+		[GFX9_V_MAX3_F16] = "v_max3_f16",
-+		[GFX9_V_MAX3_I16] = "v_max3_i16",
-+		[GFX9_V_MAX3_U16] = "v_max3_u16",
-+		[GFX9_V_MED3_F16] = "v_med3_f16",
-+		[GFX9_V_MED3_I16] = "v_med3_i16",
-+		[GFX9_V_MED3_U16] = "v_med3_u16",
-+		[GFX9_V_LSHL_ADD_U32] = "v_lshl_add_u32",
-+		[GFX9_V_ADD_LSHL_U32] = "v_add_lshl_u32",
-+		[GFX9_V_ADD3_U32] = "v_add3_u32",
-+		[GFX9_V_LSHL_OR_B32] = "v_lshl_or_b32",
-+		[GFX9_V_AND_OR_B32] = "v_and_or_b32",
-+		[GFX9_V_OR3_B32] = "v_or3_b32",
-+		[GFX9_V_MAD_F16] = "v_mad_f16",
-+		[GFX9_V_MAD_U16] = "v_mad_u16",
-+		[GFX9_V_MAD_I16] = "v_mad_i16",
-+		[GFX9_V_FMA_F16] = "v_fma_f16",
-+		[GFX9_V_DIV_FIXUP_F16] = "v_div_fixup_f16",
-+		[GFX9_V_INTERP_P1LL_F16] = "v_interp_p1ll_f16",
-+		[GFX9_V_INTERP_P1LV_F16] = "v_interp_p1lv_f16",
-+		[GFX9_V_INTERP_P2_LEGACY_F16] = "v_interp_p2_legacy_f16",
-+		[GFX9_V_INTERP_P2_F16] = "v_interp_p2_f16",
-+		[GFX9_V_ADD_F64] = "v_add_f64",
-+		[GFX9_V_MUL_F64] = "v_mul_f64",
-+		[GFX9_V_MIN_F64] = "v_min_f64",
-+		[GFX9_V_MAX_F64] = "v_max_f64",
-+		[GFX9_V_LDEXP_F64] = "v_ldexp_f64",
-+		[GFX9_V_MUL_LO_U32] = "v_mul_lo_u32",
-+		[GFX9_V_MUL_HI_U32] = "v_mul_hi_u32",
-+		[GFX9_V_MUL_HI_I32] = "v_mul_hi_i32",
-+		[GFX9_V_LDEXP_F32] = "v_ldexp_f32",
-+		[GFX9_V_READLANE_B32] = "v_readlane_b32",
-+		[GFX9_V_WRITELANE_B32] = "v_writelane_b32",
-+		[GFX9_V_BCNT_U32_B32] = "v_bcnt_u32_b32",
-+		[GFX9_V_MBCNT_LO_U32_B32] = "v_mbcnt_lo_u32_b32",
-+		[GFX9_V_MBCNT_HI_U32_B32] = "v_mbcnt_hi_u32_b32",
-+		[GFX9_V_LSHLREV_B64] = "v_lshlrev_b64",
-+		[GFX9_V_LSHRREV_B64] = "v_lshrrev_b64",
-+		[GFX9_V_ASHRREV_I64] = "v_ashrrev_i64",
-+		[GFX9_V_TRIG_PREOP_F64] = "v_trig_preop_f64",
-+		[GFX9_V_BFM_B32] = "v_bfm_b32",
-+		[GFX9_V_CVT_PKNORM_I16_F32] = "v_cvt_pknorm_i16_f32",
-+		[GFX9_V_CVT_PKNORM_U16_F32] = "v_cvt_pknorm_u16_f32",
-+		[GFX9_V_CVT_PKRTZ_F16_F32] = "v_cvt_pkrtz_f16_f32",
-+		[GFX9_V_CVT_PK_U16_U32] = "v_cvt_pk_u16_u32",
-+		[GFX9_V_CVT_PK_I16_I32] = "v_cvt_pk_i16_i32",
-+		[GFX9_V_CVT_PKNORM_I16_F16] = "v_cvt_pknorm_i16_f16",
-+		[GFX9_V_CVT_PKNORM_U16_F16] = "v_cvt_pknorm_u16_f16",
-+		[GFX9_V_ADD_I32] = "v_add_i32",
-+		[GFX9_V_SUB_I32] = "v_sub_i32",
-+		[GFX9_V_ADD_I16] = "v_add_i16",
-+		[GFX9_V_SUB_I16] = "v_sub_i16",
-+		[GFX9_V_PACK_B32_F16] = "v_pack_b32_f16",
-+	},
-+	[AMDGCN_INSN_TYPE_VOP3B] = {
-+		[GFX9_V_DIV_SCALE_F64] = "v_div_scale_f64",
-+		[GFX9_V_MAD_U64_U32] = "v_mad_u64_u32",
-+		[GFX9_V_MAD_I64_I32] = "v_mad_i64_i32",
-+	},
-+	[AMDGCN_INSN_TYPE_VOP3P] = {
-+		[GFX9_V_PK_MAD_I16] = "v_pk_mad_i16",
-+		[GFX9_V_PK_MUL_LO_U16] = "v_pk_mul_lo_u16",
-+		[GFX9_V_PK_ADD_I16] = "v_pk_add_i16",
-+		[GFX9_V_PK_SUB_I16] = "v_pk_sub_i16",
-+		[GFX9_V_PK_LSHLREV_B16] = "v_pk_lshlrev_b16",
-+		[GFX9_V_PK_LSHRREV_B16] = "v_pk_lshrrev_b16",
-+		[GFX9_V_PK_ASHRREV_I16] = "v_pk_ashrrev_i16",
-+		[GFX9_V_PK_MAX_I16] = "v_pk_max_i16",
-+		[GFX9_V_PK_MIN_I16] = "v_pk_min_i16",
-+		[GFX9_V_PK_MAD_U16] = "v_pk_mad_u16",
-+		[GFX9_V_PK_ADD_U16] = "v_pk_add_u16",
-+		[GFX9_V_PK_SUB_U16] = "v_pk_sub_u16",
-+		[GFX9_V_PK_MAX_U16] = "v_pk_max_u16",
-+		[GFX9_V_PK_MIN_U16] = "v_pk_min_u16",
-+		[GFX9_V_PK_FMA_F16] = "v_pk_fma_f16",
-+		[GFX9_V_PK_ADD_F16] = "v_pk_add_f16",
-+		[GFX9_V_PK_MUL_F16] = "v_pk_mul_f16",
-+		[GFX9_V_PK_MIN_F16] = "v_pk_min_f16",
-+		[GFX9_V_PK_MAX_F16] = "v_pk_max_f16",
-+		[GFX9_V_MAD_MIX_F32] = "v_mad_mix_f32",
-+		[GFX9_V_MAD_MIXLO_F16] = "v_mad_mixlo_f16",
-+		[GFX9_V_MAD_MIXHI_F16] = "v_mad_mixhi_f16",
-+	},
-+	[AMDGCN_INSN_TYPE_MUBUF] = {
-+		[GFX9_BUFFER_LOAD_FORMAT_X] = "buffer_load_format_x",
-+		[GFX9_BUFFER_LOAD_FORMAT_XY] = "buffer_load_format_xy",
-+		[GFX9_BUFFER_LOAD_FORMAT_XYZ] = "buffer_load_format_xyz",
-+		[GFX9_BUFFER_LOAD_FORMAT_XYZW] = "buffer_load_format_xyzw",
-+		[GFX9_BUFFER_STORE_FORMAT_X] = "buffer_store_format_x",
-+		[GFX9_BUFFER_STORE_FORMAT_XY] = "buffer_store_format_xy",
-+		[GFX9_BUFFER_STORE_FORMAT_XYZ] = "buffer_store_format_xyz",
-+		[GFX9_BUFFER_STORE_FORMAT_XYZW] = "buffer_store_format_xyzw",
-+		[GFX9_BUFFER_LOAD_FORMAT_D16_X] = "buffer_load_format_d16_x",
-+		[GFX9_BUFFER_LOAD_FORMAT_D16_XY] = "buffer_load_format_d16_xy",
-+		[GFX9_BUFFER_LOAD_FORMAT_D16_XYZ] = "buffer_load_format_d16_xyz",
-+		[GFX9_BUFFER_LOAD_FORMAT_D16_XYZW] = "buffer_load_format_d16_xyzw",
-+		[GFX9_BUFFER_STORE_FORMAT_D16_X] = "buffer_store_format_d16_x",
-+		[GFX9_BUFFER_STORE_FORMAT_D16_XY] = "buffer_store_format_d16_xy",
-+		[GFX9_BUFFER_STORE_FORMAT_D16_XYZ] = "buffer_store_format_d16_xyz",
-+		[GFX9_BUFFER_STORE_FORMAT_D16_XYZW] = "buffer_store_format_d16_xyzw",
-+		[GFX9_BUFFER_LOAD_UBYTE] = "buffer_load_ubyte",
-+		[GFX9_BUFFER_LOAD_SBYTE] = "buffer_load_sbyte",
-+		[GFX9_BUFFER_LOAD_USHORT] = "buffer_load_ushort",
-+		[GFX9_BUFFER_LOAD_SSHORT] = "buffer_load_sshort",
-+		[GFX9_BUFFER_LOAD_DWORD] = "buffer_load_dword",
-+		[GFX9_BUFFER_LOAD_DWORDX2] = "buffer_load_dwordx2",
-+		[GFX9_BUFFER_LOAD_DWORDX3] = "buffer_load_dwordx3",
-+		[GFX9_BUFFER_LOAD_DWORDX4] = "buffer_load_dwordx4",
-+		[GFX9_BUFFER_STORE_BYTE] = "buffer_store_byte",
-+		[GFX9_BUFFER_STORE_BYTE_D16_HI] = "buffer_store_byte_d16_hi",
-+		[GFX9_BUFFER_STORE_SHORT] = "buffer_store_short",
-+		[GFX9_BUFFER_STORE_SHORT_D16_HI] = "buffer_store_short_d16_hi",
-+		[GFX9_BUFFER_STORE_DWORD] = "buffer_store_dword",
-+		[GFX9_BUFFER_STORE_DWORDX2] = "buffer_store_dwordx2",
-+		[GFX9_BUFFER_STORE_DWORDX3] = "buffer_store_dwordx3",
-+		[GFX9_BUFFER_STORE_DWORDX4] = "buffer_store_dwordx4",
-+		[GFX9_BUFFER_LOAD_UBYTE_D16] = "buffer_load_ubyte_d16",
-+		[GFX9_BUFFER_LOAD_UBYTE_D16_HI] = "buffer_load_ubyte_d16_hi",
-+		[GFX9_BUFFER_LOAD_SBYTE_D16] = "buffer_load_sbyte_d16",
-+		[GFX9_BUFFER_LOAD_SBYTE_D16_HI] = "buffer_load_sbyte_d16_hi",
-+		[GFX9_BUFFER_LOAD_SHORT_D16] = "buffer_load_short_d16",
-+		[GFX9_BUFFER_LOAD_SHORT_D16_HI] = "buffer_load_short_d16_hi",
-+		[GFX9_BUFFER_LOAD_FORMAT_D16_HI_X] = "buffer_load_format_d16_hi_x",
-+		[GFX9_BUFFER_STORE_FORMAT_D16_HI_X] = "buffer_store_format_d16_hi_x",
-+		[GFX9_BUFFER_STORE_LDS_DWORD] = "buffer_store_lds_dword",
-+		[GFX9_BUFFER_WBINVL1] = "buffer_wbinvl1",
-+		[GFX9_BUFFER_WBINVL1_VOL] = "buffer_wbinvl1_vol",
-+		[GFX9_BUFFER_ATOMIC_SWAP] = "buffer_atomic_swap",
-+		[GFX9_BUFFER_ATOMIC_CMPSWAP] = "buffer_atomic_cmpswap",
-+		[GFX9_BUFFER_ATOMIC_ADD] = "buffer_atomic_add",
-+		[GFX9_BUFFER_ATOMIC_SUB] = "buffer_atomic_sub",
-+		[GFX9_BUFFER_ATOMIC_SMIN] = "buffer_atomic_smin",
-+		[GFX9_BUFFER_ATOMIC_UMIN] = "buffer_atomic_umin",
-+		[GFX9_BUFFER_ATOMIC_SMAX] = "buffer_atomic_smax",
-+		[GFX9_BUFFER_ATOMIC_UMAX] = "buffer_atomic_umax",
-+		[GFX9_BUFFER_ATOMIC_AND] = "buffer_atomic_and",
-+		[GFX9_BUFFER_ATOMIC_OR] = "buffer_atomic_or",
-+		[GFX9_BUFFER_ATOMIC_XOR] = "buffer_atomic_xor",
-+		[GFX9_BUFFER_ATOMIC_INC] = "buffer_atomic_inc",
-+		[GFX9_BUFFER_ATOMIC_DEC] = "buffer_atomic_dec",
-+		[GFX9_BUFFER_ATOMIC_SWAP_X2] = "buffer_atomic_swap_x2",
-+		[GFX9_BUFFER_ATOMIC_CMPSWAP_X2] = "buffer_atomic_cmpswap_x2",
-+		[GFX9_BUFFER_ATOMIC_ADD_X2] = "buffer_atomic_add_x2",
-+		[GFX9_BUFFER_ATOMIC_SUB_X2] = "buffer_atomic_sub_x2",
-+		[GFX9_BUFFER_ATOMIC_SMIN_X2] = "buffer_atomic_smin_x2",
-+		[GFX9_BUFFER_ATOMIC_UMIN_X2] = "buffer_atomic_umin_x2",
-+		[GFX9_BUFFER_ATOMIC_SMAX_X2] = "buffer_atomic_smax_x2",
-+		[GFX9_BUFFER_ATOMIC_UMAX_X2] = "buffer_atomic_umax_x2",
-+		[GFX9_BUFFER_ATOMIC_AND_X2] = "buffer_atomic_and_x2",
-+		[GFX9_BUFFER_ATOMIC_OR_X2] = "buffer_atomic_or_x2",
-+		[GFX9_BUFFER_ATOMIC_XOR_X2] = "buffer_atomic_xor_x2",
-+		[GFX9_BUFFER_ATOMIC_INC_X2] = "buffer_atomic_inc_x2",
-+		[GFX9_BUFFER_ATOMIC_DEC_X2] = "buffer_atomic_dec_x2",
-+	},
-+	[AMDGCN_INSN_TYPE_FLAT] = {
-+		[GFX9_GLOBAL_LOAD_UBYTE] = "global_load_ubyte",
-+		[GFX9_GLOBAL_LOAD_SBYTE] = "global_load_sbyte",
-+		[GFX9_GLOBAL_LOAD_USHORT] = "global_load_ushort",
-+		[GFX9_GLOBAL_LOAD_SSHORT] = "global_load_sshort",
-+		[GFX9_GLOBAL_LOAD_DWORD] = "global_load_dword",
-+		[GFX9_GLOBAL_LOAD_DWORDX2] = "global_load_dwordx2",
-+		[GFX9_GLOBAL_LOAD_DWORDX3] = "global_load_dwordx3",
-+		[GFX9_GLOBAL_LOAD_DWORDX4] = "global_load_dwordx4",
-+		[GFX9_GLOBAL_STORE_BYTE] = "global_store_byte",
-+		[GFX9_GLOBAL_STORE_BYTE_D16_HI] = "global_store_byte_d16_hi",
-+		[GFX9_GLOBAL_STORE_SHORT] = "global_store_short",
-+		[GFX9_GLOBAL_STORE_SHORT_D16_HI] = "global_store_short_d16_hi",
-+		[GFX9_GLOBAL_STORE_DWORD] = "global_store_dword",
-+		[GFX9_GLOBAL_STORE_DWORDX2] = "global_store_dwordx2",
-+		[GFX9_GLOBAL_STORE_DWORDX3] = "global_store_dwordx3",
-+		[GFX9_GLOBAL_STORE_DWORDX4] = "global_store_dwordx4",
-+		[GFX9_GLOBAL_LOAD_UBYTE_D16] = "global_load_ubyte_d16",
-+		[GFX9_GLOBAL_LOAD_UBYTE_D16_HI] = "global_load_ubyte_d16_hi",
-+		[GFX9_GLOBAL_LOAD_SBYTE_D16] = "global_load_sbyte_d16",
-+		[GFX9_GLOBAL_LOAD_SBYTE_D16_HI] = "global_load_sbyte_d16_hi",
-+		[GFX9_GLOBAL_LOAD_SHORT_D16] = "global_load_short_d16",
-+		[GFX9_GLOBAL_LOAD_SHORT_D16_HI] = "global_load_short_d16_hi",
-+		[GFX9_GLOBAL_ATOMIC_SWAP] = "global_atomic_swap",
-+		[GFX9_GLOBAL_ATOMIC_CMPSWAP] = "global_atomic_cmpswap",
-+		[GFX9_GLOBAL_ATOMIC_ADD] = "global_atomic_add",
-+		[GFX9_GLOBAL_ATOMIC_SUB] = "global_atomic_sub",
-+		[GFX9_GLOBAL_ATOMIC_SMIN] = "global_atomic_smin",
-+		[GFX9_GLOBAL_ATOMIC_UMIN] = "global_atomic_umin",
-+		[GFX9_GLOBAL_ATOMIC_SMAX] = "global_atomic_smax",
-+		[GFX9_GLOBAL_ATOMIC_UMAX] = "global_atomic_umax",
-+		[GFX9_GLOBAL_ATOMIC_AND] = "global_atomic_and",
-+		[GFX9_GLOBAL_ATOMIC_OR] = "global_atomic_or",
-+		[GFX9_GLOBAL_ATOMIC_XOR] = "global_atomic_xor",
-+		[GFX9_GLOBAL_ATOMIC_INC] = "global_atomic_inc",
-+		[GFX9_GLOBAL_ATOMIC_DEC] = "global_atomic_dec",
-+		[GFX9_GLOBAL_ATOMIC_SWAP_X2] = "global_atomic_swap_x2",
-+		[GFX9_GLOBAL_ATOMIC_CMPSWAP_X2] = "global_atomic_cmpswap_x2",
-+		[GFX9_GLOBAL_ATOMIC_ADD_X2] = "global_atomic_add_x2",
-+		[GFX9_GLOBAL_ATOMIC_SUB_X2] = "global_atomic_sub_x2",
-+		[GFX9_GLOBAL_ATOMIC_SMIN_X2] = "global_atomic_smin_x2",
-+		[GFX9_GLOBAL_ATOMIC_UMIN_X2] = "global_atomic_umin_x2",
-+		[GFX9_GLOBAL_ATOMIC_SMAX_X2] = "global_atomic_smax_x2",
-+		[GFX9_GLOBAL_ATOMIC_UMAX_X2] = "global_atomic_umax_x2",
-+		[GFX9_GLOBAL_ATOMIC_AND_X2] = "global_atomic_and_x2",
-+		[GFX9_GLOBAL_ATOMIC_OR_X2] = "global_atomic_or_x2",
-+		[GFX9_GLOBAL_ATOMIC_XOR_X2] = "global_atomic_xor_x2",
-+		[GFX9_GLOBAL_ATOMIC_INC_X2] = "global_atomic_inc_x2",
-+		[GFX9_GLOBAL_ATOMIC_DEC_X2] = "global_atomic_dec_x2",
-+	},
-+	[AMDGCN_INSN_TYPE_DS] = {
-+		/* DS opcode names (Vega ISA 12.13, opcodes 0-255). The DS
-+		 * table was entirely unpopulated, so DS instructions
-+		 * disassembled with a blank mnemonic. Enum values were
-+		 * ISA-verified (one known value bug at DS_CONDXCHG32_RTN_B64
-+		 * is tracked separately).
++	/* 2D dispatch: queue_id = workgroup_id_y, tid = workitem within WG.
++	 * Per-queue bds live in sqw->bds[i * batch_size + tid] and shader
++	 * indexes sub[] / sqw->bds[] using (queue_id * batch_size + tid).
++	 * No cumulative start_idx -- each queue's slot range is fixed by i.
++	 */
++	for (i = 0; i < priv->nr_works; i++) {
++		int slot = i * priv->batch_size;
++		unsigned int skip = 0, j;
++
++		/* Stage past every in-flight dispatch's claim on this queue so
++		 * the new sqw reads disjoint SPSC slots.  Peek self-limits: if
++		 * the ring holds fewer entries past @skip, cnt shrinks (or 0).
 +		 */
-+		[GFX9_DS_ADD_U32] = "ds_add_u32",
-+		[GFX9_DS_SUB_U32] = "ds_sub_u32",
-+		[GFX9_DS_RSUB_U32] = "ds_rsub_u32",
-+		[GFX9_DS_INC_U32] = "ds_inc_u32",
-+		[GFX9_DS_DEC_U32] = "ds_dec_u32",
-+		[GFX9_DS_MIN_I32] = "ds_min_i32",
-+		[GFX9_DS_MAX_I32] = "ds_max_i32",
-+		[GFX9_DS_MIN_U32] = "ds_min_u32",
-+		[GFX9_DS_MAX_U32] = "ds_max_u32",
-+		[GFX9_DS_AND_B32] = "ds_and_b32",
-+		[GFX9_DS_OR_B32] = "ds_or_b32",
-+		[GFX9_DS_XOR_B32] = "ds_xor_b32",
-+		[GFX9_DS_MSKOR_B32] = "ds_mskor_b32",
-+		[GFX9_DS_WRITE_B32] = "ds_write_b32",
-+		[GFX9_DS_WRITE2_B32] = "ds_write2_b32",
-+		[GFX9_DS_WRITE2ST64_B32] = "ds_write2st64_b32",
-+		[GFX9_DS_CMPST_B32] = "ds_cmpst_b32",
-+		[GFX9_DS_CMPST_F32] = "ds_cmpst_f32",
-+		[GFX9_DS_MIN_F32] = "ds_min_f32",
-+		[GFX9_DS_MAX_F32] = "ds_max_f32",
-+		[GFX9_DS_NOP] = "ds_nop",
-+		[GFX9_DS_ADD_F32] = "ds_add_f32",
-+		[GFX9_DS_WRITE_ADDTID_B32] = "ds_write_addtid_b32",
-+		[GFX9_DS_WRITE_B8] = "ds_write_b8",
-+		[GFX9_DS_WRITE_B16] = "ds_write_b16",
-+		[GFX9_DS_ADD_RTN_U32] = "ds_add_rtn_u32",
-+		[GFX9_DS_SUB_RTN_U32] = "ds_sub_rtn_u32",
-+		[GFX9_DS_RSUB_RTN_U32] = "ds_rsub_rtn_u32",
-+		[GFX9_DS_INC_RTN_U32] = "ds_inc_rtn_u32",
-+		[GFX9_DS_DEC_RTN_U32] = "ds_dec_rtn_u32",
-+		[GFX9_DS_MIN_RTN_I32] = "ds_min_rtn_i32",
-+		[GFX9_DS_MAX_RTN_I32] = "ds_max_rtn_i32",
-+		[GFX9_DS_MIN_RTN_U32] = "ds_min_rtn_u32",
-+		[GFX9_DS_MAX_RTN_U32] = "ds_max_rtn_u32",
-+		[GFX9_DS_AND_RTN_B32] = "ds_and_rtn_b32",
-+		[GFX9_DS_OR_RTN_B32] = "ds_or_rtn_b32",
-+		[GFX9_DS_XOR_RTN_B32] = "ds_xor_rtn_b32",
-+		[GFX9_DS_MSKOR_RTN_B32] = "ds_mskor_rtn_b32",
-+		[GFX9_DS_WRXCHG_RTN_B32] = "ds_wrxchg_rtn_b32",
-+		[GFX9_DS_WRXCHG2_RTN_B32] = "ds_wrxchg2_rtn_b32",
-+		[GFX9_DS_WRXCHG2ST64_RTN_B32] = "ds_wrxchg2st64_rtn_b32",
-+		[GFX9_DS_CMPST_RTN_B32] = "ds_cmpst_rtn_b32",
-+		[GFX9_DS_CMPST_RTN_F32] = "ds_cmpst_rtn_f32",
-+		[GFX9_DS_MIN_RTN_F32] = "ds_min_rtn_f32",
-+		[GFX9_DS_MAX_RTN_F32] = "ds_max_rtn_f32",
-+		[GFX9_DS_WRAP_RTN_B32] = "ds_wrap_rtn_b32",
-+		[GFX9_DS_ADD_RTN_F32] = "ds_add_rtn_f32",
-+		[GFX9_DS_READ_B32] = "ds_read_b32",
-+		[GFX9_DS_READ2_B32] = "ds_read2_b32",
-+		[GFX9_DS_READ2ST64_B32] = "ds_read2st64_b32",
-+		[GFX9_DS_READ_I8] = "ds_read_i8",
-+		[GFX9_DS_READ_U8] = "ds_read_u8",
-+		[GFX9_DS_READ_I16] = "ds_read_i16",
-+		[GFX9_DS_READ_U16] = "ds_read_u16",
-+		[GFX9_DS_SWIZZLE_B32] = "ds_swizzle_b32",
-+		[GFX9_DS_PERMUTE_B32] = "ds_permute_b32",
-+		[GFX9_DS_BPERMUTE_B32] = "ds_bpermute_b32",
-+		[GFX9_DS_ADD_U64] = "ds_add_u64",
-+		[GFX9_DS_SUB_U64] = "ds_sub_u64",
-+		[GFX9_DS_RSUB_U64] = "ds_rsub_u64",
-+		[GFX9_DS_INC_U64] = "ds_inc_u64",
-+		[GFX9_DS_DEC_U64] = "ds_dec_u64",
-+		[GFX9_DS_MIN_I64] = "ds_min_i64",
-+		[GFX9_DS_MAX_I64] = "ds_max_i64",
-+		[GFX9_DS_MIN_U64] = "ds_min_u64",
-+		[GFX9_DS_MAX_U64] = "ds_max_u64",
-+		[GFX9_DS_AND_B64] = "ds_and_b64",
-+		[GFX9_DS_OR_B64] = "ds_or_b64",
-+		[GFX9_DS_XOR_B64] = "ds_xor_b64",
-+		[GFX9_DS_MSKOR_B64] = "ds_mskor_b64",
-+		[GFX9_DS_WRITE_B64] = "ds_write_b64",
-+		[GFX9_DS_WRITE2_B64] = "ds_write2_b64",
-+		[GFX9_DS_WRITE2ST64_B64] = "ds_write2st64_b64",
-+		[GFX9_DS_CMPST_B64] = "ds_cmpst_b64",
-+		[GFX9_DS_CMPST_F64] = "ds_cmpst_f64",
-+		[GFX9_DS_MIN_F64] = "ds_min_f64",
-+		[GFX9_DS_MAX_F64] = "ds_max_f64",
-+		[GFX9_DS_WRITE_B8_D16_HI] = "ds_write_b8_d16_hi",
-+		[GFX9_DS_WRITE_B16_D16_HI] = "ds_write_b16_d16_hi",
-+		[GFX9_DS_READ_U8_D16] = "ds_read_u8_d16",
-+		[GFX9_DS_READ_U8_D16_HI] = "ds_read_u8_d16_hi",
-+		[GFX9_DS_READ_I8_D16] = "ds_read_i8_d16",
-+		[GFX9_DS_READ_I8_D16_HI] = "ds_read_i8_d16_hi",
-+		[GFX9_DS_READ_U16_D16] = "ds_read_u16_d16",
-+		[GFX9_DS_READ_U16_D16_HI] = "ds_read_u16_d16_hi",
-+		[GFX9_DS_ADD_RTN_U64] = "ds_add_rtn_u64",
-+		[GFX9_DS_SUB_RTN_U64] = "ds_sub_rtn_u64",
-+		[GFX9_DS_RSUB_RTN_U64] = "ds_rsub_rtn_u64",
-+		[GFX9_DS_INC_RTN_U64] = "ds_inc_rtn_u64",
-+		[GFX9_DS_DEC_RTN_U64] = "ds_dec_rtn_u64",
-+		[GFX9_DS_MIN_RTN_I64] = "ds_min_rtn_i64",
-+		[GFX9_DS_MAX_RTN_I64] = "ds_max_rtn_i64",
-+		[GFX9_DS_MIN_RTN_U64] = "ds_min_rtn_u64",
-+		[GFX9_DS_MAX_RTN_U64] = "ds_max_rtn_u64",
-+		[GFX9_DS_AND_RTN_B64] = "ds_and_rtn_b64",
-+		[GFX9_DS_OR_RTN_B64] = "ds_or_rtn_b64",
-+		[GFX9_DS_XOR_RTN_B64] = "ds_xor_rtn_b64",
-+		[GFX9_DS_MSKOR_RTN_B64] = "ds_mskor_rtn_b64",
-+		[GFX9_DS_WRXCHG_RTN_B64] = "ds_wrxchg_rtn_b64",
-+		[GFX9_DS_WRXCHG2_RTN_B64] = "ds_wrxchg2_rtn_b64",
-+		[GFX9_DS_WRXCHG2ST64_RTN_B64] = "ds_wrxchg2st64_rtn_b64",
-+		[GFX9_DS_CMPST_RTN_B64] = "ds_cmpst_rtn_b64",
-+		[GFX9_DS_CMPST_RTN_F64] = "ds_cmpst_rtn_f64",
-+		[GFX9_DS_MIN_RTN_F64] = "ds_min_rtn_f64",
-+		[GFX9_DS_MAX_RTN_F64] = "ds_max_rtn_f64",
-+		[GFX9_DS_READ_B64] = "ds_read_b64",
-+		[GFX9_DS_READ2_B64] = "ds_read2_b64",
-+		[GFX9_DS_CONDXCHG32_RTN_B64] = "ds_condxchg32_rtn_b64",
-+		[GFX9_DS_ADD_SRC2_U32] = "ds_add_src2_u32",
-+		[GFX9_DS_SUB_SRC2_U32] = "ds_sub_src2_u32",
-+		[GFX9_DS_RSUB_SRC2_U32] = "ds_rsub_src2_u32",
-+		[GFX9_DS_INC_SRC2_U32] = "ds_inc_src2_u32",
-+		[GFX9_DS_DEC_SRC2_U32] = "ds_dec_src2_u32",
-+		[GFX9_DS_MIN_SRC2_I32] = "ds_min_src2_i32",
-+		[GFX9_DS_MAX_SRC2_I32] = "ds_max_src2_i32",
-+		[GFX9_DS_MIN_SRC2_U32] = "ds_min_src2_u32",
-+		[GFX9_DS_MAX_SRC2_U32] = "ds_max_src2_u32",
-+		[GFX9_DS_AND_SRC2_B32] = "ds_and_src2_b32",
-+		[GFX9_DS_OR_SRC2_B32] = "ds_or_src2_b32",
-+		[GFX9_DS_XOR_SRC2_B32] = "ds_xor_src2_b32",
-+		[GFX9_DS_WRITE_SRC2_B32] = "ds_write_src2_b32",
-+		[GFX9_DS_MIN_SRC2_F32] = "ds_min_src2_f32",
-+		[GFX9_DS_MAX_SRC2_F32] = "ds_max_src2_f32",
-+		[GFX9_DS_ADD_SRC2_F32] = "ds_add_src2_f32",
-+		[GFX9_DS_GWS_SEMA_RELEASE_ALL] = "ds_gws_sema_release_all",
-+		[GFX9_DS_ADD_SRC2_U64] = "ds_add_src2_u64",
-+		[GFX9_DS_SUB_SRC2_U64] = "ds_sub_src2_u64",
-+		[GFX9_DS_RSUB_SRC2_U64] = "ds_rsub_src2_u64",
-+		[GFX9_DS_INC_SRC2_U64] = "ds_inc_src2_u64",
-+		[GFX9_DS_DEC_SRC2_U64] = "ds_dec_src2_u64",
-+		[GFX9_DS_MIN_SRC2_I64] = "ds_min_src2_i64",
-+		[GFX9_DS_MAX_SRC2_I64] = "ds_max_src2_i64",
-+		[GFX9_DS_MIN_SRC2_U64] = "ds_min_src2_u64",
-+		[GFX9_DS_MAX_SRC2_U64] = "ds_max_src2_u64",
-+		[GFX9_DS_AND_SRC2_B64] = "ds_and_src2_b64",
-+		[GFX9_DS_OR_SRC2_B64] = "ds_or_src2_b64",
-+		[GFX9_DS_XOR_SRC2_B64] = "ds_xor_src2_b64",
-+		[GFX9_DS_WRITE_SRC2_B64] = "ds_write_src2_b64",
-+		[GFX9_DS_MIN_SRC2_F64] = "ds_min_src2_f64",
-+		[GFX9_DS_MAX_SRC2_F64] = "ds_max_src2_f64",
-+		[GFX9_DS_WRITE_B96] = "ds_write_b96",
-+		[GFX9_DS_WRITE_B128] = "ds_write_b128",
-+		[GFX9_DS_READ_B96] = "ds_read_b96",
-+		[GFX9_DS_READ_B128] = "ds_read_b128",
-+	},
-+};
-+
-+struct amdgcn_insn  {
-+	union {
-+		union amdgcn_gfx10_insn gfx10;
-+		union amdgcn_gfx9_insn gfx9;
-+	};
-+	u32 size;
-+	u32 idx;
-+	enum amdgcn_insn_type type;
-+};
-+
-+static inline void emit_s_load_dwordx2(int version, struct amdgcn_insn *insn,
-+				struct amdgcn_param32 dst,
-+				struct amdgcn_param32 src, int offset)
-+{
-+	if (version == 10) {
-+		insn->size = emit_gfx10_s_load_dwordx2(&insn->gfx10, dst,
-+						       src,
-+						       offset);
-+		insn->type = AMDGCN_INSN_TYPE_SMEM;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_s_load_dwordx2(&insn->gfx9, dst,
-+						      src,
-+						      offset);
-+		insn->type = AMDGCN_INSN_TYPE_SMEM;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_s_load_dwordx2_soff(int version,
-+				     struct amdgcn_insn *insn,
-+				     struct amdgcn_param32 dst,
-+				     struct amdgcn_param32 src,
-+				     int offset, u8 soffset)
-+{
-+	if (version == 10) {
-+		insn->size = emit_gfx10_s_load_dwordx2(&insn->gfx10, dst,
-+						       src, offset);
-+		insn->gfx10.smem.soffset = soffset;
-+		insn->type = AMDGCN_INSN_TYPE_SMEM;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_s_load_dwordx2(&insn->gfx9, dst,
-+						      src, offset);
-+		insn->gfx9.smem.soe = 1;
-+		insn->gfx9.smem.soffset = soffset;
-+		insn->type = AMDGCN_INSN_TYPE_SMEM;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_s_lshl_b32(int version, struct amdgcn_insn *insn,
-+			     struct amdgcn_param32 dst,
-+			     struct amdgcn_param32 src0,
-+			     struct amdgcn_param32 src1)
-+{
-+	if (version == 10) {
-+		insn->size = emit_gfx10_s_lshl_b32(&insn->gfx10, dst,
-+						    src0, src1);
-+		insn->type = AMDGCN_INSN_TYPE_SOP2;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_s_lshl_b32(&insn->gfx9, dst,
-+						   src0, src1);
-+		insn->type = AMDGCN_INSN_TYPE_SOP2;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_v_bfe_i32(int version, struct amdgcn_insn *insn,
-+			   struct amdgcn_param32 dst,
-+			   struct amdgcn_param32 src0,
-+			   struct amdgcn_param32 src1,
-+			   struct amdgcn_param32 src2)
-+{
-+	WARN_ON(knod_param_is_literal(src0) ||
-+		knod_param_is_literal(src1) ||
-+		knod_param_is_literal(src2));
-+	if (version == 10) {
-+		insn->size = emit_gfx10_v_bfe_i32(&insn->gfx10,
-+						  dst, src0, src1, src2);
-+		insn->type = AMDGCN_INSN_TYPE_VOP3A;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_v_bfe_i32(&insn->gfx9,
-+						 dst, src0, src1, src2);
-+		insn->type = AMDGCN_INSN_TYPE_VOP3A;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_v_bfe_u32(int version, struct amdgcn_insn *insn,
-+			   struct amdgcn_param32 dst,
-+			   struct amdgcn_param32 src0,
-+			   struct amdgcn_param32 src1,
-+			   struct amdgcn_param32 src2)
-+{
-+	WARN_ON(knod_param_is_literal(src0) ||
-+		knod_param_is_literal(src1) ||
-+		knod_param_is_literal(src2));
-+	if (version == 10) {
-+		insn->size = emit_gfx10_v_bfe_u32(&insn->gfx10,
-+						  dst, src0, src1, src2);
-+		insn->type = AMDGCN_INSN_TYPE_VOP3A;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_v_bfe_u32(&insn->gfx9,
-+						 dst, src0, src1, src2);
-+		insn->type = AMDGCN_INSN_TYPE_VOP3A;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_v_bfi_b32(int version, struct amdgcn_insn *insn,
-+			   struct amdgcn_param32 dst,
-+			   struct amdgcn_param32 src0,
-+			   struct amdgcn_param32 src1,
-+			   struct amdgcn_param32 src2)
-+{
-+	WARN_ON(knod_param_is_literal(src0) ||
-+		knod_param_is_literal(src1) ||
-+		knod_param_is_literal(src2));
-+	if (version == 10) {
-+		insn->size = emit_gfx10_v_bfi_b32(&insn->gfx10,
-+						  dst, src0, src1, src2);
-+		insn->type = AMDGCN_INSN_TYPE_VOP3A;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_v_bfi_b32(&insn->gfx9,
-+						 dst, src0, src1, src2);
-+		insn->type = AMDGCN_INSN_TYPE_VOP3A;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_v_lshl_add_u32(int version, struct amdgcn_insn *insn,
-+				struct amdgcn_param32 dst,
-+				struct amdgcn_param32 src0,
-+				struct amdgcn_param32 src1,
-+				struct amdgcn_param32 src2)
-+{
-+	if (version == 10) {
-+		insn->size = emit_gfx10_v_lshl_add_u32(&insn->gfx10,
-+						       dst, src0, src1, src2);
-+		insn->type = AMDGCN_INSN_TYPE_VOP3A;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_v_lshl_add_u32(&insn->gfx9,
-+						      dst, src0, src1, src2);
-+		insn->type = AMDGCN_INSN_TYPE_VOP3A;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_v_lshl_or_b32(int version, struct amdgcn_insn *insn,
-+			       struct amdgcn_param32 dst,
-+			       struct amdgcn_param32 src0,
-+			       struct amdgcn_param32 src1,
-+			       struct amdgcn_param32 src2)
-+{
-+	if (version == 10) {
-+		insn->size = emit_gfx10_v_lshl_or_b32(&insn->gfx10,
-+						      dst, src0, src1, src2);
-+		insn->type = AMDGCN_INSN_TYPE_VOP3A;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_v_lshl_or_b32(&insn->gfx9,
-+						     dst, src0, src1, src2);
-+		insn->type = AMDGCN_INSN_TYPE_VOP3A;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_v_alignbit_b32(int version, struct amdgcn_insn *insn,
-+				struct amdgcn_param32 dst,
-+				struct amdgcn_param32 src0,
-+				struct amdgcn_param32 src1,
-+				struct amdgcn_param32 src2)
-+{
-+	if (version == 10) {
-+		insn->size = emit_gfx10_v_alignbit_b32(&insn->gfx10,
-+						       dst, src0,
-+						       src1, src2);
-+		insn->type = AMDGCN_INSN_TYPE_VOP3A;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_v_alignbit_b32(&insn->gfx9,
-+						      dst, src0,
-+						      src1, src2);
-+		insn->type = AMDGCN_INSN_TYPE_VOP3A;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_v_perm_b32(int version, struct amdgcn_insn *insn,
-+			    struct amdgcn_param32 dst,
-+			    struct amdgcn_param32 src0,
-+			    struct amdgcn_param32 src1,
-+			    struct amdgcn_param32 src2)
-+{
-+	WARN_ON(knod_param_is_literal(src0) ||
-+		knod_param_is_literal(src1) ||
-+		knod_param_is_literal(src2));
-+	if (version == 10) {
-+		insn->size = emit_gfx10_v_perm_b32(&insn->gfx10,
-+						    dst, src0, src1, src2);
-+		insn->type = AMDGCN_INSN_TYPE_VOP3A;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_v_perm_b32(&insn->gfx9,
-+						   dst, src0, src1, src2);
-+		insn->type = AMDGCN_INSN_TYPE_VOP3A;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_v_mad_u64_u32(int version, struct amdgcn_insn *insn,
-+			       struct amdgcn_param64 dst,
-+			       struct amdgcn_param32 dst2,
-+			       struct amdgcn_param32 src0,
-+			       struct amdgcn_param32 src1,
-+			       struct amdgcn_param64 src2)
-+{
-+	if (version == 10) {
-+		insn->size = emit_gfx10_v_mad_u64_u32(&insn->gfx10, dst,
-+						      dst2, src0,
-+						      src1, src2);
-+		insn->type = AMDGCN_INSN_TYPE_VOP3B;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_v_mad_u64_u32(&insn->gfx9, dst,
-+						     dst2, src0,
-+						     src1, src2);
-+		insn->type = AMDGCN_INSN_TYPE_VOP3B;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_s_mov_b32(int version, struct amdgcn_insn *insn,
-+			   struct amdgcn_param32 dst, struct amdgcn_param32 src)
-+{
-+	if (version == 10) {
-+		insn->size = emit_gfx10_s_mov_b32(&insn->gfx10, dst, src);
-+		insn->type = AMDGCN_INSN_TYPE_SOP1;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_s_mov_b32(&insn->gfx9, dst, src);
-+		insn->type = AMDGCN_INSN_TYPE_SOP1;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_v_mov_b32_e32(int version, struct amdgcn_insn *insn,
-+			       struct amdgcn_param32 dst,
-+			       struct amdgcn_param32 src)
-+{
-+	if (version == 10) {
-+		insn->size = emit_gfx10_v_mov_b32_e32(&insn->gfx10, dst, src);
-+		insn->type = AMDGCN_INSN_TYPE_VOP1;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_v_mov_b32_e32(&insn->gfx9, dst, src);
-+		insn->type = AMDGCN_INSN_TYPE_VOP1;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_v_readfirstlane_b32(int version,
-+				     struct amdgcn_insn *insn,
-+				     u8 sdst, u8 vsrc)
-+{
-+	if (version == 10) {
-+		insn->size = emit_gfx10_v_readfirstlane_b32(&insn->gfx10,
-+							    sdst, vsrc);
-+		insn->type = AMDGCN_INSN_TYPE_VOP1;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_v_readfirstlane_b32(&insn->gfx9,
-+							   sdst, vsrc);
-+		insn->type = AMDGCN_INSN_TYPE_VOP1;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_v_add_co_u32(int version, struct amdgcn_insn *insn,
-+			      struct amdgcn_param32 dst,
-+			      struct amdgcn_param32 src0,
-+			      struct amdgcn_param32 src1)
-+{
-+	if (version == 10) {
-+		insn->size = emit_gfx10_v_add_co_u32(&insn->gfx10, dst,
-+						     src0, src1);
-+		insn->type = AMDGCN_INSN_TYPE_VOP3B;
-+	} else if (version == 9) {
-+		WARN_ON_ONCE(src1.type != AMDGCN_PARAM_TYPE_VGPR);
-+		insn->size = emit_gfx9_v_add_co_u32(&insn->gfx9, dst,
-+						    src0, src1);
-+		insn->type = AMDGCN_INSN_TYPE_VOP2;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_v_add_co_ci_u32_e32(int version,
-+				     struct amdgcn_insn *insn,
-+				     struct amdgcn_param32 dst,
-+				     struct amdgcn_param32 src0,
-+				     struct amdgcn_param32 src1)
-+{
-+	if (version == 10) {
-+		insn->size = emit_gfx10_v_add_co_ci_u32_e32(&insn->gfx10,
-+							    dst, src0,
-+							    src1);
-+		insn->type = AMDGCN_INSN_TYPE_VOP2;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_v_addc_co_u32(&insn->gfx9, dst,
-+						     src0, src1);
-+		insn->type = AMDGCN_INSN_TYPE_VOP2;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+/* No carry in/out */
-+static inline void emit_v_add_u32(int version, struct amdgcn_insn *insn,
-+			      struct amdgcn_param32 dst,
-+			      struct amdgcn_param32 src0,
-+			      struct amdgcn_param32 src1)
-+{
-+	if (version == 10) {
-+		WARN_ON_ONCE(src1.type != AMDGCN_PARAM_TYPE_VGPR);
-+		insn->size = emit_gfx10_v_add_nc_u32(&insn->gfx10, dst,
-+						     src0, src1);
-+		insn->type = AMDGCN_INSN_TYPE_VOP2;
-+	} else if (version == 9) {
-+		WARN_ON_ONCE(src1.type != AMDGCN_PARAM_TYPE_VGPR);
-+		insn->size = emit_gfx9_v_add_u32(&insn->gfx9, dst,
-+						    src0, src1);
-+		insn->type = AMDGCN_INSN_TYPE_VOP2;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+/* No carry in/out */
-+static inline void emit_v_sub_u32(int version, struct amdgcn_insn *insn,
-+			      struct amdgcn_param32 dst,
-+			      struct amdgcn_param32 src0,
-+			      struct amdgcn_param32 src1)
-+{
-+	if (version == 10) {
-+		WARN_ON_ONCE(src1.type != AMDGCN_PARAM_TYPE_VGPR);
-+		insn->size = emit_gfx10_v_sub_nc_u32(&insn->gfx10, dst,
-+						     src0, src1);
-+		insn->type = AMDGCN_INSN_TYPE_VOP2;
-+	} else if (version == 9) {
-+		WARN_ON_ONCE(src1.type != AMDGCN_PARAM_TYPE_VGPR);
-+		insn->size = emit_gfx9_v_sub_u32(&insn->gfx9, dst,
-+						    src0, src1);
-+		insn->type = AMDGCN_INSN_TYPE_VOP2;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_v_xor_b32_e32(int version, struct amdgcn_insn *insn,
-+			       struct amdgcn_param32 dst,
-+			       struct amdgcn_param32 src0,
-+			       struct amdgcn_param32 src1)
-+{
-+	if (version == 10) {
-+		WARN_ON_ONCE(src1.type != AMDGCN_PARAM_TYPE_VGPR);
-+		insn->size = emit_gfx10_v_xor_b32_e32(&insn->gfx10, dst,
-+						      src0, src1);
-+		insn->type = AMDGCN_INSN_TYPE_VOP2;
-+	} else if (version == 9) {
-+		WARN_ON_ONCE(src1.type != AMDGCN_PARAM_TYPE_VGPR);
-+		insn->size = emit_gfx9_v_xor_b32_e32(&insn->gfx9, dst,
-+						     src0, src1);
-+		insn->type = AMDGCN_INSN_TYPE_VOP2;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_v_or_b32_e32(int version, struct amdgcn_insn *insn,
-+			      struct amdgcn_param32 dst,
-+			      struct amdgcn_param32 src0,
-+			      struct amdgcn_param32 src1)
-+{
-+	if (version == 10) {
-+		WARN_ON_ONCE(src1.type != AMDGCN_PARAM_TYPE_VGPR);
-+		insn->size = emit_gfx10_v_or_b32_e32(&insn->gfx10, dst,
-+						      src0, src1);
-+		insn->type = AMDGCN_INSN_TYPE_VOP2;
-+	} else if (version == 9) {
-+		WARN_ON_ONCE(src1.type != AMDGCN_PARAM_TYPE_VGPR);
-+		insn->size = emit_gfx9_v_or_b32_e32(&insn->gfx9, dst,
-+						     src0, src1);
-+		insn->type = AMDGCN_INSN_TYPE_VOP2;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_v_cndmask_b32_e32(int version, struct amdgcn_insn *insn,
-+				   struct amdgcn_param32 dst,
-+				   struct amdgcn_param32 src0,
-+				   struct amdgcn_param32 src1)
-+{
-+	if (version == 10) {
-+		WARN_ON_ONCE(src1.type != AMDGCN_PARAM_TYPE_VGPR);
-+		insn->size = emit_gfx10_v_cndmask_b32_e32(&insn->gfx10, dst,
-+							   src0, src1);
-+		insn->type = AMDGCN_INSN_TYPE_VOP2;
-+	} else if (version == 9) {
-+		WARN_ON_ONCE(src1.type != AMDGCN_PARAM_TYPE_VGPR);
-+		insn->size = emit_gfx9_v_cndmask_b32_e32(&insn->gfx9, dst,
-+							  src0, src1);
-+		insn->type = AMDGCN_INSN_TYPE_VOP2;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_v_and_b32_e32(int version, struct amdgcn_insn *insn,
-+			       struct amdgcn_param32 dst,
-+			       struct amdgcn_param32 src0,
-+			       struct amdgcn_param32 src1)
-+{
-+	if (version == 10) {
-+		WARN_ON_ONCE(src1.type != AMDGCN_PARAM_TYPE_VGPR);
-+		insn->size = emit_gfx10_v_and_b32_e32(&insn->gfx10, dst,
-+						      src0, src1);
-+		insn->type = AMDGCN_INSN_TYPE_VOP2;
-+	} else if (version == 9) {
-+		WARN_ON_ONCE(src1.type != AMDGCN_PARAM_TYPE_VGPR);
-+		insn->size = emit_gfx9_v_and_b32_e32(&insn->gfx9, dst,
-+						     src0, src1);
-+		insn->type = AMDGCN_INSN_TYPE_VOP2;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_v_sub_co_ci_u32_e32(int version,
-+				     struct amdgcn_insn *insn,
-+				     struct amdgcn_param32 dst,
-+				     struct amdgcn_param32 src0,
-+				     struct amdgcn_param32 src1)
-+{
-+	if (version == 10) {
-+		WARN_ON_ONCE(src1.type != AMDGCN_PARAM_TYPE_VGPR);
-+		insn->size = emit_gfx10_v_sub_co_ci_u32_e32(&insn->gfx10,
-+							    dst, src0, src1);
-+		insn->type = AMDGCN_INSN_TYPE_VOP2;
-+	} else if (version == 9) {
-+		WARN_ON_ONCE(src1.type != AMDGCN_PARAM_TYPE_VGPR);
-+		insn->size = emit_gfx9_v_subb_co_u32(&insn->gfx9, dst,
-+						     src0, src1);
-+		insn->type = AMDGCN_INSN_TYPE_VOP2;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_v_subrev_co_ci_u32_e32(int version,
-+					struct amdgcn_insn *insn,
-+					struct amdgcn_param32 dst,
-+					struct amdgcn_param32 src0,
-+					struct amdgcn_param32 src1)
-+{
-+	if (version == 10) {
-+		WARN_ON_ONCE(src1.type != AMDGCN_PARAM_TYPE_VGPR);
-+		insn->size = emit_gfx10_v_subrev_co_ci_u32_e32(&insn->gfx10,
-+							       dst, src0, src1);
-+		insn->type = AMDGCN_INSN_TYPE_VOP2;
-+	} else if (version == 9) {
-+		WARN_ON_ONCE(src1.type != AMDGCN_PARAM_TYPE_VGPR);
-+		insn->size = emit_gfx9_v_subbrev_co_u32(&insn->gfx9, dst,
-+							src0, src1);
-+		insn->type = AMDGCN_INSN_TYPE_VOP2;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_v_sub_co_u32(int version, struct amdgcn_insn *insn,
-+			      struct amdgcn_param32 dst,
-+			      struct amdgcn_param32 src0,
-+			      struct amdgcn_param32 src1)
-+{
-+	if (version == 10) {
-+		insn->size = emit_gfx10_v_sub_co_u32(&insn->gfx10, dst,
-+						     src0, src1);
-+		insn->type = AMDGCN_INSN_TYPE_VOP3B;
-+	} else if (version == 9) {
-+		WARN_ON_ONCE(src1.type != AMDGCN_PARAM_TYPE_VGPR);
-+		insn->size = emit_gfx9_v_sub_co_u32(&insn->gfx9, dst,
-+						    src0, src1);
-+		insn->type = AMDGCN_INSN_TYPE_VOP2;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_v_subrev_co_u32(int version, struct amdgcn_insn *insn,
-+				 struct amdgcn_param32 dst,
-+				 struct amdgcn_param32 src0,
-+				 struct amdgcn_param32 src1)
-+{
-+	if (version == 10) {
-+		insn->size = emit_gfx10_v_subrev_co_u32(&insn->gfx10, dst,
-+							src0, src1);
-+		insn->type = AMDGCN_INSN_TYPE_VOP3B;
-+	} else if (version == 9) {
-+		WARN_ON_ONCE(src1.type != AMDGCN_PARAM_TYPE_VGPR);
-+		insn->size = emit_gfx9_v_subrev_co_u32(&insn->gfx9, dst,
-+						       src0, src1);
-+		insn->type = AMDGCN_INSN_TYPE_VOP2;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_v_mul_lo_u32(int version, struct amdgcn_insn *insn,
-+			      struct amdgcn_param32 dst,
-+			      struct amdgcn_param32 src0,
-+			      struct amdgcn_param32 src1)
-+{
-+	if (version == 10) {
-+		insn->size = emit_gfx10_v_mul_lo_u32(&insn->gfx10, dst,
-+						     src0, src1);
-+		insn->type = AMDGCN_INSN_TYPE_VOP3A;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_v_mul_lo_u32(&insn->gfx9, dst,
-+						    src0, src1);
-+		insn->type = AMDGCN_INSN_TYPE_VOP3A;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_v_mbcnt_lo_u32_b32(int version,
-+				    struct amdgcn_insn *insn,
-+				    struct amdgcn_param32 dst,
-+				    struct amdgcn_param32 src0,
-+				    struct amdgcn_param32 src1)
-+{
-+	if (version == 10) {
-+		insn->size = emit_gfx10_v_mbcnt_lo_u32_b32(&insn->gfx10,
-+							    dst, src0, src1);
-+		insn->type = AMDGCN_INSN_TYPE_VOP3A;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_v_mbcnt_lo_u32_b32(&insn->gfx9,
-+							   dst, src0, src1);
-+		insn->type = AMDGCN_INSN_TYPE_VOP3A;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_v_mbcnt_hi_u32_b32(int version,
-+				    struct amdgcn_insn *insn,
-+				    struct amdgcn_param32 dst,
-+				    struct amdgcn_param32 src0,
-+				    struct amdgcn_param32 src1)
-+{
-+	if (version == 10) {
-+		insn->size = emit_gfx10_v_mbcnt_hi_u32_b32(&insn->gfx10,
-+							    dst, src0, src1);
-+		insn->type = AMDGCN_INSN_TYPE_VOP3A;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_v_mbcnt_hi_u32_b32(&insn->gfx9,
-+							   dst, src0, src1);
-+		insn->type = AMDGCN_INSN_TYPE_VOP3A;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_v_mul_hi_u32(int version, struct amdgcn_insn *insn,
-+			      struct amdgcn_param32 dst,
-+			      struct amdgcn_param32 src0,
-+			      struct amdgcn_param32 src1)
-+{
-+	if (version == 10) {
-+		insn->size = emit_gfx10_v_mul_hi_u32(&insn->gfx10, dst,
-+						     src0, src1);
-+		insn->type = AMDGCN_INSN_TYPE_VOP3A;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_v_mul_hi_u32(&insn->gfx9, dst,
-+						    src0, src1);
-+		insn->type = AMDGCN_INSN_TYPE_VOP3A;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_v_lshlrev_b64(int version, struct amdgcn_insn *insn,
-+			       struct amdgcn_param64 dst,
-+			       struct amdgcn_param64 src0,
-+			       struct amdgcn_param64 src1)
-+{
-+	/* D.u64 = S1.u64 << S0.u[5:0]. */
-+	if (version == 10) {
-+		insn->size = emit_gfx10_v_lshlrev_b64(&insn->gfx10, dst,
-+						      src0, src1);
-+		insn->type = AMDGCN_INSN_TYPE_VOP3A;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_v_lshlrev_b64(&insn->gfx9, dst,
-+						     src0, src1);
-+		insn->type = AMDGCN_INSN_TYPE_VOP3A;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_v_lshrrev_b64(int version, struct amdgcn_insn *insn,
-+			       struct amdgcn_param64 dst,
-+			       struct amdgcn_param64 src0,
-+			       struct amdgcn_param64 src1)
-+{
-+	WARN_ON(src1.lo.type == AMDGCN_PARAM_TYPE_LITERAL_CONST);
-+	if (version == 10) {
-+		insn->size = emit_gfx10_v_lshrrev_b64(&insn->gfx10, dst,
-+						      src0, src1);
-+		insn->type = AMDGCN_INSN_TYPE_VOP3A;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_v_lshrrev_b64(&insn->gfx9, dst,
-+						     src0, src1);
-+		insn->type = AMDGCN_INSN_TYPE_VOP3A;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_v_ashrrev_i64(int version, struct amdgcn_insn *insn,
-+			       struct amdgcn_param64 dst,
-+			       struct amdgcn_param64 src0,
-+			       struct amdgcn_param64 src1)
-+{
-+	if (version == 10) {
-+		insn->size = emit_gfx10_v_ashrrev_i64(&insn->gfx10, dst, src0,
-+						      src1);
-+		insn->type = AMDGCN_INSN_TYPE_VOP3A;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_v_ashrrev_i64(&insn->gfx9, dst, src0,
-+						     src1);
-+		insn->type = AMDGCN_INSN_TYPE_VOP3A;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_v_ashrrev_i32(int version, struct amdgcn_insn *insn,
-+			       struct amdgcn_param32 dst,
-+			       struct amdgcn_param32 src0,
-+			       struct amdgcn_param32 src1)
-+{
-+	if (version == 10) {
-+		insn->size = emit_gfx10_v_ashrrev_i32(&insn->gfx10, dst, src0,
-+						      src1);
-+		insn->type = AMDGCN_INSN_TYPE_VOP3A;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_v_ashrrev_i32(&insn->gfx9, dst, src0,
-+						     src1);
-+		insn->type = AMDGCN_INSN_TYPE_VOP3A;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_v_lshlrev_b32(int version, struct amdgcn_insn *insn,
-+			       struct amdgcn_param32 dst,
-+			       struct amdgcn_param32 src0,
-+			       struct amdgcn_param32 src1)
-+{
-+	if (version == 10) {
-+		WARN_ON_ONCE(src1.type != AMDGCN_PARAM_TYPE_VGPR);
-+		insn->size = emit_gfx10_v_lshlrev_b32(&insn->gfx10, dst,
-+						      src0, src1);
-+		insn->type = AMDGCN_INSN_TYPE_VOP2;
-+	} else if (version == 9) {
-+		WARN_ON_ONCE(src1.type != AMDGCN_PARAM_TYPE_VGPR);
-+		insn->size = emit_gfx9_v_lshlrev_b32(&insn->gfx9, dst,
-+						     src0, src1);
-+		insn->type = AMDGCN_INSN_TYPE_VOP2;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_v_lshrrev_b32(int version, struct amdgcn_insn *insn,
-+			       struct amdgcn_param32 dst,
-+			       struct amdgcn_param32 src0,
-+			       struct amdgcn_param32 src1)
-+{
-+	if (version == 10) {
-+		WARN_ON_ONCE(src1.type != AMDGCN_PARAM_TYPE_VGPR);
-+		insn->size = emit_gfx10_v_lshrrev_b32(&insn->gfx10, dst,
-+						      src0, src1);
-+		insn->type = AMDGCN_INSN_TYPE_VOP2;
-+	} else if (version == 9) {
-+		WARN_ON_ONCE(src1.type != AMDGCN_PARAM_TYPE_VGPR);
-+		insn->size = emit_gfx9_v_lshrrev_b32(&insn->gfx9, dst,
-+						     src0, src1);
-+		insn->type = AMDGCN_INSN_TYPE_VOP2;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_v_cmp_eq_u64(int version, struct amdgcn_insn *insn,
-+			      struct amdgcn_param32 dst,
-+			      struct amdgcn_param32 src)
-+{
-+	WARN_ON_ONCE(dst.type == AMDGCN_PARAM_TYPE_LITERAL_CONST);
-+	WARN_ON(src.type != AMDGCN_PARAM_TYPE_VGPR);
-+	if (version == 10) {
-+		insn->size = emit_gfx10_v_cmp_eq_u64(&insn->gfx10, dst, src);
-+		insn->type = AMDGCN_INSN_TYPE_VOPC;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_v_cmp_eq_u64(&insn->gfx9, dst, src);
-+		insn->type = AMDGCN_INSN_TYPE_VOPC;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_v_cmp_eq_u32(int version, struct amdgcn_insn *insn,
-+			      struct amdgcn_param32 dst,
-+			      struct amdgcn_param32 src)
-+{
-+	WARN_ON_ONCE(dst.type == AMDGCN_PARAM_TYPE_LITERAL_CONST);
-+	WARN_ON(src.type != AMDGCN_PARAM_TYPE_VGPR);
-+	if (version == 10) {
-+		insn->size = emit_gfx10_v_cmp_eq_u32(&insn->gfx10, dst, src);
-+		insn->type = AMDGCN_INSN_TYPE_VOPC;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_v_cmp_eq_u32(&insn->gfx9, dst, src);
-+		insn->type = AMDGCN_INSN_TYPE_VOPC;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_v_cmp_gt_u64(int version, struct amdgcn_insn *insn,
-+			      struct amdgcn_param64 dst,
-+			      struct amdgcn_param64 src)
-+{
-+	WARN_ON_ONCE(dst.lo.type == AMDGCN_PARAM_TYPE_LITERAL_CONST);
-+	if (version == 10) {
-+		insn->size = emit_gfx10_v_cmp_gt_u64(&insn->gfx10, dst, src);
-+		insn->type = AMDGCN_INSN_TYPE_VOPC;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_v_cmp_gt_u64(&insn->gfx9, dst, src);
-+		insn->type = AMDGCN_INSN_TYPE_VOPC;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_v_cmp_gt_i64(int version, struct amdgcn_insn *insn,
-+			      struct amdgcn_param64 dst,
-+			      struct amdgcn_param64 src)
-+{
-+	WARN_ON_ONCE(dst.lo.type == AMDGCN_PARAM_TYPE_LITERAL_CONST);
-+	if (version == 10) {
-+		insn->size = emit_gfx10_v_cmp_gt_i64(&insn->gfx10, dst, src);
-+		insn->type = AMDGCN_INSN_TYPE_VOPC;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_v_cmp_gt_i64(&insn->gfx9, dst, src);
-+		insn->type = AMDGCN_INSN_TYPE_VOPC;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_v_cmp_ge_u32(int version, struct amdgcn_insn *insn,
-+			      struct amdgcn_param32 dst,
-+			      struct amdgcn_param32 src)
-+{
-+	WARN_ON_ONCE(dst.type == AMDGCN_PARAM_TYPE_LITERAL_CONST);
-+	if (version == 10) {
-+		insn->size = emit_gfx10_v_cmp_ge_u32(&insn->gfx10, dst, src);
-+		insn->type = AMDGCN_INSN_TYPE_VOPC;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_v_cmp_ge_u32(&insn->gfx9, dst, src);
-+		insn->type = AMDGCN_INSN_TYPE_VOPC;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_v_cmp_gt_u32(int version, struct amdgcn_insn *insn,
-+			      struct amdgcn_param32 dst,
-+			      struct amdgcn_param32 src)
-+{
-+	WARN_ON_ONCE(dst.type == AMDGCN_PARAM_TYPE_LITERAL_CONST);
-+	WARN_ON(src.type != AMDGCN_PARAM_TYPE_VGPR);
-+	if (version == 10) {
-+		insn->size = emit_gfx10_v_cmp_gt_u32(&insn->gfx10, dst, src);
-+		insn->type = AMDGCN_INSN_TYPE_VOPC;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_v_cmp_gt_u32(&insn->gfx9, dst, src);
-+		insn->type = AMDGCN_INSN_TYPE_VOPC;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_v_cmp_lt_u32(int version, struct amdgcn_insn *insn,
-+			      struct amdgcn_param32 dst,
-+			      struct amdgcn_param32 src)
-+{
-+	WARN_ON_ONCE(dst.type == AMDGCN_PARAM_TYPE_LITERAL_CONST);
-+	WARN_ON(src.type != AMDGCN_PARAM_TYPE_VGPR);
-+	if (version == 10) {
-+		insn->size = emit_gfx10_v_cmp_lt_u32(&insn->gfx10, dst, src);
-+		insn->type = AMDGCN_INSN_TYPE_VOPC;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_v_cmp_lt_u32(&insn->gfx9, dst, src);
-+		insn->type = AMDGCN_INSN_TYPE_VOPC;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_v_cmp_le_u32(int version, struct amdgcn_insn *insn,
-+			      struct amdgcn_param32 dst,
-+			      struct amdgcn_param32 src)
-+{
-+	WARN_ON_ONCE(dst.type == AMDGCN_PARAM_TYPE_LITERAL_CONST);
-+	WARN_ON(src.type != AMDGCN_PARAM_TYPE_VGPR);
-+	if (version == 10) {
-+		insn->size = emit_gfx10_v_cmp_le_u32(&insn->gfx10, dst, src);
-+		insn->type = AMDGCN_INSN_TYPE_VOPC;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_v_cmp_le_u32(&insn->gfx9, dst, src);
-+		insn->type = AMDGCN_INSN_TYPE_VOPC;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_v_cmp_gt_i32(int version, struct amdgcn_insn *insn,
-+			      struct amdgcn_param32 dst,
-+			      struct amdgcn_param32 src)
-+{
-+	WARN_ON_ONCE(dst.type == AMDGCN_PARAM_TYPE_LITERAL_CONST);
-+	WARN_ON(src.type != AMDGCN_PARAM_TYPE_VGPR);
-+	if (version == 10) {
-+		insn->size = emit_gfx10_v_cmp_gt_i32(&insn->gfx10, dst, src);
-+		insn->type = AMDGCN_INSN_TYPE_VOPC;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_v_cmp_gt_i32(&insn->gfx9, dst, src);
-+		insn->type = AMDGCN_INSN_TYPE_VOPC;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_v_cmp_ge_i32(int version, struct amdgcn_insn *insn,
-+			      struct amdgcn_param32 dst,
-+			      struct amdgcn_param32 src)
-+{
-+	WARN_ON_ONCE(dst.type == AMDGCN_PARAM_TYPE_LITERAL_CONST);
-+	WARN_ON(src.type != AMDGCN_PARAM_TYPE_VGPR);
-+	if (version == 10) {
-+		insn->size = emit_gfx10_v_cmp_ge_i32(&insn->gfx10, dst, src);
-+		insn->type = AMDGCN_INSN_TYPE_VOPC;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_v_cmp_ge_i32(&insn->gfx9, dst, src);
-+		insn->type = AMDGCN_INSN_TYPE_VOPC;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_v_cmp_lt_i32(int version, struct amdgcn_insn *insn,
-+			      struct amdgcn_param32 dst,
-+			      struct amdgcn_param32 src)
-+{
-+	WARN_ON_ONCE(dst.type == AMDGCN_PARAM_TYPE_LITERAL_CONST);
-+	WARN_ON(src.type != AMDGCN_PARAM_TYPE_VGPR);
-+	if (version == 10) {
-+		insn->size = emit_gfx10_v_cmp_lt_i32(&insn->gfx10, dst, src);
-+		insn->type = AMDGCN_INSN_TYPE_VOPC;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_v_cmp_lt_i32(&insn->gfx9, dst, src);
-+		insn->type = AMDGCN_INSN_TYPE_VOPC;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_v_cmp_le_i32(int version, struct amdgcn_insn *insn,
-+			      struct amdgcn_param32 dst,
-+			      struct amdgcn_param32 src)
-+{
-+	WARN_ON_ONCE(dst.type == AMDGCN_PARAM_TYPE_LITERAL_CONST);
-+	WARN_ON(src.type != AMDGCN_PARAM_TYPE_VGPR);
-+	if (version == 10) {
-+		insn->size = emit_gfx10_v_cmp_le_i32(&insn->gfx10, dst, src);
-+		insn->type = AMDGCN_INSN_TYPE_VOPC;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_v_cmp_le_i32(&insn->gfx9, dst, src);
-+		insn->type = AMDGCN_INSN_TYPE_VOPC;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+/* EXEC &= (src0 < src1), per-lane mask update */
-+static inline void emit_v_cmpx_lt_u32(int version, struct amdgcn_insn *insn,
-+				struct amdgcn_param32 dst,
-+				struct amdgcn_param32 src)
-+{
-+	WARN_ON_ONCE(dst.type == AMDGCN_PARAM_TYPE_LITERAL_CONST);
-+	if (version == 10) {
-+		insn->size = emit_gfx10_v_cmpx_lt_u32(&insn->gfx10, dst, src);
-+		insn->type = AMDGCN_INSN_TYPE_VOPC;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_v_cmpx_lt_u32(&insn->gfx9, dst, src);
-+		insn->type = AMDGCN_INSN_TYPE_VOPC;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_v_cmp_ge_u64(int version, struct amdgcn_insn *insn,
-+			      struct amdgcn_param64 dst,
-+			      struct amdgcn_param64 src)
-+{
-+	WARN_ON_ONCE(dst.lo.type == AMDGCN_PARAM_TYPE_LITERAL_CONST);
-+	if (version == 10) {
-+		insn->size = emit_gfx10_v_cmp_ge_u64(&insn->gfx10, dst, src);
-+		insn->type = AMDGCN_INSN_TYPE_VOPC;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_v_cmp_ge_u64(&insn->gfx9, dst, src);
-+		insn->type = AMDGCN_INSN_TYPE_VOPC;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_v_cmp_ge_i64(int version, struct amdgcn_insn *insn,
-+			      struct amdgcn_param64 dst,
-+			      struct amdgcn_param64 src)
-+{
-+	WARN_ON_ONCE(dst.lo.type == AMDGCN_PARAM_TYPE_LITERAL_CONST);
-+	if (version == 10) {
-+		insn->size = emit_gfx10_v_cmp_ge_i64(&insn->gfx10, dst, src);
-+		insn->type = AMDGCN_INSN_TYPE_VOPC;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_v_cmp_ge_i64(&insn->gfx9, dst, src);
-+		insn->type = AMDGCN_INSN_TYPE_VOPC;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_v_cmp_lt_u64(int version, struct amdgcn_insn *insn,
-+			      struct amdgcn_param64 dst,
-+			      struct amdgcn_param64 src)
-+{
-+	WARN_ON_ONCE(dst.lo.type == AMDGCN_PARAM_TYPE_LITERAL_CONST);
-+	if (version == 10) {
-+		insn->size = emit_gfx10_v_cmp_lt_u64(&insn->gfx10, dst, src);
-+		insn->type = AMDGCN_INSN_TYPE_VOPC;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_v_cmp_lt_u64(&insn->gfx9, dst, src);
-+		insn->type = AMDGCN_INSN_TYPE_VOPC;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_v_cmp_lt_i64(int version, struct amdgcn_insn *insn,
-+			      struct amdgcn_param64 dst,
-+			      struct amdgcn_param64 src)
-+{
-+	WARN_ON_ONCE(dst.lo.type == AMDGCN_PARAM_TYPE_LITERAL_CONST);
-+	if (version == 10) {
-+		insn->size = emit_gfx10_v_cmp_lt_i64(&insn->gfx10, dst, src);
-+		insn->type = AMDGCN_INSN_TYPE_VOPC;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_v_cmp_lt_i64(&insn->gfx9, dst, src);
-+		insn->type = AMDGCN_INSN_TYPE_VOPC;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_v_cmp_le_u64(int version, struct amdgcn_insn *insn,
-+			      struct amdgcn_param64 dst,
-+			      struct amdgcn_param64 src)
-+{
-+	WARN_ON_ONCE(dst.lo.type == AMDGCN_PARAM_TYPE_LITERAL_CONST);
-+	if (version == 10) {
-+		insn->size = emit_gfx10_v_cmp_le_u64(&insn->gfx10, dst, src);
-+		insn->type = AMDGCN_INSN_TYPE_VOPC;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_v_cmp_le_u64(&insn->gfx9, dst, src);
-+		insn->type = AMDGCN_INSN_TYPE_VOPC;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_v_cmp_le_i64(int version, struct amdgcn_insn *insn,
-+			      struct amdgcn_param64 dst,
-+			      struct amdgcn_param64 src)
-+{
-+	WARN_ON_ONCE(dst.lo.type == AMDGCN_PARAM_TYPE_LITERAL_CONST);
-+	if (version == 10) {
-+		insn->size = emit_gfx10_v_cmp_le_i64(&insn->gfx10, dst, src);
-+		insn->type = AMDGCN_INSN_TYPE_VOPC;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_v_cmp_le_i64(&insn->gfx9, dst, src);
-+		insn->type = AMDGCN_INSN_TYPE_VOPC;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_buffer_load_ubyte(int version, struct amdgcn_insn *insn,
-+				   struct amdgcn_param32 dst,
-+				   struct amdgcn_param32 src,
-+				   short off)
-+{
-+	if (version == 10) {
-+		insn->size = emit_gfx10_buffer_load_ubyte(&insn->gfx10,
-+							  dst, src, off);
-+		insn->type = AMDGCN_INSN_TYPE_MUBUF;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_buffer_load_ubyte(&insn->gfx9,
-+							  dst, src, off);
-+		insn->type = AMDGCN_INSN_TYPE_MUBUF;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_buffer_load_ushort(int version,
-+				    struct amdgcn_insn *insn,
-+				    struct amdgcn_param32 dst,
-+				    struct amdgcn_param32 src,
-+				    short off)
-+{
-+	if (version == 10) {
-+		insn->size = emit_gfx10_buffer_load_ushort(&insn->gfx10,
-+							   dst, src, off);
-+		insn->type = AMDGCN_INSN_TYPE_MUBUF;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_buffer_load_ushort(&insn->gfx9,
-+							  dst, src, off);
-+		insn->type = AMDGCN_INSN_TYPE_MUBUF;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_buffer_load_dword(int version, struct amdgcn_insn *insn,
-+				   struct amdgcn_param32 dst,
-+				   struct amdgcn_param32 src,
-+				   short off)
-+{
-+	if (version == 10) {
-+		insn->size = emit_gfx10_buffer_load_dword(&insn->gfx10,
-+							  dst, src, off);
-+		insn->type = AMDGCN_INSN_TYPE_MUBUF;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_buffer_load_dword(&insn->gfx9,
-+							 dst, src, off);
-+		insn->type = AMDGCN_INSN_TYPE_MUBUF;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_buffer_load_dwordx2(int version,
-+				     struct amdgcn_insn *insn,
-+				     struct amdgcn_param32 dst,
-+				     struct amdgcn_param32 src,
-+				     short off)
-+{
-+	if (version == 10) {
-+		insn->size = emit_gfx10_buffer_load_dwordx2(&insn->gfx10,
-+							    dst, src, off);
-+		insn->type = AMDGCN_INSN_TYPE_MUBUF;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_buffer_load_dwordx2(&insn->gfx9,
-+							   dst, src, off);
-+		insn->type = AMDGCN_INSN_TYPE_MUBUF;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_buffer_load_dwordx4(int version,
-+				     struct amdgcn_insn *insn,
-+				     struct amdgcn_param32 dst,
-+				     struct amdgcn_param32 src,
-+				     short off)
-+{
-+	if (version == 10) {
-+		insn->size = emit_gfx10_buffer_load_dwordx4(&insn->gfx10,
-+							    dst, src, off);
-+		insn->type = AMDGCN_INSN_TYPE_MUBUF;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_buffer_load_dwordx4(&insn->gfx9,
-+							   dst, src, off);
-+		insn->type = AMDGCN_INSN_TYPE_MUBUF;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_global_load_ubyte(int version, struct amdgcn_insn *insn,
-+				   struct amdgcn_param32 dst,
-+				   struct amdgcn_param32 src,
-+				   short off)
-+{
-+	if (version == 10) {
-+		insn->size = emit_gfx10_global_load_ubyte(&insn->gfx10,
-+							  dst, src, off);
-+		insn->type = AMDGCN_INSN_TYPE_FLAT;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_global_load_ubyte(&insn->gfx9,
-+							 dst, src, off);
-+		insn->type = AMDGCN_INSN_TYPE_FLAT;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_global_load_ushort(int version,
-+				    struct amdgcn_insn *insn,
-+				    struct amdgcn_param32 dst,
-+				    struct amdgcn_param32 src,
-+				    short off)
-+{
-+	if (version == 10) {
-+		insn->size = emit_gfx10_global_load_ushort(&insn->gfx10,
-+							   dst, src, off);
-+		insn->type = AMDGCN_INSN_TYPE_FLAT;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_global_load_ushort(&insn->gfx9,
-+							  dst, src, off);
-+		insn->type = AMDGCN_INSN_TYPE_FLAT;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_global_load_dword(int version, struct amdgcn_insn *insn,
-+				   struct amdgcn_param32 dst,
-+				   struct amdgcn_param32 src,
-+				   short off)
-+{
-+	WARN_ON(dst.type != AMDGCN_PARAM_TYPE_VGPR);
-+	WARN_ON(src.type != AMDGCN_PARAM_TYPE_VGPR);
-+	if (version == 10) {
-+		insn->size = emit_gfx10_global_load_dword(&insn->gfx10,
-+							  dst, src, off);
-+		insn->type = AMDGCN_INSN_TYPE_FLAT;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_global_load_dword(&insn->gfx9,
-+							 dst, src, off);
-+		insn->type = AMDGCN_INSN_TYPE_FLAT;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_global_load_dwordx2(int version,
-+				     struct amdgcn_insn *insn,
-+				     struct amdgcn_param32 dst,
-+				     struct amdgcn_param32 src,
-+				     short off)
-+{
-+	if (version == 10) {
-+		insn->size = emit_gfx10_global_load_dwordx2(&insn->gfx10,
-+							    dst, src, off);
-+		insn->type = AMDGCN_INSN_TYPE_FLAT;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_global_load_dwordx2(&insn->gfx9,
-+							   dst, src, off);
-+		insn->type = AMDGCN_INSN_TYPE_FLAT;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_global_load_dwordx4(int version,
-+				     struct amdgcn_insn *insn,
-+				     struct amdgcn_param32 dst,
-+				     struct amdgcn_param32 src,
-+				     short off)
-+{
-+	if (version == 10) {
-+		insn->size = emit_gfx10_global_load_dwordx4(&insn->gfx10,
-+							    dst, src, off);
-+		insn->type = AMDGCN_INSN_TYPE_FLAT;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_global_load_dwordx4(&insn->gfx9,
-+							   dst, src, off);
-+		insn->type = AMDGCN_INSN_TYPE_FLAT;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_global_store_byte(int version, struct amdgcn_insn *insn,
-+				   struct amdgcn_param32 dst,
-+				   struct amdgcn_param32 src, int off)
-+{
-+	if (version == 10) {
-+		insn->size = emit_gfx10_global_store_byte(&insn->gfx10,
-+							  src, dst, off);
-+		insn->type = AMDGCN_INSN_TYPE_FLAT;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_global_store_byte(&insn->gfx9,
-+							 src, dst, off);
-+		insn->type = AMDGCN_INSN_TYPE_FLAT;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+#define DEFINE_EMIT_GLOBAL_ATOMIC(name)					\
-+static inline void emit_global_atomic_##name(int version,		\
-+				      struct amdgcn_insn *insn,		\
-+				      struct amdgcn_param32 vdst,	\
-+				      struct amdgcn_param32 addr,	\
-+				      struct amdgcn_param32 data,	\
-+				      int off, int glc)			\
-+{									\
-+	if (version == 10) {						\
-+		insn->size = emit_gfx10_global_atomic_##name(		\
-+			&insn->gfx10, vdst, addr, data, off, glc);	\
-+		insn->type = AMDGCN_INSN_TYPE_FLAT;			\
-+	} else if (version == 9) {					\
-+		insn->size = emit_gfx9_global_atomic_##name(		\
-+			&insn->gfx9, vdst, addr, data, off, glc);	\
-+		insn->type = AMDGCN_INSN_TYPE_FLAT;			\
-+	} else {							\
-+		WARN_ON_ONCE(1);						\
-+	}								\
-+}
-+
-+DEFINE_EMIT_GLOBAL_ATOMIC(add)
-+DEFINE_EMIT_GLOBAL_ATOMIC(and)
-+DEFINE_EMIT_GLOBAL_ATOMIC(or)
-+DEFINE_EMIT_GLOBAL_ATOMIC(xor)
-+DEFINE_EMIT_GLOBAL_ATOMIC(swap)
-+DEFINE_EMIT_GLOBAL_ATOMIC(cmpswap)
-+DEFINE_EMIT_GLOBAL_ATOMIC(add_x2)
-+DEFINE_EMIT_GLOBAL_ATOMIC(and_x2)
-+DEFINE_EMIT_GLOBAL_ATOMIC(or_x2)
-+DEFINE_EMIT_GLOBAL_ATOMIC(xor_x2)
-+DEFINE_EMIT_GLOBAL_ATOMIC(swap_x2)
-+DEFINE_EMIT_GLOBAL_ATOMIC(cmpswap_x2)
-+
-+static inline void emit_global_store_short(int version,
-+				    struct amdgcn_insn *insn,
-+				    struct amdgcn_param32 dst,
-+				    struct amdgcn_param32 src, int off)
-+{
-+	if (version == 10) {
-+		insn->size = emit_gfx10_global_store_short(&insn->gfx10,
-+							   src, dst, off);
-+		insn->type = AMDGCN_INSN_TYPE_FLAT;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_global_store_short(&insn->gfx9,
-+							  src, dst, off);
-+		insn->type = AMDGCN_INSN_TYPE_FLAT;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_global_store_dword(int version,
-+				    struct amdgcn_insn *insn,
-+				    struct amdgcn_param32 dst,
-+				    struct amdgcn_param32 src, int off)
-+{
-+	if (version == 10) {
-+		insn->size = emit_gfx10_global_store_dword(&insn->gfx10,
-+							   src, dst, off);
-+		insn->type = AMDGCN_INSN_TYPE_FLAT;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_global_store_dword(&insn->gfx9,
-+							  src, dst, off);
-+		insn->type = AMDGCN_INSN_TYPE_FLAT;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_global_store_dwordx2(int version,
-+				      struct amdgcn_insn *insn,
-+				      struct amdgcn_param32 dst,
-+				      struct amdgcn_param32 src, int off)
-+{
-+	if (version == 10) {
-+		insn->size = emit_gfx10_global_store_dwordx2(&insn->gfx10,
-+							     src, dst, off);
-+		insn->type = AMDGCN_INSN_TYPE_FLAT;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_global_store_dwordx2(&insn->gfx9,
-+							    src, dst, off);
-+		insn->type = AMDGCN_INSN_TYPE_FLAT;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_global_store_dwordx4(int version,
-+				      struct amdgcn_insn *insn,
-+				      struct amdgcn_param32 dst,
-+				      struct amdgcn_param32 src, int off)
-+{
-+	if (version == 10) {
-+		insn->size = emit_gfx10_global_store_dwordx4(&insn->gfx10,
-+							     src, dst, off);
-+		insn->type = AMDGCN_INSN_TYPE_FLAT;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_global_store_dwordx4(&insn->gfx9,
-+							    src, dst, off);
-+		insn->type = AMDGCN_INSN_TYPE_FLAT;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_s_branch(int version, struct amdgcn_insn *insn,
-+				 short off)
-+{
-+	if (version == 10) {
-+		insn->size = emit_gfx10_s_branch(&insn->gfx10, off);
-+		insn->type = AMDGCN_INSN_TYPE_SOPP;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_s_branch(&insn->gfx9, off);
-+		insn->type = AMDGCN_INSN_TYPE_SOPP;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_s_cbranch_vccz(int version, struct amdgcn_insn *insn,
-+				       short off)
-+{
-+	if (version == 10) {
-+		insn->size = emit_gfx10_s_cbranch_vccz(&insn->gfx10, off);
-+		insn->type = AMDGCN_INSN_TYPE_SOPP;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_s_cbranch_vccz(&insn->gfx9, off);
-+		insn->type = AMDGCN_INSN_TYPE_SOPP;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_s_cbranch_vccnz(int version, struct amdgcn_insn *insn,
-+					short off)
-+{
-+	if (version == 10) {
-+		insn->size = emit_gfx10_s_cbranch_vccnz(&insn->gfx10, off);
-+		insn->type = AMDGCN_INSN_TYPE_SOPP;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_s_cbranch_vccnz(&insn->gfx9, off);
-+		insn->type = AMDGCN_INSN_TYPE_SOPP;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+/* Structurized CFG wrapper functions.
-+ * Use raw SGPR indices; EXEC=126, VCC=106, integer_0=128.
++		for (j = 0; j < priv->inflight_cnt; j++)
++			skip += priv->inflight[j]->queue_idx[i];
++
++		param->queues[i].count = 0;
++		spsc_peek_at(&knodev->wpriv[i].spsc_bds, skip,
++			     (void **)&sqw->bds[slot],
++			     priv->batch_size, &cnt);
++		if (!cnt) {
++			sqw->queue_idx[i] = 0;
++			param->queues[i].count = 0;
++			continue;
++		}
++
++		/* Fill queue descriptor for GPU direct SPSC read.
++		 * ring_start is the absolute ring position where this sqw
++		 * begins - shader reads slots[(ring_start + tid) & mask].
++		 * Offset by skip to keep staged sqws disjoint.
++		 */
++		param->queues[i].pool_gaddr = knodev->wpriv[i].spsc_pool_gaddr;
++		param->queues[i].base_gaddr = priv->queue_base_gaddr[i];
++		param->queues[i].count = cnt;
++		param->queues[i].ring_start =
++			knodev->wpriv[i].spsc_bds.acquired + skip;
++		param->queues[i].ring_mask =
++			knodev->wpriv[i].spsc_bds.mask;
++
++		backlogs += cnt;
++		sqw->queue_idx[i] = cnt;
++	}
++	sqw->backlogs = backlogs;
++	param->nr_backlogs = backlogs;
++	param->nr_queues = priv->nr_works;
++	param->spsc_stride = ALIGN(sizeof(struct spsc_bd), SMP_CACHE_BYTES);
++	for (i = 0; i < priv->nr_works; i++) {
++		param->pass_count[i] = 0;
++		param->pass_meta_buf_gaddr[i] = priv->pass_meta_buf ?
++			priv->pass_meta_buf->gaddr +
++			(u64)i * priv->pass_pkts_per_queue *
++			KNOD_PASS_SLOT_SIZE :
++			0;
++	}
++	param->ktime_ns = ktime_get_ns();
++
++	if (!sqw->backlogs)
++		return NULL;
++
++	list_del_init(&sqw->list);
++	return sqw;
++}
++
++/* Submit a prepared sqw: write AQL packet, ring doorbell, record stats. */
++static void knod_submit_bpf(struct knod_bpf_priv *priv,
++			     struct knod_bpf_work_sq *sqw)
++{
++	struct amd_signal *signal =
++		(struct amd_signal *)priv->knod->kaql[0].queue_signal->kaddr;
++	struct knod_bpf_stats *stats = &priv->stats;
++	struct knod_dispatch_params p;
++	int i, bucket = KNOD_BL_BUCKETS - 1;
++
++	/* The @inflight_cnt dispatches already in flight decrement the signal
++	 * before this one, so this sqw completes when the signal drops below
++	 * (current value - inflight_cnt).
++	 */
++	sqw->sigval = signal->value - priv->inflight_cnt;
++	sqw->expire = jiffies + msecs_to_jiffies(knod_bpf_expire);
++	if (static_branch_unlikely(&knod_stats_key)) {
++		sqw->dispatch_time = ktime_get();
++
++		stats->backlogs_total += sqw->backlogs;
++		for (i = 0; i < KNOD_BL_BUCKETS - 1; i++) {
++			if (sqw->backlogs <= bl_bounds[i]) {
++				bucket = i;
++				break;
++			}
++		}
++		stats->backlogs_hist[bucket]++;
++	}
++
++	knod_bpf_fill_dispatch(priv, sqw, &p);
++	/* publish dispatch params before the AQL packet becomes visible */
++	wmb();
++	knod_setup_header(priv->knod, &p, 0);
++}
++
++/* Phase 1: advance SPSC consumer pointers so next dispatch can peek
++ * new entries.
 + */
-+
-+static inline void emit_s_and_saveexec_b64(int version,
-+				    struct amdgcn_insn *insn,
-+				    u8 sdst, u8 ssrc)
++static void knod_complete_acquire(struct knod_bpf_priv *priv,
++				  struct knod_bpf_work_sq *sqw)
 +{
-+	if (version == 10) {
-+		insn->size = emit_gfx10_s_and_saveexec_b64(&insn->gfx10,
-+							    sdst, ssrc);
-+		insn->type = AMDGCN_INSN_TYPE_SOP1;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_s_and_saveexec_b64(&insn->gfx9,
-+							   sdst, ssrc);
-+		insn->type = AMDGCN_INSN_TYPE_SOP1;
-+	} else {
-+		WARN_ON_ONCE(1);
++	struct knod_dev *knodev = priv->knodev;
++	int i;
++
++	for (i = 0; i < priv->nr_works; i++) {
++		if (sqw->queue_idx[i] >= 1) {
++			spsc_acquire(&knodev->wpriv[i].spsc_bds, NULL,
++				     sqw->queue_idx[i], NULL);
++		}
 +	}
 +}
 +
-+static inline void emit_s_bcnt1_i32_b64(int version, struct amdgcn_insn *insn,
-+				 u8 sdst, u8 ssrc)
++/* Phase 2: schedule NAPI and free sqw.  Can run after the next dispatch
++ * has been submitted - napi_schedule overlaps with GPU execution.
++ */
++static void knod_complete_napi(struct knod_bpf_priv *priv,
++			       struct knod_bpf_work_sq *sqw)
 +{
-+	if (version == 10) {
-+		insn->size = emit_gfx10_s_bcnt1_i32_b64(&insn->gfx10,
-+							 sdst, ssrc);
-+		insn->type = AMDGCN_INSN_TYPE_SOP1;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_s_bcnt1_i32_b64(&insn->gfx9,
-+							sdst, ssrc);
-+		insn->type = AMDGCN_INSN_TYPE_SOP1;
-+	} else {
-+		WARN_ON_ONCE(1);
++	struct knod_dev *knodev = priv->knodev;
++	struct knod_bpf_stats *stats = &priv->stats;
++	ktime_t start;
++	int i;
++
++	if (static_branch_unlikely(&knod_stats_key))
++		start = ktime_get();
++
++	for (i = 0; i < priv->nr_works; i++) {
++		if (sqw->queue_idx[i] >= 1)
++			knod_napi_kick(&knodev->wpriv[i]);
++	}
++
++	sqw->backlogs = 0;
++	sqw->expire = 0;
++	list_add_tail_rcu(&sqw->list, &priv->free_list_sqw);
++
++	if (static_branch_unlikely(&knod_stats_key)) {
++		u64 ns = ktime_to_ns(ktime_sub(ktime_get(), start));
++
++		stats->decode_act_total_ns += ns;
++		stats->decode_act_count++;
++		if (ns > stats->decode_act_max_ns)
++			stats->decode_act_max_ns = ns;
 +	}
 +}
 +
-+static inline void emit_s_mov_b64(int version, struct amdgcn_insn *insn,
-+			   u8 sdst, u8 ssrc)
++static void knod_bpf_update_kernel_descriptor(struct knod_bpf_priv *priv,
++					      struct kernel_descriptor *kd,
++					      const struct knod_prog *knod_prog)
 +{
-+	if (version == 10) {
-+		insn->size = emit_gfx10_s_mov_b64(&insn->gfx10, sdst, ssrc);
-+		insn->type = AMDGCN_INSN_TYPE_SOP1;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_s_mov_b64(&insn->gfx9, sdst, ssrc);
-+		insn->type = AMDGCN_INSN_TYPE_SOP1;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
++	unsigned int sgprs_used;
++
++	if (priv->isa_version != 9 || !knod_prog)
++		return;
++
++	sgprs_used = knod_prog->initial_exec_sreg + 2;
++	kd->compute_pgm_rsrc1.granulated_wavefront_sgpr_count =
++		knod_bpf_gfx9_sgpr_granule(sgprs_used);
 +}
 +
-+static inline void emit_s_and_b64(int version, struct amdgcn_insn *insn,
-+			   u8 sdst, u8 ssrc0, u8 ssrc1)
++/*
++ * Install kernel code into the inactive slot and atomically flip the active
++ * index.  The active slot is never modified while the GPU dispatches it, so
++ * the swap never races the live pipeline, and the worker is not touched: new
++ * dispatches pick up the new slot, the in-flight one finishes on the old slot.
++ */
++static void knod_bpf_install_kernel(struct knod_bpf_priv *priv,
++				    const struct knod_prog *knod_prog,
++				    const void *code, u32 size)
 +{
-+	if (version == 10) {
-+		insn->size = emit_gfx10_s_and_b64(&insn->gfx10,
-+						   sdst, ssrc0, ssrc1);
-+		insn->type = AMDGCN_INSN_TYPE_SOP2;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_s_and_b64(&insn->gfx9,
-+						  sdst, ssrc0, ssrc1);
-+		insn->type = AMDGCN_INSN_TYPE_SOP2;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
++	struct kernel_descriptor *kd;
++	struct knod *knod = priv->knod;
++	struct knod_mem *slot;
++	u32 entry_off;
++	u32 image_len;
++	int idx;
 +
-+static inline void emit_s_or_b64(int version, struct amdgcn_insn *insn,
-+			  u8 sdst, u8 ssrc0, u8 ssrc1)
-+{
-+	if (version == 10) {
-+		insn->size = emit_gfx10_s_or_b64(&insn->gfx10,
-+						  sdst, ssrc0, ssrc1);
-+		insn->type = AMDGCN_INSN_TYPE_SOP2;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_s_or_b64(&insn->gfx9,
-+						 sdst, ssrc0, ssrc1);
-+		insn->type = AMDGCN_INSN_TYPE_SOP2;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
++	if (!code || !size || !knod->kernels[1])
++		return;
 +
-+static inline void emit_s_andn2_b64(int version, struct amdgcn_insn *insn,
-+			     u8 sdst, u8 ssrc0, u8 ssrc1)
-+{
-+	if (version == 10) {
-+		insn->size = emit_gfx10_s_andn2_b64(&insn->gfx10,
-+						     sdst, ssrc0, ssrc1);
-+		insn->type = AMDGCN_INSN_TYPE_SOP2;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_s_andn2_b64(&insn->gfx9,
-+						    sdst, ssrc0, ssrc1);
-+		insn->type = AMDGCN_INSN_TYPE_SOP2;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_s_cbranch_execz(int version, struct amdgcn_insn *insn,
-+				 short off)
-+{
-+	if (version == 10) {
-+		insn->size = emit_gfx10_s_cbranch_execz(&insn->gfx10, off);
-+		insn->type = AMDGCN_INSN_TYPE_SOPP;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_s_cbranch_execz(&insn->gfx9, off);
-+		insn->type = AMDGCN_INSN_TYPE_SOPP;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_s_cbranch_execnz(int version, struct amdgcn_insn *insn,
-+				  short off)
-+{
-+	if (version == 10) {
-+		insn->size = emit_gfx10_s_cbranch_execnz(&insn->gfx10, off);
-+		insn->type = AMDGCN_INSN_TYPE_SOPP;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_s_cbranch_execnz(&insn->gfx9, off);
-+		insn->type = AMDGCN_INSN_TYPE_SOPP;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_s_sub_u32(int version, struct amdgcn_insn *insn,
-+			   u8 sdst, u8 ssrc0, u8 ssrc1)
-+{
-+	if (version == 10) {
-+		insn->size = emit_gfx10_s_sub_u32(&insn->gfx10,
-+						   sdst, ssrc0, ssrc1);
-+		insn->type = AMDGCN_INSN_TYPE_SOP2;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_s_sub_u32(&insn->gfx9,
-+						  sdst, ssrc0, ssrc1);
-+		insn->type = AMDGCN_INSN_TYPE_SOP2;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_s_cbranch_scc0(int version, struct amdgcn_insn *insn,
-+				short off)
-+{
-+	if (version == 10) {
-+		insn->size = emit_gfx10_s_cbranch_scc0(&insn->gfx10, off);
-+		insn->type = AMDGCN_INSN_TYPE_SOPP;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_s_cbranch_scc0(&insn->gfx9, off);
-+		insn->type = AMDGCN_INSN_TYPE_SOPP;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
-+
-+static inline void emit_branch_fixup(int version, struct amdgcn_insn *insn,
-+				     short off)
-+{
-+	if (version == 10)
-+		insn->size = emit_gfx10_branch_fixup(&insn->gfx10, off);
-+	else if (version == 9)
-+		insn->size = emit_gfx9_branch_fixup(&insn->gfx9, off);
++	/*
++	 * Before the worker runs, install in place; once it is dispatching,
++	 * stage into the inactive slot and flip the active index so the live
++	 * pipeline never reads a half-written slot.
++	 */
++	if (!priv->start || !knod->worker)
++		idx = priv->active_idx;
 +	else
-+		WARN_ON_ONCE(1);
++		idx = priv->active_idx ^ 1;
++
++	slot = knod->kernels[idx];
++	kd = slot->kaddr;
++	knod_bpf_update_kernel_descriptor(priv, kd, knod_prog);
++	entry_off = kd->kernel_code_entry_byte_offset;
++	if (WARN_ON(entry_off >= slot->size))
++		return;
++	if (WARN_ON(size > slot->size - entry_off))
++		size = slot->size - entry_off;
++	image_len = entry_off + size;
++
++	memcpy(slot->kaddr + entry_off, code, size);
++	if (image_len < slot->size) {
++		u32 clear_end = min_t(u32, slot->size,
++					  entry_off + KNOD_BPF_PROG_BUF_SIZE);
++
++		if (image_len < clear_end)
++			memset(slot->kaddr + image_len, 0,
++			       clear_end - image_len);
++	}
++	/*
++	 * kernels[] is write-combining VRAM.  smp_wmb() is only a compiler
++	 * barrier on x86 and does NOT drain the WC buffers, so the GPU could
++	 * fetch half-written code and spin.  wmb() (sfence) flushes WC to VRAM
++	 * before we publish the new slot; the dispatch doorbell is ordered
++	 * behind it.
++	 */
++	wmb();
++	knod_bpf_gpu_mem_fence(priv);
++	WRITE_ONCE(priv->kernel_image_len[idx], image_len);
++
++	if (idx != priv->active_idx)
++		WRITE_ONCE(priv->active_idx, idx);
 +}
 +
-+static inline void emit_s_waitcnt_lgkmcnt(int version, struct amdgcn_insn *insn)
++/*
++ * Keep the just-built pass-kernel IR for the debugfs "insn" dump, so it can
++ * show the pass-through kernel when no XDP prog is attached.  The machine code
++ * already lives in the kernel slot; this only retains the meta list.  Rebuilt
++ * on every start (old metas freed first), released in knod_priv_exit().
++ */
++static void knod_bpf_retain_pass_ir(struct knod_bpf_priv *priv,
++				    struct knod_prog *src)
 +{
-+	if (version == 10) {
-+		insn->size = emit_gfx10_s_waitcnt_lgkmcnt(&insn->gfx10);
-+		insn->type = AMDGCN_INSN_TYPE_SOPP;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_s_waitcnt_lgkmcnt(&insn->gfx9);
-+		insn->type = AMDGCN_INSN_TYPE_SOPP;
++	struct knod_insn_meta *meta, *tmp;
++	struct knod_prog *dst = priv->pass_knod_prog;
++
++	if (!dst) {
++		dst = kzalloc_obj(*dst, GFP_KERNEL);
++		if (!dst)
++			return;
++		INIT_LIST_HEAD(&dst->pre_insns);
++		INIT_LIST_HEAD(&dst->insns);
++		INIT_LIST_HEAD(&dst->post_insns);
++		priv->pass_knod_prog = dst;
 +	} else {
-+		WARN_ON_ONCE(1);
++		list_for_each_entry_safe(meta, tmp, &dst->pre_insns, l) {
++			list_del(&meta->l);
++			kfree(meta);
++		}
++		list_for_each_entry_safe(meta, tmp, &dst->insns, l) {
++			list_del(&meta->l);
++			kfree(meta);
++		}
++		list_for_each_entry_safe(meta, tmp, &dst->post_insns, l) {
++			list_del(&meta->l);
++			kfree(meta);
++		}
++	}
++	list_splice_init(&src->pre_insns, &dst->pre_insns);
++	list_splice_init(&src->insns, &dst->insns);
++	list_splice_init(&src->post_insns, &dst->post_insns);
++}
++
++static void knod_bpf_layout_sregs(struct knod_bpf_priv *priv,
++				  struct knod_prog *knod_prog)
++{
++	if (priv->isa_version != 9)
++		return;
++
++	knod_prog->initial_exec_sreg =
++		knod_prog->exec_save_base + knod_prog->exec_save_pairs_used * 2;
++}
++
++static int knod_bpf_jit_pass_kernel(struct knod_bpf_priv *priv)
++{
++	struct list_head *lists[2];
++	struct knod_insn_meta *meta, *tmp, *epi;
++	struct amdgcn_param32 p[3];
++	struct knod *knod = priv->knod;
++	struct knod_prog pass_prog;
++	int pass_branch_idx;
++	u32 pass_dwords;
++	u8 *buf, *ptr;
++	u32 total = 0;
++	int i, j, li, err;
++
++	memset(&pass_prog, 0, sizeof(pass_prog));
++	INIT_LIST_HEAD(&pass_prog.pre_insns);
++	INIT_LIST_HEAD(&pass_prog.insns);
++	INIT_LIST_HEAD(&pass_prog.post_insns);
++	pass_prog.knod = knod;
++	pass_prog.knodev = priv->knodev;
++	if (priv->isa_version == 10) {
++		pass_prog.done_mask_sreg = 32;
++		pass_prog.exec_save_base = 34;
++		pass_prog.initial_exec_sreg =
++			KNOD_AMDGPU_INITIAL_EXEC_SREG_GFX10;
++	} else {
++		pass_prog.done_mask_sreg = KNOD_AMDGPU_DONE_MASK_SREG;
++		pass_prog.exec_save_base = KNOD_AMDGPU_EXEC_SAVE_SREG_BASE;
++		pass_prog.initial_exec_sreg =
++			KNOD_AMDGPU_INITIAL_EXEC_SREG_GFX9;
++	}
++
++	knod_bpf_layout_sregs(priv, &pass_prog);
++	err = knod_prog_prepare_insns(priv, &pass_prog);
++	if (err)
++		return err;
++
++	epi = kzalloc_obj(*epi, GFP_KERNEL);
++	if (!epi) {
++		err = -ENOMEM;
++		goto free_pro;
++	}
++
++	/* BPF/XDP actions are 32-bit values; mlx5 consumes bd->act as low32. */
++	knod_vset32(&p[0], KNOD_AMDGPU_VREG0_LO);
++	knod_iset32(&p[1], XDP_PASS);
++	knod_emit(priv, epi, v_mov_b32_e32, p[0], p[1]);
++
++	knod_vset32(&p[0], KNOD_AMDGPU_VREG0_LO);
++	knod_vset32(&p[1], KNOD_AMDGPU_SLOT_VREG_LO);
++	knod_emit(priv, epi, global_store_dword, p[0], p[1],
++		  offsetof(struct spsc_bd, act));
++
++	/* XDP_PASS detection: v_cmp_eq_u32 XDP_PASS, R0 -> VCC */
++	knod_iset32(&p[0], XDP_PASS);
++	knod_vset32(&p[1], KNOD_AMDGPU_VREG0_LO);
++	knod_emit(priv, epi, v_cmp_eq_u32, p[0], p[1]);
++
++	pass_branch_idx = epi->amdgpu_insns;
++	knod_emit(priv, epi, s_cbranch_vccz, 0);
++
++	/* EXEC &= VCC - only PASS lanes proceed */
++	knod_emit(priv, epi, s_and_b64, AMDGCN_SREG_EXEC_LO,
++		  AMDGCN_SREG_EXEC_LO, AMDGCN_SREG_VCC_LO);
++
++	/* v_mov param addr to VGPR pair for pass_count atomic */
++	knod_vset32(&p[0], KNOD_AMDGPU_TMP_VREG9_LO);
++	knod_sset32(&p[1], KNOD_AMDGPU_PARAM_SREG_LO);
++	knod_emit(priv, epi, v_mov_b32_e32, p[0], p[1]);
++
++	knod_vset32(&p[0], KNOD_AMDGPU_TMP_VREG9_HI);
++	knod_sset32(&p[1], KNOD_AMDGPU_PARAM_SREG_HI);
++	knod_emit(priv, epi, v_mov_b32_e32, p[0], p[1]);
++
++	/* v_mov v2, s15 (queue_idx -> VGPR) */
++	knod_vset32(&p[0], KNOD_AMDGPU_VREG1_LO);
++	knod_sset32(&p[1], KNOD_AMDGPU_WORKGROUP_ID_Y_SREG);
++	knod_emit(priv, epi, v_mov_b32_e32, p[0], p[1]);
++
++	/* v_lshlrev_b32 v2, 2, v2 (queue_idx * 4) */
++	knod_vset32(&p[0], KNOD_AMDGPU_VREG1_LO);
++	knod_iset32(&p[1], 2);
++	knod_vset32(&p[2], KNOD_AMDGPU_VREG1_LO);
++	knod_emit(priv, epi, v_lshlrev_b32, p[0], p[1], p[2]);
++
++	/* v_add_u32 TMP9_LO, v2, TMP9_LO (param_addr += queue_idx * 4) */
++	knod_vset32(&p[0], KNOD_AMDGPU_TMP_VREG9_LO);
++	knod_vset32(&p[1], KNOD_AMDGPU_VREG1_LO);
++	knod_vset32(&p[2], KNOD_AMDGPU_TMP_VREG9_LO);
++	knod_emit(priv, epi, v_add_u32, p[0], p[1], p[2]);
++
++	/* v_mov TMP10_LO, 1 */
++	knod_vset32(&p[0], KNOD_AMDGPU_TMP_VREG10_LO);
++	knod_iset32(&p[1], 1);
++	knod_emit(priv, epi, v_mov_b32_e32, p[0], p[1]);
++
++	/* global_atomic_add pass_count[q]++, GLC=1 -> old_val in TMP10_LO */
++	knod_vset32(&p[0], KNOD_AMDGPU_TMP_VREG10_LO);
++	knod_vset32(&p[1], KNOD_AMDGPU_TMP_VREG9_LO);
++	knod_vset32(&p[2], KNOD_AMDGPU_TMP_VREG10_LO);
++	knod_emit(priv, epi, global_atomic_add, p[0], p[1], p[2],
++		  offsetof(struct knod_bpf_param, pass_count), 1);
++
++	/* s_waitcnt vmcnt(0) */
++	knod_emit(priv, epi, s_waitcnt_vmcnt);
++
++	/* v_sub_u32 TMP9_LO, TMP9_LO, v2 (restore param_addr_lo) */
++	knod_vset32(&p[0], KNOD_AMDGPU_TMP_VREG9_LO);
++	knod_vset32(&p[1], KNOD_AMDGPU_TMP_VREG9_LO);
++	knod_vset32(&p[2], KNOD_AMDGPU_VREG1_LO);
++	knod_emit(priv, epi, v_sub_u32, p[0], p[1], p[2]);
++
++	/* old_val * 2 for pass_indices u16 stride */
++	knod_vset32(&p[0], KNOD_AMDGPU_TMP_VREG10_LO);
++	knod_iset32(&p[1], 1);
++	knod_vset32(&p[2], KNOD_AMDGPU_TMP_VREG10_LO);
++	knod_emit(priv, epi, v_lshlrev_b32, p[0], p[1], p[2]);
++
++	/* addr_lo += old_val * 2 */
++	knod_vset32(&p[0], KNOD_AMDGPU_TMP_VREG9_LO);
++	knod_vset32(&p[1], KNOD_AMDGPU_TMP_VREG10_LO);
++	knod_vset32(&p[2], KNOD_AMDGPU_TMP_VREG9_LO);
++	knod_emit(priv, epi, v_add_u32, p[0], p[1], p[2]);
++
++	/* global_store_short pass_indices[old_val], BACKLOG_IDX_VREG */
++	knod_vset32(&p[0], KNOD_AMDGPU_BACKLOG_IDX_VREG);
++	knod_vset32(&p[1], KNOD_AMDGPU_TMP_VREG9_LO);
++	knod_emit(priv, epi, global_store_short, p[0], p[1],
++		  offsetof(struct knod_bpf_param, pass_indices));
++
++	/* Store len + src_addr to pass_meta_buf slot header */
++	knod_emit_pass_addr_store(priv, epi);
++
++	/* Patch s_cbranch_vccz offset (skip pass handling) */
++	pass_dwords = 0;
++	for (j = pass_branch_idx + 1; j < epi->amdgpu_insns; j++)
++		pass_dwords += epi->amdgpu_insn[j].size / 4;
++	emit_s_cbranch_vccz(priv->isa_version,
++			    &epi->amdgpu_insn[pass_branch_idx], pass_dwords);
++
++	knod_emit(priv, epi, s_endpgm);
++
++	if (priv->isa_version >= 10) {
++		for (j = 0; j < 16 && epi->amdgpu_insns < KNOD_META_INSNS; j++)
++			knod_emit(priv, epi, s_code_end);
++	}
++	list_add_tail(&epi->l, &pass_prog.post_insns);
++
++	/* Linearize prologue + epilogue into pass_prog_buf */
++	lists[0] = &pass_prog.pre_insns;
++	lists[1] = &pass_prog.post_insns;
++
++	for (li = 0; li < 2; li++) {
++		list_for_each_entry(meta, lists[li], l)
++			for (i = 0; i < meta->amdgpu_insns; i++)
++				total += meta->amdgpu_insn[i].size;
++	}
++
++	kfree(priv->pass_prog_buf);
++	buf = kzalloc(total, GFP_KERNEL);
++	if (!buf) {
++		err = -ENOMEM;
++		goto free_all;
++	}
++
++	ptr = buf;
++	for (li = 0; li < 2; li++) {
++		list_for_each_entry(meta, lists[li], l)
++			for (i = 0; i < meta->amdgpu_insns; i++) {
++				memcpy(ptr, &meta->amdgpu_insn[i],
++				       meta->amdgpu_insn[i].size);
++				ptr += meta->amdgpu_insn[i].size;
++			}
++	}
++
++	priv->pass_prog_buf = buf;
++	priv->pass_prog_size = total;
++
++	knod_bpf_install_kernel(priv, &pass_prog, priv->pass_prog_buf,
++				priv->pass_prog_size);
++	/* Remember which slot now holds pass so detach can flip back to it. */
++	priv->pass_idx = priv->active_idx;
++
++	pr_info("knod_bpf: pass kernel JIT'd %u bytes\n", priv->pass_prog_size);
++	err = 0;
++	/* Retain the IR (moves the lists out) before the cleanup below
++	 * frees.
++	 */
++	knod_bpf_retain_pass_ir(priv, &pass_prog);
++
++free_all:
++	list_for_each_entry_safe(meta, tmp, &pass_prog.post_insns, l) {
++		list_del_init(&meta->l);
++		kfree(meta);
++	}
++free_pro:
++	list_for_each_entry_safe(meta, tmp, &pass_prog.pre_insns, l) {
++		list_del_init(&meta->l);
++		kfree(meta);
++	}
++	return err;
++}
++
++static void knod_bpf_reset_sqw(struct knod_bpf_work_sq *sqw)
++{
++	if (!sqw)
++		return;
++
++	sqw->backlogs = 0;
++	sqw->expire = 0;
++}
++
++static void knod_bpf_wait_sqw(struct knod_bpf_priv *priv,
++			      struct knod_bpf_work_sq *sqw)
++{
++	struct amd_signal *signal;
++	unsigned long deadline;
++
++	if (!sqw)
++		return;
++
++	signal = (struct amd_signal *)
++		priv->knod->kaql[0].queue_signal->kaddr;
++	deadline = jiffies + msecs_to_jiffies(1000);
++
++	while (sqw->sigval <= READ_ONCE(signal->value) &&
++	       time_before(jiffies, deadline))
++		usleep_range(100, 200);
++
++	if (sqw->sigval <= READ_ONCE(signal->value))
++		pr_warn("knod: timed out waiting for GPU dispatch completion\n");
++}
++
++static void knod_bpf_drain_worker(struct knod_bpf_priv *priv)
++{
++	struct knod_bpf_work_sq *sqw;
++
++	/* stop() runs on interface-down AND on every feature switch, both
++	 * with mlx5 RX possibly still producing into knodev->wpriv[].spsc_bds.
++	 * So we only quiesce the GPU here; the NIC-owned RX SPSC rings are
++	 * drained on interface-down by mlx5e_rx_offload_stop().
++	 */
++	while (priv->inflight_cnt) {
++		sqw = priv->inflight[--priv->inflight_cnt];
++		priv->inflight[priv->inflight_cnt] = NULL;
++		knod_bpf_wait_sqw(priv, sqw);
++		knod_bpf_reset_sqw(sqw);
++		list_add_tail_rcu(&sqw->list, &priv->free_list_sqw);
 +	}
 +}
 +
-+static inline void emit_s_waitcnt_vmcnt(int version, struct amdgcn_insn *insn)
++static void knod_bpf_drain(struct knod_bpf_priv *priv)
 +{
-+	if (version == 10) {
-+		insn->size = emit_gfx10_s_waitcnt_vmcnt(&insn->gfx10);
-+		insn->type = AMDGCN_INSN_TYPE_SOPP;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_s_waitcnt_vmcnt(&insn->gfx9);
-+		insn->type = AMDGCN_INSN_TYPE_SOPP;
-+	} else {
-+		WARN_ON_ONCE(1);
++	knod_bpf_drain_worker(priv);
++}
++
++static void knod_bpf_stop_worker(struct knod_bpf_priv *priv)
++{
++	priv->start = 0;
++	if (priv->worker_task) {
++		kthread_stop(priv->worker_task);
++		put_task_struct(priv->worker_task);
++		priv->worker_task = NULL;
++	}
++	synchronize_net();
++}
++
++static void knod_bpf_configure_worker(struct knod_bpf_priv *priv)
++{
++	knod_bpf_stop_worker(priv);
++	knod_bpf_drain(priv);
++
++	priv->inflight_cnt = 0;
++}
++
++static int knod_bpf_start_worker(struct knod_bpf_priv *priv)
++{
++	struct task_struct *p;
++
++	p = kthread_run(knod_bpf_worker, priv, "knod_%d_0",
++			priv->knodev->accel->id);
++	if (IS_ERR(p))
++		return PTR_ERR(p);
++
++	get_task_struct(p);
++	priv->worker_task = p;
++	return 0;
++}
++
++static bool knod_bpf_uses_percpu(struct knod_bpf_priv *priv)
++{
++	struct knod_bpf_map *knod_map;
++
++	list_for_each_entry(knod_map, &priv->knodev->accel->xdp.bound_maps,
++			    list)
++		if (knod_map->knod_map_obj->map_type ==
++		    BPF_MAP_TYPE_PERCPU_ARRAY)
++			return true;
++	return false;
++}
++
++/* Fan out one workgroup per CU (rounded down to a power of two).  PERCPU maps
++ * keep one instance per RX queue, so a queue must stay on a single workgroup;
++ * force xgroups=1 when the program uses them.  Non-PERCPU maps are globally
++ * shared with atomics, so fan-out is safe there.  This replaces the old manual
++ * xgroups knob.
++ */
++static unsigned int knod_bpf_auto_xgroups(struct knod_bpf_priv *priv)
++{
++	struct amdgpu_device *adev = NULL;
++	unsigned int cus, xgroups;
++
++	if (knod_bpf_uses_percpu(priv))
++		return 1;
++
++	if (priv->knod->dev)
++		adev = priv->knod->dev->adev;
++	else if (priv->knod->process && priv->knod->process->pdds[0])
++		adev = priv->knod->process->pdds[0]->dev->adev;
++	if (!adev || !priv->nr_works)
++		return 1;
++
++	cus = adev->gfx.cu_info.number;
++	xgroups = cus / priv->nr_works;
++	if (!xgroups)
++		xgroups = 1;
++	return rounddown_pow_of_two(xgroups);
++}
++
++/* Per-queue dispatch batch = workgroups * xgroups packets, capped by the
++ * static descriptor array and rounded down to a power of two (the shader
++ * derives the flat slot as queue_id << ilog2(batch_size) + local_idx).
++ */
++static unsigned int knod_bpf_batch_size(struct knod_bpf_priv *priv)
++{
++	unsigned int xgroups = knod_bpf_auto_xgroups(priv);
++	unsigned int max_flat = KNOD_BPF_BACKLOGS_MAX / priv->nr_works;
++	unsigned int batch = min_t(unsigned int,
++				   knod_bpf_workgroups * xgroups, max_flat);
++
++	if (!batch)
++		batch = knod_bpf_workgroups;
++	return rounddown_pow_of_two(batch);
++}
++
++static void knod_bpf_start(struct knod_dev *knodev)
++{
++	struct knod_bpf_priv *priv =
++		(struct knod_bpf_priv *)knodev->accel->xdp.priv;
++	struct bpf_prog *prog;
++	unsigned int active_rxq;
++	int err;
++
++	priv->start = 1;
++	active_rxq = knod_bpf_active_rxq_count(knodev->netdev);
++	if (active_rxq && active_rxq != priv->nr_works)
++		pr_warn("knod_bpf: active rx queues changed from %d to %u; using initialized count\n",
++			priv->nr_works, active_rxq);
++
++	priv->batch_size = knod_bpf_batch_size(priv);
++
++	knod_jit_dbg(" batch_size = %d\n", priv->batch_size);
++	knod_bpf_configure_worker(priv);
++	pr_info("knod_bpf: using single AQL queue, rx_works=%d active_rxq=%u batch_size=%d xgroups=%u\n",
++		priv->nr_works, active_rxq, priv->batch_size,
++		priv->batch_size / knod_bpf_workgroups);
++
++	if (knod_bpf_jit_pass_kernel(priv))
++		pr_warn("knod_bpf: pass kernel JIT failed\n");
++
++	prog = READ_ONCE(priv->prog);
++	if (prog)
++		knod_setup_bpf_prog(prog);
++
++	priv->start = 1;
++	err = knod_bpf_start_worker(priv);
++	if (err) {
++		pr_err("knod_bpf: start_worker failed: %d\n", err);
++		priv->start = 0;
++		return;
 +	}
 +}
 +
-+static inline void emit_s_waitcnt_vmcnt_lgkmcnt(int version,
-+						struct amdgcn_insn *insn)
++static void knod_bpf_stop(struct knod_dev *knodev)
 +{
-+	if (version == 10) {
-+		insn->size = emit_gfx10_s_waitcnt_vmcnt_lgkmcnt(&insn->gfx10);
-+		insn->type = AMDGCN_INSN_TYPE_SOPP;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_s_waitcnt_vmcnt_lgkmcnt(&insn->gfx9);
-+		insn->type = AMDGCN_INSN_TYPE_SOPP;
++	struct knod_bpf_priv *priv =
++		(struct knod_bpf_priv *)knodev->accel->xdp.priv;
++
++	knod_bpf_stop_worker(priv);
++	knod_bpf_drain(priv);
++
++	kfree(priv->pass_prog_buf);
++	priv->pass_prog_buf = NULL;
++	priv->pass_prog_size = 0;
++}
++
++/*
++ * Flip the dispatched kernel back to pass-through when the XDP prog is
++ * detached.  The pass slot already holds the pass code, so this is just an
++ * atomic index flip -- no re-copy.
++ */
++static void knod_bpf_reload_pass(struct knod_dev *knodev)
++{
++	struct knod_bpf_priv *priv = knodev->accel->xdp.priv;
++
++	if (priv)
++		WRITE_ONCE(priv->active_idx, priv->pass_idx);
++}
++
++static void knod_setup_bpf_prog(struct bpf_prog *prog)
++{
++	struct knod_prog *knod_prog = prog->aux->offload->dev_priv;
++	struct knod_dev *knodev = knod_prog->knodev;
++	struct knod_insn_meta *meta, *tmp;
++	struct knod_bpf_priv *priv;
++	u8 *kernel_ptr, *ptr;
++	u32 total_bytes;
++	u32 *debug_ptr;
++	int i;
++
++	priv = (struct knod_bpf_priv *)knodev->accel->xdp.priv;
++	WRITE_ONCE(priv->installing_kernel, true);
++
++	if (prog) {
++		WRITE_ONCE(priv->prog, NULL);
++		kernel_ptr = priv->prog_buf;
++		memset(priv->prog_buf, 0, KNOD_BPF_PROG_BUF_SIZE);
++
++		list_for_each_entry(meta, &priv->knod_prog->pre_insns, l) {
++			for (i = 0; i < meta->amdgpu_insns; i++) {
++				ptr = (u8 *)&meta->amdgpu_insn[i];
++				debug_ptr = (u32 *)ptr;
++
++				memcpy(kernel_ptr, ptr,
++				       meta->amdgpu_insn[i].size);
++				kernel_ptr += meta->amdgpu_insn[i].size;
++
++				if (meta->amdgpu_insn[i].size == 4) {
++					knod_jit_dbg(" 0x%.8X\t%.8X\n",
++						meta->amdgpu_insn_idx,
++						debug_ptr[0]);
++				} else if (meta->amdgpu_insn[i].size == 8) {
++					knod_jit_dbg(" 0x%.8X\t%.8X %.8X\n",
++						meta->amdgpu_insn_idx,
++						debug_ptr[0], debug_ptr[1]);
++				} else if (meta->amdgpu_insn[i].size == 12) {
++					knod_jit_dbg(" 0x%.8X\t%.8X %.8X %.8X\n",
++						meta->amdgpu_insn_idx,
++						debug_ptr[0],
++						debug_ptr[1], debug_ptr[2]);
++				} else {
++					WARN_ON_ONCE(1);
++				}
++			}
++		}
++
++		list_for_each_entry(meta, &priv->knod_prog->insns, l) {
++			for (i = 0; i < meta->amdgpu_insns; i++) {
++				ptr = (u8 *)&meta->amdgpu_insn[i];
++				debug_ptr = (u32 *)ptr;
++
++				memcpy(kernel_ptr, ptr,
++				       meta->amdgpu_insn[i].size);
++				kernel_ptr += meta->amdgpu_insn[i].size;
++				if (meta->amdgpu_insn[i].size == 4) {
++					knod_jit_dbg(" 0x%.8X\t%.8X\n",
++						meta->amdgpu_insn_idx,
++						debug_ptr[0]);
++				} else if (meta->amdgpu_insn[i].size == 8) {
++					knod_jit_dbg(" 0x%.8X\t%.8X %.8X\n",
++						meta->amdgpu_insn_idx,
++						debug_ptr[0], debug_ptr[1]);
++				} else if (meta->amdgpu_insn[i].size == 12) {
++					knod_jit_dbg(" 0x%.8X\t%.8X %.8X %.8X\n",
++						meta->amdgpu_insn_idx,
++						debug_ptr[0],
++						debug_ptr[1], debug_ptr[2]);
++				} else {
++					WARN_ON_ONCE(1);
++				}
++			}
++		}
++
++		list_for_each_entry(meta, &priv->knod_prog->post_insns, l) {
++			for (i = 0; i < meta->amdgpu_insns; i++) {
++				ptr = (u8 *)&meta->amdgpu_insn[i];
++				debug_ptr = (u32 *)ptr;
++
++				memcpy(kernel_ptr, ptr,
++				       meta->amdgpu_insn[i].size);
++				kernel_ptr += meta->amdgpu_insn[i].size;
++				if (meta->amdgpu_insn[i].size == 4) {
++					knod_jit_dbg(" %.8X\n", debug_ptr[0]);
++				} else if (meta->amdgpu_insn[i].size == 8) {
++					knod_jit_dbg(" %.8X %.8X\n",
++						debug_ptr[0], debug_ptr[1]);
++				} else if (meta->amdgpu_insn[i].size == 12) {
++					knod_jit_dbg(" %.8X %.8X %.8X\n",
++						debug_ptr[0],
++						debug_ptr[1], debug_ptr[2]);
++				} else {
++					WARN_ON_ONCE(1);
++				}
++			}
++		}
++		total_bytes = kernel_ptr - (u8 *)priv->prog_buf;
++
++		pr_debug("KNOD JIT: total binary size = %u bytes (limit %u)\n",
++			 total_bytes, KNOD_BPF_PROG_BUF_SIZE);
++		if (WARN_ON(total_bytes > KNOD_BPF_PROG_BUF_SIZE))
++			total_bytes = KNOD_BPF_PROG_BUF_SIZE;
++		knod_bpf_install_kernel(priv, knod_prog, priv->prog_buf,
++					total_bytes);
++		WRITE_ONCE(priv->prog, prog);
 +	} else {
++		WRITE_ONCE(priv->prog, NULL);
++		list_for_each_entry_safe(meta, tmp, &priv->knod_prog->pre_insns,
++					 l) {
++			list_del_init(&meta->l);
++			kfree(meta);
++		}
++
++		list_for_each_entry_safe(meta, tmp, &priv->knod_prog->insns,
++					 l) {
++			list_del_init(&meta->l);
++			kfree(meta);
++		}
++
++		list_for_each_entry_safe(meta, tmp,
++					 &priv->knod_prog->post_insns, l) {
++			list_del_init(&meta->l);
++			kfree(meta);
++		}
++
++		/* bbs points into the metas just freed */
++		kfree(priv->knod_prog->bbs);
++		priv->knod_prog->bbs = NULL;
++		priv->knod_prog->n_bbs = 0;
++
++		if (priv->pass_prog_buf)
++			knod_bpf_install_kernel(priv, priv->pass_knod_prog,
++						priv->pass_prog_buf,
++						priv->pass_prog_size);
++	}
++	WRITE_ONCE(priv->installing_kernel, false);
++}
++
++static int knod_bpf_map_hash_init_elem(struct knod_bpf_map *knod_map,
++				       struct knod_bpf_map_obj *knod_map_obj)
++{
++	unsigned int *queue = (unsigned int *)knod_map->queue_mem->kaddr;
++	unsigned int *bucket = (unsigned int *)&knod_map_obj->bucket[0];
++	void *elems = knod_map->hash_elems_mem->kaddr;
++	struct knod_bpf_hash_elem_obj *e;
++	int i, elem_size;
++
++	elem_size = sizeof(struct knod_bpf_hash_elem_obj) +
++			   roundup(knod_map_obj->key_size, 4) +
++			   roundup(knod_map_obj->value_size, 4);
++	knod_map_obj->meta.hmeta.elem_size = elem_size;
++
++	for (i = 0; i < knod_map_obj->meta.hmeta.n_buckets; i++)
++		bucket[i] = KNOD_BPF_HASH_NEXT_END;
++
++	for (i = 0; i < knod_map_obj->max_entries; i++) {
++		e = elems + (i * elem_size);
++		e->next = KNOD_BPF_HASH_NEXT_END;
++		queue[i] = i;
++	}
++	knod_map_obj->meta.hmeta.cur = knod_map_obj->max_entries - 1;
++
++	return 0;
++}
++
++static inline unsigned char *
++knod_bpf_hash_elem_kv(struct knod_bpf_hash_elem_obj *e)
++{
++	return (unsigned char *)e + offsetof(struct knod_bpf_hash_elem_obj, kv);
++}
++
++static inline void *
++knod_bpf_array_value_ptr(struct knod_bpf_map_obj *knod_map_obj,
++			 unsigned int idx)
++{
++	return (unsigned char *)knod_map_obj +
++	       offsetof(struct knod_bpf_map_obj, bucket) +
++	       (size_t)idx * knod_map_obj->value_size;
++}
++
++static int __knod_bpf_map_alloc(struct knod_dev *knodev,
++				struct bpf_offloaded_map *offmap)
++{
++	struct knod_bpf_priv *priv =
++		(struct knod_bpf_priv *)knodev->accel->xdp.priv;
++	struct knod_mem *mem, *queue_mem, *hash_elems_mem, *gc_mem;
++	int order, size, queue_size, i, value_size, nents, err;
++	int n_instances = 1;
++	int flags = KFD_IOC_ALLOC_MEM_FLAGS_WRITABLE |
++		    KFD_IOC_ALLOC_MEM_FLAGS_COHERENT |
++		    KFD_IOC_ALLOC_MEM_FLAGS_PUBLIC |
++		    KFD_IOC_ALLOC_MEM_FLAGS_VRAM;
++	struct knod_bpf_map_obj *knod_map_obj;
++	struct knod *knod = priv->knod;
++	struct knod_bpf_map *knod_map;
++	unsigned int gc_size;
++	unsigned int *q;
++
++	if (offmap->map.map_type == BPF_MAP_TYPE_HASH) {
++		value_size = sizeof(unsigned int);
++		nents = roundup_pow_of_two(offmap->map.max_entries);
++	} else {
++		value_size = offmap->map.value_size;
++		nents = offmap->map.max_entries;
++	}
++
++	/* PERCPU_ARRAY keeps one value array per GPU workgroup (percpu
++	 * instance) so each CU updates its own copy - no cross-CU atomic
++	 * contention.  Instances map 1:1 to the per-cpu value buffer, so
++	 * allocate num_possible_cpus of them (workgroup_id_y indexes into it).
++	 */
++	if (offmap->map.map_type == BPF_MAP_TYPE_PERCPU_ARRAY)
++		n_instances = num_possible_cpus();
++
++	size = sizeof(struct knod_bpf_map_obj) +
++	       (value_size * nents * n_instances);
++	if (offmap->map.map_type == BPF_MAP_TYPE_HASH)
++		size += sizeof(unsigned int) * nents;
++	order = get_order(size);
++
++	mem = knod_alloc_mem(knod, PAGE_SIZE << order, flags);
++	if (IS_ERR(mem))
++		return -ENOMEM;
++
++	memset(mem->kaddr, 0, size);
++	knod_map = kzalloc_obj(struct knod_bpf_map, GFP_KERNEL);
++	if (!knod_map) {
++		knod_free_mem(knod, mem);
++		return -ENOMEM;
++	}
++
++	knod_map->mem = mem;
++	knod_map->queue_mem = NULL;
++	knod_map->hash_elems_mem = NULL;
++	knod_map->offmap = offmap;
++	knod_map->priv = priv;
++	if (offmap->dev_priv)
 +		WARN_ON_ONCE(1);
++	offmap->dev_priv = knod_map;
++
++	knod_map_obj = (struct knod_bpf_map_obj *)mem->kaddr;
++	knod_map_obj->key_size = offmap->map.key_size;
++	if (knod_map_obj->key_size > MAX_MAP_KEY_SIZE) {
++		pr_warn("request key size is %d, but max key size is %d\n",
++			knod_map_obj->key_size, MAX_MAP_KEY_SIZE);
++		return -ENOMEM;
++	}
++	knod_map_obj->value_size = offmap->map.value_size;
++	knod_map_obj->max_entries = nents;
++	knod_map_obj->id = offmap->map.id;
++	knod_map_obj->map_type = offmap->map.map_type;
++	if (knod_map_obj->map_type == BPF_MAP_TYPE_HASH) {
++		knod_map_obj->meta.hmeta.n_buckets = nents;
++		if (offmap->map.map_flags & BPF_F_ZERO_SEED)
++			knod_map_obj->meta.hmeta.hashrnd = 0;
++		else
++			knod_map_obj->meta.hmeta.hashrnd = get_random_u32();
++	} else {
++		knod_map_obj->meta.ameta.per_instance_size = value_size * nents;
++		knod_map_obj->meta.ameta.n_instances = n_instances;
++	}
++	knod_map->knod_map_obj = knod_map_obj;
++	/* map->flags = ? */
++	knod_jit_dbg(" map_id = %d\n", knod_map_obj->id);
++
++	if (knod_map_obj->map_type == BPF_MAP_TYPE_HASH) {
++		queue_size = sizeof(unsigned int) * nents;
++		queue_size = PAGE_SIZE << get_order(queue_size);
++		queue_mem = knod_alloc_mem(knod, queue_size, flags);
++		if (IS_ERR(queue_mem)) {
++			knod_free_mem(knod, mem);
++			kfree(knod_map);
++			return -ENOMEM;
++		}
++
++		memset(queue_mem->kaddr, 0, queue_mem->size);
++		q = queue_mem->kaddr;
++		for (i = 0; i < knod_map_obj->meta.hmeta.n_buckets; i++)
++			q[i] = i;
++		knod_map->queue_mem = queue_mem;
++		knod_map_obj->meta.hmeta.q = (struct _queue *)queue_mem->gaddr;
++
++		queue_size = (sizeof(struct knod_bpf_hash_elem_obj) +
++			      roundup(knod_map_obj->key_size, 4) +
++			      roundup(knod_map_obj->value_size, 4)) *
++			      knod_map_obj->max_entries;
++		queue_size = PAGE_SIZE << get_order(queue_size);
++
++		hash_elems_mem = knod_alloc_mem(knod, queue_size, flags);
++		if (IS_ERR(hash_elems_mem)) {
++			knod_free_mem(knod, queue_mem);
++			knod_free_mem(knod, mem);
++			kfree(knod_map);
++			return -ENOMEM;
++		}
++
++		memset(hash_elems_mem->kaddr, 0, queue_size);
++		knod_map->hash_elems_mem = hash_elems_mem;
++		knod_map_obj->meta.hmeta.elems = (void *)hash_elems_mem->gaddr;
++		knod_bpf_map_hash_init_elem(knod_map, knod_map_obj);
++
++		/* GC list for GPU-side delete: elem_ids pending unlink */
++		gc_size = sizeof(unsigned int) * nents;
++		gc_size = PAGE_SIZE << get_order(gc_size);
++		gc_mem = knod_alloc_mem(knod, gc_size, flags);
++		if (IS_ERR(gc_mem)) {
++			knod_free_mem(knod, hash_elems_mem);
++			knod_free_mem(knod, queue_mem);
++			knod_free_mem(knod, mem);
++			kfree(knod_map);
++			return -ENOMEM;
++		}
++		memset(gc_mem->kaddr, 0, gc_size);
++		knod_map->gc_mem = gc_mem;
++		knod_map_obj->meta.hmeta.gc_count = 0;
++		knod_map_obj->meta.hmeta.gc_list = (void *)gc_mem->gaddr;
++	}
++
++	err = __knod_map_mem(knod, mem);
++	if (err) {
++		pr_err("knod_bpf: failed to GPU-map map BO\n");
++		goto err_map;
++	}
++	if (knod_map_obj->map_type == BPF_MAP_TYPE_HASH) {
++		err = __knod_map_mem(knod, queue_mem);
++		if (err) {
++			pr_err("knod_bpf: failed to GPU-map queue BO\n");
++			goto err_map;
++		}
++		err = __knod_map_mem(knod, hash_elems_mem);
++		if (err) {
++			pr_err("knod_bpf: failed to GPU-map hash_elems BO\n");
++			goto err_map;
++		}
++		err = __knod_map_mem(knod, knod_map->gc_mem);
++		if (err) {
++			pr_err("knod_bpf: failed to GPU-map gc BO\n");
++			goto err_map;
++		}
++	}
++	knod_bpf_gpu_mem_fence(priv);
++
++	mutex_lock(&knodev->lock);
++	list_add(&knod_map->list, &knodev->accel->xdp.bound_maps);
++	mutex_unlock(&knodev->lock);
++	return 0;
++
++err_map:
++	if (knod_map_obj->map_type == BPF_MAP_TYPE_HASH) {
++		knod_free_mem(knod, knod_map->gc_mem);
++		knod_free_mem(knod, hash_elems_mem);
++		knod_free_mem(knod, queue_mem);
++	}
++	knod_free_mem(knod, mem);
++	kfree(knod_map);
++	return err;
++}
++
++static void knod_bpf_map_setup(struct bpf_prog *prog)
++{
++	struct knod_prog *knod_prog = prog->aux->offload->dev_priv;
++	struct knod_dev *knodev = knod_prog->knodev;
++	struct knod_bpf_map *knod_map;
++	struct knod_bpf_map_obj *map;
++	struct knod_mem *mem;
++
++	mutex_lock(&knodev->lock);
++	list_for_each_entry(knod_map, &knodev->accel->xdp.bound_maps, list) {
++		mem = knod_map->mem;
++		map = mem->kaddr;
++		map->id = knod_map->offmap->map.id;
++		map->map_type = knod_map->offmap->map.map_type;
++		knod_jit_dbg(" id = %d type = %d\n", knod_map->offmap->map.id,
++			knod_map->offmap->map.map_type);
++	}
++	mutex_unlock(&knodev->lock);
++}
++
++static struct knod_bpf_hash_elem_obj *
++knod_bpf_map_hash_pop(struct knod_bpf_map *knod_map,
++		      struct knod_bpf_map_obj *knod_map_obj)
++{
++	void *elems = knod_map->hash_elems_mem->kaddr;
++	unsigned int *queue = (unsigned int *)knod_map->queue_mem->kaddr;
++	struct knod_bpf_hash_elem_obj *e;
++	int elem_id;
++
++	if (knod_map_obj->meta.hmeta.cur < 1)
++		return NULL;
++
++	elem_id = queue[knod_map_obj->meta.hmeta.cur];
++	knod_jit_dbg(" elem_id = 0x%x\n", elem_id);
++	e = elems + (elem_id * knod_map_obj->meta.hmeta.elem_size);
++	knod_map_obj->meta.hmeta.cur--;
++	e->next = KNOD_BPF_HASH_NEXT_END;
++
++	return e;
++}
++
++static struct knod_bpf_hash_elem_obj *
++knod_bpf_map_hash_alloc_elem(struct knod_bpf_map *knod_map,
++			     struct knod_bpf_map_obj *knod_map_obj,
++			     void *key, void *value)
++{
++	struct knod_bpf_hash_elem_obj *e;
++
++	e = knod_bpf_map_hash_pop(knod_map, knod_map_obj);
++	if (!e)
++		return NULL;
++
++	unsafe_memcpy(knod_bpf_hash_elem_kv(e), key, knod_map_obj->key_size,
++		      "knod hash elems are variable-sized GPU map records");
++	unsafe_memcpy(knod_bpf_hash_elem_kv(e) + knod_map_obj->key_size,
++		      value, knod_map_obj->value_size,
++		      "knod hash elems are variable-sized GPU map records");
++	/* VRAM is ioremap_wc - drain new elem's next and kv stores before
++	 * the caller publishes a pointer to this elem.
++	 */
++	wmb();
++	return e;
++}
++
++static int knod_bpf_map_hash_lookup_elem(struct knod_bpf_map *knod_map,
++					 struct knod_bpf_map_obj *knod_map_obj,
++					 void *key,
++					 void *value)
++{
++	void *elems = knod_map->hash_elems_mem->kaddr;
++	unsigned int hash, elem_id, elem_size;
++	struct knod_bpf_hash_elem_obj *e;
++	unsigned int *bucket;
++
++	hash = jhash((const void *)key, knod_map_obj->key_size,
++		     knod_map_obj->meta.hmeta.hashrnd);
++	knod_jit_dbg(" hash = %x\n", hash);
++	hash = hash & (knod_map_obj->meta.hmeta.n_buckets - 1);
++	knod_jit_dbg(" hash = %x\n", hash);
++	bucket = (unsigned int *)&knod_map_obj->bucket[0];
++
++	elem_id = bucket[hash];
++	if (elem_id == KNOD_BPF_HASH_NEXT_END)
++		return -ENOENT;
++
++	elem_size = knod_map_obj->meta.hmeta.elem_size;
++
++	e = elems + (elem_id * elem_size);
++	while (1) {
++		if (!(e->next & KNOD_BPF_HASH_NEXT_DELETED) &&
++		    !memcmp(&e->kv[0], (const unsigned char *)key,
++			    knod_map_obj->key_size)) {
++			memcpy(value,
++			       (unsigned char *)&e->kv[0] +
++			       knod_map_obj->key_size,
++			       knod_map_obj->value_size);
++			return 0;
++		}
++		unsigned int real_next = e->next & KNOD_BPF_HASH_NEXT_MASK;
++
++		if (real_next == KNOD_BPF_HASH_NEXT_END)
++			return -ENOENT;
++		e = elems + (real_next * elem_size);
++	}
++
++	return -ENOENT;
++}
++
++static int knod_bpf_map_hash_update_elem(struct knod_bpf_map *knod_map,
++					 struct knod_bpf_map_obj *knod_map_obj,
++					 void *key,
++					 void *value)
++{
++	void *elems = knod_map->hash_elems_mem->kaddr;
++	unsigned int hash, elem_id, elem_size;
++	struct knod_bpf_hash_elem_obj *e, *ne;
++	unsigned int *bucket;
++
++	hash = jhash((const void *)key, knod_map_obj->key_size,
++		     knod_map_obj->meta.hmeta.hashrnd);
++	hash = hash & (knod_map_obj->meta.hmeta.n_buckets - 1);
++	bucket = (unsigned int *)&knod_map_obj->bucket[0];
++
++	elem_size = knod_map_obj->meta.hmeta.elem_size;
++	elem_id = bucket[hash];
++	if (elem_id == KNOD_BPF_HASH_NEXT_END) {
++		ne = knod_bpf_map_hash_alloc_elem(knod_map, knod_map_obj, key,
++						  value);
++		if (!ne)
++			return -ENOMEM;
++		bucket[hash] = ((void *)ne - (void *)elems) / elem_size;
++		return 0;
++	}
++
++	e = elems + (elem_id * elem_size);
++	while (1) {
++		if (!(e->next & KNOD_BPF_HASH_NEXT_DELETED) &&
++		    !memcmp(&e->kv[0], (const unsigned char *)key,
++			    knod_map_obj->key_size)) {
++			unsafe_memcpy(knod_bpf_hash_elem_kv(e) +
++				      knod_map_obj->key_size,
++				      value, knod_map_obj->value_size,
++				      "knod hash elems are variable-sized GPU map records");
++			return 0;
++		}
++		unsigned int real_next = e->next & KNOD_BPF_HASH_NEXT_MASK;
++
++		if (real_next == KNOD_BPF_HASH_NEXT_END) {
++			ne = knod_bpf_map_hash_alloc_elem(knod_map,
++							  knod_map_obj,
++							  key, value);
++			if (!ne)
++				return -ENOMEM;
++			e->next = (e->next & KNOD_BPF_HASH_NEXT_DELETED) |
++				  (((void *)ne - (void *)elems) / elem_size);
++			return 0;
++		}
++		e = elems + (real_next * elem_size);
++	}
++
++	return -ENOENT;
++}
++
++static int knod_bpf_map_hash_delete_elem(struct knod_bpf_map *knod_map,
++					 struct knod_bpf_map_obj *knod_map_obj,
++					 void *key)
++{
++	void *elems = knod_map->hash_elems_mem->kaddr;
++	unsigned int *queue = knod_map->queue_mem->kaddr;
++	unsigned int hash, elem_id, elem_size, cur;
++	struct knod_bpf_hash_elem_obj *e, *pe;
++	unsigned int *bucket;
++
++	hash = jhash((const void *)key, knod_map_obj->key_size,
++		     knod_map_obj->meta.hmeta.hashrnd);
++	hash = hash & (knod_map_obj->meta.hmeta.n_buckets - 1);
++	bucket = (unsigned int *)&knod_map_obj->bucket[0];
++
++	elem_id = bucket[hash];
++	if (elem_id == KNOD_BPF_HASH_NEXT_END)
++		return -ENOENT;
++
++	elem_size = knod_map_obj->meta.hmeta.elem_size;
++
++	e = elems + (elem_id * elem_size);
++	pe = e;
++	while (1) {
++		if (!(e->next & KNOD_BPF_HASH_NEXT_DELETED) &&
++		    !memcmp(&e->kv[0], (const unsigned char *)key,
++			    knod_map_obj->key_size)) {
++			unsigned int e_next = e->next & KNOD_BPF_HASH_NEXT_MASK;
++			unsigned int del_id = ((void *)e - elems) / elem_size;
++
++			/* Unlink (GPU is paused - safe) */
++			if (pe != e)
++				pe->next = (pe->next &
++					    KNOD_BPF_HASH_NEXT_DELETED) |
++					   e_next;
++			else
++				bucket[hash] = e_next;
++
++			e->next = KNOD_BPF_HASH_NEXT_END;
++
++			/* Return elem to queue */
++			cur = knod_map_obj->meta.hmeta.cur;
++			queue[cur] = del_id;
++			knod_map_obj->meta.hmeta.cur = cur + 1;
++			return 0;
++		}
++		unsigned int real_next = e->next & KNOD_BPF_HASH_NEXT_MASK;
++
++		if (real_next == KNOD_BPF_HASH_NEXT_END)
++			return -ENOENT;
++		pe = e;
++		e = elems + (real_next * elem_size);
++	}
++
++	return -ENOENT;
++}
++
++static int knod_bpf_map_hash_get_first_key(struct bpf_offloaded_map *offmap,
++					   void *nkey)
++{
++	struct knod_bpf_map *knod_map = (struct knod_bpf_map *)offmap->dev_priv;
++	struct knod_bpf_map_obj *knod_map_obj;
++	unsigned int *bucket, elem_size, i;
++	struct knod_bpf_hash_elem_obj *e;
++	void *elems;
++
++	knod_map_obj = knod_map->knod_map_obj;
++	bucket =  (unsigned int *)&knod_map_obj->bucket[0];
++	elems = knod_map->hash_elems_mem->kaddr;
++
++	elem_size = knod_map_obj->meta.hmeta.elem_size;
++
++	for (i = 0; i < knod_map_obj->meta.hmeta.n_buckets; i++) {
++		unsigned int eid;
++
++		if (bucket[i] == KNOD_BPF_HASH_NEXT_END)
++			continue;
++		eid = bucket[i];
++		while (eid != KNOD_BPF_HASH_NEXT_END) {
++			e = elems + (eid * elem_size);
++			if (!(e->next & KNOD_BPF_HASH_NEXT_DELETED)) {
++				unsafe_memcpy(nkey, knod_bpf_hash_elem_kv(e),
++					      knod_map_obj->key_size,
++					      "knod hash elems are variable-sized GPU map records");
++				return 0;
++			}
++			eid = e->next & KNOD_BPF_HASH_NEXT_MASK;
++		}
++	}
++
++	return -ENOENT;
++}
++
++static int knod_bpf_map_hash_get_next_key(struct bpf_offloaded_map *offmap,
++					  void *key, void *nkey)
++{
++	struct knod_bpf_map *knod_map = (struct knod_bpf_map *)offmap->dev_priv;
++	struct knod_bpf_map_obj *knod_map_obj;
++	unsigned int *bucket, elem_size, i;
++	struct knod_bpf_hash_elem_obj *e;
++	bool found = false;
++	unsigned int hash;
++	void *elems;
++
++	knod_map_obj = knod_map->knod_map_obj;
++
++	bucket =  (unsigned int *)&knod_map_obj->bucket[0];
++	elems = knod_map->hash_elems_mem->kaddr;
++
++	hash = jhash((const void *)key, knod_map_obj->key_size,
++		     knod_map_obj->meta.hmeta.hashrnd);
++	hash = hash & (knod_map_obj->meta.hmeta.n_buckets - 1);
++	elem_size = knod_map_obj->meta.hmeta.elem_size;
++
++	for (i = hash; i < knod_map_obj->meta.hmeta.n_buckets; i++) {
++		unsigned int eid;
++
++		if (bucket[i] == KNOD_BPF_HASH_NEXT_END)
++			continue;
++
++		eid = bucket[i];
++		while (eid != KNOD_BPF_HASH_NEXT_END) {
++			e = elems + (eid * elem_size);
++			if (!(e->next & KNOD_BPF_HASH_NEXT_DELETED)) {
++				if (found &&
++				    memcmp(&e->kv[0],
++					   (const unsigned char *)key,
++					   knod_map_obj->key_size)) {
++					unsafe_memcpy(nkey,
++						      knod_bpf_hash_elem_kv(e),
++						      knod_map_obj->key_size,
++						      "knod hash elems are variable-sized GPU map records");
++					return 0;
++				}
++				if (!memcmp(&e->kv[0],
++					    (const unsigned char *)key,
++					    knod_map_obj->key_size))
++					found = true;
++			}
++			eid = e->next & KNOD_BPF_HASH_NEXT_MASK;
++		}
++	}
++
++	return -ENOENT;
++}
++
++static void knod_bpf_map_free(struct knod_dev *knodev,
++			      struct bpf_offloaded_map *offmap)
++{
++	struct knod_bpf_map *knod_map = offmap->dev_priv;
++	struct knod_bpf_priv *priv = knodev->accel->xdp.priv;
++
++	if (!knod_map)
++		return;
++	/*
++	 * Defer the BO free: an in-flight prog dispatch may still reference
++	 * this map's VRAM.  Move it from bound_maps onto dead_maps under
++	 * knodev->lock (the lock that guards the add); the worker reaps it
++	 * from there after its next completion, by which point the in-flight
++	 * dispatch on the old slot has retired (clean atomic flip).
++	 */
++	mutex_lock(&knodev->lock);
++	list_del(&knod_map->list);
++	list_add(&knod_map->list, &priv->dead_maps);
++	mutex_unlock(&knodev->lock);
++	offmap->dev_priv = NULL;
++}
++
++static int __knod_bpf_map_lookup_elem(struct bpf_offloaded_map *offmap,
++				      void *key, void *value)
++{
++	unsigned int idx = *(unsigned int *)key;
++	struct knod_bpf_map_obj *knod_map_obj;
++	struct knod_bpf_map *knod_map;
++	void *bucket;
++	u32 stride;
++	int i;
++
++	knod_map = (struct knod_bpf_map *)offmap->dev_priv;
++	if (!knod_map || !knod_map->mem || !knod_map->mem->kaddr ||
++	    (knod_map->hash_elems_mem && !knod_map->hash_elems_mem->kaddr)) {
++		pr_err("knod_bpf: lookup on freed/invalid map (dev_priv=%p)\n",
++		       offmap->dev_priv);
++		return -ENODEV;
++	}
++	knod_map_obj = knod_map->knod_map_obj;
++
++	if (knod_map_obj->map_type == BPF_MAP_TYPE_ARRAY) {
++		if (*(unsigned int *)key >= knod_map_obj->max_entries)
++			return -ENOENT;
++		bucket = knod_bpf_array_value_ptr(knod_map_obj, idx);
++
++		unsafe_memcpy(value, bucket, knod_map_obj->value_size,
++			      "knod array values live in a variable-sized GPU map tail");
++	} else if (knod_map_obj->map_type == BPF_MAP_TYPE_PERCPU_ARRAY) {
++		if (idx >= knod_map_obj->max_entries)
++			return -ENOENT;
++		stride = round_up(knod_map_obj->value_size, 8);
++		bucket = &knod_map_obj->bucket[0];
++		bucket += (idx * knod_map_obj->value_size);
++		for (i = 0; i < knod_map_obj->meta.ameta.n_instances; i++)
++			unsafe_memcpy(value + i * stride,
++				      bucket + i *
++				      knod_map_obj->meta.ameta
++				      .per_instance_size,
++				      knod_map_obj->value_size,
++				      "knod percpu array values live in a variable-sized GPU map tail");
++	} else if (knod_map_obj->map_type == BPF_MAP_TYPE_HASH) {
++		return knod_bpf_map_hash_lookup_elem(knod_map, knod_map_obj,
++						     key, value);
++	}
++
++	return 0;
++}
++
++static void knod_bpf_map_op_begin(struct knod_bpf_priv *priv)
++{
++	/*
++	 * Serialize concurrent map ops but do NOT park the worker: stopping it
++	 * mid-flight strands the in-flight dispatch and stalls the GPU compute
++	 * queue.  A map value updated while the GPU reads it may be seen torn,
++	 * which is a transient inconsistency the BPF prog tolerates.
++	 */
++	mutex_lock(&priv->map_op_lock);
++}
++
++static void knod_bpf_map_op_end(struct knod_bpf_priv *priv)
++{
++	knod_bpf_gpu_mem_fence(priv);
++	mutex_unlock(&priv->map_op_lock);
++}
++
++static int __knod_bpf_map_update_elem(struct bpf_offloaded_map *offmap,
++				      void *key, void *value, u64 flags)
++{
++	struct knod_bpf_map *knod_map = (struct knod_bpf_map *)offmap->dev_priv;
++	struct knod_bpf_map_obj *knod_map_obj;
++	struct knod_bpf_priv *priv;
++	unsigned int idx = *(unsigned int *)key;
++	struct knod_dev *knodev;
++	void *bucket;
++	u32 stride;
++	int i;
++
++	if (!knod_map || !knod_map->mem || !knod_map->mem->kaddr)
++		return -ENODEV;
++	knod_map_obj = knod_map->knod_map_obj;
++	priv = knod_map->priv;
++	knodev = priv->knodev;
++	if (knod_map_obj->map_type == BPF_MAP_TYPE_ARRAY) {
++		if (idx >= knod_map_obj->max_entries)
++			return -ENOENT;
++
++		bucket = knod_bpf_array_value_ptr(knod_map_obj, idx);
++		unsafe_memcpy(bucket, value, knod_map_obj->value_size,
++			      "knod array values live in a variable-sized GPU map tail");
++		knod_bpf_gpu_mem_fence(priv);
++		return 0;
++	} else if (knod_map_obj->map_type == BPF_MAP_TYPE_PERCPU_ARRAY) {
++		if (idx >= knod_map_obj->max_entries)
++			return -ENOENT;
++		stride = round_up(knod_map_obj->value_size, 8);
++		bucket = &knod_map_obj->bucket[0];
++		bucket += (idx * knod_map_obj->value_size);
++		for (i = 0; i < knod_map_obj->meta.ameta.n_instances; i++)
++			unsafe_memcpy(bucket + i *
++				      knod_map_obj->meta.ameta
++				      .per_instance_size,
++				      value + i * stride,
++				      knod_map_obj->value_size,
++				      "knod percpu array values live in a variable-sized GPU map tail");
++		knod_bpf_gpu_mem_fence(priv);
++		return 0;
++	} else if (knod_map_obj->map_type == BPF_MAP_TYPE_HASH) {
++		int ret = -ENOENT;
++
++		mutex_lock(&knodev->lock);
++		list_for_each_entry(knod_map, &knodev->accel->xdp.bound_maps,
++				    list) {
++			if (knod_map->knod_map_obj == knod_map_obj) {
++				mutex_unlock(&knodev->lock);
++				knod_bpf_map_op_begin(priv);
++				ret = knod_bpf_map_hash_update_elem(knod_map,
++						knod_map_obj,
++								    key, value);
++				knod_bpf_map_op_end(priv);
++				return ret;
++			}
++		}
++		mutex_unlock(&knodev->lock);
++	}
++
++	return -ENOENT;
++}
++
++static int __knod_bpf_map_delete_elem(struct bpf_offloaded_map *offmap,
++				      void *key)
++{
++	struct knod_bpf_map *knod_map = (struct knod_bpf_map *)offmap->dev_priv;
++	struct knod_bpf_map_obj *knod_map_obj;
++	struct knod_bpf_priv *priv;
++	int ret;
++
++	if (!knod_map || !knod_map->mem || !knod_map->mem->kaddr)
++		return -ENODEV;
++	knod_map_obj = knod_map->knod_map_obj;
++	priv = knod_map->priv;
++
++	if (knod_map_obj->map_type == BPF_MAP_TYPE_ARRAY ||
++	    knod_map_obj->map_type == BPF_MAP_TYPE_PERCPU_ARRAY)
++		return 0;
++	else if (knod_map_obj->map_type == BPF_MAP_TYPE_HASH) {
++		knod_bpf_map_op_begin(priv);
++		ret = knod_bpf_map_hash_delete_elem(knod_map, knod_map_obj,
++						    key);
++		knod_bpf_map_op_end(priv);
++		return ret;
++	}
++
++	return -ENOENT;
++}
++
++static void knod_bpf_map_gc_process(struct knod_bpf_map *knod_map)
++{
++	struct knod_bpf_map_obj *knod_map_obj = knod_map->knod_map_obj;
++	unsigned int *gc_list = knod_map->gc_mem->kaddr;
++	unsigned int *queue = knod_map->queue_mem->kaddr;
++	void *elems = knod_map->hash_elems_mem->kaddr;
++	unsigned int *bucket = (unsigned int *)&knod_map_obj->bucket[0];
++	unsigned int elem_size = knod_map_obj->meta.hmeta.elem_size;
++	unsigned int gc_count, cur, i;
++
++	gc_count = READ_ONCE(knod_map_obj->meta.hmeta.gc_count);
++	if (!gc_count)
++		return;
++
++	for (i = 0; i < gc_count; i++) {
++		unsigned int del_id = gc_list[i];
++		struct knod_bpf_hash_elem_obj *del_elem =
++			elems + (del_id * elem_size);
++		unsigned int hash, eid;
++		struct knod_bpf_hash_elem_obj *e, *pe;
++
++		hash = jhash(&del_elem->kv[0], knod_map_obj->key_size,
++			     knod_map_obj->meta.hmeta.hashrnd);
++		hash = hash & (knod_map_obj->meta.hmeta.n_buckets - 1);
++
++		eid = bucket[hash];
++		pe = NULL;
++		while (eid != KNOD_BPF_HASH_NEXT_END) {
++			e = elems + (eid * elem_size);
++			if (e == del_elem) {
++				unsigned int next = e->next &
++						   KNOD_BPF_HASH_NEXT_MASK;
++				if (pe)
++					pe->next =
++						(pe->next &
++						 KNOD_BPF_HASH_NEXT_DELETED) |
++						next;
++				else
++					bucket[hash] = next;
++
++				e->next = KNOD_BPF_HASH_NEXT_END;
++
++				cur = knod_map_obj->meta.hmeta.cur;
++				queue[cur] = del_id;
++				knod_map_obj->meta.hmeta.cur = cur + 1;
++				break;
++			}
++			pe = e;
++			eid = e->next & KNOD_BPF_HASH_NEXT_MASK;
++		}
++	}
++
++	WRITE_ONCE(knod_map_obj->meta.hmeta.gc_count, 0);
++}
++
++/*
++ * Per-loop map maintenance, run from the worker loop head (outside any
++ * rcu_read_lock_bh, since knod_free_mem() may sleep).  All bound_maps access
++ * is serialized under knodev->lock -- the same lock map_alloc/map_free use:
++ * GC live HASH maps, then reap maps that detach moved onto dead_maps.  The
++ * worker only reaches here after completing the previous dispatch, so the
++ * clean atomic flip guarantees the GPU no longer reads a reaped map's BOs.
++ */
++#define KNOD_BPF_MAPS_TICK_INTERVAL 65536
++
++static void knod_bpf_maps_tick(struct knod_bpf_priv *priv)
++{
++	struct knod_dev *knodev = priv->knodev;
++	struct knod_bpf_map *knod_map, *tmp;
++	LIST_HEAD(reap);
++
++	if (list_empty(&knodev->accel->xdp.bound_maps) &&
++	    list_empty(&priv->dead_maps))
++		return;
++
++	if (list_empty(&priv->dead_maps) &&
++	    (++priv->maps_tick_skip & (KNOD_BPF_MAPS_TICK_INTERVAL - 1)))
++		return;
++
++	mutex_lock(&knodev->lock);
++	list_for_each_entry(knod_map, &knodev->accel->xdp.bound_maps, list) {
++		if (knod_map->knod_map_obj->map_type == BPF_MAP_TYPE_HASH)
++			knod_bpf_map_gc_process(knod_map);
++	}
++	list_splice_init(&priv->dead_maps, &reap);
++	mutex_unlock(&knodev->lock);
++
++	list_for_each_entry_safe(knod_map, tmp, &reap, list) {
++		if (knod_map->gc_mem)
++			knod_free_mem(priv->knod, knod_map->gc_mem);
++		if (knod_map->queue_mem)
++			knod_free_mem(priv->knod, knod_map->queue_mem);
++		if (knod_map->hash_elems_mem)
++			knod_free_mem(priv->knod, knod_map->hash_elems_mem);
++		if (knod_map->mem)
++			knod_free_mem(priv->knod, knod_map->mem);
++		kfree(knod_map);
 +	}
 +}
 +
-+static inline void emit_s_nop(int version, struct amdgcn_insn *insn)
++/* Completion mode: 0 = event (default, sleep on the AQL signal interrupt),
++ * 1 = poll (busy-spin the signal value).  Selectable via debugfs.
++ */
++static bool knod_bpf_poll_mode;
++
++/* Max spacing (microseconds) between dispatch-ahead submissions.  Once a
++ * dispatch is in flight the worker waits up to this long before submitting
++ * the next so it batches the packets arriving meanwhile, letting inflight
++ * grow >= 2 without degenerating into one-packet dispatches.  This is a
++ * ceiling only: an empty pipe submits at once to keep the GPU fed, and a
++ * completed dispatch is always retired without waiting.  To actually build
++ * depth the value must be below the GPU execution time of a dispatch.
++ * 0 disables spacing (submit as soon as the ring has anything).
++ */
++static u32 knod_bpf_dispatch_delay_us = 20;
++
++static void knod_bpf_wait_event(struct knod_bpf_priv *priv)
 +{
-+	if (version == 10) {
-+		insn->size = emit_gfx10_s_nop(&insn->gfx10);
-+		insn->type = AMDGCN_INSN_TYPE_SOPP;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_s_nop(&insn->gfx9);
-+		insn->type = AMDGCN_INSN_TYPE_SOPP;
-+	} else {
-+		WARN_ON_ONCE(1);
++	struct kfd_event_data events = {
++		.event_id = priv->knod->aql_event[0].id,
++	};
++	u32 timeout_ms = knod_bpf_expire;
++	u32 wait_result;
++
++	knod_wait_on_events(priv->knod->process, 1, &events, true,
++			    &timeout_ms, &wait_result);
++}
++
++static bool knod_bpf_submit_work(struct knod_bpf_priv *priv)
++{
++	struct knod_bpf_work_sq *sqw;
++	struct knod_bpf_stats *stats = &priv->stats;
++	ktime_t dispatch_start;
++
++	if (priv->inflight_cnt >= KNOD_BPF_INFLIGHT)
++		return false;
++
++	/* Pace dispatch-ahead so the next dispatch batches the packets that
++	 * arrive during this window instead of firing one-packet dispatches.
++	 * An empty pipe skips the wait so the GPU is never left idle.
++	 */
++	if (priv->inflight_cnt &&
++	    ktime_before(ktime_get(), priv->next_dispatch_time))
++		return false;
++
++	if (static_branch_unlikely(&knod_stats_key))
++		dispatch_start = ktime_get();
++
++	sqw = knod_prepare_bpf(priv);
++	if (!sqw)
++		return false;
++
++	if (static_branch_unlikely(&knod_stats_key)) {
++		u64 dns = ktime_to_ns(ktime_sub(ktime_get(),
++						dispatch_start));
++
++		stats->dispatch_total_ns += dns;
++		stats->dispatch_count++;
++		if (dns > stats->dispatch_max_ns)
++			stats->dispatch_max_ns = dns;
 +	}
++
++	knod_submit_bpf(priv, sqw);
++	priv->inflight[priv->inflight_cnt++] = sqw;
++	priv->next_dispatch_time =
++		ktime_add_us(ktime_get(),
++			     READ_ONCE(knod_bpf_dispatch_delay_us));
++	return true;
 +}
 +
-+static inline void emit_s_endpgm(int version, struct amdgcn_insn *insn)
++static void knod_bpf_record_completion(struct knod_bpf_priv *priv,
++				       struct knod_bpf_work_sq *sqw)
 +{
-+	if (version == 10) {
-+		insn->size = emit_gfx10_s_endpgm(&insn->gfx10);
-+		insn->type = AMDGCN_INSN_TYPE_SOPP;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_s_endpgm(&insn->gfx9);
-+		insn->type = AMDGCN_INSN_TYPE_SOPP;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
++	struct knod_bpf_stats *stats = &priv->stats;
++	u64 ns;
++	int bucket;
 +
-+static inline void emit_s_code_end(int version, struct amdgcn_insn *insn)
-+{
-+	if (version == 10) {
-+		insn->size = emit_gfx10_s_code_end(&insn->gfx10);
-+		insn->type = AMDGCN_INSN_TYPE_SOPP;
-+	} else if (version == 9) {
-+		WARN_ON_ONCE(1);
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
++	if (!static_branch_unlikely(&knod_stats_key))
++		return;
 +
-+static inline void emit_s_icache_inv(int version, struct amdgcn_insn *insn)
-+{
-+	if (version == 10) {
-+		insn->size = emit_gfx10_s_icache_inv(&insn->gfx10);
-+		insn->type = AMDGCN_INSN_TYPE_SOPP;
-+	} else if (version == 9) {
-+		insn->size = emit_gfx9_s_icache_inv(&insn->gfx9);
-+		insn->type = AMDGCN_INSN_TYPE_SOPP;
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
-+}
++	ns = ktime_to_ns(ktime_sub(ktime_get(), sqw->dispatch_time));
++	stats->completion_total_ns += ns;
++	stats->completion_count++;
 +
-+static inline void gfx10_debug_vop3a(union amdgcn_gfx10_insn *insn)
-+{
-+	char src0[20];
-+	char src1[20];
-+	char src2[20];
++	if (ns > stats->completion_max_ns)
++		stats->completion_max_ns = ns;
 +
-+	if (insn->vop3a.src0 < GFX10_VOP3A_SRC_VCC_LO)
-+		sprintf(src0, "s%d", insn->vop3a.src0);
-+	else if (insn->vop3a.src0 == GFX10_VOP3A_SRC_VCC_LO)
-+		sprintf(src0, "%s", "vcc_lo");
-+	else if (insn->vop3a.src0 == GFX10_VOP3A_SRC_VCC_HI)
-+		sprintf(src0, "%s", "vcc_hi");
-+	else if (insn->vop3a.src0 == GFX10_VOP3A_SRC_NULL)
-+		sprintf(src0, "%s", "null");
-+	else if (insn->vop3a.src0 == GFX10_VOP3A_SRC_EXEC_LO)
-+		sprintf(src0, "%s", "exec_lo");
-+	else if (insn->vop3a.src0 == GFX10_VOP3A_SRC_EXEC_HI)
-+		sprintf(src0, "%s", "exec_hi");
-+	else if (insn->vop3a.src0 < GFX10_VOP3A_SRC_INTEGER_MINUS_1)
-+		sprintf(src0, "0x%x",
-+			insn->vop3a.src0 - GFX10_VOP3A_SRC_INTEGER_0);
-+	else if (insn->vop3a.src0 < GFX10_VOP3A_SRC_SHARED_BASE)
-+		sprintf(src0, "-0x%x",
-+			insn->vop3a.src0 - GFX10_VOP3A_SRC_INTEGER_MINUS_1);
-+	else if (insn->vop3a.src0 == GFX10_VOP3A_SRC_VCCZ)
-+		sprintf(src0, "%s", "vcc");
-+	else if (insn->vop3a.src0 == GFX10_VOP3A_SRC_EXECZ)
-+		sprintf(src0, "%s", "exec");
-+	else if (insn->vop3a.src0 == GFX10_VOP3A_SRC_SCC)
-+		sprintf(src0, "%s", "scc");
-+	else if (insn->vop3a.src0 == GFX10_VOP3A_SRC_LITERAL_CONST)
-+		sprintf(src0, "0x%x", insn->vop3a.literal);
-+	else if (insn->vop3a.src0 >= GFX10_VOP3A_SRC_VGPR_BASE)
-+		sprintf(src0, "v%d",
-+			insn->vop3a.src0 - GFX10_VOP3A_SRC_VGPR_BASE);
-+
-+	if (insn->vop3a.src1 < GFX10_VOP3A_SRC_VCC_LO)
-+		sprintf(src1, "s%d", insn->vop3a.src1);
-+	else if (insn->vop3a.src1 == GFX10_VOP3A_SRC_VCC_LO)
-+		sprintf(src1, "%s", "vcc_lo");
-+	else if (insn->vop3a.src1 == GFX10_VOP3A_SRC_VCC_HI)
-+		sprintf(src1, "%s", "vcc_hi");
-+	else if (insn->vop3a.src1 == GFX10_VOP3A_SRC_NULL)
-+		sprintf(src1, "%s", "null");
-+	else if (insn->vop3a.src1 == GFX10_VOP3A_SRC_EXEC_LO)
-+		sprintf(src1, "%s", "exec_lo");
-+	else if (insn->vop3a.src1 == GFX10_VOP3A_SRC_EXEC_HI)
-+		sprintf(src1, "%s", "exec_hi");
-+	else if (insn->vop3a.src1 < GFX10_VOP3A_SRC_INTEGER_MINUS_1)
-+		sprintf(src1, "0x%x",
-+			insn->vop3a.src1 - GFX10_VOP3A_SRC_INTEGER_0);
-+	else if (insn->vop3a.src1 < GFX10_VOP3A_SRC_SHARED_BASE)
-+		sprintf(src1, "-0x%x",
-+			insn->vop3a.src1 - GFX10_VOP3A_SRC_INTEGER_MINUS_1);
-+	else if (insn->vop3a.src1 == GFX10_VOP3A_SRC_VCCZ)
-+		sprintf(src1, "%s", "vcc");
-+	else if (insn->vop3a.src1 == GFX10_VOP3A_SRC_EXECZ)
-+		sprintf(src1, "%s", "exec");
-+	else if (insn->vop3a.src1 == GFX10_VOP3A_SRC_SCC)
-+		sprintf(src1, "%s", "scc");
-+	else if (insn->vop3a.src1 == GFX10_VOP3A_SRC_LITERAL_CONST)
-+		sprintf(src1, "0x%x", insn->vop3a.literal);
-+	else if (insn->vop3a.src1 >= GFX10_VOP3A_SRC_VGPR_BASE)
-+		sprintf(src1, "v%d",
-+			insn->vop3a.src1 - GFX10_VOP3A_SRC_VGPR_BASE);
-+
-+	if (insn->vop3a.src2 < GFX10_VOP3A_SRC_VCC_LO)
-+		sprintf(src2, "s%d", insn->vop3a.src2);
-+	else if (insn->vop3a.src2 == GFX10_VOP3A_SRC_VCC_LO)
-+		sprintf(src2, "%s", "vcc_lo");
-+	else if (insn->vop3a.src2 == GFX10_VOP3A_SRC_VCC_HI)
-+		sprintf(src2, "%s", "vcc_hi");
-+	else if (insn->vop3a.src2 == GFX10_VOP3A_SRC_NULL)
-+		sprintf(src2, "%s", "null");
-+	else if (insn->vop3a.src2 == GFX10_VOP3A_SRC_EXEC_LO)
-+		sprintf(src2, "%s", "exec_lo");
-+	else if (insn->vop3a.src2 == GFX10_VOP3A_SRC_EXEC_HI)
-+		sprintf(src2, "%s", "exec_hi");
-+	else if (insn->vop3a.src2 < GFX10_VOP3A_SRC_INTEGER_MINUS_1)
-+		sprintf(src2, "0x%x",
-+			insn->vop3a.src2 - GFX10_VOP3A_SRC_INTEGER_0);
-+	else if (insn->vop3a.src2 < GFX10_VOP3A_SRC_SHARED_BASE)
-+		sprintf(src2, "-0x%x",
-+			insn->vop3a.src2 - GFX10_VOP3A_SRC_INTEGER_MINUS_1);
-+	else if (insn->vop3a.src2 == GFX10_VOP3A_SRC_VCCZ)
-+		sprintf(src2, "%s", "vcc");
-+	else if (insn->vop3a.src2 == GFX10_VOP3A_SRC_EXECZ)
-+		sprintf(src2, "%s", "exec");
-+	else if (insn->vop3a.src2 == GFX10_VOP3A_SRC_SCC)
-+		sprintf(src2, "%s", "scc");
-+	else if (insn->vop3a.src2 == GFX10_VOP3A_SRC_LITERAL_CONST)
-+		sprintf(src2, "0x%x", insn->vop3a.literal);
-+	else if (insn->vop3a.src2 >= GFX10_VOP3A_SRC_VGPR_BASE)
-+		sprintf(src2, "v%d",
-+			insn->vop3a.src2 - GFX10_VOP3A_SRC_VGPR_BASE);
-+
-+	pr_debug("knod_asm %s v%d, %s, %s, %s\n",
-+		opnames_gfx10[AMDGCN_INSN_TYPE_VOP3A][insn->vop3a.op],
-+		insn->vop3a.vdst, src0, src1, src2);
-+}
-+
-+static inline void gfx10_debug_vop3b(union amdgcn_gfx10_insn *insn)
-+{
-+	char src0[20];
-+	char src1[20];
-+	char src2[20];
-+	char sdst[20];
-+
-+	if (insn->vop3b.sdst < GFX10_VOP3A_SRC_VCC_LO)
-+		sprintf(sdst, "s%d", insn->vop3b.sdst);
-+	else if (insn->vop3b.sdst == GFX10_VOP3A_SRC_VCC_LO)
-+		sprintf(sdst, "%s", "vcc_lo");
-+	else if (insn->vop3b.sdst == GFX10_VOP3A_SRC_VCC_HI)
-+		sprintf(sdst, "%s", "vcc_hi");
-+	else if (insn->vop3b.sdst == GFX10_VOP3A_SRC_NULL)
-+		sprintf(sdst, "%s", "null");
-+	else if (insn->vop3b.sdst == GFX10_VOP3A_SRC_EXEC_LO)
-+		sprintf(sdst, "%s", "exec_lo");
-+	else if (insn->vop3b.sdst == GFX10_VOP3A_SRC_EXEC_HI)
-+		sprintf(sdst, "%s", "exec_hi");
-+	else if (insn->vop3b.sdst < GFX10_VOP3A_SRC_INTEGER_MINUS_1)
-+		sprintf(sdst, "0x%x",
-+			insn->vop3b.sdst - GFX10_VOP3A_SRC_INTEGER_0);
-+	else if (insn->vop3b.sdst < GFX10_VOP3A_SRC_SHARED_BASE)
-+		sprintf(sdst, "-0x%x",
-+			insn->vop3b.sdst - GFX10_VOP3A_SRC_INTEGER_MINUS_1);
-+	else if (insn->vop3b.sdst == GFX10_VOP3A_SRC_VCCZ)
-+		sprintf(sdst, "%s", "vcc");
-+	else if (insn->vop3b.sdst == GFX10_VOP3A_SRC_EXECZ)
-+		sprintf(sdst, "%s", "exec");
-+	else if (insn->vop3b.sdst == GFX10_VOP3A_SRC_SCC)
-+		sprintf(sdst, "%s", "scc");
-+	else if (insn->vop3b.sdst == GFX10_VOP3A_SRC_LITERAL_CONST)
-+		sprintf(sdst, "0x%x", insn->vop3b.literal);
-+	else if (insn->vop3b.sdst >= GFX10_VOP3A_SRC_VGPR_BASE)
-+		sprintf(sdst, "v%d",
-+			insn->vop3b.sdst - GFX10_VOP3A_SRC_VGPR_BASE);
-+
-+	if (insn->vop3b.src0 < GFX10_VOP3A_SRC_VCC_LO)
-+		sprintf(src0, "s%d", insn->vop3b.src0);
-+	else if (insn->vop3b.src0 == GFX10_VOP3A_SRC_VCC_LO)
-+		sprintf(src0, "%s", "vcc_lo");
-+	else if (insn->vop3b.src0 == GFX10_VOP3A_SRC_VCC_HI)
-+		sprintf(src0, "%s", "vcc_hi");
-+	else if (insn->vop3b.src0 == GFX10_VOP3A_SRC_NULL)
-+		sprintf(src0, "%s", "null");
-+	else if (insn->vop3b.src0 == GFX10_VOP3A_SRC_EXEC_LO)
-+		sprintf(src0, "%s", "exec_lo");
-+	else if (insn->vop3b.src0 == GFX10_VOP3A_SRC_EXEC_HI)
-+		sprintf(src0, "%s", "exec_hi");
-+	else if (insn->vop3b.src0 < GFX10_VOP3A_SRC_INTEGER_MINUS_1)
-+		sprintf(src0, "0x%x",
-+			insn->vop3b.src0 - GFX10_VOP3A_SRC_INTEGER_0);
-+	else if (insn->vop3b.src0 < GFX10_VOP3A_SRC_SHARED_BASE)
-+		sprintf(src0, "-0x%x",
-+			insn->vop3b.src0 - GFX10_VOP3A_SRC_INTEGER_MINUS_1);
-+	else if (insn->vop3b.src0 == GFX10_VOP3A_SRC_VCCZ)
-+		sprintf(src0, "%s", "vcc");
-+	else if (insn->vop3b.src0 == GFX10_VOP3A_SRC_EXECZ)
-+		sprintf(src0, "%s", "exec");
-+	else if (insn->vop3b.src0 == GFX10_VOP3A_SRC_SCC)
-+		sprintf(src0, "%s", "scc");
-+	else if (insn->vop3b.src0 == GFX10_VOP3A_SRC_LITERAL_CONST)
-+		sprintf(src0, "0x%x", insn->vop3b.literal);
-+	else if (insn->vop3b.src0 >= GFX10_VOP3A_SRC_VGPR_BASE)
-+		sprintf(src0, "v%d",
-+			insn->vop3b.src0 - GFX10_VOP3A_SRC_VGPR_BASE);
-+
-+	if (insn->vop3b.src1 < GFX10_VOP3A_SRC_VCC_LO)
-+		sprintf(src1, "s%d", insn->vop3b.src1);
-+	else if (insn->vop3b.src1 == GFX10_VOP3A_SRC_VCC_LO)
-+		sprintf(src1, "%s", "vcc_lo");
-+	else if (insn->vop3b.src1 == GFX10_VOP3A_SRC_VCC_HI)
-+		sprintf(src1, "%s", "vcc_hi");
-+	else if (insn->vop3b.src1 == GFX10_VOP3A_SRC_NULL)
-+		sprintf(src1, "%s", "null");
-+	else if (insn->vop3b.src1 == GFX10_VOP3A_SRC_EXEC_LO)
-+		sprintf(src1, "%s", "exec_lo");
-+	else if (insn->vop3b.src1 == GFX10_VOP3A_SRC_EXEC_HI)
-+		sprintf(src1, "%s", "exec_hi");
-+	else if (insn->vop3b.src1 < GFX10_VOP3A_SRC_INTEGER_MINUS_1)
-+		sprintf(src1, "0x%x",
-+			insn->vop3b.src1 - GFX10_VOP3A_SRC_INTEGER_0);
-+	else if (insn->vop3b.src1 < GFX10_VOP3A_SRC_SHARED_BASE)
-+		sprintf(src1, "-0x%x",
-+			insn->vop3b.src1 - GFX10_VOP3A_SRC_INTEGER_MINUS_1);
-+	else if (insn->vop3b.src1 == GFX10_VOP3A_SRC_VCCZ)
-+		sprintf(src1, "%s", "vcc");
-+	else if (insn->vop3b.src1 == GFX10_VOP3A_SRC_EXECZ)
-+		sprintf(src1, "%s", "exec");
-+	else if (insn->vop3b.src1 == GFX10_VOP3A_SRC_SCC)
-+		sprintf(src1, "%s", "scc");
-+	else if (insn->vop3b.src1 == GFX10_VOP3A_SRC_LITERAL_CONST)
-+		sprintf(src1, "0x%x", insn->vop3b.literal);
-+	else if (insn->vop3b.src1 >= GFX10_VOP3A_SRC_VGPR_BASE)
-+		sprintf(src1, "v%d",
-+			insn->vop3b.src1 - GFX10_VOP3A_SRC_VGPR_BASE);
-+
-+	if (insn->vop3b.src2 < GFX10_VOP3A_SRC_VCC_LO)
-+		sprintf(src2, "s%d", insn->vop3b.src2);
-+	else if (insn->vop3b.src2 == GFX10_VOP3A_SRC_VCC_LO)
-+		sprintf(src2, "%s", "vcc_lo");
-+	else if (insn->vop3b.src2 == GFX10_VOP3A_SRC_VCC_HI)
-+		sprintf(src2, "%s", "vcc_hi");
-+	else if (insn->vop3b.src2 == GFX10_VOP3A_SRC_NULL)
-+		sprintf(src2, "%s", "null");
-+	else if (insn->vop3b.src2 == GFX10_VOP3A_SRC_EXEC_LO)
-+		sprintf(src2, "%s", "exec_lo");
-+	else if (insn->vop3b.src2 == GFX10_VOP3A_SRC_EXEC_HI)
-+		sprintf(src2, "%s", "exec_hi");
-+	else if (insn->vop3b.src2 < GFX10_VOP3A_SRC_INTEGER_MINUS_1)
-+		sprintf(src2, "0x%x",
-+			insn->vop3b.src2 - GFX10_VOP3A_SRC_INTEGER_0);
-+	else if (insn->vop3b.src2 < GFX10_VOP3A_SRC_SHARED_BASE)
-+		sprintf(src2, "-0x%x",
-+			insn->vop3b.src2 - GFX10_VOP3A_SRC_INTEGER_MINUS_1);
-+	else if (insn->vop3b.src2 == GFX10_VOP3A_SRC_VCCZ)
-+		sprintf(src2, "%s", "vcc");
-+	else if (insn->vop3b.src2 == GFX10_VOP3A_SRC_EXECZ)
-+		sprintf(src2, "%s", "exec");
-+	else if (insn->vop3b.src2 == GFX10_VOP3A_SRC_SCC)
-+		sprintf(src2, "%s", "scc");
-+	else if (insn->vop3b.src2 == GFX10_VOP3A_SRC_LITERAL_CONST)
-+		sprintf(src2, "0x%x", insn->vop3b.literal);
-+	else if (insn->vop3b.src2 >= GFX10_VOP3A_SRC_VGPR_BASE)
-+		sprintf(src2, "v%d",
-+			insn->vop3b.src2 - GFX10_VOP3A_SRC_VGPR_BASE);
-+
-+	pr_debug("knod_asm %s v%d, %s, %s, %s, %s\n",
-+		 opnames_gfx10[AMDGCN_INSN_TYPE_VOP3B][insn->vop3b.op],
-+		 insn->vop3b.vdst, sdst, src0, src1, src2);
-+}
-+
-+static inline void gfx10_debug_vop1(union amdgcn_gfx10_insn *insn)
-+{
-+	char src0[20];
-+
-+	if (insn->vop1.src0 < GFX10_VOP1_SRC_VCC_LO)
-+		sprintf(src0, "s%d", insn->vop1.src0);
-+	else if (insn->vop1.src0 == GFX10_VOP1_SRC_VCC_LO)
-+		sprintf(src0, "%s", "vcc_lo");
-+	else if (insn->vop1.src0 == GFX10_VOP1_SRC_VCC_HI)
-+		sprintf(src0, "%s", "vcc_hi");
-+	else if (insn->vop1.src0 == GFX10_VOP1_SRC_NULL)
-+		sprintf(src0, "%s", "null");
-+	else if (insn->vop1.src0 == GFX10_VOP1_SRC_EXEC_LO)
-+		sprintf(src0, "%s", "exec_lo");
-+	else if (insn->vop1.src0 == GFX10_VOP1_SRC_EXEC_HI)
-+		sprintf(src0, "%s", "exec_hi");
-+	else if (insn->vop1.src0 < GFX10_VOP1_SRC_INTEGER_MINUS_1)
-+		sprintf(src0, "0x%x",
-+			insn->vop1.src0 - GFX10_VOP1_SRC_INTEGER_0);
-+	else if (insn->vop1.src0 < GFX10_VOP1_SRC_SHARED_BASE)
-+		sprintf(src0, "-0x%x",
-+			insn->vop1.src0 - GFX10_VOP1_SRC_INTEGER_MINUS_1);
-+	else if (insn->vop1.src0 == GFX10_VOP1_SRC_VCCZ)
-+		sprintf(src0, "%s", "vcc");
-+	else if (insn->vop1.src0 == GFX10_VOP1_SRC_EXECZ)
-+		sprintf(src0, "%s", "exec");
-+	else if (insn->vop1.src0 == GFX10_VOP1_SRC_SCC)
-+		sprintf(src0, "%s", "scc");
-+	else if (insn->vop1.src0 == GFX10_VOP1_SRC_LITERAL_CONST)
-+		sprintf(src0, "0x%x", insn->vop1.literal);
-+	else if (insn->vop1.src0 >= GFX10_VOP1_SRC_VGPR_BASE)
-+		sprintf(src0, "v%d",
-+			insn->vop1.src0 - GFX10_VOP1_SRC_VGPR_BASE);
-+
-+	pr_debug("knod_asm %s v%d, %s\n",
-+		 opnames_gfx10[AMDGCN_INSN_TYPE_VOP1][insn->vop1.op],
-+		 insn->vop1.vdst, src0);
-+}
-+
-+static inline void gfx10_debug_vopc(union amdgcn_gfx10_insn *insn)
-+{
-+	char src0[20];
-+
-+	if (insn->vopc.src0 < GFX10_VOPC_SRC_VCC_LO)
-+		sprintf(src0, "s%d", insn->vopc.src0);
-+	else if (insn->vopc.src0 == GFX10_VOPC_SRC_VCC_LO)
-+		sprintf(src0, "%s", "vcc_lo");
-+	else if (insn->vopc.src0 == GFX10_VOPC_SRC_VCC_HI)
-+		sprintf(src0, "%s", "vcc_hi");
-+	else if (insn->vopc.src0 == GFX10_VOPC_SRC_NULL)
-+		sprintf(src0, "%s", "null");
-+	else if (insn->vopc.src0 == GFX10_VOPC_SRC_EXEC_LO)
-+		sprintf(src0, "%s", "exec_lo");
-+	else if (insn->vopc.src0 == GFX10_VOPC_SRC_EXEC_HI)
-+		sprintf(src0, "%s", "exec_hi");
-+	else if (insn->vopc.src0 < GFX10_VOPC_SRC_INTEGER_MINUS_1)
-+		sprintf(src0, "0x%x",
-+			insn->vopc.src0 - GFX10_VOPC_SRC_INTEGER_0);
-+	else if (insn->vopc.src0 < GFX10_VOPC_SRC_SHARED_BASE)
-+		sprintf(src0, "-0x%x",
-+			insn->vopc.src0 - GFX10_VOPC_SRC_INTEGER_MINUS_1);
-+	else if (insn->vopc.src0 == GFX10_VOPC_SRC_VCCZ)
-+		sprintf(src0, "%s", "vcc");
-+	else if (insn->vopc.src0 == GFX10_VOPC_SRC_EXECZ)
-+		sprintf(src0, "%s", "exec");
-+	else if (insn->vopc.src0 == GFX10_VOPC_SRC_SCC)
-+		sprintf(src0, "%s", "scc");
-+	else if (insn->vopc.src0 == GFX10_VOPC_SRC_LITERAL_CONST)
-+		sprintf(src0, "0x%x", insn->vopc.literal);
-+	else if (insn->vopc.src0 >= GFX10_VOPC_SRC_VGPR_BASE)
-+		sprintf(src0, "v%d",
-+			insn->vopc.src0 - GFX10_VOPC_SRC_VGPR_BASE);
-+
-+	pr_debug("knod_asm %s %s, v%d\n",
-+		 opnames_gfx10[AMDGCN_INSN_TYPE_VOPC][insn->vopc.op],
-+		 src0, insn->vopc.vsrc1);
-+}
-+
-+static inline void gfx10_debug_vop2(union amdgcn_gfx10_insn *insn)
-+{
-+	char src0[20];
-+
-+	if (insn->vop2.src0 < GFX10_VOP2_SRC_VCC_LO)
-+		sprintf(src0, "s%d", insn->vop2.src0);
-+	else if (insn->vop2.src0 == GFX10_VOP2_SRC_VCC_LO)
-+		sprintf(src0, "%s", "vcc_lo");
-+	else if (insn->vop2.src0 == GFX10_VOP2_SRC_VCC_HI)
-+		sprintf(src0, "%s", "vcc_hi");
-+	else if (insn->vop2.src0 == GFX10_VOP2_SRC_NULL)
-+		sprintf(src0, "%s", "null");
-+	else if (insn->vop2.src0 == GFX10_VOP2_SRC_EXEC_LO)
-+		sprintf(src0, "%s", "exec_lo");
-+	else if (insn->vop2.src0 == GFX10_VOP2_SRC_EXEC_HI)
-+		sprintf(src0, "%s", "exec_hi");
-+	else if (insn->vop2.src0 < GFX10_VOP2_SRC_INTEGER_MINUS_1)
-+		sprintf(src0, "0x%x",
-+			insn->vop2.src0 - GFX10_VOP2_SRC_INTEGER_0);
-+	else if (insn->vop2.src0 < GFX10_VOP2_SRC_SHARED_BASE)
-+		sprintf(src0, "-0x%x",
-+			insn->vop2.src0 - GFX10_VOP2_SRC_INTEGER_MINUS_1);
-+	else if (insn->vop2.src0 == GFX10_VOP2_SRC_VCCZ)
-+		sprintf(src0, "%s", "vcc");
-+	else if (insn->vop2.src0 == GFX10_VOP2_SRC_EXECZ)
-+		sprintf(src0, "%s", "exec");
-+	else if (insn->vop2.src0 == GFX10_VOP2_SRC_SCC)
-+		sprintf(src0, "%s", "scc");
-+	else if (insn->vop2.src0 == GFX10_VOP2_SRC_LITERAL_CONST)
-+		sprintf(src0, "0x%x", insn->vop2.literal);
-+	else if (insn->vop2.src0 >= GFX10_VOP2_SRC_VGPR_BASE)
-+		sprintf(src0, "v%d",
-+			insn->vop2.src0 - GFX10_VOP2_SRC_VGPR_BASE);
-+
-+	pr_debug("knod_asm %s v%d, %s v%d\n",
-+		 opnames_gfx10[AMDGCN_INSN_TYPE_VOP2][insn->vop2.op],
-+		 insn->vop2.vdst,
-+		 src0,
-+		 insn->vop2.vsrc1);
-+}
-+
-+static inline void gfx10_debug_sop1(union amdgcn_gfx10_insn *insn)
-+{
-+	char ssrc0[20];
-+
-+	if (insn->sop1.ssrc0 < GFX10_SOP1_SSRC_VCC_LO)
-+		sprintf(ssrc0, "s%d", insn->sop1.ssrc0);
-+	else if (insn->sop1.ssrc0 == GFX10_SOP1_SSRC_VCC_LO)
-+		sprintf(ssrc0, "%s", "vcc_lo");
-+	else if (insn->sop1.ssrc0 == GFX10_SOP1_SSRC_VCC_HI)
-+		sprintf(ssrc0, "%s", "vcc_hi");
-+	else if (insn->sop1.ssrc0 == GFX10_SOP1_SSRC_NULL)
-+		sprintf(ssrc0, "%s", "null");
-+	else if (insn->sop1.ssrc0 == GFX10_SOP1_SSRC_EXEC_LO)
-+		sprintf(ssrc0, "%s", "exec_lo");
-+	else if (insn->sop1.ssrc0 == GFX10_SOP1_SSRC_EXEC_HI)
-+		sprintf(ssrc0, "%s", "exec_hi");
-+	else if (insn->sop1.ssrc0 < GFX10_SOP1_SSRC_INTEGER_MINUS_1)
-+		sprintf(ssrc0, "0x%x",
-+			insn->sop1.ssrc0 - GFX10_SOP1_SSRC_INTEGER_0);
-+	else if (insn->sop1.ssrc0 < GFX10_SOP1_SSRC_SHARED_BASE)
-+		sprintf(ssrc0, "-0x%x",
-+			insn->sop1.ssrc0 - GFX10_SOP1_SSRC_INTEGER_MINUS_1);
-+	else if (insn->sop1.ssrc0 == GFX10_SOP1_SSRC_VCCZ)
-+		sprintf(ssrc0, "%s", "vcc");
-+	else if (insn->sop1.ssrc0 == GFX10_SOP1_SSRC_EXECZ)
-+		sprintf(ssrc0, "%s", "exec");
-+	else if (insn->sop1.ssrc0 == GFX10_SOP1_SSRC_SCC)
-+		sprintf(ssrc0, "%s", "scc");
-+	else if (insn->sop1.ssrc0 == GFX10_SOP1_SSRC_LITERAL_CONST)
-+		sprintf(ssrc0, "0x%x", insn->sop1.literal);
-+
-+	pr_debug("knod_asm %s s%d, %s\n",
-+		 opnames_gfx10[AMDGCN_INSN_TYPE_SOP1][insn->sop1.op],
-+		 insn->sop1.sdst,
-+		 ssrc0);
-+}
-+
-+static inline void gfx10_debug_sopp(union amdgcn_gfx10_insn *insn)
-+{
-+	pr_debug("knod_asm %s 0x%x\n",
-+		 opnames_gfx10[AMDGCN_INSN_TYPE_SOPP][insn->sopp.op],
-+		 insn->sopp.simm16);
-+}
-+
-+static inline void gfx10_debug_smem(union amdgcn_gfx10_insn *insn)
-+{
-+	pr_debug("%s s[%d:%d], s[%d:%d], 0x%x\n",
-+		 opnames_gfx10[AMDGCN_INSN_TYPE_SMEM][insn->smem.op],
-+		 insn->smem.sdata,
-+		 insn->smem.sdata + 1,
-+		 (insn->smem.sbase * 2),
-+		 (insn->smem.sbase * 2) + 1,
-+		 insn->smem.offset);
-+}
-+
-+static inline void gfx10_debug_mubuf(union amdgcn_gfx10_insn *insn)
-+{
-+	pr_debug("knod_asm %s v%d, v%d, s[%d:%d], 0x%x offen offset:%d\n",
-+		 opnames_gfx10[AMDGCN_INSN_TYPE_MUBUF][insn->mubuf.op],
-+		 insn->mubuf.vdata,
-+		 insn->mubuf.vaddr,
-+		 insn->mubuf.srsrc,
-+		 insn->mubuf.srsrc + 3,
-+		 insn->mubuf.soffset,
-+		 insn->mubuf.offset);
-+}
-+
-+static inline void gfx10_debug_global(union amdgcn_gfx10_insn *insn)
-+{
-+	if (insn->flat.op == GFX9_GLOBAL_STORE_BYTE) {
-+		pr_debug("knod_asm %s v[%d:%d], v%d, off offset:%d\n",
-+			 opnames_gfx10[AMDGCN_INSN_TYPE_FLAT][insn->flat.op],
-+			 insn->flat.addr,
-+			 insn->flat.addr + 1,
-+			 insn->flat.data,
-+			 insn->flat.offset);
-+	} else if (insn->flat.op == GFX9_GLOBAL_STORE_SHORT) {
-+		pr_debug("knod_asm %s v[%d:%d], v%d, off offset:%d\n",
-+			 opnames_gfx10[AMDGCN_INSN_TYPE_FLAT][insn->flat.op],
-+			 insn->flat.addr,
-+			 insn->flat.addr + 1,
-+			 insn->flat.data,
-+			 insn->flat.offset);
-+	} else if (insn->flat.op == GFX9_GLOBAL_STORE_DWORD) {
-+		pr_debug("knod_asm %s v[%d:%d], v%d, off offset:%d\n",
-+			 opnames_gfx10[AMDGCN_INSN_TYPE_FLAT][insn->flat.op],
-+			 insn->flat.addr,
-+			 insn->flat.addr + 1,
-+			 insn->flat.data,
-+			 insn->flat.offset);
-+	} else if (insn->flat.op == GFX9_GLOBAL_STORE_DWORDX2) {
-+		pr_debug("knod_asm %s v[%d:%d], v[%d:%d], off offset:%d\n",
-+			 opnames_gfx10[AMDGCN_INSN_TYPE_FLAT][insn->flat.op],
-+			 insn->flat.addr,
-+			 insn->flat.addr + 1,
-+			 insn->flat.data,
-+			 insn->flat.data + 1,
-+			 insn->flat.offset);
-+	} else {
-+		pr_debug("knod_asm %s v[%d:%d], v[%d:%d], off offset:%d\n",
-+			 opnames_gfx10[AMDGCN_INSN_TYPE_FLAT][insn->flat.op],
-+			 insn->flat.vdst,
-+			 insn->flat.vdst + 1,
-+			 insn->flat.addr,
-+			 insn->flat.addr + 1,
-+			 insn->flat.offset);
-+	}
-+}
-+
-+static inline void decode_ssrc8(int ssrc, u32 literal, char *buf)
-+{
-+	if (ssrc < 106)
-+		sprintf(buf, "s%d", ssrc);
-+	else if (ssrc == 106)
-+		sprintf(buf, "vcc_lo");
-+	else if (ssrc == 107)
-+		sprintf(buf, "vcc_hi");
-+	else if (ssrc == 125)
-+		sprintf(buf, "null");
-+	else if (ssrc == 126)
-+		sprintf(buf, "exec_lo");
-+	else if (ssrc == 127)
-+		sprintf(buf, "exec_hi");
-+	else if (ssrc < 193)
-+		sprintf(buf, "0x%x", ssrc - 128);
-+	else if (ssrc < 235)
-+		sprintf(buf, "-0x%x", ssrc - 193);
-+	else if (ssrc == 251)
-+		sprintf(buf, "vcc");
-+	else if (ssrc == 252)
-+		sprintf(buf, "exec");
-+	else if (ssrc == 253)
-+		sprintf(buf, "scc");
-+	else if (ssrc == 255)
-+		sprintf(buf, "0x%x", literal);
++	if (ns < 1000)
++		bucket = 0;
 +	else
-+		sprintf(buf, "?%d", ssrc);
++		bucket = min(ilog2(ns / 1000) + 1,
++			     KNOD_LAT_BUCKETS - 1);
++	stats->completion_hist[bucket]++;
 +}
 +
-+static inline void decode_vsrc9(int src, u32 literal, char *buf)
++static bool knod_bpf_poll_complete(struct knod_bpf_priv *priv,
++				   struct knod_bpf_work_sq *sqw)
 +{
-+	if (src >= 256)
-+		sprintf(buf, "v%d", src - 256);
++	struct amd_signal *signal;
++
++	if (!sqw)
++		return false;
++
++	signal = (struct amd_signal *)
++		priv->knod->kaql[0].queue_signal->kaddr;
++
++	if (sqw->sigval > READ_ONCE(signal->value)) {
++		knod_bpf_record_completion(priv, sqw);
++		return true;
++	}
++
++	if (time_after(jiffies, sqw->expire)) {
++		pr_warn_ratelimited("knod_bpf: poll expire (sigval=%lld signal=%lld expire_ms=%u)\n",
++			sqw->sigval, READ_ONCE(signal->value), knod_bpf_expire);
++		knod_bpf_record_completion(priv, sqw);
++		return true;
++	}
++
++	return false;
++}
++
++static void knod_bpf_schedule_pending_napi(struct knod_bpf_priv *priv)
++{
++	struct knod_dev *knodev = priv->knodev;
++	int qi;
++
++	for (qi = 0; qi < priv->nr_works; qi++) {
++		if (spsc_pending(&knodev->wpriv[qi].spsc_bds) &&
++		    knodev->wpriv[qi].napi)
++			napi_schedule(knodev->wpriv[qi].napi);
++	}
++}
++
++static int knod_bpf_worker(void *arg)
++{
++	struct knod_bpf_priv *priv = arg;
++	struct knod_bpf_work_sq *sqw;
++	bool progressed;
++
++	while (!kthread_should_stop()) {
++		if (kthread_should_park()) {
++			knod_bpf_drain_worker(priv);
++			kthread_parkme();
++			continue;
++		}
++
++		knod_bpf_maps_tick(priv);
++
++		progressed = false;
++
++		rcu_read_lock_bh();
++		/* Retire completed dispatches oldest-first: the signal is
++		 * monotonic so inflight[0] finishes before inflight[1..].
++		 */
++		while (priv->inflight_cnt &&
++		       knod_bpf_poll_complete(priv, priv->inflight[0])) {
++			sqw = priv->inflight[0];
++			if (--priv->inflight_cnt)
++				memmove(priv->inflight, priv->inflight + 1,
++					priv->inflight_cnt *
++					sizeof(priv->inflight[0]));
++			priv->inflight[priv->inflight_cnt] = NULL;
++			knod_complete_acquire(priv, sqw);
++			knod_complete_napi(priv, sqw);
++			progressed = true;
++		}
++
++		/* Keep the pipe full: dispatch ahead up to KNOD_BPF_INFLIGHT.
++		 * Staging self-limits, so this stops once the ring is drained.
++		 */
++		while (knod_bpf_submit_work(priv))
++			progressed = true;
++		rcu_read_unlock_bh();
++
++		if (!priv->inflight_cnt) {
++			knod_bpf_schedule_pending_napi(priv);
++			usleep_range(100, 200);
++		} else if (!progressed) {
++			/* Room to dispatch ahead but the pacing window has not
++			 * opened yet: spin so the next submit fires on time and
++			 * a completion is retired the instant it lands.  Block
++			 * on the event only when the pipe is full (nothing to
++			 * submit) or spacing is disabled.
++			 */
++			if (priv->inflight_cnt < KNOD_BPF_INFLIGHT &&
++			    ktime_before(ktime_get(), priv->next_dispatch_time))
++				cpu_relax();
++			else if (knod_bpf_poll_mode)
++				cpu_relax();
++			else
++				knod_bpf_wait_event(priv);
++		}
++	}
++
++	return 0;
++}
++
++static void knod_bpf_sq_init(struct knod_bpf_priv *priv)
++{
++	struct knod_bpf_work_sq *sqw;
++	int i;
++
++	priv->worker_task = NULL;
++	priv->inflight_cnt = 0;
++	INIT_LIST_HEAD(&priv->free_list_sqw);
++
++	for (i = 0; i < 32; i++) {
++		sqw = kvzalloc_obj(struct knod_bpf_work_sq, GFP_KERNEL);
++		if (!sqw)
++			continue;
++
++		sqw->param = knod_alloc_mem(priv->knod,
++					    sizeof(struct knod_bpf_param),
++					    KFD_IOC_ALLOC_MEM_FLAGS_GTT |
++					    KFD_IOC_ALLOC_MEM_FLAGS_WRITABLE |
++					    KFD_IOC_ALLOC_MEM_FLAGS_COHERENT);
++		if (!sqw->param) {
++			kvfree(sqw);
++			continue;
++		}
++		memset(sqw->param->kaddr, 0, sizeof(struct knod_bpf_param));
++		INIT_LIST_HEAD(&sqw->list);
++		list_add(&sqw->list, &priv->free_list_sqw);
++		sqw->backlogs = 0;
++	}
++}
++
++static void knod_bpf_free_sqw(struct knod_bpf_priv *priv,
++			      struct knod_bpf_work_sq *sqw)
++{
++	if (!sqw)
++		return;
++
++	knod_free_mem(priv->knod, sqw->param);
++	kfree(sqw);
++}
++
++static void knod_bpf_free_sqw_list(struct knod_bpf_priv *priv,
++				   struct list_head *head)
++{
++	struct knod_bpf_work_sq *sqw, *tmp;
++
++	list_for_each_entry_safe(sqw, tmp, head, list) {
++		list_del(&sqw->list);
++		knod_bpf_free_sqw(priv, sqw);
++	}
++}
++
++static void knod_bpf_sq_exit(struct knod_bpf_priv *priv)
++{
++	if (!priv->knod)
++		return;
++
++	knod_bpf_stop_worker(priv);
++	knod_bpf_drain(priv);
++
++	knod_bpf_free_sqw_list(priv, &priv->free_list_sqw);
++	priv->inflight_cnt = 0;
++}
++
++static void knod_priv_exit(struct knod_bpf_priv *priv)
++{
++	struct knod_dev *knodev = priv->knodev;
++	struct knod_bpf_map *knod_map, *tmp;
++	LIST_HEAD(reap);
++
++	knod_bpf_sq_exit(priv);
++
++	/*
++	 * The dispatch worker is not stopped until the next feature registers
++	 * its own worker, so it may still be running knod_bpf_maps_tick() here.
++	 * Serialize under knodev->lock and splice both lists to a local one:
++	 * whichever side splices first frees them, the other sees them empty.
++	 * Free outside the lock since knod_free_mem() may sleep.
++	 */
++	mutex_lock(&knodev->lock);
++	list_splice_init(&knodev->accel->xdp.bound_maps, &reap);
++	list_splice_init(&priv->dead_maps, &reap);
++	mutex_unlock(&knodev->lock);
++
++	list_for_each_entry_safe(knod_map, tmp, &reap, list) {
++		if (knod_map->gc_mem)
++			knod_free_mem(priv->knod, knod_map->gc_mem);
++		if (knod_map->queue_mem)
++			knod_free_mem(priv->knod, knod_map->queue_mem);
++		if (knod_map->hash_elems_mem)
++			knod_free_mem(priv->knod, knod_map->hash_elems_mem);
++		if (knod_map->mem)
++			knod_free_mem(priv->knod, knod_map->mem);
++		kfree(knod_map);
++	}
++
++	kfree(priv->prog_buf);
++	kfree(priv->pass_prog_buf);
++	if (priv->pass_knod_prog) {
++		knod_prog_free(priv->pass_knod_prog);
++		priv->pass_knod_prog = NULL;
++	}
++	/* kernels[] are owned by knod (freed in knod_release_ctx), not here */
++	if (priv->pass_meta_buf)
++		knod_free_mem(priv->knod, priv->pass_meta_buf);
++}
++
++static int knod_priv_init(struct knod_bpf_priv *priv)
++{
++	struct knod_dev *knodev = priv->knodev;
++	int pass_meta_buf_size;
++	int index;
++
++	priv->prog = NULL;
++	mutex_init(&priv->map_op_lock);
++	INIT_LIST_HEAD(&priv->dead_maps);
++	priv->maps_tick_skip = 0;
++
++	priv->nr_works = knod_bpf_active_rxq_count(knodev->netdev);
++	if (!priv->nr_works) {
++		pr_warn("knod_bpf: no active RX queues for %s\n",
++			knodev->netdev ? knodev->netdev->name : "<null>");
++		return -EINVAL;
++	}
++
++	priv->prog_buf = kzalloc(KNOD_BPF_PROG_BUF_SIZE, GFP_KERNEL);
++	if (!priv->prog_buf)
++		return -ENOMEM;
++
++	for (index = 0; index < priv->nr_works; index++)
++		priv->queue_base_gaddr[index] = priv->knod->buf[index]->gaddr;
++
++	/* Per-queue PASS slot count; sizes the shader pass_meta_buf below.
++	 * At most one PASS packet per dispatched slot, i.e. batch_size.
++	 */
++	priv->pass_pkts_per_queue = knod_bpf_batch_size(priv);
++
++	/* Allocate GTT buffer for per-queue shader PASS copy */
++	pass_meta_buf_size = priv->nr_works * priv->pass_pkts_per_queue *
++			KNOD_PASS_SLOT_SIZE;
++	priv->pass_meta_buf = knod_alloc_mem(priv->knod, pass_meta_buf_size,
++					KFD_IOC_ALLOC_MEM_FLAGS_GTT |
++					KFD_IOC_ALLOC_MEM_FLAGS_WRITABLE |
++					KFD_IOC_ALLOC_MEM_FLAGS_COHERENT);
++	if (IS_ERR(priv->pass_meta_buf)) {
++		pr_warn("KNOD: failed to allocate pass_meta_buf\n");
++		priv->pass_meta_buf = NULL;
++		knod_priv_exit(priv);
++		return -ENOMEM;
++	}
++	pr_debug("KNOD: pass_meta_buf gaddr=0x%llx..0x%llx size=%d nr_q=%d pass_pkts_per_queue=%u\n",
++		 priv->pass_meta_buf->gaddr,
++		 priv->pass_meta_buf->gaddr + pass_meta_buf_size,
++		 priv->pass_meta_buf->size, priv->nr_works,
++		 priv->pass_pkts_per_queue);
++
++	/* GPU->host delivery pages come from the framework per-queue page_pool
++	 * (knodev->wpriv[q].pass_pool): the producer allocs from it and the
++	 * NAPI drain recycles, so no per-feature delivery BO is allocated here.
++	 */
++
++	knod_bpf_sq_init(priv);
++
++	return 0;
++}
++
++static struct knod_bpf_priv *__knod_accel_xdp_init(struct knod_accel *accel,
++						   struct knod_dev *knodev)
++{
++	struct knod *knod = (struct knod *)knodev->accel->priv;
++	struct knod_bpf_priv *priv;
++
++	priv = kzalloc_obj(struct knod_bpf_priv, GFP_KERNEL);
++	if (!priv)
++		return ERR_PTR(-ENOMEM);
++
++	INIT_LIST_HEAD(&priv->list);
++	if (knod_bpf_workgroups % 64) {
++		knod_bpf_workgroups /= 64;
++		knod_bpf_workgroups++;
++		knod_bpf_workgroups *= 64;
++	}
++
++	if (knod_bpf_workgroups < KNOD_BPF_WORKGROUPS_MIN ||
++	    knod_bpf_workgroups > KNOD_BPF_WORKGROUPS_MAX)
++		knod_bpf_workgroups = KNOD_BPF_WORKGROUPS_DEFAULT;
++
++	if (knod_bpf_expire < KNOD_BPF_EXPIRE_MIN ||
++	    knod_bpf_expire > KNOD_BPF_EXPIRE_MAX)
++		knod_bpf_expire = KNOD_BPF_EXPIRE_DEFAULT;
++	pr_debug("workgroup size %d\n", knod_bpf_workgroups);
++	pr_debug("expire time = %dms\n", knod_bpf_expire);
++	pr_debug("packet cache = %d", knod_bpf_pkt_cache);
++
++	INIT_LIST_HEAD(&accel->xdp.bound_maps);
++	accel->flags |= KNOD_FLAGS_XDP;
++	accel->xdp.priv = priv;
++	list_add(&priv->list, &priv_list);
++
++	priv->knod = knod;
++	priv->accel = accel;
++	priv->knodev = knodev;
++	priv->dev = knodev->netdev;
++
++	priv->isa_version = knod->isa_version;
++
++	/*
++	 * Only permanent per-attach state is set up here; the GPU compute
++	 * buffers (knod_priv_init/kfd_kernel_init) are allocated by
++	 * ->activate() when the BPF feature is selected.
++	 */
++
++	return priv;
++}
++
++/* Feature select: allocate the BPF GPU compute resources. */
++static int knod_bpf_activate(struct knod_dev *knodev)
++{
++	struct knod_accel *accel = knodev->accel;
++	struct knod_bpf_priv *priv = accel->xdp.priv;
++	struct knod *knod = accel->priv;
++
++	/*
++	 * Pin the module while BPF is the selected feature: the core calls
++	 * into these ops, so it must not be unloaded until feature->none.
++	 * (No-op when built in - THIS_MODULE is NULL.)
++	 */
++	if (!try_module_get(THIS_MODULE))
++		return -ENODEV;
++
++	if (knod_priv_init(priv)) {
++		WARN_ON_ONCE(1);
++		module_put(THIS_MODULE);
++		return -EINVAL;
++	}
++	if (kfd_kernel_init(knod, priv)) {
++		knod_priv_exit(priv);
++		module_put(THIS_MODULE);
++		return -ENOMEM;
++	}
++
++	priv->start = 0;
++	return 0;
++}
++
++/* Feature deselect: free the BPF GPU compute resources. */
++static void knod_bpf_deactivate(struct knod_dev *knodev)
++{
++	struct knod_bpf_priv *priv = knodev->accel->xdp.priv;
++
++	knod_priv_exit(priv);
++	module_put(THIS_MODULE);
++}
++
++/* True while a user XDP prog or offloaded map is still bound to this accel. */
++static bool knod_bpf_busy(struct knod_dev *knodev)
++{
++	struct knod_accel *accel = knodev->accel;
++	struct knod_bpf_priv *priv = accel->xdp.priv;
++
++	if (!priv)
++		return false;
++	return READ_ONCE(priv->prog) || !list_empty(&accel->xdp.bound_maps);
++}
++
++static void __knod_accel_xdp_exit(struct knod_accel *accel,
++				  struct knod_bpf_priv *priv)
++{
++	/* GPU compute buffers are freed by ->deactivate(); free the rest. */
++	memset(&accel->xdp, 0, sizeof(struct knod_accel_xdp));
++	accel->flags &= ~KNOD_FLAGS_XDP;
++	list_del(&priv->list);
++	kfree(priv);
++}
++
++static struct knod_insn_meta *knod_bpf_goto_meta(struct knod_prog *knod_prog,
++						 struct knod_insn_meta *meta,
++						 unsigned int insn_idx)
++{
++	unsigned int forward, backward, i;
++
++	backward = meta->bpf_insn_idx - insn_idx;
++	forward = insn_idx - meta->bpf_insn_idx;
++
++	if (min(forward, backward) > knod_prog->n_insns - insn_idx - 1) {
++		backward = knod_prog->n_insns - insn_idx - 1;
++		meta = knod_prog_last_meta(knod_prog);
++	}
++	if (min(forward, backward) > insn_idx && backward > insn_idx) {
++		forward = insn_idx;
++		meta = knod_prog_first_meta(knod_prog);
++	}
++
++	if (forward < backward)
++		for (i = 0; i < forward; i++)
++			meta = knod_meta_next(meta);
 +	else
-+		decode_ssrc8(src, literal, buf);
++		for (i = 0; i < backward; i++)
++			meta = knod_meta_prev(meta);
++
++	return meta;
 +}
 +
-+static inline void gfx10_debug_sop2(union amdgcn_gfx10_insn *insn)
++static int knod_bpf_check_stack_access(struct knod_prog *knod_prog,
++				       struct knod_insn_meta *meta,
++				       const struct bpf_reg_state *reg,
++				       struct bpf_verifier_env *env)
 +{
-+	char ssrc0[20], ssrc1[20];
++	s32 old_off, new_off;
 +
-+	decode_ssrc8(insn->sop2.ssrc0, insn->sop2.literal, ssrc0);
-+	decode_ssrc8(insn->sop2.ssrc1, insn->sop2.literal, ssrc1);
-+	pr_debug("knod_asm %s s%d, %s, %s\n",
-+		 opnames_gfx10[AMDGCN_INSN_TYPE_SOP2][insn->sop2.op],
-+		 insn->sop2.sdst, ssrc0, ssrc1);
++	if (reg->frameno != env->cur_state->curframe)
++		meta->flags |= FLAG_INSN_PTR_CALLER_STACK_FRAME;
++
++	if (!tnum_is_const(reg->var_off)) {
++		knod_jit_dbg(" variable ptr stack access\n");
++		return -EINVAL;
++	}
++
++	if (meta->ptr.type == NOT_INIT)
++		return 0;
++
++	old_off = meta->ptr.var_off.value;
++	new_off = reg->var_off.value;
++
++	meta->ptr_not_const |= old_off != new_off;
++
++	if (!meta->ptr_not_const)
++		return 0;
++
++	if (old_off % 4 == new_off % 4)
++		return 0;
++
++	knod_jit_dbg(" stack access changed location was:%d is:%d\n",
++		old_off, new_off);
++	return -EINVAL;
 +}
 +
-+static inline void gfx10_debug_sopk(union amdgcn_gfx10_insn *insn)
++static struct knod_insn_meta *
++knod_bpf_lookup_prev_meta_by_dreg(struct knod_prog *knod_prog,
++				  struct knod_insn_meta *meta,
++				  int dreg_id)
 +{
-+	pr_debug("knod_asm %s s%d, 0x%x\n",
-+		 opnames_gfx10[AMDGCN_INSN_TYPE_SOPK][insn->sopk.op],
-+		 insn->sopk.sdst, insn->sopk.simm16);
++	list_for_each_entry_continue_reverse(meta, &knod_prog->insns, l) {
++		if (!is_mbpf_alu(meta) &&
++		    !is_mbpf_load(meta) &&
++		    !is_mbpf_store(meta))
++			continue;
++		if (meta->insn.dst_reg == dreg_id)
++			return meta;
++	}
++
++	return NULL;
 +}
 +
-+static inline void gfx10_debug_sopc(union amdgcn_gfx10_insn *insn)
++static int knod_bpf_check_ptr(struct knod_prog *knod_prog,
++			      struct knod_insn_meta *meta,
++			      struct bpf_verifier_env *env, u8 reg_no)
 +{
-+	char ssrc0[20], ssrc1[20];
++	const struct bpf_reg_state *reg = cur_regs(env) + reg_no;
++	int err;
 +
-+	decode_ssrc8(insn->sopc.ssrc0, insn->sopc.literal, ssrc0);
-+	decode_ssrc8(insn->sopc.ssrc1, insn->sopc.literal, ssrc1);
-+	pr_debug("knod_asm %s %s, %s\n",
-+		 opnames_gfx10[AMDGCN_INSN_TYPE_SOPC][insn->sopc.op],
-+		 ssrc0, ssrc1);
++	if (reg->type != PTR_TO_CTX &&
++	    reg->type != PTR_TO_STACK &&
++	    reg->type != PTR_TO_MAP_VALUE &&
++	    reg->type != PTR_TO_PACKET) {
++		knod_jit_dbg(" unsupported ptr type: %d\n", reg->type);
++		return -EINVAL;
++	}
++
++	if (reg->type == PTR_TO_STACK) {
++		err = knod_bpf_check_stack_access(knod_prog, meta, reg, env);
++		if (err)
++			return err;
++	}
++
++	if (meta->ptr.type != NOT_INIT && meta->ptr.type != reg->type) {
++		knod_jit_dbg(" ptr type changed for instruction %d -> %d\n",
++			meta->ptr.type,
++			reg->type);
++		return -EINVAL;
++	}
++
++	meta->ptr = *reg;
++
++	return 0;
 +}
 +
-+static inline void gfx10_debug_vop3p(union amdgcn_gfx10_insn *insn)
++static int knod_bpf_update_ptr_off(struct knod_prog *knod_prog,
++				   struct knod_insn_meta *meta,
++				   struct bpf_verifier_env *env)
 +{
-+	char src0[20], src1[20], src2[20];
++	struct knod_bpf_reg_state *sreg = &meta->sreg;
++	struct knod_bpf_reg_state *dreg = &meta->dreg;
++	struct knod_insn_meta *prev_meta;
 +
-+	decode_vsrc9(insn->vop3p.src0, insn->vop3p.literal, src0);
-+	decode_vsrc9(insn->vop3p.src1, insn->vop3p.literal, src1);
-+	decode_vsrc9(insn->vop3p.src2, insn->vop3p.literal, src2);
-+	pr_debug("knod_asm %s v%d, %s, %s, %s\n",
-+		 opnames_gfx10[AMDGCN_INSN_TYPE_VOP3P][insn->vop3p.op],
-+		 (int)insn->vop3p.vdst, src0, src1, src2);
++	if (is_mbpf_load(meta)) {
++		if (sreg->reg.type == PTR_TO_PACKET ||
++		    sreg->reg.type == PTR_TO_STACK) {
++			prev_meta = knod_bpf_lookup_prev_meta_by_dreg(
++				knod_prog, meta, meta->insn.src_reg);
++			if (!prev_meta) {
++				knod_jit_dbg(" Invalid\n");
++				return -EINVAL;
++			}
++			if (sreg->reg.type == PTR_TO_PACKET)
++				sreg->packet_off = prev_meta->dreg.packet_off;
++			else
++				sreg->stack_off = prev_meta->dreg.stack_off;
++		}
++	} else if (is_mbpf_store(meta)) {
++		if (dreg->reg.type == PTR_TO_PACKET ||
++		    dreg->reg.type == PTR_TO_PACKET) {
++			prev_meta = knod_bpf_lookup_prev_meta_by_dreg(
++				knod_prog, meta, meta->insn.dst_reg);
++			if (!prev_meta) {
++				knod_jit_dbg(" Invalid\n");
++				return -EINVAL;
++			}
++			if (dreg->reg.type == PTR_TO_PACKET)
++				dreg->packet_off = prev_meta->dreg.packet_off;
++			else
++				dreg->stack_off = prev_meta->dreg.stack_off;
++		}
++	}
++
++	return 0;
 +}
 +
-+static inline void gfx10_debug_sdwa(union amdgcn_gfx10_insn *insn)
++static int knod_bpf_check_store(struct knod_prog *knod_prog,
++				struct knod_insn_meta *meta,
++				struct bpf_verifier_env *env)
 +{
-+	pr_debug("knod_asm sdwa src0:%d dst_sel:%d src0_sel:%d src1_sel:%d\n",
-+		 insn->sdwa.src0, insn->sdwa.dst_sel,
-+		 insn->sdwa.src0_sel, insn->sdwa.src1_sel);
++	const struct bpf_reg_state *reg = cur_regs(env) + meta->insn.dst_reg;
++
++	if (reg->type == PTR_TO_CTX) {
++		if (knod_prog->type == BPF_PROG_TYPE_XDP) {
++			/* XDP ctx accesses must be 4B in size */
++			switch (meta->insn.off) {
++			case offsetof(struct xdp_md, rx_queue_index):
++				knod_jit_dbg(" queue selection not supported by FW\n");
++				return -EOPNOTSUPP;
++			}
++		}
++		knod_jit_dbg(" unsupported store to context field\n");
++		return -EOPNOTSUPP;
++	}
++
++	return knod_bpf_check_ptr(knod_prog, meta, env, meta->insn.dst_reg);
 +}
 +
-+static inline void gfx10_debug_sdwab(union amdgcn_gfx10_insn *insn)
++/* NOTE:
++ * knod_bpf_lookup_prev_meta_by_dreg(), src_reg vs dst_reg ???????/
++ */
++static int knod_bpf_check_alu(struct knod_prog *knod_prog,
++			      struct knod_insn_meta *meta,
++			      struct bpf_verifier_env *env)
 +{
-+	pr_debug("knod_asm sdwab src0:%d sdst:s%d src0_sel:%d src1_sel:%d\n",
-+		 insn->sdwab.src0, insn->sdwab.sdst,
-+		 insn->sdwab.src0_sel, insn->sdwab.src1_sel);
++	const struct bpf_reg_state *sreg = cur_regs(env) + meta->insn.src_reg;
++	const struct bpf_reg_state *dreg = cur_regs(env) + meta->insn.dst_reg;
++	struct knod_bpf_reg_state *ksreg = &meta->sreg;
++	struct knod_bpf_reg_state *kdreg = &meta->dreg;
++	struct knod_insn_meta *prev_meta;
++	int imm;
++
++	meta->umin_src = min(meta->umin_src, reg_umin(sreg));
++	meta->umax_src = max(meta->umax_src, reg_umax(sreg));
++	meta->umin_dst = min(meta->umin_dst, reg_umin(dreg));
++	meta->umax_dst = max(meta->umax_dst, reg_umax(dreg));
++
++	/* AMDGPU doesn't have divide instructions, we support divide by
++	 * constant through reciprocal multiplication. Given NFP support
++	 * multiplication no bigger than u32, we'd require divisor and dividend
++	 * no bigger than that as well.
++	 *
++	 * Also eBPF doesn't support signed divide and has enforced this on C
++	 * language level by failing compilation. However LLVM assembler hasn't
++	 * enforced this, so it is possible for negative constant to leak in as
++	 * a BPF_K operand through assembly code, we reject such cases as well.
++	 */
++	if (is_mbpf_div(meta)) {
++		if (meta->umax_dst > U32_MAX) {
++			knod_jit_dbg(" dividend is not within u32 value range\n");
++			return -EINVAL;
++		}
++		if (mbpf_src(meta) == BPF_X) {
++			if (meta->umin_src != meta->umax_src) {
++				knod_jit_dbg(" divisor is not constant\n");
++				return -EINVAL;
++			}
++			if (meta->umax_src > U32_MAX) {
++				knod_jit_dbg(" divisor is not within u32 value range\n");
++				return -EINVAL;
++			}
++		}
++		if (mbpf_src(meta) == BPF_K && meta->insn.imm < 0) {
++			knod_jit_dbg(" divide by negative constant is not supported\n");
++			return -EINVAL;
++		}
++	}
++
++	if (dreg->type == PTR_TO_STACK) {
++		imm = meta->insn.imm;
++
++		switch (meta->insn.code) {
++		/* ALU
++		 * If a destination register contains a pointer of STACK,
++		 * offset should not be minus.
++		 */
++		case BPF_ALU | BPF_MOV | BPF_X:
++		case BPF_ALU64 | BPF_MOV | BPF_X:
++			//r[d] = r[s];
++			kdreg->stack_off = ksreg->stack_off;
++			break;
++		case BPF_ALU | BPF_MOV | BPF_K:
++		case BPF_ALU64 | BPF_MOV | BPF_K:
++			//r[d] = imm;
++			kdreg->stack_off = ksreg->stack_off;
++			break;
++		case BPF_ALU | BPF_XOR | BPF_X:
++		case BPF_ALU64 | BPF_XOR | BPF_X:
++			//r[d] ^= r[s];
++			knod_jit_dbg(" PTR_TO_STACK with BPF_X is not supported\n");
++			return -EINVAL;
++		case BPF_ALU | BPF_XOR | BPF_K:
++		case BPF_ALU64 | BPF_XOR | BPF_K:
++			//r[d] ^= imm;
++			prev_meta = knod_bpf_lookup_prev_meta_by_dreg(
++				knod_prog, meta, meta->insn.dst_reg);
++			if (!prev_meta) {
++				knod_jit_dbg(" Invalid\n");
++				return -EINVAL;
++			}
++			kdreg->stack_off = prev_meta->dreg.stack_off ^ imm;
++			break;
++		case BPF_ALU | BPF_MOD | BPF_X:
++		case BPF_ALU64 | BPF_MOD | BPF_X:
++			//r[d] %= r[s];
++			knod_jit_dbg(" PTR_TO_STACK with BPF_X is not supported\n");
++			return -EINVAL;
++		case BPF_ALU | BPF_MOD | BPF_K:
++		case BPF_ALU64 | BPF_MOD | BPF_K:
++			//r[d] %= imm;
++			prev_meta = knod_bpf_lookup_prev_meta_by_dreg(
++				knod_prog, meta, meta->insn.dst_reg);
++			if (!prev_meta) {
++				knod_jit_dbg(" Invalid\n");
++				return -EINVAL;
++			}
++			kdreg->stack_off = prev_meta->dreg.stack_off % imm;
++			break;
++		case BPF_ALU | BPF_AND | BPF_X:
++		case BPF_ALU64 | BPF_AND | BPF_X:
++			//r[d] &= r[s];
++			knod_jit_dbg(" PTR_TO_STACK with BPF_X is not supported\n");
++			return -EINVAL;
++		case BPF_ALU | BPF_AND | BPF_K:
++		case BPF_ALU64 | BPF_AND | BPF_K:
++			//r[d] &= imm;
++			prev_meta = knod_bpf_lookup_prev_meta_by_dreg(
++				knod_prog, meta, meta->insn.dst_reg);
++			if (!prev_meta) {
++				knod_jit_dbg(" Invalid\n");
++				return -EINVAL;
++			}
++			kdreg->stack_off = prev_meta->dreg.stack_off & imm;
++			break;
++		case BPF_ALU | BPF_OR | BPF_X:
++		case BPF_ALU64 | BPF_OR | BPF_X:
++			//r[d] |= r[s];
++			knod_jit_dbg(" PTR_TO_STACK with BPF_X is not supported\n");
++			return -EINVAL;
++		case BPF_ALU | BPF_OR | BPF_K:
++		case BPF_ALU64 | BPF_OR | BPF_K:
++			//r[d] |= imm;
++			prev_meta = knod_bpf_lookup_prev_meta_by_dreg(
++				knod_prog, meta, meta->insn.dst_reg);
++			if (!prev_meta) {
++				knod_jit_dbg(" Invalid\n");
++				return -EINVAL;
++			}
++			kdreg->stack_off = prev_meta->dreg.stack_off | imm;
++			break;
++		case BPF_ALU | BPF_ADD | BPF_X:
++		case BPF_ALU64 | BPF_ADD | BPF_X:
++			//r[d] += r[s];
++			knod_jit_dbg(" PTR_TO_STACK with BPF_X is not supported\n");
++			return -EINVAL;
++		case BPF_ALU | BPF_ADD | BPF_K:
++		case BPF_ALU64 | BPF_ADD | BPF_K:
++			//r[d] += imm;
++			prev_meta = knod_bpf_lookup_prev_meta_by_dreg(
++				knod_prog, meta, meta->insn.dst_reg);
++			if (!prev_meta) {
++				knod_jit_dbg(" Invalid\n");
++				return -EINVAL;
++			}
++			kdreg->stack_off = prev_meta->dreg.stack_off + imm;
++			break;
++		case BPF_ALU | BPF_SUB | BPF_X:
++		case BPF_ALU64 | BPF_SUB | BPF_X:
++			//r[d] -= r[s];
++			knod_jit_dbg(" PTR_TO_STACK with BPF_X is not supported\n");
++			return -EINVAL;
++		case BPF_ALU | BPF_SUB | BPF_K:
++		case BPF_ALU64 | BPF_SUB | BPF_K:
++			//r[d] -= imm;
++			prev_meta = knod_bpf_lookup_prev_meta_by_dreg(
++				knod_prog, meta, meta->insn.dst_reg);
++			if (!prev_meta) {
++				knod_jit_dbg(" Invalid\n");
++				return -EINVAL;
++			}
++			kdreg->stack_off = prev_meta->dreg.stack_off - imm;
++			break;
++		case BPF_ALU | BPF_MUL | BPF_X:
++		case BPF_ALU64 | BPF_MUL | BPF_X:
++			//r[d] *= r[s];
++			knod_jit_dbg(" PTR_TO_STACK with BPF_X is not supported\n");
++			return -EINVAL;
++		case BPF_ALU | BPF_MUL | BPF_K:
++		case BPF_ALU64 | BPF_MUL | BPF_K:
++			//r[d] *= imm;
++			prev_meta = knod_bpf_lookup_prev_meta_by_dreg(
++				knod_prog, meta, meta->insn.dst_reg);
++			if (!prev_meta) {
++				knod_jit_dbg(" Invalid\n");
++				return -EINVAL;
++			}
++			kdreg->stack_off = prev_meta->dreg.stack_off * imm;
++			break;
++		case BPF_ALU | BPF_DIV | BPF_X:
++		case BPF_ALU64 | BPF_DIV | BPF_X:
++			//r[d] /= r[s];
++			knod_jit_dbg(" PTR_TO_STACK with BPF_X is not supported\n");
++			return -EINVAL;
++		case BPF_ALU | BPF_DIV | BPF_K:
++		case BPF_ALU64 | BPF_DIV | BPF_K:
++			//r[d] /= imm;
++			prev_meta = knod_bpf_lookup_prev_meta_by_dreg(
++				knod_prog, meta, meta->insn.dst_reg);
++			if (!prev_meta) {
++				knod_jit_dbg(" Invalid\n");
++				return -EINVAL;
++			}
++			kdreg->stack_off = prev_meta->dreg.stack_off / imm;
++			break;
++		case BPF_ALU | BPF_NEG:
++		case BPF_ALU64 | BPF_NEG:
++			//r[d] = -r[d];
++			break;
++		case BPF_ALU | BPF_LSH | BPF_X:
++		case BPF_ALU64 | BPF_LSH | BPF_X:
++			//r[d] <<= r[s];
++			knod_jit_dbg(" PTR_TO_STACK with BPF_X is not supported\n");
++			return -EINVAL;
++		case BPF_ALU | BPF_LSH | BPF_K:
++		case BPF_ALU64 | BPF_LSH | BPF_K:
++			//r[d] <<= imm;
++			prev_meta = knod_bpf_lookup_prev_meta_by_dreg(
++				knod_prog, meta, meta->insn.dst_reg);
++			if (!prev_meta) {
++				knod_jit_dbg(" Invalid\n");
++				return -EINVAL;
++			}
++			kdreg->stack_off = prev_meta->dreg.stack_off << imm;
++			break;
++		case BPF_ALU | BPF_RSH | BPF_X:
++		case BPF_ALU64 | BPF_RSH | BPF_X:
++			//r[d] >>= r[s];
++			knod_jit_dbg(" PTR_TO_STACK with BPF_X is not supported\n");
++			return -EINVAL;
++		case BPF_ALU | BPF_RSH | BPF_K:
++		case BPF_ALU64 | BPF_RSH | BPF_K:
++			//r[d] >>= imm;
++			prev_meta = knod_bpf_lookup_prev_meta_by_dreg(
++				knod_prog, meta, meta->insn.dst_reg);
++			if (!prev_meta) {
++				knod_jit_dbg(" Invalid\n");
++				return -EINVAL;
++			}
++			kdreg->stack_off = prev_meta->dreg.stack_off >> imm;
++			break;
++		case BPF_ALU | BPF_ARSH | BPF_X:
++		case BPF_ALU64 | BPF_ARSH | BPF_X:
++			//r[d] >>= r[s];
++			knod_jit_dbg(" PTR_TO_STACK with BPF_X is not supported\n");
++			return -EINVAL;
++		case BPF_ALU | BPF_ARSH | BPF_K:
++		case BPF_ALU64 | BPF_ARSH | BPF_K:
++			//r[d] >>= imm;
++			prev_meta = knod_bpf_lookup_prev_meta_by_dreg(
++				knod_prog, meta, meta->insn.dst_reg);
++			if (!prev_meta) {
++				knod_jit_dbg(" Invalid\n");
++				return -EINVAL;
++			}
++			kdreg->stack_off = prev_meta->dreg.stack_off >> imm;
++			break;
++		}
++		knod_jit_dbg(" %d: dreg->stack_off = %d\n", meta->bpf_insn_idx,
++			kdreg->stack_off);
++	}
++
++	if (dreg->type == PTR_TO_PACKET) {
++		imm = meta->insn.imm;
++
++		switch (meta->insn.code) {
++		/* ALU
++		 * If a destination register contains a pointer of STACK,
++		 * offset should not be minus.
++		 */
++		case BPF_ALU | BPF_MOV | BPF_X:
++		case BPF_ALU64 | BPF_MOV | BPF_X:
++			//r[d] = r[s];
++			kdreg->packet_off = ksreg->packet_off;
++			break;
++		case BPF_ALU | BPF_MOV | BPF_K:
++		case BPF_ALU64 | BPF_MOV | BPF_K:
++			//r[d] = imm;
++			kdreg->packet_off = ksreg->packet_off;
++			break;
++		case BPF_ALU | BPF_XOR | BPF_X:
++		case BPF_ALU64 | BPF_XOR | BPF_X:
++			//r[d] ^= r[s];
++			knod_jit_dbg(" PTR_TO_STACK with BPF_X is not supported\n");
++			return -EINVAL;
++		case BPF_ALU | BPF_XOR | BPF_K:
++		case BPF_ALU64 | BPF_XOR | BPF_K:
++			//r[d] ^= imm;
++			prev_meta = knod_bpf_lookup_prev_meta_by_dreg(
++				knod_prog, meta, meta->insn.dst_reg);
++			if (!prev_meta) {
++				knod_jit_dbg(" Invalid\n");
++				return -EINVAL;
++			}
++			kdreg->packet_off = prev_meta->dreg.packet_off ^ imm;
++			break;
++		case BPF_ALU | BPF_MOD | BPF_X:
++		case BPF_ALU64 | BPF_MOD | BPF_X:
++			//r[d] %= r[s];
++			knod_jit_dbg(" PTR_TO_STACK with BPF_X is not supported\n");
++			return -EINVAL;
++		case BPF_ALU | BPF_MOD | BPF_K:
++		case BPF_ALU64 | BPF_MOD | BPF_K:
++			//r[d] %= imm;
++			prev_meta = knod_bpf_lookup_prev_meta_by_dreg(
++				knod_prog, meta, meta->insn.dst_reg);
++			if (!prev_meta) {
++				knod_jit_dbg(" Invalid\n");
++				return -EINVAL;
++			}
++			kdreg->packet_off = prev_meta->dreg.packet_off % imm;
++			break;
++		case BPF_ALU | BPF_AND | BPF_X:
++		case BPF_ALU64 | BPF_AND | BPF_X:
++			//r[d] &= r[s];
++			knod_jit_dbg(" PTR_TO_STACK with BPF_X is not supported\n");
++			return -EINVAL;
++		case BPF_ALU | BPF_AND | BPF_K:
++		case BPF_ALU64 | BPF_AND | BPF_K:
++			//r[d] &= imm;
++			prev_meta = knod_bpf_lookup_prev_meta_by_dreg(
++				knod_prog, meta, meta->insn.dst_reg);
++			if (!prev_meta) {
++				knod_jit_dbg(" Invalid\n");
++				return -EINVAL;
++			}
++			kdreg->packet_off = prev_meta->dreg.packet_off & imm;
++			break;
++		case BPF_ALU | BPF_OR | BPF_X:
++		case BPF_ALU64 | BPF_OR | BPF_X:
++			//r[d] |= r[s];
++			knod_jit_dbg(" PTR_TO_STACK with BPF_X is not supported\n");
++			return -EINVAL;
++		case BPF_ALU | BPF_OR | BPF_K:
++		case BPF_ALU64 | BPF_OR | BPF_K:
++			//r[d] |= imm;
++			prev_meta = knod_bpf_lookup_prev_meta_by_dreg(
++				knod_prog, meta, meta->insn.dst_reg);
++			if (!prev_meta) {
++				knod_jit_dbg(" Invalid\n");
++				return -EINVAL;
++			}
++			kdreg->packet_off = prev_meta->dreg.packet_off | imm;
++			break;
++		case BPF_ALU | BPF_ADD | BPF_X:
++		case BPF_ALU64 | BPF_ADD | BPF_X:
++			//r[d] += r[s];
++			knod_jit_dbg(" PTR_TO_STACK with BPF_X is not supported\n");
++			return -EINVAL;
++		case BPF_ALU | BPF_ADD | BPF_K:
++		case BPF_ALU64 | BPF_ADD | BPF_K:
++			//r[d] += imm;
++			prev_meta = knod_bpf_lookup_prev_meta_by_dreg(
++				knod_prog, meta, meta->insn.dst_reg);
++			if (!prev_meta) {
++				knod_jit_dbg(" Invalid\n");
++				return -EINVAL;
++			}
++			kdreg->packet_off = prev_meta->dreg.packet_off + imm;
++			break;
++		case BPF_ALU | BPF_SUB | BPF_X:
++		case BPF_ALU64 | BPF_SUB | BPF_X:
++			//r[d] -= r[s];
++			knod_jit_dbg(" PTR_TO_STACK with BPF_X is not supported\n");
++			return -EINVAL;
++		case BPF_ALU | BPF_SUB | BPF_K:
++		case BPF_ALU64 | BPF_SUB | BPF_K:
++			//r[d] -= imm;
++			prev_meta = knod_bpf_lookup_prev_meta_by_dreg(
++				knod_prog, meta, meta->insn.dst_reg);
++			if (!prev_meta) {
++				knod_jit_dbg(" Invalid\n");
++				return -EINVAL;
++			}
++			kdreg->packet_off = prev_meta->dreg.packet_off - imm;
++			break;
++		case BPF_ALU | BPF_MUL | BPF_X:
++		case BPF_ALU64 | BPF_MUL | BPF_X:
++			//r[d] *= r[s];
++			knod_jit_dbg(" PTR_TO_STACK with BPF_X is not supported\n");
++			return -EINVAL;
++		case BPF_ALU | BPF_MUL | BPF_K:
++		case BPF_ALU64 | BPF_MUL | BPF_K:
++			//r[d] *= imm;
++			prev_meta = knod_bpf_lookup_prev_meta_by_dreg(
++				knod_prog, meta, meta->insn.dst_reg);
++			if (!prev_meta) {
++				knod_jit_dbg(" Invalid\n");
++				return -EINVAL;
++			}
++			kdreg->packet_off = prev_meta->dreg.packet_off * imm;
++			break;
++		case BPF_ALU | BPF_DIV | BPF_X:
++		case BPF_ALU64 | BPF_DIV | BPF_X:
++			//r[d] /= r[s];
++			knod_jit_dbg(" PTR_TO_STACK with BPF_X is not supported\n");
++			return -EINVAL;
++		case BPF_ALU | BPF_DIV | BPF_K:
++		case BPF_ALU64 | BPF_DIV | BPF_K:
++			//r[d] /= imm;
++			prev_meta = knod_bpf_lookup_prev_meta_by_dreg(
++				knod_prog, meta, meta->insn.dst_reg);
++			if (!prev_meta) {
++				knod_jit_dbg(" Invalid\n");
++				return -EINVAL;
++			}
++			kdreg->packet_off = prev_meta->dreg.packet_off / imm;
++			break;
++		case BPF_ALU | BPF_NEG:
++		case BPF_ALU64 | BPF_NEG:
++			//r[d] = -r[d];
++			break;
++		case BPF_ALU | BPF_LSH | BPF_X:
++		case BPF_ALU64 | BPF_LSH | BPF_X:
++			//r[d] <<= r[s];
++			knod_jit_dbg(" PTR_TO_STACK with BPF_X is not supported\n");
++			return -EINVAL;
++		case BPF_ALU | BPF_LSH | BPF_K:
++		case BPF_ALU64 | BPF_LSH | BPF_K:
++			//r[d] <<= imm;
++			prev_meta = knod_bpf_lookup_prev_meta_by_dreg(
++				knod_prog, meta, meta->insn.dst_reg);
++			if (!prev_meta) {
++				knod_jit_dbg(" Invalid\n");
++				return -EINVAL;
++			}
++			kdreg->packet_off = prev_meta->dreg.packet_off << imm;
++			break;
++		case BPF_ALU | BPF_RSH | BPF_X:
++		case BPF_ALU64 | BPF_RSH | BPF_X:
++			//r[d] >>= r[s];
++			knod_jit_dbg(" PTR_TO_STACK with BPF_X is not supported\n");
++			return -EINVAL;
++		case BPF_ALU | BPF_RSH | BPF_K:
++		case BPF_ALU64 | BPF_RSH | BPF_K:
++			//r[d] >>= imm;
++			prev_meta = knod_bpf_lookup_prev_meta_by_dreg(
++				knod_prog, meta, meta->insn.dst_reg);
++			if (!prev_meta) {
++				knod_jit_dbg(" Invalid\n");
++				return -EINVAL;
++			}
++			kdreg->packet_off = prev_meta->dreg.packet_off >> imm;
++			break;
++		case BPF_ALU | BPF_ARSH | BPF_X:
++		case BPF_ALU64 | BPF_ARSH | BPF_X:
++			//r[d] >>= r[s];
++			knod_jit_dbg(" PTR_TO_STACK with BPF_X is not supported\n");
++			return -EINVAL;
++		case BPF_ALU | BPF_ARSH | BPF_K:
++		case BPF_ALU64 | BPF_ARSH | BPF_K:
++			//r[d] >>= imm;
++			prev_meta = knod_bpf_lookup_prev_meta_by_dreg(
++				knod_prog, meta, meta->insn.dst_reg);
++			if (!prev_meta) {
++				knod_jit_dbg(" Invalid\n");
++				return -EINVAL;
++			}
++			kdreg->packet_off = prev_meta->dreg.packet_off >> imm;
++			break;
++		}
++		knod_jit_dbg(" %d: dreg->packet_off = %d\n", meta->bpf_insn_idx,
++			kdreg->packet_off);
++	}
++	return 0;
 +}
 +
-+static inline void gfx10_debug_dpp16(union amdgcn_gfx10_insn *insn)
++static int knod_bpf_verify_insn(struct bpf_verifier_env *env,
++				int insn_idx, int prev_insn)
 +{
-+	pr_debug("knod_asm dpp16 (not decoded)\n");
++	struct knod_prog *knod_prog = env->prog->aux->offload->dev_priv;
++	const struct bpf_reg_state *sreg, *dreg, *kreg, *vreg;
++	struct knod_insn_meta *meta = knod_prog->meta;
++	struct knod_insn_meta *prev_meta;
++	int err = 0;
++
++	meta = knod_bpf_goto_meta(knod_prog, meta, insn_idx);
++	sreg = cur_regs(env) + meta->insn.src_reg;
++	dreg = cur_regs(env) + meta->insn.dst_reg;
++	knod_prog->meta = meta;
++	meta->sreg.reg = *sreg;
++	meta->dreg.reg = *dreg;
++
++	knod_bpf_update_ptr_off(knod_prog, meta, env);
++
++	if (meta->insn.src_reg >= MAX_BPF_REG ||
++			meta->insn.dst_reg >= MAX_BPF_REG) {
++		knod_jit_dbg(" program uses extended registers - jit hardening?\n");
++		err = -EINVAL;
++		goto out;
++	}
++
++	if (is_mbpf_load(meta)) {
++		err = knod_bpf_check_ptr(knod_prog, meta, env,
++					 meta->insn.src_reg);
++		goto out;
++	}
++	if (is_mbpf_store(meta)) {
++		err = knod_bpf_check_store(knod_prog, meta, env);
++		goto out;
++	}
++
++	if (is_mbpf_map_call(meta)) {
++		kreg = cur_regs(env) + 2;
++		meta->kreg.reg = *kreg;
++
++		prev_meta = knod_bpf_lookup_prev_meta_by_dreg(knod_prog,
++							      meta,
++							      2);
++		if (!prev_meta) {
++			knod_jit_dbg(" Invalid\n");
++			err = -EINVAL;
++			goto out;
++		}
++		if (kreg->type == PTR_TO_PACKET)
++			meta->kreg.packet_off = prev_meta->dreg.packet_off;
++		else
++			meta->kreg.stack_off = prev_meta->dreg.stack_off;
++		if (knod_prog->max_stack_off > meta->kreg.stack_off)
++			knod_prog->max_stack_off = meta->kreg.stack_off;
++		if (knod_prog->max_packet_off < meta->kreg.packet_off)
++			knod_prog->max_packet_off = meta->kreg.packet_off;
++
++		/* bpf_map_update_elem: track r3 (value pointer) */
++		if (meta->insn.imm == 2) {
++			vreg = cur_regs(env) + 3;
++			meta->vreg.reg = *vreg;
++
++			prev_meta = knod_bpf_lookup_prev_meta_by_dreg(knod_prog,
++								      meta,
++								      3);
++			if (!prev_meta) {
++				knod_jit_dbg(" Invalid vreg\n");
++				err = -EINVAL;
++				goto out;
++			}
++			if (vreg->type == PTR_TO_PACKET)
++				meta->vreg.packet_off =
++					prev_meta->dreg.packet_off;
++			else
++				meta->vreg.stack_off =
++					prev_meta->dreg.stack_off;
++			if (knod_prog->max_stack_off > meta->vreg.stack_off)
++				knod_prog->max_stack_off = meta->vreg.stack_off;
++			if (knod_prog->max_packet_off < meta->vreg.packet_off)
++				knod_prog->max_packet_off =
++					meta->vreg.packet_off;
++		}
++	}
++
++	if (is_mbpf_alu(meta))
++		err = knod_bpf_check_alu(knod_prog, meta, env);
++
++	/* less stack offset is bigger */
++	if (knod_prog->max_stack_off > meta->sreg.stack_off)
++		knod_prog->max_stack_off = meta->sreg.stack_off;
++	if (knod_prog->max_stack_off > meta->dreg.stack_off)
++		knod_prog->max_stack_off = meta->dreg.stack_off;
++	if (knod_prog->max_packet_off < meta->sreg.packet_off)
++		knod_prog->max_packet_off = meta->sreg.packet_off;
++	if (knod_prog->max_packet_off < meta->dreg.packet_off)
++		knod_prog->max_packet_off = meta->dreg.packet_off;
++
++out:
++	if (err)
++		pr_warn("knod_bpf: verifier rejected bpf insn %d (code 0x%02x off %d imm %d): %d\n",
++			insn_idx, meta->insn.code, meta->insn.off,
++			meta->insn.imm, err);
++	return err;
 +}
 +
-+static inline void gfx10_debug_dpp8(union amdgcn_gfx10_insn *insn)
++static int knod_bpf_finalize(struct bpf_verifier_env *env)
 +{
-+	pr_debug("knod_asm dpp8 (not decoded)\n");
++	return 0;
 +}
 +
-+static inline void gfx10_debug_vintrp(union amdgcn_gfx10_insn *insn)
++static int knod_bpf_offload(struct knod_dev *knodev,
++			    struct bpf_prog *prog, bool oldprog)
 +{
-+	pr_debug("knod_asm vintrp (not decoded)\n");
++	struct knod_bpf_priv *priv = knodev->accel->xdp.priv;
++
++	WARN(!!knod_dev_offloaded(knodev) != oldprog,
++	     "bad offload state, expected offload %sto be active",
++	     oldprog ? "" : "not ");
++
++	WRITE_ONCE(priv->prog, prog);
++	knod_dev_offload(knodev, prog);
++
++	/*
++	 * Uninstalling the prog: reload the pass kernel now, while the prog's
++	 * maps are still valid, so the worker stops dispatching prog code that
++	 * is about to reference freed maps.
++	 */
++	if (!prog)
++		knod_bpf_reload_pass(knodev);
++
++	return 0;
 +}
 +
-+static inline void gfx10_debug_ds(union amdgcn_gfx10_insn *insn)
++static int knod_bpf_xdp_offload_prog(struct knod_dev *knodev,
++				     struct netdev_bpf *bpf)
 +{
-+	pr_debug("knod_asm %s v%d, v%d, v%d, v%d offset0:%d offset1:%d%s\n",
-+		 opnames_gfx10[AMDGCN_INSN_TYPE_DS][insn->ds.op],
-+		 (int)insn->ds.vdst, (int)insn->ds.addr,
-+		 (int)insn->ds.data0, (int)insn->ds.data1,
-+		 (int)insn->ds.offset0, (int)insn->ds.offset1,
-+		 insn->ds.gds ? " gds" : "");
++	if (!knod_dev_active(knodev) && !bpf->prog)
++		return 0;
++
++	if (!knod_dev_active(knodev) && bpf->prog &&
++	    knodev->accel->xdp.bpf_offloaded) {
++		return -EBUSY;
++	}
++
++	return knod_bpf_offload(knodev, bpf->prog, knod_dev_active(knodev));
 +}
 +
-+static inline void gfx10_debug_mtbuf(union amdgcn_gfx10_insn *insn)
++static int knod_bpf_xdp_set_prog(struct knod_dev *knodev,
++				 struct netdev_bpf *bpf)
 +{
-+	pr_debug("knod_asm %s v%d, v%d, s[%d:%d], s%d format:%d offset:%d\n",
-+		 opnames_gfx10[AMDGCN_INSN_TYPE_MTBUF][insn->mtbuf.op],
-+		 (int)insn->mtbuf.vdata, (int)insn->mtbuf.vaddr,
-+		 (int)insn->mtbuf.srsrc * 4, (int)insn->mtbuf.srsrc * 4 + 3,
-+		 (int)insn->mtbuf.soffset, (int)insn->mtbuf.foamat,
-+		 (int)insn->mtbuf.offset);
++	int err;
++
++	if (bpf->command == XDP_SETUP_PROG_HW) {
++		err = knod_bpf_xdp_offload_prog(knodev, bpf);
++		if (err)
++			return err;
++	}
++
++	xdp_attachment_setup(&knodev->accel->xdp.xdp_hw, bpf);
++
++	return 0;
 +}
 +
-+static inline void gfx10_debug_mimg(union amdgcn_gfx10_insn *insn)
++static void knod_wait_vmcnt(struct knod_bpf_priv *priv,
++			   struct knod_insn_meta *meta)
 +{
-+	pr_debug("knod_asm mimg (not decoded)\n");
++	knod_emit(priv, meta, s_waitcnt_vmcnt);
 +}
 +
-+static inline void gfx10_debug_exp(union amdgcn_gfx10_insn *insn)
++static void knod_global_load_size_cache(struct knod_bpf_priv *priv,
++					struct knod_insn_meta *meta,
++					struct amdgcn_param32 *d,
++					struct amdgcn_param32 s,
++					int dst_idx, int start_off, int length)
 +{
-+	pr_debug("knod_asm exp (not decoded)\n");
++	int off = start_off;
++
++	/* length is 4B aligned */
++	while (length) {
++		if (length >= 16) {
++			knod_emit(priv, meta, global_load_dwordx4, d[dst_idx],
++				  s, off);
++			length -= 16;
++			off += 16;
++			dst_idx += 4;
++		} else if (length >= 8) {
++			knod_emit(priv, meta, global_load_dwordx2, d[dst_idx],
++				  s, off);
++			length -= 8;
++			off += 8;
++			dst_idx += 2;
++		} else if (length >= 4) {
++			knod_emit(priv, meta, global_load_dword, d[dst_idx],
++				  s, off);
++			length -= 4;
++			off += 4;
++			dst_idx += 1;
++		}
++	}
++
++	knod_wait_vmcnt(priv, meta);
 +}
 +
-+static inline void gfx10_debug_insn(struct amdgcn_insn *insn)
++static void knod_global_store_size_cache(struct knod_bpf_priv *priv,
++					 struct knod_insn_meta *meta,
++					 struct amdgcn_param32 *d,
++					 struct amdgcn_param32 s,
++					 int dst_idx, int start_off, int length)
 +{
-+	u32 *ptr;
++	int off = start_off;
 +
-+	switch (insn->type) {
-+	case AMDGCN_INSN_TYPE_SOP2:
-+		gfx10_debug_sop2(&insn->gfx10);
++	/* length is 4B aligned */
++	while (length) {
++		if (length >= 16) {
++			knod_emit(priv, meta, global_store_dwordx4, d[dst_idx],
++				  s, off);
++			length -= 16;
++			off += 16;
++			dst_idx += 4;
++		} else if (length >= 8) {
++			knod_emit(priv, meta, global_store_dwordx2, d[dst_idx],
++				  s, off);
++			length -= 8;
++			off += 8;
++			dst_idx += 2;
++		} else if (length >= 4) {
++			knod_emit(priv, meta, global_store_dword, d[dst_idx],
++				  s, off);
++			length -= 4;
++			off += 4;
++			dst_idx += 1;
++		}
++	}
++
++	knod_wait_vmcnt(priv, meta);
++}
++
++static int knod_prog_prepare_insns(struct knod_bpf_priv *priv,
++				   struct knod_prog *knod_prog)
++{
++	struct amdgcn_param64 param64[3];
++	struct amdgcn_param32 param[10];
++	struct knod_insn_meta *meta;
++	int bs_shift;
++
++	meta = kzalloc_obj(*meta, GFP_KERNEL);
++	if (!meta)
++		return -ENOMEM;
++
++	meta->amdgpu_insn_idx = 0;
++
++	/* Invalidate SQC instruction cache so that a re-uploaded shader
++	 * at the same VRAM address is fetched from memory, not from the
++	 * stale I-cache.  Must be the very first instruction at the entry
++	 * point so that every shader version has s_icache_inv at the same
++	 * offset - the cached old version executes s_icache_inv too,
++	 * which flushes the cache before divergent code is reached.
++	 */
++	knod_emit(priv, meta, s_icache_inv);
++	knod_emit(priv, meta, s_waitcnt_vmcnt_lgkmcnt);
++
++	knod_sset32(&param[0], KNOD_AMDGPU_PARAM_SREG_LO);
++	knod_sset32(&param[1], KNOD_AMDGPU_ARG_SREG);
++	/* param = (__global struct _knod_bpf_param *)pkt.kernarg_address; */
++	knod_emit(priv, meta, s_load_dwordx2, param[0], param[1],
++		  offsetof(struct hsa_kernel_dispatch_packet, kernarg_address));
++
++	knod_vset32(&param[0], KNOD_AMDGPU_IDX_VREG);
++	knod_vset32(&param[1], KNOD_AMDGPU_VREG0_LO);
++	knod_iset32(&param[2], 0);
++	/* 10bits, lidx can up to 1024, Do not edit */
++	knod_iset32(&param[3], 10);
++	/* extract workitem ID to reserved vgpr register.
++	 * In the 2D-dispatch layout, IDX_VREG holds the per-workgroup tid
++	 * (0..workgroup_size_x-1).  queue_id = workgroup_id_y (s15).  The
++	 * flat index (queue_id * batch_size + local_idx) is computed later,
++	 * after queue_desc has been loaded and the v_cmpx bounds check has
++	 * narrowed EXEC to lanes with local_idx < count.
++	 */
++	knod_emit(priv, meta, v_bfe_i32, param[0], param[1], param[2],
++		  param[3]);
++	if (priv->batch_size > knod_bpf_workgroups) {
++		/* local_idx = workgroup_id_x * workgroup_size_x
++		 * + workitem_id.
++		 */
++		knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG5_LO);
++		knod_sset32(&param[1], KNOD_AMDGPU_WORKGROUP_ID_X_SREG);
++		knod_iset32(&param[2], knod_bpf_workgroups);
++		knod_emit(priv, meta,
++			v_mul_lo_u32, param[0], param[1], param[2]);
++		knod_vset32(&param[0], KNOD_AMDGPU_IDX_VREG);
++		knod_vset32(&param[1], KNOD_AMDGPU_TMP_VREG5_LO);
++		knod_vset32(&param[2], KNOD_AMDGPU_IDX_VREG);
++		knod_emit(priv, meta, v_add_u32, param[0], param[1], param[2]);
++	}
++	/* set frame pointer to 0 */
++	knod_sset32(&param[0], KNOD_AMDGPU_FRAME_POINTER_SREG);
++	knod_iset32(&param[1], 0);
++	knod_emit(priv, meta, s_mov_b32, param[0], param[1]);
++	/* wait for s_load_dwordx2 (kernarg_address) */
++	knod_emit(priv, meta, s_waitcnt_vmcnt_lgkmcnt);
++
++	/* load {nr_backlogs, _pad} from param (offset 0, 8-byte aligned) */
++	knod_sset32(&param[0], KNOD_AMDGPU_TMP_SREG1_LO);
++	knod_sset32(&param[1], KNOD_AMDGPU_PARAM_SREG_LO);
++	knod_emit(priv, meta, s_load_dwordx2, param[0], param[1], 0);
++	knod_emit(priv, meta, s_waitcnt_vmcnt_lgkmcnt);
++
++	/* NOTE: the bounds check `EXEC &= (tid < count)` is deferred until
++	 * after the queue descriptor load (queue<->workgroup binding).
++	 * nr_backlogs is no longer the right upper bound because lanes with
++	 * tid > this queue's count must be masked, not just the ones past
++	 * the aggregate backlog total.
++	 */
++
++	/* Initialize done_mask to 0 for structurized CFG */
++	knod_emit(priv, meta, s_mov_b64, knod_prog->done_mask_sreg,
++		  AMDGCN_SREG_INTEGER_0);
++
++	/* =========================================================
++	 * Queue-descriptor prep (2D dispatch: queue_id = workgroup_id_y)
++	 *
++	 * Loads this WG's queue descriptor from VRAM, performs the
++	 * per-lane bounds check (local_idx < queues[queue_id].count), and
++	 * converts IDX_VREG from local_idx to flat_IDX (queue_id *
++	 * batch_size + local_idx) which the rest of the prologue/BPF body
++	 * expects.  TMP_VREG9_LO is repurposed to hold the saved local
++	 * tid for use as local_idx in the slot-address step.
++	 * =========================================================
++	 */
++	bs_shift = ilog2(priv->batch_size);
++
++	/* a. queue_id = workgroup_id_y (broadcast scalar to VGPR LO). */
++	knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_LO);
++	knod_sset32(&param[1], KNOD_AMDGPU_WORKGROUP_ID_Y_SREG);
++	knod_emit(priv, meta, v_mov_b32_e32, param[0], param[1]);
++	knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_HI);
++	knod_iset32(&param[1], 0);
++	knod_emit(priv, meta, v_mov_b32_e32, param[0], param[1]);
++
++	/* b. Copy queue_id into TMP_VREG5_LO - separate scratch used as
++	 *    the v_mad src-multiplicand.  Avoids dst/src1 overlap on the
++	 *    following v_mad_u64_u32 (dst=TMP_VREG0_LO:HI).
++	 */
++	knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG5_LO);
++	knod_vset32(&param[1], KNOD_AMDGPU_TMP_VREG0_LO);
++	knod_emit(priv, meta, v_mov_b32_e32, param[0], param[1]);
++
++	/* c. TMP_VREG0 = PARAM + queue_id * sizeof(queue_desc). */
++	knod_vset64(&param64[0], KNOD_AMDGPU_TMP_VREG0_LO);
++	knod_sset32(&param[0], KNOD_AMDGPU_TMP_SREG0_LO);
++	knod_iset32(&param[1],
++				 sizeof(struct knod_bpf_queue_desc));
++	knod_vset32(&param[2], KNOD_AMDGPU_TMP_VREG5_LO);
++	knod_sset64(&param64[1], KNOD_AMDGPU_PARAM_SREG_LO);
++	knod_emit(priv, meta, v_mad_u64_u32, param64[0], param[0],
++		  param[1], param[2], param64[1]);
++
++	/* d. TMP_VREG0 += offsetof(queues). */
++	knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_LO);
++	knod_iset32(&param[1],
++				 offsetof(struct knod_bpf_param, queues));
++	knod_vset32(&param[2], KNOD_AMDGPU_TMP_VREG0_LO);
++	knod_emit(priv, meta, v_add_co_u32, param[0], param[1], param[2]);
++	knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_HI);
++	knod_iset32(&param[1], 0);
++	knod_emit(priv, meta, v_add_co_ci_u32_e32, param[0], param[1],
++		  param[0]);
++
++	/* e. Load pool_gaddr + base_gaddr (offset 0, 16 bytes) into
++	 *    TMP_VREG1_LO..TMP_VREG2_HI (v24..v27 - must be consecutive).
++	 */
++	knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG1_LO);
++	knod_vset32(&param[1], KNOD_AMDGPU_TMP_VREG0_LO);
++	knod_emit(priv, meta, global_load_dwordx4, param[0], param[1], 0);
++
++	/* f. Load count + _pad + ring_start + ring_mask (offset 16, 16
++	 *    bytes) into TMP_VREG3_LO..TMP_VREG4_HI.
++	 */
++	knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG3_LO);
++	knod_vset32(&param[1], KNOD_AMDGPU_TMP_VREG0_LO);
++	knod_emit(priv, meta, global_load_dwordx4, param[0], param[1],
++		  offsetof(struct knod_bpf_queue_desc, count));
++	knod_emit(priv, meta, s_waitcnt_vmcnt);
++
++	/* g. Bounds check: EXEC &= (workitem_id < count). */
++	knod_vset32(&param[0], KNOD_AMDGPU_IDX_VREG);
++	knod_vset32(&param[1], KNOD_AMDGPU_TMP_VREG3_LO);
++	knod_emit(priv, meta, v_cmpx_lt_u32, param[0], param[1]);
++
++	/* Snapshot the in-bounds lane mask.  The unified epilogue uses this
++	 * to publish one verdict for every lane the dispatch claimed, even if
++	 * a malformed or newly added CFG path fails to join done_mask.
++	 */
++	knod_emit(priv, meta, s_mov_b64, knod_prog->initial_exec_sreg,
++		  AMDGCN_SREG_EXEC_LO);
++
++	/* h. Save per-queue local_idx to TMP_VREG9_LO.
++	 *    The slot-address step consumes this value; keeping it in a
++	 *    dedicated VGPR lets us overwrite IDX_VREG with flat_IDX for
++	 *    the CTX address computation that immediately follows.
++	 */
++	knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG9_LO);
++	knod_vset32(&param[1], KNOD_AMDGPU_IDX_VREG);
++	knod_emit(priv, meta, v_mov_b32_e32, param[0], param[1]);
++
++	/* i. IDX_VREG = (queue_id << ilog2(batch_size)) + local_idx
++	 *    -> flat_IDX into the sub[] / sqw->bds[] arrays, matching the
++	 *    CPU-side layout `sqw->bds[queue_id * batch_size + local_idx]`.
++	 *    batch_size is rounded down to a power of two at start so the
++	 *    shift is exact.
++	 */
++	knod_vset32(&param[0], KNOD_AMDGPU_IDX_VREG);
++	knod_sset32(&param[1], KNOD_AMDGPU_WORKGROUP_ID_Y_SREG);
++	knod_iset32(&param[2], bs_shift);
++	knod_vset32(&param[3], KNOD_AMDGPU_IDX_VREG);
++	knod_emit(priv, meta, v_lshl_add_u32, param[0], param[1],
++		  param[2], param[3]);
++
++	/* ctx = &param->sub[flat_IDX].ctx;
++	 * v_mad: VREG1 = sizeof(sub_obj) * flat_IDX + PARAM_SREG
++	 * then add offsetof(sub) = 8 to account for nr_backlogs/_pad
++	 */
++	knod_vset64(&param64[0], KNOD_AMDGPU_VREG1_LO);
++	knod_sset32(&param[0], KNOD_AMDGPU_TMP_SREG0_LO);
++	knod_iset32(&param[1], sizeof(struct knod_bpf_subparam_obj));
++	knod_vset32(&param[2], KNOD_AMDGPU_IDX_VREG);
++	knod_sset64(&param64[1], KNOD_AMDGPU_PARAM_SREG_LO);
++	knod_emit(priv, meta, v_mad_u64_u32, param64[0], param[0],
++		  param[1], param[2], param64[1]);
++	/* + offsetof(struct knod_bpf_param, sub) */
++	knod_vset32(&param[0], KNOD_AMDGPU_VREG1_LO);
++	knod_iset32(&param[1], offsetof(struct knod_bpf_param, sub));
++	knod_vset32(&param[2], KNOD_AMDGPU_VREG1_LO);
++	knod_emit(priv, meta, v_add_co_u32, param[0], param[1], param[2]);
++	knod_vset32(&param[0], KNOD_AMDGPU_VREG1_HI);
++	knod_iset32(&param[1], 0);
++	knod_emit(priv, meta, v_add_co_ci_u32_e32, param[0], param[1],
++		  param[0]);
++	knod_vset32(&param[0], KNOD_AMDGPU_CTX_VREG_LO);
++	knod_vset32(&param[1], KNOD_AMDGPU_VREG1_LO);
++	knod_emit(priv, meta, v_mov_b32_e32, param[0], param[1]);
++	knod_vset32(&param[0], KNOD_AMDGPU_CTX_VREG_HI);
++	knod_vset32(&param[1], KNOD_AMDGPU_VREG1_HI);
++	knod_emit(priv, meta, v_mov_b32_e32, param[0], param[1]);
++	knod_vset32(&param[0], KNOD_AMDGPU_FRAME_POINTER_VREG_LO);
++	knod_iset32(&param[1], 0x200);
++	knod_emit(priv, meta, v_mov_b32_e32, param[0], param[1]);
++	knod_vset32(&param[0], KNOD_AMDGPU_FRAME_POINTER_VREG_HI);
++	knod_iset32(&param[1], 0);
++	knod_emit(priv, meta, v_mov_b32_e32, param[0], param[1]);
++
++	/* 5. slot = (ring_start + local_idx) & ring_mask.
++	 *    local_idx = saved per-queue local_idx in TMP_VREG9_LO.
++	 */
++	knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG5_LO);
++	knod_vset32(&param[1], KNOD_AMDGPU_TMP_VREG4_LO);
++	knod_vset32(&param[2], KNOD_AMDGPU_TMP_VREG9_LO);
++	knod_emit(priv, meta, v_add_u32, param[0], param[1], param[2]);
++	knod_vset32(&param[1], KNOD_AMDGPU_TMP_VREG4_HI);
++	knod_vset32(&param[2], KNOD_AMDGPU_TMP_VREG5_LO);
++	knod_emit(priv, meta, v_and_b32_e32, param[0], param[1], param[2]);
++
++	/* Save backlog index before step 6 overwrites IDX_VREG -> SLOT_VREG.
++	 * v_mov_b32 BACKLOG_IDX_VREG(v58), IDX_VREG(v62)
++	 * Used in epilogue for XDP_PASS pass_indices[] write.
++	 */
++	knod_vset32(&param[0], KNOD_AMDGPU_BACKLOG_IDX_VREG);
++	knod_vset32(&param[1], KNOD_AMDGPU_IDX_VREG);
++	knod_emit(priv, meta, v_mov_b32_e32, param[0], param[1]);
++
++	/* 6. slot_addr = pool_gaddr + slot * spsc_stride, where
++	 *    spsc_stride = ALIGN(sizeof(spsc_bd), SMP_CACHE_BYTES)
++	 *    Compute directly into SLOT_VREG (v62:v63).
++	 */
++	knod_vset32(&param[0], KNOD_AMDGPU_SLOT_VREG_LO);
++	knod_iset32(&param[1],
++		ilog2(ALIGN(sizeof(struct spsc_bd), SMP_CACHE_BYTES)));
++	knod_emit(priv, meta, v_lshlrev_b32, param[0], param[1], param[2]);
++	/* slot_addr = pool_gaddr + slot_offset */
++	knod_vset32(&param[1], KNOD_AMDGPU_TMP_VREG1_LO);
++	knod_emit(priv, meta, v_add_co_u32, param[0], param[0], param[1]);
++	knod_vset32(&param[0], KNOD_AMDGPU_SLOT_VREG_HI);
++	knod_iset32(&param[1], 0);
++	knod_vset32(&param[2], KNOD_AMDGPU_TMP_VREG1_HI);
++	knod_emit(priv, meta, v_add_co_ci_u32_e32, param[0], param[1],
++		  param[2]);
++
++	/* 7. Load spsc_bd: {off(u16)|len(u16), page_idx} via single dwordx2
++	 *    TMP_VREG6_LO (v34) = off|len, TMP_VREG6_HI (v35) = page_idx
++	 */
++	knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG6_LO);
++	knod_vset32(&param[1], KNOD_AMDGPU_SLOT_VREG_LO);
++	knod_emit(priv, meta, global_load_dwordx2, param[0], param[1],
++		  offsetof(struct spsc_bd, off));
++	knod_emit(priv, meta, s_waitcnt_vmcnt);
++
++	/* 8. data = base_gaddr + (page_idx << PAGE_SHIFT) + off
++	 *    Compute directly into DATA_VREG (v64:v65).
++	 */
++	knod_vset32(&param[0], KNOD_AMDGPU_DATA_VREG_LO);
++	knod_iset32(&param[1], PAGE_SHIFT);
++	knod_vset32(&param[2], KNOD_AMDGPU_TMP_VREG6_HI);
++	knod_emit(priv, meta, v_lshlrev_b32, param[0], param[1], param[2]);
++	knod_vset32(&param[0], KNOD_AMDGPU_DATA_VREG_HI);
++	knod_iset32(&param[1], 32 - PAGE_SHIFT);
++	knod_emit(priv, meta, v_lshrrev_b32, param[0], param[1], param[2]);
++
++	/* data = base_gaddr + page_gaddr */
++	knod_vset32(&param[0], KNOD_AMDGPU_DATA_VREG_LO);
++	knod_vset32(&param[1], KNOD_AMDGPU_TMP_VREG2_LO);
++	knod_vset32(&param[2], KNOD_AMDGPU_DATA_VREG_LO);
++	knod_emit(priv, meta, v_add_co_u32, param[0], param[1], param[2]);
++	knod_vset32(&param[0], KNOD_AMDGPU_DATA_VREG_HI);
++	knod_vset32(&param[1], KNOD_AMDGPU_TMP_VREG2_HI);
++	knod_vset32(&param[2], KNOD_AMDGPU_DATA_VREG_HI);
++	knod_emit(priv, meta, v_add_co_ci_u32_e32, param[0], param[1],
++		  param[2]);
++
++	if (knod_prog->uses_adjust) {
++		/* Save page_base to PAGE_BASE_VREG before adding off */
++		knod_vset32(&param[0], KNOD_AMDGPU_PAGE_BASE_VREG_LO);
++		knod_vset32(&param[1], KNOD_AMDGPU_DATA_VREG_LO);
++		knod_emit(priv, meta, v_mov_b32_e32, param[0], param[1]);
++		knod_vset32(&param[0], KNOD_AMDGPU_PAGE_BASE_VREG_HI);
++		knod_vset32(&param[1], KNOD_AMDGPU_DATA_VREG_HI);
++		knod_emit(priv, meta, v_mov_b32_e32, param[0], param[1]);
++	}
++
++	/* extract off (lower 16 bits of TMP_VREG6_LO) */
++	knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG8_LO);
++	knod_iset32(&param[1], 0xffff);
++	knod_vset32(&param[2], KNOD_AMDGPU_TMP_VREG6_LO);
++	knod_emit(priv, meta, v_and_b32_e32, param[0], param[1], param[2]);
++
++	/* data += off */
++	knod_vset32(&param[0], KNOD_AMDGPU_DATA_VREG_LO);
++	knod_vset32(&param[1], KNOD_AMDGPU_TMP_VREG8_LO);
++	knod_vset32(&param[2], KNOD_AMDGPU_DATA_VREG_LO);
++	knod_emit(priv, meta, v_add_co_u32, param[0], param[1], param[2]);
++	knod_vset32(&param[0], KNOD_AMDGPU_DATA_VREG_HI);
++	knod_iset32(&param[1], 0);
++	knod_emit(priv, meta, v_add_co_ci_u32_e32, param[0], param[1],
++		  param[0]);
++
++	/* 9. data_end = data + len (upper 16 bits of TMP_VREG6_LO)
++	 *    Compute directly into DATA_END_VREG (v66:v67).
++	 */
++	knod_vset32(&param[0], KNOD_AMDGPU_DATA_END_VREG_LO);
++	knod_iset32(&param[1], 16);
++	knod_vset32(&param[2], KNOD_AMDGPU_TMP_VREG6_LO);
++	knod_emit(priv, meta, v_lshrrev_b32, param[0], param[1], param[2]);
++	knod_vset32(&param[0], KNOD_AMDGPU_DATA_END_VREG_LO);
++	knod_vset32(&param[1], KNOD_AMDGPU_DATA_VREG_LO);
++	knod_vset32(&param[2], KNOD_AMDGPU_DATA_END_VREG_LO);
++	knod_emit(priv, meta, v_add_co_u32, param[0], param[1], param[2]);
++	knod_vset32(&param[0], KNOD_AMDGPU_DATA_END_VREG_HI);
++	knod_iset32(&param[1], 0);
++	knod_vset32(&param[2], KNOD_AMDGPU_DATA_VREG_HI);
++	knod_emit(priv, meta, v_add_co_ci_u32_e32, param[0], param[1],
++		  param[2]);
++
++	/* Step 10 eliminated: data->DATA_VREG, data_end->DATA_END_VREG,
++	 * slot_addr->SLOT_VREG computed directly in steps 6/8/9 above.
++	 */
++
++	pr_debug("knod_bpf DEBUG: prologue emitted idx=%u (KNOD_META_INSNS=%d)\n",
++		 meta->amdgpu_insns, KNOD_META_INSNS);
++	if (WARN_ON(meta->amdgpu_insns > KNOD_META_INSNS))
++		return -ENOSPC;
++	list_add_tail(&meta->l, &knod_prog->pre_insns);
++
++	return 0;
++}
++
++static int knod_prog_prepare(struct knod_bpf_priv *priv,
++			     struct knod_prog *knod_prog,
++			     const struct bpf_insn *prog,
++			     unsigned int cnt)
++{
++	struct knod_insn_meta *meta;
++	unsigned int i;
++
++	/* Pre-scan: detect helper 44/65 to set uses_adjust early */
++	for (i = 0; i < cnt; i++) {
++		if (prog[i].code == (BPF_JMP | BPF_CALL) &&
++		    (prog[i].imm == 44 || prog[i].imm == 65)) {
++			knod_prog->uses_adjust = true;
++			break;
++		}
++	}
++
++	knod_vset64(&r64[0], KNOD_AMDGPU_TMP_VREG0_LO);
++	knod_vset64(&r64[1], KNOD_AMDGPU_TMP_VREG1_LO);
++	knod_vset64(&r64[2], KNOD_AMDGPU_TMP_VREG2_LO);
++	knod_vset64(&r64[3], KNOD_AMDGPU_TMP_VREG3_LO);
++	knod_vset64(&r64[4], KNOD_AMDGPU_TMP_VREG4_LO);
++	knod_vset64(&r64[5], KNOD_AMDGPU_TMP_VREG5_LO);
++	knod_vset64(&r64[6], KNOD_AMDGPU_TMP_VREG6_LO);
++	knod_vset64(&r64[7], KNOD_AMDGPU_TMP_VREG7_LO);
++	knod_vset64(&r64[8], KNOD_AMDGPU_TMP_VREG8_LO);
++	knod_vset64(&r64[9], KNOD_AMDGPU_TMP_VREG9_LO);
++	knod_vset64(&r64[10], KNOD_AMDGPU_TMP_VREG10_LO);
++	knod_vset64(&r64[11], KNOD_AMDGPU_TMP_VREG11_LO);
++	knod_vset64(&r64[12], KNOD_AMDGPU_TMP_VREG12_LO);
++	knod_vset64(&r64[13], KNOD_AMDGPU_TMP_VREG13_LO);
++	knod_vset64(&r64[14], KNOD_AMDGPU_TMP_VREG14_LO);
++	knod_vset64(&r64[15], KNOD_AMDGPU_TMP_VREG15_LO);
++	knod_vset64(&r64[16], KNOD_AMDGPU_TMP_VREG16_LO);
++	knod_vset64(&r64[17], KNOD_AMDGPU_TMP_VREG17_LO);
++	knod_vset64(&r64[18], KNOD_AMDGPU_TMP_VREG18_LO);
++	knod_vset64(&r64[19], KNOD_AMDGPU_CTX_VREG_LO);
++
++	knod_sset64(&sr64[0], KNOD_AMDGPU_TMP_SREG0_LO);
++	knod_sset64(&sr64[1], KNOD_AMDGPU_TMP_SREG1_LO);
++	knod_sset64(&sr64[2], KNOD_AMDGPU_TMP_SREG2_LO);
++	knod_sset64(&sr64[3], KNOD_AMDGPU_TMP_SREG3_LO);
++	knod_sset64(&sr64[4], KNOD_AMDGPU_TMP_SREG4_LO);
++	knod_sset64(&sr64[5], KNOD_AMDGPU_TMP_SREG5_LO);
++
++	knod_vset64(&bpf_reg64[0], KNOD_AMDGPU_VREG0_LO);
++	knod_vset64(&bpf_reg64[1], KNOD_AMDGPU_VREG1_LO);
++	knod_vset64(&bpf_reg64[2], KNOD_AMDGPU_VREG2_LO);
++	knod_vset64(&bpf_reg64[3], KNOD_AMDGPU_VREG3_LO);
++	knod_vset64(&bpf_reg64[4], KNOD_AMDGPU_VREG4_LO);
++	knod_vset64(&bpf_reg64[5], KNOD_AMDGPU_VREG5_LO);
++	knod_vset64(&bpf_reg64[6], KNOD_AMDGPU_VREG6_LO);
++	knod_vset64(&bpf_reg64[7], KNOD_AMDGPU_VREG7_LO);
++	knod_vset64(&bpf_reg64[8], KNOD_AMDGPU_VREG8_LO);
++	knod_vset64(&bpf_reg64[9], KNOD_AMDGPU_VREG9_LO);
++	knod_vset64(&bpf_reg64[10], KNOD_AMDGPU_FRAME_POINTER_VREG_LO);
++
++	knod_vset32(&r32[0], KNOD_AMDGPU_TMP_VREG0_LO);
++	for (i = 1; i < 40; i++)
++		knod_vset32(&r32[i], r32[i - 1].v + 1);
++
++	if (knod_bpf_pkt_cache) {
++		int pkt_cache_start = knod_prog->uses_adjust ?
++			KNOD_AMDGPU_PKT_CACHE_VREG0 :
++			KNOD_AMDGPU_PAGE_BASE_VREG_LO;
++
++		knod_vset32(&pkt_cache[0], pkt_cache_start);
++		for (i = 1; i < 64; i++)
++			knod_vset32(&pkt_cache[i],
++						 pkt_cache[i - 1].v + 1);
++	}
++
++	knod_vset32(&stack[0], KNOD_AMDGPU_STACK_VREG0);
++	for (i = 1; i < 128; i++)
++		knod_vset32(&stack[i], stack[i - 1].v + 1);
++
++	for (i = 0; i < cnt; i++) {
++		meta = kzalloc_obj(*meta, GFP_KERNEL);
++		if (!meta)
++			return -ENOMEM;
++
++		meta->insn = prog[i];
++		meta->bpf_insn_idx = i;
++
++		list_add_tail(&meta->l, &knod_prog->insns);
++	}
++	knod_prog->n_insns = cnt;
++
++	return 0;
++}
++
++static void knod_prog_free(struct knod_prog *knod_prog)
++{
++	struct knod_insn_meta *meta, *tmp;
++
++	//kfree(knod_prog->subprog);
++
++	list_for_each_entry_safe(meta, tmp, &knod_prog->pre_insns, l) {
++		list_del(&meta->l);
++		kfree(meta);
++	}
++	list_for_each_entry_safe(meta, tmp, &knod_prog->insns, l) {
++		list_del(&meta->l);
++		kfree(meta);
++	}
++	list_for_each_entry_safe(meta, tmp, &knod_prog->post_insns, l) {
++		list_del(&meta->l);
++		kfree(meta);
++	}
++	kfree(knod_prog);
++}
++
++static int knod_bpf_verifier_prep(struct bpf_prog *prog)
++{
++	struct knod_prog *knod_prog;
++	struct knod_bpf_priv *priv;
++	int err;
++
++	knod_prog = kzalloc_obj(struct knod_prog, GFP_KERNEL);
++	if (!knod_prog)
++		return -ENOMEM;
++
++	INIT_LIST_HEAD(&knod_prog->insns);
++	INIT_LIST_HEAD(&knod_prog->pre_insns);
++	INIT_LIST_HEAD(&knod_prog->post_insns);
++	prog->aux->offload->dev_priv = knod_prog;
++	priv = bpf_offload_dev_priv(prog->aux->offload->offdev);
++	knod_prog->knodev = priv->knodev;
++	WRITE_ONCE(priv->knod_prog, knod_prog);
++	knod_prog->knod = priv->knod;
++	knod_prog->insn_idx = 0;
++
++	if (priv->isa_version == 10) {
++		knod_prog->done_mask_sreg = 32;
++		knod_prog->exec_save_base = 34;
++		knod_prog->initial_exec_sreg =
++			KNOD_AMDGPU_INITIAL_EXEC_SREG_GFX10;
++	} else {
++		knod_prog->done_mask_sreg = KNOD_AMDGPU_DONE_MASK_SREG;
++		knod_prog->exec_save_base = KNOD_AMDGPU_EXEC_SAVE_SREG_BASE;
++		knod_prog->initial_exec_sreg =
++			KNOD_AMDGPU_INITIAL_EXEC_SREG_GFX9;
++	}
++
++	err = knod_prog_prepare(priv, knod_prog, prog->insnsi, prog->len);
++	if (err)
++		goto err_free;
++
++	knod_prog->meta = knod_prog_first_meta(knod_prog);
++
++	return 0;
++
++err_free:
++	knod_prog_free(knod_prog);
++
++	return err;
++}
++
++static struct knod_insn_meta *knod_bpf_lookup_meta(struct knod_prog *knod_prog,
++						   short idx)
++{
++	struct knod_insn_meta *meta;
++
++	list_for_each_entry(meta, &knod_prog->insns, l) {
++		if (meta->amdgpu_insn_idx == AMDGPU_INSN_SKIP)
++			continue;
++		if (meta->bpf_insn_idx == idx)
++			return meta;
++	}
++
++	return NULL;
++}
++
++static void knod_mov64_imm(struct knod_bpf_priv *priv,
++			  struct knod_insn_meta *meta,
++			  int d, u64 imm64)
++{
++	struct amdgcn_param32 param[2];
++
++	knod_vset32(&param[0], d);
++	knod_iset32(&param[1], imm64 & ~0U);
++	knod_emit(priv, meta, v_mov_b32_e32, param[0], param[1]);
++	knod_vset32(&param[0], d + 1);
++	knod_iset32(&param[1], imm64 >> 32);
++	knod_emit(priv, meta, v_mov_b32_e32, param[0], param[1]);
++}
++
++static void knod_mov32(struct knod_bpf_priv *priv,
++		      struct knod_insn_meta *meta,
++		      struct amdgcn_param32 dst,
++		      struct amdgcn_param32 src)
++{
++	knod_emit(priv, meta, v_mov_b32_e32, dst, src);
++}
++
++static void knod_mov64(struct knod_bpf_priv *priv,
++		      struct knod_insn_meta *meta,
++		      struct amdgcn_param64 dst,
++		      struct amdgcn_param64 src)
++{
++	knod_mov32(priv, meta, dst.lo, src.lo);
++	knod_mov32(priv, meta, dst.hi, src.hi);
++}
++
++static void knod_add64(struct knod_bpf_priv *priv,
++		      struct knod_insn_meta *meta,
++		      struct amdgcn_param64 dst,
++		      struct amdgcn_param64 src0,
++		      struct amdgcn_param64 src1)
++{
++	knod_emit(priv, meta, v_add_co_u32, dst.lo, src0.lo, src1.lo);
++	knod_emit(priv, meta, v_add_co_ci_u32_e32, dst.hi, src0.hi,
++		  src1.hi);
++}
++
++/* No carry out/in */
++static void knod_add32(struct knod_bpf_priv *priv,
++		      struct knod_insn_meta *meta,
++		      struct amdgcn_param32 dst,
++		      struct amdgcn_param32 src0,
++		      struct amdgcn_param32 src1)
++{
++	knod_emit(priv, meta, v_add_u32, dst, src0, src1);
++}
++
++static void knod_xor32(struct knod_bpf_priv *priv,
++		      struct knod_insn_meta *meta,
++		      struct amdgcn_param32 dst,
++		      struct amdgcn_param32 src0,
++		      struct amdgcn_param32 src1)
++{
++	knod_emit(priv, meta, v_xor_b32_e32, dst, src0, src1);
++}
++
++static void knod_alignbit32(struct knod_bpf_priv *priv,
++			   struct knod_insn_meta *meta,
++			   struct amdgcn_param32 dst,
++			   struct amdgcn_param32 src0,
++			   struct amdgcn_param32 src1,
++			   struct amdgcn_param32 src2)
++{
++	knod_emit(priv, meta, v_alignbit_b32, dst, src0, src1, src2);
++}
++
++static void knod_bfe32(struct knod_bpf_priv *priv,
++			   struct knod_insn_meta *meta,
++			   struct amdgcn_param32 dst,
++			   struct amdgcn_param32 src0,
++			   struct amdgcn_param32 src1,
++			   struct amdgcn_param32 src2)
++{
++	knod_emit(priv, meta, v_bfe_u32, dst, src0, src1, src2);
++}
++
++static void knod_bfi32(struct knod_bpf_priv *priv,
++			   struct knod_insn_meta *meta,
++			   struct amdgcn_param32 dst,
++			   struct amdgcn_param32 src0,
++			   struct amdgcn_param32 src1,
++			   struct amdgcn_param32 src2)
++{
++	knod_emit(priv, meta, v_bfi_b32, dst, src0, src1, src2);
++}
++
++static void knod_lshrrev32(struct knod_bpf_priv *priv,
++			   struct knod_insn_meta *meta,
++			   struct amdgcn_param32 dst,
++			   struct amdgcn_param32 src0,
++			   struct amdgcn_param32 src1)
++{
++	knod_emit(priv, meta, v_lshrrev_b32, dst, src0, src1);
++}
++
++static void knod_lshrrev64(struct knod_bpf_priv *priv,
++			   struct knod_insn_meta *meta,
++			   struct amdgcn_param64 dst,
++			   struct amdgcn_param64 src0,
++			   struct amdgcn_param64 src1)
++{
++	knod_emit(priv, meta, v_lshrrev_b64, dst, src0, src1);
++}
++
++static void knod_ashrrev32(struct knod_bpf_priv *priv,
++			   struct knod_insn_meta *meta,
++			   struct amdgcn_param32 dst,
++			   struct amdgcn_param32 src0,
++			   struct amdgcn_param32 src1)
++{
++	knod_emit(priv, meta, v_ashrrev_i32, dst, src0, src1);
++}
++
++static void knod_ashrrev64(struct knod_bpf_priv *priv,
++			   struct knod_insn_meta *meta,
++			   struct amdgcn_param64 dst,
++			   struct amdgcn_param64 src0,
++			   struct amdgcn_param64 src1)
++{
++	knod_emit(priv, meta, v_ashrrev_i64, dst, src0, src1);
++}
++
++static void knod_lshlrev32(struct knod_bpf_priv *priv,
++			   struct knod_insn_meta *meta,
++			   struct amdgcn_param32 dst,
++			   struct amdgcn_param32 src0,
++			   struct amdgcn_param32 src1)
++{
++	knod_emit(priv, meta, v_lshlrev_b32, dst, src0, src1);
++}
++
++static void knod_lshlrev64(struct knod_bpf_priv *priv,
++			   struct knod_insn_meta *meta,
++			   struct amdgcn_param64 dst,
++			   struct amdgcn_param64 src0,
++			   struct amdgcn_param64 src1)
++{
++	knod_emit(priv, meta, v_lshlrev_b64, dst, src0, src1);
++}
++
++/* No carry out/in */
++static void knod_sub32(struct knod_bpf_priv *priv,
++		      struct knod_insn_meta *meta,
++		      struct amdgcn_param32 dst,
++		      struct amdgcn_param32 src0,
++		      struct amdgcn_param32 src1)
++{
++	knod_emit(priv, meta, v_sub_u32, dst, src0, src1);
++}
++
++static void knod_and32(struct knod_bpf_priv *priv,
++		      struct knod_insn_meta *meta,
++		      struct amdgcn_param32 dst,
++		      struct amdgcn_param32 src0,
++		      struct amdgcn_param32 src1)
++{
++	knod_emit(priv, meta, v_and_b32_e32, dst, src0, src1);
++}
++
++static void knod_and64(struct knod_bpf_priv *priv,
++		      struct knod_insn_meta *meta,
++		      struct amdgcn_param64 dst,
++		      struct amdgcn_param64 src0,
++		      struct amdgcn_param64 src1)
++{
++	knod_and32(priv, meta, dst.lo, src0.lo, src1.lo);
++	knod_and32(priv, meta, dst.hi, src0.hi, src1.hi);
++}
++
++static void knod_or32(struct knod_bpf_priv *priv,
++		      struct knod_insn_meta *meta,
++		      struct amdgcn_param32 dst,
++		      struct amdgcn_param32 src0,
++		      struct amdgcn_param32 src1)
++{
++	knod_emit(priv, meta, v_or_b32_e32, dst, src0, src1);
++}
++
++static void knod_sub64(struct knod_bpf_priv *priv,
++		      struct knod_insn_meta *meta,
++		      struct amdgcn_param64 dst,
++		      struct amdgcn_param64 src0,
++		      struct amdgcn_param64 src1)
++{
++	knod_emit(priv, meta, v_sub_co_u32, dst.lo, src0.lo, src1.lo);
++	knod_emit(priv, meta, v_sub_co_ci_u32_e32, dst.hi, src0.hi,
++		  src1.hi);
++}
++
++static void knod_subrev64(struct knod_bpf_priv *priv,
++			 struct knod_insn_meta *meta,
++			 struct amdgcn_param64 dst,
++			 struct amdgcn_param64 src0,
++			 struct amdgcn_param64 src1)
++{
++	knod_emit(priv, meta, v_subrev_co_u32, dst.lo, src0.lo, src1.lo);
++	knod_emit(priv, meta, v_subrev_co_ci_u32_e32, dst.hi, src0.hi,
++		  src1.hi);
++}
++
++static void knod_mul_lo32(struct knod_bpf_priv *priv,
++			 struct knod_insn_meta *meta,
++			 struct amdgcn_param32 dst,
++			 struct amdgcn_param32 src1,
++			 struct amdgcn_param32 src2)
++{
++	knod_emit(priv, meta, v_mul_lo_u32, dst, src1, src2);
++}
++
++static void knod_mul_hi32(struct knod_bpf_priv *priv,
++			 struct knod_insn_meta *meta,
++			 struct amdgcn_param32 dst,
++			 struct amdgcn_param32 src1,
++			 struct amdgcn_param32 src2)
++{
++	knod_emit(priv, meta, v_mul_hi_u32, dst, src1, src2);
++}
++
++static void knod_mul64(struct knod_bpf_priv *priv,
++		      struct knod_insn_meta *meta,
++		      struct amdgcn_param64 dst,
++		      struct amdgcn_param64 src1,
++		      struct amdgcn_param64 src2,
++		      struct amdgcn_param64 tmp)
++{
++	/*
++	 * v_mul_lo_u32 v1, v2, v1
++	 * v_mul_hi_u32 v5, v2, v0
++	 * v_mul_lo_u32 v3, v3, v0
++	 * v_mul_lo_u32 v0, v2, v0
++	 * v_add_u32_e32 v1, v5, v1
++	 * v_add_u32_e32 v1, v1, v3
++	 *
++	 * v[0:1] = src1, dst
++	 * v[2:3] = src2
++	 * v5 = tmp
++	 */
++
++	/* v_mul_lo_u32 v1, v2, v1 */
++	knod_mul_lo32(priv, meta, src2.hi, src1.lo, src2.hi);
++	/* v_mul_hi_u32 v5, v2, v0 */
++	knod_mul_hi32(priv, meta, tmp.lo, src1.lo, src2.lo);
++	/* v_mul_lo_u32 v3, v3, v0 */
++	knod_mul_lo32(priv, meta, src1.hi, src1.hi, src2.lo);
++	/* v_mul_lo_u32 v0, v2, v0 */
++	knod_mul_lo32(priv, meta, src1.lo, src1.lo, src2.lo);
++	/* v_add_u32_e32 v1, v5, v1 */
++	knod_add32(priv, meta, src2.lo, tmp.lo, src2.hi);
++	/* v_add_u32_e32 v1, v1, v3 */
++	knod_add32(priv, meta, src1.hi, src2.lo, src1.hi);
++	knod_mov32(priv, meta, dst.lo, src1.lo);
++	knod_mov32(priv, meta, dst.hi, src1.hi);
++}
++
++static void knod_div(struct knod_bpf_priv *priv,
++		    struct knod_insn_meta *meta,
++		    struct amdgcn_param64 dst,
++		    struct amdgcn_param64 imm,
++		    struct amdgcn_param64 tmp_reg0,
++		    struct amdgcn_param64 tmp_reg1,
++		    struct amdgcn_param64 tmp_reg2,
++		    struct amdgcn_param64 tmp_reg3)
++{
++	struct reciprocal_value_adv rvalue;
++	struct amdgcn_param64 p64[4];
++	u8 pre_shift, exp;
++
++	WARN_ON((imm.lo.type != AMDGCN_PARAM_TYPE_INTEGER_0) &&
++		     (imm.lo.type != AMDGCN_PARAM_TYPE_LITERAL_CONST));
++	WARN_ON((imm.hi.type != AMDGCN_PARAM_TYPE_INTEGER_0) &&
++		     (imm.hi.type != AMDGCN_PARAM_TYPE_LITERAL_CONST));
++	knod_iset64(&p64[0], 0);
++	knod_iset64(&p64[1], 0);
++	knod_iset64(&p64[2], 0);
++	knod_iset64(&p64[3], 0);
++	/*
++	 * dst := imm
++	 * n := dst_reg
++	 */
++	if (imm.imm > U32_MAX) {
++		knod_mov64(priv, meta, dst, p64[0]);
++		return;
++	}
++
++	if (imm.imm >= 1U << 31) {
++		/* result = n >= dst; */
++		knod_mov64(priv, meta, tmp_reg0, imm);
++		knod_emit(priv, meta, v_cmp_ge_u64, dst, tmp_reg0);
++		return;
++	}
++
++	rvalue = reciprocal_value_adv(imm.lo.v, 32);
++	exp = rvalue.exp;
++	if (rvalue.is_wide_m && !(imm.lo.v & 1)) {
++		pre_shift = fls(imm.lo.v & -imm.lo.v) - 1;
++		rvalue = reciprocal_value_adv(imm.lo.v >> pre_shift,
++					      32 - pre_shift);
++	} else {
++		pre_shift = 0;
++	}
++
++	if (imm.lo.v == 1U << exp) {
++		knod_iset64(&p64[0], exp);
++		/* n = n >> exp */
++		knod_lshrrev64(priv, meta, dst, p64[0], dst);
++		return;
++	} else if (rvalue.is_wide_m) {
++		/*
++		 * pre_shift must be zero when reached here.
++		 * t = (n * rvalue.m) >> 32;
++		 * result = n - t;
++		 * result >>= 1;
++		 * result += t;
++		 * result >>= rvalue.sh - 1;
++		 */
++
++		/*
++		 * n := VREG0
++		 * t := VREG1
++		 * rvalue.m := VREG2
++		 * tmp := VREG3
++		 */
++
++		/* n := TMP_VREG0 */
++		knod_mov64(priv, meta, tmp_reg0, dst);
++
++		knod_iset64(&p64[0], rvalue.m);
++		/* rvalue.m := TMP_VREG2 */
++		knod_mov64(priv, meta, tmp_reg2, p64[0]);
++
++		/* t = n * rvalue.m; */
++		knod_mul64(priv, meta,
++			   tmp_reg1, /* t */
++			   tmp_reg0, /* n */
++			   tmp_reg2, /* rvalue.m */
++			   tmp_reg3); /* tmp */
++
++		/* t >>= 32; */
++		knod_iset64(&p64[0], 0);
++		knod_mov32(priv, meta, tmp_reg1.lo, tmp_reg1.hi);
++		knod_mov32(priv, meta, tmp_reg1.hi, p64[0].lo);
++
++		/* result = n - t */
++		knod_sub64(priv, meta, dst, dst, tmp_reg1);
++
++		/* result >>= 1 */
++		knod_iset64(&p64[0], 1);
++		knod_lshrrev64(priv, meta, dst, p64[0], dst);
++
++		/* result += t; */
++		knod_add64(priv, meta,
++			   dst,
++			   dst, /* result */
++			   tmp_reg1); /* t */
++
++		/* result >>= rvalue.sh - 1; */
++		knod_iset64(&p64[0], rvalue.sh - 1);
++		WARN_ON(rvalue.sh - 1 > 31);
++		knod_lshrrev64(priv, meta, dst, p64[0], dst);
++		return;
++	}
++
++	/*
++	 * if (pre_shift)
++	 *   result = n >> pre_shift;
++	 * result = ((u64)result * rvalue.m) >> 32;
++	 * result >>= rvalue.sh;
++	 */
++
++	/*
++	 * n := VREG0
++	 * <NONE> := VREG1
++	 * rvalue.m := VREG2
++	 * tmp := VREG3
++	 * result := dst * 2
++	 */
++
++	/* n := TMP_VREG0 */
++	knod_mov64(priv, meta, tmp_reg0, dst);
++
++	/* rvalue.m := TMP_VREG2 */
++	knod_iset64(&p64[0], rvalue.m);
++	knod_mov64(priv, meta, tmp_reg2, p64[0]);
++
++	if (pre_shift) {
++		/* result = n >> pre_shift; */
++		knod_iset64(&p64[0], pre_shift);
++		knod_lshrrev64(priv, meta, dst, p64[0],
++			       tmp_reg0); /* n */
++	} else {
++		/* tmp = 0 */
++		knod_iset64(&p64[0], 0);
++		knod_mov64(priv, meta, tmp_reg0, p64[0]);
++	}
++
++	/* result = result * rvalue.m; */
++	knod_mul64(priv, meta,
++		   dst, /* result */
++		   dst, /* result */
++		   tmp_reg2, /* rvalue.m */
++		   tmp_reg3); /* tmp */
++
++	/* result >>= (32 + rvalue.sh); */
++	knod_iset64(&p64[0], 32 + rvalue.sh);
++	knod_lshrrev64(priv, meta, dst, p64[0], dst);
++}
++
++static void knod_mod(struct knod_bpf_priv *priv,
++		    struct knod_insn_meta *meta,
++		    struct amdgcn_param64 dst,
++		    struct amdgcn_param64 imm,
++		    struct amdgcn_param64 tmp_reg0,
++		    struct amdgcn_param64 tmp_reg1,
++		    struct amdgcn_param64 tmp_reg2,
++		    struct amdgcn_param64 tmp_reg3,
++		    struct amdgcn_param64 tmp_reg4)
++{
++	WARN_ON((imm.lo.type != AMDGCN_PARAM_TYPE_INTEGER_0) &&
++		     (imm.lo.type != AMDGCN_PARAM_TYPE_LITERAL_CONST));
++	WARN_ON((imm.hi.type != AMDGCN_PARAM_TYPE_INTEGER_0) &&
++		     (imm.hi.type != AMDGCN_PARAM_TYPE_LITERAL_CONST));
++	/* q := tmp_reg0 */
++	knod_mov64(priv, meta, tmp_reg0, dst);
++	/* q = n / imm */
++	knod_div(priv, meta, tmp_reg0, imm,
++		     tmp_reg1, tmp_reg2, tmp_reg3, tmp_reg4);
++
++	/* tmp_reg1 := imm_reg */
++	knod_mov64(priv, meta, tmp_reg1, imm);
++
++	/* imm * q := tmp_reg3 */
++	knod_mul64(priv, meta,
++		   tmp_reg3, /* imm * q */
++		   tmp_reg0, /* q */
++		   tmp_reg1, /* imm_reg */
++		   tmp_reg2); /* tmp */
++
++	knod_sub64(priv, meta, dst, dst, tmp_reg3);
++}
++
++/*
++ * Fast constant modulo on the 32-bit value in @dst.lo for divisors of a
++ * special form, avoiding knod_mod's reciprocal divide + 64-bit multiply:
++ *   2^k     -> dst & (2^k-1)                     (mask)
++ *   2^k + 1 -> lo - hi (+C if lo<hi)             (Fermat: 2^k = -1 mod C)
++ *   2^k - 1 -> lo + hi (-C while >=C)            (Mersenne: 2^k = 1 mod C)
++ * lo/hi are the low/high k-bit halves.  One fold is exact for a 32-bit
++ * dividend when 2^k covers the high half (true for e.g. 65537 = 2^16+1,
++ * kondor's per-packet `hash % RING_SIZE`).  Returns false for other
++ * divisors (caller falls back to knod_mod).  Scratch: r64[0], r64[1].
++ */
++static bool knod_mod_k32(struct knod_bpf_priv *priv,
++			 struct knod_insn_meta *meta,
++			 struct amdgcn_param64 dst, u32 imm)
++{
++	struct amdgcn_param32 p;
++	int i;
++
++	if (is_power_of_2(imm)) {
++		knod_iset32(&p, imm - 1);
++		knod_and32(priv, meta, dst.lo, p, dst.lo);
++	} else if (is_power_of_2(imm - 1) && (imm - 1) >= (1u << 16)) {
++		knod_iset32(&p, imm - 2);			/* mask 2^k-1 */
++		knod_and32(priv, meta, r64[0].lo, p, dst.lo);	/* lo */
++		knod_iset32(&p, ilog2(imm - 1));		/* k */
++		knod_emit(priv, meta, v_lshrrev_b32, r64[1].lo, p, dst.lo);
++		/* lo-hi */
++		knod_sub32(priv, meta, dst.lo, r64[0].lo, r64[1].lo);
++		knod_emit(priv, meta, v_cmp_lt_u32, r64[0].lo, r64[1].lo);
++		knod_iset32(&p, imm);
++		knod_add32(priv, meta, r64[1].lo, p, dst.lo);	/* +C */
++		knod_emit(priv, meta, v_cndmask_b32_e32, dst.lo, dst.lo,
++			  r64[1].lo);
++	} else if (is_power_of_2(imm + 1) && (imm + 1) >= (1u << 16)) {
++		knod_iset32(&p, imm);				/* mask 2^k-1 */
++		knod_and32(priv, meta, r64[0].lo, p, dst.lo);	/* lo */
++		knod_iset32(&p, ilog2(imm + 1));		/* k */
++		knod_emit(priv, meta, v_lshrrev_b32, r64[1].lo, p, dst.lo);
++		/* lo+hi */
++		knod_add32(priv, meta, dst.lo, r64[0].lo, r64[1].lo);
++		knod_iset32(&p, imm);
++		knod_mov32(priv, meta, r64[0].lo, p);		/* C in VGPR */
++		for (i = 0; i < 2; i++) {			/* r < 2C */
++			knod_emit(priv, meta, v_cmp_le_u32, r64[0].lo, dst.lo);
++			knod_sub32(priv, meta, r64[1].lo, dst.lo, r64[0].lo);
++			knod_emit(priv, meta, v_cndmask_b32_e32, dst.lo,
++				  dst.lo, r64[1].lo);
++		}
++	} else {
++		return false;
++	}
++
++	knod_iset32(&p, 0);
++	knod_mov32(priv, meta, dst.hi, p);
++	return true;
++}
++
++/* Considered to be able to use all temporary vregisters
++ * Also, key is stack pointer, not global
++ */
++static void knod_jhash(struct knod_bpf_priv *priv,
++		      struct knod_insn_meta *meta,
++		      u32 dst_idx, u32 length, u32 initval)
++{
++	u32 a_reg = TREG32_MAX - 3, b_reg = TREG32_MAX - 2;
++	u32 c_reg = TREG32_MAX - 1, d_reg = TREG32_MAX;
++	u32 key_in_pkt = KEY_IN_PKT_32;
++	struct amdgcn_param32 p32;
++
++	knod_iset32(&p32, JHASH_INITVAL + length + initval);
++	knod_mov32(priv, meta, r32[a_reg], p32);
++	knod_mov32(priv, meta, r32[b_reg], p32);
++	knod_mov32(priv, meta, r32[c_reg], p32);
++	knod_iset32(&p32, 0);
++
++	while (length > 12) {
++		/* a += *key; */
++		knod_add32(priv, meta, r32[a_reg], r32[a_reg],
++			       r32[key_in_pkt]);
++		/* b += *(key + 4); */
++		knod_add32(priv, meta, r32[b_reg], r32[b_reg],
++			       r32[key_in_pkt + 1]);
++		/* c += *(key + 8); */
++		knod_add32(priv, meta, r32[c_reg], r32[c_reg],
++			       r32[key_in_pkt + 2]);
++		/* a -= c; */
++		knod_sub32(priv, meta, r32[a_reg], r32[a_reg], r32[c_reg]);
++		/* a ^= rol32(c, 4); */
++		knod_iset32(&p32, 32 - 4);
++		knod_alignbit32(priv, meta, r32[d_reg], r32[c_reg],
++				    r32[c_reg], p32);
++		knod_xor32(priv, meta,
++			       r32[a_reg], r32[a_reg], r32[d_reg]);
++		/* c += b; */
++		knod_add32(priv, meta, r32[c_reg], r32[c_reg], r32[b_reg]);
++		/* b -= a; */
++		knod_sub32(priv, meta, r32[b_reg], r32[b_reg], r32[a_reg]);
++		/* b ^= rol32(a, 6); */
++		knod_iset32(&p32, 32 - 6);
++		knod_alignbit32(priv, meta, r32[d_reg], r32[a_reg],
++				    r32[a_reg], p32);
++		knod_xor32(priv, meta,
++			       r32[b_reg], r32[b_reg], r32[d_reg]);
++		/*a += c; */
++		knod_add32(priv, meta, r32[a_reg], r32[a_reg], r32[c_reg]);
++		/* c -= b; */
++		knod_sub32(priv, meta, r32[c_reg], r32[c_reg], r32[b_reg]);
++		/* c ^= rol32(b, 8); */
++		knod_iset32(&p32, 32 - 8);
++		knod_alignbit32(priv, meta, r32[d_reg], r32[b_reg],
++				    r32[b_reg], p32);
++		knod_xor32(priv, meta,
++			       r32[c_reg], r32[c_reg], r32[d_reg]);
++		/* b += a; */
++		knod_add32(priv, meta, r32[b_reg], r32[b_reg], r32[a_reg]);
++		/* a -= c; */
++		knod_sub32(priv, meta, r32[a_reg], r32[a_reg], r32[c_reg]);
++		/* a ^= rol32(c, 16); */
++		knod_iset32(&p32, 32 - 16);
++		knod_alignbit32(priv, meta, r32[d_reg], r32[c_reg],
++				    r32[c_reg], p32);
++		knod_xor32(priv, meta, r32[a_reg], r32[a_reg], r32[d_reg]);
++		/* c += b; */
++		knod_add32(priv, meta, r32[c_reg], r32[c_reg], r32[b_reg]);
++		/* b -= a; */
++		knod_sub32(priv, meta, r32[b_reg], r32[b_reg], r32[a_reg]);
++		/* b ^= rol32(a, 19); */
++		knod_iset32(&p32, 32 - 19);
++		knod_alignbit32(priv, meta, r32[d_reg], r32[a_reg],
++				    r32[a_reg], p32);
++		knod_xor32(priv, meta, r32[b_reg], r32[b_reg], r32[d_reg]);
++		/* a += c; */
++		knod_add32(priv, meta, r32[a_reg], r32[a_reg], r32[c_reg]);
++		/* c -= b; */
++		knod_sub32(priv, meta, r32[c_reg], r32[c_reg], r32[b_reg]);
++		/* c ^= rol32(b, 4); */
++		knod_iset32(&p32, 32 - 4);
++		knod_alignbit32(priv, meta, r32[d_reg], r32[b_reg],
++				    r32[b_reg], p32);
++		knod_xor32(priv, meta, r32[c_reg], r32[c_reg], r32[d_reg]);
++		/* b += a; */
++		knod_add32(priv, meta, r32[b_reg], r32[b_reg], r32[a_reg]);
++		length -= 12;
++		key_in_pkt += 3;
++	}
++
++	switch (length) {
++	case 12:
++		/* c += (unsigned int)k[11]<<24; */
++		fallthrough;
++	case 11:
++		/* c += (unsigned int)k[10]<<16; */
++		fallthrough;
++	case 10:
++		/* c += (unsigned int)k[9]<<8; */
++		fallthrough;
++	case 9:
++		/* c += k[8]; */
++		knod_add32(priv, meta, r32[c_reg], r32[c_reg],
++			       r32[key_in_pkt + 2]);
++		fallthrough;
++	case 8:
++		/* b += (unsigned int)k[7]<<24; */
++		fallthrough;
++	case 7:
++		/* b += (unsigned int)k[6]<<16; */
++		fallthrough;
++	case 6:
++		/* b += (unsigned int)k[5]<<8; */
++		fallthrough;
++	case 5:
++		/* b += k[4]; */
++		knod_add32(priv, meta, r32[b_reg], r32[b_reg],
++			       r32[key_in_pkt + 1]);
++		fallthrough;
++	case 4:
++		/* a += (unsigned int)k[3]<<24; */
++		fallthrough;
++	case 3:
++		/* a += (unsigned int)k[2]<<16; */
++		fallthrough;
++	case 2:
++		/* a += (unsigned int)k[1]<<8; */
++		fallthrough;
++	case 1:
++		/* a += k[0]; */
++		knod_add32(priv, meta, r32[a_reg], r32[a_reg],
++			       r32[key_in_pkt]);
++		/* c ^= b; */
++		knod_xor32(priv, meta, r32[c_reg], r32[c_reg], r32[b_reg]);
++		/* c -= rol32(b, 14); */
++		knod_iset32(&p32, 32 - 14);
++		knod_alignbit32(priv, meta, r32[d_reg], r32[b_reg],
++				    r32[b_reg], p32);
++		knod_sub32(priv, meta, r32[c_reg], r32[c_reg], r32[d_reg]);
++		/* a ^= c; */
++		knod_xor32(priv, meta, r32[a_reg], r32[a_reg], r32[c_reg]);
++		/* a -= rol32(c, 11); */
++		knod_iset32(&p32, 32 - 11);
++		knod_alignbit32(priv, meta, r32[d_reg], r32[c_reg],
++				    r32[c_reg], p32);
++		knod_sub32(priv, meta, r32[a_reg], r32[a_reg], r32[d_reg]);
++		/* b ^= a; */
++		knod_xor32(priv, meta, r32[b_reg], r32[b_reg], r32[a_reg]);
++		/* b -= rol32(a, 25); */
++		knod_iset32(&p32, 32 - 25);
++		knod_alignbit32(priv, meta, r32[d_reg], r32[a_reg],
++				    r32[a_reg], p32);
++		knod_sub32(priv, meta, r32[b_reg], r32[b_reg], r32[d_reg]);
++		/* c ^= b; */
++		knod_xor32(priv, meta, r32[c_reg], r32[c_reg], r32[b_reg]);
++		/* c -= rol32(b, 16); */
++		knod_iset32(&p32, 32 - 16);
++		knod_alignbit32(priv, meta, r32[d_reg], r32[b_reg],
++				    r32[b_reg], p32);
++		knod_sub32(priv, meta, r32[c_reg], r32[c_reg], r32[d_reg]);
++		/* a ^= c; */
++		knod_xor32(priv, meta, r32[a_reg], r32[a_reg], r32[c_reg]);
++		/* a -= rol32(c, 4); */
++		knod_iset32(&p32, 32 - 4);
++		knod_alignbit32(priv, meta, r32[d_reg], r32[c_reg],
++				    r32[c_reg], p32);
++		knod_sub32(priv, meta, r32[a_reg], r32[a_reg], r32[d_reg]);
++		/* b ^= a; */
++		knod_xor32(priv, meta, r32[b_reg], r32[b_reg], r32[a_reg]);
++		/* b -= rol32(a, 14); */
++		knod_iset32(&p32, 32 - 14);
++		knod_alignbit32(priv, meta, r32[d_reg], r32[a_reg],
++				    r32[a_reg], p32);
++		knod_sub32(priv, meta, r32[b_reg], r32[b_reg], r32[d_reg]);
++		/* c ^= b; */
++		knod_xor32(priv, meta, r32[c_reg], r32[c_reg], r32[b_reg]);
++		/* c -= rol32(b, 24); */
++		knod_iset32(&p32, 32 - 24);
++		knod_alignbit32(priv, meta, r32[d_reg], r32[b_reg],
++				    r32[b_reg], p32);
++		knod_sub32(priv, meta, r32[c_reg], r32[c_reg], r32[d_reg]);
 +		break;
-+	case AMDGCN_INSN_TYPE_SOPK:
-+		gfx10_debug_sopk(&insn->gfx10);
++	case 0: /* Nothing left to add */
 +		break;
-+	case AMDGCN_INSN_TYPE_SOP1:
-+		gfx10_debug_sop1(&insn->gfx10);
++	}
++
++	knod_mov32(priv, meta, r64[dst_idx].lo, r32[c_reg]);
++}
++
++static u64 knod_bpf_map_gaddr(struct knod_bpf_priv *priv, int id)
++{
++	struct knod_dev *knodev = priv->knodev;
++	struct knod_bpf_map *knod_map;
++	struct knod_mem *mem;
++
++	mutex_lock(&knodev->lock);
++	list_for_each_entry(knod_map, &knodev->accel->xdp.bound_maps, list) {
++		if (knod_map->offmap->map.id == id) {
++			mem = knod_map->mem;
++			mutex_unlock(&knodev->lock);
++			return (u64)mem->gaddr;
++		}
++	}
++	mutex_unlock(&knodev->lock);
++
++	return 0;
++}
++
++static void *knod_bpf_map_kaddr(struct knod_bpf_priv *priv, int id)
++{
++	struct knod_dev *knodev = priv->knodev;
++	struct knod_bpf_map *knod_map;
++	struct knod_mem *mem;
++
++	mutex_lock(&knodev->lock);
++	list_for_each_entry(knod_map, &knodev->accel->xdp.bound_maps, list) {
++		if (knod_map->offmap->map.id == id) {
++			mem = knod_map->mem;
++
++			/* GPUVM */
++			mutex_unlock(&knodev->lock);
++			return (void *)mem->kaddr;
++		}
++	}
++	mutex_unlock(&knodev->lock);
++
++	return NULL;
++}
++
++static u64 knod_bpf_get_map_gaddr(struct knod_bpf_priv *priv,
++				  struct knod_insn_meta *meta1,
++				  struct knod_insn_meta *meta2)
++{
++	struct bpf_map *map;
++
++	map = (void *)(unsigned long)((u32)meta1->insn.imm |
++			(u64)meta2->insn.imm << 32);
++
++	return knod_bpf_map_gaddr(priv, map->id);
++}
++
++static int knod_bpf_get_map_id(struct knod_bpf_priv *priv,
++			       struct knod_insn_meta *meta1,
++			       struct knod_insn_meta *meta2)
++{
++	struct bpf_map *map;
++
++	map = (void *)(unsigned long)((u32)meta1->insn.imm |
++			(u64)meta2->insn.imm << 32);
++
++	return map->id;
++}
++
++static int knod_bpf_get_amdgpu_insn_idx(struct knod_bpf_priv *priv,
++					struct knod_insn_meta *meta,
++					int t)
++{
++	int i, insn_idx = meta->amdgpu_insn_idx;
++
++	for (i = 0; i < t; i++)
++		insn_idx += meta->amdgpu_insn[i].size / 4;
++
++	return insn_idx;
++}
++
++static void knod_bpf_fixup_branch(struct knod_bpf_priv *priv,
++				  struct amdgcn_branch_fixup *fixup)
++{
++	int target_off = knod_bpf_get_amdgpu_insn_idx(priv,
++						      fixup->target_label->meta,
++			fixup->target_label->insn_idx);
++	int cur_off = knod_bpf_get_amdgpu_insn_idx(priv,
++						   fixup->meta,
++						   fixup->insn_idx);
++	cur_off++;
++
++	target_off -= cur_off;
++	emit_branch_fixup(priv->isa_version,
++			  &fixup->meta->amdgpu_insn[fixup->insn_idx],
++			  target_off);
++	knod_jit_dbg(" target_off was updated to %d\n", target_off);
++}
++
++static void knod_bpf_set_fixup(struct knod_insn_meta *meta,
++			       struct amdgcn_branch_fixup *fixup,
++			       struct amdgcn_label *target_label,
++			       int insn_idx)
++{
++	fixup->meta = meta;
++	fixup->insn_idx = insn_idx;
++	fixup->target_label = target_label;
++}
++
++static void knod_bpf_set_label(struct knod_insn_meta *meta,
++			       struct amdgcn_label *label,
++			       int insn_idx)
++{
++	label->meta = meta;
++	label->insn_idx = insn_idx;
++}
++
++/*
++ * knod_bpf_emit_offlen_writeback - Write updated off/len to spsc_bd.
++ *
++ * Uses PAGE_BASE_VREG (set once in prologue), computes
++ * new_off = DATA_VREG_LO - PAGE_BASE_VREG_LO and
++ * new_len = DATA_END_VREG_LO - DATA_VREG_LO, packs them as (len<<16)|off,
++ * and stores the result at spsc_bd.off via SLOT_VREG.
++ *
++ * Clobbers: TMP_VREG2 (v26:v27).
++ */
++static void knod_bpf_emit_offlen_writeback(struct knod_bpf_priv *priv,
++					  struct knod_insn_meta *meta)
++{
++	struct amdgcn_param32 s0, s1, data_lo, data_end_lo, pbase_lo, slot_lo;
++	struct amdgcn_param32 imm;
++
++	knod_vset32(&s0, KNOD_AMDGPU_TMP_VREG2_LO);
++	knod_vset32(&s1, KNOD_AMDGPU_TMP_VREG2_HI);
++	knod_vset32(&data_lo, KNOD_AMDGPU_DATA_VREG_LO);
++	knod_vset32(&data_end_lo, KNOD_AMDGPU_DATA_END_VREG_LO);
++	knod_vset32(&pbase_lo, KNOD_AMDGPU_PAGE_BASE_VREG_LO);
++	knod_vset32(&slot_lo, KNOD_AMDGPU_SLOT_VREG_LO);
++
++	/* s0 = len = DATA_END_LO - DATA_LO */
++	knod_sub32(priv, meta, s0, data_end_lo, data_lo);
++
++	/* s0 = len << 16 */
++	knod_iset32(&imm, 16);
++	knod_lshlrev32(priv, meta, s0, imm, s0);
++
++	/* s1 = off = DATA_LO - page_base_lo */
++	knod_sub32(priv, meta, s1, data_lo, pbase_lo);
++
++	/* s0 = (len << 16) | off */
++	knod_or32(priv, meta, s0, s0, s1);
++
++	/* Store packed {off, len} to spsc_bd */
++	knod_emit(priv, meta, global_store_dword, s0, slot_lo,
++		  offsetof(struct spsc_bd, off));
++}
++
++/*
++ * knod_bpf_xdp_adjust_head - JIT bpf_xdp_adjust_head (helper 44).
++ *
++ * R2 = delta (signed 32-bit).  Adjusts DATA_VREG by delta.
++ * Bounds: page_base <= DATA_VREG <= DATA_END_VREG - ETH_HLEN.
++ * Each bound is checked with its own VOPC, but VCC is captured into
++ * VGPRs via v_cndmask (VALU) rather than SGPRs via s_mov_b64 (SALU).
++ * VALU reads VCC correctly after VOPC; only SALU suffers the GFX10
++ * dual-VOPC stale-read hazard.
++ * page_base is reloaded on demand from param + spsc_bd.
++ * On failure, DATA_VREG is restored and R0 = -EINVAL.
++ * On success, R0 = 0.
++ *
++ * Clobbers: TMP_VREG0 (v22:v23), TMP_VREG1 (v24:v25), TMP_VREG2 (v26:v27),
++ *           TMP_SREG0 (s16), TMP_SREG2 (s20:s21).
++ */
++static void knod_bpf_xdp_adjust_head(struct knod_bpf_priv *priv,
++				    struct knod_insn_meta *meta)
++{
++	struct amdgcn_param32 ub_lo, ub_hi, dend_lo, dend_hi, sext_dst;
++	struct amdgcn_param32 shift_amt;
++	struct amdgcn_param32 tmp0_lo, tmp0_hi, data_lo, data_hi, fail_lo;
++	struct amdgcn_param32 fail_hi;
++	struct amdgcn_param64 data_vreg, pbase_vreg, ub;
++	struct amdgcn_param32 r0_lo, r0_hi, imm, delta;
++
++	knod_vset64(&data_vreg, KNOD_AMDGPU_DATA_VREG_LO);
++
++	knod_vset32(&tmp0_lo, KNOD_AMDGPU_TMP_VREG0_LO);
++	knod_vset32(&tmp0_hi, KNOD_AMDGPU_TMP_VREG0_HI);
++	knod_vset32(&data_lo, KNOD_AMDGPU_DATA_VREG_LO);
++	knod_vset32(&data_hi, KNOD_AMDGPU_DATA_VREG_HI);
++	knod_vset32(&r0_lo, KNOD_AMDGPU_VREG0_LO);
++	knod_vset32(&r0_hi, KNOD_AMDGPU_VREG0_HI);
++	knod_vset32(&delta, bpf_reg64[2].lo.v);
++	knod_vset32(&fail_lo, KNOD_AMDGPU_TMP_VREG2_LO);
++	knod_vset32(&fail_hi, KNOD_AMDGPU_TMP_VREG2_HI);
++
++	/* 1. Save original DATA_VREG -> TMP_VREG0 */
++	knod_mov32(priv, meta, tmp0_lo, data_lo);
++	knod_mov32(priv, meta, tmp0_hi, data_hi);
++
++	/* 2. DATA_VREG += delta (R2.lo, sign-extended to 64-bit) */
++	knod_emit(priv, meta, v_add_co_u32, data_lo, delta, data_lo);
++
++	knod_vset32(&sext_dst, KNOD_AMDGPU_TMP_VREG1_LO);
++	knod_iset32(&shift_amt, 31);
++	knod_emit(priv, meta, v_ashrrev_i32, sext_dst, shift_amt, delta);
++
++	knod_emit(priv, meta, v_add_co_ci_u32_e32, data_hi, sext_dst,
++		  data_hi);
++
++	/* 3. Lower bound: DATA_VREG < page_base -> VCC = fail */
++	knod_vset64(&pbase_vreg, KNOD_AMDGPU_PAGE_BASE_VREG_LO);
++	knod_emit(priv, meta, v_cmp_lt_u64, data_vreg, pbase_vreg);
++
++	/*
++	 * Capture VCC -> VGPR via v_cndmask (VALU reads VCC correctly,
++	 * unlike SALU which suffers the dual-VOPC stale-read hazard).
++	 */
++	knod_iset32(&imm, 1);
++	knod_mov32(priv, meta, fail_hi, imm);
++	knod_iset32(&imm, 0);
++	knod_emit(priv, meta, v_cndmask_b32_e32, fail_lo, imm, fail_hi);
++
++	/* 5. Upper bound: DATA_VREG > DATA_END_VREG - ETH_HLEN */
++	knod_vset32(&ub_lo, KNOD_AMDGPU_TMP_VREG1_LO);
++	knod_vset32(&ub_hi, KNOD_AMDGPU_TMP_VREG1_HI);
++	knod_vset32(&dend_lo, KNOD_AMDGPU_DATA_END_VREG_LO);
++	knod_vset32(&dend_hi, KNOD_AMDGPU_DATA_END_VREG_HI);
++
++	knod_iset32(&imm, ETH_HLEN);
++	/*
++	 * v_sub_co_u32 is VOP2 on GFX9, whose vsrc1 must be a VGPR (a literal
++	 * there reads v0). Subtraction is not commutative, so materialise
++	 * ETH_HLEN into a scratch VGPR (ub_hi, overwritten by the high half
++	 * below) and use it as src1 instead of an immediate.
++	 */
++	knod_mov32(priv, meta, ub_hi, imm);
++	knod_emit(priv, meta, v_sub_co_u32, ub_lo, dend_lo, ub_hi);
++	knod_iset32(&imm, 0);
++	knod_mov32(priv, meta, delta, imm);
++	knod_emit(priv, meta, v_sub_co_ci_u32_e32, ub_hi, dend_hi, delta);
++
++	knod_vset64(&ub, KNOD_AMDGPU_TMP_VREG1_LO);
++	knod_emit(priv, meta, v_cmp_gt_u64, data_vreg, ub);
++
++	/* Capture upper_fail via v_cndmask, combine, convert to VCC */
++	knod_iset32(&imm, 0);
++	knod_emit(priv, meta, v_cndmask_b32_e32, fail_hi, imm, fail_hi);
++
++	knod_emit(priv, meta, v_or_b32_e32, fail_lo, fail_lo, fail_hi);
++
++	knod_emit(priv, meta, v_cmp_lt_u32, imm, fail_lo);
++
++	/* 6. Conditional restore: VCC=1(fail) -> original,
++	 *    VCC=0(pass) -> adjusted
++	 */
++	knod_emit(priv, meta, v_cndmask_b32_e32, data_lo, data_lo,
++		  tmp0_lo);
++	knod_emit(priv, meta, v_cndmask_b32_e32, data_hi, data_hi,
++		  tmp0_hi);
++
++	/* 7. R0 = VCC ? -EINVAL : 0 */
++	knod_iset32(&imm, -EINVAL);
++	knod_mov32(priv, meta, tmp0_lo, imm);
++	knod_iset32(&imm, 0);
++	knod_emit(priv, meta, v_cndmask_b32_e32, r0_lo, imm, tmp0_lo);
++
++	knod_iset32(&imm, -1);
++	knod_mov32(priv, meta, tmp0_hi, imm);
++	knod_iset32(&imm, 0);
++	knod_emit(priv, meta, v_cndmask_b32_e32, r0_hi, imm, tmp0_hi);
++}
++
++/*
++ * knod_bpf_xdp_adjust_tail - JIT bpf_xdp_adjust_tail (helper 65).
++ *
++ * R2 = delta (signed 32-bit).  Adjusts DATA_END_VREG by delta.
++ * Bounds: DATA_VREG + ETH_HLEN <= DATA_END_VREG <= page_base + PAGE_SIZE.
++ * Each bound is checked with its own VOPC, but VCC is captured into
++ * VGPRs via v_cndmask (VALU) rather than SGPRs via s_mov_b64 (SALU).
++ * VALU reads VCC correctly after VOPC; only SALU suffers the GFX10
++ * dual-VOPC stale-read hazard.
++ * page_base is reloaded on demand from param + spsc_bd.
++ * On failure, DATA_END_VREG is restored and R0 = -EINVAL.
++ * On success, R0 = 0.
++ *
++ * Clobbers: TMP_VREG0 (v22:v23), TMP_VREG1 (v24:v25), TMP_VREG2 (v26:v27),
++ *           TMP_SREG0 (s16), TMP_SREG2 (s20:s21).
++ */
++static void knod_bpf_xdp_adjust_tail(struct knod_bpf_priv *priv,
++				    struct knod_insn_meta *meta)
++{
++	struct amdgcn_param32 tmp0_lo, tmp0_hi, dend_lo, dend_hi, fail_lo;
++	struct amdgcn_param32 fail_hi;
++	struct amdgcn_param32 lb_lo, lb_hi, d_lo, d_hi, sext_dst, shift_amt;
++	struct amdgcn_param32 pb_src_lo, pb_src_hi;
++	struct amdgcn_param32 r0_lo, r0_hi;
++	struct amdgcn_param32 imm, delta;
++	struct amdgcn_param64 dend_vreg, lb;
++
++	knod_vset32(&tmp0_lo, KNOD_AMDGPU_TMP_VREG0_LO);
++	knod_vset32(&tmp0_hi, KNOD_AMDGPU_TMP_VREG0_HI);
++	knod_vset32(&dend_lo, KNOD_AMDGPU_DATA_END_VREG_LO);
++	knod_vset32(&dend_hi, KNOD_AMDGPU_DATA_END_VREG_HI);
++	knod_vset32(&r0_lo, KNOD_AMDGPU_VREG0_LO);
++	knod_vset32(&r0_hi, KNOD_AMDGPU_VREG0_HI);
++	knod_vset32(&delta, bpf_reg64[2].lo.v);
++	knod_vset32(&fail_lo, KNOD_AMDGPU_TMP_VREG2_LO);
++	knod_vset32(&fail_hi, KNOD_AMDGPU_TMP_VREG2_HI);
++	knod_vset64(&dend_vreg, KNOD_AMDGPU_DATA_END_VREG_LO);
++
++	/* 1. Save original DATA_END_VREG -> TMP_VREG0 */
++	knod_mov32(priv, meta, tmp0_lo, dend_lo);
++	knod_mov32(priv, meta, tmp0_hi, dend_hi);
++
++	/* 2. DATA_END_VREG += delta (R2.lo, sign-extended) */
++	knod_emit(priv, meta, v_add_co_u32, dend_lo, delta, dend_lo);
++
++	knod_vset32(&sext_dst, KNOD_AMDGPU_TMP_VREG1_LO);
++	knod_iset32(&shift_amt, 31);
++	knod_emit(priv, meta, v_ashrrev_i32, sext_dst, shift_amt, delta);
++
++	knod_emit(priv, meta, v_add_co_ci_u32_e32, dend_hi, sext_dst,
++		  dend_hi);
++
++	/* 3. Lower bound: lb = DATA + ETH_HLEN -> TMP_VREG1 */
++	knod_vset32(&lb_lo, KNOD_AMDGPU_TMP_VREG1_LO);
++	knod_vset32(&lb_hi, KNOD_AMDGPU_TMP_VREG1_HI);
++	knod_vset32(&d_lo, KNOD_AMDGPU_DATA_VREG_LO);
++	knod_vset32(&d_hi, KNOD_AMDGPU_DATA_VREG_HI);
++
++	knod_iset32(&imm, ETH_HLEN);
++	knod_emit(priv, meta, v_add_co_u32, lb_lo, imm, d_lo);
++	knod_iset32(&imm, 0);
++	knod_emit(priv, meta, v_add_co_ci_u32_e32, lb_hi, imm, d_hi);
++
++	/* VOPC#1: DATA_END < lb -> VCC = lower_fail */
++	knod_vset64(&lb, KNOD_AMDGPU_TMP_VREG1_LO);
++	knod_emit(priv, meta, v_cmp_lt_u64, dend_vreg, lb);
++
++	/*
++	 * Capture VCC -> VGPR via v_cndmask (VALU reads VCC correctly,
++	 * unlike SALU which suffers the GFX10 dual-VOPC stale-read hazard).
++	 */
++	knod_iset32(&imm, 1);
++	knod_mov32(priv, meta, fail_hi, imm);
++	knod_iset32(&imm, 0);
++	knod_emit(priv, meta, v_cndmask_b32_e32, fail_lo, imm, fail_hi);
++
++	/* 4. Upper bound: ub = page_base + PAGE_SIZE -> TMP_VREG1 */
++	knod_vset32(&pb_src_lo, KNOD_AMDGPU_PAGE_BASE_VREG_LO);
++	knod_vset32(&pb_src_hi, KNOD_AMDGPU_PAGE_BASE_VREG_HI);
++	knod_mov32(priv, meta, lb_lo, pb_src_lo);
++	knod_mov32(priv, meta, lb_hi, pb_src_hi);
++
++	knod_iset32(&imm, PAGE_SIZE);
++	knod_emit(priv, meta, v_add_co_u32, lb_lo, imm, lb_lo);
++	knod_iset32(&imm, 0);
++	knod_emit(priv, meta, v_add_co_ci_u32_e32, lb_hi, imm, lb_hi);
++
++	/* VOPC#2: DATA_END > ub -> VCC = upper_fail */
++	knod_emit(priv, meta, v_cmp_gt_u64, dend_vreg, lb);
++
++	/* Capture upper_fail via v_cndmask, combine, convert to VCC */
++	knod_iset32(&imm, 0);
++	knod_emit(priv, meta, v_cndmask_b32_e32, fail_hi, imm, fail_hi);
++
++	knod_emit(priv, meta, v_or_b32_e32, fail_lo, fail_lo, fail_hi);
++
++	knod_emit(priv, meta, v_cmp_lt_u32, imm, fail_lo);
++
++	/* 5. Conditional restore: VCC=1(fail) -> original,
++	 *    VCC=0(pass) -> adjusted
++	 */
++	knod_emit(priv, meta, v_cndmask_b32_e32, dend_lo, dend_lo,
++		  tmp0_lo);
++	knod_emit(priv, meta, v_cndmask_b32_e32, dend_hi, dend_hi,
++		  tmp0_hi);
++
++	/* 6. R0 = VCC ? -EINVAL : 0 */
++	knod_iset32(&imm, -EINVAL);
++	knod_mov32(priv, meta, tmp0_lo, imm);
++	knod_iset32(&imm, 0);
++	knod_emit(priv, meta, v_cndmask_b32_e32, r0_lo, imm, tmp0_lo);
++
++	knod_iset32(&imm, -1);
++	knod_mov32(priv, meta, tmp0_hi, imm);
++	knod_iset32(&imm, 0);
++	knod_emit(priv, meta, v_cndmask_b32_e32, r0_hi, imm, tmp0_hi);
++}
++
++static void knod_bpf_load_size(struct knod_bpf_priv *priv,
++			      struct knod_insn_meta *meta,
++			      struct amdgcn_param64 *dst,
++			      /* packet or stack */
++			      struct amdgcn_param32 *cache,
++			      int size, int off)
++{
++	struct amdgcn_param32 p32[2];
++
++	knod_jit_dbg(" %d: off = %d off_4 = %d size = %d\n", meta->bpf_insn_idx,
++		off, off%4, size);
++	switch (size) {
++	case sizeof(unsigned long):
++		if ((off % 4) == 0) {
++			knod_mov32(priv, meta, dst->lo, cache[off / 4]);
++			knod_mov32(priv, meta, dst->hi,
++				       cache[(off / 4) + 1]);
++		} else if ((off % 4) == 1) {
++			WARN_ON_ONCE(1);
++		} else if ((off % 4) == 2) {
++			WARN_ON_ONCE(1);
++		} else {
++			WARN_ON_ONCE(1);
++		}
 +		break;
-+	case AMDGCN_INSN_TYPE_SOPC:
-+		gfx10_debug_sopc(&insn->gfx10);
++	case sizeof(unsigned int):
++		if ((off % 4) == 0) {
++			knod_mov32(priv, meta, dst->lo, cache[off / 4]);
++		} else if ((off % 4) == 1) {
++			knod_iset32(&p32[0], 8);
++			knod_lshrrev32(priv, meta, r32[0], p32[0],
++					   cache[off / 4]);
++			knod_iset32(&p32[0], 24);
++			knod_lshlrev32(priv, meta, dst->lo, p32[0],
++					   cache[(off / 4) + 1]);
++			knod_or32(priv, meta, dst->lo, dst->lo, r32[0]);
++		} else if ((off % 4) == 2) {
++			knod_iset32(&p32[0], 16);
++			knod_lshrrev32(priv, meta, r32[0], p32[0],
++					   cache[off / 4]);
++			knod_lshlrev32(priv, meta, dst->lo, p32[0],
++					   cache[(off / 4) + 1]);
++			knod_or32(priv, meta, dst->lo, dst->lo, r32[0]);
++		} else {
++			knod_iset32(&p32[0], 24);
++			knod_lshrrev32(priv, meta, r32[0], p32[0],
++					   cache[off / 4]);
++			knod_iset32(&p32[0], 8);
++			knod_lshlrev32(priv, meta, dst->lo, p32[0],
++					   cache[(off / 4) + 1]);
++			knod_or32(priv, meta, dst->lo, dst->lo, r32[0]);
++		}
 +		break;
-+	case AMDGCN_INSN_TYPE_SOPP:
-+		gfx10_debug_sopp(&insn->gfx10);
++	case sizeof(unsigned short):
++		if ((off % 4) == 3) {
++			knod_iset32(&p32[0], 24);
++			knod_iset32(&p32[1], 8);
++			knod_bfe32(priv, meta, r64[0].lo, cache[off / 4],
++				       p32[0], p32[1]);
++			knod_iset32(&p32[0], 0);
++			knod_bfe32(priv, meta, r64[0].hi,
++				       cache[(off / 4) + 1], p32[0], p32[1]);
++			/* bpf_reg64[d].lo = (r64[0].hi << 8) | r64[0].lo. */
++			knod_emit(priv, meta, v_lshl_or_b32, dst->lo,
++				  r64[0].hi, p32[1], r64[0].lo);
++		} else {
++			if (!(off % 4))
++				knod_iset32(&p32[0], 0);
++			else if ((off % 4) == 1)
++				knod_iset32(&p32[0], 8);
++			else if ((off % 4) == 2)
++				knod_iset32(&p32[0], 16);
++			knod_iset32(&p32[1], 16);
++			knod_bfe32(priv, meta, dst->lo, cache[off / 4],
++				       p32[0], p32[1]);
++		}
 +		break;
-+	case AMDGCN_INSN_TYPE_SMEM:
-+		gfx10_debug_smem(&insn->gfx10);
-+		break;
-+	case AMDGCN_INSN_TYPE_VOP2:
-+		gfx10_debug_vop2(&insn->gfx10);
-+		break;
-+	case AMDGCN_INSN_TYPE_VOP1:
-+		gfx10_debug_vop1(&insn->gfx10);
-+		break;
-+	case AMDGCN_INSN_TYPE_VOPC:
-+		gfx10_debug_vopc(&insn->gfx10);
-+		break;
-+	case AMDGCN_INSN_TYPE_VOP3A:
-+		gfx10_debug_vop3a(&insn->gfx10);
-+		break;
-+	case AMDGCN_INSN_TYPE_VOP3B:
-+		gfx10_debug_vop3b(&insn->gfx10);
-+		break;
-+	case AMDGCN_INSN_TYPE_VOP3P:
-+		gfx10_debug_vop3p(&insn->gfx10);
-+		break;
-+	case AMDGCN_INSN_TYPE_SDWA:
-+		gfx10_debug_sdwa(&insn->gfx10);
-+		break;
-+	case AMDGCN_INSN_TYPE_SDWAB:
-+		gfx10_debug_sdwab(&insn->gfx10);
-+		break;
-+	case AMDGCN_INSN_TYPE_DPP16:
-+		gfx10_debug_dpp16(&insn->gfx10);
-+		break;
-+	case AMDGCN_INSN_TYPE_DPP8:
-+		gfx10_debug_dpp8(&insn->gfx10);
-+		break;
-+	case AMDGCN_INSN_TYPE_VINTRP:
-+		gfx10_debug_vintrp(&insn->gfx10);
-+		break;
-+	case AMDGCN_INSN_TYPE_DS:
-+		gfx10_debug_ds(&insn->gfx10);
-+		break;
-+	case AMDGCN_INSN_TYPE_MTBUF:
-+		gfx10_debug_mtbuf(&insn->gfx10);
-+		break;
-+	case AMDGCN_INSN_TYPE_MUBUF:
-+		gfx10_debug_mubuf(&insn->gfx10);
-+		break;
-+	case AMDGCN_INSN_TYPE_MIMG:
-+		gfx10_debug_mimg(&insn->gfx10);
-+		break;
-+	case AMDGCN_INSN_TYPE_FLAT:
-+		gfx10_debug_global(&insn->gfx10);
-+		break;
-+	case AMDGCN_INSN_TYPE_EXP:
-+		gfx10_debug_exp(&insn->gfx10);
++	case sizeof(unsigned char):
++		if ((off % 4) == 0)
++			knod_iset32(&p32[0], 0);
++		else if ((off % 4) == 1)
++			knod_iset32(&p32[0], 8);
++		else if ((off % 4) == 2)
++			knod_iset32(&p32[0], 16);
++		else
++			knod_iset32(&p32[0], 24);
++		knod_iset32(&p32[1], 8);
++		knod_bfe32(priv, meta, dst->lo, cache[off / 4], p32[0],
++			       p32[1]);
 +		break;
 +	default:
 +		WARN_ON_ONCE(1);
 +		break;
 +	}
 +
-+	ptr = (u32 *)&insn->gfx10;
-+	if (insn->size == 4) {
-+		pr_debug("knod_asm %s %u %.8X\n", __func__, __LINE__, ptr[0]);
-+	} else if (insn->size == 8) {
-+		pr_debug("knod_asm %s %u %.8X %.8X\n",
-+			 __func__, __LINE__, ptr[0], ptr[1]);
-+	} else if (insn->size == 12) {
-+		pr_debug("knod_asm %s %u %.8X %.8X %.8X\n",
-+			 __func__, __LINE__, ptr[0], ptr[1], ptr[2]);
++	if (size != sizeof(unsigned long)) {
++		knod_iset32(&p32[0], 0);
++		knod_mov32(priv, meta, dst->hi, p32[0]);
++	}
++}
++
++/*
++ * GFX10 (RDNA2) quirk: global_load_{dword,dwordx2,dwordx4} silently
++ * clear the low 2 bits of the effective address, forcing Dword
++ * alignment. For PTR_TO_PACKET loads at a byte offset that is not
++ * Dword-aligned, round the offset down to the nearest 4-byte boundary,
++ * load enough contiguous dwords to cover the requested range, then use
++ * v_alignbit_b32 to extract the byte-aligned result. For size < 4 a
++ * final v_and_b32 masks the result to the correct width.
++ *
++ * Caller is responsible for zeroing dst.hi for size < 8; this helper
++ * only writes dst.lo (and dst.hi when size == 8).
++ *
++ * Scratch: up to 4 contiguous VGPRs at v32..v35
++ * (TMP_VREG5_LO..TMP_VREG6_HI).
++ */
++static void knod_bpf_emit_gfx10_unaligned_load(struct knod_bpf_priv *priv,
++					      struct knod_insn_meta *meta,
++					      int size,
++					      struct amdgcn_param64 dst,
++					      struct amdgcn_param32 src_lo,
++					      int off)
++{
++	int off_a = off & ~3;
++	int shift_bits = (off - off_a) * 8;
++	int needed = DIV_ROUND_UP((off & 3) + size, 4);
++	struct amdgcn_param32 tmp[4];
++	struct amdgcn_param32 shift_imm, mask_imm;
++
++	knod_vset32(&tmp[0], KNOD_AMDGPU_TMP_VREG5_LO);
++	knod_vset32(&tmp[1], KNOD_AMDGPU_TMP_VREG5_HI);
++	knod_vset32(&tmp[2], KNOD_AMDGPU_TMP_VREG6_LO);
++	knod_vset32(&tmp[3], KNOD_AMDGPU_TMP_VREG6_HI);
++	knod_iset32(&shift_imm, shift_bits);
++
++	if (needed <= 1) {
++		knod_emit(priv, meta, global_load_dword, tmp[0], src_lo,
++			  off_a);
++	} else if (needed == 2) {
++		knod_emit(priv, meta, global_load_dwordx2, tmp[0], src_lo,
++			  off_a);
++	} else {
++		/* needed == 3: no dwordx3, widen to dwordx4. */
++		knod_emit(priv, meta, global_load_dwordx4, tmp[0], src_lo,
++			  off_a);
++	}
++	knod_wait_vmcnt(priv, meta);
++
++	if (size <= 4) {
++		/* v_alignbit_b32 D, S0, S1, S2:
++		 *   D = ({S0, S1} >> S2)[31:0]
++		 * S0 is HIGH, S1 is LOW. tmp[0] holds
++		 * bytes[off_a..+4) (memory-low) and tmp[1] holds
++		 * bytes[off_a+4..+8) (memory-high), so
++		 * src0=tmp[1], src1=tmp[0].
++		 */
++		if (shift_bits == 0)
++			knod_mov32(priv, meta, dst.lo, tmp[0]);
++		else
++			knod_alignbit32(priv, meta, dst.lo,
++					    tmp[1], tmp[0], shift_imm);
++
++		if (size == 1) {
++			knod_iset32(&mask_imm, 0xff);
++			knod_and32(priv, meta, dst.lo, dst.lo,
++				       mask_imm);
++		} else if (size == 2) {
++			knod_iset32(&mask_imm, 0xffff);
++			knod_and32(priv, meta, dst.lo, dst.lo,
++				       mask_imm);
++		}
++	} else {
++		/* size == 8: two alignbits for low / high output dwords. */
++		if (shift_bits == 0) {
++			knod_mov32(priv, meta, dst.lo, tmp[0]);
++			knod_mov32(priv, meta, dst.hi, tmp[1]);
++		} else {
++			knod_alignbit32(priv, meta, dst.lo,
++					    tmp[1], tmp[0], shift_imm);
++			knod_alignbit32(priv, meta, dst.hi,
++					    tmp[2], tmp[1], shift_imm);
++		}
++	}
++}
++
++#define LABEL_NEXT	8
++#define LABEL_OUT	9
++static void knod_bpf_ktime_get_ns(struct knod_bpf_priv *priv,
++				 struct knod_insn_meta *meta)
++{
++	struct amdgcn_param32 p[2];
++
++	knod_sset32(&p[0], KNOD_AMDGPU_TMP_SREG0_LO);
++	knod_sset32(&p[1], KNOD_AMDGPU_PARAM_SREG_LO);
++	knod_emit(priv, meta, s_load_dwordx2, p[0], p[1],
++		  offsetof(struct knod_bpf_param, ktime_ns));
++
++	knod_emit(priv, meta, s_waitcnt_lgkmcnt);
++
++	knod_sset32(&p[0], KNOD_AMDGPU_TMP_SREG0_LO);
++	knod_mov32(priv, meta, bpf_reg64[0].lo, p[0]);
++	knod_sset32(&p[0], KNOD_AMDGPU_TMP_SREG0_HI);
++	knod_mov32(priv, meta, bpf_reg64[0].hi, p[0]);
++}
++
++static void knod_bpf_map_lookup(struct knod_bpf_priv *priv,
++			       struct knod_insn_meta *meta,
++			       int map_id)
++{
++	struct knod_bpf_map_obj *knod_map_obj_k, *knod_map_obj_g;
++	int off, len, _len, idx, key_in_pkt, key_in_map;
++	bool first_cmp;
++	struct amdgcn_branch_fixup fixups[12] = {0,};
++	struct amdgcn_label labels[10] = {0,};
++	u32 stack_off = meta->kreg.stack_off;
++	unsigned long bucket_gaddr;
++	struct amdgcn_param32 p32;
++	int fixup_idx = 0;
++
++	knod_map_obj_k =
++		(struct knod_bpf_map_obj *)knod_bpf_map_kaddr(priv, map_id);
++	knod_map_obj_g =
++		(struct knod_bpf_map_obj *)knod_bpf_map_gaddr(priv, map_id);
++	bucket_gaddr = (unsigned long)knod_map_obj_g +
++		       offsetof(struct knod_bpf_map_obj, bucket);
++
++	knod_jit_dbg(" stack_off = %d map_id = %d\n", stack_off, map_id);
++	if (!knod_map_obj_g || !knod_map_obj_k)
++		WARN_ON_ONCE(1);
++
++	knod_bpf_load_size(priv, meta,
++			       &r64[2],
++			       &stack[0],
++			       sizeof(unsigned int),
++			       512 + stack_off);
++	/* reg1 := bucket
++	 * NOTE: bucket_gaddr is greater than X
++	 */
++	knod_iset64(&p64[0], bucket_gaddr);
++	knod_mov64(priv, meta, r64[1], p64[0]);
++	knod_iset64(&p64[1], 0);
++	knod_mov32(priv, meta, r64[2].hi, p64[1].lo);
++
++	knod_iset64(&p64[1], 0);
++	knod_mov64(priv, meta, bpf_reg64[0], p64[1]);
++
++	/* BPF_REG0 = 0
++	 * TMP_REG1 = bucket_gaddr
++	 * TMP_REG2 = key
++	 */
++
++	if (knod_map_obj_k->map_type == BPF_MAP_TYPE_ARRAY ||
++	    knod_map_obj_k->map_type == BPF_MAP_TYPE_PERCPU_ARRAY) {
++		/* if (key > knod_map_obj_k.max_entries)
++		 * NOTE: integer
++		 */
++		knod_iset64(&p64[1], knod_map_obj_k->max_entries);
++		knod_mov64(priv, meta, r64[3], p64[1]);
++		knod_emit(priv, meta, v_cmp_ge_u64, r64[2], r64[3]);
++		/* structurized CFG: save OOB lanes, narrow exec */
++		knod_emit(priv, meta, s_and_b64, KNOD_AMDGPU_TMP_SREG3_LO,
++			  AMDGCN_SREG_EXEC_LO, AMDGCN_SREG_VCC_LO);
++		knod_emit(priv, meta, s_andn2_b64, AMDGCN_SREG_EXEC_LO,
++			  AMDGCN_SREG_EXEC_LO, AMDGCN_SREG_VCC_LO);
++			emit_s_cbranch_execz(priv->isa_version,
++				     &meta->amdgpu_insn[meta->amdgpu_insns],
++				     0); /* update required */
++		knod_bpf_set_fixup(meta, &fixups[fixup_idx],
++				   &labels[LABEL_OUT], meta->amdgpu_insns);
++		debug_insn(priv->isa_version,
++			   &meta->amdgpu_insn[meta->amdgpu_insns]);
++		meta->amdgpu_insns++;
++		fixup_idx++;
++		/* PERCPU_ARRAY: bucket += workgroup_id_y * per_instance_size so
++		 * each RX queue addresses its own instance and the atomic
++		 * update after the lookup has no cross-CU contention.  Auto
++		 * xgroups keeps PERCPU programs at one workgroup per queue, so
++		 * the queue id (workgroup_id_y) is the instance index.
++		 */
++		if (knod_map_obj_k->map_type == BPF_MAP_TYPE_PERCPU_ARRAY) {
++			/* r64[3] is scratch after the bounds check: .lo =
++			 * workgroup_id_y, .hi = per_instance_size (too large
++			 * for an inline constant, so stage both in VGPRs
++			 * first).
++			 */
++			knod_sset32(&p32, KNOD_AMDGPU_WORKGROUP_ID_Y_SREG);
++			knod_emit(priv, meta, v_mov_b32_e32, r64[3].lo, p32);
++			knod_iset64(&p64[1],
++				    knod_map_obj_k->meta.ameta
++				    .per_instance_size);
++			knod_mov32(priv, meta, r64[3].hi, p64[1].lo);
++			emit_v_mad_u64_u32(priv->isa_version,
++					&meta->amdgpu_insn[meta->amdgpu_insns],
++					   r64[1],
++					   sr64[0].lo,
++					   r64[3].hi, /* per_instance_size */
++					   r64[3].lo, /* workgroup_id_y */
++					   r64[1]); /* bucket */
++			debug_insn(priv->isa_version,
++				   &meta->amdgpu_insn[meta->amdgpu_insns]);
++			meta->amdgpu_insns++;
++		}
++		/* elem_id = &bucket[key]; */
++		knod_iset64(&p64[1], knod_map_obj_k->value_size);
++		emit_v_mad_u64_u32(priv->isa_version,
++				   &meta->amdgpu_insn[meta->amdgpu_insns],
++				   bpf_reg64[0],
++				   sr64[0].lo,
++				   p64[1].lo, /* value_size */
++				   r64[2].lo, /* key */
++				   r64[1]); /* bucket */
++		debug_insn(priv->isa_version,
++			   &meta->amdgpu_insn[meta->amdgpu_insns]);
++		meta->amdgpu_insns++;
++		/* structurized CFG: restore OOB lanes */
++		knod_bpf_set_label(meta, &labels[LABEL_OUT],
++				   meta->amdgpu_insns);
++		knod_emit(priv, meta, s_or_b64, AMDGCN_SREG_EXEC_LO,
++			  AMDGCN_SREG_EXEC_LO, KNOD_AMDGPU_TMP_SREG3_LO);
++		for (idx = 0; idx < fixup_idx; idx++)
++			knod_bpf_fixup_branch(priv, &fixups[idx]);
++	} else if (knod_map_obj_k->map_type == BPF_MAP_TYPE_HASH) {
++		key_in_pkt = KEY_IN_PKT_64;
++		len = knod_map_obj_k->key_size;
++		off = stack_off;
++
++		/* TMP_VREGs(vgpr-pair)
++		 * |0|1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17|18|
++		 * | | | |K|K|K|K|K|K|K|K |K |K |K |K |K |K |K |K |
++		 */
++		while (len) {
++			if (len >= sizeof(unsigned long))
++				_len = sizeof(unsigned long);
++			else
++				_len = len;
++			knod_bpf_load_size(priv, meta,
++					       &r64[key_in_pkt],
++					       &stack[0],
++					       _len,
++					       512 + off);
++			key_in_pkt++;
++			len -= _len;
++			off += _len;
++		}
++
++		knod_jhash(priv, meta,
++			       2,
++			       knod_map_obj_k->key_size,
++			       knod_map_obj_k->meta.hmeta.hashrnd);
++		/* clear hi register of r64[2] because hash is 32bit */
++		knod_iset64(&p64[0], 0);
++		knod_mov32(priv, meta, r64[2].hi, p64[0].lo);
++
++		/* hash = hash & (n_buckets - 1) before indexing the bucket
++		 * array -- jhash returns the full 32-bit hash and the update
++		 * and delete emitters mask it too; without this
++		 * bucket_gaddr[hash] runs off the end of the bucket array.
++		 */
++		knod_iset32(&p64[0].lo,
++			    knod_map_obj_k->meta.hmeta.n_buckets - 1);
++		knod_and32(priv, meta, r64[2].lo, p64[0].lo, r64[2].lo);
++
++		/* elem_id = bucket_gaddr[hash]; */
++		knod_iset64(&p64[1], sizeof(int));
++		emit_v_mad_u64_u32(priv->isa_version,
++				   &meta->amdgpu_insn[meta->amdgpu_insns],
++				   r64[2],
++				   sr64[0].lo,
++				   p64[1].lo, /* sizeof(int) */
++				   r64[2].lo, /* hash */
++				   r64[1]); /* bucket */
++		debug_insn(priv->isa_version,
++			   &meta->amdgpu_insn[meta->amdgpu_insns]);
++		meta->amdgpu_insns++;
++
++		/* bpf_reg64[0] = 0 (default return for not-found lanes) */
++		knod_iset64(&p64[0], 0);
++		knod_mov64(priv, meta, bpf_reg64[0], p64[0]);
++
++		/* structurized CFG: save initial exec for restoring at end */
++		knod_emit(priv, meta, s_mov_b64, KNOD_AMDGPU_TMP_SREG3_LO,
++			  AMDGCN_SREG_EXEC_LO);
++
++		knod_bpf_set_label(meta, &labels[LABEL_NEXT],
++				   meta->amdgpu_insns);
++		/* load elem_id from elem structure */
++		knod_emit(priv, meta, global_load_dword, r64[2].lo,
++			  r64[2].lo, 0);
++		knod_wait_vmcnt(priv, meta);
++
++		/* mask out DELETED bit from next field */
++		knod_iset32(&p32, KNOD_BPF_HASH_NEXT_MASK);
++		knod_emit(priv, meta, v_and_b32_e32, r64[2].lo, p32,
++			  r64[2].lo);
++
++		/* if (r64[2].lo == KNOD_BPF_HASH_NEXT_END)
++		 *	goto out;
++		 * VOPC cannot encode literal constants - move to VGPR first.
++		 * NEXT_MASK == NEXT_END (0x7FFFFFFF), reuse p32 from v_and
++		 * above.
++		 */
++		knod_emit(priv, meta, v_mov_b32_e32, r64[0].hi, p32);
++		knod_emit(priv, meta, v_cmp_eq_u32, r64[0].hi, r64[2].lo);
++		/* structurized CFG: remove end-of-chain lanes */
++		knod_emit(priv, meta, s_andn2_b64, AMDGCN_SREG_EXEC_LO,
++			  AMDGCN_SREG_EXEC_LO, AMDGCN_SREG_VCC_LO);
++
++		emit_s_cbranch_execz(priv->isa_version,
++				     &meta->amdgpu_insn[meta->amdgpu_insns],
++				     0); /* update required */
++		knod_bpf_set_fixup(meta, &fixups[fixup_idx],
++				   &labels[LABEL_OUT], meta->amdgpu_insns);
++		debug_insn(priv->isa_version,
++			   &meta->amdgpu_insn[meta->amdgpu_insns]);
++		meta->amdgpu_insns++;
++		fixup_idx++;
++
++		knod_iset64(&p64[0],
++			    (unsigned long)knod_map_obj_k->meta.hmeta.elems);
++		knod_mov64(priv, meta, r64[1], p64[0]);
++		knod_iset64(&p64[0], knod_map_obj_k->meta.hmeta.elem_size);
++		knod_mov64(priv, meta, r64[0], p64[0]);
++
++		key_in_map = KEY_IN_MAP_32;
++		len = knod_map_obj_k->key_size;
++		off = offsetof(struct knod_bpf_hash_elem_obj, kv);
++
++		/* elem = &elems[elem_id]; */
++		emit_v_mad_u64_u32(priv->isa_version,
++				   &meta->amdgpu_insn[meta->amdgpu_insns],
++				   r64[2], /* elem */
++				   sr64[0].lo,
++				   r64[0].lo, /* elem_size */
++				   r64[2].lo, /* elem_id */
++				   r64[1]); /* elem_gaddr */
++		debug_insn(priv->isa_version,
++			   &meta->amdgpu_insn[meta->amdgpu_insns]);
++		meta->amdgpu_insns++;
++
++		/* load elem.next for DELETED check (parallel with key loads) */
++		knod_emit(priv, meta, global_load_dword, r64[0].hi,
++			  r64[2].lo, 0);
++		while (len >= 16) {
++			knod_emit(priv, meta, global_load_dwordx4,
++				  r32[key_in_map],
++				  r64[2].lo, /* elem ptr */ off);
++			off += 16;
++			len -= 16;
++			key_in_map += 4;
++		}
++
++		if (len >= 8) {
++			knod_emit(priv, meta, global_load_dwordx2,
++				  r32[key_in_map],
++				  /* elem_id */ r64[2].lo, /* elem ptr */ off);
++			off += 8;
++			len -= 8;
++			key_in_map += 2;
++		}
++
++		if (len >= 4) {
++			knod_emit(priv, meta, global_load_dword,
++				  r32[key_in_map],
++				  /* elem_id */ r64[2].lo, /* elem ptr */ off);
++			off += 4;
++			len -= 4;
++			key_in_map += 1;
++		}
++
++		/* map key padding was inited to zero, no AND is required */
++		if (len) {
++			knod_emit(priv, meta, global_load_dword,
++				  r32[key_in_map],
++				  /* elem_id */ r64[2].lo, /* elem ptr */ off);
++		}
++
++		knod_wait_vmcnt(priv, meta);
++
++		/* structurized CFG: accumulate key match into TMP_SREG4
++		 * instead of early-exit branching per key part
++		 */
++		key_in_map = KEY_IN_MAP_32;
++		key_in_pkt = KEY_IN_PKT_32;
++		len = knod_map_obj_k->key_size;
++		first_cmp = true;
++
++		while (len >= 8) {
++			knod_emit(priv, meta, v_cmp_eq_u64, r32[key_in_map],
++				  r32[key_in_pkt]);
++
++			if (first_cmp) {
++				knod_emit(priv, meta, s_and_b64,
++					  KNOD_AMDGPU_TMP_SREG4_LO,
++					  AMDGCN_SREG_EXEC_LO,
++					  AMDGCN_SREG_VCC_LO);
++				first_cmp = false;
++			} else {
++				knod_emit(priv, meta, s_and_b64,
++					  KNOD_AMDGPU_TMP_SREG4_LO,
++					  KNOD_AMDGPU_TMP_SREG4_LO,
++					  AMDGCN_SREG_VCC_LO);
++			}
++
++			key_in_map += 2;
++			key_in_pkt += 2;
++			len -= 8;
++		}
++
++		if (len >= 4) {
++			knod_emit(priv, meta, v_cmp_eq_u32, r32[key_in_map],
++				  r32[key_in_pkt]);
++
++			if (first_cmp) {
++				knod_emit(priv, meta, s_and_b64,
++					  KNOD_AMDGPU_TMP_SREG4_LO,
++					  AMDGCN_SREG_EXEC_LO,
++					  AMDGCN_SREG_VCC_LO);
++				first_cmp = false;
++			} else {
++				knod_emit(priv, meta, s_and_b64,
++					  KNOD_AMDGPU_TMP_SREG4_LO,
++					  KNOD_AMDGPU_TMP_SREG4_LO,
++					  AMDGCN_SREG_VCC_LO);
++			}
++
++			key_in_map += 1;
++			key_in_pkt += 1;
++			len -= 4;
++		}
++
++		if (len) {
++			knod_emit(priv, meta, v_cmp_eq_u32, r32[key_in_map],
++				  r32[key_in_pkt]);
++
++			if (first_cmp) {
++				knod_emit(priv, meta, s_and_b64,
++					  KNOD_AMDGPU_TMP_SREG4_LO,
++					  AMDGCN_SREG_EXEC_LO,
++					  AMDGCN_SREG_VCC_LO);
++				first_cmp = false;
++			} else {
++				knod_emit(priv, meta, s_and_b64,
++					  KNOD_AMDGPU_TMP_SREG4_LO,
++					  KNOD_AMDGPU_TMP_SREG4_LO,
++					  AMDGCN_SREG_VCC_LO);
++			}
++		}
++
++		/* DELETED check: remove deleted lanes from match result.
++		 * r64[0].hi = elem.next (loaded in parallel with key).
++		 * Deleted elems have bit 31 set - exclude them from SREG4.
++		 */
++		knod_iset32(&p32, KNOD_BPF_HASH_NEXT_DELETED);
++		knod_emit(priv, meta, v_and_b32_e32, r64[0].hi, p32,
++			  r64[0].hi);
++		knod_iset32(&p32, 0);
++		knod_emit(priv, meta, v_cmp_eq_u32, p32, r64[0].hi);
++		knod_emit(priv, meta, s_and_b64, KNOD_AMDGPU_TMP_SREG4_LO,
++			  KNOD_AMDGPU_TMP_SREG4_LO, AMDGCN_SREG_VCC_LO);
++
++		/* TMP_SREG4 = lanes where key matched AND not deleted.
++		 * Save current exec, narrow to matched lanes for value
++		 * computation.
++		 */
++		knod_emit(priv, meta, s_mov_b64, KNOD_AMDGPU_TMP_SREG5_LO,
++			  AMDGCN_SREG_EXEC_LO);
++		knod_emit(priv, meta, s_and_b64, AMDGCN_SREG_EXEC_LO,
++			  AMDGCN_SREG_EXEC_LO, KNOD_AMDGPU_TMP_SREG4_LO);
++
++		/* bpf_reg64[0] = value address (only for matched lanes) */
++		knod_iset64(&p64[1],
++				offsetof(struct knod_bpf_hash_elem_obj, kv) +
++					 knod_map_obj_k->key_size);
++		knod_add64(priv, meta, bpf_reg64[0], p64[1], r64[2]);
++
++		/* set exec to unmatched lanes for next loop iteration */
++		knod_emit(priv, meta, s_andn2_b64, AMDGCN_SREG_EXEC_LO,
++			  KNOD_AMDGPU_TMP_SREG5_LO, KNOD_AMDGPU_TMP_SREG4_LO);
++			/* loop back if any unmatched lanes remain */
++		emit_s_cbranch_execnz(priv->isa_version,
++				      &meta->amdgpu_insn[meta->amdgpu_insns],
++				      0); /* update required */
++		knod_bpf_set_fixup(meta, &fixups[fixup_idx],
++				   &labels[LABEL_NEXT], meta->amdgpu_insns);
++		debug_insn(priv->isa_version,
++			   &meta->amdgpu_insn[meta->amdgpu_insns]);
++		meta->amdgpu_insns++;
++		fixup_idx++;
++		/* structurized CFG: restore all original lanes */
++		knod_bpf_set_label(meta, &labels[LABEL_OUT],
++				   meta->amdgpu_insns);
++		knod_emit(priv, meta, s_or_b64, AMDGCN_SREG_EXEC_LO,
++			  AMDGCN_SREG_EXEC_LO, KNOD_AMDGPU_TMP_SREG3_LO);
++		for (idx = 0; idx < fixup_idx; idx++)
++			knod_bpf_fixup_branch(priv, &fixups[idx]);
++
 +	} else {
 +		WARN_ON_ONCE(1);
 +	}
 +}
 +
-+static inline void gfx9_debug_vop3a(union amdgcn_gfx9_insn *insn)
++static void knod_bpf_map_update_array(struct knod_bpf_priv *priv,
++				     struct knod_insn_meta *meta,
++				     int map_id)
 +{
-+	char src0[20];
-+	char src1[20];
-+	char src2[20];
++	struct knod_bpf_map_obj *knod_map_obj_k, *knod_map_obj_g;
++	struct amdgcn_branch_fixup fixups[4] = {0,};
++	u32 key_stack_off = meta->kreg.stack_off;
++	u32 val_stack_off = meta->vreg.stack_off;
++	struct amdgcn_label labels[10] = {0,};
++	int idx, val_off, val_len;
++	unsigned long bucket_gaddr;
++	int fixup_idx = 0;
 +
-+	if (insn->vop3a.src0 < GFX9_VOP3A_SRC_VCC_LO)
-+		sprintf(src0, "s%d", insn->vop3a.src0);
-+	else if (insn->vop3a.src0 == GFX9_VOP3A_SRC_VCC_LO)
-+		sprintf(src0, "%s", "vcc_lo");
-+	else if (insn->vop3a.src0 == GFX9_VOP3A_SRC_VCC_HI)
-+		sprintf(src0, "%s", "vcc_hi");
-+	else if (insn->vop3a.src0 == GFX9_VOP3A_SRC_NULL)
-+		sprintf(src0, "%s", "null");
-+	else if (insn->vop3a.src0 == GFX9_VOP3A_SRC_EXEC_LO)
-+		sprintf(src0, "%s", "exec_lo");
-+	else if (insn->vop3a.src0 == GFX9_VOP3A_SRC_EXEC_HI)
-+		sprintf(src0, "%s", "exec_hi");
-+	else if (insn->vop3a.src0 < GFX9_VOP3A_SRC_INTEGER_MINUS_1)
-+		sprintf(src0, "0x%x",
-+			insn->vop3a.src0 - GFX9_VOP3A_SRC_INTEGER_0);
-+	else if (insn->vop3a.src0 < GFX9_VOP3A_SRC_SHARED_BASE)
-+		sprintf(src0, "-0x%x",
-+			insn->vop3a.src0 - GFX9_VOP3A_SRC_INTEGER_MINUS_1);
-+	else if (insn->vop3a.src0 == GFX9_VOP3A_SRC_VCCZ)
-+		sprintf(src0, "%s", "vcc");
-+	else if (insn->vop3a.src0 == GFX9_VOP3A_SRC_EXECZ)
-+		sprintf(src0, "%s", "exec");
-+	else if (insn->vop3a.src0 == GFX9_VOP3A_SRC_SCC)
-+		sprintf(src0, "%s", "scc");
-+	else if (insn->vop3a.src0 == GFX9_VOP3A_SRC_LITERAL_CONST)
-+		sprintf(src0, "0x%x", insn->vop3a.literal);
-+	else if (insn->vop3a.src0 >= GFX9_VOP3A_SRC_VGPR_BASE)
-+		sprintf(src0, "v%d",
-+			insn->vop3a.src0 - GFX9_VOP3A_SRC_VGPR_BASE);
++	knod_map_obj_k =
++		(struct knod_bpf_map_obj *)knod_bpf_map_kaddr(priv, map_id);
++	knod_map_obj_g =
++		(struct knod_bpf_map_obj *)knod_bpf_map_gaddr(priv, map_id);
++	bucket_gaddr = (unsigned long)knod_map_obj_g +
++		       offsetof(struct knod_bpf_map_obj, bucket);
 +
-+	if (insn->vop3a.src1 < GFX9_VOP3A_SRC_VCC_LO)
-+		sprintf(src1, "s%d", insn->vop3a.src1);
-+	else if (insn->vop3a.src1 == GFX9_VOP3A_SRC_VCC_LO)
-+		sprintf(src1, "%s", "vcc_lo");
-+	else if (insn->vop3a.src1 == GFX9_VOP3A_SRC_VCC_HI)
-+		sprintf(src1, "%s", "vcc_hi");
-+	else if (insn->vop3a.src1 == GFX9_VOP3A_SRC_NULL)
-+		sprintf(src1, "%s", "null");
-+	else if (insn->vop3a.src1 == GFX9_VOP3A_SRC_EXEC_LO)
-+		sprintf(src1, "%s", "exec_lo");
-+	else if (insn->vop3a.src1 == GFX9_VOP3A_SRC_EXEC_HI)
-+		sprintf(src1, "%s", "exec_hi");
-+	else if (insn->vop3a.src1 < GFX9_VOP3A_SRC_INTEGER_MINUS_1)
-+		sprintf(src1, "0x%x",
-+			insn->vop3a.src1 - GFX9_VOP3A_SRC_INTEGER_0);
-+	else if (insn->vop3a.src1 < GFX9_VOP3A_SRC_SHARED_BASE)
-+		sprintf(src1, "-0x%x",
-+			insn->vop3a.src1 - GFX9_VOP3A_SRC_INTEGER_MINUS_1);
-+	else if (insn->vop3a.src1 == GFX9_VOP3A_SRC_VCCZ)
-+		sprintf(src1, "%s", "vcc");
-+	else if (insn->vop3a.src1 == GFX9_VOP3A_SRC_EXECZ)
-+		sprintf(src1, "%s", "exec");
-+	else if (insn->vop3a.src1 == GFX9_VOP3A_SRC_SCC)
-+		sprintf(src1, "%s", "scc");
-+	else if (insn->vop3a.src1 == GFX9_VOP3A_SRC_LITERAL_CONST)
-+		sprintf(src1, "0x%x", insn->vop3a.literal);
-+	else if (insn->vop3a.src1 >= GFX9_VOP3A_SRC_VGPR_BASE)
-+		sprintf(src1, "v%d",
-+			insn->vop3a.src1 - GFX9_VOP3A_SRC_VGPR_BASE);
++	if (!knod_map_obj_g || !knod_map_obj_k)
++		WARN_ON_ONCE(1);
 +
-+	if (insn->vop3a.src2 < GFX9_VOP3A_SRC_VCC_LO)
-+		sprintf(src2, "s%d", insn->vop3a.src2);
-+	else if (insn->vop3a.src2 == GFX9_VOP3A_SRC_VCC_LO)
-+		sprintf(src2, "%s", "vcc_lo");
-+	else if (insn->vop3a.src2 == GFX9_VOP3A_SRC_VCC_HI)
-+		sprintf(src2, "%s", "vcc_hi");
-+	else if (insn->vop3a.src2 == GFX9_VOP3A_SRC_NULL)
-+		sprintf(src2, "%s", "null");
-+	else if (insn->vop3a.src2 == GFX9_VOP3A_SRC_EXEC_LO)
-+		sprintf(src2, "%s", "exec_lo");
-+	else if (insn->vop3a.src2 == GFX9_VOP3A_SRC_EXEC_HI)
-+		sprintf(src2, "%s", "exec_hi");
-+	else if (insn->vop3a.src2 < GFX9_VOP3A_SRC_INTEGER_MINUS_1)
-+		sprintf(src2, "0x%x",
-+			insn->vop3a.src2 - GFX9_VOP3A_SRC_INTEGER_0);
-+	else if (insn->vop3a.src2 < GFX9_VOP3A_SRC_SHARED_BASE)
-+		sprintf(src2, "-0x%x",
-+			insn->vop3a.src2 - GFX9_VOP3A_SRC_INTEGER_MINUS_1);
-+	else if (insn->vop3a.src2 == GFX9_VOP3A_SRC_VCCZ)
-+		sprintf(src2, "%s", "vcc");
-+	else if (insn->vop3a.src2 == GFX9_VOP3A_SRC_EXECZ)
-+		sprintf(src2, "%s", "exec");
-+	else if (insn->vop3a.src2 == GFX9_VOP3A_SRC_SCC)
-+		sprintf(src2, "%s", "scc");
-+	else if (insn->vop3a.src2 == GFX9_VOP3A_SRC_LITERAL_CONST)
-+		sprintf(src2, "0x%x", insn->vop3a.literal);
-+	else if (insn->vop3a.src2 >= GFX9_VOP3A_SRC_VGPR_BASE)
-+		sprintf(src2, "v%d",
-+			insn->vop3a.src2 - GFX9_VOP3A_SRC_VGPR_BASE);
++	/* load key from stack -> r64[2] */
++	knod_bpf_load_size(priv, meta,
++			       &r64[2],
++			       &stack[0],
++			       sizeof(unsigned int),
++			       512 + key_stack_off);
 +
-+	pr_debug("knod_asm %s v%d, %s, %s, %s\n",
-+		 opnames_gfx9[AMDGCN_INSN_TYPE_VOP3A][insn->vop3a.op],
-+		 insn->vop3a.vdst, src0, src1, src2);
++	/* r64[1] = bucket_gaddr */
++	knod_iset64(&p64[0], bucket_gaddr);
++	knod_mov64(priv, meta, r64[1], p64[0]);
++
++	/* clear r64[2].hi (key is 32-bit) */
++	knod_iset64(&p64[1], 0);
++	knod_mov32(priv, meta, r64[2].hi, p64[1].lo);
++
++	/* bpf_reg64[0] = 0 (return value) */
++	knod_mov64(priv, meta, bpf_reg64[0], p64[1]);
++
++	/* bounds check: if (key >= max_entries) -> skip */
++	knod_iset64(&p64[1], knod_map_obj_k->max_entries);
++	knod_mov64(priv, meta, r64[3], p64[1]);
++	knod_emit(priv, meta, v_cmp_ge_u64, r64[2], r64[3]);
++
++	/* structurized CFG: save OOB lanes, narrow exec */
++	knod_emit(priv, meta, s_and_b64, KNOD_AMDGPU_TMP_SREG3_LO,
++		  AMDGCN_SREG_EXEC_LO, AMDGCN_SREG_VCC_LO);
++	knod_emit(priv, meta, s_andn2_b64, AMDGCN_SREG_EXEC_LO,
++		  AMDGCN_SREG_EXEC_LO, AMDGCN_SREG_VCC_LO);
++	emit_s_cbranch_execz(priv->isa_version,
++			     &meta->amdgpu_insn[meta->amdgpu_insns],
++			     0);
++	knod_bpf_set_fixup(meta, &fixups[fixup_idx],
++			   &labels[LABEL_OUT], meta->amdgpu_insns);
++	debug_insn(priv->isa_version, &meta->amdgpu_insn[meta->amdgpu_insns]);
++	meta->amdgpu_insns++;
++	fixup_idx++;
++
++	/* dest = bucket_gaddr + key * value_size -> r64[0] */
++	knod_iset64(&p64[1], knod_map_obj_k->value_size);
++	knod_emit(priv, meta, v_mad_u64_u32, r64[0], sr64[0].lo,
++		  p64[1].lo, r64[2].lo, r64[1]);
++
++	/* load value from stack and store to dest */
++	val_off = 0;
++	val_len = knod_map_obj_k->value_size;
++
++	while (val_len >= 16) {
++		knod_bpf_load_size(priv, meta,
++				       &r64[3],
++				       &stack[0],
++				       sizeof(unsigned long),
++				       512 + val_stack_off + val_off);
++		knod_bpf_load_size(priv, meta,
++				       &r64[4],
++				       &stack[0],
++				       sizeof(unsigned long),
++				       512 + val_stack_off + val_off + 8);
++		knod_emit(priv, meta, global_store_dwordx4, r64[3].lo,
++			  r64[0].lo, val_off);
++		val_off += 16;
++		val_len -= 16;
++	}
++
++	if (val_len >= 8) {
++		knod_bpf_load_size(priv, meta,
++				       &r64[3],
++				       &stack[0],
++				       sizeof(unsigned long),
++				       512 + val_stack_off + val_off);
++		knod_emit(priv, meta, global_store_dwordx2, r64[3].lo,
++			  r64[0].lo, val_off);
++		val_off += 8;
++		val_len -= 8;
++	}
++
++	if (val_len >= 4) {
++		knod_bpf_load_size(priv, meta,
++				       &r64[3],
++				       &stack[0],
++				       sizeof(unsigned int),
++				       512 + val_stack_off + val_off);
++		knod_emit(priv, meta, global_store_dword, r64[3].lo,
++			  r64[0].lo, val_off);
++		val_off += 4;
++		val_len -= 4;
++	}
++
++	if (val_len >= 2) {
++		knod_bpf_load_size(priv, meta,
++				       &r64[3],
++				       &stack[0],
++				       sizeof(unsigned short),
++				       512 + val_stack_off + val_off);
++		knod_emit(priv, meta, global_store_short, r64[3].lo,
++			  r64[0].lo, val_off);
++		val_off += 2;
++		val_len -= 2;
++	}
++
++	if (val_len >= 1) {
++		knod_bpf_load_size(priv, meta,
++				       &r64[3],
++				       &stack[0],
++				       sizeof(unsigned char),
++				       512 + val_stack_off + val_off);
++		knod_emit(priv, meta, global_store_byte, r64[3].lo,
++			  r64[0].lo, val_off);
++	}
++
++	/* structurized CFG: restore OOB lanes */
++	knod_bpf_set_label(meta, &labels[LABEL_OUT], meta->amdgpu_insns);
++	knod_emit(priv, meta, s_or_b64, AMDGCN_SREG_EXEC_LO,
++		  AMDGCN_SREG_EXEC_LO, KNOD_AMDGPU_TMP_SREG3_LO);
++
++	for (idx = 0; idx < fixup_idx; idx++)
++		knod_bpf_fixup_branch(priv, &fixups[idx]);
 +}
 +
-+static inline void gfx9_debug_vop3b(union amdgcn_gfx9_insn *insn)
++static void knod_bpf_map_update_hash(struct knod_bpf_priv *priv,
++				     struct knod_insn_meta *meta,
++				     int map_id)
 +{
-+	char src0[20];
-+	char src1[20];
-+	char src2[20];
-+	char sdst[20];
++#define LABEL_BUCKET_LOOP	0
++#define LABEL_LOCK_RETRY	1
++#define LABEL_INSERT_LANE	2
++#define LABEL_CHAIN_NEXT	3
++#define LABEL_ALLOC_INSERT	4
++#define LABEL_LANE_DONE		5
++#define LABEL_UNLOCK		6
++	struct knod_bpf_map_obj *knod_map_obj_k, *knod_map_obj_g;
++	struct amdgcn_param32 s_bucket_lo, v_tmp, v_zero, v_one;
++	int off, len, _len, idx, key_in_pkt, key_in_map;
++	struct amdgcn_param32 s_exec_lo, s_exec_hi, s_elem_id;
++	struct amdgcn_branch_fixup fixups[12] = {0,};
++	u32 key_stack_off = meta->kreg.stack_off;
++	u32 val_stack_off = meta->vreg.stack_off;
++	unsigned long queue_gaddr, elems_gaddr;
++	unsigned long bucket_gaddr, cur_gaddr;
++	struct amdgcn_label labels[12] = {0,};
++	struct amdgcn_param32 v_minus_one;
++	struct amdgcn_param64 sr64_carry;
++	struct amdgcn_param32 p32;
++	unsigned long lock_offset;
++	unsigned int elem_size;
++	int val_off, val_len;
++	int fixup_idx = 0;
++	bool first_cmp;
++	int koff, voff;
 +
-+	if (insn->vop3b.sdst < GFX9_VOP3B_SRC_VCC_LO)
-+		sprintf(sdst, "s%d", insn->vop3b.sdst);
-+	else if (insn->vop3b.sdst == GFX9_VOP3B_SRC_VCC_LO)
-+		sprintf(sdst, "%s", "vcc_lo");
-+	else if (insn->vop3b.sdst == GFX9_VOP3B_SRC_VCC_HI)
-+		sprintf(sdst, "%s", "vcc_hi");
-+	else if (insn->vop3b.sdst == GFX9_VOP3B_SRC_NULL)
-+		sprintf(sdst, "%s", "null");
-+	else if (insn->vop3b.sdst == GFX9_VOP3B_SRC_EXEC_LO)
-+		sprintf(sdst, "%s", "exec_lo");
-+	else if (insn->vop3b.sdst == GFX9_VOP3B_SRC_EXEC_HI)
-+		sprintf(sdst, "%s", "exec_hi");
-+	else if (insn->vop3b.sdst < GFX9_VOP3B_SRC_INTEGER_MINUS_1)
-+		sprintf(sdst, "0x%x",
-+			insn->vop3b.sdst - GFX9_VOP3B_SRC_INTEGER_0);
-+	else if (insn->vop3b.sdst < GFX9_VOP3B_SRC_SHARED_BASE)
-+		sprintf(sdst, "-0x%x",
-+			insn->vop3b.sdst - GFX9_VOP3B_SRC_INTEGER_MINUS_1);
-+	else if (insn->vop3b.sdst == GFX9_VOP3B_SRC_VCCZ)
-+		sprintf(sdst, "%s", "vcc");
-+	else if (insn->vop3b.sdst == GFX9_VOP3B_SRC_EXECZ)
-+		sprintf(sdst, "%s", "exec");
-+	else if (insn->vop3b.sdst == GFX9_VOP3B_SRC_SCC)
-+		sprintf(sdst, "%s", "scc");
-+	else if (insn->vop3b.sdst == GFX9_VOP3B_SRC_LITERAL_CONST)
-+		sprintf(sdst, "0x%x", insn->vop3b.literal);
-+	else if (insn->vop3b.sdst >= GFX9_VOP3B_SRC_VGPR_BASE)
-+		sprintf(sdst, "v%d",
-+			insn->vop3b.sdst - GFX9_VOP3B_SRC_VGPR_BASE);
++	knod_map_obj_k =
++		(struct knod_bpf_map_obj *)knod_bpf_map_kaddr(priv, map_id);
++	knod_map_obj_g =
++		(struct knod_bpf_map_obj *)knod_bpf_map_gaddr(priv, map_id);
++	bucket_gaddr = (unsigned long)knod_map_obj_g +
++		       offsetof(struct knod_bpf_map_obj, bucket);
++	cur_gaddr = (unsigned long)knod_map_obj_g +
++		    offsetof(struct knod_bpf_map_obj, meta.hmeta.cur);
++	queue_gaddr = (unsigned long)knod_map_obj_k->meta.hmeta.q;
++	elems_gaddr = (unsigned long)knod_map_obj_k->meta.hmeta.elems;
++	elem_size = knod_map_obj_k->meta.hmeta.elem_size;
 +
-+	if (insn->vop3b.src0 < GFX9_VOP3B_SRC_VCC_LO)
-+		sprintf(src0, "s%d", insn->vop3b.src0);
-+	else if (insn->vop3b.src0 == GFX9_VOP3B_SRC_VCC_LO)
-+		sprintf(src0, "%s", "vcc_lo");
-+	else if (insn->vop3b.src0 == GFX9_VOP3B_SRC_VCC_HI)
-+		sprintf(src0, "%s", "vcc_hi");
-+	else if (insn->vop3b.src0 == GFX9_VOP3B_SRC_NULL)
-+		sprintf(src0, "%s", "null");
-+	else if (insn->vop3b.src0 == GFX9_VOP3B_SRC_EXEC_LO)
-+		sprintf(src0, "%s", "exec_lo");
-+	else if (insn->vop3b.src0 == GFX9_VOP3B_SRC_EXEC_HI)
-+		sprintf(src0, "%s", "exec_hi");
-+	else if (insn->vop3b.src0 < GFX9_VOP3B_SRC_INTEGER_MINUS_1)
-+		sprintf(src0, "0x%x",
-+			insn->vop3b.src0 - GFX9_VOP3B_SRC_INTEGER_0);
-+	else if (insn->vop3b.src0 < GFX9_VOP3B_SRC_SHARED_BASE)
-+		sprintf(src0, "-0x%x",
-+			insn->vop3b.src0 - GFX9_VOP3B_SRC_INTEGER_MINUS_1);
-+	else if (insn->vop3b.src0 == GFX9_VOP3B_SRC_VCCZ)
-+		sprintf(src0, "%s", "vcc");
-+	else if (insn->vop3b.src0 == GFX9_VOP3B_SRC_EXECZ)
-+		sprintf(src0, "%s", "exec");
-+	else if (insn->vop3b.src0 == GFX9_VOP3B_SRC_SCC)
-+		sprintf(src0, "%s", "scc");
-+	else if (insn->vop3b.src0 == GFX9_VOP3B_SRC_LITERAL_CONST)
-+		sprintf(src0, "0x%x", insn->vop3b.literal);
-+	else if (insn->vop3b.src0 >= GFX9_VOP3B_SRC_VGPR_BASE)
-+		sprintf(src0, "v%d",
-+			insn->vop3b.src0 - GFX9_VOP3B_SRC_VGPR_BASE);
++	if (!knod_map_obj_g || !knod_map_obj_k)
++		WARN_ON_ONCE(1);
 +
-+	if (insn->vop3b.src1 < GFX9_VOP3B_SRC_VCC_LO)
-+		sprintf(src1, "s%d", insn->vop3b.src1);
-+	else if (insn->vop3b.src1 == GFX9_VOP3B_SRC_VCC_LO)
-+		sprintf(src1, "%s", "vcc_lo");
-+	else if (insn->vop3b.src1 == GFX9_VOP3B_SRC_VCC_HI)
-+		sprintf(src1, "%s", "vcc_hi");
-+	else if (insn->vop3b.src1 == GFX9_VOP3B_SRC_NULL)
-+		sprintf(src1, "%s", "null");
-+	else if (insn->vop3b.src1 == GFX9_VOP3B_SRC_EXEC_LO)
-+		sprintf(src1, "%s", "exec_lo");
-+	else if (insn->vop3b.src1 == GFX9_VOP3B_SRC_EXEC_HI)
-+		sprintf(src1, "%s", "exec_hi");
-+	else if (insn->vop3b.src1 < GFX9_VOP3B_SRC_INTEGER_MINUS_1)
-+		sprintf(src1, "0x%x",
-+			insn->vop3b.src1 - GFX9_VOP3B_SRC_INTEGER_0);
-+	else if (insn->vop3b.src1 < GFX9_VOP3B_SRC_SHARED_BASE)
-+		sprintf(src1, "-0x%x",
-+			insn->vop3b.src1 - GFX9_VOP3B_SRC_INTEGER_MINUS_1);
-+	else if (insn->vop3b.src1 == GFX9_VOP3B_SRC_VCCZ)
-+		sprintf(src1, "%s", "vcc");
-+	else if (insn->vop3b.src1 == GFX9_VOP3B_SRC_EXECZ)
-+		sprintf(src1, "%s", "exec");
-+	else if (insn->vop3b.src1 == GFX9_VOP3B_SRC_SCC)
-+		sprintf(src1, "%s", "scc");
-+	else if (insn->vop3b.src1 == GFX9_VOP3B_SRC_LITERAL_CONST)
-+		sprintf(src1, "0x%x", insn->vop3b.literal);
-+	else if (insn->vop3b.src1 >= GFX9_VOP3B_SRC_VGPR_BASE)
-+		sprintf(src1, "v%d",
-+			insn->vop3b.src1 - GFX9_VOP3B_SRC_VGPR_BASE);
++	/* ======== Phase 1: Setup ======== */
 +
-+	if (insn->vop3b.src2 < GFX9_VOP3B_SRC_VCC_LO)
-+		sprintf(src2, "s%d", insn->vop3b.src2);
-+	else if (insn->vop3b.src2 == GFX9_VOP3B_SRC_VCC_LO)
-+		sprintf(src2, "%s", "vcc_lo");
-+	else if (insn->vop3b.src2 == GFX9_VOP3B_SRC_VCC_HI)
-+		sprintf(src2, "%s", "vcc_hi");
-+	else if (insn->vop3b.src2 == GFX9_VOP3B_SRC_NULL)
-+		sprintf(src2, "%s", "null");
-+	else if (insn->vop3b.src2 == GFX9_VOP3B_SRC_EXEC_LO)
-+		sprintf(src2, "%s", "exec_lo");
-+	else if (insn->vop3b.src2 == GFX9_VOP3B_SRC_EXEC_HI)
-+		sprintf(src2, "%s", "exec_hi");
-+	else if (insn->vop3b.src2 < GFX9_VOP3B_SRC_INTEGER_MINUS_1)
-+		sprintf(src2, "0x%x",
-+			insn->vop3b.src2 - GFX9_VOP3B_SRC_INTEGER_0);
-+	else if (insn->vop3b.src2 < GFX9_VOP3B_SRC_SHARED_BASE)
-+		sprintf(src2, "-0x%x",
-+			insn->vop3b.src2 - GFX9_VOP3B_SRC_INTEGER_MINUS_1);
-+	else if (insn->vop3b.src2 == GFX9_VOP3B_SRC_VCCZ)
-+		sprintf(src2, "%s", "vcc");
-+	else if (insn->vop3b.src2 == GFX9_VOP3B_SRC_EXECZ)
-+		sprintf(src2, "%s", "exec");
-+	else if (insn->vop3b.src2 == GFX9_VOP3B_SRC_SCC)
-+		sprintf(src2, "%s", "scc");
-+	else if (insn->vop3b.src2 == GFX9_VOP3B_SRC_LITERAL_CONST)
-+		sprintf(src2, "0x%x", insn->vop3b.literal);
-+	else if (insn->vop3b.src2 >= GFX9_VOP3B_SRC_VGPR_BASE)
-+		sprintf(src2, "v%d",
-+			insn->vop3b.src2 - GFX9_VOP3B_SRC_VGPR_BASE);
++	/* Load key from stack -> r64[3..9] (KEY_IN_PKT) */
++	key_in_pkt = KEY_IN_PKT_64;
++	len = knod_map_obj_k->key_size;
++	off = key_stack_off;
++	while (len) {
++		if (len >= sizeof(unsigned long))
++			_len = sizeof(unsigned long);
++		else
++			_len = len;
++		knod_bpf_load_size(priv, meta,
++				       &r64[key_in_pkt],
++				       &stack[0],
++				       _len,
++				       512 + off);
++		key_in_pkt++;
++		len -= _len;
++		off += _len;
++	}
 +
-+	pr_debug("knod_asm %s v%d, %s, %s, %s, %s\n",
-+		 opnames_gfx9[AMDGCN_INSN_TYPE_VOP3B][insn->vop3b.op],
-+		 insn->vop3b.vdst, sdst, src0, src1, src2);
++	/* jhash -> r64[2].lo = hash */
++	knod_jhash(priv, meta,
++		       2,
++		       knod_map_obj_k->key_size,
++		       knod_map_obj_k->meta.hmeta.hashrnd);
++	knod_iset64(&p64[0], 0);
++	knod_mov32(priv, meta, r64[2].hi, p64[0].lo);
++
++	/* hash = hash & (n_buckets - 1) */
++	knod_iset32(&p64[0].lo,
++				 knod_map_obj_k->meta.hmeta.n_buckets - 1);
++	knod_and32(priv, meta, r64[2].lo, p64[0].lo, r64[2].lo);
++
++	/* r64[1] = bucket_gaddr */
++	knod_iset64(&p64[0], bucket_gaddr);
++	knod_mov64(priv, meta, r64[1], p64[0]);
++
++	/* bucket_addr = bucket_gaddr + hash * sizeof(int) -> r64[2] */
++	knod_iset64(&p64[1], sizeof(int));
++	knod_emit(priv, meta, v_mad_u64_u32, r64[2], sr64[0].lo,
++		  p64[1].lo, r64[2].lo, r64[1]);
++
++	/* Save bucket_addr to r64[15] for CAS insert */
++	knod_mov64(priv, meta, r64[15], r64[2]);
++
++	/* SREG3 = initial exec */
++	knod_emit(priv, meta, s_mov_b64, KNOD_AMDGPU_TMP_SREG3_LO,
++		  AMDGCN_SREG_EXEC_LO);
++
++	/* ======== Phase 2: Sequential per-lane processing ======== */
++
++	/* SREG5 = exec (all lanes to process, for BUCKET_LOOP) */
++	knod_emit(priv, meta, s_mov_b64, KNOD_AMDGPU_TMP_SREG5_LO,
++		  AMDGCN_SREG_EXEC_LO);
++
++	/* ---- BUCKET_LOOP: process one unique bucket per iteration ---- */
++	knod_bpf_set_label(meta, &labels[LABEL_BUCKET_LOOP],
++			   meta->amdgpu_insns);
++
++	lock_offset =
++		(unsigned long)knod_map_obj_k->meta.hmeta.n_buckets *
++		sizeof(unsigned int);
++
++	knod_sset32(&s_bucket_lo,
++				 KNOD_AMDGPU_TMP_SREG1_HI);
++	knod_vset32(&v_tmp, KNOD_AMDGPU_TMP_VREG0_HI);
++	knod_iset32(&v_zero, 0);
++	knod_iset32(&v_one, 1);
++	knod_sset32(&s_exec_lo, AMDGCN_SREG_EXEC_LO);
++	knod_sset32(&s_exec_hi,
++				 AMDGCN_SREG_EXEC_LO + 1);
++	knod_sset32(&s_elem_id,
++				 KNOD_AMDGPU_TMP_SREG1_LO);
++	knod_sset64(&sr64_carry,
++				 KNOD_AMDGPU_TMP_SREG1_LO);
++
++	/* Pick first active lane's bucket addr */
++	knod_emit(priv, meta, v_readfirstlane_b32, KNOD_AMDGPU_TMP_SREG1_HI,
++		  r64[15].lo.v);
++
++	/* vcc = lanes with same bucket */
++	knod_emit(priv, meta, v_cmp_eq_u32, s_bucket_lo, r64[15].lo);
++
++	/* SREG5 = remaining lanes; exec = same-bucket lanes */
++	knod_emit(priv, meta, s_and_saveexec_b64, KNOD_AMDGPU_TMP_SREG5_LO,
++		  AMDGCN_SREG_VCC_LO);
++
++	/* SREG0 = same-bucket lanes */
++	knod_emit(priv, meta, s_mov_b64, KNOD_AMDGPU_TMP_SREG0_LO,
++		  AMDGCN_SREG_EXEC_LO);
++
++	/* ---- Lock acquire ---- */
++	/* r64[10] = r64[15] + lock_offset */
++	knod_iset64(&p64[0], lock_offset);
++	knod_add64(priv, meta, r64[10], p64[0], r64[15]);
++
++	/* r64[11].lo = 1 (swap data) */
++	knod_emit(priv, meta, v_mov_b32_e32, r64[11].lo, v_one);
++
++	/* First-lane isolation via mbcnt */
++	knod_emit(priv, meta, v_mbcnt_lo_u32_b32, v_tmp, s_exec_lo,
++		  v_zero);
++	knod_emit(priv, meta, v_mbcnt_hi_u32_b32, v_tmp, s_exec_hi, v_tmp);
++	knod_emit(priv, meta, v_cmp_eq_u32, v_zero, v_tmp);
++	knod_emit(priv, meta, s_and_b64, AMDGCN_SREG_EXEC_LO,
++		  AMDGCN_SREG_EXEC_LO, AMDGCN_SREG_VCC_LO);
++
++	/* LOCK_RETRY: spin until lock acquired */
++	knod_bpf_set_label(meta, &labels[LABEL_LOCK_RETRY], meta->amdgpu_insns);
++
++	knod_emit(priv, meta, global_atomic_swap, r64[11].hi, r64[10].lo,
++		  r64[11].lo, 0, 1);
++	knod_wait_vmcnt(priv, meta);
++
++	meta->amdgpu_insn[meta->amdgpu_insns].size =
++		emit_gfx10_v_cmp_ne_u32(
++			&meta->amdgpu_insn[meta->amdgpu_insns].gfx10,
++			v_zero, r64[11].hi);
++	meta->amdgpu_insn[meta->amdgpu_insns].type = AMDGCN_INSN_TYPE_VOPC;
++	debug_insn(priv->isa_version, &meta->amdgpu_insn[meta->amdgpu_insns]);
++	meta->amdgpu_insns++;
++
++	emit_s_cbranch_vccnz(priv->isa_version,
++			     &meta->amdgpu_insn[meta->amdgpu_insns],
++			     0);
++	knod_bpf_set_fixup(meta, &fixups[fixup_idx],
++			   &labels[LABEL_LOCK_RETRY], meta->amdgpu_insns);
++	debug_insn(priv->isa_version, &meta->amdgpu_insn[meta->amdgpu_insns]);
++	meta->amdgpu_insns++;
++	fixup_idx++;
++
++	/* Lock acquired - restore same-bucket lanes */
++	knod_emit(priv, meta, s_mov_b64, AMDGCN_SREG_EXEC_LO,
++		  KNOD_AMDGPU_TMP_SREG0_LO);
++
++	/* ---- INSERT_LANE: process one lane at a time ---- */
++	knod_bpf_set_label(meta, &labels[LABEL_INSERT_LANE],
++			   meta->amdgpu_insns);
++
++	/* SREG4 = exec (remaining same-bucket lanes) */
++	knod_emit(priv, meta, s_mov_b64, KNOD_AMDGPU_TMP_SREG4_LO,
++		  AMDGCN_SREG_EXEC_LO);
++
++	/* Pick first active lane via mbcnt */
++	knod_emit(priv, meta, v_mbcnt_lo_u32_b32, v_tmp, s_exec_lo,
++		  v_zero);
++	knod_emit(priv, meta, v_mbcnt_hi_u32_b32, v_tmp, s_exec_hi, v_tmp);
++	knod_emit(priv, meta, v_cmp_eq_u32, v_zero, v_tmp);
++	knod_emit(priv, meta, s_and_b64, AMDGCN_SREG_EXEC_LO,
++		  AMDGCN_SREG_EXEC_LO, AMDGCN_SREG_VCC_LO);
++
++	/* SREG2 = exec (single-lane mask) */
++	knod_emit(priv, meta, s_mov_b64, KNOD_AMDGPU_TMP_SREG2_LO,
++		  AMDGCN_SREG_EXEC_LO);
++
++	/* r64[2] = r64[15] (bucket_addr for chain walk start) */
++	knod_mov64(priv, meta, r64[2], r64[15]);
++
++	/* ---- CHAIN_NEXT: walk chain ---- */
++	knod_bpf_set_label(meta, &labels[LABEL_CHAIN_NEXT], meta->amdgpu_insns);
++
++	knod_emit(priv, meta, global_load_dword, r64[0].lo, r64[2].lo, 0);
++	knod_wait_vmcnt(priv, meta);
++
++	/* Mask out DELETED bit */
++	knod_iset32(&p32, KNOD_BPF_HASH_NEXT_MASK);
++	knod_emit(priv, meta, v_and_b32_e32, r64[0].lo, p32, r64[0].lo);
++
++	/* End-of-chain check (VOPC literal workaround) */
++	knod_emit(priv, meta, v_mov_b32_e32, r64[0].hi, p32);
++	knod_emit(priv, meta, v_cmp_eq_u32, r64[0].hi, r64[0].lo);
++	knod_emit(priv, meta, s_andn2_b64, AMDGCN_SREG_EXEC_LO,
++		  AMDGCN_SREG_EXEC_LO, AMDGCN_SREG_VCC_LO);
++	emit_s_cbranch_execz(priv->isa_version,
++			     &meta->amdgpu_insn[meta->amdgpu_insns],
++			     0);
++	knod_bpf_set_fixup(meta, &fixups[fixup_idx],
++			   &labels[LABEL_ALLOC_INSERT], meta->amdgpu_insns);
++	debug_insn(priv->isa_version, &meta->amdgpu_insn[meta->amdgpu_insns]);
++	meta->amdgpu_insns++;
++	fixup_idx++;
++
++	/* elem_addr = elems + elem_id * elem_size -> r64[2] */
++	knod_iset64(&p64[0], elems_gaddr);
++	knod_mov64(priv, meta, r64[1], p64[0]);
++	knod_iset64(&p64[0], elem_size);
++	knod_mov32(priv, meta, r64[10].lo, p64[0].lo);
++	knod_emit(priv, meta, v_mad_u64_u32, r64[2], sr64_carry.lo,
++		  r64[10].lo, r64[0].lo, r64[1]);
++
++	/* Load elem.next for DELETED check */
++	knod_emit(priv, meta, global_load_dword, r64[0].hi, r64[2].lo, 0);
++
++	/* Load key from map element -> KEY_IN_MAP */
++	key_in_map = KEY_IN_MAP_32;
++	len = knod_map_obj_k->key_size;
++	off = offsetof(struct knod_bpf_hash_elem_obj, kv);
++
++	while (len >= 16) {
++		knod_emit(priv, meta, global_load_dwordx4, r32[key_in_map],
++			  r64[2].lo, off);
++		off += 16;
++		len -= 16;
++		key_in_map += 4;
++	}
++
++	if (len >= 8) {
++		knod_emit(priv, meta, global_load_dwordx2, r32[key_in_map],
++			  r64[2].lo, off);
++		off += 8;
++		len -= 8;
++		key_in_map += 2;
++	}
++
++	if (len >= 4) {
++		knod_emit(priv, meta, global_load_dword, r32[key_in_map],
++			  r64[2].lo, off);
++		off += 4;
++		len -= 4;
++		key_in_map += 1;
++	}
++
++	if (len) {
++		knod_emit(priv, meta, global_load_dword, r32[key_in_map],
++			  r64[2].lo, off);
++	}
++
++	knod_wait_vmcnt(priv, meta);
++
++	/* Key comparison -> SREG1 */
++	key_in_map = KEY_IN_MAP_32;
++	key_in_pkt = KEY_IN_PKT_32;
++	len = knod_map_obj_k->key_size;
++	first_cmp = true;
++
++	while (len >= 8) {
++		knod_emit(priv, meta, v_cmp_eq_u64, r32[key_in_map],
++			  r32[key_in_pkt]);
++
++		if (first_cmp) {
++			emit_s_and_b64(priv->isa_version,
++				       &meta->amdgpu_insn[meta->amdgpu_insns],
++				       KNOD_AMDGPU_TMP_SREG1_LO,
++				       AMDGCN_SREG_EXEC_LO,
++				       AMDGCN_SREG_VCC_LO);
++			first_cmp = false;
++		} else {
++			emit_s_and_b64(priv->isa_version,
++				       &meta->amdgpu_insn[meta->amdgpu_insns],
++				       KNOD_AMDGPU_TMP_SREG1_LO,
++				       KNOD_AMDGPU_TMP_SREG1_LO,
++				       AMDGCN_SREG_VCC_LO);
++		}
++		debug_insn(priv->isa_version,
++			   &meta->amdgpu_insn[meta->amdgpu_insns]);
++		meta->amdgpu_insns++;
++
++		key_in_map += 2;
++		key_in_pkt += 2;
++		len -= 8;
++	}
++
++	if (len >= 4) {
++		knod_emit(priv, meta, v_cmp_eq_u32, r32[key_in_map],
++			  r32[key_in_pkt]);
++
++		if (first_cmp) {
++			emit_s_and_b64(priv->isa_version,
++				       &meta->amdgpu_insn[meta->amdgpu_insns],
++				       KNOD_AMDGPU_TMP_SREG1_LO,
++				       AMDGCN_SREG_EXEC_LO,
++				       AMDGCN_SREG_VCC_LO);
++			first_cmp = false;
++		} else {
++			emit_s_and_b64(priv->isa_version,
++				       &meta->amdgpu_insn[meta->amdgpu_insns],
++				       KNOD_AMDGPU_TMP_SREG1_LO,
++				       KNOD_AMDGPU_TMP_SREG1_LO,
++				       AMDGCN_SREG_VCC_LO);
++		}
++		debug_insn(priv->isa_version,
++			   &meta->amdgpu_insn[meta->amdgpu_insns]);
++		meta->amdgpu_insns++;
++
++		key_in_map += 1;
++		key_in_pkt += 1;
++		len -= 4;
++	}
++
++	if (len) {
++		knod_emit(priv, meta, v_cmp_eq_u32, r32[key_in_map],
++			  r32[key_in_pkt]);
++
++		if (first_cmp) {
++			emit_s_and_b64(priv->isa_version,
++				       &meta->amdgpu_insn[meta->amdgpu_insns],
++				       KNOD_AMDGPU_TMP_SREG1_LO,
++				       AMDGCN_SREG_EXEC_LO,
++				       AMDGCN_SREG_VCC_LO);
++			first_cmp = false;
++		} else {
++			emit_s_and_b64(priv->isa_version,
++				       &meta->amdgpu_insn[meta->amdgpu_insns],
++				       KNOD_AMDGPU_TMP_SREG1_LO,
++				       KNOD_AMDGPU_TMP_SREG1_LO,
++				       AMDGCN_SREG_VCC_LO);
++		}
++		debug_insn(priv->isa_version,
++			   &meta->amdgpu_insn[meta->amdgpu_insns]);
++		meta->amdgpu_insns++;
++	}
++
++	/* DELETED check: SREG1 &= not_deleted */
++	knod_iset32(&p32,
++				 KNOD_BPF_HASH_NEXT_DELETED);
++	knod_emit(priv, meta, v_and_b32_e32, r64[0].hi, p32, r64[0].hi);
++	knod_iset32(&p32, 0);
++	knod_emit(priv, meta, v_cmp_eq_u32, p32, r64[0].hi);
++	knod_emit(priv, meta, s_and_b64, KNOD_AMDGPU_TMP_SREG1_LO,
++		  KNOD_AMDGPU_TMP_SREG1_LO, AMDGCN_SREG_VCC_LO);
++
++	/* Narrow exec to matched lane */
++	knod_emit(priv, meta, s_and_b64, AMDGCN_SREG_EXEC_LO,
++		  AMDGCN_SREG_EXEC_LO, KNOD_AMDGPU_TMP_SREG1_LO);
++
++	/* Value overwrite for matched lane (exec-masked, skipped if no
++	 * match)
++	 */
++	knod_iset64(&p64[1],
++				 offsetof(struct knod_bpf_hash_elem_obj,
++					  kv) +
++				 knod_map_obj_k->key_size);
++	knod_add64(priv, meta, r64[0], p64[1], r64[2]);
++
++	val_off = 0;
++	val_len = knod_map_obj_k->value_size;
++
++	while (val_len >= 16) {
++		knod_bpf_load_size(priv, meta,
++				       &r64[10], &stack[0],
++				       sizeof(unsigned long),
++				       512 + val_stack_off + val_off);
++		knod_bpf_load_size(priv, meta,
++				       &r64[11], &stack[0],
++				       sizeof(unsigned long),
++				       512 + val_stack_off + val_off + 8);
++		knod_emit(priv, meta, global_store_dwordx4, r64[10].lo,
++			  r64[0].lo, val_off);
++		val_off += 16;
++		val_len -= 16;
++	}
++
++	if (val_len >= 8) {
++		knod_bpf_load_size(priv, meta,
++				       &r64[10], &stack[0],
++				       sizeof(unsigned long),
++				       512 + val_stack_off + val_off);
++		knod_emit(priv, meta, global_store_dwordx2, r64[10].lo,
++			  r64[0].lo, val_off);
++		val_off += 8;
++		val_len -= 8;
++	}
++
++	if (val_len >= 4) {
++		knod_bpf_load_size(priv, meta,
++				       &r64[10], &stack[0],
++				       sizeof(unsigned int),
++				       512 + val_stack_off + val_off);
++		knod_emit(priv, meta, global_store_dword, r64[10].lo,
++			  r64[0].lo, val_off);
++		val_off += 4;
++		val_len -= 4;
++	}
++
++	if (val_len >= 2) {
++		knod_bpf_load_size(priv, meta,
++				       &r64[10], &stack[0],
++				       sizeof(unsigned short),
++				       512 + val_stack_off + val_off);
++		knod_emit(priv, meta, global_store_short, r64[10].lo,
++			  r64[0].lo, val_off);
++		val_off += 2;
++		val_len -= 2;
++	}
++
++	if (val_len >= 1) {
++		knod_bpf_load_size(priv, meta,
++				       &r64[10], &stack[0],
++				       sizeof(unsigned char),
++				       512 + val_stack_off + val_off);
++		knod_emit(priv, meta, global_store_byte, r64[10].lo,
++			  r64[0].lo, val_off);
++	}
++
++	/* If matched, done with this lane */
++	emit_s_cbranch_execnz(priv->isa_version,
++			      &meta->amdgpu_insn[meta->amdgpu_insns],
++			      0);
++	knod_bpf_set_fixup(meta, &fixups[fixup_idx],
++			   &labels[LABEL_LANE_DONE], meta->amdgpu_insns);
++	debug_insn(priv->isa_version, &meta->amdgpu_insn[meta->amdgpu_insns]);
++	meta->amdgpu_insns++;
++	fixup_idx++;
++
++	/* No match: restore lane, continue chain walk */
++	knod_emit(priv, meta, s_mov_b64, AMDGCN_SREG_EXEC_LO,
++		  KNOD_AMDGPU_TMP_SREG2_LO);
++
++	emit_s_cbranch_execnz(priv->isa_version,
++			      &meta->amdgpu_insn[meta->amdgpu_insns],
++			      0);
++	knod_bpf_set_fixup(meta, &fixups[fixup_idx],
++			   &labels[LABEL_CHAIN_NEXT], meta->amdgpu_insns);
++	debug_insn(priv->isa_version, &meta->amdgpu_insn[meta->amdgpu_insns]);
++	meta->amdgpu_insns++;
++	fixup_idx++;
++
++	/* ---- ALLOC_INSERT: key not found, insert new elem ---- */
++	knod_bpf_set_label(meta, &labels[LABEL_ALLOC_INSERT],
++			   meta->amdgpu_insns);
++
++	/* Restore single-lane exec */
++	knod_emit(priv, meta, s_mov_b64, AMDGCN_SREG_EXEC_LO,
++		  KNOD_AMDGPU_TMP_SREG2_LO);
++
++	/* Alloc from free pool: atomic_add(cur, -1) */
++	knod_iset32(&v_minus_one, -1);
++	knod_emit(priv, meta, v_mov_b32_e32, r64[11].lo, v_minus_one);
++
++	knod_iset64(&p64[0], cur_gaddr);
++	knod_mov64(priv, meta, r64[1], p64[0]);
++
++	knod_emit(priv, meta, global_atomic_add, r64[11].lo, r64[1].lo,
++		  r64[11].lo, 0, 1);
++	knod_wait_vmcnt(priv, meta);
++
++	/* my_cur = old_cur - 1 -> r64[0].lo */
++	knod_emit(priv, meta, v_mov_b32_e32, r64[0].lo, v_one);
++	knod_emit(priv, meta, v_sub_u32, r64[0].lo, r64[11].lo, r64[0].lo);
++
++	/* OOM check: if (my_cur < 0) -> skip insert */
++	knod_emit(priv, meta, v_cmp_gt_i32, v_zero, r64[0].lo);
++	knod_emit(priv, meta, s_andn2_b64, AMDGCN_SREG_EXEC_LO,
++		  AMDGCN_SREG_EXEC_LO, AMDGCN_SREG_VCC_LO);
++	emit_s_cbranch_execz(priv->isa_version,
++			     &meta->amdgpu_insn[meta->amdgpu_insns],
++			     0);
++	knod_bpf_set_fixup(meta, &fixups[fixup_idx],
++			   &labels[LABEL_LANE_DONE], meta->amdgpu_insns);
++	debug_insn(priv->isa_version, &meta->amdgpu_insn[meta->amdgpu_insns]);
++	meta->amdgpu_insns++;
++	fixup_idx++;
++
++	/* queue_addr = queue_gaddr + my_cur * 4 -> r64[1] */
++	knod_iset64(&p64[0], queue_gaddr);
++	knod_mov64(priv, meta, r64[1], p64[0]);
++	knod_iset64(&p64[1], sizeof(unsigned int));
++	knod_emit(priv, meta, v_mad_u64_u32, r64[1], sr64_carry.lo,
++		  p64[1].lo, r64[0].lo, r64[1]);
++
++	/* elem_id = queue[my_cur] -> r64[0].lo */
++	knod_emit(priv, meta, global_load_dword, r64[0].lo, r64[1].lo, 0);
++	knod_wait_vmcnt(priv, meta);
++
++	/* new_elem_addr = elems + elem_id * elem_size -> r64[2] */
++	knod_iset64(&p64[0], elems_gaddr);
++	knod_mov64(priv, meta, r64[1], p64[0]);
++	knod_iset64(&p64[0], elem_size);
++	knod_mov32(priv, meta, r64[10].lo, p64[0].lo);
++	knod_emit(priv, meta, v_mad_u64_u32, r64[2], sr64_carry.lo,
++		  r64[10].lo, r64[0].lo, r64[1]);
++
++	/* Save elem_id to SGPR (v_mad carry already done) */
++	knod_emit(priv, meta, v_readfirstlane_b32, KNOD_AMDGPU_TMP_SREG1_LO,
++		  r64[0].lo.v);
++
++	/* Load current bucket head -> r64[1].lo */
++	knod_emit(priv, meta, global_load_dword, r64[1].lo, r64[15].lo, 0);
++	knod_wait_vmcnt(priv, meta);
++
++	/* new_elem.next = old_head */
++	knod_emit(priv, meta, global_store_dword, r64[1].lo, r64[2].lo, 0);
++
++	/* Write key to new element */
++	koff = offsetof(struct knod_bpf_hash_elem_obj, kv);
++
++	key_in_pkt = KEY_IN_PKT_32;
++	len = knod_map_obj_k->key_size;
++
++	while (len >= 8) {
++		knod_emit(priv, meta, global_store_dwordx2, r32[key_in_pkt],
++			  r64[2].lo, koff);
++		koff += 8;
++		len -= 8;
++		key_in_pkt += 2;
++	}
++
++	if (len >= 4) {
++		knod_emit(priv, meta, global_store_dword, r32[key_in_pkt],
++			  r64[2].lo, koff);
++		koff += 4;
++		len -= 4;
++		key_in_pkt += 1;
++	}
++
++	if (len >= 2) {
++		knod_emit(priv, meta, global_store_short, r32[key_in_pkt],
++			  r64[2].lo, koff);
++		koff += 2;
++		len -= 2;
++	}
++
++	if (len >= 1) {
++		knod_emit(priv, meta, global_store_byte, r32[key_in_pkt],
++			  r64[2].lo, koff);
++	}
++
++	/* Write value to new element */
++	voff = offsetof(struct knod_bpf_hash_elem_obj, kv) +
++	       knod_map_obj_k->key_size;
++
++	val_off = 0;
++	val_len = knod_map_obj_k->value_size;
++
++	knod_iset64(&p64[1], voff);
++	knod_add64(priv, meta, r64[0], p64[1], r64[2]);
++
++	while (val_len >= 16) {
++		knod_bpf_load_size(priv, meta,
++				       &r64[10], &stack[0],
++				       sizeof(unsigned long),
++				       512 + val_stack_off + val_off);
++		knod_bpf_load_size(priv, meta,
++				       &r64[11], &stack[0],
++				       sizeof(unsigned long),
++				       512 + val_stack_off + val_off + 8);
++		knod_emit(priv, meta, global_store_dwordx4, r64[10].lo,
++			  r64[0].lo, val_off);
++		val_off += 16;
++		val_len -= 16;
++	}
++
++	if (val_len >= 8) {
++		knod_bpf_load_size(priv, meta,
++				       &r64[10], &stack[0],
++				       sizeof(unsigned long),
++				       512 + val_stack_off + val_off);
++		knod_emit(priv, meta, global_store_dwordx2, r64[10].lo,
++			  r64[0].lo, val_off);
++		val_off += 8;
++		val_len -= 8;
++	}
++
++	if (val_len >= 4) {
++		knod_bpf_load_size(priv, meta,
++				       &r64[10], &stack[0],
++				       sizeof(unsigned int),
++				       512 + val_stack_off + val_off);
++		knod_emit(priv, meta, global_store_dword, r64[10].lo,
++			  r64[0].lo, val_off);
++		val_off += 4;
++		val_len -= 4;
++	}
++
++	if (val_len >= 2) {
++		knod_bpf_load_size(priv, meta,
++				       &r64[10], &stack[0],
++				       sizeof(unsigned short),
++				       512 + val_stack_off + val_off);
++		knod_emit(priv, meta, global_store_short, r64[10].lo,
++			  r64[0].lo, val_off);
++		val_off += 2;
++		val_len -= 2;
++	}
++
++	if (val_len >= 1) {
++		knod_bpf_load_size(priv, meta,
++				       &r64[10], &stack[0],
++				       sizeof(unsigned char),
++				       512 + val_stack_off + val_off);
++		knod_emit(priv, meta, global_store_byte, r64[10].lo,
++			  r64[0].lo, val_off);
++	}
++
++	knod_wait_vmcnt(priv, meta);
++
++	/* Update bucket[hash] = new elem_id */
++	knod_emit(priv, meta, v_mov_b32_e32, r64[1].lo, s_elem_id);
++	knod_emit(priv, meta, global_store_dword, r64[1].lo, r64[15].lo,
++		  0);
++	knod_wait_vmcnt(priv, meta);
++
++	/* ---- LANE_DONE: remove this lane, next lane ---- */
++	knod_bpf_set_label(meta, &labels[LABEL_LANE_DONE], meta->amdgpu_insns);
++
++	knod_emit(priv, meta, s_andn2_b64, AMDGCN_SREG_EXEC_LO,
++		  KNOD_AMDGPU_TMP_SREG4_LO, KNOD_AMDGPU_TMP_SREG2_LO);
++
++	emit_s_cbranch_execnz(priv->isa_version,
++			      &meta->amdgpu_insn[meta->amdgpu_insns],
++			      0);
++	knod_bpf_set_fixup(meta, &fixups[fixup_idx],
++			   &labels[LABEL_INSERT_LANE], meta->amdgpu_insns);
++	debug_insn(priv->isa_version, &meta->amdgpu_insn[meta->amdgpu_insns]);
++	meta->amdgpu_insns++;
++	fixup_idx++;
++
++	/* ---- UNLOCK: release lock + next bucket ---- */
++	knod_bpf_set_label(meta, &labels[LABEL_UNLOCK], meta->amdgpu_insns);
++
++	knod_emit(priv, meta, s_mov_b64, AMDGCN_SREG_EXEC_LO,
++		  KNOD_AMDGPU_TMP_SREG0_LO);
++
++	/* Recompute lock_addr (r64[10] clobbered) */
++	knod_iset64(&p64[0], lock_offset);
++	knod_add64(priv, meta, r64[10], p64[0], r64[15]);
++
++	knod_emit(priv, meta, v_mov_b32_e32, r64[1].lo, v_zero);
++	knod_emit(priv, meta, global_store_dword, r64[1].lo, r64[10].lo,
++		  0);
++	knod_wait_vmcnt(priv, meta);
++
++	/* Next bucket */
++	knod_emit(priv, meta, s_andn2_b64, AMDGCN_SREG_EXEC_LO,
++		  KNOD_AMDGPU_TMP_SREG5_LO, KNOD_AMDGPU_TMP_SREG0_LO);
++
++	emit_s_cbranch_execnz(priv->isa_version,
++			      &meta->amdgpu_insn[meta->amdgpu_insns],
++			      0);
++	knod_bpf_set_fixup(meta, &fixups[fixup_idx],
++			   &labels[LABEL_BUCKET_LOOP], meta->amdgpu_insns);
++	debug_insn(priv->isa_version, &meta->amdgpu_insn[meta->amdgpu_insns]);
++	meta->amdgpu_insns++;
++	fixup_idx++;
++
++	/* ======== Phase 5: Restore ======== */
++
++	knod_bpf_set_label(meta, &labels[LABEL_OUT], meta->amdgpu_insns);
++	/* exec = SREG3 (restore all original lanes) */
++	knod_emit(priv, meta, s_or_b64, AMDGCN_SREG_EXEC_LO,
++		  AMDGCN_SREG_EXEC_LO, KNOD_AMDGPU_TMP_SREG3_LO);
++
++	/* bpf_reg64[0] = 0 (return value for all lanes) */
++	knod_iset64(&p64[0], 0);
++	knod_mov64(priv, meta, bpf_reg64[0], p64[0]);
++
++	for (idx = 0; idx < fixup_idx; idx++)
++		knod_bpf_fixup_branch(priv, &fixups[idx]);
++
++	return;
++#undef LABEL_BUCKET_LOOP
++#undef LABEL_LOCK_RETRY
++#undef LABEL_INSERT_LANE
++#undef LABEL_CHAIN_NEXT
++#undef LABEL_ALLOC_INSERT
++#undef LABEL_LANE_DONE
++#undef LABEL_UNLOCK
 +}
 +
-+static inline void gfx9_debug_vop1(union amdgcn_gfx9_insn *insn)
++static void knod_bpf_map_delete_hash(struct knod_bpf_priv *priv,
++				     struct knod_insn_meta *meta,
++				     int map_id)
 +{
-+	char src0[20];
++#define LABEL_BUCKET_LOOP	0
++#define LABEL_LOCK_RETRY	1
++#define LABEL_DELETE_LANE	2
++#define LABEL_CHAIN_NEXT	3
++#define LABEL_LANE_DONE		4
++#define LABEL_UNLOCK		5
++	struct knod_bpf_map_obj *knod_map_obj_k, *knod_map_obj_g;
++	struct amdgcn_param32 s_bucket_lo, v_tmp, v_zero, v_one;
++	int off, len, _len, idx, key_in_pkt, key_in_map;
++	struct amdgcn_branch_fixup fixups[12] = {0,};
++	unsigned long bucket_gaddr, gc_count_gaddr;
++	struct amdgcn_param32 s_exec_lo, s_exec_hi;
++	unsigned long gc_list_gaddr, elems_gaddr;
++	u32 key_stack_off = meta->kreg.stack_off;
++	struct amdgcn_label labels[12] = {0,};
++	struct amdgcn_param64 sr64_carry;
++	struct amdgcn_param32 v_del;
++	struct amdgcn_param32 p32;
++	unsigned long lock_offset;
++	unsigned int elem_size;
++	int fixup_idx = 0;
++	bool first_cmp;
 +
-+	if (insn->vop1.src0 < GFX9_VOP1_SRC_VCC_LO)
-+		sprintf(src0, "s%d", insn->vop1.src0);
-+	else if (insn->vop1.src0 == GFX9_VOP1_SRC_VCC_LO)
-+		sprintf(src0, "%s", "vcc_lo");
-+	else if (insn->vop1.src0 == GFX9_VOP1_SRC_VCC_HI)
-+		sprintf(src0, "%s", "vcc_hi");
-+	else if (insn->vop1.src0 == GFX9_VOP1_SRC_NULL)
-+		sprintf(src0, "%s", "null");
-+	else if (insn->vop1.src0 == GFX9_VOP1_SRC_EXEC_LO)
-+		sprintf(src0, "%s", "exec_lo");
-+	else if (insn->vop1.src0 == GFX9_VOP1_SRC_EXEC_HI)
-+		sprintf(src0, "%s", "exec_hi");
-+	else if (insn->vop1.src0 < GFX9_VOP1_SRC_INTEGER_MINUS_1)
-+		sprintf(src0, "0x%x",
-+			insn->vop1.src0 - GFX9_VOP1_SRC_INTEGER_0);
-+	else if (insn->vop1.src0 < GFX9_VOP1_SRC_SHARED_BASE)
-+		sprintf(src0, "-0x%x",
-+			insn->vop1.src0 - GFX9_VOP1_SRC_INTEGER_MINUS_1);
-+	else if (insn->vop1.src0 == GFX9_VOP1_SRC_VCCZ)
-+		sprintf(src0, "%s", "vcc");
-+	else if (insn->vop1.src0 == GFX9_VOP1_SRC_EXECZ)
-+		sprintf(src0, "%s", "exec");
-+	else if (insn->vop1.src0 == GFX9_VOP1_SRC_SCC)
-+		sprintf(src0, "%s", "scc");
-+	else if (insn->vop1.src0 == GFX9_VOP1_SRC_LITERAL_CONST)
-+		sprintf(src0, "0x%x", insn->vop1.literal);
-+	else if (insn->vop1.src0 >= GFX9_VOP1_SRC_VGPR_BASE)
-+		sprintf(src0, "v%d", insn->vop1.src0 - GFX9_VOP1_SRC_VGPR_BASE);
++	knod_map_obj_k =
++		(struct knod_bpf_map_obj *)knod_bpf_map_kaddr(priv, map_id);
++	knod_map_obj_g =
++		(struct knod_bpf_map_obj *)knod_bpf_map_gaddr(priv, map_id);
++	bucket_gaddr = (unsigned long)knod_map_obj_g +
++		       offsetof(struct knod_bpf_map_obj, bucket);
++	gc_count_gaddr = (unsigned long)knod_map_obj_g +
++			 offsetof(struct knod_bpf_map_obj, meta.hmeta.gc_count);
++	gc_list_gaddr = (unsigned long)knod_map_obj_k->meta.hmeta.gc_list;
++	elems_gaddr = (unsigned long)knod_map_obj_k->meta.hmeta.elems;
++	elem_size = knod_map_obj_k->meta.hmeta.elem_size;
 +
-+	pr_debug("knod_asm %s v%d, %s\n",
-+		 opnames_gfx9[AMDGCN_INSN_TYPE_VOP1][insn->vop1.op],
-+		 insn->vop1.vdst, src0);
++	if (!knod_map_obj_g || !knod_map_obj_k)
++		WARN_ON_ONCE(1);
++
++	/* ======== Phase 1: Setup ======== */
++
++	/* Load key from stack -> r64[3..9] (KEY_IN_PKT) */
++	key_in_pkt = KEY_IN_PKT_64;
++	len = knod_map_obj_k->key_size;
++	off = key_stack_off;
++	while (len) {
++		if (len >= sizeof(unsigned long))
++			_len = sizeof(unsigned long);
++		else
++			_len = len;
++		knod_bpf_load_size(priv, meta,
++				       &r64[key_in_pkt],
++				       &stack[0],
++				       _len,
++				       512 + off);
++		key_in_pkt++;
++		len -= _len;
++		off += _len;
++	}
++
++	/* jhash -> r64[2].lo = hash */
++	knod_jhash(priv, meta,
++		       2,
++		       knod_map_obj_k->key_size,
++		       knod_map_obj_k->meta.hmeta.hashrnd);
++	knod_iset64(&p64[0], 0);
++	knod_mov32(priv, meta, r64[2].hi, p64[0].lo);
++
++	/* hash = hash & (n_buckets - 1) */
++	knod_iset32(&p64[0].lo,
++				 knod_map_obj_k->meta.hmeta.n_buckets - 1);
++	knod_and32(priv, meta, r64[2].lo, p64[0].lo, r64[2].lo);
++
++	/* r64[1] = bucket_gaddr */
++	knod_iset64(&p64[0], bucket_gaddr);
++	knod_mov64(priv, meta, r64[1], p64[0]);
++
++	/* bucket_addr = bucket_gaddr + hash * sizeof(int) -> r64[2] */
++	knod_iset64(&p64[1], sizeof(int));
++	knod_emit(priv, meta, v_mad_u64_u32, r64[2], sr64[0].lo,
++		  p64[1].lo, r64[2].lo, r64[1]);
++
++	/* Save bucket_addr to r64[15] */
++	knod_mov64(priv, meta, r64[15], r64[2]);
++
++	/* SREG3 = initial exec */
++	knod_emit(priv, meta, s_mov_b64, KNOD_AMDGPU_TMP_SREG3_LO,
++		  AMDGCN_SREG_EXEC_LO);
++
++	/* ======== Phase 2: Sequential per-lane processing ======== */
++
++	/* SREG5 = exec (all lanes to process, for BUCKET_LOOP) */
++	knod_emit(priv, meta, s_mov_b64, KNOD_AMDGPU_TMP_SREG5_LO,
++		  AMDGCN_SREG_EXEC_LO);
++
++	/* ---- BUCKET_LOOP: process one unique bucket per iteration ---- */
++	knod_bpf_set_label(meta, &labels[LABEL_BUCKET_LOOP],
++			   meta->amdgpu_insns);
++
++	lock_offset =
++		(unsigned long)knod_map_obj_k->meta.hmeta.n_buckets *
++		sizeof(unsigned int);
++
++	knod_sset32(&s_bucket_lo,
++				 KNOD_AMDGPU_TMP_SREG1_HI);
++	knod_vset32(&v_tmp, KNOD_AMDGPU_TMP_VREG0_HI);
++	knod_iset32(&v_zero, 0);
++	knod_iset32(&v_one, 1);
++	knod_sset32(&s_exec_lo, AMDGCN_SREG_EXEC_LO);
++	knod_sset32(&s_exec_hi,
++				 AMDGCN_SREG_EXEC_LO + 1);
++	knod_sset64(&sr64_carry,
++				 KNOD_AMDGPU_TMP_SREG1_LO);
++
++	/* Pick first active lane's bucket addr */
++	knod_emit(priv, meta, v_readfirstlane_b32, KNOD_AMDGPU_TMP_SREG1_HI,
++		  r64[15].lo.v);
++
++	/* vcc = lanes with same bucket */
++	knod_emit(priv, meta, v_cmp_eq_u32, s_bucket_lo, r64[15].lo);
++
++	/* SREG5 = remaining lanes; exec = same-bucket lanes */
++	knod_emit(priv, meta, s_and_saveexec_b64, KNOD_AMDGPU_TMP_SREG5_LO,
++		  AMDGCN_SREG_VCC_LO);
++
++	/* SREG0 = same-bucket lanes */
++	knod_emit(priv, meta, s_mov_b64, KNOD_AMDGPU_TMP_SREG0_LO,
++		  AMDGCN_SREG_EXEC_LO);
++
++	/* ---- Lock acquire ---- */
++	/* r64[10] = r64[15] + lock_offset */
++	knod_iset64(&p64[0], lock_offset);
++	knod_add64(priv, meta, r64[10], p64[0], r64[15]);
++
++	/* r64[11].lo = 1 (swap data) */
++	knod_emit(priv, meta, v_mov_b32_e32, r64[11].lo, v_one);
++
++	/* First-lane isolation via mbcnt */
++	knod_emit(priv, meta, v_mbcnt_lo_u32_b32, v_tmp, s_exec_lo,
++		  v_zero);
++	knod_emit(priv, meta, v_mbcnt_hi_u32_b32, v_tmp, s_exec_hi, v_tmp);
++	knod_emit(priv, meta, v_cmp_eq_u32, v_zero, v_tmp);
++	knod_emit(priv, meta, s_and_b64, AMDGCN_SREG_EXEC_LO,
++		  AMDGCN_SREG_EXEC_LO, AMDGCN_SREG_VCC_LO);
++
++	/* LOCK_RETRY: spin until lock acquired */
++	knod_bpf_set_label(meta, &labels[LABEL_LOCK_RETRY], meta->amdgpu_insns);
++
++	knod_emit(priv, meta, global_atomic_swap, r64[11].hi, r64[10].lo,
++		  r64[11].lo, 0, 1);
++	knod_wait_vmcnt(priv, meta);
++
++	meta->amdgpu_insn[meta->amdgpu_insns].size =
++		emit_gfx10_v_cmp_ne_u32(
++			&meta->amdgpu_insn[meta->amdgpu_insns].gfx10,
++			v_zero, r64[11].hi);
++	meta->amdgpu_insn[meta->amdgpu_insns].type = AMDGCN_INSN_TYPE_VOPC;
++	debug_insn(priv->isa_version, &meta->amdgpu_insn[meta->amdgpu_insns]);
++	meta->amdgpu_insns++;
++
++	emit_s_cbranch_vccnz(priv->isa_version,
++			     &meta->amdgpu_insn[meta->amdgpu_insns],
++			     0);
++	knod_bpf_set_fixup(meta, &fixups[fixup_idx],
++			   &labels[LABEL_LOCK_RETRY], meta->amdgpu_insns);
++	debug_insn(priv->isa_version, &meta->amdgpu_insn[meta->amdgpu_insns]);
++	meta->amdgpu_insns++;
++	fixup_idx++;
++
++	/* Lock acquired - restore same-bucket lanes */
++	knod_emit(priv, meta, s_mov_b64, AMDGCN_SREG_EXEC_LO,
++		  KNOD_AMDGPU_TMP_SREG0_LO);
++
++	/* ---- DELETE_LANE: process one lane at a time ---- */
++	knod_bpf_set_label(meta, &labels[LABEL_DELETE_LANE],
++			   meta->amdgpu_insns);
++
++	/* SREG4 = exec (remaining same-bucket lanes) */
++	knod_emit(priv, meta, s_mov_b64, KNOD_AMDGPU_TMP_SREG4_LO,
++		  AMDGCN_SREG_EXEC_LO);
++
++	/* Pick first active lane via mbcnt */
++	knod_emit(priv, meta, v_mbcnt_lo_u32_b32, v_tmp, s_exec_lo,
++		  v_zero);
++	knod_emit(priv, meta, v_mbcnt_hi_u32_b32, v_tmp, s_exec_hi, v_tmp);
++	knod_emit(priv, meta, v_cmp_eq_u32, v_zero, v_tmp);
++	knod_emit(priv, meta, s_and_b64, AMDGCN_SREG_EXEC_LO,
++		  AMDGCN_SREG_EXEC_LO, AMDGCN_SREG_VCC_LO);
++
++	/* SREG2 = exec (single-lane mask) */
++	knod_emit(priv, meta, s_mov_b64, KNOD_AMDGPU_TMP_SREG2_LO,
++		  AMDGCN_SREG_EXEC_LO);
++
++	/* r64[2] = r64[15] (bucket_addr for chain walk start) */
++	knod_mov64(priv, meta, r64[2], r64[15]);
++
++	/* ---- CHAIN_NEXT: walk chain ---- */
++	knod_bpf_set_label(meta, &labels[LABEL_CHAIN_NEXT], meta->amdgpu_insns);
++
++	knod_emit(priv, meta, global_load_dword, r64[0].lo, r64[2].lo, 0);
++	knod_wait_vmcnt(priv, meta);
++
++	/* Mask out DELETED bit */
++	knod_iset32(&p32, KNOD_BPF_HASH_NEXT_MASK);
++	knod_emit(priv, meta, v_and_b32_e32, r64[0].lo, p32, r64[0].lo);
++
++	/* End-of-chain check (VOPC literal workaround) */
++	knod_emit(priv, meta, v_mov_b32_e32, r64[0].hi, p32);
++	knod_emit(priv, meta, v_cmp_eq_u32, r64[0].hi, r64[0].lo);
++	knod_emit(priv, meta, s_andn2_b64, AMDGCN_SREG_EXEC_LO,
++		  AMDGCN_SREG_EXEC_LO, AMDGCN_SREG_VCC_LO);
++	emit_s_cbranch_execz(priv->isa_version,
++			     &meta->amdgpu_insn[meta->amdgpu_insns],
++			     0);
++	knod_bpf_set_fixup(meta, &fixups[fixup_idx],
++			   &labels[LABEL_LANE_DONE], meta->amdgpu_insns);
++	debug_insn(priv->isa_version, &meta->amdgpu_insn[meta->amdgpu_insns]);
++	meta->amdgpu_insns++;
++	fixup_idx++;
++
++	/* elem_addr = elems + elem_id * elem_size -> r64[2] */
++	knod_iset64(&p64[0], elems_gaddr);
++	knod_mov64(priv, meta, r64[1], p64[0]);
++	knod_iset64(&p64[0], elem_size);
++	knod_mov32(priv, meta, r64[10].lo, p64[0].lo);
++	knod_emit(priv, meta, v_mad_u64_u32, r64[2], sr64_carry.lo,
++		  r64[10].lo, r64[0].lo, r64[1]);
++
++	/* Load elem.next for DELETED check */
++	knod_emit(priv, meta, global_load_dword, r64[0].hi, r64[2].lo, 0);
++
++	/* Load key from map element -> KEY_IN_MAP */
++	key_in_map = KEY_IN_MAP_32;
++	len = knod_map_obj_k->key_size;
++	off = offsetof(struct knod_bpf_hash_elem_obj, kv);
++
++	while (len >= 16) {
++		knod_emit(priv, meta, global_load_dwordx4, r32[key_in_map],
++			  r64[2].lo, off);
++		off += 16;
++		len -= 16;
++		key_in_map += 4;
++	}
++
++	if (len >= 8) {
++		knod_emit(priv, meta, global_load_dwordx2, r32[key_in_map],
++			  r64[2].lo, off);
++		off += 8;
++		len -= 8;
++		key_in_map += 2;
++	}
++
++	if (len >= 4) {
++		knod_emit(priv, meta, global_load_dword, r32[key_in_map],
++			  r64[2].lo, off);
++		off += 4;
++		len -= 4;
++		key_in_map += 1;
++	}
++
++	if (len) {
++		knod_emit(priv, meta, global_load_dword, r32[key_in_map],
++			  r64[2].lo, off);
++	}
++
++	knod_wait_vmcnt(priv, meta);
++
++	/* Key comparison -> SREG1 */
++	key_in_map = KEY_IN_MAP_32;
++	key_in_pkt = KEY_IN_PKT_32;
++	len = knod_map_obj_k->key_size;
++	first_cmp = true;
++
++	while (len >= 8) {
++		knod_emit(priv, meta, v_cmp_eq_u64, r32[key_in_map],
++			  r32[key_in_pkt]);
++
++		if (first_cmp) {
++			emit_s_and_b64(priv->isa_version,
++				       &meta->amdgpu_insn[meta->amdgpu_insns],
++				       KNOD_AMDGPU_TMP_SREG1_LO,
++				       AMDGCN_SREG_EXEC_LO,
++				       AMDGCN_SREG_VCC_LO);
++			first_cmp = false;
++		} else {
++			emit_s_and_b64(priv->isa_version,
++				       &meta->amdgpu_insn[meta->amdgpu_insns],
++				       KNOD_AMDGPU_TMP_SREG1_LO,
++				       KNOD_AMDGPU_TMP_SREG1_LO,
++				       AMDGCN_SREG_VCC_LO);
++		}
++		debug_insn(priv->isa_version,
++			   &meta->amdgpu_insn[meta->amdgpu_insns]);
++		meta->amdgpu_insns++;
++
++		key_in_map += 2;
++		key_in_pkt += 2;
++		len -= 8;
++	}
++
++	if (len >= 4) {
++		knod_emit(priv, meta, v_cmp_eq_u32, r32[key_in_map],
++			  r32[key_in_pkt]);
++
++		if (first_cmp) {
++			emit_s_and_b64(priv->isa_version,
++				       &meta->amdgpu_insn[meta->amdgpu_insns],
++				       KNOD_AMDGPU_TMP_SREG1_LO,
++				       AMDGCN_SREG_EXEC_LO,
++				       AMDGCN_SREG_VCC_LO);
++			first_cmp = false;
++		} else {
++			emit_s_and_b64(priv->isa_version,
++				       &meta->amdgpu_insn[meta->amdgpu_insns],
++				       KNOD_AMDGPU_TMP_SREG1_LO,
++				       KNOD_AMDGPU_TMP_SREG1_LO,
++				       AMDGCN_SREG_VCC_LO);
++		}
++		debug_insn(priv->isa_version,
++			   &meta->amdgpu_insn[meta->amdgpu_insns]);
++		meta->amdgpu_insns++;
++
++		key_in_map += 1;
++		key_in_pkt += 1;
++		len -= 4;
++	}
++
++	if (len) {
++		knod_emit(priv, meta, v_cmp_eq_u32, r32[key_in_map],
++			  r32[key_in_pkt]);
++
++		if (first_cmp) {
++			emit_s_and_b64(priv->isa_version,
++				       &meta->amdgpu_insn[meta->amdgpu_insns],
++				       KNOD_AMDGPU_TMP_SREG1_LO,
++				       AMDGCN_SREG_EXEC_LO,
++				       AMDGCN_SREG_VCC_LO);
++			first_cmp = false;
++		} else {
++			emit_s_and_b64(priv->isa_version,
++				       &meta->amdgpu_insn[meta->amdgpu_insns],
++				       KNOD_AMDGPU_TMP_SREG1_LO,
++				       KNOD_AMDGPU_TMP_SREG1_LO,
++				       AMDGCN_SREG_VCC_LO);
++		}
++		debug_insn(priv->isa_version,
++			   &meta->amdgpu_insn[meta->amdgpu_insns]);
++		meta->amdgpu_insns++;
++	}
++
++	/* DELETED check: SREG1 &= not_deleted */
++	knod_iset32(&p32,
++				 KNOD_BPF_HASH_NEXT_DELETED);
++	knod_emit(priv, meta, v_and_b32_e32, r64[0].hi, p32, r64[0].hi);
++	knod_iset32(&p32, 0);
++	knod_emit(priv, meta, v_cmp_eq_u32, p32, r64[0].hi);
++	knod_emit(priv, meta, s_and_b64, KNOD_AMDGPU_TMP_SREG1_LO,
++		  KNOD_AMDGPU_TMP_SREG1_LO, AMDGCN_SREG_VCC_LO);
++
++	/* Narrow exec to matched lane */
++	knod_emit(priv, meta, s_and_b64, AMDGCN_SREG_EXEC_LO,
++		  AMDGCN_SREG_EXEC_LO, KNOD_AMDGPU_TMP_SREG1_LO);
++
++	/* ---- Match path: set DELETED + append to gc_list ---- */
++
++	/* atomic_or(elem.next, DELETED_BIT) - mark deleted */
++	knod_lset32(&v_del,
++				 KNOD_BPF_HASH_NEXT_DELETED);
++	knod_emit(priv, meta, v_mov_b32_e32, r64[11].lo, v_del);
++	knod_emit(priv, meta, global_atomic_or, r64[11].hi, r64[2].lo,
++		  r64[11].lo, 0, 0);
++
++	/* atomic_add(gc_count, 1) -> old_count in r64[11].lo */
++	knod_emit(priv, meta, v_mov_b32_e32, r64[11].lo, v_one);
++
++	knod_iset64(&p64[0], gc_count_gaddr);
++	knod_mov64(priv, meta, r64[1], p64[0]);
++
++	knod_emit(priv, meta, global_atomic_add, r64[11].lo, r64[1].lo,
++		  r64[11].lo, 0, 1);
++	knod_wait_vmcnt(priv, meta);
++
++	/* Store elem_id to gc_list[old_count] */
++	knod_iset64(&p64[0], gc_list_gaddr);
++	knod_mov64(priv, meta, r64[10], p64[0]);
++
++	knod_iset64(&p64[0], sizeof(unsigned int));
++	knod_emit(priv, meta, v_mad_u64_u32, r64[1], sr64_carry.lo,
++		  p64[0].lo, r64[11].lo, r64[10]);
++
++	knod_emit(priv, meta, global_store_dword, r64[0].lo, r64[1].lo, 0);
++	knod_wait_vmcnt(priv, meta);
++
++	/* If matched, done with this lane */
++	emit_s_cbranch_execnz(priv->isa_version,
++			      &meta->amdgpu_insn[meta->amdgpu_insns],
++			      0);
++	knod_bpf_set_fixup(meta, &fixups[fixup_idx],
++			   &labels[LABEL_LANE_DONE], meta->amdgpu_insns);
++	debug_insn(priv->isa_version, &meta->amdgpu_insn[meta->amdgpu_insns]);
++	meta->amdgpu_insns++;
++	fixup_idx++;
++
++	/* No match: restore lane, continue chain walk */
++	knod_emit(priv, meta, s_mov_b64, AMDGCN_SREG_EXEC_LO,
++		  KNOD_AMDGPU_TMP_SREG2_LO);
++
++	emit_s_cbranch_execnz(priv->isa_version,
++			      &meta->amdgpu_insn[meta->amdgpu_insns],
++			      0);
++	knod_bpf_set_fixup(meta, &fixups[fixup_idx],
++			   &labels[LABEL_CHAIN_NEXT], meta->amdgpu_insns);
++	debug_insn(priv->isa_version, &meta->amdgpu_insn[meta->amdgpu_insns]);
++	meta->amdgpu_insns++;
++	fixup_idx++;
++
++	/* ---- LANE_DONE: remove this lane, next lane ---- */
++	knod_bpf_set_label(meta, &labels[LABEL_LANE_DONE], meta->amdgpu_insns);
++
++	knod_emit(priv, meta, s_andn2_b64, AMDGCN_SREG_EXEC_LO,
++		  KNOD_AMDGPU_TMP_SREG4_LO, KNOD_AMDGPU_TMP_SREG2_LO);
++
++	emit_s_cbranch_execnz(priv->isa_version,
++			      &meta->amdgpu_insn[meta->amdgpu_insns],
++			      0);
++	knod_bpf_set_fixup(meta, &fixups[fixup_idx],
++			   &labels[LABEL_DELETE_LANE], meta->amdgpu_insns);
++	debug_insn(priv->isa_version, &meta->amdgpu_insn[meta->amdgpu_insns]);
++	meta->amdgpu_insns++;
++	fixup_idx++;
++
++	/* ---- UNLOCK: release lock + next bucket ---- */
++	knod_bpf_set_label(meta, &labels[LABEL_UNLOCK], meta->amdgpu_insns);
++
++	knod_emit(priv, meta, s_mov_b64, AMDGCN_SREG_EXEC_LO,
++		  KNOD_AMDGPU_TMP_SREG0_LO);
++
++	/* Recompute lock_addr (r64[10] clobbered) */
++	knod_iset64(&p64[0], lock_offset);
++	knod_add64(priv, meta, r64[10], p64[0], r64[15]);
++
++	knod_emit(priv, meta, v_mov_b32_e32, r64[1].lo, v_zero);
++	knod_emit(priv, meta, global_store_dword, r64[1].lo, r64[10].lo,
++		  0);
++	knod_wait_vmcnt(priv, meta);
++
++	/* Next bucket */
++	knod_emit(priv, meta, s_andn2_b64, AMDGCN_SREG_EXEC_LO,
++		  KNOD_AMDGPU_TMP_SREG5_LO, KNOD_AMDGPU_TMP_SREG0_LO);
++
++	emit_s_cbranch_execnz(priv->isa_version,
++			      &meta->amdgpu_insn[meta->amdgpu_insns],
++			      0);
++	knod_bpf_set_fixup(meta, &fixups[fixup_idx],
++			   &labels[LABEL_BUCKET_LOOP], meta->amdgpu_insns);
++	debug_insn(priv->isa_version, &meta->amdgpu_insn[meta->amdgpu_insns]);
++	meta->amdgpu_insns++;
++	fixup_idx++;
++
++	/* ======== Phase 3: Restore ======== */
++
++	/* exec = SREG3 (restore all original lanes) */
++	knod_emit(priv, meta, s_or_b64, AMDGCN_SREG_EXEC_LO,
++		  AMDGCN_SREG_EXEC_LO, KNOD_AMDGPU_TMP_SREG3_LO);
++
++	/* bpf_reg64[0] = 0 (return value) */
++	knod_iset64(&p64[0], 0);
++	knod_mov64(priv, meta, bpf_reg64[0], p64[0]);
++
++	for (idx = 0; idx < fixup_idx; idx++)
++		knod_bpf_fixup_branch(priv, &fixups[idx]);
++
++	return;
++#undef LABEL_BUCKET_LOOP
++#undef LABEL_LOCK_RETRY
++#undef LABEL_DELETE_LANE
++#undef LABEL_CHAIN_NEXT
++#undef LABEL_LANE_DONE
++#undef LABEL_UNLOCK
 +}
 +
-+static inline void gfx9_debug_vopc(union amdgcn_gfx9_insn *insn)
++static void knod_bpf_map_delete_array(struct knod_bpf_priv *priv,
++				      struct knod_insn_meta *meta,
++				      int map_id)
 +{
-+	char src0[20];
++	struct knod_bpf_map_obj *knod_map_obj_k, *knod_map_obj_g;
++	struct amdgcn_branch_fixup fixups[4] = {0,};
++	u32 key_stack_off = meta->kreg.stack_off;
++	struct amdgcn_label labels[10] = {0,};
++	int idx, val_off, val_len;
++	struct amdgcn_param32 v_zero;
++	unsigned long bucket_gaddr;
++	int fixup_idx = 0;
 +
-+	if (insn->vopc.src0 < GFX9_VOPC_SRC_VCC_LO)
-+		sprintf(src0, "s%d", insn->vopc.src0);
-+	else if (insn->vopc.src0 == GFX9_VOPC_SRC_VCC_LO)
-+		sprintf(src0, "%s", "vcc_lo");
-+	else if (insn->vopc.src0 == GFX9_VOPC_SRC_VCC_HI)
-+		sprintf(src0, "%s", "vcc_hi");
-+	else if (insn->vopc.src0 == GFX9_VOPC_SRC_NULL)
-+		sprintf(src0, "%s", "null");
-+	else if (insn->vopc.src0 == GFX9_VOPC_SRC_EXEC_LO)
-+		sprintf(src0, "%s", "exec_lo");
-+	else if (insn->vopc.src0 == GFX9_VOPC_SRC_EXEC_HI)
-+		sprintf(src0, "%s", "exec_hi");
-+	else if (insn->vopc.src0 < GFX9_VOPC_SRC_INTEGER_MINUS_1)
-+		sprintf(src0, "0x%x",
-+			insn->vopc.src0 - GFX9_VOPC_SRC_INTEGER_0);
-+	else if (insn->vopc.src0 < GFX9_VOPC_SRC_SHARED_BASE)
-+		sprintf(src0, "-0x%x",
-+			insn->vopc.src0 - GFX9_VOPC_SRC_INTEGER_MINUS_1);
-+	else if (insn->vopc.src0 == GFX9_VOPC_SRC_VCCZ)
-+		sprintf(src0, "%s", "vcc");
-+	else if (insn->vopc.src0 == GFX9_VOPC_SRC_EXECZ)
-+		sprintf(src0, "%s", "exec");
-+	else if (insn->vopc.src0 == GFX9_VOPC_SRC_SCC)
-+		sprintf(src0, "%s", "scc");
-+	else if (insn->vopc.src0 == GFX9_VOPC_SRC_LITERAL_CONST)
-+		sprintf(src0, "0x%x", insn->vopc.literal);
-+	else if (insn->vopc.src0 >= GFX9_VOPC_SRC_VGPR_BASE)
-+		sprintf(src0, "v%d", insn->vopc.src0 - GFX9_VOPC_SRC_VGPR_BASE);
++	knod_map_obj_k =
++		(struct knod_bpf_map_obj *)knod_bpf_map_kaddr(priv, map_id);
++	knod_map_obj_g =
++		(struct knod_bpf_map_obj *)knod_bpf_map_gaddr(priv, map_id);
++	bucket_gaddr = (unsigned long)knod_map_obj_g +
++		       offsetof(struct knod_bpf_map_obj, bucket);
 +
-+	pr_debug("knod_asm %s %s, v%d\n",
-+		opnames_gfx9[AMDGCN_INSN_TYPE_VOPC][insn->vopc.op],
-+		src0,
-+		insn->vopc.vsrc1);
++	if (!knod_map_obj_g || !knod_map_obj_k)
++		WARN_ON_ONCE(1);
++
++	/* load key from stack -> r64[2] */
++	knod_bpf_load_size(priv, meta,
++			       &r64[2],
++			       &stack[0],
++			       sizeof(unsigned int),
++			       512 + key_stack_off);
++
++	/* r64[1] = bucket_gaddr */
++	knod_iset64(&p64[0], bucket_gaddr);
++	knod_mov64(priv, meta, r64[1], p64[0]);
++
++	/* clear r64[2].hi (key is 32-bit) */
++	knod_iset64(&p64[1], 0);
++	knod_mov32(priv, meta, r64[2].hi, p64[1].lo);
++
++	/* bpf_reg64[0] = 0 (return value) */
++	knod_mov64(priv, meta, bpf_reg64[0], p64[1]);
++
++	/* bounds check: if (key >= max_entries) -> skip */
++	knod_iset64(&p64[1], knod_map_obj_k->max_entries);
++	knod_mov64(priv, meta, r64[3], p64[1]);
++	knod_emit(priv, meta, v_cmp_ge_u64, r64[2], r64[3]);
++
++	/* structurized CFG: save OOB lanes, narrow exec */
++	knod_emit(priv, meta, s_and_b64, KNOD_AMDGPU_TMP_SREG3_LO,
++		  AMDGCN_SREG_EXEC_LO, AMDGCN_SREG_VCC_LO);
++	knod_emit(priv, meta, s_andn2_b64, AMDGCN_SREG_EXEC_LO,
++		  AMDGCN_SREG_EXEC_LO, AMDGCN_SREG_VCC_LO);
++	emit_s_cbranch_execz(priv->isa_version,
++			     &meta->amdgpu_insn[meta->amdgpu_insns],
++			     0);
++	knod_bpf_set_fixup(meta, &fixups[fixup_idx],
++			   &labels[LABEL_OUT], meta->amdgpu_insns);
++	debug_insn(priv->isa_version, &meta->amdgpu_insn[meta->amdgpu_insns]);
++	meta->amdgpu_insns++;
++	fixup_idx++;
++
++	/* dest = bucket_gaddr + key * value_size -> r64[0] */
++	knod_iset64(&p64[1], knod_map_obj_k->value_size);
++	knod_emit(priv, meta, v_mad_u64_u32, r64[0], sr64[0].lo,
++		  p64[1].lo, r64[2].lo, r64[1]);
++
++	/* Zero out value at dest */
++	knod_iset32(&v_zero, 0);
++	knod_emit(priv, meta, v_mov_b32_e32, r64[3].lo, v_zero);
++	knod_emit(priv, meta, v_mov_b32_e32, r64[3].hi, v_zero);
++	knod_emit(priv, meta, v_mov_b32_e32, r64[4].lo, v_zero);
++	knod_emit(priv, meta, v_mov_b32_e32, r64[4].hi, v_zero);
++
++	val_off = 0;
++	val_len = knod_map_obj_k->value_size;
++
++	while (val_len >= 16) {
++		knod_emit(priv, meta, global_store_dwordx4, r64[3].lo,
++			  r64[0].lo, val_off);
++		val_off += 16;
++		val_len -= 16;
++	}
++
++	if (val_len >= 8) {
++		knod_emit(priv, meta, global_store_dwordx2, r64[3].lo,
++			  r64[0].lo, val_off);
++		val_off += 8;
++		val_len -= 8;
++	}
++
++	if (val_len >= 4) {
++		knod_emit(priv, meta, global_store_dword, r64[3].lo,
++			  r64[0].lo, val_off);
++		val_off += 4;
++		val_len -= 4;
++	}
++
++	if (val_len >= 2) {
++		knod_emit(priv, meta, global_store_short, r64[3].lo,
++			  r64[0].lo, val_off);
++		val_off += 2;
++		val_len -= 2;
++	}
++
++	if (val_len >= 1) {
++		knod_emit(priv, meta, global_store_byte, r64[3].lo,
++			  r64[0].lo, val_off);
++	}
++
++	knod_wait_vmcnt(priv, meta);
++
++	/* structurized CFG: restore OOB lanes */
++	knod_bpf_set_label(meta, &labels[LABEL_OUT], meta->amdgpu_insns);
++	knod_emit(priv, meta, s_or_b64, AMDGCN_SREG_EXEC_LO,
++		  AMDGCN_SREG_EXEC_LO, KNOD_AMDGPU_TMP_SREG3_LO);
++
++	for (idx = 0; idx < fixup_idx; idx++)
++		knod_bpf_fixup_branch(priv, &fixups[idx]);
 +}
 +
-+static inline void gfx9_debug_vop2(union amdgcn_gfx9_insn *insn)
++static void knod_bpf_store_cache_size(struct knod_bpf_priv *priv,
++				     struct knod_insn_meta *meta,
++				     struct amdgcn_param64 *src,
++				     /* packet or stack */
++				     struct amdgcn_param32 *cache,
++				     int size, int off)
 +{
-+	char src0[20];
++	struct amdgcn_param32 p32[2];
 +
-+	if (insn->vop2.src0 < GFX9_VOP2_SRC_VCC_LO)
-+		sprintf(src0, "s%d", insn->vop2.src0);
-+	else if (insn->vop2.src0 == GFX9_VOP2_SRC_VCC_LO)
-+		sprintf(src0, "%s", "vcc_lo");
-+	else if (insn->vop2.src0 == GFX9_VOP2_SRC_VCC_HI)
-+		sprintf(src0, "%s", "vcc_hi");
-+	else if (insn->vop2.src0 == GFX9_VOP2_SRC_NULL)
-+		sprintf(src0, "%s", "null");
-+	else if (insn->vop2.src0 == GFX9_VOP2_SRC_EXEC_LO)
-+		sprintf(src0, "%s", "exec_lo");
-+	else if (insn->vop2.src0 == GFX9_VOP2_SRC_EXEC_HI)
-+		sprintf(src0, "%s", "exec_hi");
-+	else if (insn->vop2.src0 < GFX9_VOP2_SRC_INTEGER_MINUS_1)
-+		sprintf(src0, "0x%x",
-+			insn->vop2.src0 - GFX9_VOP2_SRC_INTEGER_0);
-+	else if (insn->vop2.src0 < GFX9_VOP2_SRC_SHARED_BASE)
-+		sprintf(src0, "-0x%x",
-+			insn->vop2.src0 - GFX9_VOP2_SRC_INTEGER_MINUS_1);
-+	else if (insn->vop2.src0 == GFX9_VOP2_SRC_VCCZ)
-+		sprintf(src0, "%s", "vcc");
-+	else if (insn->vop2.src0 == GFX9_VOP2_SRC_EXECZ)
-+		sprintf(src0, "%s", "exec");
-+	else if (insn->vop2.src0 == GFX9_VOP2_SRC_SCC)
-+		sprintf(src0, "%s", "scc");
-+	else if (insn->vop2.src0 == GFX9_VOP2_SRC_LITERAL_CONST)
-+		sprintf(src0, "0x%x", insn->vop2.literal);
-+	else if (insn->vop2.src0 >= GFX9_VOP2_SRC_VGPR_BASE)
-+		sprintf(src0, "v%d", insn->vop2.src0 - GFX9_VOP2_SRC_VGPR_BASE);
++	knod_jit_dbg(" %d: off = %d off_4 = %d size = %d\n", meta->bpf_insn_idx,
++		off, off%4, size);
++	WARN_ON(knod_param_is_literal(src->lo) ||
++		knod_param_is_literal(src->hi));
++	switch (size) {
++	case sizeof(unsigned long):
++		if ((off % 4) == 0) {
++			knod_mov32(priv, meta,
++				       cache[off / 4],
++				       src->lo);
++			knod_mov32(priv, meta,
++				       cache[(off / 4) + 1],
++				       src->hi);
++		} else if ((off % 4) == 1) {
++			WARN_ON_ONCE(1);
++		} else if ((off % 4) == 2) {
++			WARN_ON_ONCE(1);
++		} else {
++			WARN_ON_ONCE(1);
++		}
++		break;
++	case sizeof(unsigned int):
++		if ((off % 4) == 0) {
++			knod_mov32(priv, meta,
++				       cache[off / 4],
++				       src->lo);
++		} else if ((off % 4) == 1) {
++			knod_iset64(&p64[0], 8);
++			knod_lshlrev64(priv, meta, r64[0], p64[0], *src);
 +
-+	pr_debug("knod_asm %s v%d, %s v%d\n",
-+		 opnames_gfx9[AMDGCN_INSN_TYPE_VOP2][insn->vop2.op],
-+		 insn->vop2.vdst,
-+		 src0,
-+		 insn->vop2.vsrc1);
-+}
++			knod_iset32(&p32[0], 0xffffff00);
++			knod_mov32(priv, meta, r32[2], p32[0]);
++			knod_bfi32(priv, meta, cache[off / 4],
++				       r32[2], r64[0].lo, cache[off / 4]);
++			knod_iset32(&p32[0], 0x000000ff);
++			knod_mov32(priv, meta, r32[2], p32[0]);
++			knod_bfi32(priv, meta, cache[(off / 4) + 1], r32[2],
++				       r64[0].hi, cache[(off / 4) + 1]);
++		} else if ((off % 4) == 2) {
++			knod_iset64(&p64[0], 16);
++			knod_lshlrev64(priv, meta, r64[0], p64[0], *src);
 +
-+static inline void gfx9_debug_sop1(union amdgcn_gfx9_insn *insn)
-+{
-+	char ssrc0[20];
++			knod_iset32(&p32[0], 0xffff0000);
++			knod_mov32(priv, meta, r32[2], p32[0]);
++			knod_bfi32(priv, meta, cache[off / 4], r32[2],
++				       r64[0].lo, cache[off / 4]);
++			knod_iset32(&p32[0], 0x0000ffff);
++			knod_mov32(priv, meta, r32[2], p32[0]);
++			knod_bfi32(priv, meta, cache[(off / 4) + 1], r32[2],
++				       r64[0].hi, cache[(off / 4) + 1]);
++		} else {
++			knod_iset64(&p64[0], 24);
++			knod_lshlrev64(priv, meta, r64[0], p64[0], *src);
 +
-+	if (insn->sop1.ssrc0 < GFX9_SOP1_SSRC_VCC_LO)
-+		sprintf(ssrc0, "s%d", insn->sop1.ssrc0);
-+	else if (insn->sop1.ssrc0 == GFX9_SOP1_SSRC_VCC_LO)
-+		sprintf(ssrc0, "%s", "vcc_lo");
-+	else if (insn->sop1.ssrc0 == GFX9_SOP1_SSRC_VCC_HI)
-+		sprintf(ssrc0, "%s", "vcc_hi");
-+	else if (insn->sop1.ssrc0 == GFX9_SOP1_SSRC_NULL)
-+		sprintf(ssrc0, "%s", "null");
-+	else if (insn->sop1.ssrc0 == GFX9_SOP1_SSRC_EXEC_LO)
-+		sprintf(ssrc0, "%s", "exec_lo");
-+	else if (insn->sop1.ssrc0 == GFX9_SOP1_SSRC_EXEC_HI)
-+		sprintf(ssrc0, "%s", "exec_hi");
-+	else if (insn->sop1.ssrc0 < GFX9_SOP1_SSRC_INTEGER_MINUS_1)
-+		sprintf(ssrc0, "0x%x",
-+			insn->sop1.ssrc0 - GFX9_SOP1_SSRC_INTEGER_0);
-+	else if (insn->sop1.ssrc0 < GFX9_SOP1_SSRC_SHARED_BASE)
-+		sprintf(ssrc0, "-0x%x",
-+			insn->sop1.ssrc0 - GFX9_SOP1_SSRC_INTEGER_MINUS_1);
-+	else if (insn->sop1.ssrc0 == GFX9_SOP1_SSRC_VCCZ)
-+		sprintf(ssrc0, "%s", "vcc");
-+	else if (insn->sop1.ssrc0 == GFX9_SOP1_SSRC_EXECZ)
-+		sprintf(ssrc0, "%s", "exec");
-+	else if (insn->sop1.ssrc0 == GFX9_SOP1_SSRC_SCC)
-+		sprintf(ssrc0, "%s", "scc");
-+	else if (insn->sop1.ssrc0 == GFX9_SOP1_SSRC_LITERAL_CONST)
-+		sprintf(ssrc0, "0x%x", insn->sop1.literal);
++			knod_iset32(&p32[0], 0xffff0000);
++			knod_mov32(priv, meta, r32[2], p32[0]);
++			knod_bfi32(priv, meta, cache[off / 4], r32[2],
++				       r64[0].lo, cache[off / 4]);
++			knod_iset32(&p32[0], 0x00ffffff);
++			knod_mov32(priv, meta, r32[2], p32[0]);
++			knod_bfi32(priv, meta, cache[(off / 4) + 1], r32[2],
++				       r64[0].hi, cache[(off / 4) + 1]);
++		}
++		break;
++	case sizeof(unsigned short):
++		if ((off % 4) == 0) {
++			knod_iset32(&p32[0], 0x0000ffff);
++			knod_mov32(priv, meta, r32[2], p32[0]);
++			knod_bfi32(priv, meta, cache[off / 4], r32[2],
++				       src->lo, cache[off / 4]);
++		} else if ((off % 4) == 1) {
++			knod_iset32(&p32[0], 8);
++			knod_lshlrev32(priv, meta, r32[0], p32[0],
++					   src->lo);
++			knod_iset32(&p32[0], 0x00ffff00);
++			knod_mov32(priv, meta, r32[2], p32[0]);
++			knod_bfi32(priv, meta, cache[off / 4], r32[2],
++				       r32[0], cache[off / 4]);
++		} else if ((off % 4) == 2) {
++			knod_iset32(&p32[0], 16);
++			knod_lshlrev32(priv, meta, r32[0], p32[0],
++					   src->lo);
++			knod_iset32(&p32[0], 0xffff0000);
++			knod_mov32(priv, meta, r32[2], p32[0]);
++			knod_bfi32(priv, meta, cache[off / 4], r32[2],
++				       r32[0], cache[off / 4]);
++		} else {
++			knod_iset64(&p64[0], 24);
++			knod_lshlrev64(priv, meta, r64[0], p64[0], *src);
 +
-+	pr_debug("knod_asm %s s%d, %s\n",
-+		 opnames_gfx9[AMDGCN_INSN_TYPE_SOP1][insn->sop1.op],
-+		 insn->sop1.sdst,
-+		 ssrc0);
-+}
++			knod_iset32(&p32[0], 0xff000000);
++			knod_mov32(priv, meta, r32[2], p32[0]);
++			knod_bfi32(priv, meta, cache[off / 4], r32[2],
++				       r64[0].lo, cache[off / 4]);
++			knod_iset32(&p32[0], 0x000000ff);
++			knod_mov32(priv, meta, r32[2], p32[0]);
++			knod_bfi32(priv, meta, cache[(off / 4) + 1], r32[2],
++				       r64[0].hi, cache[(off / 4) + 1]);
++		}
++		break;
++	case sizeof(unsigned char):
++		if ((off % 4) == 0) {
++			knod_iset32(&p32[0], 0x000000ff);
++			knod_mov32(priv, meta, r32[2], p32[0]);
++			knod_bfi32(priv, meta, cache[off / 4], r32[2],
++				       src->lo, cache[off / 4]);
++			return;
++		} else if ((off % 4) == 1) {
++			knod_iset32(&p32[0], 8);
++			knod_lshlrev32(priv, meta, r32[0], p32[0],
++					   src->lo);
 +
-+static inline void gfx9_debug_sopp(union amdgcn_gfx9_insn *insn)
-+{
-+	pr_debug("knod_asm %s 0x%x\n",
-+		 opnames_gfx9[AMDGCN_INSN_TYPE_SOPP][insn->sopp.op],
-+		 insn->sopp.simm16);
-+}
++			knod_iset32(&p32[0], 0x0000ff00);
++		} else if ((off % 4) == 2) {
++			knod_iset32(&p32[0], 16);
++			knod_lshlrev32(priv, meta, r32[0], p32[0],
++					   src->lo);
 +
-+static inline void gfx9_debug_smem(union amdgcn_gfx9_insn *insn)
-+{
-+	pr_debug("%s s[%d:%d], s[%d:%d], 0x%x\n",
-+		 opnames_gfx9[AMDGCN_INSN_TYPE_SMEM][insn->smem.op],
-+		 insn->smem.sdata,
-+		 insn->smem.sdata + 1,
-+		 (insn->smem.sbase * 2),
-+		 (insn->smem.sbase * 2) + 1,
-+		 insn->smem.offset);
-+}
++			knod_iset32(&p32[0], 0x00ff0000);
++		} else {
++			knod_iset32(&p32[0], 24);
++			knod_lshlrev32(priv, meta, r32[0], p32[0],
++					   src->lo);
++			knod_iset32(&p32[0], 0xff000000);
++		}
 +
-+static inline void gfx9_debug_mubuf(union amdgcn_gfx9_insn *insn)
-+{
-+	pr_debug("knod_asm %s v%d, v%d, s[%d:%d], 0x%x offen offset:%d\n",
-+		 opnames_gfx9[AMDGCN_INSN_TYPE_MUBUF][insn->mubuf.op],
-+		 insn->mubuf.vdata,
-+		 insn->mubuf.vaddr,
-+		 insn->mubuf.srsrc,
-+		 insn->mubuf.srsrc + 3,
-+		 insn->mubuf.soffset,
-+		 insn->mubuf.offset);
-+}
-+
-+static inline void gfx9_debug_global(union amdgcn_gfx9_insn *insn)
-+{
-+	if (insn->flat.op == GFX9_GLOBAL_STORE_BYTE) {
-+		pr_debug("knod_asm %s v[%d:%d], v%d, off offset:%d\n",
-+			opnames_gfx9[AMDGCN_INSN_TYPE_FLAT][insn->flat.op],
-+			insn->flat.addr,
-+			insn->flat.addr + 1,
-+			insn->flat.data,
-+			insn->flat.offset);
-+	} else if (insn->flat.op == GFX9_GLOBAL_STORE_SHORT) {
-+		pr_debug("knod_asm %s v[%d:%d], v%d, off offset:%d\n",
-+			opnames_gfx9[AMDGCN_INSN_TYPE_FLAT][insn->flat.op],
-+			insn->flat.addr,
-+			insn->flat.addr + 1,
-+			insn->flat.data,
-+			insn->flat.offset);
-+	} else if (insn->flat.op == GFX9_GLOBAL_STORE_DWORD) {
-+		pr_debug("knod_asm %s v[%d:%d], v%d, off offset:%d\n",
-+			opnames_gfx9[AMDGCN_INSN_TYPE_FLAT][insn->flat.op],
-+			insn->flat.addr,
-+			insn->flat.addr + 1,
-+			insn->flat.data,
-+			insn->flat.offset);
-+	} else if (insn->flat.op == GFX9_GLOBAL_STORE_DWORDX2) {
-+		pr_debug("knod_asm %s v[%d:%d], v[%d:%d], off offset:%d\n",
-+			opnames_gfx9[AMDGCN_INSN_TYPE_FLAT][insn->flat.op],
-+			insn->flat.addr,
-+			insn->flat.addr + 1,
-+			insn->flat.data,
-+			insn->flat.data + 1,
-+			insn->flat.offset);
-+	} else {
-+		pr_debug("knod_asm %s v[%d:%d], v[%d:%d], off offset:%d\n",
-+			opnames_gfx9[AMDGCN_INSN_TYPE_FLAT][insn->flat.op],
-+			insn->flat.vdst,
-+			insn->flat.vdst + 1,
-+			insn->flat.addr,
-+			insn->flat.addr + 1,
-+			insn->flat.offset);
++		knod_mov32(priv, meta, r32[2], p32[0]);
++		knod_bfi32(priv, meta, cache[off / 4], r32[2], r32[0],
++			       cache[off / 4]);
++		break;
++	default:
++		WARN_ON_ONCE(1);
 +	}
 +}
 +
-+static inline void gfx9_debug_sop2(union amdgcn_gfx9_insn *insn)
++static bool knod_meta_is_exit(const struct knod_insn_meta *meta);
++static bool knod_bpf_is_retval_move_to_r0(const struct knod_insn_meta *meta);
++
++/*
++ * knod_bpf_emit_branch_tail - Emit EXEC mask manipulation after v_cmp for
++ * structurized per-lane branching. Replaces the old s_cbranch_vccnz/vccz.
++ *
++ * For FORWARD_SKIP:
++ *   Save jumping lanes -> narrow EXEC -> s_cbranch_execz
++ *   (skip if no active lanes)
++ *
++ * For DIRECT_EXIT:
++ *   Compute exit lanes -> update done_mask -> remove from EXEC (no branch)
++ *
++ * Emits the required EXEC mask manipulation in-place.
++ */
++static void knod_bpf_emit_direct_exit_retval(struct knod_bpf_priv *priv,
++					     struct knod_insn_meta *emit_meta,
++					     struct knod_insn_meta *target)
 +{
-+	char ssrc0[20], ssrc1[20];
++	struct amdgcn_param64 dst, src;
++	s64 imm;
 +
-+	decode_ssrc8(insn->sop2.ssrc0, insn->sop2.literal, ssrc0);
-+	decode_ssrc8(insn->sop2.ssrc1, insn->sop2.literal, ssrc1);
-+	pr_debug("knod_asm %s s%d, %s, %s\n",
-+		 opnames_gfx9[AMDGCN_INSN_TYPE_SOP2][insn->sop2.op],
-+		 insn->sop2.sdst, ssrc0, ssrc1);
-+}
++	if (!target || knod_meta_is_exit(target))
++		return;
 +
-+static inline void gfx9_debug_sopk(union amdgcn_gfx9_insn *insn)
-+{
-+	pr_debug("knod_asm %s s%d, 0x%x\n",
-+		 opnames_gfx9[AMDGCN_INSN_TYPE_SOPK][insn->sopk.op],
-+		 insn->sopk.sdst, insn->sopk.simm16);
-+}
++	if (WARN_ON_ONCE(!knod_bpf_is_retval_move_to_r0(target)))
++		return;
 +
-+static inline void gfx9_debug_sopc(union amdgcn_gfx9_insn *insn)
-+{
-+	char ssrc0[20], ssrc1[20];
++	knod_vset64(&dst, KNOD_AMDGPU_VREG0_LO);
 +
-+	decode_ssrc8(insn->sopc.ssrc0, insn->sopc.literal, ssrc0);
-+	decode_ssrc8(insn->sopc.ssrc1, insn->sopc.literal, ssrc1);
-+	pr_debug("knod_asm %s %s, %s\n",
-+		 opnames_gfx9[AMDGCN_INSN_TYPE_SOPC][insn->sopc.op],
-+		 ssrc0, ssrc1);
-+}
-+
-+static inline void gfx9_debug_vop3p(union amdgcn_gfx9_insn *insn)
-+{
-+	char src0[20], src1[20], src2[20];
-+
-+	decode_vsrc9(insn->vop3p.src0, insn->vop3p.literal, src0);
-+	decode_vsrc9(insn->vop3p.src1, insn->vop3p.literal, src1);
-+	decode_vsrc9(insn->vop3p.src2, insn->vop3p.literal, src2);
-+	pr_debug("knod_asm %s v%d, %s, %s, %s\n",
-+		 opnames_gfx9[AMDGCN_INSN_TYPE_VOP3P][insn->vop3p.op],
-+		 (int)insn->vop3p.vdst, src0, src1, src2);
-+}
-+
-+static inline void gfx9_debug_sdwa(union amdgcn_gfx9_insn *insn)
-+{
-+	pr_debug("knod_asm sdwa src0:%d dst_sel:%d src0_sel:%d src1_sel:%d\n",
-+		 insn->sdwa.src0, insn->sdwa.dst_sel,
-+		 insn->sdwa.src0_sel, insn->sdwa.src1_sel);
-+}
-+
-+static inline void gfx9_debug_sdwab(union amdgcn_gfx9_insn *insn)
-+{
-+	pr_debug("knod_asm sdwab src0:%d sdst:s%d src0_sel:%d src1_sel:%d\n",
-+		 insn->sdwab.src0, insn->sdwab.sdst,
-+		 insn->sdwab.src0_sel, insn->sdwab.src1_sel);
-+}
-+
-+static inline void gfx9_debug_dpp16(union amdgcn_gfx9_insn *insn)
-+{
-+	pr_debug("knod_asm dpp16 (not decoded)\n");
-+}
-+
-+static inline void gfx9_debug_dpp8(union amdgcn_gfx9_insn *insn)
-+{
-+	pr_debug("knod_asm dpp8 (not decoded)\n");
-+}
-+
-+static inline void gfx9_debug_vintrp(union amdgcn_gfx9_insn *insn)
-+{
-+	pr_debug("knod_asm vintrp (not decoded)\n");
-+}
-+
-+static inline void gfx9_debug_ds(union amdgcn_gfx9_insn *insn)
-+{
-+	pr_debug("knod_asm %s v%d, v%d, v%d, v%d offset0:%d offset1:%d%s\n",
-+		 opnames_gfx9[AMDGCN_INSN_TYPE_DS][insn->ds.op],
-+		 (int)insn->ds.vdst, (int)insn->ds.addr,
-+		 (int)insn->ds.data0, (int)insn->ds.data1,
-+		 (int)insn->ds.offset0, (int)insn->ds.offset1,
-+		 insn->ds.gds ? " gds" : "");
-+}
-+
-+static inline void gfx9_debug_mtbuf(union amdgcn_gfx9_insn *insn)
-+{
-+	pr_debug("knod_asm %s v%d, v%d, s[%d:%d], s%d dfmt:%d nfmt:%d offset:%d\n",
-+		 opnames_gfx9[AMDGCN_INSN_TYPE_MTBUF][insn->mtbuf.op],
-+		 (int)insn->mtbuf.vdata, (int)insn->mtbuf.vaddr,
-+		 (int)insn->mtbuf.srsrc * 4, (int)insn->mtbuf.srsrc * 4 + 3,
-+		 (int)insn->mtbuf.soffset, (int)insn->mtbuf.dfmt,
-+		 (int)insn->mtbuf.nfmt, (int)insn->mtbuf.offset);
-+}
-+
-+static inline void gfx9_debug_mimg(union amdgcn_gfx9_insn *insn)
-+{
-+	pr_debug("knod_asm mimg (not decoded)\n");
-+}
-+
-+static inline void gfx9_debug_exp(union amdgcn_gfx9_insn *insn)
-+{
-+	pr_debug("knod_asm exp (not decoded)\n");
-+}
-+
-+static inline void gfx9_debug_insn(struct amdgcn_insn *insn)
-+{
-+	u32 *ptr;
-+
-+	switch (insn->type) {
-+	case AMDGCN_INSN_TYPE_SOP2:
-+		gfx9_debug_sop2(&insn->gfx9);
++	switch (target->insn.code) {
++	case BPF_ALU | BPF_MOV | BPF_X:
++	case BPF_ALU64 | BPF_MOV | BPF_X:
++		knod_vset64(&src, target->insn.src_reg * 2);
++		knod_mov64(priv, emit_meta, dst, src);
 +		break;
-+	case AMDGCN_INSN_TYPE_SOPK:
-+		gfx9_debug_sopk(&insn->gfx9);
++	case BPF_ALU | BPF_MOV | BPF_K:
++		imm = (u32)target->insn.imm;
++		knod_iset64(&src, imm);
++		knod_mov64(priv, emit_meta, dst, src);
 +		break;
-+	case AMDGCN_INSN_TYPE_SOP1:
-+		gfx9_debug_sop1(&insn->gfx9);
-+		break;
-+	case AMDGCN_INSN_TYPE_SOPC:
-+		gfx9_debug_sopc(&insn->gfx9);
-+		break;
-+	case AMDGCN_INSN_TYPE_SOPP:
-+		gfx9_debug_sopp(&insn->gfx9);
-+		break;
-+	case AMDGCN_INSN_TYPE_SMEM:
-+		gfx9_debug_smem(&insn->gfx9);
-+		break;
-+	case AMDGCN_INSN_TYPE_VOP2:
-+		gfx9_debug_vop2(&insn->gfx9);
-+		break;
-+	case AMDGCN_INSN_TYPE_VOP1:
-+		gfx9_debug_vop1(&insn->gfx9);
-+		break;
-+	case AMDGCN_INSN_TYPE_VOPC:
-+		gfx9_debug_vopc(&insn->gfx9);
-+		break;
-+	case AMDGCN_INSN_TYPE_VOP3A:
-+		gfx9_debug_vop3a(&insn->gfx9);
-+		break;
-+	case AMDGCN_INSN_TYPE_VOP3B:
-+		gfx9_debug_vop3b(&insn->gfx9);
-+		break;
-+	case AMDGCN_INSN_TYPE_VOP3P:
-+		gfx9_debug_vop3p(&insn->gfx9);
-+		break;
-+	case AMDGCN_INSN_TYPE_SDWA:
-+		gfx9_debug_sdwa(&insn->gfx9);
-+		break;
-+	case AMDGCN_INSN_TYPE_SDWAB:
-+		gfx9_debug_sdwab(&insn->gfx9);
-+		break;
-+	case AMDGCN_INSN_TYPE_DPP16:
-+		gfx9_debug_dpp16(&insn->gfx9);
-+		break;
-+	case AMDGCN_INSN_TYPE_DPP8:
-+		gfx9_debug_dpp8(&insn->gfx9);
-+		break;
-+	case AMDGCN_INSN_TYPE_VINTRP:
-+		gfx9_debug_vintrp(&insn->gfx9);
-+		break;
-+	case AMDGCN_INSN_TYPE_DS:
-+		gfx9_debug_ds(&insn->gfx9);
-+		break;
-+	case AMDGCN_INSN_TYPE_MTBUF:
-+		gfx9_debug_mtbuf(&insn->gfx9);
-+		break;
-+	case AMDGCN_INSN_TYPE_MUBUF:
-+		gfx9_debug_mubuf(&insn->gfx9);
-+		break;
-+	case AMDGCN_INSN_TYPE_MIMG:
-+		gfx9_debug_mimg(&insn->gfx9);
-+		break;
-+	case AMDGCN_INSN_TYPE_FLAT:
-+		gfx9_debug_global(&insn->gfx9);
-+		break;
-+	case AMDGCN_INSN_TYPE_EXP:
-+		gfx9_debug_exp(&insn->gfx9);
++	case BPF_ALU64 | BPF_MOV | BPF_K:
++		imm = (s64)(s32)target->insn.imm;
++		knod_iset64(&src, imm);
++		knod_mov64(priv, emit_meta, dst, src);
 +		break;
 +	default:
 +		WARN_ON_ONCE(1);
 +		break;
 +	}
-+
-+	ptr = (u32 *)&insn->gfx9;
-+	if (insn->size == 4) {
-+		pr_debug("knod_asm %s %u %.8X\n", __func__, __LINE__, ptr[0]);
-+	} else if (insn->size == 8) {
-+		pr_debug("knod_asm %s %u %.8X %.8X\n",
-+			 __func__, __LINE__, ptr[0], ptr[1]);
-+	} else if (insn->size == 12) {
-+		pr_debug("knod_asm %s %u %.8X %.8X %.8X\n",
-+			 __func__, __LINE__, ptr[0], ptr[1], ptr[2]);
-+	} else {
-+		WARN_ON_ONCE(1);
-+	}
 +}
 +
-+static inline void debug_insn(int version, struct amdgcn_insn *insn)
++static void knod_bpf_emit_branch_tail(struct knod_bpf_priv *priv,
++				      struct knod_insn_meta *meta,
++				      struct knod_prog *knod_prog,
++				      short off)
 +{
-+	if (version == 10)
-+		gfx10_debug_insn(insn);
-+	else if (version == 9)
-+		gfx9_debug_insn(insn);
-+	else
-+		WARN_ON_ONCE(1);
-+}
++	switch (meta->branch_type) {
++	case KNOD_BR_FORWARD_SKIP:
++		if (meta->jump_neg_op) {
++			/* JNE: VCC=0 -> jump, VCC=1 -> fall-through.
++			 * Save jump lanes (VCC=0): s[n] = exec & ~vcc
++			 */
++			knod_emit(priv, meta, s_andn2_b64,
++				  meta->exec_save_sreg,
++				  AMDGCN_SREG_EXEC_LO,
++				  AMDGCN_SREG_VCC_LO);
 +
-+static inline void gfx10_debugfs_vop3a(union amdgcn_gfx10_insn *insn,
-+				       struct seq_file *m)
-+{
-+	char src0[20];
-+	char src1[20];
-+	char src2[20];
++			/* Keep fall-through (VCC=1): exec = exec & vcc */
++			knod_emit(priv, meta, s_and_b64,
++				  AMDGCN_SREG_EXEC_LO,
++				  AMDGCN_SREG_EXEC_LO,
++				  AMDGCN_SREG_VCC_LO);
++		} else {
++			/* Normal: VCC=1 -> jump, VCC=0 -> fall-through.
++			 * Save jump lanes (VCC=1): s[n] = exec & vcc
++			 */
++			knod_emit(priv, meta, s_and_b64,
++				  meta->exec_save_sreg,
++				  AMDGCN_SREG_EXEC_LO,
++				  AMDGCN_SREG_VCC_LO);
 +
-+	if (insn->vop3a.src0 < GFX10_VOP3A_SRC_VCC_LO)
-+		sprintf(src0, "s%d", insn->vop3a.src0);
-+	else if (insn->vop3a.src0 == GFX10_VOP3A_SRC_VCC_LO)
-+		sprintf(src0, "%s", "vcc_lo");
-+	else if (insn->vop3a.src0 == GFX10_VOP3A_SRC_VCC_HI)
-+		sprintf(src0, "%s", "vcc_hi");
-+	else if (insn->vop3a.src0 == GFX10_VOP3A_SRC_NULL)
-+		sprintf(src0, "%s", "null");
-+	else if (insn->vop3a.src0 == GFX10_VOP3A_SRC_EXEC_LO)
-+		sprintf(src0, "%s", "exec_lo");
-+	else if (insn->vop3a.src0 == GFX10_VOP3A_SRC_EXEC_HI)
-+		sprintf(src0, "%s", "exec_hi");
-+	else if (insn->vop3a.src0 < GFX10_VOP3A_SRC_INTEGER_MINUS_1)
-+		sprintf(src0, "0x%x",
-+			insn->vop3a.src0 - GFX10_VOP3A_SRC_INTEGER_0);
-+	else if (insn->vop3a.src0 < GFX10_VOP3A_SRC_SHARED_BASE)
-+		sprintf(src0, "-0x%x",
-+			insn->vop3a.src0 - GFX10_VOP3A_SRC_INTEGER_MINUS_1);
-+	else if (insn->vop3a.src0 == GFX10_VOP3A_SRC_VCCZ)
-+		sprintf(src0, "%s", "vcc");
-+	else if (insn->vop3a.src0 == GFX10_VOP3A_SRC_EXECZ)
-+		sprintf(src0, "%s", "exec");
-+	else if (insn->vop3a.src0 == GFX10_VOP3A_SRC_SCC)
-+		sprintf(src0, "%s", "scc");
-+	else if (insn->vop3a.src0 == GFX10_VOP3A_SRC_LITERAL_CONST)
-+		sprintf(src0, "0x%x", insn->vop3a.literal);
-+	else if (insn->vop3a.src0 >= GFX10_VOP3A_SRC_VGPR_BASE)
-+		sprintf(src0, "v%d",
-+			insn->vop3a.src0 - GFX10_VOP3A_SRC_VGPR_BASE);
++			/* Keep fall-through (VCC=0): exec = exec & ~vcc */
++			knod_emit(priv, meta, s_andn2_b64,
++				  AMDGCN_SREG_EXEC_LO,
++				  AMDGCN_SREG_EXEC_LO,
++				  AMDGCN_SREG_VCC_LO);
++		}
 +
-+	if (insn->vop3a.src1 < GFX10_VOP3A_SRC_VCC_LO)
-+		sprintf(src1, "s%d", insn->vop3a.src1);
-+	else if (insn->vop3a.src1 == GFX10_VOP3A_SRC_VCC_LO)
-+		sprintf(src1, "%s", "vcc_lo");
-+	else if (insn->vop3a.src1 == GFX10_VOP3A_SRC_VCC_HI)
-+		sprintf(src1, "%s", "vcc_hi");
-+	else if (insn->vop3a.src1 == GFX10_VOP3A_SRC_NULL)
-+		sprintf(src1, "%s", "null");
-+	else if (insn->vop3a.src1 == GFX10_VOP3A_SRC_EXEC_LO)
-+		sprintf(src1, "%s", "exec_lo");
-+	else if (insn->vop3a.src1 == GFX10_VOP3A_SRC_EXEC_HI)
-+		sprintf(src1, "%s", "exec_hi");
-+	else if (insn->vop3a.src1 < GFX10_VOP3A_SRC_INTEGER_MINUS_1)
-+		sprintf(src1, "0x%x",
-+			insn->vop3a.src1 - GFX10_VOP3A_SRC_INTEGER_0);
-+	else if (insn->vop3a.src1 < GFX10_VOP3A_SRC_SHARED_BASE)
-+		sprintf(src1, "-0x%x",
-+			insn->vop3a.src1 - GFX10_VOP3A_SRC_INTEGER_MINUS_1);
-+	else if (insn->vop3a.src1 == GFX10_VOP3A_SRC_VCCZ)
-+		sprintf(src1, "%s", "vcc");
-+	else if (insn->vop3a.src1 == GFX10_VOP3A_SRC_EXECZ)
-+		sprintf(src1, "%s", "exec");
-+	else if (insn->vop3a.src1 == GFX10_VOP3A_SRC_SCC)
-+		sprintf(src1, "%s", "scc");
-+	else if (insn->vop3a.src1 == GFX10_VOP3A_SRC_LITERAL_CONST)
-+		sprintf(src1, "0x%x", insn->vop3a.literal);
-+	else if (insn->vop3a.src1 >= GFX10_VOP3A_SRC_VGPR_BASE)
-+		sprintf(src1, "v%d",
-+			insn->vop3a.src1 - GFX10_VOP3A_SRC_VGPR_BASE);
-+
-+	if (insn->vop3a.src2 < GFX10_VOP3A_SRC_VCC_LO)
-+		sprintf(src2, "s%d", insn->vop3a.src2);
-+	else if (insn->vop3a.src2 == GFX10_VOP3A_SRC_VCC_LO)
-+		sprintf(src2, "%s", "vcc_lo");
-+	else if (insn->vop3a.src2 == GFX10_VOP3A_SRC_VCC_HI)
-+		sprintf(src2, "%s", "vcc_hi");
-+	else if (insn->vop3a.src2 == GFX10_VOP3A_SRC_NULL)
-+		sprintf(src2, "%s", "null");
-+	else if (insn->vop3a.src2 == GFX10_VOP3A_SRC_EXEC_LO)
-+		sprintf(src2, "%s", "exec_lo");
-+	else if (insn->vop3a.src2 == GFX10_VOP3A_SRC_EXEC_HI)
-+		sprintf(src2, "%s", "exec_hi");
-+	else if (insn->vop3a.src2 < GFX10_VOP3A_SRC_INTEGER_MINUS_1)
-+		sprintf(src2, "0x%x",
-+			insn->vop3a.src2 - GFX10_VOP3A_SRC_INTEGER_0);
-+	else if (insn->vop3a.src2 < GFX10_VOP3A_SRC_SHARED_BASE)
-+		sprintf(src2, "-0x%x",
-+			insn->vop3a.src2 - GFX10_VOP3A_SRC_INTEGER_MINUS_1);
-+	else if (insn->vop3a.src2 == GFX10_VOP3A_SRC_VCCZ)
-+		sprintf(src2, "%s", "vcc");
-+	else if (insn->vop3a.src2 == GFX10_VOP3A_SRC_EXECZ)
-+		sprintf(src2, "%s", "exec");
-+	else if (insn->vop3a.src2 == GFX10_VOP3A_SRC_SCC)
-+		sprintf(src2, "%s", "scc");
-+	else if (insn->vop3a.src2 == GFX10_VOP3A_SRC_LITERAL_CONST)
-+		sprintf(src2, "0x%x", insn->vop3a.literal);
-+	else if (insn->vop3a.src2 >= GFX10_VOP3A_SRC_VGPR_BASE)
-+		sprintf(src2, "v%d",
-+			insn->vop3a.src2 - GFX10_VOP3A_SRC_VGPR_BASE);
-+
-+	seq_printf(m, "%s v%d, %s, %s, %s\n",
-+		opnames_gfx10[AMDGCN_INSN_TYPE_VOP3A][insn->vop3a.op],
-+		insn->vop3a.vdst, src0, src1, src2);
-+}
-+
-+static inline void gfx10_debugfs_vop3b(union amdgcn_gfx10_insn *insn,
-+				       struct seq_file *m)
-+{
-+	char src0[20];
-+	char src1[20];
-+	char src2[20];
-+	char sdst[20];
-+
-+	if (insn->vop3b.sdst < GFX10_VOP3A_SRC_VCC_LO)
-+		sprintf(sdst, "s%d", insn->vop3b.sdst);
-+	else if (insn->vop3b.sdst == GFX10_VOP3A_SRC_VCC_LO)
-+		sprintf(sdst, "%s", "vcc_lo");
-+	else if (insn->vop3b.sdst == GFX10_VOP3A_SRC_VCC_HI)
-+		sprintf(sdst, "%s", "vcc_hi");
-+	else if (insn->vop3b.sdst == GFX10_VOP3A_SRC_NULL)
-+		sprintf(sdst, "%s", "null");
-+	else if (insn->vop3b.sdst == GFX10_VOP3A_SRC_EXEC_LO)
-+		sprintf(sdst, "%s", "exec_lo");
-+	else if (insn->vop3b.sdst == GFX10_VOP3A_SRC_EXEC_HI)
-+		sprintf(sdst, "%s", "exec_hi");
-+	else if (insn->vop3b.sdst < GFX10_VOP3A_SRC_INTEGER_MINUS_1)
-+		sprintf(sdst, "0x%x",
-+			insn->vop3b.sdst - GFX10_VOP3A_SRC_INTEGER_0);
-+	else if (insn->vop3b.sdst < GFX10_VOP3A_SRC_SHARED_BASE)
-+		sprintf(sdst, "-0x%x",
-+			insn->vop3b.sdst - GFX10_VOP3A_SRC_INTEGER_MINUS_1);
-+	else if (insn->vop3b.sdst == GFX10_VOP3A_SRC_VCCZ)
-+		sprintf(sdst, "%s", "vcc");
-+	else if (insn->vop3b.sdst == GFX10_VOP3A_SRC_EXECZ)
-+		sprintf(sdst, "%s", "exec");
-+	else if (insn->vop3b.sdst == GFX10_VOP3A_SRC_SCC)
-+		sprintf(sdst, "%s", "scc");
-+	else if (insn->vop3b.sdst == GFX10_VOP3A_SRC_LITERAL_CONST)
-+		sprintf(sdst, "0x%x", insn->vop3b.literal);
-+	else if (insn->vop3b.sdst >= GFX10_VOP3A_SRC_VGPR_BASE)
-+		sprintf(sdst, "v%d",
-+			insn->vop3b.sdst - GFX10_VOP3A_SRC_VGPR_BASE);
-+
-+	if (insn->vop3b.src0 < GFX10_VOP3A_SRC_VCC_LO)
-+		sprintf(src0, "s%d", insn->vop3b.src0);
-+	else if (insn->vop3b.src0 == GFX10_VOP3A_SRC_VCC_LO)
-+		sprintf(src0, "%s", "vcc_lo");
-+	else if (insn->vop3b.src0 == GFX10_VOP3A_SRC_VCC_HI)
-+		sprintf(src0, "%s", "vcc_hi");
-+	else if (insn->vop3b.src0 == GFX10_VOP3A_SRC_NULL)
-+		sprintf(src0, "%s", "null");
-+	else if (insn->vop3b.src0 == GFX10_VOP3A_SRC_EXEC_LO)
-+		sprintf(src0, "%s", "exec_lo");
-+	else if (insn->vop3b.src0 == GFX10_VOP3A_SRC_EXEC_HI)
-+		sprintf(src0, "%s", "exec_hi");
-+	else if (insn->vop3b.src0 < GFX10_VOP3A_SRC_INTEGER_MINUS_1)
-+		sprintf(src0, "0x%x",
-+			insn->vop3b.src0 - GFX10_VOP3A_SRC_INTEGER_0);
-+	else if (insn->vop3b.src0 < GFX10_VOP3A_SRC_SHARED_BASE)
-+		sprintf(src0, "-0x%x",
-+			insn->vop3b.src0 - GFX10_VOP3A_SRC_INTEGER_MINUS_1);
-+	else if (insn->vop3b.src0 == GFX10_VOP3A_SRC_VCCZ)
-+		sprintf(src0, "%s", "vcc");
-+	else if (insn->vop3b.src0 == GFX10_VOP3A_SRC_EXECZ)
-+		sprintf(src0, "%s", "exec");
-+	else if (insn->vop3b.src0 == GFX10_VOP3A_SRC_SCC)
-+		sprintf(src0, "%s", "scc");
-+	else if (insn->vop3b.src0 == GFX10_VOP3A_SRC_LITERAL_CONST)
-+		sprintf(src0, "0x%x", insn->vop3b.literal);
-+	else if (insn->vop3b.src0 >= GFX10_VOP3A_SRC_VGPR_BASE)
-+		sprintf(src0, "v%d",
-+			insn->vop3b.src0 - GFX10_VOP3A_SRC_VGPR_BASE);
-+
-+	if (insn->vop3b.src1 < GFX10_VOP3A_SRC_VCC_LO)
-+		sprintf(src1, "s%d", insn->vop3b.src1);
-+	else if (insn->vop3b.src1 == GFX10_VOP3A_SRC_VCC_LO)
-+		sprintf(src1, "%s", "vcc_lo");
-+	else if (insn->vop3b.src1 == GFX10_VOP3A_SRC_VCC_HI)
-+		sprintf(src1, "%s", "vcc_hi");
-+	else if (insn->vop3b.src1 == GFX10_VOP3A_SRC_NULL)
-+		sprintf(src1, "%s", "null");
-+	else if (insn->vop3b.src1 == GFX10_VOP3A_SRC_EXEC_LO)
-+		sprintf(src1, "%s", "exec_lo");
-+	else if (insn->vop3b.src1 == GFX10_VOP3A_SRC_EXEC_HI)
-+		sprintf(src1, "%s", "exec_hi");
-+	else if (insn->vop3b.src1 < GFX10_VOP3A_SRC_INTEGER_MINUS_1)
-+		sprintf(src1, "0x%x",
-+			insn->vop3b.src1 - GFX10_VOP3A_SRC_INTEGER_0);
-+	else if (insn->vop3b.src1 < GFX10_VOP3A_SRC_SHARED_BASE)
-+		sprintf(src1, "-0x%x",
-+			insn->vop3b.src1 - GFX10_VOP3A_SRC_INTEGER_MINUS_1);
-+	else if (insn->vop3b.src1 == GFX10_VOP3A_SRC_VCCZ)
-+		sprintf(src1, "%s", "vcc");
-+	else if (insn->vop3b.src1 == GFX10_VOP3A_SRC_EXECZ)
-+		sprintf(src1, "%s", "exec");
-+	else if (insn->vop3b.src1 == GFX10_VOP3A_SRC_SCC)
-+		sprintf(src1, "%s", "scc");
-+	else if (insn->vop3b.src1 == GFX10_VOP3A_SRC_LITERAL_CONST)
-+		sprintf(src1, "0x%x", insn->vop3b.literal);
-+	else if (insn->vop3b.src1 >= GFX10_VOP3A_SRC_VGPR_BASE)
-+		sprintf(src1, "v%d",
-+			insn->vop3b.src1 - GFX10_VOP3A_SRC_VGPR_BASE);
-+
-+	if (insn->vop3b.src2 < GFX10_VOP3A_SRC_VCC_LO)
-+		sprintf(src2, "s%d", insn->vop3b.src2);
-+	else if (insn->vop3b.src2 == GFX10_VOP3A_SRC_VCC_LO)
-+		sprintf(src2, "%s", "vcc_lo");
-+	else if (insn->vop3b.src2 == GFX10_VOP3A_SRC_VCC_HI)
-+		sprintf(src2, "%s", "vcc_hi");
-+	else if (insn->vop3b.src2 == GFX10_VOP3A_SRC_NULL)
-+		sprintf(src2, "%s", "null");
-+	else if (insn->vop3b.src2 == GFX10_VOP3A_SRC_EXEC_LO)
-+		sprintf(src2, "%s", "exec_lo");
-+	else if (insn->vop3b.src2 == GFX10_VOP3A_SRC_EXEC_HI)
-+		sprintf(src2, "%s", "exec_hi");
-+	else if (insn->vop3b.src2 < GFX10_VOP3A_SRC_INTEGER_MINUS_1)
-+		sprintf(src2, "0x%x",
-+			insn->vop3b.src2 - GFX10_VOP3A_SRC_INTEGER_0);
-+	else if (insn->vop3b.src2 < GFX10_VOP3A_SRC_SHARED_BASE)
-+		sprintf(src2, "-0x%x",
-+			insn->vop3b.src2 - GFX10_VOP3A_SRC_INTEGER_MINUS_1);
-+	else if (insn->vop3b.src2 == GFX10_VOP3A_SRC_VCCZ)
-+		sprintf(src2, "%s", "vcc");
-+	else if (insn->vop3b.src2 == GFX10_VOP3A_SRC_EXECZ)
-+		sprintf(src2, "%s", "exec");
-+	else if (insn->vop3b.src2 == GFX10_VOP3A_SRC_SCC)
-+		sprintf(src2, "%s", "scc");
-+	else if (insn->vop3b.src2 == GFX10_VOP3A_SRC_LITERAL_CONST)
-+		sprintf(src2, "0x%x", insn->vop3b.literal);
-+	else if (insn->vop3b.src2 >= GFX10_VOP3A_SRC_VGPR_BASE)
-+		sprintf(src2, "v%d",
-+			insn->vop3b.src2 - GFX10_VOP3A_SRC_VGPR_BASE);
-+
-+	seq_printf(m, "%s v%d, %s, %s, %s, %s\n",
-+		 opnames_gfx10[AMDGCN_INSN_TYPE_VOP3B][insn->vop3b.op],
-+		 insn->vop3b.vdst, sdst, src0, src1, src2);
-+}
-+
-+static inline void gfx10_debugfs_vop1(union amdgcn_gfx10_insn *insn,
-+				      struct seq_file *m)
-+{
-+	char src0[20];
-+
-+	if (insn->vop1.src0 < GFX10_VOP1_SRC_VCC_LO)
-+		sprintf(src0, "s%d", insn->vop1.src0);
-+	else if (insn->vop1.src0 == GFX10_VOP1_SRC_VCC_LO)
-+		sprintf(src0, "%s", "vcc_lo");
-+	else if (insn->vop1.src0 == GFX10_VOP1_SRC_VCC_HI)
-+		sprintf(src0, "%s", "vcc_hi");
-+	else if (insn->vop1.src0 == GFX10_VOP1_SRC_NULL)
-+		sprintf(src0, "%s", "null");
-+	else if (insn->vop1.src0 == GFX10_VOP1_SRC_EXEC_LO)
-+		sprintf(src0, "%s", "exec_lo");
-+	else if (insn->vop1.src0 == GFX10_VOP1_SRC_EXEC_HI)
-+		sprintf(src0, "%s", "exec_hi");
-+	else if (insn->vop1.src0 < GFX10_VOP1_SRC_INTEGER_MINUS_1)
-+		sprintf(src0, "0x%x",
-+			insn->vop1.src0 - GFX10_VOP1_SRC_INTEGER_0);
-+	else if (insn->vop1.src0 < GFX10_VOP1_SRC_SHARED_BASE)
-+		sprintf(src0, "-0x%x",
-+			insn->vop1.src0 - GFX10_VOP1_SRC_INTEGER_MINUS_1);
-+	else if (insn->vop1.src0 == GFX10_VOP1_SRC_VCCZ)
-+		sprintf(src0, "%s", "vcc");
-+	else if (insn->vop1.src0 == GFX10_VOP1_SRC_EXECZ)
-+		sprintf(src0, "%s", "exec");
-+	else if (insn->vop1.src0 == GFX10_VOP1_SRC_SCC)
-+		sprintf(src0, "%s", "scc");
-+	else if (insn->vop1.src0 == GFX10_VOP1_SRC_LITERAL_CONST)
-+		sprintf(src0, "0x%x", insn->vop1.literal);
-+	else if (insn->vop1.src0 >= GFX10_VOP1_SRC_VGPR_BASE)
-+		sprintf(src0, "v%d",
-+			insn->vop1.src0 - GFX10_VOP1_SRC_VGPR_BASE);
-+
-+	seq_printf(m, "%s v%d, %s\n",
-+		 opnames_gfx10[AMDGCN_INSN_TYPE_VOP1][insn->vop1.op],
-+		 insn->vop1.vdst, src0);
-+}
-+
-+static inline void gfx10_debugfs_vopc(union amdgcn_gfx10_insn *insn,
-+				      struct seq_file *m)
-+{
-+	char src0[20];
-+
-+	if (insn->vopc.src0 < GFX10_VOPC_SRC_VCC_LO)
-+		sprintf(src0, "s%d", insn->vopc.src0);
-+	else if (insn->vopc.src0 == GFX10_VOPC_SRC_VCC_LO)
-+		sprintf(src0, "%s", "vcc_lo");
-+	else if (insn->vopc.src0 == GFX10_VOPC_SRC_VCC_HI)
-+		sprintf(src0, "%s", "vcc_hi");
-+	else if (insn->vopc.src0 == GFX10_VOPC_SRC_NULL)
-+		sprintf(src0, "%s", "null");
-+	else if (insn->vopc.src0 == GFX10_VOPC_SRC_EXEC_LO)
-+		sprintf(src0, "%s", "exec_lo");
-+	else if (insn->vopc.src0 == GFX10_VOPC_SRC_EXEC_HI)
-+		sprintf(src0, "%s", "exec_hi");
-+	else if (insn->vopc.src0 < GFX10_VOPC_SRC_INTEGER_MINUS_1)
-+		sprintf(src0, "0x%x",
-+			insn->vopc.src0 - GFX10_VOPC_SRC_INTEGER_0);
-+	else if (insn->vopc.src0 < GFX10_VOPC_SRC_SHARED_BASE)
-+		sprintf(src0, "-0x%x",
-+			insn->vopc.src0 - GFX10_VOPC_SRC_INTEGER_MINUS_1);
-+	else if (insn->vopc.src0 == GFX10_VOPC_SRC_VCCZ)
-+		sprintf(src0, "%s", "vcc");
-+	else if (insn->vopc.src0 == GFX10_VOPC_SRC_EXECZ)
-+		sprintf(src0, "%s", "exec");
-+	else if (insn->vopc.src0 == GFX10_VOPC_SRC_SCC)
-+		sprintf(src0, "%s", "scc");
-+	else if (insn->vopc.src0 == GFX10_VOPC_SRC_LITERAL_CONST)
-+		sprintf(src0, "0x%x", insn->vopc.literal);
-+	else if (insn->vopc.src0 >= GFX10_VOPC_SRC_VGPR_BASE)
-+		sprintf(src0, "v%d",
-+			insn->vopc.src0 - GFX10_VOPC_SRC_VGPR_BASE);
-+
-+	seq_printf(m, "%s %s, v%d\n",
-+		 opnames_gfx10[AMDGCN_INSN_TYPE_VOPC][insn->vopc.op],
-+		 src0, insn->vopc.vsrc1);
-+}
-+
-+static inline void gfx10_debugfs_vop2(union amdgcn_gfx10_insn *insn,
-+				      struct seq_file *m)
-+{
-+	char src0[20];
-+
-+	if (insn->vop2.src0 < GFX10_VOP2_SRC_VCC_LO)
-+		sprintf(src0, "s%d", insn->vop2.src0);
-+	else if (insn->vop2.src0 == GFX10_VOP2_SRC_VCC_LO)
-+		sprintf(src0, "%s", "vcc_lo");
-+	else if (insn->vop2.src0 == GFX10_VOP2_SRC_VCC_HI)
-+		sprintf(src0, "%s", "vcc_hi");
-+	else if (insn->vop2.src0 == GFX10_VOP2_SRC_NULL)
-+		sprintf(src0, "%s", "null");
-+	else if (insn->vop2.src0 == GFX10_VOP2_SRC_EXEC_LO)
-+		sprintf(src0, "%s", "exec_lo");
-+	else if (insn->vop2.src0 == GFX10_VOP2_SRC_EXEC_HI)
-+		sprintf(src0, "%s", "exec_hi");
-+	else if (insn->vop2.src0 < GFX10_VOP2_SRC_INTEGER_MINUS_1)
-+		sprintf(src0, "0x%x",
-+			insn->vop2.src0 - GFX10_VOP2_SRC_INTEGER_0);
-+	else if (insn->vop2.src0 < GFX10_VOP2_SRC_SHARED_BASE)
-+		sprintf(src0, "-0x%x",
-+			insn->vop2.src0 - GFX10_VOP2_SRC_INTEGER_MINUS_1);
-+	else if (insn->vop2.src0 == GFX10_VOP2_SRC_VCCZ)
-+		sprintf(src0, "%s", "vcc");
-+	else if (insn->vop2.src0 == GFX10_VOP2_SRC_EXECZ)
-+		sprintf(src0, "%s", "exec");
-+	else if (insn->vop2.src0 == GFX10_VOP2_SRC_SCC)
-+		sprintf(src0, "%s", "scc");
-+	else if (insn->vop2.src0 == GFX10_VOP2_SRC_LITERAL_CONST)
-+		sprintf(src0, "0x%x", insn->vop2.literal);
-+	else if (insn->vop2.src0 >= GFX10_VOP2_SRC_VGPR_BASE)
-+		sprintf(src0, "v%d",
-+			insn->vop2.src0 - GFX10_VOP2_SRC_VGPR_BASE);
-+
-+	seq_printf(m, "%s v%d, %s v%d\n",
-+		 opnames_gfx10[AMDGCN_INSN_TYPE_VOP2][insn->vop2.op],
-+		 insn->vop2.vdst,
-+		 src0,
-+		 insn->vop2.vsrc1);
-+}
-+
-+static inline void gfx10_debugfs_sop1(union amdgcn_gfx10_insn *insn,
-+				      struct seq_file *m)
-+{
-+	char ssrc0[20];
-+
-+	if (insn->sop1.ssrc0 < GFX10_SOP1_SSRC_VCC_LO)
-+		sprintf(ssrc0, "s%d", insn->sop1.ssrc0);
-+	else if (insn->sop1.ssrc0 == GFX10_SOP1_SSRC_VCC_LO)
-+		sprintf(ssrc0, "%s", "vcc_lo");
-+	else if (insn->sop1.ssrc0 == GFX10_SOP1_SSRC_VCC_HI)
-+		sprintf(ssrc0, "%s", "vcc_hi");
-+	else if (insn->sop1.ssrc0 == GFX10_SOP1_SSRC_NULL)
-+		sprintf(ssrc0, "%s", "null");
-+	else if (insn->sop1.ssrc0 == GFX10_SOP1_SSRC_EXEC_LO)
-+		sprintf(ssrc0, "%s", "exec_lo");
-+	else if (insn->sop1.ssrc0 == GFX10_SOP1_SSRC_EXEC_HI)
-+		sprintf(ssrc0, "%s", "exec_hi");
-+	else if (insn->sop1.ssrc0 < GFX10_SOP1_SSRC_INTEGER_MINUS_1)
-+		sprintf(ssrc0, "0x%x",
-+			insn->sop1.ssrc0 - GFX10_SOP1_SSRC_INTEGER_0);
-+	else if (insn->sop1.ssrc0 < GFX10_SOP1_SSRC_SHARED_BASE)
-+		sprintf(ssrc0, "-0x%x",
-+			insn->sop1.ssrc0 - GFX10_SOP1_SSRC_INTEGER_MINUS_1);
-+	else if (insn->sop1.ssrc0 == GFX10_SOP1_SSRC_VCCZ)
-+		sprintf(ssrc0, "%s", "vcc");
-+	else if (insn->sop1.ssrc0 == GFX10_SOP1_SSRC_EXECZ)
-+		sprintf(ssrc0, "%s", "exec");
-+	else if (insn->sop1.ssrc0 == GFX10_SOP1_SSRC_SCC)
-+		sprintf(ssrc0, "%s", "scc");
-+	else if (insn->sop1.ssrc0 == GFX10_SOP1_SSRC_LITERAL_CONST)
-+		sprintf(ssrc0, "0x%x", insn->sop1.literal);
-+
-+	seq_printf(m, "%s s%d, %s\n",
-+		 opnames_gfx10[AMDGCN_INSN_TYPE_SOP1][insn->sop1.op],
-+		 insn->sop1.sdst,
-+		 ssrc0);
-+}
-+
-+static inline void gfx10_debugfs_sopp(union amdgcn_gfx10_insn *insn,
-+				      struct seq_file *m)
-+{
-+	seq_printf(m, "%s 0x%x\n",
-+		 opnames_gfx10[AMDGCN_INSN_TYPE_SOPP][insn->sopp.op],
-+		 insn->sopp.simm16);
-+}
-+
-+static inline void gfx10_debugfs_smem(union amdgcn_gfx10_insn *insn,
-+				      struct seq_file *m)
-+{
-+	seq_printf(m, "%s s[%d:%d], s[%d:%d], 0x%x\n",
-+		   opnames_gfx10[AMDGCN_INSN_TYPE_SMEM][insn->smem.op],
-+		   insn->smem.sdata,
-+		   insn->smem.sdata + 1,
-+		   (insn->smem.sbase * 2),
-+		   (insn->smem.sbase * 2) + 1,
-+		   insn->smem.offset);
-+}
-+
-+static inline void gfx10_debugfs_mubuf(union amdgcn_gfx10_insn *insn,
-+				       struct seq_file *m)
-+{
-+	seq_printf(m, "%s v%d, v%d, s[%d:%d], 0x%x offen offset:%d\n",
-+		 opnames_gfx10[AMDGCN_INSN_TYPE_MUBUF][insn->mubuf.op],
-+		 insn->mubuf.vdata,
-+		 insn->mubuf.vaddr,
-+		 insn->mubuf.srsrc,
-+		 insn->mubuf.srsrc + 3,
-+		 insn->mubuf.soffset,
-+		 insn->mubuf.offset);
-+}
-+
-+static inline void gfx10_debugfs_global(union amdgcn_gfx10_insn *insn,
-+					struct seq_file *m)
-+{
-+	if (insn->flat.op == GFX9_GLOBAL_STORE_BYTE) {
-+		seq_printf(m, "%s v[%d:%d], v%d, off offset:%d\n",
-+			 opnames_gfx10[AMDGCN_INSN_TYPE_FLAT][insn->flat.op],
-+			 insn->flat.addr,
-+			 insn->flat.addr + 1,
-+			 insn->flat.data,
-+			 insn->flat.offset);
-+	} else if (insn->flat.op == GFX9_GLOBAL_STORE_SHORT) {
-+		seq_printf(m, "%s v[%d:%d], v%d, off offset:%d\n",
-+			 opnames_gfx10[AMDGCN_INSN_TYPE_FLAT][insn->flat.op],
-+			 insn->flat.addr,
-+			 insn->flat.addr + 1,
-+			 insn->flat.data,
-+			 insn->flat.offset);
-+	} else if (insn->flat.op == GFX9_GLOBAL_STORE_DWORD) {
-+		seq_printf(m, "%s v[%d:%d], v%d, off offset:%d\n",
-+			 opnames_gfx10[AMDGCN_INSN_TYPE_FLAT][insn->flat.op],
-+			 insn->flat.addr,
-+			 insn->flat.addr + 1,
-+			 insn->flat.data,
-+			 insn->flat.offset);
-+	} else if (insn->flat.op == GFX9_GLOBAL_STORE_DWORDX2) {
-+		seq_printf(m, "%s v[%d:%d], v[%d:%d], off offset:%d\n",
-+			 opnames_gfx10[AMDGCN_INSN_TYPE_FLAT][insn->flat.op],
-+			 insn->flat.addr,
-+			 insn->flat.addr + 1,
-+			 insn->flat.data,
-+			 insn->flat.data + 1,
-+			 insn->flat.offset);
-+	} else {
-+		seq_printf(m, "%s v[%d:%d], v[%d:%d], off offset:%d\n",
-+			 opnames_gfx10[AMDGCN_INSN_TYPE_FLAT][insn->flat.op],
-+			 insn->flat.vdst,
-+			 insn->flat.vdst + 1,
-+			 insn->flat.addr,
-+			 insn->flat.addr + 1,
-+			 insn->flat.offset);
-+	}
-+}
-+
-+static inline void gfx10_debugfs_sop2(union amdgcn_gfx10_insn *insn,
-+				      struct seq_file *m)
-+{
-+	char ssrc0[20], ssrc1[20];
-+
-+	decode_ssrc8(insn->sop2.ssrc0, insn->sop2.literal, ssrc0);
-+	decode_ssrc8(insn->sop2.ssrc1, insn->sop2.literal, ssrc1);
-+	seq_printf(m, "%s s%d, %s, %s\n",
-+		 opnames_gfx10[AMDGCN_INSN_TYPE_SOP2][insn->sop2.op],
-+		 insn->sop2.sdst, ssrc0, ssrc1);
-+}
-+
-+static inline void gfx10_debugfs_sopk(union amdgcn_gfx10_insn *insn,
-+				      struct seq_file *m)
-+{
-+	seq_printf(m, "%s s%d, 0x%x\n",
-+		 opnames_gfx10[AMDGCN_INSN_TYPE_SOPK][insn->sopk.op],
-+		 insn->sopk.sdst, insn->sopk.simm16);
-+}
-+
-+static inline void gfx10_debugfs_sopc(union amdgcn_gfx10_insn *insn,
-+				      struct seq_file *m)
-+{
-+	char ssrc0[20], ssrc1[20];
-+
-+	decode_ssrc8(insn->sopc.ssrc0, insn->sopc.literal, ssrc0);
-+	decode_ssrc8(insn->sopc.ssrc1, insn->sopc.literal, ssrc1);
-+	seq_printf(m, "%s %s, %s\n",
-+		 opnames_gfx10[AMDGCN_INSN_TYPE_SOPC][insn->sopc.op],
-+		 ssrc0, ssrc1);
-+}
-+
-+static inline void gfx10_debugfs_vop3p(union amdgcn_gfx10_insn *insn,
-+					struct seq_file *m)
-+{
-+	char src0[20], src1[20], src2[20];
-+
-+	decode_vsrc9(insn->vop3p.src0, insn->vop3p.literal, src0);
-+	decode_vsrc9(insn->vop3p.src1, insn->vop3p.literal, src1);
-+	decode_vsrc9(insn->vop3p.src2, insn->vop3p.literal, src2);
-+	seq_printf(m, "%s v%d, %s, %s, %s\n",
-+		 opnames_gfx10[AMDGCN_INSN_TYPE_VOP3P][insn->vop3p.op],
-+		 (int)insn->vop3p.vdst, src0, src1, src2);
-+}
-+
-+static inline void gfx10_debugfs_sdwa(union amdgcn_gfx10_insn *insn,
-+				      struct seq_file *m)
-+{
-+	seq_printf(m, "sdwa src0:%d dst_sel:%d src0_sel:%d src1_sel:%d\n",
-+		 insn->sdwa.src0, insn->sdwa.dst_sel,
-+		 insn->sdwa.src0_sel, insn->sdwa.src1_sel);
-+}
-+
-+static inline void gfx10_debugfs_sdwab(union amdgcn_gfx10_insn *insn,
-+					struct seq_file *m)
-+{
-+	seq_printf(m, "sdwab src0:%d sdst:s%d src0_sel:%d src1_sel:%d\n",
-+		 insn->sdwab.src0, insn->sdwab.sdst,
-+		 insn->sdwab.src0_sel, insn->sdwab.src1_sel);
-+}
-+
-+static inline void gfx10_debugfs_dpp16(union amdgcn_gfx10_insn *insn,
-+					struct seq_file *m)
-+{
-+	seq_puts(m, "dpp16 (not decoded)\n");
-+}
-+
-+static inline void gfx10_debugfs_dpp8(union amdgcn_gfx10_insn *insn,
-+				      struct seq_file *m)
-+{
-+	seq_puts(m, "dpp8 (not decoded)\n");
-+}
-+
-+static inline void gfx10_debugfs_vintrp(union amdgcn_gfx10_insn *insn,
-+					 struct seq_file *m)
-+{
-+	seq_puts(m, "vintrp (not decoded)\n");
-+}
-+
-+static inline void gfx10_debugfs_ds(union amdgcn_gfx10_insn *insn,
-+				    struct seq_file *m)
-+{
-+	seq_printf(m, "%s v%d, v%d, v%d, v%d offset0:%d offset1:%d%s\n",
-+		 opnames_gfx10[AMDGCN_INSN_TYPE_DS][insn->ds.op],
-+		 (int)insn->ds.vdst, (int)insn->ds.addr,
-+		 (int)insn->ds.data0, (int)insn->ds.data1,
-+		 (int)insn->ds.offset0, (int)insn->ds.offset1,
-+		 insn->ds.gds ? " gds" : "");
-+}
-+
-+static inline void gfx10_debugfs_mtbuf(union amdgcn_gfx10_insn *insn,
-+					struct seq_file *m)
-+{
-+	seq_printf(m, "%s v%d, v%d, s[%d:%d], s%d format:%d offset:%d\n",
-+		 opnames_gfx10[AMDGCN_INSN_TYPE_MTBUF][insn->mtbuf.op],
-+		 (int)insn->mtbuf.vdata, (int)insn->mtbuf.vaddr,
-+		 (int)insn->mtbuf.srsrc * 4, (int)insn->mtbuf.srsrc * 4 + 3,
-+		 (int)insn->mtbuf.soffset, (int)insn->mtbuf.foamat,
-+		 (int)insn->mtbuf.offset);
-+}
-+
-+static inline void gfx10_debugfs_mimg(union amdgcn_gfx10_insn *insn,
-+				      struct seq_file *m)
-+{
-+	seq_puts(m, "mimg (not decoded)\n");
-+}
-+
-+static inline void gfx10_debugfs_exp(union amdgcn_gfx10_insn *insn,
-+				     struct seq_file *m)
-+{
-+	seq_puts(m, "exp (not decoded)\n");
-+}
-+
-+static inline void gfx10_debugfs_insn(struct amdgcn_insn *insn,
-+				      struct seq_file *m)
-+{
-+	u32 *ptr = (u32 *)&insn->gfx10;
-+
-+	if (insn->size == 4)
-+		seq_printf(m, "%.8X\t\t\t", ptr[0]);
-+	else if (insn->size == 8)
-+		seq_printf(m, "%.8X %.8X\t\t", ptr[0], ptr[1]);
-+	else if (insn->size == 12)
-+		seq_printf(m, "%.8X %.8X %.8X\t\t\t", ptr[0], ptr[1], ptr[2]);
-+	else
-+		WARN_ON_ONCE(1);
-+
-+	switch (insn->type) {
-+	case AMDGCN_INSN_TYPE_SOP2:
-+		gfx10_debugfs_sop2(&insn->gfx10, m);
++		/*
++		 * No GPU branch.  After the RPO reorder, branch scopes
++		 * interleave, so the jumping lanes must flow through every
++		 * following block under the EXEC mask and rejoin at their merge
++		 * point.  An s_cbranch_execz skipping ahead to the merge would
++		 * jump over other scopes' merge points and strand their saved
++		 * lanes (EXEC never restored -> act=0).
++		 */
 +		break;
-+	case AMDGCN_INSN_TYPE_SOPK:
-+		gfx10_debugfs_sopk(&insn->gfx10, m);
++
++	case KNOD_BR_DIRECT_EXIT:
++		if (meta->jump_neg_op) {
++			/* JNE: VCC=0 -> exit. exit_lanes = exec & ~vcc */
++			knod_emit(priv, meta, s_andn2_b64,
++				  KNOD_AMDGPU_TMP_SREG0_LO,
++				  AMDGCN_SREG_EXEC_LO,
++				  AMDGCN_SREG_VCC_LO);
++		} else {
++			/* Normal: VCC=1 -> exit. exit_lanes = exec & vcc */
++			knod_emit(priv, meta, s_and_b64,
++				  KNOD_AMDGPU_TMP_SREG0_LO,
++				  AMDGCN_SREG_EXEC_LO,
++				  AMDGCN_SREG_VCC_LO);
++		}
++
++		/* Keep the lanes that did not take the exit path. */
++		knod_emit(priv, meta, s_andn2_b64,
++			  KNOD_AMDGPU_TMP_SREG1_LO,
++			  AMDGCN_SREG_EXEC_LO,
++			  KNOD_AMDGPU_TMP_SREG0_LO);
++
++		/* Replay a shared "r0 = action; exit" target under the
++		 * exiting lanes before marking them done.  Otherwise a direct
++		 * branch to the common exit can publish stale r0 scratch state.
++		 */
++		knod_emit(priv, meta, s_mov_b64, AMDGCN_SREG_EXEC_LO,
++			  KNOD_AMDGPU_TMP_SREG0_LO);
++		knod_bpf_emit_direct_exit_retval(priv, meta, meta->merge_point);
++
++		/* done_mask |= exit_lanes */
++		knod_emit(priv, meta, s_or_b64,
++			  knod_prog->done_mask_sreg,
++			  knod_prog->done_mask_sreg,
++			  AMDGCN_SREG_EXEC_LO);
++
++		/* Continue with the non-exit lanes. */
++		knod_emit(priv, meta, s_mov_b64, AMDGCN_SREG_EXEC_LO,
++			  KNOD_AMDGPU_TMP_SREG1_LO);
++
++		/* No branch - fall through with reduced EXEC.
++		 * No fixup needed.
++		 */
++		meta->jmp_dst = NULL;
 +		break;
-+	case AMDGCN_INSN_TYPE_SOP1:
-+		gfx10_debugfs_sop1(&insn->gfx10, m);
-+		break;
-+	case AMDGCN_INSN_TYPE_SOPC:
-+		gfx10_debugfs_sopc(&insn->gfx10, m);
-+		break;
-+	case AMDGCN_INSN_TYPE_SOPP:
-+		gfx10_debugfs_sopp(&insn->gfx10, m);
-+		break;
-+	case AMDGCN_INSN_TYPE_SMEM:
-+		gfx10_debugfs_smem(&insn->gfx10, m);
-+		break;
-+	case AMDGCN_INSN_TYPE_VOP2:
-+		gfx10_debugfs_vop2(&insn->gfx10, m);
-+		break;
-+	case AMDGCN_INSN_TYPE_VOP1:
-+		gfx10_debugfs_vop1(&insn->gfx10, m);
-+		break;
-+	case AMDGCN_INSN_TYPE_VOPC:
-+		gfx10_debugfs_vopc(&insn->gfx10, m);
-+		break;
-+	case AMDGCN_INSN_TYPE_VOP3A:
-+		gfx10_debugfs_vop3a(&insn->gfx10, m);
-+		break;
-+	case AMDGCN_INSN_TYPE_VOP3B:
-+		gfx10_debugfs_vop3b(&insn->gfx10, m);
-+		break;
-+	case AMDGCN_INSN_TYPE_VOP3P:
-+		gfx10_debugfs_vop3p(&insn->gfx10, m);
-+		break;
-+	case AMDGCN_INSN_TYPE_SDWA:
-+		gfx10_debugfs_sdwa(&insn->gfx10, m);
-+		break;
-+	case AMDGCN_INSN_TYPE_SDWAB:
-+		gfx10_debugfs_sdwab(&insn->gfx10, m);
-+		break;
-+	case AMDGCN_INSN_TYPE_DPP16:
-+		gfx10_debugfs_dpp16(&insn->gfx10, m);
-+		break;
-+	case AMDGCN_INSN_TYPE_DPP8:
-+		gfx10_debugfs_dpp8(&insn->gfx10, m);
-+		break;
-+	case AMDGCN_INSN_TYPE_VINTRP:
-+		gfx10_debugfs_vintrp(&insn->gfx10, m);
-+		break;
-+	case AMDGCN_INSN_TYPE_DS:
-+		gfx10_debugfs_ds(&insn->gfx10, m);
-+		break;
-+	case AMDGCN_INSN_TYPE_MTBUF:
-+		gfx10_debugfs_mtbuf(&insn->gfx10, m);
-+		break;
-+	case AMDGCN_INSN_TYPE_MUBUF:
-+		gfx10_debugfs_mubuf(&insn->gfx10, m);
-+		break;
-+	case AMDGCN_INSN_TYPE_MIMG:
-+		gfx10_debugfs_mimg(&insn->gfx10, m);
-+		break;
-+	case AMDGCN_INSN_TYPE_FLAT:
-+		gfx10_debugfs_global(&insn->gfx10, m);
-+		break;
-+	case AMDGCN_INSN_TYPE_EXP:
-+		gfx10_debugfs_exp(&insn->gfx10, m);
-+		break;
++
 +	default:
 +		WARN_ON_ONCE(1);
 +		break;
 +	}
 +}
 +
-+static inline void gfx9_debugfs_vop3a(union amdgcn_gfx9_insn *insn,
-+				      struct seq_file *m)
++/*
++ * --- Basic-block CFG analysis (foundation for block reordering) ---
++ *
++ * The emitter is a linear SIMT machine: instructions run in list order under
++ * an EXEC mask.  A *forward* jump is realized by masking off the jumping
++ * lanes and restoring them at the merge point.  A *backward* jump has no such
++ * realization unless it is a loop (real GPU branch + EXEC convergence, not yet
++ * implemented).
++ *
++ * LLVM tail-sharing and block placement routinely emit jumps that are
++ * backward in BPF byte order but are NOT loops - e.g. a UDP bounds check that
++ * jumps back to a shared XDP_PASS tail.  Classifying those as "exit" (the
++ * jmp_off < 0 heuristic in knod_bpf_analyze_cfg) silently miscompiles them:
++ * the jumping lanes exit carrying whatever R0 happened to hold instead of
++ * flowing to the real target.
++ *
++ * The fix is to classify by control-flow, not byte order:
++ *   1. partition the instruction stream into basic blocks,
++ *   2. build the control-flow graph (successor edges),
++ *   3. DFS for a reverse-postorder (RPO) and detect back-edges,
++ *   4. no back-edges (a DAG)  -> reorder blocks into RPO so every edge points
++ *      forward, then classify by linear position,
++ *   5. a real loop is present -> bail (-EOPNOTSUPP) until loop emission lands.
++ *
++ * Loop emission (step 5) is not implemented yet, so programs containing a
++ * loop are rejected with -EOPNOTSUPP.
++ */
++struct knod_bb {
++	struct knod_insn_meta *leader;	/* first instruction of the block */
++	struct knod_insn_meta *last;	/* last instruction of the block */
++	/* successors: [0] not-taken, [1] taken */
++	struct knod_bb *succ[2];
++	int n_succ;
++	/* reverse-postorder rank, -1 if unreachable */
++	int rpo;
++	/* DFS color: 0 white, 1 gray, 2 black */
++	int dfs;
++	bool loop_header;		/* target of a back-edge */
++	/* scratch: member of the loop being walked */
++	bool in_loop;
++	/* immediate dominator (self for entry) */
++	struct knod_bb *idom;
++};
++
++static bool knod_meta_is_exit(const struct knod_insn_meta *meta)
 +{
-+	char src0[20];
-+	char src1[20];
-+	char src2[20];
++	u8 code = meta->insn.code;
 +
-+	if (insn->vop3a.src0 < GFX9_VOP3A_SRC_VCC_LO)
-+		sprintf(src0, "s%d", insn->vop3a.src0);
-+	else if (insn->vop3a.src0 == GFX9_VOP3A_SRC_VCC_LO)
-+		sprintf(src0, "%s", "vcc_lo");
-+	else if (insn->vop3a.src0 == GFX9_VOP3A_SRC_VCC_HI)
-+		sprintf(src0, "%s", "vcc_hi");
-+	else if (insn->vop3a.src0 == GFX9_VOP3A_SRC_NULL)
-+		sprintf(src0, "%s", "null");
-+	else if (insn->vop3a.src0 == GFX9_VOP3A_SRC_EXEC_LO)
-+		sprintf(src0, "%s", "exec_lo");
-+	else if (insn->vop3a.src0 == GFX9_VOP3A_SRC_EXEC_HI)
-+		sprintf(src0, "%s", "exec_hi");
-+	else if (insn->vop3a.src0 < GFX9_VOP3A_SRC_INTEGER_MINUS_1)
-+		sprintf(src0, "0x%x",
-+			insn->vop3a.src0 - GFX9_VOP3A_SRC_INTEGER_0);
-+	else if (insn->vop3a.src0 < GFX9_VOP3A_SRC_SHARED_BASE)
-+		sprintf(src0, "-0x%x",
-+			insn->vop3a.src0 - GFX9_VOP3A_SRC_INTEGER_MINUS_1);
-+	else if (insn->vop3a.src0 == GFX9_VOP3A_SRC_VCCZ)
-+		sprintf(src0, "%s", "vcc");
-+	else if (insn->vop3a.src0 == GFX9_VOP3A_SRC_EXECZ)
-+		sprintf(src0, "%s", "exec");
-+	else if (insn->vop3a.src0 == GFX9_VOP3A_SRC_SCC)
-+		sprintf(src0, "%s", "scc");
-+	else if (insn->vop3a.src0 == GFX9_VOP3A_SRC_LITERAL_CONST)
-+		sprintf(src0, "0x%x", insn->vop3a.literal);
-+	else if (insn->vop3a.src0 >= GFX9_VOP3A_SRC_VGPR_BASE)
-+		sprintf(src0, "v%d",
-+			insn->vop3a.src0 - GFX9_VOP3A_SRC_VGPR_BASE);
-+
-+	if (insn->vop3a.src1 < GFX9_VOP3A_SRC_VCC_LO)
-+		sprintf(src1, "s%d", insn->vop3a.src1);
-+	else if (insn->vop3a.src1 == GFX9_VOP3A_SRC_VCC_LO)
-+		sprintf(src1, "%s", "vcc_lo");
-+	else if (insn->vop3a.src1 == GFX9_VOP3A_SRC_VCC_HI)
-+		sprintf(src1, "%s", "vcc_hi");
-+	else if (insn->vop3a.src1 == GFX9_VOP3A_SRC_NULL)
-+		sprintf(src1, "%s", "null");
-+	else if (insn->vop3a.src1 == GFX9_VOP3A_SRC_EXEC_LO)
-+		sprintf(src1, "%s", "exec_lo");
-+	else if (insn->vop3a.src1 == GFX9_VOP3A_SRC_EXEC_HI)
-+		sprintf(src1, "%s", "exec_hi");
-+	else if (insn->vop3a.src1 < GFX9_VOP3A_SRC_INTEGER_MINUS_1)
-+		sprintf(src1, "0x%x",
-+			insn->vop3a.src1 - GFX9_VOP3A_SRC_INTEGER_0);
-+	else if (insn->vop3a.src1 < GFX9_VOP3A_SRC_SHARED_BASE)
-+		sprintf(src1, "-0x%x",
-+			insn->vop3a.src1 - GFX9_VOP3A_SRC_INTEGER_MINUS_1);
-+	else if (insn->vop3a.src1 == GFX9_VOP3A_SRC_VCCZ)
-+		sprintf(src1, "%s", "vcc");
-+	else if (insn->vop3a.src1 == GFX9_VOP3A_SRC_EXECZ)
-+		sprintf(src1, "%s", "exec");
-+	else if (insn->vop3a.src1 == GFX9_VOP3A_SRC_SCC)
-+		sprintf(src1, "%s", "scc");
-+	else if (insn->vop3a.src1 == GFX9_VOP3A_SRC_LITERAL_CONST)
-+		sprintf(src1, "0x%x", insn->vop3a.literal);
-+	else if (insn->vop3a.src1 >= GFX9_VOP3A_SRC_VGPR_BASE)
-+		sprintf(src1, "v%d",
-+			insn->vop3a.src1 - GFX9_VOP3A_SRC_VGPR_BASE);
-+
-+	if (insn->vop3a.src2 < GFX9_VOP3A_SRC_VCC_LO)
-+		sprintf(src2, "s%d", insn->vop3a.src2);
-+	else if (insn->vop3a.src2 == GFX9_VOP3A_SRC_VCC_LO)
-+		sprintf(src2, "%s", "vcc_lo");
-+	else if (insn->vop3a.src2 == GFX9_VOP3A_SRC_VCC_HI)
-+		sprintf(src2, "%s", "vcc_hi");
-+	else if (insn->vop3a.src2 == GFX9_VOP3A_SRC_NULL)
-+		sprintf(src2, "%s", "null");
-+	else if (insn->vop3a.src2 == GFX9_VOP3A_SRC_EXEC_LO)
-+		sprintf(src2, "%s", "exec_lo");
-+	else if (insn->vop3a.src2 == GFX9_VOP3A_SRC_EXEC_HI)
-+		sprintf(src2, "%s", "exec_hi");
-+	else if (insn->vop3a.src2 < GFX9_VOP3A_SRC_INTEGER_MINUS_1)
-+		sprintf(src2, "0x%x",
-+			insn->vop3a.src2 - GFX9_VOP3A_SRC_INTEGER_0);
-+	else if (insn->vop3a.src2 < GFX9_VOP3A_SRC_SHARED_BASE)
-+		sprintf(src2, "-0x%x",
-+			insn->vop3a.src2 - GFX9_VOP3A_SRC_INTEGER_MINUS_1);
-+	else if (insn->vop3a.src2 == GFX9_VOP3A_SRC_VCCZ)
-+		sprintf(src2, "%s", "vcc");
-+	else if (insn->vop3a.src2 == GFX9_VOP3A_SRC_EXECZ)
-+		sprintf(src2, "%s", "exec");
-+	else if (insn->vop3a.src2 == GFX9_VOP3A_SRC_SCC)
-+		sprintf(src2, "%s", "scc");
-+	else if (insn->vop3a.src2 == GFX9_VOP3A_SRC_LITERAL_CONST)
-+		sprintf(src2, "0x%x", insn->vop3a.literal);
-+	else if (insn->vop3a.src2 >= GFX9_VOP3A_SRC_VGPR_BASE)
-+		sprintf(src2, "v%d",
-+			insn->vop3a.src2 - GFX9_VOP3A_SRC_VGPR_BASE);
-+
-+	seq_printf(m, "%s v%d, %s, %s, %s\n",
-+		 opnames_gfx9[AMDGCN_INSN_TYPE_VOP3A][insn->vop3a.op],
-+		 insn->vop3a.vdst, src0, src1, src2);
++	return code == (BPF_JMP | BPF_EXIT) || code == (BPF_JMP32 | BPF_EXIT);
 +}
 +
-+static inline void gfx9_debugfs_vop3b(union amdgcn_gfx9_insn *insn,
-+				      struct seq_file *m)
++static struct knod_insn_meta *
++knod_bpf_next_meta(struct knod_prog *knod_prog, struct knod_insn_meta *meta)
 +{
-+	char src0[20];
-+	char src1[20];
-+	char src2[20];
-+	char sdst[20];
++	if (!meta || list_is_last(&meta->l, &knod_prog->insns))
++		return NULL;
 +
-+	if (insn->vop3b.sdst < GFX9_VOP3B_SRC_VCC_LO)
-+		sprintf(sdst, "s%d", insn->vop3b.sdst);
-+	else if (insn->vop3b.sdst == GFX9_VOP3B_SRC_VCC_LO)
-+		sprintf(sdst, "%s", "vcc_lo");
-+	else if (insn->vop3b.sdst == GFX9_VOP3B_SRC_VCC_HI)
-+		sprintf(sdst, "%s", "vcc_hi");
-+	else if (insn->vop3b.sdst == GFX9_VOP3B_SRC_NULL)
-+		sprintf(sdst, "%s", "null");
-+	else if (insn->vop3b.sdst == GFX9_VOP3B_SRC_EXEC_LO)
-+		sprintf(sdst, "%s", "exec_lo");
-+	else if (insn->vop3b.sdst == GFX9_VOP3B_SRC_EXEC_HI)
-+		sprintf(sdst, "%s", "exec_hi");
-+	else if (insn->vop3b.sdst < GFX9_VOP3B_SRC_INTEGER_MINUS_1)
-+		sprintf(sdst, "0x%x",
-+			insn->vop3b.sdst - GFX9_VOP3B_SRC_INTEGER_0);
-+	else if (insn->vop3b.sdst < GFX9_VOP3B_SRC_SHARED_BASE)
-+		sprintf(sdst, "-0x%x",
-+			insn->vop3b.sdst - GFX9_VOP3B_SRC_INTEGER_MINUS_1);
-+	else if (insn->vop3b.sdst == GFX9_VOP3B_SRC_VCCZ)
-+		sprintf(sdst, "%s", "vcc");
-+	else if (insn->vop3b.sdst == GFX9_VOP3B_SRC_EXECZ)
-+		sprintf(sdst, "%s", "exec");
-+	else if (insn->vop3b.sdst == GFX9_VOP3B_SRC_SCC)
-+		sprintf(sdst, "%s", "scc");
-+	else if (insn->vop3b.sdst == GFX9_VOP3B_SRC_LITERAL_CONST)
-+		sprintf(sdst, "0x%x", insn->vop3b.literal);
-+	else if (insn->vop3b.sdst >= GFX9_VOP3B_SRC_VGPR_BASE)
-+		sprintf(sdst, "v%d",
-+			insn->vop3b.sdst - GFX9_VOP3B_SRC_VGPR_BASE);
-+
-+	if (insn->vop3b.src0 < GFX9_VOP3B_SRC_VCC_LO)
-+		sprintf(src0, "s%d", insn->vop3b.src0);
-+	else if (insn->vop3b.src0 == GFX9_VOP3B_SRC_VCC_LO)
-+		sprintf(src0, "%s", "vcc_lo");
-+	else if (insn->vop3b.src0 == GFX9_VOP3B_SRC_VCC_HI)
-+		sprintf(src0, "%s", "vcc_hi");
-+	else if (insn->vop3b.src0 == GFX9_VOP3B_SRC_NULL)
-+		sprintf(src0, "%s", "null");
-+	else if (insn->vop3b.src0 == GFX9_VOP3B_SRC_EXEC_LO)
-+		sprintf(src0, "%s", "exec_lo");
-+	else if (insn->vop3b.src0 == GFX9_VOP3B_SRC_EXEC_HI)
-+		sprintf(src0, "%s", "exec_hi");
-+	else if (insn->vop3b.src0 < GFX9_VOP3B_SRC_INTEGER_MINUS_1)
-+		sprintf(src0, "0x%x",
-+			insn->vop3b.src0 - GFX9_VOP3B_SRC_INTEGER_0);
-+	else if (insn->vop3b.src0 < GFX9_VOP3B_SRC_SHARED_BASE)
-+		sprintf(src0, "-0x%x",
-+			insn->vop3b.src0 - GFX9_VOP3B_SRC_INTEGER_MINUS_1);
-+	else if (insn->vop3b.src0 == GFX9_VOP3B_SRC_VCCZ)
-+		sprintf(src0, "%s", "vcc");
-+	else if (insn->vop3b.src0 == GFX9_VOP3B_SRC_EXECZ)
-+		sprintf(src0, "%s", "exec");
-+	else if (insn->vop3b.src0 == GFX9_VOP3B_SRC_SCC)
-+		sprintf(src0, "%s", "scc");
-+	else if (insn->vop3b.src0 == GFX9_VOP3B_SRC_LITERAL_CONST)
-+		sprintf(src0, "0x%x", insn->vop3b.literal);
-+	else if (insn->vop3b.src0 >= GFX9_VOP3B_SRC_VGPR_BASE)
-+		sprintf(src0, "v%d",
-+			insn->vop3b.src0 - GFX9_VOP3B_SRC_VGPR_BASE);
-+
-+	if (insn->vop3b.src1 < GFX9_VOP3B_SRC_VCC_LO)
-+		sprintf(src1, "s%d", insn->vop3b.src1);
-+	else if (insn->vop3b.src1 == GFX9_VOP3B_SRC_VCC_LO)
-+		sprintf(src1, "%s", "vcc_lo");
-+	else if (insn->vop3b.src1 == GFX9_VOP3B_SRC_VCC_HI)
-+		sprintf(src1, "%s", "vcc_hi");
-+	else if (insn->vop3b.src1 == GFX9_VOP3B_SRC_NULL)
-+		sprintf(src1, "%s", "null");
-+	else if (insn->vop3b.src1 == GFX9_VOP3B_SRC_EXEC_LO)
-+		sprintf(src1, "%s", "exec_lo");
-+	else if (insn->vop3b.src1 == GFX9_VOP3B_SRC_EXEC_HI)
-+		sprintf(src1, "%s", "exec_hi");
-+	else if (insn->vop3b.src1 < GFX9_VOP3B_SRC_INTEGER_MINUS_1)
-+		sprintf(src1, "0x%x",
-+			insn->vop3b.src1 - GFX9_VOP3B_SRC_INTEGER_0);
-+	else if (insn->vop3b.src1 < GFX9_VOP3B_SRC_SHARED_BASE)
-+		sprintf(src1, "-0x%x",
-+			insn->vop3b.src1 - GFX9_VOP3B_SRC_INTEGER_MINUS_1);
-+	else if (insn->vop3b.src1 == GFX9_VOP3B_SRC_VCCZ)
-+		sprintf(src1, "%s", "vcc");
-+	else if (insn->vop3b.src1 == GFX9_VOP3B_SRC_EXECZ)
-+		sprintf(src1, "%s", "exec");
-+	else if (insn->vop3b.src1 == GFX9_VOP3B_SRC_SCC)
-+		sprintf(src1, "%s", "scc");
-+	else if (insn->vop3b.src1 == GFX9_VOP3B_SRC_LITERAL_CONST)
-+		sprintf(src1, "0x%x", insn->vop3b.literal);
-+	else if (insn->vop3b.src1 >= GFX9_VOP3B_SRC_VGPR_BASE)
-+		sprintf(src1, "v%d",
-+			insn->vop3b.src1 - GFX9_VOP3B_SRC_VGPR_BASE);
-+
-+	if (insn->vop3b.src2 < GFX9_VOP3B_SRC_VCC_LO)
-+		sprintf(src2, "s%d", insn->vop3b.src2);
-+	else if (insn->vop3b.src2 == GFX9_VOP3B_SRC_VCC_LO)
-+		sprintf(src2, "%s", "vcc_lo");
-+	else if (insn->vop3b.src2 == GFX9_VOP3B_SRC_VCC_HI)
-+		sprintf(src2, "%s", "vcc_hi");
-+	else if (insn->vop3b.src2 == GFX9_VOP3B_SRC_NULL)
-+		sprintf(src2, "%s", "null");
-+	else if (insn->vop3b.src2 == GFX9_VOP3B_SRC_EXEC_LO)
-+		sprintf(src2, "%s", "exec_lo");
-+	else if (insn->vop3b.src2 == GFX9_VOP3B_SRC_EXEC_HI)
-+		sprintf(src2, "%s", "exec_hi");
-+	else if (insn->vop3b.src2 < GFX9_VOP3B_SRC_INTEGER_MINUS_1)
-+		sprintf(src2, "0x%x",
-+			insn->vop3b.src2 - GFX9_VOP3B_SRC_INTEGER_0);
-+	else if (insn->vop3b.src2 < GFX9_VOP3B_SRC_SHARED_BASE)
-+		sprintf(src2, "-0x%x",
-+			insn->vop3b.src2 - GFX9_VOP3B_SRC_INTEGER_MINUS_1);
-+	else if (insn->vop3b.src2 == GFX9_VOP3B_SRC_VCCZ)
-+		sprintf(src2, "%s", "vcc");
-+	else if (insn->vop3b.src2 == GFX9_VOP3B_SRC_EXECZ)
-+		sprintf(src2, "%s", "exec");
-+	else if (insn->vop3b.src2 == GFX9_VOP3B_SRC_SCC)
-+		sprintf(src2, "%s", "scc");
-+	else if (insn->vop3b.src2 == GFX9_VOP3B_SRC_LITERAL_CONST)
-+		sprintf(src2, "0x%x", insn->vop3b.literal);
-+	else if (insn->vop3b.src2 >= GFX9_VOP3B_SRC_VGPR_BASE)
-+		sprintf(src2, "v%d",
-+			insn->vop3b.src2 - GFX9_VOP3B_SRC_VGPR_BASE);
-+
-+	seq_printf(m, "%s v%d, %s, %s, %s, %s\n",
-+		 opnames_gfx9[AMDGCN_INSN_TYPE_VOP3B][insn->vop3b.op],
-+		 insn->vop3b.vdst, sdst, src0, src1, src2);
++	return list_next_entry(meta, l);
 +}
 +
-+static inline void gfx9_debugfs_vop1(union amdgcn_gfx9_insn *insn,
-+				     struct seq_file *m)
++static bool knod_bpf_is_retval_move_to_r0(const struct knod_insn_meta *meta)
 +{
-+	char src0[20];
++	u8 code;
 +
-+	if (insn->vop1.src0 < GFX9_VOP1_SRC_VCC_LO)
-+		sprintf(src0, "s%d", insn->vop1.src0);
-+	else if (insn->vop1.src0 == GFX9_VOP1_SRC_VCC_LO)
-+		sprintf(src0, "%s", "vcc_lo");
-+	else if (insn->vop1.src0 == GFX9_VOP1_SRC_VCC_HI)
-+		sprintf(src0, "%s", "vcc_hi");
-+	else if (insn->vop1.src0 == GFX9_VOP1_SRC_NULL)
-+		sprintf(src0, "%s", "null");
-+	else if (insn->vop1.src0 == GFX9_VOP1_SRC_EXEC_LO)
-+		sprintf(src0, "%s", "exec_lo");
-+	else if (insn->vop1.src0 == GFX9_VOP1_SRC_EXEC_HI)
-+		sprintf(src0, "%s", "exec_hi");
-+	else if (insn->vop1.src0 < GFX9_VOP1_SRC_INTEGER_MINUS_1)
-+		sprintf(src0, "0x%x",
-+			insn->vop1.src0 - GFX9_VOP1_SRC_INTEGER_0);
-+	else if (insn->vop1.src0 < GFX9_VOP1_SRC_SHARED_BASE)
-+		sprintf(src0, "-0x%x",
-+			insn->vop1.src0 - GFX9_VOP1_SRC_INTEGER_MINUS_1);
-+	else if (insn->vop1.src0 == GFX9_VOP1_SRC_VCCZ)
-+		sprintf(src0, "%s", "vcc");
-+	else if (insn->vop1.src0 == GFX9_VOP1_SRC_EXECZ)
-+		sprintf(src0, "%s", "exec");
-+	else if (insn->vop1.src0 == GFX9_VOP1_SRC_SCC)
-+		sprintf(src0, "%s", "scc");
-+	else if (insn->vop1.src0 == GFX9_VOP1_SRC_LITERAL_CONST)
-+		sprintf(src0, "0x%x", insn->vop1.literal);
-+	else if (insn->vop1.src0 >= GFX9_VOP1_SRC_VGPR_BASE)
-+		sprintf(src0, "v%d", insn->vop1.src0 - GFX9_VOP1_SRC_VGPR_BASE);
++	if (!meta || meta->insn.dst_reg != BPF_REG_0)
++		return false;
 +
-+	seq_printf(m, "%s v%d, %s\n",
-+		 opnames_gfx9[AMDGCN_INSN_TYPE_VOP1][insn->vop1.op],
-+		 insn->vop1.vdst, src0);
++	code = meta->insn.code;
++	return code == (BPF_ALU | BPF_MOV | BPF_X) ||
++	       code == (BPF_ALU64 | BPF_MOV | BPF_X) ||
++	       code == (BPF_ALU | BPF_MOV | BPF_K) ||
++	       code == (BPF_ALU64 | BPF_MOV | BPF_K);
 +}
 +
-+static inline void gfx9_debugfs_vopc(union amdgcn_gfx9_insn *insn,
-+				     struct seq_file *m)
++static bool knod_bpf_is_direct_exit_target(struct knod_prog *knod_prog,
++					   struct knod_insn_meta *target)
 +{
-+	char src0[20];
++	if (knod_meta_is_exit(target))
++		return true;
 +
-+	if (insn->vopc.src0 < GFX9_VOPC_SRC_VCC_LO)
-+		sprintf(src0, "s%d", insn->vopc.src0);
-+	else if (insn->vopc.src0 == GFX9_VOPC_SRC_VCC_LO)
-+		sprintf(src0, "%s", "vcc_lo");
-+	else if (insn->vopc.src0 == GFX9_VOPC_SRC_VCC_HI)
-+		sprintf(src0, "%s", "vcc_hi");
-+	else if (insn->vopc.src0 == GFX9_VOPC_SRC_NULL)
-+		sprintf(src0, "%s", "null");
-+	else if (insn->vopc.src0 == GFX9_VOPC_SRC_EXEC_LO)
-+		sprintf(src0, "%s", "exec_lo");
-+	else if (insn->vopc.src0 == GFX9_VOPC_SRC_EXEC_HI)
-+		sprintf(src0, "%s", "exec_hi");
-+	else if (insn->vopc.src0 < GFX9_VOPC_SRC_INTEGER_MINUS_1)
-+		sprintf(src0, "0x%x",
-+			insn->vopc.src0 - GFX9_VOPC_SRC_INTEGER_0);
-+	else if (insn->vopc.src0 < GFX9_VOPC_SRC_SHARED_BASE)
-+		sprintf(src0, "-0x%x",
-+			insn->vopc.src0 - GFX9_VOPC_SRC_INTEGER_MINUS_1);
-+	else if (insn->vopc.src0 == GFX9_VOPC_SRC_VCCZ)
-+		sprintf(src0, "%s", "vcc");
-+	else if (insn->vopc.src0 == GFX9_VOPC_SRC_EXECZ)
-+		sprintf(src0, "%s", "exec");
-+	else if (insn->vopc.src0 == GFX9_VOPC_SRC_SCC)
-+		sprintf(src0, "%s", "scc");
-+	else if (insn->vopc.src0 == GFX9_VOPC_SRC_LITERAL_CONST)
-+		sprintf(src0, "0x%x", insn->vopc.literal);
-+	else if (insn->vopc.src0 >= GFX9_VOPC_SRC_VGPR_BASE)
-+		sprintf(src0, "v%d", insn->vopc.src0 - GFX9_VOPC_SRC_VGPR_BASE);
++	if (!knod_bpf_is_retval_move_to_r0(target))
++		return false;
 +
-+	seq_printf(m, "%s %s, v%d\n",
-+		opnames_gfx9[AMDGCN_INSN_TYPE_VOPC][insn->vopc.op],
-+		src0,
-+		insn->vopc.vsrc1);
++	return knod_meta_is_exit(knod_bpf_next_meta(knod_prog, target));
 +}
 +
-+static inline void gfx9_debugfs_vop2(union amdgcn_gfx9_insn *insn,
-+				     struct seq_file *m)
++static bool knod_meta_is_ja(const struct knod_insn_meta *meta)
 +{
-+	char src0[20];
++	u8 code = meta->insn.code;
 +
-+	if (insn->vop2.src0 < GFX9_VOP2_SRC_VCC_LO)
-+		sprintf(src0, "s%d", insn->vop2.src0);
-+	else if (insn->vop2.src0 == GFX9_VOP2_SRC_VCC_LO)
-+		sprintf(src0, "%s", "vcc_lo");
-+	else if (insn->vop2.src0 == GFX9_VOP2_SRC_VCC_HI)
-+		sprintf(src0, "%s", "vcc_hi");
-+	else if (insn->vop2.src0 == GFX9_VOP2_SRC_NULL)
-+		sprintf(src0, "%s", "null");
-+	else if (insn->vop2.src0 == GFX9_VOP2_SRC_EXEC_LO)
-+		sprintf(src0, "%s", "exec_lo");
-+	else if (insn->vop2.src0 == GFX9_VOP2_SRC_EXEC_HI)
-+		sprintf(src0, "%s", "exec_hi");
-+	else if (insn->vop2.src0 < GFX9_VOP2_SRC_INTEGER_MINUS_1)
-+		sprintf(src0, "0x%x",
-+			insn->vop2.src0 - GFX9_VOP2_SRC_INTEGER_0);
-+	else if (insn->vop2.src0 < GFX9_VOP2_SRC_SHARED_BASE)
-+		sprintf(src0, "-0x%x",
-+			insn->vop2.src0 - GFX9_VOP2_SRC_INTEGER_MINUS_1);
-+	else if (insn->vop2.src0 == GFX9_VOP2_SRC_VCCZ)
-+		sprintf(src0, "%s", "vcc");
-+	else if (insn->vop2.src0 == GFX9_VOP2_SRC_EXECZ)
-+		sprintf(src0, "%s", "exec");
-+	else if (insn->vop2.src0 == GFX9_VOP2_SRC_SCC)
-+		sprintf(src0, "%s", "scc");
-+	else if (insn->vop2.src0 == GFX9_VOP2_SRC_LITERAL_CONST)
-+		sprintf(src0, "0x%x", insn->vop2.literal);
-+	else if (insn->vop2.src0 >= GFX9_VOP2_SRC_VGPR_BASE)
-+		sprintf(src0, "v%d", insn->vop2.src0 - GFX9_VOP2_SRC_VGPR_BASE);
-+
-+	seq_printf(m, "%s v%d, %s v%d\n",
-+		 opnames_gfx9[AMDGCN_INSN_TYPE_VOP2][insn->vop2.op],
-+		 insn->vop2.vdst,
-+		 src0,
-+		 insn->vop2.vsrc1);
++	return code == (BPF_JMP | BPF_JA | BPF_K) ||
++	       code == (BPF_JMP32 | BPF_JA | BPF_K);
 +}
 +
-+static inline void gfx9_debugfs_sop1(union amdgcn_gfx9_insn *insn,
-+				     struct seq_file *m)
++/* A block ends after a terminator; the next instruction starts a new block. */
++static bool knod_meta_is_terminator(const struct knod_insn_meta *meta)
 +{
-+	char ssrc0[20];
-+
-+	if (insn->sop1.ssrc0 < GFX9_SOP1_SSRC_VCC_LO)
-+		sprintf(ssrc0, "s%d", insn->sop1.ssrc0);
-+	else if (insn->sop1.ssrc0 == GFX9_SOP1_SSRC_VCC_LO)
-+		sprintf(ssrc0, "%s", "vcc_lo");
-+	else if (insn->sop1.ssrc0 == GFX9_SOP1_SSRC_VCC_HI)
-+		sprintf(ssrc0, "%s", "vcc_hi");
-+	else if (insn->sop1.ssrc0 == GFX9_SOP1_SSRC_NULL)
-+		sprintf(ssrc0, "%s", "null");
-+	else if (insn->sop1.ssrc0 == GFX9_SOP1_SSRC_EXEC_LO)
-+		sprintf(ssrc0, "%s", "exec_lo");
-+	else if (insn->sop1.ssrc0 == GFX9_SOP1_SSRC_EXEC_HI)
-+		sprintf(ssrc0, "%s", "exec_hi");
-+	else if (insn->sop1.ssrc0 < GFX9_SOP1_SSRC_INTEGER_MINUS_1)
-+		sprintf(ssrc0, "0x%x",
-+			insn->sop1.ssrc0 - GFX9_SOP1_SSRC_INTEGER_0);
-+	else if (insn->sop1.ssrc0 < GFX9_SOP1_SSRC_SHARED_BASE)
-+		sprintf(ssrc0, "-0x%x",
-+			insn->sop1.ssrc0 - GFX9_SOP1_SSRC_INTEGER_MINUS_1);
-+	else if (insn->sop1.ssrc0 == GFX9_SOP1_SSRC_VCCZ)
-+		sprintf(ssrc0, "%s", "vcc");
-+	else if (insn->sop1.ssrc0 == GFX9_SOP1_SSRC_EXECZ)
-+		sprintf(ssrc0, "%s", "exec");
-+	else if (insn->sop1.ssrc0 == GFX9_SOP1_SSRC_SCC)
-+		sprintf(ssrc0, "%s", "scc");
-+	else if (insn->sop1.ssrc0 == GFX9_SOP1_SSRC_LITERAL_CONST)
-+		sprintf(ssrc0, "0x%x", insn->sop1.literal);
-+
-+	seq_printf(m, "%s s%d, %s\n",
-+		 opnames_gfx9[AMDGCN_INSN_TYPE_SOP1][insn->sop1.op],
-+		 insn->sop1.sdst,
-+		 ssrc0);
++	return is_mbpf_cond_jump(meta) || knod_meta_is_ja(meta) ||
++	       knod_meta_is_exit(meta);
 +}
 +
-+static inline void gfx9_debugfs_sopp(union amdgcn_gfx9_insn *insn,
-+				     struct seq_file *m)
++/* Target instruction index of a conditional jump or BPF_JA. */
++static short knod_meta_jump_target_idx(const struct knod_insn_meta *meta)
 +{
-+	seq_printf(m, "%s 0x%x\n",
-+		 opnames_gfx9[AMDGCN_INSN_TYPE_SOPP][insn->sopp.op],
-+		 insn->sopp.simm16);
++	if (meta->insn.code == (BPF_JMP32 | BPF_JA | BPF_K))
++		return meta->bpf_insn_idx + meta->insn.imm + 1;
++	return meta->bpf_insn_idx + meta->insn.off + 1;
 +}
 +
-+static inline void gfx9_debugfs_smem(union amdgcn_gfx9_insn *insn,
-+				     struct seq_file *m)
++static struct knod_bb *knod_bb_of_leader(struct knod_bb *bbs, int n_bbs,
++					 const struct knod_insn_meta *meta)
 +{
-+	seq_printf(m, "%s s[%d:%d], s[%d:%d], 0x%x\n",
-+		   opnames_gfx9[AMDGCN_INSN_TYPE_SMEM][insn->smem.op],
-+		   insn->smem.sdata,
-+		   insn->smem.sdata + 1,
-+		   (insn->smem.sbase * 2),
-+		   (insn->smem.sbase * 2) + 1,
-+		   insn->smem.offset);
++	int i;
++
++	for (i = 0; i < n_bbs; i++)
++		if (bbs[i].leader == meta)
++			return &bbs[i];
++	return NULL;
 +}
 +
-+static inline void gfx9_debugfs_mubuf(union amdgcn_gfx9_insn *insn,
-+				      struct seq_file *m)
++/* Resolve the block a conditional jump / BPF_JA at @jmp transfers to. */
++static struct knod_bb *knod_bb_jump_target(struct knod_prog *knod_prog,
++					   struct knod_bb *bbs, int n_bbs,
++					   const struct knod_insn_meta *jmp)
 +{
-+	seq_printf(m, "%s v%d, v%d, s[%d:%d], 0x%x offen offset:%d\n",
-+		 opnames_gfx9[AMDGCN_INSN_TYPE_MUBUF][insn->mubuf.op],
-+		 insn->mubuf.vdata,
-+		 insn->mubuf.vaddr,
-+		 insn->mubuf.srsrc,
-+		 insn->mubuf.srsrc + 3,
-+		 insn->mubuf.soffset,
-+		 insn->mubuf.offset);
++	struct knod_insn_meta *tgt;
++
++	tgt = knod_bpf_lookup_meta(knod_prog, knod_meta_jump_target_idx(jmp));
++	return tgt ? knod_bb_of_leader(bbs, n_bbs, tgt) : NULL;
 +}
 +
-+static inline void gfx9_debugfs_global(union amdgcn_gfx9_insn *insn,
-+				       struct seq_file *m)
++/*
++ * Partition knod_prog->insns into basic blocks.  A leader is the first
++ * instruction, any jump target, or the instruction after a terminator.
++ * Returns the block count or a negative errno; @bbs holds >= n_insns blocks.
++ */
++static int knod_bpf_build_bbs(struct knod_prog *knod_prog, struct knod_bb *bbs)
 +{
-+	if (insn->flat.op == GFX9_GLOBAL_STORE_BYTE) {
-+		seq_printf(m, "%s v[%d:%d], v%d, off offset:%d\n",
-+			opnames_gfx9[AMDGCN_INSN_TYPE_FLAT][insn->flat.op],
-+			insn->flat.addr,
-+			insn->flat.addr + 1,
-+			insn->flat.data,
-+			insn->flat.offset);
-+	} else if (insn->flat.op == GFX9_GLOBAL_STORE_SHORT) {
-+		seq_printf(m, "%s v[%d:%d], v%d, off offset:%d\n",
-+			opnames_gfx9[AMDGCN_INSN_TYPE_FLAT][insn->flat.op],
-+			insn->flat.addr,
-+			insn->flat.addr + 1,
-+			insn->flat.data,
-+			insn->flat.offset);
-+	} else if (insn->flat.op == GFX9_GLOBAL_STORE_DWORD) {
-+		seq_printf(m, "%s v[%d:%d], v%d, off offset:%d\n",
-+			opnames_gfx9[AMDGCN_INSN_TYPE_FLAT][insn->flat.op],
-+			insn->flat.addr,
-+			insn->flat.addr + 1,
-+			insn->flat.data,
-+			insn->flat.offset);
-+	} else if (insn->flat.op == GFX9_GLOBAL_STORE_DWORDX2) {
-+		seq_printf(m, "%s v[%d:%d], v[%d:%d], off offset:%d\n",
-+			opnames_gfx9[AMDGCN_INSN_TYPE_FLAT][insn->flat.op],
-+			insn->flat.addr,
-+			insn->flat.addr + 1,
-+			insn->flat.data,
-+			insn->flat.data + 1,
-+			insn->flat.offset);
-+	} else {
-+		seq_printf(m, "%s v[%d:%d], v[%d:%d], off offset:%d\n",
-+			opnames_gfx9[AMDGCN_INSN_TYPE_FLAT][insn->flat.op],
-+			insn->flat.vdst,
-+			insn->flat.vdst + 1,
-+			insn->flat.addr,
-+			insn->flat.addr + 1,
-+			insn->flat.offset);
++	struct knod_insn_meta *meta, *tgt;
++	struct knod_bb *cur = NULL;
++	int n_bbs = 0;
++	short tgt_idx;
++
++	/* Pass A: mark every jump target as a leader. */
++	list_for_each_entry(meta, &knod_prog->insns, l)
++		meta->flags &= ~FLAG_INSN_IS_JUMP_DST;
++
++	list_for_each_entry(meta, &knod_prog->insns, l) {
++		if (!is_mbpf_cond_jump(meta) && !knod_meta_is_ja(meta))
++			continue;
++		tgt_idx = knod_meta_jump_target_idx(meta);
++		tgt = knod_bpf_lookup_meta(knod_prog, tgt_idx);
++		if (!tgt) {
++			pr_warn("knod_cfg: bpf#%d jump target %d unresolved\n",
++				meta->bpf_insn_idx, tgt_idx);
++			return -EINVAL;
++		}
++		tgt->flags |= FLAG_INSN_IS_JUMP_DST;
++	}
++
++	/* Pass B: cut the list into blocks. */
++	list_for_each_entry(meta, &knod_prog->insns, l) {
++		if (!cur || (meta->flags & FLAG_INSN_IS_JUMP_DST)) {
++			cur = &bbs[n_bbs++];
++			cur->leader = meta;
++			cur->n_succ = 0;
++		}
++		cur->last = meta;
++
++		if (knod_meta_is_terminator(meta))
++			/* next instruction starts a new block */
++			cur = NULL;
++	}
++
++	return n_bbs;
++}
++
++/* Build successor edges for every block from its terminator. */
++static int knod_bpf_build_edges(struct knod_prog *knod_prog,
++				struct knod_bb *bbs, int n_bbs)
++{
++	struct knod_bb *bb, *fall, *tgt_bb;
++	struct knod_insn_meta *last;
++	int i;
++
++	for (i = 0; i < n_bbs; i++) {
++		bb = &bbs[i];
++		last = bb->last;
++		bb->n_succ = 0;
++
++		if (knod_meta_is_exit(last))
++			continue;			/* no successors */
++
++		/* Successor in list order: block led by the next
++		 * instruction.
++		 */
++		fall = NULL;
++		if (!list_is_last(&last->l, &knod_prog->insns))
++			fall = knod_bb_of_leader(bbs, n_bbs,
++						 list_next_entry(last, l));
++
++		if (is_mbpf_cond_jump(last)) {
++			tgt_bb = knod_bb_jump_target(knod_prog, bbs, n_bbs,
++						     last);
++			if (!fall || !tgt_bb)
++				return -EINVAL;
++			bb->succ[bb->n_succ++] = fall;		/* not taken */
++			bb->succ[bb->n_succ++] = tgt_bb;	/* taken */
++		} else if (knod_meta_is_ja(last)) {
++			tgt_bb = knod_bb_jump_target(knod_prog, bbs, n_bbs,
++						     last);
++			if (!tgt_bb)
++				return -EINVAL;
++			bb->succ[bb->n_succ++] = tgt_bb;
++		} else {
++			if (!fall)			/* fell off the end */
++				return -EINVAL;
++			bb->succ[bb->n_succ++] = fall;
++		}
++	}
++
++	return 0;
++}
++
++/*
++ * Iterative DFS from the entry block.  Computes a reverse-postorder rank for
++ * every reachable block and flags back-edge targets as loop headers.  Returns
++ * the number of back-edges in *n_back, or a negative errno.
++ */
++static int knod_bpf_compute_rpo(struct knod_bb *bbs, int n_bbs,
++				struct knod_bb *entry, int *n_back)
++{
++	struct knod_bb **stack;
++	int *cursor;
++	int top = 0, post = 0, nb = 0, i;
++
++	for (i = 0; i < n_bbs; i++) {
++		bbs[i].dfs = 0;
++		bbs[i].rpo = -1;
++		bbs[i].loop_header = false;
++	}
++
++	stack = kcalloc(n_bbs, sizeof(*stack), GFP_KERNEL);
++	cursor = kcalloc(n_bbs, sizeof(*cursor), GFP_KERNEL);
++	if (!stack || !cursor) {
++		kfree(stack);
++		kfree(cursor);
++		return -ENOMEM;
++	}
++
++	entry->dfs = 1;
++	stack[top] = entry;
++	cursor[top] = 0;
++	top++;
++
++	while (top > 0) {
++		struct knod_bb *bb = stack[top - 1];
++
++		if (cursor[top - 1] < bb->n_succ) {
++			struct knod_bb *s = bb->succ[cursor[top - 1]++];
++
++			if (s->dfs == 0) {		/* tree edge */
++				s->dfs = 1;
++				stack[top] = s;
++				cursor[top] = 0;
++				top++;
++			} else if (s->dfs == 1) {	/* gray -> back-edge */
++				s->loop_header = true;
++				nb++;
++			}
++			/* s->dfs == 2 -> forward/cross edge, nothing to do */
++		} else {
++			/* finished: postorder */
++			bb->dfs = 2;
++			bb->rpo = post++;
++			top--;
++		}
++	}
++
++	/* postorder -> reverse-postorder rank */
++	for (i = 0; i < n_bbs; i++)
++		if (bbs[i].rpo >= 0)
++			bbs[i].rpo = post - 1 - bbs[i].rpo;
++
++	kfree(stack);
++	kfree(cursor);
++	*n_back = nb;
++	return 0;
++}
++
++/*
++ * Cooper-Harvey-Kennedy dominator intersect: walk the two fingers up the idom
++ * chain (toward the entry, which has the lowest RPO) until they meet.
++ */
++static struct knod_bb *knod_dom_intersect(struct knod_bb *a, struct knod_bb *b)
++{
++	while (a != b) {
++		while (a->rpo > b->rpo)
++			a = a->idom;
++		while (b->rpo > a->rpo)
++			b = b->idom;
++	}
++	return a;
++}
++
++/*
++ * Compute the immediate dominator of every reachable block (Cooper, Harvey,
++ * Kennedy, "A Simple, Fast Dominance Algorithm").  Iterates over RPO to a
++ * fixpoint; bb->idom is the block's immediate dominator, the entry dominating
++ * itself.  Requires bb->rpo from knod_bpf_compute_rpo.
++ */
++static int knod_bpf_compute_dom(struct knod_bb *bbs, int n_bbs,
++				struct knod_bb *entry)
++{
++	struct knod_bb **order;
++	int i, k, n_order = 0;
++	bool changed;
++
++	order = kcalloc(n_bbs, sizeof(*order), GFP_KERNEL);
++	if (!order)
++		return -ENOMEM;
++
++	for (i = 0; i < n_bbs; i++) {
++		bbs[i].idom = NULL;
++		if (bbs[i].rpo >= 0) {
++			order[bbs[i].rpo] = &bbs[i];
++			n_order++;
++		}
++	}
++	entry->idom = entry;
++
++	do {
++		changed = false;
++
++		/* process every reachable block but the entry, in RPO order */
++		for (k = 1; k < n_order; k++) {
++			struct knod_bb *n = order[k];
++			struct knod_bb *new_idom = NULL;
++			int b, s;
++
++			/* intersect over already-processed predecessors */
++			for (b = 0; b < n_bbs; b++) {
++				for (s = 0; s < bbs[b].n_succ; s++) {
++					if (bbs[b].succ[s] != n || !bbs[b].idom)
++						continue;
++					new_idom = new_idom ?
++						knod_dom_intersect(&bbs[b],
++								   new_idom) :
++						&bbs[b];
++				}
++			}
++
++			if (new_idom && n->idom != new_idom) {
++				n->idom = new_idom;
++				changed = true;
++			}
++		}
++	} while (changed);
++
++	kfree(order);
++	return 0;
++}
++
++/* Does block @a dominate block @b?  Walk @b up the idom chain to the entry. */
++static bool knod_dom_dominates(struct knod_bb *a, struct knod_bb *b)
++{
++	for (;;) {
++		if (b == a)
++			return true;
++		if (b->idom == b)	/* reached the entry */
++			return false;
++		b = b->idom;
 +	}
 +}
 +
-+static inline void gfx9_debugfs_sop2(union amdgcn_gfx9_insn *insn,
-+				     struct seq_file *m)
++/*
++ * Mark the natural loop body of back-edge @latch->@hdr in bb->in_loop: the
++ * header plus every block that reaches the latch without passing through the
++ * header, found by walking predecessors back from the latch.  @stack is
++ * caller-provided scratch of at least @n_bbs entries.
++ */
++static void knod_loop_mark_body(struct knod_bb *bbs, int n_bbs,
++				struct knod_bb *latch, struct knod_bb *hdr,
++				struct knod_bb **stack)
 +{
-+	char ssrc0[20], ssrc1[20];
++	int b, sp, k, top = 0;
 +
-+	decode_ssrc8(insn->sop2.ssrc0, insn->sop2.literal, ssrc0);
-+	decode_ssrc8(insn->sop2.ssrc1, insn->sop2.literal, ssrc1);
-+	seq_printf(m, "%s s%d, %s, %s\n",
-+		 opnames_gfx9[AMDGCN_INSN_TYPE_SOP2][insn->sop2.op],
-+		 insn->sop2.sdst, ssrc0, ssrc1);
++	for (k = 0; k < n_bbs; k++)
++		bbs[k].in_loop = false;
++
++	hdr->in_loop = true;
++	if (latch != hdr) {
++		latch->in_loop = true;
++		stack[top++] = latch;
++	}
++
++	while (top > 0) {
++		struct knod_bb *d = stack[--top];
++
++		for (b = 0; b < n_bbs; b++) {
++			if (bbs[b].in_loop)
++				continue;
++			for (sp = 0; sp < bbs[b].n_succ; sp++) {
++				if (bbs[b].succ[sp] != d)
++					continue;
++				bbs[b].in_loop = true;
++				stack[top++] = &bbs[b];
++				break;
++			}
++		}
++	}
 +}
 +
-+static inline void gfx9_debugfs_sopk(union amdgcn_gfx9_insn *insn,
-+				     struct seq_file *m)
++/*
++ * Detect natural loops from the dominator tree and report their structure.
++ *
++ * A back-edge is an edge u->v whose target v dominates its source u - v is
++ * the loop header, u the latch.  Its natural loop body is the header plus the
++ * blocks that reach the latch without passing through the header; an exit edge
++ * leaves a body block for a non-body block.
++ *
++ * Loops are still rejected by the reorder (-EOPNOTSUPP); this only reports what
++ * was found (to dmesg, since a rejected program never attaches so /bpf/cfg is
++ * unavailable) so the detection can be verified before emission is built.
++ */
++static int knod_bpf_detect_loops(struct knod_bb *bbs, int n_bbs)
 +{
-+	seq_printf(m, "%s s%d, 0x%x\n",
-+		 opnames_gfx9[AMDGCN_INSN_TYPE_SOPK][insn->sopk.op],
-+		 insn->sopk.sdst, insn->sopk.simm16);
++	struct knod_bb **stack;
++	int u, s, k, n_be = 0;
++
++	stack = kcalloc(n_bbs, sizeof(*stack), GFP_KERNEL);
++	if (!stack)
++		return -ENOMEM;
++
++	for (u = 0; u < n_bbs; u++) {
++		for (s = 0; s < bbs[u].n_succ; s++) {
++			struct knod_bb *hdr = bbs[u].succ[s];
++			int body = 0, exits = 0, sp;
++
++			if (!knod_dom_dominates(hdr, &bbs[u]))
++				continue;	/* not a back-edge */
++			n_be++;
++
++			knod_loop_mark_body(bbs, n_bbs, &bbs[u], hdr, stack);
++
++			for (k = 0; k < n_bbs; k++) {
++				if (!bbs[k].in_loop)
++					continue;
++				body++;
++				for (sp = 0; sp < bbs[k].n_succ; sp++)
++					if (!bbs[k].succ[sp]->in_loop)
++						exits++;
++			}
++
++			pr_info("knod_loop: back-edge bpf#%d -> bpf#%d (latch->header) body=%d exits=%d\n",
++				bbs[u].leader->bpf_insn_idx,
++				hdr->leader->bpf_insn_idx, body, exits);
++		}
++	}
++
++	kfree(stack);
++
++	if (n_be)
++		pr_info("knod_loop: %d back-edge(s) - %s\n", n_be,
++			n_be == 1 ? "single loop (simple-shape candidate)" :
++				    "nested/multiple loops (complex)");
++	return 0;
 +}
 +
-+static inline void gfx9_debugfs_sopc(union amdgcn_gfx9_insn *insn,
-+				     struct seq_file *m)
++/*
++ * Block that lanes fall into in list order when the terminator is not taken:
++ * the not-taken successor of a conditional jump, or the sole successor of a
++ * block that ended only because the next instruction was a leader.  BPF_JA and
++ * EXIT have no such successor (control leaves explicitly).
++ */
++static struct knod_bb *knod_bb_fall_succ(struct knod_bb *bb)
 +{
-+	char ssrc0[20], ssrc1[20];
-+
-+	decode_ssrc8(insn->sopc.ssrc0, insn->sopc.literal, ssrc0);
-+	decode_ssrc8(insn->sopc.ssrc1, insn->sopc.literal, ssrc1);
-+	seq_printf(m, "%s %s, %s\n",
-+		 opnames_gfx9[AMDGCN_INSN_TYPE_SOPC][insn->sopc.op],
-+		 ssrc0, ssrc1);
++	if (knod_meta_is_exit(bb->last) || knod_meta_is_ja(bb->last))
++		return NULL;
++	return bb->n_succ ? bb->succ[0] : NULL;
 +}
 +
-+static inline void gfx9_debugfs_vop3p(union amdgcn_gfx9_insn *insn,
-+				      struct seq_file *m)
++/*
++ * Reorder the instruction list into reverse-postorder so every control-flow
++ * edge points forward, and splice in a synthetic BPF_JA wherever a block's
++ * not-taken successor no longer follows it in list order.  After this the
++ * emitter's forward-only machinery (FORWARD_SKIP / FORWARD_GOTO) handles the
++ * whole program - including the backward-in-byte-order, non-loop jumps that
++ * the old jmp_off < 0 heuristic miscompiled.
++ *
++ * Loops (back-edges) are rejected with -EOPNOTSUPP until loop emission lands.
++ */
++static int knod_bpf_reorder_rpo(struct knod_prog *knod_prog,
++				struct knod_bb *bbs, int n_bbs, int n_back)
 +{
-+	char src0[20], src1[20], src2[20];
++	struct knod_insn_meta *m, *nx, *sj;
++	struct knod_bb **order;
++	int n_order = 0, r, i, k, idx = 0;
++	LIST_HEAD(new_list);
 +
-+	decode_vsrc9(insn->vop3p.src0, insn->vop3p.literal, src0);
-+	decode_vsrc9(insn->vop3p.src1, insn->vop3p.literal, src1);
-+	decode_vsrc9(insn->vop3p.src2, insn->vop3p.literal, src2);
-+	seq_printf(m, "%s v%d, %s, %s, %s\n",
-+		 opnames_gfx9[AMDGCN_INSN_TYPE_VOP3P][insn->vop3p.op],
-+		 (int)insn->vop3p.vdst, src0, src1, src2);
++	if (n_back) {
++		pr_warn("knod_cfg: %d loop back-edge(s) - block reorder cannot lower loops yet (-EOPNOTSUPP)\n",
++			n_back);
++		return -EOPNOTSUPP;
++	}
++
++	order = kcalloc(n_bbs, sizeof(*order), GFP_KERNEL);
++	if (!order)
++		return -ENOMEM;
++
++	/* Reachable blocks in RPO, then any unreachable ones so no instruction
++	 * is dropped from the list.
++	 */
++	for (r = 0; r < n_bbs; r++)
++		for (i = 0; i < n_bbs; i++)
++			if (bbs[i].rpo == r) {
++				order[n_order++] = &bbs[i];
++				break;
++			}
++	for (i = 0; i < n_bbs; i++)
++		if (bbs[i].rpo < 0)
++			order[n_order++] = &bbs[i];
++
++	for (k = 0; k < n_order; k++) {
++		struct knod_bb *bb = order[k];
++		struct knod_bb *next = (k + 1 < n_order) ? order[k + 1] : NULL;
++		struct knod_bb *fall;
++
++		m = bb->leader;
++		while (true) {
++			nx = (m == bb->last) ? NULL : knod_meta_next(m);
++			list_move_tail(&m->l, &new_list);
++			if (m == bb->last)
++				break;
++			m = nx;
++		}
++
++		fall = knod_bb_fall_succ(bb);
++		if (!fall || (next && next->leader == fall->leader))
++			continue;
++
++		/* Not-taken successor no longer adjacent: route it
++		 * explicitly.
++		 */
++		sj = kzalloc_obj(*sj, GFP_KERNEL);
++		if (!sj) {
++			list_splice(&new_list, &knod_prog->insns);
++			kfree(order);
++			return -ENOMEM;
++		}
++		sj->insn.code = BPF_JMP | BPF_JA | BPF_K;
++		/* synthetic, never a jump target */
++		sj->bpf_insn_idx = -1;
++		/* consumed by classify_linear */
++		sj->jmp_dst = fall->leader;
++		INIT_LIST_HEAD(&sj->l);
++		list_add_tail(&sj->l, &new_list);
++	}
++
++	list_splice(&new_list, &knod_prog->insns);
++
++	list_for_each_entry(m, &knod_prog->insns, l)
++		m->linear_idx = idx++;
++
++	kfree(order);
++	return 0;
 +}
 +
-+static inline void gfx9_debugfs_sdwa(union amdgcn_gfx9_insn *insn,
-+				     struct seq_file *m)
++/*
++ * Classify branches by linear position after the RPO reorder.  Every edge is
++ * now forward, so a conditional jump is FORWARD_SKIP (or DIRECT_EXIT when it
++ * targets the exit), and every BPF_JA - real or synthetic - is FORWARD_GOTO
++ * (or DIRECT_EXIT).
++ */
++static int knod_bpf_classify_linear(struct knod_prog *knod_prog)
 +{
-+	seq_printf(m, "sdwa src0:%d dst_sel:%d src0_sel:%d src1_sel:%d\n",
-+		 insn->sdwa.src0, insn->sdwa.dst_sel,
-+		 insn->sdwa.src0_sel, insn->sdwa.src1_sel);
++	struct knod_insn_meta *meta, *target;
++	short ti;
++
++	list_for_each_entry(meta, &knod_prog->insns, l) {
++		if (is_mbpf_cond_jump(meta)) {
++			meta->jump_neg_op = (mbpf_op(meta) == BPF_JNE);
++			ti = knod_meta_jump_target_idx(meta);
++			target = knod_bpf_lookup_meta(knod_prog, ti);
++		} else if (knod_meta_is_ja(meta)) {
++			/* synthetic JA carries its destination in jmp_dst;
++			 * a real BPF_JA is resolved from its offset.
++			 */
++			if (meta->jmp_dst) {
++				target = meta->jmp_dst;
++			} else {
++				ti = knod_meta_jump_target_idx(meta);
++				target = knod_bpf_lookup_meta(knod_prog, ti);
++			}
++		} else {
++			continue;
++		}
++
++		if (!target) {
++			pr_err("knod_cfg: bpf#%d unresolved branch target\n",
++			       meta->bpf_insn_idx);
++			return -EINVAL;
++		}
++
++		if (target->linear_idx <= meta->linear_idx)
++			pr_warn("knod_cfg: bpf#%d -> #%d still backward after reorder (linear %d -> %d)\n",
++				meta->bpf_insn_idx, target->bpf_insn_idx,
++				meta->linear_idx, target->linear_idx);
++
++		if (knod_bpf_is_direct_exit_target(knod_prog, target)) {
++			meta->branch_type = KNOD_BR_DIRECT_EXIT;
++			meta->merge_point = target;
++			continue;
++		}
++
++		meta->branch_type = is_mbpf_cond_jump(meta) ?
++			KNOD_BR_FORWARD_SKIP : KNOD_BR_FORWARD_GOTO;
++		meta->merge_point = target;
++		target->is_merge_point = true;
++	}
++
++	return 0;
 +}
 +
-+static inline void gfx9_debugfs_sdwab(union amdgcn_gfx9_insn *insn,
-+				      struct seq_file *m)
++/*
++ * Build the basic-block CFG, compute RPO, reorder the instruction list into
++ * RPO and insert synthetic jumps.  Returns 0, or a negative errno (a loop
++ * yields -EOPNOTSUPP).
++ */
++static int knod_bpf_build_cfg(struct knod_prog *knod_prog)
 +{
-+	seq_printf(m, "sdwab src0:%d sdst:s%d src0_sel:%d src1_sel:%d\n",
-+		 insn->sdwab.src0, insn->sdwab.sdst,
-+		 insn->sdwab.src0_sel, insn->sdwab.src1_sel);
++	struct knod_insn_meta *meta;
++	int n_insns = 0, n_bbs, n_back = 0, ret;
++	struct knod_bb *bbs;
++
++	list_for_each_entry(meta, &knod_prog->insns, l)
++		n_insns++;
++	if (!n_insns)
++		return 0;
++
++	bbs = kcalloc(n_insns, sizeof(*bbs), GFP_KERNEL);
++	if (!bbs)
++		return -ENOMEM;
++
++	n_bbs = knod_bpf_build_bbs(knod_prog, bbs);
++	if (n_bbs < 0) {
++		ret = n_bbs;
++		goto out_free;
++	}
++
++	ret = knod_bpf_build_edges(knod_prog, bbs, n_bbs);
++	if (ret)
++		goto out_free;
++
++	ret = knod_bpf_compute_rpo(bbs, n_bbs, &bbs[0], &n_back);
++	if (ret)
++		goto out_free;
++
++	ret = knod_bpf_compute_dom(bbs, n_bbs, &bbs[0]);
++	if (ret)
++		goto out_free;
++
++	if (n_back) {
++		ret = knod_bpf_detect_loops(bbs, n_bbs);
++		if (ret)
++			goto out_free;
++	}
++
++	/* Hand the block array to the prog for the /bpf/cfg view (freed at
++	 * teardown); kept even if the reorder below rejects a loop, so the
++	 * rejection can be inspected.
++	 */
++	kfree(knod_prog->bbs);
++	knod_prog->bbs = bbs;
++	knod_prog->n_bbs = n_bbs;
++	knod_prog->n_back = n_back;
++
++	return knod_bpf_reorder_rpo(knod_prog, bbs, n_bbs, n_back);
++
++out_free:
++	kfree(bbs);
++	return ret;
 +}
 +
-+static inline void gfx9_debugfs_dpp16(union amdgcn_gfx9_insn *insn,
-+				      struct seq_file *m)
++/*
++ * Assign exec_save SGPR pairs to the forward branches, recycling a pair once
++ * its merge point has been passed.  The peak concurrent live count is the
++ * actual SGPR requirement - usually far less than the total branch count.
++ */
++static int knod_bpf_alloc_exec_sregs(struct knod_bpf_priv *priv,
++				     struct knod_prog *knod_prog)
 +{
-+	seq_puts(m, "dpp16 (not decoded)\n");
++	struct {
++		u8 sreg;
++		struct knod_insn_meta *merge;
++	} live[72];
++	int exec_save_max, max_pairs, n_live, peak, j;
++	struct knod_insn_meta *meta;
++	u8 free_stack[72];
++	int free_top;
++
++	exec_save_max = (priv->isa_version == 10) ?
++		KNOD_AMDGPU_EXEC_SAVE_SREG_MAX_GFX10 :
++		KNOD_AMDGPU_EXEC_SAVE_SREG_MAX_GFX9;
++	max_pairs = (exec_save_max - knod_prog->exec_save_base + 1) / 2;
++
++	for (free_top = 0; free_top < max_pairs; free_top++)
++		free_stack[free_top] = knod_prog->exec_save_base +
++			(max_pairs - 1 - free_top) * 2;
++
++	n_live = 0;
++	peak = 0;
++
++	list_for_each_entry(meta, &knod_prog->insns, l) {
++		/* Reclaim pairs from scopes that merge at this insn */
++		for (j = n_live - 1; j >= 0; j--) {
++			if (live[j].merge == meta) {
++				free_stack[free_top++] = live[j].sreg;
++				live[j] = live[--n_live];
++			}
++		}
++
++		if (meta->branch_type != KNOD_BR_FORWARD_SKIP &&
++		    meta->branch_type != KNOD_BR_FORWARD_GOTO)
++			continue;
++
++		if (free_top == 0) {
++			pr_err("knod_cfg: exec_save exhausted, peak %d concurrent scopes (max %d)\n",
++			       peak, max_pairs);
++			return -ENOSPC;
++		}
++
++		meta->exec_save_sreg = free_stack[--free_top];
++		live[n_live].sreg = meta->exec_save_sreg;
++		live[n_live].merge = meta->merge_point;
++		n_live++;
++
++		if (n_live > peak)
++			peak = n_live;
++	}
++
++	knod_prog->exec_save_pairs_used = peak;
++	pr_debug("knod_cfg: done, peak %d concurrent scopes (total fwd jumps: %d+%d)\n",
++		 peak, peak, n_live);
++	return 0;
 +}
 +
-+static inline void gfx9_debugfs_dpp8(union amdgcn_gfx9_insn *insn,
-+				     struct seq_file *m)
++/*
++ * knod_bpf_analyze_cfg - Classify branches and allocate SGPRs for
++ * structurized CFG.
++ *
++ * Runs before instruction emission. For each conditional branch:
++ *   - Backward jump or jump to EXIT -> DIRECT_EXIT (no SGPR needed)
++ *   - Forward jump to non-EXIT -> FORWARD_SKIP, allocate SGPR pair
++ *
++ * The "save jumping lanes" pattern handles crossing scopes correctly:
++ *   branch: s_and_b64 s[n], exec, vcc; s_andn2_b64 exec, exec, vcc
++ *   merge:  s_or_b64 exec, exec, s[n]
++ *
++ * For JNE (jump_neg_op): VCC=0 -> jump, so lanes are swapped.
++ */
++static int knod_bpf_analyze_cfg(struct knod_bpf_priv *priv,
++				struct knod_prog *knod_prog)
 +{
-+	seq_puts(m, "dpp8 (not decoded)\n");
++	int ret;
++
++	/* Build the basic-block CFG, reorder the instruction list into RPO so
++	 * every branch is forward (inserting synthetic jumps where a not-taken
++	 * successor would no longer be adjacent), then classify each branch by
++	 * linear position.  A loop in the program is rejected (-EOPNOTSUPP).
++	 */
++	ret = knod_bpf_build_cfg(knod_prog);
++	if (ret)
++		return ret;
++	ret = knod_bpf_classify_linear(knod_prog);
++	if (ret)
++		return ret;
++
++	return knod_bpf_alloc_exec_sregs(priv, knod_prog);
 +}
 +
-+static inline void gfx9_debugfs_vintrp(union amdgcn_gfx9_insn *insn,
-+					struct seq_file *m)
++/*
++ * Shader stores packet address and length into pass_meta_buf slot header.
++ * Host-side SDMA engine does the actual copy to the delivery page.
++ *
++ * At entry:
++ *   TMP_VREG10_LO (v42) = old_val * 2 (from pass_indices addressing)
++ *   DATA_VREG (v64:v65) = packet source VRAM address
++ *   DATA_END_VREG (v66:v67) = packet end address
++ *   PARAM_SREG (s28:s29) = param GTT address
++ *
++ * Stores at slot header:
++ *   +0: u32 len (DATA_END_LO - DATA_LO)
++ *   +8: u64 src_addr (DATA_VREG)
++ */
++static void knod_emit_pass_addr_store(struct knod_bpf_priv *priv,
++				      struct knod_insn_meta *meta)
 +{
-+	seq_puts(m, "vintrp (not decoded)\n");
++	struct amdgcn_param32 p[3];
++
++	/* s_lshl_b32 s18, s15, 3 - queue_idx * 8 for pass_meta_buf_gaddr
++	 * stride
++	 */
++	knod_sset32(&p[0], KNOD_AMDGPU_TMP_SREG1_LO);
++	knod_sset32(&p[1], KNOD_AMDGPU_WORKGROUP_ID_Y_SREG);
++	knod_iset32(&p[2], 3);
++	knod_emit(priv, meta, s_lshl_b32, p[0], p[1], p[2]);
++
++	/* s_load_dwordx2 s[16:17], s[28:29], offsetof(pass_meta_buf_gaddr)
++	 * soffset=s18
++	 */
++	knod_sset32(&p[0], KNOD_AMDGPU_TMP_SREG0_LO);
++	knod_sset32(&p[1], KNOD_AMDGPU_PARAM_SREG_LO);
++	knod_emit(priv, meta, s_load_dwordx2_soff, p[0], p[1],
++		  offsetof(struct knod_bpf_param, pass_meta_buf_gaddr),
++		  KNOD_AMDGPU_TMP_SREG1_LO);
++
++	/* s_waitcnt lgkmcnt(0) */
++	knod_emit(priv, meta, s_waitcnt_lgkmcnt);
++
++	/* Compute slot offset: old_val << 12 = (old_val*2) << 11
++	 * v_lshlrev_b32 v44, 11, v42
++	 */
++	knod_vset32(&p[0], KNOD_AMDGPU_TMP_VREG11_LO);
++	knod_iset32(&p[1], 11);
++	knod_vset32(&p[2], KNOD_AMDGPU_TMP_VREG10_LO);
++	knod_emit(priv, meta, v_lshlrev_b32, p[0], p[1], p[2]);
++
++	/* v_mov_b32 v45, 0 */
++	knod_vset32(&p[0], KNOD_AMDGPU_TMP_VREG11_HI);
++	knod_iset32(&p[1], 0);
++	knod_emit(priv, meta, v_mov_b32_e32, p[0], p[1]);
++
++	/* v_add_co_u32 v44, s16, v44 */
++	knod_vset32(&p[0], KNOD_AMDGPU_TMP_VREG11_LO);
++	knod_sset32(&p[1], KNOD_AMDGPU_TMP_SREG0_LO);
++	knod_vset32(&p[2], KNOD_AMDGPU_TMP_VREG11_LO);
++	knod_emit(priv, meta, v_add_co_u32, p[0], p[1], p[2]);
++
++	/*
++	 * slot_hi = base_hi (NOT base_hi + carry).  The slot offset is at
++	 * most (pass_pkts_per_queue-1)*KNOD_PASS_SLOT_SIZE and the whole
++	 * pass_meta_buf is a single contiguous allocation that never straddles
++	 * a 4GiB boundary, so base_lo + offset never wraps and the carry is
++	 * always 0.  Avoid the v_add_co/v_addc carry chain entirely: on GFX9
++	 * the v_addc here was picking up a stale VCC (from the preceding
++	 * XDP_PASS v_cmp) instead of the v_add_co carry-out, setting slot_hi=1
++	 * and faulting at 0x1_xxxx.
++	 * v_mov_b32 v45, s17
++	 */
++	knod_vset32(&p[0], KNOD_AMDGPU_TMP_VREG11_HI);
++	knod_sset32(&p[1], KNOD_AMDGPU_TMP_SREG0_HI);
++	knod_emit(priv, meta, v_mov_b32_e32, p[0], p[1]);
++
++	/* v44:v45 = slot_addr in pass_meta_buf */
++
++	/* Store len: v_sub_u32 v0, DATA_END_LO, DATA_LO */
++	knod_vset32(&p[0], KNOD_AMDGPU_VREG0_LO);
++	knod_vset32(&p[1], KNOD_AMDGPU_DATA_END_VREG_LO);
++	knod_vset32(&p[2], KNOD_AMDGPU_DATA_VREG_LO);
++	knod_emit(priv, meta, v_sub_u32, p[0], p[1], p[2]);
++
++	/* global_store_dword [slot+0], len */
++	knod_vset32(&p[0], KNOD_AMDGPU_VREG0_LO);
++	knod_vset32(&p[1], KNOD_AMDGPU_TMP_VREG11_LO);
++	knod_emit(priv, meta, global_store_dword, p[0], p[1],
++		  offsetof(struct knod_pass_slot_hdr, len));
++
++	/* global_store_dwordx2 [slot+8], DATA_VREG (src_addr) */
++	knod_vset32(&p[0], KNOD_AMDGPU_DATA_VREG_LO);
++	knod_vset32(&p[1], KNOD_AMDGPU_TMP_VREG11_LO);
++	knod_emit(priv, meta, global_store_dwordx2, p[0], p[1],
++		  offsetof(struct knod_pass_slot_hdr, src_addr));
 +}
 +
-+static inline void gfx9_debugfs_ds(union amdgcn_gfx9_insn *insn,
-+				   struct seq_file *m)
++static int knod_bpf_jit(struct knod_dev *knodev,
++			struct knod_prog *knod_prog)
 +{
-+	seq_printf(m, "%s v%d, v%d, v%d, v%d offset0:%d offset1:%d%s\n",
-+		 opnames_gfx9[AMDGCN_INSN_TYPE_DS][insn->ds.op],
-+		 (int)insn->ds.vdst, (int)insn->ds.addr,
-+		 (int)insn->ds.data0, (int)insn->ds.data1,
-+		 (int)insn->ds.offset0, (int)insn->ds.offset1,
-+		 insn->ds.gds ? " gds" : "");
-+}
++	struct knod_bpf_priv *priv =
++		(struct knod_bpf_priv *)knodev->accel->xdp.priv;
++	short off, packet_off, stack_off;
++	struct knod_insn_meta *meta, *meta2;
++	struct amdgcn_param64 param64[2];
++	u32 insn_idx = 0, i;
++	struct amdgcn_param32 param[3];
++	struct amdgcn_param32 p32[2];
++	struct amdgcn_param32 p[3];
++	int s, d, imm, imm2;
++	int pass_branch_idx;
++	bool is_dw, fetch;
++	bool skip = false;
++	int pass_dwords;
++	int atomic_op;
++	int j;
++	int map_id;
++	u64 imm64;
++	int ret;
 +
-+static inline void gfx9_debugfs_mtbuf(union amdgcn_gfx9_insn *insn,
-+				      struct seq_file *m)
-+{
-+	seq_printf(m, "%s v%d, v%d, s[%d:%d], s%d dfmt:%d nfmt:%d offset:%d\n",
-+		 opnames_gfx9[AMDGCN_INSN_TYPE_MTBUF][insn->mtbuf.op],
-+		 (int)insn->mtbuf.vdata, (int)insn->mtbuf.vaddr,
-+		 (int)insn->mtbuf.srsrc * 4, (int)insn->mtbuf.srsrc * 4 + 3,
-+		 (int)insn->mtbuf.soffset, (int)insn->mtbuf.dfmt,
-+		 (int)insn->mtbuf.nfmt, (int)insn->mtbuf.offset);
-+}
++	/* Analyze CFG before instruction emission */
++	ret = knod_bpf_analyze_cfg(priv, knod_prog);
 +
-+static inline void gfx9_debugfs_mimg(union amdgcn_gfx9_insn *insn,
-+				     struct seq_file *m)
-+{
-+	seq_puts(m, "mimg (not decoded)\n");
-+}
++	if (ret)
++		return ret;
 +
-+static inline void gfx9_debugfs_exp(union amdgcn_gfx9_insn *insn,
-+				    struct seq_file *m)
-+{
-+	seq_puts(m, "exp (not decoded)\n");
-+}
++	knod_bpf_layout_sregs(priv, knod_prog);
++	ret = knod_prog_prepare_insns(priv, knod_prog);
++	if (ret)
++		return ret;
 +
-+static inline void gfx9_debugfs_insn(struct amdgcn_insn *insn,
-+				     struct seq_file *m)
-+{
-+	u32 *ptr = (u32 *)&insn->gfx9;
-+
-+	if (insn->size == 4)
-+		seq_printf(m, "%.8X\t\t\t", ptr[0]);
-+	else if (insn->size == 8)
-+		seq_printf(m, "%.8X %.8X\t\t", ptr[0], ptr[1]);
-+	else if (insn->size == 12)
-+		seq_printf(m, "%.8X %.8X %.8X\t", ptr[0], ptr[1], ptr[2]);
-+	else
++	knod_prog->max_stack_off = -knod_prog->max_stack_off;
++	knod_prog->max_stack_off = ALIGN(knod_prog->max_stack_off, 4);
++	knod_prog->max_packet_off = ALIGN(knod_prog->max_packet_off, 4);
++	/* NOTE:
++	 * packet is accessed with packet_off + size
++	 * largest size of it is unsigned long
++	 */
++	knod_prog->max_packet_off += sizeof(unsigned long);
++	if (knod_prog->max_packet_off > MAX_PACKET_CACHE) {
 +		WARN_ON_ONCE(1);
++		knod_bpf_pkt_cache = 0;
++	}
 +
-+	switch (insn->type) {
-+	case AMDGCN_INSN_TYPE_SOP2:
-+		gfx9_debugfs_sop2(&insn->gfx9, m);
++	/* Initialize all exec_save SGPRs to 0.
++	 * Without this, merge points that restore from exec_save SGPRs
++	 * of branches that were skipped (by an outer s_cbranch_execz)
++	 * would OR garbage into EXEC, enabling invalid lanes.
++	 * In the old code, BPF_EXIT used s_endpgm so execution never
++	 * reached those merge points; now it does.
++	 */
++	if (knod_prog->exec_save_pairs_used > 0) {
++		u8 sreg;
++
++		meta = knod_prog_pre_last_meta(knod_prog);
++
++		for (sreg = knod_prog->exec_save_base;
++		     sreg < knod_prog->exec_save_base +
++			    knod_prog->exec_save_pairs_used * 2;
++		     sreg += 2)
++			knod_emit(priv, meta, s_mov_b64, sreg,
++				  AMDGCN_SREG_INTEGER_0);
++	}
++
++	if (knod_bpf_pkt_cache) {
++		meta = knod_prog_pre_last_meta(knod_prog);
++
++		/* ctx->data is in DATA_VREG -> copy to r32[0] via v_mov */
++		knod_vset32(&param[0], r32[0].v);
++		knod_vset32(&param[1], KNOD_AMDGPU_DATA_VREG_LO);
++		knod_emit(priv, meta, v_mov_b32_e32, param[0], param[1]);
++		knod_vset32(&param[0], r32[0].v + 1);
++		knod_vset32(&param[1], KNOD_AMDGPU_DATA_VREG_HI);
++		knod_emit(priv, meta, v_mov_b32_e32, param[0], param[1]);
++
++		knod_global_load_size_cache(priv, meta,
++					    &pkt_cache[0],
++					    r32[0],
++					    0, /* dst index */
++					    0, /* start offset */
++					    knod_prog->max_packet_off);
++	}
++
++	insn_idx = 0;
++	list_for_each_entry(meta, &knod_prog->pre_insns, l) {
++		for (i = 0; i < meta->amdgpu_insns; i++)
++			insn_idx += (meta->amdgpu_insn[i].size / 4);
++	}
++
++	list_for_each_entry(meta, &knod_prog->insns, l) {
++		if (skip) {
++			skip = false;
++			meta->amdgpu_insn_idx = AMDGPU_INSN_SKIP;
++			continue;
++		}
++		s = meta->insn.src_reg;
++		d = meta->insn.dst_reg;
++		imm = meta->insn.imm;
++		off = meta->insn.off;
++
++		meta->amdgpu_insn_idx = insn_idx;
++		meta->amdgpu_insns = 0;
++
++		/* Structurized CFG: restore EXEC at merge points */
++		if (meta->is_merge_point) {
++			struct knod_insn_meta *br;
++
++			list_for_each_entry(br, &knod_prog->insns, l) {
++				if ((br->branch_type == KNOD_BR_FORWARD_SKIP ||
++				     br->branch_type == KNOD_BR_FORWARD_GOTO) &&
++				    br->merge_point == meta) {
++					knod_emit(priv, meta, s_or_b64,
++						  AMDGCN_SREG_EXEC_LO,
++						  AMDGCN_SREG_EXEC_LO,
++						  br->exec_save_sreg);
++				}
++			}
++			/* Remove done lanes from restored EXEC */
++			knod_emit(priv, meta, s_andn2_b64, AMDGCN_SREG_EXEC_LO,
++				  AMDGCN_SREG_EXEC_LO,
++				  knod_prog->done_mask_sreg);
++				}
++
++		switch (meta->insn.code) {
++		/* ALU
++		 * If a destination register contains a pointer of STACK,
++		 * offset should not be minus.
++		 */
++		case BPF_ALU | BPF_MOV | BPF_X:
++		case BPF_ALU64 | BPF_MOV | BPF_X:
++			//r[d] = r[s];
++			knod_mov64(priv, meta, bpf_reg64[d], bpf_reg64[s]);
++			break;
++		case BPF_ALU | BPF_MOV | BPF_K:
++		case BPF_ALU64 | BPF_MOV | BPF_K:
++			//r[d] = imm;
++			knod_iset64(&p64[0], imm);
++			knod_mov64(priv, meta, bpf_reg64[d], p64[0]);
++			break;
++		case BPF_ALU | BPF_XOR | BPF_X:
++			knod_xor32(priv, meta,
++				       bpf_reg64[d].lo, bpf_reg64[d].lo,
++				       bpf_reg64[s].lo);
++			knod_iset64(&p64[0], 0);
++			knod_mov32(priv, meta, bpf_reg64[d].hi, p64[0].lo);
++			break;
++		case BPF_ALU64 | BPF_XOR | BPF_X:
++			//r[d] ^= r[s];
++			knod_xor32(priv, meta,
++				       bpf_reg64[d].lo, bpf_reg64[d].lo,
++				       bpf_reg64[s].lo);
++			knod_xor32(priv, meta,
++				       bpf_reg64[d].hi, bpf_reg64[d].hi,
++				       bpf_reg64[s].hi);
++			break;
++		case BPF_ALU | BPF_XOR | BPF_K:
++		case BPF_ALU64 | BPF_XOR | BPF_K:
++			knod_iset64(&p64[0], imm);
++			knod_mov64(priv, meta, bpf_reg64[d], p64[0]);
++			knod_xor32(priv, meta, bpf_reg64[d].lo,
++				       bpf_reg64[d].lo, r64[0].lo);
++			break;
++			//r[d] ^= imm;
++			break;
++		case BPF_ALU | BPF_MOD | BPF_X:
++		case BPF_ALU64 | BPF_MOD | BPF_X:
++			//r[d] %= r[s];
++			knod_iset64(&p64[0], meta->umin_src);
++			knod_mod(priv, meta, bpf_reg64[d], p64[0],
++				     r64[0], r64[1], r64[2], r64[3], r64[4]);
++			break;
++		case BPF_ALU | BPF_MOD | BPF_K:
++		case BPF_ALU64 | BPF_MOD | BPF_K:
++			//r[d] %= imm;
++			/* The dividend fits 32 bits (verifier rejects wider
++			 * div/mod), so the 32-bit fold is valid even when
++			 * clang emitted this as a 64-bit ALU op (e.g. u32
++			 * hash % 65537 -> `r2 %= 65537`).
++			 */
++			if (meta->umax_dst <= U32_MAX && imm &&
++			    knod_mod_k32(priv, meta, bpf_reg64[d], imm))
++				break;
++			knod_iset64(&p64[0], imm);
++			knod_mod(priv, meta, bpf_reg64[d], p64[0],
++				     r64[0], r64[1], r64[2], r64[3], r64[4]);
++			break;
++		case BPF_ALU | BPF_AND | BPF_X:
++			knod_and32(priv, meta, bpf_reg64[d].lo,
++				       bpf_reg64[d].lo, bpf_reg64[s].lo);
++			knod_iset32(&p32[0], 0);
++			knod_mov32(priv, meta, bpf_reg64[d].hi, p32[0]);
++			break;
++		case BPF_ALU64 | BPF_AND | BPF_X:
++			//r[d] &= r[s];
++			knod_and64(priv, meta, bpf_reg64[d],
++				       bpf_reg64[d], bpf_reg64[s]);
++			break;
++		case BPF_ALU | BPF_AND | BPF_K:
++		case BPF_ALU64 | BPF_AND | BPF_K:
++			//r[d] &= imm;
++			knod_iset32(&p32[0], imm);
++			knod_and32(priv, meta, bpf_reg64[d].lo, p32[0],
++				       bpf_reg64[d].lo);
++			knod_iset32(&p32[0], 0);
++			knod_mov32(priv, meta, bpf_reg64[d].hi, p32[0]);
++			break;
++		case BPF_ALU | BPF_OR | BPF_X:
++			knod_or32(priv, meta, bpf_reg64[d].lo,
++				  bpf_reg64[d].lo, bpf_reg64[s].lo);
++			knod_iset32(&p32[0], 0);
++			knod_mov32(priv, meta, bpf_reg64[d].hi, p32[0]);
++			break;
++		case BPF_ALU64 | BPF_OR | BPF_X:
++			//r[d] |= r[s];
++			knod_or32(priv, meta, bpf_reg64[d].lo,
++				  bpf_reg64[d].lo, bpf_reg64[s].lo);
++			knod_or32(priv, meta, bpf_reg64[d].hi,
++				  bpf_reg64[d].hi, bpf_reg64[s].hi);
++			break;
++		case BPF_ALU | BPF_OR | BPF_K:
++		case BPF_ALU64 | BPF_OR | BPF_K:
++			//r[d] |= imm;
++			knod_iset32(&p32[0], imm);
++			knod_or32(priv, meta,
++				bpf_reg64[d].lo, p32[0], bpf_reg64[d].lo);
++			knod_iset32(&p32[0], 0);
++			knod_mov32(priv, meta, bpf_reg64[d].hi, p32[0]);
++			break;
++		case BPF_ALU | BPF_ADD | BPF_X:
++			knod_add32(priv, meta, bpf_reg64[d].lo,
++				       bpf_reg64[d].lo, bpf_reg64[s].lo);
++			knod_iset32(&p32[0], 0);
++			knod_mov32(priv, meta, bpf_reg64[d].hi, p32[0]);
++			break;
++		case BPF_ALU64 | BPF_ADD | BPF_X:
++			knod_add64(priv, meta, bpf_reg64[d],
++				       bpf_reg64[d],
++				       bpf_reg64[s]);
++
++			//r[d] += r[s];
++			break;
++		case BPF_ALU | BPF_ADD | BPF_K:
++		case BPF_ALU64 | BPF_ADD | BPF_K:
++			//r[d] += imm;
++			knod_iset32(&p32[0], imm);
++			knod_add32(priv, meta, bpf_reg64[d].lo,
++				       p32[0], bpf_reg64[d].lo);
++			/* NOTE:
++			 * imm is 24bit.
++			 * But should we set hi to 0?
++			 */
++			knod_iset32(&p32[0], 0);
++			knod_mov32(priv, meta, bpf_reg64[d].hi, p32[0]);
++			break;
++		case BPF_ALU | BPF_SUB | BPF_X:
++			//r[d] -= r[s];
++			knod_sub32(priv, meta, bpf_reg64[d].lo,
++				       bpf_reg64[d].lo, bpf_reg64[s].lo);
++			knod_iset32(&p32[0], 0);
++			knod_mov32(priv, meta, bpf_reg64[d].hi, p32[0]);
++			break;
++		case BPF_ALU64 | BPF_SUB | BPF_X:
++			//r[d] -= r[s];
++
++			knod_sub64(priv, meta, bpf_reg64[d], bpf_reg64[d],
++				       bpf_reg64[s]);
++			break;
++		case BPF_ALU | BPF_SUB | BPF_K:
++		case BPF_ALU64 | BPF_SUB | BPF_K:
++			//r[d] -= imm;
++			knod_iset64(&p64[0], imm);
++			knod_subrev64(priv, meta, bpf_reg64[d], p64[0],
++					  bpf_reg64[s]);
++			break;
++		case BPF_ALU | BPF_MUL | BPF_X:
++			knod_mul_lo32(priv, meta, bpf_reg64[d].lo,
++					  bpf_reg64[d].lo, bpf_reg64[s].lo);
++			break;
++		case BPF_ALU64 | BPF_MUL | BPF_X:
++			//r[d] *= r[s];
++			knod_mov64(priv, meta, r64[0], bpf_reg64[d]);
++			knod_mov64(priv, meta, r64[1], bpf_reg64[s]);
++			knod_mul64(priv, meta,
++				       bpf_reg64[d],
++				       r64[0],
++				       r64[1],
++				       r64[2]);
++			break;
++		case BPF_ALU | BPF_MUL | BPF_K:
++			knod_iset32(&p32[0], imm);
++			knod_mul_lo32(priv, meta, bpf_reg64[d].lo,
++					  p32[0], bpf_reg64[d].lo);
++			knod_iset32(&p32[0], 0);
++			knod_mov32(priv, meta, bpf_reg64[d].hi, p32[0]);
++			break;
++		case BPF_ALU64 | BPF_MUL | BPF_K:
++			//r[d] *= imm;
++			knod_iset64(&p64[0], imm);
++			knod_mov64(priv, meta, r64[0], bpf_reg64[d]);
++			knod_mov64(priv, meta, r64[1], p64[0]);
++			knod_mul64(priv, meta,
++				       bpf_reg64[d],
++				       r64[0],
++				       r64[1],
++				       r64[2]);
++			break;
++		case BPF_ALU | BPF_DIV | BPF_X:
++		case BPF_ALU64 | BPF_DIV | BPF_X:
++			//r[d] /= r[s];
++			knod_iset64(&p64[0], meta->umin_src);
++			knod_div(priv, meta, bpf_reg64[d], p64[0],
++				     r64[0], r64[1], r64[2], r64[3]);
++			break;
++		case BPF_ALU | BPF_DIV | BPF_K:
++		case BPF_ALU64 | BPF_DIV | BPF_K:
++			//r[d] /= imm;
++			knod_iset64(&p64[0], imm);
++			knod_div(priv, meta, bpf_reg64[d], p64[0],
++				     r64[0], r64[1], r64[2], r64[3]);
++			break;
++		case BPF_ALU | BPF_NEG:
++			knod_iset32(&p32[0], 0);
++			knod_sub32(priv, meta, bpf_reg64[d].lo, p32[0],
++				       bpf_reg64[d].lo);
++			knod_iset32(&p32[0], 0);
++			knod_mov32(priv, meta, bpf_reg64[d].hi, p32[0]);
++			break;
++		case BPF_ALU64 | BPF_NEG:
++			//r[d] = -r[d];
++			WARN_ON_ONCE(1);
++			break;
++		case BPF_ALU | BPF_LSH | BPF_X:
++			knod_lshlrev32(priv, meta, bpf_reg64[d].lo,
++					   bpf_reg64[s].lo, bpf_reg64[d].lo);
++			knod_iset32(&p32[0], 0);
++			knod_mov32(priv, meta, bpf_reg64[d].hi, p32[0]);
++			break;
++		case BPF_ALU64 | BPF_LSH | BPF_X:
++			//r[d] <<= r[s];
++			knod_lshlrev64(priv, meta, bpf_reg64[d],
++					   bpf_reg64[s], bpf_reg64[d]);
++			break;
++		case BPF_ALU | BPF_LSH | BPF_K:
++			knod_iset32(&p32[0], imm);
++			knod_lshlrev32(priv, meta, bpf_reg64[d].lo, p32[0],
++					   bpf_reg64[d].lo);
++			knod_iset32(&p32[0], 0);
++			knod_mov32(priv, meta, bpf_reg64[d].hi, p32[0]);
++			break;
++		case BPF_ALU64 | BPF_LSH | BPF_K:
++			//r[d] <<= imm;
++			knod_iset64(&p64[0], imm);
++			knod_lshlrev64(priv, meta, bpf_reg64[d], p64[0],
++					   bpf_reg64[d]);
++			break;
++		case BPF_ALU | BPF_RSH | BPF_X:
++			knod_lshrrev32(priv, meta, bpf_reg64[d].lo,
++				       bpf_reg64[s].lo,
++				       bpf_reg64[d].lo);
++			knod_iset32(&p32[0], 0);
++			knod_mov32(priv, meta, bpf_reg64[d].hi, p32[0]);
++			break;
++		case BPF_ALU64 | BPF_RSH | BPF_X:
++			//r[d] >>= r[s];
++			knod_lshrrev64(priv, meta, bpf_reg64[d],
++					   bpf_reg64[s], bpf_reg64[d]);
++			break;
++		case BPF_ALU | BPF_RSH | BPF_K:
++			knod_iset32(&p32[0], imm);
++			knod_lshrrev32(priv, meta, bpf_reg64[d].lo, p32[0],
++					   bpf_reg64[d].lo);
++			knod_iset32(&p32[0], 0);
++			knod_mov32(priv, meta, bpf_reg64[d].hi, p32[0]);
++			break;
++		case BPF_ALU64 | BPF_RSH | BPF_K:
++			//r[d] >>= imm;
++			knod_iset64(&p64[0], imm);
++			knod_lshrrev64(priv, meta, bpf_reg64[d],
++					   p64[0], bpf_reg64[d]);
++			break;
++		case BPF_ALU | BPF_ARSH | BPF_X:
++			knod_ashrrev32(priv, meta, bpf_reg64[d].lo,
++					   bpf_reg64[s].lo, bpf_reg64[d].lo);
++			knod_iset32(&p32[0], 0);
++			knod_mov32(priv, meta, bpf_reg64[d].hi, p32[0]);
++			break;
++		case BPF_ALU64 | BPF_ARSH | BPF_X:
++			//r[d] >>= r[s];
++			knod_ashrrev64(priv, meta, bpf_reg64[d],
++					   bpf_reg64[s], bpf_reg64[d]);
++			break;
++		case BPF_ALU | BPF_ARSH | BPF_K:
++			knod_iset32(&p32[0], imm);
++			knod_ashrrev32(priv, meta, bpf_reg64[d].lo,
++					   p32[0], bpf_reg64[d].lo);
++			knod_iset32(&p32[0], 0);
++			knod_mov32(priv, meta, bpf_reg64[d].hi, p32[0]);
++			break;
++		case BPF_ALU64 | BPF_ARSH | BPF_K:
++			//r[d] >>= imm;
++			knod_iset64(&p64[0], imm);
++			knod_ashrrev64(priv, meta, bpf_reg64[d],
++					   p64[0], bpf_reg64[d]);
++			break;
++		case BPF_LD | BPF_IMM | BPF_DW:
++			meta2 = list_next_entry(meta, l);
++			if (WARN_ON_ONCE(!meta2))
++				return -EINVAL;
++			imm2 = meta2->insn.imm;
++			skip = true;
++			imm64 = (u64)imm2 << 32 | (u32)imm;
++			switch (s) {
++			case 0x00:
++				//r[d] = imm64;
++				knod_mov64_imm(priv, meta, d * 2,
++						   imm64);
++
++				break;
++			case 0x01:
++				/* r[d] = param->maps[imm]; */
++				imm64 = knod_bpf_get_map_gaddr(priv,
++							       meta,
++							       meta2);
++				map_id = knod_bpf_get_map_id(priv,
++							     meta,
++							     meta2);
++				knod_mov64_imm(priv, meta, d * 2,
++						   imm64);
++				break;
++			default:
++				WARN_ON_ONCE(1);
++				break;
++			}
++			break;
++			/* Legacy BPF packet access, not needed */
++		case BPF_LD | BPF_ABS | BPF_B:
++		case BPF_LD | BPF_ABS | BPF_H:
++		case BPF_LD | BPF_ABS | BPF_W:
++		case BPF_LD | BPF_IND | BPF_B:
++		case BPF_LD | BPF_IND | BPF_H:
++		case BPF_LD | BPF_IND | BPF_W:
++			//err = pc | 0x0700;
++			//exit = true;
++			WARN_ON_ONCE(1);
++			break;
++		case BPF_LDX | BPF_MEM | BPF_B:
++			if (meta->ptr.type == PTR_TO_STACK) {
++				stack_off = meta->sreg.stack_off + off;
++				knod_bpf_load_size(priv, meta,
++						       &bpf_reg64[d],
++						       &stack[0],
++						       sizeof(unsigned char),
++						       512 + stack_off);
++			} else if (meta->ptr.type == PTR_TO_CTX) {
++				knod_emit(priv, meta, global_load_ubyte,
++					  bpf_reg64[d].lo,
++					  bpf_reg64[s].lo, off * 2);
++			} else if (meta->ptr.type == PTR_TO_MAP_VALUE) {
++				knod_emit(priv, meta, global_load_ubyte,
++					  bpf_reg64[d].lo,
++					  bpf_reg64[s].lo, off);
++			} else if (meta->ptr.type == PTR_TO_MAP_KEY) {
++				knod_emit(priv, meta, global_load_ubyte,
++					  bpf_reg64[d].lo,
++					  bpf_reg64[s].lo, off);
++			} else if (meta->ptr.type == PTR_TO_PACKET) {
++				if (knod_bpf_pkt_cache) {
++					packet_off = meta->sreg.packet_off +
++						off;
++					knod_bpf_load_size(priv, meta,
++							       &bpf_reg64[d],
++							       &pkt_cache[0],
++							sizeof(unsigned char),
++							       packet_off);
++				} else {
++					knod_emit(priv, meta, global_load_ubyte,
++						  bpf_reg64[d].lo,
++						  bpf_reg64[s].lo, off);
++				}
++			} else {
++				WARN_ON_ONCE(1);
++			}
++			knod_wait_vmcnt(priv, meta);
++			knod_iset32(&p32[0], 0);
++			knod_mov32(priv, meta, bpf_reg64[d].hi, p32[0]);
++			//ptr = (__global void *)r[s] + off;
++			//r[d] = *(__global unsigned char *)ptr;
++			break;
++		case BPF_LDX | BPF_MEM | BPF_H:
++			if (meta->ptr.type == PTR_TO_STACK) {
++				stack_off = meta->sreg.stack_off + off;
++				knod_bpf_load_size(priv, meta,
++						       &bpf_reg64[d],
++						       &stack[0],
++						       sizeof(unsigned short),
++						       512 + stack_off);
++			} else if (meta->ptr.type == PTR_TO_CTX) {
++				knod_emit(priv, meta, global_load_ushort,
++					  bpf_reg64[d].lo,
++					  bpf_reg64[s].lo, off * 2);
++			} else if (meta->ptr.type == PTR_TO_MAP_VALUE) {
++				knod_emit(priv, meta, global_load_ushort,
++					  bpf_reg64[d].lo,
++					  bpf_reg64[s].lo, off);
++			} else if (meta->ptr.type == PTR_TO_MAP_KEY) {
++				knod_emit(priv, meta, global_load_ushort,
++					  bpf_reg64[d].lo,
++					  bpf_reg64[s].lo, off);
++			} else if (meta->ptr.type == SCALAR_VALUE) {
++				knod_emit(priv, meta, global_load_ushort,
++					  bpf_reg64[d].lo,
++					  bpf_reg64[s].lo, off);
++			} else if (meta->ptr.type == PTR_TO_PACKET) {
++				if (knod_bpf_pkt_cache) {
++					packet_off = meta->sreg.packet_off +
++						off;
++					knod_bpf_load_size(priv, meta,
++							       &bpf_reg64[d],
++							       &pkt_cache[0],
++							sizeof(unsigned short),
++							       packet_off);
++				} else if (priv->isa_version == 10 &&
++					   (off & 1)) {
++					knod_bpf_emit_gfx10_unaligned_load(
++						priv, meta,
++						sizeof(unsigned short),
++						bpf_reg64[d],
++						bpf_reg64[s].lo, off);
++				} else {
++					knod_emit(priv, meta,
++						  global_load_ushort,
++						  bpf_reg64[d].lo,
++						  bpf_reg64[s].lo, off);
++				}
++			} else {
++				knod_jit_err(" type = %d\n", meta->ptr.type);
++				WARN_ON_ONCE(1);
++			}
++			//ptr = (__global void *)r[s] + off;
++			//r[d] = *(__global unsigned short *)ptr;
++			knod_iset32(&p32[0], 0);
++			knod_mov32(priv, meta, bpf_reg64[d].hi, p32[0]);
++			knod_wait_vmcnt(priv, meta);
++			break;
++		case BPF_LDX | BPF_MEM | BPF_W:
++			if (meta->ptr.type == PTR_TO_STACK) {
++				stack_off = meta->sreg.stack_off + off;
++				knod_bpf_load_size(priv, meta,
++						       &bpf_reg64[d],
++						       &stack[0],
++						       sizeof(unsigned int),
++						       512 + stack_off);
++			} else if (meta->ptr.type == PTR_TO_CTX) {
++				if (off == offsetof(struct xdp_md, data)) {
++					knod_mov32(priv, meta,
++						bpf_reg64[d].lo,
++					    (struct amdgcn_param32){
++					    .v = KNOD_AMDGPU_DATA_VREG_LO,
++					    .type = AMDGCN_PARAM_TYPE_VGPR});
++					knod_mov32(priv, meta,
++						bpf_reg64[d].hi,
++					    (struct amdgcn_param32){
++					    .v = KNOD_AMDGPU_DATA_VREG_HI,
++					    .type = AMDGCN_PARAM_TYPE_VGPR});
++				} else if (off == offsetof(struct xdp_md,
++							   data_end)) {
++					knod_mov32(priv, meta,
++						bpf_reg64[d].lo,
++					    (struct amdgcn_param32){
++					    .v = KNOD_AMDGPU_DATA_END_VREG_LO,
++					    .type = AMDGCN_PARAM_TYPE_VGPR});
++					knod_mov32(priv, meta,
++						bpf_reg64[d].hi,
++					    (struct amdgcn_param32){
++					    .v = KNOD_AMDGPU_DATA_END_VREG_HI,
++					    .type = AMDGCN_PARAM_TYPE_VGPR});
++				} else {
++					emit_global_load_dwordx2(
++						priv->isa_version,
++						&meta->amdgpu_insn[meta->amdgpu_insns],
++						bpf_reg64[d].lo,
++						bpf_reg64[s].lo,
++						off * 2);
++					debug_insn(priv->isa_version,
++						   &meta->amdgpu_insn[meta->amdgpu_insns]);
++					meta->amdgpu_insns++;
++				}
++			} else if (meta->ptr.type == PTR_TO_MAP_VALUE) {
++				knod_emit(priv, meta, global_load_dword,
++					  bpf_reg64[d].lo,
++					  bpf_reg64[s].lo, off);
++			} else if (meta->ptr.type == PTR_TO_MAP_KEY) {
++				knod_emit(priv, meta, global_load_dword,
++					  bpf_reg64[d].lo,
++					  bpf_reg64[s].lo, off);
++			} else if (meta->ptr.type == PTR_TO_PACKET) {
++				if (knod_bpf_pkt_cache) {
++					packet_off = meta->sreg.packet_off +
++						off;
++					knod_bpf_load_size(priv, meta,
++							       &bpf_reg64[d],
++							       &pkt_cache[0],
++							sizeof(unsigned int),
++							       packet_off);
++				} else if (priv->isa_version == 10 &&
++					   (off & 3)) {
++					knod_bpf_emit_gfx10_unaligned_load(
++						priv, meta,
++						sizeof(unsigned int),
++						bpf_reg64[d],
++						bpf_reg64[s].lo, off);
++				} else {
++					knod_emit(priv, meta, global_load_dword,
++						  bpf_reg64[d].lo,
++						  bpf_reg64[s].lo, off);
++				}
++			} else {
++				WARN_ON_ONCE(1);
++			}
++			//ptr = (__global void *)r[s] + off;
++			//r[d] = *(__global unsigned int *)ptr;
++			if (meta->ptr.type != PTR_TO_CTX) {
++				knod_iset32(&p32[0], 0);
++				knod_mov32(priv, meta, bpf_reg64[d].hi,
++					       p32[0]);
++			}
++			knod_wait_vmcnt(priv, meta);
++			break;
++		case BPF_LDX | BPF_MEM | BPF_DW:
++			if (meta->ptr.type == PTR_TO_STACK) {
++				stack_off = meta->sreg.stack_off + off;
++				knod_bpf_load_size(priv, meta,
++						       &bpf_reg64[d],
++						       &stack[0],
++						       sizeof(unsigned long),
++						       512+stack_off);
++			} else if (meta->ptr.type == PTR_TO_CTX) {
++				if (off == offsetof(struct xdp_md, data)) {
++					knod_mov32(priv, meta,
++						bpf_reg64[d].lo,
++					    (struct amdgcn_param32){
++					    .v = KNOD_AMDGPU_DATA_VREG_LO,
++					    .type = AMDGCN_PARAM_TYPE_VGPR});
++					knod_mov32(priv, meta,
++						bpf_reg64[d].hi,
++					    (struct amdgcn_param32){
++					    .v = KNOD_AMDGPU_DATA_VREG_HI,
++					    .type = AMDGCN_PARAM_TYPE_VGPR});
++				} else if (off == offsetof(struct xdp_md,
++							   data_end)) {
++					knod_mov32(priv, meta,
++						bpf_reg64[d].lo,
++					    (struct amdgcn_param32){
++					    .v = KNOD_AMDGPU_DATA_END_VREG_LO,
++					    .type = AMDGCN_PARAM_TYPE_VGPR});
++					knod_mov32(priv, meta,
++						bpf_reg64[d].hi,
++					    (struct amdgcn_param32){
++					    .v = KNOD_AMDGPU_DATA_END_VREG_HI,
++					    .type = AMDGCN_PARAM_TYPE_VGPR});
++				} else {
++					knod_emit(priv, meta,
++						  global_load_dwordx2,
++						  bpf_reg64[d].lo,
++						  bpf_reg64[s].lo, off * 2);
++				}
++			} else if (meta->ptr.type == PTR_TO_MAP_VALUE) {
++				knod_emit(priv, meta, global_load_dwordx2,
++					  bpf_reg64[d].lo,
++					  bpf_reg64[s].lo, off);
++			} else if (meta->ptr.type == PTR_TO_MAP_KEY) {
++				knod_emit(priv, meta, global_load_dwordx2,
++					  bpf_reg64[d].lo,
++					  bpf_reg64[s].lo, off);
++			} else if (meta->ptr.type == PTR_TO_PACKET) {
++				if (knod_bpf_pkt_cache) {
++					packet_off = meta->sreg.packet_off +
++						off;
++					knod_bpf_load_size(priv, meta,
++							       &bpf_reg64[d],
++							       &pkt_cache[0],
++							sizeof(unsigned long),
++							       packet_off);
++				} else if (priv->isa_version == 10 &&
++					   (off & 3)) {
++					knod_bpf_emit_gfx10_unaligned_load(
++						priv, meta,
++						sizeof(unsigned long),
++						bpf_reg64[d],
++						bpf_reg64[s].lo, off);
++				} else {
++					knod_emit(priv, meta,
++						  global_load_dwordx2,
++						  bpf_reg64[d].lo,
++						  bpf_reg64[s].lo, off);
++				}
++			} else {
++				WARN_ON_ONCE(1);
++			}
++			//ptr = (__global void *)r[s] + off;
++			//r[d] = *(__global unsigned long *)ptr;
++			knod_wait_vmcnt(priv, meta);
++			break;
++		case BPF_STX | BPF_MEM | BPF_B:
++			if (meta->ptr.type == PTR_TO_STACK) {
++				stack_off = meta->dreg.stack_off + off;
++				knod_bpf_store_cache_size(priv, meta,
++						&bpf_reg64[s],
++						&stack[0],
++						sizeof(u8),
++						512 + stack_off);
++			} else if (meta->ptr.type == PTR_TO_CTX) {
++				knod_emit(priv, meta, global_store_byte,
++					  bpf_reg64[s].lo,
++					  bpf_reg64[d].lo, off * 2);
++			} else if (meta->ptr.type == PTR_TO_MAP_VALUE) {
++				knod_emit(priv, meta, global_store_byte,
++					  bpf_reg64[s].lo,
++					  bpf_reg64[d].lo, off);
++			} else if (meta->ptr.type == PTR_TO_MAP_KEY) {
++				knod_emit(priv, meta, global_store_byte,
++					  bpf_reg64[s].lo,
++					  bpf_reg64[d].lo, off);
++			} else if (meta->ptr.type == PTR_TO_PACKET) {
++				if (knod_bpf_pkt_cache) {
++					packet_off = meta->dreg.packet_off +
++						off;
++					knod_bpf_store_cache_size(priv,
++							meta,
++							&bpf_reg64[s],
++							&pkt_cache[0],
++							sizeof(u8),
++							packet_off);
++				} else {
++					knod_emit(priv, meta, global_store_byte,
++						  bpf_reg64[s].lo,
++						  bpf_reg64[d].lo, off);
++				}
++			} else {
++				WARN_ON_ONCE(1);
++			}
++			break;
++		case BPF_STX | BPF_MEM | BPF_H:
++			if (meta->ptr.type == PTR_TO_STACK) {
++				stack_off = meta->dreg.stack_off + off;
++				knod_bpf_store_cache_size(priv, meta,
++						&bpf_reg64[s],
++						&stack[0],
++						sizeof(u16),
++						512 + stack_off);
++			} else if (meta->ptr.type == PTR_TO_CTX) {
++				knod_emit(priv, meta, global_store_short,
++					  bpf_reg64[s].lo,
++					  bpf_reg64[d].lo, off * 2);
++			} else if (meta->ptr.type == PTR_TO_MAP_VALUE) {
++				knod_emit(priv, meta, global_store_short,
++					  bpf_reg64[s].lo,
++					  bpf_reg64[d].lo, off);
++			} else if (meta->ptr.type == PTR_TO_MAP_KEY) {
++				knod_emit(priv, meta, global_store_short,
++					  bpf_reg64[s].lo,
++					  bpf_reg64[d].lo, off);
++			} else if (meta->ptr.type == PTR_TO_PACKET) {
++				if (knod_bpf_pkt_cache) {
++					packet_off = meta->dreg.packet_off +
++						off;
++					knod_bpf_store_cache_size(priv,
++							meta,
++							&bpf_reg64[s],
++							&pkt_cache[0],
++							sizeof(u16),
++							packet_off);
++				} else {
++					knod_emit(priv, meta,
++						  global_store_short,
++						  bpf_reg64[s].lo,
++						  bpf_reg64[d].lo, off);
++				}
++			} else {
++				WARN_ON_ONCE(1);
++			}
++			break;
++		case BPF_STX | BPF_MEM | BPF_W:
++			if (meta->ptr.type == PTR_TO_STACK) {
++				stack_off = meta->dreg.stack_off + off;
++				knod_bpf_store_cache_size(priv, meta,
++						&bpf_reg64[s],
++						&stack[0],
++						sizeof(u32),
++						512 + stack_off);
++			} else if (meta->ptr.type == PTR_TO_CTX) {
++				knod_emit(priv, meta, global_store_dword,
++					  bpf_reg64[s].lo,
++					  bpf_reg64[d].lo, off * 2);
++			} else if (meta->ptr.type == PTR_TO_MAP_VALUE) {
++				knod_emit(priv, meta, global_store_dword,
++					  bpf_reg64[s].lo,
++					  bpf_reg64[d].lo, off);
++			} else if (meta->ptr.type == PTR_TO_MAP_KEY) {
++				knod_emit(priv, meta, global_store_dword,
++					  bpf_reg64[s].lo,
++					  bpf_reg64[d].lo, off);
++			} else if (meta->ptr.type == PTR_TO_PACKET) {
++				if (knod_bpf_pkt_cache) {
++					packet_off = meta->dreg.packet_off +
++						off;
++					knod_bpf_store_cache_size(priv,
++							meta,
++							&bpf_reg64[s],
++							&pkt_cache[0],
++							sizeof(u32),
++							packet_off);
++				} else {
++					knod_emit(priv, meta,
++						  global_store_dword,
++						  bpf_reg64[s].lo,
++						  bpf_reg64[d].lo, off);
++				}
++			} else {
++				WARN_ON_ONCE(1);
++			}
++			break;
++		case BPF_STX | BPF_MEM | BPF_DW:
++			if (meta->ptr.type == PTR_TO_STACK) {
++				stack_off = meta->dreg.stack_off + off;
++				knod_bpf_store_cache_size(priv, meta,
++						&bpf_reg64[s],
++						&stack[0],
++						sizeof(u64),
++						512 + stack_off);
++			} else if (meta->ptr.type == PTR_TO_CTX) {
++				knod_emit(priv, meta, global_store_dwordx2,
++					  bpf_reg64[s].lo,
++					  bpf_reg64[d].lo, off * 2);
++			} else if (meta->ptr.type == PTR_TO_MAP_VALUE) {
++				knod_emit(priv, meta, global_store_dwordx2,
++					  bpf_reg64[s].lo,
++					  bpf_reg64[d].lo, off);
++			} else if (meta->ptr.type == PTR_TO_MAP_KEY) {
++				knod_emit(priv, meta, global_store_dwordx2,
++					  bpf_reg64[s].lo,
++					  bpf_reg64[d].lo, off);
++			} else if (meta->ptr.type == PTR_TO_PACKET) {
++				if (knod_bpf_pkt_cache) {
++					packet_off = meta->dreg.packet_off +
++						off;
++					knod_bpf_store_cache_size(priv, meta,
++							&bpf_reg64[s],
++							&pkt_cache[0],
++							sizeof(u64),
++							packet_off);
++				} else {
++					knod_emit(priv, meta,
++						  global_store_dwordx2,
++						  bpf_reg64[s].lo,
++						  bpf_reg64[d].lo, off);
++				}
++			} else {
++				WARN_ON_ONCE(1);
++			}
++			break;
++		case BPF_STX | BPF_ATOMIC | BPF_W:
++		case BPF_STX | BPF_ATOMIC | BPF_DW:
++			is_dw = BPF_SIZE(meta->insn.code) == BPF_DW;
++			atomic_op = imm & ~BPF_FETCH;
++			fetch = imm & BPF_FETCH;
++
++			/*
++			 * BPF atomic: *(dst_reg + off) op= src_reg
++			 * If BPF_FETCH: src_reg = old value
++			 * BPF_CMPXCHG: expect in r0, new in src_reg,
++			 *   old value returned in r0.
++			 *
++			 * global_atomic_* with glc=1 returns old value in vdst.
++			 * For non-FETCH ops use glc=0 (fire-and-forget).
++			 *
++			 * 64-bit atomics (global_atomic_*_x2) hang on GFX9
++			 * VRAM. GFX10+ supports them.
++			 */
++			if (is_dw && priv->isa_version == 9) {
++				pr_err("knod: 64-bit atomic not supported on GFX9\n");
++				return -EOPNOTSUPP;
++			}
++
++			/*
++			 * For CMPXCHG/FETCH: drain pending loads so addr/data
++			 * VGPRs are ready. For non-fetch ADD wave reduction,
++			 * addr was already waited for at map_lookup, and data
++			 * is from ALU - no waitcnt needed.
++			 */
++			if (imm == BPF_CMPXCHG || fetch)
++				knod_wait_vmcnt(priv, meta);
++
++			if (imm == BPF_CMPXCHG) {
++				/* cmpswap: data = {expect(r0), new(src)}.
++				 * AMD cmpswap data reg pair must be
++				 * consecutive:
++				 *   32-bit: {cmp, new} = 2 consecutive VGPRs
++				 *   64-bit: {cmp_lo, cmp_hi, new_lo, new_hi}
++				 * Copy r0 and src into TMP consecutive pair.
++				 */
++				struct amdgcn_param32 tmp0_lo, tmp0_hi,
++						      tmp1_lo, tmp1_hi;
++
++				knod_vset32(&tmp0_lo,
++					KNOD_AMDGPU_TMP_VREG0_LO);
++				knod_vset32(&tmp0_hi,
++					KNOD_AMDGPU_TMP_VREG0_HI);
++				knod_vset32(&tmp1_lo,
++					KNOD_AMDGPU_TMP_VREG1_LO);
++				knod_vset32(&tmp1_hi,
++					KNOD_AMDGPU_TMP_VREG1_HI);
++
++				if (!is_dw) {
++					/* TMP0_LO = r0 (expect),
++					 * TMP0_HI = src (new)
++					 */
++					knod_mov32(priv, meta,
++						       tmp0_lo,
++						       bpf_reg64[0].lo);
++					knod_mov32(priv, meta,
++						       tmp0_hi,
++						       bpf_reg64[s].lo);
++
++					emit_global_atomic_cmpswap(
++						priv->isa_version,
++						&meta->amdgpu_insn[meta->amdgpu_insns],
++						tmp0_lo, bpf_reg64[d].lo,
++						tmp0_lo, off, 1);
++					debug_insn(priv->isa_version,
++						   &meta->amdgpu_insn[meta->amdgpu_insns]);
++					meta->amdgpu_insns++;
++					knod_wait_vmcnt(priv, meta);
++					/* Return old value in r0 */
++					knod_mov32(priv, meta,
++						       bpf_reg64[0].lo,
++						       tmp0_lo);
++				} else {
++					/* 64-bit:
++					 * {r0_lo, r0_hi, src_lo, src_hi}
++					 */
++					knod_mov32(priv, meta,
++						       tmp0_lo,
++						       bpf_reg64[0].lo);
++					knod_mov32(priv, meta,
++						       tmp0_hi,
++						       bpf_reg64[0].hi);
++					knod_mov32(priv, meta,
++						       tmp1_lo,
++						       bpf_reg64[s].lo);
++					knod_mov32(priv, meta,
++						       tmp1_hi,
++						       bpf_reg64[s].hi);
++
++					emit_global_atomic_cmpswap_x2(
++						priv->isa_version,
++						&meta->amdgpu_insn[meta->amdgpu_insns],
++						tmp0_lo, bpf_reg64[d].lo,
++						tmp0_lo, off, 1);
++					debug_insn(priv->isa_version,
++						   &meta->amdgpu_insn[meta->amdgpu_insns]);
++					meta->amdgpu_insns++;
++					knod_wait_vmcnt(priv, meta);
++					knod_mov32(priv, meta,
++						       bpf_reg64[0].lo,
++						       tmp0_lo);
++					knod_mov32(priv, meta,
++						       bpf_reg64[0].hi,
++						       tmp0_hi);
++				}
++			} else if (!fetch && atomic_op == BPF_ADD) {
++				/*
++				 * Wave reduction for BPF_ADD (non-fetch):
++				 * Instead of all lanes doing atomic_add(val),
++				 * count active lanes, multiply by val, and
++				 * have a single lane do atomic_add(count*val).
++				 *
++				 * Assumes src_reg is uniform across all active
++				 * lanes (true for constant increments like
++				 * +=1).
++				 *
++				 *   s_bcnt1_i32_b64 s_tmp, exec
++				 *   v_mul_lo_u32    v_tmp, s_tmp, v_src
++				 *   v_mbcnt_lo      v_tmp2, exec_lo, 0
++				 *   v_mbcnt_hi      v_tmp2, exec_hi, v_tmp2
++				 *   v_cmp_eq_u32    vcc, v_tmp2, 0
++				 *   s_and_saveexec  s_save, vcc
++				 *   global_atomic_add addr, v_tmp, off
++				 *   s_waitcnt       vmcnt(0)
++				 *   s_mov_b64       exec, s_save
++				 */
++				struct amdgcn_param32 v_tmp, v_tmp2,
++						      s_count, s_exec_lo,
++						      s_exec_hi, v_zero;
++
++				knod_vset32(&v_tmp,
++					KNOD_AMDGPU_TMP_VREG0_LO);
++				knod_vset32(&v_tmp2,
++					KNOD_AMDGPU_TMP_VREG0_HI);
++				knod_sset32(&s_count,
++					KNOD_AMDGPU_TMP_SREG0_LO);
++				knod_sset32(&s_exec_lo,
++					AMDGCN_SREG_EXEC_LO);
++				knod_sset32(&s_exec_hi,
++					AMDGCN_SREG_EXEC_LO + 1);
++				knod_iset32(&v_zero, 0);
++
++				/* s_bcnt1_i32_b64 s_count, exec */
++				knod_emit(priv, meta, s_bcnt1_i32_b64,
++					  KNOD_AMDGPU_TMP_SREG0_LO,
++					  AMDGCN_SREG_EXEC_LO);
++
++				/* v_mul_lo_u32 v_tmp, s_count, v_src */
++				knod_emit(priv, meta, v_mul_lo_u32, v_tmp,
++					  s_count, bpf_reg64[s].lo);
++
++				/* v_mbcnt_lo_u32_b32 v_tmp2, exec_lo, 0 */
++				knod_emit(priv, meta, v_mbcnt_lo_u32_b32,
++					  v_tmp2, s_exec_lo, v_zero);
++
++				/* v_mbcnt_hi_u32_b32 v_tmp2, exec_hi, v_tmp2 */
++				knod_emit(priv, meta, v_mbcnt_hi_u32_b32,
++					  v_tmp2, s_exec_hi, v_tmp2);
++
++				/* v_cmp_eq_u32 vcc, 0, v_tmp2 ->
++				 * first active lane
++				 */
++				knod_emit(priv, meta, v_cmp_eq_u32, v_zero,
++					  v_tmp2);
++
++				/* s_and_saveexec_b64 s_save, vcc */
++				knod_emit(priv, meta, s_and_saveexec_b64,
++					  KNOD_AMDGPU_TMP_SREG0_LO,
++					  AMDGCN_SREG_VCC_LO);
++
++				if (is_dw) {
++					struct amdgcn_param32 v_tmp_hi;
++
++					knod_vset32(&v_tmp_hi,
++						KNOD_AMDGPU_TMP_VREG0_HI);
++					/*
++					 * x2 atomics consume a consecutive
++					 * VGPR pair, and the 32-bit addend
++					 * lands in the host-visible low dword
++					 * when it is placed in the second
++					 * register.
++					 */
++					knod_emit(priv, meta, v_mov_b32_e32,
++						  v_tmp_hi, v_tmp);
++					knod_emit(priv, meta, v_mov_b32_e32,
++						  v_tmp, v_zero);
++					/* global_atomic_add_x2 addr,
++					 * {0, v_tmp_hi}, off
++					 */
++					knod_emit(priv, meta,
++						  global_atomic_add_x2, v_tmp,
++						  bpf_reg64[d].lo, v_tmp, off,
++						  0);
++				} else {
++					/* global_atomic_add addr, v_tmp, off
++					 * (single lane)
++					 */
++					knod_emit(priv, meta, global_atomic_add,
++						  v_tmp,
++						  bpf_reg64[d].lo, v_tmp, off,
++						  0);
++				}
++
++				/*
++				 * No s_waitcnt needed: glc=0 atomic doesn't
++				 * increment vmcnt. The GPU guarantees all
++				 * pending ops complete before wave exit.
++				 */
++
++				/* s_mov_b64 exec, s_save */
++				knod_emit(priv, meta, s_mov_b64,
++					  AMDGCN_SREG_EXEC_LO,
++					  KNOD_AMDGPU_TMP_SREG0_LO);
++			} else if (!is_dw) {
++				/* 32-bit: AND, OR, XOR, XCHG, or fetch ops */
++				struct amdgcn_param32 vdst, data_p;
++
++				if (fetch) {
++					vdst = bpf_reg64[s].lo;
++				} else {
++					knod_vset32(&vdst,
++						KNOD_AMDGPU_TMP_VREG0_LO);
++				}
++				data_p = bpf_reg64[s].lo;
++
++				switch (atomic_op) {
++				case BPF_ADD:
++					emit_global_atomic_add(
++						priv->isa_version,
++						&meta->amdgpu_insn[meta->amdgpu_insns],
++						vdst, bpf_reg64[d].lo,
++						data_p, off, fetch);
++					break;
++				case BPF_AND:
++					emit_global_atomic_and(
++						priv->isa_version,
++						&meta->amdgpu_insn[meta->amdgpu_insns],
++						vdst, bpf_reg64[d].lo,
++						data_p, off, fetch);
++					break;
++				case BPF_OR:
++					emit_global_atomic_or(
++						priv->isa_version,
++						&meta->amdgpu_insn[meta->amdgpu_insns],
++						vdst, bpf_reg64[d].lo,
++						data_p, off, fetch);
++					break;
++				case BPF_XOR:
++					emit_global_atomic_xor(
++						priv->isa_version,
++						&meta->amdgpu_insn[meta->amdgpu_insns],
++						vdst, bpf_reg64[d].lo,
++						data_p, off, fetch);
++					break;
++				default: /* BPF_XCHG */
++					emit_global_atomic_swap(
++						priv->isa_version,
++						&meta->amdgpu_insn[meta->amdgpu_insns],
++						vdst, bpf_reg64[d].lo,
++						data_p, off, fetch);
++					break;
++				}
++			} else {
++				/* 64-bit: AND, OR, XOR, XCHG, or fetch ops */
++				struct amdgcn_param32 vdst, data_p;
++
++				if (fetch) {
++					vdst = bpf_reg64[s].lo;
++				} else {
++					knod_vset32(&vdst,
++						KNOD_AMDGPU_TMP_VREG0_LO);
++				}
++				data_p = bpf_reg64[s].lo;
++
++				switch (atomic_op) {
++				case BPF_ADD:
++					emit_global_atomic_add_x2(
++						priv->isa_version,
++						&meta->amdgpu_insn[meta->amdgpu_insns],
++						vdst, bpf_reg64[d].lo,
++						data_p, off, fetch);
++					break;
++				case BPF_AND:
++					emit_global_atomic_and_x2(
++						priv->isa_version,
++						&meta->amdgpu_insn[meta->amdgpu_insns],
++						vdst, bpf_reg64[d].lo,
++						data_p, off, fetch);
++					break;
++				case BPF_OR:
++					emit_global_atomic_or_x2(
++						priv->isa_version,
++						&meta->amdgpu_insn[meta->amdgpu_insns],
++						vdst, bpf_reg64[d].lo,
++						data_p, off, fetch);
++					break;
++				case BPF_XOR:
++					emit_global_atomic_xor_x2(
++						priv->isa_version,
++						&meta->amdgpu_insn[meta->amdgpu_insns],
++						vdst, bpf_reg64[d].lo,
++						data_p, off, fetch);
++					break;
++				default: /* BPF_XCHG */
++					emit_global_atomic_swap_x2(
++						priv->isa_version,
++						&meta->amdgpu_insn[meta->amdgpu_insns],
++						vdst, bpf_reg64[d].lo,
++						data_p, off, fetch);
++					break;
++				}
++				debug_insn(priv->isa_version,
++					   &meta->amdgpu_insn[meta->amdgpu_insns]);
++				meta->amdgpu_insns++;
++				/* Always wait for atomic completion */
++				knod_wait_vmcnt(priv, meta);
++			}
++			break;
++		case BPF_ST | BPF_MEM | BPF_B:
++			knod_iset32(&p32[0], imm);
++			if (meta->ptr.type == PTR_TO_STACK) {
++				stack_off = meta->dreg.stack_off + off;
++				knod_iset64(&p64[0], imm);
++				knod_bpf_store_cache_size(priv, meta,
++						&p64[0],
++						&stack[0],
++						sizeof(u8),
++						512 + stack_off);
++			} else if (meta->ptr.type == PTR_TO_CTX) {
++				knod_emit(priv, meta, global_store_byte, p32[0],
++					  bpf_reg64[d].lo, off * 2);
++			} else if (meta->ptr.type == PTR_TO_MAP_VALUE) {
++				knod_emit(priv, meta, global_store_byte, p32[0],
++					  bpf_reg64[d].lo, off);
++			} else if (meta->ptr.type == PTR_TO_MAP_KEY) {
++				knod_emit(priv, meta, global_store_byte, p32[0],
++					  bpf_reg64[d].lo, off);
++			} else if (meta->ptr.type == PTR_TO_PACKET) {
++				knod_iset64(&p64[0], imm);
++				if (knod_bpf_pkt_cache) {
++					packet_off = meta->dreg.packet_off +
++						off;
++					knod_bpf_store_cache_size(priv,
++							meta,
++							&p64[0],
++							&pkt_cache[0],
++							sizeof(u8),
++							packet_off);
++				} else {
++					knod_emit(priv, meta, global_store_byte,
++						  p64[0].lo,
++						  bpf_reg64[d].lo, off);
++				}
++			} else {
++				WARN_ON_ONCE(1);
++			}
++			break;
++		case BPF_ST | BPF_MEM | BPF_H:
++			knod_iset32(&p32[0], imm);
++			if (meta->ptr.type == PTR_TO_STACK) {
++				stack_off = meta->dreg.stack_off + off;
++				knod_iset64(&p64[0], imm);
++				knod_bpf_store_cache_size(priv, meta,
++						&p64[0],
++						&stack[0],
++						sizeof(u16),
++						512 + stack_off);
++			} else if (meta->ptr.type == PTR_TO_CTX) {
++				knod_emit(priv, meta, global_store_short,
++					  p32[0], bpf_reg64[d].lo, off * 2);
++			} else if (meta->ptr.type == PTR_TO_MAP_VALUE) {
++				knod_emit(priv, meta, global_store_short,
++					  p32[0], bpf_reg64[d].lo, off);
++			} else if (meta->ptr.type == PTR_TO_MAP_KEY) {
++				knod_emit(priv, meta, global_store_short,
++					  p32[0], bpf_reg64[d].lo, off);
++			} else if (meta->ptr.type == PTR_TO_PACKET) {
++				knod_iset64(&p64[0], imm);
++				if (knod_bpf_pkt_cache) {
++					packet_off = meta->dreg.packet_off +
++						off;
++					knod_bpf_store_cache_size(priv,
++							meta,
++							&p64[0],
++							&pkt_cache[0],
++							sizeof(u16),
++							packet_off);
++				} else {
++					knod_emit(priv, meta,
++						  global_store_short, p64[0].lo,
++						  bpf_reg64[d].lo, off);
++				}
++			} else {
++				WARN_ON_ONCE(1);
++			}
++			break;
++		case BPF_ST | BPF_MEM | BPF_W:
++			knod_iset32(&p32[0], imm);
++			if (meta->ptr.type == PTR_TO_STACK) {
++				stack_off = meta->dreg.stack_off + off;
++				knod_iset64(&p64[0], imm);
++				knod_bpf_store_cache_size(priv, meta,
++						&p64[0],
++						&stack[0],
++						sizeof(u32),
++						512 + stack_off);
++			} else if (meta->ptr.type == PTR_TO_CTX) {
++				knod_emit(priv, meta, global_store_dword,
++					  p32[0], bpf_reg64[d].lo, off * 2);
++			} else if (meta->ptr.type == PTR_TO_MAP_VALUE) {
++				knod_emit(priv, meta, global_store_dword,
++					  p32[0], bpf_reg64[d].lo, off);
++			} else if (meta->ptr.type == PTR_TO_MAP_KEY) {
++				knod_emit(priv, meta, global_store_dword,
++					  p32[0], bpf_reg64[d].lo, off);
++			} else if (meta->ptr.type == PTR_TO_PACKET) {
++				knod_iset64(&p64[0], imm);
++				if (knod_bpf_pkt_cache) {
++					packet_off = meta->dreg.packet_off +
++						off;
++					knod_bpf_store_cache_size(priv,
++							meta,
++							&p64[0],
++							&pkt_cache[0],
++							sizeof(u32),
++							packet_off);
++				} else {
++					knod_emit(priv, meta,
++						  global_store_dword, p64[0].lo,
++						  bpf_reg64[d].lo, off);
++				}
++			} else {
++				WARN_ON_ONCE(1);
++			}
++			break;
++		case BPF_ST | BPF_MEM | BPF_DW:
++			knod_iset32(&p32[0], imm);
++			if (meta->ptr.type == PTR_TO_STACK) {
++				stack_off = meta->dreg.stack_off + off;
++				knod_iset64(&p64[0], imm);
++				knod_bpf_store_cache_size(priv, meta,
++						&p64[0],
++						&stack[0],
++						sizeof(u64),
++						512 + stack_off);
++			} else if (meta->ptr.type == PTR_TO_CTX) {
++				knod_emit(priv, meta, global_store_dwordx2,
++					  p32[0], bpf_reg64[d].lo, off * 2);
++			} else if (meta->ptr.type == PTR_TO_MAP_VALUE) {
++				knod_emit(priv, meta, global_store_dwordx2,
++					  p32[0], bpf_reg64[d].lo, off);
++			} else if (meta->ptr.type == PTR_TO_MAP_KEY) {
++				knod_emit(priv, meta, global_store_dwordx2,
++					  p32[0], bpf_reg64[d].lo, off);
++			} else if (meta->ptr.type == PTR_TO_PACKET) {
++				knod_iset64(&p64[0], imm);
++				if (knod_bpf_pkt_cache) {
++					packet_off = meta->dreg.packet_off +
++						off;
++					knod_bpf_store_cache_size(priv, meta,
++							&p64[0],
++							&pkt_cache[0],
++							sizeof(u64),
++							packet_off);
++				} else {
++					knod_emit(priv, meta,
++						  global_store_dwordx2,
++						  p64[0].lo,
++						  bpf_reg64[d].lo, off);
++				}
++				knod_iset32(&p32[0], imm);
++			} else {
++				WARN_ON_ONCE(1);
++			}
++			break;
++		case BPF_JMP32 | BPF_JA | BPF_K:
++			if (meta->branch_type == KNOD_BR_DIRECT_EXIT) {
++				knod_bpf_emit_direct_exit_retval(priv, meta,
++						meta->merge_point);
++
++				/* Unconditional goto exit:
++				 * all active lanes done
++				 */
++				knod_emit(priv, meta, s_or_b64,
++					  knod_prog->done_mask_sreg,
++					  knod_prog->done_mask_sreg,
++					  AMDGCN_SREG_EXEC_LO);
++				knod_emit(priv, meta, s_mov_b64,
++					  AMDGCN_SREG_EXEC_LO,
++					  AMDGCN_SREG_INTEGER_0);
++			} else if (meta->branch_type == KNOD_BR_FORWARD_GOTO) {
++				/* Structurized: save all active lanes, clear
++				 * EXEC.  Lanes resume at merge_point (target).
++				 */
++				knod_emit(priv, meta, s_mov_b64,
++					  meta->exec_save_sreg,
++					  AMDGCN_SREG_EXEC_LO);
++				knod_emit(priv, meta, s_mov_b64,
++					  AMDGCN_SREG_EXEC_LO,
++					  AMDGCN_SREG_INTEGER_0);
++			} else {
++				/* Reorder classifies every JA as FORWARD_GOTO
++				 * or DIRECT_EXIT; reaching here is a bug.
++				 */
++				WARN_ON_ONCE(1);
++			}
++			break;
++		case BPF_JMP | BPF_JA | BPF_K:
++			if (meta->branch_type == KNOD_BR_DIRECT_EXIT) {
++				knod_bpf_emit_direct_exit_retval(priv, meta,
++						meta->merge_point);
++
++				/* Unconditional goto exit:
++				 * all active lanes done
++				 */
++				knod_emit(priv, meta, s_or_b64,
++					  knod_prog->done_mask_sreg,
++					  knod_prog->done_mask_sreg,
++					  AMDGCN_SREG_EXEC_LO);
++				knod_emit(priv, meta, s_mov_b64,
++					  AMDGCN_SREG_EXEC_LO,
++					  AMDGCN_SREG_INTEGER_0);
++			} else if (meta->branch_type == KNOD_BR_FORWARD_GOTO) {
++				/* Structurized: save all active lanes, clear
++				 * EXEC.  Lanes resume at merge_point (target).
++				 */
++				knod_emit(priv, meta, s_mov_b64,
++					  meta->exec_save_sreg,
++					  AMDGCN_SREG_EXEC_LO);
++				knod_emit(priv, meta, s_mov_b64,
++					  AMDGCN_SREG_EXEC_LO,
++					  AMDGCN_SREG_INTEGER_0);
++			} else {
++				/* Reorder classifies every JA as FORWARD_GOTO
++				 * or DIRECT_EXIT; reaching here is a bug.
++				 */
++				WARN_ON_ONCE(1);
++			}
++			break;
++		case BPF_JMP32 | BPF_JEQ | BPF_K:
++			knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_LO);
++			knod_iset32(&param[1], imm);
++			knod_emit(priv, meta, v_mov_b32_e32, param[0],
++				  param[1]);
++			knod_vset32(&param[0], d * 2);
++			knod_vset32(&param[1], KNOD_AMDGPU_TMP_VREG0_LO);
++			knod_emit(priv, meta, v_cmp_eq_u32, param[0],
++				  param[1]);
++			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
++			break;
++		case BPF_JMP | BPF_JEQ | BPF_K:
++			knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_LO);
++			knod_iset32(&param[1], imm);
++			knod_emit(priv, meta, v_mov_b32_e32, param[0],
++				  param[1]);
++			knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_HI);
++			knod_iset32(&param[1], 0);
++			knod_emit(priv, meta, v_mov_b32_e32, param[0],
++				  param[1]);
++			knod_vset32(&param[0], d * 2);
++			knod_vset32(&param[1], KNOD_AMDGPU_TMP_VREG0_LO);
++			knod_emit(priv, meta, v_cmp_eq_u64, param[0],
++				  param[1]);
++			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
++			break;
++		case BPF_JMP32 | BPF_JEQ | BPF_X:
++			knod_vset32(&param[0], d * 2);
++			knod_vset32(&param[1], s * 2);
++			knod_emit(priv, meta, v_cmp_eq_u32, param[0],
++				  param[1]);
++			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
++			break;
++		case BPF_JMP | BPF_JEQ | BPF_X:
++			knod_vset32(&param[0], d * 2);
++			knod_vset32(&param[1], s * 2);
++			knod_emit(priv, meta, v_cmp_eq_u64, param[0],
++				  param[1]);
++			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
++			break;
++		case BPF_JMP32 | BPF_JGT | BPF_K:
++			knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_LO);
++			knod_iset32(&param[1], imm);
++			knod_emit(priv, meta, v_mov_b32_e32, param[0],
++				  param[1]);
++			knod_vset32(&param[0], d * 2);
++			knod_vset32(&param[1], KNOD_AMDGPU_TMP_VREG0_LO);
++			knod_emit(priv, meta, v_cmp_gt_u32, param[0],
++				  param[1]);
++			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
++			break;
++		case BPF_JMP | BPF_JGT | BPF_K:
++			knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_LO);
++			knod_iset32(&param[1], imm);
++			knod_emit(priv, meta, v_mov_b32_e32, param[0],
++				  param[1]);
++			knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_HI);
++			knod_iset32(&param[1], 0);
++			knod_emit(priv, meta, v_mov_b32_e32, param[0],
++				  param[1]);
++			knod_vset64(&param64[0], d * 2);
++			knod_vset64(&param64[1], KNOD_AMDGPU_TMP_VREG0_LO);
++			knod_emit(priv, meta, v_cmp_gt_u64, param64[0],
++				  param64[1]);
++			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
++			break;
++		case BPF_JMP32 | BPF_JGT | BPF_X:
++			knod_vset32(&param[0], d * 2);
++			knod_vset32(&param[1], s * 2);
++			knod_emit(priv, meta, v_cmp_gt_u32, param[0],
++				  param[1]);
++			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
++			break;
++		case BPF_JMP | BPF_JGT | BPF_X:
++			knod_vset64(&param64[0], d * 2);
++			knod_vset64(&param64[1], s * 2);
++			knod_emit(priv, meta, v_cmp_gt_u64, param64[0],
++				  param64[1]);
++			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
++			break;
++		case BPF_JMP32 | BPF_JGE | BPF_K:
++			knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_LO);
++			knod_iset32(&param[1], imm);
++			knod_emit(priv, meta, v_mov_b32_e32, param[0],
++				  param[1]);
++			knod_vset32(&param[0], d * 2);
++			knod_vset32(&param[1], KNOD_AMDGPU_TMP_VREG0_LO);
++			knod_emit(priv, meta, v_cmp_ge_u32, param[0],
++				  param[1]);
++			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
++			break;
++		case BPF_JMP | BPF_JGE | BPF_K:
++			knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_LO);
++			knod_iset32(&param[1], imm);
++			knod_emit(priv, meta, v_mov_b32_e32, param[0],
++				  param[1]);
++			knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_HI);
++			knod_iset32(&param[1], 0);
++			knod_emit(priv, meta, v_mov_b32_e32, param[0],
++				  param[1]);
++			knod_vset64(&param64[0], d * 2);
++			knod_vset64(&param64[1], KNOD_AMDGPU_TMP_VREG0_LO);
++			knod_emit(priv, meta, v_cmp_ge_u64, param64[0],
++				  param64[1]);
++			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
++			break;
++		case BPF_JMP32 | BPF_JGE | BPF_X:
++			knod_vset32(&param[0], d * 2);
++			knod_vset32(&param[1], s * 2);
++			knod_emit(priv, meta, v_cmp_ge_u32, param[0],
++				  param[1]);
++			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
++			break;
++		case BPF_JMP | BPF_JGE | BPF_X:
++			knod_vset64(&param64[0], d * 2);
++			knod_vset64(&param64[1], s * 2);
++			knod_emit(priv, meta, v_cmp_ge_u64, param64[0],
++				  param64[1]);
++			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
++			break;
++		case BPF_JMP32 | BPF_JLT | BPF_K:
++			knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_LO);
++			knod_iset32(&param[1], imm);
++			knod_emit(priv, meta, v_mov_b32_e32, param[0],
++				  param[1]);
++			knod_vset32(&param[0], d * 2);
++			knod_vset32(&param[1], KNOD_AMDGPU_TMP_VREG0_LO);
++			knod_emit(priv, meta, v_cmp_lt_u32, param[0],
++				  param[1]);
++			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
++			break;
++		case BPF_JMP | BPF_JLT | BPF_K:
++			knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_LO);
++			knod_iset32(&param[1], imm);
++			knod_emit(priv, meta, v_mov_b32_e32, param[0],
++				  param[1]);
++			knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_HI);
++			knod_iset32(&param[1], 0);
++			knod_emit(priv, meta, v_mov_b32_e32, param[0],
++				  param[1]);
++			knod_vset64(&param64[0], d * 2);
++			knod_vset64(&param64[1], KNOD_AMDGPU_TMP_VREG0_LO);
++			knod_emit(priv, meta, v_cmp_lt_u64, param64[0],
++				  param64[1]);
++			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
++			break;
++		case BPF_JMP32 | BPF_JLT | BPF_X:
++			knod_vset32(&param[0], d * 2);
++			knod_vset32(&param[1], s * 2);
++			knod_emit(priv, meta, v_cmp_lt_u32, param[0],
++				  param[1]);
++			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
++			break;
++		case BPF_JMP | BPF_JLT | BPF_X:
++			knod_vset64(&param64[0], d * 2);
++			knod_vset64(&param64[1], s * 2);
++			knod_emit(priv, meta, v_cmp_lt_u64, param64[0],
++				  param64[1]);
++			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
++			break;
++		case BPF_JMP32 | BPF_JLE | BPF_K:
++			knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_LO);
++			knod_iset32(&param[1], imm);
++			knod_emit(priv, meta, v_mov_b32_e32, param[0],
++				  param[1]);
++			knod_vset32(&param[0], d * 2);
++			knod_vset32(&param[1], KNOD_AMDGPU_TMP_VREG0_LO);
++			knod_emit(priv, meta, v_cmp_le_u32, param[0],
++				  param[1]);
++			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
++			break;
++		case BPF_JMP | BPF_JLE | BPF_K:
++			knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_LO);
++			knod_iset32(&param[1], imm);
++			knod_emit(priv, meta, v_mov_b32_e32, param[0],
++				  param[1]);
++			knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_HI);
++			knod_iset32(&param[1], 0);
++			knod_emit(priv, meta, v_mov_b32_e32, param[0],
++				  param[1]);
++			knod_vset64(&param64[0], d * 2);
++			knod_vset64(&param64[1], KNOD_AMDGPU_TMP_VREG0_LO);
++			knod_emit(priv, meta, v_cmp_le_u64, param64[0],
++				  param64[1]);
++			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
++			break;
++		case BPF_JMP32 | BPF_JLE | BPF_X:
++			knod_vset32(&param[0], d * 2);
++			knod_vset32(&param[1], s * 2);
++			knod_emit(priv, meta, v_cmp_le_u32, param[0],
++				  param[1]);
++			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
++			break;
++		case BPF_JMP | BPF_JLE | BPF_X:
++			knod_vset64(&param64[0], d * 2);
++			knod_vset64(&param64[1], 2 * 2);
++			knod_emit(priv, meta, v_cmp_le_u64, param64[0],
++				  param64[1]);
++			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
++			break;
++		case BPF_JMP32 | BPF_JSGT | BPF_K:
++			knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_LO);
++			knod_iset32(&param[1], imm);
++			knod_emit(priv, meta, v_mov_b32_e32, param[0],
++				  param[1]);
++			knod_vset32(&param[0], d * 2);
++			knod_vset32(&param[1], KNOD_AMDGPU_TMP_VREG0_LO);
++			knod_emit(priv, meta, v_cmp_gt_i32, param[0],
++				  param[1]);
++			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
++			break;
++		case BPF_JMP | BPF_JSGT | BPF_K:
++			knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_LO);
++			knod_iset32(&param[1], imm);
++			knod_emit(priv, meta, v_mov_b32_e32, param[0],
++				  param[1]);
++			knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_HI);
++			knod_iset32(&param[1], 0);
++			knod_emit(priv, meta, v_mov_b32_e32, param[0],
++				  param[1]);
++			knod_vset64(&param64[0], d * 2);
++			knod_vset64(&param64[1], KNOD_AMDGPU_TMP_VREG0_LO);
++			knod_emit(priv, meta, v_cmp_gt_i64, param64[0],
++				  param64[1]);
++			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
++			break;
++		case BPF_JMP32 | BPF_JSGT | BPF_X:
++			knod_vset32(&param[0], d * 2);
++			knod_vset32(&param[1], s * 2);
++			knod_emit(priv, meta, v_cmp_gt_i32, param[0],
++				  param[1]);
++			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
++			break;
++		case BPF_JMP | BPF_JSGT | BPF_X:
++			knod_vset64(&param64[0], d * 2);
++			knod_vset64(&param64[1], s * 2);
++			knod_emit(priv, meta, v_cmp_gt_i64, param64[0],
++				  param64[1]);
++			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
++			break;
++		case BPF_JMP32 | BPF_JSGE | BPF_K:
++			knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_LO);
++			knod_iset32(&param[1], imm);
++			knod_emit(priv, meta, v_mov_b32_e32, param[0],
++				  param[1]);
++			knod_vset32(&param[0], d * 2);
++			knod_vset32(&param[1], KNOD_AMDGPU_TMP_VREG0_LO);
++			knod_emit(priv, meta, v_cmp_ge_i32, param[0],
++				  param[1]);
++			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
++			break;
++		case BPF_JMP | BPF_JSGE | BPF_K:
++			knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_LO);
++			knod_iset32(&param[1], imm);
++			knod_emit(priv, meta, v_mov_b32_e32, param[0],
++				  param[1]);
++			knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_HI);
++			knod_iset32(&param[1], 0);
++			knod_emit(priv, meta, v_mov_b32_e32, param[0],
++				  param[1]);
++			knod_vset64(&param64[0], d * 2);
++			knod_vset64(&param64[1], KNOD_AMDGPU_TMP_VREG0_LO);
++			knod_emit(priv, meta, v_cmp_ge_i64, param64[0],
++				  param64[1]);
++			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
++			break;
++		case BPF_JMP32 | BPF_JSGE | BPF_X:
++			knod_vset32(&param[0], d * 2);
++			knod_vset32(&param[1], s * 2);
++			knod_emit(priv, meta, v_cmp_ge_i32, param[0],
++				  param[1]);
++			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
++			break;
++		case BPF_JMP | BPF_JSGE | BPF_X:
++			knod_vset64(&param64[0], d * 2);
++			knod_vset64(&param64[1], s * 2);
++			knod_emit(priv, meta, v_cmp_ge_i64, param64[0],
++				  param64[1]);
++			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
++			break;
++		case BPF_JMP32 | BPF_JSLT | BPF_K:
++			knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_LO);
++			knod_iset32(&param[1], imm);
++			knod_emit(priv, meta, v_mov_b32_e32, param[0],
++				  param[1]);
++			knod_vset32(&param[0], d * 2);
++			knod_vset32(&param[1], KNOD_AMDGPU_TMP_VREG0_LO);
++			knod_emit(priv, meta, v_cmp_lt_i32, param[0],
++				  param[1]);
++			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
++			break;
++		case BPF_JMP | BPF_JSLT | BPF_K:
++			knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_LO);
++			knod_iset32(&param[1], imm);
++			knod_emit(priv, meta, v_mov_b32_e32, param[0],
++				  param[1]);
++			knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_HI);
++			knod_iset32(&param[1], 0);
++			knod_emit(priv, meta, v_mov_b32_e32, param[0],
++				  param[1]);
++			knod_vset64(&param64[0], d * 2);
++			knod_vset64(&param64[1], KNOD_AMDGPU_TMP_VREG0_LO);
++			knod_emit(priv, meta, v_cmp_lt_i64, param64[0],
++				  param64[1]);
++			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
++			break;
++		case BPF_JMP32 | BPF_JSLT | BPF_X:
++			knod_vset32(&param[0], d * 2);
++			knod_vset32(&param[1], s * 2);
++			knod_emit(priv, meta, v_cmp_lt_i32, param[0],
++				  param[1]);
++			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
++			break;
++		case BPF_JMP | BPF_JSLT | BPF_X:
++			knod_vset64(&param64[0], d * 2);
++			knod_vset64(&param64[1], s * 2);
++			knod_emit(priv, meta, v_cmp_lt_i64, param64[0],
++				  param64[1]);
++			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
++			break;
++		case BPF_JMP32 | BPF_JSLE | BPF_K:
++			knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_LO);
++			knod_iset32(&param[1], imm);
++			knod_emit(priv, meta, v_mov_b32_e32, param[0],
++				  param[1]);
++			knod_vset32(&param[0], d * 2);
++			knod_vset32(&param[1], KNOD_AMDGPU_TMP_VREG0_LO);
++			knod_emit(priv, meta, v_cmp_le_i32, param[0],
++				  param[1]);
++			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
++			break;
++		case BPF_JMP | BPF_JSLE | BPF_K:
++			knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_LO);
++			knod_iset32(&param[1], imm);
++			knod_emit(priv, meta, v_mov_b32_e32, param[0],
++				  param[1]);
++			knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_HI);
++			knod_iset32(&param[1], 0);
++			knod_emit(priv, meta, v_mov_b32_e32, param[0],
++				  param[1]);
++			knod_vset64(&param64[0], d * 2);
++			knod_vset64(&param64[1], KNOD_AMDGPU_TMP_VREG0_LO);
++			knod_emit(priv, meta, v_cmp_le_i64, param64[0],
++				  param64[1]);
++			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
++			break;
++		case BPF_JMP32 | BPF_JSLE | BPF_X:
++			knod_vset32(&param[0], d * 2);
++			knod_vset32(&param[1], s * 2);
++			knod_emit(priv, meta, v_cmp_le_i32, param[0],
++				  param[1]);
++			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
++			break;
++		case BPF_JMP | BPF_JSLE | BPF_X:
++			knod_vset64(&param64[0], d * 2);
++			knod_vset64(&param64[1], s * 2);
++			knod_emit(priv, meta, v_cmp_le_i64, param64[0],
++				  param64[1]);
++			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
++			break;
++		case BPF_JMP32 | BPF_JSET | BPF_K:
++			knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_LO);
++			knod_iset32(&param[1], imm);
++			knod_emit(priv, meta, v_mov_b32_e32, param[0],
++				  param[1]);
++			knod_vset32(&param[0], d * 2);
++			knod_vset32(&param[1], d * 2);
++			knod_vset32(&param[2], KNOD_AMDGPU_TMP_VREG0_LO);
++			knod_emit(priv, meta, v_and_b32_e32, param[0],
++				  param[1], param[2]);
++			knod_vset32(&param[0], d * 2);
++			knod_vset32(&param[1], KNOD_AMDGPU_TMP_VREG0_LO);
++			knod_emit(priv, meta, v_cmp_eq_u32, param[0],
++				  param[1]);
++			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
++			break;
++		case BPF_JMP | BPF_JSET | BPF_K:
++			knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_LO);
++			knod_iset32(&param[1], imm);
++			knod_emit(priv, meta, v_mov_b32_e32, param[0],
++				  param[1]);
++			knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_HI);
++			knod_iset32(&param[1], 0);
++			knod_emit(priv, meta, v_mov_b32_e32, param[0],
++				  param[1]);
++			knod_vset32(&param[0], d * 2);
++			knod_vset32(&param[1], d * 2);
++			knod_vset32(&param[2], KNOD_AMDGPU_TMP_VREG0_LO);
++			knod_emit(priv, meta, v_and_b32_e32, param[0],
++				  param[1], param[2]);
++			knod_vset32(&param[0], (d * 2) + 1);
++			knod_vset32(&param[1], (d * 2) + 1);
++			knod_vset32(&param[2], KNOD_AMDGPU_TMP_VREG0_HI);
++			knod_emit(priv, meta, v_and_b32_e32, param[0],
++				  param[1], param[2]);
++			knod_vset32(&param[0], d * 2);
++			knod_vset32(&param[1], KNOD_AMDGPU_TMP_VREG0_LO);
++			knod_emit(priv, meta, v_cmp_eq_u64, param[0],
++				  param[1]);
++			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
++			break;
++		case BPF_JMP32 | BPF_JSET | BPF_X:
++			knod_vset32(&param[0], d * 2);
++			knod_vset32(&param[1], d * 2);
++			knod_vset32(&param[2], s * 2);
++			knod_emit(priv, meta, v_and_b32_e32, param[0],
++				  param[1], param[2]);
++			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
++			break;
++		case BPF_JMP | BPF_JSET | BPF_X:
++			knod_vset32(&param[0], d * 2);
++			knod_vset32(&param[1], d * 2);
++			knod_vset32(&param[2], s * 2);
++			knod_emit(priv, meta, v_and_b32_e32, param[0],
++				  param[1], param[2]);
++			knod_vset32(&param[0], (d * 2) + 1);
++			knod_vset32(&param[1], (d * 2) + 1);
++			knod_vset32(&param[2], (s * 2) + 1);
++			knod_emit(priv, meta, v_and_b32_e32, param[0],
++				  param[1], param[2]);
++			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
++			break;
++		case BPF_JMP32 | BPF_JNE | BPF_K:
++			knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_LO);
++			knod_iset32(&param[1], imm);
++			knod_emit(priv, meta, v_mov_b32_e32, param[0],
++				  param[1]);
++			knod_vset32(&param[0], d * 2);
++			knod_vset32(&param[1], KNOD_AMDGPU_TMP_VREG0_LO);
++			knod_emit(priv, meta, v_cmp_eq_u32, param[0],
++				  param[1]);
++			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
++			break;
++		case BPF_JMP | BPF_JNE | BPF_K:
++			knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_LO);
++			knod_iset32(&param[1], imm);
++			knod_emit(priv, meta, v_mov_b32_e32, param[0],
++				  param[1]);
++			knod_vset32(&param[0], KNOD_AMDGPU_TMP_VREG0_HI);
++			knod_iset32(&param[1], 0);
++			knod_emit(priv, meta, v_mov_b32_e32, param[0],
++				  param[1]);
++			knod_vset32(&param[0], d * 2);
++			knod_vset32(&param[1], KNOD_AMDGPU_TMP_VREG0_LO);
++			knod_emit(priv, meta, v_cmp_eq_u64, param[0],
++				  param[1]);
++			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
++			break;
++		case BPF_JMP32 | BPF_JNE | BPF_X:
++			knod_vset32(&param[0], d * 2);
++			knod_vset32(&param[1], s * 2);
++			knod_emit(priv, meta, v_cmp_eq_u32, param[0],
++				  param[1]);
++			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
++			break;
++		case BPF_JMP | BPF_JNE | BPF_X:
++			knod_vset32(&param[0], d * 2);
++			knod_vset32(&param[1], s * 2);
++			knod_emit(priv, meta, v_cmp_eq_u64, param[0],
++				  param[1]);
++			knod_bpf_emit_branch_tail(priv, meta, knod_prog, off);
++			break;
++		case BPF_JMP32 | BPF_CALL:
++		case BPF_JMP | BPF_CALL:
++			switch (imm) {
++			case 1:
++				if (map_id == -1) {
++					WARN_ON_ONCE(1);
++					break;
++				}
++				knod_bpf_map_lookup(priv, meta, map_id);
++				map_id = -1;
++				break;
++			case 2: {
++				struct knod_bpf_map_obj *_map_obj;
++
++				if (map_id == -1) {
++					WARN_ON_ONCE(1);
++					break;
++				}
++				_map_obj = knod_bpf_map_kaddr(priv, map_id);
++				if (!_map_obj) {
++					WARN_ON_ONCE(1);
++					break;
++				}
++				if (_map_obj->map_type == BPF_MAP_TYPE_ARRAY)
++					knod_bpf_map_update_array(priv, meta,
++						map_id);
++				else if (_map_obj->map_type ==
++					 BPF_MAP_TYPE_HASH)
++					knod_bpf_map_update_hash(priv, meta,
++						map_id);
++				else
++					WARN_ON_ONCE(1);
++				map_id = -1;
++				break;
++			}
++			case 3: {
++				struct knod_bpf_map_obj *_map_obj;
++
++				if (map_id == -1) {
++					WARN_ON_ONCE(1);
++					break;
++				}
++				_map_obj = knod_bpf_map_kaddr(priv, map_id);
++				if (!_map_obj) {
++					WARN_ON_ONCE(1);
++					break;
++				}
++				if (_map_obj->map_type == BPF_MAP_TYPE_ARRAY)
++					knod_bpf_map_delete_array(priv, meta,
++						map_id);
++				else if (_map_obj->map_type ==
++					 BPF_MAP_TYPE_HASH)
++					knod_bpf_map_delete_hash(priv, meta,
++						map_id);
++				else
++					WARN_ON_ONCE(1);
++				map_id = -1;
++				break;
++			}
++			case 5:
++				knod_bpf_ktime_get_ns(priv, meta);
++				break;
++			case 44:
++				knod_bpf_xdp_adjust_head(priv, meta);
++				break;
++			case 65:
++				knod_bpf_xdp_adjust_tail(priv, meta);
++				break;
++			default:
++				WARN_ON_ONCE(1);
++				break;
++			}
++			break;
++		case BPF_JMP32 | BPF_EXIT:
++		case BPF_JMP | BPF_EXIT:
++			/* Structurized CFG: BPF_EXIT is NOT a terminator.
++			 * Mark all active lanes as done and clear EXEC.
++			 * Actual exit handling (retval store, pkt_cache,
++			 * PASS block, s_endpgm) is in the unified
++			 * fallthrough EXIT at the end of the stream.
++			 * This follows the LLVM StructurizeCFG model where
++			 * all lanes must reach the single exit point.
++			 */
++			knod_emit(priv, meta, s_or_b64,
++				  knod_prog->done_mask_sreg,
++				  knod_prog->done_mask_sreg,
++				  AMDGCN_SREG_EXEC_LO);
++
++			knod_emit(priv, meta, s_mov_b64, AMDGCN_SREG_EXEC_LO,
++				  AMDGCN_SREG_INTEGER_0);
++			break;
++		case BPF_ALU | BPF_END | BPF_TO_BE: {
++			struct amdgcn_param32 v_dst_lo, v_dst_hi, v_tmp, s_sel;
++
++			knod_vset32(&v_dst_lo, d * 2);
++			knod_vset32(&v_dst_hi, d * 2 + 1);
++			knod_vset32(&v_tmp, KNOD_AMDGPU_TMP_VREG0_LO);
++			knod_sset32(&s_sel, KNOD_AMDGPU_TMP_SREG0_LO);
++
++			switch (imm) {
++			case 16:
++				/* bswap16+zext: {0,0,byte0,byte1} */
++				knod_iset32(&param[0], 0x0C0C0001);
++				knod_emit(priv, meta, s_mov_b32, s_sel,
++					  param[0]);
++
++				knod_emit(priv, meta, v_perm_b32, v_dst_lo,
++					  v_dst_lo, v_dst_lo, s_sel);
++
++				knod_iset32(&param[0], 0);
++				knod_emit(priv, meta, v_mov_b32_e32, v_dst_hi,
++					  param[0]);
++				break;
++			case 32:
++				/* bswap32+zext */
++				knod_iset32(&param[0], 0x00010203);
++				knod_emit(priv, meta, s_mov_b32, s_sel,
++					  param[0]);
++
++				knod_emit(priv, meta, v_perm_b32, v_dst_lo,
++					  v_dst_lo, v_dst_lo, s_sel);
++
++				knod_iset32(&param[0], 0);
++				knod_emit(priv, meta, v_mov_b32_e32, v_dst_hi,
++					  param[0]);
++				break;
++			case 64: {
++				struct amdgcn_param32 v_src_hi;
++
++				knod_vset32(&v_src_hi, d * 2 + 1);
++
++				/* bswap32 selector */
++				knod_iset32(&param[0], 0x00010203);
++				knod_emit(priv, meta, s_mov_b32, s_sel,
++					  param[0]);
++
++				/* tmp = bswap32(lo) */
++				knod_emit(priv, meta, v_perm_b32, v_tmp,
++					  v_dst_lo, v_dst_lo, s_sel);
++
++				/* new_lo = bswap32(hi) */
++				knod_emit(priv, meta, v_perm_b32, v_dst_lo,
++					  v_src_hi, v_src_hi, s_sel);
++
++				/* new_hi = tmp (bswap32(old_lo)) */
++				knod_emit(priv, meta, v_mov_b32_e32, v_dst_hi,
++					  v_tmp);
++				break;
++			}
++			default:
++				WARN_ON_ONCE(1);
++				break;
++			}
++			break;
++		}
++		case BPF_ALU | BPF_END | BPF_TO_LE: {
++			struct amdgcn_param32 v_dst_lo, v_dst_hi;
++
++			knod_vset32(&v_dst_lo, d * 2);
++			knod_vset32(&v_dst_hi, d * 2 + 1);
++
++			switch (imm) {
++			case 16:
++				knod_iset32(&param[0], 0xFFFF);
++				knod_emit(priv, meta, v_and_b32_e32, v_dst_lo,
++					  param[0], v_dst_lo);
++
++				knod_iset32(&param[0], 0);
++				knod_emit(priv, meta, v_mov_b32_e32, v_dst_hi,
++					  param[0]);
++				break;
++			case 32:
++				knod_iset32(&param[0], 0);
++				knod_emit(priv, meta, v_mov_b32_e32, v_dst_hi,
++					  param[0]);
++				break;
++			case 64:
++				break;
++			default:
++				WARN_ON_ONCE(1);
++				break;
++			}
++			break;
++		}
++		default:
++			WARN_ON_ONCE(1);
++			break;
++		}
++
++		WARN_ON(meta->amdgpu_insns >= KNOD_META_INSNS);
++		for (i = 0; i < meta->amdgpu_insns; i++)
++			insn_idx += (meta->amdgpu_insn[i].size / 4);
++	}
++
++	/* Fallthrough EXIT: publish a verdict for every in-bounds lane.
++	 * Lanes that did not reach BPF_EXIT are forced to XDP_DROP below.
++	 */
++	meta = kzalloc(sizeof(*meta), GFP_KERNEL);
++	if (!meta)
++		return -ENOMEM;
++	list_add_tail(&meta->l, &knod_prog->post_insns);
++
++	/* Any in-bounds lane outside done_mask gets a conservative DROP
++	 * verdict instead of publishing stale VGPR state or leaving the
++	 * recycle-time poison in bd->act.
++	 */
++	knod_emit(priv, meta, s_andn2_b64, AMDGCN_SREG_EXEC_LO,
++		  knod_prog->initial_exec_sreg, knod_prog->done_mask_sreg);
++	knod_vset32(&p[0], KNOD_AMDGPU_VREG0_LO);
++	knod_iset32(&p[1], XDP_DROP);
++	knod_emit(priv, meta, v_mov_b32_e32, p[0], p[1]);
++
++	/* Store bd->act for every lane that participated in this dispatch.
++	 * Done lanes retain their low32 action in v0; unfinished lanes publish
++	 * the fallback DROP written above.
++	 */
++	knod_emit(priv, meta, s_mov_b64, AMDGCN_SREG_EXEC_LO,
++		  knod_prog->initial_exec_sreg);
++
++	/* BPF/XDP verdicts are low32; do not spend a second GTT dword per
++	 * packet.
++	 */
++	knod_vset32(&p[0], KNOD_AMDGPU_VREG0_LO);
++	knod_vset32(&p[1], KNOD_AMDGPU_SLOT_VREG_LO);
++	knod_emit(priv, meta, global_store_dword, p[0], p[1],
++		  offsetof(struct spsc_bd, act));
++
++	if (knod_prog->uses_adjust)
++		knod_bpf_emit_offlen_writeback(priv, meta);
++
++	/* pkt_cache writeback: flush modified packet data back to VRAM */
++	if (knod_bpf_pkt_cache) {
++		knod_vset32(&p[0], r32[0].v);
++		knod_vset32(&p[1],
++					 KNOD_AMDGPU_DATA_VREG_LO);
++		knod_emit(priv, meta, v_mov_b32_e32, p[0], p[1]);
++		knod_vset32(&p[0], r32[0].v + 1);
++		knod_vset32(&p[1],
++					 KNOD_AMDGPU_DATA_VREG_HI);
++		knod_emit(priv, meta, v_mov_b32_e32, p[0], p[1]);
++
++		knod_global_store_size_cache(priv, meta,
++					     &pkt_cache[0],
++					     r32[0],
++					     0, /* dst index */
++					     0, /* start offset */
++					     knod_prog->max_packet_off);
++	}
++
++	/* XDP_PASS detection */
++	knod_iset32(&p[0], XDP_PASS);
++	knod_vset32(&p[1], KNOD_AMDGPU_VREG0_LO);
++	knod_emit(priv, meta, v_cmp_eq_u32, p[0], p[1]);
++
++	pass_branch_idx = meta->amdgpu_insns;
++	knod_emit(priv, meta, s_cbranch_vccz, 0);
++
++	/* EXEC &= VCC (only PASS lanes) */
++	knod_emit(priv, meta, s_and_b64, AMDGCN_SREG_EXEC_LO,
++		  AMDGCN_SREG_EXEC_LO, AMDGCN_SREG_VCC_LO);
++
++	/* v_mov param addr to VGPR pair */
++	knod_vset32(&p[0], KNOD_AMDGPU_TMP_VREG9_LO);
++	knod_sset32(&p[1], KNOD_AMDGPU_PARAM_SREG_LO);
++	knod_emit(priv, meta, v_mov_b32_e32, p[0], p[1]);
++
++	knod_vset32(&p[0], KNOD_AMDGPU_TMP_VREG9_HI);
++	knod_sset32(&p[1], KNOD_AMDGPU_PARAM_SREG_HI);
++	knod_emit(priv, meta, v_mov_b32_e32, p[0], p[1]);
++
++	/* Per-queue pass_count: offset TMP_VREG9 by queue_idx * 4 */
++	/* v_mov_b32 v2, s15 (queue_idx -> VGPR) */
++	knod_vset32(&p[0], KNOD_AMDGPU_VREG1_LO);
++	knod_sset32(&p[1],
++				 KNOD_AMDGPU_WORKGROUP_ID_Y_SREG);
++	knod_emit(priv, meta, v_mov_b32_e32, p[0], p[1]);
++
++	/* v_lshlrev_b32 v2, 2, v2 (queue_idx * 4) */
++	knod_vset32(&p[0], KNOD_AMDGPU_VREG1_LO);
++	knod_iset32(&p[1], 2);
++	knod_vset32(&p[2], KNOD_AMDGPU_VREG1_LO);
++	knod_emit(priv, meta, v_lshlrev_b32, p[0], p[1], p[2]);
++
++	/* v_add_u32 v40, v2, v40 (param_addr_lo += queue_idx * 4) */
++	knod_vset32(&p[0], KNOD_AMDGPU_TMP_VREG9_LO);
++	knod_vset32(&p[1], KNOD_AMDGPU_VREG1_LO);
++	knod_vset32(&p[2], KNOD_AMDGPU_TMP_VREG9_LO);
++	knod_emit(priv, meta, v_add_u32, p[0], p[1], p[2]);
++
++	/* v_mov TMP10_LO, 1 */
++	knod_vset32(&p[0], KNOD_AMDGPU_TMP_VREG10_LO);
++	knod_iset32(&p[1], 1);
++	knod_emit(priv, meta, v_mov_b32_e32, p[0], p[1]);
++
++	/* global_atomic_add TMP10_LO, TMP9, TMP10_LO,
++	 *                   offsetof(pass_count)
++	 * GLC=1 to receive old_val in vdst (needed for per-lane slot
++	 * index).  With GLC=0 vdst is NOT written, leaving TMP10_LO
++	 * as the addend (1) -- every PASS lane then computes slot=1
++	 * and races on the same pass_meta_buf entry, leaving slot 0 empty.
++	 */
++	knod_vset32(&p[0], KNOD_AMDGPU_TMP_VREG10_LO);
++	knod_vset32(&p[1], KNOD_AMDGPU_TMP_VREG9_LO);
++	knod_vset32(&p[2], KNOD_AMDGPU_TMP_VREG10_LO);
++	knod_emit(priv, meta, global_atomic_add, p[0], p[1], p[2],
++		  offsetof(struct knod_bpf_param, pass_count), 1);
++
++	/* s_waitcnt vmcnt(0) */
++	knod_emit(priv, meta, s_waitcnt_vmcnt);
++
++	/* v_sub_u32 v40, v40, v2 (restore param_addr_lo) */
++	knod_vset32(&p[0], KNOD_AMDGPU_TMP_VREG9_LO);
++	knod_vset32(&p[1], KNOD_AMDGPU_TMP_VREG9_LO);
++	knod_vset32(&p[2], KNOD_AMDGPU_VREG1_LO);
++	knod_emit(priv, meta, v_sub_u32, p[0], p[1], p[2]);
++
++	/* old_val * 2 */
++	knod_vset32(&p[0], KNOD_AMDGPU_TMP_VREG10_LO);
++	knod_iset32(&p[1], 1);
++	knod_vset32(&p[2], KNOD_AMDGPU_TMP_VREG10_LO);
++	knod_emit(priv, meta, v_lshlrev_b32, p[0], p[1], p[2]);
++
++	/* addr_lo += old_val * 2 */
++	knod_vset32(&p[0], KNOD_AMDGPU_TMP_VREG9_LO);
++	knod_vset32(&p[1], KNOD_AMDGPU_TMP_VREG10_LO);
++	knod_vset32(&p[2], KNOD_AMDGPU_TMP_VREG9_LO);
++	knod_emit(priv, meta, v_add_u32, p[0], p[1], p[2]);
++
++	/* global_store_short pass_indices[old_val],
++	 *                    BACKLOG_IDX_VREG
++	 * dst=data, src=addr in wrapper convention
++	 */
++	knod_vset32(&p[0],
++				 KNOD_AMDGPU_BACKLOG_IDX_VREG);
++	knod_vset32(&p[1], KNOD_AMDGPU_TMP_VREG9_LO);
++	knod_emit(priv, meta, global_store_short, p[0], p[1],
++		  offsetof(struct knod_bpf_param, pass_indices));
++
++	/* Copy PASS packet data (shader mode) or store src addr (SDMA mode) */
++	knod_emit_pass_addr_store(priv, meta);
++
++	/* Patch branch offset */
++	pass_dwords = 0;
++
++	for (j = pass_branch_idx + 1; j < meta->amdgpu_insns; j++)
++		pass_dwords += meta->amdgpu_insn[j].size / 4;
++	emit_s_cbranch_vccz(priv->isa_version,
++			    &meta->amdgpu_insn[pass_branch_idx],
++			    pass_dwords);
++
++	knod_emit(priv, meta, s_endpgm);
++
++	for (j = 0; j < meta->amdgpu_insns; j++)
++		insn_idx += meta->amdgpu_insn[j].size / 4;
++
++	if (priv->isa_version == 10) {
++		if (insn_idx % 256) {
++			meta = kzalloc_obj(*meta, GFP_KERNEL);
++			if (!meta)
++				return -ENOMEM;
++			list_add_tail(&meta->l, &knod_prog->post_insns);
++		}
++
++		while (insn_idx % 256) {
++			if (meta->amdgpu_insns >= KNOD_META_INSNS) {
++				meta = kzalloc_obj(*meta, GFP_KERNEL);
++				if (!meta)
++					return -ENOMEM;
++				list_add_tail(&meta->l, &knod_prog->post_insns);
++			}
++			knod_emit(priv, meta, s_code_end);
++			insn_idx +=
++				meta->amdgpu_insn[meta->amdgpu_insns - 1].size /
++				4;
++		}
++	}
++
++	return 0;
++}
++
++static int knod_bpf_translate(struct bpf_prog *prog)
++{
++	struct knod_prog *knod_prog = prog->aux->offload->dev_priv;
++	struct knod_dev *knodev = knod_prog->knodev;
++	int ret;
++
++	knod_bpf_map_setup(prog);
++	ret = knod_bpf_jit(knodev, knod_prog);
++	if (ret < 0) {
++		pr_err("knod: failed to JIT: %d\n", ret);
++		return ret;
++	}
++
++	knod_setup_bpf_prog(prog);
++
++	return 0;
++}
++
++static void knod_bpf_destroy_prog(struct bpf_prog *prog)
++{
++	struct knod_prog *knod_prog = prog->aux->offload->dev_priv;
++	struct knod_dev *knodev = knod_prog->knodev;
++	struct knod_bpf_priv *priv = knodev->accel->xdp.priv;
++
++	/*
++	 * Normally the prog was already uninstalled (offload with a NULL prog
++	 * flipped back to pass).  Guard the abnormal path where the prog is
++	 * freed while still tracked: flip to pass first so the worker stops
++	 * dispatching this code.  The compiled code lives in a kernel slot and
++	 * is no longer read once we flip away; knod_prog is CPU-only IR the GPU
++	 * never touches, so it is safe to free synchronously.
++	 */
++	if (priv && READ_ONCE(priv->prog) == prog) {
++		WRITE_ONCE(priv->prog, NULL);
++		knod_bpf_reload_pass(knodev);
++	}
++	knod_prog_free(knod_prog);
++}
++
++static const struct bpf_prog_offload_ops knod_bpf_dev_ops = {
++	.insn_hook      = knod_bpf_verify_insn,
++	.finalize       = knod_bpf_finalize,
++	.prepare        = knod_bpf_verifier_prep,
++	.translate      = knod_bpf_translate,
++	.destroy        = knod_bpf_destroy_prog,
++};
++
++static int knod_bpf_setup_prog_hw_checks(struct knod_dev *knodev,
++					 struct netdev_bpf *bpf)
++{
++	if (!bpf->prog)
++		return 0;
++
++	return 0;
++}
++
++static int knod_bpf_map_get_next_key(struct bpf_offloaded_map *offmap,
++				     void *key, void *next_key)
++{
++	unsigned int *nkey = (unsigned int *)next_key;
++	unsigned int *_key = (unsigned int *)key;
++
++	if (offmap->map.map_type == BPF_MAP_TYPE_ARRAY ||
++	    offmap->map.map_type == BPF_MAP_TYPE_PERCPU_ARRAY) {
++		if (key == NULL)
++			*nkey = 0;
++		else
++			*nkey = (*_key) + 1;
++
++		if (*nkey >= offmap->map.max_entries)
++			return -ENOENT;
++	} else if (offmap->map.map_type == BPF_MAP_TYPE_HASH) {
++		if (key == NULL)
++			return knod_bpf_map_hash_get_first_key(offmap,
++							       next_key);
++		else
++			return knod_bpf_map_hash_get_next_key(offmap, key,
++							      nkey);
++	}
++
++	return 0;
++}
++
++static int knod_bpf_map_lookup_elem(struct bpf_offloaded_map *offmap,
++				       void *key, void *value)
++{
++	return __knod_bpf_map_lookup_elem(offmap, key, value);
++}
++
++static int knod_bpf_map_update_elem(struct bpf_offloaded_map *offmap,
++				    void *key, void *value, u64 flags)
++{
++	return __knod_bpf_map_update_elem(offmap, key, value, flags);
++}
++
++static int knod_bpf_map_delete_elem(struct bpf_offloaded_map *offmap, void *key)
++{
++	return __knod_bpf_map_delete_elem(offmap, key);
++}
++
++static const struct bpf_map_dev_ops knod_bpf_map_ops = {
++	.map_get_next_key       = knod_bpf_map_get_next_key,
++	.map_lookup_elem        = knod_bpf_map_lookup_elem,
++	.map_update_elem        = knod_bpf_map_update_elem,
++	.map_delete_elem        = knod_bpf_map_delete_elem,
++};
++
++static int knod_bpf_map_alloc(struct knod_dev *knodev,
++			      struct bpf_offloaded_map *offmap)
++{
++	int err;
++
++	if (offmap->map.map_type != BPF_MAP_TYPE_ARRAY &&
++	    offmap->map.map_type != BPF_MAP_TYPE_HASH &&
++	    offmap->map.map_type != BPF_MAP_TYPE_PERCPU_ARRAY) {
++		knod_jit_dbg(" unsupported map type: %d\n",
++			offmap->map.map_type);
++		return -EOPNOTSUPP;
++	}
++
++	err = __knod_bpf_map_alloc(knodev, offmap);
++	if (err) {
++		knod_jit_dbg(" err = %d\n", err);
++		return err;
++	}
++
++	offmap->dev_ops = &knod_bpf_map_ops;
++	return 0;
++}
++
++static int knod_bpf_xdp_install(struct knod_dev *knodev,
++				struct netdev_bpf *bpf)
++{
++	int err = 0;
++
++	ASSERT_RTNL();
++
++	switch (bpf->command) {
++	case XDP_SETUP_PROG:
++		WARN_ON_ONCE(1);
 +		break;
-+	case AMDGCN_INSN_TYPE_SOPK:
-+		gfx9_debugfs_sopk(&insn->gfx9, m);
++	case XDP_SETUP_PROG_HW:
++		err = knod_bpf_setup_prog_hw_checks(knodev, bpf);
++		if (err)
++			return err;
++
++		err = knod_bpf_xdp_set_prog(knodev, bpf);
 +		break;
-+	case AMDGCN_INSN_TYPE_SOP1:
-+		gfx9_debugfs_sop1(&insn->gfx9, m);
++	case BPF_OFFLOAD_MAP_ALLOC:
++		err = knod_bpf_map_alloc(knodev, bpf->offmap);
 +		break;
-+	case AMDGCN_INSN_TYPE_SOPC:
-+		gfx9_debugfs_sopc(&insn->gfx9, m);
-+		break;
-+	case AMDGCN_INSN_TYPE_SOPP:
-+		gfx9_debugfs_sopp(&insn->gfx9, m);
-+		break;
-+	case AMDGCN_INSN_TYPE_SMEM:
-+		gfx9_debugfs_smem(&insn->gfx9, m);
-+		break;
-+	case AMDGCN_INSN_TYPE_VOP2:
-+		gfx9_debugfs_vop2(&insn->gfx9, m);
-+		break;
-+	case AMDGCN_INSN_TYPE_VOP1:
-+		gfx9_debugfs_vop1(&insn->gfx9, m);
-+		break;
-+	case AMDGCN_INSN_TYPE_VOPC:
-+		gfx9_debugfs_vopc(&insn->gfx9, m);
-+		break;
-+	case AMDGCN_INSN_TYPE_VOP3A:
-+		gfx9_debugfs_vop3a(&insn->gfx9, m);
-+		break;
-+	case AMDGCN_INSN_TYPE_VOP3B:
-+		gfx9_debugfs_vop3b(&insn->gfx9, m);
-+		break;
-+	case AMDGCN_INSN_TYPE_VOP3P:
-+		gfx9_debugfs_vop3p(&insn->gfx9, m);
-+		break;
-+	case AMDGCN_INSN_TYPE_SDWA:
-+		gfx9_debugfs_sdwa(&insn->gfx9, m);
-+		break;
-+	case AMDGCN_INSN_TYPE_SDWAB:
-+		gfx9_debugfs_sdwab(&insn->gfx9, m);
-+		break;
-+	case AMDGCN_INSN_TYPE_DPP16:
-+		gfx9_debugfs_dpp16(&insn->gfx9, m);
-+		break;
-+	case AMDGCN_INSN_TYPE_DPP8:
-+		gfx9_debugfs_dpp8(&insn->gfx9, m);
-+		break;
-+	case AMDGCN_INSN_TYPE_VINTRP:
-+		gfx9_debugfs_vintrp(&insn->gfx9, m);
-+		break;
-+	case AMDGCN_INSN_TYPE_DS:
-+		gfx9_debugfs_ds(&insn->gfx9, m);
-+		break;
-+	case AMDGCN_INSN_TYPE_MTBUF:
-+		gfx9_debugfs_mtbuf(&insn->gfx9, m);
-+		break;
-+	case AMDGCN_INSN_TYPE_MUBUF:
-+		gfx9_debugfs_mubuf(&insn->gfx9, m);
-+		break;
-+	case AMDGCN_INSN_TYPE_MIMG:
-+		gfx9_debugfs_mimg(&insn->gfx9, m);
-+		break;
-+	case AMDGCN_INSN_TYPE_FLAT:
-+		gfx9_debugfs_global(&insn->gfx9, m);
-+		break;
-+	case AMDGCN_INSN_TYPE_EXP:
-+		gfx9_debugfs_exp(&insn->gfx9, m);
++	case BPF_OFFLOAD_MAP_FREE:
++		knod_bpf_map_free(knodev, bpf->offmap);
 +		break;
 +	default:
-+		WARN_ON_ONCE(1);
++		knod_jit_dbg(" bpf->command = %d\n", bpf->command);
++		err = -EINVAL;
 +		break;
 +	}
++
++	return err;
 +}
 +
-+static inline void debugfs_insn(int version, struct amdgcn_insn *insn,
-+				struct seq_file *m)
++static inline int bpf_debugfs_insn(struct knod_bpf_priv *priv,
++				   struct knod_insn_meta *meta,
++				   struct seq_file *m,
++				   int insn_idx)
 +{
-+	if (version == 10)
++	struct amdgcn_insn *insn = &meta->amdgpu_insn[insn_idx];
++
++	if (priv->isa_version == 10)
 +		gfx10_debugfs_insn(insn, m);
-+	else if (version == 9)
++	else if (priv->isa_version == 9)
 +		gfx9_debugfs_insn(insn, m);
 +	else
 +		WARN_ON_ONCE(1);
++
++	return insn->size;
 +}
 +
 +/*
-+ * Recover instruction type + size from a raw machine-code word stream into a
-+ * struct amdgcn_insn, so code holding only the emitted u32 blob (the feature
-+ * shaders emit via the low-level emit_gfxN_* helpers straight into the GPU
-+ * code buffer, discarding type/size) can be fed to the shared disassembler
-+ * debugfs_insn() instead of a per-feature hand-rolled hex re-parser.
-+ *
-+ * This mirrors the proven encoding-detection that used to live in the
-+ * per-feature disassemblers. The checks are ordered widest
-+ * fixed-prefix first: SOPP/SOP1/SOPC (9-bit enc) before SOPK (4-bit) before
-+ * SOP2 (2-bit), and every bit31==1 class (VOP1/VOPC/SMEM/DS/FLAT/MUBUF/VOP3)
-+ * before the VOP2 (bit31==0) catch-all. Version-specific encodings: SMEM
-+ * (gfx9 0x30 / gfx10 0x3d), SOPC literal (gfx10 only) and VOP3 (gfx9 0x34 /
-+ * gfx10 0x35). size is in bytes (4/8/12) to match what emit_* stamps in.
++ * Print one disassembled GPU instruction at @offset, then drop the disasm's
++ * trailing newline and append @tag as a right-hand comment aligned to a fixed
++ * column (tabs expand to 8) so the origin lines up regardless of mnemonic
++ * width.  Returns the instruction size in dwords.
 + */
-+static inline void amdgcn_classify(int version, const u32 *code,
-+				   struct amdgcn_insn *out)
++static int bpf_debugfs_insn_tagged(struct knod_bpf_priv *priv,
++				   struct knod_insn_meta *meta,
++				   struct seq_file *m, int j,
++				   int offset, const char *tag)
 +{
-+	enum amdgcn_insn_type type;
-+	u32 w0 = code[0];
-+	bool is_b;
-+	u32 dwords;
-+	u32 enc;
-+	u32 op;
++	size_t col, p, line_start = m->count;
++	int sz;
 +
-+	enc = (w0 >> 23) & 0x1ff;
++	seq_printf(m, "%d:\t", offset);
++	sz = bpf_debugfs_insn(priv, meta, m, j);
++	if (seq_has_overflowed(m))
++		return sz;
 +
-+	if (enc == 0x17f) {				/* SOPP */
-+		type = AMDGCN_INSN_TYPE_SOPP;
-+		dwords = 1;
-+	} else if (enc == 0x17d) {			/* SOP1 */
-+		type = AMDGCN_INSN_TYPE_SOP1;
-+		dwords = ((w0 & 0xff) == 0xff) ? 2 : 1;
-+	} else if (enc == 0x17e) {			/* SOPC */
-+		type = AMDGCN_INSN_TYPE_SOPC;
-+		dwords = (version == 10 &&
-+			  ((w0 & 0xff) == 0xff || ((w0 >> 8) & 0xff) == 0xff))
-+			 ? 2 : 1;
-+	} else if (((w0 >> 28) & 0xf) == 0xb) {		/* SOPK */
-+		type = AMDGCN_INSN_TYPE_SOPK;
-+		dwords = 1;
-+	} else if (((w0 >> 30) & 0x3) == 0x2) {		/* SOP2 */
-+		type = AMDGCN_INSN_TYPE_SOP2;
-+		dwords = ((w0 & 0xff) == 0xff ||
-+			  ((w0 >> 8) & 0xff) == 0xff) ? 2 : 1;
-+	} else if (((w0 >> 26) & 0x3f) ==
-+		   (version == 10 ? 0x3d : 0x30)) {	/* SMEM */
-+		type = AMDGCN_INSN_TYPE_SMEM;
-+		dwords = 2;
-+	} else if (((w0 >> 25) & 0x7f) == 0x3f) {	/* VOP1 */
-+		type = AMDGCN_INSN_TYPE_VOP1;
-+		dwords = ((w0 & 0xff) == 0xff) ? 2 : 1;
-+	} else if (((w0 >> 25) & 0x7f) == 0x3e) {	/* VOPC */
-+		type = AMDGCN_INSN_TYPE_VOPC;
-+		dwords = 1;
-+	} else if (((w0 >> 26) & 0x3f) == 0x36) {	/* DS */
-+		type = AMDGCN_INSN_TYPE_DS;
-+		dwords = 2;
-+	/* FLAT/GLOBAL/SCRATCH */
-+	} else if (((w0 >> 26) & 0x3f) == 0x37) {
-+		type = AMDGCN_INSN_TYPE_FLAT;
-+		dwords = 2;
-+	} else if (((w0 >> 26) & 0x3f) == 0x38) {	/* MUBUF */
-+		type = AMDGCN_INSN_TYPE_MUBUF;
-+		dwords = 2;
-+	} else if (((w0 >> 26) & 0x3f) ==
-+		   (version == 10 ? 0x35 : 0x34)) {	/* VOP3A / VOP3B */
-+		op = (w0 >> 16) & 0x3ff;
-+		if (version == 10)
-+			is_b = (op == GFX10_V_ADD_CO_U32 ||
-+				op == GFX10_V_SUB_CO_U32 ||
-+				op == GFX10_V_SUBREV_CO_U32 ||
-+				op == GFX10_V_MAD_U64_U32 ||
-+				op == GFX10_V_MAD_I64_I32 ||
-+				op == GFX10_V_DIV_SCALE_F32 ||
-+				op == GFX10_V_DIV_SCALE_F64);
++	if (m->count > line_start && m->buf[m->count - 1] == '\n')
++		m->count--;
++	col = 0;
++	for (p = line_start; p < m->count; p++)
++		col = m->buf[p] == '\t' ? (col + 8) & ~(size_t)7 : col + 1;
++	while (col < 96) {
++		seq_putc(m, ' ');
++		col++;
++	}
++	seq_printf(m, " ; %s\n", tag);
++
++	return sz;
++}
++
++/*
++ * Print the instructions a second time, re-sorted into BPF source order so the
++ * dump reads like the program.  The offsets are the real (reordered) GPU
++ * offsets, so they appear out of sequence - that shows where the reorder
++ * placed each block.  Synthetic jumps have no BPF source insn and are last.
++ */
++static void bpf_insn_show_bpf_order(struct knod_bpf_priv *priv,
++				    struct seq_file *m)
++{
++	struct knod_insn_meta *meta;
++	int idx, max_idx = -1, off2, i;
++	bool synth_hdr = false;
++	char tag[24];
++
++	seq_puts(m, "===[INSTRUCTIONS (bpf order)]===\n");
++
++	list_for_each_entry(meta, &priv->knod_prog->insns, l)
++		if (meta->bpf_insn_idx > max_idx)
++			max_idx = meta->bpf_insn_idx;
++
++	for (idx = 0; idx <= max_idx; idx++) {
++		list_for_each_entry(meta, &priv->knod_prog->insns, l) {
++			if (meta->bpf_insn_idx != idx || !meta->amdgpu_insns)
++				continue;
++			scnprintf(tag, sizeof(tag), "bpf#%d", idx);
++			off2 = meta->amdgpu_insn_idx;
++			for (i = 0; i < meta->amdgpu_insns; i++)
++				off2 += bpf_debugfs_insn_tagged(priv, meta, m,
++								i, off2, tag);
++		}
++	}
++
++	list_for_each_entry(meta, &priv->knod_prog->insns, l) {
++		if (meta->bpf_insn_idx >= 0 || !meta->amdgpu_insns)
++			continue;
++		if (!synth_hdr) {
++			seq_puts(m, "  [synthetic jumps]\n");
++			synth_hdr = true;
++		}
++		scnprintf(tag, sizeof(tag), "synth JA->#%d",
++			  meta->jmp_dst ? meta->jmp_dst->bpf_insn_idx : -1);
++		off2 = meta->amdgpu_insn_idx;
++		for (i = 0; i < meta->amdgpu_insns; i++)
++			off2 += bpf_debugfs_insn_tagged(priv, meta, m,
++							i, off2, tag);
++	}
++}
++
++static int bpf_insn_show(struct seq_file *m, void *v)
++{
++	struct knod_bpf_priv *priv = (struct knod_bpf_priv *)m->private;
++	struct knod_insn_meta *meta;
++	struct knod_prog *kp;
++	int i, insn_idx = 0;
++	bool have_prog;
++
++	if (!priv)
++		return 0;
++
++	/*
++	 * Show the kernel the GPU actually dispatches: the XDP prog when one is
++	 * attached, otherwise the retained pass-through kernel.
++	 */
++	have_prog = READ_ONCE(priv->prog);
++	if (have_prog) {
++		kp = priv->knod_prog;
++	} else {
++		kp = priv->pass_knod_prog;
++		seq_puts(m, "no XDP prog attached -- pass-through kernel:\n");
++	}
++	if (!kp)
++		return 0;
++
++	seq_puts(m, "===[PROLOGUE]===\n");
++	list_for_each_entry(meta, &kp->pre_insns, l) {
++		for (i = 0; i < meta->amdgpu_insns; i++) {
++			seq_printf(m, "%d:\t", insn_idx);
++			insn_idx += bpf_debugfs_insn(priv, meta, m, i);
++		}
++	}
++
++	/* Emission (RPO) order - the actual GPU layout.  Each line is tagged
++	 * with its origin BPF insn since the reorder makes this differ from the
++	 * BPF byte order; synthetic jumps inserted by the reorder have none.
++	 */
++	seq_puts(m, "===[INSTRUCTIONS]===\n");
++	list_for_each_entry(meta, &kp->insns, l) {
++		char tag[24];
++
++		if (meta->bpf_insn_idx < 0)
++			scnprintf(tag, sizeof(tag), "synth JA->#%d",
++				  meta->jmp_dst ?
++				  meta->jmp_dst->bpf_insn_idx : -1);
 +		else
-+			is_b = (op == GFX9_V_MAD_U64_U32 ||
-+				op == GFX9_V_MAD_I64_I32 ||
-+				op == GFX9_V_DIV_SCALE_F64);
-+		type = is_b ? AMDGCN_INSN_TYPE_VOP3B : AMDGCN_INSN_TYPE_VOP3A;
-+		dwords = 2;
-+	} else if (((w0 >> 31) & 0x1) == 0) {		/* VOP2 */
-+		type = AMDGCN_INSN_TYPE_VOP2;
-+		dwords = ((w0 & 0xff) == 0xff) ? 2 : 1;
-+	} else {					/* unknown: 1 dword */
-+		type = AMDGCN_INSN_TYPE_SOPP;
-+		dwords = 1;
++			scnprintf(tag, sizeof(tag), "bpf#%d",
++				  meta->bpf_insn_idx);
++
++		for (i = 0; i < meta->amdgpu_insns; i++)
++			insn_idx += bpf_debugfs_insn_tagged(priv, meta, m, i,
++							    insn_idx, tag);
 +	}
 +
-+	memset(out, 0, sizeof(*out));
-+	out->type = type;
-+	out->size = dwords * 4;
-+	memcpy(&out->gfx10, code, dwords * 4);
++	seq_puts(m, "===[EPILOG]===\n");
++	list_for_each_entry(meta, &kp->post_insns, l) {
++		for (i = 0; i < meta->amdgpu_insns; i++) {
++			seq_printf(m, "%d:\t", insn_idx);
++			insn_idx += bpf_debugfs_insn(priv, meta, m, i);
++		}
++	}
++
++	if (have_prog)
++		bpf_insn_show_bpf_order(priv, m);
++
++	return 0;
++}
++
++static int bpf_insn_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, bpf_insn_show, inode->i_private);
++}
++
++static const struct file_operations bpf_insn_fops = {
++	.owner   = THIS_MODULE,
++	.open    = bpf_insn_open,
++	.read    = seq_read,
++	.llseek  = seq_lseek,
++	.release = single_release,
++};
++
++static const char *knod_branch_type_str(enum knod_branch_type type)
++{
++	switch (type) {
++	case KNOD_BR_NONE:		return "NONE";
++	case KNOD_BR_DIRECT_EXIT:	return "DIRECT_EXIT";
++	case KNOD_BR_FORWARD_SKIP:	return "FORWARD_SKIP";
++	case KNOD_BR_FORWARD_GOTO:	return "FORWARD_GOTO";
++	default:			return "UNKNOWN";
++	}
++}
++
++static int bpf_cfg_show(struct seq_file *m, void *v)
++{
++	struct knod_bpf_priv *priv = (struct knod_bpf_priv *)m->private;
++	struct knod_insn_meta *meta;
++
++	if (!priv || !priv->knod_prog)
++		return 0;
++
++	seq_puts(m, "===[STRUCTURIZED CFG]===\n");
++	seq_printf(m, "exec_save_pairs_used: %u\n",
++		   priv->knod_prog->exec_save_pairs_used);
++	seq_printf(m, "done_mask: s[%d:%d]\n",
++		   priv->knod_prog->done_mask_sreg,
++		   priv->knod_prog->done_mask_sreg + 1);
++	seq_printf(m, "initial_exec: s[%d:%d]\n",
++		   priv->knod_prog->initial_exec_sreg,
++		   priv->knod_prog->initial_exec_sreg + 1);
++	seq_puts(m, "\n");
++
++	seq_printf(m, "%-6s %-8s %-14s %-10s %-10s %-8s\n",
++		   "bpf#", "opcode", "branch_type", "exec_save", "merge_pt",
++		   "is_merge");
++
++	list_for_each_entry(meta, &priv->knod_prog->insns, l) {
++		bool is_jmp = is_mbpf_jmp(meta);
++
++		if (!is_jmp && !meta->is_merge_point)
++			continue;
++
++		seq_printf(m, "%-6d 0x%02x     ",
++			   meta->bpf_insn_idx, meta->insn.code);
++
++		if (meta->branch_type != KNOD_BR_NONE) {
++			seq_printf(m, "%-14s s[%d:%d]    ",
++				   knod_branch_type_str(meta->branch_type),
++				   meta->exec_save_sreg,
++				   meta->exec_save_sreg + 1);
++			if (meta->merge_point)
++				seq_printf(m, "%-10d ",
++					   meta->merge_point->bpf_insn_idx);
++			else
++				seq_printf(m, "%-10s ", "-");
++		} else if (is_jmp) {
++			seq_printf(m, "%-14s %-10s %-10s ",
++				   knod_branch_type_str(KNOD_BR_NONE),
++				   "-", "-");
++		} else {
++			seq_printf(m, "%-14s %-10s %-10s ",
++				   "", "", "");
++		}
++
++		if (meta->is_merge_point) {
++			struct knod_insn_meta *br;
++
++			seq_puts(m, "YES      restore:");
++			list_for_each_entry(br, &priv->knod_prog->insns, l) {
++				if ((br->branch_type == KNOD_BR_FORWARD_SKIP ||
++				     br->branch_type == KNOD_BR_FORWARD_GOTO) &&
++				    br->merge_point == meta)
++					seq_printf(m, " s[%d:%d](from bpf#%d)",
++						   br->exec_save_sreg,
++						   br->exec_save_sreg + 1,
++						   br->bpf_insn_idx);
++			}
++			seq_puts(m, "\n");
++		} else {
++			seq_puts(m, "\n");
++		}
++	}
++
++	/* Basic-block CFG from the reorder analysis (origin BPF order). */
++	if (priv->knod_prog->bbs) {
++		struct knod_bb *bbs = priv->knod_prog->bbs;
++		int nb = priv->knod_prog->n_bbs;
++		int k, s;
++
++		seq_printf(m, "\n[BASIC BLOCKS]  %d blocks, %d back-edge(s) -> %s\n",
++			   nb, priv->knod_prog->n_back,
++			   priv->knod_prog->n_back ? "HAS LOOP" : "DAG");
++
++		for (k = 0; k < nb; k++) {
++			struct knod_bb *bb = &bbs[k];
++
++			seq_printf(m, "BB%-3d bpf#%d..#%d  rpo=%d  idom=#%d  succ={",
++				   k, bb->leader->bpf_insn_idx,
++				   bb->last->bpf_insn_idx, bb->rpo,
++				   bb->idom ?
++				   bb->idom->leader->bpf_insn_idx : -1);
++			for (s = 0; s < bb->n_succ; s++)
++				seq_printf(m, "%s#%d", s ? "," : "",
++					   bb->succ[s]->leader->bpf_insn_idx);
++			seq_printf(m, "}%s\n",
++				   bb->loop_header ? "  LOOP_HDR" : "");
++		}
++	}
++
++	return 0;
++}
++
++DEFINE_SHOW_ATTRIBUTE(bpf_cfg);
++
++static int knod_stats_show(struct seq_file *s, void *unused)
++{
++	struct knod_bpf_priv *priv = s->private;
++	u64 p50 = 0, p99 = 0, p999 = 0, acc;
++	struct knod_bpf_stats *stats;
++	u64 ccnt, dcnt;
++	int i;
++
++	stats = &priv->stats;
++	ccnt = stats->completion_count;
++	dcnt = stats->dispatch_count;
++	seq_printf(s, "enabled:             %s\n",
++		   static_branch_unlikely(&knod_stats_key) ? "yes" : "no");
++
++	seq_puts(s, "\n--- dispatch ---\n");
++	seq_printf(s, "count:               %llu\n", dcnt);
++	seq_printf(s, "avg_ns:              %llu\n",
++		   dcnt ? stats->dispatch_total_ns / dcnt : 0);
++	seq_printf(s, "max_ns:              %llu\n", stats->dispatch_max_ns);
++	seq_printf(s, "backlogs_avg:        %llu\n",
++		   dcnt ? stats->backlogs_total / dcnt : 0);
++
++	seq_puts(s, "\nbacklogs histogram:\n");
++	for (i = 0; i < KNOD_BL_BUCKETS; i++)
++		seq_printf(s, "  %-10s %llu\n",
++			   bl_labels[i], stats->backlogs_hist[i]);
++
++	seq_puts(s, "\n--- completion ---\n");
++	seq_printf(s, "count:               %llu\n", ccnt);
++	seq_printf(s, "avg_ns:              %llu\n",
++		   ccnt ? stats->completion_total_ns / ccnt : 0);
++	seq_printf(s, "max_ns:              %llu\n",
++		   stats->completion_max_ns);
++
++	seq_puts(s, "\nlatency histogram:\n");
++	for (i = 0; i < KNOD_LAT_BUCKETS; i++)
++		seq_printf(s, "  %-10s %llu\n",
++			   lat_labels[i], stats->completion_hist[i]);
++
++	if (ccnt) {
++		acc = 0;
++		for (i = 0; i < KNOD_LAT_BUCKETS; i++) {
++			acc += stats->completion_hist[i];
++			if (!p50 && acc * 1000 >= ccnt * 500)
++				p50 = i;
++			if (!p99 && acc * 1000 >= ccnt * 990)
++				p99 = i;
++			if (!p999 && acc * 1000 >= ccnt * 999)
++				p999 = i;
++		}
++		seq_printf(s, "\np50:  %s\n", lat_labels[p50]);
++		seq_printf(s, "p99:  %s\n", lat_labels[p99]);
++		seq_printf(s, "p999: %s\n", lat_labels[p999]);
++	}
++
++	seq_puts(s, "\n--- decode_act ---\n");
++	seq_printf(s, "count:               %llu\n", stats->decode_act_count);
++	seq_printf(s, "avg_ns:              %llu\n",
++		   stats->decode_act_count ?
++		   stats->decode_act_total_ns / stats->decode_act_count : 0);
++	seq_printf(s, "max_ns:              %llu\n", stats->decode_act_max_ns);
++
++	return 0;
++}
++
++DEFINE_SHOW_ATTRIBUTE(knod_stats);
++
++static ssize_t knod_stats_enable_write(struct file *file,
++				       const char __user *buf,
++				       size_t count, loff_t *ppos)
++{
++	bool val;
++
++	if (kstrtobool_from_user(buf, count, &val))
++		return -EINVAL;
++
++	if (val)
++		static_branch_enable(&knod_stats_key);
++	else
++		static_branch_disable(&knod_stats_key);
++
++	return count;
++}
++
++static ssize_t knod_stats_enable_read(struct file *file,
++				      char __user *buf,
++				      size_t count, loff_t *ppos)
++{
++	char tmp[4];
++	int len;
++
++	len = scnprintf(tmp, sizeof(tmp), "%d\n",
++			static_branch_unlikely(&knod_stats_key) ? 1 : 0);
++
++	return simple_read_from_buffer(buf, count, ppos, tmp, len);
++}
++
++static const struct file_operations knod_stats_enable_fops = {
++	.owner = THIS_MODULE,
++	.read  = knod_stats_enable_read,
++	.write = knod_stats_enable_write,
++};
++
++static ssize_t knod_stats_reset_write(struct file *file,
++		const char __user *buf,
++		size_t count, loff_t *ppos)
++{
++	struct knod_bpf_priv *priv = file->private_data;
++
++	memset(&priv->stats, 0, sizeof(priv->stats));
++	return count;
++}
++
++static const struct file_operations knod_stats_reset_fops = {
++	.owner = THIS_MODULE,
++	.open  = simple_open,
++	.write = knod_stats_reset_write,
++};
++
++static int knod_debugfs_init(struct knod_bpf_priv *priv)
++{
++	struct dentry *dir = priv->knod->debug_dir;
++	struct dentry *bpf_dir;
++
++	if (!dir)
++		return -ENOENT;
++
++	bpf_dir = debugfs_create_dir("bpf", dir);
++	if (IS_ERR(bpf_dir))
++		return PTR_ERR(bpf_dir);
++
++	priv->debug_dir = bpf_dir;
++
++	debugfs_create_file("insn", 0644,
++			    bpf_dir, priv, &bpf_insn_fops);
++	debugfs_create_file("cfg", 0444, bpf_dir, priv,
++			    &bpf_cfg_fops);
++	debugfs_create_file("stats", 0444, bpf_dir, priv,
++			    &knod_stats_fops);
++	debugfs_create_file("stats_enable", 0644, bpf_dir, priv,
++			    &knod_stats_enable_fops);
++	debugfs_create_file("stats_reset", 0200, bpf_dir, priv,
++			    &knod_stats_reset_fops);
++	debugfs_create_bool("poll_mode", 0644, bpf_dir, &knod_bpf_poll_mode);
++	debugfs_create_u32("dispatch_delay_us", 0644, bpf_dir,
++			   &knod_bpf_dispatch_delay_us);
++
++	return 0;
++}
++
++static void knod_debugfs_cleanup(struct knod_bpf_priv *priv)
++{
++	if (!priv->debug_dir)
++		return;
++
++	debugfs_remove_recursive(priv->debug_dir);
++	priv->debug_dir = NULL;
++}
++
++/* Called when attached or module loading time */
++/* attach: allocate the permanent per-attach priv struct. */
++static int knod_accel_xdp_init(struct knod_dev *knodev)
++{
++	struct knod_accel *accel = knodev->accel;
++	struct knod_bpf_priv *priv;
++
++	priv = __knod_accel_xdp_init(accel, knodev);
++	if (IS_ERR(priv))
++		return PTR_ERR(priv);
++	return 0;
++}
++
++/* detach: free the permanent priv struct. */
++static void knod_accel_xdp_exit(struct knod_dev *knodev)
++{
++	struct knod_accel *accel = knodev->accel;
++	struct knod_bpf_priv *priv = accel->xdp.priv;
++
++	__knod_accel_xdp_exit(accel, priv);
 +}
 +
 +/*
-+ * Drop-in replacement for the old per-feature hex re-parsers: classify
-+ * one raw instruction at @code, print it through the
-+ * shared (complete-opnames) disassembler, and return the number of dwords
-+ * consumed so the caller can advance. @max_dwords guards against reading a
-+ * second dword past the end of the buffer.
++ * Feature select, phase B: register the BPF offload device so user XDP
++ * progs/maps can bind to it.  Called after ->activate() set up the GPU
++ * buffers, while xdp_ops already points at the BPF ops.
 + */
-+static inline int amdgcn_disasm_raw(int version, const u32 *code,
-+				    int max_dwords, struct seq_file *m)
++static int knod_bpf_offload_init(struct knod_dev *knodev)
 +{
-+	struct amdgcn_insn insn;
++	struct knod_accel *accel = knodev->accel;
++	struct knod_bpf_priv *priv = accel->xdp.priv;
++	struct bpf_offload_dev *bpf_dev;
++	int err;
 +
-+	if (max_dwords <= 0)
-+		return 1;
-+	amdgcn_classify(version, code, &insn);
-+	if ((int)(insn.size / 4) > max_dwords) {
-+		seq_printf(m, "%.8X\t\t\t(truncated)\n", code[0]);
-+		return 1;
++	bpf_dev = bpf_offload_dev_create(&knod_bpf_dev_ops, priv);
++	err = PTR_ERR_OR_ZERO(bpf_dev);
++	if (err)
++		return err;
++	err = bpf_offload_dev_netdev_register(bpf_dev, knodev->netdev);
++	if (err) {
++		bpf_offload_dev_destroy(bpf_dev);
++		return err;
 +	}
-+	debugfs_insn(version, &insn, m);
-+	return insn.size / 4;
++	knod_debugfs_init(priv);
++	accel->xdp.bpf_dev = bpf_dev;
++	return 0;
 +}
 +
++/*
++ * Feature deselect, phase 1: unregister the BPF offload device.  This
++ * force-frees any user XDP progs/maps still bound; the map-free ndo is
++ * routed back through accel_ops.xdp_ops->xdp_install, so the caller keeps
++ * xdp_ops pointed at the BPF ops until this returns.
++ */
++static void knod_bpf_offload_uninit(struct knod_dev *knodev)
++{
++	struct knod_accel *accel = knodev->accel;
++	struct knod_bpf_priv *priv = accel->xdp.priv;
 +
-+#endif
-diff --git a/drivers/gpu/drm/amd/amdkfd/knod/knod_gfx10_insn.h b/drivers/gpu/drm/amd/amdkfd/knod/knod_gfx10_insn.h
++	knod_debugfs_cleanup(priv);
++	bpf_offload_dev_netdev_unregister(accel->xdp.bpf_dev, knodev->netdev);
++	bpf_offload_dev_destroy(accel->xdp.bpf_dev);
++	accel->xdp.bpf_dev = NULL;
++}
++
++struct knod_accel_xdp_ops accel_xdp_ops = {
++	/* attach/detach: permanent priv struct */
++	.init = &knod_accel_xdp_init,
++	.exit = &knod_accel_xdp_exit,
++	/* feature select: GPU compute buffers (A) + offload dev (B) */
++	.activate = &knod_bpf_activate,
++	.deactivate = &knod_bpf_deactivate,
++	.busy = &knod_bpf_busy,
++	.xdp_offload_init = &knod_bpf_offload_init,
++	.xdp_offload_uninit = &knod_bpf_offload_uninit,
++	/* interface up/down (or feature switch): worker + GPU drain */
++	.start = &knod_bpf_start,
++	.stop = &knod_bpf_stop,
++	.xdp_install = &knod_bpf_xdp_install,
++};
++
++static int __init knod_bpf_init_module(void)
++{
++	pr_info("knod-bpf module load\n");
++
++	/* knod_accel_xdp_register() already calls xdp_ops->init() on every
++	 * registered accel, so a second per-accel init loop here would just
++	 * re-create the "bpf" debugfs dir ("already exists" warning) and leak
++	 * a duplicate offload dev.
++	 */
++	knod_dev_lock();
++	knod_accel_xdp_register(&accel_xdp_ops);
++	knod_dev_unlock();
++
++	return 0;
++}
++late_initcall(knod_bpf_init_module);
++
++static void __exit knod_bpf_cleanup_module(void)
++{
++	struct knod_bpf_priv *priv, *tmp;
++	struct knod_accel *accel;
++
++	rtnl_lock();
++	knod_dev_lock();
++	list_for_each_entry_safe(priv, tmp, &priv_list, list) {
++		accel = priv->accel;
++		if (accel->knodev)
++			accel_xdp_ops.exit(accel->knodev);
++	}
++	knod_accel_xdp_unregister();
++	knod_dev_unlock();
++	rtnl_unlock();
++	pr_info("knod-bpf module unload\n");
++}
++module_exit(knod_bpf_cleanup_module);
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Taehee Yoo <ap420073@gmail.com>");
++MODULE_DESCRIPTION("AMDGPU BPF offload backend");
++MODULE_VERSION("multi-aql");
+diff --git a/drivers/gpu/drm/amd/amdkfd/knod/knod_bpf.h b/drivers/gpu/drm/amd/amdkfd/knod/knod_bpf.h
 new file mode 100644
-index 000000000000..f2699adb6c7d
+index 000000000000..de6df06c4f2f
 --- /dev/null
-+++ b/drivers/gpu/drm/amd/amdkfd/knod/knod_gfx10_insn.h
-@@ -0,0 +1,3978 @@
++++ b/drivers/gpu/drm/amd/amdkfd/knod/knod_bpf.h
+@@ -0,0 +1,597 @@
 +/* SPDX-License-Identifier: GPL-2.0-or-later */
 +/* Copyright (c) 2021 Taehee Yoo <ap420073@gmail.com>
 + * Copyright (c) 2021 Hoyeon Lee <hoyeon.rhee@gmail.com>
 + */
 +
-+#ifndef KFD_AMDGPU_GFX10_INSN_H_INCLUDED
-+#define KFD_AMDGPU_GFX10_INSN_H_INCLUDED
++#ifndef KFD_BPF_H_INCLUDED
++#define KFD_BPF_H_INCLUDED
 +
-+#include "knod_amdgpu.h"
++#include <uapi/linux/bpf.h>
++#include <net/xdp.h>
++#include <net/netmem.h>
++#include <net/netlink.h>
++#include <net/page_pool/helpers.h>
++#include <net/ip.h>
++#include <net/net_namespace.h>
++#include <net/gro_cells.h>
++#include <net/rtnetlink.h>
++#include <net/protocol.h>
++#include <net/netns/generic.h>
++#include <net/xdp.h>
++#include <net/netdev_lock.h>
++#include <net/spsc_ring.h>
++#include <linux/bpf.h>
++#include <linux/bpf_verifier.h>
++#include <linux/kthread.h>
++#include <linux/sched.h>
++#include <linux/skbuff.h>
++#include <linux/net.h>
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/etherdevice.h>
++#include <linux/hash.h>
++#include <linux/netdevice.h>
++#include <linux/types.h>
++#include <linux/bpf.h>
++#include <linux/bpf_verifier.h>
++#include <linux/debugfs.h>
++#include <linux/kernel.h>
++#include <linux/mutex.h>
++#include <linux/rtnetlink.h>
++#include <linux/workqueue.h>
++#include <linux/ktime.h>
++#include <linux/static_key.h>
++#include "knod_amdgpu_insn.h"
++#include "../../../../../../net/core/devmem.h"
++#include "../amdgpu/amdgpu_vm.h"
++#include "knod_bpf.h"
++#include "kfd_knod.h"
 +
-+/* See knod_gfx9_insn.h for rationale on not including knod_amdgpu_insn.h */
++#define KNOD_BPF_BACKLOGS_MAX		65536
++#define KNOD_BPF_INFLIGHT		3	/* triple-buffered dispatches */
++#define KNOD_BPF_WORKGROUPS_DEFAULT     256
++#define KNOD_BPF_WORKGROUPS_MIN         64
++#define KNOD_BPF_WORKGROUPS_MAX         256
++#define KNOD_BPF_EXPIRE_DEFAULT		10
++#define KNOD_BPF_EXPIRE_MIN		1
++#define KNOD_BPF_EXPIRE_MAX		1000
++#define QUEUE_SIZE_DGPU			8192
++#define QUEUE_SIZE_IGPU			2048
++#define KNOD_MAX_BDS			(KNOD_BPF_BACKLOGS_MAX / KNOD_SPSC_MAX)
 +
-+#define GFX10_SRC_SGPR_BASE		0
-+#define GFX10_SRC_VCC_LO		106
-+#define GFX10_SRC_VCC_HI		107
-+#define GFX10_SRC_TTPM_BASE		108
-+#define GFX10_SRC_M0			124
-+#define GFX10_SRC_NULL			125
-+#define GFX10_SRC_EXEC_LO		126
-+#define GFX10_SRC_EXEC_HI		127
-+#define GFX10_SRC_INTEGER_0		128
-+#define GFX10_SRC_INTEGER_MINUS_1	193
-+#define GFX10_SRC_SHARED_BASE		235
-+#define GFX10_SRC_SHARED_LIMIT		236
-+#define GFX10_SRC_PRIVATE_BASE		237
-+#define GFX10_SRC_PRIVATE_LIMIT		238
-+#define GFX10_SRC_POPS_EXITING_WAVE_ID	239
-+#define GFX10_SRC_SDWA			249
-+#define GFX10_SRC_DDP16			250
-+#define GFX10_SRC_VCCZ			251
-+#define GFX10_SRC_EXECZ			252
-+#define GFX10_SRC_SCC			253
-+#define GFX10_SRC_LITERAL_CONST		255
-+#define GFX10_SRC_VGPR_BASE		256
++#define MAX_KEY_SIZE		64 /* 64Bytes */
++#define MAX_PACKET_CACHE	256 /* 256Bytes */
 +
-+static int gfx10_param_base[__AMDGCN_PARAM_TYPE_MAX] = {
-+	GFX10_SRC_SGPR_BASE,
-+	GFX10_SRC_VCC_LO,
-+	GFX10_SRC_VCC_HI,
-+	GFX10_SRC_TTPM_BASE,
-+	GFX10_SRC_M0,
-+	GFX10_SRC_NULL,
-+	GFX10_SRC_EXEC_LO,
-+	GFX10_SRC_EXEC_HI,
-+	GFX10_SRC_INTEGER_0,
-+	GFX10_SRC_INTEGER_MINUS_1,
-+	GFX10_SRC_SHARED_BASE,
-+	GFX10_SRC_SHARED_LIMIT,
-+	GFX10_SRC_PRIVATE_BASE,
-+	GFX10_SRC_PRIVATE_LIMIT,
-+	GFX10_SRC_POPS_EXITING_WAVE_ID,
-+	GFX10_SRC_SDWA,
-+	GFX10_SRC_DDP16,
-+	GFX10_SRC_VCCZ,
-+	GFX10_SRC_EXECZ,
-+	GFX10_SRC_SCC,
-+	GFX10_SRC_LITERAL_CONST,
-+	GFX10_SRC_VGPR_BASE,
++#define knod_prog_first_meta(knod_prog)					\
++	list_first_entry(&(knod_prog)->insns, struct knod_insn_meta, l)
++#define knod_prog_last_meta(knod_prog)					\
++	list_last_entry(&(knod_prog)->insns, struct knod_insn_meta, l)
++#define knod_prog_pre_last_meta(knod_prog)				\
++	list_last_entry(&(knod_prog)->pre_insns, struct knod_insn_meta, l)
++#define knod_meta_next(meta)     list_next_entry(meta, l)
++#define knod_meta_prev(meta)     list_prev_entry(meta, l)
++
++#define knod_for_each_insn_walk2(knod_prog, pos, next)			  \
++	for (pos = list_first_entry(&(knod_prog)->insns, typeof(*pos), l),\
++			next = list_next_entry(pos, l);			  \
++			&(knod_prog)->insns != &pos->l &&                 \
++			&(knod_prog)->insns != &next->l;                  \
++			pos = knod_meta_next(pos),                        \
++			next = knod_meta_next(pos))
++
++#define knod_for_each_insn_walk3(knod_prog, pos, next, next2)		  \
++	for (pos = list_first_entry(&(knod_prog)->insns, typeof(*pos), l),\
++			next = list_next_entry(pos, l),			  \
++			next2 = list_next_entry(next, l);		  \
++			&(knod_prog)->insns != &pos->l &&		  \
++			&(knod_prog)->insns != &next->l &&		  \
++			&(knod_prog)->insns != &next2->l;		  \
++			pos = knod_meta_next(pos),			  \
++			next = knod_meta_next(pos),			  \
++			next2 = knod_meta_next(next))
++
++struct xdp_md_obj {
++	u64 data;
++	u64 data_end;
++	u64 data_meta;
++	/* Below access go through struct xdp_rxq_info */
++	u64 ingress_ifindex; /* rxq->dev->ifindex */
++	u64 rx_queue_index;  /* rxq->queue_index  */
++
++	u64 egress_ifindex;  /* txq->dev->ifindex */
++	u64 retval;
 +};
 +
-+/* Scalar ALU and Control Format */
-+struct amdgcn_gfx10_sop2 {
-+	u32 ssrc0:8;
-+	u32 ssrc1:8;
-+	u32 sdst:7;
-+	u32 op:7;
-+	u32 encoding:2;
-+	u32 literal;
++struct knod_bpf_subparam_obj {
++	struct xdp_md_obj ctx;
 +};
 +
-+enum amdgcn_gfx10_sop2_opcode {
-+	GFX10_S_ADD_U32 = 0,
-+	GFX10_S_SUB_U32 = 1,
-+	GFX10_S_ADD_I32 = 2,
-+	GFX10_S_SUB_I32 = 3,
-+	GFX10_S_ADDC_U32 = 4,
-+	GFX10_S_SUBB_U32 = 5,
-+	GFX10_S_MIN_I32 = 6,
-+	GFX10_S_MIN_U32 = 7,
-+	GFX10_S_MAX_I32 = 8,
-+	GFX10_S_MAX_U32 = 9,
-+	GFX10_S_CSELECT_B32 = 10,
-+	GFX10_S_CELECT_B64 = 11,
-+	/* 12-13: reserved */
-+	GFX10_S_AND_B32 = 14,
-+	GFX10_S_AND_B64 = 15,
-+	GFX10_S_OR_B32 = 16,
-+	GFX10_S_OR_B64 = 17,
-+	GFX10_S_XOR_B32 = 18,
-+	GFX10_S_XOR_B64 = 19,
-+	GFX10_S_ANDN2_B32 = 20,
-+	GFX10_S_ANDN2_B64 = 21,
-+	GFX10_S_ORN2_B32 = 22,
-+	GFX10_S_ORN2_B64 = 23,
-+	GFX10_S_NAND_B32 = 24,
-+	GFX10_S_NAND_B64 = 25,
-+	GFX10_S_NOR_B32 = 26,
-+	GFX10_S_NOR_B64 = 27,
-+	GFX10_S_XNOR_B32 = 28,
-+	GFX10_S_XNOR_B64 = 29,
-+	GFX10_S_LSHL_B32 = 30,
-+	GFX10_S_LSHL_B64 = 31,
-+	GFX10_S_LSHR_B32 = 32,
-+	GFX10_S_LSHR_B64 = 33,
-+	GFX10_S_ASHR_I32 = 34,
-+	GFX10_S_ASHR_I64 = 35,
-+	GFX10_S_BFM_B32 = 36,
-+	GFX10_S_BFM_B64 = 37,
-+	GFX10_S_MUL_I32 = 38,
-+	GFX10_S_MUL_I64 = 39,
-+	GFX10_S_BFE_U32 = 40,
-+	GFX10_S_BFE_I32 = 41,
-+	GFX10_S_BFE_U64 = 42,
-+	GFX10_S_ABSDIFF_I32 = 44,
-+	GFX10_S_LSHL1_ADD_U32 = 46,
-+	GFX10_S_LSHL2_ADD_U32 = 47,
-+	GFX10_S_LSHL3_ADD_U32 = 48,
-+	GFX10_S_LSHL4_ADD_U32 = 49,
-+	GFX10_S_PACK_LL_B32_B16 = 50,
-+	GFX10_S_PACK_LH_B32_B16 = 51,
-+	GFX10_S_PACK_HH_B32_B16 = 52,
-+	GFX10_S_MUL_HI_U32 = 53,
-+	GFX10_S_MUL_HI_I32 = 54,
++#define KNOD_BPF_HASH_NEXT_END		0x7FFFFFFFU
++#define KNOD_BPF_HASH_NEXT_DELETED	0x80000000U
++#define KNOD_BPF_HASH_NEXT_MASK		0x7FFFFFFFU
++
++struct knod_bpf_hash_elem_obj {
++	unsigned int next;
++	unsigned char kv[];
 +};
 +
-+#define GFX10_SOP2_ENCODING			0x2
-+#define GFX10_SOP2_SSRC_SGPR_BASE		0
-+#define GFX10_SOP2_SSRC_VCC_LO			106
-+#define GFX10_SOP2_SSRC_VCC_HI			107
-+#define GFX10_SOP2_SSRC_TTPM_BASE		108
-+#define GFX10_SOP2_SSRC_M0			124
-+#define GFX10_SOP2_SSRC_NULL			125
-+#define GFX10_SOP2_SSRC_EXEC_LO			126
-+#define GFX10_SOP2_SSRC_EXEC_HI			127
-+#define GFX10_SOP2_SSRC_INTEGER_0		128
-+#define GFX10_SOP2_SSRC_INTEGER_MINUS_1		193
-+#define GFX10_SOP2_SSRC_SHARED_BASE		235
-+#define GFX10_SOP2_SSRC_SHARED_LIMIT		236
-+#define GFX10_SOP2_SSRC_PRIVATE_BASE		237
-+#define GFX10_SOP2_SSRC_PRIVATE_LIMIT		238
-+#define GFX10_SOP2_SSRC_POPS_EXITING_WAVE_ID	239
-+#define GFX10_SOP2_SSRC_VCCZ			251
-+#define GFX10_SOP2_SSRC_EXECZ			252
-+#define GFX10_SOP2_SSRC_SCC			253
-+/* SDST
-+ * Same codes as SSRC0, above except only codes 0-127 are valid.
++struct knod_bpf_map_hash_meta_obj {
++	unsigned int n_buckets;
++	unsigned int hashrnd;
++	unsigned int cur;
++	unsigned int elem_size;
++	void *q;
++	void *elems;
++	unsigned int gc_count;
++	void *gc_list;
++};
++
++struct knod_bpf_map_array_meta_obj {
++	u32 per_instance_size;	/* value_size * max_entries (one instance) */
++	u32 n_instances;	/* 1 for ARRAY, num_possible_cpus for PERCPU */
++};
++
++union knod_bpf_map_meta_obj {
++	struct knod_bpf_map_hash_meta_obj hmeta;
++	struct knod_bpf_map_array_meta_obj ameta;
++};
++
++struct knod_bpf_map_obj {
++	enum bpf_map_type map_type;
++	unsigned int key_size;
++	unsigned int value_size;
++	unsigned int max_entries;
++	unsigned int id;
++	unsigned long map_extra; /* any per-map-type extra fields */
++	unsigned int map_flags;
++	union knod_bpf_map_meta_obj meta;
++	int mutex;
++	unsigned char bucket[];
++};
++
++struct knod_bpf_map {
++	struct list_head list;
++	struct knod_mem *mem, *queue_mem, *hash_elems_mem, *gc_mem;
++	/* ptr to mem_k->kaddr */
++	struct knod_bpf_map_obj *knod_map_obj;
++	struct bpf_offloaded_map *offmap;
++	struct knod_bpf_priv *priv;
++};
++
++struct knod_bpf_queue_desc {
++	u64 pool_gaddr;		/* SPSC pool GTT address for this queue */
++	u64 base_gaddr;		/* dma-buf base address for this queue */
++	u32 count;		/* number of packets from this queue */
++	/* was start_idx; kept for global_load_dwordx4 layout */
++	u32 _pad;
++	u32 ring_start;		/* acquired cursor at peek time */
++	u32 ring_mask;		/* capacity - 1 */
++};
++
++struct knod_bpf_param {
++	u32 nr_backlogs;
++	u32 nr_queues;
++	u32 spsc_stride;
++	u32 _pad0;
++	u64 ktime_ns;		/* snapshot of ktime_get_ns() at dispatch */
++	u32 pass_count[KNOD_SPSC_MAX];	/* per-queue atomic XDP_PASS counter */
++	/* per-queue GTT pass_meta_buf GPU addr */
++	u64 pass_meta_buf_gaddr[KNOD_SPSC_MAX];
++	struct knod_bpf_queue_desc queues[KNOD_SPSC_MAX];
++	/* backlog indices of PASS packets */
++	u16 pass_indices[KNOD_BPF_BACKLOGS_MAX];
++	struct knod_bpf_subparam_obj sub[KNOD_BPF_BACKLOGS_MAX];
++};
++
++struct knod_packet {
++	union {
++		netmem_ref netmem;
++		void *kaddr;
++	};
++	u16 len;
++	u16 off;
++};
++
++/* Single Queue Worok */
++struct knod_bpf_work_sq {
++	struct list_head list;
++	struct knod_mem *param;
++	int queue_idx[KNOD_SPSC_MAX];
++	struct spsc_bd *bds[KNOD_BPF_BACKLOGS_MAX];
++	ktime_t dispatch_time;
++	s64 sigval;
++	unsigned long expire;
++	int backlogs;
++};
++
++struct knod_bpf_reg_state {
++	struct bpf_reg_state reg;
++	int stack_off;
++	int packet_off;
++	bool var_off;
++};
++
++/* Structurized CFG branch types */
++enum knod_branch_type {
++	KNOD_BR_NONE = 0,	/* not a branch */
++	/* backward jump to exit: inline retval + done_mask update */
++	KNOD_BR_DIRECT_EXIT,
++	KNOD_BR_FORWARD_SKIP,	/* forward jump: skip region via EXEC mask */
++	KNOD_BR_FORWARD_GOTO,	/* forward jump crossing other branch scopes */
++};
++
++#define KNOD_META_INSNS		1024
++#define AMDGPU_INSN_SKIP	-1
++struct knod_insn_meta {
++	struct bpf_insn insn;
++	short bpf_insn_idx;
++
++	struct amdgcn_insn amdgpu_insn[KNOD_META_INSNS];
++	u32 amdgpu_insn_idx;
++	u32 amdgpu_insns;
++
++	union {
++		/* pointer ops (ld/st/xadd) */
++		struct {
++			struct bpf_reg_state ptr;
++			struct bpf_insn *paired_st;
++			s16 ldst_gather_len;
++			bool ptr_not_const;
++			struct {
++				s16 range_start;
++				s16 range_end;
++				bool do_init;
++			} pkt_cache;
++			bool xadd_over_16bit;
++			bool xadd_maybe_16bit;
++		};
++		/* jump */
++		struct {
++			struct knod_insn_meta *jmp_dst;
++			bool jump_neg_op;
++			u32 num_insns_after_br; /* only for BPF-to-BPF calls */
++			/* structurized CFG */
++			enum knod_branch_type branch_type;
++			/* SGPR index for s_and_saveexec_b64 */
++			u8 exec_save_sreg;
++			/* where EXEC is restored */
++			struct knod_insn_meta *merge_point;
++		};
++		/* function calls */
++		struct {
++			u32 func_id;
++			struct bpf_reg_state arg1;
++			struct knod_bpf_reg_state arg2;
++		};
++		/* We are interested in range info for operands of ALU
++		 * operations. For example, shift amount, multiplicand and
++		 * multiplier etc.
++		 */
++		struct {
++			u64 umin_src;
++			u64 umax_src;
++			u64 umin_dst;
++			u64 umax_dst;
++		};
++	};
++
++	struct knod_bpf_reg_state sreg;
++	struct knod_bpf_reg_state dreg;
++	struct knod_bpf_reg_state kreg;
++	struct knod_bpf_reg_state vreg;
++	unsigned int off;
++	unsigned short flags;
++	unsigned short subprog_idx;
++	bool is_merge_point;	/* EXEC restore target */
++	u8 restore_sreg;	/* SGPR to restore EXEC from at merge point */
++	int linear_idx;		/* position in the (reordered) emission list */
++	struct list_head l;
++};
++
++/* Encode one GPU instruction at @meta's running slot and advance it.
++ * @meta->amdgpu_insns is both the cursor during emission and the final
++ * instruction count afterwards.  @fn names a knod_amdgpu_insn.h encoder
++ * without its emit_ prefix (e.g. v_add32 for emit_v_add32); the macro
++ * pastes it back, so call sites read knod_emit(priv, meta, v_add32, ...).
 + */
++#define knod_emit(priv, meta, fn, ...)					\
++	do {								\
++		struct knod_insn_meta *__m = (meta);			\
++									\
++		emit_##fn((priv)->isa_version,				\
++			  &__m->amdgpu_insn[__m->amdgpu_insns],		\
++			  ##__VA_ARGS__);				\
++		debug_insn((priv)->isa_version,				\
++			   &__m->amdgpu_insn[__m->amdgpu_insns]);	\
++		__m->amdgpu_insns++;					\
++	} while (0)
 +
-+struct amdgcn_gfx10_sopk {
-+	u32 simm16:16;
-+	u32 sdst:7;
-+	u32 op:5;
-+	u32 encoding:4;
-+};
-+
-+enum amdgcn_gfx10_sopk_opcode {
-+	GFX10_S_MOVK_I32 = 0,
-+	GFX10_S_VERSION = 1,
-+	GFX10_S_CMOVK_I32 = 2,
-+	GFX10_S_CMPK_EQ_I32 = 3,
-+	GFX10_S_CMPK_LG_I32 = 4,
-+	GFX10_S_CMPK_GT_I32 = 5,
-+	GFX10_S_CMPK_GE_I32 = 6,
-+	GFX10_S_CMPK_LT_I32 = 7,
-+	GFX10_S_CMPK_LE_I32 = 8,
-+	GFX10_S_CMPK_EQ_U32 = 9,
-+	GFX10_S_CMPK_LG_U32 = 10,
-+	GFX10_S_CMPK_GT_U32 = 11,
-+	GFX10_S_CMPK_GE_U32 = 12,
-+	GFX10_S_CMPK_LT_U32 = 13,
-+	GFX10_S_CMPK_LE_U32 = 14,
-+	GFX10_S_ADDK_I32 = 15,
-+	GFX10_S_MULK_I32 = 16,
-+	/* 17: reserved */
-+	GFX10_S_GETREG_B32 = 18,
-+	GFX10_S_SETREG_B32 = 19,
-+	/* 20: reserved */
-+	GFX10_S_SETREG_IMM32_B32 = 21,
-+	GFX10_S_CALL_B64 = 22,
-+	GFX10_S_WAITCNT_VSCNT = 23,
-+	GFX10_S_WAITCNT_VMCNT = 24,
-+	GFX10_S_WAITCNT_EXPCNT = 25,
-+	GFX10_S_WAITCNT_LGKMCNT = 26,
-+	GFX10_S_SUBVECTOR_LOOP_BEGIN = 27,
-+	GFX10_S_SUBVECTOR_LOOP_END = 28,
-+};
-+
-+#define GFX10_SOPK_ENCODING			0xb
-+#define GFX10_SOPK_SDST_SGPR0_BASE		0
-+#define GFX10_SOPK_SDST_VCC_LO			106
-+#define GFX10_SOPK_SDST_VCC_HI			107
-+#define GFX10_SOPK_SDST_TTPM_BASE		108
-+#define GFX10_SOPK_SDST_M0			124
-+#define GFX10_SOPK_SDST_NULL			125
-+#define GFX10_SOPK_SDST_EXEC_LO			126
-+#define GFX10_SOPK_SDST_EXEC_HI			127
-+
-+struct amdgcn_gfx10_sop1 {
-+	u32 ssrc0:8;
-+	u32 op:8;
-+	u32 sdst:7;
-+	u32 encoding:9;
-+	u32 literal;
-+};
-+
-+enum amdgcn_gfx10_sop1_opcode {
-+	GFX10_S_MOV_B32 = 3,
-+	GFX10_S_MOV_B64 = 4,
-+	GFX10_S_CMOV_B32 = 5,
-+	GFX10_S_CMOV_B64 = 6,
-+	GFX10_S_NOT_B32 = 7,
-+	GFX10_S_NOT_B64 = 8,
-+	GFX10_S_WQM_B32 = 9,
-+	GFX10_S_WQM_B64 = 10,
-+	GFX10_S_BREV_B32 = 11,
-+	GFX10_S_BREV_B64 = 12,
-+	GFX10_S_BCNT0_I32_B32 = 13,
-+	GFX10_S_BCNT0_I32_B64 = 14,
-+	GFX10_S_BCNT1_I32_B32 = 15,
-+	GFX10_S_BCNT1_I32_B64 = 16,
-+	GFX10_S_FF0_I32_B32 = 17,
-+	GFX10_S_FF0_I32_B64 = 18,
-+	GFX10_S_FF1_I32_B32 = 19,
-+	GFX10_S_FF1_I32_B64 = 20,
-+	GFX10_S_FLBIT_I32_B32 = 21,
-+	GFX10_S_FLBIT_I32_B64 = 22,
-+	GFX10_S_FLBIT_I32 = 23,
-+	GFX10_S_FLBIT_I32_I64 = 24,
-+	GFX10_S_SEXT_I32_I8 = 25,
-+	GFX10_S_SEXT_I32_I16 = 26,
-+	GFX10_S_BITSET0_B32 = 27,
-+	GFX10_S_BITSET0_B64 = 28,
-+	GFX10_S_BITSET1_B32 = 29,
-+	GFX10_S_BITSET1_B64 = 30,
-+	GFX10_S_GETPC_B64 = 31,
-+	GFX10_S_SETPC_B64 = 32,
-+	GFX10_S_SWAPPC_B64 = 33,
-+	GFX10_S_RFE_B64 = 34,
-+	/* 35: reserved */
-+	GFX10_S_AND_SAVEEXEC_B64 = 36,
-+	/* 37-42: OR/XOR/ANDN2/ORN2/NAND/NOR_SAVEEXEC_B64 (unused) */
-+	GFX10_S_XNOR_SAVEEXEC_B64 = 43,
-+	GFX10_S_QUADMASK_B32 = 44,
-+	GFX10_S_QUADMASK_B64 = 45,
-+	GFX10_S_MOVRELS_B32 = 46,
-+	GFX10_S_MOVRELS_B64 = 47,
-+	GFX10_S_MOVRELD_B32 = 48,
-+	GFX10_S_MOVRELD_B64 = 49,
-+	/* 50-51: reserved */
-+	GFX10_S_ABS_I32 = 52,
-+	/* 53-54: reserved */
-+	GFX10_S_ANDN1_SAVEEXEC_B64 = 55,
-+	GFX10_S_ORN1_SAVEEXEC_B64 = 56,
-+	GFX10_S_ANDN1_WREXEC_B64 = 57,
-+	GFX10_S_ANDN2_WREXEC_B64 = 58,
-+	GFX10_S_BITREPLICATE_B64_B32 = 59,
-+	GFX10_S_AND_SAVEEXEC_B32 = 60,
-+	GFX10_S_OR_SAVEEXEC_B32 = 61,
-+	GFX10_S_XOR_SAVEEXEC_B32 = 62,
-+	GFX10_S_ANDN2_SAVEEXEC_B32 = 63,
-+	GFX10_S_ORN2_SAVEEXEC_B32 = 64,
-+	GFX10_S_NAND_SAVEEXEC_B32 = 65,
-+	GFX10_S_NOR_SAVEEXEC_B32 = 66,
-+	GFX10_S_XNOR_SAVEEXEC_B32 = 67,
-+	GFX10_S_ANDN1_SAVEEXEC_B32 = 68,
-+	GFX10_S_ORN1_SAVEEXEC_B32 = 69,
-+	GFX10_S_ANDN1_WREXEC_B32 = 70,
-+	GFX10_S_ANDN2_WREXEC_B32 = 71,
-+	/* 72: reserved */
-+	GFX10_S_MOVRELSD_2_B32 = 73,
-+};
-+
-+#define GFX10_SOP1_ENCODING			0x17d
-+#define GFX10_SOP1_SSRC_SGPR_BASE		0
-+#define GFX10_SOP1_SSRC_VCC_LO			106
-+#define GFX10_SOP1_SSRC_VCC_HI			107
-+#define GFX10_SOP1_SSRC_TTPM_BASE		108
-+#define GFX10_SOP1_SSRC_M0			124
-+#define GFX10_SOP1_SSRC_NULL			125
-+#define GFX10_SOP1_SSRC_EXEC_LO			126
-+#define GFX10_SOP1_SSRC_EXEC_HI			127
-+#define GFX10_SOP1_SSRC_INTEGER_0		128
-+#define GFX10_SOP1_SSRC_INTEGER_MINUS_1		193
-+#define GFX10_SOP1_SSRC_SHARED_BASE		235
-+#define GFX10_SOP1_SSRC_SHARED_LIMIT		236
-+#define GFX10_SOP1_SSRC_PRIVATE_BASE		237
-+#define GFX10_SOP1_SSRC_PRIVATE_LIMIT		238
-+#define GFX10_SOP1_SSRC_POPS_EXITING_WAVE_ID	239
-+#define GFX10_SOP1_SSRC_VCCZ			251
-+#define GFX10_SOP1_SSRC_EXECZ			252
-+#define GFX10_SOP1_SSRC_SCC			253
-+#define GFX10_SOP1_SSRC_LITERAL_CONST		255
-+/* SDST
-+ * Same codes as SSRC0, above except only codes 0-127 are valid.
++/* JIT debug/error trace: auto-prefix with "knod_jit <func>:<line>".
++ * knod_jit_dbg() is a pr_debug(), so it is off by default and toggled
++ * with dynamic debug; knod_jit_err() always fires.
 + */
++#define knod_jit_dbg(fmt, ...)						\
++	pr_debug("knod_jit %s:%d" fmt, __func__, __LINE__, ##__VA_ARGS__)
++#define knod_jit_err(fmt, ...)						\
++	pr_err("knod_jit %s:%d" fmt, __func__, __LINE__, ##__VA_ARGS__)
 +
-+struct amdgcn_gfx10_sopc {
-+	u32 ssrc0:8;
-+	u32 ssrc1:8;
-+	u32 op:7;
-+	u32 encoding:9;
-+	u32 literal;
++#define BPF_SIZE_MASK   0x18
++
++struct knod_bb;		/* basic-block CFG analysis (knod_bpf.c) */
++
++struct knod_prog {
++	struct knod *knod;
++	struct knod_dev *knodev;
++
++	u64 *prog;
++	unsigned int prog_len;
++	unsigned int __prog_alloc_len;
++	int max_stack_off;
++	int max_packet_off;
++
++	struct knod_insn_meta *meta;
++	enum bpf_prog_type type;
++	struct list_head pre_insns;
++	struct list_head post_insns;
++	struct list_head insns;
++	unsigned int n_insns;
++	unsigned int pre_n_insns;
++	int insn_idx;
++
++	/* Structurized CFG state */
++	/* GFX9: 34, GFX10: 32 (s[32:33] safe on RDNA) */
++	u8 done_mask_sreg;
++	u8 exec_save_base;        /* GFX9: 36, GFX10: 34 */
++	/* in-bounds EXEC snapshot for verdict publish */
++	u8 initial_exec_sreg;
++	/* number of SGPR pairs allocated for EXEC saves */
++	u8 exec_save_pairs_used;
++	bool uses_adjust;
++
++	/* Basic-block CFG analysis, retained for the /bpf/cfg view. */
++	struct knod_bb *bbs;
++	int n_bbs;
++	int n_back;
 +};
 +
-+enum amdgcn_gfx10_sopc_opcode {
-+	GFX10_S_CMP_EQ_I32 = 0,
-+	GFX10_S_CMP_LG_I32 = 1,
-+	GFX10_S_CMP_GT_I32 = 2,
-+	GFX10_S_CMP_GE_I32 = 3,
-+	GFX10_S_CMP_LT_I32 = 4,
-+	GFX10_S_CMP_LE_I32 = 5,
-+	GFX10_S_CMP_EQ_U32 = 6,
-+	GFX10_S_CMP_LG_U32 = 7,
-+	GFX10_S_CMP_GT_U32 = 8,
-+	GFX10_S_CMP_GE_U32 = 9,
-+	GFX10_S_CMP_LT_U32 = 10,
-+	GFX10_S_CMP_LE_U32 = 11,
-+	GFX10_S_BITCMP0_B32 = 12,
-+	GFX10_S_BITCMP1_B32 = 13,
-+	GFX10_S_BITCMP0_B64 = 14,
-+	GFX10_S_BITCMP1_B64 = 15,
-+	/* 16-17: reserved */
-+	GFX10_S_CMP_EQ_U64 = 18,
-+	GFX10_S_CMP_LG_U64 = 19,
++#define KNOD_XDP_MEMCPY 0
++#define KNOD_XDP_PT	1
++#define KNOD_XDP_NETMEM	2
++#define KNOD_XDP_NONE	3
++#define KNOD_XDP_DEFAULT	KNOD_XDP_PT
++
++#define KNOD_LAT_BUCKETS 10
++#define KNOD_BL_BUCKETS  8
++
++struct knod_bpf_stats {
++	u64 dispatch_total_ns;
++	u64 dispatch_count;
++	u64 dispatch_max_ns;
++
++	u64 completion_total_ns;
++	u64 completion_count;
++	u64 completion_max_ns;
++	u64 completion_hist[KNOD_LAT_BUCKETS];
++
++	u64 backlogs_total;
++	u64 backlogs_hist[KNOD_BL_BUCKETS];
++
++	u64 decode_act_total_ns;
++	u64 decode_act_count;
++	u64 decode_act_max_ns;
 +};
 +
-+#define GFX10_SOPC_ENCODING			0x17e
-+#define GFX10_SOPC_SSRC_SGPR_BASE		0
-+#define GFX10_SOPC_SSRC_VCC_LO			106
-+#define GFX10_SOPC_SSRC_VCC_HI			107
-+#define GFX10_SOPC_SSRC_TTPM_BASE		108
-+#define GFX10_SOPC_SSRC_M0			124
-+#define GFX10_SOPC_SSRC_NULL			125
-+#define GFX10_SOPC_SSRC_EXEC_LO			126
-+#define GFX10_SOPC_SSRC_EXEC_HI			127
-+#define GFX10_SOPC_SSRC_INTEGER_0		128
-+#define GFX10_SOPC_SSRC_INTEGER_MINUS_1		193
-+#define GFX10_SOPC_SSRC_SHARED_BASE		235
-+#define GFX10_SOPC_SSRC_SHARED_LIMIT		236
-+#define GFX10_SOPC_SSRC_PRIVATE_BASE		237
-+#define GFX10_SOPC_SSRC_PRIVATE_LIMIT		238
-+#define GFX10_SOPC_SSRC_POPS_EXITING_WAVE_ID	239
-+#define GFX10_SOPC_SSRC_VCCZ			251
-+#define GFX10_SOPC_SSRC_EXECZ			252
-+#define GFX10_SOPC_SSRC_SCC			253
-+/* SDST
-+ * Same codes as SSRC0, above except only codes 0-127 are valid.
++#define KNOD_PASS_SLOT_SIZE	PAGE_SIZE
++
++/* pass_meta_buf slot header, written by the shader (offsetof used by the
++ * codegen).  The host read path is gone now that PASS delivery goes via the
++ * NIC act handler + knod_d2h_copy; the shader still stores {len, src_addr}
++ * here pending removal of that store.
 + */
-+
-+struct amdgcn_gfx10_sopp_vmcnt {
-+	u16 vmcnt1:4;
-+	u16 expcnt:3;
-+	u16 dummy:1;
-+	u16 lgkmcnt:6;
-+	u16 vmcnt2:2;
-+};
-+
-+struct amdgcn_gfx10_sopp {
-+	u32 simm16:16;
-+	u32 op:7;
-+	u32 encoding:9;
-+};
-+
-+enum amdgcn_gfx10_sopp_opcode {
-+	GFX10_S_NOP = 0,
-+	GFX10_S_ENDPGM = 1,
-+	GFX10_S_BRANCH = 2,
-+	GFX10_S_WAKEUP = 3,
-+	GFX10_S_CBRANCH_SCC0 = 4,
-+	GFX10_S_CBRANCH_SCC1 = 5,
-+	GFX10_S_CBRANCH_VCCZ = 6,
-+	GFX10_S_CBRANCH_VCCNZ = 7,
-+	GFX10_S_CBRANCH_EXECZ = 8,
-+	GFX10_S_CBRANCH_EXECNZ = 9,
-+	GFX10_S_BARRIER = 10,
-+	GFX10_S_SETKILL = 11,
-+	GFX10_S_WAITCNT = 12,
-+	GFX10_S_SETHALT = 13,
-+	GFX10_S_SLEEP = 14,
-+	GFX10_S_SETPRIO = 15,
-+	GFX10_S_SENDMSG = 16,
-+	GFX10_S_SENDMSGHALT = 17,
-+	GFX10_S_TRAP = 18,
-+	GFX10_S_ICACHE_INV = 19,
-+	GFX10_S_INCPERFLEVEL = 20,
-+	GFX10_S_DECPERFLEVEL = 21,
-+	GFX10_S_TTRACEDATA = 22,
-+	GFX10_S_CBRANCH_CDBGSYS = 23,
-+	GFX10_S_CBRANCH_CDBGUSER = 24,
-+	GFX10_S_CBRANCH_CDBGSYS_OR_USER = 25,
-+	GFX10_S_CBRANCH_CDBGSYS_AND_USER = 26,
-+	GFX10_S_ENDPGM_SAVED = 27,
-+	/* 28-29: reserved */
-+	GFX10_S_ENDPGM_ORDERED_PS_DONE = 30,
-+	GFX10_S_CODE_END = 31,
-+	GFX10_S_INST_PREFETCH = 32,
-+	GFX10_S_CLAUSE = 33,
-+	/* 34: reserved */
-+	GFX10_S_WAITCNT_DEPCTR = 35,
-+	GFX10_S_ROUND_MODE = 36,
-+	GFX10_S_DENORM_MODE = 37,
-+	/* 38-39: reserved */
-+	GFX10_S_TTRACEDATA_IMM = 40,
-+};
-+
-+#define GFX10_SOPP_ENCODING		0x17f
-+
-+/* Scalar Memory Format */
-+struct amdgcn_gfx10_smem {
-+	u64 sbase:6;
-+	u64 sdata:7;
-+	u64 dummy1:1;
-+	u64 dlc:1;
-+	u64 dummy2:1;
-+	u64 glc:1;
-+	u64 dummy3:1;
-+	u64 op:8;
-+	u64 encoding:6;
-+	u64 offset:21;
-+	u64 dummy4:4;
-+	u64 soffset:7;
-+};
-+
-+enum amdgcn_gfx10_smem_opcode {
-+	GFX10_S_LOAD_DWORD = 0,
-+	GFX10_S_LOAD_DWORDX2 = 1,
-+	GFX10_S_LOAD_DWORDX4 = 2,
-+	GFX10_S_LOAD_DWORDX8 = 3,
-+	GFX10_S_LOAD_DWORDX16 = 4,
-+	/* 5-7: reserved */
-+	GFX10_S_BUFFER_LOAD_DWORD = 8,
-+	GFX10_S_BUFFER_LOAD_DWORDX2 = 9,
-+	GFX10_S_BUFFER_LOAD_DWORDX4 = 10,
-+	GFX10_S_BUFFER_LOAD_DWORDX8 = 11,
-+	GFX10_S_BUFFER_LOAD_DWORDX16 = 12,
-+	/* 13-30: reserved */
-+	GFX10_S_GL1_INV = 31,
-+	GFX10_S_DCACHE_INV = 32,
-+	/* 33-35: reserved */
-+	GFX10_S_MEMTIME = 36,
-+	GFX10_S_MEMREALTIME = 37,
-+	GFX10_S_ATC_PROBE = 38,
-+	GFX10_S_ATC_PROBE_BUFFER = 39,
-+};
-+
-+#define GFX10_SMEM_ENCODING		0x3d
-+#define GFX10_SMEM_SOFFSET_NULL		125
-+
-+/* Vector ALU Format */
-+struct amdgcn_gfx10_vop2 {
-+	u32 src0:9;
-+	u32 vsrc1:8;
-+	u32 vdst:8;
-+	u32 op:6;
-+	u32 encoding:1;
-+	u32 literal;
-+};
-+
-+enum amdgcn_gfx10_vop2_opcode {
-+	/* 0: reserved */
-+	GFX10_V_CNDMASK_B32 = 1,
-+	GFX10_V_DOT2C_F32_F16 = 2,
-+	GFX10_V_ADD_F32 = 3,
-+	GFX10_V_SUB_F32 = 4,
-+	GFX10_V_SUBREV_F32 = 5,
-+	GFX10_V_FMAC_LEGACY_F32 = 6,
-+	GFX10_V_MUL_LEGACY_F32 = 7,
-+	GFX10_V_MUL_F32 = 8,
-+	GFX10_V_MUL_I32_I24 = 9,
-+	GFX10_V_MUL_HI_I32_I24 = 10,
-+	GFX10_V_MUL_U32_U24 = 11,
-+	GFX10_V_MUL_HI_U32_U24 = 12,
-+	GFX10_V_DOT4C_I32_I8 = 13,
-+	/* 14: reserved */
-+	GFX10_V_MIN_F32 = 15,
-+	GFX10_V_MAX_F32 = 16,
-+	GFX10_V_MIN_I32 = 17,
-+	GFX10_V_MAX_I32 = 18,
-+	GFX10_V_MIN_U32 = 19,
-+	GFX10_V_MAX_U32 = 20,
-+	/* 21: reserved */
-+	GFX10_V_LSHRREV_B32 = 22,
-+	/* 23: reserved */
-+	GFX10_V_ASHRREV_I32 = 24,
-+	/* 25: reserved */
-+	GFX10_V_LSHLREV_B32 = 26,
-+	GFX10_V_AND_B32 = 27,
-+	GFX10_V_OR_B32 = 28,
-+	GFX10_V_XOR_B32 = 29,
-+	GFX10_V_XNOR_B32 = 30,
-+	/* 31-36: reserved */
-+	GFX10_V_ADD_NC_U32 = 37,
-+	GFX10_V_SUB_NC_U32 = 38,
-+	GFX10_V_SUBREV_NC_U32 = 39,
-+	GFX10_V_ADD_CO_CI_U32 = 40,
-+	GFX10_V_SUB_CO_CI_U32 = 41,
-+	GFX10_V_SUBREV_CO_CI_U32 = 42,
-+	GFX10_V_FMAC_F32 = 43,
-+	GFX10_V_FMAMK_F32 = 44,
-+	GFX10_V_FMAAK_F32 = 45,
-+	/* 46: reserved */
-+	GFX10_V_CVT_PKRTZ_F16_F32 = 47,
-+	/* 48-49: reserved */
-+	GFX10_V_ADD_F16 = 50,
-+	GFX10_V_SUB_F16 = 51,
-+	GFX10_V_SUBREV_F16 = 52,
-+	GFX10_V_MUL_F16 = 53,
-+	GFX10_V_FMAC_F16 = 54,
-+	GFX10_V_FMAMK_F16 = 55,
-+	GFX10_V_FMAAK_F16 = 56,
-+	GFX10_V_MAX_F16 = 57,
-+	GFX10_V_MIN_F16 = 58,
-+	GFX10_V_LDEXP_F16 = 59,
-+	GFX10_V_PK_FMAC_F16 = 60,
-+};
-+
-+#define GFX10_VOP2_ENCODING			0x0
-+#define GFX10_VOP2_SRC_SGPR_BASE		0
-+#define GFX10_VOP2_SRC_VCC_LO			106
-+#define GFX10_VOP2_SRC_VCC_HI			107
-+#define GFX10_VOP2_SRC_TTPM_BASE		108
-+#define GFX10_VOP2_SRC_M0			124
-+#define GFX10_VOP2_SRC_NULL			125
-+#define GFX10_VOP2_SRC_EXEC_LO			126
-+#define GFX10_VOP2_SRC_EXEC_HI			127
-+#define GFX10_VOP2_SRC_INTEGER_0		128
-+#define GFX10_VOP2_SRC_INTEGER_MINUS_1		193
-+#define GFX10_VOP2_SRC_SHARED_BASE		235
-+#define GFX10_VOP2_SRC_SHARED_LIMIT		236
-+#define GFX10_VOP2_SRC_PRIVATE_BASE		237
-+#define GFX10_VOP2_SRC_PRIVATE_LIMIT		238
-+#define GFX10_VOP2_SRC_POPS_EXITING_WAVE_ID	239
-+#define GFX10_VOP2_SRC_SDWA			249
-+#define GFX10_VOP2_SRC_DDP16			250
-+#define GFX10_VOP2_SRC_VCCZ			251
-+#define GFX10_VOP2_SRC_EXECZ			252
-+#define GFX10_VOP2_SRC_SCC			253
-+#define GFX10_VOP2_SRC_LITERAL_CONST		255
-+#define GFX10_VOP2_SRC_VGPR_BASE		256
-+
-+struct amdgcn_gfx10_vop1 {
-+	u32 src0:9;
-+	u32 op:8;
-+	u32 vdst:8;
-+	u32 encoding:7;
-+	u32 literal;
-+};
-+
-+enum amdgcn_gfx10_vop1_opcode {
-+	GFX10_V_NOP = 0,
-+	GFX10_V_MOV_B32 = 1,
-+	GFX10_V_READFIRSTLANE_B32 = 2,
-+	GFX10_V_CVT_I32_F64 = 3,
-+	GFX10_V_CVT_F64_I32 = 4,
-+	GFX10_V_CVT_F32_I32 = 5,
-+	GFX10_V_CVT_F32_U32 = 6,
-+	GFX10_V_CVT_U32_F32 = 7,
-+	GFX10_V_CVT_I32_F32 = 8,
-+	/* 9: reserved */
-+	GFX10_V_CVT_F16_F32 = 10,
-+	GFX10_V_CVT_F32_F16 = 11,
-+	GFX10_V_CVT_RPI_I32_F32 = 12,
-+	GFX10_V_CVT_FLR_I32_F32 = 13,
-+	GFX10_V_CVT_OFF_F32_I4 = 14,
-+	GFX10_V_CVT_F32_F64 = 15,
-+	GFX10_V_CVT_F64_F32 = 16,
-+	GFX10_V_CVT_F32_UBYTE0 = 17,
-+	GFX10_V_CVT_F32_UBYTE1 = 18,
-+	GFX10_V_CVT_F32_UBYTE2 = 19,
-+	GFX10_V_CVT_F32_UBYTE3 = 20,
-+	GFX10_V_CVT_U32_F64 = 21,
-+	GFX10_V_CVT_F64_U32 = 22,
-+	GFX10_V_TRUNC_F64 = 23,
-+	GFX10_V_CEIL_F64 = 24,
-+	GFX10_V_RNDNE_F64 = 25,
-+	GFX10_V_FLOOR_F64 = 26,
-+	GFX10_V_PIPEFLUSH = 27,
-+	/* 28-31: reserved */
-+	GFX10_V_FRACT_F32 = 32,
-+	GFX10_V_TRUNC_F32 = 33,
-+	GFX10_V_CEIL_F32 = 34,
-+	GFX10_V_RNDNE_F32 = 35,
-+	GFX10_V_FLOOR_F32 = 36,
-+	GFX10_V_EXP_F32 = 37,
-+	/* 38: reserved */
-+	GFX10_V_LOG_F32 = 39,
-+	/* 40-41: reserved */
-+	GFX10_V_RCP_F32 = 42,
-+	GFX10_V_RCP_IFLAG_F32 = 43,
-+	/* 44-45: reserved */
-+	GFX10_V_RSQ_F32 = 46,
-+	GFX10_V_RCP_F64 = 47,
-+	/* 48: reserved */
-+	GFX10_V_RSQ_F64 = 49,
-+	/* 50: reserved */
-+	GFX10_V_SQRT_F32 = 51,
-+	GFX10_V_SQRT_F64 = 52,
-+	GFX10_V_SIN_F32 = 53,
-+	GFX10_V_COS_F32 = 54,
-+	GFX10_V_NOT_B32 = 55,
-+	GFX10_V_BFREV_B32 = 56,
-+	GFX10_V_FFBH_U32 = 57,
-+	GFX10_V_FFBL_B32 = 58,
-+	GFX10_V_FFBH_I32 = 59,
-+	GFX10_V_FREXP_EXP_I32_F64 = 60,
-+	GFX10_V_FREXP_MANT_F64 = 61,
-+	GFX10_V_FRACT_F64 = 62,
-+	GFX10_V_FREXP_EXP_I32_F32 = 63,
-+	GFX10_V_FREXP_MANT_F32 = 64,
-+	GFX10_V_CLREXCP = 65,
-+	GFX10_V_MOVRELD_B32 = 66,
-+	GFX10_V_MOVRELS_B32 = 67,
-+	GFX10_V_MOVRELSD_B32 = 68,
-+	/* 69-71: reserved */
-+	GFX10_V_MOVRELSD_2_B32 = 72,
-+	/* 73-79: reserved */
-+	GFX10_V_CVT_F16_U16 = 80,
-+	GFX10_V_CVT_F16_I16 = 81,
-+	GFX10_V_CVT_U16_F16 = 82,
-+	GFX10_V_CVT_I16_F16 = 83,
-+	GFX10_V_RCP_F16 = 84,
-+	GFX10_V_SQRT_F16 = 85,
-+	GFX10_V_RSQ_F16 = 86,
-+	GFX10_V_LOG_F16 = 87,
-+	GFX10_V_EXP_F16 = 88,
-+	GFX10_V_FREXP_MANT_F16 = 89,
-+	GFX10_V_FREXP_EXP_I16_F16 = 90,
-+	GFX10_V_FLOOR_F16 = 91,
-+	GFX10_V_CEIL_F16 = 92,
-+	GFX10_V_TRUNC_F16 = 93,
-+	GFX10_V_RNDNE_F16 = 94,
-+	GFX10_V_FRACT_F16 = 95,
-+	GFX10_V_SIN_F16 = 96,
-+	GFX10_V_COS_F16 = 97,
-+	GFX10_V_SAT_PK_U8_I16 = 98,
-+	GFX10_V_CVT_NORM_I16_F16 = 99,
-+	GFX10_V_CVT_NORM_U16_F16 = 100,
-+	GFX10_V_SWAP_B32 = 101,
-+	/* 102-103: reserved */
-+	GFX10_V_SWAPREL_B32 = 104,
-+};
-+
-+#define GFX10_VOP1_ENCODING			0x3f
-+#define GFX10_VOP1_SRC_SGPR_BASE		0
-+#define GFX10_VOP1_SRC_VCC_LO			106
-+#define GFX10_VOP1_SRC_VCC_HI			107
-+#define GFX10_VOP1_SRC_TTPM_BASE		108
-+#define GFX10_VOP1_SRC_M0			124
-+#define GFX10_VOP1_SRC_NULL			125
-+#define GFX10_VOP1_SRC_EXEC_LO			126
-+#define GFX10_VOP1_SRC_EXEC_HI			127
-+#define GFX10_VOP1_SRC_INTEGER_0		128
-+#define GFX10_VOP1_SRC_INTEGER_MINUS_1		193
-+#define GFX10_VOP1_SRC_SHARED_BASE		235
-+#define GFX10_VOP1_SRC_SHARED_LIMIT		236
-+#define GFX10_VOP1_SRC_PRIVATE_BASE		237
-+#define GFX10_VOP1_SRC_PRIVATE_LIMIT		238
-+#define GFX10_VOP1_SRC_POPS_EXITING_WAVE_ID	239
-+#define GFX10_VOP1_SRC_SDWA			249
-+#define GFX10_VOP1_SRC_DDP16			250
-+#define GFX10_VOP1_SRC_VCCZ			251
-+#define GFX10_VOP1_SRC_EXECZ			252
-+#define GFX10_VOP1_SRC_SCC			253
-+#define GFX10_VOP1_SRC_LITERAL_CONST		255
-+#define GFX10_VOP1_SRC_VGPR_BASE		256
-+
-+struct amdgcn_gfx10_vopc {
-+	u32 src0:9;
-+	u32 vsrc1:8;
-+	u32 op:8;
-+	u32 encoding:7;
-+	u32 literal;
-+};
-+
-+enum amdgcn_gfx10_vopc_compare_offset16 {
-+	GFX10_VOPC16_F = 0,
-+	GFX10_VOPC16_LT = 1,
-+	GFX10_VOPC16_EQ = 2,
-+	GFX10_VOPC16_LE = 3,
-+	GFX10_VOPC16_GT = 4,
-+	GFX10_VOPC16_LG = 5,
-+	GFX10_VOPC16_GE = 6,
-+	GFX10_VOPC16_O = 7,
-+	GFX10_VOPC16_U = 8,
-+	GFX10_VOPC16_NGE = 9,
-+	GFX10_VOPC16_NLG = 10,
-+	GFX10_VOPC16_NGT = 11,
-+	GFX10_VOPC16_NLE = 12,
-+	GFX10_VOPC16_NEQ = 13,
-+	GFX10_VOPC16_NLT = 14,
-+	GFX10_VOPC16_TRU = 15,
-+};
-+
-+enum amdgcn_gfx10_vopc_compare_offset8 {
-+	GFX10_VOPC8_F = 0,
-+	GFX10_VOPC8_LT = 1,
-+	GFX10_VOPC8_EQ = 2,
-+	GFX10_VOPC8_LE = 3,
-+	GFX10_VOPC8_GT = 4,
-+	GFX10_VOPC8_LG = 5,
-+	GFX10_VOPC8_GE = 6,
-+	GFX10_VOPC8_TRU = 7,
-+};
-+
-+enum amdgcn_gfx10_vopc_opcode {
-+	GFX10_V_CMP_F_F32 = 0,
-+	GFX10_V_CMP_LT_F32 = 1,
-+	GFX10_V_CMP_EQ_F32 = 2,
-+	GFX10_V_CMP_LE_F32 = 3,
-+	GFX10_V_CMP_GT_F32 = 4,
-+	GFX10_V_CMP_LG_F32 = 5,
-+	GFX10_V_CMP_GE_F32 = 6,
-+	GFX10_V_CMP_O_F32 = 7,
-+	GFX10_V_CMP_U_F32 = 8,
-+	GFX10_V_CMP_NGE_F32 = 9,
-+	GFX10_V_CMP_NLG_F32 = 10,
-+	GFX10_V_CMP_NGT_F32 = 11,
-+	GFX10_V_CMP_NLE_F32 = 12,
-+	GFX10_V_CMP_NEQ_F32 = 13,
-+	GFX10_V_CMP_NLT_F32 = 14,
-+	GFX10_V_CMP_TRU_F32 = 15,
-+	GFX10_V_CMPX_F_F32 = 16,
-+	GFX10_V_CMPX_LT_F32 = 17,
-+	GFX10_V_CMPX_EQ_F32 = 18,
-+	GFX10_V_CMPX_LE_F32 = 19,
-+	GFX10_V_CMPX_GT_F32 = 20,
-+	GFX10_V_CMPX_LG_F32 = 21,
-+	GFX10_V_CMPX_GE_F32 = 22,
-+	GFX10_V_CMPX_O_F32 = 23,
-+	GFX10_V_CMPX_U_F32 = 24,
-+	GFX10_V_CMPX_NGE_F32 = 25,
-+	GFX10_V_CMPX_NLG_F32 = 26,
-+	GFX10_V_CMPX_NGT_F32 = 27,
-+	GFX10_V_CMPX_NLE_F32 = 28,
-+	GFX10_V_CMPX_NEQ_F32 = 29,
-+	GFX10_V_CMPX_NLT_F32 = 30,
-+	GFX10_V_CMPX_TRU_F32 = 31,
-+	GFX10_V_CMP_F_F64 = 32,
-+	GFX10_V_CMP_LT_F64 = 33,
-+	GFX10_V_CMP_EQ_F64 = 34,
-+	GFX10_V_CMP_LE_F64 = 35,
-+	GFX10_V_CMP_GT_F64 = 36,
-+	GFX10_V_CMP_LG_F64 = 37,
-+	GFX10_V_CMP_GE_F64 = 38,
-+	GFX10_V_CMP_O_F64 = 39,
-+	GFX10_V_CMP_U_F64 = 40,
-+	GFX10_V_CMP_NGE_F64 = 41,
-+	GFX10_V_CMP_NLG_F64 = 42,
-+	GFX10_V_CMP_NGT_F64 = 43,
-+	GFX10_V_CMP_NLE_F64 = 44,
-+	GFX10_V_CMP_NEQ_F64 = 45,
-+	GFX10_V_CMP_NLT_F64 = 46,
-+	GFX10_V_CMP_TRU_F64 = 47,
-+	GFX10_V_CMPX_F_F64 = 48,
-+	GFX10_V_CMPX_LT_F64 = 49,
-+	GFX10_V_CMPX_EQ_F64 = 50,
-+	GFX10_V_CMPX_LE_F64 = 51,
-+	GFX10_V_CMPX_GT_F64 = 52,
-+	GFX10_V_CMPX_LG_F64 = 53,
-+	GFX10_V_CMPX_GE_F64 = 54,
-+	GFX10_V_CMPX_O_F64 = 55,
-+	GFX10_V_CMPX_U_F64 = 56,
-+	GFX10_V_CMPX_NGE_F64 = 57,
-+	GFX10_V_CMPX_NLG_F64 = 58,
-+	GFX10_V_CMPX_NGT_F64 = 59,
-+	GFX10_V_CMPX_NLE_F64 = 60,
-+	GFX10_V_CMPX_NEQ_F64 = 61,
-+	GFX10_V_CMPX_NLT_F64 = 62,
-+	GFX10_V_CMPX_TRU_F64 = 63,
-+	/* 64-127: reserved */
-+	GFX10_V_CMP_F_I32 = 128,
-+	GFX10_V_CMP_LT_I32 = 129,
-+	GFX10_V_CMP_EQ_I32 = 130,
-+	GFX10_V_CMP_LE_I32 = 131,
-+	GFX10_V_CMP_GT_I32 = 132,
-+	GFX10_V_CMP_NE_I32 = 133,
-+	GFX10_V_CMP_GE_I32 = 134,
-+	GFX10_V_CMP_T_I32 = 135,
-+	GFX10_V_CMP_CLASS_F32 = 136,
-+	GFX10_V_CMP_LT_I16 = 137,
-+	GFX10_V_CMP_EQ_I16 = 138,
-+	GFX10_V_CMP_LE_I16 = 139,
-+	GFX10_V_CMP_GT_I16 = 140,
-+	GFX10_V_CMP_NE_I16 = 141,
-+	GFX10_V_CMP_GE_I16 = 142,
-+	GFX10_V_CMP_CLASS_F16 = 143,
-+	GFX10_V_CMPX_F_I32 = 144,
-+	GFX10_V_CMPX_LT_I32 = 145,
-+	GFX10_V_CMPX_EQ_I32 = 146,
-+	GFX10_V_CMPX_LE_I32 = 147,
-+	GFX10_V_CMPX_GT_I32 = 148,
-+	GFX10_V_CMPX_NE_I32 = 149,
-+	GFX10_V_CMPX_GE_I32 = 150,
-+	GFX10_V_CMPX_T_I32 = 151,
-+	GFX10_V_CMPX_CLASS_F32 = 152,
-+	GFX10_V_CMPX_LT_I16 = 153,
-+	GFX10_V_CMPX_EQ_I16 = 154,
-+	GFX10_V_CMPX_LE_I16 = 155,
-+	GFX10_V_CMPX_GT_I16 = 156,
-+	GFX10_V_CMPX_NE_I16 = 157,
-+	GFX10_V_CMPX_GE_I16 = 158,
-+	GFX10_V_CMPX_CLASS_F16 = 159,
-+	GFX10_V_CMP_F_I64 = 160,
-+	GFX10_V_CMP_LT_I64 = 161,
-+	GFX10_V_CMP_EQ_I64 = 162,
-+	GFX10_V_CMP_LE_I64 = 163,
-+	GFX10_V_CMP_GT_I64 = 164,
-+	GFX10_V_CMP_NE_I64 = 165,
-+	GFX10_V_CMP_GE_I64 = 166,
-+	GFX10_V_CMP_T_I64 = 167,
-+	GFX10_V_CMP_CLASS_F64 = 168,
-+	GFX10_V_CMP_LT_U16 = 169,
-+	GFX10_V_CMP_EQ_U16 = 170,
-+	GFX10_V_CMP_LE_U16 = 171,
-+	GFX10_V_CMP_GT_U16 = 172,
-+	GFX10_V_CMP_NE_U16 = 173,
-+	GFX10_V_CMP_GE_U16 = 174,
-+	/* 175: reserved */
-+	GFX10_V_CMPX_F_I64 = 176,
-+	GFX10_V_CMPX_LT_I64 = 177,
-+	GFX10_V_CMPX_EQ_I64 = 178,
-+	GFX10_V_CMPX_LE_I64 = 179,
-+	GFX10_V_CMPX_GT_I64 = 180,
-+	GFX10_V_CMPX_NE_I64 = 181,
-+	GFX10_V_CMPX_GE_I64 = 182,
-+	GFX10_V_CMPX_T_I64 = 183,
-+	GFX10_V_CMPX_CLASS_F64 = 184,
-+	GFX10_V_CMPX_LT_U16 = 185,
-+	GFX10_V_CMPX_EQ_U16 = 186,
-+	GFX10_V_CMPX_LE_U16 = 187,
-+	GFX10_V_CMPX_GT_U16 = 188,
-+	GFX10_V_CMPX_NE_U16 = 189,
-+	GFX10_V_CMPX_GE_U16 = 190,
-+	/* 191: reserved */
-+	GFX10_V_CMP_F_U32 = 192,
-+	GFX10_V_CMP_LT_U32 = 193,
-+	GFX10_V_CMP_EQ_U32 = 194,
-+	GFX10_V_CMP_LE_U32 = 195,
-+	GFX10_V_CMP_GT_U32 = 196,
-+	GFX10_V_CMP_NE_U32 = 197,
-+	GFX10_V_CMP_GE_U32 = 198,
-+	GFX10_V_CMP_T_U32 = 199,
-+	GFX10_V_CMP_F_F16 = 200,
-+	GFX10_V_CMP_LT_F16 = 201,
-+	GFX10_V_CMP_EQ_F16 = 202,
-+	GFX10_V_CMP_LE_F16 = 203,
-+	GFX10_V_CMP_GT_F16 = 204,
-+	GFX10_V_CMP_LG_F16 = 205,
-+	GFX10_V_CMP_GE_F16 = 206,
-+	GFX10_V_CMP_O_F16 = 207,
-+	GFX10_V_CMPX_F_U32 = 208,
-+	GFX10_V_CMPX_LT_U32 = 209,
-+	GFX10_V_CMPX_EQ_U32 = 210,
-+	GFX10_V_CMPX_LE_U32 = 211,
-+	GFX10_V_CMPX_GT_U32 = 212,
-+	GFX10_V_CMPX_NE_U32 = 213,
-+	GFX10_V_CMPX_GE_U32 = 214,
-+	GFX10_V_CMPX_T_U32 = 215,
-+	GFX10_V_CMPX_F_F16 = 216,
-+	GFX10_V_CMPX_LT_F16 = 217,
-+	GFX10_V_CMPX_EQ_F16 = 218,
-+	GFX10_V_CMPX_LE_F16 = 219,
-+	GFX10_V_CMPX_GT_F16 = 220,
-+	GFX10_V_CMPX_LG_F16 = 221,
-+	GFX10_V_CMPX_GE_F16 = 222,
-+	GFX10_V_CMPX_O_F16 = 223,
-+	GFX10_V_CMP_F_U64 = 224,
-+	GFX10_V_CMP_LT_U64 = 225,
-+	GFX10_V_CMP_EQ_U64 = 226,
-+	GFX10_V_CMP_LE_U64 = 227,
-+	GFX10_V_CMP_GT_U64 = 228,
-+	GFX10_V_CMP_NE_U64 = 229,
-+	GFX10_V_CMP_GE_U64 = 230,
-+	GFX10_V_CMP_T_U64 = 231,
-+	GFX10_V_CMP_U_F16 = 232,
-+	GFX10_V_CMP_NGE_F16 = 233,
-+	GFX10_V_CMP_NLG_F16 = 234,
-+	GFX10_V_CMP_NGT_F16 = 235,
-+	GFX10_V_CMP_NLE_F16 = 236,
-+	GFX10_V_CMP_NEQ_F16 = 237,
-+	GFX10_V_CMP_NLT_F16 = 238,
-+	GFX10_V_CMP_TRU_F16 = 239,
-+	GFX10_V_CMPX_F_U64 = 240,
-+	GFX10_V_CMPX_LT_U64 = 241,
-+	GFX10_V_CMPX_EQ_U64 = 242,
-+	GFX10_V_CMPX_LE_U64 = 243,
-+	GFX10_V_CMPX_GT_U64 = 244,
-+	GFX10_V_CMPX_NE_U64 = 245,
-+	GFX10_V_CMPX_GE_U64 = 246,
-+	GFX10_V_CMPX_T_U64 = 247,
-+	GFX10_V_CMPX_U_F16 = 248,
-+	GFX10_V_CMPX_NGE_F16 = 249,
-+	GFX10_V_CMPX_NLG_F16 = 250,
-+	GFX10_V_CMPX_NGT_F16 = 251,
-+	GFX10_V_CMPX_NLE_F16 = 252,
-+	GFX10_V_CMPX_NEQ_F16 = 253,
-+	GFX10_V_CMPX_NLT_F16 = 254,
-+	GFX10_V_CMPX_TRU_F16 = 255,
-+};
-+
-+#define GFX10_VOPC_ENCODING			0x3e
-+#define GFX10_VOPC_SRC_SGPR_BASE		0
-+#define GFX10_VOPC_SRC_VCC_LO			106
-+#define GFX10_VOPC_SRC_VCC_HI			107
-+#define GFX10_VOPC_SRC_TTPM_BASE		108
-+#define GFX10_VOPC_SRC_M0			124
-+#define GFX10_VOPC_SRC_NULL			125
-+#define GFX10_VOPC_SRC_EXEC_LO			126
-+#define GFX10_VOPC_SRC_EXEC_HI			127
-+#define GFX10_VOPC_SRC_INTEGER_0		128
-+#define GFX10_VOPC_SRC_INTEGER_MINUS_1		193
-+#define GFX10_VOPC_SRC_SHARED_BASE		235
-+#define GFX10_VOPC_SRC_SHARED_LIMIT		236
-+#define GFX10_VOPC_SRC_PRIVATE_BASE		237
-+#define GFX10_VOPC_SRC_PRIVATE_LIMIT		238
-+#define GFX10_VOPC_SRC_POPS_EXITING_WAVE_ID	239
-+#define GFX10_VOPC_SRC_SDWA			249
-+#define GFX10_VOPC_SRC_DDP16			250
-+#define GFX10_VOPC_SRC_VCCZ			251
-+#define GFX10_VOPC_SRC_EXECZ			252
-+#define GFX10_VOPC_SRC_SCC			253
-+#define GFX10_VOPC_SRC_LITERAL_CONST		255
-+#define GFX10_VOPC_SRC_VGPR_BASE		256
-+
-+struct amdgcn_gfx10_vop3a {
-+	u64 vdst:8;
-+	u64 abs:3;
-+	u64 op_sel:4;
-+	u64 clmp:1;
-+	u64 op:10;
-+	u64 encoding:6;
-+	u64 src0:9;
-+	u64 src1:9;
-+	u64 src2:9;
-+	u64 omod:2;
-+	u64 neg:3;
-+	u32 literal;
-+};
-+
-+enum amdgcn_gfx10_vop3a_opcode {
-+	GFX10_V_FMA_LEGACY_F32 = 320,
-+	/* 321: reserved */
-+	GFX10_V_MAD_I32_I24 = 322,
-+	GFX10_V_MAD_U32_U24 = 323,
-+	GFX10_V_CUBEID_F32 = 324,
-+	GFX10_V_CUBESC_F32 = 325,
-+	GFX10_V_CUBETC_F32 = 326,
-+	GFX10_V_CUBEMA_F32 = 327,
-+	GFX10_V_BFE_U32 = 328,
-+	GFX10_V_BFE_I32 = 329,
-+	GFX10_V_BFI_B32 = 330,
-+	GFX10_V_FMA_F32 = 331,
-+	GFX10_V_FMA_F64 = 332,
-+	GFX10_V_LERP_U8 = 333,
-+	GFX10_V_ALIGNBIT_B32 = 334,
-+	GFX10_V_ALIGNBYTE_B32 = 335,
-+	GFX10_V_MULLIT_F32 = 336,
-+	GFX10_V_MIN3_F32 = 337,
-+	GFX10_V_MIN3_I32 = 338,
-+	GFX10_V_MIN3_U32 = 339,
-+	GFX10_V_MAX3_F32 = 340,
-+	GFX10_V_MAX3_I32 = 341,
-+	GFX10_V_MAX3_U32 = 342,
-+	GFX10_V_MED3_F32 = 343,
-+	GFX10_V_MED3_I32 = 344,
-+	GFX10_V_MED3_U32 = 345,
-+	GFX10_V_SAD_U8 = 346,
-+	GFX10_V_SAD_HI_U8 = 347,
-+	GFX10_V_SAD_U16 = 348,
-+	GFX10_V_SAD_U32 = 349,
-+	GFX10_V_CVT_PK_U8_F32 = 350,
-+	GFX10_V_DIV_FIXUP_F32 = 351,
-+	GFX10_V_DIV_FIXUP_F64 = 352,
-+	/* 353-355: reserved */
-+	GFX10_V_ADD_F64 = 356,
-+	GFX10_V_MUL_F64 = 357,
-+	GFX10_V_MIN_F64 = 358,
-+	GFX10_V_MAX_F64 = 359,
-+	GFX10_V_LDEXP_F64 = 360,
-+	GFX10_V_MUL_LO_U32 = 361,
-+	GFX10_V_MUL_HI_U32 = 362,
-+	/* 363: reserved */
-+	GFX10_V_MUL_HI_I32 = 364,
-+	/* 365-366: VOP3B (V_DIV_SCALE_F32/F64) */
-+	GFX10_V_DIV_FMAS_F32 = 367,
-+	GFX10_V_DIV_FMAS_F64 = 368,
-+	GFX10_V_MSAD_U8 = 369,
-+	GFX10_V_QSAD_PK_U16_U8 = 370,
-+	GFX10_V_MQSAD_PK_U16_U8 = 371,
-+	GFX10_V_TRIG_PREOP_F64 = 372,
-+	GFX10_V_MQSAD_U32_U8 = 373,
-+	/* 374-375: VOP3B (V_MAD_U64_U32/I64_I32) */
-+	GFX10_V_XOR3_B32 = 376,
-+	/* 377-766: reserved */
-+	GFX10_V_LSHLREV_B64 = 767,
-+	GFX10_V_LSHRREV_B64 = 768,
-+	GFX10_V_ASHRREV_I64 = 769,
-+	/* 770: reserved */
-+	GFX10_V_ADD_NC_U16 = 771,
-+	GFX10_V_SUB_NC_U16 = 772,
-+	GFX10_V_MUL_LO_U16 = 773,
-+	/* 774: reserved */
-+	GFX10_V_LSHRREV_B16 = 775,
-+	GFX10_V_ASHRREV_I16 = 776,
-+	GFX10_V_MAX_U16 = 777,
-+	GFX10_V_MAX_I16 = 778,
-+	GFX10_V_MIN_U16 = 779,
-+	GFX10_V_MIN_I16 = 780,
-+	GFX10_V_ADD_NC_I16 = 781,
-+	GFX10_V_SUB_NC_I16 = 782,
-+	/* 783-784: VOP3B (V_ADD_CO_U32/V_SUB_CO_U32) */
-+	GFX10_V_PACK_B32_F16 = 785,
-+	GFX10_V_CVT_PKNORM_I16_F16 = 786,
-+	GFX10_V_CVT_PKNORM_U16_F16 = 787,
-+	GFX10_V_LSHLREV_B16 = 788,
-+	/* 789-792: reserved; 793: VOP3B (V_SUBREV_CO_U32) */
-+	GFX10_V_MAD_U16 = 832,
-+	/* 833: reserved */
-+	GFX10_V_INTERP_P1LL_F16 = 834,
-+	GFX10_V_INTERP_P1LV_F16 = 835,
-+	GFX10_V_PERM_B32 = 836,
-+	GFX10_V_XAD_U32 = 837,
-+	GFX10_V_LSHL_ADD_U32 = 838,
-+	GFX10_V_ADD_LSHL_U32 = 839,
-+	/* 840-842: reserved */
-+	GFX10_V_FMA_F16 = 843,
-+	/* 844-848: reserved */
-+	GFX10_V_MIN3_F16 = 849,
-+	GFX10_V_MIN3_I16 = 850,
-+	GFX10_V_MIN3_U16 = 851,
-+	GFX10_V_MAX3_F16 = 852,
-+	GFX10_V_MAX3_I16 = 853,
-+	GFX10_V_MAX3_U16 = 854,
-+	GFX10_V_MED3_F16 = 855,
-+	GFX10_V_MED3_I16 = 856,
-+	GFX10_V_MED3_U16 = 857,
-+	GFX10_V_INTERP_P2_F16 = 858,
-+	/* 859-861: reserved */
-+	GFX10_V_MAD_I16 = 862,
-+	GFX10_V_DIV_FIXUP_F16 = 863,
-+	GFX10_V_READLANE_B32 = 864,
-+	GFX10_V_WRITELANE_B32 = 865,
-+	GFX10_V_LDEXP_F32 = 866,
-+	GFX10_V_BFM_B32 = 867,
-+	GFX10_V_BCNT_U32_B32 = 868,
-+	GFX10_V_MBCNT_LO_U32_B32 = 869,
-+	GFX10_V_MBCNT_HI_U32_B32 = 870,
-+	/* 871: reserved */
-+	GFX10_V_CVT_PKNORM_I16_F32 = 872,
-+	GFX10_V_CVT_PKNORM_U16_F32 = 873,
-+	GFX10_V_CVT_PK_U16_U32 = 874,
-+	GFX10_V_CVT_PK_I16_I32 = 875,
-+	/* 876: reserved */
-+	GFX10_V_ADD3_U32 = 877,
-+	/* 878: reserved */
-+	GFX10_V_LSHL_OR_B32 = 879,
-+	/* 880: reserved */
-+	GFX10_V_AND_OR_B32 = 881,
-+	GFX10_V_OR3_B32 = 882,
-+	GFX10_V_MAD_U32_U16 = 883,
-+	/* 884: reserved */
-+	GFX10_V_MAD_I32_I16 = 885,
-+	GFX10_V_SUB_NC_I32 = 886,
-+	GFX10_V_PERMLANE16_B32 = 887,
-+	GFX10_V_PERMLANEX16_B32 = 888,
-+	/* 889-894: reserved */
-+	GFX10_V_ADD_NC_I32 = 895,
-+};
-+
-+enum amdgcn_gfx10_vop3a_abs {
-+	GFX10_VOP3A_ABS_SRC0,
-+	GFX10_VOP3A_ABS_SRC1,
-+	GFX10_VOP3A_ABS_SRC2,
-+};
-+
-+#define GFX10_VOP3A_ENCODING			0x35
-+#define GFX10_VOP3A_SRC_SGPR_BASE		0
-+#define GFX10_VOP3A_SRC_VCC_LO			106
-+#define GFX10_VOP3A_SRC_VCC_HI			107
-+#define GFX10_VOP3A_SRC_TTPM_BASE		108
-+#define GFX10_VOP3A_SRC_M0			124
-+#define GFX10_VOP3A_SRC_NULL			125
-+#define GFX10_VOP3A_SRC_EXEC_LO			126
-+#define GFX10_VOP3A_SRC_EXEC_HI			127
-+#define GFX10_VOP3A_SRC_INTEGER_0		128
-+#define GFX10_VOP3A_SRC_INTEGER_MINUS_1		193
-+#define GFX10_VOP3A_SRC_SHARED_BASE		235
-+#define GFX10_VOP3A_SRC_SHARED_LIMIT		236
-+#define GFX10_VOP3A_SRC_PRIVATE_BASE		237
-+#define GFX10_VOP3A_SRC_PRIVATE_LIMIT		238
-+#define GFX10_VOP3A_SRC_POPS_EXITING_WAVE_ID	239
-+#define GFX10_VOP3A_SRC_SDWA			249
-+#define GFX10_VOP3A_SRC_DDP16			250
-+#define GFX10_VOP3A_SRC_VCCZ			251
-+#define GFX10_VOP3A_SRC_EXECZ			252
-+#define GFX10_VOP3A_SRC_SCC			253
-+#define GFX10_VOP3A_SRC_LITERAL_CONST		255
-+#define GFX10_VOP3A_SRC_VGPR_BASE		256
-+
-+/*
-+ * Two-source VOP3 forms have reserved third-source bits on gfx10. Encoding
-+ * an inline integer zero there executes, but LLVM/RGP reject the instruction.
-+ */
-+#define GFX10_VOP3_UNUSED_SRC			0
-+
-+struct amdgcn_gfx10_vop3b {
-+	u64 vdst:8;
-+	u64 sdst:7;
-+	u64 clmp:1;
-+	u64 op:10;
-+	u64 encoding:6;
-+	u64 src0:9;
-+	u64 src1:9;
-+	u64 src2:9;
-+	u64 omod:2;
-+	u64 neg:3;
-+	u32 literal;
-+};
-+
-+enum amdgcn_gfx10_vop3b_opcode {
-+	GFX10_V_DIV_SCALE_F32 = 365,
-+	GFX10_V_DIV_SCALE_F64 = 366,
-+	GFX10_V_MAD_U64_U32 = 374,
-+	GFX10_V_MAD_I64_I32 = 375,
-+	GFX10_V_ADD_CO_U32 = 783,
-+	GFX10_V_SUB_CO_U32 = 784,
-+	GFX10_V_SUBREV_CO_U32 = 793,
-+};
-+
-+#define GFX10_VOP3B_ENCODING			0x35
-+#define GFX10_VOP3B_SRC_SGPR_BASE		0
-+#define GFX10_VOP3B_SRC_VCC_LO			106
-+#define GFX10_VOP3B_SRC_VCC_HI			107
-+#define GFX10_VOP3B_SRC_TTPM_BASE		108
-+#define GFX10_VOP3B_SRC_M0			124
-+#define GFX10_VOP3B_SRC_NULL			125
-+#define GFX10_VOP3B_SRC_EXEC_LO			126
-+#define GFX10_VOP3B_SRC_EXEC_HI			127
-+#define GFX10_VOP3B_SRC_INTEGER_0		128
-+#define GFX10_VOP3B_SRC_INTEGER_MINUS_1		193
-+#define GFX10_VOP3B_SRC_SHARED_BASE		235
-+#define GFX10_VOP3B_SRC_SHARED_LIMIT		236
-+#define GFX10_VOP3B_SRC_PRIVATE_BASE		237
-+#define GFX10_VOP3B_SRC_PRIVATE_LIMIT		238
-+#define GFX10_VOP3B_SRC_POPS_EXITING_WAVE_ID	239
-+#define GFX10_VOP3B_SRC_SDWA			249
-+#define GFX10_VOP3B_SRC_DDP16			250
-+#define GFX10_VOP3B_SRC_VCCZ			251
-+#define GFX10_VOP3B_SRC_EXECZ			252
-+#define GFX10_VOP3B_SRC_SCC			253
-+#define GFX10_VOP3B_SRC_LITERAL_CONST		255
-+#define GFX10_VOP3B_SRC_VGPR_BASE		256
-+
-+struct amdgcn_gfx10_vop3p {
-+	u64 vdst:8;
-+	u64 neg_hi:3;
-+	u64 op_sel:3;
-+	u64 op_sel_hi2:1;
-+	u64 clmp:1;
-+	u64 op:7;
-+	u64 dummy:3;
-+	u64 encoding:6;
-+	u64 src0:9;
-+	u64 src1:9;
-+	u64 src2:9;
-+	u64 op_sel_hi:2;
-+	u64 neg:3;
-+	u32 literal;
-+};
-+
-+enum amdgcn_gfx10_vop3p_opcode {
-+	GFX10_V_PK_MAD_I16 = 0,
-+	GFX10_V_PK_MUL_LO_U16 = 1,
-+	GFX10_V_PK_ADD_I16 = 2,
-+	GFX10_V_PK_SUB_I16 = 3,
-+	GFX10_V_PK_LSHLREV_B16 = 4,
-+	GFX10_V_PK_LSHRREV_B16 = 5,
-+	GFX10_V_PK_ASHRREV_I16 = 6,
-+	GFX10_V_PK_MAX_I16 = 7,
-+	GFX10_V_PK_MIN_I16 = 8,
-+	GFX10_V_PK_MAD_U16 = 9,
-+	GFX10_V_PK_ADD_U16 = 10,
-+	GFX10_V_PK_SUB_U16 = 11,
-+	GFX10_V_PK_MAX_U16 = 12,
-+	GFX10_V_PK_MIN_U16 = 13,
-+	GFX10_V_PK_FMA_F16 = 14,
-+	GFX10_V_PK_ADD_F16 = 15,
-+	GFX10_V_PK_MUL_F16 = 16,
-+	GFX10_V_PK_MIN_F16 = 17,
-+	GFX10_V_PK_MAX_F16 = 18,
-+	GFX10_V_DOT2_F32_F16 = 19,
-+	GFX10_V_DOT2_I32_I16 = 20,
-+	GFX10_V_DOT2_U32_U16 = 21,
-+	GFX10_V_DOT4_I32_I8 = 22,
-+	GFX10_V_DOT4_U32_U8 = 23,
-+	GFX10_V_DOT8_I32_I4 = 24,
-+	GFX10_V_DOT8_U32_U4 = 25,
-+	/* 26-31: reserved */
-+	GFX10_V_FMA_MIX_F32 = 32,
-+	GFX10_V_FMA_MIXLO_F16 = 33,
-+	GFX10_V_FMA_MIXHI_F16 = 34,
-+};
-+
-+#define GFX10_VOP3P_ENCODING			0x33
-+#define GFX10_VOP3P_SRC_SGPR_BASE		0
-+#define GFX10_VOP3P_SRC_VCC_LO		106
-+#define GFX10_VOP3P_SRC_VCC_HI		107
-+#define GFX10_VOP3P_SRC_TTPM_BASE		108
-+#define GFX10_VOP3P_SRC_M0			124
-+#define GFX10_VOP3P_SRC_NULL			125
-+#define GFX10_VOP3P_SRC_EXEC_LO		126
-+#define GFX10_VOP3P_SRC_EXEC_HI		127
-+#define GFX10_VOP3P_SRC_INTEGER_0		128
-+#define GFX10_VOP3P_SRC_INTEGER_MINUS_1	193
-+#define GFX10_VOP3P_SRC_SHARED_BASE		235
-+#define GFX10_VOP3P_SRC_SHARED_LIMIT		236
-+#define GFX10_VOP3P_SRC_PRIVATE_BASE		237
-+#define GFX10_VOP3P_SRC_PRIVATE_LIMIT		238
-+#define GFX10_VOP3P_SRC_POPS_EXITING_WAVE_ID	239
-+#define GFX10_VOP3P_SRC_SDWA			249
-+#define GFX10_VOP3P_SRC_DDP16			250
-+#define GFX10_VOP3P_SRC_VCCZ			251
-+#define GFX10_VOP3P_SRC_EXECZ			252
-+#define GFX10_VOP3P_SRC_SCC			253
-+#define GFX10_VOP3P_SRC_VGPR_BASE		256
-+
-+struct amdgcn_gfx10_sdwa {
-+	u32 src0:8;
-+	u32 dst_sel:3;
-+	u32 dst_u:2;
-+	u32 clmp:1;
-+	u32 omod:2;
-+	u32 src0_sel:3;
-+	u32 src0_sext:1;
-+	u32 src0_neg:1;
-+	u32 src0_abs:1;
-+	u32 dummy1:1;
-+	u32 s0:1;
-+	u32 src1_sel:3;
-+	u32 src1_sext:1;
-+	u32 src1_neg:1;
-+	u32 src1_abs:1;
-+	u32 dummy2:1;
-+	u32 s1:1;
-+};
-+
-+struct amdgcn_gfx10_sdwab {
-+	u32 src0:8;
-+	u32 sdst:7;
-+	u32 sd:1;
-+	u32 src0_sel:3;
-+	u32 src0_sext:1;
-+	u32 src0_neg:1;
-+	u32 src0_abs:1;
-+	u32 dummy1:1;
-+	u32 s0:1;
-+	u32 src1_sel:3;
-+	u32 src1_sext:1;
-+	u32 src1_neg:1;
-+	u32 src1_abs:1;
-+	u32 dummy2:1;
-+	u32 s1:1;
-+};
-+
-+struct amdgcn_gfx10_dpp16 {
-+};
-+
-+struct amdgcn_gfx10_dpp8 {
-+};
-+
-+/* Vector Parameter Interpolation Format */
-+struct amdgcn_gfx10_vintrp {
-+};
-+
-+/* LDS and GDS Format */
-+struct amdgcn_gfx10_ds {
-+	u64 offset0:8;
-+	u64 offset1:8;
-+	u64 dummy:1;
-+	u64 gds:1;
-+	u64 op:8;
-+	u64 encoding:6;
-+	u64 addr:8;
-+	u64 data0:8;
-+	u64 data1:8;
-+	u64 vdst:8;
-+};
-+
-+enum amdgcn_gfx10_ds_opcode {
-+	GFX10_DS_ADD_U32 = 0,
-+	GFX10_DS_SUB_U32 = 1,
-+	GFX10_DS_RSUB_U32 = 2,
-+	GFX10_DS_INC_U32 = 3,
-+	GFX10_DS_DEC_U32 = 4,
-+	GFX10_DS_MIN_I32 = 5,
-+	GFX10_DS_MAX_I32 = 6,
-+	GFX10_DS_MIN_U32 = 7,
-+	GFX10_DS_MAX_U32 = 8,
-+	GFX10_DS_AND_B32 = 9,
-+	GFX10_DS_OR_B32 = 10,
-+	GFX10_DS_XOR_B32 = 11,
-+	GFX10_DS_MSKOR_B32 = 12,
-+	GFX10_DS_WRITE_B32 = 13,
-+	GFX10_DS_WRITE2_B32 = 14,
-+	GFX10_DS_WRITE2ST64_B32 = 15,
-+	GFX10_DS_CMPST_B32 = 16,
-+	GFX10_DS_CMPST_F32 = 17,
-+	GFX10_DS_MIN_F32 = 18,
-+	GFX10_DS_MAX_F32 = 19,
-+	GFX10_DS_NOP = 20,
-+	GFX10_DS_ADD_F32 = 21,
-+	/* 22-23: reserved */
-+	GFX10_DS_GWS_SEMA_RELEASE_ALL = 24,
-+	GFX10_DS_GWS_INIT = 25,
-+	GFX10_DS_GWS_SEMA_V = 26,
-+	GFX10_DS_GWS_SEMA_BR = 27,
-+	GFX10_DS_GWS_SEMA_P = 28,
-+	GFX10_DS_GWS_BARRIER = 29,
-+	GFX10_DS_WRITE_B8 = 30,
-+	GFX10_DS_WRITE_B16 = 31,
-+	GFX10_DS_ADD_RTN_U32 = 32,
-+	GFX10_DS_SUB_RTN_U32 = 33,
-+	GFX10_DS_RSUB_RTN_U32 = 34,
-+	GFX10_DS_INC_RTN_U32 = 35,
-+	GFX10_DS_DEC_RTN_U32 = 36,
-+	GFX10_DS_MIN_RTN_I32 = 37,
-+	GFX10_DS_MAX_RTN_I32 = 38,
-+	GFX10_DS_MIN_RTN_U32 = 39,
-+	GFX10_DS_MAX_RTN_U32 = 40,
-+	GFX10_DS_AND_RTN_B32 = 41,
-+	GFX10_DS_OR_RTN_B32 = 42,
-+	GFX10_DS_XOR_RTN_B32 = 43,
-+	GFX10_DS_MSKOR_RTN_B32 = 44,
-+	GFX10_DS_WRXCHG_RTN_B32 = 45,
-+	GFX10_DS_WRXCHG2_RTN_B32 = 46,
-+	GFX10_DS_WRXCHG2ST64_RTN_B32 = 47,
-+	GFX10_DS_CMPST_RTN_B32 = 48,
-+	GFX10_DS_CMPST_RTN_F32 = 49,
-+	GFX10_DS_MIN_RTN_F32 = 50,
-+	GFX10_DS_MAX_RTN_F32 = 51,
-+	GFX10_DS_WRAP_RTN_B32 = 52,
-+	GFX10_DS_SWIZZLE_B32 = 53,
-+	GFX10_DS_READ_B32 = 54,
-+	GFX10_DS_READ2_B32 = 55,
-+	GFX10_DS_READ2ST64_B32 = 56,
-+	GFX10_DS_READ_I8 = 57,
-+	GFX10_DS_READ_U8 = 58,
-+	GFX10_DS_READ_I16 = 59,
-+	GFX10_DS_READ_U16 = 60,
-+	GFX10_DS_CONSUME = 61,
-+	GFX10_DS_APPEND = 62,
-+	GFX10_DS_ORDERED_COUNT = 63,
-+	GFX10_DS_ADD_U64 = 64,
-+	GFX10_DS_SUB_U64 = 65,
-+	GFX10_DS_RSUB_U64 = 66,
-+	GFX10_DS_INC_U64 = 67,
-+	GFX10_DS_DEC_U64 = 68,
-+	GFX10_DS_MIN_I64 = 69,
-+	GFX10_DS_MAX_I64 = 70,
-+	GFX10_DS_MIN_U64 = 71,
-+	GFX10_DS_MAX_U64 = 72,
-+	GFX10_DS_AND_B64 = 73,
-+	GFX10_DS_OR_B64 = 74,
-+	GFX10_DS_XOR_B64 = 75,
-+	GFX10_DS_MSKOR_B64 = 76,
-+	GFX10_DS_WRITE_B64 = 77,
-+	GFX10_DS_WRITE2_B64 = 78,
-+	GFX10_DS_WRITE2ST64_B64 = 79,
-+	GFX10_DS_CMPST_B64 = 80,
-+	GFX10_DS_CMPST_F64 = 81,
-+	GFX10_DS_MIN_F64 = 82,
-+	GFX10_DS_MAX_F64 = 83,
-+	/* 84: reserved */
-+	GFX10_DS_ADD_RTN_F32 = 85,
-+	/* 86-95: reserved */
-+	GFX10_DS_ADD_RTN_U64 = 96,
-+	GFX10_DS_SUB_RTN_U64 = 97,
-+	GFX10_DS_RSUB_RTN_U64 = 98,
-+	GFX10_DS_INC_RTN_U64 = 99,
-+	GFX10_DS_DEC_RTN_U64 = 100,
-+	GFX10_DS_MIN_RTN_I64 = 101,
-+	GFX10_DS_MAX_RTN_I64 = 102,
-+	GFX10_DS_MIN_RTN_U64 = 103,
-+	GFX10_DS_MAX_RTN_U64 = 104,
-+	GFX10_DS_AND_RTN_B64 = 105,
-+	GFX10_DS_OR_RTN_B64 = 106,
-+	GFX10_DS_XOR_RTN_B64 = 107,
-+	GFX10_DS_MSKOR_RTN_B64 = 108,
-+	GFX10_DS_WRXCHG_RTN_B64 = 109,
-+	GFX10_DS_WRXCHG2_RTN_B64 = 110,
-+	GFX10_DS_WRXCHG2ST64_RTN_B64 = 111,
-+	GFX10_DS_CMPST_RTN_B64 = 112,
-+	GFX10_DS_CMPST_RTN_F64 = 113,
-+	GFX10_DS_MIN_RTN_F64 = 114,
-+	GFX10_DS_MAX_RTN_F64 = 115,
-+	/* 116-117: reserved */
-+	GFX10_DS_READ_B64 = 118,
-+	GFX10_DS_READ2_B64 = 119,
-+	GFX10_DS_READ2ST64_B64 = 120,
-+	/* 121-125: reserved */
-+	GFX10_DS_CONDXCHG32_RTN_B64 = 126,
-+	/* 127-159: reserved */
-+	GFX10_DS_WRITE_B8_D16_HI = 160,
-+	GFX10_DS_WRITE_B16_D16_HI = 161,
-+	GFX10_DS_READ_U8_D16 = 162,
-+	GFX10_DS_READ_U8_D16_HI = 163,
-+	GFX10_DS_READ_I8_D16 = 164,
-+	GFX10_DS_READ_I8_D16_HI = 165,
-+	GFX10_DS_READ_U16_D16 = 166,
-+	GFX10_DS_READ_U16_D16_HI = 167,
-+	/* 168-175: reserved */
-+	GFX10_DS_WRITE_ADDTID_B32 = 176,
-+	GFX10_DS_READ_ADDTID_B32 = 177,
-+	GFX10_DS_PERMUTE_B32 = 178,
-+	GFX10_DS_BPERMUTE_B32 = 179,
-+	/* 180-221: reserved */
-+	GFX10_DS_WRITE_B96 = 222,
-+	GFX10_DS_WRITE_B128 = 223,
-+	/* 224-253: reserved */
-+	GFX10_DS_READ_B96 = 254,
-+	GFX10_DS_READ_B128 = 255,
-+};
-+
-+#define GFX10_DS_ENCODING		0x36
-+#define GFX10_DS_GDS			1
-+#define GFX10_DS_LDS			0
-+
-+/* Vector Memory Buffer Formats */
-+struct amdgcn_gfx10_mtbuf {
-+	u64 offset:12;
-+	u64 offen:1;
-+	u64 idxen:1;
-+	u64 glc:1;
-+	u64 dlc:1;
-+	u64 op:3;
-+	u64 foamat:7;
-+	u64 encoding:6;
-+	u64 vaddr:8;
-+	u64 vdata:8;
-+	u64 srsrc:5;
-+	u64 opm:1;
-+	u64 slc:1;
-+	u64 tfe:1;
-+	u64 soffset:8;
-+};
-+
-+enum amdgcn_gfx10_mtbuf_opcode {
-+	GFX10_TBUFFER_LOAD_FORMAT_X = 0,
-+	GFX10_TBUFFER_LOAD_FORMAT_XY = 1,
-+	GFX10_TBUFFER_LOAD_FORMAT_XYZ = 2,
-+	GFX10_TBUFFER_LOAD_FORMAT_XYZW = 3,
-+	GFX10_TBUFFER_STORE_FORMAT_X = 4,
-+	GFX10_TBUFFER_STORE_FORMAT_XY = 5,
-+	GFX10_TBUFFER_STORE_FORMAT_XYZ = 6,
-+	GFX10_TBUFFER_STORE_FORMAT_XYZW = 7,
-+	GFX10_TBUFFER_LOAD_FORMAT_D16_X = 8,
-+	GFX10_TBUFFER_LOAD_FORMAT_D16_XY = 9,
-+	GFX10_TBUFFER_LOAD_FORMAT_D16_XYZ = 10,
-+	GFX10_TBUFFER_LOAD_FORMAT_D16_XYZW = 11,
-+	GFX10_TBUFFER_STORE_FORMAT_D16_X = 12,
-+	GFX10_TBUFFER_STORE_FORMAT_D16_XY = 13,
-+	GFX10_TBUFFER_STORE_FORMAT_D16_XYZ = 14,
-+	GFX10_TBUFFER_STORE_FORMAT_D16_XYZW = 15,
-+};
-+
-+#define GFX10_MUBUF_ENCODING				0x38
-+#define GFX10_MUBUF_SOFFSET_SGPR_BASE			0
-+#define GFX10_MUBUF_SOFFSET_VCC_LO			106
-+#define GFX10_MUBUF_SOFFSET_VCC_HI			107
-+#define GFX10_MUBUF_SOFFSET_TTPM_BASE			108
-+#define GFX10_MUBUF_SOFFSET_M0				124
-+#define GFX10_MUBUF_SOFFSET_NULL			125
-+#define GFX10_MUBUF_SOFFSET_EXEC_LO			126
-+#define GFX10_MUBUF_SOFFSET_EXEC_HI			127
-+#define GFX10_MUBUF_SOFFSET_INTEGER_0			128
-+#define GFX10_MUBUF_SOFFSET_INTEGER_MINUS_1		193
-+#define GFX10_MUBUF_SOFFSET_SHARED_BASE			235
-+#define GFX10_MUBUF_SOFFSET_SHARED_LIMIT		236
-+#define GFX10_MUBUF_SOFFSET_PRIVATE_BASE		237
-+#define GFX10_MUBUF_SOFFSET_PRIVATE_LIMIT		238
-+#define GFX10_MUBUF_SOFFSET_POPS_EXITING_WAVE_ID	239
-+#define GFX10_MUBUF_SOFFSET_VCCZ			251
-+#define GFX10_MUBUF_SOFFSET_EXECZ			252
-+#define GFX10_MUBUF_SOFFSET_SCC				253
-+
-+struct amdgcn_gfx10_mubuf {
-+	u64 offset:12;
-+	u64 offen:1;
-+	u64 idxen:1;
-+	u64 glc:1;
-+	u64 dlc:1;
-+	u64 lds:1;
-+	u64 dummy1:1;
-+	u64 op:7;
-+	u64 opm:1;
-+	u64 encoding:6;
-+	u64 vaddr:8;
-+	u64 vdata:8;
-+	u64 srsrc:5;
-+	u64 dummy2:1;
-+	u64 slc:1;
-+	u64 tfe:1;
-+	u64 soffset:8;
-+};
-+
-+enum amdgcn_gfx10_mubuf_opcode {
-+	GFX10_BUFFER_LOAD_FORMAT_X = 0,
-+	GFX10_BUFFER_LOAD_FORMAT_XY = 1,
-+	GFX10_BUFFER_LOAD_FORMAT_XYZ = 2,
-+	GFX10_BUFFER_LOAD_FORMAT_XYZW = 3,
-+	GFX10_BUFFER_STORE_FORMAT_X = 4,
-+	GFX10_BUFFER_STORE_FORMAT_XY = 5,
-+	GFX10_BUFFER_STORE_FORMAT_XYZ = 6,
-+	GFX10_BUFFER_STORE_FORMAT_XYZW = 7,
-+	GFX10_BUFFER_LOAD_UBYTE = 8,
-+	GFX10_BUFFER_LOAD_SBYTE = 9,
-+	GFX10_BUFFER_LOAD_USHORT = 10,
-+	GFX10_BUFFER_LOAD_SSHORT = 11,
-+	GFX10_BUFFER_LOAD_DWORD = 12,
-+	GFX10_BUFFER_LOAD_DWORDX2 = 13,
-+	GFX10_BUFFER_LOAD_DWORDX4 = 14,
-+	GFX10_BUFFER_LOAD_DWORDX3 = 15,
-+	/* 16-23: reserved */
-+	GFX10_BUFFER_STORE_BYTE = 24,
-+	GFX10_BUFFER_STORE_BYTE_D16_HI = 25,
-+	GFX10_BUFFER_STORE_SHORT = 26,
-+	GFX10_BUFFER_STORE_SHORT_D16_HI = 27,
-+	GFX10_BUFFER_STORE_DWORD = 28,
-+	GFX10_BUFFER_STORE_DWORDX2 = 29,
-+	GFX10_BUFFER_STORE_DWORDX4 = 30,
-+	GFX10_BUFFER_STORE_DWORDX3 = 31,
-+	GFX10_BUFFER_LOAD_UBYTE_D16 = 32,
-+	GFX10_BUFFER_LOAD_UBYTE_D16_HI = 33,
-+	GFX10_BUFFER_LOAD_SBYTE_D16 = 34,
-+	GFX10_BUFFER_LOAD_SBYTE_D16_HI = 35,
-+	GFX10_BUFFER_LOAD_SHORT_D16 = 36,
-+	GFX10_BUFFER_LOAD_SHORT_D16_HI = 37,
-+	GFX10_BUFFER_LOAD_FORMAT_D16_HI_X = 38,
-+	GFX10_BUFFER_STORE_FORMAT_D16_HI_X = 39,
-+	/* 40-47: reserved */
-+	GFX10_BUFFER_ATOMIC_SWAP = 48,
-+	GFX10_BUFFER_ATOMIC_CMPSWAP = 49,
-+	GFX10_BUFFER_ATOMIC_ADD = 50,
-+	GFX10_BUFFER_ATOMIC_SUB = 51,
-+	GFX10_BUFFER_ATOMIC_CSUB = 52,
-+	GFX10_BUFFER_ATOMIC_SMIN = 53,
-+	GFX10_BUFFER_ATOMIC_UMIN = 54, /* was 58 - BUG FIX (ISA p.212) */
-+	GFX10_BUFFER_ATOMIC_SMAX = 55,
-+	GFX10_BUFFER_ATOMIC_UMAX = 56,
-+	GFX10_BUFFER_ATOMIC_AND = 57,
-+	GFX10_BUFFER_ATOMIC_OR = 58,
-+	GFX10_BUFFER_ATOMIC_XOR = 59,
-+	GFX10_BUFFER_ATOMIC_INC = 60,
-+	GFX10_BUFFER_ATOMIC_DEC = 61,
-+	GFX10_BUFFER_ATOMIC_FCMPSWAP = 62,
-+	GFX10_BUFFER_ATOMIC_FMIN = 63,
-+	GFX10_BUFFER_ATOMIC_FMAX = 64,
-+	/* 65-79: reserved */
-+	GFX10_BUFFER_ATOMIC_SWAP_X2 = 80,
-+	GFX10_BUFFER_ATOMIC_CMPSWAP_X2 = 81,
-+	GFX10_BUFFER_ATOMIC_ADD_X2 = 82,
-+	GFX10_BUFFER_ATOMIC_SUB_X2 = 83,
-+	/* 84: reserved */
-+	GFX10_BUFFER_ATOMIC_SMIN_X2 = 85,
-+	GFX10_BUFFER_ATOMIC_UMIN_X2 = 86,
-+	GFX10_BUFFER_ATOMIC_SMAX_X2 = 87,
-+	GFX10_BUFFER_ATOMIC_UMAX_X2 = 88,
-+	GFX10_BUFFER_ATOMIC_AND_X2 = 89,
-+	GFX10_BUFFER_ATOMIC_OR_X2 = 90,
-+	GFX10_BUFFER_ATOMIC_XOR_X2 = 91,
-+	GFX10_BUFFER_ATOMIC_INC_X2 = 92,
-+	GFX10_BUFFER_ATOMIC_DEC_X2 = 93,
-+	GFX10_BUFFER_ATOMIC_FCMPSWAP_X2 = 94,
-+	GFX10_BUFFER_ATOMIC_FMIN_X2 = 95,
-+	GFX10_BUFFER_ATOMIC_FMAX_X2 = 96,
-+	/* 97-112: reserved */
-+	GFX10_BUFFER_GL0_INV = 113,
-+	GFX10_BUFFER_GL1_INV = 114,
-+	/* 115-127: reserved */
-+	GFX10_BUFFER_LOAD_FORMAT_D16_X = 128,
-+	GFX10_BUFFER_LOAD_FORMAT_D16_XY = 129,
-+	GFX10_BUFFER_LOAD_FORMAT_D16_XYZ = 130,
-+	GFX10_BUFFER_LOAD_FORMAT_D16_XYZW = 131,
-+	GFX10_BUFFER_STORE_FORMAT_D16_X = 132,
-+	GFX10_BUFFER_STORE_FORMAT_D16_XY = 133,
-+	GFX10_BUFFER_STORE_FORMAT_D16_XYZ = 134,
-+	GFX10_BUFFER_STORE_FORMAT_D16_XYZW = 135,
-+};
-+
-+/* Vector Memory Image Format */
-+struct amdgcn_gfx10_mimg {
-+};
-+
-+#define GFX10_FLAT_ENCODING			0x37
-+#define GFX10_FLAT_SADDR_SGPR_BASE		0
-+#define GFX10_FLAT_SADDR_VCC_LO			106
-+#define GFX10_FLAT_SADDR_VCC_HI			107
-+#define GFX10_FLAT_SADDR_TTPM_BASE		108
-+#define GFX10_FLAT_SADDR_M0			124
-+#define GFX10_FLAT_SADDR_NULL			125
-+#define GFX10_FLAT_SADDR_EXEC_LO		126
-+#define GFX10_FLAT_SADDR_EXEC_HI		127
-+#define GFX10_FLAT_SADDR_INTEGER_0		128
-+#define GFX10_FLAT_SADDR_INTEGER_MINUS_1	193
-+#define GFX10_FLAT_SADDR_SHARED_BASE		235
-+#define GFX10_FLAT_SADDR_SHARED_LIMIT		236
-+#define GFX10_FLAT_SADDR_PRIVATE_BASE		237
-+#define GFX10_FLAT_SADDR_PRIVATE_LIMIT		238
-+#define GFX10_FLAT_SADDR_POPS_EXITING_WAVE_ID	239
-+#define GFX10_FLAT_SADDR_VCCZ			251
-+#define GFX10_FLAT_SADDR_EXECZ			252
-+#define GFX10_FLAT_SADDR_SCC			253
-+
-+/*
-+ * Scalar SGPR that provides an offset address. Use NULL for disabled global
-+ * addressing; the 0x7f encoding is not accepted by LLVM/RGP for gfx10 global
-+ * memory instructions.
-+ * Meaning of this field is different for Scratch and Global:
-+ * Flat: Unused.
-+ * Scratch: Use an SGPR (instead of VGPR) for the address.
-+ * Global: Use the SGPR to provide a base address; the VGPR provides a 32-bit
-+ * offset per lane.
-+ */
-+#define GFX10_FLAT_SADDR_DISABLE                 GFX10_FLAT_SADDR_NULL
-+#define GFX10_FLAT_SEG_FLAT                      0
-+#define GFX10_FLAT_SEG_SCRATCH                   1
-+#define GFX10_FLAT_SEG_GLOBAL                    2
-+
-+/* Flat Formats */
-+struct amdgcn_gfx10_flat {
-+	u64 offset:12;
-+	u64 dlc:1;
-+	u64 lds:1;
-+	u64 seg:2;
-+	u64 glc:1;
-+	u64 slc:1;
-+	u64 op:7;
-+	u64 dummy1:1;
-+	u64 encoding:6;
-+	u64 addr:8;
-+	u64 data:8;
-+	u64 saddr:7;
-+	u64 dummy2:1;
-+	u64 vdst:8;
-+};
-+
-+enum amdgcn_gfx10_flat_opcode {
-+	/* 0-7: reserved */
-+	GFX10_FLAT_LOAD_UBYTE = 8,
-+	GFX10_FLAT_LOAD_SBYTE = 9,
-+	GFX10_FLAT_LOAD_USHORT = 10,
-+	GFX10_FLAT_LOAD_SSHORT = 11,
-+	GFX10_FLAT_LOAD_DWORD = 12,
-+	GFX10_FLAT_LOAD_DWORDX2 = 13,
-+	GFX10_FLAT_LOAD_DWORDX4 = 14,
-+	GFX10_FLAT_LOAD_DWORDX3 = 15,
-+	/* 16-23: reserved */
-+	GFX10_FLAT_STORE_BYTE = 24,
-+	GFX10_FLAT_STORE_BYTE_D16_HI = 25,
-+	GFX10_FLAT_STORE_SHORT = 26,
-+	GFX10_FLAT_STORE_SHORT_D16_HI = 27,
-+	GFX10_FLAT_STORE_DWORD = 28,
-+	GFX10_FLAT_STORE_DWORDX2 = 29,
-+	GFX10_FLAT_STORE_DWORDX4 = 30,
-+	GFX10_FLAT_STORE_DWORDX3 = 31,
-+	GFX10_FLAT_LOAD_UBYTE_D16 = 32,
-+	GFX10_FLAT_LOAD_UBYTE_D16_HI = 33,
-+	GFX10_FLAT_LOAD_SBYTE_D16 = 34,
-+	GFX10_FLAT_LOAD_SBYTE_D16_HI = 35,
-+	GFX10_FLAT_LOAD_SHORT_D16 = 36,
-+	GFX10_FLAT_LOAD_SHORT_D16_HI = 37,
-+	/* 38-47: reserved */
-+	GFX10_FLAT_ATOMIC_SWAP = 48,
-+	GFX10_FLAT_ATOMIC_CMPSWAP = 49,
-+	GFX10_FLAT_ATOMIC_ADD = 50,
-+	GFX10_FLAT_ATOMIC_SUB = 51,
-+	/* 52: reserved (CSUB is GLOBAL/MUBUF only) */
-+	GFX10_FLAT_ATOMIC_SMIN = 53,
-+	GFX10_FLAT_ATOMIC_UMIN = 54,
-+	GFX10_FLAT_ATOMIC_SMAX = 55,
-+	GFX10_FLAT_ATOMIC_UMAX = 56,
-+	GFX10_FLAT_ATOMIC_AND = 57,
-+	GFX10_FLAT_ATOMIC_OR = 58,
-+	GFX10_FLAT_ATOMIC_XOR = 59,
-+	GFX10_FLAT_ATOMIC_INC = 60,
-+	GFX10_FLAT_ATOMIC_DEC = 61,
-+	GFX10_FLAT_ATOMIC_FCMPSWAP = 62,
-+	GFX10_FLAT_ATOMIC_FMIN = 63,
-+	GFX10_FLAT_ATOMIC_FMAX = 64,
-+	/* 65-79: reserved */
-+	GFX10_FLAT_ATOMIC_SWAP_X2 = 80,
-+	GFX10_FLAT_ATOMIC_CMPSWAP_X2 = 81,
-+	GFX10_FLAT_ATOMIC_ADD_X2 = 82,
-+	GFX10_FLAT_ATOMIC_SUB_X2 = 83,
-+	/* 84: reserved */
-+	GFX10_FLAT_ATOMIC_SMIN_X2 = 85,
-+	GFX10_FLAT_ATOMIC_UMIN_X2 = 86,
-+	GFX10_FLAT_ATOMIC_SMAX_X2 = 87,
-+	GFX10_FLAT_ATOMIC_UMAX_X2 = 88,
-+	GFX10_FLAT_ATOMIC_AND_X2 = 89,
-+	GFX10_FLAT_ATOMIC_OR_X2 = 90,
-+	GFX10_FLAT_ATOMIC_XOR_X2 = 91,
-+	GFX10_FLAT_ATOMIC_INC_X2 = 92,
-+	GFX10_FLAT_ATOMIC_DEC_X2 = 93,
-+	GFX10_FLAT_ATOMIC_FCMPSWAP_X2 = 94,
-+	GFX10_FLAT_ATOMIC_FMIN_X2 = 95,
-+	GFX10_FLAT_ATOMIC_FMAX_X2 = 96,
-+};
-+
-+enum amdgcn_gfx10_global_opcode {
-+	/* 0-7: reserved */
-+	GFX10_GLOBAL_LOAD_UBYTE = 8,
-+	GFX10_GLOBAL_LOAD_SBYTE = 9,
-+	GFX10_GLOBAL_LOAD_USHORT = 10,
-+	GFX10_GLOBAL_LOAD_SSHORT = 11,
-+	GFX10_GLOBAL_LOAD_DWORD = 12,
-+	GFX10_GLOBAL_LOAD_DWORDX2 = 13,
-+	GFX10_GLOBAL_LOAD_DWORDX4 = 14,
-+	GFX10_GLOBAL_LOAD_DWORDX3 = 15,
-+	/* 16-21: reserved */
-+	GFX10_GLOBAL_LOAD_DWORD_ADDTID = 22,
-+	GFX10_GLOBAL_STORE_DWORD_ADDTID = 23,
-+	GFX10_GLOBAL_STORE_BYTE = 24,
-+	GFX10_GLOBAL_STORE_BYTE_D16_HI = 25,
-+	GFX10_GLOBAL_STORE_SHORT = 26,
-+	GFX10_GLOBAL_STORE_SHORT_D16_HI = 27,
-+	GFX10_GLOBAL_STORE_DWORD = 28,
-+	GFX10_GLOBAL_STORE_DWORDX2 = 29,
-+	GFX10_GLOBAL_STORE_DWORDX4 = 30,
-+	GFX10_GLOBAL_STORE_DWORDX3 = 31,
-+	GFX10_GLOBAL_LOAD_UBYTE_D16 = 32,
-+	GFX10_GLOBAL_LOAD_UBYTE_D16_HI = 33,
-+	GFX10_GLOBAL_LOAD_SBYTE_D16 = 34,
-+	GFX10_GLOBAL_LOAD_SBYTE_D16_HI = 35,
-+	GFX10_GLOBAL_LOAD_SHORT_D16 = 36,
-+	GFX10_GLOBAL_LOAD_SHORT_D16_HI = 37,
-+	/* 38-47: reserved */
-+	GFX10_GLOBAL_ATOMIC_SWAP = 48,
-+	GFX10_GLOBAL_ATOMIC_CMPSWAP = 49,
-+	GFX10_GLOBAL_ATOMIC_ADD = 50,
-+	GFX10_GLOBAL_ATOMIC_SUB = 51,
-+	GFX10_GLOBAL_ATOMIC_CSUB = 52,
-+	GFX10_GLOBAL_ATOMIC_SMIN = 53,
-+	GFX10_GLOBAL_ATOMIC_UMIN = 54,
-+	GFX10_GLOBAL_ATOMIC_SMAX = 55,
-+	GFX10_GLOBAL_ATOMIC_UMAX = 56,
-+	GFX10_GLOBAL_ATOMIC_AND = 57,
-+	GFX10_GLOBAL_ATOMIC_OR = 58,
-+	GFX10_GLOBAL_ATOMIC_XOR = 59,
-+	GFX10_GLOBAL_ATOMIC_INC = 60,
-+	GFX10_GLOBAL_ATOMIC_DEC = 61,
-+	GFX10_GLOBAL_ATOMIC_FCMPSWAP = 62,
-+	GFX10_GLOBAL_ATOMIC_FMIN = 63,
-+	GFX10_GLOBAL_ATOMIC_FMAX = 64,
-+	/* 65-79: reserved */
-+	GFX10_GLOBAL_ATOMIC_SWAP_X2 = 80,
-+	GFX10_GLOBAL_ATOMIC_CMPSWAP_X2 = 81,
-+	GFX10_GLOBAL_ATOMIC_ADD_X2 = 82,
-+	GFX10_GLOBAL_ATOMIC_SUB_X2 = 83,
-+	/* 84: reserved */
-+	GFX10_GLOBAL_ATOMIC_SMIN_X2 = 85,
-+	GFX10_GLOBAL_ATOMIC_UMIN_X2 = 86,
-+	GFX10_GLOBAL_ATOMIC_SMAX_X2 = 87,
-+	GFX10_GLOBAL_ATOMIC_UMAX_X2 = 88,
-+	GFX10_GLOBAL_ATOMIC_AND_X2 = 89,
-+	GFX10_GLOBAL_ATOMIC_OR_X2 = 90,
-+	GFX10_GLOBAL_ATOMIC_XOR_X2 = 91,
-+	GFX10_GLOBAL_ATOMIC_INC_X2 = 92,
-+	GFX10_GLOBAL_ATOMIC_DEC_X2 = 93,
-+	GFX10_GLOBAL_ATOMIC_FCMPSWAP_X2 = 94,
-+	GFX10_GLOBAL_ATOMIC_FMIN_X2 = 95,
-+	GFX10_GLOBAL_ATOMIC_FMAX_X2 = 96,
-+};
-+
-+enum amdgcn_gfx10_scratch_opcode {
-+	/* 0-7: reserved */
-+	GFX10_SCRATCH_LOAD_UBYTE = 8,
-+	GFX10_SCRATCH_LOAD_SBYTE = 9,
-+	GFX10_SCRATCH_LOAD_USHORT = 10,
-+	GFX10_SCRATCH_LOAD_SSHORT = 11,
-+	GFX10_SCRATCH_LOAD_DWORD = 12,
-+	GFX10_SCRATCH_LOAD_DWORDX2 = 13,
-+	GFX10_SCRATCH_LOAD_DWORDX4 = 14,
-+	GFX10_SCRATCH_LOAD_DWORDX3 = 15,
-+	/* 16-23: reserved */
-+	GFX10_SCRATCH_STORE_BYTE = 24,
-+	GFX10_SCRATCH_STORE_BYTE_D16_HI = 25,
-+	GFX10_SCRATCH_STORE_SHORT = 26,
-+	GFX10_SCRATCH_STORE_SHORT_D16_HI = 27,
-+	GFX10_SCRATCH_STORE_DWORD = 28,
-+	GFX10_SCRATCH_STORE_DWORDX2 = 29,
-+	GFX10_SCRATCH_STORE_DWORDX4 = 30,
-+	GFX10_SCRATCH_STORE_DWORDX3 = 31,
-+	GFX10_SCRATCH_LOAD_UBYTE_D16 = 32,
-+	GFX10_SCRATCH_LOAD_UBYTE_D16_HI = 33,
-+	GFX10_SCRATCH_LOAD_SBYTE_D16 = 34,
-+	GFX10_SCRATCH_LOAD_SBYTE_D16_HI = 35,
-+	GFX10_SCRATCH_LOAD_SHORT_D16 = 36,
-+	GFX10_SCRATCH_LOAD_SHORT_D16_HI = 37,
-+};
-+
-+/* Export Format */
-+struct amdgcn_gfx10_exp {
-+};
-+
-+union amdgcn_gfx10_insn {
-+	struct amdgcn_gfx10_sop2 sop2;
-+	struct amdgcn_gfx10_sopk sopk;
-+	struct amdgcn_gfx10_sop1 sop1;
-+	struct amdgcn_gfx10_sopc sopc;
-+	struct amdgcn_gfx10_sopp sopp;
-+	struct amdgcn_gfx10_smem smem;
-+	struct amdgcn_gfx10_vop2 vop2;
-+	struct amdgcn_gfx10_vop1 vop1;
-+	struct amdgcn_gfx10_vopc vopc;
-+	struct amdgcn_gfx10_vop3a vop3a;
-+	struct amdgcn_gfx10_vop3b vop3b;
-+	struct amdgcn_gfx10_vop3p vop3p;
-+	struct amdgcn_gfx10_sdwa sdwa;
-+	struct amdgcn_gfx10_sdwab sdwab;
-+	struct amdgcn_gfx10_dpp16 dpp16;
-+	struct amdgcn_gfx10_dpp8 dpp8;
-+	struct amdgcn_gfx10_vintrp vintrp;
-+	struct amdgcn_gfx10_ds ds;
-+	struct amdgcn_gfx10_mtbuf mtbuf;
-+	struct amdgcn_gfx10_mubuf mubuf;
-+	struct amdgcn_gfx10_mimg mimg;
-+	struct amdgcn_gfx10_flat flat;
-+	struct amdgcn_gfx10_exp exp;
-+};
-+
-+/* Cast macro - convert u32 *buf position to GFX10 insn union pointer. */
-+#define I10(buf, n)	((union amdgcn_gfx10_insn *)&(buf)[(n)])
-+
-+inline u32 gfx10_get_param_base(struct amdgcn_param32 param)
-+{
-+	return gfx10_param_base[param.type];
-+}
-+
-+inline u32 emit_gfx10_s_load_dwordx2(union amdgcn_gfx10_insn *insn,
-+				     struct amdgcn_param32 dst,
-+				     struct amdgcn_param32 src, int offset)
-+{
-+	/* s_load_dwordx2 <dst/sdata>, <src/sbase>, <offset>
-+	 * sdata: register, load to.
-+	 * sbase: sgpr-pair, load from.
-+	 * offset: offset of kernarg_address in the hsa_kernel_dispatch_packet.
-+	 *
-+	 * sdata = *(sbase + offset);
-+	 * param = (__global struct _knod_bpf_param *)pkt.kernarg_address;
-+	 */
-+
-+	insn->smem.sbase = KNOD_AMDGPU_REG_PAIR(src.v);
-+	insn->smem.sdata = dst.v;
-+	insn->smem.dummy1 = 0;
-+	insn->smem.dlc = 0;
-+	insn->smem.dummy2 = 0;
-+	insn->smem.glc = 0;
-+	insn->smem.dummy3 = 0;
-+	insn->smem.op = GFX10_S_LOAD_DWORDX2;
-+	insn->smem.encoding = GFX10_SMEM_ENCODING;
-+	insn->smem.offset = offset;
-+	insn->smem.dummy4 = 0;
-+	insn->smem.soffset = GFX10_SMEM_SOFFSET_NULL; /* no SGPR offset */
-+
-+	return 8;
-+}
-+
-+inline u32 emit_gfx10_v_bfe_i32(union amdgcn_gfx10_insn *insn,
-+				struct amdgcn_param32 dst,
-+				struct amdgcn_param32 src0,
-+				struct amdgcn_param32 src1,
-+				struct amdgcn_param32 src2)
-+{
-+	WARN_ON(dst.type != AMDGCN_PARAM_TYPE_VGPR);
-+	WARN_ON(src1.type == AMDGCN_PARAM_TYPE_LITERAL_CONST ||
-+		src2.type == AMDGCN_PARAM_TYPE_LITERAL_CONST);
-+	insn->vop3a.vdst = dst.v;
-+	insn->vop3a.abs = 0;
-+	insn->vop3a.op_sel = 0;
-+	insn->vop3a.clmp = 0;
-+	insn->vop3a.op = GFX10_V_BFE_I32;
-+	insn->vop3a.encoding = GFX10_VOP3A_ENCODING;
-+	insn->vop3a.src1 = gfx10_get_param_base(src1) + src1.v;
-+	insn->vop3a.src2 = gfx10_get_param_base(src2) + src2.v;
-+	insn->vop3a.omod = 0;
-+	insn->vop3a.neg = 0;
-+	if (src0.type == AMDGCN_PARAM_TYPE_LITERAL_CONST) {
-+		insn->vop3a.src0 = gfx10_get_param_base(src0);
-+		insn->vop3a.literal = src0.v;
-+		return 12;
-+	}
-+	insn->vop3a.src0 = gfx10_get_param_base(src0) + src0.v;
-+
-+	return 8;
-+}
-+
-+inline u32 emit_gfx10_v_bfe_u32(union amdgcn_gfx10_insn *insn,
-+				struct amdgcn_param32 dst,
-+				struct amdgcn_param32 src0,
-+				struct amdgcn_param32 src1,
-+				struct amdgcn_param32 src2)
-+{
-+	WARN_ON(dst.type != AMDGCN_PARAM_TYPE_VGPR);
-+	WARN_ON(src1.type == AMDGCN_PARAM_TYPE_LITERAL_CONST ||
-+		src2.type == AMDGCN_PARAM_TYPE_LITERAL_CONST);
-+	insn->vop3a.vdst = dst.v;
-+	insn->vop3a.abs = 0;
-+	insn->vop3a.op_sel = 0;
-+	insn->vop3a.clmp = 0;
-+	insn->vop3a.op = GFX10_V_BFE_U32;
-+	insn->vop3a.encoding = GFX10_VOP3A_ENCODING;
-+	insn->vop3a.src1 = gfx10_get_param_base(src1) + src1.v;
-+	insn->vop3a.src2 = gfx10_get_param_base(src2) + src2.v;
-+	insn->vop3a.omod = 0;
-+	insn->vop3a.neg = 0;
-+	if (src0.type == AMDGCN_PARAM_TYPE_LITERAL_CONST) {
-+		insn->vop3a.src0 = gfx10_get_param_base(src0);
-+		insn->vop3a.literal = src0.v;
-+		return 12;
-+	}
-+	insn->vop3a.src0 = gfx10_get_param_base(src0) + src0.v;
-+
-+	return 8;
-+}
-+
-+inline u32 emit_gfx10_v_bfi_b32(union amdgcn_gfx10_insn *insn,
-+				struct amdgcn_param32 dst,
-+				struct amdgcn_param32 src0,
-+				struct amdgcn_param32 src1,
-+				struct amdgcn_param32 src2)
-+{
-+	WARN_ON(dst.type != AMDGCN_PARAM_TYPE_VGPR);
-+	WARN_ON(src0.type == AMDGCN_PARAM_TYPE_LITERAL_CONST ||
-+		src1.type == AMDGCN_PARAM_TYPE_LITERAL_CONST ||
-+		src2.type == AMDGCN_PARAM_TYPE_LITERAL_CONST);
-+	insn->vop3a.vdst = dst.v;
-+	insn->vop3a.abs = 0;
-+	insn->vop3a.op_sel = 0;
-+	insn->vop3a.clmp = 0;
-+	insn->vop3a.op = GFX10_V_BFI_B32;
-+	insn->vop3a.encoding = GFX10_VOP3A_ENCODING;
-+	insn->vop3a.src1 = gfx10_get_param_base(src1) + src1.v;
-+	insn->vop3a.src2 = gfx10_get_param_base(src2) + src2.v;
-+	insn->vop3a.omod = 0;
-+	insn->vop3a.neg = 0;
-+	if (src0.type == AMDGCN_PARAM_TYPE_LITERAL_CONST) {
-+		insn->vop3a.src0 = gfx10_get_param_base(src0);
-+		insn->vop3a.literal = src0.v;
-+		return 12;
-+	}
-+	insn->vop3a.src0 = gfx10_get_param_base(src0) + src0.v;
-+
-+	return 8;
-+}
-+
-+inline u32 emit_gfx10_v_lshl_add_u32(union amdgcn_gfx10_insn *insn,
-+				     struct amdgcn_param32 dst,
-+				     struct amdgcn_param32 src0,
-+				     struct amdgcn_param32 src1,
-+				     struct amdgcn_param32 src2)
-+{
-+	/* v_lshl_add_u32 <dst>, <src0>, <src1>, <src2>
-+	 *
-+	 * <dst> = (<src0> << <src1>) + <src2>;
-+	 */
-+
-+	insn->vop3a.vdst = dst.v;
-+	insn->vop3a.abs = 0;
-+	insn->vop3a.op_sel = 0;
-+	insn->vop3a.clmp = 0;
-+	insn->vop3a.op = GFX10_V_LSHL_ADD_U32;
-+	insn->vop3a.encoding = GFX10_VOP3A_ENCODING;
-+	insn->vop3a.src1 = gfx10_get_param_base(src1) + src1.v;
-+	insn->vop3a.src2 = gfx10_get_param_base(src2) + src2.v;
-+	insn->vop3a.omod = 0;
-+	insn->vop3a.neg = 0;
-+	if (src0.type == AMDGCN_PARAM_TYPE_LITERAL_CONST) {
-+		insn->vop3a.src0 = gfx10_get_param_base(src0);
-+		insn->vop3a.literal = src0.v;
-+		return 12;
-+	}
-+	insn->vop3a.src0 = gfx10_get_param_base(src0) + src0.v;
-+
-+	return 8;
-+}
-+
-+inline u32 emit_gfx10_v_lshl_or_b32(union amdgcn_gfx10_insn *insn,
-+				    struct amdgcn_param32 dst,
-+				    struct amdgcn_param32 src0,
-+				    struct amdgcn_param32 src1,
-+				    struct amdgcn_param32 src2)
-+{
-+	/* v_lshl_or_b32 <dst>, <src0>, <src1>, <src2>
-+	 *
-+	 * D.u = (S0.u << S1.u[4:0]) | S2.u
-+	 */
-+
-+	WARN_ON(src0.type == AMDGCN_PARAM_TYPE_LITERAL_CONST ||
-+		src1.type == AMDGCN_PARAM_TYPE_LITERAL_CONST ||
-+		src2.type == AMDGCN_PARAM_TYPE_LITERAL_CONST ||
-+		src2.type == AMDGCN_PARAM_TYPE_LITERAL_CONST);
-+
-+	insn->vop3a.vdst = dst.v;
-+	insn->vop3a.abs = 0;
-+	insn->vop3a.op_sel = 0;
-+	insn->vop3a.clmp = 0;
-+	insn->vop3a.op = GFX10_V_LSHL_OR_B32;
-+	insn->vop3a.encoding = GFX10_VOP3A_ENCODING;
-+	insn->vop3a.src1 = gfx10_get_param_base(src1) + src1.v;
-+	insn->vop3a.src2 = gfx10_get_param_base(src2) + src2.v;
-+	insn->vop3a.omod = 0;
-+	insn->vop3a.neg = 0;
-+	if (src0.type == AMDGCN_PARAM_TYPE_LITERAL_CONST) {
-+		insn->vop3a.src0 = gfx10_get_param_base(src0);
-+		insn->vop3a.literal = src0.v;
-+		return 12;
-+	}
-+	insn->vop3a.src0 = gfx10_get_param_base(src0) + src0.v;
-+
-+	return 8;
-+}
-+
-+inline u32 emit_gfx10_v_mad_u64_u32(union amdgcn_gfx10_insn *insn,
-+				    struct amdgcn_param64 vdst,
-+				    struct amdgcn_param32 sdst,
-+				    struct amdgcn_param32 src0,
-+				    struct amdgcn_param32 src1,
-+				    struct amdgcn_param64 src2)
-+{
-+	/* v_mad_u64_u32 <vdst>, <sdst>, <src0_imm>, <src1>, <src2>
-+	 * <vdst>: destination vgpr.
-+	 * <sdst>: destination sgpr.
-+	 * <src0>: source vgpr
-+	 * <src1>: source vgpr
-+	 * <src2>: source vgpr
-+	 *
-+	 * {vcc_out,D.u64} = S0.u32 * S1.u32 + S2.u64.
-+	 * ctx = &param->sub[idx].ctx;
-+	 */
-+	WARN_ON(src0.type == AMDGCN_PARAM_TYPE_LITERAL_CONST ||
-+		src1.type == AMDGCN_PARAM_TYPE_LITERAL_CONST ||
-+		src2.lo.type == AMDGCN_PARAM_TYPE_LITERAL_CONST ||
-+		src2.hi.type == AMDGCN_PARAM_TYPE_LITERAL_CONST);
-+	insn->vop3b.vdst = vdst.lo.v;
-+	insn->vop3b.sdst = sdst.v;
-+	insn->vop3b.clmp = 0;
-+	insn->vop3b.op = GFX10_V_MAD_U64_U32;
-+	insn->vop3b.encoding = GFX10_VOP3B_ENCODING;
-+	insn->vop3b.src1 = gfx10_get_param_base(src1) + src1.v;
-+	insn->vop3b.src2 = gfx10_get_param_base(src2.lo) + src2.lo.v;
-+	insn->vop3b.omod = 0;
-+	insn->vop3b.neg = 0;
-+	if (src0.type == AMDGCN_PARAM_TYPE_LITERAL_CONST) {
-+		insn->vop3b.src0 = gfx10_get_param_base(src0);
-+		insn->vop3b.literal = src0.v;
-+		return 12;
-+	}
-+	insn->vop3b.src0 = gfx10_get_param_base(src0) + src0.v;
-+
-+	return 8;
-+}
-+
-+inline u32 emit_gfx10_s_mov_b32(union amdgcn_gfx10_insn *insn,
-+				struct amdgcn_param32 dst, struct amdgcn_param32 src)
-+{
-+	if (src.type == AMDGCN_PARAM_TYPE_LITERAL_CONST) {
-+		insn->sop1.ssrc0 = gfx10_get_param_base(src);
-+		insn->sop1.literal = src.v;
-+	} else {
-+		insn->sop1.ssrc0 = gfx10_get_param_base(src) + src.v;
-+	}
-+	insn->sop1.op = GFX10_S_MOV_B32;
-+	insn->sop1.sdst = gfx10_get_param_base(dst) + dst.v;
-+	insn->sop1.encoding = GFX10_SOP1_ENCODING;
-+
-+	if (src.type == AMDGCN_PARAM_TYPE_LITERAL_CONST)
-+		return 8;
-+	return 4;
-+}
-+
-+inline u32 emit_gfx10_v_mov_b32_e32(union amdgcn_gfx10_insn *insn,
-+				    struct amdgcn_param32 dst,
-+				    struct amdgcn_param32 src)
-+{
-+	if (dst.type != AMDGCN_PARAM_TYPE_VGPR)
-+		WARN_ON_ONCE(1);
-+	insn->vop1.encoding = GFX10_VOP1_ENCODING;
-+	insn->vop1.vdst = dst.v;
-+	insn->vop1.op = GFX10_V_MOV_B32;
-+	if (src.type == AMDGCN_PARAM_TYPE_LITERAL_CONST) {
-+		insn->vop1.src0 = GFX10_VOP1_SRC_LITERAL_CONST;
-+		insn->vop1.literal = src.v;
-+
-+		return 8;
-+	}
-+	insn->vop1.src0 = gfx10_get_param_base(src) + src.v;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx10_v_add_co_u32(union amdgcn_gfx10_insn *insn,
-+				   struct amdgcn_param32 dst,
-+				   struct amdgcn_param32 src0,
-+				   struct amdgcn_param32 src1)
-+{
-+	insn->vop3b.vdst = dst.v;
-+	insn->vop3b.sdst = GFX10_VOP3B_SRC_VCC_LO;
-+	insn->vop3b.clmp = 0;
-+	insn->vop3b.op = GFX10_V_ADD_CO_U32;
-+	insn->vop3b.encoding = GFX10_VOP3B_ENCODING;
-+	insn->vop3b.src1 = gfx10_get_param_base(src1) + src1.v;
-+	insn->vop3b.src2 = GFX10_VOP3_UNUSED_SRC;
-+	insn->vop3b.omod = 0;
-+	insn->vop3b.neg = 0;
-+	if (src0.type == AMDGCN_PARAM_TYPE_LITERAL_CONST) {
-+		insn->vop3b.src0 = gfx10_get_param_base(src0);
-+		insn->vop3b.literal = src0.v;
-+		return 12;
-+	}
-+	insn->vop3b.src0 = gfx10_get_param_base(src0) + src0.v;
-+
-+	return 8;
-+}
-+
-+inline u32 emit_gfx10_v_add_co_ci_u32_e32(union amdgcn_gfx10_insn *insn,
-+					  struct amdgcn_param32 dst,
-+					  struct amdgcn_param32 src0,
-+					  struct amdgcn_param32 src1)
-+{
-+	insn->vop2.vsrc1 = src1.v;
-+	insn->vop2.vdst = dst.v;
-+	insn->vop2.op = GFX10_V_ADD_CO_CI_U32;
-+	insn->vop2.encoding = GFX10_VOP2_ENCODING;
-+	if (src0.type == AMDGCN_PARAM_TYPE_LITERAL_CONST) {
-+		insn->vop2.src0 = gfx10_get_param_base(src0);
-+		insn->vop2.literal = src0.v;
-+		return 8;
-+	}
-+	insn->vop2.src0 = gfx10_get_param_base(src0) + src0.v;
-+	return 4;
-+}
-+
-+inline u32 emit_gfx10_v_xor_b32_e32(union amdgcn_gfx10_insn *insn,
-+				    struct amdgcn_param32 dst,
-+				    struct amdgcn_param32 src0,
-+				    struct amdgcn_param32 src1)
-+{
-+	insn->vop2.vsrc1 = src1.v;
-+	insn->vop2.vdst = dst.v;
-+	insn->vop2.op = GFX10_V_XOR_B32;
-+	insn->vop2.encoding = GFX10_VOP2_ENCODING;
-+	if (src0.type == AMDGCN_PARAM_TYPE_LITERAL_CONST) {
-+		insn->vop2.src0 = gfx10_get_param_base(src0);
-+		insn->vop2.literal = src0.v;
-+		return 8;
-+	}
-+	insn->vop2.src0 = gfx10_get_param_base(src0) + src0.v;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx10_v_or_b32_e32(union amdgcn_gfx10_insn *insn,
-+				    struct amdgcn_param32 dst,
-+				    struct amdgcn_param32 src0,
-+				    struct amdgcn_param32 src1)
-+{
-+	insn->vop2.vsrc1 = src1.v;
-+	insn->vop2.vdst = dst.v;
-+	insn->vop2.op = GFX10_V_OR_B32;
-+	insn->vop2.encoding = GFX10_VOP2_ENCODING;
-+	if (src0.type == AMDGCN_PARAM_TYPE_LITERAL_CONST) {
-+		insn->vop2.src0 = gfx10_get_param_base(src0);
-+		insn->vop2.literal = src0.v;
-+		return 8;
-+	}
-+	insn->vop2.src0 = gfx10_get_param_base(src0) + src0.v;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx10_v_cndmask_b32_e32(union amdgcn_gfx10_insn *insn,
-+					struct amdgcn_param32 dst,
-+					struct amdgcn_param32 src0,
-+					struct amdgcn_param32 src1)
-+{
-+	insn->vop2.vsrc1 = src1.v;
-+	insn->vop2.vdst = dst.v;
-+	insn->vop2.op = GFX10_V_CNDMASK_B32;
-+	insn->vop2.encoding = GFX10_VOP2_ENCODING;
-+	if (src0.type == AMDGCN_PARAM_TYPE_LITERAL_CONST) {
-+		insn->vop2.src0 = gfx10_get_param_base(src0);
-+		insn->vop2.literal = src0.v;
-+		return 8;
-+	}
-+	insn->vop2.src0 = gfx10_get_param_base(src0) + src0.v;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx10_v_and_b32_e32(union amdgcn_gfx10_insn *insn,
-+				    struct amdgcn_param32 dst,
-+				    struct amdgcn_param32 src0,
-+				    struct amdgcn_param32 src1)
-+{
-+	insn->vop2.vsrc1 = src1.v;
-+	insn->vop2.vdst = dst.v;
-+	insn->vop2.op = GFX10_V_AND_B32;
-+	insn->vop2.encoding = GFX10_VOP2_ENCODING;
-+	if (src0.type == AMDGCN_PARAM_TYPE_LITERAL_CONST) {
-+		insn->vop2.src0 = gfx10_get_param_base(src0);
-+		insn->vop2.literal = src0.v;
-+		return 8;
-+	}
-+	insn->vop2.src0 = gfx10_get_param_base(src0) + src0.v;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx10_v_sub_co_ci_u32_e32(union amdgcn_gfx10_insn *insn,
-+					  struct amdgcn_param32 dst,
-+					  struct amdgcn_param32 src0,
-+					  struct amdgcn_param32 src1)
-+{
-+	/* vdst = src0 - vsrc1 - vcc */
-+	insn->vop2.vsrc1 = src1.v;
-+	insn->vop2.vdst = dst.v;
-+	insn->vop2.op = GFX10_V_SUB_CO_CI_U32;
-+	insn->vop2.encoding = GFX10_VOP2_ENCODING;
-+	if (src0.type == AMDGCN_PARAM_TYPE_LITERAL_CONST) {
-+		insn->vop2.src0 = gfx10_get_param_base(src0);
-+		insn->vop2.literal = src0.v;
-+		return 8;
-+	}
-+	insn->vop2.src0 = gfx10_get_param_base(src0) + src0.v;
-+	return 4;
-+}
-+
-+inline u32 emit_gfx10_v_subrev_co_ci_u32_e32(union amdgcn_gfx10_insn *insn,
-+					     struct amdgcn_param32 dst,
-+					     struct amdgcn_param32 src0,
-+					     struct amdgcn_param32 src1)
-+{
-+	/* vdst = src0 - vsrc1 - vcc */
-+	insn->vop2.vsrc1 = src1.v;
-+	insn->vop2.vdst = dst.v;
-+	insn->vop2.op = GFX10_V_SUBREV_CO_CI_U32;
-+	insn->vop2.encoding = GFX10_VOP2_ENCODING;
-+	if (src0.type == AMDGCN_PARAM_TYPE_LITERAL_CONST) {
-+		insn->vop2.src0 = gfx10_get_param_base(src0);
-+		insn->vop2.literal = src0.v;
-+		return 8;
-+	}
-+	insn->vop2.src0 = gfx10_get_param_base(src0) + src0.v;
-+	return 4;
-+}
-+
-+inline u32 emit_gfx10_v_sub_co_u32(union amdgcn_gfx10_insn *insn,
-+				   struct amdgcn_param32 dst,
-+				   struct amdgcn_param32 src0,
-+				   struct amdgcn_param32 src1)
-+{
-+	/* dst = src0 - src1 */
-+	insn->vop3b.vdst = dst.v;
-+	insn->vop3b.sdst = GFX10_VOP3B_SRC_VCC_LO;
-+	insn->vop3b.clmp = 0;
-+	insn->vop3b.op = GFX10_V_SUB_CO_U32;
-+	insn->vop3b.encoding = GFX10_VOP3B_ENCODING;
-+	insn->vop3b.src1 = gfx10_get_param_base(src1) + src1.v;
-+	insn->vop3b.src2 = GFX10_VOP3_UNUSED_SRC;
-+	insn->vop3b.omod = 0;
-+	insn->vop3b.neg = 0;
-+	if (src0.type == AMDGCN_PARAM_TYPE_LITERAL_CONST) {
-+		insn->vop3b.src0 = gfx10_get_param_base(src0);
-+		insn->vop3b.literal = src0.v;
-+		return 12;
-+	}
-+	insn->vop3b.src0 = gfx10_get_param_base(src0) + src0.v;
-+
-+	return 8;
-+}
-+
-+inline u32 emit_gfx10_v_subrev_co_u32(union amdgcn_gfx10_insn *insn,
-+				      struct amdgcn_param32 dst,
-+				      struct amdgcn_param32 src0,
-+				      struct amdgcn_param32 src1)
-+{
-+	/* dst = src0 - src1 */
-+	insn->vop3b.vdst = dst.v;
-+	insn->vop3b.sdst = GFX10_VOP3B_SRC_VCC_LO;
-+	insn->vop3b.clmp = 0;
-+	insn->vop3b.op = GFX10_V_SUBREV_CO_U32;
-+	insn->vop3b.encoding = GFX10_VOP3B_ENCODING;
-+	insn->vop3b.src1 = gfx10_get_param_base(src1) + src1.v;
-+	insn->vop3b.src2 = GFX10_VOP3_UNUSED_SRC;
-+	insn->vop3b.omod = 0;
-+	insn->vop3b.neg = 0;
-+	if (src0.type == AMDGCN_PARAM_TYPE_LITERAL_CONST) {
-+		insn->vop3b.src0 = gfx10_get_param_base(src0);
-+		insn->vop3b.literal = src0.v;
-+		return 12;
-+	}
-+	insn->vop3b.src0 = gfx10_get_param_base(src0) + src0.v;
-+
-+	return 8;
-+}
-+
-+inline u32 emit_gfx10_v_mul_lo_u32(union amdgcn_gfx10_insn *insn,
-+				   struct amdgcn_param32 dst,
-+				   struct amdgcn_param32 src0,
-+				   struct amdgcn_param32 src1)
-+{
-+	insn->vop3a.vdst = dst.v;
-+	insn->vop3a.abs = 0;
-+	insn->vop3a.op_sel = 0;
-+	insn->vop3a.clmp = 0;
-+	insn->vop3a.op = GFX10_V_MUL_LO_U32;
-+	insn->vop3a.encoding = GFX10_VOP3A_ENCODING;
-+	insn->vop3a.src1 = gfx10_get_param_base(src1) + src1.v;
-+	insn->vop3a.src2 = GFX10_VOP3_UNUSED_SRC;
-+	insn->vop3a.omod = 0;
-+	insn->vop3a.neg = 0;
-+	if (src0.type == AMDGCN_PARAM_TYPE_LITERAL_CONST) {
-+		insn->vop3a.src0 = gfx10_get_param_base(src0);
-+		insn->vop3a.literal = src0.v;
-+		return 12;
-+	}
-+	insn->vop3a.src0 = gfx10_get_param_base(src0) + src0.v;
-+
-+	return 8;
-+}
-+
-+/* v_mbcnt_lo_u32_b32 vdst, src0, vsrc1 */
-+inline u32 emit_gfx10_v_mbcnt_lo_u32_b32(union amdgcn_gfx10_insn *insn,
-+					  struct amdgcn_param32 dst,
-+					  struct amdgcn_param32 src0,
-+					  struct amdgcn_param32 src1)
-+{
-+	insn->vop3a.vdst = dst.v;
-+	insn->vop3a.abs = 0;
-+	insn->vop3a.op_sel = 0;
-+	insn->vop3a.clmp = 0;
-+	insn->vop3a.op = GFX10_V_MBCNT_LO_U32_B32;
-+	insn->vop3a.encoding = GFX10_VOP3A_ENCODING;
-+	insn->vop3a.src0 = gfx10_get_param_base(src0) + src0.v;
-+	insn->vop3a.src1 = gfx10_get_param_base(src1) + src1.v;
-+	insn->vop3a.src2 = GFX10_VOP3_UNUSED_SRC;
-+	insn->vop3a.omod = 0;
-+	insn->vop3a.neg = 0;
-+
-+	return 8;
-+}
-+
-+/* v_mbcnt_hi_u32_b32 vdst, src0, vsrc1 */
-+inline u32 emit_gfx10_v_mbcnt_hi_u32_b32(union amdgcn_gfx10_insn *insn,
-+					  struct amdgcn_param32 dst,
-+					  struct amdgcn_param32 src0,
-+					  struct amdgcn_param32 src1)
-+{
-+	insn->vop3a.vdst = dst.v;
-+	insn->vop3a.abs = 0;
-+	insn->vop3a.op_sel = 0;
-+	insn->vop3a.clmp = 0;
-+	insn->vop3a.op = GFX10_V_MBCNT_HI_U32_B32;
-+	insn->vop3a.encoding = GFX10_VOP3A_ENCODING;
-+	insn->vop3a.src0 = gfx10_get_param_base(src0) + src0.v;
-+	insn->vop3a.src1 = gfx10_get_param_base(src1) + src1.v;
-+	insn->vop3a.src2 = GFX10_VOP3_UNUSED_SRC;
-+	insn->vop3a.omod = 0;
-+	insn->vop3a.neg = 0;
-+
-+	return 8;
-+}
-+
-+inline u32 emit_gfx10_v_mul_hi_u32(union amdgcn_gfx10_insn *insn,
-+				   struct amdgcn_param32 dst,
-+				   struct amdgcn_param32 src0,
-+				   struct amdgcn_param32 src1)
-+{
-+	insn->vop3a.vdst = dst.v;
-+	insn->vop3a.abs = 0;
-+	insn->vop3a.op_sel = 0;
-+	insn->vop3a.clmp = 0;
-+	insn->vop3a.op = GFX10_V_MUL_HI_U32;
-+	insn->vop3a.encoding = GFX10_VOP3A_ENCODING;
-+	insn->vop3a.src1 = gfx10_get_param_base(src1) + src1.v;
-+	insn->vop3a.src2 = GFX10_VOP3_UNUSED_SRC;
-+	insn->vop3a.omod = 0;
-+	insn->vop3a.neg = 0;
-+	if (src0.type == AMDGCN_PARAM_TYPE_LITERAL_CONST) {
-+		insn->vop3a.src0 = gfx10_get_param_base(src0);
-+		insn->vop3a.literal = src0.v;
-+		return 12;
-+	}
-+	insn->vop3a.src0 = gfx10_get_param_base(src0) + src0.v;
-+
-+	return 8;
-+}
-+
-+inline u32 emit_gfx10_v_lshlrev_b64(union amdgcn_gfx10_insn *insn,
-+				    struct amdgcn_param64 dst,
-+				    struct amdgcn_param64 src0,
-+				    struct amdgcn_param64 src1)
-+{
-+	/* dst = s1 << s0 */
-+	insn->vop3a.vdst = dst.lo.v;
-+	insn->vop3a.abs = 0;
-+	insn->vop3a.op_sel = 0;
-+	insn->vop3a.clmp = 0;
-+	insn->vop3a.op = GFX10_V_LSHLREV_B64;
-+	insn->vop3a.encoding = GFX10_VOP3A_ENCODING;
-+	insn->vop3a.src1 = gfx10_get_param_base(src1.lo) + src1.lo.v;
-+	insn->vop3a.src2 = GFX10_VOP3_UNUSED_SRC;
-+	insn->vop3a.omod = 0;
-+	insn->vop3a.neg = 0;
-+	if (src0.lo.type == AMDGCN_PARAM_TYPE_LITERAL_CONST) {
-+		insn->vop3a.src0 = gfx10_get_param_base(src0.lo);
-+		insn->vop3a.literal = src0.lo.v;
-+		return 12;
-+	}
-+	insn->vop3a.src0 = gfx10_get_param_base(src0.lo) + src0.lo.v;
-+
-+	return 8;
-+}
-+
-+inline u32 emit_gfx10_v_lshrrev_b64(union amdgcn_gfx10_insn *insn,
-+				    struct amdgcn_param64 dst,
-+				    struct amdgcn_param64 src0,
-+				    struct amdgcn_param64 src1)
-+{
-+	/* dst = s1 >> s0 */
-+	insn->vop3a.vdst = dst.lo.v;
-+	insn->vop3a.abs = 0;
-+	insn->vop3a.op_sel = 0;
-+	insn->vop3a.clmp = 0;
-+	insn->vop3a.op = GFX10_V_LSHRREV_B64;
-+	insn->vop3a.encoding = GFX10_VOP3A_ENCODING;
-+	insn->vop3a.src1 = gfx10_get_param_base(src1.lo) + src1.lo.v;
-+	insn->vop3a.src2 = GFX10_VOP3_UNUSED_SRC;
-+	insn->vop3a.omod = 0;
-+	insn->vop3a.neg = 0;
-+	if (src0.lo.type == AMDGCN_PARAM_TYPE_LITERAL_CONST) {
-+		insn->vop3a.src0 = gfx10_get_param_base(src0.lo);
-+		insn->vop3a.literal = src0.lo.v;
-+		return 12;
-+	}
-+	insn->vop3a.src0 = gfx10_get_param_base(src0.lo) + src0.lo.v;
-+
-+	return 8;
-+}
-+
-+inline u32 emit_gfx10_v_lshlrev_b32(union amdgcn_gfx10_insn *insn,
-+				    struct amdgcn_param32 dst,
-+				    struct amdgcn_param32 src0,
-+				    struct amdgcn_param32 src1)
-+{
-+	/* dst = s1 << s0 */
-+	WARN_ON(dst.type != AMDGCN_PARAM_TYPE_VGPR);
-+	insn->vop2.vsrc1 = src1.v;
-+	insn->vop2.vdst = dst.v;
-+	insn->vop2.op = GFX10_V_LSHLREV_B32;
-+	insn->vop2.encoding = GFX10_VOP2_ENCODING;
-+	if (src0.type == AMDGCN_PARAM_TYPE_LITERAL_CONST) {
-+		insn->vop2.src0 = gfx10_get_param_base(src0);
-+		insn->vop2.literal = src0.v;
-+		return 8;
-+	}
-+	insn->vop2.src0 = gfx10_get_param_base(src0) + src0.v;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx10_v_lshrrev_b32(union amdgcn_gfx10_insn *insn,
-+				    struct amdgcn_param32 dst,
-+				    struct amdgcn_param32 src0,
-+				    struct amdgcn_param32 src1)
-+{
-+	/* dst = s1 << s0 */
-+	WARN_ON(dst.type != AMDGCN_PARAM_TYPE_VGPR);
-+	insn->vop2.vsrc1 = src1.v;
-+	insn->vop2.vdst = dst.v;
-+	insn->vop2.op = GFX10_V_LSHRREV_B32;
-+	insn->vop2.encoding = GFX10_VOP2_ENCODING;
-+	if (src0.type == AMDGCN_PARAM_TYPE_LITERAL_CONST) {
-+		insn->vop2.src0 = gfx10_get_param_base(src0);
-+		insn->vop2.literal = src0.v;
-+		return 8;
-+	}
-+	insn->vop2.src0 = gfx10_get_param_base(src0) + src0.v;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx10_v_add_nc_u32(union amdgcn_gfx10_insn *insn,
-+				   struct amdgcn_param32 dst,
-+				   struct amdgcn_param32 src0,
-+				   struct amdgcn_param32 src1)
-+{
-+	insn->vop2.vsrc1 = src1.v;
-+	insn->vop2.vdst = dst.v;
-+	insn->vop2.op = GFX10_V_ADD_NC_U32;
-+	insn->vop2.encoding = GFX10_VOP2_ENCODING;
-+	if (src0.type == AMDGCN_PARAM_TYPE_LITERAL_CONST) {
-+		insn->vop2.src0 = gfx10_get_param_base(src0);
-+		insn->vop2.literal = src0.v;
-+		return 8;
-+	}
-+	insn->vop2.src0 = gfx10_get_param_base(src0) + src0.v;
-+	return 4;
-+}
-+
-+inline u32 emit_gfx10_v_sub_nc_u32(union amdgcn_gfx10_insn *insn,
-+				   struct amdgcn_param32 dst,
-+				   struct amdgcn_param32 src0,
-+				   struct amdgcn_param32 src1)
-+{
-+	insn->vop2.vsrc1 = src1.v;
-+	insn->vop2.vdst = dst.v;
-+	insn->vop2.op = GFX10_V_SUB_NC_U32;
-+	insn->vop2.encoding = GFX10_VOP2_ENCODING;
-+	if (src0.type == AMDGCN_PARAM_TYPE_LITERAL_CONST) {
-+		insn->vop2.src0 = gfx10_get_param_base(src0);
-+		insn->vop2.literal = src0.v;
-+		return 8;
-+	}
-+	insn->vop2.src0 = gfx10_get_param_base(src0) + src0.v;
-+	return 4;
-+}
-+
-+inline u32 emit_gfx10_v_ashrrev_i64(union amdgcn_gfx10_insn *insn,
-+				    struct amdgcn_param64 dst,
-+				    struct amdgcn_param64 src0,
-+				    struct amdgcn_param64 src1)
-+{
-+	/* dst = s1 >> s0 */
-+	insn->vop3a.vdst = dst.lo.v;
-+	insn->vop3a.abs = 0;
-+	insn->vop3a.op_sel = 0;
-+	insn->vop3a.clmp = 0;
-+	insn->vop3a.op = GFX10_V_ASHRREV_I64;
-+	insn->vop3a.encoding = GFX10_VOP3A_ENCODING;
-+	insn->vop3a.src1 = gfx10_get_param_base(src1.lo) + src1.lo.v;
-+	insn->vop3a.src2 = GFX10_VOP3_UNUSED_SRC;
-+	insn->vop3a.omod = 0;
-+	insn->vop3a.neg = 0;
-+	if (src0.lo.type == AMDGCN_PARAM_TYPE_LITERAL_CONST) {
-+		insn->vop3a.src0 = gfx10_get_param_base(src0.lo);
-+		insn->vop3a.literal = src0.lo.v;
-+		return 12;
-+	}
-+	insn->vop3a.src0 = gfx10_get_param_base(src0.lo) + src0.lo.v;
-+
-+	return 8;
-+}
-+
-+inline u32 emit_gfx10_v_ashrrev_i32(union amdgcn_gfx10_insn *insn,
-+				    struct amdgcn_param32 dst,
-+				    struct amdgcn_param32 src0,
-+				    struct amdgcn_param32 src1)
-+{
-+	/* dst = s1 >> s0 (arithmetic) */
-+	WARN_ON(dst.type != AMDGCN_PARAM_TYPE_VGPR);
-+	insn->vop2.vsrc1 = src1.v;
-+	insn->vop2.vdst = dst.v;
-+	insn->vop2.op = GFX10_V_ASHRREV_I32;
-+	insn->vop2.encoding = GFX10_VOP2_ENCODING;
-+	if (src0.type == AMDGCN_PARAM_TYPE_LITERAL_CONST) {
-+		insn->vop2.src0 = gfx10_get_param_base(src0);
-+		insn->vop2.literal = src0.v;
-+		return 8;
-+	}
-+	insn->vop2.src0 = gfx10_get_param_base(src0) + src0.v;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx10_v_alignbit_b32(union amdgcn_gfx10_insn *insn,
-+				     struct amdgcn_param32 dst,
-+				     struct amdgcn_param32 src0,
-+				     struct amdgcn_param32 src1,
-+				     struct amdgcn_param32 src2)
-+{
-+	/* dst = s1 >> s0 */
-+	WARN_ON(dst.type != AMDGCN_PARAM_TYPE_VGPR);
-+	insn->vop3a.vdst = dst.v;
-+	insn->vop3a.abs = 0;
-+	insn->vop3a.op_sel = 0;
-+	insn->vop3a.clmp = 0;
-+	insn->vop3a.op = GFX10_V_ALIGNBIT_B32;
-+	insn->vop3a.encoding = GFX10_VOP3A_ENCODING;
-+	insn->vop3a.src1 = gfx10_get_param_base(src1) + src1.v;
-+	insn->vop3a.src2 = gfx10_get_param_base(src2) + src2.v;
-+	insn->vop3a.omod = 0;
-+	insn->vop3a.neg = 0;
-+	if (src0.type == AMDGCN_PARAM_TYPE_LITERAL_CONST) {
-+		insn->vop3a.src0 = gfx10_get_param_base(src0);
-+		insn->vop3a.literal = src0.v;
-+		return 12;
-+	}
-+	insn->vop3a.src0 = gfx10_get_param_base(src0) + src0.v;
-+
-+	return 8;
-+}
-+
-+inline u32 emit_gfx10_v_cmp_eq_u64(union amdgcn_gfx10_insn *insn,
-+				   struct amdgcn_param32 dst,
-+				   struct amdgcn_param32 src)
-+{
-+	/* VCC = S0 == S1 */
-+	insn->vopc.src0 = gfx10_get_param_base(dst) + dst.v;
-+	insn->vopc.vsrc1 = src.v;
-+	insn->vopc.op = GFX10_V_CMP_EQ_U64;
-+	insn->vopc.encoding = GFX10_VOPC_ENCODING;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx10_v_cmp_eq_u32(union amdgcn_gfx10_insn *insn,
-+				   struct amdgcn_param32 dst,
-+				   struct amdgcn_param32 src)
-+{
-+	/* VCC = S0 == S1 */
-+	insn->vopc.src0 = gfx10_get_param_base(dst) + dst.v;
-+	insn->vopc.vsrc1 = src.v;
-+	insn->vopc.op = GFX10_V_CMP_EQ_U32;
-+	insn->vopc.encoding = GFX10_VOPC_ENCODING;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx10_v_cmp_gt_u64(union amdgcn_gfx10_insn *insn,
-+				   struct amdgcn_param64 dst,
-+				   struct amdgcn_param64 src)
-+{
-+	/* VCC = S0 > S1 */
-+	insn->vopc.src0 = gfx10_get_param_base(dst.lo) + dst.lo.v;
-+	insn->vopc.vsrc1 = src.lo.v;
-+	insn->vopc.op = GFX10_V_CMP_GT_U64;
-+	insn->vopc.encoding = GFX10_VOPC_ENCODING;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx10_v_cmp_gt_i64(union amdgcn_gfx10_insn *insn,
-+				   struct amdgcn_param64 dst,
-+				   struct amdgcn_param64 src)
-+{
-+	/* VCC = S0 > S1 (signed) */
-+	insn->vopc.src0 = gfx10_get_param_base(dst.lo) + dst.lo.v;
-+	insn->vopc.vsrc1 = src.lo.v;
-+	insn->vopc.op = GFX10_V_CMP_GT_I64;
-+	insn->vopc.encoding = GFX10_VOPC_ENCODING;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx10_v_cmp_ge_u32(union amdgcn_gfx10_insn *insn,
-+				   struct amdgcn_param32 dst,
-+				   struct amdgcn_param32 src)
-+{
-+	/* VCC = S0 >= S1 */
-+	insn->vopc.src0 = gfx10_get_param_base(dst) + dst.v;
-+	insn->vopc.vsrc1 = src.v;
-+	insn->vopc.op = GFX10_V_CMP_GE_U32;
-+	insn->vopc.encoding = GFX10_VOPC_ENCODING;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx10_v_cmp_gt_u32(union amdgcn_gfx10_insn *insn,
-+				   struct amdgcn_param32 dst,
-+				   struct amdgcn_param32 src)
-+{
-+	/* VCC = S0 > S1 */
-+	insn->vopc.src0 = gfx10_get_param_base(dst) + dst.v;
-+	insn->vopc.vsrc1 = src.v;
-+	insn->vopc.op = GFX10_V_CMP_GT_U32;
-+	insn->vopc.encoding = GFX10_VOPC_ENCODING;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx10_v_cmp_lt_u32(union amdgcn_gfx10_insn *insn,
-+				   struct amdgcn_param32 dst,
-+				   struct amdgcn_param32 src)
-+{
-+	/* VCC = S0 < S1 */
-+	insn->vopc.src0 = gfx10_get_param_base(dst) + dst.v;
-+	insn->vopc.vsrc1 = src.v;
-+	insn->vopc.op = GFX10_V_CMP_LT_U32;
-+	insn->vopc.encoding = GFX10_VOPC_ENCODING;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx10_v_cmp_le_u32(union amdgcn_gfx10_insn *insn,
-+				   struct amdgcn_param32 dst,
-+				   struct amdgcn_param32 src)
-+{
-+	/* VCC = S0 <= S1 */
-+	insn->vopc.src0 = gfx10_get_param_base(dst) + dst.v;
-+	insn->vopc.vsrc1 = src.v;
-+	insn->vopc.op = GFX10_V_CMP_LE_U32;
-+	insn->vopc.encoding = GFX10_VOPC_ENCODING;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx10_v_cmp_gt_i32(union amdgcn_gfx10_insn *insn,
-+				   struct amdgcn_param32 dst,
-+				   struct amdgcn_param32 src)
-+{
-+	/* VCC = S0 > S1 (signed) */
-+	insn->vopc.src0 = gfx10_get_param_base(dst) + dst.v;
-+	insn->vopc.vsrc1 = src.v;
-+	insn->vopc.op = GFX10_V_CMP_GT_I32;
-+	insn->vopc.encoding = GFX10_VOPC_ENCODING;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx10_v_cmp_ge_i32(union amdgcn_gfx10_insn *insn,
-+				   struct amdgcn_param32 dst,
-+				   struct amdgcn_param32 src)
-+{
-+	/* VCC = S0 >= S1 (signed) */
-+	insn->vopc.src0 = gfx10_get_param_base(dst) + dst.v;
-+	insn->vopc.vsrc1 = src.v;
-+	insn->vopc.op = GFX10_V_CMP_GE_I32;
-+	insn->vopc.encoding = GFX10_VOPC_ENCODING;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx10_v_cmp_lt_i32(union amdgcn_gfx10_insn *insn,
-+				   struct amdgcn_param32 dst,
-+				   struct amdgcn_param32 src)
-+{
-+	/* VCC = S0 < S1 (signed) */
-+	insn->vopc.src0 = gfx10_get_param_base(dst) + dst.v;
-+	insn->vopc.vsrc1 = src.v;
-+	insn->vopc.op = GFX10_V_CMP_LT_I32;
-+	insn->vopc.encoding = GFX10_VOPC_ENCODING;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx10_v_cmp_le_i32(union amdgcn_gfx10_insn *insn,
-+				   struct amdgcn_param32 dst,
-+				   struct amdgcn_param32 src)
-+{
-+	/* VCC = S0 <= S1 (signed) */
-+	insn->vopc.src0 = gfx10_get_param_base(dst) + dst.v;
-+	insn->vopc.vsrc1 = src.v;
-+	insn->vopc.op = GFX10_V_CMP_LE_I32;
-+	insn->vopc.encoding = GFX10_VOPC_ENCODING;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx10_v_cmpx_lt_u32(union amdgcn_gfx10_insn *insn,
-+				    struct amdgcn_param32 dst,
-+				    struct amdgcn_param32 src)
-+{
-+	/* EXEC &= (S0 < S1) */
-+	insn->vopc.src0 = gfx10_get_param_base(dst) + dst.v;
-+	insn->vopc.vsrc1 = src.v;
-+	insn->vopc.op = GFX10_V_CMPX_LT_U32;
-+	insn->vopc.encoding = GFX10_VOPC_ENCODING;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx10_v_cmp_ge_u64(union amdgcn_gfx10_insn *insn,
-+				   struct amdgcn_param64 dst,
-+				   struct amdgcn_param64 src)
-+{
-+	/* VCC = S0 >= S1 */
-+	insn->vopc.src0 = gfx10_get_param_base(dst.lo) + dst.lo.v;
-+	insn->vopc.vsrc1 = src.lo.v;
-+	insn->vopc.op = GFX10_V_CMP_GE_U64;
-+	insn->vopc.encoding = GFX10_VOPC_ENCODING;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx10_v_cmp_ge_i64(union amdgcn_gfx10_insn *insn,
-+				   struct amdgcn_param64 dst,
-+				   struct amdgcn_param64 src)
-+{
-+	/* VCC = S0 >= S1 (signed) */
-+	insn->vopc.src0 = gfx10_get_param_base(dst.lo) + dst.lo.v;
-+	insn->vopc.vsrc1 = src.lo.v;
-+	insn->vopc.op = GFX10_V_CMP_GE_I64;
-+	insn->vopc.encoding = GFX10_VOPC_ENCODING;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx10_v_cmp_lt_u64(union amdgcn_gfx10_insn *insn,
-+				   struct amdgcn_param64 dst,
-+				   struct amdgcn_param64 src)
-+{
-+	/* VCC = S0 < S1 */
-+	insn->vopc.src0 = gfx10_get_param_base(dst.lo) + dst.lo.v;
-+	insn->vopc.vsrc1 = src.lo.v;
-+	insn->vopc.op = GFX10_V_CMP_LT_U64;
-+	insn->vopc.encoding = GFX10_VOPC_ENCODING;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx10_v_cmp_lt_i64(union amdgcn_gfx10_insn *insn,
-+				   struct amdgcn_param64 dst,
-+				   struct amdgcn_param64 src)
-+{
-+	/* VCC = S0 < S1 (signed) */
-+	insn->vopc.src0 = gfx10_get_param_base(dst.lo) + dst.lo.v;
-+	insn->vopc.vsrc1 = src.lo.v;
-+	insn->vopc.op = GFX10_V_CMP_LT_I64;
-+	insn->vopc.encoding = GFX10_VOPC_ENCODING;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx10_v_cmp_le_u64(union amdgcn_gfx10_insn *insn,
-+				   struct amdgcn_param64 dst,
-+				   struct amdgcn_param64 src)
-+{
-+	/* VCC = S0 <= S1 */
-+	insn->vopc.src0 = gfx10_get_param_base(dst.lo) + dst.lo.v;
-+	insn->vopc.vsrc1 = src.lo.v;
-+	insn->vopc.op = GFX10_V_CMP_LE_U64;
-+	insn->vopc.encoding = GFX10_VOPC_ENCODING;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx10_v_cmp_le_i64(union amdgcn_gfx10_insn *insn,
-+				   struct amdgcn_param64 dst,
-+				   struct amdgcn_param64 src)
-+{
-+	/* VCC = S0 <= S1 (signed) */
-+	insn->vopc.src0 = gfx10_get_param_base(dst.lo) + dst.lo.v;
-+	insn->vopc.vsrc1 = src.lo.v;
-+	insn->vopc.op = GFX10_V_CMP_LE_I64;
-+	insn->vopc.encoding = GFX10_VOPC_ENCODING;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx10_buffer_load_ubyte(union amdgcn_gfx10_insn *insn,
-+					struct amdgcn_param32 dst,
-+					struct amdgcn_param32 src,
-+					short off)
-+{
-+	/* buffer_load_ubyte <dst>, <src>, s[0:3], 0 offen offset:<off> */
-+	insn->mubuf.offset = off;
-+	insn->mubuf.offen = 1;
-+	insn->mubuf.idxen = 0;
-+	insn->mubuf.glc = 0;
-+	insn->mubuf.dlc = 0;
-+	insn->mubuf.lds = 0;
-+	insn->mubuf.dummy1 = 0;
-+	insn->mubuf.op = GFX10_BUFFER_LOAD_UBYTE;
-+	insn->mubuf.opm = 0;
-+	insn->mubuf.encoding = GFX10_MUBUF_ENCODING;
-+	insn->mubuf.vaddr = src.v;
-+	insn->mubuf.vdata = dst.v;
-+	insn->mubuf.srsrc = 0; /* s[0:3] */
-+	insn->mubuf.dummy2 = 0;
-+	insn->mubuf.slc = 0;
-+	insn->mubuf.tfe = 0;
-+	insn->mubuf.soffset = GFX10_MUBUF_SOFFSET_INTEGER_0;
-+
-+	return 8;
-+}
-+
-+inline u32 emit_gfx10_buffer_load_ushort(union amdgcn_gfx10_insn *insn,
-+					 struct amdgcn_param32 dst,
-+					 struct amdgcn_param32 src,
-+					 short off)
-+{
-+	/* buffer_load_ushort <dst>, <src>, s[0:3], 0 offen offset:<off> */
-+	insn->mubuf.offset = off;
-+	insn->mubuf.offen = 1;
-+	insn->mubuf.idxen = 0;
-+	insn->mubuf.glc = 0;
-+	insn->mubuf.dlc = 0;
-+	insn->mubuf.lds = 0;
-+	insn->mubuf.dummy1 = 0;
-+	insn->mubuf.op = GFX10_BUFFER_LOAD_USHORT;
-+	insn->mubuf.opm = 0;
-+	insn->mubuf.encoding = GFX10_MUBUF_ENCODING;
-+	insn->mubuf.vaddr = src.v;
-+	insn->mubuf.vdata = dst.v;
-+	insn->mubuf.srsrc = 0; /* s[0:3] */
-+	insn->mubuf.dummy2 = 0;
-+	insn->mubuf.slc = 0;
-+	insn->mubuf.tfe = 0;
-+	insn->mubuf.soffset = GFX10_MUBUF_SOFFSET_INTEGER_0;
-+
-+	return 8;
-+}
-+
-+inline u32 emit_gfx10_buffer_load_dword(union amdgcn_gfx10_insn *insn,
-+					struct amdgcn_param32 dst,
-+					struct amdgcn_param32 src,
-+					short off)
-+{
-+	/* buffer_load_dword <dst>, <src>, s[0:3], 0 offen offset:<off> */
-+	insn->mubuf.offset = off;
-+	insn->mubuf.offen = 1;
-+	insn->mubuf.idxen = 0;
-+	insn->mubuf.glc = 0;
-+	insn->mubuf.dlc = 0;
-+	insn->mubuf.lds = 0;
-+	insn->mubuf.dummy1 = 0;
-+	insn->mubuf.op = GFX10_BUFFER_LOAD_DWORD;
-+	insn->mubuf.opm = 0;
-+	insn->mubuf.encoding = GFX10_MUBUF_ENCODING;
-+	insn->mubuf.vaddr = src.v;
-+	insn->mubuf.vdata = dst.v;
-+	insn->mubuf.srsrc = 0; /* s[0:3] */
-+	insn->mubuf.dummy2 = 0;
-+	insn->mubuf.slc = 0;
-+	insn->mubuf.tfe = 0;
-+	insn->mubuf.soffset = GFX10_MUBUF_SOFFSET_INTEGER_0;
-+
-+	return 8;
-+}
-+
-+inline u32 emit_gfx10_buffer_load_dwordx2(union amdgcn_gfx10_insn *insn,
-+					  struct amdgcn_param32 dst,
-+					  struct amdgcn_param32 src,
-+					  short off)
-+{
-+	/* buffer_load_dwordx2 <dst>, <src>, s[0:3], 0 offen offset:<off> */
-+	insn->mubuf.offset = off;
-+	insn->mubuf.offen = 1;
-+	insn->mubuf.idxen = 0;
-+	insn->mubuf.glc = 0;
-+	insn->mubuf.dlc = 0;
-+	insn->mubuf.lds = 0;
-+	insn->mubuf.dummy1 = 0;
-+	insn->mubuf.op = GFX10_BUFFER_LOAD_DWORDX2;
-+	insn->mubuf.opm = 0;
-+	insn->mubuf.encoding = GFX10_MUBUF_ENCODING;
-+	insn->mubuf.vaddr = src.v;
-+	insn->mubuf.vdata = dst.v;
-+	insn->mubuf.srsrc = 0; /* s[0:3] */
-+	insn->mubuf.dummy2 = 0;
-+	insn->mubuf.slc = 0;
-+	insn->mubuf.tfe = 0;
-+	insn->mubuf.soffset = GFX10_MUBUF_SOFFSET_INTEGER_0;
-+
-+	return 8;
-+}
-+
-+inline u32 emit_gfx10_buffer_load_dwordx4(union amdgcn_gfx10_insn *insn,
-+					  struct amdgcn_param32 dst,
-+					  struct amdgcn_param32 src,
-+					  short off)
-+{
-+	/* buffer_load_dwordx4 <dst>, <src>, s[0:3], 0 offen offset:<off> */
-+	insn->mubuf.offset = off;
-+	insn->mubuf.offen = 1;
-+	insn->mubuf.idxen = 0;
-+	insn->mubuf.glc = 0;
-+	insn->mubuf.dlc = 0;
-+	insn->mubuf.lds = 0;
-+	insn->mubuf.dummy1 = 0;
-+	insn->mubuf.op = GFX10_BUFFER_LOAD_DWORDX4;
-+	insn->mubuf.opm = 0;
-+	insn->mubuf.encoding = GFX10_MUBUF_ENCODING;
-+	insn->mubuf.vaddr = src.v;
-+	insn->mubuf.vdata = dst.v;
-+	insn->mubuf.srsrc = 0; /* s[0:3] */
-+	insn->mubuf.dummy2 = 0;
-+	insn->mubuf.slc = 0;
-+	insn->mubuf.tfe = 0;
-+	insn->mubuf.soffset = GFX10_MUBUF_SOFFSET_INTEGER_0;
-+
-+	return 8;
-+}
-+
-+inline u32 emit_gfx10_global_load_ubyte(union amdgcn_gfx10_insn *insn,
-+					struct amdgcn_param32 dst,
-+					struct amdgcn_param32 src,
-+					short off)
-+{
-+	/* global_load_ubyte <dst>, <srcs>, off offset:<off> */
-+	insn->flat.offset = off;
-+	insn->flat.dlc = 0;
-+	insn->flat.lds = 0;
-+	insn->flat.seg = GFX10_FLAT_SEG_GLOBAL;
-+	insn->flat.glc = 0;
-+	insn->flat.slc = 0;
-+	insn->flat.op = GFX10_GLOBAL_LOAD_UBYTE;
-+	insn->flat.encoding = GFX10_FLAT_ENCODING;
-+	insn->flat.addr = src.v;
-+	insn->flat.data = 0;
-+	insn->flat.saddr = GFX10_FLAT_SADDR_DISABLE;
-+	insn->flat.dummy1 = 0;
-+	insn->flat.dummy2 = 0;
-+	insn->flat.vdst = dst.v;
-+
-+	return 8;
-+}
-+
-+inline u32 emit_gfx10_global_load_ushort(union amdgcn_gfx10_insn *insn,
-+					 struct amdgcn_param32 dst,
-+					 struct amdgcn_param32 src,
-+					 short off)
-+{
-+	/* global_load_ushort <dst>, <srcs>, off offset:<off> */
-+	insn->flat.offset = off;
-+	insn->flat.dlc = 0;
-+	insn->flat.lds = 0;
-+	insn->flat.seg = GFX10_FLAT_SEG_GLOBAL;
-+	insn->flat.glc = 0;
-+	insn->flat.slc = 0;
-+	insn->flat.op = GFX10_GLOBAL_LOAD_USHORT;
-+	insn->flat.encoding = GFX10_FLAT_ENCODING;
-+	insn->flat.addr = src.v;
-+	insn->flat.data = 0;
-+	insn->flat.saddr = GFX10_FLAT_SADDR_DISABLE;
-+	insn->flat.dummy1 = 0;
-+	insn->flat.dummy2 = 0;
-+	insn->flat.vdst = dst.v;
-+
-+	return 8;
-+}
-+
-+inline u32 emit_gfx10_global_load_dword(union amdgcn_gfx10_insn *insn,
-+					struct amdgcn_param32 dst,
-+					struct amdgcn_param32 src,
-+					short off)
-+{
-+	/* global_load_dword <dst>, <srcs>, off offset:<off> */
-+	insn->flat.offset = off;
-+	insn->flat.dlc = 0;
-+	insn->flat.lds = 0;
-+	insn->flat.seg = GFX10_FLAT_SEG_GLOBAL;
-+	insn->flat.glc = 0;
-+	insn->flat.slc = 0;
-+	insn->flat.op = GFX10_GLOBAL_LOAD_DWORD;
-+	insn->flat.encoding = GFX10_FLAT_ENCODING;
-+	insn->flat.addr = src.v;
-+	insn->flat.data = 0;
-+	insn->flat.saddr = GFX10_FLAT_SADDR_DISABLE;
-+	insn->flat.dummy1 = 0;
-+	insn->flat.dummy2 = 0;
-+	insn->flat.vdst = dst.v;
-+
-+	return 8;
-+}
-+
-+inline u32 emit_gfx10_global_load_dwordx2(union amdgcn_gfx10_insn *insn,
-+					  struct amdgcn_param32 dst,
-+					  struct amdgcn_param32 src,
-+					  short off)
-+{
-+	/* global_load_dwordx2 <dst>, <srcs>, off offset:<off> */
-+	insn->flat.offset = off;
-+	insn->flat.dlc = 0;
-+	insn->flat.lds = 0;
-+	insn->flat.seg = GFX10_FLAT_SEG_GLOBAL;
-+	insn->flat.glc = 0;
-+	insn->flat.slc = 0;
-+	insn->flat.op = GFX10_GLOBAL_LOAD_DWORDX2;
-+	insn->flat.encoding = GFX10_FLAT_ENCODING;
-+	insn->flat.addr = src.v;
-+	insn->flat.data = 0;
-+	insn->flat.saddr = GFX10_FLAT_SADDR_DISABLE;
-+	insn->flat.dummy1 = 0;
-+	insn->flat.dummy2 = 0;
-+	insn->flat.vdst = dst.v;
-+
-+	return 8;
-+}
-+
-+inline u32 emit_gfx10_global_load_dwordx4(union amdgcn_gfx10_insn *insn,
-+					  struct amdgcn_param32 dst,
-+					  struct amdgcn_param32 src,
-+					  short off)
-+{
-+	/* global_load_dwordx4 <dst>, <srcs>, off offset:<off> */
-+	insn->flat.offset = off;
-+	insn->flat.dlc = 0;
-+	insn->flat.lds = 0;
-+	insn->flat.seg = GFX10_FLAT_SEG_GLOBAL;
-+	insn->flat.glc = 0;
-+	insn->flat.slc = 0;
-+	insn->flat.op = GFX10_GLOBAL_LOAD_DWORDX4;
-+	insn->flat.encoding = GFX10_FLAT_ENCODING;
-+	insn->flat.addr = src.v;
-+	insn->flat.data = 0;
-+	insn->flat.saddr = GFX10_FLAT_SADDR_DISABLE;
-+	insn->flat.dummy1 = 0;
-+	insn->flat.dummy2 = 0;
-+	insn->flat.vdst = dst.v;
-+
-+	return 8;
-+}
-+
-+inline u32 emit_gfx10_global_store_byte(union amdgcn_gfx10_insn *insn,
-+					struct amdgcn_param32 dst,
-+					struct amdgcn_param32 src, int off)
-+{
-+	/* global_store_byte <src>, <dst>, off offset:<off>
-+	 * *(char *)(dst + off) = src;
-+	 */
-+	insn->flat.offset = off;
-+	insn->flat.dlc = 0;
-+	insn->flat.lds = 0;
-+	insn->flat.seg = GFX10_FLAT_SEG_GLOBAL;
-+	insn->flat.glc = 1;
-+	insn->flat.slc = 1;
-+	insn->flat.op = GFX10_GLOBAL_STORE_BYTE;
-+	insn->flat.encoding = GFX10_FLAT_ENCODING;
-+	insn->flat.addr = dst.v;
-+	insn->flat.data = src.v;
-+	insn->flat.saddr = GFX10_FLAT_SADDR_DISABLE;
-+	insn->flat.dummy1 = 0;
-+	insn->flat.dummy2 = 0;
-+	insn->flat.vdst = 0;
-+
-+	return 8;
-+}
-+
-+inline u32 emit_gfx10_global_store_short(union amdgcn_gfx10_insn *insn,
-+					 struct amdgcn_param32 dst,
-+					 struct amdgcn_param32 src, int off)
-+{
-+	/* global_store_short <src>, <dst>, off offset:<off>
-+	 * *(char *)(dst + off) = src;
-+	 */
-+	insn->flat.offset = off;
-+	insn->flat.dlc = 0;
-+	insn->flat.lds = 0;
-+	insn->flat.seg = GFX10_FLAT_SEG_GLOBAL;
-+	insn->flat.glc = 1;
-+	insn->flat.slc = 1;
-+	insn->flat.op = GFX10_GLOBAL_STORE_SHORT;
-+	insn->flat.encoding = GFX10_FLAT_ENCODING;
-+	insn->flat.addr = dst.v;
-+	insn->flat.data = src.v;
-+	insn->flat.saddr = GFX10_FLAT_SADDR_DISABLE;
-+	insn->flat.dummy1 = 0;
-+	insn->flat.dummy2 = 0;
-+	insn->flat.vdst = 0;
-+
-+	return 8;
-+}
-+
-+inline u32 emit_gfx10_global_store_dword(union amdgcn_gfx10_insn *insn,
-+					 struct amdgcn_param32 dst,
-+					 struct amdgcn_param32 src, int off)
-+{
-+	/* global_store_dword <src>, <dst>, off offset:<off>
-+	 * *(char *)(dst + off) = src;
-+	 */
-+	insn->flat.offset = off;
-+	insn->flat.dlc = 0;
-+	insn->flat.lds = 0;
-+	insn->flat.seg = GFX10_FLAT_SEG_GLOBAL;
-+	insn->flat.glc = 1;
-+	insn->flat.slc = 1;
-+	insn->flat.op = GFX10_GLOBAL_STORE_DWORD;
-+	insn->flat.encoding = GFX10_FLAT_ENCODING;
-+	insn->flat.addr = dst.v;
-+	insn->flat.data = src.v;
-+	insn->flat.saddr = GFX10_FLAT_SADDR_DISABLE;
-+	insn->flat.dummy1 = 0;
-+	insn->flat.dummy2 = 0;
-+	insn->flat.vdst = 0;
-+
-+	return 8;
-+}
-+
-+/* global_atomic_add vdst, addr, data, off  (GLC=1: return old value)
-+ * old_val = *(u32 *)(addr + off); *(u32 *)(addr + off) += data; vdst = old_val
-+ */
-+/* GFX10 global atomic: opcode only differs, all else identical */
-+#define DEFINE_GFX10_GLOBAL_ATOMIC(name, opcode)			 \
-+inline u32 emit_gfx10_global_atomic_##name(union amdgcn_gfx10_insn *insn,\
-+					    struct amdgcn_param32 vdst,	 \
-+					    struct amdgcn_param32 addr,	 \
-+					    struct amdgcn_param32 data,	 \
-+					    int off, int glc)		 \
-+{									 \
-+	insn->flat.offset = off;					 \
-+	insn->flat.dlc = 0;						 \
-+	insn->flat.lds = 0;						 \
-+	insn->flat.seg = GFX10_FLAT_SEG_GLOBAL;				 \
-+	insn->flat.glc = glc;						 \
-+	insn->flat.slc = 0;						 \
-+	insn->flat.op = (opcode);					 \
-+	insn->flat.encoding = GFX10_FLAT_ENCODING;			 \
-+	insn->flat.addr = addr.v;					 \
-+	insn->flat.data = data.v;					 \
-+	insn->flat.saddr = GFX10_FLAT_SADDR_DISABLE;			 \
-+	insn->flat.dummy1 = 0;						 \
-+	insn->flat.dummy2 = 0;						 \
-+	insn->flat.vdst = vdst.v;					 \
-+	return 8;							 \
-+}
-+
-+DEFINE_GFX10_GLOBAL_ATOMIC(add, GFX10_GLOBAL_ATOMIC_ADD)
-+DEFINE_GFX10_GLOBAL_ATOMIC(and, GFX10_GLOBAL_ATOMIC_AND)
-+DEFINE_GFX10_GLOBAL_ATOMIC(or, GFX10_GLOBAL_ATOMIC_OR)
-+DEFINE_GFX10_GLOBAL_ATOMIC(xor, GFX10_GLOBAL_ATOMIC_XOR)
-+DEFINE_GFX10_GLOBAL_ATOMIC(swap, GFX10_GLOBAL_ATOMIC_SWAP)
-+DEFINE_GFX10_GLOBAL_ATOMIC(cmpswap, GFX10_GLOBAL_ATOMIC_CMPSWAP)
-+DEFINE_GFX10_GLOBAL_ATOMIC(add_x2, GFX10_GLOBAL_ATOMIC_ADD_X2)
-+DEFINE_GFX10_GLOBAL_ATOMIC(and_x2, GFX10_GLOBAL_ATOMIC_AND_X2)
-+DEFINE_GFX10_GLOBAL_ATOMIC(or_x2, GFX10_GLOBAL_ATOMIC_OR_X2)
-+DEFINE_GFX10_GLOBAL_ATOMIC(xor_x2, GFX10_GLOBAL_ATOMIC_XOR_X2)
-+DEFINE_GFX10_GLOBAL_ATOMIC(swap_x2, GFX10_GLOBAL_ATOMIC_SWAP_X2)
-+DEFINE_GFX10_GLOBAL_ATOMIC(cmpswap_x2, GFX10_GLOBAL_ATOMIC_CMPSWAP_X2)
-+
-+inline u32 emit_gfx10_global_store_dwordx2(union amdgcn_gfx10_insn *insn,
-+					   struct amdgcn_param32 dst,
-+					   struct amdgcn_param32 src, int off)
-+{
-+	/* global_store_dwordx2 <src>, <dst>, off offset:<off>
-+	 * *(char *)(dst + off) = src;
-+	 */
-+	insn->flat.offset = off;
-+	insn->flat.dlc = 0;
-+	insn->flat.lds = 0;
-+	insn->flat.seg = GFX10_FLAT_SEG_GLOBAL;
-+	insn->flat.glc = 1;
-+	insn->flat.slc = 1;
-+	insn->flat.op = GFX10_GLOBAL_STORE_DWORDX2;
-+	insn->flat.encoding = GFX10_FLAT_ENCODING;
-+	insn->flat.addr = dst.v;
-+	insn->flat.data = src.v;
-+	insn->flat.saddr = GFX10_FLAT_SADDR_DISABLE;
-+	insn->flat.dummy1 = 0;
-+	insn->flat.dummy2 = 0;
-+	insn->flat.vdst = 0;
-+
-+	return 8;
-+}
-+
-+inline u32 emit_gfx10_global_store_dwordx4(union amdgcn_gfx10_insn *insn,
-+					   struct amdgcn_param32 dst,
-+					   struct amdgcn_param32 src, int off)
-+{
-+	/* global_store_dwordx4 <src>, <dst>, off offset:<off>
-+	 * *(char *)(dst + off) = src;
-+	 */
-+	insn->flat.offset = off;
-+	insn->flat.dlc = 0;
-+	insn->flat.lds = 0;
-+	insn->flat.seg = GFX10_FLAT_SEG_GLOBAL;
-+	insn->flat.glc = 1;
-+	insn->flat.slc = 1;
-+	insn->flat.op = GFX10_GLOBAL_STORE_DWORDX4;
-+	insn->flat.encoding = GFX10_FLAT_ENCODING;
-+	insn->flat.addr = dst.v;
-+	insn->flat.data = src.v;
-+	insn->flat.saddr = GFX10_FLAT_SADDR_DISABLE;
-+	insn->flat.dummy1 = 0;
-+	insn->flat.dummy2 = 0;
-+	insn->flat.vdst = 0;
-+
-+	return 8;
-+}
-+
-+inline u32 emit_gfx10_s_branch(union amdgcn_gfx10_insn *insn,
-+			       short off)
-+{
-+	insn->sopp.simm16 = off;
-+	insn->sopp.op = GFX10_S_BRANCH;
-+	insn->sopp.encoding = GFX10_SOPP_ENCODING;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx10_s_cbranch_vccz(union amdgcn_gfx10_insn *insn,
-+				     short off)
-+{
-+	insn->sopp.simm16 = off;
-+	insn->sopp.op = GFX10_S_CBRANCH_VCCZ;
-+	insn->sopp.encoding = GFX10_SOPP_ENCODING;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx10_s_cbranch_vccnz(union amdgcn_gfx10_insn *insn,
-+				      short off)
-+{
-+	insn->sopp.simm16 = off;
-+	insn->sopp.op = GFX10_S_CBRANCH_VCCNZ;
-+	insn->sopp.encoding = GFX10_SOPP_ENCODING;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx10_branch_fixup(union amdgcn_gfx10_insn *insn,
-+				   short off)
-+{
-+	WARN_ON(insn->sopp.op != GFX10_S_BRANCH &&
-+		insn->sopp.op != GFX10_S_CBRANCH_VCCZ &&
-+		insn->sopp.op != GFX10_S_CBRANCH_VCCNZ &&
-+		insn->sopp.op != GFX10_S_CBRANCH_EXECZ &&
-+		insn->sopp.op != GFX10_S_CBRANCH_EXECNZ);
-+	insn->sopp.simm16 = off;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx10_s_waitcnt_lgkmcnt(union amdgcn_gfx10_insn *insn)
-+{
-+	struct amdgcn_gfx10_sopp_vmcnt vmcnt;
-+	u16 simm16;
-+	/* s_waitcnt lgkmcnt (0)
-+	 * wait for memory
-+	 */
-+	vmcnt.vmcnt1 = -1;
-+	vmcnt.vmcnt2 = -1;
-+	vmcnt.expcnt = -1;
-+	vmcnt.dummy = 0;
-+	vmcnt.lgkmcnt = 0;
-+	memcpy(&simm16, &vmcnt, sizeof(u16));
-+	insn->sopp.simm16 = simm16;
-+	insn->sopp.op = GFX10_S_WAITCNT;
-+	insn->sopp.encoding = GFX10_SOPP_ENCODING;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx10_s_waitcnt_vmcnt(union amdgcn_gfx10_insn *insn)
-+{
-+	struct amdgcn_gfx10_sopp_vmcnt vmcnt;
-+	u16 simm16;
-+	/* s_waitcnt lgkmcnt (0)
-+	 * wait for memory
-+	 */
-+	vmcnt.vmcnt1 = 0;
-+	vmcnt.vmcnt2 = 0;
-+	vmcnt.expcnt = -1;
-+	vmcnt.dummy = 0;
-+	vmcnt.lgkmcnt = -1;
-+	memcpy(&simm16, &vmcnt, sizeof(u16));
-+	insn->sopp.simm16 = simm16;
-+	insn->sopp.op = GFX10_S_WAITCNT;
-+	insn->sopp.encoding = GFX10_SOPP_ENCODING;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx10_s_waitcnt_vmcnt_lgkmcnt(union amdgcn_gfx10_insn *insn)
-+{
-+	struct amdgcn_gfx10_sopp_vmcnt vmcnt;
-+	u16 simm16;
-+	/* s_waitcnt lgkmcnt (0)
-+	 * wait for memory
-+	 */
-+	vmcnt.vmcnt1 = 0;
-+	vmcnt.vmcnt2 = 0;
-+	vmcnt.expcnt = -1;
-+	vmcnt.dummy = 0;
-+	vmcnt.lgkmcnt = 0;
-+	memcpy(&simm16, &vmcnt, sizeof(u16));
-+	insn->sopp.simm16 = simm16;
-+	insn->sopp.op = GFX10_S_WAITCNT;
-+	insn->sopp.encoding = GFX10_SOPP_ENCODING;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx10_s_nop(union amdgcn_gfx10_insn *insn)
-+{
-+	insn->sopp.simm16 = 0;
-+	insn->sopp.op = GFX10_S_NOP;
-+	insn->sopp.encoding = GFX10_SOPP_ENCODING;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx10_s_endpgm(union amdgcn_gfx10_insn *insn)
-+{
-+	insn->sopp.simm16 = 0;
-+	insn->sopp.op = GFX10_S_ENDPGM;
-+	insn->sopp.encoding = GFX10_SOPP_ENCODING;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx10_s_code_end(union amdgcn_gfx10_insn *insn)
-+{
-+	insn->sopp.simm16 = 0;
-+	insn->sopp.op = GFX10_S_CODE_END;
-+	insn->sopp.encoding = GFX10_SOPP_ENCODING;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx10_s_icache_inv(union amdgcn_gfx10_insn *insn)
-+{
-+	insn->sopp.simm16 = 0;
-+	insn->sopp.op = GFX10_S_ICACHE_INV;
-+	insn->sopp.encoding = GFX10_SOPP_ENCODING;
-+
-+	return 4;
-+}
-+
-+/* Structurized CFG instructions.
-+ * These use raw SGPR indices for 64-bit pair operations involving
-+ * EXEC (126) and VCC (106) special registers.
-+ */
-+
-+/* s_and_saveexec_b64 s[sdst:sdst+1], s[ssrc:ssrc+1]
-+ * sdst = EXEC; EXEC &= ssrc; SCC = (EXEC != 0)
-+ */
-+inline u32 emit_gfx10_s_and_saveexec_b64(union amdgcn_gfx10_insn *insn,
-+					  u8 sdst, u8 ssrc)
-+{
-+	insn->sop1.ssrc0 = ssrc;
-+	insn->sop1.op = GFX10_S_AND_SAVEEXEC_B64;
-+	insn->sop1.sdst = sdst;
-+	insn->sop1.encoding = GFX10_SOP1_ENCODING;
-+
-+	return 4;
-+}
-+
-+/* s_bcnt1_i32_b64 sdst, s[ssrc:ssrc+1]
-+ * sdst = popcount(ssrc). SCC = (sdst != 0)
-+ */
-+inline u32 emit_gfx10_s_bcnt1_i32_b64(union amdgcn_gfx10_insn *insn,
-+				       u8 sdst, u8 ssrc)
-+{
-+	insn->sop1.ssrc0 = ssrc;
-+	insn->sop1.op = GFX10_S_BCNT1_I32_B64;
-+	insn->sop1.sdst = sdst;
-+	insn->sop1.encoding = GFX10_SOP1_ENCODING;
-+
-+	return 4;
-+}
-+
-+/* s_mov_b64 s[sdst:sdst+1], s[ssrc:ssrc+1] (or special src like 0) */
-+inline u32 emit_gfx10_s_mov_b64(union amdgcn_gfx10_insn *insn,
-+				 u8 sdst, u8 ssrc)
-+{
-+	insn->sop1.ssrc0 = ssrc;
-+	insn->sop1.op = GFX10_S_MOV_B64;
-+	insn->sop1.sdst = sdst;
-+	insn->sop1.encoding = GFX10_SOP1_ENCODING;
-+
-+	return 4;
-+}
-+
-+/* s_and_b64 s[sdst:sdst+1], s[ssrc0:ssrc0+1], s[ssrc1:ssrc1+1] */
-+inline u32 emit_gfx10_s_and_b64(union amdgcn_gfx10_insn *insn,
-+				 u8 sdst, u8 ssrc0, u8 ssrc1)
-+{
-+	insn->sop2.ssrc0 = ssrc0;
-+	insn->sop2.ssrc1 = ssrc1;
-+	insn->sop2.sdst = sdst;
-+	insn->sop2.op = GFX10_S_AND_B64;
-+	insn->sop2.encoding = GFX10_SOP2_ENCODING;
-+
-+	return 4;
-+}
-+
-+/* s_or_b64 s[sdst:sdst+1], s[ssrc0:ssrc0+1], s[ssrc1:ssrc1+1] */
-+inline u32 emit_gfx10_s_or_b64(union amdgcn_gfx10_insn *insn,
-+				u8 sdst, u8 ssrc0, u8 ssrc1)
-+{
-+	insn->sop2.ssrc0 = ssrc0;
-+	insn->sop2.ssrc1 = ssrc1;
-+	insn->sop2.sdst = sdst;
-+	insn->sop2.op = GFX10_S_OR_B64;
-+	insn->sop2.encoding = GFX10_SOP2_ENCODING;
-+
-+	return 4;
-+}
-+
-+/* s_andn2_b64 s[sdst:sdst+1], s[ssrc0:ssrc0+1], s[ssrc1:ssrc1+1]
-+ * sdst = ssrc0 & ~ssrc1
-+ */
-+inline u32 emit_gfx10_s_andn2_b64(union amdgcn_gfx10_insn *insn,
-+				   u8 sdst, u8 ssrc0, u8 ssrc1)
-+{
-+	insn->sop2.ssrc0 = ssrc0;
-+	insn->sop2.ssrc1 = ssrc1;
-+	insn->sop2.sdst = sdst;
-+	insn->sop2.op = GFX10_S_ANDN2_B64;
-+	insn->sop2.encoding = GFX10_SOP2_ENCODING;
-+
-+	return 4;
-+}
-+
-+/* s_cbranch_execz off - branch if EXEC == 0 */
-+inline u32 emit_gfx10_s_cbranch_execz(union amdgcn_gfx10_insn *insn,
-+				       short off)
-+{
-+	insn->sopp.simm16 = off;
-+	insn->sopp.op = GFX10_S_CBRANCH_EXECZ;
-+	insn->sopp.encoding = GFX10_SOPP_ENCODING;
-+
-+	return 4;
-+}
-+
-+/* s_cbranch_execnz off - branch if EXEC != 0 */
-+inline u32 emit_gfx10_s_cbranch_execnz(union amdgcn_gfx10_insn *insn,
-+					short off)
-+{
-+	insn->sopp.simm16 = off;
-+	insn->sopp.op = GFX10_S_CBRANCH_EXECNZ;
-+	insn->sopp.encoding = GFX10_SOPP_ENCODING;
-+
-+	return 4;
-+}
-+
-+/* s_sub_u32 sdst, ssrc0, ssrc1 - sdst = ssrc0 - ssrc1; SCC = borrow */
-+inline u32 emit_gfx10_s_sub_u32(union amdgcn_gfx10_insn *insn,
-+				 u8 sdst, u8 ssrc0, u8 ssrc1)
-+{
-+	insn->sop2.ssrc0 = ssrc0;
-+	insn->sop2.ssrc1 = ssrc1;
-+	insn->sop2.sdst = sdst;
-+	insn->sop2.op = GFX10_S_SUB_U32;
-+	insn->sop2.encoding = GFX10_SOP2_ENCODING;
-+
-+	return 4;
-+}
-+
-+/* s_cbranch_scc0 off - branch if SCC == 0 (no borrow) */
-+inline u32 emit_gfx10_s_cbranch_scc0(union amdgcn_gfx10_insn *insn,
-+				      short off)
-+{
-+	insn->sopp.simm16 = off;
-+	insn->sopp.op = GFX10_S_CBRANCH_SCC0;
-+	insn->sopp.encoding = GFX10_SOPP_ENCODING;
-+
-+	return 4;
-+}
-+
-+static inline void __emit_gfx10_sop2(union amdgcn_gfx10_insn *insn,
-+				      int op, int sdst, int ssrc0, int ssrc1)
-+{
-+	insn->sop2.encoding = GFX10_SOP2_ENCODING;
-+	insn->sop2.op = op;
-+	insn->sop2.sdst = sdst;
-+	insn->sop2.ssrc0 = ssrc0;
-+	insn->sop2.ssrc1 = ssrc1;
-+}
-+
-+static inline void __emit_gfx10_sop1(union amdgcn_gfx10_insn *insn,
-+				      int op, int sdst, int ssrc0)
-+{
-+	insn->sop1.encoding = GFX10_SOP1_ENCODING;
-+	insn->sop1.op = op;
-+	insn->sop1.sdst = sdst;
-+	insn->sop1.ssrc0 = ssrc0;
-+}
-+
-+static inline void __emit_gfx10_sopp(union amdgcn_gfx10_insn *insn,
-+				      int op, u16 simm16)
-+{
-+	insn->sopp.encoding = GFX10_SOPP_ENCODING;
-+	insn->sopp.op = op;
-+	insn->sopp.simm16 = simm16;
-+}
-+
-+static inline void __emit_gfx10_vop2(union amdgcn_gfx10_insn *insn,
-+				      int op, int vdst, int vsrc1, int src0)
-+{
-+	insn->vop2.encoding = GFX10_VOP2_ENCODING;
-+	insn->vop2.op = op;
-+	insn->vop2.vdst = vdst;
-+	insn->vop2.vsrc1 = vsrc1;
-+	insn->vop2.src0 = src0;
-+}
-+
-+static inline void __emit_gfx10_smem(union amdgcn_gfx10_insn *insn,
-+				      int op, int sdata, int sbase_pair,
-+				      u32 offset)
-+{
-+	insn->smem.encoding = GFX10_SMEM_ENCODING;
-+	insn->smem.op = op;
-+	insn->smem.sdata = sdata;
-+	insn->smem.sbase = sbase_pair;
-+	insn->smem.offset = offset;
-+	insn->smem.soffset = GFX10_SRC_NULL;
-+}
-+
-+static inline void __emit_gfx10_ds(union amdgcn_gfx10_insn *insn,
-+				    int op, int addr, int data0, int vdst,
-+				    int off0, int off1)
-+{
-+	insn->ds.encoding = GFX10_DS_ENCODING;
-+	insn->ds.op = op;
-+	insn->ds.gds = GFX10_DS_LDS;
-+	insn->ds.addr = addr;
-+	insn->ds.data0 = data0;
-+	insn->ds.vdst = vdst;
-+	insn->ds.offset0 = off0;
-+	insn->ds.offset1 = off1;
-+}
-+
-+static inline void __emit_gfx10_global(union amdgcn_gfx10_insn *insn,
-+					int op, int vdst, int vaddr,
-+					int vdata, int saddr, int offset)
-+{
-+	insn->flat.encoding = GFX10_FLAT_ENCODING;
-+	insn->flat.seg = GFX10_FLAT_SEG_GLOBAL;
-+	insn->flat.op = op;
-+	insn->flat.vdst = vdst;
-+	insn->flat.addr = vaddr;
-+	insn->flat.data = vdata;
-+	insn->flat.saddr = saddr;
-+	insn->flat.offset = offset;
-+}
-+
-+/* ======================================================================
-+ * GFX10 Param-Aware Emit Functions
-+ *
-+ * Paired with GFX9 equivalents in knod_gfx9_insn.h.  Used by shader
-+ * emitters (aesgcm_shader.h, ipsec_fused_gfx10.h, ...) that construct
-+ * operands via P_S/P_V/P_I/P_L helpers.
-+ * ======================================================================
-+ */
-+
-+static inline int __p2e10(struct amdgcn_param32 p)
-+{
-+	if (p.type == AMDGCN_PARAM_TYPE_LITERAL_CONST)
-+		return gfx10_get_param_base(p);
-+	return gfx10_get_param_base(p) + p.v;
-+}
-+
-+/* --- GFX10 SOP2 (param32) --- */
-+
-+#define DEFINE_GFX10_SOP2_P(name, opcode)				\
-+inline u32 emit_gfx10_##name(union amdgcn_gfx10_insn *insn,		\
-+			      struct amdgcn_param32 dst,		\
-+			      struct amdgcn_param32 src0,		\
-+			      struct amdgcn_param32 src1)		\
-+{									\
-+	insn->sop2.sdst = __p2e10(dst);				\
-+	insn->sop2.ssrc0 = __p2e10(src0);				\
-+	insn->sop2.ssrc1 = __p2e10(src1);				\
-+	insn->sop2.op = opcode;					\
-+	insn->sop2.encoding = GFX10_SOP2_ENCODING;			\
-+	if (knod_param_is_literal(src0)) {			\
-+		insn->sop2.literal = src0.v;				\
-+		return 8;						\
-+	}								\
-+	if (knod_param_is_literal(src1)) {			\
-+		insn->sop2.literal = src1.v;				\
-+		return 8;						\
-+	}								\
-+	return 4;							\
-+}
-+
-+DEFINE_GFX10_SOP2_P(s_add_u32,   GFX10_S_ADD_U32)
-+DEFINE_GFX10_SOP2_P(s_sub_u32_p, GFX10_S_SUB_U32)
-+DEFINE_GFX10_SOP2_P(s_addc_u32,  GFX10_S_ADDC_U32)
-+DEFINE_GFX10_SOP2_P(s_subb_u32,  GFX10_S_SUBB_U32)
-+DEFINE_GFX10_SOP2_P(s_and_b32_p, GFX10_S_AND_B32)
-+DEFINE_GFX10_SOP2_P(s_lshl_b32,  GFX10_S_LSHL_B32)
-+DEFINE_GFX10_SOP2_P(s_lshr_b32,  GFX10_S_LSHR_B32)
-+DEFINE_GFX10_SOP2_P(s_mul_i32,   GFX10_S_MUL_I32)
-+DEFINE_GFX10_SOP2_P(s_xor_b32,   GFX10_S_XOR_B32)
-+
-+#undef DEFINE_GFX10_SOP2_P
-+
-+/* --- GFX10 SOPC (param32) --- */
-+
-+#define DEFINE_GFX10_SOPC_P(name, opcode)				\
-+inline u32 emit_gfx10_##name(union amdgcn_gfx10_insn *insn,		\
-+			      struct amdgcn_param32 src0,		\
-+			      struct amdgcn_param32 src1)		\
-+{									\
-+	insn->sopc.ssrc0 = __p2e10(src0);				\
-+	insn->sopc.ssrc1 = __p2e10(src1);				\
-+	insn->sopc.op = opcode;					\
-+	insn->sopc.encoding = GFX10_SOPC_ENCODING;			\
-+	if (knod_param_is_literal(src0)) {			\
-+		insn->sopc.literal = src0.v;				\
-+		return 8;						\
-+	}								\
-+	if (knod_param_is_literal(src1)) {			\
-+		insn->sopc.literal = src1.v;				\
-+		return 8;						\
-+	}								\
-+	return 4;							\
-+}
-+
-+DEFINE_GFX10_SOPC_P(s_cmp_eq_u32, GFX10_S_CMP_EQ_U32)
-+DEFINE_GFX10_SOPC_P(s_cmp_lg_u32, GFX10_S_CMP_LG_U32)
-+DEFINE_GFX10_SOPC_P(s_cmp_ge_u32, GFX10_S_CMP_GE_U32)
-+DEFINE_GFX10_SOPC_P(s_cmp_lt_u32, GFX10_S_CMP_LT_U32)
-+
-+#undef DEFINE_GFX10_SOPC_P
-+
-+/* --- GFX10 SOPP --- */
-+
-+inline u32 emit_gfx10_s_barrier(union amdgcn_gfx10_insn *insn)
-+{
-+	insn->sopp.simm16 = 0;
-+	insn->sopp.op = GFX10_S_BARRIER;
-+	insn->sopp.encoding = GFX10_SOPP_ENCODING;
-+	return 4;
-+}
-+
-+inline u32 emit_gfx10_s_cbranch_scc1(union amdgcn_gfx10_insn *insn,
-+				      short off)
-+{
-+	insn->sopp.simm16 = off;
-+	insn->sopp.op = GFX10_S_CBRANCH_SCC1;
-+	insn->sopp.encoding = GFX10_SOPP_ENCODING;
-+	return 4;
-+}
-+
-+/*
-+ * GFX10 s_waitcnt encoding:
-+ *   simm16[3:0]   = vmcnt[3:0]
-+ *   simm16[7:4]   = expcnt (set to 7 = unused)
-+ *   simm16[13:8]  = lgkmcnt[5:0]
-+ *   simm16[15:14] = vmcnt[5:4]
-+ */
-+#define GFX10_WAITCNT(vm, lgkm) \
-+	(((((vm) >> 4) & 0x3) << 14) | (((lgkm) & 0x3F) << 8) | \
-+	 (7 << 4) | ((vm) & 0xF))
-+
-+inline u32 emit_gfx10_s_waitcnt(union amdgcn_gfx10_insn *insn,
-+				 int vm, int lgkm)
-+{
-+	insn->sopp.simm16 = GFX10_WAITCNT(vm, lgkm);
-+	insn->sopp.op = GFX10_S_WAITCNT;
-+	insn->sopp.encoding = GFX10_SOPP_ENCODING;
-+	return 4;
-+}
-+
-+/* --- GFX10 SOP1 --- */
-+
-+inline u32 emit_gfx10_s_not_b64(union amdgcn_gfx10_insn *insn,
-+				 u8 sdst, u8 ssrc)
-+{
-+	insn->sop1.ssrc0 = ssrc;
-+	insn->sop1.op = GFX10_S_NOT_B64;
-+	insn->sop1.sdst = sdst;
-+	insn->sop1.encoding = GFX10_SOP1_ENCODING;
-+	return 4;
-+}
-+
-+/* --- GFX10 VOPC (v_cmp_ne_u32 param variant) --- */
-+
-+inline u32 emit_gfx10_v_cmp_ne_u32(union amdgcn_gfx10_insn *insn,
-+				     struct amdgcn_param32 src0,
-+				     struct amdgcn_param32 src1)
-+{
-+	WARN_ON(src1.type != AMDGCN_PARAM_TYPE_VGPR);
-+	insn->vopc.vsrc1 = src1.v;
-+	insn->vopc.op = GFX10_V_CMP_NE_U32;
-+	insn->vopc.encoding = GFX10_VOPC_ENCODING;
-+	if (src0.type == AMDGCN_PARAM_TYPE_LITERAL_CONST) {
-+		insn->vopc.src0 = gfx10_get_param_base(src0);
-+		insn->vopc.literal = src0.v;
-+		return 8;
-+	}
-+	insn->vopc.src0 = gfx10_get_param_base(src0) + src0.v;
-+	return 4;
-+}
-+
-+/* --- GFX10 SMEM --- */
-+
-+#define DEFINE_GFX10_SMEM_P(name, opcode)				\
-+inline u32 emit_gfx10_##name(union amdgcn_gfx10_insn *insn,		\
-+			      struct amdgcn_param32 dst,		\
-+			      struct amdgcn_param32 src, int offset)	\
-+{									\
-+	insn->smem.sdata = dst.v;					\
-+	insn->smem.sbase = src.v / 2;					\
-+	insn->smem.op = opcode;					\
-+	insn->smem.offset = offset;					\
-+	insn->smem.soffset = GFX10_SRC_NULL;				\
-+	insn->smem.encoding = GFX10_SMEM_ENCODING;			\
-+	return 8;							\
-+}
-+
-+DEFINE_GFX10_SMEM_P(s_load_dword,   GFX10_S_LOAD_DWORD)
-+DEFINE_GFX10_SMEM_P(s_load_dwordx4, GFX10_S_LOAD_DWORDX4)
-+
-+#undef DEFINE_GFX10_SMEM_P
-+
-+/* s_dcache_inv - no operands */
-+inline u32 emit_gfx10_s_dcache_inv(union amdgcn_gfx10_insn *insn)
-+{
-+	insn->smem.sdata = 0;
-+	insn->smem.sbase = 0;
-+	insn->smem.op = GFX10_S_DCACHE_INV;
-+	insn->smem.offset = 0;
-+	insn->smem.soffset = GFX10_SRC_NULL;
-+	insn->smem.encoding = GFX10_SMEM_ENCODING;
-+	return 8;
-+}
-+
-+/* --- GFX10 VOP1: v_readfirstlane_b32 --- */
-+
-+inline u32 emit_gfx10_v_readfirstlane_b32(union amdgcn_gfx10_insn *insn,
-+					   u8 sdst, u8 vsrc)
-+{
-+	insn->vop1.encoding = GFX10_VOP1_ENCODING;
-+	insn->vop1.vdst = sdst;
-+	insn->vop1.op = GFX10_V_READFIRSTLANE_B32;
-+	insn->vop1.src0 = GFX10_SRC_VGPR_BASE + vsrc;
-+	return 4;
-+}
-+
-+/* --- GFX10 VOP2: v_max_i32 --- */
-+
-+inline u32 emit_gfx10_v_max_i32(union amdgcn_gfx10_insn *insn,
-+				 struct amdgcn_param32 dst,
-+				 struct amdgcn_param32 src0,
-+				 struct amdgcn_param32 src1)
-+{
-+	WARN_ON(dst.type != AMDGCN_PARAM_TYPE_VGPR);
-+	WARN_ON(src1.type != AMDGCN_PARAM_TYPE_VGPR);
-+
-+	insn->vop2.vsrc1 = src1.v;
-+	insn->vop2.vdst = dst.v;
-+	insn->vop2.op = GFX10_V_MAX_I32;
-+	insn->vop2.encoding = GFX10_VOP2_ENCODING;
-+	if (src0.type == AMDGCN_PARAM_TYPE_LITERAL_CONST) {
-+		insn->vop2.src0 = gfx10_get_param_base(src0);
-+		insn->vop2.literal = src0.v;
-+		return 8;
-+	}
-+	insn->vop2.src0 = gfx10_get_param_base(src0) + src0.v;
-+
-+	return 4;
-+}
-+
-+/* --- GFX10 VOP3A: v_perm_b32 --- */
-+
-+inline u32 emit_gfx10_v_perm_b32(union amdgcn_gfx10_insn *insn,
-+				  struct amdgcn_param32 dst,
-+				  struct amdgcn_param32 src0,
-+				  struct amdgcn_param32 src1,
-+				  struct amdgcn_param32 src2)
-+{
-+	WARN_ON(dst.type != AMDGCN_PARAM_TYPE_VGPR);
-+	/* VOP3 does not support literal constants on GFX10 */
-+	WARN_ON(src0.type == AMDGCN_PARAM_TYPE_LITERAL_CONST ||
-+		src1.type == AMDGCN_PARAM_TYPE_LITERAL_CONST ||
-+		src2.type == AMDGCN_PARAM_TYPE_LITERAL_CONST);
-+	insn->vop3a.vdst = dst.v;
-+	insn->vop3a.abs = 0;
-+	insn->vop3a.op_sel = 0;
-+	insn->vop3a.clmp = 0;
-+	insn->vop3a.op = GFX10_V_PERM_B32;
-+	insn->vop3a.encoding = GFX10_VOP3A_ENCODING;
-+	insn->vop3a.src0 = gfx10_get_param_base(src0) + src0.v;
-+	insn->vop3a.src1 = gfx10_get_param_base(src1) + src1.v;
-+	insn->vop3a.src2 = gfx10_get_param_base(src2) + src2.v;
-+	insn->vop3a.omod = 0;
-+	insn->vop3a.neg = 0;
-+
-+	return 8;
-+}
-+
-+/* --- GFX10 DS --- */
-+
-+inline u32 emit_gfx10_ds_write_b32(union amdgcn_gfx10_insn *insn,
-+				     int addr, int data0)
-+{
-+	__emit_gfx10_ds(insn, GFX10_DS_WRITE_B32, addr, data0, 0, 0, 0);
-+	return 8;
-+}
-+
-+inline u32 emit_gfx10_ds_read_b32(union amdgcn_gfx10_insn *insn,
-+				    int vdst, int addr)
-+{
-+	__emit_gfx10_ds(insn, GFX10_DS_READ_B32, addr, 0, vdst, 0, 0);
-+	return 8;
-+}
-+
-+inline u32 emit_gfx10_ds_write_b32_off(union amdgcn_gfx10_insn *insn,
-+					 int addr, int data0, int offset)
-+{
-+	__emit_gfx10_ds(insn, GFX10_DS_WRITE_B32, addr, data0, 0, offset, 0);
-+	return 8;
-+}
-+
-+inline u32 emit_gfx10_ds_read_b32_off(union amdgcn_gfx10_insn *insn,
-+					int vdst, int addr, int offset)
-+{
-+	__emit_gfx10_ds(insn, GFX10_DS_READ_B32, addr, 0, vdst, offset, 0);
-+	return 8;
-+}
-+
-+inline u32 emit_gfx10_ds_write_b128(union amdgcn_gfx10_insn *insn,
-+				     int addr, int data0)
-+{
-+	__emit_gfx10_ds(insn, GFX10_DS_WRITE_B128, addr, data0, 0, 0, 0);
-+	return 8;
-+}
-+
-+inline u32 emit_gfx10_ds_read_b128(union amdgcn_gfx10_insn *insn,
-+				    int vdst, int addr)
-+{
-+	__emit_gfx10_ds(insn, GFX10_DS_READ_B128, addr, 0, vdst, 0, 0);
-+	return 8;
-+}
-+
-+/* --- GFX10 GLOBAL with saddr mode (scalar base + VGPR offset) --- */
-+
-+inline u32 emit_gfx10_global_load_dword_saddr(union amdgcn_gfx10_insn *insn,
-+						int vdst, int vaddr,
-+						int saddr, short off)
-+{
-+	insn->flat.offset = off;
-+	insn->flat.dlc = 0;
-+	insn->flat.lds = 0;
-+	insn->flat.seg = GFX10_FLAT_SEG_GLOBAL;
-+	insn->flat.glc = 0;
-+	insn->flat.slc = 0;
-+	insn->flat.op = GFX10_GLOBAL_LOAD_DWORD;
-+	insn->flat.encoding = GFX10_FLAT_ENCODING;
-+	insn->flat.addr = vaddr;
-+	insn->flat.data = 0;
-+	insn->flat.saddr = saddr / 2;
-+	insn->flat.dummy1 = 0;
-+	insn->flat.dummy2 = 0;
-+	insn->flat.vdst = vdst;
-+	return 8;
-+}
-+
-+inline u32 emit_gfx10_global_load_dwordx4_saddr(union amdgcn_gfx10_insn *insn,
-+						  int vdst, int vaddr,
-+						  int saddr, short off)
-+{
-+	insn->flat.offset = off;
-+	insn->flat.dlc = 0;
-+	insn->flat.lds = 0;
-+	insn->flat.seg = GFX10_FLAT_SEG_GLOBAL;
-+	insn->flat.glc = 0;
-+	insn->flat.slc = 0;
-+	insn->flat.op = GFX10_GLOBAL_LOAD_DWORDX4;
-+	insn->flat.encoding = GFX10_FLAT_ENCODING;
-+	insn->flat.addr = vaddr;
-+	insn->flat.data = 0;
-+	insn->flat.saddr = saddr / 2;
-+	insn->flat.dummy1 = 0;
-+	insn->flat.dummy2 = 0;
-+	insn->flat.vdst = vdst;
-+	return 8;
-+}
-+
-+inline u32 emit_gfx10_global_store_dwordx4_saddr(union amdgcn_gfx10_insn *insn,
-+						   int vaddr, int vdata,
-+						   int saddr, short off)
-+{
-+	insn->flat.offset = off;
-+	insn->flat.dlc = 0;
-+	insn->flat.lds = 0;
-+	insn->flat.seg = GFX10_FLAT_SEG_GLOBAL;
-+	insn->flat.glc = 1;
-+	insn->flat.slc = 1;
-+	insn->flat.op = GFX10_GLOBAL_STORE_DWORDX4;
-+	insn->flat.encoding = GFX10_FLAT_ENCODING;
-+	insn->flat.addr = vaddr;
-+	insn->flat.data = vdata;
-+	insn->flat.saddr = saddr / 2;
-+	insn->flat.dummy1 = 0;
-+	insn->flat.dummy2 = 0;
-+	insn->flat.vdst = 0;
-+	return 8;
-+}
-+
-+#endif
-diff --git a/drivers/gpu/drm/amd/amdkfd/knod/knod_gfx9_insn.h b/drivers/gpu/drm/amd/amdkfd/knod/knod_gfx9_insn.h
-new file mode 100644
-index 000000000000..ea987188f982
---- /dev/null
-+++ b/drivers/gpu/drm/amd/amdkfd/knod/knod_gfx9_insn.h
-@@ -0,0 +1,4068 @@
-+/* SPDX-License-Identifier: GPL-2.0-or-later */
-+/* Copyright (c) 2021 Taehee Yoo <ap420073@gmail.com>
-+ * Copyright (c) 2021 Hoyeon Lee <hoyeon.rhee@gmail.com>
-+ */
-+
-+#ifndef KFD_AMDGPU_GFX9_INSN_H_INCLUDED
-+#define KFD_AMDGPU_GFX9_INSN_H_INCLUDED
-+
-+#include "knod_amdgpu.h"
-+
-+/*
-+ * knod_amdgpu_insn.h is intentionally NOT included here.
-+ * This file provides ISA definitions (structs, enums, encoding constants)
-+ * and per-version emit functions that are self-contained.
-+ *
-+ * The version-dispatch layer (knod_amdgpu_insn.h) includes this file
-+ * and adds struct amdgcn_insn + wrapper functions on top.
-+ */
-+
-+#define GFX9_SRC_SGPR_BASE		0
-+#define GFX9_SRC_VCC_LO			106
-+#define GFX9_SRC_VCC_HI			107
-+#define GFX9_SRC_TTPM_BASE		108
-+#define GFX9_SRC_M0			124
-+#define GFX9_SRC_NULL			125
-+#define GFX9_SRC_EXEC_LO		126
-+#define GFX9_SRC_EXEC_HI		127
-+#define GFX9_SRC_INTEGER_0		128
-+#define GFX9_SRC_INTEGER_MINUS_1	193
-+#define GFX9_SRC_SHARED_BASE		235
-+#define GFX9_SRC_SHARED_LIMIT		236
-+#define GFX9_SRC_PRIVATE_BASE		237
-+#define GFX9_SRC_PRIVATE_LIMIT		238
-+#define GFX9_SRC_POPS_EXITING_WAVE_ID	239
-+#define GFX9_SRC_SDWA			249
-+#define GFX9_SRC_DDP16			250
-+#define GFX9_SRC_VCCZ			251
-+#define GFX9_SRC_EXECZ			252
-+#define GFX9_SRC_SCC			253
-+#define GFX9_SRC_LITERAL_CONST		255
-+#define GFX9_SRC_VGPR_BASE		256
-+
-+static int gfx9_param_base[__AMDGCN_PARAM_TYPE_MAX] = {
-+	GFX9_SRC_SGPR_BASE,
-+	GFX9_SRC_VCC_LO,
-+	GFX9_SRC_VCC_HI,
-+	GFX9_SRC_TTPM_BASE,
-+	GFX9_SRC_M0,
-+	GFX9_SRC_NULL,
-+	GFX9_SRC_EXEC_LO,
-+	GFX9_SRC_EXEC_HI,
-+	GFX9_SRC_INTEGER_0,
-+	GFX9_SRC_INTEGER_MINUS_1,
-+	GFX9_SRC_SHARED_BASE,
-+	GFX9_SRC_SHARED_LIMIT,
-+	GFX9_SRC_PRIVATE_BASE,
-+	GFX9_SRC_PRIVATE_LIMIT,
-+	GFX9_SRC_POPS_EXITING_WAVE_ID,
-+	GFX9_SRC_SDWA,
-+	GFX9_SRC_DDP16,
-+	GFX9_SRC_VCCZ,
-+	GFX9_SRC_EXECZ,
-+	GFX9_SRC_SCC,
-+	GFX9_SRC_LITERAL_CONST,
-+	GFX9_SRC_VGPR_BASE,
-+};
-+
-+/* Scalar ALU and Control Format */
-+struct amdgcn_gfx9_sop2 {
-+	u32 ssrc0:8;
-+	u32 ssrc1:8;
-+	u32 sdst:7;
-+	u32 op:7;
-+	u32 encoding:2;
-+	u32 literal;
-+};
-+
-+enum amdgcn_gfx9_sop2_opcode {
-+	GFX9_S_ADD_U32,
-+	GFX9_S_SUB_U32,
-+	GFX9_S_ADD_I32,
-+	GFX9_S_SUB_I32,
-+	GFX9_S_ADDC_U32,
-+	GFX9_S_SUBB_U32,
-+	GFX9_S_MIN_I32,
-+	GFX9_S_MIN_U32,
-+	GFX9_S_MAX_I32,
-+	GFX9_S_MAX_U32,
-+	GFX9_S_CSELECT_B32,
-+	GFX9_S_CSELECT_B64,
-+	GFX9_S_AND_B32,
-+	GFX9_S_AND_B64,
-+	GFX9_S_OR_B32,
-+	GFX9_S_OR_B64,
-+	GFX9_S_XOR_B32,
-+	GFX9_S_XOR_B64,
-+	GFX9_S_ANDN2_B32,
-+	GFX9_S_ANDN2_B64,
-+	GFX9_S_ORN2_B32,
-+	GFX9_S_ORN2_B64,
-+	GFX9_S_NAND_B32,
-+	GFX9_S_NAND_B64,
-+	GFX9_S_NOR_B32,
-+	GFX9_S_NOR_B64,
-+	GFX9_S_XNOR_B32,
-+	GFX9_S_XNOR_B64,
-+	GFX9_S_LSHL_B32,
-+	GFX9_S_LSHL_B64,
-+	GFX9_S_LSHR_B32,
-+	GFX9_S_LSHR_B64,
-+	GFX9_S_ASHR_I32,
-+	GFX9_S_ASHR_I64,
-+	GFX9_S_BFM_B32,
-+	GFX9_S_BFM_B64,
-+	GFX9_S_MUL_I32,
-+	GFX9_S_BFE_U32,
-+	GFX9_S_BFE_I32,
-+	GFX9_S_BFE_U64,
-+	GFX9_S_BFE_I64,
-+	GFX9_S_CBRANCH_G_FORK,
-+	GFX9_S_ABSDIFF_I32,
-+	GFX9_S_RFE_RESTORE_B64,
-+	GFX9_S_MUL_HI_U32,
-+	GFX9_S_MUL_HI_I32,
-+	GFX9_S_LSHL1_ADD_U32,
-+	GFX9_S_LSHL2_ADD_U32,
-+	GFX9_S_LSHL3_ADD_U32,
-+	GFX9_S_LSHL4_ADD_U32,
-+	GFX9_S_PACK_LL_B32_B16,
-+	GFX9_S_PACK_LH_B32_B16,
-+	GFX9_S_PACK_HH_B32_B16,
-+};
-+
-+#define GFX9_SOP2_ENCODING			0x2
-+#define GFX9_SOP2_SSRC_SGPR_BASE		0
-+#define GFX9_SOP2_SSRC_VCC_LO			106
-+#define GFX9_SOP2_SSRC_VCC_HI			107
-+#define GFX9_SOP2_SSRC_TTPM_BASE		108
-+#define GFX9_SOP2_SSRC_M0			124
-+#define GFX9_SOP2_SSRC_NULL			125
-+#define GFX9_SOP2_SSRC_EXEC_LO			126
-+#define GFX9_SOP2_SSRC_EXEC_HI			127
-+#define GFX9_SOP2_SSRC_INTEGER_0		128
-+#define GFX9_SOP2_SSRC_INTEGER_MINUS_1		193
-+#define GFX9_SOP2_SSRC_SHARED_BASE		235
-+#define GFX9_SOP2_SSRC_SHARED_LIMIT		236
-+#define GFX9_SOP2_SSRC_PRIVATE_BASE		237
-+#define GFX9_SOP2_SSRC_PRIVATE_LIMIT		238
-+#define GFX9_SOP2_SSRC_POPS_EXITING_WAVE_ID	239
-+#define GFX9_SOP2_SSRC_VCCZ			251
-+#define GFX9_SOP2_SSRC_EXECZ			252
-+#define GFX9_SOP2_SSRC_SCC			253
-+/* SDST
-+ * Same codes as SSRC0, above except only codes 0-127 are valid.
-+ */
-+
-+struct amdgcn_gfx9_sopk {
-+	u32 simm16:16;
-+	u32 sdst:7;
-+	u32 op:5;
-+	u32 encoding:4;
-+};
-+
-+enum amdgcn_gfx9_sopk_opcode {
-+	GFX9_S_MOVK_I32,
-+	GFX9_S_CMOVK_I32,
-+	GFX9_S_CMPK_EQ_I32,
-+	GFX9_S_CMPK_LG_I32,
-+	GFX9_S_CMPK_GT_I32,
-+	GFX9_S_CMPK_GE_I32,
-+	GFX9_S_CMPK_LT_I32,
-+	GFX9_S_CMPK_LE_I32,
-+	GFX9_S_CMPK_EQ_U32,
-+	GFX9_S_CMPK_LG_U32,
-+	GFX9_S_CMPK_GT_U32,
-+	GFX9_S_CMPK_GE_U32,
-+	GFX9_S_CMPK_LT_U32,
-+	GFX9_S_CMPK_LE_U32,
-+	GFX9_S_ADDK_I32,
-+	GFX9_S_MULK_I32,
-+	GFX9_S_CBRANCH_I_FORK,
-+	GFX9_S_GETREG_B32,
-+	GFX9_S_SETREG_B32 = 18,
-+	GFX9_S_SETREG_IMM32_B32 = 20,
-+	GFX9_S_CALL_B64,
-+};
-+
-+#define GFX9_SOPK_ENCODING			0xb
-+#define GFX9_SOPK_SDST_SGPR0_BASE		0
-+#define GFX9_SOPK_SDST_VCC_LO			106
-+#define GFX9_SOPK_SDST_VCC_HI			107
-+#define GFX9_SOPK_SDST_TTPM_BASE		108
-+#define GFX9_SOPK_SDST_M0			124
-+#define GFX9_SOPK_SDST_NULL			125
-+#define GFX9_SOPK_SDST_EXEC_LO			126
-+#define GFX9_SOPK_SDST_EXEC_HI			127
-+
-+struct amdgcn_gfx9_sop1 {
-+	u32 ssrc0:8;
-+	u32 op:8;
-+	u32 sdst:7;
-+	u32 encoding:9;
-+	u32 literal;
-+};
-+
-+enum amdgcn_gfx9_sop1_opcode {
-+	GFX9_S_MOV_B32 = 0,
-+	GFX9_S_MOV_B64,
-+	GFX9_S_CMOV_B32,
-+	GFX9_S_CMOV_B64,
-+	GFX9_S_NOT_B32,
-+	GFX9_S_NOT_B64,
-+	GFX9_S_WQM_B32,
-+	GFX9_S_WQM_B64,
-+	GFX9_S_BREV_B32,
-+	GFX9_S_BREV_B64,
-+	GFX9_S_BCNT0_I32_B32,
-+	GFX9_S_BCNT0_I32_B64,
-+	GFX9_S_BCNT1_I32_B32,
-+	GFX9_S_BCNT1_I32_B64,
-+	GFX9_S_FF0_I32_B32,
-+	GFX9_S_FF0_I32_B64,
-+	GFX9_S_FF1_I32_B32,
-+	GFX9_S_FF1_I32_B64,
-+	GFX9_S_FLBIT_I32_B32,
-+	GFX9_S_FLBIT_I32_B64,
-+	GFX9_S_FLBIT_I32,
-+	GFX9_S_FLBIT_I32_I64,
-+	GFX9_S_SEXT_I32_I8,
-+	GFX9_S_SEXT_I32_I16,
-+	GFX9_S_BITSET0_B32,
-+	GFX9_S_BITSET0_B64,
-+	GFX9_S_BITSET1_B32,
-+	GFX9_S_BITSET1_B64,
-+	GFX9_S_GETPC_B64,
-+	GFX9_S_SETPC_B64,
-+	GFX9_S_SWAPPC_B64,
-+	GFX9_S_RFE_B64 = 31,
-+	GFX9_S_AND_SAVEEXEC_B64,
-+	GFX9_S_OR_SAVEEXEC_B64,
-+	GFX9_S_XOR_SAVEEXEC_B64,
-+	GFX9_S_ANDN2_SAVEEXEC_B64,
-+	GFX9_S_ORN2_SAVEEXEC_B64,
-+	GFX9_S_NAND_SAVEEXEC_B64,
-+	GFX9_S_NOR_SAVEEXEC_B64,
-+	GFX9_S_XNOR_SAVEEXEC_B64,
-+	GFX9_S_QUADMASK_B32,
-+	GFX9_S_QUADMASK_B64,
-+	GFX9_S_MOVRELS_B32,
-+	GFX9_S_MOVRELS_B64,
-+	GFX9_S_MOVRELD_B32,
-+	GFX9_S_MOVRELD_B64,
-+	GFX9_S_ABS_I32 = 48,
-+	GFX9_S_SET_GPR_IDX_IDX = 50,
-+	GFX9_S_ANDN1_SAVEEXEC_B64,
-+	GFX9_S_ORN1_SAVEEXEC_B64,
-+	GFX9_S_ANDN1_WREXEC_B64,
-+	GFX9_S_ANDN2_WREXEC_B64,
-+	GFX9_S_BITREPLICATE_B64_B32,
-+};
-+
-+#define GFX9_SOP1_ENCODING			0x17d
-+#define GFX9_SOP1_SSRC_SGPR_BASE		0
-+#define GFX9_SOP1_SSRC_VCC_LO			106
-+#define GFX9_SOP1_SSRC_VCC_HI			107
-+#define GFX9_SOP1_SSRC_TTPM_BASE		108
-+#define GFX9_SOP1_SSRC_M0			124
-+#define GFX9_SOP1_SSRC_NULL			125
-+#define GFX9_SOP1_SSRC_EXEC_LO			126
-+#define GFX9_SOP1_SSRC_EXEC_HI			127
-+#define GFX9_SOP1_SSRC_INTEGER_0		128
-+#define GFX9_SOP1_SSRC_INTEGER_MINUS_1		193
-+#define GFX9_SOP1_SSRC_SHARED_BASE		235
-+#define GFX9_SOP1_SSRC_SHARED_LIMIT		236
-+#define GFX9_SOP1_SSRC_PRIVATE_BASE		237
-+#define GFX9_SOP1_SSRC_PRIVATE_LIMIT		238
-+#define GFX9_SOP1_SSRC_POPS_EXITING_WAVE_ID	239
-+#define GFX9_SOP1_SSRC_VCCZ			251
-+#define GFX9_SOP1_SSRC_EXECZ			252
-+#define GFX9_SOP1_SSRC_SCC			253
-+#define GFX9_SOP1_SSRC_LITERAL_CONST		255
-+/* SDST
-+ * Same codes as SSRC0, above except only codes 0-127 are valid.
-+ */
-+
-+struct amdgcn_gfx9_sopc {
-+	u32 ssrc0:8;
-+	u32 ssrc1:8;
-+	u32 op:7;
-+	u32 encoding:9;
-+	u32 literal;
-+};
-+
-+enum amdgcn_gfx9_sopc_opcode {
-+	GFX9_S_CMP_EQ_I32,
-+	GFX9_S_CMP_LG_I32,
-+	GFX9_S_CMP_GT_I32,
-+	GFX9_S_CMP_GE_I32,
-+	GFX9_S_CMP_LT_I32,
-+	GFX9_S_CMP_LE_I32,
-+	GFX9_S_CMP_EQ_U32,
-+	GFX9_S_CMP_LG_U32,
-+	GFX9_S_CMP_GT_U32,
-+	GFX9_S_CMP_GE_U32,
-+	GFX9_S_CMP_LT_U32,
-+	GFX9_S_CMP_LE_U32,
-+	GFX9_S_BITCMP0_B32,
-+	GFX9_S_BITCMP1_B32,
-+	GFX9_S_BITCMP0_B64,
-+	GFX9_S_BITCMP1_B64,
-+	GFX9_S_SETVSKIP,
-+	GFX9_S_SET_GPR_IDX_ON,
-+	GFX9_S_CMP_EQ_U64,
-+	GFX9_S_CMP_LG_U64,
-+};
-+
-+#define GFX9_SOPC_ENCODING			0x17e
-+#define GFX9_SOPC_SSRC_SGPR_BASE		0
-+#define GFX9_SOPC_SSRC_VCC_LO			106
-+#define GFX9_SOPC_SSRC_VCC_HI			107
-+#define GFX9_SOPC_SSRC_TTPM_BASE		108
-+#define GFX9_SOPC_SSRC_M0			124
-+#define GFX9_SOPC_SSRC_NULL			125
-+#define GFX9_SOPC_SSRC_EXEC_LO			126
-+#define GFX9_SOPC_SSRC_EXEC_HI			127
-+#define GFX9_SOPC_SSRC_INTEGER_0		128
-+#define GFX9_SOPC_SSRC_INTEGER_MINUS_1		193
-+#define GFX9_SOPC_SSRC_SHARED_BASE		235
-+#define GFX9_SOPC_SSRC_SHARED_LIMIT		236
-+#define GFX9_SOPC_SSRC_PRIVATE_BASE		237
-+#define GFX9_SOPC_SSRC_PRIVATE_LIMIT		238
-+#define GFX9_SOPC_SSRC_POPS_EXITING_WAVE_ID	239
-+#define GFX9_SOPC_SSRC_VCCZ			251
-+#define GFX9_SOPC_SSRC_EXECZ			252
-+#define GFX9_SOPC_SSRC_SCC			253
-+/* SDST
-+ * Same codes as SSRC0, above except only codes 0-127 are valid.
-+ */
-+
-+struct amdgcn_gfx9_sopp_vmcnt {
-+	u16 vmcnt1:4;
-+	u16 expcnt:3;
-+	u16 dummy1:1;
-+	u16 lgkmcnt:4;	/* GFX9: 4-bit counter, max=15 */
-+	u16 dummy2:2;
-+	u16 vmcnt2:2;
-+};
-+
-+struct amdgcn_gfx9_sopp {
-+	u32 simm16:16;
-+	u32 op:7;
-+	u32 encoding:9;
-+};
-+
-+enum amdgcn_gfx9_sopp_opcode {
-+	GFX9_S_NOP,
-+	GFX9_S_ENDPGM,
-+	GFX9_S_BRANCH,
-+	GFX9_S_WAKEUP,
-+	GFX9_S_CBRANCH_SCC0,
-+	GFX9_S_CBRANCH_SCC1,
-+	GFX9_S_CBRANCH_VCCZ,
-+	GFX9_S_CBRANCH_VCCNZ,
-+	GFX9_S_CBRANCH_EXECZ,
-+	GFX9_S_CBRANCH_EXECNZ,
-+	GFX9_S_BARRIER,
-+	GFX9_S_SETKILL,
-+	GFX9_S_WAITCNT,
-+	GFX9_S_SETHALT,
-+	GFX9_S_SLEEP,
-+	GFX9_S_SETPRIO,
-+	GFX9_S_SENDMSG,
-+	GFX9_S_SENDMSGHALT,
-+	GFX9_S_TRAP,
-+	GFX9_S_ICACHE_INV,
-+	GFX9_S_INCPERFLEVEL,
-+	GFX9_S_DECPERFLEVEL,
-+	GFX9_S_TTRACEDATA,
-+	GFX9_S_CBRANCH_CDBGSYS,
-+	GFX9_S_CBRANCH_CDBGUSER,
-+	GFX9_S_CBRANCH_CDBGSYS_OR_USER,
-+	GFX9_S_CBRANCH_CDBGSYS_AND_USER,
-+	GFX9_S_ENDPGM_SAVED,
-+	GFX9_S_SET_GPR_IDX_OFF,
-+	GFX9_S_SET_GPR_IDX_MODE,
-+	GFX9_S_ENDPGM_ORDERED_PS_DONE,
-+};
-+
-+#define GFX9_SOPP_ENCODING		0x17f
-+
-+/* Scalar Memory Format */
-+struct amdgcn_gfx9_smem {
-+	u64 sbase:6;
-+	u64 sdata:7;
-+	u64 dummy1:1;
-+	u64 soe:1; /* Scalar Offset Enable */
-+	u64 nv:1; /* Non-Volatile */
-+	u64 glc:1; /* Globally Memory Coherent */
-+	u64 imm:1; /* Immediate Enable */
-+	u64 op:8;
-+	u64 encoding:6;
-+	u64 offset:21;
-+	u64 dummy2:4;
-+	u64 soffset:7;
-+};
-+
-+enum amdgcn_gfx9_smem_opcode {
-+	GFX9_S_LOAD_DWORD,
-+	GFX9_S_LOAD_DWORDX2,
-+	GFX9_S_LOAD_DWORDX4,
-+	GFX9_S_LOAD_DWORDX8,
-+	GFX9_S_LOAD_DWORDX16,
-+	GFX9_S_SCRATCH_LOAD_DWORD,
-+	GFX9_S_SCRATCH_LOAD_DWORDX2,
-+	GFX9_S_SCRATCH_LOAD_DWORDX4,
-+	GFX9_S_BUFFER_LOAD_DWORD,
-+	GFX9_S_BUFFER_LOAD_DWORDX2,
-+	GFX9_S_BUFFER_LOAD_DWORDX4,
-+	GFX9_S_BUFFER_LOAD_DWORDX8,
-+	GFX9_S_BUFFER_LOAD_DWORDX16 = 12,
-+	GFX9_S_STORE_DWORD = 16,
-+	GFX9_S_STORE_DWORDX2,
-+	GFX9_S_STORE_DWORDX4 = 18,
-+	GFX9_S_SCRATCH_STORE_DWORD = 21,
-+	GFX9_S_SCRATCH_STORE_DWORDX2,
-+	GFX9_S_SCRATCH_STORE_DWORDX4,
-+	GFX9_S_BUFFER_STORE_DWORD,
-+	GFX9_S_BUFFER_STORE_DWORDX2,
-+	GFX9_S_BUFFER_STORE_DWORDX4 = 26,
-+	GFX9_S_DCACHE_INV = 32,
-+	GFX9_S_DCACHE_WB,
-+	GFX9_S_DCACHE_INV_VOL,
-+	GFX9_S_DCACHE_WB_VOL,
-+	GFX9_S_MEMTIME,
-+	GFX9_S_MEMREALTIME,
-+	GFX9_S_ATC_PROBE,
-+	GFX9_S_ATC_PROBE_BUFFER,
-+	GFX9_S_DCACHE_DISCARD,
-+	GFX9_S_DCACHE_DISCARD_X2 = 41,
-+	GFX9_S_BUFFER_ATOMIC_SWAP = 64,
-+	GFX9_S_BUFFER_ATOMIC_CMPSWAP,
-+	GFX9_S_BUFFER_ATOMIC_ADD,
-+	GFX9_S_BUFFER_ATOMIC_SUB,
-+	GFX9_S_BUFFER_ATOMIC_SMIN,
-+	GFX9_S_BUFFER_ATOMIC_UMIN,
-+	GFX9_S_BUFFER_ATOMIC_SMAX,
-+	GFX9_S_BUFFER_ATOMIC_UMAX,
-+	GFX9_S_BUFFER_ATOMIC_AND,
-+	GFX9_S_BUFFER_ATOMIC_OR,
-+	GFX9_S_BUFFER_ATOMIC_XOR,
-+	GFX9_S_BUFFER_ATOMIC_INC,
-+	GFX9_S_BUFFER_ATOMIC_DEC = 76,
-+	GFX9_S_BUFFER_ATOMIC_SWAP_X2 = 96,
-+	GFX9_S_BUFFER_ATOMIC_CMPSWAP_X2,
-+	GFX9_S_BUFFER_ATOMIC_ADD_X2,
-+	GFX9_S_BUFFER_ATOMIC_SUB_X2,
-+	GFX9_S_BUFFER_ATOMIC_SMIN_X2,
-+	GFX9_S_BUFFER_ATOMIC_UMIN_X2,
-+	GFX9_S_BUFFER_ATOMIC_SMAX_X2,
-+	GFX9_S_BUFFER_ATOMIC_UMAX_X2,
-+	GFX9_S_BUFFER_ATOMIC_AND_X2,
-+	GFX9_S_BUFFER_ATOMIC_OR_X2,
-+	GFX9_S_BUFFER_ATOMIC_XOR_X2,
-+	GFX9_S_BUFFER_ATOMIC_INC_X2,
-+	GFX9_S_BUFFER_ATOMIC_DEC_X2 = 108,
-+	GFX9_S_ATOMIC_SWAP = 128,
-+	GFX9_S_ATOMIC_CMPSWAP,
-+	GFX9_S_ATOMIC_ADD,
-+	GFX9_S_ATOMIC_SUB,
-+	GFX9_S_ATOMIC_SMIN,
-+	GFX9_S_ATOMIC_UMIN,
-+	GFX9_S_ATOMIC_SMAX,
-+	GFX9_S_ATOMIC_UMAX,
-+	GFX9_S_ATOMIC_AND,
-+	GFX9_S_ATOMIC_OR,
-+	GFX9_S_ATOMIC_XOR,
-+	GFX9_S_ATOMIC_INC,
-+	GFX9_S_ATOMIC_DEC = 140,
-+	GFX9_S_ATOMIC_SWAP_X2 = 160,
-+	GFX9_S_ATOMIC_CMPSWAP_X2,
-+	GFX9_S_ATOMIC_ADD_X2,
-+	GFX9_S_ATOMIC_SUB_X2,
-+	GFX9_S_ATOMIC_SMIN_X2,
-+	GFX9_S_ATOMIC_UMIN_X2,
-+	GFX9_S_ATOMIC_SMAX_X2,
-+	GFX9_S_ATOMIC_UMAX_X2,
-+	GFX9_S_ATOMIC_AND_X2,
-+	GFX9_S_ATOMIC_OR_X2,
-+	GFX9_S_ATOMIC_XOR_X2,
-+	GFX9_S_ATOMIC_INC_X2,
-+	GFX9_S_ATOMIC_DEC_X2,
-+};
-+
-+#define GFX9_SMEM_ENCODING		0x30
-+#define GFX9_SMEM_SOFFSET_NULL		125
-+
-+/* Vector ALU Format */
-+struct amdgcn_gfx9_vop2 {
-+	u32 src0:9;
-+	u32 vsrc1:8;
-+	u32 vdst:8;
-+	u32 op:6;
-+	u32 encoding:1;
-+	u32 literal;
-+};
-+
-+enum amdgcn_gfx9_vop2_opcode {
-+	GFX9_V_CNDMASK_B32,
-+	GFX9_V_ADD_F32,
-+	GFX9_V_SUB_F32,
-+	GFX9_V_SUBREV_F32,
-+	GFX9_V_MUL_LEGACY_F32,
-+	GFX9_V_MUL_F32,
-+	GFX9_V_MUL_I32_I24,
-+	GFX9_V_MUL_HI_I32_I24,
-+	GFX9_V_MUL_U32_U24,
-+	GFX9_V_MUL_HI_U32_U24,
-+	GFX9_V_MIN_F32,
-+	GFX9_V_MAX_F32,
-+	GFX9_V_MIN_I32,
-+	GFX9_V_MAX_I32,
-+	GFX9_V_MIN_U32,
-+	GFX9_V_MAX_U32,
-+	GFX9_V_LSHRREV_B32,
-+	GFX9_V_ASHRREV_I32,
-+	GFX9_V_LSHLREV_B32,
-+	GFX9_V_AND_B32,
-+	GFX9_V_OR_B32,
-+	GFX9_V_XOR_B32,
-+	GFX9_V_MAC_F32,
-+	GFX9_V_MADMK_F32,
-+	GFX9_V_MADAK_F32,
-+	GFX9_V_ADD_CO_U32,
-+	GFX9_V_SUB_CO_U32,
-+	GFX9_V_SUBREV_CO_U32,
-+	GFX9_V_ADDC_CO_U32,
-+	GFX9_V_SUBB_CO_U32,
-+	GFX9_V_SUBBREV_CO_U32,
-+	GFX9_V_ADD_F16,
-+	GFX9_V_SUB_F16,
-+	GFX9_V_SUBREV_F16,
-+	GFX9_V_MUL_F16,
-+	GFX9_V_MAC_F16,
-+	GFX9_V_MADMK_F16,
-+	GFX9_V_MADAK_F16,
-+	GFX9_V_ADD_U16,
-+	GFX9_V_SUB_U16,
-+	GFX9_V_SUBREV_U16,
-+	GFX9_V_MUL_LO_U16,
-+	GFX9_V_LSHLREV_B16,
-+	GFX9_V_LSHRREV_B16,
-+	GFX9_V_ASHRREV_I16,
-+	GFX9_V_MAX_F16,
-+	GFX9_V_MIN_F16,
-+	GFX9_V_MAX_U16,
-+	GFX9_V_MAX_I16,
-+	GFX9_V_MIN_U16,
-+	GFX9_V_MIN_I16,
-+	GFX9_V_LDEXP_F16,
-+	GFX9_V_ADD_U32,
-+	GFX9_V_SUB_U32,
-+	GFX9_V_SUBREV_U32,
-+};
-+
-+#define GFX9_VOP2_ENCODING			0x0
-+#define GFX9_VOP2_SRC_SGPR_BASE		0
-+#define GFX9_VOP2_SRC_VCC_LO			106
-+#define GFX9_VOP2_SRC_VCC_HI			107
-+#define GFX9_VOP2_SRC_TTPM_BASE		108
-+#define GFX9_VOP2_SRC_M0			124
-+#define GFX9_VOP2_SRC_NULL			125
-+#define GFX9_VOP2_SRC_EXEC_LO			126
-+#define GFX9_VOP2_SRC_EXEC_HI			127
-+#define GFX9_VOP2_SRC_INTEGER_0		128
-+#define GFX9_VOP2_SRC_INTEGER_MINUS_1		193
-+#define GFX9_VOP2_SRC_SHARED_BASE		235
-+#define GFX9_VOP2_SRC_SHARED_LIMIT		236
-+#define GFX9_VOP2_SRC_PRIVATE_BASE		237
-+#define GFX9_VOP2_SRC_PRIVATE_LIMIT		238
-+#define GFX9_VOP2_SRC_POPS_EXITING_WAVE_ID	239
-+#define GFX9_VOP2_SRC_SDWA			249
-+#define GFX9_VOP2_SRC_DDP16			250
-+#define GFX9_VOP2_SRC_VCCZ			251
-+#define GFX9_VOP2_SRC_EXECZ			252
-+#define GFX9_VOP2_SRC_SCC			253
-+#define GFX9_VOP2_SRC_LITERAL_CONST		255
-+#define GFX9_VOP2_SRC_VGPR_BASE		256
-+
-+struct amdgcn_gfx9_vop1 {
-+	u32 src0:9;
-+	u32 op:8;
-+	u32 vdst:8;
-+	u32 encoding:7;
-+	u32 literal;
-+};
-+
-+enum amdgcn_gfx9_vop1_opcode {
-+	GFX9_V_NOP,
-+	GFX9_V_MOV_B32,
-+	GFX9_V_READFIRSTLANE_B32,
-+	GFX9_V_CVT_I32_F64,
-+	GFX9_V_CVT_F64_I32,
-+	GFX9_V_CVT_F32_I32,
-+	GFX9_V_CVT_F32_U32,
-+	GFX9_V_CVT_U32_F32,
-+	GFX9_V_CVT_I32_F32 = 8,
-+	GFX9_V_CVT_F16_F32 = 10,
-+	GFX9_V_CVT_F32_F16,
-+	GFX9_V_CVT_RPI_I32_F32,
-+	GFX9_V_CVT_FLR_I32_F32,
-+	GFX9_V_CVT_OFF_F32_I4,
-+	GFX9_V_CVT_F32_F64,
-+	GFX9_V_CVT_F64_F32,
-+	GFX9_V_CVT_F32_UBYTE0,
-+	GFX9_V_CVT_F32_UBYTE1,
-+	GFX9_V_CVT_F32_UBYTE2,
-+	GFX9_V_CVT_F32_UBYTE3,
-+	GFX9_V_CVT_U32_F64,
-+	GFX9_V_CVT_F64_U32,
-+	GFX9_V_TRUNC_F64,
-+	GFX9_V_CEIL_F64,
-+	GFX9_V_RNDNE_F64,
-+	GFX9_V_FLOOR_F64,
-+	GFX9_V_FRACT_F32,
-+	GFX9_V_TRUNC_F32,
-+	GFX9_V_CEIL_F32,
-+	GFX9_V_RNDNE_F32,
-+	GFX9_V_FLOOR_F32,
-+	GFX9_V_EXP_F32,
-+	GFX9_V_LOG_F32,
-+	GFX9_V_RCP_F32,
-+	GFX9_V_RCP_IFLAG_F32,
-+	GFX9_V_RSQ_F32,
-+	GFX9_V_RCP_F64,
-+	GFX9_V_RSQ_F64,
-+	GFX9_V_SQRT_F32,
-+	GFX9_V_SQRT_F64,
-+	GFX9_V_SIN_F32,
-+	GFX9_V_COS_F32,
-+	GFX9_V_NOT_B32,
-+	GFX9_V_BFREV_B32,
-+	GFX9_V_FFBH_U32,
-+	GFX9_V_FFBL_B32,
-+	GFX9_V_FFBH_I32,
-+	GFX9_V_FREXP_EXP_I32_F64,
-+	GFX9_V_FREXP_MANT_F64,
-+	GFX9_V_FRACT_F64,
-+	GFX9_V_FREXP_EXP_I32_F32,
-+	GFX9_V_FREXP_MANT_F32,
-+	GFX9_V_CLREXCP,
-+	/* ISA opcodes 54 and 56 are not defined (reserved gaps). */
-+	GFX9_V_SCREEN_PARTITION_4SE_B32 = 55,
-+	GFX9_V_CVT_F16_U16 = 57,
-+	GFX9_V_CVT_F16_I16,
-+	GFX9_V_CVT_U16_F16,
-+	GFX9_V_CVT_I16_F16,
-+	GFX9_V_RCP_F16,
-+	GFX9_V_SQRT_F16,
-+	GFX9_V_RSQ_F16,
-+	GFX9_V_LOG_F16,
-+	GFX9_V_EXP_F16,
-+	GFX9_V_FREXP_MANT_F16,
-+	GFX9_V_FREXP_EXP_I16_F16,
-+	GFX9_V_FLOOR_F16,
-+	GFX9_V_CEIL_F16,
-+	GFX9_V_TRUNC_F16,
-+	GFX9_V_RNDNE_F16,
-+	GFX9_V_FRACT_F16,
-+	GFX9_V_SIN_F16,
-+	GFX9_V_COS_F16,
-+	GFX9_V_EXP_LEGACY_F32,
-+	GFX9_V_LOG_LEGACY_F32,
-+	GFX9_V_CVT_NORM_I16_F16,
-+	GFX9_V_CVT_NORM_U16_F16,
-+	GFX9_V_SAT_PK_U8_I16 = 79,
-+	GFX9_V_SWAP_B32 = 81,
-+};
-+
-+#define GFX9_VOP1_ENCODING			0x3f
-+#define GFX9_VOP1_SRC_SGPR_BASE			0
-+#define GFX9_VOP1_SRC_VCC_LO			106
-+#define GFX9_VOP1_SRC_VCC_HI			107
-+#define GFX9_VOP1_SRC_TTPM_BASE			108
-+#define GFX9_VOP1_SRC_M0			124
-+#define GFX9_VOP1_SRC_NULL			125
-+#define GFX9_VOP1_SRC_EXEC_LO			126
-+#define GFX9_VOP1_SRC_EXEC_HI			127
-+#define GFX9_VOP1_SRC_INTEGER_0			128
-+#define GFX9_VOP1_SRC_INTEGER_MINUS_1		193
-+#define GFX9_VOP1_SRC_SHARED_BASE		235
-+#define GFX9_VOP1_SRC_SHARED_LIMIT		236
-+#define GFX9_VOP1_SRC_PRIVATE_BASE		237
-+#define GFX9_VOP1_SRC_PRIVATE_LIMIT		238
-+#define GFX9_VOP1_SRC_POPS_EXITING_WAVE_ID	239
-+#define GFX9_VOP1_SRC_SDWA			249
-+#define GFX9_VOP1_SRC_DDP16			250
-+#define GFX9_VOP1_SRC_VCCZ			251
-+#define GFX9_VOP1_SRC_EXECZ			252
-+#define GFX9_VOP1_SRC_SCC			253
-+#define GFX9_VOP1_SRC_LITERAL_CONST		255
-+#define GFX9_VOP1_SRC_VGPR_BASE		256
-+
-+struct amdgcn_gfx9_vopc {
-+	u32 src0:9;
-+	u32 vsrc1:8;
-+	u32 op:8;
-+	u32 encoding:7;
-+	u32 literal;
-+};
-+
-+enum amdgcn_gfx9_vopc_compare_offset16 {
-+	GFX9_VOPC16_F = 0,
-+	GFX9_VOPC16_LT,
-+	GFX9_VOPC16_EQ,
-+	GFX9_VOPC16_LE,
-+	GFX9_VOPC16_GT,
-+	GFX9_VOPC16_LG,
-+	GFX9_VOPC16_GE,
-+	GFX9_VOPC16_O,
-+	GFX9_VOPC16_U,
-+	GFX9_VOPC16_NGE,
-+	GFX9_VOPC16_NLG,
-+	GFX9_VOPC16_NGT,
-+	GFX9_VOPC16_NLE,
-+	GFX9_VOPC16_NEQ,
-+	GFX9_VOPC16_NLT,
-+	GFX9_VOPC16_TRU,
-+};
-+
-+enum amdgcn_gfx9_vopc_compare_offset8 {
-+	GFX9_VOPC8_F = 0,
-+	GFX9_VOPC8_LT,
-+	GFX9_VOPC8_EQ,
-+	GFX9_VOPC8_LE,
-+	GFX9_VOPC8_GT,
-+	GFX9_VOPC8_LG,
-+	GFX9_VOPC8_GE,
-+	GFX9_VOPC8_TRU,
-+};
-+
-+enum amdgcn_gfx9_vopc_opcode {
-+	GFX9_V_CMP_CLASS_F32 = 16,
-+	GFX9_V_CMPX_CLASS_F32,
-+	GFX9_V_CMP_CLASS_F64,
-+	GFX9_V_CMPX_CLASS_F64,
-+	GFX9_V_CMP_CLASS_F16,
-+	GFX9_V_CMPX_CLASS_F16 = 21,
-+	GFX9_V_CMP_F_F16 = 32,
-+	GFX9_V_CMP_LT_F16,
-+	GFX9_V_CMP_EQ_F16,
-+	GFX9_V_CMP_LE_F16,
-+	GFX9_V_CMP_GT_F16,
-+	GFX9_V_CMP_LG_F16,
-+	GFX9_V_CMP_GE_F16,
-+	GFX9_V_CMP_O_F16,
-+	GFX9_V_CMP_U_F16,
-+	GFX9_V_CMP_NGE_F16,
-+	GFX9_V_CMP_NLG_F16,
-+	GFX9_V_CMP_NGT_F16,
-+	GFX9_V_CMP_NLE_F16,
-+	GFX9_V_CMP_NEQ_F16,
-+	GFX9_V_CMP_NLT_F16,
-+	GFX9_V_CMP_TRU_F16,
-+	GFX9_V_CMPX_F_F16,
-+	GFX9_V_CMPX_LT_F16,
-+	GFX9_V_CMPX_EQ_F16,
-+	GFX9_V_CMPX_LE_F16,
-+	GFX9_V_CMPX_GT_F16,
-+	GFX9_V_CMPX_LG_F16,
-+	GFX9_V_CMPX_GE_F16,
-+	GFX9_V_CMPX_O_F16,
-+	GFX9_V_CMPX_U_F16,
-+	GFX9_V_CMPX_NGE_F16,
-+	GFX9_V_CMPX_NLG_F16,
-+	GFX9_V_CMPX_NGT_F16,
-+	GFX9_V_CMPX_NLE_F16,
-+	GFX9_V_CMPX_NEQ_F16,
-+	GFX9_V_CMPX_NLT_F16,
-+	GFX9_V_CMPX_TRU_F16,
-+	GFX9_V_CMP_F_F32,
-+	GFX9_V_CMP_LT_F32,
-+	GFX9_V_CMP_EQ_F32,
-+	GFX9_V_CMP_LE_F32,
-+	GFX9_V_CMP_GT_F32,
-+	GFX9_V_CMP_LG_F32,
-+	GFX9_V_CMP_GE_F32,
-+	GFX9_V_CMP_O_F32,
-+	GFX9_V_CMP_U_F32,
-+	GFX9_V_CMP_NGE_F32,
-+	GFX9_V_CMP_NLG_F32,
-+	GFX9_V_CMP_NGT_F32,
-+	GFX9_V_CMP_NLE_F32,
-+	GFX9_V_CMP_NEQ_F32,
-+	GFX9_V_CMP_NLT_F32,
-+	GFX9_V_CMP_TRU_F32,
-+	GFX9_V_CMPX_F_F32,
-+	GFX9_V_CMPX_LT_F32,
-+	GFX9_V_CMPX_EQ_F32,
-+	GFX9_V_CMPX_LE_F32,
-+	GFX9_V_CMPX_GT_F32,
-+	GFX9_V_CMPX_LG_F32,
-+	GFX9_V_CMPX_GE_F32,
-+	GFX9_V_CMPX_O_F32,
-+	GFX9_V_CMPX_U_F32,
-+	GFX9_V_CMPX_NGE_F32,
-+	GFX9_V_CMPX_NLG_F32,
-+	GFX9_V_CMPX_NGT_F32,
-+	GFX9_V_CMPX_NLE_F32,
-+	GFX9_V_CMPX_NEQ_F32,
-+	GFX9_V_CMPX_NLT_F32,
-+	GFX9_V_CMPX_TRU_F32,
-+	GFX9_V_CMP_F_F64,
-+	GFX9_V_CMP_LT_F64,
-+	GFX9_V_CMP_EQ_F64,
-+	GFX9_V_CMP_LE_F64,
-+	GFX9_V_CMP_GT_F64,
-+	GFX9_V_CMP_LG_F64,
-+	GFX9_V_CMP_GE_F64,
-+	GFX9_V_CMP_O_F64,
-+	GFX9_V_CMP_U_F64,
-+	GFX9_V_CMP_NGE_F64,
-+	GFX9_V_CMP_NLG_F64,
-+	GFX9_V_CMP_NGT_F64,
-+	GFX9_V_CMP_NLE_F64,
-+	GFX9_V_CMP_NEQ_F64,
-+	GFX9_V_CMP_NLT_F64,
-+	GFX9_V_CMP_TRU_F64,
-+	GFX9_V_CMPX_F_F64,
-+	GFX9_V_CMPX_LT_F64,
-+	GFX9_V_CMPX_EQ_F64,
-+	GFX9_V_CMPX_LE_F64,
-+	GFX9_V_CMPX_GT_F64,
-+	GFX9_V_CMPX_LG_F64,
-+	GFX9_V_CMPX_GE_F64,
-+	GFX9_V_CMPX_O_F64,
-+	GFX9_V_CMPX_U_F64,
-+	GFX9_V_CMPX_NGE_F64,
-+	GFX9_V_CMPX_NLG_F64,
-+	GFX9_V_CMPX_NGT_F64,
-+	GFX9_V_CMPX_NLE_F64,
-+	GFX9_V_CMPX_NEQ_F64,
-+	GFX9_V_CMPX_NLT_F64,
-+	GFX9_V_CMPX_TRU_F64 = 127,
-+	GFX9_V_CMP_F_I16 = 160,
-+	GFX9_V_CMP_LT_I16,
-+	GFX9_V_CMP_EQ_I16,
-+	GFX9_V_CMP_LE_I16,
-+	GFX9_V_CMP_GT_I16,
-+	GFX9_V_CMP_NE_I16,
-+	GFX9_V_CMP_GE_I16,
-+	GFX9_V_CMP_T_I16,
-+	GFX9_V_CMP_F_U16,
-+	GFX9_V_CMP_LT_U16,
-+	GFX9_V_CMP_EQ_U16,
-+	GFX9_V_CMP_LE_U16,
-+	GFX9_V_CMP_GT_U16,
-+	GFX9_V_CMP_NE_U16,
-+	GFX9_V_CMP_GE_U16,
-+	GFX9_V_CMP_T_U16,
-+	GFX9_V_CMPX_F_I16,
-+	GFX9_V_CMPX_LT_I16,
-+	GFX9_V_CMPX_EQ_I16,
-+	GFX9_V_CMPX_LE_I16,
-+	GFX9_V_CMPX_GT_I16,
-+	GFX9_V_CMPX_NE_I16,
-+	GFX9_V_CMPX_GE_I16,
-+	GFX9_V_CMPX_T_I16,
-+	GFX9_V_CMPX_F_U16,
-+	GFX9_V_CMPX_LT_U16,
-+	GFX9_V_CMPX_EQ_U16,
-+	GFX9_V_CMPX_LE_U16,
-+	GFX9_V_CMPX_GT_U16,
-+	GFX9_V_CMPX_NE_U16,
-+	GFX9_V_CMPX_GE_U16,
-+	GFX9_V_CMPX_T_U16,
-+	GFX9_V_CMP_F_I32,
-+	GFX9_V_CMP_LT_I32,
-+	GFX9_V_CMP_EQ_I32,
-+	GFX9_V_CMP_LE_I32,
-+	GFX9_V_CMP_GT_I32,
-+	GFX9_V_CMP_NE_I32,
-+	GFX9_V_CMP_GE_I32,
-+	GFX9_V_CMP_T_I32,
-+	GFX9_V_CMP_F_U32,
-+	GFX9_V_CMP_LT_U32,
-+	GFX9_V_CMP_EQ_U32,
-+	GFX9_V_CMP_LE_U32,
-+	GFX9_V_CMP_GT_U32,
-+	GFX9_V_CMP_NE_U32,
-+	GFX9_V_CMP_GE_U32,
-+	GFX9_V_CMP_T_U32,
-+	GFX9_V_CMPX_F_I32,
-+	GFX9_V_CMPX_LT_I32,
-+	GFX9_V_CMPX_EQ_I32,
-+	GFX9_V_CMPX_LE_I32,
-+	GFX9_V_CMPX_GT_I32,
-+	GFX9_V_CMPX_NE_I32,
-+	GFX9_V_CMPX_GE_I32,
-+	GFX9_V_CMPX_T_I32,
-+	GFX9_V_CMPX_F_U32,
-+	GFX9_V_CMPX_LT_U32,
-+	GFX9_V_CMPX_EQ_U32,
-+	GFX9_V_CMPX_LE_U32,
-+	GFX9_V_CMPX_GT_U32,
-+	GFX9_V_CMPX_NE_U32,
-+	GFX9_V_CMPX_GE_U32,
-+	GFX9_V_CMPX_T_U32,
-+	GFX9_V_CMP_F_I64,
-+	GFX9_V_CMP_LT_I64,
-+	GFX9_V_CMP_EQ_I64,
-+	GFX9_V_CMP_LE_I64,
-+	GFX9_V_CMP_GT_I64,
-+	GFX9_V_CMP_NE_I64,
-+	GFX9_V_CMP_GE_I64,
-+	GFX9_V_CMP_T_I64,
-+	GFX9_V_CMP_F_U64,
-+	GFX9_V_CMP_LT_U64,
-+	GFX9_V_CMP_EQ_U64,
-+	GFX9_V_CMP_LE_U64,
-+	GFX9_V_CMP_GT_U64,
-+	GFX9_V_CMP_NE_U64,
-+	GFX9_V_CMP_GE_U64,
-+	GFX9_V_CMP_T_U64,
-+	GFX9_V_CMPX_F_I64,
-+	GFX9_V_CMPX_LT_I64,
-+	GFX9_V_CMPX_EQ_I64,
-+	GFX9_V_CMPX_LE_I64,
-+	GFX9_V_CMPX_GT_I64,
-+	GFX9_V_CMPX_NE_I64,
-+	GFX9_V_CMPX_GE_I64,
-+	GFX9_V_CMPX_T_I64,
-+	GFX9_V_CMPX_F_U64,
-+	GFX9_V_CMPX_LT_U64,
-+	GFX9_V_CMPX_EQ_U64,
-+	GFX9_V_CMPX_LE_U64,
-+	GFX9_V_CMPX_GT_U64,
-+	GFX9_V_CMPX_NE_U64,
-+	GFX9_V_CMPX_GE_U64,
-+	GFX9_V_CMPX_T_U64,
-+};
-+
-+#define GFX9_VOPC_ENCODING			0x3e
-+#define GFX9_VOPC_SRC_SGPR_BASE			0
-+#define GFX9_VOPC_SRC_VCC_LO			106
-+#define GFX9_VOPC_SRC_VCC_HI			107
-+#define GFX9_VOPC_SRC_TTPM_BASE			108
-+#define GFX9_VOPC_SRC_M0			124
-+#define GFX9_VOPC_SRC_NULL			125
-+#define GFX9_VOPC_SRC_EXEC_LO			126
-+#define GFX9_VOPC_SRC_EXEC_HI			127
-+#define GFX9_VOPC_SRC_INTEGER_0			128
-+#define GFX9_VOPC_SRC_INTEGER_MINUS_1		193
-+#define GFX9_VOPC_SRC_SHARED_BASE		235
-+#define GFX9_VOPC_SRC_SHARED_LIMIT		236
-+#define GFX9_VOPC_SRC_PRIVATE_BASE		237
-+#define GFX9_VOPC_SRC_PRIVATE_LIMIT		238
-+#define GFX9_VOPC_SRC_POPS_EXITING_WAVE_ID	239
-+#define GFX9_VOPC_SRC_SDWA			249
-+#define GFX9_VOPC_SRC_DDP16			250
-+#define GFX9_VOPC_SRC_VCCZ			251
-+#define GFX9_VOPC_SRC_EXECZ			252
-+#define GFX9_VOPC_SRC_SCC			253
-+#define GFX9_VOPC_SRC_LITERAL_CONST		255
-+#define GFX9_VOPC_SRC_VGPR_BASE			256
-+
-+struct amdgcn_gfx9_vop3a {
-+	u64 vdst:8;
-+	u64 abs:3;
-+	u64 op_sel:4;
-+	u64 clmp:1;
-+	u64 op:10;
-+	u64 encoding:6;
-+	u64 src0:9;
-+	u64 src1:9;
-+	u64 src2:9;
-+	u64 omod:2;
-+	u64 neg:3;
-+	u32 literal;
-+};
-+
-+enum amdgcn_gfx9_vop3a_opcode {
-+	GFX9_V_MAD_LEGACY_F32 = 448,
-+	GFX9_V_MAD_F32,
-+	GFX9_V_MAD_I32_I24,
-+	GFX9_V_MAD_U32_U24,
-+	GFX9_V_CUBEID_F32,
-+	GFX9_V_CUBESC_F32,
-+	GFX9_V_CUBETC_F32,
-+	GFX9_V_CUBEMA_F32,
-+	GFX9_V_BFE_U32,
-+	GFX9_V_BFE_I32,
-+	GFX9_V_BFI_B32,
-+	GFX9_V_FMA_F32,
-+	GFX9_V_FMA_F64,
-+	GFX9_V_LERP_U8,
-+	GFX9_V_ALIGNBIT_B32,
-+	GFX9_V_ALIGNBYTE_B32,
-+	GFX9_V_MIN3_F32,
-+	GFX9_V_MIN3_I32,
-+	GFX9_V_MIN3_U32,
-+	GFX9_V_MAX3_F32,
-+	GFX9_V_MAX3_I32,
-+	GFX9_V_MAX3_U32,
-+	GFX9_V_MED3_F32,
-+	GFX9_V_MED3_I32,
-+	GFX9_V_MED3_U32,
-+	GFX9_V_SAD_U8,
-+	GFX9_V_SAD_HI_U8,
-+	GFX9_V_SAD_U16,
-+	GFX9_V_SAD_U32,
-+	GFX9_V_CVT_PK_U8_F32,
-+	GFX9_V_DIV_FIXUP_F32,
-+	GFX9_V_DIV_FIXUP_F64 = 479,
-+	GFX9_V_DIV_FMAS_F32 = 482,
-+	GFX9_V_DIV_FMAS_F64,
-+	GFX9_V_MSAD_U8,
-+	GFX9_V_QSAD_PK_U16_U8,
-+	GFX9_V_MQSAD_PK_U16_U8,
-+	GFX9_V_MQSAD_U32_U8 = 487,
-+	GFX9_V_MAD_LEGACY_F16 = 490,
-+	GFX9_V_MAD_LEGACY_U16,
-+	GFX9_V_MAD_LEGACY_I16,
-+	GFX9_V_PERM_B32,
-+	GFX9_V_FMA_LEGACY_F16,
-+	GFX9_V_DIV_FIXUP_LEGACY_F16,
-+	GFX9_V_CVT_PKACCUM_U8_F32,
-+	GFX9_V_MAD_U32_U16,
-+	GFX9_V_MAD_I32_I16,
-+	GFX9_V_XAD_U32,
-+	GFX9_V_MIN3_F16,
-+	GFX9_V_MIN3_I16,
-+	GFX9_V_MIN3_U16,
-+	GFX9_V_MAX3_F16,
-+	GFX9_V_MAX3_I16,
-+	GFX9_V_MAX3_U16,
-+	GFX9_V_MED3_F16,
-+	GFX9_V_MED3_I16,
-+	GFX9_V_MED3_U16,
-+	GFX9_V_LSHL_ADD_U32,
-+	GFX9_V_ADD_LSHL_U32,
-+	GFX9_V_ADD3_U32,
-+	GFX9_V_LSHL_OR_B32,
-+	GFX9_V_AND_OR_B32,
-+	GFX9_V_OR3_B32,
-+	GFX9_V_MAD_F16,
-+	GFX9_V_MAD_U16,
-+	GFX9_V_MAD_I16,
-+	GFX9_V_FMA_F16,
-+	GFX9_V_DIV_FIXUP_F16 = 519,
-+	GFX9_V_INTERP_P1LL_F16 = 628,
-+	GFX9_V_INTERP_P1LV_F16,
-+	GFX9_V_INTERP_P2_LEGACY_F16,
-+	GFX9_V_INTERP_P2_F16 = 631,
-+	GFX9_V_ADD_F64 = 640,
-+	GFX9_V_MUL_F64,
-+	GFX9_V_MIN_F64,
-+	GFX9_V_MAX_F64,
-+	GFX9_V_LDEXP_F64,
-+	GFX9_V_MUL_LO_U32,
-+	GFX9_V_MUL_HI_U32,
-+	GFX9_V_MUL_HI_I32,
-+	GFX9_V_LDEXP_F32,
-+	GFX9_V_READLANE_B32,
-+	GFX9_V_WRITELANE_B32,
-+	GFX9_V_BCNT_U32_B32,
-+	GFX9_V_MBCNT_LO_U32_B32,
-+	GFX9_V_MBCNT_HI_U32_B32 = 653,
-+	GFX9_V_LSHLREV_B64 = 655,
-+	GFX9_V_LSHRREV_B64,
-+	GFX9_V_ASHRREV_I64,
-+	GFX9_V_TRIG_PREOP_F64,
-+	GFX9_V_BFM_B32,
-+	GFX9_V_CVT_PKNORM_I16_F32,
-+	GFX9_V_CVT_PKNORM_U16_F32,
-+	GFX9_V_CVT_PKRTZ_F16_F32,
-+	GFX9_V_CVT_PK_U16_U32,
-+	GFX9_V_CVT_PK_I16_I32,
-+	GFX9_V_CVT_PKNORM_I16_F16,
-+	GFX9_V_CVT_PKNORM_U16_F16 = 666,
-+	GFX9_V_ADD_I32 = 668,
-+	GFX9_V_SUB_I32,
-+	GFX9_V_ADD_I16,
-+	GFX9_V_SUB_I16,
-+	GFX9_V_PACK_B32_F16,
-+};
-+
-+enum amdgcn_gfx9_vop3a_abs {
-+	GFX9_VOP3A_ABS_SRC0,
-+	GFX9_VOP3A_ABS_SRC1,
-+	GFX9_VOP3A_ABS_SRC2,
-+};
-+
-+#define GFX9_VOP3A_ENCODING			0x34
-+#define GFX9_VOP3A_SRC_SGPR_BASE		0
-+#define GFX9_VOP3A_SRC_VCC_LO			106
-+#define GFX9_VOP3A_SRC_VCC_HI			107
-+#define GFX9_VOP3A_SRC_TTPM_BASE		108
-+#define GFX9_VOP3A_SRC_M0			124
-+#define GFX9_VOP3A_SRC_NULL			125
-+#define GFX9_VOP3A_SRC_EXEC_LO			126
-+#define GFX9_VOP3A_SRC_EXEC_HI			127
-+#define GFX9_VOP3A_SRC_INTEGER_0		128
-+#define GFX9_VOP3A_SRC_INTEGER_MINUS_1		193
-+#define GFX9_VOP3A_SRC_SHARED_BASE		235
-+#define GFX9_VOP3A_SRC_SHARED_LIMIT		236
-+#define GFX9_VOP3A_SRC_PRIVATE_BASE		237
-+#define GFX9_VOP3A_SRC_PRIVATE_LIMIT		238
-+#define GFX9_VOP3A_SRC_POPS_EXITING_WAVE_ID	239
-+#define GFX9_VOP3A_SRC_SDWA			249
-+#define GFX9_VOP3A_SRC_DDP16			250
-+#define GFX9_VOP3A_SRC_VCCZ			251
-+#define GFX9_VOP3A_SRC_EXECZ			252
-+#define GFX9_VOP3A_SRC_SCC			253
-+#define GFX9_VOP3A_SRC_LITERAL_CONST		255
-+#define GFX9_VOP3A_SRC_VGPR_BASE		256
-+
-+struct amdgcn_gfx9_vop3b {
-+	u64 vdst:8;
-+	u64 sdst:7;
-+	u64 clmp:1;
-+	u64 op:10;
-+	u64 encoding:6;
-+	u64 src0:9;
-+	u64 src1:9;
-+	u64 src2:9;
-+	u64 omod:2;
-+	u64 neg:3;
-+	u32 literal;
-+};
-+
-+enum amdgcn_gfx9_vop3b_opcode {
-+	GFX9_V_DIV_SCALE_F64 = 481,
-+	GFX9_V_MAD_U64_U32 = 488,
-+	GFX9_V_MAD_I64_I32 = 489,
-+};
-+
-+#define GFX9_VOP3B_ENCODING			0x34
-+#define GFX9_VOP3B_SRC_SGPR_BASE		0
-+#define GFX9_VOP3B_SRC_VCC_LO			106
-+#define GFX9_VOP3B_SRC_VCC_HI			107
-+#define GFX9_VOP3B_SRC_TTPM_BASE		108
-+#define GFX9_VOP3B_SRC_M0			124
-+#define GFX9_VOP3B_SRC_NULL			125
-+#define GFX9_VOP3B_SRC_EXEC_LO			126
-+#define GFX9_VOP3B_SRC_EXEC_HI			127
-+#define GFX9_VOP3B_SRC_INTEGER_0		128
-+#define GFX9_VOP3B_SRC_INTEGER_MINUS_1		193
-+#define GFX9_VOP3B_SRC_SHARED_BASE		235
-+#define GFX9_VOP3B_SRC_SHARED_LIMIT		236
-+#define GFX9_VOP3B_SRC_PRIVATE_BASE		237
-+#define GFX9_VOP3B_SRC_PRIVATE_LIMIT		238
-+#define GFX9_VOP3B_SRC_POPS_EXITING_WAVE_ID	239
-+#define GFX9_VOP3B_SRC_SDWA			249
-+#define GFX9_VOP3B_SRC_DDP16			250
-+#define GFX9_VOP3B_SRC_VCCZ			251
-+#define GFX9_VOP3B_SRC_EXECZ			252
-+#define GFX9_VOP3B_SRC_SCC			253
-+#define GFX9_VOP3B_SRC_LITERAL_CONST		255
-+#define GFX9_VOP3B_SRC_VGPR_BASE		256
-+
-+struct amdgcn_gfx9_vop3p {
-+	u64 vdst:8;
-+	u64 neg_hi:3;
-+	u64 op_sel:3;
-+	u64 op_sel_hi2:1;
-+	u64 clmp:1;
-+	u64 op:7;
-+	u64 encoding:9;
-+	u64 src0:9;
-+	u64 src1:9;
-+	u64 src2:9;
-+	u64 op_sel_hi:2;
-+	u64 neg:3;
-+	u32 literal;
-+};
-+
-+enum amdgcn_gfx9_vop3p_opcode {
-+	GFX9_V_PK_MAD_I16,
-+	GFX9_V_PK_MUL_LO_U16,
-+	GFX9_V_PK_ADD_I16,
-+	GFX9_V_PK_SUB_I16,
-+	GFX9_V_PK_LSHLREV_B16,
-+	GFX9_V_PK_LSHRREV_B16,
-+	GFX9_V_PK_ASHRREV_I16,
-+	GFX9_V_PK_MAX_I16,
-+	GFX9_V_PK_MIN_I16,
-+	GFX9_V_PK_MAD_U16,
-+	GFX9_V_PK_ADD_U16,
-+	GFX9_V_PK_SUB_U16,
-+	GFX9_V_PK_MAX_U16,
-+	GFX9_V_PK_MIN_U16,
-+	GFX9_V_PK_FMA_F16,
-+	GFX9_V_PK_ADD_F16,
-+	GFX9_V_PK_MUL_F16,
-+	GFX9_V_PK_MIN_F16,
-+	GFX9_V_PK_MAX_F16 = 18,
-+	GFX9_V_MAD_MIX_F32 = 32,
-+	GFX9_V_MAD_MIXLO_F16,
-+	GFX9_V_MAD_MIXHI_F16,
-+};
-+
-+#define GFX9_VOP3P_ENCODING			0x1a7
-+#define GFX9_VOP3P_SRC_SGPR_BASE		0
-+#define GFX9_VOP3P_SRC_VCC_LO		106
-+#define GFX9_VOP3P_SRC_VCC_HI		107
-+#define GFX9_VOP3P_SRC_TTPM_BASE		108
-+#define GFX9_VOP3P_SRC_M0			124
-+#define GFX9_VOP3P_SRC_NULL			125
-+#define GFX9_VOP3P_SRC_EXEC_LO		126
-+#define GFX9_VOP3P_SRC_EXEC_HI		127
-+#define GFX9_VOP3P_SRC_INTEGER_0		128
-+#define GFX9_VOP3P_SRC_INTEGER_MINUS_1	193
-+#define GFX9_VOP3P_SRC_SHARED_BASE		235
-+#define GFX9_VOP3P_SRC_SHARED_LIMIT		236
-+#define GFX9_VOP3P_SRC_PRIVATE_BASE		237
-+#define GFX9_VOP3P_SRC_PRIVATE_LIMIT		238
-+#define GFX9_VOP3P_SRC_POPS_EXITING_WAVE_ID	239
-+#define GFX9_VOP3P_SRC_SDWA			249
-+#define GFX9_VOP3P_SRC_DDP16			250
-+#define GFX9_VOP3P_SRC_VCCZ			251
-+#define GFX9_VOP3P_SRC_EXECZ			252
-+#define GFX9_VOP3P_SRC_SCC			253
-+#define GFX9_VOP3P_SRC_VGPR_BASE		256
-+
-+struct amdgcn_gfx9_sdwa {
-+	u32 src0:8;
-+	u32 dst_sel:3;
-+	u32 dst_u:2;
-+	u32 clmp:1;
-+	u32 omod:2;
-+	u32 src0_sel:3;
-+	u32 src0_sext:1;
-+	u32 src0_neg:1;
-+	u32 src0_abs:1;
-+	u32 dummy1:1;
-+	u32 s0:1;
-+	u32 src1_sel:3;
-+	u32 src1_sext:1;
-+	u32 src1_neg:1;
-+	u32 src1_abs:1;
-+	u32 dummy2:1;
-+	u32 s1:1;
-+};
-+
-+struct amdgcn_gfx9_sdwab {
-+	u32 src0:8;
-+	u32 sdst:7;
-+	u32 sd:1;
-+	u32 src0_sel:3;
-+	u32 src0_sext:1;
-+	u32 src0_neg:1;
-+	u32 src0_abs:1;
-+	u32 dummy1:1;
-+	u32 s0:1;
-+	u32 src1_sel:3;
-+	u32 src1_sext:1;
-+	u32 src1_neg:1;
-+	u32 src1_abs:1;
-+	u32 dummy2:1;
-+	u32 s1:1;
-+};
-+
-+struct amdgcn_gfx9_dpp16 {
-+};
-+
-+struct amdgcn_gfx9_dpp8 {
-+};
-+
-+/* Vector Parameter Interpolation Format */
-+struct amdgcn_gfx9_vintrp {
-+};
-+
-+/* LDS and GDS Format */
-+struct amdgcn_gfx9_ds {
-+	u64 offset0:8;
-+	u64 offset1:8;
-+	u64 gds:1;
-+	u64 op:9;	/* bits [25:17] */
-+	u64 encoding:6;	/* bits [31:26] = 0x36 */
-+	u64 addr:8;
-+	u64 data0:8;
-+	u64 data1:8;
-+	u64 vdst:8;
-+};
-+
-+enum amdgcn_gfx9_ds_opcode {
-+	GFX9_DS_ADD_U32,
-+	GFX9_DS_SUB_U32,
-+	GFX9_DS_RSUB_U32,
-+	GFX9_DS_INC_U32,
-+	GFX9_DS_DEC_U32,
-+	GFX9_DS_MIN_I32,
-+	GFX9_DS_MAX_I32,
-+	GFX9_DS_MIN_U32,
-+	GFX9_DS_MAX_U32,
-+	GFX9_DS_AND_B32,
-+	GFX9_DS_OR_B32,
-+	GFX9_DS_XOR_B32,
-+	GFX9_DS_MSKOR_B32,
-+	GFX9_DS_WRITE_B32,
-+	GFX9_DS_WRITE2_B32,
-+	GFX9_DS_WRITE2ST64_B32,
-+	GFX9_DS_CMPST_B32,
-+	GFX9_DS_CMPST_F32,
-+	GFX9_DS_MIN_F32,
-+	GFX9_DS_MAX_F32,
-+	GFX9_DS_NOP,
-+	GFX9_DS_ADD_F32 = 21,
-+	GFX9_DS_WRITE_ADDTID_B32 = 29,
-+	GFX9_DS_WRITE_B8,
-+	GFX9_DS_WRITE_B16,
-+	GFX9_DS_ADD_RTN_U32,
-+	GFX9_DS_SUB_RTN_U32,
-+	GFX9_DS_RSUB_RTN_U32,
-+	GFX9_DS_INC_RTN_U32,
-+	GFX9_DS_DEC_RTN_U32,
-+	GFX9_DS_MIN_RTN_I32,
-+	GFX9_DS_MAX_RTN_I32,
-+	GFX9_DS_MIN_RTN_U32,
-+	GFX9_DS_MAX_RTN_U32,
-+	GFX9_DS_AND_RTN_B32,
-+	GFX9_DS_OR_RTN_B32,
-+	GFX9_DS_XOR_RTN_B32,
-+	GFX9_DS_MSKOR_RTN_B32,
-+	GFX9_DS_WRXCHG_RTN_B32,
-+	GFX9_DS_WRXCHG2_RTN_B32,
-+	GFX9_DS_WRXCHG2ST64_RTN_B32,
-+	GFX9_DS_CMPST_RTN_B32,
-+	GFX9_DS_CMPST_RTN_F32,
-+	GFX9_DS_MIN_RTN_F32,
-+	GFX9_DS_MAX_RTN_F32,
-+	GFX9_DS_WRAP_RTN_B32,
-+	GFX9_DS_ADD_RTN_F32,
-+	GFX9_DS_READ_B32,
-+	GFX9_DS_READ2_B32,
-+	GFX9_DS_READ2ST64_B32,
-+	GFX9_DS_READ_I8,
-+	GFX9_DS_READ_U8,
-+	GFX9_DS_READ_I16,
-+	GFX9_DS_READ_U16,
-+	GFX9_DS_SWIZZLE_B32,
-+	GFX9_DS_PERMUTE_B32,
-+	GFX9_DS_BPERMUTE_B32,
-+	GFX9_DS_ADD_U64,
-+	GFX9_DS_SUB_U64,
-+	GFX9_DS_RSUB_U64,
-+	GFX9_DS_INC_U64,
-+	GFX9_DS_DEC_U64,
-+	GFX9_DS_MIN_I64,
-+	GFX9_DS_MAX_I64,
-+	GFX9_DS_MIN_U64,
-+	GFX9_DS_MAX_U64,
-+	GFX9_DS_AND_B64,
-+	GFX9_DS_OR_B64,
-+	GFX9_DS_XOR_B64,
-+	GFX9_DS_MSKOR_B64,
-+	GFX9_DS_WRITE_B64,
-+	GFX9_DS_WRITE2_B64,
-+	GFX9_DS_WRITE2ST64_B64,
-+	GFX9_DS_CMPST_B64,
-+	GFX9_DS_CMPST_F64,
-+	GFX9_DS_MIN_F64,
-+	GFX9_DS_MAX_F64,
-+	GFX9_DS_WRITE_B8_D16_HI,
-+	GFX9_DS_WRITE_B16_D16_HI,
-+	GFX9_DS_READ_U8_D16,
-+	GFX9_DS_READ_U8_D16_HI,
-+	GFX9_DS_READ_I8_D16,
-+	GFX9_DS_READ_I8_D16_HI,
-+	GFX9_DS_READ_U16_D16,
-+	GFX9_DS_READ_U16_D16_HI = 91,
-+	GFX9_DS_ADD_RTN_U64 = 96,
-+	GFX9_DS_SUB_RTN_U64,
-+	GFX9_DS_RSUB_RTN_U64,
-+	GFX9_DS_INC_RTN_U64,
-+	GFX9_DS_DEC_RTN_U64,
-+	GFX9_DS_MIN_RTN_I64,
-+	GFX9_DS_MAX_RTN_I64,
-+	GFX9_DS_MIN_RTN_U64,
-+	GFX9_DS_MAX_RTN_U64,
-+	GFX9_DS_AND_RTN_B64,
-+	GFX9_DS_OR_RTN_B64,
-+	GFX9_DS_XOR_RTN_B64,
-+	GFX9_DS_MSKOR_RTN_B64,
-+	GFX9_DS_WRXCHG_RTN_B64,
-+	GFX9_DS_WRXCHG2_RTN_B64,
-+	GFX9_DS_WRXCHG2ST64_RTN_B64,
-+	GFX9_DS_CMPST_RTN_B64,
-+	GFX9_DS_CMPST_RTN_F64,
-+	GFX9_DS_MIN_RTN_F64,
-+	GFX9_DS_MAX_RTN_F64 = 115,
-+	GFX9_DS_READ_B64 = 118,
-+	GFX9_DS_READ2_B64 = 119,
-+	GFX9_DS_READ2ST64_B64 = 120,
-+	/* ISA opcodes 121-125 are reserved gaps. */
-+	GFX9_DS_CONDXCHG32_RTN_B64 = 126,
-+	/* ISA opcode 127 is a reserved gap. */
-+	GFX9_DS_ADD_SRC2_U32 = 128,
-+	GFX9_DS_SUB_SRC2_U32,
-+	GFX9_DS_RSUB_SRC2_U32,
-+	GFX9_DS_INC_SRC2_U32,
-+	GFX9_DS_DEC_SRC2_U32,
-+	GFX9_DS_MIN_SRC2_I32,
-+	GFX9_DS_MAX_SRC2_I32,
-+	GFX9_DS_MIN_SRC2_U32,
-+	GFX9_DS_MAX_SRC2_U32,
-+	GFX9_DS_AND_SRC2_B32,
-+	GFX9_DS_OR_SRC2_B32,
-+	GFX9_DS_XOR_SRC2_B32 = 139,
-+	GFX9_DS_WRITE_SRC2_B32 = 141,
-+	GFX9_DS_MIN_SRC2_F32 = 146,
-+	GFX9_DS_MAX_SRC2_F32 = 147,
-+	GFX9_DS_ADD_SRC2_F32 = 149,
-+	GFX9_DS_GWS_SEMA_RELEASE_ALL = 152,
-+	GFX9_DS_GWS_INIT,
-+	GFX9_DS_GWS_SEMA_V,
-+	GFX9_DS_GWS_SEMA_BR,
-+	GFX9_DS_GWS_SEMA_P,
-+	GFX9_DS_GWS_BARRIER = 157,
-+	GFX9_DS_READ_ADDTID_B32 = 182,
-+	GFX9_DS_CONSUME = 189,
-+	GFX9_DS_APPEND,
-+	GFX9_DS_ORDERED_COUNT,
-+	GFX9_DS_ADD_SRC2_U64,
-+	GFX9_DS_SUB_SRC2_U64,
-+	GFX9_DS_RSUB_SRC2_U64,
-+	GFX9_DS_INC_SRC2_U64,
-+	GFX9_DS_DEC_SRC2_U64,
-+	GFX9_DS_MIN_SRC2_I64,
-+	GFX9_DS_MAX_SRC2_I64,
-+	GFX9_DS_MIN_SRC2_U64,
-+	GFX9_DS_MAX_SRC2_U64,
-+	GFX9_DS_AND_SRC2_B64,
-+	GFX9_DS_OR_SRC2_B64,
-+	GFX9_DS_XOR_SRC2_B64 = 203,
-+	GFX9_DS_WRITE_SRC2_B64 = 205,
-+	GFX9_DS_MIN_SRC2_F64 = 210,
-+	GFX9_DS_MAX_SRC2_F64 = 211,
-+	GFX9_DS_WRITE_B96 = 222,
-+	GFX9_DS_WRITE_B128 = 223,
-+	GFX9_DS_READ_B96 = 254,
-+	GFX9_DS_READ_B128 = 255,
-+};
-+
-+#define GFX9_DS_ENCODING		0x36
-+#define GFX9_DS_GDS			1
-+#define GFX9_DS_LDS			0
-+
-+////////////////////////////////////////////////////
-+/* Vector Memory Buffer Formats */
-+struct amdgcn_gfx9_mtbuf {
-+	u64 offset:12;
-+	u64 offen:1;
-+	u64 idxen:1;
-+	u64 glc:1;
-+	u64 op:4;
-+	u64 dfmt:4;
-+	u64 nfmt:3;
-+	u64 encoding:6;
-+	u64 vaddr:8;
-+	u64 vdata:8;
-+	u64 srsrc:5;
-+	u64 dummy:1;
-+	u64 slc:1;
-+	u64 tfe:1;
-+	u64 soffset:8;
-+};
-+
-+enum amdgcn_gfx9_mtbuf_opcode {
-+	GFX9_TBUFFER_LOAD_FORMAT_X,
-+	GFX9_TBUFFER_LOAD_FORMAT_XY,
-+	GFX9_TBUFFER_LOAD_FORMAT_XYZ,
-+	GFX9_TBUFFER_LOAD_FORMAT_XYZW,
-+	GFX9_TBUFFER_STORE_FORMAT_X,
-+	GFX9_TBUFFER_STORE_FORMAT_XY,
-+	GFX9_TBUFFER_STORE_FORMAT_XYZ,
-+	GFX9_TBUFFER_STORE_FORMAT_XYZW,
-+	GFX9_TBUFFER_LOAD_FORMAT_D16_X,
-+	GFX9_TBUFFER_LOAD_FORMAT_D16_XY,
-+	GFX9_TBUFFER_LOAD_FORMAT_D16_XYZ,
-+	GFX9_TBUFFER_LOAD_FORMAT_D16_XYZW,
-+	GFX9_TBUFFER_STORE_FORMAT_D16_X,
-+	GFX9_TBUFFER_STORE_FORMAT_D16_XY,
-+	GFX9_TBUFFER_STORE_FORMAT_D16_XYZ,
-+	GFX9_TBUFFER_STORE_FORMAT_D16_XYZW,
-+};
-+
-+#define GFX9_MUBUF_ENCODING				0x38
-+#define GFX9_MUBUF_SOFFSET_SGPR_BASE			0
-+#define GFX9_MUBUF_SOFFSET_VCC_LO			106
-+#define GFX9_MUBUF_SOFFSET_VCC_HI			107
-+#define GFX9_MUBUF_SOFFSET_TTPM_BASE			108
-+#define GFX9_MUBUF_SOFFSET_M0				124
-+#define GFX9_MUBUF_SOFFSET_NULL			125
-+#define GFX9_MUBUF_SOFFSET_EXEC_LO			126
-+#define GFX9_MUBUF_SOFFSET_EXEC_HI			127
-+#define GFX9_MUBUF_SOFFSET_INTEGER_0			128
-+#define GFX9_MUBUF_SOFFSET_INTEGER_MINUS_1		193
-+#define GFX9_MUBUF_SOFFSET_SHARED_BASE			235
-+#define GFX9_MUBUF_SOFFSET_SHARED_LIMIT		236
-+#define GFX9_MUBUF_SOFFSET_PRIVATE_BASE		237
-+#define GFX9_MUBUF_SOFFSET_PRIVATE_LIMIT		238
-+#define GFX9_MUBUF_SOFFSET_POPS_EXITING_WAVE_ID	239
-+#define GFX9_MUBUF_SOFFSET_VCCZ			251
-+#define GFX9_MUBUF_SOFFSET_EXECZ			252
-+#define GFX9_MUBUF_SOFFSET_SCC				253
-+
-+struct amdgcn_gfx9_mubuf {
-+	u64 offset:12;
-+	u64 offen:1;
-+	u64 idxen:1;
-+	u64 glc:1;
-+	u64 dummy1:1;
-+	u64 lds:1;
-+	u64 slc:1;
-+	u64 op:7;
-+	u64 dummy2:1;
-+	u64 encoding:6;
-+	u64 vaddr:8;
-+	u64 vdata:8;
-+	u64 srsrc:5;
-+	u64 dummy3:2;
-+	u64 tfe:1;
-+	u64 soffset:8;
-+};
-+
-+enum amdgcn_gfx9_mubuf_opcode {
-+	GFX9_BUFFER_LOAD_FORMAT_X,
-+	GFX9_BUFFER_LOAD_FORMAT_XY,
-+	GFX9_BUFFER_LOAD_FORMAT_XYZ,
-+	GFX9_BUFFER_LOAD_FORMAT_XYZW,
-+	GFX9_BUFFER_STORE_FORMAT_X,
-+	GFX9_BUFFER_STORE_FORMAT_XY,
-+	GFX9_BUFFER_STORE_FORMAT_XYZ,
-+	GFX9_BUFFER_STORE_FORMAT_XYZW,
-+	GFX9_BUFFER_LOAD_FORMAT_D16_X,
-+	GFX9_BUFFER_LOAD_FORMAT_D16_XY,
-+	GFX9_BUFFER_LOAD_FORMAT_D16_XYZ,
-+	GFX9_BUFFER_LOAD_FORMAT_D16_XYZW,
-+	GFX9_BUFFER_STORE_FORMAT_D16_X,
-+	GFX9_BUFFER_STORE_FORMAT_D16_XY,
-+	GFX9_BUFFER_STORE_FORMAT_D16_XYZ,
-+	GFX9_BUFFER_STORE_FORMAT_D16_XYZW,
-+	GFX9_BUFFER_LOAD_UBYTE,
-+	GFX9_BUFFER_LOAD_SBYTE,
-+	GFX9_BUFFER_LOAD_USHORT,
-+	GFX9_BUFFER_LOAD_SSHORT,
-+	GFX9_BUFFER_LOAD_DWORD,
-+	GFX9_BUFFER_LOAD_DWORDX2,
-+	GFX9_BUFFER_LOAD_DWORDX3,
-+	GFX9_BUFFER_LOAD_DWORDX4,
-+	GFX9_BUFFER_STORE_BYTE,
-+	GFX9_BUFFER_STORE_BYTE_D16_HI,
-+	GFX9_BUFFER_STORE_SHORT,
-+	GFX9_BUFFER_STORE_SHORT_D16_HI,
-+	GFX9_BUFFER_STORE_DWORD,
-+	GFX9_BUFFER_STORE_DWORDX2,
-+	GFX9_BUFFER_STORE_DWORDX3,
-+	GFX9_BUFFER_STORE_DWORDX4,
-+	GFX9_BUFFER_LOAD_UBYTE_D16,
-+	GFX9_BUFFER_LOAD_UBYTE_D16_HI,
-+	GFX9_BUFFER_LOAD_SBYTE_D16,
-+	GFX9_BUFFER_LOAD_SBYTE_D16_HI,
-+	GFX9_BUFFER_LOAD_SHORT_D16,
-+	GFX9_BUFFER_LOAD_SHORT_D16_HI,
-+	GFX9_BUFFER_LOAD_FORMAT_D16_HI_X,
-+	GFX9_BUFFER_STORE_FORMAT_D16_HI_X = 39,
-+	GFX9_BUFFER_STORE_LDS_DWORD = 61,
-+	GFX9_BUFFER_WBINVL1,
-+	GFX9_BUFFER_WBINVL1_VOL,
-+	GFX9_BUFFER_ATOMIC_SWAP,
-+	GFX9_BUFFER_ATOMIC_CMPSWAP,
-+	GFX9_BUFFER_ATOMIC_ADD,
-+	GFX9_BUFFER_ATOMIC_SUB,
-+	GFX9_BUFFER_ATOMIC_SMIN,
-+	GFX9_BUFFER_ATOMIC_UMIN,
-+	GFX9_BUFFER_ATOMIC_SMAX,
-+	GFX9_BUFFER_ATOMIC_UMAX,
-+	GFX9_BUFFER_ATOMIC_AND,
-+	GFX9_BUFFER_ATOMIC_OR,
-+	GFX9_BUFFER_ATOMIC_XOR,
-+	GFX9_BUFFER_ATOMIC_INC,
-+	GFX9_BUFFER_ATOMIC_DEC = 76,
-+	GFX9_BUFFER_ATOMIC_SWAP_X2 = 96,
-+	GFX9_BUFFER_ATOMIC_CMPSWAP_X2,
-+	GFX9_BUFFER_ATOMIC_ADD_X2,
-+	GFX9_BUFFER_ATOMIC_SUB_X2,
-+	GFX9_BUFFER_ATOMIC_SMIN_X2,
-+	GFX9_BUFFER_ATOMIC_UMIN_X2,
-+	GFX9_BUFFER_ATOMIC_SMAX_X2,
-+	GFX9_BUFFER_ATOMIC_UMAX_X2,
-+	GFX9_BUFFER_ATOMIC_AND_X2,
-+	GFX9_BUFFER_ATOMIC_OR_X2,
-+	GFX9_BUFFER_ATOMIC_XOR_X2,
-+	GFX9_BUFFER_ATOMIC_INC_X2,
-+	GFX9_BUFFER_ATOMIC_DEC_X2,
-+};
-+
-+/* Vector Memory Image Format */
-+struct amdgcn_gfx9_mimg {
-+};
-+
-+#define GFX9_FLAT_ENCODING			0x37
-+#define GFX9_FLAT_SADDR_SGPR_BASE		0
-+#define GFX9_FLAT_SADDR_VCC_LO			106
-+#define GFX9_FLAT_SADDR_VCC_HI			107
-+#define GFX9_FLAT_SADDR_TTPM_BASE		108
-+#define GFX9_FLAT_SADDR_M0			124
-+#define GFX9_FLAT_SADDR_NULL			125
-+#define GFX9_FLAT_SADDR_EXEC_LO			126
-+#define GFX9_FLAT_SADDR_EXEC_HI			127
-+#define GFX9_FLAT_SADDR_INTEGER_0		128
-+#define GFX9_FLAT_SADDR_INTEGER_MINUS_1		193
-+#define GFX9_FLAT_SADDR_SHARED_BASE		235
-+#define GFX9_FLAT_SADDR_SHARED_LIMIT		236
-+#define GFX9_FLAT_SADDR_PRIVATE_BASE		237
-+#define GFX9_FLAT_SADDR_PRIVATE_LIMIT		238
-+#define GFX9_FLAT_SADDR_POPS_EXITING_WAVE_ID	239
-+#define GFX9_FLAT_SADDR_VCCZ			251
-+#define GFX9_FLAT_SADDR_EXECZ			252
-+#define GFX9_FLAT_SADDR_SCC			253
-+
-+/*
-+ * Scalar SGPR that provides an offset address. To disable, set this field to
-+ * 0x7F. Meaning of this field is different for Scratch and Global:
-+ * Flat: Unused.
-+ * Scratch: Use an SGPR (instead of VGPR) for the address.
-+ * Global: Use the SGPR to provide a base address; the VGPR provides a
-+ *         32-bit offset.
-+ */
-+#define GFX9_FLAT_SADDR_DISABLE			0x7f
-+#define GFX9_FLAT_SEG_FLAT			0
-+#define GFX9_FLAT_SEG_SCRATCH			1
-+#define GFX9_FLAT_SEG_GLOBAL			2
-+
-+/* Flat Formats */
-+struct amdgcn_gfx9_flat {
-+	u64 offset:13;
-+	u64 lds:1;
-+	u64 seg:2;
-+	u64 glc:1;
-+	u64 slc:1;
-+	u64 op:7;
-+	u64 dummy:1;
-+	u64 encoding:6;
-+	u64 addr:8;
-+	u64 data:8;
-+	u64 saddr:7;
-+	u64 nv:1;
-+	u64 vdst:8;
-+};
-+
-+enum amdgcn_gfx9_global_opcode {
-+	GFX9_GLOBAL_LOAD_UBYTE = 16,
-+	GFX9_GLOBAL_LOAD_SBYTE,
-+	GFX9_GLOBAL_LOAD_USHORT,
-+	GFX9_GLOBAL_LOAD_SSHORT,
-+	GFX9_GLOBAL_LOAD_DWORD,
-+	GFX9_GLOBAL_LOAD_DWORDX2,
-+	GFX9_GLOBAL_LOAD_DWORDX3,
-+	GFX9_GLOBAL_LOAD_DWORDX4,
-+	GFX9_GLOBAL_STORE_BYTE,
-+	GFX9_GLOBAL_STORE_BYTE_D16_HI,
-+	GFX9_GLOBAL_STORE_SHORT,
-+	GFX9_GLOBAL_STORE_SHORT_D16_HI,
-+	GFX9_GLOBAL_STORE_DWORD,
-+	GFX9_GLOBAL_STORE_DWORDX2,
-+	GFX9_GLOBAL_STORE_DWORDX3,
-+	GFX9_GLOBAL_STORE_DWORDX4,
-+	GFX9_GLOBAL_LOAD_UBYTE_D16,
-+	GFX9_GLOBAL_LOAD_UBYTE_D16_HI,
-+	GFX9_GLOBAL_LOAD_SBYTE_D16,
-+	GFX9_GLOBAL_LOAD_SBYTE_D16_HI,
-+	GFX9_GLOBAL_LOAD_SHORT_D16,
-+	GFX9_GLOBAL_LOAD_SHORT_D16_HI = 37,
-+	GFX9_GLOBAL_ATOMIC_SWAP = 64,
-+	GFX9_GLOBAL_ATOMIC_CMPSWAP,
-+	GFX9_GLOBAL_ATOMIC_ADD,
-+	GFX9_GLOBAL_ATOMIC_SUB,
-+	GFX9_GLOBAL_ATOMIC_SMIN,
-+	GFX9_GLOBAL_ATOMIC_UMIN,
-+	GFX9_GLOBAL_ATOMIC_SMAX,
-+	GFX9_GLOBAL_ATOMIC_UMAX,
-+	GFX9_GLOBAL_ATOMIC_AND,
-+	GFX9_GLOBAL_ATOMIC_OR,
-+	GFX9_GLOBAL_ATOMIC_XOR,
-+	GFX9_GLOBAL_ATOMIC_INC,
-+	GFX9_GLOBAL_ATOMIC_DEC = 76,
-+	GFX9_GLOBAL_ATOMIC_SWAP_X2 = 96,
-+	GFX9_GLOBAL_ATOMIC_CMPSWAP_X2,
-+	GFX9_GLOBAL_ATOMIC_ADD_X2,
-+	GFX9_GLOBAL_ATOMIC_SUB_X2,
-+	GFX9_GLOBAL_ATOMIC_SMIN_X2,
-+	GFX9_GLOBAL_ATOMIC_UMIN_X2,
-+	GFX9_GLOBAL_ATOMIC_SMAX_X2,
-+	GFX9_GLOBAL_ATOMIC_UMAX_X2,
-+	GFX9_GLOBAL_ATOMIC_AND_X2,
-+	GFX9_GLOBAL_ATOMIC_OR_X2,
-+	GFX9_GLOBAL_ATOMIC_XOR_X2,
-+	GFX9_GLOBAL_ATOMIC_INC_X2,
-+	GFX9_GLOBAL_ATOMIC_DEC_X2,
-+};
-+
-+/* Export Format */
-+struct amdgcn_gfx9_exp {
-+};
-+
-+union amdgcn_gfx9_insn {
-+	struct amdgcn_gfx9_sop2 sop2;
-+	struct amdgcn_gfx9_sopk sopk;
-+	struct amdgcn_gfx9_sop1 sop1;
-+	struct amdgcn_gfx9_sopc sopc;
-+	struct amdgcn_gfx9_sopp sopp;
-+	struct amdgcn_gfx9_smem smem;
-+	struct amdgcn_gfx9_vop2 vop2;
-+	struct amdgcn_gfx9_vop1 vop1;
-+	struct amdgcn_gfx9_vopc vopc;
-+	struct amdgcn_gfx9_vop3a vop3a;
-+	struct amdgcn_gfx9_vop3b vop3b;
-+	struct amdgcn_gfx9_vop3p vop3p;
-+	struct amdgcn_gfx9_sdwa sdwa;
-+	struct amdgcn_gfx9_sdwab sdwab;
-+	struct amdgcn_gfx9_dpp16 dpp16;
-+	struct amdgcn_gfx9_dpp8 dpp8;
-+	struct amdgcn_gfx9_vintrp vintrp;
-+	struct amdgcn_gfx9_ds ds;
-+	struct amdgcn_gfx9_mtbuf mtbuf;
-+	struct amdgcn_gfx9_mubuf mubuf;
-+	struct amdgcn_gfx9_mimg mimg;
-+	struct amdgcn_gfx9_flat flat;
-+	struct amdgcn_gfx9_exp exp;
-+};
-+
-+/* Cast macro - convert u32 *buf position to GFX9 insn union pointer. */
-+#define I9(buf, n)	((union amdgcn_gfx9_insn *)&(buf)[(n)])
-+
-+inline u32 gfx9_get_param_base(struct amdgcn_param32 param)
-+{
-+	return gfx9_param_base[param.type];
-+}
-+
-+inline u32 emit_gfx9_s_load_dwordx2(union amdgcn_gfx9_insn *insn,
-+				    struct amdgcn_param32 dst,
-+				    struct amdgcn_param32 src, int offset)
-+{
-+	/* s_load_dwordx2 <dst/sdata>, <src/sbase>, <offset>
-+	 * sdata: register, load to.
-+	 * sbase: sgpr-pair, load from.
-+	 * offset: offset of kernarg_address in the hsa_kernel_dispatch_packet.
-+	 *
-+	 * sdata = *(sbase + offset);
-+	 * param = (__global struct _knod_bpf_param *)pkt.kernarg_address;
-+	 */
-+
-+	insn->smem.sbase = KNOD_AMDGPU_REG_PAIR(src.v);
-+	insn->smem.sdata = dst.v;
-+	insn->smem.dummy1 = 0;
-+	insn->smem.soe = 0;
-+	insn->smem.nv = 0;
-+	insn->smem.glc = 0;
-+	insn->smem.imm = 1;
-+	insn->smem.op = GFX9_S_LOAD_DWORDX2;
-+	insn->smem.encoding = GFX9_SMEM_ENCODING;
-+	insn->smem.offset = offset;
-+	insn->smem.dummy2 = 0;
-+	insn->smem.soffset = 0;
-+
-+	return 8;
-+}
-+
-+inline u32 emit_gfx9_v_bfe_i32(union amdgcn_gfx9_insn *insn,
-+			       struct amdgcn_param32 dst,
-+			       struct amdgcn_param32 src0,
-+			       struct amdgcn_param32 src1,
-+			       struct amdgcn_param32 src2)
-+{
-+	WARN_ON(dst.type != AMDGCN_PARAM_TYPE_VGPR);
-+	WARN_ON(src1.type == AMDGCN_PARAM_TYPE_LITERAL_CONST ||
-+		src2.type == AMDGCN_PARAM_TYPE_LITERAL_CONST);
-+	insn->vop3a.vdst = dst.v;
-+	insn->vop3a.abs = 0;
-+	insn->vop3a.op_sel = 0;
-+	insn->vop3a.clmp = 0;
-+	insn->vop3a.op = GFX9_V_BFE_I32;
-+	insn->vop3a.encoding = GFX9_VOP3A_ENCODING;
-+	insn->vop3a.src1 = gfx9_get_param_base(src1) + src1.v;
-+	insn->vop3a.src2 = gfx9_get_param_base(src2) + src2.v;
-+	insn->vop3a.omod = 0;
-+	insn->vop3a.neg = 0;
-+	if (src0.type == AMDGCN_PARAM_TYPE_LITERAL_CONST) {
-+		insn->vop3a.src0 = gfx9_get_param_base(src0);
-+		insn->vop3a.literal = src0.v;
-+		return 12;
-+	}
-+	insn->vop3a.src0 = gfx9_get_param_base(src0) + src0.v;
-+
-+	return 8;
-+}
-+
-+inline u32 emit_gfx9_v_bfe_u32(union amdgcn_gfx9_insn *insn,
-+			       struct amdgcn_param32 dst,
-+			       struct amdgcn_param32 src0,
-+			       struct amdgcn_param32 src1,
-+			       struct amdgcn_param32 src2)
-+{
-+	/* v_bfe_u32 v0, v0, 8
-+	 * <dst>: destination vgpr.
-+	 * <src>: initialized to workitem in first bitfields.
-+	 * 8: bitfield size to extract from.
-+	 *
-+	 * extract workitem ID from <src>
-+	 */
-+	WARN_ON(dst.type != AMDGCN_PARAM_TYPE_VGPR);
-+	WARN_ON(src1.type == AMDGCN_PARAM_TYPE_LITERAL_CONST ||
-+		src2.type == AMDGCN_PARAM_TYPE_LITERAL_CONST);
-+	insn->vop3a.vdst = dst.v;
-+	insn->vop3a.abs = 0;
-+	insn->vop3a.op_sel = 0;
-+	insn->vop3a.clmp = 0;
-+	insn->vop3a.op = GFX9_V_BFE_U32;
-+	insn->vop3a.encoding = GFX9_VOP3A_ENCODING;
-+	insn->vop3a.src1 = gfx9_get_param_base(src1) + src1.v;
-+	insn->vop3a.src2 = gfx9_get_param_base(src2) + src2.v;
-+	insn->vop3a.omod = 0;
-+	insn->vop3a.neg = 0;
-+	if (src0.type == AMDGCN_PARAM_TYPE_LITERAL_CONST) {
-+		insn->vop3a.src0 = gfx9_get_param_base(src0);
-+		insn->vop3a.literal = src0.v;
-+		return 12;
-+	}
-+	insn->vop3a.src0 = gfx9_get_param_base(src0) + src0.v;
-+
-+	return 8;
-+}
-+
-+inline u32 emit_gfx9_v_bfi_b32(union amdgcn_gfx9_insn *insn,
-+			       struct amdgcn_param32 dst,
-+			       struct amdgcn_param32 src0,
-+			       struct amdgcn_param32 src1,
-+			       struct amdgcn_param32 src2)
-+{
-+	WARN_ON(dst.type != AMDGCN_PARAM_TYPE_VGPR);
-+	WARN_ON(src0.type == AMDGCN_PARAM_TYPE_LITERAL_CONST ||
-+		src1.type == AMDGCN_PARAM_TYPE_LITERAL_CONST ||
-+		src2.type == AMDGCN_PARAM_TYPE_LITERAL_CONST);
-+	insn->vop3a.vdst = dst.v;
-+	insn->vop3a.abs = 0;
-+	insn->vop3a.op_sel = 0;
-+	insn->vop3a.clmp = 0;
-+	insn->vop3a.op = GFX9_V_BFI_B32;
-+	insn->vop3a.encoding = GFX9_VOP3A_ENCODING;
-+	insn->vop3a.src1 = gfx9_get_param_base(src1) + src1.v;
-+	insn->vop3a.src2 = gfx9_get_param_base(src2) + src2.v;
-+	insn->vop3a.omod = 0;
-+	insn->vop3a.neg = 0;
-+	if (src0.type == AMDGCN_PARAM_TYPE_LITERAL_CONST) {
-+		insn->vop3a.src0 = gfx9_get_param_base(src0);
-+		insn->vop3a.literal = src0.v;
-+		return 12;
-+	}
-+	insn->vop3a.src0 = gfx9_get_param_base(src0) + src0.v;
-+
-+	return 8;
-+}
-+
-+inline u32 emit_gfx9_v_lshl_add_u32(union amdgcn_gfx9_insn *insn,
-+				    struct amdgcn_param32 dst,
-+				    struct amdgcn_param32 src0,
-+				    struct amdgcn_param32 src1,
-+				    struct amdgcn_param32 src2)
-+{
-+	/* v_lshl_add_u32 <dst>, <src0>, <src1>, <src2>
-+	 *
-+	 * <dst> = (<src0> << <src1>) + <src2>;
-+	 */
-+
-+	insn->vop3a.vdst = dst.v;
-+	insn->vop3a.abs = 0;
-+	insn->vop3a.op_sel = 0;
-+	insn->vop3a.clmp = 0;
-+	insn->vop3a.op = GFX9_V_LSHL_ADD_U32;
-+	insn->vop3a.encoding = GFX9_VOP3A_ENCODING;
-+	insn->vop3a.src1 = gfx9_get_param_base(src1) + src1.v;
-+	insn->vop3a.src2 = gfx9_get_param_base(src2) + src2.v;
-+	insn->vop3a.omod = 0;
-+	insn->vop3a.neg = 0;
-+	if (src0.type == AMDGCN_PARAM_TYPE_LITERAL_CONST) {
-+		insn->vop3a.src0 = gfx9_get_param_base(src0);
-+		insn->vop3a.literal = src0.v;
-+		return 12;
-+	}
-+	insn->vop3a.src0 = gfx9_get_param_base(src0) + src0.v;
-+
-+	return 8;
-+}
-+
-+inline u32 emit_gfx9_v_lshl_or_b32(union amdgcn_gfx9_insn *insn,
-+				   struct amdgcn_param32 dst,
-+				   struct amdgcn_param32 src0,
-+				   struct amdgcn_param32 src1,
-+				   struct amdgcn_param32 src2)
-+{
-+	/* v_lshl_or_b32 <dst>, <src0>, <src1>, <src2>
-+	 *
-+	 * D.u = (S0.u << S1.u[4:0]) | S2.u
-+	 */
-+
-+	WARN_ON(src0.type == AMDGCN_PARAM_TYPE_LITERAL_CONST ||
-+		src1.type == AMDGCN_PARAM_TYPE_LITERAL_CONST ||
-+		src2.type == AMDGCN_PARAM_TYPE_LITERAL_CONST ||
-+		src2.type == AMDGCN_PARAM_TYPE_LITERAL_CONST);
-+
-+	insn->vop3a.vdst = dst.v;
-+	insn->vop3a.abs = 0;
-+	insn->vop3a.op_sel = 0;
-+	insn->vop3a.clmp = 0;
-+	insn->vop3a.op = GFX9_V_LSHL_OR_B32;
-+	insn->vop3a.encoding = GFX9_VOP3A_ENCODING;
-+	insn->vop3a.src1 = gfx9_get_param_base(src1) + src1.v;
-+	insn->vop3a.src2 = gfx9_get_param_base(src2) + src2.v;
-+	insn->vop3a.omod = 0;
-+	insn->vop3a.neg = 0;
-+	if (src0.type == AMDGCN_PARAM_TYPE_LITERAL_CONST) {
-+		insn->vop3a.src0 = gfx9_get_param_base(src0);
-+		insn->vop3a.literal = src0.v;
-+		return 12;
-+	}
-+	insn->vop3a.src0 = gfx9_get_param_base(src0) + src0.v;
-+
-+	return 8;
-+}
-+
-+inline u32 emit_gfx9_v_mad_u64_u32(union amdgcn_gfx9_insn *insn,
-+				   struct amdgcn_param64 vdst,
-+				   struct amdgcn_param32 sdst,
-+				   struct amdgcn_param32 src0,
-+				   struct amdgcn_param32 src1,
-+				   struct amdgcn_param64 src2)
-+{
-+	/* v_mad_u64_u32 <dst>, <dst2>, <src0_imm>, <src1>, <src2>
-+	 * <vdst>: destination vgpr.
-+	 * <sdst>: destination sgpr.
-+	 * <src0>: source vgpr.
-+	 * <src1>: source vgpr.
-+	 * <src2>: source vgpr.
-+	 *
-+	 * {vcc_out, D.u64} = S0.u32 * S1.u32 + S2.u64.
-+	 * ctx = &param->sub[idx].ctx;
-+	 */
-+
-+	WARN_ON(src0.type == AMDGCN_PARAM_TYPE_LITERAL_CONST ||
-+		src1.type == AMDGCN_PARAM_TYPE_LITERAL_CONST ||
-+		src2.lo.type == AMDGCN_PARAM_TYPE_LITERAL_CONST ||
-+		src2.hi.type == AMDGCN_PARAM_TYPE_LITERAL_CONST);
-+	insn->vop3b.vdst = vdst.lo.v;
-+	insn->vop3b.sdst = sdst.v;
-+	insn->vop3b.clmp = 0;
-+	insn->vop3b.op = GFX9_V_MAD_U64_U32;
-+	insn->vop3b.encoding = GFX9_VOP3B_ENCODING;
-+	insn->vop3b.src1 = gfx9_get_param_base(src1) + src1.v;
-+	insn->vop3b.src2 = gfx9_get_param_base(src2.lo) + src2.lo.v;
-+	insn->vop3b.omod = 0;
-+	insn->vop3b.neg = 0;
-+	if (src0.type == AMDGCN_PARAM_TYPE_LITERAL_CONST) {
-+		insn->vop3b.src0 = gfx9_get_param_base(src0);
-+		insn->vop3b.literal = src0.v;
-+		return 12;
-+	}
-+	insn->vop3b.src0 = gfx9_get_param_base(src0) + src0.v;
-+
-+	return 8;
-+}
-+
-+inline u32 emit_gfx9_s_mov_b32(union amdgcn_gfx9_insn *insn,
-+			       struct amdgcn_param32 dst,
-+			       struct amdgcn_param32 src)
-+{
-+	if (src.type == AMDGCN_PARAM_TYPE_LITERAL_CONST) {
-+		insn->sop1.ssrc0 = gfx9_get_param_base(src);
-+		insn->sop1.literal = src.v;
-+	} else {
-+		insn->sop1.ssrc0 = gfx9_get_param_base(src) + src.v;
-+	}
-+	insn->sop1.op = GFX9_S_MOV_B32;
-+	insn->sop1.sdst = gfx9_get_param_base(dst) + dst.v;
-+	insn->sop1.encoding = GFX9_SOP1_ENCODING;
-+
-+	if (src.type == AMDGCN_PARAM_TYPE_LITERAL_CONST)
-+		return 8;
-+	return 4;
-+}
-+
-+/*
-+ * v_readfirstlane_b32 sdst, vsrc
-+ * Copies VGPR[vsrc] from the first active lane to SGPR[sdst].
-+ * VOP1 encoding, dst = SGPR (not VGPR).
-+ */
-+inline u32 emit_gfx9_v_readfirstlane_b32(union amdgcn_gfx9_insn *insn,
-+					  u8 sdst, u8 vsrc)
-+{
-+	insn->vop1.encoding = GFX9_VOP1_ENCODING;
-+	insn->vop1.vdst = sdst;
-+	insn->vop1.op = GFX9_V_READFIRSTLANE_B32;
-+	insn->vop1.src0 = GFX9_SRC_VGPR_BASE + vsrc;
-+	return 4;
-+}
-+
-+inline u32 emit_gfx9_v_mov_b32_e32(union amdgcn_gfx9_insn *insn,
-+				   struct amdgcn_param32 dst,
-+				   struct amdgcn_param32 src)
-+{
-+	if (dst.type != AMDGCN_PARAM_TYPE_VGPR)
-+		WARN_ON_ONCE(1);
-+	insn->vop1.encoding = GFX9_VOP1_ENCODING;
-+	insn->vop1.vdst = dst.v;
-+	insn->vop1.op = GFX9_V_MOV_B32;
-+	if (src.type == AMDGCN_PARAM_TYPE_LITERAL_CONST) {
-+		insn->vop1.src0 = GFX9_VOP1_SRC_LITERAL_CONST;
-+		insn->vop1.literal = src.v;
-+
-+		return 8;
-+	}
-+	insn->vop1.src0 = gfx9_get_param_base(src) + src.v;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx9_v_add_co_u32(union amdgcn_gfx9_insn *insn,
-+				  struct amdgcn_param32 dst,
-+				  struct amdgcn_param32 src0,
-+				  struct amdgcn_param32 src1)
-+{
-+	WARN_ON(dst.type != AMDGCN_PARAM_TYPE_VGPR);
-+	WARN_ON(src1.type != AMDGCN_PARAM_TYPE_VGPR);
-+
-+	insn->vop2.vsrc1 = src1.v;
-+	insn->vop2.vdst = dst.v;
-+	insn->vop2.op = GFX9_V_ADD_CO_U32;
-+	insn->vop2.encoding = GFX9_VOP2_ENCODING;
-+	if (src0.type == AMDGCN_PARAM_TYPE_LITERAL_CONST) {
-+		insn->vop2.src0 = gfx9_get_param_base(src0);
-+		insn->vop2.literal = src0.v;
-+		return 8;
-+	}
-+	insn->vop2.src0 = gfx9_get_param_base(src0) + src0.v;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx9_v_add_u32(union amdgcn_gfx9_insn *insn,
-+			       struct amdgcn_param32 dst,
-+			       struct amdgcn_param32 src0,
-+			       struct amdgcn_param32 src1)
-+{
-+	WARN_ON(dst.type != AMDGCN_PARAM_TYPE_VGPR);
-+	WARN_ON(src1.type != AMDGCN_PARAM_TYPE_VGPR);
-+
-+	insn->vop2.vsrc1 = src1.v;
-+	insn->vop2.vdst = dst.v;
-+	insn->vop2.op = GFX9_V_ADD_U32;
-+	insn->vop2.encoding = GFX9_VOP2_ENCODING;
-+	if (src0.type == AMDGCN_PARAM_TYPE_LITERAL_CONST) {
-+		insn->vop2.src0 = gfx9_get_param_base(src0);
-+		insn->vop2.literal = src0.v;
-+		return 8;
-+	}
-+	insn->vop2.src0 = gfx9_get_param_base(src0) + src0.v;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx9_v_sub_u32(union amdgcn_gfx9_insn *insn,
-+			       struct amdgcn_param32 dst,
-+			       struct amdgcn_param32 src0,
-+			       struct amdgcn_param32 src1)
-+{
-+	WARN_ON(dst.type != AMDGCN_PARAM_TYPE_VGPR);
-+	WARN_ON(src1.type != AMDGCN_PARAM_TYPE_VGPR);
-+
-+	insn->vop2.vsrc1 = src1.v;
-+	insn->vop2.vdst = dst.v;
-+	insn->vop2.op = GFX9_V_SUB_U32;
-+	insn->vop2.encoding = GFX9_VOP2_ENCODING;
-+	if (src0.type == AMDGCN_PARAM_TYPE_LITERAL_CONST) {
-+		insn->vop2.src0 = gfx9_get_param_base(src0);
-+		insn->vop2.literal = src0.v;
-+		return 8;
-+	}
-+	insn->vop2.src0 = gfx9_get_param_base(src0) + src0.v;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx9_v_addc_co_u32(union amdgcn_gfx9_insn *insn,
-+				   struct amdgcn_param32 dst,
-+				   struct amdgcn_param32 src0,
-+				   struct amdgcn_param32 src1)
-+{
-+	insn->vop2.vsrc1 = src1.v;
-+	insn->vop2.vdst = dst.v;
-+	insn->vop2.op = GFX9_V_ADDC_CO_U32;
-+	insn->vop2.encoding = GFX9_VOP2_ENCODING;
-+	if (src0.type == AMDGCN_PARAM_TYPE_LITERAL_CONST) {
-+		WARN_ON_ONCE(1);
-+		insn->vop2.src0 = gfx9_get_param_base(src0);
-+		insn->vop2.literal = src0.v;
-+		return 8;
-+	}
-+	insn->vop2.src0 = gfx9_get_param_base(src0) + src0.v;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx9_v_xor_b32_e32(union amdgcn_gfx9_insn *insn,
-+				   struct amdgcn_param32 dst,
-+				   struct amdgcn_param32 src0,
-+				   struct amdgcn_param32 src1)
-+{
-+	insn->vop2.vsrc1 = src1.v;
-+	insn->vop2.vdst = dst.v;
-+	insn->vop2.op = GFX9_V_XOR_B32;
-+	insn->vop2.encoding = GFX9_VOP2_ENCODING;
-+	if (src0.type == AMDGCN_PARAM_TYPE_LITERAL_CONST) {
-+		insn->vop2.src0 = gfx9_get_param_base(src0);
-+		insn->vop2.literal = src0.v;
-+		return 8;
-+	}
-+	insn->vop2.src0 = gfx9_get_param_base(src0) + src0.v;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx9_v_or_b32_e32(union amdgcn_gfx9_insn *insn,
-+				  struct amdgcn_param32 dst,
-+				  struct amdgcn_param32 src0,
-+				  struct amdgcn_param32 src1)
-+{
-+	insn->vop2.vsrc1 = src1.v;
-+	insn->vop2.vdst = dst.v;
-+	insn->vop2.op = GFX9_V_OR_B32;
-+	insn->vop2.encoding = GFX9_VOP2_ENCODING;
-+	if (src0.type == AMDGCN_PARAM_TYPE_LITERAL_CONST) {
-+		insn->vop2.src0 = gfx9_get_param_base(src0);
-+		insn->vop2.literal = src0.v;
-+		return 8;
-+	}
-+	insn->vop2.src0 = gfx9_get_param_base(src0) + src0.v;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx9_v_cndmask_b32_e32(union amdgcn_gfx9_insn *insn,
-+				       struct amdgcn_param32 dst,
-+				       struct amdgcn_param32 src0,
-+				       struct amdgcn_param32 src1)
-+{
-+	insn->vop2.vsrc1 = src1.v;
-+	insn->vop2.vdst = dst.v;
-+	insn->vop2.op = GFX9_V_CNDMASK_B32;
-+	insn->vop2.encoding = GFX9_VOP2_ENCODING;
-+	if (src0.type == AMDGCN_PARAM_TYPE_LITERAL_CONST) {
-+		insn->vop2.src0 = gfx9_get_param_base(src0);
-+		insn->vop2.literal = src0.v;
-+		return 8;
-+	}
-+	insn->vop2.src0 = gfx9_get_param_base(src0) + src0.v;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx9_v_and_b32_e32(union amdgcn_gfx9_insn *insn,
-+				   struct amdgcn_param32 dst,
-+				   struct amdgcn_param32 src0,
-+				   struct amdgcn_param32 src1)
-+{
-+	insn->vop2.vsrc1 = src1.v;
-+	insn->vop2.vdst = dst.v;
-+	insn->vop2.op = GFX9_V_AND_B32;
-+	insn->vop2.encoding = GFX9_VOP2_ENCODING;
-+	if (src0.type == AMDGCN_PARAM_TYPE_LITERAL_CONST) {
-+		insn->vop2.src0 = gfx9_get_param_base(src0);
-+		insn->vop2.literal = src0.v;
-+		return 8;
-+	}
-+	insn->vop2.src0 = gfx9_get_param_base(src0) + src0.v;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx9_v_sub_co_u32(union amdgcn_gfx9_insn *insn,
-+				  struct amdgcn_param32 dst,
-+				  struct amdgcn_param32 src0,
-+				  struct amdgcn_param32 src1)
-+{
-+	insn->vop2.vsrc1 = src1.v;
-+	insn->vop2.vdst = dst.v;
-+	insn->vop2.op = GFX9_V_SUB_CO_U32;
-+	insn->vop2.encoding = GFX9_VOP2_ENCODING;
-+	if (src0.type == AMDGCN_PARAM_TYPE_LITERAL_CONST) {
-+		insn->vop2.src0 = gfx9_get_param_base(src0);
-+		insn->vop2.literal = src0.v;
-+		return 8;
-+	}
-+	insn->vop2.src0 = gfx9_get_param_base(src0) + src0.v;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx9_v_subrev_co_u32(union amdgcn_gfx9_insn *insn,
-+				     struct amdgcn_param32 dst,
-+				     struct amdgcn_param32 src0,
-+				     struct amdgcn_param32 src1)
-+{
-+	/* D.u = S1.u - S0.u; */
-+	insn->vop2.vsrc1 = src1.v;
-+	insn->vop2.vdst = dst.v;
-+	insn->vop2.op = GFX9_V_SUBREV_CO_U32;
-+	insn->vop2.encoding = GFX9_VOP2_ENCODING;
-+	if (src0.type == AMDGCN_PARAM_TYPE_LITERAL_CONST) {
-+		insn->vop2.src0 = gfx9_get_param_base(src0);
-+		insn->vop2.literal = src0.v;
-+		return 8;
-+	}
-+	insn->vop2.src0 = gfx9_get_param_base(src0) + src0.v;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx9_v_subbrev_co_u32(union amdgcn_gfx9_insn *insn,
-+				     struct amdgcn_param32 dst,
-+				     struct amdgcn_param32 src0,
-+				     struct amdgcn_param32 src1)
-+{
-+	/* D.u = S1.u - S0.u; */
-+	insn->vop2.vsrc1 = src1.v;
-+	insn->vop2.vdst = dst.v;
-+	insn->vop2.op = GFX9_V_SUBBREV_CO_U32;
-+	insn->vop2.encoding = GFX9_VOP2_ENCODING;
-+	if (src0.type == AMDGCN_PARAM_TYPE_LITERAL_CONST) {
-+		insn->vop2.src0 = gfx9_get_param_base(src0);
-+		insn->vop2.literal = src0.v;
-+		return 8;
-+	}
-+	insn->vop2.src0 = gfx9_get_param_base(src0) + src0.v;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx9_v_subb_co_u32(union amdgcn_gfx9_insn *insn,
-+				  struct amdgcn_param32 dst,
-+				  struct amdgcn_param32 src0,
-+				  struct amdgcn_param32 src1)
-+
-+{
-+	/* dst = src0 - src1 */
-+	insn->vop2.vsrc1 = src1.v;
-+	insn->vop2.vdst = dst.v;
-+	insn->vop2.op = GFX9_V_SUBB_CO_U32;
-+	insn->vop2.encoding = GFX9_VOP2_ENCODING;
-+	if (src0.type == AMDGCN_PARAM_TYPE_LITERAL_CONST) {
-+		insn->vop2.src0 = gfx9_get_param_base(src0);
-+		insn->vop2.literal = src0.v;
-+		return 8;
-+	}
-+	insn->vop2.src0 = gfx9_get_param_base(src0) + src0.v;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx9_v_mul_lo_u32(union amdgcn_gfx9_insn *insn,
-+				  struct amdgcn_param32 dst,
-+				  struct amdgcn_param32 src0,
-+				  struct amdgcn_param32 src1)
-+{
-+	insn->vop3a.vdst = dst.v;
-+	insn->vop3a.abs = 0;
-+	insn->vop3a.op_sel = 0;
-+	insn->vop3a.clmp = 0;
-+	insn->vop3a.op = GFX9_V_MUL_LO_U32;
-+	insn->vop3a.encoding = GFX9_VOP3A_ENCODING;
-+	insn->vop3a.src1 = gfx9_get_param_base(src1) + src1.v;
-+	/* 128: src2=0 reads s0 on gfx9 */
-+	insn->vop3a.src2 = GFX9_SRC_INTEGER_0;
-+	insn->vop3a.omod = 0;
-+	insn->vop3a.neg = 0;
-+	if (src0.type == AMDGCN_PARAM_TYPE_LITERAL_CONST) {
-+		insn->vop3a.src0 = gfx9_get_param_base(src0);
-+		insn->vop3a.literal = src0.v;
-+		return 12;
-+	}
-+	insn->vop3a.src0 = gfx9_get_param_base(src0) + src0.v;
-+
-+	return 8;
-+}
-+
-+/* v_mbcnt_lo_u32_b32 vdst, src0, vsrc1
-+ * vdst = popcount(src0 & ((1 << lane_id[4:0]) - 1)) + vsrc1
-+ */
-+inline u32 emit_gfx9_v_mbcnt_lo_u32_b32(union amdgcn_gfx9_insn *insn,
-+					 struct amdgcn_param32 dst,
-+					 struct amdgcn_param32 src0,
-+					 struct amdgcn_param32 src1)
-+{
-+	insn->vop3a.vdst = dst.v;
-+	insn->vop3a.abs = 0;
-+	insn->vop3a.op_sel = 0;
-+	insn->vop3a.clmp = 0;
-+	insn->vop3a.op = GFX9_V_MBCNT_LO_U32_B32;
-+	insn->vop3a.encoding = GFX9_VOP3A_ENCODING;
-+	insn->vop3a.src0 = gfx9_get_param_base(src0) + src0.v;
-+	insn->vop3a.src1 = gfx9_get_param_base(src1) + src1.v;
-+	/* 128: src2=0 reads s0 on gfx9 */
-+	insn->vop3a.src2 = GFX9_SRC_INTEGER_0;
-+	insn->vop3a.omod = 0;
-+	insn->vop3a.neg = 0;
-+
-+	return 8;
-+}
-+
-+/* v_mbcnt_hi_u32_b32 vdst, src0, vsrc1
-+ * vdst = popcount(src0 & ((1 << lane_id[5]) - 1)) + vsrc1
-+ */
-+inline u32 emit_gfx9_v_mbcnt_hi_u32_b32(union amdgcn_gfx9_insn *insn,
-+					 struct amdgcn_param32 dst,
-+					 struct amdgcn_param32 src0,
-+					 struct amdgcn_param32 src1)
-+{
-+	insn->vop3a.vdst = dst.v;
-+	insn->vop3a.abs = 0;
-+	insn->vop3a.op_sel = 0;
-+	insn->vop3a.clmp = 0;
-+	insn->vop3a.op = GFX9_V_MBCNT_HI_U32_B32;
-+	insn->vop3a.encoding = GFX9_VOP3A_ENCODING;
-+	insn->vop3a.src0 = gfx9_get_param_base(src0) + src0.v;
-+	insn->vop3a.src1 = gfx9_get_param_base(src1) + src1.v;
-+	/* 128: src2=0 reads s0 on gfx9 */
-+	insn->vop3a.src2 = GFX9_SRC_INTEGER_0;
-+	insn->vop3a.omod = 0;
-+	insn->vop3a.neg = 0;
-+
-+	return 8;
-+}
-+
-+inline u32 emit_gfx9_v_mul_hi_u32(union amdgcn_gfx9_insn *insn,
-+				  struct amdgcn_param32 dst,
-+				  struct amdgcn_param32 src0,
-+				  struct amdgcn_param32 src1)
-+{
-+	insn->vop3a.vdst = dst.v;
-+	insn->vop3a.abs = 0;
-+	insn->vop3a.op_sel = 0;
-+	insn->vop3a.clmp = 0;
-+	insn->vop3a.op = GFX9_V_MUL_HI_U32;
-+	insn->vop3a.encoding = GFX9_VOP3A_ENCODING;
-+	insn->vop3a.src1 = gfx9_get_param_base(src1) + src1.v;
-+	/* 128: src2=0 reads s0 on gfx9 */
-+	insn->vop3a.src2 = GFX9_SRC_INTEGER_0;
-+	insn->vop3a.omod = 0;
-+	insn->vop3a.neg = 0;
-+	if (src0.type == AMDGCN_PARAM_TYPE_LITERAL_CONST) {
-+		insn->vop3a.src0 = gfx9_get_param_base(src0);
-+		insn->vop3a.literal = src0.v;
-+		return 12;
-+	}
-+	insn->vop3a.src0 = gfx9_get_param_base(src0) + src0.v;
-+
-+	return 8;
-+}
-+
-+inline u32 emit_gfx9_v_lshlrev_b64(union amdgcn_gfx9_insn *insn,
-+				   struct amdgcn_param64 dst,
-+				   struct amdgcn_param64 src0,
-+				   struct amdgcn_param64 src1)
-+{
-+	/* dst = s1 << s0 */
-+	insn->vop3a.vdst = dst.lo.v;
-+	insn->vop3a.abs = 0;
-+	insn->vop3a.op_sel = 0;
-+	insn->vop3a.clmp = 0;
-+	insn->vop3a.op = GFX9_V_LSHLREV_B64;
-+	insn->vop3a.encoding = GFX9_VOP3A_ENCODING;
-+	insn->vop3a.src1 = gfx9_get_param_base(src1.lo) + src1.lo.v;
-+	/* 128: src2=0 reads s0 on gfx9 */
-+	insn->vop3a.src2 = GFX9_SRC_INTEGER_0;
-+	insn->vop3a.omod = 0;
-+	insn->vop3a.neg = 0;
-+	if (src0.lo.type == AMDGCN_PARAM_TYPE_LITERAL_CONST) {
-+		insn->vop3a.src0 = gfx9_get_param_base(src0.lo);
-+		insn->vop3a.literal = src0.lo.v;
-+		return 12;
-+	}
-+	insn->vop3a.src0 = gfx9_get_param_base(src0.lo) + src0.lo.v;
-+
-+	return 8;
-+}
-+
-+inline u32 emit_gfx9_v_lshlrev_b32(union amdgcn_gfx9_insn *insn,
-+				   struct amdgcn_param32 dst,
-+				   struct amdgcn_param32 src0,
-+				   struct amdgcn_param32 src1)
-+{
-+	/* dst = s1 << s0 */
-+	WARN_ON(dst.type != AMDGCN_PARAM_TYPE_VGPR);
-+	insn->vop2.vsrc1 = src1.v;
-+	insn->vop2.vdst = dst.v;
-+	insn->vop2.op = GFX9_V_LSHLREV_B32;
-+	insn->vop2.encoding = GFX9_VOP2_ENCODING;
-+	if (src0.type == AMDGCN_PARAM_TYPE_LITERAL_CONST) {
-+		insn->vop2.src0 = gfx9_get_param_base(src0);
-+		insn->vop2.literal = src0.v;
-+		return 8;
-+	}
-+	insn->vop2.src0 = gfx9_get_param_base(src0) + src0.v;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx9_v_lshrrev_b32(union amdgcn_gfx9_insn *insn,
-+				   struct amdgcn_param32 dst,
-+				   struct amdgcn_param32 src0,
-+				   struct amdgcn_param32 src1)
-+{
-+	/* dst = s1 << s0 */
-+	WARN_ON(dst.type != AMDGCN_PARAM_TYPE_VGPR);
-+	insn->vop2.vsrc1 = src1.v;
-+	insn->vop2.vdst = dst.v;
-+	insn->vop2.op = GFX9_V_LSHRREV_B32;
-+	insn->vop2.encoding = GFX9_VOP2_ENCODING;
-+	if (src0.type == AMDGCN_PARAM_TYPE_LITERAL_CONST) {
-+		insn->vop2.src0 = gfx9_get_param_base(src0);
-+		insn->vop2.literal = src0.v;
-+		return 8;
-+	}
-+	insn->vop2.src0 = gfx9_get_param_base(src0) + src0.v;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx9_v_lshrrev_b64(union amdgcn_gfx9_insn *insn,
-+				   struct amdgcn_param64 dst,
-+				   struct amdgcn_param64 src0,
-+				   struct amdgcn_param64 src1)
-+{
-+	/* dst = s1 >> s0 */
-+	insn->vop3a.vdst = dst.lo.v;
-+	insn->vop3a.abs = 0;
-+	insn->vop3a.op_sel = 0;
-+	insn->vop3a.clmp = 0;
-+	insn->vop3a.op = GFX9_V_LSHRREV_B64;
-+	insn->vop3a.encoding = GFX9_VOP3A_ENCODING;
-+	insn->vop3a.src1 = gfx9_get_param_base(src1.lo) + src1.lo.v;
-+	/* 128: src2=0 reads s0 on gfx9 */
-+	insn->vop3a.src2 = GFX9_SRC_INTEGER_0;
-+	insn->vop3a.omod = 0;
-+	insn->vop3a.neg = 0;
-+	if (src0.lo.type == AMDGCN_PARAM_TYPE_LITERAL_CONST) {
-+		insn->vop3a.src0 = gfx9_get_param_base(src0.lo);
-+		insn->vop3a.literal = src0.lo.v;
-+		return 12;
-+	}
-+	insn->vop3a.src0 = gfx9_get_param_base(src0.lo) + src0.lo.v;
-+
-+	return 8;
-+}
-+
-+inline u32 emit_gfx9_v_ashrrev_i64(union amdgcn_gfx9_insn *insn,
-+				   struct amdgcn_param64 dst,
-+				   struct amdgcn_param64 src0,
-+				   struct amdgcn_param64 src1)
-+{
-+	/* dst = s1 >> s0 */
-+	insn->vop3a.vdst = dst.lo.v;
-+	insn->vop3a.abs = 0;
-+	insn->vop3a.op_sel = 0;
-+	insn->vop3a.clmp = 0;
-+	insn->vop3a.op = GFX9_V_ASHRREV_I64;
-+	insn->vop3a.encoding = GFX9_VOP3A_ENCODING;
-+	insn->vop3a.src1 = gfx9_get_param_base(src1.lo) + src1.lo.v;
-+	/* 128: src2=0 reads s0 on gfx9 */
-+	insn->vop3a.src2 = GFX9_SRC_INTEGER_0;
-+	insn->vop3a.omod = 0;
-+	insn->vop3a.neg = 0;
-+	if (src0.lo.type == AMDGCN_PARAM_TYPE_LITERAL_CONST) {
-+		insn->vop3a.src0 = gfx9_get_param_base(src0.lo);
-+		insn->vop3a.literal = src0.lo.v;
-+		return 12;
-+	}
-+	insn->vop3a.src0 = gfx9_get_param_base(src0.lo) + src0.lo.v;
-+
-+	return 8;
-+}
-+
-+inline u32 emit_gfx9_v_ashrrev_i32(union amdgcn_gfx9_insn *insn,
-+				   struct amdgcn_param32 dst,
-+				   struct amdgcn_param32 src0,
-+				   struct amdgcn_param32 src1)
-+{
-+	/* dst = s1 >> s0 */
-+	insn->vop3a.vdst = dst.v;
-+	insn->vop3a.abs = 0;
-+	insn->vop3a.op_sel = 0;
-+	insn->vop3a.clmp = 0;
++struct knod_pass_slot_hdr {
++	u32 len;		/* packet length */
++	u32 _pad;
++	u64 src_addr;		/* VRAM source address (SDMA mode only) */
++};
++
++struct knod_bpf_priv {
++	struct list_head list;
++	struct knod *knod;
++	struct knod_accel *accel;
++	struct knod_dev *knodev;
++	struct net_device *dev;
++	struct knod_prog *knod_prog;
++	/* retained pass IR for debugfs insn dump */
++	struct knod_prog *pass_knod_prog;
++	struct bpf_prog *prog;
++	struct amdgpu_vm *vm;
++	u64 queue_base_gaddr[KNOD_SPSC_MAX];
++	struct knod_bpf_work_sq *inflight[KNOD_BPF_INFLIGHT];
++	unsigned int inflight_cnt;
++	ktime_t next_dispatch_time;
++	struct task_struct *worker_task;
++	struct list_head free_list_sqw;
++	struct mutex map_op_lock;
++	/* maps awaiting deferred free by the worker */
++	struct list_head dead_maps;
++	u32 maps_tick_skip;
++	struct dentry *debug_dir;
++	struct knod_bpf_stats stats;
++	void *prog_buf;
++	void *pass_prog_buf;
++	u32 pass_prog_size;
++	/* descriptor + live shader bytes per kernel slot */
++	u32 kernel_image_len[2];
++	/* knod->kernels[] slot the GPU dispatches */
++	int active_idx;
++	/* knod->kernels[] slot holding the pass kernel */
++	int pass_idx;
 +	/*
-+	 * VOP2 ops encoded in VOP3A use opcode 0x100 + vop2_op (V_ASHRREV_I32
-+	 * is a VOP2 instruction). Without the +0x100 the op field decodes as a
-+	 * different VOP3A instruction, so the arithmetic shift (used for 64-bit
-+	 * sign-extension, e.g. bpf_xdp_adjust_head's delta) produced garbage.
++	 * XDP_PASS shader-to-GTT metadata (shader-written; host read path
++	 * removed). GTT metadata: shader-written headers.
 +	 */
-+	insn->vop3a.op = GFX9_V_ASHRREV_I32 + 0x100;
-+	insn->vop3a.encoding = GFX9_VOP3A_ENCODING;
-+	insn->vop3a.src1 = gfx9_get_param_base(src1) + src1.v;
-+	/* 128: src2=0 reads s0 on gfx9 */
-+	insn->vop3a.src2 = GFX9_SRC_INTEGER_0;
-+	insn->vop3a.omod = 0;
-+	insn->vop3a.neg = 0;
-+	if (src0.type == AMDGCN_PARAM_TYPE_LITERAL_CONST) {
-+		insn->vop3a.src0 = gfx9_get_param_base(src0);
-+		insn->vop3a.literal = src0.v;
-+		return 12;
-+	}
-+	insn->vop3a.src0 = gfx9_get_param_base(src0) + src0.v;
-+
-+	return 8;
-+}
-+
-+inline u32 emit_gfx9_v_alignbit_b32(union amdgcn_gfx9_insn *insn,
-+				    struct amdgcn_param32 dst,
-+				    struct amdgcn_param32 src0,
-+				    struct amdgcn_param32 src1,
-+				    struct amdgcn_param32 src2)
-+{
-+	/* D.u = ({S0,S1} >> S2.u[4:0]) & 0xffffffff. */
-+	WARN_ON(dst.type != AMDGCN_PARAM_TYPE_VGPR);
-+	insn->vop3a.vdst = dst.v;
-+	insn->vop3a.abs = 0;
-+	insn->vop3a.op_sel = 0;
-+	insn->vop3a.clmp = 0;
-+	insn->vop3a.op = GFX9_V_ALIGNBIT_B32;
-+	insn->vop3a.encoding = GFX9_VOP3A_ENCODING;
-+	insn->vop3a.src1 = gfx9_get_param_base(src1) + src1.v;
-+	insn->vop3a.src2 = gfx9_get_param_base(src2) + src2.v;
-+	insn->vop3a.omod = 0;
-+	insn->vop3a.neg = 0;
-+	if (src0.type == AMDGCN_PARAM_TYPE_LITERAL_CONST) {
-+		insn->vop3a.src0 = gfx9_get_param_base(src0);
-+		insn->vop3a.literal = src0.v;
-+		return 12;
-+	}
-+	insn->vop3a.src0 = gfx9_get_param_base(src0) + src0.v;
-+
-+	return 8;
-+}
-+
-+inline u32 emit_gfx9_v_perm_b32(union amdgcn_gfx9_insn *insn,
-+				struct amdgcn_param32 dst,
-+				struct amdgcn_param32 src0,
-+				struct amdgcn_param32 src1,
-+				struct amdgcn_param32 src2)
-+{
-+	/*
-+	 * v_perm_b32: D.u[31:24] = src[sel[14:12]],
-+	 *             D.u[23:16] = src[sel[10:8]], ...
-+	 * For bswap32: sel = 0x00010203 reverses bytes.
-+	 */
-+	WARN_ON(dst.type != AMDGCN_PARAM_TYPE_VGPR);
-+	/* VOP3 does not support literal constants on GFX9 */
-+	WARN_ON(src0.type == AMDGCN_PARAM_TYPE_LITERAL_CONST ||
-+		src1.type == AMDGCN_PARAM_TYPE_LITERAL_CONST ||
-+		src2.type == AMDGCN_PARAM_TYPE_LITERAL_CONST);
-+	insn->vop3a.vdst = dst.v;
-+	insn->vop3a.abs = 0;
-+	insn->vop3a.op_sel = 0;
-+	insn->vop3a.clmp = 0;
-+	insn->vop3a.op = GFX9_V_PERM_B32;
-+	insn->vop3a.encoding = GFX9_VOP3A_ENCODING;
-+	insn->vop3a.src0 = gfx9_get_param_base(src0) + src0.v;
-+	insn->vop3a.src1 = gfx9_get_param_base(src1) + src1.v;
-+	insn->vop3a.src2 = gfx9_get_param_base(src2) + src2.v;
-+	insn->vop3a.omod = 0;
-+	insn->vop3a.neg = 0;
-+
-+	return 8;
-+}
-+
-+inline u32 emit_gfx9_v_cmp_eq_u64(union amdgcn_gfx9_insn *insn,
-+				  struct amdgcn_param32 dst,
-+				  struct amdgcn_param32 src)
-+{
-+	/* VCC = S0 == S1 */
-+	insn->vopc.src0 = gfx9_get_param_base(dst) + dst.v;
-+	insn->vopc.vsrc1 = src.v;
-+	insn->vopc.op = GFX9_V_CMP_EQ_U64;
-+	insn->vopc.encoding = GFX9_VOPC_ENCODING;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx9_v_cmp_eq_u32(union amdgcn_gfx9_insn *insn,
-+				  struct amdgcn_param32 dst,
-+				  struct amdgcn_param32 src)
-+{
-+	/*
-+	 * VOPC src0 supports SGPR/inline/VGPR but NOT literal
-+	 * (no 8-byte path)
-+	 */
-+	WARN_ON(dst.type == AMDGCN_PARAM_TYPE_LITERAL_CONST);
-+	WARN_ON(src.type != AMDGCN_PARAM_TYPE_VGPR);
-+	/* VCC = S0 == S1 */
-+	insn->vopc.src0 = gfx9_get_param_base(dst) + dst.v;
-+	insn->vopc.vsrc1 = src.v;
-+	insn->vopc.op = GFX9_V_CMP_EQ_U32;
-+	insn->vopc.encoding = GFX9_VOPC_ENCODING;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx9_v_cmp_gt_u64(union amdgcn_gfx9_insn *insn,
-+				  struct amdgcn_param64 dst,
-+				  struct amdgcn_param64 src)
-+{
-+	/* VCC = S0 > S1 */
-+	insn->vopc.src0 = gfx9_get_param_base(dst.lo) + dst.lo.v;
-+	insn->vopc.vsrc1 = src.lo.v;
-+	insn->vopc.op = GFX9_V_CMP_GT_U64;
-+	insn->vopc.encoding = GFX9_VOPC_ENCODING;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx9_v_cmp_gt_i64(union amdgcn_gfx9_insn *insn,
-+				  struct amdgcn_param64 dst,
-+				  struct amdgcn_param64 src)
-+{
-+	/* VCC = S0 > S1 (signed) */
-+	insn->vopc.src0 = gfx9_get_param_base(dst.lo) + dst.lo.v;
-+	insn->vopc.vsrc1 = src.lo.v;
-+	insn->vopc.op = GFX9_V_CMP_GT_I64;
-+	insn->vopc.encoding = GFX9_VOPC_ENCODING;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx9_v_cmp_ge_u32(union amdgcn_gfx9_insn *insn,
-+				  struct amdgcn_param32 dst,
-+				  struct amdgcn_param32 src)
-+{
-+	/* VCC = S0 >= S1 */
-+	insn->vopc.src0 = gfx9_get_param_base(dst) + dst.v;
-+	insn->vopc.vsrc1 = src.v;
-+	insn->vopc.op = GFX9_V_CMP_GE_U32;
-+	insn->vopc.encoding = GFX9_VOPC_ENCODING;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx9_v_cmp_gt_u32(union amdgcn_gfx9_insn *insn,
-+				  struct amdgcn_param32 dst,
-+				  struct amdgcn_param32 src)
-+{
-+	/* VCC = S0 > S1 */
-+	insn->vopc.src0 = gfx9_get_param_base(dst) + dst.v;
-+	insn->vopc.vsrc1 = src.v;
-+	insn->vopc.op = GFX9_V_CMP_GT_U32;
-+	insn->vopc.encoding = GFX9_VOPC_ENCODING;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx9_v_cmp_lt_u32(union amdgcn_gfx9_insn *insn,
-+				  struct amdgcn_param32 dst,
-+				  struct amdgcn_param32 src)
-+{
-+	/* VCC = S0 < S1 */
-+	insn->vopc.src0 = gfx9_get_param_base(dst) + dst.v;
-+	insn->vopc.vsrc1 = src.v;
-+	insn->vopc.op = GFX9_V_CMP_LT_U32;
-+	insn->vopc.encoding = GFX9_VOPC_ENCODING;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx9_v_cmp_le_u32(union amdgcn_gfx9_insn *insn,
-+				  struct amdgcn_param32 dst,
-+				  struct amdgcn_param32 src)
-+{
-+	/* VCC = S0 <= S1 */
-+	insn->vopc.src0 = gfx9_get_param_base(dst) + dst.v;
-+	insn->vopc.vsrc1 = src.v;
-+	insn->vopc.op = GFX9_V_CMP_LE_U32;
-+	insn->vopc.encoding = GFX9_VOPC_ENCODING;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx9_v_cmp_gt_i32(union amdgcn_gfx9_insn *insn,
-+				  struct amdgcn_param32 dst,
-+				  struct amdgcn_param32 src)
-+{
-+	/* VCC = S0 > S1 (signed) */
-+	insn->vopc.src0 = gfx9_get_param_base(dst) + dst.v;
-+	insn->vopc.vsrc1 = src.v;
-+	insn->vopc.op = GFX9_V_CMP_GT_I32;
-+	insn->vopc.encoding = GFX9_VOPC_ENCODING;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx9_v_cmp_ge_i32(union amdgcn_gfx9_insn *insn,
-+				  struct amdgcn_param32 dst,
-+				  struct amdgcn_param32 src)
-+{
-+	/* VCC = S0 >= S1 (signed) */
-+	insn->vopc.src0 = gfx9_get_param_base(dst) + dst.v;
-+	insn->vopc.vsrc1 = src.v;
-+	insn->vopc.op = GFX9_V_CMP_GE_I32;
-+	insn->vopc.encoding = GFX9_VOPC_ENCODING;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx9_v_cmp_lt_i32(union amdgcn_gfx9_insn *insn,
-+				  struct amdgcn_param32 dst,
-+				  struct amdgcn_param32 src)
-+{
-+	/* VCC = S0 < S1 (signed) */
-+	insn->vopc.src0 = gfx9_get_param_base(dst) + dst.v;
-+	insn->vopc.vsrc1 = src.v;
-+	insn->vopc.op = GFX9_V_CMP_LT_I32;
-+	insn->vopc.encoding = GFX9_VOPC_ENCODING;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx9_v_cmp_le_i32(union amdgcn_gfx9_insn *insn,
-+				  struct amdgcn_param32 dst,
-+				  struct amdgcn_param32 src)
-+{
-+	/* VCC = S0 <= S1 (signed) */
-+	insn->vopc.src0 = gfx9_get_param_base(dst) + dst.v;
-+	insn->vopc.vsrc1 = src.v;
-+	insn->vopc.op = GFX9_V_CMP_LE_I32;
-+	insn->vopc.encoding = GFX9_VOPC_ENCODING;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx9_v_cmpx_lt_u32(union amdgcn_gfx9_insn *insn,
-+				   struct amdgcn_param32 dst,
-+				   struct amdgcn_param32 src)
-+{
-+	/* EXEC &= (S0 < S1) */
-+	insn->vopc.src0 = gfx9_get_param_base(dst) + dst.v;
-+	insn->vopc.vsrc1 = src.v;
-+	insn->vopc.op = GFX9_V_CMPX_LT_U32;
-+	insn->vopc.encoding = GFX9_VOPC_ENCODING;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx9_v_cmp_ge_u64(union amdgcn_gfx9_insn *insn,
-+				  struct amdgcn_param64 dst,
-+				  struct amdgcn_param64 src)
-+{
-+	/* VCC = S0 >= S1 */
-+	insn->vopc.src0 = gfx9_get_param_base(dst.lo) + dst.lo.v;
-+	insn->vopc.vsrc1 = src.lo.v;
-+	insn->vopc.op = GFX9_V_CMP_GE_U64;
-+	insn->vopc.encoding = GFX9_VOPC_ENCODING;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx9_v_cmp_ge_i64(union amdgcn_gfx9_insn *insn,
-+				  struct amdgcn_param64 dst,
-+				  struct amdgcn_param64 src)
-+{
-+	/* VCC = S0 >= S1 (signed) */
-+	insn->vopc.src0 = gfx9_get_param_base(dst.lo) + dst.lo.v;
-+	insn->vopc.vsrc1 = src.lo.v;
-+	insn->vopc.op = GFX9_V_CMP_GE_I64;
-+	insn->vopc.encoding = GFX9_VOPC_ENCODING;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx9_v_cmp_lt_u64(union amdgcn_gfx9_insn *insn,
-+				  struct amdgcn_param64 dst,
-+				  struct amdgcn_param64 src)
-+{
-+	/* VCC = S0 < S1 */
-+	insn->vopc.src0 = gfx9_get_param_base(dst.lo) + dst.lo.v;
-+	insn->vopc.vsrc1 = src.lo.v;
-+	insn->vopc.op = GFX9_V_CMP_LT_U64;
-+	insn->vopc.encoding = GFX9_VOPC_ENCODING;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx9_v_cmp_lt_i64(union amdgcn_gfx9_insn *insn,
-+				  struct amdgcn_param64 dst,
-+				  struct amdgcn_param64 src)
-+{
-+	/* VCC = S0 < S1 (signed) */
-+	insn->vopc.src0 = gfx9_get_param_base(dst.lo) + dst.lo.v;
-+	insn->vopc.vsrc1 = src.lo.v;
-+	insn->vopc.op = GFX9_V_CMP_LT_I64;
-+	insn->vopc.encoding = GFX9_VOPC_ENCODING;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx9_v_cmp_le_u64(union amdgcn_gfx9_insn *insn,
-+				  struct amdgcn_param64 dst,
-+				  struct amdgcn_param64 src)
-+{
-+	/* VCC = S0 <= S1 */
-+	insn->vopc.src0 = gfx9_get_param_base(dst.lo) + dst.lo.v;
-+	insn->vopc.vsrc1 = src.lo.v;
-+	insn->vopc.op = GFX9_V_CMP_LE_U64;
-+	insn->vopc.encoding = GFX9_VOPC_ENCODING;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx9_v_cmp_le_i64(union amdgcn_gfx9_insn *insn,
-+				  struct amdgcn_param64 dst,
-+				  struct amdgcn_param64 src)
-+{
-+	/* VCC = S0 <= S1 (signed) */
-+	insn->vopc.src0 = gfx9_get_param_base(dst.lo) + dst.lo.v;
-+	insn->vopc.vsrc1 = src.lo.v;
-+	insn->vopc.op = GFX9_V_CMP_LE_I64;
-+	insn->vopc.encoding = GFX9_VOPC_ENCODING;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx9_buffer_load_ubyte(union amdgcn_gfx9_insn *insn,
-+				       struct amdgcn_param32 dst,
-+				       struct amdgcn_param32 src,
-+				       short off)
-+{
-+	/* buffer_load_ubyte <dst>, <src>, s[0:3], 0 offen offset:<off> */
-+	insn->mubuf.offset = off;
-+	insn->mubuf.offen = 1;
-+	insn->mubuf.idxen = 0;
-+	insn->mubuf.glc = 0;
-+	insn->mubuf.dummy1 = 0;
-+	insn->mubuf.lds = 0;
-+	insn->mubuf.op = GFX9_BUFFER_LOAD_UBYTE;
-+	insn->mubuf.dummy2 = 0;
-+	insn->mubuf.encoding = GFX9_MUBUF_ENCODING;
-+	insn->mubuf.vaddr = src.v;
-+	insn->mubuf.vdata = dst.v;
-+	insn->mubuf.srsrc = 0; /* s[0:3] */
-+	insn->mubuf.dummy3 = 0;
-+	insn->mubuf.tfe = 0;
-+	insn->mubuf.soffset = GFX9_MUBUF_SOFFSET_INTEGER_0;
-+
-+	return 8;
-+}
-+
-+inline u32 emit_gfx9_buffer_load_ushort(union amdgcn_gfx9_insn *insn,
-+					struct amdgcn_param32 dst,
-+					struct amdgcn_param32 src,
-+					short off)
-+{
-+	/* buffer_load_ushort <dst>, <src>, s[0:3], 0 offen offset:<off> */
-+	insn->mubuf.offset = off;
-+	insn->mubuf.offen = 1;
-+	insn->mubuf.idxen = 0;
-+	insn->mubuf.glc = 0;
-+	insn->mubuf.dummy1 = 0;
-+	insn->mubuf.lds = 0;
-+	insn->mubuf.op = GFX9_BUFFER_LOAD_USHORT;
-+	insn->mubuf.dummy2 = 0;
-+	insn->mubuf.encoding = GFX9_MUBUF_ENCODING;
-+	insn->mubuf.vaddr = src.v;
-+	insn->mubuf.vdata = dst.v;
-+	insn->mubuf.srsrc = 0; /* s[0:3] */
-+	insn->mubuf.dummy3 = 0;
-+	insn->mubuf.tfe = 0;
-+	insn->mubuf.soffset = GFX9_MUBUF_SOFFSET_INTEGER_0;
-+
-+	return 8;
-+}
-+
-+inline u32 emit_gfx9_buffer_load_dword(union amdgcn_gfx9_insn *insn,
-+				       struct amdgcn_param32 dst,
-+				       struct amdgcn_param32 src,
-+				       short off)
-+{
-+	/* buffer_load_dword <dst>, <src>, s[0:3], 0 offen offset:<off> */
-+	insn->mubuf.offset = off;
-+	insn->mubuf.offen = 1;
-+	insn->mubuf.idxen = 0;
-+	insn->mubuf.glc = 0;
-+	insn->mubuf.dummy1 = 0;
-+	insn->mubuf.lds = 0;
-+	insn->mubuf.op = GFX9_BUFFER_LOAD_DWORD;
-+	insn->mubuf.dummy2 = 0;
-+	insn->mubuf.encoding = GFX9_MUBUF_ENCODING;
-+	insn->mubuf.vaddr = src.v;
-+	insn->mubuf.vdata = dst.v;
-+	insn->mubuf.srsrc = 0; /* s[0:3] */
-+	insn->mubuf.dummy3 = 0;
-+	insn->mubuf.tfe = 0;
-+	insn->mubuf.soffset = GFX9_MUBUF_SOFFSET_INTEGER_0;
-+
-+	return 8;
-+}
-+
-+inline u32 emit_gfx9_buffer_load_dwordx2(union amdgcn_gfx9_insn *insn,
-+					 struct amdgcn_param32 dst,
-+					 struct amdgcn_param32 src,
-+					 short off)
-+{
-+	/* buffer_load_dwordx2 <dst>, <src>, s[0:3], 0 offen offset:<off> */
-+	insn->mubuf.offset = off;
-+	insn->mubuf.offen = 1;
-+	insn->mubuf.idxen = 0;
-+	insn->mubuf.glc = 0;
-+	insn->mubuf.dummy1 = 0;
-+	insn->mubuf.lds = 0;
-+	insn->mubuf.op = GFX9_BUFFER_LOAD_DWORDX2;
-+	insn->mubuf.dummy2 = 0;
-+	insn->mubuf.encoding = GFX9_MUBUF_ENCODING;
-+	insn->mubuf.vaddr = src.v;
-+	insn->mubuf.vdata = dst.v;
-+	insn->mubuf.srsrc = 0; /* s[0:3] */
-+	insn->mubuf.dummy3 = 0;
-+	insn->mubuf.tfe = 0;
-+	insn->mubuf.soffset = GFX9_MUBUF_SOFFSET_INTEGER_0;
-+
-+	return 8;
-+}
-+
-+inline u32 emit_gfx9_buffer_load_dwordx4(union amdgcn_gfx9_insn *insn,
-+					 struct amdgcn_param32 dst,
-+					 struct amdgcn_param32 src,
-+					 short off)
-+{
-+	/* buffer_load_dwordx4 <dst>, <src>, s[0:3], 0 offen offset:<off> */
-+	insn->mubuf.offset = off;
-+	insn->mubuf.offen = 1;
-+	insn->mubuf.idxen = 0;
-+	insn->mubuf.glc = 0;
-+	insn->mubuf.dummy1 = 0;
-+	insn->mubuf.lds = 0;
-+	insn->mubuf.op = GFX9_BUFFER_LOAD_DWORDX4;
-+	insn->mubuf.dummy2 = 0;
-+	insn->mubuf.encoding = GFX9_MUBUF_ENCODING;
-+	insn->mubuf.vaddr = src.v;
-+	insn->mubuf.vdata = dst.v;
-+	insn->mubuf.srsrc = 0; /* s[0:3] */
-+	insn->mubuf.dummy3 = 0;
-+	insn->mubuf.tfe = 0;
-+	insn->mubuf.soffset = GFX9_MUBUF_SOFFSET_INTEGER_0;
-+
-+	return 8;
-+}
-+
-+inline u32 emit_gfx9_global_load_ubyte(union amdgcn_gfx9_insn *insn,
-+				       struct amdgcn_param32 dst,
-+				       struct amdgcn_param32 src,
-+				       short off)
-+{
-+	/* global_load_ubyte <dst>, <srcs>, off offset:<off> */
-+	insn->flat.offset = off;
-+	insn->flat.lds = 0;
-+	insn->flat.seg = GFX9_FLAT_SEG_GLOBAL;
-+	insn->flat.glc = 0;
-+	insn->flat.slc = 0;
-+	insn->flat.op = GFX9_GLOBAL_LOAD_UBYTE;
-+	insn->flat.dummy = 0;
-+	insn->flat.encoding = GFX9_FLAT_ENCODING;
-+	insn->flat.addr = src.v;
-+	insn->flat.data = 0; /* ignored? */
-+	insn->flat.saddr = GFX9_FLAT_SADDR_DISABLE;
-+	insn->flat.nv = 0;
-+	insn->flat.vdst = dst.v;
-+
-+	return 8;
-+}
-+
-+inline u32 emit_gfx9_global_load_ushort(union amdgcn_gfx9_insn *insn,
-+				       struct amdgcn_param32 dst,
-+				       struct amdgcn_param32 src,
-+				       short off)
-+{
-+	/* global_load_ushort <dst>, <srcs>, off offset:<off> */
-+	insn->flat.offset = off;
-+	insn->flat.lds = 0;
-+	insn->flat.seg = GFX9_FLAT_SEG_GLOBAL;
-+	insn->flat.glc = 0;
-+	insn->flat.slc = 0;
-+	insn->flat.op = GFX9_GLOBAL_LOAD_USHORT;
-+	insn->flat.dummy = 0;
-+	insn->flat.encoding = GFX9_FLAT_ENCODING;
-+	insn->flat.addr = src.v;
-+	insn->flat.data = 0; /* ignored? */
-+	insn->flat.saddr = GFX9_FLAT_SADDR_DISABLE;
-+	insn->flat.nv = 0;
-+	insn->flat.vdst = dst.v;
-+
-+	return 8;
-+}
-+
-+inline u32 emit_gfx9_global_load_dword(union amdgcn_gfx9_insn *insn,
-+				       struct amdgcn_param32 dst,
-+				       struct amdgcn_param32 src,
-+				       short off)
-+{
-+	/* global_load_dword <dst>, <srcs>, off offset:<off> */
-+	insn->flat.offset = off;
-+	insn->flat.lds = 0;
-+	insn->flat.seg = GFX9_FLAT_SEG_GLOBAL;
-+	insn->flat.glc = 0;
-+	insn->flat.slc = 0;
-+	insn->flat.op = GFX9_GLOBAL_LOAD_DWORD;
-+	insn->flat.dummy = 0;
-+	insn->flat.encoding = GFX9_FLAT_ENCODING;
-+	insn->flat.addr = src.v;
-+	insn->flat.data = 0; /* ignored? */
-+	insn->flat.saddr = GFX9_FLAT_SADDR_DISABLE;
-+	insn->flat.nv = 0;
-+	insn->flat.vdst = dst.v;
-+
-+	return 8;
-+}
-+
-+inline u32 emit_gfx9_global_load_dwordx2(union amdgcn_gfx9_insn *insn,
-+					 struct amdgcn_param32 dst,
-+					 struct amdgcn_param32 src,
-+					 short off)
-+{
-+	/* global_load_dwordx2 <dst>, <srcs>, off offset:<off> */
-+	insn->flat.offset = off;
-+	insn->flat.lds = 0;
-+	insn->flat.seg = GFX9_FLAT_SEG_GLOBAL;
-+	insn->flat.glc = 0;
-+	insn->flat.slc = 0;
-+	insn->flat.op = GFX9_GLOBAL_LOAD_DWORDX2;
-+	insn->flat.dummy = 0;
-+	insn->flat.encoding = GFX9_FLAT_ENCODING;
-+	insn->flat.addr = src.v;
-+	insn->flat.data = 0; /* ignored? */
-+	insn->flat.saddr = GFX9_FLAT_SADDR_DISABLE;
-+	insn->flat.nv = 0;
-+	insn->flat.vdst = dst.v;
-+
-+	return 8;
-+}
-+
-+inline u32 emit_gfx9_global_load_dwordx4(union amdgcn_gfx9_insn *insn,
-+					 struct amdgcn_param32 dst,
-+					 struct amdgcn_param32 src,
-+					 short off)
-+{
-+	/* global_load_dwordx4 <dst>, <srcs>, off offset:<off> */
-+	insn->flat.offset = off;
-+	insn->flat.lds = 0;
-+	insn->flat.seg = GFX9_FLAT_SEG_GLOBAL;
-+	insn->flat.glc = 0;
-+	insn->flat.slc = 0;
-+	insn->flat.op = GFX9_GLOBAL_LOAD_DWORDX4;
-+	insn->flat.dummy = 0;
-+	insn->flat.encoding = GFX9_FLAT_ENCODING;
-+	insn->flat.addr = src.v;
-+	insn->flat.data = 0; /* ignored? */
-+	insn->flat.saddr = GFX9_FLAT_SADDR_DISABLE;
-+	insn->flat.nv = 0;
-+	insn->flat.vdst = dst.v;
-+
-+	return 8;
-+}
-+
-+inline u32 emit_gfx9_global_load_dwordx4_glc(union amdgcn_gfx9_insn *insn,
-+					      struct amdgcn_param32 dst,
-+					      struct amdgcn_param32 src,
-+					      short off)
-+{
-+	/* global_load_dwordx4 <dst>, <srcs>, off offset:<off> glc slc
-+	 * GLC=1: bypass L1 (TCP). SLC=1: bypass L2 (TCC).
-+	 * Both needed for VRAM written by external DMA (NIC via PCIe)
-+	 * since L2 is not invalidated on external writes.
-+	 */
-+	insn->flat.offset = off;
-+	insn->flat.lds = 0;
-+	insn->flat.seg = GFX9_FLAT_SEG_GLOBAL;
-+	insn->flat.glc = 1;
-+	insn->flat.slc = 1;
-+	insn->flat.op = GFX9_GLOBAL_LOAD_DWORDX4;
-+	insn->flat.dummy = 0;
-+	insn->flat.encoding = GFX9_FLAT_ENCODING;
-+	insn->flat.addr = src.v;
-+	insn->flat.data = 0;
-+	insn->flat.saddr = GFX9_FLAT_SADDR_DISABLE;
-+	insn->flat.nv = 0;
-+	insn->flat.vdst = dst.v;
-+
-+	return 8;
-+}
-+
-+inline u32 emit_gfx9_global_store_byte(union amdgcn_gfx9_insn *insn,
-+				       struct amdgcn_param32 dst,
-+				       struct amdgcn_param32 src, int off)
-+{
-+	/* global_store_byte <src>, <dst>, off offset:<off>
-+	 * *(char *)(dst + off) = src;
-+	 */
-+	insn->flat.offset = off;
-+	insn->flat.lds = 0;
-+	insn->flat.seg = GFX9_FLAT_SEG_GLOBAL;
-+	insn->flat.glc = 0;
-+	insn->flat.slc = 0;
-+	insn->flat.op = GFX9_GLOBAL_STORE_BYTE;
-+	insn->flat.dummy = 0;
-+	insn->flat.encoding = GFX9_FLAT_ENCODING;
-+	insn->flat.addr = dst.v;
-+	insn->flat.data = src.v;
-+	insn->flat.saddr = GFX9_FLAT_SADDR_DISABLE;
-+	insn->flat.nv = 0;
-+	insn->flat.vdst = 0;
-+
-+	return 8;
-+}
-+
-+inline u32 emit_gfx9_global_store_short(union amdgcn_gfx9_insn *insn,
-+					struct amdgcn_param32 dst,
-+					struct amdgcn_param32 src, int off)
-+{
-+	/* global_store_short <src>, <dst>, off offset:<off>
-+	 * *(char *)(dst + off) = src;
-+	 */
-+	insn->flat.offset = off;
-+	insn->flat.lds = 0;
-+	insn->flat.seg = GFX9_FLAT_SEG_GLOBAL;
-+	insn->flat.glc = 0;
-+	insn->flat.slc = 0;
-+	insn->flat.op = GFX9_GLOBAL_STORE_SHORT;
-+	insn->flat.dummy = 0;
-+	insn->flat.encoding = GFX9_FLAT_ENCODING;
-+	insn->flat.addr = dst.v;
-+	insn->flat.data = src.v;
-+	insn->flat.saddr = GFX9_FLAT_SADDR_DISABLE;
-+	insn->flat.nv = 0;
-+	insn->flat.vdst = 0;
-+
-+	return 8;
-+}
-+
-+inline u32 emit_gfx9_global_store_dword(union amdgcn_gfx9_insn *insn,
-+					struct amdgcn_param32 dst,
-+					struct amdgcn_param32 src, int off)
-+{
-+	/* global_store_dword <src>, <dst>, off offset:<off>
-+	 * *(char *)(dst + off) = src;
-+	 */
-+	insn->flat.offset = off;
-+	insn->flat.lds = 0;
-+	insn->flat.seg = GFX9_FLAT_SEG_GLOBAL;
-+	insn->flat.glc = 0;
-+	insn->flat.slc = 0;
-+	insn->flat.op = GFX9_GLOBAL_STORE_DWORD;
-+	insn->flat.dummy = 0;
-+	insn->flat.encoding = GFX9_FLAT_ENCODING;
-+	insn->flat.addr = dst.v;
-+	insn->flat.data = src.v;
-+	insn->flat.saddr = GFX9_FLAT_SADDR_DISABLE;
-+	insn->flat.nv = 0;
-+	insn->flat.vdst = 0;
-+
-+	return 8;
-+}
-+
-+/* global_atomic_add vdst, addr, data, off  (GLC=1: return old value)
-+ * old_val = *(u32 *)(addr + off); *(u32 *)(addr + off) += data; vdst = old_val
-+ */
-+/* GFX9 global atomic: opcode only differs, all else identical */
-+#define DEFINE_GFX9_GLOBAL_ATOMIC(name, opcode)				\
-+inline u32 emit_gfx9_global_atomic_##name(union amdgcn_gfx9_insn *insn,\
-+					   struct amdgcn_param32 vdst,	\
-+					   struct amdgcn_param32 addr,	\
-+					   struct amdgcn_param32 data,	\
-+					   int off, int glc)		\
-+{									\
-+	insn->flat.offset = off;					\
-+	insn->flat.lds = 0;						\
-+	insn->flat.seg = GFX9_FLAT_SEG_GLOBAL;				\
-+	insn->flat.glc = glc;						\
-+	insn->flat.slc = 0;						\
-+	insn->flat.op = (opcode);					\
-+	insn->flat.dummy = 0;						\
-+	insn->flat.encoding = GFX9_FLAT_ENCODING;			\
-+	insn->flat.addr = addr.v;					\
-+	insn->flat.data = data.v;					\
-+	insn->flat.saddr = GFX9_FLAT_SADDR_DISABLE;			\
-+	insn->flat.nv = 0;						\
-+	insn->flat.vdst = vdst.v;					\
-+	return 8;							\
-+}
-+
-+DEFINE_GFX9_GLOBAL_ATOMIC(add, GFX9_GLOBAL_ATOMIC_ADD)
-+DEFINE_GFX9_GLOBAL_ATOMIC(and, GFX9_GLOBAL_ATOMIC_AND)
-+DEFINE_GFX9_GLOBAL_ATOMIC(or, GFX9_GLOBAL_ATOMIC_OR)
-+DEFINE_GFX9_GLOBAL_ATOMIC(xor, GFX9_GLOBAL_ATOMIC_XOR)
-+DEFINE_GFX9_GLOBAL_ATOMIC(swap, GFX9_GLOBAL_ATOMIC_SWAP)
-+DEFINE_GFX9_GLOBAL_ATOMIC(cmpswap, GFX9_GLOBAL_ATOMIC_CMPSWAP)
-+DEFINE_GFX9_GLOBAL_ATOMIC(add_x2, GFX9_GLOBAL_ATOMIC_ADD_X2)
-+DEFINE_GFX9_GLOBAL_ATOMIC(and_x2, GFX9_GLOBAL_ATOMIC_AND_X2)
-+DEFINE_GFX9_GLOBAL_ATOMIC(or_x2, GFX9_GLOBAL_ATOMIC_OR_X2)
-+DEFINE_GFX9_GLOBAL_ATOMIC(xor_x2, GFX9_GLOBAL_ATOMIC_XOR_X2)
-+DEFINE_GFX9_GLOBAL_ATOMIC(swap_x2, GFX9_GLOBAL_ATOMIC_SWAP_X2)
-+DEFINE_GFX9_GLOBAL_ATOMIC(cmpswap_x2, GFX9_GLOBAL_ATOMIC_CMPSWAP_X2)
-+
-+inline u32 emit_gfx9_global_store_dwordx2(union amdgcn_gfx9_insn *insn,
-+					  struct amdgcn_param32 dst,
-+					  struct amdgcn_param32 src, int off)
-+{
-+	/* global_store_dwordx2 <src>, <dst>, off offset:<off>
-+	 * *(char *)(dst + off) = src;
-+	 */
-+	insn->flat.offset = off;
-+	insn->flat.lds = 0;
-+	insn->flat.seg = GFX9_FLAT_SEG_GLOBAL;
-+	insn->flat.glc = 0;
-+	insn->flat.slc = 0;
-+	insn->flat.op = GFX9_GLOBAL_STORE_DWORDX2;
-+	insn->flat.dummy = 0;
-+	insn->flat.encoding = GFX9_FLAT_ENCODING;
-+	insn->flat.addr = dst.v;
-+	insn->flat.data = src.v;
-+	insn->flat.saddr = GFX9_FLAT_SADDR_DISABLE;
-+	insn->flat.nv = 0;
-+	insn->flat.vdst = 0;
-+
-+	return 8;
-+}
-+
-+inline u32 emit_gfx9_global_store_dwordx4(union amdgcn_gfx9_insn *insn,
-+					  struct amdgcn_param32 dst,
-+					  struct amdgcn_param32 src, int off)
-+{
-+	/* global_store_dwordx4 <src>, <dst>, off offset:<off>
-+	 * *(char *)(dst + off) = src;
-+	 */
-+	insn->flat.offset = off;
-+	insn->flat.lds = 0;
-+	insn->flat.seg = GFX9_FLAT_SEG_GLOBAL;
-+	insn->flat.glc = 0;
-+	insn->flat.slc = 0;
-+	insn->flat.op = GFX9_GLOBAL_STORE_DWORDX4;
-+	insn->flat.dummy = 0;
-+	insn->flat.encoding = GFX9_FLAT_ENCODING;
-+	insn->flat.addr = dst.v;
-+	insn->flat.data = src.v;
-+	insn->flat.saddr = GFX9_FLAT_SADDR_DISABLE;
-+	insn->flat.nv = 0;
-+	insn->flat.vdst = 0;
-+
-+	return 8;
-+}
-+
-+inline u32 emit_gfx9_ds_read2_b64(union amdgcn_gfx9_insn *insn,
-+				  int dst, int src, short off0, short off1)
-+{
-+	/*
-+	 * ds_read2_b64 v[<dst>+3:<dst>], v<src> off
-+	 * offset0:<off0> offset1:<off1>
-+	 */
-+
-+	insn->ds.offset0 = off0;
-+	insn->ds.offset1 = off1;
-+	insn->ds.gds = GFX9_DS_LDS;
-+	insn->ds.op = GFX9_DS_READ2_B64;
-+	insn->ds.encoding = GFX9_DS_ENCODING;
-+	insn->ds.addr = src;
-+	insn->ds.data0 = 0;
-+	insn->ds.data1 = 0;
-+	insn->ds.vdst = dst;
-+
-+	return 8;
-+}
-+
-+inline u32 emit_gfx9_ds_read_b64(union amdgcn_gfx9_insn *insn,
-+				 int dst, int src, short off)
-+{
-+	/* ds_read_b64 v[<dst>+1:<dst>], v<src> offset:<off> */
-+
-+	insn->ds.offset0 = off & 0xff;
-+	insn->ds.offset1 = off >> 8;
-+	insn->ds.gds = GFX9_DS_LDS;
-+	insn->ds.op = GFX9_DS_READ_B64;
-+	insn->ds.encoding = GFX9_DS_ENCODING;
-+	insn->ds.addr = src;
-+	insn->ds.data0 = 0;
-+	insn->ds.data1 = 0;
-+	insn->ds.vdst = dst;
-+
-+	return 8;
-+}
-+
-+inline u32 emit_gfx9_ds_read_b32(union amdgcn_gfx9_insn *insn,
-+				 int dst, int src, short off)
-+{
-+	/* ds_read_b32 v<dst>, v<src> offset:<off> */
-+
-+	insn->ds.offset0 = off & 0xff;
-+	insn->ds.offset1 = off >> 8;
-+	insn->ds.gds = GFX9_DS_LDS;
-+	insn->ds.op = GFX9_DS_READ_B32;
-+	insn->ds.encoding = GFX9_DS_ENCODING;
-+	insn->ds.addr = src;
-+	insn->ds.data0 = 0;
-+	insn->ds.data1 = 0;
-+	insn->ds.vdst = dst;
-+
-+	return 8;
-+}
-+
-+inline u32 emit_gfx9_ds_read_u16(union amdgcn_gfx9_insn *insn,
-+				 int dst, int src, short off)
-+{
-+	/* ds_read_u16 v<dst>, v<src> offset:<off> */
-+
-+	insn->ds.offset0 = off & 0xff;
-+	insn->ds.offset1 = off >> 8;
-+	insn->ds.gds = GFX9_DS_LDS;
-+	insn->ds.op = GFX9_DS_READ_U16;
-+	insn->ds.encoding = GFX9_DS_ENCODING;
-+	insn->ds.addr = src;
-+	insn->ds.data0 = 0;
-+	insn->ds.data1 = 0;
-+	insn->ds.vdst = dst;
-+
-+	return 8;
-+}
-+
-+inline u32 emit_gfx9_ds_read_u8(union amdgcn_gfx9_insn *insn,
-+				 int dst, int src, short off)
-+{
-+	/* ds_read_u8 v<dst>, v<src> offset:<off> */
-+
-+	insn->ds.offset0 = off & 0xff;
-+	insn->ds.offset1 = off >> 8;
-+	insn->ds.gds = GFX9_DS_LDS;
-+	insn->ds.op = GFX9_DS_READ_U8;
-+	insn->ds.encoding = GFX9_DS_ENCODING;
-+	insn->ds.addr = src;
-+	insn->ds.data0 = 0;
-+	insn->ds.data1 = 0;
-+	insn->ds.vdst = dst;
-+
-+	return 8;
-+}
-+
-+inline u32 emit_gfx9_ds_write2_b64(union amdgcn_gfx9_insn *insn,
-+				   int dst, int src0, int src1,
-+				   short off0, short off1)
-+{
-+	/*
-+	 * ds_write2_b64 v[<dst>+3:<dst>], v<src> off
-+	 * offset0:<off0> offset1:<off1>
-+	 */
-+
-+	insn->ds.offset0 = off0;
-+	insn->ds.offset1 = off1;
-+	insn->ds.gds = GFX9_DS_LDS;
-+	insn->ds.op = GFX9_DS_WRITE2_B64;
-+	insn->ds.encoding = GFX9_DS_ENCODING;
-+	insn->ds.addr = dst;
-+	insn->ds.data0 = src0;
-+	insn->ds.data1 = src1;
-+	insn->ds.vdst = 0;
-+
-+	return 8;
-+}
-+
-+inline u32 emit_gfx9_s_branch(union amdgcn_gfx9_insn *insn,
-+			       short off)
-+{
-+	insn->sopp.simm16 = off;
-+	insn->sopp.op = GFX9_S_BRANCH;
-+	insn->sopp.encoding = GFX9_SOPP_ENCODING;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx9_s_cbranch_vccz(union amdgcn_gfx9_insn *insn,
-+				     short off)
-+{
-+	insn->sopp.simm16 = off;
-+	insn->sopp.op = GFX9_S_CBRANCH_VCCZ;
-+	insn->sopp.encoding = GFX9_SOPP_ENCODING;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx9_s_cbranch_vccnz(union amdgcn_gfx9_insn *insn,
-+				      short off)
-+{
-+	insn->sopp.simm16 = off;
-+	insn->sopp.op = GFX9_S_CBRANCH_VCCNZ;
-+	insn->sopp.encoding = GFX9_SOPP_ENCODING;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx9_branch_fixup(union amdgcn_gfx9_insn *insn,
-+				  short off)
-+{
-+	WARN_ON(insn->sopp.op != GFX9_S_BRANCH &&
-+		insn->sopp.op != GFX9_S_CBRANCH_SCC0 &&
-+		insn->sopp.op != GFX9_S_CBRANCH_VCCZ &&
-+		insn->sopp.op != GFX9_S_CBRANCH_VCCNZ &&
-+		insn->sopp.op != GFX9_S_CBRANCH_EXECZ &&
-+		insn->sopp.op != GFX9_S_CBRANCH_EXECNZ);
-+	insn->sopp.simm16 = off;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx9_s_waitcnt_lgkmcnt(union amdgcn_gfx9_insn *insn)
-+{
-+	struct amdgcn_gfx9_sopp_vmcnt vmcnt;
-+	u16 simm16;
-+	/* s_waitcnt lgkmcnt (0)
-+	 * wait for memory
-+	 */
-+	vmcnt.vmcnt1 = -1;
-+	vmcnt.vmcnt2 = -1;
-+	vmcnt.expcnt = -1;
-+	vmcnt.dummy1 = 0;
-+	vmcnt.dummy2 = 0;
-+	vmcnt.lgkmcnt = 0;
-+	memcpy(&simm16, &vmcnt, sizeof(u16));
-+	insn->sopp.simm16 = simm16;
-+	insn->sopp.op = GFX9_S_WAITCNT;
-+	insn->sopp.encoding = GFX9_SOPP_ENCODING;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx9_s_waitcnt_vmcnt(union amdgcn_gfx9_insn *insn)
-+{
-+	struct amdgcn_gfx9_sopp_vmcnt vmcnt;
-+	u16 simm16;
-+	/* s_waitcnt lgkmcnt (0)
-+	 * wait for memory
-+	 */
-+	vmcnt.vmcnt1 = 0;
-+	vmcnt.vmcnt2 = 0;
-+	vmcnt.expcnt = -1;
-+	vmcnt.dummy1 = 0;
-+	vmcnt.dummy2 = 0;
-+	vmcnt.lgkmcnt = -1;
-+	memcpy(&simm16, &vmcnt, sizeof(u16));
-+	insn->sopp.simm16 = simm16;
-+	insn->sopp.op = GFX9_S_WAITCNT;
-+	insn->sopp.encoding = GFX9_SOPP_ENCODING;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx9_s_waitcnt_vmcnt_lgkmcnt(union amdgcn_gfx9_insn *insn)
-+{
-+	struct amdgcn_gfx9_sopp_vmcnt vmcnt;
-+	u16 simm16;
-+	/* s_waitcnt lgkmcnt (0)
-+	 * wait for memory
-+	 */
-+	vmcnt.vmcnt1 = 0;
-+	vmcnt.vmcnt2 = 0;
-+	vmcnt.expcnt = -1;
-+	vmcnt.dummy1 = 0;
-+	vmcnt.dummy2 = 0;
-+	vmcnt.lgkmcnt = 0;
-+	memcpy(&simm16, &vmcnt, sizeof(u16));
-+	insn->sopp.simm16 = simm16;
-+	insn->sopp.op = GFX9_S_WAITCNT;
-+	insn->sopp.encoding = GFX9_SOPP_ENCODING;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx9_s_nop(union amdgcn_gfx9_insn *insn)
-+{
-+	insn->sopp.simm16 = 0;
-+	insn->sopp.op = GFX9_S_NOP;
-+	insn->sopp.encoding = GFX9_SOPP_ENCODING;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx9_s_endpgm(union amdgcn_gfx9_insn *insn)
-+{
-+	insn->sopp.simm16 = 0;
-+	insn->sopp.op = GFX9_S_ENDPGM;
-+	insn->sopp.encoding = GFX9_SOPP_ENCODING;
-+
-+	return 4;
-+}
-+
-+inline u32 emit_gfx9_s_icache_inv(union amdgcn_gfx9_insn *insn)
-+{
-+	insn->sopp.simm16 = 0;
-+	insn->sopp.op = GFX9_S_ICACHE_INV;
-+	insn->sopp.encoding = GFX9_SOPP_ENCODING;
-+
-+	return 4;
-+}
-+
-+/* Structurized CFG instructions.
-+ * These use raw SGPR indices for 64-bit pair operations involving
-+ * EXEC (126) and VCC (106) special registers.
-+ */
-+
-+/* s_and_saveexec_b64 s[sdst:sdst+1], s[ssrc:ssrc+1]
-+ * sdst = EXEC; EXEC &= ssrc; SCC = (EXEC != 0)
-+ */
-+inline u32 emit_gfx9_s_and_saveexec_b64(union amdgcn_gfx9_insn *insn,
-+					 u8 sdst, u8 ssrc)
-+{
-+	insn->sop1.ssrc0 = ssrc;
-+	insn->sop1.op = GFX9_S_AND_SAVEEXEC_B64;
-+	insn->sop1.sdst = sdst;
-+	insn->sop1.encoding = GFX9_SOP1_ENCODING;
-+
-+	return 4;
-+}
-+
-+/* s_bcnt1_i32_b64 sdst, s[ssrc:ssrc+1]
-+ * sdst = popcount(ssrc). SCC = (sdst != 0)
-+ */
-+inline u32 emit_gfx9_s_bcnt1_i32_b64(union amdgcn_gfx9_insn *insn,
-+				      u8 sdst, u8 ssrc)
-+{
-+	insn->sop1.ssrc0 = ssrc;
-+	insn->sop1.op = GFX9_S_BCNT1_I32_B64;
-+	insn->sop1.sdst = sdst;
-+	insn->sop1.encoding = GFX9_SOP1_ENCODING;
-+
-+	return 4;
-+}
-+
-+/* s_mov_b64 s[sdst:sdst+1], s[ssrc:ssrc+1] (or special src like 0) */
-+inline u32 emit_gfx9_s_mov_b64(union amdgcn_gfx9_insn *insn,
-+				u8 sdst, u8 ssrc)
-+{
-+	insn->sop1.ssrc0 = ssrc;
-+	insn->sop1.op = GFX9_S_MOV_B64;
-+	insn->sop1.sdst = sdst;
-+	insn->sop1.encoding = GFX9_SOP1_ENCODING;
-+
-+	return 4;
-+}
-+
-+/* s_and_b64 s[sdst:sdst+1], s[ssrc0:ssrc0+1], s[ssrc1:ssrc1+1] */
-+inline u32 emit_gfx9_s_and_b64(union amdgcn_gfx9_insn *insn,
-+				u8 sdst, u8 ssrc0, u8 ssrc1)
-+{
-+	insn->sop2.ssrc0 = ssrc0;
-+	insn->sop2.ssrc1 = ssrc1;
-+	insn->sop2.sdst = sdst;
-+	insn->sop2.op = GFX9_S_AND_B64;
-+	insn->sop2.encoding = GFX9_SOP2_ENCODING;
-+
-+	return 4;
-+}
++	struct knod_mem *pass_meta_buf;
++	u32 pass_pkts_per_queue;	/* backlogs / nr_works */
++	/* batch size per queue */
++	int batch_size;
++	int nr_works;
++	int isa_version;
++	bool installing_kernel;
++	int start;
++};
 +
-+/* s_or_b64 s[sdst:sdst+1], s[ssrc0:ssrc0+1], s[ssrc1:ssrc1+1] */
-+inline u32 emit_gfx9_s_or_b64(union amdgcn_gfx9_insn *insn,
-+			       u8 sdst, u8 ssrc0, u8 ssrc1)
++static inline u8 mbpf_class(const struct knod_insn_meta *meta)
 +{
-+	insn->sop2.ssrc0 = ssrc0;
-+	insn->sop2.ssrc1 = ssrc1;
-+	insn->sop2.sdst = sdst;
-+	insn->sop2.op = GFX9_S_OR_B64;
-+	insn->sop2.encoding = GFX9_SOP2_ENCODING;
-+
-+	return 4;
++	return BPF_CLASS(meta->insn.code);
 +}
 +
-+/* s_andn2_b64 s[sdst:sdst+1], s[ssrc0:ssrc0+1], s[ssrc1:ssrc1+1]
-+ * sdst = ssrc0 & ~ssrc1
-+ */
-+inline u32 emit_gfx9_s_andn2_b64(union amdgcn_gfx9_insn *insn,
-+				  u8 sdst, u8 ssrc0, u8 ssrc1)
++static inline u8 mbpf_src(const struct knod_insn_meta *meta)
 +{
-+	insn->sop2.ssrc0 = ssrc0;
-+	insn->sop2.ssrc1 = ssrc1;
-+	insn->sop2.sdst = sdst;
-+	insn->sop2.op = GFX9_S_ANDN2_B64;
-+	insn->sop2.encoding = GFX9_SOP2_ENCODING;
-+
-+	return 4;
++	return BPF_SRC(meta->insn.code);
 +}
 +
-+/* s_and_b32 s[sdst], s[ssrc0], s[ssrc1] */
-+inline u32 emit_gfx9_s_and_b32(union amdgcn_gfx9_insn *insn,
-+				u8 sdst, u8 ssrc0, u8 ssrc1)
++static inline u8 mbpf_op(const struct knod_insn_meta *meta)
 +{
-+	insn->sop2.ssrc0 = ssrc0;
-+	insn->sop2.ssrc1 = ssrc1;
-+	insn->sop2.sdst = sdst;
-+	insn->sop2.op = GFX9_S_AND_B32;
-+	insn->sop2.encoding = GFX9_SOP2_ENCODING;
-+
-+	return 4;
++	return BPF_OP(meta->insn.code);
 +}
 +
-+/* s_or_b32 s[sdst], s[ssrc0], s[ssrc1] */
-+inline u32 emit_gfx9_s_or_b32(union amdgcn_gfx9_insn *insn,
-+			       u8 sdst, u8 ssrc0, u8 ssrc1)
++static inline u8 mbpf_mode(const struct knod_insn_meta *meta)
 +{
-+	insn->sop2.ssrc0 = ssrc0;
-+	insn->sop2.ssrc1 = ssrc1;
-+	insn->sop2.sdst = sdst;
-+	insn->sop2.op = GFX9_S_OR_B32;
-+	insn->sop2.encoding = GFX9_SOP2_ENCODING;
-+
-+	return 4;
++	return BPF_MODE(meta->insn.code);
 +}
 +
-+/* s_andn2_b32 s[sdst], s[ssrc0], s[ssrc1]
-+ * sdst = ssrc0 & ~ssrc1
-+ */
-+inline u32 emit_gfx9_s_andn2_b32(union amdgcn_gfx9_insn *insn,
-+				  u8 sdst, u8 ssrc0, u8 ssrc1)
++static inline bool is_mbpf_alu(const struct knod_insn_meta *meta)
 +{
-+	insn->sop2.ssrc0 = ssrc0;
-+	insn->sop2.ssrc1 = ssrc1;
-+	insn->sop2.sdst = sdst;
-+	insn->sop2.op = GFX9_S_ANDN2_B32;
-+	insn->sop2.encoding = GFX9_SOP2_ENCODING;
-+
-+	return 4;
++	return mbpf_class(meta) == BPF_ALU64 || mbpf_class(meta) == BPF_ALU;
 +}
 +
-+/* s_cbranch_execz off - branch if EXEC == 0 */
-+inline u32 emit_gfx9_s_cbranch_execz(union amdgcn_gfx9_insn *insn,
-+				      short off)
++static inline bool is_mbpf_load(const struct knod_insn_meta *meta)
 +{
-+	insn->sopp.simm16 = off;
-+	insn->sopp.op = GFX9_S_CBRANCH_EXECZ;
-+	insn->sopp.encoding = GFX9_SOPP_ENCODING;
-+
-+	return 4;
++	return (meta->insn.code & ~BPF_SIZE_MASK) == (BPF_LDX | BPF_MEM);
 +}
 +
-+/* s_cbranch_execnz off - branch if EXEC != 0 */
-+inline u32 emit_gfx9_s_cbranch_execnz(union amdgcn_gfx9_insn *insn,
-+				       short off)
++static inline bool is_mbpf_jmp32(const struct knod_insn_meta *meta)
 +{
-+	insn->sopp.simm16 = off;
-+	insn->sopp.op = GFX9_S_CBRANCH_EXECNZ;
-+	insn->sopp.encoding = GFX9_SOPP_ENCODING;
-+
-+	return 4;
++	return mbpf_class(meta) == BPF_JMP32;
 +}
 +
-+/* s_sub_u32 sdst, ssrc0, ssrc1 - sdst = ssrc0 - ssrc1; SCC = borrow */
-+inline u32 emit_gfx9_s_sub_u32(union amdgcn_gfx9_insn *insn,
-+				u8 sdst, u8 ssrc0, u8 ssrc1)
++static inline bool is_mbpf_jmp64(const struct knod_insn_meta *meta)
 +{
-+	insn->sop2.ssrc0 = ssrc0;
-+	insn->sop2.ssrc1 = ssrc1;
-+	insn->sop2.sdst = sdst;
-+	insn->sop2.op = GFX9_S_SUB_U32;
-+	insn->sop2.encoding = GFX9_SOP2_ENCODING;
-+
-+	return 4;
++	return mbpf_class(meta) == BPF_JMP;
 +}
 +
-+/* s_cbranch_scc0 off - branch if SCC == 0 (no borrow) */
-+inline u32 emit_gfx9_s_cbranch_scc0(union amdgcn_gfx9_insn *insn,
-+				     short off)
++static inline bool is_mbpf_jmp(const struct knod_insn_meta *meta)
 +{
-+	insn->sopp.simm16 = off;
-+	insn->sopp.op = GFX9_S_CBRANCH_SCC0;
-+	insn->sopp.encoding = GFX9_SOPP_ENCODING;
-+
-+	return 4;
++	return is_mbpf_jmp32(meta) || is_mbpf_jmp64(meta);
 +}
 +
-+static inline void __emit_gfx9_sop2(union amdgcn_gfx9_insn *insn,
-+				     int op, int sdst, int ssrc0, int ssrc1)
++static inline bool is_mbpf_store(const struct knod_insn_meta *meta)
 +{
-+	insn->sop2.encoding = GFX9_SOP2_ENCODING;
-+	insn->sop2.op = op;
-+	insn->sop2.sdst = sdst;
-+	insn->sop2.ssrc0 = ssrc0;
-+	insn->sop2.ssrc1 = ssrc1;
++	return (meta->insn.code & ~BPF_SIZE_MASK) == (BPF_STX | BPF_MEM);
 +}
 +
-+static inline void __emit_gfx9_sop1(union amdgcn_gfx9_insn *insn,
-+				     int op, int sdst, int ssrc0)
++static inline bool is_mbpf_load_pkt(const struct knod_insn_meta *meta)
 +{
-+	insn->sop1.encoding = GFX9_SOP1_ENCODING;
-+	insn->sop1.op = op;
-+	insn->sop1.sdst = sdst;
-+	insn->sop1.ssrc0 = ssrc0;
++	return is_mbpf_load(meta) && meta->ptr.type == PTR_TO_PACKET;
 +}
 +
-+static inline void __emit_gfx9_sopp(union amdgcn_gfx9_insn *insn,
-+				     int op, u16 simm16)
++static inline bool is_mbpf_store_pkt(const struct knod_insn_meta *meta)
 +{
-+	insn->sopp.encoding = GFX9_SOPP_ENCODING;
-+	insn->sopp.op = op;
-+	insn->sopp.simm16 = simm16;
++	return is_mbpf_store(meta) && meta->ptr.type == PTR_TO_PACKET;
 +}
 +
-+static inline void __emit_gfx9_sopc(union amdgcn_gfx9_insn *insn,
-+				     int op, int ssrc0, int ssrc1)
++static inline bool is_mbpf_classic_load(const struct knod_insn_meta *meta)
 +{
-+	insn->sopc.encoding = GFX9_SOPC_ENCODING;
-+	insn->sopc.op = op;
-+	insn->sopc.ssrc0 = ssrc0;
-+	insn->sopc.ssrc1 = ssrc1;
-+}
-+
-+static inline void __emit_gfx9_vop1(union amdgcn_gfx9_insn *insn,
-+				     int op, int vdst, int src0)
-+{
-+	insn->vop1.encoding = GFX9_VOP1_ENCODING;
-+	insn->vop1.op = op;
-+	insn->vop1.vdst = vdst;
-+	insn->vop1.src0 = src0;
-+}
-+
-+static inline void __emit_gfx9_vop2(union amdgcn_gfx9_insn *insn,
-+				     int op, int vdst, int vsrc1, int src0)
-+{
-+	insn->vop2.encoding = GFX9_VOP2_ENCODING;
-+	insn->vop2.op = op;
-+	insn->vop2.vdst = vdst;
-+	insn->vop2.vsrc1 = vsrc1;
-+	insn->vop2.src0 = src0;
-+}
++	u8 code = meta->insn.code;
 +
-+static inline void __emit_gfx9_vopc(union amdgcn_gfx9_insn *insn,
-+				     int op, int vsrc1, int src0)
-+{
-+	insn->vopc.encoding = GFX9_VOPC_ENCODING;
-+	insn->vopc.op = op;
-+	insn->vopc.vsrc1 = vsrc1;
-+	insn->vopc.src0 = src0;
-+}
-+
-+static inline void __emit_gfx9_smem(union amdgcn_gfx9_insn *insn,
-+				     int op, int sdata, int sbase_pair,
-+				     u32 offset)
-+{
-+	insn->smem.encoding = GFX9_SMEM_ENCODING;
-+	insn->smem.op = op;
-+	insn->smem.sdata = sdata;
-+	insn->smem.sbase = sbase_pair;
-+	insn->smem.imm = 1;
-+	insn->smem.offset = offset;
-+	insn->smem.soffset = GFX9_SRC_NULL;
++	return BPF_CLASS(code) == BPF_LD &&
++	       (BPF_MODE(code) == BPF_ABS || BPF_MODE(code) == BPF_IND);
 +}
 +
-+static inline void __emit_gfx9_ds(union amdgcn_gfx9_insn *insn,
-+				   int op, int addr, int data0, int vdst,
-+				   int off0, int off1)
++static inline bool is_mbpf_classic_store(const struct knod_insn_meta *meta)
 +{
-+	insn->ds.encoding = GFX9_DS_ENCODING;
-+	insn->ds.op = op;
-+	insn->ds.gds = GFX9_DS_LDS;
-+	insn->ds.addr = addr;
-+	insn->ds.data0 = data0;
-+	insn->ds.vdst = vdst;
-+	insn->ds.offset0 = off0;
-+	insn->ds.offset1 = off1;
-+}
++	u8 code = meta->insn.code;
 +
-+static inline void __emit_gfx9_global(union amdgcn_gfx9_insn *insn,
-+				       int op, int vdst, int vaddr,
-+				       int vdata, int saddr, int offset)
-+{
-+	insn->flat.encoding = GFX9_FLAT_ENCODING;
-+	insn->flat.seg = GFX9_FLAT_SEG_GLOBAL;
-+	insn->flat.op = op;
-+	insn->flat.vdst = vdst;
-+	insn->flat.addr = vaddr;
-+	insn->flat.data = vdata;
-+	insn->flat.saddr = saddr;
-+	insn->flat.offset = offset;
++	return BPF_CLASS(code) == BPF_ST && BPF_MODE(code) == BPF_MEM;
 +}
 +
-+/* ======================================================================
-+ * GFX9 Param-Aware Emit Functions
-+ *
-+ * Used by shader-emitters (aesgcm_shader.h, ipsec_fused_gfx9.h, ...) that
-+ * construct param32 operands via P_S/P_V/P_I/P_L helpers.  Paired with
-+ * the GFX10 equivalents in knod_gfx10_insn.h.
-+ * ======================================================================
-+ */
-+
-+static inline int __p2e9(struct amdgcn_param32 p)
++static inline bool is_mbpf_classic_store_pkt(const struct knod_insn_meta *meta)
 +{
-+	if (p.type == AMDGCN_PARAM_TYPE_LITERAL_CONST)
-+		return gfx9_get_param_base(p);
-+	return gfx9_get_param_base(p) + p.v;
-+}
-+
-+/* --- SOP2 family (param32 version) --- */
-+
-+#define DEFINE_GFX9_SOP2_P(name, opcode)				\
-+inline u32 emit_gfx9_##name(union amdgcn_gfx9_insn *insn,		\
-+			     struct amdgcn_param32 dst,			\
-+			     struct amdgcn_param32 src0,		\
-+			     struct amdgcn_param32 src1)		\
-+{									\
-+	insn->sop2.sdst = __p2e9(dst);					\
-+	insn->sop2.ssrc0 = __p2e9(src0);				\
-+	insn->sop2.ssrc1 = __p2e9(src1);				\
-+	insn->sop2.op = opcode;					\
-+	insn->sop2.encoding = GFX9_SOP2_ENCODING;			\
-+	if (knod_param_is_literal(src0)) {			\
-+		insn->sop2.literal = src0.v;				\
-+		return 8;						\
-+	}								\
-+	if (knod_param_is_literal(src1)) {			\
-+		insn->sop2.literal = src1.v;				\
-+		return 8;						\
-+	}								\
-+	return 4;							\
-+}
-+
-+DEFINE_GFX9_SOP2_P(s_add_u32,  GFX9_S_ADD_U32)
-+DEFINE_GFX9_SOP2_P(s_sub_u32_p,  GFX9_S_SUB_U32)
-+DEFINE_GFX9_SOP2_P(s_addc_u32, GFX9_S_ADDC_U32)
-+DEFINE_GFX9_SOP2_P(s_subb_u32, GFX9_S_SUBB_U32)
-+DEFINE_GFX9_SOP2_P(s_and_b32_p,  GFX9_S_AND_B32)
-+DEFINE_GFX9_SOP2_P(s_lshl_b32, GFX9_S_LSHL_B32)
-+DEFINE_GFX9_SOP2_P(s_lshr_b32, GFX9_S_LSHR_B32)
-+DEFINE_GFX9_SOP2_P(s_mul_i32,  GFX9_S_MUL_I32)
-+DEFINE_GFX9_SOP2_P(s_xor_b32,  GFX9_S_XOR_B32)
-+
-+#undef DEFINE_GFX9_SOP2_P
-+
-+/* --- SOPC family (param32 version) --- */
-+
-+#define DEFINE_GFX9_SOPC_P(name, opcode)				\
-+inline u32 emit_gfx9_##name(union amdgcn_gfx9_insn *insn,		\
-+			     struct amdgcn_param32 src0,		\
-+			     struct amdgcn_param32 src1)		\
-+{									\
-+	insn->sopc.ssrc0 = __p2e9(src0);				\
-+	insn->sopc.ssrc1 = __p2e9(src1);				\
-+	insn->sopc.op = opcode;					\
-+	insn->sopc.encoding = GFX9_SOPC_ENCODING;			\
-+	if (knod_param_is_literal(src0)) {			\
-+		insn->sopc.literal = src0.v;				\
-+		return 8;						\
-+	}								\
-+	if (knod_param_is_literal(src1)) {			\
-+		insn->sopc.literal = src1.v;				\
-+		return 8;						\
-+	}								\
-+	return 4;							\
++	return is_mbpf_classic_store(meta) && meta->ptr.type == PTR_TO_PACKET;
 +}
-+
-+DEFINE_GFX9_SOPC_P(s_cmp_eq_u32, GFX9_S_CMP_EQ_U32)
-+DEFINE_GFX9_SOPC_P(s_cmp_lg_u32, GFX9_S_CMP_LG_U32)
-+DEFINE_GFX9_SOPC_P(s_cmp_ge_u32, GFX9_S_CMP_GE_U32)
-+DEFINE_GFX9_SOPC_P(s_cmp_lt_u32, GFX9_S_CMP_LT_U32)
-+
-+#undef DEFINE_GFX9_SOPC_P
-+
-+/* --- SOPP family --- */
 +
-+inline u32 emit_gfx9_s_barrier(union amdgcn_gfx9_insn *insn)
++static inline bool is_mbpf_atomic(const struct knod_insn_meta *meta)
 +{
-+	insn->sopp.simm16 = 0;
-+	insn->sopp.op = GFX9_S_BARRIER;
-+	insn->sopp.encoding = GFX9_SOPP_ENCODING;
-+	return 4;
++	return (meta->insn.code & ~BPF_SIZE_MASK) == (BPF_STX | BPF_ATOMIC);
 +}
 +
-+/* waitcnt with arbitrary vm/lgkm */
-+#define GFX9_WAITCNT(vm, lgkm)	(((lgkm) << 8) | (7 << 4) | (vm))
-+
-+inline u32 emit_gfx9_s_waitcnt(union amdgcn_gfx9_insn *insn,
-+				int vm, int lgkm)
++static inline bool is_mbpf_mul(const struct knod_insn_meta *meta)
 +{
-+	insn->sopp.simm16 = GFX9_WAITCNT(vm, lgkm);
-+	insn->sopp.op = GFX9_S_WAITCNT;
-+	insn->sopp.encoding = GFX9_SOPP_ENCODING;
-+	return 4;
++	return is_mbpf_alu(meta) && mbpf_op(meta) == BPF_MUL;
 +}
 +
-+inline u32 emit_gfx9_s_cbranch_scc1(union amdgcn_gfx9_insn *insn,
-+				     short off)
++static inline bool is_mbpf_div(const struct knod_insn_meta *meta)
 +{
-+	insn->sopp.simm16 = off;
-+	insn->sopp.op = GFX9_S_CBRANCH_SCC1;
-+	insn->sopp.encoding = GFX9_SOPP_ENCODING;
-+	return 4;
++	return is_mbpf_alu(meta) && mbpf_op(meta) == BPF_DIV;
 +}
 +
-+/* --- SOP1 family --- */
-+
-+inline u32 emit_gfx9_s_not_b64(union amdgcn_gfx9_insn *insn,
-+				u8 sdst, u8 ssrc)
++static inline bool is_mbpf_mod(const struct knod_insn_meta *meta)
 +{
-+	insn->sop1.ssrc0 = ssrc;
-+	insn->sop1.op = GFX9_S_NOT_B64;
-+	insn->sop1.sdst = sdst;
-+	insn->sop1.encoding = GFX9_SOP1_ENCODING;
-+	return 4;
++	return is_mbpf_alu(meta) && mbpf_op(meta) == BPF_MOD;
 +}
-+
-+/* --- VOPC (v_cmp_ne_u32 param variant) --- */
 +
-+inline u32 emit_gfx9_v_cmp_ne_u32(union amdgcn_gfx9_insn *insn,
-+				    struct amdgcn_param32 src0,
-+				    struct amdgcn_param32 src1)
++static inline bool is_mbpf_cond_jump(const struct knod_insn_meta *meta)
 +{
-+	WARN_ON(src1.type != AMDGCN_PARAM_TYPE_VGPR);
-+	insn->vopc.vsrc1 = src1.v;
-+	insn->vopc.op = GFX9_V_CMP_NE_U32;
-+	insn->vopc.encoding = GFX9_VOPC_ENCODING;
-+	if (src0.type == AMDGCN_PARAM_TYPE_LITERAL_CONST) {
-+		insn->vopc.src0 = gfx9_get_param_base(src0);
-+		insn->vopc.literal = src0.v;
-+		return 8;
-+	}
-+	insn->vopc.src0 = gfx9_get_param_base(src0) + src0.v;
-+	return 4;
-+}
-+
-+/* --- SMEM family (param32 version) --- */
-+
-+#define DEFINE_GFX9_SMEM_P(name, opcode)				\
-+inline u32 emit_gfx9_##name(union amdgcn_gfx9_insn *insn,		\
-+			     struct amdgcn_param32 dst,			\
-+			     struct amdgcn_param32 src, int offset)	\
-+{									\
-+	insn->smem.sdata = dst.v;					\
-+	insn->smem.sbase = src.v / 2;					\
-+	insn->smem.op = opcode;					\
-+	insn->smem.imm = 1;						\
-+	insn->smem.offset = offset;					\
-+	insn->smem.encoding = GFX9_SMEM_ENCODING;			\
-+	return 8;							\
-+}
-+
-+DEFINE_GFX9_SMEM_P(s_load_dword,   GFX9_S_LOAD_DWORD)
-+DEFINE_GFX9_SMEM_P(s_load_dwordx4, GFX9_S_LOAD_DWORDX4)
-+DEFINE_GFX9_SMEM_P(s_load_dwordx8, GFX9_S_LOAD_DWORDX8)
++	u8 op;
 +
-+#undef DEFINE_GFX9_SMEM_P
++	if (is_mbpf_jmp32(meta))
++		return true;
 +
-+/* s_dcache_inv - no operands, just opcode + encoding */
-+inline u32 emit_gfx9_s_dcache_inv(union amdgcn_gfx9_insn *insn)
-+{
-+	insn->smem.sdata = 0;
-+	insn->smem.sbase = 0;
-+	insn->smem.op = GFX9_S_DCACHE_INV;
-+	insn->smem.imm = 0;
-+	insn->smem.offset = 0;
-+	insn->smem.encoding = GFX9_SMEM_ENCODING;
-+	return 8;
-+}
++	if (!is_mbpf_jmp64(meta))
++		return false;
 +
-+/* --- SOPK: s_getreg_b32 --- */
-+
-+/*
-+ * HWREG encoding for s_getreg_b32 simm16:
-+ *   bits[5:0]   = hwreg_id
-+ *   bits[10:6]  = offset (bit position)
-+ *   bits[15:11] = size - 1 (in bits)
-+ */
-+#define GFX9_HWREG(id, off, sz)	(((sz) - 1) << 11 | (off) << 6 | (id))
-+#define GFX9_HW_REG_LDS_ALLOC	6
-+
-+inline u32 emit_gfx9_s_getreg_b32(union amdgcn_gfx9_insn *insn,
-+				   int sdst, u16 hwreg)
-+{
-+	insn->sopk.encoding = GFX9_SOPK_ENCODING;
-+	insn->sopk.op = GFX9_S_GETREG_B32;
-+	insn->sopk.sdst = sdst;
-+	insn->sopk.simm16 = hwreg;
-+	return 4;
++	op = mbpf_op(meta);
++	return op != BPF_JA && op != BPF_EXIT && op != BPF_CALL;
 +}
 +
-+/* --- DS family --- */
-+
-+inline u32 emit_gfx9_gds_write_b32(union amdgcn_gfx9_insn *insn,
-+				    int addr, int data0)
++static inline bool is_mbpf_helper_call(const struct knod_insn_meta *meta)
 +{
-+	__emit_gfx9_ds(insn, GFX9_DS_WRITE_B32, addr, data0, 0, 0, 0);
-+	insn->ds.gds = GFX9_DS_GDS;
-+	return 8;
-+}
++	struct bpf_insn insn = meta->insn;
 +
-+inline u32 emit_gfx9_gds_read_b32(union amdgcn_gfx9_insn *insn,
-+				   int vdst, int addr, int offset)
-+{
-+	__emit_gfx9_ds(insn, GFX9_DS_READ_B32, addr, 0, vdst, offset, 0);
-+	insn->ds.gds = GFX9_DS_GDS;
-+	return 8;
++	return insn.code == (BPF_JMP | BPF_CALL) &&
++		insn.src_reg != BPF_PSEUDO_CALL;
 +}
 +
-+inline u32 emit_gfx9_ds_write_b32(union amdgcn_gfx9_insn *insn,
-+				    int addr, int data0)
++static inline bool is_mbpf_pseudo_call(const struct knod_insn_meta *meta)
 +{
-+	__emit_gfx9_ds(insn, GFX9_DS_WRITE_B32, addr, data0, 0, 0, 0);
-+	return 8;
-+}
++	struct bpf_insn insn = meta->insn;
 +
-+inline u32 emit_gfx9_ds_write_b32_off(union amdgcn_gfx9_insn *insn,
-+					int addr, int data0, int offset)
-+{
-+	__emit_gfx9_ds(insn, GFX9_DS_WRITE_B32, addr, data0, 0, offset, 0);
-+	return 8;
++	return insn.code == (BPF_JMP | BPF_CALL) &&
++		insn.src_reg == BPF_PSEUDO_CALL;
 +}
 +
-+inline u32 emit_gfx9_ds_read_b32_off(union amdgcn_gfx9_insn *insn,
-+				       int vdst, int addr, int offset)
++static inline bool is_mbpf_map_call(const struct knod_insn_meta *meta)
 +{
-+	__emit_gfx9_ds(insn, GFX9_DS_READ_B32, addr, 0, vdst, offset, 0);
-+	return 8;
-+}
++	struct bpf_insn insn = meta->insn;
 +
-+/* ds_write_b128 v<addr>, v[<data>:<data>+3] - write 128 bits to LDS */
-+inline u32 emit_gfx9_ds_write_b128(union amdgcn_gfx9_insn *insn,
-+				    int addr, int data0)
-+{
-+	__emit_gfx9_ds(insn, GFX9_DS_WRITE_B128, addr, data0, 0, 0, 0);
-+	return 8;
++	return insn.code == (BPF_JMP | BPF_CALL) && insn.imm <= 3;
 +}
 +
-+/* ds_read_b128 v[<vdst>:<vdst>+3], v<addr> - read 128 bits from LDS */
-+inline u32 emit_gfx9_ds_read_b128(union amdgcn_gfx9_insn *insn,
-+				   int vdst, int addr)
-+{
-+	__emit_gfx9_ds(insn, GFX9_DS_READ_B128, addr, 0, vdst, 0, 0);
-+	return 8;
-+}
++#define STACK_FRAME_ALIGN 64
 +
-+/* v_max_i32 vdst, src0, vsrc1 - VOP2 */
-+inline u32 emit_gfx9_v_max_i32(union amdgcn_gfx9_insn *insn,
-+				struct amdgcn_param32 dst,
-+				struct amdgcn_param32 src0,
-+				struct amdgcn_param32 src1)
-+{
-+	WARN_ON(dst.type != AMDGCN_PARAM_TYPE_VGPR);
-+	WARN_ON(src1.type != AMDGCN_PARAM_TYPE_VGPR);
-+
-+	insn->vop2.vsrc1 = src1.v;
-+	insn->vop2.vdst = dst.v;
-+	insn->vop2.op = GFX9_V_MAX_I32;
-+	insn->vop2.encoding = GFX9_VOP2_ENCODING;
-+	if (src0.type == AMDGCN_PARAM_TYPE_LITERAL_CONST) {
-+		insn->vop2.src0 = gfx9_get_param_base(src0);
-+		insn->vop2.literal = src0.v;
-+		return 8;
-+	}
-+	insn->vop2.src0 = gfx9_get_param_base(src0) + src0.v;
-+
-+	return 4;
-+}
++#define FLAG_INSN_IS_JUMP_DST                   BIT(0)
++#define FLAG_INSN_IS_SUBPROG_START              BIT(1)
++#define FLAG_INSN_PTR_CALLER_STACK_FRAME        BIT(2)
++/* Instruction is pointless, noop even on its own */
++#define FLAG_INSN_SKIP_NOOP                     BIT(3)
++/* Instruction is optimized out based on preceding instructions */
++#define FLAG_INSN_SKIP_PREC_DEPENDENT           BIT(4)
++/* Instruction is optimized by the verifier */
++#define FLAG_INSN_SKIP_VERIFIER_OPT             BIT(5)
++/* Instruction needs to zero extend to high 32-bit */
++#define FLAG_INSN_DO_ZEXT                       BIT(6)
 +
++#define FLAG_INSN_SKIP_MASK             (FLAG_INSN_SKIP_NOOP | \
++					 FLAG_INSN_SKIP_PREC_DEPENDENT | \
++					 FLAG_INSN_SKIP_VERIFIER_OPT)
 +#endif
 -- 
 2.43.0
