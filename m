@@ -1,293 +1,84 @@
-Received: from mail-pl1-f200.google.com (mail-pl1-f200.google.com [209.85.214.200])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from ale.deltatee.com (ale.deltatee.com [204.191.154.188])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F59A434E32
-	for <linux-rdma@vger.kernel.org>; Mon, 20 Jul 2026 15:06:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.200
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 90B8541736B;
+	Mon, 20 Jul 2026 15:59:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=204.191.154.188
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784560011; cv=none; b=hH1c58wpGJEBrmIAyeRbYjceRZA+ZSFz5Tb9fkFBci65T795QXd0siimhlueDVb2lySLqeJ+tZBIrFgIHgLIbE8YPsZp5ZbJvbxQlCIJJkvfhWEnLXpCRGZYnNRSA2HDY3XvZqD3gTZ7LO60GJjyWQ/t84NhimNWLu/iygS7AwQ=
+	t=1784563149; cv=none; b=iSWQ+5U8njuT0ZPT9QKrXtivZnlIl8Vm9i7F05+uYi+CLMP85WeIllASlPtTP852a3qGjSz+SBevsbPnkPXofj5cSIqehhSH2nzBainV8rzO2mW9QIEeFJaXv7jyV2xtkAV/+UNwU4Wehb5DxWLyAxeBAs5JpUIfe2r0/L4Nk8Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784560011; c=relaxed/simple;
-	bh=cE1N3bryysgtK03efhJdxm+fcOXxenlTYhZMIyr54Dk=;
-	h=Date:In-Reply-To:Mime-Version:References:Message-ID:Subject:From:
-	 To:Cc:Content-Type; b=QFVKzbBGmeKUnRSMmNrjDMDkvr1QF8hkwbqgHV2qP2cnFy10318QBP4VlB4juvPlTyYJNsUWtPjqvd7BiWQNQ2snWxLVnHOVEUDsmjtwhPOqYyEDZGJ4tEkc1T0pSSOXPr0iqxsOTs2RCgoorWBbMYVHuNrggcjqAfEl+ZejzoY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--praan.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=Uve1xiiD; arc=none smtp.client-ip=209.85.214.200
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--praan.bounces.google.com
+	s=arc-20240116; t=1784563149; c=relaxed/simple;
+	bh=cQJcbivB06LUeR8fEVZ640cFExN3f0ofPOWFG+trce4=;
+	h=Message-ID:Date:MIME-Version:To:Cc:References:From:In-Reply-To:
+	 Content-Type:Subject; b=SVkXNevYKLUFYcaW0BDywWPO3HZtqdK9Cag/nWwRB8cFLoZGvj90XYe1NagUptVDhJIlsPEsV8P5nc94R/cLcsbLArVBoTodkiE8VOIxHJZQeiFFFvIueDQTDD39ob0lfiO4iJbjJQugnUF3DO74bWwzGXybjwtW+Jmm6DiqpG0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=deltatee.com; spf=pass smtp.mailfrom=deltatee.com; dkim=pass (2048-bit key) header.d=deltatee.com header.i=@deltatee.com header.b=nznyCqQe; arc=none smtp.client-ip=204.191.154.188
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=deltatee.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=deltatee.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="Uve1xiiD"
-Received: by mail-pl1-f200.google.com with SMTP id d9443c01a7336-2ccd1958e8fso96023485ad.2
-        for <linux-rdma@vger.kernel.org>; Mon, 20 Jul 2026 08:06:49 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20251104; t=1784560009; x=1785164809; darn=vger.kernel.org;
-        h=content-type:cc:to:from:subject:message-id:references:mime-version
-         :in-reply-to:date:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=HitDsJbfPqYQGRXR79WqQVN0Cxm+fM5TpLS0CnFvhac=;
-        b=Uve1xiiDBQ0/NtDEbd4Wi1CaexiBB+UlfIMrwI9pXUG9K+9ZBqh7Vil2miIuu+NyvZ
-         KKzVCmdRSmgLiOAP2dvyTTesA8EDy7CZ0CScFuWvJfZHW4UpNH31UIQcoXh1bpBkVReL
-         rPAtt92Wepw2VOfFR/GVNtAYE0igx526ZFX9vMRA1o9UX5mCax/1GZeRgQHA51TWhKPT
-         OZy20TBBWndH6WTMLsKRMnkCsCa98MEzhP8HeJbuHL/QVe/G2ZkVJ9dSMJMa3RFkBYzJ
-         m+4TFJkP4dvf2jgcQNiFfrXzZe0pDX22K1LGvXf/LyRX42nEjmY9lu4riCQI4fqPWpfH
-         8Jmw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1784560009; x=1785164809;
-        h=content-type:cc:to:from:subject:message-id:references:mime-version
-         :in-reply-to:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=HitDsJbfPqYQGRXR79WqQVN0Cxm+fM5TpLS0CnFvhac=;
-        b=oNCXBD/8pLJdCx+AKXipG1LXEBo2zx9kstYVoI7VwC31MtLiaM/5UoASIP5yGUmKZD
-         IQklUhekblVeLVyPInjoiZuutSz72nkhqkuBM9rmIT6RfSgBfsWaGobvv+sFELGz3rQk
-         C5H472CXf7aPo2jGzLhOtq7pVO0d7fABmVI/KdA3ewItS3/hChvW3rmPOnmwGUSTVL5m
-         0XtdRUczaXyY/TJajTSxvyrz0U5ZvtH1j3YlptWzhULepzwmJO0SvMIkByoV70nwAx9c
-         UBjfWB0OV2KyM018prKfrTsPtTvUyOxrCsOivt6hgOsjjxrNAiyrh59CRol2BYt1nvnq
-         ISfQ==
-X-Forwarded-Encrypted: i=1; AHgh+Rr6dTWMdgH4Ti35tVkBYKfKRhNiumjKwPkTdF6KDOX6ApdH0o3eL6gpMlD+kuqeX8GUCHa343aSSabd@vger.kernel.org
-X-Gm-Message-State: AOJu0YzWVt1MZjTjvFnWwNQ7x2+LpEZRyrE/C5pwCW6TrfKStSui4SNC
-	I5sQQXIqyYMI0SL4TlF+xOvFwZmWRJmJKt7D1ZdgW2GZxhp6efb/mKaWYNSHPY5OCPwHV+MROHL
-	/gA==
-X-Received: from plbbh1.prod.google.com ([2002:a17:902:a981:b0:2ce:fa1a:2684])
- (user=praan job=prod-delivery.src-stubby-dispatcher) by 2002:a17:903:2383:b0:2c9:97a7:f544
- with SMTP id d9443c01a7336-2cf34a18cefmr161701915ad.42.1784560008838; Mon, 20
- Jul 2026 08:06:48 -0700 (PDT)
-Date: Mon, 20 Jul 2026 15:06:01 +0000
-In-Reply-To: <20260720150601.2702700-1-praan@google.com>
+	dkim=pass (2048-bit key) header.d=deltatee.com header.i=@deltatee.com header.b="nznyCqQe"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=deltatee.com; s=20200525; h=Subject:In-Reply-To:From:References:Cc:To:
+	MIME-Version:Date:Message-ID:content-disposition;
+	bh=cQJcbivB06LUeR8fEVZ640cFExN3f0ofPOWFG+trce4=; b=nznyCqQe109737/c013kSuon6G
+	oJtENCeICPQ703VOz3VGz16PIL2sFqY3vx4wsPJvsQ8kP8ToTuH4hArmC21fm0T9qGFWTdyuSaY8C
+	09dZbBnX7H47XjthYepcAW544lcAyPtyAo5NI47t3G28q0oXDOEguq3w3DGWGabjRt5qLPtjDSAbW
+	i5diWFZrHzkDww6r1RdKT8IsCGes1kxI021uL7nEDPQtZg+ZWdSt/VRzOb5tujotWydtCzC8f1ZDS
+	FwYP9Vfhy4ojAVDN5o87R1/W/yjXZPKR2xRagVFguNy76R78FHcs2lZvJVg7M13qV+UbVRGAUMK4N
+	b3SFwc3w==;
+Received: from guinness.priv.deltatee.com ([172.16.1.162])
+	by ale.deltatee.com with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+	(Exim 4.98.2)
+	(envelope-from <logang@deltatee.com>)
+	id 1wlqOS-0000000B5xA-0AZp;
+	Mon, 20 Jul 2026 09:59:00 -0600
+Message-ID: <426e56e7-0248-4b85-bb59-2da6816443ab@deltatee.com>
+Date: Mon, 20 Jul 2026 09:58:45 -0600
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-References: <20260720150601.2702700-1-praan@google.com>
-X-Mailer: git-send-email 2.55.0.229.g6434b31f56-goog
-Message-ID: <20260720150601.2702700-6-praan@google.com>
-Subject: [PATCH v4 5/5] nfs: introduce nfs_direct_extract_pages helper
-From: Pranjal Shrivastava <praan@google.com>
-To: linux-nfs@vger.kernel.org, Trond Myklebust <trondmy@kernel.org>, 
-	Anna Schumaker <anna@kernel.org>
-Cc: Chuck Lever <cel@kernel.org>, Jeff Layton <jlayton@kernel.org>, linux-kernel@vger.kernel.org, 
-	Christoph Hellwig <hch@lst.de>, Logan Gunthorpe <logang@deltatee.com>, Jason Gunthorpe <jgg@ziepe.ca>, 
-	linux-pci@vger.kernel.org, linux-rdma@vger.kernel.org, 
-	Shivaji Kant <shivajikant@google.com>, Pranjal Shrivastava <praan@google.com>
-Content-Type: text/plain; charset="UTF-8"
+MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+To: Mykola Marzhan <mykola@meshstor.io>, Jens Axboe <axboe@kernel.dk>,
+ Song Liu <song@kernel.org>, Yu Kuai <yukuai@fygo.io>,
+ Keith Busch <kbusch@kernel.org>, Christoph Hellwig <hch@lst.de>,
+ Sagi Grimberg <sagi@grimberg.me>, linux-block@vger.kernel.org,
+ linux-raid@vger.kernel.org, linux-nvme@lists.infradead.org
+Cc: Li Nan <magiclinan@didiglobal.com>, Xiao Ni <xiao@kernel.org>,
+ Leon Romanovsky <leonro@nvidia.com>, Jason Gunthorpe <jgg@nvidia.com>,
+ Kiran Kumar Modukuri <kmodukuri@nvidia.com>,
+ Chaitanya Kulkarni <kch@nvidia.com>, Bjorn Helgaas <bhelgaas@google.com>,
+ Shivaji Kant <shivajikant@google.com>, Pranjal Shrivastava
+ <praan@google.com>, Henrique Carvalho <henrique.carvalho@suse.com>,
+ linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
+ linux-pci@vger.kernel.org
+References: <20260718162547.448892-1-mykola@meshstor.io>
+ <20260718162547.448892-2-mykola@meshstor.io>
+Content-Language: en-CA
+From: Logan Gunthorpe <logang@deltatee.com>
+In-Reply-To: <20260718162547.448892-2-mykola@meshstor.io>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+X-SA-Exim-Connect-IP: 172.16.1.162
+X-SA-Exim-Rcpt-To: mykola@meshstor.io, axboe@kernel.dk, song@kernel.org, yukuai@fygo.io, kbusch@kernel.org, hch@lst.de, sagi@grimberg.me, linux-block@vger.kernel.org, linux-raid@vger.kernel.org, linux-nvme@lists.infradead.org, magiclinan@didiglobal.com, xiao@kernel.org, leonro@nvidia.com, jgg@nvidia.com, kmodukuri@nvidia.com, kch@nvidia.com, bhelgaas@google.com, shivajikant@google.com, praan@google.com, henrique.carvalho@suse.com, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, linux-pci@vger.kernel.org
+X-SA-Exim-Mail-From: logang@deltatee.com
+X-Spam-Level: 
+Subject: Re: [PATCH 1/6] blk-mq-dma: restore BLK_STS_TARGET for unsupported
+ P2P transfers
+X-SA-Exim-Version: 4.2.1 (built Sun, 23 Feb 2025 07:57:16 +0000)
+X-SA-Exim-Scanned: Yes (on ale.deltatee.com)
 
-Introduce nfs_direct_extract_pages() in direct.c to centralize page
-extraction and request creation for the Direct I/O path. The helper
-manages extraction from the iters and builds a list of nfs_page requests
 
-Refactor nfs_direct_read_schedule_iovec() and
-nfs_direct_write_schedule_iovec() to utilize the new helper, unifying
-the extraction logic on both paths.
 
-Signed-off-by: Pranjal Shrivastava <praan@google.com>
-Reviewed-by: Shivaji Kant <shivajikant@google.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
----
- fs/nfs/direct.c | 127 ++++++++++++++++++++++++------------------------
- 1 file changed, 64 insertions(+), 63 deletions(-)
+On 2026-07-18 10:25, Mykola Marzhan wrote:
+> Fixes: 858299dc6160 ("block: add scatterlist-less DMA mapping helpers")
+> Fixes: 7ce3c1dd78fc ("nvme-pci: convert the data mapping to blk_rq_dma_map")
+> Cc: stable@vger.kernel.org
+> Assisted-by: Claude:claude-opus-4-8
+> Signed-off-by: Mykola Marzhan <mykola@meshstor.io>
 
-diff --git a/fs/nfs/direct.c b/fs/nfs/direct.c
-index b9ac0a67693c..d31e4720ffff 100644
---- a/fs/nfs/direct.c
-+++ b/fs/nfs/direct.c
-@@ -178,6 +178,50 @@ static void nfs_direct_release_pages(struct page **pages, unsigned int npages,
- 	}
- }
- 
-+static ssize_t nfs_direct_extract_pages(struct nfs_direct_req *dreq,
-+					 struct iov_iter *iter,
-+					 size_t size, loff_t *pos,
-+					 struct list_head *list)
-+{
-+	bool pinned = iov_iter_extract_will_pin(iter);
-+	struct page **pagevec = NULL;
-+	ssize_t result, bytes = 0;
-+	unsigned int npages, i;
-+	size_t pgbase;
-+
-+	result = iov_iter_extract_pages(iter, &pagevec, size, ~0U, 0, &pgbase);
-+	if (result <= 0)
-+		return result;
-+
-+	npages = (result + pgbase + PAGE_SIZE - 1) >> PAGE_SHIFT;
-+	for (i = 0; i < npages; i++) {
-+		struct nfs_page *req;
-+		unsigned int req_len = min_t(size_t, result - bytes, PAGE_SIZE - pgbase);
-+
-+		req = nfs_page_create_from_page(dreq->ctx, pagevec[i],
-+						pinned, pgbase, *pos,
-+						req_len);
-+		if (IS_ERR(req)) {
-+			if (!bytes)
-+				bytes = PTR_ERR(req);
-+			break;
-+		}
-+
-+		list_add_tail(&req->wb_list, list);
-+		pgbase = 0;
-+		bytes += req_len;
-+		*pos += req_len;
-+	}
-+
-+	if (i < npages) {
-+		iov_iter_revert(iter, result - bytes);
-+		nfs_direct_release_pages(pagevec + i, npages - i, pinned);
-+	}
-+
-+	kvfree(pagevec);
-+	return bytes;
-+}
-+
- void nfs_init_cinfo_from_dreq(struct nfs_commit_info *cinfo,
- 			      struct nfs_direct_req *dreq)
- {
-@@ -346,6 +390,7 @@ static ssize_t nfs_direct_read_schedule_iovec(struct nfs_direct_req *dreq,
- 	ssize_t result = -EINVAL;
- 	size_t requested_bytes = 0;
- 	size_t rsize = max_t(size_t, NFS_SERVER(inode)->rsize, PAGE_SIZE);
-+	LIST_HEAD(nfs_page_list);
- 
- 	nfs_pageio_init_read(&desc, dreq->inode, false,
- 			     &nfs_direct_read_completion_ops);
-@@ -354,43 +399,23 @@ static ssize_t nfs_direct_read_schedule_iovec(struct nfs_direct_req *dreq,
- 	inode_dio_begin(inode);
- 
- 	while (iov_iter_count(iter)) {
--		struct page **pagevec = NULL;
--		size_t bytes;
--		size_t pgbase;
--		unsigned npages, i;
--		bool pinned = iov_iter_extract_will_pin(iter);
--
--		result = iov_iter_extract_pages(iter, &pagevec,
--						rsize, ~0U, 0, &pgbase);
-+		result = nfs_direct_extract_pages(dreq, iter, rsize, &pos, &nfs_page_list);
- 		if (result < 0)
- 			break;
- 
--		bytes = result;
--		npages = (result + pgbase + PAGE_SIZE - 1) / PAGE_SIZE;
--		for (i = 0; i < npages; i++) {
--			struct nfs_page *req;
--			unsigned int req_len = min_t(size_t, bytes, PAGE_SIZE - pgbase);
--			/* XXX do we need to do the eof zeroing found in async_filler? */
--			req = nfs_page_create_from_page(dreq->ctx, pagevec[i],
--							pinned, pgbase, pos,
--							req_len);
--			if (IS_ERR(req)) {
--				result = PTR_ERR(req);
--				break;
--			}
-+		while (!list_empty(&nfs_page_list)) {
-+			struct nfs_page *req = nfs_list_entry(nfs_page_list.next);
-+			size_t req_len = req->wb_bytes;
-+
-+			nfs_list_remove_request(req);
- 			if (!nfs_pageio_add_request(&desc, req)) {
- 				result = desc.pg_error;
- 				nfs_release_request(req);
-+				nfs_release_request_list(&nfs_page_list);
- 				break;
- 			}
--			pgbase = 0;
--			bytes -= req_len;
- 			requested_bytes += req_len;
--			pos += req_len;
- 		}
--		if (i < npages)
--			nfs_direct_release_pages(pagevec + i, npages - i, pinned);
--		kvfree(pagevec);
- 		if (result < 0)
- 			break;
- 	}
-@@ -881,6 +906,7 @@ static ssize_t nfs_direct_write_schedule_iovec(struct nfs_direct_req *dreq,
- 	ssize_t result = 0;
- 	size_t requested_bytes = 0;
- 	size_t wsize = max_t(size_t, NFS_SERVER(inode)->wsize, PAGE_SIZE);
-+	LIST_HEAD(nfs_page_list);
- 	bool defer = false;
- 
- 	trace_nfs_direct_write_schedule_iovec(dreq);
-@@ -893,55 +919,32 @@ static ssize_t nfs_direct_write_schedule_iovec(struct nfs_direct_req *dreq,
- 
- 	NFS_I(inode)->write_io += iov_iter_count(iter);
- 	while (iov_iter_count(iter)) {
--		struct page **pagevec = NULL;
--		size_t bytes;
--		size_t pgbase;
--		unsigned npages, i;
--		bool pinned = iov_iter_extract_will_pin(iter);
--
--		result = iov_iter_extract_pages(iter, &pagevec,
--						wsize, ~0U, 0, &pgbase);
-+		result = nfs_direct_extract_pages(dreq, iter, wsize, &pos, &nfs_page_list);
- 		if (result < 0)
- 			break;
- 
--		bytes = result;
--		npages = (result + pgbase + PAGE_SIZE - 1) / PAGE_SIZE;
--		for (i = 0; i < npages; i++) {
--			struct nfs_page *req;
--			unsigned int req_len = min_t(size_t, bytes, PAGE_SIZE - pgbase);
--
--			req = nfs_page_create_from_page(dreq->ctx, pagevec[i],
--							pinned, pgbase, pos,
--							req_len);
--			if (IS_ERR(req)) {
--				result = PTR_ERR(req);
--				break;
--			}
--
--			if (desc.pg_error < 0) {
--				nfs_free_request(req);
--				result = desc.pg_error;
--				break;
--			}
--
--			pgbase = 0;
--			bytes -= req_len;
--			requested_bytes += req_len;
--			pos += req_len;
-+		while (!list_empty(&nfs_page_list)) {
-+			struct nfs_page *req = nfs_list_entry(nfs_page_list.next);
-+			size_t req_len = req->wb_bytes;
- 
-+			nfs_list_remove_request(req);
- 			if (defer) {
- 				nfs_mark_request_commit(req, NULL, &cinfo, 0);
-+				requested_bytes += req_len;
- 				continue;
- 			}
- 
- 			nfs_lock_request(req);
--			if (nfs_pageio_add_request(&desc, req))
-+			if (nfs_pageio_add_request(&desc, req)) {
-+				requested_bytes += req_len;
- 				continue;
-+			}
- 
- 			/* Exit on hard errors */
- 			if (desc.pg_error < 0 && desc.pg_error != -EAGAIN) {
- 				result = desc.pg_error;
- 				nfs_unlock_and_release_request(req);
-+				nfs_release_request_list(&nfs_page_list);
- 				break;
- 			}
- 
-@@ -952,12 +955,10 @@ static ssize_t nfs_direct_write_schedule_iovec(struct nfs_direct_req *dreq,
- 			spin_unlock(&dreq->lock);
- 			nfs_unlock_request(req);
- 			nfs_mark_request_commit(req, NULL, &cinfo, 0);
-+			requested_bytes += req_len;
- 			desc.pg_error = 0;
- 			defer = true;
- 		}
--		if (i < npages)
--			nfs_direct_release_pages(pagevec + i, npages - i, pinned);
--		kvfree(pagevec);
- 		if (result < 0)
- 			break;
- 	}
--- 
-2.55.0.229.g6434b31f56-goog
 
+Looks correct to me, thanks!
+
+Reviewed-by: Logan Gunthorpe <logang@deltatee.com>
