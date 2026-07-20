@@ -1,103 +1,104 @@
-Received: from mail-wm2-f2.google.com (mail-wm2-f2.google.com [74.125.225.130])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from ale.deltatee.com (ale.deltatee.com [204.191.154.188])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45B18478E20
-	for <linux-rdma@vger.kernel.org>; Mon, 20 Jul 2026 18:31:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.225.130
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E20D421F18;
+	Mon, 20 Jul 2026 18:43:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=204.191.154.188
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784572278; cv=none; b=KLNPOknyYA3PR2mVboDWGKc5Mpifle4lstKeDY9oPME0p1K+POsTgkTzNUcGJXRFmKsxMHvgr+6PIEuGb72uqwEFdCxwijG8ddIcUAxXbC2Upxv/oynjq//WvkNwRSdpYbRWakROmPMwPbZPWGw+bC79t1Tyf3XgbADlkTjYPSc=
+	t=1784573002; cv=none; b=Ij4yUu4ToI5M2ZjlrFaMbqQfTb1obvk6agKJxQLfTSNTh8tEbrZAPh9JrF00ELZHiNomcJQUgH7syXKNNu7j70L15QtMf+lfwZDmG/SvI5QQ99zu80Hh2ZQgmuAXGmziBvCLaIMSK24fhWMX5iFbVrMB8KQSieKcrrkApiRj2xE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784572278; c=relaxed/simple;
-	bh=tpIozQVuFz5YMT+/KaMPSJCm3XJPJ31NcVTMY/bvGWU=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=mN0MoVyoU4mHF1tCxGQvzUDHAYknN/F3oo0BnNtnV5RTlwQZKCcHhI0mSs83d4a+0YmfMKxRIpB0/hW3YoUMNCmUmN5d3rhn0Q+zM0k387y5OdKPBr2j3YNJ4KFEkV/8eZQy9xYP/qMdHUF6YjCGAH+/7wu9gCoaxW4ZKuSsMUI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=MWxEndbh; arc=none smtp.client-ip=74.125.225.130
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1784573002; c=relaxed/simple;
+	bh=ayzPU5TcsMBPQf3X2iyqylXARKQQmJBw8aj1nHxUJ8A=;
+	h=Message-ID:Date:MIME-Version:To:Cc:References:From:In-Reply-To:
+	 Content-Type:Subject; b=Q5vttzd7fqLDn3Yjrz8ZNp8pGcRccgtWNuoya3nDBu9T+bzzFgFZ+WSVUxs6mfktXotoIEMhaRHRg4eN9ATAqp6Hc5AXQ8YK2nKunLaSJflqtgrJrM6T4qDndA+27SwA8hzg87MMMkFS9Y/3B2QKvDJo+KX/fSfAy+ck4xVfxfE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=deltatee.com; spf=pass smtp.mailfrom=deltatee.com; dkim=pass (2048-bit key) header.d=deltatee.com header.i=@deltatee.com header.b=G78R0G4A; arc=none smtp.client-ip=204.191.154.188
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=deltatee.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=deltatee.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="MWxEndbh"
-Received: by mail-wm2-f2.google.com with SMTP id 5b1f17b1804b1-49242309566so20708795e9.0
-        for <linux-rdma@vger.kernel.org>; Mon, 20 Jul 2026 11:31:17 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1784572275; x=1785177075; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=K4HtwqqTFMH8KE+qtT7AThKAONYzcCFlt1fLH9nHfHc=;
-        b=MWxEndbhXJa9KqXc2S2VfU4w8JM4Re+y1k22hJvpwE7vPlapvcO1FjJvd3K1CoCCC1
-         5q9Y9aL8BjtZLsn3sus0bbtqt2F9GFgvXoFD+WgbFuWpLc47aixmCo1RPHBjJKdqp9RO
-         Clq8TaAlxYoD7AG4aJzCipTICWHF8RcearzNBg6h8q7zP+akOalYUz/8Sr91xQjHLoVD
-         SrgvIjRvWdd6QdrCNQEngcqORSb2JvOR3CbiImUSinxaCTyv0/HpoOW/J5V7ONrMhxeH
-         MKzBooWHSACjWCtXR+ykO5eVJXlyGG5tpuEtuMaeRb0xWjXcz6QDUx7XRDJjo9C+nybb
-         XQcg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1784572275; x=1785177075;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=K4HtwqqTFMH8KE+qtT7AThKAONYzcCFlt1fLH9nHfHc=;
-        b=a1AtLc7tmlziyK9ov8J+rxyFdnv4pL/cigFSqBnKM/Qyeb2xvpsuxKgxIzweqIztGw
-         73ydfi29I0FSzsLvBy9Jrh+ubQNs/Qfq1BL9fF9mTuBLs7Q4ZD4TD/sh6rqyDDG4W1Gt
-         KF7r3ysAba3KH3i3mQWXezSDjQ2r64Jtf1S1gxQX5i/rJ3NGy/m9kZacuBGFXIU3ppUT
-         1cEqzOQkt56dVWRz+SPgsq38llzIbWdnV3F+lP5DczdMuUHZDSHJaBExUSCfTLtTJI9H
-         itP2OS9soOicrOc6fpfTYwaKvvmFASmOhMcSbvqrc8ZqisQdNOZ4vUcQItb7HUpMAWzh
-         5QdQ==
-X-Forwarded-Encrypted: i=1; AHgh+RokEmRpC84c0GGswrUwEYP90ypqDrhVwOFU7eFWMpmBXM2kp6hDpXtPgudwTHxfrlHw9kBaoqTRqOXp@vger.kernel.org
-X-Gm-Message-State: AOJu0Yzf5Rqsy4BdnmXZ/kkgBn6zaFaD15/ELrd6As8N+5uEMDvhJeOs
-	7B+eEnmtC9P5oJIa+S/lX8xXiKC5hUT+YKSIPupfC6M6XvrjtVGEjAED
-X-Gm-Gg: AfdE7clQrauCjb13bdAqS7juMW3I8pcQX3hlVofg3cOrZbSXuIXbLBO9fQmlT5FnHc3
-	Y6QMElgdiOlMbZbF3SmcQWKP38WsulGIuPd7lCOAAMJxaaFUGfg/8449yHxHtauTMqx7+3JMYu3
-	wVmaxK1YF3YV5WQMobtpNSCU0/nDWwCjLndE7R0ebaq0/MkIVAkV/M+m3M3FYPFjm/IQREoK8OC
-	VfdYyJ9xsO0xFl2Ck5KXuze7VnQoejyknN6lNqjT+OaTreDJK1sr8C/AnI47CbjAKgM3Dd/fJB7
-	Olj917jTDvpua3QpD2cN9AZBaDeukh+PXRGUy+opU0hIIu7WarQdtdNJCfqOe5ta155s5WzDf78
-	9zfnOybz1ZKsM+5IYb/COcKEVXHj9G6zMOD46wvCvmfNr9Vp2E+W/SbJtC2Pk2UjV7M4nWUAtLi
-	Xtbg==
-X-Received: by 2002:a05:600c:4ed0:b0:493:c634:952 with SMTP id 5b1f17b1804b1-4954a3d0872mr170031255e9.7.1784572275277;
-        Mon, 20 Jul 2026 11:31:15 -0700 (PDT)
-Received: from fedora ([212.253.194.180])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4956546db7bsm6468745e9.3.2026.07.20.11.31.13
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 20 Jul 2026 11:31:14 -0700 (PDT)
-From: Serhat Kumral <serhatkumral1@gmail.com>
-To: Zhu Yanjun <yanjun.zhu@linux.dev>,
-	Zhu Yanjun <zyjzyj2000@gmail.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>,
-	Leon Romanovsky <leon@kernel.org>,
-	David Ahern <dsahern@kernel.org>,
-	linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	syzbot+8c9eede336e3a843750e@syzkaller.appspotmail.com
-Subject: Re: [RFC PATCH 1/2] RDMA/rxe: drive UDP tunnel socket lifetime from the GID table
-Date: Mon, 20 Jul 2026 21:15:51 +0300
-Message-ID: <20260720181551.30322-1-serhatkumral1@gmail.com>
-X-Mailer: git-send-email 2.55.0
-In-Reply-To: <19670ac6-ebab-4074-ab4f-3db06e1db291@linux.dev>
-References: <19670ac6-ebab-4074-ab4f-3db06e1db291@linux.dev>
+	dkim=pass (2048-bit key) header.d=deltatee.com header.i=@deltatee.com header.b="G78R0G4A"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=deltatee.com; s=20200525; h=Subject:In-Reply-To:From:References:Cc:To:
+	MIME-Version:Date:Message-ID:content-disposition;
+	bh=YELh0b3QajkSD4msD1qE3xlvEfmbrtR4vMSO8zUFNP4=; b=G78R0G4ApJYfZi/9vAbiWuWhBT
+	yw/nzVk23WLIDxAxG4p8fgkx8rE8TaNly1j1YYzp9MmCQmD6/RWuWBzYbnqTsTMtJzGYBKOoGWby+
+	4SiaXgSFbifrGrkVFDWWqFSYfoLAAhIniOb3YLTfQ/mhFupBe+ASo7FyWIIN8AlHr4OljXgP6eDLZ
+	ZzplaghNrp6Xw9vS7ZQUgHAAgVWAwO7MFIEoOSECgJEQk5WcUbXOJQlnQeIrPHt2hGm5+JRpqg28C
+	ugA/Edsoo0QLXysrw65j4Sfe39CWGmpmmtuRxwM8liCCK6a4Qnt0KZy6m3GUjPmjP0+dB8Jxld5FH
+	XAKLxcJg==;
+Received: from guinness.priv.deltatee.com ([172.16.1.162])
+	by ale.deltatee.com with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+	(Exim 4.98.2)
+	(envelope-from <logang@deltatee.com>)
+	id 1wlsxK-0000000B7jc-1nFA;
+	Mon, 20 Jul 2026 12:43:11 -0600
+Message-ID: <b2c37f4f-79dd-428f-915a-2a862d20924c@deltatee.com>
+Date: Mon, 20 Jul 2026 12:42:50 -0600
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+To: Mykola Marzhan <mykola@meshstor.io>, Christoph Hellwig <hch@lst.de>
+Cc: Jens Axboe <axboe@kernel.dk>, Song Liu <song@kernel.org>,
+ Yu Kuai <yukuai@fygo.io>, Keith Busch <kbusch@kernel.org>,
+ Sagi Grimberg <sagi@grimberg.me>, linux-block@vger.kernel.org,
+ linux-raid@vger.kernel.org, linux-nvme@lists.infradead.org,
+ Li Nan <magiclinan@didiglobal.com>, Xiao Ni <xiao@kernel.org>,
+ Guoqing Jiang <guoqing.jiang@linux.dev>, Leon Romanovsky <leon@kernel.org>,
+ Jason Gunthorpe <jgg@ziepe.ca>, Kiran Kumar Modukuri <kmodukuri@nvidia.com>,
+ Chaitanya Kulkarni <kch@nvidia.com>, Bjorn Helgaas <bhelgaas@google.com>,
+ Shivaji Kant <shivajikant@google.com>, Pranjal Shrivastava
+ <praan@google.com>, Henrique Carvalho <henrique.carvalho@suse.com>,
+ linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
+ linux-pci@vger.kernel.org
+References: <20260719105327.864949-1-mykola@meshstor.io>
+ <20260719105327.864949-2-mykola@meshstor.io> <20260720144943.GA17375@lst.de>
+ <CAPzsNDv6hUV3gHdaxuwjRcr4couUKq_M5DKObFNaYqCHnm7ZMw@mail.gmail.com>
+Content-Language: en-CA
+From: Logan Gunthorpe <logang@deltatee.com>
+In-Reply-To: <CAPzsNDv6hUV3gHdaxuwjRcr4couUKq_M5DKObFNaYqCHnm7ZMw@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
+X-SA-Exim-Connect-IP: 172.16.1.162
+X-SA-Exim-Rcpt-To: mykola@meshstor.io, hch@lst.de, axboe@kernel.dk, song@kernel.org, yukuai@fygo.io, kbusch@kernel.org, sagi@grimberg.me, linux-block@vger.kernel.org, linux-raid@vger.kernel.org, linux-nvme@lists.infradead.org, magiclinan@didiglobal.com, xiao@kernel.org, guoqing.jiang@linux.dev, leon@kernel.org, jgg@ziepe.ca, kmodukuri@nvidia.com, kch@nvidia.com, bhelgaas@google.com, shivajikant@google.com, praan@google.com, henrique.carvalho@suse.com, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, linux-pci@vger.kernel.org
+X-SA-Exim-Mail-From: logang@deltatee.com
+X-Spam-Level: 
+Subject: Re: [PATCH v2 1/7] blk-mq-dma: restore BLK_STS_TARGET for unsupported
+ P2P transfers
+X-SA-Exim-Version: 4.2.1 (built Sun, 23 Feb 2025 07:57:16 +0000)
+X-SA-Exim-Scanned: Yes (on ale.deltatee.com)
 
-Thanks for the trace.
 
-> KASAN: null-ptr-deref in range
-> [0x0000000000000000-0x0000000000000007]
-> RIP: 0010:ip_rcv+0xeb/0x570
 
-This shows that the failure is not a deadlock, but a NULL pointer
-dereference in the IPv4 receive path.
+On 2026-07-20 11:30, Mykola Marzhan wrote:
+> On Mon, Jul 20, 2026 at 4:49 PM Christoph Hellwig <hch@lst.de
+>> This is a really weird writing style, and suggested to me you neither
+>> understand the code nor the problem.  Please actually think yourself,
+>> write the patches and commit logs yourself instdad of this garbage.
+>> 
+>> And please also explain how you even generate the I/O that fails this
+>> way.
+> - md mirrors the write: the copy to member 1 succeeds, the copy to far
+> member fails as BLK_STS_INVAL.
+> - md deliberately ignores BLK_STS_INVAL, so the write is counted as
+> written and the mirror silently diverges.
 
-To identify the exact source line and confirm which pointer is NULL,
-could you also provide the output of:
+Seeing I just reviewed this and answered it for myself I'll expand on
+what's going on here:
 
-  ./scripts/faddr2line vmlinux 'ip_rcv+0xeb/0x570'
+The switch statement will take the default branch when
+pci_p2pdma_state() returns PCI_P2PDMA_MAP_NOT_SUPPORTED. This indicates
+the memory that's trying to be mapped in this way will not succeed
+because it's going through an unsupported host bridge (or if the device
+isn't a PCI device, etc, but this is rarer or perhaps not possible).
+Returning BLK_STS_INVAL doesn't seem correct here, to me. (Arguably it
+might have been clearer if the switch case explicitly stated
+PCI_P2PDMA_MAP_NOT_SUPPORTED instead of relying on the default).
 
-My series does not modify the RXE IPv4 packet-processing functions,
-but it does change the lifetime of both IPv4 and IPv6 UDP tunnel
-sockets.
+Returning -EREMOTEIO/BLK_STS_TARGET was the convention for this I had
+originally set when I wrote some of this and differentiating the error
+does seem important in Patch 6 in this series.
 
-Could you please run the same selftest on the same commit and config
-with this series reverted, and report whether it still crashes?
+Logan
