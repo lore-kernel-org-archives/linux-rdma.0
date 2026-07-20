@@ -1,136 +1,103 @@
-Received: from mx0b-00082601.pphosted.com (mx0b-00082601.pphosted.com [67.231.153.30])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wm2-f2.google.com (mail-wm2-f2.google.com [74.125.225.130])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1518B445AE0
-	for <linux-rdma@vger.kernel.org>; Mon, 20 Jul 2026 17:23:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=67.231.153.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45B18478E20
+	for <linux-rdma@vger.kernel.org>; Mon, 20 Jul 2026 18:31:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.225.130
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784568214; cv=none; b=FxXUJzeXPLsqnH7l2XlMUoVmtxoVH6bYeFnJfXlGbsNykrcLl14FXrRUweEALXKxGkRdmkFxadqArJ5Gp8fb4jIVZq9nKx4ZzD+bJk4NuDddE0k2QLj3TVcd52nv5Y4cOuywxAvktG5OOo6fGmA5B/oKO7l/mQXLBK4vNtQwDRk=
+	t=1784572278; cv=none; b=KLNPOknyYA3PR2mVboDWGKc5Mpifle4lstKeDY9oPME0p1K+POsTgkTzNUcGJXRFmKsxMHvgr+6PIEuGb72uqwEFdCxwijG8ddIcUAxXbC2Upxv/oynjq//WvkNwRSdpYbRWakROmPMwPbZPWGw+bC79t1Tyf3XgbADlkTjYPSc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784568214; c=relaxed/simple;
-	bh=zDM+9twRBKxInfPVZPob4moDrbBEMI9XxzYXWZNJ2ig=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=aifVFgKUkaq2bE6jQhaFBY59LINykKauMNhKQ6+z3pH5en2YcvGTTaR5A3Ep8QReiN4NSyrv4ZRAY03zkz4rhwyl23afEHuzLz4pw3gLykHY/TgGGzaZqe0qPnFCV+UAdgvIItRCeYZivBa1Z0IS708XUn1dGnIus9M7TH22v5U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=meta.com; spf=pass smtp.mailfrom=meta.com; dkim=pass (2048-bit key) header.d=meta.com header.i=@meta.com header.b=Tl7Q9xad; arc=none smtp.client-ip=67.231.153.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=meta.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=meta.com
+	s=arc-20240116; t=1784572278; c=relaxed/simple;
+	bh=tpIozQVuFz5YMT+/KaMPSJCm3XJPJ31NcVTMY/bvGWU=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=mN0MoVyoU4mHF1tCxGQvzUDHAYknN/F3oo0BnNtnV5RTlwQZKCcHhI0mSs83d4a+0YmfMKxRIpB0/hW3YoUMNCmUmN5d3rhn0Q+zM0k387y5OdKPBr2j3YNJ4KFEkV/8eZQy9xYP/qMdHUF6YjCGAH+/7wu9gCoaxW4ZKuSsMUI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=MWxEndbh; arc=none smtp.client-ip=74.125.225.130
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=meta.com header.i=@meta.com header.b="Tl7Q9xad"
-Received: from pps.filterd (m0528004.ppops.net [127.0.0.1])
-	by mx0a-00082601.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 66KHAdnN2476942
-	for <linux-rdma@vger.kernel.org>; Mon, 20 Jul 2026 10:23:26 -0700
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=meta.com; h=cc
-	:content-transfer-encoding:content-type:date:from:message-id
-	:mime-version:subject:to; s=s2048-2025-q2; bh=DTLEKDAFm5o1IDs3CH
-	TtawTAzo4xpniHg617Q1VmLJg=; b=Tl7Q9xadHMpkxViS5d+CvQm9BElU+IlntQ
-	S9ZU+HjsSnLfhgabFVop7CROnwpFK4ij9abRJX8yXC31ACM/XYvtjdwQd13kFrnT
-	AFtDhFqiMtz6mzib1YdwwLPhHK5EDHgBcyQI68uCckmFc/VoLZh0SBlShkymQs4W
-	hGCv/5GGvqEdHhhYwQ9Czq+qaNCd7mLIz2mzLQoaAKouMNf4EtizYMK7tJwHOFqU
-	9czYn7mvG7BtKxrfVCFKKkZBYdJ2y6e9LU3ztSNrIZX4Q4ZDURZbKLkHT7GnpD3C
-	d3nebUoVQmL1hB3iYOugEt0Hl6wyHvpQy0VtvjAhA/7sVbHbuqMg==
-Received: from mail.thefacebook.com ([163.114.134.16])
-	by mx0a-00082601.pphosted.com (PPS) with ESMTPS id 4fgu4dew2b-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT)
-	for <linux-rdma@vger.kernel.org>; Mon, 20 Jul 2026 10:23:26 -0700 (PDT)
-Received: from twshared9793.01.snb2.facebook.com (2620:10d:c085:208::7cb7) by
- mail.thefacebook.com (2620:10d:c08b:78::c78f) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.2.2562.41; Mon, 20 Jul 2026 17:23:25 +0000
-Received: by devbig259.ftw1.facebook.com (Postfix, from userid 664516)
-	id 99D3242B04105; Mon, 20 Jul 2026 10:23:07 -0700 (PDT)
-From: Zhiping Zhang <zhipingz@meta.com>
-To: Bjorn Helgaas <bhelgaas@google.com>, Wei Huang <wei.huang2@amd.com>,
-        <linux-pci@vger.kernel.org>
-CC: Christian Konig <christian.koenig@amd.com>,
-        Alex Williamson
-	<alex@shazbot.org>, <linux-rdma@vger.kernel.org>,
-        Zhiping Zhang
-	<zhipingz@meta.com>
-Subject: [PATCH v3] PCI/TPH: treat reserved 0b10 completer encoding as unsupported
-Date: Mon, 20 Jul 2026 10:22:24 -0700
-Message-ID: <20260720172304.117134-1-zhipingz@meta.com>
-X-Mailer: git-send-email 2.52.0
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="MWxEndbh"
+Received: by mail-wm2-f2.google.com with SMTP id 5b1f17b1804b1-49242309566so20708795e9.0
+        for <linux-rdma@vger.kernel.org>; Mon, 20 Jul 2026 11:31:17 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1784572275; x=1785177075; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=K4HtwqqTFMH8KE+qtT7AThKAONYzcCFlt1fLH9nHfHc=;
+        b=MWxEndbhXJa9KqXc2S2VfU4w8JM4Re+y1k22hJvpwE7vPlapvcO1FjJvd3K1CoCCC1
+         5q9Y9aL8BjtZLsn3sus0bbtqt2F9GFgvXoFD+WgbFuWpLc47aixmCo1RPHBjJKdqp9RO
+         Clq8TaAlxYoD7AG4aJzCipTICWHF8RcearzNBg6h8q7zP+akOalYUz/8Sr91xQjHLoVD
+         SrgvIjRvWdd6QdrCNQEngcqORSb2JvOR3CbiImUSinxaCTyv0/HpoOW/J5V7ONrMhxeH
+         MKzBooWHSACjWCtXR+ykO5eVJXlyGG5tpuEtuMaeRb0xWjXcz6QDUx7XRDJjo9C+nybb
+         XQcg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1784572275; x=1785177075;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=K4HtwqqTFMH8KE+qtT7AThKAONYzcCFlt1fLH9nHfHc=;
+        b=a1AtLc7tmlziyK9ov8J+rxyFdnv4pL/cigFSqBnKM/Qyeb2xvpsuxKgxIzweqIztGw
+         73ydfi29I0FSzsLvBy9Jrh+ubQNs/Qfq1BL9fF9mTuBLs7Q4ZD4TD/sh6rqyDDG4W1Gt
+         KF7r3ysAba3KH3i3mQWXezSDjQ2r64Jtf1S1gxQX5i/rJ3NGy/m9kZacuBGFXIU3ppUT
+         1cEqzOQkt56dVWRz+SPgsq38llzIbWdnV3F+lP5DczdMuUHZDSHJaBExUSCfTLtTJI9H
+         itP2OS9soOicrOc6fpfTYwaKvvmFASmOhMcSbvqrc8ZqisQdNOZ4vUcQItb7HUpMAWzh
+         5QdQ==
+X-Forwarded-Encrypted: i=1; AHgh+RokEmRpC84c0GGswrUwEYP90ypqDrhVwOFU7eFWMpmBXM2kp6hDpXtPgudwTHxfrlHw9kBaoqTRqOXp@vger.kernel.org
+X-Gm-Message-State: AOJu0Yzf5Rqsy4BdnmXZ/kkgBn6zaFaD15/ELrd6As8N+5uEMDvhJeOs
+	7B+eEnmtC9P5oJIa+S/lX8xXiKC5hUT+YKSIPupfC6M6XvrjtVGEjAED
+X-Gm-Gg: AfdE7clQrauCjb13bdAqS7juMW3I8pcQX3hlVofg3cOrZbSXuIXbLBO9fQmlT5FnHc3
+	Y6QMElgdiOlMbZbF3SmcQWKP38WsulGIuPd7lCOAAMJxaaFUGfg/8449yHxHtauTMqx7+3JMYu3
+	wVmaxK1YF3YV5WQMobtpNSCU0/nDWwCjLndE7R0ebaq0/MkIVAkV/M+m3M3FYPFjm/IQREoK8OC
+	VfdYyJ9xsO0xFl2Ck5KXuze7VnQoejyknN6lNqjT+OaTreDJK1sr8C/AnI47CbjAKgM3Dd/fJB7
+	Olj917jTDvpua3QpD2cN9AZBaDeukh+PXRGUy+opU0hIIu7WarQdtdNJCfqOe5ta155s5WzDf78
+	9zfnOybz1ZKsM+5IYb/COcKEVXHj9G6zMOD46wvCvmfNr9Vp2E+W/SbJtC2Pk2UjV7M4nWUAtLi
+	Xtbg==
+X-Received: by 2002:a05:600c:4ed0:b0:493:c634:952 with SMTP id 5b1f17b1804b1-4954a3d0872mr170031255e9.7.1784572275277;
+        Mon, 20 Jul 2026 11:31:15 -0700 (PDT)
+Received: from fedora ([212.253.194.180])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4956546db7bsm6468745e9.3.2026.07.20.11.31.13
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 20 Jul 2026 11:31:14 -0700 (PDT)
+From: Serhat Kumral <serhatkumral1@gmail.com>
+To: Zhu Yanjun <yanjun.zhu@linux.dev>,
+	Zhu Yanjun <zyjzyj2000@gmail.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>,
+	Leon Romanovsky <leon@kernel.org>,
+	David Ahern <dsahern@kernel.org>,
+	linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	syzbot+8c9eede336e3a843750e@syzkaller.appspotmail.com
+Subject: Re: [RFC PATCH 1/2] RDMA/rxe: drive UDP tunnel socket lifetime from the GID table
+Date: Mon, 20 Jul 2026 21:15:51 +0300
+Message-ID: <20260720181551.30322-1-serhatkumral1@gmail.com>
+X-Mailer: git-send-email 2.55.0
+In-Reply-To: <19670ac6-ebab-4074-ab4f-3db06e1db291@linux.dev>
+References: <19670ac6-ebab-4074-ab4f-3db06e1db291@linux.dev>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-X-FB-Internal: Safe
-Content-Type: text/plain
-X-Proofpoint-GUID: WDpm8LDflQPXb_L1e_UkPmLrpMkB7w-y
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNzIwMDE5MiBTYWx0ZWRfX3dDC59cP/eTo
- Svjpq6xElM2Rin7TSXtzm2FLUkKQ4UfAWvIBNVSoIB4ZKOa4QZ0OBMKSabcLlsdNv3JHM4bUoDz
- qY4TyevcHOZFc8Y3oYOOv0OZ7MXzkCiGU13D3f+Tk1D+/tZs1EfR4/9168Blq+XVqG4PwolzvWn
- 9gEJcWqYmYyuaQ8AVZYPPwyEn0GzOxn337K7qCis4ksELf6gt6+lIhnOOpOLkNV8YT0ywEzohAy
- qhw61zlUBQmEt3eXssqIe6BlKQPy7WrnEoo7AONO98uDrEFdiEnbpTVRgsDkcaIxzMGo4hDFzPV
- RjCMlv12Lw3wcv3+UUvGR4o5h4MjNQT4jfgy7u07cSF0a5fI4a/1eMYIULECcD5sIu7VAULqwYx
- vA8sw8j2+w913iBCLgsQuRShwxJ0PADASFLcBdTWjfFSSowaSI2r3PZSj84Im05o8qlH1j3b4xn
- GJMxXSeuUHwsICT9kSQ==
-X-Proofpoint-ORIG-GUID: WDpm8LDflQPXb_L1e_UkPmLrpMkB7w-y
-X-Authority-Analysis: v=2.4 cv=NOrlPU6g c=1 sm=1 tr=0 ts=6a5e598e cx=c_pps
- a=CB4LiSf2rd0gKozIdrpkBw==:117 a=CB4LiSf2rd0gKozIdrpkBw==:17
- a=RAioF0-LDSMA:10 a=VkNPw1HP01LnGYTKEx00:22 a=7x6HtfJdh03M6CCDgxCd:22
- a=GbPsI2Ihf5RTnMjR_gZv:22 a=VabnemYjAAAA:8 a=5iV6q52TU81yRMb5XQMA:9
- a=gKebqoRLp9LExxC7YDUY:22
-X-Proofpoint-Spam-Info: AW1haW4tMjYwNzIwMDE5MiBTYWx0ZWRfX+H2Rmy7tzIzM
- RxBQoO3kdTnNNvltzl9wbqU8iIuFi7VSTxbRZZ8TSs6O6jmnG1tY8inxKc7mP5bCvmzT0mT72KE
- LWsrpqKQcVPQq1z9SHmJXecLLshXa7c=
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1143,Hydra:6.1.134,FMLib:17.12.100.49
- definitions=2026-07-20_04,2026-07-20_03,2025-10-01_01
+Content-Transfer-Encoding: 8bit
 
-get_rp_completer_type() returns the Root Port's "TPH Completer
-Supported" field (bits 13:12 of Device Capabilities 2) verbatim. The
-0b10 encoding is reserved, but pcie_enable_tph() feeds the raw value
-into the requester type:
+Thanks for the trace.
 
-	pdev->tph_req_type =3D min(pdev->tph_req_type, rp_req_type);
+> KASAN: null-ptr-deref in range
+> [0x0000000000000000-0x0000000000000007]
+> RIP: 0010:ip_rcv+0xeb/0x570
 
-and later writes tph_req_type to the TPH Requester Enable field, which
-only defines 0b00 (disable), 0b01 (TPH only) and 0b11 (extended TPH).
+This shows that the failure is not a deadlock, but a NULL pointer
+dereference in the IPv4 receive path.
 
-No known hardware presents the reserved 0b10 in this field, so this is
-defensive hardening rather than a fix for observed silicon: fold the
-reserved encoding into "not supported" so only the three architected
-values can ever reach the Requester Enable field.
+To identify the exact source line and confirm which pointer is NULL,
+could you also provide the output of:
 
-Fixes: f69767a1ada3 ("PCI: Add TLP Processing Hints (TPH) support")
-Signed-off-by: Zhiping Zhang <zhipingz@meta.com>
----
- drivers/pci/tph.c | 11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+  ./scripts/faddr2line vmlinux 'ip_rcv+0xeb/0x570'
 
-diff --git a/drivers/pci/tph.c b/drivers/pci/tph.c
-index 655ffd60e62f..5cbb381e2a02 100644
---- a/drivers/pci/tph.c
-+++ b/drivers/pci/tph.c
-@@ -200,6 +200,7 @@ EXPORT_SYMBOL(pcie_tph_get_st_table_size);
- static u8 get_rp_completer_type(struct pci_dev *pdev)
- {
- 	struct pci_dev *rp;
-+	u8 tph_comp;
- 	u32 reg;
- 	int ret;
-=20
-@@ -211,7 +212,15 @@ static u8 get_rp_completer_type(struct pci_dev *pdev=
-)
- 	if (ret)
- 		return 0;
-=20
--	return FIELD_GET(PCI_EXP_DEVCAP2_TPH_COMP_MASK, reg);
-+	/*
-+	 * 0b10 is reserved; treat it as "not supported" so only the
-+	 * architected encodings reach the Requester Enable field.
-+	 */
-+	tph_comp =3D FIELD_GET(PCI_EXP_DEVCAP2_TPH_COMP_MASK, reg);
-+	if (tph_comp =3D=3D PCI_EXP_DEVCAP2_TPH_COMP_TPH_ONLY ||
-+	    tph_comp =3D=3D PCI_EXP_DEVCAP2_TPH_COMP_EXT_TPH)
-+		return tph_comp;
-+	return PCI_EXP_DEVCAP2_TPH_COMP_NONE;
- }
-=20
- /* Write tag to ST table - Return 0 if OK, otherwise -errno */
---=20
-2.53.0-Meta
+My series does not modify the RXE IPv4 packet-processing functions,
+but it does change the lifetime of both IPv4 and IPv6 UDP tunnel
+sockets.
 
+Could you please run the same selftest on the same commit and config
+with this series reverted, and report whether it still crashes?
