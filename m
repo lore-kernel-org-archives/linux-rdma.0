@@ -1,48 +1,38 @@
-Received: from 011.lax.mailroute.net (011.lax.mailroute.net [199.89.1.14])
+Received: from ale.deltatee.com (ale.deltatee.com [204.191.154.188])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C21E93B9DA4;
-	Mon, 20 Jul 2026 16:32:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=199.89.1.14
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8E3DF2D0602;
+	Mon, 20 Jul 2026 16:32:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=204.191.154.188
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784565126; cv=none; b=XWfeuAYN8qVD5joJ51qmls/XDz2G8fde7eaTnkZUVhqneWRyunZIC0ZY2hAeVgFZwIl+VasWeTp4nAtLAI6vaYkG3zQ4dUnz8IEofSKaPR2eAiP7Y/fBURFWJ26nPXEP2D+GY+GVmYIgLhItCWDk/Gbggl6X5ybfPfQ0p8/GLOw=
+	t=1784565150; cv=none; b=EXyUYd+gPAPwQFG+8+JnfmxglMDLVgKgS2fkugQm/mPgMm63TUUWfTuu7yF/a6vfWk4+w0Y/lA2CjN1KO1bz5Kl5MZkqabCX1F0xBN5rv6tfrBAKIpa2pOYmrCsjepQVnJ3i6YyL9rMLAV7nREaqdOlGcJRBLJOv0m6lGw4bJX4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784565126; c=relaxed/simple;
-	bh=Cao5QjP6I3mRmpJh7B6L0fAsxbxCfWZAM3YG2f1OR/I=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=Qo1dzhLsHXymsLzjjjGH/li+fjNhmcjU8sfzpLIpP6t86/TMQQ6ALt4sJJeC7g7HcKNHNqs/iK2uerUyIunl07avxlWre3KtGR8aE8qQb57TM1odP8qvGdO3WT69s4ILiTYtlD0vtZYNmqgOgunLVUj/1TRjujsdoqi6X8+OnG8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=acm.org; spf=pass smtp.mailfrom=acm.org; dkim=pass (2048-bit key) header.d=acm.org header.i=@acm.org header.b=bGk3bsd+; arc=none smtp.client-ip=199.89.1.14
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=acm.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=acm.org
+	s=arc-20240116; t=1784565150; c=relaxed/simple;
+	bh=7WxZH/aP0Plov8+NXa3GcdVoiew72vfYFylVtuzHZaQ=;
+	h=Message-ID:Date:MIME-Version:To:Cc:References:From:In-Reply-To:
+	 Content-Type:Subject; b=uWjXlRvOLJ8aS0jOptwWTK5rxIKFgoSLgMLLotA8wj6yKepTXGIbEy2HFFEdD/NzOJaBWI2/ae4cBbEPxIs6zTjj2SmIVVIVrNERS+oIdHMd+mnwsmDYXX/GisHteL2OqS7S87vTgwTZM1Iuo7XWLcTlYwIwqEjegu/A+4xEbd4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=deltatee.com; spf=pass smtp.mailfrom=deltatee.com; dkim=pass (2048-bit key) header.d=deltatee.com header.i=@deltatee.com header.b=XfEJilhz; arc=none smtp.client-ip=204.191.154.188
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=deltatee.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=deltatee.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=acm.org header.i=@acm.org header.b="bGk3bsd+"
-Received: from localhost (localhost [127.0.0.1])
-	by 011.lax.mailroute.net (Postfix) with ESMTP id 4h3mJ41tbJz1XM5kt;
-	Mon, 20 Jul 2026 16:32:04 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=acm.org; h=
-	content-transfer-encoding:content-type:content-type:in-reply-to
-	:from:from:content-language:references:subject:subject
-	:user-agent:mime-version:date:date:message-id:received:received;
-	 s=mr01; t=1784565120; x=1787157121; bh=D0NipGl3diV8adlTQW+lpXtX
-	x3pdPHuDF8yVgAQnJWU=; b=bGk3bsd+hm//uA/TVdn4MxETkVQUFuNhdcavfCPz
-	QbOB25qW7U6y05QgyWibMqNLppdujYNNErm+Rfu/TrAfQcMbToHSFjq9GeDZTCus
-	1oIgXbk8hWu93CRVKw+Q0WBfUctf89Tv6/rVondN07TuBHVyB4Zcpdrh4ef6M5CA
-	4t7vNjG7pl41lAjisL4kIN0QkS8QJoRG5iXeppqcQcn6TZR3XgS5gUU0wPeNj9iw
-	8H5ednHnSQbgBONp7V2G21n8Ynv8Yzgw7+16yFy2OM+mumzTSht+56Q5hfW25urp
-	dcH+p7WDZxqFoXU/wNioSAxDAK6u1q2T/bCI5F7Fcj2Pzw==
-X-Virus-Scanned: by MailRoute
-Received: from 011.lax.mailroute.net ([127.0.0.1])
- by localhost (011.lax [127.0.0.1]) (mroute_mailscanner, port 10029) with LMTP
- id FLd0CByooM6v; Mon, 20 Jul 2026 16:32:00 +0000 (UTC)
-Received: from [100.119.48.131] (unknown [104.135.180.219])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	(Authenticated sender: bvanassche@acm.org)
-	by 011.lax.mailroute.net (Postfix) with ESMTPSA id 4h3mHz14R0z1XM5kW;
-	Mon, 20 Jul 2026 16:31:58 +0000 (UTC)
-Message-ID: <e5c8e258-8c57-40c8-88a9-04173392e9ae@acm.org>
-Date: Mon, 20 Jul 2026 09:31:58 -0700
+	dkim=pass (2048-bit key) header.d=deltatee.com header.i=@deltatee.com header.b="XfEJilhz"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=deltatee.com; s=20200525; h=Subject:In-Reply-To:From:References:Cc:To:
+	MIME-Version:Date:Message-ID:content-disposition;
+	bh=UejnvKJ6g9gMJanunWLrrKhYBZB1/JIBg8RLC+bnqec=; b=XfEJilhz7K3/u1syeao1OiBuv7
+	cPb46Ie3iKQCESnfHFjcSvEiS51mxQmcWQHidb5UeslC/dPkvy6x5rsSd69D5FYW4CzGWS+soUzm3
+	qG+YSRRP3+YlDlsvF6eiuALUNxqhRts/xTm6JhYu2C4XJIZD19Aqi9ZItYNeGLBh0aNNBmZAQMXR0
+	IqaAdBGQGwJpUDTA1ouAkyK0aqkGW/S+VFhHWLeEbOo4yvlMrgXt6G83ACdLa5rv5FPXqOcGXgo7z
+	CKbU8WGpdp07CWbVn/17UUeJA9cq/ZIBxJlNVzThwKgJX/Zv7qWjjAQsGRll2EO7jlMUv9D0leJMj
+	Fx2gI0Lw==;
+Received: from guinness.priv.deltatee.com ([172.16.1.162])
+	by ale.deltatee.com with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+	(Exim 4.98.2)
+	(envelope-from <logang@deltatee.com>)
+	id 1wlquk-0000000B6S8-0KRQ;
+	Mon, 20 Jul 2026 10:32:22 -0600
+Message-ID: <8e34f60f-c45b-4455-9486-7c1eba60c0a2@deltatee.com>
+Date: Mon, 20 Jul 2026 10:32:21 -0600
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -50,31 +40,49 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] RDMA/srpt: fix NULL deref when sending BUSY before
- target_init_cmd()
-To: kensanya@163.com, jgg@ziepe.ca, leon@kernel.org
-Cc: linux-rdma@vger.kernel.org, target-devel@vger.kernel.org,
- linux-kernel@vger.kernel.org, TanZheng <tanzheng@kylinos.cn>
-References: <20260720025941.69809-1-kensanya@163.com>
-Content-Language: en-US
-From: Bart Van Assche <bvanassche@acm.org>
-In-Reply-To: <20260720025941.69809-1-kensanya@163.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+To: Mykola Marzhan <mykola@meshstor.io>, Jens Axboe <axboe@kernel.dk>,
+ Song Liu <song@kernel.org>, Yu Kuai <yukuai@fygo.io>,
+ Keith Busch <kbusch@kernel.org>, Christoph Hellwig <hch@lst.de>,
+ Sagi Grimberg <sagi@grimberg.me>, linux-block@vger.kernel.org,
+ linux-raid@vger.kernel.org, linux-nvme@lists.infradead.org
+Cc: Li Nan <magiclinan@didiglobal.com>, Xiao Ni <xiao@kernel.org>,
+ Guoqing Jiang <guoqing.jiang@linux.dev>, Leon Romanovsky <leon@kernel.org>,
+ Jason Gunthorpe <jgg@ziepe.ca>, Kiran Kumar Modukuri <kmodukuri@nvidia.com>,
+ Chaitanya Kulkarni <kch@nvidia.com>, Bjorn Helgaas <bhelgaas@google.com>,
+ Shivaji Kant <shivajikant@google.com>, Pranjal Shrivastava
+ <praan@google.com>, Henrique Carvalho <henrique.carvalho@suse.com>,
+ linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
+ linux-pci@vger.kernel.org
+References: <20260719105327.864949-1-mykola@meshstor.io>
+ <20260719105327.864949-6-mykola@meshstor.io>
+Content-Language: en-CA
+From: Logan Gunthorpe <logang@deltatee.com>
+In-Reply-To: <20260719105327.864949-6-mykola@meshstor.io>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
+X-SA-Exim-Connect-IP: 172.16.1.162
+X-SA-Exim-Rcpt-To: mykola@meshstor.io, axboe@kernel.dk, song@kernel.org, yukuai@fygo.io, kbusch@kernel.org, hch@lst.de, sagi@grimberg.me, linux-block@vger.kernel.org, linux-raid@vger.kernel.org, linux-nvme@lists.infradead.org, magiclinan@didiglobal.com, xiao@kernel.org, guoqing.jiang@linux.dev, leon@kernel.org, jgg@ziepe.ca, kmodukuri@nvidia.com, kch@nvidia.com, bhelgaas@google.com, shivajikant@google.com, praan@google.com, henrique.carvalho@suse.com, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, linux-pci@vger.kernel.org
+X-SA-Exim-Mail-From: logang@deltatee.com
+X-Spam-Level: 
+Subject: Re: [PATCH v2 5/7] md/raid1,raid10: keep REQ_NOMERGE on
+ narrow_write_error() retry clones
+X-SA-Exim-Version: 4.2.1 (built Sun, 23 Feb 2025 07:57:16 +0000)
+X-SA-Exim-Scanned: Yes (on ale.deltatee.com)
 
-On 7/19/26 7:59 PM, kensanya@163.com wrote:
-> +	rc = target_init_cmd(cmd, ch->sess, &send_ioctx->sense_data[0],
-> +			     scsilun_to_int(&srp_cmd->lun), 0 /* data_len */,
-> +			     TCM_SIMPLE_TAG, DMA_NONE, TARGET_SCF_ACK_KREF);
-> +	if (rc != 0) {
-> +		pr_debug("target_init_cmd() returned %d for tag %#llx\n", rc,
-> +			 srp_cmd->tag);
-> +		goto busy;
-> +	}
 
-This will cause target_send_busy() to be called on an uninitialized 
-command and that isn't allowed, isn't it?
 
-Thanks,
+On 2026-07-19 04:53, Mykola Marzhan wrote:
+> narrow_write_error() re-issues a failed write in badblock-granularity
+> chunks, cloning from the master bio and resetting bi_opf to a bare
+> REQ_OP_WRITE. For a P2PDMA bio that reset drops REQ_NOMERGE, which is
+> the only request-level protection against the member queue merging
+> P2PDMA segments across pgmaps or with host memory (see the preceding
+> md_submit_bio() fix): the retry path would quietly reopen the hole
+> the submission path closes. Restore the flag on P2PDMA retry clones.
+> 
+> Fixes: 02666132403a ("md: propagate BLK_FEAT_PCI_P2PDMA from member devices to RAID device")
+> Assisted-by: Claude:claude-opus-4-8
+> Signed-off-by: Mykola Marzhan <mykola@meshstor.io>
+Looks correct, thanks.
 
-Bart.
+Reviewed-by: Logan Gunthorpe <logang@deltatee.com>
