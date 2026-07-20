@@ -1,98 +1,159 @@
-Received: from ale.deltatee.com (ale.deltatee.com [204.191.154.188])
+Received: from sender-op-o17.zoho.eu (sender-op-o17.zoho.eu [136.143.169.17])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7F381383983;
-	Mon, 20 Jul 2026 16:49:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=204.191.154.188
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784566154; cv=none; b=bvWUzolhU+WrAgw6cW0wAnvq5FZKRaqbzwtXqEmjxqZHt0xObx5Iwcj4hfMBRIyfLDulA26CVExNkemv2xhxMmT4yWyNL/FihjUv1qyiOGLaupmJub5aQG0x19snWAiLPnbaWG8+ymzw2nrR+N764wGbMHysJ/SW4+YrCkuZ+oY=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784566154; c=relaxed/simple;
-	bh=SHo+dz0Ue/2d8c2Zthacq5yVOF7GekXFdbk0EEM/MEo=;
-	h=Message-ID:Date:MIME-Version:To:Cc:References:From:In-Reply-To:
-	 Content-Type:Subject; b=N8IfPmepgHv0rdoFuDzLcWz86SdUJKVgCdwnJ1Z5b3s585G8yap1UE7BThdOmKVrilDmw35gNvVlTVs92pUat2TFTF2FdE/ZfvvoM0CXftR2yg25A7HE6/HnPLHZxWOtOUthWG6zqxdTzi8yHGf9suupKFZXVpH4biICzBdDfbw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=deltatee.com; spf=pass smtp.mailfrom=deltatee.com; dkim=pass (2048-bit key) header.d=deltatee.com header.i=@deltatee.com header.b=lUrb8QGA; arc=none smtp.client-ip=204.191.154.188
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=deltatee.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=deltatee.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2FA62399002;
+	Mon, 20 Jul 2026 17:08:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=136.143.169.17
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1784567288; cv=pass; b=d+oPIZybu+5iC30c3rrn9bDSMhfODwWHDipaIAcau6hKLbzgfSNjRp6ro+aAXF5KGhTzzk8lcwSVztlbmR7Tg5yYDm2Hut9s0NFuC6jsoSEvx0qEjv1sFplO1W8nt2eSpmFg8jXMTieFG87JPLUY8KYwRd2Qux9TId6zpKo5XmQ=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1784567288; c=relaxed/simple;
+	bh=dNqVxR63V6xQon7zsJn+Ma77TefGiYPz54fRdZ8GDJc=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=e/gveVBHrHY7M0P1E2GvI8flibGhKE89YKwy6SVJAgsPZ2wHw2J0z0X9OO59Yrrv5lfpsywx3H7qvJ+fcb//fhezKd4NcCACx7H5lcH8DfPBaXeubkLTNYudbynkUjm8fQfJ/zhRwTSL1H0VcMkN41ZiGyls6HR8zxWO5rHGW/g=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=auditcode.ai; spf=pass smtp.mailfrom=auditcode.ai; dkim=pass (1024-bit key) header.d=auditcode.ai header.i=security@auditcode.ai header.b=ku50Hzrc; arc=pass smtp.client-ip=136.143.169.17
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=auditcode.ai
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=auditcode.ai
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=deltatee.com header.i=@deltatee.com header.b="lUrb8QGA"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=deltatee.com; s=20200525; h=Subject:In-Reply-To:From:References:Cc:To:
-	MIME-Version:Date:Message-ID:content-disposition;
-	bh=YYL05epQu09BiBSr5PNusLFDqwuNDaosRFFB/h9tybo=; b=lUrb8QGAIKHH8XNsAn4DH31GNb
-	7pJSLAJ+N2/ga/ONySFdI6oDNwO8URdhxhAm6ZNuQa26FXOsO2znTZkY00e2aH22cCAMuVle9ks2Y
-	Jr04yHux6mPAh+g1sezb74gocr26o+tUenFYzOGV4C+DaIEcN+uAOE3Cq4sop5niXyY06EQoU1u9J
-	c/0pPGEMLPjZrQKaRx/UGUGgwedzCqf/0oV49O2oaAtNe7NMCYayNPy9R80kaDuSmONndf/rwSTcX
-	J8lTc3kqqITZ1jaCi92f5gnRAAuR0TrGD7bB02G7r5qWnjJyHSaRJM4mozl6wb/RLibcfS4on2/TH
-	DVH/wUig==;
-Received: from guinness.priv.deltatee.com ([172.16.1.162])
-	by ale.deltatee.com with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
-	(Exim 4.98.2)
-	(envelope-from <logang@deltatee.com>)
-	id 1wlrAv-0000000B6Zd-40ka;
-	Mon, 20 Jul 2026 10:49:06 -0600
-Message-ID: <ee312bcb-92f4-4884-91cd-3bd56180c8c7@deltatee.com>
-Date: Mon, 20 Jul 2026 10:49:03 -0600
+	dkim=pass (1024-bit key) header.d=auditcode.ai header.i=security@auditcode.ai header.b="ku50Hzrc"
+ARC-Seal: i=1; a=rsa-sha256; t=1784567244; cv=none; 
+	d=zohomail.eu; s=zohoarc; 
+	b=ld8knbAu/Ah1xIom4ITHvPesNMHjfsXzJ6OSFIiwQ+SJtXvZ7KGOalBfVX5K5JrXMPtOtlefZbJjfFJQrfl9lxEjk/UMA1tMSm8FhtZUg21e8yadLJLldLNv69FVLcAFQAZswIBPzfIX0wLlKjxLGHAjt663gVf5g4TO+lFe3qk=
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zohomail.eu; s=zohoarc; 
+	t=1784567244; h=Content-Transfer-Encoding:Cc:Cc:Date:Date:From:From:MIME-Version:Message-ID:Subject:Subject:To:To:Message-Id:Reply-To; 
+	bh=HjByz5AvHsIQNltISoR9+2X9Bmm/qrLTUWsUjkq8GY8=; 
+	b=UDLZFinvllHs7jIEOTFx3rgQyruEbU1oRT86rjUmiKFp4SqSjQzBd59EgkEeE0yuS8vLT73c86GsLLJrt10sH9OoY3jz2wRCWM8WLrSOodqQXRleKWPTSIQbN8KJtiIm5h/hYeAPn8oQ+g8GZPVcQPWvYoGGvy9UT+GLFZUYNro=
+ARC-Authentication-Results: i=1; mx.zohomail.eu;
+	dkim=pass  header.i=auditcode.ai;
+	spf=pass  smtp.mailfrom=security@auditcode.ai;
+	dmarc=pass header.from=<security@auditcode.ai>
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1784567244;
+	s=zmail; d=auditcode.ai; i=security@auditcode.ai;
+	h=From:From:To:To:Cc:Cc:Subject:Subject:Date:Date:Message-ID:MIME-Version:Content-Transfer-Encoding:Message-Id:Reply-To;
+	bh=HjByz5AvHsIQNltISoR9+2X9Bmm/qrLTUWsUjkq8GY8=;
+	b=ku50Hzrc4DRQ5WqQiTWRTVI3Hz5nicabKWCgmkKJzz42FlWsfpR4Dri6xvjY+Dwd
+	jdbOryCN4+SaRReYpsFYXLqunJRAVR5qgc9rWL4THGzInUtGx/ACQ68Jg/vrQkVX7hK
+	pQ9CB7EptjY9KemObm931E07X9lKbfGCidG2IdHI=
+Received: by mx.zoho.eu with SMTPS id 1784567241224482.3073788218354;
+	Mon, 20 Jul 2026 19:07:21 +0200 (CEST)
+From: Ibrahim Hashimov <security@auditcode.ai>
+To: alibuda@linux.alibaba.com,
+	dust.li@linux.alibaba.com,
+	wenjia@linux.ibm.com,
+	davem@davemloft.net,
+	edumazet@google.com,
+	kuba@kernel.org,
+	pabeni@redhat.com
+Cc: tonylu@linux.alibaba.com,
+	guwen@linux.alibaba.com,
+	horms@kernel.org,
+	linux-rdma@vger.kernel.org,
+	linux-s390@vger.kernel.org,
+	netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	stable@vger.kernel.org
+Subject: [PATCH net] net/smc: validate peer CDC cursor against RMBE size before accepting it
+Date: Mon, 20 Jul 2026 19:07:17 +0200
+Message-ID: <20260720170717.11425-1-security@auditcode.ai>
+X-Mailer: git-send-email 2.50.1
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-To: Mykola Marzhan <mykola@meshstor.io>, Jens Axboe <axboe@kernel.dk>,
- Song Liu <song@kernel.org>, Yu Kuai <yukuai@fygo.io>,
- Keith Busch <kbusch@kernel.org>, Christoph Hellwig <hch@lst.de>,
- Sagi Grimberg <sagi@grimberg.me>, linux-block@vger.kernel.org,
- linux-raid@vger.kernel.org, linux-nvme@lists.infradead.org
-Cc: Li Nan <magiclinan@didiglobal.com>, Xiao Ni <xiao@kernel.org>,
- Guoqing Jiang <guoqing.jiang@linux.dev>, Leon Romanovsky <leon@kernel.org>,
- Jason Gunthorpe <jgg@ziepe.ca>, Kiran Kumar Modukuri <kmodukuri@nvidia.com>,
- Chaitanya Kulkarni <kch@nvidia.com>, Bjorn Helgaas <bhelgaas@google.com>,
- Shivaji Kant <shivajikant@google.com>, Pranjal Shrivastava
- <praan@google.com>, Henrique Carvalho <henrique.carvalho@suse.com>,
- linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
- linux-pci@vger.kernel.org
-References: <20260719105327.864949-1-mykola@meshstor.io>
- <20260719105327.864949-7-mykola@meshstor.io>
-Content-Language: en-CA
-From: Logan Gunthorpe <logang@deltatee.com>
-In-Reply-To: <20260719105327.864949-7-mykola@meshstor.io>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-X-SA-Exim-Connect-IP: 172.16.1.162
-X-SA-Exim-Rcpt-To: mykola@meshstor.io, axboe@kernel.dk, song@kernel.org, yukuai@fygo.io, kbusch@kernel.org, hch@lst.de, sagi@grimberg.me, linux-block@vger.kernel.org, linux-raid@vger.kernel.org, linux-nvme@lists.infradead.org, magiclinan@didiglobal.com, xiao@kernel.org, guoqing.jiang@linux.dev, leon@kernel.org, jgg@ziepe.ca, kmodukuri@nvidia.com, kch@nvidia.com, bhelgaas@google.com, shivajikant@google.com, praan@google.com, henrique.carvalho@suse.com, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, linux-pci@vger.kernel.org
-X-SA-Exim-Mail-From: logang@deltatee.com
-X-Spam-Level: 
-Subject: Re: [PATCH v2 6/7] md/raid1,raid10: skip futile retries on P2PDMA
- mapping failures
-X-SA-Exim-Version: 4.2.1 (built Sun, 23 Feb 2025 07:57:16 +0000)
-X-SA-Exim-Scanned: Yes (on ale.deltatee.com)
+Content-Transfer-Encoding: 8bit
+X-ZohoMailClient: External
 
+smc_cdc_cursor_to_host() converts the wire-format producer/consumer
+cursor of an incoming CDC message into a host smc_host_cursor. It rejects
+a cursor that goes backwards, but never checks that the cursor's count is
+inside the buffer it indexes. Per smc_host_cursor ("an offset in an
+RMBE") and the invariant smc_curs_add() enforces for every local advance
+(0 <= count < size), a valid cursor count must be < size; the wire cursor
+is peer-controlled and was never checked against that.
 
+smcr_cdc_msg_to_host() accepts the producer and consumer cursors, and the
+unbounded value feeds smc_curs_diff() in smc_cdc_msg_recv_action(), which
+computes new->count - old->count without clamping against size. A peer
+that puts an out-of-range prod.count on the wire (e.g. 0x7fffffff) drives
+bytes_to_rcv far past rmb_desc->len -- the very invariant the comment
+above the atomic_add() claims but does not enforce.
 
-On 2026-07-19 04:53, Mykola Marzhan wrote:
->  drivers/md/raid1.c  | 56 +++++++++++++++++++++++++++++++-----
->  drivers/md/raid1.h  |  2 ++
->  drivers/md/raid10.c | 69 ++++++++++++++++++++++++++++++++++++++-------
->  drivers/md/raid10.h |  2 ++
+smc_rx_recvmsg() then trusts bytes_to_rcv as the amount of valid RMB
+data. Its first copy chunk is safely bounded by rmb_desc->len -
+cons.count, but the second chunk copies (copylen - chunk_len) bytes from
+offset 0, and copylen came from the inflated readable -- an out-of-bounds
+read of the RMB's backing (v)malloc allocation, copied straight to the
+receiving process via _copy_to_iter(). This is a remote kernel-memory
+disclosure driven by a malicious SMC-R peer, needing no local privilege
+on the victim. The same unbounded count also reaches
+smc_cdc_handle_urg_data_arrival() (base + urg_curs.count - 1) -- a
+second, narrower OOB read.
 
-This is an intimidating and massive patch to review. I gotta second the
-verbosity of the AI commit messages comment from Keith.
+Fix it where the wire cursor is accepted, mirroring the cursor-sanity
+idiom two lines above: reject any incoming cursor whose count is >= the
+size of the buffer it will index. smc_cdc_cursor_to_host() gains a size
+parameter; smcr_cdc_msg_to_host() passes conn->rmb_desc->len for the
+producer cursor and conn->peer_rmbe_size for the consumer cursor. This
+bounds it at its single origin instead of patching every downstream
+consumer. SMC-D (smcd_cdc_msg_to_host()) does not use this helper and is
+a separate, out-of-scope gap.
 
-My eyes glazed over a bit. But one point is that maybe this could be
-split into multiple patches: one patch introduces R1BIO_P2PDMA, one
-patch for raid1 and another patch for raid10? That might make it a bit
-more manageable.
+Reproduced on a v6.19 KASAN kernel (SMC-Rv2 over soft-RoCE): a peer
+emitting prod.count=0x7fffffff triggers a vmalloc-out-of-bounds read in
+_copy_to_iter() via smc_rx_recvmsg(), returning ~960 KB of RMB-adjacent
+kernel heap to userspace; an in-range cursor transfers cleanly. With the
+fix the out-of-range cursor is dropped before it reaches
+conn->local_rx_ctrl.prod, and the reproducer returns rc=0 with no report.
 
-Also, I'm not sure if it's possible without digging deeper but, instead
-of adding a !p2pdma_unmappable check to every if() statement in the
-raid*_end_write_request() functions, might it be possible to factor out
-a helper function and return early from it? Maybe the helper could be
-shared between raid10 and raid1 as they look very similar. The
-differences between the two are minimal -- there might be a bug fix that
-was applied to one that should be applied to both?
+Fixes: 5f08318f617b ("smc: connection data control (CDC)")
+Cc: stable@vger.kernel.org
+Signed-off-by: Ibrahim Hashimov <security@auditcode.ai>
+Assisted-by: AuditCode-AI:2026.07
+---
+ net/smc/smc_cdc.h | 15 +++++++++++++--
+ 1 file changed, 13 insertions(+), 2 deletions(-)
 
-Thanks!
+diff --git a/net/smc/smc_cdc.h b/net/smc/smc_cdc.h
+index 696cc11f2303..f07bbef47073 100644
+--- a/net/smc/smc_cdc.h
++++ b/net/smc/smc_cdc.h
+@@ -221,6 +221,7 @@ static inline void smc_host_msg_to_cdc(struct smc_cdc_msg *peer,
+ 
+ static inline void smc_cdc_cursor_to_host(union smc_host_cursor *local,
+ 					  union smc_cdc_cursor *peer,
++					  unsigned int size,
+ 					  struct smc_connection *conn)
+ {
+ 	union smc_host_cursor temp, old;
+@@ -235,6 +236,14 @@ static inline void smc_cdc_cursor_to_host(union smc_host_cursor *local,
+ 	if ((old.wrap == temp.wrap) &&
+ 	    (old.count > temp.count))
+ 		return;
++	/* count is an offset into the RMBE and must always stay inside
++	 * it (see smc_curs_add()); the peer is untrusted, so reject an
++	 * out-of-range wire cursor the same way an out-of-order one is
++	 * already rejected above, instead of letting it drive
++	 * bytes_to_rcv / the urgent-byte offset past the buffer end
++	 */
++	if (temp.count >= size)
++		return;
+ 	smc_curs_copy(local, &temp, conn);
+ }
+ 
+@@ -246,8 +255,10 @@ static inline void smcr_cdc_msg_to_host(struct smc_host_cdc_msg *local,
+ 	local->len = peer->len;
+ 	local->seqno = ntohs(peer->seqno);
+ 	local->token = ntohl(peer->token);
+-	smc_cdc_cursor_to_host(&local->prod, &peer->prod, conn);
+-	smc_cdc_cursor_to_host(&local->cons, &peer->cons, conn);
++	smc_cdc_cursor_to_host(&local->prod, &peer->prod,
++			       conn->rmb_desc->len, conn);
++	smc_cdc_cursor_to_host(&local->cons, &peer->cons,
++			       conn->peer_rmbe_size, conn);
+ 	local->prod_flags = peer->prod_flags;
+ 	local->conn_state_flags = peer->conn_state_flags;
+ }
+-- 
+2.50.1 (Apple Git-155)
 
-Logan
