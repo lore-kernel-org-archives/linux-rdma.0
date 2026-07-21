@@ -1,79 +1,97 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 660893C1413;
-	Tue, 21 Jul 2026 09:10:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B32CA3C279D;
+	Tue, 21 Jul 2026 09:11:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784625043; cv=none; b=lTPZ3IDt2HPZFANSoz+UT1u6V9v3J+ATupKX2BHdWPoRGEuJHBsm7YCar3dO48fWBCXx9UjIP9CQ0ZQ079W6srAHJmZQnP6Y8mzKuy9Lyeb23vj0JF5jdl1reXpCzcFrcODWqoNPQvebS+sU6yWSGSpfws70W8rLvCtklcOnsNo=
+	t=1784625070; cv=none; b=sVQHWZUziXNYz1EWTLTuyR28GlrHRg8Oemqved3OKpY/VnbwJ1P+mSFo9FcfE7wQU+3GvpA2jAr3gBLdh0Vguf4J3okJONdnUWI6Z+7fvzkvrxMe/Srif3R2mgka5/eZqPOK0hqQ3J9ID17cha6YAmYVdEqSGS/Gos75anVIMcQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784625043; c=relaxed/simple;
-	bh=KHKIKATEyak83j5SIRabn/2UjrCX8kWTQ4irjkZh7wA=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=RN3p/xE4uqIlEJZX1V/lH38qrV69ZUjVjjMsxQ2lertMdS8SVzDQ+Rr4xNP4PPysIMOj/RwXGfg5JbdG+GOGjjeYdbs96DkvczO3BChcz9TZDAij8M1KaytGs8JqBBCi8EjhqB81Xb+MruCNgO7QL0WwRQdxEHXJy+qFPJbrfIk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=H8S2YEmJ; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784625070; c=relaxed/simple;
+	bh=xjdvPKcGuDJRbbrAc8WYU9dnfXqJ7SVjfK6nL2EtLrc=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=dCt5WXPE6Mecq0/+Kcy8l/z7xpBB8imfm3tnlBclQdmtEs/d9VoKvxergOPm14rfgE49g1WJ6cBWcMeIYaSVYBgMTjf4Iek8159lsPectDUxr8AWBTsWRWBtf9mGdinPmLHpeznx3zfeX/ayAXiwOrzS4257KmAcQdx5tDoF6NE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=L1Ei5ThY; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="H8S2YEmJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 139B21F000E9;
-	Tue, 21 Jul 2026 09:10:42 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="L1Ei5ThY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9BAFE1F00A3A;
+	Tue, 21 Jul 2026 09:11:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1784625042;
-	bh=hnhYA46ozRSFpvMkIAc06SAayAAL5T7KALnvk4A8eSA=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc;
-	b=H8S2YEmJ+QiAcb+6VOU0CpW6/fJI81YXGGcitrt3eEUZ+XR9Ts1vcVA9JBhu0+JA/
-	 o/QrAs1H7oar1Un/FaSeuxum82k5wLgpaXHrveeJmaEoa2khFYT461ZgizENIFlb3h
-	 /T5f03oC6bBNDyv6/jx50q0HPzw2sl1Jr25qkPvLmcz7LGF/syAem6FLirYUSnCLNm
-	 CN21vaXGkZQs6c0R2sE9KQGl2EEDdKcz2nu8ozZ+vMA172PGo7lxZjC3VN06gcYc+r
-	 gQbQ22d+RvmVfnu07aK0P1fMFXlTVjXBV+1e2vKmLU7xWCrZShWbj+fRaWQa2nWXTv
-	 JkmyZPutugIFQ==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 199693924A44;
-	Tue, 21 Jul 2026 09:10:13 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	s=k20260515; t=1784625069;
+	bh=60d4Oqs/2mF3SmCHf+UxWUkrfVdhCdGHkXPvR6HVL/w=;
+	h=From:To:Cc:Subject:Date;
+	b=L1Ei5ThY6FpxXFhVxOme42PFcUp4GF2UHNsywKm3DhY/H/d90jt9N93znwlk+GP8d
+	 8okD8iFww8MWv6PKPfG29gnKNDehz6Q37cZ9cqGFvS/XDYPYEeRm8sAgNWf0fcCMaj
+	 lkHV6eyh5xVf5ld4j7vwnp5I6QRQQkJiQRXo7E3Hv8uUHDzyfZUo7X4N84A81bDQMn
+	 ZPp2urU03jHunIy1TUiH6+/Vs4nsTgEdvgHPESOyavKFuU6Qi0BXYo3AKhtuxKkTIQ
+	 aEUkSXgtfQ4TYml0mmYcKB+Hquh5tC0KN3nT9jsD6dFTCoefkX/hsIdhsxUgI9/hEu
+	 89i904U3XU9FA==
+From: Leon Romanovsky <leon@kernel.org>
+To: Bart Van Assche <bvanassche@acm.org>,
+	Jason Gunthorpe <jgg@ziepe.ca>,
+	Leon Romanovsky <leon@kernel.org>,
+	Nicholas Bellinger <nab@linux-iscsi.org>
+Cc: linux-rdma@vger.kernel.org,
+	target-devel@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH rdma-next] RDMA/srpt: Pass the mapped task attribute to target_init_cmd()
+Date: Tue, 21 Jul 2026 12:10:56 +0300
+Message-ID: <20260721-b4-scsi-ordering-violation-due-to-hardc-v1-1-07205aab71bb@nvidia.com>
+X-Mailer: git-send-email 2.55.0
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+X-Change-ID: 20260721-b4-scsi-ordering-violation-due-to-hardc-42a3335bd169
+X-Mailer: b4 0.15-dev-18f8f
 Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net v2] net/mlx5e: Use sender devcom for MPV master-up
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <178462501164.174171.13160914545976929275.git-patchwork-notify@kernel.org>
-Date: Tue, 21 Jul 2026 09:10:11 +0000
-References: <20260707233911.3651139-1-manjunath.b.patil@oracle.com>
-In-Reply-To: <20260707233911.3651139-1-manjunath.b.patil@oracle.com>
-To: Manjunath Patil <manjunath.b.patil@oracle.com>
-Cc: saeedm@nvidia.com, tariqt@nvidia.com, mbloch@nvidia.com, leon@kernel.org,
- netdev@vger.kernel.org, andrew+netdev@lunn.ch, davem@davemloft.net,
- edumazet@google.com, kuba@kernel.org, pabeni@redhat.com, phaddad@nvidia.com,
- linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
- stable@vger.kernel.org
 
-Hello:
+From: Leon Romanovsky <leonro@nvidia.com>
 
-This patch was applied to netdev/net.git (main)
-by Paolo Abeni <pabeni@redhat.com>:
+srpt_handle_cmd() maps the initiator-supplied srp_cmd->task_attr into
+cmd->sam_task_attr, but then hands a hardcoded TCM_SIMPLE_TAG to
+target_init_cmd().
 
-On Tue,  7 Jul 2026 16:39:11 -0700 you wrote:
-> After PCIe DPC recovery, mlx5 reloads the affected functions and
-> replays multiport affiliation events. In the reported failure, the
-> first relevant device error was:
-> 
->   pcieport 0000:10:01.1: DPC: containment event
->   pcieport 0000:10:01.1: PCIe Bus Error: severity=Uncorrected (Fatal)
->   pcieport 0000:10:01.1:    [ 5] SDES                   (First)
-> 
-> [...]
+Pass the already mapped cmd->sam_task_attr instead, so target core sees the
+attribute the initiator requested.
 
-Here is the summary with links:
-  - [net,v2] net/mlx5e: Use sender devcom for MPV master-up
-    https://git.kernel.org/netdev/net/c/e32649b4bad9
+Fixes: 9474b043132f ("ib_srpt: Convert I/O path to target_submit_cmd + drop legacy ioctx->kref")
+Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+---
+Bart,
 
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
+I found this during code review, but I'm not sure what the
+original intention was.
 
+The Fixes line references the addition of MSG_SIMPLE_TAG as a
+hardcoded value. MSG_SIMPLE_TAG was later renamed to TCM_SIMPLE_TAG.
+
+Thanks
+---
+ drivers/infiniband/ulp/srpt/ib_srpt.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
+index a22ee4fc1e4c..7197d95f2216 100644
+--- a/drivers/infiniband/ulp/srpt/ib_srpt.c
++++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
+@@ -1602,7 +1602,7 @@ static void srpt_handle_cmd(struct srpt_rdma_ch *ch,
+ 
+ 	rc = target_init_cmd(cmd, ch->sess, &send_ioctx->sense_data[0],
+ 			     scsilun_to_int(&srp_cmd->lun), data_len,
+-			     TCM_SIMPLE_TAG, dir, TARGET_SCF_ACK_KREF);
++			     cmd->sam_task_attr, dir, TARGET_SCF_ACK_KREF);
+ 	if (rc != 0) {
+ 		pr_debug("target_submit_cmd() returned %d for tag %#llx\n", rc,
+ 			 srp_cmd->tag);
+
+---
+base-commit: 28a06de7318fad1d0dec9bf54fe04243cc0635ff
+change-id: 20260721-b4-scsi-ordering-violation-due-to-hardc-42a3335bd169
+
+Best regards,
+--  
+Leon Romanovsky <leonro@nvidia.com>
 
