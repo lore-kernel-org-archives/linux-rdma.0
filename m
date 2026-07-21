@@ -1,77 +1,105 @@
-Received: from smtp-relay-services-1.canonical.com (smtp-relay-services-1.canonical.com [185.125.188.251])
+Received: from out30-110.freemail.mail.aliyun.com (out30-110.freemail.mail.aliyun.com [115.124.30.110])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 72D443822AE
-	for <linux-rdma@vger.kernel.org>; Tue, 21 Jul 2026 08:47:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.125.188.251
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 69CAB34DB4A;
+	Tue, 21 Jul 2026 09:01:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.110
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784623635; cv=none; b=Fr5T+63YUCaFwfpFv4/IL+NRl7m/OylU4EXAGYCFyu7aEpNHoPs0DXbJGzC2gwYNvtqc1FtMzYmm7/QIJ/KnreFheWPyGJIHyZtup14CpIlMCTiSvbaKBgF/Q6zcY6WMPPz25gevLG3z0woGIf1tfGHs/mpGAA+937RGaXvf1Ss=
+	t=1784624483; cv=none; b=cUPeqK5v2/bvgbnRYEfijuvikDjESvJpPHGNyh17B5+iEvZ8sMMaviTpUF/0zSfBnCNK0nnMEA+wWadeFt1VyzgSxdjs6BqYGqedMbux7y2IszgrErF9SIbsQf3+4BjcwaJnKEVy608IaFnluit8Haf3U4QXzUmBlbAH0jz0rWc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784623635; c=relaxed/simple;
-	bh=2n2fOcXRHZz62U4SzSiBdlA61zbYmODjahC7ztlWl54=;
-	h=Content-Type:MIME-Version:To:From:Subject:Message-Id:Date; b=Ldr9i3kxRqXF3beJAeJfEbL+hASuAEojkXmuTkOpkcEZ9n+42+35Ip4B4Zr1PBWuyStCLLDmFFFQqLRp9Px8vG6DMFAcuT4jWUa241fOPcau0t2B6DsgliPUPJd6H71w2wgrpq22J75IrsX8LZ1+uju9ygQR6tv8kcGbOGMzslI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=launchpad.net; spf=pass smtp.mailfrom=launchpad.net; dkim=pass (2048-bit key) header.d=launchpad.net header.i=@launchpad.net header.b=mPohkTSu; arc=none smtp.client-ip=185.125.188.251
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=launchpad.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=launchpad.net
+	s=arc-20240116; t=1784624483; c=relaxed/simple;
+	bh=t52EYSK/Jyg2Z76Mc7G84A36GSpF9FyJTAELdkalo2Y=;
+	h=Message-ID:Date:MIME-Version:From:Subject:To:Cc:References:
+	 In-Reply-To:Content-Type; b=G3efZ93nelrcUUHWc3qQ5A1WKIcy3tisUiiyWg/oqr1EYPYTcLkrW9wEKjMl9eLqerbD+MJEoFPPVEgbv3vN3/fd+5btxZ+kXKmdIgcr4Qgd418rxlNNEpXymJ1cT5D8f6v1+p7tOv3HfbOJ75DJnWnuf+oibOVFlgAd9Ihi9Uo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=i9OPRB7A; arc=none smtp.client-ip=115.124.30.110
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=launchpad.net header.i=@launchpad.net header.b="mPohkTSu"
-Received: from juju-98d295-prod-launchpad-51.localdomain (unknown [10.131.215.15])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-relay-services-1.canonical.com (Postfix) with ESMTPSA id A9F353F035
-	for <linux-rdma@vger.kernel.org>; Tue, 21 Jul 2026 08:40:04 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=launchpad.net;
-	s=20210803; t=1784623204;
-	bh=2n2fOcXRHZz62U4SzSiBdlA61zbYmODjahC7ztlWl54=;
-	h=Content-Type:MIME-Version:To:From:Subject:Message-Id:Date:
-	 Reply-To;
-	b=mPohkTSu15ZnVRw7xZBFaw8FjhWvQdQC6XeX1kRR1sLhaTvgcD+yyxfqLoRqBhc7B
-	 DY4y52hznBGJuRfw9HzWhlBFI4+A9URq/oPjXisBdfB0ZQM3B17J7p5AeGgS27YbNt
-	 gY25l2iY0Ksk0/Dfr7iyD6kThtJCS6CnEpISv4t8w7aqCGrn/a6/IIYwaAgnlBGHSy
-	 WTHkoicczES5YZSjcKwkEl9cy92TkYwMHdoAAZw8vbCbsCLPoPquUcZ003xyE8Q6I/
-	 lhOcm3PuObM7cj6iyHiXQxWOgAd8eHiKtJp0djV1sxAdi8mNEMt/MoWlXoxn2jzw5i
-	 62HyxqiXdLBog==
-Received: from [10.131.215.15] (localhost [127.0.0.1])
-	by juju-98d295-prod-launchpad-51.localdomain (Postfix) with ESMTP id 8855ABDA8E
-	for <linux-rdma@vger.kernel.org>; Tue, 21 Jul 2026 08:40:04 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="i9OPRB7A"
+DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux.alibaba.com; s=default;
+	t=1784624469; h=Message-ID:Date:MIME-Version:From:Subject:To:Content-Type;
+	bh=3HrP8gYYdMrVQRC35NFohQ8BQHeehqOgU6F5aIQtfzs=;
+	b=i9OPRB7AW2NKPiBLXakErGX5daeo7a8tPNT+0Jd9+yNUFljETpxolDQF6BwjWOfeMdmFaFhDcQx9JKbWM7ZjSM8f/5h1SF4AbJTbJMErCz1dJdmlcnEy95x3QjI7M/NviX9i5WOsmhg/1s2yJljwoIQKUX/DTd/n1Dbjm6FndZ0=
+X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R181e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam033045133197;MF=chengyou@linux.alibaba.com;NM=1;PH=DS;RN=7;SR=0;TI=SMTPD_---0X7ZKjwB_1784624467;
+Received: from 30.221.109.92(mailfrom:chengyou@linux.alibaba.com fp:SMTPD_---0X7ZKjwB_1784624467 cluster:ay36)
+          by smtp.aliyun-inc.com;
+          Tue, 21 Jul 2026 17:01:08 +0800
+Message-ID: <5dda3040-67c9-7916-436e-47125daeb310@linux.alibaba.com>
+Date: Tue, 21 Jul 2026 17:01:07 +0800
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-X-Launchpad-Message-Rationale: Requester @linux-rdma
-X-Launchpad-Message-For: linux-rdma
-X-Launchpad-Notification-Type: recipe-build-status
-X-Launchpad-Archive: ~linux-rdma/ubuntu/rdma-core-daily
-X-Launchpad-Build-State: MANUALDEPWAIT
-To: Linux RDMA <linux-rdma@vger.kernel.org>
-From: noreply@launchpad.net
-Subject: [recipe build #4068141] of ~linux-rdma rdma-core-daily in xenial: Dependency wait
-Message-Id: <178462320446.3977663.1346246526542785128.launchpad@juju-98d295-prod-launchpad-51>
-Date: Tue, 21 Jul 2026 08:40:04 -0000
-Reply-To: noreply@launchpad.net
-Sender: noreply@launchpad.net
-Errors-To: noreply@launchpad.net
-Precedence: bulk
-X-Generated-By: Launchpad (canonical.com); Revision="774348fdb24c5c7c9b709dde2a8f044a871f127b"; Instance="launchpad-buildd-manager"
-X-Launchpad-Hash: 2904752b29d49880747ddf1cb0c9beecacf14347
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:102.0)
+ Gecko/20100101 Thunderbird/102.15.1
+From: Cheng Xu <chengyou@linux.alibaba.com>
+Subject: Re: [PATCH] RDMA/erdma: Fix CEQ tasklet use-after-free on removal
+To: Myeonghun Pak <mhun512@gmail.com>, Kai Shen <kaishen@linux.alibaba.com>,
+ Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
+ Ijae Kim <ae878000@gmail.com>
+References: <20260721082545.47395-1-mhun512@gmail.com>
+Content-Language: en-US
+In-Reply-To: <20260721082545.47395-1-mhun512@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
- * State: Dependency wait
- * Recipe: linux-rdma/rdma-core-daily
- * Archive: ~linux-rdma/ubuntu/rdma-core-daily
- * Distroseries: xenial
- * Duration: 9 minutes
- * Build Log: https://launchpad.net/~linux-rdma/+archive/ubuntu/rdma-core-d=
-aily/+recipebuild/4068141/+files/buildlog.txt.gz
- * Upload Log:=20
- * Builder: https://launchpad.net/builders/lcy02-amd64-113
 
---=20
-https://launchpad.net/~linux-rdma/+archive/ubuntu/rdma-core-daily/+recipebu=
-ild/4068141
-Your team Linux RDMA is the requester of the build.
 
+On 7/21/26 4:25 PM, Myeonghun Pak wrote:
+> Each CEQ interrupt handler only schedules eqc->tasklet. The tasklet calls
+> erdma_ceq_completion_handler(), which reads the DMA-coherent EQ ring
+> through get_next_valid_eqe() and updates eq->dbrec through notify_eq().
+> 
+> erdma_ceqs_uninit() frees each CEQ IRQ and then destroys its EQ.
+> free_irq() prevents another hard IRQ and waits for an in-flight handler,
+> but it does not drain a tasklet that the handler already scheduled. The
+> tasklet can therefore access eq->qbuf or eq->dbrec after
+> erdma_eq_destroy() frees them.
+> 
+> Clearing ceq_cb->ready does not synchronize with a tasklet that already
+> passed the check at the start of erdma_ceq_completion_handler().
+> 
+> Kill the tasklet after free_irq(), when no handler can schedule it again,
+> and before erdma_ceq_uninit_one() releases the EQ buffers.
+> 
+> Fixes: f2a0a630b953 ("RDMA/erdma: Add event queue implementation")
+> Cc: stable@vger.kernel.org
+> Co-developed-by: Ijae Kim <ae878000@gmail.com>
+> Signed-off-by: Ijae Kim <ae878000@gmail.com>
+> Signed-off-by: Myeonghun Pak <mhun512@gmail.com>
+> ---
+> Found by static analysis only; not tested on ERDMA hardware. Testing on
+> hardware, particularly device removal while CEQ interrupts are active,
+> would be appreciated.
+> 
+>  drivers/infiniband/hw/erdma/erdma_eq.c | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+
+Acked-by: Cheng Xu <chengyou@linux.alibaba.com>
+
+Thanks.
+
+While this is unlikely to happen in practice, since the ibdev has already
+been removed and no CQs should remain to generate CEQ events, this patch
+makes the CEQ teardown ordering explicit and robust.
+
+Cheng Xu
+
+
+> diff --git a/drivers/infiniband/hw/erdma/erdma_eq.c b/drivers/infiniband/hw/erdma/erdma_eq.c
+> index d5b9d19882b2..a8784e07acd6 100644
+> --- a/drivers/infiniband/hw/erdma/erdma_eq.c
+> +++ b/drivers/infiniband/hw/erdma/erdma_eq.c
+> @@ -220,6 +220,7 @@ static void erdma_free_ceq_irq(struct erdma_dev *dev, u16 ceqn)
+>  
+>  	irq_set_affinity_hint(eqc->irq.msix_vector, NULL);
+>  	free_irq(eqc->irq.msix_vector, eqc);
+> +	tasklet_kill(&eqc->tasklet);
+>  }
+>  
+>  static int create_eq_cmd(struct erdma_dev *dev, u32 eqn, struct erdma_eq *eq)
