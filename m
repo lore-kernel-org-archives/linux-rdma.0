@@ -1,80 +1,62 @@
-Received: from canpmsgout10.his.huawei.com (canpmsgout10.his.huawei.com [113.46.200.225])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6746031A7E2;
-	Mon, 20 Jul 2026 23:42:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.225
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 73777449B20;
+	Tue, 21 Jul 2026 00:20:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784590970; cv=none; b=hws6ApW5qdVRPijZ/1003dIyYXoTFFRHKSWPh4n27wFTGP+RuWRWO52e9B/VW+EZnRjUGSs4m4RTE7jToum1dkKZPIJA15mTqEA4sWYDU7PKG5I6t3oPYuiQq2Js8BgWgqeWSP5fRoKVH66FmNYMVHrHTSJg9HCu/7QBgvJ0dfQ=
+	t=1784593239; cv=none; b=nFk8D9Df7UCJ/WGaPqMG9MPv46v9fm3ewu6Z46o3UxhMPMGsyuj6qbipSvkT7S3E8ImP51oIpZ4vroCPupg+wvHIXPca99eABC2r2rG+4BWle2UBvGh7qHCduXPOkz1Yjr8iQEalYCp3xRRnx/Cl+8/xCfK3jTpZ6x+M1/AYiBU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784590970; c=relaxed/simple;
-	bh=3DHeJcC3hUoJ/8vd4n5CaYg+/HaX8V+o33nD6KI6YzA=;
-	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
-	 In-Reply-To:Content-Type; b=lpBLADGFg00WpifvSKBNHBYykwoMWfEVphwsdBZSl7It0p93xESWhNj9Oc5bDKPPF31HrvndkRMAcTENUwL4s0vIbsNHyT5+rrheyMwrF0rr2Tsd8B1gYscLqTyphTgXwqUhxN8ln+7EuzsmF71Rxs+GLK1pEsIRaIWcuqPi750=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b=NRZxcJSx; arc=none smtp.client-ip=113.46.200.225
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+	s=arc-20240116; t=1784593239; c=relaxed/simple;
+	bh=w2DUrpioftc3r1B+AoXs7fjAkOI8PTdLHsIG1u9FFCM=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=FFgQzIDGjRyZj8ftnmFCW2PSAMQmQJJDeqGe0iQqa2U2Zplts4k2xZ3U4/ZNSTyrVh6+7Q4tvk6EVLa3dVIX+VMN70A98Qx/O1p/8mOHLoEK/fouamlfJfCddk6lHeYR7QKMGyFsTMt6GFZZewXqMrjMyYjo4EXzESDzBtu5gOo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=k3wZhoKn; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b="NRZxcJSx"
-dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
-	c=relaxed/relaxed; q=dns/txt;
-	h=From;
-	bh=aFr1e2omOUVT+nr0A9sRvK7efGIooS6BQr+q1D7L5e4=;
-	b=NRZxcJSxkqFws3ocBIDJCnmw9QCdk9dYcXR1m8mNcp4KIbHMY58UE2jWPnzVYB8W/qEqZnXc2
-	Dv1pC7h7YvNe0sZ7nlAkdqXUAA2EYRwoNoMjBbgbn5lAI2vBLol6TboL2uVpIv0YuxaJiN24I16
-	MEwGZsmzG65HVsk0JEOHi8w=
-Received: from mail.maildlp.com (unknown [172.19.163.15])
-	by canpmsgout10.his.huawei.com (SkyGuard) with ESMTPS id 4h3xf72sJkz1K96b;
-	Tue, 21 Jul 2026 07:33:19 +0800 (CST)
-Received: from kwepemo500009.china.huawei.com (unknown [7.202.194.199])
-	by mail.maildlp.com (Postfix) with ESMTPS id ED36F40586;
-	Tue, 21 Jul 2026 07:42:39 +0800 (CST)
-Received: from [10.67.121.161] (10.67.121.161) by
- kwepemo500009.china.huawei.com (7.202.194.199) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.36; Tue, 21 Jul 2026 07:42:39 +0800
-Message-ID: <154760d3-a880-4d1a-b949-7d22efb805ce@huawei.com>
-Date: Tue, 21 Jul 2026 07:42:39 +0800
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="k3wZhoKn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C81961F000E9;
+	Tue, 21 Jul 2026 00:20:37 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1784593238;
+	bh=yDLG/pRbBV5027BoYBeuqAZfQUOGdU9jKn9+HH/WD2I=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References;
+	b=k3wZhoKnSXhHb7Gq2p97VFEwce61ZwNk2t6pRH54+BQD7SyZXrj/ooLdYfbgQ9UUJ
+	 9d6eVmfD873b7C1uFP5tcztbJ0W2VJ6GwSqqRjpSx0jkieybgn9pt0XadR+6bl64Ca
+	 o0iZzZA+g9zx3ZUBsDpGsba3VILJL+aCuUG6dcrxt7GhWDoCtsr/mtjviqD/4Iu3wa
+	 dWKiOXQI4Fq/3d8l+pbQwrK37WjTO9gmCtVuGAZLHlp+tRS9ZpCMEVGutS/5XcE2Tv
+	 8QX5PmDPVk/cKsvrprmSqsqfXgJQrA0wLlY1qfKtjFUTRivSDXENALRomh9cQyY2u/
+	 9EIrPCQP6I/4Q==
+Date: Mon, 20 Jul 2026 17:20:37 -0700
+From: Jakub Kicinski <kuba@kernel.org>
+To: Vikas Gupta <vikas.gupta@broadcom.com>
+Cc: davem@davemloft.net, edumazet@google.com, pabeni@redhat.com,
+ andrew+netdev@lunn.ch, horms@kernel.org, netdev@vger.kernel.org,
+ linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
+ leonro@nvidia.com, jgg@nvidia.com, bhargava.marreddy@broadcom.com,
+ rahul-rg.gupta@broadcom.com, vsrama-krishna.nemani@broadcom.com,
+ rajashekar.hudumula@broadcom.com, ajit.khaparde@broadcom.com, Siva Reddy
+ Kallam <siva.kallam@broadcom.com>, Dharmender Garg
+ <dharmender.garg@broadcom.com>, Yendapally Reddy Dhananjaya Reddy
+ <yendapally.reddy@broadcom.com>
+Subject: Re: [PATCH net v2] bnge/bng_re: fix ring ID widths
+Message-ID: <20260720172037.5d78a213@kernel.org>
+In-Reply-To: <20260704164747.1995227-1-vikas.gupta@broadcom.com>
+References: <20260704164747.1995227-1-vikas.gupta@broadcom.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v3] PCI/TPH: treat reserved 0b10 completer encoding as
- unsupported
-To: Zhiping Zhang <zhipingz@meta.com>, Bjorn Helgaas <bhelgaas@google.com>,
-	Wei Huang <wei.huang2@amd.com>, <linux-pci@vger.kernel.org>
-CC: Christian Konig <christian.koenig@amd.com>, Alex Williamson
-	<alex@shazbot.org>, <linux-rdma@vger.kernel.org>
-References: <20260720172304.117134-1-zhipingz@meta.com>
-Content-Language: en-US
-From: fengchengwen <fengchengwen@huawei.com>
-In-Reply-To: <20260720172304.117134-1-zhipingz@meta.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: kwepems200002.china.huawei.com (7.221.188.68) To
- kwepemo500009.china.huawei.com (7.202.194.199)
 
-Acked-by: Chengwen Feng <fengchengwen@huawei.com>
+On Sat,  4 Jul 2026 22:17:47 +0530 Vikas Gupta wrote:
+> Firmware requires more than 16 bits to address TX ring IDs for its
+> internal QP management. Widen the associated HSI ring ID fields to
+> 32 bits. The values firmware assigns remain within 24 bits, bounded
+> by the hardware doorbell XID field.
+> 
+> RX, completion, and NQ ring IDs are unaffected and remain 16-bit.
 
-On 7/21/2026 1:22 AM, Zhiping Zhang wrote:
-> get_rp_completer_type() returns the Root Port's "TPH Completer
-> Supported" field (bits 13:12 of Device Capabilities 2) verbatim. The
-> 0b10 encoding is reserved, but pcie_enable_tph() feeds the raw value
-> into the requester type:
-> 
-> 	pdev->tph_req_type = min(pdev->tph_req_type, rp_req_type);
-> 
-> and later writes tph_req_type to the TPH Requester Enable field, which
-> only defines 0b00 (disable), 0b01 (TPH only) and 0b11 (extended TPH).
-> 
-> No known hardware presents the reserved 0b10 in this field, so this is
-> defensive hardening rather than a fix for observed silicon: fold the
-> reserved encoding into "not supported" so only the three architected
-> values can ever reach the Requester Enable field.
-> 
-> Fixes: f69767a1ada3 ("PCI: Add TLP Processing Hints (TPH) support")
-> Signed-off-by: Zhiping Zhang <zhipingz@meta.com>
-
+The netdev patch queue has overflown. Please repost.
