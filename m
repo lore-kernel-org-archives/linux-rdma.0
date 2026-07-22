@@ -1,81 +1,77 @@
-Received: from 011.lax.mailroute.net (011.lax.mailroute.net [199.89.1.14])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 828244399EC;
-	Wed, 22 Jul 2026 18:10:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=199.89.1.14
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D1C52345EA1;
+	Wed, 22 Jul 2026 18:27:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784743820; cv=none; b=isVREfzHxiiT/uPaPIbIl3nt9Z3xV/vX3k6xLqCIWtl2xIkVeGHRvkYwlQpZWNf3V9k4OXxeW9zThbGzixtpvLv6pozdIJi+f8hm94Gppbr8/JxkEsAluISIJ6vCMSwghShhuF/aH55UY2D4T6sjsq9rFN3CYLe5n8vmRgjJFPo=
+	t=1784744843; cv=none; b=tuOze+J7I6F+iixwybkY44UlCm4KUAK7IKKU5ga+Kpno4rcnSHf8swdnm41QrDbWQzCDS6SC3JflvKb+Qwd5xnlKvZP56Jc6xSjBhJ9RWJB6CgAbUfJTL1pQKaSZxh3ux1/jn7u0bEbtjjCA5TKArpo7gccpRhFpoSRDPU3+Fso=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784743820; c=relaxed/simple;
-	bh=2Jsvod3GMh/rFXKIs9yWSJlr9g99E7uyFIJPKfb4kvs=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=p9O485P0mFGY9uAvIPnrw9fOjxHie10OzbeqLGFLxCHfaK0ClZRBTzaozFgYcjGDjKh4kj1jIeRzCLGo0PC7UgcJlUmgU/0Wz3a8+GTrgj2G/A3Ins3nCeXtlGrQ2yBNxX+Caz3kr/UHFoc7hOGj4VvUfUktludgG5gkRmmFAcY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=acm.org; spf=pass smtp.mailfrom=acm.org; dkim=pass (2048-bit key) header.d=acm.org header.i=@acm.org header.b=jyliDZf1; arc=none smtp.client-ip=199.89.1.14
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=acm.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=acm.org
+	s=arc-20240116; t=1784744843; c=relaxed/simple;
+	bh=m7RlWQyZwmxEvzbvqPeZIbHq9jUYYT9BY1gImNuhV7A=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=agfc5GdVKBo1ejCGT6Gyl4qtxxaCbdFcH2pKW+2hfRnad9QhDcbqLml8EMkU/XCr3EyuRsxxwDbAgbuo6QjdeLTVF7v+dhj7xpiV/nar4Om4cBFFhTOXTMg27VDTdBDqXGJi4hCS4edbF+n6UNTfTnxoeDsYPDAsG23rWZjrOw0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=k7EV3kzn; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=acm.org header.i=@acm.org header.b="jyliDZf1"
-Received: from localhost (localhost [127.0.0.1])
-	by 011.lax.mailroute.net (Postfix) with ESMTP id 4h52NV6bC5z1XM6JW;
-	Wed, 22 Jul 2026 18:10:18 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=acm.org; h=
-	content-transfer-encoding:content-type:content-type:in-reply-to
-	:from:from:content-language:references:subject:subject
-	:user-agent:mime-version:date:date:message-id:received:received;
-	 s=mr01; t=1784743815; x=1787335816; bh=Gy/8v+2DIP9b8Wj1V1x4XhVa
-	Yr/joa/XgaKadAyN+XU=; b=jyliDZf1I/QaHD8YZgj8CeQuOoOCsbuYGo5TTDOx
-	x2SMj7bewiY2RMp4Pqp400ry5o/ABYoIMX4ICzvMU1+MMSV6lATVW2/xuMC8xE0o
-	Cvjy6Ds2Oy70Xr8NtubGpVFS9onjMlXv0WQaJFrhqHhA+JJkySGRicJ/oeND+Jkh
-	LyUtfd0YXo2+iVoHBnklS2Vd3n8tPMt+p4LK8Q1iTuxdg2V1P+wGzmMYE8wktyPy
-	/2GEnJ/rk9e38hxCYa5vEeG6xvbVx6a1XOiJ5WMC2xAF3Kgj5UpidxwgGcGjRzSh
-	GizyEn4pJXLl6gD+lkkfZi/G20LEjgRhKMEhDZEcbCKjjQ==
-X-Virus-Scanned: by MailRoute
-Received: from 011.lax.mailroute.net ([127.0.0.1])
- by localhost (011.lax [127.0.0.1]) (mroute_mailscanner, port 10029) with LMTP
- id MXvRyn8iSePk; Wed, 22 Jul 2026 18:10:15 +0000 (UTC)
-Received: from [100.119.48.131] (unknown [104.135.180.219])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	(Authenticated sender: bvanassche@acm.org)
-	by 011.lax.mailroute.net (Postfix) with ESMTPSA id 4h52NQ1qTLz1XM5kD;
-	Wed, 22 Jul 2026 18:10:13 +0000 (UTC)
-Message-ID: <1ab82159-e644-46ac-9af8-a482e2b0f951@acm.org>
-Date: Wed, 22 Jul 2026 11:10:13 -0700
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="k7EV3kzn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C8EF51F000E9;
+	Wed, 22 Jul 2026 18:27:21 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1784744842;
+	bh=H9cFNwAJqa0gBqFQQprbWBfHHZcBOgNqRCurddijShw=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References;
+	b=k7EV3kznvlEKagA2+k4/zgbQhPsm5/Sw4ebi66/xpRuNWmNYS7tAH/yKu0uYmb26e
+	 4f5YEp0soAnWFXNa9QzVc9NBNHyZ6qyMGkMtAkzeCeA1hLfANI7nIC4VU7k1f+Hu0r
+	 /1VvgXrlr1MFcfq1WhGcoybCQC3WClm02A+cymLv57T+QFxsHNVGqMI3/MDrMi5xF2
+	 YNCv468lGJebx29mRsJibtUuzgK717jTs0CuxPWeuvvDgN11WLXrVIqJSn9/1poBAJ
+	 Iu01vdxLZL0LgWWS0BIrMaO4HwVFYkEl5/ZjDCFVOnqx7/uvID7SFh1NuW9exFr8Ou
+	 JNnUy1sm8YjhA==
+Date: Wed, 22 Jul 2026 11:27:19 -0700
+From: Jakub Kicinski <kuba@kernel.org>
+To: Xiang Mei <xmei5@asu.edu>
+Cc: Allison Henderson <achender@kernel.org>, "David S . Miller"
+ <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, Paolo Abeni
+ <pabeni@redhat.com>, Simon Horman <horms@kernel.org>,
+ netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
+ rds-devel@oss.oracle.com, linux-kernel@vger.kernel.org, Santosh Shilimkar
+ <santosh.shilimkar@oracle.com>, Ka-Cheong Poon <ka-cheong.poon@oracle.com>,
+ bestswngs@gmail.com
+Subject: Re: [PATCH net v3] rds: tcp: hold the RCU lock across
+ ipv6_chk_addr() in rds_tcp_laddr_check()
+Message-ID: <20260722112719.17665461@kernel.org>
+In-Reply-To: <20260714212239.1511269-1-xmei5@asu.edu>
+References: <20260714212239.1511269-1-xmei5@asu.edu>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] RDMA/srpt: fix NULL deref when sending BUSY before
- target_init_cmd()
-To: kensanya <kensanya@163.com>
-Cc: jgg@ziepe.ca, leon@kernel.org, linux-rdma@vger.kernel.org,
- target-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
- TanZheng <tanzheng@kylinos.cn>
-References: <20260720025941.69809-1-kensanya@163.com>
- <e5c8e258-8c57-40c8-88a9-04173392e9ae@acm.org>
- <41ddb3a1.16d1.19f87866fa1.Coremail.kensanya@163.com>
-Content-Language: en-US
-From: Bart Van Assche <bvanassche@acm.org>
-In-Reply-To: <41ddb3a1.16d1.19f87866fa1.Coremail.kensanya@163.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 
-On 7/21/26 6:52 PM, kensanya wrote:
-> How about the following plan?
->    - If target_init_cmd() fails:
->        release the send ioctx locally via target_free_tag(ch->sess, cmd)
->        and do not call target_send_busy()
->    - If target_init_cmd() succeeds but a later step fails
->      (e.g. srpt_get_desc_tbl()):
->        keep using target_send_busy(cmd)
+On Tue, 14 Jul 2026 14:22:39 -0700 Xiang Mei wrote:
+> Changes since v1:
+>   Use rcu_read_locks instead of dev_hold/put
+>   Rebased on [PATCH net v2] rds: Fix inet6_addr_lst NULL dereference when IPv6 is disabled
+> 
+> Changes since v2:
+>   Add change log
 
-That sounds good to me.
+Why did you(r LLM) leave this portion of the change log in here and the
+rest in the correct place below?
 
-Thanks,
+> Fixes: eee2fa6ab322 ("rds: Changing IP address internal representation to struct in6_addr")
+> Reported-by: Weiming Shi <bestswngs@gmail.com>
+> Assisted-by: Claude:claude-opus-4-8
+> Signed-off-by: Xiang Mei <xmei5@asu.edu>
+> Reviewed-by: Allison Henderson <achender@kernel.org>
+> ---
+> v2: Use rcu_read_locks and rebase on rds: Fix inet6_addr_lst NULL 
+>     dereference when IPv6 is disabled
+> v3: Add change log to commit message as Allison suggested
 
-Bart.
+The patch does not apply, if it's still relevant please rebase and
+repost.
+-- 
+pw-bot: cr
