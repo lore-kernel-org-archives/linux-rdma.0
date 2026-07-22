@@ -1,96 +1,95 @@
-Received: from mail-pj1-f53.google.com (mail-pj1-f53.google.com [209.85.216.53])
+Received: from mail-pj1-f51.google.com (mail-pj1-f51.google.com [209.85.216.51])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 098A93ACA6F
-	for <linux-rdma@vger.kernel.org>; Wed, 22 Jul 2026 19:50:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.216.53
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A731F41CB3A
+	for <linux-rdma@vger.kernel.org>; Wed, 22 Jul 2026 20:02:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.216.51
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784749829; cv=pass; b=MJD3397C4b/DfJwswe6S9MNk7coC+IjnpT3LJZ9t9XPuI/pAn0wznijPG5FjuUrL2YlGUr5kwR13lbEnHZexlRYOO0CBBnXxVdWb47CWWT8xJciAYDsCcofXe4WC/BeFvcaQFytvRFD4ZBvAYO8rN87SAz2SXibJDfmYMVA1gNY=
+	t=1784750575; cv=pass; b=t3zNTs62W6fhgqvmYcXRLyDfX4MR+yeNtup9wYAIdJ+7UogYHop6Qzwx/yJveamJPIGv21iPv6sPQq3tsWlqm8Cp4/0miLZ/YyMIQEidM8uDEAp4FbXhu6S4ShrVHTvSIXph4aHFnAR3zQuWFvUwDkYFK2Y9Q4lUef/mmtg4TJ8=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784749829; c=relaxed/simple;
-	bh=oCdr0VyYuWFniik+cq5m2m8gRYzMe6MoyKAYOFWNB4k=;
+	s=arc-20240116; t=1784750575; c=relaxed/simple;
+	bh=vu4r/k+6CRzm0HvAmjC2f8PLSYRb0q27NObpyU+llPc=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=C04VhQy94vlZ5/N9a24EjC8Nl4hqr6IrR/DaSME2vFbcrc/o0dP//41Dud9jpYvdsmBNO2m3iNY339K8o9FfAOfQwEkQsNYBhQ9unSBlwPAbK3jGWR3LtX56W31o7lbW3byTrISKcYTrezmhRN6EoYooACC2v1Kl3BOoXjbUFpY=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=meshstor.io; spf=pass smtp.mailfrom=meshstor.io; dkim=pass (2048-bit key) header.d=meshstor.io header.i=@meshstor.io header.b=YeIXLrM4; arc=pass smtp.client-ip=209.85.216.53
+	 To:Cc:Content-Type; b=koKnGsqR+S2uf0d4UwGXZfUsbGkTYR/7j8t+2LFaPo9FgxucSj6+GKaiDJJv3BuxPIAftT2ehLAVQjCAQfJQ/y1xcs4Eh+oCuP16qJFIrUH6p/BAFDC9xXvPIW/AYBGY2tckt+uV8LSAGHHUir7jTiP7FpSDSu8jDykfXG4CpSI=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=meshstor.io; spf=pass smtp.mailfrom=meshstor.io; dkim=pass (2048-bit key) header.d=meshstor.io header.i=@meshstor.io header.b=fVqSFWa8; arc=pass smtp.client-ip=209.85.216.51
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=meshstor.io
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=meshstor.io
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=meshstor.io header.i=@meshstor.io header.b="YeIXLrM4"
-Received: by mail-pj1-f53.google.com with SMTP id 98e67ed59e1d1-38e08baf860so10691395a91.2
-        for <linux-rdma@vger.kernel.org>; Wed, 22 Jul 2026 12:50:27 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1784749827; cv=none;
+	dkim=pass (2048-bit key) header.d=meshstor.io header.i=@meshstor.io header.b="fVqSFWa8"
+Received: by mail-pj1-f51.google.com with SMTP id 98e67ed59e1d1-38759bcd877so11710167a91.2
+        for <linux-rdma@vger.kernel.org>; Wed, 22 Jul 2026 13:02:54 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1784750574; cv=none;
         d=google.com; s=arc-20260327;
-        b=I56kvHjcSaF3MMms46AJMCvVPsEhYLl1xs9hyGvqQZgDf0wuvWOORF9x2bXBGoNyWO
-         bkFElhoPL/SR76lPM5eix4hjTlVSH/SvivdMGGX1t8FgRIyVX4pwwUUBxgkEfwu+PynF
-         ZCCQOWaiMWLWgGFUCgaKX6cM64td//eZP6/9/ZJsApWBufK46BLSNvnm/TgREWOmqpvm
-         4sCHJPXeQkI/sB8KXNtvJ8xrT0FUlLG36OaiFlkMZBS3jy+J4Qn4fPUDBFEDLRDY2evD
-         sgXVOIZkKBxuCjiA3s4idi3L7FQ8ZicGGgh3XIKyqBd+xdK3sArRC4mgukGlHLYISskF
-         cOkw==
+        b=pXPa4P7N5+W0yoq7gnveN0+7GWNsfpkOZFHqX0ubBU5UoghK5pxZNkjFnw+FgVnYxo
+         UjXRUIh8YdaTIna42KkCzEFvD3w9EoSprj359bbrErbTZoLJnIcvMNX2+NidZ8R+z7fx
+         l+5QC3hrdNp6JwudfJ+T/8YLkdVtfqn9N/GglSZ2z4g6qFM49pGwnXFvsL0N5e4Jylq9
+         2uspROQrAntR338N3ts6S/HVvmUFOxNmWq364TQo684gNwmpTWldmPaNllqZCf0S5pFX
+         CtWaMLlJElJHfAF3FxFOjbclV9CGc1ZND0/JiOALZJ55JjyU0XE9et6WdDdqh7lpI6BR
+         4lTQ==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
         h=cc:to:subject:message-id:date:from:in-reply-to:references
          :mime-version:dkim-signature;
-        bh=L59f6N/a3yWmzrdAG6ejPSTgLStmVPx9Cs1jpRvp2rY=;
-        fh=1mRPMbksfHFgy55IiLUvFSp7vEdzPe3kwmureQ8Mgx0=;
-        b=e+/jYm2CuyZ+yAXDwW2lFZxjOEIfyYhMK3GwQOkWHMfPaelO3cDTvNzvenW6Wy64fX
-         /5dkxjwYHe+JJ5QDlCqIrF8zO4GuX+8yfJMjM/Kc3qIBt74x1LnO/lA3Za2hads4iFfu
-         mZCGW7G/NsSCYVBy386Ddk2CLGQ7HeC0lPpRgQJ/64STyK+lxsrXbn0V7Xm/du+0jSjX
-         iDFaBYm1MODKIyoj/8OUfrAkJqfaZRp4AMKr0GQjmmf5K0xvGgTRWR3ffel6aS713dZq
-         GxWOuTDQd9JLbRGDyKNZCpf0AfZh386UMuE6R+6pSaqWpH5NyCsc/gwgfo/1skwEtFaS
-         583Q==;
+        bh=vu4r/k+6CRzm0HvAmjC2f8PLSYRb0q27NObpyU+llPc=;
+        fh=5Q4m/6fhqEXxEhurMLyh0x6r5jipd5mhm253DupIBHY=;
+        b=TEGts6MA9clYrqKJI+X0xEQVgrIgqjgwszpd9O5j+XYBbQ395cVupYlc+C5nxP58dd
+         LzDQ5Zx/bkXzIWDc5sQmwnjGTqQxnIBCuqAWzaXPVKRMIKXs87VIRHxX3aJ9GS/VJ7Pn
+         IQkKjne8p1oZGdm2GBRkP/N+YjSeA3AydTsQ3pN4cflc8GvWoXjHOs8RRNm7z5So6kvt
+         bsvNVBu99psGbuIhYSwrDzrkULzPXjggFLAjTQ6GqqapgiKEsfAzFMMjTGXdOJcw/WQQ
+         JvQyYEojaPC0R/VFX3xUwAdvaGY0TRjfJldt9riDYEnbOsA/b4G36B73pKTdrp+fce5C
+         t0dw==;
         darn=vger.kernel.org
 ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=meshstor.io; s=google; t=1784749827; x=1785354627; darn=vger.kernel.org;
+        d=meshstor.io; s=google; t=1784750574; x=1785355374; darn=vger.kernel.org;
         h=content-type:cc:to:subject:message-id:date:from:in-reply-to
          :references:mime-version:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=L59f6N/a3yWmzrdAG6ejPSTgLStmVPx9Cs1jpRvp2rY=;
-        b=YeIXLrM4K4HgxBCvURWc8JwUoFLnuTm31u0ZBw1QqoSyqXcCXd1B/ilcUDzWDg5437
-         qjmIgvAvp9KTAatdM4wTzp53MVqpI6Iptu2xH2fvHG1DdIej/dRvcM/RCnWLDC/9KOuM
-         1jqvVvWr0EcNNv9ol/xRweVpHmQO38bdcXge+wQDEYGrAqDjX6goVP/IyBdSht0NdeTt
-         p8wiKX5yH4XTkKkZ96PP/zLgXuGb6N2J2Jrg2rMJxbfZY5RyQOwvpINnQIn9D8DGaDMf
-         DK8TgMX1Av8WtyC7nH+87La9CI4wxSGfOh1IkBiAlrrbmA6kCXVtqYIREDD8aUaDidPs
-         diqQ==
+        bh=vu4r/k+6CRzm0HvAmjC2f8PLSYRb0q27NObpyU+llPc=;
+        b=fVqSFWa8CR4WGP03THynVHBaqIQzRh1S9Vl7PP6rUAN/da1I02prdrIB2JF1bbV1L1
+         jHKk3cp7aLmOGxcp8y0PLLD7sZMFWl7a3pBjaCJUK3J71I5PCfocLuZiopCUpIXu+sxc
+         BqX6U5InP7Xn9YJ65cTQQJTHDnd3tuWpL3HpGZCceJkKdASxEA+FTIYKo03SN1HBJfms
+         CP8NrqIzfmwRbKqLu0AvRKYacacnwzJh1HiFGTm2kgQbtz7nNj1TKnS4wmGAaHF+t0tR
+         7Y4IFgR2kWg/Ef3Ej0Tcvd5EeTM+FiGokqFpY+964NguHyTc9n5FCXVcfXaAzqJ1xbnf
+         pRMA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1784749827; x=1785354627;
+        d=1e100.net; s=20251104; t=1784750574; x=1785355374;
         h=content-type:cc:to:subject:message-id:date:from:in-reply-to
          :references:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to:content-type;
-        bh=L59f6N/a3yWmzrdAG6ejPSTgLStmVPx9Cs1jpRvp2rY=;
-        b=ordUYQc6Nu7wXdC6XZPs7wRRQxjKyI6ZIUa8xA7HHtUKLTU9oQ1otz3yvah+YDhXIr
-         gS+dkgGymWTOSjgXae23DydhDvJfGJV/iPf53ieuoaBR14kmnrrvtqKoF0enZxAnNYqK
-         SbCkoz+eu/qVcC6BMOb1tqSHHIeC0VXJdtyK1WdC2E+NaB9gkGF08vSkyK6Wu98B5BPs
-         vfqQepoKEqqvIwyHAZZzbWnbACAg6YkYJZvAwnTFTl/epxp65q0ZkMYPA9neTcqhmAG/
-         UOBXNFczOzKP6ghPHpfpDGG40MRXnc609PJe0F5YP1RyLk7N+HyHbpyz3UUXG+eiGd/P
-         JFfg==
-X-Forwarded-Encrypted: i=1; AHgh+RqVKIJKG2FaC761WA0Juq2ZhAYJ1nAToaB/uC+6fCLlcR0nhwOatIBd/0jcfQWaUaubHac/IrdiQ+oA@vger.kernel.org
-X-Gm-Message-State: AOJu0Yx310j4sJuCvt/MdifJlGIXKEAeQGWYX80ppzpQG9872IvZzZMp
-	VmuKUd8AP26oTp4/w0kKGxKfQaWfk5VAUERPFIuaGTUtviK0kHTwtZULch0jjSpA4g33emm5mpi
-	C1KGqr/GaRDE8+iNxbp7V8zBG8lgumoEyqWaJITFS
-X-Gm-Gg: AR+sD11GB8OCf1IVTJpwWIqJkpoHxP5J7bJOha+5uWi7hbJOCmjnsKc21aK22cuH0TE
-	01LHG96nXkB0LiCEcq1nRJDgop/60+U0/C2ruo83v0ugEaC5q0vO3HDrz2jOFwbVvHEwbXsDLjz
-	jQYPdH8WaGQyG26FseuF4e4TNON4XH9+6yddUFqZ57Y/FCVShkm/RKR3a5Kiws4GhWoxO6ZzWkr
-	gNJArQeg9ZfqfMe7w9vPklC+ldeSojZihPoX/9dRSpsjfyaP6bo9N1Tq8mo7QI6F7L5yNcr1H3Q
-	lWcR3gdLFgs0oO5jKdtjKArXcAh9OyBIGLvjp/nK/j8vI/TP51TzajgPlaHoURq5ZTUbJJ8m52B
-	kcePoCVBJBvZa5rdgnBP0wJpOfJjd
-X-Received: by 2002:a17:90b:518c:b0:38e:b3fd:d582 with SMTP id
- 98e67ed59e1d1-38ec6657a87mr93881a91.39.1784749827092; Wed, 22 Jul 2026
- 12:50:27 -0700 (PDT)
+        bh=vu4r/k+6CRzm0HvAmjC2f8PLSYRb0q27NObpyU+llPc=;
+        b=pJgL/vvLtrOtwjdyiGvl0UjgRTYETnNZpRNrMSrX/eMI6iZ36KvRhMCuX7724i5Lhx
+         ounfolC29ux28D/SKhMKpQW9hTphxF2MunSei0hrqzbviGZcvrUZjGfzxvJ2kcT5Atyb
+         mZluRQtmLymhzsHcd034znNJtyZmq/n2NiBt0na/KKT1dFWnW2W9ngWcxyePmYhmezwE
+         uBPAzr6WAyGgEDC/mbixKQaMxfeAF7jYzmdzONqCCr8eitoqWr3v49Y9+N5qCVM54FCM
+         +cmcu6EsS4zHjw7eE7lgF817eAlEPUSxM3321vLkkSEBU0oXWr5IEUH8pJCB+2BtEctp
+         l92g==
+X-Forwarded-Encrypted: i=1; AHgh+Rrem2JbKy6Xd1r6NtARIguHRT4B0VjlvtK4cwfbmCENwGWK06mDcRwzbfhiuPJclt31qwgoxQ+3rcd6@vger.kernel.org
+X-Gm-Message-State: AOJu0YyBsy/VV9kdkTGs/GVDmqszZaPzK9ToG2cbDDWhaEkxsxPPo/9t
+	gYI1eHlC0AY4mIG+w4HFyYA9mRcVkuoAvFWYDlxlCv2FOIUIhuYs4CEyIdoZT6itPqSrPKb2v9o
+	yUpN0aLdlTTlbn4ex0yG+hdfPATEGhG+ukHIU1l3q
+X-Gm-Gg: AR+sD10FewcUxGwYT4l8pIxLm91G5ywpkHjM5DWJ/Q5eVvJTHaCDDoYkSX+F+fySJ5D
+	IJaGKOuwK8hzH6YJkFUEHIJZbBxeWQMIb0Mv5Edzjze6+2wkf9gwNuRb0rPuiNw4+zXHLFoZ0Y5
+	SYr1Lrf2ECUhFw7wHOYxP6Ce16bUbHXBL77wrk5XM11Rs4JkTdWhmOclaKVCazUPnz91LcY7Lut
+	zswtQ3IICu21UMH7HmoDCOkw/F+U8dAQ+/6RMT/eRjPlvA7ieMNWap9RrAx25KPZiGCooIXwdei
+	DrbJMEs+OpKfyELiE/Plo8rMxjGLDuB3AlaaMavQBDpYGLbJXJUbJlDQYYyEiU/4ptO3CM4FDEf
+	+CJygR7gcVPSa/WuI7KTjixWQr6w7v6YLvX1dBt8=
+X-Received: by 2002:a17:90b:2d10:b0:38c:a59b:5189 with SMTP id
+ 98e67ed59e1d1-38ec698af76mr113249a91.15.1784750573899; Wed, 22 Jul 2026
+ 13:02:53 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260722185841.449934-1-mykola@meshstor.io> <20260722185841.449934-8-mykola@meshstor.io>
- <38c44536-51c0-43a1-b83c-b94915890aa2@deltatee.com>
-In-Reply-To: <38c44536-51c0-43a1-b83c-b94915890aa2@deltatee.com>
+References: <20260722185841.449934-1-mykola@meshstor.io> <20260722185841.449934-9-mykola@meshstor.io>
+ <536428fd-9c23-45c3-be0a-5eaaf8f3939a@deltatee.com>
+In-Reply-To: <536428fd-9c23-45c3-be0a-5eaaf8f3939a@deltatee.com>
 From: Mykola Marzhan <mykola@meshstor.io>
-Date: Wed, 22 Jul 2026 21:50:14 +0200
-X-Gm-Features: AUfX_mxD5xjrC5SGVG19NWXUUrwiVViRlgsz7kddupZQwNnofwkXgV0KRRHwCnM
-Message-ID: <CAPzsNDtmEFf2uyJr+gSs4iw_E+LYiH5+3uojxhGMYKYku+fw+Q@mail.gmail.com>
-Subject: Re: [PATCH v4 7/9] md/raid1,raid10: skip futile retries on P2PDMA
- mapping failures
+Date: Wed, 22 Jul 2026 22:02:41 +0200
+X-Gm-Features: AUfX_my0hGYZfb89FIks6uN6jtY1SapXkJQfTk3Dh1NK0AxygDAcUpRTP3iNF6Y
+Message-ID: <CAPzsNDscnb+fH0XZF3qBDgxkREmgh6F=rp0GO18Wy7gLc=4Ldw@mail.gmail.com>
+Subject: Re: [PATCH v4 8/9] md/raid1,raid10: set IO_BLOCKED in case of BLK_STS_P2PDMA
 To: Logan Gunthorpe <logang@deltatee.com>
 Cc: Jens Axboe <axboe@kernel.dk>, Song Liu <song@kernel.org>, Yu Kuai <yukuai@fygo.io>, 
 	Keith Busch <kbusch@kernel.org>, Christoph Hellwig <hch@lst.de>, Sagi Grimberg <sagi@grimberg.me>, 
@@ -105,11 +104,11 @@ Cc: Jens Axboe <axboe@kernel.dk>, Song Liu <song@kernel.org>, Yu Kuai <yukuai@fy
 	linux-pci@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 
-> Maybe drop my authorship from this patch.
+> I think it would be better to
+> move the code more towards similarity with raid1 instead of diverging it
+> further.
 
-I will do in v5. Any other changes needed?
+I'll move bio = r10_bio->devs[slot].bio; up into the declaration so
+raid10 matches raid1 in v5.
 
-> I'm not sure I follow the point of this new comment here.
-
-I will drop the comment; it means the failure covers the whole bio and
-won't change on retry, so we record  whole range rather than per block.
+Thank you!
