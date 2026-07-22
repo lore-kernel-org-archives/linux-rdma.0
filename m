@@ -1,44 +1,40 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2294B2D29C8;
-	Wed, 22 Jul 2026 09:35:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A1E33367293
+	for <linux-rdma@vger.kernel.org>; Wed, 22 Jul 2026 09:37:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784712929; cv=none; b=o4cx/qxZoNeheCGsCNTEKM08Eep1ergsKYINOI7LQnAtGUmEhdOLiy2HXXnoZ9NgzjVFX45NCk1FndMk/z7SdaeuwKmsliJssOBLF4wN4mH4iQNK1npGSTQDDOc4yU4/gAYqstWAixUOEgJ9P+eCQVIjMjvA7TU+sr6qR5pTbyg=
+	t=1784713039; cv=none; b=pswtdd1bhRNWhNxKsA4E7zaXf3/e1cJsiqeQQVvwBqDjn2WpR0z3PNLj2MGxFRsUTFdikepSBdtvAXr9o+Z31Cb0h2JcvCj99j/EiNbgcOwOiXCL4FReMdsv8ibSS1fp+e/Yt8XUAjAf+yLJnaWNr5/Bdr6iJuSbBrJGwpuvnck=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784712929; c=relaxed/simple;
-	bh=QK/ncZnWzEC+p+OD+yhUSHI4ljMdz9jYq5wwqY2yHoI=;
+	s=arc-20240116; t=1784713039; c=relaxed/simple;
+	bh=yldOk7bdyEXx2PGVeucRaawWCNLHOP1+jbEXNUX7zWY=;
 	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
-	 MIME-Version:Content-Type; b=aLpmL9ESi81vZk2fO2jn8TK6wL8uvQ+l2q451dypkvkMGlZ+L87S8EYPV5m1w0POgYpax/kjUfAL/buafs7hDsDlXCmZKdwiL2yLZTHVTxlMyFvjCnt8lQHQUZGj6RtgXSUnC9+BcexiXUjo8bq4FgJ7XD0jWVer9EEsqU6C92s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=AJ1K2BW0; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=bJRb+FVUcj4iSQBhVu1YpqdxEbuB//m8tT9IfXekTVvngyeYrqXnI/WPoWqIIzSXBdAwWtt2QV0P35zyLhXim3CMQdQV9WieKNml7KV5JMjc9hBqhKC0UuOT9x/81TgwSRBKfWV8EqCSCRNgR7TcHy6stDphUJBxBaf78hsGnuo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=C+gnclCl; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="AJ1K2BW0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1B1B91F000E9;
-	Wed, 22 Jul 2026 09:35:26 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="C+gnclCl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E6F961F000E9;
+	Wed, 22 Jul 2026 09:37:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1784712927;
-	bh=F/Ol0xABKKEr7jFyCju/mCLeB8UXkOxmSylJSsrEuEo=;
+	s=k20260515; t=1784713038;
+	bh=b9GpPzy2wmUN1Dgv181Qj4KUfNGLsjuIzoyQ3dLqW30=;
 	h=From:To:Cc:In-Reply-To:References:Subject:Date;
-	b=AJ1K2BW04dfAgNVr3xirHY/dk5QsZaI51OxYy4+4H1jIPZUAj3OuSxVF6haKfHco7
-	 NoFtHUq0D+CgZ/6rxFIh9mxJW/zCtzgzpwFFx5oFNIxJQzKxM2mGAOkie2Afku+Ir9
-	 PywCMz7T3RcWBkXM3yg6gu0SyKUUXRMLArElUthKuy/QVl6tm2WmPyVHQXk6dtZg2Z
-	 5izkFVXeSB2OrwLgBgcmrAE3lbwtidt/7dGaTErx38861AihiMbIOcB9eziXUa4r5D
-	 JhTCAHY5a/r07sJC6tZ8pqH6iGjnkYDzRmMK9UMWZkhnSL/p+7XMm3r+4dscH+v4y4
-	 MmP1fPE51EbOA==
+	b=C+gnclClGWAq/VAiW0EwzCtH8q4GOLKBaDJ16TPhe8Dp8k2w9PIRoVAOZuCiFD2qA
+	 5u1OciTIRtHhB+0uL3WAuvmLBslddLv1h1C9OIgEdmhYQ5CDZ55k4rd4QzuaOE16xH
+	 2xOWQPYAYUwDdPG1XDF/YrOZ0mrp0ZiNw4sl+mS50+giM01aiVHDxvzy22t/TkgRsc
+	 o+uV44m6cCAbgL5/iEPaUva0AJXp5gaDI3sihlmgZ3aSlJuqwlnl4ZbLgIIv8V9JJm
+	 UfQdvvsHMAG3R7k2OpB6qfvHwLplwWJ/ITFVfCPitbaTiuc/iJFNJQ9/XVTVUHQCl4
+	 LJnz7PNFXvjCA==
 From: Leon Romanovsky <leon@kernel.org>
-To: Long Li <longli@microsoft.com>, 
- Konstantin Taranov <kotaranov@microsoft.com>, 
- Jason Gunthorpe <jgg@ziepe.ca>, Shiraz Saleem <shirazsaleem@microsoft.com>, 
- Leon Romanovsky <leon@kernel.org>
-Cc: linux-rdma@vger.kernel.org, linux-hyperv@vger.kernel.org, 
- linux-kernel@vger.kernel.org
-In-Reply-To: <20260721-if-mana-table-store-qp-qids-partiall-v1-1-8fb3d2d2b559@nvidia.com>
-References: <20260721-if-mana-table-store-qp-qids-partiall-v1-1-8fb3d2d2b559@nvidia.com>
-Subject: Re: [PATCH rdma-next] RDMA/mana_ib: drain QP references after
- partial table insertion
-Message-Id: <178471292478.2833269.3803392129606476657.b4-ty@kernel.org>
-Date: Wed, 22 Jul 2026 05:35:24 -0400
+To: linux-rdma@vger.kernel.org, Jason Gunthorpe <jgg@ziepe.ca>, 
+ Michael Margolin <mrgolin@amazon.com>
+Cc: sleybo@amazon.com, matua@amazon.com, gal.pressman@linux.dev
+In-Reply-To: <20260722083603.30334-1-mrgolin@amazon.com>
+References: <20260722083603.30334-1-mrgolin@amazon.com>
+Subject: Re: [PATCH for-next v11 0/6] Introduce Completion Counters
+Message-Id: <178471303575.2834192.2276579632279006979.b4-ty@kernel.org>
+Date: Wed, 22 Jul 2026 05:37:15 -0400
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -50,21 +46,32 @@ Content-Transfer-Encoding: 7bit
 X-Mailer: b4 0.15-dev-18f8f
 
 
-On Tue, 21 Jul 2026 18:00:01 +0300, Leon Romanovsky wrote:
-> mana_table_store_ud_qp() publishes a QP at its send-queue id before
-> inserting the receive-queue id, dropping the XArray lock between the two
-> xa_insert_irq() calls. A concurrent completion handler can look up the QP
-> and take a transient reference. When the second insertion fails, the
-> rollback erased only the send-queue entry and returned, leaving both the
-> initial table reference and the transient reference outstanding while RDMA
-> core frees the QP, causing a use-after-free.
+On Wed, 22 Jul 2026 08:35:57 +0000, Michael Margolin wrote:
+> Add core infrastructure for Completion Counters, a light-weight
+> alternative to polling CQ for tracking operation completions. The
+> related rdma-core support is linked in [1].
+> 
+> Define the UVERBS_OBJECT_COMP_CNTR ioctl object with create, destroy,
+> modify and read methods for both success and error counters. Add a QP
+> attach method on the QP object to associate a completion counter with a
+> queue pair.
 > 
 > [...]
 
 Applied, thanks!
 
-[1/1] RDMA/mana_ib: drain QP references after partial table insertion
-      https://git.kernel.org/rdma/rdma/c/97f7c2262c28eb
+[1/6] RDMA/core: Add Completion Counters support
+      https://git.kernel.org/rdma/rdma/c/bfcc2118d1044e
+[2/6] RDMA/core: Prevent destroying in-use completion counters
+      https://git.kernel.org/rdma/rdma/c/60ecf0e6a8c2ce
+[3/6] RDMA/core: Expose Completion Counter capabilities to userspace
+      https://git.kernel.org/rdma/rdma/c/71aaa6941dba78
+[4/6] RDMA/core: Add Completion Counters to resource tracking
+      https://git.kernel.org/rdma/rdma/c/553e6b1d7391e7
+[5/6] RDMA/efa: Update device interface
+      https://git.kernel.org/rdma/rdma/c/3cc3972a1cb0b2
+[6/6] RDMA/efa: Add Completion Counters support
+      https://git.kernel.org/rdma/rdma/c/154ec876721226
 
 Best regards,
 -- 
