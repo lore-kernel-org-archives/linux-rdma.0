@@ -1,263 +1,183 @@
-Received: from mail-pl1-f175.google.com (mail-pl1-f175.google.com [209.85.214.175])
+Received: from mail-wm1-f51.google.com (mail-wm1-f51.google.com [209.85.128.51])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F57035C1B7
-	for <linux-rdma@vger.kernel.org>; Wed, 22 Jul 2026 18:52:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.175
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DD3E33793D2
+	for <linux-rdma@vger.kernel.org>; Wed, 22 Jul 2026 18:58:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.51
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784746365; cv=none; b=SNEyGJ0RAz0495Jc85D0nvcYLyShhelZsqCLOco7omkcGiE2H2yAVS7c163mp4AhsGzM5mGOyxhMPsbYr9vy0Os+FJs0tnJA5Oj5FtcGzRuVSYAdwKfRiLDj1sgtGfe8++ZB1UDaLuu1e5215fo6IKp0F1DMlO13Kc0F87bbppY=
+	t=1784746741; cv=none; b=WZOQFoW7W27DfhfOUptjcZ1uks8w39tjoYQW5psbVU5PXPlazyahP6HWaTMO14BvPLv+S/YMn0o81O0IaJjgRX4JaZ77AHR9D2zIGf2TZ/d5iMVk4qqruLqlSqoFPB9U7etw1p0hZtnqVoZ93CTsDaqYdKcr0vkQOcY+J2ukLU4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784746365; c=relaxed/simple;
-	bh=0l6MVvOJRh+S8vgqEY5AG8STSmRz2uSsmD/X3ffNyHU=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=EvskMUaAQF1Tt2wUEDhayv7g3+/olUOp/vWrHfGi/QkOoMhrRsaH7ky4LjMPOGonouZUPFo8r4lrFBrPSryOzW6H9j9wJAnyekq7TuLWgWme+BRje1cL6Pd829eNO3gi/NPNyQqcz4/ZVth/qT8jwnB5lN890fp43LidgsEOito=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=cGrm4QFp; arc=none smtp.client-ip=209.85.214.175
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1784746741; c=relaxed/simple;
+	bh=1EblrzgLJcRDCn1v3FJEGmGB3FLGsptGxFAPO04kyTs=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Ulv6BKkC5VwM8ySmpnvlGGL02gKy7VK8FEDm26AXpZv8kRFh7bCn0KflWL83EWny9WtthJi/IJ5rM0/jDPU3ryOPo1hOchVj0xiOh3QDFtUhi27NNPSyVHt4KstWjeQv3bt4UlbogAle+9pzlA7DWs0DnvoTwcpBGOD3AZ3EBfc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=meshstor.io; spf=pass smtp.mailfrom=meshstor.io; dkim=pass (2048-bit key) header.d=meshstor.io header.i=@meshstor.io header.b=nWLDJetw; arc=none smtp.client-ip=209.85.128.51
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=meshstor.io
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=meshstor.io
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="cGrm4QFp"
-Received: by mail-pl1-f175.google.com with SMTP id d9443c01a7336-2ceaf8a1265so130845815ad.2
-        for <linux-rdma@vger.kernel.org>; Wed, 22 Jul 2026 11:52:42 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=meshstor.io header.i=@meshstor.io header.b="nWLDJetw"
+Received: by mail-wm1-f51.google.com with SMTP id 5b1f17b1804b1-49555a0e68bso22358395e9.2
+        for <linux-rdma@vger.kernel.org>; Wed, 22 Jul 2026 11:58:59 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1784746362; x=1785351162; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=Uym772qkEh9LOk/iL6aKk1xWDH0j1Tlr0rPbsmQanS4=;
-        b=cGrm4QFpmYKxTJ7Ok+BjVqPMTUxCP0tuPiPrt9pSWNhLEToaIN0LaxMf4dzmTgMH67
-         yTgNSlDlMUGxR1UpzLZhno2yXQxAdpWfRphUmXCYRgKLcKFXKG1gdg/50Pm1e2Hzmdy2
-         do9T2lC7VItQZ4QqtzY2rAcx+NavZNkeggd4aHXTBo8xKb4DOTNu4gmIu8ky+l390KjS
-         MTo4qo8R1zUUimkLGcH/lR3Z1ISusZy+bA9BW1h+05E6gfHW+EXqElptkAdwcY0S5GbD
-         ecimiIQb720CpincUStXDdsdfgNgyjaXVCXQaplL7RlZNhNIYZjjth/7izuo0x3OA3/y
-         9GJA==
+        d=meshstor.io; s=google; t=1784746738; x=1785351538; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=Roft6Ikjq+qhKFFk0rGulNK01SEMvk3YKlHglgEZK0o=;
+        b=nWLDJetwc4PT71WlB0yppd3cgwnFSO0G0ShMgQYptDibs4g5PUbfw4QkMVnrzpVrFe
+         XARBIX3yPEa5YAKxzcZFFN8z/GTCctWC7+n7YMDbOb7qKBBB55EQvbhTJtqf04rNvF/2
+         YkBcG5dyj1XtNdE5BLiGL1DfoNLM6B8ahYPscNf2YqIucoXVtiOELpo/dpnAN4DMr1e+
+         THEbX1fO/Sd03SBw92H0xzku4j4qiC+O7eq2fcDfZKF0J9WIrwsZPpX2pQlcLTWSlmJ3
+         d7XJn+/WvfIZ6SSGjxZM1G0E02lLfGGBUFXZAFaQ/zjpnCvLyvFjekwQIbXuwm0wZXnU
+         sZDg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1784746362; x=1785351162;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=Uym772qkEh9LOk/iL6aKk1xWDH0j1Tlr0rPbsmQanS4=;
-        b=p48/n3gIG5BRY0PkIBBx2Fm6wbO8VUBRXNpg/FIsgXxr5YcNSN4943W+hF5YuXu6T3
-         ItwKc+6qe19/0fyBlHxEnJEWl6t8Lx3VQ2j2SU7cZUvrfHVqPFiRpX89KdMa2RUguK6L
-         wkrxiO/oxAW86MueWygaWRkmt8kzk/TT6vSjLHcbl0qLN3/yWUlvK4ZOXHKYguWNK5dw
-         r/X86ac1xmEhKPkoXjRVBh0Je3BllUaOGMowJx3OtdJ0nBKtlh+f8hklKbLJwQ1coUA9
-         s0fve3JdAfvcgV0cnJzyTKkEHGxkt8Wr4NElZYvxJ8bzqg9Uf1RdsNmw5oTv/aZG7l6r
-         r9sg==
-X-Forwarded-Encrypted: i=1; AHgh+RpVYW8oi3qd3NMpDklxBtFUPshnPviExPqTzZC0EFcdbuy/JUO0oEpElScbURJjz+rz/CX1qfLViFAi@vger.kernel.org
-X-Gm-Message-State: AOJu0YwhHVIWyXgVxsKX/RgMGAHtm0yWa0enreniiWawtOpyn0BnKULu
-	172Kzwxn9Dtm7jMKhV1H6uMq+8HkgnUTMoYG5JlmW3H4OzD0xwR/eQr8
-X-Gm-Gg: AR+sD100UJX2CzRioiFliHx0tyJCWwBwz6iA7Ois3B82kms/nTbTZw6qIFSxHBhNzqe
-	doWtwtYuAuUft8pc2VenwA7XMqJXyy4rpoNeVMKUtwBTTU/KHctid/5SdrVmpjm9qF/SmnyK8Z2
-	30nwA9PjbP8zd5W6gB8yFOtCjOx0CjwIzenVCwyPrUYXby7vKhefBRb343PwnHa9AaY8J/jcUF8
-	dBLZagmUTk5mj9txeYEtF8mmI1kySKKwkrqZ0RqBVVNhtooVbHzddjZ8obCb8b3qkMDpHjLFxz6
-	lUFWe2tcUnSln56ahkdVhXXKVnzrjnhLLc57mbMv6uM4HQVXQDZh7Q3+S2XWw/44bDobbHO3ILw
-	nHhvfTqdDFy0nIZ/aiuSh+tvau23WdSdgXMGZtRw24Pu+ZAgsFsU+W4hGZGxnQmKBWsJDJMpdpz
-	xXQdTxaVljF8m6Mvy6u4n/td3gxU+M4DAiy7zfQwIHzYcmRoQKpT4mmKk=
-X-Received: by 2002:a17:902:da8b:b0:2cc:7e4a:bcc5 with SMTP id d9443c01a7336-2cfa71aa7demr1018275ad.32.1784746361700;
-        Wed, 22 Jul 2026 11:52:41 -0700 (PDT)
-Received: from skinsburskii (c-98-225-44-182.hsd1.wa.comcast.net. [98.225.44.182])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2cf8efde5cfsm19378335ad.31.2026.07.22.11.52.39
+        d=1e100.net; s=20251104; t=1784746738; x=1785351538;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=Roft6Ikjq+qhKFFk0rGulNK01SEMvk3YKlHglgEZK0o=;
+        b=tZ6Q504b8H2cbmBJ0mtDAisjw9n4Qx/5boHHn0s2IKVdtdLbJcvi7Sj3pXXlwzleNa
+         1U4BU3Ptt+H9mOTzgjWYywn0DmiVTn1i6coOmnwhAXFjlh75Hlce5wiK4UkQTQZUca3o
+         356huaRYhqG8R7u8k62dk5iDkjYB6d0+Xorg3pPoX0Mo/LLQgojt4Yx703WIr1kIMF2g
+         09zQ2ztUzUoOascd5LXCk5EOFgRZQ4tXg+CWJ/WaA9bf6QcErg9LvL60Fc1xMhvaPYPH
+         8KVzgzEqgKoU3ccU/zZNq4iQLjMc86Po4dD2swqbXVM9YWuY6PrwxwofDFz0473DLKY2
+         FPUg==
+X-Forwarded-Encrypted: i=1; AHgh+RqTz+gTun0fqUSX+LcIbng5HJ2z0WcWMOS8aiqCtA0t5OKtGdnOat8xyzQstyzxQ19HyXUAG/3gCQIC@vger.kernel.org
+X-Gm-Message-State: AOJu0YwZfjbTNt4OPlDJUVqnm+pLwa7urHnAiZIT11+pRgrkWg4pbVa+
+	hAgVUpgRCaokTMhdaBOGZciGmlJpfjp1/bvS/Sc5N5aG4pIBpMo5p/27GAtMqawSmg==
+X-Gm-Gg: AR+sD106vc+qTz8kSGPuxwO0wEOwpzcMVOTL9JUGCDYHGTih1WxxTDiIJEHfJ1s0Fpx
+	SfPN9ORGJcxKU40Dji7NfceSFWoD4eT0EgTIylVtRfZrIzrEnoK7V2twy0HDuuqMM1K0EjRFYyU
+	AWyWdcZn0chUqpY2Eo19eD6kNpOyBon9Ve/1wEekwuqf3KXLF0ANA84OkkADmAeVeP6fi6Ak8tU
+	5LIBTQ05EkCW2aorIGW/s1zJuX9PBJ05WOsCZd11s9CK/4xlARtRa1JEFZ7DLUTIJ7IDg1qFcnb
+	3/dsJqUvWKrcT+pB5uxk1pUK1vaCDkNGAbFnKrA4T9x8j0KOOzbzvgFpKQNZEMyceVeoDs/xLDq
+	mgpKYQicTwWQCKyo3PKafeKv1cjP65/4oQb2E8zGyQrP7d3eWVZlqLgR48C5wUc+qtIHCxgeXpx
+	3Drg4MqrOx817IJLz71hO9NrooCza3ixn/YK1liEL5QfkIl4c=
+X-Received: by 2002:a05:600c:1c16:b0:495:5022:71b9 with SMTP id 5b1f17b1804b1-495502272f2mr281514875e9.33.1784746738206;
+        Wed, 22 Jul 2026 11:58:58 -0700 (PDT)
+Received: from ai-pc ([46.172.241.174])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-495730353d9sm13740055e9.12.2026.07.22.11.58.56
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 22 Jul 2026 11:52:41 -0700 (PDT)
-Date: Wed, 22 Jul 2026 11:52:38 -0700
-From: Stanislav Kinsburskii <skinsburskii@gmail.com>
-To: Matthew Brost <matthew.brost@intel.com>
-Cc: airlied@gmail.com, akhilesh@ee.iitb.ac.in, akpm@linux-foundation.org,
-	corbet@lwn.net, dakr@kernel.org, david@kernel.org,
-	decui@microsoft.com, haiyangz@microsoft.com, jgg@ziepe.ca,
-	kees@kernel.org, kys@microsoft.com, leon@kernel.org,
-	liam@infradead.org, lizhi.hou@amd.com, ljs@kernel.org,
-	longli@microsoft.com, lyude@redhat.com,
-	maarten.lankhorst@linux.intel.com, mamin506@gmail.com,
-	mhocko@suse.com, mripard@kernel.org, nouveau@lists.freedesktop.org,
-	ogabbay@kernel.org, oleg@redhat.com, rppt@kernel.org,
-	shuah@kernel.org, simona@ffwll.ch, skhan@linuxfoundation.org,
-	surenb@google.com, tzimmermann@suse.de, vbabka@kernel.org,
-	wei.liu@kernel.org, dri-devel@lists.freedesktop.org,
-	intel-xe@lists.freedesktop.org, linux-mm@kvack.org,
-	linux-doc@vger.kernel.org, linux-hyperv@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org,
-	linux-rdma@vger.kernel.org
-Subject: Re: [PATCH v9 8/8] drm/gpusvm: Use
- hmm_range_fault_unlocked_timeout() for range faults
-Message-ID: <amERdq2X5l5vHfJo@skinsburskii>
-References: <178413903133.1155966.3904063656020521607.stgit@skinsburskii>
- <178413941236.1155966.14485211391150425997.stgit@skinsburskii>
- <al7CGPdJGM+asOFK@gsse-cloud1.jf.intel.com>
+        Wed, 22 Jul 2026 11:58:57 -0700 (PDT)
+From: Mykola Marzhan <mykola@meshstor.io>
+To: Jens Axboe <axboe@kernel.dk>,
+	Song Liu <song@kernel.org>,
+	Yu Kuai <yukuai@fygo.io>,
+	Keith Busch <kbusch@kernel.org>,
+	Christoph Hellwig <hch@lst.de>,
+	Sagi Grimberg <sagi@grimberg.me>,
+	linux-block@vger.kernel.org,
+	linux-raid@vger.kernel.org,
+	linux-nvme@lists.infradead.org
+Cc: Li Nan <magiclinan@didiglobal.com>,
+	Xiao Ni <xiao@kernel.org>,
+	Guoqing Jiang <guoqing.jiang@linux.dev>,
+	Leon Romanovsky <leon@kernel.org>,
+	Jason Gunthorpe <jgg@ziepe.ca>,
+	Kiran Kumar Modukuri <kmodukuri@nvidia.com>,
+	Chaitanya Kulkarni <kch@nvidia.com>,
+	Logan Gunthorpe <logang@deltatee.com>,
+	Bjorn Helgaas <bhelgaas@google.com>,
+	Shivaji Kant <shivajikant@google.com>,
+	Pranjal Shrivastava <praan@google.com>,
+	Henrique Carvalho <henrique.carvalho@suse.com>,
+	linux-kernel@vger.kernel.org,
+	linux-rdma@vger.kernel.org,
+	linux-pci@vger.kernel.org
+Subject: [PATCH v4 0/9] block,md,nvme: correct handling of unsupported P2PDMA transfers
+Date: Wed, 22 Jul 2026 20:58:32 +0200
+Message-ID: <20260722185841.449934-1-mykola@meshstor.io>
+X-Mailer: git-send-email 2.52.0
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <al7CGPdJGM+asOFK@gsse-cloud1.jf.intel.com>
+Content-Transfer-Encoding: 8bit
 
-On Mon, Jul 20, 2026 at 05:49:28PM -0700, Matthew Brost wrote:
-> On Wed, Jul 15, 2026 at 11:16:52AM -0700, Stanislav Kinsburskii wrote:
-> > Several GPU SVM paths take mmap_read_lock() only to call hmm_range_fault()
-> > and open-code mmu interval sequence setup before each HMM walk. They also
-> > retry -EBUSY until HMM_RANGE_DEFAULT_TIMEOUT expires.
-> > 
-> > Use hmm_range_fault_unlocked_timeout() for those faults. The HMM helper now
-> > owns mmap_lock acquisition and refreshes range->notifier_seq for its
-> > internal retries, while GPU SVM keeps its existing driver-lock validation
-> > with mmu_interval_read_retry() after a successful fault.
-> > 
-> > Pass HMM_RANGE_DEFAULT_TIMEOUT as the helper retry budget for each HMM
-> > fault attempt. This scopes the timeout to repeated HMM notifier retries
-> > while preserving the outer retry loops that restart when the interval is
-> > invalidated before GPU SVM updates or consumes the mapping state.
-> > 
-> 
-> This part doesn't seem right for get_pages(), see below.
-> 
-> > Leave drm_gpusvm_check_pages() on hmm_range_fault() because that path is
-> > called with the mmap lock already held by its caller.
-> > 
-> > Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
-> > Signed-off-by: Stanislav Kinsburskii <skinsburskii@gmail.com>
-> > ---
-> >  drivers/gpu/drm/drm_gpusvm.c |   61 +++++-------------------------------------
-> >  1 file changed, 7 insertions(+), 54 deletions(-)
-> > 
-> > diff --git a/drivers/gpu/drm/drm_gpusvm.c b/drivers/gpu/drm/drm_gpusvm.c
-> > index 958cb605aedd..de5bbfe58ee9 100644
-> > --- a/drivers/gpu/drm/drm_gpusvm.c
-> > +++ b/drivers/gpu/drm/drm_gpusvm.c
-> > @@ -773,8 +773,7 @@ enum drm_gpusvm_scan_result drm_gpusvm_scan_mm(struct drm_gpusvm_range *range,
-> >  		.end = end,
-> >  		.dev_private_owner = dev_private_owner,
-> >  	};
-> > -	unsigned long timeout =
-> > -		jiffies + msecs_to_jiffies(HMM_RANGE_DEFAULT_TIMEOUT);
-> > +	unsigned long timeout = msecs_to_jiffies(HMM_RANGE_DEFAULT_TIMEOUT);
-> >  	enum drm_gpusvm_scan_result state = DRM_GPUSVM_SCAN_UNPOPULATED, new_state;
-> >  	unsigned long *pfns;
-> >  	unsigned long npages = npages_in_range(start, end);
-> > @@ -788,22 +787,7 @@ enum drm_gpusvm_scan_result drm_gpusvm_scan_mm(struct drm_gpusvm_range *range,
-> >  	hmm_range.hmm_pfns = pfns;
-> >  
-> >  retry:
-> > -	hmm_range.notifier_seq = mmu_interval_read_begin(notifier);
-> > -	mmap_read_lock(range->gpusvm->mm);
-> > -
-> > -	while (true) {
-> > -		err = hmm_range_fault(&hmm_range);
-> > -		if (err == -EBUSY) {
-> > -			if (time_after(jiffies, timeout))
-> > -				break;
-> > -
-> > -			hmm_range.notifier_seq =
-> > -				mmu_interval_read_begin(notifier);
-> > -			continue;
-> > -		}
-> > -		break;
-> > -	}
-> > -	mmap_read_unlock(range->gpusvm->mm);
-> > +	err = hmm_range_fault_unlocked_timeout(&hmm_range, timeout);
-> >  	if (err)
-> >  		goto err_free;
-> >  
-> > @@ -1406,8 +1390,7 @@ int drm_gpusvm_get_pages(struct drm_gpusvm *gpusvm,
-> >  		.dev_private_owner = ctx->device_private_page_owner,
-> >  	};
-> >  	void *zdd;
-> > -	unsigned long timeout =
-> > -		jiffies + msecs_to_jiffies(HMM_RANGE_DEFAULT_TIMEOUT);
-> > +	unsigned long timeout = msecs_to_jiffies(HMM_RANGE_DEFAULT_TIMEOUT);
-> >  	unsigned long i, j;
-> >  	unsigned long npages = npages_in_range(pages_start, pages_end);
-> >  	unsigned long num_dma_mapped;
-> > @@ -1422,9 +1405,6 @@ int drm_gpusvm_get_pages(struct drm_gpusvm *gpusvm,
-> >  	struct dma_iova_state *state = &svm_pages->state;
-> >  
-> >  retry:
-> > -	if (time_after(jiffies, timeout))
-> > -		return -EBUSY;
-> > -
-> 
-> I think that by deleting the code above, you have changed this function's
-> semantics by removing the hard cap of HMM_RANGE_DEFAULT_TIMEOUT. This
-> code was added because, on some non-production platforms, the timing in
-> this function could cause it to livelock.
-> 
-> Is there any reason this was remove aside from timeout variable not
-> being a deadline now? You likely should add the deadline back in.
-> 
+md treats an unsupported P2PDMA transfer to a member as success, and
+nvme-rdma retries one forever.  Whether peer memory can be DMA-mapped
+depends on the PCIe topology between the two devices, and since v6.17
+the failure completes as BLK_STS_INVAL: retryable for multipath and
+deliberately ignored by md for member failures, so mirrors silently
+diverge.
 
-Indeed, this one can be called from a kernel thread context as well.
-I'll revert the change in the next revision.
+v1-v3 restored BLK_STS_TARGET for these failures and tagged P2PDMA
+bios in md.  Logan Gunthorpe proposed a dedicated BLK_STS_P2PDMA
+instead, so no consumer needs to know whether an I/O was P2P, and
+wrote the core patches; v4 is built on them.  Patches 1, 5, 7 and 8
+are his and keep his authorship (7 and 8 with completion-handler
+additions).
 
-Thanks,
-Stanislav
+  1  block: add BLK_STS_P2PDMA (stable, v6.17)
+  2  md: keep REQ_NOMERGE on P2PDMA bios
+  3  md/raid1: serialize non-write-behind writes on CollisionCheck
+     rdevs (pre-existing bug patch 4 would widen; stable)
+  4  md/raid1: no write-behind for P2PDMA bios
+  5  md/raid1,raid10: factor out raid1_write_error() helper
+  6  md/raid1,raid10: keep REQ_NOMERGE on narrow_write_error()
+     retry clones
+  7  md/raid1,raid10: skip futile retries on P2PDMA mapping
+     failures
+  8  md/raid1,raid10: set IO_BLOCKED in case of BLK_STS_P2PDMA
+  9  nvme-rdma: return BLK_STS_P2PDMA (stable, v7.1; needs patch 1)
+
+Routing: patch 1 block, 2-8 md, 9 nvme; 7-9 use the status patch 1
+adds.  Patch 1 alone already fixes the divergence (md stops ignoring
+the failure) and the multipath retry storm; the later patches only
+refine the fallout, so the series bisects safely.  The md patches
+fix a v7.2-rc1 regression (02666132403a) and carry no stable tags.
+
+Tested with the QEMU raid1/raid10 error matrix and a ConnectX-4 Lx.
+After patch 1, block-layer error injection accepts status=P2PDMA, so
+the md completion paths can be exercised on any member with no P2P
+hardware.  The patches were developed with AI assistance (see the
+Assisted-by trailers); all code was human-reviewed and tested.
+
+Against v7.2-rc4 (Logan's base).
+
+Changes in v4:
+ - new BLK_STS_P2PDMA (Logan) replaces restoring BLK_STS_TARGET; the
+   R1BIO_P2PDMA/R10BIO_P2PDMA state bits are gone and the md changes
+   shrink to completion-time status tests
+ - blk_dma_map_iter_start() gets the explicit
+   PCI_P2PDMA_MAP_NOT_SUPPORTED case (Logan's patch; v3 kept
+   default: only)
+ - write completions record the whole failed range as bad blocks
+   instead of narrow_write_error()'s per-block retries; v3's coarse
+   retry is gone -- the new status is deterministic, nothing to
+   re-attempt
+ - read path: bi_status is evaluated before bio_put()
+
+Link: https://lore.kernel.org/linux-raid/20260718162547.448892-1-mykola@meshstor.io/ [v1]
+Link: https://lore.kernel.org/linux-raid/20260719105327.864949-1-mykola@meshstor.io/ [v2]
+Link: https://lore.kernel.org/linux-raid/20260721174502.111503-1-mykola@meshstor.io/ [v3]
+Link: https://lore.kernel.org/linux-raid/9f846c85-f427-433a-b87d-8e9e3a4406e7@deltatee.com/ [Logan's proposal]
+
+Logan Gunthorpe (4):
+  block: add BLK_STS_P2PDMA for unsupported peer-to-peer transfers
+  md/raid1,raid10: factor out raid1_write_error() helper
+  md/raid1,raid10: skip futile retries on P2PDMA mapping failures
+  md/raid1,raid10: set IO_BLOCKED in case of BLK_STS_P2PDMA
+
+Mykola Marzhan (5):
+  md: ensure REQ_NOMERGE is set on P2PDMA bios
+  md/raid1: serialize non-write-behind writes on CollisionCheck rdevs
+  md/raid1: don't use write-behind for P2PDMA bios
+  md/raid1,raid10: keep REQ_NOMERGE on narrow_write_error() retry clones
+  nvme-rdma: return BLK_STS_P2PDMA for unsupported P2P transfers
+
+ block/blk-core.c          |  3 +++
+ block/blk-mq-dma.c        |  3 ++-
+ drivers/md/md.c           | 10 ++++++--
+ drivers/md/md.h           | 15 ++++++++++++
+ drivers/md/raid1-10.c     | 16 +++++++++++++
+ drivers/md/raid1.c        | 48 +++++++++++++++++++++++----------------
+ drivers/md/raid10.c       | 26 ++++++++++++---------
+ drivers/nvme/host/rdma.c  | 38 ++++++++++++++++++-------------
+ include/linux/blk_types.h | 10 ++++++++
+ 9 files changed, 120 insertions(+), 49 deletions(-)
 
 
-> Matt
-> 
-> >  	hmm_range.notifier_seq = mmu_interval_read_begin(notifier);
-> >  	if (drm_gpusvm_pages_valid_unlocked(gpusvm, svm_pages))
-> >  		goto set_seqno;
-> > @@ -1439,21 +1419,7 @@ int drm_gpusvm_get_pages(struct drm_gpusvm *gpusvm,
-> >  	}
-> >  
-> >  	hmm_range.hmm_pfns = pfns;
-> > -	while (true) {
-> > -		mmap_read_lock(mm);
-> > -		err = hmm_range_fault(&hmm_range);
-> > -		mmap_read_unlock(mm);
-> > -
-> > -		if (err == -EBUSY) {
-> > -			if (time_after(jiffies, timeout))
-> > -				break;
-> > -
-> > -			hmm_range.notifier_seq =
-> > -				mmu_interval_read_begin(notifier);
-> > -			continue;
-> > -		}
-> > -		break;
-> > -	}
-> > +	err = hmm_range_fault_unlocked_timeout(&hmm_range, timeout);
-> >  	mmput(mm);
-> >  	if (err)
-> >  		goto err_free;
-> > @@ -1720,8 +1686,7 @@ int drm_gpusvm_range_evict(struct drm_gpusvm *gpusvm,
-> >  		.end = drm_gpusvm_range_end(range),
-> >  		.dev_private_owner = NULL,
-> >  	};
-> > -	unsigned long timeout =
-> > -		jiffies + msecs_to_jiffies(HMM_RANGE_DEFAULT_TIMEOUT);
-> > +	unsigned long timeout = msecs_to_jiffies(HMM_RANGE_DEFAULT_TIMEOUT);
-> >  	unsigned long *pfns;
-> >  	unsigned long npages = npages_in_range(drm_gpusvm_range_start(range),
-> >  					       drm_gpusvm_range_end(range));
-> > @@ -1736,24 +1701,12 @@ int drm_gpusvm_range_evict(struct drm_gpusvm *gpusvm,
-> >  		return -ENOMEM;
-> >  
-> >  	hmm_range.hmm_pfns = pfns;
-> > -	while (!time_after(jiffies, timeout)) {
-> > -		hmm_range.notifier_seq = mmu_interval_read_begin(notifier);
-> > -		if (time_after(jiffies, timeout)) {
-> > -			err = -ETIME;
-> > -			break;
-> > -		}
-> > -
-> > -		mmap_read_lock(mm);
-> > -		err = hmm_range_fault(&hmm_range);
-> > -		mmap_read_unlock(mm);
-> > -		if (err != -EBUSY)
-> > -			break;
-> > -	}
-> > +	err = hmm_range_fault_unlocked_timeout(&hmm_range, timeout);
-> >  
-> >  	kvfree(pfns);
-> >  	mmput(mm);
-> >  
-> > -	return err;
-> > +	return err == -EBUSY ? -ETIME : err;
-> >  }
-> >  EXPORT_SYMBOL_GPL(drm_gpusvm_range_evict);
-> >  
-> > 
-> > 
+base-commit: 1590cf0329716306e948a8fc29f1d3ee87d3989f
+-- 
+2.52.0
+
