@@ -1,83 +1,81 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from 011.lax.mailroute.net (011.lax.mailroute.net [199.89.1.14])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E1169471CE0;
-	Wed, 22 Jul 2026 16:43:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 828244399EC;
+	Wed, 22 Jul 2026 18:10:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=199.89.1.14
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784738619; cv=none; b=BFN0yBoHLxtvLaPrFvGr4V67a12cQ1di5Hdymtz4hyRulmc+z0R3WCiZXzVzMvx32YcfiYAL2ieeAmfi7RZRzZU/0K6Mmy7rPA4Zsp0DKD+NlcKpyipOsWifbmahivLi4/eRGGVmQxbGt6yRkTAMRarJXOy6Bsq17gQGuCllI9s=
+	t=1784743820; cv=none; b=isVREfzHxiiT/uPaPIbIl3nt9Z3xV/vX3k6xLqCIWtl2xIkVeGHRvkYwlQpZWNf3V9k4OXxeW9zThbGzixtpvLv6pozdIJi+f8hm94Gppbr8/JxkEsAluISIJ6vCMSwghShhuF/aH55UY2D4T6sjsq9rFN3CYLe5n8vmRgjJFPo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784738619; c=relaxed/simple;
-	bh=gJkURQCOVzI7lkeJgt+8mzsvy58CAm30VZBGbLrhjIk=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=DfkfAxPAtdhS5pYp0xfHMyic+QzSr4G6psqt4Mb1f9WQPFVCtjyRIvnxcNHeGVwpcQqsdbhFiVgzcv5+w3Spx6hVMFqdExzTiGXyNfpgt3tIvBHHZ2l7dWNRIErzVUd89z67Z+w6FsBsVY/9moWmxOK6XXECEQ2eUzVbGnUGaAQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=juSHltyd; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784743820; c=relaxed/simple;
+	bh=2Jsvod3GMh/rFXKIs9yWSJlr9g99E7uyFIJPKfb4kvs=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=p9O485P0mFGY9uAvIPnrw9fOjxHie10OzbeqLGFLxCHfaK0ClZRBTzaozFgYcjGDjKh4kj1jIeRzCLGo0PC7UgcJlUmgU/0Wz3a8+GTrgj2G/A3Ins3nCeXtlGrQ2yBNxX+Caz3kr/UHFoc7hOGj4VvUfUktludgG5gkRmmFAcY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=acm.org; spf=pass smtp.mailfrom=acm.org; dkim=pass (2048-bit key) header.d=acm.org header.i=@acm.org header.b=jyliDZf1; arc=none smtp.client-ip=199.89.1.14
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=acm.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=acm.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="juSHltyd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E2C5D1F00A3E;
-	Wed, 22 Jul 2026 16:43:30 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1784738611;
-	bh=eBijEh6r8DvA8nH2cSmK9mqCysBg63obFVfe+bDLEQI=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References;
-	b=juSHltyd7rIUEkt/WZMc0t0qmThY/ii2tjI2FgqmrNSmgOCTWYCLJXt0iVbUQQUX6
-	 9MDmc7SM/BjqITYsSGuXljSeFt1ezTgDzDzgqmfQYVieNOIyM+VPLxM5Zi/QCiVJnP
-	 gYAgirDXhZEtz3Hk/63eyEdTgsSYTEg4e5ikM9tirCJjdXi2Lbrp0yqFGVlEhEeNAj
-	 J/ovGwNYqSKJHqnozm5D5lIwtsty7mfE+nr0/EnQyykoModp3/xaY4ToLEOHh5yepL
-	 ZGptGzqrOyh1iYSCKhPxJaFmd8jKz38T2LkU5Byr5dUzvHGIdVeapzpERQSVjdk6cD
-	 Av2EwC8YRf8zQ==
-Date: Wed, 22 Jul 2026 09:43:30 -0700
-From: Jakub Kicinski <kuba@kernel.org>
-To: Allison Henderson <achender@kernel.org>
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, pabeni@redhat.com,
- edumazet@google.com, horms@kernel.org
-Subject: Re: [PATCH net 1/3] net/rds: don't use
- unpin_user_pages_dirty_lock() from atomic context
-Message-ID: <20260722094330.0486c26c@kernel.org>
-In-Reply-To: <20260711025118.2449428-2-achender@kernel.org>
-References: <20260711025118.2449428-1-achender@kernel.org>
-	<20260711025118.2449428-2-achender@kernel.org>
+	dkim=pass (2048-bit key) header.d=acm.org header.i=@acm.org header.b="jyliDZf1"
+Received: from localhost (localhost [127.0.0.1])
+	by 011.lax.mailroute.net (Postfix) with ESMTP id 4h52NV6bC5z1XM6JW;
+	Wed, 22 Jul 2026 18:10:18 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=acm.org; h=
+	content-transfer-encoding:content-type:content-type:in-reply-to
+	:from:from:content-language:references:subject:subject
+	:user-agent:mime-version:date:date:message-id:received:received;
+	 s=mr01; t=1784743815; x=1787335816; bh=Gy/8v+2DIP9b8Wj1V1x4XhVa
+	Yr/joa/XgaKadAyN+XU=; b=jyliDZf1I/QaHD8YZgj8CeQuOoOCsbuYGo5TTDOx
+	x2SMj7bewiY2RMp4Pqp400ry5o/ABYoIMX4ICzvMU1+MMSV6lATVW2/xuMC8xE0o
+	Cvjy6Ds2Oy70Xr8NtubGpVFS9onjMlXv0WQaJFrhqHhA+JJkySGRicJ/oeND+Jkh
+	LyUtfd0YXo2+iVoHBnklS2Vd3n8tPMt+p4LK8Q1iTuxdg2V1P+wGzmMYE8wktyPy
+	/2GEnJ/rk9e38hxCYa5vEeG6xvbVx6a1XOiJ5WMC2xAF3Kgj5UpidxwgGcGjRzSh
+	GizyEn4pJXLl6gD+lkkfZi/G20LEjgRhKMEhDZEcbCKjjQ==
+X-Virus-Scanned: by MailRoute
+Received: from 011.lax.mailroute.net ([127.0.0.1])
+ by localhost (011.lax [127.0.0.1]) (mroute_mailscanner, port 10029) with LMTP
+ id MXvRyn8iSePk; Wed, 22 Jul 2026 18:10:15 +0000 (UTC)
+Received: from [100.119.48.131] (unknown [104.135.180.219])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	(Authenticated sender: bvanassche@acm.org)
+	by 011.lax.mailroute.net (Postfix) with ESMTPSA id 4h52NQ1qTLz1XM5kD;
+	Wed, 22 Jul 2026 18:10:13 +0000 (UTC)
+Message-ID: <1ab82159-e644-46ac-9af8-a482e2b0f951@acm.org>
+Date: Wed, 22 Jul 2026 11:10:13 -0700
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH] RDMA/srpt: fix NULL deref when sending BUSY before
+ target_init_cmd()
+To: kensanya <kensanya@163.com>
+Cc: jgg@ziepe.ca, leon@kernel.org, linux-rdma@vger.kernel.org,
+ target-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
+ TanZheng <tanzheng@kylinos.cn>
+References: <20260720025941.69809-1-kensanya@163.com>
+ <e5c8e258-8c57-40c8-88a9-04173392e9ae@acm.org>
+ <41ddb3a1.16d1.19f87866fa1.Coremail.kensanya@163.com>
+Content-Language: en-US
+From: Bart Van Assche <bvanassche@acm.org>
+In-Reply-To: <41ddb3a1.16d1.19f87866fa1.Coremail.kensanya@163.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 
-On Fri, 10 Jul 2026 19:51:16 -0700 Allison Henderson wrote:
-> rds_rdma_free_op() and rds_atomic_free_op() are reached from the IB
-> send completion path via
-> 
->   rds_ib_tasklet_fn_send()
->     rds_ib_send_cqe_handler()
->       rds_message_put()
->         rds_message_purge()
->           rds_rdma_free_op() / rds_atomic_free_op()
+On 7/21/26 6:52 PM, kensanya wrote:
+> How about the following plan?
+>    - If target_init_cmd() fails:
+>        release the send ioctx locally via target_free_tag(ch->sess, cmd)
+>        and do not call target_send_busy()
+>    - If target_init_cmd() succeeds but a later step fails
+>      (e.g. srpt_get_desc_tbl()):
+>        keep using target_send_busy(cmd)
 
-Sashiko points out that this just moves the problem to the filesystem,
-which also may have mutexes:
+That sounds good to me.
 
-  Does calling set_page_dirty() from softirq context introduce a
-  potential deadlock?
+Thanks,
 
-  If the user pages are file-backed, set_page_dirty() will route to filesystem
-  dirty callbacks like filemap_dirty_folio() or block_dirty_folio(). These
-  callbacks acquire non-irq-safe spinlocks, such as inode->i_lock or
-  mapping->i_private_lock. If the tasklet interrupts a process holding one of
-  these locks, could the softirq spin forever?
-
-  Additionally, does calling set_page_dirty() here without holding the folio
-  lock or an active file reference risk a use-after-free?
-
-  If a concurrent file truncation removes the page from the page cache and
-  frees its mapping, and set_page_dirty() reads folio->mapping just before
-  it is zeroed, could it dereference a freed pointer when calling the
-  dirty_folio callback or __mark_inode_dirty()? Should this work be
-  deferred to a process context workqueue instead?
-
-Is this not true, or not true in most cases? Otherwise we should find a
-better fix?
--- 
-pw-bot: cr
+Bart.
