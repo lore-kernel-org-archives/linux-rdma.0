@@ -1,129 +1,138 @@
-Received: from mail-pj1-f48.google.com (mail-pj1-f48.google.com [209.85.216.48])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from ale.deltatee.com (ale.deltatee.com [204.191.154.188])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A9CB442B2F
-	for <linux-rdma@vger.kernel.org>; Wed, 22 Jul 2026 19:00:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.216.48
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784746830; cv=pass; b=T0N64pRZTPh0m3UO62g7O9lDBL8JY6j6PbXglCr1Y/wnT5OUUqTh7mBiaG9iqJsJC9iMOLOK686hbOof0USNX/Y3ZcTKyyBcqnm9cHOFRL9/sKcRGXIfCqqB9CB1vzihhCOBg6ToRLhshQ+99ZuiA6PrciQyv+HX6sUk7FigbIQ=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784746830; c=relaxed/simple;
-	bh=XFNAerwWaEDD0qf52Zr8HyArocr5+58TcoObbHLHtE4=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=nb3QwZqq5gPMj7rjR648DW5RgJZwwlslgCI6oVuLtezQ9tKQGIaoRPQrx+IcGP8f59jg5kX2FgNdVspDOevi6VFHpSJUuEBwqITNFMDhJOiAAFm6lctgNiDZhctX9bFQUNkO4OSRuT21e9+nGc9On0VyBTk7A4QhPTDEcGgfiqI=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=meshstor.io; spf=pass smtp.mailfrom=meshstor.io; dkim=pass (2048-bit key) header.d=meshstor.io header.i=@meshstor.io header.b=bmx8IWw8; arc=pass smtp.client-ip=209.85.216.48
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=meshstor.io
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=meshstor.io
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D3EDB381EB6;
+	Wed, 22 Jul 2026 19:18:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=204.191.154.188
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1784747940; cv=none; b=Ab32Wxt7DedjfJKm7wDiZVQm/ZzQB0ZkQ3C8xualV0Vr2m1hJqEhfoUyROJJjVW/LAGZxX93PUqFJo8pRJ6ythfsnXwy3u3zpPNRhhrO34Z3LCZNl+THIWd11MI23o7TEnpPAC60kZxwZtTI548d3by+pktcS7BNdJ0Sk2KXZxs=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1784747940; c=relaxed/simple;
+	bh=v1VDjxT8i25rfWDR0HJMRa5K/VncR5EaDtE/10jurtA=;
+	h=Message-ID:Date:MIME-Version:To:Cc:References:From:In-Reply-To:
+	 Content-Type:Subject; b=oxpTkb3fW8+WYvzrrrzVjzvXPC/NeWHBYQFVfT/VNGLU0E/1buDx0/vmJtr2ZoB8w2EeWMsQEoJFaKua/z1vb+NTBsJAdInZVpKxTlL8hOj/iqu+moiQNUL2C1E1HkpuIgRw/pL5TCEkWbWvb3oYogC3hVLZ+1qRSHg3s+14ME0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=deltatee.com; spf=pass smtp.mailfrom=deltatee.com; dkim=pass (2048-bit key) header.d=deltatee.com header.i=@deltatee.com header.b=mQRIs3wk; arc=none smtp.client-ip=204.191.154.188
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=deltatee.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=deltatee.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=meshstor.io header.i=@meshstor.io header.b="bmx8IWw8"
-Received: by mail-pj1-f48.google.com with SMTP id 98e67ed59e1d1-38e58034d05so5088351a91.2
-        for <linux-rdma@vger.kernel.org>; Wed, 22 Jul 2026 12:00:29 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1784746828; cv=none;
-        d=google.com; s=arc-20260327;
-        b=m3vXeBF9JJXIXNe77Cx00CZPOXGK1T5QV0h8TJPlsrGsC8AzMNJbAoIwnqbHVHL1VB
-         xn/QTc9588QntuQmf7a4qN6+1x8lZz2k4xZ2GHclEPSZUqcCk5hgDfEOBL53tWAHhDgf
-         AJ1dYo5rM1lKmpak5M+n0ggIEnPrBeFm392J+G7CobYmb2Go6InFpUm03CpwuditPcYp
-         s9nV8tUGRmoQTxCr2bkVZL3G3IoMkWHFwM6jutdjV/WdWywCBccXq3U4V66N6wjzD4lm
-         RgOYSc8p/X9RSbbSuh8up/0y9aZJdaRstTiGxIAgHkm6U/kd5pCTo7nadfyUCISAMLdn
-         U67Q==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=XFNAerwWaEDD0qf52Zr8HyArocr5+58TcoObbHLHtE4=;
-        fh=jYI8RUX3c0oZwnMZ+mi0aIAq+W+vGBfie/3RwZsyy7I=;
-        b=Mxb9dE7xMqwbIfrOhcuk9vOvf3IQuEfRb8VxSOz3Xqk2RIc+8355CXc3oVrhJC/QEP
-         PuSirbsobz1Z4ztL8069OyGeOPQyahc7MVVCYNbiAdtD3avQVdLZ02iiJQCtYwbY4CrP
-         ly8hUZuQjwiHRsU84i8n17yAEqYKXvtiwRMPqMfW4r6fZrmzI/7NHvY9glaAd/5cO9oN
-         gKsoMCrnie2FBR1q4PGfB5whZTORKvJ7CFWpU8J2gbg4T45jF0EtlaGvsL2moqdHgaa9
-         nTYn3t50AkRhNeDh8T5oCyi9NsdIDvqA2BIqlBEWgSeofJtgDYlKhIebrEAmONw0Zxmx
-         ST3w==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=meshstor.io; s=google; t=1784746828; x=1785351628; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=XFNAerwWaEDD0qf52Zr8HyArocr5+58TcoObbHLHtE4=;
-        b=bmx8IWw8EccXq4m0q2xSFHQsBaM7x6V5/xPOZKKKJ9H6I8O7Lq8jQnEF/cVXbC869H
-         jofO3O+ROTrCELauECzFq6zSVarnp5OCXBfAmSGShwoD/+ZXWAtnt77BtELaIqs1ex8s
-         JDEYbaQnaEt47S64G1iz43BPk+bRmqYGTERDiSpnKK5kpdneIOaS1REu18d15SGDbUJ+
-         V90ZfDlC02gHOefOOoSra+QBljTR4RXLcm1sIarf+EQ9uE5F21HDnFwC0gQWSR8lyQFV
-         ofZeMsCKBd/CMn1SA8HxJMgdEs1x/in/zXtjvOa5w8O/Ay6z8fMcIEQwFKzKRBBcajOF
-         dcrQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1784746828; x=1785351628;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=XFNAerwWaEDD0qf52Zr8HyArocr5+58TcoObbHLHtE4=;
-        b=Eqz+zsNJfb/dGxA0UglCW7hw4omPz3p31ob5bHxlVbQ6tfcN45FwEOv/BmQEqukpKf
-         sNxoFER2+2RMEUCrwr8PiZpqNII+QVNpBpRUnBSsNecpiAICHYEsBISGtXO3NK9cOMXU
-         NktQI4ff9Xj9ulxT3YBKOK+eJtN9EfJjViuz8ikpY/Bs46HmiEL/RjNBZ9q7koBieh9S
-         La3w8QL4CA618a81N5/ceNdSkTNNVY3cHLTPQ/utmyoVSgw5LRKa8gMP5kAXtm/S9Cl9
-         K/S+1/+14ikSA5zff2ARPb1EiEOh699JxSdamiucFnKyMaGOR2BltHJtUDkLQn6OJHfA
-         H3Rw==
-X-Forwarded-Encrypted: i=1; AHgh+RpABQTm4cClAUQJXmNJT8lAXee7gASTYqgw2yuIoltqza2xP4Oy8o452faEDtpbuoY/Otdg9qT3QsDk@vger.kernel.org
-X-Gm-Message-State: AOJu0YzK/MJj0SIyAYY9igrg+OymYZi1XTppXt6Erj45KVItfvpPUF8l
-	nLKdGXSKECwdulZKUvugknnMCbinTNuk8aEvEvXzVfRNRzwKjdadW4STUa9nN0V9uVnzPk3otIf
-	kGN8Ak8IMxG9AOUJaZyOQDGwUgd8NfuYmBFIiQezB
-X-Gm-Gg: AR+sD11rNadP1yTrxt/GHhzWIs2Si7mmDejLC3Ws1/Cofi7huPMTeOSfr5y5v8WrFyJ
-	eLbx4E9twNAseF9O1Q5wtkXb2gX0fEQztNCDsVf5cz+ArGGhdLBbQohJYKn/FQEGeMCOodCQ/kb
-	s9wbdmEiBjU+FdAWWgDN5zsuRZ8Kg0WwOGtLY4254N4oIAhhg/WCO7T+8CRx8DZioKs1QEDtKyO
-	nB6Rx4r2QeFg6uKb1KSOyMErXQLPJTF5N521EAqWo6Ou9cYZQd5dAbrMGeUCgYetK/Z2YycxUWo
-	FbgGn2Ecdglc9WXM5fGe+ZReqniMSiNSUQ7gDbLboTMNSq8N82L0AQKy8mbNiGXDTPGm9mlyCDj
-	N2feclIg8tR72UyyYeCHbGNZ+lO1WBpokCuQRsNM=
-X-Received: by 2002:a17:90a:d40f:b0:381:11eb:d78e with SMTP id
- 98e67ed59e1d1-38e4b430c6emr27167946a91.14.1784746828497; Wed, 22 Jul 2026
- 12:00:28 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=deltatee.com header.i=@deltatee.com header.b="mQRIs3wk"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=deltatee.com; s=20200525; h=Subject:In-Reply-To:From:References:Cc:To:
+	MIME-Version:Date:Message-ID:content-disposition;
+	bh=d+TcFgqQukObtCSZvW9VgUWZR2p8E5ySHAMVDnChiis=; b=mQRIs3wkfvk8mukQPjS6/uHcq4
+	5tZrNMWxPfrEuKuF3obOH9P+n5ni+wANeG2QV8ZQxeElcgt1o1fQFeTgHuY5qHD4MehFKNjbDQ1nx
+	LMMVNpHW74oJNrb7pa2a65oUPkStLb6kxtmVh3bWDnLnajXYk6L/yJIOgeENrD10BgP1HJGba4Mn3
+	AGcbgO59VYN5xvVe03XYgvcJBUdWqjk5YsNMkg3E8sKPWXNCR7tvaz7NZUxuIwJQzxf/0mpd412FP
+	GeW1wo8P4dZIXeekoOdsD5PWpQopBz8ckA3c+Dv2Xx4jLPm4mqQNm9HCngQKRGoRpDvxbmqURV4CY
+	yuejIiJA==;
+Received: from d172-219-145-25.abhsia.telus.net ([172.219.145.25] helo=[192.168.11.155])
+	by ale.deltatee.com with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+	(Exim 4.98.2)
+	(envelope-from <logang@deltatee.com>)
+	id 1wmcSm-0000000CaBm-2qki;
+	Wed, 22 Jul 2026 13:18:41 -0600
+Message-ID: <38c44536-51c0-43a1-b83c-b94915890aa2@deltatee.com>
+Date: Wed, 22 Jul 2026 13:18:27 -0600
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260719105327.864949-1-mykola@meshstor.io> <20260719105327.864949-7-mykola@meshstor.io>
- <ee312bcb-92f4-4884-91cd-3bd56180c8c7@deltatee.com> <CAPzsNDsLr_BABgizujN0CgnLNfzS3S37vQ133fjbJzFMvRs7CQ@mail.gmail.com>
- <9f846c85-f427-433a-b87d-8e9e3a4406e7@deltatee.com> <20260722083015.GU110966@unreal>
-In-Reply-To: <20260722083015.GU110966@unreal>
-From: Mykola Marzhan <mykola@meshstor.io>
-Date: Wed, 22 Jul 2026 21:00:16 +0200
-X-Gm-Features: AUfX_mx6Cta37C8DCF1XHW6rVQfC4bnrtxly1T6dzUQd_16ovjA21XsyVTPdIOg
-Message-ID: <CAPzsNDuGfneEmx_nWqw5vYLyPyK8krfWChNRcsxO7icTEDDX5g@mail.gmail.com>
-Subject: Re: [PATCH v2 6/7] md/raid1,raid10: skip futile retries on P2PDMA
+User-Agent: Mozilla Thunderbird
+To: Mykola Marzhan <mykola@meshstor.io>, Jens Axboe <axboe@kernel.dk>,
+ Song Liu <song@kernel.org>, Yu Kuai <yukuai@fygo.io>,
+ Keith Busch <kbusch@kernel.org>, Christoph Hellwig <hch@lst.de>,
+ Sagi Grimberg <sagi@grimberg.me>, linux-block@vger.kernel.org,
+ linux-raid@vger.kernel.org, linux-nvme@lists.infradead.org
+Cc: Li Nan <magiclinan@didiglobal.com>, Xiao Ni <xiao@kernel.org>,
+ Guoqing Jiang <guoqing.jiang@linux.dev>, Leon Romanovsky <leon@kernel.org>,
+ Jason Gunthorpe <jgg@ziepe.ca>, Kiran Kumar Modukuri <kmodukuri@nvidia.com>,
+ Chaitanya Kulkarni <kch@nvidia.com>, Bjorn Helgaas <bhelgaas@google.com>,
+ Shivaji Kant <shivajikant@google.com>, Pranjal Shrivastava
+ <praan@google.com>, Henrique Carvalho <henrique.carvalho@suse.com>,
+ linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
+ linux-pci@vger.kernel.org
+References: <20260722185841.449934-1-mykola@meshstor.io>
+ <20260722185841.449934-8-mykola@meshstor.io>
+Content-Language: en-US
+From: Logan Gunthorpe <logang@deltatee.com>
+In-Reply-To: <20260722185841.449934-8-mykola@meshstor.io>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+X-SA-Exim-Connect-IP: 172.219.145.25
+X-SA-Exim-Rcpt-To: mykola@meshstor.io, axboe@kernel.dk, song@kernel.org, yukuai@fygo.io, kbusch@kernel.org, hch@lst.de, sagi@grimberg.me, linux-block@vger.kernel.org, linux-raid@vger.kernel.org, linux-nvme@lists.infradead.org, magiclinan@didiglobal.com, xiao@kernel.org, guoqing.jiang@linux.dev, leon@kernel.org, jgg@ziepe.ca, kmodukuri@nvidia.com, kch@nvidia.com, bhelgaas@google.com, shivajikant@google.com, praan@google.com, henrique.carvalho@suse.com, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, linux-pci@vger.kernel.org
+X-SA-Exim-Mail-From: logang@deltatee.com
+X-Spam-Level: 
+Subject: Re: [PATCH v4 7/9] md/raid1,raid10: skip futile retries on P2PDMA
  mapping failures
-To: Leon Romanovsky <leon@kernel.org>
-Cc: Logan Gunthorpe <logang@deltatee.com>, Jens Axboe <axboe@kernel.dk>, Song Liu <song@kernel.org>, 
-	Yu Kuai <yukuai@fygo.io>, Keith Busch <kbusch@kernel.org>, Christoph Hellwig <hch@lst.de>, 
-	Sagi Grimberg <sagi@grimberg.me>, linux-block@vger.kernel.org, linux-raid@vger.kernel.org, 
-	linux-nvme@lists.infradead.org, Li Nan <magiclinan@didiglobal.com>, 
-	Xiao Ni <xiao@kernel.org>, Guoqing Jiang <guoqing.jiang@linux.dev>, 
-	Jason Gunthorpe <jgg@ziepe.ca>, Kiran Kumar Modukuri <kmodukuri@nvidia.com>, Chaitanya Kulkarni <kch@nvidia.com>, 
-	Bjorn Helgaas <bhelgaas@google.com>, Shivaji Kant <shivajikant@google.com>, 
-	Pranjal Shrivastava <praan@google.com>, Henrique Carvalho <henrique.carvalho@suse.com>, 
-	linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, 
-	linux-pci@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+X-SA-Exim-Version: 4.2.1 (built Sun, 23 Feb 2025 07:57:16 +0000)
+X-SA-Exim-Scanned: Yes (on ale.deltatee.com)
 
-> I had thoughts about this series too. It seems best to avoid
-> the P2P path entirely unless all legs support P2P.
->
-> Can the md/raid code determine P2P support in advance?
 
-Yes, and it already does: the block layer ANDs the P2PDMA queue
-feature across all legs, so an array with a non-P2P member
-(e.g. an nvme-tcp leg) never advertises P2P at all.
 
-But that flag can only say "this driver can do P2P in general".
-md cannot see which HCA device does the DMA for a fabrics leg =E2=80=94
-and with multipath failover it can change at any time.
+On 2026-07-22 12:58, Mykola Marzhan wrote:
+> From: Logan Gunthorpe <logang@deltatee.com>
+> 
+> BLK_STS_P2PDMA reflects the peer/member pairing, not member health:
+> retrying the same pages on the same member cannot succeed.  Keep
+> WriteErrorSeen so the range stays fenced, but skip WantReplacement and
+> FailFast eviction, as commit f7b24c7b41f2 ("md/raid1,raid10: don't fail
+> devices for invalid IO errors") did for BLK_STS_INVAL.
+> 
+> The failure is whole-range and deterministic, so narrow_write_error()'s
+> block-by-block submit_bio_wait() retries are pointless.  Record the
+> whole range as a bad block in the completion handler instead.
+> 
+> Fixes: 02666132403a ("md: propagate BLK_FEAT_PCI_P2PDMA from member devices to RAID device")
+> Assisted-by: Claude:claude-fable-5
+> Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+> Co-developed-by: Mykola Marzhan <mykola@meshstor.io>
+> Signed-off-by: Mykola Marzhan <mykola@meshstor.io>
+> ---
+>  drivers/md/raid1-10.c |  3 +++
+>  drivers/md/raid1.c    | 12 +++++++++---
+>  drivers/md/raid10.c   |  8 +++++++-
+>  3 files changed, 19 insertions(+), 4 deletions(-)
 
-So the up-front gate covers what is knowable up front.
-This series is about the remainder.
-In mixed case, one local P2P leg plus a remote replica, with it:
-1) a failed read just redirects to a capable mirror;
-2) a failed write records bad blocks instead of retrying forever.
+Maybe drop my authorship from this patch. I only did the first hunk and
+don't fully understand the bulk of it.
 
-Mykola
+
+> diff --git a/drivers/md/raid1-10.c b/drivers/md/raid1-10.c
+> index cee21452e066..89daf8558251 100644
+> --- a/drivers/md/raid1-10.c
+> +++ b/drivers/md/raid1-10.c
+> @@ -309,6 +309,9 @@ static inline void raid1_write_error(struct mddev *mddev, struct md_rdev *rdev,
+>  {
+>  	set_bit(WriteErrorSeen, &rdev->flags);
+>  
+> +	if (bio->bi_status == BLK_STS_P2PDMA)
+> +		return;
+> +
+>  	if (!test_and_set_bit(WantReplacement, &rdev->flags))
+>  		set_bit(MD_RECOVERY_NEEDED, &mddev->recovery);
+>  
+> diff --git a/drivers/md/raid1.c b/drivers/md/raid1.c
+> index 19c4dec450de..917d694ef401 100644
+> --- a/drivers/md/raid1.c
+> +++ b/drivers/md/raid1.c
+> @@ -2624,10 +2624,16 @@ static void handle_write_finished(struct r1conf *conf, struct r1bio *r1_bio)
+>  			 * narrow down and record precise write
+>  			 * errors.
+>  			 */
+> +			struct md_rdev *rdev = conf->mirrors[m].rdev;
+> +
+>  			fail = true;
+> -			narrow_write_error(r1_bio, m);
+> -			rdev_dec_pending(conf->mirrors[m].rdev,
+> -					 conf->mddev);
+> +			/* Mapping failures are whole-range and deterministic */
+
+I'm not sure I follow the point of this new comment here.
+
+
+Thanks,
+
+Logan
+
