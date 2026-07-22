@@ -1,91 +1,69 @@
-Received: from out-184.mta0.migadu.com (out-184.mta0.migadu.com [91.218.175.184])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 87A4530C60F
-	for <linux-rdma@vger.kernel.org>; Wed, 22 Jul 2026 06:04:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.184
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9098B221DB6;
+	Wed, 22 Jul 2026 06:15:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784700296; cv=none; b=AZBjt7fsjcqSXd9PbTlCVfbW+xBcEgvQQLlNDg7Bm1+dgFdM/YmeyXg0f4OmbC/txKXAxo1weQjlMeF5NlV1ApAzldhLljqtCKN+U3R/dTRFUu94zjrI6/FpMYvFRrM5KLZ7o6Y53wtAw6lxXeNiLeLYOaOk/WO0531LTZFRS3Q=
+	t=1784700960; cv=none; b=jL47yHMEsJVL8Gu6ZEkAiXCe7gmijovf/2c1xuDeHcGOYsL6vcvKLlcHMUlUMR+TUcUs/XkQ36kcHJyX0gtDSqU+G6aEwP4YAs4qwHW5ccKgxU89HKj71codPBhE5lCOn5jw0/8zlfUDjMj1rPCbUlxmSEiTeP/M7uABr1/Bi8Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784700296; c=relaxed/simple;
-	bh=01y7U4luyZxx8YmrhBv6klKCsgwEahIjnJG4SOXcHmM=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=Wrxwcw1PwzkVJMFX+6reYKns3O5+EkQ2rKIR1/3v8B7asRcKnrn3DkDFri43DyjZM1b4TLHIp8O2zOGeOg+S+6rs+iZ4rmqu1Ws5f2uQOQh6p0dLZD9+SBNtYPFzV6L8oS9//DrUPIq1SNGuEXZTdrU2PboINlsbfbD4Wopkl/c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=u2P/8+tP; arc=none smtp.client-ip=91.218.175.184
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+	s=arc-20240116; t=1784700960; c=relaxed/simple;
+	bh=bXaZHpjqVLdb0AfQWNiKeLwsbOuIHfDIUKWxFlCcyhs=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
+	 MIME-Version:Content-Type; b=G4reS7UJnY1Rs/KDEDi0j35+ruGexNRyxFyXi8BcE9+ZZQnWBIRmok8v+LkAFuSdUpIgffCni6abZLl5j0XMMxlkDdcACwJHT9YrbligA86+/prbh3z97umzSGexBn5EL/zxIzwlzotIzDLg5GKHK9e/KS5bf5WkKoHZApbYlBs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Rlo/7k1D; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="u2P/8+tP"
-Message-ID: <047c1566-905f-4d22-97fa-66945278a6dc@linux.dev>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-	t=1784700291;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=0Jd/T4jA/WOCkfIexsltr8/LFSvlOL5IDg6tM+EJxUc=;
-	b=u2P/8+tPKZkDZ+Xj0mBLRGLy/3VPiEElJb8vPJn/OYEjJlzTcbmP3HYhPl04VjBcN/q8PV
-	XiWYcRwTQGW6Id/nUdEx4EeLKW2FvKm1WJc9M+Pl9dkLt3hZgMHWzwYfMDaF2xcyGv8YcT
-	GhnzwmAhocmbwDbGxTwrp9DgJClu7HM=
-Date: Wed, 22 Jul 2026 09:04:36 +0300
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Rlo/7k1D"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9367C1F000E9;
+	Wed, 22 Jul 2026 06:15:58 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1784700959;
+	bh=2gcxC+q2wB3MELBfIWeQ+FEFbvTiKQ5ZmTKWGSceVnw=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Date;
+	b=Rlo/7k1DkGlijX/CEkcyPw+IZhlQ/QYEtrt+Ms6wo1NyPiXhFIKWd5fiI89wvn3wg
+	 ftdL7uB+Y/2aEB+HY1YAuCf5pxcThCnUYKQHqzmXRCrVdceVujCI7rSYlALTgIHphk
+	 X3r2xLKO/H6p61KgigHu592H9RXoQiIzYof8lC6mH0nns6YVEuZeRmVYdF06zloccA
+	 bcSrhMWjifAlTcsu/5gCNmz9wr3cjUENMSBOfw/dTLXiweYY76oRRQ7rJCutt1oXFY
+	 02zBuBMm2fVm5MQ9tCN0ClEaUbGlYDwMt1+2zu3Slp0qxQU3i+QzajaSu4oaN/y9T1
+	 UjC49KYsAL0/Q==
+From: Leon Romanovsky <leon@kernel.org>
+To: Bart Van Assche <bvanassche@acm.org>, Jason Gunthorpe <jgg@ziepe.ca>, 
+ Nicholas Bellinger <nab@linux-iscsi.org>, Leon Romanovsky <leon@kernel.org>
+Cc: linux-rdma@vger.kernel.org, target-devel@vger.kernel.org, 
+ linux-kernel@vger.kernel.org
+In-Reply-To: <20260721-b4-scsi-ordering-violation-due-to-hardc-v1-1-07205aab71bb@nvidia.com>
+References: <20260721-b4-scsi-ordering-violation-due-to-hardc-v1-1-07205aab71bb@nvidia.com>
+Subject: Re: [PATCH rdma-next] RDMA/srpt: Pass the mapped task attribute to
+ target_init_cmd()
+Message-Id: <178470095626.2740144.18166564217348824321.b4-ty@kernel.org>
+Date: Wed, 22 Jul 2026 02:15:56 -0400
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Subject: Re: [PATCH for-next 2/2] RDMA/efa: Expose 64-bit send WR ID support
- to userspace
-To: Yonatan Nachum <ynachum@amazon.com>, jgg@nvidia.com, leon@kernel.org,
- linux-rdma@vger.kernel.org
-Cc: mrgolin@amazon.com, sleybo@amazon.com, matua@amazon.com,
- Tom Sela <tomsela@amazon.com>
-References: <20260721070026.1635441-1-ynachum@amazon.com>
- <20260721070026.1635441-3-ynachum@amazon.com>
-Content-Language: en-US
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-From: Gal Pressman <gal.pressman@linux.dev>
-In-Reply-To: <20260721070026.1635441-3-ynachum@amazon.com>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-X-Migadu-Flow: FLOW_OUT
+X-Mailer: b4 0.15-dev-18f8f
 
-On 21/07/2026 10:00, Yonatan Nachum wrote:
-> Currently EFA WRs support 16-bit request ID, this requires EFA to manage
-> a translation table to translate the IB WR ID from 64-bits to 16-bits
-> and translating it back on CQ completion.
-> Expose a new device capability to handle 64-bit request ID for SQ WRs
-> allowing userspace to directly post the 64-bit ID to the device.
+
+On Tue, 21 Jul 2026 12:10:56 +0300, Leon Romanovsky wrote:
+> srpt_handle_cmd() maps the initiator-supplied srp_cmd->task_attr into
+> cmd->sam_task_attr, but then hands a hardcoded TCM_SIMPLE_TAG to
+> target_init_cmd().
 > 
-> Reviewed-by: Michael Margolin <mrgolin@amazon.com>
-> Reviewed-by: Tom Sela <tomsela@amazon.com>
-> Signed-off-by: Yonatan Nachum <ynachum@amazon.com>
-> ---
->  drivers/infiniband/hw/efa/efa_verbs.c | 3 +++
->  include/uapi/rdma/efa-abi.h           | 1 +
->  2 files changed, 4 insertions(+)
+> Pass the already mapped cmd->sam_task_attr instead, so target core sees the
+> attribute the initiator requested.
 > 
-> diff --git a/drivers/infiniband/hw/efa/efa_verbs.c b/drivers/infiniband/hw/efa/efa_verbs.c
-> index 001bd8cb4f66..85e32a7c76c3 100644
-> --- a/drivers/infiniband/hw/efa/efa_verbs.c
-> +++ b/drivers/infiniband/hw/efa/efa_verbs.c
-> @@ -264,6 +264,9 @@ int efa_query_device(struct ib_device *ibdev,
->  		if (EFA_DEV_CAP(dev, UNSOLICITED_WRITE_RECV))
->  			resp.device_caps |= EFA_QUERY_DEVICE_CAPS_UNSOLICITED_WRITE_RECV;
->  
-> +		if (EFA_DEV_CAP(dev, SQ_64_BIT_REQ_ID))
-> +			resp.device_caps |= EFA_QUERY_DEVICE_CAPS_SQ_64_BIT_REQ_ID;
-> +
->  		if (dev->neqs)
->  			resp.device_caps |= EFA_QUERY_DEVICE_CAPS_CQ_NOTIFICATIONS;
->  
-> diff --git a/include/uapi/rdma/efa-abi.h b/include/uapi/rdma/efa-abi.h
-> index fc4b2eb903c9..1e371bfef6d8 100644
-> --- a/include/uapi/rdma/efa-abi.h
-> +++ b/include/uapi/rdma/efa-abi.h
-> @@ -135,6 +135,7 @@ enum {
->  	EFA_QUERY_DEVICE_CAPS_RDMA_WRITE = 1 << 5,
->  	EFA_QUERY_DEVICE_CAPS_UNSOLICITED_WRITE_RECV = 1 << 6,
->  	EFA_QUERY_DEVICE_CAPS_CQ_WITH_EXT_MEM = 1 << 7,
-> +	EFA_QUERY_DEVICE_CAPS_SQ_64_BIT_REQ_ID = 1 << 9,
-What happened to 8?
+> [...]
+
+Applied, thanks!
+
+[1/1] RDMA/srpt: Pass the mapped task attribute to target_init_cmd()
+      https://git.kernel.org/rdma/rdma/c/ef63cc44170341
+
+Best regards,
+-- 
+Leon Romanovsky <leon@kernel.org>
+
