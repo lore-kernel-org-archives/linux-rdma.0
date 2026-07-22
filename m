@@ -1,77 +1,98 @@
-Received: from m16.mail.163.com (m16.mail.163.com [117.135.210.5])
+Received: from out30-110.freemail.mail.aliyun.com (out30-110.freemail.mail.aliyun.com [115.124.30.110])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F38E437B40E;
-	Wed, 22 Jul 2026 01:53:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=117.135.210.5
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 112A93370EA;
+	Wed, 22 Jul 2026 02:02:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.110
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784685199; cv=none; b=d0ONCflgHODYdFD6Q3qiV0CxWxZ73w9iW1EzNi6xewCWeZsxF2wDbXNH4bGDlUDMG+nGw8I1ERtI38w2S3tyhMAvV0wJhBi21vIEUGEYBpX/BKRQjgyFl4oCPRcwxLeOddKmJG2GYmUchR6zeBdgrP00M0Ja8MqBFYs2/n1lQ7M=
+	t=1784685759; cv=none; b=Mv1b0xuP4JB60XfOf9+QvFeariFKyoXVQldVHm1TlTaaM7qp8Gk22KkZHL74soN772N2LFQLth04EwaR9V3FKtcSAwVS3HF6RlBfG/v7SpUDbfBFt4c+203Z4wc3m6qdSKsDZbVW3dZmrOPiRQnXq3ExHRlwqrzyVD/5Afdgvtk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784685199; c=relaxed/simple;
-	bh=c3+qiVfVOhCDSZ4Df8vmy8w2UpeWdkx9CF/vkAcRjQs=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:Content-Type:
-	 MIME-Version:Message-ID; b=BGnoBLl5uixx3lk5QtlOzb2mG6e4lkM+p1wbMU60jJgnbEP3T58YcSINL5op/RdXSKVYKRwuMSNXxQR0evAi1rpg0FuiwpvXJrPiidLQ2xuUyIsPQGJkwp9Tp4HEdFvdCrp0d9uwif5v+Byt0DxTujpxpY+MnmgsFYtj5HmnSMc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com; spf=pass smtp.mailfrom=163.com; dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b=ZRo/i/1X; arc=none smtp.client-ip=117.135.210.5
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
+	s=arc-20240116; t=1784685759; c=relaxed/simple;
+	bh=Ms+3hk7hbeWOt4MjdwrrXhO2v/6wikmjnkbxooQcK5Y=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=D6dA32+qo//zNv4BOIhKDsZXrzhbWbF/4fjY565IRgVZ+uCsfMAsDXwGKgNOQg/IdyPYpURjs1rMXZb5XmUQh+bB+6V42nBSLm1TeaJQEO7rB23yfC/dnw5X2xw1UbGMFXMZm1R5aqXNSxlS40MCTDZ3yhUSqRdOmPtkiJ74140=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=FCM/OhwP; arc=none smtp.client-ip=115.124.30.110
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="ZRo/i/1X"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
-	s=s110527; h=Date:From:To:Subject:Content-Type:MIME-Version:
-	Message-ID; bh=c3+qiVfVOhCDSZ4Df8vmy8w2UpeWdkx9CF/vkAcRjQs=; b=Z
-	Ro/i/1X7BaX6eFoQPjmOgU/8KktiZvKvPgcs9NXOFnMJ28FPWd5qc9cb7TPwBqtl
-	hIby7rqUsRPRvMpsfTRYvoBMKWefY+MYKAa5sxfmAiydugJcKLKRfAQsXGxgXwIJ
-	g1cz9/D0G+OdWj4m7Hp8x6NPkKatSMEeXazh22LQbc=
-Received: from kensanya$163.com ( [116.128.244.169] ) by
- ajax-webmail-wmsvr-40-110 (Coremail) ; Wed, 22 Jul 2026 09:52:42 +0800
- (CST)
-Date: Wed, 22 Jul 2026 09:52:42 +0800 (CST)
-From: kensanya  <kensanya@163.com>
-To: "Bart Van Assche" <bvanassche@acm.org>
-Cc: jgg@ziepe.ca, leon@kernel.org, linux-rdma@vger.kernel.org,
-	target-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
-	TanZheng <tanzheng@kylinos.cn>
-Subject: Re:Re: [PATCH] RDMA/srpt: fix NULL deref when sending BUSY before
- target_init_cmd()
-X-Priority: 3
-X-Mailer: Coremail Webmail Server Version 2023.4-cmXT build
- 20260511(2e539873) Copyright (c) 2002-2026 www.mailtech.cn 163com
-In-Reply-To: <e5c8e258-8c57-40c8-88a9-04173392e9ae@acm.org>
-References: <20260720025941.69809-1-kensanya@163.com>
- <e5c8e258-8c57-40c8-88a9-04173392e9ae@acm.org>
-X-NTES-SC: AL_Qu2TBvqTukkt5CORYekcnkcTg+k8WMW1ufsg2Ydec+YEgS3E+woGfW5/I0TN3tu3GwaMniSFaAJ1189Gfox/meL4qeCteWDEXQfoAmwjwA==
-Content-Transfer-Encoding: base64
-Content-Type: text/plain; charset=GBK
+	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="FCM/OhwP"
+DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux.alibaba.com; s=default;
+	t=1784685753; h=Message-ID:Date:MIME-Version:Subject:To:From:Content-Type;
+	bh=HSaIX6hIosJ/jHt+6+F5JlQMZyVUp21ckgOQoM3Lki4=;
+	b=FCM/OhwPi+KicqDqEul8eNn5BS+02AVP1FPZdIbXC1BJlatnRGKQVPvPyhGeaFUAhDh/HMG9lULRV5WLnUYrK+++1t3lURNiArDciHV+OrQ3TnSCc8v2TKFifvPGr+uC029LMEi6y0xmPrk5Lojs20w8v83Tz+222fhja1bFbSk=
+X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R161e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam033037009110;MF=chengyou@linux.alibaba.com;NM=1;PH=DS;RN=7;SR=0;TI=SMTPD_---0X7bpXMI_1784685752;
+Received: from 30.221.106.174(mailfrom:chengyou@linux.alibaba.com fp:SMTPD_---0X7bpXMI_1784685752 cluster:ay36)
+          by smtp.aliyun-inc.com;
+          Wed, 22 Jul 2026 10:02:32 +0800
+Message-ID: <68b9b418-b672-ee31-1c66-9806b8a2eb60@linux.alibaba.com>
+Date: Wed, 22 Jul 2026 10:02:30 +0800
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Message-ID: <41ddb3a1.16d1.19f87866fa1.Coremail.kensanya@163.com>
-X-Coremail-Locale: zh_CN
-X-CM-TRANSID:bigvCgD390lrImBqbuYiAA--.494W
-X-CM-SenderInfo: 5nhq2txq1dqiywtou0bp/xtbC6QtVMWpgImuJaQAA3l
-X-Coremail-Antispam: 1U5529EdanIXcx71UUUUU7vcSsGvfC2KfnxnUU==
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:102.0)
+ Gecko/20100101 Thunderbird/102.15.1
+Subject: Re: [PATCH] RDMA/erdma: fix use-after-free in CEQ tasklet teardown
+Content-Language: en-US
+To: Fan Wu <fanwu01@zju.edu.cn>
+Cc: kaishen@linux.alibaba.com, jgg@ziepe.ca, leon@kernel.org,
+ linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
+ stable@vger.kernel.org
+References: <20260721133745.3197015-1-fanwu01@zju.edu.cn>
+From: Cheng Xu <chengyou@linux.alibaba.com>
+In-Reply-To: <20260721133745.3197015-1-fanwu01@zju.edu.cn>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-CgpBdCAyMDI2LTA3LTIxIDAwOjMxOjU4LCAiQmFydCBWYW4gQXNzY2hlIiA8YnZhbmFzc2NoZUBh
-Y20ub3JnPiB3cm90ZToKPk9uIDcvMTkvMjYgNzo1OSBQTSwga2Vuc2FueWFAMTYzLmNvbSB3cm90
-ZToKPj4gKwlyYyA9IHRhcmdldF9pbml0X2NtZChjbWQsIGNoLT5zZXNzLCAmc2VuZF9pb2N0eC0+
-c2Vuc2VfZGF0YVswXSwKPj4gKwkJCSAgICAgc2NzaWx1bl90b19pbnQoJnNycF9jbWQtPmx1biks
-IDAgLyogZGF0YV9sZW4gKi8sCj4+ICsJCQkgICAgIFRDTV9TSU1QTEVfVEFHLCBETUFfTk9ORSwg
-VEFSR0VUX1NDRl9BQ0tfS1JFRik7Cj4+ICsJaWYgKHJjICE9IDApIHsKPj4gKwkJcHJfZGVidWco
-InRhcmdldF9pbml0X2NtZCgpIHJldHVybmVkICVkIGZvciB0YWcgJSNsbHhcbiIsIHJjLAo+PiAr
-CQkJIHNycF9jbWQtPnRhZyk7Cj4+ICsJCWdvdG8gYnVzeTsKPj4gKwl9Cj4KPlRoaXMgd2lsbCBj
-YXVzZSB0YXJnZXRfc2VuZF9idXN5KCkgdG8gYmUgY2FsbGVkIG9uIGFuIHVuaW5pdGlhbGl6ZWQg
-Cj5jb21tYW5kIGFuZCB0aGF0IGlzbid0IGFsbG93ZWQsIGlzbid0IGl0Pwo+Cj5UaGFua3MsCj4K
-PkJhcnQuCgpZb3UgYXJlIHJpZ2h0IHRoYXQgdGFyZ2V0X3NlbmRfYnVzeSgpIG11c3Qgbm90IGJl
-IHVzZWQgd2hlbgp0YXJnZXRfaW5pdF9jbWQoKSBmYWlsczogdGhlIGNvbW1hbmQgaXMgbm90IGZ1
-bGx5IHNldCB1cCBmb3IgdGhlCnRhcmdldC1jb3JlIGNvbXBsZXRpb24gcGF0aCAoZS5nLiBjbWRf
-Y250IHdhcyBub3QgdGFrZW4gb24KLUVTSFVURE9XTikuIFRoYXQgZ290by1idXN5LW9uLWluaXQt
-ZmFpbHVyZSBwYXRoIGFscmVhZHkgZXhpc3RlZApiZWZvcmUgdGhlIHJlb3JkZXIuCgpIb3cgYWJv
-dXQgdGhlIGZvbGxvd2luZyBwbGFuPwogIC0gSWYgdGFyZ2V0X2luaXRfY21kKCkgZmFpbHM6CiAg
-ICAgIHJlbGVhc2UgdGhlIHNlbmQgaW9jdHggbG9jYWxseSB2aWEgdGFyZ2V0X2ZyZWVfdGFnKGNo
-LT5zZXNzLCBjbWQpCiAgICAgIGFuZCBkbyBub3QgY2FsbCB0YXJnZXRfc2VuZF9idXN5KCkKICAt
-IElmIHRhcmdldF9pbml0X2NtZCgpIHN1Y2NlZWRzIGJ1dCBhIGxhdGVyIHN0ZXAgZmFpbHMKICAg
-IChlLmcuIHNycHRfZ2V0X2Rlc2NfdGJsKCkpOgogICAgICBrZWVwIHVzaW5nIHRhcmdldF9zZW5k
-X2J1c3koY21kKQoKVGhhbmtzo6wKVGFuWmhlbmc=
+
+
+On 7/21/26 9:37 PM, Fan Wu wrote:
+> The CEQ interrupt handler schedules a tasklet that accesses the CEQ
+> buffers. During teardown, erdma_free_ceq_irq() removes the interrupt
+> handler and waits for any in-flight handler invocation, but does not
+> wait for a tasklet that was already scheduled by that handler.
+> 
+> erdma_ceq_uninit_one() can then free the EQ qbuf and dbrec while the
+> tasklet is still accessing them.
+> 
+> Call tasklet_kill() after free_irq(). This prevents new tasklet
+> scheduling and waits for any already scheduled tasklet before the EQ
+> buffers are freed.
+> 
+> This issue was found by an in-house static analysis tool.
+> 
+> Fixes: f2a0a630b953 ("RDMA/erdma: Add event queue implementation")
+> Cc: stable@vger.kernel.org
+> Assisted-by: Codex:gpt-5.6
+> Signed-off-by: Fan Wu <fanwu01@zju.edu.cn>
+> ---
+>  drivers/infiniband/hw/erdma/erdma_eq.c | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+
+Hi, Fan Wu,
+
+Thanks your work! But there is another patch fixes this issue already:
+
+https://lore.kernel.org/linux-rdma/CAHYDg1QDaWPxD7pb-A1ZmqxaX6YACWTsinzEG4_EZDKbAX38kQ@mail.gmail.com/T/#t
+
+Thanks,
+Cheng Xu
+
+> diff --git a/drivers/infiniband/hw/erdma/erdma_eq.c b/drivers/infiniband/hw/erdma/erdma_eq.c
+> index 6486234a2360..78ebec6d48a3 100644
+> --- a/drivers/infiniband/hw/erdma/erdma_eq.c
+> +++ b/drivers/infiniband/hw/erdma/erdma_eq.c
+> @@ -219,6 +219,7 @@ static void erdma_free_ceq_irq(struct erdma_dev *dev, u16 ceqn)
+> 
+>  	irq_set_affinity_hint(eqc->irq.msix_vector, NULL);
+>  	free_irq(eqc->irq.msix_vector, eqc);
+> +	tasklet_kill(&dev->ceqs[ceqn].tasklet);
+>  }
+> 
+>  static int create_eq_cmd(struct erdma_dev *dev, u32 eqn, struct erdma_eq *eq)
+> --
+> 2.34.1
