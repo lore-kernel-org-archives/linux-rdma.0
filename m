@@ -1,120 +1,103 @@
-Received: from mail-wm1-f49.google.com (mail-wm1-f49.google.com [209.85.128.49])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from pdx-out-013.esa.us-west-2.outbound.mail-perimeter.amazon.com (pdx-out-013.esa.us-west-2.outbound.mail-perimeter.amazon.com [34.218.115.239])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 63448439351
-	for <linux-rdma@vger.kernel.org>; Wed, 22 Jul 2026 11:19:07 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.49
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 72BC7439351
+	for <linux-rdma@vger.kernel.org>; Wed, 22 Jul 2026 11:33:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=34.218.115.239
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784719149; cv=none; b=ajJuit6EtovDWVFs3oVXvszxQdkYMdXgqCtFOin+muE4/ACf/sjD57vqVvTM4zNnsk5Zg2uFFSVmbNdyzvPYAJkdZr0YqEW/f87HmPHZcZwqlupW6eTnuAqWmPcehGcq+rzuQJ+eTdShj6Yg7lCDV84oKGQcQnBstIsX6A+bKi4=
+	t=1784720032; cv=none; b=ZDS7+gjA0Q7FMoZ48szjgKHtl+jeSxvAq94qQnFZE6J1xll1ocQHF1VlEpqzFM8R2oa8an5UOJuK9sFa5n6L6HkFkzs+L/leqJEkG8F+txaJeM2U727RlTFAWTIlwOwLHY2cfj8ef9gl7Cgu9fu1Yov6/q1YgKnYnpPi5e22I+Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784719149; c=relaxed/simple;
-	bh=K0lJdomABA220xXQvjPrABsUyrol06jwDg0S6PXXfsU=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ieQO6TaBi75lMM4DxKUi4+1U+mpiK4047SDE4NEbmsgd7eEqvl6ipP7pT4jNqnlNXXZwbN8dmKR4upQlCdNxfxHsZVqdC5PsnE92q+VP5xwY3yoFuJC+IzTX7728KXBpBhqgB88FulnkK/BAIba1EPA+YaNrUsdx8051rYvjvnY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=resnulli.us; spf=none smtp.mailfrom=resnulli.us; dkim=pass (2048-bit key) header.d=resnulli-us.20251104.gappssmtp.com header.i=@resnulli-us.20251104.gappssmtp.com header.b=oh6xSitz; arc=none smtp.client-ip=209.85.128.49
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=resnulli.us
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=resnulli.us
+	s=arc-20240116; t=1784720032; c=relaxed/simple;
+	bh=HKRsyv22rKRKKtVGvH0fvNCPwHNyFIiw7iYvD77+BCk=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=Zazx571aDv/LFEeEDhABg9kVsaxDAwLYtlmPFt6pFXTc0z8VPb0YLFLC/7rwcCSLVoAIDohO6IX42DIsb6JtFzdCzJopjChwFwXmQnoFAjzHES8VeQ3r8ZP5alRnF8In5ZAekUvnH8A39umLsL6cQ6r/xvUBVCYCZ7yhCoyOnpg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com; spf=pass smtp.mailfrom=amazon.com; dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.b=OWCUYgR6; arc=none smtp.client-ip=34.218.115.239
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazon.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=resnulli-us.20251104.gappssmtp.com header.i=@resnulli-us.20251104.gappssmtp.com header.b="oh6xSitz"
-Received: by mail-wm1-f49.google.com with SMTP id 5b1f17b1804b1-4954afac04bso47091945e9.0
-        for <linux-rdma@vger.kernel.org>; Wed, 22 Jul 2026 04:19:07 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.b="OWCUYgR6"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=resnulli-us.20251104.gappssmtp.com; s=20251104; t=1784719145; x=1785323945; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=LRmXc9ZZ35HbKO4lnkGdwQFDA/KG04ApnL+4+6Y1E0E=;
-        b=oh6xSitzv14cXiEehnSpN/lNNwBLwRIos7nCfJe57HvhwV3Miu90A81J+FmVquFNeg
-         WZnf8kOuLCwtrpALmFC30uyKE36wRSwYfzjjcEIK+85FnFPpEgKTrlESpGNO8E93IqWT
-         iihMO0kPefOqHw7l0c+5fhZeMkKP20CON2O6UFEulprF03uO0lrJvBQrX/QYK3//ajlj
-         ECSFmXjhGAVuhRgrWYcsh9X7nHkCtxk0itlQpc0DHkrcqEFKmBKnEBeBIh6ZVWPI76Zv
-         dZq0q3WNs9FFUeopq+8FxcJKGS4CsiPB1bV3nq7jGX2rhhM7xBBVWpVP87+EnTxph9Jn
-         Tc7A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1784719145; x=1785323945;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=LRmXc9ZZ35HbKO4lnkGdwQFDA/KG04ApnL+4+6Y1E0E=;
-        b=ap4DVVGWh64teKGLFSUHgTOaGDmJQ01Rahs295MdsdhBa67u0zQ9LN1YI9HgWUzQV/
-         8n4M1QDjvcJwJhCCUkVu5kTzpUkjNo17kiOQInX7SXJB5egKxyf46USO/hOspMmCauj4
-         msEjOwdBctQ65Wl+kpXyzWYXaxbGXCpslVPNVQ5j7T7OBKdA3IdTJyFkiYtgbYoKpaHo
-         4VAYAGrsBrxjy+RLsfZaALISs/yyyRq4lSPIx/f+vOGPOyToIymbDxvGdx3eXDwwyA0t
-         CNmJcz87+KkNDg+KIjYLX7FqYYFghs1G3gQVvaIws8fVVUjcidg31JgdUBK9LC44ogJp
-         zULg==
-X-Gm-Message-State: AOJu0YyXk5o9lyd0TQ1DjEDLpqrR1DGFDMXxzFUxVltWCXaIhMLoUK84
-	TXBIZOcu41kh6/Jbvc7WXXn2sVL00ViEIDkKbB1l52LbPFnV2uN40Z0gi4BSFao8neJZsktbe4y
-	8uhAh
-X-Gm-Gg: AR+sD10NOxHdw54iIY2FHe9A7wb2UuiO+Ug8U9d+jw168qYmKJgehiwIWhK8s2f6kk1
-	1v8TDh0YvzQbzmWju43QYH9JuBDR6/gkpAS+HrGFCpVMwFs0HVNPh8qZmHwTPYLw1GhEhA0pjIv
-	ICvqVEIS4+h6m1j+jY7VkXiT7OOJ8PBX0dG+HpO0sPJLzGfilqhOCRFJGQrigpOTPr0Qf2uFUwu
-	L39Bjp7dXDj29V7mq7RMQAbXVun18tv8p08g+eaefalFNxlUiJeUvyKPTv5ri+gKqGF/tiLO32J
-	tV71VJO4LL4p3UZwUz/TlOnn+m1NncOgK40ONYGMpiC1XIqhR99w2+t8UT+z/lml531lvO3zNZo
-	jflUkR8PMI/SB1b7rtQtsO9rkTSJOhYeTPyZdqwwf3C6Atefz2HbFqZNQIlfbOIlv2LL02loezB
-	4tSSE975JJ6S1a8eA9Eq6xzg==
-X-Received: by 2002:a05:600c:4ed1:b0:495:6485:226b with SMTP id 5b1f17b1804b1-49566a820aamr70694565e9.22.1784719145296;
-        Wed, 22 Jul 2026 04:19:05 -0700 (PDT)
-Received: from localhost ([140.209.217.211])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4956b72fac1sm43347075e9.1.2026.07.22.04.19.04
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 22 Jul 2026 04:19:04 -0700 (PDT)
-Date: Wed, 22 Jul 2026 13:19:00 +0200
-From: Jiri Pirko <jiri@resnulli.us>
-To: linux-rdma@vger.kernel.org
-Cc: cgroups@vger.kernel.org, netdev@vger.kernel.org, 
-	linux-s390@vger.kernel.org, linux-kselftest@vger.kernel.org, jgg@ziepe.ca, leon@kernel.org, 
-	parav@nvidia.com, mbloch@nvidia.com, cmeiohas@nvidia.com, roman.gushchin@linux.dev, 
-	bvanassche@acm.org, zyjzyj2000@gmail.com, shuah@kernel.org, tj@kernel.org, 
-	mkoutny@suse.com, hannes@cmpxchg.org, alibuda@linux.alibaba.com, 
-	dust.li@linux.alibaba.com, sidraya@linux.ibm.com, wenjia@linux.ibm.com, 
-	yanjun.zhu@linux.dev, cui.tao@linux.dev
-Subject: Re: [PATCH rdma-next v3 00/14] RDMA: Make device names unique per
- net namespace
-Message-ID: <amCm6nW8IttsHGgY@FV6GYCPJ69>
-References: <20260716132316.1495242-1-jiri@resnulli.us>
+  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazoncorp2;
+  t=1784720031; x=1816256031;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=dbCevWZnO5H8uLNI17UkrnWYww4W9ZOuYmahEMOEKvY=;
+  b=OWCUYgR6qCosZFHh/bd5RJLbawUcHxyGwbjBViOIYxy6jcp0IHaeotGV
+   9O+jPh931c/O3TUmKdB40Jv57KoK17hzy5pPprdrOctm9GeVLUj7C03dr
+   4cZc9eNcsQQVxLvtuj1UMtW6/klCUm/d7HVn+dH2qzk+6JN3vHSCtTQ/t
+   6piwnPWsdP8DFFyoSMwSAdZ/8JlP5aRyKDs/67gdueLKSZMXL43hIggdg
+   7HkGfTP/wzHBWooImFTigOBKPxZOUXvQbRqAEa9DyA5ail3bnayz9PjRu
+   2wymsgrkH2CuvApBTFUk436WvLnnMOAJPFY2DbazXAUc7cYROb68ApEO0
+   A==;
+X-CSE-ConnectionGUID: tSplqUBRQPy680t+0KA5KQ==
+X-CSE-MsgGUID: BO0Xai/RQ8+w1WKk1U7nVg==
+X-IronPort-AV: E=Sophos;i="6.25,178,1779148800"; 
+   d="scan'208";a="23947717"
+Received: from ip-10-5-6-203.us-west-2.compute.internal (HELO smtpout.naws.us-west-2.prod.farcaster.email.amazon.dev) ([10.5.6.203])
+  by internal-pdx-out-013.esa.us-west-2.outbound.mail-perimeter.amazon.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Jul 2026 11:33:48 +0000
+Received: from EX19MTAUWA001.ant.amazon.com [205.251.233.236:13285]
+ by smtpin.naws.us-west-2.prod.farcaster.email.amazon.dev [10.0.10.59:2525] with esmtp (Farcaster)
+ id 517963a1-bb3e-419a-89d4-6e837869cd8b; Wed, 22 Jul 2026 11:33:48 +0000 (UTC)
+X-Farcaster-Flow-ID: 517963a1-bb3e-419a-89d4-6e837869cd8b
+Received: from EX19D001UWA001.ant.amazon.com (10.13.138.214) by
+ EX19MTAUWA001.ant.amazon.com (10.250.64.218) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.43;
+ Wed, 22 Jul 2026 11:33:48 +0000
+Received: from dev-dsk-ynachum-1b-0ecf7b87.eu-west-1.amazon.com
+ (10.13.226.176) by EX19D001UWA001.ant.amazon.com (10.13.138.214) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.43; Wed, 22 Jul 2026
+ 11:33:46 +0000
+From: Yonatan Nachum <ynachum@amazon.com>
+To: <jgg@nvidia.com>, <leon@kernel.org>, <linux-rdma@vger.kernel.org>
+CC: <mrgolin@amazon.com>, <sleybo@amazon.com>, <matua@amazon.com>,
+	<gal.pressman@linux.dev>, Yonatan Nachum <ynachum@amazon.com>
+Subject: [PATCH for-next v2 0/2] RDMA/efa: Add 64-bit SQ request ID support
+Date: Wed, 22 Jul 2026 11:33:29 +0000
+Message-ID: <20260722113331.2515247-1-ynachum@amazon.com>
+X-Mailer: git-send-email 2.50.1
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260716132316.1495242-1-jiri@resnulli.us>
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: EX19D046UWA001.ant.amazon.com (10.13.139.112) To
+ EX19D001UWA001.ant.amazon.com (10.13.138.214)
 
-Thu, Jul 16, 2026 at 03:23:01PM +0200, jiri@resnulli.us wrote:
->From: Jiri Pirko <jiri@nvidia.com>
->
->RDMA device names are unique system-wide today:
->__ib_device_get_by_name() checks a requested name against every
->registered device regardless of the network namespace it lives in.
->A device in one network namespace therefore cannot use a name already
->taken in another, even in exclusive netns mode (netns_mode=0) where
->the two are otherwise isolated. Net devices have no such restriction -
->their names only need to be unique within a network namespace.
->
->This series makes RDMA device names unique per network namespace,
->matching net device semantics, and adapts the users that assumed
->system-wide unique names.
->
->Scoping reuses the existing rdma_dev_access_netns() predicate, so
->behavior only changes in exclusive mode:
->  - shared mode (default): names stay unique system-wide, no change;
->  - exclusive mode: names only need to be unique within a namespace;
->  - CONFIG_NET_NS=n: everything is init_net, names stay system-wide
->    unique.
->
->There are two users that cannot be made per-namespace and are
->documented as known limitations instead of changed:
->  - the rdma_cm configfs tree: configfs has no network namespace
->    support, so it cannot represent two same-named devices;
->  - SELinux ibendport labelling: endports are labelled by (device
->    name, port) from a global policy; distinguishing same-named
->    devices would need net namespace support in the SELinux policy
->    language and tooling.
->
->Tested with the new rxe_netns_names kselftest added in the last patch.
+Changelog:
+v2:
+ * Rebased on top of completion counters series:
+   https://lore.kernel.org/all/20260722083603.30334-1-mrgolin@amazon.com
+v1: https://lore.kernel.org/all/20260721070026.1635441-1-ynachum@amazon.com
 
-This looks like good to go. All Sashiko findings are false positive or
-unrelated. Care to merge? Thanks!
+-------------------------------------------------------------------------
+Currently EFA WRs support 16-bit request ID, this requires EFA to manage
+a translation table to translate the IB WR ID from 64-bits to 16-bits
+and translating it back on CQ completion.
+
+This series adds support for a device capability that allows SQ WRs to
+carry a full 64-bit request ID, removing the need for that translation
+table on devices that support it.
+
+The first patch adds the CQ/QP creation plumbing needed to negotiate
+64-bit request ID support with the device. The second patch exposes
+the new device capability bit to userspace so that the driver can
+report support for it.
+
+Yonatan Nachum (2):
+  RDMA/efa: Add CQ/QP creation with 64-bit SQ req ID support
+  RDMA/efa: Expose 64-bit send WR ID support to userspace
+
+ .../infiniband/hw/efa/efa_admin_cmds_defs.h   | 20 ++++++++++++++++---
+ drivers/infiniband/hw/efa/efa_com_cmd.c       |  8 ++++++++
+ drivers/infiniband/hw/efa/efa_com_cmd.h       |  2 ++
+ drivers/infiniband/hw/efa/efa_io_defs.h       | 12 +++++++++--
+ drivers/infiniband/hw/efa/efa_verbs.c         | 10 ++++++++++
+ include/uapi/rdma/efa-abi.h                   |  5 ++++-
+ 6 files changed, 51 insertions(+), 6 deletions(-)
+
+-- 
+2.50.1
+
