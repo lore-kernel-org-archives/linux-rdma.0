@@ -1,142 +1,112 @@
-Received: from BYAPR05CU005.outbound.protection.outlook.com (mail-westusazon11010060.outbound.protection.outlook.com [52.101.85.60])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B045430783;
-	Thu, 23 Jul 2026 09:45:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.85.60
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784799936; cv=fail; b=L9+DJfS+8PljIzYZmg+YKqHYOW3ZfvtRVilhKrGztRkAyKgOSEtI7Nof10uYcy2ceSHasVZuON02AIadgDgxWzGwJm2aK7hBIETGprnDKwDCr+iQb8b2e3QjDzcXgwj55z5O9XVSuAWLyi1uzdkpvpwK9UlcL1qgz51BzrtgNdk=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784799936; c=relaxed/simple;
-	bh=WKkVmMg7cKEnr/4rT1FgCR9V5D7hR/8I2FOjqhqFoAU=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=BC4NZ3dQpaJt6Z7JZV25I+zHRMKbeOajUCdS8f0TGkXxa/tPRTSzLc40yktG7jtrEN8uT1y2j6a3ny21lV8wTAfDvNtkOKg3/KsVPDKTCZ+EiSApW73bLckxfHhTnAQqVn4FrQSf0/+uoXalfAw8khe+kceqWOjxNsvXVO5XmMc=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=poGunALL; arc=fail smtp.client-ip=52.101.85.60
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 95B5440BCB6;
+	Thu, 23 Jul 2026 09:51:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1784800286; cv=none; b=VFd0/RNLQoaqUvUy/ETmG9vqXEPlmoYmTXo2omSC9jbibivD4R1xDHfuj5K9wNJdJ+3H5Ho0hn3jSKY5u2zVHIH14wyXWZTTlQIRhq4a92xopyVDGCWmCJsPwuj946Le4W9Q1VyhiNvzHtGAdiOuYGWgFBrYUFukdThoxp8NBQ0=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1784800286; c=relaxed/simple;
+	bh=LM5rQqEzffppaGyiZqTxi3jZAfJHrhhaXwtrM8qQvn4=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=VFMzLCquRcMEIyz+7nMW1PWmXTWGsUwBrtDRl5r281ScHYxC1iqLcz2VZCKfFGvCFMq/4wBAXMYHlQML0qcJ6pRbZXT+je3VLZfM0yp0OrfYII7QPM+/EbaWZS/hYtr7rPW8MWkcnoNZhk2f3qhRMZ/en1dT+RDWXl07ac8d4Pg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=X70TIZiE; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="poGunALL"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=J6XbdlL4aQ5eYUt4ER1/A+jaERRyf9Hh9MpLaLCqxq85j2JuV6wArU5pEorkPiSCtJnRkoUaPC57t+9s/rG4I9Cyb420YqPpzZ2HNjd4rJRl6+Php6dBoyTtWB1/EXPf2O2IJLjRlNn3an4OEO/dDZUtINA9SB8i86MWn6whw+Vpjimkf3Y0DhyssDHAeOtTZaeyrtd4kfT/BP6k9/eu5St8DZ/zH1NBry25nZVZv4K1LddpcmPomCUiv+NFvEWs+dUebZRh6x+mYAC9L1yec1KDqwtSMmzM1q/paC1nlXmcRApz0FEQw3FphAFoNLVCJhx5UKUQi+TUI8RQjiz/PQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=aMNjHHmkZeFevICFdtsJud0mLLIi/W3xvWb2W9BNLtM=;
- b=YAfMic6EgQcra2p5Fdcfs/k5qLhEqSmKwGLxYlNQ4FyyyeOU07m3JkE7DUnytCRybKjwGAWKouzg+DD7oLcAqnMe6QK5vc56Tryzi4RHJDJosg80JdlG7H3D8CU5/sM6QVfNuJGNtiS+P/7Yd3g2oKQst8j7sBd1jwNSWiUlzGpjh9ws8BmlmyrkP3mCADwaiPVpWIIY+KwbWTSNTtbY3ZCKy+mNnZetTExwJLWEJbVc2f6iPYm2Naj2n4WUbJU0E1ywbJ7NKk0hcr7Rn7s4tLN/QV/cJJ1FFAVvyT4x5qY5snbZ2nDl9Sx0uE4nw8si18N8m/VhaFmRxpaNZC3Lsw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.117.161) smtp.rcpttodomain=lunn.ch smtp.mailfrom=nvidia.com;
- dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
- dkim=none (message not signed); arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=aMNjHHmkZeFevICFdtsJud0mLLIi/W3xvWb2W9BNLtM=;
- b=poGunALL0MrUZJY7g5vDmDkjEYmRf9K3tN4OcYKioikoucf2tQrmHrti60SYiNZtgTD9Xm6yINz50Lg7sgTQKe84lbrGofU9BgzAyC+p6Hjk/futbYQj2rjb3+GzzXyQYDKv4uBVbx6BVPr8xfKCsXHbhZJRDUPfNzDGZtyzSJYdkmCED//OI5wmvoVysfg6f46juP5zGWOQQTRlp/MlS8wjG4xPiiSlnPdBpMIc75ZmsuR95oDMrbCM+7I6PaEDLSd0K2TOsu8aacCegVATArxki2bv+Sz4+VsUmYVStpC9y10CY89izSZl5IWheoppyMLBgAU/xqWXlrrqRAV0cw==
-Received: from PH2PEPF00003852.namprd17.prod.outlook.com (2603:10b6:518:1::77)
- by MW4PR12MB7213.namprd12.prod.outlook.com (2603:10b6:303:22a::18) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.245.10; Thu, 23 Jul
- 2026 09:45:28 +0000
-Received: from CY4PEPF0000FCC5.namprd03.prod.outlook.com
- (2a01:111:f403:f910::) by PH2PEPF00003852.outlook.office365.com
- (2603:1036:903:48::3) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.245.10 via Frontend Transport; Thu,
- 23 Jul 2026 09:45:27 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.161)
- smtp.mailfrom=nvidia.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=nvidia.com;
-Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.117.161 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.117.161; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.117.161) by
- CY4PEPF0000FCC5.mail.protection.outlook.com (10.167.242.107) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.270.5 via Frontend Transport; Thu, 23 Jul 2026 09:45:27 +0000
-Received: from rnnvmail202.nvidia.com (10.129.68.7) by mail.nvidia.com
- (10.129.200.67) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Thu, 23 Jul
- 2026 02:45:10 -0700
-Received: from rnnvmail202.nvidia.com (10.129.68.7) by rnnvmail202.nvidia.com
- (10.129.68.7) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Thu, 23 Jul
- 2026 02:45:09 -0700
-Received: from vdi.nvidia.com (10.127.8.10) by mail.nvidia.com (10.129.68.7)
- with Microsoft SMTP Server id 15.2.2562.20 via Frontend Transport; Thu, 23
- Jul 2026 02:45:05 -0700
-From: Tariq Toukan <tariqt@nvidia.com>
-To: Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller"
-	<davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, Jakub Kicinski
-	<kuba@kernel.org>, <netdev@vger.kernel.org>, Paolo Abeni <pabeni@redhat.com>
-CC: Cosmin Ratiu <cratiu@nvidia.com>, Dragos Tatulea <dtatulea@nvidia.com>,
-	Gal Pressman <gal@nvidia.com>, kernel test robot <lkp@intel.com>, "Leon
- Romanovsky" <leon@kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-rdma@vger.kernel.org>, Mark Bloch <mbloch@nvidia.com>, Saeed Mahameed
-	<saeedm@nvidia.com>, Tariq Toukan <tariqt@nvidia.com>
-Subject: [PATCH net] net/mlx5e: Fix indentation in mlx5e_free_mpwqe_rq_drop_page()
-Date: Thu, 23 Jul 2026 12:44:52 +0300
-Message-ID: <20260723094452.1888786-1-tariqt@nvidia.com>
-X-Mailer: git-send-email 2.44.0
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="X70TIZiE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 49C6C1F000E9;
+	Thu, 23 Jul 2026 09:51:23 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1784800285;
+	bh=b9dXVavXW2uhCSw9o8MziEw0cMDNNu3e8wEJxirI5tc=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=X70TIZiEwIKJ0q2m39LW+Wz6Ai6PIdQtWCF62RP8YaGqvAT7WcP8L70DxcYZk72NW
+	 luesPijGDsYtLohFVONh6MhmMw2VtkLgASq7Vs6j4k6jQRUYRdvY+u9VhPJokCOnW/
+	 c1DIsjl0mmZcNZ8R9slBCS4uXHugUYqGajB5QC1vVxSyk7y0BG4nOCd3LLEJchtcY0
+	 JpdkSiEBL4X4Pv2rXsRKKZxjKStjZ3fUr3CWejBcOworUTiTg38lN0YIA+euLQzPqq
+	 mySFADqJYeQC+DslWCVtRNz+xx8LyeTcOydBLGlRfah4u+F5DNIuCYxG/CfpO45nR+
+	 hJkGwuSq2/m2A==
+Date: Thu, 23 Jul 2026 12:51:20 +0300
+From: Leon Romanovsky <leon@kernel.org>
+To: kensanya@163.com
+Cc: bvanassche@acm.org, jgg@ziepe.ca, linux-rdma@vger.kernel.org,
+	target-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
+	TanZheng <tanzheng@kylinos.cn>
+Subject: Re: [PATCH v2] RDMA/srpt: fix NULL deref when sending BUSY before
+ target_init_cmd()
+Message-ID: <20260723095120.GF110966@unreal>
+References: <20260723024456.52851-1-kensanya@163.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-NV-OnPremToCloud: ExternallySecured
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: CY4PEPF0000FCC5:EE_|MW4PR12MB7213:EE_
-X-MS-Office365-Filtering-Correlation-Id: a079d9a8-84e9-40a3-5436-08dee89f205a
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|36860700016|376014|7416014|1800799024|82310400026|23010399003|10067099003|11063799006|56012099006|18002099003|13003099007;
-X-Microsoft-Antispam-Message-Info:
-	kM8VWAZlLf3hEVg+ZWY/YAKSIdJZAcfbUBWxL3YGOW9uDhN/vmfNd72r1QkrveKV7K4mTdysc5h3tstb6DjtFS82mtrsP1715bQCxYr/cM6w89/gSNkIXnONmb9pggpoU2+sneIcOeT5ydx+URehvdHYN/48F1KdgDfgsn4ynC87oEhKSWEkUg1WtYvC15Pmp7AC3lW91h/CrlfaC5/Ykuu6Go5a9JK1UGdsyREiSU3nCmxE3OtCxdzpjR8cAeUd170FXzN/vZre2Gq1F9JdkIqO3C/MpLqb53uvYOxEqu23m7J0dabxTj+RIkG2H7vXcNyZBeiBCRDKFcyofC4YG2DGDX9CRgltvpt7oqoDhumRz6Cl8Rk+F48Qrk3DQMle7lbM1TBjMAP8lKeZg1d4+E+j/yKx0Ie0up+Djbx0wOs2NxNV8dm8nO1SQ6Qiyen1xVrlcMeUBj4FF0jV7eS+fdB9vcjq8ZVzCfnMEg2Wlg/ywJZ2Sufbk5XvN4vjkIWysOPjkofvMeR8Ebv/96Iao4yEPDKOjgMw0Nck1BkQB9JHS2r441lPD30YYNux8G+DBMFmrz74g2z6ykELKDookO0kGujEVnXn4Ku9/IDNkOvWCTVsfbXL6/0N1MZ+w5tXd4dCvcdTQxl/bfWToN1pG1HeWcNlTcAd6QyybMQrLueZep4SByxi5kITE3dlia5Cz8pPBE1pP6T1RVJhk8fFEA==
-X-Forefront-Antispam-Report:
-	CIP:216.228.117.161;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge2.nvidia.com;CAT:NONE;SFS:(13230040)(36860700016)(376014)(7416014)(1800799024)(82310400026)(23010399003)(10067099003)(11063799006)(56012099006)(18002099003)(13003099007);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	0gL60mhK+0xArN5CPNL7PIi2m1oJP7EqKpKrLgaVPJtNIl6fjfa2lQIHt/S9EUNwEPR+sv9DOF8jZcD9YVIxy/7DHfTKZezurGcXcOVmcEPdIJVKhD9S4O94Suq0uBh4hIbaJdvihGgvCMZY4gbK72nz3NJSdSPxtMxf2cnQbekHN72r8VPgLSnspQuKVuzufk+GajqI5HG5T3tLBk2hk+Ps/EsMifpe7h41MiEBkeR3JbTjRh3G5EorJtiSbrWG6xpHl5GURvw5+6W7Af0U+APr5NZsfGUI04B+/KsgO8UORjfzqGaAmGMhDa3DpUAj59bev6HFaSGuj1m0l8tJD1TUDhIl51+OzAhWSfhKyEjpu1Ibpud67wMt4q8zCMsCKFVSqwbRn33IbTfgW42NEeISgSUIKqKWNeddajJreT/oFGnbaA3pMNcWuani1aRB
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 23 Jul 2026 09:45:27.2300
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: a079d9a8-84e9-40a3-5436-08dee89f205a
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.161];Helo=[mail.nvidia.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	CY4PEPF0000FCC5.namprd03.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: MW4PR12MB7213
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260723024456.52851-1-kensanya@163.com>
 
-Remove a stray leading space before __free_pages() call.
+On Thu, Jul 23, 2026 at 10:44:56AM +0800, kensanya@163.com wrote:
+> From: TanZheng <tanzheng@kylinos.cn>
+> 
+> If srpt_get_desc_tbl() fails, srpt_handle_cmd() jumps to
+> target_send_busy() before target_init_cmd() has set cmd->se_tfo.
+> target_send_busy() then dereferences a NULL se_tfo.
+> 
+> Call target_init_cmd() first with placeholder data_length and
+> data_direction, parse the descriptor table next, then fill in the
+> real data_length. That way target_send_busy() is safe if parsing
+> fails.
+> 
+> target_send_busy() is only valid after a successful target_init_cmd().
+> If target_init_cmd() itself fails, free the send ioctx tag locally
+> with target_free_tag() instead of calling target_send_busy().
+> 
+> Fixes: 8b8807b9e982 ("scsi: RDMA/srpt: Fix handling of command / TMF submission failure")
+> Link: https://lore.kernel.org/all/20260717025402.64054-1-kensanya@163.com/
+> Suggested-by: Bart Van Assche <bvanassche@acm.org>
+> Signed-off-by: TanZheng <tanzheng@kylinos.cn>
+> ---
+> v2:
+> - On target_init_cmd() failure, use target_free_tag() instead of
+>   target_send_busy()
+> 
+>  drivers/infiniband/ulp/srpt/ib_srpt.c | 36 +++++++++++++++++++--------
+>  1 file changed, 26 insertions(+), 10 deletions(-)
+> 
+> diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
+> index f66cfd70c263..71af1fb0d380 100644
+> --- a/drivers/infiniband/ulp/srpt/ib_srpt.c
+> +++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
+> @@ -1558,8 +1558,8 @@ static void srpt_handle_cmd(struct srpt_rdma_ch *ch,
+>  	struct srp_cmd *srp_cmd;
+>  	struct scatterlist *sg = NULL;
+>  	unsigned sg_cnt = 0;
+> -	u64 data_len;
+> -	enum dma_data_direction dir;
+> +	u64 data_len = 0;
+> +	enum dma_data_direction dir = DMA_NONE;
+>  	int rc;
+>  
+>  	BUG_ON(!send_ioctx);
+> @@ -1584,6 +1584,25 @@ static void srpt_handle_cmd(struct srpt_rdma_ch *ch,
+>  		break;
+>  	}
+>  
+> +	/*
+> +	 * Call target_init_cmd() before srpt_get_desc_tbl() so that
+> +	 * cmd->se_tfo is set if descriptor parsing fails and
+> +	 * target_send_busy() is used. data_length is filled in after a
+> +	 * successful srpt_get_desc_tbl().
+> +	 *
+> +	 * target_send_busy() is only valid after a successful
+> +	 * target_init_cmd(). On init failure free the tag locally.
+> +	 */
+> +	rc = target_init_cmd(cmd, ch->sess, &send_ioctx->sense_data[0],
+> +			     scsilun_to_int(&srp_cmd->lun), 0 /* data_len */,
+> +			     TCM_SIMPLE_TAG, DMA_NONE, TARGET_SCF_ACK_KREF);
 
-Fixes: 0285cc3dac1b ("net/mlx5e: Alloc rq drop page based on calculated page_shift")
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202607142323.qm25Crps-lkp@intel.com/
-Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
-Reviewed-by: Cosmin Ratiu <cratiu@nvidia.com>
----
- drivers/net/ethernet/mellanox/mlx5/core/en_main.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+1. TCM_SIMPLE_TAG -> you need to rebase to latest rdma-next.
+2. You are hardcoding dir, while it can be overwritten in srpt_get_desc_tbl().
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-index c1acb9012d3f..5ad8c67e4695 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-@@ -695,7 +695,7 @@ static void mlx5e_free_mpwqe_rq_drop_page(struct mlx5e_rq *rq)
- 
- 	dma_unmap_page(rq->pdev, rq->wqe_overflow.addr, page_size,
- 		       rq->buff.map_dir);
--	 __free_pages(rq->wqe_overflow.page, page_order);
-+	__free_pages(rq->wqe_overflow.page, page_order);
- }
- 
- static int mlx5e_init_rxq_rq(struct mlx5e_channel *c, struct mlx5e_params *params,
-
-base-commit: f43ee0c0730d6191629b5ee1ceae27b1ebfdc047
--- 
-2.44.0
-
+Thanks
