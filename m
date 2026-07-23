@@ -1,183 +1,81 @@
-Received: from mail-pf1-f181.google.com (mail-pf1-f181.google.com [209.85.210.181])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6CEC53081A2
-	for <linux-rdma@vger.kernel.org>; Thu, 23 Jul 2026 17:37:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.181
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BFFBD311967;
+	Thu, 23 Jul 2026 17:50:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784828228; cv=none; b=AIe3uSUfS4lVkB3LTOEdlStKlrz66yyF7DeZI3K1jJfs4AQb0bN/2Yo6HzYJtD3ktBhCxQ2hBfBEom+Yapr5a8gGqRZm9yfaW4Q/+4rvQlcqMmceGYu9kk2Q9vROAkkx90KoFM5SfaCoou7pbCZfjrYI7PZd5JqY8k2oH5BaoS0=
+	t=1784829050; cv=none; b=iShgIan9ygiQUP/qIKYLJuR1DAMUp5JVSOEMWHv7MJwIZAFEJq3rlZ44Ne31E3tzCgwf+VUunFX2zvI7sKzoWeFoLGvpLYnJZSwVXZPWuVhHR9GXUotPz5RTE3mazM+MTn/usIf47urcBWVc5XLS8YkA4k+r5RPgY5mDb2bEZ7E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784828228; c=relaxed/simple;
-	bh=Js9Z5fScNTLs9yZDEPq5MMQDWBFdccrrYdkvKMfBR0c=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=GhN7ssCQDVKS/hWrBFeicepliNXNvAN0GX6qmlKi6Cqvluvi8d559rOHNFXd0f1p/gK6ZYt5GTkoZ7RgjK8Cc/v42flimGlOAfCiZuiqMH+8NaK4ZYlh8krjcPa2uxUuYl2LEOchpM34cRqWH6A6Q1F8tgU1sRNZ86B8pmX8220=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=BKL6hJTS; arc=none smtp.client-ip=209.85.210.181
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1784829050; c=relaxed/simple;
+	bh=UpXunTny8q0d+EBxnlGdpa6pw0AVIGMzh2A37PFI2J0=;
+	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc; b=ZXNYMcXJHEKGBEYL4bM3ddcMFQPW9u3AqBs8CiDpEItCvMaSmEMfIdViUq2PGGn/oov2hdMzBTv5odIlHxOD6XGzCF/p0Objob3ch1Y0f6dUJS5LnA1AjFtp4TxCCK+djoRFEUuzuQmT3EC9nfw3e7xZGnuUvF5A6pvWt/cytDE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=XkPqWbZ4; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="BKL6hJTS"
-Received: by mail-pf1-f181.google.com with SMTP id d2e1a72fcca58-84e3007a2b7so771237b3a.0
-        for <linux-rdma@vger.kernel.org>; Thu, 23 Jul 2026 10:37:00 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1784828216; x=1785433016; darn=vger.kernel.org;
-        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
-         :content-type:mime-version:subject:date:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=/3EHZQlaXq9sLmhVgtuP5ODA2wxc36yvs54yemcncOc=;
-        b=BKL6hJTSZk19OoDFcA63/ZRoV0prsj8yCa4ogkU90ZAlAakTfXuIGGS/iowNK20Shm
-         48LLdV1VLcRWB+urPSsdyN0SvDg3d5TRjBBZ91VHO9dGcLM7NP5U5NMulOAal5hJ07Q4
-         J1ds7S3tCtGMQ0nJS4JKg2CXAmTMXTAXD90ceLfgLW81TiwyrV1T0V6qmP7F3+23sGKK
-         ystiPsEBmqOhU53eERSPQWhWZYpis1kHPTqaTAM2/8tKMKtDgkNi4GGJGu6EhArOMTt9
-         X2otbFigngyTor75rMG2t8eHnCm9TQHuyZEGyW2NqF+eQpSl9GlrB927etwZYxmjpij1
-         XyUQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1784828216; x=1785433016;
-        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
-         :content-type:mime-version:subject:date:from:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=/3EHZQlaXq9sLmhVgtuP5ODA2wxc36yvs54yemcncOc=;
-        b=XMR9YHt8X0B9H/Y0oCLG+HmJRzW0nRVK+H6dTmejLwKmzWqFg5U1UZ18rKqrhFJsaZ
-         sJwyjDW8veKyBSGGyecHTO4SvzlJs95PudMNmgq2BUH797Ev8S+pmvrGVX/Zkr2D9bE9
-         iprFc7TdIznYC61JZEbVDmeoxo4LFDQp/3xEroOfjw/SxQqafGCseC/z+kV9I0nO0e+v
-         pkzphPvNY5dhHuCJrpzqZddYbtC4ZwRN+hdZA96N/ZRMuV3koIp4cpRBdtN3FpXnGiBX
-         7WLsouiTTb3oDfMblY23F1NbG7oV2OPD7k1sjyD+4cn56WAUahnBsr521IrNv5lBlRy9
-         QYrw==
-X-Forwarded-Encrypted: i=1; AHgh+RrqMnHjA2n1qsSoGWxfTfjLB0nG9r5wHhJK1euaV2yqRMv99r9aSVyD+3H5rOszDLFr3dOZcQRuPW1k@vger.kernel.org
-X-Gm-Message-State: AOJu0YwdQIdba3asVDO+ABjEA8G6P8YiwUEag699o16HgPHYa+3tA2pY
-	uoFTttEmguh7IGKKGYn1gURXZSkTssfCwx5TBR+MEr9v28UAg2E1L+7s
-X-Gm-Gg: AR+sD12dNw21LsezxMJKi4zKRRfcABRWxDLorxKQsXrrQVBlhmN0DNnB0rNIqNgmCZm
-	s+rUFYh7y5aOMiLa6VQ+An9+HHmktv1nr7lLnFjMqgEumlenWu93AUusNQuZT6mIBnJN+tFmjCO
-	W3NLOYOY4bJr/D2XwFVpR9WYDOzVazYOpHRGOo5doz1iWVg7pFj+DSzCi1mr2echUCtOuTsem5o
-	R+BDh+21hDTlifvgoDmR4ryW0AL9FnP3WraGMGV4VFSKhYOH6rUsVIj9Rh2C7NiKGIFpSkSsbQC
-	9pUGJxu0ZgftBte8OjfF8F7/oU7xVh5WL8sADiY+u7IxNht7K9YPC3rmqQRu5Nfz2n4n9RyLS5v
-	85G0ehXtyLggWn0qb8j4HGyyl+2oe55d4/zMpRXZ/vpG5jhQbo/VQmsbZTHzd4zuDCX8lSc3NOV
-	H3Rx1+NQ+X0gnHoWomtfznbpTb6HWIcVZxrSuupy4SggBM9Bvc
-X-Received: by 2002:a05:6a00:4482:b0:848:47d3:47ec with SMTP id d2e1a72fcca58-84e2b8ab6d2mr4797080b3a.31.1784828216068;
-        Thu, 23 Jul 2026 10:36:56 -0700 (PDT)
-Received: from [192.168.0.160] (c-98-225-44-182.hsd1.wa.comcast.net. [98.225.44.182])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-84e20622dedsm2691612b3a.11.2026.07.23.10.36.54
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 23 Jul 2026 10:36:55 -0700 (PDT)
-From: Stanislav Kinsburskii <skinsburskii@gmail.com>
-Date: Thu, 23 Jul 2026 10:36:39 -0700
-Subject: [PATCH v11 7/8] accel/amdxdna: Use
- hmm_range_fault_unlocked_timeout() for range population
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="XkPqWbZ4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C23F31F000E9;
+	Thu, 23 Jul 2026 17:50:47 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1784829047;
+	bh=B+PqI29zSq149CkgteSgqs454iSy2RBnFhlJenHlt50=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc;
+	b=XkPqWbZ4KS2RpSbrn9WUl77D8MKR7MiCE0ay49yIJmx98p9saWbSzcBroPDAEo4qv
+	 pNl2TmrSbS4aS+mJ9XbTvedZwo7f3ZsJg7zAuLfQHVWWm2J2QB318rUkyOhPcQS9if
+	 ZhihgBGH0yp4HnE239dI6JMyzouSaJF7oh2Cbme7qnfey1ePXORxYOCLxbDFd5p2l8
+	 f+gnP+ZEWs/Ls/9pXzKWq4dwta16N2+j33tP3lhwrtlDN5RXyldzatJp9iTjUx4pzY
+	 lDVHZW3fuxlhlPuVC74WTm0GcSnHn1BDRQa6E4H9rCRAL1z0PX8yeNAeaAiq0MZGdl
+	 eUvKIRa8mhUtA==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id D095D39244D2;
+	Thu, 23 Jul 2026 17:50:08 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20260723-hmm-v10-v11-7-c55b003a4b61@gmail.com>
-References: <20260723-hmm-v10-v11-0-c55b003a4b61@gmail.com>
-In-Reply-To: <20260723-hmm-v10-v11-0-c55b003a4b61@gmail.com>
-To: Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>, 
- Andrew Morton <akpm@linux-foundation.org>, 
- David Hildenbrand <david@kernel.org>, Lorenzo Stoakes <ljs@kernel.org>, 
- "Liam R. Howlett" <liam@infradead.org>, Vlastimil Babka <vbabka@kernel.org>, 
- Mike Rapoport <rppt@kernel.org>, Suren Baghdasaryan <surenb@google.com>, 
- Michal Hocko <mhocko@suse.com>, Jonathan Corbet <corbet@lwn.net>, 
- Shuah Khan <skhan@linuxfoundation.org>, Shuah Khan <shuah@kernel.org>, 
- "K. Y. Srinivasan" <kys@microsoft.com>, 
- Haiyang Zhang <haiyangz@microsoft.com>, Wei Liu <wei.liu@kernel.org>, 
- Dexuan Cui <decui@microsoft.com>, Long Li <longli@microsoft.com>, 
- Lyude Paul <lyude@redhat.com>, Danilo Krummrich <dakr@kernel.org>, 
- Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, 
- Maxime Ripard <mripard@kernel.org>, Thomas Zimmermann <tzimmermann@suse.de>, 
- David Airlie <airlied@gmail.com>, Simona Vetter <simona@ffwll.ch>, 
- Min Ma <mamin506@gmail.com>, Lizhi Hou <lizhi.hou@amd.com>, 
- Oded Gabbay <ogabbay@kernel.org>, skinsburskii@gmail.com
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, 
- linux-doc@vger.kernel.org, linux-kselftest@vger.kernel.org, 
- linux-hyperv@vger.kernel.org, dri-devel@lists.freedesktop.org, 
- nouveau@lists.freedesktop.org, linux-rdma@vger.kernel.org, 
- Jason Gunthorpe <jgg@ziepe.ca>
-X-Mailer: b4 0.13.0
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1784828202; l=2650;
- i=skinsburskii@gmail.com; s=20260722; h=from:subject:message-id;
- bh=Js9Z5fScNTLs9yZDEPq5MMQDWBFdccrrYdkvKMfBR0c=;
- b=UoKX2QEi16TQG/XSPiXepu/KONklG+8l1kn86LgWhqxQQe32BnNrpIu04JJYOeap8yhmhRNnI
- Xgchah8NIfnDwgLdxf/plAUECr/N2GDtTgg00z0Czhp7vw9hyXoBoqQ
-X-Developer-Key: i=skinsburskii@gmail.com; a=ed25519;
- pk=bDpriHBYgeTdkIDweZDCemxsU93neJBOCn3YLIuJpnE=
+Content-Transfer-Encoding: 8bit
+Subject: Re: [pull-request] mlx5-next updates 2026-07-22
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <178482900740.2806151.11446295939552946394.git-patchwork-notify@kernel.org>
+Date: Thu, 23 Jul 2026 17:50:07 +0000
+References: <20260722071030.1693021-1-tariqt@nvidia.com>
+In-Reply-To: <20260722071030.1693021-1-tariqt@nvidia.com>
+To: Tariq Toukan <tariqt@nvidia.com>
+Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@google.com,
+ kuba@kernel.org, netdev@vger.kernel.org, pabeni@redhat.com, leon@kernel.org,
+ linux-rdma@vger.kernel.org, mbloch@nvidia.com, saeedm@nvidia.com,
+ alazar@nvidia.com, valex@nvidia.com, cratiu@nvidia.com, dtatulea@nvidia.com,
+ feliu@nvidia.com, kees@kernel.org, linux-kernel@vger.kernel.org,
+ parav@nvidia.com, shayd@nvidia.com, horms@kernel.org, kliteyn@nvidia.com
 
-aie2_populate_range() takes mmap_read_lock() only around hmm_range_fault().
-It also open-codes the mmu interval sequence setup before each HMM walk and
-retries -EBUSY until HMM_RANGE_DEFAULT_TIMEOUT expires.
+Hello:
 
-Use hmm_range_fault_unlocked_timeout() instead. The HMM helper now owns
-the mmap lock and refreshes mapp->range.notifier_seq for its internal
-retries, so the driver only needs to call the helper and then validate the
-sequence before marking the mapping populated.
+This pull request was applied to netdev/net-next.git (main)
+by Jakub Kicinski <kuba@kernel.org>:
 
-Pass HMM_RANGE_DEFAULT_TIMEOUT as the helper retry budget for each HMM
-population attempt. This scopes the timeout to repeated HMM notifier
-retries while preserving the existing outer loop that moves between invalid
-mappings and restarts when the interval is invalidated before the driver
-updates its mapping state.
+On Wed, 22 Jul 2026 10:10:30 +0300 you wrote:
+> Hi,
+> 
+> The following pull-request contains common mlx5 updates
+> for your *net-next* tree.
+> Please pull and let me know of any problem.
+> 
+> Regards,
+> Tariq
+> 
+> [...]
 
-Keep returning -ETIME when the HMM retry budget expires, matching the
-driver's existing timeout error convention.
+Here is the summary with links:
+  - [pull-request] mlx5-next updates 2026-07-22
+    https://git.kernel.org/netdev/net-next/c/1324135c4167
 
-Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
-Signed-off-by: Stanislav Kinsburskii <skinsburskii@gmail.com>
----
- drivers/accel/amdxdna/aie2_ctx.c | 23 ++++-------------------
- 1 file changed, 4 insertions(+), 19 deletions(-)
-
-diff --git a/drivers/accel/amdxdna/aie2_ctx.c b/drivers/accel/amdxdna/aie2_ctx.c
-index 54486960cbf5..b5b4ca263002 100644
---- a/drivers/accel/amdxdna/aie2_ctx.c
-+++ b/drivers/accel/amdxdna/aie2_ctx.c
-@@ -1034,7 +1034,7 @@ static int aie2_populate_range(struct amdxdna_gem_obj *abo)
- 	bool found;
- 	int ret;
- 
--	timeout = jiffies + msecs_to_jiffies(HMM_RANGE_DEFAULT_TIMEOUT);
-+	timeout = msecs_to_jiffies(HMM_RANGE_DEFAULT_TIMEOUT);
- again:
- 	found = false;
- 	down_write(&xdna->notifier_lock);
-@@ -1061,24 +1061,9 @@ static int aie2_populate_range(struct amdxdna_gem_obj *abo)
- 		return -EFAULT;
- 	}
- 
--	mapp->range.notifier_seq = mmu_interval_read_begin(&mapp->notifier);
--	mmap_read_lock(mm);
--	ret = hmm_range_fault(&mapp->range);
--	mmap_read_unlock(mm);
--	if (ret) {
--		if (time_after(jiffies, timeout)) {
--			ret = -ETIME;
--			goto put_mm;
--		}
--
--		if (ret == -EBUSY) {
--			amdxdna_umap_put(mapp);
--			mmput(mm);
--			goto again;
--		}
--
-+	ret = hmm_range_fault_unlocked_timeout(&mapp->range, timeout);
-+	if (ret)
- 		goto put_mm;
--	}
- 
- 	down_write(&xdna->notifier_lock);
- 	if (mmu_interval_read_retry(&mapp->notifier, mapp->range.notifier_seq)) {
-@@ -1096,7 +1081,7 @@ static int aie2_populate_range(struct amdxdna_gem_obj *abo)
- put_mm:
- 	amdxdna_umap_put(mapp);
- 	mmput(mm);
--	return ret;
-+	return ret == -EBUSY ? -ETIME : ret;
- }
- 
- int aie2_cmd_submit(struct amdxdna_hwctx *hwctx, struct amdxdna_sched_job *job, u64 *seq)
-
+You are awesome, thank you!
 -- 
-2.43.0
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
 
