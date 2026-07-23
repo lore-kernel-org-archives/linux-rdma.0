@@ -1,68 +1,68 @@
-Received: from mail-pf1-f182.google.com (mail-pf1-f182.google.com [209.85.210.182])
+Received: from mail-pf1-f181.google.com (mail-pf1-f181.google.com [209.85.210.181])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 719A947ACFF
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6CEC53081A2
 	for <linux-rdma@vger.kernel.org>; Thu, 23 Jul 2026 17:37:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.182
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.181
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784828226; cv=none; b=E249DxyeAOhY/WskHe75ZsT9MBCcdXO3XDqiKJgZB6QUz2sh4zJZV2VvZ5kYgu8KQ4Y27Oyfe7h1S+oUCEQ5u6BXz+KnW5AAy3MjW4nhyd19sizUHBxOQbC8EX6Iu4voAhc8yJmN+/co+mLwqTawOAm3ThURSp6Z27YtBdVdXX8=
+	t=1784828228; cv=none; b=AIe3uSUfS4lVkB3LTOEdlStKlrz66yyF7DeZI3K1jJfs4AQb0bN/2Yo6HzYJtD3ktBhCxQ2hBfBEom+Yapr5a8gGqRZm9yfaW4Q/+4rvQlcqMmceGYu9kk2Q9vROAkkx90KoFM5SfaCoou7pbCZfjrYI7PZd5JqY8k2oH5BaoS0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784828226; c=relaxed/simple;
-	bh=OHRNaT5JjbQYbg0HfVsh/goi/Wp2JeVv837tKjXheiU=;
+	s=arc-20240116; t=1784828228; c=relaxed/simple;
+	bh=Js9Z5fScNTLs9yZDEPq5MMQDWBFdccrrYdkvKMfBR0c=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=FrETS7H8dmF31lo8yej3qHZ2HlFo7F+n1W3jyo5eZmf96QW/zf2TvsOLARoXnpq/oOtKaO8F9UIGrqbFpSGLjfGhmYXsvZbanB+eY7+woTxxKClGgMyTs2MnDXfumwn3bBQiiaEYKJD8S6hbXMZi9t4SPIamc6Ar24v5cLMjnFI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=WSXNC98m; arc=none smtp.client-ip=209.85.210.182
+	 In-Reply-To:To:Cc; b=GhN7ssCQDVKS/hWrBFeicepliNXNvAN0GX6qmlKi6Cqvluvi8d559rOHNFXd0f1p/gK6ZYt5GTkoZ7RgjK8Cc/v42flimGlOAfCiZuiqMH+8NaK4ZYlh8krjcPa2uxUuYl2LEOchpM34cRqWH6A6Q1F8tgU1sRNZ86B8pmX8220=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=BKL6hJTS; arc=none smtp.client-ip=209.85.210.181
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="WSXNC98m"
-Received: by mail-pf1-f182.google.com with SMTP id d2e1a72fcca58-84a4d8fd6ecso981477b3a.1
-        for <linux-rdma@vger.kernel.org>; Thu, 23 Jul 2026 10:36:59 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="BKL6hJTS"
+Received: by mail-pf1-f181.google.com with SMTP id d2e1a72fcca58-84e3007a2b7so771237b3a.0
+        for <linux-rdma@vger.kernel.org>; Thu, 23 Jul 2026 10:37:00 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1784828218; x=1785433018; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1784828216; x=1785433016; darn=vger.kernel.org;
         h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
          :content-type:mime-version:subject:date:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=i8Qd33SMLkRtmqANiDW8AEhl0t9s2Dut7/75bk+4IdQ=;
-        b=WSXNC98mn9E0uZv6c2hSBxaJ5THbotrgF8Z9RkvDYuq4Q4evsHpW4g3mqJYQWggIpf
-         zt0Gp0677ef4lE+UEuWL6cq09YFhfDkld1spJvjM/x2tEbA5n+/fYqZSj6/fh9IXcCTu
-         ixmXyltpDNi/NOEf9arwP00oJMN8zMDDDnQRimdOkX2p4kTQDi8PjYqwaCtc9DgMkCxx
-         c64FSyVvbcVHAJtVXLCEExjtElC0ViZjOER1MjCb/lF7xwMYJ8wnYTOeuoqaDZ/Lyq/E
-         BIdjNu3rl7Vd3ly213tz3cfTC31gvKlDq9z/0YF6dMEzjdJYXBn35fUWfRiuLEwR4v92
-         Xr2A==
+        bh=/3EHZQlaXq9sLmhVgtuP5ODA2wxc36yvs54yemcncOc=;
+        b=BKL6hJTSZk19OoDFcA63/ZRoV0prsj8yCa4ogkU90ZAlAakTfXuIGGS/iowNK20Shm
+         48LLdV1VLcRWB+urPSsdyN0SvDg3d5TRjBBZ91VHO9dGcLM7NP5U5NMulOAal5hJ07Q4
+         J1ds7S3tCtGMQ0nJS4JKg2CXAmTMXTAXD90ceLfgLW81TiwyrV1T0V6qmP7F3+23sGKK
+         ystiPsEBmqOhU53eERSPQWhWZYpis1kHPTqaTAM2/8tKMKtDgkNi4GGJGu6EhArOMTt9
+         X2otbFigngyTor75rMG2t8eHnCm9TQHuyZEGyW2NqF+eQpSl9GlrB927etwZYxmjpij1
+         XyUQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1784828218; x=1785433018;
+        d=1e100.net; s=20251104; t=1784828216; x=1785433016;
         h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
          :content-type:mime-version:subject:date:from:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=i8Qd33SMLkRtmqANiDW8AEhl0t9s2Dut7/75bk+4IdQ=;
-        b=FhKp+6WFG3pTALtOurzExAiJ5HVtKpslMi8Ewwjhp3zPvZ4yystiPVS6Y1BD0bJErp
-         tEH3GuVbWIc/pECtG4fHyRnB5uMTCCGJoSMlVGddUL/LJ5KX1QEzt1BzVX5oWdFxSs4P
-         kFfIun49aKY4MT7KNppdweeOu9xh+RmH4oOscrabrUr/Nf6doVLyyGLxRPzlM/dKBn/B
-         v0mB6omApP/xM0C+c6QyJxqNrqNhHUcAI0UvNYvsOds7K/W330egl3QO0jF6u0rfpn7Y
-         fUfJm9abXLTnkx4+qtR9CyVnLlFG8Q7rf0ZK+p5zaXPa5TQL59K4MYACe/A+m3aD7IzC
-         82Ng==
-X-Forwarded-Encrypted: i=1; AHgh+Rqw18quj4E8UNgk0Zeb9R8BO+2p61Ei5aNKL7jFCFQaEZEJZAqeT3JRnF2Zoyn6g2cdHycQ0krTm+SE@vger.kernel.org
-X-Gm-Message-State: AOJu0YySyt+OZOBsSy0NPIfMIFhdoXy/0kieHDNHwK0n5QMs+7eeFm7f
-	iHGT2UTk3fKIi8LleB92OP34CmbYiLdh2Cbk9ogR0iRj2WS5dCbIc34S
-X-Gm-Gg: AR+sD112GqWibSIJBsA0QAOpoSbRakYnXHgfrUUFGlcRC/t9T8w2pW5yWV8CKv2HKvm
-	70QWu8oqzyS97DCYXSkUMt/Tb8eaEZ2nnnXvPQXWfe5HjXw1rgqlW8OpEKPlv3fm1wuQEdE1lk1
-	K5q7abcUuJQxa7RDCf9dsWGBRm/KsWrnM2jlxfzRr/FVcrzQc46BcYshm9ESPDQAHztCUEdEUIP
-	AkyksItM4E+0LA+b/SFIy/SNTEU3lHp6fYgb6fUigsxEc81D1jOwi7bLGAA34bBrom8FICpPVF5
-	fZPV2OpLF3JaxUusLXuJENPkTD6pqtrir1UibWHbHwd9MECtozjX1icK5TPnoFfhcBkQY5gl1AV
-	sa1Cs2MK7IE80CNqdCBPEFIj4T0E8BdQ4EVvoB68CiJf004ctDUUIvKqJnVRoSDlHeGPOzMiqHq
-	5KNT8J+Srju4KgGjWy40uzdxMaVC80ofejv8CBkv5+YLIm8Ga6
-X-Received: by 2002:a05:6a00:cd3:b0:848:88e6:95d3 with SMTP id d2e1a72fcca58-84e2bc4d259mr4728321b3a.72.1784828217972;
-        Thu, 23 Jul 2026 10:36:57 -0700 (PDT)
+        bh=/3EHZQlaXq9sLmhVgtuP5ODA2wxc36yvs54yemcncOc=;
+        b=XMR9YHt8X0B9H/Y0oCLG+HmJRzW0nRVK+H6dTmejLwKmzWqFg5U1UZ18rKqrhFJsaZ
+         sJwyjDW8veKyBSGGyecHTO4SvzlJs95PudMNmgq2BUH797Ev8S+pmvrGVX/Zkr2D9bE9
+         iprFc7TdIznYC61JZEbVDmeoxo4LFDQp/3xEroOfjw/SxQqafGCseC/z+kV9I0nO0e+v
+         pkzphPvNY5dhHuCJrpzqZddYbtC4ZwRN+hdZA96N/ZRMuV3koIp4cpRBdtN3FpXnGiBX
+         7WLsouiTTb3oDfMblY23F1NbG7oV2OPD7k1sjyD+4cn56WAUahnBsr521IrNv5lBlRy9
+         QYrw==
+X-Forwarded-Encrypted: i=1; AHgh+RrqMnHjA2n1qsSoGWxfTfjLB0nG9r5wHhJK1euaV2yqRMv99r9aSVyD+3H5rOszDLFr3dOZcQRuPW1k@vger.kernel.org
+X-Gm-Message-State: AOJu0YwdQIdba3asVDO+ABjEA8G6P8YiwUEag699o16HgPHYa+3tA2pY
+	uoFTttEmguh7IGKKGYn1gURXZSkTssfCwx5TBR+MEr9v28UAg2E1L+7s
+X-Gm-Gg: AR+sD12dNw21LsezxMJKi4zKRRfcABRWxDLorxKQsXrrQVBlhmN0DNnB0rNIqNgmCZm
+	s+rUFYh7y5aOMiLa6VQ+An9+HHmktv1nr7lLnFjMqgEumlenWu93AUusNQuZT6mIBnJN+tFmjCO
+	W3NLOYOY4bJr/D2XwFVpR9WYDOzVazYOpHRGOo5doz1iWVg7pFj+DSzCi1mr2echUCtOuTsem5o
+	R+BDh+21hDTlifvgoDmR4ryW0AL9FnP3WraGMGV4VFSKhYOH6rUsVIj9Rh2C7NiKGIFpSkSsbQC
+	9pUGJxu0ZgftBte8OjfF8F7/oU7xVh5WL8sADiY+u7IxNht7K9YPC3rmqQRu5Nfz2n4n9RyLS5v
+	85G0ehXtyLggWn0qb8j4HGyyl+2oe55d4/zMpRXZ/vpG5jhQbo/VQmsbZTHzd4zuDCX8lSc3NOV
+	H3Rx1+NQ+X0gnHoWomtfznbpTb6HWIcVZxrSuupy4SggBM9Bvc
+X-Received: by 2002:a05:6a00:4482:b0:848:47d3:47ec with SMTP id d2e1a72fcca58-84e2b8ab6d2mr4797080b3a.31.1784828216068;
+        Thu, 23 Jul 2026 10:36:56 -0700 (PDT)
 Received: from [192.168.0.160] (c-98-225-44-182.hsd1.wa.comcast.net. [98.225.44.182])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-84e20622dedsm2691612b3a.11.2026.07.23.10.36.56
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-84e20622dedsm2691612b3a.11.2026.07.23.10.36.54
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 23 Jul 2026 10:36:57 -0700 (PDT)
+        Thu, 23 Jul 2026 10:36:55 -0700 (PDT)
 From: Stanislav Kinsburskii <skinsburskii@gmail.com>
-Date: Thu, 23 Jul 2026 10:36:40 -0700
-Subject: [PATCH v11 8/8] drm/gpusvm: Use hmm_range_fault_unlocked_timeout()
- for range faults
+Date: Thu, 23 Jul 2026 10:36:39 -0700
+Subject: [PATCH v11 7/8] accel/amdxdna: Use
+ hmm_range_fault_unlocked_timeout() for range population
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -71,7 +71,7 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20260723-hmm-v10-v11-8-c55b003a4b61@gmail.com>
+Message-Id: <20260723-hmm-v10-v11-7-c55b003a4b61@gmail.com>
 References: <20260723-hmm-v10-v11-0-c55b003a4b61@gmail.com>
 In-Reply-To: <20260723-hmm-v10-v11-0-c55b003a4b61@gmail.com>
 To: Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>, 
@@ -96,157 +96,87 @@ Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org,
  nouveau@lists.freedesktop.org, linux-rdma@vger.kernel.org, 
  Jason Gunthorpe <jgg@ziepe.ca>
 X-Mailer: b4 0.13.0
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1784828202; l=4921;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1784828202; l=2650;
  i=skinsburskii@gmail.com; s=20260722; h=from:subject:message-id;
- bh=OHRNaT5JjbQYbg0HfVsh/goi/Wp2JeVv837tKjXheiU=;
- b=3mS7hpEm1cC4EjlfjSHzs08itt/haPD5UmH5YZzhkX5wXqdTOzSMnls0rW++T0vSS8hxNEDOH
- H/0vN9YPqS8C3NJp8Qfk40j/53Cv5CNaQqrwQS1NX9qK2UYGBofyGE6
+ bh=Js9Z5fScNTLs9yZDEPq5MMQDWBFdccrrYdkvKMfBR0c=;
+ b=UoKX2QEi16TQG/XSPiXepu/KONklG+8l1kn86LgWhqxQQe32BnNrpIu04JJYOeap8yhmhRNnI
+ Xgchah8NIfnDwgLdxf/plAUECr/N2GDtTgg00z0Czhp7vw9hyXoBoqQ
 X-Developer-Key: i=skinsburskii@gmail.com; a=ed25519;
  pk=bDpriHBYgeTdkIDweZDCemxsU93neJBOCn3YLIuJpnE=
 
-Several GPU SVM paths take mmap_read_lock() only to call hmm_range_fault()
-and open-code mmu interval sequence setup before each HMM walk. They also
-retry -EBUSY until HMM_RANGE_DEFAULT_TIMEOUT expires.
+aie2_populate_range() takes mmap_read_lock() only around hmm_range_fault().
+It also open-codes the mmu interval sequence setup before each HMM walk and
+retries -EBUSY until HMM_RANGE_DEFAULT_TIMEOUT expires.
 
-Use hmm_range_fault_unlocked_timeout() for those faults. The HMM helper now
-owns mmap_lock acquisition and refreshes range->notifier_seq for its
-internal retries, while GPU SVM keeps its existing driver-lock validation
-with mmu_interval_read_retry() after a successful fault.
+Use hmm_range_fault_unlocked_timeout() instead. The HMM helper now owns
+the mmap lock and refreshes mapp->range.notifier_seq for its internal
+retries, so the driver only needs to call the helper and then validate the
+sequence before marking the mapping populated.
 
-drm_gpusvm_scan_mm() and drm_gpusvm_range_evict() pass
-HMM_RANGE_DEFAULT_TIMEOUT as the helper retry budget for each HMM fault
-attempt. drm_gpusvm_get_pages() keeps its existing absolute outer deadline
-because it can be reached from GPU page-fault workers, where fatal signals
-from the faulting process cannot stop an endless invalidation retry loop.
-It passes the remaining time from that deadline to HMM for each fault
-attempt.
+Pass HMM_RANGE_DEFAULT_TIMEOUT as the helper retry budget for each HMM
+population attempt. This scopes the timeout to repeated HMM notifier
+retries while preserving the existing outer loop that moves between invalid
+mappings and restarts when the interval is invalidated before the driver
+updates its mapping state.
 
-Leave drm_gpusvm_check_pages() on hmm_range_fault() because that path is
-called with the mmap lock already held by its caller.
+Keep returning -ETIME when the HMM retry budget expires, matching the
+driver's existing timeout error convention.
 
 Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
 Signed-off-by: Stanislav Kinsburskii <skinsburskii@gmail.com>
 ---
- drivers/gpu/drm/drm_gpusvm.c | 60 ++++++++------------------------------------
- 1 file changed, 10 insertions(+), 50 deletions(-)
+ drivers/accel/amdxdna/aie2_ctx.c | 23 ++++-------------------
+ 1 file changed, 4 insertions(+), 19 deletions(-)
 
-diff --git a/drivers/gpu/drm/drm_gpusvm.c b/drivers/gpu/drm/drm_gpusvm.c
-index 958cb605aedd..e912e994beb2 100644
---- a/drivers/gpu/drm/drm_gpusvm.c
-+++ b/drivers/gpu/drm/drm_gpusvm.c
-@@ -773,8 +773,7 @@ enum drm_gpusvm_scan_result drm_gpusvm_scan_mm(struct drm_gpusvm_range *range,
- 		.end = end,
- 		.dev_private_owner = dev_private_owner,
- 	};
--	unsigned long timeout =
--		jiffies + msecs_to_jiffies(HMM_RANGE_DEFAULT_TIMEOUT);
-+	unsigned long timeout = msecs_to_jiffies(HMM_RANGE_DEFAULT_TIMEOUT);
- 	enum drm_gpusvm_scan_result state = DRM_GPUSVM_SCAN_UNPOPULATED, new_state;
- 	unsigned long *pfns;
- 	unsigned long npages = npages_in_range(start, end);
-@@ -788,22 +787,7 @@ enum drm_gpusvm_scan_result drm_gpusvm_scan_mm(struct drm_gpusvm_range *range,
- 	hmm_range.hmm_pfns = pfns;
+diff --git a/drivers/accel/amdxdna/aie2_ctx.c b/drivers/accel/amdxdna/aie2_ctx.c
+index 54486960cbf5..b5b4ca263002 100644
+--- a/drivers/accel/amdxdna/aie2_ctx.c
++++ b/drivers/accel/amdxdna/aie2_ctx.c
+@@ -1034,7 +1034,7 @@ static int aie2_populate_range(struct amdxdna_gem_obj *abo)
+ 	bool found;
+ 	int ret;
  
- retry:
--	hmm_range.notifier_seq = mmu_interval_read_begin(notifier);
--	mmap_read_lock(range->gpusvm->mm);
--
--	while (true) {
--		err = hmm_range_fault(&hmm_range);
--		if (err == -EBUSY) {
--			if (time_after(jiffies, timeout))
--				break;
--
--			hmm_range.notifier_seq =
--				mmu_interval_read_begin(notifier);
--			continue;
--		}
--		break;
--	}
--	mmap_read_unlock(range->gpusvm->mm);
-+	err = hmm_range_fault_unlocked_timeout(&hmm_range, timeout);
- 	if (err)
- 		goto err_free;
- 
-@@ -1408,6 +1392,7 @@ int drm_gpusvm_get_pages(struct drm_gpusvm *gpusvm,
- 	void *zdd;
- 	unsigned long timeout =
- 		jiffies + msecs_to_jiffies(HMM_RANGE_DEFAULT_TIMEOUT);
-+	unsigned long remaining;
- 	unsigned long i, j;
- 	unsigned long npages = npages_in_range(pages_start, pages_end);
- 	unsigned long num_dma_mapped;
-@@ -1422,7 +1407,9 @@ int drm_gpusvm_get_pages(struct drm_gpusvm *gpusvm,
- 	struct dma_iova_state *state = &svm_pages->state;
- 
- retry:
--	if (time_after(jiffies, timeout))
-+	remaining = timeout - jiffies;
-+
-+	if (time_after_eq(jiffies, timeout))
- 		return -EBUSY;
- 
- 	hmm_range.notifier_seq = mmu_interval_read_begin(notifier);
-@@ -1439,21 +1426,7 @@ int drm_gpusvm_get_pages(struct drm_gpusvm *gpusvm,
+-	timeout = jiffies + msecs_to_jiffies(HMM_RANGE_DEFAULT_TIMEOUT);
++	timeout = msecs_to_jiffies(HMM_RANGE_DEFAULT_TIMEOUT);
+ again:
+ 	found = false;
+ 	down_write(&xdna->notifier_lock);
+@@ -1061,24 +1061,9 @@ static int aie2_populate_range(struct amdxdna_gem_obj *abo)
+ 		return -EFAULT;
  	}
  
- 	hmm_range.hmm_pfns = pfns;
--	while (true) {
--		mmap_read_lock(mm);
--		err = hmm_range_fault(&hmm_range);
--		mmap_read_unlock(mm);
--
--		if (err == -EBUSY) {
--			if (time_after(jiffies, timeout))
--				break;
--
--			hmm_range.notifier_seq =
--				mmu_interval_read_begin(notifier);
--			continue;
--		}
--		break;
--	}
-+	err = hmm_range_fault_unlocked_timeout(&hmm_range, remaining);
- 	mmput(mm);
- 	if (err)
- 		goto err_free;
-@@ -1720,8 +1693,7 @@ int drm_gpusvm_range_evict(struct drm_gpusvm *gpusvm,
- 		.end = drm_gpusvm_range_end(range),
- 		.dev_private_owner = NULL,
- 	};
--	unsigned long timeout =
--		jiffies + msecs_to_jiffies(HMM_RANGE_DEFAULT_TIMEOUT);
-+	unsigned long timeout = msecs_to_jiffies(HMM_RANGE_DEFAULT_TIMEOUT);
- 	unsigned long *pfns;
- 	unsigned long npages = npages_in_range(drm_gpusvm_range_start(range),
- 					       drm_gpusvm_range_end(range));
-@@ -1736,24 +1708,12 @@ int drm_gpusvm_range_evict(struct drm_gpusvm *gpusvm,
- 		return -ENOMEM;
- 
- 	hmm_range.hmm_pfns = pfns;
--	while (!time_after(jiffies, timeout)) {
--		hmm_range.notifier_seq = mmu_interval_read_begin(notifier);
+-	mapp->range.notifier_seq = mmu_interval_read_begin(&mapp->notifier);
+-	mmap_read_lock(mm);
+-	ret = hmm_range_fault(&mapp->range);
+-	mmap_read_unlock(mm);
+-	if (ret) {
 -		if (time_after(jiffies, timeout)) {
--			err = -ETIME;
--			break;
+-			ret = -ETIME;
+-			goto put_mm;
 -		}
 -
--		mmap_read_lock(mm);
--		err = hmm_range_fault(&hmm_range);
--		mmap_read_unlock(mm);
--		if (err != -EBUSY)
--			break;
+-		if (ret == -EBUSY) {
+-			amdxdna_umap_put(mapp);
+-			mmput(mm);
+-			goto again;
+-		}
+-
++	ret = hmm_range_fault_unlocked_timeout(&mapp->range, timeout);
++	if (ret)
+ 		goto put_mm;
 -	}
-+	err = hmm_range_fault_unlocked_timeout(&hmm_range, timeout);
  
- 	kvfree(pfns);
+ 	down_write(&xdna->notifier_lock);
+ 	if (mmu_interval_read_retry(&mapp->notifier, mapp->range.notifier_seq)) {
+@@ -1096,7 +1081,7 @@ static int aie2_populate_range(struct amdxdna_gem_obj *abo)
+ put_mm:
+ 	amdxdna_umap_put(mapp);
  	mmput(mm);
- 
--	return err;
-+	return err == -EBUSY ? -ETIME : err;
+-	return ret;
++	return ret == -EBUSY ? -ETIME : ret;
  }
- EXPORT_SYMBOL_GPL(drm_gpusvm_range_evict);
  
+ int aie2_cmd_submit(struct amdxdna_hwctx *hwctx, struct amdxdna_sched_job *job, u64 *seq)
 
 -- 
 2.43.0
