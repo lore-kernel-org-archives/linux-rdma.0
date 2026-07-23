@@ -1,143 +1,159 @@
-Received: from out30-110.freemail.mail.aliyun.com (out30-110.freemail.mail.aliyun.com [115.124.30.110])
+Received: from PH8PR06CU001.outbound.protection.outlook.com (mail-westus3azon11012016.outbound.protection.outlook.com [40.107.209.16])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 08A2837DEA1;
-	Thu, 23 Jul 2026 08:08:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.110
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784794116; cv=none; b=ltiXrheHehhllKpEWTZDuLrZPn6saNPLETDHMtrOroG12GYDtk6msojhaL7EPArQzf4kCRL5NqMtdIznMCaiBeMpxzUESaxWyXsG7HT9VTEUej3Wh8cm74LBjJLVYn0Am8+GVyEvj2X0sxtR+YKygchYNIFxLMmRgB6siwlUhk8=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784794116; c=relaxed/simple;
-	bh=7ZpjJ0AR8m8jk75wu9pqVc+aMfXRVbAF6HeBmks4bJM=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=fVihDfgnPlUinPEbYPt6/VnMhF0Crf2FDdR+htWQ65iZt2/qsnmJx6Of4F4rMxhi8w6Rhlrvi6W+crJvvoooSRLtKvhUMkSxYdfK5Z8mHtxhi+0/4fufUvHRghaXjkwJS7ezlsCtUt3lF1uCGW/VV6JCvHblUD/v75YK0FLWaOk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=jLg8kQnj; arc=none smtp.client-ip=115.124.30.110
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 470FB318BB8;
+	Thu, 23 Jul 2026 08:18:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.209.16
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1784794700; cv=fail; b=cUh0GBGgNg8NB/rUilSF5iuodct4HFQiotrHqrpnyotQni4HPEkC3yALm2Bv0/gHX4fhQwY2lCJkGMcd3E4Biq9VKw7a5J+x9T8LU9fbstm6smMbKkw5UiD5Sfcf3UGUckuLg8+1tO4px9hHkYqAiiZuGeERZsZnnxAFGlGUMKc=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1784794700; c=relaxed/simple;
+	bh=AX6KUp0iUhlrixyHWzKxnm1EOWFwgUD3yZ9xdeP8sRo=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=lCjAUTWsexN+vcIYjN/mzC5llWTSDPB7yZpoRfm8nf8hrPLjB+UdJi1fWwGNCyAfrdDWI1D5qiouxhiWYOTuZ7Fo/upjfpJeEm0oE3R1I3t3tAI2INZAIgFg8+6SevwlfARHrR5gwNmZgAngyZSuM7IGYxu58T9aekiEZ5bCzGY=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=bHLtr6En; arc=fail smtp.client-ip=40.107.209.16
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="jLg8kQnj"
-DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux.alibaba.com; s=default;
-	t=1784794110; h=Message-ID:Date:MIME-Version:Subject:To:From:Content-Type;
-	bh=nurY72WLtbiBuXLzZL1ENKlyc5yQo+wcEK0q+X5MDoU=;
-	b=jLg8kQnjN8Gnz5VBMr8Uwkr8S9Dcvsz6cD0Nl33xPAAL86HI4BVucBXWkjNXhGVZ0+QKPccA0K0TKjtY5U0fUtvWSniT0EB0mCGJI6qyJOfKZlcvpKBkvNZkRu/qUHbgmF5Ps3CZl3AoREsyWrhnSiuHR6cxRHZ9eO1UddwgelY=
-X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R101e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam033037033178;MF=chengyou@linux.alibaba.com;NM=1;PH=DS;RN=7;SR=0;TI=SMTPD_---0X7fc6pf_1784794109;
-Received: from 30.221.110.236(mailfrom:chengyou@linux.alibaba.com fp:SMTPD_---0X7fc6pf_1784794109 cluster:ay36)
-          by smtp.aliyun-inc.com;
-          Thu, 23 Jul 2026 16:08:29 +0800
-Message-ID: <4c1bbac8-b010-ce2d-3d96-25623cbdeec1@linux.alibaba.com>
-Date: Thu, 23 Jul 2026 16:08:28 +0800
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="bHLtr6En"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=WALy4n6igiuvL7ZpGik3OEztqgaVLIAJTiIYYZJ7EwAQDIaiKhUfwk0e/zw0ZVvxjBfzkjry6b9KlHsHsAQ2b5pOOfkdgxi33eqp2y4Buu3wMzc7AGcu7MYZDqR7pNcXe4OGEbb/or1TjaGLPJ+19XeRfcGZE/FFnGxh0F81ashXO3bmhm2TJ/YGi91OQH21ey624kw9Tjy4s2qiT3M0jDh7OIP2V9i1f+0khZnf+ZcZrkg+YnFUYJE4RA8BOLaVlkB12xhikyxcNxquJ3vFB0TA6jX42+xeo7AJsPYZ9k4kOslrs+RyvTgqCmnySgSFB2J/+fhQfP8d9fAhZZMAvQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=qVzhnWmFKx+CRHB1j2FHZzzKCwI0MD2/IQiwbZiUp/Y=;
+ b=xJ68bRMMGym81XuyacCrXYKO/ZpLhMUl3ckNYu2yoyCphpPGs5vgz5q9CAzAcYqcJKnU0X82IgjBmI+JAQAgRTySknzif6wDqGsYBNcznaQyPDobR4I5IQ6qMmnBV+8Gh/ihLKqzoyHm4ycKlNh3S32iVPDjvi/xUhklAl7iN8M2FQ++00dt6y5KbSoKbFLCnyxzqg6/4M/hUdV4G5muwl1pnkd6JFbdqSiJLhTwZ1TH29RGRB6tBaruiWZKRbzJHvEAFFn6I3NBB/B/5NmhHZFwtbCzzh4S0xYFsw5gq60eK/vzI1CfQemcpP9i6+bV7faAWJF+aLuA0MiA/sCRnA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 216.228.118.233) smtp.rcpttodomain=lunn.ch smtp.mailfrom=nvidia.com;
+ dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
+ dkim=none (message not signed); arc=none (0)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=qVzhnWmFKx+CRHB1j2FHZzzKCwI0MD2/IQiwbZiUp/Y=;
+ b=bHLtr6EnKMe2u1mh6MMy6FkM6hfgi3hyYEf2jWwbUWIepZXdVfqi/SLhRfsgB81gUscTYuziWqE9X0rBzLv3SNqi14kO/LsgSc7Wq2FA89/tGQ4C/Y16TQmvXpU8FLJybxVbzrX+o2H7Kk49ToWHfh2dN3W8sIv5O+N6sxPxKkDakz1rlGjMaz49GdU3CjfiDA4k1SY7Z8VxOwUszIC8qWevgaN9tGlOX7g8No61G5/gBDRHbJwzbDcB3hoSlounJpx/s/0ejJV1E3gxihJ/a5pA8BypmHxw4JFMdRan7ENh38rOMQ8n9SwFxt1kJ/Ym0uKpF7LOQlJCdgO6jWvReQ==
+Received: from BL1PR13CA0247.namprd13.prod.outlook.com (2603:10b6:208:2ba::12)
+ by DS2PR12MB9568.namprd12.prod.outlook.com (2603:10b6:8:27c::20) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.245.10; Thu, 23 Jul
+ 2026 08:18:14 +0000
+Received: from BL6PEPF00022573.namprd02.prod.outlook.com
+ (2603:10b6:208:2ba:cafe::95) by BL1PR13CA0247.outlook.office365.com
+ (2603:10b6:208:2ba::12) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.21.270.5 via Frontend Transport; Thu, 23
+ Jul 2026 08:18:14 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.118.233)
+ smtp.mailfrom=nvidia.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=nvidia.com;
+Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
+ 216.228.118.233 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.118.233; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.118.233) by
+ BL6PEPF00022573.mail.protection.outlook.com (10.167.249.41) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.21.270.5 via Frontend Transport; Thu, 23 Jul 2026 08:18:14 +0000
+Received: from drhqmail202.nvidia.com (10.126.190.181) by mail.nvidia.com
+ (10.127.129.6) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Thu, 23 Jul
+ 2026 01:18:02 -0700
+Received: from drhqmail203.nvidia.com (10.126.190.182) by
+ drhqmail202.nvidia.com (10.126.190.181) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.20; Thu, 23 Jul 2026 01:18:02 -0700
+Received: from vdi.nvidia.com (10.127.8.10) by mail.nvidia.com
+ (10.126.190.182) with Microsoft SMTP Server id 15.2.2562.20 via Frontend
+ Transport; Thu, 23 Jul 2026 01:17:57 -0700
+From: Tariq Toukan <tariqt@nvidia.com>
+To: Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller"
+	<davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, Jakub Kicinski
+	<kuba@kernel.org>, <netdev@vger.kernel.org>, Paolo Abeni <pabeni@redhat.com>
+CC: Alex Lazar <alazar@nvidia.com>, Carolina Jubran <cjubran@nvidia.com>,
+	Cosmin Ratiu <cratiu@nvidia.com>, Daniel Zahka <daniel.zahka@gmail.com>,
+	Dragos Tatulea <dtatulea@nvidia.com>, Gal Pressman <gal@nvidia.com>, "Jacob
+ Keller" <jacob.e.keller@intel.com>, Leon Romanovsky <leon@kernel.org>,
+	<linux-kernel@vger.kernel.org>, <linux-rdma@vger.kernel.org>, Mark Bloch
+	<mbloch@nvidia.com>, Nathan Chancellor <nathan@kernel.org>, Raed Salem
+	<raeds@nvidia.com>, Rahul Rameshbabu <rrameshbabu@nvidia.com>, Saeed Mahameed
+	<saeedm@nvidia.com>, Simon Horman <horms@kernel.org>, Tariq Toukan
+	<tariqt@nvidia.com>
+Subject: [PATCH net-next] net/mlx5e: Remove _once from PCI heuristic debug print
+Date: Thu, 23 Jul 2026 11:17:43 +0300
+Message-ID: <20260723081743.1868357-1-tariqt@nvidia.com>
+X-Mailer: git-send-email 2.44.0
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:102.0)
- Gecko/20100101 Thunderbird/102.15.1
-Subject: Re: [PATCH rdma-next] RDMA/erdma: complete object teardown when the
- destroy command fails
-Content-Language: en-US
-To: Leon Romanovsky <leon@kernel.org>, Kai Shen <kaishen@linux.alibaba.com>,
- Jason Gunthorpe <jgg@ziepe.ca>, Wei Yongjun <weiyongjun1@huawei.com>,
- Yang Li <yang.lee@linux.alibaba.com>
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <20260722-b4-qp-and-cq-memory-are-leaked-if-the-d-v1-1-97e223dc1c96@nvidia.com>
-From: Cheng Xu <chengyou@linux.alibaba.com>
-In-Reply-To: <20260722-b4-qp-and-cq-memory-are-leaked-if-the-d-v1-1-97e223dc1c96@nvidia.com>
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-NV-OnPremToCloud: ExternallySecured
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: BL6PEPF00022573:EE_|DS2PR12MB9568:EE_
+X-MS-Office365-Filtering-Correlation-Id: 778bba3f-38c6-442a-159b-08dee892f13a
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|1800799024|36860700016|23010399003|7416014|376014|82310400026|10067099003|11063799006|56012099006|18002099003;
+X-Microsoft-Antispam-Message-Info:
+	zdAJSM0PnSHAo72+VatJw2dW6fyqBBAotRfqyr8+N6LcfA4Sa6cE0QIZkjZhvqvISznhmKO5NYnhag8DUK4h8Oj8P07RUSvHdB8zVzgMA57jhVGaXvby8a9M9PPGBUosOvdqjLOVrXGWRsXHxejp0qwTK8uXIMBrtH8F2dJgSBLySFlwb/QScCdPJ6yDwhQq15vsKip8xOzicF6sZDhMnCqHO9IxIV+tulIb09c6uybdEMb8ba+rYbxVS2fzHyjlrVRdID6HCRWmhgoDSUGCJShWDmZFVMTNDVTpFjZmceiXNNM6UrL6d5BvdplHT79/H+Wsy3Xqy4zS+uzCgGYZc61NlXWkKX5Vn5ltd72/RwPVFMEwavibe7TsEjyFgaPWBn3jrvKr8GfIZNfRbr+vFVpOz4O2LEofSV+55lXxuYpRyO5+6arOPg0QtSHIkF/eZy1Q8jinb30AnENBmdIE+mzyb7c8WRh2lhYXacWHvsGCLgDbc6mJcsUP5n9lAuLbWdlXO2pezTwg089TJwUACER8WkcWrCG/BNs4ysGEoZjnmS/7UjQE0D+1S4z+mMca9TG6mjpUOMymmT0Ns6bZh9IjJxfoqOcHAjzNzy0jPGozfo43CStK/KpXTj100LDoT9OmTkEZcai7C2kSeDnpV4yfqU50WNE/0U6eVnUtw69LfSTz6f2EAkPTCn1AvazyFft1Hi1nozAHPhbxAqYuJA==
+X-Forefront-Antispam-Report:
+	CIP:216.228.118.233;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc7edge2.nvidia.com;CAT:NONE;SFS:(13230040)(1800799024)(36860700016)(23010399003)(7416014)(376014)(82310400026)(10067099003)(11063799006)(56012099006)(18002099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	a0DWhSk4o4Xwqsi2U5VC5oawckbvUuyLfJFTzwUC02rgRLaa00BE8yboOxcYgJVqOW522t+Iizpbdc7mrQsEXGQbhf823FcBqpw7MirqfAKvl8meu9XwbgYR0hdJ/ZJH/GzK+vPmGB7DMy0sHrk4OHh4nPLljtpoamQ3MTE9d3F16zlx/ak4OplhgpWgbq9rVEYrzYs2s55Zcdy2l3odC9+YgPoJ02Snhq5H0pN8n1MbVi9zcTLrgBF3n5+Zy1/D1+xEoNPhX1EQBT4qw+O0nrmRw4ZAT29VjMJueiMVx/MLfq6vggZviLANgKWvRvsaWHv5hX6WCaD58tC6HSo9SjC61Qjnfdlyw5JvgNV+qExLTD25XZCkaBp4+FM9QvAbSXxF39ySKcjuYM4olmxwG4YAq6bYhHKTA2lRmuPiRs9fqpqIyFJOgvV3eGIShw8Q
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 23 Jul 2026 08:18:14.1859
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: 778bba3f-38c6-442a-159b-08dee892f13a
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.118.233];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	BL6PEPF00022573.namprd02.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS2PR12MB9568
 
+From: Gal Pressman <gal@nvidia.com>
 
+The _once rate-limiting in slow_pci_heuristic() is unnecessary because
+this function only runs during probe.
 
-On 7/22/26 9:13 PM, Leon Romanovsky wrote:
-> From: Leon Romanovsky <leonro@nvidia.com>
-> 
-> erdma_destroy_qp(), erdma_destroy_cq(), erdma_dereg_mr(), and
-> erdma_destroy_ah() returned early when erdma_post_cmd_wait() failed,
-> leaking the queue buffers, MTTs, doorbells and the STAG, QPN, CQN and AHN
-> identifiers. A command timeout clears ERDMA_CMDQ_STATE_OK_BIT and
-> permanently disables the command queue, so no retry can succeed; the RDMA
-> core keeps the object after a failed destructor and forced uverbs cleanup
-> then nulls the pointers, making the resources unreachable.
-> 
-> Warn on failure but release every software-owned resource and return
-> success, since during terminal destruction the hardware command result is
-> only diagnostic.
-> 
-> Fixes: 155055771704 ("RDMA/erdma: Add verbs implementation")
-> Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
-> ---
->  drivers/infiniband/hw/erdma/erdma_verbs.c | 21 +++++++++++++++++----
->  1 file changed, 17 insertions(+), 4 deletions(-)
-> 
+Worse, it interacts poorly with dynamic debug: if the first probe
+happens before dynamic debug is enabled for this callsite, the _once
+flag is permanently consumed and the message becomes unreachable without
+reloading the module.
+Additionally, only the first probed device values were printable in case
+of multiple devices.
 
-Thanks Leon, this makes sense to me.
+Replace with mlx5_core_dbg() which allows enabling the print via dynamic
+debug at any time and observing it on the next probe.
 
-Acked-by: Cheng Xu <chengyou@linux.alibaba.com>
+Signed-off-by: Gal Pressman <gal@nvidia.com>
+Reviewed-by: Alex Lazar <alazar@nvidia.com>
+Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
+---
+ drivers/net/ethernet/mellanox/mlx5/core/en/params.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Thanks,
-Cheng Xu
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en/params.c b/drivers/net/ethernet/mellanox/mlx5/core/en/params.c
+index 1f4a547917ba..5caf7820a136 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en/params.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en/params.c
+@@ -545,8 +545,8 @@ bool slow_pci_heuristic(struct mlx5_core_dev *mdev)
+ 
+ 	mlx5_port_max_linkspeed(mdev, &link_speed);
+ 	pci_bw = pcie_bandwidth_available(mdev->pdev, NULL, NULL, NULL);
+-	mlx5_core_dbg_once(mdev, "Max link speed = %d, PCI BW = %d\n",
+-			   link_speed, pci_bw);
++	mlx5_core_dbg(mdev, "Max link speed = %d, PCI BW = %d\n", link_speed,
++		      pci_bw);
+ 
+ #define MLX5E_SLOW_PCI_RATIO (2)
+ 
 
-> diff --git a/drivers/infiniband/hw/erdma/erdma_verbs.c b/drivers/infiniband/hw/erdma/erdma_verbs.c
-> index 71e3e8618a61..ab6abbab029e 100644
-> --- a/drivers/infiniband/hw/erdma/erdma_verbs.c
-> +++ b/drivers/infiniband/hw/erdma/erdma_verbs.c
-> @@ -1302,8 +1302,15 @@ int erdma_dereg_mr(struct ib_mr *ibmr, struct ib_udata *udata)
->  
->  	ret = erdma_post_cmd_wait(&dev->cmdq, &req, sizeof(req), NULL, NULL,
->  				  true);
-> +	/*
-> +	 * A timeout disables the command queue, so retry cannot succeed.  Treat
-> +	 * terminal command failures as diagnostic; propagating them can make
-> +	 * forced uverbs cleanup discard the last software resource pointers.
-> +	 */
->  	if (ret)
-> -		return ret;
-> +		ibdev_warn_ratelimited(&dev->ibdev,
-> +				       "failed to deregister MR 0x%x: %d\n",
-> +				       ibmr->lkey, ret);
->  
->  	erdma_free_idx(&dev->res_cb[ERDMA_RES_TYPE_STAG_IDX], ibmr->lkey >> 8);
->  
-> @@ -1329,7 +1336,9 @@ int erdma_destroy_cq(struct ib_cq *ibcq, struct ib_udata *udata)
->  	err = erdma_post_cmd_wait(&dev->cmdq, &req, sizeof(req), NULL, NULL,
->  				  true);
->  	if (err)
-> -		return err;
-> +		ibdev_warn_ratelimited(&dev->ibdev,
-> +				       "failed to destroy CQ %u: %d\n",
-> +				       cq->cqn, err);
->  
->  	if (rdma_is_kernel_res(&cq->ibcq.res)) {
->  		dma_free_coherent(&dev->pdev->dev, cq->depth << CQE_SHIFT,
-> @@ -1377,7 +1386,9 @@ int erdma_destroy_qp(struct ib_qp *ibqp, struct ib_udata *udata)
->  	err = erdma_post_cmd_wait(&dev->cmdq, &req, sizeof(req), NULL, NULL,
->  				  true);
->  	if (err)
-> -		return err;
-> +		ibdev_warn_ratelimited(&dev->ibdev,
-> +				       "failed to destroy QP %u: %d\n",
-> +				       QP_ID(qp), err);
->  
->  	erdma_qp_put(qp);
->  	wait_for_completion(&qp->safe_free);
-> @@ -2279,7 +2290,9 @@ int erdma_destroy_ah(struct ib_ah *ibah, u32 flags)
->  	ret = erdma_post_cmd_wait(&dev->cmdq, &req, sizeof(req), NULL, NULL,
->  				  flags & RDMA_DESTROY_AH_SLEEPABLE);
->  	if (ret)
-> -		return ret;
-> +		ibdev_warn_ratelimited(&dev->ibdev,
-> +				       "failed to destroy AH %u: %d\n",
-> +				       ah->ahn, ret);
->  
->  	erdma_free_idx(&dev->res_cb[ERDMA_RES_TYPE_AH], ah->ahn);
->  
-> 
-> ---
-> base-commit: 0e8e94c15091041ea8910cbfcade5a9c7cfe3f90
-> change-id: 20260722-b4-qp-and-cq-memory-are-leaked-if-the-d-760a0f866319
-> 
-> Best regards,
-> --  
-> Leon Romanovsky <leonro@nvidia.com>
+base-commit: 1df10cef2d1e7f9f2fb7eddb67fc70d3abf101f9
+-- 
+2.44.0
+
