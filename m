@@ -1,162 +1,143 @@
-Received: from SA9PR02CU001.outbound.protection.outlook.com (mail-southcentralusazon11013061.outbound.protection.outlook.com [40.93.196.61])
+Received: from out30-110.freemail.mail.aliyun.com (out30-110.freemail.mail.aliyun.com [115.124.30.110])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D98A533EB06;
-	Thu, 23 Jul 2026 07:29:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.196.61
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784791744; cv=fail; b=WGypI+Z/FaSal575s5C8OVErRnWoQaBOkgMmZVc4wQKjGRlIfMlHOkb+lwFbOR+HKPsyho0FoYt3F+QFLXT6PqUh/QvYmX1Xru4FHvNRowCO+Xm744HBc5xnHVjxnyQVKu31sZZJTCL8VSUlGUu1ndkpIuB3PWNWyRQxwiiAkkE=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784791744; c=relaxed/simple;
-	bh=teb0bs53yS9Mbv4RRqYo+N7cMc1iukEG4M/OlZ5ODRc=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=tYHlAJ0oBsIn8+v0V7pI/4zVzD8/g8SsULzSMtgPSKuC73/0U6qq02OexTJJq0Pi9PKf1EpCclQQJ9qTfsi9GxzZEhyzRS3/CgVCp5OpdDxevvO0HKvInagMmWJeFkJZcjeOn+pQI1Qmz5hyH0jxxLm31p7Hp1qETelpksiJBgc=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=IpNfP7en; arc=fail smtp.client-ip=40.93.196.61
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 08A2837DEA1;
+	Thu, 23 Jul 2026 08:08:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.110
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1784794116; cv=none; b=ltiXrheHehhllKpEWTZDuLrZPn6saNPLETDHMtrOroG12GYDtk6msojhaL7EPArQzf4kCRL5NqMtdIznMCaiBeMpxzUESaxWyXsG7HT9VTEUej3Wh8cm74LBjJLVYn0Am8+GVyEvj2X0sxtR+YKygchYNIFxLMmRgB6siwlUhk8=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1784794116; c=relaxed/simple;
+	bh=7ZpjJ0AR8m8jk75wu9pqVc+aMfXRVbAF6HeBmks4bJM=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=fVihDfgnPlUinPEbYPt6/VnMhF0Crf2FDdR+htWQ65iZt2/qsnmJx6Of4F4rMxhi8w6Rhlrvi6W+crJvvoooSRLtKvhUMkSxYdfK5Z8mHtxhi+0/4fufUvHRghaXjkwJS7ezlsCtUt3lF1uCGW/VV6JCvHblUD/v75YK0FLWaOk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=jLg8kQnj; arc=none smtp.client-ip=115.124.30.110
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="IpNfP7en"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=XMfZ6cmnRb7BGMgLcd2QvPFsvB17CO8EMhCq3Xhlr1o389i2SFlCgdmQ+jF3iKP7/Khx/LjR+O4wZPYfV9kL2UVMU9WAgveKlJPaLII2dTrThRUEc4EVwnM2eM82whWxQqX/y548vCWG2bvjCsM2yTRwwrjMEMW88o1XS5I3CktQ0g8fGlBk4OtUXxFmZW8ATeoi3A1B177w4g1+Pvs3/BFjzwtu9lgdSHTFRDPQfiGn+Gzm9qAB+kNvdaYVx+btoY6Tn6PTg1DJwC5if0gDGriYtvqORwQux1pZPDxIO/5f26Dnl3MrAt2/Pw+teZ7z6fFd2WL4JPHhXoADimeH3w==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=sjUxsI/NUUV93xCkVUcuZU9KkhGx0bNFTsPal45roJ4=;
- b=eXRJvtWvkv3EXjovQu6PHobkBgsRbETjNlM0vZP0bCPwnTCeHjqwdNMbx0P1/JThFVCLg+L68hQLfHp7kowGBpu8TywMA7ZUwvkZ+E9rR8ktLWbE7GMSVYcN8x+iQZQaSBzsYmcoEkFsCys6mYUg2sIi7nG7l+/8CAjKPXLw43+cUfWzzrwUf8Aq0to+MwLz/OxvcqmjQy6W9P3R/H+fIi4d+VDS6xwZnqkbTuXlN1wPmTxbnx5/GKCCWMjlBElYA60z4wnGjNgfZgJtBOx23ibIBxpcm3YRnn42vkl4KMJb7GL5V45WN7uZFQp+uXgI2pK9fzBsamaZ1Ad+LUDvFg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.117.161) smtp.rcpttodomain=lunn.ch smtp.mailfrom=nvidia.com;
- dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
- dkim=none (message not signed); arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=sjUxsI/NUUV93xCkVUcuZU9KkhGx0bNFTsPal45roJ4=;
- b=IpNfP7enl0Jxy8HMu5VLQyDQi0CgmadUlNAuZcRV4K6pQWlK+hEvMhgPav812hsW+aK1YGBgm9Ig8eEnbPhju33KzY1Bj2RRSI+fivFWJQ1Ei8uuQDSdQGkXsvEhpuq5xZdJK/UVxQwmQ5r8/r68cQxbtpNQK8F5fmsyKnzUIolAnT6rVJio7EJRGLVKZtK6FIR+LrA6dBlVSgl5bG5E0LvEFrXPfb3GYEBWwEKduApw8aJ50so08EyLiNedMJp4/EmSDAhtP9SYobpeA98904N575NxjG2/r5OE5s6/5IS2xP2nm/fAMQCa+3p6dwlfIOOQ/oDh38Vp4xJT+ut9PA==
-Received: from DS1PR07CA0026.namprd07.prod.outlook.com (2603:10b6:8:44d::11)
- by CH2PR12MB4039.namprd12.prod.outlook.com (2603:10b6:610:a8::11) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.245.11; Thu, 23 Jul
- 2026 07:28:57 +0000
-Received: from CH3PEPF00000012.namprd21.prod.outlook.com
- (2603:10b6:8:44d:cafe::21) by DS1PR07CA0026.outlook.office365.com
- (2603:10b6:8:44d::11) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.245.11 via Frontend Transport; Thu,
- 23 Jul 2026 07:28:56 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.161)
- smtp.mailfrom=nvidia.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=nvidia.com;
-Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.117.161 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.117.161; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.117.161) by
- CH3PEPF00000012.mail.protection.outlook.com (10.167.244.117) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.270.0 via Frontend Transport; Thu, 23 Jul 2026 07:28:56 +0000
-Received: from rnnvmail201.nvidia.com (10.129.68.8) by mail.nvidia.com
- (10.129.200.67) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Thu, 23 Jul
- 2026 00:28:44 -0700
-Received: from rnnvmail205.nvidia.com (10.129.68.10) by rnnvmail201.nvidia.com
- (10.129.68.8) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Thu, 23 Jul
- 2026 00:28:44 -0700
-Received: from vdi.nvidia.com (10.127.8.10) by mail.nvidia.com (10.129.68.10)
- with Microsoft SMTP Server id 15.2.2562.20 via Frontend Transport; Thu, 23
- Jul 2026 00:28:40 -0700
-From: Tariq Toukan <tariqt@nvidia.com>
-To: Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller"
-	<davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, Jakub Kicinski
-	<kuba@kernel.org>, <netdev@vger.kernel.org>, Paolo Abeni <pabeni@redhat.com>
-CC: Cosmin Ratiu <cratiu@nvidia.com>, Dragos Tatulea <dtatulea@nvidia.com>,
-	Gal Pressman <gal@nvidia.com>, Leon Romanovsky <leon@kernel.org>,
-	<linux-kernel@vger.kernel.org>, <linux-rdma@vger.kernel.org>, Mark Bloch
-	<mbloch@nvidia.com>, Saeed Mahameed <saeedm@nvidia.com>, Tariq Toukan
-	<tariqt@nvidia.com>, Chia-Yu Chang <chia-yu.chang@nokia-bell-labs.com>
-Subject: [PATCH net-next] net/mlx5e: SHAMPO, Remove dead CWR handling in GRO header update
-Date: Thu, 23 Jul 2026 10:28:29 +0300
-Message-ID: <20260723072829.1864366-1-tariqt@nvidia.com>
-X-Mailer: git-send-email 2.44.0
+	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="jLg8kQnj"
+DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux.alibaba.com; s=default;
+	t=1784794110; h=Message-ID:Date:MIME-Version:Subject:To:From:Content-Type;
+	bh=nurY72WLtbiBuXLzZL1ENKlyc5yQo+wcEK0q+X5MDoU=;
+	b=jLg8kQnjN8Gnz5VBMr8Uwkr8S9Dcvsz6cD0Nl33xPAAL86HI4BVucBXWkjNXhGVZ0+QKPccA0K0TKjtY5U0fUtvWSniT0EB0mCGJI6qyJOfKZlcvpKBkvNZkRu/qUHbgmF5Ps3CZl3AoREsyWrhnSiuHR6cxRHZ9eO1UddwgelY=
+X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R101e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam033037033178;MF=chengyou@linux.alibaba.com;NM=1;PH=DS;RN=7;SR=0;TI=SMTPD_---0X7fc6pf_1784794109;
+Received: from 30.221.110.236(mailfrom:chengyou@linux.alibaba.com fp:SMTPD_---0X7fc6pf_1784794109 cluster:ay36)
+          by smtp.aliyun-inc.com;
+          Thu, 23 Jul 2026 16:08:29 +0800
+Message-ID: <4c1bbac8-b010-ce2d-3d96-25623cbdeec1@linux.alibaba.com>
+Date: Thu, 23 Jul 2026 16:08:28 +0800
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:102.0)
+ Gecko/20100101 Thunderbird/102.15.1
+Subject: Re: [PATCH rdma-next] RDMA/erdma: complete object teardown when the
+ destroy command fails
+Content-Language: en-US
+To: Leon Romanovsky <leon@kernel.org>, Kai Shen <kaishen@linux.alibaba.com>,
+ Jason Gunthorpe <jgg@ziepe.ca>, Wei Yongjun <weiyongjun1@huawei.com>,
+ Yang Li <yang.lee@linux.alibaba.com>
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <20260722-b4-qp-and-cq-memory-are-leaked-if-the-d-v1-1-97e223dc1c96@nvidia.com>
+From: Cheng Xu <chengyou@linux.alibaba.com>
+In-Reply-To: <20260722-b4-qp-and-cq-memory-are-leaked-if-the-d-v1-1-97e223dc1c96@nvidia.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-NV-OnPremToCloud: ExternallySecured
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: CH3PEPF00000012:EE_|CH2PR12MB4039:EE_
-X-MS-Office365-Filtering-Correlation-Id: 33635a66-f2dc-4325-5c7b-08dee88c0e59
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|36860700016|23010399003|82310400026|376014|7416014|1800799024|13003099007|10067099003|11063799006|56012099006|18002099003;
-X-Microsoft-Antispam-Message-Info:
-	2rw/OfJsdHDCA0561O+ikLbGqWTRxidZjcGhbfWokIs2+5gCQvqQ5JjPAmM+Pc8gWRWckhInvrq1IXSIhcXAmE9W0/5BNLZQ6WIGf9M5bac+Kp0ezPJk0x4mWBzoQQREU958SZws37c4p0lVXfZxYYfxjwMwG+4DQ+WwWFxzuteuqpVd1poJQqK6BbhIXUVzlNpx+Ig2fIPtn+FGisESIR2KO4kXW8yN3acptaoNnN9ZM34O6gZyNWSzm+qpINp90JuFGvGh/tCqvAtpEk4IWMxw8f1CBKEKUk4OW0OP6Nw2/bfh6BYfVn3W9HzCtjw1QrTvvaEXakIjTm+CgOo/3oZV9E0S+JlBXYvnF+ttaAyVmErtDIWmSfEceFp1BPq/A+TFQh0LF80P+iwDFpw+Q8QWUZjDXhMl18OXKFpoQehCcWHigLNvJZWIbhoxYx2YibrSi+8GSv2+cmeqKGSn0RtDJrkgPNAW4O4kSyKIdpu6c1JoPQtRI6eUgsp9GD5mmBWmQnVrcl6Bj9M/1LTBDS+Wf80n8tE4btd8TVzk7MifgxgJC8TCK51dBVqz/osn2v12qH+f1dPDYwPSb0jLzxdXT/0+hA5hlIzVWOaTYAdkN1u8skxRWKSRyrSD1VASHCRZIvw0vZaYoaYu7pXMCt6itnVqTjglYVsJHfDpeTfN3sa4zs3HerJXR9thJ2d5s+8pPrD5S6A3cACKLfNLZw==
-X-Forefront-Antispam-Report:
-	CIP:216.228.117.161;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge2.nvidia.com;CAT:NONE;SFS:(13230040)(36860700016)(23010399003)(82310400026)(376014)(7416014)(1800799024)(13003099007)(10067099003)(11063799006)(56012099006)(18002099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	Az3OsdH26Ye61sYxp7Xk0sGuVwgH7O7AXCAbjPGjK1UKycogHBI2YBYMd+7D/OUVOPTMsWkGYO5PyXCZERL0CykTuzhMUc6OU8koZpoPo/UdXocKxyQSfCxwnYEo/pdq8UxgQXi+MvRzIcxy16Ep83l9f+JLLlvnbHI8HjeNOw4eXtX2jOqxxgLy0MhSrS60KJavvNufVVSajIwTcrku8p50bsFsE1D644bOPLHZioIh29l+D0DoFb8Gh15YA/ft/lXWuEDEVdzM73BGArhV3skB6P1nIUMva1PFCDN4klP15mWzcpIWAPqngaceEDVFDNBO706My8vhUpglXh9W5SEN0m86fON8PIQzDqv++YmCeNtfPeVHnVuxarMMuyALd68dFrc4LEI0vYBrmG0pJTaea/v7Id+KpB2qA9FoqycRtHkN/S5LxXGy5kk4u6EG
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 23 Jul 2026 07:28:56.5666
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 33635a66-f2dc-4325-5c7b-08dee88c0e59
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.161];Helo=[mail.nvidia.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	CH3PEPF00000012.namprd21.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CH2PR12MB4039
 
-From: Dragos Tatulea <dtatulea@nvidia.com>
 
-mlx5e_shampo_update_ipv{4,6}_tcp_hdr() runs only from the
-gro_count > 1 path in mlx5e_shampo_flush_skb(). HW-GRO flushes the
-current session on a CWR packet and delivers it as a single-segment
-skb via napi_gro_receive(), so the aggregated (gro_count > 1) skb
-never carries a CWR-set TCP header.
 
-This patch drops the unreachable branch. Discussion context:
-https://lore.kernel.org/all/8b610e49-ff64-497e-8712-588b2228df02@nvidia.com/
+On 7/22/26 9:13 PM, Leon Romanovsky wrote:
+> From: Leon Romanovsky <leonro@nvidia.com>
+> 
+> erdma_destroy_qp(), erdma_destroy_cq(), erdma_dereg_mr(), and
+> erdma_destroy_ah() returned early when erdma_post_cmd_wait() failed,
+> leaking the queue buffers, MTTs, doorbells and the STAG, QPN, CQN and AHN
+> identifiers. A command timeout clears ERDMA_CMDQ_STATE_OK_BIT and
+> permanently disables the command queue, so no retry can succeed; the RDMA
+> core keeps the object after a failed destructor and forced uverbs cleanup
+> then nulls the pointers, making the resources unreachable.
+> 
+> Warn on failure but release every software-owned resource and return
+> success, since during terminal destruction the hardware command result is
+> only diagnostic.
+> 
+> Fixes: 155055771704 ("RDMA/erdma: Add verbs implementation")
+> Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+> ---
+>  drivers/infiniband/hw/erdma/erdma_verbs.c | 21 +++++++++++++++++----
+>  1 file changed, 17 insertions(+), 4 deletions(-)
+> 
 
-Suggested-by: Paolo Abeni <pabeni@redhat.com>
-Signed-off-by: Dragos Tatulea <dtatulea@nvidia.com>
-Cc: Chia-Yu Chang <chia-yu.chang@nokia-bell-labs.com>
-Reviewed-by: Cosmin Ratiu <cratiu@nvidia.com>
-Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
----
- drivers/net/ethernet/mellanox/mlx5/core/en_rx.c | 6 ------
- 1 file changed, 6 deletions(-)
+Thanks Leon, this makes sense to me.
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c b/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
-index 04af54b704d8..fb7110b1b683 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
-@@ -1178,9 +1178,6 @@ static void mlx5e_shampo_update_ipv4_tcp_hdr(struct mlx5e_rq *rq, struct iphdr *
- 
- 	skb->csum_start = (unsigned char *)tcp - skb->head;
- 	skb->csum_offset = offsetof(struct tcphdr, check);
--
--	if (tcp->cwr)
--		skb_shinfo(skb)->gso_type |= SKB_GSO_TCP_ECN;
- }
- 
- static void mlx5e_shampo_update_ipv6_tcp_hdr(struct mlx5e_rq *rq, struct ipv6hdr *ipv6,
-@@ -1199,9 +1196,6 @@ static void mlx5e_shampo_update_ipv6_tcp_hdr(struct mlx5e_rq *rq, struct ipv6hdr
- 	skb_shinfo(skb)->gso_type |= SKB_GSO_TCPV6;
- 	skb->csum_start = (unsigned char *)tcp - skb->head;
- 	skb->csum_offset = offsetof(struct tcphdr, check);
--
--	if (tcp->cwr)
--		skb_shinfo(skb)->gso_type |= SKB_GSO_TCP_ECN;
- }
- 
- static void mlx5e_shampo_update_hdr(struct mlx5e_rq *rq, struct mlx5_cqe64 *cqe, bool match)
+Acked-by: Cheng Xu <chengyou@linux.alibaba.com>
 
-base-commit: 1df10cef2d1e7f9f2fb7eddb67fc70d3abf101f9
--- 
-2.44.0
+Thanks,
+Cheng Xu
 
+> diff --git a/drivers/infiniband/hw/erdma/erdma_verbs.c b/drivers/infiniband/hw/erdma/erdma_verbs.c
+> index 71e3e8618a61..ab6abbab029e 100644
+> --- a/drivers/infiniband/hw/erdma/erdma_verbs.c
+> +++ b/drivers/infiniband/hw/erdma/erdma_verbs.c
+> @@ -1302,8 +1302,15 @@ int erdma_dereg_mr(struct ib_mr *ibmr, struct ib_udata *udata)
+>  
+>  	ret = erdma_post_cmd_wait(&dev->cmdq, &req, sizeof(req), NULL, NULL,
+>  				  true);
+> +	/*
+> +	 * A timeout disables the command queue, so retry cannot succeed.  Treat
+> +	 * terminal command failures as diagnostic; propagating them can make
+> +	 * forced uverbs cleanup discard the last software resource pointers.
+> +	 */
+>  	if (ret)
+> -		return ret;
+> +		ibdev_warn_ratelimited(&dev->ibdev,
+> +				       "failed to deregister MR 0x%x: %d\n",
+> +				       ibmr->lkey, ret);
+>  
+>  	erdma_free_idx(&dev->res_cb[ERDMA_RES_TYPE_STAG_IDX], ibmr->lkey >> 8);
+>  
+> @@ -1329,7 +1336,9 @@ int erdma_destroy_cq(struct ib_cq *ibcq, struct ib_udata *udata)
+>  	err = erdma_post_cmd_wait(&dev->cmdq, &req, sizeof(req), NULL, NULL,
+>  				  true);
+>  	if (err)
+> -		return err;
+> +		ibdev_warn_ratelimited(&dev->ibdev,
+> +				       "failed to destroy CQ %u: %d\n",
+> +				       cq->cqn, err);
+>  
+>  	if (rdma_is_kernel_res(&cq->ibcq.res)) {
+>  		dma_free_coherent(&dev->pdev->dev, cq->depth << CQE_SHIFT,
+> @@ -1377,7 +1386,9 @@ int erdma_destroy_qp(struct ib_qp *ibqp, struct ib_udata *udata)
+>  	err = erdma_post_cmd_wait(&dev->cmdq, &req, sizeof(req), NULL, NULL,
+>  				  true);
+>  	if (err)
+> -		return err;
+> +		ibdev_warn_ratelimited(&dev->ibdev,
+> +				       "failed to destroy QP %u: %d\n",
+> +				       QP_ID(qp), err);
+>  
+>  	erdma_qp_put(qp);
+>  	wait_for_completion(&qp->safe_free);
+> @@ -2279,7 +2290,9 @@ int erdma_destroy_ah(struct ib_ah *ibah, u32 flags)
+>  	ret = erdma_post_cmd_wait(&dev->cmdq, &req, sizeof(req), NULL, NULL,
+>  				  flags & RDMA_DESTROY_AH_SLEEPABLE);
+>  	if (ret)
+> -		return ret;
+> +		ibdev_warn_ratelimited(&dev->ibdev,
+> +				       "failed to destroy AH %u: %d\n",
+> +				       ah->ahn, ret);
+>  
+>  	erdma_free_idx(&dev->res_cb[ERDMA_RES_TYPE_AH], ah->ahn);
+>  
+> 
+> ---
+> base-commit: 0e8e94c15091041ea8910cbfcade5a9c7cfe3f90
+> change-id: 20260722-b4-qp-and-cq-memory-are-leaked-if-the-d-760a0f866319
+> 
+> Best regards,
+> --  
+> Leon Romanovsky <leonro@nvidia.com>
