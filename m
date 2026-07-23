@@ -1,38 +1,32 @@
-Received: from ale.deltatee.com (ale.deltatee.com [204.191.154.188])
+Received: from out30-124.freemail.mail.aliyun.com (out30-124.freemail.mail.aliyun.com [115.124.30.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 48EFA347BA7;
-	Thu, 23 Jul 2026 03:13:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=204.191.154.188
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E4B9335DA7F;
+	Thu, 23 Jul 2026 03:14:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784776413; cv=none; b=F5ZyAGDB4P8WPSKoffXyZJnwdV31iayOST8IjdxxX6zITW71xcTExZKDmDDn7IzJG/8VxtzuB1qCSSId0uKvWZ3tNM5OCcy6BqMAtDCHFaj+yL33ozdy6jBfWwqVRUes/uYexj63jxvnJaeENjG9NHJJ1mDnLC2SaSW1HlJFcvc=
+	t=1784776451; cv=none; b=i4pWx/clKnoOS2m+72RZcQGeSLizGlpCPWV9g7iborWUb9kiBeng1qKJ0BiIZNqhnaESyR4isRHnlKhgYOC8986dl0BiLjEMjjIi8b59Mcs/R1kdk3BzVnTvGt41i9f9XYlxt6nHYqMNA6ylycYGi3NJ0vU2V4G0YqEDsv2qTAE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784776413; c=relaxed/simple;
-	bh=XyMab+OUkxBKHtu8UDWuPDUjftyh4T1RtvzWSNwjydY=;
-	h=Message-ID:Date:MIME-Version:To:Cc:References:From:In-Reply-To:
-	 Content-Type:Subject; b=E0WnfMesaUFQhb1Ca6IDdIugYdeH9yqTfnH5VO+7iHflgm/aRaHPxkTTyIvurasLs9SDy3O/KnEXi+Lu/JaVGV1GtOTrW3zXxqZ1wO7A40a4eYQ3MzWgMrD6cRvTHCJxVhb4F+nUlyPYdEdTdO6vhITKZDZoM1jmlGi+W7v1Rbc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=deltatee.com; spf=pass smtp.mailfrom=deltatee.com; dkim=pass (2048-bit key) header.d=deltatee.com header.i=@deltatee.com header.b=q+v6LAw8; arc=none smtp.client-ip=204.191.154.188
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=deltatee.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=deltatee.com
+	s=arc-20240116; t=1784776451; c=relaxed/simple;
+	bh=U+6X4Hn7v2FxBz0YWJ+3pn0gL2ifRjWnRb1e0elZgkQ=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=lltwXl2omWDfGZ4Gm3BFD/9j22mQ8HhWEJyPNVE7beUZNKl9iBylgexCPO4nKV4Rl/7LxsDBr1TXNLVFsOo5TY9JRRjOxKjvWcqJr4cxJneJIA8Y9f1NHm/K8MVpnhEEmIwwL1IeRPEcMmuDy2Ph6foOy+OF44742B9l+6UZM5M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=DqCX6O0m; arc=none smtp.client-ip=115.124.30.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=deltatee.com header.i=@deltatee.com header.b="q+v6LAw8"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=deltatee.com; s=20200525; h=Subject:In-Reply-To:From:References:Cc:To:
-	MIME-Version:Date:Message-ID:content-disposition;
-	bh=rC+XBUGFmySIn3VPBg9GBg/XbZWxt1FvpkzqM8RzAE4=; b=q+v6LAw8gBxwqa3cOIQEXC3cMJ
-	5756S4TXTL4zSiuUzMe7/27YHQiwEj2NiG58xC4WGPsEogiXd4aNH0NiQKiMGKQDRYhy28+R9Us8A
-	S3/LYRjonw7QSDPJONdDVL84N1x8hi9e8CYS2M2oLa1ArrwIfsPkWM32waaBEuKpm8pVVWgs89+Hi
-	shfawWP5ZD2XU8jhY+4r+ACVr6ngu9egpW2Jg/yBYsRjil73XH5Ji4LZqH8H9P7hGIaCPmXuTtidN
-	lwRb7AMjkgpBYB/Zxfi92semLE1yV8AXiFNJRWR4A0FLEJs0p/74dPjiBQLJR4dV3+/5NYMjyvInc
-	EOVWi+Ow==;
-Received: from [104.157.31.28] (helo=[192.168.1.251])
-	by ale.deltatee.com with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
-	(Exim 4.98.2)
-	(envelope-from <logang@deltatee.com>)
-	id 1wmjs7-0000000Cf7r-20SR;
-	Wed, 22 Jul 2026 21:13:20 -0600
-Message-ID: <38fc491b-ce80-4bb0-85b4-7987936afb26@deltatee.com>
-Date: Wed, 22 Jul 2026 21:11:33 -0600
+	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="DqCX6O0m"
+DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux.alibaba.com; s=default;
+	t=1784776445; h=Message-ID:Date:MIME-Version:Subject:To:From:Content-Type;
+	bh=uh07OLumvbhKMHFzl/98Q4fWI+dA3VAJ3YKixuoHIBQ=;
+	b=DqCX6O0mwviE6O7RbV9ZvzoLWyqo8cRKrKAGnmfTjNKoxW5Dm5G1MaAxsgrI+EeXufD31rqRzf1CI7N+ucbtfhBlLvzEf6cpxiSLgQfODm+mDJW26wEXSPyu4fU1O/93H5wBU8u610Jyv0gio1wdxG1jCvygo1lMGPVoOvHGBfo=
+X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R121e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam033032089153;MF=guwen@linux.alibaba.com;NM=1;PH=DS;RN=17;SR=0;TI=SMTPD_---0X7ejvXZ_1784776443;
+Received: from 30.221.147.55(mailfrom:guwen@linux.alibaba.com fp:SMTPD_---0X7ejvXZ_1784776443 cluster:ay36)
+          by smtp.aliyun-inc.com;
+          Thu, 23 Jul 2026 11:14:04 +0800
+Message-ID: <73c5bbf5-c9ed-4439-a76b-7f75c2c769f8@linux.alibaba.com>
+Date: Thu, 23 Jul 2026 11:14:03 +0800
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -40,77 +34,111 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-To: Mykola Marzhan <mykola@meshstor.io>, Jens Axboe <axboe@kernel.dk>,
- Song Liu <song@kernel.org>, Yu Kuai <yukuai@fygo.io>,
- Keith Busch <kbusch@kernel.org>, Christoph Hellwig <hch@lst.de>,
- Sagi Grimberg <sagi@grimberg.me>, linux-block@vger.kernel.org,
- linux-raid@vger.kernel.org, linux-nvme@lists.infradead.org
-Cc: Li Nan <magiclinan@didiglobal.com>, Xiao Ni <xiao@kernel.org>,
- Guoqing Jiang <guoqing.jiang@linux.dev>, Leon Romanovsky <leon@kernel.org>,
- Jason Gunthorpe <jgg@ziepe.ca>, Kiran Kumar Modukuri <kmodukuri@nvidia.com>,
- Chaitanya Kulkarni <kch@nvidia.com>, Bjorn Helgaas <bhelgaas@google.com>,
- Shivaji Kant <shivajikant@google.com>, Pranjal Shrivastava
- <praan@google.com>, Henrique Carvalho <henrique.carvalho@suse.com>,
- linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
- linux-pci@vger.kernel.org
-References: <20260722185841.449934-1-mykola@meshstor.io>
- <20260722185841.449934-9-mykola@meshstor.io>
-Content-Language: en-CA
-From: Logan Gunthorpe <logang@deltatee.com>
-In-Reply-To: <20260722185841.449934-9-mykola@meshstor.io>
-Content-Type: text/plain; charset=UTF-8
+Subject: Re: [PATCH net-next v4 2/3] net/smc: reduce TX slot contention with
+ exclusive wait
+To: "D. Wythe" <alibuda@linux.alibaba.com>, mjambigi@linux.ibm.com,
+ wenjia@linux.ibm.com, wintera@linux.ibm.com, dust.li@linux.alibaba.com,
+ tonylu@linux.alibaba.com
+Cc: kuba@kernel.org, davem@davemloft.net, netdev@vger.kernel.org,
+ linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org, leonro@nvidia.com,
+ pabeni@redhat.com, edumazet@google.com, sidraya@linux.ibm.com,
+ jaka@linux.ibm.com, oliver.yang@linux.alibaba.com
+References: <20260716113745.65234-1-alibuda@linux.alibaba.com>
+ <20260716113745.65234-3-alibuda@linux.alibaba.com>
+From: Wen Gu <guwen@linux.alibaba.com>
+In-Reply-To: <20260716113745.65234-3-alibuda@linux.alibaba.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-X-SA-Exim-Connect-IP: 104.157.31.28
-X-SA-Exim-Rcpt-To: mykola@meshstor.io, axboe@kernel.dk, song@kernel.org, yukuai@fygo.io, kbusch@kernel.org, hch@lst.de, sagi@grimberg.me, linux-block@vger.kernel.org, linux-raid@vger.kernel.org, linux-nvme@lists.infradead.org, magiclinan@didiglobal.com, xiao@kernel.org, guoqing.jiang@linux.dev, leon@kernel.org, jgg@ziepe.ca, kmodukuri@nvidia.com, kch@nvidia.com, bhelgaas@google.com, shivajikant@google.com, praan@google.com, henrique.carvalho@suse.com, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, linux-pci@vger.kernel.org
-X-SA-Exim-Mail-From: logang@deltatee.com
-X-Spam-Level: 
-Subject: Re: [PATCH v4 8/9] md/raid1,raid10: set IO_BLOCKED in case of
- BLK_STS_P2PDMA
-X-SA-Exim-Version: 4.2.1 (built Sun, 23 Feb 2025 07:57:16 +0000)
-X-SA-Exim-Scanned: Yes (on ale.deltatee.com)
 
 
 
-On 2026-07-22 12:58 p.m., Mykola Marzhan wrote:
-> From: Logan Gunthorpe <logang@deltatee.com>
+On 2026/7/16 19:37, D. Wythe wrote:
+> smc_wr_tx_get_free_slot() waits for a free TX slot with
+> wait_event_interruptible_timeout(). Since the wait_event family
+> enqueues waiters as non-exclusive, wake_up() may wake multiple
+> waiters even though only one can use the slot, causing
+> thundering-herd contention when slots are scarce.
 > 
-> A read that fails with BLK_STS_P2PDMA cannot succeed against that
-> member, so mark the leg IO_BLOCKED and let the retry redirect elsewhere.
-> Skip the read-error machinery: there is nothing on the medium to fix,
-> fix_read_error()'s probe reads into host pages and would "succeed", and
-> charging the read-error budget would evict a healthy member under a P2P
-> read workload.  FailFast eviction is skipped for the same reason -- the
-> request never reached the wire.
+> Use an exclusive wait loop with prepare_to_wait_exclusive() so
+> wake_up() wakes only one waiter per freed slot.
+> smc_wr_wakeup_tx_wait() still uses wake_up_all() during link
+> teardown, so teardown behavior is unchanged.
 > 
-> Fixes: 02666132403a ("md: propagate BLK_FEAT_PCI_P2PDMA from member devices to RAID device")
-> Assisted-by: Claude:claude-fable-5
-> Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-> Co-developed-by: Mykola Marzhan <mykola@meshstor.io>
-> Signed-off-by: Mykola Marzhan <mykola@meshstor.io>
+> This also corrects the return value on a pending signal: the previous
+> wait_event_interruptible_timeout() path fell through to the "no free
+> slot" case and returned -EPIPE, masking the signal as a connection
+> error. The open-coded loop now returns -ERESTARTSYS, matching the
+> standard interruptible-wait semantics and letting the syscall restart
+> machinery handle it.
+> 
+> Signed-off-by: D. Wythe <alibuda@linux.alibaba.com>
 > ---
->  drivers/md/raid1.c  | 4 +++-
->  drivers/md/raid10.c | 5 ++++-
->  2 files changed, 7 insertions(+), 2 deletions(-)
+
+Reviewed-by: Wen Gu <guwen@linux.alibaba.com>
+
+Thanks.
+
+>   net/smc/smc_wr.c | 36 ++++++++++++++++++++++++++----------
+>   1 file changed, 26 insertions(+), 10 deletions(-)
 > 
-> diff --git a/drivers/md/raid1.c b/drivers/md/raid1.c
-> index 917d694ef401..76a1426e64f0 100644
-> --- a/drivers/md/raid1.c
-> +++ b/drivers/md/raid1.c
-> @@ -2658,6 +2658,8 @@ static void handle_read_error(struct r1conf *conf, struct r1bio *r1_bio)
->  {
->  	struct md_rdev *rdev = conf->mirrors[r1_bio->read_disk].rdev;
->  	struct bio *bio = r1_bio->bios[r1_bio->read_disk];
-> +	/* evaluate before the bio_put() below */
-> +	bool p2pdma_error = bio->bi_status == BLK_STS_P2PDMA;
+> diff --git a/net/smc/smc_wr.c b/net/smc/smc_wr.c
+> index 6b5add922993..2cdd4063c13d 100644
+> --- a/net/smc/smc_wr.c
+> +++ b/net/smc/smc_wr.c
+> @@ -198,11 +198,13 @@ int smc_wr_tx_get_free_slot(struct smc_link *link,
+>   			    struct smc_rdma_wr **wr_rdma_buf,
+>   			    struct smc_wr_tx_pend_priv **wr_pend_priv)
+>   {
+> +	unsigned long timeout = SMC_WR_TX_WAIT_FREE_SLOT_TIME;
+>   	struct smc_link_group *lgr = smc_get_lgr(link);
+>   	struct smc_wr_tx_pend *wr_pend;
+>   	u32 idx = link->wr_tx_cnt;
+>   	struct ib_send_wr *wr_ib;
+>   	u64 wr_id;
+> +	DEFINE_WAIT(wait);
+>   	int rc;
+>   
+>   	*wr_buf = NULL;
+> @@ -212,17 +214,31 @@ int smc_wr_tx_get_free_slot(struct smc_link *link,
+>   		if (rc)
+>   			return rc;
+>   	} else {
+> -		rc = wait_event_interruptible_timeout(
+> -			link->wr_tx_wait,
+> -			!smc_link_sendable(link) ||
+> -			lgr->terminating ||
+> -			(smc_wr_tx_get_free_slot_index(link, &idx) != -EBUSY),
+> -			SMC_WR_TX_WAIT_FREE_SLOT_TIME);
+> -		if (!rc) {
+> -			/* timeout - terminate link */
+> -			smcr_link_down_cond_sched(link);
+> -			return -EPIPE;
+> +		rc = 0;
+> +		for (;;) {
+> +			prepare_to_wait_exclusive(&link->wr_tx_wait, &wait,
+> +						  TASK_INTERRUPTIBLE);
+> +			if (!smc_link_sendable(link) || lgr->terminating ||
+> +			    smc_wr_tx_get_free_slot_index(link, &idx) != -EBUSY)
+> +				break;
+> +			timeout = schedule_timeout(timeout);
+> +			/* re-check */
+> +			if (!smc_link_sendable(link) || lgr->terminating ||
+> +			    smc_wr_tx_get_free_slot_index(link, &idx) != -EBUSY)
+> +				break;
+> +			if (!timeout) {
+> +				/* timeout - terminate link */
+> +				smcr_link_down_cond_sched(link);
+> +				break;
+> +			}
+> +			if (signal_pending(current)) {
+> +				rc = -ERESTARTSYS;
+> +				break;
+> +			}
+>   		}
+> +		finish_wait(&link->wr_tx_wait, &wait);
+> +		if (rc)
+> +			return rc;
+>   		if (idx == link->wr_tx_cnt)
+>   			return -EPIPE;
+>   	}
 
-
-Sorry, I had one late nit-picky thought tonight I thought I'd suggest:
-
-It might be better to store bi_status in a local variable instead of the
-much more specific p2pdma_error value. I think this would read a lot
-better, make the intent a little more clear and be reusable if other
-bi_status conditions need to be handled specially.
-
-Thanks,
-
-Logan
