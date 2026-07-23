@@ -1,32 +1,38 @@
-Received: from out30-130.freemail.mail.aliyun.com (out30-130.freemail.mail.aliyun.com [115.124.30.130])
+Received: from ale.deltatee.com (ale.deltatee.com [204.191.154.188])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 122061AAE28;
-	Thu, 23 Jul 2026 02:56:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.130
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 48EFA347BA7;
+	Thu, 23 Jul 2026 03:13:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=204.191.154.188
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784775388; cv=none; b=RJcwVOCgMW8wYhWpkIXlbt/AvVymcY1CLn3kJ9ZbMIBu/JTl2QN0ogoQ7yHfNijr5+PRH7vmT1AWHQ8DJ1xR6CgWX6O7I752N7yjI9MFDkiwZ+HmrSqH8erSrAMHz6YbCkHDaUm2nLZojKfmrkh6eF1GmAyBXx1pzJfvfWGGeN4=
+	t=1784776413; cv=none; b=F5ZyAGDB4P8WPSKoffXyZJnwdV31iayOST8IjdxxX6zITW71xcTExZKDmDDn7IzJG/8VxtzuB1qCSSId0uKvWZ3tNM5OCcy6BqMAtDCHFaj+yL33ozdy6jBfWwqVRUes/uYexj63jxvnJaeENjG9NHJJ1mDnLC2SaSW1HlJFcvc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784775388; c=relaxed/simple;
-	bh=H+nMxA2IWZJ3YibtWWtcgT+96V14vZObn9vk63g3c4g=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=uCj82Fd3nBY9jFC5oeAyMx0PmLTeQkzTAvIgi7QMsFu4p5gDMRukZrZjdMQzCJFAyi8rLBXQvKc1Usz5Epvl8KNENPzaoWr1JWHZgvs6tSWY8XPMxc3x8ck8sZsVLakDqn9bvGRTKEIcpsyJDobHaoD6Kd2x9fwvsPBoz/ZsGqM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=aYVZlJJw; arc=none smtp.client-ip=115.124.30.130
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
+	s=arc-20240116; t=1784776413; c=relaxed/simple;
+	bh=XyMab+OUkxBKHtu8UDWuPDUjftyh4T1RtvzWSNwjydY=;
+	h=Message-ID:Date:MIME-Version:To:Cc:References:From:In-Reply-To:
+	 Content-Type:Subject; b=E0WnfMesaUFQhb1Ca6IDdIugYdeH9yqTfnH5VO+7iHflgm/aRaHPxkTTyIvurasLs9SDy3O/KnEXi+Lu/JaVGV1GtOTrW3zXxqZ1wO7A40a4eYQ3MzWgMrD6cRvTHCJxVhb4F+nUlyPYdEdTdO6vhITKZDZoM1jmlGi+W7v1Rbc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=deltatee.com; spf=pass smtp.mailfrom=deltatee.com; dkim=pass (2048-bit key) header.d=deltatee.com header.i=@deltatee.com header.b=q+v6LAw8; arc=none smtp.client-ip=204.191.154.188
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=deltatee.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=deltatee.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="aYVZlJJw"
-DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux.alibaba.com; s=default;
-	t=1784775382; h=Message-ID:Date:MIME-Version:Subject:To:From:Content-Type;
-	bh=o4x1d80nsakE/H/LZTVOJLfZCS96JV71yIDaMMwLnhc=;
-	b=aYVZlJJw4gzd/xZA17MWte4WvjMiQgljCCtwbFhtfkp3fwXj052GZuAUXTqr3NScCUK4z9TtLPBfIDy3Br67e2bUKBshq0FOgzi7m0ThwwinxDl5dl7Ld1OVBx/NYqbDdmjcbAJYS+BJte0oW+Z8BQ84x9eKu0I2Q7bYqckRRAE=
-X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R401e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam033045098064;MF=guwen@linux.alibaba.com;NM=1;PH=DS;RN=17;SR=0;TI=SMTPD_---0X7ep.zp_1784775369;
-Received: from 30.221.147.55(mailfrom:guwen@linux.alibaba.com fp:SMTPD_---0X7ep.zp_1784775369 cluster:ay36)
-          by smtp.aliyun-inc.com;
-          Thu, 23 Jul 2026 10:56:21 +0800
-Message-ID: <349282a8-8c66-409b-99d2-970785bf42d1@linux.alibaba.com>
-Date: Thu, 23 Jul 2026 10:56:09 +0800
+	dkim=pass (2048-bit key) header.d=deltatee.com header.i=@deltatee.com header.b="q+v6LAw8"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=deltatee.com; s=20200525; h=Subject:In-Reply-To:From:References:Cc:To:
+	MIME-Version:Date:Message-ID:content-disposition;
+	bh=rC+XBUGFmySIn3VPBg9GBg/XbZWxt1FvpkzqM8RzAE4=; b=q+v6LAw8gBxwqa3cOIQEXC3cMJ
+	5756S4TXTL4zSiuUzMe7/27YHQiwEj2NiG58xC4WGPsEogiXd4aNH0NiQKiMGKQDRYhy28+R9Us8A
+	S3/LYRjonw7QSDPJONdDVL84N1x8hi9e8CYS2M2oLa1ArrwIfsPkWM32waaBEuKpm8pVVWgs89+Hi
+	shfawWP5ZD2XU8jhY+4r+ACVr6ngu9egpW2Jg/yBYsRjil73XH5Ji4LZqH8H9P7hGIaCPmXuTtidN
+	lwRb7AMjkgpBYB/Zxfi92semLE1yV8AXiFNJRWR4A0FLEJs0p/74dPjiBQLJR4dV3+/5NYMjyvInc
+	EOVWi+Ow==;
+Received: from [104.157.31.28] (helo=[192.168.1.251])
+	by ale.deltatee.com with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+	(Exim 4.98.2)
+	(envelope-from <logang@deltatee.com>)
+	id 1wmjs7-0000000Cf7r-20SR;
+	Wed, 22 Jul 2026 21:13:20 -0600
+Message-ID: <38fc491b-ce80-4bb0-85b4-7987936afb26@deltatee.com>
+Date: Wed, 22 Jul 2026 21:11:33 -0600
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -34,46 +40,77 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net-next v4 3/3] net/smc: transition to RDMA core CQ
- pooling
-To: "D. Wythe" <alibuda@linux.alibaba.com>, mjambigi@linux.ibm.com,
- wenjia@linux.ibm.com, wintera@linux.ibm.com, dust.li@linux.alibaba.com,
- tonylu@linux.alibaba.com
-Cc: kuba@kernel.org, davem@davemloft.net, netdev@vger.kernel.org,
- linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org, leonro@nvidia.com,
- pabeni@redhat.com, edumazet@google.com, sidraya@linux.ibm.com,
- jaka@linux.ibm.com, oliver.yang@linux.alibaba.com
-References: <20260716113745.65234-1-alibuda@linux.alibaba.com>
- <20260716113745.65234-4-alibuda@linux.alibaba.com>
-From: Wen Gu <guwen@linux.alibaba.com>
-In-Reply-To: <20260716113745.65234-4-alibuda@linux.alibaba.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+To: Mykola Marzhan <mykola@meshstor.io>, Jens Axboe <axboe@kernel.dk>,
+ Song Liu <song@kernel.org>, Yu Kuai <yukuai@fygo.io>,
+ Keith Busch <kbusch@kernel.org>, Christoph Hellwig <hch@lst.de>,
+ Sagi Grimberg <sagi@grimberg.me>, linux-block@vger.kernel.org,
+ linux-raid@vger.kernel.org, linux-nvme@lists.infradead.org
+Cc: Li Nan <magiclinan@didiglobal.com>, Xiao Ni <xiao@kernel.org>,
+ Guoqing Jiang <guoqing.jiang@linux.dev>, Leon Romanovsky <leon@kernel.org>,
+ Jason Gunthorpe <jgg@ziepe.ca>, Kiran Kumar Modukuri <kmodukuri@nvidia.com>,
+ Chaitanya Kulkarni <kch@nvidia.com>, Bjorn Helgaas <bhelgaas@google.com>,
+ Shivaji Kant <shivajikant@google.com>, Pranjal Shrivastava
+ <praan@google.com>, Henrique Carvalho <henrique.carvalho@suse.com>,
+ linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
+ linux-pci@vger.kernel.org
+References: <20260722185841.449934-1-mykola@meshstor.io>
+ <20260722185841.449934-9-mykola@meshstor.io>
+Content-Language: en-CA
+From: Logan Gunthorpe <logang@deltatee.com>
+In-Reply-To: <20260722185841.449934-9-mykola@meshstor.io>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
+X-SA-Exim-Connect-IP: 104.157.31.28
+X-SA-Exim-Rcpt-To: mykola@meshstor.io, axboe@kernel.dk, song@kernel.org, yukuai@fygo.io, kbusch@kernel.org, hch@lst.de, sagi@grimberg.me, linux-block@vger.kernel.org, linux-raid@vger.kernel.org, linux-nvme@lists.infradead.org, magiclinan@didiglobal.com, xiao@kernel.org, guoqing.jiang@linux.dev, leon@kernel.org, jgg@ziepe.ca, kmodukuri@nvidia.com, kch@nvidia.com, bhelgaas@google.com, shivajikant@google.com, praan@google.com, henrique.carvalho@suse.com, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, linux-pci@vger.kernel.org
+X-SA-Exim-Mail-From: logang@deltatee.com
+X-Spam-Level: 
+Subject: Re: [PATCH v4 8/9] md/raid1,raid10: set IO_BLOCKED in case of
+ BLK_STS_P2PDMA
+X-SA-Exim-Version: 4.2.1 (built Sun, 23 Feb 2025 07:57:16 +0000)
+X-SA-Exim-Scanned: Yes (on ale.deltatee.com)
 
 
 
-On 2026/7/16 19:37, D. Wythe wrote:
->   static void smc_copy_netdev_ifindex(struct smc_ib_device *smcibdev, int port)
-> @@ -952,7 +916,6 @@ static int smc_ib_add_dev(struct ib_device *ibdev)
->   	INIT_WORK(&smcibdev->port_event_work, smc_ib_port_event_work);
->   	atomic_set(&smcibdev->lnk_cnt, 0);
->   	init_waitqueue_head(&smcibdev->lnks_deleted);
-> -	mutex_init(&smcibdev->mutex);
+On 2026-07-22 12:58 p.m., Mykola Marzhan wrote:
+> From: Logan Gunthorpe <logang@deltatee.com>
+> 
+> A read that fails with BLK_STS_P2PDMA cannot succeed against that
+> member, so mark the leg IO_BLOCKED and let the retry redirect elsewhere.
+> Skip the read-error machinery: there is nothing on the medium to fix,
+> fix_read_error()'s probe reads into host pages and would "succeed", and
+> charging the read-error budget would evict a healthy member under a P2P
+> read workload.  FailFast eviction is skipped for the same reason -- the
+> request never reached the wire.
+> 
+> Fixes: 02666132403a ("md: propagate BLK_FEAT_PCI_P2PDMA from member devices to RAID device")
+> Assisted-by: Claude:claude-fable-5
+> Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+> Co-developed-by: Mykola Marzhan <mykola@meshstor.io>
+> Signed-off-by: Mykola Marzhan <mykola@meshstor.io>
+> ---
+>  drivers/md/raid1.c  | 4 +++-
+>  drivers/md/raid10.c | 5 ++++-
+>  2 files changed, 7 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/md/raid1.c b/drivers/md/raid1.c
+> index 917d694ef401..76a1426e64f0 100644
+> --- a/drivers/md/raid1.c
+> +++ b/drivers/md/raid1.c
+> @@ -2658,6 +2658,8 @@ static void handle_read_error(struct r1conf *conf, struct r1bio *r1_bio)
+>  {
+>  	struct md_rdev *rdev = conf->mirrors[r1_bio->read_disk].rdev;
+>  	struct bio *bio = r1_bio->bios[r1_bio->read_disk];
+> +	/* evaluate before the bio_put() below */
+> +	bool p2pdma_error = bio->bi_status == BLK_STS_P2PDMA;
 
-Since smc_ib_setup_per_ibdev() and smc_ib_cleanup_per_ibdev() were removed,
-the .mutex field is now unused and can be dropped.
 
-Thanks.
+Sorry, I had one late nit-picky thought tonight I thought I'd suggest:
 
->   	mutex_lock(&smc_ib_devices.mutex);
->   	list_add_tail(&smcibdev->list, &smc_ib_devices.list);
->   	mutex_unlock(&smc_ib_devices.mutex);
-> @@ -1001,7 +964,6 @@ static void smc_ib_remove_dev(struct ib_device *ibdev, void *client_data)
->   	pr_warn_ratelimited("smc: removing ib device %s\n",
->   			    smcibdev->ibdev->name);
->   	smc_smcr_terminate_all(smcibdev);
-> -	smc_ib_cleanup_per_ibdev(smcibdev);
->   	ib_unregister_event_handler(&smcibdev->event_handler);
->   	cancel_work_sync(&smcibdev->port_event_work);
->   	kfree(smcibdev);
+It might be better to store bi_status in a local variable instead of the
+much more specific p2pdma_error value. I think this would read a lot
+better, make the intent a little more clear and be reusable if other
+bi_status conditions need to be handled specially.
 
+Thanks,
+
+Logan
