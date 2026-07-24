@@ -1,35 +1,36 @@
-Received: from smtpbgsg2.qq.com (smtpbgsg2.qq.com [54.254.200.128])
+Received: from smtpbguseast1.qq.com (smtpbguseast1.qq.com [54.204.34.129])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1E9CF2E7365;
-	Fri, 24 Jul 2026 02:29:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.254.200.128
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 416E52DFA2F;
+	Fri, 24 Jul 2026 02:29:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.204.34.129
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784860160; cv=none; b=hsEulwG8h1ABfbpHkygG/WpPjBIJ3Oay4Q+FsHHmsl4+MxECSErWJkcg+yB4KWzz3U8ev58MBdiKvvk1775td4ZUwbkRSx5A85ubFwIfQioG0xp3oUalFtALIOnSP7FQHy7ui4Cqf6SNOJUkvxT8D+lsoYPS7ezdWbE2Ijl2tbU=
+	t=1784860161; cv=none; b=jC6pesrqTpJtbO2GiwmwZS17FiVonuHEj+Mb7tnEkSSg9WQnLbtgsyH21j38XOaEXJKllQ6TFpIxHJxKQQv1wjIolmsqq2BC3+8TbqavficSSEN0PGvmO6m+gc64IDk77e4D8QIIt4jClPJbORZ50CrFWWyfUIw+52X8uv9OKNc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784860160; c=relaxed/simple;
-	bh=ivpLlw7HYbov7fvBvirRCkJ2FYbIU2myJ54Nz/Y2iKo=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=F6HcB43w2wQk3evFYdYr/PZIlFHwwBzp6r6y2rfTzjpYDrl5+nY7MICi9oiCiR8pYbLyEG9E9xFsDjcWGd9l9d33PobiZ+5n/7PgA9Kzbes/KQy6HFnPzXK2kYz1sTU001amgZpPOolBTQ2fZwI/gXAHr/n71ga1a0hjkl/tZ8w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=uniontech.com; spf=pass smtp.mailfrom=uniontech.com; dkim=pass (1024-bit key) header.d=uniontech.com header.i=@uniontech.com header.b=CxzBdgea; arc=none smtp.client-ip=54.254.200.128
+	s=arc-20240116; t=1784860161; c=relaxed/simple;
+	bh=m96zxm1tlVq9oW7yYZBLEg7xTdMzMUccwEOKVWUnif8=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=jdW+1Pb0yzoQB/b22FGbMOl1fkZZxkxCADKefReO4Ybp1VDOvjzHHJVO3jQZxyuEFYX/2OKbdZL7eGxO3YQ4CqTpRqhZtAG9bkNN8vwA5SefTRyLPYOvRHaOwD5SpnHXkRSatig0hPISfFLghqZYbqfHtOWVF5Yi003gtujMrM8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=uniontech.com; spf=pass smtp.mailfrom=uniontech.com; dkim=pass (1024-bit key) header.d=uniontech.com header.i=@uniontech.com header.b=Thpc9fD+; arc=none smtp.client-ip=54.204.34.129
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=uniontech.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=uniontech.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=uniontech.com header.i=@uniontech.com header.b="CxzBdgea"
+	dkim=pass (1024-bit key) header.d=uniontech.com header.i=@uniontech.com header.b="Thpc9fD+"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=uniontech.com;
-	s=onoh2408; t=1784860142;
-	bh=COw6l4tZGKI2EtZCsRNwhO9S4qZRY68UndjXev8R1FQ=;
+	s=onoh2408; t=1784860149;
+	bh=XcvnlsC3HhT/It5VuOwr2y7sGHW1GiSiBgnaGk3guqk=;
 	h=From:To:Subject:Date:Message-Id:MIME-Version;
-	b=CxzBdgeaIW6FbkCf1QuWJCZSzv2a//grT9wGIQ+LXIeku71jFflzg/hXhRSnhy/rd
-	 tbRUi+A2ZgXms4p2iivaBqOcnBydoT47Ax9QyMjp6Mm2WD1NBXxXkztHQFJn0f0I5+
-	 iNgovUMNIC8e1YT1b8IoVti3uEhBcB24ABMlQVWc=
-X-QQ-mid: zesmtpip4t1784860135t56239e5a
-X-QQ-Originating-IP: uxNb/JIeTaYaqS/plW1kaXfiKOf+TwmtfXaiPsha900=
+	b=Thpc9fD+snLZvia4IvIECJR4/9ngZ61H2O5O1Og1QqoADevADqPMz/Bq1/8BXRRWz
+	 JCrXR8+gXkama1LSqp+3/GKFYENpvhaX29P6kuiuDXji9ZyCg63LOcE/Yq33QZNkGR
+	 BEJyJj84Px6hBhmJtbdXUe181psxM+dEj5Zv63ag=
+X-QQ-mid: zesmtpip4t1784860141tf7457151
+X-QQ-Originating-IP: mFrNixuyb/9G3t9a9hZZYveY0Gmd34ZMyBS60EAtLAY=
 Received: from localhost.localdomain ( [localhost])
 	by bizesmtp.qq.com (ESMTP) with 
-	id ; Fri, 24 Jul 2026 10:28:51 +0800 (CST)
+	id ; Fri, 24 Jul 2026 10:28:58 +0800 (CST)
 X-QQ-SSF: 0000000000000000000000000000000
 X-QQ-GoodBg: 1
-X-BIZMAIL-ID: 5628155496822218120
+X-BIZMAIL-ID: 9941543075585726979
 EX-QQ-RecipientCnt: 26
 From: Gou Hao <gouhao@uniontech.com>
 To: maddy@linux.ibm.com,
@@ -58,10 +59,12 @@ Cc: linuxppc-dev@lists.ozlabs.org,
 	linux-mm@kvack.org,
 	gouhaojake@163.com,
 	kernel@uniontech.com
-Subject: [PATCH v2 0/6] remove dead NULL checks after GFP_NOFAIL allocations and fix xive use-after-free
-Date: Fri, 24 Jul 2026 10:28:45 +0800
-Message-Id: <20260724022851.466017-1-gouhao@uniontech.com>
+Subject: [PATCH v2 1/6] powerpc/xive: remove dead NULL check after GFP_NOFAIL allocation
+Date: Fri, 24 Jul 2026 10:28:46 +0800
+Message-Id: <20260724022851.466017-2-gouhao@uniontech.com>
 X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20260724022851.466017-1-gouhao@uniontech.com>
+References: <20260724022851.466017-1-gouhao@uniontech.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -71,55 +74,59 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-QQ-SENDSIZE: 520
 Feedback-ID: zesmtpip:uniontech.com:qybglogicsvrgz:qybglogicsvrgz5b-2
-X-QQ-XMAILINFO: MnWNx+I81Iu2Fz6e9ISujN5P/UrODP192vFbMUOpNCYFwp4Jy7lPAjz1
-	FQ4LPpG1v5v+ebYQNz8a0/f9Kvg+LkcwjPBLU2/vJhrGpJJh+MQ5TJ/Z+/C/aKvsuC446i1
-	g4DKKrckjJBJWKCGw7z+Yj9HBXpGQjzZeeNCZnAYnu57I1lYLujYy/DO4VDakXkUi3oytrc
-	5uBqzRS32TJhnGkjtKjKRReDUxPWIReDlc7I+s0z0k7VFmJt3JwAt93O50T11p6IchYyu4U
-	pmseWu/dMeQCL7n4lD7rsn7NWx1X94DvRBPurUJdwdFDt/N91cX+YjK6nK1Wfe/uSAJuKpg
-	ETjkUJDHVTs62y4/vRYyMilIEvRgU6wGFjXY0kk3MXrlHl2CcWKGw/6LcI+56n2lBNksQvW
-	d/Av2xJWJMPyFsX0/1NRCO9xsKr1ROUUtbyb9NLVr+qrYue2s98xgmhzsRYza7W1CmWbxn5
-	nNg2c6gWwNuNW4EN0Qld6Q+EtmzdgU8m8qCoGh27x2uHxpIIfkq06tM3ZOo0TfsWqpFm7Kb
-	fyQ7O25c62/Av4ghd5HkPa3UiaLDbq5YiJ37cW6sca9ETxfLMfXLcGFu/tuMFhaYDMeCWhS
-	F+AV6xK668Bij/ThkY4TE6VS6KpATeO3Yjg9KeIkbHpIPQzaG9/i0o7PHjGjwHxAXZDHE3G
-	hXDdY244jDfRxOxqe/HGk/5urXges5xV3IJ+mQZBu2kSQXBugaeiiHLOk+oFVtmwXXPdTzg
-	Np30wImdiz6tg2hg5MpU+Skr37NjEkZcUIcxaxtVp0V7aycyODdbBpwqNDZsWMKxn+82FPy
-	g//kgb0OgzLbAy7iX9B7k7taVmtoxDmrsEx+Q5shFQbLMrHGfll1NpxIA8c7fE+cuHnAlL0
-	/iQhORbsV+K0+ofEol+avk/XFKfurD96l/aR6a0n6bhQc/9XE723wVTGAOuZ6m8pmBEHzAu
-	9eyYqYMlQSp/jQ98v8/WM+7aewP4n+/YyCxYpoVtY/sk53NhHnu67NwdoIDmtmSsc2zeWQS
-	vgEJXOTwbS4F06MlnpqsrUa3e9ONJwFhMZ0MHd0Q==
-X-QQ-XMRINFO: OWPUhxQsoeAVwkVaQIEGSKwwgKCxK/fD5g==
+X-QQ-XMAILINFO: MKbitA53r7aLciQUIs5N5Tp6Sxgcv1w+S7zBqk7n99csOTvy406dgMTT
+	sOkgZ/hApPmf3bKG96PkPQXXAxqBoFy032u3JELorA5el5VbXUFO48WAQSd7HLbFz0WY5au
+	RJOyxbSi/6iIHkn2Xi+6yfQ6XD9GM1BVHqR7LsYps5FZSPhMPpOehOFlDn766uJo8N0N062
+	7RIKqwXW0GbV3ggW0syika0wVakN5jMKmg1en2o7zQg1J9C7iD2YGR0LQ7gZIwXlcV2/mMi
+	TcfIeb0mIim9VBNK6vV4TEpYESu3cYTqfSddr1VpvFZnbjLz+nnJmflHgl394kpMeb1suYP
+	jdeemvNIcTLVvsUJiIRJLo9kPfOkiYsc6itKN4eG1X6OScjRg+Z7aixxybDe/ACwO7f90fb
+	8uxBmydEvHaboLANp1H3ozrpT0CcQTWb3S0tbsltGquaE6rgtkfatvM4QK7u/6b4VsOQAaF
+	L0lDweit4ID6Rcu09PWdl36HLVpP/HDgEIrHV9471gZQdU4Br10CoDK4kWV/v6vcixuM9s1
+	+jjVV+pZZQv7/vBSIExQT6Et2mX0uE0p6JjR9DxNZjf9bwo8s0WJK+81+xpGzqKX2u15Dd1
+	VWk2DsXsc4p7XJfbRYYuNhyA5lGoZijiCmmKDXx5nykLEzGnnyOA5R9YMiLV8h0GXpLwmJy
+	+gR9SO0qnSTlhPEfyqFT5hdhiS2twGQ2QyQmzEU/dbEd0n+oxp/29w47XgkGTlHonnMnfXv
+	6cHoGb7wt3HrEOL+2d9IF13hFhh4blxEWutjyW5x4etjB6KM19S1fAMESkq6+cyT2frQd6R
+	3LvOXcmR5Zaq8kXvi/8wf89atufvJPDTTu48VLXNYJxAsKzQ4SOcv55zfPJHucsEn1dlnr3
+	7KO+I6yDPj6G1JWZSo1evCa0mq1hdDVyVXrs51k0NKz1NZiT1YXBblk97uhAKp60Igmj5NN
+	fRQxcdy21Z02GDr83vZNnDfSN5n6YO3kjHX5/2f9cooFOCvOxKVXm68I14zwqPUfoaAINh4
+	abHRQH0HbIhtCijWfcdOJivysz4H/LuQ1/Y5sySLwXzSENUP5y+q7lbOgIexhy6UfoK3OVn
+	Pqu3XwNpby90rSSIuxhVoY=
+X-QQ-XMRINFO: NS+P29fieYNwqS3WCnRCOn9D1NpZuCnCRA==
 X-QQ-RECHKSPAM: 0
 
-Changes in v2:
-- Remove the now-unused out_free_domain error label in the xive
-  patch after deleting the unreachable NULL check goto.
-- Fix a use-after-free of xive_ipis: when xive_init_ipis() fails,
-  the error path frees xive_ipis but xive_smp_probe() ignores the
-  error and proceeds to dereference it in xive_setup_cpu_ipi().
-  Propagate the error return through xive_smp_probe() and check
-  it in both pnv_smp_probe() and pSeries_smp_probe().
+kzalloc_objs with the __GFP_NOFAIL flag will never return NULL, so the
+subsequent NULL check is unreachable dead code. Remove it.
 
-This is a code cleanup series that removes unreachable
-NULL checks (and associated error handling) that follow allocations
-using __GFP_NOFAIL, which guarantees non-NULL return.
+Signed-off-by: Gou Hao <gouhao@uniontech.com>
+Reviewed-by: Wentao Guan <guanwentao@uniontech.com>
+Reviewed-by: jiazhenyuan <jiazhenyuan@uniontech.com>
+---
+ arch/powerpc/sysdev/xive/common.c | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-Gou Hao (6):
-  powerpc/xive: remove dead NULL check after GFP_NOFAIL allocation
-  powerpc/xive: add error return value to xive_smp_probe()
-  powerpc/xive: fix use-after-free of xive_ipis
-  drm: remove dead WARN_ON NULL check after GFP_NOFAIL allocation
-  lib/test_hmm: remove dead NULL checks after GFP_NOFAIL allocations
-  RDMA/cxgb4: remove dead NULL checks after GFP_NOFAIL allocations
-
- arch/powerpc/include/asm/xive.h      |  4 ++--
- arch/powerpc/platforms/powernv/smp.c |  8 +++++---
- arch/powerpc/platforms/pseries/smp.c |  8 +++++---
- arch/powerpc/sysdev/xive/common.c    | 15 +++++++++------
- drivers/gpu/drm/drm_modeset_lock.c   |  4 ----
- drivers/infiniband/hw/cxgb4/mem.c    | 10 ++--------
- lib/test_hmm.c                       |  6 ------
- 7 files changed, 23 insertions(+), 32 deletions(-)
-
+diff --git a/arch/powerpc/sysdev/xive/common.c b/arch/powerpc/sysdev/xive/common.c
+index dadd1f46ec939..f2904a5c2b7bf 100644
+--- a/arch/powerpc/sysdev/xive/common.c
++++ b/arch/powerpc/sysdev/xive/common.c
+@@ -1134,9 +1134,6 @@ static int __init xive_init_ipis(void)
+ 
+ 	xive_ipis = kzalloc_objs(*xive_ipis, nr_node_ids,
+ 				 GFP_KERNEL | __GFP_NOFAIL);
+-	if (!xive_ipis)
+-		goto out_free_domain;
+-
+ 	for_each_node(node) {
+ 		struct xive_ipi_desc *xid = &xive_ipis[node];
+ 		struct xive_ipi_alloc_info info = { node };
+@@ -1158,7 +1155,7 @@ static int __init xive_init_ipis(void)
+ 
+ out_free_xive_ipis:
+ 	kfree(xive_ipis);
+-out_free_domain:
++	xive_ipis = NULL;
+ 	irq_domain_remove(ipi_domain);
+ out_free_fwnode:
+ 	irq_domain_free_fwnode(fwnode);
 -- 
 2.20.1
 
