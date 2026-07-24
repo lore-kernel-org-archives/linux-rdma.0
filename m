@@ -1,36 +1,36 @@
-Received: from smtpbgeu2.qq.com (smtpbgeu2.qq.com [18.194.254.142])
+Received: from smtpbg151.qq.com (smtpbg151.qq.com [18.169.211.239])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 47FC624A05D;
-	Fri, 24 Jul 2026 02:29:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=18.194.254.142
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8BCE631985D;
+	Fri, 24 Jul 2026 02:29:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=18.169.211.239
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784860174; cv=none; b=FYaoAQG7Ln8tvljW7nUtbNwP+CG0IG7/tczGqN6NaGoZXP127sedVPhY8jj98GqCLoXzTjMHR3JG/6qTGYraYhdnuytvEyoCCM7EjSjZWLphd+sh8BPMOvmQ4F6CDgJ8RaRTELT5rw979VsL98E9bl+zY1wMbrc/FfNo5k1Dxds=
+	t=1784860180; cv=none; b=nL96TUolTfo/LznUgfhQavVBJu2iQYXpEGvYcwGIqG2aXWC9MMDnegGXEVOCvTBePGeS1Yrn/+A9KBWV65nJnoGB3MxoxwMkLjRm0mjjJpbSt/xcbReMtBXBwj7fh650UIkEksAp10UCkIQL1P3Fx/YsLcF+mE7A1Umsf7RVzCg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784860174; c=relaxed/simple;
-	bh=JT1pzcfQVM886uEGqMmj+hWRUWDWJTINjKd9EvxpzuY=;
+	s=arc-20240116; t=1784860180; c=relaxed/simple;
+	bh=4PnnGJ6+0v44DOxB1H5wpOo39BV7YOi1rtx2aSUDuWA=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=u8NVjNke89nqaUwA/a3lXVwFOnSqSytO9K7a03n1hJZawCFhiCrucdpstXyC1FYS6uPpzUdA66spPUkRNagFlb0jDEjcmJYaI50i70OUWI5M2jeT4o0+yjbtjhmfu4KrmoaxaJk6nprwpN3hJ/8h+vmHDCJwTJqD3ZztjoPO+wE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=uniontech.com; spf=pass smtp.mailfrom=uniontech.com; dkim=pass (1024-bit key) header.d=uniontech.com header.i=@uniontech.com header.b=UKkOeSMj; arc=none smtp.client-ip=18.194.254.142
+	 MIME-Version; b=bl9e2O2y98yIt3YDWs4FXg0g3KAwF9RW3K+g/g+4lE2XFAedn4Fiw3xqiN1yUOVcmp2dmeAlqMnDOBetzy/beGc3TMzoqOC9DzPnXyc4FJDH1gxocHqMKAe0m9B32dq9WfZ4Ns39Az0EuDKbaurUenCd6xp1N3m5D93CppG8Zfc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=uniontech.com; spf=pass smtp.mailfrom=uniontech.com; dkim=pass (1024-bit key) header.d=uniontech.com header.i=@uniontech.com header.b=ImOl3V+3; arc=none smtp.client-ip=18.169.211.239
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=uniontech.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=uniontech.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=uniontech.com header.i=@uniontech.com header.b="UKkOeSMj"
+	dkim=pass (1024-bit key) header.d=uniontech.com header.i=@uniontech.com header.b="ImOl3V+3"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=uniontech.com;
-	s=onoh2408; t=1784860167;
-	bh=+ZvTI/fcAWs1dkQ4W9g4AT4WdA/up4PGQNqGKnn0rhc=;
+	s=onoh2408; t=1784860168;
+	bh=OyqXJDBODKL4i9r4faSbxqKqbqbjK9rOASLwkWPXzB4=;
 	h=From:To:Subject:Date:Message-Id:MIME-Version;
-	b=UKkOeSMjc/734Eg4FD29Vaa0QPupow1mcYAPMdU0RYAmKUYyK2ylcBhHHNUhjlepu
-	 mbxexVLc6DivY6nkDL6kc4X7wFL00xjZPf6n3cB+tp/B+WdfoksWWTL+anW4tXF7sd
-	 WNkTTSCQWJF6KAo1LyQDU0SYez1fEa0bJoYSRBSw=
-X-QQ-mid: zesmtpip4t1784860156t81fb8ef9
-X-QQ-Originating-IP: uU8Dw1tobLbkmKcfvIpWRxgng5wGRpu3yzVVioqlHrE=
+	b=ImOl3V+3qmGjRisyVUVd9mh2AZ0NFSJDdEzDIqUpNvqoNTKhOzOi6KGDffGACMmtR
+	 Ieie27rcygsxcHg/b5/K/9wRnsRHf46IlOy9eN5HlR7Vl9LPGQaDr1c7Xc6lm8x8IL
+	 1q3YhVXJS2PN8fyIiZ8h9JL89x+DGRIhNn+dO7mU=
+X-QQ-mid: zesmtpip4t1784860161t8fb1ed23
+X-QQ-Originating-IP: aBJCglJ9q/YAKBS1d2e+RK0bytOzmdANKIZ+RTuS4uM=
 Received: from localhost.localdomain ( [localhost])
 	by bizesmtp.qq.com (ESMTP) with 
-	id ; Fri, 24 Jul 2026 10:29:13 +0800 (CST)
+	id ; Fri, 24 Jul 2026 10:29:19 +0800 (CST)
 X-QQ-SSF: 0000000000000000000000000000000
 X-QQ-GoodBg: 1
-X-BIZMAIL-ID: 1489989829865237816
+X-BIZMAIL-ID: 645947347967007313
 EX-QQ-RecipientCnt: 26
 From: Gou Hao <gouhao@uniontech.com>
 To: maddy@linux.ibm.com,
@@ -59,9 +59,9 @@ Cc: linuxppc-dev@lists.ozlabs.org,
 	linux-mm@kvack.org,
 	gouhaojake@163.com,
 	kernel@uniontech.com
-Subject: [PATCH v2 4/6] drm: remove dead WARN_ON NULL check after GFP_NOFAIL allocation
-Date: Fri, 24 Jul 2026 10:28:49 +0800
-Message-Id: <20260724022851.466017-5-gouhao@uniontech.com>
+Subject: [PATCH v2 5/6] lib/test_hmm: remove dead NULL checks after GFP_NOFAIL allocations
+Date: Fri, 24 Jul 2026 10:28:50 +0800
+Message-Id: <20260724022851.466017-6-gouhao@uniontech.com>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20260724022851.466017-1-gouhao@uniontech.com>
 References: <20260724022851.466017-1-gouhao@uniontech.com>
@@ -74,49 +74,54 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-QQ-SENDSIZE: 520
 Feedback-ID: zesmtpip:uniontech.com:qybglogicsvrgz:qybglogicsvrgz5b-2
-X-QQ-XMAILINFO: N0jQ/i/W/QNTxc/RtOd6E5z5X8iG4Xi7MqQlPDvw0XsBDLmShpd7mycT
-	Xpv6qVp+4ijm3fmIl71zFj+aIYwRCnNJQyyR5AooAftoCKB3PrQqiqrnwEI3b13BwWo8v46
-	i5VM6TOAep3cS1JT2Q1V11/cn42F8ZHkI4LCGpDObLaDi5pbOPmuFWTXJYDbAXqj1UnRZ9m
-	pQhBOSq5LG3xhpmajaz6Ru4IyWqwNpMMi1KnzmxUBsZqbG8VNuhQAQV9b7M0i5NwGAsMCTB
-	LYbaQrKuF1bVNDm63EaYvf7RN6e/OrJCwU0GfaQB3ROHS1S+uIQRcEv7zHK9hkH/0r0ciAz
-	pm+kxbAmHhbOduLSCV5btEfD6BXlWLQxwrhiVNvGkGpBkzV+Fm0Vmgdhj2BY/5nQDSyU1gn
-	WFcDvPe0tQh0FLZpHnuPtuOyhXDNdAF3lxnsh49+wB+20Ht5Gb+S5pJqqKoBCy5NhIe2u0h
-	uGYJW2JMlvjI6VR4TEYBv6NwiyOzUDkFvasbIbxElR4Yn4T1hZEYt54uC2d58tjhFkJuhdB
-	DftLyvprBOSKpAFqeRVIktYQHqr2vBYyyLm5HIk1d0CnWLTD1tBK/Bnqcfoym5McJeCm96u
-	r/zotQyMwj/qrNDgyBDbGNRchpmOP1/KqJ6hvTnlGZtwHyIvtM6yib4/NRhSl403w71YbES
-	pVjPpHMHiGAznigrLN0CfuIzHYgFs1IMlj3yHNN0HrUfRpgRuGgFug/Hc1tUv+PNNF2Q/6P
-	hw2qkgvXXdkFApwk5wu/kjStmP9YkudYxY11bVpoP4aDckRgvVFohZCohUjLJ1uYyqVgr0U
-	5Nn7h8EV+merpEbwqCd85yj4lTpl3k8jMgwCS4W6qtAPy0uaZMHPrSS1NyahcNCFs10ECbb
-	TM+TSjQs5njAmxd1D678fdsOQZy3dyBjD/NhrV/AB4zC4xBO5TyeFUdFq+EyRWuMiXdJeg5
-	jrrvuj7PcUYnIqSidc8Krylg8R5xZyCqb8Cs6fts44nLSQ2cMstY6G2YIQwR8kEgNfrIrzj
-	nQP+j3uMRkDGQ3wdBji7nGcCcINOlYyIihPFePqMOVNMZGWEvX
-X-QQ-XMRINFO: MPJ6Tf5t3I/ylTmHUqvI8+Wpn+Gzalws3A==
+X-QQ-XMAILINFO: MhQmneo+3OPbeQBuJJY9aHki43hwqRhTZA8RBTTsTVh6xygcqsJ5LM84
+	51kCX/5nBUggAR5Q2KtqnFtaQFGbZwgpt1Bxp3zhwC2QFRUsB/CQLEVdX1cgGoF5y8hEGc3
+	nJAWwUMupjREAV6EhTuCagftQRhJz9/eNPhqPlJ2GZBawTKyouKP4OsUKK6hjQqKHGC0nG2
+	gxjfuD+m+W3xlV1hmpL4Ngfx3vjJH+LljEfOipBekInwM6A15YkTnkOPwjRAk0JO2ZpsrOT
+	cEVbogtyNvUTx/+H/R83YnUk7X791NfttDwrSAyHEUhgm9ZxJn9H2PfrBVZpWmloVIjtpUQ
+	5dBE2a4UKQy74DQAzoHmi9K0RnRKBTN2E17ofm02O00H+xX92mCUfxOlEXubxUCOmYf3sgl
+	UaGJu8yY7U5JJ5Fk5N3Y9R2x1sQAlryg5M4owSs0uaWu9igsBEuWoIz4FtkfjxQLT3SmUCG
+	gTrsFdYMkkalMUkGZFTdsiQWmz5U1WkJY7+wc4d3SnpsBnA/HSSkDeJgF27WIBFNaaC6Tu1
+	lJRQtK0OuvBzTzaHgdWaJc+ebtjhK+utAjb8rCaI8DIk1j380k6HhRsSQDUKlEGkMX9ZDhC
+	7UJWRaNoc0dHa44YFeTuUvJc5n/tjISyHkvw4ispyWGH1t/78f3/Vo/o0/cMWV4+AX1FE1z
+	IqXDayP51VASxpf8VibmnPBTYw7qcaMWymgQfxBDJBd86kDya/c1hc2p4+5B6WYBit55b06
+	U9pqsMK5hXhe9IjVnHKY4kwEianfI2/c+vWVDwoQlfsMaZlQtLuAFDBjrIc7efsS2LmLNZJ
+	SGSh54oApiRAByxCv57JvkAYMwFMSDWG4MSRizPYr0I/2+XVoUaukzI3kamwuoe4cRu32B3
+	yTaxrRU3pfikruafSgojo4G9lhqQcJgcDKwoQm9quVD4bCqMkjYnmjWdVBXz2QzYlQHhubS
+	Rzhkw7lMSmTjJlOR5miHUVgmN6RG9K59g2S4C0ERw7Bx59dITwa9JRtz5TLKt2gD7xEFgJl
+	I+CRuAJYlKEXq7ob2KvkJcmq4KGn5ABj/6SdlHwuIwoiYBx9QI0KKUVCVmhWE=
+X-QQ-XMRINFO: Nq+8W0+stu50tPAe92KXseR0ZZmBTk3gLg==
 X-QQ-RECHKSPAM: 0
 
-kzalloc_obj with the __GFP_NOFAIL flag will never return NULL, so the
-subsequent WARN_ON(!ctx) is unreachable dead code. Remove it.
+kvcalloc with the __GFP_NOFAIL flag will never return NULL, so the
+subsequent NULL checks are unreachable dead code. Remove them.
 
 Signed-off-by: Gou Hao <gouhao@uniontech.com>
 ---
- drivers/gpu/drm/drm_modeset_lock.c | 4 ----
- 1 file changed, 4 deletions(-)
+ lib/test_hmm.c | 6 ------
+ 1 file changed, 6 deletions(-)
 
-diff --git a/drivers/gpu/drm/drm_modeset_lock.c b/drivers/gpu/drm/drm_modeset_lock.c
-index 2c806b0146d67..e14814c30d8c0 100644
---- a/drivers/gpu/drm/drm_modeset_lock.c
-+++ b/drivers/gpu/drm/drm_modeset_lock.c
-@@ -149,11 +149,7 @@ void drm_modeset_lock_all(struct drm_device *dev)
- 	int ret;
+diff --git a/lib/test_hmm.c b/lib/test_hmm.c
+index 9c59d1ceb5b57..d615e4e5fc447 100644
+--- a/lib/test_hmm.c
++++ b/lib/test_hmm.c
+@@ -1209,16 +1209,10 @@ static int dmirror_migrate_to_device(struct dmirror *dmirror,
+ 	if (!mmget_not_zero(mm))
+ 		return -EINVAL;
  
- 	ctx = kzalloc_obj(*ctx, GFP_KERNEL | __GFP_NOFAIL);
--	if (WARN_ON(!ctx))
--		return;
+-	ret = -ENOMEM;
+ 	src_pfns = kvcalloc(PTRS_PER_PTE, sizeof(*src_pfns),
+ 			  GFP_KERNEL | __GFP_NOFAIL);
+-	if (!src_pfns)
+-		goto free_mem;
 -
- 	mutex_lock(&config->mutex);
--
- 	drm_modeset_acquire_init(ctx, 0);
+ 	dst_pfns = kvcalloc(PTRS_PER_PTE, sizeof(*dst_pfns),
+ 			  GFP_KERNEL | __GFP_NOFAIL);
+-	if (!dst_pfns)
+-		goto free_mem;
  
- retry:
+ 	ret = 0;
+ 	mmap_read_lock(mm);
 -- 
 2.20.1
 
