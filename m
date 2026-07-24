@@ -1,51 +1,38 @@
-Received: from relay.yourmailgateway.de (relay.yourmailgateway.de [46.38.247.119])
+Received: from ale.deltatee.com (ale.deltatee.com [204.191.154.188])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 30E1141D215;
-	Fri, 24 Jul 2026 10:21:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=46.38.247.119
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 75C994457A1;
+	Fri, 24 Jul 2026 15:13:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=204.191.154.188
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784888505; cv=none; b=Ai2oYUHUikQS7YZf+FldHoZF4xY1Ew+napx5csRCUlLORDu1TwvC0RtriYbFJRM6Kkrh8YfSdySejHnfBTEZTD2bD1C3QjjFEr1l3c8MVT+i7HBHfSqCICXj1bnjwOmbdsHbEFasAKXZGiNIXQjwIQVyR/ozyz8MHz5E9qdFfuI=
+	t=1784906011; cv=none; b=hTBxMcJcD/tGAniCqcEE1+tlAYr+NDiyu6EGGEXLzmBKYPye07mhKd8k3OUABDXTh6yTn6aoYwxzeV+snbA4owdApWxRUi/WChl5rVVarTOcae0dGcDWuc3vX/m7Ck86JOX3QlYDMmVOtugA8XfuddPXBgFTepgiXq4w9tkvVW8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784888505; c=relaxed/simple;
-	bh=o1i6BGbHsXA2S1cnmSyWtCQB/tcY7gOoTS0f9ZPd+gw=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=Dx93C9dcitEh4mCMyRhTYeNPlPrO8BvPnHt75mbi7m4ROhXpiTMoOjfadDPQTYB/o8LFXw+x1z8DWaLgUQuHh3+s4tjPE8qRm1P/OI/V7N4OWKVdnkOmohs2Us5Mv32AHbG60aYENbaloD0/FbOYBImedllXysp/AzGAwvRJhTs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=leemhuis.info; spf=pass smtp.mailfrom=leemhuis.info; dkim=pass (2048-bit key) header.d=leemhuis.info header.i=@leemhuis.info header.b=OhU8R58Q; arc=none smtp.client-ip=46.38.247.119
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=leemhuis.info
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=leemhuis.info
+	s=arc-20240116; t=1784906011; c=relaxed/simple;
+	bh=gvq61LPzryx7OIsJgT5KcTzegy2Z9MAjptSrQ3OG7hs=;
+	h=Message-ID:Date:MIME-Version:To:Cc:References:From:In-Reply-To:
+	 Content-Type:Subject; b=p4NbgLNf7Z4zwUEie99P27C0/vIO59Zils+6QC6Z6MKeJZ7Uz/5qJXC1U71Anb+I3ehPOPaVkcMviUXa3OLXDxxZ01UKNiVg/km4vbBc29qoCD3zYb5B0VJJkMaqCXKJGu2ZjidiMaSQN6en4AX9eh9RlZB+YbBnB6RmMmW1nw0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=deltatee.com; spf=pass smtp.mailfrom=deltatee.com; dkim=pass (2048-bit key) header.d=deltatee.com header.i=@deltatee.com header.b=cWmRFP83; arc=none smtp.client-ip=204.191.154.188
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=deltatee.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=deltatee.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=leemhuis.info header.i=@leemhuis.info header.b="OhU8R58Q"
-Received: from mors-relay-8404.netcup.net (localhost [127.0.0.1])
-	by mors-relay-8404.netcup.net (Postfix) with ESMTPS id 4h63tj5HkRz8L7H;
-	Fri, 24 Jul 2026 12:21:33 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=leemhuis.info;
-	s=key2; t=1784888493;
-	bh=o1i6BGbHsXA2S1cnmSyWtCQB/tcY7gOoTS0f9ZPd+gw=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=OhU8R58QE2v8FnEHmf0IhAkFnRUuHit96VHskuy0c3JPF1BGKgCXqzPr2+mRaGFrW
-	 25ztoWyqndgjKpnp8dZOfBnZ7RLHAWpwD40klhqzrmQNymveo2M3PEH7GmUPm/J0pI
-	 hcJeQIaWflrRB5MPwxYKbL/DVvZDX4MljnWrEN1DnjnKuem3XavSdGp3bPp7DRLS3+
-	 XtvpCCPpXUt+B2RV4ShIi0UVyvkgPl54eVp/jBAyzng+0qiUKVpiMCmrdzvO0J4brH
-	 APWAqi+TQHpdM25cnoQ1jkxKabAVocNi6TH4dhWefm5syPRvKW9TGdkskDAEIXP0hl
-	 aOPyBDTylUrAA==
-Received: from policy02-mors.netcup.net (unknown [46.38.225.35])
-	by mors-relay-8404.netcup.net (Postfix) with ESMTPS id 4h63tj4Wrsz4xJK;
-	Fri, 24 Jul 2026 12:21:33 +0200 (CEST)
-Received: from mxe9fb.netcup.net (unknown [10.243.12.53])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (P-256) server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by policy02-mors.netcup.net (Postfix) with ESMTPS id 4h63tg5329z8tH7;
-	Fri, 24 Jul 2026 12:21:31 +0200 (CEST)
-Received: from [IPV6:2a02:8108:8984:1d00:a0cf:1912:4be:477f] (unknown [IPv6:2a02:8108:8984:1d00:a0cf:1912:4be:477f])
-	by mxe9fb.netcup.net (Postfix) with ESMTPSA id 666925F9DB;
-	Fri, 24 Jul 2026 12:21:30 +0200 (CEST)
-Authentication-Results: mxe9fb;
-        spf=pass (sender IP is 2a02:8108:8984:1d00:a0cf:1912:4be:477f) smtp.mailfrom=regressions@leemhuis.info smtp.helo=[IPV6:2a02:8108:8984:1d00:a0cf:1912:4be:477f]
-Received-SPF: pass (mxe9fb: connection is authenticated)
-Message-ID: <c969f48f-833c-4a0d-8e3c-c7e88f9a052d@leemhuis.info>
-Date: Fri, 24 Jul 2026 12:21:29 +0200
+	dkim=pass (2048-bit key) header.d=deltatee.com header.i=@deltatee.com header.b="cWmRFP83"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=deltatee.com; s=20200525; h=Subject:In-Reply-To:From:References:Cc:To:
+	MIME-Version:Date:Message-ID:content-disposition;
+	bh=ZNQaYBhxmRPRp3MSD4orn4lVQITWPI7vJhQDea9WLWA=; b=cWmRFP83Y7oPZwBv2BLRKVl1HD
+	D8rIMDnGdgxr1yVtuC+jeiGi7dT25yeEYXLQa5VBnxPIjaaiyQD5kqefwtNR8JP5td2qaCWlapYtw
+	Vd2lB/XyAkRJ2ZYbDE31HdlR0rB9YHNMJYPHrxkeOOKcfuwUzhQbWPqu0eghgt2IWpDxyjsQs1s8d
+	EB2c2EoWjQB8/ZBKMgtiZt+tj/HCdbS3B8MSQR9XpzXaLeng7EChYiemPYUadTVebvcIttEkCRR1t
+	n1T4l23fiGPBBRgawhsx7Y5uaX/BZmHaiB575OBeptxUHZa0Y0Ysymx0XcHzwlA3gqqS1dl5ECFhz
+	VU6pA5+A==;
+Received: from s0106ac1f6bb1ecac.cg.shawcable.net ([96.51.150.74] helo=[10.0.33.8])
+	by ale.deltatee.com with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+	(Exim 4.98.2)
+	(envelope-from <logang@deltatee.com>)
+	id 1wnHaC-0000000DzHJ-0tXv;
+	Fri, 24 Jul 2026 09:13:05 -0600
+Message-ID: <47954eca-63e6-401b-82d7-d5969207ded9@deltatee.com>
+Date: Fri, 24 Jul 2026 09:11:43 -0600
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -53,54 +40,55 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v5 00/10] block,md,nvme: correct handling of unsupported
- P2PDMA transfers
-To: Mykola Marzhan <mykola@meshstor.io>,
- Kiran Kumar Modukuri <kmodukuri@nvidia.com>,
- Chaitanya Kulkarni <kch@nvidia.com>, Jens Axboe <axboe@kernel.dk>
+To: Mykola Marzhan <mykola@meshstor.io>, Jens Axboe <axboe@kernel.dk>,
+ Song Liu <song@kernel.org>, Yu Kuai <yukuai@fygo.io>,
+ Keith Busch <kbusch@kernel.org>, Christoph Hellwig <hch@lst.de>,
+ Sagi Grimberg <sagi@grimberg.me>, linux-block@vger.kernel.org,
+ linux-raid@vger.kernel.org, linux-nvme@lists.infradead.org
 Cc: Li Nan <magiclinan@didiglobal.com>, Xiao Ni <xiao@kernel.org>,
- Song Liu <song@kernel.org>, linux-block@vger.kernel.org,
- Christoph Hellwig <hch@lst.de>, linux-nvme@lists.infradead.org,
- Guoqing Jiang <guoqing.jiang@linux.dev>, linux-raid@vger.kernel.org,
- Leon Romanovsky <leon@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>,
- Logan Gunthorpe <logang@deltatee.com>, Bjorn Helgaas <bhelgaas@google.com>,
+ Guoqing Jiang <guoqing.jiang@linux.dev>, Leon Romanovsky <leon@kernel.org>,
+ Jason Gunthorpe <jgg@ziepe.ca>, Kiran Kumar Modukuri <kmodukuri@nvidia.com>,
+ Chaitanya Kulkarni <kch@nvidia.com>, Bjorn Helgaas <bhelgaas@google.com>,
  Shivaji Kant <shivajikant@google.com>, Pranjal Shrivastava
  <praan@google.com>, Henrique Carvalho <henrique.carvalho@suse.com>,
  stable@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-rdma@vger.kernel.org, linux-pci@vger.kernel.org,
- Sagi Grimberg <sagi@grimberg.me>, Yu Kuai <yukuai@fygo.io>,
- Keith Busch <kbusch@kernel.org>,
- Linux kernel regressions list <regressions@lists.linux.dev>
+ linux-rdma@vger.kernel.org, linux-pci@vger.kernel.org
 References: <20260723204206.76930-1-mykola@meshstor.io>
-From: Thorsten Leemhuis <regressions@leemhuis.info>
-Content-Language: de-DE, en-US
-In-Reply-To: <20260723204206.76930-1-mykola@meshstor.io>
+ <20260723204206.76930-8-mykola@meshstor.io>
+Content-Language: en-CA
+From: Logan Gunthorpe <logang@deltatee.com>
+In-Reply-To: <20260723204206.76930-8-mykola@meshstor.io>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-X-PPP-Message-ID: <178488849128.3023183.9483321544575683507@mxe9fb.netcup.net>
-X-NC-CID: bgfn6WwD6tNqsJl92qX4PPcCQ3rLaKDwr3eppdgdbpQWarfWVJI=
+X-SA-Exim-Connect-IP: 96.51.150.74
+X-SA-Exim-Rcpt-To: mykola@meshstor.io, axboe@kernel.dk, song@kernel.org, yukuai@fygo.io, kbusch@kernel.org, hch@lst.de, sagi@grimberg.me, linux-block@vger.kernel.org, linux-raid@vger.kernel.org, linux-nvme@lists.infradead.org, magiclinan@didiglobal.com, xiao@kernel.org, guoqing.jiang@linux.dev, leon@kernel.org, jgg@ziepe.ca, kmodukuri@nvidia.com, kch@nvidia.com, bhelgaas@google.com, shivajikant@google.com, praan@google.com, henrique.carvalho@suse.com, stable@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, linux-pci@vger.kernel.org
+X-SA-Exim-Mail-From: logang@deltatee.com
+X-Spam-Level: 
+Subject: Re: [PATCH v5 07/10] md/raid1,raid10: skip futile retries on P2PDMA
+ mapping failures
+X-SA-Exim-Version: 4.2.1 (built Sun, 23 Feb 2025 07:57:16 +0000)
+X-SA-Exim-Scanned: Yes (on ale.deltatee.com)
 
-On 7/23/26 22:41, Mykola Marzhan wrote:
-> md treats an unsupported P2PDMA transfer to a member as success, and
-> nvme-rdma retries one forever.  Whether peer memory can be DMA-mapped
-> depends on the PCIe topology between the two devices, and since v6.17
-> the failure completes as BLK_STS_INVAL: retryable for multipath and
-> deliberately ignored by md for member failures, so mirrors silently
-> diverge.
-> [...]
-> Routing: patch 1 block, 2-8 md, 9-10 nvme; 7, 8 and 10 use the new
-> status.  Patch 1 alone stops the divergence and the dm-multipath
-> requeue loop; the nvme-rdma loop also needs 9-10; everything else
-> refines the fallout, so the series bisects safely.  The md patches
-> fix a v7.2-rc1 regression (02666132403a), except 3 (older bug,
-> stable) and 5 (refactor).
-This landed on my radar due to the word "regression" here. Given the
-complexity of this patch-set and that we are at v5 please allow me to ask:
 
-Should 02666132403aec ("md: propagate BLK_FEAT_PCI_P2PDMA from member
-devices to RAID device") [v7.2-rc1] maybe be removed for now and
-reapplied later once this was sorted out? Or is that for some reason
-unneeded? Note, no need for a long explanation needed in the latter
-case, a brief statement from long-term developer will suffice.
 
-Ciao, Thorsten
+On 2026-07-23 2:42 p.m., Mykola Marzhan wrote:
+> BLK_STS_P2PDMA reflects the peer/member pairing, not member health:
+> retrying the same pages on the same member cannot succeed.  Keep
+> WriteErrorSeen so the range stays fenced, but skip WantReplacement and
+> FailFast eviction, as commit f7b24c7b41f2 ("md/raid1,raid10: don't fail
+> devices for invalid IO errors") did for BLK_STS_INVAL.
+> 
+> The failure is whole-range and deterministic, so narrow_write_error()'s
+> block-by-block submit_bio_wait() retries are pointless.  Record the
+> whole range as a bad block in the completion handler instead.
+> 
+> Fixes: 02666132403a ("md: propagate BLK_FEAT_PCI_P2PDMA from member devices to RAID device")
+> Assisted-by: Claude:claude-fable-5
+> Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+> Signed-off-by: Mykola Marzhan <mykola@meshstor.io>
+
+Change my no longer correct first Signed-off-by to:
+
+Reviewed-by: Logan Gunthorpe <logang@deltatee.com>
+
+Logan
