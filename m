@@ -1,92 +1,106 @@
-Received: from stargate.chelsio.com (unknown [12.32.117.8])
+Received: from relay.yourmailgateway.de (relay.yourmailgateway.de [46.38.247.119])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE48F3515F9;
-	Fri, 24 Jul 2026 08:52:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=12.32.117.8
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 30E1141D215;
+	Fri, 24 Jul 2026 10:21:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=46.38.247.119
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784883126; cv=none; b=ClMJwEbrsqHTPrUJOhuGz6myapEm6sQ78SuVLTVOGfXA3j2N52g8Xr/+dMd1ot+Qmg3sZnmhvn4J84CXV7+3Uc6aYgFD4aR4w3+5P4tn8v+2qBOxPi8njdn2LXu6qB8iva3b0sBp0Q4OPD4yHE6zWzft8lKdbGDDf4/toZobqZ8=
+	t=1784888505; cv=none; b=Ai2oYUHUikQS7YZf+FldHoZF4xY1Ew+napx5csRCUlLORDu1TwvC0RtriYbFJRM6Kkrh8YfSdySejHnfBTEZTD2bD1C3QjjFEr1l3c8MVT+i7HBHfSqCICXj1bnjwOmbdsHbEFasAKXZGiNIXQjwIQVyR/ozyz8MHz5E9qdFfuI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784883126; c=relaxed/simple;
-	bh=5vUAbcoBwTLbU3P3yCeQxdbg4ylq9296SG3q8OeF9jU=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Dn5EhbRHUJ4rz5RdWD535HoA4E8Sy/EmLUtFIEBn9U2SKx2jJHk0trmqqJuvKSDsqzzctEWAfFJRE1XGfjjc/bGkwD0Jcv6Xn3TNl1TiRdTuVnwVnF0d/UroHqNI2jBEFlgGkfEKiveC8LlOWXzoq3zLQiyVJwjn9355HNOMnao=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=chelsio.com; spf=pass smtp.mailfrom=chelsio.com; arc=none smtp.client-ip=12.32.117.8
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=chelsio.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chelsio.com
-Received: from localhost (praveen-pc.asicdesigners.com [10.193.191.60] (may be forged))
-	by stargate.chelsio.com (8.14.7/8.14.7) with ESMTP id 66O7YKls001771;
-	Fri, 24 Jul 2026 00:34:20 -0700
-Date: Fri, 24 Jul 2026 13:04:03 +0530
-From: Potnuri Bharat Teja <bharat@chelsio.com>
-To: Gou Hao <gouhao@uniontech.com>
-Cc: maddy@linux.ibm.com, mpe@ellerman.id.au, npiggin@gmail.com,
-        chleroy@kernel.org, maarten.lankhorst@linux.intel.com,
-        mripard@kernel.org, tzimmermann@suse.de, airlied@gmail.com,
-        simona@ffwll.ch, jgg@ziepe.ca, leon@kernel.org,
-        akpm@linux-foundation.org, namcao@linutronix.de, ynorov@nvidia.com,
-        sshegde@linux.ibm.com, nilay@linux.ibm.com, clg@kaod.org,
-        linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org,
-        linux-mm@kvack.org, gouhaojake@163.com, kernel@uniontech.com
-Subject: Re: [PATCH v2 6/6] RDMA/cxgb4: remove dead NULL checks after
- GFP_NOFAIL allocations
-Message-ID: <amMVa/hvQndWud1I@chelsio.com>
-References: <20260724022851.466017-1-gouhao@uniontech.com>
- <20260724022851.466017-7-gouhao@uniontech.com>
+	s=arc-20240116; t=1784888505; c=relaxed/simple;
+	bh=o1i6BGbHsXA2S1cnmSyWtCQB/tcY7gOoTS0f9ZPd+gw=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=Dx93C9dcitEh4mCMyRhTYeNPlPrO8BvPnHt75mbi7m4ROhXpiTMoOjfadDPQTYB/o8LFXw+x1z8DWaLgUQuHh3+s4tjPE8qRm1P/OI/V7N4OWKVdnkOmohs2Us5Mv32AHbG60aYENbaloD0/FbOYBImedllXysp/AzGAwvRJhTs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=leemhuis.info; spf=pass smtp.mailfrom=leemhuis.info; dkim=pass (2048-bit key) header.d=leemhuis.info header.i=@leemhuis.info header.b=OhU8R58Q; arc=none smtp.client-ip=46.38.247.119
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=leemhuis.info
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=leemhuis.info
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=leemhuis.info header.i=@leemhuis.info header.b="OhU8R58Q"
+Received: from mors-relay-8404.netcup.net (localhost [127.0.0.1])
+	by mors-relay-8404.netcup.net (Postfix) with ESMTPS id 4h63tj5HkRz8L7H;
+	Fri, 24 Jul 2026 12:21:33 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=leemhuis.info;
+	s=key2; t=1784888493;
+	bh=o1i6BGbHsXA2S1cnmSyWtCQB/tcY7gOoTS0f9ZPd+gw=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=OhU8R58QE2v8FnEHmf0IhAkFnRUuHit96VHskuy0c3JPF1BGKgCXqzPr2+mRaGFrW
+	 25ztoWyqndgjKpnp8dZOfBnZ7RLHAWpwD40klhqzrmQNymveo2M3PEH7GmUPm/J0pI
+	 hcJeQIaWflrRB5MPwxYKbL/DVvZDX4MljnWrEN1DnjnKuem3XavSdGp3bPp7DRLS3+
+	 XtvpCCPpXUt+B2RV4ShIi0UVyvkgPl54eVp/jBAyzng+0qiUKVpiMCmrdzvO0J4brH
+	 APWAqi+TQHpdM25cnoQ1jkxKabAVocNi6TH4dhWefm5syPRvKW9TGdkskDAEIXP0hl
+	 aOPyBDTylUrAA==
+Received: from policy02-mors.netcup.net (unknown [46.38.225.35])
+	by mors-relay-8404.netcup.net (Postfix) with ESMTPS id 4h63tj4Wrsz4xJK;
+	Fri, 24 Jul 2026 12:21:33 +0200 (CEST)
+Received: from mxe9fb.netcup.net (unknown [10.243.12.53])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange ECDHE (P-256) server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by policy02-mors.netcup.net (Postfix) with ESMTPS id 4h63tg5329z8tH7;
+	Fri, 24 Jul 2026 12:21:31 +0200 (CEST)
+Received: from [IPV6:2a02:8108:8984:1d00:a0cf:1912:4be:477f] (unknown [IPv6:2a02:8108:8984:1d00:a0cf:1912:4be:477f])
+	by mxe9fb.netcup.net (Postfix) with ESMTPSA id 666925F9DB;
+	Fri, 24 Jul 2026 12:21:30 +0200 (CEST)
+Authentication-Results: mxe9fb;
+        spf=pass (sender IP is 2a02:8108:8984:1d00:a0cf:1912:4be:477f) smtp.mailfrom=regressions@leemhuis.info smtp.helo=[IPV6:2a02:8108:8984:1d00:a0cf:1912:4be:477f]
+Received-SPF: pass (mxe9fb: connection is authenticated)
+Message-ID: <c969f48f-833c-4a0d-8e3c-c7e88f9a052d@leemhuis.info>
+Date: Fri, 24 Jul 2026 12:21:29 +0200
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260724022851.466017-7-gouhao@uniontech.com>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v5 00/10] block,md,nvme: correct handling of unsupported
+ P2PDMA transfers
+To: Mykola Marzhan <mykola@meshstor.io>,
+ Kiran Kumar Modukuri <kmodukuri@nvidia.com>,
+ Chaitanya Kulkarni <kch@nvidia.com>, Jens Axboe <axboe@kernel.dk>
+Cc: Li Nan <magiclinan@didiglobal.com>, Xiao Ni <xiao@kernel.org>,
+ Song Liu <song@kernel.org>, linux-block@vger.kernel.org,
+ Christoph Hellwig <hch@lst.de>, linux-nvme@lists.infradead.org,
+ Guoqing Jiang <guoqing.jiang@linux.dev>, linux-raid@vger.kernel.org,
+ Leon Romanovsky <leon@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>,
+ Logan Gunthorpe <logang@deltatee.com>, Bjorn Helgaas <bhelgaas@google.com>,
+ Shivaji Kant <shivajikant@google.com>, Pranjal Shrivastava
+ <praan@google.com>, Henrique Carvalho <henrique.carvalho@suse.com>,
+ stable@vger.kernel.org, linux-kernel@vger.kernel.org,
+ linux-rdma@vger.kernel.org, linux-pci@vger.kernel.org,
+ Sagi Grimberg <sagi@grimberg.me>, Yu Kuai <yukuai@fygo.io>,
+ Keith Busch <kbusch@kernel.org>,
+ Linux kernel regressions list <regressions@lists.linux.dev>
+References: <20260723204206.76930-1-mykola@meshstor.io>
+From: Thorsten Leemhuis <regressions@leemhuis.info>
+Content-Language: de-DE, en-US
+In-Reply-To: <20260723204206.76930-1-mykola@meshstor.io>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+X-PPP-Message-ID: <178488849128.3023183.9483321544575683507@mxe9fb.netcup.net>
+X-NC-CID: bgfn6WwD6tNqsJl92qX4PPcCQ3rLaKDwr3eppdgdbpQWarfWVJI=
 
-On Friday, July 07/24/26, 2026 at 10:28:51 +0800, Gou Hao wrote:
-> alloc_skb() with the __GFP_NOFAIL flag will never return NULL,
-> so the subsequent NULL checks and error handling are unreachable
-> dead code. Remove them.
-> 
-> Signed-off-by: Gou Hao <gouhao@uniontech.com>
-> ---
->  drivers/infiniband/hw/cxgb4/mem.c | 10 ++--------
->  1 file changed, 2 insertions(+), 8 deletions(-)
-> 
-> diff --git a/drivers/infiniband/hw/cxgb4/mem.c b/drivers/infiniband/hw/cxgb4/mem.c
-> index cd1b010141984..08631de17c0a3 100644
-> --- a/drivers/infiniband/hw/cxgb4/mem.c
-> +++ b/drivers/infiniband/hw/cxgb4/mem.c
-> @@ -74,11 +74,8 @@ static int _c4iw_write_mem_dma_aligned(struct c4iw_rdev *rdev, u32 addr,
->  		c4iw_init_wr_wait(wr_waitp);
->  	wr_len = roundup(sizeof(*req) + sizeof(*sgl), 16);
->  
-> -	if (!skb) {
-> +	if (!skb)
->  		skb = alloc_skb(wr_len, GFP_KERNEL | __GFP_NOFAIL);
-> -		if (!skb)
-> -			return -ENOMEM;
-> -	}
->  	set_wr_txq(skb, CPL_PRIORITY_CONTROL, 0);
->  
->  	req = __skb_put_zero(skb, wr_len);
-> @@ -134,11 +131,8 @@ static int _c4iw_write_mem_inline(struct c4iw_rdev *rdev, u32 addr, u32 len,
->  					 roundup(copy_len, T4_ULPTX_MIN_IO),
->  				 16);
->  
-> -		if (!skb) {
-> +		if (!skb)
->  			skb = alloc_skb(wr_len, GFP_KERNEL | __GFP_NOFAIL);
-> -			if (!skb)
-> -				return -ENOMEM;
-> -		}
+On 7/23/26 22:41, Mykola Marzhan wrote:
+> md treats an unsupported P2PDMA transfer to a member as success, and
+> nvme-rdma retries one forever.  Whether peer memory can be DMA-mapped
+> depends on the PCIe topology between the two devices, and since v6.17
+> the failure completes as BLK_STS_INVAL: retryable for multipath and
+> deliberately ignored by md for member failures, so mirrors silently
+> diverge.
+> [...]
+> Routing: patch 1 block, 2-8 md, 9-10 nvme; 7, 8 and 10 use the new
+> status.  Patch 1 alone stops the divergence and the dm-multipath
+> requeue loop; the nvme-rdma loop also needs 9-10; everything else
+> refines the fallout, so the series bisects safely.  The md patches
+> fix a v7.2-rc1 regression (02666132403a), except 3 (older bug,
+> stable) and 5 (refactor).
+This landed on my radar due to the word "regression" here. Given the
+complexity of this patch-set and that we are at v5 please allow me to ask:
 
-Reviewed-by: Potnuri Bharat Teja <bharat@chelsio.com>
+Should 02666132403aec ("md: propagate BLK_FEAT_PCI_P2PDMA from member
+devices to RAID device") [v7.2-rc1] maybe be removed for now and
+reapplied later once this was sorted out? Or is that for some reason
+unneeded? Note, no need for a long explanation needed in the latter
+case, a brief statement from long-term developer will suffice.
 
->  		set_wr_txq(skb, CPL_PRIORITY_CONTROL, 0);
->  
->  		req = __skb_put_zero(skb, wr_len);
-> -- 
-> 2.20.1
-> 
+Ciao, Thorsten
