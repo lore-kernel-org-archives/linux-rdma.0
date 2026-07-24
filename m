@@ -1,159 +1,125 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from smtpbgsg2.qq.com (smtpbgsg2.qq.com [54.254.200.128])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C56A1F1537;
-	Fri, 24 Jul 2026 00:23:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1E9CF2E7365;
+	Fri, 24 Jul 2026 02:29:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.254.200.128
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784852608; cv=none; b=AbzNr8xYM9CeBJxBcSX9LTUEPMu1VXBvcl///19bjfZdQcVG5X15h8NZxPhuPadjjliHgW66NPP5Kt1n/B+hrLGnSCdRgzvFgB+DP3FntjO9n4HsgZENDpXFQHt3ZOMaC0JAoxhK0Hd0+/2evy+1EOGPfzXOykzZRax8EUFIvXA=
+	t=1784860160; cv=none; b=hsEulwG8h1ABfbpHkygG/WpPjBIJ3Oay4Q+FsHHmsl4+MxECSErWJkcg+yB4KWzz3U8ev58MBdiKvvk1775td4ZUwbkRSx5A85ubFwIfQioG0xp3oUalFtALIOnSP7FQHy7ui4Cqf6SNOJUkvxT8D+lsoYPS7ezdWbE2Ijl2tbU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784852608; c=relaxed/simple;
-	bh=4U931wxTAQmoZLnKF+f1/StB+kUujXXSkxuDOtR8rvs=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=s9Yq7MCpD7bd3swEuce0/42j0RDso7EHCWF2Ql/qxMt+uMplywnKRxY1CiCEGQTjWs3OP6iQtxW4smTrcYJXPDzZKfxOaZ3G2YJhm02nsnuGaUVaUpxwXFeuwcobCZ41L+CHXRSt/qUqx3woCkDK/PMtp/0HR5bajpWAe9g6eJs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=HEo1G+FR; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1784860160; c=relaxed/simple;
+	bh=ivpLlw7HYbov7fvBvirRCkJ2FYbIU2myJ54Nz/Y2iKo=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=F6HcB43w2wQk3evFYdYr/PZIlFHwwBzp6r6y2rfTzjpYDrl5+nY7MICi9oiCiR8pYbLyEG9E9xFsDjcWGd9l9d33PobiZ+5n/7PgA9Kzbes/KQy6HFnPzXK2kYz1sTU001amgZpPOolBTQ2fZwI/gXAHr/n71ga1a0hjkl/tZ8w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=uniontech.com; spf=pass smtp.mailfrom=uniontech.com; dkim=pass (1024-bit key) header.d=uniontech.com header.i=@uniontech.com header.b=CxzBdgea; arc=none smtp.client-ip=54.254.200.128
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=uniontech.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=uniontech.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="HEo1G+FR"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id CE7BBC2BCC9;
-	Fri, 24 Jul 2026 00:23:27 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1784852607;
-	bh=4U931wxTAQmoZLnKF+f1/StB+kUujXXSkxuDOtR8rvs=;
-	h=From:Date:Subject:References:In-Reply-To:To:Cc:Reply-To:From;
-	b=HEo1G+FRo6pDKc0zcKK/b84USUFaWRY1ZpFIqGGdodnJ9cslb672BI1W7+VIvXovY
-	 Ykzvd3MgF46QPRwfmEQdyNiHnRNLOX2d1yBgfoeA+fWVAcG9HjyiRXjYJPIjvRVPlT
-	 SKyvabSH+8Q/qtuWXjnNErOTYZw5UeQaS/zx8chsKFScX1q87GwN7ZGQfM/pkeBpmA
-	 5Ljd6bZYQqlH3Bf47uwGh8CzGMh3FJDKltUK+5mq6tny+3ia14JLPPEuLKSZk79y/Z
-	 FSryf8SIRnPfoHJzC5y07FJmRkpaDOUZhH/e+2d1rm89V8cB7roUWg85aEbFSVf8iz
-	 4OFCFYKqgF2YA==
-Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ACD86C531D0;
-	Fri, 24 Jul 2026 00:23:27 +0000 (UTC)
-From: Bryam Vargas via B4 Relay <devnull+hexlabsecurity.proton.me@kernel.org>
-Date: Thu, 23 Jul 2026 19:23:27 -0500
-Subject: [PATCH net v5 1/3] net/smc: bound the wire-controlled producer
- cursor to the RMB
+	dkim=pass (1024-bit key) header.d=uniontech.com header.i=@uniontech.com header.b="CxzBdgea"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=uniontech.com;
+	s=onoh2408; t=1784860142;
+	bh=COw6l4tZGKI2EtZCsRNwhO9S4qZRY68UndjXev8R1FQ=;
+	h=From:To:Subject:Date:Message-Id:MIME-Version;
+	b=CxzBdgeaIW6FbkCf1QuWJCZSzv2a//grT9wGIQ+LXIeku71jFflzg/hXhRSnhy/rd
+	 tbRUi+A2ZgXms4p2iivaBqOcnBydoT47Ax9QyMjp6Mm2WD1NBXxXkztHQFJn0f0I5+
+	 iNgovUMNIC8e1YT1b8IoVti3uEhBcB24ABMlQVWc=
+X-QQ-mid: zesmtpip4t1784860135t56239e5a
+X-QQ-Originating-IP: uxNb/JIeTaYaqS/plW1kaXfiKOf+TwmtfXaiPsha900=
+Received: from localhost.localdomain ( [localhost])
+	by bizesmtp.qq.com (ESMTP) with 
+	id ; Fri, 24 Jul 2026 10:28:51 +0800 (CST)
+X-QQ-SSF: 0000000000000000000000000000000
+X-QQ-GoodBg: 1
+X-BIZMAIL-ID: 5628155496822218120
+EX-QQ-RecipientCnt: 26
+From: Gou Hao <gouhao@uniontech.com>
+To: maddy@linux.ibm.com,
+	mpe@ellerman.id.au,
+	npiggin@gmail.com,
+	chleroy@kernel.org,
+	maarten.lankhorst@linux.intel.com,
+	mripard@kernel.org,
+	tzimmermann@suse.de,
+	airlied@gmail.com,
+	simona@ffwll.ch,
+	bharat@chelsio.com,
+	jgg@ziepe.ca,
+	leon@kernel.org,
+	akpm@linux-foundation.org,
+	gouhao@uniontech.com,
+	namcao@linutronix.de,
+	ynorov@nvidia.com,
+	sshegde@linux.ibm.com,
+	nilay@linux.ibm.com,
+	clg@kaod.org
+Cc: linuxppc-dev@lists.ozlabs.org,
+	linux-kernel@vger.kernel.org,
+	dri-devel@lists.freedesktop.org,
+	linux-rdma@vger.kernel.org,
+	linux-mm@kvack.org,
+	gouhaojake@163.com,
+	kernel@uniontech.com
+Subject: [PATCH v2 0/6] remove dead NULL checks after GFP_NOFAIL allocations and fix xive use-after-free
+Date: Fri, 24 Jul 2026 10:28:45 +0800
+Message-Id: <20260724022851.466017-1-gouhao@uniontech.com>
+X-Mailer: git-send-email 2.20.1
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20260723-b4-disp-0d07164f-v5-1-6a9e235dbc4e@proton.me>
-References: <20260723-b4-disp-0d07164f-v5-0-6a9e235dbc4e@proton.me>
-In-Reply-To: <20260723-b4-disp-0d07164f-v5-0-6a9e235dbc4e@proton.me>
-To: Sidraya Jayagond <sidraya@linux.ibm.com>, 
- Jakub Kicinski <kuba@kernel.org>, "D. Wythe" <alibuda@linux.alibaba.com>, 
- "David S. Miller" <davem@davemloft.net>, Wen Gu <guwen@linux.alibaba.com>, 
- Wenjia Zhang <wenjia@linux.ibm.com>, Eric Dumazet <edumazet@google.com>, 
- Tony Lu <tonylu@linux.alibaba.com>, 
- Mahanta Jambigi <mjambigi@linux.ibm.com>, 
- Dust Li <dust.li@linux.alibaba.com>, Paolo Abeni <pabeni@redhat.com>
-Cc: linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org, 
- Ursula Braun <ubraun@linux.ibm.com>, netdev@vger.kernel.org, 
- linux-kernel@vger.kernel.org, Stefan Raspl <raspl@linux.ibm.com>, 
- Simon Horman <horms@kernel.org>
-X-Mailer: b4 0.15.2
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1784852606; l=3711;
- i=hexlabsecurity@proton.me; s=default; h=from:subject:message-id;
- bh=evfdLZhJwQ6ZMPc4z0HkxIgfLkW4b4DY7F1ZY4ekk4k=;
- b=7Qw/oy853Ph9hvxtrZ0JZoIoX89s7qlGw+z+8M8wFc6WHh+oTRgnrlGwMCNSyJ1T2ix4sx16f
- nYmg/zXbcpFBcMyNn98z15C2UFQdO2lonmZ7S34wmVrM95bB+9wkEHc
-X-Developer-Key: i=hexlabsecurity@proton.me; a=ed25519;
- pk=xw1AhCtQdvuoQc+bOQIYy9o8G++cp4/VniI2G/tc3G8=
-X-Endpoint-Received: by B4 Relay for hexlabsecurity@proton.me/default with
- auth_id=893
-X-Original-From: Bryam Vargas <hexlabsecurity@proton.me>
-Reply-To: hexlabsecurity@proton.me
+Content-Transfer-Encoding: 8bit
+X-QQ-SENDSIZE: 520
+Feedback-ID: zesmtpip:uniontech.com:qybglogicsvrgz:qybglogicsvrgz5b-2
+X-QQ-XMAILINFO: MnWNx+I81Iu2Fz6e9ISujN5P/UrODP192vFbMUOpNCYFwp4Jy7lPAjz1
+	FQ4LPpG1v5v+ebYQNz8a0/f9Kvg+LkcwjPBLU2/vJhrGpJJh+MQ5TJ/Z+/C/aKvsuC446i1
+	g4DKKrckjJBJWKCGw7z+Yj9HBXpGQjzZeeNCZnAYnu57I1lYLujYy/DO4VDakXkUi3oytrc
+	5uBqzRS32TJhnGkjtKjKRReDUxPWIReDlc7I+s0z0k7VFmJt3JwAt93O50T11p6IchYyu4U
+	pmseWu/dMeQCL7n4lD7rsn7NWx1X94DvRBPurUJdwdFDt/N91cX+YjK6nK1Wfe/uSAJuKpg
+	ETjkUJDHVTs62y4/vRYyMilIEvRgU6wGFjXY0kk3MXrlHl2CcWKGw/6LcI+56n2lBNksQvW
+	d/Av2xJWJMPyFsX0/1NRCO9xsKr1ROUUtbyb9NLVr+qrYue2s98xgmhzsRYza7W1CmWbxn5
+	nNg2c6gWwNuNW4EN0Qld6Q+EtmzdgU8m8qCoGh27x2uHxpIIfkq06tM3ZOo0TfsWqpFm7Kb
+	fyQ7O25c62/Av4ghd5HkPa3UiaLDbq5YiJ37cW6sca9ETxfLMfXLcGFu/tuMFhaYDMeCWhS
+	F+AV6xK668Bij/ThkY4TE6VS6KpATeO3Yjg9KeIkbHpIPQzaG9/i0o7PHjGjwHxAXZDHE3G
+	hXDdY244jDfRxOxqe/HGk/5urXges5xV3IJ+mQZBu2kSQXBugaeiiHLOk+oFVtmwXXPdTzg
+	Np30wImdiz6tg2hg5MpU+Skr37NjEkZcUIcxaxtVp0V7aycyODdbBpwqNDZsWMKxn+82FPy
+	g//kgb0OgzLbAy7iX9B7k7taVmtoxDmrsEx+Q5shFQbLMrHGfll1NpxIA8c7fE+cuHnAlL0
+	/iQhORbsV+K0+ofEol+avk/XFKfurD96l/aR6a0n6bhQc/9XE723wVTGAOuZ6m8pmBEHzAu
+	9eyYqYMlQSp/jQ98v8/WM+7aewP4n+/YyCxYpoVtY/sk53NhHnu67NwdoIDmtmSsc2zeWQS
+	vgEJXOTwbS4F06MlnpqsrUa3e9ONJwFhMZ0MHd0Q==
+X-QQ-XMRINFO: OWPUhxQsoeAVwkVaQIEGSKwwgKCxK/fD5g==
+X-QQ-RECHKSPAM: 0
 
-From: Bryam Vargas <hexlabsecurity@proton.me>
+Changes in v2:
+- Remove the now-unused out_free_domain error label in the xive
+  patch after deleting the unreachable NULL check goto.
+- Fix a use-after-free of xive_ipis: when xive_init_ipis() fails,
+  the error path frees xive_ipis but xive_smp_probe() ignores the
+  error and proceeds to dereference it in xive_setup_cpu_ipi().
+  Propagate the error return through xive_smp_probe() and check
+  it in both pnv_smp_probe() and pSeries_smp_probe().
 
-smcr_cdc_msg_to_host() and smcd_cdc_msg_to_host() import a peer's
-producer cursor from the wire into conn->local_rx_ctrl.prod without
-bounding it against the receive buffer. The urgent-data path in
-smc_cdc_msg_recv_action() then uses that count as a raw index into the
-RMB, so a peer that advertises a producer cursor past rmb_desc->len
-reads out of bounds of the RMB allocation in the receive tasklet and
-can disclose adjacent kernel memory.
+This is a code cleanup series that removes unreachable
+NULL checks (and associated error handling) that follow allocations
+using __GFP_NOFAIL, which guarantees non-NULL return.
 
-Bound the producer cursor count to rmb_desc->len at the wire-to-host
-conversion, for both SMC-R and SMC-D. Bound only the producer cursor:
-the consumer cursor indexes the peer's RMB and is bounded by
-peer_rmbe_size, so clamping it to our rmb_desc->len would under-credit
-peer_rmbe_space and stall transmit to a peer with a larger RMB.
-Conforming peers are unaffected.
+Gou Hao (6):
+  powerpc/xive: remove dead NULL check after GFP_NOFAIL allocation
+  powerpc/xive: add error return value to xive_smp_probe()
+  powerpc/xive: fix use-after-free of xive_ipis
+  drm: remove dead WARN_ON NULL check after GFP_NOFAIL allocation
+  lib/test_hmm: remove dead NULL checks after GFP_NOFAIL allocations
+  RDMA/cxgb4: remove dead NULL checks after GFP_NOFAIL allocations
 
-Fixes: de8474eb9d50 ("net/smc: urgent data support")
-Cc: stable@vger.kernel.org
-Signed-off-by: Bryam Vargas <hexlabsecurity@proton.me>
-Reviewed-by: Dust Li <dust.li@linux.alibaba.com>
----
- net/smc/smc_cdc.h | 27 ++++++++++++++++++++++++---
- 1 file changed, 24 insertions(+), 3 deletions(-)
-
-diff --git a/net/smc/smc_cdc.h b/net/smc/smc_cdc.h
-index 696cc11f2303..ca76ef630356 100644
---- a/net/smc/smc_cdc.h
-+++ b/net/smc/smc_cdc.h
-@@ -221,7 +221,8 @@ static inline void smc_host_msg_to_cdc(struct smc_cdc_msg *peer,
- 
- static inline void smc_cdc_cursor_to_host(union smc_host_cursor *local,
- 					  union smc_cdc_cursor *peer,
--					  struct smc_connection *conn)
-+					  struct smc_connection *conn,
-+					  int max_count)
- {
- 	union smc_host_cursor temp, old;
- 	union smc_cdc_cursor net;
-@@ -235,6 +236,15 @@ static inline void smc_cdc_cursor_to_host(union smc_host_cursor *local,
- 	if ((old.wrap == temp.wrap) &&
- 	    (old.count > temp.count))
- 		return;
-+	/* The peer producer cursor is wire-controlled and is later used as a
-+	 * raw index into our RMB by the urgent path; bound its count to the
-+	 * RMB.  max_count == 0 leaves the consumer cursor unbounded here: it
-+	 * indexes the peer's RMB (bounded by peer_rmbe_size, not our
-+	 * rmb_desc->len), so clamping it to rmb_desc->len would under-credit
-+	 * peer_rmbe_space and stall transmit to peers with a larger RMB.
-+	 */
-+	if (max_count && temp.count > max_count)
-+		temp.count = max_count;
- 	smc_curs_copy(local, &temp, conn);
- }
- 
-@@ -246,8 +256,13 @@ static inline void smcr_cdc_msg_to_host(struct smc_host_cdc_msg *local,
- 	local->len = peer->len;
- 	local->seqno = ntohs(peer->seqno);
- 	local->token = ntohl(peer->token);
--	smc_cdc_cursor_to_host(&local->prod, &peer->prod, conn);
--	smc_cdc_cursor_to_host(&local->cons, &peer->cons, conn);
-+	/* bound the wire-controlled producer cursor to our RMB (used as a raw
-+	 * index by the urgent path); leave the consumer cursor unbounded -- it
-+	 * indexes the peer's RMB and is bounded by peer_rmbe_size.
-+	 */
-+	smc_cdc_cursor_to_host(&local->prod, &peer->prod, conn,
-+			       conn->rmb_desc->len);
-+	smc_cdc_cursor_to_host(&local->cons, &peer->cons, conn, 0);
- 	local->prod_flags = peer->prod_flags;
- 	local->conn_state_flags = peer->conn_state_flags;
- }
-@@ -260,6 +275,12 @@ static inline void smcd_cdc_msg_to_host(struct smc_host_cdc_msg *local,
- 
- 	temp.wrap = peer->prod.wrap;
- 	temp.count = peer->prod.count;
-+	/* the peer producer cursor is wire-controlled and is used as a raw
-+	 * index into our RMB by the urgent path; bound it to the RMB.  The
-+	 * consumer cursor below indexes the peer's RMB and is left unbounded.
-+	 */
-+	if (temp.count > conn->rmb_desc->len)
-+		temp.count = conn->rmb_desc->len;
- 	smc_curs_copy(&local->prod, &temp, conn);
- 
- 	temp.wrap = peer->cons.wrap;
+ arch/powerpc/include/asm/xive.h      |  4 ++--
+ arch/powerpc/platforms/powernv/smp.c |  8 +++++---
+ arch/powerpc/platforms/pseries/smp.c |  8 +++++---
+ arch/powerpc/sysdev/xive/common.c    | 15 +++++++++------
+ drivers/gpu/drm/drm_modeset_lock.c   |  4 ----
+ drivers/infiniband/hw/cxgb4/mem.c    | 10 ++--------
+ lib/test_hmm.c                       |  6 ------
+ 7 files changed, 23 insertions(+), 32 deletions(-)
 
 -- 
-2.55.0
-
+2.20.1
 
