@@ -1,156 +1,113 @@
-Received: from mail-pj1-f53.google.com (mail-pj1-f53.google.com [209.85.216.53])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B71AC3CF054
-	for <linux-rdma@vger.kernel.org>; Fri, 24 Jul 2026 19:48:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.53
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0FCBC392803;
+	Fri, 24 Jul 2026 21:48:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784922508; cv=none; b=nd4FvRqIMhikOBg+BRTSOfYTOELKJBqm4Ho+t6MSiP1YmMuSFDsjTdmYFzFXApfY24mXmlRFKXd+LZm32P9aNc1f49tGeL4OzRMHbm9hZknSNpUV14BKdcALy13DP3FciOkP/eqM7q2YYzqipVWYMx8M9Kyq+kH4HTPeddkaRSo=
+	t=1784929717; cv=none; b=lmE59OT/cc2rq/lI2LdfzBtVYT4hzbls+hc/puzRBhJuGm5j3xEmP2kIvVItV5pC2Rbi4lxgGHbhKrDYEeTMrCN1eC8XOcA3xGjJrP+l+yZU9CCMN/DkacPClBgHbF7NqUdmEDbAb+4Nfiq1T1e5DIcnUFOO5ofjo7aK41epYhc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784922508; c=relaxed/simple;
-	bh=6JaW2CJ3ULCkwVOoX5NuGKKy3Kj9jbVqqCDn/8yObzw=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=l7V5fqHXd/39QjKu5VIO7lEtg7CyttqULaNtRy4Ywu2K1Jm5lH6JQbHsOj9Aw4oLsSgT3Mp6SQXk+t8v7jHsfuCIYxN2MfcAhyvOIMHFsOn3gEH0VyGOJXn6WwcI9SHFxHr8ZPWMTP+lHm5mWiWOMg813kYfyyaFuQh0mr5Dk+E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=mGEawQtH; arc=none smtp.client-ip=209.85.216.53
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1784929717; c=relaxed/simple;
+	bh=GTdZSgSwBlfAlIxva5M6ZU/kD9VYoe26BBxVBJ5WdPE=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=f0dWPJXuJkkHlQ5NLOuD9Ax5Gho1OuqyiVb7t0nd5oWleu8UvKWZ0I9ZwliB4KZE49TmmB6QFpuZUZCvhsdQzWUJFHk39L78Jrb5jzWdYLl7N97uSjvi3jiv7Dfm4rIqq0HGBt3VlUk4FDbtEfdYIBkLNyeZ2WbbL7Xj7V2F1Co=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=bhpTuvSZ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="mGEawQtH"
-Received: by mail-pj1-f53.google.com with SMTP id 98e67ed59e1d1-383cb94f742so813963a91.3
-        for <linux-rdma@vger.kernel.org>; Fri, 24 Jul 2026 12:48:26 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1784922506; x=1785527306; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=Ioc+vYD1TGm3PkR61xqfpxrMbvRpPmr2378lUazgynQ=;
-        b=mGEawQtHUY1XKF2L7zBeq39mprbtf6ZDP6rsAfDHPicfS8vcsi80LucEASSakqB+kb
-         Snr+yzYDNO1d9eyVf9GRoG6tQM3JDHKko+KvpYtCJqmV86D9B8bKWzd4RDuWPCyaWdns
-         YoGbsqOB30klAsGD9Fob39gynqZxlOutIHUSWMPfaeClWlzIB6vmEJdkc692ufPC1bvB
-         TpJ3pFQf63C2tmfZQYvDT70S/jhVO53KjBh+S917zCHv1/8+FVgXT55KytmnVlTSxJLN
-         FEWTpaHQHVM1jxPEEE2Iwh1Yhk66TyNl9y/BZ3XsgHPDaR5YROEsTBwQZonMzkp+LyGh
-         R+BA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1784922506; x=1785527306;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=Ioc+vYD1TGm3PkR61xqfpxrMbvRpPmr2378lUazgynQ=;
-        b=UIE9TuMtS2gbU593PFVOUjfgDKbXeTEXmjHP4NTROkX+e068zCDeyy58VuUZzEPBVa
-         f2HMVWK/99PuK5SAkrzW/GWWt11Uc/AZ1YZHbwKNznmO15oPNGXTmAnVWQ0IGMwXPk4T
-         hPB67GevLW+2QruT2Ydw3i9JZDWCoXVuxA8Gdj2DXIpwL2inNEwoYIlpld2lkmKOB2vo
-         bgP3ufn9GzZRDvNcZWuanOSQjHB9iPg/hsaL+OLhoaIj5e5eJwYMPD1zu7ZXVFwYwuzd
-         gofwgTdbX0B+ASUlfD6EF1+cRBmTBwqQKgMUOZCKQchLRZmQikl1l8GHPVALsWBH6mWF
-         qVXw==
-X-Forwarded-Encrypted: i=1; AHgh+Rq1xRECziBVyXlgi0zCVOFv3ijAXrpBKx6tWW8lGVhWNPqeOmg1ELOsHWewEv0b/m+uhfGXm6oGvMjH@vger.kernel.org
-X-Gm-Message-State: AOJu0YxXYQOsU3oc1qcnC0u/jUC3SbNjG+Ta0dtZow7VPCAlXccTVliD
-	y5j+y1hcjsFFduuyvrP1flQbhbBKWEEvCxzt8FGlSTV9LqA4YsX1/Yas
-X-Gm-Gg: AR+sD10YIdH1r3xi6jhxzYS2afV1chtRj2GDZQxoeeIEdS9vj8/Fgb6LxkgyjtkGTdn
-	2T48OJyiCGUrjWsj1lzjvWrvR+KagAOPUkJ5/o5fZLeqEahrAL0f6hRkVJv/Szj8GywJ1PAPdtx
-	maR9r8hg+wKRdqZQXazGmuRv7GYXOghHWm5ey9AOaFmXGlAX+qiv9iXMesGLm1BTHIcZuKLavQW
-	nQ+uSgCuPpngmO+Hj8xSxhUmO2vb6+wDdW6yKQjanx5X/K9c3dCRqdjs6owHmr9D9bQlloclrXz
-	IaDsxnQ0AQA95KrY35Oke2l1WXfFgVFsXxWhCIdC3URSdSuzvZqYkmz3G925fx8hmogUt5gVnT7
-	/DorDREtHCreHOemkrX+s/CjDsycs4/WKrBZcUpPE3HI2o77YtCFYbJmlxMyhctXJtj6E0JYRAX
-	Tw+/wqt1SXtkjkPnaU+haLplJgwz1yNvDYa0rwiwPuOi3s
-X-Received: by 2002:a17:90b:3904:b0:38e:584f:2515 with SMTP id 98e67ed59e1d1-38ec6aae88emr8486005a91.37.1784922506003;
-        Fri, 24 Jul 2026 12:48:26 -0700 (PDT)
-Received: from skinsburskii (c-98-225-44-182.hsd1.wa.comcast.net. [98.225.44.182])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-38f0417599csm2037544a91.9.2026.07.24.12.48.24
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 24 Jul 2026 12:48:25 -0700 (PDT)
-Date: Fri, 24 Jul 2026 12:48:22 -0700
-From: Stanislav Kinsburskii <skinsburskii@gmail.com>
-To: "David Hildenbrand (Arm)" <david@kernel.org>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Lorenzo Stoakes <ljs@kernel.org>,
-	"Liam R. Howlett" <liam@infradead.org>,
-	Vlastimil Babka <vbabka@kernel.org>,
-	Mike Rapoport <rppt@kernel.org>,
-	Suren Baghdasaryan <surenb@google.com>,
-	Michal Hocko <mhocko@suse.com>, Jonathan Corbet <corbet@lwn.net>,
-	Shuah Khan <skhan@linuxfoundation.org>,
-	Shuah Khan <shuah@kernel.org>,
-	"K. Y. Srinivasan" <kys@microsoft.com>,
-	Haiyang Zhang <haiyangz@microsoft.com>,
-	Wei Liu <wei.liu@kernel.org>, Dexuan Cui <decui@microsoft.com>,
-	Long Li <longli@microsoft.com>, Lyude Paul <lyude@redhat.com>,
-	Danilo Krummrich <dakr@kernel.org>,
-	Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
-	Maxime Ripard <mripard@kernel.org>,
-	Thomas Zimmermann <tzimmermann@suse.de>,
-	David Airlie <airlied@gmail.com>, Simona Vetter <simona@ffwll.ch>,
-	Min Ma <mamin506@gmail.com>, Lizhi Hou <lizhi.hou@amd.com>,
-	Oded Gabbay <ogabbay@kernel.org>, linux-mm@kvack.org,
-	linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
-	linux-kselftest@vger.kernel.org, linux-hyperv@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, nouveau@lists.freedesktop.org,
-	linux-rdma@vger.kernel.org
-Subject: Re: [PATCH v11 1/8] mm/hmm: move page fault handling out of walk
- callbacks
-Message-ID: <amPBhhqIbdUQdlPf@skinsburskii>
-References: <20260723-hmm-v10-v11-0-c55b003a4b61@gmail.com>
- <20260723-hmm-v10-v11-1-c55b003a4b61@gmail.com>
- <7655eaad-dcbf-4275-93f6-1f92ffedfa76@kernel.org>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="bhpTuvSZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0A6FC1F000E9;
+	Fri, 24 Jul 2026 21:48:23 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1784929705;
+	bh=GTdZSgSwBlfAlIxva5M6ZU/kD9VYoe26BBxVBJ5WdPE=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References;
+	b=bhpTuvSZWBV7iq9keKc8+pixk18qLEuyMz3ZTlqKcB81KF/CnyeLGI6JSyvHGt9tA
+	 E+SxQVBXcXsXsZgtn3HAr+6nPULrU5HRAYu13tTfnL5ffRJr3w0sXxS3y6FSy3SRlS
+	 Qe3XQkADPgbjY9nioQHCBPR4pvKP4dL5d3HxM/ORX/63JYStNE+wqJy61XHcdbEpWF
+	 xaZAuoqTpynwYjXBJP4BY73AhLP471MMWjcWFGi91teQEabAfmboMZJJ2AI9mVl919
+	 5Vj52Ap+SYxCLa6sCvz56w/tCisRBng0kD6I+yiTKpyHAoJV1VexiywmsHK9mBuUsB
+	 8QLvkwcrgPftA==
+Date: Fri, 24 Jul 2026 14:48:22 -0700
+From: Jakub Kicinski <kuba@kernel.org>
+To: Sang-Heon Jeon <ekffu200098@gmail.com>
+Cc: Julia.Lawall@inria.fr, Alex Deucher <alexander.deucher@amd.com>,
+ Alexander Shishkin <alexander.shishkin@linux.intel.com>, Alexandre Belloni
+ <alexandre.belloni@bootlin.com>, Andrew Lunn <andrew@lunn.ch>, Andrew
+ Morton <akpm@linux-foundation.org>, Arkadiusz Kubalewski
+ <arkadiusz.kubalewski@intel.com>, Borislav Petkov <bp@alien8.de>, Christian
+ =?UTF-8?B?S8O2bmln?= <christian.koenig@amd.com>, Daniel Lezcano
+ <daniel.lezcano@kernel.org>, David Airlie <airlied@gmail.com>, "David S.
+ Miller" <davem@davemloft.net>, Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+ Eric Dumazet <edumazet@google.com>, Florian Westphal <fw@strlen.de>, Greg
+ Kroah-Hartman <gregkh@linuxfoundation.org>, Hans de Goede
+ <hansg@kernel.org>, Hans Verkuil <hverkuil@kernel.org>, Heikki Krogerus
+ <heikki.krogerus@linux.intel.com>, Herbert Xu
+ <herbert@gondor.apana.org.au>, Ilpo =?UTF-8?B?SsOkcnZpbmVu?=
+ <ilpo.jarvinen@linux.intel.com>, "James E.J. Bottomley"
+ <James.Bottomley@HansenPartnership.com>, Jani Nikula
+ <jani.nikula@linux.intel.com>, Jaroslav Kysela <perex@perex.cz>, Jason
+ Gunthorpe <jgg@ziepe.ca>, Jiri Pirko <jiri@resnulli.us>, "Joerg Roedel
+ (AMD)" <joro@8bytes.org>, Johan Hovold <johan@kernel.org>, Jonathan Cameron
+ <jic23@kernel.org>, Joonas Lahtinen <joonas.lahtinen@linux.intel.com>,
+ Julian Anastasov <ja@ssi.bg>, Leon Romanovsky <leon@kernel.org>, Liam
+ Girdwood <lgirdwood@gmail.com>, Linus Walleij <linusw@kernel.org>, Maarten
+ Lankhorst <maarten.lankhorst@linux.intel.com>, Mark Brown
+ <broonie@kernel.org>, "Martin K. Petersen" <martin.petersen@oracle.com>,
+ Matthew Sakai <msakai@redhat.com>, Mauro Carvalho Chehab
+ <mchehab@kernel.org>, Maxime Ripard <mripard@kernel.org>, Michael Turquette
+ <mturquette@baylibre.com>, Mike Rapoport <rppt@kernel.org>, Miri Korenblit
+ <miriam.rachel.korenblit@intel.com>, Nicolas Palix <nicolas.palix@imag.fr>,
+ Pablo Neira Ayuso <pablo@netfilter.org>, Paolo Abeni <pabeni@redhat.com>,
+ Ping-Ke Shih <pkshih@realtek.com>, "Rafael J. Wysocki" <rafael@kernel.org>,
+ Rodrigo Vivi <rodrigo.vivi@intel.com>, Sebastian Reichel <sre@kernel.org>,
+ Shuah Khan <shuah@kernel.org>, Simona Vetter <simona@ffwll.ch>, Simon
+ Horman <horms@verge.net.au>, Stephen Boyd <sboyd@kernel.org>, Steve French
+ <sfrench@samba.org>, Takashi Iwai <tiwai@suse.com>, Thomas Renninger
+ <trenn@suse.com>, Thomas Zimmermann <tzimmermann@suse.de>, Tony Luck
+ <tony.luck@intel.com>, Tvrtko Ursulin <tursulin@ursulin.net>, Vadim
+ Fedorenko <vadim.fedorenko@linux.dev>, Vinod Koul <vkoul@kernel.org>, Will
+ Deacon <will@kernel.org>, Yazen Ghannam <Yazen.Ghannam@amd.com>,
+ cocci@inria.fr, amd-gfx@lists.freedesktop.org, dmaengine@vger.kernel.org,
+ dm-devel@lists.linux.dev, dri-devel@lists.freedesktop.org,
+ intel-gfx@lists.freedesktop.org, intel-wired-lan@lists.osuosl.org,
+ iommu@lists.linux.dev, linux-cifs@vger.kernel.org,
+ linux-clk@vger.kernel.org, linux-crypto@vger.kernel.org,
+ linux-edac@vger.kernel.org, linux-gpio@vger.kernel.org,
+ linux-iio@vger.kernel.org, linux-input@vger.kernel.org,
+ linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+ linux-mm@kvack.org, linux-pm@vger.kernel.org, linux-rdma@vger.kernel.org,
+ linux-rtc@vger.kernel.org, linux-s390@vger.kernel.org,
+ linux-scsi@vger.kernel.org, linux-sound@vger.kernel.org,
+ linux-usb@vger.kernel.org, linux-wireless@vger.kernel.org,
+ lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+ netfilter-devel@vger.kernel.org, nouveau@lists.freedesktop.org,
+ platform-driver-x86@vger.kernel.org
+Subject: Re: [PATCH 00/36] treewide: remove conditional returns with no
+ effect
+Message-ID: <20260724144822.6af8213f@kernel.org>
+In-Reply-To: <20260723184538.3888637-1-ekffu200098@gmail.com>
+References: <20260723184538.3888637-1-ekffu200098@gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <7655eaad-dcbf-4275-93f6-1f92ffedfa76@kernel.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-On Fri, Jul 24, 2026 at 09:00:24PM +0200, David Hildenbrand (Arm) wrote:
-> On 7/23/26 19:36, Stanislav Kinsburskii wrote:
-> > hmm_range_fault() currently triggers page faults from inside the page-table
-> > walk callbacks: hmm_vma_walk_pmd(), hmm_vma_walk_pud(),
-> > hmm_vma_walk_hugetlb_entry() and the pte-level helper all call
-> > hmm_vma_fault(), which in turn calls handle_mm_fault() while the walker
-> > still holds nested locks.  The pte spinlock is dropped explicitly by each
-> > caller, and the hugetlb path manually drops and retakes
-> > hugetlb_vma_lock_read around the fault to dodge a deadlock against the walk
-> > framework's unconditional unlock.
-> > 
-> > This layering does not extend cleanly to fault handlers that may release
-> > mmap_lock (VM_FAULT_RETRY, VM_FAULT_COMPLETED). If the lock is dropped
-> > while walk_page_range() is mid-traversal, the VMA can be freed before the
-> > walk framework's matching hugetlb_vma_unlock_read(), turning that unlock
-> > into a use-after-free.
-> > 
-> > Split the responsibilities the way get_user_pages() does. Walk callbacks
-> > become inspect-only: when they detect a range that needs to be faulted in,
-> > they record it in struct hmm_vma_walk and return a private sentinel
-> > (HMM_FAULT_PENDING). The outer loop in hmm_range_fault() then drops out of
-> > walk_page_range(), invokes a new helper hmm_do_fault() that calls
-> > handle_mm_fault() with only mmap_lock held, and restarts the walk so the
-> > now-present entries are collected into hmm_pfns.
-> > 
-> > No functional change for existing callers. As a side effect the hugetlb
-> > callback no longer needs the hugetlb_vma_{un}lock_read dance, and every
-> > fault-path exit from the callbacks now releases the pte spinlock on a
-> > single, common path. This refactor is also a precursor for adding an
-> > unlockable variant of hmm_range_fault() in a follow-up patch.
-> > 
-> > Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
-> > Signed-off-by: Stanislav Kinsburskii <skinsburskii@gmail.com>
-> > ---
-> 
-> Any reason my RB got dropped?
-> 
-> https://lore.kernel.org/all/0b9be5b3-93aa-407f-b83d-409bec4b55e1@kernel.org/
-> 
+On Fri, 24 Jul 2026 03:45:02 +0900 Sang-Heon Jeon wrote:
+> Patch 1 adds a Coccinelle script that matches the pattern, including
+> negation and constant-comparison variants. Where a local variable is
+> assigned right before the check, the assignment and the two returns
+> turn into a single return of the assigned expression.
 
-No reason, just an omission on my side.
+Huh, I thought we already had such script. Various script children have
+been sending such "cleanups" in the past.
 
-Andrew, could you add David's RB to this patch, please?
+> Patches 2-36 are generated by the script, with hand fixes to restore
+> unexpectedly removed comments and to fix the formatting checkpatch.pl
+> complained about.
 
-Thanks,
-Stanislav
-
-> -- 
-> Cheers,
-> 
-> David
+Please post patches 4,7,8,9 as a separate series. Since you only CCed
+netdev on subset of the series patchwork thinks there are patches
+missing and doesn't kick off any CI.
