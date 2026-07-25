@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D5CD258EF3;
-	Sat, 25 Jul 2026 08:29:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 659DC383312;
+	Sat, 25 Jul 2026 08:29:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784968184; cv=none; b=HPmFa1+K98zjrastMTfJxztXOg4ykLSHIvN2q9zisMc6A92z0hkCDzPLHaZWL2RtbCFDwKND8k3G6+FpeRQ+dmumQTwfJnNKGTdy7H+sCp8trNmgapSaBYBrmVGC8L1N20SyxxGou9pjRZdmEiMelfKt77pWDGhG4CNY7MFKiG8=
+	t=1784968185; cv=none; b=K/T1dVFR+wf/YrxoWNQKFi8jQu6ey4Prie179I4qhbXMqFfIKWdieem9TVykbtS+CsT+EDyX0ynH3Q3Mcw7o+KaHvtNPUEEsWBZqZKVwB8yZjQTays5YU2bTt4TFXZ3nrajmJQNhRjfWG3vIYJiYr9/PInkFjL9YdAjILL9v0sc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784968184; c=relaxed/simple;
-	bh=VWUwQ58BMpzlLdD+mH/IfCV47DQ+ObcmLE+gYPLYgtI=;
+	s=arc-20240116; t=1784968185; c=relaxed/simple;
+	bh=sWjKFPqZOPRx7N5vuKDD2kQi+m0V4oe7hra0rmnrmKk=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=RVUI3X3x4OSH8kDIt67C+vKtVLbt21fs9eEb2pV4XmmSRJX29mCW/J5FWFrlUVuszHxtkBt4vtZuH+1YKFoeqWoq74kfQgBZwT3m37Pb8XoMPZ8PpwzrE1viPxo6KZPG6PglZX73GVghG9BR8tLI2i2KLGaslft+HFwxcKb6wZQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=UgapAPza; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version; b=hdyPSRSoj8NIYHsM7WmRsosZcaR/sXd7Jj3fSNYvDWBrMc38OK8pBVtS9CLbLfuU1668RUOVCGituvR+XiaYZJW9BDJvVf7cc5LRBlbaB7KQ+XSWFASJ7qb4hSank01U3hlFVkZWAJtdDH2ryrLy2EyYgV+UHUJFOn3TPuG8VPg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Az8FgJDA; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="UgapAPza"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EB7341F00A3A;
-	Sat, 25 Jul 2026 08:29:40 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Az8FgJDA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8E71F1F00A3E;
+	Sat, 25 Jul 2026 08:29:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1784968181;
-	bh=H/7eqIh0K6+BXDlrL2lw2uwlWbOzlW9gWApZJ2jkeGM=;
+	s=k20260515; t=1784968182;
+	bh=KCcxZ1cVQ9qu1f5fHmanpmMJ3S40qoLeBMxgO+DvK4M=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=UgapAPza0LyrF99ovsLjahe+iDlz1fr9b2bZDjY3DSOJkZkD+MdC+SuVOIdbXYf54
-	 4OWaZwQtdUcuVbxvzevvOu7hlW7KR6naLSAqi9XGD57ZAgX2dR/cgSsGIhNNiEt/4R
-	 WW1bH8VUNHnlt5R1gUWJGIjc5/CDn9HUj1sdXdOzFzckd19F9y3N3mjgfz6SCut9EH
-	 fIWLs4058xk8BwaFfasiNclRRgZ0wwRJUG54trDz59mUsAS+IvExoMGd8Y77Cm2fAR
-	 o3INKQ2C8lOgVWAjTrWqjYw4AhJHExPDAFTfpC3nBiYyPAvr1t8TLyPMEt4rFCeOxO
-	 mK/Ow8JRYlwyQ==
+	b=Az8FgJDAhZEdJSpC9iLKXI4WF/2xVxI932FyAI3kI5vT8E4vNrFp8daXIu97+spXG
+	 vcvR/fzRbpqs7UjLDGuGojMP6weE1fQOH+xDG5kCdPb0ivYA9qt2t5O2yRfhufxW3h
+	 zYU1CF/Ce52zyMg8T+2AS7xDsinUWESz6yp0v2PLZ3vWYc6Uw4BM6VGQObSY0uAE4V
+	 Nt89TLKjwFZUWchTt6rS+KRkAFhUhT9ftrn/kHTAcLtvU1GCa/U9zS+oYzMJAc95+r
+	 JubnyTO1F8JP+vcNCC6rFjyJ7cg8hokkbuCgUfq1HXQQmsrDEYEkd6v8apjhR5IadI
+	 6LZSIz5cUsJWQ==
 From: Allison Henderson <achender@kernel.org>
 To: netdev@vger.kernel.org,
 	linux-rdma@vger.kernel.org,
@@ -36,9 +36,9 @@ To: netdev@vger.kernel.org,
 Cc: achender@kernel.org,
 	jhubbard@nvidia.com,
 	leon@kernel.org
-Subject: [PATCH net-next 2/3] net/rds: hold the socket while an rds_mr references it
-Date: Sat, 25 Jul 2026 01:29:38 -0700
-Message-Id: <20260725082939.2546624-3-achender@kernel.org>
+Subject: [PATCH net-next 3/3] net/rds: fix rds_message leak in the rds_send_xmit() drop path
+Date: Sat, 25 Jul 2026 01:29:39 -0700
+Message-Id: <20260725082939.2546624-4-achender@kernel.org>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20260725082939.2546624-1-achender@kernel.org>
 References: <20260725082939.2546624-1-achender@kernel.org>
@@ -48,96 +48,67 @@ List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-From: Håkon Bugge <haakon.bugge@oracle.com>
+From: Sharath Srinivasan <sharath.srinivasan@oracle.com>
 
-Each rds_mr stores a bare back pointer to the socket that created it
-(mr->r_sock) but takes no reference on it.  When the mr is destroyed it
-references the rs. Hence, provisions must be made to avoid the rs
-being destroyed before all mrs referencing it have been destroyed.
+When rds_send_xmit() picks the next message off cp_send_queue it takes
+its own reference with rds_message_addref().  If the message then hits
+the never-retransmit check (RDS_MSG_FLUSH, or an RDMA op that was
+already retransmitted), it is moved to the local to_be_dropped list and
+that reference is dropped after the batch.
 
-The MR itself is refcounted, and in-flight messages legitimately hold
-MR krefs that can outlive the socket: rds_release() drops the rb-tree
-references via rds_rdma_drop_keys(), but a send completion arriving
-afterwards drops the final message reference from the CQ handler and
-ends up in
+However, if RDS_MSG_ON_CONN has already been cleared - e.g. a racing
+rds_send_drop_to() or rds_send_path_reset() took the message off the
+connection lists - the message is not added to to_be_dropped and the
+reference taken above is never dropped: cp_xmit_rm has not been set at
+this point, so the loop simply abandons rm and the rds_message (and
+everything it pins: pages, MRs, notifiers) leaks after an RDMA error.
 
-  rds_message_purge()
-    __rds_put_mr_final()
-      rds_destroy_mr()   -> takes rs->rs_rdma_lock
+Drop the reference directly in that case.
 
-dereferencing a socket that may already have been freed.
+This mirrors Oracle UEK commit "net/rds: fix rds_message memleak in
+rds_send_xmit".
 
-Oracle UEK fixed the same use-after-free ("rds: Add proper refcnt when
-an RDS MR references an RDS Socket") after seeing crashes of the form:
-
-  PF: supervisor write access in kernel mode
-  _raw_spin_lock_irqsave+0x4a/0x6a
-  __rds_put_mr_final+0x2c/0xe0 [rds]
-  rds_message_purge+0x13c/0x150 [rds]
-  rds_message_put+0x39/0x54 [rds]
-  rds_ib_send_cqe_handler+0x147/0x3dd [rds_rdma]
-
-To fix this, take a socket reference when an MR is created and drop it
-when the final MR kref goes away.  The reference cycle is broken by
-rds_release(), which always runs rds_rdma_drop_keys() on close.  So the
-socket reference held by an MR never prevents release, it only delays
-sk_free() until the last MR user is done.
-
-In the on-demand-paging path in rds_cmsg_rdma_args(), we take the reference
-after the transport get_mr() call succeeds.  This is  because its error
-path frees the MR with kfree() directly rather than through
-__rds_put_mr_final(). So an early hold in this case would leak the socket
-reference.
-
-Fixes: eff5f53bef75 ("RDS: RDMA support")
-Signed-off-by: Håkon Bugge <haakon.bugge@oracle.com>
-[achender: port to net-next (sock_hold/sock_put in place of the UEK
- rds_sock_addref/rds_sock_put helpers); also balance the reference on
- the rds_cmsg_rdma_args() ODP path; update commit message]
+Fixes: 2ad8099b58f2 ("RDS: rds_send_xmit() locking/irq fixes")
+Signed-off-by: Gerd Rausch <gerd.rausch@oracle.com>
+Signed-off-by: Sharath Srinivasan <sharath.srinivasan@oracle.com>
+[achender: port to net-next; update commit message, checkpatch nits]
 Assisted-by: Claude-Code:claude-fable-5
 Signed-off-by: Allison Henderson <achender@kernel.org>
 ---
- net/rds/rdma.c | 9 +++++++++
- 1 file changed, 9 insertions(+)
+ net/rds/send.c | 18 +++++++++++++++---
+ 1 file changed, 15 insertions(+), 3 deletions(-)
 
-diff --git a/net/rds/rdma.c b/net/rds/rdma.c
-index a4f65e51c6881..5f5753afdcdcb 100644
---- a/net/rds/rdma.c
-+++ b/net/rds/rdma.c
-@@ -117,6 +117,7 @@ void __rds_put_mr_final(struct kref *kref)
- 	struct rds_mr *mr = container_of(kref, struct rds_mr, r_kref);
- 
- 	rds_destroy_mr(mr);
-+	sock_put(rds_rs_to_sk(mr->r_sock));
- 	kfree(mr);
- }
- 
-@@ -243,7 +244,11 @@ static int __rds_rdma_map(struct rds_sock *rs, struct rds_get_mr_args *args,
- 	kref_init(&mr->r_kref);
- 	RB_CLEAR_NODE(&mr->r_rb_node);
- 	mr->r_trans = rs->rs_transport;
-+	/* The MR can outlive its socket: a socket reference is held
-+	 * until the final kref is dropped in __rds_put_mr_final().
-+	 */
- 	mr->r_sock = rs;
-+	sock_hold(rds_rs_to_sk(rs));
- 
- 	if (args->flags & RDS_RDMA_USE_ONCE)
- 		mr->r_use_once = 1;
-@@ -752,6 +757,10 @@ int rds_cmsg_rdma_args(struct rds_sock *rs, struct rds_message *rm,
+diff --git a/net/rds/send.c b/net/rds/send.c
+index 68be1bf0e0adf..7e48f64dfaa67 100644
+--- a/net/rds/send.c
++++ b/net/rds/send.c
+@@ -339,9 +339,21 @@ int rds_send_xmit(struct rds_conn_path *cp)
+ 			    (rm->rdma.op_active &&
+ 			    test_bit(RDS_MSG_RETRANSMITTED, &rm->m_flags))) {
+ 				spin_lock_irqsave(&cp->cp_lock, flags);
+-				if (test_and_clear_bit(RDS_MSG_ON_CONN, &rm->m_flags))
+-					list_move(&rm->m_conn_item, &to_be_dropped);
+-				spin_unlock_irqrestore(&cp->cp_lock, flags);
++				if (test_and_clear_bit(RDS_MSG_ON_CONN,
++						       &rm->m_flags)) {
++					/* our ref is put after the batch */
++					list_move(&rm->m_conn_item,
++						  &to_be_dropped);
++					spin_unlock_irqrestore(&cp->cp_lock,
++							       flags);
++				} else {
++					/* already off the conn list; drop
++					 * the ref taken above ourselves
++					 */
++					spin_unlock_irqrestore(&cp->cp_lock,
++							       flags);
++					rds_message_put(rm);
++				}
+ 				continue;
  			}
- 			rdsdebug("Need odp; local_odp_mr %p trans_private %p\n",
- 				 local_odp_mr, local_odp_mr->r_trans_private);
-+			/* From here on the MR is torn down through
-+			 * __rds_put_mr_final(), which drops this reference.
-+			 */
-+			sock_hold(rds_rs_to_sk(rs));
- 			op->op_odp_mr = local_odp_mr;
- 			op->op_odp_addr = iov->addr;
- 		}
+ 
 -- 
 2.25.1
 
