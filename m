@@ -1,78 +1,79 @@
-Received: from mail-pl1-f179.google.com (mail-pl1-f179.google.com [209.85.214.179])
+Received: from mail-pg1-f175.google.com (mail-pg1-f175.google.com [209.85.215.175])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 536ED37D12E
-	for <linux-rdma@vger.kernel.org>; Sun, 26 Jul 2026 14:42:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.179
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B8CDE2D7BF
+	for <linux-rdma@vger.kernel.org>; Sun, 26 Jul 2026 15:31:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.215.175
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785076951; cv=none; b=naKkYnb4R1/DJsymUr8axpN8OOVpBsyA/UELhpKKjfBIamN1DzG6zQ17jp63FvkdJP6O058i8zByRXqowCgSXu9cdiBIt7IMaIM8wCZpZGAFD22DqVR6Y+8/R2M1TZ/Bz4PJ5AI1bsJWSISFjx4eowcyfjTGBFpBJOSDl62w4Eg=
+	t=1785079903; cv=none; b=qOjmyr4XGsPonjp439pnUI7YDdoWgSrVH9ZiNaAjCqklHaUX0D28FNUW6V+c+XvVdw1bTfxqUYH71wazYkTEP4wvsAnkAJ6nw9jGkcNsC0SS7e4mmiJLKmN2nyLRx8V0nvNI0Z1RQ3YIFJ9M5nwE4n/9VBQA1W4tx1vOel+pJl4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785076951; c=relaxed/simple;
-	bh=f/paM7suSS+f6oqLin8Ijxovb9ymBdcOgA9NDthSdM8=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=UviHhoFc4bvwspMXiQlAm5PW4HIxLcQPMw+C264Mc/nMKf1xIcOKNbyIyof8QvnTSSZJBFiPrp2gWIfFyWhZitPOxAr6A5xMTGDQlj13jP2g2E56vclr+atrNtHXyFpVU7SS8Uh4vkWUSVW3cURgmDwMxEcfCnvPJquTuHjMaKw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=isslab.korea.ac.kr; spf=none smtp.mailfrom=isslab.korea.ac.kr; dkim=pass (2048-bit key) header.d=isslab-korea-ac-kr.20251104.gappssmtp.com header.i=@isslab-korea-ac-kr.20251104.gappssmtp.com header.b=dRcQtRVB; arc=none smtp.client-ip=209.85.214.179
+	s=arc-20240116; t=1785079903; c=relaxed/simple;
+	bh=c7Pma2i2/+N0DV+POQ+i7P+HjseyUAHIKJYjDdV80zo=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=nYOXmH8NX2J8zh07APfch3ftf42LtFVIx0u2SIS8HzGCqcTrn9sxIj4Cyo1o93YY8C5frh/zc632Wh8nx9nhtQ/i8P7LhD6ktPidvvij3y22EXKFqFZRlxekB8IVyIj7z9u8a9NLHiVrveMzZIZQ3QbpmNFSfKNnmmKWbwyh78Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=isslab.korea.ac.kr; spf=none smtp.mailfrom=isslab.korea.ac.kr; dkim=pass (2048-bit key) header.d=isslab-korea-ac-kr.20251104.gappssmtp.com header.i=@isslab-korea-ac-kr.20251104.gappssmtp.com header.b=rKiEsjWh; arc=none smtp.client-ip=209.85.215.175
 Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=isslab.korea.ac.kr
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=isslab.korea.ac.kr
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=isslab-korea-ac-kr.20251104.gappssmtp.com header.i=@isslab-korea-ac-kr.20251104.gappssmtp.com header.b="dRcQtRVB"
-Received: by mail-pl1-f179.google.com with SMTP id d9443c01a7336-2ca64c3ce5fso22747485ad.3
-        for <linux-rdma@vger.kernel.org>; Sun, 26 Jul 2026 07:42:27 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=isslab-korea-ac-kr.20251104.gappssmtp.com header.i=@isslab-korea-ac-kr.20251104.gappssmtp.com header.b="rKiEsjWh"
+Received: by mail-pg1-f175.google.com with SMTP id 41be03b00d2f7-c9e0b89e228so1304546a12.1
+        for <linux-rdma@vger.kernel.org>; Sun, 26 Jul 2026 08:31:41 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=isslab-korea-ac-kr.20251104.gappssmtp.com; s=20251104; t=1785076947; x=1785681747; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=SVIM60jDgtsURD9RrVDGNNVCDHm1+dh+aaxp3nCQ6c0=;
-        b=dRcQtRVB/yLECSGriWfHgnL7w8staoB70p0idxNkxy5VLb5z4b27wG9rEk5jgdwizg
-         lZDUXMHIZjRXAZiBQ98eX8TG6hXpQy3WzXWntTLn0umQ4W/VCBrB9Uu9C4qRDg6c0yrn
-         cpXfv4b9LL5EOIB/xHipNq6JYio76UcuPvren8xCAFUmXGONSYYOE1Vh9Q2LX+sGPqDu
-         CG0HF5ci58KeE/hYbBqYxcBHPZYu1TEPsbaJhL9b+dxT/VpXGTInbKyMRNA6Tc5+VDPp
-         foumoQN1KdEpvYZF9AIWr+8LFYYDFKjPE+/NkTM1qAz36RlbuxQs2H8yhd1DlRDYNV86
-         6z4g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1785076947; x=1785681747;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+        d=isslab-korea-ac-kr.20251104.gappssmtp.com; s=20251104; t=1785079901; x=1785684701; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=SVIM60jDgtsURD9RrVDGNNVCDHm1+dh+aaxp3nCQ6c0=;
-        b=XuajS1BaPJu1VSBq6CUFGsJxIXFlYQ3dikAnyaWPFixl+oBsc8oSUoz0yYGDn4Z+7v
-         FS/1F/3Ad61cWTIB3V6IjJ0QTCTIOb6s85BaWeMeX41iUxG+0GwhHjZUg/GMTSsGMbvU
-         5azg3ELfXStsItXXWtEwV2gIbNsR+rr05BObsyaB0FERTMWnbMg6EcA9NpL97w2pWCXf
-         7Kb7/EDJL+HK56eO1AJH1LKeiLHYnZ7+hn6yiKrL/ZI/cs4wBNMKyTQY5U0CJ2U0NpyH
-         1fW3Jzj1g8vN+lsON3dSbANNQQMbomREjzhWYLIjs4N98hznt507CYoXkAa6v3IkLL5W
-         W9pg==
-X-Forwarded-Encrypted: i=1; AHgh+RqzNb3TStqxeeWEwyiHqmABEFt6HilYiQyU1ewqlAA3sxB8w5KWHB1hi0hNbumbDTjveIpC1tomsw9L@vger.kernel.org
-X-Gm-Message-State: AOJu0YwEdlRRoOfsZke0qY+HhLjtlDbhoEDJeJIq7+HlZDVXOVJqS8V6
-	7ujNcJCEAg54Jq/+zdZxCPlkx8EgieqgQgTWW4c4yGz1KbLxTFn+UHVaZRLF/MpWBbLsthzyhR6
-	XciZaok87aQ==
-X-Gm-Gg: AR+sD13ZxI8iTuV99wsUQYM5PgDkPcYmzrjyUisYvuj/jNBKRyUNg3sR+KwxTq2ggHz
-	Z/fYrl8Qnm7oWZ3Obr2N2UnUobnHb5mx+u7sebuvHm/MWKidJhbst3wJYjJ+ndvFoYqVj4R1qgk
-	KhR29LQIWFcSzXCM+eSRW2WCfks4mzSVN5aQhtfP3BMH48pTCsqQ36lEZ67E+MZyZfdUg7uoHiC
-	XXrorBstDEAeKygjj6ocvXVrIiuW0e5iP5Ssc7xJwvfxPmJtG49h8RfJrhzlzg2ISDezBjJrMhL
-	74pPrQHP9ciVWw6USvILfQAFS+uymBDLhZQbDN3v00ahkRM+VX8k5BwTgMt6XVf+mI3AX0LI/iz
-	rcJayb4yg0xpi4cVchlZil6+FGVizc9ZClhbNg60yy8zYp3g4uMak6qWmm1EvB28FLAAATMNyCJ
-	7kZitITTXc2z33YrXP7Qr4RQUG
-X-Received: by 2002:a17:903:46cc:b0:2c6:9f66:d573 with SMTP id d9443c01a7336-2cfde67beebmr50345595ad.2.1785076947402;
-        Sun, 26 Jul 2026 07:42:27 -0700 (PDT)
+        bh=WCyiXiL6v90bExJpgxX0aqjtKCXo1CaNitEii2ppwEM=;
+        b=rKiEsjWhnzzAqJLL7OCDGduoudqQ/5GIclJJXbPVLYgTbSGFI2l56Cd2Cv4F0gqGgU
+         HZbJ/0UtFmm73THsKxsmzU3cIqaORXSHxg4LlzjFRKJkRjb0qQ0UJxZBybiIe+UXIWBO
+         QUSH9DzMvj+V94w3+ZX3T1epS9QlOhPf+35GQGdtG6Fj40Ow2ENXslrmHbDvzy6jlkqF
+         39wBku8EqpNBr+aJC1IMMAhxLucvKKBhSO422a3/8KmH0iVwnvOyYEGTiQGn67ExbgX6
+         hErEpKJSfSCL2vIXAwsks9nvoC0dPztAukBXZZgHwix3Y7uZPruj5xXxSQML6q+t74zA
+         lVNA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1785079901; x=1785684701;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=WCyiXiL6v90bExJpgxX0aqjtKCXo1CaNitEii2ppwEM=;
+        b=AQMg1sGhu936AMmaMBc0gu9Mj88MMjdIMBAEfVBkrGuqN0H+cEtIkfWWtVEzEmDBLj
+         wXzeOQUpMa/OqhZTNj6LTeV7D5fYXEnew4q85AdaCK0+md4FubG1Sw1h4yVgHFfsUeAE
+         ZmogbT1Cbm5rOlp4cABAXRKzy90cCseynHXpWyzWOaw6RXGQYVzQarAY8nFEE+UmXpYy
+         YZQ67olQqJ6jR9Q1y4gH4/AbrU81Gt1YtsIyt1E5FomxkGyXRuGpU8W+8s80nXGt87Uu
+         B6laZtvhoSytT0+WtjoqCuY4RydSxgj/E9KmZnbjrJqF7Q5ou5LXT4i7OWYn+ZwUMFLo
+         iHjg==
+X-Forwarded-Encrypted: i=1; AHgh+RqXNm/xH4b5LwdlSnwIZC5+DX6+xdzZFXQQQ0i6j3iv05s9FrWq426LJHtK29mt5rg5NRR/d+BXWrhM@vger.kernel.org
+X-Gm-Message-State: AOJu0Ywh7QZsM+VS2ylrXZwRGVVaINDQO976qVgdD3buxJZoIykrkvS4
+	Vh54iqQtjXSComIusn4ET1fRC6+iKcaRB8pwzzZ5/qBjB6cMFe6zPwEMd5+K3jAS9mXs+8l9AvH
+	CHWbyV2oiAQ==
+X-Gm-Gg: AR+sD12Vr4jm7XSTLCd8QmW6xQCYNWK/k8GVqAu7byzChNNmQRnkBeTyGlVFyZh/UDh
+	6iItT2EnBYzYhYW60NeRKWEiepBJlSxrucLaLVlNoMKn6rNdD9ohqadjC2Jc+qmAV30tbSVtrv7
+	WDIfILhnrCuy0/cgZFpEy/7rC2p1+lRtU1Sh1ryL6UtqqqjOMztL8ue2E8xlThXgKN0TyANA7ll
+	E1rB28ahxoYJKnoJo/O1LUjGejm/7rW/ZU+y3oRY6h7LviHr3LwqKVilSDC3mDBI7bGkxEhu1UO
+	pXDhSa3b1lsU2w5JOb0S0JCMs5Y6DQWJb6xDQ5P1pwcB1vIOaoxWnGsmyPUMo/FPGatVUTmWlO6
+	NFprNRGG4yN1qCPsDs8MMKGK5mjqHOFh4ib9Wrez+1EaYX0fB+PwP/TiZ1V7Ppa6G8o8JgueLXr
+	b63if2zn6byYpzIROwJZCN18IW
+X-Received: by 2002:a05:6a21:6004:b0:3c3:daa2:2b7 with SMTP id adf61e73a8af0-3c67df28fb2mr5230165637.44.1785079901080;
+        Sun, 26 Jul 2026 08:31:41 -0700 (PDT)
 Received: from localhost.localdomain ([2406:5900:1044:110c:be9c:ea6b:29a7:6c78])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2cfde7f8e73sm20624625ad.72.2026.07.26.07.42.24
+        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-cbbb6622461sm2088301a12.8.2026.07.26.08.31.38
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 26 Jul 2026 07:42:27 -0700 (PDT)
+        Sun, 26 Jul 2026 08:31:40 -0700 (PDT)
 From: Yehyeong Lee <yhlee@isslab.korea.ac.kr>
-To: sagi@grimberg.me,
+To: leon@kernel.org
+Cc: sagi@grimberg.me,
 	jgg@ziepe.ca,
-	leon@kernel.org
-Cc: nab@linux-iscsi.org,
-	michael.christie@oracle.com,
-	martin.petersen@oracle.com,
 	linux-rdma@vger.kernel.org,
 	target-devel@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
-	Yehyeong Lee <yhlee@isslab.korea.ac.kr>,
-	stable@vger.kernel.org
-Subject: [PATCH] IB/isert: post full-feature receive buffers after session registration
-Date: Sun, 26 Jul 2026 23:42:13 +0900
-Message-ID: <20260726144213.933544-1-yhlee@isslab.korea.ac.kr>
+	stable@vger.kernel.org,
+	yhlee@isslab.korea.ac.kr
+Subject: Re: [PATCH] IB/isert: reject PDUs declaring more data than was received
+Date: Mon, 27 Jul 2026 00:31:30 +0900
+Message-ID: <20260726153130.934622-1-yhlee@isslab.korea.ac.kr>
 X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20260726064628.GA12003@unreal>
+References: <20260726064628.GA12003@unreal>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -81,142 +82,57 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-isert_put_login_tx() posts the full-feature receive buffers and then
-sends the final Login Response on the same call:
+On Sun, Jul 26, 2026 at 09:46:28AM +0300, Leon Romanovsky wrote:
+> 1. You should review patches generated by AI.
+> 2. There is a need to add similar check to isert_get_login_rx() too.
 
-	isert_alloc_rx_descriptors()
-	isert_post_recvm(isert_conn, ISERT_QP_MAX_RECV_DTOS)
-	isert_conn->state = ISER_CONN_FULL_FEATURE
-	isert_login_post_send()
+You are right on both counts.  My changelog said the login handler
+"already rejects PDUs shorter than ISER_HEADERS_LEN"; I confirmed that a
+length check existed there and did not confirm that it was the same
+check.  It is not - 29e7b925ae6d bounds login_req_len from below, and
+nothing bounds the length the BHS declares.
 
-iscsi_post_login_handler() only runs after that, and it is what calls
-__transport_register_session(), which sets se_sess->se_tpg.  An
-initiator that sends a SCSI command as soon as it sees the Login
-Response can therefore have that command received, executed and
-completed before the session is registered, and target_complete()
-dereferences a NULL se_sess->se_tpg:
+I reproduced it before replying.  An initiator that sends a 105-byte
+first login PDU while declaring 8193 in the BHS DataSegmentLength, on
+7.2.0-rc4 with KASAN over soft-RoCE:
 
-  Oops: general protection fault, probably for non-canonical address ...
-  KASAN: null-ptr-deref in range [0x0000000000000080-0x0000000000000087]
-  Workqueue: ib-comp-wq ib_cq_poll_work
-  RIP: 0010:target_complete_cmd_with_sense.part.0+0x17d/0xc90
-  Call Trace:
-   fd_execute_rw
-   __target_execute_cmd
-   iscsit_execute_cmd
-   iscsit_sequence_cmd
-   isert_recv_done
-   __ib_process_cq
-   ib_cq_poll_work
+  BUG: KASAN: slab-out-of-bounds in kmemdup_nul+0x43/0x80
+  Read of size 8193 at addr ffff8881056a8000 by task iscsi_np/167
+   __asan_memcpy+0x23/0x60
+   kmemdup_nul+0x43/0x80
+   iscsi_target_locate_portal+0x48d/0x1180
+   iscsi_target_login_thread+0x19a9/0x3350
+  Allocated by task 167:
+   __kmalloc_cache_noprof+0x158/0x370
+   iscsi_target_login_thread+0x971/0x3350
+  The buggy address belongs to the object at ffff8881056a8000
+   which belongs to the cache kmalloc-8k of size 8192
+  allocated 8192-byte region
 
-The command reaches the backend because transport_lookup_cmd_lun() does
-not need se_tpg on the mapped-LUN path; it uses se_sess->se_node_acl,
-which iscsit sets much earlier in iscsi_target_locate_portal().
+faddr2line puts the allocation at iscsi_login_init_conn(),
+iscsi_target_login.c:50 - login->req_buf = kzalloc(MAX_KEY_VALUE_PAIRS) -
+and the read at iscsi_target_nego.c:1136, the kmemdup_nul() in
+iscsi_target_locate_portal().  The read size tracks the declared value
+exactly; 16384 gives "Read of size 16384", and a control run with a
+correct DataSegmentLength produces no report.  It is reached before
+authentication and the length is attacker-chosen.
 
-iscsit's own RX thread does not have this problem: it is started at the
-same point but waits on conn->rx_login_comp, which is completed at the
-end of iscsi_post_login_handler(), after __transport_register_session().
-isert takes its PDUs from the completion queue instead, and
-isert_recv_done() has no connection-state check.
+On why isert is the one exposed: iscsi_target_check_login_request()
+already rejects payload_length > MAX_KEY_VALUE_PAIRS, but it is only
+called from iscsit_get_login_rx() and from cxgbit.  isert does not call
+it.  iscsit over TCP is safe by construction in any case - it reads
+exactly payload_length + padding from the socket, so the declared length
+governs how much arrives rather than how much is copied out of an
+already-filled buffer.
 
-Post the receive buffers from isert_get_rx_pdu() instead.  That callback
-is invoked by iscsi_target_rx_thread() only after the same rx_login_comp
-wait, so the buffers become available to the HCA only once the session
-is registered.  isert_recv_done() runs on ib-comp-wq and cannot wait
-there itself.  The allocation stays in isert_put_login_tx() so that a
-memory allocation failure still cannot happen after the final Login
-Response has been sent.
+Your check is sufficient and not merely necessary: the posted login SGE
+is ISER_RX_PAYLOAD_SIZE, so login_req_len cannot exceed
+MAX_KEY_VALUE_PAIRS and size = min(login_req_len, MAX_KEY_VALUE_PAIRS)
+is login_req_len; once dlength <= login_req_len the copy out stays
+inside what was copied in.
 
-rx_descs can legitimately be NULL in isert_get_rx_pdu(): the login
-timeout timer sets login->login_failed from timer context, so
-isert_put_login_tx() can skip the allocation branch while
-iscsi_target_do_login() still returns 1 and the connection reaches
-TARG_CONN_STATE_LOGGED_IN.  Return early in that case, which matches the
-existing behaviour of not posting at all on that path.
+I will send a v2 two-patch series - the isert_recv_done() check as 1/2
+and this one as 2/2 with Suggested-by: Leon Romanovsky
+<leonro@nvidia.com> - once the before/after on the login case is run.
 
-Reproduced with soft-RoCE (rdma_rxe) under KASAN using an initiator that
-issues a WRITE immediately after login, 400 login cycles per run.
-Unpatched: 9 of 10 runs oopsed.  Patched: 0 of 10.  A build carrying a
-diagnostic that reports the NULL without faulting recorded 16 hits
-across 9 of 15 runs unpatched and 0 across 15 runs patched; the two sets
-were run alternately in a single session.
-
-Not covered by that testing: discovery sessions over iSER, MC/S
-(non-zero TSIH) logins, ERL=2 connection recovery, and real HCAs, where
-RNR behaviour differs from soft-RoCE.
-
-Fixes: b8d26b3be8b3 ("iser-target: Add iSCSI Extensions for RDMA (iSER) target driver")
-Cc: stable@vger.kernel.org
-Signed-off-by: Yehyeong Lee <yhlee@isslab.korea.ac.kr>
----
-This replaces "scsi: target: Fix NULL se_tpg dereference in
-target_complete()" (target-devel, Message-ID
-20260725165818.769963-1-yhlee@isslab.korea.ac.kr), which guarded the
-symptom in target core.  That patch is being withdrawn.
-
- drivers/infiniband/ulp/isert/ib_isert.c | 36 +++++++++++++++++++++----
- 1 file changed, 31 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
-index 1015a51f750a..b055513a7bd8 100644
---- a/drivers/infiniband/ulp/isert/ib_isert.c
-+++ b/drivers/infiniband/ulp/isert/ib_isert.c
-@@ -943,15 +943,18 @@ isert_put_login_tx(struct iscsit_conn *conn, struct iscsi_login *login,
- 	}
- 	if (!login->login_failed) {
- 		if (login->login_complete) {
-+			/*
-+			 * Allocate here, but do not post yet: the receive
-+			 * buffers are posted from isert_get_rx_pdu() once the
-+			 * session has been registered.  Allocating early keeps
-+			 * the original property that a memory allocation
-+			 * failure cannot happen after the final Login Response
-+			 * has been sent.
-+			 */
- 			ret = isert_alloc_rx_descriptors(isert_conn);
- 			if (ret)
- 				return ret;
- 
--			ret = isert_post_recvm(isert_conn,
--					       ISERT_QP_MAX_RECV_DTOS);
--			if (ret)
--				return ret;
--
- 			/* Now we are in FULL_FEATURE phase */
- 			mutex_lock(&isert_conn->mutex);
- 			isert_conn->state = ISER_CONN_FULL_FEATURE;
-@@ -2585,8 +2588,31 @@ static void isert_free_conn(struct iscsit_conn *conn)
- 
- static void isert_get_rx_pdu(struct iscsit_conn *conn)
- {
-+	struct isert_conn *isert_conn = conn->context;
- 	struct completion comp;
- 
-+	/*
-+	 * Post the full-feature receive buffers here rather than from
-+	 * isert_put_login_tx().  iscsi_target_rx_thread() only calls us after
-+	 * waiting on conn->rx_login_comp, which iscsi_post_login_handler()
-+	 * completes after __transport_register_session().  Posting them in
-+	 * isert_put_login_tx() - before the final Login Response goes on the
-+	 * wire - lets the initiator's first command be received and executed
-+	 * against an se_session whose se_tpg is still NULL.
-+	 *
-+	 * On failure just return: iscsi_target_rx_thread() sets
-+	 * transport_failed and tears the connection down.
-+	 *
-+	 * rx_descs can be NULL here: the login error path completes
-+	 * rx_login_comp without ever reaching the login_complete branch that
-+	 * allocates them.
-+	 */
-+	if (!isert_conn->rx_descs)
-+		return;
-+
-+	if (isert_post_recvm(isert_conn, ISERT_QP_MAX_RECV_DTOS))
-+		return;
-+
- 	init_completion(&comp);
- 
- 	wait_for_completion_interruptible(&comp);
--- 
-2.43.0
-
+Best regards,
