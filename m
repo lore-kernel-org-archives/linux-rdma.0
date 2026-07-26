@@ -1,79 +1,78 @@
-Received: from mail-wr2-f0.google.com (mail-wr2-f0.google.com [74.125.225.64])
+Received: from mail-pl1-f179.google.com (mail-pl1-f179.google.com [209.85.214.179])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C1D214908D1
-	for <linux-rdma@vger.kernel.org>; Sun, 26 Jul 2026 14:03:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.225.64
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 536ED37D12E
+	for <linux-rdma@vger.kernel.org>; Sun, 26 Jul 2026 14:42:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.179
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785074590; cv=none; b=OoX86jkk48Y24XlnwfsT/Q88S6HYUtmeaPf/zn4zU34IAeocE9S72YaEHXjUUONbLmlo9IKWx+Ya23ovjUprL1MuxFwO4MuzNxC99Qy9Pwr3HhpsJqXurVtovAdYx4WYbEXYLGdk3sPvHLkpIcCLR2EPL0gWIc5wgxzPuJ7ipFM=
+	t=1785076951; cv=none; b=naKkYnb4R1/DJsymUr8axpN8OOVpBsyA/UELhpKKjfBIamN1DzG6zQ17jp63FvkdJP6O058i8zByRXqowCgSXu9cdiBIt7IMaIM8wCZpZGAFD22DqVR6Y+8/R2M1TZ/Bz4PJ5AI1bsJWSISFjx4eowcyfjTGBFpBJOSDl62w4Eg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785074590; c=relaxed/simple;
-	bh=XpKwwfFbDSL3QpoUQXGKuf456OAUxDN1RPIl/Ciibgo=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=Ojg5wscpcrlhqQRskIgrKHgYclf5Fvq5lv3/cuAFctq5EnKcZ+mEDP7KA2qq+nLE/vf9e6TngpkxTl64pS8e6wZMu/Zh9FbznYb941VOX0UkxyJCQi5RtLbe6B74q23Hc4q7rdHCfawULJhgeP7Sor4aQdfyvuFnxpgTHmJQdgk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=OCAs1OpC; arc=none smtp.client-ip=74.125.225.64
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1785076951; c=relaxed/simple;
+	bh=f/paM7suSS+f6oqLin8Ijxovb9ymBdcOgA9NDthSdM8=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=UviHhoFc4bvwspMXiQlAm5PW4HIxLcQPMw+C264Mc/nMKf1xIcOKNbyIyof8QvnTSSZJBFiPrp2gWIfFyWhZitPOxAr6A5xMTGDQlj13jP2g2E56vclr+atrNtHXyFpVU7SS8Uh4vkWUSVW3cURgmDwMxEcfCnvPJquTuHjMaKw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=isslab.korea.ac.kr; spf=none smtp.mailfrom=isslab.korea.ac.kr; dkim=pass (2048-bit key) header.d=isslab-korea-ac-kr.20251104.gappssmtp.com header.i=@isslab-korea-ac-kr.20251104.gappssmtp.com header.b=dRcQtRVB; arc=none smtp.client-ip=209.85.214.179
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=isslab.korea.ac.kr
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=isslab.korea.ac.kr
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="OCAs1OpC"
-Received: by mail-wr2-f0.google.com with SMTP id ffacd0b85a97d-46cbf263216so1038592f8f.1
-        for <linux-rdma@vger.kernel.org>; Sun, 26 Jul 2026 07:03:08 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=isslab-korea-ac-kr.20251104.gappssmtp.com header.i=@isslab-korea-ac-kr.20251104.gappssmtp.com header.b="dRcQtRVB"
+Received: by mail-pl1-f179.google.com with SMTP id d9443c01a7336-2ca64c3ce5fso22747485ad.3
+        for <linux-rdma@vger.kernel.org>; Sun, 26 Jul 2026 07:42:27 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1785074587; x=1785679387; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=5kvX1jnfnAWUHZyfST0uFEFJslh2Np5BzOfQst8CwGU=;
-        b=OCAs1OpCDTJksnXjSQ4rNrJCfXOA/La7dEDfpArgsGMwjw4PRR79ktnUiPAR+zuvgq
-         uOP1TmiPOCbW03i9OFocYQC7ejO1F7RBcVREnfG9Q25hH2x5EyFfBjreaX3cnSVSBzS6
-         zMV3FPYJ1cbMylGSzWk20GfcwBCM1UuDbmSpl9s8HVahLPxCevi00UKdtNM62zbfK28q
-         lF82oklnVoldl3FaiFhz+muJOOol2tUgpyftC0oFVCk3IRYMpcpXPIlIrIfEIcCtROyy
-         CzHsWs8FAPS9Ca1qd5MRxi/Frj6fO8U3NzkxCzslQfTyJnXqP47GoQQj9jDLG6/rBcP2
-         txGQ==
+        d=isslab-korea-ac-kr.20251104.gappssmtp.com; s=20251104; t=1785076947; x=1785681747; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=SVIM60jDgtsURD9RrVDGNNVCDHm1+dh+aaxp3nCQ6c0=;
+        b=dRcQtRVB/yLECSGriWfHgnL7w8staoB70p0idxNkxy5VLb5z4b27wG9rEk5jgdwizg
+         lZDUXMHIZjRXAZiBQ98eX8TG6hXpQy3WzXWntTLn0umQ4W/VCBrB9Uu9C4qRDg6c0yrn
+         cpXfv4b9LL5EOIB/xHipNq6JYio76UcuPvren8xCAFUmXGONSYYOE1Vh9Q2LX+sGPqDu
+         CG0HF5ci58KeE/hYbBqYxcBHPZYu1TEPsbaJhL9b+dxT/VpXGTInbKyMRNA6Tc5+VDPp
+         foumoQN1KdEpvYZF9AIWr+8LFYYDFKjPE+/NkTM1qAz36RlbuxQs2H8yhd1DlRDYNV86
+         6z4g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1785074587; x=1785679387;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=5kvX1jnfnAWUHZyfST0uFEFJslh2Np5BzOfQst8CwGU=;
-        b=siX4G3RfSji3JSB8g5GXdIT7SOCItZO8vXlD/eB0dZzhYBLcaKBdX4u2okFXn1QDkz
-         4XPMqWWSieLNvlIWfFbDo8hyiYMKtdUYbasQLqlMGtGaITAFOfi0yFV44jOzQT5RcVhz
-         SQ2X0dBUFsOeMh9dUVwVFPy7EhIPn2KehPBh8/Y8gLoRqclzSC6GxLjsE+DxXu9/gh6q
-         QN+FScHUihtXeZK5dgs5zdn9ja8kynoXQzoNciPLJYXV242kG3rOd4m/14TaAId0zaoG
-         ahtaF1jJgeKgZWu+3tQpMprwvZPHruEyNjcIvOLHj3S/9+WMzp6vvpr+Lopve7rHq2UV
-         FCrg==
-X-Forwarded-Encrypted: i=1; AHgh+Rqrq4CLWTGVofd8f5nvtG5VDtOiSBESvZktXKOU11PZWPqax8rw7pg3SgAlVXWeK9pD756M6T3EC7i+@vger.kernel.org
-X-Gm-Message-State: AOJu0YwbE2G2/vkm+9THwzVuZXSPE5/n8VUzxTsqsfElkw4TwNgBKwjj
-	RWic0gSERJcEYfCfalTiAxdj2aUv70PaeVSJxg9mGjOwLOXyguop/6sFkYPN41rr
-X-Gm-Gg: AR+sD12HG6caYhB1Dmwyvl1diR8Zwhn71dEFxLxTZYqd/fm49EhVKQwlc3mkwo5AlGl
-	fTOb+trsj5SOWZ53QjBhYBPMwU3dyQWNpWOgMvNWpiEeI0IRvHSZCN55A2uPbs8RUO4kOrekUCa
-	ejF7BJRyMjxYG400ERZruvZKvNnihN63tkFhkxzQ0nvb4sNfPmtjYAksh3t9Qup1tjeXVpPLwII
-	Gb0biIb5vbB7VbfI6tTYVsesGaXCv+tTkgFp+6lNtzXfyfSXonHh+VqsogaRI/1bxJbZuEqScEr
-	4tInvnByGtYh5N9RvA/uKN6kPjyfOZ6SyCmseUvVf3Adylod6zdS5nM1PdzMNPXV3dsxcSBIAJa
-	11yrdEdNdYc7nV2Jp7C1xtCMx9M7Ueem8QPAs07ROcjv0YCFnlQDU97vzn8xfybhr+B2xUa8dVp
-	W2SA==
-X-Received: by 2002:a05:600c:4709:b0:495:71fc:3a64 with SMTP id 5b1f17b1804b1-496b56ff1fcmr64627235e9.25.1785074586730;
-        Sun, 26 Jul 2026 07:03:06 -0700 (PDT)
-Received: from fedora ([212.253.194.180])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-47f85c6e9a2sm41825561f8f.35.2026.07.26.07.03.04
+        d=1e100.net; s=20251104; t=1785076947; x=1785681747;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=SVIM60jDgtsURD9RrVDGNNVCDHm1+dh+aaxp3nCQ6c0=;
+        b=XuajS1BaPJu1VSBq6CUFGsJxIXFlYQ3dikAnyaWPFixl+oBsc8oSUoz0yYGDn4Z+7v
+         FS/1F/3Ad61cWTIB3V6IjJ0QTCTIOb6s85BaWeMeX41iUxG+0GwhHjZUg/GMTSsGMbvU
+         5azg3ELfXStsItXXWtEwV2gIbNsR+rr05BObsyaB0FERTMWnbMg6EcA9NpL97w2pWCXf
+         7Kb7/EDJL+HK56eO1AJH1LKeiLHYnZ7+hn6yiKrL/ZI/cs4wBNMKyTQY5U0CJ2U0NpyH
+         1fW3Jzj1g8vN+lsON3dSbANNQQMbomREjzhWYLIjs4N98hznt507CYoXkAa6v3IkLL5W
+         W9pg==
+X-Forwarded-Encrypted: i=1; AHgh+RqzNb3TStqxeeWEwyiHqmABEFt6HilYiQyU1ewqlAA3sxB8w5KWHB1hi0hNbumbDTjveIpC1tomsw9L@vger.kernel.org
+X-Gm-Message-State: AOJu0YwEdlRRoOfsZke0qY+HhLjtlDbhoEDJeJIq7+HlZDVXOVJqS8V6
+	7ujNcJCEAg54Jq/+zdZxCPlkx8EgieqgQgTWW4c4yGz1KbLxTFn+UHVaZRLF/MpWBbLsthzyhR6
+	XciZaok87aQ==
+X-Gm-Gg: AR+sD13ZxI8iTuV99wsUQYM5PgDkPcYmzrjyUisYvuj/jNBKRyUNg3sR+KwxTq2ggHz
+	Z/fYrl8Qnm7oWZ3Obr2N2UnUobnHb5mx+u7sebuvHm/MWKidJhbst3wJYjJ+ndvFoYqVj4R1qgk
+	KhR29LQIWFcSzXCM+eSRW2WCfks4mzSVN5aQhtfP3BMH48pTCsqQ36lEZ67E+MZyZfdUg7uoHiC
+	XXrorBstDEAeKygjj6ocvXVrIiuW0e5iP5Ssc7xJwvfxPmJtG49h8RfJrhzlzg2ISDezBjJrMhL
+	74pPrQHP9ciVWw6USvILfQAFS+uymBDLhZQbDN3v00ahkRM+VX8k5BwTgMt6XVf+mI3AX0LI/iz
+	rcJayb4yg0xpi4cVchlZil6+FGVizc9ZClhbNg60yy8zYp3g4uMak6qWmm1EvB28FLAAATMNyCJ
+	7kZitITTXc2z33YrXP7Qr4RQUG
+X-Received: by 2002:a17:903:46cc:b0:2c6:9f66:d573 with SMTP id d9443c01a7336-2cfde67beebmr50345595ad.2.1785076947402;
+        Sun, 26 Jul 2026 07:42:27 -0700 (PDT)
+Received: from localhost.localdomain ([2406:5900:1044:110c:be9c:ea6b:29a7:6c78])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2cfde7f8e73sm20624625ad.72.2026.07.26.07.42.24
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 26 Jul 2026 07:03:06 -0700 (PDT)
-From: Serhat Kumral <serhatkumral1@gmail.com>
-To: yanjun.zhu@linux.dev
-Cc: zyjzyj2000@gmail.com,
+        Sun, 26 Jul 2026 07:42:27 -0700 (PDT)
+From: Yehyeong Lee <yhlee@isslab.korea.ac.kr>
+To: sagi@grimberg.me,
 	jgg@ziepe.ca,
-	leon@kernel.org,
-	dsahern@kernel.org,
+	leon@kernel.org
+Cc: nab@linux-iscsi.org,
+	michael.christie@oracle.com,
+	martin.petersen@oracle.com,
 	linux-rdma@vger.kernel.org,
+	target-devel@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
-	serhatkumral1@gmail.com,
-	syzbot+8c9eede336e3a843750e@syzkaller.appspotmail.com
-Subject: Re: [RFC PATCH 1/2] RDMA/rxe: drive UDP tunnel socket lifetime from the GID table
-Date: Sun, 26 Jul 2026 17:02:53 +0300
-Message-ID: <20260726140253.26870-1-serhatkumral1@gmail.com>
-X-Mailer: git-send-email 2.55.0
-In-Reply-To: <9f89e398-9848-40bb-a674-9719d94a6151@linux.dev>
-References: <9f89e398-9848-40bb-a674-9719d94a6151@linux.dev>
+	Yehyeong Lee <yhlee@isslab.korea.ac.kr>,
+	stable@vger.kernel.org
+Subject: [PATCH] IB/isert: post full-feature receive buffers after session registration
+Date: Sun, 26 Jul 2026 23:42:13 +0900
+Message-ID: <20260726144213.933544-1-yhlee@isslab.korea.ac.kr>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -82,87 +81,142 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-> I suggest reproducing the problem locally first, which would help avoid
-> a lengthy back-and-forth discussion.
+isert_put_login_tx() posts the full-feature receive buffers and then
+sends the final Login Response on the same call:
 
-I rebuilt your environment as closely as I could and could not
-reproduce the failure.
+	isert_alloc_rx_descriptors()
+	isert_post_recvm(isert_conn, ISERT_QP_MAX_RECV_DTOS)
+	isert_conn->state = ISER_CONN_FULL_FEATURE
+	isert_login_post_send()
 
-  base commit  f2ec6312bf71 + this series
-  config       your config_linux; "make olddefconfig" changed 15 lines
-               (rustc detection and openssl key types; Rust is not
-               enabled)
-  guest        Fedora 43, rdma-core-58.0-4.fc43, 16 vCPUs, 16 GB
-  qemu         q35, virtio-net on a PCIe root port, so the NIC is enp1s0
+iscsi_post_login_handler() only runs after that, and it is what calls
+__transport_register_session(), which sets se_sess->se_tpg.  An
+initiator that sends a SCSI command as soon as it sees the Login
+Response can therefore have that command received, executed and
+completed before the session is registered, and target_complete()
+dereferences a NULL se_sess->se_tpg:
 
-  [    0.000000] Linux version 7.2.0-rc3-rxe-l2+ (root@210da8ac5887)
-    (gcc (GCC) 15.2.1 20260123 (Red Hat 15.2.1-7), GNU ld version
-    2.45.1-5.fc43) #2 SMP PREEMPT_DYNAMIC Sat Jul 25 15:08:57 UTC 2026
-  [    0.000000] DMI: QEMU Standard PC (Q35 + ICH9, 2009),
-    BIOS 1.16.3-debian-1.16.3-2 04/01/2014
+  Oops: general protection fault, probably for non-canonical address ...
+  KASAN: null-ptr-deref in range [0x0000000000000080-0x0000000000000087]
+  Workqueue: ib-comp-wq ib_cq_poll_work
+  RIP: 0010:target_complete_cmd_with_sense.part.0+0x17d/0xc90
+  Call Trace:
+   fd_execute_rw
+   __target_execute_cmd
+   iscsit_execute_cmd
+   iscsit_sequence_cmd
+   isert_recv_done
+   __ib_process_cq
+   ib_cq_poll_work
 
-Same kernel release string and same DMI line as your Oops, and since
-the config is yours, KASAN, lockdep, PROVE_RCU, DEBUG_LIST, KFENCE and
-kmemleak are all active. One deliberate difference: the guest runs
-SELinux permissive.
+The command reaches the backend because transport_lookup_cmd_lun() does
+not need se_tpg on the mapped-LUN path; it uses se_sess->se_node_acl,
+which iscsit sets much earlier in iscsi_target_locate_portal().
 
-What I ran:
+iscsit's own RX thread does not have this problem: it is started at the
+same point but waits on conn->rx_login_comp, which is completed at the
+end of iscsi_post_login_handler(), after __transport_register_session().
+isert takes its PDUs from the completion queue instead, and
+isert_recv_done() has no connection-state check.
 
-  rxe_rping_between_netns.sh from the tree                  120 runs
-  the same script with its "exec > /dev/null" removed         3 runs
-  make -C tools/testing/selftests TARGETS=rdma run_tests      2 runs
+Post the receive buffers from isert_get_rx_pdu() instead.  That callback
+is invoked by iscsi_target_rx_thread() only after the same rx_login_comp
+wait, so the buffers become available to the HCA only once the session
+is registered.  isert_recv_done() runs on ib-comp-wq and cannot wait
+there itself.  The allocation stays in isert_put_login_tx() so that a
+memory allocation failure still cannot happen after the final Login
+Response has been sent.
 
-All passed, with no KASAN report, GPF, Oops, refcount warning or
-lockdep splat in any of them. The result lines of the suite run:
+rx_descs can legitimately be NULL in isert_get_rx_pdu(): the login
+timeout timer sets login->login_failed from timer context, so
+isert_put_login_tx() can skip the allocation branch while
+iscsi_target_do_login() still returns 1 and the connection reaches
+TARG_CONN_STATE_LOGGED_IN.  Return early in that case, which matches the
+existing behaviour of not posting at all on that path.
 
-  ok 1 selftests: rdma: rxe_rping_between_netns.sh
-  ok 2 selftests: rdma: rxe_ipv6.sh
-  ok 3 selftests: rdma: rxe_socket_with_netns.sh
-  ok 4 selftests: rdma: rxe_test_NETDEV_UNREGISTER.sh
-  ok 5 selftests: rdma: rxe_sent_rcvd_bytes.sh
+Reproduced with soft-RoCE (rdma_rxe) under KASAN using an initiator that
+issues a WRITE immediately after login, 400 login cycles per run.
+Unpatched: 9 of 10 runs oopsed.  Patched: 0 of 10.  A build carrying a
+diagnostic that reports the NULL without faulting recorded 16 hits
+across 9 of 15 runs unpatched and 0 across 15 runs patched; the two sets
+were run alternately in a single session.
 
-To confirm the setup would actually show a memory error, I loaded the
-KASAN test module from your own config ("modprobe kunit enable=1;
-modprobe kasan_test") in the same guest, and the reports do reach the
-console I capture:
+Not covered by that testing: discovery sessions over iSER, MC/S
+(non-zero TSIH) logins, ERL=2 connection recovery, and real HCAs, where
+RNR behaviour differs from soft-RoCE.
 
-  [   66.611585] BUG: KASAN: slab-out-of-bounds in
-    kmalloc_oob_right+0x72e/0x7f0 [kasan_test]
+Fixes: b8d26b3be8b3 ("iser-target: Add iSCSI Extensions for RDMA (iSER) target driver")
+Cc: stable@vger.kernel.org
+Signed-off-by: Yehyeong Lee <yhlee@isslab.korea.ac.kr>
+---
+This replaces "scsi: target: Fix NULL se_tpg dereference in
+target_complete()" (target-devel, Message-ID
+20260725165818.769963-1-yhlee@isslab.korea.ac.kr), which guarded the
+symptom in target core.  That patch is being withdrawn.
 
-The same 120 runs on plain f2ec6312 without the series also pass, so
-here neither kernel fails.
+ drivers/infiniband/ulp/isert/ib_isert.c | 36 +++++++++++++++++++++----
+ 1 file changed, 31 insertions(+), 5 deletions(-)
 
-Whether what you see is a regression or a pre-existing bug can only be
-decided on your VM, since here it does not fail either way. Short of
-that run, two things are cheap to produce and would help:
+diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
+index 1015a51f750a..b055513a7bd8 100644
+--- a/drivers/infiniband/ulp/isert/ib_isert.c
++++ b/drivers/infiniband/ulp/isert/ib_isert.c
+@@ -943,15 +943,18 @@ isert_put_login_tx(struct iscsit_conn *conn, struct iscsi_login *login,
+ 	}
+ 	if (!login->login_failed) {
+ 		if (login->login_complete) {
++			/*
++			 * Allocate here, but do not post yet: the receive
++			 * buffers are posted from isert_get_rx_pdu() once the
++			 * session has been registered.  Allocating early keeps
++			 * the original property that a memory allocation
++			 * failure cannot happen after the final Login Response
++			 * has been sent.
++			 */
+ 			ret = isert_alloc_rx_descriptors(isert_conn);
+ 			if (ret)
+ 				return ret;
+ 
+-			ret = isert_post_recvm(isert_conn,
+-					       ISERT_QP_MAX_RECV_DTOS);
+-			if (ret)
+-				return ret;
+-
+ 			/* Now we are in FULL_FEATURE phase */
+ 			mutex_lock(&isert_conn->mutex);
+ 			isert_conn->state = ISER_CONN_FULL_FEATURE;
+@@ -2585,8 +2588,31 @@ static void isert_free_conn(struct iscsit_conn *conn)
+ 
+ static void isert_get_rx_pdu(struct iscsit_conn *conn)
+ {
++	struct isert_conn *isert_conn = conn->context;
+ 	struct completion comp;
+ 
++	/*
++	 * Post the full-feature receive buffers here rather than from
++	 * isert_put_login_tx().  iscsi_target_rx_thread() only calls us after
++	 * waiting on conn->rx_login_comp, which iscsi_post_login_handler()
++	 * completes after __transport_register_session().  Posting them in
++	 * isert_put_login_tx() - before the final Login Response goes on the
++	 * wire - lets the initiator's first command be received and executed
++	 * against an se_session whose se_tpg is still NULL.
++	 *
++	 * On failure just return: iscsi_target_rx_thread() sets
++	 * transport_failed and tears the connection down.
++	 *
++	 * rx_descs can be NULL here: the login error path completes
++	 * rx_login_comp without ever reaching the login_complete branch that
++	 * allocates them.
++	 */
++	if (!isert_conn->rx_descs)
++		return;
++
++	if (isert_post_recvm(isert_conn, ISERT_QP_MAX_RECV_DTOS))
++		return;
++
+ 	init_completion(&comp);
+ 
+ 	wait_for_completion_interruptible(&comp);
+-- 
+2.43.0
 
-  git log --oneline f2ec6312bf71..HEAD
-  cat /proc/cmdline
-
-On the port 4791 question you raised earlier, I measured both sides.
-A script binds UDP 4791, then runs "rdma link add rxeC type rxe netdev
-v0" on a veth with 10.9.1.1 and prints the exit status, the GID table
-and "rdma link". Without this series:
-
-  link add with busy port rc=1
-  error: Operation not permitted
-  /sys/class/infiniband/rxeC/ports/1/gids/*
-  [   99.810196] rdma_rxe: Failed to create IPv4 UDP tunnel
-
-The glob is unexpanded because no device was created. With this
-series:
-
-  link add with busy port rc=0
-  /sys/class/infiniband/rxeC/ports/1/gids/0 fe80:0000:0000:0000:288a:0cff:fe1c:042d
-  /sys/class/infiniband/rxeC/ports/1/gids/1 fe80:0000:0000:0000:8435:54ff:fe3e:1578
-  [  100.525123] infiniband rxeC: add_roce_gid GID add failed port=1 index=1
-  [  100.529972] __ib_cache_gid_add: unable to add gid
-    0000:0000:0000:0000:0000:ffff:0a09:0101 error=-98
-  link rxeC/1 state ACTIVE physical_state LINK_UP netdev v0
-
-The GID for 10.9.1.1 is absent, only the link local ones are there.
-This is the trade-off the commit message describes, measured on both
-sides.
-
-Thanks,
-Serhat
