@@ -1,211 +1,270 @@
-Received: from CO1PR03CU002.outbound.protection.outlook.com (mail-westus2azon11010002.outbound.protection.outlook.com [52.101.46.2])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ej1-f54.google.com (mail-ej1-f54.google.com [209.85.218.54])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 55DB53815CE;
-	Sun, 26 Jul 2026 09:31:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.46.2
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F7F234B682
+	for <linux-rdma@vger.kernel.org>; Sun, 26 Jul 2026 10:42:53 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.218.54
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785058283; cv=fail; b=DAT5TBuTPEBWRa31ykqNiJ8yc1qsZT33ifYsGhBpB3Vlnp98+isa2gtSi427TglMm5QasmlOU9e+A99mIZ/L8Gz2kaB1Nkcy/J9dD65USDBDWwGs6UCX0YvKa/9Nu7F58P9YA5e+HK187ZUUIQXrur1p3ci7/Wh88A1V226UUWc=
+	t=1785062575; cv=pass; b=S7RnB8QaVY3bdQz/uw2ZEKRAtnKl1n7AbuSnanvZnNUY2qWq9Zysols4aJPbQBoH1nFPdKbeq39QvbS6ICaT+h0E9FhC6QV+f+VyC+3Nci4bcQtnNGRnfJBvCN0FWrRz/MIP1lfqzUDcKfUDXjHOn2tn/H342qFXnhgyBIMGuks=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785058283; c=relaxed/simple;
-	bh=ZM2EAxE5tAggjyEJp3BfQoDh6jvRYRoeiYoWMUfdTlc=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=Br0u5UYKl59FoxrYuHpG/NDFAX9sEur31RDkZPqAL64g5ZPnuR3qyptEXZkKvhD3DcfmH7EBh2rmoGlkoG1LSkSi7nR2y6Yq5P8ZHVMrWgYRaZikR1mumoCZP+iLz41/l76uQel+XiBfLOMWtox1h+0FaTxYn5DQ1bfFQHeJPR8=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=AZxKwpyX; arc=fail smtp.client-ip=52.101.46.2
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	s=arc-20240116; t=1785062575; c=relaxed/simple;
+	bh=TNy/ZFMU/DBWDlPILMRAzyD/XpV7gqL+xAUqXy/PpJY=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=DlpWMSW4ns061prCBdJY+YBSQykVPKvRA5eqlAgsa2fJSx+W2M/mmAo0gfN7h4f0zxTY5aDpfPT/3sg6QtR0ZX6OVR9edOlaNWeAuGwo+hgqGwrs0Wzrx+3rhriB0SljaqXuxubxZOQGdL4S2e3Xo/c/w+H9sG9gTNQ7EE8769o=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=JwHoCQIL; arc=pass smtp.client-ip=209.85.218.54
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="AZxKwpyX"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=OgsA8ADMSszLv5Efs9YJA+F+N9LUzW7+LzvNSwRZlhmNeeVFhEINNolXdLFLofMYzQb9BahrImfCpAyjDYNI96Am/cyAEsO77z+a+BbSGja5J+gESNe6GTY+M/DdPDaiaztoc7ZHGYaWydyVWNOw/zv7UqA3CV7K48Vv6LAE5+l76Ri0anGk6Z9kWqwoWclizKQ4p0azNousoQZW4z5u0Rp0F5zpVK7uGZCdsye1+ywO/r/4wrtL8elJugxsOuaZwbQv2VBiG5+5unVwBUW1+kNAmZwYYScvyy5UdkWIANMtyROq2C+tIY5kqhTQzXT8CDdHx7xXGRPNd8droBEUlA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=1uDImLbutbMauoEFyeMLsingHSc7vgmM0YKNHmvh524=;
- b=VmWzxHh5HaTI8PygpQRwLpFc5PM8L/Seqjzn+zzBmJpDkn5c0Rle7uM/MbC1MYpgTpzNj/OYrFZO60Gq+4qIdnTWFYurY6mRYMKWkbMOg6h0HvIAvZJ3h0dSpQpVWtN714Ka40f1VGj8YttX/Uzlus1i2PXIkhjVqqv2jL5b3zTYDezcZcpis+A4hSolTl566FCRXOrikDvgDvYyLPpBdJLRn1PDBoBVdVBn7LmSu1nGtuR6WPsNkq2D9nIh1il3+UpUeWdum5iqKmcde1BGyRKqwIhRmPOlzCGAgI6lC1RkXiLPLLVHX3L4gKyJozv8FpZToXtdziZRso2n6TgWtA==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=1uDImLbutbMauoEFyeMLsingHSc7vgmM0YKNHmvh524=;
- b=AZxKwpyXe+0Wg/TqVVsV1dVsl8+pjRDYMQqzj2ytCJUtFnp336yTI/FqizKx9Ba3nMFu8EwfF2f6/GyfxLLUOFPtElQi75o7t8xVgJucYhO783goiDm6QWL2ZCd2pqk+12r4yDSkCM+JqVk7CzA5bGuU6pek7b8ufuM6fMuhvMXoTLZ7pI325mZNUda7jcqFKYLS4WDm4gdN1TUFkSfUtQT9Iz9aGQ8f54sTlqn7LkucmqONaAPo77unMzHQDsyRXntCQBmlNVs2eeEkK+gjBgkg98u+rMgZ11pgMj9q2yIPWWRqo0mlGguf+MAHbyNIJBZOGaHvR3Vez9JsSQJC/A==
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from LV8PR12MB9715.namprd12.prod.outlook.com (2603:10b6:408:2a0::7)
- by CY8PR12MB7611.namprd12.prod.outlook.com (2603:10b6:930:9b::19) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.245.13; Sun, 26 Jul
- 2026 09:31:17 +0000
-Received: from LV8PR12MB9715.namprd12.prod.outlook.com
- ([fe80::e74f:2cf8:cf2c:142]) by LV8PR12MB9715.namprd12.prod.outlook.com
- ([fe80::e74f:2cf8:cf2c:142%6]) with mapi id 15.21.0245.012; Sun, 26 Jul 2026
- 09:31:17 +0000
-From: Michael Gur <michaelgur@nvidia.com>
-To: jgg@ziepe.ca,
-	leon@kernel.org
-Cc: linux-rdma@vger.kernel.org,
-	netdev@vger.kernel.org,
-	Edward Srouji <edwards@nvidia.com>,
-	Yishai Hadas <yishaih@nvidia.com>,
-	Michael Gur <michaelgur@nvidia.com>,
-	linux-kernel@vger.kernel.org (open list)
-Subject: [PATCH rdma-next 15/15] RDMA/mlx5: Enforce relaxed ordering when HW requires it
-Date: Sun, 26 Jul 2026 12:29:29 +0300
-Message-ID: <20260726092943.2880176-16-michaelgur@nvidia.com>
-X-Mailer: git-send-email 2.52.0
-In-Reply-To: <20260726092943.2880176-1-michaelgur@nvidia.com>
-References: <20260726092943.2880176-1-michaelgur@nvidia.com>
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: FR4P281CA0400.DEUP281.PROD.OUTLOOK.COM
- (2603:10a6:d10:cf::20) To LV8PR12MB9715.namprd12.prod.outlook.com
- (2603:10b6:408:2a0::7)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="JwHoCQIL"
+Received: by mail-ej1-f54.google.com with SMTP id a640c23a62f3a-c1c52d920b8so230082866b.2
+        for <linux-rdma@vger.kernel.org>; Sun, 26 Jul 2026 03:42:53 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1785062572; cv=none;
+        d=google.com; s=arc-20260327;
+        b=A72cGPTWksrN/Nuy55wgy/umnf/vUqBmBfpjvErd3Avk0GmONycdORJgU6O5J6Tu8l
+         DUrlW5i+8aOfEP6QPb0gydZFdB4GIxxXTgzQo03oJjdG3go/ogGCRsWOwX0CVMaKRHhJ
+         avphEEcPY7rtJndITfs2sk3nmKbq6qjF0zIwrRUSeAEsCtXXxf5nU48H7O0/zWqgjJXa
+         JjI+JlmYS7aYIMUoMyZjB2wJgkNLw3C4nv9jDy8K/8X1mfYpzkUqSvb+9S+ur/FyqXgr
+         X9n4PHa2VILagMINmBZguoqVZYJcEuYtRK8UGWPbxoNlVsOqC5XzdbSdf9Y1ZdKD2wyu
+         tFdw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=mAyeHAmplyeCwCD7p5jwj4E3/5LBIuVSm3NHnEZEU5k=;
+        fh=uRZUbVrdvLmvNFYlTh7enzcBGe37T37jjqJg/AEF1MU=;
+        b=ewSZCGa0q3aQEyWpEhYQIWqvISn2RLtYOLO3kPXJB0PscsAZQ3W1k78q/rxHWXmCW6
+         ZOWiVW9q6HLvMK5HGvLttH0aN99PoAaufrI2ki6WKaMWXqVZF9HYN94sxnSrhThrJvD0
+         wJH/mgENQBBQypjDctNCJWMN+tm406w7DeQ+xhZAdEtFVwmWderkgZzBuUumu0EI8gOK
+         ZEB0YMsc1O+TAPWUqbmETPyxoMIRQy7QOsjjACEt0kuyZlKQicVzMZ8MWw+7cBJtjJoJ
+         FVc/i29QPqqJAMk2AipP4ASCtc/ob0kTDrM15kzXMr8LvArGJ86ouG+5xShq17REamEm
+         JpTA==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1785062572; x=1785667372; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=mAyeHAmplyeCwCD7p5jwj4E3/5LBIuVSm3NHnEZEU5k=;
+        b=JwHoCQIL/MjFGe+jrZGD3KHTXYJZkO76zwhZ6cuoSFEuDT1Fr+fmc5Fr2bud7fW1i3
+         FA+uAMqIZrkPL5nYvshVZi4j0J4hDfxh6ZGi5wpx1mF1vvsbkNoQN87LfQhG2GU8Lcs6
+         xeJz4qKJ8N2xHatSwS/czvRsB12QA8BEJBNb9mj9Z27a9pAMzbFvLewjtMAuplnc5FhH
+         +f8glEL0++Rn7VfNZ6n5fxfErDp+dNafqdYZv8kZOyRElgL5Fl/dzXJFl9XC8bdiVP4U
+         VykpG+xXL+dO86hRu81Kg061Ai4SImdaNjkv3Cj/JvmnblZvgruqM9ooouIHQoXB8yrn
+         caag==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1785062572; x=1785667372;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=mAyeHAmplyeCwCD7p5jwj4E3/5LBIuVSm3NHnEZEU5k=;
+        b=VWHYcY6aIxWjdiIdcPiaH+GGCXD1xbp4CP3m1TTZgC3xJH+fkEoBC7g0w2ME/D/hu8
+         R9ZbvzfH83rnbqssEBwnfBifQzlkYPVyn55ZEBA/U968y2mGJF1Kobb+kXiHCy5+bUcY
+         fdy4HfSuZpV7GAN56zHpTm+oXaohH6gyJ9QmEkLcsGOStST1f0cHmqjUU+4YUFGtwFvy
+         OMzjdn8K0tNU82eeIDVdMaxqFxX0RCqXrvio09+Emc+foiOEh5GhAv8hnWGiOKhaqMVJ
+         r+9RyJeT7KBm+mHqe6XRBaIoJsoEuPmrJV8P1PGAOwguSluNncGYL9u3vrYrLVuZOU7n
+         rNrg==
+X-Forwarded-Encrypted: i=1; AHgh+RppLQCjAsHVTKxjujaizijUgK32EKC9Fdi/FjU/OAeueobh5OFM5cgBSZ9v44cWU9UIuydeumk9KBMA@vger.kernel.org
+X-Gm-Message-State: AOJu0YwmWnsGznb90TSxHCUlz3+OWb7TDwFO616WmCwsMdc68hpzP7xs
+	ukpdp+t4ZOepy4rkxX++7lb5q1XoYZ2idT7DZCYiJ62W95+SSYtLz+wImiyE8YMcWw/xeADe1ZL
+	tLF8YxVbI/qGgjWOD0GgFCHbARYfUm/0=
+X-Gm-Gg: AR+sD116uxn1zpiSTHEnGftuopae8p4hsz9qhQiPGJs8bicgBvHiamTfdY0F2/IMtjV
+	e++vWtpJWZGfdefKLjPpqMaVlLCV9QE42A+5x9gTE5Ro8arLNzohcUgLBJkO+EFCJbpg+ORsOHA
+	u9Dy+3Ul5ndu11yqdnrapywKv9eeqnSQvRTzBwzlGJ+OO5aNn/86sUF44Ti8Kaqj2PTNYBicG2a
+	aDTH8o6cOPdTf0bo3mSsKpxSXHs+qvuiXGfzskXUjuZMtfNbDQfwQArfDgj+IBYgf/s1mvSHYY3
+	GMPzkTm9/IVFYPAeSG4=
+X-Received: by 2002:a17:907:8e07:b0:c16:592b:ec4c with SMTP id
+ a640c23a62f3a-c1f1ea07ac9mr156324466b.1.1785062571218; Sun, 26 Jul 2026
+ 03:42:51 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: LV8PR12MB9715:EE_|CY8PR12MB7611:EE_
-X-MS-Office365-Filtering-Correlation-Id: ed2f330c-41af-4af7-a8d5-08deeaf8a4d9
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|376014|23010399003|366016|1800799024|10067099003|18002099003|22082099003|56012099006|5023799004|11063799006|6133799003;
-X-Microsoft-Antispam-Message-Info:
-	XYBHzJpoV1t8TzBYgdRM40IM7uy2DJzIncRA2yOBSqxeuKVeCmuFoAUt1eA0SalNB28N2d0GjQkyGXID8W492kFirP4azi+xX75oAM+rYtTVlETiYJ0UOtqTFvkt6fVeJ+l8ufSCDrMTJbW9iAjh8EtLrPZ63xtEsevXxFRtzQAft8kirtCi+J+0HE+e+GJQ7pc+Cmsrubdw1s4TjCddYK2L04plN78eXl1NuASXoO4txU71l2gVM1ETWdx91T6fGHFqsXTv6bG+Lm9aHlqtwXogeYzF9JTRReATsJO7Rxp3Z4umaSX6ls8vlhCS8LteB2OpkYz8AqzBo7J6C8pf8I5fgsv81+ADcNsXcJGTL0dkapLmpxOFzdVtyrfh+KQHSB7kBunQKLnh8Npk1bg+y4aAKP8cFpqSWprSkw33uCvLAuUPw35VT0trWIyIb1hLqXo/sN3ett8N8CD4KOC2H6Sktck7NSnNw8QjTSx2s/3Cb373lCjTQ12GvSE1TVqHtYOL7XcnNjQvoahkS6dZnWoP6boYKfyzBVosmerfRjIV2yZaX9vLPou8CZr8PgYw4be0fhMWexZgKzb/Wd46MEVy37Lk81EsQL5TDg2TljseRF8C4cvwJr60zgxBJ6rUDO2Mvi1AlDrGICRVpAjxek8LY1pJS02w1Jr6kvWgSfY=
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:LV8PR12MB9715.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(23010399003)(366016)(1800799024)(10067099003)(18002099003)(22082099003)(56012099006)(5023799004)(11063799006)(6133799003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?euF7A7UEzxABKFl/nZzFr9YZtNbp4P35X45pXkGlGl09XRloGZHeMhF1LR/Y?=
- =?us-ascii?Q?dOKlda38EFSU5MtDIzsyCxHk0Hey69eHuw2ZX6UmOCOVfKCe6h+s8PhCD6jY?=
- =?us-ascii?Q?2dwoG567/otPGInrQxDfYZQOVe0jAGg9p4KpzGMUTaLuq9RudVeOC3Weqw3r?=
- =?us-ascii?Q?uyL3lts54kwoHuZAXncBncVJoHWRcc1WzNCyk42kVfcISOju5JmCuqRKngs4?=
- =?us-ascii?Q?gQWmrLXBY6VAGxNF5mzCrD9TA5DFPFpMdyNTs6YWrB31vM3qJCX5b1iBi8re?=
- =?us-ascii?Q?WzuHsMgAWTzA0tP3gya0qQq2LG3lTH8PCGH98aRcGuHCiSG+EwZ12Lrzk0q9?=
- =?us-ascii?Q?OPqdrZVBcUevys0gUpqRlEfkPQYFQaB6BHAsycB1DYm+Y6KZQykRCdkI7qhi?=
- =?us-ascii?Q?onomvKA7a0pGehqP8hGfjyG4cqDMf6BpO1aBRtU4TtnWYKqBlTVO/K7Lr6iU?=
- =?us-ascii?Q?4A9Le55XhD6AgMq+LF64Beli7Kqxarwup5kRcdL4/bXhuhZcYyQnviv3T43+?=
- =?us-ascii?Q?Ighyv0cHyAKDAJbMgPXR6+q4EnjbOoWVexlp0yn61sEY8SZ8/x63FciZ0kvJ?=
- =?us-ascii?Q?O4bcIrvvMaFSRac8U0uF+DYQ5Mt7bmdOJH50o0i5MbIZTQLU/V7HliXw8aH5?=
- =?us-ascii?Q?Y8OQuL7X0eygEihL9e8pgYKP/4e53XC1fvdOhCTK6mTSDvuMnzZ/P4VsTv5x?=
- =?us-ascii?Q?3vrJg7cmdEZIB367FPyk0Ix/ufQvz3JKlgoMDNmkZ2HVhnanOT/RhO+mxxMY?=
- =?us-ascii?Q?M92J+Eik6Q26Z4qDht0agXlNju52qTqDsYMTe70TGUrs3oOwIDRd6ieGunhz?=
- =?us-ascii?Q?oA6TclfBbFcmdKvT9FS8pD+oZiptRI+NsaIT0+liSdCd8xVbolT0oBF4fcgo?=
- =?us-ascii?Q?ySy3UaawKtmG3VVyIyC/4+s2CFebLOWNYneLTHf0Z1dcECx2wzaX+TPNb1XM?=
- =?us-ascii?Q?tDYktitZrZCUJoiydGcADgPnzwp9Yx1/8VeUxItcChjMIhdb+O11Jb9L+qI7?=
- =?us-ascii?Q?ygdLdnnijHYIkUaI7QRCS1IPwcsU0ffyOjpx2fMxJnrtLU4wwVko7Z3O9lh+?=
- =?us-ascii?Q?l7XyPhzJ/zARNSiqhZ8kVAeP1MFVrnuI10ZlMA9GNShaRSjl/82Hy8WF8Vft?=
- =?us-ascii?Q?C09vUYJYY8hWKXF09OqO3P/GbM3IRVD4dGxbH4nxxmXn6XqYh/MFKf7zaryy?=
- =?us-ascii?Q?Hmk+Xi/TZjP3et9CPm6DidfekuxmiA1VJQEl1dCZ/+X3vBeV5jRlrJ25saNh?=
- =?us-ascii?Q?nz4NAjInrkY2yaykP6gKgdyQGTYUt9JTEBQzXIEDqFSwq+Yx0kpjp20OlIZm?=
- =?us-ascii?Q?dn/QpecYnPHPv7QxDQG/EEg/FXtc35IbDpCyLkBvJRv6SP9d9qy9OE9vY6HA?=
- =?us-ascii?Q?akI8dKQuQrBFrEgrO+l/LwAp16nr52JfzdiGQY6L4c66m29IP+/6gLx2SdhU?=
- =?us-ascii?Q?aVzmJ/6pvdyDLeXS49IaW1KPeHgzn0fENueYaTPg2wTmhGrTQOC6pvxSjk8g?=
- =?us-ascii?Q?510ZKHZgIf+cxbhtur28pqPROpcDcDK43ecqiwBT9bSa6D9s9py+5/8UUH+i?=
- =?us-ascii?Q?FREEJ6D3CwNYkPi6jAyl8NZ4nxODIpf8/Q/Fc1zITW0r1JdrZeNQDiJOmHmy?=
- =?us-ascii?Q?BqpF+H6k9EbQEgNdaHY9xxUH8sGhyQPEwc7zPNWPbZJ+OvCh+HI+CNZCIxCz?=
- =?us-ascii?Q?N8RfmSCebkbRs2WnvciDeJThCIzjtKqP5PjJg8oUY5XlJ9+2CCZC36bMheDD?=
- =?us-ascii?Q?vIXy6M5+UQ=3D=3D?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: ed2f330c-41af-4af7-a8d5-08deeaf8a4d9
-X-MS-Exchange-CrossTenant-AuthSource: LV8PR12MB9715.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 26 Jul 2026 09:31:17.2453
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: ZRPF0A55RLVgi6++EE9pKkByjD9H37kgLc/Zt3uj6ftWl8r2oWfTdeqvCJrhbp/bGLjuM3+dtxa4fj/1ul+h2w==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CY8PR12MB7611
+References: <20260725094805.916278-1-bestswngs@gmail.com> <1b99ae23-a5b0-4e3b-80b5-1538d0e0a7fe@linux.dev>
+ <b70a8092-60a8-46bd-8a06-82e41f59a76b@linux.dev> <20260726082058.GE12003@unreal>
+In-Reply-To: <20260726082058.GE12003@unreal>
+From: Weiming Shi <bestswngs@gmail.com>
+Date: Sun, 26 Jul 2026 18:42:12 +0800
+X-Gm-Features: AUfX_myJVK-SnKx3vcTXq_oPRA2T5kPmNplAPf0HuyIEwKUhodo_LqOoLmj2TDw
+Message-ID: <CANgPUi1fyALy7fGuqmpwZ_RCX4O19V9wdR+b20NV8QckdQrtOg@mail.gmail.com>
+Subject: Re: [PATCH] RDMA/rxe: Restore HMM_PFN_WRITE check in ODP write paths
+To: Leon Romanovsky <leon@kernel.org>
+Cc: Zhu Yanjun <yanjun.zhu@linux.dev>, security@kernel.org, 
+	Jason Gunthorpe <jgg@nvidia.com>, Zhu Yanjun <zyjzyj2000@gmail.com>, Qiang Hong <wanbafv@gmail.com>, 
+	Xinyu Ma <mmmxny@gmail.com>, Shaomin Chen <eeesssooo020@gmail.com>, 
+	Rui Ding <threonine42@gmail.com>, Miao Zhao <muel@nova.gal>, 
+	RDMA mailing list <linux-rdma@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Add relaxed ordering validation (relaxed or unordered) to enforce no
-strong ordered mkeys are created when the HW disallows it.
-Reject MR registrations that do not request IB_ACCESS_RELAXED_ORDERING
-or IB_ACCESS_UNORDERED.
+Leon Romanovsky <leon@kernel.org> =E4=BA=8E2026=E5=B9=B47=E6=9C=8826=E6=97=
+=A5=E5=91=A8=E6=97=A5 16:21=E5=86=99=E9=81=93=EF=BC=9A
+>
+> On Sat, Jul 25, 2026 at 07:12:42PM -0700, Zhu Yanjun wrote:
+> > While exploiting this ODP flaw in soft-RoCE for privilege escalation
+> > in practice might require specific conditions, enforcing the HMM_PFN_WR=
+ITE
+> > check is undoubtedly the right choice to enforce strict access control
+> > and eliminate the security risk.
+> >
+> > The special handling for pmem flush (keeping it read-only) is also a ni=
+ce
+> > and correct touch.
+>
+> Zhu, we already asked you, please reduce the amount of AI-generated
+> emails.
+>
+> >
+> > Let us wait for the feedback from Leon and Jason.
+>
+> There is nothing we can do here, as it is not available in Patchwork
+> or lore. Please post the patch to the mailing list.
+>
+> Thanks
+>
+> >
+> > Reviewed-by: Zhu Yanjun <yanjun.zhu@linux.dev>
+> >
+> > Zhu Yanjun
+> >
+> > =E5=9C=A8 2026/7/25 17:08, Zhu Yanjun =E5=86=99=E9=81=93:
+> > >
+> > > =E5=9C=A8 2026/7/25 2:48, Weiming Shi =E5=86=99=E9=81=93:
+> > > > Commit 0b261d7c1cd3 ("RDMA/rxe: Break endless pagefault loop for RO
+> > > > pages") dropped the access permission test from rxe_check_pagefault=
+()
+> > > > and left only HMM_PFN_VALID. A page faulted in read-only, for examp=
+le
+> > > > a page-cache folio behind a PROT_READ file mapping, then satisfies =
+the
+> > > > check and ODP write operations (RDMA WRITE, RDMA READ response, SEN=
+D
+> > > > payload, atomics) modify it through kmap without ever breaking CoW.
+> > > >
+> > > > An unprivileged user can register an ODP MR over such a mapping and
+> > > > have incoming RDMA traffic overwrite the page cache of a file it on=
+ly
+> > > > holds O_RDONLY, including /etc/passwd or setuid binaries. This is t=
+he
+> > > > same primitive class as Dirty COW and CVE-2022-2590.
+> > > >
+> > > > mlx5 has the missing invariant: its ODP path sets the device write =
+bit
+> > > > only for pfns that carry HMM_PFN_WRITE. Restore it in rxe by requir=
+ing
+> > > > HMM_PFN_WRITE in rxe_check_pagefault() for every operation except
+> > > > RXE_PAGEFAULT_RDONLY. A write to a non-writable VMA now fails the o=
+ne
+> > > > fault attempt with -EPERM from hmm_vma_fault() instead of re-faulti=
+ng
+> > > > forever. For a writable VMA the fault breaks CoW and the write land=
+s
+> > > > in the private page.
+> > > >
+> > > > Keep pmem flushes on the read-only check. arch_wb_cache_pmem() neve=
+r
+> > > > modifies memory, and the FLUSH access bits do not make the umem
+> > > > writable, so classifying flushes as writes would make every flush
+> > > > against a flush-only MR fail.
+> > > >
+> > > > Fixes: 0b261d7c1cd3 ("RDMA/rxe: Break endless pagefault loop for RO
+> > > > pages")
+> > > > Cc: stable@vger.kernel.org
+> > > > Signed-off-by: Weiming Shi <bestswngs@gmail.com>
+> > > > Reported-by: Shaomin Chen <eeesssooo020@gmail.com>
+> > > > Reported-by: Rui Ding <threonine42@gmail.com>
+> > > > Reported-by: Miao Zhao <muel@nova.gal>
+> > > > Tested-by: Qiang Hong <wanbafv@gmail.com>
+> > > > Tested-by: Xinyu Ma <mmmxny@gmail.com>
+> > > > ---
+> > > >   drivers/infiniband/sw/rxe/rxe_odp.c | 16 +++++++++++-----
+> > > >   1 file changed, 11 insertions(+), 5 deletions(-)
+> > > >
+> > > > diff --git a/drivers/infiniband/sw/rxe/rxe_odp.c
+> > > > b/drivers/infiniband/sw/rxe/rxe_odp.c
+> > > > index ff904d5e54a73..174bb2efc3c6a 100644
+> > > > --- a/drivers/infiniband/sw/rxe/rxe_odp.c
+> > > > +++ b/drivers/infiniband/sw/rxe/rxe_odp.c
+> > > > @@ -124,19 +124,23 @@ int rxe_odp_mr_init_user(struct rxe_dev *rxe,
+> > > > u64 start, u64 length,
+> > > >   }
+> > > >     static inline bool rxe_check_pagefault(struct ib_umem_odp
+> > > > *umem_odp, u64 iova,
+> > > > -                       int length)
+> > > > +                       int length, bool write)
+> > > >   {
+> > > >       bool need_fault =3D false;
+> > > > +    u64 access =3D HMM_PFN_VALID;
+> > > >       u64 addr;
+> > > >       int idx;
+> > > >   +    if (write)
+> > > > +        access |=3D HMM_PFN_WRITE;
+> > > > +
+> > > >       addr =3D iova & (~(BIT(umem_odp->page_shift) - 1));
+> > > >         /* Skim through all pages that are to be accessed. */
+> > > >       while (addr < iova + length) {
+> > > >           idx =3D (addr - ib_umem_start(umem_odp)) >>
+> > > > umem_odp->page_shift;
+> > > >   -        if (!(umem_odp->map.pfn_list[idx] & HMM_PFN_VALID)) {
+> > > > +        if ((umem_odp->map.pfn_list[idx] & access) !=3D access) {
+> > > >               need_fault =3D true;
+> > > >               break;
+> > > >           }
+> > > > @@ -159,6 +163,7 @@ static unsigned long
+> > > > rxe_odp_iova_to_page_offset(struct ib_umem_odp *umem_odp, u
+> > > >   static int rxe_odp_map_range_and_lock(struct rxe_mr *mr, u64 iova=
+,
+> > > > int length, u32 flags)
+> > > >   {
+> > > >       struct ib_umem_odp *umem_odp =3D to_ib_umem_odp(mr->umem);
+> > > > +    bool write =3D !(flags & RXE_PAGEFAULT_RDONLY);
+> > > >       bool need_fault;
+> > > >       int err;
+> > > >   @@ -167,7 +172,7 @@ static int rxe_odp_map_range_and_lock(struct
+> > > > rxe_mr *mr, u64 iova, int length, u
+> > > >         mutex_lock(&umem_odp->umem_mutex);
+> > > >   -    need_fault =3D rxe_check_pagefault(umem_odp, iova, length);
+> > > > +    need_fault =3D rxe_check_pagefault(umem_odp, iova, length, wri=
+te);
+> > > >       if (need_fault) {
+> > > >           mutex_unlock(&umem_odp->umem_mutex);
+> > > >   @@ -177,7 +182,7 @@ static int rxe_odp_map_range_and_lock(struct
+> > > > rxe_mr *mr, u64 iova, int length, u
+> > > >           if (err < 0)
+> > > >               return err;
+> > > >   -        need_fault =3D rxe_check_pagefault(umem_odp, iova, lengt=
+h);
+> > > > +        need_fault =3D rxe_check_pagefault(umem_odp, iova, length,
+> > > > write);
+> > > >           if (need_fault) {
+> > > >               mutex_unlock(&umem_odp->umem_mutex);
+> > > >               return -EFAULT;
+> > > > @@ -339,8 +344,9 @@ int rxe_odp_flush_pmem_iova(struct rxe_mr *mr,
+> > > > u64 iova,
+> > > >       int err;
+> > > >       u8 *va;
+> > > >   +    /* A flush never modifies memory; read-only access suffices.=
+ */
+> > > >       err =3D rxe_odp_map_range_and_lock(mr, iova, length,
+> > > > -                     RXE_PAGEFAULT_DEFAULT);
+> > > > +                     RXE_PAGEFAULT_RDONLY);
+> > > >       if (err)
+> > > >           return err;
+> > >
+> > --
+> > Best Regards,
+> > Yanjun.Zhu
+> >
+> >
 
-Invoke the validator from all user-facing MR registration paths,
-including the Device Memory path (mlx5_ib_reg_dm_mr).
+Hi Leon,
 
-Reviewed-by: Yishai Hadas <yishaih@nvidia.com>
-Signed-off-by: Michael Gur <michaelgur@nvidia.com>
----
- drivers/infiniband/hw/mlx5/mr.c | 29 ++++++++++++++++++++++++++++-
- 1 file changed, 28 insertions(+), 1 deletion(-)
+Thank you for the feedback. I will post the patch to mailing list as reques=
+ted.
+Regarding the reproduction details, I will omit the PoC code in the
+public mailing list post for security reasons.
 
-diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
-index 31879c0ecfb3..5a7bec0d7edd 100644
---- a/drivers/infiniband/hw/mlx5/mr.c
-+++ b/drivers/infiniband/hw/mlx5/mr.c
-@@ -84,6 +84,16 @@ static void set_mkc_access_pd_addr_fields(void *mkc, int acc, u64 start_addr,
- 	MLX5_SET64(mkc, mkc, start_addr, start_addr);
- }
- 
-+static int validate_ordering_access(struct mlx5_ib_dev *dev, int acc)
-+{
-+	/* If HW disallows Strong Ordered writes, RO/UNORDERED must be set */
-+	if (MLX5_CAP_GEN(dev->mdev, mkc_order_write_after_write_ro_only)) {
-+		if (!(acc & (IB_ACCESS_RELAXED_ORDERING | IB_ACCESS_UNORDERED)))
-+			return -EOPNOTSUPP;
-+	}
-+	return 0;
-+}
-+
- static void assign_mkey_variant(struct mlx5_ib_dev *dev, u32 *mkey, u32 *in)
- {
- 	u8 key = atomic_inc_return(&dev->mkey_var);
-@@ -679,8 +689,13 @@ struct ib_mr *mlx5_ib_reg_dm_mr(struct ib_pd *pd, struct ib_dm *dm,
- {
- 	struct mlx5_ib_dm *mdm = to_mdm(dm);
- 	struct mlx5_core_dev *dev = to_mdev(dm->device)->mdev;
-+	struct mlx5_ib_dev *ib_dev = to_mdev(dm->device);
- 	u64 start_addr = mdm->dev_addr + attr->offset;
--	int mode;
-+	int mode, err;
-+
-+	err = validate_ordering_access(ib_dev, attr->access_flags);
-+	if (err)
-+		return ERR_PTR(err);
- 
- 	switch (mdm->type) {
- 	case MLX5_IB_UAPI_DM_TYPE_MEMIC:
-@@ -843,6 +858,10 @@ struct ib_mr *mlx5_ib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
- 	mlx5_ib_dbg(dev, "start 0x%llx, iova 0x%llx, length 0x%llx, access_flags 0x%x\n",
- 		    start, iova, length, access_flags);
- 
-+	err = validate_ordering_access(dev, access_flags);
-+	if (err)
-+		return ERR_PTR(err);
-+
- 	err = mlx5r_umr_resource_init(dev);
- 	if (err)
- 		return ERR_PTR(err);
-@@ -1034,6 +1053,10 @@ struct ib_mr *mlx5_ib_reg_user_mr_dmabuf(struct ib_pd *pd, u64 offset,
- 		    "offset 0x%llx, virt_addr 0x%llx, length 0x%llx, fd %d, access_flags 0x%x, mlx5_access_flags 0x%x\n",
- 		    offset, virt_addr, length, fd, access_flags, mlx5_access_flags);
- 
-+	err = validate_ordering_access(dev, access_flags);
-+	if (err)
-+		return ERR_PTR(err);
-+
- 	/* dmabuf requires xlt update via umr to work. */
- 	if (!mlx5r_umr_can_load_pas(dev, length))
- 		return ERR_PTR(-EINVAL);
-@@ -1167,6 +1190,10 @@ struct ib_mr *mlx5_ib_rereg_user_mr(struct ib_mr *ib_mr, int flags, u64 start,
- 	if (!(flags & IB_MR_REREG_PD))
- 		new_pd = ib_mr->pd;
- 
-+	err = validate_ordering_access(dev, new_access_flags);
-+	if (err)
-+		return ERR_PTR(err);
-+
- 	if (mr->is_odp_implicit && !(flags & IB_MR_REREG_TRANS)) {
- 		if (!(new_access_flags & IB_ACCESS_ON_DEMAND))
- 			return ERR_PTR(-EOPNOTSUPP);
--- 
-2.52.0
-
+Best regards,
+Weiming Shi
