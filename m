@@ -1,197 +1,211 @@
-Received: from mail-wm1-f41.google.com (mail-wm1-f41.google.com [209.85.128.41])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3710F39E17E
-	for <linux-rdma@vger.kernel.org>; Sun, 26 Jul 2026 11:33:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.41
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B99B91C84DC
+	for <linux-rdma@vger.kernel.org>; Sun, 26 Jul 2026 12:11:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785065585; cv=none; b=n99PL/pV/wHt9APeub43qdOklb/gjMt5jKKsRr+xWdSmFG9TTVENs3aIWtGxUhYGkmX/DRU4yRZf48HbrF9u1AiZuzvEeRNugP+3ZBDScTHNLMRNW3JYYZYMnTzUbNxampUd4qWEJYg/VQ7UpiuQbQUyBgcJNYNZAGsLFt6z4U0=
+	t=1785067911; cv=none; b=R4m1X3L3NM9BWYoOJNj2tdpuNidxzv77VPNr87irU4/DOP9WHFBytBU5yqyOBfoKoMo3u8XioXVRMWCxzEaROAEmX4fEHqs7q9FfQKtb6qxShEovIAabvYSJZ/atgdHzGjHylzwzrH8f+8LBb8BIJop0fpX9uqmr5vg7Vlhxs0w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785065585; c=relaxed/simple;
-	bh=H9P5Xbuz/sTn32viro02mVv351LoCChcVH807+lKGhQ=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=OlPio67FO3LIh+rFq6pKUecbMVQmhPtQw0ao5Qx0UDhxyi0QtInU+yU1XWClXSoN5YseL57e/Fi8qQqWz/2FJCUlSH/tVzjiyh1aVUiOJvw9jMdO7vsYp0nwGjOi+4gRMiS/nzitqiEB4YMESQscAohD6jhi1VID93+MAyoOxQo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=meshstor.io; spf=pass smtp.mailfrom=meshstor.io; dkim=pass (2048-bit key) header.d=meshstor.io header.i=@meshstor.io header.b=YTGLQV5z; arc=none smtp.client-ip=209.85.128.41
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=meshstor.io
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=meshstor.io
+	s=arc-20240116; t=1785067911; c=relaxed/simple;
+	bh=rEHIC4GHo8joWh8bn069G8NaokLQRdXypJ+Wug7KQ6E=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=mLThnNzbNWSYkc9g1Ir5ckt7c4Q4VDW1rd7jqYqkbeSWrnf7hPxRguVdAatjF2meSbxDUgiLwM+U5zommb23K8BflReV+XxsNcHuksu2HC1mnUy2H96YjNVLmZuVkap1DvAFhuhJO7ggaFY4uBXgylcz1rHiw3VCY0+Ti7+Or+I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=j0b2DQQi; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=meshstor.io header.i=@meshstor.io header.b="YTGLQV5z"
-Received: by mail-wm1-f41.google.com with SMTP id 5b1f17b1804b1-496bb7cdf51so3372095e9.2
-        for <linux-rdma@vger.kernel.org>; Sun, 26 Jul 2026 04:33:03 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=meshstor.io; s=google; t=1785065582; x=1785670382; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=TkTyU0DB9gKJtEp9Pq/+q6fIrgCHRa+7wKH1kyBFfbo=;
-        b=YTGLQV5zeW+uWE5H5f45Ba8jX453Zgmqv7NyXudf1gGa5hHvageH3GW27rUl69YSyP
-         aH6aGIJIWVAbAFy9c7kgR8jUCVT2QyPJr2mvA9UMR+tjrbyTP5+Ly2eY7FNIYKCu8Eti
-         PSgR0rKjktTrKpZNbvXv36SYcssiPLsSEw6owHID6d5NZkG2WflkK/TGKvvcqc3HxzJ1
-         Zhi9eacNWuIJVltTn0T2H7uIpVSAr/gqyvZcHt87/TXppnkValvnNhjapQeBjYDSGAuU
-         XmL6bLNp2qtAAr9dKqjTsyDAd5+NhNJm9cVxBjy/XH4UOLGp+kQlIro+Q3HOlJIv1IgC
-         HH5g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1785065582; x=1785670382;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=TkTyU0DB9gKJtEp9Pq/+q6fIrgCHRa+7wKH1kyBFfbo=;
-        b=fpkQmIt7ziuc0IOFc+rykbf/t55ZyMe4DKQVLh1kvcTKoPWK0orLCx2D6wR4oucT3g
-         C3def9xUs75XIO3IhVMxSjTWay3VnqDpxhs5NnB2uGXA16uH8T8vyR2izigNDJcsH/3U
-         pn8D0Vip+mHfIlAk0UCOIZjdvw/iD7rfsBJAIYqj6OBxzWV14OAIFPuMY0o5mWxKH3Ev
-         szzaeC4k1wEAwm8sT9McYkY7bhIavXrAI4rxvkmszAUshinbRyxeXl++KiPi8zzsHxnV
-         p9RfXBLHepp8fKfukkBq/LrKOKpbuBxBFoCeeheADal1rR7cswymfoqlRjIUuwBxOLrp
-         IMiA==
-X-Forwarded-Encrypted: i=1; AHgh+RqzpXihykmjGu6UpPZWnIB3Bha+yJ20e03AladqBSU6ZeAvq9cyrmWpIBXijsg5xh0KF8aT1YOYeuH1@vger.kernel.org
-X-Gm-Message-State: AOJu0YzAzu+wPl1W5/rEpM7yoYzmHopUL8xn9mrvumarRxVws8LX+qFn
-	kA7/vfNrjliE06oZIot7GAFXE7zH0PXKyl9zRfl6nAEH5Ffzcfn9y7+6Hwv2smSYjA==
-X-Gm-Gg: AR+sD12iFztjyaC6JtbGqM7my5kgJiIUuBtBeQtMyt7ZW5bpp78dilN5dy+z63xAl6b
-	lw7NuzqOhyvqI3RwZwi+FPPYHHVyGxGxZbEYVJMdYSNGiIPnZp2ZytzP9Lnk4cIKkT1/7C7mOCp
-	EHKxBDfxns8NkSse8y/cFQCLWmqTQsvNQxdSeX+bqt8XNqWpaQiKkJBsZhMBQEt2bjwiXUBO8zJ
-	Ey1mLDxFIthu/1GklBsFvY51sn7nyqqU1pQGK5L+GMFeP1iGp4lEsLh/ZscB/rh0aFf6bsji7fE
-	/hQ7tQ5QttjuGenxbpmAgASdnWlOv+BYHRraqYMbpaMOfnb1F++2gawk8xRZoVtWavvuKseCn+P
-	Z5d9VaLCHtki/+JuwvPXd9xk9Nmu9FPUZs78w8UHN9twDo1IGx1NAwFukrW1MU5CGMm94lYxuPR
-	lbel7cXxlRpYJmzSGP00obX79m6rKzXXJQ9dbDhwmMARRrMei5+EDmob0VWiFRAYEjtAZs3RFmw
-	hsUUMOTWqTqtn1GUjBdhZxbSGKlV5lVmLAfA4YqUCVeXMbRfHQ5B5cqy3cqat5LuG8nRMWX8edf
-	S/oEVdZ7IqdF7xo+PAg1PUpJ
-X-Received: by 2002:a05:600c:46cb:b0:493:f78f:cd70 with SMTP id 5b1f17b1804b1-496b76164b3mr52698745e9.18.1785065581534;
-        Sun, 26 Jul 2026 04:33:01 -0700 (PDT)
-Received: from meshstor-pc ([185.87.42.56])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-47f85bb57cfsm40533083f8f.11.2026.07.26.04.32.59
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 26 Jul 2026 04:33:01 -0700 (PDT)
-From: Mykola Marzhan <mykola@meshstor.io>
-To: Jens Axboe <axboe@kernel.dk>,
-	Song Liu <song@kernel.org>,
-	Yu Kuai <yukuai@fygo.io>,
-	Keith Busch <kbusch@kernel.org>,
-	Christoph Hellwig <hch@lst.de>,
-	Sagi Grimberg <sagi@grimberg.me>,
-	linux-block@vger.kernel.org,
-	linux-raid@vger.kernel.org,
-	linux-nvme@lists.infradead.org
-Cc: Li Nan <magiclinan@didiglobal.com>,
-	Xiao Ni <xiao@kernel.org>,
-	Guoqing Jiang <guoqing.jiang@linux.dev>,
-	Leon Romanovsky <leon@kernel.org>,
-	Jason Gunthorpe <jgg@ziepe.ca>,
-	Kiran Kumar Modukuri <kmodukuri@nvidia.com>,
-	Chaitanya Kulkarni <kch@nvidia.com>,
-	Logan Gunthorpe <logang@deltatee.com>,
-	Bjorn Helgaas <bhelgaas@google.com>,
-	Shivaji Kant <shivajikant@google.com>,
-	Pranjal Shrivastava <praan@google.com>,
-	Henrique Carvalho <henrique.carvalho@suse.com>,
-	stable@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	linux-rdma@vger.kernel.org,
-	linux-pci@vger.kernel.org,
-	Thorsten Leemhuis <regressions@leemhuis.info>,
-	Martin Wilck <mwilck@suse.com>
-Subject: [PATCH v6 12/12] nvme-rdma: factor out the scatterlist DMA mapping helper
-Date: Sun, 26 Jul 2026 13:32:29 +0200
-Message-ID: <20260726113229.2154269-13-mykola@meshstor.io>
-X-Mailer: git-send-email 2.52.0
-In-Reply-To: <20260726113229.2154269-1-mykola@meshstor.io>
-References: <20260726113229.2154269-1-mykola@meshstor.io>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="j0b2DQQi"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9BF231F000E9;
+	Sun, 26 Jul 2026 12:11:48 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1785067909;
+	bh=uw6MHMbrlRE6zJKp0lZOQj0pGZarmPvHPb+eo27GYBQ=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=j0b2DQQi0h3b9tZe9f/uwesI8SlJyWscfze/0fhpntOvLPQ/Mb1hik5oAgfUf4X0n
+	 F6N0nXbJFksKBkqvrHc5TbujhEd2/meSA2inKXN7pu3MNry8s5BfyIetQhKPTn4w3b
+	 6ddxOs6yOUOTMDgz7V1luGbs/BvQPZTqD5w7Ei9wJm0h2Jd1NgmUz0r/xGvllb2mcK
+	 X1BCQyjE2DXj/AVPFeJtbMFIc70DrLWibkFb0G5wuJHZ45+ktqVk5LLiIgC8sDog+g
+	 nooi2WrZOlKkQQxQ9IQtl/vXP8TmfjvIXABGa+1mjc7+RlnAra7eHsHLLze6FLuIDF
+	 hF/zGB87DO8Jg==
+Date: Sun, 26 Jul 2026 15:11:42 +0300
+From: Leon Romanovsky <leon@kernel.org>
+To: Weiming Shi <bestswngs@gmail.com>
+Cc: Zhu Yanjun <yanjun.zhu@linux.dev>, security@kernel.org,
+	Jason Gunthorpe <jgg@nvidia.com>, Zhu Yanjun <zyjzyj2000@gmail.com>,
+	Qiang Hong <wanbafv@gmail.com>, Xinyu Ma <mmmxny@gmail.com>,
+	Shaomin Chen <eeesssooo020@gmail.com>,
+	Rui Ding <threonine42@gmail.com>, Miao Zhao <muel@nova.gal>,
+	RDMA mailing list <linux-rdma@vger.kernel.org>
+Subject: Re: [PATCH] RDMA/rxe: Restore HMM_PFN_WRITE check in ODP write paths
+Message-ID: <20260726121142.GG12003@unreal>
+References: <20260725094805.916278-1-bestswngs@gmail.com>
+ <1b99ae23-a5b0-4e3b-80b5-1538d0e0a7fe@linux.dev>
+ <b70a8092-60a8-46bd-8a06-82e41f59a76b@linux.dev>
+ <20260726082058.GE12003@unreal>
+ <CANgPUi1fyALy7fGuqmpwZ_RCX4O19V9wdR+b20NV8QckdQrtOg@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <CANgPUi1fyALy7fGuqmpwZ_RCX4O19V9wdR+b20NV8QckdQrtOg@mail.gmail.com>
 
-The data and the metadata mapping do the same thing: describe the
-segments blk_rq_map_sg() produced in a local sg_table -- the embedded
-one's orig_nents is the allocated size, not the valid-segment count --
-map that, and hand back the DMA-mapped count.  Fold both into a
-helper.
+On Sun, Jul 26, 2026 at 06:42:12PM +0800, Weiming Shi wrote:
+> Leon Romanovsky <leon@kernel.org> 于2026年7月26日周日 16:21写道：
+> >
+> > On Sat, Jul 25, 2026 at 07:12:42PM -0700, Zhu Yanjun wrote:
+> > > While exploiting this ODP flaw in soft-RoCE for privilege escalation
+> > > in practice might require specific conditions, enforcing the HMM_PFN_WRITE
+> > > check is undoubtedly the right choice to enforce strict access control
+> > > and eliminate the security risk.
+> > >
+> > > The special handling for pmem flush (keeping it read-only) is also a nice
+> > > and correct touch.
+> >
+> > Zhu, we already asked you, please reduce the amount of AI-generated
+> > emails.
+> >
+> > >
+> > > Let us wait for the feedback from Leon and Jason.
+> >
+> > There is nothing we can do here, as it is not available in Patchwork
+> > or lore. Please post the patch to the mailing list.
+> >
+> > Thanks
+> >
+> > >
+> > > Reviewed-by: Zhu Yanjun <yanjun.zhu@linux.dev>
+> > >
+> > > Zhu Yanjun
+> > >
+> > > 在 2026/7/25 17:08, Zhu Yanjun 写道:
+> > > >
+> > > > 在 2026/7/25 2:48, Weiming Shi 写道:
+> > > > > Commit 0b261d7c1cd3 ("RDMA/rxe: Break endless pagefault loop for RO
+> > > > > pages") dropped the access permission test from rxe_check_pagefault()
+> > > > > and left only HMM_PFN_VALID. A page faulted in read-only, for example
+> > > > > a page-cache folio behind a PROT_READ file mapping, then satisfies the
+> > > > > check and ODP write operations (RDMA WRITE, RDMA READ response, SEND
+> > > > > payload, atomics) modify it through kmap without ever breaking CoW.
+> > > > >
+> > > > > An unprivileged user can register an ODP MR over such a mapping and
+> > > > > have incoming RDMA traffic overwrite the page cache of a file it only
+> > > > > holds O_RDONLY, including /etc/passwd or setuid binaries. This is the
+> > > > > same primitive class as Dirty COW and CVE-2022-2590.
+> > > > >
+> > > > > mlx5 has the missing invariant: its ODP path sets the device write bit
+> > > > > only for pfns that carry HMM_PFN_WRITE. Restore it in rxe by requiring
+> > > > > HMM_PFN_WRITE in rxe_check_pagefault() for every operation except
+> > > > > RXE_PAGEFAULT_RDONLY. A write to a non-writable VMA now fails the one
+> > > > > fault attempt with -EPERM from hmm_vma_fault() instead of re-faulting
+> > > > > forever. For a writable VMA the fault breaks CoW and the write lands
+> > > > > in the private page.
+> > > > >
+> > > > > Keep pmem flushes on the read-only check. arch_wb_cache_pmem() never
+> > > > > modifies memory, and the FLUSH access bits do not make the umem
+> > > > > writable, so classifying flushes as writes would make every flush
+> > > > > against a flush-only MR fail.
+> > > > >
+> > > > > Fixes: 0b261d7c1cd3 ("RDMA/rxe: Break endless pagefault loop for RO
+> > > > > pages")
+> > > > > Cc: stable@vger.kernel.org
+> > > > > Signed-off-by: Weiming Shi <bestswngs@gmail.com>
+> > > > > Reported-by: Shaomin Chen <eeesssooo020@gmail.com>
+> > > > > Reported-by: Rui Ding <threonine42@gmail.com>
+> > > > > Reported-by: Miao Zhao <muel@nova.gal>
+> > > > > Tested-by: Qiang Hong <wanbafv@gmail.com>
+> > > > > Tested-by: Xinyu Ma <mmmxny@gmail.com>
+> > > > > ---
+> > > > >   drivers/infiniband/sw/rxe/rxe_odp.c | 16 +++++++++++-----
+> > > > >   1 file changed, 11 insertions(+), 5 deletions(-)
+> > > > >
+> > > > > diff --git a/drivers/infiniband/sw/rxe/rxe_odp.c
+> > > > > b/drivers/infiniband/sw/rxe/rxe_odp.c
+> > > > > index ff904d5e54a73..174bb2efc3c6a 100644
+> > > > > --- a/drivers/infiniband/sw/rxe/rxe_odp.c
+> > > > > +++ b/drivers/infiniband/sw/rxe/rxe_odp.c
+> > > > > @@ -124,19 +124,23 @@ int rxe_odp_mr_init_user(struct rxe_dev *rxe,
+> > > > > u64 start, u64 length,
+> > > > >   }
+> > > > >     static inline bool rxe_check_pagefault(struct ib_umem_odp
+> > > > > *umem_odp, u64 iova,
+> > > > > -                       int length)
+> > > > > +                       int length, bool write)
+> > > > >   {
+> > > > >       bool need_fault = false;
+> > > > > +    u64 access = HMM_PFN_VALID;
+> > > > >       u64 addr;
+> > > > >       int idx;
+> > > > >   +    if (write)
+> > > > > +        access |= HMM_PFN_WRITE;
+> > > > > +
+> > > > >       addr = iova & (~(BIT(umem_odp->page_shift) - 1));
+> > > > >         /* Skim through all pages that are to be accessed. */
+> > > > >       while (addr < iova + length) {
+> > > > >           idx = (addr - ib_umem_start(umem_odp)) >>
+> > > > > umem_odp->page_shift;
+> > > > >   -        if (!(umem_odp->map.pfn_list[idx] & HMM_PFN_VALID)) {
+> > > > > +        if ((umem_odp->map.pfn_list[idx] & access) != access) {
+> > > > >               need_fault = true;
+> > > > >               break;
+> > > > >           }
+> > > > > @@ -159,6 +163,7 @@ static unsigned long
+> > > > > rxe_odp_iova_to_page_offset(struct ib_umem_odp *umem_odp, u
+> > > > >   static int rxe_odp_map_range_and_lock(struct rxe_mr *mr, u64 iova,
+> > > > > int length, u32 flags)
+> > > > >   {
+> > > > >       struct ib_umem_odp *umem_odp = to_ib_umem_odp(mr->umem);
+> > > > > +    bool write = !(flags & RXE_PAGEFAULT_RDONLY);
+> > > > >       bool need_fault;
+> > > > >       int err;
+> > > > >   @@ -167,7 +172,7 @@ static int rxe_odp_map_range_and_lock(struct
+> > > > > rxe_mr *mr, u64 iova, int length, u
+> > > > >         mutex_lock(&umem_odp->umem_mutex);
+> > > > >   -    need_fault = rxe_check_pagefault(umem_odp, iova, length);
+> > > > > +    need_fault = rxe_check_pagefault(umem_odp, iova, length, write);
+> > > > >       if (need_fault) {
+> > > > >           mutex_unlock(&umem_odp->umem_mutex);
+> > > > >   @@ -177,7 +182,7 @@ static int rxe_odp_map_range_and_lock(struct
+> > > > > rxe_mr *mr, u64 iova, int length, u
+> > > > >           if (err < 0)
+> > > > >               return err;
+> > > > >   -        need_fault = rxe_check_pagefault(umem_odp, iova, length);
+> > > > > +        need_fault = rxe_check_pagefault(umem_odp, iova, length,
+> > > > > write);
+> > > > >           if (need_fault) {
+> > > > >               mutex_unlock(&umem_odp->umem_mutex);
+> > > > >               return -EFAULT;
+> > > > > @@ -339,8 +344,9 @@ int rxe_odp_flush_pmem_iova(struct rxe_mr *mr,
+> > > > > u64 iova,
+> > > > >       int err;
+> > > > >       u8 *va;
+> > > > >   +    /* A flush never modifies memory; read-only access suffices. */
+> > > > >       err = rxe_odp_map_range_and_lock(mr, iova, length,
+> > > > > -                     RXE_PAGEFAULT_DEFAULT);
+> > > > > +                     RXE_PAGEFAULT_RDONLY);
+> > > > >       if (err)
+> > > > >           return err;
+> > > >
+> > > --
+> > > Best Regards,
+> > > Yanjun.Zhu
+> > >
+> > >
+> 
+> Hi Leon,
+> 
+> Thank you for the feedback. I will post the patch to mailing list as requested.
+> Regarding the reproduction details, I will omit the PoC code in the
+> public mailing list post for security reasons.
 
-No functional change.
+There is no security concern here. RXE is a virtual device used for
+testing and prototyping.
 
-Suggested-by: Logan Gunthorpe <logang@deltatee.com>
-Assisted-by: Claude:claude-fable-5
-Signed-off-by: Mykola Marzhan <mykola@meshstor.io>
----
- drivers/nvme/host/rdma.c | 42 +++++++++++++++++++++++++++-------------
- 1 file changed, 29 insertions(+), 13 deletions(-)
+Thanks
 
-diff --git a/drivers/nvme/host/rdma.c b/drivers/nvme/host/rdma.c
-index 2f50509a7a61..525e5aea65a1 100644
---- a/drivers/nvme/host/rdma.c
-+++ b/drivers/nvme/host/rdma.c
-@@ -1465,11 +1465,33 @@ static int nvme_rdma_map_sg_pi(struct nvme_rdma_queue *queue,
- 	return -EINVAL;
- }
- 
-+/*
-+ * Map the segments blk_rq_map_sg() produced.  They are described by a local
-+ * sg_table because the embedded one's orig_nents is the allocated size, not
-+ * the number of valid segments; rdma_rw_ctx_init() does the same.
-+ */
-+static int nvme_rdma_dma_map_sgl(struct ib_device *ibdev,
-+		struct scatterlist *sgl, int nents,
-+		enum dma_data_direction dir, int *count)
-+{
-+	struct sg_table sgt = {
-+		.sgl		= sgl,
-+		.orig_nents	= nents,
-+	};
-+	int ret;
-+
-+	ret = ib_dma_map_sgtable_attrs(ibdev, &sgt, dir, 0);
-+	if (unlikely(ret))
-+		return ret;
-+
-+	*count = sgt.nents;
-+	return 0;
-+}
-+
- static int nvme_rdma_dma_map_req(struct ib_device *ibdev, struct request *rq,
- 		int *count, int *pi_count)
- {
- 	struct nvme_rdma_request *req = blk_mq_rq_to_pdu(rq);
--	struct sg_table sgt;
- 	int ret;
- 
- 	req->data_sgl.sg_table.sgl = (struct scatterlist *)(req + 1);
-@@ -1481,14 +1503,10 @@ static int nvme_rdma_dma_map_req(struct ib_device *ibdev, struct request *rq,
- 
- 	req->data_sgl.nents = blk_rq_map_sg(rq, req->data_sgl.sg_table.sgl);
- 
--	sgt = (struct sg_table) {
--		.sgl		= req->data_sgl.sg_table.sgl,
--		.orig_nents	= req->data_sgl.nents,
--	};
--	ret = ib_dma_map_sgtable_attrs(ibdev, &sgt, rq_dma_dir(rq), 0);
-+	ret = nvme_rdma_dma_map_sgl(ibdev, req->data_sgl.sg_table.sgl,
-+				    req->data_sgl.nents, rq_dma_dir(rq), count);
- 	if (unlikely(ret))
- 		goto out_free_table;
--	*count = sgt.nents;
- 
- 	if (blk_integrity_rq(rq)) {
- 		req->metadata_sgl->sg_table.sgl =
-@@ -1504,14 +1522,12 @@ static int nvme_rdma_dma_map_req(struct ib_device *ibdev, struct request *rq,
- 
- 		req->metadata_sgl->nents = blk_rq_map_integrity_sg(rq,
- 				req->metadata_sgl->sg_table.sgl);
--		sgt = (struct sg_table) {
--			.sgl		= req->metadata_sgl->sg_table.sgl,
--			.orig_nents	= req->metadata_sgl->nents,
--		};
--		ret = ib_dma_map_sgtable_attrs(ibdev, &sgt, rq_dma_dir(rq), 0);
-+		ret = nvme_rdma_dma_map_sgl(ibdev,
-+					    req->metadata_sgl->sg_table.sgl,
-+					    req->metadata_sgl->nents,
-+					    rq_dma_dir(rq), pi_count);
- 		if (unlikely(ret))
- 			goto out_free_pi_table;
--		*pi_count = sgt.nents;
- 	}
- 
- 	return 0;
--- 
-2.52.0
-
+> 
+> Best regards,
+> Weiming Shi
