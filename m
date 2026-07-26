@@ -1,39 +1,39 @@
-Received: from smtpout2.mo538.mail-out.ovh.net (smtpout2.mo538.mail-out.ovh.net [51.210.91.31])
+Received: from smtpout7.mo536.mail-out.ovh.net (smtpout7.mo536.mail-out.ovh.net [51.210.91.16])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4FA151A0B15
-	for <linux-rdma@vger.kernel.org>; Sun, 26 Jul 2026 17:16:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=51.210.91.31
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C0BEE20E023
+	for <linux-rdma@vger.kernel.org>; Sun, 26 Jul 2026 20:43:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=51.210.91.16
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785086198; cv=none; b=AHh42tCFHyyuisKMJg/N1wsOhWcnB5TaYDfBTgiEsWzX/4RzI2tOzNT87Sd60iRQvlUiarkKzrhnqMJXNmAF21cBjsk75/P0MoPs6FY2vDDfVfC+04lul7ombSYrjJRusf94UJCQh37KqMHjXdcqzOkFkQSCDw4gcf+g5/9nR4c=
+	t=1785098607; cv=none; b=WjZ/p9AVrXJFnabfnswv2T1sY+100ORF4SxzgJR45GoiAniW3oI4ui90zq+suyvidtRZJ6WyRSksp0GihWFWK/6kqTjuh3LhD8WMylSZL37ih5Wx2yKuxhT+9aNrcx/Jo0wyr6atVlK75TEfziFtAZw0OjST45FUmLQrm1BDsNg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785086198; c=relaxed/simple;
-	bh=seuh6YZdSRuqL+aXTRmPSnX5g/1fzoRKLSwkpLvLetw=;
+	s=arc-20240116; t=1785098607; c=relaxed/simple;
+	bh=PIw86sMw87bLkQDnXpm6ZwvgYZOT5Ly8Y+fjs9pl5xg=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=rEqJYou9j1nLnnAwQpnjSdT2PTxoZt1KN3qXaXBe2/aWdzj++nBrxTxqtF0YWc6DzGfIUuFsKcwYyVM/kPagEDrS+frdTHNztdrS0g89zW6shjo0ix9bi5LKtcOPfh6pfSorSIKLj8bpNQGDUHwXQdchGJZJNTykzhbF8Z/06qA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kaod.org; spf=pass smtp.mailfrom=kaod.org; dkim=pass (2048-bit key) header.d=kaod.org header.i=@kaod.org header.b=pO2ygG3O; arc=none smtp.client-ip=51.210.91.31
+	 In-Reply-To:Content-Type; b=hemVe7tD07fLbbA0Ia7FkiI93PQhOOPCFA2vpCtgg1wQiX4bRlu+TKPwS3HN4FE+xe9lovbdNpDW9a10jZ9v5JwdbQtulN9b/Tc/F6vQqpp9e5TnmGUnZ8r5AS2MDUTA6F6iENMKTlA4/qkBD4KLR16hoiyh8OC3D+5lLj4ij48=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kaod.org; spf=pass smtp.mailfrom=kaod.org; dkim=pass (2048-bit key) header.d=kaod.org header.i=@kaod.org header.b=X8S4U0su; arc=none smtp.client-ip=51.210.91.16
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kaod.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kaod.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kaod.org header.i=@kaod.org header.b="pO2ygG3O"
-Received: from director1.derp.mail-out.ovh.net (director1.derp.mail-out.ovh.net [51.210.158.128])
-	by mo538.mail-out.ovh.net (Postfix) with ESMTPS id 4h7SZP1B6jz6GZp;
-	Sun, 26 Jul 2026 16:57:17 +0000 (UTC)
-Received: from director1.derp.mail-out.ovh.net (director1.derp.mail-out.ovh.net. [127.0.0.1])
-        by director1.derp.mail-out.ovh.net (inspect_sender_mail_agent) with SMTP
-        for <gouhaojake@163.com>; Sun, 26 Jul 2026 16:57:16 +0000 (UTC)
-Received: from mta10.priv.ovhmail-u2.ea.mail.ovh.net (unknown [10.110.188.121])
-	by director1.derp.mail-out.ovh.net (Postfix) with ESMTPS id 4h7SZN4q0Bz60Mc;
-	Sun, 26 Jul 2026 16:57:16 +0000 (UTC)
-Received: from kaod.org (unknown [10.1.6.3])
+	dkim=pass (2048-bit key) header.d=kaod.org header.i=@kaod.org header.b="X8S4U0su"
+Received: from director3.derp.mail-out.ovh.net (director3.derp.mail-out.ovh.net [152.228.215.222])
+	by mo536.mail-out.ovh.net (Postfix) with ESMTPS id 4h7Skj5WHwz882D;
+	Sun, 26 Jul 2026 17:04:29 +0000 (UTC)
+Received: from director3.derp.mail-out.ovh.net (director3.derp.mail-out.ovh.net. [127.0.0.1])
+        by director3.derp.mail-out.ovh.net (inspect_sender_mail_agent) with SMTP
+        for <gouhaojake@163.com>; Sun, 26 Jul 2026 17:04:29 +0000 (UTC)
+Received: from mta6.priv.ovhmail-u2.ea.mail.ovh.net (unknown [10.110.113.67])
+	by director3.derp.mail-out.ovh.net (Postfix) with ESMTPS id 4h7Skj3KCsz5vVC;
+	Sun, 26 Jul 2026 17:04:29 +0000 (UTC)
+Received: from kaod.org (unknown [10.1.6.5])
 	(Authenticated sender: clg@kaod.org)
-	by mta10.priv.ovhmail-u2.ea.mail.ovh.net (Postfix) with ESMTPSA id 8E1C11923E00;
-	Sun, 26 Jul 2026 16:57:13 +0000 (UTC)
-Authentication-Results:garm.ovh; auth=pass (GARM-100R003d6fbf843-6826-49c1-85f4-e5f44afdaee1,
+	by mta6.priv.ovhmail-u2.ea.mail.ovh.net (Postfix) with ESMTPSA id 1B6971B43E36;
+	Sun, 26 Jul 2026 17:04:26 +0000 (UTC)
+Authentication-Results:garm.ovh; auth=pass (GARM-113S00762e22185-7b9b-497c-96d9-2cc2a26698c9,
                     31B54A7FFB7E7F23FF6B7C3EC947DBF3CB6BDBDE) smtp.auth=clg@kaod.org
 X-OVh-ClientIp:82.64.250.170
-Message-ID: <518d7bc3-06a5-4afc-8d40-5cf6f538c402@kaod.org>
-Date: Sun, 26 Jul 2026 18:57:13 +0200
+Message-ID: <3fba3c54-ea4f-449c-8cd3-f24c516bb31d@kaod.org>
+Date: Sun, 26 Jul 2026 19:04:25 +0200
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -41,7 +41,8 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 3/6] powerpc/xive: fix use-after-free of xive_ipis
+Subject: Re: [PATCH v2 1/6] powerpc/xive: remove dead NULL check after
+ GFP_NOFAIL allocation
 To: Gou Hao <gouhao@uniontech.com>, maddy@linux.ibm.com, mpe@ellerman.id.au,
  npiggin@gmail.com, chleroy@kernel.org, maarten.lankhorst@linux.intel.com,
  mripard@kernel.org, tzimmermann@suse.de, airlied@gmail.com, simona@ffwll.ch,
@@ -52,7 +53,7 @@ Cc: linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org,
  dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org,
  linux-mm@kvack.org, gouhaojake@163.com, kernel@uniontech.com
 References: <20260724022851.466017-1-gouhao@uniontech.com>
- <20260724022851.466017-4-gouhao@uniontech.com>
+ <20260724022851.466017-2-gouhao@uniontech.com>
 Content-Language: en-US, fr
 From: =?UTF-8?Q?C=C3=A9dric_Le_Goater?= <clg@kaod.org>
 Autocrypt: addr=clg@kaod.org; keydata=
@@ -97,114 +98,83 @@ Autocrypt: addr=clg@kaod.org; keydata=
  3GlqivBNkmYsHYSlFsbxc37E1HpTEaSWsGfAHQoPn9qrDJgsgcbBVc1gkUT6hnxShKPp4Pls
  ZVMNjvPAnr5TEBgHkk54HQRhhwcYv1T2QumQizDiU6iOrUzBThaMhZO3i927SG2DwWDVzZlt
  KrCMD1aMPvb3NU8FOYRhNmIFR3fcalYr+9gDuVKe8BVz4atMOoktmt0GWTOC8P4=
-In-Reply-To: <20260724022851.466017-4-gouhao@uniontech.com>
+In-Reply-To: <20260724022851.466017-2-gouhao@uniontech.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-x-ovh-tracer-id: 4353854940871437544
+x-ovh-tracer-id: 4475733607526477032
 X-VR-SPAMSTATE: OK
 X-VR-SPAMSCORE: -100
-X-VR-SPAMCAUSE: dmFkZTElj8EdMObDu/kTnUp4apBD75PFPnpQg7NK68v/jHHR89xrg/xRx6yL7/M5JszXyamJKVqXasWixZpg+jG5pUnq2FJQf3RcH/p7BKF9ShGlxlpKb3medBYbwthOHi6WsKyEAUII4SyASMtTZ67ElEmVWlENG6n9/a9Xy2ya7vcBVw8XB9wVn4imkDjuTq6JWRHyLfhwScsQhrHfaxNwybRQY2TYKagJKm/0LjebKQNrDxRvOJTt3x1m+Q96I2WYaK+roFi2QVhsaL+TOm0mxD0rN7fdAcld8gqKDR8O0FAZfQq93UO3beSddZOvIXhUq/Du8CZbFzlxVR1/YoZGE97eAe1nD/pvpp/H9wjYlmpd6En5TEwzRgHnwgA0hn4jZxKIwAZl1a2WuQm9q6Ajq6t/2pISIXe8NrYhNveZxkW5AmvJ9PA7UsRYqILeFJa4l/t+ziBmkl2C3mhB9K9WBgl028n0/N/mogcwCkGh9Dohg09N9e/NkWowVYe8bXOADLN+Ehv2sOxfFwCb9C5r/If3VHWeZdfCtqtV4oXnzqL52JTOrcYLCZQRwcBSYfVag5LP9W6Kq9KTyBusOQMf+Lzj07P9l8h4R9C/uaJKnLf9IWEigh7DrBb8Y+NbF9hrvtCeJQ7PzrWJPe5j7JV4mg8NOfRjA1xcvX2Fs8q1ysm3cA
-DKIM-Signature: a=rsa-sha256; bh=leejA4oXNKzlCWvwsksqJsxtR+ZVpBQOirzyOlDDiHc=;
+X-VR-SPAMCAUSE: dmFkZTGNUD/+lU0f0AV58YzXXMeoOgI7stSGyQnUCLQTWUGjvNOg7AleMWmlvL1AgQx1M8wgC4bgr4szg237ncgeIJDZ+21t72QULiNJxfn2ypx7ESKEsDkwNFT/KaG9Ou7F0gvqmqmBLNrdtJYzZ5qYhgWsWla08Bseg7Xpkrjl2p87WGeplH4EpGCS7dYfqmI6A4lpi95O5qDCkRRoUs+EC5jWqJtM5uXWan1v5qA9NCCgpHlrxvVPRY7Hn3DhdZQkZBaKYFg8zO5LIeckwhiTW3SMxEetii9yfr/FEhXMld9qH/YNBJX3hjNDYQS3sLkToe0EYHV/9JXljOdtYCbLlneQsR753AUr41RvRhFyKctvwNr5F/8/J+qsTGI811PHLMmU6RT/F3iIBgfpZqOi/nE1UYWqXM+csgHmgyhyNwBAMZkx985ViqOvuDuzcKc7BrzavCKYN5G7vCktO/8OtEvXjog9mo0c80sGwGWtb77aSHBWMO/6cnc0EQcHiZ09CB8m7Qr+m356rRbZ5fZ3mgsc+FoQ+OJa01Y/JAKiMNwEj1BCazbU2BlmWcn2PSy3orIRTkrRc5MrKlxCQm1N0LAm+lIESi8/BJg470MxPPNAKCuBdEU5nLIOt6TX+rW+Vq+qtAgW/9XKopwVq3TswU2qAmS4mQtnZ00WKCxyZ7e7ow
+DKIM-Signature: a=rsa-sha256; bh=krixYWDv1svSaZWzY29VuHk3LCe+gkNbeFXejSkZhpM=;
  c=relaxed/relaxed; d=kaod.org; h=From; s=ovhmo393970-selector1;
- t=1785085039; v=1;
- b=pO2ygG3Oy8MBfiWrP1EukCLQ33a59NiKcul5zOMyXuQbsm5GLsEiJCxoLEb4hFA4eaDGCFxC
- r3qr3Zn1XUrKX5VY9IdN8AhewaV1axthkVBO7D2sxIJVIJJ7yxpVCpueehGbUL5B/6o1WhzKlo4
- GtM+3XgyHYfY3bJJTGhXRGhcJMlzbRYpq7EU9WgReJpKgmAN+H6judUya9S0BNHN9V48ghl+p8q
- k+j0li5RJqNkXRzBfqqm4rg/MJP1WeNA3JkjJaGzaXwRuVS3+IBiUNfvVc3qgN976jtcMaaGlLy
- y2pKYNDOuzw5FfcvM2dxM13TPgvLPaJXLBka1twHqaYwA==
+ t=1785085472; v=1;
+ b=X8S4U0suPQzDD/KTpp4BPSUm520wFOWzHCIbmVCsIfU9YnZrdvOnYdVxVlsjZYrWga7m0RiF
+ UXz4Wi8pMb61wLgCH6NIsLfxzBeISoZ9Eef4QFayBeUXrLRIxR53tyZgbfujWbBWqCfQQVATZ4s
+ yxatMiRgJNvxPshv40aYCD2TTWCGZnGHRXiWnwosQbaFIO91NQ8X0xYRrD4e5pfUfTtapXZz3JV
+ 8zZdj2lkez1xd0y1xOKj5iOWLk6jcfsbN4qcu7bdzysdRqHkqG5qTcpAg8EznPMWzgggIEW8UGo
+ /OFvB/Y3d05Pku4dsMx23lBWaUzFUq+HhW/f95+OaHcHQ==
 
+As suggested by Andrew, let's change the approach and remove entirely
+__GFP_NOFAIL instead and make all xive_ipis access paths NULL-safe.
+   
 On 7/24/26 04:28, Gou Hao wrote:
-> When irq_domain_alloc_irqs() fails in xive_init_ipis(), the error
-> path frees the global xive_ipis array via kfree().  However,
-> xive_smp_probe() ignores the error return and proceeds to call
-> xive_setup_cpu_ipi(), which dereferences the already-freed xive_ipis
-> pointer, resulting in a use-after-free.
+> kzalloc_objs with the __GFP_NOFAIL flag will never return NULL, so the
+> subsequent NULL check is unreachable dead code. Remove it.
 > 
-> Propagate the error from xive_init_ipis() through xive_smp_probe()
-> and check it in both pnv_smp_probe() and pSeries_smp_probe() so that
-> IPI setup is aborted cleanly on failure.
-> 
-> Fixes: 7dcc37b3eff9 ("powerpc/xive: Map one IPI interrupt per node")
 > Signed-off-by: Gou Hao <gouhao@uniontech.com>
 > Reviewed-by: Wentao Guan <guanwentao@uniontech.com>
 > Reviewed-by: jiazhenyuan <jiazhenyuan@uniontech.com>
 > ---
->   arch/powerpc/platforms/powernv/smp.c | 8 +++++---
->   arch/powerpc/platforms/pseries/smp.c | 8 +++++---
->   arch/powerpc/sysdev/xive/common.c    | 6 +++++-
->   3 files changed, 15 insertions(+), 7 deletions(-)
+>   arch/powerpc/sysdev/xive/common.c | 5 +----
+>   1 file changed, 1 insertion(+), 4 deletions(-)
 > 
-> diff --git a/arch/powerpc/platforms/powernv/smp.c b/arch/powerpc/platforms/powernv/smp.c
-> index 8f41ef364fc6f..b1201dbafcaf6 100644
-> --- a/arch/powerpc/platforms/powernv/smp.c
-> +++ b/arch/powerpc/platforms/powernv/smp.c
-> @@ -332,10 +332,12 @@ static void pnv_cause_ipi(int cpu)
->   
->   static void __init pnv_smp_probe(void)
->   {
-> -	if (xive_enabled())
-> -		xive_smp_probe();
-> -	else
-> +	if (xive_enabled()) {
-> +		if (xive_smp_probe() < 0)
-> +			return;
-> +	} else {
->   		xics_smp_probe();
-> +	}
->   
->   	if (cpu_has_feature(CPU_FTR_DBELL)) {
->   		ic_cause_ipi = smp_ops->cause_ipi;
-> diff --git a/arch/powerpc/platforms/pseries/smp.c b/arch/powerpc/platforms/pseries/smp.c
-> index db99725e752bd..14cd0634eeca8 100644
-> --- a/arch/powerpc/platforms/pseries/smp.c
-> +++ b/arch/powerpc/platforms/pseries/smp.c
-> @@ -194,10 +194,12 @@ static int pseries_cause_nmi_ipi(int cpu)
->   
->   static __init void pSeries_smp_probe(void)
->   {
-> -	if (xive_enabled())
-> -		xive_smp_probe();
-> -	else
-> +	if (xive_enabled()) {
-> +		if (xive_smp_probe() < 0)
-> +			return;
-> +	} else {
->   		xics_smp_probe();
-> +	}
->   
->   	/* No doorbell facility, must use the interrupt controller for IPIs */
->   	if (!cpu_has_feature(CPU_FTR_DBELL))
 > diff --git a/arch/powerpc/sysdev/xive/common.c b/arch/powerpc/sysdev/xive/common.c
-> index f9a1229cede73..bb6ce07c1699e 100644
+> index dadd1f46ec939..f2904a5c2b7bf 100644
 > --- a/arch/powerpc/sysdev/xive/common.c
 > +++ b/arch/powerpc/sysdev/xive/common.c
-> @@ -1256,10 +1256,14 @@ noinstr static void xive_cleanup_cpu_ipi(unsigned int cpu, struct xive_cpu *xc)
+> @@ -1134,9 +1134,6 @@ static int __init xive_init_ipis(void)
 >   
->   int __init xive_smp_probe(void)
->   {
-> +	int ret;
-> +
->   	smp_ops->cause_ipi = xive_cause_ipi;
+>   	xive_ipis = kzalloc_objs(*xive_ipis, nr_node_ids,
+>   				 GFP_KERNEL | __GFP_NOFAIL);
+
+So let's remove __GFP_NOFAIL here.
+
+> -	if (!xive_ipis)
+> -		goto out_free_domain;
+> -
+
+Let's keep it now that allocation can really fail.
+
+>   	for_each_node(node) {>   		struct xive_ipi_desc *xid = &xive_ipis[node];
+>   		struct xive_ipi_alloc_info info = { node };
+> @@ -1158,7 +1155,7 @@ static int __init xive_init_ipis(void)
 >   
->   	/* Register the IPI */
-> -	xive_init_ipis();
-> +	ret = xive_init_ipis();
-> +	if (ret < 0)
-> +		return ret;
+>   out_free_xive_ipis:
+>   	kfree(xive_ipis);
+> -out_free_domain:
 
-the cause_ipi handler assignment should be moved when we know
-IPIs have been allocated. Here :
+and keep the out_free_domain label
 
-    smp_ops->cause_ipi = xive_cause_ipi;
+> +	xive_ipis = NULL;
+
+and yes we should add 'xive_ipis = NULL;'
+
+>   	irq_domain_remove(ipi_domain);
+>   out_free_fwnode:
+>   	irq_domain_free_fwnode(fwnode);
 
 
->   
->   	/* Allocate and setup IPI for the boot CPU */
->   	xive_setup_cpu_ipi(smp_processor_id());
+The prepare_cpu() path is broken. To fix, we need to check xive_ipis
+is not NULL in xive_setup_cpu_ipi() and xive_cleanup_cpu_ipi(). It
+should be a straight forward local change. Nothing complex.
 
+You can test with QEMU. The pSeries and the PowerNV machines are well
+supported under emulation. Ping me if you need help.
 
 Thanks,
 
 C.
+
+
 
 
