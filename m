@@ -1,75 +1,94 @@
-Received: from mail-pg1-f169.google.com (mail-pg1-f169.google.com [209.85.215.169])
+Received: from mail-wr1-f50.google.com (mail-wr1-f50.google.com [209.85.221.50])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8E71437FF43
-	for <linux-rdma@vger.kernel.org>; Sun, 26 Jul 2026 11:15:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.215.169
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 29AA82EEE8D
+	for <linux-rdma@vger.kernel.org>; Sun, 26 Jul 2026 11:32:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.50
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785064550; cv=none; b=hc6/n0Dj9NED99csi2BMMNGIDeBnbbJLqehLVN5MXdeq5uwgkBECGRi3ZaWplErS44k+RimWAKbYVnb8AggWqReMEo3OK/ZKzpGPuPjSwLosH/eKGBjEdmmsDKKkiBumNbakc8kSFbcxNTWFhCVomNc/rQpm56EvkUyFoGRNiO4=
+	t=1785065559; cv=none; b=GDUWtd5btHOS7yLuLDTyaMc0MaEi8bdar5xDJxB0SWhIilB5XcBNCWXNNGZQsOq9E5C+UN1hXiiIEPIKUG9xJRYUTcppSNvhZQxMo10zhH3p1e2HvS/uil72JZESgsvLR8nIAbY+A0kDnj/sHCVvmilkftfLOpTkxK8mFb96uKU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785064550; c=relaxed/simple;
-	bh=8RsCZR+VoFurI31BtqiGlUYsavIn/awV/oIDLGXfZr0=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=n1ZqSgsS49tf0eIIDVPQ9IugPs1iHMDTXHcY+lwKlYWbdiXmrhuMqD9r48ywOfngfqJDQwMeThD3/H7v7Lfk+aZLPQfTh6iO5yF5yVtKUCHFE1PBQTn3erzt0TGcA2eCKUoewgpkhIGtN+fTdz9fvWJXNUOvCOiYuxofDhvIlpc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=V3nHUwc9; arc=none smtp.client-ip=209.85.215.169
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1785065559; c=relaxed/simple;
+	bh=YgfpfgE1On3sKHo6BvwUe+munCme3srUBUyovRvl9UY=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=dfS8yqnCrHX7R0pmB8Riu9kdPNdn/6P4vr4ewUJDpovcYqQmyZDghqG5pKGSsEInAbUncpa6WclTF5UMIJw6E6jUVnPl0+MnL3Kvfm9YYgKiZWDob+SnS1hitFOwUfxLgOaSpVlK+KT4ofJYS/r/BgdfN7A2Q5AWNj+EbAxINWQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=meshstor.io; spf=pass smtp.mailfrom=meshstor.io; dkim=pass (2048-bit key) header.d=meshstor.io header.i=@meshstor.io header.b=OSGX6LbX; arc=none smtp.client-ip=209.85.221.50
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=meshstor.io
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=meshstor.io
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="V3nHUwc9"
-Received: by mail-pg1-f169.google.com with SMTP id 41be03b00d2f7-ca00f126b7eso1070608a12.2
-        for <linux-rdma@vger.kernel.org>; Sun, 26 Jul 2026 04:15:49 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=meshstor.io header.i=@meshstor.io header.b="OSGX6LbX"
+Received: by mail-wr1-f50.google.com with SMTP id ffacd0b85a97d-4720f3bf164so1648954f8f.1
+        for <linux-rdma@vger.kernel.org>; Sun, 26 Jul 2026 04:32:36 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1785064549; x=1785669349; darn=vger.kernel.org;
+        d=meshstor.io; s=google; t=1785065555; x=1785670355; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=EN2awGJ26EUaMbYJ+eJ4wz6UCVhlC5pZ4u6LtnOUmYo=;
-        b=V3nHUwc9I2hlK2SPwlI9Nalw8w0hn/3ULy8fjYIoV5iV5M6a85rDblVMURCiG1qYmd
-         xybDlBNNSwp7nEf2cFB+p/ImGIcBWiyf3XqPWE3ic6ctIOu1jVBaPcqJ/gCI3ugouyCQ
-         k8kGS7sGt6HSeLNwyYSzXZnfAcBdaGtjAckzP82P3m4qJasl6VSItBGsehFEhE2vNyNF
-         cVp/H9kS1wQ5AMGsWpjRJVKAFJvJBhM5Em3jmFi0ADKrNA0u69+q9YnEYq1doIS7OS7j
-         wUMiCmpizKtR04wHXI9F1jdUa0tP4BggS6UBYO5y2/x1KDbu1v2nLrEU9JGxPf4a2+1s
-         ER/w==
+        bh=1Z37TstzxvLPhvEDUnNTL3PywZ4xjkcbPX0WwT+YK50=;
+        b=OSGX6LbX76Zqq2kb96PLZpasCB9IkQdkf/FxFirQzWlppmHzHIkVwIkMSsVhlV6dzp
+         hrTvEif46cVHBUMJUlNw4bqMd6krHBUysk0fV0YAYkMNGSfr8sykr1Z50//XkyfrlKe5
+         jYvEEFYP1PWvArF6+PtPDYki+BXnDE8LmdhKkIdsFQ4aqwRVK38atattfvMqzPb83zT5
+         9SVUbFVu1pJ3JMDvjjuJZMHNvnMbTvPiwJ5y//1+Ye7wUn3g5FTJIdZhxwoYd9Ar9j2O
+         PWx9/bwXI56c0JOWOo/4xQkDTz1yFdB24O493/lMabcWNKT3hJ0vsuBuxRAcLpWXML4o
+         yatA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1785064549; x=1785669349;
+        d=1e100.net; s=20251104; t=1785065555; x=1785670355;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=EN2awGJ26EUaMbYJ+eJ4wz6UCVhlC5pZ4u6LtnOUmYo=;
-        b=guQ8hQJHPqqM05lZe2IMptV5LvA/nNxFsDrroh6FkCxNxbLBN7tM6EssSrA2tgkkgv
-         BqvyYcdhJ1yoLbtdmULOB2Z1UTqsaSL+4tykA5BxTu0Hv7dVRa8NrsKmKqCY++hcFsll
-         OakiQg4VchMOdTlaXslrQR706RhTftpznmuXBLem3H9vPPPlGnDVxAU2VeAcUTqGXfJb
-         Q+FexqxG0ISBPNilv2UPwucTK218MVcbQe0NcuV2+BvVqAWvZ1bzzQfktogVI04br5PH
-         rMvz1ibgPuIvmnVQNvGGoRRS47HgEz75Ietr2wg1NTYkV87FmPVgM7oYD9dlpTXIlUxL
-         lXxQ==
-X-Gm-Message-State: AOJu0Ywkxbz6kwF+1L0Yz6ddGDaqc4UEny15gSaVvDEx3RVuObjRvKzw
-	cUsSRKiDeeZjCOjnsdvjT0DmtvWh6/jdiwLiFVJvJ5IIlZxP0ZALsWIl9RM/Vnm2JUg=
-X-Gm-Gg: AR+sD10cJWKhpdpwyN7BEq2i+0FZgvgOQkzplSB1RYZKWKHzeWDTs7hI8DkVTmF9+Rc
-	1q32K7RWm0M/Ff74mbSvxMuM/Q/CpSJACBUf+bdcYxyfv6pmNwmT4mIpGTKKZ0dZQ4A9gqjeeC2
-	tyodrdklMyDvF8ilprFsR7trNILxsAOpLFDM+X8lyxEufJIYajjEGEUjmF6t2ZdbQag8/wkxrpA
-	4EWCHPs8wv98/6b08F7cFNG5FZHz4Zw+r8Fjp2+ROvspjjY6hpE8WpuK8e1bF/vFVVzkS2vALIj
-	scagVJhMScBgLarBQIBnLcBxawLEGzfGT0S06Fyk4ELLcj3AASTVeq0IA1ePzBtwMp0hF7TDhKn
-	rSQg0rSVMl53rT6OFY0yl/xFpD0G2lhTmjYqfDMPPUA36+mtbwrksNVliE4dGuht5+OdFdCNYSx
-	M1qwp7aA/G7z+/CEaFk7lAe8iLhp0BMdthmUdZ8w==
-X-Received: by 2002:a05:6a21:7107:b0:3c3:66c5:68cc with SMTP id adf61e73a8af0-3c67d9d578bmr4366600637.21.1785064548770;
-        Sun, 26 Jul 2026 04:15:48 -0700 (PDT)
-Received: from kimi-bug-hunter.. ([47.84.186.216])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-314bc3e1285sm21486468eec.5.2026.07.26.04.15.45
+        bh=1Z37TstzxvLPhvEDUnNTL3PywZ4xjkcbPX0WwT+YK50=;
+        b=iYNOtmI4Hv0L+sUxXbCizNwYgz2uIoRvHgC6drxHkU84kRaPSZYyAC3wy/5dbT4glE
+         ClA3vrbKFOeTDhNCG6NDc3T0LxPDf409IT2d3E+yORLPRqHyjjTx5eArYNzEd4BvNY6m
+         9Gq/kZuuWoz5RL80JCugSO48vEKR662i7R4cFU60drupVSmhr/ERLoiPZ3mgMpiYzUsp
+         ujAPpszblR3oTC5Uk30axAnDW5fL4BkjTZuDv5UYCXtsdfGvaV57iaK1lbsOrr/XF3ZK
+         v/oeZ/PHozyHu0L4Y4XaWtZtgPdXU+QtNFOWYvWhot+SaCEda1vSdsQPS/NsFrKg6O+s
+         mEWw==
+X-Forwarded-Encrypted: i=1; AHgh+RoN98dhLrSML+KyjV8uGX8jtcGh722qgt3NmirHlz/bPesev7O4Raxn0o21vlY0Y964hszp5B08OLFh@vger.kernel.org
+X-Gm-Message-State: AOJu0YyzdEsp75tyT+W60YGb4AppDv8WB6rIf6sxEtmDu9rOyrvgKidf
+	ZdPCTNxmGF1bAGWUbQV5ASowSNCygUcxcX7GtstfkNZeGRMPeqiLxqR8LUqBcz6JdQ==
+X-Gm-Gg: AR+sD12JMPi2WcVkzNmVPHrCglCDRBgB2K3R/yGHawVXk3BOmXcCEv0CYTOmGxUMI94
+	Iq74e1NY2DzSnCz7IlpHJkaqJMPWBOWZNrOypz10FsOL9W2Yhy9QBdQL0Oqej7rQwTIkPej64ZL
+	MiH0ZD38IQDx5m9DcrOv8DTWEuWem4sqlzM35b07GpH945B9KGx30aQPj0lB4hP4LPTlN0Yh9mR
+	lmGNjjDl5Vr/TDmYVZ72lATGznjwMebscmf/SWgM3B24xVh5qH1O9I+TIU2egEbrrljpsJS1YG7
+	bSYdsPAgIlvRmAgBAOoshyckbYC+Z1YLhRUAdp1fO2gcPEIHKCSlcXtWWAcrCP70mTf1nmNOx1j
+	dUx19ZXzXbabp4Y1j5FzfPQJA5uQdphKHIRSJsOgoVOS8Sem8LpLvrTJW0GvcpWQtFp12Ve2mrh
+	d+EMnW9HAHmIknhNZQ4RcRep8Ml5ueRgWNeok0nEd4u4FWuwmkHqkH7miNJ9+z2ojcB16U0ILgZ
+	mvKxhAqW+h80JKhO4ZJGpSkjM63HFrnBTqa9AWkIw==
+X-Received: by 2002:a05:6000:490b:b0:47f:9158:5924 with SMTP id ffacd0b85a97d-47f9fc9c6c8mr6246245f8f.9.1785065554907;
+        Sun, 26 Jul 2026 04:32:34 -0700 (PDT)
+Received: from meshstor-pc ([185.87.42.56])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-47f85bb57cfsm40533083f8f.11.2026.07.26.04.32.32
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 26 Jul 2026 04:15:48 -0700 (PDT)
-From: Weiming Shi <bestswngs@gmail.com>
-To: linux-rdma@vger.kernel.org
-Cc: Jason Gunthorpe <jgg@nvidia.com>,
-	Zhu Yanjun <yanjun.zhu@linux.dev>,
+        Sun, 26 Jul 2026 04:32:34 -0700 (PDT)
+From: Mykola Marzhan <mykola@meshstor.io>
+To: Jens Axboe <axboe@kernel.dk>,
+	Song Liu <song@kernel.org>,
+	Yu Kuai <yukuai@fygo.io>,
+	Keith Busch <kbusch@kernel.org>,
+	Christoph Hellwig <hch@lst.de>,
+	Sagi Grimberg <sagi@grimberg.me>,
+	linux-block@vger.kernel.org,
+	linux-raid@vger.kernel.org,
+	linux-nvme@lists.infradead.org
+Cc: Li Nan <magiclinan@didiglobal.com>,
+	Xiao Ni <xiao@kernel.org>,
+	Guoqing Jiang <guoqing.jiang@linux.dev>,
 	Leon Romanovsky <leon@kernel.org>,
-	Weiming Shi <bestswngs@gmail.com>,
-	Hongqiang Luo <wanbafv@gmail.com>,
-	Xinyu Ma <mmmxny@gmail.com>,
-	Shaomin Chen <eeesssooo020@gmail.com>,
-	Rui Ding <threonine42@gmail.com>,
-	Miao Zhao <muel@nova.gal>
-Subject: [PATCH] RDMA/rxe: Restore HMM_PFN_WRITE check in ODP write paths
-Date: Sun, 26 Jul 2026 19:15:30 +0800
-Message-ID: <20260726111533.1037819-1-bestswngs@gmail.com>
-X-Mailer: git-send-email 2.43.0
+	Jason Gunthorpe <jgg@ziepe.ca>,
+	Kiran Kumar Modukuri <kmodukuri@nvidia.com>,
+	Chaitanya Kulkarni <kch@nvidia.com>,
+	Logan Gunthorpe <logang@deltatee.com>,
+	Bjorn Helgaas <bhelgaas@google.com>,
+	Shivaji Kant <shivajikant@google.com>,
+	Pranjal Shrivastava <praan@google.com>,
+	Henrique Carvalho <henrique.carvalho@suse.com>,
+	stable@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	linux-rdma@vger.kernel.org,
+	linux-pci@vger.kernel.org,
+	Thorsten Leemhuis <regressions@leemhuis.info>,
+	Martin Wilck <mwilck@suse.com>
+Subject: [PATCH v6 00/12] block,md,nvme: correct handling of unsupported P2PDMA transfers
+Date: Sun, 26 Jul 2026 13:32:17 +0200
+Message-ID: <20260726113229.2154269-1-mykola@meshstor.io>
+X-Mailer: git-send-email 2.52.0
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -78,113 +97,121 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Commit 0b261d7c1cd3 ("RDMA/rxe: Break endless pagefault loop for RO
-pages") dropped the access permission test from rxe_check_pagefault()
-and left only HMM_PFN_VALID. A page faulted in read-only, for example
-a page-cache folio behind a PROT_READ file mapping, then satisfies the
-check and ODP write operations (RDMA WRITE, RDMA READ response, SEND
-payload, atomics) modify it through kmap without ever breaking CoW.
+md treats an unsupported P2PDMA transfer to a member as success, and
+nvme-rdma retries one forever.  Whether peer memory can be DMA-mapped
+depends on the PCIe topology between the two devices, and since v6.17
+the failure completes as BLK_STS_INVAL: retryable for multipath and
+deliberately ignored by md for member failures, so mirrors silently
+diverge.
 
-An unprivileged user can register an ODP MR over such a mapping and
-have incoming RDMA traffic overwrite the page cache of a file it only
-holds O_RDONLY, including /etc/passwd or setuid binaries. This is the
-same primitive class as Dirty COW and CVE-2022-2590.
+v1-v3 restored BLK_STS_TARGET for these failures and tagged P2PDMA
+bios in md.  Logan Gunthorpe proposed a dedicated BLK_STS_P2PDMA
+instead, so no consumer needs to know whether an I/O was P2P, and
+wrote the core patches; v4 onward is built on them.  Patches 1 and 5
+are his and keep his authorship.
 
-mlx5 has the missing invariant: its ODP path sets the device write bit
-only for pfns that carry HMM_PFN_WRITE. Restore it in rxe by requiring
-HMM_PFN_WRITE in rxe_check_pagefault() for every operation except
-RXE_PAGEFAULT_RDONLY. A write to a non-writable VMA now fails the one
-fault attempt with -EPERM from hmm_vma_fault() instead of re-faulting
-forever. For a writable VMA the fault breaks CoW and the write lands
-in the private page.
+  1  block: add BLK_STS_P2PDMA (stable, v6.17)
+  2  md: ensure REQ_NOMERGE is set on P2PDMA bios
+  3  md/raid1: serialize non-write-behind writes on CollisionCheck
+     rdevs (pre-existing bug patch 4 would widen; stable)
+  4  md/raid1: no write-behind for P2PDMA bios
+  5  md/raid1,raid10: factor out raid1_write_error() helper
+  6  md/raid1,raid10: keep REQ_NOMERGE on narrow_write_error()
+     retry clones
+  7  md/raid1,raid10: skip futile retries on P2PDMA mapping
+     failures
+  8  md/raid1,raid10: set IO_BLOCKED in case of BLK_STS_P2PDMA
+  9  nvme-rdma: use ib_dma_map_sgtable_attrs() (stable, v7.1;
+     dependency of patch 10)
+ 10  nvme-rdma: return BLK_STS_P2PDMA (stable, v7.1; needs patches
+     1 and 9)
+ 11  nvme-rdma: ratelimit the map-failure error message (cleanup)
+ 12  nvme-rdma: factor out the scatterlist DMA mapping helper
+     (cleanup)
 
-Keep pmem flushes on the read-only check. arch_wb_cache_pmem() never
-modifies memory, and the FLUSH access bits do not make the umem
-writable, so classifying flushes as writes would make every flush
-against a flush-only MR fail.
+Routing: patch 1 block, 2-8 md, 9-12 nvme; 7, 8 and 10 use the new
+status.  Patch 1 alone stops the divergence and the dm-multipath
+requeue loop; the nvme-rdma loop also needs 9-10; everything else
+refines the fallout, so the series bisects safely.  The md patches
+fix a v7.2-rc1 regression (02666132403a), except 3 (older bug,
+stable) and 5 (refactor).  11 and 12 are cleanup only and can be
+deferred if you would rather not carry them at -rc.
 
-Fixes: 0b261d7c1cd3 ("RDMA/rxe: Break endless pagefault loop for RO pages")
-Cc: stable@vger.kernel.org
-Signed-off-by: Weiming Shi <bestswngs@gmail.com>
-Reported-by: Weiming Shi <bestswngs@gmail.com>
-Reported-by: Shaomin Chen <eeesssooo020@gmail.com>
-Reported-by: Rui Ding <threonine42@gmail.com>
-Reported-by: Miao Zhao <muel@nova.gal>
-Tested-by: Hongqiang Luo <wanbafv@gmail.com>
-Tested-by: Xinyu Ma <mmmxny@gmail.com>
-Tested-by: Zhanbo Ye <cainyzb@gmail.com>
-Reviewed-by: Zhu Yanjun <yanjun.zhu@linux.dev>
----
- drivers/infiniband/sw/rxe/rxe_odp.c | 16 +++++++++++-----
- 1 file changed, 11 insertions(+), 5 deletions(-)
+Tested with the QEMU raid1/raid10 error matrix and a ConnectX-4 Lx.
+After patch 1, block-layer error injection accepts status=P2PDMA, so
+the md completion paths can be exercised on any member with no P2P
+hardware.  The patches were developed with AI assistance (see the
+Assisted-by trailers); all code was human-reviewed and tested.
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_odp.c b/drivers/infiniband/sw/rxe/rxe_odp.c
-index ff904d5e54a73..174bb2efc3c6a 100644
---- a/drivers/infiniband/sw/rxe/rxe_odp.c
-+++ b/drivers/infiniband/sw/rxe/rxe_odp.c
-@@ -124,19 +124,23 @@ int rxe_odp_mr_init_user(struct rxe_dev *rxe, u64 start, u64 length,
- }
- 
- static inline bool rxe_check_pagefault(struct ib_umem_odp *umem_odp, u64 iova,
--				       int length)
-+				       int length, bool write)
- {
- 	bool need_fault = false;
-+	u64 access = HMM_PFN_VALID;
- 	u64 addr;
- 	int idx;
- 
-+	if (write)
-+		access |= HMM_PFN_WRITE;
-+
- 	addr = iova & (~(BIT(umem_odp->page_shift) - 1));
- 
- 	/* Skim through all pages that are to be accessed. */
- 	while (addr < iova + length) {
- 		idx = (addr - ib_umem_start(umem_odp)) >> umem_odp->page_shift;
- 
--		if (!(umem_odp->map.pfn_list[idx] & HMM_PFN_VALID)) {
-+		if ((umem_odp->map.pfn_list[idx] & access) != access) {
- 			need_fault = true;
- 			break;
- 		}
-@@ -159,6 +163,7 @@ static unsigned long rxe_odp_iova_to_page_offset(struct ib_umem_odp *umem_odp, u
- static int rxe_odp_map_range_and_lock(struct rxe_mr *mr, u64 iova, int length, u32 flags)
- {
- 	struct ib_umem_odp *umem_odp = to_ib_umem_odp(mr->umem);
-+	bool write = !(flags & RXE_PAGEFAULT_RDONLY);
- 	bool need_fault;
- 	int err;
- 
-@@ -167,7 +172,7 @@ static int rxe_odp_map_range_and_lock(struct rxe_mr *mr, u64 iova, int length, u
- 
- 	mutex_lock(&umem_odp->umem_mutex);
- 
--	need_fault = rxe_check_pagefault(umem_odp, iova, length);
-+	need_fault = rxe_check_pagefault(umem_odp, iova, length, write);
- 	if (need_fault) {
- 		mutex_unlock(&umem_odp->umem_mutex);
- 
-@@ -177,7 +182,7 @@ static int rxe_odp_map_range_and_lock(struct rxe_mr *mr, u64 iova, int length, u
- 		if (err < 0)
- 			return err;
- 
--		need_fault = rxe_check_pagefault(umem_odp, iova, length);
-+		need_fault = rxe_check_pagefault(umem_odp, iova, length, write);
- 		if (need_fault) {
- 			mutex_unlock(&umem_odp->umem_mutex);
- 			return -EFAULT;
-@@ -339,8 +344,9 @@ int rxe_odp_flush_pmem_iova(struct rxe_mr *mr, u64 iova,
- 	int err;
- 	u8 *va;
- 
-+	/* A flush never modifies memory; read-only access suffices. */
- 	err = rxe_odp_map_range_and_lock(mr, iova, length,
--					 RXE_PAGEFAULT_DEFAULT);
-+					 RXE_PAGEFAULT_RDONLY);
- 	if (err)
- 		return err;
- 
+Against v7.2-rc4 (Logan's base).
+
+Changes in v6:
+ - patches 7, 9, 10: picked up Logan's Reviewed-by; on 7 it replaces
+   his now-stale Signed-off-by, as he asked
+ - patch 10: the map-failure ratelimit conversion moves out to its
+   own patch 11 (Logan); the stable note now names both prerequisites
+ - new patch 12: the data and the metadata mapping share a helper
+   (Logan's suggestion on patch 9).  Kept out of 9 so the
+   stable-tagged fix stays minimal
+
+Changes in v5:
+ - patch 7: From: is now Mykola, at Logan's request; patch 8 follows
+   for consistency.  Logan keeps Signed-off-by on both,
+   Co-developed-by on 8
+ - patch 8: raid10 declares bio up front and bi_status sits in a
+   blk_status_t local in both files.
+ - old patch 9 split: 9 is the mechanical sgtable conversion,
+   10 the -EREMOTEIO -> BLK_STS_P2PDMA translation; both stable
+   since 10 needs 9
+
+Changes in v4:
+ - new BLK_STS_P2PDMA (Logan) replaces restoring BLK_STS_TARGET; the
+   R1BIO_P2PDMA/R10BIO_P2PDMA state bits are gone and the md changes
+   shrink to completion-time status tests
+ - blk_dma_map_iter_start() gets the explicit
+   PCI_P2PDMA_MAP_NOT_SUPPORTED case (Logan's patch; v3 kept
+   default: only)
+ - write completions record the whole failed range as bad blocks
+   instead of narrow_write_error()'s per-block retries; v3's coarse
+   retry is gone -- the new status is deterministic, nothing to
+   re-attempt
+
+Link: https://lore.kernel.org/linux-raid/20260718162547.448892-1-mykola@meshstor.io/ [v1]
+Link: https://lore.kernel.org/linux-raid/20260719105327.864949-1-mykola@meshstor.io/ [v2]
+Link: https://lore.kernel.org/linux-raid/20260721174502.111503-1-mykola@meshstor.io/ [v3]
+Link: https://lore.kernel.org/linux-raid/20260722185841.449934-1-mykola@meshstor.io/ [v4]
+Link: https://lore.kernel.org/linux-raid/20260723204206.76930-1-mykola@meshstor.io/ [v5]
+Link: https://lore.kernel.org/linux-raid/9f846c85-f427-433a-b87d-8e9e3a4406e7@deltatee.com/ [Logan's proposal]
+
+Logan Gunthorpe (2):
+  block: add BLK_STS_P2PDMA for unsupported peer-to-peer transfers
+  md/raid1,raid10: factor out raid1_write_error() helper
+
+Mykola Marzhan (10):
+  md: ensure REQ_NOMERGE is set on P2PDMA bios
+  md/raid1: serialize non-write-behind writes on CollisionCheck rdevs
+  md/raid1: don't use write-behind for P2PDMA bios
+  md/raid1,raid10: keep REQ_NOMERGE on narrow_write_error() retry clones
+  md/raid1,raid10: skip futile retries on P2PDMA mapping failures
+  md/raid1,raid10: set IO_BLOCKED in case of BLK_STS_P2PDMA
+  nvme-rdma: use ib_dma_map_sgtable_attrs()
+  nvme-rdma: return BLK_STS_P2PDMA for unsupported P2P transfers
+  nvme-rdma: ratelimit the map-failure error message
+  nvme-rdma: factor out the scatterlist DMA mapping helper
+
+ block/blk-core.c          |  3 +++
+ block/blk-mq-dma.c        |  3 ++-
+ drivers/md/md.c           | 10 ++++++--
+ drivers/md/md.h           | 15 +++++++++++
+ drivers/md/raid1-10.c     | 16 ++++++++++++
+ drivers/md/raid1.c        | 47 ++++++++++++++++++++--------------
+ drivers/md/raid10.c       | 27 ++++++++++----------
+ drivers/nvme/host/rdma.c  | 54 +++++++++++++++++++++++++++------------
+ include/linux/blk_types.h | 10 ++++++++
+ 9 files changed, 134 insertions(+), 51 deletions(-)
+
+
+base-commit: 1590cf0329716306e948a8fc29f1d3ee87d3989f
 -- 
-2.43.0
+2.52.0
 
