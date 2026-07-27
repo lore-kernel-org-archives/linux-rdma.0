@@ -1,151 +1,223 @@
-Received: from smtpbg151.qq.com (smtpbg151.qq.com [18.169.211.239])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pj1-f50.google.com (mail-pj1-f50.google.com [209.85.216.50])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 57C94137750;
-	Mon, 27 Jul 2026 03:12:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=18.169.211.239
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 73A44345CDC
+	for <linux-rdma@vger.kernel.org>; Mon, 27 Jul 2026 04:08:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.50
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785121934; cv=none; b=kBc8ydtZ3xv8DGaRtz0sAMrp1RbfxsAURbNheBURmG/pfHX5CWK6fUStIGTOd+QHUqU1nfpKYMBVREddCibTIXSZJ+3PGQ7h6aNVZ7XEyGmTGOuG7yAynVrSio0qNR24FWrJR1fQZtfpJqYQewdwO9QLCvaTU26CTB5M6zgDEUY=
+	t=1785125298; cv=none; b=mQKNOoXbNs+xBDICGGJydbXkiT4zo/BUYq18hMBI0sZCEZ/Wp0bgs73nrg9JO9z5CUNQyaclzFvI3ZCaIIPnLpcH0JyiuP6RE7eSKxsOVeY7dg6iev7nQhmyqUIFtYW36pgeiUzHinOXVPYDjpv0MPmkn+pKM+19Zqu/yUURGj0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785121934; c=relaxed/simple;
-	bh=3Z+txs0At9OOkKkdnsZp+Yda2BoMg1Dkbhfwt37Uyt4=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=A8yhLR3u69MiM7Zt+jjqS9LwJ9GiAgB2wy6VLdtgmMX54d6ZV1dm15Gwi+mv2xKmA+/6t4lHsZ6E4K7YEBD5OUtfbIkyGT/xYQD/y/Quy5rMP2qYx/xDAfnSCZw9o6H8ubA4KpsGaiJW0n1jUpa9K2S/yNTRTI5HzniG3yFb+NU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=uniontech.com; spf=pass smtp.mailfrom=uniontech.com; dkim=pass (1024-bit key) header.d=uniontech.com header.i=@uniontech.com header.b=U6pinBBT; arc=none smtp.client-ip=18.169.211.239
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=uniontech.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=uniontech.com
+	s=arc-20240116; t=1785125298; c=relaxed/simple;
+	bh=JrsYXpcyeo2vtFHpIvsas/+QPGxz1jWIaodNwX7XowI=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=b72Z+51OrG5YyZHiPRiRhN6FN7WWZwArrx6QwfiboG3OGLFCBWF+rinz3HX5EO1Q7KieJ8o05HAnf67LcZNC4QLVDqtETr4uNrlGFSIJasaTfVacPgPlyuXLfnVsNYsNjhjbZ+7+RmBngA2UmIZCnonr1hEYJcSsD6+1gqRiL60=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=hKRtvdZ+; arc=none smtp.client-ip=209.85.216.50
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=uniontech.com header.i=@uniontech.com header.b="U6pinBBT"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=uniontech.com;
-	s=onoh2408; t=1785121917;
-	bh=jJpzWOd2AQ0qcTlQZVOnkgLY7Mxhg/fTu1TETcsiZ1I=;
-	h=Message-ID:Date:MIME-Version:Subject:To:From;
-	b=U6pinBBTnEn78WNoXzH55+/WK8ShoNgzkuXLS511LYBpVdPDaBTmxAr3QF7mI+evI
-	 Q2M1u4nDX6bJDENCxbZWxrBBCUdra5TPLMxgOi+65Gl1npYwUlSj6CjsBFx3gYu0Q5
-	 QV1dicw0oF1yvBnv52qwglWJc4Z76p9UUXr+p0OQ=
-X-QQ-mid: zesmtpip4t1785121908t349a5306
-X-QQ-Originating-IP: eeOVjjpr6h1nN30mzWPlymvg2gXH398TA2mHByZ2jLo=
-Received: from [IPV6:240e:659:1b0:640::113:101 ( [localhost])
-	by bizesmtp.qq.com (ESMTP) with 
-	id ; Mon, 27 Jul 2026 11:11:45 +0800 (CST)
-X-QQ-SSF: 0000000000000000000000000000000
-X-QQ-GoodBg: 1
-X-BIZMAIL-ID: 12037815108902466553
-EX-QQ-RecipientCnt: 25
-Message-ID: <AEAA5D0F00F603DD+457fbbba-bb97-42f8-afbd-3dd9c2dacd6e@uniontech.com>
-Date: Mon, 27 Jul 2026 11:11:44 +0800
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="hKRtvdZ+"
+Received: by mail-pj1-f50.google.com with SMTP id 98e67ed59e1d1-38e071ed6aeso1705607a91.0
+        for <linux-rdma@vger.kernel.org>; Sun, 26 Jul 2026 21:08:17 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1785125297; x=1785730097; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=Wy9t1vWznuOAOQDWKHxu49XmVkBSgD+heYqFc0DMi2U=;
+        b=hKRtvdZ+uCyJnMjcBtQ5NgkNJGhbJuoHsvliZv5Hngm4MJqv0LBohQ7PulMdi5e0pp
+         pyahL6pXCMfb3v9py8Qj6Ao/SVLsIRiWV1Vk8HCWrdGfEMh5FFC6tQWEpdbJ7wbLZNnp
+         l3rvQB31gBJMYlQLsCBQaPnpnHATlLQZ3HxDvyvwIgu1JXftrwGpIdS0zw/kzJBDxmme
+         hD4KcbB15m2Kc/hEiR0Wqg07xzkPh2G/fEatsydzsR1vuKLKtPUhOkFYPGBvHY6ziubs
+         U+AXkiKIPqsvNP7Gfx0qXwMBAEITHL9NMVStGHodDDywMoXKXVmo3Zw0ru4gi5j78WUV
+         XtlQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1785125297; x=1785730097;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=Wy9t1vWznuOAOQDWKHxu49XmVkBSgD+heYqFc0DMi2U=;
+        b=Milgll+yyAgeUyGkuOLIo4jMazTi8O7RN7VWxPUG2uT7MTSNGoiL9m+BQxh/zIYCbi
+         C+YuE1myjRRgVJELeNgJ7gMsI7UVsKQhGIK3ZjxOGfL7il8T9mB1vbmKl0CbNcjLIhbv
+         rVtIUWASSFsQ7EB3ZeO1XlZyVT+H+vppGMwuQomL5WYrl0IVSq2xcn24mTIiTfVGbg33
+         YJN1h65F8cHchr/TP+s0kGtKsosjJUfw1P+VT9bk6SOzjieBOviGwqLVC9wPCzZNeJ5O
+         Jmu6iLH6yDFwGJYvyaTIc93i4rKHQuz+W+9z1/PXPcKFn2UGp4C14h6NpSl9nDt+HXB7
+         L9XA==
+X-Forwarded-Encrypted: i=1; AHgh+Rpw6SlYDEXh5Ggo6NTPi7GcR5QTFA/pb+H/Ki++T/7jM3cn+FJJ0T3aW5Ldaf8CALRvsyyfi0P3YDdZ@vger.kernel.org
+X-Gm-Message-State: AOJu0YyQybK9sOHVxAh16f7HxutXBjPx1eDgH0OBR6FRSGXIFr8jh+KF
+	wImGBhVRNtalEt3anF3JMaraqHJsd6XvhyMibE3TS01nydsU6bryKZCn
+X-Gm-Gg: AR+sD10IUO5GFHhdpzwqwFfUifTpndgnyoeQX9hRM8xI2U+KNj9tesepN9SKLYFv8NW
+	WdKc3+Olj/Eb6UqvxwQDeDM3GYKVaQRL86KPKnPXrTofz0WTbiibulpfue9Txlc8gcC2wpzcXMG
+	XHNc+stTyoD9zf++g7sIVKKljrl1BigOphtWc02IG+aEhxUANx5Mmuq4aBvE8WtLqqYTSw4YQ2b
+	LbtBlhAlLoj7+pitsDg3jCDpFFysdeeemopzrEX1IAthGN2h05X3h7c+S/CGRYEuxnhgM37ugSh
+	9YJ0eZnWN44a2YjiW1R8GXslv+/TDEsU2eDEZDEaV2G6TddMeT8jZSbkm1WqKhn6n5kxzUoiTB0
+	J+WHAQHuc5NpqbP5MEKYWxA0q/+hgbF41OrQ7/wQeM5Uj3rJ75+/l4C8pYvzGhmS57b/HxLaKj5
+	9/oqo=
+X-Received: by 2002:a17:90b:2791:b0:38e:67e1:15b with SMTP id 98e67ed59e1d1-38f293cc2eemr6412847a91.6.1785125296569;
+        Sun, 26 Jul 2026 21:08:16 -0700 (PDT)
+Received: from kali ([58.187.6.148])
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-38f03b0e976sm4299087a91.5.2026.07.26.21.08.12
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 26 Jul 2026 21:08:15 -0700 (PDT)
+From: Nguyen Le Thanh Tung <nguyenlethanhtung555@gmail.com>
+To: "D . Wythe" <alibuda@linux.alibaba.com>,
+	Dust Li <dust.li@linux.alibaba.com>,
+	Sidraya Jayagond <sidraya@linux.ibm.com>,
+	Wenjia Zhang <wenjia@linux.ibm.com>
+Cc: Mahanta Jambigi <mjambigi@linux.ibm.com>,
+	Tony Lu <tonylu@linux.alibaba.com>,
+	Wen Gu <guwen@linux.alibaba.com>,
+	netdev@vger.kernel.org,
+	linux-rdma@vger.kernel.org,
+	linux-s390@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Nguyen Le Thanh Tung <nguyenlethanhtung555@gmail.com>
+Subject: [PATCH net] net/smc: clamp peer supplied CDC cursors to the buffer size
+Date: Mon, 27 Jul 2026 00:08:06 -0400
+Message-ID: <20260727040806.1911118-1-nguyenlethanhtung555@gmail.com>
+X-Mailer: git-send-email 2.53.0
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 1/6] powerpc/xive: remove dead NULL check after
- GFP_NOFAIL allocation
-To: =?UTF-8?Q?C=C3=A9dric_Le_Goater?= <clg@kaod.org>, maddy@linux.ibm.com,
- mpe@ellerman.id.au, npiggin@gmail.com, chleroy@kernel.org,
- maarten.lankhorst@linux.intel.com, mripard@kernel.org, tzimmermann@suse.de,
- airlied@gmail.com, simona@ffwll.ch, bharat@chelsio.com, jgg@ziepe.ca,
- leon@kernel.org, akpm@linux-foundation.org, namcao@linutronix.de,
- ynorov@nvidia.com, sshegde@linux.ibm.com, nilay@linux.ibm.com
-Cc: linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org,
- dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org,
- linux-mm@kvack.org, gouhaojake@163.com, kernel@uniontech.com
-References: <20260724022851.466017-1-gouhao@uniontech.com>
- <20260724022851.466017-2-gouhao@uniontech.com>
- <3fba3c54-ea4f-449c-8cd3-f24c516bb31d@kaod.org>
-Reply-To: 3fba3c54-ea4f-449c-8cd3-f24c516bb31d@kaod.org
-From: Gou Hao <gouhao@uniontech.com>
-In-Reply-To: <3fba3c54-ea4f-449c-8cd3-f24c516bb31d@kaod.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
-X-QQ-SENDSIZE: 520
-Feedback-ID: zesmtpip:uniontech.com:qybglogicsvrgz:qybglogicsvrgz5b-2
-X-QQ-XMAILINFO: MWCWULdTTL/UL96dkeyad7kkR+8QThrxMuw09uC+Bvw4YbdtH3WAb+ht
-	FSy++KMEXBY2iWUcbGOsEr3bUWK/zxtjDSQfU03AmFVjDKSyUyzV3qrvG3OtBANyP17Ac+m
-	P/GpptPnd2OgBuwSB4WTqjaz9qmS5jbmc9wW2vWhQR5s57uxzUPwn0ihDAMbcwxXTGwOnVw
-	Ln2Jh2jMaf5HRTGXj517mQmUGGoYuXcDUsOaETrqKcws0uYt+hZUY+NdiL6cIW5lUPU8+6l
-	SXUbJt9yJFm7zB0chyz9kDis/BWUDRFRBrN0oIOjra2/ga/l/hO0InEhPe14aU/mtKqL6ti
-	3/H9DgFU8id5GeXVMWMRFG2iTWt7F9o3JziAoWU2wmRyocKjitjA85Rs9yElb+bcAeeeUF1
-	M/K4aXyETU0dTFyqSA3wzdBfg4JbljzUCkIDDSgObg9ZYFdOm5Si+3gDG3mIGMpMBqPwTFw
-	AJTNArZHGAjtgEAGNsNw2FLxKEPHSGss3L7zmoz814qSCZrzLh1tIbPZunsLS5i3z7VPT+r
-	25sgua/dKUewXECRsL0CDE05pkqGiQZRKrB4SadMtamgROypPefD/SlVu0aT8Ii1MTjOSIV
-	3gfjkmFVA541y5955Zd7Fo+OfP9TTt2/PdjIvPAskbeSwKIMbu0ug14V5H6d+KPrOUnkvpF
-	C6JOBnWMAMbAmtzg5dmE1Taw8N6RfMnRGzZ3PazBoh4EoRZOGFcb4lxtLY8fF961jDKhv0Q
-	Gi68RIyGJtnkbW+oKWw3eWZsEiyXcUSoNTYzrHL8G4PDcsp9kmkyUEAsMFiY6ezDtXSQJgR
-	HaDnEadS48SVbATVMTvPXjBKjcU8xm5H/kYiTm3t4Zg5KYIP1v/sykvVZh2p2WKODj6LbDu
-	JXT9kf13InpTvgw06VWp6Tw7xSBcMJ82MJiWiY0wFEau9E/WideXj/5sPvsoiqVNSx3M+qP
-	hbGVbgbaUqilmL2AWXCSpMXYqiVmOnUt9Pz77fkIJvwNjQCBfodR6sj03PaOKWYiQr92wau
-	TkrSxbJDLams8qyU0vy8YtaMeeG9XJxOYDM7OfwGJKJxaH5y3US7BYAj526PgA2R1aBqhk1
-	14G8KeKpJzJ
-X-QQ-XMRINFO: M/715EihBoGS47X28/vv4NpnfpeBLnr4Qg==
-X-QQ-RECHKSPAM: 0
 
-On 7/27/26 01:04, Cédric Le Goater wrote:
-> As suggested by Andrew, let's change the approach and remove entirely
-> __GFP_NOFAIL instead and make all xive_ipis access paths NULL-safe.
+smc_cdc_cursor_to_host() converts a peer supplied CDC cursor into the
+connection's host cursor.  The count field is taken verbatim off the
+wire and is only compared against the previously known cursor to
+enforce monotonicity - it is never validated against the size of the
+buffer it indexes:
 
-Yes, that's better.
+	temp.count = ntohl(net.count);
+	temp.wrap  = ntohs(net.wrap);
+	if ((old.wrap > temp.wrap) && temp.wrap)
+		return;
+	if ((old.wrap == temp.wrap) && (old.count > temp.count))
+		return;
+	smc_curs_copy(local, &temp, conn);
 
-> On 7/24/26 04:28, Gou Hao wrote:
->> kzalloc_objs with the __GFP_NOFAIL flag will never return NULL, so the
->> subsequent NULL check is unreachable dead code. Remove it.
->>
->> Signed-off-by: Gou Hao <gouhao@uniontech.com>
->> Reviewed-by: Wentao Guan <guanwentao@uniontech.com>
->> Reviewed-by: jiazhenyuan <jiazhenyuan@uniontech.com>
->> ---
->>   arch/powerpc/sysdev/xive/common.c | 5 +----
->>   1 file changed, 1 insertion(+), 4 deletions(-)
->>
->> diff --git a/arch/powerpc/sysdev/xive/common.c b/arch/powerpc/sysdev/ 
->> xive/common.c
->> index dadd1f46ec939..f2904a5c2b7bf 100644
->> --- a/arch/powerpc/sysdev/xive/common.c
->> +++ b/arch/powerpc/sysdev/xive/common.c
->> @@ -1134,9 +1134,6 @@ static int __init xive_init_ipis(void)
->>       xive_ipis = kzalloc_objs(*xive_ipis, nr_node_ids,
->>                    GFP_KERNEL | __GFP_NOFAIL);
-> 
-> So let's remove __GFP_NOFAIL here.
-> 
->> -    if (!xive_ipis)
->> -        goto out_free_domain;
->> -
-> 
-> Let's keep it now that allocation can really fail.
-> 
->>       for_each_node(node) {>           struct xive_ipi_desc *xid = 
->> &xive_ipis[node];
->>           struct xive_ipi_alloc_info info = { node };
->> @@ -1158,7 +1155,7 @@ static int __init xive_init_ipis(void)
->>   out_free_xive_ipis:
->>       kfree(xive_ipis);
->> -out_free_domain:
-> 
-> and keep the out_free_domain label
-> 
->> +    xive_ipis = NULL;
-> 
-> and yes we should add 'xive_ipis = NULL;'
-> 
->>       irq_domain_remove(ipi_domain);
->>   out_free_fwnode:
->>       irq_domain_free_fwnode(fwnode);
-> 
-> 
-> The prepare_cpu() path is broken. To fix, we need to check xive_ipis
-> is not NULL in xive_setup_cpu_ipi() and xive_cleanup_cpu_ipi(). It
-> should be a straight forward local change. Nothing complex.
-> 
-> You can test with QEMU. The pSeries and the PowerNV machines are well
-> supported under emulation. Ping me if you need help.
-> 
-Thank you for the review. I will fix these issues in the next version of 
-the patch, and test locally.
+On the first CDC message of a connection old is {wrap = 0, count = 0},
+so both guards are false for any peer chosen pair and a count of up to
+0xffffffff is accepted unconditionally.  A conforming peer never emits
+count >= size: smc_curs_add() wraps at the buffer size, which is what
+every consumer of the cursor assumes.
 
+The most direct consequence is in smc_cdc_handle_urg_data_arrival(),
+which uses the producer cursor as a raw index with no further check:
+
+	base = (char *)conn->rmb_desc->cpu_addr + conn->rx_off;
+	if (conn->urg_curs.count)
+		conn->urg_rx_byte = *(base + conn->urg_curs.count - 1);
+
+That path is reached from the receive path whenever the producer cursor
+advances and prod_flags.urg_data_present is set - a single bit copied
+verbatim from the wire - so a peer can read at an attacker chosen offset
+of up to 4GB from a known heap pointer, far outside the RMB.  The same
+unvalidated cursor also feeds the atomic_add() into conn->bytes_to_rcv,
+breaking the 0 <= bytes_to_rcv <= rmb_desc->len invariant that
+smc_rx_recvmsg() relies on when it computes its second copy chunk.
+
+Clamp count to the size of the buffer the cursor refers to, so that
+everything derived from it stays inside that buffer.  The producer
+cursor indexes the local RMB and is bounded by conn->rmb_desc->len, the
+consumer cursor refers to the peer's RMBE and is bounded by
+conn->peer_rmbe_size - the same sizes smc_cdc_msg_recv_action() already
+passes to smc_curs_diff() for these two cursors, and which it already
+dereferences unconditionally a few lines after the conversion, so no new
+pointer is assumed valid here.  The SMC-D path reads the cursors from
+the DMB rather than off the wire, but they are equally peer controlled
+and reach the same consumers, so clamp there as well.  For SMC-D the DMB
+is registered with sizeof(struct smcd_cdc_msg) extra bytes and
+buf_desc->len holds the remainder (smcd_new_buf_create()), so bounding
+count by rmb_desc->len also keeps the rx_off based dereference inside
+the allocation.
+
+Found by code inspection.  The unbounded acceptance was confirmed by
+calling the unmodified smc_cdc_cursor_to_host() from a module with
+old = {0, 0} and a peer cursor of count = 0x40000000: the value is
+copied through unchanged.  Replaying the resulting dereference against a
+real 64 byte kmalloc() allocation produces a clean KASAN
+slab-out-of-bounds read.
+
+Fixes: 5f08318f617b ("smc: connection data control (CDC)")
+Signed-off-by: Nguyen Le Thanh Tung <nguyenlethanhtung555@gmail.com>
+---
+Compile tested on 6.8.12 with CONFIG_SMC=m: `make W=1 net/smc/` produces
+no new warnings.  The two functions this patch touches are byte identical
+in 6.8 and current mainline.
+
+ net/smc/smc_cdc.h | 34 ++++++++++++++++++++++++++++------
+ 1 file changed, 28 insertions(+), 6 deletions(-)
+
+diff --git a/net/smc/smc_cdc.h b/net/smc/smc_cdc.h
+index 696cc11..a71e46d 100644
+--- a/net/smc/smc_cdc.h
++++ b/net/smc/smc_cdc.h
+@@ -219,16 +219,34 @@ static inline void smc_host_msg_to_cdc(struct smc_cdc_msg *peer,
+ 	peer->conn_state_flags = local->conn_state_flags;
+ }
+ 
++/* Bound a peer supplied cursor count to the size of the buffer it indexes.
++ * A conforming peer never sends count >= size (see smc_curs_add()), and every
++ * user of the cursor - the byte accounting in smc_cdc_msg_recv_action() and
++ * the direct RMB dereference in smc_cdc_handle_urg_data_arrival() - relies on
++ * that. Nothing validates it, so do it here, once, where the value enters the
++ * connection state.
++ */
++static inline u32 smc_cdc_clamp_count(u32 count, unsigned int size)
++{
++	if (WARN_ON_ONCE(size && count >= size))
++		count = size - 1;
++	return count;
++}
++
++/* @size: size of the buffer the cursor indexes, i.e. conn->rmb_desc->len for
++ *	  a producer cursor and conn->peer_rmbe_size for a consumer cursor
++ */
+ static inline void smc_cdc_cursor_to_host(union smc_host_cursor *local,
+ 					  union smc_cdc_cursor *peer,
+-					  struct smc_connection *conn)
++					  struct smc_connection *conn,
++					  unsigned int size)
+ {
+ 	union smc_host_cursor temp, old;
+ 	union smc_cdc_cursor net;
+ 
+ 	smc_curs_copy(&old, local, conn);
+ 	smc_curs_copy_net(&net, peer, conn);
+-	temp.count = ntohl(net.count);
++	temp.count = smc_cdc_clamp_count(ntohl(net.count), size);
+ 	temp.wrap = ntohs(net.wrap);
+ 	if ((old.wrap > temp.wrap) && temp.wrap)
+ 		return;
+@@ -246,8 +264,10 @@ static inline void smcr_cdc_msg_to_host(struct smc_host_cdc_msg *local,
+ 	local->len = peer->len;
+ 	local->seqno = ntohs(peer->seqno);
+ 	local->token = ntohl(peer->token);
+-	smc_cdc_cursor_to_host(&local->prod, &peer->prod, conn);
+-	smc_cdc_cursor_to_host(&local->cons, &peer->cons, conn);
++	smc_cdc_cursor_to_host(&local->prod, &peer->prod, conn,
++			       conn->rmb_desc->len);
++	smc_cdc_cursor_to_host(&local->cons, &peer->cons, conn,
++			       conn->peer_rmbe_size);
+ 	local->prod_flags = peer->prod_flags;
+ 	local->conn_state_flags = peer->conn_state_flags;
+ }
+@@ -259,11 +279,13 @@ static inline void smcd_cdc_msg_to_host(struct smc_host_cdc_msg *local,
+ 	union smc_host_cursor temp;
+ 
+ 	temp.wrap = peer->prod.wrap;
+-	temp.count = peer->prod.count;
++	temp.count = smc_cdc_clamp_count(peer->prod.count,
++					 conn->rmb_desc->len);
+ 	smc_curs_copy(&local->prod, &temp, conn);
+ 
+ 	temp.wrap = peer->cons.wrap;
+-	temp.count = peer->cons.count;
++	temp.count = smc_cdc_clamp_count(peer->cons.count,
++					 conn->peer_rmbe_size);
+ 	smc_curs_copy(&local->cons, &temp, conn);
+ 	local->prod_flags = peer->cons.prod_flags;
+ 	local->conn_state_flags = peer->cons.conn_state_flags;
 -- 
-Thanks,
-Gou Hao
+2.53.0
 
