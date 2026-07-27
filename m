@@ -1,171 +1,131 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from pdx-out-007.esa.us-west-2.outbound.mail-perimeter.amazon.com (pdx-out-007.esa.us-west-2.outbound.mail-perimeter.amazon.com [52.34.181.151])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 348B43E9C12;
-	Mon, 27 Jul 2026 09:00:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC1073E7BC7
+	for <linux-rdma@vger.kernel.org>; Mon, 27 Jul 2026 09:03:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=52.34.181.151
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785142854; cv=none; b=FI0qFifplwiBMFYBXmcCwhMeTE9VQSWxBGjlee3CZvf+vA5jLtFUl8wSDzWgI/M8mj0l6iBn2xXfd4w0IYyTLIvxWhsupvs6zs6X1m7OAT7oBXLf1kBc66VaDaji9F3K28hv/trKC1ArCu895sNvDyGqpzPwCg9deh96ON/ByLc=
+	t=1785142997; cv=none; b=W1wmQoyplCrrYN6gAwVRG6X1hLkQzLeXGWtY3LkaWgWumTetlYgR0GZnqMMzT4gGZux17InjnApCeIJpWoPz1hnRrw510Erc667GBlR7gidscdWcUKJk2csOQ9SqNzZbegBbS/UDB6lgV2xKc2OvdD9HiNQFvUpa+n6WNOBOxYM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785142854; c=relaxed/simple;
-	bh=PkhNp4hjdH0qCU7nWM+Fa9xwxJLq57E4/Pj0pZoC9hg=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Ggb3CypUFksibw5T3h3CluUuC25+vxioBF9QJVP0EwCXYNNu6kt7RIWkvW16u4kz4rchfLNY0xFKSPWHoa6lbKBHHF43f5LVaV5Mtgu9eNsdKaHFidDhmrwWukhAd4oXzUA0x0CDfjZNBbKczRrtJvvybSIqgxOH6zGUa305YN8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=XyUtI0kk; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785142997; c=relaxed/simple;
+	bh=Yd+j2N6BDexmWZDkG1qyBAsz90dSAtXwey0Oz49olL4=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=B9wYD4yzyZc2/adb98q+wSNfYdIeg/L7cYdVR16wyxbxcMCcYGSRdQxjSYZ2I0jKPJnnuaB0r7+rhnu1WO/IlDsYkExvuTc/qACozjJu5HsrTrF+S+lqeeHUiQdj7iDcGVPbyMuqxVC4njhggVM/r9ZXvKa9TOtupchdO8VqMCU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com; spf=pass smtp.mailfrom=amazon.com; dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.b=ekajGGxU; arc=none smtp.client-ip=52.34.181.151
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazon.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="XyUtI0kk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D2A71F000E9;
-	Mon, 27 Jul 2026 09:00:51 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1785142853;
-	bh=d5jg1GKEPzzBsH5GdBcbypzjyRH1c+W9USnpu2k+jsA=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=XyUtI0kkF0ZoAMKc8QTIrhYn1k9Odzo+havNwt+CETDGhuExDG+YO03NwKsZyrTF/
-	 XJMv97BuSi0fg0rEMIiOYyWpCnVbwMAx192pRaBKAe/Nm3nKonAQ2CfoAN/VLriyii
-	 kvJ5aKfyCZFF0yNvqSVEtdW7NvMRK7Ry/UiOb9GTtRDa+Aiiq2FuZ8bossMMbOPKlB
-	 5rUOfl4SWQrBwYybC8Ts4O4qKjt+h4PkGV7xD96q84L8OJc4yF/YJIjh5g3kcjpVoL
-	 UHtmh6GxHkwxiFfASWhL5BGGO8bSl/oyCcVIj8Dr6Qdrl8he9e9QsG7Afunfa78tUJ
-	 5bjWXjidEhwsQ==
-Date: Mon, 27 Jul 2026 12:00:46 +0300
-From: Leon Romanovsky <leon@kernel.org>
-To: kensanya <kensanya@163.com>
-Cc: bvanassche@acm.org, jgg@ziepe.ca, linux-rdma@vger.kernel.org,
-	target-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
-	TanZheng <tanzheng@kylinos.cn>
-Subject: Re: Re: Re: [PATCH v2] RDMA/srpt: fix NULL deref when sending BUSY
- before target_init_cmd()
-Message-ID: <20260727090046.GJ12003@unreal>
-References: <20260723024456.52851-1-kensanya@163.com>
- <20260723095120.GF110966@unreal>
- <56479481.2552.19f920118cd.Coremail.kensanya@163.com>
- <20260726075511.GC12003@unreal>
- <71e36b0d.4e93.19fa24c787d.Coremail.kensanya@163.com>
+	dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.b="ekajGGxU"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazoncorp2;
+  t=1785142995; x=1816678995;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=2QYECBe2vRMtGJtEBeD5xe02iCzIl+krRyvJAwjzHF8=;
+  b=ekajGGxUESZjEGeiKC9oHqjUWACZplsEX3a/eJzuXxQ3ApXYfuGlzUMZ
+   nSpjyjiuHrs7tMxsLw/j+eGk3Pwoh41C/McWqxcdMP0jdRVn8rMTVAFdj
+   zMsCty/CRiEEIL6oLdqszL1sZNv0vo+n+e5uL8/GQObGQ/GNlygG6rrMr
+   w2ZxMgfHU4o3/nVNDrSGGysL+6+R0udik+Tuvev4oegd4vVQA9bGakYJj
+   AW/HIPPt0osCgM7UXBOKI98aHDuQyqjBn0xayIoieFir7mRzw+NQAoydi
+   Qh2DdIK70Ak0NrEbhTn6G0Ldf+wPtsnrAMDV2ASX3C2X4ewGoQmOMNDJB
+   w==;
+X-CSE-ConnectionGUID: o2Oxt9cDQ12QqmdDO6gEEg==
+X-CSE-MsgGUID: sKmAp0z/QvWns3LJUKkYVQ==
+X-IronPort-AV: E=Sophos;i="6.25,188,1779148800"; 
+   d="scan'208";a="24394956"
+Received: from ip-10-5-6-203.us-west-2.compute.internal (HELO smtpout.naws.us-west-2.prod.farcaster.email.amazon.dev) ([10.5.6.203])
+  by internal-pdx-out-007.esa.us-west-2.outbound.mail-perimeter.amazon.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Jul 2026 09:03:13 +0000
+Received: from EX19MTAUWA001.ant.amazon.com [205.251.233.236:12032]
+ by smtpin.naws.us-west-2.prod.farcaster.email.amazon.dev [10.0.10.59:2525] with esmtp (Farcaster)
+ id b4756087-b21b-4f2f-8465-c19413b7b50b; Mon, 27 Jul 2026 09:03:12 +0000 (UTC)
+X-Farcaster-Flow-ID: b4756087-b21b-4f2f-8465-c19413b7b50b
+Received: from EX19D001UWA001.ant.amazon.com (10.13.138.214) by
+ EX19MTAUWA001.ant.amazon.com (10.250.64.218) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.43;
+ Mon, 27 Jul 2026 09:03:11 +0000
+Received: from dev-dsk-ynachum-1b-0ecf7b87.eu-west-1.amazon.com
+ (10.13.226.176) by EX19D001UWA001.ant.amazon.com (10.13.138.214) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.45; Mon, 27 Jul 2026
+ 09:03:10 +0000
+From: Yonatan Nachum <ynachum@amazon.com>
+To: <jgg@nvidia.com>, <leon@kernel.org>, <linux-rdma@vger.kernel.org>
+CC: <mrgolin@amazon.com>, <sleybo@amazon.com>, <matua@amazon.com>,
+	<gal.pressman@linux.dev>, Yonatan Nachum <ynachum@amazon.com>, Firas Jahjah
+	<firasj@amazon.com>
+Subject: [PATCH for-rc] RDMA/efa: Fix PBL chunk length computation
+Date: Mon, 27 Jul 2026 09:02:55 +0000
+Message-ID: <20260727090255.1175120-1-ynachum@amazon.com>
+X-Mailer: git-send-email 2.50.1
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <71e36b0d.4e93.19fa24c787d.Coremail.kensanya@163.com>
+Content-Type: text/plain
+X-ClientProxiedBy: EX19D033UWC001.ant.amazon.com (10.13.139.218) To
+ EX19D001UWA001.ant.amazon.com (10.13.138.214)
 
-On Mon, Jul 27, 2026 at 02:39:08PM +0800, kensanya wrote:
-> 
-> 
-> At 2026-07-26 15:55:11, "Leon Romanovsky" <leon@kernel.org> wrote:
-> >On Fri, Jul 24, 2026 at 10:42:53AM +0800, kensanya wrote:
-> >> At 2026-07-23 17:51:20, "Leon Romanovsky" <leon@kernel.org> wrote:
-> >> >On Thu, Jul 23, 2026 at 10:44:56AM +0800, kensanya@163.com wrote:
-> >> >> From: TanZheng <tanzheng@kylinos.cn>
-> >> >> 
-> >> >> If srpt_get_desc_tbl() fails, srpt_handle_cmd() jumps to
-> >> >> target_send_busy() before target_init_cmd() has set cmd->se_tfo.
-> >> >> target_send_busy() then dereferences a NULL se_tfo.
-> >> >> 
-> >> >> Call target_init_cmd() first with placeholder data_length and
-> >> >> data_direction, parse the descriptor table next, then fill in the
-> >> >> real data_length. That way target_send_busy() is safe if parsing
-> >> >> fails.
-> >> >> 
-> >> >> target_send_busy() is only valid after a successful target_init_cmd().
-> >> >> If target_init_cmd() itself fails, free the send ioctx tag locally
-> >> >> with target_free_tag() instead of calling target_send_busy().
-> >> >> 
-> >> >> Fixes: 8b8807b9e982 ("scsi: RDMA/srpt: Fix handling of command / TMF submission failure")
-> >> >> Link: https://lore.kernel.org/all/20260717025402.64054-1-kensanya@163.com/
-> >> >> Suggested-by: Bart Van Assche <bvanassche@acm.org>
-> >> >> Signed-off-by: TanZheng <tanzheng@kylinos.cn>
-> >> >> ---
-> >> >> v2:
-> >> >> - On target_init_cmd() failure, use target_free_tag() instead of
-> >> >>   target_send_busy()
-> >> >> 
-> >> >>  drivers/infiniband/ulp/srpt/ib_srpt.c | 36 +++++++++++++++++++--------
-> >> >>  1 file changed, 26 insertions(+), 10 deletions(-)
-> >> >> 
-> >> >> diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-> >> >> index f66cfd70c263..71af1fb0d380 100644
-> >> >> --- a/drivers/infiniband/ulp/srpt/ib_srpt.c
-> >> >> +++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-> >> >> @@ -1558,8 +1558,8 @@ static void srpt_handle_cmd(struct srpt_rdma_ch *ch,
-> >> >>  	struct srp_cmd *srp_cmd;
-> >> >>  	struct scatterlist *sg = NULL;
-> >> >>  	unsigned sg_cnt = 0;
-> >> >> -	u64 data_len;
-> >> >> -	enum dma_data_direction dir;
-> >> >> +	u64 data_len = 0;
-> >> >> +	enum dma_data_direction dir = DMA_NONE;
-> >> >>  	int rc;
-> >> >>  
-> >> >>  	BUG_ON(!send_ioctx);
-> >> >> @@ -1584,6 +1584,25 @@ static void srpt_handle_cmd(struct srpt_rdma_ch *ch,
-> >> >>  		break;
-> >> >>  	}
-> >> >>  
-> >> >> +	/*
-> >> >> +	 * Call target_init_cmd() before srpt_get_desc_tbl() so that
-> >> >> +	 * cmd->se_tfo is set if descriptor parsing fails and
-> >> >> +	 * target_send_busy() is used. data_length is filled in after a
-> >> >> +	 * successful srpt_get_desc_tbl().
-> >> >> +	 *
-> >> >> +	 * target_send_busy() is only valid after a successful
-> >> >> +	 * target_init_cmd(). On init failure free the tag locally.
-> >> >> +	 */
-> >> >> +	rc = target_init_cmd(cmd, ch->sess, &send_ioctx->sense_data[0],
-> >> >> +			     scsilun_to_int(&srp_cmd->lun), 0 /* data_len */,
-> >> >> +			     TCM_SIMPLE_TAG, DMA_NONE, TARGET_SCF_ACK_KREF);
-> >> >
-> >> >1. TCM_SIMPLE_TAG -> you need to rebase to latest rdma-next.
-> >> 
-> >>       I will modify and resend the patch.
-> >> 
-> >> >2. You are hardcoding dir, while it can be overwritten in srpt_get_desc_tbl().
-> >> 
-> >>       In the srpt_handle_cmd() function:
-> >>       &send_ioctx->cmd;
-> >>       srpt_get_desc_tbl(..., send_ioctx, ...) 
-> >>            ioctx->cmd.data_direction = *dir;
-> >> 
-> >>      Therefore, after successfully calling srpt_get_desc_tbl(), even if target_init_cmd() is
-> >>      passed DMA_NONE, cmd->data_direction should already have stored the actual direction.
-> >> 
-> >>      Do you mean  that after calling srpt_get_desc_tbl(), displaying the overwritten content
-> >>      would be better？I want to make sure I address the intent of your comment correctly.
-> >
-> >You need to do this correctly: target_init_cmd() must receive the
-> >correct directory, as calculated by srpt_get_desc_tbl().
-> >
-> >Thanks
-> >
-> >> >
-> >> >Thanks
-> >> 
-> >> Thanks,
-> >> TanZheng
-> 
-> There is a contradiction between the two suggestions:
-> - Bart suggests calling target_init_cmd() before calling
->    srpt_get_desc_tbl() (using a placeholder) to ensure that
->    target_send_busy() can be safely executed if the
->    descriptor parsing fails.
-> - Leon points out that target_init_cmd() must receive the
->   actual data direction calculated by srpt_get_desc_tbl(),
->   rather than a placeholder like DMA_NONE that will
->   be overwritten later.
-> 
-> If we continue to modify the current patch, the only way I
-> can think of is to extract the direction parsing logic from
-> srpt_get_desc_tbl and place it before target_init_cmd, so
-> that target_init_cmd can receive the correct direction.
-> How about this?
+On register MR, when creating the PBL, if it's an indirect PBL we create
+a chunk list to hold the PBL pages pointers. Each chunk is 4KB in size
+and can hold 510 addresses (EFA_PTRS_PER_CHUNK) and has a 12-byte
+control buffer at the end of it holding the next chunk's pointer and its
+length.
 
-Say it to your AI tool that it is not contradiction, but wrongly
-implemented Bart's suggestion.
+If the PBL number of pages is a multiple of EFA_PTRS_PER_CHUNK, the
+calculated last chunk length is wrongly computed as 0, even though that
+chunk is fully populated with 510 real page pointers. This wrong length
+is used both to DMA map the chunk and is propagated to the device,
+causing the device to see the chunk as empty and reject the memory
+registration.
 
-Thanks
+Fix the calculation so it will be performed only if the number of pages
+isn't a multiple of EFA_PTRS_PER_CHUNK, if it is, its already handled in
+the above loop correctly.
+Also prevent out-of-bounds reach in the chunks array in such scenario.
 
-> 
-> Thanks,
-> TanZheng
+Fixes: 40909f664d27 ("RDMA/efa: Add EFA verbs implementation")
+Reviewed-by: Firas Jahjah <firasj@amazon.com>
+Reviewed-by: Michael Margolin <mrgolin@amazon.com>
+Signed-off-by: Yonatan Nachum <ynachum@amazon.com>
+---
+ drivers/infiniband/hw/efa/efa_verbs.c | 13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/infiniband/hw/efa/efa_verbs.c b/drivers/infiniband/hw/efa/efa_verbs.c
+index 6abb93b50731..2d28d68efe77 100644
+--- a/drivers/infiniband/hw/efa/efa_verbs.c
++++ b/drivers/infiniband/hw/efa/efa_verbs.c
+@@ -1362,9 +1362,11 @@ static int pbl_chunk_list_create(struct efa_dev *dev, struct pbl_context *pbl)
+ 
+ 		chunk_list->chunks[i].length = EFA_CHUNK_USED_SIZE;
+ 	}
+-	chunk_list->chunks[chunk_list_size - 1].length =
+-		((page_cnt % EFA_PTRS_PER_CHUNK) * EFA_CHUNK_PAYLOAD_PTR_SIZE) +
+-			EFA_CHUNK_PTR_SIZE;
++
++	if (page_cnt % EFA_PTRS_PER_CHUNK != 0)
++		chunk_list->chunks[chunk_list_size - 1].length =
++			((page_cnt % EFA_PTRS_PER_CHUNK) * EFA_CHUNK_PAYLOAD_PTR_SIZE) +
++				EFA_CHUNK_PTR_SIZE;
+ 
+ 	/* fill the dma addresses of sg list pages to chunks: */
+ 	chunk_idx = 0;
+@@ -1376,9 +1378,12 @@ static int pbl_chunk_list_create(struct efa_dev *dev, struct pbl_context *pbl)
+ 			rdma_block_iter_dma_address(&biter);
+ 
+ 		if (payload_idx == EFA_PTRS_PER_CHUNK) {
++			payload_idx = 0;
+ 			chunk_idx++;
++			if (chunk_idx >= chunk_list_size)
++				break;
++
+ 			cur_chunk_buf = chunk_list->chunks[chunk_idx].buf;
+-			payload_idx = 0;
+ 		}
+ 	}
+ 
+-- 
+2.50.1
+
