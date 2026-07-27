@@ -1,79 +1,43 @@
-Received: from mail-pf1-f181.google.com (mail-pf1-f181.google.com [209.85.210.181])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0DD44302767
-	for <linux-rdma@vger.kernel.org>; Mon, 27 Jul 2026 06:16:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.181
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E1CFC371CE4
+	for <linux-rdma@vger.kernel.org>; Mon, 27 Jul 2026 06:21:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785133013; cv=none; b=qqrM0GeLj2xIVbwawznS7iD/nYhYvWMhFRld5qlcLSPquyZjhFUBL/BksXFhkVUs52VX4L2MrB5eNnHLk2QxVqaFtRRgjAgM0I9k4OUbgRjt99PfWu3B6+S/3U1acDN5udSoJXPfTj3OV9hUXZQHcrvnh9OOW/z99B5Vtjihfmg=
+	t=1785133294; cv=none; b=FrxQwboRjpNfXhhukIHvdy7utrrkUband0JarrOnH3qK/uj7HBV9ZctSFYKqxF6a4FWB9Sh44rAJz70aFYZdqmoU86VwnZpAor3B5cKvZ4zTPUvvC+wVQUHywGxtmYUy9sVzDzkhN4UG45VS9IX9rZh3ZGL1UrmDBSxmL8FflLA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785133013; c=relaxed/simple;
-	bh=qmQC6kIxbS00iWrncjl59RSApdzD8ekwSFlEE8CbY/g=;
+	s=arc-20240116; t=1785133294; c=relaxed/simple;
+	bh=DKCQiKC7yxRaV0lmSUoDxqVWiIU2IVnskksJkoHaKFg=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=L89GTXYz97NU9YLmruHeWZdb5Y3HQtphb5XxQumV2lhqMJSuKjmYdoWYZKPVGKBL5bhRKXwQXZKzS1Eq7WErHYSb58+YVCzsrNnD3TYKRbvCPKr/SBaxaAZUEjmxKnYUR70fikE8LaZK5EGxgsxI79XvD0A7xmWN6wajuTrxVB4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=IO/SGV0M; arc=none smtp.client-ip=209.85.210.181
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	 Content-Type:Content-Disposition:In-Reply-To; b=JDY6fLD4nALAC9QVpmbkh4+EDQPyvTszDFxrMh9DZ58EOrWVy3QxDSBWbQ8lF89n+YYCURdGN3fqRpSqpUAlypfZETLSu7H1g7AsvV53iN2DrS5QJKgvOv9mKAYM37szkkgA7cSwfXG7rMtY5YuR/11TDYhJwLvlnbtADU/sgCY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=lEWA0kVX; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="IO/SGV0M"
-Received: by mail-pf1-f181.google.com with SMTP id d2e1a72fcca58-845c92bc464so1708259b3a.2
-        for <linux-rdma@vger.kernel.org>; Sun, 26 Jul 2026 23:16:51 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1785133011; x=1785737811; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=xkvd3GaxfP8zwg2THjBwEOUnMuoDnas1hdLWEj3iqG8=;
-        b=IO/SGV0MosA7ELRtt+dfTXjbvO71BVawdcZntgn/K2VS0pJWQ1tIiOelD/iWgHrNrg
-         GYgJyEo179H41igb0Q5IdkQEaiGIgYOVhpY6FRDxTQY7Xv6+0BS53AToQMkZ0kLMUIZr
-         x/2avPlMHAoZsRW+8qkYjMKUp+zoMOaqHFQU2Q1201gZwEdScLf86vNlYqy4iGUdTMOy
-         q50Ly0j0lUnNHledGDFu8//dqqI8PV4GRBnhgIA1kv/ksZX+8EX286qdNRe3qawNQMSS
-         7rQmaOgRgwTJOJwZzKtQdorb8XGHIn5KhBVkBks8mKMSxcE7p4tBHoJyGAqyqr37EBMe
-         Zkgg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1785133011; x=1785737811;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=xkvd3GaxfP8zwg2THjBwEOUnMuoDnas1hdLWEj3iqG8=;
-        b=mYBiwCnZR5j4qly632CiXlVu45k6inD9GdOLIiRZMNNzZhtCy4+NU8kja/DyNFAFPC
-         KKRH2l2UgaDLtFCvinQfillv7XphnQP4RXR+YydZIgpbiCG50XrInTXk0x5CU+zr+uoe
-         /9JAZCCeDQaeD8lBdpu5TXxbnB/1JokgSDFaX1eI3oLckiAGbLdoCbA/yJmmoa9vSA98
-         2N5Sm+/OB2lsIvj5jmn9cIRhCFuK+YjB4M6cjMfPBl7NTSqT1PGjgekE7UtLuxSsw0AF
-         p3XHwD55gJysLnPKxCPHogBU4UR5sDunWGIrPvAvw9U12MyIV+MbZ11yGE9gNhPX0nR3
-         XDcA==
-X-Forwarded-Encrypted: i=1; AHgh+Rq/BGSzvxUJvgxtovCP0b2996PoEC2M/wPTqaCOp7jlBIHQ3pHU0FwEd9GEd3aK8ILd7dfIV3CmwR5P@vger.kernel.org
-X-Gm-Message-State: AOJu0YyRkurF0oWyYO6Id3tZQZRXux0JQ3WwVjjAcfAbkn6CUNFHFTIp
-	bs+VHY2YquIrpcIcqz4McPb5lQCyQMMfJc5GJ3bP7D/waESzQ5kf7XEP
-X-Gm-Gg: AR+sD13D1I9ugHGAYrNpddCpKchXpOZrGZ+YcvBX3NF/YvCiWxc1VW2b/6hjmmTF6u3
-	56O5fjnXJlrI8bX6HiLVXE+CaOdaG0Zso2ShvLInO9rXQnuIk7FiOxHbfPehONq/zCbmFTDcO6q
-	hGzgtFO4fylV6L3xJNdpaGWevHu1BlahiRW/jgTG3r9Teu8HEB7XmSzFbWtxorYW6PaIZ9uivoq
-	zavlmcjtTLwwJA5SbFOn/uTQFrPTOf4oBbgSxMhvdF3ItrJYuIiDtMy8+/ot+WGIOSexix4KpgG
-	FQodF9zZ/brbm4y5HDC6SLtQvgp28SHL59iyl6rTOwHj0eJiBgjokmgQjtqR6ju3bX5IYo/L7NI
-	fmgzYrbOi156ndFbgdXqafna6S1fzxi4Lw+b2hvUd6Q+fLJ2UuI6++bzhbBbLNiT1IKiPgPEBFv
-	xTBqeWYGFW9EDOUvZ5VKeiMc20OZ50fcuumAHOtvcD6XqIXg==
-X-Received: by 2002:a05:6a00:4ac8:b0:84e:1db7:2f86 with SMTP id d2e1a72fcca58-84e59572bddmr5479084b3a.49.1785133011409;
-        Sun, 26 Jul 2026 23:16:51 -0700 (PDT)
-Received: from li-1a3e774c-28e4-11b2-a85c-acc9f2883e29.ibm.com ([129.41.58.4])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-84e5343a9c6sm2607131b3a.51.2026.07.26.23.16.44
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 26 Jul 2026 23:16:51 -0700 (PDT)
-Date: Mon, 27 Jul 2026 11:46:42 +0530
-From: Mukesh Kumar Chaurasiya <mkchauras@gmail.com>
-To: Gou Hao <gouhao@uniontech.com>
-Cc: maddy@linux.ibm.com, mpe@ellerman.id.au, npiggin@gmail.com, 
-	chleroy@kernel.org, maarten.lankhorst@linux.intel.com, mripard@kernel.org, 
-	tzimmermann@suse.de, airlied@gmail.com, simona@ffwll.ch, bharat@chelsio.com, 
-	jgg@ziepe.ca, leon@kernel.org, akpm@linux-foundation.org, namcao@linutronix.de, 
-	ynorov@nvidia.com, sshegde@linux.ibm.com, nilay@linux.ibm.com, clg@kaod.org, 
-	linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, 
-	linux-rdma@vger.kernel.org, linux-mm@kvack.org, gouhaojake@163.com, kernel@uniontech.com
-Subject: Re: [PATCH v2 1/6] powerpc/xive: remove dead NULL check after
- GFP_NOFAIL allocation
-Message-ID: <amb3uArRk2MlHRuc@li-1a3e774c-28e4-11b2-a85c-acc9f2883e29.ibm.com>
-References: <20260724022851.466017-1-gouhao@uniontech.com>
- <20260724022851.466017-2-gouhao@uniontech.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="lEWA0kVX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 129DC1F00A3A;
+	Mon, 27 Jul 2026 06:21:31 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1785133292;
+	bh=iFN22Pb515ULLJAqISwCK0+/jQ5kDV07ZWnaYWgUv/o=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=lEWA0kVX7WSZsTYqTlmXjErRMCa5QA4MSB72afscCl2i4PH2Qe6EeH+351s9TajpB
+	 7/1ymzaHacF1jFNzfLwOx2TiO7cllv+E4g9Oq3ZxalOMJaWwOJ7N6VDXOGvgtwLEov
+	 r5rELWjj/U+2K7MpKuB3M2JzJxfG2yNqtnARaGnJp9bgZLOkSyrBC8ZbSWcB4Pt4gt
+	 5WlQjx+wm74spgXhRNVAyb/FPTjt79dz+cekpJ6/HFiJlJfjhhsZarbVtqxKydKpYY
+	 GvdQbgl3dqq3ciaaASvT2mllOdCu4ipubIWABuqnuBB8BWwzu2iJV0halvVBoO83xr
+	 mlAx8Ng4g7bSg==
+Date: Mon, 27 Jul 2026 09:21:28 +0300
+From: Leon Romanovsky <leon@kernel.org>
+To: Selvin Xavier <selvin.xavier@broadcom.com>
+Cc: jgg@ziepe.ca, linux-rdma@vger.kernel.org,
+	andrew.gospodarek@broadcom.com, kalesh-anakkur.purayil@broadcom.com,
+	sriharsha.basavapatna@broadcom.com, alhouseenyousef@gmail.com,
+	Jason Gunthorpe <jgg@nvidia.com>
+Subject: Re: [PATCH for-next v4 3/4] RDMA/bnxt_re: Add uverbs object handle
+ path for CQ/SRQ toggle page
+Message-ID: <20260727062128.GI12003@unreal>
+References: <20260721115440.24021-1-selvin.xavier@broadcom.com>
+ <20260721115440.24021-4-selvin.xavier@broadcom.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -82,43 +46,176 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20260724022851.466017-2-gouhao@uniontech.com>
+In-Reply-To: <20260721115440.24021-4-selvin.xavier@broadcom.com>
 
-On Fri, Jul 24, 2026 at 10:28:46AM +0800, Gou Hao wrote:
-> kzalloc_objs with the __GFP_NOFAIL flag will never return NULL, so the
-> subsequent NULL check is unreachable dead code. Remove it.
+On Tue, Jul 21, 2026 at 04:54:39AM -0700, Selvin Xavier wrote:
+> The current GET_TOGGLE_MEM ioctl requires the caller to supply
+> a type enum and a raw hardware queue ID (RES_ID). The kernel
+> looks up the CQ or SRQ by that ID without verifying that the
+> caller owns the resource.
 > 
-> Signed-off-by: Gou Hao <gouhao@uniontech.com>
-> Reviewed-by: Wentao Guan <guanwentao@uniontech.com>
-> Reviewed-by: jiazhenyuan <jiazhenyuan@uniontech.com>
+> Add a new, preferred code path that accepts standard uverbs
+> object handles (BNXT_RE_TOGGLE_MEM_CQ_HANDLE /
+> BNXT_RE_TOGGLE_MEM_SRQ_HANDLE) instead. The uverbs core validates
+> that the handle belongs to the calling context as part of resolving
+> it, so this path no longer needs the driver's own XArray lookup for
+> ownership checking. As with the legacy path, the toggle_entry's own
+> mmap-entry refcount (not a CQ/SRQ uobject reference) is what pins
+> the toggle page for the life of the GET_TOGGLE_MEM handle.
+> 
+> Only newer rdma-core versions support this path, if the
+> driver reports the supported resp mask
+> (BNXT_RE_UCNTX_CMASK_TOGGLE_MEM_UOBJ_SUPPORT).
+> The existing TYPE + RES_ID path is retained for backward
+> compatibility with older rdma-core.
+> 
+> Suggested-by: Jason Gunthorpe <jgg@nvidia.com>
+> Signed-off-by: Selvin Xavier <selvin.xavier@broadcom.com>
 > ---
->  arch/powerpc/sysdev/xive/common.c | 5 +----
->  1 file changed, 1 insertion(+), 4 deletions(-)
+>  drivers/infiniband/hw/bnxt_re/ib_verbs.c |  2 +
+>  drivers/infiniband/hw/bnxt_re/uapi.c     | 55 +++++++++++++++++++++---
+>  include/uapi/rdma/bnxt_re-abi.h          |  4 ++
+>  3 files changed, 56 insertions(+), 5 deletions(-)
 > 
-> diff --git a/arch/powerpc/sysdev/xive/common.c b/arch/powerpc/sysdev/xive/common.c
-> index dadd1f46ec939..f2904a5c2b7bf 100644
-> --- a/arch/powerpc/sysdev/xive/common.c
-> +++ b/arch/powerpc/sysdev/xive/common.c
-> @@ -1134,9 +1134,6 @@ static int __init xive_init_ipis(void)
+> diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+> index 0ff862ca982c..a14b17d4261f 100644
+> --- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+> +++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+> @@ -4872,6 +4872,8 @@ int bnxt_re_alloc_ucontext(struct ib_ucontext *ctx, struct ib_udata *udata)
+>  	if (_is_modify_qp_rate_limit_supported(dev_attr->dev_cap_flags2))
+>  		resp.comp_mask |= BNXT_RE_UCNTX_CMASK_QP_RATE_LIMIT_ENABLED;
 >  
->  	xive_ipis = kzalloc_objs(*xive_ipis, nr_node_ids,
->  				 GFP_KERNEL | __GFP_NOFAIL);
-> -	if (!xive_ipis)
-> -		goto out_free_domain;
+> +	resp.comp_mask |= BNXT_RE_UCNTX_CMASK_TOGGLE_MEM_UOBJ_SUPPORT;
+> +
+>  	if (udata->inlen) {
+>  		rc = ib_copy_validate_udata_in_cm(
+>  			udata, ureq, comp_mask,
+> diff --git a/drivers/infiniband/hw/bnxt_re/uapi.c b/drivers/infiniband/hw/bnxt_re/uapi.c
+> index 97bc0e755511..feaf98631fc5 100644
+> --- a/drivers/infiniband/hw/bnxt_re/uapi.c
+> +++ b/drivers/infiniband/hw/bnxt_re/uapi.c
+> @@ -237,16 +237,52 @@ static int UVERBS_HANDLER(BNXT_RE_METHOD_GET_TOGGLE_MEM)(struct uverbs_attr_bund
+>  	if (IS_ERR(ib_uctx))
+>  		return PTR_ERR(ib_uctx);
+>  
+> +	uctx = container_of(ib_uctx, struct bnxt_re_ucontext, ib_uctx);
+> +
+> +	/* New path: updated libbnxt_re passes the CQ or SRQ uverbs handle */
+> +	if (uverbs_attr_is_valid(attrs, BNXT_RE_TOGGLE_MEM_CQ_HANDLE)) {
+> +		struct bnxt_re_cq *cq;
+> +
+> +		res_uobj = uverbs_attr_get_uobject(attrs,
+> +						   BNXT_RE_TOGGLE_MEM_CQ_HANDLE);
+> +		if (IS_ERR(res_uobj))
+> +			return PTR_ERR(res_uobj);
+> +		cq = container_of(res_uobj->object, struct bnxt_re_cq, ib_cq);
+> +		if (!cq->toggle_entry)
+> +			return -EOPNOTSUPP;
+> +		mmap_offset = rdma_user_mmap_get_offset(&cq->toggle_entry->rdma_entry);
+> +		if (!mmap_offset)
+> +			return -EOPNOTSUPP;
+> +		kref_get(&cq->toggle_entry->rdma_entry.ref);
+> +		toggle_entry = cq->toggle_entry;
+> +		goto alloc_tmem;
+> +	} else if (uverbs_attr_is_valid(attrs, BNXT_RE_TOGGLE_MEM_SRQ_HANDLE)) {
+> +		struct bnxt_re_srq *srq;
+> +
+> +		res_uobj = uverbs_attr_get_uobject(attrs,
+> +						   BNXT_RE_TOGGLE_MEM_SRQ_HANDLE);
+> +		if (IS_ERR(res_uobj))
+> +			return PTR_ERR(res_uobj);
+> +		srq = container_of(res_uobj->object, struct bnxt_re_srq, ib_srq);
+> +		if (!srq->toggle_entry)
+> +			return -EOPNOTSUPP;
+> +		mmap_offset = rdma_user_mmap_get_offset(&srq->toggle_entry->rdma_entry);
+> +		if (!mmap_offset)
+> +			return -EOPNOTSUPP;
+> +		kref_get(&srq->toggle_entry->rdma_entry.ref);
+> +		toggle_entry = srq->toggle_entry;
+> +		goto alloc_tmem;
+> +	}
+> +
+>  	err = uverbs_get_const(&res_type, attrs, BNXT_RE_TOGGLE_MEM_TYPE);
+>  	if (err)
+>  		return err;
 > -
->  	for_each_node(node) {
->  		struct xive_ipi_desc *xid = &xive_ipis[node];
->  		struct xive_ipi_alloc_info info = { node };
-> @@ -1158,7 +1155,7 @@ static int __init xive_init_ipis(void)
+> -	uctx = container_of(ib_uctx, struct bnxt_re_ucontext, ib_uctx);
+>  	err = uverbs_copy_from(&res_id, attrs, BNXT_RE_TOGGLE_MEM_RES_ID);
+>  	if (err)
+>  		return err;
 >  
->  out_free_xive_ipis:
->  	kfree(xive_ipis);
-> -out_free_domain:
-> +	xive_ipis = NULL;
->  	irq_domain_remove(ipi_domain);
->  out_free_fwnode:
->  	irq_domain_free_fwnode(fwnode);
+>  	/*
+> +	 * Legacy path: old libbnxt_re sends TYPE + RES_ID.
+>  	 * Hold xa_lock across xa_load + kref_get so that a concurrent
+>  	 * bnxt_re_destroy_cq/srq cannot call __xa_erase and remove the
+>  	 * toggle_entry between our load and our reference on it.
+> @@ -297,6 +333,7 @@ static int UVERBS_HANDLER(BNXT_RE_METHOD_GET_TOGGLE_MEM)(struct uverbs_attr_bund
+>  	if (!mmap_offset)
+>  		return -EOPNOTSUPP;
+>  
+> +alloc_tmem:
+>  	tmem = kzalloc_obj(*tmem);
+>  	if (!tmem) {
+>  		rdma_user_mmap_entry_put(&toggle_entry->rdma_entry);
+> @@ -343,10 +380,10 @@ DECLARE_UVERBS_NAMED_METHOD(BNXT_RE_METHOD_GET_TOGGLE_MEM,
+>  					    UA_MANDATORY),
+>  			    UVERBS_ATTR_CONST_IN(BNXT_RE_TOGGLE_MEM_TYPE,
+>  						 enum bnxt_re_get_toggle_mem_type,
+> -						 UA_MANDATORY),
+> +						 UA_OPTIONAL),
+>  			    UVERBS_ATTR_PTR_IN(BNXT_RE_TOGGLE_MEM_RES_ID,
+>  					       UVERBS_ATTR_TYPE(u32),
+> -					       UA_MANDATORY),
+> +					       UA_OPTIONAL),
+>  			    UVERBS_ATTR_PTR_OUT(BNXT_RE_TOGGLE_MEM_MMAP_PAGE,
+>  						UVERBS_ATTR_TYPE(u64),
+>  						UA_MANDATORY),
+> @@ -355,7 +392,15 @@ DECLARE_UVERBS_NAMED_METHOD(BNXT_RE_METHOD_GET_TOGGLE_MEM,
+>  						UA_MANDATORY),
+>  			    UVERBS_ATTR_PTR_OUT(BNXT_RE_TOGGLE_MEM_MMAP_LENGTH,
+>  						UVERBS_ATTR_TYPE(u32),
+> -						UA_MANDATORY));
+> +						UA_MANDATORY),
+> +			    UVERBS_ATTR_IDR(BNXT_RE_TOGGLE_MEM_CQ_HANDLE,
+> +					    UVERBS_OBJECT_CQ,
+> +					    UVERBS_ACCESS_READ,
+> +					    UA_OPTIONAL),
+> +			    UVERBS_ATTR_IDR(BNXT_RE_TOGGLE_MEM_SRQ_HANDLE,
+> +					    UVERBS_OBJECT_SRQ,
+> +					    UVERBS_ACCESS_READ,
+> +					    UA_OPTIONAL));
+>  
+>  DECLARE_UVERBS_NAMED_METHOD_DESTROY(BNXT_RE_METHOD_RELEASE_TOGGLE_MEM,
+>  				    UVERBS_ATTR_IDR(BNXT_RE_RELEASE_TOGGLE_MEM_HANDLE,
+> diff --git a/include/uapi/rdma/bnxt_re-abi.h b/include/uapi/rdma/bnxt_re-abi.h
+> index a4599d7b736a..c0ee9ce389ac 100644
+> --- a/include/uapi/rdma/bnxt_re-abi.h
+> +++ b/include/uapi/rdma/bnxt_re-abi.h
+> @@ -57,6 +57,8 @@ enum {
+>  	BNXT_RE_UCNTX_CMASK_POW2_DISABLED = 0x10ULL,
+>  	BNXT_RE_UCNTX_CMASK_MSN_TABLE_ENABLED = 0x40,
+>  	BNXT_RE_UCNTX_CMASK_QP_RATE_LIMIT_ENABLED = 0x80ULL,
+> +	 /* Some reserved fields to manage compatibility with Out of tree drivers */
+
+Selvin,
+
+What did you mean with this comment?
+
+Thanks
+
+> +	BNXT_RE_UCNTX_CMASK_TOGGLE_MEM_UOBJ_SUPPORT = 0x400000ULL,
+>  };
+>  
+>  enum bnxt_re_wqe_mode {
+> @@ -218,6 +220,8 @@ enum bnxt_re_var_toggle_mem_attrs {
+>  	BNXT_RE_TOGGLE_MEM_MMAP_PAGE,
+>  	BNXT_RE_TOGGLE_MEM_MMAP_OFFSET,
+>  	BNXT_RE_TOGGLE_MEM_MMAP_LENGTH,
+> +	BNXT_RE_TOGGLE_MEM_CQ_HANDLE,
+> +	BNXT_RE_TOGGLE_MEM_SRQ_HANDLE,
+>  };
+>  
+>  enum bnxt_re_toggle_mem_attrs {
 > -- 
-> 2.20.1
+> 2.39.3
 > 
-Reviewed-by: Mukesh Kumar Chaurasiya (IBM) <mkchauras@gmail.com>
