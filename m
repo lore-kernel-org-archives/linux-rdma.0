@@ -1,451 +1,278 @@
-Received: from mail-yx1-f98.google.com (mail-yx1-f98.google.com [74.125.224.98])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0B0E322A4E8
-	for <linux-rdma@vger.kernel.org>; Mon, 27 Jul 2026 09:10:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.224.98
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D69D236F437;
+	Mon, 27 Jul 2026 09:35:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.156.1
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785143408; cv=none; b=p5Uoh6N8RA8KdZfX4lhtpL69qsVc2V/tfYyPUfHJjwWErf8oYYGTZPiVk3XjiwuSVuKoaDJVnzT3XmmchwuaXjRnssrmhN+vpoQI/GDSkpPTKG3rcsqjrNQycbH731nbsYMb1iJ6QoNRxKcAnYCN1Hz4ZfgiwmfL87Hlvn9wBc4=
+	t=1785144946; cv=none; b=gSjTs2kYhll9f6gd2rNHqL8lbAqC1EMBJ+nLpVKKwDqRWbhofq0OBOZc0CttjTAYwuNH3AU9vWTU5Hv9SU34KhV3qs/6/t0XXYtPAp+GvY0ta6f2JYOa7pvTIdWqJeyD5Vc7awIFSw3p2TMHH1SLKDIFiKkssv6I+Obgnsem8FY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785143408; c=relaxed/simple;
-	bh=31l4LzObExVMPwG5ZU9aApUz51SfMK842oOnfDihqyQ=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=ZdFaoxlGaOQQxk7tIFqVVXZGeK9IB/gyaJYqRRt3DdsDxxK4DYjUtdlPlrntKAlWCiHB/Omyw1hrrRil5m/P3wXVcpmWZP8sdihDhIjGXmqDQEzKZyd8NMGJ9CBcqF08rCX/hb9Q18D9JAFHh6E8eQUpTaz/K80UVlKuRAMdZNk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com; spf=fail smtp.mailfrom=broadcom.com; dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b=Lbdf2DSa; arc=none smtp.client-ip=74.125.224.98
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=broadcom.com
+	s=arc-20240116; t=1785144946; c=relaxed/simple;
+	bh=PiFexxv/63o2u/J1QELKyb7j+x37qLVEqk0JktAH1RE=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=hOPQZCg3ugUbsE88ucdSQXQEs/wsSmkDqd64q/eQe3UYDVMVGxxyRlgmc8ww9v2akfdvv0zFqokwmEX822LriqzhSCD/Yhpzp0K9awAWLy123f1L7Vw9tWQmBa312so0BYW5/Rwud6BdoJYPZPJ5inygNHy/INnOK/uyPClTMhI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=i5QfeznJ; arc=none smtp.client-ip=148.163.156.1
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b="Lbdf2DSa"
-Received: by mail-yx1-f98.google.com with SMTP id 956f58d0204a3-6682259cae6so2300897d50.3
-        for <linux-rdma@vger.kernel.org>; Mon, 27 Jul 2026 02:10:06 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1785143406; x=1785748206;
-        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
-         :references:mime-version:dkim-signature:x-gm-gg:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=PfoJF2bIkuAKTl0F6gPbceNyDW4RCU4P5U+kFStBHfk=;
-        b=kSTmKhE5XlROccjlfiDPpR0pSR69e0w/5X2tNS0KQko82pErEoI4CRF1+UPuL5su2L
-         wD1UdnEs5z99CMFt3uUjf+sRKiuYk6huWa2NOdSma4+9rbtrPAgWQDQmcNWengNxXpE5
-         H0OisZq1PhzyBh9LAPoXgJgJp5CmCoa2NPdTAZarI8sTDq1W88HXxaUI9mFe9haDOqwb
-         m1X6pa6DIYmmeGsHZ2ePdU2Ex6UbE5urQ2qv6a2+qJ+1dgm+DanclNzdZnnAdts1pOK2
-         wu7E8wEVrUCP8NcCcJwNopUIInCQ5UOuv34HgkHAez+P+dilcM8t1ous3IXmHvmmRGLe
-         oLIA==
-X-Forwarded-Encrypted: i=1; AHgh+RrSg3cYUuXruO/fPboqmybY8qzgx+UJewFQmj8ZMHRmQ9SR/yMPPvSKOhCYxtEGAkZBqOHQN3ixQsK5@vger.kernel.org
-X-Gm-Message-State: AOJu0Yxgx2V6rlddpSNQcDazMWSrk5EwG+kDA/pEC6SFz7Fk9E4JwRal
-	HkgPDtAGr1oEh2VUm/mp658sc1Sul/TiMsOgiJ8KAI917/3igtDVjI2JMMAoVWUAQWml1keKMDV
-	vQXvI0NjOkGC3jkUm+EOtvqKMiz2Mx1CA/8+K2tMhNxPauc2iMbrbqWjj+6StlcTyVUZxFAvrTY
-	Q3TX+47Ly7sAgY8E6+c9P2NMJVnH5QNxnn7P74VB33KcuQOscpwulfK4QIXu1oh0uVdd1TyE3Hv
-	84vphVaIDipnd0fDw==
-X-Gm-Gg: AR+sD11Ov8imKfnf4Xo/gtcbTYSx8awb+j58cg+qO+t9R6P/ujn2Q6pxoKSaXhfiouV
-	zKxCPVkydz3Enm6WxPgJdE21SpYfwJr7bx8bxHU/T0q5Ewc83Yv41IoxeID5yUu/z1GNe5Cgj6V
-	1YAXK8QgbXy7KlBVpmn9WlHEP5jyKsTABeW+8pzPAeKF5ER8KoV6uRisPvMv989HPwL5k5afSbg
-	hA041yVZ13W1Ji7L3U9SWfaBXdBCEqoYlAr3aD1TA2hCNIfIapQrVYjoX4E7Vhsy0pzHtoqamT0
-	dczmu0LCzjz8fkOq4c2wesReMV2Rt2ChIRI0oKF6WHk/IZLAbhv57ezkF8VwAiqX4V2HHteS3MD
-	H4/PFCj4gSAzz6dFQAVJcDQ7xaw6oc12UUUvlXJo6+KCzXrp/x15cwscZF7KacctwZ28LYQjhpn
-	vwZHmObN6b6hJq2vVn0KP7RizZxU2PNzctOD5X
-X-Received: by 2002:a05:690e:144b:b0:667:b57b:867d with SMTP id 956f58d0204a3-668c786fecdmr2514830d50.18.1785143405844;
-        Mon, 27 Jul 2026 02:10:05 -0700 (PDT)
-Received: from smtp-us-east1-p01-i01-si01.dlp.protect.broadcom.com (address-144-49-247-25.dlp.protect.broadcom.com. [144.49.247.25])
-        by smtp-relay.gmail.com with ESMTPS id 956f58d0204a3-668c6f123b1sm607326d50.15.2026.07.27.02.10.05
-        for <linux-rdma@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 27 Jul 2026 02:10:05 -0700 (PDT)
-X-Relaying-Domain: broadcom.com
-X-CFilter-Loop: Reflected
-Received: by mail-ot1-f69.google.com with SMTP id 46e09a7af769-7eb89852728so1714951a34.3
-        for <linux-rdma@vger.kernel.org>; Mon, 27 Jul 2026 02:10:05 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=broadcom.com; s=google; t=1785143404; x=1785748204; darn=vger.kernel.org;
-        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
-         :references:mime-version:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=PfoJF2bIkuAKTl0F6gPbceNyDW4RCU4P5U+kFStBHfk=;
-        b=Lbdf2DSa1OfSI9UzWjnoDZzrEU/Qgqh2uPS0maBABi+wmhC7T5UZkxLFkx/TkozJu9
-         4hZ1GeINu1rLFk0naJLDzpX4tAswLwzEq24TtJhkgmj+sjB6CqqZeanZtaxEuZGeVjPy
-         a7IhEs3HslZQJ9jow9U/DpeXARMmo/veqtAZ0=
-X-Forwarded-Encrypted: i=1; AHgh+RrwHDTaT8aPk4T7Qr2EKfPFP6U6Yo2HkTF3BDvUZgWDmn8LqH/NVqDwECHQ29Ha77JmjtS6YLH/lwja@vger.kernel.org
-X-Received: by 2002:a05:6820:f026:b0:6aa:f7ac:faf3 with SMTP id 006d021491bc7-6aaff95a51emr5244248eaf.19.1785143404586;
-        Mon, 27 Jul 2026 02:10:04 -0700 (PDT)
-X-Received: by 2002:a05:6820:f026:b0:6aa:f7ac:faf3 with SMTP id
- 006d021491bc7-6aaff95a51emr5244226eaf.19.1785143404057; Mon, 27 Jul 2026
- 02:10:04 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="i5QfeznJ"
+Received: from pps.filterd (m0353729.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 66R9UllS4154511;
+	Mon, 27 Jul 2026 09:35:37 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
+	:content-transfer-encoding:date:from:message-id:mime-version
+	:subject:to; s=pp1; bh=UO61xM23KinFQFco9FSOtMYhQPc/AbGFT6ejY4z9+
+	yM=; b=i5QfeznJAZP49FNCrUZTHOanNI7NRqU3ZX7iFk6+/xZGo5N9IRddo9EJ/
+	2+j4jpKY2FWAetWI10v90vePkoQT7IpGKoKHbDzUp2t6lv9IVfJGC5vWv6uq+95t
+	7kHzajOJn504ZKopZjiaaG2BpFR7HSe6RjStY+OI3oQPCh+HIQf3KYz7xeKQ78Zs
+	dERlNxGaj7tP/kplV4KP+uG/S7xJMUf54BV/mpUyY6vsL08ttObsiwzOoID1EUj/
+	X/lQ0T025Ry/VSfHGyYfRhumcdFUcjMYfInl83lmpOvo4KhuUjbNn6/EedVAXoZk
+	tqkxaf56z/J5lHBwZMXi3Y5tYEemw==
+Received: from ppma23.wdc07v.mail.ibm.com (5d.69.3da9.ip4.static.sl-reverse.com [169.61.105.93])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 4fmuyc78vr-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Mon, 27 Jul 2026 09:35:36 +0000 (GMT)
+Received: from pps.filterd (ppma23.wdc07v.mail.ibm.com [127.0.0.1])
+	by ppma23.wdc07v.mail.ibm.com (8.18.1.7/8.18.1.7) with ESMTP id 66R9QGjR009764;
+	Mon, 27 Jul 2026 09:35:35 GMT
+Received: from smtprelay07.fra02v.mail.ibm.com ([9.218.2.229])
+	by ppma23.wdc07v.mail.ibm.com (PPS) with ESMTPS id 4fn8yh4qb9-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Mon, 27 Jul 2026 09:35:35 +0000 (GMT)
+Received: from smtpav03.fra02v.mail.ibm.com (smtpav03.fra02v.mail.ibm.com [10.20.54.102])
+	by smtprelay07.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 66R9ZVV536176290
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Mon, 27 Jul 2026 09:35:31 GMT
+Received: from smtpav03.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 7565E20076;
+	Mon, 27 Jul 2026 09:35:31 +0000 (GMT)
+Received: from smtpav03.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 2EF2920075;
+	Mon, 27 Jul 2026 09:35:31 +0000 (GMT)
+Received: from t83lp68.lnxne.boe (unknown [9.87.84.240])
+	by smtpav03.fra02v.mail.ibm.com (Postfix) with ESMTP;
+	Mon, 27 Jul 2026 09:35:31 +0000 (GMT)
+From: Hidayath Khan <hidayath@linux.ibm.com>
+To: davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
+        pabeni@redhat.com, wintera@linux.ibm.com, alibuda@linux.alibaba.com,
+        dust.li@linux.alibaba.com, sidraya@linux.ibm.com, wenjia@linux.ibm.com,
+        mjambigi@linux.ibm.com
+Cc: tonylu@linux.alibaba.com, guwen@linux.alibaba.com, horms@kernel.org,
+        hca@linux.ibm.com, gor@linux.ibm.com, agordeev@linux.ibm.com,
+        borntraeger@linux.ibm.com, svens@linux.ibm.com, pasic@linux.ibm.com,
+        gbayer@linux.ibm.com, andrew+netdev@lunn.ch, netdev@vger.kernel.org,
+        linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH net] dibs: fix use-after-free of dmb_node in loopback attach/detach/unregister
+Date: Mon, 27 Jul 2026 11:35:30 +0200
+Message-ID: <20260727093530.968834-1-hidayath@linux.ibm.com>
+X-Mailer: git-send-email 2.52.0
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260721115440.24021-1-selvin.xavier@broadcom.com>
- <20260721115440.24021-4-selvin.xavier@broadcom.com> <20260727062128.GI12003@unreal>
- <CA+sbYW1Zxm9KhfqtSZodpgcSE2ARfrq4YMS_s1+Xo=H_Qd+WsA@mail.gmail.com> <20260727090750.GK12003@unreal>
-In-Reply-To: <20260727090750.GK12003@unreal>
-From: Selvin Xavier <selvin.xavier@broadcom.com>
-Date: Mon, 27 Jul 2026 14:39:50 +0530
-X-Gm-Features: AUfX_mw2lqb7ONozy_F9bQvEPB1M25maAHawNkq08UxbCuKNDjt2rqRpGEzHZKk
-Message-ID: <CA+sbYW35-sFwrERJbKCjggPgMeCvRsC3aa7B0+J21YWLkAqe5Q@mail.gmail.com>
-Subject: Re: [PATCH for-next v4 3/4] RDMA/bnxt_re: Add uverbs object handle
- path for CQ/SRQ toggle page
-To: Leon Romanovsky <leon@kernel.org>
-Cc: jgg@ziepe.ca, linux-rdma@vger.kernel.org, andrew.gospodarek@broadcom.com, 
-	kalesh-anakkur.purayil@broadcom.com, sriharsha.basavapatna@broadcom.com, 
-	alhouseenyousef@gmail.com, Jason Gunthorpe <jgg@nvidia.com>
-X-DetectorID-Processed: b00c1d49-9d2e-4205-b15f-d015386d3d5e
-Content-Type: multipart/signed; protocol="application/pkcs7-signature"; micalg=sha-256;
-	boundary="00000000000086ff66065794166b"
+Content-Transfer-Encoding: 8bit
+X-TM-AS-GCONF: 00
+X-Proofpoint-Reinject: loops=2 maxloops=12
+X-Proofpoint-ORIG-GUID: -Ex0jxdPAV7rLypbSJS_B1Hl2CPzgfUq
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNzI3MDA5MSBTYWx0ZWRfX4MA6FT21YQAi
+ VPg2k966gfn4TWI6izLysSu6sfUb7PQxGNBD6pOQWV/wwXWTIV+UF0LTzGqoAuQ+WQdTkbM+1iR
+ Mpev6q8PcgLoWZ0bY6oZLmjPosEAx5hqw6YQ6onghmyXBbU1v53U+iUdaL3iSLfu1kYS9ba7+sk
+ vVvZXLgBzIJPsY5KkXRukoOhwPiUd+huTvrmJaKm2wXqUKOjqlo2B7fp5IH6wglVk4tT67Wdl9q
+ 00t4xapnnGZDjE2fV6VWi1ekP07KIF+2G5XKh/0XPfym870rw2Lo/P3o4TmIk1d9kYLo5vp0d6d
+ hmHupieEMputlgzLwrlPcAmY+5eeUNjHi1jNTZk5ihcfXy5VXGoy6ZQS0dGStSIIsuJADX0M53o
+ q8D0K3lzpS094kJxmDfZeYAl5U4dFq99jUEgqKXaQbUl+HPx7Ql+aWBZkftkjFqUiXmrT0nDSb4
+ 3hvS9q53jYTSSrS+23w==
+X-Proofpoint-Spam-Info: AW1haW4tMjYwNzI3MDA5MSBTYWx0ZWRfX9nnw/RLusy/R
+ gHCuFEStcsYAQuY9pZG94BqtXVg2FZzKk/QxBZ24B0ghUezgh8szdJ4eZO875qVsihdL52pu3qH
+ ynavxE6UUb5ORoCsP1y7WQftPAM8odU=
+X-Authority-Analysis: v=2.4 cv=AZeB2XXG c=1 sm=1 tr=0 ts=6a672669 cx=c_pps
+ a=3Bg1Hr4SwmMryq2xdFQyZA==:117 a=3Bg1Hr4SwmMryq2xdFQyZA==:17
+ a=RAioF0-LDSMA:10 a=VkNPw1HP01LnGYTKEx00:22 a=RnoormkPH1_aCDwRdu11:22
+ a=uAbxVGIbfxUO_5tXvNgY:22 a=VwQbUJbxAAAA:8 a=VnNF1IyMAAAA:8
+ a=j3-GGZ3PBAWOPdPpVlEA:9
+X-Proofpoint-GUID: 4rTJSMQnV6OKOOdUU71XWwUsWfdTPJJg
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1143,Hydra:6.1.134,FMLib:17.12.100.49
+ definitions=2026-07-27_02,2026-07-24_02,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ spamscore=0 priorityscore=1501 phishscore=0 adultscore=0 impostorscore=0
+ clxscore=1011 malwarescore=0 suspectscore=0 lowpriorityscore=0 bulkscore=0
+ classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
+ reason=mlx scancount=1 engine=8.22.0-2606150000 definitions=main-2607270091
 
---00000000000086ff66065794166b
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+dibs_lo_attach_dmb(), dibs_lo_detach_dmb() and dibs_lo_unregister_dmb()
+look up the dmb_node under dmb_ht_lock, drop the lock and only then
+operate on the node's refcount. Nothing keeps the node alive across
+that window: __dibs_lo_unregister_dmb() removes the node from the hash
+table under the write lock and immediately frees it.
 
-On Mon, Jul 27, 2026 at 2:37=E2=80=AFPM Leon Romanovsky <leon@kernel.org> w=
-rote:
->
-> On Mon, Jul 27, 2026 at 12:26:46PM +0530, Selvin Xavier wrote:
-> > On Mon, Jul 27, 2026 at 11:51=E2=80=AFAM Leon Romanovsky <leon@kernel.o=
-rg> wrote:
-> > >
-> > > On Tue, Jul 21, 2026 at 04:54:39AM -0700, Selvin Xavier wrote:
-> > > > The current GET_TOGGLE_MEM ioctl requires the caller to supply
-> > > > a type enum and a raw hardware queue ID (RES_ID). The kernel
-> > > > looks up the CQ or SRQ by that ID without verifying that the
-> > > > caller owns the resource.
-> > > >
-> > > > Add a new, preferred code path that accepts standard uverbs
-> > > > object handles (BNXT_RE_TOGGLE_MEM_CQ_HANDLE /
-> > > > BNXT_RE_TOGGLE_MEM_SRQ_HANDLE) instead. The uverbs core validates
-> > > > that the handle belongs to the calling context as part of resolving
-> > > > it, so this path no longer needs the driver's own XArray lookup for
-> > > > ownership checking. As with the legacy path, the toggle_entry's own
-> > > > mmap-entry refcount (not a CQ/SRQ uobject reference) is what pins
-> > > > the toggle page for the life of the GET_TOGGLE_MEM handle.
-> > > >
-> > > > Only newer rdma-core versions support this path, if the
-> > > > driver reports the supported resp mask
-> > > > (BNXT_RE_UCNTX_CMASK_TOGGLE_MEM_UOBJ_SUPPORT).
-> > > > The existing TYPE + RES_ID path is retained for backward
-> > > > compatibility with older rdma-core.
-> > > >
-> > > > Suggested-by: Jason Gunthorpe <jgg@nvidia.com>
-> > > > Signed-off-by: Selvin Xavier <selvin.xavier@broadcom.com>
-> > > > ---
-> > > >  drivers/infiniband/hw/bnxt_re/ib_verbs.c |  2 +
-> > > >  drivers/infiniband/hw/bnxt_re/uapi.c     | 55 ++++++++++++++++++++=
-+---
-> > > >  include/uapi/rdma/bnxt_re-abi.h          |  4 ++
-> > > >  3 files changed, 56 insertions(+), 5 deletions(-)
-> > > >
-> > > > diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/inf=
-iniband/hw/bnxt_re/ib_verbs.c
-> > > > index 0ff862ca982c..a14b17d4261f 100644
-> > > > --- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-> > > > +++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-> > > > @@ -4872,6 +4872,8 @@ int bnxt_re_alloc_ucontext(struct ib_ucontext=
- *ctx, struct ib_udata *udata)
-> > > >       if (_is_modify_qp_rate_limit_supported(dev_attr->dev_cap_flag=
-s2))
-> > > >               resp.comp_mask |=3D BNXT_RE_UCNTX_CMASK_QP_RATE_LIMIT=
-_ENABLED;
-> > > >
-> > > > +     resp.comp_mask |=3D BNXT_RE_UCNTX_CMASK_TOGGLE_MEM_UOBJ_SUPPO=
-RT;
-> > > > +
-> > > >       if (udata->inlen) {
-> > > >               rc =3D ib_copy_validate_udata_in_cm(
-> > > >                       udata, ureq, comp_mask,
-> > > > diff --git a/drivers/infiniband/hw/bnxt_re/uapi.c b/drivers/infinib=
-and/hw/bnxt_re/uapi.c
-> > > > index 97bc0e755511..feaf98631fc5 100644
-> > > > --- a/drivers/infiniband/hw/bnxt_re/uapi.c
-> > > > +++ b/drivers/infiniband/hw/bnxt_re/uapi.c
-> > > > @@ -237,16 +237,52 @@ static int UVERBS_HANDLER(BNXT_RE_METHOD_GET_=
-TOGGLE_MEM)(struct uverbs_attr_bund
-> > > >       if (IS_ERR(ib_uctx))
-> > > >               return PTR_ERR(ib_uctx);
-> > > >
-> > > > +     uctx =3D container_of(ib_uctx, struct bnxt_re_ucontext, ib_uc=
-tx);
-> > > > +
-> > > > +     /* New path: updated libbnxt_re passes the CQ or SRQ uverbs h=
-andle */
-> > > > +     if (uverbs_attr_is_valid(attrs, BNXT_RE_TOGGLE_MEM_CQ_HANDLE)=
-) {
-> > > > +             struct bnxt_re_cq *cq;
-> > > > +
-> > > > +             res_uobj =3D uverbs_attr_get_uobject(attrs,
-> > > > +                                                BNXT_RE_TOGGLE_MEM=
-_CQ_HANDLE);
-> > > > +             if (IS_ERR(res_uobj))
-> > > > +                     return PTR_ERR(res_uobj);
-> > > > +             cq =3D container_of(res_uobj->object, struct bnxt_re_=
-cq, ib_cq);
-> > > > +             if (!cq->toggle_entry)
-> > > > +                     return -EOPNOTSUPP;
-> > > > +             mmap_offset =3D rdma_user_mmap_get_offset(&cq->toggle=
-_entry->rdma_entry);
-> > > > +             if (!mmap_offset)
-> > > > +                     return -EOPNOTSUPP;
-> > > > +             kref_get(&cq->toggle_entry->rdma_entry.ref);
-> > > > +             toggle_entry =3D cq->toggle_entry;
-> > > > +             goto alloc_tmem;
-> > > > +     } else if (uverbs_attr_is_valid(attrs, BNXT_RE_TOGGLE_MEM_SRQ=
-_HANDLE)) {
-> > > > +             struct bnxt_re_srq *srq;
-> > > > +
-> > > > +             res_uobj =3D uverbs_attr_get_uobject(attrs,
-> > > > +                                                BNXT_RE_TOGGLE_MEM=
-_SRQ_HANDLE);
-> > > > +             if (IS_ERR(res_uobj))
-> > > > +                     return PTR_ERR(res_uobj);
-> > > > +             srq =3D container_of(res_uobj->object, struct bnxt_re=
-_srq, ib_srq);
-> > > > +             if (!srq->toggle_entry)
-> > > > +                     return -EOPNOTSUPP;
-> > > > +             mmap_offset =3D rdma_user_mmap_get_offset(&srq->toggl=
-e_entry->rdma_entry);
-> > > > +             if (!mmap_offset)
-> > > > +                     return -EOPNOTSUPP;
-> > > > +             kref_get(&srq->toggle_entry->rdma_entry.ref);
-> > > > +             toggle_entry =3D srq->toggle_entry;
-> > > > +             goto alloc_tmem;
-> > > > +     }
-> > > > +
-> > > >       err =3D uverbs_get_const(&res_type, attrs, BNXT_RE_TOGGLE_MEM=
-_TYPE);
-> > > >       if (err)
-> > > >               return err;
-> > > > -
-> > > > -     uctx =3D container_of(ib_uctx, struct bnxt_re_ucontext, ib_uc=
-tx);
-> > > >       err =3D uverbs_copy_from(&res_id, attrs, BNXT_RE_TOGGLE_MEM_R=
-ES_ID);
-> > > >       if (err)
-> > > >               return err;
-> > > >
-> > > >       /*
-> > > > +      * Legacy path: old libbnxt_re sends TYPE + RES_ID.
-> > > >        * Hold xa_lock across xa_load + kref_get so that a concurren=
-t
-> > > >        * bnxt_re_destroy_cq/srq cannot call __xa_erase and remove t=
-he
-> > > >        * toggle_entry between our load and our reference on it.
-> > > > @@ -297,6 +333,7 @@ static int UVERBS_HANDLER(BNXT_RE_METHOD_GET_TO=
-GGLE_MEM)(struct uverbs_attr_bund
-> > > >       if (!mmap_offset)
-> > > >               return -EOPNOTSUPP;
-> > > >
-> > > > +alloc_tmem:
-> > > >       tmem =3D kzalloc_obj(*tmem);
-> > > >       if (!tmem) {
-> > > >               rdma_user_mmap_entry_put(&toggle_entry->rdma_entry);
-> > > > @@ -343,10 +380,10 @@ DECLARE_UVERBS_NAMED_METHOD(BNXT_RE_METHOD_GE=
-T_TOGGLE_MEM,
-> > > >                                           UA_MANDATORY),
-> > > >                           UVERBS_ATTR_CONST_IN(BNXT_RE_TOGGLE_MEM_T=
-YPE,
-> > > >                                                enum bnxt_re_get_tog=
-gle_mem_type,
-> > > > -                                              UA_MANDATORY),
-> > > > +                                              UA_OPTIONAL),
-> > > >                           UVERBS_ATTR_PTR_IN(BNXT_RE_TOGGLE_MEM_RES=
-_ID,
-> > > >                                              UVERBS_ATTR_TYPE(u32),
-> > > > -                                            UA_MANDATORY),
-> > > > +                                            UA_OPTIONAL),
-> > > >                           UVERBS_ATTR_PTR_OUT(BNXT_RE_TOGGLE_MEM_MM=
-AP_PAGE,
-> > > >                                               UVERBS_ATTR_TYPE(u64)=
-,
-> > > >                                               UA_MANDATORY),
-> > > > @@ -355,7 +392,15 @@ DECLARE_UVERBS_NAMED_METHOD(BNXT_RE_METHOD_GET=
-_TOGGLE_MEM,
-> > > >                                               UA_MANDATORY),
-> > > >                           UVERBS_ATTR_PTR_OUT(BNXT_RE_TOGGLE_MEM_MM=
-AP_LENGTH,
-> > > >                                               UVERBS_ATTR_TYPE(u32)=
-,
-> > > > -                                             UA_MANDATORY));
-> > > > +                                             UA_MANDATORY),
-> > > > +                         UVERBS_ATTR_IDR(BNXT_RE_TOGGLE_MEM_CQ_HAN=
-DLE,
-> > > > +                                         UVERBS_OBJECT_CQ,
-> > > > +                                         UVERBS_ACCESS_READ,
-> > > > +                                         UA_OPTIONAL),
-> > > > +                         UVERBS_ATTR_IDR(BNXT_RE_TOGGLE_MEM_SRQ_HA=
-NDLE,
-> > > > +                                         UVERBS_OBJECT_SRQ,
-> > > > +                                         UVERBS_ACCESS_READ,
-> > > > +                                         UA_OPTIONAL));
-> > > >
-> > > >  DECLARE_UVERBS_NAMED_METHOD_DESTROY(BNXT_RE_METHOD_RELEASE_TOGGLE_=
-MEM,
-> > > >                                   UVERBS_ATTR_IDR(BNXT_RE_RELEASE_T=
-OGGLE_MEM_HANDLE,
-> > > > diff --git a/include/uapi/rdma/bnxt_re-abi.h b/include/uapi/rdma/bn=
-xt_re-abi.h
-> > > > index a4599d7b736a..c0ee9ce389ac 100644
-> > > > --- a/include/uapi/rdma/bnxt_re-abi.h
-> > > > +++ b/include/uapi/rdma/bnxt_re-abi.h
-> > > > @@ -57,6 +57,8 @@ enum {
-> > > >       BNXT_RE_UCNTX_CMASK_POW2_DISABLED =3D 0x10ULL,
-> > > >       BNXT_RE_UCNTX_CMASK_MSN_TABLE_ENABLED =3D 0x40,
-> > > >       BNXT_RE_UCNTX_CMASK_QP_RATE_LIMIT_ENABLED =3D 0x80ULL,
-> > > > +      /* Some reserved fields to manage compatibility with Out of =
-tree drivers */
-> > >
-> > > Selvin,
-> > >
-> > > What did you mean with this comment?
-> > This CMASK tracks the feature compatibility. Broadcom distributes an
-> > out-of-tree driver
-> > with some of the features that are not available in the upstream
-> > driver. Some of these
-> > features are debug only or features applicable for the next revision
-> > of the chip (which is not
-> > supported yet in the upstream driver). Since we want our inbox
-> > libraries to work with
-> > the out-of-tree drivers (and vice versa),  we are maintaining ABI
-> > compatibility and I will
-> > have to keep reserved/holes in the feature definition of this
-> > compatibility mask.
->
-> There are still plenty of numbers available, and the numbering is
-> entirely up to you. We do not want any association with OOT code.
-> Once you run out of available numbers, we will ask you to use those
-> reserved in the hole.
->
-> I will remove this line when applying the patch. Is that OK?
-Sure. I am fine with that.
+A concurrent final put can therefore free the node between the lookup
+and the refcount operation:
 
-Thanks,
+CPU0 (attach)                     CPU1 (owner unregisters)
 
->
-> Thanks
->
-> >
-> > Thanks
-> > >
-> > > Thanks
-> > >
-> > > > +     BNXT_RE_UCNTX_CMASK_TOGGLE_MEM_UOBJ_SUPPORT =3D 0x400000ULL,
-> > > >  };
-> > > >
-> > > >  enum bnxt_re_wqe_mode {
-> > > > @@ -218,6 +220,8 @@ enum bnxt_re_var_toggle_mem_attrs {
-> > > >       BNXT_RE_TOGGLE_MEM_MMAP_PAGE,
-> > > >       BNXT_RE_TOGGLE_MEM_MMAP_OFFSET,
-> > > >       BNXT_RE_TOGGLE_MEM_MMAP_LENGTH,
-> > > > +     BNXT_RE_TOGGLE_MEM_CQ_HANDLE,
-> > > > +     BNXT_RE_TOGGLE_MEM_SRQ_HANDLE,
-> > > >  };
-> > > >
-> > > >  enum bnxt_re_toggle_mem_attrs {
-> > > > --
-> > > > 2.39.3
-> > > >
->
->
+read_lock_bh(&dmb_ht_lock)
+find dmb_node (refcnt == 1)
+read_unlock_bh(&dmb_ht_lock)
+                                  refcount_dec_and_test() 1 -> 0
+                                  write_lock_bh(&dmb_ht_lock)
+                                  hash_del(&dmb_node->list)
+                                  write_unlock_bh(&dmb_ht_lock)
+                                  kfree(dmb_node)
+refcount_inc_not_zero(&dmb_node->refcnt)  <-- use-after-free
 
---00000000000086ff66065794166b
-Content-Type: application/pkcs7-signature; name="smime.p7s"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="smime.p7s"
-Content-Description: S/MIME Cryptographic Signature
+The same window exists for the refcount_dec_and_test() calls in the
+detach and unregister paths.
 
-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
-zJH6Ivyz2skA36zh/px/UmF2ORX4Y0CY6GtU8/vxuN2j4rd2medlyifwALUm+KI3SsD782IwKLCf
-8bNhYGiw4YxsbyX7dV7O4SNQc5U9ktrSKH3D4SuTnK/xdjca5PiNI2NTcBVmP7+u2bvVLdRqISop
-9dpRkJ6xxhGJjxakljIxHdcZLXltxX4YM0Onf3agcjY3boIqnVlDjBwSZX674ZU+YVrcIlcRcqs/
-W83e6PmIRFwpkKOhuLNKSpW5mZoEQdpnxGwE9U7qLGECAwEAAaOCAd4wggHaMA4GA1UdDwEB/wQE
-AwIFoDAMBgNVHRMBAf8EAjAAMIGTBggrBgEFBQcBAQSBhjCBgzBGBggrBgEFBQcwAoY6aHR0cDov
-L3NlY3VyZS5nbG9iYWxzaWduLmNvbS9jYWNlcnQvZ3NnY2NyNnNtaW1lY2EyMDIzLmNydDA5Bggr
-BgEFBQcwAYYtaHR0cDovL29jc3AuZ2xvYmFsc2lnbi5jb20vZ3NnY2NyNnNtaW1lY2EyMDIzMGUG
-A1UdIAReMFwwCQYHZ4EMAQUDAzALBgkrBgEEAaAyASgwQgYKKwYBBAGgMgoDAjA0MDIGCCsGAQUF
-BwIBFiZodHRwczovL3d3dy5nbG9iYWxzaWduLmNvbS9yZXBvc2l0b3J5LzBBBgNVHR8EOjA4MDag
-NKAyhjBodHRwOi8vY3JsLmdsb2JhbHNpZ24uY29tL2dzZ2NjcjZzbWltZWNhMjAyMy5jcmwwJQYD
-VR0RBB4wHIEac2VsdmluLnhhdmllckBicm9hZGNvbS5jb20wEwYDVR0lBAwwCgYIKwYBBQUHAwQw
-HwYDVR0jBBgwFoAUACk2nlx6ug+vLVAt26AjhRiwoJIwHQYDVR0OBBYEFJA9fV7cOoiN64ws5XPC
-J5qtayo5MA0GCSqGSIb3DQEBCwUAA4ICAQBFCIF4AxAiXVz6gX5YfFEbIYtbGFifcfe+QGc5cfac
-CSzIrQWUPXAYAef3G5WouD2AKwa2tPGJgK2L7n1r2W4NIvr93588EDVnGgfMfWaFsB8VlLsPlH8Y
-fLfaTdN3OQPnFFp54yK9wv8AtTIiTQcailMw7QX5x5GE6HVZElxf0V0Ljc2NrUQLoYzHzAU+sysl
-6JQzomxjIfuXiIiUfmnWQdhO95kQchRdOUAaguLTV+RRfPZ1p54dRmgGEpJtzjGLdsrLkZ2rCN5j
-cOTTXyxJmvlgm9jfT0Uy5SOPHdq1jtZbQyXrNT4fQ07Odmq3xQCUTi+a59IiC+6V7nFJ8zyCSk+p
-n/iGouvun/owYzTmFxB6sVLWZcaWz2Ufcm7b6nOYV+pwUS/n6+6oFRKmGLrl0CRCF0AOph5p81aV
-kgKuS5oXBoDefJfjKHuu5lJVelBx3n++iMGMW9FWFmXErCHy2d+L42Raai5X2PL8jAmh+lpPRDX4
-CT9jL6xWM5QkCBtxyVKuxGxxUY2wczmVcQ1nGh9mGghI04Scs4OtE8Qh9LMOe2PXzxcV6lpF+yay
-B3fwJWxl7miwNFjWuu9M6Z+rcjm3JF5srcAu2fp/VzQD4AE5Kq7ywukMvlU4Y3X2t+D2eU1DH8pk
-c8mM1CtQWfWUboaoLABVmYmYfihDvTURkzGCAlcwggJTAgEBMGIwUjELMAkGA1UEBhMCQkUxGTAX
-BgNVBAoTEEdsb2JhbFNpZ24gbnYtc2ExKDAmBgNVBAMTH0dsb2JhbFNpZ24gR0NDIFI2IFNNSU1F
-IENBIDIwMjMCDDy76dRYp65lyF2c4zANBglghkgBZQMEAgEFAKCBxzAvBgkqhkiG9w0BCQQxIgQg
-QR48MjUJYgringUilLOS4krnSqdATWtTmfyy/faLHC4wGAYJKoZIhvcNAQkDMQsGCSqGSIb3DQEH
-ATAcBgkqhkiG9w0BCQUxDxcNMjYwNzI3MDkxMDA0WjBcBgkqhkiG9w0BCQ8xTzBNMAsGCWCGSAFl
-AwQBKjALBglghkgBZQMEARYwCwYJYIZIAWUDBAECMAoGCCqGSIb3DQMHMAsGCSqGSIb3DQEBBzAL
-BglghkgBZQMEAgEwDQYJKoZIhvcNAQEBBQAEggEAFqVASTY2pVUlbauX9YLqvvVWh4JRkkQ6Hlw4
-YvO+g/JkNUeUnjoCv3YU2N0puFk10yXt2Rw4fPC5s+f+bnIlpQYApmifYvgrep634uWtrK1M8B2C
-xIErocYFwmjXtsZIxddHR6dvxhIBTXgF7yIMuFfKyFBPZvhecA55I+K8LdLjEXlJO6KY+73lp0qU
-QTZQyGjNF7F4mNrfpeIlzfADUbWMb1JK1fOZv0EHVSZx9VcN3dFRiBPAYBwHzEUFHaBu5xGyVLYa
-alOxmZwH0HidFVwOWF22QxMtPllC3LYpRv8L+waf4D/s/H9Z/tAZfXXJ+MEQPtzgB53ZPXZiQr2V
-dw==
---00000000000086ff66065794166b--
+Close the race structurally by making hash table membership and the
+refcount transitions atomic with respect to each other:
+
+- Perform the final refcount_dec_and_test() and hash_del() in a single
+  dmb_ht_lock write-side critical section, in both the unregister and
+  the detach path. Freeing the node still happens after the lock is
+  dropped, which is safe because a node whose refcount reached zero has
+  left the hash table and can no longer be found.
+
+- This establishes the invariant that any node found in the hash table
+  holds at least one reference, and that the final reference can only
+  be dropped under the write lock. dibs_lo_attach_dmb() can thus take
+  its reference with a plain refcount_inc() while still holding the
+  read lock; refcount_inc_not_zero() is no longer needed.
+
+__dibs_lo_unregister_dmb() no longer touches the hash table and is
+renamed to dibs_lo_free_dmb() accordingly.
+
+Note: commit cc21191b584c ("dibs: Move data path to dibs layer") moved
+the code to its current location; the race was introduced earlier by
+commit c3a910f2380f ("net/smc: implement DMB-merged operations of
+loopback-ism").
+
+Tested SMC-D via ISM and dibs loopback.
+
+Fixes: c3a910f2380f ("net/smc: implement DMB-merged operations of loopback-ism")
+Cc: stable@vger.kernel.org
+Signed-off-by: Hidayath Khan <hidayath@linux.ibm.com>
+Reviewed-by: Alexandra Winter <wintera@linux.ibm.com>
+---
+ drivers/dibs/dibs_loopback.c | 47 ++++++++++++++++++------------------
+ 1 file changed, 24 insertions(+), 23 deletions(-)
+
+diff --git a/drivers/dibs/dibs_loopback.c b/drivers/dibs/dibs_loopback.c
+index 0f2e09311152..fd5caf1e19a8 100644
+--- a/drivers/dibs/dibs_loopback.c
++++ b/drivers/dibs/dibs_loopback.c
+@@ -118,14 +118,9 @@ static int dibs_lo_register_dmb(struct dibs_dev *dibs, struct dibs_dmb *dmb,
+ 	return rc;
+ }
+ 
+-static void __dibs_lo_unregister_dmb(struct dibs_lo_dev *ldev,
+-				     struct dibs_lo_dmb_node *dmb_node)
++static void dibs_lo_free_dmb(struct dibs_lo_dev *ldev,
++			     struct dibs_lo_dmb_node *dmb_node)
+ {
+-	/* remove dmb from hash table */
+-	write_lock_bh(&ldev->dmb_ht_lock);
+-	hash_del(&dmb_node->list);
+-	write_unlock_bh(&ldev->dmb_ht_lock);
+-
+ 	clear_bit(dmb_node->sba_idx, ldev->sba_idx_mask);
+ 	folio_put(virt_to_folio(dmb_node->cpu_addr));
+ 	kfree(dmb_node);
+@@ -139,27 +134,33 @@ static int dibs_lo_unregister_dmb(struct dibs_dev *dibs, struct dibs_dmb *dmb)
+ 	struct dibs_lo_dmb_node *dmb_node = NULL, *tmp_node;
+ 	struct dibs_lo_dev *ldev;
+ 	unsigned long flags;
++	bool last;
+ 
+ 	ldev = dibs->drv_priv;
+ 
+ 	/* find dmb from hash table */
+-	read_lock_bh(&ldev->dmb_ht_lock);
++	write_lock_bh(&ldev->dmb_ht_lock);
+ 	hash_for_each_possible(ldev->dmb_ht, tmp_node, list, dmb->dmb_tok) {
+ 		if (tmp_node->token == dmb->dmb_tok) {
+ 			dmb_node = tmp_node;
+ 			break;
+ 		}
+ 	}
+-	read_unlock_bh(&ldev->dmb_ht_lock);
+-	if (!dmb_node)
++	if (!dmb_node) {
++		write_unlock_bh(&ldev->dmb_ht_lock);
+ 		return -EINVAL;
++	}
++	last = refcount_dec_and_test(&dmb_node->refcnt);
++	if (last)
++		hash_del(&dmb_node->list);
++	write_unlock_bh(&ldev->dmb_ht_lock);
+ 
+-	if (refcount_dec_and_test(&dmb_node->refcnt)) {
++	if (last) {
+ 		spin_lock_irqsave(&dibs->lock, flags);
+ 		dibs->dmb_clientid_arr[dmb_node->sba_idx] = NO_DIBS_CLIENT;
+ 		spin_unlock_irqrestore(&dibs->lock, flags);
+ 
+-		__dibs_lo_unregister_dmb(ldev, dmb_node);
++		dibs_lo_free_dmb(ldev, dmb_node);
+ 	}
+ 	return 0;
+ }
+@@ -188,14 +189,9 @@ static int dibs_lo_attach_dmb(struct dibs_dev *dibs, struct dibs_dmb *dmb)
+ 		read_unlock_bh(&ldev->dmb_ht_lock);
+ 		return -EINVAL;
+ 	}
++	refcount_inc(&dmb_node->refcnt);
+ 	read_unlock_bh(&ldev->dmb_ht_lock);
+ 
+-	if (!refcount_inc_not_zero(&dmb_node->refcnt))
+-		/* the dmb is being unregistered, but has
+-		 * not been removed from the hash table.
+-		 */
+-		return -EINVAL;
+-
+ 	/* provide dmb information */
+ 	dmb->idx = dmb_node->sba_idx;
+ 	dmb->dmb_tok = dmb_node->token;
+@@ -209,11 +205,12 @@ static int dibs_lo_detach_dmb(struct dibs_dev *dibs, u64 token)
+ {
+ 	struct dibs_lo_dmb_node *dmb_node = NULL, *tmp_node;
+ 	struct dibs_lo_dev *ldev;
++	bool last;
+ 
+ 	ldev = dibs->drv_priv;
+ 
+ 	/* find dmb_node according to dmb->dmb_tok */
+-	read_lock_bh(&ldev->dmb_ht_lock);
++	write_lock_bh(&ldev->dmb_ht_lock);
+ 	hash_for_each_possible(ldev->dmb_ht, tmp_node, list, token) {
+ 		if (tmp_node->token == token) {
+ 			dmb_node = tmp_node;
+@@ -221,13 +218,17 @@ static int dibs_lo_detach_dmb(struct dibs_dev *dibs, u64 token)
+ 		}
+ 	}
+ 	if (!dmb_node) {
+-		read_unlock_bh(&ldev->dmb_ht_lock);
++		write_unlock_bh(&ldev->dmb_ht_lock);
+ 		return -EINVAL;
+ 	}
+-	read_unlock_bh(&ldev->dmb_ht_lock);
++	last = refcount_dec_and_test(&dmb_node->refcnt);
++	if (last)
++		hash_del(&dmb_node->list);
++	write_unlock_bh(&ldev->dmb_ht_lock);
++
++	if (last)
++		dibs_lo_free_dmb(ldev, dmb_node);
+ 
+-	if (refcount_dec_and_test(&dmb_node->refcnt))
+-		__dibs_lo_unregister_dmb(ldev, dmb_node);
+ 	return 0;
+ }
+ 
+
+base-commit: 9dca6104d80f94a285aad6eb6712d004b7151e7d
+-- 
+2.52.0
+
