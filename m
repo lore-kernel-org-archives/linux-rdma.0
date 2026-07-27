@@ -1,161 +1,181 @@
-Received: from BL2PR02CU003.outbound.protection.outlook.com (mail-eastusazon11011002.outbound.protection.outlook.com [52.101.52.2])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EFBDF389E1A;
-	Mon, 27 Jul 2026 01:41:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.52.2
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785116504; cv=fail; b=RvxEMXkqgSD+mcM+tPH98tlhmPP1f77X2Nghpyo2A5PIPky5OFiwLoF4KMxEyKD/uq1f17w9N+vXCNTChYcKfgR64dcX4SjgqzDU5rzg07G6rDto38Tl+s3HGilqig9yNZRQTRJPj8eipcjxOc7oC79ks2d+mnCkkcVgips1je8=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785116504; c=relaxed/simple;
-	bh=l6l7/e24gFUovIOWzdxRNdEPNf2XfHv8FEWxLmIQr7M=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:Content-Type:
-	 Content-Disposition:In-Reply-To:MIME-Version; b=ZCkPbUcHBySGJTijm0B3hYWlbzIli+1PAV1R5m+gE6H0JoWKiycm63ApXwsFFgZl6n/ntrN/MizwmADXcVxsiT9ZGqRmVnL2guTgKBz2iRnG8Eh3FCuq88xdEZtsMWt2KE9iQgNzkNbLtQ6fcLL7kuALxHQRs6PFqFodxymo4HI=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=jIYNuogx; arc=fail smtp.client-ip=52.101.52.2
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4B1C1349CD7;
+	Mon, 27 Jul 2026 02:14:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1785118445; cv=none; b=flfc1apoBPkVciQZyfC8MEJhqHhtZFjiQTVpGIp2LSQUtrla39sotI9UQFk87njRIuJN1pfHqe+5YIVOzmOvvJ4RBjNrNfXVlvHdMdjU99DBAXlE2fNJF4cdPExiBDg8HdDdPUMSB04PuqbxGV0fmV13mrJCfR113MJArijaEo4=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1785118445; c=relaxed/simple;
+	bh=UcyWkhB1BwqyVGewzPWhmauGmdL0yqumW3alZv/j3zQ=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=ZOlZAZT5n5sscHxatYHHADZk7tqG/rl61G8qOgXHlBD6LnsAQOHM3G/0YQCQUaEPBW8IGFRKYsAJD09US2LKwuiW9KcodBI9Wv/pQdJDTPRuIAu4rPVrE2BAzYZ/DBSqHubpbMUoSQmsoSDwGUFcPul4Kgm0WhgHNUJphbmZkvA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=GnaWqrFh; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="jIYNuogx"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=VIwqt2vYqFkAG5+NZslClFI8ZvtPUQd2qCAJSfJVCtknoq+jomx3cAhn9wABxEQOI3PhKuqrg2qCAs2IoTRvCgBqKN2zIaRc4Jwkxzm2kRpEQ5qPb1L+5z5ob1KSn8dUxLtOTEGB84PBSsGS4cFdjbkwTcDPah+TP/Pv3OCDAeWo8slSM2s/G3gUXmZGesFlHnfL2qcO31NWEba6gWIyFpMiLEx6flPUblNEPPHxEJ2HpI48tZyOymNziCIPZZ0ZA7TxDRMgTJziEr/jWWd2PETEfFJ6DLxgTY7sRLgzDYEdxOhhdBP3S/RLo14Kev/XBOi1rNmOCQzQOvGIvIZ+Dg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=DPzyQrQQGWbiSn2TY7/ukuxCl1vnihWtmhQA6AXih7k=;
- b=Vdk6B5GyM9A4Ki0KwGcpF74naIK5JytESmnC7sk60DWtvrPZwtI1bLmxqifV9tKdHHZW1lM4Iuq9vD94CpOZdBgDqKoCBM329yy6rJOCK3wKHT7/lfEvuLHIZUcGj0TLrpFQYCNwexIipF/is7r0TSoE6T3kKnjgntn465rYiia2x/tox8QRWzPW+8NOd3f1s9W9hZxyRDGvoc2G/fDX58uxMWqDvJGB5xpGzKUH/r5FcXCjyZU80z5mqj7gmsFVeOE4w1l18APPUpF2czDGowMLQMygGTm6jdZOia3OxAiPpmjyyDGKHa0bH/uXpKquBsLAmogI6Q5yPUViVLkcVw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=DPzyQrQQGWbiSn2TY7/ukuxCl1vnihWtmhQA6AXih7k=;
- b=jIYNuogx2gvgbKQ1nywY6I8mMPj8IFmZI11l/YKvX3K8NSzDn5nlzKaoc2G0tw2w0tnJzQCoMGe6zZnY3zHLW6gk2Brjm9Adw0Ysc3W15i28lgLmsyjLnb71mSzAOwJ9wDvnJcGEoieAAgg+N1fN248lUSgJyUn4FVpxihqpMEMePFMbJrn2lXO/fmpTmtBjUBiZnEtCHU7ep2Rzi/rgwkxuR2uAV7GABZLsVPMIW656o3/52r+6hZv+/RzXeL27QyZyh3+zEgI6eSRnlm36tvDgmFQE5yjxNhJvpv2YY0psuAVuPTp4qahBBAk9nowmzK266EsZ+N6a4FilOikCdA==
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from DS0PR12MB7726.namprd12.prod.outlook.com (2603:10b6:8:130::6) by
- SJ0PR12MB8137.namprd12.prod.outlook.com (2603:10b6:a03:4e5::12) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.245.13; Mon, 27 Jul
- 2026 01:41:33 +0000
-Received: from DS0PR12MB7726.namprd12.prod.outlook.com
- ([fe80::5807:8e24:69b0:f6c0]) by DS0PR12MB7726.namprd12.prod.outlook.com
- ([fe80::5807:8e24:69b0:f6c0%4]) with mapi id 15.21.0245.012; Mon, 27 Jul 2026
- 01:41:33 +0000
-Date: Mon, 27 Jul 2026 11:41:27 +1000
-From: Alistair Popple <apopple@nvidia.com>
-To: Gou Hao <gouhao@uniontech.com>
-Cc: maddy@linux.ibm.com, mpe@ellerman.id.au, npiggin@gmail.com, 
-	chleroy@kernel.org, maarten.lankhorst@linux.intel.com, mripard@kernel.org, 
-	tzimmermann@suse.de, airlied@gmail.com, simona@ffwll.ch, bharat@chelsio.com, 
-	jgg@ziepe.ca, leon@kernel.org, akpm@linux-foundation.org, namcao@linutronix.de, 
-	ynorov@nvidia.com, sshegde@linux.ibm.com, nilay@linux.ibm.com, clg@kaod.org, 
-	linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, 
-	linux-rdma@vger.kernel.org, linux-mm@kvack.org, gouhaojake@163.com, kernel@uniontech.com
-Subject: Re: [PATCH v2 5/6] lib/test_hmm: remove dead NULL checks after
- GFP_NOFAIL allocations
-Message-ID: <ama3NaduNkQ16lEA@nvdebian.thelocal>
-References: <20260724022851.466017-1-gouhao@uniontech.com>
- <20260724022851.466017-6-gouhao@uniontech.com>
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260724022851.466017-6-gouhao@uniontech.com>
-X-ClientProxiedBy: SY5PR01CA0091.ausprd01.prod.outlook.com
- (2603:10c6:10:207::8) To DS0PR12MB7726.namprd12.prod.outlook.com
- (2603:10b6:8:130::6)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="GnaWqrFh"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id C70D1C2BCB3;
+	Mon, 27 Jul 2026 02:14:04 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1785118444;
+	bh=UcyWkhB1BwqyVGewzPWhmauGmdL0yqumW3alZv/j3zQ=;
+	h=From:Date:Subject:To:Cc:Reply-To:From;
+	b=GnaWqrFhb6gX+1bSws1JWfWjaX46zMpbLsFcN2PGHSmi4JpfoB3VjO5HnzboxsKBw
+	 cKIZIujR5JT/NYxS3dDgqwYNShQiAlpdnFqmrNAvPS5n79TXMUF26BgdV2JJYk3P69
+	 vfQyNpzfdclXQOv1dBeAlFyAGgsOnrJEWa44wZojaBNw5N2FapObjDEbGvxC/6fW1L
+	 LfT7jGbW/2FsWOV+qo9nFtrKMAlMpXns6wuwZxK8QgocfulxCJpOACwFOa3GOIko6f
+	 6pmYsNawv8qo/cgYqqBNZYlRojvTCbLTWWledxqkYwGlTvPGx3qgBxodCKRehWWm9X
+	 qgkjX3e5l5SzQ==
+Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A3998C53200;
+	Mon, 27 Jul 2026 02:14:04 +0000 (UTC)
+From: Bryam Vargas via B4 Relay <devnull+hexlabsecurity.proton.me@kernel.org>
+Date: Sun, 26 Jul 2026 21:14:04 -0500
+Subject: [PATCH net] net/smc: drain the rx tasklet before detaching the
+ ghost sndbuf
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: DS0PR12MB7726:EE_|SJ0PR12MB8137:EE_
-X-MS-Office365-Filtering-Correlation-Id: 5328bfbe-0382-459e-e43d-08deeb80307d
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|7416014|376014|366016|23010399003|1800799024|22082099003|18002099003|56012099006|4143699003|11063799006|10067099003;
-X-Microsoft-Antispam-Message-Info:
-	kqL5wzav1S0165cdl58A1VVjJCf+0PV6kjMlWyYUn0BnXucbYBlGGZX5GQSpX2KS56DZdX59S4bhEKT4Km3IteUrXKq1FHgPqPm72+xAJTaZ8B2r0Foe+K252oLz8yx1aDRHdyoZ/eBl2xWTDBSsdvhzZJu4cjU4ue8OAupBOtY0wphBPE+mglK4Z6aYSTqLXxlu5YNdSwN7bnH+BsZYfUKB+vmZ45s5GCUvaXin/T7xB2Os0znn/phFfvLP2Ob1iW2Zc+3MCP53anGlYsnyI5TvZq6nZVCUCtuZ0p+DXJxs43KBObpcQtBxBRNPMRwmSIYh4W/8ajtjddTS6D/kIoVBeJPTHE5EdxVBqmw22oaDN0bs1V7VP4tTX47nXeTjUcaL0JlKS5Ya4d/I3PbLHbXYwb4gdLxhyUn3zEpsWuDmpU5cxLghgD4n5pTg9WESitqh2iIfZ2HuYqFnZ8z+O66MdqxMJsHmO8kA3mpBq0xsRKy0lI3HoK3JWOeyyOAubHq+fLprczWNIeybCW9Iekzee0xxgBoKz86REgVvX1JNqeCgtBpAKiWJDFRuw7XaAWRRtPScCm/pm1Eei3yfSrmxt6gYmE5L0NGcRGzr8s6mhXyvzX0raJPKZfpsR5jtYoco34sno4HfqXPyuN5jA4lmmBOPnl1q5SQRxAUGbgs=
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DS0PR12MB7726.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(7416014)(376014)(366016)(23010399003)(1800799024)(22082099003)(18002099003)(56012099006)(4143699003)(11063799006)(10067099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?VEE/fcNWvmcfAtecmA8pIuNyd2Q9VAacMa025gdZFXFBdk1PMWxANbHKDHd5?=
- =?us-ascii?Q?+eEeJQ5nsAkdvXmclLFX1Yj8fNW/GXNwRa8uQGTj969CcwZz86RDEypyRowU?=
- =?us-ascii?Q?apOIlPkj6hvPf4zhmZB+4ejg1dsPkSuwDmheTgpT6BPnLD6OD81ZuU/btiK/?=
- =?us-ascii?Q?orEYNFHvFZYjLiDKumRG47Kc61PIQqZlyUfbGI0zdBTxsTj/s5dQUteGanQ7?=
- =?us-ascii?Q?g5uIMZh0tJMqk5enaBbUQ7OqblVyG6heZyfzHc7MT/gSqC3brr7EAHaknUhW?=
- =?us-ascii?Q?LzO5q8VF7dOuksXwJOXTFt4V0+duuCEU1i8ddvTjZ62SmMBaPvnVshOOjH6R?=
- =?us-ascii?Q?GywDl9rIWfjksfm7bx4gMi6C+ypEokKOjFh3U4xxxqw2dVvwuHiwb1KhhPdo?=
- =?us-ascii?Q?GLTWd5Y9i5I1UBy+EKBebO5yQoA7SYhc055APYHs2TWpJo0BqK9HXpU4h8Wn?=
- =?us-ascii?Q?oJOY9ORP1w2wIPVrj1Cybxe/+WtYtyP1KKJVPYoAt7z1xMsx/xouSnt7c44Y?=
- =?us-ascii?Q?TC/rKqcUz1QkwQXZp0pO8x9PUSzcEz9YVDSFeWXqVP0fFsbeCyGIxMFtv/Kw?=
- =?us-ascii?Q?oPgVNFwT2MY7D3zJQFpOCsgjqfHx/OxdaSm6wnUazwZ8e+yFXHJd4paA0ljp?=
- =?us-ascii?Q?t3WfF1rQ6ALWsOduittzadZ8VMKd4sGeZGwSmAGlfbRNmXIPOb8Y0sjqGz6W?=
- =?us-ascii?Q?f7xKL85njeYhBMouwhHoUBqtcbIK1u2nC/ZdsNf2mevtn8EFdFSIMazcijZU?=
- =?us-ascii?Q?Ey01C8lg38C/vzPkJYLzaM6cmn6ylqsCjBpU9Sgw2TBZK9gkL+O/8pQPbUXe?=
- =?us-ascii?Q?qX3LD2dVIES+j1D8b5bOAsk94kuGnxC0jmuZXl1jhxw3R1TMNM8vrA9tER/h?=
- =?us-ascii?Q?U202xUBhXrNk/mDg1IGHv9TPd/9tqg0RX/5tRXQCCU3fKdLcLIwOrJkPRAnq?=
- =?us-ascii?Q?LlPSkxAN1zfEDNK/yZpq1af7L4HjyFrBByRuVsHhYe0zxcbEcxcC5hDqPqKV?=
- =?us-ascii?Q?jybeATCRnw+BVb2qORS3q0MYVY0oKzrI4wYK8z+OSzWGqecl5ynDo7kSnGd2?=
- =?us-ascii?Q?LR4wdO3LUsEaf/iwFg6QVIStzyc6jFhfbDpAc+9Sw3sm+lTX62Cfp484fvdq?=
- =?us-ascii?Q?YxpwQ/YVRaDZTwdbKcAHXJa8zp85zhMaSjogOND9tafgKT30ifWCv4sTRC5R?=
- =?us-ascii?Q?7QcKwMkDWp+9Dk99wP1Ccsn5xrrBAVdf4p9JoeEN6oLkj13QLTTRFDYgXQmI?=
- =?us-ascii?Q?XT/yH3KZTt5iROk7cFRmIxOL9jqpzlvNAzrtQDMOvupyaOZj63v+Ku77sT9v?=
- =?us-ascii?Q?Xwm92D8EfuAuoR3y1au0Fc6iAyv38urktSoggv5SHIPfD+q3Qahz7GXRfU2I?=
- =?us-ascii?Q?2dsbBnnztgWrmpikNIc/j5tL/ugonPZMB8ApEb3p8Qj5rv2GCg4q8WlxZRg3?=
- =?us-ascii?Q?kbUxE3J6ghKu0Xm4N0GOp7MnY1CMT8RzuM9T2gj4Sju+DyTvMc9byJCZemg+?=
- =?us-ascii?Q?teCCBlWiCdqp0YA+gayNOyUZmdS6XxRYHKk4kOCEkudvLXv3/+H/Yj7SaOpv?=
- =?us-ascii?Q?gJv4jqxUIeUUcKnnWQKNUx5yuq88aItKvm8gsNQhvg9bKJY/YlJVEx1auiAO?=
- =?us-ascii?Q?wbmOyCN8bBVJlTiJyup3QBg6/1/ZQrgbTbIOMpNBCexBs4z5y+wmZ3vQzByO?=
- =?us-ascii?Q?2eAHu0LH1+Edn6Yj2qXAAL8IsO6Tq6JZ/Txm0f3xqzXGWfRY?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 5328bfbe-0382-459e-e43d-08deeb80307d
-X-MS-Exchange-CrossTenant-AuthSource: DS0PR12MB7726.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 27 Jul 2026 01:41:33.6764
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: 6PXFc8yY67cUglQnhUskVtF6vSBIUSHGLO7Fj59Ka0YyPBIks3PplCXc7zwk51SILAtzPQHQeRUWS5iL6e5hkg==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ0PR12MB8137
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <20260726-b4-disp-a135b4e5-v1-1-705aaec79986@proton.me>
+X-B4-Tracking: v=1; b=H4sIAAAAAAAC/yXMwQ5EMBCA4VeROe8kVS1rX0UcVAfjYKWDSMS7K
+ 47f4f8PEApMAr/kgEAbC/+niPSTQDs0U0/IPhq00rkqdI7OoGeZsUkz6wxZLI21hXFeldkXYjY
+ H6nh/llX9WlY3UrvcHzjPC8SRSId0AAAA
+X-Change-ID: 20260726-b4-disp-a135b4e5-945574bd0938
+To: Dust Li <dust.li@linux.alibaba.com>, 
+ Wenjia Zhang <wenjia@linux.ibm.com>, "D. Wythe" <alibuda@linux.alibaba.com>, 
+ Sidraya Jayagond <sidraya@linux.ibm.com>
+Cc: Mahanta Jambigi <mjambigi@linux.ibm.com>, netdev@vger.kernel.org, 
+ linux-s390@vger.kernel.org, linux-kernel@vger.kernel.org, 
+ Tony Lu <tonylu@linux.alibaba.com>, Paolo Abeni <pabeni@redhat.com>, 
+ Wen Gu <guwen@linux.alibaba.com>, linux-rdma@vger.kernel.org
+X-Mailer: b4 0.15.2
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1785118443; l=4217;
+ i=hexlabsecurity@proton.me; s=default; h=from:subject:message-id;
+ bh=wYjklXpHMVg2rxAnVlYLWc6qQreV8jc7yrCCSeUtrwM=;
+ b=1GEGA8s3WVGo60Q4bcloSNg1Gju64r30GQhhMxdGRBVQOQGm5bUWZLlmQF5+7v/EwNEdFwmyY
+ 3MQ0zZej/HwDEyRt3LXmJTVZTCeaahQGJu4AWQ4SoAroZrHNEg2RKd0
+X-Developer-Key: i=hexlabsecurity@proton.me; a=ed25519;
+ pk=xw1AhCtQdvuoQc+bOQIYy9o8G++cp4/VniI2G/tc3G8=
+X-Endpoint-Received: by B4 Relay for hexlabsecurity@proton.me/default with
+ auth_id=893
+X-Original-From: Bryam Vargas <hexlabsecurity@proton.me>
+Reply-To: hexlabsecurity@proton.me
 
-On 2026-07-24 at 12:28 +1000, Gou Hao <gouhao@uniontech.com> wrote...
-> kvcalloc with the __GFP_NOFAIL flag will never return NULL, so the
-> subsequent NULL checks are unreachable dead code. Remove them.
+From: Bryam Vargas <hexlabsecurity@proton.me>
 
-Reviewed-by: Alistair Popple <apopple@nvidia.com>
+On the SMC-D DMB-nocopy path smcd_buf_detach() frees conn->sndbuf_desc
+while the receive tasklet can still be running: both teardown sites free
+first and drain afterwards. A tasklet already past the conn->killed check
+then dereferences the freed buffer in smc_cdc_msg_recv_action(), which
+reaches the same field again through smc_tx_prepared_sends().
 
-> Signed-off-by: Gou Hao <gouhao@uniontech.com>
-> ---
->  lib/test_hmm.c | 6 ------
->  1 file changed, 6 deletions(-)
-> 
-> diff --git a/lib/test_hmm.c b/lib/test_hmm.c
-> index 9c59d1ceb5b57..d615e4e5fc447 100644
-> --- a/lib/test_hmm.c
-> +++ b/lib/test_hmm.c
-> @@ -1209,16 +1209,10 @@ static int dmirror_migrate_to_device(struct dmirror *dmirror,
->  	if (!mmget_not_zero(mm))
->  		return -EINVAL;
->  
-> -	ret = -ENOMEM;
->  	src_pfns = kvcalloc(PTRS_PER_PTE, sizeof(*src_pfns),
->  			  GFP_KERNEL | __GFP_NOFAIL);
-> -	if (!src_pfns)
-> -		goto free_mem;
-> -
->  	dst_pfns = kvcalloc(PTRS_PER_PTE, sizeof(*dst_pfns),
->  			  GFP_KERNEL | __GFP_NOFAIL);
-> -	if (!dst_pfns)
-> -		goto free_mem;
->  
->  	ret = 0;
->  	mmap_read_lock(mm);
-> -- 
-> 2.20.1
-> 
-> 
+Drain the tasklet before the detach at both sites, mirroring rmb_desc,
+which smc_buf_unuse() only releases after the drain.
+
+Fixes: ae2be35cbed2 ("net/smc: {at|de}tach sndbuf to peer DMB if supported")
+Cc: stable@kernel.org
+Signed-off-by: Bryam Vargas <hexlabsecurity@proton.me>
+---
+Found with KASAN on an SMC-D loopback rig (CONFIG_SMC_LO, x86_64).
+
+The teardown is driven through smc_conn_kill() by arming abort_work from a debug
+module parameter: on SMC-D nothing in the receive path queues that work, while on
+SMC-R smc_cdc_msg_validate() queues it for an out-of-range peer seqno. Everything
+after the abort is the unmodified path. A second parameter holds the receive tasklet
+just past the conn->killed check, so the free lands mid-run.
+
+  arm         ordering           abort armed   result
+  vulnerable  detach then drain  yes           KASAN slab-use-after-free
+  control     detach then drain  no            clean
+  patched     drain then detach  yes           clean
+
+Same module, same boot, same trigger, same delay; only the ordering differs.
+
+  BUG: KASAN: slab-use-after-free in smc_cdc_msg_recv_action+0x1ed9/0x1f20 [smc]
+  Read of size 4 at addr ffff88810f6c9720 by task kworker/3:1/147
+  Workqueue: smc_close_wq smc_conn_abort_work [smc]
+   <IRQ>
+    smc_cdc_msg_recv_action+0x1ed9/0x1f20 [smc]
+    smcd_cdc_rx_tsklet+0x1f2/0x2f0 [smc]
+    tasklet_action_common+0x2fd/0x850
+    handle_softirqs+0x18c/0x4f0
+    do_softirq+0x3a/0x60
+   </IRQ>
+   <TASK>
+    __local_bh_enable_ip+0x5d/0x60
+    smc_cdc_get_slot_and_msg_send+0x253/0x680 [smc]
+    smc_conn_kill+0xa8/0x4d0 [smc]
+    smc_conn_abort_work+0x34/0x90 [smc]
+   </TASK>
+
+  Allocated by task 70:
+    smcd_buf_attach+0xbd/0x2a0 [smc]
+    smc_listen_work+0x2499/0x49a0 [smc]
+
+  Freed by task 44:
+    kfree+0x135/0x390
+    smc_conn_kill+0x3ab/0x4d0 [smc]
+    smc_conn_abort_work+0x34/0x90 [smc]
+
+  The buggy address belongs to the object at ffff88810f6c9700
+   which belongs to the cache kmalloc-128 of size 128
+  The buggy address is located 32 bytes inside of
+   freed 128-byte region [ffff88810f6c9700, ffff88810f6c9780)
+
+The read is conn->sndbuf_desc->len.
+
+A plain close() does not get there: smc_close_active() always moves the socket to
+SMC_PEERCLOSEWAIT1, so the free happens in smc_close_passive_work() after the peer's
+close CDC -- the same event that stops feeding the tasklet. About 18000 such teardowns
+produced nothing. The ordering is wrong either way, and smc_conn_kill() has no such
+coupling.
+
+Logs on request.
+---
+ net/smc/smc_core.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
+index cf6b620fef05..da64e7a6bd73 100644
+--- a/net/smc/smc_core.c
++++ b/net/smc/smc_core.c
+@@ -1270,9 +1270,9 @@ void smc_conn_free(struct smc_connection *conn)
+ 	if (lgr->is_smcd) {
+ 		if (!list_empty(&lgr->list))
+ 			smc_ism_unset_conn(conn);
++		tasklet_kill(&conn->rx_tsklet);
+ 		if (smc_ism_support_dmb_nocopy(lgr->smcd))
+ 			smcd_buf_detach(conn);
+-		tasklet_kill(&conn->rx_tsklet);
+ 	} else {
+ 		smc_cdc_wait_pend_tx_wr(conn);
+ 		if (current_work() != &conn->abort_work)
+@@ -1525,12 +1525,12 @@ static void smc_conn_kill(struct smc_connection *conn, bool soft)
+ 	smc_sk_wake_ups(smc);
+ 	if (conn->lgr->is_smcd) {
+ 		smc_ism_unset_conn(conn);
+-		if (smc_ism_support_dmb_nocopy(conn->lgr->smcd))
+-			smcd_buf_detach(conn);
+ 		if (soft)
+ 			tasklet_kill(&conn->rx_tsklet);
+ 		else
+ 			tasklet_unlock_wait(&conn->rx_tsklet);
++		if (smc_ism_support_dmb_nocopy(conn->lgr->smcd))
++			smcd_buf_detach(conn);
+ 	} else {
+ 		smc_cdc_wait_pend_tx_wr(conn);
+ 	}
+
+---
+base-commit: 4235cb24ec1e8e96843f3671ba4da2a6ccca2c7b
+change-id: 20260726-b4-disp-a135b4e5-945574bd0938
+
+Best regards,
+--  
+Bryam Vargas <hexlabsecurity@proton.me>
+
+
