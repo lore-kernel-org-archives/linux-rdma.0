@@ -1,502 +1,332 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.12])
+Received: from smtpbguseast3.qq.com (smtpbguseast3.qq.com [54.243.244.52])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 98CC122FDE6
-	for <linux-rdma@vger.kernel.org>; Tue, 28 Jul 2026 01:50:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.12
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 87BC73264C7;
+	Tue, 28 Jul 2026 03:27:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.243.244.52
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785203437; cv=none; b=Mwd5ftvvf5Exd2lTrYRF5BJ1PkAH/YB3kSaYC0773/4cYUB8+9AbwEmLs4auWso9BLapTWGUijo7ftqJ2fXY+xPCL7I7/S5wMzDaatHr4rjrRnYmoVzvDqvta17/9g4Nb3DZMvQIElJxpCXAisOUQIxgSl/lil981YNYT/MRx5k=
+	t=1785209246; cv=none; b=bQ+P4GJX78cp9szKISSniC5wQPdNT5CCNd+4xumtTF5Z7lx307k8aYeQgi59Two1PjpB7ESYkMQDMNJcVf3QzCuhy3GpMhH4hCEKTL4zx7XghJdZvoQi5y1pXA3dxK12quvwU56s92kKMNcEHjJrTPMsu6GKKTZvc7MPWgnDf18=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785203437; c=relaxed/simple;
-	bh=FYIdbQ/eoxpuiFHYJ5FwE/lNwlKpqySS70k6k6RM7Hw=;
-	h=Date:From:To:Cc:Subject:Message-ID; b=Qhi/npgwDnqdOhSC7JR2JF2PJQpZqMAtmjMz3OYvjcqoEnzIAmC5hCaLKbf6GiYMM9zu7ShcUyLwphFUHQAoIRoxMjUbH7gifMPpGAttqpVREsp+rXAWJDNXgkfyFGpA8GR10s+0uVAieeoJuafGW3QaNpWSR4gCnK93BZP58ME=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=nFaMU28W; arc=none smtp.client-ip=192.198.163.12
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1785209246; c=relaxed/simple;
+	bh=KVdUGZ9pRFaOTwnF0igVWumQdfZwtvIjLj4Ratx0vnA=;
+	h=Message-ID:Date:MIME-Version:To:Cc:From:Subject:Content-Type; b=PhjKkUFsxu9EJ+yKAZOEW9D1qmDUyOiQkfYwXXMb9bq/SWnXAzGg2GHsQN026RTBS0Bn5TUSJPBfomecBXEaBKd0nntI4olOfx5xJk16tqAmdeFCgu3z/fkCuKRRzR2Wc/0ri6TzSTVB7ClAgg6TCb0LG4DwVdDlU/nelXywn2Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=smail.nju.edu.cn; spf=pass smtp.mailfrom=smail.nju.edu.cn; dkim=pass (1024-bit key) header.d=smail.nju.edu.cn header.i=@smail.nju.edu.cn header.b=NWX/Xp9Y; arc=none smtp.client-ip=54.243.244.52
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=smail.nju.edu.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=smail.nju.edu.cn
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="nFaMU28W"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1785203435; x=1816739435;
-  h=date:from:to:cc:subject:message-id;
-  bh=FYIdbQ/eoxpuiFHYJ5FwE/lNwlKpqySS70k6k6RM7Hw=;
-  b=nFaMU28WDv9lpsDkAWkuoJg5kRs4AScZyktZAfb7BXQ33K2tEXxbKLfI
-   9xzoOFucGbZgTqsZoXtjs7qvLcytOqLxy1YBCBx44SCSxtiM+xOyQ9aE8
-   ypnQNlc1ukbLs551MoStLdA+JjZv1tAr6grSXLLvw2GGf874AZR95fUIc
-   h2lSoDq0OZ3sC9WznHoWMV9V+rUOhkNSncfeI4ExPHhfq2YCt3cFGDAvV
-   Hz3o3xoo+Y31G6Lnq/ypsPFKtf5BONAPVGRC2EAUqUmkpG097o2bXVcTB
-   Tyj6KZaZggrultzx6XZZA8gBcYCMrZkOKrRbJYX/yK2ET4KOeZ9b9NUMT
-   w==;
-X-CSE-ConnectionGUID: 1cqXkcHPTvOAAiUasdLBmw==
-X-CSE-MsgGUID: j4kWk/AzQYqoodikSzmJ4g==
-X-IronPort-AV: E=McAfee;i="6800,10657,11858"; a="89602816"
-X-IronPort-AV: E=Sophos;i="6.25,189,1779174000"; 
-   d="scan'208";a="89602816"
-Received: from orviesa008.jf.intel.com ([10.64.159.148])
-  by fmvoesa106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Jul 2026 18:50:33 -0700
-X-CSE-ConnectionGUID: BJcjPZLtQiS36nRoxILulg==
-X-CSE-MsgGUID: s91taHgYS6CtsBvxpD18pA==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.25,189,1779174000"; 
-   d="scan'208";a="259009591"
-Received: from igk-lkp-server01.igk.intel.com (HELO 3cba2a188a06) ([10.211.93.152])
-  by orviesa008.jf.intel.com with ESMTP; 27 Jul 2026 18:50:30 -0700
-Received: from kbuild by 3cba2a188a06 with local (Exim 4.98.2)
-	(envelope-from <lkp@intel.com>)
-	id 1woWxf-000000001p4-2bnX;
-	Tue, 28 Jul 2026 01:50:27 +0000
-Date: Tue, 28 Jul 2026 03:49:54 +0200
-From: kernel test robot <lkp@intel.com>
-To: Selvin Xavier <selvin.xavier@broadcom.com>
-Cc: oe-kbuild-all@lists.linux.dev, Doug Ledford <dledford@redhat.com>,
- Jason Gunthorpe <jgg+lists@ziepe.ca>, linux-rdma@vger.kernel.org,
- Leon Romanovsky <leon@kernel.org>
-Subject: [rdma:wip/leon-for-next 80/84]
- drivers/infiniband/hw/bnxt_re/ib_verbs.c:2178:12: error: invalid storage
- class for function 'bnxt_re_init_user_srq'
-Message-ID: <202607280336.rdhVIN8h-lkp@intel.com>
-User-Agent: s-nail v14.9.25
+	dkim=pass (1024-bit key) header.d=smail.nju.edu.cn header.i=@smail.nju.edu.cn header.b="NWX/Xp9Y"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=smail.nju.edu.cn;
+	s=iohv2404; t=1785209216;
+	bh=b5S0cpkt5ZScdUPlH7VbIoEynBrUTkPt5wwIerT4dMQ=;
+	h=Message-ID:Date:MIME-Version:To:From:Subject;
+	b=NWX/Xp9YFTlPBXM2Z2qxFqiTBEwFdZIURI8xAqGjUeOkIuCXjnMWvK/7Pjdk+WmTZ
+	 Q8WbEVErn6aYYW1tzNaS/sKSziF1rDqam61w7yIY6vvz9zyhhTmKMLmqhekm4wBS62
+	 BI+lrYQj9LWcHjKc8/SlHuop+8RKCIkUTOeq43YI=
+X-QQ-mid: zesmtpgz4t1785209215tf601e1b7
+X-QQ-Originating-IP: JChbxiwaKSvfaxEI6pfa32nGID+Ic04IaEyYeguiYm8=
+Received: from [127.0.0.1] ( [36.152.24.148])
+	by bizesmtp.qq.com (ESMTP) with 
+	id ; Tue, 28 Jul 2026 11:26:53 +0800 (CST)
+X-QQ-SSF: 0000000000000000000000000000000
+X-QQ-GoodBg: 1
+X-BIZMAIL-ID: 384521583918047642
+Message-ID: <365C68B4923F8214+30195a67-0b90-4b92-ab96-2ce41517793c@smail.nju.edu.cn>
+Date: Tue, 28 Jul 2026 11:26:53 +0800
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Content-Language: en-US
+To: zyjzyj2000@gmail.com
+Cc: "syzkaller@googlegroups.com" <syzkaller@googlegroups.com>,
+ Jason Gunthorpe <jgg@ziepe.ca>, leon@kernel.org, linux-rdma@vger.kernel.org,
+ linux-kernel@vger.kernel.org
+From: Peiyang He <peiyang_he@smail.nju.edu.cn>
+Subject: [BUG] RDMA/rxe: OOB write in rxe_qp_from_attr
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+X-QQ-SENDSIZE: 520
+Feedback-ID: zesmtpgz:smail.nju.edu.cn:qybglogicsvrsz:qybglogicsvrsz4b-0
+X-QQ-XMAILINFO: NLR4FNog5K1/aBu8mDASNOE5qLVT90dC47C4VVb5rBuWETYnku5HWBjU
+	r58Z6ZKbKKwfsUeq2sbe6P0EA8Eqt/4bZvKAH+71gDnq8syUeguV0Bk5Z+OjP4vs0BEehAX
+	Kgdoer8bt+1frqMh1jMnofUi/oS2AfMWlgqgUwRWZC6HWGCtept4yMqqq6EnHax7Si0Ur90
+	2+kAJMsVv96ZPXxPJk3QPf0WYG8dRqN2YZaiPCr+MsGnMLFdVtp1tM4eK9YHs/R2hVSvLEn
+	XtunkL/w8wDSzFjziJPes8+iEvv0hCD2LnMq/BJAJ2aUOeTU6Jh4kBEgGN1A9WecW1rep2V
+	cJbLQlPOgduYYE+2uVFh6ukFxfJ2dFiwdhrgNLcAFm53ne3PGYthKCfLy3ldO7XXMNdL0II
+	xjDP+JBX5Qg7T/NSCM2h4oanuZzPPz+cn6DPgOAZehKDaYMDyUF0vrMFPQksAdbCY0kRE2F
+	uzSl68OWblFF5YtNEs0tca4WRAWjde8qGASWKE9EWNS6ygd7HlgCvX4WHpMY1bDMs3S+rRd
+	kjxChX9fMqh7CsT8YJM4QJvsq+Xzq9bvqLDFY4iYEKPFucKsgi9+sc0FoyrCvlSHpKYWvOW
+	gG2mQ4o2UH+nBUbALpNctxZ2u8hDvO/Yw1PbAbI0qFEthwc2eB6B40p2CF5ZDN5K29oP0tB
+	mT5hmjBlQ1tXiAdU8bamGrsBCaa0/IZIiMgP+Jy+ejRRIiomq64aS1WRpLGFP+I/wv6fuWK
+	q1y6v7Lxy8L02HO/0W5mVhOuzsCR2drWqiowJ0eEeV0utqDup1Z5PBax1Bov9RD8rxH9u8R
+	/lE6pXAQXb7+JoRxkx1M5WYxUdj+U3px4Mf/aeDHyaWHc6/LuKJJV6WO+wcmlN/ygR2xO97
+	jp39+Dnu3tXI+yxMFRU2L06CkDzsnownVjNYXWUtPs19+HYp70q1699W+8u91hn+TShRNnr
+	SCqHklthAoA0B8Rb+HGdyZwPp5vTakU41I7rhaEtcya7NMDac8kdd42QqmDzKaABn6701D8
+	lp/VlFji6Y7Sr4vLrfjHnJKsjV7JjmjyYM9jKP7fVoSS0Xa2mI2oVqIxK6UPqQd9QCZsUMJ
+	w==
+X-QQ-XMRINFO: NS+P29fieYNwqS3WCnRCOn9D1NpZuCnCRA==
+X-QQ-RECHKSPAM: 0
 
-tree:   https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git wip/leon-for-next
-head:   983c450ae26317c58b62cac5afa58725ada7d256
-commit: 2b248ac9c95bf0175fda9f3a869c7c4054893de0 [80/84] RDMA/bnxt_re: Replace per-device hash tables with per-context XArrays
-config: x86_64-rhel-9.4-bpf (https://download.01.org/0day-ci/archive/20260728/202607280336.rdhVIN8h-lkp@intel.com/config)
-compiler: gcc-14 (Debian 14.2.0-19) 14.2.0
-reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20260728/202607280336.rdhVIN8h-lkp@intel.com/reproduce)
+Hello Linux kernel developers and maintainers,
 
-If you fix the issue in a separate patch/commit (i.e. not just a new version of
-the same patch/commit), kindly add following tags
-| Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202607280336.rdhVIN8h-lkp@intel.com/
+We hit a KASAN: slab-out-of-bounds Write in rxe_qp_from_attr when fuzzing RDMA/RXE
+with Syzkaller.
 
-All error/warnings (new ones prefixed by >>):
+The root cause is that RXE updates the max_dest_rd_atomic count before
+it frees the old resp-resources array. The freeing code then uses the
+NEW count to walk the OLD array and writes past the end of that old array
+(when the new count exceeds the old count).
 
-   drivers/infiniband/hw/bnxt_re/ib_verbs.c: In function 'bnxt_re_destroy_srq':
->> drivers/infiniband/hw/bnxt_re/ib_verbs.c:2178:12: error: invalid storage class for function 'bnxt_re_init_user_srq'
-    2178 | static int bnxt_re_init_user_srq(struct bnxt_re_dev *rdev,
-         |            ^~~~~~~~~~~~~~~~~~~~~
->> drivers/infiniband/hw/bnxt_re/ib_verbs.c:2396:12: error: invalid storage class for function 'bnxt_re_modify_shadow_qp'
-    2396 | static int bnxt_re_modify_shadow_qp(struct bnxt_re_dev *rdev,
-         |            ^~~~~~~~~~~~~~~~~~~~~~~~
->> drivers/infiniband/hw/bnxt_re/ib_verbs.c:2428:13: error: invalid storage class for function 'bnxt_re_is_modify_ok'
-    2428 | static bool bnxt_re_is_modify_ok(enum ib_qp_attr_mask ext_mask,
-         |             ^~~~~~~~~~~~~~~~~~~~
->> drivers/infiniband/hw/bnxt_re/ib_verbs.c:2774:12: error: invalid storage class for function 'bnxt_re_build_qp1_send_v2'
-    2774 | static int bnxt_re_build_qp1_send_v2(struct bnxt_re_qp *qp,
-         |            ^~~~~~~~~~~~~~~~~~~~~~~~~
->> drivers/infiniband/hw/bnxt_re/ib_verbs.c:2948:12: error: invalid storage class for function 'bnxt_re_build_qp1_shadow_qp_recv'
-    2948 | static int bnxt_re_build_qp1_shadow_qp_recv(struct bnxt_re_qp *qp,
-         |            ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
->> drivers/infiniband/hw/bnxt_re/ib_verbs.c:2991:12: error: invalid storage class for function 'is_ud_qp'
-    2991 | static int is_ud_qp(struct bnxt_re_qp *qp)
-         |            ^~~~~~~~
->> drivers/infiniband/hw/bnxt_re/ib_verbs.c:2997:12: error: invalid storage class for function 'bnxt_re_build_send_wqe'
-    2997 | static int bnxt_re_build_send_wqe(struct bnxt_re_qp *qp,
-         |            ^~~~~~~~~~~~~~~~~~~~~~
->> drivers/infiniband/hw/bnxt_re/ib_verbs.c:3036:12: error: invalid storage class for function 'bnxt_re_build_rdma_wqe'
-    3036 | static int bnxt_re_build_rdma_wqe(const struct ib_send_wr *wr,
-         |            ^~~~~~~~~~~~~~~~~~~~~~
->> drivers/infiniband/hw/bnxt_re/ib_verbs.c:3068:12: error: invalid storage class for function 'bnxt_re_build_atomic_wqe'
-    3068 | static int bnxt_re_build_atomic_wqe(const struct ib_send_wr *wr,
-         |            ^~~~~~~~~~~~~~~~~~~~~~~~
->> drivers/infiniband/hw/bnxt_re/ib_verbs.c:3095:12: error: invalid storage class for function 'bnxt_re_build_inv_wqe'
-    3095 | static int bnxt_re_build_inv_wqe(const struct ib_send_wr *wr,
-         |            ^~~~~~~~~~~~~~~~~~~~~
->> drivers/infiniband/hw/bnxt_re/ib_verbs.c:3109:12: error: invalid storage class for function 'bnxt_re_build_reg_wqe'
-    3109 | static int bnxt_re_build_reg_wqe(const struct ib_reg_wr *wr,
-         |            ^~~~~~~~~~~~~~~~~~~~~
->> drivers/infiniband/hw/bnxt_re/ib_verbs.c:3145:12: error: invalid storage class for function 'bnxt_re_copy_inline_data'
-    3145 | static int bnxt_re_copy_inline_data(struct bnxt_re_dev *rdev,
-         |            ^~~~~~~~~~~~~~~~~~~~~~~~
->> drivers/infiniband/hw/bnxt_re/ib_verbs.c:3175:12: error: invalid storage class for function 'bnxt_re_copy_wr_payload'
-    3175 | static int bnxt_re_copy_wr_payload(struct bnxt_re_dev *rdev,
-         |            ^~~~~~~~~~~~~~~~~~~~~~~
->> drivers/infiniband/hw/bnxt_re/ib_verbs.c:3190:13: error: invalid storage class for function 'bnxt_ud_qp_hw_stall_workaround'
-    3190 | static void bnxt_ud_qp_hw_stall_workaround(struct bnxt_re_qp *qp)
-         |             ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
->> drivers/infiniband/hw/bnxt_re/ib_verbs.c:3206:12: error: invalid storage class for function 'bnxt_re_post_send_shadow_qp'
-    3206 | static int bnxt_re_post_send_shadow_qp(struct bnxt_re_dev *rdev,
-         |            ^~~~~~~~~~~~~~~~~~~~~~~~~~~
->> drivers/infiniband/hw/bnxt_re/ib_verbs.c:3254:13: error: invalid storage class for function 'bnxt_re_legacy_set_uc_fence'
-    3254 | static void bnxt_re_legacy_set_uc_fence(struct bnxt_qplib_swqe *wqe)
-         |             ^~~~~~~~~~~~~~~~~~~~~~~~~~~
->> drivers/infiniband/hw/bnxt_re/ib_verbs.c:3363:12: error: invalid storage class for function 'bnxt_re_post_recv_shadow_qp'
-    3363 | static int bnxt_re_post_recv_shadow_qp(struct bnxt_re_dev *rdev,
-         |            ^~~~~~~~~~~~~~~~~~~~~~~~~~~
->> drivers/infiniband/hw/bnxt_re/ib_verbs.c:3454:30: error: invalid storage class for function 'bnxt_re_get_nq'
-    3454 | static struct bnxt_qplib_nq *bnxt_re_get_nq(struct bnxt_re_dev *rdev)
-         |                              ^~~~~~~~~~~~~~
->> drivers/infiniband/hw/bnxt_re/ib_verbs.c:3469:13: error: invalid storage class for function 'bnxt_re_put_nq'
-    3469 | static void bnxt_re_put_nq(struct bnxt_re_dev *rdev, struct bnxt_qplib_nq *nq)
-         |             ^~~~~~~~~~~~~~
->> drivers/infiniband/hw/bnxt_re/ib_verbs.c:3673:13: error: invalid storage class for function 'bnxt_re_resize_cq_complete'
-    3673 | static void bnxt_re_resize_cq_complete(struct bnxt_re_cq *cq)
-         |             ^~~~~~~~~~~~~~~~~~~~~~~~~~
-   drivers/infiniband/hw/bnxt_re/ib_verbs.c:3773:11: error: invalid storage class for function '__req_to_ib_wc_status'
-    3773 | static u8 __req_to_ib_wc_status(u8 qstatus)
-         |           ^~~~~~~~~~~~~~~~~~~~~
-   drivers/infiniband/hw/bnxt_re/ib_verbs.c:3806:11: error: invalid storage class for function '__rawqp1_to_ib_wc_status'
-    3806 | static u8 __rawqp1_to_ib_wc_status(u8 qstatus)
-         |           ^~~~~~~~~~~~~~~~~~~~~~~~
-   drivers/infiniband/hw/bnxt_re/ib_verbs.c:3830:11: error: invalid storage class for function '__rc_to_ib_wc_status'
-    3830 | static u8 __rc_to_ib_wc_status(u8 qstatus)
-         |           ^~~~~~~~~~~~~~~~~~~~
-   drivers/infiniband/hw/bnxt_re/ib_verbs.c:3856:13: error: invalid storage class for function 'bnxt_re_process_req_wc'
-    3856 | static void bnxt_re_process_req_wc(struct ib_wc *wc, struct bnxt_qplib_cqe *cqe)
-         |             ^~~~~~~~~~~~~~~~~~~~~~
-   drivers/infiniband/hw/bnxt_re/ib_verbs.c:3900:12: error: invalid storage class for function 'bnxt_re_check_packet_type'
-    3900 | static int bnxt_re_check_packet_type(u16 raweth_qp1_flags,
-         |            ^~~~~~~~~~~~~~~~~~~~~~~~~
-   drivers/infiniband/hw/bnxt_re/ib_verbs.c:3926:12: error: invalid storage class for function 'bnxt_re_to_ib_nw_type'
-    3926 | static int bnxt_re_to_ib_nw_type(int nw_type)
-         |            ^~~~~~~~~~~~~~~~~~~~~
-   drivers/infiniband/hw/bnxt_re/ib_verbs.c:3944:13: error: invalid storage class for function 'bnxt_re_is_loopback_packet'
-    3944 | static bool bnxt_re_is_loopback_packet(struct bnxt_re_dev *rdev,
-         |             ^~~~~~~~~~~~~~~~~~~~~~~~~~
-   drivers/infiniband/hw/bnxt_re/ib_verbs.c:3989:12: error: invalid storage class for function 'bnxt_re_process_raw_qp_pkt_rx'
-    3989 | static int bnxt_re_process_raw_qp_pkt_rx(struct bnxt_re_qp *gsi_qp,
-         |            ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   drivers/infiniband/hw/bnxt_re/ib_verbs.c:4100:13: error: invalid storage class for function 'bnxt_re_process_res_rawqp1_wc'
-    4100 | static void bnxt_re_process_res_rawqp1_wc(struct ib_wc *wc,
-         |             ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   drivers/infiniband/hw/bnxt_re/ib_verbs.c:4108:13: error: invalid storage class for function 'bnxt_re_check_if_vlan_valid'
-    4108 | static bool bnxt_re_check_if_vlan_valid(struct bnxt_re_dev *rdev,
-         |             ^~~~~~~~~~~~~~~~~~~~~~~~~~~
-   drivers/infiniband/hw/bnxt_re/ib_verbs.c:4121:13: error: invalid storage class for function 'bnxt_re_is_vlan_pkt'
-    4121 | static bool bnxt_re_is_vlan_pkt(struct bnxt_qplib_cqe *orig_cqe,
-         |             ^~~~~~~~~~~~~~~~~~~
-   drivers/infiniband/hw/bnxt_re/ib_verbs.c:4147:13: error: invalid storage class for function 'bnxt_re_process_res_rc_wc'
-    4147 | static void bnxt_re_process_res_rc_wc(struct ib_wc *wc,
-         |             ^~~~~~~~~~~~~~~~~~~~~~~~~
-   drivers/infiniband/hw/bnxt_re/ib_verbs.c:4162:13: error: invalid storage class for function 'bnxt_re_process_res_shadow_qp_wc'
-    4162 | static void bnxt_re_process_res_shadow_qp_wc(struct bnxt_re_qp *gsi_sqp,
-         |             ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   drivers/infiniband/hw/bnxt_re/ib_verbs.c:4210:13: error: invalid storage class for function 'bnxt_re_process_res_ud_wc'
-    4210 | static void bnxt_re_process_res_ud_wc(struct bnxt_re_qp *qp,
-         |             ^~~~~~~~~~~~~~~~~~~~~~~~~
-   drivers/infiniband/hw/bnxt_re/ib_verbs.c:4245:12: error: invalid storage class for function 'send_phantom_wqe'
-    4245 | static int send_phantom_wqe(struct bnxt_re_qp *qp)
-         |            ^~~~~~~~~~~~~~~~
-   drivers/infiniband/hw/bnxt_re/ib_verbs.c:4518:12: error: invalid storage class for function 'bnxt_re_set_page'
-    4518 | static int bnxt_re_set_page(struct ib_mr *ib_mr, u64 addr)
-         |            ^~~~~~~~~~~~~~~~
-   drivers/infiniband/hw/bnxt_re/ib_verbs.c:4653:22: error: invalid storage class for function '__bnxt_re_user_reg_mr'
-    4653 | static struct ib_mr *__bnxt_re_user_reg_mr(struct ib_pd *ib_pd, u64 length, u64 virt_addr,
-         |                      ^~~~~~~~~~~~~~~~~~~~~
-   drivers/infiniband/hw/bnxt_re/ib_verbs.c:4904:12: error: invalid storage class for function 'bnxt_re_setup_vnic'
-    4904 | static int bnxt_re_setup_vnic(struct bnxt_re_dev *rdev, struct bnxt_re_qp *qp)
-         |            ^~~~~~~~~~~~~~~~~~
-   drivers/infiniband/hw/bnxt_re/ib_verbs.c:5102:1: error: expected declaration or statement at end of input
-    5102 | }
-         | ^
-   drivers/infiniband/hw/bnxt_re/ib_verbs.c:5103: warning: control reaches end of non-void function [-Wreturn-type]
-   drivers/infiniband/hw/bnxt_re/ib_verbs.c: At top level:
-   drivers/infiniband/hw/bnxt_re/ib_verbs.c:5069:5: warning: 'bnxt_re_process_mad' defined but not used [-Wunused-function]
-    5069 | int bnxt_re_process_mad(struct ib_device *ibdev, int mad_flags,
-         |     ^~~~~~~~~~~~~~~~~~~
-   drivers/infiniband/hw/bnxt_re/ib_verbs.c:5055:6: warning: 'bnxt_re_mmap_free' defined but not used [-Wunused-function]
-    5055 | void bnxt_re_mmap_free(struct rdma_user_mmap_entry *rdma_entry)
-         |      ^~~~~~~~~~~~~~~~~
-   drivers/infiniband/hw/bnxt_re/ib_verbs.c:4996:5: warning: 'bnxt_re_mmap' defined but not used [-Wunused-function]
-    4996 | int bnxt_re_mmap(struct ib_ucontext *ib_uctx, struct vm_area_struct *vma)
-         |     ^~~~~~~~~~~~
-   drivers/infiniband/hw/bnxt_re/ib_verbs.c:4975:5: warning: 'bnxt_re_destroy_flow' defined but not used [-Wunused-function]
-    4975 | int bnxt_re_destroy_flow(struct ib_flow *flow_id)
-         |     ^~~~~~~~~~~~~~~~~~~~
-   drivers/infiniband/hw/bnxt_re/ib_verbs.c:4922:17: warning: 'bnxt_re_create_flow' defined but not used [-Wunused-function]
-    4922 | struct ib_flow *bnxt_re_create_flow(struct ib_qp *ib_qp,
-         |                 ^~~~~~~~~~~~~~~~~~~
-   drivers/infiniband/hw/bnxt_re/ib_verbs.c:4880:6: warning: 'bnxt_re_dealloc_ucontext' defined but not used [-Wunused-function]
-    4880 | void bnxt_re_dealloc_ucontext(struct ib_ucontext *ib_uctx)
-         |      ^~~~~~~~~~~~~~~~~~~~~~~~
-   drivers/infiniband/hw/bnxt_re/ib_verbs.c:4784:5: warning: 'bnxt_re_alloc_ucontext' defined but not used [-Wunused-function]
-    4784 | int bnxt_re_alloc_ucontext(struct ib_ucontext *ctx, struct ib_udata *udata)
-         |     ^~~~~~~~~~~~~~~~~~~~~~
-   drivers/infiniband/hw/bnxt_re/ib_verbs.c:4756:15: warning: 'bnxt_re_reg_user_mr_dmabuf' defined but not used [-Wunused-function]
-    4756 | struct ib_mr *bnxt_re_reg_user_mr_dmabuf(struct ib_pd *ib_pd, u64 start,
-         |               ^~~~~~~~~~~~~~~~~~~~~~~~~~
-   drivers/infiniband/hw/bnxt_re/ib_verbs.c:4728:15: warning: 'bnxt_re_reg_user_mr' defined but not used [-Wunused-function]
-    4728 | struct ib_mr *bnxt_re_reg_user_mr(struct ib_pd *ib_pd, u64 start, u64 length,
-         |               ^~~~~~~~~~~~~~~~~~~
-   drivers/infiniband/hw/bnxt_re/ib_verbs.c:4636:5: warning: 'bnxt_re_dealloc_mw' defined but not used [-Wunused-function]
-    4636 | int bnxt_re_dealloc_mw(struct ib_mw *ib_mw)
-         |     ^~~~~~~~~~~~~~~~~~
-   drivers/infiniband/hw/bnxt_re/ib_verbs.c:4597:15: warning: 'bnxt_re_alloc_mw' defined but not used [-Wunused-function]
-    4597 | struct ib_mw *bnxt_re_alloc_mw(struct ib_pd *ib_pd, enum ib_mw_type type,
-         |               ^~~~~~~~~~~~~~~~
-   drivers/infiniband/hw/bnxt_re/ib_verbs.c:4538:15: warning: 'bnxt_re_alloc_mr' defined but not used [-Wunused-function]
-    4538 | struct ib_mr *bnxt_re_alloc_mr(struct ib_pd *ib_pd, enum ib_mr_type type,
-         |               ^~~~~~~~~~~~~~~~
-   drivers/infiniband/hw/bnxt_re/ib_verbs.c:4529:5: warning: 'bnxt_re_map_mr_sg' defined but not used [-Wunused-function]
-    4529 | int bnxt_re_map_mr_sg(struct ib_mr *ib_mr, struct scatterlist *sg, int sg_nents,
-         |     ^~~~~~~~~~~~~~~~~
+The version of the kernel under test is commit 8cd9520d35a6c38db6567e97dd93b1f11f185dc6 (tag v7.1).
+We believe this OOB bug is still possible in the latest kernel.
 
+The relevant kernel config is:
 
-vim +/bnxt_re_init_user_srq +2178 drivers/infiniband/hw/bnxt_re/ib_verbs.c
+CONFIG_NET=y
+CONFIG_INET=y
+CONFIG_INFINIBAND=y
+CONFIG_INFINIBAND_USER_ACCESS=y
+CONFIG_INFINIBAND_ADDR_TRANS=y
+CONFIG_RDMA_RXE=y
+CONFIG_KASAN=y
+CONFIG_KASAN_GENERIC=y
 
-37cb11acf1f72a Devesh Sharma      2018-01-11  2177  
-37cb11acf1f72a Devesh Sharma      2018-01-11 @2178  static int bnxt_re_init_user_srq(struct bnxt_re_dev *rdev,
-37cb11acf1f72a Devesh Sharma      2018-01-11  2179  				 struct bnxt_re_pd *pd,
-37cb11acf1f72a Devesh Sharma      2018-01-11  2180  				 struct bnxt_re_srq *srq,
-37cb11acf1f72a Devesh Sharma      2018-01-11  2181  				 struct ib_udata *udata)
-37cb11acf1f72a Devesh Sharma      2018-01-11  2182  {
-37cb11acf1f72a Devesh Sharma      2018-01-11  2183  	struct bnxt_re_srq_req ureq;
-37cb11acf1f72a Devesh Sharma      2018-01-11  2184  	struct bnxt_qplib_srq *qplib_srq = &srq->qplib_srq;
-37cb11acf1f72a Devesh Sharma      2018-01-11  2185  	struct ib_umem *umem;
-37cb11acf1f72a Devesh Sharma      2018-01-11  2186  	int bytes = 0;
-89944450547334 Shamir Rabinovitch 2019-02-07  2187  	struct bnxt_re_ucontext *cntx = rdma_udata_to_drv_context(
-89944450547334 Shamir Rabinovitch 2019-02-07  2188  		udata, struct bnxt_re_ucontext, ib_uctx);
-b33d860a13b4f7 Jason Gunthorpe    2026-03-03  2189  	int rc;
-89944450547334 Shamir Rabinovitch 2019-02-07  2190  
-b33d860a13b4f7 Jason Gunthorpe    2026-03-03  2191  	rc = ib_copy_validate_udata_in(udata, ureq, srq_handle);
-b33d860a13b4f7 Jason Gunthorpe    2026-03-03  2192  	if (rc)
-b33d860a13b4f7 Jason Gunthorpe    2026-03-03  2193  		return rc;
-37cb11acf1f72a Devesh Sharma      2018-01-11  2194  
-fddcbbb02af42a Devesh Sharma      2020-04-02  2195  	bytes = (qplib_srq->max_wqe * qplib_srq->wqe_size);
-37cb11acf1f72a Devesh Sharma      2018-01-11  2196  	bytes = PAGE_ALIGN(bytes);
-af841056860d2d Jiri Pirko         2026-05-29  2197  	umem = ib_umem_get_va(&rdev->ibdev, ureq.srqva, bytes,
-c320e527e15483 Moni Shoua         2020-01-15  2198  			      IB_ACCESS_LOCAL_WRITE);
-37cb11acf1f72a Devesh Sharma      2018-01-11  2199  	if (IS_ERR(umem))
-37cb11acf1f72a Devesh Sharma      2018-01-11  2200  		return PTR_ERR(umem);
-37cb11acf1f72a Devesh Sharma      2018-01-11  2201  
-37cb11acf1f72a Devesh Sharma      2018-01-11  2202  	srq->umem = umem;
-6ef999f5002132 Jason Gunthorpe    2020-09-29  2203  	qplib_srq->sg_info.umem = umem;
-0c4dcd60281750 Devesh Sharma      2020-02-15  2204  	qplib_srq->sg_info.pgsize = PAGE_SIZE;
-0c4dcd60281750 Devesh Sharma      2020-02-15  2205  	qplib_srq->sg_info.pgshft = PAGE_SHIFT;
-37cb11acf1f72a Devesh Sharma      2018-01-11  2206  	qplib_srq->srq_handle = ureq.srq_handle;
-37cb11acf1f72a Devesh Sharma      2018-01-11  2207  	qplib_srq->dpi = &cntx->dpi;
-37cb11acf1f72a Devesh Sharma      2018-01-11  2208  
-37cb11acf1f72a Devesh Sharma      2018-01-11  2209  	return 0;
-37cb11acf1f72a Devesh Sharma      2018-01-11  2210  }
-37cb11acf1f72a Devesh Sharma      2018-01-11  2211  
-68e326dea1dba9 Leon Romanovsky    2019-04-03 @2212  int bnxt_re_create_srq(struct ib_srq *ib_srq,
-37cb11acf1f72a Devesh Sharma      2018-01-11  2213  		       struct ib_srq_init_attr *srq_init_attr,
-37cb11acf1f72a Devesh Sharma      2018-01-11  2214  		       struct ib_udata *udata)
-37cb11acf1f72a Devesh Sharma      2018-01-11  2215  {
-fddcbbb02af42a Devesh Sharma      2020-04-02  2216  	struct bnxt_qplib_dev_attr *dev_attr;
-48f996d4adf15a Chandramohan Akula 2023-10-23  2217  	struct bnxt_re_ucontext *uctx;
-fddcbbb02af42a Devesh Sharma      2020-04-02  2218  	struct bnxt_re_dev *rdev;
-fddcbbb02af42a Devesh Sharma      2020-04-02  2219  	struct bnxt_re_srq *srq;
-fddcbbb02af42a Devesh Sharma      2020-04-02  2220  	struct bnxt_re_pd *pd;
-fddcbbb02af42a Devesh Sharma      2020-04-02  2221  	struct ib_pd *ib_pd;
-cb95709e0dca7a Chandramohan Akula 2023-07-26  2222  	u32 active_srqs;
-2b2f078236a445 Leon Romanovsky    2026-03-18  2223  	int rc;
-37cb11acf1f72a Devesh Sharma      2018-01-11  2224  
-fddcbbb02af42a Devesh Sharma      2020-04-02  2225  	ib_pd = ib_srq->pd;
-fddcbbb02af42a Devesh Sharma      2020-04-02  2226  	pd = container_of(ib_pd, struct bnxt_re_pd, ib_pd);
-fddcbbb02af42a Devesh Sharma      2020-04-02  2227  	rdev = pd->rdev;
-9264cd6aa8f194 Kalesh AP          2025-01-09  2228  	dev_attr = rdev->dev_attr;
-fddcbbb02af42a Devesh Sharma      2020-04-02  2229  	srq = container_of(ib_srq, struct bnxt_re_srq, ib_srq);
-fddcbbb02af42a Devesh Sharma      2020-04-02  2230  
-37cb11acf1f72a Devesh Sharma      2018-01-11  2231  	if (srq_init_attr->attr.max_wr >= dev_attr->max_srq_wqes) {
-6ccad8483b2866 Devesh Sharma      2020-02-15  2232  		ibdev_err(&rdev->ibdev, "Create CQ failed - max exceeded");
-37cb11acf1f72a Devesh Sharma      2018-01-11  2233  		rc = -EINVAL;
-37cb11acf1f72a Devesh Sharma      2018-01-11  2234  		goto exit;
-37cb11acf1f72a Devesh Sharma      2018-01-11  2235  	}
-37cb11acf1f72a Devesh Sharma      2018-01-11  2236  
-37cb11acf1f72a Devesh Sharma      2018-01-11  2237  	if (srq_init_attr->srq_type != IB_SRQT_BASIC) {
-8380b74e7d606c Kamal Heib         2018-07-30  2238  		rc = -EOPNOTSUPP;
-37cb11acf1f72a Devesh Sharma      2018-01-11  2239  		goto exit;
-37cb11acf1f72a Devesh Sharma      2018-01-11  2240  	}
-37cb11acf1f72a Devesh Sharma      2018-01-11  2241  
-48f996d4adf15a Chandramohan Akula 2023-10-23  2242  	uctx = rdma_udata_to_drv_context(udata, struct bnxt_re_ucontext, ib_uctx);
-37cb11acf1f72a Devesh Sharma      2018-01-11  2243  	srq->rdev = rdev;
-37cb11acf1f72a Devesh Sharma      2018-01-11  2244  	srq->qplib_srq.pd = &pd->qplib_pd;
-37cb11acf1f72a Devesh Sharma      2018-01-11  2245  	srq->qplib_srq.dpi = &rdev->dpi_privileged;
-37cb11acf1f72a Devesh Sharma      2018-01-11  2246  	/* Allocate 1 more than what's provided so posting max doesn't
-37cb11acf1f72a Devesh Sharma      2018-01-11  2247  	 * mean empty
-37cb11acf1f72a Devesh Sharma      2018-01-11  2248  	 */
-2b2f078236a445 Leon Romanovsky    2026-03-18  2249  	srq->qplib_srq.max_wqe =
-2b2f078236a445 Leon Romanovsky    2026-03-18  2250  		bnxt_re_init_depth(srq_init_attr->attr.max_wr + 1,
-2b2f078236a445 Leon Romanovsky    2026-03-18  2251  				   dev_attr->max_srq_wqes + 1, uctx);
-fddcbbb02af42a Devesh Sharma      2020-04-02  2252  
-37cb11acf1f72a Devesh Sharma      2018-01-11  2253  	srq->qplib_srq.max_sge = srq_init_attr->attr.max_sge;
-b898d5c50cab1f Selvin Xavier      2020-10-12  2254  	 /* 128 byte wqe size for SRQ . So use max sges */
-b898d5c50cab1f Selvin Xavier      2020-10-12  2255  	srq->qplib_srq.wqe_size = bnxt_re_get_rwqe_size(dev_attr->max_srq_sges);
-37cb11acf1f72a Devesh Sharma      2018-01-11  2256  	srq->qplib_srq.threshold = srq_init_attr->attr.srq_limit;
-37cb11acf1f72a Devesh Sharma      2018-01-11  2257  	srq->srq_limit = srq_init_attr->attr.srq_limit;
-30b871338c3eba Kalesh AP          2024-11-14  2258  	srq->qplib_srq.eventq_hw_ring_id = rdev->nqr->nq[0].ring_id;
-b66535356a4834 Kashyap Desai      2025-02-22  2259  	srq->qplib_srq.sg_info.pgsize = PAGE_SIZE;
-b66535356a4834 Kashyap Desai      2025-02-22  2260  	srq->qplib_srq.sg_info.pgshft = PAGE_SHIFT;
-37cb11acf1f72a Devesh Sharma      2018-01-11  2261  
-37cb11acf1f72a Devesh Sharma      2018-01-11  2262  	if (udata) {
-37cb11acf1f72a Devesh Sharma      2018-01-11  2263  		rc = bnxt_re_init_user_srq(rdev, pd, srq, udata);
-37cb11acf1f72a Devesh Sharma      2018-01-11  2264  		if (rc)
-37cb11acf1f72a Devesh Sharma      2018-01-11  2265  			goto fail;
-37cb11acf1f72a Devesh Sharma      2018-01-11  2266  	}
-37cb11acf1f72a Devesh Sharma      2018-01-11  2267  
-37cb11acf1f72a Devesh Sharma      2018-01-11  2268  	rc = bnxt_qplib_create_srq(&rdev->qplib_res, &srq->qplib_srq);
-37cb11acf1f72a Devesh Sharma      2018-01-11  2269  	if (rc) {
-6ccad8483b2866 Devesh Sharma      2020-02-15  2270  		ibdev_err(&rdev->ibdev, "Create HW SRQ failed!");
-37cb11acf1f72a Devesh Sharma      2018-01-11  2271  		goto fail;
-37cb11acf1f72a Devesh Sharma      2018-01-11  2272  	}
-37cb11acf1f72a Devesh Sharma      2018-01-11  2273  
-37cb11acf1f72a Devesh Sharma      2018-01-11  2274  	if (udata) {
-181028a0d84cdc Chandramohan Akula 2024-08-29  2275  		struct bnxt_re_srq_resp resp = {};
-37cb11acf1f72a Devesh Sharma      2018-01-11  2276  
-37cb11acf1f72a Devesh Sharma      2018-01-11  2277  		resp.srqid = srq->qplib_srq.id;
-181028a0d84cdc Chandramohan Akula 2024-08-29  2278  		if (rdev->chip_ctx->modes.toggle_bits & BNXT_QPLIB_SRQ_TOGGLE_BIT) {
-181028a0d84cdc Chandramohan Akula 2024-08-29  2279  			srq->uctx_srq_page = (void *)get_zeroed_page(GFP_KERNEL);
-181028a0d84cdc Chandramohan Akula 2024-08-29  2280  			if (!srq->uctx_srq_page) {
-181028a0d84cdc Chandramohan Akula 2024-08-29  2281  				rc = -ENOMEM;
-2b248ac9c95bf0 Selvin Xavier      2026-07-21  2282  				goto fail_destroy_srq;
-2b248ac9c95bf0 Selvin Xavier      2026-07-21  2283  			}
-2b248ac9c95bf0 Selvin Xavier      2026-07-21  2284  			if (xa_is_err(xa_store(&uctx->srq_xa, srq->qplib_srq.id,
-2b248ac9c95bf0 Selvin Xavier      2026-07-21  2285  					       ib_srq->uobject, GFP_KERNEL))) {
-2b248ac9c95bf0 Selvin Xavier      2026-07-21  2286  				rc = -ENOMEM;
-2b248ac9c95bf0 Selvin Xavier      2026-07-21  2287  				goto fail_free_srq_page;
-181028a0d84cdc Chandramohan Akula 2024-08-29  2288  			}
-181028a0d84cdc Chandramohan Akula 2024-08-29  2289  			resp.comp_mask |= BNXT_RE_SRQ_TOGGLE_PAGE_SUPPORT;
-181028a0d84cdc Chandramohan Akula 2024-08-29  2290  		}
-bc30311e492ecf Jason Gunthorpe    2026-03-03  2291  		rc = ib_respond_udata(udata, resp);
-2b248ac9c95bf0 Selvin Xavier      2026-07-21  2292  		if (rc)
-2b248ac9c95bf0 Selvin Xavier      2026-07-21  2293  			goto fail_respond;
-37cb11acf1f72a Devesh Sharma      2018-01-11  2294  	}
-cb95709e0dca7a Chandramohan Akula 2023-07-26  2295  	active_srqs = atomic_inc_return(&rdev->stats.res.srq_count);
-cb95709e0dca7a Chandramohan Akula 2023-07-26  2296  	if (active_srqs > rdev->stats.res.srq_watermark)
-cb95709e0dca7a Chandramohan Akula 2023-07-26  2297  		rdev->stats.res.srq_watermark = active_srqs;
-17f2569dce1848 Naresh Kumar PBS   2021-08-18  2298  	spin_lock_init(&srq->lock);
-37cb11acf1f72a Devesh Sharma      2018-01-11  2299  
-68e326dea1dba9 Leon Romanovsky    2019-04-03  2300  	return 0;
-37cb11acf1f72a Devesh Sharma      2018-01-11  2301  
-2b248ac9c95bf0 Selvin Xavier      2026-07-21  2302  fail_respond:
-2b248ac9c95bf0 Selvin Xavier      2026-07-21  2303  	if (rdev->chip_ctx->modes.toggle_bits & BNXT_QPLIB_SRQ_TOGGLE_BIT) {
-2b248ac9c95bf0 Selvin Xavier      2026-07-21  2304  		xa_erase(&uctx->srq_xa, srq->qplib_srq.id);
-2b248ac9c95bf0 Selvin Xavier      2026-07-21  2305  		free_page((unsigned long)srq->uctx_srq_page);
-2b248ac9c95bf0 Selvin Xavier      2026-07-21  2306  	}
-2b248ac9c95bf0 Selvin Xavier      2026-07-21  2307  	bnxt_qplib_destroy_srq(&rdev->qplib_res, &srq->qplib_srq);
-2b248ac9c95bf0 Selvin Xavier      2026-07-21  2308  	goto fail;
-2b248ac9c95bf0 Selvin Xavier      2026-07-21  2309  fail_free_srq_page:
-2b248ac9c95bf0 Selvin Xavier      2026-07-21  2310  	free_page((unsigned long)srq->uctx_srq_page);
-2b248ac9c95bf0 Selvin Xavier      2026-07-21  2311  fail_destroy_srq:
-2b248ac9c95bf0 Selvin Xavier      2026-07-21  2312  	bnxt_qplib_destroy_srq(&rdev->qplib_res, &srq->qplib_srq);
-37cb11acf1f72a Devesh Sharma      2018-01-11  2313  fail:
-37cb11acf1f72a Devesh Sharma      2018-01-11  2314  	ib_umem_release(srq->umem);
-37cb11acf1f72a Devesh Sharma      2018-01-11  2315  exit:
-68e326dea1dba9 Leon Romanovsky    2019-04-03  2316  	return rc;
-37cb11acf1f72a Devesh Sharma      2018-01-11  2317  }
-37cb11acf1f72a Devesh Sharma      2018-01-11  2318  
-37cb11acf1f72a Devesh Sharma      2018-01-11 @2319  int bnxt_re_modify_srq(struct ib_srq *ib_srq, struct ib_srq_attr *srq_attr,
-37cb11acf1f72a Devesh Sharma      2018-01-11  2320  		       enum ib_srq_attr_mask srq_attr_mask,
-37cb11acf1f72a Devesh Sharma      2018-01-11  2321  		       struct ib_udata *udata)
-37cb11acf1f72a Devesh Sharma      2018-01-11  2322  {
-37cb11acf1f72a Devesh Sharma      2018-01-11  2323  	struct bnxt_re_srq *srq = container_of(ib_srq, struct bnxt_re_srq,
-37cb11acf1f72a Devesh Sharma      2018-01-11  2324  					       ib_srq);
-3f6b103c4bf25e Jason Gunthorpe    2026-03-03  2325  	int ret;
-3f6b103c4bf25e Jason Gunthorpe    2026-03-03  2326  
-d38c835925d4a3 Leon Romanovsky    2026-07-14  2327  	ret = ib_no_udata_io(udata);
-3f6b103c4bf25e Jason Gunthorpe    2026-03-03  2328  	if (ret)
-3f6b103c4bf25e Jason Gunthorpe    2026-03-03  2329  		return ret;
-37cb11acf1f72a Devesh Sharma      2018-01-11  2330  
-d38c835925d4a3 Leon Romanovsky    2026-07-14  2331  	if (srq_attr_mask != IB_SRQ_LIMIT)
-3687b450c5f32e Kalesh AP          2024-01-22  2332  		return -EINVAL;
-d38c835925d4a3 Leon Romanovsky    2026-07-14  2333  
-37cb11acf1f72a Devesh Sharma      2018-01-11  2334  	if (srq_attr->srq_limit > srq->qplib_srq.max_wqe)
-37cb11acf1f72a Devesh Sharma      2018-01-11  2335  		return -EINVAL;
-37cb11acf1f72a Devesh Sharma      2018-01-11  2336  
-37cb11acf1f72a Devesh Sharma      2018-01-11  2337  	srq->qplib_srq.threshold = srq_attr->srq_limit;
-666bce0bd7e771 Kashyap Desai      2025-08-05  2338  	bnxt_qplib_srq_arm_db(&srq->qplib_srq.dbinfo, srq->qplib_srq.threshold);
-666bce0bd7e771 Kashyap Desai      2025-08-05  2339  
-37cb11acf1f72a Devesh Sharma      2018-01-11  2340  	/* On success, update the shadow */
-37cb11acf1f72a Devesh Sharma      2018-01-11  2341  	srq->srq_limit = srq_attr->srq_limit;
-37cb11acf1f72a Devesh Sharma      2018-01-11  2342  	/* No need to Build and send response back to udata */
-d38c835925d4a3 Leon Romanovsky    2026-07-14  2343  	return 0;
-37cb11acf1f72a Devesh Sharma      2018-01-11  2344  }
-37cb11acf1f72a Devesh Sharma      2018-01-11  2345  
-37cb11acf1f72a Devesh Sharma      2018-01-11 @2346  int bnxt_re_query_srq(struct ib_srq *ib_srq, struct ib_srq_attr *srq_attr)
-37cb11acf1f72a Devesh Sharma      2018-01-11  2347  {
-37cb11acf1f72a Devesh Sharma      2018-01-11  2348  	struct bnxt_re_srq *srq = container_of(ib_srq, struct bnxt_re_srq,
-37cb11acf1f72a Devesh Sharma      2018-01-11  2349  					       ib_srq);
-37cb11acf1f72a Devesh Sharma      2018-01-11  2350  	struct bnxt_re_srq tsrq;
-37cb11acf1f72a Devesh Sharma      2018-01-11  2351  	struct bnxt_re_dev *rdev = srq->rdev;
-37cb11acf1f72a Devesh Sharma      2018-01-11  2352  	int rc;
-37cb11acf1f72a Devesh Sharma      2018-01-11  2353  
-37cb11acf1f72a Devesh Sharma      2018-01-11  2354  	/* Get live SRQ attr */
-37cb11acf1f72a Devesh Sharma      2018-01-11  2355  	tsrq.qplib_srq.id = srq->qplib_srq.id;
-37cb11acf1f72a Devesh Sharma      2018-01-11  2356  	rc = bnxt_qplib_query_srq(&rdev->qplib_res, &tsrq.qplib_srq);
-37cb11acf1f72a Devesh Sharma      2018-01-11  2357  	if (rc) {
-6ccad8483b2866 Devesh Sharma      2020-02-15  2358  		ibdev_err(&rdev->ibdev, "Query HW SRQ failed!");
-37cb11acf1f72a Devesh Sharma      2018-01-11  2359  		return rc;
-37cb11acf1f72a Devesh Sharma      2018-01-11  2360  	}
-37cb11acf1f72a Devesh Sharma      2018-01-11  2361  	srq_attr->max_wr = srq->qplib_srq.max_wqe;
-37cb11acf1f72a Devesh Sharma      2018-01-11  2362  	srq_attr->max_sge = srq->qplib_srq.max_sge;
-37cb11acf1f72a Devesh Sharma      2018-01-11  2363  	srq_attr->srq_limit = tsrq.qplib_srq.threshold;
-37cb11acf1f72a Devesh Sharma      2018-01-11  2364  
-37cb11acf1f72a Devesh Sharma      2018-01-11  2365  	return 0;
-37cb11acf1f72a Devesh Sharma      2018-01-11  2366  }
-37cb11acf1f72a Devesh Sharma      2018-01-11  2367  
-d34ac5cd3a73aa Bart Van Assche    2018-07-18 @2368  int bnxt_re_post_srq_recv(struct ib_srq *ib_srq, const struct ib_recv_wr *wr,
-d34ac5cd3a73aa Bart Van Assche    2018-07-18  2369  			  const struct ib_recv_wr **bad_wr)
-37cb11acf1f72a Devesh Sharma      2018-01-11  2370  {
-37cb11acf1f72a Devesh Sharma      2018-01-11  2371  	struct bnxt_re_srq *srq = container_of(ib_srq, struct bnxt_re_srq,
-37cb11acf1f72a Devesh Sharma      2018-01-11  2372  					       ib_srq);
-37cb11acf1f72a Devesh Sharma      2018-01-11  2373  	struct bnxt_qplib_swqe wqe;
-37cb11acf1f72a Devesh Sharma      2018-01-11  2374  	unsigned long flags;
-036ef0a1a86751 Bart Van Assche    2018-03-07  2375  	int rc = 0;
-37cb11acf1f72a Devesh Sharma      2018-01-11  2376  
-37cb11acf1f72a Devesh Sharma      2018-01-11  2377  	spin_lock_irqsave(&srq->lock, flags);
-37cb11acf1f72a Devesh Sharma      2018-01-11  2378  	while (wr) {
-37cb11acf1f72a Devesh Sharma      2018-01-11  2379  		/* Transcribe each ib_recv_wr to qplib_swqe */
-37cb11acf1f72a Devesh Sharma      2018-01-11  2380  		wqe.num_sge = wr->num_sge;
-036ef0a1a86751 Bart Van Assche    2018-03-07  2381  		bnxt_re_build_sgl(wr->sg_list, wqe.sg_list, wr->num_sge);
-37cb11acf1f72a Devesh Sharma      2018-01-11  2382  		wqe.wr_id = wr->wr_id;
-37cb11acf1f72a Devesh Sharma      2018-01-11  2383  		wqe.type = BNXT_QPLIB_SWQE_TYPE_RECV;
-37cb11acf1f72a Devesh Sharma      2018-01-11  2384  
-37cb11acf1f72a Devesh Sharma      2018-01-11  2385  		rc = bnxt_qplib_post_srq_recv(&srq->qplib_srq, &wqe);
-37cb11acf1f72a Devesh Sharma      2018-01-11  2386  		if (rc) {
-37cb11acf1f72a Devesh Sharma      2018-01-11  2387  			*bad_wr = wr;
-37cb11acf1f72a Devesh Sharma      2018-01-11  2388  			break;
-37cb11acf1f72a Devesh Sharma      2018-01-11  2389  		}
-37cb11acf1f72a Devesh Sharma      2018-01-11  2390  		wr = wr->next;
-37cb11acf1f72a Devesh Sharma      2018-01-11  2391  	}
-37cb11acf1f72a Devesh Sharma      2018-01-11  2392  	spin_unlock_irqrestore(&srq->lock, flags);
-37cb11acf1f72a Devesh Sharma      2018-01-11  2393  
-37cb11acf1f72a Devesh Sharma      2018-01-11  2394  	return rc;
-37cb11acf1f72a Devesh Sharma      2018-01-11  2395  }
-1ac5a404797523 Selvin Xavier      2017-02-10  2396  static int bnxt_re_modify_shadow_qp(struct bnxt_re_dev *rdev,
-1ac5a404797523 Selvin Xavier      2017-02-10  2397  				    struct bnxt_re_qp *qp1_qp,
-1ac5a404797523 Selvin Xavier      2017-02-10  2398  				    int qp_attr_mask)
-1ac5a404797523 Selvin Xavier      2017-02-10  2399  {
-8dae419f9ec730 Devesh Sharma      2020-02-15  2400  	struct bnxt_re_qp *qp = rdev->gsi_ctx.gsi_sqp;
-14611b9b984125 Kalesh AP          2023-08-03  2401  	int rc;
-1ac5a404797523 Selvin Xavier      2017-02-10  2402  
-1ac5a404797523 Selvin Xavier      2017-02-10  2403  	if (qp_attr_mask & IB_QP_STATE) {
-1ac5a404797523 Selvin Xavier      2017-02-10  2404  		qp->qplib_qp.modify_flags |= CMDQ_MODIFY_QP_MODIFY_MASK_STATE;
-1ac5a404797523 Selvin Xavier      2017-02-10  2405  		qp->qplib_qp.state = qp1_qp->qplib_qp.state;
-1ac5a404797523 Selvin Xavier      2017-02-10  2406  	}
-1ac5a404797523 Selvin Xavier      2017-02-10  2407  	if (qp_attr_mask & IB_QP_PKEY_INDEX) {
-1ac5a404797523 Selvin Xavier      2017-02-10  2408  		qp->qplib_qp.modify_flags |= CMDQ_MODIFY_QP_MODIFY_MASK_PKEY;
-1ac5a404797523 Selvin Xavier      2017-02-10  2409  		qp->qplib_qp.pkey_index = qp1_qp->qplib_qp.pkey_index;
-1ac5a404797523 Selvin Xavier      2017-02-10  2410  	}
-1ac5a404797523 Selvin Xavier      2017-02-10  2411  
-1ac5a404797523 Selvin Xavier      2017-02-10  2412  	if (qp_attr_mask & IB_QP_QKEY) {
-1ac5a404797523 Selvin Xavier      2017-02-10  2413  		qp->qplib_qp.modify_flags |= CMDQ_MODIFY_QP_MODIFY_MASK_QKEY;
-1ac5a404797523 Selvin Xavier      2017-02-10  2414  		/* Using a Random  QKEY */
-1ac5a404797523 Selvin Xavier      2017-02-10  2415  		qp->qplib_qp.qkey = 0x81818181;
-1ac5a404797523 Selvin Xavier      2017-02-10  2416  	}
-1ac5a404797523 Selvin Xavier      2017-02-10  2417  	if (qp_attr_mask & IB_QP_SQ_PSN) {
-1ac5a404797523 Selvin Xavier      2017-02-10  2418  		qp->qplib_qp.modify_flags |= CMDQ_MODIFY_QP_MODIFY_MASK_SQ_PSN;
-1ac5a404797523 Selvin Xavier      2017-02-10  2419  		qp->qplib_qp.sq.psn = qp1_qp->qplib_qp.sq.psn;
-1ac5a404797523 Selvin Xavier      2017-02-10  2420  	}
-1ac5a404797523 Selvin Xavier      2017-02-10  2421  
-1ac5a404797523 Selvin Xavier      2017-02-10  2422  	rc = bnxt_qplib_modify_qp(&rdev->qplib_res, &qp->qplib_qp);
-1ac5a404797523 Selvin Xavier      2017-02-10  2423  	if (rc)
-6ccad8483b2866 Devesh Sharma      2020-02-15  2424  		ibdev_err(&rdev->ibdev, "Failed to modify Shadow QP for QP1");
-1ac5a404797523 Selvin Xavier      2017-02-10  2425  	return rc;
-1ac5a404797523 Selvin Xavier      2017-02-10  2426  }
-1ac5a404797523 Selvin Xavier      2017-02-10  2427  
+We have also prepared a C PoC that can stably trigger this OOB in https://drive.google.com/file/d/1GjnTgT8UKiMWmRXXNULZ7Gs1EiZUQiv6/view?usp=sharing.
 
-:::::: The code at line 2178 was first introduced by commit
-:::::: 37cb11acf1f72a007a85894a6dd2ec93932bde46 RDMA/bnxt_re: Add SRQ support for Broadcom adapters
+=========================
+Original Syzkaller report
+=========================
 
-:::::: TO: Devesh Sharma <devesh.sharma@broadcom.com>
-:::::: CC: Doug Ledford <dledford@redhat.com>
+BUG: KASAN: slab-out-of-bounds in free_rd_atomic_resource drivers/infiniband/sw/rxe/rxe_qp.c:180 [inline]
+BUG: KASAN: slab-out-of-bounds in free_rd_atomic_resources drivers/infiniband/sw/rxe/rxe_qp.c:171 [inline]
+BUG: KASAN: slab-out-of-bounds in free_rd_atomic_resources drivers/infiniband/sw/rxe/rxe_qp.c:163 [inline]
+BUG: KASAN: slab-out-of-bounds in rxe_qp_from_attr+0x1e88/0x2150 drivers/infiniband/sw/rxe/rxe_qp.c:712
+Write of size 4 at addr ffff88802b8dddb8 by task syz.3.451/11063
 
---
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+CPU: 0 UID: 0 PID: 11063 Comm: syz.3.451 Not tainted 7.1.0 #2 PREEMPT(full) 
+Hardware name: QEMU Ubuntu 24.04 PC v2 (i440FX + PIIX, arch_caps fix, 1996), BIOS 1.16.3-debian-1.16.3-2 04/01/2014
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:94 [inline]
+ dump_stack_lvl+0x10e/0x1f0 lib/dump_stack.c:120
+ print_address_description mm/kasan/report.c:378 [inline]
+ print_report+0xf7/0x600 mm/kasan/report.c:482
+ kasan_report+0xe4/0x120 mm/kasan/report.c:595
+ free_rd_atomic_resource drivers/infiniband/sw/rxe/rxe_qp.c:180 [inline]
+ free_rd_atomic_resources drivers/infiniband/sw/rxe/rxe_qp.c:171 [inline]
+ free_rd_atomic_resources drivers/infiniband/sw/rxe/rxe_qp.c:163 [inline]
+ rxe_qp_from_attr+0x1e88/0x2150 drivers/infiniband/sw/rxe/rxe_qp.c:712
+ rxe_modify_qp+0x1e2/0x530 drivers/infiniband/sw/rxe/rxe_verbs.c:623
+ ib_security_modify_qp+0x223/0xfa0 drivers/infiniband/core/security.c:625
+ _ib_modify_qp+0x333/0xec0 drivers/infiniband/core/verbs.c:1915
+ modify_qp+0x13ca/0x1940 drivers/infiniband/core/uverbs_cmd.c:1932
+ ib_uverbs_modify_qp+0xcb/0x120 drivers/infiniband/core/uverbs_cmd.c:1958
+ ib_uverbs_write+0xb86/0x1030 drivers/infiniband/core/uverbs_main.c:680
+ vfs_write+0x2aa/0x1070 fs/read_write.c:686
+ ksys_write+0x1f8/0x250 fs/read_write.c:740
+ do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
+ do_syscall_64+0x116/0x800 arch/x86/entry/syscall_64.c:94
+ entry_SYSCALL_64_after_hwframe+0x77/0x7f
+RIP: 0033:0x7fefc75a70cd
+Code: ff c3 66 2e 0f 1f 84 00 00 00 00 00 90 f3 0f 1e fa 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 b0 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007fefc8495018 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 00007fefc7835fa0 RCX: 00007fefc75a70cd
+RDX: 0000000000000078 RSI: 0000200000000240 RDI: 0000000000000007
+RBP: 00007fefc764f10f R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
+R13: 00007fefc7836038 R14: 00007fefc7835fa0 R15: 00007ffcf0586aa0
+ </TASK>
+
+Allocated by task 11063:
+ kasan_save_stack+0x33/0x60 mm/kasan/common.c:57
+ kasan_save_track+0x14/0x30 mm/kasan/common.c:78
+ poison_kmalloc_redzone mm/kasan/common.c:398 [inline]
+ __kasan_kmalloc+0xaa/0xb0 mm/kasan/common.c:415
+ kasan_kmalloc include/linux/kasan.h:263 [inline]
+ __do_kmalloc_node mm/slub.c:5296 [inline]
+ __kmalloc_noprof+0x32a/0x850 mm/slub.c:5308
+ kmalloc_noprof include/linux/slab.h:954 [inline]
+ kzalloc_noprof include/linux/slab.h:1188 [inline]
+ alloc_rd_atomic_resources drivers/infiniband/sw/rxe/rxe_qp.c:155 [inline]
+ rxe_qp_from_attr+0x3f8/0x2150 drivers/infiniband/sw/rxe/rxe_qp.c:714
+ rxe_modify_qp+0x1e2/0x530 drivers/infiniband/sw/rxe/rxe_verbs.c:623
+ ib_security_modify_qp+0x223/0xfa0 drivers/infiniband/core/security.c:625
+ _ib_modify_qp+0x333/0xec0 drivers/infiniband/core/verbs.c:1915
+ modify_qp+0x13ca/0x1940 drivers/infiniband/core/uverbs_cmd.c:1932
+ ib_uverbs_modify_qp+0xcb/0x120 drivers/infiniband/core/uverbs_cmd.c:1958
+ ib_uverbs_write+0xb86/0x1030 drivers/infiniband/core/uverbs_main.c:680
+ vfs_write+0x2aa/0x1070 fs/read_write.c:686
+ ksys_write+0x1f8/0x250 fs/read_write.c:740
+ do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
+ do_syscall_64+0x116/0x800 arch/x86/entry/syscall_64.c:94
+ entry_SYSCALL_64_after_hwframe+0x77/0x7f
+
+The buggy address belongs to the object at ffff88802b8ddd80
+ which belongs to the cache kmalloc-64 of size 64
+The buggy address is located 0 bytes to the right of
+ allocated 56-byte region [ffff88802b8ddd80, ffff88802b8dddb8)
+
+The buggy address belongs to the physical page:
+page: refcount:0 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x2b8dd
+flags: 0xfff00000000000(node=0|zone=1|lastcpupid=0x7ff)
+page_type: f5(slab)
+raw: 00fff00000000000 ffff888015c418c0 dead000000000100 dead000000000122
+raw: 0000000000000000 0000000800200020 00000000f5000000 0000000000000000
+page dumped because: kasan: bad access detected
+page_owner tracks the page as allocated
+page last allocated via order 0, migratetype Unmovable, gfp_mask 0xd2c40(GFP_NOFS|__GFP_NOWARN|__GFP_NORETRY|__GFP_COMP|__GFP_NOMEMALLOC), pid 4651, tgid 4651 ((udev-worker)), ts 123427165316, free_ts 123425874255
+ set_page_owner include/linux/page_owner.h:32 [inline]
+ post_alloc_hook+0xfc/0x120 mm/page_alloc.c:1853
+ prep_new_page mm/page_alloc.c:1861 [inline]
+ get_page_from_freelist+0x75b/0x3220 mm/page_alloc.c:3941
+ __alloc_frozen_pages_noprof+0x27e/0x2b00 mm/page_alloc.c:5221
+ alloc_slab_page mm/slub.c:3278 [inline]
+ allocate_slab mm/slub.c:3467 [inline]
+ new_slab+0xa6/0x670 mm/slub.c:3525
+ refill_objects+0x278/0x420 mm/slub.c:7272
+ refill_sheaf mm/slub.c:2816 [inline]
+ __pcs_replace_empty_main+0x2ed/0x640 mm/slub.c:4652
+ alloc_from_pcs mm/slub.c:4750 [inline]
+ slab_alloc_node mm/slub.c:4884 [inline]
+ __do_kmalloc_node mm/slub.c:5295 [inline]
+ __kmalloc_noprof+0x68d/0x850 mm/slub.c:5308
+ kmalloc_noprof include/linux/slab.h:954 [inline]
+ kzalloc_noprof include/linux/slab.h:1188 [inline]
+ tomoyo_encode2+0x100/0x3e0 security/tomoyo/realpath.c:45
+ tomoyo_encode+0x29/0x50 security/tomoyo/realpath.c:80
+ tomoyo_realpath_from_path+0x18c/0x690 security/tomoyo/realpath.c:283
+ tomoyo_get_realpath security/tomoyo/file.c:151 [inline]
+ tomoyo_check_open_permission+0x2ab/0x3c0 security/tomoyo/file.c:776
+ tomoyo_file_open+0x6b/0x90 security/tomoyo/tomoyo.c:334
+ security_file_open+0x7a/0x1b0 security/security.c:2739
+ do_dentry_open+0x57e/0x1690 fs/open.c:924
+ vfs_open+0x82/0x3f0 fs/open.c:1079
+ do_open fs/namei.c:4699 [inline]
+ path_openat+0x218a/0x3190 fs/namei.c:4858
+page last free pid 1 tgid 1 stack trace:
+ reset_page_owner include/linux/page_owner.h:25 [inline]
+ __free_pages_prepare mm/page_alloc.c:1397 [inline]
+ __free_frozen_pages+0x763/0xfc0 mm/page_alloc.c:2938
+ selinux_genfs_get_sid security/selinux/hooks.c:1364 [inline]
+ inode_doinit_with_dentry+0x903/0x1320 security/selinux/hooks.c:1563
+ selinux_d_instantiate+0x26/0x30 security/selinux/hooks.c:6658
+ security_d_instantiate+0x123/0x190 security/security.c:3704
+ d_splice_alias_ops+0x92/0x850 fs/dcache.c:3141
+ kernfs_iop_lookup+0x23f/0x2d0 fs/kernfs/dir.c:1289
+ lookup_open.isra.0+0x659/0x1080 fs/namei.c:4484
+ open_last_lookups fs/namei.c:4611 [inline]
+ path_openat+0x17dd/0x3190 fs/namei.c:4855
+ do_file_open+0x20c/0x430 fs/namei.c:4887
+ do_sys_openat2+0x101/0x1d0 fs/open.c:1364
+ do_sys_open fs/open.c:1370 [inline]
+ __do_sys_openat fs/open.c:1386 [inline]
+ __se_sys_openat fs/open.c:1381 [inline]
+ __x64_sys_openat+0x141/0x200 fs/open.c:1381
+ do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
+ do_syscall_64+0x116/0x800 arch/x86/entry/syscall_64.c:94
+ entry_SYSCALL_64_after_hwframe+0x77/0x7f
+
+Memory state around the buggy address:
+ ffff88802b8ddc80: 00 00 00 00 00 00 fc fc fc fc fc fc fc fc fc fc
+ ffff88802b8ddd00: fa fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc
+>ffff88802b8ddd80: 00 00 00 00 00 00 00 fc fc fc fc fc fc fc fc fc
+                                        ^
+ ffff88802b8dde00: 00 00 00 00 00 fc fc fc fc fc fc fc fc fc fc fc
+ ffff88802b8dde80: 00 00 00 00 00 fc fc fc fc fc fc fc fc fc fc fc
+==================================================================
+
+==========
+Root cause
+==========
+
+Core function sequence is:
+
+userspace MODIFY_QP
+-> ib_uverbs_modify_qp
+-> modify_qp
+-> ib_security_modify_qp
+-> rxe_modify_qp
+-> rxe_qp_from_attr
+
+The failing case is a QP that already owns a resp.resources array from an
+earlier MODIFY_QP, and then receives another MODIFY_QP with
+IB_QP_MAX_DEST_RD_ATOMIC set to a LARGER value.
+
+Inside rxe_qp_from_attr(), the state is updated in a buggy order:
+
+	if (mask & IB_QP_MAX_DEST_RD_ATOMIC) {
+		int max_dest_rd_atomic = attr->max_dest_rd_atomic ?
+			roundup_pow_of_two(attr->max_dest_rd_atomic) : 0;
+
+		qp->attr.max_dest_rd_atomic = max_dest_rd_atomic;
+
+		free_rd_atomic_resources(qp);
+
+		err = alloc_rd_atomic_resources(qp, max_dest_rd_atomic);
+		if (err)
+			return err;
+	}
+
+It first computes the new max_dest_rd_atomic value, then stores the value
+in qp->attr.max_dest_rd_atomic, then frees the old qp->resp.resources
+array, and only after that allocates a new qp->resp.resources array for the
+new value.
+
+The bug is that the free path uses qp->attr.max_dest_rd_atomic as the loop
+bound while clearing the old array:
+
+static void free_rd_atomic_resources(struct rxe_qp *qp)
+{
+	if (qp->resp.resources) {
+		int i;
+
+		for (i = 0; i < qp->attr.max_dest_rd_atomic; i++) {
+			struct resp_res *res = &qp->resp.resources[i];
+
+			free_rd_atomic_resource(res);
+		}
+		kfree(qp->resp.resources);
+		qp->resp.resources = NULL;
+	}
+}
+
+As a result, if the old array was allocated for a smaller max_dest_rd_atomic
+and the new request increases it, the cleanup loop indexes beyond the end of
+the old resp.resources array and writes out of bounds while clearing one of the
+resource entries.
+
+=============
+Suggested fix
+=============
+
+We cannot calculate the correct length of qp->resp.resources in free_rd_atomic_resources().
+To fix this OOB, one possbile solution is to pass the array length explicitly:
+
+static void free_rd_atomic_resources(struct rxe_qp *qp, unsigned int nr)
+{
+    if (qp->resp.resources) {
+        int i;
+
+        for (i = 0; i < nr; i++) {
+            struct resp_res *res = &qp->resp.resources[i];
+
+            free_rd_atomic_resource(res);
+        }
+
+        kfree(qp->resp.resources);
+        qp->resp.resources = NULL;
+    }
+}
+
+But on a second thought, the only thing free_rd_atomic_resource(res) does
+is setting res->type to 0, given that the whole qp->resp.resources will be freed in the end,
+should we just delete the for-loop in free_rd_atomic_resources()?
+
+Happy to hear any feedback!
+
+Thanks,
+Peiyang
+
