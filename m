@@ -1,209 +1,152 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pj1-f53.google.com (mail-pj1-f53.google.com [209.85.216.53])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DED5239EB47;
-	Tue, 28 Jul 2026 21:43:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 91F994756CA
+	for <linux-rdma@vger.kernel.org>; Tue, 28 Jul 2026 21:47:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.53
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785275016; cv=none; b=CFUUviPw9vZlZ6rTiVIA1N3IFHg49h+19LpbEjWGHVBrdLYYr3643tRB3Q15YSNTUFOrlQ/BqkPW4VLjcrwyqLOwPKdqQtjf3lvM+NjqZvofu9QhWhJpQ3Qc7CjJsP56JaZYGaqTR0P6wnNyjDzGz2hDR5zJC6ZXahsVWqaKhpg=
+	t=1785275251; cv=none; b=kJ9GM07XhKGpntO6iyero0zdEOkc/DmYwLwKJYruMN88D7BL3uYPr7Qx9L4xvzRNJcnkdfiu73zA4CjWYtoEQv/rxZBZ+oBsuQ88qFI6rFNiPo325wHzgj7GVmvhUXkGFbLKAHan3n2OEJR8spTqNR/wJ6rVHpt13lx9cY6ZpsE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785275016; c=relaxed/simple;
-	bh=DyEwXd5pAriExK0XhUx55FkPr++yZGZZU+ubvuSqjdk=;
-	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=hxsYlnRQ44QmzA9nAvwexNzYWUfVaa6k/qE+b8C2mvoe4Vi0ZzOiODHzMqdKEhQaUUPxQMQ8bndWZKl3RP5/staieWzle6adHNGh6w5a+D+4z4ijehGwHdKMoVC0QxrOyHfaxcfmVJSzL8RlGk9CgkYBdBBhmqQy6b92NSJv678=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=A27Au0Eo; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785275251; c=relaxed/simple;
+	bh=arCSHmIPe99p+uOZo/Ya0BLeIuYdbdd5sTDUO5dIv54=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=icBkffjDG4sPQuL1CuvT2IGNMM9SqMwZpVYAKl/7TfNfyn0urLuxtRKdOMYrzRll37G9ibQ1PY9aQcpF1pqTBAFTQajqBlroabbm6vJafJwU0v5/qNwXjClkHEipA4IPHtKqWg4oRPpJ7TWlbtDM/cFMbzaZ62h32siDXsdZ15g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=XJQILAO5; arc=none smtp.client-ip=209.85.216.53
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="A27Au0Eo"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D2C4E1F000E9;
-	Tue, 28 Jul 2026 21:43:33 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1785275014;
-	bh=FPFd3THcS0+K8u8o3dy0lp1U8FSBqKG4SoO1gz9KXvA=;
-	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=A27Au0EoZWeOFj13m84FaO/3KQ+KNiX1TUZ57e/oxCFXrwTp9bikqfyUWfYAqm2g+
-	 78A77CGAcU6E+x6K8Og2JFAddPTaKJKozAHWbUZ39QBu5sM6LbXkXdprZh2Ivq8b8+
-	 IhgLAzOhElcUeypruIeZkEqJrPxeli5oTRoy46z/rBaWRIW1nagsOXR3QlEZZrC31Z
-	 R3kMXabV9vB0W2SDliZoQFUydBie6TX//eo1mdyasKZGOsfErH83LtZowQ/QnaDtug
-	 KOH/COGZ7yOUik2hfv+E2271PNlimlUsTbSG8VPuHUMthfDTi0GxyD35oEa77kGhgw
-	 kKCbBk+Pe8xpw==
-Message-ID: <46a5f6a57ed7c680831f8819659e8be8d3b552f1.camel@kernel.org>
-Subject: Re: [PATCH net-next v2] rds: synchronize info callbacks with module
- unload
-From: Allison Henderson <achender@kernel.org>
-To: Chengfeng Ye <nicoyip.dev@gmail.com>, "David S. Miller"
- <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, Jakub Kicinski
- <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, Simon Horman
- <horms@kernel.org>, Santosh Shilimkar <santosh.shilimkar@oracle.com>, 
- Ka-Cheong Poon <ka-cheong.poon@oracle.com>, Dan Carpenter
- <error27@gmail.com>
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, 
-	rds-devel@oss.oracle.com, linux-kernel@vger.kernel.org
-Date: Tue, 28 Jul 2026 14:43:33 -0700
-In-Reply-To: <20260727174826.135662-1-nicoyip.dev@gmail.com>
-References: <20260720184955.3008978-1-nicoyip.dev@gmail.com>
-	 <20260727174826.135662-1-nicoyip.dev@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.52.3-0ubuntu1.1 
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="XJQILAO5"
+Received: by mail-pj1-f53.google.com with SMTP id 98e67ed59e1d1-38e3efab7e0so291866a91.0
+        for <linux-rdma@vger.kernel.org>; Tue, 28 Jul 2026 14:47:28 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1785275248; x=1785880048; darn=vger.kernel.org;
+        h=cc:to:message-id:content-transfer-encoding:content-type
+         :mime-version:subject:date:from:from:to:cc:subject:date:message-id
+         :reply-to:content-type;
+        bh=6TWIGKjAU2ehn9qnpDFwgJ4KpTmG2HvE/6J3W1aUxlU=;
+        b=XJQILAO5fCD5XeYW2dLAMmRR9GvnQ30fyqLk+6Qn7XnKEhNzOPfBl2Sm9vSYsjfGQ6
+         bHPPYypz6InpfHgnYVG+GASIjq8pfHo4k0qnhxDS2GC/Rwbsil93ss6aixG5Inl/LF4V
+         dqACUssu7f93guY1+pLRtWob1lTMzNoPbC1gx/JO+rds3A1E+pM4m8D7BqX9X1tyfnXv
+         5efqwPne+ZwkZS0cIFouYDrejVxOJmJ4dOZkRuy2v56nHmPf8cQ+jl7KcTyc1G6TnNTs
+         Vz2CuefFhKXR6CEl1Xb6h+fSOz0OvkCuD/7+Uj3YvRsAvQL6wjwhSdyXAdmwnu+ZrcGH
+         rcbg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1785275248; x=1785880048;
+        h=cc:to:message-id:content-transfer-encoding:content-type
+         :mime-version:subject:date:from:x-gm-gg:x-gm-message-state:from:to
+         :cc:subject:date:message-id:reply-to:content-type;
+        bh=6TWIGKjAU2ehn9qnpDFwgJ4KpTmG2HvE/6J3W1aUxlU=;
+        b=L6Hp7Zk9zaRcZmRFWh83QhUYrxOdeHnwQHL76aJNZcu2RZOCei5ag79qI36KzvBY1c
+         pn7fxW3PuqSTqlvBAaOgfojl/h7Zn3aLMcznMmajy2gJ6FVcjhonThv2Oo+Vp+itiG/a
+         jdCVaPIWn4eIIE1RveBBcBt/o0DDfMlHKrxDJh+WBfpCIVha9xfLZuMyXNfiC6s4IHjV
+         ghjX1w2zt2LYaqj2jnuBBnFZS8mym5mntmPgYapIWObQr10wVEH2atVwDc/oDcQhIPke
+         ubyTX0LT92jQKpe4XqV0jGleosKjSSyOt5IGUKGLDQCdS8Tkzen8BBkYJkqhXiz8oi6G
+         27jg==
+X-Forwarded-Encrypted: i=1; AHgh+RrpF8scsoAe3IE+u4iG10VPhPLh6p7JR0CihFRbkI3xBCJqPdsgyl/Ul5XuMdLj3hVy+pob+yR4ANdb@vger.kernel.org
+X-Gm-Message-State: AOJu0Ywp73OTi9oyUl4pBgsrhfzm05X3faBoscs2iy+vIBkm1KYyS9AP
+	u7s6reEtFSSI9UTVPbQHE3XcqKJXHlvlVfbishYPwYLY1i0vu73Nosob
+X-Gm-Gg: AR+sD10X3s0oVHE5DtW1IyJnUPYHHaF07EUVt5m+WIQYZY7beta70rBp/Wd6vPHerxa
+	4qhMt+Cum2r1NWEf77mMrJij+8Rox7NlJ92QnGu44vyEMutWSg5ma4n71RLKEyTjPyNca90uA4k
+	UmsKGiuiciEHUjFrj2Vvfc43xxuPKkLN9iN19VWWObQsVt4HUxy0ekmpsoGV9BsP4QrVwCwk+oQ
+	WhcNdnzbcZpnuekq2DkRVhYIYarJ3Rl1a6EQ0gVAiU+6hOjGP4oRf4R+Z5TYQt5qe/aG/KVIFOY
+	6c7jsvzkTX6QobuIXr1CdiKYZd1t3ZIXRrP1LV76EFkz1tpWqpSuZNUJozd96+/tNh9Nxi06HzW
+	6ZHl4Vhu332GS1i0l9uD3j0ai8ctsDo3gG6+gvBBfZXNptWe4zHujUgn1fPoZ+R8lhZDTigob95
+	MVfac/6xL+KdV4Zr8TnSAzUvGLqCrWk5BB7fV3q5tdSSpNAUfC0ABryXMx/nfw+9AqIw==
+X-Received: by 2002:a17:90a:fc43:b0:37f:d265:18d2 with SMTP id 98e67ed59e1d1-38f6a267d72mr3944402a91.7.1785275247903;
+        Tue, 28 Jul 2026 14:47:27 -0700 (PDT)
+Received: from localhost ([2a03:2880:ff:5::])
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-38f642e342esm1844961a91.15.2026.07.28.14.47.25
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 28 Jul 2026 14:47:27 -0700 (PDT)
+From: Bobby Eshleman <bobbyeshleman@gmail.com>
+Date: Tue, 28 Jul 2026 14:47:05 -0700
+Subject: [PATCH net] net/mlx5e: fix BQL reset on SQ re-activation
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <20260728-mlx5-bql-v1-1-99a0ab77ede7@meta.com>
+X-B4-Tracking: v=1; b=H4sIAFgjaWoC/x3M7QpAMBQG4Fs5vb+tZvlYuxX5MRycYtgkJfeuP
+ BfwPEgchRMcPYh8SZItwFGeEfrZh4mVDHAEo02la2PVutyl6o5F2YK18aUvqt4iI+yRR7n/qkH
+ gE+37foAfhq5fAAAA
+X-Change-ID: 20260728-mlx5-bql-84e02a5a46c8
+To: Saeed Mahameed <saeedm@nvidia.com>, Tariq Toukan <tariqt@nvidia.com>, 
+ Mark Bloch <mbloch@nvidia.com>, Leon Romanovsky <leon@kernel.org>, 
+ Andrew Lunn <andrew+netdev@lunn.ch>, 
+ "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, 
+ Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
+ Dragos Tatulea <dtatulea@nvidia.com>, Mina Almasry <almasrymina@google.com>
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, 
+ linux-kernel@vger.kernel.org, Bobby Eshleman <bobbyeshleman@meta.com>
+X-Mailer: b4 0.14.3
 
-On Tue, 2026-07-28 at 01:48 +0800, Chengfeng Ye wrote:
-> rds_info_getsockopt() reads a callback from rds_info_funcs and invokes it
-> without protecting the callback's lifetime.  Transport modules register
-> functions stored in this array.  For example, rds_tcp.ko registers
-> rds_tcp_tc_info() for RDS_INFO_TCP_SOCKETS.
->=20
-> This permits the following interleaving:
->=20
->   CPU0                             CPU1
->   rds_info_getsockopt()
->     func =3D rds_tcp_tc_info
->                                    rmmod rds_tcp
->                                      rds_tcp_exit()
->                                        rds_info_deregister_func()
->                                          rds_info_funcs[offset] =3D NULL
->                                      free rds_tcp module text
->     func()
->=20
-> The reader can therefore branch to an address in unloaded module text.
->=20
-> Protect callback invocation with SRCU.  Enter the SRCU read-side critical
-> section before loading the callback and leave it only after the callback
-> returns.  Clear the callback with release semantics and call
-> synchronize_srcu() before deregistration returns, preventing module unloa=
-d
-> from freeing its text while an old reader is still executing it.  SRCU is
-> required because callbacks such as RDS_INFO_COUNTERS can sleep.
->=20
-> Keep the callback array unannotated and use acquire and release operation=
-s
-> for publication so sparse does not have to apply __rcu through the
-> function-pointer typedef.  Replace the two callback-slot BUG_ON() checks
-> with WARN_ON_ONCE() and return without changing the slot on mismatch.
->=20
-> Fixes: 70041088e3b9 ("RDS: Add TCP transport to RDS")
-> Link: https://lore.kernel.org/netdev/20260720184955.3008978-1-nicoyip.dev=
-@gmail.com/
-> Suggested-by: Allison Henderson <achender@kernel.org>
-> Signed-off-by: Chengfeng Ye <nicoyip.dev@gmail.com>
+From: Bobby Eshleman <bobbyeshleman@meta.com>
 
-Hi Chengfeng,
+mlx5e_queue_start() deactivates and re-activates all channels but closes
+only the queue being restarted. mlx5e_activate_txqsq() then
+unconditionally calls netdev_tx_reset_queue(), zeroing the BQL counters
+of channels that kept their in-flight TX WQEs. The next completion then
+over-charges and trips the BUG_ON() in dql_completed():
 
-Thanks for the updates, this looks good to me.
+  kernel BUG at lib/dynamic_queue_limits.c:99!
+  RIP: 0010:dql_completed+0x23d/0x280
+  Call Trace:
+   <IRQ>
+   mlx5e_poll_tx_cq+0x668/0xa60
+   mlx5e_napi_poll+0x5b/0x7b0
+   net_rx_action+0x15a/0x580
 
-Reviewed-by: Allison Henderson <achender@kernel.org>
-Allison
+Reset BQL only when the SQ has no bytes in flight (sq->cc == sq->pc).
 
-> ---
->=20
-> Changes in v2:
-> - Split the info callback/module-unload race from the independent
->   inc->i_conn lifetime bug.
-> - Keep the callback array unannotated and use smp_load_acquire() and
->   smp_store_release() to resolve the sparse errors.
-> - Replace the two touched callback-slot BUG_ON() checks with
->   WARN_ON_ONCE() error paths.
-> - Rewrite the commit message for the callback race and omit the unrelated
->   inc->i_conn KASAN report.
->=20
-> Link: https://lore.kernel.org/netdev/20260720184955.3008978-1-nicoyip.dev=
-@gmail.com/ [v1]
->=20
->  net/rds/info.c | 28 +++++++++++++++++++++++-----
->  1 file changed, 23 insertions(+), 5 deletions(-)
->=20
-> diff --git a/net/rds/info.c b/net/rds/info.c
-> index 21b32eb16559..408a4f0d04a3 100644
-> --- a/net/rds/info.c
-> +++ b/net/rds/info.c
-> @@ -32,6 +32,7 @@
->   */
->  #include <linux/percpu.h>
->  #include <linux/seq_file.h>
-> +#include <linux/srcu.h>
->  #include <linux/slab.h>
->  #include <linux/proc_fs.h>
->  #include <linux/export.h>
-> @@ -68,6 +69,7 @@ struct rds_info_iterator {
->  	unsigned long offset;
->  };
-> =20
-> +DEFINE_STATIC_SRCU(rds_info_srcu);
->  static DEFINE_SPINLOCK(rds_info_lock);
->  static rds_info_func rds_info_funcs[RDS_INFO_LAST - RDS_INFO_FIRST + 1];
-> =20
-> @@ -78,8 +80,13 @@ void rds_info_register_func(int optname, rds_info_func=
- func)
->  	BUG_ON(optname < RDS_INFO_FIRST || optname > RDS_INFO_LAST);
-> =20
->  	spin_lock(&rds_info_lock);
-> -	BUG_ON(rds_info_funcs[offset]);
-> -	rds_info_funcs[offset] =3D func;
-> +	/* Validate the latest published slot value. */
-> +	if (WARN_ON_ONCE(smp_load_acquire(&rds_info_funcs[offset]))) {
-> +		spin_unlock(&rds_info_lock);
-> +		return;
-> +	}
-> +	/* Pair with lockless callback lookup. */
-> +	smp_store_release(&rds_info_funcs[offset], func);
->  	spin_unlock(&rds_info_lock);
->  }
->  EXPORT_SYMBOL_GPL(rds_info_register_func);
-> @@ -91,9 +98,15 @@ void rds_info_deregister_func(int optname, rds_info_fu=
-nc func)
->  	BUG_ON(optname < RDS_INFO_FIRST || optname > RDS_INFO_LAST);
-> =20
->  	spin_lock(&rds_info_lock);
-> -	BUG_ON(rds_info_funcs[offset] !=3D func);
-> -	rds_info_funcs[offset] =3D NULL;
-> +	/* Validate the latest published slot value. */
-> +	if (WARN_ON_ONCE(smp_load_acquire(&rds_info_funcs[offset]) !=3D func)) =
-{
-> +		spin_unlock(&rds_info_lock);
-> +		return;
-> +	}
-> +	/* Hide the callback before waiting for old readers. */
-> +	smp_store_release(&rds_info_funcs[offset], NULL);
->  	spin_unlock(&rds_info_lock);
-> +	synchronize_srcu(&rds_info_srcu);
->  }
->  EXPORT_SYMBOL_GPL(rds_info_deregister_func);
-> =20
-> @@ -165,6 +178,7 @@ int rds_info_getsockopt(struct socket *sock, int optn=
-ame, sockopt_t *opt)
->  	int npages =3D 0;
->  	int ret;
->  	int len;
-> +	int srcu_idx;
->  	int total;
-> =20
->  	len =3D opt->optlen;
-> @@ -214,8 +228,11 @@ int rds_info_getsockopt(struct socket *sock, int opt=
-name, sockopt_t *opt)
->  	rdsdebug("len %d nr_pages %lu\n", len, nr_pages);
-> =20
->  call_func:
-> -	func =3D rds_info_funcs[optname - RDS_INFO_FIRST];
-> +	srcu_idx =3D srcu_read_lock(&rds_info_srcu);
-> +	/* Pair with callback slot publication and removal. */
-> +	func =3D smp_load_acquire(&rds_info_funcs[optname - RDS_INFO_FIRST]);
->  	if (!func) {
-> +		srcu_read_unlock(&rds_info_srcu, srcu_idx);
->  		ret =3D -ENOPROTOOPT;
->  		goto out;
->  	}
-> @@ -225,6 +242,7 @@ int rds_info_getsockopt(struct socket *sock, int optn=
-ame, sockopt_t *opt)
->  	iter.offset =3D offset0;
-> =20
->  	func(sock, len, &iter, &lens);
-> +	srcu_read_unlock(&rds_info_srcu, srcu_idx);
->  	BUG_ON(lens.each =3D=3D 0);
-> =20
->  	total =3D lens.nr * lens.each;
+In the case that reset is skipped, the outstanding WQEs will eventually
+complete and rebalance the dql. The dql->limit is carried across the
+reset.
+
+Fixes: b2588ea40ec9 ("net/mlx5e: Implement queue mgmt ops and single channel swap")
+Signed-off-by: Bobby Eshleman <bobbyeshleman@meta.com>
+---
+ drivers/net/ethernet/mellanox/mlx5/core/en_main.c | 4 +++-
+ drivers/net/ethernet/mellanox/mlx5/core/en_tx.c   | 3 ++-
+ 2 files changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+index 4a8351f95b27..44834890a409 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+@@ -1940,7 +1940,9 @@ void mlx5e_activate_txqsq(struct mlx5e_txqsq *sq)
+ {
+ 	sq->txq = netdev_get_tx_queue(sq->netdev, sq->txq_ix);
+ 	set_bit(MLX5E_SQ_STATE_ENABLED, &sq->state);
+-	netdev_tx_reset_queue(sq->txq);
++	/* Reset BQL only when the SQ has no bytes in flight. */
++	if (sq->cc == sq->pc)
++		netdev_tx_reset_queue(sq->txq);
+ 	netif_tx_start_queue(sq->txq);
+ 	netif_queue_set_napi(sq->netdev, sq->txq_ix, NETDEV_QUEUE_TYPE_TX, sq->cq.napi);
+ }
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_tx.c b/drivers/net/ethernet/mellanox/mlx5/core/en_tx.c
+index 0b5e600e4a6a..d0ad1b8d6988 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_tx.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_tx.c
+@@ -909,7 +909,8 @@ void mlx5e_free_txqsq_descs(struct mlx5e_txqsq *sq)
+ 	sq->cc = sqcc;
+ 
+ 	/* Do not update BQL for TXQs that got replaced by new active ones, as
+-	 * netdev_tx_reset_queue() is called for them in mlx5e_activate_txqsq().
++	 * netdev_tx_reset_queue() is called for them in mlx5e_activate_txqsq()
++	 * if the queue has zero in-flight WQEs.
+ 	 */
+ 	if (sq == sq->priv->txq2sq[sq->txq_ix])
+ 		netdev_tx_completed_queue(sq->txq, npkts, nbytes);
+
+---
+base-commit: b515dc54795ef370be3cb396e7c12ad91686b6d1
+change-id: 20260728-mlx5-bql-84e02a5a46c8
+
+Best regards,
+-- 
+Bobby Eshleman <bobbyeshleman@meta.com>
 
