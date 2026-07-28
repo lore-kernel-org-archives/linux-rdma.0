@@ -1,208 +1,930 @@
-Received: from AS8PR04CU009.outbound.protection.outlook.com (mail-westeuropeazon11011053.outbound.protection.outlook.com [52.101.70.53])
+Received: from m16.mail.163.com (m16.mail.163.com [117.135.210.4])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5BFCC3B71A4;
-	Tue, 28 Jul 2026 16:10:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.70.53
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785255048; cv=fail; b=f1PGTsrW1Os8r0MXceGgkYLYo/0raHhZKFg0qBmj919lV5ibHJR2o/KCHPGoO+X3EXWzezx1xonm8Vo/2hcO09PWwmjVMhbjkJtgofmxhllNh2oqW9IaOLeyDgLd9sW1nk1qFf5rNO7mmz3/80TZC9dlD6J7CIMEvEp0muZ9uIQ=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785255048; c=relaxed/simple;
-	bh=/92eRHjQInCH3SyL1t03YgoE9ORBelvj/EDrRzwy5Sc=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version:Content-Type; b=sA3MzozCysoPQJ8H7uqwWnhB3QkYxt50X/j9ttglJbB7AE7/CnNAywIxh/Grw3elHg0dr4l/sIh95hMVPuPFhoibADifqbaHpmcXbpirv4Em40tYf4In78BZFrYsYUqIgdTGIolMMkgCOFlJwdiEA8mnAF2DHfOPJuxPvBxz9AU=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nokia-bell-labs.com; spf=fail smtp.mailfrom=nokia-bell-labs.com; dkim=pass (2048-bit key) header.d=nokia-bell-labs.com header.i=@nokia-bell-labs.com header.b=NWjlDdal; arc=fail smtp.client-ip=52.101.70.53
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nokia-bell-labs.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nokia-bell-labs.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C8C4736197D
+	for <linux-rdma@vger.kernel.org>; Tue, 28 Jul 2026 16:15:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=117.135.210.4
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1785255340; cv=none; b=rL1YPtlJ1aNaBjYaLvNkc8mYHh/BZPVUgb9gWU81wKvf69lEJ6Rch4bb4wuLBiomdS9ejbAQ8dMfQBgCbuP3cpky/a1nMQ4CktTZp5tfbE3kNqaOr8QqHLutPqHOEC/dV7F8fsu8Gux41M5tYWu4tS3zL4FWtFk4Ay3lwArn0kk=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1785255340; c=relaxed/simple;
+	bh=9kdHgSNMqCZ5zMgB6ekr8AYJ6kF89Kp+RNMbCK8A5lA=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=OJ00wdWkaunKqmrOR72T0MnWhBHLHGuvRmJrAdHuQXcy4q+utnpvU1T29apKO5yo5+lwSv3p6ZcJM85+DocD6sOcBjJn1WhJyBZBw5+newABlxqW8YWiIKK3VLnn/43Tx82uH4A+vQxG8J/xCp96sZPcIyzZz3oDP7r5qUDa7+E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com; spf=pass smtp.mailfrom=163.com; dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b=HGTgWXxH; arc=none smtp.client-ip=117.135.210.4
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nokia-bell-labs.com header.i=@nokia-bell-labs.com header.b="NWjlDdal"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=oKoFvmfItZ/h3Ti4+xgmDSmclcqnQvpjD3CwH8zqDD4+9+/wPsLNcbKJZyHmo//sKnBsZR0rQcCJyrfyDYlR3x1kW4AbCGQPlRWtNs5CYF3C68Y4Wio4+U7zYafxAyVw1QrJcyuZF/w8bX93xVuWOH/7FZfzmm0S23ege/9pAC0djKD5Oz7hSKa7pbt4Ps/utlAJNbSdGNZFviXBSD6cG3AWj7DP+hPKIb5aiLKkfDUgfxGxIR1gkLUkiG4tVYP9osG/UJQMJ76BYlBUZl8ludULkPOTfTzngm4OLtDJy1yIemYcheY7P5YjPLbrIAn3oX0Lz2HsZl9eOBY1SrxSFQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=JbJC25GmM3Xpbk9kEzYteSCbTjNFqqiKKLAA+00BXS8=;
- b=NBmwIKGTvJi8zHaMh0oHyJ2uqtndwP+EjW9bqW+/T4j3K0XHNs4PNPuzPBScaOqcXrRPIv9bOVzZRpBOHaGilLkld7hBysTU64dOdHSCoQJUJPBBkYkf3afL5wI0MgtMHOw8jTBrSAjn3LE9DBhHVuQTRSgiurQ9khYcZtTaabTeJfNqzGlUq6Tq6w/8AcKSyHC3bvDCVPEXxE0oOlbcl5KSttbPeqVhxUzPyAN9Ln9FBr5LZ50yBtQAakBSu6onM+bun0VF3cOPG/jCF8VzIYERO5Cve9mNSjxurWJQm+vjBpBwMSnVqOPzAlmLqnRBXW/ZQcuWOkTonMlK6bSvKg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 131.228.2.85) smtp.rcpttodomain=apple.com smtp.mailfrom=nokia-bell-labs.com;
- dmarc=pass (p=reject sp=reject pct=100) action=none
- header.from=nokia-bell-labs.com; dkim=none (message not signed); arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nokia-bell-labs.com;
- s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=JbJC25GmM3Xpbk9kEzYteSCbTjNFqqiKKLAA+00BXS8=;
- b=NWjlDdalFU0PkotII8HmJbtwv7K4jdPnGF0aHMJqi2Itt49K/9NVMoPM3kZ6yskGuEZEMOlEXrWObl/M5Vti0FkxZHWrhgTwfWIs+XV0DuadbibikZLuzXxr+eT1sH2QIjL7xUIIY4WrEZQTOhimsT4okrWMdM5SlC57d/DJl6A9YtdHH4kFfx7y6kufjXeX92bghDSdnqiAEP1eKA6UQF8E5DdanfDh64i+OfI5fOQBs572toROAdIkJ6oFYf/vvsIwH4UdYAlT5I7Oryc4GNRupIq21HMgvy224Bf+zGa0bO+VmWI0p4MJsc02A9DGzKcwnhw1YlO5G0zwo+XTiA==
-Received: from AS4P189CA0028.EURP189.PROD.OUTLOOK.COM (2603:10a6:20b:5db::18)
- by DU0PR07MB8881.eurprd07.prod.outlook.com (2603:10a6:10:310::6) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.270.12; Tue, 28 Jul
- 2026 16:10:38 +0000
-Received: from AM4PEPF00027A6B.eurprd04.prod.outlook.com
- (2603:10a6:20b:5db:cafe::70) by AS4P189CA0028.outlook.office365.com
- (2603:10a6:20b:5db::18) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.270.12 via Frontend Transport; Tue,
- 28 Jul 2026 16:10:38 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 131.228.2.85)
- smtp.mailfrom=nokia-bell-labs.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=nokia-bell-labs.com;
-Received-SPF: Pass (protection.outlook.com: domain of nokia-bell-labs.com
- designates 131.228.2.85 as permitted sender) receiver=protection.outlook.com;
- client-ip=131.228.2.85; helo=fihe02smtplvp01.emea.nsn-net.net; pr=C
-Received: from fihe02smtplvp01.emea.nsn-net.net (131.228.2.85) by
- AM4PEPF00027A6B.mail.protection.outlook.com (10.167.16.89) with Microsoft
- SMTP Server (version=TLS1_3, cipher=TLS_AES_256_GCM_SHA384) id 15.21.270.5
- via Frontend Transport; Tue, 28 Jul 2026 16:10:37 +0000
-Received: from sarah.nbl.nsn-rdnet.net (sarah.nbl.nsn-rdnet.net [10.0.73.150])
-	by fihe02smtplvp01.emea.nsn-net.net (Postfix) with ESMTP id 1F27180000A4;
-	Tue, 28 Jul 2026 19:10:36 +0300 (EEST)
-From: chia-yu.chang@nokia-bell-labs.com
-To: linux-rdma@vger.kernel.org,
-	eperezma@redhat.com,
-	jasowang@redhat.com,
-	virtualization@lists.linux.dev,
-	mst@redhat.com,
-	xuanzhuo@linux.alibaba.com,
-	pabeni@redhat.com,
-	edumazet@google.com,
-	linux-doc@vger.kernel.org,
-	corbet@lwn.net,
-	horms@kernel.org,
-	dsahern@kernel.org,
-	kuniyu@google.com,
-	bpf@vger.kernel.org,
-	netdev@vger.kernel.org,
-	dave.taht@gmail.com,
-	jhs@mojatatu.com,
-	kuba@kernel.org,
-	stephen@networkplumber.org,
-	xiyou.wangcong@gmail.com,
-	jiri@resnulli.us,
-	davem@davemloft.net,
-	andrew+netdev@lunn.ch,
-	donald.hunter@gmail.com,
-	ast@fiberby.net,
-	liuhangbin@gmail.com,
-	shuah@kernel.org,
-	linux-kselftest@vger.kernel.org,
-	ij@kernel.org,
-	ncardwell@google.com,
-	koen.de_schepper@nokia-bell-labs.com,
-	g.white@cablelabs.com,
-	ingemar.s.johansson@ericsson.com,
-	mirja.kuehlewind@ericsson.com,
-	cheshire@apple.com,
-	rs.ietf@gmx.at,
-	Jason_Livingood@comcast.com,
-	vidhi_goel@apple.com
-Cc: Chia-Yu Chang <chia-yu.chang@nokia-bell-labs.com>,
-	Parav Pandit <parav@nvidia.com>
-Subject: [PATCH v4 net-next 1/1] net: update comments for SKB_GSO_TCP_ECN and SKB_GSO_TCP_ACCECN
-Date: Tue, 28 Jul 2026 18:10:07 +0200
-Message-Id: <20260728161007.650717-1-chia-yu.chang@nokia-bell-labs.com>
-X-Mailer: git-send-email 2.34.1
+	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="HGTgWXxH"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
+	s=s110527; h=Message-ID:Date:MIME-Version:Subject:To:From:
+	Content-Type; bh=Gw5Kk1ctJSBL3LoteJSdI4mYYZ1lDNnXDuJ7nDDsChY=;
+	b=HGTgWXxHjwyHNbG0i4zlwuEABVYKhkTqjcx80z6wBF64G0adqBBGqRKJPnx843
+	P4gRAteJsA0oq2jUNWjZ1tnbMi9PSPkfhv/V31k5YTAvi9TMt8lpVl4RfzSZsty6
+	dEefw2qLZxGpThgXvJBxGbAPBRY7tX5u/mpXnm6zLlcng=
+Received: from [IPV6:2601:647:6300:a030:7959:7dea:e154:d7cf] (unknown [])
+	by gzga-smtp-mtada-g1-1 (Coremail) with SMTP id _____wDXvwGB1WhqAUyGLw--.37939S2;
+	Wed, 29 Jul 2026 00:15:00 +0800 (CST)
+Message-ID: <c225c004-1fa9-4010-a843-8be033003e93@163.com>
+Date: Tue, 28 Jul 2026 09:14:55 -0700
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+User-Agent: Mozilla Thunderbird
+Subject: Re: [RFC PATCH 1/2] RDMA/rxe: drive UDP tunnel socket lifetime from
+ the GID table
+To: Serhat Kumral <serhatkumral1@gmail.com>, yanjun.zhu@linux.dev
+Cc: zyjzyj2000@gmail.com, Jason Gunthorpe <jgg@ziepe.ca>,
+ "leon@kernel.org" <leon@kernel.org>, David Ahern <dsahern@kernel.org>,
+ RDMA mailing list <linux-rdma@vger.kernel.org>
+References: <95b8e484-c0d1-4973-b752-c93fb4cae1f4@linux.dev>
+ <20260727220531.36724-1-serhatkumral1@gmail.com>
+From: Zhu Yanjun <mounter625@163.com>
+In-Reply-To: <20260727220531.36724-1-serhatkumral1@gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: AM4PEPF00027A6B:EE_|DU0PR07MB8881:EE_
-X-MS-Office365-Filtering-Correlation-Id: 2ec4b0d4-a356-4371-c347-08deecc2c362
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|82310400026|1800799024|7416014|376014|36860700016|23010399003|18002099003|11063799006|56012099006|10063799003|10067099003|921020;
-X-Microsoft-Antispam-Message-Info:
-	DLnuqZySk2338TfnMLSf3RD2ZtaFFN/cNQnytbs+IVy7dKZXRx0JJwDAQL4VdmVhGJpBbz2CbBYpUYdew0MIRKQfSliqoC8w3lmQ8TFAfngu8KV1wNp03W0vcoiCCToWhOX6rmambvdzZQd0xayuHTZL85ZL7zashna1pGw/E3U6Ak58sXOTUAsbm1uMTe5s6lTAg4NYP6Kiyqm4XYWw2OcCI+rnkJVU1B437KnRdGEP8hyxDxnWSo0qq24AYAhsWCs1+CKF92Zb8fsX2QHpoPZq7cwhukWxR00mwT6WRoXGlclcB9NbSyoYrTfs/Ao/7ggvmTwXjFchy8CBXdIosOZ1kKRDKVCHqyrEkqz2KYJy8rMCB8UTTjxywLFayDx3oKBUJJ1sEOZ1vH9wgDCLwU8sA3hLIySNVVgjEV+42LE4gcjXUv3vv9ibvCcDN3ToNYML0C5P4jepvPLmsJBnpXrvdi+UU+Q4+ENy8kxoOlrZScueEYHZgwgq3KsrL6jCDZrEmUi6TTWn7vwm4531Xz7iEnKMeDh2ENKs1QI+9INhZZCbUzwf2tJMwncaUmVheIwRPzErPhLFysLdrLkG4+eOX159cN7Xwdbcou14gOxeVQB0L1zvW3KmRY6tXEpiJcuk7a2kISkh66A/G69msbYz6/Hu4NArgOaIRUJ+3eQZqmuAO6By9QSLd0qjPvDh2Rc9Q8k6FDmDrB08LjULx5OYP1ZjbF2iOP1BOSUcNcNQu0IO+fZFqdXZjNvB8Zzp
-X-Forefront-Antispam-Report:
-	CIP:131.228.2.85;CTRY:FI;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:fihe02smtplvp01.emea.nsn-net.net;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(82310400026)(1800799024)(7416014)(376014)(36860700016)(23010399003)(18002099003)(11063799006)(56012099006)(10063799003)(10067099003)(921020);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	1P16IADuZQ1yPsGuvLmEklGINfYZSZhp/7m92qV0qggk1bPWJp2VXNZ61ZcNrEMY8onn5+QimYYsntlZgpfF24K95vWxz0fGv+sCB2LwykpBI5Q2be1TNDU3t83ODXlmWXrB125nQjNT08cYewzXU+i7Ls+GsFA4+a0A+rPhE7AAXrh323D27Y9g+wQYlH4HQx96wxxBBYgYalljdgx7UTFuNLwjqUn+lnwJteYmDLbT76j0CcsEG/YEcAe3KyUh9+WgqtU6i0kH8EV6dcwSg7nnfnWb/lwb04r7EL7hjvWnyv8VqANRxqBGUK3fIYj9otc7qzZHNus3RD1tCwLuHXNYxfAJjxPapt7qtzxKtBVSGi0ns7A+13Mgil7entl3PP9pZ/BQ7GlveBtVfOFW7kNGkHdJeyYjs6om526WtMQFSgYholgF3rwI+zvq4ywi
-X-OriginatorOrg: nokia-bell-labs.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 28 Jul 2026 16:10:37.8287
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 2ec4b0d4-a356-4371-c347-08deecc2c362
-X-MS-Exchange-CrossTenant-Id: 5d471751-9675-428d-917b-70f44f9630b0
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=5d471751-9675-428d-917b-70f44f9630b0;Ip=[131.228.2.85];Helo=[fihe02smtplvp01.emea.nsn-net.net]
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-AuthSource: TreatMessagesAsInternal-AM4PEPF00027A6B.eurprd04.prod.outlook.com
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DU0PR07MB8881
+X-CM-TRANSID:_____wDXvwGB1WhqAUyGLw--.37939S2
+X-Coremail-Antispam: 1Uf129KBjvAXoWfurWkGFWDurW5KF4UAFy8AFb_yoW8tw1Duo
+	Z7Jrn3Jw10yryxX397Ka48JFyjv3ZrGwsxJr43Kws09ayrtay8CrySy3W5J3y3WF1rGFW8
+	Zr17G3yjkF4kWFn3n29KB7ZKAUJUUUU8529EdanIXcx71UUUUU7v73VFW2AGmfu7bjvjm3
+	AaLaJ3UbIYCTnIWIevJa73UjIFyTuYvjxUefHjUUUUU
+X-CM-SenderInfo: hprx03thuwjki6rwjhhfrp/xtbC7whMhGpo1Yi1WAAA3d
 
-From: Chia-Yu Chang <chia-yu.chang@nokia-bell-labs.com>
 
-This patch updates the documentation of ECN‑related GSO flags, it
-clarifies the limitations of SKB_GSO_TCP_ECN and explains how to preserve
-the CWR flag (part of the ACE signal) in the Rx path.
+在 2026/7/27 15:05, Serhat Kumral 写道:
+> Thanks, that helps.
+>
+>> c7b5816e800a (HEAD -> master) Merge branch 'master' of
+>> https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux
+>> 668b9a3b586c RDMA/rxe: Hold netdev reference for transmit skbs
+> So the committed tree appears to be f2ec6312bf71 plus the netdev
+> reference patch, which matches one of the four kernels I ran. The command
+> line has no allocator or KASAN parameters. It does differ from mine in
+> timing: there is no console= at all, while my runs write every printk to
+> a serial console, so my kernel is the slower of the two. I repeated the
+> run with a quiet console, and it still passes 100/100.
+>
+> This series does not appear in that log, so I assume it is applied to the
+> working tree. That is the part I cannot match: a plain git apply fails in
+> both orders, as described in the last mail, so however it was fitted in,
+> the resulting rxe_notify() decides whether the tunnel sockets are
+> released by del_gid alone or also through the old rxe_net_del() path.
+>
+> Could you send
+>
+>    git diff HEAD
+diff --git a/drivers/infiniband/core/nldev.c 
+b/drivers/infiniband/core/nldev.c
+index 02a0a9c0a4a6..b65075c821d5 100644
+--- a/drivers/infiniband/core/nldev.c
++++ b/drivers/infiniband/core/nldev.c
+@@ -51,7 +51,6 @@
+   * a controlled QKEY.
+   */
+  static bool privileged_qkey;
+-static DEFINE_MUTEX(nldev_dellink_mutex);
 
-For Tx, SKB_GSO_TCP_ECN and SKB_GSO_TCP_ACCECN are used respectively for
-RFC3168 ECN and AccECN (RFC9768). SKB_GSO_TCP_ECN indicates that the
-first segment has CWR set, while subsequent segments have CWR cleared.
-In contrast, SKB_GSO_TCP_ACCECN means that the segment uses AccECN and
-therefore its CWR flag must not be modified during segmentation.
+  typedef int (*res_fill_func_t)(struct sk_buff*, bool,
+                                struct rdma_restrack_entry*, uint32_t);
+@@ -1843,20 +1842,6 @@ static int nldev_dellink(struct sk_buff *skb, 
+struct nlmsghdr *nlh,
+                 return -EINVAL;
+         }
 
-For RX, SKB_GSO_TCP_ECN shall NOT be used, because the stack cannot know
-whether the connection uses RFC3168 ECN or AccECN, whereas RFC3168 ECN
-offload may clear CWR flag and thus corrupts the ACE signal. Instead, any
-segment that arrives with CWR set must use the SKB_GSO_TCP_ACCECN flag
-to prevent RFC3168 ECN offload logic from clearing the CWR flag.
+-       /*
+-        * This path is triggered by the 'rdma link delete' 
+administrative command.
+-        * For Soft-RoCE (RXE), we ensure that transport sockets are 
+closed here.
+-        * Note: iWARP driver does not implement .dellink, so this logic is
+-        * implicitly scoped to the driver supporting dynamic link 
+deletion like RXE.
+-        */
+-       if (device->link_ops && device->link_ops->dellink) {
+-               mutex_lock(&nldev_dellink_mutex);
+-               err = device->link_ops->dellink(device);
+-               mutex_unlock(&nldev_dellink_mutex);
+-               if (err)
+-                       return err;
+-       }
+-
+         ib_unregister_device_and_put(device);
+         return 0;
+  }
+diff --git a/drivers/infiniband/sw/rxe/Makefile 
+b/drivers/infiniband/sw/rxe/Makefile
+index e097c1ca1874..18ff60542744 100644
+--- a/drivers/infiniband/sw/rxe/Makefile
++++ b/drivers/infiniband/sw/rxe/Makefile
+@@ -23,7 +23,6 @@ rdma_rxe-y := \
+         rxe_task.o \
+         rxe_net.o \
+         rxe_hw_counters.o \
+-       rxe_mad.o \
+-       rxe_ns.o
++       rxe_mad.o
 
-This corresponds to discussions in virtio mailing list:
-https://lore.kernel.org/all/20250814120118.81787-1-chia-yu.chang@nokia-bell-labs.com/
-And it was suggested to clarify SKB_GSO_TCP_ECN and SKB_GSO_TCP_ACCECN.
+  rdma_rxe-$(CONFIG_INFINIBAND_ON_DEMAND_PAGING) += rxe_odp.o
+diff --git a/drivers/infiniband/sw/rxe/rxe.c 
+b/drivers/infiniband/sw/rxe/rxe.c
+index af39209d0fcf..66d5986dac99 100644
+--- a/drivers/infiniband/sw/rxe/rxe.c
++++ b/drivers/infiniband/sw/rxe/rxe.c
+@@ -9,7 +9,6 @@
+  #include "rxe.h"
+  #include "rxe_loc.h"
+  #include "rxe_net.h"
+-#include "rxe_ns.h"
 
-Co-developed-by: Ilpo Järvinen <ij@kernel.org>
-Signed-off-by: Ilpo Järvinen <ij@kernel.org>
-Signed-off-by: Chia-Yu Chang <chia-yu.chang@nokia-bell-labs.com>
-Cc: Parav Pandit <parav@nvidia.com>
+  MODULE_AUTHOR("Bob Pearson, Frank Zago, John Groves, Kamal Heib");
+  MODULE_DESCRIPTION("Soft RDMA transport");
+@@ -202,8 +201,6 @@ void rxe_set_mtu(struct rxe_dev *rxe, unsigned int 
+ndev_mtu)
+         port->mtu_cap = ib_mtu_enum_to_int(mtu);
+  }
 
----
-v4:
-- Update commit message
+-static struct rdma_link_ops rxe_link_ops;
+-
+  /* called by ifc layer to create new rxe device.
+   * The caller should allocate memory for rxe by calling ib_alloc_device.
+   */
+@@ -212,7 +209,6 @@ int rxe_add(struct rxe_dev *rxe, unsigned int mtu, 
+const char *ibdev_name,
+  {
+         rxe_init(rxe, ndev);
+         rxe_set_mtu(rxe, mtu);
+-       rxe->ib_dev.link_ops = &rxe_link_ops;
 
-v3:
-- Update commit messages and documentation for clarity
----
- include/linux/skbuff.h | 15 ++++++++++++++-
- 1 file changed, 14 insertions(+), 1 deletion(-)
+         return rxe_register_device(rxe, ibdev_name, ndev);
+  }
+@@ -236,10 +232,6 @@ static int rxe_newlink(const char *ibdev_name, 
+struct net_device *ndev)
+                 goto err;
+         }
 
-diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
-index 22eda1d54a0e..6c0d725facf0 100644
---- a/include/linux/skbuff.h
-+++ b/include/linux/skbuff.h
-@@ -671,7 +671,13 @@ enum {
- 	/* This indicates the skb is from an untrusted source. */
- 	SKB_GSO_DODGY = 1 << 1,
- 
--	/* This indicates the tcp segment has CWR set. */
-+	/* For TX, this indicates that the first TCP segment has CWR set, and
-+	 * any subsequent segment in the same skb has CWR cleared. This flag
-+	 * must not be used in RX, because the connection to which the segment
-+	 * belongs is not tracked to use RFC3168 or AccECN. Using RFC3168 ECN
-+	 * offload may clear CWR and corrupt ACE signal (CWR is part of it).
-+	 * Instead, SKB_GSO_TCP_ACCECN shall be used to avoid CWR corruption.
-+	 */
- 	SKB_GSO_TCP_ECN = 1 << 2,
- 
- 	__SKB_GSO_TCP_FIXEDID = 1 << 3,
-@@ -706,6 +712,13 @@ enum {
- 
- 	SKB_GSO_FRAGLIST = 1 << 18,
- 
-+	/* For TX, this indicates that the TCP segment uses the CWR flag as part
-+	 * of the ACE signal, and the CWR flag must not be modified in the skb.
-+	 * For RX, any incoming segment with CWR set must use this flag so that
-+	 * no RFC3168 ECN offload can clear the CWR flag. This is required to
-+	 * preserve ACE signal correctness (CWR is part of it) in a forwarding
-+	 * scenario, e.g., from one netdevice RX to other netdevice TX
-+	 */
- 	SKB_GSO_TCP_ACCECN = 1 << 19,
- 
- 	/* These indirectly map onto the same netdev feature.
--- 
-2.34.1
+-       err = rxe_net_init(ndev);
+-       if (err)
+-               return err;
+-
+         err = rxe_net_add(ibdev_name, ndev);
+         if (err) {
+                 rxe_err("failed to add %s\n", ndev->name);
+@@ -249,17 +241,9 @@ static int rxe_newlink(const char *ibdev_name, 
+struct net_device *ndev)
+         return err;
+  }
+
+-static int rxe_dellink(struct ib_device *dev)
+-{
+-       rxe_net_del(dev);
+-
+-       return 0;
+-}
+-
+  static struct rdma_link_ops rxe_link_ops = {
+         .type = "rxe",
+         .newlink = rxe_newlink,
+-       .dellink = rxe_dellink,
+  };
+
+  static int __init rxe_module_init(void)
+@@ -270,21 +254,15 @@ static int __init rxe_module_init(void)
+         if (err)
+                 return err;
+
+-       err = rxe_namespace_init();
+-       if (err)
+-               goto err_destroy_wq;
+-
+         err = rxe_register_notifier();
+         if (err)
+-               goto err_namespace_exit;
++               goto err_destroy_wq;
+
+         rdma_link_register(&rxe_link_ops);
+
+         pr_info("loaded\n");
+         return 0;
+
+-err_namespace_exit:
+-       rxe_namespace_exit();
+  err_destroy_wq:
+         rxe_destroy_wq();
+         return err;
+@@ -297,8 +275,6 @@ static void __exit rxe_module_exit(void)
+         rxe_net_exit();
+         rxe_destroy_wq();
+
+-       rxe_namespace_exit();
+-
+         pr_info("unloaded\n");
+  }
+
+diff --git a/drivers/infiniband/sw/rxe/rxe_net.c 
+b/drivers/infiniband/sw/rxe/rxe_net.c
+index 44a16cb1601a..3b8828316e25 100644
+--- a/drivers/infiniband/sw/rxe/rxe_net.c
++++ b/drivers/infiniband/sw/rxe/rxe_net.c
+@@ -17,11 +17,6 @@
+  #include "rxe.h"
+  #include "rxe_net.h"
+  #include "rxe_loc.h"
+-#include "rxe_ns.h"
+-
+-#ifndef SK_REF_FOR_TUNNEL
+-#define SK_REF_FOR_TUNNEL      2
+-#endif
+
+  #ifdef CONFIG_DEBUG_LOCK_ALLOC
+  /*
+@@ -81,9 +76,10 @@ static inline void rxe_reclassify_recv_socket(struct 
+socket *sock)
+          * from being called and 'rmmod rdma_rxe'
+          * is refused because of the references.
+          *
+-        * For the global sockets in recv_sockets,
+-        * we are sure that rxe_net_exit() will call
+-        * rxe_release_udp_tunnel -> udp_tunnel_sock_release.
++        * For the shared tunnel sockets, we are sure
++        * that udp_tunnel_sock_release is called,
++        * normally by the last rxe_del_gid() and at
++        * the latest by the pernet exit backstop.
+          *
+          * So we don't need the additional reference to
+          * our own (THIS_MODULE).
+@@ -141,7 +137,7 @@ static struct dst_entry *rxe_find_route6(struct 
+rxe_qp *qp,
+         memcpy(&fl6.daddr, daddr, sizeof(*daddr));
+         fl6.flowi6_proto = IPPROTO_UDP;
+
+-       ndst = ip6_dst_lookup_flow(net, rxe_ns_pernet_sk6(net), &fl6, NULL);
++       ndst = ip6_dst_lookup_flow(net, NULL, &fl6, NULL);
+         if (IS_ERR(ndst)) {
+                 rxe_dbg_qp(qp, "no route to %pI6\n", daddr);
+                 return NULL;
+@@ -288,10 +284,204 @@ static struct socket *rxe_setup_udp_tunnel(struct 
+net *net, __be16 port,
+         return sock;
+  }
+
+-static void rxe_release_udp_tunnel(struct sock *sk)
++/*
++ * The wildcard tunnel sockets are shared by every RoCEv2 GID entry in
++ * a netns. Their lifetime is driven by add_gid/del_gid: the first GID
++ * entry of an address family creates the socket and normally the last
++ * one releases it; the pernet exit hook below can get there first
++ * when the netns dies. The GID table guarantees one del_gid for
++ * every successfully installed GID entry, so the counts cannot
++ * underflow and nothing else needs to manage the sockets: when an
++ * address, a netdev or the whole netns goes away, the core removes
++ * the GID entries and the sockets follow.
++ *
++ * The per netns state lives in a small global list instead of pernet
++ * storage: an entry exists only while the netns has RoCEv2 GID
++ * entries. Event-triggered GID removal is asynchronous, so a netns
++ * can be torn down before the last del_gid has run; the pernet exit
++ * hook closes the sockets before the net is freed and invalidates
++ * the entry's key so it cannot match a recycled net pointer, and the
++ * remaining del_gid calls only drop the counts.
++ */
++struct rxe_ns_sock {
++       struct list_head node;
++       struct net *net;
++       struct socket *sk4;
++       struct socket *sk6;
++       int nr4;
++       int nr6;
++};
++
++static DEFINE_MUTEX(rxe_ns_lock);
++static LIST_HEAD(rxe_ns_list);
++
++static struct rxe_ns_sock *rxe_ns_find(struct net *net)
+  {
+-       if (sk)
+-               udp_tunnel_sock_release(sk);
++       struct rxe_ns_sock *ns;
++
++       lockdep_assert_held(&rxe_ns_lock);
++
++       list_for_each_entry(ns, &rxe_ns_list, node)
++               if (ns->net == net)
++                       return ns;
++
++       return NULL;
++}
++
++/*
++ * Close the sockets of a dying netns before the net is freed. This
++ * only matters when GID entries still reference the netns at that
++ * point, e.g. after a netdev was moved to another netns and the
++ * queued removal of its GID entries has not run yet. Clearing
++ * ns->net keeps the entry from matching a recycled net pointer; the
++ * outstanding del_gid calls drop the counts and free it.
++ */
++static void __net_exit rxe_ns_exit(struct net *net)
++{
++       struct rxe_ns_sock *ns;
++
++       mutex_lock(&rxe_ns_lock);
++       ns = rxe_ns_find(net);
++       if (ns) {
++               if (ns->sk4)
++                       udp_tunnel_sock_release(ns->sk4->sk);
++               if (ns->sk6)
++                       udp_tunnel_sock_release(ns->sk6->sk);
++               ns->sk4 = NULL;
++               ns->sk6 = NULL;
++               ns->net = NULL;
++       }
++       mutex_unlock(&rxe_ns_lock);
++}
++
++static struct pernet_operations rxe_pernet_ops = {
++       .exit = rxe_ns_exit,
++};
++
++int rxe_add_gid(const struct ib_gid_attr *attr, void **context)
++{
++       bool ipv6 = rdma_gid_attr_network_type(attr) == RDMA_NETWORK_IPV6;
++       __be16 port = htons(ROCE_V2_UDP_DPORT);
++       struct net_device *ndev;
++       struct rxe_ns_sock *ns;
++       struct socket *sock;
++       struct net *net;
++       int err = 0;
++
++       *context = NULL;
++
++       /* Only RoCEv2 GIDs use a UDP tunnel socket. */
++       if (attr->gid_type != IB_GID_TYPE_ROCE_UDP_ENCAP)
++               return 0;
++
++       /*
++        * Hold the netns across the socket setup; this also fails
++        * instead of binding a new socket in a netns that is already
++        * being dismantled.
++        */
++       rcu_read_lock();
++       ndev = rcu_dereference(attr->ndev);
++       net = ndev ? maybe_get_net(dev_net_rcu(ndev)) : NULL;
++       rcu_read_unlock();
++       if (!net)
++               return -ENODEV;
++
++       mutex_lock(&rxe_ns_lock);
++       ns = rxe_ns_find(net);
++       if (!ns) {
++               ns = kzalloc_obj(*ns);
++               if (!ns) {
++                       err = -ENOMEM;
++                       goto out_unlock;
++               }
++               ns->net = net;
++               list_add(&ns->node, &rxe_ns_list);
++       }
++
++       if (ipv6) {
++               if (!ns->nr6) {
++                       sock = rxe_setup_udp_tunnel(net, port, true);
++                       if (IS_ERR(sock)) {
++                               err = PTR_ERR(sock);
++                               /*
++                                * No IPv6 support: leave this GID entry
++                                * without a socket and without a count;
++                                * rxe_del_gid() skips a NULL context.
++                                */
++                               if (err == -EAFNOSUPPORT ||
++                                   err == -EPFNOSUPPORT)
++                                       err = 0;
++                               goto out_free;
++                       }
++                       ns->sk6 = sock;
++               }
++               ns->nr6++;
++       } else {
++               if (!ns->nr4) {
++                       sock = rxe_setup_udp_tunnel(net, port, false);
++                       if (IS_ERR(sock)) {
++                               err = PTR_ERR(sock);
++                               goto out_free;
++                       }
++                       ns->sk4 = sock;
++               }
++               ns->nr4++;
++       }
++       mutex_unlock(&rxe_ns_lock);
++
++       put_net(net);
++       *context = ns;
++       return 0;
++
++out_free:
++       if (!ns->nr4 && !ns->nr6) {
++               list_del(&ns->node);
++               kfree(ns);
++       }
++out_unlock:
++       mutex_unlock(&rxe_ns_lock);
++       put_net(net);
++       return err;
++}
++
++int rxe_del_gid(const struct ib_gid_attr *attr, void **context)
++{
++       bool ipv6 = rdma_gid_attr_network_type(attr) == RDMA_NETWORK_IPV6;
++       struct rxe_ns_sock *ns = *context;
++       struct socket *sock = NULL;
++
++       if (!ns)
++               return 0;
++
++       *context = NULL;
++
++       mutex_lock(&rxe_ns_lock);
++       if (ipv6) {
++               if (!WARN_ON_ONCE(!ns->nr6) && !--ns->nr6) {
++                       sock = ns->sk6;
++                       ns->sk6 = NULL;
++               }
++       } else {
++               if (!WARN_ON_ONCE(!ns->nr4) && !--ns->nr4) {
++                       sock = ns->sk4;
++                       ns->sk4 = NULL;
++               }
++       }
++       /*
++        * Release under the lock: a concurrent rxe_add_gid() must not
++        * see a zero count while the old socket still holds the port,
++        * or its bind() fails with -EADDRINUSE.
++        */
++       if (sock)
++               udp_tunnel_sock_release(sock->sk);
++
++       if (!ns->nr4 && !ns->nr6) {
++               list_del(&ns->node);
++               kfree(ns);
++       }
++       mutex_unlock(&rxe_ns_lock);
++
++       return 0;
+  }
+
+  static void prepare_udp_hdr(struct sk_buff *skb, __be16 src_port,
+@@ -647,42 +837,6 @@ int rxe_net_add(const char *ibdev_name, struct 
+net_device *ndev)
+         return 0;
+  }
+
+-static void rxe_sock_put(struct sock *sk,
+-                                       void (*set_sk)(struct net *, 
+struct sock *),
+-                                       struct net *net)
+-{
+-       if (refcount_read(&sk->sk_refcnt) > SK_REF_FOR_TUNNEL) {
+-               __sock_put(sk);
+-       } else {
+-               rxe_release_udp_tunnel(sk);
+-               sk = NULL;
+-               set_sk(net, sk);
+-       }
+-}
+-
+-void rxe_net_del(struct ib_device *dev)
+-{
+-       struct net_device *ndev;
+-       struct sock *sk;
+-       struct net *net;
+-
+-       ndev = ib_device_get_netdev(dev, 1);
+-       if (!ndev)
+-               return;
+-
+-       net = dev_net(ndev);
+-
+-       sk = rxe_ns_pernet_sk4(net);
+-       if (sk)
+-               rxe_sock_put(sk, rxe_ns_pernet_set_sk4, net);
+-
+-       sk = rxe_ns_pernet_sk6(net);
+-       if (sk)
+-               rxe_sock_put(sk, rxe_ns_pernet_set_sk6, net);
+-
+-       dev_put(ndev);
+-}
+-
+  static void rxe_port_event(struct rxe_dev *rxe,
+                            enum ib_event_type event)
+  {
+@@ -766,7 +920,6 @@ static int rxe_notify(struct notifier_block *not_blk,
+         case NETDEV_UNREGISTER:
+                 rxe_flush_qps(rxe);
+                 ib_unregister_device_queued(&rxe->ib_dev);
+-               rxe_net_del(&rxe->ib_dev);
+                 break;
+         case NETDEV_CHANGEMTU:
+                 rxe_dbg_dev(rxe, "%s changed mtu to %d\n", ndev->name, 
+ndev->mtu);
+@@ -795,63 +948,24 @@ static struct notifier_block rxe_net_notifier = {
+         .notifier_call = rxe_notify,
+  };
+
+-static int rxe_net_ipv4_init(struct net *net)
+-{
+-       struct sock *sk;
+-       struct socket *sock;
+-
+-       sk = rxe_ns_pernet_sk4(net);
+-       if (sk) {
+-               sock_hold(sk);
+-               return 0;
+-       }
+-
+-       sock = rxe_setup_udp_tunnel(net, htons(ROCE_V2_UDP_DPORT), false);
+-       if (IS_ERR(sock)) {
+-               pr_err("Failed to create IPv4 UDP tunnel\n");
+-               return -1;
+-       }
+-       rxe_ns_pernet_set_sk4(net, sock->sk);
+-
+-       return 0;
+-}
+-
+-static int rxe_net_ipv6_init(struct net *net)
+-{
+-#if IS_ENABLED(CONFIG_IPV6)
+-       struct sock *sk;
+-       struct socket *sock;
+-
+-       sk = rxe_ns_pernet_sk6(net);
+-       if (sk) {
+-               sock_hold(sk);
+-               return 0;
+-       }
+-
+-       sock = rxe_setup_udp_tunnel(net, htons(ROCE_V2_UDP_DPORT), true);
+-       if (PTR_ERR(sock) == -EAFNOSUPPORT) {
+-               pr_warn("IPv6 is not supported, can not create a UDPv6 
+socket\n");
+-               return 0;
+-       }
+-
+-       if (IS_ERR(sock)) {
+-               pr_err("Failed to create IPv6 UDP tunnel\n");
+-               return -1;
+-       }
+-
+-       rxe_ns_pernet_set_sk6(net, sock->sk);
+-
+-#endif
+-       return 0;
+-}
+-
+  int rxe_register_notifier(void)
+  {
+         int err;
+
++       /*
++        * A pernet subsys, not a pernet device: its exit hook must run
++        * after the netdev cleanup of a dying netns, which waits for
++        * the GID entries' netdev references and thus for the del_gid
++        * calls that normally release the sockets.
++        */
++       err = register_pernet_subsys(&rxe_pernet_ops);
++       if (err)
++               return err;
++
+         err = register_netdevice_notifier(&rxe_net_notifier);
+         if (err) {
+                 pr_err("Failed to register netdev notifier\n");
++               unregister_pernet_subsys(&rxe_pernet_ops);
+                 return -1;
+         }
+
+@@ -861,31 +975,8 @@ int rxe_register_notifier(void)
+  void rxe_net_exit(void)
+  {
+         unregister_netdevice_notifier(&rxe_net_notifier);
+-}
+-
+-int rxe_net_init(struct net_device *ndev)
+-{
+-       struct net *net;
+-       struct sock *sk;
+-       int err;
+-
+-       net = dev_net(ndev);
+-
+-       err = rxe_net_ipv4_init(net);
+-       if (err)
+-               return err;
+-
+-       err = rxe_net_ipv6_init(net);
+-       if (err)
+-               goto err_out;
++       unregister_pernet_subsys(&rxe_pernet_ops);
+
+-       return 0;
+-
+-err_out:
+-       /* If ipv6 error, release ipv4 resource */
+-       sk = rxe_ns_pernet_sk4(net);
+-       if (sk)
+-               rxe_sock_put(sk, rxe_ns_pernet_set_sk4, net);
+-
+-       return err;
++       /* all devices and thus all GID entries are gone by now */
++       WARN_ON(!list_empty(&rxe_ns_list));
+  }
+diff --git a/drivers/infiniband/sw/rxe/rxe_net.h 
+b/drivers/infiniband/sw/rxe/rxe_net.h
+index 56249677d692..b564ff5c83f3 100644
+--- a/drivers/infiniband/sw/rxe/rxe_net.h
++++ b/drivers/infiniband/sw/rxe/rxe_net.h
+@@ -12,10 +12,11 @@
+  #include <linux/module.h>
+
+  int rxe_net_add(const char *ibdev_name, struct net_device *ndev);
+-void rxe_net_del(struct ib_device *dev);
++
++int rxe_add_gid(const struct ib_gid_attr *attr, void **context);
++int rxe_del_gid(const struct ib_gid_attr *attr, void **context);
+
+  int rxe_register_notifier(void);
+-int rxe_net_init(struct net_device *ndev);
+  void rxe_net_exit(void);
+
+  #endif /* RXE_NET_H */
+diff --git a/drivers/infiniband/sw/rxe/rxe_ns.c 
+b/drivers/infiniband/sw/rxe/rxe_ns.c
+deleted file mode 100644
+index 64621c89f8bf..000000000000
+--- a/drivers/infiniband/sw/rxe/rxe_ns.c
++++ /dev/null
+@@ -1,124 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB */
+-
+-#include <net/sock.h>
+-#include <net/netns/generic.h>
+-#include <net/net_namespace.h>
+-#include <linux/module.h>
+-#include <linux/skbuff.h>
+-#include <linux/pid_namespace.h>
+-#include <net/udp_tunnel.h>
+-
+-#include "rxe_ns.h"
+-
+-/*
+- * Per network namespace data
+- */
+-struct rxe_ns_sock {
+-       struct sock __rcu *rxe_sk4;
+-       struct sock __rcu *rxe_sk6;
+-};
+-
+-/*
+- * Index to store custom data for each network namespace.
+- */
+-static unsigned int rxe_pernet_id;
+-
+-/*
+- * Called for every existing and added network namespaces
+- */
+-static int rxe_ns_init(struct net *net)
+-{
+-       /* defer socket create in the namespace to the first
+-        * device create.
+-        */
+-
+-       return 0;
+-}
+-
+-static void rxe_ns_exit(struct net *net)
+-{
+-       /* called when the network namespace is removed
+-        */
+-       struct rxe_ns_sock *ns_sk = net_generic(net, rxe_pernet_id);
+-       struct sock *sk;
+-
+-       rcu_read_lock();
+-       sk = rcu_dereference(ns_sk->rxe_sk4);
+-       rcu_read_unlock();
+-       if (sk) {
+-               rcu_assign_pointer(ns_sk->rxe_sk4, NULL);
+-               udp_tunnel_sock_release(sk);
+-       }
+-
+-#if IS_ENABLED(CONFIG_IPV6)
+-       rcu_read_lock();
+-       sk = rcu_dereference(ns_sk->rxe_sk6);
+-       rcu_read_unlock();
+-       if (sk) {
+-               rcu_assign_pointer(ns_sk->rxe_sk6, NULL);
+-               udp_tunnel_sock_release(sk);
+-       }
+-#endif
+-}
+-
+-/*
+- * callback to make the module network namespace aware
+- */
+-static struct pernet_operations rxe_net_ops = {
+-       .init = rxe_ns_init,
+-       .exit = rxe_ns_exit,
+-       .id = &rxe_pernet_id,
+-       .size = sizeof(struct rxe_ns_sock),
+-};
+-
+-struct sock *rxe_ns_pernet_sk4(struct net *net)
+-{
+-       struct rxe_ns_sock *ns_sk = net_generic(net, rxe_pernet_id);
+-       struct sock *sk;
+-
+-       rcu_read_lock();
+-       sk = rcu_dereference(ns_sk->rxe_sk4);
+-       rcu_read_unlock();
+-
+-       return sk;
+-}
+-
+-void rxe_ns_pernet_set_sk4(struct net *net, struct sock *sk)
+-{
+-       struct rxe_ns_sock *ns_sk = net_generic(net, rxe_pernet_id);
+-
+-       rcu_assign_pointer(ns_sk->rxe_sk4, sk);
+-       synchronize_rcu();
+-}
+-
+-#if IS_ENABLED(CONFIG_IPV6)
+-struct sock *rxe_ns_pernet_sk6(struct net *net)
+-{
+-       struct rxe_ns_sock *ns_sk = net_generic(net, rxe_pernet_id);
+-       struct sock *sk;
+-
+-       rcu_read_lock();
+-       sk = rcu_dereference(ns_sk->rxe_sk6);
+-       rcu_read_unlock();
+-
+-       return sk;
+-}
+-
+-void rxe_ns_pernet_set_sk6(struct net *net, struct sock *sk)
+-{
+-       struct rxe_ns_sock *ns_sk = net_generic(net, rxe_pernet_id);
+-
+-       rcu_assign_pointer(ns_sk->rxe_sk6, sk);
+-       synchronize_rcu();
+-}
+-#endif /* IPV6 */
+-
+-int rxe_namespace_init(void)
+-{
+-       return register_pernet_subsys(&rxe_net_ops);
+-}
+-
+-void rxe_namespace_exit(void)
+-{
+-       unregister_pernet_subsys(&rxe_net_ops);
+-}
+diff --git a/drivers/infiniband/sw/rxe/rxe_ns.h 
+b/drivers/infiniband/sw/rxe/rxe_ns.h
+deleted file mode 100644
+index 4da2709e6b71..000000000000
+--- a/drivers/infiniband/sw/rxe/rxe_ns.h
++++ /dev/null
+@@ -1,26 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB */
+-
+-#ifndef RXE_NS_H
+-#define RXE_NS_H
+-
+-struct sock *rxe_ns_pernet_sk4(struct net *net);
+-void rxe_ns_pernet_set_sk4(struct net *net, struct sock *sk);
+-
+-#if IS_ENABLED(CONFIG_IPV6)
+-void rxe_ns_pernet_set_sk6(struct net *net, struct sock *sk);
+-struct sock *rxe_ns_pernet_sk6(struct net *net);
+-#else /* IPv6 */
+-static inline struct sock *rxe_ns_pernet_sk6(struct net *net)
+-{
+-       return NULL;
+-}
+-
+-static inline void rxe_ns_pernet_set_sk6(struct net *net, struct sock *sk)
+-{
+-}
+-#endif /* IPv6 */
+-
+-int rxe_namespace_init(void);
+-void rxe_namespace_exit(void);
+-
+-#endif /* RXE_NS_H */
+diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c 
+b/drivers/infiniband/sw/rxe/rxe_verbs.c
+index 1ec130fee8ea..7954c2f2fd47 100644
+--- a/drivers/infiniband/sw/rxe/rxe_verbs.c
++++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
+@@ -1456,6 +1456,7 @@ static const struct ib_device_ops rxe_dev_ops = {
+         .driver_id = RDMA_DRIVER_RXE,
+         .uverbs_abi_ver = RXE_UVERBS_ABI_VERSION,
+
++       .add_gid = rxe_add_gid,
+         .alloc_hw_port_stats = rxe_ib_alloc_hw_port_stats,
+         .alloc_mr = rxe_alloc_mr,
+         .alloc_mw = rxe_alloc_mw,
+@@ -1471,6 +1472,7 @@ static const struct ib_device_ops rxe_dev_ops = {
+         .dealloc_mw = rxe_dealloc_mw,
+         .dealloc_pd = rxe_dealloc_pd,
+         .dealloc_ucontext = rxe_dealloc_ucontext,
++       .del_gid = rxe_del_gid,
+         .dereg_mr = rxe_dereg_mr,
+         .destroy_ah = rxe_destroy_ah,
+         .destroy_cq = rxe_destroy_cq,
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 794746de8db0..620f00f5d026 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -2984,8 +2984,6 @@ struct ib_device {
+         struct completion unreg_completion;
+         struct work_struct unregistration_work;
+
+-       const struct rdma_link_ops *link_ops;
+-
+         /* Protects compat_devs xarray modifications */
+         struct mutex compat_devs_mutex;
+         /* Maintains compat devices for each net namespace */
+diff --git a/include/rdma/rdma_netlink.h b/include/rdma/rdma_netlink.h
+index 2fd1358ea57d..d1a7186f7436 100644
+--- a/include/rdma/rdma_netlink.h
++++ b/include/rdma/rdma_netlink.h
+@@ -127,7 +127,6 @@ struct rdma_link_ops {
+         struct list_head list;
+         const char *type;
+         int (*newlink)(const char *ibdev_name, struct net_device *ndev);
+-       int (*dellink)(struct ib_device *dev);
+  };
+
+  void rdma_link_register(struct rdma_link_ops *ops);
+
+>
+> from that tree, or at least the resulting function:
+>
+>    sed -n '/^static int rxe_notify/,/^}/p' drivers/infiniband/sw/rxe/rxe_net.c
+# sed -n '/^static int rxe_notify/,/^}/p' 
+drivers/infiniband/sw/rxe/rxe_net.c
+static int rxe_notify(struct notifier_block *not_blk,
+                       unsigned long event,
+                       void *arg)
+{
+         struct net_device *ndev = netdev_notifier_info_to_dev(arg);
+         struct rxe_dev *rxe = rxe_get_dev_from_net(ndev);
+
+         if (!rxe)
+                 return NOTIFY_OK;
+
+         switch (event) {
+         case NETDEV_GOING_DOWN:
+                 /* Start draining TX queues before the netdev 
+disappears. */
+                 rxe_flush_qps(rxe);
+                 break;
+         case NETDEV_UNREGISTER:
+                 rxe_flush_qps(rxe);
+                 ib_unregister_device_queued(&rxe->ib_dev);
+                 break;
+         case NETDEV_CHANGEMTU:
+                 rxe_dbg_dev(rxe, "%s changed mtu to %d\n", ndev->name, 
+ndev->mtu);
+                 rxe_set_mtu(rxe, ndev->mtu);
+                 break;
+         case NETDEV_DOWN:
+         case NETDEV_CHANGE:
+                 if (ib_get_curr_port_state(ndev) == IB_PORT_DOWN)
+                         rxe_counter_inc(rxe, RXE_CNT_LINK_DOWNED);
+                 break;
+         case NETDEV_REBOOT:
+         case NETDEV_CHANGEADDR:
+         case NETDEV_CHANGENAME:
+         case NETDEV_FEAT_CHANGE:
+         default:
+                 rxe_dbg_dev(rxe, "ignoring netdev event = %ld for %s\n",
+                         event, ndev->name);
+                 break;
+         }
+
+         ib_device_put(&rxe->ib_dev);
+         return NOTIFY_OK;
+}
+
+>
+> ("git diff" alone would miss anything that ended up staged.) If it
+> matches what I built, the difference is somewhere I have not looked yet.
+> It would also help to know whether the crash still reproduces there
+> today.
+>
+> thanks,
+> serhat
 
