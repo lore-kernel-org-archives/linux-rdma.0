@@ -1,80 +1,57 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F3A4929AB07;
-	Tue, 28 Jul 2026 01:20:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C42C29C33F;
+	Tue, 28 Jul 2026 01:28:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785201646; cv=none; b=SnlQTqKdGReCoI4R8rjOK9NgJdEMKApdUlpQCZ2xJH+Or3zwnO5csCWoueL/3gcmsDXCY2gMMkiBHayHsmmc+BbLz01uvsLFWGmbzDvmtRn6jvr4IwXWzbDTIQf4/U/oWHgGZZbNu8ioRU/pmiXBrV+gtV0A27+M5BL+GMbJnbk=
+	t=1785202107; cv=none; b=BrT0lNSbm7za07uSgI6Hbq8BSI/sI2Cr2F6VW2ba7/8a5t1TZFzOqi8EfyALrT2ZWdRLYsHZbaNxyDSKQ9MontFSpJC23ItE4qf08mk3SJcn69CKyxkhBylnvV8hLAsjlvxqJdCytgHB6YWQKkf0mSKIqEvlsBlAht9l81A5W14=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785201646; c=relaxed/simple;
-	bh=Gbv4ribjfgYE4O3hGTwhwog47clxIp8D1F8RFLEabDA=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=TUOc8L514kUya85IDaUj0nA1ujcvuwWh2dGtIxyJmH1OT4kk6lp40piZ1yTpcnZbU18tiEaQcXF9uSUEFLR97864pAF/ho5bhOT1R3257HudUmhISpOe4xC6VxqOqHKDOyLCK6WRD1xOFXvIWKkPUdTm4X3zT5ZvhH6KZ6RlY2M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=A6p+F9Uj; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785202107; c=relaxed/simple;
+	bh=yl7tdAlkLxb4nHPXWKhhhyCSKW1pONa/Anek/0CGPFQ=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=LwriQ7yn+5xuL6w/Jt/Gk9Op5ZTG07HQYN4Su8KUeKtufs9RYG9RomTSMO8rZs0oxwY9Q0C1NlSdZfrigypLLSq1cCxAeCsJGzo5PFlsHSUl487HYBTXKn47eSrWy9nyRqO4dupIWILM984rPe2VWJe2fKUKM2S9gjlPXQFHcf0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=XcJ07vFt; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="A6p+F9Uj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A9D8B1F000E9;
-	Tue, 28 Jul 2026 01:20:44 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="XcJ07vFt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8A6D01F000E9;
+	Tue, 28 Jul 2026 01:28:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1785201644;
-	bh=n7AL4bqhd8Ndybe014NdoMMZBEvr1T8ARDNNc0f42MQ=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc;
-	b=A6p+F9Uju0lfGCcudLBQgFWKyb7MI4siQMOiy6ew5CPm8QX50iAb0aHqutDYMEqE1
-	 9vi+xiWkouLMu3a9DHwWhcXwYmswnpvu6oHIgPUsZfL554A3W70f6LxA8/g83aNj4W
-	 PwMJi1QXjuCay00eYrVHCx88zUBCkCv4Tsmu+/4C+PFNgedvT4YNGzGM5DC5DSa+5G
-	 yqtys3A8HHPnclYFFCh82YfAhWrjbY+dQQ0MUNWT10s7JHbUXqwidcuW3847pD38zN
-	 z4c4Vhx3OZbJdpCflLvjGllxgbsQP82Vb8eJCt7ZmRE0bCxg8q4vD43kaQIw8rbKpD
-	 HIVnEWcGwWJsg==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 19AFE380CED9;
-	Tue, 28 Jul 2026 01:20:11 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	s=k20260515; t=1785202106;
+	bh=pKS3kFVmD08ac66anXosXH/WX+Z+k2O5yJaZF4brlwU=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References;
+	b=XcJ07vFtP3Yl8ecaxpys/jUObz7urFum51lGux9VrwfOdD7ws6yQ2wlg16Yt1wuzZ
+	 C+ClQ13QtI+SdDjvdMO6Etz3SUDD8783U/vXYZPQm7tvjJBDaCPOvRdhyQ21hNVrT2
+	 kH8saGQrsQs8QH6pxBQ6VMIp68g6huwWFCCCWFBlLRzkTif4nqMn7zEOAue8VC5N/p
+	 CKayPQ6jHPVY8V909pLhFXDe24mqS1OVIoYuGvZg9tSfnBg/56AK86Wbn0u5htGr4j
+	 Je7vv5nRBmcpJ1Ns3OOP6Edu/uFMGujjrNyP6Lj4IiBt8zzHYpeoVFDKTj3qkDs8gz
+	 2pEnPPOWHlGgQ==
+Date: Mon, 27 Jul 2026 18:28:25 -0700
+From: Jakub Kicinski <kuba@kernel.org>
+To: Abhijit Gangurde <abhijit.gangurde@amd.com>
+Cc: <jgg@ziepe.ca>, <leon@kernel.org>, <brett.creeley@amd.com>,
+ <andrew+netdev@lunn.ch>, <davem@davemloft.net>, <edumazet@google.com>,
+ <pabeni@redhat.com>, <allen.hubbe@amd.com>, <nikhil.agarwal@amd.com>,
+ <linux-rdma@vger.kernel.org>, <netdev@vger.kernel.org>,
+ <linux-kernel@vger.kernel.org>
+Subject: Re: [for-next v4 0/2] Add Reorder Completion Queue (RCQ) support
+Message-ID: <20260727182825.7b9bdffe@kernel.org>
+In-Reply-To: <20260721121034.1616562-1-abhijit.gangurde@amd.com>
+References: <20260721121034.1616562-1-abhijit.gangurde@amd.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net] net/mlx5e: Fix indentation in
- mlx5e_free_mpwqe_rq_drop_page()
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <178520160964.1489434.986474261426318489.git-patchwork-notify@kernel.org>
-Date: Tue, 28 Jul 2026 01:20:09 +0000
-References: <20260723094452.1888786-1-tariqt@nvidia.com>
-In-Reply-To: <20260723094452.1888786-1-tariqt@nvidia.com>
-To: Tariq Toukan <tariqt@nvidia.com>
-Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@google.com,
- kuba@kernel.org, netdev@vger.kernel.org, pabeni@redhat.com,
- cratiu@nvidia.com, dtatulea@nvidia.com, gal@nvidia.com, lkp@intel.com,
- leon@kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
- mbloch@nvidia.com, saeedm@nvidia.com
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-Hello:
+On Tue, 21 Jul 2026 17:40:32 +0530 Abhijit Gangurde wrote:
+> Patch 1 extends the net/ionic firmware identity structure to expose the
+> rcq_sign_bit field from the RDMA LIF identity.
 
-This patch was applied to netdev/net-next.git (main)
-by Jakub Kicinski <kuba@kernel.org>:
-
-On Thu, 23 Jul 2026 12:44:52 +0300 you wrote:
-> Remove a stray leading space before __free_pages() call.
-> 
-> Fixes: 0285cc3dac1b ("net/mlx5e: Alloc rq drop page based on calculated page_shift")
-> Reported-by: kernel test robot <lkp@intel.com>
-> Closes: https://lore.kernel.org/oe-kbuild-all/202607142323.qm25Crps-lkp@intel.com/
-> Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
-> Reviewed-by: Cosmin Ratiu <cratiu@nvidia.com>
-> 
-> [...]
-
-Here is the summary with links:
-  - [net] net/mlx5e: Fix indentation in mlx5e_free_mpwqe_rq_drop_page()
-    https://git.kernel.org/netdev/net-next/c/41ff498d3392
-
-You are awesome, thank you!
+Can you apply this on a linux/master tag and send a PR so that
+both networking and RDMA can pull?
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
-
+pw-bot: nap
