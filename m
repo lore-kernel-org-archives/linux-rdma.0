@@ -1,103 +1,144 @@
-Received: from mail-yw1-f200.google.com (mail-yw1-f200.google.com [209.85.128.200])
+Received: from mail-yw1-f199.google.com (mail-yw1-f199.google.com [209.85.128.199])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 81B9743F8A9
-	for <linux-rdma@vger.kernel.org>; Tue, 28 Jul 2026 14:15:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.200
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A5C5231C91
+	for <linux-rdma@vger.kernel.org>; Tue, 28 Jul 2026 14:15:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.199
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785248105; cv=none; b=XyoFUf5nATu8Yef3Xp+Mcx4BdJLUWJGbwBbDF46xUKVGxnZtdetbtFgByp3icV+yp3EWGho43P84CuYiNY4xNXQOhznft/jfbh2g6lTAFTKbwqfC2/46u1bg92sQWEvKslAE3I2bukQw43E5SX9dkiJFKedJq5tyvT6yM7riHtc=
+	t=1785248108; cv=none; b=In+XjMergHN6VqngMFdOBpoaGde+Bo96p2Z3K4+EAbJxc68guSN2rBYlDjn4SFKOoUVamrNTBPmxvgKIzLkg3y5NwSnMEy94JYcVS6P/t3Uqr9M5sqpCA1EmgXyaRcBeIZrzhTMkCDazOWz1DuQmyajg6l1e8mI/zH8M9tO4BU4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785248105; c=relaxed/simple;
-	bh=k8BK1468BGFmxpS6M4DkPSelhiHsLwRp5XtIwte9OwY=;
-	h=Date:Mime-Version:Message-ID:Subject:From:To:Cc:Content-Type; b=sSm7tSwOd4D/tBEKBETCw3uTXch7MzlCaJJqpJBYp+YQ2jogBQY2lx6DmDd50AC2y0h9gPMFzP2Y7egPdQA1y3g9vmSS194Phu5r0oQmcHsc6kT3u9hBlFsvqn/XPIK4WQ2z9pvqStjAULqbYVyOCjkqPKF29gvkeOMqxME49Zk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--jmoroni.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=F7r8oRIz; arc=none smtp.client-ip=209.85.128.200
+	s=arc-20240116; t=1785248108; c=relaxed/simple;
+	bh=O33GgqQbEe6vBUDa7jjPblodP4s07yjAi+uP550FKxg=;
+	h=Date:In-Reply-To:Mime-Version:References:Message-ID:Subject:From:
+	 To:Cc:Content-Type; b=HN9JygKlEk5xsxD9k2zWurkywm7LVRsHlnIRGAKTDPnYux7tFHCwMcLoEwzv6KCg/Gc/mEwJbgEro7lWB+czoYHedmv5Mb+hEHAm1ecp2nZ+rsDMfOM4S27TC2VdXlxNXJKPN7aTQfEHShXnXEYW57oj+IhC5MRYvZPlGt1adAk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--jmoroni.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=hFzrPETX; arc=none smtp.client-ip=209.85.128.199
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--jmoroni.bounces.google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="F7r8oRIz"
-Received: by mail-yw1-f200.google.com with SMTP id 00721157ae682-81e92ddc199so101658877b3.0
-        for <linux-rdma@vger.kernel.org>; Tue, 28 Jul 2026 07:15:04 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="hFzrPETX"
+Received: by mail-yw1-f199.google.com with SMTP id 00721157ae682-81ebbbd60cbso61426547b3.1
+        for <linux-rdma@vger.kernel.org>; Tue, 28 Jul 2026 07:15:07 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20251104; t=1785248103; x=1785852903; darn=vger.kernel.org;
-        h=content-type:cc:to:from:subject:message-id:mime-version:date:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=AJBNpLYuiiEZbLHx2AGAAV1TB2pEXpSP5Advzj0Eml8=;
-        b=F7r8oRIz5B8KZM/PgecsqEW1gOOn+9phN1aRWLloVUkfQLAnLw/aRzWFPlN8nfLLD1
-         JRAjqB4+xiWCqCR7sQ6uDbwVd4cVlFX85nuBY0kS/+stPPtq33DbrjQAS+2X2JYk79Tr
-         MsFzjGS3OToJo9J5bbLl2J3kK6Gv+wDLfpTGDuUVhcXKIh5JkEqtRV/RRygm1DwfwZq9
-         2L9l50VJ/ivYhr1LBFSjM6IrO4nHqdleY2jY37qBkcry8zH+S62mVPtyQcjXU/nOgW/5
-         2LtJrVY/opgJyjvdwdr+wJtW34kI8AfKZRfQ/Ey4Ce5dOc5eJ8eWooTw5p4awz28AL5D
-         u4Sg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1785248103; x=1785852903;
-        h=content-type:cc:to:from:subject:message-id:mime-version:date
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+        d=google.com; s=20251104; t=1785248106; x=1785852906; darn=vger.kernel.org;
+        h=content-type:cc:to:from:subject:message-id:references:mime-version
+         :in-reply-to:date:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=AJBNpLYuiiEZbLHx2AGAAV1TB2pEXpSP5Advzj0Eml8=;
-        b=HXcM9V43/0tgBqEmo0OvoJxo7vIg135IznP1YHaBJsb8jaqNXwrTp7C18dCYrI2qD6
-         0PEr9+Pk8IgIco3M/m01Daog8gIVjQy69JIyTLAl15zKhs7APgWKD0SMwmedeLiddbTp
-         Mt7wNUPE57f8NC6qlYtHTTaRhozeKzZ+iTEMHe6RV64cuDFZYhSLOxujnpsPxIarC+Xy
-         q9GtwfLZPxqymDp7u29/Ic0uXx+EUQW6znzUiNrfNzVdKNyDooLVWdVGCjdXDPW+OTkg
-         GL+9PYZw99HhPu/VH8bJ8i0Z9THGJqFcZCWOYNfsrBEx6Fv1vYC/BmOHryhqOub1cO+4
-         MaKQ==
-X-Gm-Message-State: AOJu0YxiFSwqT0Bw5ybGs19HYTTKcfmlMnvH5k3TXmStu/wmH1ieOJ+1
-	Tmeh8/LwxKZfYz1sY+rH/DZCw4teGsnHXIqtALpxTKqpTX2cXpXtmLGTBmQsJ6xUiOY6jeAOV0v
-	VOdHCeIKXGg==
-X-Received: from ywbhw14.prod.google.com ([2002:a05:690c:650e:b0:7fe:8964:6b5c])
- (user=jmoroni job=prod-delivery.src-stubby-dispatcher) by 2002:a05:690c:64c2:b0:81e:eaaa:535b
- with SMTP id 00721157ae682-81f992e2f77mr9452857b3.35.1785248103144; Tue, 28
- Jul 2026 07:15:03 -0700 (PDT)
-Date: Tue, 28 Jul 2026 14:15:00 +0000
+        bh=lnbX5Qd9afL5SIDZ428l6VmD4eEN+HRsYONZ0njP2hU=;
+        b=hFzrPETXECUwnBorhlcEz5wd/yzS8asJ8QOZjeRX8NAAUMKizpbQlhxiXpGiFQvtYT
+         wudcsxARvSEeTQ2o+3KIA5XVcnBS4eim+tY1UvzxgZd2lJKFzZppUulUD9NBmgZOsEvk
+         A/4umJAOO9fz8ZQap299N024/4K6LVlSwLtilSMdvsftIYcsccVHXOlkAAcO+WYLMjJ1
+         V0gmW8h+6Z7RYyhYt2aySxLxsp7TQK0gNpgMfsfPlYJFXH2wyotK+jXtI1X4ZkIVkEK/
+         gto56BS2/mNePA89nVvdrGCML/ukyz/sDLLPFD7XItHp9F5UKk/vCJUvjSoWRhQG9kqe
+         1gzQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1785248106; x=1785852906;
+        h=content-type:cc:to:from:subject:message-id:references:mime-version
+         :in-reply-to:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=lnbX5Qd9afL5SIDZ428l6VmD4eEN+HRsYONZ0njP2hU=;
+        b=ooR5/O0KKZBBC74I/uyNA0kI/L8RRKLQJPjOoyHBNqrqtjWiHYrWQLUHXyz67Xi3NG
+         icu/QOpYjQUBZNDDbOFOTeORXQ35YIYKl1nv57BYElcqVySflv5HDckJcHA7Agc/IQE1
+         KKNhYqbUaSf2/xSsPyuNWAstjVA9kZaQwUS6cfXqjVFRzME7Runbfvelw2arbw4F4f3J
+         EOJnGwO99eylgmcbfc0bO+hNhLKXrTlnjDCJfhd5qwkXNv1U0XLQJ3FDRCuvDUFP6yFj
+         C/lGk+P2RuH/gw1fhEOPQ3SLJnZozoyIZ9LRAKrF6/J+KSma9AbR/WNYA3ghKz/K6bB3
+         gPUg==
+X-Gm-Message-State: AOJu0YxoKa4N/+rQ1kFRpO+pn/g8luv3zZzVJOfVTkCm4nEroOJhTHUV
+	dC+Xtsuw4lBhtqDAG0/xMJdSQfyLeGMYJuOejERkoEB7HlusXsHbweup4wa6gXXhf1pNj8gbljT
+	r1uKU1+25rA==
+X-Received: from ywbnv7.prod.google.com ([2002:a05:690c:9307:b0:809:9422:8c32])
+ (user=jmoroni job=prod-delivery.src-stubby-dispatcher) by 2002:a05:690c:d1e:b0:80d:21d3:a399
+ with SMTP id 00721157ae682-81f99219afemr11925137b3.48.1785248106049; Tue, 28
+ Jul 2026 07:15:06 -0700 (PDT)
+Date: Tue, 28 Jul 2026 14:15:01 +0000
+In-Reply-To: <20260728141501.1425737-1-jmoroni@google.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 Mime-Version: 1.0
+References: <20260728141501.1425737-1-jmoroni@google.com>
 X-Mailer: git-send-email 2.55.0.229.g6434b31f56-goog
-Message-ID: <20260728141501.1425737-1-jmoroni@google.com>
-Subject: [PATCH rdma-next 1/2] RDMA/core: Prevent rereg_mr for dmabuf umems
+Message-ID: <20260728141501.1425737-2-jmoroni@google.com>
+Subject: [PATCH rdma-next 2/2] RDMA/irdma: Remove dmabuf checks in rereg_mr
 From: Jacob Moroni <jmoroni@google.com>
 To: tatyana.e.nikolova@intel.com, jgg@ziepe.ca, leon@kernel.org
 Cc: linux-rdma@vger.kernel.org, Jacob Moroni <jmoroni@google.com>
 Content-Type: text/plain; charset="UTF-8"
 
-The rereg_mr method has always been explicitly blocked in
-rdma-core for dmabuf MRs anyway, so add a check to the
-ib_umem_check_rereg helper so that each driver doesn't need
-to handle it.
-
-Depending on how the driver handled rereg_mr, this also
-has the benefit of preventing rereg_mr from being used
-to add the IB_ACCESS_MW_BIND flag to a dmabuf MR. This
-flag is not allowed during registration, so it seems
-sensible to prevent it from being added back with rereg_mr.
-
-Preventing IB_ACCESS_MW_BIND is important for drivers that
-support revocable dmabufs and implement "revoke" by issuing
-a dereg_mr command to the HW because most(?) HW will reject
-this command if the MR has windows bound to it, and a failure
-to revoke is supposed to trigger a function reset.
+Now that ib_umem_check_rereg entirely blocks rereg for dmabuf
+umems, the extra logic can be removed from irdma.
 
 Signed-off-by: Jacob Moroni <jmoroni@google.com>
 ---
- drivers/infiniband/core/umem.c | 3 +++
- 1 file changed, 3 insertions(+)
+ drivers/infiniband/hw/irdma/verbs.c | 31 +----------------------------
+ 1 file changed, 1 insertion(+), 30 deletions(-)
 
-diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
-index 81f44dadfa52..88110b9661f5 100644
---- a/drivers/infiniband/core/umem.c
-+++ b/drivers/infiniband/core/umem.c
-@@ -677,6 +677,9 @@ int ib_umem_check_rereg(struct ib_umem *umem, int flags, int new_access_flags)
- 	if (!umem)
- 		return 0;
+diff --git a/drivers/infiniband/hw/irdma/verbs.c b/drivers/infiniband/hw/irdma/verbs.c
+index 16c80367270f..5e03cf39fa6e 100644
+--- a/drivers/infiniband/hw/irdma/verbs.c
++++ b/drivers/infiniband/hw/irdma/verbs.c
+@@ -3885,8 +3885,6 @@ static struct ib_mr *irdma_rereg_user_mr(struct ib_mr *ib_mr, int flags,
+ 	struct irdma_device *iwdev = to_iwdev(ib_mr->device);
+ 	struct irdma_mr *iwmr = to_iwmr(ib_mr);
+ 	struct irdma_pbl *iwpbl = &iwmr->iwpbl;
+-	bool dmabuf_revocable = iwmr->region && iwmr->region->is_dmabuf;
+-	struct ib_umem_dmabuf *umem_dmabuf;
+ 	int ret;
  
-+	if (umem->is_dmabuf)
-+		return -EOPNOTSUPP;
-+
- 	if ((flags & IB_MR_REREG_ACCESS) && !(flags & IB_MR_REREG_TRANS))
- 		if (ib_access_writable(new_access_flags) && !umem->writable)
- 			return -EACCES;
+ 	ret = ib_no_udata_io(udata);
+@@ -3903,26 +3901,9 @@ static struct ib_mr *irdma_rereg_user_mr(struct ib_mr *ib_mr, int flags,
+ 	if (ret)
+ 		return ERR_PTR(ret);
+ 
+-	if (dmabuf_revocable) {
+-		umem_dmabuf = to_ib_umem_dmabuf(iwmr->region);
+-
+-		ib_umem_dmabuf_revoke_lock(umem_dmabuf);
+-
+-		/* If the dmabuf has been revoked, it means that the region has
+-		 * been invalidated in HW. We must not allow it to become valid
+-		 * again unless the user is requesting a change in translation
+-		 * which will end up dropping the umem dmabuf and allocating an
+-		 * entirely new umem anyway.
+-		 */
+-		if (umem_dmabuf->revoked && !(flags & IB_MR_REREG_TRANS)) {
+-			ret = -EINVAL;
+-			goto err_unlock;
+-		}
+-	}
+-
+ 	ret = irdma_hwdereg_mr(ib_mr);
+ 	if (ret)
+-		goto err_unlock;
++		return ERR_PTR(ret);
+ 
+ 	if (flags & IB_MR_REREG_ACCESS)
+ 		iwmr->access = new_access;
+@@ -3939,12 +3920,6 @@ static struct ib_mr *irdma_rereg_user_mr(struct ib_mr *ib_mr, int flags,
+ 			iwpbl->pbl_allocated = false;
+ 		}
+ 
+-		if (dmabuf_revocable) {
+-			/* Must unlock before release to prevent deadlock */
+-			ib_umem_dmabuf_revoke_unlock(umem_dmabuf);
+-			dmabuf_revocable = false;
+-		}
+-
+ 		if (iwmr->region) {
+ 			ib_umem_release(iwmr->region);
+ 			iwmr->region = NULL;
+@@ -3955,10 +3930,6 @@ static struct ib_mr *irdma_rereg_user_mr(struct ib_mr *ib_mr, int flags,
+ 		ret = irdma_hwreg_mr(iwdev, iwmr, iwmr->access);
+ 	}
+ 
+-err_unlock:
+-	if (dmabuf_revocable)
+-		ib_umem_dmabuf_revoke_unlock(umem_dmabuf);
+-
+ 	return ret ? ERR_PTR(ret) : NULL;
+ }
+ 
 -- 
 2.55.0.229.g6434b31f56-goog
 
