@@ -1,72 +1,97 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from out-178.mta1.migadu.com (out-178.mta1.migadu.com [95.215.58.178])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C9CD33AEF21;
-	Wed, 29 Jul 2026 23:06:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E5ABA1D95A3
+	for <linux-rdma@vger.kernel.org>; Wed, 29 Jul 2026 23:46:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=95.215.58.178
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785366371; cv=none; b=CgojwSUJIyMNxoMYySgRKY/2tw+nC5/Al4YZZf3d2FxklZPU53b39b3RK2cGBHsBvHqgdxmIi0qmACKMSSswXhP9uw+sYkRPWiShm12iu7cfVNx6HhZ4kmAh+c0xn+HVcxYMpmWF55W22ZAnzFvlSvaF+ObxrhXvn+GEP5rzAas=
+	t=1785368790; cv=none; b=Gc0/PX0TlXUoag3PUm05B8xrul6yQUyLk1ju2ePos08xd82lpRngzzQy5fXHULT7MGeHuuFa674lOC6PHYkATzzISZaKcb3FMV/SdzoQJhx+dCSGnUNY7v82hpSkncZnopkIgo1Ov1gEGzDsoRQlrmEaFHI/v5SLphTWlFyGmHA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785366371; c=relaxed/simple;
-	bh=q2rDVXugQ85YEJfZ4RfMYucmMHzfFdJBuns8BG10unQ=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=idywL3FEi6+mZKNb6V3s7vSMXusZJrjehqvCN82S+Dk4/PAgm5orJlgxsCOGBjqK8tGusxzbO8S737e8/6G5ImYiMYdI+sUTvYt7Shr0RXsXLvVarR4H1AUUkv9T99EIqWF0JPuSUUNRbVFnZtnUqZzSu8ZuTqK11i56X2j3AcI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=iS18peI1; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785368790; c=relaxed/simple;
+	bh=8atLDkvAtM91jCEIe7cKro5IUYCrnp+OVUxyqeKwISg=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=qor/1cr/H1yT6ZpPOVn0nd1zDWThDyJrBHv8JXPOsYwNRhsiEMUjxiTiwryYPlit/NQNW3sFbmDHuLF+tykNshsaXClqpkubrBHHzgMlRjIdYd0t49TfjrHrweKf2aVnyt9JK9p34qbc8I2qViyVJlTqe5SoOnpb61tzSwohHFI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=UF8z0NYG; arc=none smtp.client-ip=95.215.58.178
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="iS18peI1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DFB971F000E9;
-	Wed, 29 Jul 2026 23:06:09 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1785366370;
-	bh=Lhsi+afaaIB87p+bKoLmsL0ptY21q4TkorQ5Ox+KDoE=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References;
-	b=iS18peI1cFRmKE2uTiZFcR02rn4viAdu3B6h6M9lsBYieZwi+U67WO9e7FI07jrVd
-	 JNHleBhGNBZ7mxEeLAaCw5WTnQISmOYj/JLG5qyFhmKQzb8FTifrM3TL3gn8qjtW0T
-	 QKeBuEi6sVnn7ILuNCiI+NrE4qTzfQ+Tnjl5ea69jC0m+0F7qmvlys2/Pei5j9EEF3
-	 L1NgvOZb/joAiiluECmIsytMIExf2QWh/mY+pPpdrBG/TuSZY9iQ2Vn2mwLr+KoYj3
-	 GpNRn8S7QfDHRezBRmftnpt6fW6brL3zIMkDXJPGcYxJaJiJ4paWsI2r6qaeytImU9
-	 OJovwcFDrVGTQ==
-Date: Wed, 29 Jul 2026 16:06:08 -0700
-From: Jakub Kicinski <kuba@kernel.org>
-To: Jiri Pirko <jiri@resnulli.us>
-Cc: Mark Bloch <mbloch@nvidia.com>, Eric Dumazet <edumazet@google.com>,
- Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>, Saeed
- Mahameed <saeedm@nvidia.com>, Leon Romanovsky <leon@kernel.org>, Tariq
- Toukan <tariqt@nvidia.com>, Andrew Lunn <andrew+netdev@lunn.ch>, Jonathan
- Corbet <corbet@lwn.net>, Shuah Khan <skhan@linuxfoundation.org>,
- netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
- linux-doc@vger.kernel.org, Jiri Pirko <jiri@nvidia.com>
-Subject: Re: [PATCH net-next V7 4/4] devlink: Apply eswitch mode boot
- defaults
-Message-ID: <20260729160608.3c491568@kernel.org>
-In-Reply-To: <amnDfSmMVzpiH2gE@FV6GYCPJ69>
-References: <20260716084852.549909-1-mbloch@nvidia.com>
-	<20260716084852.549909-5-mbloch@nvidia.com>
-	<20260724161111.2ac47089@kernel.org>
-	<c6c0d67c-d832-49a1-b62a-57fa6ee56a47@nvidia.com>
-	<20260727131033.237f70b6@kernel.org>
-	<amnDfSmMVzpiH2gE@FV6GYCPJ69>
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="UF8z0NYG"
+Message-ID: <86153a83-a234-4afb-82da-6ac7e4cc2ef9@linux.dev>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
+	t=1785368776;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=HyBkNkdrosmtPSRrBP/qEyOiL2qgvOckO8JtJ/aH4fA=;
+	b=UF8z0NYGPjzcMJ+5EzIqDhfNMUF+y18cFwXGKxoiofFZs3TPiEbEAPR3+XNkkeB6FE6oa9
+	5072+HfqEi8Nd4qCZaUU4YjYLPu+kLdEEo28M+p6q/BQuYXwrqVpwiMZBT4S2DMuIAXvbZ
+	G425Xlkf6lcdU4ySDQkeUZXmOKC7teA=
+Date: Wed, 29 Jul 2026 16:46:02 -0700
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Subject: Re: [PATCH] RDMA/rxe: Fix OOB in free_rd_atomic_resources()
+To: Peiyang He <peiyang_he@smail.nju.edu.cn>, jgg@ziepe.ca, leon@kernel.org,
+ linux-rdma@vger.kernel.org, Zhu Yanjun <yanjun.zhu@linux.dev>
+Cc: linux-kernel@vger.kernel.org, stable@vger.kernel.org,
+ pandit.parav@gmail.com, dledford@redhat.com
+References: <33A3A239F88659D0+20260729073644.2834066-1-peiyang_he@smail.nju.edu.cn>
+Content-Language: en-US
+X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
+From: "yanjun.zhu" <yanjun.zhu@linux.dev>
+In-Reply-To: <33A3A239F88659D0+20260729073644.2834066-1-peiyang_he@smail.nju.edu.cn>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
+X-Migadu-Flow: FLOW_OUT
 
-On Wed, 29 Jul 2026 11:11:53 +0200 Jiri Pirko wrote:
-> >Maybe a middle ground would be to add a dedicated devl_init_unlock()*
-> >were we can stick such init? Slap a WARN_ON(!registered) in the normal
-> >unlock? I don't want the normal unlock to grow in complexity like
-> >rtnl_unlock ended up growing.  
+On 7/29/26 12:36 AM, Peiyang He wrote:
+> free_rd_atomic_resources() iterates using qp->attr.max_dest_rd_atomic.
+> Updating max_dest_rd_atomic before freeing the old array can make the
+> free path walk past the old allocation and trigger a slab out-of-bounds
+> write.
 > 
-> Yep, that was +- my idea when I suggested this, to have this in a
-> separate helper.
+> Fix the OOB by moving the assignment after free_rd_atomic_resources()
+> so the old array is freed using the old bound. This matches the original
+> ordering in commit 8700e3e7c485 ("Soft RoCE driver").
 > 
-> devl_unlock_in_init()
-> ?
+> Fixes: b6bbee0d2438 ("IB/rxe: Properly honor max IRD value for rd/atomic.")
+> Cc: stable@vger.kernel.org
+> Signed-off-by: Peiyang He <peiyang_he@smail.nju.edu.cn>
 
-Maybe "after_init()" ? "in" sounds like we can release it multiple
-times but I think the idea is that it's the final, single "release 
-into the wild" unlock.
+Thanks a lot. I am fine with this commit. If you can post the mentioned 
+OOB in the commit log, it is better.
+
+But without the OOB, this commit still seems OK.
+
+Wait for the feedback from Leon and Jason.
+
+Reviewed-by: Zhu Yanjun <yanjun.zhu@linux.dev>
+
+Zhu Yanjun
+
+> ---
+>   drivers/infiniband/sw/rxe/rxe_qp.c | 4 ++--
+>   1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/infiniband/sw/rxe/rxe_qp.c b/drivers/infiniband/sw/rxe/rxe_qp.c
+> index f3dff1aea96a..1fffe3c6685d 100644
+> --- a/drivers/infiniband/sw/rxe/rxe_qp.c
+> +++ b/drivers/infiniband/sw/rxe/rxe_qp.c
+> @@ -707,10 +707,10 @@ int rxe_qp_from_attr(struct rxe_qp *qp, struct ib_qp_attr *attr, int mask,
+>   		int max_dest_rd_atomic = attr->max_dest_rd_atomic ?
+>   			roundup_pow_of_two(attr->max_dest_rd_atomic) : 0;
+>   
+> -		qp->attr.max_dest_rd_atomic = max_dest_rd_atomic;
+> -
+>   		free_rd_atomic_resources(qp);
+>   
+> +		qp->attr.max_dest_rd_atomic = max_dest_rd_atomic;
+> +
+>   		err = alloc_rd_atomic_resources(qp, max_dest_rd_atomic);
+>   		if (err)
+>   			return err;
+
