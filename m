@@ -1,126 +1,92 @@
-Received: from out-188.mta0.migadu.com (out-188.mta0.migadu.com [91.218.175.188])
+Received: from out30-131.freemail.mail.aliyun.com (out30-131.freemail.mail.aliyun.com [115.124.30.131])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D779A1DFFD
-	for <linux-rdma@vger.kernel.org>; Wed, 29 Jul 2026 03:21:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.188
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 05FBA2C2360;
+	Wed, 29 Jul 2026 03:58:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785295292; cv=none; b=kWGKcbkEGWh/baiLVgIos6cDAdxvP+4ufQ42VvCiYtEvWq37BcCCfPJkJ3G7aKhi00fObmjc/BGL9NV7EEjwZqA0KuGLSMuLLhG4q9Xath1Bu5MsGBX+KT4M8zstSax6WhH9B4B2WBXnB9Rnu2SjyGhXpCj3wYqh2KmFNydTDhs=
+	t=1785297527; cv=none; b=OYRhJKbusZq7vCCmhfeUTXmUsBepn6JLHWQkfDwK2xJGLMXkD3SkbA9HNgTzCJPPNfHRct+py5Fj2bJJnB1qX3+37syxwaZgY1ztSgvwbcZ/FJbpQ4OvFinUvusr+GLBFLKN0Tcs/UvzYTSEcDLOT+4KYeGXAkvoot+XPV/afM8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785295292; c=relaxed/simple;
-	bh=P+AiosRHc/ZNdkGT3maMniIa4z4l/QNvhWwjWi0s5sI=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=Orobe59wg9YXJTgOPY8NgN/Ill5UW3Lgplj+pC+6cKCXrPK8X2qfpLeXILGjLfNltL7Kv8z9xyQwBjtje8neC37dFt2hayERROX5ozzUhEWDt6/DfkgJ6aTuPSg5sPeft+jZEFImkhtdl8wDtOgxpgWYTynkDHoVzfCidYfcuW8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=rkQoecOP; arc=none smtp.client-ip=91.218.175.188
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+	s=arc-20240116; t=1785297527; c=relaxed/simple;
+	bh=ujwc+OPhF2yEkrTBSYTWy3UnAhazMeMxXb4E93z7aic=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=LRNO456lq+SI3wPqbvrtDNsR0XN1uRYbGQskL3lq5s5Lz6Bc5h3Cwi8Rb/ebaRdOu3vIPLrZO6lE0xFFFZLEF1IZcoEmG46KZGjylLDK6H+/hvengxpzRUYugQ449BRg2AxhzM7/Aa3MhWDUr6B212Pa5/bV3Hj0ictumngxbew=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=JHPDBZ6o; arc=none smtp.client-ip=115.124.30.131
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="rkQoecOP"
-Message-ID: <0bcef700-e148-46f3-93b9-c5fda5323aa1@linux.dev>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-	t=1785295287;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=OnAHw6UuSiLQk5/w/BXHTeKkW/7icrd7IbgaF/P6Wxo=;
-	b=rkQoecOPs+1/c5fH/VzXcOr8RaW8RHSmNsetgjAJBSE0uSM0K5NqSF8h/m2KFmP3vJRz6d
-	WBwwZVyzRP+SMpeT9OCazlckJbWQCG3lqZtDz7dP0y7NEEHkU0cX3ZTOBdBXgsaIglfPPg
-	j19BDR9LhlRd2naT3X4roDJinmFKcos=
-Date: Tue, 28 Jul 2026 20:21:19 -0700
+	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="JHPDBZ6o"
+DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux.alibaba.com; s=default;
+	t=1785297520; h=Date:From:To:Subject:Message-ID:MIME-Version:Content-Type;
+	bh=ujwc+OPhF2yEkrTBSYTWy3UnAhazMeMxXb4E93z7aic=;
+	b=JHPDBZ6o6wwszK0ieyU2A1ZBpctJs9El6tnvIAbXwLKSrCmdmU/AfwvDZXkbj4mh34T114/Do+vG+e9P1iVsdIAFHDznVTFg/HHl+gbPiEQuYzpvylS+B/DhMOvfl24Ha/zDm4iw7StkSbx71OSUyEapFZMGn+bWIHqwBb5fMKg=
+X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R331e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam033037026112;MF=dust.li@linux.alibaba.com;NM=1;PH=DS;RN=18;SR=0;TI=SMTPD_---0X80trhv_1785297518;
+Received: from localhost(mailfrom:dust.li@linux.alibaba.com fp:SMTPD_---0X80trhv_1785297518 cluster:ay36)
+          by smtp.aliyun-inc.com;
+          Wed, 29 Jul 2026 11:58:39 +0800
+Date: Wed, 29 Jul 2026 11:58:38 +0800
+From: Dust Li <dust.li@linux.alibaba.com>
+To: hexlabsecurity@proton.me, Tony Lu <tonylu@linux.alibaba.com>,
+	Paolo Abeni <pabeni@redhat.com>, Eric Dumazet <edumazet@google.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	"D. Wythe" <alibuda@linux.alibaba.com>,
+	Wen Gu <guwen@linux.alibaba.com>,
+	Sidraya Jayagond <sidraya@linux.ibm.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Mahanta Jambigi <mjambigi@linux.ibm.com>
+Cc: Hans Wippel <hwippel@linux.ibm.com>, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-s390@vger.kernel.org,
+	Wenjia Zhang <wenjia@linux.ibm.com>, linux-rdma@vger.kernel.org,
+	Ursula Braun <ubraun@linux.ibm.com>,
+	Simon Horman <horms@kernel.org>
+Subject: Re: [PATCH net v4] net/smc: order the CDC receive path against
+ buffer publication
+Message-ID: <aml6bmRRgDVznjIs@linux.alibaba.com>
+Reply-To: dust.li@linux.alibaba.com
+References: <20260728-b4-disp-52ee4e7d-v4-1-0dda94b0f397@proton.me>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Subject: Re: [RFC PATCH 1/2] RDMA/rxe: drive UDP tunnel socket lifetime from
- the GID table
-To: Serhat Kumral <serhatkumral1@gmail.com>,
- "yanjun.zhu@linux.dev" <yanjun.zhu@linux.dev>
-Cc: mounter625@163.com, zyjzyj2000@gmail.com, xiongwm2026@163.com,
- jgg@ziepe.ca, leon@kernel.org, dsahern@kernel.org,
- linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
- syzbot+8c9eede336e3a843750e@syzkaller.appspotmail.com
-References: <c225c004-1fa9-4010-a843-8be033003e93@163.com>
- <20260728172825.43978-1-serhatkumral1@gmail.com>
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-From: Zhu Yanjun <yanjun.zhu@linux.dev>
-In-Reply-To: <20260728172825.43978-1-serhatkumral1@gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-X-Migadu-Flow: FLOW_OUT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260728-b4-disp-52ee4e7d-v4-1-0dda94b0f397@proton.me>
 
-在 2026/7/28 10:28, Serhat Kumral 写道:
-> The crash reproduces here now, and it does not come from this series.
-> 
-> The tree in that git diff carries v2 of "RDMA/rxe: Hold netdev reference
-> for transmit skbs", not the v3 I was pointed at. The pre-image blob of
-> rxe_net.c in the diff is 44a16cb1601a, and on f2ec6312bf71:
-> 
->    v2 applied -> rxe_net.c 44a16cb1601a
->    v3 applied -> rxe_net.c 86c9b19f65e1
-> 
-> v2 alone, without this series, crashes on the first run of
-> rxe_rping_between_netns.sh:
-> 
->    [   67.227061] Oops: general protection fault, probably for
->      non-canonical address 0xdffffc0000000000: 0000 [#1] SMP KASAN NOPTI
->    [   67.231014] KASAN: null-ptr-deref in range
->      [0x0000000000000000-0x0000000000000007]
->    [   67.240200] Workqueue: rxe_wq do_work [rdma_rxe]
->    [   67.241906] RIP: 0010:ip_rcv+0xeb/0x570
-> 
-> Same fault, same RIP, same Code bytes and same call trace as the oops
-> reported in this thread, down to process_backlog+0x341/0x1110 and
-> net_rx_action+0x87e/0xe00.
-> 
-> Runs of rxe_rping_between_netns.sh on f2ec6312bf71:
-> 
->    f2ec6312bf71                 120/120
->    + this series                120/120
->    + v3                         120/120
->    + v3 + this series           220/220
->    + v2                         crash on run 1
->    + v2 + this series           crash on run 1
-> 
-> The mechanism is the one the v3 changelog describes. v2 releases the
-> netdev through the live skb->dev and then clears it,
-> 
->    if (skb->dev) {
->      dev_put(skb->dev);
->      skb->dev = NULL;
->    }
-> 
-> but skb->dev has already been rewritten by the transmit path, so the put
-> lands on the wrong device and the receive side can find skb->dev == NULL.
-> v3 keeps the held netdev in skb_shinfo(skb)->destructor_arg and never
-> touches skb->dev.
+On 2026-07-28 11:52:53, Bryam Vargas via B4 Relay wrote:
+>From: Bryam Vargas <hexlabsecurity@proton.me>
+>
+>The SMC CDC receive handlers dereference conn->rmb_desc, and on the
+>SMC-D DMB-nocopy path conn->sndbuf_desc, but both are published after the
+>connection is already reachable to a peer: rmb_desc once the connection
+>is in the link group's token tree, the nocopy ghost sndbuf_desc later
+>still, in smcd_buf_attach() after the ISM receive tasklet is armed. A CDC
+>in that window hits a handler with the buffer unset -- a NULL dereference
+>and host DoS -- or, on a weakly ordered CPU, non-NULL but not yet
+>initialised. Both are also published before the receive state
+>(bytes_to_rcv, sndbuf_space), so an early CDC's accounting can be
+>overwritten by setup.
+>
+>Initialise the receive state first and publish both buffers last with
+>smp_store_release(), consuming them with smp_load_acquire() and bailing
+>while unset, as the handlers already do for a killed connection. Gate the
+>whole sndbuf consumer trigger on the send buffer, not just the nocopy
+>accounting: smc_tx_prepared_sends() and smc_tx_pending() dereference it
+>too. Conforming peers are unaffected.
+>
+>Fixes: 69cb7dc0218b ("net/smc: add common buffer size in send and receive buffer descriptors")
+>Closes: https://sashiko.dev/#/patchset/20260714-b4-disp-835288a6-v2-1-581555ef2145@proton.me?part=1
+>Cc: stable@vger.kernel.org
+>Signed-off-by: Bryam Vargas <hexlabsecurity@proton.me>
 
-Hi Serhat,
+Hi Bryam,
 
-Thanks for the detailed analysis and testing.
+Thanks for finding this corner case !
 
-I removed this patch from my tree, and the crash no longer reproduces. 
-This confirms that the regression comes from the v2 version of 
-"RDMA/rxe: Hold netdev reference for transmit skbs", not from this series.
-
-The root cause analysis looks correct. Since skb->dev can be modified 
-during the transmit path, using it to store the held netdev reference 
-can result in releasing the wrong device reference. The v3 approach of 
-storing the reference in skb_shinfo(skb)->destructor_arg avoids this issue.
-
-I will take a closer look at the related code paths and continue the review.
-
-Thanks again for the help.
+Reviewed-by: Dust Li <dust.li@linux.alibaba.com>
 
 Best regards,
-Yanjun
-
-> 
-> So v3 is the one to carry. Nothing here points at the socket lifetime
-> change.
-> 
-> thanks,
-> serhat
+Dust
 
