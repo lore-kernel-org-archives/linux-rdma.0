@@ -1,241 +1,176 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.11])
+Received: from out30-119.freemail.mail.aliyun.com (out30-119.freemail.mail.aliyun.com [115.124.30.119])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 99EEE1DDC07;
-	Wed, 29 Jul 2026 09:40:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=192.198.163.11
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785318002; cv=fail; b=ZqHTn2ap8++EbEBr2ujMHSL43OX+Is6lG8esuGOyKvAWOogAMdXJwKNX69bo3HOI/MDUj3Hh0G+P64H275m5b1PmIkcETl8MBoUH2Zk6FZrRvbiA00rSBn2rLIwUgApHsD8OSHZoYEIeMeF4OkBi7iY/d74TEjN/mN1CYj6+Gjg=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785318002; c=relaxed/simple;
-	bh=BvPhVEx0mFUD+Te3nvqyyLxZn6wsO0rO+5vWMSPB4sk=;
-	h=Date:From:To:CC:Subject:Message-ID:References:Content-Type:
-	 Content-Disposition:In-Reply-To:MIME-Version; b=u5K5OSw7VW0AdxWe+Y0HUexJqj7r6oqq4LIbuqGe/HNEfkATSj7dPeo8Z6Y8rLFj7zaMQ06PIWv4ONgoPFV1byZzXIoYhx3sN6J4r+3xWWnJBYwUyyvcpqKCYOvUNC/LZeuJn6oFfutb5Bqr5r0/N8vVmuDvaKy7ZqpxJrAxmY0=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=HS0DaU4A; arc=fail smtp.client-ip=192.198.163.11
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3F35E3CC9E9;
+	Wed, 29 Jul 2026 09:46:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.119
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1785318407; cv=none; b=ijvPN/IZvoEQQg6nHwzrFZ6XP9Mlh1S3r9ym0YbswiMQaW+Pk0rarfU7SBx1Ty0IKWCNi7S5gsLm/QrCS/98j/6nLU5mrEAINeS3dBOcirZUYwZz0RoZAWaR9+5TMlYRwNPphYIP202xp5jarW67V0jtdDrfD1iHS9VEmhFJhiA=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1785318407; c=relaxed/simple;
+	bh=9qkurKEBQ5XzOCxrJxskBkJaR8n8PEQhmRL9w2MixlA=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=prEmE5oIj7FsrrS8hzFlwku+tB7BSGRdeJFQJRy/dFBy20X0p/tpAYlkrHbqPeHwgXc95vHDo8vY3MeFXjDc5Rtfl2e1cEHSJ99/J+yb/cUu4pAmvCwaOcdGbd0oFiMz2bZffWStkm7DPZZuOJ85yqYwfvmgRywBFh66F4i/eQM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=oOO9uIFO; arc=none smtp.client-ip=115.124.30.119
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="HS0DaU4A"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1785318001; x=1816854001;
-  h=date:from:to:cc:subject:message-id:references:
-   in-reply-to:mime-version;
-  bh=BvPhVEx0mFUD+Te3nvqyyLxZn6wsO0rO+5vWMSPB4sk=;
-  b=HS0DaU4AeiA6e4K8sV+fFslaIY5pRFWFluRxarZ0YqS3739vFKaqXtfM
-   EMrPTnML8fm6hBox+RWX7jI62f/DsV9U3mG0fZ0/c+d5U52SEDY04esCN
-   OLRXmEifnpNGTr3BsTwB2svd5WBV6m82n7IrBOZB9Zgk++Qp/3STGB8xl
-   72JOTbtb7Te8BTCUZ+t0o1ET1m+Tm9Ntacj1nEtQVUr0ZXcNZmtb84rw5
-   hCgU504dQIou2mFDRHaHkqfeiBySzsldsUzQOoJlcRrdaq+h02Bci80bW
-   mql9rflEKx+bQA/kwtUOPRKJso1A6jQd6tCrpgMBnhUBv0m6LDRvluG3s
-   Q==;
-X-CSE-ConnectionGUID: SoouDVTISzS50pihDuLa9w==
-X-CSE-MsgGUID: 09pdQE7qRP+RT6IiZiq4fA==
-X-IronPort-AV: E=McAfee;i="6800,10657,11859"; a="96503569"
-X-IronPort-AV: E=Sophos;i="6.25,192,1779174000"; 
-   d="scan'208";a="96503569"
-Received: from fmviesa004.fm.intel.com ([10.60.135.144])
-  by fmvoesa105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Jul 2026 02:39:59 -0700
-X-CSE-ConnectionGUID: bpQB9rrcQEapPyzaHynIkA==
-X-CSE-MsgGUID: StsPL+wLRre792/j4bKhjw==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.25,192,1779174000"; 
-   d="scan'208";a="261919529"
-Received: from fmsmsx901.amr.corp.intel.com ([10.18.126.90])
-  by fmviesa004.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Jul 2026 02:39:59 -0700
-Received: from FMSMSX903.amr.corp.intel.com (10.18.126.92) by
- fmsmsx901.amr.corp.intel.com (10.18.126.90) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.45; Wed, 29 Jul 2026 02:39:59 -0700
-Received: from fmsedg901.ED.cps.intel.com (10.1.192.143) by
- FMSMSX903.amr.corp.intel.com (10.18.126.92) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.45 via Frontend Transport; Wed, 29 Jul 2026 02:39:59 -0700
-Received: from PH0PR06CU001.outbound.protection.outlook.com (40.107.208.25) by
- edgegateway.intel.com (192.55.55.81) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.45; Wed, 29 Jul 2026 02:39:58 -0700
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=ffaXgFKKdQPGSDI5GafVzbE0cmx2fV73MnXqYQ8gB44EuBV8Un+0oLYyaysdxLLa3BumDC/uVEF5DZ2Y2HBsGXwwT9dkPnJtQHIUDvPbquAzNaCMX11LssXwdqEoK2ujdY9v4PwoJDE//nN6qLfW3GrpV4yLPa+KnltxXz1oQ3H3LlUrJqRvupTzNJfDeLax/F0hBHHDEaaGkHijIyp1izvaDwDBtTJgRPTxZ37dgswLn5JVwHJShhmZHpVgs4l+YxyAMEnh/IEAnebhoJvji3GXpVMlo7AXkhDr/ar2tFAeDFA7xN2mF0XOfSJLvvqdc6nzNFHcB+j5l6xsnxm/cw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=E+T7Dh8wxtclVtc8wNRLSkb99WORRhJjE0G1UNSidtY=;
- b=KS3JFANBA++HMAhC9YttIjqI9TcClvmVK/+QF2lJo+SenVgHrD/8faLuKuIUp9GKpnWpydFCUoPadIVtCzRk2knEFzKNWPWfMupwfCWH1V0xhcVpx+FuwgmqRHd2fCKLGdPKMrjM13hsFkLkgFxqD4EEnvb/uY9tIQ6aU7QkFUmbSaIvt7AJ/J4PBKD4Oj/BsKOpzl2hN9umpUzuP9F60HpiUraZAawQPdX8ZRlGipqQCJseUYm7sV5zlEKZPXWj5UcQIS9eGjTotrzoXtM1q3ASwZDYQxwC/fkWH/qQmNq1UApuhJC55DgJJMeuI7xCQ2fOFJx37VrtyUx9dmlgqQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-Received: from DM4PR11MB6117.namprd11.prod.outlook.com (2603:10b6:8:b3::19) by
- PH0PR11MB5014.namprd11.prod.outlook.com (2603:10b6:510:31::17) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.270.12; Wed, 29 Jul 2026 09:39:44 +0000
-Received: from DM4PR11MB6117.namprd11.prod.outlook.com
- ([fe80::d9b3:e942:2686:3cdd]) by DM4PR11MB6117.namprd11.prod.outlook.com
- ([fe80::d9b3:e942:2686:3cdd%6]) with mapi id 15.21.0270.009; Wed, 29 Jul 2026
- 09:39:44 +0000
-Date: Wed, 29 Jul 2026 11:39:34 +0200
-From: Maciej Fijalkowski <maciej.fijalkowski@intel.com>
-To: Stanislav Fomichev <sdf.kernel@gmail.com>
-CC: <netdev@vger.kernel.org>, <davem@davemloft.net>, <edumazet@google.com>,
-	<kuba@kernel.org>, <pabeni@redhat.com>, <anthony.l.nguyen@intel.com>,
-	<przemyslaw.kitszel@intel.com>, <andrew+netdev@lunn.ch>, <saeedm@nvidia.com>,
-	<tariqt@nvidia.com>, <mbloch@nvidia.com>, <ast@kernel.org>,
-	<daniel@iogearbox.net>, <hawk@kernel.org>, <john.fastabend@gmail.com>,
-	<sdf@fomichev.me>, <maxime.chevallier@bootlin.com>,
-	<mcoquelin.stm32@gmail.com>, <alexandre.torgue@foss.st.com>,
-	<aleksander.lobakin@intel.com>, <horms@kernel.org>,
-	<magnus.karlsson@intel.com>, <witu@nvidia.com>, <alice.kernel@fastmail.im>,
-	<dtatulea@nvidia.com>, <yoong.siang.song@intel.com>, <martin.lau@kernel.org>,
-	<intel-wired-lan@lists.osuosl.org>, <linux-kernel@vger.kernel.org>,
-	<linux-rdma@vger.kernel.org>, <bpf@vger.kernel.org>,
-	<linux-stm32@st-md-mailman.stormreply.com>,
-	<linux-arm-kernel@lists.infradead.org>, <leon@kernel.org>,
-	<AutonomousCodeSecurity@microsoft.com>, "Cen Zhang (Microsoft)"
-	<blbllhy@gmail.com>
-Subject: Re: [PATCH net 0/6] xsk: harden TX metadata validation against races
-Message-ID: <amnKVlHTITILY8H8@boxer>
-References: <20260727161959.885642-1-sdf@fomichev.me>
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <20260727161959.885642-1-sdf@fomichev.me>
-X-ClientProxiedBy: DUZPR01CA0009.eurprd01.prod.exchangelabs.com
- (2603:10a6:10:3c3::16) To DM4PR11MB6117.namprd11.prod.outlook.com
- (2603:10b6:8:b3::19)
+	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="oOO9uIFO"
+DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux.alibaba.com; s=default;
+	t=1785318393; h=Date:From:To:Subject:Message-ID:MIME-Version:Content-Type;
+	bh=3Kb+gxxNFsPAk9YfrV77ZgzYxrountwmYNwZZmdsfuk=;
+	b=oOO9uIFOf+VEEyZolWFD89pT7toWVnx9OUkbqHnNCNxPD4dPt+Y//m3eCENiDH1peu28BRL73Xl5A3tpn2rA4VnQMGYNZVeqd3cxKRDC/KEjYhrM0J+DwGoHO8yQShJaqCLtyeBYEzTeYBnEePUuWlClGt3XrmkSLO06nRqypOM=
+X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R211e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam033032089153;MF=dust.li@linux.alibaba.com;NM=1;PH=DS;RN=12;SR=0;TI=SMTPD_---0X81qbYq_1785318392;
+Received: from localhost(mailfrom:dust.li@linux.alibaba.com fp:SMTPD_---0X81qbYq_1785318392 cluster:ay36)
+          by smtp.aliyun-inc.com;
+          Wed, 29 Jul 2026 17:46:33 +0800
+Date: Wed, 29 Jul 2026 17:46:32 +0800
+From: Dust Li <dust.li@linux.alibaba.com>
+To: hexlabsecurity@proton.me, Wenjia Zhang <wenjia@linux.ibm.com>,
+	"D. Wythe" <alibuda@linux.alibaba.com>,
+	Sidraya Jayagond <sidraya@linux.ibm.com>
+Cc: Mahanta Jambigi <mjambigi@linux.ibm.com>, netdev@vger.kernel.org,
+	linux-s390@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Tony Lu <tonylu@linux.alibaba.com>, Paolo Abeni <pabeni@redhat.com>,
+	Wen Gu <guwen@linux.alibaba.com>, linux-rdma@vger.kernel.org
+Subject: Re: [PATCH net] net/smc: drain the rx tasklet before detaching the
+ ghost sndbuf
+Message-ID: <amnL-DjPaTQyOXT1@linux.alibaba.com>
+Reply-To: dust.li@linux.alibaba.com
+References: <20260726-b4-disp-a135b4e5-v1-1-705aaec79986@proton.me>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: DM4PR11MB6117:EE_|PH0PR11MB5014:EE_
-X-MS-Office365-Filtering-Correlation-Id: 4c8b8649-0ad1-47cc-3153-08deed555241
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|1800799024|376014|23010399003|7416014|366016|11063799006|5023799004|10067099003|6133799003|56012099006|22082099003|18002099003;
-X-Microsoft-Antispam-Message-Info: bI8aaNyS2HknuvlkGjLCMdFDJH3yy7fNaIJ8EWOW8kOq47LEwvphT/HRG4mK0sO8K+/SstQJ00x/a1hzTGT0p41Vgq7dDodr/y9OeA+lRPB9VVM4+IWJqCdcLtb+1hX42f38O6DvsIBvc3nmtYHLqFy9qHWpKr5TlazBcYSwl8yMwv6UCG5cpVFPM7OpH089cyo+pWUUoO7YYW/GW+2R4i+xKT9hqQcZMhDrN3Ncc5b1wR2v7IkcIoaaCRrizM6S08ab/OXiDl3EUThRfwLbuUaUqbW/VAv0rKJCIi/vCp4jKQahpj9iMXjn49RR9A7dPIqwfPVm3FSFOcyWRLcSdScYqui4y5QjYjtuVhRj43Dpa5jjjrRKIbVBlL5vy6hvU6csHVda8CBneEYNj+7yJCOkNkwgfXaoquIguwBM+RtNFN+6CahKMooGniGgNYvLTB9P8IsP5e2ZfE04nsh0V06AI86ycwboNGN8U5KPXkuA6NGy7/gj+WNx7g7vbskWRsRJ89Yo7PmSlFoSxiDE/QJ6pCDvlSoHm6FRhn4UoSA2hx9mSOxMSovbKvJq65wHIA1OhoGfQAaH7G5WneK2K+G5SwLh5EmiyAUUhvGsnVbKcgu1AQMEHms8UnlGygACFnm137XOIocHZpoIRWOSeHov3spwH7WCdbxbgHcZQy8=
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DM4PR11MB6117.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(376014)(23010399003)(7416014)(366016)(11063799006)(5023799004)(10067099003)(6133799003)(56012099006)(22082099003)(18002099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?umbx1rrXT3S5tzieLzELpi+NjE77u2icGpJF+jUgbIaK+8VfxXDRLFazkL1F?=
- =?us-ascii?Q?es0dSgTRbTThldoDntjhBmT1I2BnfeiXQlveqfObnX26GAaBKeA7nqI4HMti?=
- =?us-ascii?Q?MpLbL8OmgpFRaoWy7lkDG/I4M1W80guKFkvrMU8xQSmxK1yOS/EXmm3gowrO?=
- =?us-ascii?Q?QRl4kjrKweTgXWR4+97jyJlcjUhj1EfnxTOFa6vL7xNSJe/KE5NW726VOCaN?=
- =?us-ascii?Q?Ywi4GGcBcYZthTAIDdxnXBwru1NG8Agdna0C2Xi/ZmyqpyYCwZ8k37BFucND?=
- =?us-ascii?Q?3MjLLYPIS8QwcraUMr7KtB+qrWL9OXHBZ41gW35MxJ/YsT6TZs49+EGjQI3b?=
- =?us-ascii?Q?TO13/v8mDpV1vd/NzizIU37B4pqgW/iP6jn6T57bncG1+NhabjXWVe7HnNu5?=
- =?us-ascii?Q?ka5w9UsKR6RmDncYbbYMUsCohdpGYRvTuEbWC1s7KOSdKiRwqROm+dALlf8M?=
- =?us-ascii?Q?A9JAPPLTUk5YD4t8KHLATfz4VZ0Qh1NptIJrkwJckALem9Xbr2RvP4Cph+Ml?=
- =?us-ascii?Q?TfxjIZ1VIsd29E+BFCGt8gE8+PM/riTSi+u8qm7PWmjMAkiHAL/LNOm4g9JD?=
- =?us-ascii?Q?XaGArJhquO5mKPfPb7uGuF594D8zgMUNfBK2iFC99fiqQWTjuT3gyHwcOgzm?=
- =?us-ascii?Q?22VP+0RyloNfd0GkhqGNV9hXUgrHueWkfWRQXsBTa4jnsIawHNGjWtZSVWLQ?=
- =?us-ascii?Q?D41EQxpS4sj2AEG06ykIkMm64sUDrxli0AvX7vcPwwhrHA8bsTAl9RdAYZXW?=
- =?us-ascii?Q?6bPmyATYUWLMU03wHMYmUx9ByxHKwq08BPfEjvqmRmpGNMw2kt6IlxeY3wYh?=
- =?us-ascii?Q?lkRgwaMx6dxSAGbbooGlIykcWbGMo0ynfbUXbBB6QCvIlX8ZiKSBKLYQJFTU?=
- =?us-ascii?Q?6hrn55rufvF7IyvLacj551RzATtdvTNXG9KmlBz692yq48PQVuZwI4Dfc2S7?=
- =?us-ascii?Q?DTE9tNb5tnYM7g3AC4/t6hmnrw+BRx+HVy/1hj4RiA4l/nU3oiprod4uNa/7?=
- =?us-ascii?Q?zZnLPdTemAwtbQp36VtA01wUzb4ZeRMr56CwGUfLEMy4KCZjO8HnwpbSa5LD?=
- =?us-ascii?Q?QjXdOZ/4P5MTyrNO2ttkwZqGW1qoOjMXusDGLPOyChBNi76cgcXrNEkeM+fD?=
- =?us-ascii?Q?9niLXc03W00z6eMJBYbon1gLDepfPOm7n6QHYnBwI51UVBerr2caodgH+ZwN?=
- =?us-ascii?Q?Kl8WPNxYROLLnMDH9ReFVpeqZeh9IAJDQx2dSx9VxBcT3TFgpKT/W/kcRp7j?=
- =?us-ascii?Q?h6xvK5nSvRnSC6k+RlZz2SQ4XZFEFri0yXIAxQuP/55jwSraiZla1R7rtUKI?=
- =?us-ascii?Q?2oolzxeGlEDZlozjLbLCtjhAWC71Ii59jFJZREo9t1k9s66v7mDp/vJSgt16?=
- =?us-ascii?Q?y+gnyRzok/YvFEEt5+OtXTp9WUAdoFEUNvvBM72mTAr7vHtXsQ75ELkuPMOb?=
- =?us-ascii?Q?tKeQF0/zQdS8gQUpRg8mzOYS+yg/psZG7pSfPOco+RLb/pSh/E4EUKo1AoQ9?=
- =?us-ascii?Q?fo8uBWvhWwv3sDARjAjEYRoRfoxF3j2u2lKnLuoVAcr3UFrU7Ac9lF+LZFam?=
- =?us-ascii?Q?xXfUuItz7x6iA5/oc5Fte2VhfEzuU9mqoNhKr72rrLy7Qrh7nmsjChxtgjAl?=
- =?us-ascii?Q?vWU0jgequFQGykIZEE4kF37Ek3s6138JJJIQ7gQxz8oVYipcqNLnJxOOQbgs?=
- =?us-ascii?Q?4L3KC5UYXQidn95py8qmkgknYMy2NMbZ7yNweyUVYQ4BJxQSRfBWExfcu2jv?=
- =?us-ascii?Q?F+1T2f+RqFMk1y4vKvVQNET6NpjqWGQ=3D?=
-X-Exchange-RoutingPolicyChecked: eEG41J4P+N2GnPPvlwxX/lh+Dln40bHSO0If5/VgFzNnskckUJJxALGYaYXrf+g4TyHgqANLeSnZLHvsgC3NXp3bxkshJmNyEeE48qOGQGAU19KHvweNiyXTdFMqYVZqMX92amb0ZDvz0e4X7cFPXMw51TvSi86N+YnUEsxL/j72bxoikJBSECtpsolVnKo165x6kWCtC3SLwceviPTSuVlyeYmL/DUIZuWjnGG7oCadtpHM9EB7aLeeLf6cx9EIJJaLUH5dCFX3dLwwCd4v4L9OjV57DYZ36f2FomcToQv+PMxSLEEsi8lpuG4Dst7nsrFZz4sb2B+Jke//vTHWBQ==
-X-MS-Exchange-CrossTenant-Network-Message-Id: 4c8b8649-0ad1-47cc-3153-08deed555241
-X-MS-Exchange-CrossTenant-AuthSource: DM4PR11MB6117.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 29 Jul 2026 09:39:44.2869
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: r98VAw1HDppREjVhInNFScpQXT7E4d4tZoLqqnnWnRHMOgQHMj/bgOnKSKMALGPoBciEz8G2EeIFT6WgSQzz0SjcZZkLrPq4cxEKLH5kZMg=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH0PR11MB5014
-X-OriginatorOrg: intel.com
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260726-b4-disp-a135b4e5-v1-1-705aaec79986@proton.me>
 
-On Mon, Jul 27, 2026 at 09:19:53AM -0700, Stanislav Fomichev wrote:
-> Cen Zhang reported a KASAN out-of-bounds read when AF_XDP is configured
-> with a TX metadata area smaller than struct xsk_tx_metadata. The metadata
-> is also shared with user space, so reading its flags more than once can
-> produce inconsistent validation and processing decisions.
-> 
-> Require enough space for the flags and one request field, validate the
-> launch-time field against the configured metadata length, and use one
-> snapshot of the flags while processing each request. Carry the validated
-> decision through completion handling so later user-space changes cannot
-> enable an unrequested completion timestamp.
+On 2026-07-26 21:14:04, Bryam Vargas via B4 Relay wrote:
+>From: Bryam Vargas <hexlabsecurity@proton.me>
+>
+>On the SMC-D DMB-nocopy path smcd_buf_detach() frees conn->sndbuf_desc
+>while the receive tasklet can still be running: both teardown sites free
+>first and drain afterwards. A tasklet already past the conn->killed check
+>then dereferences the freed buffer in smc_cdc_msg_recv_action(), which
+>reaches the same field again through smc_tx_prepared_sends().
+>
+>Drain the tasklet before the detach at both sites, mirroring rmb_desc,
+>which smc_buf_unuse() only releases after the drain.
+>
+>Fixes: ae2be35cbed2 ("net/smc: {at|de}tach sndbuf to peer DMB if supported")
+>Cc: stable@kernel.org
+>Signed-off-by: Bryam Vargas <hexlabsecurity@proton.me>
+>---
+>Found with KASAN on an SMC-D loopback rig (CONFIG_SMC_LO, x86_64).
+>
+>The teardown is driven through smc_conn_kill() by arming abort_work from a debug
+>module parameter: on SMC-D nothing in the receive path queues that work, while on
+>SMC-R smc_cdc_msg_validate() queues it for an out-of-range peer seqno. Everything
+>after the abort is the unmodified path. A second parameter holds the receive tasklet
+>just past the conn->killed check, so the free lands mid-run.
+>
+>  arm         ordering           abort armed   result
+>  vulnerable  detach then drain  yes           KASAN slab-use-after-free
+>  control     detach then drain  no            clean
+>  patched     drain then detach  yes           clean
+>
+>Same module, same boot, same trigger, same delay; only the ordering differs.
+>
+>  BUG: KASAN: slab-use-after-free in smc_cdc_msg_recv_action+0x1ed9/0x1f20 [smc]
+>  Read of size 4 at addr ffff88810f6c9720 by task kworker/3:1/147
+>  Workqueue: smc_close_wq smc_conn_abort_work [smc]
+>   <IRQ>
+>    smc_cdc_msg_recv_action+0x1ed9/0x1f20 [smc]
+>    smcd_cdc_rx_tsklet+0x1f2/0x2f0 [smc]
+>    tasklet_action_common+0x2fd/0x850
+>    handle_softirqs+0x18c/0x4f0
+>    do_softirq+0x3a/0x60
+>   </IRQ>
+>   <TASK>
+>    __local_bh_enable_ip+0x5d/0x60
+>    smc_cdc_get_slot_and_msg_send+0x253/0x680 [smc]
+>    smc_conn_kill+0xa8/0x4d0 [smc]
+>    smc_conn_abort_work+0x34/0x90 [smc]
+>   </TASK>
+>
+>  Allocated by task 70:
+>    smcd_buf_attach+0xbd/0x2a0 [smc]
+>    smc_listen_work+0x2499/0x49a0 [smc]
+>
+>  Freed by task 44:
+>    kfree+0x135/0x390
+>    smc_conn_kill+0x3ab/0x4d0 [smc]
+>    smc_conn_abort_work+0x34/0x90 [smc]
+>
+>  The buggy address belongs to the object at ffff88810f6c9700
+>   which belongs to the cache kmalloc-128 of size 128
+>  The buggy address is located 32 bytes inside of
+>   freed 128-byte region [ffff88810f6c9700, ffff88810f6c9780)
+>
+>The read is conn->sndbuf_desc->len.
+>
+>A plain close() does not get there: smc_close_active() always moves the socket to
+>SMC_PEERCLOSEWAIT1, so the free happens in smc_close_passive_work() after the peer's
+>close CDC -- the same event that stops feeding the tasklet. About 18000 such teardowns
+>produced nothing. The ordering is wrong either way, and smc_conn_kill() has no such
+>coupling.
+>
+>Logs on request.
+>---
+> net/smc/smc_core.c | 6 +++---
+> 1 file changed, 3 insertions(+), 3 deletions(-)
+>
+>diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
+>index cf6b620fef05..da64e7a6bd73 100644
+>--- a/net/smc/smc_core.c
+>+++ b/net/smc/smc_core.c
+>@@ -1270,9 +1270,9 @@ void smc_conn_free(struct smc_connection *conn)
+> 	if (lgr->is_smcd) {
+> 		if (!list_empty(&lgr->list))
+> 			smc_ism_unset_conn(conn);
+>+		tasklet_kill(&conn->rx_tsklet);
+> 		if (smc_ism_support_dmb_nocopy(lgr->smcd))
+> 			smcd_buf_detach(conn);
+>-		tasklet_kill(&conn->rx_tsklet);
+> 	} else {
+> 		smc_cdc_wait_pend_tx_wr(conn);
+> 		if (current_work() != &conn->abort_work)
+>@@ -1525,12 +1525,12 @@ static void smc_conn_kill(struct smc_connection *conn, bool soft)
+> 	smc_sk_wake_ups(smc);
+> 	if (conn->lgr->is_smcd) {
+> 		smc_ism_unset_conn(conn);
+>-		if (smc_ism_support_dmb_nocopy(conn->lgr->smcd))
+>-			smcd_buf_detach(conn);
+> 		if (soft)
+> 			tasklet_kill(&conn->rx_tsklet);
+> 		else
+> 			tasklet_unlock_wait(&conn->rx_tsklet);
+>+		if (smc_ism_support_dmb_nocopy(conn->lgr->smcd))
+>+			smcd_buf_detach(conn);
 
-Stan,
+Hi Bryam,
 
-I'm taking week off and I see one sashiko-reported issue which is not a
-pre-existing one. Hope you could clarify it and unless no one picks the
-review of this set i'll get back at it next week.
+I think Sashiko's review makes sense. Your change doesn't seem to fully
+eliminate the race here. I'm wondering if this should be solved with
+RCU rather than just moving smcd_buf_detach() later?
 
->  static inline struct xsk_tx_metadata *
->  __xsk_buff_get_metadata(const struct xsk_buff_pool *pool, void *data)
->  {
->  	struct xsk_tx_metadata *meta;
-> +	u64 flags;
->  
->  	if (!pool->tx_metadata_len)
->  		return NULL;
->  
->  	meta = data - pool->tx_metadata_len;
-> -	if (unlikely(!xsk_buff_valid_tx_metadata(meta)))
-> +	if (unlikely(!xsk_buff_valid_tx_metadata(pool, meta, &flags)))
->  		return NULL; /* no way to signal the error to the user */
->  
->  	return meta;
-The snapshotted flags are validated for size compliance in
-xsk_buff_valid_tx_metadata() but then discarded, returning the
-un-snapshotted user memory pointer (meta) to the driver.
-Later in the zero-copy driver path, xsk_tx_metadata_request() re-reads
-meta->flags directly from user memory:
-include/net/xdp_sock.h:xsk_tx_metadata_request() {
-    ...
-    if (meta->flags & XDP_TXMD_FLAGS_LAUNCH_TIME)
-        ops->tmo_request_launch_time(meta->request.launch_time, priv);
-    ...
-}
-Does this create a Time-of-Check to Time-of-Use (TOCTOU) race condition in
-the zero-copy TX metadata validation where userspace can concurrently enable
-launch time after the size validation?
+Best regards,
+Dust
 
-> 
-> Reported-by: AutonomousCodeSecurity@microsoft.com
-> Reported-by: Cen Zhang (Microsoft) <blbllhy@gmail.com>
-> Link: https://lore.kernel.org/netdev/20260720155210.34229-1-blbllhy@gmail.com/
-> 
-> Stanislav Fomichev (6):
->   xsk: require at least 16 bytes of TX metadata
->   xsk: pass TX metadata pointer by reference
->   xsk: clear metadata pointer when no timestamp is requested
->   xsk: validate launch-time metadata size
->   xsk: move xsk_tx_metadata_request() to xdp_sock_drv.h
->   xsk: validate metadata when processing requests
-> 
->  drivers/net/ethernet/intel/igc/igc_main.c     |  2 +-
->  drivers/net/ethernet/mellanox/mlx5/core/en.h  |  2 +-
->  .../net/ethernet/mellanox/mlx5/core/en/xdp.c  | 15 ++--
->  .../net/ethernet/mellanox/mlx5/core/en/xdp.h  |  4 +-
->  .../ethernet/mellanox/mlx5/core/en/xsk/tx.c   |  2 +-
->  .../net/ethernet/stmicro/stmmac/stmmac_main.c |  4 +-
->  include/net/libeth/xsk.h                      |  2 +-
->  include/net/xdp_sock.h                        | 45 ++---------
->  include/net/xdp_sock_drv.h                    | 77 ++++++++++++++++---
->  net/xdp/xdp_umem.c                            |  2 +
->  net/xdp/xsk.c                                 | 11 ++-
->  net/xdp/xsk_buff_pool.c                       |  6 +-
->  12 files changed, 101 insertions(+), 71 deletions(-)
-> 
-> -- 
-> 2.53.0-Meta
-> 
+
+> 	} else {
+> 		smc_cdc_wait_pend_tx_wr(conn);
+> 	}
+>
+>---
+>base-commit: 4235cb24ec1e8e96843f3671ba4da2a6ccca2c7b
+>change-id: 20260726-b4-disp-a135b4e5-945574bd0938
+>
+>Best regards,
+>--  
+>Bryam Vargas <hexlabsecurity@proton.me>
+>
