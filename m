@@ -1,125 +1,214 @@
-Received: from mail-wm1-f42.google.com (mail-wm1-f42.google.com [209.85.128.42])
+Received: from mail-pf1-f175.google.com (mail-pf1-f175.google.com [209.85.210.175])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A75B9436370
-	for <linux-rdma@vger.kernel.org>; Wed, 29 Jul 2026 09:12:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.42
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4364B390CAD
+	for <linux-rdma@vger.kernel.org>; Wed, 29 Jul 2026 09:32:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.175
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785316324; cv=none; b=WYl+A2B8jEbvopkVHA0tivShuCibu6cdfTmz4sWdN4/H7Fnub5QOSOGRBQH/9e0hFd05yHWgA2a5Mj2M9tLQt5SQEYLnUFtncPyIQoWslDZkXmnrCXd9/IiXTCh5sNioltImP5zwmN390DOPuVob6mICGa9THI7egtVeQwtNNCc=
+	t=1785317541; cv=none; b=BrDGXkzYeShMWf5ZXLs6olAT/5lq4k2QMfMBRri+HjT3UX4d5SU3RAYmv4tuhe3zBwvxYrU1VUzzgbfiCuEALgetS3+luWc+plwnK/rfHAHJWDNLXyrIDOFeckut9ZDasQgdog67E0Gk5MNHX1B+yVY0zTZ+xcyQgoEyKG5Ohc0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785316324; c=relaxed/simple;
-	bh=1tfKRhaJjdfZy38gZAanLVHmCMS7aHKIqtBx3ftd3W8=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=rh6QmSrek0Z+NGAdXktLPKb+5g8DJU9eJI+YnzAH2CHVVP+i7eDOHk0P8DpbrluhUqLD1JsbtmYq4lr9147UBzKOIj+vq6Y0wIIBLqw2OZhzUIGlg3A14WDPoWgTxM3ZAifV8ksox/ZmGPAuet8NUJenl6sVoYaBuTrd3u5VTR0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=resnulli.us; spf=none smtp.mailfrom=resnulli.us; dkim=pass (2048-bit key) header.d=resnulli-us.20251104.gappssmtp.com header.i=@resnulli-us.20251104.gappssmtp.com header.b=aP37c3S4; arc=none smtp.client-ip=209.85.128.42
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=resnulli.us
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=resnulli.us
+	s=arc-20240116; t=1785317541; c=relaxed/simple;
+	bh=IqU0YgZzKEzsx/5LCdF/TBIamIxgAPrzhj1KCD4dqFY=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=g80iiqOKAnryoyPnMMyCLZEArHgaz3UguseGsY+Jrp97wJU8cUKMQ9AT7GbdP/xIULZZQzy9JdUyjujnLL3V75rfGUjS+913Nh43KwqtuIm+GeWgkEL5jVH95XExTYdDhhNMOxUQz8sFNuM5zFSZe26VFh8XY+LeLzI+DO1u88Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=isslab.korea.ac.kr; spf=none smtp.mailfrom=isslab.korea.ac.kr; dkim=pass (2048-bit key) header.d=isslab-korea-ac-kr.20251104.gappssmtp.com header.i=@isslab-korea-ac-kr.20251104.gappssmtp.com header.b=e+CAnnwr; arc=none smtp.client-ip=209.85.210.175
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=isslab.korea.ac.kr
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=isslab.korea.ac.kr
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=resnulli-us.20251104.gappssmtp.com header.i=@resnulli-us.20251104.gappssmtp.com header.b="aP37c3S4"
-Received: by mail-wm1-f42.google.com with SMTP id 5b1f17b1804b1-493f6de72faso5205905e9.0
-        for <linux-rdma@vger.kernel.org>; Wed, 29 Jul 2026 02:12:00 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=isslab-korea-ac-kr.20251104.gappssmtp.com header.i=@isslab-korea-ac-kr.20251104.gappssmtp.com header.b="e+CAnnwr"
+Received: by mail-pf1-f175.google.com with SMTP id d2e1a72fcca58-84a4d8fd6ecso798919b3a.1
+        for <linux-rdma@vger.kernel.org>; Wed, 29 Jul 2026 02:32:17 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=resnulli-us.20251104.gappssmtp.com; s=20251104; t=1785316319; x=1785921119; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=kqRebawaW+R270ENqi7eByUr8cNF8X3bbKCoC4j9T1s=;
-        b=aP37c3S4N3h61FwTq7ivW7bCrHai+dbbtEKqCspMYLM4evmUpYEKyM02y8RdbspXKe
-         zJJSBaNBf1ssudK/5kqBsvJooW/UCWG32xOhz+xMhCpTFNiIfFInD+SWb5Tmpp/xKcWj
-         OqzcGUj+gXoK3T7TwVFo/6Q07m6idkMh6lpVOg4s6Dt3+WDr2vS3/2eZ1cRlicc3utlL
-         PANg29KTPwzxWAJpkfx4BW8FrByt/FDzhVzTLvzCCjm+HqxliOLhybIba9paqb/iGLxP
-         TgHQHwq39RuUH/PhImKgDU9NxLBtjOkKl7A3uPx1c9o8scih+dDMF3biUuguGuaV1cT9
-         aqcQ==
+        d=isslab-korea-ac-kr.20251104.gappssmtp.com; s=20251104; t=1785317537; x=1785922337; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=hK0F2HP9iBUyZmdmEIJCuhgNrKlY7dMHMuojnLxxUPQ=;
+        b=e+CAnnwrbpFL/hHN3UZeWOQltSIdmH6zRLIQ2EvHWoGkRnYNJWA7yjY5unwaAUWms1
+         Eot/aq2ia6MSVwTANNOPqw1zWJzJi71rUi1XWiC90n5nGpTP65wCrWDGbM0WgLehzkS5
+         DVfjzs0JcE70QhNMI/As+9TeKJYpWk7TD/5A6r7qs0f8Bxl6fWMA+jXg/u0JfK5gHeS1
+         qoyIIcWwl5p09WJDVAHB7MzfbfqJS8NftMcMN1+Qd2HUjzO9m3G5HQVGqLuHtu/nNhVq
+         uj89lGHgSeWrOVjgUj+uVfFJOXE8ZPcWmjxyr3GdmORyfgJX+c5lDQcXyFrSS2IsPr2w
+         FG0w==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1785316319; x=1785921119;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=kqRebawaW+R270ENqi7eByUr8cNF8X3bbKCoC4j9T1s=;
-        b=XlVBBShpvM/tgDtITfNHnouUXqxiK25UoDvNqlALfe3wZCbpiIsjSpqqocI0Rkpjyr
-         R1zdJpY10nZnaCGHrASQ/UXCfZ+FzT5PFQzl1E3M4ChMBJVhOPITVxOzSzQC2JWclcpw
-         WNsA2I2j+bIgAPi9g8BNzMkiXwzyDFIFPdu9W2AXsCnQo7qlw8bgi3+MDR06o0iYQs1l
-         P6JhOqHaS9/N4Bb0Rkb4KXMsuv+10tJL+6yoc9UM8yvOeYxeoPV/CQ429B9ktc1QZzJe
-         n4QfHO7ftZ2TPeUeVjHWespxqkfACipajShK+F7wjNSmMR/e41ebsLlO7ebjgQdHMMtG
-         aSHQ==
-X-Forwarded-Encrypted: i=1; AHgh+RqNuEyn/as64Nli/mQYnfjSp6ve9JAUbmsjXUkV/HX3cqnSoh+nXiqmxD7i1RqKE2Vt6FK+uPc0+DTO@vger.kernel.org
-X-Gm-Message-State: AOJu0YzjzmZbUKlDntDxHDZTIrqMAIV45brANqZ/ZwKmy4kx/cf/hisz
-	NJxLdgePRfttcosu6TAN02194QFLGXxjJkrAY0b3hiMmxPfM9pHiHM8myYPdjROUDMw=
-X-Gm-Gg: AR+sD1286h/5Ib2XphdJifNToCwmDPzBKT4zlOTS83excpvJaQdOnsILLmAoB0Spo1z
-	K6CX8GSH1UrihROJEkZ01GE+9pHf6mPVOxuMDFj5/xNnLayauJoA3DgztrEsLFgi12umVCrzlU0
-	75Gjt9EbFIZEbz1f0ybfa7uA5cDH5ZJY+RaRPfXGNmD+3LWYE8sOqnyrcr4qvjDQrIa/nZnBEbU
-	jW/Q4iKmuFtxNqbslH56+sFLJeDiQRAUKcvsB3jzwjysWa/+8/slf19ZBqA6m3yIhkVvhegnYbD
-	QpWkHhCZqnmBinxqM5JvAHkYIe3XRy1UP8/3QWWB2LtTxBH1tGDna8al8kPXFE2HyMakJ8qEjtz
-	od/MqBaepSmrd+YGGDtjWlESXRxf2Lmb7Lkc9BeOCe2DTAXhOABogio0VRqcDdyjtTHKYzWtpQl
-	Ue/eN7aL4ns+geJpRE3Ub2DiZmtdhh/kv1WuFzKFd27JXNFN2/xVLJbuoVMogrp74lBTFx8Q==
-X-Received: by 2002:a05:600c:8710:b0:492:6f5c:fd8c with SMTP id 5b1f17b1804b1-497fd311860mr15174085e9.15.1785316318462;
-        Wed, 29 Jul 2026 02:11:58 -0700 (PDT)
-Received: from localhost ([140.209.217.211])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4975abdca42sm40097255e9.0.2026.07.29.02.11.57
+        d=1e100.net; s=20251104; t=1785317537; x=1785922337;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=hK0F2HP9iBUyZmdmEIJCuhgNrKlY7dMHMuojnLxxUPQ=;
+        b=RRTkK8hVCKNGk13g1JKTjBUv78IVH1v+ZEfJKlYOi4KoNiagVo3vZGjJI2mr9yuP03
+         iAL1HX/MXJGY/PANQhLxJgOSbxt/E/DByuLIGrV6G9i/pmZA0tF/FxBjidudD+D/SGxP
+         BAGEKDmyv6pwx5Ifk9qvAxi981ZqSsv343Pn5zTeRpyzQMMTP1wSuaZanw9a6SHgWU6L
+         6+YXcFyFp7AVqgzB7ay8WIChW5Q366s/fM1w0XxQkrBf0/pDOkR6xBkxWcBWkZY1hu+Q
+         EPUwTJ5tE0KmNgvrJFqUK4Slj51qaPzQKuCpHGpumk5PE7yPbFPQU6CBlfG1wpHhvlli
+         K9+Q==
+X-Gm-Message-State: AOJu0YxWu6dnjfCWe/P9B6St4G+x/pjBGJkTUdj0jsY8U6GviTn6pAJi
+	YlnC/iBPcjaPgdgxzEI9IOulEjoJquF1uelu6aRyQM98WLJdX/gM7zL0YUT30NUEki6Ohu/zPBB
+	9Qlti1/zj8w==
+X-Gm-Gg: AR+sD11875QD7eGcjvwcDHBQ6Rk1wlDmOZrjYDaDaPcoAoOYB/Dmh5ada7vb00NZBfK
+	/iDNZS1J3DHgAabdHUyYuMldv6kiTFHQOYL1CuX8nkMcTRKWuHzv3K0CR5mFNRddQ40b7TqA0lz
+	qB0r1ii6f2i+XLbFa+QQLva9fKHIknJ5BhAyBFiVZnPAEC4u864cyTKkQbz1rwRNVsP0zrauxwe
+	mPUwYPpvjU+QThcoRnP+axF8q4WLFsf4cVU0AgGY9hbmqyS9X2aNb/2kwnQ+9pDnfNsHQAfGbtH
+	08fS0eWEsilMntjq1jqNmt/eRF6KARG63SsEliXZt8GjMwq0J6C+F9ikouWLoJA9b9R/ieDn43d
+	CErYyphWS0/RWxcavc4VucSg46MGiJlkiMMYvfhSisx+7UKVc8exPhHNTLSjG53pJxXqTesh+5k
+	GWm1sf4mu7aUDz3TmR2hiyUdsSyxZidkGE0cE1kvdY8xmT4rGLt+ZpycShzVy+B6CSwZFS
+X-Received: by 2002:a05:6a00:23c7:b0:848:6b43:35dc with SMTP id d2e1a72fcca58-84e932ebe4cmr6086121b3a.35.1785317537314;
+        Wed, 29 Jul 2026 02:32:17 -0700 (PDT)
+Received: from yhlee-960QFG.. ([125.131.91.97])
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-84ea03869d2sm1082240b3a.49.2026.07.29.02.32.14
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 29 Jul 2026 02:11:57 -0700 (PDT)
-Date: Wed, 29 Jul 2026 11:11:53 +0200
-From: Jiri Pirko <jiri@resnulli.us>
-To: Jakub Kicinski <kuba@kernel.org>
-Cc: Mark Bloch <mbloch@nvidia.com>, Eric Dumazet <edumazet@google.com>, 
-	Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>, 
-	Saeed Mahameed <saeedm@nvidia.com>, Leon Romanovsky <leon@kernel.org>, 
-	Tariq Toukan <tariqt@nvidia.com>, Andrew Lunn <andrew+netdev@lunn.ch>, 
-	Jonathan Corbet <corbet@lwn.net>, Shuah Khan <skhan@linuxfoundation.org>, netdev@vger.kernel.org, 
-	linux-rdma@vger.kernel.org, linux-doc@vger.kernel.org, Jiri Pirko <jiri@nvidia.com>
-Subject: Re: [PATCH net-next V7 4/4] devlink: Apply eswitch mode boot defaults
-Message-ID: <amnDfSmMVzpiH2gE@FV6GYCPJ69>
-References: <20260716084852.549909-1-mbloch@nvidia.com>
- <20260716084852.549909-5-mbloch@nvidia.com>
- <20260724161111.2ac47089@kernel.org>
- <c6c0d67c-d832-49a1-b62a-57fa6ee56a47@nvidia.com>
- <20260727131033.237f70b6@kernel.org>
+        Wed, 29 Jul 2026 02:32:16 -0700 (PDT)
+From: Yehyeong Lee <yhlee@isslab.korea.ac.kr>
+To: linux-rdma@vger.kernel.org
+Cc: bvanassche@acm.org,
+	jgg@ziepe.ca,
+	leon@kernel.org,
+	linux-kernel@vger.kernel.org,
+	Yehyeong Lee <yhlee@isslab.korea.ac.kr>,
+	stable@vger.kernel.org
+Subject: [PATCH] RDMA/srp: fix heap information leak on a truncated SRP_CRED_REQ
+Date: Wed, 29 Jul 2026 18:32:03 +0900
+Message-ID: <20260729093203.1503201-1-yhlee@isslab.korea.ac.kr>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260727131033.237f70b6@kernel.org>
+Content-Transfer-Encoding: 8bit
 
-Mon, Jul 27, 2026 at 10:10:33PM +0200, kuba@kernel.org wrote:
->On Sat, 25 Jul 2026 09:51:34 +0300 Mark Bloch wrote:
->> So I think you and Jiri have different views on the basic design
->> here. It's hard to respin the series when addressing one review
->> takes it back to something the other reviewer objected to.
->
->It'd be great if Jiri, an nVidia employee and a devlink "maintainer",
->paid attention to at the very least revisions of nvidia's patches
->touching devlink. We discussed this on a prior revision and he didn't
->say anything.
->
->> How about I drop the driver API from this series and submit it as
->> a follow-up? This series would only have the generic workqueue
->> fallback.
->> 
->> But where should the work be queued? 
->> - devl_register()
->> - devl_unlock()?
->> 
->> Can we settle that before I post the next version, so we don't go
->> in circles again?
->
->Maybe a middle ground would be to add a dedicated devl_init_unlock()*
->were we can stick such init? Slap a WARN_ON(!registered) in the normal
->unlock? I don't want the normal unlock to grow in complexity like
->rtnl_unlock ended up growing.
+srp_recv_done() passes wc->byte_len to srp_process_rsp(). It passes
+nothing to srp_process_cred_req() and srp_process_aer_req(), which read
+fixed-size fields from the receive buffer without checking that those
+fields were received.
 
-Yep, that was +- my idea when I suggested this, to have this in a
-separate helper.
+The buffer size is max_ti_iu_len, which comes from the login response
+and is not validated. A target that advertises 8 and then sends an
+8-byte SRP_CRED_REQ makes the initiator read req->tag from beyond the
+end of the buffer. req->tag is copied into the SRP_CRED_RSP and sent
+back, so those bytes reach the target. SRP_AER_REQ behaves the same way
+and also reads req->lun.
 
-devl_unlock_in_init()
-?
+The leak is 8 bytes per response. max_ti_iu_len also decides which slab
+cache the buffer comes from. With 8 the buffer is a kmalloc-8 object and
+the read is entirely outside it:
 
->
->* better name welcome
->
->BTW AI reported that we reset the mode on reinit request. Based on
->the code this is entirely intentional but would be good to document?
+  BUG: KASAN: slab-out-of-bounds in srp_recv_done+0x172b/0x1aa0
+  Read of size 8 at addr ffff888104714da8 by task kworker/u8:3/50
+   which belongs to the cache kmalloc-8 of size 8
+  The buggy address is located 0 bytes to the right of
+   allocated 8-byte region [ffff888104714da0, ffff888104714da8)
+
+Without KASAN the returned bytes are whatever is next in the slab. One
+run returned ".strtab".
+
+rsp->data[3] in srp_process_rsp() has the same problem: only
+resp_data_len is checked before it is read.
+
+Drop a request that is shorter than the structure being parsed, and
+check byte_len before the tsk_mgmt read.
+
+Fixes: bb12588a38e6 ("IB/srp: Implement SRP_CRED_REQ and SRP_AER_REQ")
+Cc: stable@vger.kernel.org
+Signed-off-by: Yehyeong Lee <yhlee@isslab.korea.ac.kr>
+---
+Tested on v7.2-rc5 with a target patched to advertise max_ti_iu_len = 8
+and to send an 8-byte SRP_CRED_REQ. Before the patch KASAN reports the
+read above on every run; after it the request is dropped and the report
+is gone. A conforming target is unaffected - the new checks never fire,
+the LUN comes up and I/O round-trips.
+
+That setup also trips an unrelated use-after-free at teardown, in
+ib_process_cq_direct() called from srp_destroy_qp(). It reproduces the
+same way with this patch reverted; both arms need kasan_multi_shot to
+show it, since the read above otherwise consumes the single report. I
+will report that one separately.
+
+ drivers/infiniband/ulp/srp/ib_srp.c | 45 +++++++++++++++++++----------
+ 1 file changed, 30 insertions(+), 15 deletions(-)
+
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+index acbd787de265..93dcd15682d0 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.c
++++ b/drivers/infiniband/ulp/srp/ib_srp.c
+@@ -1945,7 +1945,8 @@ static void srp_process_rsp(struct srp_rdma_ch *ch, struct srp_rsp *rsp,
+ 		ch->req_lim += be32_to_cpu(rsp->req_lim_delta);
+ 		if (rsp->tag == ch->tsk_mgmt_tag) {
+ 			ch->tsk_mgmt_status = -1;
+-			if (be32_to_cpu(rsp->resp_data_len) >= 4)
++			if (be32_to_cpu(rsp->resp_data_len) >= 4 &&
++			    byte_len >= sizeof(*rsp) + 4)
+ 				ch->tsk_mgmt_status = rsp->data[3];
+ 			complete(&ch->tsk_mgmt_done);
+ 		} else {
+@@ -2045,13 +2046,20 @@ static int srp_response_common(struct srp_rdma_ch *ch, s32 req_delta,
+ }
+ 
+ static void srp_process_cred_req(struct srp_rdma_ch *ch,
+-				 struct srp_cred_req *req)
++				 struct srp_cred_req *req, u32 byte_len)
+ {
+-	struct srp_cred_rsp rsp = {
+-		.opcode = SRP_CRED_RSP,
+-		.tag = req->tag,
+-	};
+-	s32 delta = be32_to_cpu(req->req_lim_delta);
++	struct srp_cred_rsp rsp = { .opcode = SRP_CRED_RSP };
++	s32 delta;
++
++	if (byte_len < sizeof(*req)) {
++		shost_printk(KERN_ERR, ch->target->scsi_host, PFX
++			     "dropping truncated SRP_CRED_REQ (%u bytes received, %zu expected)\n",
++			     byte_len, sizeof(*req));
++		return;
++	}
++
++	rsp.tag = req->tag;
++	delta = be32_to_cpu(req->req_lim_delta);
+ 
+ 	if (srp_response_common(ch, delta, &rsp, sizeof(rsp)))
+ 		shost_printk(KERN_ERR, ch->target->scsi_host, PFX
+@@ -2059,14 +2067,21 @@ static void srp_process_cred_req(struct srp_rdma_ch *ch,
+ }
+ 
+ static void srp_process_aer_req(struct srp_rdma_ch *ch,
+-				struct srp_aer_req *req)
++				struct srp_aer_req *req, u32 byte_len)
+ {
+ 	struct srp_target_port *target = ch->target;
+-	struct srp_aer_rsp rsp = {
+-		.opcode = SRP_AER_RSP,
+-		.tag = req->tag,
+-	};
+-	s32 delta = be32_to_cpu(req->req_lim_delta);
++	struct srp_aer_rsp rsp = { .opcode = SRP_AER_RSP };
++	s32 delta;
++
++	if (byte_len < sizeof(*req)) {
++		shost_printk(KERN_ERR, target->scsi_host, PFX
++			     "dropping truncated SRP_AER_REQ (%u bytes received, %zu expected)\n",
++			     byte_len, sizeof(*req));
++		return;
++	}
++
++	rsp.tag = req->tag;
++	delta = be32_to_cpu(req->req_lim_delta);
+ 
+ 	shost_printk(KERN_ERR, target->scsi_host, PFX
+ 		     "ignoring AER for LUN %llu\n", scsilun_to_int(&req->lun));
+@@ -2108,11 +2123,11 @@ static void srp_recv_done(struct ib_cq *cq, struct ib_wc *wc)
+ 		break;
+ 
+ 	case SRP_CRED_REQ:
+-		srp_process_cred_req(ch, iu->buf);
++		srp_process_cred_req(ch, iu->buf, wc->byte_len);
+ 		break;
+ 
+ 	case SRP_AER_REQ:
+-		srp_process_aer_req(ch, iu->buf);
++		srp_process_aer_req(ch, iu->buf, wc->byte_len);
+ 		break;
+ 
+ 	case SRP_T_LOGOUT:
+-- 
+2.43.0
+
