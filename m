@@ -1,132 +1,151 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pj2-f9.google.com (mail-pj2-f9.google.com [74.125.227.137])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8CB1E488773;
-	Wed, 29 Jul 2026 13:01:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CC8FD3EC839
+	for <linux-rdma@vger.kernel.org>; Wed, 29 Jul 2026 16:08:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.227.137
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785330112; cv=none; b=d4JGD+hTtT1uTs14GjdOuHF2ha6GbDQIrcsr2HGaDBquhVOTv7y9TjxJ7YHVQgLmxsn/jgQzA+KANwR0YNoNF3nWWYacDShbiy6K3lWw5lL7NFN47DeIvjVhPpD+AlkvvbQC4ynWrELD3iwbppl/tM1QUuv2dI/iQuvGtrRn990=
+	t=1785341328; cv=none; b=OgmdKENVxQvA8COTBp2cGV5TZpcmyzX9Qw5BywhYzKhRjkOOIODZm2ELZhhSiuXBIAL9+EPYDrNeSjGfpoHN7CEsJ1+RQxjJ71iJhFXbiA7+6BaKvtFwzTsnqyRMlYFhzb3E65uTSaQQNsSy9k6w9rQs7mrOiaUKbqRiE0rbGYg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785330112; c=relaxed/simple;
-	bh=OmWFXyTutZpGmJhegJaW5l/v27yzjx9jhmLD2UqO39A=;
+	s=arc-20240116; t=1785341328; c=relaxed/simple;
+	bh=kYKzQHXQeWZGyowPRp9EDzR3wb05wPIoipTHdRklPhs=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=o9ZzyDuKVn51MzHDVnHP78EV1BfKYh5y51Y70vZ1PvYEHyD66QgbX9OLrfAORtm5WF60vom/r4ozgDKi5sfjW5qFj+uY8XIApiQX0ggrHmixI5UxCgEwjAkUMd2tjSu1eQUgPb8Wt6hHGFkXwGt31ERwnfHIP3/JjfMD/qrQcTs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=lzsB5hgn; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:Content-Disposition:In-Reply-To; b=n895LA6Z6Cpk4lREmp/klvzaRWbKcpLh3tv2HYieBYc7A9uNCwcANUgdpPnn6blvTA+XyDrlbtqA5gOCwHObkOi+r4eI2OfZ8ayzs7zHGlZhqYxqR+HeGZREL3IZfG7CpLmeF1fK0nZao/jALBvB1CWcRhAA9JNNFv7Ncd08L3Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=TvG3LmId; arc=none smtp.client-ip=74.125.227.137
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="lzsB5hgn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 004D61F00A3A;
-	Wed, 29 Jul 2026 13:01:44 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1785330105;
-	bh=d2iDQ/XFzSylptxqaGEPXyly087MYqpda+JKaK7wyQ0=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=lzsB5hgnmQMb7LvAz3l89TqTPTSJsCT7f/PpIv3ktX4Tvz156GYjtajDlIlhPMpEe
-	 I7naZSygp8kYCtJsVrmtQgpbEbMxRshAxVhqc+Eix+sq2j6pdsX1X6pjRcKAtpNEMG
-	 siHev2FOq+VkeHSWb3m6/z/2xHJ5NlVjTSCDc+2Fvs/OZx2ecHJEGHuqPHlH3SPn9t
-	 2G/6FMiUL4GJYeRaWENPDjppgY2ATqrrT6SVscV3twlSrzYd3DQOxumHEx4CNKOmY2
-	 9B0ZzjaQaUqROWGHsjdVIqkHr4+5l1pXkGra8M5EoQ0oMZMdOBuEd3mmy0P/LCv8fL
-	 BOwf+9r8cXEoQ==
-Date: Wed, 29 Jul 2026 16:01:41 +0300
-From: Leon Romanovsky <leon@kernel.org>
-To: Yehyeong Lee <yhlee@isslab.korea.ac.kr>
-Cc: sagi@grimberg.me, jgg@ziepe.ca, nab@linux-iscsi.org,
-	michael.christie@oracle.com, martin.petersen@oracle.com,
-	linux-rdma@vger.kernel.org, target-devel@vger.kernel.org,
-	linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Subject: Re: [PATCH] IB/isert: post full-feature receive buffers after
- session registration
-Message-ID: <20260729130141.GN12003@unreal>
-References: <20260726144213.933544-1-yhlee@isslab.korea.ac.kr>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="TvG3LmId"
+Received: by mail-pj2-f9.google.com with SMTP id 98e67ed59e1d1-38eca9b7114so526642a91.1
+        for <linux-rdma@vger.kernel.org>; Wed, 29 Jul 2026 09:08:45 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1785341323; x=1785946123; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=xpR48eIXR1Ci0/Y8C1oaWZVWu8i3+nXBnNEaQ1vsjLQ=;
+        b=TvG3LmIdzClsKDp/nJ1EugEL/z6n6qt34GCO2G4lA8h2EUB5j6OMxvzOChUldO/n4J
+         WjmwP3M+9VuchMpBckNrSS98ulOMwEnbuUIXXoXNWDeZKjbYtbKsN8Nz9HjVFj2s0SRd
+         22LheU5D5wyu4A0v1rsgpJi3L8bBLSlgDYIoxCy9k2zcwEcw1VzULoVCIa1SzxsgJxuh
+         muQUFOlsGdk+mRPgk/S+YvqG56CW3Whjxi3Or4eApUIOUxEExgtqruey1DNeg3GGOY1E
+         sS/uwHkYGS0Z2rs+l3wgChSn5cM89WykexAIi4UVIf6rlXAcovc3prlM16xQdi4YpKjz
+         wiDg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1785341323; x=1785946123;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=xpR48eIXR1Ci0/Y8C1oaWZVWu8i3+nXBnNEaQ1vsjLQ=;
+        b=h2GyK3T0+QDv2dv7e2/+98EKAwJEgbM7OLhOKjmbgfOkPqjkZ8sbWH+LMLl8QPI/Z6
+         uUD9yKZ66d1bx9+5FxWy6CFM1fG96hMtpz2CUItFQFHqtbKWVKpfHEng0xFRVFWeji7h
+         g/3CAmSby9KOQgqefP7zkVx87SdoP8j4JenRH13DOKsD7Mt79s36S3fBFeJkqdBSgTss
+         x8MgHm4AdjmGMJrBieldC8bwQ/ymm0CwHMpbP793VK4R6cZREn9/xK16ODbzQ4SzLDMt
+         hdF6yirfsL6j1Ji7sscv+t+7bWG3rJVqWny67FBqXecMpKFR7PCIYHsAxYPpU1g2UoKW
+         Slzg==
+X-Forwarded-Encrypted: i=1; AHgh+RqZ6Qcb/5doBIrCftG2rmQkX81tgh0641u3iHU01lhTkDtQ8dgyLXb/GjHHfSliGMjDTq2QA6QtUFQw@vger.kernel.org
+X-Gm-Message-State: AOJu0YwGGDAT885jatVsZjSioz1dqJ1UQO75nxEOWOzRxjGnHHp7M8Kh
+	6d56/YFyTdwTX1fjQ12D8NJTr2xK3/s9octbsS2/m1/yYzHcs1069JXr
+X-Gm-Gg: AR+sD12fjeN6lP7F4sWRxjQBTKHR5whOoOW8ovoJDyeMXIdi1cAyvak00ykLCVrERAG
+	RfRnpy+TZi1tUF/qcsBt3eN4deNAwABBmoRdarEzXzp2XUVShzR8+XXX3L7cvdFfhykw/Neywwj
+	B2MIwm13svul1G9sgPJN2nGTDwd9vvx7UU07yqSlbQNkvqwUu75XbCjWBHcRTseyPNb4xQg9l6T
+	D4/0MgtOXGqZ1CVwUu6bOtzwRnwrD8Tp06ohHOWGGFjs2QmU1mS5YXfWONclV3FpdJNgrvTh/BE
+	xhFWzLHQoVe0qrsqHNUuR8darJuwNvgwpJhoi2Lm95ZogucaVmIHXIvWeR2+4+cDYruS7ZvaV7L
+	fheLVvpW4fChBePQJRgW0W6JW2eZoR9MjmT08QLXrMRAJpY9CkhyZ4L71R12gpLHU5WBfqmZ5Q7
+	zoy2yjctEir99v2ICzPqf/3zcWxyUHp1aq9hOFU81sUNvJ30aMsXjR2Q==
+X-Received: by 2002:a17:90b:4ed0:b0:37f:fb1d:63fa with SMTP id 98e67ed59e1d1-38f6a373a5amr7799688a91.15.1785341323530;
+        Wed, 29 Jul 2026 09:08:43 -0700 (PDT)
+Received: from localhost ([2a03:2880:2ff:41::])
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-38f64111008sm2958119a91.2.2026.07.29.09.08.42
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 29 Jul 2026 09:08:42 -0700 (PDT)
+Date: Wed, 29 Jul 2026 09:08:27 -0700
+From: Stanislav Fomichev <sdf.kernel@gmail.com>
+To: Maciej Fijalkowski <maciej.fijalkowski@intel.com>
+Cc: netdev@vger.kernel.org, davem@davemloft.net, edumazet@google.com, 
+	kuba@kernel.org, pabeni@redhat.com, anthony.l.nguyen@intel.com, 
+	przemyslaw.kitszel@intel.com, andrew+netdev@lunn.ch, saeedm@nvidia.com, tariqt@nvidia.com, 
+	mbloch@nvidia.com, ast@kernel.org, daniel@iogearbox.net, hawk@kernel.org, 
+	john.fastabend@gmail.com, sdf@fomichev.me, maxime.chevallier@bootlin.com, 
+	mcoquelin.stm32@gmail.com, alexandre.torgue@foss.st.com, aleksander.lobakin@intel.com, 
+	horms@kernel.org, magnus.karlsson@intel.com, witu@nvidia.com, 
+	alice.kernel@fastmail.im, dtatulea@nvidia.com, yoong.siang.song@intel.com, 
+	martin.lau@kernel.org, intel-wired-lan@lists.osuosl.org, linux-kernel@vger.kernel.org, 
+	linux-rdma@vger.kernel.org, bpf@vger.kernel.org, linux-stm32@st-md-mailman.stormreply.com, 
+	linux-arm-kernel@lists.infradead.org, leon@kernel.org, AutonomousCodeSecurity@microsoft.com, 
+	"Cen Zhang (Microsoft)" <blbllhy@gmail.com>
+Subject: Re: [PATCH net 0/6] xsk: harden TX metadata validation against races
+Message-ID: <amolBkuwEasuthzu@devvm7509.cco0.facebook.com>
+References: <20260727161959.885642-1-sdf@fomichev.me>
+ <amnKVlHTITILY8H8@boxer>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20260726144213.933544-1-yhlee@isslab.korea.ac.kr>
+In-Reply-To: <amnKVlHTITILY8H8@boxer>
 
-On Sun, Jul 26, 2026 at 11:42:13PM +0900, Yehyeong Lee wrote:
-> isert_put_login_tx() posts the full-feature receive buffers and then
-> sends the final Login Response on the same call:
+On 07/29, Maciej Fijalkowski wrote:
+> On Mon, Jul 27, 2026 at 09:19:53AM -0700, Stanislav Fomichev wrote:
+> > Cen Zhang reported a KASAN out-of-bounds read when AF_XDP is configured
+> > with a TX metadata area smaller than struct xsk_tx_metadata. The metadata
+> > is also shared with user space, so reading its flags more than once can
+> > produce inconsistent validation and processing decisions.
+> > 
+> > Require enough space for the flags and one request field, validate the
+> > launch-time field against the configured metadata length, and use one
+> > snapshot of the flags while processing each request. Carry the validated
+> > decision through completion handling so later user-space changes cannot
+> > enable an unrequested completion timestamp.
 > 
-> 	isert_alloc_rx_descriptors()
-> 	isert_post_recvm(isert_conn, ISERT_QP_MAX_RECV_DTOS)
-> 	isert_conn->state = ISER_CONN_FULL_FEATURE
-> 	isert_login_post_send()
+> Stan,
 > 
-> iscsi_post_login_handler() only runs after that, and it is what calls
-> __transport_register_session(), which sets se_sess->se_tpg.  An
-> initiator that sends a SCSI command as soon as it sees the Login
-> Response can therefore have that command received, executed and
-> completed before the session is registered, and target_complete()
-> dereferences a NULL se_sess->se_tpg:
-> 
->   Oops: general protection fault, probably for non-canonical address ...
->   KASAN: null-ptr-deref in range [0x0000000000000080-0x0000000000000087]
->   Workqueue: ib-comp-wq ib_cq_poll_work
->   RIP: 0010:target_complete_cmd_with_sense.part.0+0x17d/0xc90
->   Call Trace:
->    fd_execute_rw
->    __target_execute_cmd
->    iscsit_execute_cmd
->    iscsit_sequence_cmd
->    isert_recv_done
->    __ib_process_cq
->    ib_cq_poll_work
-> 
-> The command reaches the backend because transport_lookup_cmd_lun() does
-> not need se_tpg on the mapped-LUN path; it uses se_sess->se_node_acl,
-> which iscsit sets much earlier in iscsi_target_locate_portal().
-> 
-> iscsit's own RX thread does not have this problem: it is started at the
-> same point but waits on conn->rx_login_comp, which is completed at the
-> end of iscsi_post_login_handler(), after __transport_register_session().
-> isert takes its PDUs from the completion queue instead, and
-> isert_recv_done() has no connection-state check.
-> 
-> Post the receive buffers from isert_get_rx_pdu() instead.  That callback
-> is invoked by iscsi_target_rx_thread() only after the same rx_login_comp
-> wait, so the buffers become available to the HCA only once the session
-> is registered.  isert_recv_done() runs on ib-comp-wq and cannot wait
-> there itself.  The allocation stays in isert_put_login_tx() so that a
-> memory allocation failure still cannot happen after the final Login
-> Response has been sent.
-> 
-> rx_descs can legitimately be NULL in isert_get_rx_pdu(): the login
-> timeout timer sets login->login_failed from timer context, so
-> isert_put_login_tx() can skip the allocation branch while
-> iscsi_target_do_login() still returns 1 and the connection reaches
-> TARG_CONN_STATE_LOGGED_IN.  Return early in that case, which matches the
-> existing behaviour of not posting at all on that path.
-> 
-> Reproduced with soft-RoCE (rdma_rxe) under KASAN using an initiator that
-> issues a WRITE immediately after login, 400 login cycles per run.
-> Unpatched: 9 of 10 runs oopsed.  Patched: 0 of 10.  A build carrying a
-> diagnostic that reports the NULL without faulting recorded 16 hits
-> across 9 of 15 runs unpatched and 0 across 15 runs patched; the two sets
-> were run alternately in a single session.
-> 
-> Not covered by that testing: discovery sessions over iSER, MC/S
-> (non-zero TSIH) logins, ERL=2 connection recovery, and real HCAs, where
-> RNR behaviour differs from soft-RoCE.
-> 
-> Fixes: b8d26b3be8b3 ("iser-target: Add iSCSI Extensions for RDMA (iSER) target driver")
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Yehyeong Lee <yhlee@isslab.korea.ac.kr>
-> ---
-> This replaces "scsi: target: Fix NULL se_tpg dereference in
-> target_complete()" (target-devel, Message-ID
-> 20260725165818.769963-1-yhlee@isslab.korea.ac.kr), which guarded the
-> symptom in target core.  That patch is being withdrawn.
-> 
->  drivers/infiniband/ulp/isert/ib_isert.c | 36 +++++++++++++++++++++----
->  1 file changed, 31 insertions(+), 5 deletions(-)
+> I'm taking week off and I see one sashiko-reported issue which is not a
+> pre-existing one. Hope you could clarify it and unless no one picks the
+> review of this set i'll get back at it next week.
 
-1. Please keep commit messages concise and easy to read.
-2. Include the full kernel Oops in the commit message.
-3. Keep code comments to a minimum.
-4. Please address Sashiko's concerns about this patch.
+Went through the issues, I don't think it found anything interesting.
+Everything is pre-existing, but still worth addressing, will send
+those fixes separately.
 
-Thanks
+> >  static inline struct xsk_tx_metadata *
+> >  __xsk_buff_get_metadata(const struct xsk_buff_pool *pool, void *data)
+> >  {
+> >  	struct xsk_tx_metadata *meta;
+> > +	u64 flags;
+> >  
+> >  	if (!pool->tx_metadata_len)
+> >  		return NULL;
+> >  
+> >  	meta = data - pool->tx_metadata_len;
+> > -	if (unlikely(!xsk_buff_valid_tx_metadata(meta)))
+> > +	if (unlikely(!xsk_buff_valid_tx_metadata(pool, meta, &flags)))
+> >  		return NULL; /* no way to signal the error to the user */
+> >  
+> >  	return meta;
+> The snapshotted flags are validated for size compliance in
+> xsk_buff_valid_tx_metadata() but then discarded, returning the
+> un-snapshotted user memory pointer (meta) to the driver.
+> Later in the zero-copy driver path, xsk_tx_metadata_request() re-reads
+> meta->flags directly from user memory:
+> include/net/xdp_sock.h:xsk_tx_metadata_request() {
+>     ...
+>     if (meta->flags & XDP_TXMD_FLAGS_LAUNCH_TIME)
+>         ops->tmo_request_launch_time(meta->request.launch_time, priv);
+>     ...
+> }
+> Does this create a Time-of-Check to Time-of-Use (TOCTOU) race condition in
+> the zero-copy TX metadata validation where userspace can concurrently enable
+> launch time after the size validation?
+
+For this, yes, it is explained in the commit message:
+
+  Note that only xsk_skb_metadata is properly using the flags,
+  __xsk_buff_get_metadata ignores them. Next commits address that.
+
+And eventually addressed in "[PATCH net 6/6] xsk: validate metadata when
+processing requests". Couldn't find a less confusing way to split the
+patches..
