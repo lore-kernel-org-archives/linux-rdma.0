@@ -1,81 +1,84 @@
-Received: from PH8PR06CU001.outbound.protection.outlook.com (mail-westus3azon11012001.outbound.protection.outlook.com [40.107.209.1])
+Received: from CH1PR05CU001.outbound.protection.outlook.com (mail-northcentralusazon11010058.outbound.protection.outlook.com [52.101.193.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 55681379C38;
-	Wed, 29 Jul 2026 06:52:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.209.1
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A62BB3BA222;
+	Wed, 29 Jul 2026 07:01:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.193.58
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785307944; cv=fail; b=ZQxp0KxsjvY+/OeKR9vpEHLXCGfTcfjG7wZIGEg4/MYWEr0VtUQ/JK3bHV050Angd7WLuH54lsc9w8H9E8Pjt9ZvGuUFVGPLPsyBZiOxFLwOBoCtZ+QmmXAx3zXWzOuv7RtoVTzhrOWOiQ1adPw1/07dO73qT6rfC1RM2GEGXBQ=
+	t=1785308502; cv=fail; b=AlfvhE1HT069d+iuSp0F8wQKUkMWP+6LJgH/YdbqEwFgZdkR01nvE7201Hsi32GXE2XRroQT6A6T5dvU+Jyqu5u+2Ktey+KAT7XVchr9+hkHMrXHToT+4+RMnGclSb19kc6YkLuDuRiwn//ynXUlLUZ3YhD5fdkuK5xXkyOY/rk=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785307944; c=relaxed/simple;
-	bh=IsnuBtL8HuItdMoITuzu6XM16afZLvv2UpgcVUueb/M=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=fBcy4Ot8VnWb+Re4A/03vnTfYi4XSPFFGpi9vvY+DBZP8qft/JU+Ju58kjpRvyVUnhqes3xCseERuKsy7sTGhsHRr6LZY6M6LG5pfT0PeVVZkZWLGwjsIok0C7Z6lCNiC11mlKPhYlM3PUJEiapgUlvDfg9oWolYvv2uGEBHlk8=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=ngO0EAd+; arc=fail smtp.client-ip=40.107.209.1
+	s=arc-20240116; t=1785308502; c=relaxed/simple;
+	bh=96y5cnL8as+Yo4SFl1KAlbI//SOkoi3WG/f3R8VQE7w=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=Vn3vqPhEKnycL36zj2fWDVzdwTyTyJRHCYPNKNM+40wjUvVsm9/6kiERrEW2U3OjZvPXj6XI2xxD0tBJjb1TTtRyFMLnIwe4UUw9Ov58aZmLejObM2AgYFsee+J7aGh9yW/es2K+hZ/LnwHY2iV+Pe7pqqAZ1EcdMAfNvCW7he0=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=D7c7py8d; arc=fail smtp.client-ip=52.101.193.58
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="ngO0EAd+"
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="D7c7py8d"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=RVKaam66UthO7RwqULwH16lEM6X0QyIElO9jXs/ErYjI2UmMq/kuzVKQ7KTLTys8J9NYxBXUDo7QTV+cMlRQ8PDuF5ak1TniEl0L34ZootbzOPtmT4A8sCVoW2WFsE7R1SAGhAPR6D5uNQ5W42Uadpvq4UKdhQ5yE39/dCjfP6YgX+Czf84uKAID9u9YZDd/juNZb0MlAtAqubzP6BfhmTFS7Gyx2WnMgnkj86uYjf0ykaJFlacDhNd+HZWKP5yDP0N7DPWAUHZbcxP9hIGwcUC3NeFyYyHorVktHCiCv8OZb7Js3SCnFMm6T03GVxjGQVpXHs3h7RrsayX5He48pA==
+ b=Kr7XyELbw132SYBgelHf34u47v6FKIgis+sqwZEEB4dY+WwgHqTQgZ0z8HCSeVJY8NNEUqGiO4niatyqqImD03wDTYQ7O4znRGZc4dK4M2cHD8SFOueGyxm6k+anF+ga1fL7nSPYazCG4svMfZ9t14x4uD3dYRW+yV02l7eD5pzqLFjZUUn2n0bQ39C0kb/fVCores39vXyEwp6en9qwftqXPwpILzJO2fXy0IBZSUUWrQ85mXEfHQ6sbzrpHtcVBjLg90anMfY6s4iQFm2w3d+1N1uCWo8InWWn9yvxaXMQLc7nM7EJ47AH1kLgdDjJdCEnLP7jTODq1BqyfkrfAg==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=n8FciBHn40easHI3RdYjFsCRvrXytzcDlZtAo4nPPxE=;
- b=dawOMFgALDHFRz85iUoBe5yT281yy3GAodgfaUca1iG4ELO3lNYdqCYN8UlESNq+xku0/R+jMJE1wldt7pMQzuPH8beGjYqK482wv5kF+DPTgBgWYqh5jEddHfe+U9cvAW74x/QauMBy834Tw6WzwN90Ph27ijviDkxM5kmH/yLjsCzlsgUaYZKHsspVUVJwG6rbBQYy7YX8GOWz/5fNE0vf1i0IgW79KN6NqNmBaequw3wUrsqxB3kuCO2EE8eqoC6JhdNx/tctoHKWvp06n9z/rvPzkJG/uB3T4Pj82GfeaEDeny634QTDBUaCdo8J6Orf/SmUmZZdnu4H9WfjqQ==
+ bh=dY8mM6ruS9EdeUEljka9Cg6jxu3/B6UH0g5GOkFHEBk=;
+ b=j2n3DmZcGqsUwl9EP1tGoFhi/HYhs3Tv3t0wpJ6gsY5Jx+NLQpu1/DkQZu8bSVlXgBoV1VowyIskrb3aZKIUP5NWl25Iu25pQh1mOKwlkY4heFwxAlYu7Z+Z1mPP5f/H6oVi/9fTf0yr+cmWhFNWV6j0L45foRpW7oLgtLEUaW4wHZ0w4ht28yAoAsirVu1y9QhIxQEtdgOcU/TQC1Cm8W0jtDFt9gkKVqZnyX95r+U45gsDUIuJqlWt9l5ivuyfZb2gelWISZMxbmYmacP+RAWdwNkWGKK5LfH3ZTfkGx4M9hS0/Xmyn/YwcK870BhSuTJxSLlq9TXl6ROkwlSJaQ==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.118.233) smtp.rcpttodomain=lunn.ch smtp.mailfrom=nvidia.com;
+ 216.228.117.161) smtp.rcpttodomain=lunn.ch smtp.mailfrom=nvidia.com;
  dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
  dkim=none (message not signed); arc=none (0)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=n8FciBHn40easHI3RdYjFsCRvrXytzcDlZtAo4nPPxE=;
- b=ngO0EAd++URjlTwlbBN+Rd0dLXJBCcizW7afwDIVK6CVs0JR6X645+zNpGmnM9UjBoTmkTrI2YbNkKXnBcPqnvPaQxvOOoaYQaWObaae9RgsZK1wauMhLMnVE7OcXwhlJoLuEbtkH9nB+Brd6wp1FPItL9pq6jOh20fvxwAaP6yMQCqGwEKiSk0u8/dmJmtUy879m3TTUWDZxNXDgq1B8qfx1Le6iabPupKAgzQ7n8tm7CLTRbQcVVO/YJj/+yU/UjZDpvgc8g8z9JkXtqFmMZo/W+PFLLrXuKr1zhVuo1HoxhvrwE3N4njcwS6XuAF5c+2zaod6mGznLE1faZ2v9g==
-Received: from DS0PR17CA0016.namprd17.prod.outlook.com (2603:10b6:8:191::7) by
- SA3PR12MB8762.namprd12.prod.outlook.com (2603:10b6:806:31f::9) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.270.12; Wed, 29 Jul 2026 06:52:15 +0000
-Received: from DS2PEPF000061C8.namprd02.prod.outlook.com
- (2603:10b6:8:191:cafe::96) by DS0PR17CA0016.outlook.office365.com
- (2603:10b6:8:191::7) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.270.12 via Frontend Transport; Wed,
- 29 Jul 2026 06:52:15 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.118.233)
+ bh=dY8mM6ruS9EdeUEljka9Cg6jxu3/B6UH0g5GOkFHEBk=;
+ b=D7c7py8d/Kc7alRUfQ3vNTHkK7zwCyo2w1YG3GkuQgWNbNhWTDJgbiXwWMGKKjHrPjp32f6xhfZLkl8oLCIwp1TqT2SPpcOAuXrhAfNCPTXdpMJPXPLgxzklyMsvYIXjAWmEHUwa1PEe6T8FRom4/yucA0+5f4owm/tJzeS0Sdcy15PNhB/uLHV1wCfcPoNcATx6v5ID2Vuh/PDWovCxtRvwfw8q7vWXHMMWSbiGuTs3XGpw2jbfx5vEKyG8oklDiobd0gnDFB5xM1xBc64V4Tfz+haSYx2j2vyto8A4TzmGpASaKosmWpnoRHB6FXgrKv15vZx6AA8WbSp1WwrGxA==
+Received: from DS7P220CA0091.NAMP220.PROD.OUTLOOK.COM (2603:10b6:8:25a::10) by
+ CH1PPFDB1826343.namprd12.prod.outlook.com (2603:10b6:61f:fc00::628) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.270.12; Wed, 29 Jul
+ 2026 07:01:32 +0000
+Received: from DS1PEPF00017096.namprd05.prod.outlook.com
+ (2603:10b6:8:25a:cafe::9e) by DS7P220CA0091.outlook.office365.com
+ (2603:10b6:8:25a::10) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.21.270.13 via Frontend Transport; Wed,
+ 29 Jul 2026 07:01:32 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.161)
  smtp.mailfrom=nvidia.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=nvidia.com;
 Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.118.233 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.118.233; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.118.233) by
- DS2PEPF000061C8.mail.protection.outlook.com (10.167.23.75) with Microsoft
+ 216.228.117.161 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.117.161; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.117.161) by
+ DS1PEPF00017096.mail.protection.outlook.com (10.167.18.100) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.270.5 via Frontend Transport; Wed, 29 Jul 2026 06:52:14 +0000
-Received: from drhqmail203.nvidia.com (10.126.190.182) by mail.nvidia.com
- (10.127.129.6) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Tue, 28 Jul
- 2026 23:52:02 -0700
-Received: from drhqmail203.nvidia.com (10.126.190.182) by
- drhqmail203.nvidia.com (10.126.190.182) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.20; Tue, 28 Jul 2026 23:52:02 -0700
-Received: from vdi.nvidia.com (10.127.8.10) by mail.nvidia.com
- (10.126.190.182) with Microsoft SMTP Server id 15.2.2562.20 via Frontend
- Transport; Tue, 28 Jul 2026 23:51:57 -0700
+ 15.21.270.5 via Frontend Transport; Wed, 29 Jul 2026 07:01:31 +0000
+Received: from rnnvmail203.nvidia.com (10.129.68.9) by mail.nvidia.com
+ (10.129.200.67) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Wed, 29 Jul
+ 2026 00:01:17 -0700
+Received: from rnnvmail202.nvidia.com (10.129.68.7) by rnnvmail203.nvidia.com
+ (10.129.68.9) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Wed, 29 Jul
+ 2026 00:01:15 -0700
+Received: from vdi.nvidia.com (10.127.8.10) by mail.nvidia.com (10.129.68.7)
+ with Microsoft SMTP Server id 15.2.2562.20 via Frontend Transport; Wed, 29
+ Jul 2026 00:01:10 -0700
 From: Tariq Toukan <tariqt@nvidia.com>
 To: Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller"
 	<davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, Jakub Kicinski
 	<kuba@kernel.org>, <netdev@vger.kernel.org>, Paolo Abeni <pabeni@redhat.com>
-CC: Boris Pismenny <borisp@nvidia.com>, Carolina Jubran <cjubran@nvidia.com>,
-	Cosmin Ratiu <cratiu@nvidia.com>, Daniel Zahka <daniel.zahka@gmail.com>,
-	Dragos Tatulea <dtatulea@nvidia.com>, Gal Pressman <gal@nvidia.com>, "Kees
- Cook" <kees@kernel.org>, Leon Romanovsky <leon@kernel.org>,
-	<linux-kernel@vger.kernel.org>, <linux-rdma@vger.kernel.org>, Mark Bloch
-	<mbloch@nvidia.com>, Raed Salem <raeds@nvidia.com>, Rahul Rameshbabu
-	<rrameshbabu@nvidia.com>, Saeed Mahameed <saeedm@nvidia.com>, Tariq Toukan
-	<tariqt@nvidia.com>
-Subject: [PATCH net] net/mlx5e: Add mutual exclusion between PSP and PTP TX port timestamping
-Date: Wed, 29 Jul 2026 09:51:37 +0300
-Message-ID: <20260729065137.2420679-1-tariqt@nvidia.com>
+CC: Adithya Jayachandran <ajayachandra@nvidia.com>, Carolina Jubran
+	<cjubran@nvidia.com>, Cosmin Ratiu <cratiu@nvidia.com>, Daniel Jurgens
+	<danielj@nvidia.com>, Gal Pressman <gal@nvidia.com>, Jiri Pirko
+	<jiri@resnulli.us>, Kees Cook <kees@kernel.org>, Leon Romanovsky
+	<leon@kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-rdma@vger.kernel.org>, Maher Sanalla <msanalla@nvidia.com>, Mark Bloch
+	<mbloch@nvidia.com>, Moshe Shemesh <moshe@nvidia.com>, Or Har-Toov
+	<ohartoov@nvidia.com>, Parav Pandit <parav@nvidia.com>, Saeed Mahameed
+	<saeedm@nvidia.com>, Shay Drori <shayd@nvidia.com>, Simon Horman
+	<horms@kernel.org>, Tariq Toukan <tariqt@nvidia.com>
+Subject: [PATCH net] net/mlx5e: Move representor vnic reporter to eswitch devlink port
+Date: Wed, 29 Jul 2026 10:00:59 +0300
+Message-ID: <20260729070059.2421788-1-tariqt@nvidia.com>
 X-Mailer: git-send-email 2.44.0
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
@@ -88,162 +91,260 @@ Content-Type: text/plain
 X-NV-OnPremToCloud: ExternallySecured
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: DS2PEPF000061C8:EE_|SA3PR12MB8762:EE_
-X-MS-Office365-Filtering-Correlation-Id: 586443c5-fe0c-4365-0e3b-08deed3dec45
+X-MS-TrafficTypeDiagnostic: DS1PEPF00017096:EE_|CH1PPFDB1826343:EE_
+X-MS-Office365-Filtering-Correlation-Id: edd48c47-416d-42cd-b121-08deed3f385f
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|1800799024|7416014|82310400026|376014|23010399003|36860700016|6133799003|11063799006|56012099006|10067099003|18002099003;
+	BCL:0;ARA:13230040|376014|7416014|36860700016|23010399003|1800799024|82310400026|6133799003|56012099006|10067099003|11063799006|18002099003;
 X-Microsoft-Antispam-Message-Info:
-	ndyV8ws4C5PHs8d76Mk22A1tqcY7hCGc2jKdDuohaZzSvq9OrSkhYEj2ACEXVOpB/067C38edtDHqsNxtz8b0NgBtzlvnSUfNd2BhE8j+Z+wharTsh9eyq5glFRxeqo1Ho4hF6zNHKjAaYHk9Dh5pXDgwkAGb4fqQ+ekbm6JlPRFV0j1ha7wRPeCxqP+JefE9EULXidFFqeJ/4KZMUDT+BHMQqPPykFkD6o/U/815D1NrqfN2JZKyhwoXr/AAaIqTkjKJ/9Awd6TGTQ5GJ95x4X0h9niS/xgd5R3e0dm+RhYrkdMf5y92/T8sF14eXlkjszX0BRdFf5pgnm99dNKJCmVfodFrJcDz5kNlbdXl4JygTzdMPllHLw19dN2XlocWciFzbDB1M8tNTx8NjQO+yHRhwozbpv86Zz5UdR1RCgb08RRRfZzWuugd3DUK7WzC4J/ATavwdGhmvaX81QKAxwXohL4TSkb0LkbVUlQnQDp+Id60hGiJJ0fc0XzyOlX8eI42jtjQWdLVN8ssnyoyaTRMP21OTPaZ8z4sGCZx/oysgC1Hf1XoHifBgK11eHmoRqpFFswwU3AOqrvZ8mwezoCDCxfcppKhTBanAlsYtyjVn/qNaUF1usnQ6iEyDa9gp0fW6MxaDiGExTV3JiIDP58yp9XqFrnh186jJx6L9NC1Qwi0HCDjSc3o/u/d/zw1YWiYEmXI7IcID6is8WzQA==
+	3qSRBeTKsGNnst+7m8w4RNWGlzMOUYkmbQsMPNHxtn0p0iRrX6dhhRqBl7gamKONlKY+LjoZ8KfAVTp+Aru2l9u0KzUKuJPy2AWeeWUF9rJgKD0G5KJSO9LBAjg3G6rs/qZZc16A1zAcAYMM2nnQVoVBQ23trns2h5r74nEk+pAGhwuJ/juc3nHRZM8OGq7mBkQwu5qFDoPNpUunysVMCiLtybiqVyYLqYUz7Jc1Kxcv+vqf8wmAd4cJezfBr6x/AlJTmISxlsTdl9rlaqwuC+URTYbabUO2KAtKaV0j236J4ZXPtIhC4ZnyHFdw5Ndrm3TYhECZjtjWZvJhGuCEjvU8X6M1HvUmr8Rh6adpoEGkXYS/YR8jvTfdWqmeemLMDfVfa45vO6DqUPPZ0MKeJ7WR6CP8T3DL140eYDtCRFymOVILbOYlX3WHlkabgJPigSGlYeGCEGq3oli2JODwoMobq0fp+YtNwbOBVys9UhdCN/hZmMmyzUNW0AQ/7tybmXrlwh+rlMMUfaPegen4V+1KVjqCoRQxIqfsuzRjWCtTWJGNMkygUfT/Lyb+cAWAO4P/lmnhUrHQLFn1gUfoA/iBHVonIduxLDIkJRimvxh0QB7bd68h73zR4ed6UacKcGNaDz1tXi3aiCp7pcGQXcNgwRdt00BXkCuWlcv9v8QKVP6HmvQcZvMQOnWvtbB0azW4YXVlZGFKFmYMscNUmQ==
 X-Forefront-Antispam-Report:
-	CIP:216.228.118.233;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc7edge2.nvidia.com;CAT:NONE;SFS:(13230040)(1800799024)(7416014)(82310400026)(376014)(23010399003)(36860700016)(6133799003)(11063799006)(56012099006)(10067099003)(18002099003);DIR:OUT;SFP:1101;
+	CIP:216.228.117.161;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge2.nvidia.com;CAT:NONE;SFS:(13230040)(376014)(7416014)(36860700016)(23010399003)(1800799024)(82310400026)(6133799003)(56012099006)(10067099003)(11063799006)(18002099003);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	PXCL/0nV0BYIGYlXjoCECvSLjOGbPuUC4rb4n8AxHGO1VGQkAbDFzM43Lzfhhdmf0Dsss3yOEt9csHz11YYsHdEuXFkQYiE7C+99I3yCcXqy75XDNEh1u9oP1yzJHnTipc5OAecRbjMMyd0YZ7oQBSuxbiE92Aw5tyJRI9sNE2kefPzsKDKsrqhH964gYC6ncrjZijttMIBgBxPJ+b1rVWXeqTuPZs0wF5sErady7E0z1ESfIp/R1Zp6ZS8ODpK3HkAkWJ4aLOXR9/te1APjbprYqoyxfyJqGw3z4TjEvPJ18/OgudhxQlv2UBYqWWARA4pWXYfh7uwLn8jvS1wc6iQEEfrBzQZ9M9QrMiei7JGm89Rkto4TrtK1c+SX40v6vrQHaj3J7ff5kj4Zb+pEsAvEPx1UBZCQ3sYQuFXIOa4g8KfMouYqozT5qXBf+qSC
+	DEqQdjOjeT+Cnh/L9K1mHcg7+qJNwrxY7mZ4y4wxBauLg4wQrVj0y7seAQyOlHRivGTfWRe/FwvjdEE9hVMqyZruUr7zL33MWY0og+WXP9Bb+UGIJyouPbcaGXXeLWZwMX5X7hdtPUNS1gwM/LzZ39VXaweXcY+oV1Qk4KmaI2PUCqnp4qiXzO7VI3LOOJBzS1FATAGnfionSS7cVxeTiHbBY6vamwZHIvWdaHornABFRmEJBvwjzllU3OGBpktZJm0j6psnJKIb3QJmM7k9Sv3PliOZC4c7/oxX9oeNPLSjARwv44SPbIw+Lp0TFMcf3up9dakSmJYxyGigy4YCAtAlgPJyy+ativoC3Idk1yR2YYi155fTGYLpb/aObxTrVLHuEbgFLsK4TFCy7AF6Q0AKl+2DTixDFnhXcFMQCahTA7nQ6d2h5Vz3x9dRrHpY
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 29 Jul 2026 06:52:14.4539
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 29 Jul 2026 07:01:31.6247
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 586443c5-fe0c-4365-0e3b-08deed3dec45
+X-MS-Exchange-CrossTenant-Network-Message-Id: edd48c47-416d-42cd-b121-08deed3f385f
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.118.233];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.161];Helo=[mail.nvidia.com]
 X-MS-Exchange-CrossTenant-AuthSource:
-	DS2PEPF000061C8.namprd02.prod.outlook.com
+	DS1PEPF00017096.namprd05.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA3PR12MB8762
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CH1PPFDB1826343
 
 From: Carolina Jubran <cjubran@nvidia.com>
 
-The WQE flow_table_metadata field is shared by multiple TX offloads:
-IPsec, MACsec, PTP timestamping and PSP each write to it.
+The representor vnic devlink health reporter is created and destroyed
+along the representor netdev (un)load path, which is not serialized by
+the devlink instance lock. Destroying the reporter from there triggers
+a devl_assert_locked() splat on driver unbind:
+  WARNING: net/devlink/core.c:259 at devl_assert_locked+0x54/0x70, CPU#2: bash/3758
+  Modules linked in: mlx5_vdpa vringh vdpa mlx5_ib mlx5_fwctl mlx5_core ...
+  CPU: 2 UID: 0 PID: 3758 Comm: bash Tainted: G        W           6.19.0+ #1 PREEMPT
+  Tainted: [W]=WARN
+  Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), ...
+  RIP: 0010:devl_assert_locked+0x54/0x70
+  Call Trace:
+   <TASK>
+   devl_health_reporter_destroy+0x3a/0x1b0
+   mlx5e_vport_rep_unload+0x12d/0x2b0 [mlx5_core]
+   mlx5_eswitch_unregister_vport_reps+0x1b8/0x220 [mlx5_core]
+   ? __esw_offloads_unload_rep+0x190/0x190 [mlx5_core]
+   ? kernfs_remove_by_name_ns+0xc3/0xf0
+   device_release_driver_internal+0x3b2/0x560
+   unbind_store+0xce/0xf0
 
-Commit [1] resolved the conflicts between IPsec/MACsec and PTP
-by shifting their markers to bits [8+], leaving PTP's 8-bit metadata
-index in bits [7:0] without overlap.
-But then PSP support was added in commit [2], which writes a 32-bit
-keyid across all bits of flow_table_metadata. Unlike IPsec and MACsec,
-PTP timestamping applies independently of encryption -- a PSP-encrypted
-packet can also require a HW timestamp. When both write to the same
-WQE, the values corrupt each other, leading to wrong PTP timestamp
-tracking and potentially wrong PSP encryption keys.
+Move the reporter's lifecycle to the eswitch devlink port
+(un)register paths and store the handle on mlx5_devlink_port. The
+reporter is logically tied to the eswitch port, and its diagnose
+callback only uses mlx5_eswitch_rep, so pass the rep directly as the
+reporter priv.
 
-Prevent the conflict at configuration time by blocking:
-- Enabling TX-port-TS when PSP has active TX keys.
-- Adding PSP TX keys when TX-port-TS is already enabled.
-
-[1] Commit 2ac207381c37 ("net/mlx5e: Prevent WQE metadata conflicts
-between timestamping and offloads")
-[2] Commit 89ee2d92f66c ("net/mlx5e: Support PSP offload functionality")
-
-Fixes: 89ee2d92f66c ("net/mlx5e: Support PSP offload functionality")
+Fixes: cf14af140a5a ("net/mlx5e: Add vnic devlink health reporter to representors")
 Signed-off-by: Carolina Jubran <cjubran@nvidia.com>
 Reviewed-by: Cosmin Ratiu <cratiu@nvidia.com>
 Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
 ---
- .../ethernet/mellanox/mlx5/core/en_accel/psp.c   | 16 +++++++++++++++-
- .../ethernet/mellanox/mlx5/core/en_accel/psp.h   | 11 +++++++++++
- .../net/ethernet/mellanox/mlx5/core/en_ethtool.c |  8 ++++++++
- 3 files changed, 34 insertions(+), 1 deletion(-)
+ .../net/ethernet/mellanox/mlx5/core/en_rep.c  | 52 +------------------
+ .../net/ethernet/mellanox/mlx5/core/en_rep.h  |  1 -
+ .../mellanox/mlx5/core/esw/devlink_port.c     | 39 ++++++++++++++
+ .../net/ethernet/mellanox/mlx5/core/eswitch.h |  1 +
+ 4 files changed, 41 insertions(+), 52 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/psp.c b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/psp.c
-index d9adb993e64d..8d76dd488d77 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/psp.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/psp.c
-@@ -993,6 +993,20 @@ static int mlx5e_psp_assoc_add(struct psp_dev *psd, struct psp_assoc *pas,
- 	struct psp_key *nkey;
- 	int err;
- 
-+	/* Mutual exclusion with TX-port-TS (shared WQE metadata). Reserve
-+	 * tx_key_cnt under state_lock with the TS check so ethtool cannot
-+	 * enable TX-port-TS until key creation completes or fails.
-+	 */
-+	mutex_lock(&priv->state_lock);
-+	if (MLX5E_GET_PFLAG(&priv->channels.params, MLX5E_PFLAG_TX_PORT_TS)) {
-+		mutex_unlock(&priv->state_lock);
-+		NL_SET_ERR_MSG_MOD(extack,
-+				   "TX-port-TS is active, PSP TX keys cannot be added");
-+		return -EBUSY;
-+	}
-+	atomic_inc(&psp->tx_key_cnt);
-+	mutex_unlock(&priv->state_lock);
-+
- 	mdev = priv->mdev;
- 	nkey = (struct psp_key *)pas->drv_data;
- 
-@@ -1001,11 +1015,11 @@ static int mlx5e_psp_assoc_add(struct psp_dev *psd, struct psp_assoc *pas,
- 					 MLX5_ACCEL_OBJ_PSP_KEY,
- 					 &nkey->id);
- 	if (err) {
-+		atomic_dec(&psp->tx_key_cnt);
- 		mlx5_core_err(mdev, "Failed to create encryption key (err = %d)\n", err);
- 		return err;
- 	}
- 
--	atomic_inc(&psp->tx_key_cnt);
- 	return 0;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c b/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
+index c8b76d301c92..783c76953e95 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
+@@ -56,7 +56,6 @@
+ #include "lib/vxlan.h"
+ #define CREATE_TRACE_POINTS
+ #include "diag/en_rep_tracepoint.h"
+-#include "diag/reporter_vnic.h"
+ #include "en_accel/ipsec.h"
+ #include "en/tc/int_port.h"
+ #include "en/ptp.h"
+@@ -1425,51 +1424,6 @@ static unsigned int mlx5e_ul_rep_stats_grps_num(struct mlx5e_priv *priv)
+ 	return ARRAY_SIZE(mlx5e_ul_rep_stats_grps);
  }
  
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/psp.h b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/psp.h
-index 6b62fef0d9a7..315c4b2101c2 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/psp.h
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/psp.h
-@@ -30,6 +30,11 @@ struct mlx5e_psp {
- 	atomic_t tx_drop;
+-static int
+-mlx5e_rep_vnic_reporter_diagnose(struct devlink_health_reporter *reporter,
+-				 struct devlink_fmsg *fmsg,
+-				 struct netlink_ext_ack *extack)
+-{
+-	struct mlx5e_rep_priv *rpriv = devlink_health_reporter_priv(reporter);
+-	struct mlx5_eswitch_rep *rep = rpriv->rep;
+-
+-	mlx5_reporter_vnic_diagnose_counters(rep->esw->dev, fmsg, rep->vport,
+-					     true);
+-	return 0;
+-}
+-
+-static const struct devlink_health_reporter_ops mlx5_rep_vnic_reporter_ops = {
+-	.name = "vnic",
+-	.diagnose = mlx5e_rep_vnic_reporter_diagnose,
+-};
+-
+-static void mlx5e_rep_vnic_reporter_create(struct mlx5e_priv *priv,
+-					   struct devlink_port *dl_port)
+-{
+-	struct mlx5e_rep_priv *rpriv = priv->ppriv;
+-	struct devlink_health_reporter *reporter;
+-
+-	reporter = devl_port_health_reporter_create(dl_port,
+-						    &mlx5_rep_vnic_reporter_ops,
+-						    rpriv);
+-	if (IS_ERR(reporter)) {
+-		mlx5_core_err(priv->mdev,
+-			      "Failed to create representor vnic reporter, err = %pe\n",
+-			      reporter);
+-		return;
+-	}
+-
+-	rpriv->rep_vnic_reporter = reporter;
+-}
+-
+-static void mlx5e_rep_vnic_reporter_destroy(struct mlx5e_priv *priv)
+-{
+-	struct mlx5e_rep_priv *rpriv = priv->ppriv;
+-
+-	if (!IS_ERR_OR_NULL(rpriv->rep_vnic_reporter))
+-		devl_health_reporter_destroy(rpriv->rep_vnic_reporter);
+-}
+-
+ static const struct mlx5e_profile mlx5e_rep_profile = {
+ 	.init			= mlx5e_init_rep,
+ 	.cleanup		= mlx5e_cleanup_rep,
+@@ -1593,10 +1547,8 @@ mlx5e_vport_vf_rep_load(struct mlx5_core_dev *dev, struct mlx5_eswitch_rep *rep)
+ 
+ 	dl_port = mlx5_esw_offloads_devlink_port(dev->priv.eswitch,
+ 						 rpriv->rep->vport);
+-	if (!IS_ERR(dl_port)) {
++	if (!IS_ERR(dl_port))
+ 		SET_NETDEV_DEVLINK_PORT(netdev, dl_port);
+-		mlx5e_rep_vnic_reporter_create(priv, dl_port);
+-	}
+ 
+ 	err = register_netdev(netdev);
+ 	if (err) {
+@@ -1609,7 +1561,6 @@ mlx5e_vport_vf_rep_load(struct mlx5_core_dev *dev, struct mlx5_eswitch_rep *rep)
+ 	return 0;
+ 
+ err_detach_netdev:
+-	mlx5e_rep_vnic_reporter_destroy(priv);
+ 	mlx5e_detach_netdev(netdev_priv(netdev));
+ err_cleanup_profile:
+ 	priv->profile->cleanup(priv);
+@@ -1667,7 +1618,6 @@ mlx5e_vport_rep_unload(struct mlx5_eswitch_rep *rep)
+ 	}
+ 
+ 	unregister_netdev(netdev);
+-	mlx5e_rep_vnic_reporter_destroy(priv);
+ 	mlx5e_detach_netdev(priv);
+ 	priv->profile->cleanup(priv);
+ 	mlx5e_destroy_netdev(netdev);
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_rep.h b/drivers/net/ethernet/mellanox/mlx5/core/en_rep.h
+index 70640fa1ad7b..bcd7b4e814d0 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_rep.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_rep.h
+@@ -118,7 +118,6 @@ struct mlx5e_rep_priv {
+ 	struct rtnl_link_stats64 prev_vf_vport_stats;
+ 	struct mlx5_flow_handle *send_to_vport_meta_rule;
+ 	struct rhashtable tc_ht;
+-	struct devlink_health_reporter *rep_vnic_reporter;
  };
  
-+static inline bool mlx5e_psp_tx_keys_active(const struct mlx5e_priv *priv)
+ static inline
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/esw/devlink_port.c b/drivers/net/ethernet/mellanox/mlx5/core/esw/devlink_port.c
+index 6e50311faa27..46f110170fb3 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/esw/devlink_port.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/esw/devlink_port.c
+@@ -4,6 +4,27 @@
+ #include <linux/mlx5/driver.h>
+ #include "eswitch.h"
+ #include "devlink.h"
++#include "mlx5_core.h"
++#include "diag/reporter_vnic.h"
++
++static int
++mlx5_esw_rep_vnic_reporter_diagnose(struct devlink_health_reporter *reporter,
++				    struct devlink_fmsg *fmsg,
++				    struct netlink_ext_ack *extack)
 +{
-+	return priv->psp && atomic_read(&priv->psp->tx_key_cnt);
++	struct mlx5_eswitch_rep *rep = devlink_health_reporter_priv(reporter);
++
++	mlx5_reporter_vnic_diagnose_counters(rep->esw->dev, fmsg, rep->vport,
++					     true);
++
++	return 0;
 +}
 +
- static inline bool mlx5_is_psp_device(struct mlx5_core_dev *mdev)
++static const struct
++devlink_health_reporter_ops mlx5_esw_rep_vnic_reporter_ops = {
++	.name = "vnic",
++	.diagnose = mlx5_esw_rep_vnic_reporter_diagnose,
++};
+ 
+ static void
+ mlx5_esw_get_port_parent_id(struct mlx5_core_dev *dev, struct netdev_phys_item_id *ppid)
+@@ -217,9 +238,11 @@ static void mlx5_esw_devlink_port_res_unregister(struct devlink_port *dl_port)
+ 
+ int mlx5_esw_offloads_devlink_port_register(struct mlx5_eswitch *esw, struct mlx5_vport *vport)
  {
- 	if (!MLX5_CAP_GEN(mdev, psp))
-@@ -52,6 +57,11 @@ void mlx5e_psp_unregister(struct mlx5e_priv *priv);
- int mlx5e_psp_init(struct mlx5e_priv *priv);
- void mlx5e_psp_cleanup(struct mlx5e_priv *priv);
- #else
-+static inline bool mlx5e_psp_tx_keys_active(const struct mlx5e_priv *priv)
-+{
-+	return false;
-+}
++	struct devlink_health_reporter *reporter;
+ 	struct mlx5_core_dev *dev = esw->dev;
+ 	const struct devlink_port_ops *ops;
+ 	struct mlx5_devlink_port *dl_port;
++	struct mlx5_eswitch_rep *rep;
+ 	u16 vport_num = vport->vport;
+ 	unsigned int dl_port_index;
+ 	struct devlink *devlink;
+@@ -252,6 +275,16 @@ int mlx5_esw_offloads_devlink_port_register(struct mlx5_eswitch *esw, struct mlx
+ 		mlx5_core_dbg(dev, "Failed to register port resources: %d\n",
+ 			      err);
+ 
++	rep = mlx5_eswitch_vport_rep(esw, vport_num);
++	reporter = devl_port_health_reporter_create(
++		&dl_port->dl_port, &mlx5_esw_rep_vnic_reporter_ops, rep);
++	if (IS_ERR(reporter))
++		mlx5_core_dbg(dev,
++			      "Failed to create vnic health reporter for vport %d: %pe\n",
++			      vport_num, reporter);
++	else
++		dl_port->vnic_reporter = reporter;
 +
- static inline int mlx5_accel_psp_fs_init_rx_tables(struct mlx5e_priv *priv)
- {
  	return 0;
-@@ -74,4 +84,5 @@ static inline void mlx5e_psp_unregister(struct mlx5e_priv *priv) { }
- static inline int mlx5e_psp_init(struct mlx5e_priv *priv) { return 0; }
- static inline void mlx5e_psp_cleanup(struct mlx5e_priv *priv) { }
- #endif /* CONFIG_MLX5_EN_PSP */
-+
- #endif /* __MLX5E_ACCEL_PSP_H__ */
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c b/drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c
-index 112926d07634..98941088d100 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c
-@@ -42,6 +42,7 @@
- #include "en/ptp.h"
- #include "lib/clock.h"
- #include "en/fs_ethtool.h"
-+#include "en_accel/psp.h"
  
- #define LANES_UNKNOWN		 0
- 
-@@ -2387,6 +2388,13 @@ static int set_pflag_tx_port_ts(struct net_device *netdev, bool enable)
- 			   __func__);
- 		return -EINVAL;
- 	}
+ rate_err:
+@@ -266,6 +299,12 @@ void mlx5_esw_offloads_devlink_port_unregister(struct mlx5_vport *vport)
+ 	if (!vport->dl_port)
+ 		return;
+ 	dl_port = vport->dl_port;
 +
-+	if (enable && mlx5e_psp_tx_keys_active(priv)) {
-+		netdev_err(priv->netdev,
-+			   "%s: PSP TX keys are active, TX-port-TS cannot be enabled\n",
-+			   __func__);
-+		return -EBUSY;
++	if (dl_port->vnic_reporter) {
++		devl_health_reporter_destroy(dl_port->vnic_reporter);
++		dl_port->vnic_reporter = NULL;
 +	}
- 	MLX5E_SET_PFLAG(&new_params, MLX5E_PFLAG_TX_PORT_TS, enable);
- 	/* No need to verify SQ stop room as
- 	 * ptpsq.txqsq.stop_room <= generic_sq->stop_room, and both
++
+ 	mlx5_esw_devlink_port_res_unregister(&dl_port->dl_port);
+ 
+ 	mlx5_esw_qos_vport_update_parent(vport, NULL, NULL);
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
+index fea72b1dedab..e8817d45763a 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
+@@ -189,6 +189,7 @@ struct mlx5_vport;
+ struct mlx5_devlink_port {
+ 	struct devlink_port dl_port;
+ 	struct mlx5_vport *vport;
++	struct devlink_health_reporter *vnic_reporter;
+ };
+ 
+ static inline void mlx5_devlink_port_init(struct mlx5_devlink_port *dl_port,
 
 base-commit: 3bd438a58e910db5dc369aa25dfed1fc95f1b596
 -- 
