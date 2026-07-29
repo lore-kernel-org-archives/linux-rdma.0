@@ -1,137 +1,132 @@
-Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9811B47ACC9;
-	Wed, 29 Jul 2026 12:50:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.158.5
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8CB1E488773;
+	Wed, 29 Jul 2026 13:01:46 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785329430; cv=none; b=s+xPwSsSG7KgjKbW3TWJGZCCMRxvQ+YulSkbjCaK1qYAln2+hMcO/VNggJb0dwpChyf5Byy+44nPjxMbepT7ZISISdvgONCMD54Hq+wViE4idu5F6A8ySWn2L4uFAbVUzwIDbA548eUrQeUdOvvlRfjCfFKu7fsMgVaD1qaltlQ=
+	t=1785330112; cv=none; b=d4JGD+hTtT1uTs14GjdOuHF2ha6GbDQIrcsr2HGaDBquhVOTv7y9TjxJ7YHVQgLmxsn/jgQzA+KANwR0YNoNF3nWWYacDShbiy6K3lWw5lL7NFN47DeIvjVhPpD+AlkvvbQC4ynWrELD3iwbppl/tM1QUuv2dI/iQuvGtrRn990=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785329430; c=relaxed/simple;
-	bh=2ihxzM/ly4cqQLOesA/1RhT3mdrV4Kz0thLHaCKTg9k=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=KB9y3PPRfLgrOXoH50zLzzTmR+wc3UyQ6Qq5qaMIx/ctIYZb4h/XNApiL7pHvdn4LXn8+TuHuWdmQRKrJmsH2mgxzd9bf11sBydyFgL6XTv+Fpoyd3IZu8r9zl+xyZyk4b3L6cpmk5B86ew0lC7ZDe/oJSN1z+fM9VHhdvsVIh0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=O9hkoydf; arc=none smtp.client-ip=148.163.158.5
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
+	s=arc-20240116; t=1785330112; c=relaxed/simple;
+	bh=OmWFXyTutZpGmJhegJaW5l/v27yzjx9jhmLD2UqO39A=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=o9ZzyDuKVn51MzHDVnHP78EV1BfKYh5y51Y70vZ1PvYEHyD66QgbX9OLrfAORtm5WF60vom/r4ozgDKi5sfjW5qFj+uY8XIApiQX0ggrHmixI5UxCgEwjAkUMd2tjSu1eQUgPb8Wt6hHGFkXwGt31ERwnfHIP3/JjfMD/qrQcTs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=lzsB5hgn; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="O9hkoydf"
-Received: from pps.filterd (m0356516.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 66TBIA1C3953722;
-	Wed, 29 Jul 2026 12:50:14 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
-	:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to; s=pp1; bh=2ihxzM
-	/ly4cqQLOesA/1RhT3mdrV4Kz0thLHaCKTg9k=; b=O9hkoydfHNwCI+aDhDQae0
-	7JA/oqzV1rvDIWEHz7Ad8kyuQq4Y8qYGABUCAHQPYVTn0yfc9WSmuBCHEbYVEm6B
-	Xu0oCPfJvIF2FLTF4KZ2bvK7FrvNQcf537SAQjpXshZGITUUAQRHB5UX72r1R+E4
-	IHXHjjclRKso40zyW/b2dV752PxrPYWbdTj5FBRd5hL5vnn/9B8e/RPdkizh9r8j
-	BTpyj/CIbJkgNj9KBlBMyMmCuhZ+ynuxrGan3AuTYZstfbc9ei8ApEbj38mGRx1L
-	GEKDK+2/BUBZ98AKxpWmCqdn6pHThDq/6jHED9V5mpdTkottn7COkY7TFzyX1sjQ
-	==
-Received: from ppma11.dal12v.mail.ibm.com (db.9e.1632.ip4.static.sl-reverse.com [50.22.158.219])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 4fmuyj9wvm-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Wed, 29 Jul 2026 12:50:14 +0000 (GMT)
-Received: from pps.filterd (ppma11.dal12v.mail.ibm.com [127.0.0.1])
-	by ppma11.dal12v.mail.ibm.com (8.18.1.7/8.18.1.7) with ESMTP id 66TCfHVL029927;
-	Wed, 29 Jul 2026 12:50:13 GMT
-Received: from smtprelay07.dal12v.mail.ibm.com ([172.16.1.9])
-	by ppma11.dal12v.mail.ibm.com (PPS) with ESMTPS id 4fna5y6evb-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Wed, 29 Jul 2026 12:50:13 +0000 (GMT)
-Received: from smtpav06.dal12v.mail.ibm.com (smtpav06.dal12v.mail.ibm.com [10.241.53.105])
-	by smtprelay07.dal12v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 66TCoCUp1049110
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Wed, 29 Jul 2026 12:50:12 GMT
-Received: from smtpav06.dal12v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 406C258059;
-	Wed, 29 Jul 2026 12:50:12 +0000 (GMT)
-Received: from smtpav06.dal12v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 7108F58043;
-	Wed, 29 Jul 2026 12:50:02 +0000 (GMT)
-Received: from [9.124.223.194] (unknown [9.124.223.194])
-	by smtpav06.dal12v.mail.ibm.com (Postfix) with ESMTP;
-	Wed, 29 Jul 2026 12:50:02 +0000 (GMT)
-Message-ID: <9d2d6c92-2d5c-4b12-af1e-78062da8730f@linux.ibm.com>
-Date: Wed, 29 Jul 2026 18:20:00 +0530
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="lzsB5hgn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 004D61F00A3A;
+	Wed, 29 Jul 2026 13:01:44 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1785330105;
+	bh=d2iDQ/XFzSylptxqaGEPXyly087MYqpda+JKaK7wyQ0=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=lzsB5hgnmQMb7LvAz3l89TqTPTSJsCT7f/PpIv3ktX4Tvz156GYjtajDlIlhPMpEe
+	 I7naZSygp8kYCtJsVrmtQgpbEbMxRshAxVhqc+Eix+sq2j6pdsX1X6pjRcKAtpNEMG
+	 siHev2FOq+VkeHSWb3m6/z/2xHJ5NlVjTSCDc+2Fvs/OZx2ecHJEGHuqPHlH3SPn9t
+	 2G/6FMiUL4GJYeRaWENPDjppgY2ATqrrT6SVscV3twlSrzYd3DQOxumHEx4CNKOmY2
+	 9B0ZzjaQaUqROWGHsjdVIqkHr4+5l1pXkGra8M5EoQ0oMZMdOBuEd3mmy0P/LCv8fL
+	 BOwf+9r8cXEoQ==
+Date: Wed, 29 Jul 2026 16:01:41 +0300
+From: Leon Romanovsky <leon@kernel.org>
+To: Yehyeong Lee <yhlee@isslab.korea.ac.kr>
+Cc: sagi@grimberg.me, jgg@ziepe.ca, nab@linux-iscsi.org,
+	michael.christie@oracle.com, martin.petersen@oracle.com,
+	linux-rdma@vger.kernel.org, target-devel@vger.kernel.org,
+	linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Subject: Re: [PATCH] IB/isert: post full-feature receive buffers after
+ session registration
+Message-ID: <20260729130141.GN12003@unreal>
+References: <20260726144213.933544-1-yhlee@isslab.korea.ac.kr>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net] dibs: fix use-after-free of dmb_node in loopback
- attach/detach/unregister
-To: Alexandra Winter <wintera@linux.ibm.com>, davem@davemloft.net,
-        edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
-        alibuda@linux.alibaba.com, dust.li@linux.alibaba.com,
-        sidraya@linux.ibm.com, wenjia@linux.ibm.com, mjambigi@linux.ibm.com,
-        Rahul Chandelkar <rc@rexion.ai>
-Cc: tonylu@linux.alibaba.com, guwen@linux.alibaba.com, horms@kernel.org,
-        hca@linux.ibm.com, gor@linux.ibm.com, agordeev@linux.ibm.com,
-        borntraeger@linux.ibm.com, svens@linux.ibm.com, pasic@linux.ibm.com,
-        gbayer@linux.ibm.com, andrew+netdev@lunn.ch, netdev@vger.kernel.org,
-        linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-References: <20260727093530.968834-1-hidayath@linux.ibm.com>
- <fedb6ecd-f5e4-4830-9595-237215fa0164@linux.ibm.com>
-Content-Language: en-GB
-From: Hidayathulla Khan I <hidayath@linux.ibm.com>
-In-Reply-To: <fedb6ecd-f5e4-4830-9595-237215fa0164@linux.ibm.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-TM-AS-GCONF: 00
-X-Proofpoint-Reinject: loops=2 maxloops=12
-X-Proofpoint-Spam-Info: AW1haW4tMjYwNzI5MDEwNiBTYWx0ZWRfX1AYSUqo6/c80
- M0BgEyg3CBrWweE98C8BeOR3FPOjPNg+AT8CRAyalOqQSWsmewiJpnMkwZBUlATn44GSce7fhL+
- ESZgUACdrGZMIUd4qEJmvNyUi8ro9Xw=
-X-Proofpoint-GUID: TPgpCcYfjCWYvfEwRzKe4HL9ZrKnIPDL
-X-Proofpoint-ORIG-GUID: mkX1yKPkKuGxTemBW9iafx7wxFYvCAOA
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNzI5MDEwNiBTYWx0ZWRfX/thqRPL/jnWj
- ymKoEeg6bz4QKgf8FV4ZxoQyPjNV1+m20pxVUFY+tOn7eOQr27vwQZflsGabm0I+GrXvK6Mnlwt
- CMTDh6T9TL8QnoWhFDqw93SAlXpoE/kLmc1r6QaBP1yudttZRoRG/e+ykWreiIUE1/v3tosq3qN
- vfjq43PLIlLaFEP3hWxPmY9aAPIFIimdktj1zUb0bwiwKdRBwwxDT0DsxPt1DaKYCO5y9iluolR
- BzfdtTJWZCw67uhUjlJ3K9vOknvvlQ3Lw5vWI6uJMrKuJO1WYoFLql5kfExujQ4dRmZYEfrYtf5
- XK390xvr/G+v3kuolNwdhisBd7ClTWDAcbjtRZMDAh04QizmOKYaeWbnDsaBs0Ixhw2lBR0a+jN
- ayClPgVRyA1ENz5vJijHivCPCiMmjVIBmxQnn76SqprqkeqzhIJ0hFK26iC0WGpsLjC878jchy0
- JSdtE7H3wNsQEsKBMnw==
-X-Authority-Analysis: v=2.4 cv=X5Vi7mTe c=1 sm=1 tr=0 ts=6a69f706 cx=c_pps
- a=aDMHemPKRhS1OARIsFnwRA==:117 a=aDMHemPKRhS1OARIsFnwRA==:17
- a=IkcTkHD0fZMA:10 a=RAioF0-LDSMA:10 a=VkNPw1HP01LnGYTKEx00:22
- a=RnoormkPH1_aCDwRdu11:22 a=Y2IxJ9c9Rs8Kov3niI8_:22 a=VwQbUJbxAAAA:8
- a=o8dFRQB0AAAA:8 a=_9ao5c0ydNkKcCpahgwA:9 a=QEXdDO2ut3YA:10
- a=D5cU4ZU6l4KboW5xFU7l:22
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1143,Hydra:6.1.134,FMLib:17.12.100.49
- definitions=2026-07-29_04,2026-07-28_02,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- clxscore=1011 impostorscore=0 lowpriorityscore=0 phishscore=0
- priorityscore=1501 malwarescore=0 spamscore=0 suspectscore=0 bulkscore=0
- adultscore=0 classifier=typeunknown authscore=0 authtc= authcc=
- route=outbound adjust=0 reason=mlx scancount=1 engine=8.22.0-2606150000
- definitions=main-2607290106
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260726144213.933544-1-yhlee@isslab.korea.ac.kr>
 
+On Sun, Jul 26, 2026 at 11:42:13PM +0900, Yehyeong Lee wrote:
+> isert_put_login_tx() posts the full-feature receive buffers and then
+> sends the final Login Response on the same call:
+> 
+> 	isert_alloc_rx_descriptors()
+> 	isert_post_recvm(isert_conn, ISERT_QP_MAX_RECV_DTOS)
+> 	isert_conn->state = ISER_CONN_FULL_FEATURE
+> 	isert_login_post_send()
+> 
+> iscsi_post_login_handler() only runs after that, and it is what calls
+> __transport_register_session(), which sets se_sess->se_tpg.  An
+> initiator that sends a SCSI command as soon as it sees the Login
+> Response can therefore have that command received, executed and
+> completed before the session is registered, and target_complete()
+> dereferences a NULL se_sess->se_tpg:
+> 
+>   Oops: general protection fault, probably for non-canonical address ...
+>   KASAN: null-ptr-deref in range [0x0000000000000080-0x0000000000000087]
+>   Workqueue: ib-comp-wq ib_cq_poll_work
+>   RIP: 0010:target_complete_cmd_with_sense.part.0+0x17d/0xc90
+>   Call Trace:
+>    fd_execute_rw
+>    __target_execute_cmd
+>    iscsit_execute_cmd
+>    iscsit_sequence_cmd
+>    isert_recv_done
+>    __ib_process_cq
+>    ib_cq_poll_work
+> 
+> The command reaches the backend because transport_lookup_cmd_lun() does
+> not need se_tpg on the mapped-LUN path; it uses se_sess->se_node_acl,
+> which iscsit sets much earlier in iscsi_target_locate_portal().
+> 
+> iscsit's own RX thread does not have this problem: it is started at the
+> same point but waits on conn->rx_login_comp, which is completed at the
+> end of iscsi_post_login_handler(), after __transport_register_session().
+> isert takes its PDUs from the completion queue instead, and
+> isert_recv_done() has no connection-state check.
+> 
+> Post the receive buffers from isert_get_rx_pdu() instead.  That callback
+> is invoked by iscsi_target_rx_thread() only after the same rx_login_comp
+> wait, so the buffers become available to the HCA only once the session
+> is registered.  isert_recv_done() runs on ib-comp-wq and cannot wait
+> there itself.  The allocation stays in isert_put_login_tx() so that a
+> memory allocation failure still cannot happen after the final Login
+> Response has been sent.
+> 
+> rx_descs can legitimately be NULL in isert_get_rx_pdu(): the login
+> timeout timer sets login->login_failed from timer context, so
+> isert_put_login_tx() can skip the allocation branch while
+> iscsi_target_do_login() still returns 1 and the connection reaches
+> TARG_CONN_STATE_LOGGED_IN.  Return early in that case, which matches the
+> existing behaviour of not posting at all on that path.
+> 
+> Reproduced with soft-RoCE (rdma_rxe) under KASAN using an initiator that
+> issues a WRITE immediately after login, 400 login cycles per run.
+> Unpatched: 9 of 10 runs oopsed.  Patched: 0 of 10.  A build carrying a
+> diagnostic that reports the NULL without faulting recorded 16 hits
+> across 9 of 15 runs unpatched and 0 across 15 runs patched; the two sets
+> were run alternately in a single session.
+> 
+> Not covered by that testing: discovery sessions over iSER, MC/S
+> (non-zero TSIH) logins, ERL=2 connection recovery, and real HCAs, where
+> RNR behaviour differs from soft-RoCE.
+> 
+> Fixes: b8d26b3be8b3 ("iser-target: Add iSCSI Extensions for RDMA (iSER) target driver")
+> Cc: stable@vger.kernel.org
+> Signed-off-by: Yehyeong Lee <yhlee@isslab.korea.ac.kr>
+> ---
+> This replaces "scsi: target: Fix NULL se_tpg dereference in
+> target_complete()" (target-devel, Message-ID
+> 20260725165818.769963-1-yhlee@isslab.korea.ac.kr), which guarded the
+> symptom in target core.  That patch is being withdrawn.
+> 
+>  drivers/infiniband/ulp/isert/ib_isert.c | 36 +++++++++++++++++++++----
+>  1 file changed, 31 insertions(+), 5 deletions(-)
 
-On 29/07/26 5:55 pm, Alexandra Winter wrote:
->
-> On 27.07.26 11:35, Hidayath Khan wrote:
->> dibs_lo_attach_dmb(), dibs_lo_detach_dmb() and dibs_lo_unregister_dmb()
->> look up the dmb_node under dmb_ht_lock, drop the lock and only then
->> operate on the node's refcount. Nothing keeps the node alive across
->> that window: __dibs_lo_unregister_dmb() removes the node from the hash
->> table under the write lock and immediately frees it.
->>
-> I had lost track of this, but Rahul Chandelkar had already proposed a
-> similar patch [1] for this issue, but never followed up with a v2.
->
-> Rahul, Hidayath,
-> Would it be ok for both of you to add
-> Reported-by: Rahul Chandelkar <rc@rexion.ai>
-Sure, happy to add Reported-by: Rahul Chandelkar <rc@rexion.ai> in v2.
+1. Please keep commit messages concise and easy to read.
+2. Include the full kernel Oops in the commit message.
+3. Keep code comments to a minimum.
+4. Please address Sashiko's concerns about this patch.
 
->
->
-> [1] https://lore.kernel.org/netdev/4gRZFl1CWvz2x9j@mail.spacemail.com/
->
+Thanks
