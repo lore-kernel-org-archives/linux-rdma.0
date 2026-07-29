@@ -1,92 +1,80 @@
-Received: from out30-131.freemail.mail.aliyun.com (out30-131.freemail.mail.aliyun.com [115.124.30.131])
+Received: from m16.mail.163.com (m16.mail.163.com [117.135.210.2])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 05FBA2C2360;
-	Wed, 29 Jul 2026 03:58:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.131
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E0BF40855
+	for <linux-rdma@vger.kernel.org>; Wed, 29 Jul 2026 04:04:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=117.135.210.2
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785297527; cv=none; b=OYRhJKbusZq7vCCmhfeUTXmUsBepn6JLHWQkfDwK2xJGLMXkD3SkbA9HNgTzCJPPNfHRct+py5Fj2bJJnB1qX3+37syxwaZgY1ztSgvwbcZ/FJbpQ4OvFinUvusr+GLBFLKN0Tcs/UvzYTSEcDLOT+4KYeGXAkvoot+XPV/afM8=
+	t=1785297868; cv=none; b=WYx0vOf/PBbeFFA/7VJ0/iLZpaJYtGv2E3v/dTz+aQzDB/NZPKdj+rcj6K4IxMQ79bALezMBgb2f+xHTn0IVsnEkMicepGugFNgniLfKBYPPV4+R/TNncR9prQn9l+7yP5cWuvT63BvsyDuR4klGjXUQv/g+3QAy6Xxxa1pM+h4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785297527; c=relaxed/simple;
-	bh=ujwc+OPhF2yEkrTBSYTWy3UnAhazMeMxXb4E93z7aic=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=LRNO456lq+SI3wPqbvrtDNsR0XN1uRYbGQskL3lq5s5Lz6Bc5h3Cwi8Rb/ebaRdOu3vIPLrZO6lE0xFFFZLEF1IZcoEmG46KZGjylLDK6H+/hvengxpzRUYugQ449BRg2AxhzM7/Aa3MhWDUr6B212Pa5/bV3Hj0ictumngxbew=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=JHPDBZ6o; arc=none smtp.client-ip=115.124.30.131
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
+	s=arc-20240116; t=1785297868; c=relaxed/simple;
+	bh=k106ttuviyeqPVGbR8VmDsHUFVmjTNg1fWTyI7YGsIo=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:Content-Type:
+	 MIME-Version:Message-ID; b=PATUyltQgOR3innuG9GouO4MzWXfnmIAUCGOBjQ2IgWbeC54odFWzXX1dNyEP7nJ4bjgqYdgn/qC5uUmR+qhkvrqp0h1SQLBqvTyQKmZbqn1hSLE+zffBjE26pf2/7uodPG7t/dPaQISVOU0Z2dgew4sO0810yn2T5BB+qXvYEY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com; spf=pass smtp.mailfrom=163.com; dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b=XUJWSK+7; arc=none smtp.client-ip=117.135.210.2
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="JHPDBZ6o"
-DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux.alibaba.com; s=default;
-	t=1785297520; h=Date:From:To:Subject:Message-ID:MIME-Version:Content-Type;
-	bh=ujwc+OPhF2yEkrTBSYTWy3UnAhazMeMxXb4E93z7aic=;
-	b=JHPDBZ6o6wwszK0ieyU2A1ZBpctJs9El6tnvIAbXwLKSrCmdmU/AfwvDZXkbj4mh34T114/Do+vG+e9P1iVsdIAFHDznVTFg/HHl+gbPiEQuYzpvylS+B/DhMOvfl24Ha/zDm4iw7StkSbx71OSUyEapFZMGn+bWIHqwBb5fMKg=
-X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R331e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam033037026112;MF=dust.li@linux.alibaba.com;NM=1;PH=DS;RN=18;SR=0;TI=SMTPD_---0X80trhv_1785297518;
-Received: from localhost(mailfrom:dust.li@linux.alibaba.com fp:SMTPD_---0X80trhv_1785297518 cluster:ay36)
-          by smtp.aliyun-inc.com;
-          Wed, 29 Jul 2026 11:58:39 +0800
-Date: Wed, 29 Jul 2026 11:58:38 +0800
-From: Dust Li <dust.li@linux.alibaba.com>
-To: hexlabsecurity@proton.me, Tony Lu <tonylu@linux.alibaba.com>,
-	Paolo Abeni <pabeni@redhat.com>, Eric Dumazet <edumazet@google.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	"D. Wythe" <alibuda@linux.alibaba.com>,
-	Wen Gu <guwen@linux.alibaba.com>,
-	Sidraya Jayagond <sidraya@linux.ibm.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Mahanta Jambigi <mjambigi@linux.ibm.com>
-Cc: Hans Wippel <hwippel@linux.ibm.com>, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-s390@vger.kernel.org,
-	Wenjia Zhang <wenjia@linux.ibm.com>, linux-rdma@vger.kernel.org,
-	Ursula Braun <ubraun@linux.ibm.com>,
-	Simon Horman <horms@kernel.org>
-Subject: Re: [PATCH net v4] net/smc: order the CDC receive path against
- buffer publication
-Message-ID: <aml6bmRRgDVznjIs@linux.alibaba.com>
-Reply-To: dust.li@linux.alibaba.com
-References: <20260728-b4-disp-52ee4e7d-v4-1-0dda94b0f397@proton.me>
+	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="XUJWSK+7"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
+	s=s110527; h=Date:From:To:Subject:Content-Type:MIME-Version:
+	Message-ID; bh=k106ttuviyeqPVGbR8VmDsHUFVmjTNg1fWTyI7YGsIo=; b=X
+	UJWSK+7s/i5ay8r4ZAvq2wZQSp3zqbNojb5uhS4rBPeRnsxGudYjhevYn9A5wFrZ
+	pUyWUgdBxwuTWdt/yRZFU5zI/PbPVZKeREsfQfUi3eBlbVAlG00jcl8rwxlaUhZl
+	o1gf4xXaCdOC0VFVI+A/4SuBjE0G+xSkUNTUOViQZc=
+Received: from kensanya$163.com ( [116.128.244.169] ) by
+ ajax-webmail-wmsvr-40-110 (Coremail) ; Wed, 29 Jul 2026 12:04:00 +0800
+ (CST)
+Date: Wed, 29 Jul 2026 12:04:00 +0800 (CST)
+From: kensanya  <kensanya@163.com>
+To: "Leon Romanovsky" <leon@kernel.org>
+Cc: bvanassche@acm.org, jgg@ziepe.ca, linux-rdma@vger.kernel.org,
+	TanZheng <tanzheng@kylinos.cn>
+Subject: Re:Re: Re: Re: [PATCH v2] RDMA/srpt: fix NULL deref when sending
+ BUSY before target_init_cmd()
+X-Priority: 3
+X-Mailer: Coremail Webmail Server Version 2023.4-cmXT build
+ 20260511(2e539873) Copyright (c) 2002-2026 www.mailtech.cn 163com
+In-Reply-To: <20260727090046.GJ12003@unreal>
+References: <20260723024456.52851-1-kensanya@163.com>
+ <20260723095120.GF110966@unreal>
+ <56479481.2552.19f920118cd.Coremail.kensanya@163.com>
+ <20260726075511.GC12003@unreal>
+ <71e36b0d.4e93.19fa24c787d.Coremail.kensanya@163.com>
+ <20260727090046.GJ12003@unreal>
+X-NTES-SC: AL_Qu2TB/6SuEAv5iKabekcnkcTg+k8WMW1ufsg2Ydec+YElAzqwwoGRVNBHEnb782vMTuRogmmYjlt1tZdeoVyzOxGXD4Bf6f9C3UPO+ogkw==
+Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=GBK
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260728-b4-disp-52ee4e7d-v4-1-0dda94b0f397@proton.me>
+Message-ID: <6174be4b.35cc.19fac0b286c.Coremail.kensanya@163.com>
+X-Coremail-Locale: zh_CN
+X-CM-TRANSID:bigvCgD331axe2lqFosnAA--.3542W
+X-CM-SenderInfo: 5nhq2txq1dqiywtou0bp/xtbC6hEA22ppe7FUAAAA39
+X-Coremail-Antispam: 1U5529EdanIXcx71UUUUU7vcSsGvfC2KfnxnUU==
 
-On 2026-07-28 11:52:53, Bryam Vargas via B4 Relay wrote:
->From: Bryam Vargas <hexlabsecurity@proton.me>
->
->The SMC CDC receive handlers dereference conn->rmb_desc, and on the
->SMC-D DMB-nocopy path conn->sndbuf_desc, but both are published after the
->connection is already reachable to a peer: rmb_desc once the connection
->is in the link group's token tree, the nocopy ghost sndbuf_desc later
->still, in smcd_buf_attach() after the ISM receive tasklet is armed. A CDC
->in that window hits a handler with the buffer unset -- a NULL dereference
->and host DoS -- or, on a weakly ordered CPU, non-NULL but not yet
->initialised. Both are also published before the receive state
->(bytes_to_rcv, sndbuf_space), so an early CDC's accounting can be
->overwritten by setup.
->
->Initialise the receive state first and publish both buffers last with
->smp_store_release(), consuming them with smp_load_acquire() and bailing
->while unset, as the handlers already do for a killed connection. Gate the
->whole sndbuf consumer trigger on the send buffer, not just the nocopy
->accounting: smc_tx_prepared_sends() and smc_tx_pending() dereference it
->too. Conforming peers are unaffected.
->
->Fixes: 69cb7dc0218b ("net/smc: add common buffer size in send and receive buffer descriptors")
->Closes: https://sashiko.dev/#/patchset/20260714-b4-disp-835288a6-v2-1-581555ef2145@proton.me?part=1
->Cc: stable@vger.kernel.org
->Signed-off-by: Bryam Vargas <hexlabsecurity@proton.me>
-
-Hi Bryam,
-
-Thanks for finding this corner case !
-
-Reviewed-by: Dust Li <dust.li@linux.alibaba.com>
-
-Best regards,
-Dust
-
+CgoKPj4gVGhlcmUgaXMgYSBjb250cmFkaWN0aW9uIGJldHdlZW4gdGhlIHR3byBzdWdnZXN0aW9u
+czoKPj4gLSBCYXJ0IHN1Z2dlc3RzIGNhbGxpbmcgdGFyZ2V0X2luaXRfY21kKCkgYmVmb3JlIGNh
+bGxpbmcKPj4gICAgc3JwdF9nZXRfZGVzY190YmwoKSAodXNpbmcgYSBwbGFjZWhvbGRlcikgdG8g
+ZW5zdXJlIHRoYXQKPj4gICAgdGFyZ2V0X3NlbmRfYnVzeSgpIGNhbiBiZSBzYWZlbHkgZXhlY3V0
+ZWQgaWYgdGhlCj4+ICAgIGRlc2NyaXB0b3IgcGFyc2luZyBmYWlscy4KPj4gLSBMZW9uIHBvaW50
+cyBvdXQgdGhhdCB0YXJnZXRfaW5pdF9jbWQoKSBtdXN0IHJlY2VpdmUgdGhlCj4+ICAgYWN0dWFs
+IGRhdGEgZGlyZWN0aW9uIGNhbGN1bGF0ZWQgYnkgc3JwdF9nZXRfZGVzY190YmwoKSwKPj4gICBy
+YXRoZXIgdGhhbiBhIHBsYWNlaG9sZGVyIGxpa2UgRE1BX05PTkUgdGhhdCB3aWxsCj4+ICAgYmUg
+b3ZlcndyaXR0ZW4gbGF0ZXIuCj4+IAo+PiBJZiB3ZSBjb250aW51ZSB0byBtb2RpZnkgdGhlIGN1
+cnJlbnQgcGF0Y2gsIHRoZSBvbmx5IHdheSBJCj4+IGNhbiB0aGluayBvZiBpcyB0byBleHRyYWN0
+IHRoZSBkaXJlY3Rpb24gcGFyc2luZyBsb2dpYyBmcm9tCj4+IHNycHRfZ2V0X2Rlc2NfdGJsIGFu
+ZCBwbGFjZSBpdCBiZWZvcmUgdGFyZ2V0X2luaXRfY21kLCBzbwo+PiB0aGF0IHRhcmdldF9pbml0
+X2NtZCBjYW4gcmVjZWl2ZSB0aGUgY29ycmVjdCBkaXJlY3Rpb24uCj4+IEhvdyBhYm91dCB0aGlz
+Pwo+Cj5TYXkgaXQgdG8geW91ciBBSSB0b29sIHRoYXQgaXQgaXMgbm90IGNvbnRyYWRpY3Rpb24s
+IGJ1dCB3cm9uZ2x5Cj5pbXBsZW1lbnRlZCBCYXJ0J3Mgc3VnZ2VzdGlvbi4KPgo+VGhhbmtzCj4K
+CkFjY29yZGluZyB0byBteSB1bmRlcnN0YW5kaW5nLCBpZiB3ZSBzd2FwIHRoZSBvcmRlciBvZiBz
+cnB0X2dldF9kZXNjX3RibAphbmQgdGFyZ2V0X2luaXRfY21kIGFuZCBlbnN1cmUgdGhhdCB0YXJn
+ZXRfaW5pdF9jbWQgY2FuIG9idGFpbiB0aGUgY29ycmVjdApkaXJlY3RvcnksIHRoZW4gbXkgaWRl
+YSBpcyB0byBleHRyYWN0IHRoYXQgZGlyZWN0b3J5IGZyb20gc3JwdF9nZXRfZGVzY190YmwuCgoK
+SWYgbXkgdW5kZXJzdGFuZGluZyBvciBpbXBsZW1lbnRhdGlvbiBkaWZmZXJzIGZyb20gdGhlIHN1
+Z2dlc3Rpb25zIHlvdQpwcm92aWRlZCwgSSBoYXZlIGRvbmUgbXkgYmVzdC4KCgpUaGFua3MK
