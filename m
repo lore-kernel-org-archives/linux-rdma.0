@@ -1,67 +1,71 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 22F233FF1A9;
-	Thu, 30 Jul 2026 10:46:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 42BF93BCD19;
+	Thu, 30 Jul 2026 10:51:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785408401; cv=none; b=Rfl1SZ1MGOT3XYSWQW09trMOnXLm0rOjZQJR4UQlDASGV5sdLg5D8q6Izl7ZlRn0/Y1oznG9hCOJt2+nCf144/rPnvyBAK+O+x/ViDyLEnmvgI9UNCnLSGWiu9OPlH8DqE7Fa3mM1rnvpRtPVb75J+iYFCW37HS1eMtOvrpJaXU=
+	t=1785408684; cv=none; b=EEBq/q2MPweU8MAZm/iryOdsW9PHpfktXSEfxRgNtAA3oGKYkpt89n55jteQk6p6to9kg3+X3urmrAF//3yV69/wMs6GwU/mpMVu0H52S4P4jj+2Hu1LXPAFzvzmT8olYiYtbuSzlbXy2kA7gNIZspe57/ZJ64ZvP22AvDygL4Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785408401; c=relaxed/simple;
-	bh=B508FBYEAm1pXZW1tJUuJaETiisvG9Lfu+PLjermyFQ=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=DkhIbP5O5IXBur7AygCkd4ZIpbJ/sqZ1AguYsMbfGvF4PWsEUcwW7JUdUe0RSu+Nq7HEvuYCU2Ap7ljsGHyBXgEQJgEGVWGilyEp/yJXZimlvGHJ71VIGu8fVI7KRJZuetpE1BsWenfmWaUHnDOzNA0fzBaUxqFpiEx3GCLQvQM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=BGFdXMpG; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785408684; c=relaxed/simple;
+	bh=EcEjdIiD4gX7duLIjRPUsDpbKHt3Fls1hOXaF/ljQbc=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
+	 MIME-Version:Content-Type; b=k6NdqVY6JMeCI2tvfTQnG27JmNjO7K0dW+c9FtPikpzkpgqyt2/hCReO2aooefQ25VnsybKvQVcHl/hhnFfIpRaZcOvco8USFodDyIdeBpGC7FTJynI6vE9ppOR//MZQ1AAu3KupX0HoHmOuK/xMAjIvHjG03Y6LYA3lYoZPLE0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=JlJymsfH; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="BGFdXMpG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5D4E71F000E9;
-	Thu, 30 Jul 2026 10:46:38 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="JlJymsfH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5889E1F000E9;
+	Thu, 30 Jul 2026 10:51:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1785408399;
-	bh=3TnqRzfQASuBVoPtniAe2TOuMwYhW0F4Q9xzQ01enAs=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=BGFdXMpGxxFskTjLJLqfhOCIc7dnOvjk+Fr00YVBIfZP5Mt9jQYpU71kbYmkrIIjS
-	 n1z7uWsN59XV7m1g9HupRVPAkspO1ZsxwGcoWFMaKODz/VD0XviAWRsO+gXgfCKDFl
-	 LQtpyiJSpOlwJyXbIh0xeVeXhPRX+pC2ukCIljHVDoWndTvZvUcxvOd/UrjOgQ6tHW
-	 7oRLgeWHWQWWizw2Sr3uqMNqiDSM8Q/+0eEdxQSjgzwwuzJGqrNmpNBws2w6vwAxq0
-	 JUc6yppTlj0GFkB//kBK4z/rANY0iJA+5btCBcJlRHmHLOPiyb1BQtGkAwg5zok+vv
-	 x2viJHDuF+Vdw==
-Date: Thu, 30 Jul 2026 13:46:34 +0300
+	s=k20260515; t=1785408682;
+	bh=R5nBLGM2jP7AWn3rsiy+oPc7luDvQPFkSVZgMSwF8r4=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Date;
+	b=JlJymsfHbo4pgYLxuwXivCExR6w+MuFsxItAC08yLPePmz9EK3VIzECBEEHPVpNKQ
+	 cJfV1JyronNGuz+QuCviYUbfmcJ9pvC0NXxg08yEqbRl/EHJd5Q/I3T5gxrsS91TXx
+	 ZHKE91YI8fKBGTpg4FpdVzGur/dVBE6QGPJ7IvyD/cb5lusjbLRtjM4CS/qSy3/6pE
+	 y7rEgCrRHujJ1Mpf5qeej1BllwC6O6fneeHIVy6+uhlbgG6+JdRcgLAbyZJTdkfLVb
+	 oNWWBYxugqDghpUEhypFx1SDP3dRG3mNlhQ2ZMRtTw3utEdS25ZVuEeulNpiOFLHR+
+	 S5gCIC/bfh6uw==
 From: Leon Romanovsky <leon@kernel.org>
-To: Jakub Kicinski <kuba@kernel.org>
-Cc: Abhijit Gangurde <abhijit.gangurde@amd.com>, jgg@ziepe.ca,
-	brett.creeley@amd.com, andrew+netdev@lunn.ch, davem@davemloft.net,
-	edumazet@google.com, pabeni@redhat.com, allen.hubbe@amd.com,
-	nikhil.agarwal@amd.com, linux-rdma@vger.kernel.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [for-next v4 0/2] Add Reorder Completion Queue (RCQ) support
-Message-ID: <20260730104634.GP12003@unreal>
-References: <20260721121034.1616562-1-abhijit.gangurde@amd.com>
- <20260727182825.7b9bdffe@kernel.org>
+To: sagi@grimberg.me, jgg@ziepe.ca, Yehyeong Lee <yhlee@isslab.korea.ac.kr>
+Cc: linux-rdma@vger.kernel.org, target-devel@vger.kernel.org, 
+ linux-kernel@vger.kernel.org
+In-Reply-To: <20260726163931.971063-1-yhlee@isslab.korea.ac.kr>
+References: <20260726163931.971063-1-yhlee@isslab.korea.ac.kr>
+Subject: Re: [PATCH v2 0/2] IB/isert: bound declared PDU lengths by what
+ was received
+Message-Id: <178540868011.2279429.6419525677448670854.b4-ty@kernel.org>
+Date: Thu, 30 Jul 2026 06:51:20 -0400
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260727182825.7b9bdffe@kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-Mailer: b4 0.15-dev-18f8f
 
-On Mon, Jul 27, 2026 at 06:28:25PM -0700, Jakub Kicinski wrote:
-> On Tue, 21 Jul 2026 17:40:32 +0530 Abhijit Gangurde wrote:
-> > Patch 1 extends the net/ionic firmware identity structure to expose the
-> > rcq_sign_bit field from the RDMA LIF identity.
+
+On Mon, 27 Jul 2026 01:39:29 +0900, Yehyeong Lee wrote:
+> v1 added a wc->byte_len check to isert_recv_done() only.  Leon Romanovsky
+> pointed out that the login path needs the same treatment, and he was
+> right: the declared DataSegmentLength of a login PDU is never compared
+> against what arrived either, and the login code reads it back out of a
+> fixed 8192-byte buffer before authentication - from two different
+> callers, depending on which login PDU it is.  I reproduced both under
+> KASAN before writing 2/2; the splats are in its changelog.
 > 
-> Can you apply this on a linux/master tag and send a PR so that
-> both networking and RDMA can pull?
+> [...]
 
-I reviewed this series multiple times and still do not feel
-confident enough to apply it given the feedback on v1.
+Applied, thanks!
 
-For now, I am waiting for Jason to return from vacation.
+[1/2] IB/isert: reject PDUs declaring more data than was received
+      https://git.kernel.org/rdma/rdma/c/957f92ea4022fb
+[2/2] IB/isert: reject login PDUs declaring more data than was received
+      https://git.kernel.org/rdma/rdma/c/2488b5b4827e54
 
-Thanks
+Best regards,
+-- 
+Leon Romanovsky <leon@kernel.org>
 
-> -- 
-> pw-bot: nap
