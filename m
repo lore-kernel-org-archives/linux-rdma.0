@@ -1,189 +1,169 @@
-Received: from bg5.exmail.qq.com (bg5.exmail.qq.com [43.154.197.177])
+Received: from CO1PR03CU002.outbound.protection.outlook.com (mail-westus2azon11010066.outbound.protection.outlook.com [52.101.46.66])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 397FC3B1EC8;
-	Thu, 30 Jul 2026 08:41:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=43.154.197.177
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785400916; cv=none; b=YERGHZNPvDlGLkId0I8zhS2XNPlto4zYt/HWrt52dl609DF4e+qnTQWQypqdcdFc8KhDa9fDINEyN8+IBkRav8G+E7h+qq6cQZw1D1yUDVCMsaG6bqODo6JXz8R9un1IvO/fxkzZiJ52wXQYZQJNmj2vQxW3111iHh1FbiN3xT4=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785400916; c=relaxed/simple;
-	bh=apjhd9r5UvB7eHFNTFhR4E4YEaHbrTTXlPeMenFgZPI=;
-	h=Message-ID:Date:MIME-Version:From:Subject:To:Cc:Content-Type; b=WhDAqeRu0f+aMGvsT09iGbhxuUV0R3nBuxLcRh+XR1qDRx7pSCTsol1nQOjTusDGtaohrh+15WU/l8urmElBmzyyxJYyi6XSDgtaGVAtgvAcA5Lg3kNeSRG/3NCYKAs50JTWXQAVV6bF0SZ0z8uv0+hno6krxjasu1R5JhVWYYk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=smail.nju.edu.cn; spf=pass smtp.mailfrom=smail.nju.edu.cn; dkim=pass (1024-bit key) header.d=smail.nju.edu.cn header.i=@smail.nju.edu.cn header.b=w37upvcU; arc=none smtp.client-ip=43.154.197.177
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=smail.nju.edu.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=smail.nju.edu.cn
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1D5753B3896;
+	Thu, 30 Jul 2026 08:47:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.46.66
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1785401266; cv=fail; b=ah7dx0Er5gERq2abAgCU7V5vb9JFoMb8pv5XhduXz1jNjGfXPajPtpAjraJJgH1tGWWkh4CNwL0sn+hC2N4wV55TB3WkDpA4f4STOza1w3KM4Pi2ApGf25D1qfh1TLvIuH5k9yaXIsUsA9rZ1LQOB6ZM4MijI65X50wJasCGjhs=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1785401266; c=relaxed/simple;
+	bh=cOiMhwQN0CKmT2qlBWAdpCvkSvaseyko2XTAIn8B6m8=;
+	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
+	 Content-Type:MIME-Version; b=iwI5sB7P6GkJ4HppsjczoQlKrPS3TQ/j6L9v4A3LT4hi7smG4YFQxYmGd3yJNuML1sZoN9hFAvwuEvtcIR1mb/kwtrqnLpjb7oLEpxVDG5UZv3jFeED8Qj83UmSDlUXANjZtlaQTI2XCAI/X1rcQUaDYAfUwfJJVFFNPV3GQXEA=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=S4wlh4fx; arc=fail smtp.client-ip=52.101.46.66
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=smail.nju.edu.cn header.i=@smail.nju.edu.cn header.b="w37upvcU"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=smail.nju.edu.cn;
-	s=iohv2404; t=1785400861;
-	bh=GAHjhCBLNuGvAh8q0u/dFOpGqYQA5X4ZySIOtS+l+7A=;
-	h=Message-ID:Date:MIME-Version:From:Subject:To;
-	b=w37upvcUM6o8LIBU+ybiukDDwWGWhgqjKFSeQsdi33JsxM/zJSc+g7OB4guH0qE5i
-	 um1BjRhrtxUKrunOyOhEa2ZuKoWEKqRPlrCeOQS0n1uS0mRPIThTPYHTMBb+rlaHqk
-	 I3JBKLTt7xAT4NWBqtloWzt8T2F8rNNS4rqrADCw=
-X-QQ-mid: zesmtpgz9t1785400855tf7babf9d
-X-QQ-Originating-IP: oMc/JOueqwKVTVYxJrn96jiZuDv05Lmm197nDx/zw9U=
-Received: from [127.0.0.1] ( [36.152.24.129])
-	by bizesmtp.qq.com (ESMTP) with 
-	id ; Thu, 30 Jul 2026 16:40:54 +0800 (CST)
-X-QQ-SSF: 0000000000000000000000000000000
-X-QQ-GoodBg: 0
-X-BIZMAIL-ID: 11374830614792658596
-Message-ID: <357830C4A3236804+c7b5ccba-01ba-468f-97c8-cb6053a8b771@smail.nju.edu.cn>
-Date: Thu, 30 Jul 2026 16:40:54 +0800
+	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="S4wlh4fx"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=sfXzp9mrpyRoXjTT6LhNXoRyEwqWg7v9RlooARaFPa40ObnjM2idtltwohm9jOa2qwlvsYnJfR/sqtk4luCwNuy2u+lcLbeSRb/xXDJYpRuqtbVVCiMPhj5Vn8699YD4VnQlqj5SSPrACqghDt0aAaKW+TYUckoBzp1uDRKVVSusOl3U0GqY5FVy0d1IH9WwmUu6dlr3Cffgs3Q2zm/kz1+qXkAGkBZ0G4j/4vC4rr22+5tKzXYTRT2Z9jGufMh48EpiBn8wz/xtsyjsJm4aoOTtVEIP4i3gGB2BlbP++1etV6kl8RyyU1J0YZnxzGgXBCO067SPalnapNl1Bro4gQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=cOiMhwQN0CKmT2qlBWAdpCvkSvaseyko2XTAIn8B6m8=;
+ b=Q2yb7dY9o20BNFTq6si9CBM9y813ATAk1FAcKT7l3LquYIBoTyuW3ObONGQjAaFaNWKgkBC9l4/394W7WIg9OSrRU9f+fWJcVs4flbhDIKGGMB8w5d1RVMKSfJDZfiPvkcbjr2yBk22KxPzSSBlo6+TVGDWonq37l2WdEwWTVsAtV2J6Dzhg1kngPwal2uzdW4jn+Ja8C32nPlT96wzfVtXXTgQRe4cIPrADRSdIyOouZjxmvYssDWmJvVRTQ7vackUvEmcwuh10S5UEehnel+G9YIl+qoHDF2xsvxWIZFKUvm+lKF1M4FMtcFgPhTSmKihdYaEfvsKxxTyFPcqwxg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=amd.com; dmarc=pass action=none header.from=amd.com; dkim=pass
+ header.d=amd.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=cOiMhwQN0CKmT2qlBWAdpCvkSvaseyko2XTAIn8B6m8=;
+ b=S4wlh4fxWN3PIB+HCdSsl0szLslrjG7m9gCGTWdwcX75gskd8PPa4FQovoNeFDNYnBZRpEFZ1TLhhU4CBBQSgkKnTUhy7DtKEUVedwV3FsGh213xIiGtSJUbHejpAXYHnt0m3T/VQeaujjPWYVhni9T+u/uNERBClTwOs183yDU=
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=amd.com;
+Received: from DS0PR12MB7777.namprd12.prod.outlook.com (2603:10b6:8:153::22)
+ by PH7PR12MB9175.namprd12.prod.outlook.com (2603:10b6:510:2e6::14) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.270.12; Thu, 30 Jul
+ 2026 08:47:41 +0000
+Received: from DS0PR12MB7777.namprd12.prod.outlook.com
+ ([fe80::826:25fa:4fd6:2d74]) by DS0PR12MB7777.namprd12.prod.outlook.com
+ ([fe80::826:25fa:4fd6:2d74%4]) with mapi id 15.21.0270.009; Thu, 30 Jul 2026
+ 08:47:41 +0000
+Message-ID: <31315f8d-44ad-db97-4cb3-ffae887d7bb8@amd.com>
+Date: Thu, 30 Jul 2026 14:17:32 +0530
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.2.0
+Subject: Re: [for-next v4 0/2] Add Reorder Completion Queue (RCQ) support
+Content-Language: en-US
+To: Jakub Kicinski <kuba@kernel.org>, leon@kernel.org, jgg@ziepe.ca
+Cc: brett.creeley@amd.com, andrew+netdev@lunn.ch, davem@davemloft.net,
+ edumazet@google.com, pabeni@redhat.com, allen.hubbe@amd.com,
+ nikhil.agarwal@amd.com, linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
+ linux-kernel@vger.kernel.org
+References: <20260721121034.1616562-1-abhijit.gangurde@amd.com>
+ <20260727182825.7b9bdffe@kernel.org>
+ <18c6130a-c8e0-8e58-ad1c-f1578e1c5f46@amd.com>
+ <20260728151058.17f8fc94@kernel.org>
+From: Abhijit Gangurde <abhijit.gangurde@amd.com>
+In-Reply-To: <20260728151058.17f8fc94@kernel.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
+X-ClientProxiedBy: MA5PR01CA0139.INDPRD01.PROD.OUTLOOK.COM
+ (2603:1096:a01:1b9::12) To DS0PR12MB7777.namprd12.prod.outlook.com
+ (2603:10b6:8:153::22)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Content-Language: en-US
-From: Peiyang He <peiyang_he@smail.nju.edu.cn>
-Subject: [BUG] RDMA/rxe: memory leak in rxe_qp_from_attr
-To: jgg@ziepe.ca, yanjun.zhu@linux.dev, leon@kernel.org
-Cc: "syzkaller@googlegroups.com" <syzkaller@googlegroups.com>,
- linux-rdma@vger.kernel.org,
- "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-X-QQ-SENDSIZE: 520
-Feedback-ID: zesmtpgz:smail.nju.edu.cn:qybglogicsvrsz:qybglogicsvrsz4b-0
-X-QQ-XMAILINFO: OBDSLDo3By90XWuD1oHwsLc4jtI7y+FgdSK4e1mCBmb4uftx+7DeJSWv
-	smWP/otho6IuH8vBwM4IgWN/sHgqMCaGp+2CQTMW5eDRnSz4rEqOCYgXeZ8tqNU2wC4jUGU
-	DJkAXA0ciB9c8CfwLeUF2EgNDFx85P0kVfmUIJFK3M9P+49qVgprw9t8M+LEAet+cV9QM71
-	JyQwc5JkYkd4/SdxDEtYlxjxVdXk5MMED6I6WYgMj5FIDvPx8KzmRfHsw9akYJal6JkFh7B
-	kPFwvILL0DtzXNXmDufiQ78ktXshas05droYim3bYnzEFDBahyONq3S4R9IjBJNEdj3woL/
-	6JAAIA4XvBGRUm6tb9PpQk+BA6s2qP5rPFqoOyaO/FBEsNxmYTomg7bmn+Mk/zURGfAHPk+
-	r2Yh9A1znKaj9Jr9TDy9vV3sCssCPg+X78NBmU4Ep1498IRehsHwTC17CvGNp8V1daDW3sR
-	G+DRkUcx2AqwjVSifYZVdxJ5i6pqq05ye5RUfJVG8zsQ+ZJwPdwS9BZTACIlFPyec9ndHB7
-	FryR+mGE2GSHWuC+A76S6RzSUq4YJ1X6HFjST5Ozi2m+GH6udXvndOzVDPVLzqMLW7oFeW7
-	/fAUU+669T2X7bMJY2lx7i47LWIl/OxozPSeknpGJVAhCGvge4Y0WsQuq1B/FtxYH3rTyFA
-	tOBfNZgXl9x5G5wJJiNnNMSfykI3sMI1AR7yBzHivnwQ3tFAOh0CjBq7ZJYdu/XCbDyhyt2
-	zYyIsrv36WY0UFYjFThyxdNF9K5H4THwg7ftqeHJutBe1NeSEyp7oJkTZhOZZhu1Baa9s/i
-	85rTfy8g6w0rWkOsK8EdqIfieI/2/4jDmUBdtI0fhH7U4zd9MD/Mc7FOSAydYQYVw8Yp+ir
-	jQmUAi2RmA/+gAG00ktvCwOk488INqFEnF06MDaFtjI9c2UaANpqVpjU2FnZ5zYRqxWtX8Y
-	WpGFbnO+dzQ+Q42bEDhIAXBC6H2lddmJ1HDRKTnM0pmKcrEb/i8Ke/3WwRMFoKmIn3oIHRi
-	v4Br2Wn9BqJYGqJ+8xSowZCvefj+dnxX6Qyg3EUw==
-X-QQ-XMRINFO: M/715EihBoGS47X28/vv4NpnfpeBLnr4Qg==
-X-QQ-RECHKSPAM: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: DS0PR12MB7777:EE_|PH7PR12MB9175:EE_
+X-MS-Office365-Filtering-Correlation-Id: 4ae07855-983f-4666-cbcd-08deee17372c
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|1800799024|7416014|376014|366016|23010399003|11063799006|4143699003|56012099006|10067099003|22082099003|18002099003;
+X-Microsoft-Antispam-Message-Info:
+	D1cUhxG7eBLMWmJjSq91TXmNLMjweq7nIBvVgAr6uln865IFWSHW9CEIvcpFjiLzXts2cezr3SM0NNA7w7YwbPG8r5j1WKDGQGpVJpBtSihTgGcIQ+XsWb4/549Khmdn4x4avXIR4DyztueEw16WfZ2L8s7OVGhK8ql5GzGoykpbgsU+oNXy+d/LSxxVjNhIjR5VZupSqhO0mHWzS3BrgYfHUXDcmXhOrAbmGKWlvp6CXSKcYeRzRScIYw1Hhrn3d+JPldBwC+XXPe/MUerIemuobzeVNmQt5HDs2LC6q/iryDpMrc86QjDna/gyUIOEWb/Uxd/dcUMnuovG53KX1WBAkRVDrMofR7yTDTNZzondNT0Ta6vyMQcDxyv7B7i2woPLEQ5cECImizkCLvyN+f+tnd2y+/2BPEdDV+O/GAl9XOHhbA49IZwHMDUHXn9/JeNJb+yqMAP3wuJJ2HZRmXgXnXsRZr0nb5TcOB8LYaaE7O207zKqoqBfTw5HNwc4LFLRydhNnUsTj127DAER+KfyMVXR+kwGZAR9FgBeUT0LGywmHiaBz80/w1cMoMrJhYf0zAUyFS8UD6tjr7gjgCcvgxtMndIvDNJBGE+fSVcHKkhwc9dHW4sVW3PEGsIPh8YRNmYr6kaWdbu5gZK0E1DA/aW8FlBJxRYNNsZTteM=
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DS0PR12MB7777.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(7416014)(376014)(366016)(23010399003)(11063799006)(4143699003)(56012099006)(10067099003)(22082099003)(18002099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?utf-8?B?dEo5UzBId21UYlZjYmZDY1pEaWxtcS9uUkdpUW9xZ2pLVzAxczdTYmdyNU9y?=
+ =?utf-8?B?V29sN1VJYy8yVUZZaXF0K3l2ZGtMQzRZWGF4WEtpa0o3VDRoSmpFZjdtbnRU?=
+ =?utf-8?B?Yk1uWWRQejVqbWtyQWFtVDU0VE1DS1o4N1FUQWtQQzRFcWtweEZSNlFseENM?=
+ =?utf-8?B?V3NBMm0xdm5lRkZ0U1hEclBMVllaMmk4OVBaOFI5YUdHZWQ5Wlg4alRnN2Fw?=
+ =?utf-8?B?M0ZkSHkxbHpBVGcreEFwU25nWEJvR3MrRnFBYW5tVi9adFlDSXdWT0xxM2d3?=
+ =?utf-8?B?WVJ6bzZuaHFuRGs3TGsybWVIaEpXRDArVVREa3JMZCtGL1lIazM4NjFBSEhF?=
+ =?utf-8?B?QTZxMjhGMGk5S3NwM3VEczBFa2I5cGR0dlJaRnUxQVpkQnZ5MVV2Znc2RHhM?=
+ =?utf-8?B?OU9NRTUvWEhDWEliQ01HRFJvQWpvUVZTanBtVVlFTFVQVHEvWHVpVXlMYmVj?=
+ =?utf-8?B?eGMxclpzWTVxcFM1WENIME13YU9OQ1NWSUk1S2c3OW85VGZrcDNNT21ZUVdM?=
+ =?utf-8?B?a2czVXhKNU1PZnJ2dU1JU29vODBUSlB5SGpLMWhWbENMQ3RiT0tsRzJWQTlu?=
+ =?utf-8?B?R3cxSUZnb05uODZQeWxxTXZ6ZmJERnpZK3g5L3dhTkdNRlBoaXQ2Z0l2L1Rj?=
+ =?utf-8?B?Ymcwek90cUdWM2VpaTBWY2M1RUNlL0RXY3E2STI0bVZtZzlMQ1Fua2xwLzdY?=
+ =?utf-8?B?cUFyamd0MjNkc3FZZE5LOTRvMVkwcHY5QnlQejlhajRrdVRDeGV2NG5yRmxV?=
+ =?utf-8?B?RUFwR0lTVllZMHc1Q2o3VS92QjFaK3JxcXd3VnVIQTgvRkxCTkFzUGhlN0Uz?=
+ =?utf-8?B?MHVjWkxzc3ZSMUl6WEIrdGxvcC92VDdKYXJsNW84VGpNYzNvdHBTNmxKRFFn?=
+ =?utf-8?B?cTJDVVA0QWxKR1oxTXJveU1JS1JjZkY3OVpqN0NQcGNlREhLb2lXTVNzZ0Fh?=
+ =?utf-8?B?L21KTHBZZytBSThUbW1UdDZWRnNIT29OYnpPbHJoSnNpbzJwVWlUeWdtNjZu?=
+ =?utf-8?B?L2VadmNwb3BIWllERHp4cHlwdmRGbmZ2cG1sQVExOHQyelJYTFJ6RlJBV09G?=
+ =?utf-8?B?ZUthOG96Q1JBM2dpNnhUY25KQXBaZEhxc0oyeUtDM3RPYTBmOUdOZExPbUJn?=
+ =?utf-8?B?RnNpRWdvK2EzbUgydFZ6SnlzRGJYMXJqY1BqcXp5WVY2Q0dabE02Z0xNYVRL?=
+ =?utf-8?B?U01VWCtPcDhCc3NsaTBiRVVEZllSUkFRbnA3VHdZRUI0blhiVzFqVjBSWVRl?=
+ =?utf-8?B?ZUlheUs0aDFWSGFsanBzeG13RlV5VHczYzduQzRPYklzd3FHQkEvblBOY3Y4?=
+ =?utf-8?B?VE5mWFBsVjUzMHM3YXZ0eHE2M0k0SGFPNmlQeGxEbFNycHA4Q01mNUg2emJP?=
+ =?utf-8?B?WmtxWnFOZmdTZkdRNXloZTVHbVRKMUYzTXd5QmxaaDNvSk93WjBkT0ppeWlq?=
+ =?utf-8?B?SHNTVUUzNFc3THUwUmhiUHB1T3R1Uy9JSWE4ekFiN0tnSmRYdzZrY1pWb25U?=
+ =?utf-8?B?NmlYWWsxSkNjQjBJcmxrYkFMMHBvNUJNdENTZVZjTTVsQjhxZGI1YjQ1NGtx?=
+ =?utf-8?B?NlZSVnVxUDFNZlJDWDJVUmFvdHdZeGgyNFUwTUtVamM5U1drQUYyNDF4bmVo?=
+ =?utf-8?B?Z0tMTlYzRzRudDMyU0Erak9nMHQvbUJLbXhkT0RLRkFaZ1hPQXhObEkxMFRX?=
+ =?utf-8?B?Yk14ZXZDa1ZvSU5xb1FoUFB1NFZ5MkJ3UWhhQ0VIWUx0TnFKdDk3dW80dkNs?=
+ =?utf-8?B?V2p0RDNiTVNKc2NoZGVZU0Q4TU9YSmd1bmVVSWx4V2d6T3Q2Tm0zSktvZUJF?=
+ =?utf-8?B?ZlduT2FPL3NLNzVNS3d4V1djK0dLR2RKaDJrZnZDMStNZDZneEM4R3F6Wjk0?=
+ =?utf-8?B?eUFCYThTRFg4bEtJOHpheEY1SUdsb2lZTjZDUEJ4SUZyd0dhVEFidTJJTXUw?=
+ =?utf-8?B?RVBKNDJhUnB2Qmh1VjdmZzNCWUNBRm16UGRmY2YxR0tqcGRONUZjSjIvaWdH?=
+ =?utf-8?B?V3l4a3dwK1VCb1E4YUM1azF6MFEwNkljQlpBNmxTRjFiSnBEbFFuYkhWZU5Q?=
+ =?utf-8?B?VEkvWTRXejFwYjQ5U2NhN3JQZmFMVk1admdubjV2ZVgzVzJBbml5clFkY05Q?=
+ =?utf-8?B?bWNvZ09DT2ZTRVFDSDJTb1BubUE1dlc5R3R4YkZMV2FDejVnQ3JwMXN6dXBq?=
+ =?utf-8?B?Ym16c1dLMkpqZmJWNXRRT0wrYWhpZ0QyRkpiTTRiSlNmQlhFOUpZWEtsYkth?=
+ =?utf-8?B?TXROS2ZOTkRpVEdSeVVYYWlhVXN5dlVyazNvRW5rZXVCbytJemJnNjNUSzhZ?=
+ =?utf-8?B?RmcxaDZ3Z3NGOFZLbFJFZG9rTjdaOWltd2FGbjRYcWVRekF3YnVxQT09?=
+X-OriginatorOrg: amd.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 4ae07855-983f-4666-cbcd-08deee17372c
+X-MS-Exchange-CrossTenant-AuthSource: DS0PR12MB7777.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 30 Jul 2026 08:47:41.4308
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: g35fybmOTZP0dLKbbU/MgFPLmWdJhYtlcQyLC59TC9sk+ufZiwRSkkapKsSsNH7CrVnTnl3zcYZHj5v3YWKA2Q==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH7PR12MB9175
 
-Hello Linux kernel developers and maintainers,
 
-We hit a memory leak in rxe_qp_from_attr when fuzzing RDMA/RXE with Syzkaller.
+On 7/29/26 03:40, Jakub Kicinski wrote:
+> On Tue, 28 Jul 2026 16:48:25 +0530 Abhijit Gangurde wrote:
+>> For the earlier PHC series [1] Leon picked up both the net/ionic and
+>> RDMA changes through the rdma tree. Would you be okay with the same
+>> approach for this series or would you still prefer a shared branch with
+>> a PR?
+>>
+>> If you'd still prefer a separate PR, I can set that up.
+> Send the PR for shared parts, please, that's the normal process.
 
-The leak is caused by two concurrent MODIFY_QP commands which both modify
-IB_QP_MAX_DEST_RD_ATOMIC on the same RXE QP. They are not serialized by a
-QP-wide lock. The uverbs layer only holds shared UVERBS_LOOKUP_READ access
-to the QP, so two threads may enter rxe_modify_qp() and then rxe_qp_from_attr()
-for the same object at the same time.
-It can leak a whole qp->resp.resources array each time triggered.
+I have collected both series patches on below PR,
 
-The version of the kernel under test is commit 8cd9520d35a6c38db6567e97dd93b1f11f185dc6 (tag v7.1).
-We believe this OOB bug is still possible in the latest kernel.
+The following changes since commit f5098b6bae761e346ebcd9da7f95622c04733cff:
 
-The relevant kernel config is:
+   Linux 7.2-rc5 (2026-07-26 14:45:48 -0700)
 
-CONFIG_NET=y
-CONFIG_INET=y
-CONFIG_INFINIBAND=y
-CONFIG_INFINIBAND_USER_ACCESS=y
-CONFIG_INFINIBAND_ADDR_TRANS=y
-CONFIG_RDMA_RXE=y
-CONFIG_DEBUG_FS=y
-CONFIG_DEBUG_KERNEL=y
-CONFIG_DEBUG_KMEMLEAK=y
-CONFIG_DEBUG_KMEMLEAK_AUTO_SCAN=y
+are available in the Git repository at:
 
-=========================
-Original Syzkaller report
-=========================
+   https://github.com/abhijitG-xlnx/linux.git ionic_phc_rcq_shared
 
-BUG: memory leak
-unreferenced object 0xffff8880120ef800 (size 1024):
-  comm "syz.0.1478", pid 15130, jiffies 4295203468
-  hex dump (first 32 bytes):
-    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-  backtrace (crc 0):
-    kmemleak_alloc_recursive include/linux/kmemleak.h:44 [inline]
-    slab_post_alloc_hook mm/slub.c:4575 [inline]
-    slab_alloc_node mm/slub.c:4899 [inline]
-    __do_kmalloc_node mm/slub.c:5295 [inline]
-    __kmalloc_noprof+0x552/0x850 mm/slub.c:5308
-    kmalloc_noprof include/linux/slab.h:954 [inline]
-    kzalloc_noprof include/linux/slab.h:1188 [inline]
-    alloc_rd_atomic_resources drivers/infiniband/sw/rxe/rxe_qp.c:155 [inline]
-    rxe_qp_from_attr+0x3f8/0x2150 drivers/infiniband/sw/rxe/rxe_qp.c:714
-    rxe_modify_qp+0x1e2/0x530 drivers/infiniband/sw/rxe/rxe_verbs.c:623
-    ib_security_modify_qp+0x223/0xfa0 drivers/infiniband/core/security.c:625
-    _ib_modify_qp+0x333/0xec0 drivers/infiniband/core/verbs.c:1915
-    modify_qp+0x13ca/0x1940 drivers/infiniband/core/uverbs_cmd.c:1932
-    ib_uverbs_modify_qp+0xcb/0x120 drivers/infiniband/core/uverbs_cmd.c:1958
-    ib_uverbs_write+0xb86/0x1030 drivers/infiniband/core/uverbs_main.c:680
-    vfs_write+0x2aa/0x1070 fs/read_write.c:686
-    ksys_write+0x1f8/0x250 fs/read_write.c:740
-    do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
-    do_syscall_64+0x116/0x800 arch/x86/entry/syscall_64.c:94
-    entry_SYSCALL_64_after_hwframe+0x77/0x7f
+for you to fetch changes up to 43aefbd7583f5acb3d689675028f0e49a0861ad7:
 
-==========
-Root cause
-==========
+   net: ionic: Fetch RCQ sign bit from firmware (2026-07-29 06:08:09 +0000)
 
-modify_qp() obtains the QP through uobj_get_obj_read() and retains the
-UVERBS_LOOKUP_READ access. This is a shared lookup, since UVERBS_LOOKUP_READ
-increments a positive use count and only rejects an object whose count is -1,
-whereas UVERBS_LOOKUP_WRITE is exclusive. Therefore, the two MODIFY_QP commands
-may execute rxe_modify_qp() concurrently. rxe_modify_qp() directly calls
-rxe_qp_from_attr() without a QP-wide lock.
-
-For IB_QP_MAX_DEST_RD_ATOMIC, rxe_qp_from_attr() updates qp->attr.max_dest_rd_atomic,
-frees the current qp->resp.resources pointer and calls alloc_rd_atomic_resources().
-The allocator initializes the responder indices and assigns the result of kzalloc_objs()
-to qp->resp.resources. Neither the resource replacement sequence nor the pointer assignment
-is serialized.
-
-The relevant QP starts with qp->resp.resources == NULL. Let P0 and P1 be the
-two resp_res arrays allocated by the concurrent commands. The following
-race interleaving leaks P1:
-
-CPU0                                           CPU1
-====                                           ====
-
-MODIFY_QP()
--> rxe_qp_from_attr()
-   -> alloc_rd_atomic_resources()
-      -> P0 = kzalloc_objs()
-      /* preempted after kzalloc_objs() returns P0,
-         before the assignment to qp->resp.resources */
-
-                                               MODIFY_QP()
-                                               -> rxe_qp_from_attr()
-                                                -> alloc_rd_atomic_resources()
-                                                   -> P1 = kzalloc_objs()
-                                                   -> qp->resp.resources = P1
-
-      -> qp->resp.resources = P0
-      /* overwrites the only reference to P1 */
-
-When the QP is later cleaned up, rxe_qp_do_cleanup() calls free_rd_atomic_resources()
-and can only free the pointer currently stored in qp->resp.resources, namely P0.
-P1 has no remaining reference to it and is reported by kmemleak.
-
-=============
-Suggested fix
-=============
-
-First of all, I wonder is concurrent modify_qp() on the same QP supposed
-to be supported by design? If yes, then the rd_atomic resource replacement
-path needs explicit serialization. We could add a rd_atomic_mutex in
-struct rxe_qp, init it in rxe_qp_init_misc(). Then, the IB_QP_MAX_DEST_RD_ATOMIC
-branch in rxe_qp_from_attr() and rxe_qp_reset() should be protected by this lock.
-
-I am happy to send a patch if this fix is needed and reasonable.
+----------------------------------------------------------------
+Abhijit Gangurde (3):
+       net: ionic: register PHC for rdma timestamping
+       net: ionic: Add PHC state page for user space access
+       net: ionic: Fetch RCQ sign bit from firmware
 
 Thanks,
-Peiyang
+Abhijit
 
