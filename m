@@ -1,205 +1,88 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.14])
+Received: from out30-130.freemail.mail.aliyun.com (out30-130.freemail.mail.aliyun.com [115.124.30.130])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE9571A682A
-	for <linux-rdma@vger.kernel.org>; Thu, 30 Jul 2026 03:08:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.14
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 67FA837FF53;
+	Thu, 30 Jul 2026 03:22:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.130
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785380941; cv=none; b=MZFXv7uueWG1NZY2snD1rrAINKOz0vzrB7H6dB6/z8qEHQYTaYnI46EYXvlE9apae32J/K25/uDMEduYpDWmaMTHA7gVYjqMTbjLlO9T+Cdc0ttuajPsz1Sec8q4EiopRPT495RLb+EpADGzGQ+xHWdGxWoVrA4k2w4FVr4sh3Q=
+	t=1785381775; cv=none; b=kQnGk8SJcT07vvEyQeg7WmrpwYjyrUUYXRh4ngjdb4J9jDYZ5PrAXr/i08lXRnWgQAHkoklnUzn5IFxrG1KitI61b5W5NJ9OZeo3RsPBhzDTAPostBGMvDR0Bon7BP1FxMXGals04OCZ0sOnnzQBBkiIzos6/aKkRWAdErZKzoM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785380941; c=relaxed/simple;
-	bh=Mju5Vc9XvI6U0ZFC5gsqOBehmXLwzhO747Rsg/rYqcQ=;
-	h=Date:From:To:Cc:Subject:Message-ID; b=KGzpvjlelGHGgvnrMAmuTtfsImWiyp8AW3dM4Z/azGePKg1Nqi1oajh3D9VnvkDUhqLIWGU+ZLeynFxkjruE5dcM8LmDY2liRuNgA3g+GfuorPEyivNL6rfpxlXOIESyZ3FP/wZ94YX5v/HfIvJGP2Y1Ytd4i6xCD+tkWxU/FiE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=a7jzhjcG; arc=none smtp.client-ip=192.198.163.14
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1785381775; c=relaxed/simple;
+	bh=K5plh9K0eSnkpKGBWt1ew4DZit+enuqhh53f5B9/1G0=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=r7/irTs7ltQ5CWGHkVTGzHJOza1uvWKRJxXxmxIOLSCJS1SidQfppXHsS3ZaZjWv16jaHsW8Ilsm2ls7B6cSGwFaUh5ZLJY+5uhDDTTYnAVsWxSgF/2aeeU2QF4FkYh9DYw7ATSf4Cnfsb618m40BPRAoD0aq+AnmDCqyvLhGVU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=TySLqYn7; arc=none smtp.client-ip=115.124.30.130
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="a7jzhjcG"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1785380938; x=1816916938;
-  h=date:from:to:cc:subject:message-id;
-  bh=Mju5Vc9XvI6U0ZFC5gsqOBehmXLwzhO747Rsg/rYqcQ=;
-  b=a7jzhjcGwrJciEByOhq0RsO+brP+ctT1q6bX8y8iEwGZ3p4rGjFOtPwU
-   /nILEmU7D1I6Tr6tTf0R7MI7kULcc81W839ca/nHW9d5azKglpdpjW6ht
-   zALkByc5Wh3bnOdQhQfIUduFh8G9t4jBePMz9Veo4x4QUoDHSnGdemWnI
-   VIZp3Ct15/lEU59Cp7N2ztM3krZt+9t5Qjpcebm5tvIX+xe6DBqwbdpZF
-   CPld2Oy73AxSIzh46tqGVQjnq3z8YlzNwdqCLPRjY17rMCJst30aKI19F
-   ydvDivBE+SUvMRwycdBXxAH3ZNdEcEFg3WfmdxKYVqAUefQl7PIUE9fKy
-   A==;
-X-CSE-ConnectionGUID: tEJr2wrjQ86YMd9G3qLRrQ==
-X-CSE-MsgGUID: 6kG4/LZrQjmscQcHNzX/uA==
-X-IronPort-AV: E=McAfee;i="6800,10657,11859"; a="86031195"
-X-IronPort-AV: E=Sophos;i="6.25,193,1779174000"; 
-   d="scan'208";a="86031195"
-Received: from orviesa004.jf.intel.com ([10.64.159.144])
-  by fmvoesa108.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Jul 2026 20:08:56 -0700
-X-CSE-ConnectionGUID: 61vERZECS8u4gebOMAmV/w==
-X-CSE-MsgGUID: 3Capd22XTg+249/vAPMZ5A==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.25,193,1779174000"; 
-   d="scan'208";a="263992026"
-Received: from lkp-server02.sh.intel.com (HELO ea128546eb3d) ([10.239.97.151])
-  by orviesa004.jf.intel.com with ESMTP; 29 Jul 2026 20:08:54 -0700
-Received: from kbuild by ea128546eb3d with local (Exim 4.98.2)
-	(envelope-from <lkp@intel.com>)
-	id 1wpH8P-00000000fxu-3o5U;
-	Thu, 30 Jul 2026 03:08:43 +0000
-Date: Thu, 30 Jul 2026 11:07:31 +0800
-From: kernel test robot <lkp@intel.com>
-To: Leon Romanovsky <leonro@nvidia.com>
-Cc: Doug Ledford <dledford@redhat.com>,
- Jason Gunthorpe <jgg+lists@ziepe.ca>, linux-rdma@vger.kernel.org
-Subject: [rdma:wip/leon-for-next] BUILD SUCCESS
- fdfb5cea4bf070cdb31d997efd87bb684df041fd
-Message-ID: <202607301120.78BlPcvq-lkp@intel.com>
-User-Agent: s-nail v14.9.25
+	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="TySLqYn7"
+DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux.alibaba.com; s=default;
+	t=1785381767; h=Date:From:To:Subject:Message-ID:MIME-Version:Content-Type;
+	bh=d3izBdes5nlak2vE4b+zjTRjdmoLs+wGWEK+U3iWFsI=;
+	b=TySLqYn7MhwixZu3iScWX64zH037l6fTyq/khSEen25M217/Qe2xuUXqNfzO7eFieTbq4FOH+9JyZib8PZs6Lj8/hf6rWtppMfjt4e40h+V1JLbhGt03Jzz0jICbmfeWRB4lD/hNmXqTWHtIvKKuKYntc1+fOITqzr8hwX3bdCM=
+X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R741e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam033037026112;MF=alibuda@linux.alibaba.com;NM=1;PH=DS;RN=18;SR=0;TI=SMTPD_---0X83p2di_1785381765;
+Received: from localhost(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0X83p2di_1785381765 cluster:ay36)
+          by smtp.aliyun-inc.com;
+          Thu, 30 Jul 2026 11:22:46 +0800
+Date: Thu, 30 Jul 2026 11:22:45 +0800
+From: "D. Wythe" <alibuda@linux.alibaba.com    >
+To: Wen Gu <guwen@linux.alibaba.com>
+Cc: "D. Wythe" <alibuda@linux.alibaba.com>, mjambigi@linux.ibm.com,
+	wenjia@linux.ibm.com, wintera@linux.ibm.com,
+	dust.li@linux.alibaba.com, tonylu@linux.alibaba.com,
+	kuba@kernel.org, davem@davemloft.net, netdev@vger.kernel.org,
+	linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org,
+	leonro@nvidia.com, pabeni@redhat.com, edumazet@google.com,
+	sidraya@linux.ibm.com, jaka@linux.ibm.com,
+	oliver.yang@linux.alibaba.com
+Subject: Re: [PATCH net-next v4 3/3] net/smc: transition to RDMA core CQ
+ pooling
+Message-ID: <20260730032245.GA109346@j66a10360.sqa.eu95>
+References: <20260716113745.65234-1-alibuda@linux.alibaba.com>
+ <20260716113745.65234-4-alibuda@linux.alibaba.com>
+ <349282a8-8c66-409b-99d2-970785bf42d1@linux.alibaba.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <349282a8-8c66-409b-99d2-970785bf42d1@linux.alibaba.com>
+User-Agent: Mutt/1.5.21 (2010-09-15)
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git wip/leon-for-next
-branch HEAD: fdfb5cea4bf070cdb31d997efd87bb684df041fd  RDMA/cxgb4: free STAG index when TPT entry write fails
+On Thu, Jul 23, 2026 at 10:56:09AM +0800, Wen Gu wrote:
+> 
+> 
+> On 2026/7/16 19:37, D. Wythe wrote:
+> >  static void smc_copy_netdev_ifindex(struct smc_ib_device *smcibdev, int port)
+> >@@ -952,7 +916,6 @@ static int smc_ib_add_dev(struct ib_device *ibdev)
+> >  	INIT_WORK(&smcibdev->port_event_work, smc_ib_port_event_work);
+> >  	atomic_set(&smcibdev->lnk_cnt, 0);
+> >  	init_waitqueue_head(&smcibdev->lnks_deleted);
+> >-	mutex_init(&smcibdev->mutex);
+> 
+> Since smc_ib_setup_per_ibdev() and smc_ib_cleanup_per_ibdev() were removed,
+> the .mutex field is now unused and can be dropped.
+> 
+> Thanks.
 
-elapsed time: 836m
 
-configs tested: 127
-configs skipped: 1
+Good catch! The mutex is indeed unused now — will remove it in v5.
 
-The following configs have been built successfully.
-More configs may be tested in the coming days.
-
-tested configs:
-alpha                            allnoconfig    gcc-16.1.0
-alpha                           allyesconfig    gcc-16.1.0
-alpha                              defconfig    gcc-16.1.0
-arc                             allmodconfig    gcc-16.1.0
-arc                             allyesconfig    gcc-16.1.0
-arc                  randconfig-001-20260730    gcc-11.5.0
-arc                  randconfig-001-20260730    gcc-8.5.0
-arc                  randconfig-002-20260730    gcc-8.5.0
-arm                  randconfig-001-20260730    gcc-8.5.0
-arm                  randconfig-002-20260730    gcc-15.2.0
-arm                  randconfig-002-20260730    gcc-8.5.0
-arm                  randconfig-003-20260730    gcc-13.4.0
-arm                  randconfig-003-20260730    gcc-8.5.0
-arm                  randconfig-004-20260730    clang-24
-arm                  randconfig-004-20260730    gcc-8.5.0
-arm                       realview_defconfig    clang-17
-arm64                randconfig-001-20260730    gcc-15.2.0
-arm64                randconfig-002-20260730    clang-21
-arm64                randconfig-002-20260730    gcc-15.2.0
-arm64                randconfig-003-20260730    gcc-15.2.0
-arm64                randconfig-003-20260730    gcc-8.5.0
-arm64                randconfig-004-20260730    gcc-13.4.0
-arm64                randconfig-004-20260730    gcc-15.2.0
-csky                            allmodconfig    gcc-16.1.0
-csky                 randconfig-001-20260730    gcc-13.4.0
-csky                 randconfig-001-20260730    gcc-15.2.0
-csky                 randconfig-002-20260730    gcc-15.2.0
-csky                 randconfig-002-20260730    gcc-16.1.0
-hexagon              randconfig-001-20260730    clang-24
-hexagon              randconfig-002-20260730    clang-24
-i386                            allmodconfig    gcc-14
-i386                buildonly-randconfig-001    gcc-14
-i386       buildonly-randconfig-001-20260730    clang-22
-i386       buildonly-randconfig-001-20260730    gcc-14
-i386       buildonly-randconfig-002-20260730    clang-22
-i386       buildonly-randconfig-002-20260730    gcc-14
-i386       buildonly-randconfig-003-20260730    gcc-14
-i386       buildonly-randconfig-004-20260730    clang-22
-i386       buildonly-randconfig-004-20260730    gcc-14
-i386       buildonly-randconfig-005-20260730    gcc-14
-i386       buildonly-randconfig-006-20260730    gcc-14
-i386                 randconfig-001-20260730    gcc-14
-i386                 randconfig-003-20260730    gcc-14
-i386                 randconfig-006-20260730    gcc-14
-i386                 randconfig-011-20260730    clang-22
-i386                 randconfig-012-20260730    clang-22
-i386                 randconfig-013-20260730    clang-22
-i386                 randconfig-014-20260730    gcc-14
-i386                 randconfig-015-20260730    clang-22
-i386                 randconfig-016-20260730    gcc-13
-i386                 randconfig-017-20260730    gcc-14
-loongarch                          defconfig    clang-24
-loongarch            randconfig-001-20260730    clang-24
-loongarch            randconfig-001-20260730    gcc-16.1.0
-loongarch            randconfig-002-20260730    clang-24
-loongarch            randconfig-002-20260730    gcc-13.4.0
-m68k                       m5272c3_defconfig    gcc-16.1.0
-nios2                           allmodconfig    gcc-11.5.0
-nios2                            allnoconfig    gcc-11.5.0
-nios2                randconfig-001-20260730    clang-24
-nios2                randconfig-001-20260730    gcc-11.5.0
-nios2                randconfig-002-20260730    clang-24
-nios2                randconfig-002-20260730    gcc-9.5.0
-parisc                          allmodconfig    gcc-16.1.0
-parisc                          allyesconfig    gcc-16.1.0
-parisc                             defconfig    gcc-16.1.0
-parisc                        randconfig-001    gcc-14.3.0
-parisc               randconfig-001-20260730    gcc-14.3.0
-parisc               randconfig-002-20260730    gcc-14.3.0
-parisc               randconfig-002-20260730    gcc-16.1.0
-powerpc              randconfig-001-20260730    clang-24
-powerpc              randconfig-001-20260730    gcc-14.3.0
-powerpc              randconfig-002-20260730    gcc-11.5.0
-powerpc              randconfig-002-20260730    gcc-14.3.0
-powerpc64            randconfig-001-20260730    clang-24
-powerpc64            randconfig-001-20260730    gcc-14.3.0
-powerpc64            randconfig-002-20260730    gcc-14.3.0
-powerpc64            randconfig-002-20260730    gcc-8.5.0
-riscv                randconfig-001-20260730    gcc-15.2.0
-riscv                randconfig-002-20260730    gcc-15.2.0
-riscv                randconfig-002-20260730    gcc-9.5.0
-s390                 randconfig-001-20260730    clang-17
-s390                 randconfig-001-20260730    gcc-15.2.0
-s390                 randconfig-002-20260730    gcc-15.2.0
-s390                 randconfig-002-20260730    gcc-8.5.0
-sh                        apsh4a3a_defconfig    gcc-16.1.0
-sh                                 defconfig    gcc-16.1.0
-sh                   randconfig-001-20260730    gcc-13.4.0
-sh                   randconfig-001-20260730    gcc-15.2.0
-sh                   randconfig-002-20260730    gcc-15.2.0
-sparc                randconfig-001-20260730    gcc-16.1.0
-sparc                randconfig-002-20260730    gcc-16.1.0
-sparc64              randconfig-001-20260730    clang-20
-sparc64              randconfig-002-20260730    gcc-14.3.0
-um                   randconfig-001-20260730    clang-17
-um                   randconfig-002-20260730    clang-24
-x86_64     buildonly-randconfig-001-20260730    clang-22
-x86_64     buildonly-randconfig-001-20260730    gcc-14
-x86_64     buildonly-randconfig-002-20260730    clang-22
-x86_64     buildonly-randconfig-002-20260730    gcc-14
-x86_64     buildonly-randconfig-003-20260730    clang-22
-x86_64     buildonly-randconfig-003-20260730    gcc-14
-x86_64     buildonly-randconfig-004-20260730    gcc-14
-x86_64     buildonly-randconfig-005-20260730    gcc-14
-x86_64     buildonly-randconfig-006-20260730    gcc-14
-x86_64                                 kexec    clang-22
-x86_64               randconfig-001-20260730    clang-22
-x86_64               randconfig-002-20260730    clang-22
-x86_64               randconfig-003-20260730    clang-22
-x86_64               randconfig-004-20260730    clang-22
-x86_64               randconfig-005-20260730    clang-22
-x86_64               randconfig-006-20260730    clang-22
-x86_64               randconfig-011-20260730    gcc-12
-x86_64               randconfig-012-20260730    gcc-14
-x86_64               randconfig-013-20260730    gcc-14
-x86_64               randconfig-014-20260730    clang-22
-x86_64               randconfig-015-20260730    clang-22
-x86_64               randconfig-016-20260730    gcc-12
-x86_64               randconfig-071-20260730    gcc-14
-x86_64               randconfig-072-20260730    gcc-12
-x86_64               randconfig-073-20260730    clang-22
-x86_64               randconfig-074-20260730    gcc-12
-x86_64               randconfig-075-20260730    clang-22
-x86_64               randconfig-076-20260730    clang-22
-x86_64                          rhel-9.4-bpf    gcc-14
-xtensa               randconfig-001-20260730    gcc-16.1.0
-xtensa               randconfig-002-20260730    gcc-14.3.0
-
---
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+> 
+> >  	mutex_lock(&smc_ib_devices.mutex);
+> >  	list_add_tail(&smcibdev->list, &smc_ib_devices.list);
+> >  	mutex_unlock(&smc_ib_devices.mutex);
+> >@@ -1001,7 +964,6 @@ static void smc_ib_remove_dev(struct ib_device *ibdev, void *client_data)
+> >  	pr_warn_ratelimited("smc: removing ib device %s\n",
+> >  			    smcibdev->ibdev->name);
+> >  	smc_smcr_terminate_all(smcibdev);
+> >-	smc_ib_cleanup_per_ibdev(smcibdev);
+> >  	ib_unregister_event_handler(&smcibdev->event_handler);
+> >  	cancel_work_sync(&smcibdev->port_event_work);
+> >  	kfree(smcibdev);
+> 
