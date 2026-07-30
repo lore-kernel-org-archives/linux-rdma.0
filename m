@@ -1,28 +1,28 @@
-Received: from SN4PR2101CU001.outbound.protection.outlook.com (mail-southcentralusazon11012027.outbound.protection.outlook.com [40.93.195.27])
+Received: from BN1PR04CU002.outbound.protection.outlook.com (mail-eastus2azon11010045.outbound.protection.outlook.com [52.101.56.45])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1664F3F8EB5;
-	Thu, 30 Jul 2026 09:19:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.195.27
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8470E3FE37A;
+	Thu, 30 Jul 2026 09:20:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.56.45
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785403188; cv=fail; b=WGhzLwlLZjjXOaL+5T5m3JWhaUEaVYzWhCBufmOZlphmkkeL5y0KhRzL9uQY+uxeTFBjQPBfZVZ4OUQUWIbsDWXvPH44qZBkfupEsxFIFxWZXOH/bry8jFpIQb8SWu+KcYZxH+QqO5QwY8pbeWrfEiKRzeFk4s/W3WArnIAbdM0=
+	t=1785403204; cv=fail; b=XLW0i0vggIi/QPhSK6fY/u2nRtQiyEBYOK/8iHyWVHMs00t7Ybpc+L7w4MbrisNas9DmmQ9YdLkwgWjRFmhUOoPQHWVNkJX5tSOcpA9tqgvfT0Wj6l1ONQO65KzSDeKl2J5+svDQOq0OTq+5vkmZc51NTc80YcaidEk9lx8uTS4=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785403188; c=relaxed/simple;
-	bh=kxOTU8L/4Bz2Ih2+a2ZPHMGlLL+Qch0TMoTytc2oE4M=;
+	s=arc-20240116; t=1785403204; c=relaxed/simple;
+	bh=gS6I+XZZO+57maw0hcwL6v0Qq2sG64rfbeTq6eTNkYU=;
 	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=AtoXuAExlY18wWFnKBpSsUosynQJWKlJ9DlDR/yae8gangyHSYPcs+YYmBfJtcqd8GyoN3QbJcFSWSwzm78G9NiQJrnD+vxz49+KIM0XT/7j5UYCZ+Es3qPeEbki3gYIU+vRJ78w8TywKQ4jGeCBp20F52/t80ucgW7wO89ZW/c=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=amBSQNim; arc=fail smtp.client-ip=40.93.195.27
+	 MIME-Version:Content-Type; b=iwaJlkUeGIlB0ayMVjFCJdzqiUSBgq6lkywdPlrA7B7kS1Fop/f2hdfKMd//snyMLBDKfAT6oL972Uv5F+JRS/h7gAyFuJrgRJ+1r2NY85QIWyxj+FALHOdrB5YFeE2fd/pN1qaPHjHDiJ2HDkoCZZRAP9MyHRQMtPjc4O10ZSw=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=XLPeJPgs; arc=fail smtp.client-ip=52.101.56.45
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="amBSQNim"
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="XLPeJPgs"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=UO2mesMEf3x1146Dpq5PyrpNOlzUJ57zetOgmjHZnLzJ6vJjgVxl5+ClkNjZHEQi/49OmNqxt2GKUePjAAzc5hQ32sxedJkOpqW6xapNq31XKpnKhkOmaruPWBhCakFmx0+dujcb/Kf5B3FvjwQIh9JAskGC3oWZNoogVTV6UaF/ce7ked3TBGdG0xh7iNkm3C/beEv53gB8crC6pVIQc3KB4HY57n/3fPMJtlMhH6REAVNap4e62aE83uqWfmTsiTENQb4rMccVxV5PiS8ogjvtWHuhPTVivQFw4G5/m+aG4Yiq5KwR753isvXz5g0JY5t9yRsqtYOV9bsAeyREBw==
+ b=FjzmGNFD5jLhfHQcWSiJvYLC1jHcvghddC0lBHhGymRKFgGksgShsO3tRrVvZxJ8NB2IPfMGLM4VNFw4FzchWpAD0hnmqSM6uKHpwS4XMNh2LUrK/fpWBwNvxmczmizi8vYCJ+dJA2IIZOSbDYHbUiYCzmVtgAIwDIH+w77l+aYRs1dAYxXA7TPbEUkYwz636V+qrjIbqNXROdbOGTLjeaITw6nhy2zYrDZr6xrbOw3RfbknxAvGgJoNAIP8MSz/05cEOWqVxfpd9fQO9Q1NZ9wyQOWELsYE1Q/q5rDqOUfieEIlYQSXnXWtPZFHqi5zMhLuiRxZ+loYoaYTrIDtDw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=9hyHIL5NdCQ/KTN89/w1LSOcDEnoZkaPUlpEIL7mPgA=;
- b=ehh903PyfojGTN+D0sNH0vurMj/KLagiCN7dfi8auP8i9WPKIQhPgLpZj8r50RHrT9BfYe+IUpmIMlb5Zs1XSx6OOFK/bU5SmIRr9czMVcsnDjl273yZEczxD6g3dDJGfRTnyuLB6C1sWSCQA+iOoql/Y0faIZGNYM+ucnuFF+epTN3J1pwsyyCqLzywD3AXOmqWGOXPuauuiWOY4razPCHBXEo4RfWToDGEkmS+x9z35AIqeiCqL3AbzGg9/ZpctmZ2uMTOKj034aj+W1mQBqo4GGoPfYSdoKqac6oKxnMYlXlWqVePa/G/HhOpm/U1TIGILlm/89m4/jeBzqP+7Q==
+ bh=Fn78R4sbYcEaBkUu+Gw5k1PxQpThLSTDqAZVSA/SE7E=;
+ b=jN8msjGgAuLkHePJaq4BJ8E4h0DoCMZYjhvjw0tJq6YNHW5lXmQVZzS7p4k+uoHarJzCnODliYDkJk1J8zJz22EjLxqHwMNsewvJ5K22i32n92cpG42lowuWs/oxrxZzOeGkGOhhA2fp9Zopp7A9JXLI5K7wVcohwK1kpq5/IZ7sZIqszpw7Psbg543H88eif7RjsqsJumNJgUADrjEUALyyZ5LINARf2aUFdud1TrhhWQDqwOlNWwwXRNI5pxSQT99ZbbaFp3KHNXGdu25c7NSpJSkFkcIU07ZbEuTiFT/tLp0NBccl14IxSyQ8MZzOfjBGyVYoi1gNuPWLWF7Liw==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
  216.228.117.160) smtp.rcpttodomain=lunn.ch smtp.mailfrom=nvidia.com;
  dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
@@ -30,18 +30,18 @@ ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=9hyHIL5NdCQ/KTN89/w1LSOcDEnoZkaPUlpEIL7mPgA=;
- b=amBSQNim/j9Rl2UdWRaedZ3DqzsMyyZVx4oh4bXWSyaMBRXpzPppjqHos9DqM9Go4wYD1/lH7UF2zpyHmI/qoGS8UVVrMCqx23bkwxoLDi16eeoTa/WTEsAhboXq903g1WUDNMqv2kActNvbll/Mm4jiNdbgtB0mTd2Xz1zy+ZXzGERSBo9Fg9VbDBTSa03x1j740xJOmLD4FQD7mNW/z5IzlWulyxuy2+NqzvsTDENzR5g/RkyNVLtdtbWwBWovtIqhX2Go6bOH/kte/V91G88UneQJ5oQGglMdkYVh/GWPCVoCuqGu43cAwxSCUXedxNGZfmUpr6TXCMO8dZ34fw==
-Received: from BY3PR10CA0026.namprd10.prod.outlook.com (2603:10b6:a03:255::31)
- by IA1PR12MB6044.namprd12.prod.outlook.com (2603:10b6:208:3d4::20) with
+ bh=Fn78R4sbYcEaBkUu+Gw5k1PxQpThLSTDqAZVSA/SE7E=;
+ b=XLPeJPgslalhfrDRwcN0FKjLIX9iaZPpCXQKEKqn8yvgK+PKe9AnQLy8URpdOr6LBQBUs7/jX0Mly76kUhSOaeTtInPR1eYTGd9vjE0CSr6VrO/0Js7k3ouGvgAzgqhaSgXZ2cUFymoZBGJ/5+KlgCqlNy7tlSBiJHUHzUz0HcLD8mU7iWIvNNsDoF54OZ94XGcpvnFtOWoXc/x0BCKabJwsvTgGk65r+8W5DLsZQoewTx2zDwg8P/GS7iWSFYTzufbM/GePCRTniMr01GkKQyXHGbApcX/+BdF1wh9DLpkJtaZa1B7xnK5pfoIPg6AuYvc6kjJYCuG5pKqBP6geVA==
+Received: from BY3PR05CA0015.namprd05.prod.outlook.com (2603:10b6:a03:254::20)
+ by PH7PR12MB6489.namprd12.prod.outlook.com (2603:10b6:510:1f7::21) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.270.12; Thu, 30 Jul
- 2026 09:19:41 +0000
-Received: from SJ5PEPF000001CE.namprd05.prod.outlook.com
- (2603:10b6:a03:255:cafe::64) by BY3PR10CA0026.outlook.office365.com
- (2603:10b6:a03:255::31) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.270.13 via Frontend Transport; Thu,
- 30 Jul 2026 09:19:40 +0000
+ 2026 09:19:51 +0000
+Received: from SJ5PEPF000001CD.namprd05.prod.outlook.com
+ (2603:10b6:a03:254:cafe::a3) by BY3PR05CA0015.outlook.office365.com
+ (2603:10b6:a03:254::20) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.21.292.7 via Frontend Transport; Thu, 30
+ Jul 2026 09:19:51 +0000
 X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.160)
  smtp.mailfrom=nvidia.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=nvidia.com;
@@ -49,20 +49,20 @@ Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
  216.228.117.160 as permitted sender) receiver=protection.outlook.com;
  client-ip=216.228.117.160; helo=mail.nvidia.com; pr=C
 Received: from mail.nvidia.com (216.228.117.160) by
- SJ5PEPF000001CE.mail.protection.outlook.com (10.167.242.38) with Microsoft
+ SJ5PEPF000001CD.mail.protection.outlook.com (10.167.242.42) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.292.8 via Frontend Transport; Thu, 30 Jul 2026 09:19:40 +0000
+ 15.21.292.8 via Frontend Transport; Thu, 30 Jul 2026 09:19:51 +0000
 Received: from rnnvmail202.nvidia.com (10.129.68.7) by mail.nvidia.com
  (10.129.200.66) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.45; Thu, 30 Jul
- 2026 02:19:27 -0700
+ 2026 02:19:36 -0700
 Received: from rnnvmail201.nvidia.com (10.129.68.8) by rnnvmail202.nvidia.com
  (10.129.68.7) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Thu, 30 Jul
- 2026 02:19:27 -0700
+ 2026 02:19:35 -0700
 Received: from vdi.nvidia.com (10.127.8.10) by mail.nvidia.com (10.129.68.8)
  with Microsoft SMTP Server id 15.2.2562.20 via Frontend Transport; Thu, 30
- Jul 2026 02:19:19 -0700
+ Jul 2026 02:19:27 -0700
 From: Tariq Toukan <tariqt@nvidia.com>
 To: Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller"
 	<davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, Jakub Kicinski
@@ -83,9 +83,9 @@ CC: Aleksandr Loktionov <aleksandr.loktionov@intel.com>, Alexei Lazar
 	<shuah@kernel.org>, Shuah Khan <skhan@linuxfoundation.org>, Simon Horman
 	<horms@kernel.org>, Stanislav Fomichev <sdf@fomichev.me>, Stanislav Fomichev
 	<sdf.kernel@gmail.com>, Tariq Toukan <tariqt@nvidia.com>
-Subject: [PATCH net-next 08/13] net/mlx5e: psp: Handle HW-decapsulated RX PSP packets
-Date: Thu, 30 Jul 2026 12:17:50 +0300
-Message-ID: <20260730091756.2543777-9-tariqt@nvidia.com>
+Subject: [PATCH net-next 09/13] net/mlx5e: psp: Add an rx_decap steering table
+Date: Thu, 30 Jul 2026 12:17:51 +0300
+Message-ID: <20260730091756.2543777-10-tariqt@nvidia.com>
 X-Mailer: git-send-email 2.44.0
 In-Reply-To: <20260730091756.2543777-1-tariqt@nvidia.com>
 References: <20260730091756.2543777-1-tariqt@nvidia.com>
@@ -100,166 +100,442 @@ Content-Type: text/plain
 X-NV-OnPremToCloud: ExternallySecured
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: SJ5PEPF000001CE:EE_|IA1PR12MB6044:EE_
-X-MS-Office365-Filtering-Correlation-Id: be969f71-eec9-4242-8e8b-08deee1baf73
+X-MS-TrafficTypeDiagnostic: SJ5PEPF000001CD:EE_|PH7PR12MB6489:EE_
+X-MS-Office365-Filtering-Correlation-Id: cb8d909a-6d0d-4fee-a9c7-08deee1bb5b9
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|1800799024|82310400026|7416014|376014|23010399003|36860700016|11063799006|56012099006|10067099003|22082099003|18002099003;
+	BCL:0;ARA:13230040|23010399003|36860700016|7416014|376014|82310400026|1800799024|6133799003|10067099003|56012099006|11063799006|5023799004|18002099003|22082099003|3023799007;
 X-Microsoft-Antispam-Message-Info:
-	A53j1wLJdRqL1KqHu4Hhx8VZNwsqOsJ1XXTv+7xzVNzsNmMKjKcpvxMnjceUnvz32ESuD9WOQei+F9r4V/NPQIXVhTj0DEn37TVYlKn52+JIP9qaRnVLNdXd7rbtc9lrbfNkypUW3lknIm5rPjCKCQ4CZiLD6mR491Qss3JC+StKrKh5SGEvjCky47bD3fCfF0OGCB78PyIbcnu9+YTiOEl+CqfSb+oNfoS+kgIBpj9BfRrecJGKHYj2i/lWH9p6NNBCo0wZlAu/y0hM6A8jAwYAUXM48ZLKM6IVQmCo1EYcup1ZqW+2gDbOaXVRl7xySYTqhkcHytv6WxnCVr2Hj76RL0SgEWbISIm6kpLqzFgLZu+sUQV620lXv6eNqy0Z6w/toKzWRqkd7oSKDctE5FtkNM17vKKoJQhoHypOxm/6jGqKULNpL9h/dq+S8jKMoHjHPpnND/xpZ49w1/bqjyX2HQq7jEmgrH7pfiOUFIxXdSU0xglgXxAqY84KtknEuIlcvHdUAmzfNexS7ZrKxxDJXnR8YLjWGXtqNPxd9BYZ7iGN4buMJ9/iDATQ5FNilAvcxnhEmsvOTEVv7cxfqtHoCZslJpGAYu4cky1ALHeQAY21FUjButXi+JEBRyomsYfQhrk/Q/lpXQgFQ8zywNR6hxo1BLUx7xh9xVf7F/6obOlDYlT0kxSr9LbIs0WkV3/ybyh7le7uCcbMScKTcA==
+	YRmlLemcuLYU3avG40AJglvPdFOwzqzErqU5QdOW+ImrHP9XgOaeVV88QAPVsdD4etzw5nK0HzmenUgx2uEewtJ2FDeXjrH1RexyE2u+zi3VUO7uTAHo6QuGNW9YaNbJ86VYWscTRc1Gm+bAQIlp2kMlqR/Wv5jzi6zaaDawK1aZvYGLvTBogcs2QNkOFkcABP8rpIztDSZQjCLZ6YCZnYlOcKWCTRAMCKtTQ4nitTBvx2yRg/zi3Kzip52wCau4xf9HUA0E/oQU8zRRSm339s93rLxfhfsfqzqggDStDnXR6jSqtCMMAFeAjFokGKsFVzHgJ7hN7HwBr9tMhqOQOvQL2N0dtBmRylH0sZnPzNyxfBDp5Ny+AMQ+CEgL5dwK7TPnkc+9u7rKoNkmM0rc0YwHTn/Ck+vs1c9h83RrBxnTN8Jruidm47n2SAGcSEIfiZP2MrZ488+V8syD/iw7r72JpGMvk1FcWKEITavYWEdxcKETxxadMEJ3bWN6lNafKHTUGGKqatiZB3GVF+BuEoy+P4zlzgmH36yGaIiH3FJCs7zD6BnO0JO/t1o8qkk3mMt37T5MhwmQ4x4BuOyWC7SW8Ju+YYMBEwSkMBMh1PSLaGXk1kx7BjNeuFVy3QzaGm4kXOT05YlarIKbwuN4D6xrTH6tTN5v1/tIbZMowgIDrFGi0hTMDtBilRwvm72Z/vU9iXhTATqa2kcosuMyVg==
 X-Forefront-Antispam-Report:
-	CIP:216.228.117.160;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge1.nvidia.com;CAT:NONE;SFS:(13230040)(1800799024)(82310400026)(7416014)(376014)(23010399003)(36860700016)(11063799006)(56012099006)(10067099003)(22082099003)(18002099003);DIR:OUT;SFP:1101;
+	CIP:216.228.117.160;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge1.nvidia.com;CAT:NONE;SFS:(13230040)(23010399003)(36860700016)(7416014)(376014)(82310400026)(1800799024)(6133799003)(10067099003)(56012099006)(11063799006)(5023799004)(18002099003)(22082099003)(3023799007);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	1TGuQQIuSk5Pjv8pNTatOjW869qaoUwCQACEBx6jn60vkpQ1H3lI7ywT8vJtUqdlrstdXrwIiI9WdS81APkWAQxBRxsqXXjd/E3tWSPn5qpppLqTBB7eMwQBzagn/1dg3jxPXdOLMohftYKBKT2NG9bEXkQRQkRS5zQ89Ae9535zmvh8awus+u7140lgAMqd6tQIjE6VyCt/mst2ylW0YBW8XFs3HdALJ/LiGtKKu5FKLFE8jgIeGfB3XH4EucfLcBdNT9eBnyk+wnaorcmtcipL7ASXbgYuGMoiRQKgpr0Jsqai2hytfp3WdO7ZljwyYpF2pHAQAC667I0rIwRelanzj/gWzcILqaDb08HxDtP1cYJS96NQHPivUGPg7SYCvelsnkuBrR3KDL+AjN1LIweg515hlmvWgVKgx0B6THjBMeT5jckdHMx5nDdQemc1
+	gMztYOjuYxuyXTA8nrCgdKKM+HMkPx0IWSiEopaqh+qffF1qUOOCyKiyqqIcmeLmVylRWefEdZkw4m++s3XsVl4soaahr5bY9s8U0MH7QkXny1HHZ5hO8WuayhlVshMEMpq2I1oJs4dvAusO2D/J4M7LUbopLQbgcOHxu8ZA3J32HYuok+iSEEv33wCKhxPEUeaM3Qyx6l9w4pYObyYyVIxPaxzgDc96T3gcZXhKrE+b84r1MrFVGodcrby4Wj+9tdnsjn5aPXgVzK45YV/ORzGU5K0RfCjsGta+OzEb8B7IOueVgE6bfqgFVVjCpubM0KH2DOCY/WxqYMvp5+uF4icUqkYPze5a3vI5tpC7ZAot/Q4NG+q1ZVLyByAeB59HcELjpm7sbnm3LC5wl7W9xGfkKhv603543YckfvhD+WfmFTXHhXzO9zZxhQlvgkXC
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 30 Jul 2026 09:19:40.8028
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 30 Jul 2026 09:19:51.3085
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: be969f71-eec9-4242-8e8b-08deee1baf73
+X-MS-Exchange-CrossTenant-Network-Message-Id: cb8d909a-6d0d-4fee-a9c7-08deee1bb5b9
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.160];Helo=[mail.nvidia.com]
 X-MS-Exchange-CrossTenant-AuthSource:
-	SJ5PEPF000001CE.namprd05.prod.outlook.com
+	SJ5PEPF000001CD.namprd05.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA1PR12MB6044
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH7PR12MB6489
 
 From: Cosmin Ratiu <cratiu@nvidia.com>
 
-mlx5e_psp_offload_handle_rx_skb() handles RX PSP packets.
+Introduce an additional steering table for PSP transport mode
+decapsulation, containing:
+- one rule per supported PSP version which does:
+  - transport mode decap (removes UDP+PSP headers and PSP trailer)
+    - recomputes iph->tot_len
+    - recomputes IP checksum
+    - reparses packet headers
+  - copy SPI into reg_b (which ends up as cqe.ft_metadata)
+  - set a decap marker and the PSP version in the flow_tag, so the RX
+    handler can make sense of the packet
+- default drop rule for unsupported PSP versions (per PSP spec).
 
-Add an additional flow tag marker and helpers for decapsulated PSP
-packets and extend the handler to construct the PSP skb extension from
-the CQE fields (SPI in ft_metadata and PSP version in flow_tag).
+Packets are forwarded to the previously added rx table, where:
+- one rule forwards UDP traffic to the UDP default destination.
+- default rule forwards traffic to the TTC table.
+
+The reason is to avoid steering loops. If packets were to be injected
+into the TTC directly after rx_decap, it may be possible to create a
+steering loop with RX packets of the form IP|UDP|PSP|UDP|PSP...
+The rx flow table guarantees that packets go through PSP steering at
+most once.
+
+The steering mode is saved in a new field 'fs.decap_enabled'.
+Updating the mode is done through accel_psp_fs_rx_reconfigure(), which
+creates the decap steering table if needed and possible. It then uses an
+atomic rule update to redirect traffic to the new table.
+This is now invoked with decap_wanted == false.
+The intention is for failures creating the new table to not block
+feature reconfig. A message is logged when table creation failed and PSP
+for HW GRO will not work in that case.
+Nothing happens on HW without the ability to decapsulate PSP transport.
+
+An upcoming patch will add dynamic reconfiguration of PSP steering based
+on HW GRO.
 
 Signed-off-by: Cosmin Ratiu <cratiu@nvidia.com>
 Reviewed-by: Dragos Tatulea <dtatulea@nvidia.com>
 Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
 ---
- .../mellanox/mlx5/core/en_accel/flow_tag.h    | 10 ++++--
- .../mellanox/mlx5/core/en_accel/psp_rxtx.c    | 21 +++++++++--
- .../mellanox/mlx5/core/en_accel/psp_rxtx.h    | 36 ++++++++++++++++++-
- 3 files changed, 61 insertions(+), 6 deletions(-)
+ .../net/ethernet/mellanox/mlx5/core/en/fs.h   |   1 +
+ .../mellanox/mlx5/core/en_accel/psp.c         | 254 +++++++++++++++++-
+ 2 files changed, 253 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/flow_tag.h b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/flow_tag.h
-index 28b4470bc91f..d422f96ffced 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/flow_tag.h
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/flow_tag.h
-@@ -16,8 +16,10 @@
-  *              1 = IPsec
-  *              2 = MACsec
-  *              3 = PSP (HW decrypted, PSP header present)
-- *              4-7 = reserved
-- *   [20:16] = reserved
-+ *              4 = PSP decap (HW decrypted & decapsulated)
-+ *              5-7 = reserved
-+ *   [20:17] = PSP version (4 bits, valid when proto == PSP decap)
-+ *   16      = reserved
-  *   [15:0]  = used by other subsystems (e.g. TC).
-  */
- #define MLX5E_ACCEL_FLOW_TAG_PROTO_MASK		GENMASK(23, 21)
-@@ -25,6 +27,10 @@
- #define MLX5E_ACCEL_FLOW_TAG_PROTO_IPSEC	(1 << 21)
- #define MLX5E_ACCEL_FLOW_TAG_PROTO_MACSEC	(2 << 21)
- #define MLX5E_ACCEL_FLOW_TAG_PROTO_PSP		(3 << 21)
-+#define MLX5E_ACCEL_FLOW_TAG_PROTO_PSP_DECAP	(4 << 21)
-+
-+#define MLX5E_ACCEL_FLOW_TAG_PSP_VER_SHIFT	17
-+#define MLX5E_ACCEL_FLOW_TAG_PSP_VER_MASK	(0xF << MLX5E_ACCEL_FLOW_TAG_PSP_VER_SHIFT)
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en/fs.h b/drivers/net/ethernet/mellanox/mlx5/core/en/fs.h
+index 4973fb473ff0..a802f80d90be 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en/fs.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en/fs.h
+@@ -98,6 +98,7 @@ enum {
+ #if defined(CONFIG_MLX5_EN_PSP)
+ 	MLX5E_ACCEL_FS_PSP_FT_LEVEL = MLX5E_INNER_TTC_FT_LEVEL + 1,
+ 	MLX5E_ACCEL_FS_PSP_ERR_FT_LEVEL,
++	MLX5E_ACCEL_FS_PSP_DECAP_FT_LEVEL,
+ 	MLX5E_ACCEL_FS_PSP_RX_FT_LEVEL,
+ #endif
+ };
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/psp.c b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/psp.c
+index ca5bb60f6d16..37635be7346b 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/psp.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/psp.c
+@@ -23,6 +23,13 @@ enum accel_psp_syndrome {
+ 	PSP_BAD_TRAILER,
+ };
  
- static inline u32 mlx5e_accel_flow_tag(struct mlx5_cqe64 *cqe)
- {
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/psp_rxtx.c b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/psp_rxtx.c
-index 348fd7a96261..2beffee14278 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/psp_rxtx.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/psp_rxtx.c
-@@ -118,10 +118,25 @@ bool mlx5e_psp_offload_handle_rx_skb(struct net_device *netdev, struct sk_buff *
- {
- 	struct mlx5e_priv *priv = netdev_priv(netdev);
- 	u16 dev_id = priv->psp->psd->id;
--	bool strip_icv = true;
--	u8 generation = 0;
-+	struct psp_skb_ext *pse;
++static const u8 psp_supported_versions[] = {
++	PSP_VERSION_HDR0_AES_GCM_128,
++	PSP_VERSION_HDR0_AES_GCM_256,
++};
 +
-+	if (mlx5e_psp_is_decap(cqe)) {
-+		/* UDP + PSP headers and PSP trailer removed by HW.
-+		 * Construct the PSP extension from CQE metadata.
-+		 */
-+		pse = skb_ext_add(skb, SKB_EXT_PSP);
-+		if (unlikely(!pse))
-+			goto drop;
++#define MLX5E_PSP_NUM_SUPPORTED_VERSIONS ARRAY_SIZE(psp_supported_versions)
 +
-+		pse->spi = mlx5e_psp_get_spi(cqe);
-+		pse->version = mlx5e_psp_get_version(cqe);
-+		pse->dev_id = dev_id;
-+		pse->generation = 0;
-+		skb->decrypted = 1;
-+		return false;
+ struct mlx5e_psp_tx_table {
+ 	struct mlx5_flow_namespace *ns;
+ 	struct mlx5_flow_table *ft;
+@@ -43,6 +50,7 @@ struct mlx5e_psp_rx_decrypt_table {
+ 	struct mlx5_flow_table *ft;
+ 	struct mlx5_flow_group *miss_group;
+ 	struct mlx5_flow_handle *miss_rule;
++	struct mlx5_modify_hdr *modify_hdr;
+ 	struct mlx5_flow_handle *rule;
+ };
+ 
+@@ -53,6 +61,15 @@ struct mlx5e_psp_rx_table {
+ 	struct mlx5_flow_handle *udp_rules[ACCEL_FS_PSP_NUM_TYPES];
+ };
+ 
++struct mlx5e_psp_rx_decap_table {
++	struct mlx5_flow_table *ft;
++	struct mlx5_flow_group *drop_group;
++	struct mlx5_modify_hdr *modify_hdr;
++	struct mlx5_pkt_reformat *reformat;
++	struct mlx5_flow_handle *rule[MLX5E_PSP_NUM_SUPPORTED_VERSIONS];
++	struct mlx5_flow_handle *unsupported_rule;
++};
++
+ struct mlx5e_psp_fs {
+ 	struct mlx5_core_dev *mdev;
+ 	struct mlx5_fc *tx_counter;
+@@ -64,9 +81,14 @@ struct mlx5e_psp_fs {
+ 	struct mlx5_fc *rx_auth_fail_counter;
+ 	struct mlx5_fc *rx_err_counter;
+ 	struct mlx5_fc *rx_bad_counter;
++	/* When set, steering is configured to decapsulate PSP (remove UDP+PSP
++	 * headers and PSP trailer) and hand off the SPI in cqe.ft_metadata.
++	 */
++	bool decap_enabled;
+ 
+ 	struct mlx5e_psp_rx_decrypt_table decrypt[ACCEL_FS_PSP_NUM_TYPES];
+ 	struct mlx5e_psp_rx_check_table check;
++	struct mlx5e_psp_rx_decap_table decap;
+ 	struct mlx5e_psp_rx_table rx;
+ };
+ 
+@@ -111,6 +133,15 @@ static void accel_psp_fs_del_flow_rule(struct mlx5_flow_handle **rule)
+ 	}
+ }
+ 
++static void accel_psp_fs_dealloc_modify_hdr(struct mlx5_core_dev *dev,
++					    struct mlx5_modify_hdr **modhdr)
++{
++	if (*modhdr) {
++		mlx5_modify_header_dealloc(dev, *modhdr);
++		*modhdr = NULL;
 +	}
- 
--	if (psp_dev_rcv(skb, dev_id, generation, strip_icv))
-+	if (psp_dev_rcv(skb, dev_id, 0, true))
- 		goto drop;
- 
- 	skb->decrypted = 1;
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/psp_rxtx.h b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/psp_rxtx.h
-index a26faf7cfc27..41b60259b3bc 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/psp_rxtx.h
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/psp_rxtx.h
-@@ -81,10 +81,29 @@ static inline bool mlx5e_psp_is_rx_flow(struct mlx5_cqe64 *cqe)
++}
++
+ static int accel_psp_fs_create_miss_group(struct mlx5_flow_table *ft,
+ 					  struct mlx5_flow_group **group)
  {
- 	u32 proto = mlx5e_accel_flow_tag_proto(cqe);
- 
--	return proto == MLX5E_ACCEL_FLOW_TAG_PROTO_PSP;
-+	return proto == MLX5E_ACCEL_FLOW_TAG_PROTO_PSP ||
-+		proto == MLX5E_ACCEL_FLOW_TAG_PROTO_PSP_DECAP;
- 
+@@ -403,11 +434,161 @@ int accel_psp_fs_rx_check_ft_create(struct mlx5e_psp_fs *fs,
+ 	return err;
  }
  
-+static inline bool mlx5e_psp_is_decap(struct mlx5_cqe64 *cqe)
++static
++void accel_psp_fs_rx_decap_ft_destroy(struct mlx5e_psp_fs *fs,
++				      struct mlx5e_psp_rx_decap_table *decap)
 +{
-+	u32 proto = mlx5e_accel_flow_tag_proto(cqe);
++	int i;
 +
-+	return proto == MLX5E_ACCEL_FLOW_TAG_PROTO_PSP_DECAP;
++	accel_psp_fs_del_flow_rule(&decap->unsupported_rule);
++	for (i = 0; i < MLX5E_PSP_NUM_SUPPORTED_VERSIONS; i++)
++		accel_psp_fs_del_flow_rule(&decap->rule[i]);
++	if (decap->reformat) {
++		mlx5_packet_reformat_dealloc(fs->mdev, decap->reformat);
++		decap->reformat = NULL;
++	}
++	accel_psp_fs_dealloc_modify_hdr(fs->mdev, &decap->modify_hdr);
++	accel_psp_fs_destroy_flow_group(&decap->drop_group);
++	accel_psp_fs_destroy_ft(&decap->ft);
 +}
 +
-+static inline u8 mlx5e_psp_get_version(struct mlx5_cqe64 *cqe)
++static void setup_fte_psp_version(struct mlx5_flow_spec *spec, u8 version)
 +{
-+	return (mlx5e_accel_flow_tag(cqe) & MLX5E_ACCEL_FLOW_TAG_PSP_VER_MASK) >>
-+		MLX5E_ACCEL_FLOW_TAG_PSP_VER_SHIFT;
++	void *misc_params_6;
++
++	memset(spec, 0, sizeof(*spec));
++	spec->match_criteria_enable |= MLX5_MATCH_MISC_PARAMETERS_6;
++	misc_params_6 = MLX5_ADDR_OF(fte_match_param, spec->match_criteria,
++				     misc_parameters_6);
++	MLX5_SET_TO_ONES(fte_match_set_misc6, misc_params_6, psp_version);
++	misc_params_6 = MLX5_ADDR_OF(fte_match_param, spec->match_value,
++				     misc_parameters_6);
++	MLX5_SET(fte_match_set_misc6, misc_params_6, psp_version, version);
 +}
 +
-+static inline __be32 mlx5e_psp_get_spi(struct mlx5_cqe64 *cqe)
++static
++int accel_psp_fs_rx_decap_ft_create(struct mlx5e_psp_fs *fs,
++				    struct mlx5e_psp_rx_decap_table *decap)
 +{
-+	return cqe->ft_metadata;
++	u8 action[MLX5_UN_SZ_BYTES(set_add_copy_action_in_auto)] = {};
++	struct mlx5_pkt_reformat_params reformat_params = {};
++	struct mlx5_flow_table_attr ft_attr = {};
++	struct mlx5_flow_destination dest = {};
++	struct mlx5_core_dev *mdev = fs->mdev;
++	struct mlx5_pkt_reformat *reformat;
++	struct mlx5_modify_hdr *modify_hdr;
++	struct mlx5_flow_handle *rule;
++	struct mlx5_flow_spec *spec;
++	int i, err = 0;
++
++	spec = kvzalloc_obj(*spec);
++	if (!spec)
++		return -ENOMEM;
++
++	/* Create FT */
++	ft_attr.max_fte = 1 + MLX5E_PSP_NUM_SUPPORTED_VERSIONS;
++	ft_attr.level = MLX5E_ACCEL_FS_PSP_DECAP_FT_LEVEL;
++	ft_attr.prio = MLX5E_NIC_PRIO;
++	ft_attr.autogroup.num_reserved_entries = 1;
++	err = accel_psp_fs_create_ft(fs, &ft_attr, &decap->ft);
++	if (err) {
++		mlx5_core_err(mdev, "fail to create psp decap rx ft err=%d\n",
++			      err);
++		goto out_spec;
++	}
++
++	/* Create drop group */
++	err = accel_psp_fs_create_miss_group(decap->ft, &decap->drop_group);
++	if (err) {
++		mlx5_core_err(mdev,
++			      "fail to create psp decap rx drop_group err=%d\n",
++			      err);
++		goto out_err;
++	}
++
++	/* Add default drop rule */
++	err = accel_psp_add_drop_rule(decap->ft, NULL, fs->rx_bad_counter,
++				      &decap->unsupported_rule);
++	if (err) {
++		mlx5_core_err(mdev,
++			      "fail to create psp decap unsupported versions drop rule err=%d\n",
++			      err);
++		goto out_err;
++	}
++
++	/* modify_hdr: copy SPI from REG_C_0 to REG_B */
++	MLX5_SET(copy_action_in, action, action_type, MLX5_ACTION_TYPE_COPY);
++	MLX5_SET(copy_action_in, action, src_field,
++		 MLX5_ACTION_IN_FIELD_METADATA_REG_C_0);
++	MLX5_SET(copy_action_in, action, src_offset, 0);
++	MLX5_SET(copy_action_in, action, length, 0);  /* 0 = 32 bits */
++	MLX5_SET(copy_action_in, action, dst_field,
++		 MLX5_ACTION_IN_FIELD_METADATA_REG_B);
++	MLX5_SET(copy_action_in, action, dst_offset, 0);
++
++	modify_hdr = mlx5_modify_header_alloc(mdev, MLX5_FLOW_NAMESPACE_KERNEL,
++					      1, action);
++	if (IS_ERR(modify_hdr)) {
++		err = PTR_ERR(modify_hdr);
++		goto out_err;
++	}
++	decap->modify_hdr = modify_hdr;
++
++	/* pkt_reformat: decap PSP transport */
++	reformat_params.type = MLX5_REFORMAT_TYPE_REMOVE_PSP_TRANSPORT;
++	reformat = mlx5_packet_reformat_alloc(mdev, &reformat_params,
++					      MLX5_FLOW_NAMESPACE_KERNEL);
++	if (IS_ERR(reformat)) {
++		err = PTR_ERR(reformat);
++		goto out_err;
++	}
++	decap->reformat = reformat;
++
++	for (i = 0; i < MLX5E_PSP_NUM_SUPPORTED_VERSIONS; i++) {
++		u8 version = psp_supported_versions[i];
++		struct mlx5_flow_act flow_act = {};
++
++		/* match(version) => decap, copy SPI, fwd to rx FT */
++		setup_fte_psp_version(spec, version);
++
++		/*
++		 * Override the flow tag set in the decrypt table with
++		 * the decap PSP marker and version.
++		 */
++		spec->flow_context.flags = FLOW_CONTEXT_HAS_TAG;
++		spec->flow_context.flow_tag = MLX5E_ACCEL_FLOW_TAG_PROTO_PSP_DECAP |
++			((u32)version << MLX5E_ACCEL_FLOW_TAG_PSP_VER_SHIFT);
++
++		flow_act.action = MLX5_FLOW_CONTEXT_ACTION_PACKET_REFORMAT |
++			MLX5_FLOW_CONTEXT_ACTION_MOD_HDR |
++			MLX5_FLOW_CONTEXT_ACTION_FWD_DEST;
++		flow_act.pkt_reformat = reformat;
++		flow_act.modify_hdr = modify_hdr;
++		dest.type = MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE;
++		dest.ft = fs->rx.ft;
++
++		rule = mlx5_add_flow_rules(decap->ft, spec, &flow_act, &dest, 1);
++		if (IS_ERR(rule)) {
++			err = PTR_ERR(rule);
++			goto out_err;
++		}
++		decap->rule[i] = rule;
++	}
++	goto out_spec;
++
++out_err:
++	accel_psp_fs_rx_decap_ft_destroy(fs, decap);
++out_spec:
++	kvfree(spec);
++	return err;
 +}
 +
- bool mlx5e_psp_offload_handle_rx_skb(struct net_device *netdev, struct sk_buff *skb,
- 				     struct mlx5_cqe64 *cqe);
- #else
-@@ -110,6 +129,21 @@ static inline bool mlx5e_psp_is_rx_flow(struct mlx5_cqe64 *cqe)
- 	return false;
+ static void
+ accel_psp_fs_rx_decrypt_ft_destroy(struct mlx5e_psp_fs *fs,
+ 				   struct mlx5e_psp_rx_decrypt_table *decrypt)
+ {
+ 	accel_psp_fs_del_flow_rule(&decrypt->rule);
++	accel_psp_fs_dealloc_modify_hdr(fs->mdev, &decrypt->modify_hdr);
+ 	accel_psp_fs_del_flow_rule(&decrypt->miss_rule);
+ 	accel_psp_fs_destroy_flow_group(&decrypt->miss_group);
+ 	accel_psp_fs_destroy_ft(&decrypt->ft);
+@@ -427,10 +608,12 @@ accel_psp_fs_rx_decrypt_ft_create(struct mlx5e_psp_fs *fs,
+ 				  struct mlx5e_psp_rx_decrypt_table *decrypt,
+ 				  struct mlx5_flow_destination *default_dest)
+ {
++	u8 action[MLX5_UN_SZ_BYTES(set_add_copy_action_in_auto)] = {};
+ 	struct mlx5_flow_table_attr ft_attr = {};
+ 	struct mlx5_flow_destination dest = {};
+ 	struct mlx5_core_dev *mdev = fs->mdev;
+ 	MLX5_DECLARE_FLOW_ACT(flow_act);
++	struct mlx5_modify_hdr *modhdr;
+ 	struct mlx5_flow_handle *rule;
+ 	struct mlx5_flow_spec *spec;
+ 	int err = 0;
+@@ -474,6 +657,24 @@ accel_psp_fs_rx_decrypt_ft_create(struct mlx5e_psp_fs *fs,
+ 	}
+ 	decrypt->miss_rule = rule;
+ 
++	/* Create modify_hdr to copy SPI to REG_C_0 */
++	MLX5_SET(copy_action_in, action, action_type, MLX5_ACTION_TYPE_COPY);
++	MLX5_SET(copy_action_in, action, src_field,
++		 MLX5_ACTION_IN_FIELD_PSP_HEADER_1);
++	MLX5_SET(copy_action_in, action, src_offset, 0);
++	MLX5_SET(copy_action_in, action, length, 0);  /* 0 = 32 bits */
++	MLX5_SET(copy_action_in, action, dst_field,
++		 MLX5_ACTION_IN_FIELD_METADATA_REG_C_0);
++	MLX5_SET(copy_action_in, action, dst_offset, 0);
++
++	modhdr = mlx5_modify_header_alloc(mdev, MLX5_FLOW_NAMESPACE_KERNEL, 1,
++					  action);
++	if (IS_ERR(modhdr)) {
++		err = PTR_ERR(modhdr);
++		goto out_err;
++	}
++	decrypt->modify_hdr = modhdr;
++
+ 	/* Add PSP RX decrypt rule */
+ 	setup_fte_udp_psp(spec, PSP_DEFAULT_UDP_PORT);
+ 
+@@ -482,8 +683,10 @@ accel_psp_fs_rx_decrypt_ft_create(struct mlx5e_psp_fs *fs,
+ 	spec->flow_context.flow_tag = MLX5E_ACCEL_FLOW_TAG_PROTO_PSP;
+ 
+ 	flow_act.crypto.type = MLX5_FLOW_CONTEXT_ENCRYPT_DECRYPT_TYPE_PSP;
+-	flow_act.action = MLX5_FLOW_CONTEXT_ACTION_FWD_DEST |
+-			  MLX5_FLOW_CONTEXT_ACTION_CRYPTO_DECRYPT;
++	flow_act.action = MLX5_FLOW_CONTEXT_ACTION_CRYPTO_DECRYPT |
++		MLX5_FLOW_CONTEXT_ACTION_MOD_HDR |
++		MLX5_FLOW_CONTEXT_ACTION_FWD_DEST;
++	flow_act.modify_hdr = modhdr;
+ 	dest.type = MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE;
+ 	dest.ft = fs->check.ft;
+ 	rule = mlx5_add_flow_rules(decrypt->ft, spec, &flow_act, &dest, 1);
+@@ -504,6 +707,46 @@ accel_psp_fs_rx_decrypt_ft_create(struct mlx5e_psp_fs *fs,
+ 	return err;
  }
  
-+static inline bool mlx5e_psp_is_decap(struct mlx5_cqe64 *cqe)
++static int accel_psp_fs_rx_reconfigure(struct mlx5e_psp_fs *fs,
++				       bool decap_wanted)
 +{
-+	return false;
-+}
++	bool decap_supported =
++		MLX5_CAP_FLOWTABLE(fs->mdev,
++				   flow_table_properties_nic_receive.reformat_del_psp_transport);
++	bool decap_enable = decap_wanted && decap_supported;
++	struct mlx5_flow_destination dest = {};
++	int err;
 +
-+static inline u8 mlx5e_psp_get_version(struct mlx5_cqe64 *cqe)
-+{
++	/* Create the decap table if needed. */
++	if (decap_enable && !fs->decap.ft) {
++		err = accel_psp_fs_rx_decap_ft_create(fs, &fs->decap);
++		if (err) {
++			mlx5_core_warn(fs->mdev,
++				       "Failed to create PSP decapsulation rules (err %d), HW GRO for PSP unavailable",
++				       err);
++			decap_enable = false;
++		}
++	}
++	if (decap_enable == fs->decap_enabled)
++		return 0;
++
++	/* Redirect traffic to the correct table. */
++	dest.type = MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE;
++	dest.ft = decap_enable ? fs->decap.ft : fs->rx.ft;
++	err = mlx5_modify_rule_destination(fs->check.rule, &dest, NULL);
++	if (err)
++		goto out_destroy_ft;
++
++	fs->decap_enabled = decap_enable;
++
 +	return 0;
++
++out_destroy_ft:
++	if (decap_enable)
++		accel_psp_fs_rx_decap_ft_destroy(fs, &fs->decap);
++	return err;
 +}
 +
-+static inline __be32 mlx5e_psp_get_spi(struct mlx5_cqe64 *cqe)
-+{
-+	return 0;
-+}
+ static void accel_psp_fs_rx_destroy(struct mlx5e_psp_fs *fs)
+ {
+ 	struct mlx5_ttc_table *ttc = mlx5e_fs_get_ttc(fs->fs, false);
+@@ -516,6 +759,7 @@ static void accel_psp_fs_rx_destroy(struct mlx5e_psp_fs *fs)
+ 		accel_psp_fs_rx_decrypt_ft_destroy(fs, &fs->decrypt[i]);
+ 	}
+ 	accel_psp_fs_rx_check_ft_destroy(&fs->check);
++	accel_psp_fs_rx_decap_ft_destroy(fs, &fs->decap);
+ 	accel_psp_fs_rx_ft_destroy(&fs->rx);
+ 	if (tc_blocked)
+ 		mlx5e_accel_unblock_tc_offload(fs->mdev);
+@@ -563,6 +807,12 @@ static int accel_psp_fs_rx_create(struct mlx5e_psp_fs *fs,
+ 		mlx5_ttc_fwd_dest(ttc, fs_psp2tt(i), &dest);
+ 	}
+ 
++	err = accel_psp_fs_rx_reconfigure(fs, false);
++	if (err) {
++		NL_SET_ERR_MSG(extack, "Failed RX steering config for HW GRO");
++		goto err_decrypt_ft;
++	}
 +
- static inline bool mlx5e_psp_offload_handle_rx_skb(struct net_device *netdev,
- 						   struct sk_buff *skb,
- 						   struct mlx5_cqe64 *cqe)
+ 	return 0;
+ 
+ err_decrypt_ft:
 -- 
 2.44.0
 
