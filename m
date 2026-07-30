@@ -1,169 +1,323 @@
-Received: from CO1PR03CU002.outbound.protection.outlook.com (mail-westus2azon11010066.outbound.protection.outlook.com [52.101.46.66])
+Received: from BN1PR04CU002.outbound.protection.outlook.com (mail-eastus2azon11010071.outbound.protection.outlook.com [52.101.56.71])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1D5753B3896;
-	Thu, 30 Jul 2026 08:47:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.46.66
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E2D43F0A81;
+	Thu, 30 Jul 2026 09:18:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.56.71
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785401266; cv=fail; b=ah7dx0Er5gERq2abAgCU7V5vb9JFoMb8pv5XhduXz1jNjGfXPajPtpAjraJJgH1tGWWkh4CNwL0sn+hC2N4wV55TB3WkDpA4f4STOza1w3KM4Pi2ApGf25D1qfh1TLvIuH5k9yaXIsUsA9rZ1LQOB6ZM4MijI65X50wJasCGjhs=
+	t=1785403125; cv=fail; b=ZaqiCCU61EJkElMLYuBw5s8pUjZ9ie3yazKDo8DK7lyOKfH9kBzq9OPGOL3fwnTFwuBkFsBkNI5Uv3Id4sDGMf0f3S4wR3hvvTM+zubTQTd6emxe4QdvaahaT2YB+KdELOV4sfhdJM/uItNgM5BMmLTiiwP31MnEbAqpoR8nX1U=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785401266; c=relaxed/simple;
-	bh=cOiMhwQN0CKmT2qlBWAdpCvkSvaseyko2XTAIn8B6m8=;
-	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
-	 Content-Type:MIME-Version; b=iwI5sB7P6GkJ4HppsjczoQlKrPS3TQ/j6L9v4A3LT4hi7smG4YFQxYmGd3yJNuML1sZoN9hFAvwuEvtcIR1mb/kwtrqnLpjb7oLEpxVDG5UZv3jFeED8Qj83UmSDlUXANjZtlaQTI2XCAI/X1rcQUaDYAfUwfJJVFFNPV3GQXEA=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=S4wlh4fx; arc=fail smtp.client-ip=52.101.46.66
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
+	s=arc-20240116; t=1785403125; c=relaxed/simple;
+	bh=Ew9f9pCjGslTvhjKp6vhg+hTlxcaMno/wiuFH+2TbZY=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=WzMaN3hey20zJmA4EMGEcvkfv3pRCSYXR6YWYOLHWD7jO6qz3ujtF3nhFpgkjqBuK1q93btIDBPivmzLmQIUt6rY6pasyS5nFNwssn7F6lbr74oBdJ6dni2w1pxfWRDaMdXo9BINlmOTI3OOKghqPdrU7WvCz8CZroy1GzvHaBM=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=m216+EYy; arc=fail smtp.client-ip=52.101.56.71
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="S4wlh4fx"
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="m216+EYy"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=sfXzp9mrpyRoXjTT6LhNXoRyEwqWg7v9RlooARaFPa40ObnjM2idtltwohm9jOa2qwlvsYnJfR/sqtk4luCwNuy2u+lcLbeSRb/xXDJYpRuqtbVVCiMPhj5Vn8699YD4VnQlqj5SSPrACqghDt0aAaKW+TYUckoBzp1uDRKVVSusOl3U0GqY5FVy0d1IH9WwmUu6dlr3Cffgs3Q2zm/kz1+qXkAGkBZ0G4j/4vC4rr22+5tKzXYTRT2Z9jGufMh48EpiBn8wz/xtsyjsJm4aoOTtVEIP4i3gGB2BlbP++1etV6kl8RyyU1J0YZnxzGgXBCO067SPalnapNl1Bro4gQ==
+ b=vwKkny00gwaj+YZzsRA1fYRPO7uQ2XuK2bAuBuQ+vN2zTDXJDnnJieYkFis4QVBy0LG18TVVjPGEdpwEBHEBPpHaAHEjY45lsZVP6LkbJ1CP66fmTxO3TIuX9C6MufhiiHr9NDSE2EbIylZd2XcduXxuVeNfAzqLc6WGwQSg0WqCQ4KLqYWIv22wQA3u0RE6sgye1UI0x+Ph3F/D+KDRpkPG5zBe+4wnQC+lbjFFBBPBWtXQVqvGdPukgiaYvqoEcH2esokGQLV0RN6eKnnvFTPjPa4XN3XeI/0jUvd7woJEtlogM4kC0etdrX0Eez1DGbK17/qcyy8ux8URgvwzLA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=cOiMhwQN0CKmT2qlBWAdpCvkSvaseyko2XTAIn8B6m8=;
- b=Q2yb7dY9o20BNFTq6si9CBM9y813ATAk1FAcKT7l3LquYIBoTyuW3ObONGQjAaFaNWKgkBC9l4/394W7WIg9OSrRU9f+fWJcVs4flbhDIKGGMB8w5d1RVMKSfJDZfiPvkcbjr2yBk22KxPzSSBlo6+TVGDWonq37l2WdEwWTVsAtV2J6Dzhg1kngPwal2uzdW4jn+Ja8C32nPlT96wzfVtXXTgQRe4cIPrADRSdIyOouZjxmvYssDWmJvVRTQ7vackUvEmcwuh10S5UEehnel+G9YIl+qoHDF2xsvxWIZFKUvm+lKF1M4FMtcFgPhTSmKihdYaEfvsKxxTyFPcqwxg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=amd.com; dmarc=pass action=none header.from=amd.com; dkim=pass
- header.d=amd.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
+ bh=6nyqwdRJDsojcfnlasvMUL9weVYt2ZV9yIXtfcVzCUE=;
+ b=WnJltpcUtgjJHRIF1jiZMWnatU/igJsn/q6fC3PSmMamkHC3iMjPxbKvnDzUG9kAt6FCa6EF9A7mzkNYFTEw8pH9++ba4CI6dH0pbqnEwNtiAe0HIjV6lmUEF147fNhkejqerna+FzZSl0s177x2e6uJTxjSuKmqACu3sIEBFT4nvB3L+mti0Ofy5Qcy1QFCA8MCdVKGmH0g/o1HYseDyb7vy6VtANuLVkWCNA6RaQ+w/NIH1Alv3oD1F6SG093cyz2Q93y4mHrh/meKneO3MAbSrndSIaJd5J5XQqPFFOVLx7ezaX5kMvqry1YVO5E+boMxz6Ycrtb05Wt22MoewQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 216.228.117.160) smtp.rcpttodomain=lunn.ch smtp.mailfrom=nvidia.com;
+ dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
+ dkim=none (message not signed); arc=none (0)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=cOiMhwQN0CKmT2qlBWAdpCvkSvaseyko2XTAIn8B6m8=;
- b=S4wlh4fxWN3PIB+HCdSsl0szLslrjG7m9gCGTWdwcX75gskd8PPa4FQovoNeFDNYnBZRpEFZ1TLhhU4CBBQSgkKnTUhy7DtKEUVedwV3FsGh213xIiGtSJUbHejpAXYHnt0m3T/VQeaujjPWYVhni9T+u/uNERBClTwOs183yDU=
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=amd.com;
-Received: from DS0PR12MB7777.namprd12.prod.outlook.com (2603:10b6:8:153::22)
- by PH7PR12MB9175.namprd12.prod.outlook.com (2603:10b6:510:2e6::14) with
+ bh=6nyqwdRJDsojcfnlasvMUL9weVYt2ZV9yIXtfcVzCUE=;
+ b=m216+EYynYGQQNsk3tbd8e/NJJgRcVUxwbcLfnLjhKzA26C7/lhljqIR1B/RMMmnopV8ZhdZQ4zQzP7IXeoc0KBcIxkTRDY80WSZRKNdh51/i8jKN/SSldOEykQh2Oept7HfJLB/RnI5MiQaV9XUAqdOix6LltbJByOyX/t/yXOO3fwDvQxNPpIfZ0jW36/Tvs8JdtHjZXExt/IEQ7bVbuCZtMUm0kpc1Zq0fvECLe0kaUD2KHrVEXbElvGpC9u+uAcg0cABD4Q0xx59OU21+5AhTvcDUN/JtkgpfrI6mEQU1LFmDGl9fikIS/KStVS5pJfFqgrhtr/0NPVCIv998w==
+Received: from SA1PR05CA0015.namprd05.prod.outlook.com (2603:10b6:806:2d2::24)
+ by CYXPR12MB9388.namprd12.prod.outlook.com (2603:10b6:930:e8::15) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.270.12; Thu, 30 Jul
- 2026 08:47:41 +0000
-Received: from DS0PR12MB7777.namprd12.prod.outlook.com
- ([fe80::826:25fa:4fd6:2d74]) by DS0PR12MB7777.namprd12.prod.outlook.com
- ([fe80::826:25fa:4fd6:2d74%4]) with mapi id 15.21.0270.009; Thu, 30 Jul 2026
- 08:47:41 +0000
-Message-ID: <31315f8d-44ad-db97-4cb3-ffae887d7bb8@amd.com>
-Date: Thu, 30 Jul 2026 14:17:32 +0530
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.2.0
-Subject: Re: [for-next v4 0/2] Add Reorder Completion Queue (RCQ) support
-Content-Language: en-US
-To: Jakub Kicinski <kuba@kernel.org>, leon@kernel.org, jgg@ziepe.ca
-Cc: brett.creeley@amd.com, andrew+netdev@lunn.ch, davem@davemloft.net,
- edumazet@google.com, pabeni@redhat.com, allen.hubbe@amd.com,
- nikhil.agarwal@amd.com, linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
- linux-kernel@vger.kernel.org
-References: <20260721121034.1616562-1-abhijit.gangurde@amd.com>
- <20260727182825.7b9bdffe@kernel.org>
- <18c6130a-c8e0-8e58-ad1c-f1578e1c5f46@amd.com>
- <20260728151058.17f8fc94@kernel.org>
-From: Abhijit Gangurde <abhijit.gangurde@amd.com>
-In-Reply-To: <20260728151058.17f8fc94@kernel.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-X-ClientProxiedBy: MA5PR01CA0139.INDPRD01.PROD.OUTLOOK.COM
- (2603:1096:a01:1b9::12) To DS0PR12MB7777.namprd12.prod.outlook.com
- (2603:10b6:8:153::22)
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.270.14; Thu, 30 Jul
+ 2026 09:18:35 +0000
+Received: from SN1PEPF00026367.namprd02.prod.outlook.com
+ (2603:10b6:806:2d2:cafe::78) by SA1PR05CA0015.outlook.office365.com
+ (2603:10b6:806:2d2::24) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.21.292.9 via Frontend Transport; Thu, 30
+ Jul 2026 09:18:35 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.160)
+ smtp.mailfrom=nvidia.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=nvidia.com;
+Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
+ 216.228.117.160 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.117.160; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.117.160) by
+ SN1PEPF00026367.mail.protection.outlook.com (10.167.241.132) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.21.292.8 via Frontend Transport; Thu, 30 Jul 2026 09:18:34 +0000
+Received: from rnnvmail201.nvidia.com (10.129.68.8) by mail.nvidia.com
+ (10.129.200.66) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.45; Thu, 30 Jul
+ 2026 02:18:19 -0700
+Received: from rnnvmail201.nvidia.com (10.129.68.8) by rnnvmail201.nvidia.com
+ (10.129.68.8) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Thu, 30 Jul
+ 2026 02:18:18 -0700
+Received: from vdi.nvidia.com (10.127.8.10) by mail.nvidia.com (10.129.68.8)
+ with Microsoft SMTP Server id 15.2.2562.20 via Frontend Transport; Thu, 30
+ Jul 2026 02:18:10 -0700
+From: Tariq Toukan <tariqt@nvidia.com>
+To: Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller"
+	<davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, Jakub Kicinski
+	<kuba@kernel.org>, <netdev@vger.kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Sabrina Dubroca <sd@queasysnail.net>
+CC: Aleksandr Loktionov <aleksandr.loktionov@intel.com>, Alexei Lazar
+	<alazar@nvidia.com>, Boris Pismenny <borisp@nvidia.com>, Carolina Jubran
+	<cjubran@nvidia.com>, Chris Mi <cmi@nvidia.com>, Cosmin Ratiu
+	<cratiu@nvidia.com>, Daniel Zahka <daniel.zahka@gmail.com>, Doruk Tan Ozturk
+	<doruk@0sec.ai>, Dragos Tatulea <dtatulea@nvidia.com>, Gal Pressman
+	<gal@nvidia.com>, Jacob Keller <Jacob.e.keller@intel.com>, Jianbo Liu
+	<jianbol@nvidia.com>, Kees Cook <kees@kernel.org>, Lama Kayal
+	<lkayal@nvidia.com>, Leon Romanovsky <leon@kernel.org>,
+	<linux-kernel@vger.kernel.org>, <linux-kselftest@vger.kernel.org>,
+	<linux-rdma@vger.kernel.org>, Mark Bloch <mbloch@nvidia.com>, "Patrisious
+ Haddad" <phaddad@nvidia.com>, Raed Salem <raeds@nvidia.com>, Rahul Rameshbabu
+	<rrameshbabu@nvidia.com>, Saeed Mahameed <saeedm@nvidia.com>, Shuah Khan
+	<shuah@kernel.org>, Shuah Khan <skhan@linuxfoundation.org>, Simon Horman
+	<horms@kernel.org>, Stanislav Fomichev <sdf@fomichev.me>, Stanislav Fomichev
+	<sdf.kernel@gmail.com>, Tariq Toukan <tariqt@nvidia.com>
+Subject: [PATCH net-next 00/13] net/mlx5e: Add support for HW-GRO to PSP
+Date: Thu, 30 Jul 2026 12:17:42 +0300
+Message-ID: <20260730091756.2543777-1-tariqt@nvidia.com>
+X-Mailer: git-send-email 2.44.0
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-NV-OnPremToCloud: ExternallySecured
+X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: DS0PR12MB7777:EE_|PH7PR12MB9175:EE_
-X-MS-Office365-Filtering-Correlation-Id: 4ae07855-983f-4666-cbcd-08deee17372c
+X-MS-TrafficTypeDiagnostic: SN1PEPF00026367:EE_|CYXPR12MB9388:EE_
+X-MS-Office365-Filtering-Correlation-Id: e8ef2e8a-24d9-453e-5425-08deee1b87e4
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|1800799024|7416014|376014|366016|23010399003|11063799006|4143699003|56012099006|10067099003|22082099003|18002099003;
+	BCL:0;ARA:13230040|36860700016|23010399003|376014|7416014|82310400026|1800799024|6133799003|56012099006|11063799006|10067099003|18002099003;
 X-Microsoft-Antispam-Message-Info:
-	D1cUhxG7eBLMWmJjSq91TXmNLMjweq7nIBvVgAr6uln865IFWSHW9CEIvcpFjiLzXts2cezr3SM0NNA7w7YwbPG8r5j1WKDGQGpVJpBtSihTgGcIQ+XsWb4/549Khmdn4x4avXIR4DyztueEw16WfZ2L8s7OVGhK8ql5GzGoykpbgsU+oNXy+d/LSxxVjNhIjR5VZupSqhO0mHWzS3BrgYfHUXDcmXhOrAbmGKWlvp6CXSKcYeRzRScIYw1Hhrn3d+JPldBwC+XXPe/MUerIemuobzeVNmQt5HDs2LC6q/iryDpMrc86QjDna/gyUIOEWb/Uxd/dcUMnuovG53KX1WBAkRVDrMofR7yTDTNZzondNT0Ta6vyMQcDxyv7B7i2woPLEQ5cECImizkCLvyN+f+tnd2y+/2BPEdDV+O/GAl9XOHhbA49IZwHMDUHXn9/JeNJb+yqMAP3wuJJ2HZRmXgXnXsRZr0nb5TcOB8LYaaE7O207zKqoqBfTw5HNwc4LFLRydhNnUsTj127DAER+KfyMVXR+kwGZAR9FgBeUT0LGywmHiaBz80/w1cMoMrJhYf0zAUyFS8UD6tjr7gjgCcvgxtMndIvDNJBGE+fSVcHKkhwc9dHW4sVW3PEGsIPh8YRNmYr6kaWdbu5gZK0E1DA/aW8FlBJxRYNNsZTteM=
+	az543zAwNjdaNt0/CZySt5uyiOdXb8ASpCpn5vhOrZcR9T8zRZDTVbkF77i6KK/ot3vDRbx4R1VN3lHhvKf1aJQCVSxQYLgzLQ+djW+4bJXPAWbJfkdXnCHVkBTxIQaSFqBX78o1weZ3VPTMY1nlbrHE0IDqMuhMF5lNwNY/U0Y4IPQSiYvEXty4bXaaA2lpyPWooDBZwXt9fwoz+P4TwtjqjBVdkPxt3xgz4WSntb/Gt0KNMVti4EO8GW0OJsBPV/unB0adMjshmTDUylzt1+kyhJwzbzHb9AdsB3CHFHD1uclZwHI9ih+Dwx2DXxmt0khnmhvgg1jFfbAHABZS0IMlVgiEJ7KrmjWz20cy18XJuBs+P7szP4JnWLmdj7M7L33S8N1Va0RKfSSY2TV4AnHX4H776vojqaEJ4FvkOp5Jj2ItP+eZ9cC3qJVspD17yego0S3FVk4NZgNK1s5cK/ZhP2gRKej0PG4RC65m5y7+kY3GurToMXjR9uOc78L1OloFOFSAwEeoPkB/hWNfZTnirCFgGbAWVK3azVlRfFF+PRs6Z1cZ7yGbZlYu/z3R3XIByCuI+fgnI5UiOdLPjFPmeWKo26RlcpNIK551/nsomXySjpVtUcSoOi/PBoCKDBSLOkujobkryx2EomTeC8JIG/0kT9RxVVtj8cAeF3Ig7affqgri0pvZuEbPSjQXGdDhzEtYU88HiraCtN4tBg==
 X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DS0PR12MB7777.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(7416014)(376014)(366016)(23010399003)(11063799006)(4143699003)(56012099006)(10067099003)(22082099003)(18002099003);DIR:OUT;SFP:1101;
+	CIP:216.228.117.160;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge1.nvidia.com;CAT:NONE;SFS:(13230040)(36860700016)(23010399003)(376014)(7416014)(82310400026)(1800799024)(6133799003)(56012099006)(11063799006)(10067099003)(18002099003);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?dEo5UzBId21UYlZjYmZDY1pEaWxtcS9uUkdpUW9xZ2pLVzAxczdTYmdyNU9y?=
- =?utf-8?B?V29sN1VJYy8yVUZZaXF0K3l2ZGtMQzRZWGF4WEtpa0o3VDRoSmpFZjdtbnRU?=
- =?utf-8?B?Yk1uWWRQejVqbWtyQWFtVDU0VE1DS1o4N1FUQWtQQzRFcWtweEZSNlFseENM?=
- =?utf-8?B?V3NBMm0xdm5lRkZ0U1hEclBMVllaMmk4OVBaOFI5YUdHZWQ5Wlg4alRnN2Fw?=
- =?utf-8?B?M0ZkSHkxbHpBVGcreEFwU25nWEJvR3MrRnFBYW5tVi9adFlDSXdWT0xxM2d3?=
- =?utf-8?B?WVJ6bzZuaHFuRGs3TGsybWVIaEpXRDArVVREa3JMZCtGL1lIazM4NjFBSEhF?=
- =?utf-8?B?QTZxMjhGMGk5S3NwM3VEczBFa2I5cGR0dlJaRnUxQVpkQnZ5MVV2Znc2RHhM?=
- =?utf-8?B?OU9NRTUvWEhDWEliQ01HRFJvQWpvUVZTanBtVVlFTFVQVHEvWHVpVXlMYmVj?=
- =?utf-8?B?eGMxclpzWTVxcFM1WENIME13YU9OQ1NWSUk1S2c3OW85VGZrcDNNT21ZUVdM?=
- =?utf-8?B?a2czVXhKNU1PZnJ2dU1JU29vODBUSlB5SGpLMWhWbENMQ3RiT0tsRzJWQTlu?=
- =?utf-8?B?R3cxSUZnb05uODZQeWxxTXZ6ZmJERnpZK3g5L3dhTkdNRlBoaXQ2Z0l2L1Rj?=
- =?utf-8?B?Ymcwek90cUdWM2VpaTBWY2M1RUNlL0RXY3E2STI0bVZtZzlMQ1Fua2xwLzdY?=
- =?utf-8?B?cUFyamd0MjNkc3FZZE5LOTRvMVkwcHY5QnlQejlhajRrdVRDeGV2NG5yRmxV?=
- =?utf-8?B?RUFwR0lTVllZMHc1Q2o3VS92QjFaK3JxcXd3VnVIQTgvRkxCTkFzUGhlN0Uz?=
- =?utf-8?B?MHVjWkxzc3ZSMUl6WEIrdGxvcC92VDdKYXJsNW84VGpNYzNvdHBTNmxKRFFn?=
- =?utf-8?B?cTJDVVA0QWxKR1oxTXJveU1JS1JjZkY3OVpqN0NQcGNlREhLb2lXTVNzZ0Fh?=
- =?utf-8?B?L21KTHBZZytBSThUbW1UdDZWRnNIT29OYnpPbHJoSnNpbzJwVWlUeWdtNjZu?=
- =?utf-8?B?L2VadmNwb3BIWllERHp4cHlwdmRGbmZ2cG1sQVExOHQyelJYTFJ6RlJBV09G?=
- =?utf-8?B?ZUthOG96Q1JBM2dpNnhUY25KQXBaZEhxc0oyeUtDM3RPYTBmOUdOZExPbUJn?=
- =?utf-8?B?RnNpRWdvK2EzbUgydFZ6SnlzRGJYMXJqY1BqcXp5WVY2Q0dabE02Z0xNYVRL?=
- =?utf-8?B?U01VWCtPcDhCc3NsaTBiRVVEZllSUkFRbnA3VHdZRUI0blhiVzFqVjBSWVRl?=
- =?utf-8?B?ZUlheUs0aDFWSGFsanBzeG13RlV5VHczYzduQzRPYklzd3FHQkEvblBOY3Y4?=
- =?utf-8?B?VE5mWFBsVjUzMHM3YXZ0eHE2M0k0SGFPNmlQeGxEbFNycHA4Q01mNUg2emJP?=
- =?utf-8?B?WmtxWnFOZmdTZkdRNXloZTVHbVRKMUYzTXd5QmxaaDNvSk93WjBkT0ppeWlq?=
- =?utf-8?B?SHNTVUUzNFc3THUwUmhiUHB1T3R1Uy9JSWE4ekFiN0tnSmRYdzZrY1pWb25U?=
- =?utf-8?B?NmlYWWsxSkNjQjBJcmxrYkFMMHBvNUJNdENTZVZjTTVsQjhxZGI1YjQ1NGtx?=
- =?utf-8?B?NlZSVnVxUDFNZlJDWDJVUmFvdHdZeGgyNFUwTUtVamM5U1drQUYyNDF4bmVo?=
- =?utf-8?B?Z0tMTlYzRzRudDMyU0Erak9nMHQvbUJLbXhkT0RLRkFaZ1hPQXhObEkxMFRX?=
- =?utf-8?B?Yk14ZXZDa1ZvSU5xb1FoUFB1NFZ5MkJ3UWhhQ0VIWUx0TnFKdDk3dW80dkNs?=
- =?utf-8?B?V2p0RDNiTVNKc2NoZGVZU0Q4TU9YSmd1bmVVSWx4V2d6T3Q2Tm0zSktvZUJF?=
- =?utf-8?B?ZlduT2FPL3NLNzVNS3d4V1djK0dLR2RKaDJrZnZDMStNZDZneEM4R3F6Wjk0?=
- =?utf-8?B?eUFCYThTRFg4bEtJOHpheEY1SUdsb2lZTjZDUEJ4SUZyd0dhVEFidTJJTXUw?=
- =?utf-8?B?RVBKNDJhUnB2Qmh1VjdmZzNCWUNBRm16UGRmY2YxR0tqcGRONUZjSjIvaWdH?=
- =?utf-8?B?V3l4a3dwK1VCb1E4YUM1azF6MFEwNkljQlpBNmxTRjFiSnBEbFFuYkhWZU5Q?=
- =?utf-8?B?VEkvWTRXejFwYjQ5U2NhN3JQZmFMVk1admdubjV2ZVgzVzJBbml5clFkY05Q?=
- =?utf-8?B?bWNvZ09DT2ZTRVFDSDJTb1BubUE1dlc5R3R4YkZMV2FDejVnQ3JwMXN6dXBq?=
- =?utf-8?B?Ym16c1dLMkpqZmJWNXRRT0wrYWhpZ0QyRkpiTTRiSlNmQlhFOUpZWEtsYkth?=
- =?utf-8?B?TXROS2ZOTkRpVEdSeVVYYWlhVXN5dlVyazNvRW5rZXVCbytJemJnNjNUSzhZ?=
- =?utf-8?B?RmcxaDZ3Z3NGOFZLbFJFZG9rTjdaOWltd2FGbjRYcWVRekF3YnVxQT09?=
-X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 4ae07855-983f-4666-cbcd-08deee17372c
-X-MS-Exchange-CrossTenant-AuthSource: DS0PR12MB7777.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 30 Jul 2026 08:47:41.4308
+	nsKGRn8d/7fIzEoZKnBiNC+wZMdmfBKxWDc43Wc70SP0pTLP35e3z4fJ4u1+fYFJo64mj7zmbN8yabeOG8u6WY74ki2VirnHY4cYJBr6jrJ9nqxfVrUtRZ1lOgMFH2CcV/8YA7Iuuz+LynTEsOWl1Bt4FfrvUHPA+K806XO7/R2iIbkRypDqTE5sSWrKki32zfwLWFE6NFIR21SuF4iKxHEWyuUolR/QRqc0dmzPHsR+jWQ8y0eSgcB3SNuCPVHz+9v0j3qet5S4ybjg4V+kQeF3vTBWinEsD8pQnA6ZDOUGmxq+0JjdYby195UPh3hRisvDsXidv9VFk6QUWn6PQOHcN4IOPLpb8H7cKmFKTL53br65ITYsd9s5B+A679fp1uYaFbM26V6LbknAkNXiOlFeQBma8yT/V3V7IWOeEUTMU3+XbA5GGnSzPvhxhccp
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 30 Jul 2026 09:18:34.3099
  (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: g35fybmOTZP0dLKbbU/MgFPLmWdJhYtlcQyLC59TC9sk+ufZiwRSkkapKsSsNH7CrVnTnl3zcYZHj5v3YWKA2Q==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH7PR12MB9175
+X-MS-Exchange-CrossTenant-Network-Message-Id: e8ef2e8a-24d9-453e-5425-08deee1b87e4
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.160];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	SN1PEPF00026367.namprd02.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CYXPR12MB9388
+
+Hi,
+
+Ingress PSP packets cannot be merged by the HW-GRO HW state machine
+because they are not decapsulated and the current HW-GRO state machine
+does not understand PSP.
+
+This series by Cosmin decapsulates PSP packets in steering, which allows
+the now-decapsulated PSP packets (== TCP) to go through HW-GRO and be
+aggregated. The SPI and PSP version from the PSP header are handed off
+to the driver in the CQE metadata fields. They are used to terminate the
+HW GRO session on mismatch, and are required to construct the skb
+extension which is used higher up in the stack.
+
+kperf tests on a pair of CX7 NICs with 200Gbps link speed:
+
+Streams   Gbps no HW-GRO   Gbps HW-GRO   Speedup
+-------   --------------   -----------   -------
+      1               28            58     2.07x
+      2               67           102     1.52x
+      4              136           180     1.32x
+      8              175           183     1.05x
+        
+Regards,
+Tariq
+
+Some internal Sashiko findings, plus Cosmin's comments:
+
+> +        cfg.wait_hw_stats_settle()
+> +        after = cfg.netnl.qstats_get({"ifindex": cfg.ifindex}, dump=True)[0]
+Could this lead to flaky test failures on multiqueue NICs?
+By hardcoding the netlink dump array access to index [0], the test statically
+verifies statistics for the first queue only. Since the test sends traffic over
+an ephemeral random port, Receive Side Scaling (RSS) will hash this 4-tuple and
+could deliver the flow to any active RX queue. If the flow lands on a queue
+other than queue 0, will the test fail to observe the hardware GRO packet
+increments?
+[CR] The premise is wrong. [0] is not queue 0, it's the result for the
+requested dev.
+> @@ -224,6 +253,28 @@ run_session(struct ynl_sock *ys, struct opts *opts,
+>                                               fprintf(stderr, "WARN: echo but no data sock\n");
+>                                       send_ack(comm_sock);
+>                               }
+> +                             if (cmd("data send")) {
+> +                                     __u32 len;
+> +
+> +                                     if (data_sock < 0) {
+> +                                             fprintf(stderr, "WARN: send but no data sock\n");
+> +                                             send_err(comm_sock);
+> +                                             continue;
+> +                                     }
+Is there a race condition between processing the control command and accepting
+the data socket?
+If the Python client initiates the data socket connection and immediately
+sends the "data send" command on the control socket, both the server_sock
+(accept queue) and comm_sock (control connection) could become readable
+simultaneously before the responder calls poll().
+Because the comm_sock is processed first in run_session():
+tools/testing/selftests/drivers/net/psp_responder.c:run_session() {
+    ...
+    /* comm sock */
+    if (pfds[1].revents & POLLIN) {
+        ...
+    }
+    /* server sock */
+    if (pfds[0].revents & POLLIN) {
+        data_sock = accept(server_sock, NULL, NULL);
+    }
+    ...
+}
+does this cause the responder to handle the "data send" command before
+accepting the data socket, resulting in data_sock < 0 and an immediate failure?
+[CR] Possible in theory, not happening in practice today because "data send" is
+only used after a few round trips from the Python test, so it is guaranteed
+that the new socket is accepted by the time the command gets executed.
+Fixing this class of races in the responder would be nice, but outside the
+scope of this series.
+> @@ -1757,11 +1755,10 @@ macsec_fs_rx_add_rule(struct mlx5_macsec_fs *macsec_fs,
+>       rx_tables = &rx_fs->tables;
+>       ft_crypto = &rx_tables->ft_crypto;
+>
+> -     /* Set bit[31 - 30] macsec marker - 0x01 */
+>       /* Set bit[15-0] fs id */
+>       MLX5_SET(set_action_in, action, action_type, MLX5_ACTION_TYPE_SET);
+>       MLX5_SET(set_action_in, action, field, MLX5_ACTION_IN_FIELD_METADATA_REG_B);
+> -     MLX5_SET(set_action_in, action, data, macsec_fs_set_rx_fs_id(fs_id));
+> +     MLX5_SET(set_action_in, action, data, fs_id);
+Does removing the BIT(30) marker from the MACsec fs_id metadata cause a
+regression by exposing RoCE MACsec to an aliasing issue?
+By removing BIT(30) from the fs_id in this patch, the fs_id written to
+METADATA_REG_B becomes a small integer (e.g., 1, 2).
+Later in mlx5_macsec_fs_add_roce_rule_rx(), the hardware rule
+ft_macsec_op_check enforces MACsec on RoCE traffic by matching
+metadata_reg_c_5 exactly against this same fs_id value.
+Could any unencrypted packet that has its REG_B set to this small integer
+by another NIC feature (such as TC rules setting packet marks, or PSP IPsec
+decryption) falsely pass the MACsec check and bypass encryption enforcement?
+[CR] Preexisting, TC rules could set the fsid to the the previous value even before.
+'PSP IPsec' decryption doesn't make sense.
+> @@ -1717,7 +1717,7 @@ void mlx5e_macsec_offload_handle_rx_skb(struct net_device *netdev,
+>       if (!macsec)
+>               return;
+>
+> -     fs_id = MLX5_MACSEC_RX_METADAT_HANDLE(macsec_meta_data);
+> +     fs_id = MLX5_MACSEC_RX_METADATA_HANDLE(macsec_meta_data);
+>
+>       rcu_read_lock();
+>       sc_xarray_element = xa_load(&macsec->sc_xarray, fs_id);
+This is a pre-existing issue, but can this xa_load() race with an immediate
+kfree() during deletion, causing a use-after-free?
+In the deletion path, mlx5e_macsec_del_rxsc() calls xa_erase() and then
+immediately frees the element without an RCU grace period:
+mlx5e_macsec_del_rxsc() {
+        ...
+        xa_erase(&macsec->sc_xarray, rx_sc->sc_xarray_element->fs_id);
+        dst_release(&rx_sc->md_dst->dst);
+        kfree(rx_sc->sc_xarray_element);
+        ...
+}
+Since mlx5e_macsec_offload_handle_rx_skb() retrieves sc_xarray_element
+locklessly under rcu_read_lock() via xa_load(), would a concurrent deletion
+result in dereferencing freed memory?
+[CR] Preexisting.
+> +static inline int mlx5e_accel_block_tc_offload(struct mlx5_core_dev *mdev)
+> +{
+> +     int ret = 0;
+> +
+> +     mutex_lock(&mdev->offload_block.lock);
+> +     if (mdev->offload_block.num_accel)
+> +             ret = -EBUSY;
+> +     else
+> +             mdev->offload_block.num_tc++;
+This isn't a bug, but does the new naming here swap the semantics of the
+variables?
+In the original logic, num_block_tc counted the number of blockers on TC
+(which are IPsec/accel rules). By renaming it to num_tc,
+mlx5e_accel_block_tc_offload() now increments num_tc when an accel rule
+is added.
+Would it be clearer to keep "block" in the names, e.g., num_block_tc, so
+it doesn't look like num_tc is tracking the number of TC rules?
+[CR] Intentional, "offload_block.num_{tc, accel}" sounds better.
+> +static inline int mlx5e_accel_block_tc_offload(struct mlx5_core_dev *mdev)
+> +{
+> +	int ret = 0;
+> +
+> +	mutex_lock(&mdev->offload_block.lock);
+> +	if (mdev->offload_block.num_accel)
+> +		ret = -EBUSY;
+> +	else
+> +		mdev->offload_block.num_tc++;
+Are the semantic meanings of the num_tc and num_accel variables inverted?
+When an Accel rule is added here in mlx5e_accel_block_tc_offload(), it
+increments num_tc.
+[CR] Same thing, it's an intentional rename.
+Change-Id: Ib52fd4bfc205ea2e4da47e07a54cc0b727cc225a
+
+Cosmin Ratiu (13):
+  net/mlx5e: Generalize TC <-> IPsec mutual exclusion
+  net/mlx5e: ipsec: Block TC offload when IPsec is enabled
+  net/mlx5e: psp: Block TC offload when PSP is enabled
+  net/mlx5e: macsec: Block TC offload when MACsec is enabled
+  net/mlx5e: psp: Move RX marker from ft_metadata to flow_tag
+  net/mlx5e: ipsec: Move RX marker from ft_metadata to flow_tag
+  net/mlx5e: macsec: Move RX marker from ft_metadata to flow_tag
+  net/mlx5e: psp: Handle HW-decapsulated RX PSP packets
+  net/mlx5e: psp: Add an rx_decap steering table
+  net/mlx5e: shampo: Flush session on PSP mismatch
+  net/mlx5e: psp: Dynamically reconfigure based on SHAMPO mode
+  selftests: drv-net: psp: Fix responder parsing
+  selftests: drv-net: psp: Add a test for PSP with HW-GRO
+
+ .../net/ethernet/mellanox/mlx5/core/en/fs.h   |   1 +
+ .../mellanox/mlx5/core/en_accel/en_accel.h    |  31 ++
+ .../mellanox/mlx5/core/en_accel/flow_tag.h    |  45 +++
+ .../mellanox/mlx5/core/en_accel/ipsec_fs.c    |  70 ++--
+ .../mellanox/mlx5/core/en_accel/ipsec_rxtx.h  |   9 +-
+ .../mellanox/mlx5/core/en_accel/macsec.c      |  34 +-
+ .../mellanox/mlx5/core/en_accel/macsec.h      |   5 +-
+ .../mellanox/mlx5/core/en_accel/psp.c         | 319 ++++++++++++++++--
+ .../mellanox/mlx5/core/en_accel/psp.h         |   2 +
+ .../mellanox/mlx5/core/en_accel/psp_rxtx.c    |  21 +-
+ .../mellanox/mlx5/core/en_accel/psp_rxtx.h    |  44 ++-
+ .../net/ethernet/mellanox/mlx5/core/en_main.c |   8 +-
+ .../net/ethernet/mellanox/mlx5/core/en_rx.c   |  32 +-
+ .../net/ethernet/mellanox/mlx5/core/en_tc.c   |  46 +--
+ .../net/ethernet/mellanox/mlx5/core/en_tc.h   |   7 +-
+ .../mellanox/mlx5/core/lib/macsec_fs.c        |  17 +-
+ .../mellanox/mlx5/core/lib/macsec_fs.h        |   9 +-
+ .../net/ethernet/mellanox/mlx5/core/main.c    |   3 +
+ include/linux/mlx5/driver.h                   |   7 +-
+ tools/testing/selftests/drivers/net/psp.py    | 129 ++++++-
+ .../selftests/drivers/net/psp_responder.c     |  87 +++--
+ 21 files changed, 763 insertions(+), 163 deletions(-)
+ create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/en_accel/flow_tag.h
 
 
-On 7/29/26 03:40, Jakub Kicinski wrote:
-> On Tue, 28 Jul 2026 16:48:25 +0530 Abhijit Gangurde wrote:
->> For the earlier PHC series [1] Leon picked up both the net/ionic and
->> RDMA changes through the rdma tree. Would you be okay with the same
->> approach for this series or would you still prefer a shared branch with
->> a PR?
->>
->> If you'd still prefer a separate PR, I can set that up.
-> Send the PR for shared parts, please, that's the normal process.
-
-I have collected both series patches on below PR,
-
-The following changes since commit f5098b6bae761e346ebcd9da7f95622c04733cff:
-
-   Linux 7.2-rc5 (2026-07-26 14:45:48 -0700)
-
-are available in the Git repository at:
-
-   https://github.com/abhijitG-xlnx/linux.git ionic_phc_rcq_shared
-
-for you to fetch changes up to 43aefbd7583f5acb3d689675028f0e49a0861ad7:
-
-   net: ionic: Fetch RCQ sign bit from firmware (2026-07-29 06:08:09 +0000)
-
-----------------------------------------------------------------
-Abhijit Gangurde (3):
-       net: ionic: register PHC for rdma timestamping
-       net: ionic: Add PHC state page for user space access
-       net: ionic: Fetch RCQ sign bit from firmware
-
-Thanks,
-Abhijit
+base-commit: 2bb54b49e9d522f54dc9c0fe10ba40fbc56041c8
+-- 
+2.44.0
 
