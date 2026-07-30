@@ -1,78 +1,71 @@
-Received: from mail-pf1-f182.google.com (mail-pf1-f182.google.com [209.85.210.182])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E678F384CC4
-	for <linux-rdma@vger.kernel.org>; Thu, 30 Jul 2026 11:44:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.182
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F2744428461;
+	Thu, 30 Jul 2026 12:42:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.156.1
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785411877; cv=none; b=Hyxn8sAhcu0qpIrA3Bey7oEWeEM9CaGsWMF+DopT2i/BYYTv3iDnRk0ZMNnFtdvrwkdnmU5W18ItOJGADAN6hvWvVSvD6XTd/5jfNM7ipJHml1H/lWZYrMz6nLtdmyopdFmzLzXwBa7rBBBFSJUhrH4KXD7caoUDWrIJjOVRrEA=
+	t=1785415363; cv=none; b=CsNNUjXhyz4TkvaLY2HAN5e9wIcQ2TCyCw6LLvWhvZUSR0CIhIMZLhLi9nFTY8uB/m5VHDJUCixgUZ/DdgKbcvG4RKa1YdocMxSLiath5fAiBD4u/p8ODvAgFaD3R9TwEKIWUqCH8ht+NIUggv5lTJqojHg5UUWOIyenUcihJyI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785411877; c=relaxed/simple;
-	bh=k2DFnSUAYjUcmbd+6TchyY8n8uA7dVzhzQtvixzuO68=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=f1gVlCjOdi9ePX42jsN0eFbLqidwP9X6bT16ahChuwfZnC15PvX5zJBBvZzW4w0Ji0oA0x2Qvs/D5aVCL8ZqgAoRutNgkByMNeFpYJ+9ZPBz/QHJvVqgEE3X0Q+QTu7Ryekg4IGakUaUSQc2aFVTR4pAVg1RTqrYbBZjlSr9PKo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=isslab.korea.ac.kr; spf=none smtp.mailfrom=isslab.korea.ac.kr; dkim=pass (2048-bit key) header.d=isslab-korea-ac-kr.20251104.gappssmtp.com header.i=@isslab-korea-ac-kr.20251104.gappssmtp.com header.b=XXl20C3Y; arc=none smtp.client-ip=209.85.210.182
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=isslab.korea.ac.kr
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=isslab.korea.ac.kr
+	s=arc-20240116; t=1785415363; c=relaxed/simple;
+	bh=djzoND6+I9bMLJT6Ve+hVfa211MF+DaRgfvQC0m5HbM=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=rszYuqDxXWdidJnnNoRGFWjG11yL3MHQXnYL1RfzSjAQu/P1HZt1g6/ZCrGP9TJFg8h/tNboaCjVsqqd530af3dLcvohXkjv8RhyqYpRd0RgN4XFyZ5EUQmwiuWb1qowtZBgs8d/zyZGYo5ipmgef9ts6362jZXn5+S/LasYCQU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=aObKH4rw; arc=none smtp.client-ip=148.163.156.1
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=isslab-korea-ac-kr.20251104.gappssmtp.com header.i=@isslab-korea-ac-kr.20251104.gappssmtp.com header.b="XXl20C3Y"
-Received: by mail-pf1-f182.google.com with SMTP id d2e1a72fcca58-8485ef63b68so2303056b3a.1
-        for <linux-rdma@vger.kernel.org>; Thu, 30 Jul 2026 04:44:35 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=isslab-korea-ac-kr.20251104.gappssmtp.com; s=20251104; t=1785411875; x=1786016675; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=ZI/MFyfx0WYz9jr3ngUFK+Bz6mDWD6yJMRG/ycoLydg=;
-        b=XXl20C3YzK/Ks/8u94jLe6pO4Doh1pNlHfD9Z+cNqlZb6IbBOQwek3PqW0RkXZGeLV
-         KcAVzqVgT88f2mxSbx41EPzUTPOuEwCX+B4xZOmDH5wXk8dxtALqut0yJ96GUfg79D50
-         KqqooKPj9vijnbSoF0+HEEKYobAWrVBEWSP7kiqUIXnxpGayd2yqkcXguZ9TDJ07yePO
-         LGCQ8n1qLnVhfjCe73WvmOYM9HbG7PkLqI2KSmxV9GOQ6EcGhTwEwPBXE9llEqhNMUYo
-         J1jw87bZ92EwESTVBncIJp4McJtecD9PN16VLqiX21CEfcUnxTCVQWmv1QrVLdGxKJOo
-         EMGQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1785411875; x=1786016675;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=ZI/MFyfx0WYz9jr3ngUFK+Bz6mDWD6yJMRG/ycoLydg=;
-        b=KulA7YA/Zr0cZ6//pEOlorAHltjgOL4/lW61jS68cBC8GPUeqlAqRXA76OkHHWQu4b
-         O+A+eWWPOw99O14Cyu+CUstyzDPJulIIRFYRtSIzodL5pCbuY6us7ePDjLO1yZI9UDxX
-         4/sqlYt19g063MhDAXLPVY9Hgq/rGW/h4bqBNdWi2BuU/bxsben34xgk8vxifvOl/MaM
-         kwe7BwPCQam8OtiqzetyGOkfNwx85jcYmPArjxIqVRwcX4penOYhDePysQ95PuRB8y4p
-         fQvPbOjCKg8c3vLOUWXOeyPtBngJYooqijERhPSE3IPh3//U01ZSbnUCdU7F6GbagBK+
-         jLCA==
-X-Forwarded-Encrypted: i=1; AHgh+RqEej7Bb7oKZ1pKvKGli8oabWVFYck1TC/N731uq3s192yuU9CYh4KVEnhI4FsDRT1PorVoumiQ/bkG@vger.kernel.org
-X-Gm-Message-State: AOJu0YxslCsss0IJ5ty3r8s7eCJk7us5ac3yYoTQMV54bZx41Y0nYXUs
-	7nE74N9B6ZgK47qAPfMPU3V+rnFDbLfnO5FJxdw0aiFRrhc07xeircvs255jLweuhpQ=
-X-Gm-Gg: AR+sD12qoYN1DCbMD7Fvu8uEQ9xgFCCB1QYiAlKHTpvnaghiXLTMJyKW6voUJnM1MlJ
-	ux8aKScrfj/ipeb4tLBxWhJLbNSmEe/LG12vNqae42vwtpqM6w0VlX/QBKF11uK5vqoxwZEg5az
-	XfRBoHDJGGlHVsYHM+N1oR82rjBL9MemoFHWqB0MNnMwOMbzTLDp4S5l+deI4xpsvoUg893kG0/
-	JsN27QZ5tKIxmTNaPX5IsE00gk779HuQCdhL5DkCOhEQWKLOfgCcakkG416cB7tTwdUtdmLP1PA
-	DNJekt02YTZ+TqjLt4m6LhduDMAYUcZZhCmJ+3SzImpN6FUzyDxAQVn9rksqKUazhqqSgyZER9P
-	8B8QGTK5t6FobbHh6EizNHelOaWVzAHYPHMFo7j1GcYbmG8MfPgxk9KmYGIUnM40ckSNAxg5sQ2
-	W/ix5iwpRBPSHr20H0BU3cFRkv228k4IGZvRY+2bYSpH9SHSuf+jUcO7SeMDbXuJmWHd+Z
-X-Received: by 2002:a05:6a00:240a:b0:848:3d18:2700 with SMTP id d2e1a72fcca58-84ebc46f7a8mr2193712b3a.71.1785411875276;
-        Thu, 30 Jul 2026 04:44:35 -0700 (PDT)
-Received: from yhlee-960QFG.. ([125.131.91.97])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-84ea02fa4c9sm2999201b3a.32.2026.07.30.04.44.33
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 30 Jul 2026 04:44:34 -0700 (PDT)
-From: Yehyeong Lee <yhlee@isslab.korea.ac.kr>
-To: sagi@grimberg.me,
-	jgg@ziepe.ca,
-	leon@kernel.org
-Cc: michael.christie@oracle.com,
-	martin.petersen@oracle.com,
-	linux-rdma@vger.kernel.org,
-	target-devel@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2 1/2] IB/isert: delay the final Login Response until the session is registered
-Date: Thu, 30 Jul 2026 20:44:21 +0900
-Message-ID: <20260730114421.1605304-1-yhlee@isslab.korea.ac.kr>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20260730063124.1554460-1-yhlee@isslab.korea.ac.kr>
-References: <20260730063124.1554460-1-yhlee@isslab.korea.ac.kr>
+	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="aObKH4rw"
+Received: from pps.filterd (m0360083.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 66UAHhew2709036;
+	Thu, 30 Jul 2026 12:42:33 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
+	:content-transfer-encoding:date:from:message-id:mime-version
+	:subject:to; s=pp1; bh=Neh5A43Vld1XWH3gCiCLoKz8u1yOTqDmC2j7K6d01
+	kw=; b=aObKH4rwYDAdl4BpxO9vlmPEEu9JF1ljV23hdo8NwBVnyjh3ysq2MQAM1
+	YHVmUmUP5HaKzr55X7OhTgL0x+1gp6Hqr0VVNDhza1iJ0GVvw3z1FM5MdnZaIVfy
+	SppT58PmQFD1v1nHVr+mwuhuKLpSCufI4O592+mcJsbQw2NtmCojdJcODHWqK2tC
+	/peri/nm3AiZTGN9ntqwMSOZeT+lDsKNt2TDLO2x3ugHiPVSBPhaL2VyrDPCyQ5/
+	776aXzJrZJVGRFiFM9kHhM8BbZMAdXH5pnrFduy/lkxW41wGBWxviT8in5CSUegL
+	os5ofNUhxZoHjXLdglsOPv7KEF0Ew==
+Received: from ppma23.wdc07v.mail.ibm.com (5d.69.3da9.ip4.static.sl-reverse.com [169.61.105.93])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 4fmuw7qqe9-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Thu, 30 Jul 2026 12:42:33 +0000 (GMT)
+Received: from pps.filterd (ppma23.wdc07v.mail.ibm.com [127.0.0.1])
+	by ppma23.wdc07v.mail.ibm.com (8.18.1.7/8.18.1.7) with ESMTP id 66UCfNF8031790;
+	Thu, 30 Jul 2026 12:42:32 GMT
+Received: from smtprelay07.fra02v.mail.ibm.com ([9.218.2.229])
+	by ppma23.wdc07v.mail.ibm.com (PPS) with ESMTPS id 4fn8yhk81c-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Thu, 30 Jul 2026 12:42:31 +0000 (GMT)
+Received: from smtpav06.fra02v.mail.ibm.com (smtpav06.fra02v.mail.ibm.com [10.20.54.105])
+	by smtprelay07.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 66UCgRkq47972830
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Thu, 30 Jul 2026 12:42:28 GMT
+Received: from smtpav06.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id D60D820049;
+	Thu, 30 Jul 2026 12:42:27 +0000 (GMT)
+Received: from smtpav06.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 7C49F20040;
+	Thu, 30 Jul 2026 12:42:27 +0000 (GMT)
+Received: from t83lp68.lnxne.boe (unknown [9.87.84.240])
+	by smtpav06.fra02v.mail.ibm.com (Postfix) with ESMTP;
+	Thu, 30 Jul 2026 12:42:27 +0000 (GMT)
+From: Hidayath Khan <hidayath@linux.ibm.com>
+To: davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
+        pabeni@redhat.com, wintera@linux.ibm.com, alibuda@linux.alibaba.com,
+        dust.li@linux.alibaba.com, sidraya@linux.ibm.com, wenjia@linux.ibm.com
+Cc: mjambigi@linux.ibm.com, tonylu@linux.alibaba.com, guwen@linux.alibaba.com,
+        horms@kernel.org, hca@linux.ibm.com, gor@linux.ibm.com,
+        agordeev@linux.ibm.com, borntraeger@linux.ibm.com, svens@linux.ibm.com,
+        pasic@linux.ibm.com, gbayer@linux.ibm.com, andrew+netdev@lunn.ch,
+        netdev@vger.kernel.org, linux-s390@vger.kernel.org,
+        linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
+        hidayath@linux.ibm.com
+Subject: [PATCH net] dibs: initialise dibs->lock in dibs_dev_alloc()
+Date: Thu, 30 Jul 2026 14:42:27 +0200
+Message-ID: <20260730124227.167829-1-hidayath@linux.ibm.com>
+X-Mailer: git-send-email 2.52.0
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -80,22 +73,91 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+X-TM-AS-GCONF: 00
+X-Proofpoint-Reinject: loops=2 maxloops=12
+X-Proofpoint-GUID: kufcna7hGJkClU4YDK8ygFbZJyayLZO_
+X-Proofpoint-ORIG-GUID: KQ4F-bSYKGmQSNGBhfhDMCd_6j-8TMkx
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNzMwMDA5MyBTYWx0ZWRfXzo3b05l3Ghw7
+ Mn9ivJ17xHJ2eIXOUpyqpctgbSidKzEvWNqFXY+mdVoq96g8u3QCowmqCKUl6YVHAcr9GwHtOEO
+ WGGHA7V+USchJrvD8XCGUsQoMBB6oIl2DlYfMxFNcvX+GWPD6DKAxv/txJC1G8yiQ/glvT+WxpN
+ 0rTh9vMy8iOIqP57WPjcVAKERn6elY48saJ1ybh0JbTm8NA9lxqL8iV8I90Cxe/ItIXn0GVAgPd
+ aJwuf9NMBySPx/b7d6ty/miXBM6M8UugS0MSAlaR9LZoB+/jM13ppmnXU0JuOeXtN6/ja13fz4D
+ Anfq/m29Vz4oveuzR9dF9XDkhn/SmgUKmtq38qf6FhoIqFvi/naD+rcKItnt+OgP9GAgkiODzDF
+ 39qp+HoMt4MifLCc8DpHNAHpFWDPpX1bMtjwg/T+R/U4Bx5kM4OQQ1XYGcSs86BxVYsD+lraJJx
+ r40LzyZtrIxioxcvoSg==
+X-Authority-Analysis: v=2.4 cv=SKFykuvH c=1 sm=1 tr=0 ts=6a6b46b9 cx=c_pps
+ a=3Bg1Hr4SwmMryq2xdFQyZA==:117 a=3Bg1Hr4SwmMryq2xdFQyZA==:17
+ a=RAioF0-LDSMA:10 a=VkNPw1HP01LnGYTKEx00:22 a=RnoormkPH1_aCDwRdu11:22
+ a=iQ6ETzBq9ecOQQE5vZCe:22 a=VwQbUJbxAAAA:8 a=VnNF1IyMAAAA:8
+ a=RQjwLAIJwXB5NLIMB7kA:9
+X-Proofpoint-Spam-Info: AW1haW4tMjYwNzMwMDA5MyBTYWx0ZWRfX2GUs+aH2u5CE
+ jFrZXxnXp2VuDvdRiO9Qggb/vyz2WzzSGn2KJFjKq/F+6/04I/HxMGb8cVq7V3R6sHwoACZ0l8P
+ BulpKdYs5qSh3tyvOpfnW7sLFKplFCc=
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1143,Hydra:6.1.134,FMLib:17.12.100.49
+ definitions=2026-07-30_03,2026-07-29_01,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ priorityscore=1501 malwarescore=0 clxscore=1015 adultscore=0
+ lowpriorityscore=0 bulkscore=0 impostorscore=0 phishscore=0 spamscore=0
+ suspectscore=0 classifier=typeunknown authscore=0 authtc= authcc=
+ route=outbound adjust=0 reason=mlx scancount=1 engine=8.22.0-2606150000
+ definitions=main-2607300093
 
-Sashiko flagged two things on this v2, so please do not apply it as it
-stands.
+dibs->lock is initialised by dibs_dev_add(), but a dibs device can
+already take interrupts before that call: ism_probe() runs
+ism_dev_init(), and hence request_irq(), before it calls
+dibs_dev_add(). No client can have registered a dmb at that point, so
+no dmb interrupt can occur, but a GID event interrupt can, and
+ism_handle_irq() takes dibs->lock unconditionally on entry, before it
+inspects anything else.
 
-1/2 leaks the login_tx_desc DMA mapping when the connection is torn down
-before isert_get_rx_pdu() posts the delayed response.  Nothing unmaps it:
-isert_login_send_done() never runs, and isert_connect_release() does not
-touch login_tx_desc.dma_addr.
+Initialise the lock in dibs_dev_alloc() instead, so that it is valid as
+soon as a driver can publish the device to its interrupt handler.
 
-2/2 reads isert_conn->state with READ_ONCE() in isert_recv_done().  A
-control dependency does not order the loads that follow, so the se_tpg
-dereference in isert_rx_opcode() can be hoisted ahead of the check; it
-needs smp_load_acquire().
+Fixes: cc21191b584c ("dibs: Move data path to dibs layer")
+Cc: stable@vger.kernel.org
+Reviewed-by: Alexandra Winter <wintera@linux.ibm.com>
+Signed-off-by: Hidayath Khan <hidayath@linux.ibm.com>
+---
+ drivers/dibs/dibs_main.c | 2 +-
+ include/linux/dibs.h     | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-I will send v3 with both, and with the error path logging the value it
-actually tested.
+diff --git a/drivers/dibs/dibs_main.c b/drivers/dibs/dibs_main.c
+index 14c3e2d84902..4c26fd06973f 100644
+--- a/drivers/dibs/dibs_main.c
++++ b/drivers/dibs/dibs_main.c
+@@ -138,6 +138,7 @@ struct dibs_dev *dibs_dev_alloc(void)
+ 	dibs = kzalloc_obj(*dibs);
+ 	if (!dibs)
+ 		return dibs;
++	spin_lock_init(&dibs->lock);
+ 	dibs->dev.release = dibs_dev_release;
+ 	dibs->dev.class = &dibs_class;
+ 	device_initialize(&dibs->dev);
+@@ -186,7 +187,6 @@ int dibs_dev_add(struct dibs_dev *dibs)
+ 	int i, ret;
+ 
+ 	max_dmbs = dibs->ops->max_dmbs();
+-	spin_lock_init(&dibs->lock);
+ 	dibs->dmb_clientid_arr = kzalloc(max_dmbs, GFP_KERNEL);
+ 	if (!dibs->dmb_clientid_arr)
+ 		return -ENOMEM;
+diff --git a/include/linux/dibs.h b/include/linux/dibs.h
+index c75607f8a5cf..d3e0777f25ae 100644
+--- a/include/linux/dibs.h
++++ b/include/linux/dibs.h
+@@ -439,7 +439,7 @@ static inline void *dibs_get_priv(struct dibs_dev *dev,
+ /**
+  * dibs_dev_alloc() - allocate and reference device structure
+  *
+- * The following fields will be valid upon successful return: dev
++ * The following fields will be valid upon successful return: dev, lock
+  * NOTE: Use put_device(dibs_get_dev(@dibs)) to give up your reference instead
+  * of freeing @dibs @dev directly once you have successfully called this
+  * function.
 
-Best regards,
-Yehyeong
+base-commit: 10019318fb9fd64fda6ed43f9b34d0c9077d5802
+-- 
+2.52.0
+
