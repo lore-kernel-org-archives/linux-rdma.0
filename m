@@ -1,70 +1,84 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi1-f197.google.com (mail-oi1-f197.google.com [209.85.167.197])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2C90438757C;
-	Thu, 30 Jul 2026 20:13:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C7EE385521
+	for <linux-rdma@vger.kernel.org>; Thu, 30 Jul 2026 20:32:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.197
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785442393; cv=none; b=SLpT0JtO5WKFWQzs4xk3CrcImByUxnF9Q3SF+j9z6gLoQlwPUADc6PTLvHMhGjAM8HrNQ2+WSc89snaJvwP5ofFgvTddJPUG2+r9RiEz8IhmNUA+9g/2KU1wLlEssgG3B5IxmIUvDUKtY4PJO1kHr69fWsXP9+WSEWF6BQu8i90=
+	t=1785443568; cv=none; b=huSfQ2fLYazkJsQeZKZ+z4zUuBMgW/2e+VwBmudTzrP4RrolTVKzAF1PG0xRpq1r/xSI81MIWPc9ojUwRx12ckFC4A6SlWg9DXIotTjHRMaDfaVjIWogRXH4S5/u9ULgYa142VsdW+zY0EzZYz2CqP9Sqq2Yoju0VBC2/u1Lv8E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785442393; c=relaxed/simple;
-	bh=4JXKWABCRw8ktBnzJUvFz1gfjrwaVinTbE68vFeeI9Y=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=soAL7/pDEmYXBDiRrG3N5T0OPpLgC5Hfa3Q+07kM5ARNhkJmztM7gFgECMCF9C3WvUr6XZI786CsbdBX4Na6pmNMISV2pGJrRwBHV8Zmjtvd5V7Pz074NToaKlZDlh0kYu+iNJ11FPorkmQv48Dj9Wfcil/2XJE8utI7f1G4BpU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=WEZAPKQs; arc=none smtp.client-ip=100.103.45.18
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="WEZAPKQs"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B7F1E1F000E9;
-	Thu, 30 Jul 2026 20:13:10 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1785442391;
-	bh=4JXKWABCRw8ktBnzJUvFz1gfjrwaVinTbE68vFeeI9Y=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References;
-	b=WEZAPKQsFs0JcaAkzNyNiousiKXZcUitZqPGLCvV4JjU2EB3zhEYiPRXnY6O4ZyqT
-	 fgp23ejOXwndloa42GegzDV6iuoJw1zShT18Yzyl2Z3BZ9gFS2pGJje0NspILa1mDC
-	 4+ySAd1CFxLeLquNJymLpA8UgXHbo9QxHq1pyc/UB9G12lUh9U5RuHcuEYc30kavh4
-	 3kXwiMOIccvlmAMMRPs4tucULC1+F8clFC1rKXMlrTbfBQQt7T5EgLsE5k4cIJn4RM
-	 nicF48qX663n2LNrtVRWanQa2D68qQd6xlKDrHouaxo20U1bR4xuD/erfn6BdSvt8Y
-	 oEp2U0FvCM9hw==
-Date: Thu, 30 Jul 2026 13:13:10 -0700
-From: Jakub Kicinski <kuba@kernel.org>
-To: Tariq Toukan <tariqt@nvidia.com>
-Cc: Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller"
- <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
- netdev@vger.kernel.org, Paolo Abeni <pabeni@redhat.com>, Sabrina Dubroca
- <sd@queasysnail.net>, Aleksandr Loktionov <aleksandr.loktionov@intel.com>,
- Alexei Lazar <alazar@nvidia.com>, Boris Pismenny <borisp@nvidia.com>,
- Carolina Jubran <cjubran@nvidia.com>, Chris Mi <cmi@nvidia.com>, Cosmin
- Ratiu <cratiu@nvidia.com>, Daniel Zahka <daniel.zahka@gmail.com>, Doruk Tan
- Ozturk <doruk@0sec.ai>, Dragos Tatulea <dtatulea@nvidia.com>, Gal Pressman
- <gal@nvidia.com>, Jacob Keller <Jacob.e.keller@intel.com>, Jianbo Liu
- <jianbol@nvidia.com>, Kees Cook <kees@kernel.org>, Lama Kayal
- <lkayal@nvidia.com>, Leon Romanovsky <leon@kernel.org>,
- linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org,
- linux-rdma@vger.kernel.org, Mark Bloch <mbloch@nvidia.com>, Patrisious
- Haddad <phaddad@nvidia.com>, Raed Salem <raeds@nvidia.com>, Rahul
- Rameshbabu <rrameshbabu@nvidia.com>, Saeed Mahameed <saeedm@nvidia.com>,
- Shuah Khan <shuah@kernel.org>, Shuah Khan <skhan@linuxfoundation.org>,
- Simon Horman <horms@kernel.org>, Stanislav Fomichev <sdf@fomichev.me>,
- Stanislav Fomichev <sdf.kernel@gmail.com>
-Subject: Re: [PATCH net-next 12/12] net: psp: Add a self test for PSP with
- HW-GRO
-Message-ID: <20260730131310.43308d17@kernel.org>
-In-Reply-To: <d90068b2-8c88-4675-9e51-62f1ce72966f@nvidia.com>
-References: <20260730091756.2543777-1-tariqt@nvidia.com>
-	<20260730091756.2543777-13-tariqt@nvidia.com>
-	<d90068b2-8c88-4675-9e51-62f1ce72966f@nvidia.com>
+	s=arc-20240116; t=1785443568; c=relaxed/simple;
+	bh=WyaZeDaSmaZz4aefQnsEp0X8Ho0MTA2+LBQ9kq2sE3Q=;
+	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=ig9aGQXW2+QFL/FueMt9wAJPwD9Na3aF6i3v6ikw4vFAsNJVQK7Q2/HNb9Xcwi3Zha130IOBu2YW5bjirPbIxsI78Sak9IwQey1SD6s1F1C8+6bfxDLvN7WPVFOga3oOnNtSURhmynsG9bg57Z+2SrGkPDVp3UudeGPHqTNgoX0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.167.197
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
+Received: by mail-oi1-f197.google.com with SMTP id 5614622812f47-4ab8b646492so547060b6e.0
+        for <linux-rdma@vger.kernel.org>; Thu, 30 Jul 2026 13:32:44 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1785443563; x=1786048363;
+        h=content-type:to:from:subject:message-id:date:mime-version
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=IvDwRej/Thi5PVj8KH8eiqSedPvmtY+THfrIbPr9ZcA=;
+        b=NB18mer4TpNrOKdodqvO7mc5K0ZKwUwwR44Ezaykt1Glz4s1aZ7wB8rmEXT8dLaWHA
+         EZgC8qaqhHTe2yK9ZMxNGXETAWV9NYvP80mnuBEc33Y6rnoXrPn9HDGjtQrLfHh0ZgX1
+         OPiD7bDP90bUFduqYRUHjDA8s38M4wbRlKyKmO9lALsok2O55o0trywP2IhtLT36UX91
+         HyBIux8SMvtiitltLO/31UW73cGZcZicszepdfOWk7pZLETYbitB2k0QXg/jUltDJS9z
+         YhMInsUMS32dP+pk+vZG/Wjt3z70hr621ifubjwJ02t51h6PAjX6tWMQsTs6G4M2jeRj
+         a9Rg==
+X-Forwarded-Encrypted: i=1; AHgh+RpPSUPGVUKbwjLBUukWm1AIzswhs6v6fPtSK+oai/gieclp6t8ovKZJlGwrpPNc3VT9Y7f/b+vxjcBI@vger.kernel.org
+X-Gm-Message-State: AOJu0YyBYnR/1dz5nXWcZn8SebBZgvTTgGEIveoTs6z/5GWOlzZ9rQZi
+	WLaCVbuApQ/+Kx41Zkri+ns7qfu65BP++bj5tatltxoZBLLYYBlvVdzqHS7DkPbEElZWHunrU5F
+	D9BmcK06i0jm6TXhZdJaZP3KcDmvKQFcY6lNPVPGj0GSGEfrRgA2kSkH6quA=
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+X-Received: by 2002:a05:6808:1911:b0:497:da47:df4d with SMTP id
+ 5614622812f47-4ad9515cef2mr1998929b6e.16.1785443562882; Thu, 30 Jul 2026
+ 13:32:42 -0700 (PDT)
+Date: Thu, 30 Jul 2026 13:32:42 -0700
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <6a6bb4ea.1b55b669.19788.0013.GAE@google.com>
+Subject: [syzbot] Monthly rdma report (Jul 2026)
+From: syzbot <syzbot+list4bb62e5038194d692446@syzkaller.appspotmail.com>
+To: linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, 
+	syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
 
-On Thu, 30 Jul 2026 12:58:07 +0300 Tariq Toukan wrote:
-> Oh, please ignore this one. Sent by mistake.
-> It's a leftover I had locally.
+Hello rdma maintainers/developers,
 
-Ack, looks like patchwork did the right thing so all good
+This is a 31-day syzbot report for the rdma subsystem.
+All related reports/information can be found at:
+https://syzkaller.appspot.com/upstream/s/rdma
+
+During the period, 0 new issues were detected and 0 were fixed.
+In total, 5 issues are still open and 70 have already been fixed.
+There is also 1 low-priority issue.
+
+Some of the still happening issues:
+
+Ref Crashes Repro Title
+<1> 1245    Yes   WARNING in rxe_pool_cleanup
+                  https://syzkaller.appspot.com/bug?extid=221e213bf17f17e0d6cd
+<2> 172     No    INFO: task hung in add_one_compat_dev (3)
+                  https://syzkaller.appspot.com/bug?extid=6dee15fdb0606ef7b6ba
+<3> 6       Yes   KASAN: slab-use-after-free Read in ucma_create_uevent
+                  https://syzkaller.appspot.com/bug?extid=a6ffe86390c8a6afc818
+
+---
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
+
+To disable reminders for individual bugs, reply with the following command:
+#syz set <Ref> no-reminders
+
+To change bug's subsystems, reply with:
+#syz set <Ref> subsystems: new-subsystem
+
+You may send multiple commands in a single email message.
