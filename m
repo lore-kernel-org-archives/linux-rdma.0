@@ -1,142 +1,189 @@
-Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+Received: from bg5.exmail.qq.com (bg5.exmail.qq.com [43.154.197.177])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8FB49388E7A;
-	Thu, 30 Jul 2026 07:56:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.158.5
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 397FC3B1EC8;
+	Thu, 30 Jul 2026 08:41:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=43.154.197.177
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785398202; cv=none; b=qrYE/ckLUmyQo3LxtfloD/lnKPDBnCT6zg7zAHVq0IT0LY7+Rsiivxk9WeTih1e8eIrOMmTU2F+f6FIaNvD7SgSeVRah7VSb+J5qaeq8gcQBDgYcXXjSsDFMl32FclqgaXf6rkWvu8hLIPAssIK2yZRrzFO3CtcAbHB3BTtDoLI=
+	t=1785400916; cv=none; b=YERGHZNPvDlGLkId0I8zhS2XNPlto4zYt/HWrt52dl609DF4e+qnTQWQypqdcdFc8KhDa9fDINEyN8+IBkRav8G+E7h+qq6cQZw1D1yUDVCMsaG6bqODo6JXz8R9un1IvO/fxkzZiJ52wXQYZQJNmj2vQxW3111iHh1FbiN3xT4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785398202; c=relaxed/simple;
-	bh=lfCd83wlnK2yYwxnTrJj6bXjEBCsKfR1al4IeWNcH28=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=l75TWbCB75AWeww0nPKIOJnvEbMHwbowZ4gzlE8IB87xkgk5/FUexER7oWdVqiVw6yL6SeKVpPYXeGhkIi3opq0kucDoAvvCf1x0utbaZDbehaf5VAB9ucQbmLqGEEku5xFolMYw6S7NgIyLlHRvohxSaeS8RPaCm2D3ExzqVHg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=mAx8AFz0; arc=none smtp.client-ip=148.163.158.5
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
+	s=arc-20240116; t=1785400916; c=relaxed/simple;
+	bh=apjhd9r5UvB7eHFNTFhR4E4YEaHbrTTXlPeMenFgZPI=;
+	h=Message-ID:Date:MIME-Version:From:Subject:To:Cc:Content-Type; b=WhDAqeRu0f+aMGvsT09iGbhxuUV0R3nBuxLcRh+XR1qDRx7pSCTsol1nQOjTusDGtaohrh+15WU/l8urmElBmzyyxJYyi6XSDgtaGVAtgvAcA5Lg3kNeSRG/3NCYKAs50JTWXQAVV6bF0SZ0z8uv0+hno6krxjasu1R5JhVWYYk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=smail.nju.edu.cn; spf=pass smtp.mailfrom=smail.nju.edu.cn; dkim=pass (1024-bit key) header.d=smail.nju.edu.cn header.i=@smail.nju.edu.cn header.b=w37upvcU; arc=none smtp.client-ip=43.154.197.177
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=smail.nju.edu.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=smail.nju.edu.cn
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="mAx8AFz0"
-Received: from pps.filterd (m0356516.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 66U6ll192193257;
-	Thu, 30 Jul 2026 07:56:30 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
-	:content-transfer-encoding:date:from:message-id:mime-version
-	:subject:to; s=pp1; bh=i5Foh+HxRSdT7/xEiUWmClXolFVnL3jAUjnokCpK5
-	eU=; b=mAx8AFz0scb27SKUDoAQW6a5Yk+CctCQshbLRZkxzxECGG25wV6gzjgFb
-	xZI58ijL30VSJAAC3tqH255A69TapwXOmygznSL79nyNraMY/FqgVmDk5ozmG5Vx
-	qiP6Q5aIaPywL8I3OSzV7t3L54Lp4pVg4PJVzm32ciHP7afVuX9xASD9TyOQAliQ
-	n2PJkw/QnviInABiFpOimckD7Yhn0wNg1rtHL6QCucah2VTwHQjSchRC5syyaCIB
-	vVlNdf7Fp7xArfYwvKlbMJGT9IPef/iSm1YKIxhYeySOZLSi8FTeFwSjaoEgbKfL
-	dUo8Hg8QS7TUdwuKBJusxzcDJl1yg==
-Received: from ppma22.wdc07v.mail.ibm.com (5c.69.3da9.ip4.static.sl-reverse.com [169.61.105.92])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 4fmuyjdtcf-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Thu, 30 Jul 2026 07:56:29 +0000 (GMT)
-Received: from pps.filterd (ppma22.wdc07v.mail.ibm.com [127.0.0.1])
-	by ppma22.wdc07v.mail.ibm.com (8.18.1.7/8.18.1.7) with ESMTP id 66U7uQOB021168;
-	Thu, 30 Jul 2026 07:56:29 GMT
-Received: from smtprelay07.fra02v.mail.ibm.com ([9.218.2.229])
-	by ppma22.wdc07v.mail.ibm.com (PPS) with ESMTPS id 4fn7uwagd9-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Thu, 30 Jul 2026 07:56:29 +0000 (GMT)
-Received: from smtpav02.fra02v.mail.ibm.com (smtpav02.fra02v.mail.ibm.com [10.20.54.101])
-	by smtprelay07.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 66U7uOtC33620258
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Thu, 30 Jul 2026 07:56:24 GMT
-Received: from smtpav02.fra02v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id BBB232004E;
-	Thu, 30 Jul 2026 07:56:24 +0000 (GMT)
-Received: from smtpav02.fra02v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 621712004B;
-	Thu, 30 Jul 2026 07:56:24 +0000 (GMT)
-Received: from t83lp68.lnxne.boe (unknown [9.87.84.240])
-	by smtpav02.fra02v.mail.ibm.com (Postfix) with ESMTP;
-	Thu, 30 Jul 2026 07:56:24 +0000 (GMT)
-From: Hidayath Khan <hidayath@linux.ibm.com>
-To: davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
-        pabeni@redhat.com, wintera@linux.ibm.com, alibuda@linux.alibaba.com,
-        dust.li@linux.alibaba.com, sidraya@linux.ibm.com, wenjia@linux.ibm.com
-Cc: mjambigi@linux.ibm.com, tonylu@linux.alibaba.com, guwen@linux.alibaba.com,
-        horms@kernel.org, hca@linux.ibm.com, gor@linux.ibm.com,
-        agordeev@linux.ibm.com, borntraeger@linux.ibm.com, svens@linux.ibm.com,
-        pasic@linux.ibm.com, gbayer@linux.ibm.com, andrew+netdev@lunn.ch,
-        netdev@vger.kernel.org, linux-s390@vger.kernel.org,
-        linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH net] dibs: fix double free of dmb_clientid_arr
-Date: Thu, 30 Jul 2026 09:56:24 +0200
-Message-ID: <20260730075624.114778-1-hidayath@linux.ibm.com>
-X-Mailer: git-send-email 2.52.0
+	dkim=pass (1024-bit key) header.d=smail.nju.edu.cn header.i=@smail.nju.edu.cn header.b="w37upvcU"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=smail.nju.edu.cn;
+	s=iohv2404; t=1785400861;
+	bh=GAHjhCBLNuGvAh8q0u/dFOpGqYQA5X4ZySIOtS+l+7A=;
+	h=Message-ID:Date:MIME-Version:From:Subject:To;
+	b=w37upvcUM6o8LIBU+ybiukDDwWGWhgqjKFSeQsdi33JsxM/zJSc+g7OB4guH0qE5i
+	 um1BjRhrtxUKrunOyOhEa2ZuKoWEKqRPlrCeOQS0n1uS0mRPIThTPYHTMBb+rlaHqk
+	 I3JBKLTt7xAT4NWBqtloWzt8T2F8rNNS4rqrADCw=
+X-QQ-mid: zesmtpgz9t1785400855tf7babf9d
+X-QQ-Originating-IP: oMc/JOueqwKVTVYxJrn96jiZuDv05Lmm197nDx/zw9U=
+Received: from [127.0.0.1] ( [36.152.24.129])
+	by bizesmtp.qq.com (ESMTP) with 
+	id ; Thu, 30 Jul 2026 16:40:54 +0800 (CST)
+X-QQ-SSF: 0000000000000000000000000000000
+X-QQ-GoodBg: 0
+X-BIZMAIL-ID: 11374830614792658596
+Message-ID: <357830C4A3236804+c7b5ccba-01ba-468f-97c8-cb6053a8b771@smail.nju.edu.cn>
+Date: Thu, 30 Jul 2026 16:40:54 +0800
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-TM-AS-GCONF: 00
-X-Proofpoint-Reinject: loops=2 maxloops=12
-X-Proofpoint-Spam-Info: AW1haW4tMjYwNzMwMDA1NSBTYWx0ZWRfXwavfkeF4/Kt6
- JoOxs/lXNV6ejkeSz1wRu5cOxKjFHpgXqn9EAInIQP5m82MxQBZUhhAx5yxSuKl+3ZwU+b2yM9z
- PbvmGmEyCXzmRM3SHEW1J4GHcJVXYg0=
-X-Proofpoint-GUID: Qknss0pyhU9cLSpgH2kGICeVnBYw5r1C
-X-Proofpoint-ORIG-GUID: eu5Yn7kJEpYarRcB3EoH6X1j_meabnsC
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNzMwMDA1NSBTYWx0ZWRfXy6i7XPPWhEC7
- Eo6LIkLVau9jMO9pmu0RBXpcx1FmyRZ6mZmq5mxkpzCmh5ifUuE0xkCIyaEA6Ofozrv1bsXQJ73
- vm2hXSmPLJU3u/lXlIyOCtdeLac80M3WlwfFKVH7pNXep71+x4TvxGfnCAgjyRWzdC6K+ApzFOl
- eybYCmjZYnueOJBx8+ypwcs9JZ0G9l/R71Smr0aerNYpYmVRGdBY0rwYBqdeIeCzjzwvGh21J3Y
- d7fduZ4jtjfqrxdQb9NofP1ptMYAtI4fWlIQxzDGae4E6H4l7PVEoMRyyzCTjV6DLyiCag61diS
- moBsSqzV80ZQbjOzyhv2F3kJ2bTIFsJL0ZmN4agGYD3rX7KKBTtgsOlwvJqXD6X1PGZTvNWxYE7
- stDtwRkwMXTI0q9rMgM858Fj0C53ORx72b22x0p+oNkUp9627JQW/DSVnedS4Dm4OIr72CU7r+F
- 2qrRZd9bwWBX9fqruCg==
-X-Authority-Analysis: v=2.4 cv=X5Vi7mTe c=1 sm=1 tr=0 ts=6a6b03ae cx=c_pps
- a=5BHTudwdYE3Te8bg5FgnPg==:117 a=5BHTudwdYE3Te8bg5FgnPg==:17
- a=RAioF0-LDSMA:10 a=VkNPw1HP01LnGYTKEx00:22 a=RnoormkPH1_aCDwRdu11:22
- a=Y2IxJ9c9Rs8Kov3niI8_:22 a=VwQbUJbxAAAA:8 a=VnNF1IyMAAAA:8
- a=NnsqlADyzmQ-ARdX89kA:9
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1143,Hydra:6.1.134,FMLib:17.12.100.49
- definitions=2026-07-30_02,2026-07-29_01,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- clxscore=1015 impostorscore=0 lowpriorityscore=0 phishscore=0
- priorityscore=1501 malwarescore=0 spamscore=0 suspectscore=0 bulkscore=0
- adultscore=0 classifier=typeunknown authscore=0 authtc= authcc=
- route=outbound adjust=0 reason=mlx scancount=1 engine=8.22.0-2606150000
- definitions=main-2607300055
+User-Agent: Mozilla Thunderbird
+Content-Language: en-US
+From: Peiyang He <peiyang_he@smail.nju.edu.cn>
+Subject: [BUG] RDMA/rxe: memory leak in rxe_qp_from_attr
+To: jgg@ziepe.ca, yanjun.zhu@linux.dev, leon@kernel.org
+Cc: "syzkaller@googlegroups.com" <syzkaller@googlegroups.com>,
+ linux-rdma@vger.kernel.org,
+ "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+X-QQ-SENDSIZE: 520
+Feedback-ID: zesmtpgz:smail.nju.edu.cn:qybglogicsvrsz:qybglogicsvrsz4b-0
+X-QQ-XMAILINFO: OBDSLDo3By90XWuD1oHwsLc4jtI7y+FgdSK4e1mCBmb4uftx+7DeJSWv
+	smWP/otho6IuH8vBwM4IgWN/sHgqMCaGp+2CQTMW5eDRnSz4rEqOCYgXeZ8tqNU2wC4jUGU
+	DJkAXA0ciB9c8CfwLeUF2EgNDFx85P0kVfmUIJFK3M9P+49qVgprw9t8M+LEAet+cV9QM71
+	JyQwc5JkYkd4/SdxDEtYlxjxVdXk5MMED6I6WYgMj5FIDvPx8KzmRfHsw9akYJal6JkFh7B
+	kPFwvILL0DtzXNXmDufiQ78ktXshas05droYim3bYnzEFDBahyONq3S4R9IjBJNEdj3woL/
+	6JAAIA4XvBGRUm6tb9PpQk+BA6s2qP5rPFqoOyaO/FBEsNxmYTomg7bmn+Mk/zURGfAHPk+
+	r2Yh9A1znKaj9Jr9TDy9vV3sCssCPg+X78NBmU4Ep1498IRehsHwTC17CvGNp8V1daDW3sR
+	G+DRkUcx2AqwjVSifYZVdxJ5i6pqq05ye5RUfJVG8zsQ+ZJwPdwS9BZTACIlFPyec9ndHB7
+	FryR+mGE2GSHWuC+A76S6RzSUq4YJ1X6HFjST5Ozi2m+GH6udXvndOzVDPVLzqMLW7oFeW7
+	/fAUU+669T2X7bMJY2lx7i47LWIl/OxozPSeknpGJVAhCGvge4Y0WsQuq1B/FtxYH3rTyFA
+	tOBfNZgXl9x5G5wJJiNnNMSfykI3sMI1AR7yBzHivnwQ3tFAOh0CjBq7ZJYdu/XCbDyhyt2
+	zYyIsrv36WY0UFYjFThyxdNF9K5H4THwg7ftqeHJutBe1NeSEyp7oJkTZhOZZhu1Baa9s/i
+	85rTfy8g6w0rWkOsK8EdqIfieI/2/4jDmUBdtI0fhH7U4zd9MD/Mc7FOSAydYQYVw8Yp+ir
+	jQmUAi2RmA/+gAG00ktvCwOk488INqFEnF06MDaFtjI9c2UaANpqVpjU2FnZ5zYRqxWtX8Y
+	WpGFbnO+dzQ+Q42bEDhIAXBC6H2lddmJ1HDRKTnM0pmKcrEb/i8Ke/3WwRMFoKmIn3oIHRi
+	v4Br2Wn9BqJYGqJ+8xSowZCvefj+dnxX6Qyg3EUw==
+X-QQ-XMRINFO: M/715EihBoGS47X28/vv4NpnfpeBLnr4Qg==
+X-QQ-RECHKSPAM: 0
 
-dibs_dev_add() frees dibs->dmb_clientid_arr on both of its failure
-paths, but does not clear the pointer. dibs_lo_dev_probe() then frees
-the same pointer again in its err_reg path, so a failing device_add()
-or sysfs_create_group() results in a double free.
+Hello Linux kernel developers and maintainers,
 
-Drop the kfree() from dibs_lo_dev_probe().
+We hit a memory leak in rxe_qp_from_attr when fuzzing RDMA/RXE with Syzkaller.
 
-Note: commit cc21191b584c ("dibs: Move data path to dibs layer") moved
-the code to its current location; the race was introduced earlier by
-commit c3a910f2380f ("net/smc: implement DMB-merged operations of
-loopback-ism").
+The leak is caused by two concurrent MODIFY_QP commands which both modify
+IB_QP_MAX_DEST_RD_ATOMIC on the same RXE QP. They are not serialized by a
+QP-wide lock. The uverbs layer only holds shared UVERBS_LOOKUP_READ access
+to the QP, so two threads may enter rxe_modify_qp() and then rxe_qp_from_attr()
+for the same object at the same time.
+It can leak a whole qp->resp.resources array each time triggered.
 
-Fixes: c3a910f2380f ("net/smc: implement DMB-merged operations of loopback-ism")
-Cc: stable@vger.kernel.org
-Reviewed-by: Alexandra Winter <wintera@linux.ibm.com>
-Signed-off-by: Hidayath Khan <hidayath@linux.ibm.com>
----
- drivers/dibs/dibs_loopback.c | 1 -
- 1 file changed, 1 deletion(-)
+The version of the kernel under test is commit 8cd9520d35a6c38db6567e97dd93b1f11f185dc6 (tag v7.1).
+We believe this OOB bug is still possible in the latest kernel.
 
-diff --git a/drivers/dibs/dibs_loopback.c b/drivers/dibs/dibs_loopback.c
-index fd5caf1e19a8..649e4e375be3 100644
---- a/drivers/dibs/dibs_loopback.c
-+++ b/drivers/dibs/dibs_loopback.c
-@@ -335,7 +335,6 @@ static int dibs_lo_dev_probe(void)
- 	return 0;
- 
- err_reg:
--	kfree(dibs->dmb_clientid_arr);
- 	/* pairs with dibs_dev_alloc() */
- 	put_device(&dibs->dev);
- 	kfree(ldev);
+The relevant kernel config is:
 
-base-commit: 98379cf6109c0adb5879f86ba3efd4afe389a64a
-prerequisite-patch-id: da145e40ff1ce22e9701dd49676606f612c03872
--- 
-2.52.0
+CONFIG_NET=y
+CONFIG_INET=y
+CONFIG_INFINIBAND=y
+CONFIG_INFINIBAND_USER_ACCESS=y
+CONFIG_INFINIBAND_ADDR_TRANS=y
+CONFIG_RDMA_RXE=y
+CONFIG_DEBUG_FS=y
+CONFIG_DEBUG_KERNEL=y
+CONFIG_DEBUG_KMEMLEAK=y
+CONFIG_DEBUG_KMEMLEAK_AUTO_SCAN=y
+
+=========================
+Original Syzkaller report
+=========================
+
+BUG: memory leak
+unreferenced object 0xffff8880120ef800 (size 1024):
+  comm "syz.0.1478", pid 15130, jiffies 4295203468
+  hex dump (first 32 bytes):
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  backtrace (crc 0):
+    kmemleak_alloc_recursive include/linux/kmemleak.h:44 [inline]
+    slab_post_alloc_hook mm/slub.c:4575 [inline]
+    slab_alloc_node mm/slub.c:4899 [inline]
+    __do_kmalloc_node mm/slub.c:5295 [inline]
+    __kmalloc_noprof+0x552/0x850 mm/slub.c:5308
+    kmalloc_noprof include/linux/slab.h:954 [inline]
+    kzalloc_noprof include/linux/slab.h:1188 [inline]
+    alloc_rd_atomic_resources drivers/infiniband/sw/rxe/rxe_qp.c:155 [inline]
+    rxe_qp_from_attr+0x3f8/0x2150 drivers/infiniband/sw/rxe/rxe_qp.c:714
+    rxe_modify_qp+0x1e2/0x530 drivers/infiniband/sw/rxe/rxe_verbs.c:623
+    ib_security_modify_qp+0x223/0xfa0 drivers/infiniband/core/security.c:625
+    _ib_modify_qp+0x333/0xec0 drivers/infiniband/core/verbs.c:1915
+    modify_qp+0x13ca/0x1940 drivers/infiniband/core/uverbs_cmd.c:1932
+    ib_uverbs_modify_qp+0xcb/0x120 drivers/infiniband/core/uverbs_cmd.c:1958
+    ib_uverbs_write+0xb86/0x1030 drivers/infiniband/core/uverbs_main.c:680
+    vfs_write+0x2aa/0x1070 fs/read_write.c:686
+    ksys_write+0x1f8/0x250 fs/read_write.c:740
+    do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
+    do_syscall_64+0x116/0x800 arch/x86/entry/syscall_64.c:94
+    entry_SYSCALL_64_after_hwframe+0x77/0x7f
+
+==========
+Root cause
+==========
+
+modify_qp() obtains the QP through uobj_get_obj_read() and retains the
+UVERBS_LOOKUP_READ access. This is a shared lookup, since UVERBS_LOOKUP_READ
+increments a positive use count and only rejects an object whose count is -1,
+whereas UVERBS_LOOKUP_WRITE is exclusive. Therefore, the two MODIFY_QP commands
+may execute rxe_modify_qp() concurrently. rxe_modify_qp() directly calls
+rxe_qp_from_attr() without a QP-wide lock.
+
+For IB_QP_MAX_DEST_RD_ATOMIC, rxe_qp_from_attr() updates qp->attr.max_dest_rd_atomic,
+frees the current qp->resp.resources pointer and calls alloc_rd_atomic_resources().
+The allocator initializes the responder indices and assigns the result of kzalloc_objs()
+to qp->resp.resources. Neither the resource replacement sequence nor the pointer assignment
+is serialized.
+
+The relevant QP starts with qp->resp.resources == NULL. Let P0 and P1 be the
+two resp_res arrays allocated by the concurrent commands. The following
+race interleaving leaks P1:
+
+CPU0                                           CPU1
+====                                           ====
+
+MODIFY_QP()
+-> rxe_qp_from_attr()
+   -> alloc_rd_atomic_resources()
+      -> P0 = kzalloc_objs()
+      /* preempted after kzalloc_objs() returns P0,
+         before the assignment to qp->resp.resources */
+
+                                               MODIFY_QP()
+                                               -> rxe_qp_from_attr()
+                                                -> alloc_rd_atomic_resources()
+                                                   -> P1 = kzalloc_objs()
+                                                   -> qp->resp.resources = P1
+
+      -> qp->resp.resources = P0
+      /* overwrites the only reference to P1 */
+
+When the QP is later cleaned up, rxe_qp_do_cleanup() calls free_rd_atomic_resources()
+and can only free the pointer currently stored in qp->resp.resources, namely P0.
+P1 has no remaining reference to it and is reported by kmemleak.
+
+=============
+Suggested fix
+=============
+
+First of all, I wonder is concurrent modify_qp() on the same QP supposed
+to be supported by design? If yes, then the rd_atomic resource replacement
+path needs explicit serialization. We could add a rd_atomic_mutex in
+struct rxe_qp, init it in rxe_qp_init_misc(). Then, the IB_QP_MAX_DEST_RD_ATOMIC
+branch in rxe_qp_from_attr() and rxe_qp_reset() should be protected by this lock.
+
+I am happy to send a patch if this fix is needed and reasonable.
+
+Thanks,
+Peiyang
 
