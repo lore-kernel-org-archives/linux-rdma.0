@@ -1,97 +1,85 @@
-Received: from out-178.mta1.migadu.com (out-178.mta1.migadu.com [95.215.58.178])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E5ABA1D95A3
-	for <linux-rdma@vger.kernel.org>; Wed, 29 Jul 2026 23:46:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=95.215.58.178
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 03AFD30674E;
+	Thu, 30 Jul 2026 00:00:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785368790; cv=none; b=Gc0/PX0TlXUoag3PUm05B8xrul6yQUyLk1ju2ePos08xd82lpRngzzQy5fXHULT7MGeHuuFa674lOC6PHYkATzzISZaKcb3FMV/SdzoQJhx+dCSGnUNY7v82hpSkncZnopkIgo1Ov1gEGzDsoRQlrmEaFHI/v5SLphTWlFyGmHA=
+	t=1785369658; cv=none; b=TLkL2phVacuTlkvNQeCdXj2PVe8NHExq1x5PsCLvnS19goPlEZuuBZ44qn53h3CSp/cx+0pEvgrB0vRYziinbIdPNtYnRhcntj6iaKHf19BLBhzLT4SXSr0d9LFmiyKAUoQa+J9rH56wcjt8O+uetH88JFNHnfdx7jzcrM3Yhlw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785368790; c=relaxed/simple;
-	bh=8atLDkvAtM91jCEIe7cKro5IUYCrnp+OVUxyqeKwISg=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=qor/1cr/H1yT6ZpPOVn0nd1zDWThDyJrBHv8JXPOsYwNRhsiEMUjxiTiwryYPlit/NQNW3sFbmDHuLF+tykNshsaXClqpkubrBHHzgMlRjIdYd0t49TfjrHrweKf2aVnyt9JK9p34qbc8I2qViyVJlTqe5SoOnpb61tzSwohHFI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=UF8z0NYG; arc=none smtp.client-ip=95.215.58.178
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+	s=arc-20240116; t=1785369658; c=relaxed/simple;
+	bh=leXaSP8LFnt50FYIDTkJh/3Ttb1WuAj+UN1dnGYl1Yo=;
+	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc; b=YkccpzsaYuZH9fw99ubUURW4pzr74KVdi12l36VSB/rcuTIFTmrHT33aHX+N2XV0z1u0oRTYxaNX7KnQ+UFfkEhCfyOSH32KKlIzGv8sl6x1lx4bINJZNz1NnPFht107evfHuTBVrRSR7TX0PmrQ2E8WvgMQFk4GBz22kGjX0DA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=iFt+cjxv; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="UF8z0NYG"
-Message-ID: <86153a83-a234-4afb-82da-6ac7e4cc2ef9@linux.dev>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-	t=1785368776;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=HyBkNkdrosmtPSRrBP/qEyOiL2qgvOckO8JtJ/aH4fA=;
-	b=UF8z0NYGPjzcMJ+5EzIqDhfNMUF+y18cFwXGKxoiofFZs3TPiEbEAPR3+XNkkeB6FE6oa9
-	5072+HfqEi8Nd4qCZaUU4YjYLPu+kLdEEo28M+p6q/BQuYXwrqVpwiMZBT4S2DMuIAXvbZ
-	G425Xlkf6lcdU4ySDQkeUZXmOKC7teA=
-Date: Wed, 29 Jul 2026 16:46:02 -0700
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="iFt+cjxv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A5AB31F000E9;
+	Thu, 30 Jul 2026 00:00:56 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1785369656;
+	bh=c6/1QRTO6GU4trLCSIEcpqYa282SU3GNO1VjmD6rK3s=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc;
+	b=iFt+cjxvdciJHTRmCCn+jwCFCia17G7SHSmLQ5rB/WCRf0TwjbrOmk6zXHekh7vb7
+	 QYpFhKtiSfaWYKBCD7wN/fwubgEgxlQcbWeTs1N/87PlPiik5+rRQ26s7SckmGswPE
+	 gtdeZ709of8xdjUw/QFwLLwOmEyvQRMe4Ce5BEQStuhHLxTmdNniA1gdDO9kGlT7yS
+	 dfdWgMuR0Q+2Fcu0SP+iWpRHkYWqo5QUL0rd7ge2GHVN6Gp8jzL6XXFVDu/m2WeWqE
+	 /FIvD2mzytqE52zW2GEaL/+vfi3cA5jhQdVHefNAQpmoZc0CPGZEyK9JVvTprseBkQ
+	 3UxOCfJkL/KOw==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id D12A73926250;
+	Thu, 30 Jul 2026 00:00:21 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Subject: Re: [PATCH] RDMA/rxe: Fix OOB in free_rd_atomic_resources()
-To: Peiyang He <peiyang_he@smail.nju.edu.cn>, jgg@ziepe.ca, leon@kernel.org,
- linux-rdma@vger.kernel.org, Zhu Yanjun <yanjun.zhu@linux.dev>
-Cc: linux-kernel@vger.kernel.org, stable@vger.kernel.org,
- pandit.parav@gmail.com, dledford@redhat.com
-References: <33A3A239F88659D0+20260729073644.2834066-1-peiyang_he@smail.nju.edu.cn>
-Content-Language: en-US
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-From: "yanjun.zhu" <yanjun.zhu@linux.dev>
-In-Reply-To: <33A3A239F88659D0+20260729073644.2834066-1-peiyang_he@smail.nju.edu.cn>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-Migadu-Flow: FLOW_OUT
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net] dibs: fix use-after-free of dmb_node in loopback
+ attach/detach/unregister
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <178536962038.3288516.6334881564101626025.git-patchwork-notify@kernel.org>
+Date: Thu, 30 Jul 2026 00:00:20 +0000
+References: <20260727093530.968834-1-hidayath@linux.ibm.com>
+In-Reply-To: <20260727093530.968834-1-hidayath@linux.ibm.com>
+To: Hidayathulla Khan I <hidayath@linux.ibm.com>
+Cc: davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
+ pabeni@redhat.com, wintera@linux.ibm.com, alibuda@linux.alibaba.com,
+ dust.li@linux.alibaba.com, sidraya@linux.ibm.com, wenjia@linux.ibm.com,
+ mjambigi@linux.ibm.com, tonylu@linux.alibaba.com, guwen@linux.alibaba.com,
+ horms@kernel.org, hca@linux.ibm.com, gor@linux.ibm.com,
+ agordeev@linux.ibm.com, borntraeger@linux.ibm.com, svens@linux.ibm.com,
+ pasic@linux.ibm.com, gbayer@linux.ibm.com, andrew+netdev@lunn.ch,
+ netdev@vger.kernel.org, linux-s390@vger.kernel.org,
+ linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 7/29/26 12:36 AM, Peiyang He wrote:
-> free_rd_atomic_resources() iterates using qp->attr.max_dest_rd_atomic.
-> Updating max_dest_rd_atomic before freeing the old array can make the
-> free path walk past the old allocation and trigger a slab out-of-bounds
-> write.
+Hello:
+
+This patch was applied to netdev/net.git (main)
+by Jakub Kicinski <kuba@kernel.org>:
+
+On Mon, 27 Jul 2026 11:35:30 +0200 you wrote:
+> dibs_lo_attach_dmb(), dibs_lo_detach_dmb() and dibs_lo_unregister_dmb()
+> look up the dmb_node under dmb_ht_lock, drop the lock and only then
+> operate on the node's refcount. Nothing keeps the node alive across
+> that window: __dibs_lo_unregister_dmb() removes the node from the hash
+> table under the write lock and immediately frees it.
 > 
-> Fix the OOB by moving the assignment after free_rd_atomic_resources()
-> so the old array is freed using the old bound. This matches the original
-> ordering in commit 8700e3e7c485 ("Soft RoCE driver").
+> A concurrent final put can therefore free the node between the lookup
+> and the refcount operation:
 > 
-> Fixes: b6bbee0d2438 ("IB/rxe: Properly honor max IRD value for rd/atomic.")
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Peiyang He <peiyang_he@smail.nju.edu.cn>
+> [...]
 
-Thanks a lot. I am fine with this commit. If you can post the mentioned 
-OOB in the commit log, it is better.
+Here is the summary with links:
+  - [net] dibs: fix use-after-free of dmb_node in loopback attach/detach/unregister
+    https://git.kernel.org/netdev/net/c/a10ea943356b
 
-But without the OOB, this commit still seems OK.
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
 
-Wait for the feedback from Leon and Jason.
-
-Reviewed-by: Zhu Yanjun <yanjun.zhu@linux.dev>
-
-Zhu Yanjun
-
-> ---
->   drivers/infiniband/sw/rxe/rxe_qp.c | 4 ++--
->   1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/infiniband/sw/rxe/rxe_qp.c b/drivers/infiniband/sw/rxe/rxe_qp.c
-> index f3dff1aea96a..1fffe3c6685d 100644
-> --- a/drivers/infiniband/sw/rxe/rxe_qp.c
-> +++ b/drivers/infiniband/sw/rxe/rxe_qp.c
-> @@ -707,10 +707,10 @@ int rxe_qp_from_attr(struct rxe_qp *qp, struct ib_qp_attr *attr, int mask,
->   		int max_dest_rd_atomic = attr->max_dest_rd_atomic ?
->   			roundup_pow_of_two(attr->max_dest_rd_atomic) : 0;
->   
-> -		qp->attr.max_dest_rd_atomic = max_dest_rd_atomic;
-> -
->   		free_rd_atomic_resources(qp);
->   
-> +		qp->attr.max_dest_rd_atomic = max_dest_rd_atomic;
-> +
->   		err = alloc_rd_atomic_resources(qp, max_dest_rd_atomic);
->   		if (err)
->   			return err;
 
