@@ -1,174 +1,121 @@
-Received: from out199-11.us.a.mail.aliyun.com (out199-11.us.a.mail.aliyun.com [47.90.199.11])
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5EB9A34CFBA
-	for <linux-rdma@vger.kernel.org>; Thu, 30 Jul 2026 12:49:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=47.90.199.11
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC06C437858;
+	Thu, 30 Jul 2026 13:30:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.156.1
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785415777; cv=none; b=MgVyszMEz0BGiuF+wSPfFZBO0tUGiUQ2vgVhNAOccfwJ3fFINvOoD7y+TKSIuzDA15R9KhDdgQBcvwhTRbOF8E9FVE3b7vrI3pyJfRWj6LfffSyo9Onu6e5IY2BQcA4M+rlvKsMF8enn9onEim6XoxSyR+MMFQVBNLedbJGGre4=
+	t=1785418222; cv=none; b=DzNxnNVDNIkcsi3BVXHTf32yuZqigpMEHaysJJIBmTcLZPvb3xZ7PoKsXwloiYW1cRUkAH3RqqmyesXZ9XM8HG8exeTfT2Z3mQqOpgLycgAKU6Z9jLJtj9+npPlx+X42v2eywdHE9gl3/s6/jsPjPoilIM6pPQofLsJ3rK3PXp4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785415777; c=relaxed/simple;
-	bh=1Y3ZQ1TKIJkc4kACuIDhf9ohi4wy16dgGTGE0gJs3MI=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=vBp5e5pzUjLw9jz12VxP4okjXeR3lAAOpCt6hw0QpaPtsSTpuA0KgShviSqZAJwMvBgQB6C3c4OA0udZxeNiB2YQO33TTMF4KVos6kgws4cZsb9MviWnEJnlgY0gU8IdPPNNA4rEBgfUnB9e9XDkEbAvCqwh3ksWhHrCB39Sj9I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=OqXhjSZ3; arc=none smtp.client-ip=47.90.199.11
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
+	s=arc-20240116; t=1785418222; c=relaxed/simple;
+	bh=vyMc9pIzmKcydAUii23iP28qwzy/u/ZShI7DmgIcenU=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=PqIZMM5HmsJifdtHTrtBaXGHMYRJFlNuroc6UQt4y+VJ+kVQAe2+DTgumgMcqXdOe4yWbZeDg70RVJP9toWHreD3Wx9/4Zf2Fx++x55D/GYYvvtUef/sVADbyJawelQefdhNbJZ12egB+pCG3kiuBG19IewTtQyeqfY2oCm0UnM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=bOgVmS5A; arc=none smtp.client-ip=148.163.156.1
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="OqXhjSZ3"
-DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux.alibaba.com; s=default;
-	t=1785415757; h=From:To:Subject:Date:Message-ID:MIME-Version;
-	bh=Nzr9UP/GTeFxm1RagkGeYMUYi5DBh3HQZDjx3eV+Orw=;
-	b=OqXhjSZ3wsBVLDCzNA+kh9SGenFkCGicm36GYZs1/GdHrZb3k8yRMTTqrRkhLH+G/ukbfQm6t0idss7mrKsfUOH0QcJFtgYWKshPD7m3w8BwKHzj8tM0qrC5IKkEROQxZF3ZbrNXLIJ+H3SZvgDHONHTF5lZAMKKR1+9NucBBGU=
-X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R121e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam033037033178;MF=chengyou@linux.alibaba.com;NM=1;PH=DS;RN=4;SR=0;TI=SMTPD_---0X85K2xx_1785415438;
-Received: from localhost(mailfrom:chengyou@linux.alibaba.com fp:SMTPD_---0X85K2xx_1785415438 cluster:ay36)
-          by smtp.aliyun-inc.com;
-          Thu, 30 Jul 2026 20:43:58 +0800
-From: Cheng Xu <chengyou@linux.alibaba.com>
-To: jgg@ziepe.ca,
-	leon@kernel.org
-Cc: linux-rdma@vger.kernel.org,
-	KaiShen@linux.alibaba.com
-Subject: [PATCH 2/2] RDMA/erdma: Hold QP references for AE and CM processing
-Date: Thu, 30 Jul 2026 20:43:54 +0800
-Message-ID: <20260730124357.12976-2-chengyou@linux.alibaba.com>
-X-Mailer: git-send-email 2.50.1
-In-Reply-To: <20260730124357.12976-1-chengyou@linux.alibaba.com>
-References: <20260730124357.12976-1-chengyou@linux.alibaba.com>
+	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="bOgVmS5A"
+Received: from pps.filterd (m0360083.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 66UDHd5U3091356;
+	Thu, 30 Jul 2026 13:30:13 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
+	:content-transfer-encoding:content-type:date:from:in-reply-to
+	:message-id:mime-version:references:subject:to; s=pp1; bh=K3MZ8q
+	z686VXATVvJ9B2o4NyIJBX0gJaDjpzGsCDl9c=; b=bOgVmS5AZHwwLx4KNtnrjp
+	PfjGHTnPg4TlP1ofGJjJ6/M2ncvl24xjcc7m6sR+HxzNpCHdGPnEoRij5T8m6vkm
+	/yX8GiH0/r22LI0lOBG4vm6woeWYBOYBFkJ2c/pgEQoV76SsJUCgTJ60IwvUHZaC
+	UIMsQWWR8iRItny9tjRFPvGzziCoQLUI9+7PCwNj8/ksN88hrTjF6OxilQr3uS6l
+	stMwcH8H7c7K2UiMNmC3hMzxQyFKhbJvvumCUcM5mc/hP1QyXyImd7Cmnvdqiz9t
+	4akj3AQeC0g4qEN4abV5hOzfO1xBVlqpz5y+HDsr1+OTrtTzYjn12xylBo6QrgNQ
+	==
+Received: from ppma22.wdc07v.mail.ibm.com (5c.69.3da9.ip4.static.sl-reverse.com [169.61.105.92])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 4fmuw7qx2h-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Thu, 30 Jul 2026 13:30:12 +0000 (GMT)
+Received: from pps.filterd (ppma22.wdc07v.mail.ibm.com [127.0.0.1])
+	by ppma22.wdc07v.mail.ibm.com (8.18.1.7/8.18.1.7) with ESMTP id 66UDQJIW022883;
+	Thu, 30 Jul 2026 13:30:11 GMT
+Received: from smtprelay05.fra02v.mail.ibm.com ([9.218.2.225])
+	by ppma22.wdc07v.mail.ibm.com (PPS) with ESMTPS id 4fn7uwbmue-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Thu, 30 Jul 2026 13:30:11 +0000 (GMT)
+Received: from smtpav04.fra02v.mail.ibm.com (smtpav04.fra02v.mail.ibm.com [10.20.54.103])
+	by smtprelay05.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 66UDU9mW44171750
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Thu, 30 Jul 2026 13:30:09 GMT
+Received: from smtpav04.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 253B220043;
+	Thu, 30 Jul 2026 13:30:09 +0000 (GMT)
+Received: from smtpav04.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id A755D2004E;
+	Thu, 30 Jul 2026 13:30:08 +0000 (GMT)
+Received: from [9.224.77.173] (unknown [9.224.77.173])
+	by smtpav04.fra02v.mail.ibm.com (Postfix) with ESMTP;
+	Thu, 30 Jul 2026 13:30:08 +0000 (GMT)
+Message-ID: <3b0a153b-f47f-4260-b7d0-efef5ec0bca7@linux.ibm.com>
+Date: Thu, 30 Jul 2026 15:30:08 +0200
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH net] net/mlx5: Use unique names for software steering
+ caches
+To: Jakub Kicinski <kuba@kernel.org>, Tariq Toukan <tariqt@nvidia.com>
+Cc: Leon Romanovsky <leon@kernel.org>, Saeed Mahameed <saeedm@nvidia.com>,
+        Mark Bloch <mbloch@nvidia.com>, Andrew Lunn <andrew+netdev@lunn.ch>,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>, Paolo Abeni <pabeni@redhat.com>,
+        Alex Vesker <valex@nvidia.com>, Yevgeny Kliteynik <kliteyn@nvidia.com>,
+        netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+References: <20260715-kmem-dupliate-name-v1-1-85551c328155@nvidia.com>
+ <ee358aca-dfcb-40a8-9dfe-dce1ebb9c063@nvidia.com>
+ <20260723061352.3b4b5e58@kernel.org>
+Content-Language: en-US
+From: Christian Borntraeger <borntraeger@linux.ibm.com>
+In-Reply-To: <20260723061352.3b4b5e58@kernel.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-TM-AS-GCONF: 00
+X-Proofpoint-Reinject: loops=2 maxloops=12
+X-Proofpoint-GUID: qtjtgTLYNevbAkyp8itgLVYcyTxHHn_O
+X-Proofpoint-ORIG-GUID: wRohPMdY8qJfgu8LfpgvQ8DCHIGLBxZ1
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNzMwMDEwMSBTYWx0ZWRfX+uIhzqnJUtqC
+ lugKGvpoue1GLiOLq6sS8OOSSS3WQzIjXQhXUO4S2Unz2DtfqERxt1RCZFq+zyeYD/SJ09Zbmce
+ wYrBOwbWHsg3hbwqdWwh+11JF6vvArh/M2Rhkb68dSx5aYR1upLNuugSXAMlkidtKgOc/PjunOy
+ qPBApIN6U1yScXihqUMdvWJyylNcWvfUCSjzWeCCcrMS2kFPdmwSmEp3u+SVtrLFUwqZgr6MrDd
+ LTBIjpqm/lc2vqz6dURsDOPiu3QQGB0Nic+nMCVAAr4RPtUVJjkiBygDGKN0npUJSmuQ+tVvgPP
+ e7yswENTXPB/bcnuGkaTdpcWntREZiCwAcMHF8oVo/ylif3HjHmEMYz/haz+H2wkyeLRc5YkMCH
+ Mf9smzzab3duH9q0l62/CFUBFPvVpsjEUXZvoik3Qg/JOnsDHDNNllhhdg7Djy4JoBj0PEdmCpL
+ pJl+auVZRnq1m7WBlEg==
+X-Authority-Analysis: v=2.4 cv=SKFykuvH c=1 sm=1 tr=0 ts=6a6b51e5 cx=c_pps
+ a=5BHTudwdYE3Te8bg5FgnPg==:117 a=5BHTudwdYE3Te8bg5FgnPg==:17
+ a=IkcTkHD0fZMA:10 a=RAioF0-LDSMA:10 a=VkNPw1HP01LnGYTKEx00:22
+ a=RnoormkPH1_aCDwRdu11:22 a=iQ6ETzBq9ecOQQE5vZCe:22 a=Ikd4Dj_1AAAA:8
+ a=sgPOia-50TS-BxYDRLMA:9 a=QEXdDO2ut3YA:10 a=hnaCgzpD1CAA:10
+X-Proofpoint-Spam-Info: AW1haW4tMjYwNzMwMDEwMSBTYWx0ZWRfXyIgaY96kZIOg
+ uEVX9qWX/eZeiuv5vySVTIRBzYyjHayYGZuD8m0NNdXBhr+5YTtpXuAVhtvXwZxvFl5flEkmVfg
+ dymjm+76UHMdBcmVUoxJSNQVr85n1sk=
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1143,Hydra:6.1.134,FMLib:17.12.100.49
+ definitions=2026-07-30_04,2026-07-29_01,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ priorityscore=1501 malwarescore=0 clxscore=1015 adultscore=0
+ lowpriorityscore=0 bulkscore=0 impostorscore=0 phishscore=0 spamscore=0
+ suspectscore=0 classifier=typeunknown authscore=0 authtc= authcc=
+ route=outbound adjust=0 reason=mlx scancount=1 engine=8.22.0-2606150000
+ definitions=main-2607300101
 
-AE QP fatal events and iWARP CM paths load QPs from dev->qp_xa
-and then use or reference them outside the xarray lock.
-erdma_destroy_qp() can drop the destroy-path reference and free QP
-resources while such a lookup is in flight.
+Am 23.07.26 um 15:13 schrieb Jakub Kicinski:
+> On Thu, 23 Jul 2026 09:45:39 +0300 Tariq Toukan wrote:
+>> Acked-by: Tariq Toukan <tariqt@nvidia.com>
+> 
+> Too late.
 
-Add erdma_qp_get_by_qpn() to acquire a kref under the xarray
-lock with kref_get_unless_zero(). Remove the QP from the xarray
-before dropping the destroy-path reference so no new lookup can acquire
-it while destruction waits for existing users.
+Jakub,
 
-Fixes: 155055771704 ("RDMA/erdma: Add verbs implementation")
-Signed-off-by: Cheng Xu <chengyou@linux.alibaba.com>
----
- drivers/infiniband/hw/erdma/erdma_cm.c    |  6 ++----
- drivers/infiniband/hw/erdma/erdma_eq.c    |  3 ++-
- drivers/infiniband/hw/erdma/erdma_verbs.c |  6 +++++-
- drivers/infiniband/hw/erdma/erdma_verbs.h | 15 +++++++++++++++
- 4 files changed, 24 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/infiniband/hw/erdma/erdma_cm.c b/drivers/infiniband/hw/erdma/erdma_cm.c
-index 5c7d3a8f8038..70c5df566d9d 100644
---- a/drivers/infiniband/hw/erdma/erdma_cm.c
-+++ b/drivers/infiniband/hw/erdma/erdma_cm.c
-@@ -1021,10 +1021,9 @@ int erdma_connect(struct iw_cm_id *id, struct iw_cm_conn_param *params)
- 	if (laddr->sa_family != AF_INET || raddr->sa_family != AF_INET)
- 		return -EAFNOSUPPORT;
- 
--	qp = find_qp_by_qpn(dev, params->qpn);
-+	qp = erdma_qp_get_by_qpn(dev, params->qpn);
- 	if (!qp)
- 		return -ENOENT;
--	erdma_qp_get(qp);
- 
- 	ret = sock_create(AF_INET, SOCK_STREAM, IPPROTO_TCP, &s);
- 	if (ret < 0)
-@@ -1154,10 +1153,9 @@ int erdma_accept(struct iw_cm_id *id, struct iw_cm_conn_param *params)
- 		return -ECONNRESET;
- 	}
- 
--	qp = find_qp_by_qpn(dev, params->qpn);
-+	qp = erdma_qp_get_by_qpn(dev, params->qpn);
- 	if (!qp)
- 		return -ENOENT;
--	erdma_qp_get(qp);
- 
- 	down_write(&qp->state_lock);
- 	if (qp->attrs.iwarp.state > ERDMA_QPS_IWARP_RTR) {
-diff --git a/drivers/infiniband/hw/erdma/erdma_eq.c b/drivers/infiniband/hw/erdma/erdma_eq.c
-index 96e74fcf417c..d5d1704cb57c 100644
---- a/drivers/infiniband/hw/erdma/erdma_eq.c
-+++ b/drivers/infiniband/hw/erdma/erdma_eq.c
-@@ -65,7 +65,7 @@ void erdma_aeq_event_handler(struct erdma_dev *dev)
- 			erdma_cq_put(cq);
- 		} else {
- 			qpn = le32_to_cpu(aeqe->event_data0);
--			qp = find_qp_by_qpn(dev, qpn);
-+			qp = erdma_qp_get_by_qpn(dev, qpn);
- 			if (!qp)
- 				continue;
- 
-@@ -75,6 +75,7 @@ void erdma_aeq_event_handler(struct erdma_dev *dev)
- 			if (qp->ibqp.event_handler)
- 				qp->ibqp.event_handler(&event,
- 						       qp->ibqp.qp_context);
-+			erdma_qp_put(qp);
- 		}
- 	}
- 
-diff --git a/drivers/infiniband/hw/erdma/erdma_verbs.c b/drivers/infiniband/hw/erdma/erdma_verbs.c
-index 2adcd00c4199..65b1af1e6623 100644
---- a/drivers/infiniband/hw/erdma/erdma_verbs.c
-+++ b/drivers/infiniband/hw/erdma/erdma_verbs.c
-@@ -1369,6 +1369,7 @@ int erdma_destroy_qp(struct ib_qp *ibqp, struct ib_udata *udata)
- 		udata, struct erdma_ucontext, ibucontext);
- 	struct erdma_cmdq_destroy_qp_req req;
- 	union erdma_mod_qp_params params;
-+	unsigned long flags;
- 	int err;
- 
- 	down_write(&qp->state_lock);
-@@ -1396,6 +1397,10 @@ int erdma_destroy_qp(struct ib_qp *ibqp, struct ib_udata *udata)
- 				       "failed to destroy QP %u: %d\n",
- 				       QP_ID(qp), err);
- 
-+	xa_lock_irqsave(&dev->qp_xa, flags);
-+	__xa_erase(&dev->qp_xa, QP_ID(qp));
-+	xa_unlock_irqrestore(&dev->qp_xa, flags);
-+
- 	erdma_qp_put(qp);
- 	wait_for_completion(&qp->safe_free);
- 
-@@ -1409,7 +1414,6 @@ int erdma_destroy_qp(struct ib_qp *ibqp, struct ib_udata *udata)
- 
- 	if (qp->cep)
- 		erdma_cep_put(qp->cep);
--	xa_erase(&dev->qp_xa, QP_ID(qp));
- 
- 	return 0;
- }
-diff --git a/drivers/infiniband/hw/erdma/erdma_verbs.h b/drivers/infiniband/hw/erdma/erdma_verbs.h
-index 894e080435fb..c73cecf92f61 100644
---- a/drivers/infiniband/hw/erdma/erdma_verbs.h
-+++ b/drivers/infiniband/hw/erdma/erdma_verbs.h
-@@ -360,6 +360,21 @@ static inline struct erdma_qp *find_qp_by_qpn(struct erdma_dev *dev, int id)
- 	return (struct erdma_qp *)xa_load(&dev->qp_xa, id);
- }
- 
-+static inline struct erdma_qp *erdma_qp_get_by_qpn(struct erdma_dev *dev,
-+						   int id)
-+{
-+	struct erdma_qp *qp;
-+	unsigned long flags;
-+
-+	xa_lock_irqsave(&dev->qp_xa, flags);
-+	qp = xa_load(&dev->qp_xa, id);
-+	if (qp && !kref_get_unless_zero(&qp->ref))
-+		qp = NULL;
-+	xa_unlock_irqrestore(&dev->qp_xa, flags);
-+
-+	return qp;
-+}
-+
- static inline struct erdma_cq *erdma_cq_get_by_cqn(struct erdma_dev *dev,
- 						   int id)
- {
--- 
-2.31.1
-
+quick followup. I cannot find this in linux-next.
