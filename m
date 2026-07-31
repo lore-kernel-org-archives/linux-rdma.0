@@ -1,156 +1,229 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mx0b-00082601.pphosted.com (mx0b-00082601.pphosted.com [67.231.153.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7121D2FFFA4;
-	Fri, 31 Jul 2026 16:57:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 80B4630F95C;
+	Fri, 31 Jul 2026 18:55:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=67.231.153.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785517049; cv=none; b=KunLFsvnj1AY6/7uDiigSPlOsXm3jV9yQZMd6jJFYFQ8F6jW+sbnSTnfNo4LbKEnQjxFacyH9gMo0rIlvYhFF/mKIEi9efm4YoG1/VzPxAdeNddLwgpDEfbxp3z2XAsfCokr50n6cwk0AP5XvKNAAE9DtmabEG4GxEtgvDjf0sM=
+	t=1785524136; cv=none; b=P8v+koF60KX1bRgMwZKpB1xJBP/tYJFg4wMFAxrGp/pgLU4O0K/sFP7+yEtWzSl+nmAz8rsDVZ/8jLoQgnGHRoDdgL0ADGX/VS1cIUr4yHgSKE8B8QBmPO0N/wLk0+zeIDoyDNFk6AgUZiSt10Dwk7SZadg2hOR0CcgU0jnQKss=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785517049; c=relaxed/simple;
-	bh=XJM7279h+Yj3A3zgcpixVvnyJmiW2VMDoNofwRg6Dgg=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=u5GQelii5TGMrq6BTBqqR8gGZPu7TK1bqUsqL159oeGeGR/7LQiSVf3UnIGxiZ+y7phT033/zjwUbgQDcAbJa00zBshqT63GRXQ0gW6+3w8XaIJS9Zg0Thz0vOhCa6mVJY9M/Vx7jxkgutyF8rBaiQlXvFiC02eq2nHwlpjy4tU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=M/JWp6O2; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785524136; c=relaxed/simple;
+	bh=aHPNGOna+Ur0Y3imTtG0r3LmSmd2dAjy2aH4h4liSGU=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=IqFJM0xY/dIVsbyQggXOL7RcfbVLwaYNBOWmjijPMt8zIC1W3L60yCoeaI7FgWP4enbBVE7ImHYpTsPfTHA1Himl31ml87KeUC+h0xR6DxRnVpbTE34rquIQvJVNriYnNVKxBovB8uAggTziZBV8izAG6a4ZYcpsMvSvZ5FZTDs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=meta.com; spf=pass smtp.mailfrom=meta.com; dkim=pass (2048-bit key) header.d=meta.com header.i=@meta.com header.b=Q5KmDO5H; arc=none smtp.client-ip=67.231.153.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=meta.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=meta.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="M/JWp6O2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 625091F00AC4;
-	Fri, 31 Jul 2026 16:57:24 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1785517048;
-	bh=IyAsbXXV2p1aDsgxm2hy2xqrSUBtvpVaiO7mx1IfkqI=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=M/JWp6O2FPiAUqpPmM7XUuIdwQp8OT76RZnpZlt0Lw4vv+jMy4x++gALYD7wTTqk3
-	 nj594wC9DfAOpaw5uoynV+KwXKIbFutB8dxdOA2CR/BcIB60MWbpHzBX85WL+mirqj
-	 VBHX+jWACuNOPWL99oBvNHdcsRUmJYjqxdhjvabF0T0Meggoh8oAZrOIJm4yT8cWcz
-	 NANVb9xq44C/nufJaDCo0LKDKOQ10LYhEZiWbSReULyV8OuuTWptutcVgz1R9NSLMt
-	 LKoL3lK2axJ1oV93P+MJtqQaVomWVLthk4f/C7DqdWlEtupN5XJcxTyR2N+v0Igk+a
-	 ohn7jP0whpL1g==
-Date: Fri, 31 Jul 2026 17:57:22 +0100
-From: Simon Horman <horms@kernel.org>
-To: Tariq Toukan <tariqt@nvidia.com>
-Cc: Andrew Lunn <andrew+netdev@lunn.ch>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, netdev@vger.kernel.org,
-	Paolo Abeni <pabeni@redhat.com>,
-	Adithya Jayachandran <ajayachandra@nvidia.com>,
-	Carolina Jubran <cjubran@nvidia.com>,
-	Cosmin Ratiu <cratiu@nvidia.com>,
-	Daniel Jurgens <danielj@nvidia.com>, Gal Pressman <gal@nvidia.com>,
-	Jiri Pirko <jiri@resnulli.us>, Kees Cook <kees@kernel.org>,
-	Leon Romanovsky <leon@kernel.org>, linux-kernel@vger.kernel.org,
-	linux-rdma@vger.kernel.org, Maher Sanalla <msanalla@nvidia.com>,
-	Mark Bloch <mbloch@nvidia.com>, Moshe Shemesh <moshe@nvidia.com>,
-	Or Har-Toov <ohartoov@nvidia.com>, Parav Pandit <parav@nvidia.com>,
-	Saeed Mahameed <saeedm@nvidia.com>, Shay Drori <shayd@nvidia.com>
-Subject: Re: [PATCH net] net/mlx5e: Move representor vnic reporter to eswitch
- devlink port
-Message-ID: <20260731165722.GK51943@horms.kernel.org>
-References: <20260729070059.2421788-1-tariqt@nvidia.com>
+	dkim=pass (2048-bit key) header.d=meta.com header.i=@meta.com header.b="Q5KmDO5H"
+Received: from pps.filterd (m0528004.ppops.net [127.0.0.1])
+	by mx0a-00082601.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 66VIhmb21946352;
+	Fri, 31 Jul 2026 11:55:24 -0700
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=meta.com; h=cc
+	:content-transfer-encoding:content-type:date:from:message-id
+	:mime-version:subject:to; s=pps82601-s2048-2026-q3; bh=PL2StkL0B
+	74vie52VIhYkIwSiz/TtLj9D3k1myIfQFs=; b=Q5KmDO5HORRwSkCGEnCsP3wmq
+	oCOpxNifB+EqmyU3k9Z37bn318pmcJSovJUYUCztvm7x2OxwsWdzbNUn4qWz/yVa
+	PVWHvKgf6+GmoEujVmvNRoBoiY18eit7vjkzoZvCpcTsbH7KrcWgACqnaa2ZB9w4
+	1SLZCED5u7jZDybrKcE8ILVDJgwcyPEw9TCWFqc0/FfwbbSo6wo1AH8lQRMwMcY5
+	NqSxWwmCrpNyBP1qdkom03c3LnmTZPvhEHqgwGNd8cdbV9dWIBBJ0i2rhPLsPChE
+	EgM6WNV3SsOjWczzypKFa+1qP6+gRnK1za/DvocWd9OJe3x0dYYC4hT5WQbIw==
+Received: from mail.thefacebook.com ([163.114.134.16])
+	by mx0a-00082601.pphosted.com (PPS) with ESMTPS id 4fs0dsgd4h-2
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT);
+	Fri, 31 Jul 2026 11:55:24 -0700 (PDT)
+Received: from localhost (2620:10d:c085:108::150d) by mail.thefacebook.com
+ (2620:10d:c08b:78::c78f) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.2.2562.45; Fri, 31 Jul
+ 2026 18:54:51 +0000
+From: Glenn Judd <gmj@meta.com>
+To: Saeed Mahameed <saeedm@nvidia.com>, Tariq Toukan <tariqt@nvidia.com>,
+        "Mark Bloch" <mbloch@nvidia.com>, Leon Romanovsky <leon@kernel.org>,
+        <netdev@vger.kernel.org>
+CC: "David S. Miller" <davem@davemloft.net>,
+        Andrew Lunn
+	<andrew+netdev@lunn.ch>,
+        Eric Dumazet <edumazet@google.com>, Jakub Kicinski
+	<kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>, Khalid Manaa
+	<khalidm@nvidia.com>,
+        Ben Ben-Ishay <benishay@nvidia.com>, <linux-rdma@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>, Glenn Judd
+	<gmj@meta.com>
+Subject: [PATCH net] net/mlx5e: strip runt Ethernet padding in HW-GRO (SHAMPO)
+Date: Fri, 31 Jul 2026 11:54:42 -0700
+Message-ID: <20260731185442.2778723-1-gmj@meta.com>
+X-Mailer: git-send-email 2.53.0
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260729070059.2421788-1-tariqt@nvidia.com>
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNzMxMDE0NCBTYWx0ZWRfX7ayE+5QuhamI
+ 1KVWAWq88qMDZVMYm1rr68ww/QE94EXw8Uv3rRc8XdG/L91JZiVk7oB3uXRP8ohtT7H25AjlYVl
+ WwbxOnVQWW933iZOOsnj8Cmd/uKzqug8LePrbe/jMx4NGd19y4Xpxv+eC80m6+0ZhXtN8LI/YN7
+ pT/rDHCVbDWYktHod25YqXg1NJ5csQUh5UP68v7JtonIkBXI7kGMsYShOT5DUS28jQYntHXizYa
+ XJWMrZbBu4vjDe0BPlXyMzcU9c8JbkX4WD3P3yaFT4JrWWA1aTN63jmewb2XTZxT105e760lVi7
+ KfKhtamSu8CK/aDgOkmBP++3FnsPxsHSjFoc7aQNVbXjue9nclYHfnNLY5/AlyEBapYF6Q/vXMD
+ iBu5NNCh9Uw5eBsXrDPFQo3C8xzzraeiQFOAKdIAXmJ82QJDRgfC9qNU44d49xz6WaXUMOsY22N
+ V00T2B7fEiXBIiIpQKg==
+X-Authority-Analysis: v=2.4 cv=Du9mPm/+ c=1 sm=1 tr=0 ts=6a6cef9c cx=c_pps
+ a=CB4LiSf2rd0gKozIdrpkBw==:117 a=CB4LiSf2rd0gKozIdrpkBw==:17
+ a=RAioF0-LDSMA:10 a=VkNPw1HP01LnGYTKEx00:22 a=7x6HtfJdh03M6CCDgxCd:22
+ a=GbPsI2Ihf5RTnMjR_gZv:22 a=VwQbUJbxAAAA:8 a=VabnemYjAAAA:8
+ a=62cyLJc1qmirCwmxprMA:9 a=gKebqoRLp9LExxC7YDUY:22
+X-Proofpoint-Spam-Info: AW1haW4tMjYwNzMxMDE0NCBTYWx0ZWRfX4BGKaUMUUe4W
+ oRbRnPOw2PFIhzE6kWSCPJ9/DEgq/jVTZBnon9lEH6Xa3ol7ULpZ+3kIjvbp7c1xPCuUHJgLV/u
+ rGD7ycgS4+2zfZ2N/prEAJGhwY/KKvc=
+X-Proofpoint-ORIG-GUID: F8Xjo9kK4tWvpiGHdn3gwEe5EEZe0sno
+X-Proofpoint-GUID: F8Xjo9kK4tWvpiGHdn3gwEe5EEZe0sno
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1143,Hydra:6.1.134,FMLib:17.12.100.49
+ definitions=2026-07-31_06,2026-07-30_01,2025-10-01_01
 
-On Wed, Jul 29, 2026 at 10:00:59AM +0300, Tariq Toukan wrote:
+When hardware GRO (SHAMPO) coalesces a small IPv4/TCP segment
+that was padded up to the 60-byte minimum Ethernet frame, the trailing
+padding is folded into the merged payload.
 
-...
+The selftest tools/testing/selftests/drivers/net/hw/gro.py subtest
+hw_ipv4_data_lrg_1byte sends {100, 1} expecting to receive {101}.
+In current code, it receives {106} (100 + 1 payload + 5 pad) instead.
 
-> @@ -252,6 +275,16 @@ int mlx5_esw_offloads_devlink_port_register(struct mlx5_eswitch *esw, struct mlx
->  		mlx5_core_dbg(dev, "Failed to register port resources: %d\n",
->  			      err);
->  
-> +	rep = mlx5_eswitch_vport_rep(esw, vport_num);
-> +	reporter = devl_port_health_reporter_create(
-> +		&dl_port->dl_port, &mlx5_esw_rep_vnic_reporter_ops, rep);
+Fix is to compute the real (unpadded) frame length from the segment's
+IPv4 total (padded) length and drop the padding before it is merged.
 
-Hi Caroila, and Tariq,
+Fixes: 92552d3abd32 ("net/mlx5e: HW_GRO cqe handler implementation")
+Cc: stable@vger.kernel.org
+Assisted-by: Claude:claude-opus-4-8
+Assisted-by: Codex:gpt-5.6
+Assisted-by: Meta:internal-AI-tooling
+Signed-off-by: Glenn Judd <gmj@meta.com>
+---
+ .../net/ethernet/mellanox/mlx5/core/en_rx.c   | 72 ++++++++++++++++---
+ 1 file changed, 64 insertions(+), 8 deletions(-)
 
-I'm wondering if you could take a look over the following which appears at
-https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260729070059.2421788-1-tariqt%40nvidia.com
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c b/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
+index 6fbc0441c4b8..0b40db3d50aa 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
+@@ -1506,12 +1506,41 @@ static inline bool mlx5e_build_rx_skb(struct mlx5_cqe64 *cqe,
+ 	return false;
+ }
+ 
++/* Real (unpadded) L2 frame length, or 0 when it can't be determined. */
++static u32 mlx5e_shampo_frame_len(struct mlx5e_rq *rq, struct mlx5_cqe64 *cqe,
++				  struct sk_buff *skb)
++{
++	u16 head_size = cqe->shampo.header_size;
++	struct iphdr *iph;
++	int thoff, nhoff;
++
++	if (rq->hw_gro_data->fk.basic.n_proto != htons(ETH_P_IP) ||
++	    rq->hw_gro_data->fk.control.flags & FLOW_DIS_ENCAPSULATION)
++		return 0;
++
++	thoff = rq->hw_gro_data->fk.control.thoff;
++	if (head_size < ETH_HLEN + thoff)
++		return 0;
++
++	nhoff = ETH_HLEN + thoff - sizeof(struct iphdr);
++	if (skb) {
++		iph = (struct iphdr *)(skb->data + thoff - sizeof(struct iphdr));
++	} else {
++		void *hdr = mlx5e_shampo_get_hdr(rq, cqe, ETH_HLEN + thoff);
++
++		iph = (struct iphdr *)(hdr + nhoff);
++	}
++
++	return nhoff + ntohs(iph->tot_len);
++}
++
+ static bool mlx5e_shampo_complete_rx_cqe(struct mlx5e_rq *rq,
+ 					 struct mlx5_cqe64 *cqe,
+ 					 u32 cqe_bcnt,
+ 					 struct sk_buff *skb)
+ {
+ 	struct mlx5e_rq_stats *stats = rq->stats;
++	u32 frame_len;
+ 
+ 	stats->packets++;
+ 	stats->bytes += cqe_bcnt;
+@@ -1525,6 +1554,13 @@ static bool mlx5e_shampo_complete_rx_cqe(struct mlx5e_rq *rq,
+ 	if (!skb_flow_dissect_flow_keys(skb, &rq->hw_gro_data->fk, 0)) {
+ 		napi_gro_receive(rq->cq.napi, skb);
+ 		rq->hw_gro_data->skb = NULL;
++	} else {
++		frame_len = mlx5e_shampo_frame_len(rq, cqe, skb);
++		if (frame_len && frame_len >= cqe->shampo.header_size &&
++		    frame_len < cqe_bcnt) {
++			pskb_trim_rcsum(skb, skb->len - (cqe_bcnt - frame_len));
++			skb_shinfo(skb)->gso_size = frame_len - cqe->shampo.header_size;
++		}
+ 	}
+ 	return false;
+ }
+@@ -2244,6 +2280,7 @@ static void mlx5e_handle_rx_cqe_mpwrq_shampo(struct mlx5e_rq *rq, struct mlx5_cq
+ 	struct mlx5e_rx_wqe_ll *wqe;
+ 	struct mlx5e_mpw_info *wi;
+ 	struct mlx5_wq_ll *wq;
++	u32 frame_len = 0;
+ 	u32 data_offset;
+ 	u32 page_idx;
+ 
+@@ -2263,11 +2300,22 @@ static void mlx5e_handle_rx_cqe_mpwrq_shampo(struct mlx5e_rq *rq, struct mlx5_cq
+ 
+ 	data_offset = wqe_offset & (page_size - 1);
+ 	page_idx = wqe_offset >> rq->mpwqe.page_shift;
+-	if (*skb &&
+-	    !(match && mlx5e_hw_gro_skb_has_enough_space(*skb, data_bcnt,
+-							 page_size))) {
+-		match = false;
+-		mlx5e_shampo_flush_skb(rq, cqe, match);
++
++	if (*skb) {
++		u32 gro_bcnt = data_bcnt;
++
++		if (match) {
++			frame_len = mlx5e_shampo_frame_len(rq, cqe, NULL);
++			if (frame_len && frame_len >= head_size &&
++			    frame_len - head_size < gro_bcnt)
++				gro_bcnt = frame_len - head_size;
++		}
++
++		if (!(match && mlx5e_hw_gro_skb_has_enough_space(*skb, gro_bcnt,
++								 page_size))) {
++			match = false;
++			mlx5e_shampo_flush_skb(rq, cqe, match);
++		}
+ 	}
+ 
+ 	if (!*skb) {
+@@ -2311,10 +2359,18 @@ static void mlx5e_handle_rx_cqe_mpwrq_shampo(struct mlx5e_rq *rq, struct mlx5_cq
+ 
+ 	if (likely(head_size)) {
+ 		if (data_bcnt) {
+-			struct mlx5e_frag_page *frag_page;
++			if (NAPI_GRO_CB(*skb)->count > 1 &&
++			    frame_len >= head_size &&
++			    frame_len - head_size < data_bcnt)
++				data_bcnt = frame_len - head_size;
+ 
+-			frag_page = &wi->alloc_units.frag_pages[page_idx];
+-			mlx5e_shampo_fill_skb_data(*skb, rq, frag_page, data_bcnt, data_offset);
++			if (data_bcnt) {
++				struct mlx5e_frag_page *frag_page =
++					&wi->alloc_units.frag_pages[page_idx];
++
++				mlx5e_shampo_fill_skb_data(*skb, rq, frag_page,
++							   data_bcnt, data_offset);
++			}
+ 		} else {
+ 			stats->hds_nodata_packets++;
+ 			stats->hds_nodata_bytes += head_size;
 
-  Can rep or rep->esw be NULL at this point?
+base-commit: 8ba098e6b6ff0db8edf28528d1552be261af30d4
+-- 
+2.53.0-Meta
 
-  mlx5_eswitch_vport_rep() is a plain lookup with no NULL check here:
-
-  eswitch_offloads.c:mlx5_eswitch_get_rep() {
-	return xa_load(&esw->offloads.vport_reps, vport);
-  }
-
-  and rep->esw is only assigned lazily. In mlx5_esw_offloads_rep_add() the
-  assignment sits after the continue that is taken whenever no rep_ops are
-  registered yet, which is the state at probe time when
-  esw_offloads_init_reps() creates the reps:
-
-  eswitch_offloads.c:mlx5_esw_offloads_rep_add() {
-	rep = kzalloc_obj(*rep);
-	...
-	for (rep_type = 0; rep_type < NUM_REP_TYPES; rep_type++) {
-		if (!esw->offloads.rep_ops[rep_type]) {
-			atomic_set(&rep->rep_data[rep_type].state,
-				   REP_UNREGISTERED);
-			continue;
-		}
-		...
-		rep->esw = esw;
-	}
-  }
-
-  The only other writer is mlx5_eswitch_register_vport_reps_blocked(),
-  which runs from the mlx5_core.eth-rep auxiliary driver probe
-  (mlx5e_rep_probe() -> mlx5_eswitch_register_vport_reps()):
-
-  eswitch_offloads.c:mlx5_eswitch_register_vport_reps_blocked() {
-	esw->offloads.rep_ops[rep_type] = ops;
-	mlx5_esw_for_each_rep(esw, i, rep) {
-		if (likely(mlx5_eswitch_vport_has_rep(esw, rep->vport))) {
-			rep->esw = esw;
-			...
-  }
-
-  Is that probe guaranteed to have succeeded before ports are registered?
-  esw_mode_change() discards the mlx5_rescan_drivers_locked() return value
-  and sets esw->mode = mode regardless, and add_drivers() only warns when
-  add_adev() fails:
-
-  dev.c:add_drivers() {
-	priv->adev[i] = add_adev(dev, i);
-	if (IS_ERR(priv->adev[i])) {
-		mlx5_core_warn(dev, "Device[%d] (%s) failed to load\n", ...);
-		/* We continue to rescan drivers and leave to the caller ... */
-
-  In that case rep_ops[REP_ETH] stays NULL, rep->esw stays NULL, and
-  mlx5_eswitch_load_vport() -> mlx5_esw_offloads_load_rep() ->
-  mlx5_esw_offloads_devlink_port_register() still installs a live reporter.
-  Would a subsequent "devlink health diagnose <dev>/<port> reporter vnic"
-  then oops on rep->esw->dev in mlx5_esw_rep_vnic_reporter_diagnose(),
-  with the devlink instance lock held?
-
-  The old code could not hit this because the reporter was created from the
-  REP_ETH load callback, i.e. only after rep_ops were registered and
-  rep->esw was set. Note also that mlx5_esw_offloads_rep_remove() does
-  check the same lookup result for NULL, which this call site does not.
-
-  Since struct mlx5_devlink_port already carries a struct mlx5_vport
-  pointer, which gives both vport->dev and vport->vport and whose lifetime
-  matches the port exactly, could dl_port->vport be used as the reporter
-  priv instead of the rep?
-
-> +	if (IS_ERR(reporter))
-> +		mlx5_core_dbg(dev,
-> +			      "Failed to create vnic health reporter for vport %d: %pe\n",
-> +			      vport_num, reporter);
-> +	else
-> +		dl_port->vnic_reporter = reporter;
-> +
->  	return 0;
->  
->  rate_err:
-
-...
