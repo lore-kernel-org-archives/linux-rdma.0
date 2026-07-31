@@ -1,88 +1,100 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E59935203A;
-	Fri, 31 Jul 2026 21:37:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 639FC35C6A4;
+	Fri, 31 Jul 2026 22:51:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785533856; cv=none; b=DfPkqFnroowS0334irsdAHO7IO7EwVyFm2PMzZLClqwjIQcVPisQzNrI2Haf/7vccJiIl3QjtsfNhe/ffvnho6X4pTHnx+dmgqxymUAZmN88C8nCOdrAcc7+f9/eABSWRirKunVTVeYVuho6jYGyykglukHaiV7jvFH6Me+G95A=
+	t=1785538308; cv=none; b=BK8bvrZ90Ir/qxUgYYGNl8ENq8CSqWIn5/3LaZn/kvrerdmlQ3vnGwkCMplxPNkoRfc6riii5egCF9SXMGXytM49vsB5LrUXBaCVTWC/DONgBG9GK9zcf1iYLAJvyjZrBNp3PchObvuxpV8hYwG36ctGOsrUvbPk1pPbgxVGlHw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785533856; c=relaxed/simple;
-	bh=pk9f3iIsJJZYqYPtFaAxp1dffLct3ichWT0EgO1tYj4=;
-	h=Date:From:To:Cc:Subject:Message-Id:In-Reply-To:References:
-	 Mime-Version:Content-Type; b=CVCxS3pLh9jBSSDtAB4+uERexivCj9axC3HBYHLcfljFE1KRqaaK75edQdbYx/nXOD4IeLR2S9n75k2mR9P6sZjHcGCfJcgK2fur5M+kcNYJIa0T42BjbgJ+ukaG/6RZoJQixKy7XbD9CIM6a70jCUtOorjC04nDJUeOaF8Y4uk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bsu9prvl; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785538308; c=relaxed/simple;
+	bh=4lnxS/ZRLgrhqueWnn7x/aSqKk3pEnt2jKZP/4C10rM=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=ng4/9djYrxYB+j71myNvMU0NqxHda4o52xFIwiigpQ4AM/OfGCt/ipAdZTGzZZ1t+VZ8Ful68HPWaHLSXqVnqweQ6yEtdbHfSfZLONo/J5jhKfvCwH7WGGlbA0xuzpoNLd+MuLDnFwyiilqUSVzFFa8N2r5/WeYXnK09kC67594=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=e/E/Aed7; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bsu9prvl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 098FB1F00AC4;
-	Fri, 31 Jul 2026 21:37:34 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785533855;
-	bh=O1+5FJ+vsFbhTS3uy6QvGBbTfrl8nRF61DS//Z1gGs8=;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="e/E/Aed7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D18FA1F00AC4;
+	Fri, 31 Jul 2026 22:51:46 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1785538307;
+	bh=FN9o6ge/8QiKsnO0JTsQSdweDjv4TeuUQif+W0oi/Ew=;
 	h=Date:From:To:Cc:Subject:In-Reply-To:References;
-	b=bsu9prvliEAtWl9141QWG8ktEUrv3SrzZW0TRFfh52pvi18ypE6LALcgP5+/3tl5p
-	 chd7Y8huQ3OCgGlD/A9nlhMZoYfi1Iu1y6/OkpTPWSKlaEZNueaXh2uQfIC1pvoBtY
-	 SewvgNsJYjVN6u7HfHbW+4sjXANpuiXr+fCVombQ=
-Date: Fri, 31 Jul 2026 14:37:33 -0700
-From: Andrew Morton <akpm@linux-foundation.org>
-To: Wei Liu <wei.liu@kernel.org>
-Cc: Stanislav Kinsburskii <skinsburskii@gmail.com>, Jason Gunthorpe
- <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>, David Hildenbrand
- <david@kernel.org>, Lorenzo Stoakes <ljs@kernel.org>, "Liam R. Howlett"
- <liam@infradead.org>, Vlastimil Babka <vbabka@kernel.org>, Mike Rapoport
- <rppt@kernel.org>, Suren Baghdasaryan <surenb@google.com>, Michal Hocko
- <mhocko@suse.com>, Jonathan Corbet <corbet@lwn.net>, Shuah Khan
- <skhan@linuxfoundation.org>, Shuah Khan <shuah@kernel.org>,
- "K. Y. Srinivasan" <kys@microsoft.com>, Haiyang Zhang
- <haiyangz@microsoft.com>, Dexuan Cui <decui@microsoft.com>, Long Li
- <longli@microsoft.com>, Lyude Paul <lyude@redhat.com>, Danilo Krummrich
- <dakr@kernel.org>, Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
- Maxime Ripard <mripard@kernel.org>, Thomas Zimmermann
- <tzimmermann@suse.de>, David Airlie <airlied@gmail.com>, Simona Vetter
- <simona@ffwll.ch>, Min Ma <mamin506@gmail.com>, Lizhi Hou
- <lizhi.hou@amd.com>, Oded Gabbay <ogabbay@kernel.org>, linux-mm@kvack.org,
- linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
- linux-kselftest@vger.kernel.org, linux-hyperv@vger.kernel.org,
- dri-devel@lists.freedesktop.org, nouveau@lists.freedesktop.org,
- linux-rdma@vger.kernel.org
-Subject: Re: [PATCH v11 0/8] mm/hmm: Add mmap lock-drop support for
- userfaultfd-backed mappings
-Message-Id: <20260731143733.6f74ec9b9023f898c3c260e1@linux-foundation.org>
-In-Reply-To: <20260731211728.GA3243658@liuwe-devbox-debian-v2.local>
-References: <20260723-hmm-v10-v11-0-c55b003a4b61@gmail.com>
-	<20260723142242.5d3f87208d47819d873ae458@linux-foundation.org>
-	<20260731211728.GA3243658@liuwe-devbox-debian-v2.local>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+	b=e/E/Aed7lN3wBN2soujFSiy3BLXQwncDLhl8lsVEBFCkTFORRsVDFjrJiyog2u5YB
+	 KlTMTuiVbXMl2UXRsWmiXi48laCTZvy2iovAo5izUmHHuepK7zFKWElZCEUBTDxRWD
+	 Zq+WHmwX0UeqaM42JLnJwuyNnBMDIdKS/euZXO7n+KbQIYfpyevNWjdm9/O9GqrNFL
+	 y8+m2S5Oy5uFfnIGf1ZoDPOOdppiSeLO6pEPNJQk0jd67tOR1/KwZNddZp/XWQOc0L
+	 Sog3F7i5++zXBSx8r4OPEjbtKBNPCUCaQJ6fUdgssg/7YbvnSzlUC2yCXiV7/KhNsn
+	 gdW6slR5e6wjg==
+Date: Fri, 31 Jul 2026 15:51:46 -0700
+From: Jakub Kicinski <kuba@kernel.org>
+To: Mark Bloch <mbloch@nvidia.com>
+Cc: Jiri Pirko <jiri@resnulli.us>, Eric Dumazet <edumazet@google.com>, Paolo
+ Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>, Saeed Mahameed
+ <saeedm@nvidia.com>, Leon Romanovsky <leon@kernel.org>, Tariq Toukan
+ <tariqt@nvidia.com>, Andrew Lunn <andrew+netdev@lunn.ch>, Jonathan Corbet
+ <corbet@lwn.net>, Shuah Khan <skhan@linuxfoundation.org>,
+ netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
+ linux-doc@vger.kernel.org, Jiri Pirko <jiri@nvidia.com>
+Subject: Re: [PATCH net-next V7 4/4] devlink: Apply eswitch mode boot
+ defaults
+Message-ID: <20260731155146.21c05157@kernel.org>
+In-Reply-To: <716eaf68-6168-41fb-b705-e14e84910ea2@nvidia.com>
+References: <20260716084852.549909-1-mbloch@nvidia.com>
+	<20260716084852.549909-5-mbloch@nvidia.com>
+	<20260724161111.2ac47089@kernel.org>
+	<c6c0d67c-d832-49a1-b62a-57fa6ee56a47@nvidia.com>
+	<20260727131033.237f70b6@kernel.org>
+	<amnDfSmMVzpiH2gE@FV6GYCPJ69>
+	<20260729160608.3c491568@kernel.org>
+	<amsu3mbWht_pc4KJ@FV6GYCPJ69>
+	<716eaf68-6168-41fb-b705-e14e84910ea2@nvidia.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
+MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 
-On Fri, 31 Jul 2026 14:17:28 -0700 Wei Liu <wei.liu@kernel.org> wrote:
-
-> On Thu, Jul 23, 2026 at 02:22:42PM -0700, Andrew Morton wrote:
-> > On Thu, 23 Jul 2026 10:36:32 -0700 Stanislav Kinsburskii <skinsburskii@gmail.com> wrote:
+On Fri, 31 Jul 2026 16:52:25 +0300 Mark Bloch wrote:
+> >> Maybe "after_init()" ? "in" sounds like we can release it multiple
+> >> times but I think the idea is that it's the final, single "release 
+> >> into the wild" unlock.  
 > > 
-> > > This series extends the HMM framework to support userfaultfd-backed memory
-> > > by allowing the mmap read lock to be dropped during hmm_range_fault().
-> > > 
-> > 
-> > Thanks, I've updated mm.git to this version.
+> > ack  
 > 
-> Hi Andrew,
+> Just to make sure I understand the proposal.
 > 
-> I see this series in linux-next now.
+> AFAIU devl_unlock_after_init() can be used in one of two ways:
 > 
-> I'm curious to know if these patches are going to make 7.3.
+> Convert all devlink drivers to use it for the final unlock, including
+> drivers which don't support eswitch mode setting.
+> 
+> That's a lot of churn for the few drivers which need this.
+> We'd also need to make sure existing drivers are converted and new
+> drivers use the right helper.
 
-Probably.  The series is incompletely reviewed at this time.  Perhaps
-you can assist with this?
+We can add a WARN_ON(!registered) to the normal unlock and it will
+be impossible to miss the use of the wrong one?
 
-> We have some work that's dependent on this so would like to plan
-> accordingly.
+> Convert only drivers which support eswitch mode setting.
 > 
-> Thank you Stanislav for continue pushing this.
+> Then applying the default becomes driver opt-in, which AFAIU we were
+> trying to avoid. For this feature it also looks very similar to the
+> explicit apply API Jiri objected to.
+
+Well, it would be a change to the init flow into which more things
+can be hooked. We could also make it a separate "driver ready" call,
+I guess, instead of packing it with the unlock. The point is that it's
+not a eswitch-mode dedicated callback that's easy to miss in a driver.
+
+> Which one do you have in mind?
+> 
+> I don't think either option is great. Wouldn't it be simpler to queue
+> work from devl_register(), as before? That keeps the logic out of
+> devl_unlock() and doesn't require driver opt-in.
+
+Having to edit the drivers is not a concern to me. That said, I do agree
+that the API is somewhat awkward. It's a compromise. IDK.
