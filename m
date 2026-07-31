@@ -1,137 +1,154 @@
-Received: from canpmsgout06.his.huawei.com (canpmsgout06.his.huawei.com [113.46.200.221])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qv1-f53.google.com (mail-qv1-f53.google.com [209.85.219.53])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D821234EF07;
-	Fri, 31 Jul 2026 09:25:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.221
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA5D036897F
+	for <linux-rdma@vger.kernel.org>; Fri, 31 Jul 2026 12:41:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.53
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785489946; cv=none; b=ZhCxiWipPby7vLsYyfMzXztO1q/uDRof8EL21GiBTTDeWqraSkJiSrBvsbQ9CffvdIcC/Yg9eG6Yiz8RWWWEvNebRplK/EGDArUQ3Nrj4AYWJpto6rxecHIHzAxUbneItvBq5hga0oDMHIY4a3EGBUH77CjwGzFRLP3AYYqp9aA=
+	t=1785501691; cv=none; b=YMq68uwLzQJysjBS0n4PBMmNDSxPBjFy1qhAGShmeo5P/4pRj3Yvqchmf8CqGFqcOqpUmUGzfjTpf4k0qtMDoV0U19vaDRcrw+CQ4oibpC88y+OS3MLALYCHwcWnSnaZa0IPsLaAjsCbdr16k0eEJV/3/lMPQfAfl6YHDD639xk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785489946; c=relaxed/simple;
-	bh=yVbIrq0JGJ/tqGL3Y2ZY9dwrwUyLWURgmK/GfIDOQUE=;
-	h=From:To:CC:Subject:Date:Message-ID:Content-Type:MIME-Version; b=CM+uawkSrmVXbiv1ntMLthzBi8LGpL534t6lvChVy5qSoubtfl8ds0Opsu+n6efecapdqaSMmyhBgTyq/Tzhr2kcyEqqH0rMWTs7dW7QRTcgkFqrCw226rusZP+s4Q7TrDTDHVPNxJGgpdpk3A3NncIgtKmvfW0ZRhe9Ao490NI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b=pGH/iuBq; arc=none smtp.client-ip=113.46.200.221
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+	s=arc-20240116; t=1785501691; c=relaxed/simple;
+	bh=keIsujryx3Uee0mJit7AKr9nN0ssqKTbSC5x1osOq28=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=CEGznUgWsobVf7dst9b6Xhhx1igcRuXterCa8epMFaZMDj5ePn5BPEhwsc38yvjTCVQNGvVsnTgKMhdpQ2gFRj85Ukn6PgdfyIc71vt2/VZrq9rxRGANgH+HkRs4S58vVdSzqLL35aRUpKHypYFx8AqOAvJgjfy5vTJaWfoIKdY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=i6nafXas; arc=none smtp.client-ip=209.85.219.53
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b="pGH/iuBq"
-dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
-	c=relaxed/relaxed; q=dns/txt;
-	h=From;
-	bh=ezWBjEQSDcXQyHNe5BtmlwrccUN5BrvMs10Em0adCSs=;
-	b=pGH/iuBqURK83Z9lqsED7R+rUKVpsyDWjl2LbSCMHb2XBN7DYhttOPvhP/sgiSnPBvN9k8Kv+
-	1vwaN6cVm5mLh96ZLRwrDGQy1ctxHKpM4Sezks2e6Kj2oImPH2Y1LtP3AOB916FEbd3grAXOjNN
-	prlqTCjU1tgOYVoGnHZ/zZ4=
-Received: from mail.maildlp.com (unknown [172.19.162.197])
-	by canpmsgout06.his.huawei.com (SkyGuard) with ESMTPS id 4hBL660wbZzRhR0;
-	Fri, 31 Jul 2026 17:16:14 +0800 (CST)
-Received: from kwepemf200012.china.huawei.com (unknown [7.202.181.238])
-	by mail.maildlp.com (Postfix) with ESMTPS id 19F504057D;
-	Fri, 31 Jul 2026 17:25:41 +0800 (CST)
-Received: from kwepemq500011.china.huawei.com (7.202.194.193) by
- kwepemf200012.china.huawei.com (7.202.181.238) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Fri, 31 Jul 2026 17:25:40 +0800
-Received: from kwepemq500011.china.huawei.com ([7.202.194.193]) by
- kwepemq500011.china.huawei.com ([7.202.194.193]) with mapi id 15.02.1544.011;
- Fri, 31 Jul 2026 17:25:40 +0800
-From: shimiaofeng <shimiaofeng@huawei.com>
-To: "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>,
-	"linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "hch@lst.de"
-	<hch@lst.de>, "sagi@grimberg.me" <sagi@grimberg.me>, "hare@suse.de"
-	<hare@suse.de>, "saeedm@nvidia.com" <saeedm@nvidia.com>, "leon@kernel.org"
-	<leon@kernel.org>, "jgg@ziepe.ca" <jgg@ziepe.ca>,
-	"linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
-CC: luolongmin <luolongmin@huawei.com>, haoweiheng <haoweiheng@huawei.com>,
-	"chenjianfei (D)" <chenjianfei3@huawei.com>
-Subject: Nvme-rdma: Long IO HANG (~4.8h) during link failure with dm-multipath
- (Kernel 6.6)
-Thread-Topic: Nvme-rdma: Long IO HANG (~4.8h) during link failure with
- dm-multipath (Kernel 6.6)
-Thread-Index: Ad0gzmSELVSC6brVS1yCYXt27TkCxQ==
-Date: Fri, 31 Jul 2026 09:25:40 +0000
-Message-ID: <2139a37510154a98a614c3c37941a13b@huawei.com>
-Accept-Language: zh-CN, en-US
-Content-Language: zh-CN
-X-MS-Has-Attach:
-X-MS-TNEF-Correlator:
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="i6nafXas"
+Received: by mail-qv1-f53.google.com with SMTP id 6a1803df08f44-907ae240ac3so4614456d6.0
+        for <linux-rdma@vger.kernel.org>; Fri, 31 Jul 2026 05:41:29 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1785501689; x=1786106489; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:in-reply-to:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=AR51AZn/bvW2dwxRSuHfDMRFFtyWMfnouj4EfaRrzZs=;
+        b=i6nafXasKXLG6nPUYRVBnBIWDGnj99S2pyfmAT2SMCWXhLDV8XaYrouc2Ua2i5vimd
+         UUXEjqOji+58UkOqKxSbvC33VFKvxw7L4sGbacPAUAIXlq80E19WLzwA8qQSPeKkl2r3
+         Z9XqISG1mtM7UD2DkFdMqLsP8GKgKzA4FQXBHQ/65SNEeMqkq9dpzySYFRhCkLpiKTfu
+         ODht7ZlfQdd1TZGhwUwP/AR8ys9xgWE3iHFC1f2kHvvhkYNIsLfG5clzN29EaXwMEkls
+         JYIOd1M+Gu+c/ZQzbbF3RPRyK9jEqIQ80Vzk20y6O2vdK7enadd2F4bGmXY/EJFU3KIq
+         e9AA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1785501689; x=1786106489;
+        h=content-transfer-encoding:content-type:in-reply-to:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=AR51AZn/bvW2dwxRSuHfDMRFFtyWMfnouj4EfaRrzZs=;
+        b=Y9GwHsgky5VVbF92FqWfEMvoCT1al9i4S5hIewK7YFZXSc9BGc6GmwJhSX6K2U8vMs
+         9fHAcfZFcxLq+5zQsJVzVbW38GnPeQmoDJtRoIPD007vwh+OIoBgr1wr3y3+E940p7/M
+         Jf4GAHwdQ4pN3yFOFe96ef09FudUBFI7Js4sl8ZMNZWh9tw3i+47w9f3PuojVi3qvL7v
+         FEM4ecNZ1w+lEakG0nvYmlW2j4BlcwE/fuJlWq/JHEyuMGvqVYh4dOwQF8PJQFHSVWpH
+         4l1rE+vn76RrjVBi6gZHRtDXH87wAPHpHeEytQGErG1G7dKr220gavK3qqvdItPA9d9E
+         zTDg==
+X-Forwarded-Encrypted: i=1; AHgh+Rp63KvXmBT1kdNgb53WpqdGSJD6S2V3fwBuJmXKVukCICBFPK0EwM5UsWEfqCFIxeRNCyRiaJVmRXTK@vger.kernel.org
+X-Gm-Message-State: AOJu0Yx442BH7C9vVw2IbA6/Tnq6RJknt5i3WUAxBsYmVgrA8SiLlBfr
+	wronpjcFYr7Vll4YDxNv9ZmbSPruwHMfUJ6Gth0uWpZVHnn4uaON9h7u
+X-Gm-Gg: AR+sD10lLdlYysOXYRvUAGwP4ebrSa3AhunZFFme0/ZlkZ3A3/YAYnsmqXqSPJn3Rm3
+	3KhjLbOkvvWxaT3U7yuVNyJTfjmZQP7eWItRgiORBaGzYcA8br4dEwOalBmD98MbMTOaH84QZp2
+	2pG2jUeSfEqwy+wXAz7P14u18S8/9svCUFKUrNsyd8yh+w/IhXKOUaev3jOfAMx4GS6cfLkYYev
+	RKdCVZvP5F9c/ZlcvMs1cTHHNSWZGtVg/Bwg6G7yfZ01j/vUJfOsf6vxUrKeTFcqrbHoS/SanMz
+	lvNhwWiSd+EFWoQDb/DiMemEQew62QSXFS81Km5PquGEM/YW20y+ECuTkKAHLRSA8/pXRLY2hQN
+	Uq4FFwgFnnEe7WtUwMELY7JO3s8c0FS7NoaysU4DaYJBAsl1FIG0z1qScJH+6q3grO1WGJAmMp9
+	MTh4OEKOCItFOvo0vTGIuIQaZ4bqfzhSWq9Md334DYqTraeocbTGfRIg9/UR30iBZv6hYZmmy4E
+	gxD5CgbfgPbdUhd3Gw+2oURdkexEzQ=
+X-Received: by 2002:a05:6214:3f85:b0:8ef:91c5:8edb with SMTP id 6a1803df08f44-9084218e7a2mr38156866d6.10.1785501688541;
+        Fri, 31 Jul 2026 05:41:28 -0700 (PDT)
+Received: from ?IPV6:2a03:83e0:1145:4:4e58:3e50:ad11:4e7a? ([2620:10d:c091:500::4:2e2b])
+        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-908435dfa6dsm9313106d6.33.2026.07.31.05.41.27
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Fri, 31 Jul 2026 05:41:27 -0700 (PDT)
+Message-ID: <0d72c5b2-6d4c-40d4-8cbe-8cd95d61a230@gmail.com>
+Date: Fri, 31 Jul 2026 08:41:26 -0400
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH net-next 09/13] net/mlx5e: psp: Add an rx_decap steering
+ table
+To: Tariq Toukan <tariqt@nvidia.com>, Andrew Lunn <andrew+netdev@lunn.ch>,
+ "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
+ Jakub Kicinski <kuba@kernel.org>, netdev@vger.kernel.org,
+ Paolo Abeni <pabeni@redhat.com>, Sabrina Dubroca <sd@queasysnail.net>
+Cc: Aleksandr Loktionov <aleksandr.loktionov@intel.com>,
+ Alexei Lazar <alazar@nvidia.com>, Boris Pismenny <borisp@nvidia.com>,
+ Carolina Jubran <cjubran@nvidia.com>, Chris Mi <cmi@nvidia.com>,
+ Cosmin Ratiu <cratiu@nvidia.com>, Doruk Tan Ozturk <doruk@0sec.ai>,
+ Dragos Tatulea <dtatulea@nvidia.com>, Gal Pressman <gal@nvidia.com>,
+ Jacob Keller <Jacob.e.keller@intel.com>, Jianbo Liu <jianbol@nvidia.com>,
+ Kees Cook <kees@kernel.org>, Lama Kayal <lkayal@nvidia.com>,
+ Leon Romanovsky <leon@kernel.org>, linux-kernel@vger.kernel.org,
+ linux-kselftest@vger.kernel.org, linux-rdma@vger.kernel.org,
+ Mark Bloch <mbloch@nvidia.com>, Patrisious Haddad <phaddad@nvidia.com>,
+ Raed Salem <raeds@nvidia.com>, Rahul Rameshbabu <rrameshbabu@nvidia.com>,
+ Saeed Mahameed <saeedm@nvidia.com>, Shuah Khan <shuah@kernel.org>,
+ Shuah Khan <skhan@linuxfoundation.org>, Simon Horman <horms@kernel.org>,
+ Stanislav Fomichev <sdf@fomichev.me>,
+ Stanislav Fomichev <sdf.kernel@gmail.com>
+References: <20260730091756.2543777-1-tariqt@nvidia.com>
+ <20260730091756.2543777-10-tariqt@nvidia.com>
+Content-Language: en-US
+From: Daniel Zahka <daniel.zahka@gmail.com>
+In-Reply-To: <20260730091756.2543777-10-tariqt@nvidia.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Hi all,
-We encountered a severe I/O hang issue during NVMe-oF (RoCEv2) link failure=
- when native multipath is disabled and dm-multipath is used instead.
-Based on our test results, this issue is highly likely located within the r=
-econnect/backoff mechanism of the vendor's out-of-tree driver (NVIDIA DOCA-=
-Host 3.3.0). The attachment contains the logs captured when the fault occur=
-s.
-We look forward to the vendor analyzing this driver-side issue, but we woul=
-d also like to seek advice from community experts regarding potential optim=
-ization suggestions for the block layer and NVMe-oF (NOF) collaboration mec=
-hanisms to guard against such behavior.
 
-Environment
-*	Kernel: 6.6.0 (openEuler 24.03 LTS SP4 baseline)
-*	Hardware: Intel Xeon Gold 5220R / Mellanox ConnectX-5 (MT27800, FW: 26.01=
--1.0.0)
-*	Storage: Huawei OceanStor Dorado (NVMe over RoCEv2)
-*	Configuration: nvme_core.multipath=3DN, dm-multipath enabled.
-*	Fabric Parameters: reconnect_delay =3D 10, ctrl_loss_tmo =3D 600 (or ctrl=
-_loss_tmo =3D 10 for testing)
 
-Problem Description & Observations
-When we manually inject a link fault on one of the paths and restart multip=
-athd, the multipathd process gets stuck in the D state (the path detection =
-I/O does not return). Application I/O hangs for a very long time due to a r=
-equeue ping-pong loop.
-1.	The Requeue Ping-Pong: After the link goes down, the NVMe controller tra=
-nsitions to the NVME_CTRL_CONNECTING state. During this time, nvme_fail_non=
-ready_command() returns BLK_STS_RESOURCE. Upon receiving this, the block la=
-yer (blk-mq) immediately requeues the request. This causes the I/O to endle=
-ssly "ping-pong" between the block layer and nvme-core.
-2.	Abnormal Retry Interval: Based on ctrl_loss_tmo / reconnect_delay =3D 60=
-0 / 10, the subsystem is expected to retry 60 times. However, the actual me=
-asured interval between two consecutive retries is stretched to 288s - 290s=
-, completely ignoring the configured reconnect_delay =3D 10. The total hang=
- time reaches 17,340 seconds (~4.8 hours).
-3.	Single Retry Test: To isolate the issue, we set ctrl_loss_tmo =3D 10 (wh=
-ich triggers only 1 retry before tearing down the controller). Even in this=
- case, the I/O still HANGS for exactly ~290 seconds. This indicates that th=
-e problem is not cumulative retry multiplication, but rather that the very =
-first reconnect attempt or the single reconnect worker itself is being bloc=
-ked/delayed internally for ~290 seconds by the underlying driver stack.
+On 7/30/26 5:17 AM, Tariq Toukan wrote:
+> +static
+> +void accel_psp_fs_rx_decap_ft_destroy(struct mlx5e_psp_fs *fs,
+> +				      struct mlx5e_psp_rx_decap_table *decap)
+> +{
+> +	int i;
+> +
+> +	accel_psp_fs_del_flow_rule(&decap->unsupported_rule);
+> +	for (i = 0; i < MLX5E_PSP_NUM_SUPPORTED_VERSIONS; i++)
+> +		accel_psp_fs_del_flow_rule(&decap->rule[i]);
+> +	if (decap->reformat) {
+> +		mlx5_packet_reformat_dealloc(fs->mdev, decap->reformat);
+> +		decap->reformat = NULL;
+> +	}
+> +	accel_psp_fs_dealloc_modify_hdr(fs->mdev, &decap->modify_hdr);
+> +	accel_psp_fs_destroy_flow_group(&decap->drop_group);
+> +	accel_psp_fs_destroy_ft(&decap->ft);
+> +}
+> +
 
-In-box Driver Contrast
-If we switch back to the kernel in-box (mainline upstream) mlx5 driver, thi=
-s issue DOES NOT occur. The NVMe controller status updates rapidly upon lin=
-k failure, and failover finishes within seconds. This further confirms that=
- the 290-second blocking behavior is specific to the DOCA driver stack.
+[...]
+> +static int accel_psp_fs_rx_reconfigure(struct mlx5e_psp_fs *fs,
+> +				       bool decap_wanted)
+> +{
+> +	bool decap_supported =
+> +		MLX5_CAP_FLOWTABLE(fs->mdev,
+> +				   flow_table_properties_nic_receive.reformat_del_psp_transport);
+> +	bool decap_enable = decap_wanted && decap_supported;
+> +	struct mlx5_flow_destination dest = {};
+> +	int err;
+> +
+> +	/* Create the decap table if needed. */
+> +	if (decap_enable && !fs->decap.ft) {
+> +		err = accel_psp_fs_rx_decap_ft_create(fs, &fs->decap);
+> +		if (err) {
+> +			mlx5_core_warn(fs->mdev,
+> +				       "Failed to create PSP decapsulation rules (err %d), HW GRO for PSP unavailable",
+> +				       err);
+> +			decap_enable = false;
+> +		}
+> +	}
+> +	if (decap_enable == fs->decap_enabled)
+> +		return 0;
 
-Technical Consultation
-The most appropriate solution is for the vendor to fix this issue within th=
-eir driver. However, if the vendor driver cannot technically resolve it, ar=
-e there any potential optimization mechanisms within the block layer or the=
- multipath subsystem to mitigate this?
-For example:
-1.	Block Layer: During the NVME_CTRL_CONNECTING state, if requests continuo=
-usly receive BLK_STS_RESOURCE, should the block layer introduce an exponent=
-ial backoff mechanism or a maximum retry threshold? Blindly requeuing these=
- requests seems to create an infinite loop that leaves the system vulnerabl=
-e to worker starvation or long hangs if the underlying driver blocks.
-2.	Multipath Subsystem: The multipath subsystem's path detection mechanism =
-for NVMe devices could be optimized. I believe that path-checking I/Os (suc=
-h as those sent by multipathd to verify link sanity) should not be allowed =
-to retry indefinitely under these conditions, as it completely stalls the f=
-ailover process.
+An llm is complaining that fs->decap_enabled is not set to false when 
+the decap table is destroyed with accel_psp_fs_rx_decap_ft_destroy(), 
+which would cause problems after doing a psp_dev_ops::set_config() down 
+and up.
 
-Any insights or architectural suggestions on how the block layer can better=
- handle or guard against such non-responsive driver behavior would be great=
-ly appreciated.
-
-Thanks.
+I'm not sure if this is legit, but figured I would flag it as it seems 
+plausible and would be easily reachable by a user.
