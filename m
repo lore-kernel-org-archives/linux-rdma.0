@@ -1,95 +1,97 @@
-Received: from smtpbgbr2.qq.com (smtpbgbr2.qq.com [54.207.22.56])
+Received: from pdx-out-009.esa.us-west-2.outbound.mail-perimeter.amazon.com (pdx-out-009.esa.us-west-2.outbound.mail-perimeter.amazon.com [35.155.198.111])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 674A72DF3EA;
-	Fri, 31 Jul 2026 07:48:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.207.22.56
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 05005220F49
+	for <linux-rdma@vger.kernel.org>; Fri, 31 Jul 2026 07:50:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=35.155.198.111
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785484105; cv=none; b=daQYqzrOvZRtcKpE/QyhtWMo6NJQtqx56BHC6+lE1CZPcBQOHJPKsWIyiytboxidYuqzs3/UUqpN+hVoKsIZ63w6u+lqPjW/0mbyJ2wfVV1ixdacz84gPHW6XRXCW1NnVUgUrVBy+55WTxMv/4eUmsPXpzt3zNQzkQts+1grIUA=
+	t=1785484229; cv=none; b=UCbhfc7AFePE6svfkM7ELgHHJ3WQ83z0e6eFNmn+sznq8JEEiLV4PRPviTVU9dAdqAh3y6kGszbf9b6duOuXvzUDtOraUtHNy4vutaeIvG4ky8JtU2Ck8ThGyakrt/mOtPeWjLK1ioglezeFtt63nSLBd6UxOy11HxU4+CUDrh8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785484105; c=relaxed/simple;
-	bh=YRbgYrI2in1OagB5eEC7q4kyXL/MKuvjfJ9CmLXvtuk=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=GY0mYXwNszttZtRQB7bYPgUoXrXscm1A7TV2dnhlDRDFw7TWY1Xa2z/fYBYWbsCSGAr0zWoTqm2Hjf43hMZUc1LN6Un5Ck9cHfe0duHOnona6XbDY1ockKCAmd8UQCtay//OTJrqFG6bcR0aArYofTPhwsSP72uB/RorcwO++pM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=smail.nju.edu.cn; spf=pass smtp.mailfrom=smail.nju.edu.cn; dkim=pass (1024-bit key) header.d=smail.nju.edu.cn header.i=@smail.nju.edu.cn header.b=Jr6l9mNp; arc=none smtp.client-ip=54.207.22.56
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=smail.nju.edu.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=smail.nju.edu.cn
+	s=arc-20240116; t=1785484229; c=relaxed/simple;
+	bh=t/XsJqhfMLj0RVDwlL8/mdVho6AefDcycUyXhFd8Jz4=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=tLWrSBPKaL+Ci7e6hNjU3OZ4ynHHsO9JFWYIp1azc6PXnRj4URKC5QCmIRQLfysI2xine9TKrAY9QQ5S+ct6sSDu6+UUTMEAoN09FTQH9pVWrG8xcMK8BaQCYfZUyFijjWCE0IJ6QthiSbkMmtjN8dluNt2yML9Wi71OaO5zeNQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com; spf=pass smtp.mailfrom=amazon.com; dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.b=I3VQPlYL; arc=none smtp.client-ip=35.155.198.111
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazon.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=smail.nju.edu.cn header.i=@smail.nju.edu.cn header.b="Jr6l9mNp"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=smail.nju.edu.cn;
-	s=iohv2404; t=1785484071;
-	bh=j21Dw6xROaTMQecO0BO9iq0AyKrsHh5yK8KVdRpYgEY=;
-	h=Message-ID:Date:MIME-Version:Subject:To:From;
-	b=Jr6l9mNpFeMDS/O0HCAH+6CupqI1EMu7J3Yw1g0nKqmaR/Dk5SCewwF+XjxkCj2kf
-	 dYmp4tGOqCq8PVx0DIqYGm2xZRB0VbHlhU1JVmMzsdOa3xJoaWle0SLQEq4m1k8z/Y
-	 ZXnd/SwkZAE2Jnynssi4uDnA9kFIlgwR3KILUs2o=
-X-QQ-mid: zesmtpsz8t1785484064ta95e2761
-X-QQ-Originating-IP: Y5/G7RGXiE0Q0p/zXZHyea8lWScHsc+Gf87dUwJ96Gg=
-Received: from [127.0.0.1] ( [36.152.24.163])
-	by bizesmtp.qq.com (ESMTP) with 
-	id ; Fri, 31 Jul 2026 15:47:42 +0800 (CST)
-X-QQ-SSF: 0000000000000000000000000000000
-X-QQ-GoodBg: 0
-X-BIZMAIL-ID: 3901282503883598559
-Message-ID: <3422EBF9B30F1E33+4cfae8a5-d16d-481a-9059-5e0e15faee71@smail.nju.edu.cn>
-Date: Fri, 31 Jul 2026 15:47:42 +0800
+	dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.b="I3VQPlYL"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazoncorp2;
+  t=1785484228; x=1817020228;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=UJKn+eWNSNKR2LS2maqOJK6gbLImh4hkTCSWyO0oiAU=;
+  b=I3VQPlYLdZi5A5dU/wOcNEitcDn+4S5nbtTQn8f0E1TipKOKkHr+IPyY
+   ZGsyQF+SK35OS9rG2FiCDo3wteUhbCWSw3jyGtZ3IZHrfgcQXWop2z1eK
+   KxADZo4r6qlQBeVn/aJyNRLBt+Da5O1k5pIYbyVWjg1/OR6A+iRWX2UE6
+   dyNifldgzqfCRu2IaokDtWhx4O4ULR2mdynwMYe21f/D9ejmtLJPVKCZD
+   uq6LdROgoSyeKB7slSNyZBgm3R70tAHFwY7t70xJ1i5eO3B9gtfhGFdwY
+   SClQ93EWnnOnrBKSU76wRUKUVUGltd25rTGQq+6UVqDHWC7bC5XBA8C8N
+   A==;
+X-CSE-ConnectionGUID: GyrorTALSX+TWGstsdPEJg==
+X-CSE-MsgGUID: cp62z0YVSliXbPt55tMPVA==
+X-IronPort-AV: E=Sophos;i="6.25,196,1779148800"; 
+   d="scan'208";a="24635295"
+Received: from ip-10-5-9-48.us-west-2.compute.internal (HELO smtpout.naws.us-west-2.prod.farcaster.email.amazon.dev) ([10.5.9.48])
+  by internal-pdx-out-009.esa.us-west-2.outbound.mail-perimeter.amazon.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 31 Jul 2026 07:50:24 +0000
+Received: from EX19MTAUWA001.ant.amazon.com [205.251.233.236:23903]
+ by smtpin.naws.us-west-2.prod.farcaster.email.amazon.dev [10.0.10.68:2525] with esmtp (Farcaster)
+ id acec0eb8-aac5-4539-8ed0-a2679442d868; Fri, 31 Jul 2026 07:50:24 +0000 (UTC)
+X-Farcaster-Flow-ID: acec0eb8-aac5-4539-8ed0-a2679442d868
+Received: from EX19D001UWA001.ant.amazon.com (10.13.138.214) by
+ EX19MTAUWA001.ant.amazon.com (10.250.64.217) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.45;
+ Fri, 31 Jul 2026 07:50:24 +0000
+Received: from dev-dsk-ynachum-1b-0ecf7b87.eu-west-1.amazon.com
+ (10.13.226.176) by EX19D001UWA001.ant.amazon.com (10.13.138.214) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.45; Fri, 31 Jul 2026
+ 07:50:22 +0000
+From: Yonatan Nachum <ynachum@amazon.com>
+To: <jgg@nvidia.com>, <leon@kernel.org>, <linux-rdma@vger.kernel.org>
+CC: <mrgolin@amazon.com>, <sleybo@amazon.com>, <matua@amazon.com>,
+	<gal.pressman@linux.dev>, Yonatan Nachum <ynachum@amazon.com>
+Subject: [PATCH for-next v2 0/3] RDMA/efa: Add support for 128B admin v2 SQ entry
+Date: Fri, 31 Jul 2026 07:50:04 +0000
+Message-ID: <20260731075007.3878376-1-ynachum@amazon.com>
+X-Mailer: git-send-email 2.50.1
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [BUG] RDMA/rxe: memory leak in rxe_qp_from_attr
-To: "yanjun.zhu" <yanjun.zhu@linux.dev>, jgg@ziepe.ca, leon@kernel.org
-Cc: "syzkaller@googlegroups.com" <syzkaller@googlegroups.com>,
- linux-rdma@vger.kernel.org,
- "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-References: <357830C4A3236804+c7b5ccba-01ba-468f-97c8-cb6053a8b771@smail.nju.edu.cn>
- <a35ece69-60af-4a82-a0cd-da1aeb9c60dc@linux.dev>
-Content-Language: en-US
-From: Peiyang He <peiyang_he@smail.nju.edu.cn>
-In-Reply-To: <a35ece69-60af-4a82-a0cd-da1aeb9c60dc@linux.dev>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-X-QQ-SENDSIZE: 520
-Feedback-ID: zesmtpsz:smail.nju.edu.cn:qybglogicsvrsz:qybglogicsvrsz4b-0
-X-QQ-XMAILINFO: NPR7uEA6bBhoe42/WtEUPN8zPohO7+OyudDOCEUpIqUqG5VOO7JXI9mU
-	s2T/H6P46Dxq1Ct6+O+Y7ifoyUFCVwdpPHQW0x+lYRBqv6b40FIn9jrJy4OPD7MLbPb1kAJ
-	Q2Wzao5JjZ/wlSPx0TdVzPXVDww664B0uzQVl7v9iZz26qhvXJoOwNHEGBC17uGpuTYf2xc
-	1E6lIkmjOpLA3KoZ409PUjVqrFUHiUZcH5S09DZvgKrotFpHXkhGDeqEcbkUm2KtgXa7G1F
-	SN2Q+4o8VYUCDmK1MNqSUmtsxg8DZ1UOaPobic9jpY+P2QPww2SW77hM75HBiJNC8iKyZ1/
-	CyAxvNrOQRI2wKavlh04vrQmbS9ZkLfvniUqlJJSZsyxrwCkW2q0Z2mnVmchEc5lKx/jPHJ
-	VGiARHGlHEQrAYR7Gl9vujymUa1BCijTVcODFWZXLrGICeZGE/ZIHgoGUYQ3ivYlJ3z2heW
-	ZsqZZybpAdL9vW1bQdrlf197Ar3z8UX9BCPBzG8d5hCc74y/Z2SZObRDs+MnDaXFvvCxfwt
-	yo6+cIQT2TD+l/f+b2cbQrSBUKOoV0LSAXkQ+6k1b53fnz+USKUWmrG9kub1VZ1sjxBkA90
-	4J+uTYr4N0FjdwpJ1PMsY2/UF7YpehS10KFS/dafPN/jc0L0xS45b1w892abgfvWft0X2f3
-	0mjtoH9G7YGj5ONqu/HhPjJfuHeCsN2U7NYHc4OOvTsXEMM2j+RnrrE+9DtZ/0EKXyvvCdc
-	FQ05vm7Tj0z39hjCoq4f+Ow3II4oCa9bfHANpfLFyabwfDSwJbuaXgpq7p/f2QnHSzZfU8A
-	wJHK1nGKgPmryB4gPGGLigV/lf4No5PHhoEltIvwWJ++TeOJDh+ZKbenVbx4Q7X7Fi0GiiJ
-	Ti1zgBWsUTgh7fM2IXYc1Txlh5wCo+k+6OFsuxGiil8hHM5/2ccXo3viTYpbP0Im2duy1Bl
-	4O1gw63TYZ2CIW3SL6iz8TCDpvaiU+SiMjJfUKrKOnjg5ypojBrE6HCL9Wvc6wSF6E2Rc/S
-	BhlylzsmGZltX3NcJyRMBfaZx7zNwMKBy15A496w==
-X-QQ-XMRINFO: NI4Ajvh11aEjEMj13RCX7UuhPEoou2bs1g==
-X-QQ-RECHKSPAM: 0
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: EX19D044UWB002.ant.amazon.com (10.13.139.188) To
+ EX19D001UWA001.ant.amazon.com (10.13.138.214)
 
-On 2026/7/31 02:07, yanjun.zhu wrote:
-> On 7/30/26 1:40 AM, Peiyang He wrote:
-> 
-> Thanks for the detailed analysis.
-> 
-> From the RDMA usage perspective, concurrent MODIFY_QP operations on the same QP are not normally expected in real workloads. Typically, after a QP is created and transitioned to the required state, applications use it for communication. If a QP attribute or resource needs to be modified, it is usually done by the owner thread/process in a serialized manner rather than by multiple threads concurrently modifying the same QP.
-> 
-> However, since the kernel interface does allow such a scenario, especially under malicious input or fuzzing environments, the driver should still handle this case safely.
-> 
-> For the fix, I agree that the resource replacement path needs proper serialization. My preference would be to reuse an existing QP lock if there is one suitable for protecting QP attribute modifications, rather than introducing a new `rd_atomic_mutex` specifically for this field. Adding a new lock may increase locking complexity and could introduce additional lock ordering concerns.
+Changelog:
+v2:
+ * Rebase on for-next branch instead of wip/leon-for-next.
+v1: https://lore.kernel.org/all/20260726123854.638687-1-ynachum@amazon.com/
 
-Thanks for your suggestion. I looked into the RXE code and it seems there is no suitable existing lock we can reuse to serialize QP attribute modifications.
-There is a spinlock_t state_lock in struct rxe_qp. However, since the IB_QP_MAX_DEST_RD_ATOMIC path in rxe_qp_from_attr() will eventually call kzalloc(GFP_KERNEL), using this spinlock may not be the best practice.> 
-> It may also be worth checking whether other QP attribute modification paths have similar concurrency assumptions. If the QP modify path is generally expected to be serialized, protecting the broader QP modification operation with an existing lock might provide a more consistent solution.
+-------------------------------------------------------------------------
+Add support for the new 128-byte admin v2 SQ entry format. The v2 entry
+extends the v1 header with checksum and payload version fields, and
+carries a larger inline payload.
 
-Yes, rxe_prepare_res() and find_resource() also use qp->resp.resources. They should be serialized with rxe_qp_from_attr() as well.
+The series first decouples admin command payloads from admin headers,
+then generalizes the SQ ring to use a configurable entry size, and
+finally adds the v2 entry format selection based on device API version.
 
-Thanks,
-Peiyang
+Yonatan Nachum (3):
+  RDMA/efa: Decouple admin command payload from admin header
+  RDMA/efa: Generalize the admin SQ
+  RDMA/efa: Add support for 128B admin v2 SQ entry
+
+ .../infiniband/hw/efa/efa_admin_cmds_defs.h   | 116 +++--------
+ drivers/infiniband/hw/efa/efa_admin_defs.h    |  33 ++-
+ drivers/infiniband/hw/efa/efa_com.c           | 194 +++++++++++-------
+ drivers/infiniband/hw/efa/efa_com.h           |  16 +-
+ drivers/infiniband/hw/efa/efa_com_cmd.c       | 170 +++++----------
+ 5 files changed, 240 insertions(+), 289 deletions(-)
+
+-- 
+2.50.1
 
