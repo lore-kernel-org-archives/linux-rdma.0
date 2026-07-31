@@ -1,230 +1,156 @@
-Received: from mail-yw1-f175.google.com (mail-yw1-f175.google.com [209.85.128.175])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A141044781A
-	for <linux-rdma@vger.kernel.org>; Fri, 31 Jul 2026 16:09:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.175
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7121D2FFFA4;
+	Fri, 31 Jul 2026 16:57:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785514196; cv=none; b=PeM7KeInqJIqOXO9pgziiBPNgoKQWE/qsT01Iv9iLiBffOEXIZBNhUgJ1bqMuST4dNoluKj/mN2vuIzoUIKsfhQ5lRVdtv7Ygy2/s5nwGW+YNQ0Ix88eULOQyibEWon6WZ22nkbeBkiZk3Y8ASLtwbj5ZXb6XZYMVZ2t52tn+p8=
+	t=1785517049; cv=none; b=KunLFsvnj1AY6/7uDiigSPlOsXm3jV9yQZMd6jJFYFQ8F6jW+sbnSTnfNo4LbKEnQjxFacyH9gMo0rIlvYhFF/mKIEi9efm4YoG1/VzPxAdeNddLwgpDEfbxp3z2XAsfCokr50n6cwk0AP5XvKNAAE9DtmabEG4GxEtgvDjf0sM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785514196; c=relaxed/simple;
-	bh=z4Qhe6C2aCMSOTeXB7AyUYqEYyZgecaWjg4p4FyQSKw=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=rLPsmn7iji5SR3Pb+1qNVb7ZFv6Rjyy7azGV03/Fw2VkQT5Ic3C99VMVc9xbTJgGtXO70+akJE0XM6EQdH7n2MJ+38QYehcDRhaSLg2p5o1YSA1VrJQYAxN0sHfnMrlNMZ7SbmZldSyiMvswfcltlxgXxqJKwsDy8ipSG9nHLBc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=U1NEIcd5; arc=none smtp.client-ip=209.85.128.175
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1785517049; c=relaxed/simple;
+	bh=XJM7279h+Yj3A3zgcpixVvnyJmiW2VMDoNofwRg6Dgg=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=u5GQelii5TGMrq6BTBqqR8gGZPu7TK1bqUsqL159oeGeGR/7LQiSVf3UnIGxiZ+y7phT033/zjwUbgQDcAbJa00zBshqT63GRXQ0gW6+3w8XaIJS9Zg0Thz0vOhCa6mVJY9M/Vx7jxkgutyF8rBaiQlXvFiC02eq2nHwlpjy4tU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=M/JWp6O2; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="U1NEIcd5"
-Received: by mail-yw1-f175.google.com with SMTP id 00721157ae682-81bd69f4f6fso676247b3.2
-        for <linux-rdma@vger.kernel.org>; Fri, 31 Jul 2026 09:09:54 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1785514193; x=1786118993; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=TVPw52z6WBQH7CgAI69D0zm3cgBs9+c1LhxWSzEvrzM=;
-        b=U1NEIcd5bRLmMgEJjaUWQl/DKYLg6BfVUmFTQMtyKyjQvhhEfiwgNBWNzX0vcrif30
-         6FR7/aqKVbpR0PRjCaMepWVwYu71GQvX83pGgMHfvLf+zNINz3m1hywJH/zSh1+xJuNC
-         57Q8JQvSKy+snlT/Vvbs/7MQ26IfemO8+l5cy9WjNZPdsrWjFOCqXgvBS/5QBUGZx/xP
-         BVJYH9EH/DtLXSEeXU3IEZTqk7Ve+xcDsVOG7ECjn9viPUVtEb3AB9MBgE7PtXrBkmXC
-         hqkdqJi0mENF7CzMf+XZkKrqE3UAIUK+YITdVMOOP4eyGhHvDb0tXFPYGFXuhcF2Gz/n
-         7aVA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1785514193; x=1786118993;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=TVPw52z6WBQH7CgAI69D0zm3cgBs9+c1LhxWSzEvrzM=;
-        b=eJscS9fHGK/uMQqzsuehfbRquhZdQ/p3h03XBBMZiHS7X+hyiw4daadworzjvTLHpo
-         edgTSLYHI5N56fAYiaJKoIo17aGqKm+nmgZr9iM4LKRTTyO99n/EgRDdnZKlzRstnDax
-         gcHhR7zj34DPHuThKKHN0UJdVc/VVKPMAWsuNLRRQIA59zmytrbdDtBYYrxohAvR0TQA
-         gcUeRT0RH/U83fabFLl0izZhjzLKF5JG/jCyVB37px9v2ZALN/CLmqlYu4NsPxyyiXLw
-         gB61vLnelHzxn2cAOCG43OZY7E1kXDQfBJZG7WNTOO41Nl4EZuQo0ydUXcJlHHOoHNBz
-         RXVQ==
-X-Forwarded-Encrypted: i=1; AHgh+RowRrFW0nsc3r6586GbKnGkXkcQR//eM88tGppPlEY66wr6eD8RLVNiuj+OCj/3YZN/PauzPVi+TH+j@vger.kernel.org
-X-Gm-Message-State: AOJu0YxEiENoqCRsoE3gUQgbgYCWUDNIWYbUNGtq8VFcjIr1ZkPXbjif
-	w0dIF4wx2O3a3Mnkgc4Momknjx6BFpIJneXrBgPVpxl+RgBlr8LA5/Fe
-X-Gm-Gg: AR+sD102WaM5A4vhP+iR0cdAIyGclMjOmupUKM629mailIVTJDJPaIHmtMSXHsroIef
-	rRGdTVQwnF8GQEvRYXpn3sxJXCuqPV6AQwhZ+TqiQoplQKPeRxHRYR46EhQIGuF1ND/bylCj1tK
-	/RAeXteWToWc4VAPYfYBqj1HxUoUpWVXFk1so5ZSF4wvWjgJxgtElYTMS7vynjrX0viMk2GpRo1
-	kQ9+bq7dnyuA7FM/gNugZi9iTs7tDbWqGNy3gONcMwR8FYIgkbEGmITokTEt3Hw7zzevlE819nc
-	H7i4HlyMsa/BGJlb7iuTtbIIvCgkyzlDEaF8nWi6MDZJz/m3pPkjGIoYT7/Bh4AtwxSkr4wvSDA
-	9+ap9KtFvSSMR/oKtiFV80xOG8a/daN18CAFY/b5KBxZsVxIZ1/lTG8hvd5L9682DraJOaAcnsY
-	r8047GDeri+hPFNBUwI/mWoyl2jUPD9aI0MJdX+Wt+flYOWAxS3O43oXVsTz5YQTWJcCn28i6Bg
-	XpZ0fCV1CBKdmXVnZ3149sOaCkUA9gw+zm85Ta2lOYc4bVQruHUqTQ=
-X-Received: by 2002:a05:690c:6601:b0:81e:c06e:58b1 with SMTP id 00721157ae682-81fd49c65eemr5130227b3.1.1785514193473;
-        Fri, 31 Jul 2026 09:09:53 -0700 (PDT)
-Received: from localhost.localdomain (45.78.65.84.16clouds.com. [45.78.65.84])
-        by smtp.gmail.com with ESMTPSA id 00721157ae682-81fcd0d6f24sm9194187b3.30.2026.07.31.09.09.49
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 31 Jul 2026 09:09:53 -0700 (PDT)
-From: Chengfeng Ye <nicoyip.dev@gmail.com>
-To: Allison Henderson <achender@kernel.org>,
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="M/JWp6O2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 625091F00AC4;
+	Fri, 31 Jul 2026 16:57:24 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1785517048;
+	bh=IyAsbXXV2p1aDsgxm2hy2xqrSUBtvpVaiO7mx1IfkqI=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=M/JWp6O2FPiAUqpPmM7XUuIdwQp8OT76RZnpZlt0Lw4vv+jMy4x++gALYD7wTTqk3
+	 nj594wC9DfAOpaw5uoynV+KwXKIbFutB8dxdOA2CR/BcIB60MWbpHzBX85WL+mirqj
+	 VBHX+jWACuNOPWL99oBvNHdcsRUmJYjqxdhjvabF0T0Meggoh8oAZrOIJm4yT8cWcz
+	 NANVb9xq44C/nufJaDCo0LKDKOQ10LYhEZiWbSReULyV8OuuTWptutcVgz1R9NSLMt
+	 LKoL3lK2axJ1oV93P+MJtqQaVomWVLthk4f/C7DqdWlEtupN5XJcxTyR2N+v0Igk+a
+	 ohn7jP0whpL1g==
+Date: Fri, 31 Jul 2026 17:57:22 +0100
+From: Simon Horman <horms@kernel.org>
+To: Tariq Toukan <tariqt@nvidia.com>
+Cc: Andrew Lunn <andrew+netdev@lunn.ch>,
 	"David S. Miller" <davem@davemloft.net>,
 	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
+	Jakub Kicinski <kuba@kernel.org>, netdev@vger.kernel.org,
 	Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>,
-	Santosh Shilimkar <santosh.shilimkar@oracle.com>,
-	Ka-Cheong Poon <ka-cheong.poon@oracle.com>,
-	Dan Carpenter <error27@gmail.com>
-Cc: netdev@vger.kernel.org,
-	linux-rdma@vger.kernel.org,
-	rds-devel@oss.oracle.com,
-	linux-kernel@vger.kernel.org,
-	Chengfeng Ye <nicoyip.dev@gmail.com>
-Subject: [PATCH net-next v3] rds: synchronize info callbacks with module unload
-Date: Sat,  1 Aug 2026 00:09:42 +0800
-Message-ID: <20260731160942.3245965-1-nicoyip.dev@gmail.com>
-X-Mailer: git-send-email 2.43.0
+	Adithya Jayachandran <ajayachandra@nvidia.com>,
+	Carolina Jubran <cjubran@nvidia.com>,
+	Cosmin Ratiu <cratiu@nvidia.com>,
+	Daniel Jurgens <danielj@nvidia.com>, Gal Pressman <gal@nvidia.com>,
+	Jiri Pirko <jiri@resnulli.us>, Kees Cook <kees@kernel.org>,
+	Leon Romanovsky <leon@kernel.org>, linux-kernel@vger.kernel.org,
+	linux-rdma@vger.kernel.org, Maher Sanalla <msanalla@nvidia.com>,
+	Mark Bloch <mbloch@nvidia.com>, Moshe Shemesh <moshe@nvidia.com>,
+	Or Har-Toov <ohartoov@nvidia.com>, Parav Pandit <parav@nvidia.com>,
+	Saeed Mahameed <saeedm@nvidia.com>, Shay Drori <shayd@nvidia.com>
+Subject: Re: [PATCH net] net/mlx5e: Move representor vnic reporter to eswitch
+ devlink port
+Message-ID: <20260731165722.GK51943@horms.kernel.org>
+References: <20260729070059.2421788-1-tariqt@nvidia.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260729070059.2421788-1-tariqt@nvidia.com>
 
-rds_info_getsockopt() reads a callback from rds_info_funcs and invokes it
-without protecting the callback's lifetime.  Transport modules register
-functions stored in this array.  For example, rds_tcp.ko registers
-rds_tcp_tc_info() for RDS_INFO_TCP_SOCKETS.
+On Wed, Jul 29, 2026 at 10:00:59AM +0300, Tariq Toukan wrote:
 
-This permits the following interleaving:
+...
 
-  CPU0                             CPU1
-  rds_info_getsockopt()
-    func = rds_tcp_tc_info
-                                   rmmod rds_tcp
-                                     rds_tcp_exit()
-                                       rds_info_deregister_func()
-                                         rds_info_funcs[offset] = NULL
-                                     free rds_tcp module text
-    func()
+> @@ -252,6 +275,16 @@ int mlx5_esw_offloads_devlink_port_register(struct mlx5_eswitch *esw, struct mlx
+>  		mlx5_core_dbg(dev, "Failed to register port resources: %d\n",
+>  			      err);
+>  
+> +	rep = mlx5_eswitch_vport_rep(esw, vport_num);
+> +	reporter = devl_port_health_reporter_create(
+> +		&dl_port->dl_port, &mlx5_esw_rep_vnic_reporter_ops, rep);
 
-The reader can therefore branch to an address in unloaded module text.
+Hi Caroila, and Tariq,
 
-Protect callback invocation with SRCU.  Enter the SRCU read-side critical
-section before loading the callback and leave it only after the callback
-returns.  Clear the callback with release semantics and call
-synchronize_srcu() before deregistration returns, preventing module unload
-from freeing its text while an old reader is still executing it.  SRCU is
-required because callbacks such as RDS_INFO_COUNTERS can sleep.
+I'm wondering if you could take a look over the following which appears at
+https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260729070059.2421788-1-tariqt%40nvidia.com
 
-Keep the callback array unannotated and use acquire and release operations
-for publication so sparse does not have to apply __rcu through the
-function-pointer typedef.  Replace the two callback-slot BUG_ON() checks
-with WARN_ON_ONCE() and return without changing the slot on mismatch.
+  Can rep or rep->esw be NULL at this point?
 
-Link: https://lore.kernel.org/netdev/20260720184955.3008978-1-nicoyip.dev@gmail.com/
-Suggested-by: Allison Henderson <achender@kernel.org>
-Reviewed-by: Allison Henderson <achender@kernel.org>
-Signed-off-by: Chengfeng Ye <nicoyip.dev@gmail.com>
----
+  mlx5_eswitch_vport_rep() is a plain lookup with no NULL check here:
 
-Changes in v3:
-- Use ordinary loads for callback-slot validation under rds_info_lock;
-  retain acquire semantics only for the lockless reader.
-- Drop the Fixes tag because this patch targets net-next.
-- Add Allison Henderson's Reviewed-by tag.
+  eswitch_offloads.c:mlx5_eswitch_get_rep() {
+	return xa_load(&esw->offloads.vport_reps, vport);
+  }
 
-Link: https://lore.kernel.org/netdev/20260727174826.135662-1-nicoyip.dev@gmail.com/ [v2]
+  and rep->esw is only assigned lazily. In mlx5_esw_offloads_rep_add() the
+  assignment sits after the continue that is taken whenever no rep_ops are
+  registered yet, which is the state at probe time when
+  esw_offloads_init_reps() creates the reps:
 
-Changes in v2:
-- Split the info callback/module-unload race from the independent
-  inc->i_conn lifetime bug.
-- Keep the callback array unannotated and use smp_load_acquire() and
-  smp_store_release() to resolve the sparse errors.
-- Replace the two touched callback-slot BUG_ON() checks with
-  WARN_ON_ONCE() error paths.
-- Rewrite the commit message for the callback race and omit the unrelated
-  inc->i_conn KASAN report.
+  eswitch_offloads.c:mlx5_esw_offloads_rep_add() {
+	rep = kzalloc_obj(*rep);
+	...
+	for (rep_type = 0; rep_type < NUM_REP_TYPES; rep_type++) {
+		if (!esw->offloads.rep_ops[rep_type]) {
+			atomic_set(&rep->rep_data[rep_type].state,
+				   REP_UNREGISTERED);
+			continue;
+		}
+		...
+		rep->esw = esw;
+	}
+  }
 
-Link: https://lore.kernel.org/netdev/20260720184955.3008978-1-nicoyip.dev@gmail.com/ [v1]
+  The only other writer is mlx5_eswitch_register_vport_reps_blocked(),
+  which runs from the mlx5_core.eth-rep auxiliary driver probe
+  (mlx5e_rep_probe() -> mlx5_eswitch_register_vport_reps()):
 
- net/rds/info.c | 26 +++++++++++++++++++++-----
- 1 file changed, 21 insertions(+), 5 deletions(-)
+  eswitch_offloads.c:mlx5_eswitch_register_vport_reps_blocked() {
+	esw->offloads.rep_ops[rep_type] = ops;
+	mlx5_esw_for_each_rep(esw, i, rep) {
+		if (likely(mlx5_eswitch_vport_has_rep(esw, rep->vport))) {
+			rep->esw = esw;
+			...
+  }
 
-diff --git a/net/rds/info.c b/net/rds/info.c
-index 21b32eb16559..385fefbfa07f 100644
---- a/net/rds/info.c
-+++ b/net/rds/info.c
-@@ -32,6 +32,7 @@
-  */
- #include <linux/percpu.h>
- #include <linux/seq_file.h>
-+#include <linux/srcu.h>
- #include <linux/slab.h>
- #include <linux/proc_fs.h>
- #include <linux/export.h>
-@@ -68,6 +69,7 @@ struct rds_info_iterator {
- 	unsigned long offset;
- };
- 
-+DEFINE_STATIC_SRCU(rds_info_srcu);
- static DEFINE_SPINLOCK(rds_info_lock);
- static rds_info_func rds_info_funcs[RDS_INFO_LAST - RDS_INFO_FIRST + 1];
- 
-@@ -78,8 +80,12 @@ void rds_info_register_func(int optname, rds_info_func func)
- 	BUG_ON(optname < RDS_INFO_FIRST || optname > RDS_INFO_LAST);
- 
- 	spin_lock(&rds_info_lock);
--	BUG_ON(rds_info_funcs[offset]);
--	rds_info_funcs[offset] = func;
-+	if (WARN_ON_ONCE(rds_info_funcs[offset])) {
-+		spin_unlock(&rds_info_lock);
-+		return;
-+	}
-+	/* Pair with lockless callback lookup. */
-+	smp_store_release(&rds_info_funcs[offset], func);
- 	spin_unlock(&rds_info_lock);
- }
- EXPORT_SYMBOL_GPL(rds_info_register_func);
-@@ -91,9 +97,14 @@ void rds_info_deregister_func(int optname, rds_info_func func)
- 	BUG_ON(optname < RDS_INFO_FIRST || optname > RDS_INFO_LAST);
- 
- 	spin_lock(&rds_info_lock);
--	BUG_ON(rds_info_funcs[offset] != func);
--	rds_info_funcs[offset] = NULL;
-+	if (WARN_ON_ONCE(rds_info_funcs[offset] != func)) {
-+		spin_unlock(&rds_info_lock);
-+		return;
-+	}
-+	/* Hide the callback before waiting for old readers. */
-+	smp_store_release(&rds_info_funcs[offset], NULL);
- 	spin_unlock(&rds_info_lock);
-+	synchronize_srcu(&rds_info_srcu);
- }
- EXPORT_SYMBOL_GPL(rds_info_deregister_func);
- 
-@@ -165,6 +176,7 @@ int rds_info_getsockopt(struct socket *sock, int optname, sockopt_t *opt)
- 	int npages = 0;
- 	int ret;
- 	int len;
-+	int srcu_idx;
- 	int total;
- 
- 	len = opt->optlen;
-@@ -214,8 +226,11 @@ int rds_info_getsockopt(struct socket *sock, int optname, sockopt_t *opt)
- 	rdsdebug("len %d nr_pages %lu\n", len, nr_pages);
- 
- call_func:
--	func = rds_info_funcs[optname - RDS_INFO_FIRST];
-+	srcu_idx = srcu_read_lock(&rds_info_srcu);
-+	/* Pair with callback slot publication and removal. */
-+	func = smp_load_acquire(&rds_info_funcs[optname - RDS_INFO_FIRST]);
- 	if (!func) {
-+		srcu_read_unlock(&rds_info_srcu, srcu_idx);
- 		ret = -ENOPROTOOPT;
- 		goto out;
- 	}
-@@ -225,6 +240,7 @@ int rds_info_getsockopt(struct socket *sock, int optname, sockopt_t *opt)
- 	iter.offset = offset0;
- 
- 	func(sock, len, &iter, &lens);
-+	srcu_read_unlock(&rds_info_srcu, srcu_idx);
- 	BUG_ON(lens.each == 0);
- 
- 	total = lens.nr * lens.each;
--- 
-2.43.0
+  Is that probe guaranteed to have succeeded before ports are registered?
+  esw_mode_change() discards the mlx5_rescan_drivers_locked() return value
+  and sets esw->mode = mode regardless, and add_drivers() only warns when
+  add_adev() fails:
 
+  dev.c:add_drivers() {
+	priv->adev[i] = add_adev(dev, i);
+	if (IS_ERR(priv->adev[i])) {
+		mlx5_core_warn(dev, "Device[%d] (%s) failed to load\n", ...);
+		/* We continue to rescan drivers and leave to the caller ... */
+
+  In that case rep_ops[REP_ETH] stays NULL, rep->esw stays NULL, and
+  mlx5_eswitch_load_vport() -> mlx5_esw_offloads_load_rep() ->
+  mlx5_esw_offloads_devlink_port_register() still installs a live reporter.
+  Would a subsequent "devlink health diagnose <dev>/<port> reporter vnic"
+  then oops on rep->esw->dev in mlx5_esw_rep_vnic_reporter_diagnose(),
+  with the devlink instance lock held?
+
+  The old code could not hit this because the reporter was created from the
+  REP_ETH load callback, i.e. only after rep_ops were registered and
+  rep->esw was set. Note also that mlx5_esw_offloads_rep_remove() does
+  check the same lookup result for NULL, which this call site does not.
+
+  Since struct mlx5_devlink_port already carries a struct mlx5_vport
+  pointer, which gives both vport->dev and vport->vport and whose lifetime
+  matches the port exactly, could dl_port->vport be used as the reporter
+  priv instead of the rep?
+
+> +	if (IS_ERR(reporter))
+> +		mlx5_core_dbg(dev,
+> +			      "Failed to create vnic health reporter for vport %d: %pe\n",
+> +			      vport_num, reporter);
+> +	else
+> +		dl_port->vnic_reporter = reporter;
+> +
+>  	return 0;
+>  
+>  rate_err:
+
+...
