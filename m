@@ -1,570 +1,180 @@
-Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 4C91225A645;
-	Fri, 31 Jul 2026 21:23:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785533015; cv=none; b=EZ03tV1ppCexT1gyne5Qmezy7dkvUE1NI0T9nSeyfjYp3pG1MO44D2OpTZZylwF9lC8eG0Zlg/agYHjnhMuDn+oazZ/i5IUzMvMaAwn9Ys6+RUj4bI224amINiHqzXV8r8V43bWSwyoywb9PoCfQStJL/54HzYUn2bFIvtV8LTA=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785533015; c=relaxed/simple;
-	bh=EKS0s2HHImK8/ld7kTHg/Q2aE5KeFnuHISQx0SPZI/s=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=M5LDTBFk8vVJ9UC0pqOgf3mtvpywCo2ls3nS2euD24PZQ3NR+2KW0iwhXWcWFXdzBCK6H2UqBsR8kkLraqMtNZRsgN+EG6p9svhnscknyYowQiHVgG7oy8lZI6rmq72jD1OSvXDukwhY37PkQLgixYNHC4PZGwnjhztgOPKJkjU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=YWtKMOeY; arc=none smtp.client-ip=13.77.154.182
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
+Received: from BN8PR05CU002.outbound.protection.outlook.com (mail-eastus2azon11021101.outbound.protection.outlook.com [52.101.57.101])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 799032D780C;
+	Fri, 31 Jul 2026 21:26:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.57.101
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1785533163; cv=fail; b=lIIMvQExIEeSXapD1ILiwt/iSWucQoSW6Vx9MLQc8MYG8E9gTU+NZNkSjlSTmIOqpnrpxjqbMBFXiRFJynXLsQaZAhXZkVGC24yzPMpyVrlKWPH7Gy8mYxI7x1O6wyLe36lONxGneYuZjjbmabJwkk8612EGkEwJjzB52rrdrB8=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1785533163; c=relaxed/simple;
+	bh=kLiH5/58Ek/pirVz2RfiMnmwzwb+Sul7Kon85JhE2j4=;
+	h=From:To:CC:Subject:Date:Message-ID:References:In-Reply-To:
+	 Content-Type:MIME-Version; b=BjyemE4GvacYgRh8bqog/GoaM/4AMDO6xd3f6WF647594ZPp0A5APc7c9XgUZ4vDPf1By0Y3KSR1Xio4F7eWBTT8+Ui/YFLUBouDkyYnoHvg2tZ9c68WZdwAaQz67dSFsPCpuLX9aNNRjbvHSP9UPnB7BPSzYjtrOfTH0cNG4bI=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com; spf=pass smtp.mailfrom=microsoft.com; dkim=pass (1024-bit key) header.d=microsoft.com header.i=@microsoft.com header.b=Si7b+M/2; arc=fail smtp.client-ip=52.101.57.101
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="YWtKMOeY"
-Received: by linux.microsoft.com (Postfix, from userid 1006)
-	id 2916A20B7166; Fri, 31 Jul 2026 14:23:15 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 2916A20B7166
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
-	s=default; t=1785532995;
-	bh=V6hfk8bITbrJTE4o3oZ7CEOuuzr3TJByYY0v+h6ISPA=;
-	h=From:To:Cc:Subject:Date:From;
-	b=YWtKMOeYwTu99nvwC/VrHUpJi+fucN6+ITkFXM3tRktLPfdWKEwS8obS8xa9aHQ/Q
-	 X928CT6gKMqtDiXHTrr3xh1s3i8kVaa9+ZfaNNnz63dX7F6/4ry5svJXnlKHgqEaJi
-	 7ZhJHzKJcJ89HeGg1bphgEcEWvclDc3SkB9Rc2tY=
-From: Haiyang Zhang <haiyangz@linux.microsoft.com>
-To: linux-hyperv@vger.kernel.org,
-	netdev@vger.kernel.org,
-	"K. Y. Srinivasan" <kys@microsoft.com>,
-	Haiyang Zhang <haiyangz@microsoft.com>,
-	Wei Liu <wei.liu@kernel.org>,
-	Dexuan Cui <decui@microsoft.com>,
-	Long Li <longli@microsoft.com>,
-	Andrew Lunn <andrew+netdev@lunn.ch>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Konstantin Taranov <kotaranov@microsoft.com>,
-	Simon Horman <horms@kernel.org>,
-	Erni Sri Satya Vennela <ernis@linux.microsoft.com>,
-	Dipayaan Roy <dipayanroy@linux.microsoft.com>,
-	Aditya Garg <gargaditya@linux.microsoft.com>,
-	Breno Leitao <leitao@debian.org>,
-	linux-kernel@vger.kernel.org,
-	linux-rdma@vger.kernel.org
-Cc: paulros@microsoft.com
-Subject: [PATCH net-next v2] net: mana: Extend RX CQE coalescing up to 8 packets
-Date: Fri, 31 Jul 2026 14:22:53 -0700
-Message-ID: <20260731212306.4098773-1-haiyangz@linux.microsoft.com>
-X-Mailer: git-send-email 2.43.7
+	dkim=pass (1024-bit key) header.d=microsoft.com header.i=@microsoft.com header.b="Si7b+M/2"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=wZKuThtXNQ9U7b+ucKfFnS4IXM/8r0jFNkurwBN9VL1yltqSzQ9vgzCKq3T33XaDqfJaAx0MJI2B+FiLpb0qioGxN8ym99/GUaQxVh0YBFAP0YWGzWdZoE5ucruMzjOJK2a/J+twjUBkw7Dv5YI7fRnchIXUG+/vdkJ9uZQ+kHKkY+JsDBoh+vP2jJj0yYE56VaJToYDqv4g8k/Ax0pAnMVEAWsYBUKJ92coMs4lk0TZvc5k7giUtlpQEgfMo2PvZlvi1mbZQLjUgyQs+kY26K7c5thfQUsbVzGrNQWIom8rzQlL0QtdQIE+lWcgqvzN7ptamG74IDwzqPCzQFpf+w==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=5x4OD3dKMKs4+4XhlRD3WT5Y2WCfwAfbbiAo4H23Rdc=;
+ b=NaEmGpn90H/+bGV/XjtY1IQmHtaSsRebzXfpkLxOBmHpKBUjYZYmUIl0N5VVNy/1QQLtiEEXC2K+zaHkvfptpVKkB+4ZSSWQ7GoAJykyAOxHu77NHIUZlhXzZmo+L4vfpMaM6VL8EtdK80BiRMb9+Sa3zVCHwteoJXDrrj3FU0fGQe5jGs4Iz19a6QYYs6zYwZAP1qhVNRQSE30Uvu9+JkNyqxhv2pBLc++P8eXYJXldxUxjHwXjA3uU2lqqQ3NlrUMva9h9DN3AOFG84yfDLjsrq5lvxH5OA+fhWbbk8LNKWg95bHbcpw8/dQH33I1b7Aj9k3FvnhyHSX7T9qiK1g==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=microsoft.com; dmarc=pass action=none
+ header.from=microsoft.com; dkim=pass header.d=microsoft.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=5x4OD3dKMKs4+4XhlRD3WT5Y2WCfwAfbbiAo4H23Rdc=;
+ b=Si7b+M/2OZGTYPJlY0DRmsR/AqV5v3Xtz4SPL4QH/iu5zsqtAD06OBSRV6vK0fj+vUvox4ixmg7cexOQq/oTceYc6He4NZD1Ygw4CHXHn3HbZLiqjVYl3P/Frfs4qnEsi9Jh+C63Q+xC0nU7JROyLfZyPIaqcIYOCu02sBVLUUw=
+Received: from LV5PR21MB4704.namprd21.prod.outlook.com (2603:10b6:408:307::7)
+ by LV2PR21MB6594.namprd21.prod.outlook.com (2603:10b6:408:348::9) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.181.8; Fri, 31 Jul
+ 2026 21:25:59 +0000
+Received: from LV5PR21MB4704.namprd21.prod.outlook.com
+ ([fe80::144b:98da:1262:2ebb]) by LV5PR21MB4704.namprd21.prod.outlook.com
+ ([fe80::144b:98da:1262:2ebb%6]) with mapi id 15.21.0292.010; Fri, 31 Jul 2026
+ 21:25:59 +0000
+From: Haiyang Zhang <haiyangz@microsoft.com>
+To: Haiyang Zhang <haiyangz@linux.microsoft.com>,
+	"linux-hyperv@vger.kernel.org" <linux-hyperv@vger.kernel.org>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>, KY Srinivasan
+	<kys@microsoft.com>, Wei Liu <wei.liu@kernel.org>, Dexuan Cui
+	<DECUI@microsoft.com>, Long Li <longli@microsoft.com>, Andrew Lunn
+	<andrew+netdev@lunn.ch>, "David S. Miller" <davem@davemloft.net>, Eric
+ Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, Paolo Abeni
+	<pabeni@redhat.com>, Konstantin Taranov <kotaranov@microsoft.com>, Simon
+ Horman <horms@kernel.org>, Erni Sri Satya Vennela
+	<ernis@linux.microsoft.com>, Dipayaan Roy <dipayanroy@linux.microsoft.com>,
+	Aditya Garg <gargaditya@linux.microsoft.com>, Breno Leitao
+	<leitao@debian.org>, "linux-kernel@vger.kernel.org"
+	<linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org"
+	<linux-rdma@vger.kernel.org>
+CC: Paul Rosswurm <paulros@microsoft.com>
+Subject: RE: [PATCH net-next] net: mana: Extend RX CQE coalescing up to 8
+ packets
+Thread-Topic: [PATCH net-next] net: mana: Extend RX CQE coalescing up to 8
+ packets
+Thread-Index: AQHdH60NAbCTQ7nCeEOGyXAU5iVN67aIJrBg
+Date: Fri, 31 Jul 2026 21:25:59 +0000
+Message-ID:
+ <LV5PR21MB470499130F3AB3029B375BE4CAC82@LV5PR21MB4704.namprd21.prod.outlook.com>
+References: <20260729225235.3573786-1-haiyangz@linux.microsoft.com>
+In-Reply-To: <20260729225235.3573786-1-haiyangz@linux.microsoft.com>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach:
+X-MS-TNEF-Correlator:
+msip_labels:
+ MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_ActionId=87ab57e8-156f-4f6c-a253-891f0d604d89;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_ContentBits=0;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_Enabled=true;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_Method=Standard;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_Name=Internal;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_SetDate=2026-07-31T21:24:50Z;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_SiteId=72f988bf-86f1-41af-91ab-2d7cd011db47;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_Tag=10,
+ 3, 0, 1;
+authentication-results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=microsoft.com;
+x-ms-publictraffictype: Email
+x-ms-traffictypediagnostic: LV5PR21MB4704:EE_|LV2PR21MB6594:EE_
+x-ms-office365-filtering-correlation-id: 2ec752e5-c92b-4acf-d1d7-08deef4a50a4
+x-ms-exchange-senderadcheck: 1
+x-ms-exchange-antispam-relay: 0
+x-microsoft-antispam:
+ BCL:0;ARA:13230040|366016|7416014|376014|23010399003|1800799024|10067099003|11063799006|22082099003|56012099006|7146999003|18002099003|921020|7053199004|38070700021;
+x-microsoft-antispam-message-info:
+ ja9LuevP5EBMvUVOsJv3GFc3c0Khfswq3o1PhoPiDuUPi9B9f26kiliX1+Fl/WID8k/Aoxj+MfB5G+XTUB2y49LnoT4V8YRzABKlvpZ4dAXUI1Jv0JPvvryLaT0o09+vv0uEEeC97u75vkPDGM3yFUwIwhk4zrjzLgVFnnb6XfO/PwUEG8wagVRXeOUgZBaq1PsA8cYJH7u6FWw9AEe3qoNHMcaZHsEOwRcFFT7puPQH6roJWb6xCtAEHB5necWypzX/Dz1T+4U4dhtAEPs0oLCzX0bkSIX+L/6GHT4PCk6zMj1csTmTVhPL0PC/CP97nAKuQmWeW2Eg5yEWEwqKGKIDCmp3kEKI/zmEnKE3QzI2xs/HWFZeD5qC0zzQ4pUbDzTI1bSG4W5s4pOzmX1RWYDvi6UYTH9E4Nw2k2hsp2Nl0535p41xfvvIol0q8l83+a44H+CLR3GJ1jGlV4scnQ4xkQ5z28PJezOUAcVCXQM9oT3Djxvu6kCg818sFhux3bafbjPSsU6EzoqgCTjRt1nkJh7tDagXqFUVMNamORQ88DBpaK31nQzHcR73wZQCAcONr3DogT1A0SHusYKz7A8GIvfKAzRrLfS5DMOYk1anx6DQEl4LrDv6oIeoqJtk0HWE3Sq0z9lNa/PiNqD5/t5urbrLXQJ16KuXOQXLt/g+u/4Oe5GG86gBr7rkM9vzkUd08ZLRyfSGl+7MiUC+0SFKSfzcGTRxwj1JSSDmxoM4LHzFDMpBiG4lfAeBW/Pa
+x-forefront-antispam-report:
+ CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:LV5PR21MB4704.namprd21.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(7416014)(376014)(23010399003)(1800799024)(10067099003)(11063799006)(22082099003)(56012099006)(7146999003)(18002099003)(921020)(7053199004)(38070700021);DIR:OUT;SFP:1102;
+x-ms-exchange-antispam-messagedata-chunkcount: 1
+x-ms-exchange-antispam-messagedata-0:
+ =?us-ascii?Q?BlZgXUsEkIwGT9oUkzojlKHLKSUHGVs3eDZfqhcUxKF7yC2IH5MGNwD6z5br?=
+ =?us-ascii?Q?D9UXvPiD3Uyf8Cyv7tp/G0yHpgKjEFaCRzDmYmaa2grkW7rB6mD4BxG/gRoV?=
+ =?us-ascii?Q?M99cM8HZRQ5GgRt+IYd5xkAHgx8kMrjMwAOO/imCArVaLqwjEqjLAgMIPUma?=
+ =?us-ascii?Q?QD2VKNg4Ig3bitGu/6mRafoNiOWH5Wxh16WRSov1/zlDFXPxaK6n/kctPOBi?=
+ =?us-ascii?Q?XWnRzhyCIkG5MZgR0DglRhm5FYYjGztgAftzjGb6hKQDFRXWxIEJVNlonEUN?=
+ =?us-ascii?Q?+AZEQt/LaCQpareZVxmmgrMODnXxGBuFM/xa1IFLSuNfyOs3WwiJ1tIUzlqJ?=
+ =?us-ascii?Q?e89UaUAHpO6KY1hIwwVqLRJalAWaKlsCzZE8GgzaC3EqOatFa7xZ+TWJ9zYH?=
+ =?us-ascii?Q?3ZhgrFMBCfnmkyuB8OaA8Lz9xiE8PT/LhwabSDgpaCDfBSPAU6XUFBgkTkb0?=
+ =?us-ascii?Q?pK3oXSiNXCEXxoBCrnaGlqvYsVMUwC/X17SNm6unfeqStJ9pq4Ky5QdYKTjT?=
+ =?us-ascii?Q?WLVTOxeJVs3rcv1kNGJJm3UYM9v+hm8LnFElayusB40+DOINJNTI7toy/XBR?=
+ =?us-ascii?Q?jNJVRtQ100mPutku4clVvaHDFJK6u6N02JdZYYaXe4nqLSjQzH2KtLNrZPC0?=
+ =?us-ascii?Q?R69MWgT847C2A3C5DJYx0/nPQEks3PaLBFQCprIanfDc78EbRcBTDw2Ci0gS?=
+ =?us-ascii?Q?GDtjlSfgcnM+xeb4+/KN09fQGYH2Mc3QZ5mohQ9WfkBNGZf+Kb5Wt6MdlZqo?=
+ =?us-ascii?Q?VQPka3b8xoPd74Z1ytOvVlVmpwBSrDOU9GTtZNH+Lw9JlsP4vW+3Sz6UdY+y?=
+ =?us-ascii?Q?ykR3GRr838yWu2fpW/h46YplIK8hJYJ9IBjuBy0HhI7vHXXjo7UFFCik3Xc7?=
+ =?us-ascii?Q?oXIw9m5Agryh1Yt0Jd6VJrH2bPJbHKShRmm+vMm49o9m6x7fjJFgIwU1RcQm?=
+ =?us-ascii?Q?AhXsBBM6q6PXv3CclQPMH3MsjLCSqCUC6cgBQnvjvRqmjlNyql7Kdw8eDAdu?=
+ =?us-ascii?Q?YIV88vPcQzlr0hPlpROSRpiZJHA1RXU3xR/UVmSpQC3DpzheRIZMOcjLUih0?=
+ =?us-ascii?Q?7A1vZyybm1L2kn5Mfh6gLnPj/30o8ZMkTAu0PUAh9lnjfzt3RQLfn8oKeH9P?=
+ =?us-ascii?Q?5blRtrVQiqpopa7YwLz3lIOBFIPwniz3s941Git6hrEyaq0B9JjiLH4IGlzi?=
+ =?us-ascii?Q?PCLHWPfnfkl3XXtaQVvnfvwo3VJbZP42OG5ENP61hkgbA0SqWDZg/tYVwJUf?=
+ =?us-ascii?Q?QpYrAvCp21dJSFXcY754jzQmSFJfxhSbfFKUM9f3zAveX7af1gPczudVQ/C+?=
+ =?us-ascii?Q?FLp0abfdUD16TOzhIKhn079kikpCw7M+Wrgv0sS4zXsUIYFDe/vd3JFT+iu3?=
+ =?us-ascii?Q?BMgWvp/TSNyoh6EqIW3EqZ+5H9XXBA7nrCpKb/d2qr4G5BhNbbxHf8JhpG5i?=
+ =?us-ascii?Q?+lAzr6YjBBWL7OLqcywTNX0ZXJL/EwbGgYs3EXSYrhykL7fOeZMXwWvH0dIo?=
+ =?us-ascii?Q?N90Q85flzpg2HEU1SmOJn1chzI3cAbkDvwTmtt5bZGEmWDqvfrVErL4j52p1?=
+ =?us-ascii?Q?HDWsmzgOD6ZwOVMW9JwqwrHYVeQ2B3i9DOtpLjYUmxsv6RO/tF47drRM657y?=
+ =?us-ascii?Q?vkD/rJ8RNFvzlRX0ljv7y3ZEK8ouKHlG4ZfW/XuT4sdgDrZIJiEVI+RZP3c4?=
+ =?us-ascii?Q?oSfvoNvDYosVAfSyJJWeKjLHadHokw4uyaAkpL/Sr4/LWK1EnekIznrm9s0R?=
+ =?us-ascii?Q?R2g4/mj+5g=3D=3D?=
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-OriginatorOrg: microsoft.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-AuthSource: LV5PR21MB4704.namprd21.prod.outlook.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 2ec752e5-c92b-4acf-d1d7-08deef4a50a4
+X-MS-Exchange-CrossTenant-originalarrivaltime: 31 Jul 2026 21:25:59.2212
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: 72f988bf-86f1-41af-91ab-2d7cd011db47
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: padWwRowFZZIZ6KTHh2jM8UzNi+9++2il40VdyNV8MeHPF3nuVKI5UdtkrTtPocI16mXO0Bk0gddsZX1M1nZmg==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: LV2PR21MB6594
 
-From: Haiyang Zhang <haiyangz@microsoft.com>
 
-To support up to 8 packets per CQE, update related CQE processing
-code and structures.
-Update ethtool handlers to set this feature.
-Update per queue stat to show the coalesced CQE counters.
-This feature is supported on NIC hardware showing the relevant
-PF flag.
 
-Signed-off-by: Haiyang Zhang <haiyangz@microsoft.com>
----
-v2:
-  Updated PF flag hanlding, and comments based on AI review.
+> -----Original Message-----
+> From: Haiyang Zhang <haiyangz@linux.microsoft.com>
+> Sent: Wednesday, July 29, 2026 6:52 PM
+> To: linux-hyperv@vger.kernel.org; netdev@vger.kernel.org; KY Srinivasan
+> <kys@microsoft.com>; Haiyang Zhang <haiyangz@microsoft.com>; Wei Liu
+> <wei.liu@kernel.org>; Dexuan Cui <DECUI@microsoft.com>; Long Li
+> <longli@microsoft.com>; Andrew Lunn <andrew+netdev@lunn.ch>; David S.
+> Miller <davem@davemloft.net>; Eric Dumazet <edumazet@google.com>; Jakub
+> Kicinski <kuba@kernel.org>; Paolo Abeni <pabeni@redhat.com>; Konstantin
+> Taranov <kotaranov@microsoft.com>; Simon Horman <horms@kernel.org>; Erni
+> Sri Satya Vennela <ernis@linux.microsoft.com>; Dipayaan Roy
+> <dipayanroy@linux.microsoft.com>; Aditya Garg
+> <gargaditya@linux.microsoft.com>; Breno Leitao <leitao@debian.org>; linux=
+-
+> kernel@vger.kernel.org; linux-rdma@vger.kernel.org
+> Cc: Paul Rosswurm <paulros@microsoft.com>
+> Subject: [PATCH net-next] net: mana: Extend RX CQE coalescing up to 8
+> packets
+>=20
+> From: Haiyang Zhang <haiyangz@microsoft.com>
+>=20
+> To support up to 8 packets per CQE, put two packet lengths and
+> hash values into one PPI entry by using the reserved fields.
+> Update ethtool handlers to set this feature.
+> Update per queue stat to show the coalesced CQE counters.
+> This feature is supported on NIC hardware showing the relevant
+> PF flag.
+>=20
+> Signed-off-by: Haiyang Zhang <haiyangz@microsoft.com>
+> ---
+>  drivers/net/ethernet/microsoft/mana/mana_en.c | 137 ++++++++++++------
+>  .../ethernet/microsoft/mana/mana_ethtool.c    |  30 +++-
+>  include/net/mana/gdma.h                       |   4 +
+>  include/net/mana/mana.h                       |  43 ++++--
+>  4 files changed, 150 insertions(+), 64 deletions(-)
 
----
- drivers/net/ethernet/microsoft/mana/mana_en.c | 137 ++++++++++++------
- .../ethernet/microsoft/mana/mana_ethtool.c    |  29 +++-
- include/net/mana/gdma.h                       |   4 +
- include/net/mana/mana.h                       |  44 ++++--
- 4 files changed, 150 insertions(+), 64 deletions(-)
-
-diff --git a/drivers/net/ethernet/microsoft/mana/mana_en.c b/drivers/net/ethernet/microsoft/mana/mana_en.c
-index a80cf0bc462c..a3c29077daf5 100644
---- a/drivers/net/ethernet/microsoft/mana/mana_en.c
-+++ b/drivers/net/ethernet/microsoft/mana/mana_en.c
-@@ -1241,6 +1241,9 @@ int mana_gd_query_device_cfg(struct gdma_context *gc, u32 proto_major_ver,
- 		return err;
- 	}
- 
-+	gc->cqe8_coalescing_sup = !!(resp.pf_cap_flags1 &
-+				     MANA_PF_FLAG_1_CQE_8_COALESCING_SUPPORTED);
-+
- 	*max_num_vports = resp.max_num_vports;
- 
- 	if (resp.hdr.response.msg_version >= GDMA_MESSAGE_V2) {
-@@ -1426,7 +1429,11 @@ static int mana_cfg_vport_steering(struct mana_port_context *apc,
- 	mana_gd_init_req_hdr(&req->hdr, MANA_CONFIG_VPORT_RX, req_buf_size,
- 			     sizeof(resp));
- 
--	req->hdr.req.msg_version = GDMA_MESSAGE_V2;
-+	/* Request & response versions can be different.
-+	 * HW can handle newer msg versions, by skipping
-+	 * new fields.
-+	 */
-+	req->hdr.req.msg_version = GDMA_MESSAGE_V5;
- 	req->hdr.resp.msg_version = GDMA_MESSAGE_V2;
- 
- 	req->vport = apc->port_handle;
-@@ -1440,8 +1447,13 @@ static int mana_cfg_vport_steering(struct mana_port_context *apc,
- 	req->update_indir_tab = update_tab;
- 	req->default_rxobj = apc->default_rxobj;
- 
--	if (rx != TRI_STATE_FALSE)
-+	/* Request-msg v5 requires this field */
-+	req->rss_hash_types = MANA_HASH_ENABLE_SUPPORTED;
-+
-+	if (rx != TRI_STATE_FALSE) {
- 		req->cqe_coalescing_enable = apc->cqe_coalescing_enable;
-+		req->cqe8_coalescing_enable = apc->cqe8_coalescing_enable;
-+	}
- 
- 	if (update_key)
- 		memcpy(&req->hashkey, apc->hashkey, MANA_HASH_KEY_SIZE);
-@@ -2046,16 +2058,14 @@ static struct sk_buff *mana_build_skb(struct mana_rxq *rxq, void *buf_va,
- 
- static void mana_rx_skb(void *buf_va, bool from_pool,
- 			struct mana_rxcomp_oob *cqe, struct mana_rxq *rxq,
--			int i)
-+			u32 pkt_len, u32 pkt_hash)
- {
- 	struct mana_stats_rx *rx_stats = &rxq->stats;
- 	struct net_device *ndev = rxq->ndev;
--	uint pkt_len = cqe->ppi[i].pkt_len;
- 	u16 rxq_idx = rxq->rxq_idx;
- 	struct napi_struct *napi;
- 	struct xdp_buff xdp = {};
- 	struct sk_buff *skb;
--	u32 hash_value;
- 	u32 act;
- 
- 	rxq->rx_cq.work_done++;
-@@ -2094,12 +2104,10 @@ static void mana_rx_skb(void *buf_va, bool from_pool,
- 	}
- 
- 	if (cqe->rx_hashtype != 0 && (ndev->features & NETIF_F_RXHASH)) {
--		hash_value = cqe->ppi[i].pkt_hash;
--
- 		if (cqe->rx_hashtype & MANA_HASH_L4)
--			skb_set_hash(skb, hash_value, PKT_HASH_TYPE_L4);
-+			skb_set_hash(skb, pkt_hash, PKT_HASH_TYPE_L4);
- 		else
--			skb_set_hash(skb, hash_value, PKT_HASH_TYPE_L3);
-+			skb_set_hash(skb, pkt_hash, PKT_HASH_TYPE_L3);
- 	}
- 
- 	if (cqe->rx_vlantag_present) {
-@@ -2240,6 +2248,43 @@ static void mana_refill_rx_oob(struct device *dev, struct mana_rxq *rxq,
- 	rxoob->dma_sync_offset = dma_sync_offset;
- }
- 
-+static void mana_process_one_rx_pkt(struct device *dev, struct mana_rxq *rxq,
-+				    struct mana_rxcomp_oob *oob,
-+				    u32 pktlen, u32 pkt_hash)
-+{
-+	struct mana_recv_buf_oob *rxbuf_oob;
-+	struct net_device *ndev = rxq->ndev;
-+	void *old_buf = NULL;
-+	bool old_fp;
-+
-+	rxbuf_oob = &rxq->rx_oobs[rxq->buf_index];
-+	WARN_ON_ONCE(rxbuf_oob->wqe_inf.wqe_size_in_bu != 1);
-+
-+	if (unlikely(pktlen > rxq->datasize)) {
-+		/* Increase it even if mana_rx_skb() isn't called. */
-+		rxq->rx_cq.work_done++;
-+
-+		++ndev->stats.rx_dropped;
-+		netdev_warn_once(ndev,
-+				 "Dropped oversized RX packet: len=%u, datasize=%u\n",
-+				 pktlen, rxq->datasize);
-+
-+		/* Reuse the RX buffer since rxbuf_oob is unchanged. */
-+	} else {
-+		mana_refill_rx_oob(dev, rxq, rxbuf_oob, pktlen,
-+				   &old_buf, &old_fp);
-+
-+		/* Unsuccessful refill will have old_buf == NULL.
-+		 * In this case, mana_rx_skb() will drop the packet.
-+		 */
-+		mana_rx_skb(old_buf, old_fp, oob, rxq, pktlen, pkt_hash);
-+	}
-+
-+	mana_move_wq_tail(rxq->gdma_rq, rxbuf_oob->wqe_inf.wqe_size_in_bu);
-+
-+	mana_post_pkt_rxq(rxq);
-+}
-+
- static void mana_process_rx_cqe(struct mana_rxq *rxq, struct mana_cq *cq,
- 				struct gdma_comp *cqe)
- {
-@@ -2249,10 +2294,10 @@ static void mana_process_rx_cqe(struct mana_rxq *rxq, struct mana_cq *cq,
- 	struct mana_recv_buf_oob *rxbuf_oob;
- 	struct mana_port_context *apc;
- 	struct device *dev = gc->dev;
-+	bool coalesced_8 = false;
- 	bool coalesced = false;
--	void *old_buf = NULL;
--	u32 curr, pktlen;
--	bool old_fp;
-+	u32 pktlen;
-+	int pkt_i;
- 	int i;
- 
- 	apc = netdev_priv(ndev);
-@@ -2275,6 +2320,11 @@ static void mana_process_rx_cqe(struct mana_rxq *rxq, struct mana_cq *cq,
- 		coalesced = true;
- 		break;
- 
-+	case CQE_RX_COALESCED_8:
-+		coalesced = true;
-+		coalesced_8 = true;
-+		break;
-+
- 	case CQE_RX_OBJECT_FENCE:
- 		complete(&rxq->fence_event);
- 		return;
-@@ -2286,54 +2336,48 @@ static void mana_process_rx_cqe(struct mana_rxq *rxq, struct mana_cq *cq,
- 		return;
- 	}
- 
-+	pkt_i = 0;
- 	for (i = 0; i < MANA_RXCOMP_OOB_NUM_PPI; i++) {
--		old_buf = NULL;
--		pktlen = oob->ppi[i].pkt_len;
--		if (pktlen == 0)
--			break;
--
--		curr = rxq->buf_index;
--		rxbuf_oob = &rxq->rx_oobs[curr];
--		WARN_ON_ONCE(rxbuf_oob->wqe_inf.wqe_size_in_bu != 1);
--
--		if (unlikely(pktlen > rxq->datasize)) {
--			/* Increase it even if mana_rx_skb() isn't called. */
--			rxq->rx_cq.work_done++;
-+		u32 pkt_hash;
- 
--			++ndev->stats.rx_dropped;
--			netdev_warn_once(ndev,
--				"Dropped oversized RX packet: len=%u, datasize=%u\n",
--				pktlen, rxq->datasize);
--
--			/* Reuse the RX buffer since rxbuf_oob is unchanged. */
-+		if (coalesced_8) {
-+			/* 8-pkt mode: 2 packets per PPI entry */
-+			pktlen = oob->ppi[i].pkt_len0;
-+			pkt_hash = oob->ppi[i].pkt_hash0;
- 		} else {
--
--			mana_refill_rx_oob(dev, rxq, rxbuf_oob, pktlen,
--					   &old_buf, &old_fp);
--
--			/* Unsuccessful refill will have old_buf == NULL.
--			 * In this case, mana_rx_skb() will drop the packet.
--			 */
--			mana_rx_skb(old_buf, old_fp, oob, rxq, i);
-+			pktlen = oob->ppi[i].pkt_len;
-+			pkt_hash = oob->ppi[i].pkt_hash;
- 		}
-+		if (pktlen == 0)
-+			break;
- 
--		mana_move_wq_tail(rxq->gdma_rq,
--				  rxbuf_oob->wqe_inf.wqe_size_in_bu);
--
--		mana_post_pkt_rxq(rxq);
-+		mana_process_one_rx_pkt(dev, rxq, oob, pktlen, pkt_hash);
-+		pkt_i++;
- 
- 		if (!coalesced)
- 			break;
-+
-+		/* Process 2nd packet from the same PPI in 8-pkt mode */
-+		if (coalesced_8) {
-+			pktlen = oob->ppi[i].pkt_len1;
-+			pkt_hash = oob->ppi[i].pkt_hash1;
-+			if (pktlen == 0)
-+				break;
-+
-+			mana_process_one_rx_pkt(dev, rxq, oob, pktlen,
-+						pkt_hash);
-+			pkt_i++;
-+		}
- 	}
- 
- 	/* Collect coalesced CQE count based on packets processed.
--	 * Coalesced CQEs have at least 2 packets, so index is i - 2.
-+	 * Coalesced CQEs have at least 2 packets, so index is pkt_i - 2.
- 	 */
--	if (i > 1) {
-+	if (pkt_i > 1) {
- 		u64_stats_update_begin(&rxq->stats.syncp);
--		rxq->stats.coalesced_cqe[i - 2]++;
-+		rxq->stats.coalesced_cqe[pkt_i - 2]++;
- 		u64_stats_update_end(&rxq->stats.syncp);
--	} else if (!i && !pktlen) {
-+	} else if (!pkt_i && !pktlen) {
- 		u64_stats_update_begin(&rxq->stats.syncp);
- 		rxq->stats.pkt_len0_err++;
- 		u64_stats_update_end(&rxq->stats.syncp);
-@@ -3763,6 +3807,7 @@ static int mana_probe_port(struct mana_context *ac, int port_idx,
- 	apc->port_idx = port_idx;
- 	apc->link_cfg_error = 1;
- 	apc->cqe_coalescing_enable = 0;
-+	apc->cqe8_coalescing_enable = 0;
- 
- 	/* Initialize interrupt moderation settings if supported by HW */
- 	if (gc->pf_cap_flags1 & GDMA_PF_CAP_FLAG_1_DYN_INTERRUPT_MODERATION) {
-diff --git a/drivers/net/ethernet/microsoft/mana/mana_ethtool.c b/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
-index 9e31e2595ae3..04f877707cc6 100644
---- a/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
-+++ b/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
-@@ -169,7 +169,7 @@ static void mana_get_strings(struct net_device *ndev, u32 stringset, u8 *data)
- 		ethtool_sprintf(&data, "rx_%d_xdp_tx", i);
- 		ethtool_sprintf(&data, "rx_%d_xdp_redirect", i);
- 		ethtool_sprintf(&data, "rx_%d_pkt_len0_err", i);
--		for (j = 0; j < MANA_RXCOMP_OOB_NUM_PPI - 1; j++)
-+		for (j = 0; j < MANA_CQE_COAL_PKTS_8 - 1; j++)
- 			ethtool_sprintf(&data, "rx_%d_coalesced_cqe_%d", i, j + 2);
- 	}
- 
-@@ -205,7 +205,7 @@ static void mana_get_ethtool_stats(struct net_device *ndev,
- 	u64 xdp_drop;
- 	u64 xdp_tx;
- 	u64 pkt_len0_err;
--	u64 coalesced_cqe[MANA_RXCOMP_OOB_NUM_PPI - 1];
-+	u64 coalesced_cqe[MANA_CQE_COAL_PKTS_8 - 1];
- 	u64 tso_packets;
- 	u64 tso_bytes;
- 	u64 tso_inner_packets;
-@@ -245,7 +245,7 @@ static void mana_get_ethtool_stats(struct net_device *ndev,
- 			xdp_tx = rx_stats->xdp_tx;
- 			xdp_redirect = rx_stats->xdp_redirect;
- 			pkt_len0_err = rx_stats->pkt_len0_err;
--			for (j = 0; j < MANA_RXCOMP_OOB_NUM_PPI - 1; j++)
-+			for (j = 0; j < MANA_CQE_COAL_PKTS_8 - 1; j++)
- 				coalesced_cqe[j] = rx_stats->coalesced_cqe[j];
- 		} while (u64_stats_fetch_retry(&rx_stats->syncp, start));
- 
-@@ -255,7 +255,7 @@ static void mana_get_ethtool_stats(struct net_device *ndev,
- 		data[i++] = xdp_tx;
- 		data[i++] = xdp_redirect;
- 		data[i++] = pkt_len0_err;
--		for (j = 0; j < MANA_RXCOMP_OOB_NUM_PPI - 1; j++)
-+		for (j = 0; j < MANA_CQE_COAL_PKTS_8 - 1; j++)
- 			data[i++] = coalesced_cqe[j];
- 	}
- 
-@@ -408,6 +408,7 @@ static int mana_get_coalesce(struct net_device *ndev,
- 	struct mana_port_context *apc = netdev_priv(ndev);
- 
- 	kernel_coal->rx_cqe_frames =
-+		apc->cqe8_coalescing_enable ? MANA_CQE_COAL_PKTS_8 :
- 		apc->cqe_coalescing_enable ? MANA_RXCOMP_OOB_NUM_PPI : 1;
- 
- 	kernel_coal->rx_cqe_nsecs = apc->cqe_coalescing_timeout_ns;
-@@ -443,15 +444,19 @@ static int mana_set_coalesce(struct net_device *ndev,
- 		u16 intr_modr_tx_usec;
- 		u16 intr_modr_tx_comp;
- 		u8 cqe_coalescing_enable;
-+		u8 cqe8_coalescing_enable;
- 		bool rx_dim_enabled;
- 		bool tx_dim_enabled;
- 	} saved;
- 	bool modr_changed = false;
- 	bool dim_changed = false;
- 	struct gdma_context *gc;
-+	u32 max_cqe_frames;
- 	int err;
- 
- 	gc = apc->ac->gdma_dev->gdma_context;
-+	max_cqe_frames = gc->cqe8_coalescing_sup ? MANA_CQE_COAL_PKTS_8 :
-+						   MANA_RXCOMP_OOB_NUM_PPI;
- 
- 	/* Both static and dynamic interrupt moderation (DIM) rely on the
- 	 * same HW capability advertised by the PF.
-@@ -466,10 +471,12 @@ static int mana_set_coalesce(struct net_device *ndev,
- 	}
- 
- 	if (kernel_coal->rx_cqe_frames != 1 &&
--	    kernel_coal->rx_cqe_frames != MANA_RXCOMP_OOB_NUM_PPI) {
-+	    kernel_coal->rx_cqe_frames != MANA_RXCOMP_OOB_NUM_PPI &&
-+	    kernel_coal->rx_cqe_frames != max_cqe_frames) {
- 		NL_SET_ERR_MSG_FMT(extack,
--				   "rx-frames must be 1 or %u, got %u",
-+				   "rx-frames must be 1 or %u%s, got %u",
- 				   MANA_RXCOMP_OOB_NUM_PPI,
-+				   gc->cqe8_coalescing_sup ? " or 8" : "",
- 				   kernel_coal->rx_cqe_frames);
- 		return -EINVAL;
- 	}
-@@ -514,8 +521,11 @@ static int mana_set_coalesce(struct net_device *ndev,
- 	saved.tx_dim_enabled = apc->tx_dim_enabled;
- 
- 	saved.cqe_coalescing_enable = apc->cqe_coalescing_enable;
-+	saved.cqe8_coalescing_enable = apc->cqe8_coalescing_enable;
- 	apc->cqe_coalescing_enable =
--		kernel_coal->rx_cqe_frames == MANA_RXCOMP_OOB_NUM_PPI;
-+		kernel_coal->rx_cqe_frames >= MANA_RXCOMP_OOB_NUM_PPI;
-+	apc->cqe8_coalescing_enable =
-+		kernel_coal->rx_cqe_frames == MANA_CQE_COAL_PKTS_8;
- 
- 	if (!apc->port_is_up) {
- 		WRITE_ONCE(apc->rx_dim_enabled, !!ec->use_adaptive_rx_coalesce);
-@@ -523,7 +533,8 @@ static int mana_set_coalesce(struct net_device *ndev,
- 		return 0;
- 	}
- 
--	if (apc->cqe_coalescing_enable != saved.cqe_coalescing_enable) {
-+	if (apc->cqe_coalescing_enable != saved.cqe_coalescing_enable ||
-+	    apc->cqe8_coalescing_enable != saved.cqe8_coalescing_enable) {
- 		/* CQE coalescing setting is applied via RSS configuration. */
- 		err = mana_config_rss(apc, TRI_STATE_TRUE, false, false);
- 		if (err) {
-@@ -531,6 +542,8 @@ static int mana_set_coalesce(struct net_device *ndev,
- 				   err);
- 			apc->cqe_coalescing_enable =
- 				saved.cqe_coalescing_enable;
-+			apc->cqe8_coalescing_enable =
-+				saved.cqe8_coalescing_enable;
- 			apc->intr_modr_rx_usec = saved.intr_modr_rx_usec;
- 			apc->intr_modr_rx_comp = saved.intr_modr_rx_comp;
- 			apc->intr_modr_tx_usec = saved.intr_modr_tx_usec;
-diff --git a/include/net/mana/gdma.h b/include/net/mana/gdma.h
-index 8529cef0d7c4..70a7f1fee5d3 100644
---- a/include/net/mana/gdma.h
-+++ b/include/net/mana/gdma.h
-@@ -182,6 +182,7 @@ struct gdma_general_req {
- #define GDMA_MESSAGE_V2 2
- #define GDMA_MESSAGE_V3 3
- #define GDMA_MESSAGE_V4 4
-+#define GDMA_MESSAGE_V5 5
- 
- struct gdma_general_resp {
- 	struct gdma_resp_hdr hdr;
-@@ -428,6 +429,9 @@ struct gdma_context {
- 	/* L2 MTU */
- 	u16 adapter_mtu;
- 
-+	/* NIC supports CQE x8 coalescing */
-+	bool cqe8_coalescing_sup;
-+
- 	/* This maps a CQ index to the queue structure. */
- 	unsigned int		max_num_cqs;
- 	struct gdma_queue	**cq_table;
-diff --git a/include/net/mana/mana.h b/include/net/mana/mana.h
-index 4d041fb8437f..50acb6bf8f12 100644
---- a/include/net/mana/mana.h
-+++ b/include/net/mana/mana.h
-@@ -62,9 +62,12 @@ enum TRI_STATE {
- 
- #define MAX_PORTS_IN_MANA_DEV 256
- 
--/* Maximum number of packets per coalesced CQE */
-+/* Maximum number of PPIs per coalesced CQE */
- #define MANA_RXCOMP_OOB_NUM_PPI 4
- 
-+/* 8-pkt mode packs up to 2 packets per PPI entry */
-+#define MANA_CQE_COAL_PKTS_8 8
-+
- /* Default/max interrupt moderation settings */
- #define MANA_INTR_MODR_USEC_DEF 0
- #define MANA_INTR_MODR_COMP_DEF 0
-@@ -79,7 +82,7 @@ enum TRI_STATE {
- #define MANA_INTR_MODR_COMP_MASK   GENMASK(23, 16)
- 
- /* Update this count whenever the respective structures are changed */
--#define MANA_STATS_RX_COUNT (6 + MANA_RXCOMP_OOB_NUM_PPI - 1)
-+#define MANA_STATS_RX_COUNT (6 + MANA_CQE_COAL_PKTS_8 - 1)
- #define MANA_STATS_TX_COUNT 11
- 
- #define MANA_RX_FRAG_ALIGNMENT 64
-@@ -91,7 +94,7 @@ struct mana_stats_rx {
- 	u64 xdp_tx;
- 	u64 xdp_redirect;
- 	u64 pkt_len0_err;
--	u64 coalesced_cqe[MANA_RXCOMP_OOB_NUM_PPI - 1];
-+	u64 coalesced_cqe[MANA_CQE_COAL_PKTS_8 - 1];
- 	struct u64_stats_sync syncp;
- };
- 
-@@ -202,6 +205,7 @@ enum mana_cqe_type {
- 	CQE_RX_COALESCED_4		= 2,
- 	CQE_RX_OBJECT_FENCE		= 3,
- 	CQE_RX_TRUNCATED		= 4,
-+	CQE_RX_COALESCED_8		= 7,
- 
- 	CQE_TX_OKAY			= 32,
- 	CQE_TX_SA_DROP			= 33,
-@@ -238,12 +242,26 @@ struct mana_cqe_header {
- #define MANA_HASH_L4                                                         \
- 	(NDIS_HASH_TCP_IPV4 | NDIS_HASH_UDP_IPV4 | NDIS_HASH_TCP_IPV6 |      \
- 	 NDIS_HASH_UDP_IPV6 | NDIS_HASH_TCP_IPV6_EX | NDIS_HASH_UDP_IPV6_EX)
-+#define MANA_HASH_ENABLE_SUPPORTED \
-+	(NDIS_HASH_IPV4 | NDIS_HASH_TCP_IPV4 | NDIS_HASH_UDP_IPV4 | \
-+	 NDIS_HASH_IPV6 | NDIS_HASH_TCP_IPV6 | NDIS_HASH_UDP_IPV6)
-+
-+/* Read PPI in two different layouts based on cqe_type */
-+union mana_rxcomp_perpkt_info {
-+	struct {
-+		u32 pkt_len : 16;
-+		u32 reserved1 : 16;
-+		u32 reserved2;
-+		u32 pkt_hash;
-+	};
- 
--struct mana_rxcomp_perpkt_info {
--	u32 pkt_len	: 16;
--	u32 reserved1	: 16;
--	u32 reserved2;
--	u32 pkt_hash;
-+	/* Up to two pkts per PPI entry */
-+	struct {
-+		u32 pkt_hash0;
-+		u16 pkt_len0;
-+		u16 pkt_len1;
-+		u32 pkt_hash1;
-+	};
- }; /* HW DATA */
- 
- /* Receive completion OOB */
-@@ -264,7 +282,7 @@ struct mana_rxcomp_oob {
- 	u32 rx_udp_csum_fail		: 1;
- 	u32 reserved2			: 1;
- 
--	struct mana_rxcomp_perpkt_info ppi[MANA_RXCOMP_OOB_NUM_PPI];
-+	union mana_rxcomp_perpkt_info ppi[MANA_RXCOMP_OOB_NUM_PPI];
- 
- 	u32 rx_wqe_offset;
- }; /* HW DATA */
-@@ -607,6 +625,7 @@ struct mana_port_context {
- 	bool port_st_save; /* Saved port state */
- 
- 	u8 cqe_coalescing_enable;
-+	u8 cqe8_coalescing_enable;
- 	u32 cqe_coalescing_timeout_ns;
- 
- 	/* Interrupt moderation settings */
-@@ -751,6 +770,8 @@ struct mana_query_device_cfg_req {
- 	u32 reserved;
- }; /* HW DATA */
- 
-+#define MANA_PF_FLAG_1_CQE_8_COALESCING_SUPPORTED BIT(5)
-+
- struct mana_query_device_cfg_resp {
- 	struct gdma_resp_hdr hdr;
- 
-@@ -986,7 +1007,10 @@ struct mana_cfg_rx_steer_req_v2 {
- 	mana_handle_t default_rxobj;
- 	u8 hashkey[MANA_HASH_KEY_SIZE];
- 	u8 cqe_coalescing_enable;
--	u8 reserved2[7];
-+	u8 reserved2[3];
-+	u16 rss_hash_types;
-+	u8 cqe8_coalescing_enable; /* v5 message */
-+	u8 reserved3;
- 	mana_handle_t indir_tab[] __counted_by(num_indir_entries);
- }; /* HW DATA */
- 
--- 
-2.34.1
+I submitted v2 based on the AI review.
 
