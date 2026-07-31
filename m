@@ -1,58 +1,74 @@
-Received: from mx0b-00082601.pphosted.com (mx0b-00082601.pphosted.com [67.231.153.30])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qv1-f44.google.com (mail-qv1-f44.google.com [209.85.219.44])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 80B4630F95C;
-	Fri, 31 Jul 2026 18:55:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=67.231.153.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B521B35C684
+	for <linux-rdma@vger.kernel.org>; Fri, 31 Jul 2026 19:43:47 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.44
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785524136; cv=none; b=P8v+koF60KX1bRgMwZKpB1xJBP/tYJFg4wMFAxrGp/pgLU4O0K/sFP7+yEtWzSl+nmAz8rsDVZ/8jLoQgnGHRoDdgL0ADGX/VS1cIUr4yHgSKE8B8QBmPO0N/wLk0+zeIDoyDNFk6AgUZiSt10Dwk7SZadg2hOR0CcgU0jnQKss=
+	t=1785527029; cv=none; b=X102vhATrVfxonz9zJ2QXwsh/Po//HyLBFm/wMVoOn/5msof4J5E15w177FfiEDQS1YPaAvs/dowObh89iXysS+sDyO6+OoGp44sJQLIldknh/WIG5y/FZ5Mae4pqXQEm4KRjP5q0efSeDUiJQr5fGyfq4jzYyTbLSrBDw17XaY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785524136; c=relaxed/simple;
-	bh=aHPNGOna+Ur0Y3imTtG0r3LmSmd2dAjy2aH4h4liSGU=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=IqFJM0xY/dIVsbyQggXOL7RcfbVLwaYNBOWmjijPMt8zIC1W3L60yCoeaI7FgWP4enbBVE7ImHYpTsPfTHA1Himl31ml87KeUC+h0xR6DxRnVpbTE34rquIQvJVNriYnNVKxBovB8uAggTziZBV8izAG6a4ZYcpsMvSvZ5FZTDs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=meta.com; spf=pass smtp.mailfrom=meta.com; dkim=pass (2048-bit key) header.d=meta.com header.i=@meta.com header.b=Q5KmDO5H; arc=none smtp.client-ip=67.231.153.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=meta.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=meta.com
+	s=arc-20240116; t=1785527029; c=relaxed/simple;
+	bh=a4JoxwK8whd0hqjJLugLawL3etavM1SHtOZ/07odXjM=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=DV4ux2vF5K3UZv5A8FPiLQeIi4wCR/7C/ZvFqAe/cY9AuRQxZOAHxUeHq0ZIdbuSNKngybpZHWgNAKAv1qM3FPlDE+oFbdoT5fgOkFp+IYEGedPdyKm1/0b/s/Jpi7JwScGr6Xax5rACkaSifN63fhMMMuQqnXS3ykBzfS1X7o8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=TtkScYgF; arc=none smtp.client-ip=209.85.219.44
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=meta.com header.i=@meta.com header.b="Q5KmDO5H"
-Received: from pps.filterd (m0528004.ppops.net [127.0.0.1])
-	by mx0a-00082601.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 66VIhmb21946352;
-	Fri, 31 Jul 2026 11:55:24 -0700
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=meta.com; h=cc
-	:content-transfer-encoding:content-type:date:from:message-id
-	:mime-version:subject:to; s=pps82601-s2048-2026-q3; bh=PL2StkL0B
-	74vie52VIhYkIwSiz/TtLj9D3k1myIfQFs=; b=Q5KmDO5HORRwSkCGEnCsP3wmq
-	oCOpxNifB+EqmyU3k9Z37bn318pmcJSovJUYUCztvm7x2OxwsWdzbNUn4qWz/yVa
-	PVWHvKgf6+GmoEujVmvNRoBoiY18eit7vjkzoZvCpcTsbH7KrcWgACqnaa2ZB9w4
-	1SLZCED5u7jZDybrKcE8ILVDJgwcyPEw9TCWFqc0/FfwbbSo6wo1AH8lQRMwMcY5
-	NqSxWwmCrpNyBP1qdkom03c3LnmTZPvhEHqgwGNd8cdbV9dWIBBJ0i2rhPLsPChE
-	EgM6WNV3SsOjWczzypKFa+1qP6+gRnK1za/DvocWd9OJe3x0dYYC4hT5WQbIw==
-Received: from mail.thefacebook.com ([163.114.134.16])
-	by mx0a-00082601.pphosted.com (PPS) with ESMTPS id 4fs0dsgd4h-2
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT);
-	Fri, 31 Jul 2026 11:55:24 -0700 (PDT)
-Received: from localhost (2620:10d:c085:108::150d) by mail.thefacebook.com
- (2620:10d:c08b:78::c78f) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.2.2562.45; Fri, 31 Jul
- 2026 18:54:51 +0000
-From: Glenn Judd <gmj@meta.com>
-To: Saeed Mahameed <saeedm@nvidia.com>, Tariq Toukan <tariqt@nvidia.com>,
-        "Mark Bloch" <mbloch@nvidia.com>, Leon Romanovsky <leon@kernel.org>,
-        <netdev@vger.kernel.org>
-CC: "David S. Miller" <davem@davemloft.net>,
-        Andrew Lunn
-	<andrew+netdev@lunn.ch>,
-        Eric Dumazet <edumazet@google.com>, Jakub Kicinski
-	<kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>, Khalid Manaa
-	<khalidm@nvidia.com>,
-        Ben Ben-Ishay <benishay@nvidia.com>, <linux-rdma@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>, Glenn Judd
-	<gmj@meta.com>
-Subject: [PATCH net] net/mlx5e: strip runt Ethernet padding in HW-GRO (SHAMPO)
-Date: Fri, 31 Jul 2026 11:54:42 -0700
-Message-ID: <20260731185442.2778723-1-gmj@meta.com>
-X-Mailer: git-send-email 2.53.0
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="TtkScYgF"
+Received: by mail-qv1-f44.google.com with SMTP id 6a1803df08f44-8efcef23d21so9425236d6.2
+        for <linux-rdma@vger.kernel.org>; Fri, 31 Jul 2026 12:43:47 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1785527026; x=1786131826; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=YGd998t4bIjPz8K4wuARBcoglgbiEtkoi+8NJ9UIttY=;
+        b=TtkScYgFZA0XjvF9GaNlsVQp4lM0Y5rwS0btsGUyMte06ymSNo8tp3ELJn7q3MOSNV
+         0Blmh9Ff8eWUKmKkIvULsqMXamYGSVU6zRT1WjuVW7MKXKHdy3JaMphMd6Qmn7XD1aFb
+         lCzTtaSIRgjeuOt5gwpZiwIxFWJMtxQsRYnrG5h3Cik99lMIlC+qFdAhFdgDewn2mYa5
+         r0Lrq0Uu5xqMkrkHOyO91ww47GUNjmMRMR4vXn2ZXA/54tSmA4vimOCR0/C2PwiBLIDg
+         nmB1Xa7r7A8+LMfvJN2QDe4futzdZ48neW3jDtE0SC1QVvmBdn17g5CuCb0AHuj/lCO9
+         VWTg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1785527026; x=1786131826;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=YGd998t4bIjPz8K4wuARBcoglgbiEtkoi+8NJ9UIttY=;
+        b=gNAwpaRtXY9fVN/BLofHxLMU4/QJGPGXDeB2so7Qr7ukvcDc/gSBAD4UqvpiEuNwVl
+         1CshczSKgHaW9GtMAGQut9GwH4jCoH9hqY8H4SbSul6CssRSOFMD0LXO3dd650GuMQaI
+         TJl8LvDA29F/az9MRW9WsiNxnOwW6nAWzc6WrMC/iiH558M0X/p2ILukK3aa+kcygUmz
+         qNSAzHPuZPAfav2BwpnEUIUPyAAWPiBpssxCV7cjBHcBYH2fk02geDek0bcTBHFphkRG
+         8LlyxddWtjrbtimJRqKgcYBKHtdTbhrVqFpeDa1GWN41OzA101R3NPq2J6ndMstvqw9L
+         /QRQ==
+X-Forwarded-Encrypted: i=1; AHgh+RobcX4S02B1EUi01iim03Pq2m1QY0/Z3rsX5CFvBbqmYYssEThoiTBjrGOwX8qXPC0i87AGfZu4Fze+@vger.kernel.org
+X-Gm-Message-State: AOJu0Yy3La5OYffeP8f2mN0nCO6oJhqwRad9dtgrj22ntMeIqOOcyhqo
+	HfeVp+3nLDK+O4HB0GlTHUiyP5SDV06QpvroF48/X/AghmppQLpWifPa
+X-Gm-Gg: AR+sD105RGxOlF9j0yQ9HxpjhUZlrdD15eFWLJgCeCJcNeKBOfxuCMuxK3Cjxyf12bq
+	Hg6PEWl1MU89jJGXmGhELe6sJU+ttWH3u58ku0P5HMEZDmdpYoZbtMZH0wOrYTuE6FRnfLkFVeb
+	7K2sgftWAMaNb+4+8Tk6Df/TEv+CF8vtYGiN5v7QnHyzXIEFihSMnNo0zy3Li59GID5d1M8HaKx
+	w4kW/qiYDrYhMJZqraiWRniaVA3pWFHmmVlPgrjpop1Ni0SZKdPmosNZbUqrkMGu0ldiAnwhZ80
+	aT3/3LfPmCUftGfHU9Kqj1/PM6wMtUOSBVzJvp6cMr9TXIaTHIyy602FFKb6ZavfSIKjBuPgN5s
+	GINDFBidZNUm2Fjb8hnXDGwMY2Cu8QPocmlsABrjMqjQn3v70zDULQdNeFbGHNGNZBpOyekxHG7
+	5G6uDcwnzS0iyWapOPsAXB4y4tZH60J0GmnYszdpZRzb/hrrRcU+hyP5d15tHCqlw7T1o4Vjsg1
+	GeNFCqwG+YjRfALiA==
+X-Received: by 2002:ad4:5dcc:0:b0:907:5150:a2dd with SMTP id 6a1803df08f44-9084959f7ecmr23035636d6.14.1785527026491;
+        Fri, 31 Jul 2026 12:43:46 -0700 (PDT)
+Received: from i4-l-hqh5357-03.ad.psu.edu ([130.203.139.71])
+        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-908435ed43esm17748166d6.40.2026.07.31.12.43.45
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 31 Jul 2026 12:43:45 -0700 (PDT)
+From: Shuangpeng Bai <shuangpeng.kernel@gmail.com>
+To: "Md. Haris Iqbal" <haris.iqbal@ionos.com>,
+	Jack Wang <jinpu.wang@ionos.com>,
+	Jason Gunthorpe <jgg@ziepe.ca>,
+	Leon Romanovsky <leon@kernel.org>
+Cc: Shuangpeng Bai <shuangpeng.kernel@gmail.com>,
+	linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [BUG] infiniband: rtrs: KASAN: slab-use-after-free in rtrs_clt_remove_path_from_arr
+Date: Fri, 31 Jul 2026 15:43:22 -0400
+Message-ID: <20260731194325.2322754-1-shuangpeng.kernel@gmail.com>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -60,170 +76,54 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNzMxMDE0NCBTYWx0ZWRfX7ayE+5QuhamI
- 1KVWAWq88qMDZVMYm1rr68ww/QE94EXw8Uv3rRc8XdG/L91JZiVk7oB3uXRP8ohtT7H25AjlYVl
- WwbxOnVQWW933iZOOsnj8Cmd/uKzqug8LePrbe/jMx4NGd19y4Xpxv+eC80m6+0ZhXtN8LI/YN7
- pT/rDHCVbDWYktHod25YqXg1NJ5csQUh5UP68v7JtonIkBXI7kGMsYShOT5DUS28jQYntHXizYa
- XJWMrZbBu4vjDe0BPlXyMzcU9c8JbkX4WD3P3yaFT4JrWWA1aTN63jmewb2XTZxT105e760lVi7
- KfKhtamSu8CK/aDgOkmBP++3FnsPxsHSjFoc7aQNVbXjue9nclYHfnNLY5/AlyEBapYF6Q/vXMD
- iBu5NNCh9Uw5eBsXrDPFQo3C8xzzraeiQFOAKdIAXmJ82QJDRgfC9qNU44d49xz6WaXUMOsY22N
- V00T2B7fEiXBIiIpQKg==
-X-Authority-Analysis: v=2.4 cv=Du9mPm/+ c=1 sm=1 tr=0 ts=6a6cef9c cx=c_pps
- a=CB4LiSf2rd0gKozIdrpkBw==:117 a=CB4LiSf2rd0gKozIdrpkBw==:17
- a=RAioF0-LDSMA:10 a=VkNPw1HP01LnGYTKEx00:22 a=7x6HtfJdh03M6CCDgxCd:22
- a=GbPsI2Ihf5RTnMjR_gZv:22 a=VwQbUJbxAAAA:8 a=VabnemYjAAAA:8
- a=62cyLJc1qmirCwmxprMA:9 a=gKebqoRLp9LExxC7YDUY:22
-X-Proofpoint-Spam-Info: AW1haW4tMjYwNzMxMDE0NCBTYWx0ZWRfX4BGKaUMUUe4W
- oRbRnPOw2PFIhzE6kWSCPJ9/DEgq/jVTZBnon9lEH6Xa3ol7ULpZ+3kIjvbp7c1xPCuUHJgLV/u
- rGD7ycgS4+2zfZ2N/prEAJGhwY/KKvc=
-X-Proofpoint-ORIG-GUID: F8Xjo9kK4tWvpiGHdn3gwEe5EEZe0sno
-X-Proofpoint-GUID: F8Xjo9kK4tWvpiGHdn3gwEe5EEZe0sno
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1143,Hydra:6.1.134,FMLib:17.12.100.49
- definitions=2026-07-31_06,2026-07-30_01,2025-10-01_01
 
-When hardware GRO (SHAMPO) coalesces a small IPv4/TCP segment
-that was padded up to the 60-byte minimum Ethernet frame, the trailing
-padding is folded into the merged payload.
+Hi Kernel Maintainers,
 
-The selftest tools/testing/selftests/drivers/net/hw/gro.py subtest
-hw_ipv4_data_lrg_1byte sends {100, 1} expecting to receive {101}.
-In current code, it receives {106} (100 + 1 payload + 5 pad) instead.
+I hit the following report while testing current upstream kernel:
 
-Fix is to compute the real (unpadded) frame length from the segment's
-IPv4 total (padded) length and drop the padding before it is merged.
+KASAN: slab-use-after-free in rtrs_clt_remove_path_from_arr
 
-Fixes: 92552d3abd32 ("net/mlx5e: HW_GRO cqe handler implementation")
-Cc: stable@vger.kernel.org
-Assisted-by: Claude:claude-opus-4-8
-Assisted-by: Codex:gpt-5.6
-Assisted-by: Meta:internal-AI-tooling
-Signed-off-by: Glenn Judd <gmj@meta.com>
----
- .../net/ethernet/mellanox/mlx5/core/en_rx.c   | 72 ++++++++++++++++---
- 1 file changed, 64 insertions(+), 8 deletions(-)
+on commit: fce2dfa773ced15f27dd27cd0b482a7473cdcf2a (2026-07-16)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c b/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
-index 6fbc0441c4b8..0b40db3d50aa 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
-@@ -1506,12 +1506,41 @@ static inline bool mlx5e_build_rx_skb(struct mlx5_cqe64 *cqe,
- 	return false;
- }
- 
-+/* Real (unpadded) L2 frame length, or 0 when it can't be determined. */
-+static u32 mlx5e_shampo_frame_len(struct mlx5e_rq *rq, struct mlx5_cqe64 *cqe,
-+				  struct sk_buff *skb)
-+{
-+	u16 head_size = cqe->shampo.header_size;
-+	struct iphdr *iph;
-+	int thoff, nhoff;
-+
-+	if (rq->hw_gro_data->fk.basic.n_proto != htons(ETH_P_IP) ||
-+	    rq->hw_gro_data->fk.control.flags & FLOW_DIS_ENCAPSULATION)
-+		return 0;
-+
-+	thoff = rq->hw_gro_data->fk.control.thoff;
-+	if (head_size < ETH_HLEN + thoff)
-+		return 0;
-+
-+	nhoff = ETH_HLEN + thoff - sizeof(struct iphdr);
-+	if (skb) {
-+		iph = (struct iphdr *)(skb->data + thoff - sizeof(struct iphdr));
-+	} else {
-+		void *hdr = mlx5e_shampo_get_hdr(rq, cqe, ETH_HLEN + thoff);
-+
-+		iph = (struct iphdr *)(hdr + nhoff);
-+	}
-+
-+	return nhoff + ntohs(iph->tot_len);
-+}
-+
- static bool mlx5e_shampo_complete_rx_cqe(struct mlx5e_rq *rq,
- 					 struct mlx5_cqe64 *cqe,
- 					 u32 cqe_bcnt,
- 					 struct sk_buff *skb)
- {
- 	struct mlx5e_rq_stats *stats = rq->stats;
-+	u32 frame_len;
- 
- 	stats->packets++;
- 	stats->bytes += cqe_bcnt;
-@@ -1525,6 +1554,13 @@ static bool mlx5e_shampo_complete_rx_cqe(struct mlx5e_rq *rq,
- 	if (!skb_flow_dissect_flow_keys(skb, &rq->hw_gro_data->fk, 0)) {
- 		napi_gro_receive(rq->cq.napi, skb);
- 		rq->hw_gro_data->skb = NULL;
-+	} else {
-+		frame_len = mlx5e_shampo_frame_len(rq, cqe, skb);
-+		if (frame_len && frame_len >= cqe->shampo.header_size &&
-+		    frame_len < cqe_bcnt) {
-+			pskb_trim_rcsum(skb, skb->len - (cqe_bcnt - frame_len));
-+			skb_shinfo(skb)->gso_size = frame_len - cqe->shampo.header_size;
-+		}
- 	}
- 	return false;
- }
-@@ -2244,6 +2280,7 @@ static void mlx5e_handle_rx_cqe_mpwrq_shampo(struct mlx5e_rq *rq, struct mlx5_cq
- 	struct mlx5e_rx_wqe_ll *wqe;
- 	struct mlx5e_mpw_info *wi;
- 	struct mlx5_wq_ll *wq;
-+	u32 frame_len = 0;
- 	u32 data_offset;
- 	u32 page_idx;
- 
-@@ -2263,11 +2300,22 @@ static void mlx5e_handle_rx_cqe_mpwrq_shampo(struct mlx5e_rq *rq, struct mlx5_cq
- 
- 	data_offset = wqe_offset & (page_size - 1);
- 	page_idx = wqe_offset >> rq->mpwqe.page_shift;
--	if (*skb &&
--	    !(match && mlx5e_hw_gro_skb_has_enough_space(*skb, data_bcnt,
--							 page_size))) {
--		match = false;
--		mlx5e_shampo_flush_skb(rq, cqe, match);
-+
-+	if (*skb) {
-+		u32 gro_bcnt = data_bcnt;
-+
-+		if (match) {
-+			frame_len = mlx5e_shampo_frame_len(rq, cqe, NULL);
-+			if (frame_len && frame_len >= head_size &&
-+			    frame_len - head_size < gro_bcnt)
-+				gro_bcnt = frame_len - head_size;
-+		}
-+
-+		if (!(match && mlx5e_hw_gro_skb_has_enough_space(*skb, gro_bcnt,
-+								 page_size))) {
-+			match = false;
-+			mlx5e_shampo_flush_skb(rq, cqe, match);
-+		}
- 	}
- 
- 	if (!*skb) {
-@@ -2311,10 +2359,18 @@ static void mlx5e_handle_rx_cqe_mpwrq_shampo(struct mlx5e_rq *rq, struct mlx5_cq
- 
- 	if (likely(head_size)) {
- 		if (data_bcnt) {
--			struct mlx5e_frag_page *frag_page;
-+			if (NAPI_GRO_CB(*skb)->count > 1 &&
-+			    frame_len >= head_size &&
-+			    frame_len - head_size < data_bcnt)
-+				data_bcnt = frame_len - head_size;
- 
--			frag_page = &wi->alloc_units.frag_pages[page_idx];
--			mlx5e_shampo_fill_skb_data(*skb, rq, frag_page, data_bcnt, data_offset);
-+			if (data_bcnt) {
-+				struct mlx5e_frag_page *frag_page =
-+					&wi->alloc_units.frag_pages[page_idx];
-+
-+				mlx5e_shampo_fill_skb_data(*skb, rq, frag_page,
-+							   data_bcnt, data_offset);
-+			}
- 		} else {
- 			stats->hds_nodata_packets++;
- 			stats->hds_nodata_bytes += head_size;
+The reproducer and .config files are here.
+https://gist.github.com/shuangpengbai/5f48e1bbb0576eecdf8ec7a5fb6b138b
 
-base-commit: 8ba098e6b6ff0db8edf28528d1552be261af30d4
--- 
-2.53.0-Meta
+I'm happy to test debug patches or provide additional information.
 
+Reported-by: Shuangpeng Bai <shuangpeng.kernel@gmail.com>
+
+[ 1396.946778][ T8599] BUG: KASAN: slab-use-after-free in rtrs_clt_remove_path_from_arr (drivers/infiniband/ulp/rtrs/rtrs-clt.c:2236)
+[ 1396.948953][ T8599] Read of size 8 at addr ffff88810fc7b2d8 by task bash/8599
+[ 1396.953684][ T8599] Call Trace:
+[ 1396.953694][ T8599]  <TASK>
+[ 1396.953701][ T8599]  dump_stack_lvl (lib/dump_stack.c:94 lib/dump_stack.c:120)
+[ 1396.953716][ T8599]  print_report (mm/kasan/report.c:378 mm/kasan/report.c:482)
+[ 1396.953748][ T8599]  kasan_report (mm/kasan/report.c:595)
+[ 1396.953766][ T8599]  rtrs_clt_remove_path_from_arr (drivers/infiniband/ulp/rtrs/rtrs-clt.c:2236)
+[ 1396.953786][ T8599]  rtrs_clt_create_path_from_sysfs (drivers/infiniband/ulp/rtrs/rtrs-clt.c:3158)
+[ 1396.953792][ T8599]  add_path_store (drivers/infiniband/ulp/rtrs/rtrs-clt-sysfs.c:187)
+[ 1396.953852][ T8599]  kernfs_fop_write_iter (fs/kernfs/file.c:345)
+[ 1396.953857][ T8599]  vfs_write (fs/read_write.c:595 fs/read_write.c:687)
+[ 1396.953898][ T8599]  ksys_write (fs/read_write.c:739)
+[ 1396.953921][ T8599]  do_syscall_64 (arch/x86/entry/syscall_64.c:63 arch/x86/entry/syscall_64.c:94)
+[ 1396.953928][ T8599]  entry_SYSCALL_64_after_hwframe (arch/x86/entry/entry_64.S:121)
+[ 1397.134599][ T8599] Freed by task 8599 on cpu 1 at 1396.942910s:
+[ 1397.135348][ T8599]  kasan_save_track (mm/kasan/common.c:57 mm/kasan/common.c:78)
+[ 1397.135942][ T8599]  kasan_save_free_info (mm/kasan/generic.c:584)
+[ 1397.136539][ T8599]  __kasan_slab_free (mm/kasan/common.c:253 mm/kasan/common.c:285)
+[ 1397.143207][ T8599]  kfree (include/linux/kasan.h:235 mm/slub.c:2705 mm/slub.c:6405 mm/slub.c:6720)
+[ 1397.143701][ T8599]  kobject_put (lib/kobject.c:689 lib/kobject.c:720 include/linux/kref.h:65 lib/kobject.c:737)
+[ 1397.144255][ T8599]  rtrs_clt_create_path_files (drivers/infiniband/ulp/rtrs/rtrs-clt-sysfs.c:441)
+[ 1397.144944][ T8599]  rtrs_clt_create_path_from_sysfs (drivers/infiniband/ulp/rtrs/rtrs-clt.c:3151)
+[ 1397.145671][ T8599]  add_path_store (drivers/infiniband/ulp/rtrs/rtrs-clt-sysfs.c:187)
+[ 1397.159053][ T8599]  kernfs_fop_write_iter (fs/kernfs/file.c:345)
+[ 1397.159699][ T8599]  vfs_write (fs/read_write.c:595 fs/read_write.c:687)
+[ 1397.160233][ T8599]  ksys_write (fs/read_write.c:739)
+[ 1397.160740][ T8599]  do_syscall_64 (arch/x86/entry/syscall_64.c:63 arch/x86/entry/syscall_64.c:94)
+[ 1397.161333][ T8599]  entry_SYSCALL_64_after_hwframe (arch/x86/entry/entry_64.S:121)
+[ 1397.174822][ T8599] The buggy address is located 728 bytes inside of
+[ 1397.174822][ T8599]  freed 2048-byte region [ffff88810fc7b000, ffff88810fc7b800)
+
+
+Best,
+Shuangpeng
