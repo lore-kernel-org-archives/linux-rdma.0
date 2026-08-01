@@ -1,233 +1,119 @@
-Received: from mail-pg1-f199.google.com (mail-pg1-f199.google.com [209.85.215.199])
+Received: from mail-lr2-f7.google.com (mail-lr2-f7.google.com [74.125.230.71])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 304633BBFA1
-	for <linux-rdma@vger.kernel.org>; Fri, 31 Jul 2026 23:09:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.215.199
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785539381; cv=none; b=jEE8a0zs0qVs3TZJROeAxOyARU2UmzHDSIobgImjqvCqoZ4ECUCK9whHK8oghdw3fTmhIMa2sTdXSLf4Q/qRX4tWj+TkC1CRtLkxO+B47HJ7pWGz3IytW1c2yuRCmnZvXmkbzlU/Msvaa+nCfvGECjp7+gwPfaBb39pg20cSQsE=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785539381; c=relaxed/simple;
-	bh=3/Y7DTe/blm0ls3HJgTgqBWahpKf4hGOsDhRJ4rLJ+Q=;
-	h=Date:In-Reply-To:Mime-Version:References:Message-ID:Subject:From:
-	 To:Cc:Content-Type; b=Je8hxHkV5HlpgISHk0CTjDLROMzuZSw0njrTxwhIJF8rrpHl7kZyXIoc2/5BcPMdUFv7f0RGutNIe+QfaoStkVH2Sa7wuAtvUXP17FcuDBxmgOXJUlJ+NjzkgW7121pF0MP0KQv68SzzeW9HmfvmjWUTcSLHdvxfVNL/JNUi3GE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--kuniyu.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=d/S7TDTc; arc=none smtp.client-ip=209.85.215.199
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--kuniyu.bounces.google.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C26A3360EEE
+	for <linux-rdma@vger.kernel.org>; Sat,  1 Aug 2026 00:35:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.230.71
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1785544543; cv=pass; b=IvfbW+tZmGKAALJv7d+V2kZLrhPlpRUducTwtWzi/7l04hCo9tWN9bGv/7RfjJDaB/fPKGTj1jIDU75IxZkFe3MxIeO2PrRd5ShEbzIUA8JrIcIVWN/RRhdDP9B7YzR5+Bc8LPzzi7hlKQ5TAj1xuIFynbyMhMJlVmuB4w5hVXA=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1785544543; c=relaxed/simple;
+	bh=/c9rs9s8aUUWrL+u4O1/14+O1bWwnH7EdFf1+dobLQM=;
+	h=MIME-Version:From:Date:Message-ID:Subject:To:Content-Type; b=cu6/LC+KMrepjxZ+JSn/+TNbq/rqhdLFDjnx8TNSJH4acx2PuhiwFHR6TugT3ZWYJpsdVz/xddhI7zDAT6orK689Ch7nQmsEqjin1vM0SNHQcMs2Z/YlH9NPK2/VZULeD45ZqMhlLrApC+6cMCitm+MTNUiqIaPzNIQU5BBOxvQ=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=hx1l3nSo; arc=pass smtp.client-ip=74.125.230.71
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="d/S7TDTc"
-Received: by mail-pg1-f199.google.com with SMTP id 41be03b00d2f7-c89704da8c7so2080496a12.0
-        for <linux-rdma@vger.kernel.org>; Fri, 31 Jul 2026 16:09:38 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="hx1l3nSo"
+Received: by mail-lr2-f7.google.com with SMTP id 38308e7fff4ca-39ec123fb26so7610101fa.1
+        for <linux-rdma@vger.kernel.org>; Fri, 31 Jul 2026 17:35:41 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1785544540; cv=none;
+        d=google.com; s=arc-20260327;
+        b=pRAvoKOSGwqTcMTanWRAwrwqQPX96/QWTFOHeDHbLhRgn1oo82hl87yjGIugF+BeY4
+         c/X0WDTFRSfvRjK1vLtZCmH0nEE1rm3HsVgbUoQKOBXRZgDifUAHphRYxpNH+aPhXXZn
+         Sm1iKAVEC6m9Quymy+UxE+5Qg+IKO9FMi+QcApWLqjjAe7kfEi0GoAcvaDA+293rSe4f
+         gqro1TLtJFSUNvXsqbMDP5YHRotRg4RwTGKXV914jNucNl887r2gtLOerK2jWbLIlfZz
+         +69rbGz89Omq3x775iGYBS8ho94OfLaWd/Z4z/wQ3M4HkzpUbTh1yXb2pIMuFANzaatE
+         zFZA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=to:subject:message-id:date:from:mime-version:dkim-signature;
+        bh=/c9rs9s8aUUWrL+u4O1/14+O1bWwnH7EdFf1+dobLQM=;
+        fh=kKD4ZcK7EiBbpPvy8fBui+gbh4y+MCKzWSOkLnEd924=;
+        b=S81Ox9r/ed6oy4zojCRgCHFB094RvUmWcNau8howBRPElGySfrad7Cse66LyIrxXZO
+         wKW5KmAbGofiKTWABVQdLaBGO1VB/CcO+hLzvvDklWQb26qFf+XwlM4P1MFy+tY3EW9t
+         pksjzHCTTVB1wgECXlBTPypWS63Tb7bp9yBN7dOQFzq4kj67md0fyA/IuLTarIuc94jJ
+         Dj8rkWvaVp7LKWu72K2z3mgHPJceO3Bxl0ylVRktubbGwZcu19w5eHfZclMT/XK97ge4
+         bmzgEM2dBgmXeptpch2OeUHXeW7eInOwrsaxfmO9cyqHy19wRunwnLe8LM/lbaWoziU8
+         7Org==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20251104; t=1785539377; x=1786144177; darn=vger.kernel.org;
-        h=content-type:cc:to:from:subject:message-id:references:mime-version
-         :in-reply-to:date:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=L2Atkz5KaRe9+m0/qO7+29NEyBrGyd/EfwQ1Im0dujw=;
-        b=d/S7TDTc/BcwFn5B1NznofWbAepRahNMo8I1R+XzHr+jMssD2YRJlM+4nuDmugl7/u
-         +j57Xog9ShEUYgsH/gCzeOnM12BtdaDtlrUES0YAwPnp6/APHL1ehP1vcqb35RP4kkB6
-         KE9Q3o4ukYDh7a1NY0EnrxFWFfgoMfPpvMUgZ/vCOjZvColrXo31l0WR5eHOEODqp/37
-         GZDV2zXZ2YJ4ALewIPnqzfcAmdUoP7Cyd46FrMvfFssN91r5w6trMDIYNPtwJ6KLk8SO
-         scWB9St1YOrYivN1VFuaGFgi07GiAaf1lHLRaGmhc8ofIh1ttnnpzHpSOJz6FfyO6UkQ
-         XbiQ==
+        d=gmail.com; s=20251104; t=1785544540; x=1786149340; darn=vger.kernel.org;
+        h=content-type:to:subject:message-id:date:from:mime-version:from:to
+         :cc:subject:date:message-id:reply-to:content-type;
+        bh=/c9rs9s8aUUWrL+u4O1/14+O1bWwnH7EdFf1+dobLQM=;
+        b=hx1l3nSoN8hH7WoTewQh9qvw00GhI4VRxn6F/e61aJ4kOERzpUdwPjh/7YQwsTUbUF
+         40aYyzdcBskXCXfziFoAE3xTuWNWBYbKWbnXtSjdskjPHOdHafc4qP6UmUxZpidDAFbM
+         YtSmKtmo1wzBJVj45r8kd3elppOdcqXa1tTWGvB0GlFLIhFnuTMI6fJZkf5fGicDDWsM
+         nB582GQT1Z2SKv+xsnzF5BsTKBirtqePlY2y1LFsLryELaSoTJSlZUraYdz5YIDxE3kv
+         JgcvfO1uACwS0BrTGVhqDmd9UbU950nyUBk4Jj7dQ8d0irTIwvRNZKsM1zpc6nbcQs8A
+         OR+g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1785539377; x=1786144177;
-        h=content-type:cc:to:from:subject:message-id:references:mime-version
-         :in-reply-to:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=L2Atkz5KaRe9+m0/qO7+29NEyBrGyd/EfwQ1Im0dujw=;
-        b=obLXxEk0efY7pCWHOz31J36m2yVx+NU2rXBHoQkLi61tTR8m/5+Wp7jfsYNzi6o9IS
-         853sV1F06++ocPDLEQ9r8ZVh7h9+fiWlE76DOtjRjeGmyUU0kqTBxo+Xhwd4kow1FI4F
-         a4KcjHNV9951s7QIDfAYCwCTwYm3icuGopX+2XyQM0YTqGLe5wv9eUcjy+6R5N3dqZmo
-         Gf54S294LLsFFknkAayiUndW5wONdbRPQ9CLfWZ5gcASymo/lEBF+IBjJVNGK6U3FtoC
-         mSITItmuoLk28w7WuJRa2YEJFyxkeaMPADDqZZPYv2KLAHkOIyjZQ4W9e1rsGyr4K+vj
-         RVlQ==
-X-Forwarded-Encrypted: i=1; AHgh+RrWPKVaJ7X9ILrUJVJDQmbYet5o+nd8wWogSf5mhVhx5sj6Ym9ZTY4Nr5/ORonRI6cPCvfgjRE+1+8y@vger.kernel.org
-X-Gm-Message-State: AOJu0Yxeaea/HCBG5gR2ODUc+8I4l1emRkvFgXytPUmXRsRLWc21rkfS
-	zQw+8ZHi5CxBoIvefLhJ1C7dUuejnzqd4XHRBzjQ13wjPDxi0PsjclkkKN9jgTGHqH0lfrciC3F
-	uFx6n4w==
-X-Received: from pjblx7.prod.google.com ([2002:a17:90b:4b07:b0:387:9b6c:b940])
- (user=kuniyu job=prod-delivery.src-stubby-dispatcher) by 2002:a17:90b:58c7:b0:381:a766:efcb
- with SMTP id 98e67ed59e1d1-38fbc409439mr1394795a91.4.1785539377218; Fri, 31
- Jul 2026 16:09:37 -0700 (PDT)
-Date: Fri, 31 Jul 2026 23:05:51 +0000
-In-Reply-To: <20260731160942.3245965-1-nicoyip.dev@gmail.com>
+        d=1e100.net; s=20251104; t=1785544540; x=1786149340;
+        h=content-type:to:subject:message-id:date:from:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=/c9rs9s8aUUWrL+u4O1/14+O1bWwnH7EdFf1+dobLQM=;
+        b=LVlpec0YNK2kBUPeoEviYGmjHZDTQcLlevs/6fLM7xoR0AQ8p9Uks0JRhsC1BPK14O
+         gkUTlZVUpeUZ7tqk+2Q64xsGWCVi2Dco+3vfWiS4O6dBnjv4FnXzMdXGygwWxUNxJxx9
+         sHn3m/EzNfu37nAZoFo7EyALekcyqq7YJEW83KzwBuoEq1aPR+lAEygQJWm8tefOKVVj
+         pDibyKbimdfZjeQVAOZawQIt53azjaJZGZRRVJgmhCpZ/6cmvhhEDrW1U3driKmp1akX
+         krIMPJ9iJ+JY+uox7aypWDGf0Id68kY7jhbjNKm4RhhrAxxA9qjNDTdXdZhwq4MU7zPQ
+         Ozmw==
+X-Gm-Message-State: AOJu0Yzwfyp25GnKJWnwouHkjie5LISSeRBBcPekiQyIi0Jhesbam6hu
+	7M4xSHIEMLd/FKJYHgW4038G5NP+WnjJR+xODdmrv6ni8MAJLRxjZMx8lc30mPt+gqtfIPQv9M1
+	KtoJLBQJcEhIKvTfL1Ugd3chtsWoGjimvR/Rb
+X-Gm-Gg: AR+sD10LABT9BiFALEDsbBS/XrLQlL2PEOW+8a43+NTgdCI0SJtK6uykCH+sTAEqYpD
+	TPUZpAmSM66g9VFeqKHPJZT4UlvdBa8qDcpO3/x8REk0VqvKVkScFDNmv6z0apjIahYpvJZP0yP
+	4hOBIERPYJjn5YGh5pw2j3a3hpQ5K9m8GTq1icF3qAjP8F2weR8vCt8YtltQz5X7QOtnXDIWWFn
+	FkRHm11zAvpE5yQvywZXY5NqQiFDDK3vwblJ8ipL34/41gw8ZRUod8qTHqATCghH/6wXvGOpvop
+	8l6C83S6PvwkY+4nLTEGesAPD2cDmFfxh+MFHMImxKO/
+X-Received: by 2002:a05:6512:1387:b0:5b1:5829:b8ca with SMTP id
+ 2adb3069b0e04-5b2e4f3b602mr310416e87.26.1785544539579; Fri, 31 Jul 2026
+ 17:35:39 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-References: <20260731160942.3245965-1-nicoyip.dev@gmail.com>
-X-Mailer: git-send-email 2.55.0.571.g244d577d93-goog
-Message-ID: <20260731230936.2463714-1-kuniyu@google.com>
-Subject: Re: [PATCH net-next v3] rds: synchronize info callbacks with module unload
-From: Kuniyuki Iwashima <kuniyu@google.com>
-To: nicoyip.dev@gmail.com
-Cc: achender@kernel.org, davem@davemloft.net, edumazet@google.com, 
-	error27@gmail.com, horms@kernel.org, ka-cheong.poon@oracle.com, 
-	kuba@kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, 
-	netdev@vger.kernel.org, pabeni@redhat.com, rds-devel@oss.oracle.com, 
-	santosh.shilimkar@oracle.com
+MIME-Version: 1.0
+From: alu a <alu021031@gmail.com>
+Date: Sat, 1 Aug 2026 08:35:28 +0800
+X-Gm-Features: AUfX_mxwNdsjOUWKtlIArSHo8w6pPtSfHJVDoxv3Q6RD7nBZkvFdMSJkQlJzFyQ
+Message-ID: <CAH+L_5asmdxZ95ctx6nj79OB83kZGzECbSKz321dr52mRwA06g@mail.gmail.com>
+Subject: [BUG?] RDMA/siw: remote invalidate may accept an invalid STag
+To: linux-rdma@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 
-From: Chengfeng Ye <nicoyip.dev@gmail.com>
-Date: Sat,  1 Aug 2026 00:09:42 +0800
-> rds_info_getsockopt() reads a callback from rds_info_funcs and invokes it
-> without protecting the callback's lifetime.  Transport modules register
-> functions stored in this array.  For example, rds_tcp.ko registers
-> rds_tcp_tc_info() for RDS_INFO_TCP_SOCKETS.
-> 
-> This permits the following interleaving:
-> 
->   CPU0                             CPU1
->   rds_info_getsockopt()
->     func = rds_tcp_tc_info
->                                    rmmod rds_tcp
->                                      rds_tcp_exit()
->                                        rds_info_deregister_func()
->                                          rds_info_funcs[offset] = NULL
->                                      free rds_tcp module text
->     func()
-> 
-> The reader can therefore branch to an address in unloaded module text.
-> 
-> Protect callback invocation with SRCU.  Enter the SRCU read-side critical
-> section before loading the callback and leave it only after the callback
-> returns.  Clear the callback with release semantics and call
-> synchronize_srcu() before deregistration returns, preventing module unload
-> from freeing its text while an old reader is still executing it.  SRCU is
-> required because callbacks such as RDS_INFO_COUNTERS can sleep.
-> 
-> Keep the callback array unannotated and use acquire and release operations
-> for publication so sparse does not have to apply __rcu through the
-> function-pointer typedef.  Replace the two callback-slot BUG_ON() checks
-> with WARN_ON_ONCE() and return without changing the slot on mismatch.
-> 
-> Link: https://lore.kernel.org/netdev/20260720184955.3008978-1-nicoyip.dev@gmail.com/
-> Suggested-by: Allison Henderson <achender@kernel.org>
-> Reviewed-by: Allison Henderson <achender@kernel.org>
-> Signed-off-by: Chengfeng Ye <nicoyip.dev@gmail.com>
-> ---
-> 
-> Changes in v3:
-> - Use ordinary loads for callback-slot validation under rds_info_lock;
->   retain acquire semantics only for the lockless reader.
-> - Drop the Fixes tag because this patch targets net-next.
-> - Add Allison Henderson's Reviewed-by tag.
-> 
-> Link: https://lore.kernel.org/netdev/20260727174826.135662-1-nicoyip.dev@gmail.com/ [v2]
-> 
-> Changes in v2:
-> - Split the info callback/module-unload race from the independent
->   inc->i_conn lifetime bug.
-> - Keep the callback array unannotated and use smp_load_acquire() and
->   smp_store_release() to resolve the sparse errors.
-> - Replace the two touched callback-slot BUG_ON() checks with
->   WARN_ON_ONCE() error paths.
-> - Rewrite the commit message for the callback race and omit the unrelated
->   inc->i_conn KASAN report.
-> 
-> Link: https://lore.kernel.org/netdev/20260720184955.3008978-1-nicoyip.dev@gmail.com/ [v1]
-> 
->  net/rds/info.c | 26 +++++++++++++++++++++-----
->  1 file changed, 21 insertions(+), 5 deletions(-)
-> 
-> diff --git a/net/rds/info.c b/net/rds/info.c
-> index 21b32eb16559..385fefbfa07f 100644
-> --- a/net/rds/info.c
-> +++ b/net/rds/info.c
-> @@ -32,6 +32,7 @@
->   */
->  #include <linux/percpu.h>
->  #include <linux/seq_file.h>
-> +#include <linux/srcu.h>
->  #include <linux/slab.h>
->  #include <linux/proc_fs.h>
->  #include <linux/export.h>
-> @@ -68,6 +69,7 @@ struct rds_info_iterator {
->  	unsigned long offset;
->  };
->  
-> +DEFINE_STATIC_SRCU(rds_info_srcu);
->  static DEFINE_SPINLOCK(rds_info_lock);
->  static rds_info_func rds_info_funcs[RDS_INFO_LAST - RDS_INFO_FIRST + 1];
->  
-> @@ -78,8 +80,12 @@ void rds_info_register_func(int optname, rds_info_func func)
->  	BUG_ON(optname < RDS_INFO_FIRST || optname > RDS_INFO_LAST);
->  
->  	spin_lock(&rds_info_lock);
-> -	BUG_ON(rds_info_funcs[offset]);
-> -	rds_info_funcs[offset] = func;
-> +	if (WARN_ON_ONCE(rds_info_funcs[offset])) {
-> +		spin_unlock(&rds_info_lock);
-> +		return;
-> +	}
-> +	/* Pair with lockless callback lookup. */
-> +	smp_store_release(&rds_info_funcs[offset], func);
+Hello,
 
-Why is smp_store_release() necessary here ? and same for
-smp_load_acquire() on the reader.
+Resending in plain text because the previous copy was rejected by the
+mailing list.
 
-I think just WRITE_ONCE() / READ_ONCE() should be enough.
+RFC 5040 Section 7.2 requires an implementation receiving a Send with
+Invalidate message to validate that the Invalidate STag is valid and
+associated with the corresponding RDMAP stream.
 
-It's just a function pointer, not struct, and the reader
-does not require any partial ordering, no ?
+On Linux master commit
+8ba098e6b6ff0db8edf28528d1552be261af30d4, siw_rdmap_complete()
+passes the peer-provided STag directly to siw_invalidate_stag():
 
+https://github.com/torvalds/linux/blob/8ba098e6b6ff0db8edf28528d1552be261af30d4/drivers/infiniband/sw/siw/siw_qp_rx.c#L1248-L1259
 
->  	spin_unlock(&rds_info_lock);
->  }
->  EXPORT_SYMBOL_GPL(rds_info_register_func);
-> @@ -91,9 +97,14 @@ void rds_info_deregister_func(int optname, rds_info_func func)
->  	BUG_ON(optname < RDS_INFO_FIRST || optname > RDS_INFO_LAST);
->  
->  	spin_lock(&rds_info_lock);
-> -	BUG_ON(rds_info_funcs[offset] != func);
-> -	rds_info_funcs[offset] = NULL;
-> +	if (WARN_ON_ONCE(rds_info_funcs[offset] != func)) {
-> +		spin_unlock(&rds_info_lock);
-> +		return;
-> +	}
-> +	/* Hide the callback before waiting for old readers. */
-> +	smp_store_release(&rds_info_funcs[offset], NULL);
->  	spin_unlock(&rds_info_lock);
-> +	synchronize_srcu(&rds_info_srcu);
->  }
->  EXPORT_SYMBOL_GPL(rds_info_deregister_func);
->  
-> @@ -165,6 +176,7 @@ int rds_info_getsockopt(struct socket *sock, int optname, sockopt_t *opt)
->  	int npages = 0;
->  	int ret;
->  	int len;
-> +	int srcu_idx;
+siw_invalidate_stag() looks up the object using stag >> 8 and checks
+its protection domain, but it does not check mem->stag_valid or compare
+the complete supplied STag with mem->stag:
 
-nit: please keep the reverse xmas tree order.
+https://github.com/torvalds/linux/blob/8ba098e6b6ff0db8edf28528d1552be261af30d4/drivers/infiniband/sw/siw/siw_mem.c#L258-L282
 
+Based on static source analysis, repeated invalidation of an already
+invalid STag, or use of a stale key with the same index, appears to
+return success rather than produce an RDMAP error.
 
->  	int total;
->  
->  	len = opt->optlen;
-> @@ -214,8 +226,11 @@ int rds_info_getsockopt(struct socket *sock, int optname, sockopt_t *opt)
->  	rdsdebug("len %d nr_pages %lu\n", len, nr_pages);
->  
->  call_func:
-> -	func = rds_info_funcs[optname - RDS_INFO_FIRST];
-> +	srcu_idx = srcu_read_lock(&rds_info_srcu);
-> +	/* Pair with callback slot publication and removal. */
-> +	func = smp_load_acquire(&rds_info_funcs[optname - RDS_INFO_FIRST]);
->  	if (!func) {
-> +		srcu_read_unlock(&rds_info_srcu, srcu_idx);
->  		ret = -ENOPROTOOPT;
->  		goto out;
->  	}
-> @@ -225,6 +240,7 @@ int rds_info_getsockopt(struct socket *sock, int optname, sockopt_t *opt)
->  	iter.offset = offset0;
->  
->  	func(sock, len, &iter, &lens);
-> +	srcu_read_unlock(&rds_info_srcu, srcu_idx);
->  	BUG_ON(lens.each == 0);
->  
->  	total = lens.nr * lens.each;
-> -- 
-> 2.43.0
-> 
+I have not reproduced this at runtime. Is there an earlier validation
+path I missed, or should incoming remote invalidation use stricter
+validation than the local verbs invalidation path?
+
+This finding came from an academic source-level RFC consistency review.
+
+Best regards
