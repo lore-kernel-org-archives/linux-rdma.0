@@ -1,150 +1,101 @@
-Received: from mail-pf1-f172.google.com (mail-pf1-f172.google.com [209.85.210.172])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A87BB39BFFA
-	for <linux-rdma@vger.kernel.org>; Mon,  3 Aug 2026 23:47:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.172
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 693353CCFB2;
+	Mon,  3 Aug 2026 23:51:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785800881; cv=none; b=PXf/rEczbPy6i02HMGQBmUCuTVGNwF5u+3rpzNqvCd0Da9NKV7pwCJMqKaKmAscnKHUvu4i84r1F1zaCJYf8wItLCUYZIGFybQ26tBwOyFWA3h7s2xrzUfhO62Agb7xjzgRoybW3fqnS/2qxDMl1NDv3rQBvLW3T2Ixp0lzXra0=
+	t=1785801073; cv=none; b=eTem5lKt3B196AuqzOtoS73G4oWjjb4N2gJQzvXBPYlyy5KFqbDTIjf0v5y6PMAhdgExWHlS7G4dFvUAvIdzuwxLkBd6RNDy9nifX1vRFBlwFkPPU+HfMo9k571/XUPP/Ju6DRZLdkXRIcBK9samnkTs+1S91W+fx9JU3hVEiqY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785800881; c=relaxed/simple;
-	bh=eB+ze/+u7thR9be6FtIVrOzuGSSTupcYFQmfVu3l1d8=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=gNNOO5P4/Az8kEynXTGOnWTOaZ+4GCTUFe7h+myzoHTDNg88/piN+hOySHp746TP0U7KzfDqRm62HDl2J3YIA9pqWoB1O0UpwahBG4fgko593w5P3b/VkI051GUCfsBsFWqlWIE7M2KYgjuyqEr0FZiCCwRNNU356sOSN0N+DJE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=lQBNEMR/; arc=none smtp.client-ip=209.85.210.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1785801073; c=relaxed/simple;
+	bh=L2kiIcI7Ce+AmuEsB3YZBOU6hc1VVc3zYK6zXpWmQUM=;
+	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc; b=Aa3iW0ww3YMPk/alXZls2Rs+6gNqrE6O3zWrrR04+L211pV00iVFDOC0JeRISRuEFGonE0+DjCn6VQI19NLPa5lGim/mEeQvl+6bRvk23MAGUTNw2l5lVoO9VOX+ObvI5ztbjxWrIF4Wzkpc4jfaQZwDKiDKsSEraTXr3y5/+h0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=dkRYn8yG; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="lQBNEMR/"
-Received: by mail-pf1-f172.google.com with SMTP id d2e1a72fcca58-84e84a6c4bfso446205b3a.1
-        for <linux-rdma@vger.kernel.org>; Mon, 03 Aug 2026 16:47:41 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1785800861; x=1786405661; darn=vger.kernel.org;
-        h=cc:to:message-id:content-transfer-encoding:content-type
-         :mime-version:subject:date:from:from:to:cc:subject:date:message-id
-         :reply-to:content-type;
-        bh=ZN2PrMjeC/rF7ocz4YocvO7Rr3+RP+K43ZmGxuO2IKg=;
-        b=lQBNEMR/GOY7amJFkU9BRmd+CZ5jiQ78lnIQNgZWAJJBemdva3r+mIWyfAIxCumPJq
-         ReIs2aL4KDCA9o3ySS3ulkfs4z94rqU/JL1ohKgKxz/ODzB9zNQDXXNqQZYnb2TK54dp
-         p15IXsxjoOUMZpnfnIikAPCNaWmFhx+hJlALH7E9sqhqk7mY/AEOhBUMd7FoVS/yfBWL
-         X3XeWdAmP0M7+KlcgEuikGMimodd5jrmZ7nmR7h0rtpvh9ge7zbGFxUi9SHV7tr8smrJ
-         cBeKqoVDRLX3TImyjWLdSfbzxFLMQYhg2tSm+SJNFKbgclYOmMUl0uscR5PXmdQH3UwJ
-         wpxQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1785800861; x=1786405661;
-        h=cc:to:message-id:content-transfer-encoding:content-type
-         :mime-version:subject:date:from:x-gm-gg:x-gm-message-state:from:to
-         :cc:subject:date:message-id:reply-to:content-type;
-        bh=ZN2PrMjeC/rF7ocz4YocvO7Rr3+RP+K43ZmGxuO2IKg=;
-        b=IKSCACCPfW61u2u6jtqp3+hKgBXTLes/ovGuyKPyvRZdJgzySuoRCAcmv0M0zVS/wc
-         vNiNWilDQYEIrUvXF/8cIB1wXxz8MFkF5oJxnNaMBTBaAC49qeLSfACToMgG9eL5ICQP
-         I2cdpBvkFYjD0smBGZnvp95PtUjRPLtV3o9c4knZ99Q/OdjxPBP7TRrP/+w5hVitnOm4
-         lzK9iOX9n1T+S+hKRU7q6llOCM3r4FibFhcFwkVQ2Tke7OHgKElRRH5Q0l4tbPWGZUlv
-         Q98jkhbtNGgeV22jNd++BHlfxkrOMsJjj20e1Jm3DwRim4aaeXrcv3qP2jDLmfpXysyC
-         Uu+Q==
-X-Forwarded-Encrypted: i=1; AHgh+RpWDshxLOaXyLRtnNL+sy0ZC7MZigYX5OOEQ3TO5d0CgPfXRclmK0u+dGwNT+gZG5NcD9ZLd6h2LlxZ@vger.kernel.org
-X-Gm-Message-State: AOJu0YxxFJ2TrRzU8ReD4qqmJg4T04DMaVDKOVzh99N6qG3bigkXoSOa
-	tHAl1LMnYw75e5eVAhidt7yKEoZhf9DmFKNL4+c/Fp5pNaB3phxlsOq/
-X-Gm-Gg: AR+sD13GamuQQdmhuaPF4+kwEq31mAyE34l7eXBsBweVoiN0qbNIMvHzSeQDWvHcQ+I
-	y8n8bZZjZkCObLlWoNmdhyRngnj14R74dhMCqtTDG4qiOvMRwS53KgGiHd8k+CFh9Jjek1ExkeH
-	Ym8C+Tbj4Lv5zVBde5/D5WGjunS0uHCTZuxXyeIPksgL1cB+XSWtTotwGjdGrcTfZQVRxpNsoXp
-	zS7dTiGOM5LyreFqiI2ep3ARqu3Hs5O3CHHMm6YHTxV3Xm6AntU7LsGKD+b6Gv0fs1YfktZ9cXb
-	RIjgqgSWEB7cONaCXCk/yy9y0A0YzwMEagAGXyW6Yx42hKYZe2t+9LCzvg4cjZtqoKCgsPhJ2ro
-	rDhsipQNED7GeY3RQ41HmbN3btTgV199k2ms2gj+OpzdZoDWD15+eRgZvlZk5+5XlhqCIffgGeA
-	mZkCYMf23EP3YESW1MNy/NcNY+n1v5gbIwbu1FIlg1yqcmtFw8Uo+Hwlk=
-X-Received: by 2002:a05:6a00:a90c:b0:848:2f58:e1e9 with SMTP id d2e1a72fcca58-84f1cbc930dmr1257604b3a.36.1785800860784;
-        Mon, 03 Aug 2026 16:47:40 -0700 (PDT)
-Received: from localhost ([2a03:2880:ff:8::])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-84edbe7a243sm4263667b3a.24.2026.08.03.16.47.38
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 03 Aug 2026 16:47:39 -0700 (PDT)
-From: Bobby Eshleman <bobbyeshleman@gmail.com>
-Date: Mon, 03 Aug 2026 16:47:29 -0700
-Subject: [PATCH net v3] net/mlx5e: fix BQL reset on SQ re-activation
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="dkRYn8yG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EC9061F000E9;
+	Mon,  3 Aug 2026 23:51:03 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1785801064;
+	bh=B4yhz+JQv0QMMgQVrxwyPdXvzn96hxmm8mw/fYkupHg=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc;
+	b=dkRYn8yGh74TjYjobcsupvOS3FRrRLYd6cOInE3TOiNWpDcNrujN0Indh9wOZKxVw
+	 ej01a4pV8te8xzikOjLkSAlrhDSVOfvD4+7ethit34sQMSO3Xq3vynpRNbRXhgyWhl
+	 xlzoXLS1Z2TLS+DePJy8rTxUnKc575FIikguZAMkayr8U5Bdjfn/Xg3of0RYOCLnAq
+	 giq2gUJ0G3gwY2dNLcPYB7Le7xc3cksCq5QycHWD87aspIJUWvRRdy7jqLKUEKCJPR
+	 iPnBf6PILULBZj7W5vT/2LgoQs6ktqXCkjc3EGwKxVpkjtkEeUgcL7RGyyoXmHhcou
+	 piWz4OrX8iklA==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 19A113924467;
+	Mon,  3 Aug 2026 23:50:26 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20260803-mlx5-bql-v3-1-a30d4c66fe1d@meta.com>
-X-B4-Tracking: v=1; b=H4sIAJEocWoC/2XMQQ6DIBBA0auQWTsNUBF01Xs0XSCMlaRqC4bYG
- O/ehJVJ1z//7ZAoBkrQsR0i5ZDCMkPHrhUDN9r5SRg8dAwklw3X0uD02hT2nxeamri0ytaNM1A
- xeEcawlaoO8y0wqNiMIa0LvFb+CxK+peyQIFta7nttSZP+jbRai9umYqR5flrT59Egc4P0ihSp
- vHD6TuO4wfg1Jyt3AAAAA==
-X-Change-ID: 20260728-mlx5-bql-84e02a5a46c8
-To: Saeed Mahameed <saeedm@nvidia.com>, Tariq Toukan <tariqt@nvidia.com>, 
- Mark Bloch <mbloch@nvidia.com>, Leon Romanovsky <leon@kernel.org>, 
- Andrew Lunn <andrew+netdev@lunn.ch>, 
- "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, 
- Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
- Dragos Tatulea <dtatulea@nvidia.com>, Mina Almasry <almasrymina@google.com>
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, 
- linux-kernel@vger.kernel.org, Bobby Eshleman <bobbyeshleman@meta.com>
-X-Mailer: b4 0.14.3
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net 0/6] xsk: harden TX metadata validation against races
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <178580102466.2881314.4527278917944249834.git-patchwork-notify@kernel.org>
+Date: Mon, 03 Aug 2026 23:50:24 +0000
+References: <20260727161959.885642-1-sdf@fomichev.me>
+In-Reply-To: <20260727161959.885642-1-sdf@fomichev.me>
+To: Stanislav Fomichev <sdf.kernel@gmail.com>
+Cc: netdev@vger.kernel.org, davem@davemloft.net, edumazet@google.com,
+ kuba@kernel.org, pabeni@redhat.com, anthony.l.nguyen@intel.com,
+ przemyslaw.kitszel@intel.com, andrew+netdev@lunn.ch, saeedm@nvidia.com,
+ tariqt@nvidia.com, mbloch@nvidia.com, ast@kernel.org, daniel@iogearbox.net,
+ hawk@kernel.org, john.fastabend@gmail.com, sdf@fomichev.me,
+ maxime.chevallier@bootlin.com, mcoquelin.stm32@gmail.com,
+ alexandre.torgue@foss.st.com, aleksander.lobakin@intel.com, horms@kernel.org,
+ magnus.karlsson@intel.com, maciej.fijalkowski@intel.com, witu@nvidia.com,
+ alice.kernel@fastmail.im, dtatulea@nvidia.com, yoong.siang.song@intel.com,
+ martin.lau@kernel.org, intel-wired-lan@lists.osuosl.org,
+ linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
+ bpf@vger.kernel.org, linux-stm32@st-md-mailman.stormreply.com,
+ linux-arm-kernel@lists.infradead.org, leon@kernel.org,
+ AutonomousCodeSecurity@microsoft.com, blbllhy@gmail.com
 
-From: Bobby Eshleman <bobbyeshleman@meta.com>
+Hello:
 
-mlx5e_queue_start() deactivates and re-activates all channels but closes
-only the queue being restarted. mlx5e_activate_txqsq() then
-unconditionally calls netdev_tx_reset_queue(), zeroing the BQL counters
-of channels that kept their in-flight TX WQEs. The next completion then
-over-charges and trips the BUG_ON() in dql_completed():
+This series was applied to netdev/net.git (main)
+by Jakub Kicinski <kuba@kernel.org>:
 
-  kernel BUG at lib/dynamic_queue_limits.c:99!
-  RIP: 0010:dql_completed+0x23d/0x280
-  Call Trace:
-   <IRQ>
-   mlx5e_poll_tx_cq+0x668/0xa60
-   mlx5e_napi_poll+0x5b/0x7b0
-   net_rx_action+0x15a/0x580
+On Mon, 27 Jul 2026 09:19:53 -0700 you wrote:
+> Cen Zhang reported a KASAN out-of-bounds read when AF_XDP is configured
+> with a TX metadata area smaller than struct xsk_tx_metadata. The metadata
+> is also shared with user space, so reading its flags more than once can
+> produce inconsistent validation and processing decisions.
+> 
+> Require enough space for the flags and one request field, validate the
+> launch-time field against the configured metadata length, and use one
+> snapshot of the flags while processing each request. Carry the validated
+> decision through completion handling so later user-space changes cannot
+> enable an unrequested completion timestamp.
+> 
+> [...]
 
-Reset BQL only when the SQ has no bytes in flight (sq->cc == sq->pc).
+Here is the summary with links:
+  - [net,1/6] xsk: require at least 16 bytes of TX metadata
+    https://git.kernel.org/netdev/net/c/1bb30b181d9f
+  - [net,2/6] xsk: pass TX metadata pointer by reference
+    https://git.kernel.org/netdev/net/c/19366db6dfcc
+  - [net,3/6] xsk: clear metadata pointer when no timestamp is requested
+    https://git.kernel.org/netdev/net/c/9f60a67df8d3
+  - [net,4/6] xsk: validate launch-time metadata size
+    https://git.kernel.org/netdev/net/c/439ce2dddf3d
+  - [net,5/6] xsk: move xsk_tx_metadata_request() to xdp_sock_drv.h
+    https://git.kernel.org/netdev/net/c/ddd0d6c5bfe2
+  - [net,6/6] xsk: validate metadata when processing requests
+    https://git.kernel.org/netdev/net/c/849b1664dbda
 
-In the case that reset is skipped, the outstanding WQEs will eventually
-complete and rebalance the dql. The dql->limit is carried across the
-reset.
-
-Fixes: b2588ea40ec9 ("net/mlx5e: Implement queue mgmt ops and single channel swap")
-Signed-off-by: Bobby Eshleman <bobbyeshleman@meta.com>
----
-Changes in v3:
-- Sample sq->cc/sq->pc before setting MLX5E_SQ_STATE_ENABLED, so a
-  concurrent mlx5e_poll_tx_cq() cannot un-charge BQL between the check
-  and netdev_tx_reset_queue() (Sashiko:
-  https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260729-mlx5-bql-v2-1-cdf285e586df@meta.com)
-- Link to v2: https://lore.kernel.org/r/20260729-mlx5-bql-v2-1-cdf285e586df@meta.com
-
-Changes in v2:
-- remove misleading comment (Tariq)
-- Link to v1: https://lore.kernel.org/r/20260728-mlx5-bql-v1-1-99a0ab77ede7@meta.com
----
- drivers/net/ethernet/mellanox/mlx5/core/en_main.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-index 7d47a1da8b6b..f0407a850ea8 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-@@ -1939,8 +1939,10 @@ int mlx5e_open_txqsq(struct mlx5e_channel *c, u32 tisn, int txq_ix,
- void mlx5e_activate_txqsq(struct mlx5e_txqsq *sq)
- {
- 	sq->txq = netdev_get_tx_queue(sq->netdev, sq->txq_ix);
-+	/* Reset BQL only when the SQ has no bytes in flight. */
-+	if (sq->cc == sq->pc)
-+		netdev_tx_reset_queue(sq->txq);
- 	set_bit(MLX5E_SQ_STATE_ENABLED, &sq->state);
--	netdev_tx_reset_queue(sq->txq);
- 	netif_tx_start_queue(sq->txq);
- 	netif_queue_set_napi(sq->netdev, sq->txq_ix, NETDEV_QUEUE_TYPE_TX, sq->cq.napi);
- }
-
----
-base-commit: d1000fd7995e51deec872d154e0a40d82f7a539f
-change-id: 20260728-mlx5-bql-84e02a5a46c8
-
-Best regards,
+You are awesome, thank you!
 -- 
-Bobby Eshleman <bobbyeshleman@meta.com>
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
 
