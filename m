@@ -1,92 +1,117 @@
-Received: from out-185.mta0.migadu.com (out-185.mta0.migadu.com [91.218.175.185])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pj1-f51.google.com (mail-pj1-f51.google.com [209.85.216.51])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A0BA41CAA92
-	for <linux-rdma@vger.kernel.org>; Mon,  3 Aug 2026 01:49:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.185
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A859B371D1D
+	for <linux-rdma@vger.kernel.org>; Mon,  3 Aug 2026 03:41:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.51
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785721785; cv=none; b=sdFwZqSd0ZSKU2vKzF2N3mB4zLkgDru9zZqpoSkDAV3p4wenUbF9+DWU1YauN5tSkSVVC+ReHFnzjlu3Cn3lc7l2p5xmMTPMwb/7u8tYRjb1rk4Mbc6wYxslZKWfP3fyOOwvGh2Wl2CHJhO0dIThEloM0/qWHn5KtBs+0kfPuu0=
+	t=1785728484; cv=none; b=rmJlXprvnM28i4J22re9kkZfx6ezwwoO/B+FVstYvQtt9QdQv9vRZ8uAVjXOV/A+kisB6zgk8eX58knYAFG+Z0AomOlaVpF04SYqIoQSEXHSDrVLzbCDYHlGerPdXVDM8ko1daSZyxr75D3ZGX3i+6hTGWphgK386xuZHrfScpI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785721785; c=relaxed/simple;
-	bh=enMlENWeZAZtu8vs4JjjYMfkLRAbrbD07oRoHkP1UHY=;
-	h=MIME-Version:Date:Content-Type:From:Message-ID:Subject:To:Cc:
-	 In-Reply-To:References; b=AH0PBLiZmUtEV97FQW8EXs3Dh7Bsc/yKRruLFki5uCJd3clFqgXJcnvo27dfZdso94pWVYOTOHYe/2LbkWqhDZsYO1kGirAnbs6ECAefmkbPtTHuiUHp/dUVJQeKX0hi2LUGRkGSQQt7BsvuJ6wy1aQ537Kbvcm1gj8vwWR/kLA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=LlhdX8Vg; arc=none smtp.client-ip=91.218.175.185
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+	s=arc-20240116; t=1785728484; c=relaxed/simple;
+	bh=NCMW4kQRyBWSj2E3oOTBkzWRrKKMpt0eKzLDMpatx9c=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=LHCJ1g/PhQwe3sdbMJ0fXcS7lxEGnASxNIdGnsAG8D3P8qgDRh/IGXtq2cdF82uuiKwAgOBOU4R+401KKAJ6ZC8gtqvTjphM7X7tp76e63GbXxklq9xTmMDhdFy6MCefoYQqBc0xDv3IZzVOtxG1HzgdVMU2DSu7fSWlUE/tJG0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=isslab.korea.ac.kr; spf=none smtp.mailfrom=isslab.korea.ac.kr; dkim=pass (2048-bit key) header.d=isslab-korea-ac-kr.20251104.gappssmtp.com header.i=@isslab-korea-ac-kr.20251104.gappssmtp.com header.b=xnK6PMTq; arc=none smtp.client-ip=209.85.216.51
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=isslab.korea.ac.kr
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=isslab.korea.ac.kr
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="LlhdX8Vg"
+	dkim=pass (2048-bit key) header.d=isslab-korea-ac-kr.20251104.gappssmtp.com header.i=@isslab-korea-ac-kr.20251104.gappssmtp.com header.b="xnK6PMTq"
+Received: by mail-pj1-f51.google.com with SMTP id 98e67ed59e1d1-38e071ed6aeso2226654a91.0
+        for <linux-rdma@vger.kernel.org>; Sun, 02 Aug 2026 20:41:22 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=isslab-korea-ac-kr.20251104.gappssmtp.com; s=20251104; t=1785728482; x=1786333282; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=NCMW4kQRyBWSj2E3oOTBkzWRrKKMpt0eKzLDMpatx9c=;
+        b=xnK6PMTqK146IzXA4PJD65/xzUYMlsQsTRsM3vQHESajUrVka74oq2zKaSAZHhWR6u
+         Hi5tCIhz1hqbjkScLbKtyvYa8YPscLTwibI/tYHhhTMxMqgipa+xRdtVU9/yB0ThvIk3
+         XP0HqvWIXZ1PWlAO3GsUkmaPQzBVGfnjFMc8FLDYmdmkuzYkcQD7wMzYgC1pt0018/P6
+         SfRrtP5oP73JWVdYmVZp9/e004xJgJQWl3WKR2ft3FT2oBxuoN8kXV9SzpbWyu1nRmWv
+         cJ+ZZlYmJOz6/GaCiJAoFphm8qQj5yV9NyLTp6UOa6XmiGrQen1Fg6YLV9marLubqsFY
+         jEfA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1785728482; x=1786333282;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=NCMW4kQRyBWSj2E3oOTBkzWRrKKMpt0eKzLDMpatx9c=;
+        b=GZGG/PyJ3b6gHXEbQwno6pXstdnGqqrnRE15YUkoKjf3ldoZlqXU3o/pMNccwJiQGq
+         4i82hZ+HqCj25Nr7B4/169WKix8QzcZLpvW7iPIBtsCVmHZ+4l7+sixUCYfscScihl6A
+         X1EDiorBqJDStrXy/RhbeLKbHk+rD7teNgT4cuWqYm8QFwOoUJ5dbCZ8Wqhx/Dm4bKmQ
+         aFei/bjzqikGeLrDuKopBYsyKQ/E9XsLYtUo0hdTDIQs8bNlSB2zntJdJhMI0F80BdBu
+         sfBo1N/bCcGRUbv1Llt3yMtopBIEYQEceHWt6ALSUpBeUrPxIk+RAJJl5MPgqiwHWmXw
+         F6Sw==
+X-Forwarded-Encrypted: i=1; AHgh+RrvbEhcdGQ398o8C+zeKLdO5jWfxxOIm3ig56MY+HcaWEmOqJYSnBeZ2zIWW4zuZK1Yyps+jAUcsOxO@vger.kernel.org
+X-Gm-Message-State: AOJu0Yxz1tA/Nau+UxW77l1GA+rw2vAWMqotUZUryexgVae56HgtP2aV
+	ZjMtoLqMrhrv6W9QOXz7yPbZvJomKKItgcBCGdpd9AicD0ujqk74jjXZi5ZiTPF6tMk=
+X-Gm-Gg: AR+sD10OegwAcTPQy8bkGo4jkvhAHJRRwh9eWTDw++ogqlqC1WPu60WDOsRobF69jQ3
+	jCLYo4V7xuoFjxHWuztNnxWB3vc4G8+ZreGG/7ipG++dcB2GLhS9JpLG6l9N2pwRIvDvilMlrCR
+	jvHYqN4EP/XTS7ta/j4Z9nE6vaW8AshS/81P31cFXBgh5oSOfnAr0GV6Pz4tznd1DsYn4bIOZHj
+	2xa6a6Nx+Nk5tn3n6a+aui+N8zJIFxK7Apv/CJw6+T0wAiNxs9McvWlkr8n739Mt9Bs9j8RW+dN
+	keSEVmVU7T1w6MvMr18XvoORw6BLj9/R9M/57xGWKIJ5vieAR4bB4BtcCXF2xmgs/+3Ainakv4C
+	XyS40r2L6JyV+lr0TIMqBVMEI6WUbYsRebgz/BIlp3BLdV2Cq6H/bVRCPrbf+ZmX5Rv5dAuq6th
+	7KqGoetl58ZKY+5ppTAPscDjC1qFUdS5QfKnAvTdWVuP51vQaUnzwLTesPsGoWCoWYlsq3
+X-Received: by 2002:a17:90b:50c4:b0:38e:447c:9a15 with SMTP id 98e67ed59e1d1-38fbc516655mr7151775a91.36.1785728481711;
+        Sun, 02 Aug 2026 20:41:21 -0700 (PDT)
+Received: from yhlee-960QFG.. ([125.131.91.97])
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-38fb2bac654sm3299609a91.10.2026.08.02.20.41.18
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 02 Aug 2026 20:41:21 -0700 (PDT)
+From: Yehyeong Lee <yhlee@isslab.korea.ac.kr>
+To: alibuda@linux.alibaba.com,
+	dust.li@linux.alibaba.com,
+	sidraya@linux.ibm.com,
+	wenjia@linux.ibm.com,
+	kuba@kernel.org,
+	davem@davemloft.net,
+	edumazet@google.com,
+	pabeni@redhat.com
+Cc: horms@kernel.org,
+	mjambigi@linux.ibm.com,
+	tonylu@linux.alibaba.com,
+	guwen@linux.alibaba.com,
+	guangguan.wang@linux.alibaba.com,
+	kees@kernel.org,
+	gustavoars@kernel.org,
+	sashiko-reviews@lists.linux.dev,
+	netdev@vger.kernel.org,
+	linux-rdma@vger.kernel.org,
+	linux-s390@vger.kernel.org,
+	linux-hardening@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Yehyeong Lee <yhlee@isslab.korea.ac.kr>
+Subject: Re: [PATCH net v5 2/3] net/smc: bound the peer rkey counts in SMC-Rv2 LLC messages
+Date: Mon,  3 Aug 2026 12:41:05 +0900
+Message-ID: <20260803034105.2051552-1-yhlee@isslab.korea.ac.kr>
+X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20260801094208.1937951-3-yhlee@isslab.korea.ac.kr>
+References: <20260801094208.1937951-3-yhlee@isslab.korea.ac.kr>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-	t=1785721781;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=A4N+o+F4lC33fLe3y4fqcfQgAbZbw0QW2nYHoW8EPlg=;
-	b=LlhdX8VgMbQdZvml/i2y4+7YwqcrWXdDnzMIInzG1PPTr22XSk6xi0CZrkYi1bsr71nDC8
-	sMJc46OA37bZ+MnWV3Qwc4wKHnnle9TJfwFisgC48HFzhbYJwML6JHYUr/CcLPS4K+rUfH
-	UQi5bisJwzdOso7Eq7vSy+jHBjLX57g=
-Date: Mon, 03 Aug 2026 01:49:39 +0000
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-From: gang.yan@linux.dev
-Message-ID: <393f97fc5e5c042d5bd62231f96fae0b527a58d0@linux.dev>
-TLS-Required: No
-Subject: Re: [PATCH net 2/2] DO-NOT-MERGE: selftest: add rxe mr_check_range()
- overflow reproducer
-To: "Zhu Yanjun" <yanjun.zhu@linux.dev>, zyjzyj2000@gmail.com
-Cc: linux-rdma@vger.kernel.org, "Gang Yan" <yangang@kylinos.cn>
-In-Reply-To: <36d31c1e-aebe-4a48-ab44-4447c0a75a33@linux.dev>
-References: <20260728091128.9116-1-gang.yan@linux.dev>
- <20260728091128.9116-3-gang.yan@linux.dev>
- <c93089b8-bb9f-4aac-a644-36b6cc9b5d59@linux.dev>
- <36d31c1e-aebe-4a48-ab44-4447c0a75a33@linux.dev>
-X-Migadu-Flow: FLOW_OUT
+Content-Transfer-Encoding: 8bit
 
-August 3, 2026 at 6:28 AM, "Zhu Yanjun" <yanjun.zhu@linux.dev mailto:yanj=
-un.zhu@linux.dev?to=3D%22Zhu%20Yanjun%22%20%3Cyanjun.zhu%40linux.dev%3E >=
- wrote:
+> Does this bounds check allow processing of stale memory?
 
+It does, and 3/3 of this series stops it. This patch bounds by the size
+of the buffer the message landed in; 3/3 copies the tail of the message
+into the queue entry and bounds by its length instead.
 
-> >  Thanks a lot. When I run rdma selftests. I got the following:
-> >  "
-> >  # Warning: file rxe_mr_overflow.sh is not executable
-> >  "
-> >  You need to make rxe_mr_overflow.sh executable.
-> >=20
->=20After this testcase is run, please remove this bin file rxe_mr_overfl=
-ow in tools/testing/selftests/rdma.
->=20
->=20Thanks a lot.
+The bound in this patch never fires on a link with a shared v2 receive
+buffer. It works out at 507 rkeys for ADD_LINK and 2046 for
+DELETE_RKEY, and the min_t() above it has already capped both at 255.
+I measured a 44-byte DELETE_RKEY_V2 declaring 255 rkeys: mainline and
+this patch draw the same response, and in two of the four exchanges an
+rkey read past the message was live and was deleted. With 3/3 applied
+the response reports 9.
 
-Hi Yanjun,
-
-Thank you for your reply.
-
-Regarding the selftest patch, my initial thought was that the selftest do=
-es not need to cover this particular
-issue separately, which is why I added the DO-NOT-MERGE tag.
-
-However, after reading your feedback, I would like to clarify your sugges=
-tion: do you mean that I should
-integrate the attached rxe_mr_overflow.c into the selftest suite? Or is t=
-here a different way you would
-recommend?  If you fell OK, I would prefer to drop this selftest patch en=
-tirely.
-
-Please let me know your preferred approach. I'm happy to adjust it. Thank=
-s again for your guidance!
+It does fire on a link without that buffer, where it becomes 9. That is
+the out-of-bounds read this patch fixes, and why it carries Cc: stable
+while 3/3 does not.
 
 Best regards,
-Gang
-
->=20
->=20Zhu Yanjun
->
+Yehyeong Lee
