@@ -1,135 +1,301 @@
-Received: from CY3PR05CU001.outbound.protection.outlook.com (mail-westcentralusazon11023097.outbound.protection.outlook.com [40.93.201.97])
+Received: from CH1PR05CU001.outbound.protection.outlook.com (mail-northcentralusazon11010018.outbound.protection.outlook.com [52.101.193.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C6AFD381B1D
-	for <linux-rdma@vger.kernel.org>; Mon,  3 Aug 2026 16:11:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.201.97
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A9D9D3B058B;
+	Mon,  3 Aug 2026 20:31:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.193.18
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785773507; cv=fail; b=MP7VMwpxqwWJSknBjOJ+0RINNDnBNalx0WLBx+929E869RIUYTnjYj17l8GMHYFTHsVIF2tlh7FqstEEkROhVpHk7O2kkjHSzI7sbFe8ShDkCOXg+Tjf+xGe1vJ7jVW4YplTa3FHXwDrS5K1oGxh9ea52E/Tpi99WpWUkr3EbnY=
+	t=1785789070; cv=fail; b=no+oXs4yg3cP9mFQprWqmXuwAQQMWJHgRdu/jXtZ2GcxnaRutnIxj7hYvVbIOMG20LuKHyB3zFBtDr2w3BD/HUUZBIPu4rfcz4pAUcZgutcivlS4YbmoiOZ3wpI5oyHCFe7DtC0zvQJ5FKmBush9BtEuLNq9SDFj5Kegac8VWwE=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785773507; c=relaxed/simple;
-	bh=D+pe/irlr7uYN/IarkqbBUT2sH83DqvSBVo+DUI9HDA=;
-	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=tCICrBvLdTVHI9CDHT2tjBNbzO0yJP+gysz3JQFGRvFQU01ElICUHFEBffF2dfImL17gYiSl4BWEqVZm9ju/553XNj//h4TxCaXgM1LKOf071pSnTSm2dGzoP3HIx+HKSaMKctTn0xTCRO6rMoX9N0xT7fDLBBABj4wvoHA6i90=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cornelisnetworks.com; spf=pass smtp.mailfrom=cornelisnetworks.com; dkim=pass (2048-bit key) header.d=cornelisnetworks.com header.i=@cornelisnetworks.com header.b=dnGDplPB; arc=fail smtp.client-ip=40.93.201.97
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cornelisnetworks.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=cornelisnetworks.com
+	s=arc-20240116; t=1785789070; c=relaxed/simple;
+	bh=69eMnrkUS/Ukt8I+p4vMIf4BrOL/VqwOBkp7YL22h/s=;
+	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
+	 Content-Type:MIME-Version; b=rodQmKO/eW6JJP+xuR2C36460Uqj6nAcqaWWrBaaMUw4QrI0hqt/07HZmPFMqwZiSUqGuvvTBen5qOc0beJMUJPrhRUhkaFy17WojgDVh3loVduXQ50kEzI4M4vna4Mt65PX3OtWGDmhxkKpig4zU0iFGBj5iuLXS250X1A7IGY=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=mb35T/gK; arc=fail smtp.client-ip=52.101.193.18
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=cornelisnetworks.com header.i=@cornelisnetworks.com header.b="dnGDplPB"
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="mb35T/gK"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=qwGTyTijUUE0ffyzO9Vwq9u/gmUz2zyQnShIdUeAdHi90lysPpznyXrCC80ZebE6PrFlmNtY/RaGKRYfOGD0E/zyUclTDjfwC5Iw5+Q96RQBfI+9gciH2VyeoM0HI8Oj5+FR1KealyZ/oGxJ2KyMpfTT/xiq4xaexrCsuw4Mv/KHT9T/OWkQHv0zmy8PYbUXEQ7gR9GVCLLXhNio2VJbw8hvM+lx7vrWjUvNddN6jkHET3AbFse6nf+E68j9NTfynivGisqE7BXKmAKZz+8SxZkSCXEpTVyab3PDQ4Zs9G4K0NjDPb9U+YJtyw0tuhtut1PNr2whyuShwEehHkKGvQ==
+ b=re0wNlcbrXld+W1fCQgHRqSgiYA7ZG21k2mZ4ngRLrNKnVigGCm2h/IK7dMKps08xozsCSD4sLZymAI8ZCLYozzYjE5+N7xFyCo0PTHxqiDPQDEILbYxuNQR0PYce0cx2aY4wGHKv32x2GR2LEbPM3tDnp3ZzjlH7XynyXy1cJKa41asBiyPEFdGYOOFWn9JjPXLy3n0vwBbfFllIJjD0R/xX4BhZcZBgrPeVP/NhiDGO1pmJhv9tSV0nvDwF2NpNoy8XVkdlGh70+vZoDR0ca2TxUfpHV5QP7uUyuaP0I/UekPvR/Z34Z93Ra/UkVt/P6yUVQoHdPUnClqqCA9Ezg==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=QREb0o60mpCbwCbm8F9u4yRDrzUFB18LDk126SVU7dI=;
- b=UDnRnBcL0K7N4mMTY/lpWULtzsdI4cB6gqN2BRmwzolG0B6p3qWnh0ry/fA0oDAVGRM3G+5wG7BJUOq21G4Aw/Ak1AxF+iLgSZdk4xW9Eqhk6lCPBPBOo0sni+PNscudXFpjsbmUOzK743jhIWvBxK66jcwxLzXv67Tv8SHi8PL9P0cKycE/4kS706z+diM9IQ3MZHYLkjDaLY2Okm+mdHLaij1YJD+n8FmUlRIfbFwaSXxIw+7mGg4hgDmx5G+d8TpozUWX6juHCcUXTjjLTPUKgD1+gExWhZtNGCR4w6oFh/RCPcM6VRCm5/y6gBHJFDzreqFfo62uNflEpK65Gg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 208.255.156.42) smtp.rcpttodomain=kernel.org
- smtp.mailfrom=cornelisnetworks.com; dmarc=pass (p=none sp=none pct=100)
- action=none header.from=cornelisnetworks.com; dkim=none (message not signed);
- arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cornelisnetworks.com;
- s=selector1;
+ bh=b64jT/Vzb8ySFErfgWXZ568QqojWshpYpUc9Jy5wYmI=;
+ b=XPkCwPnekV/kOYgrXopCpdcoNXBJ/oMt58zPaiLlLIYsP8txq53MQ3uxc0PVgSJwMGj7L9g3SZuO4bG9MPdRVyX09zAZRLYA3Jjpx7ua2kTgSPzcrTYY9hgLtsGYrqPyKyyO+RkeAJDjsB0K3byAVmbL43cgH2mX4nWnzTIA6bjXxu5BePPgHVAwYxAx4/nFKNHOIr5AF21zDlvDPuhKopD9VeK/XvlIpIe1P7TmpXLa/hOANdQDlxpl72US/PTVFnZTdJNlq6MmXJc0f0rXGYubIcTTQnXVXgBZUsqcXBUdM/6Bk2Jpl+l1zE11bnoiQUgviYjZiDpqq5yhOa7EGg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=QREb0o60mpCbwCbm8F9u4yRDrzUFB18LDk126SVU7dI=;
- b=dnGDplPBTRmnEH9jkTK5aK/HtL+9A+DoGY49ehZEJBkMw+cKZMb/iNPMMvfZQboCBcWyZXOfH+4bynWrJ4auUrHzFOyHV8BewiLk71zcI0GfNUHFkgJje6fNZPdz6AIS6fmGGyCrmLpkYqNRsBRLI315vCXa6wGnn3LLzkxfFhv8CgS8yMJHNWE9qvHfavExr0EnWoBJuUTTs+0//oLTJZiB5HIRSKc03vlnpEFxfXzXdpncG+d97HfKYkUL1QIWhX0Xqrxi5QGnJfXH5e9UUftU9TI8z46c8IBk0p47Ed3kkmdTkv371yUwKR1fKtckFcUU5ZMbklJ/CIz2BHjW7w==
-Received: from CH2PR20CA0015.namprd20.prod.outlook.com (2603:10b6:610:58::25)
- by LVWPR01MB994700.prod.exchangelabs.com (2603:10b6:408:3c2::13) with
+ bh=b64jT/Vzb8ySFErfgWXZ568QqojWshpYpUc9Jy5wYmI=;
+ b=mb35T/gK6oaxo4yK84GcD3gSyklIYJxEN0xtGhjWOA/kS6oPUGu2MxuODhjm8YvoBJMgCmbgymMGkI8WUBz5fM6ROT7+eaEybW0S+W15YwrWKodGnf69PlqW+5cXzBYVfJctGK4c+qjxJtLijO6G2uG6wmBbwkh+HrxNVRPYgVkJqFvblKuzdSFwCeRkwhyzAWmQtutj5UE0AZesE7ngwMxcpAFwHyGST+J73qEVNbkQzdreyLVNhQGcZUQ4lLH15RSm7H6ztN7GWfbfzeRCN1I5l1g3knNMy5gnG3OaXqpqofM7MRBg64R4QCLpvVxIqOdk948lVtyetivsXPnm8w==
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from MW6PR12MB7086.namprd12.prod.outlook.com (2603:10b6:303:238::20)
+ by SN7PR12MB6789.namprd12.prod.outlook.com (2603:10b6:806:26b::22) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.270.17; Mon, 3 Aug
- 2026 16:11:38 +0000
-Received: from CH2PEPF00000149.namprd02.prod.outlook.com
- (2603:10b6:610:58:cafe::65) by CH2PR20CA0015.outlook.office365.com
- (2603:10b6:610:58::25) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.270.18 via Frontend Transport; Mon, 3
- Aug 2026 16:11:38 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 208.255.156.42)
- smtp.mailfrom=cornelisnetworks.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=cornelisnetworks.com;
-Received-SPF: Pass (protection.outlook.com: domain of cornelisnetworks.com
- designates 208.255.156.42 as permitted sender)
- receiver=protection.outlook.com; client-ip=208.255.156.42;
- helo=cn-mailer-00.localdomain; pr=C
-Received: from cn-mailer-00.localdomain (208.255.156.42) by
- CH2PEPF00000149.mail.protection.outlook.com (10.167.244.106) with Microsoft
- SMTP Server (version=TLS1_3, cipher=TLS_AES_256_GCM_SHA384) id 15.21.292.8
- via Frontend Transport; Mon, 3 Aug 2026 16:11:37 +0000
-Received: from awdrv-04.localdomain (unknown [10.228.212.218])
-	by cn-mailer-00.localdomain (Postfix) with ESMTPS id 87BF91D7180;
-	Mon,  3 Aug 2026 12:11:37 -0400 (EDT)
-Received: from [10.228.212.218] (localhost [IPv6:::1])
-	by awdrv-04.localdomain (Postfix) with ESMTP id 8435C1810DF01;
-	Mon,  3 Aug 2026 12:11:37 -0400 (EDT)
-Subject: [PATCH 9/9] RDMA/hfi2: Remove stale hfi2_destroy_qp() comment
-From: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
-To: jgg@ziepe.ca, leon@kernel.org
-Cc: linux-rdma@vger.kernel.org
-Date: Mon, 03 Aug 2026 12:11:37 -0400
-Message-ID: <178577349751.1793053.11514533065353361217.stgit@awdrv-04>
-In-Reply-To: <178577337105.1793053.12662894969464495064.stgit@awdrv-04>
-References: <178577337105.1793053.12662894969464495064.stgit@awdrv-04>
-User-Agent: StGit/1.5
+ 2026 20:30:57 +0000
+Received: from MW6PR12MB7086.namprd12.prod.outlook.com
+ ([fe80::4eb8:7fcb:fe8d:e95e]) by MW6PR12MB7086.namprd12.prod.outlook.com
+ ([fe80::4eb8:7fcb:fe8d:e95e%6]) with mapi id 15.21.0270.017; Mon, 3 Aug 2026
+ 20:30:57 +0000
+Message-ID: <39078a1d-f4a2-435a-8921-24919a46ad54@nvidia.com>
+Date: Mon, 3 Aug 2026 23:30:51 +0300
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH net] net/mlx5e: strip runt Ethernet padding in HW-GRO
+ (SHAMPO)
+To: Glenn Judd <gmj@meta.com>, Saeed Mahameed <saeedm@nvidia.com>,
+ Tariq Toukan <tariqt@nvidia.com>, Mark Bloch <mbloch@nvidia.com>,
+ Leon Romanovsky <leon@kernel.org>, netdev@vger.kernel.org
+Cc: "David S. Miller" <davem@davemloft.net>,
+ Andrew Lunn <andrew+netdev@lunn.ch>, Eric Dumazet <edumazet@google.com>,
+ Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+ Khalid Manaa <khalidm@nvidia.com>, Ben Ben-Ishay <benishay@nvidia.com>,
+ linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <20260731185442.2778723-1-gmj@meta.com>
+Content-Language: en-US
+From: Tariq Toukan <tariqt@nvidia.com>
+In-Reply-To: <20260731185442.2778723-1-gmj@meta.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: MW4PR03CA0046.namprd03.prod.outlook.com
+ (2603:10b6:303:8e::21) To MW6PR12MB7086.namprd12.prod.outlook.com
+ (2603:10b6:303:238::20)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: CH2PEPF00000149:EE_|LVWPR01MB994700:EE_
-X-MS-Office365-Filtering-Correlation-Id: 9cf437b3-957d-4f31-ca3a-08def179e5b0
-X-MS-Exchange-AtpMessageProperties: SA
+X-MS-TrafficTypeDiagnostic: MW6PR12MB7086:EE_|SN7PR12MB6789:EE_
+X-MS-Office365-Filtering-Correlation-Id: 11646212-79b0-4276-84da-08def19e1f96
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|36860700016|376014|23010399003|1800799024|82310400026|56012099006|10067099003|22082099003|18002099003|55112099003;
+	BCL:0;ARA:13230040|7416014|376014|366016|23010399003|1800799024|6133799003|22082099003|18002099003|11063799006|5023799004|56012099006|10067099003;
 X-Microsoft-Antispam-Message-Info:
-	FcKO38xD5SJZrRWayxrwdt9qxjblgSdZHsp4V1SNSiqENt9/L01IeGNS/9qSxIM3ZaLAocVLJ90vo/G3NDqxEghpMy1pRxFgaQ4YORKDv4j+L09YlyWYv6q4DXOZ75rJZTqlrR+Ge676vJNrena2lUOxDoyZHsjIdjh3/2rkoqqNhf/99A3bW0cbgWjCrs8433KVJ9/nf/FPol1OjiNR5LAL70f1MopVxLlUQPtxklw5YF+4JCYA0UwA8tkQCbIODJQTNOj7b5Bphj/CHg5aHS64CuF4qtdIsgifOr8HUeW/Wl5wvnFRdpmy79RxhtEKZdZgVRoyMN4FzBXXhKWKVXb1yNx9rsxK3Jf62eVgeNdG2p3IdVtxqQOq0IAxGhpJ2F6opgtR8W7Tj6hk9DPY9xsjsF+3xopVdRCp2l93pqkGQft8hm7CvBlkp8ja/gt8v2Kv4L3mmPnS26n9VM1HjO+oA3VSrP1e9duKrypkb4XEBUx3G37UCi6xH/nxVd4XjrsgdqWKYqF86Hok5Iq77td1WPIIvZwGFlGEUuG8HML9mnDCRng1Scl43aeoF27lSedetn5k4pjFipxwIkvrn/FuHYF7bkJzjR/izGB0Vfvof4AfRe47oveyWv6oRP20B9TtRX67c0ACtaYvcZhc9FHAhyuYg4X1yEkn6WCDTQdqb14yqtSvKW7OQoabDHaG
+	Tryitq5guNWLa+U8PgwISnoGNZES07SRZKgyNAxiO1Fr1oegQGt3NnnCmLT1EP/jWyfqk/KR9MEjuwwNJwVKvqUjdCi9dvkPUI08RxuI+lhfdLtD9r+a/UKFeVnmwnvEMyy3/DryK/+8I8P70nlh2tktUKwjGLRaRjA0CDksufvXKVpl/W6vw2xiWGNX4V5dfAWxyerHJDtVYryDBOgNuJAh24B0ClvfHPAl6bNumcaVJ4jLePXaJgtjrf9/HSz3MtbGCvIAr8DRonfNGWuDgLVICIXThpV9H3zEPiNFQonPxeB2vL+NVFX3S0R94A4+uMj0eNWl5jRwZmUo4zJnQ9n8t/4af9TJwXZoR6MvbvoW8z/4kERPSO1MoLuVrPIcMQzTrvntYqZUszrdyes6N+4NQ+I5nOiociEyHQcoK+LPufiHaIrM8pNlNFphsu7yBeVnDUx7lj1NcmarhnMtL6D/EnZRCfSRHGJcQTjTvwM/qVJkXAhlc+ZFVsaXOPnjembCnibP2H8h0ws0UciLHoQb0J1uF/abPzlbroxKVXtigYICn1l7Vs2bIVqN4bapxuUx8w8X0No6wayKDgYMlLgVcTI4d6T87ZWNXmXav/RBMtrZwlKbcFVGYwqbrILJ1fv9jxHqLGKhCOqi324I7mjD8ikd0AYsjrhpjOze1hk=
 X-Forefront-Antispam-Report:
-	CIP:208.255.156.42;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:cn-mailer-00.localdomain;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(36860700016)(376014)(23010399003)(1800799024)(82310400026)(56012099006)(10067099003)(22082099003)(18002099003)(55112099003);DIR:OUT;SFP:1102;
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MW6PR12MB7086.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(7416014)(376014)(366016)(23010399003)(1800799024)(6133799003)(22082099003)(18002099003)(11063799006)(5023799004)(56012099006)(10067099003);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	ln0KPrPjAzmdzrXuPND3rNKI0fwtxiJy7K95Al9/B81xyZA6ptsNbBM89VGhGFrZbfO8/hNSOtkO9mwXVgwzWiAhnP/gzHhRjamYsvOIqNTlgAj5Eko9JefYiimTE3b8rQhVnzKi26PhsfzF7gml7pe38fK4ISlmjQFzgqjudhYz6E+YYJUTs/cztE5C6jMyb1inRHmwSHp0UqF/CbA3Fm088P+tUJ7WRFTkmAu/hVFBwUXSc4xEtBOoYfgLj3P7WFoXkHIKnTVX3HdB7XYPCpa6JnPomzKk8MT/P6F1UmhbjCfYDmI4a9mnua+G/c85K9fpFS4EF0O4KOFBcwpPF1kmhj1I0ADR3YFArsXgDauJO7ijAwcqI8eGH3oLTfG+x7AuUwpzlPR2cNami7uRDi5eD6AF2Y5hPAqs8unw2LrSuCFzCHFod/QwTHgP+u9i
-X-OriginatorOrg: cornelisnetworks.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 03 Aug 2026 16:11:37.8759
+	=?utf-8?B?RjJ1RzBmeW53ZzdBZHhGYkZEYm8xNTJlSndRRVlIaVh5c2JZb1o1cmVrRVlz?=
+ =?utf-8?B?NGZtVTJZQ3Z2NGNBS2J0TXp5N1B0Sk4rZXRZSnhMRDBFM3BPdnpqMCs5eFRh?=
+ =?utf-8?B?YmlobkJWRDkxemtYci90RjQ4RjFZVlpROUlleE5DWk4xUC9WcVV2RzJ0UVB6?=
+ =?utf-8?B?cVFPVFk1K0xvQUI4QkFpbUFCQ2J5OWJ3TFIrVXp2Y3hacmZURXhvcjRGemht?=
+ =?utf-8?B?RVMyTzd1NUdwQkpWZ2Z3KzQ1NEVtVXh0ZHFXQjhENEszQ1dhM3FOUlpEcVRZ?=
+ =?utf-8?B?TWtVZmdIb0E0M2VpSHdzaFMwQzM1Qkd3RUpNV0dQSE5rOWpmUHR0WkJXNmF5?=
+ =?utf-8?B?L2doS3FjclJoV1hFRGE5SkE5RDNMUFBHQ3ZaVFNBeU5KNEJHUWdLemM2VzVx?=
+ =?utf-8?B?SXdBL1BTU0U0ck5SZzNwZmp5TzFFYVQ5Sk0wN0NpVUoxNjVZM09aZHFaRzd1?=
+ =?utf-8?B?TW43YmFNZmtaK0tEWUFBOFJraDRja1B1VzVPMUZ0TzZIOVdvKzJhNEtIVGFa?=
+ =?utf-8?B?ZVdoWE85VkdCUWloTXdLNjhqcTNxeCtETTNiT0ZReGt2bTBZR2lkQzl1YkRP?=
+ =?utf-8?B?WHZmL3JqV0JrZm9mSVBJblNYMEpJWmc5L1NkQ2lETlFTeUZpZndnbTJPVzhL?=
+ =?utf-8?B?cDJvdE9MNEtQbnFMZzRxRVpobUdOZ0ptV0ozVVVmTVdsSENhdWNoUnFFTitn?=
+ =?utf-8?B?RllKT0pJTHdVNzVKMGh5N3AvMUdaVWtWSmg3UVpIY2tjdjlPeVJLcWVMZjVC?=
+ =?utf-8?B?R1ZUMjBETzVITDdwaTllb2E2elJqRGxUSnZpcUNNcWYrMUs2Vnc5TXlFQURW?=
+ =?utf-8?B?UlczVS9rVHhTd2RYR2pZNnF5eHMxMngvL25XN3J6NHB0eGpibHI4Q2pDWWN6?=
+ =?utf-8?B?M0xxa3Rib0lxaGpPdCtQK0dZZ3Z2MXlacDZ2Y1JBVzBLbTYzWG5NM1E3TlA5?=
+ =?utf-8?B?WnNUTHdiNzZRYTc4clJsN2lqUXBOdmNoWExDMllvajlRU25OUFQ4VlpWU1lu?=
+ =?utf-8?B?UW1sMkxod1NvbVVWRnEwLzQ2RUU0NDF3VnBicm9HaG1RZkhkTWRZSkpOUTdo?=
+ =?utf-8?B?RENURjQ2NjJvVmVQbytyMUV1SllQNEkyMy8yamRjNUtCSldzSXI1b2JZbVZQ?=
+ =?utf-8?B?MHIrbTNCTURURGRWa2duTnI2WHh3VEJWN3FoL0VGRUFHTHlHNmphc3VlUE1x?=
+ =?utf-8?B?WWdjQ2l6eUhZRms1WHo3VUU1TkRnMjFjQ3ZQR1ZXNE9CclVJclQxemhKdmhD?=
+ =?utf-8?B?QTJ0UmhNQUdtcE9pdkN3UndiWDJrSFd0QUw5Wm1EbW5vemxCNWlyR0V4dk16?=
+ =?utf-8?B?WVByZHMwZWg0a1ZqSHR6bExiN2lKU0RNYkdMWk5CSjI3RklLaU1oL0EyRXg3?=
+ =?utf-8?B?Q3JrblNndXlQNXE4cVFNclFMNGZ3K1poc1NWVkViYmFWSXdNVVZoMGUrQVBi?=
+ =?utf-8?B?Z1hhemNsK3JmMTlzZWVCVmJ5QjNnM1A4Y1hzV3ZPZHVVUmFFd1FTaW5XcHNP?=
+ =?utf-8?B?N3NkOGt6OENWY2w5eEpwVHRNSVB2RFJwbEdsVm1tWnBUU1lXNytoaTVWNVdU?=
+ =?utf-8?B?OEZRWlk3UkM2eVlLU3pGVjM3OGZwK2VMTU91eG1OQWw3RGtOaGtYRjM0V2pE?=
+ =?utf-8?B?bFZJRjhmK3JTSG5DTVB5bklKdnl5SjU4WFNTSllSYWhqWGF2WXlzcTVnVmo2?=
+ =?utf-8?B?eWpPSkRuVmJxc1hKZzBJeld6UFNKZzM5WmhRVm9uWm1kMU5KU2VVRFN3cE5R?=
+ =?utf-8?B?Zlp5YTJIRG4yUjZYeEloMldycjJhelpUWTR1alQvejdqZG53YnpFUDdqeWp2?=
+ =?utf-8?B?NlE4Tm9wakFGZ3FzSVFESnhSSjdXaUhBTDllNndXdkFBUlJoekR0QjdBRkN3?=
+ =?utf-8?B?a0RFeU9lQ0prTVIwTzBNdmdNQ1JYMDNMZlQxQm1TSEJsNEdKQUc5bHU2SUV2?=
+ =?utf-8?B?bGlyZVVkUGRHWCttVUJhWUFjSlhBWno0eEdETlUwWmNyNHZlQWd1aWYwaDVU?=
+ =?utf-8?B?R1dTVFFCNG14Y2tjTUtMR253ZldwZU51cy9Nek9ncGdYdm9ldkN2enZUVVdX?=
+ =?utf-8?B?UU5JSnNXM1cyRG1LOGZ4OFVBdFlzZGE4WUEzaklnYllvdEdNS0Z1NUhQdWdp?=
+ =?utf-8?B?cCs4TUNPaWxjaDI0TmlMUmwwQ0ZaaW81STlVYWFTYkRtWlArWnBlSXczWlZ0?=
+ =?utf-8?B?TWxGbDF5TVQ4VnJYbUpicEdDdGtIcDBONkZucHltQ2tZMG9mUWEwbjNsNkxq?=
+ =?utf-8?B?enJYMEhMMTh0ckdTL2FhZTNmYW9FdXg4aG1TbkI0eVZnOU4wWVEwcXB5c2NB?=
+ =?utf-8?B?WmdtblZFVkFMa2VQaU45VmxEVW9sbExuSHYrT1V6NHM1NGk4RldFUT09?=
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 11646212-79b0-4276-84da-08def19e1f96
+X-MS-Exchange-CrossTenant-AuthSource: MW6PR12MB7086.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 03 Aug 2026 20:30:57.1694
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 9cf437b3-957d-4f31-ca3a-08def179e5b0
-X-MS-Exchange-CrossTenant-Id: 4dbdb7da-74ee-4b45-8747-ef5ce5ebe68a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=4dbdb7da-74ee-4b45-8747-ef5ce5ebe68a;Ip=[208.255.156.42];Helo=[cn-mailer-00.localdomain]
-X-MS-Exchange-CrossTenant-AuthSource:
-	CH2PEPF00000149.namprd02.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: LVWPR01MB994700
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: /kTevfkw7RdtPKM6y04wM+21jBk1jqU4x1yumSYV+xdTu5oS9krv5TTeJ8lfU0qGU88QKdaRJ/wld59CrNRsZQ==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SN7PR12MB6789
 
-hfi2_qp_wakeup() has a comment referencing a hfi2_destroy_qp()
-function that has never existed in this driver; it is leftover from
-the mechanical hfi1-to-hfi2 rename and no longer describes anything
-real. Remove it.
 
-Matches hfi1 fix adc09d7fbbb9 ("RDMA: Remove outdated comments
-referencing hfi1_destroy_qp()").
 
-Assisted-by: Claude:claude-sonnet-4-5
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
----
- drivers/infiniband/hw/hfi2/qp.c |    1 -
- 1 file changed, 1 deletion(-)
+On 31/07/2026 21:54, Glenn Judd wrote:
+> When hardware GRO (SHAMPO) coalesces a small IPv4/TCP segment
+> that was padded up to the 60-byte minimum Ethernet frame, the trailing
+> padding is folded into the merged payload.
+> 
+> The selftest tools/testing/selftests/drivers/net/hw/gro.py subtest
+> hw_ipv4_data_lrg_1byte sends {100, 1} expecting to receive {101}.
+> In current code, it receives {106} (100 + 1 payload + 5 pad) instead.
+> 
+> Fix is to compute the real (unpadded) frame length from the segment's
+> IPv4 total (padded) length and drop the padding before it is merged.
+> 
+> Fixes: 92552d3abd32 ("net/mlx5e: HW_GRO cqe handler implementation")
+> Cc: stable@vger.kernel.org
+> Assisted-by: Claude:claude-opus-4-8
+> Assisted-by: Codex:gpt-5.6
+> Assisted-by: Meta:internal-AI-tooling
+> Signed-off-by: Glenn Judd <gmj@meta.com>
+> ---
 
-diff --git a/drivers/infiniband/hw/hfi2/qp.c b/drivers/infiniband/hw/hfi2/qp.c
-index ad1602ff45a5..2dc222bf5963 100644
---- a/drivers/infiniband/hw/hfi2/qp.c
-+++ b/drivers/infiniband/hw/hfi2/qp.c
-@@ -414,7 +414,6 @@ void hfi2_qp_wakeup(struct rvt_qp *qp, u32 flag)
- 		hfi2_qp_schedule(qp);
- 	}
- 	spin_unlock_irqrestore(&qp->s_lock, flags);
--	/* Notify hfi2_destroy_qp() if it is waiting. */
- 	rvt_put_qp(qp);
- }
- 
+Thanks for your patch.
 
+>   .../net/ethernet/mellanox/mlx5/core/en_rx.c   | 72 ++++++++++++++++---
+>   1 file changed, 64 insertions(+), 8 deletions(-)
+> 
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c b/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
+> index 6fbc0441c4b8..0b40db3d50aa 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
+> @@ -1506,12 +1506,41 @@ static inline bool mlx5e_build_rx_skb(struct mlx5_cqe64 *cqe,
+>   	return false;
+>   }
+>   
+> +/* Real (unpadded) L2 frame length, or 0 when it can't be determined. */
+> +static u32 mlx5e_shampo_frame_len(struct mlx5e_rq *rq, struct mlx5_cqe64 *cqe,
+> +				  struct sk_buff *skb)
+> +{
+> +	u16 head_size = cqe->shampo.header_size;
+> +	struct iphdr *iph;
+> +	int thoff, nhoff;
+> +
+> +	if (rq->hw_gro_data->fk.basic.n_proto != htons(ETH_P_IP) ||
+> +	    rq->hw_gro_data->fk.control.flags & FLOW_DIS_ENCAPSULATION)
+> +		return 0;
+> +
+> +	thoff = rq->hw_gro_data->fk.control.thoff;
+> +	if (head_size < ETH_HLEN + thoff)
+> +		return 0;
+> +
+> +	nhoff = ETH_HLEN + thoff - sizeof(struct iphdr);
+> +	if (skb) {
+> +		iph = (struct iphdr *)(skb->data + thoff - sizeof(struct iphdr));
+> +	} else {
+> +		void *hdr = mlx5e_shampo_get_hdr(rq, cqe, ETH_HLEN + thoff);
+> +
+> +		iph = (struct iphdr *)(hdr + nhoff);
+> +	}
+> +
+> +	return nhoff + ntohs(iph->tot_len);
+> +}
+> +
+
+This function is costly as it inspects the header. I'd limit the header 
+lookup only to cases where the issue might be relevant. i.e. call it 
+only for short_frames().
+
+>   static bool mlx5e_shampo_complete_rx_cqe(struct mlx5e_rq *rq,
+>   					 struct mlx5_cqe64 *cqe,
+>   					 u32 cqe_bcnt,
+>   					 struct sk_buff *skb)
+>   {
+>   	struct mlx5e_rq_stats *stats = rq->stats;
+> +	u32 frame_len;
+>   
+>   	stats->packets++;
+>   	stats->bytes += cqe_bcnt;
+> @@ -1525,6 +1554,13 @@ static bool mlx5e_shampo_complete_rx_cqe(struct mlx5e_rq *rq,
+>   	if (!skb_flow_dissect_flow_keys(skb, &rq->hw_gro_data->fk, 0)) {
+>   		napi_gro_receive(rq->cq.napi, skb);
+>   		rq->hw_gro_data->skb = NULL;
+> +	} else {
+> +		frame_len = mlx5e_shampo_frame_len(rq, cqe, skb);
+> +		if (frame_len && frame_len >= cqe->shampo.header_size &&
+> +		    frame_len < cqe_bcnt) {
+> +			pskb_trim_rcsum(skb, skb->len - (cqe_bcnt - frame_len));
+> +			skb_shinfo(skb)->gso_size = frame_len - cqe->shampo.header_size;
+> +		}
+>   	}
+>   	return false;
+>   }
+> @@ -2244,6 +2280,7 @@ static void mlx5e_handle_rx_cqe_mpwrq_shampo(struct mlx5e_rq *rq, struct mlx5_cq
+>   	struct mlx5e_rx_wqe_ll *wqe;
+>   	struct mlx5e_mpw_info *wi;
+>   	struct mlx5_wq_ll *wq;
+> +	u32 frame_len = 0;
+>   	u32 data_offset;
+>   	u32 page_idx;
+>   
+> @@ -2263,11 +2300,22 @@ static void mlx5e_handle_rx_cqe_mpwrq_shampo(struct mlx5e_rq *rq, struct mlx5_cq
+>   
+>   	data_offset = wqe_offset & (page_size - 1);
+>   	page_idx = wqe_offset >> rq->mpwqe.page_shift;
+> -	if (*skb &&
+> -	    !(match && mlx5e_hw_gro_skb_has_enough_space(*skb, data_bcnt,
+> -							 page_size))) {
+> -		match = false;
+> -		mlx5e_shampo_flush_skb(rq, cqe, match);
+> +
+> +	if (*skb) {
+> +		u32 gro_bcnt = data_bcnt;
+> +
+> +		if (match) {
+> +			frame_len = mlx5e_shampo_frame_len(rq, cqe, NULL);
+> +			if (frame_len && frame_len >= head_size &&
+> +			    frame_len - head_size < gro_bcnt)
+> +				gro_bcnt = frame_len - head_size;
+> +		}
+> +
+> +		if (!(match && mlx5e_hw_gro_skb_has_enough_space(*skb, gro_bcnt,
+> +								 page_size))) {
+> +			match = false;
+> +			mlx5e_shampo_flush_skb(rq, cqe, match);
+> +		}
+>   	}
+>   
+>   	if (!*skb) {
+> @@ -2311,10 +2359,18 @@ static void mlx5e_handle_rx_cqe_mpwrq_shampo(struct mlx5e_rq *rq, struct mlx5_cq
+>   
+>   	if (likely(head_size)) {
+>   		if (data_bcnt) {
+> -			struct mlx5e_frag_page *frag_page;
+> +			if (NAPI_GRO_CB(*skb)->count > 1 &&
+> +			    frame_len >= head_size &&
+> +			    frame_len - head_size < data_bcnt)
+> +				data_bcnt = frame_len - head_size;
+>   
+> -			frag_page = &wi->alloc_units.frag_pages[page_idx];
+> -			mlx5e_shampo_fill_skb_data(*skb, rq, frag_page, data_bcnt, data_offset);
+> +			if (data_bcnt) {
+> +				struct mlx5e_frag_page *frag_page =
+> +					&wi->alloc_units.frag_pages[page_idx];
+> +
+> +				mlx5e_shampo_fill_skb_data(*skb, rq, frag_page,
+> +							   data_bcnt, data_offset);
+> +			}
+>   		} else {
+>   			stats->hds_nodata_packets++;
+>   			stats->hds_nodata_bytes += head_size;
+> 
+
+I agree that getting the Eth padding into TCP payload needs fixing.
+But proposed change is really invasive..
+
+IMO it's much simpler to avoid SW aggregation for all small packets 
+(without any inspection) rather than running costly and complicated 
+logic just to coalesce a small packet.
+
+Besides the selftest expectation, did you check what does SW GRO do? 
+Does it strip the padding and coalesce, or refuses to coalesce padded 
+frames?
+
+> base-commit: 8ba098e6b6ff0db8edf28528d1552be261af30d4
 
