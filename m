@@ -1,47 +1,47 @@
-Received: from CO1PR03CU002.outbound.protection.outlook.com (mail-westus2azon11020081.outbound.protection.outlook.com [52.101.46.81])
+Received: from BN1PR04CU002.outbound.protection.outlook.com (mail-eastus2azon11020072.outbound.protection.outlook.com [52.101.56.72])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7649534CFCF
-	for <linux-rdma@vger.kernel.org>; Mon,  3 Aug 2026 16:03:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.46.81
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B0B3B34F24E
+	for <linux-rdma@vger.kernel.org>; Mon,  3 Aug 2026 16:03:10 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.56.72
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785772991; cv=fail; b=mPO8omY/IDiyakL/lmhL53ZWiPBpYUjNv92c5Iwq9vFNBkbUx6CGNRAHvVxJcok9FRSde03OvYU6DfBqajYggSK6p/0uEeKl7E/xe+l1B0lHSvVzAt5vAwEQxLOFZxr/Vj870qzCh5aA/389BTDxks31524a4uoFoEs5sDG7qn4=
+	t=1785772993; cv=fail; b=YIzyqN82IMlfxI8I0BZz1KXK20PSqpBLXJgRMy3Z4lGJzTQ9CqUr8LkttBQwPFCv7vAEnVabql2qoh8wzjopmL+2StkNXg4DzqAMa7eQt+TJCsHMwCsjICXQdq5UzINGvm5CdSD0Yk77cdQym2x6Zfh98nNFyZ3c8q9GMhnk+us=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785772991; c=relaxed/simple;
-	bh=kUnhQejfDhtHPmrovq1X+DhQ+AjeJNX9Zi/uq71TCWU=;
+	s=arc-20240116; t=1785772993; c=relaxed/simple;
+	bh=gvfW9+7w1/blUz1HHfXbXZKPZI27/FhY+U6KXgufOV0=;
 	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=dsWxArytMZEqPWCLgFlrWJzn3uRjRupWHIsK9FjjNftEkpbkxKv6jXmXgECzlCZptWYDMBhyQeu0v9m1rD7i/Lx/wCm941OuabAadTqP8Ufa8SrohOvcveRHip7UTLGUWt7K8JfaIZLZGxhiSzdP5QoDE4sLjyb3A+w5sA5R5pQ=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cornelisnetworks.com; spf=pass smtp.mailfrom=cornelisnetworks.com; dkim=pass (2048-bit key) header.d=cornelisnetworks.com header.i=@cornelisnetworks.com header.b=JnHffEru; arc=fail smtp.client-ip=52.101.46.81
+	 MIME-Version:Content-Type; b=K/uhKWLZvqSGYnQygcQmuidvHCyo6Sof561DQKb9BL6F0Q6MOUI17FxDNGJo72w/Ol5evL8CU4bXHg0eI4toxhRkq8oz4/IXx99c/hwF0PlTK9GLJMXs7XtA4/wDKE/iDVxbODdrgTDqv+8VgsV8WzmnzZj6TNEAHvHi8qaLlI0=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cornelisnetworks.com; spf=pass smtp.mailfrom=cornelisnetworks.com; dkim=pass (2048-bit key) header.d=cornelisnetworks.com header.i=@cornelisnetworks.com header.b=DeTX0fML; arc=fail smtp.client-ip=52.101.56.72
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cornelisnetworks.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=cornelisnetworks.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=cornelisnetworks.com header.i=@cornelisnetworks.com header.b="JnHffEru"
+	dkim=pass (2048-bit key) header.d=cornelisnetworks.com header.i=@cornelisnetworks.com header.b="DeTX0fML"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=Wtx8rOZO9llSavgr25MXwE/oNeo7c0bjQYeYFy9I0cD4f3BzWZqR5Ypad3bLnmIOywXD/mmKnciHZMdQoUuzu/MMB94r40olHnRQ2tNojV7qdyC2pAoNzUr6tEyxNk0av/5ce3Yus00OOGRgQljHxC5EQKV6QnpaB8VGtlJlmUHmQSegYfp3mV73ffnJ8EmxroCqh09VEacJ6BlNOJav7b81vcKg138mPQjoU7MlInw2nJmJCv3X1t7/0oep5H0dqIIAY6sumHotTJ593urpVHLKu3VEhMBW9fklnyYas+KT2sduLssJw0XDQmJqPY7vnzaPzuhDgUaKoUI8hj++Og==
+ b=s89EQLITOs9Kwunn6m2NRQpgjzzGKWoe4YDFpA4AmqRataQd/LCKtSA8CaTIta23eU6hEWDxd4oeyxgeEin0riMBPpR/bp7OkX9JdFepOT1R6g5xnbOZHKbx44X+Qs4Z61wXPIXFVcsjFAjqgobGpbabRlKQFJUylMqH6vwb+NkPem2dDLKlv5vTr6T7N27usmxjcgM3ACgZKSk8l2+cE6jV4xNzT7RtOANnJFQDQrFe+IGG+kAgl5yxW4UPvJwoatSX4noneMCD8PHTOb+++9wvrRl2Yl0RPvCaKFULF2NUDtFw3M0e4Mpsx2WwKslNtBI7vblFX2jvFgPAYddjWw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=uRa6R59dMc8HaCOT9VdvHJrCt3Ljhw+CkRV49wHiCM0=;
- b=a6uf3A54P9IhD+Betk8GoxbToonAZ2cR8KSagxCRFT96pKk94xmxwHRs/0chidrJEX8KIxIy5AwwEbHVqNTUKiR/+OfqO4r22pnV7+vQsg0hqZG9tQNnarrZzVj/l3TaEzzLtcpUC4tIEB9BdFSiqZfQWtXcqSWIP91/eWz3YOuhHk9jm8WfKx7Ys4ltUcySCxj+6yV4nB/x6Tqfv9OICfdHlVwn7UyU2PtAWZBPeZak82L8PTkUjzi6VB+ccXrKRANuEHd5PsydjHpk/EI/l+ME6cmGXnkcQXaiMtiW/FJDwAaTEUcII8usjDW9G06zmbxtuTfTf/OuIUeApPp7HQ==
+ bh=5qx16ir6DE3v329UhhEwlG8NMMJIpMPAPud0ybvyGWc=;
+ b=WnrbQ2DmBokzACifxNnXk1EXKCID33lA0FyFSLoDTqbwdI7WJssHOD/2uQLkl7zXmyHQQlLbgvGWPnaIRtcKkbig1BdZJQeWdLHvVnqsAn1yfgSKYKTz4HJqfw4NWgLvkqQjzM8LiAEzvEyd7UPaJ1GxHihbHZbO30hJYHBLmwUam2K0TjegYREIklcDLeu2v139yvIdzgyn2phP4CeGHs3Hp7W1/bWNqPcJaktKE2T8/a+y7cME6z7o34wiY2Fyec3Wz0VdMTyIDHF8cvlAKsxqsGIodJQFBb64XOlcsi5gGic+GqfiUAMtiUyZ9gmea68kMCPMfFKtG3kjuFjqHg==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 208.255.156.42) smtp.rcpttodomain=cornelisnetworks.com
+ 208.255.156.42) smtp.rcpttodomain=kernel.org
  smtp.mailfrom=cornelisnetworks.com; dmarc=pass (p=none sp=none pct=100)
  action=none header.from=cornelisnetworks.com; dkim=none (message not signed);
  arc=none (0)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cornelisnetworks.com;
  s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=uRa6R59dMc8HaCOT9VdvHJrCt3Ljhw+CkRV49wHiCM0=;
- b=JnHffEruZ10Lt1/3xfiMj05itdJL5ldNIVxqHvww4zX3RjIFtrwcXy6pAiv4ElugSQ2+08bikpwA8Rizi7ai1hcQ9VGSxvYF6PZKuL9/0/yq+cK8m5qw+lzQ17vQ8JjrkH4OtpBHu/qRqjKggu3qCwFCpLY7Cl+jAJ7wWNlvKQ1ly8b6aN4I9Lg+n0vKvxEL9ajh2pDxMR1nOIrjSLcBw/Wt7c6o/OOj/DXrKCj94dbzX9O5zgncGa+VeVw0TwDgOzhC3NLCTc9Fg79VaNdIQ2ABb81X5MUANcW38dyF/us2fR6h9RB7kFqOaltHzYHZUtnzRFrgcB+Wkz8a9lbtPw==
-Received: from PH0PR07CA0097.namprd07.prod.outlook.com (2603:10b6:510:4::12)
- by LV2PR01MB7839.prod.exchangelabs.com (2603:10b6:408:14f::13) with Microsoft
+ bh=5qx16ir6DE3v329UhhEwlG8NMMJIpMPAPud0ybvyGWc=;
+ b=DeTX0fMLeZgzCnNEEm/cYBZwvrisY519l2mMcEyVX857J7dTfJF87bpPQjt8NisygAn/uJjYYsGkw9b9ynkKL1NqMqvSgVI7LsrENusHOLx2QY/WeU1jksQ+c4x0iKQRMSFXXYnEDJj6l2W51QlA+mb44ZipO+7xgXj6K4QRdY1Y+yOLtUe4mCybPVJ8Cu2T7EsCiVFeXfgR1ySxxOOW4/EVGxOvWovPVX8Q5nAFv/ElfkQUlcq2Itjm5Covd3S4knGyH3Sxl5TiFKcMhUXFpUKV/AEZP//BZYZlnuWY9MXn0DeIpMk8FXz4tNyah9icoqFItxzbYQ3JmyMkcX4pHA==
+Received: from CH2PR10CA0017.namprd10.prod.outlook.com (2603:10b6:610:4c::27)
+ by MW6PR01MB8628.prod.exchangelabs.com (2603:10b6:303:248::5) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.270.18; Mon, 3 Aug 2026 16:03:04 +0000
-Received: from MW1PEPF0001615C.namprd21.prod.outlook.com
- (2603:10b6:510:4:cafe::74) by PH0PR07CA0097.outlook.office365.com
- (2603:10b6:510:4::12) with Microsoft SMTP Server (version=TLS1_3,
+ 15.21.270.17; Mon, 3 Aug 2026 16:03:07 +0000
+Received: from BL02EPF00021F6F.namprd02.prod.outlook.com
+ (2603:10b6:610:4c:cafe::15) by CH2PR10CA0017.outlook.office365.com
+ (2603:10b6:610:4c::27) with Microsoft SMTP Server (version=TLS1_3,
  cipher=TLS_AES_256_GCM_SHA384) id 15.21.270.18 via Frontend Transport; Mon, 3
- Aug 2026 16:03:02 +0000
+ Aug 2026 16:03:06 +0000
 X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 208.255.156.42)
  smtp.mailfrom=cornelisnetworks.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=cornelisnetworks.com;
@@ -50,21 +50,22 @@ Received-SPF: Pass (protection.outlook.com: domain of cornelisnetworks.com
  receiver=protection.outlook.com; client-ip=208.255.156.42;
  helo=cn-mailer-00.localdomain; pr=C
 Received: from cn-mailer-00.localdomain (208.255.156.42) by
- MW1PEPF0001615C.mail.protection.outlook.com (10.167.249.87) with Microsoft
- SMTP Server (version=TLS1_3, cipher=TLS_AES_256_GCM_SHA384) id 15.21.315.0
- via Frontend Transport; Mon, 3 Aug 2026 16:03:01 +0000
+ BL02EPF00021F6F.mail.protection.outlook.com (10.167.249.11) with Microsoft
+ SMTP Server (version=TLS1_3, cipher=TLS_AES_256_GCM_SHA384) id 15.21.292.8
+ via Frontend Transport; Mon, 3 Aug 2026 16:03:04 +0000
 Received: from awdrv-04.localdomain (unknown [10.228.212.218])
-	by cn-mailer-00.localdomain (Postfix) with ESMTPS id 9099E1B31FE;
-	Mon,  3 Aug 2026 12:02:49 -0400 (EDT)
+	by cn-mailer-00.localdomain (Postfix) with ESMTPS id BBDEC155AC0;
+	Mon,  3 Aug 2026 12:03:04 -0400 (EDT)
 Received: from [10.228.212.218] (localhost [IPv6:::1])
-	by awdrv-04.localdomain (Postfix) with ESMTP id 8B3411810DF01;
-	Mon,  3 Aug 2026 12:02:49 -0400 (EDT)
-Subject: [PATCH v3 for-next 20/24] RDMA/hfi2: Add misc header files
+	by awdrv-04.localdomain (Postfix) with ESMTP id B6DF61810DF01;
+	Mon,  3 Aug 2026 12:03:04 -0400 (EDT)
+Subject: [PATCH v3 for-next 23/24] RDMA/hfi2: Modernize mmap to use
+ rdma_user_mmap_entry infrastructure
 From: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
 To: jgg@ziepe.ca, leon@kernel.org
-Cc: Dean Luick <dean.luick@cornelisnetworks.com>, linux-rdma@vger.kernel.org
-Date: Mon, 03 Aug 2026 12:02:49 -0400
-Message-ID: <178577296953.1792062.4755115418693516281.stgit@awdrv-04>
+Cc: linux-rdma@vger.kernel.org
+Date: Mon, 03 Aug 2026 12:03:04 -0400
+Message-ID: <178577298470.1792062.4631687774237410007.stgit@awdrv-04>
 In-Reply-To: <178577280181.1792062.14134152769069940570.stgit@awdrv-04>
 References: <178577280181.1792062.14134152769069940570.stgit@awdrv-04>
 User-Agent: StGit/1.5
@@ -78,727 +79,527 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: MW1PEPF0001615C:EE_|LV2PR01MB7839:EE_
-X-MS-Office365-Filtering-Correlation-Id: baf7dd06-99c5-4f94-02ca-08def178b1eb
+X-MS-TrafficTypeDiagnostic: BL02EPF00021F6F:EE_|MW6PR01MB8628:EE_
+X-MS-Office365-Filtering-Correlation-Id: 566bfc51-85dd-4015-d5d8-08def178b3f2
 X-MS-Exchange-AtpMessageProperties: SA
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|36860700016|23010399003|376014|1800799024|82310400026|56012099006|3023799007|6133799003|10067099003|22082099003|18002099003|55112099003;
+	BCL:0;ARA:13230040|376014|1800799024|82310400026|36860700016|23010399003|18002099003|22082099003|55112099003|3023799007|56012099006|10067099003;
 X-Microsoft-Antispam-Message-Info:
-	YTr82vICA3GIWGWC+R6nePD6MmNEAgZ11Q2gtvs0wjssKk7c9BPzHJDnRIszWSfO1X7JRYwO/r1U2FBnGCpHQp+8oxW/5NtahzV8x47Dpw+knYOhbhjTPfUQKKwIjuXFW6pnvaNE6wuG8dC1FQEwcNu5liiP4GaLKoEm2xGC+2fTEiAAfbVr4u3Gg+C4JZxju1wMMhdgVrNOGZVvaO035rLsdrDRh8/DdMAMHvex3DFs8oMuqus3+4zDabNM1TFFeC5v8rbSHabOMzF1YPehvGtWtYymDopU8fZCLbTZRC5Zn8qw0JmkNLzSX0JkgPQ1V2Rw91qNl2ROclQsDWmFgYgMNYpHEefppuDSA4KrJe58LvQnO2Moq1pySXtiY/HntXypRGijIcu71ar889gs/vuoqr8f5OXCuXd7LuESmsJh4e/VX9zy17ZfVx43WciMT2A4CFv9YBLappCwJEsey9I9oKXUIeLKYLTLKKWAl8BNS6lyHCC/g70+gZg0htAf5uczimE9ZzRbdNrYYVrvQh/eyVeU0Y7W9/CPa9iBWS5TchAXpmk63OcBiQPEMAKaRohHNo/wQu1ZTgxSuB1WmCKTtofUy241tRbDRrgGonwMn72EDuCr3PKPBUv3QC0Mr5B8T4K6jxRY3nmuhWKK0c44GXNNnCmaf3bPlsd7sIgCeeO9gL6a92aqU3g5kKciwJZZcRXTvCwVesJAvGL/XA==
+	8/7W5Xi18miQ5f5VnhWrAPBybM0zPQHZOkb2CYfH0MHtKUFOb3aPK9wDBIWA+HEhkCHC/ImzXKY7Nhqq461b/FNmf4ie8cMQN282Dj3Djc+wK1QySKrJMUIIZHLXLhQYLqK+D73d8l6tDBEj9WgzECPypk/fgVF/zQF0BQY6VmWrj3h7aV1xLXlswpPN2l10IR4GJqHTN+FPCre19A8KDtVUOAHJR1iaX5lNrzyA7LPFG1+7+dES1SxXmWM1hVvPmvB9HJtag5wDK/ULV/xwX0SXNIGIpKN2ySLdKwOQn03pp2Y02lDI2gUiJK08gjF2EPLKokaDc2q/8bjXNnX1rbadNl/bfJKNump9lnAcc8Bbf6Ikawt5GVhVxScs11csapmaC9qCmh+KA7NE7snlLjLGDFXGZZzUtK1c0IfI53mEdOPOKboHjRI4mNJ/8iBGWjx9kvECKSm1/pqWmvnsLoMMbzcNePLJmm3VFJ+fanQekXzuwPyPw9Ybe5HtSLjuX3PUyEISlNO4pRwf0C1C4d3urhYR7nprlag64g0SJsn6L96t6LhDAnbTP+eGkWV8+A3hWj0xBnfA7Gh5s6g0GUcYD/K6KK90aoucpJJLr6ynpL8IoWvjuFIgrjd3n8Jl5BZaHbMgioCMKlLPhJq6TRhMXtlxoVa/kRTKjFOuIuHwoDTc9QIjS8vyN4JGOQpWLBEQeMjjh4bxe7j0v+d7Zw==
 X-Forefront-Antispam-Report:
-	CIP:208.255.156.42;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:cn-mailer-00.localdomain;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(36860700016)(23010399003)(376014)(1800799024)(82310400026)(56012099006)(3023799007)(6133799003)(10067099003)(22082099003)(18002099003)(55112099003);DIR:OUT;SFP:1102;
+	CIP:208.255.156.42;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:cn-mailer-00.localdomain;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(376014)(1800799024)(82310400026)(36860700016)(23010399003)(18002099003)(22082099003)(55112099003)(3023799007)(56012099006)(10067099003);DIR:OUT;SFP:1102;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	klhvP3auRkMWh0cpk55vPCtorohR9LAX2AGOX4Yk7PnL/Q5aO5oBMTi66yKk89KpDIf0KBsTIhO4P+5QI6H/bU2KWh2MtegStdlR4ElwCHeHX7x0eDfavhOzvmfXW4sOOzJh5H+cK4p6unSB5DDDtiCOgcCA/l0EJWMQaGMNVl+JRAaOj5JXy0qItY4tn52w5YBppm3QWF545kz67s79ynYJ7z7RSC6Kq1uyv8J/q0cThkbYXs6Np4+vKzh4+qhPgRZmTgLmT0O92XG2ud/h/9Q0WDMJ1OuYc/vNZ6GYDNC94gAn5j5WfZOm5Y7P91TrVdR1txsAOmrhsL3UGWQb7b85Xa+fJwWoXcRlX1OocwuOuVAhfkqqXRCIT3L0LNLCFwze5YYgb5ehl+cAb6QAhnH4Pr226NfQHQ4bbyZe3t/zasKUo4JLHDAfUHqR6DFB
+	lQcGzYUzRsZ4XZyaDZCHvTLB21V5oD9o1GxfKypcY+G64kAUowwyj6EHi3wpldLkVoTptvi/+GaRF4NU7o+EQChAbq71quH2uj3BtH68M6ZUBa2RBvi/jcRyJWorMm9vj8mYXdGUs1ZsqaM/TV4lBL3/sd0M+hkp6prCFjyqcqaWY3qkCPvKXEZRTwwgeoB0+mhjni/orZcLEBRkIROYZrXSNNI0zU89upYWDEXoSeyANI1uAAo6dZnKEh3qN7NDoEdfLXTp5E5u/E1HjIkn7BY0gI9ZD490CG/+IT53fEPABLWMaJLELvGyBQaMhXsyyYUorP8r1E2F57P8iaKXmiKPQrMJtZG4ttghRngmudui+fV7Be3WAPdC3Owcq0ImifETPAxSqTAhDUx/TqbmRn5NAyIoovEqLjFAj4EaWOEhnlXx5BRFBN58f8hcetKO
 X-OriginatorOrg: cornelisnetworks.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 03 Aug 2026 16:03:01.4630
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 03 Aug 2026 16:03:04.9904
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: baf7dd06-99c5-4f94-02ca-08def178b1eb
+X-MS-Exchange-CrossTenant-Network-Message-Id: 566bfc51-85dd-4015-d5d8-08def178b3f2
 X-MS-Exchange-CrossTenant-Id: 4dbdb7da-74ee-4b45-8747-ef5ce5ebe68a
 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=4dbdb7da-74ee-4b45-8747-ef5ce5ebe68a;Ip=[208.255.156.42];Helo=[cn-mailer-00.localdomain]
 X-MS-Exchange-CrossTenant-AuthSource:
-	MW1PEPF0001615C.namprd21.prod.outlook.com
+	BL02EPF00021F6F.namprd02.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: LV2PR01MB7839
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: MW6PR01MB8628
 
-There are a few header files that didn't really fit with the rest of the
-bunch so adding them all separately.
+New RDMA drivers are required to use the rdma_user_mmap_entry API
+instead of encoding buffer types directly into vm_pgoff tokens. Add
+the mmap_entries array to hfi2_filedata to track per-context mmap
+entry pointers for cleanup on context teardown. Export rvt_mmap()
+from rdmavt so hfi2 can call it as a fallback for CQ/QP/SRQ mmaps
+managed by rdmavt's pending_mmaps list. Also remove the dead
+hfi1_tid_info struct from the hfi2 ABI header.
 
-Co-developed-by: Dean Luick <dean.luick@cornelisnetworks.com>
-Signed-off-by: Dean Luick <dean.luick@cornelisnetworks.com>
 Assisted-by: Claude:claude-sonnet-4-5
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
 ---
- drivers/infiniband/hw/hfi2/opfn.h     |   88 ++++++++
- drivers/infiniband/hw/hfi2/platform.h |  372 +++++++++++++++++++++++++++++++++
- drivers/infiniband/hw/hfi2/qsfp.h     |  202 ++++++++++++++++++
- 3 files changed, 662 insertions(+)
- create mode 100644 drivers/infiniband/hw/hfi2/opfn.h
- create mode 100644 drivers/infiniband/hw/hfi2/platform.h
- create mode 100644 drivers/infiniband/hw/hfi2/qsfp.h
+  Changes since v2:
+  - rdmavt/cq.c: add synchronize_rcu() before vfree(old_u_wc) and
+    vfree(old_k_wc) in rvt_resize_cq() to close free-while-mapped race.
+  - rdmavt/srq.c: add synchronize_rcu() before vfree(owq) and
+    kvfree(okwq) in rvt_modify_srq() to close free-while-mapped race.
+---
+ drivers/infiniband/hw/hfi2/hfi2.h   |  123 ++++++++++++++++++++++-------------
+ drivers/infiniband/sw/rdmavt/cq.c   |    9 +--
+ drivers/infiniband/sw/rdmavt/mmap.c |    7 +-
+ drivers/infiniband/sw/rdmavt/srq.c  |   20 +++---
+ include/uapi/rdma/hfi2-abi.h        |   11 ---
+ 5 files changed, 93 insertions(+), 77 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi2/opfn.h b/drivers/infiniband/hw/hfi2/opfn.h
-new file mode 100644
-index 000000000000..87fad4e7286e
---- /dev/null
-+++ b/drivers/infiniband/hw/hfi2/opfn.h
-@@ -0,0 +1,88 @@
-+/* SPDX-License-Identifier: (GPL-2.0 OR BSD-3-Clause) */
-+/*
-+ * Copyright(c) 2018 Intel Corporation.
-+ * Copyright(c) 2025-2026 Cornelis Networks, Inc.
-+ *
-+ */
-+#ifndef _HFI2_OPFN_H
-+#define _HFI2_OPFN_H
-+
-+/**
-+ * DOC: Omni Path Feature Negotion (OPFN)
-+ *
-+ * OPFN is a discovery protocol for Intel Omni-Path fabric that
-+ * allows two RC QPs to negotiate a common feature that both QPs
-+ * can support. Currently, the only OPA feature that OPFN
-+ * supports is TID RDMA.
-+ *
-+ * Architecture
-+ *
-+ * OPFN involves the communication between two QPs on the HFI
-+ * level on an Omni-Path fabric, and ULPs have no knowledge of
-+ * OPFN at all.
-+ *
-+ * Implementation
-+ *
-+ * OPFN extends the existing IB RC protocol with the following
-+ * changes:
-+ * -- Uses Bit 24 (reserved) of DWORD 1 of Base Transport
-+ *    Header (BTH1) to indicate that the RC QP supports OPFN;
-+ * -- Uses a combination of RC COMPARE_SWAP opcode (0x13) and
-+ *    the address U64_MAX (0xFFFFFFFFFFFFFFFF) as an OPFN
-+ *    request; The 64-bit data carried with the request/response
-+ *    contains the parameters for negotiation and will be
-+ *    defined in tid_rdma.c file;
-+ * -- Defines IB_WR_RESERVED3 as IB_WR_OPFN.
-+ *
-+ * The OPFN communication will be triggered when an RC QP
-+ * receives a request with Bit 24 of BTH1 set. The responder QP
-+ * will then post send an OPFN request with its local
-+ * parameters, which will be sent to the requester QP once all
-+ * existing requests on the responder QP side have been sent.
-+ * Once the requester QP receives the OPFN request, it will
-+ * keep a copy of the responder QP's parameters, and return a
-+ * response packet with its own local parameters. The responder
-+ * QP receives the response packet and keeps a copy of the requester
-+ * QP's parameters. After this exchange, each side has the parameters
-+ * for both sides and therefore can select the right parameters
-+ * for future transactions
-+ */
-+
-+#include <linux/workqueue.h>
-+#include <rdma/ib_verbs.h>
-+#include <rdma/rdmavt_qp.h>
-+
-+/* STL Verbs Extended */
-+#define IB_BTHE_E_SHIFT           24
-+#define HFI2_VERBS_E_ATOMIC_VADDR U64_MAX
-+
-+enum hfi2_opfn_codes {
-+	STL_VERBS_EXTD_NONE = 0,
-+	STL_VERBS_EXTD_TID_RDMA,
-+	STL_VERBS_EXTD_MAX
-+};
-+
-+struct hfi2_opfn_data {
-+	u8 extended;
-+	u16 requested;
-+	u16 completed;
-+	enum hfi2_opfn_codes curr;
-+	/* serialize opfn function calls */
-+	spinlock_t lock;
-+	struct work_struct opfn_work;
-+};
-+
-+/* WR opcode for OPFN */
-+#define IB_WR_OPFN IB_WR_RESERVED3
-+
-+void hfi2_opfn_send_conn_request(struct work_struct *work);
-+void hfi2_opfn_conn_response(struct rvt_qp *qp, struct rvt_ack_entry *e,
-+			struct ib_atomic_eth *ateth);
-+void hfi2_opfn_conn_reply(struct rvt_qp *qp, u64 data);
-+void hfi2_opfn_conn_error(struct rvt_qp *qp);
-+void hfi2_opfn_qp_init(struct rvt_qp *qp, struct ib_qp_attr *attr, int attr_mask);
-+void hfi2_opfn_trigger_conn_request(struct rvt_qp *qp, u32 bth1);
-+int hfi2_opfn_init(void);
-+void hfi2_opfn_exit(void);
-+
-+#endif /* _HFI2_OPFN_H */
-diff --git a/drivers/infiniband/hw/hfi2/platform.h b/drivers/infiniband/hw/hfi2/platform.h
-new file mode 100644
-index 000000000000..5ae163520a8a
---- /dev/null
-+++ b/drivers/infiniband/hw/hfi2/platform.h
-@@ -0,0 +1,372 @@
-+/* SPDX-License-Identifier: GPL-2.0 OR BSD-3-Clause */
-+/*
-+ * Copyright(c) 2015, 2016 Intel Corporation.
-+ * Copyright(c) 2025-2026 Cornelis Networks, Inc.
-+ */
-+
-+#ifndef __PLATFORM_H
-+#define __PLATFORM_H
-+
-+#define METADATA_TABLE_FIELD_START_SHIFT		0
-+#define METADATA_TABLE_FIELD_START_LEN_BITS		15
-+#define METADATA_TABLE_FIELD_LEN_SHIFT			16
-+#define METADATA_TABLE_FIELD_LEN_LEN_BITS		16
-+
-+/* Header structure */
-+#define PLATFORM_CONFIG_HEADER_RECORD_IDX_SHIFT			0
-+#define PLATFORM_CONFIG_HEADER_RECORD_IDX_LEN_BITS		6
-+#define PLATFORM_CONFIG_HEADER_TABLE_LENGTH_SHIFT		16
-+#define PLATFORM_CONFIG_HEADER_TABLE_LENGTH_LEN_BITS		12
-+#define PLATFORM_CONFIG_HEADER_TABLE_TYPE_SHIFT			28
-+#define PLATFORM_CONFIG_HEADER_TABLE_TYPE_LEN_BITS		4
-+
-+enum platform_config_table_type_encoding {
-+	PLATFORM_CONFIG_TABLE_RESERVED,
-+	PLATFORM_CONFIG_SYSTEM_TABLE,
-+	PLATFORM_CONFIG_PORT_TABLE,
-+	PLATFORM_CONFIG_RX_PRESET_TABLE,
-+	PLATFORM_CONFIG_TX_PRESET_TABLE,
-+	PLATFORM_CONFIG_QSFP_ATTEN_TABLE,
-+	PLATFORM_CONFIG_VARIABLE_SETTINGS_TABLE,
-+	PLATFORM_CONFIG_TABLE_MAX
-+};
-+
-+enum platform_config_system_table_fields {
-+	SYSTEM_TABLE_RESERVED,
-+	SYSTEM_TABLE_NODE_STRING,
-+	SYSTEM_TABLE_SYSTEM_IMAGE_GUID,
-+	SYSTEM_TABLE_NODE_GUID,
-+	SYSTEM_TABLE_REVISION,
-+	SYSTEM_TABLE_VENDOR_OUI,
-+	SYSTEM_TABLE_META_VERSION,
-+	SYSTEM_TABLE_DEVICE_ID,
-+	SYSTEM_TABLE_PARTITION_ENFORCEMENT_CAP,
-+	SYSTEM_TABLE_QSFP_POWER_CLASS_MAX,
-+	SYSTEM_TABLE_QSFP_ATTENUATION_DEFAULT_12G,
-+	SYSTEM_TABLE_QSFP_ATTENUATION_DEFAULT_25G,
-+	SYSTEM_TABLE_VARIABLE_TABLE_ENTRIES_PER_PORT,
-+	SYSTEM_TABLE_MAX
-+};
-+
-+enum platform_config_port_table_fields {
-+	PORT_TABLE_RESERVED,
-+	PORT_TABLE_PORT_TYPE,
-+	PORT_TABLE_LOCAL_ATTEN_12G,
-+	PORT_TABLE_LOCAL_ATTEN_25G,
-+	PORT_TABLE_LINK_SPEED_SUPPORTED,
-+	PORT_TABLE_LINK_WIDTH_SUPPORTED,
-+	PORT_TABLE_AUTO_LANE_SHEDDING_ENABLED,
-+	PORT_TABLE_EXTERNAL_LOOPBACK_ALLOWED,
-+	PORT_TABLE_VL_CAP,
-+	PORT_TABLE_MTU_CAP,
-+	PORT_TABLE_TX_LANE_ENABLE_MASK,
-+	PORT_TABLE_LOCAL_MAX_TIMEOUT,
-+	PORT_TABLE_REMOTE_ATTEN_12G,
-+	PORT_TABLE_REMOTE_ATTEN_25G,
-+	PORT_TABLE_TX_PRESET_IDX_ACTIVE_NO_EQ,
-+	PORT_TABLE_TX_PRESET_IDX_ACTIVE_EQ,
-+	PORT_TABLE_RX_PRESET_IDX,
-+	PORT_TABLE_CABLE_REACH_CLASS,
-+	PORT_TABLE_MAX
-+};
-+
-+enum platform_config_rx_preset_table_fields {
-+	RX_PRESET_TABLE_RESERVED,
-+	RX_PRESET_TABLE_QSFP_RX_CDR_APPLY,
-+	RX_PRESET_TABLE_QSFP_RX_EMP_APPLY,
-+	RX_PRESET_TABLE_QSFP_RX_AMP_APPLY,
-+	RX_PRESET_TABLE_QSFP_RX_CDR,
-+	RX_PRESET_TABLE_QSFP_RX_EMP,
-+	RX_PRESET_TABLE_QSFP_RX_AMP,
-+	RX_PRESET_TABLE_MAX
-+};
-+
-+enum platform_config_tx_preset_table_fields {
-+	TX_PRESET_TABLE_RESERVED,
-+	TX_PRESET_TABLE_PRECUR,
-+	TX_PRESET_TABLE_ATTN,
-+	TX_PRESET_TABLE_POSTCUR,
-+	TX_PRESET_TABLE_QSFP_TX_CDR_APPLY,
-+	TX_PRESET_TABLE_QSFP_TX_EQ_APPLY,
-+	TX_PRESET_TABLE_QSFP_TX_CDR,
-+	TX_PRESET_TABLE_QSFP_TX_EQ,
-+	TX_PRESET_TABLE_MAX
-+};
-+
-+enum platform_config_qsfp_attn_table_fields {
-+	QSFP_ATTEN_TABLE_RESERVED,
-+	QSFP_ATTEN_TABLE_TX_PRESET_IDX,
-+	QSFP_ATTEN_TABLE_RX_PRESET_IDX,
-+	QSFP_ATTEN_TABLE_MAX
-+};
-+
-+enum platform_config_variable_settings_table_fields {
-+	VARIABLE_SETTINGS_TABLE_RESERVED,
-+	VARIABLE_SETTINGS_TABLE_TX_PRESET_IDX,
-+	VARIABLE_SETTINGS_TABLE_RX_PRESET_IDX,
-+	VARIABLE_SETTINGS_TABLE_MAX
-+};
-+
-+struct platform_config {
-+	size_t size;
-+	const u8 *data;
-+};
-+
-+struct platform_config_data {
-+	u32 *table;
-+	u32 *table_metadata;
-+	u32 num_table;
-+};
-+
-+/*
-+ * This struct acts as a quick reference into the platform_data binary image
-+ * and is populated by hfi2_parse_platform_config(...) depending on the specific
-+ * META_VERSION
-+ */
-+struct platform_config_cache {
-+	u8  cache_valid;
-+	struct platform_config_data config_tables[PLATFORM_CONFIG_TABLE_MAX];
-+};
-+
-+/* This section defines default values and encodings for the
-+ * fields defined for each table above
-+ */
-+
-+/*
-+ * =====================================================
-+ *  System table encodings
-+ * =====================================================
-+ */
-+#define PLATFORM_CONFIG_MAGIC_NUM		0x3d4f5041
-+#define PLATFORM_CONFIG_MAGIC_NUMBER_LEN	4
-+
-+/*
-+ * These power classes are the same as defined in SFF 8636 spec rev 2.4
-+ * describing byte 129 in table 6-16, except enumerated in a different order
-+ */
-+enum platform_config_qsfp_power_class_encoding {
-+	QSFP_POWER_CLASS_1 = 1,
-+	QSFP_POWER_CLASS_2,
-+	QSFP_POWER_CLASS_3,
-+	QSFP_POWER_CLASS_4,
-+	QSFP_POWER_CLASS_5,
-+	QSFP_POWER_CLASS_6,
-+	QSFP_POWER_CLASS_7
-+};
-+
-+/*
-+ * ====================================================
-+ *  Port table encodings
-+ * ====================================================
-+ */
-+enum platform_config_port_type_encoding {
-+	PORT_TYPE_UNKNOWN,
-+	PORT_TYPE_DISCONNECTED,
-+	PORT_TYPE_FIXED,
-+	PORT_TYPE_VARIABLE,
-+	PORT_TYPE_QSFP,
-+	PORT_TYPE_MAX
-+};
-+
-+enum platform_config_link_speed_supported_encoding {
-+	LINK_SPEED_SUPP_12G = 1,
-+	LINK_SPEED_SUPP_25G,
-+	LINK_SPEED_SUPP_12G_25G,
-+	LINK_SPEED_SUPP_MAX
-+};
-+
-+/*
-+ * This is a subset (not strict) of the link downgrades
-+ * supported. The link downgrades supported are expected
-+ * to be supplied to the driver by another entity such as
-+ * the fabric manager
-+ */
-+enum platform_config_link_width_supported_encoding {
-+	LINK_WIDTH_SUPP_1X = 1,
-+	LINK_WIDTH_SUPP_2X,
-+	LINK_WIDTH_SUPP_2X_1X,
-+	LINK_WIDTH_SUPP_3X,
-+	LINK_WIDTH_SUPP_3X_1X,
-+	LINK_WIDTH_SUPP_3X_2X,
-+	LINK_WIDTH_SUPP_3X_2X_1X,
-+	LINK_WIDTH_SUPP_4X,
-+	LINK_WIDTH_SUPP_4X_1X,
-+	LINK_WIDTH_SUPP_4X_2X,
-+	LINK_WIDTH_SUPP_4X_2X_1X,
-+	LINK_WIDTH_SUPP_4X_3X,
-+	LINK_WIDTH_SUPP_4X_3X_1X,
-+	LINK_WIDTH_SUPP_4X_3X_2X,
-+	LINK_WIDTH_SUPP_4X_3X_2X_1X,
-+	LINK_WIDTH_SUPP_MAX
-+};
-+
-+enum platform_config_virtual_lane_capability_encoding {
-+	VL_CAP_VL0 = 1,
-+	VL_CAP_VL0_1,
-+	VL_CAP_VL0_2,
-+	VL_CAP_VL0_3,
-+	VL_CAP_VL0_4,
-+	VL_CAP_VL0_5,
-+	VL_CAP_VL0_6,
-+	VL_CAP_VL0_7,
-+	VL_CAP_VL0_8,
-+	VL_CAP_VL0_9,
-+	VL_CAP_VL0_10,
-+	VL_CAP_VL0_11,
-+	VL_CAP_VL0_12,
-+	VL_CAP_VL0_13,
-+	VL_CAP_VL0_14,
-+	VL_CAP_MAX
-+};
-+
-+/* Max MTU */
-+enum platform_config_mtu_capability_encoding {
-+	MTU_CAP_256   = 1,
-+	MTU_CAP_512   = 2,
-+	MTU_CAP_1024  = 3,
-+	MTU_CAP_2048  = 4,
-+	MTU_CAP_4096  = 5,
-+	MTU_CAP_8192  = 6,
-+	MTU_CAP_10240 = 7
-+};
-+
-+enum platform_config_local_max_timeout_encoding {
-+	LOCAL_MAX_TIMEOUT_10_MS = 1,
-+	LOCAL_MAX_TIMEOUT_100_MS,
-+	LOCAL_MAX_TIMEOUT_1_S,
-+	LOCAL_MAX_TIMEOUT_10_S,
-+	LOCAL_MAX_TIMEOUT_100_S,
-+	LOCAL_MAX_TIMEOUT_1000_S
-+};
-+
-+enum link_tuning_encoding {
-+	OPA_PASSIVE_TUNING,
-+	OPA_ACTIVE_TUNING,
-+	OPA_UNKNOWN_TUNING
-+};
-+
-+/*
-+ * Shifts and masks for the link SI tuning values stuffed into the ASIC scratch
-+ * registers for integrated platforms
-+ */
-+#define PORT0_PORT_TYPE_SHIFT		0
-+#define PORT0_LOCAL_ATTEN_SHIFT		4
-+#define PORT0_REMOTE_ATTEN_SHIFT	10
-+#define PORT0_DEFAULT_ATTEN_SHIFT	32
-+
-+#define PORT1_PORT_TYPE_SHIFT		16
-+#define PORT1_LOCAL_ATTEN_SHIFT		20
-+#define PORT1_REMOTE_ATTEN_SHIFT	26
-+#define PORT1_DEFAULT_ATTEN_SHIFT	40
-+
-+#define PORT0_PORT_TYPE_MASK		0xFUL
-+#define PORT0_LOCAL_ATTEN_MASK		0x3FUL
-+#define PORT0_REMOTE_ATTEN_MASK		0x3FUL
-+#define PORT0_DEFAULT_ATTEN_MASK	0xFFUL
-+
-+#define PORT1_PORT_TYPE_MASK		0xFUL
-+#define PORT1_LOCAL_ATTEN_MASK		0x3FUL
-+#define PORT1_REMOTE_ATTEN_MASK		0x3FUL
-+#define PORT1_DEFAULT_ATTEN_MASK	0xFFUL
-+
-+#define PORT0_PORT_TYPE_SMASK		(PORT0_PORT_TYPE_MASK << \
-+					 PORT0_PORT_TYPE_SHIFT)
-+#define PORT0_LOCAL_ATTEN_SMASK		(PORT0_LOCAL_ATTEN_MASK << \
-+					 PORT0_LOCAL_ATTEN_SHIFT)
-+#define PORT0_REMOTE_ATTEN_SMASK	(PORT0_REMOTE_ATTEN_MASK << \
-+					 PORT0_REMOTE_ATTEN_SHIFT)
-+#define PORT0_DEFAULT_ATTEN_SMASK	(PORT0_DEFAULT_ATTEN_MASK << \
-+					 PORT0_DEFAULT_ATTEN_SHIFT)
-+
-+#define PORT1_PORT_TYPE_SMASK		(PORT1_PORT_TYPE_MASK << \
-+					 PORT1_PORT_TYPE_SHIFT)
-+#define PORT1_LOCAL_ATTEN_SMASK		(PORT1_LOCAL_ATTEN_MASK << \
-+					 PORT1_LOCAL_ATTEN_SHIFT)
-+#define PORT1_REMOTE_ATTEN_SMASK	(PORT1_REMOTE_ATTEN_MASK << \
-+					 PORT1_REMOTE_ATTEN_SHIFT)
-+#define PORT1_DEFAULT_ATTEN_SMASK	(PORT1_DEFAULT_ATTEN_MASK << \
-+					 PORT1_DEFAULT_ATTEN_SHIFT)
-+
-+#define QSFP_MAX_POWER_SHIFT		0
-+#define TX_NO_EQ_SHIFT			4
-+#define TX_EQ_SHIFT			25
-+#define RX_SHIFT			46
-+
-+#define QSFP_MAX_POWER_MASK		0xFUL
-+#define TX_NO_EQ_MASK			0x1FFFFFUL
-+#define TX_EQ_MASK			0x1FFFFFUL
-+#define RX_MASK				0xFFFFUL
-+
-+#define QSFP_MAX_POWER_SMASK		(QSFP_MAX_POWER_MASK << \
-+					 QSFP_MAX_POWER_SHIFT)
-+#define TX_NO_EQ_SMASK			(TX_NO_EQ_MASK << TX_NO_EQ_SHIFT)
-+#define TX_EQ_SMASK			(TX_EQ_MASK << TX_EQ_SHIFT)
-+#define RX_SMASK			(RX_MASK << RX_SHIFT)
-+
-+#define TX_PRECUR_SHIFT			0
-+#define TX_ATTN_SHIFT			4
-+#define QSFP_TX_CDR_APPLY_SHIFT		9
-+#define QSFP_TX_EQ_APPLY_SHIFT		10
-+#define QSFP_TX_CDR_SHIFT		11
-+#define QSFP_TX_EQ_SHIFT		12
-+#define TX_POSTCUR_SHIFT		16
-+
-+#define TX_PRECUR_MASK			0xFUL
-+#define TX_ATTN_MASK			0x1FUL
-+#define QSFP_TX_CDR_APPLY_MASK		0x1UL
-+#define QSFP_TX_EQ_APPLY_MASK		0x1UL
-+#define QSFP_TX_CDR_MASK		0x1UL
-+#define QSFP_TX_EQ_MASK			0xFUL
-+#define TX_POSTCUR_MASK			0x1FUL
-+
-+#define TX_PRECUR_SMASK			(TX_PRECUR_MASK << TX_PRECUR_SHIFT)
-+#define TX_ATTN_SMASK			(TX_ATTN_MASK << TX_ATTN_SHIFT)
-+#define QSFP_TX_CDR_APPLY_SMASK		(QSFP_TX_CDR_APPLY_MASK << \
-+					 QSFP_TX_CDR_APPLY_SHIFT)
-+#define QSFP_TX_EQ_APPLY_SMASK		(QSFP_TX_EQ_APPLY_MASK << \
-+					 QSFP_TX_EQ_APPLY_SHIFT)
-+#define QSFP_TX_CDR_SMASK		(QSFP_TX_CDR_MASK << QSFP_TX_CDR_SHIFT)
-+#define QSFP_TX_EQ_SMASK		(QSFP_TX_EQ_MASK << QSFP_TX_EQ_SHIFT)
-+#define TX_POSTCUR_SMASK		(TX_POSTCUR_MASK << TX_POSTCUR_SHIFT)
-+
-+#define QSFP_RX_CDR_APPLY_SHIFT		0
-+#define QSFP_RX_EMP_APPLY_SHIFT		1
-+#define QSFP_RX_AMP_APPLY_SHIFT		2
-+#define QSFP_RX_CDR_SHIFT		3
-+#define QSFP_RX_EMP_SHIFT		4
-+#define QSFP_RX_AMP_SHIFT		8
-+
-+#define QSFP_RX_CDR_APPLY_MASK		0x1UL
-+#define QSFP_RX_EMP_APPLY_MASK		0x1UL
-+#define QSFP_RX_AMP_APPLY_MASK		0x1UL
-+#define QSFP_RX_CDR_MASK		0x1UL
-+#define QSFP_RX_EMP_MASK		0xFUL
-+#define QSFP_RX_AMP_MASK		0x3UL
-+
-+#define QSFP_RX_CDR_APPLY_SMASK		(QSFP_RX_CDR_APPLY_MASK << \
-+					 QSFP_RX_CDR_APPLY_SHIFT)
-+#define QSFP_RX_EMP_APPLY_SMASK		(QSFP_RX_EMP_APPLY_MASK << \
-+					 QSFP_RX_EMP_APPLY_SHIFT)
-+#define QSFP_RX_AMP_APPLY_SMASK		(QSFP_RX_AMP_APPLY_MASK << \
-+					 QSFP_RX_AMP_APPLY_SHIFT)
-+#define QSFP_RX_CDR_SMASK		(QSFP_RX_CDR_MASK << QSFP_RX_CDR_SHIFT)
-+#define QSFP_RX_EMP_SMASK		(QSFP_RX_EMP_MASK << QSFP_RX_EMP_SHIFT)
-+#define QSFP_RX_AMP_SMASK		(QSFP_RX_AMP_MASK << QSFP_RX_AMP_SHIFT)
-+
-+#define BITMAP_VERSION			1
-+#define BITMAP_VERSION_SHIFT		44
-+#define BITMAP_VERSION_MASK		0xFUL
-+#define BITMAP_VERSION_SMASK		(BITMAP_VERSION_MASK << \
-+					 BITMAP_VERSION_SHIFT)
-+#define CHECKSUM_SHIFT			48
-+#define CHECKSUM_MASK			0xFFFFUL
-+#define CHECKSUM_SMASK			(CHECKSUM_MASK << CHECKSUM_SHIFT)
-+
-+/* platform.c */
-+void hfi2_get_platform_config(struct hfi2_pportdata *ppd);
-+void hfi2_free_platform_config(struct hfi2_devdata *dd);
-+void hfi2_get_port_type(struct hfi2_pportdata *ppd);
-+int hfi2_set_qsfp_tx(struct hfi2_pportdata *ppd, int on);
-+void hfi2_tune_serdes(struct hfi2_pportdata *ppd);
-+
-+#endif			/*__PLATFORM_H*/
-diff --git a/drivers/infiniband/hw/hfi2/qsfp.h b/drivers/infiniband/hw/hfi2/qsfp.h
-new file mode 100644
-index 000000000000..4cf81313c579
---- /dev/null
-+++ b/drivers/infiniband/hw/hfi2/qsfp.h
-@@ -0,0 +1,202 @@
-+/* SPDX-License-Identifier: GPL-2.0 OR BSD-3-Clause */
-+/*
-+ * Copyright(c) 2015, 2016 Intel Corporation.
-+ * Copyright(c) 2025-2026 Cornelis Networks, Inc.
-+ */
-+/* QSFP support common definitions, for hfi driver */
-+
-+#define QSFP_DEV 0xA0
-+#define QSFP_PWR_LAG_MSEC 2000
-+#define QSFP_MODPRS_LAG_MSEC 20
-+/* 128 byte pages, per SFF 8636 rev 2.4 */
-+#define QSFP_MAX_NUM_PAGES	5
-+
-+/*
-+ * Below are masks for QSFP pins.  Pins are the same for HFI0 and HFI2.
-+ * _N means asserted low
-+ */
-+#define QSFP_HFI0_I2CCLK    BIT(0)
-+#define QSFP_HFI0_I2CDAT    BIT(1)
-+#define QSFP_HFI0_RESET_N   BIT(2)
-+#define QSFP_HFI0_INT_N	    BIT(3)
-+#define QSFP_HFI0_MODPRST_N BIT(4)
-+
-+/* QSFP is paged at 256 bytes */
-+#define QSFP_PAGESIZE 256
-+/* Reads/writes cannot cross 128 byte boundaries */
-+#define QSFP_RW_BOUNDARY 128
-+
-+/* number of bytes in i2c offset for QSFP devices */
-+#define __QSFP_OFFSET_SIZE 1                           /* num address bytes */
-+#define QSFP_OFFSET_SIZE (__QSFP_OFFSET_SIZE << 8)     /* shifted value */
-+
-+/* Defined fields that Intel requires of qualified cables */
-+/* Byte 0 is Identifier, not checked */
-+/* Byte 1 is reserved "status MSB" */
-+#define QSFP_MONITOR_VAL_START 22
-+#define QSFP_MONITOR_VAL_END 81
-+#define QSFP_MONITOR_RANGE (QSFP_MONITOR_VAL_END - QSFP_MONITOR_VAL_START + 1)
-+#define QSFP_TX_CTRL_BYTE_OFFS 86
-+#define QSFP_PWR_CTRL_BYTE_OFFS 93
-+#define QSFP_CDR_CTRL_BYTE_OFFS 98
-+
-+#define QSFP_PAGE_SELECT_BYTE_OFFS 127
-+/* Byte 128 is Identifier: must be 0x0c for QSFP, or 0x0d for QSFP+ */
-+#define QSFP_MOD_ID_OFFS 128
-+/*
-+ * Byte 129 is "Extended Identifier".
-+ * For bits [7:6]: 0:1.5W, 1:2.0W, 2:2.5W, 3:3.5W
-+ * For bits [1:0]: 0:Unused, 1:4W, 2:4.5W, 3:5W
-+ */
-+#define QSFP_MOD_PWR_OFFS 129
-+/* Byte 130 is Connector type. Not Intel req'd */
-+/* Bytes 131..138 are Transceiver types, bit maps for various tech, none IB */
-+/* Byte 139 is encoding. code 0x01 is 8b10b. Not Intel req'd */
-+/* byte 140 is nominal bit-rate, in units of 100Mbits/sec */
-+#define QSFP_NOM_BIT_RATE_100_OFFS 140
-+/* Byte 141 is Extended Rate Select. Not Intel req'd */
-+/* Bytes 142..145 are lengths for various fiber types. Not Intel req'd */
-+/* Byte 146 is length for Copper. Units of 1 meter */
-+#define QSFP_MOD_LEN_OFFS 146
-+/*
-+ * Byte 147 is Device technology. D0..3 not Intel req'd
-+ * D4..7 select from 15 choices, translated by table:
-+ */
-+#define QSFP_MOD_TECH_OFFS 147
-+extern const char *const hfi2_qsfp_devtech[16];
-+/* Active Equalization includes fiber, copper full EQ, and copper near Eq */
-+#define QSFP_IS_ACTIVE(tech) ((0xA2FF >> ((tech) >> 4)) & 1)
-+/* Active Equalization includes fiber, copper full EQ, and copper far Eq */
-+#define QSFP_IS_ACTIVE_FAR(tech) ((0x32FF >> ((tech) >> 4)) & 1)
-+/* Attenuation should be valid for copper other than full/near Eq */
-+#define QSFP_HAS_ATTEN(tech) ((0x4D00 >> ((tech) >> 4)) & 1)
-+/* Length is only valid if technology is "copper" */
-+#define QSFP_IS_CU(tech) ((0xED00 >> ((tech) >> 4)) & 1)
-+#define QSFP_TECH_1490 9
-+
-+#define QSFP_OUI(oui) (((unsigned int)oui[0] << 16) | ((unsigned int)oui[1] << 8) | \
-+			oui[2])
-+#define QSFP_OUI_AMPHENOL 0x415048
-+#define QSFP_OUI_FINISAR  0x009065
-+#define QSFP_OUI_GORE     0x002177
-+
-+/* Bytes 148..163 are Vendor Name, Left-justified Blank-filled */
-+#define QSFP_VEND_OFFS 148
-+#define QSFP_VEND_LEN 16
-+/* Byte 164 is IB Extended transceiver codes Bits D0..3 are SDR,DDR,QDR,EDR */
-+#define QSFP_IBXCV_OFFS 164
-+/* Bytes 165..167 are Vendor OUI number */
-+#define QSFP_VOUI_OFFS 165
-+#define QSFP_VOUI_LEN 3
-+/* Bytes 168..183 are Vendor Part Number, string */
-+#define QSFP_PN_OFFS 168
-+#define QSFP_PN_LEN 16
-+/* Bytes 184,185 are Vendor Rev. Left Justified, Blank-filled */
-+#define QSFP_REV_OFFS 184
-+#define QSFP_REV_LEN 2
-+/*
-+ * Bytes 186,187 are Wavelength, if Optical. Not Intel req'd
-+ *  If copper, they are attenuation in dB:
-+ * Byte 186 is at 2.5Gb/sec (SDR), Byte 187 at 5.0Gb/sec (DDR)
-+ */
-+#define QSFP_ATTEN_OFFS 186
-+#define QSFP_ATTEN_LEN 2
-+/*
-+ * Bytes 188,189 are Wavelength tolerance, if optical
-+ * If copper, they are attenuation in dB:
-+ * Byte 188 is at 12.5 Gb/s, Byte 189 at 25 Gb/s
-+ */
-+#define QSFP_CU_ATTEN_7G_OFFS 188
-+#define QSFP_CU_ATTEN_12G_OFFS 189
-+/* Byte 190 is Max Case Temp. Not Intel req'd */
-+/* Byte 191 is LSB of sum of bytes 128..190. Not Intel req'd */
-+#define QSFP_CC_OFFS 191
-+#define QSFP_EQ_INFO_OFFS 193
-+#define QSFP_CDR_INFO_OFFS 194
-+/* Bytes 196..211 are Serial Number, String */
-+#define QSFP_SN_OFFS 196
-+#define QSFP_SN_LEN 16
-+/* Bytes 212..219 are date-code YYMMDD (MM==1 for Jan) */
-+#define QSFP_DATE_OFFS 212
-+#define QSFP_DATE_LEN 6
-+/* Bytes 218,219 are optional lot-code, string */
-+#define QSFP_LOT_OFFS 218
-+#define QSFP_LOT_LEN 2
-+/* Bytes 220, 221 indicate monitoring options, Not Intel req'd */
-+/* Byte 222 indicates nominal bitrate in units of 250Mbits/sec */
-+#define QSFP_NOM_BIT_RATE_250_OFFS 222
-+/* Byte 223 is LSB of sum of bytes 192..222 */
-+#define QSFP_CC_EXT_OFFS 223
-+
-+/*
-+ * Interrupt flag masks
-+ */
-+#define QSFP_DATA_NOT_READY		0x01
-+
-+#define QSFP_HIGH_TEMP_ALARM		0x80
-+#define QSFP_LOW_TEMP_ALARM		0x40
-+#define QSFP_HIGH_TEMP_WARNING		0x20
-+#define QSFP_LOW_TEMP_WARNING		0x10
-+
-+#define QSFP_HIGH_VCC_ALARM		0x80
-+#define QSFP_LOW_VCC_ALARM		0x40
-+#define QSFP_HIGH_VCC_WARNING		0x20
-+#define QSFP_LOW_VCC_WARNING		0x10
-+
-+#define QSFP_HIGH_POWER_ALARM		0x88
-+#define QSFP_LOW_POWER_ALARM		0x44
-+#define QSFP_HIGH_POWER_WARNING		0x22
-+#define QSFP_LOW_POWER_WARNING		0x11
-+
-+#define QSFP_HIGH_BIAS_ALARM		0x88
-+#define QSFP_LOW_BIAS_ALARM		0x44
-+#define QSFP_HIGH_BIAS_WARNING		0x22
-+#define QSFP_LOW_BIAS_WARNING		0x11
-+
-+#define QSFP_ATTEN_SDR(attenarray) (attenarray[0])
-+#define QSFP_ATTEN_DDR(attenarray) (attenarray[1])
-+
-+/*
-+ * struct qsfp_data encapsulates state of QSFP device for one port.
-+ * it will be part of port-specific data if a board supports QSFP.
-+ *
-+ * Since multiple board-types use QSFP, and their pport_data structs
-+ * differ (in the chip-specific section), we need a pointer to its head.
-+ *
-+ * Avoiding premature optimization, we will have one work_struct per port,
-+ * and let the qsfp_lock arbitrate access to common resources.
-+ *
-+ */
-+struct qsfp_data {
-+	/* Helps to find our way */
-+	struct hfi2_pportdata *ppd;
-+	struct work_struct qsfp_work;
-+	u8 cache[QSFP_MAX_NUM_PAGES * 128];
-+	/* protect qsfp data */
-+	spinlock_t qsfp_lock;
-+	u8 check_interrupt_flags;
-+	u8 reset_needed;
-+	u8 limiting_active;
-+	u8 cache_valid;
-+	u8 cache_refresh_required;
-+};
-+
-+int hfi2_refresh_qsfp_cache(struct hfi2_pportdata *ppd,
-+		       struct qsfp_data *cp);
-+int hfi2_get_qsfp_power_class(u8 power_byte);
-+int hfi2_qsfp_mod_present(struct hfi2_pportdata *ppd);
-+int hfi2_get_cable_info(struct hfi2_pportdata *ppd, u32 addr, u32 len, u8 *data);
-+
-+int hfi2_i2c_write(struct hfi2_pportdata *ppd, u32 target, int i2c_addr,
-+	      int offset, void *bp, int len);
-+int hfi2_i2c_read(struct hfi2_pportdata *ppd, u32 target, int i2c_addr,
-+	     int offset, void *bp, int len);
-+int hfi2_qsfp_write(struct hfi2_pportdata *ppd, u32 target, int addr, void *bp,
-+	       int len);
-+int hfi2_qsfp_read(struct hfi2_pportdata *ppd, u32 target, int addr, void *bp,
-+	      int len);
-+int hfi2_one_qsfp_read(struct hfi2_pportdata *ppd, u32 target, int addr, void *bp,
-+		  int len);
-+struct hfi2_asic_data;
-+int hfi2_set_up_i2c(struct hfi2_devdata *dd, struct hfi2_asic_data *ad);
-+void hfi2_clean_up_i2c(struct hfi2_devdata *dd, struct hfi2_asic_data *ad);
+diff --git a/drivers/infiniband/hw/hfi2/hfi2.h b/drivers/infiniband/hw/hfi2/hfi2.h
+index 5ad8cefc7dc1..32a755c0d3d0 100644
+--- a/drivers/infiniband/hw/hfi2/hfi2.h
++++ b/drivers/infiniband/hw/hfi2/hfi2.h
+@@ -1284,6 +1284,12 @@ struct chip_params {
+ 	u32 csr_err_mask_reg;
+ 	u32 csr_err_clear_reg;
+ 
++	/*
++	 * Chip-variant operation callbacks. Function pointers are used here
++	 * to abstract differences between chip variants (e.g. JKR and future
++	 * generations). Each variant populates its own chip_params instance
++	 * with the appropriate implementations at driver init time.
++	 */
+ 	void (*hfi2_setextled)(struct hfi2_pportdata *ppd, u32 on);
+ 	void (*start_led_override)(struct hfi2_pportdata *ppd,
+ 				   unsigned int timeon, unsigned int timeoff);
+@@ -1307,9 +1313,9 @@ struct chip_params {
+ 				    u32 size);
+ 	bool (*check_synth_status)(struct hfi2_devdata *dd);
+ 	void (*update_synth_status)(struct hfi2_devdata *dd);
+-	u64 (*create_pbc)(struct hfi2_pportdata *ppd, bool hfi2_loopback, u64 flags,
+-			  int srate_mbs, u32 vl, u32 dw_len, u32 l2, u32 dlid,
+-			  u32 sctxt);
++	u64 (*create_pbc)(struct hfi2_pportdata *ppd, bool hfi2_loopback,
++			  u64 flags, int srate_mbs, u32 vl, u32 dw_len, u32 l2,
++			  u32 dlid, u32 sctxt);
+ 	void (*set_pio_integrity)(struct hfi2_devdata *dd, u32 pidx, u32 ctxt,
+ 				  int type, enum spi_cmds cmd);
+ 	int (*find_used_resources)(struct hfi2_devdata *dd);
+@@ -1834,7 +1840,7 @@ void hfi2_pf0_cleanup(struct hfi2_devdata *dd);
+ 
+ void hfi2_handle_linkup_change(struct hfi2_pportdata *ppd, u32 linkup);
+ void hfi2_cport_handle_linkup_change(struct hfi2_pportdata *ppd,
+-				struct opa_port_info *pi, u32 linkup);
++				     struct opa_port_info *pi, u32 linkup);
+ void hfi2_go_port_active(struct hfi2_pportdata *ppd);
+ 
+ void hfi2_handle_user_interrupt(struct hfi2_ctxtdata *rcd);
+@@ -1854,10 +1860,14 @@ int hfi2_rcd_put(struct hfi2_ctxtdata *rcd);
+ int hfi2_rcd_get(struct hfi2_ctxtdata *rcd);
+ struct hfi2_ctxtdata *hfi2_rcd_get_by_index(struct hfi2_devdata *dd, u16 ctxt);
+ int hfi2_handle_receive_interrupt(struct hfi2_ctxtdata *rcd, int thread);
+-int hfi2_handle_receive_interrupt_nodma_rtail(struct hfi2_ctxtdata *rcd, int thread);
+-int hfi2_handle_receive_interrupt_dma_rtail(struct hfi2_ctxtdata *rcd, int thread);
+-int hfi2_handle_receive_interrupt_napi_fp(struct hfi2_ctxtdata *rcd, int budget);
+-int hfi2_handle_receive_interrupt_napi_sp(struct hfi2_ctxtdata *rcd, int budget);
++int hfi2_handle_receive_interrupt_nodma_rtail(struct hfi2_ctxtdata *rcd,
++					      int thread);
++int hfi2_handle_receive_interrupt_dma_rtail(struct hfi2_ctxtdata *rcd,
++					    int thread);
++int hfi2_handle_receive_interrupt_napi_fp(struct hfi2_ctxtdata *rcd,
++					  int budget);
++int hfi2_handle_receive_interrupt_napi_sp(struct hfi2_ctxtdata *rcd,
++					  int budget);
+ void hfi2_set_all_slowpath(struct hfi2_pportdata *ppd);
+ 
+ extern const struct pci_device_id hfi2_pci_tbl[];
+@@ -2154,20 +2164,20 @@ static inline u32 egress_cycles(u32 len, u32 rate)
+ 
+ void hfi2_set_link_ipg(struct hfi2_pportdata *ppd);
+ void hfi2_process_becn(struct hfi2_pportdata *ppd, u8 sl, u32 rlid, u32 lqpn,
+-		  u32 rqpn, u8 svc_type);
++		       u32 rqpn, u8 svc_type);
+ void hfi2_return_cnp(struct hfi2_ibport *ibp, struct rvt_qp *qp, u32 remote_qpn,
+-		u16 pkey, u32 slid, u32 dlid, u8 sc5,
+-		const struct ib_grh *old_grh);
+-void hfi2_return_cnp_16B(struct hfi2_ibport *ibp, struct rvt_qp *qp, u32 remote_qpn,
+-		    u16 pkey, u32 slid, u32 dlid, u8 sc5,
+-		    const struct ib_grh *old_grh);
++		     u16 pkey, u32 slid, u32 dlid, u8 sc5,
++		     const struct ib_grh *old_grh);
++void hfi2_return_cnp_16B(struct hfi2_ibport *ibp, struct rvt_qp *qp,
++			 u32 remote_qpn, u16 pkey, u32 slid, u32 dlid, u8 sc5,
++			 const struct ib_grh *old_grh);
+ typedef void (*hfi2_handle_cnp)(struct hfi2_ibport *ibp, struct rvt_qp *qp,
+ 				u32 remote_qpn, u16 pkey, u32 slid, u32 dlid,
+ 				u8 sc5, const struct ib_grh *old_grh);
+ 
+ #define PKEY_CHECK_INVALID -1
+-int hfi2_egress_pkey_check(struct hfi2_pportdata *ppd, u32 slid, u16 pkey, u8 sc5,
+-		      int8_t s_pkey_index);
++int hfi2_egress_pkey_check(struct hfi2_pportdata *ppd, u32 slid, u16 pkey,
++			   u8 sc5, int8_t s_pkey_index);
+ 
+ #define PACKET_EGRESS_TIMEOUT 350
+ static inline void pause_for_credit_return(struct hfi2_devdata *dd)
+@@ -2357,7 +2367,8 @@ void hfi2_set_up_vl15(struct hfi2_pportdata *ppd, u16 vl15buf);
+ void hfi2_reset_link_credits(struct hfi2_pportdata *ppd);
+ void hfi2_assign_remote_cm_au_table(struct hfi2_pportdata *ppd, u8 vcu);
+ 
+-int hfi2_set_buffer_control(struct hfi2_pportdata *ppd, struct buffer_control *bc);
++int hfi2_set_buffer_control(struct hfi2_pportdata *ppd,
++			    struct buffer_control *bc);
+ 
+ static inline struct hfi2_devdata *dd_from_ppd(struct hfi2_pportdata *ppd)
+ {
+@@ -3158,14 +3169,16 @@ static inline u64 read_iport_csr(const struct hfi2_devdata *dd, int pidx,
+ 				 u32 offset)
+ {
+ 	/* IPORT CSRs are separated by rxe_iport_stride */
+-	return hfi2_read_csr(dd, offset + (dd->params->rxe_iport_stride * pidx));
++	return hfi2_read_csr(dd,
++			     offset + (dd->params->rxe_iport_stride * pidx));
+ }
+ 
+ static inline void write_iport_csr(struct hfi2_devdata *dd, int pidx,
+ 				   u32 offset, u64 value)
+ {
+ 	/* IPORT CSRs are separated by rxe_iport_stride */
+-	hfi2_write_csr(dd, offset + (dd->params->rxe_iport_stride * pidx), value);
++	hfi2_write_csr(dd, offset + (dd->params->rxe_iport_stride * pidx),
++		       value);
+ }
+ 
+ static inline u64 read_iprc_csr(const struct hfi2_devdata *dd, int pidx, int rc,
+@@ -3175,8 +3188,9 @@ static inline u64 read_iprc_csr(const struct hfi2_devdata *dd, int pidx, int rc,
+ 	 * IPORT receive context CSRs are separated by rxe_iport_stride and
+ 	 * rxe_iprc_stride.
+ 	 */
+-	return hfi2_read_ctxt_csr(dd, offset + (dd->params->rxe_iport_stride * pidx),
+-			     rc, dd->params->rxe_iprc_stride);
++	return hfi2_read_ctxt_csr(
++		dd, offset + (dd->params->rxe_iport_stride * pidx), rc,
++		dd->params->rxe_iprc_stride);
+ }
+ 
+ static inline void write_iprc_csr(struct hfi2_devdata *dd, int pidx, int rc,
+@@ -3186,36 +3200,40 @@ static inline void write_iprc_csr(struct hfi2_devdata *dd, int pidx, int rc,
+ 	 * IPORT receive context CSRs are separated by rxe_iport_stride and
+ 	 * rxe_iprc_stride.
+ 	 */
+-	hfi2_write_ctxt_csr(dd, offset + (dd->params->rxe_iport_stride * pidx), rc,
+-		       dd->params->rxe_iprc_stride, value);
++	hfi2_write_ctxt_csr(dd, offset + (dd->params->rxe_iport_stride * pidx),
++			    rc, dd->params->rxe_iprc_stride, value);
+ }
+ 
+ static inline u64 read_rctxt_csr(const struct hfi2_devdata *dd, int ctxt,
+ 				 u32 offset)
+ {
+ 	/* restricted rcv context CSRs are separated by rxe_rctxt_stride */
+-	return hfi2_read_ctxt_csr(dd, offset, ctxt, dd->params->rxe_rctxt_stride);
++	return hfi2_read_ctxt_csr(dd, offset, ctxt,
++				  dd->params->rxe_rctxt_stride);
+ }
+ 
+ static inline void write_rctxt_csr(struct hfi2_devdata *dd, int ctxt,
+ 				   u32 offset, u64 value)
+ {
+ 	/* restricted rcv context CSRs are separated by rxe_rctxt_stride */
+-	hfi2_write_ctxt_csr(dd, offset, ctxt, dd->params->rxe_rctxt_stride, value);
++	hfi2_write_ctxt_csr(dd, offset, ctxt, dd->params->rxe_rctxt_stride,
++			    value);
+ }
+ 
+ static inline u64 read_kctxt_csr(const struct hfi2_devdata *dd, int ctxt,
+ 				 u32 offset)
+ {
+ 	/* kernel rcv context CSRs are separated by rxe_kctxt_stride */
+-	return hfi2_read_ctxt_csr(dd, offset, ctxt, dd->params->rxe_kctxt_stride);
++	return hfi2_read_ctxt_csr(dd, offset, ctxt,
++				  dd->params->rxe_kctxt_stride);
+ }
+ 
+ static inline void write_kctxt_csr(struct hfi2_devdata *dd, int ctxt,
+ 				   u32 offset, u64 value)
+ {
+ 	/* kernel rcv context CSRs are separated by rxe_kctxt_stride */
+-	hfi2_write_ctxt_csr(dd, offset, ctxt, dd->params->rxe_kctxt_stride, value);
++	hfi2_write_ctxt_csr(dd, offset, ctxt, dd->params->rxe_kctxt_stride,
++			    value);
+ }
+ 
+ static inline u64 read_ku_csr(const struct hfi2_devdata *dd, int ctxt,
+@@ -3236,42 +3254,48 @@ static inline u64 read_uctxt_csr(const struct hfi2_devdata *dd, int ctxt,
+ 				 u32 offset)
+ {
+ 	/* user per-context CSRs are separated by rxe_uctxt_stride */
+-	return hfi2_read_ctxt_csr(dd, offset, ctxt, dd->params->rxe_uctxt_stride);
++	return hfi2_read_ctxt_csr(dd, offset, ctxt,
++				  dd->params->rxe_uctxt_stride);
+ }
+ 
+ static inline void write_uctxt_csr(struct hfi2_devdata *dd, int ctxt,
+ 				   u32 offset, u64 value)
+ {
+ 	/* user per-context CSRs are separated by rxe_uctxt_stride */
+-	hfi2_write_ctxt_csr(dd, offset, ctxt, dd->params->rxe_uctxt_stride, value);
++	hfi2_write_ctxt_csr(dd, offset, ctxt, dd->params->rxe_uctxt_stride,
++			    value);
+ }
+ 
+ static inline u64 read_sctxt_csr(const struct hfi2_devdata *dd, int ctxt,
+ 				 u32 offset)
+ {
+ 	/* send context CSRs are separated by txe_sctxt_stride */
+-	return hfi2_read_ctxt_csr(dd, offset, ctxt, dd->params->txe_sctxt_stride);
++	return hfi2_read_ctxt_csr(dd, offset, ctxt,
++				  dd->params->txe_sctxt_stride);
+ }
+ 
+ static inline void write_sctxt_csr(struct hfi2_devdata *dd, int ctxt,
+ 				   u32 offset, u64 value)
+ {
+ 	/* send context CSRs are separated by txe_sctxt_stride */
+-	hfi2_write_ctxt_csr(dd, offset, ctxt, dd->params->txe_sctxt_stride, value);
++	hfi2_write_ctxt_csr(dd, offset, ctxt, dd->params->txe_sctxt_stride,
++			    value);
+ }
+ 
+ static inline u64 read_tctxt_csr(const struct hfi2_devdata *dd, int ctxt,
+ 				 u32 offset)
+ {
+ 	/* TXE send context CSRs are separated by txe_tctxt_stride */
+-	return hfi2_read_ctxt_csr(dd, offset, ctxt, dd->params->txe_tctxt_stride);
++	return hfi2_read_ctxt_csr(dd, offset, ctxt,
++				  dd->params->txe_tctxt_stride);
+ }
+ 
+ static inline void write_tctxt_csr(struct hfi2_devdata *dd, int ctxt,
+ 				   u32 offset, u64 value)
+ {
+ 	/* TXE send context CSRs are separated by txe_tctxt_stride */
+-	hfi2_write_ctxt_csr(dd, offset, ctxt, dd->params->txe_tctxt_stride, value);
++	hfi2_write_ctxt_csr(dd, offset, ctxt, dd->params->txe_tctxt_stride,
++			    value);
+ }
+ 
+ static inline u64 read_sdma_csr(const struct hfi2_devdata *dd, int eng,
+@@ -3292,28 +3316,32 @@ static inline u64 read_sdmacfg_csr(const struct hfi2_devdata *dd, int eng,
+ 				   u32 offset)
+ {
+ 	/* SDMA config engine CSRs are separated by txe_sdmacfg_stride */
+-	return hfi2_read_csr(dd, offset + (dd->params->txe_sdmacfg_stride * eng));
++	return hfi2_read_csr(dd,
++			     offset + (dd->params->txe_sdmacfg_stride * eng));
+ }
+ 
+ static inline void write_sdmacfg_csr(struct hfi2_devdata *dd, int eng,
+ 				     u32 offset, u64 value)
+ {
+ 	/* SDMA config engine CSRs are separated by txe_sdmacfg_stride */
+-	hfi2_write_csr(dd, offset + (dd->params->txe_sdmacfg_stride * eng), value);
++	hfi2_write_csr(dd, offset + (dd->params->txe_sdmacfg_stride * eng),
++		       value);
+ }
+ 
+ static inline u64 read_eport_csr(const struct hfi2_devdata *dd, int pidx,
+ 				 u32 offset)
+ {
+ 	/* EPORT CSRs are separated by txe_eport_stride */
+-	return hfi2_read_csr(dd, offset + (dd->params->txe_eport_stride * pidx));
++	return hfi2_read_csr(dd,
++			     offset + (dd->params->txe_eport_stride * pidx));
+ }
+ 
+ static inline void write_eport_csr(struct hfi2_devdata *dd, int pidx,
+ 				   u32 offset, u64 value)
+ {
+ 	/* EPORT CSRs are separated by txe_eport_stride */
+-	hfi2_write_csr(dd, offset + (dd->params->txe_eport_stride * pidx), value);
++	hfi2_write_csr(dd, offset + (dd->params->txe_eport_stride * pidx),
++		       value);
+ }
+ 
+ static inline u64 read_epsc_csr(const struct hfi2_devdata *dd, int pidx, int sc,
+@@ -3323,8 +3351,9 @@ static inline u64 read_epsc_csr(const struct hfi2_devdata *dd, int pidx, int sc,
+ 	 * EPORT send context CSRs are separated by txe_eport_stride and
+ 	 * txe_epsc_stride.
+ 	 */
+-	return hfi2_read_ctxt_csr(dd, offset + (dd->params->txe_eport_stride * pidx),
+-			     sc, dd->params->txe_epsc_stride);
++	return hfi2_read_ctxt_csr(
++		dd, offset + (dd->params->txe_eport_stride * pidx), sc,
++		dd->params->txe_epsc_stride);
+ }
+ 
+ static inline void write_epsc_csr(struct hfi2_devdata *dd, int pidx, int sc,
+@@ -3334,8 +3363,8 @@ static inline void write_epsc_csr(struct hfi2_devdata *dd, int pidx, int sc,
+ 	 * EPORT send context CSRs are separated by txe_eport_stride and
+ 	 * txe_epsc_stride.
+ 	 */
+-	hfi2_write_ctxt_csr(dd, offset + (dd->params->txe_eport_stride * pidx), sc,
+-		       dd->params->txe_epsc_stride, value);
++	hfi2_write_ctxt_csr(dd, offset + (dd->params->txe_eport_stride * pidx),
++			    sc, dd->params->txe_epsc_stride, value);
+ }
+ 
+ static inline u64 read_epscarr_csr(const struct hfi2_devdata *dd, int pidx,
+@@ -3345,8 +3374,8 @@ static inline u64 read_epscarr_csr(const struct hfi2_devdata *dd, int pidx,
+ 	 * EPORT send context array CSRs are separated by txe_eport_stride and
+ 	 * a per-context stride of 8.
+ 	 */
+-	return hfi2_read_ctxt_csr(dd, offset + (dd->params->txe_eport_stride * pidx),
+-			     sc, 8);
++	return hfi2_read_ctxt_csr(
++		dd, offset + (dd->params->txe_eport_stride * pidx), sc, 8);
+ }
+ 
+ static inline void write_epscarr_csr(struct hfi2_devdata *dd, int pidx, int sc,
+@@ -3356,8 +3385,8 @@ static inline void write_epscarr_csr(struct hfi2_devdata *dd, int pidx, int sc,
+ 	 * EPORT send context array CSRs are separated by txe_eport_stride and
+ 	 * a per-context stride of 8.
+ 	 */
+-	hfi2_write_ctxt_csr(dd, offset + (dd->params->txe_eport_stride * pidx), sc,
+-		       8, value);
++	hfi2_write_ctxt_csr(dd, offset + (dd->params->txe_eport_stride * pidx),
++			    sc, 8, value);
+ }
+ 
+ static inline u32 rhe_rcv_type_err(struct hfi2_packet *packet)
+@@ -3408,7 +3437,7 @@ enum preg_op {
+ };
+ 
+ int hfi2_priv_reg_op(struct hfi2_devdata *dd, int pidx, u32 ctxt, int type,
+-		enum preg_op op, u64 arg);
++		     enum preg_op op, u64 arg);
+ 
+ enum csr_type {
+ 	CSR_TYPE_IPORT = 1,
+@@ -3427,6 +3456,6 @@ enum csr_type {
+ };
+ 
+ u64 hfi2_read_csr_type(struct hfi2_devdata *dd, enum csr_type type, u32 off,
+-		  u16 ctxt, u8 pidx_eng);
++		       u16 ctxt, u8 pidx_eng);
+ 
+ #endif /* _HFI2_KERNEL_H */
+diff --git a/drivers/infiniband/sw/rdmavt/cq.c b/drivers/infiniband/sw/rdmavt/cq.c
+index 45404611c9ce..be0293434f27 100644
+--- a/drivers/infiniband/sw/rdmavt/cq.c
++++ b/drivers/infiniband/sw/rdmavt/cq.c
+@@ -318,7 +318,7 @@ int rvt_req_notify_cq(struct ib_cq *ibcq, enum ib_cq_notify_flags notify_flags)
+ 	if (notify_flags & IB_CQ_REPORT_MISSED_EVENTS) {
+ 		if (cq->queue) {
+ 			if (RDMA_READ_UAPI_ATOMIC(cq->queue->head) !=
+-				RDMA_READ_UAPI_ATOMIC(cq->queue->tail))
++			    RDMA_READ_UAPI_ATOMIC(cq->queue->tail))
+ 				ret = 1;
+ 		} else {
+ 			if (cq->kqueue->head != cq->kqueue->tail)
+@@ -426,6 +426,7 @@ int rvt_resize_cq(struct ib_cq *ibcq, unsigned int cqe, struct ib_udata *udata)
+ 	}
+ 	spin_unlock_irq(&cq->lock);
+ 
++	synchronize_rcu();
+ 	if (u_wc)
+ 		vfree(old_u_wc);
+ 	else
+@@ -518,9 +519,9 @@ int rvt_poll_cq(struct ib_cq *ibcq, int num_entries, struct ib_wc *entry)
+  */
+ int rvt_driver_cq_init(void)
+ {
+-	comp_vector_wq = alloc_workqueue("%s",
+-					 WQ_HIGHPRI | WQ_CPU_INTENSIVE | WQ_PERCPU,
+-					 0, "rdmavt_cq");
++	comp_vector_wq =
++		alloc_workqueue("%s", WQ_HIGHPRI | WQ_CPU_INTENSIVE | WQ_PERCPU,
++				0, "rdmavt_cq");
+ 	if (!comp_vector_wq)
+ 		return -ENOMEM;
+ 
+diff --git a/drivers/infiniband/sw/rdmavt/mmap.c b/drivers/infiniband/sw/rdmavt/mmap.c
+index 473f464f33fa..f0bd096f457c 100644
+--- a/drivers/infiniband/sw/rdmavt/mmap.c
++++ b/drivers/infiniband/sw/rdmavt/mmap.c
+@@ -32,8 +32,7 @@ void rvt_mmap_init(struct rvt_dev_info *rdi)
+  */
+ void rvt_release_mmap_info(struct kref *ref)
+ {
+-	struct rvt_mmap_info *ip =
+-		container_of(ref, struct rvt_mmap_info, ref);
++	struct rvt_mmap_info *ip = container_of(ref, struct rvt_mmap_info, ref);
+ 	struct rvt_dev_info *rdi = ib_to_rvt(ip->context->device);
+ 
+ 	spin_lock_irq(&rdi->pending_lock);
+@@ -91,8 +90,7 @@ int rvt_mmap(struct ib_ucontext *context, struct vm_area_struct *vma)
+ 	 * CQ, QP, or SRQ is soon followed by a call to mmap().
+ 	 */
+ 	spin_lock_irq(&rdi->pending_lock);
+-	list_for_each_entry_safe(ip, pp, &rdi->pending_mmaps,
+-				 pending_mmaps) {
++	list_for_each_entry_safe(ip, pp, &rdi->pending_mmaps, pending_mmaps) {
+ 		/* Only the creator is allowed to mmap the object */
+ 		if (context != ip->context || (__u64)offset != ip->offset)
+ 			continue;
+@@ -115,6 +113,7 @@ int rvt_mmap(struct ib_ucontext *context, struct vm_area_struct *vma)
+ done:
+ 	return ret;
+ }
++EXPORT_SYMBOL(rvt_mmap);
+ 
+ /**
+  * rvt_create_mmap_info - allocate information for hfi1_mmap
+diff --git a/drivers/infiniband/sw/rdmavt/srq.c b/drivers/infiniband/sw/rdmavt/srq.c
+index d022aa56c5bf..e9ebe4035572 100644
+--- a/drivers/infiniband/sw/rdmavt/srq.c
++++ b/drivers/infiniband/sw/rdmavt/srq.c
+@@ -53,10 +53,9 @@ int rvt_create_srq(struct ib_srq *ibsrq, struct ib_srq_init_attr *srq_init_attr,
+ 	 */
+ 	srq->rq.size = srq_init_attr->attr.max_wr + 1;
+ 	srq->rq.max_sge = srq_init_attr->attr.max_sge;
+-	sz = sizeof(struct ib_sge) * srq->rq.max_sge +
+-		sizeof(struct rvt_rwqe);
+-	if (rvt_alloc_rq(&srq->rq, srq->rq.size * sz,
+-			 dev->dparms.node, udata)) {
++	sz = sizeof(struct ib_sge) * srq->rq.max_sge + sizeof(struct rvt_rwqe);
++	if (rvt_alloc_rq(&srq->rq, srq->rq.size * sz, dev->dparms.node,
++			 udata)) {
+ 		ret = -ENOMEM;
+ 		goto bail_srq;
+ 	}
+@@ -122,8 +121,7 @@ int rvt_create_srq(struct ib_srq *ibsrq, struct ib_srq_init_attr *srq_init_attr,
+  * Return: 0 on success
+  */
+ int rvt_modify_srq(struct ib_srq *ibsrq, struct ib_srq_attr *attr,
+-		   enum ib_srq_attr_mask attr_mask,
+-		   struct ib_udata *udata)
++		   enum ib_srq_attr_mask attr_mask, struct ib_udata *udata)
+ {
+ 	struct rvt_srq *srq = ibsrq_to_rvtsrq(ibsrq);
+ 	struct rvt_dev_info *dev = ib_to_rvt(ibsrq->device);
+@@ -139,14 +137,13 @@ int rvt_modify_srq(struct ib_srq *ibsrq, struct ib_srq_attr *attr,
+ 
+ 		/* Check that the requested sizes are below the limits. */
+ 		if ((attr->max_wr > dev->dparms.props.max_srq_wr) ||
+-		    ((attr_mask & IB_SRQ_LIMIT) ?
+-		     attr->srq_limit : srq->limit) > attr->max_wr)
++		    ((attr_mask & IB_SRQ_LIMIT) ? attr->srq_limit :
++						  srq->limit) > attr->max_wr)
+ 			return -EINVAL;
+ 		sz = sizeof(struct rvt_rwqe) +
+-			srq->rq.max_sge * sizeof(struct ib_sge);
++		     srq->rq.max_sge * sizeof(struct ib_sge);
+ 		size = attr->max_wr + 1;
+-		if (rvt_alloc_rq(&tmp_rq, size * sz, dev->dparms.node,
+-				 udata))
++		if (rvt_alloc_rq(&tmp_rq, size * sz, dev->dparms.node, udata))
+ 			return -ENOMEM;
+ 		/* Check that we can write the offset to mmap. */
+ 		if (udata && udata->inlen >= sizeof(__u64)) {
+@@ -220,6 +217,7 @@ int rvt_modify_srq(struct ib_srq *ibsrq, struct ib_srq_attr *attr,
+ 			srq->limit = attr->srq_limit;
+ 		spin_unlock_irq(&srq->rq.kwq->c_lock);
+ 
++		synchronize_rcu();
+ 		vfree(owq);
+ 		kvfree(okwq);
+ 
+diff --git a/include/uapi/rdma/hfi2-abi.h b/include/uapi/rdma/hfi2-abi.h
+index 7b7ca198b539..5b5b619bf1a8 100644
+--- a/include/uapi/rdma/hfi2-abi.h
++++ b/include/uapi/rdma/hfi2-abi.h
+@@ -248,17 +248,6 @@ struct hfi2_ctxt_info {
+ 	__u16 sdma_ring_size; /* number of entries in SDMA request ring */
+ };
+ 
+-struct hfi1_tid_info {
+-	/* virtual address of first page in transfer */
+-	__aligned_u64 vaddr;
+-	/* pointer to tid array. this array is big enough */
+-	__aligned_u64 tidlist;
+-	/* number of tids programmed by this request */
+-	__u32 tidcnt;
+-	/* length of transfer buffer programmed by this request */
+-	__u32 length;
+-};
+-
+ #define HFI2_TID_UPDATE_FLAGS_MEMINFO_MASK 0xfUL
+ #define HFI2_TID_UPDATE_FLAGS_RESERVED_MASK \
+ 	(~(__u64)(HFI2_TID_UPDATE_FLAGS_MEMINFO_MASK))
 
 
