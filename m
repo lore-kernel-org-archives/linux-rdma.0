@@ -1,77 +1,77 @@
-Received: from mail-lf1-f65.google.com (mail-lf1-f65.google.com [209.85.167.65])
+Received: from mail-lr2-f10.google.com (mail-lr2-f10.google.com [74.125.230.74])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B5308436BF2
-	for <linux-rdma@vger.kernel.org>; Mon,  3 Aug 2026 14:20:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.167.65
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 703C6274658
+	for <linux-rdma@vger.kernel.org>; Mon,  3 Aug 2026 14:48:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.230.74
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785766808; cv=pass; b=hJDOpQQ+mbmb9eRYbXt2MN1ctWoNfko4b9MuORlZGcLfvTZ4OBH5iUYeOGFOEgUghVxO6zBHE71QrHtkJDtNXz/pfQN+GT313fTkr9aCH7k4xAqfMOSztIQFnByeEqQ2tuRrfsttRSxAGbglVbxync/D4adAUhfN1xYWokC6cKo=
+	t=1785768516; cv=pass; b=uPAr5O9yexQ4XzhC2PxmgHS3uHXiSf8dArH6CD2KTATJ+hkeRMn3Yj8pauT1t8cjHTCgCRx8srO9NTrzzBicbjZjtYwjyfPpCLdnLJHP9WNKBsJlwVbZg+4Q9Zxs9bKVyUvNsL1LW2j209qqXy594T52xzrc40n0R4mHpSDBu+k=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785766808; c=relaxed/simple;
-	bh=ZD1T8UEYALfyFAGYEWR6KzMJOkVcyCLV5pqDwdZSeL8=;
-	h=MIME-Version:From:Date:Message-ID:Subject:To:Content-Type; b=rpzfaOtOt4z3bZ6fyGMP60VZE2LvBnz55pkx276IwkOK/Qx8aZixRa/k+lACcT18bVdX+L27d4pi8H1Nslv3aHQDbLd4vbKc0tVuV3KQQucjLSsONo580rJL9POjAb61xT19KlIxrMKGxjm8x+otj0E1PQdhoZpdnDYKg9n7gCQ=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=lXNrx+ul; arc=pass smtp.client-ip=209.85.167.65
+	s=arc-20240116; t=1785768516; c=relaxed/simple;
+	bh=Q607KHzsH5/5xr7p9/Upt+OUrHNR998KOVTQ9PTBEwI=;
+	h=MIME-Version:From:Date:Message-ID:Subject:To:Content-Type; b=hoiCVO/IGXo+ZB3oHOLUrH+SdV4iljEPRS+033djbMmQsbsfuFF3P/FpwL8Oi7YSiIhmmbcOgBCZPYXP454IxkaBzO6rxDMgKnfHduIqJNRwyE7eSlnm1AVUnPPH96SWqFHPM5qA0wENf6hNPhc3bd7KtaAkiTvN0lFoA4jm+TQ=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=VZ7Ky/S1; arc=pass smtp.client-ip=74.125.230.74
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="lXNrx+ul"
-Received: by mail-lf1-f65.google.com with SMTP id 2adb3069b0e04-5b28c91fba5so4074860e87.1
-        for <linux-rdma@vger.kernel.org>; Mon, 03 Aug 2026 07:20:06 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1785766805; cv=none;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="VZ7Ky/S1"
+Received: by mail-lr2-f10.google.com with SMTP id 38308e7fff4ca-39c7b6d8e43so18607951fa.0
+        for <linux-rdma@vger.kernel.org>; Mon, 03 Aug 2026 07:48:34 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1785768512; cv=none;
         d=google.com; s=arc-20260327;
-        b=GdAOjXNgMg2HcGSTqkHmOt0MCtedD42qRndONX2Bc4ea49RuVp5sd+k9YUVQ8tOsi+
-         EI1KW8hwxWwh6feZ1gyPGiygtfLFRWjf8jLW4QbbXZ1hyFbnrkfTBfvB6xfhU8YTBYSF
-         dn67cpzvl6XaKtxHse2tLJkdpNM451klS3VZBFwV9O+ptlNgiPfLg1z6A4btAy0E3aXR
-         xgQScXFtJsGy7jcV7AngUdCNVXxRnnextzG9CPWmf9xEMyG4PJVvBrLRn5S3iBNuBqge
-         NicFbpmTQr9/een8AGJr6+/gz+EYgSd72Y1FY73BVXQaQW889W/aA7fqTbZiKYr8ecSh
-         fveQ==
+        b=aNznd1JSQxcY61C/8cHO+mGCiXny8JwEwNYsfypfOewgCeFfQdfRhzPGR+6r+N+rQe
+         vT33rEz8/fQcB7KygUwGKBVo1eE5XefWSoT4XWTkoO5zUaB7MO+xHqkSl7ZPXc0J73S3
+         /V325YkqAFkJmHj6yXRrpLSoboDU4hIQ6MV8PQPM4XBxtCxeeYPrS+uqMK64deBnknlu
+         Mx+L1HXw8BrrIwyH834WaiKNZlUGf83EoMJXlttgZWrbKAREP9kRn0HULtvFFgxiYV3P
+         p0DYLOuVgLxA+FoIZPUdRVPMHh0aRwweD3ykkzVlc78uquA5QT99fa/wyraRyygTunNj
+         waRA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
         h=to:subject:message-id:date:from:mime-version:dkim-signature;
-        bh=ZD1T8UEYALfyFAGYEWR6KzMJOkVcyCLV5pqDwdZSeL8=;
+        bh=Q607KHzsH5/5xr7p9/Upt+OUrHNR998KOVTQ9PTBEwI=;
         fh=kKD4ZcK7EiBbpPvy8fBui+gbh4y+MCKzWSOkLnEd924=;
-        b=L4em9JGigtyz0iH8u34ssoIDPlG3IU+1+tNuOnuUQoSuw/iAgvVK8op2kPEIux0G5k
-         z3ssUYx9FroHuG8weauVwdV/8vWpqEGEgqX91JrmMtei7GefrDJJfTf0tvZ+KYYLBd9z
-         MJMDbD+6bh3agaoWdCKC5zC2L4MXrZ4/Hh/dlSTod0gGidjR/9haFHlMnjMxhEDS3d/W
-         n5IpUIcbMeRD1wAkO8Nth3dvIxRh6brLluKH9krsjxV7xPY3mG7kaajJPeu64qH0Pkpg
-         dRFMP2tlv6be/tKzrovGBHB0RZTb7PVlYd+FTaNelO/lD/Y4swBOiGA/jV/ig6FKqLDI
-         V2BQ==;
+        b=rpkD1Ah9hGdUWO+1maWmwgWCsTQc0619qz0wYqw8gr2NP00+fUD7nrbMwH7mW6HMXr
+         AUKHtRKBm2z6REmybSx5YuTx59iSUrwCQid+8WKv6IY5NDKNCjrnL5s4ucCXlLIJ7DiJ
+         b/P99siFCzDQRyt8NU+ueyws0jJZbv2LbXi9doxC2S9QQtd/lXkGntzOQfDEvbzlI3XL
+         mc6r27aZFyxgLtY68rwgXk7KH7jpXkLf7OZymGT8X5iRpeBgM1MKkNkuNy+vyNOaBbxT
+         NrYw32SMW9qiNCwpJJ1AbA8qYhnSkNVqMHvV1r3pTc2zdFNMRnz1IgdT1LMFWaDW2taX
+         eqjA==;
         darn=vger.kernel.org
 ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1785766805; x=1786371605; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1785768512; x=1786373312; darn=vger.kernel.org;
         h=content-type:to:subject:message-id:date:from:mime-version:from:to
          :cc:subject:date:message-id:reply-to:content-type;
-        bh=ZD1T8UEYALfyFAGYEWR6KzMJOkVcyCLV5pqDwdZSeL8=;
-        b=lXNrx+ulbpN44jB9HhVILP5a96WZz6yQclFQiMHquIp2eYO1o1xsG2FBlFOqQsp2s+
-         7/gg90qKE4moMEt5TL1z92xQ3D2kQqjL/vQ5bFA6AUzHWhYApH3EbC8bvDlBrZToOmpc
-         5+ziEBSnkQpSogfoiududgvniqJoQBcHCPHoyFlZvU2Z8QrFxY5Ix0swYUydhABGxDYS
-         t6dpCnlrfSKEPrdPHGoKIC70qlaKp56MMppGkezvb3OpRhnQmRlzBbYGkj3AckKLS0bD
-         qudEMYxXFPVBug7svCYgdjvX5MURtyX0j6n8p8rn3DlFzmgC5X/E4qJkcyvj1sGXgb/p
-         BTrg==
+        bh=Q607KHzsH5/5xr7p9/Upt+OUrHNR998KOVTQ9PTBEwI=;
+        b=VZ7Ky/S1LFGP553rSdOA29+7+8UMMfO4Ru106jkLUOern0x/K2EsFRXP3jVd9PWwIS
+         qRVDwpivucSAm4WN/FqtIzIJWhixp2rHHQ9SpTZudUmxDETK/c6W4/KCfGOkZ87WCGSo
+         DAaJ14Qv6MhjoyDjunuVnyqiY6pt4hCKUzWGHyD0Fo1rFZWuoM0BhL85S3KRPCi8bIry
+         HAYPRXIJp4wi6DKZcvzNRJJcPHPl0yjsnzbQS3M/wEZTKckjlSLnc1Ty0vsEGyiwzXt3
+         cgOut6dcajlcx27igG16tUYLD/USJZPm6mzQqPd1JP/caCRiRDPcX6lIW0sKcraJ14N3
+         IAIQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1785766805; x=1786371605;
+        d=1e100.net; s=20251104; t=1785768512; x=1786373312;
         h=content-type:to:subject:message-id:date:from:mime-version:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=ZD1T8UEYALfyFAGYEWR6KzMJOkVcyCLV5pqDwdZSeL8=;
-        b=kiHQGYslsxJJNKJ7AVDgR6EL9M25O8doOOjgnbhx9U+I7MFL5/JSAoRC+xWGUE/uAS
-         qqDUH19bC+ZiL6oKpWMTkZlaY3VFn4/Xv/GwwN0Oa0x15F+X9NCtN+DvvoqJhqV6xziy
-         9iGUSXWYsAuxRSwOXrAcA1uyNV8kwOcsrPAC4ZsLOPbo+MWWGxBLGEZDgPKAvJ0fF1CI
-         aimKl2QTHzF5BJAejtybvYXWX67g+mxLq0CHGUSj7M70WYVIeN3qpju5jgK93Yz+a4P8
-         mHVxFfGbEHaV0G7wddZVhrIGfo0Fc4gqNjonaGYYOh6H8BZgVMGsVDQbS7E/R42Cgz1h
-         XPxQ==
-X-Gm-Message-State: AOJu0Yyyq+d5w1JoVw05Dg5JdD/cP9SfusmocK2xsPttBY1yWUeuDy3P
-	+kK6cOoHbrNGqctyg03jYhb6TxM9svqNf5zCxsQybwMKvRkjgl0L90XA0sgQWn9xTfObR2jeUuP
-	Sz2xXJZHxyoue4vWSJYHZ2Mapc6WGGX5AaARVL16RMw==
-X-Gm-Gg: AR+sD12yK3VlX2jesdVH3coJ9D2rLqZKL2yQJXfRmMUWbwf46AbyP0IOEAURo1HW3+t
-	HJSUn/i0JwmArwvB7rNnQAzYnYPGCbO+5y5cX6UbCl/5SQqUTPFP+39o0sTpQLB//LVDtrLayu1
-	d/KVZm/E/BngWvVFe/FD1FDSr3pkurUrXEGsYq6nhFgHaBRfolrObgUoyeXwiZXyT2GQAMeRj3s
-	3ZiJOEsBvCCEJaHZZ9xUnSaQzpq6Q1vpK2A8XL5iSP9cf0nSyauVldxR0BAa5X/cSz518D+M824
-	GWcNEC4VL7IDy+DRH6m5v4+9udqp8IMkevCXiSdovbIPvpihXl11i7XvK6/z/viiXiHcV4C99ad
-	IphsMg+JX2WTRW01AmoppQqCneg==
-X-Received: by 2002:a05:6512:12d6:b0:5b0:6343:a298 with SMTP id
- 2adb3069b0e04-5b2e230122fmr2372919e87.7.1785766803917; Mon, 03 Aug 2026
- 07:20:03 -0700 (PDT)
+        bh=Q607KHzsH5/5xr7p9/Upt+OUrHNR998KOVTQ9PTBEwI=;
+        b=oz5e+obS11PGzp3knl8tG4bnv0hPy/SpY0pqY1joubDsfhOAFUkLQGL59riwLLfPfP
+         sfXwRylQ08EuuzELHbmr8T6Vat7sBvM7ntPd/xrs3p1mS04CM7klNrbPWn2aWmb749Za
+         Iqb28KB91Vg9ubV8gd2m3sz3hUvVy/CGS/WuyKGL8mZJ9IDjLmaVfA2Ur0Hyd3iPM/Nz
+         gNlzvW1SbSlUMTHlcoAoQVz9vz8243KLmcEDzWNA7EgTC5KHPzARvkvMbSziYTtWVSS6
+         nlv02KWcisHwo2BDr1/AD20PhWwlIEkoAA3jSm8zASZMRFtfDbzWZZRQH5hLemzUEbhy
+         L33A==
+X-Gm-Message-State: AOJu0YxAufdMcUoLb81F7TeQ6tkIZq0q+9hC4aFKhoS8AY/q0dF0Cn3y
+	MIvirRi0GyCUKsuGpMih9wV7Kbut77s/eHPPE3H2T6n066x2y4PDiw3r41db9QbRccEWfreiVTQ
+	wwbt/PnGZzJNbTMS+s5E73j18dKvvm99emhOM/182lA==
+X-Gm-Gg: AR+sD13znK4wiFAwoOiKjIz9FU2D0p2QgGyhTgsMqa8dbCvZ4J0vg9O0astpiT9Bl3L
+	m0U7mfgMkmKWs19Koe3jSOLxq2/kMmCRZp4dvwPmrg9WwM51+aWIEyQT8XdtE+3oAZx7Stc5kXl
+	t34nD8ERZTQvkwd8zmwZxb7qv44gzfWT1D8vzRqv18DLbIG1KOWYkPt835Jp4/QhB4l7jkM2gyz
+	HXCqdRvtQsdNzL+lZmyG9Q+C5ep5va+3v1tmIsX/aLU6pYHnWCN5SzK4MpbYRzK8uBwQH/D3Leb
+	uhBC4ykn/lyhHbzhg6oj6bcPV6G2021/y1NZFckycKcMT/iO5wSmQAlI1FOJ3M6c6b/snWdN4sy
+	rf37dsifise17UrxDVrh9kctz6g==
+X-Received: by 2002:ac2:4e10:0:b0:5b0:1959:d87d with SMTP id
+ 2adb3069b0e04-5b2e4f363e1mr2225751e87.25.1785768512332; Mon, 03 Aug 2026
+ 07:48:32 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -79,49 +79,56 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 From: alu a <alu021031@gmail.com>
-Date: Mon, 3 Aug 2026 22:19:52 +0800
-X-Gm-Features: AUfX_mzzrgojNJkW4KaDsrDcfgO1HwYaU1tn4wUWaEnhs4okSTJtg_2XCWXikmM
-Message-ID: <CAH+L_5bnerRW_shYJLaqokepgCxPzXLQJVr7+jnL3eY0e5ENaw@mail.gmail.com>
-Subject: [RFC5040 question] RDMA/siw: R is set without an RDMA header for a
- Send-with-Invalidate error
+Date: Mon, 3 Aug 2026 22:48:20 +0800
+X-Gm-Features: AUfX_mzbFas_F1UCL0JcHHHxAX6cAJJz9KTWLNBLTaUHgOV7OjIH3LeFXGR0jnk
+Message-ID: <CAH+L_5ZsxEAM3y8PmVQi1rMQhdRu3PKX9JWGD5N1hC2rkP9wDg@mail.gmail.com>
+Subject: [RFC5040 question] RDMA/siw: received Terminate is reported only as a
+ CM close
 To: linux-rdma@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 
 Hello,
 
-RFC 5040 Section 4.8 says that a Terminated RDMA Header must be
-present when the R bit is set. Section 7.1 case 2 says that the
-Terminated RDMA Header is zero for errors on incoming Send messages.
+RFC 5040 Section 5.4 says that the RDMAP layer MUST deliver a
+received Terminate Message to the ULP. Section 2.1 defines Delivery
+as informing the ULP or consumer that a particular Message is
+available for use.
+
+https://www.rfc-editor.org/rfc/rfc5040.html#section-5.4
 
 On Linux master commit
-075b74841bd0065a3bda3440873c747938e69b68, an invalidation failure
-returning -EACCES is classified as an RDMAP Remote Protection Error
-with in_tx=0:
+075b74841bd0065a3bda3440873c747938e69b68, siw_proc_terminate()
+logs the Terminate layer, error type, and error code, optionally
+parses the reported header for debugging, and returns -ECONNRESET:
 
-https://github.com/torvalds/linux/blob/075b74841bd0065a3bda3440873c747938e69b68/drivers/infiniband/sw/siw/siw_qp_rx.c#L1248-L1258
+https://github.com/torvalds/linux/blob/075b74841bd0065a3bda3440873c747938e69b68/drivers/infiniband/sw/siw/siw_qp_rx.c#L887-L957
 
-siw_send_terminate() then sets M, D, and R unconditionally:
+The receive loop treats that return specially: it suppresses the
+normal RDMAP completion and schedules the LLP close:
 
-https://github.com/torvalds/linux/blob/075b74841bd0065a3bda3440873c747938e69b68/drivers/infiniband/sw/siw/siw_qp.c#L427-L435
+https://github.com/torvalds/linux/blob/075b74841bd0065a3bda3440873c747938e69b68/drivers/infiniband/sw/siw/siw_qp_rx.c#L1409-L1469
 
-For the non-RREQ path, however, it appends only sizeof(struct
-iwarp_send):
+The close worker reports only IW_CM_EVENT_CLOSE with status zero:
 
-https://github.com/torvalds/linux/blob/075b74841bd0065a3bda3440873c747938e69b68/drivers/infiniband/sw/siw/siw_qp.c#L470-L483
+https://github.com/torvalds/linux/blob/075b74841bd0065a3bda3440873c747938e69b68/drivers/infiniband/sw/siw/siw_cm.c#L1119-L1129
 
-That object supplies the DDP Segment Length and terminated DDP header,
-but no 224-bit RDMA Read Request header. The resulting Terminate
-therefore appears to advertise R=1 without carrying the corresponding
-RDMA header.
+The CLOSE upcall does not include Terminate-specific information:
 
-Figure 10 also says that a Remote Protection Error includes an RDMA
-header while listing Send with Invalidate as a possible cause, which
-seems difficult to reconcile with the Section 4.8 prose and Section
-7.1 case 2. Should R be cleared for the non-RREQ branch, or is another
-header representation intended here?
+https://github.com/torvalds/linux/blob/075b74841bd0065a3bda3440873c747938e69b68/drivers/infiniband/sw/siw/siw_cm.c#L351-L409
 
-I have not reproduced this on a live connection; this is based on
-static source and wire-layout analysis.
+Based on static source analysis, the consumer appears to receive only
+a generic connection-close indication and flushed work requests. I
+could not find a path that identifies the received Terminate to the
+consumer or makes its information available for later query.
+
+I have not reproduced this at runtime. Is IW_CM_EVENT_CLOSE considered
+sufficient delivery of the Terminate Message under RFC 5040 Section
+5.4, or is a Terminate-specific indication expected? Is there another
+path exposing the received Terminate that I missed?
+
+I realize that RFC 5040 does not prescribe a particular Linux API, so
+I am asking about the intended mapping rather than proposing a
+specific fix.
 
 This finding came from an academic source-level RFC consistency review.
 
