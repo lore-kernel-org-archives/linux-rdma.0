@@ -1,141 +1,146 @@
-Received: from mail-lf1-f53.google.com (mail-lf1-f53.google.com [209.85.167.53])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from DM1PR04CU001.outbound.protection.outlook.com (mail-centralusazon11010060.outbound.protection.outlook.com [52.101.61.60])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E4EDF384CCD
-	for <linux-rdma@vger.kernel.org>; Mon,  3 Aug 2026 11:59:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.53
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785758359; cv=none; b=mzz6UUl1mBIGNgMmfnkVN4InSefelH0l3zv2W95Lzmm96w/UimHIBbTtPXPe4TxhgphgtaDYnFECzLL6DI3+E0krMRKyoztE+7Q/NOnx1tVcN9zpO7bPuBtHdVb02n5Uz08NVRUkpWPUO9vitavPTX2apYB/bKENCXGyF/CEmH0=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785758359; c=relaxed/simple;
-	bh=LGr2JBudFXtQ4Ni+TyjMLiHTOBXGdKgbtU1pxmP0shw=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=gwApzc4XyFfUKvLgqfz7aXe8f/+2GbK/DFog/m+tBngwXYFT6G2Q5nS4BaTaLZcYaMKx2QBuLiAccUQCjczR1Pv1U6qPLnsOFfGLf/HWRKvteiE5KQwdEo2U1x8oSwr1nVa9jER2km80vEFyvtgTp/pZIbWBYNyA94OzTA9qB5w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=resnulli.us; spf=none smtp.mailfrom=resnulli.us; dkim=pass (2048-bit key) header.d=resnulli-us.20251104.gappssmtp.com header.i=@resnulli-us.20251104.gappssmtp.com header.b=SYwqDgyd; arc=none smtp.client-ip=209.85.167.53
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=resnulli.us
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=resnulli.us
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7F2E403AE6;
+	Mon,  3 Aug 2026 13:26:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.61.60
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1785763578; cv=fail; b=RV38BzxJUdVvbaC5t9O+uCCaeJgb9t7KaNwuVgXJNarmkaK9IgVXJCXguI8POk/+f8sfGbfNni2Fh/rrrwpgYVO18Z3JXmoXDuwQecLlUeBpD+CUAs+4zHje/50JmXbiSotIQe3VK5NIjoIqkbxTC03o04u5A+cl0n+BDovc+ds=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1785763578; c=relaxed/simple;
+	bh=RbZAmq11lMfptBep6Iof4585bH64D/dY3csPA/ec2BI=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=JCLt/N4bAPcE7vKJfnJH4qOdODkmK9I8VfVeG0AfmTKbN6J8DCHSmY54Z2QY4u5xm92kZyLXk7QqPzuKQzajQkwHVLVBlekSsPTGTVKWJ46lbtZScHdqw3TbEF2z8irAIyO3Y9YuCOP3IxBN+lghPMx/RijKJ0L8BbSs2ZkI55I=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=Uqzfwjw6; arc=fail smtp.client-ip=52.101.61.60
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=resnulli-us.20251104.gappssmtp.com header.i=@resnulli-us.20251104.gappssmtp.com header.b="SYwqDgyd"
-Received: by mail-lf1-f53.google.com with SMTP id 2adb3069b0e04-5b2a3166398so2709866e87.3
-        for <linux-rdma@vger.kernel.org>; Mon, 03 Aug 2026 04:59:14 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=resnulli-us.20251104.gappssmtp.com; s=20251104; t=1785758353; x=1786363153; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=s5nX246tmJ2aEHx092HUDukd7vHZ9i1KeOZr9TmAuuA=;
-        b=SYwqDgydHQW2lqhDHNU1neiMwX6fT2+e/kKHGQ7SErLpmHyy5iR3BPxeEfdTFBLsqo
-         zo37nd2X/QJsVlmPeymLxkBz9phGqhlaE93gaiRBxe55e4xcNl5eoDHvAMC+SWOsRsbH
-         Rnu3OOk8y/6JQH8Dcc79sNTM+jCiFSzYIkIApefu+3pMT0aPCCKAdOThQxtvd0QCVhbz
-         i/p3ihe3GagGnJAwFpOyJB3hVSOpZu79/VFpkEDf45s26e7/jyMO6HP2bH0QMkqWexO0
-         V0S29Gs4OLf4OMGmzATi56lQuvsrXHcYiZGMNjUyMpqMg7xlCEuKCdG5VP2zS77ck44N
-         Wwiw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1785758353; x=1786363153;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=s5nX246tmJ2aEHx092HUDukd7vHZ9i1KeOZr9TmAuuA=;
-        b=oRHsl29Tcbhu0MVP+R+d0ATS2kos5gfTz4detVmuAlTviRj0B4GTt55WtBfV2Qb43h
-         RhDv8rQpr/n+Pb9TsoFgR9CKFQDkhfcWuzx9rfSUMdXmL4JurWRsLclgBKQ1Y0n2z/91
-         pfzJlVuoiAVxaobnFUWIQXk3zMS2uIXq1GbbBP64Z4f3DCDVi5Y1ecLlE2jOQ0DWNqix
-         tUN3eHuC845VFdF0/3CnFHL8D9cPWb6ZSxePneeN3+KYxcI1jC63no9V6fqf9f0TYbz9
-         CQkmqlX7b4YTCwKHjuCOavCk4sKb3NnJ2W3FOk4thwkK2WcPKwlagSsgKttvW2wm6d8r
-         D/hw==
-X-Gm-Message-State: AOJu0YwRU8R3O0LrT4EGa//KWEQD+QgwY1CAK+XtFDByNoehUGbMtrX6
-	zr80dMl9DNZ4zkVDcN9WH4Pm6s8XHkvQqmHSbN2ZLZ59zU4BGSjmh0FvrrxkW9kCBBE=
-X-Gm-Gg: AR+sD11n/YOHWNmjp7QW6UFgI3Y6/3IIxagcn56jkdJIaD6YSuZ28dYz/wlI6E3zxbK
-	brST8WhvKax/nSeyn9CbJ4yiAYJo4kF8EB4rIPn6I18e8dJ3OcwCStvNLIftkUvj+w/iD3R68Bv
-	y7rvsGcKW2/pL7V9YwHkrGOYjVjfdM/WbkyHFxAv29G+th4KocQA5oDsZhHjFuHv0x9FpFV9Y8n
-	WI8heNd8PYVHV1K/qCoqZUnPWZk0m7KUBds8MpNluJ8R71qQqpPvpPnWez4eu9w91kkmnzbjvab
-	02+G8PjvmJTOX8BqJOpddNFKL2uEeAm7n6oqtnAZqGiVHGXN11insjHxvpxTzrjr3sIRIbYmZOG
-	+fQNT/a4qQTDR3iewUIFQQVGRyWwOWVBnuzE8dgOXU5wYnJd8EO19888ZRVSmTW1a388vXFaQ8K
-	WJs7m4Q5Wj/sL4vkUNHnLrbDz9dGf3BRVVeb14BckkP3/Nhy+aAXw+nSIAA3xx7n1QpFpaY6M=
-X-Received: by 2002:a05:6512:3da4:b0:5ad:5c4a:8221 with SMTP id 2adb3069b0e04-5b2e4cdcb49mr2598346e87.0.1785758352621;
-        Mon, 03 Aug 2026 04:59:12 -0700 (PDT)
-Received: from localhost ([140.209.217.211])
-        by smtp.gmail.com with ESMTPSA id 2adb3069b0e04-5b2e23cbf5asm2007557e87.32.2026.08.03.04.59.11
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 03 Aug 2026 04:59:12 -0700 (PDT)
-Date: Mon, 3 Aug 2026 13:59:07 +0200
-From: Jiri Pirko <jiri@resnulli.us>
-To: Konstantin Taranov <kotaranov@microsoft.com>
-Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, 
-	"jgg@ziepe.ca" <jgg@ziepe.ca>, "leon@kernel.org" <leon@kernel.org>, 
-	Long Li <longli@microsoft.com>, "linux-hyperv@vger.kernel.org" <linux-hyperv@vger.kernel.org>
-Subject: Re: [PATCH rdma-next] RDMA/mana_ib: Retain create CQ flags field name
-Message-ID: <anCBtLSxn8TtFcSz@FV6GYCPJ69>
-References: <20260731091041.2250897-1-jiri@resnulli.us>
- <DU8PR83MB0975547820CBB956D4EFFE57B4C82@DU8PR83MB0975.EURPRD83.prod.outlook.com>
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="Uqzfwjw6"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=UdfpZ6YzoKOgv5C+CzVNvzy+ikUZUDSZWQu5V94PssmnDfcjd8Ubq00rDNuSZrDH8oRG7ZoHDH32Fi14D4ms3atTwCBzeZ1DApO4NaSqLWpg3MRPRRvdD4rjA87AgX+BiZPBEp72MPnhKdfvZSwZuswkaNwX7swhibQ0TFugiZWfMhrwFExEc2ofNJLHmxfRyOPeNXhG1qZ7jU8/sddhMMIns1PQ7+Mimx9UiUO9NN3qH28HHyFhSnVF/hvgHkCQSaUwMQxoNXp8q3ZLGiEbrFX1Q9V8CGdF8r5uPGKzA4huE2fxxHRQrORrxp6COhBtAtu59wGsjeWQuz+Pt2s+Wg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=4/SzXuF87TrcLwdKQHvWpvA1vqI8LGaP1fgGnV9xFZY=;
+ b=IAonPF5PQKeRbaQbLhICqz2MG8TgGrDSlfW3doOOtG0/RAvm58fSo0dazrHzq809aAQuWtL3+6J4RSNZAihabB+wS0elvf0yaRDng5w/PeBzF6MVu+ZLw5f2LaHRvj0lNISegdImhkDUbyphncSJ0nwQNdeSwFiqRBqjHd3ALdZ6jhncZ+RuQgf8YB3HcjK6Tsno7os4mBHqsstZZAS7eaOuHuGDvLhoNtbfGBQoBxwB9gv8poq/PLq+tWkSlB+Z+t06omkH7vHOy7vHLX7sCt4Cuv9W7/XexfCzu5YQQizJEQzRPU8MzmKrXTIeQRlFtQflLtSVsYd9DmNyhqWrng==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 216.228.118.233) smtp.rcpttodomain=lunn.ch smtp.mailfrom=nvidia.com;
+ dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
+ dkim=none (message not signed); arc=none (0)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=4/SzXuF87TrcLwdKQHvWpvA1vqI8LGaP1fgGnV9xFZY=;
+ b=Uqzfwjw6H+jWvYOMXAbd4cHFpCsEq4eZMhtHbN6kmVrTuJFluWJHavGP8WuO3CzkvIN8tO5S6CAiht8SC8SQ04RCD4Zp6jAQw4YKGVhxXURQ6MoQ3KhAQlkxiwnvBG7DLxwCMZblzVQDvtokjOBCE97IkNDSO0e26zs18tqp7P7eYETqVwxeBjkkvXcYNOogoC+sV+hc33KA2UaWmykwumbyiTNX/M5hg0O+lclO4zmbJ0urHxoPeQt9+U52oe46sRzzD7RIRyhUKjF4qG6o6/D/QJIo5MEiamWuENSnC6eej4KplNuNBNlpJJGKAEuguJ0fQJPrV6YQ9XA/RqHHDQ==
+Received: from BLAPR05CA0040.namprd05.prod.outlook.com (2603:10b6:208:335::21)
+ by DS0PR12MB6584.namprd12.prod.outlook.com (2603:10b6:8:d0::6) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.21.270.17; Mon, 3 Aug 2026 13:26:05 +0000
+Received: from BL02EPF0001A104.namprd05.prod.outlook.com
+ (2603:10b6:208:335:cafe::68) by BLAPR05CA0040.outlook.office365.com
+ (2603:10b6:208:335::21) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.21.292.14 via Frontend Transport; Mon, 3
+ Aug 2026 13:26:05 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.118.233)
+ smtp.mailfrom=nvidia.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=nvidia.com;
+Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
+ 216.228.118.233 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.118.233; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.118.233) by
+ BL02EPF0001A104.mail.protection.outlook.com (10.167.241.135) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.21.292.8 via Frontend Transport; Mon, 3 Aug 2026 13:26:04 +0000
+Received: from drhqmail201.nvidia.com (10.126.190.180) by mail.nvidia.com
+ (10.127.129.6) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Mon, 3 Aug
+ 2026 06:25:49 -0700
+Received: from drhqmail203.nvidia.com (10.126.190.182) by
+ drhqmail201.nvidia.com (10.126.190.180) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.20; Mon, 3 Aug 2026 06:25:49 -0700
+Received: from vdi.nvidia.com (10.127.8.10) by mail.nvidia.com
+ (10.126.190.182) with Microsoft SMTP Server id 15.2.2562.20 via Frontend
+ Transport; Mon, 3 Aug 2026 06:25:46 -0700
+From: Tariq Toukan <tariqt@nvidia.com>
+To: Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller"
+	<davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, Jakub Kicinski
+	<kuba@kernel.org>, <netdev@vger.kernel.org>, Paolo Abeni <pabeni@redhat.com>
+CC: Dragos Tatulea <dtatulea@nvidia.com>, Gal Pressman <gal@nvidia.com>, "Leon
+ Romanovsky" <leon@kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-rdma@vger.kernel.org>, Mark Bloch <mbloch@nvidia.com>, Nimrod Oren
+	<noren@nvidia.com>, Saeed Mahameed <saeedm@nvidia.com>, Tariq Toukan
+	<tariqt@nvidia.com>
+Subject: [PATCH net-next V2 0/3] net/mlx5: allocate doorbells from dma pools
+Date: Mon, 3 Aug 2026 16:25:17 +0300
+Message-ID: <20260803132520.2891860-1-tariqt@nvidia.com>
+X-Mailer: git-send-email 2.44.0
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <DU8PR83MB0975547820CBB956D4EFFE57B4C82@DU8PR83MB0975.EURPRD83.prod.outlook.com>
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-NV-OnPremToCloud: ExternallySecured
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: BL02EPF0001A104:EE_|DS0PR12MB6584:EE_
+X-MS-Office365-Filtering-Correlation-Id: 93fa872c-3430-4156-2001-08def162c4ed
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|376014|1800799024|82310400026|23010399003|36860700016|18002099003|6133799003|56012099006|11063799006|10067099003;
+X-Microsoft-Antispam-Message-Info:
+	reaM64hmJjLWicthnyELH7pXHcoFoC7QDXiDcho4EmMYgmFbgJG2EAfiuVyKZR5BXPfujIIA87JdbSiqfg0CCy5j+GuCdI9Xx2RFHXtyk2zznekPqQ1vKI7+50nbh+tSX/UVVBSs9DvSgLONkGE5Ok+dp5Dt3/CCBaIE8PFzSghx76cSNtBOq7sEPS7aCY7qWXxncoOCfaqruUCoAcdxxpZjkHFA1EoeQHbi2o6hu9FhpTqtuDoF1agB5bBZ7ouauhlhzKqKGkakVKqm8Xne+u5Ebeq7BQFWEEZIMA5PS0VEGEFIfkQr80jziPZEE7ahCCjYnBiLetc9aDRcSFK/zy4UtW13LZyoFD4RVxqvsaOFIxkDqhu3UQm7bgPert1LSv5tcSxwZ36gWYjfdqjCnIDPPkvQXmUCGpE2UScI0dZyer8eAtuGYWzEpr0sQoAhWSlvQxX3ixujzMh9HaumFgQyB3AKXfwXnLi10IcdNm+J5S2Tcgu9+gdtIGGA0mf64pAhpzGfGC/T4WqzRjFNy1Uq27wlXnlciOEnYljl+H5soNU2SD37L8vwReamv4Su+FaBcucPs3Mz2RF6nSG1ulajugEiQZBpAd9j8u1oneN/hain0VSbpG5cWXweiqzdYBLNxO9o0VvXleaVc91ndln/r7P9KnkKP1xRrsCptY6jqo9zJpriZPoWyYQbb2pkH7jGHmD5A3kmkhA1UrI/xg==
+X-Forefront-Antispam-Report:
+	CIP:216.228.118.233;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc7edge2.nvidia.com;CAT:NONE;SFS:(13230040)(376014)(1800799024)(82310400026)(23010399003)(36860700016)(18002099003)(6133799003)(56012099006)(11063799006)(10067099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	KAx7UlkXYNOEbHxo5eIk+mQQawZVC8oOomVdjM47hX1KWU8kzOGA0jIxaybsGd4UiDAPna+AzoG0PBOgN/4BaCAEuxOOfiH+u5VCuuwVuMMtbgEBdnJeNPf4o9oR8XknhygVUCejpbR2ZrnrKUO8yuuyxNIry9IIN+2W5foM6/cFbHtHcJlwjbjoEU1Z4uUbmrWeSefYhY8Ocad+Ffv95HNrmhVasuBtH31KWt8B+fFMbwXkrE34Ypyt3reeV4Jc77d0sKxC5rWttZI03i4dA1wcuqKzpeVDQ4fAU3yx+5VY1vKa9nxUiHElcXJX425uVhVuFnufHwCeyQ8/h7jQUpotWnL563LApEkdeQ3lJHRSLPoqE5CwoYkF3+34P0PLppbidYd/B6rOKBs6maTpUHSka/wwM0cyRhcJ9rRQOdWURNR1Mj20ZYQ7DAUK6v9e
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 03 Aug 2026 13:26:04.4249
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: 93fa872c-3430-4156-2001-08def162c4ed
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.118.233];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	BL02EPF0001A104.namprd05.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS0PR12MB6584
 
-Fri, Jul 31, 2026 at 02:54:31PM +0200, kotaranov@microsoft.com wrote:
->> From: Jiri Pirko <jiri@nvidia.com>
->> 
->> Commit eb70d83a8645 ("RDMA/mana_ib: Adopt robust udata") renamed the
->> "flags" field of struct mana_ib_create_cq to "comp_mask", as
->> ib_copy_validate_udata_in_cm() only validates a member with that name.
->> 
->> The layout did not change, but the field has been a part of the UAPI since
->> commit 44b607ad4cdf ("RDMA/mana_ib: implement uapi for creation of rnic
->> cq"), so the rename breaks userspace referring to it, for example the mana
->> provider of rdma-core assigning cmd_drv->flags.
->> 
->> Convert the field to a union providing both names, so that
->> ib_copy_validate_udata_in_cm() still finds "comp_mask" and userspace keeps
->> "flags", without having to add a helper for this single case.
->> 
->
->Thanks for the patch, but my understanding that it is a common practice to rename the fields,
->and kernels headers should not accumulate historical names. 
+Hi,
 
-That is not doable in UAPI. Some userspace app, like rdma-core in
-this case, might use it and rename breaks the compilation. Some other
-app you don't know about may use it.
+This series by Nimrod extends the mlx5 internal DMA pool infrastructure
+to doorbell objects.
 
+Doorbell allocations currently use a separate pgdir allocator. Moving
+them to the common mlx5 DMA pool implementation keeps the same coherent
+DMA allocation model while sharing the pool code used by mlx5_frag_buf.
 
->I also faced a similar problem from renames in other providers, when I needed a new kernel header in rdma-core.
->If this breaks your rdma-core in a PR, just remove the field rename in kernel update commit as that header update commit is not getting merged anyway from your PR.
->My understanding that maintainers of RDMA-core will merge the kernel header update, and will bring this change from my PR:
->https://github.com/linux-rdma/rdma-core/pull/1765/commits/0dcadd9316f1b98e21973e3a6e0f96186d49bd5a
+The series first creates per-node doorbell pools, then switches doorbell
+allocation to use them, and finally exposes their usage through debugfs.
 
-this is not how UAPI can be changed :/ It simply can't be changed.
+Regards,
+Tariq
+
+V2:
+- Dropped defensive check in patch 3 (Leon).
+
+Nimrod Oren (3):
+  net/mlx5: initialize doorbell dma pools
+  net/mlx5: allocate doorbells from dma pools
+  net/mlx5: add debugfs stats for doorbell dma pools
+
+ .../net/ethernet/mellanox/mlx5/core/alloc.c   | 139 ++++++++----------
+ .../net/ethernet/mellanox/mlx5/core/main.c    |  11 +-
+ .../ethernet/mellanox/mlx5/core/mlx5_core.h   |   2 +
+ include/linux/mlx5/driver.h                   |   8 +-
+ 4 files changed, 76 insertions(+), 84 deletions(-)
 
 
->
->- Konstantin
->
->> Fixes: eb70d83a8645 ("RDMA/mana_ib: Adopt robust udata")
->> Signed-off-by: Jiri Pirko <jiri@nvidia.com>
->> ---
->>  include/uapi/rdma/mana-abi.h | 5 ++++-
->>  1 file changed, 4 insertions(+), 1 deletion(-)
->> 
->> diff --git a/include/uapi/rdma/mana-abi.h b/include/uapi/rdma/mana-abi.h
->> index 410f0ddc8c89..431c7076f20a 100644
->> --- a/include/uapi/rdma/mana-abi.h
->> +++ b/include/uapi/rdma/mana-abi.h
->> @@ -25,7 +25,10 @@ enum mana_ib_create_cq_flags {
->> 
->>  struct mana_ib_create_cq {
->>  	__aligned_u64 buf_addr;
->> -	__u16	comp_mask;
->> +	union {
->> +		__u16	comp_mask;
->> +		__u16	flags; /* the original name of the field */
->> +	};
->>  	__u16	reserved0;
->>  	__u32	reserved1;
->>  };
->> --
->> 2.54.0
->
+base-commit: 69963a0678a347d57c4ac8b16939dba216eb95ce
+-- 
+2.44.0
+
