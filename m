@@ -1,68 +1,68 @@
-Received: from DM5PR21CU001.outbound.protection.outlook.com (mail-centralusazon11011038.outbound.protection.outlook.com [52.101.62.38])
+Received: from BYAPR05CU005.outbound.protection.outlook.com (mail-westusazon11010047.outbound.protection.outlook.com [52.101.85.47])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2772625785D;
-	Mon,  3 Aug 2026 13:26:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.62.38
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1789540DB54;
+	Mon,  3 Aug 2026 13:26:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.85.47
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785763581; cv=fail; b=IrfRX9V5ZcwxVndPqWHwfPVkvOdEauFAqWGilcaqhGT+/eZB4Mg84G94MnzKnM67f4VDQT2g+etSyIHXjBZUuFncNRjuNJyqXemEbAOlb6CQPYEdTftpxN6XsBMMHxS/bLOS+XNWVmtAppc3OE3v2brSUl/QRO93TnoM5EKdfQI=
+	t=1785763591; cv=fail; b=N13o0AmmLgD6jnaalQO/vKs6ihGNtMap2B0cTqOxQXb9u0oVEwzJcR71PI3wJJVeV14GE7yYQfBSeIJWVywp+tG6Gnor+QDA6pFyLFaWaDsQXwoe642IhDZHU8spEdAj1wVv5XHLOjxvOJLftOVfW3uMkKCW9n4U3xFS3909lHI=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785763581; c=relaxed/simple;
-	bh=un+WLtelwryIBQD5MJBt+TGs30fQIcCABwn7kYcQHR4=;
+	s=arc-20240116; t=1785763591; c=relaxed/simple;
+	bh=NkNE0Ej/kRc1iYTROmOSQlQ46IbV7R/rl3+Jg6UE7XY=;
 	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=S4x4y7N3mDywXvoe7lsg2uPtaNao1aZZ28QQyLL4YOR2gmDKhljoxYlGpcbnEKcyA/qOVJ+aNv567nQ7IZ0c0o7j0NdJow32p3sd4DP+yspAZbtQNZJpi2x6ymnlSEtpWqPxSurFWi8dpoHIgOryiBpAB5S6hCKgBpdDpcxLI1E=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=NJ5gqgh2; arc=fail smtp.client-ip=52.101.62.38
+	 MIME-Version:Content-Type; b=RwNrvtcpRcgyMT0VvxlVHk9++vfhj3AU9YlxO0+U5iA0R/UO1HSyM3cjxFtuhMQMMiswU0n6onLo5eEtSz4uao+BbfH7+6FTeXHAunJXH070XriPDlLMk/6MyYt+lCOpCVSStd5BlrvgQenZ8nxodceAPwqIj4mv2O2kzP8dvqc=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=WUu8/SHu; arc=fail smtp.client-ip=52.101.85.47
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="NJ5gqgh2"
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="WUu8/SHu"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=WnH2Bad49nyfwZE3fxetFFeeuIwtwgfsFb2gVlR03l6z/egk42MYA00p0DaSUy6p9F4hV2VQOdShhAbgTZCkWZMwczEXygeLJahQ9RXsWprqq+vkwF/6WucQlroqgtmf8aPOm05k+pbxIhUg3MEfvEUNnt7OmFot5T6KUteF0JtfOvbcioUTnNYGyF6xtdQ/RHuvt5GkIbrJGCGmnzqQxHrtBGsbJiz+zpq3aglddJUWqhZwRjw7jHRag/ZW6HdN8VGkjFtYcQ+k4PYoKHRfQ3jO6hHbwYh1aqGLKsBCTi7X9DMVM4LytrcHx9GvjvRHPV3YI7bVUE+YPKO2hoYKQQ==
+ b=KJuuTyPu+sWEUTbnzCbkIhv52acZZKJ9qtRHPuxib2Rd5ihtxOfumBdX3WbnDf6/KgCwI24NLf7lYu96Ewt22vj7ZNmu4v0/33vHkt+y7K/gTelFfM9jBauC4w5njLHJdx5c3k9qPDxFKqxXzgOUwqYKWnfX8IKAYAJ6epPKUZKr3A65u2p7AxanzJPN3V3uI7uKUbryLrxGYnKM58N4kjAM0PYy4sjN0X2Zao/F5kpwbRpEhI3ETT1gCEx0AMXLYNwQycX1vBC6yMK+RfFTvTlH9p6YHkZ+pa/G+Hforb30klWZ0CZBNK9Ai6ayv1rYuZILBdQ01+w6g1SGGeYAlQ==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=pbFwkqqVv0uqCxKjxsa4wg4lsKdOvR5SNZm3cVy3/oc=;
- b=HAg8z0gCXG9vYmnX1VKhBavDya8LJXs4m5NW5yLXhY/V3k/iW3AxphDXuMAO8bFRbYbH/DuS1ZEMWvUYwv+urx9L0uUUUfaeFLmbrVIYLZiX7P4iNd+IV5NcdypW9v/VlUVjLh9Cho9IaECS5ct0oJyvENdVo0aGz0IyxjuZV5ZJ4EYnBpxTv8NMh2C8ymULEo4d4XaZHFZjXJpfE2RBINqrY6KVeV2b3BRcsGYMvay8GF/hdnGyHb06psL7TExjNjSI4Gs2lJgaFeNNTtRI2KHzK1QSthf+darOjQBi1UIvVP/9AMWKBTEjAJZZ2iD9fMk7xnJc9rCYBJ+qbjstog==
+ bh=fSQcMffT84dwPijp5MJtWDigwIZ4E2syN40ZQzj7i+U=;
+ b=CFpS60bcSxNioqXL/7mED6lK4SVx2fpz6btQdGHoNZ4IGQg75bwO4tgGzEiOaLkFv5OHo7bm6UmlTlNJfil2SOIVt2EV61OKRAeglcT9Yl4pYU9UpNjsge3N/hGVGWXO5DLS7bWSkEMGcXXzFbmAyDjJlDzd+CBp+out3+9B28aMZsu7R8Ji3MJebHiVjlCajn0Myg8Z/eO1I/9yox6WEc3FihRhed+Mv20oPKrWwCOErgwry3LCqq+R929iur4rBHtQ32dEZIi/zBxfcb8CKORhdkPi7JIOy77jqzcH8g7PJ2fpQq3IxI/fmYLySgT2U5HbpuYF1B6aukw88UobfA==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.118.233) smtp.rcpttodomain=lunn.ch smtp.mailfrom=nvidia.com;
+ 216.228.118.232) smtp.rcpttodomain=lunn.ch smtp.mailfrom=nvidia.com;
  dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
  dkim=none (message not signed); arc=none (0)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=pbFwkqqVv0uqCxKjxsa4wg4lsKdOvR5SNZm3cVy3/oc=;
- b=NJ5gqgh2WCak0HGsu3JbRkiqDIHzVZp6pDDEYTM1tJr+DV873zquyUVddqi27XXX/3nnh9KgX6hks3/3inaE+OXoVqoAZ1ZFJXmYfdT+KEyjYpQ61T3uYt2/P7w1I0x3/oaLLgzzPWspEBwaQjEcpHFE5E2RlMKgwsQmTL72mo+D4jMuJCJ6T7JnXRCYHqLc167k3jiJCN3QJcQaAOg76tgWCskioTL+FMOeLLjevbU/nYJ6Q6WfbcP9AjRXPDlGjnaIo97BP3ZhvmHwwxWDrFkbxwfGs8Cw0/TLGG5ceIGa+BEvw+nBGBNZPoyGeuxc75era7sNR2N23wH4r+z1mw==
-Received: from BLAPR05CA0047.namprd05.prod.outlook.com (2603:10b6:208:335::28)
- by MN2PR12MB4061.namprd12.prod.outlook.com (2603:10b6:208:19a::18) with
+ bh=fSQcMffT84dwPijp5MJtWDigwIZ4E2syN40ZQzj7i+U=;
+ b=WUu8/SHuUUUf+RckBGtk8zsL8jeQ7NyVmsrLHVF7E0Od5seriDBFJ1aSPVvHiF+XVACdM3oFfgaoyn1+lCx/ROXnkazLJP//OHfn51oGOZX406+WmCDIpgFV7uwfwZDjvLl9ChtKOVsClEEBDckFwcNLaIGI73ZFnTl6z6pnXOP4UflvscwLelhqUO9FypSyW2JJpKl6OkiKBMg4tHMrHhmJhxrEnv251HSBxt4QGCOKPwHepSsC/tLOUvPIR6+04horKX5PFDunzLDvETi367JO3SNU8daBTh9OWdokVfyyBVzd82qDrvVBMesQvN6EGVXn5CMhoGIw2Fj9+QpVpQ==
+Received: from SA0PR11CA0074.namprd11.prod.outlook.com (2603:10b6:806:d2::19)
+ by SAWPR12MB999316.namprd12.prod.outlook.com (2603:10b6:806:55f::7) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.270.18; Mon, 3 Aug
- 2026 13:26:10 +0000
-Received: from BL02EPF0001A104.namprd05.prod.outlook.com
- (2603:10b6:208:335:cafe::d) by BLAPR05CA0047.outlook.office365.com
- (2603:10b6:208:335::28) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.292.15 via Frontend Transport; Mon, 3
- Aug 2026 13:26:09 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.118.233)
+ 2026 13:26:21 +0000
+Received: from SN1PEPF00026369.namprd02.prod.outlook.com
+ (2603:10b6:806:d2:cafe::b) by SA0PR11CA0074.outlook.office365.com
+ (2603:10b6:806:d2::19) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.21.270.18 via Frontend Transport; Mon, 3
+ Aug 2026 13:26:21 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.118.232)
  smtp.mailfrom=nvidia.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=nvidia.com;
 Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.118.233 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.118.233; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.118.233) by
- BL02EPF0001A104.mail.protection.outlook.com (10.167.241.135) with Microsoft
+ 216.228.118.232 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.118.232; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.118.232) by
+ SN1PEPF00026369.mail.protection.outlook.com (10.167.241.134) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.292.8 via Frontend Transport; Mon, 3 Aug 2026 13:26:08 +0000
+ 15.21.292.8 via Frontend Transport; Mon, 3 Aug 2026 13:26:21 +0000
 Received: from drhqmail203.nvidia.com (10.126.190.182) by mail.nvidia.com
- (10.127.129.6) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Mon, 3 Aug
- 2026 06:25:53 -0700
+ (10.127.129.5) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.45; Mon, 3 Aug
+ 2026 06:26:01 -0700
 Received: from drhqmail203.nvidia.com (10.126.190.182) by
  drhqmail203.nvidia.com (10.126.190.182) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.20; Mon, 3 Aug 2026 06:25:53 -0700
+ 15.2.2562.20; Mon, 3 Aug 2026 06:26:01 -0700
 Received: from vdi.nvidia.com (10.127.8.10) by mail.nvidia.com
  (10.126.190.182) with Microsoft SMTP Server id 15.2.2562.20 via Frontend
- Transport; Mon, 3 Aug 2026 06:25:50 -0700
+ Transport; Mon, 3 Aug 2026 06:25:57 -0700
 From: Tariq Toukan <tariqt@nvidia.com>
 To: Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller"
 	<davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, Jakub Kicinski
@@ -72,9 +72,9 @@ CC: Dragos Tatulea <dtatulea@nvidia.com>, Gal Pressman <gal@nvidia.com>, "Leon
 	<linux-rdma@vger.kernel.org>, Mark Bloch <mbloch@nvidia.com>, Nimrod Oren
 	<noren@nvidia.com>, Saeed Mahameed <saeedm@nvidia.com>, Tariq Toukan
 	<tariqt@nvidia.com>
-Subject: [PATCH net-next V2 1/3] net/mlx5: initialize doorbell dma pools
-Date: Mon, 3 Aug 2026 16:25:18 +0300
-Message-ID: <20260803132520.2891860-2-tariqt@nvidia.com>
+Subject: [PATCH net-next V2 3/3] net/mlx5: add debugfs stats for doorbell dma pools
+Date: Mon, 3 Aug 2026 16:25:20 +0300
+Message-ID: <20260803132520.2891860-4-tariqt@nvidia.com>
 X-Mailer: git-send-email 2.44.0
 In-Reply-To: <20260803132520.2891860-1-tariqt@nvidia.com>
 References: <20260803132520.2891860-1-tariqt@nvidia.com>
@@ -89,158 +89,110 @@ Content-Type: text/plain
 X-NV-OnPremToCloud: ExternallySecured
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: BL02EPF0001A104:EE_|MN2PR12MB4061:EE_
-X-MS-Office365-Filtering-Correlation-Id: 2146bd5b-4a53-4255-7372-08def162c791
+X-MS-TrafficTypeDiagnostic: SN1PEPF00026369:EE_|SAWPR12MB999316:EE_
+X-MS-Office365-Filtering-Correlation-Id: 76e3c541-8a80-4068-b6bb-08def162cf23
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|23010399003|376014|36860700016|1800799024|82310400026|10067099003|56012099006|11063799006|22082099003|18002099003;
+	BCL:0;ARA:13230040|36860700016|23010399003|376014|1800799024|82310400026|10067099003|11063799006|56012099006|22082099003|18002099003;
 X-Microsoft-Antispam-Message-Info:
-	hbv1KbmASYjD9DCBmXwXgim5k9k/DGiPkWI38IhBNSTvQTofSQSVhDz+KsxqryApY3C3xSDzLr4YAMNa9XMhbcyr+OTvtRl3NV7tRasHIA+A/cnbx88d/6c+bu1ve+fE0xlWkqHmncpzDU0dIKGjsFTcWbbNjmamu8OEvU2mhK8D7sL7OU37jbzGQYsB2DQaaq3PKe0iKWUep34+EmblT61w57TPknOyf4ehvFuNFNyhJG/cXzesWpSLoEuLxvn/lCimcz4m0YiGCotpei18oK1PZP8BidIKkjnk+xDp1vTH4QbhobDbCxKao1lvzimAnYV/iUyzGb7Ym/RLl90aYUuos6uwVmcxo7l8GAiPSGBdLilTajQInoc70kd5bGP227x/azEZFhROSsCPIExjg7y9BP4iSPHap/x0Kmq47UXNYclubkQEUFFV1pqeUSriY/TnXgEwXqKJMiyM49wlCUlkx17Cqwb4YHm0/lHjPepZt/sPtS/vKRF1J/+PCrz/fGk1cCg4gPgiqXiVq6+TbgtpG+sC4MC6Our12kQBnptO4IlBnfNisi4zIXRZKg6LEGOgwiwTKB9lML7oEsIwRyVzQINODusKT/mrtDgQopZbis0jl4/8MCBzYHCpO9XxruX5L1mhpd/vlCC1EQ1OTcc9l0SfToynXinQ7TSkNL2APzWrF+W2L4RL9+eTdF4N7Sxabjh15ZZ2mF33necNVA==
+	UI7MvEuiyjF6d1WdHKcvYv3p9/MCyHtCwzd1tN6gLRUmdoOQ4SmopBlFl2xofuDX1DuNA1RElUIMXcbaUC+qAUYe0sL7t8sIdybnjmKMIHYtLnG96dEvKHnkPEp0grPYUf/qK88myGZ7//+TGZcPMIN3LbYXoHXb6I8xERRqFf6x+CzBVLSkiawKIIqaQh1kb7fyx1wRz58lVCn624lZqPMYu+m/bKBjZjmr+2oGXRI3YPADXOT+wRkukcfeLGC6Px16eHypIDlvi3kFiNY9P6jrKvdLXRGAIMyNL7mOWFSeRgdYF2yiJOTifNIzUjCaqofRl8cPVSD5lIbttPcOXR/9rTjB0S8MXREQlkcM/jEMq5Xa8LVMwfooEIa2Y/bkHY5tpnd0ubDUUC3yLhSI0Rfd/PqR3EBvGdrGWMECRtaucr0pX6L4D7dgQtrSfWV3wkZ/TC3HOmgo7pJzF0wgi7slo6UfuWnT6ee1ld+nZPqLY60Wi5dFBeG/ObajeHxJq6Cspn1Zz8bUc0e+0vA5nLdX7uEfzoiNiAgBNEo/G8sifyQb8A/NX9lua55uBp34ABTNKfz7xij8xofvAcn/mYdT2j40gRuGTwTJL8azfEyheu9viZu+z/4HDr9Cc+/EG72RqFMVjeja2pMMgsr9U0AwAvtAnnAwwUxwK8lK8RQASAv0bPQgiyMorz3GB/dLu8hTZC9JOjBbyxvgEXZ8RQ==
 X-Forefront-Antispam-Report:
-	CIP:216.228.118.233;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc7edge2.nvidia.com;CAT:NONE;SFS:(13230040)(23010399003)(376014)(36860700016)(1800799024)(82310400026)(10067099003)(56012099006)(11063799006)(22082099003)(18002099003);DIR:OUT;SFP:1101;
+	CIP:216.228.118.232;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc7edge1.nvidia.com;CAT:NONE;SFS:(13230040)(36860700016)(23010399003)(376014)(1800799024)(82310400026)(10067099003)(11063799006)(56012099006)(22082099003)(18002099003);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	zp6AFpfF2nb5MOs/tkKoF3xx6UFMoXXzrayVlx/HlJAuACorJLJ5YZCFc8HTgybx2pHfyLWv8HTASLkirQ7fdFVRqP/loPkBbZ1jdvEja6e+1vVe/50Mptsi3I1YyrsCGyIy/7kOUa+WKeoU7bxH3w5esD/mgh3gE/Xr5HZOJbCtno7wB3tXXabmpKx1FMcp9dVBSn6Nlp6e6ZBowJ9akA4k1YyanXAgST/hs1cJBd45mU6q771Q/pPotgltSNOTDBokqOljC6/4MYR3IVjwH+Uf73aAPqIi/z4VBG2bfVEXFn6RAJ6pCLZVc4qlvVgCHlAcA+np9TRj76G0XZ5Gu1sxTz6cl3oS+IF/HByQjCYvDkp6WDb5mtXm3txsFMc/vEhmKbWKaSK2se/KgIRP6OA9z4AqDtit7KZPZC6x8T5e0TY6ndCPLt8Q+vgKzM6q
+	2Q3PtTKab4aM9/9uOMGL9ky3iaV/g35rk8bv1DQqx16tNU6t3qNYZ+sA9qhfpcwGNni302nY1m24PmN1huJqXZVHLHLvg7LWNh9leP0kyDSfGTRzp0NotgWLrFmQoC+Yu9EhPAa10G1eB+yg3UXBqCumwST7ffa/GxBerNolNIiT5YsBP1Ei2FuDHOn0k8iyS9D7QPLJeLZKfU1SVsWR18OV8YuHNIgaJ/AgSWSeL5q7ykHo7+OmSm/E1kGKXhCrYvcu/Cl9auZzUtUaU3qMzkt7vuOLIUvRZGFn9nh5R0bYQGNWyGsPPk1EfeeHsIAcmNARW9PQJqm0l85vZbjmOdsFtVjDtYvFVjpO/bmUFr4j4pCg6yFuqXul3kkOjjxU8qzq1lHAdjIYQbL2BNKHOb94YV+HzkniMvbF+KkqsWHm5OzLadWTi17HmSrbeNB7
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 03 Aug 2026 13:26:08.9185
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 03 Aug 2026 13:26:21.6257
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 2146bd5b-4a53-4255-7372-08def162c791
+X-MS-Exchange-CrossTenant-Network-Message-Id: 76e3c541-8a80-4068-b6bb-08def162cf23
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.118.233];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.118.232];Helo=[mail.nvidia.com]
 X-MS-Exchange-CrossTenant-AuthSource:
-	BL02EPF0001A104.namprd05.prod.outlook.com
+	SN1PEPF00026369.namprd02.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: MN2PR12MB4061
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SAWPR12MB999316
 
 From: Nimrod Oren <noren@nvidia.com>
 
-Add per-node doorbell dma pool creation and cleanup to mdev lifecycle.
+Add a debugfs file exposing per-node DMA pool usage for doorbell
+allocations.
+
+  # cat /sys/kernel/debug/mlx5/<dev>/db_dma_pools
+  node  block_size  used_blocks  allocated_blocks
+     0          64            0                 0
+     1          64            0                 0
 
 Signed-off-by: Nimrod Oren <noren@nvidia.com>
-Reviewed-by: Dragos Tatulea <dtatulea@nvidia.com>
 Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
 ---
- .../net/ethernet/mellanox/mlx5/core/alloc.c   | 37 +++++++++++++++++++
- .../net/ethernet/mellanox/mlx5/core/main.c    |  7 ++++
- .../ethernet/mellanox/mlx5/core/mlx5_core.h   |  2 +
- include/linux/mlx5/driver.h                   |  2 +
- 4 files changed, 48 insertions(+)
+ .../net/ethernet/mellanox/mlx5/core/alloc.c   | 27 +++++++++++++++++++
+ include/linux/mlx5/driver.h                   |  1 +
+ 2 files changed, 28 insertions(+)
 
 diff --git a/drivers/net/ethernet/mellanox/mlx5/core/alloc.c b/drivers/net/ethernet/mellanox/mlx5/core/alloc.c
-index 4fe9d7d4f143..3c9938068c56 100644
+index 3975c726d35c..a92cf545bdaf 100644
 --- a/drivers/net/ethernet/mellanox/mlx5/core/alloc.c
 +++ b/drivers/net/ethernet/mellanox/mlx5/core/alloc.c
-@@ -444,6 +444,43 @@ void mlx5_frag_buf_free(struct mlx5_core_dev *dev, struct mlx5_frag_buf *buf)
+@@ -437,11 +437,34 @@ void mlx5_frag_buf_free(struct mlx5_core_dev *dev, struct mlx5_frag_buf *buf)
  }
  EXPORT_SYMBOL_GPL(mlx5_frag_buf_free);
  
-+void mlx5_db_pools_cleanup(struct mlx5_core_dev *dev)
++static int mlx5_db_dma_pools_debugfs_show(struct seq_file *file, void *priv)
 +{
-+	struct mlx5_priv *priv = &dev->priv;
++	struct mlx5_core_dev *dev = file->private;
 +	int node;
 +
-+	for_each_node_state(node, N_POSSIBLE)
-+		if (priv->db_node_pools[node])
-+			mlx5_dma_pool_destroy(priv->db_node_pools[node]);
-+
-+	kfree(priv->db_node_pools);
-+	priv->db_node_pools = NULL;
-+}
-+
-+int mlx5_db_pools_init(struct mlx5_core_dev *dev)
-+{
-+	struct mlx5_priv *priv = &dev->priv;
-+	int node;
-+
-+	priv->db_node_pools = kzalloc_objs(*priv->db_node_pools, nr_node_ids);
-+	if (!priv->db_node_pools)
-+		return -ENOMEM;
++	mlx5_dma_pools_debugfs_print_header(file);
 +
 +	for_each_node_state(node, N_POSSIBLE) {
-+		struct mlx5_dma_pool *pool;
++		struct mlx5_dma_pool *pool = dev->priv.db_node_pools[node];
 +
-+		pool = mlx5_dma_pool_create(dev, node,
-+					    order_base_2(cache_line_size()));
-+		if (!pool) {
-+			mlx5_db_pools_cleanup(dev);
-+			return -ENOMEM;
-+		}
-+		priv->db_node_pools[node] = pool;
++		if (!pool)
++			continue;
++
++		mlx5_dma_pool_debugfs_stats_print(file, pool);
 +	}
 +
 +	return 0;
 +}
++DEFINE_SHOW_ATTRIBUTE(mlx5_db_dma_pools_debugfs);
 +
- static struct mlx5_db_pgdir *mlx5_alloc_db_pgdir(struct mlx5_core_dev *dev,
- 						 int node)
+ void mlx5_db_pools_cleanup(struct mlx5_core_dev *dev)
  {
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-index 643b4aac2033..b3cb090b5677 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-@@ -1830,6 +1830,10 @@ int mlx5_mdev_init(struct mlx5_core_dev *dev, int profile_idx)
- 	if (err)
- 		goto err_frag_buf_pools_init;
+ 	struct mlx5_priv *priv = &dev->priv;
+ 	int node;
  
-+	err = mlx5_db_pools_init(dev);
-+	if (err)
-+		goto err_db_pools_init;
++	debugfs_remove(priv->dbg.db_dma_pools_debugfs);
++	priv->dbg.db_dma_pools_debugfs = NULL;
 +
- 	INIT_LIST_HEAD(&priv->traps);
+ 	for_each_node_state(node, N_POSSIBLE)
+ 		if (priv->db_node_pools[node])
+ 			mlx5_dma_pool_destroy(priv->db_node_pools[node]);
+@@ -471,6 +494,10 @@ int mlx5_db_pools_init(struct mlx5_core_dev *dev)
+ 		priv->db_node_pools[node] = pool;
+ 	}
  
- 	err = mlx5_cmd_init(dev);
-@@ -1891,6 +1895,8 @@ int mlx5_mdev_init(struct mlx5_core_dev *dev, int profile_idx)
- err_timeout_init:
- 	mlx5_cmd_cleanup(dev);
- err_cmd_init:
-+	mlx5_db_pools_cleanup(dev);
-+err_db_pools_init:
- 	mlx5_frag_buf_pools_cleanup(dev);
- err_frag_buf_pools_init:
- 	debugfs_remove(dev->priv.dbg.dbg_root);
-@@ -1917,6 +1923,7 @@ void mlx5_mdev_uninit(struct mlx5_core_dev *dev)
- 	mlx5_health_cleanup(dev);
- 	mlx5_tout_cleanup(dev);
- 	mlx5_cmd_cleanup(dev);
-+	mlx5_db_pools_cleanup(dev);
- 	mlx5_frag_buf_pools_cleanup(dev);
- 	debugfs_remove_recursive(dev->priv.dbg.dbg_root);
- 	mutex_destroy(&priv->pgdir_mutex);
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h b/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h
-index 09e669f83dba..d6713a2ce676 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h
-@@ -438,6 +438,8 @@ int mlx5_mdev_init(struct mlx5_core_dev *dev, int profile_idx);
- void mlx5_mdev_uninit(struct mlx5_core_dev *dev);
- int mlx5_frag_buf_pools_init(struct mlx5_core_dev *dev);
- void mlx5_frag_buf_pools_cleanup(struct mlx5_core_dev *dev);
-+int mlx5_db_pools_init(struct mlx5_core_dev *dev);
-+void mlx5_db_pools_cleanup(struct mlx5_core_dev *dev);
- int mlx5_init_one(struct mlx5_core_dev *dev);
- int mlx5_init_one_devl_locked(struct mlx5_core_dev *dev);
- void mlx5_uninit_one(struct mlx5_core_dev *dev);
++	priv->dbg.db_dma_pools_debugfs =
++		debugfs_create_file("db_dma_pools", 0444, priv->dbg.dbg_root,
++				    dev, &mlx5_db_dma_pools_debugfs_fops);
++
+ 	return 0;
+ }
+ 
 diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
-index b1871c0821d0..4246d6d904ba 100644
+index 2c56bb1d676d..83d0a83bbfbc 100644
 --- a/include/linux/mlx5/driver.h
 +++ b/include/linux/mlx5/driver.h
-@@ -569,6 +569,7 @@ enum mlx5_page_mgt_mode {
+@@ -548,6 +548,7 @@ struct mlx5_debugfs_entries {
+ 	struct dentry *cq_debugfs;
+ 	struct dentry *cmdif_debugfs;
+ 	struct dentry *frag_buf_dma_pools_debugfs;
++	struct dentry *db_dma_pools_debugfs;
+ 	struct dentry *pages_debugfs;
+ 	struct dentry *lag_debugfs;
  };
- 
- struct mlx5_frag_buf_node_pools;
-+struct mlx5_dma_pool;
- struct mlx5_ft_pool;
- struct mlx5_priv {
- 	/* IRQ table valid only for real pci devices PF or VF */
-@@ -602,6 +603,7 @@ struct mlx5_priv {
- 	struct list_head        pgdir_list;
- 
- 	struct mlx5_frag_buf_node_pools **frag_buf_node_pools;
-+	struct mlx5_dma_pool **db_node_pools;
- 	/* end: alloc stuff */
- 
- 	struct mlx5_adev       **adev;
 -- 
 2.44.0
 
