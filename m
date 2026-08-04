@@ -1,221 +1,163 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pf1-f176.google.com (mail-pf1-f176.google.com [209.85.210.176])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD1E6484239;
-	Tue,  4 Aug 2026 17:02:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CE53D480949
+	for <linux-rdma@vger.kernel.org>; Tue,  4 Aug 2026 17:14:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.176
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785862951; cv=none; b=KSzYkJ77QIT6G/kK00wICgsP2JIocZKdWtGXXizcBqZLEeX/1AX2SrBPsYoQIe1pvKtvG3Drm+EIEBHGSfCkOLwpBxoGazWyyE5xiHULkFSc8Gjvb/Dd7UoKIwoe167lt5u9qAUeRKVBQWrRbWbTuhz77uaA2leojcwcJs+MnGg=
+	t=1785863708; cv=none; b=ReI/yM1fKDmdqQnmink943KcmJ9j0ZhMk0+nYOWcOuIYYmEQibi2kTKhaiSvN2j7kqhU+mn2Bzr+bj4SzCGoTszoc2HVKMawKjkt0gA+qmQ3zDDbvFLRt/gWsU8KPOvXRTUvpHI6+OwPAAthlAJ02x1WIGHK9wI5FlZYL+rFIuc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785862951; c=relaxed/simple;
-	bh=kPUCeIB2RJhyarauEbgq4Nr5biCLiwT4sXhQFwqG5CI=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=r68F4kJZ7xGYi5MpqE+2EzBb6k9NF5MDF4Pi9cUmchtJ3mhSw9kelZXESpSwbgQ0lW6RHWyxD+yWlKCe7cCEVjbNlf3tKPPFZvZ+ok3ZcTCL6mZ1ISyRvOdj8/r+GNQzK9eFFpZyVAHQSKVPWuDbyJfn0swjGL6nDpMX0VLueow=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=X5tYTaeg; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785863708; c=relaxed/simple;
+	bh=CDg7R4z19rm3HhNKcpDry/8FXJmNNTW/k1bNkbouDnA=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=op6VhvRS/Z5gskLW48jb14vZHuHEKSg8JchyDqfefc7RSQ4RMFvpfGJq9tG3zpWANe1E1fyLoildZPtr5heY1BMemKU3tM2gHRvKYqQoaV8cr3wKHlt8SSQx2ay4h/cYF321orp0qwRAJeR1+DVaY93Q3jyO21nU1dBgugp8gm4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Tmc0909F; arc=none smtp.client-ip=209.85.210.176
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="X5tYTaeg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 085F71F000E9;
-	Tue,  4 Aug 2026 17:02:10 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1785862935;
-	bh=etCVaetWE8gtiCKDaU0Grtt/SITut8tqHIOF7rRaem4=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=X5tYTaegfXczgD3LSeCTxDmIglIK1O7T69cGUcwSv33g/HrePwqC9UK0/kaHtBpa2
-	 MWJjx18NE9T0Phs0QTC06P5opUFNWtuLrrJ7Xkkkro5NkOY78q8YiPgdtOj993sXtN
-	 P58hQ+fasv/XhuTKyQRKciqwCbYW1fU4q79949ISrLu69/nvZaOhss/0DcOSqUJB+y
-	 eGMLsCT27rLJLh1axEiy806WSbu06/txoskuSkzxaEvrFX3hRLIW23Yg38+Tc1VND6
-	 mHcaegiKu4fj6GJR2WnCRvR8VG8DUlKFvNaNCXPiKYQ5w3a/NHp6VpqRJeo8okRUpV
-	 965I6T4sPCOcA==
-From: Simon Horman <horms@kernel.org>
-To: hidayath@linux.ibm.com
-Cc: Simon Horman <horms@kernel.org>,
-	davem@davemloft.net,
-	edumazet@google.com,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	wintera@linux.ibm.com,
-	alibuda@linux.alibaba.com,
-	dust.li@linux.alibaba.com,
-	sidraya@linux.ibm.com,
-	wenjia@linux.ibm.com,
-	mjambigi@linux.ibm.com,
-	tonylu@linux.alibaba.com,
-	guwen@linux.alibaba.com,
-	hca@linux.ibm.com,
-	gor@linux.ibm.com,
-	agordeev@linux.ibm.com,
-	borntraeger@linux.ibm.com,
-	svens@linux.ibm.com,
-	pasic@linux.ibm.com,
-	gbayer@linux.ibm.com,
-	andrew+netdev@lunn.ch,
-	netdev@vger.kernel.org,
-	linux-s390@vger.kernel.org,
-	linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH net] dibs: initialise dibs->lock in dibs_dev_alloc()
-Date: Tue,  4 Aug 2026 18:02:06 +0100
-Message-ID: <20260804170206.526356-1-horms@kernel.org>
-X-Mailer: git-send-email 2.55.0
-In-Reply-To: <20260730124227.167829-1-hidayath@linux.ibm.com>
-References: <20260730124227.167829-1-hidayath@linux.ibm.com>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Tmc0909F"
+Received: by mail-pf1-f176.google.com with SMTP id d2e1a72fcca58-84e84a6c4bfso208842b3a.1
+        for <linux-rdma@vger.kernel.org>; Tue, 04 Aug 2026 10:14:55 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1785863693; x=1786468493; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=+FyhIVgwr2eNJZrKd4apq3PGwedIYUrqhXnEIT+9gD0=;
+        b=Tmc0909Fbx4wvfuc8YQaau8WA430Z0l5R23o64tJN0MXXVaNqEr/lEgTnvwwM0p/YN
+         5PhTICdctolgRCT+oid4JmxUEtJiS1c5Zu+m7haLWGeXWc/ryZXOzDkfj2vfcG1tDUtI
+         1tSB0Sx+hLPHTC63EkJ/O6/DdN+aRno8s2kSCfzPWrlgmX1Ozpk7tW4sH2CX6huUhwn3
+         P8X01kMYx06vJzxJt0qEvvd8n817HdLOgQXbYdCIYaOmH/k7uzEMbYeIcU2mdbFL3uUX
+         Zzftbi0Q8Ak4mw/G4IiaT1hXx4BhFEJ8Wy3tAKkIt6Zs3fK+YhzQc4YYdQ79QjuS7Jc3
+         awyg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1785863693; x=1786468493;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=+FyhIVgwr2eNJZrKd4apq3PGwedIYUrqhXnEIT+9gD0=;
+        b=Ao7VTFmdePTFlB306CPZTNwExap2AzdyCjM3SPqn+I2mgqjYcEAYIa54kYmcMAX/Gv
+         KqTAFF9PG9piRFCGOg6LOohRSj0suRFKyCaz0g2IKNNxGoNXOeBhm1iLOO5OUW5yt+gN
+         aziRWrgTjxZiBp4KJlMIRx12vP1RyHRB736LdU1Y4Jw+y3m/0ETdUIpDpGp51dJzEJQb
+         A0fC4EF6dn9vMlWXPdzIqjbjtRwbr//OTcmTR+J7+Cm2yJcSXK+Q3F9qRqgrkyZnZqtj
+         3aQPWib9e66+zKd1Cn61ya6bJ6qbH/qAvs0bv4FYWcg2F4KgyWxGAb+iOCIzYc+DBBXF
+         ndMQ==
+X-Forwarded-Encrypted: i=1; AHgh+RreIsc1V6jLQainqJlfcvjlMKnlnWgFr4OR8Y25Klido3ZzKx1YRuU5JnUk27n3q43DON90KR9iLvLj@vger.kernel.org
+X-Gm-Message-State: AOJu0YxHZ9WxW3Teb1t+nVM60CXgIaQ/Og8ewuwIGrufkHSJoZG8yr2w
+	vcRRrOJguVW5S8tB6+iOse/xlOCN7Slj+6PdrTicgAIiB+auL8hVwIPs
+X-Gm-Gg: AR+sD12NgHewOnc/9lEIjXTFoul3T5zUPC13ot3C78ZgZLRYQR4EqelSitfRw1SBVUn
+	AXGZnpLVHojeBtzC36BzPmjDIiyd0lB9ale5BAVl5N+36Ty8PdkB8xbH4jMfa+U/8NEZlp018tH
+	hVFINe2dY9S1xNcsK5z3r5zXAf7QVtBkCIRJwZSS/O3pkWy3WCKm5Iso8IUC5PQhKhwmoDULNHV
+	2THJ7Lsz/aiddqtl+zn/mKK1xq70kXSAVNmAhn9sYN5fFUM3syFPyTpLdhkYZZQ7K2TrM/cUhUY
+	FNa6/im6AEGwuEnU8/nudcsCCS0M6KvDmyfoLTo2dgJyKQz3HCU7G9lRsAqCEwe1H3oSGTmAupe
+	eu5nrvFG125qT4dVyfx+KoznlEVcvCbtzw9SQLxtrf+vP7GYu0qvOXKTnmsoB6JQvjDO8yq7RyC
+	z0+NCBBssLD6MVISBvff6acZX0NFlS0GbZPsdqp67AAkyK7AJibGMcJoQ7jwxg1jMoSlrZI42eE
+	5qHQdztIA==
+X-Received: by 2002:a05:6a00:12c9:b0:848:50ef:4157 with SMTP id d2e1a72fcca58-84f1cb966c9mr4481009b3a.27.1785863692576;
+        Tue, 04 Aug 2026 10:14:52 -0700 (PDT)
+Received: from devvm29614.prn0.facebook.com ([2a03:2880:ff:4a::])
+        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-cbe707c9970sm77984a12.6.2026.08.04.10.14.50
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 04 Aug 2026 10:14:51 -0700 (PDT)
+Date: Tue, 4 Aug 2026 10:14:49 -0700
+From: Bobby Eshleman <bobbyeshleman@gmail.com>
+To: Tariq Toukan <tariqt@nvidia.com>
+Cc: Saeed Mahameed <saeedm@nvidia.com>, Mark Bloch <mbloch@nvidia.com>,
+	Leon Romanovsky <leon@kernel.org>,
+	Andrew Lunn <andrew+netdev@lunn.ch>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Dragos Tatulea <dtatulea@nvidia.com>,
+	Mina Almasry <almasrymina@google.com>, netdev@vger.kernel.org,
+	linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Bobby Eshleman <bobbyeshleman@meta.com>
+Subject: Re: [PATCH net v3] net/mlx5e: fix BQL reset on SQ re-activation
+Message-ID: <anIeCTh6IUJaP2mz@devvm29614.prn0.facebook.com>
+References: <20260803-mlx5-bql-v3-1-a30d4c66fe1d@meta.com>
+ <6ac643bf-c6f4-4ff2-ba57-964a645d9323@nvidia.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <6ac643bf-c6f4-4ff2-ba57-964a645d9323@nvidia.com>
 
-This is an AI-generated review of your patch. The human sending this
-email has considered the AI review valid, or at least plausible.
-Full review at: https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260730124227.167829-1-hidayath@linux.ibm.com?part=1
----
---- Patch [1]: [PATCH net] dibs: initialise dibs->lock in dibs_dev_alloc() ---
-commit d5daf0b54be512c77adffebc7ed60dee0c5e8e74
-Author: Hidayath Khan <hidayath@linux.ibm.com>
+On Tue, Aug 04, 2026 at 11:23:53AM +0300, Tariq Toukan wrote:
+> 
+> 
+> On 04/08/2026 2:47, Bobby Eshleman wrote:
+> > From: Bobby Eshleman <bobbyeshleman@meta.com>
+> > 
+> > mlx5e_queue_start() deactivates and re-activates all channels but closes
+> > only the queue being restarted. mlx5e_activate_txqsq() then
+> > unconditionally calls netdev_tx_reset_queue(), zeroing the BQL counters
+> > of channels that kept their in-flight TX WQEs. The next completion then
+> > over-charges and trips the BUG_ON() in dql_completed():
+> > 
+> >    kernel BUG at lib/dynamic_queue_limits.c:99!
+> >    RIP: 0010:dql_completed+0x23d/0x280
+> >    Call Trace:
+> >     <IRQ>
+> >     mlx5e_poll_tx_cq+0x668/0xa60
+> >     mlx5e_napi_poll+0x5b/0x7b0
+> >     net_rx_action+0x15a/0x580
+> > 
+> > Reset BQL only when the SQ has no bytes in flight (sq->cc == sq->pc).
+> > 
+> > In the case that reset is skipped, the outstanding WQEs will eventually
+> > complete and rebalance the dql. The dql->limit is carried across the
+> > reset.
+> > 
+> > Fixes: b2588ea40ec9 ("net/mlx5e: Implement queue mgmt ops and single channel swap")
+> > Signed-off-by: Bobby Eshleman <bobbyeshleman@meta.com>
+> 
+> Reviewed-by: Tariq Toukan <tariqt@nvidia.com>
+> 
+> Thanks.
 
-dibs: initialise dibs->lock in dibs_dev_alloc()
+Thanks Tariq, and my apologies for forgetting to carry the R-b forward.
 
-This moves spin_lock_init(&dibs->lock) from dibs_dev_add() into
-dibs_dev_alloc(), so the lock is valid as soon as a driver can hand the
-device to its interrupt handler, and updates the dibs_dev_alloc()
-kerneldoc accordingly.
-
-While looking at the surrounding lifetime rules for struct dibs_dev, two
-questions came up about pre-existing behaviour in the same area.
-
-> diff --git a/drivers/dibs/dibs_main.c b/drivers/dibs/dibs_main.c
-> index 14c3e2d84902e..4c26fd06973f7 100644
-> --- a/drivers/dibs/dibs_main.c
-> +++ b/drivers/dibs/dibs_main.c
-> @@ -138,6 +138,7 @@ struct dibs_dev *dibs_dev_alloc(void)
->  	dibs = kzalloc_obj(*dibs);
->  	if (!dibs)
->  		return dibs;
-> +	spin_lock_init(&dibs->lock);
->  	dibs->dev.release = dibs_dev_release;
->  	dibs->dev.class = &dibs_class;
->  	device_initialize(&dibs->dev);
-
-[Severity: High]
-[Finding: main-3-1]
-[Sources: opus-5]
-This isn't a bug introduced by this patch, but since the commit message
-argues about ism_handle_irq() running before dibs_dev_add(), does the
-mirror-image window at teardown need the same attention?
-
-ism_remove() tears things down in this order:
-
-drivers/s390/net/ism_drv.c:ism_remove() {
-	...
-	dibs_dev_del(dibs);
-	ism_dev_exit(ism);
-	/* pairs with dibs_dev_alloc() */
-	put_device(&dibs->dev);
-}
-
-and ism_dev_exit() only disarms the interrupt as its last step:
-
-drivers/s390/net/ism_drv.c:ism_dev_exit() {
-	...
-	unregister_ieq(ism);
-	unregister_sba(ism);
-	free_irq(pci_irq_vector(pdev, 0), ism);
-}
-
-unregister_sba() frees the SBA and sets ism->sba = NULL, but the handler
-writes through it unconditionally on entry:
-
-drivers/s390/net/ism_drv.c:ism_handle_irq() {
-	spin_lock(&dibs->lock);
-	ism->sba->s = 0;
-	...
-}
-
-Likewise unregister_ieq() frees the IEQ buffer and NULLs ism->ieq, while
-ism_handle_event() dereferences it in the loop condition:
-
-	while ((ism->ieq_idx + 1) != READ_ONCE(ism->ieq->header.idx)) {
-
-Is there anything that serializes ism_handle_irq() against those frees?
-dibs->lock is the only lock the handler takes, and unregister_ieq() /
-unregister_sba() never take it, so an MSI serviced on another CPU during
-ism_remove() looks like it can write to a freed/NULL sba and read a freed
-ieq in hardirq context. Would calling free_irq() (or synchronize_irq())
-before releasing the structures the handler consumes close this?
-
-The same ordering shows up on the probe error path: dibs_dev_add() failure
-frees dmb_clientid_arr and returns to ism_probe(), which only reaches
-ism_dev_exit() (and thus free_irq()) afterwards.
-
-> @@ -186,7 +187,6 @@ int dibs_dev_add(struct dibs_dev *dibs)
->  	int i, ret;
->  
->  	max_dmbs = dibs->ops->max_dmbs();
-> -	spin_lock_init(&dibs->lock);
->  	dibs->dmb_clientid_arr = kzalloc(max_dmbs, GFP_KERNEL);
->  	if (!dibs->dmb_clientid_arr)
->  		return -ENOMEM;
-
-[Severity: High]
-[Finding: main-3-0]
-[Sources: opus-5]
-This is a pre-existing issue and not something this patch changes, but
-while the ownership rules of dibs_dev_add() are in view: can
-dmb_clientid_arr be freed twice on the loopback probe error path?
-
-dibs_dev_add() frees the array on every failure after the allocation and
-leaves the pointer in place:
-
-drivers/dibs/dibs_main.c:dibs_dev_add() {
-	...
-	ret = device_add(&dibs->dev);
-	if (ret)
-		goto free_client_arr;
-	...
-err_device_del:
-	device_del(&dibs->dev);
-free_client_arr:
-	kfree(dibs->dmb_clientid_arr);
-	return ret;
-}
-
-and dibs_lo_dev_probe() frees it again:
-
-drivers/dibs/dibs_loopback.c:dibs_lo_dev_probe() {
-	ret = dibs_dev_add(dibs);
-	if (ret)
-		goto err_reg;
-	...
-err_reg:
-	kfree(dibs->dmb_clientid_arr);
-	/* pairs with dibs_dev_alloc() */
-	put_device(&dibs->dev);
-	kfree(ldev);
-}
-
-The early -ENOMEM return is harmless because the pointer is still NULL,
-but a device_add() or sysfs_create_group() failure would reach the same
-slab object twice. The two callers also disagree here: ism_probe()'s
-err_ism / err_dibs paths do not repeat the kfree(). Would setting
-dibs->dmb_clientid_arr = NULL after the kfree() in dibs_dev_add(), or
-documenting who owns the array on failure, resolve the mismatch?
-
-Also, dibs_dev_del() ends with kfree(dibs->dmb_clientid_arr) without
-clearing the pointer, while ism_handle_irq() reads it for any set DMB bit:
-
-drivers/s390/net/ism_drv.c:ism_handle_irq() {
-	...
-	client_id = dibs->dmb_clientid_arr[bit];
-	if (unlikely(client_id == NO_DIBS_CLIENT ||
-		     !dibs->subs[client_id]))
-	...
-}
-
-Since client_id comes straight from that buffer and is used unchecked as
-an index into the 8-entry subs[] array before an indirect call, does a
-post-free interrupt here read freed memory and potentially index past the
-end of struct dibs_dev?
-
-[ ... ]
+> 
+> > ---
+> > Changes in v3:
+> > - Sample sq->cc/sq->pc before setting MLX5E_SQ_STATE_ENABLED, so a
+> >    concurrent mlx5e_poll_tx_cq() cannot un-charge BQL between the check
+> >    and netdev_tx_reset_queue() (Sashiko:
+> >    https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260729-mlx5-bql-v2-1-cdf285e586df@meta.com)
+> > - Link to v2: https://lore.kernel.org/r/20260729-mlx5-bql-v2-1-cdf285e586df@meta.com
+> > 
+> > Changes in v2:
+> > - remove misleading comment (Tariq)
+> > - Link to v1: https://lore.kernel.org/r/20260728-mlx5-bql-v1-1-99a0ab77ede7@meta.com
+> > ---
+> >   drivers/net/ethernet/mellanox/mlx5/core/en_main.c | 4 +++-
+> >   1 file changed, 3 insertions(+), 1 deletion(-)
+> > 
+> > diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+> > index 7d47a1da8b6b..f0407a850ea8 100644
+> > --- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+> > +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+> > @@ -1939,8 +1939,10 @@ int mlx5e_open_txqsq(struct mlx5e_channel *c, u32 tisn, int txq_ix,
+> >   void mlx5e_activate_txqsq(struct mlx5e_txqsq *sq)
+> >   {
+> >   	sq->txq = netdev_get_tx_queue(sq->netdev, sq->txq_ix);
+> > +	/* Reset BQL only when the SQ has no bytes in flight. */
+> > +	if (sq->cc == sq->pc)
+> > +		netdev_tx_reset_queue(sq->txq);
+> >   	set_bit(MLX5E_SQ_STATE_ENABLED, &sq->state);
+> > -	netdev_tx_reset_queue(sq->txq);
+> >   	netif_tx_start_queue(sq->txq);
+> >   	netif_queue_set_napi(sq->netdev, sq->txq_ix, NETDEV_QUEUE_TYPE_TX, sq->cq.napi);
+> >   }
+> > 
+> > ---
+> > base-commit: d1000fd7995e51deec872d154e0a40d82f7a539f
+> > change-id: 20260728-mlx5-bql-84e02a5a46c8
+> > 
+> > Best regards,
+> 
