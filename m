@@ -1,199 +1,208 @@
-Received: from DU2PR03CU002.outbound.protection.outlook.com (mail-northeuropeazon11011041.outbound.protection.outlook.com [52.101.65.41])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0E75835C1A1;
-	Tue,  4 Aug 2026 12:38:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.65.41
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785847097; cv=fail; b=CnL5K9Kft2fGRIKDBvdm4GJ48YtziaDXK6woo7VtqJx9GNL41CObLgr4Khgf+SHHrZBBirUPL1T2PZ3nxQOfQdiiGOKQ89ZuMtlSclhQLhklS8zyp5AasR310KaJcMehGj5y7v2RRJAaeB5kgH59QF8f1wTIB9fnBDkMe0FTUiI=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785847097; c=relaxed/simple;
-	bh=vgAq+KJgLccFNcJBy6CDHgu8lc7fgjgoI0iRn5SzaDQ=;
-	h=From:To:CC:Subject:Date:Message-ID:References:In-Reply-To:
-	 Content-Type:MIME-Version; b=VCP08dGfGdsFPmVfakL9YgsAyUYBNCnfhx/S3C1gFBRETLHZN1eZvtmYheiJl207smMO+DyRZ42H08odBfBaS2E7AeBD5p3PTYi7/yRx3gbYyVva505IybLzDp/oSBaGICA637aulifcCnH526N86oKwtkpkJhbpZtjKcOq8iKY=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nokia-bell-labs.com; spf=fail smtp.mailfrom=nokia-bell-labs.com; dkim=pass (2048-bit key) header.d=nokia-bell-labs.com header.i=@nokia-bell-labs.com header.b=phE3H37k; arc=fail smtp.client-ip=52.101.65.41
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nokia-bell-labs.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nokia-bell-labs.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EA3BE33F5B0;
+	Tue,  4 Aug 2026 16:52:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1785862387; cv=none; b=rVvMFc2FGEbA+0uTqGw98Rq9Ks0WNSBZ3od5m2CDywr6/hZBIijLg4W6a3GzbXW76zjGSIccgP8dFsis3lpeJF6whE7Ke74AOveAvg1NuIsAkct6qZcbHraq9S9Muxd5LAyEaH80yU06e4MaCR72V8Dwi+8tJ2lmr8vfT3/y+RQ=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1785862387; c=relaxed/simple;
+	bh=pB+BSnSnZEyhy+yRmo7o/6u7+WrmXh929OT6CeVHcbo=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=P8D4emEOBdDyEuY3rfVeNYqJKPPgaNnrRG3B32a5qDo5lTC9ZArgxfp6KoDSMqsBlnIiw/TAcsvFoGU3I2nxAbfFXgxHYGpCZToT2EXU04CkLBHfCXk3SYXiKRXpnOn+NgyOXhzgVus+DyIGRhbbM2QIAQQ2o9xvqGNu7CB6xpU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Le/2ZUee; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nokia-bell-labs.com header.i=@nokia-bell-labs.com header.b="phE3H37k"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=W6uviyp5YfWQ0da2NWkAfK65Wqf+kEx+/304KncI2J6nMlduU+9df/KYZppkzfsdjKxLBZ8aNPvnEK3ELUlnzXGEtxxEBPyBqttmXpdqgdoD+t6qlld4XmagQDxIjYgx0P9LiZitbwuP7036LJIxD6kqJfv7ZpiznsyrXPDm0vF/EApuL4Kl54CbAdCejlXtG9+CcruU0NLQ/yuZZJC+GYFpJfy7nw/e9sB1Q4FZ8SM8R/o39+4vFc4BoqhBnNsI2WV27+HBcrpI3MY+xLXn6UUI2mITmfiyQv9/h2Wy+LgLPw07YChYEAKWKlAY6IYkIdhDLaqhNstM4E9Qlpvr2g==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=vgAq+KJgLccFNcJBy6CDHgu8lc7fgjgoI0iRn5SzaDQ=;
- b=V4xrFPGKzb14n9t+7IEQlsOeambuTfMCIMG+LAJ76pFSCtw18cOyw/+h6G3cSz5+5m/db378/6OjRW35isjTSGHmr29y8rQRZmbh9IPixfgzLBxOOl7ndWLak9Wj+GsRKs1ALcezlR/+Eg9YXDAvY8z0cjjLjbYm1YEnIZd0drVqxTFiYF6+PiSz1mpC1EPZG3swnq9z9mIcww1MX3/rvNp5lBsF4IwxjJQKS/ntu6WrqMA4lDbAQM9ADFA/N4rT7/kPkhu6cRX44IdGqo/jZ3DKnYzdQHR7UEOdp6ADIPeCrwk/5k/CulZr7FWst/84D9A1MXE3Y0BGgyy/WwzdSg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nokia-bell-labs.com; dmarc=pass action=none
- header.from=nokia-bell-labs.com; dkim=pass header.d=nokia-bell-labs.com;
- arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nokia-bell-labs.com;
- s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=vgAq+KJgLccFNcJBy6CDHgu8lc7fgjgoI0iRn5SzaDQ=;
- b=phE3H37kCyV/HKR7+EPBA6pGX7G/pdfrOqPW1+tA6Id5yIafme+5UNAjogb7JkEByUW9CCVYEkUqnLm/h0/1t8ZSlViFke9gnCDdvlg8emWWTFb+9Zd9GnfVZHIK6Vg2+zZGecbcqys230p7RchoSXKVbx1CNIHESYBDn+5vKTteu/UIeNCsrETCls41vif2UWxeoAyNSC9gMuxWUb1hZ9BcCrteEk6YpZzMtPdt197ea4Nm+6slnfNmnhouJZFYYSTrUf7BZPHBcuvxW6Dz8Y8rLQgv01+V8s7vEzwyg61y8o5FZ959dLnxIeNDr6yhikRiVmUS7AUKNIDt5liDqQ==
-Received: from PAXPR07MB7984.eurprd07.prod.outlook.com (2603:10a6:102:133::12)
- by PA4PR07MB7695.eurprd07.prod.outlook.com (2603:10a6:102:fb::9) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.292.15; Tue, 4 Aug
- 2026 12:38:10 +0000
-Received: from PAXPR07MB7984.eurprd07.prod.outlook.com
- ([fe80::f708:4bd3:9987:b9e5]) by PAXPR07MB7984.eurprd07.prod.outlook.com
- ([fe80::f708:4bd3:9987:b9e5%2]) with mapi id 15.21.0292.013; Tue, 4 Aug 2026
- 12:38:10 +0000
-From: "Chia-Yu Chang (Nokia)" <chia-yu.chang@nokia-bell-labs.com>
-To: Jakub Kicinski <kuba@kernel.org>
-CC: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-	"eperezma@redhat.com" <eperezma@redhat.com>, "jasowang@redhat.com"
-	<jasowang@redhat.com>, "virtualization@lists.linux.dev"
-	<virtualization@lists.linux.dev>, "mst@redhat.com" <mst@redhat.com>,
-	"xuanzhuo@linux.alibaba.com" <xuanzhuo@linux.alibaba.com>,
-	"pabeni@redhat.com" <pabeni@redhat.com>, "edumazet@google.com"
-	<edumazet@google.com>, "linux-doc@vger.kernel.org"
-	<linux-doc@vger.kernel.org>, "corbet@lwn.net" <corbet@lwn.net>,
-	"horms@kernel.org" <horms@kernel.org>, "dsahern@kernel.org"
-	<dsahern@kernel.org>, "kuniyu@google.com" <kuniyu@google.com>,
-	"bpf@vger.kernel.org" <bpf@vger.kernel.org>, "netdev@vger.kernel.org"
-	<netdev@vger.kernel.org>, "dave.taht@gmail.com" <dave.taht@gmail.com>,
-	"jhs@mojatatu.com" <jhs@mojatatu.com>, "stephen@networkplumber.org"
-	<stephen@networkplumber.org>, "xiyou.wangcong@gmail.com"
-	<xiyou.wangcong@gmail.com>, "jiri@resnulli.us" <jiri@resnulli.us>,
-	"davem@davemloft.net" <davem@davemloft.net>, "andrew+netdev@lunn.ch"
-	<andrew+netdev@lunn.ch>, "donald.hunter@gmail.com" <donald.hunter@gmail.com>,
-	"ast@fiberby.net" <ast@fiberby.net>, "liuhangbin@gmail.com"
-	<liuhangbin@gmail.com>, "shuah@kernel.org" <shuah@kernel.org>,
-	"linux-kselftest@vger.kernel.org" <linux-kselftest@vger.kernel.org>,
-	"ij@kernel.org" <ij@kernel.org>, "ncardwell@google.com"
-	<ncardwell@google.com>, "Koen De Schepper (Nokia)"
-	<koen.de_schepper@nokia-bell-labs.com>, "g.white@cablelabs.com"
-	<g.white@cablelabs.com>, "ingemar.s.johansson@ericsson.com"
-	<ingemar.s.johansson@ericsson.com>, "mirja.kuehlewind@ericsson.com"
-	<mirja.kuehlewind@ericsson.com>, "cheshire@apple.com" <cheshire@apple.com>,
-	"rs.ietf@gmx.at" <rs.ietf@gmx.at>, "Jason_Livingood@comcast.com"
-	<Jason_Livingood@comcast.com>, "vidhi_goel@apple.com" <vidhi_goel@apple.com>,
-	Parav Pandit <parav@nvidia.com>
-Subject: RE: [PATCH v4 net-next 1/1] net: update comments for SKB_GSO_TCP_ECN
- and SKB_GSO_TCP_ACCECN
-Thread-Topic: [PATCH v4 net-next 1/1] net: update comments for SKB_GSO_TCP_ECN
- and SKB_GSO_TCP_ACCECN
-Thread-Index: AQHdHquky4Lusn6ys0yW+D1m17BB47aNGEwAgADE2PA=
-Date: Tue, 4 Aug 2026 12:38:10 +0000
-Message-ID:
- <PAXPR07MB798489DFC97547F586618BEEA3D42@PAXPR07MB7984.eurprd07.prod.outlook.com>
-References: <20260728161007.650717-1-chia-yu.chang@nokia-bell-labs.com>
- <20260803174726.585aed45@kernel.org>
-In-Reply-To: <20260803174726.585aed45@kernel.org>
-Accept-Language: en-GB, en-US
-Content-Language: en-US
-X-MS-Has-Attach:
-X-MS-TNEF-Correlator:
-authentication-results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nokia-bell-labs.com;
-x-ms-publictraffictype: Email
-x-ms-traffictypediagnostic: PAXPR07MB7984:EE_|PA4PR07MB7695:EE_
-x-ms-office365-filtering-correlation-id: d269d89d-c1f4-4e4e-0782-08def2253e62
-x-ms-exchange-senderadcheck: 1
-x-ms-exchange-antispam-relay: 0
-x-microsoft-antispam:
- BCL:0;ARA:13230040|366016|23010399003|1800799024|7416014|376014|10067099003|11063799006|4143699003|56012099006|22082099003|18002099003|38070700021;
-x-microsoft-antispam-message-info:
- rElUnhzrUO8uQs5GmMKhg6Byq6dcmp88z0oiwFP8c3sCekNIrsrrwnn7BPP647GtzMFADM8ZJwQ/UctEttxNH4yK+EEkx2HLvWONEXU8BrXhpTg9s80ICfFlGmSE7MB7TUcTKEpANys2oH+7J8mWvewrp9qdUv8d59KgL8OZzcycp161aivPSiWNT1UvXrkfxw2DRZxTRodBFlhEJNIFWlpO1d8faqiMofwX44IeUhNoTYmEbg1vz7+//roiXo0Qu62Q+7Dtqz24cAZ8B1S0P0CKjlgYnKFNPRChsCfAB+BhO4uosvyrOsqCzT1vibMwB7D7N6eGbCZp9QiotSs4hbaDSkZxvEfPmbyrLnp/21VjTZlkD9SXj++7m4aG2oxW2WiW/kz24fP3XD7zBXyAX6KUSSS+QLS4VfRt5/L/w97WFd1diBtsNLW2VrYQWIShQqLszm/1juiiUO8MJovmOwC1VeN8SKB9j1SKb1OSH3/kJFBH253pyNh0pn6IMe4uTc3CCU66Wfa2cReq5HcMJZ2ahLENCBlBppc/SfP8nVItGh5cCa0ee0UYV+w1NG34oYCH9LVTcJ6+0rMNwWfwsNPh89jkT5BHD8kTcQOD/sPgxoarskOqs86kn5ELy5d3z5WYuhMBKHDJlLJgWHgIDg5/hxCABU6nZFa/2mOFG04=
-x-forefront-antispam-report:
- CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PAXPR07MB7984.eurprd07.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(23010399003)(1800799024)(7416014)(376014)(10067099003)(11063799006)(4143699003)(56012099006)(22082099003)(18002099003)(38070700021);DIR:OUT;SFP:1101;
-x-ms-exchange-antispam-messagedata-chunkcount: 1
-x-ms-exchange-antispam-messagedata-0:
- =?us-ascii?Q?z+NRBkvEbfb2Jzv1B7xaIXNdqZfD4q3hE3wY4X6c4Gv+seoiXcR8vNL7vTal?=
- =?us-ascii?Q?kKREFCafuIZbnR6v05hV0MpwirT9jbqi9ZcNLw8BsBghABYvYd1W3MRzIr4c?=
- =?us-ascii?Q?Q99LGL7Vap5aWjI/LUXEra4RnPEQP4xxrD2YchcATEoBKGnUjLvu+SdlZebs?=
- =?us-ascii?Q?zMjLJJhAWPOqBdsq9Tdizy4R76+7XolnZIeEw/ExPuISWDU6JsJ5+BkuIv5i?=
- =?us-ascii?Q?vuhX2tXEEp3G/SPYe6XEUTlgtJzi7rsnYm80WbvrUELlOLKa9vBOleip60xN?=
- =?us-ascii?Q?eOnIE0QwB2oPUVgyA8IohTYeTI1YzwyP7lnn40SSXDbXzNeJ8j1MqfiK6oLO?=
- =?us-ascii?Q?R//In4Sw2lVdtk+Z2mIRlxT+HU2sj3ccelkmhG4WYMqMQCTM2frI0OeomTuS?=
- =?us-ascii?Q?Wv7AU1z6f1ISSM9HYb9gYetFpHtV2nUvfQesH/B38ASKfGpN5vuDlYQa5cn1?=
- =?us-ascii?Q?aTAdgU6UUEYmex9NCdmCuOBEZMzIKQWcCSU7Xwu26j9MOTuVHGm3OpzaxYXR?=
- =?us-ascii?Q?CWCdbfbhl5Z+TMtkv61mC+pWBFXrBisxGbhr/Ra8ckLA8Aa3130WvCfDY4Gs?=
- =?us-ascii?Q?MN3POvC7lssF0sNuaCtd9RPwyR8dThEjbUUGRT2JQLzHGmp9/uTOprgepJCF?=
- =?us-ascii?Q?mEcgSgat5Mk4yPdcMlRACh22hnjjHDANDvc0hI/BBw0P+g/KAAGFPSbvWTVZ?=
- =?us-ascii?Q?WG8KtJDZREz1xWdlGqVmMo/9azek6rrYjGFdCe9HtvQgR87vzcDpyhRXytD0?=
- =?us-ascii?Q?S4brBuQZVqALrsWJaafevELL5jHqAzPfQBA0uVZN1aMdLiNM/T4HJ2bXuSNW?=
- =?us-ascii?Q?Bnz1HU3BK1KEkO0728m4QsyS2scW2PBqpR+lG/emOQKRHEIjvVY/SNdjSIRJ?=
- =?us-ascii?Q?ccPNdkj1dCAAEjWvlPxkralHthqk0bEW6nPZzHmPUbYOFXDwoFuX5rwFGZ+g?=
- =?us-ascii?Q?lOHAU1P4kgVQj8m4v3GQB0+FyzqM0jgzeeRMx16XBRhfckfPzMTT8TKOoie+?=
- =?us-ascii?Q?FigAEjmvqbkCQqYAW8r/Rk9i14yZJowIyboXlTnlHgDZy3xk/CD0oFdmuBf1?=
- =?us-ascii?Q?FuJGdE4cRAojdneEk7VayqNuDWplUv9JJ178vgWsJ1PViSOeLFrgAbgT8ak2?=
- =?us-ascii?Q?jNdf+5aTniXC65fR7P3CfY1oNoUR+2WeGLAqoh00ok/EeMFr1aAm/Km+2JA7?=
- =?us-ascii?Q?DRLFKk7Yx6wEbVrIbIKqd9Zot6yBiHcKAsVP7c0zcmpSY0/t02C88W2g8qVN?=
- =?us-ascii?Q?PhX98NnV0gxjjlC3nmKnafC7HFsfUzXDHyRhfwgJNbK0U3vAcifnEqTVaucd?=
- =?us-ascii?Q?XYDzrO8t44TusxZwkb2Mt2h8cd7QXQKrnReKcCCSdaB4PrrWjhwXzz/cvmkh?=
- =?us-ascii?Q?yASJeHhP3Wjd74BIxoFVtQYOSUfPaefSgvvXNxbHsOIeLQLuugwXRNl5av4J?=
- =?us-ascii?Q?yBVE90FNCngnu9zVNHNxyQVlzCQ/tNoqsBwCbxwy5GRWXHMtYD99O8XAuSDR?=
- =?us-ascii?Q?zzF1kuNYhAGmk07Af2cdjWIDrVxJCtKrD75OFxMgDJcFY5F+4E5kH62enfY4?=
- =?us-ascii?Q?GHHUj7+/LFgHJ3OUhkP96UIjyicVcBhFp25VqorXVYDMOJku15/6bMCXOF1h?=
- =?us-ascii?Q?i3NkS1M2x+TYWR8QT72pD5mkAlzbHyek7zkyYyJLlb9Bs69//V9IKtU6CVUK?=
- =?us-ascii?Q?QqZ+cy/hQEsaOM1qOk1zNbE01V3uGo2EzhGxzsLckwdfSkxHX8uVojo1gY5P?=
- =?us-ascii?Q?KWnm/Uzb62TtajA2JwZZTgat4Y5OY3U=3D?=
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Le/2ZUee"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6A9011F000E9;
+	Tue,  4 Aug 2026 16:52:36 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1785862360;
+	bh=o/gtKQ0kD6LrGnntllLSqUdcRX4l83XDtNYzAVYeH80=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=Le/2ZUeeyUnV7MpPyDPk7DUo80ldShsF6o7PJWJ2mPl/D9rVWbLy2rHdQFTn3RMfF
+	 WIrp6DEE+i0ug9YHukrQDx6+w8yhMgLORawMTJm/YGynETSEGLETgqjIKxjOP8EeSP
+	 1iPBuRgr194hSYUIfBEe/Vgq2+SHQaM112EfompqhGyKCKxBYiet9wF9a5NhANkIQ9
+	 3GFcwtgRNJJpmPIRlMqHadIVcP/34APsdYpy8alFZTuNS71zStHqRTSRjGUi0uzxqU
+	 63BTzNOI6duCW6VXWYE8JSI/PWffp8DZ/cNyYB0ABK4TrQb9+YfijbzfozwM8drbSO
+	 plCqBmCaWk9rw==
+From: Simon Horman <horms@kernel.org>
+To: hidayath@linux.ibm.com
+Cc: Simon Horman <horms@kernel.org>,
+	davem@davemloft.net,
+	edumazet@google.com,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	wintera@linux.ibm.com,
+	alibuda@linux.alibaba.com,
+	dust.li@linux.alibaba.com,
+	sidraya@linux.ibm.com,
+	wenjia@linux.ibm.com,
+	mjambigi@linux.ibm.com,
+	tonylu@linux.alibaba.com,
+	guwen@linux.alibaba.com,
+	hca@linux.ibm.com,
+	gor@linux.ibm.com,
+	agordeev@linux.ibm.com,
+	borntraeger@linux.ibm.com,
+	svens@linux.ibm.com,
+	pasic@linux.ibm.com,
+	gbayer@linux.ibm.com,
+	andrew+netdev@lunn.ch,
+	netdev@vger.kernel.org,
+	linux-s390@vger.kernel.org,
+	linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH net] dibs: fix double free of dmb_clientid_arr
+Date: Tue,  4 Aug 2026 17:52:17 +0100
+Message-ID: <20260804165217.525335-1-horms@kernel.org>
+X-Mailer: git-send-email 2.55.0
+In-Reply-To: <20260730075624.114778-1-hidayath@linux.ibm.com>
+References: <20260730075624.114778-1-hidayath@linux.ibm.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-OriginatorOrg: nokia-bell-labs.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-AuthSource: PAXPR07MB7984.eurprd07.prod.outlook.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: d269d89d-c1f4-4e4e-0782-08def2253e62
-X-MS-Exchange-CrossTenant-originalarrivaltime: 04 Aug 2026 12:38:10.6901
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: 5d471751-9675-428d-917b-70f44f9630b0
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: PBzitiicG6ke6GSN4r7chRk8ZsDshbX7rTKjNVZBV160XTlEDGVIjrRJa+wd0Sueqw6NdpNoPNfNh+GxqVdE3st+lyBAhpJkeAou4feZGbT0GXXx/UcDaW3iNsQ9vqL3
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PA4PR07MB7695
+Content-Transfer-Encoding: 8bit
 
-> -----Original Message-----
-> From: Jakub Kicinski <kuba@kernel.org>=20
-> Sent: Tuesday, August 4, 2026 2:47 AM
-> To: Chia-Yu Chang (Nokia) <chia-yu.chang@nokia-bell-labs.com>
-> Cc: linux-rdma@vger.kernel.org; eperezma@redhat.com; jasowang@redhat.com;=
- virtualization@lists.linux.dev; mst@redhat.com; xuanzhuo@linux.alibaba.com=
-; pabeni@redhat.com; edumazet@google.com; linux-doc@vger.kernel.org; corbet=
-@lwn.net; horms@kernel.org; dsahern@kernel.org; kuniyu@google.com; bpf@vger=
-.kernel.org; netdev@vger.kernel.org; dave.taht@gmail.com; jhs@mojatatu.com;=
- stephen@networkplumber.org; xiyou.wangcong@gmail.com; jiri@resnulli.us; da=
-vem@davemloft.net; andrew+netdev@lunn.ch; donald.hunter@gmail.com; ast@fibe=
-rby.net; liuhangbin@gmail.com; shuah@kernel.org; linux-kselftest@vger.kerne=
-l.org; ij@kernel.org; ncardwell@google.com; Koen De Schepper (Nokia) <koen.=
-de_schepper@nokia-bell-labs.com>; g.white@cablelabs.com; ingemar.s.johansso=
-n@ericsson.com; mirja.kuehlewind@ericsson.com; cheshire@apple.com; rs.ietf@=
-gmx.at; Jason_Livingood@comcast.com; vidhi_goel@apple.com; Parav Pandit <pa=
-rav@nvidia.com>
-> Subject: Re: [PATCH v4 net-next 1/1] net: update comments for SKB_GSO_TCP=
-_ECN and SKB_GSO_TCP_ACCECN
->=20
->=20
-> CAUTION: This is an external email. Please be very careful when clicking =
-links or opening attachments. See the URL nok.it/ext for additional informa=
-tion.
->=20
->=20
->=20
-> On Tue, 28 Jul 2026 18:10:07 +0200 chia-yu.chang@nokia-bell-labs.com
-> wrote:
-> > For RX, SKB_GSO_TCP_ECN shall NOT be used
->=20
-> but it _is_ still used in hns3, what's your plan there?
-> Documenting something we adhere to at the outset seems like a red flag.
->=20
-Hello,
+This is an AI-generated review of your patch. The human sending this
+email has considered the AI review valid, or at least plausible.
+Full review at: https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260730075624.114778-1-hidayath@linux.ibm.com?part=1
+---
+--- Patch [1]: [PATCH net] dibs: fix double free of dmb_clientid_arr ---
+commit d9da866ee3cff93c660daf037f85b099a2326866
+Author: Hidayath Khan <hidayath@linux.ibm.com>
 
-I would think to remove the SKB_GSO_TCP_ECN in hns3.
-Because hns3 will break the whole TOS byte based on Jijie's email: https://=
-lore.kernel.org/all/47530dd8-cba6-4282-ae80-4cabd52b08bc@huawei.com/#t
+dibs: fix double free of dmb_clientid_arr
 
-Also, the virtio related changes will be submitted only after the approval =
-from virtio-spec.
+This drops the kfree(dibs->dmb_clientid_arr) from the err_reg path of
+dibs_lo_dev_probe(), since dibs_dev_add() already frees that buffer on
+both of its own failure paths without clearing the pointer.
 
-Thanks.
-Chia-Yu
+Two questions below, one about the commit message tags and one about the
+lifetime of the same buffer on the removal path.
+
+> dibs: fix double free of dmb_clientid_arr
+>
+> dibs_dev_add() frees dibs->dmb_clientid_arr on both of its failure
+> paths, but does not clear the pointer. dibs_lo_dev_probe() then frees
+> the same pointer again in its err_reg path, so a failing device_add()
+> or sysfs_create_group() results in a double free.
+>
+> Drop the kfree() from dibs_lo_dev_probe().
+>
+> Note: commit cc21191b584c ("dibs: Move data path to dibs layer") moved
+> the code to its current location; the race was introduced earlier by
+> commit c3a910f2380f ("net/smc: implement DMB-merged operations of
+> loopback-ism").
+>
+> Fixes: c3a910f2380f ("net/smc: implement DMB-merged operations of loopback-ism")
+> Cc: stable@vger.kernel.org
+
+[Severity: Medium]
+[Finding: main-1-0]
+[Sources: opus-5]
+Is c3a910f2380f the right commit to blame here?
+
+That commit only touches net/smc/smc_loopback.c and net/smc/smc_loopback.h,
+adding DMB refcounting plus attach/detach/nocopy support. It creates no
+client-id array, and it adds no kfree() on any probe error path. At
+c3a910f2380f^ the only matching array in the tree is ISM's private
+sba_client_arr in drivers/s390/net/ism_drv.c and include/linux/ism.h.
+
+Blame instead points both halves of the double free at cc21191b584c
+("dibs: Move data path to dibs layer"): the allocation and the free in
+dibs_dev_add(),
+
+	dibs->dmb_clientid_arr = kzalloc(max_dmbs, GFP_KERNEL);
+	...
+	free_client_arr:
+		kfree(dibs->dmb_clientid_arr);
+
+and the duplicate kfree() in dibs_lo_dev_probe()'s err_reg path that this
+patch removes. Would it be more accurate to say cc21191b584c introduced the
+problem, rather than that it "moved the code to its current location; the
+race was introduced earlier"?
+
+With Cc: stable@vger.kernel.org present, a Fixes tag naming a v6.10-era
+net/smc commit points backports at trees where neither drivers/dibs/ nor
+dmb_clientid_arr exists, so the patch cannot apply there.
+
+Also, the note calls this a "race", but the double free happens
+unconditionally on a deterministic error path when device_add() or
+sysfs_create_group() fails. Would "double free" be the better wording?
+
+> diff --git a/drivers/dibs/dibs_loopback.c b/drivers/dibs/dibs_loopback.c
+> index fd5caf1e19a8f..649e4e375be33 100644
+> --- a/drivers/dibs/dibs_loopback.c
+> +++ b/drivers/dibs/dibs_loopback.c
+> @@ -335,7 +335,6 @@ static int dibs_lo_dev_probe(void)
+>  	return 0;
+>  
+>  err_reg:
+> -	kfree(dibs->dmb_clientid_arr);
+>  	/* pairs with dibs_dev_alloc() */
+>  	put_device(&dibs->dev);
+>  	kfree(ldev);
+
+[Severity: High]
+[Finding: main-5-4]
+[Sources: opus-5]
+This isn't a bug introduced by this patch, but while looking at the
+lifetime of dmb_clientid_arr: does the removal path have the same missing
+NULL assignment, and can the ISM interrupt handler read the buffer after it
+is freed?
+
+dibs_dev_del() in drivers/dibs/dibs_main.c ends with the free outside
+dibs->lock and leaves the pointer set:
+
+	device_del(&dibs->dev);
+	kfree(dibs->dmb_clientid_arr);
+
+The spin_lock_irqsave(&dibs->lock) section earlier in that function only
+clears dibs->subs[], and is released well before the kfree().
+
+ism_remove() in drivers/s390/net/ism_drv.c then runs:
+
+	dibs_dev_del(dibs);
+	ism_dev_exit(ism);
+
+and ism_dev_exit() is the only place that calls unregister_sba() and
+free_irq(pci_irq_vector(pdev, 0), ism). So the SBA stays registered and the
+MSI handler stays armed across the kfree(). ism_handle_irq() does, for every
+set DMB bit while holding dibs->lock:
+
+	client_id = dibs->dmb_clientid_arr[bit];
+	if (unlikely(client_id == NO_DIBS_CLIENT ||
+		     !dibs->subs[client_id]))
+		continue;
+	dibs->subs[client_id]->ops->handle_irq(dibs, ...);
+
+Since the free does not take dibs->lock, can the handler be mid-loop while
+the removal path frees the array underneath it?
+
+There is a second effect if the byte read back is garbage: only
+NO_DIBS_CLIENT is rejected, while subs[] has MAX_DIBS_CLIENTS == 8 entries
+and is the last member of struct dibs_dev in include/linux/dibs.h. Can a
+client_id in 8..254 read past the end of the kmalloc'ed struct dibs_dev and,
+if that slot is non-NULL, produce an indirect call through a bogus struct
+dibs_client pointer?
+
+For the window to be reachable a DMB bit must still be settable by the peer.
+ism_unregister_dmb() writes NO_DIBS_CLIENT and then issues the hardware
+unregister command, but:
+
+	ret = ism_cmd(ism, &cmd);
+	if (ret && ret != ISM_ERROR)
+		goto out;
+
+leaves the DMB registered in the adapter when the command fails, so a remote
+peer can keep signalling it.
+
+Would it make sense to free and NULL dmb_clientid_arr only after the owning
+driver has quiesced its interrupt and data path, do it under dibs->lock, and
+bound-check client_id against MAX_DIBS_CLIENTS in ism_handle_irq()? The
+missing NULL assignment in dibs_dev_add() is also what turned the removed
+kfree() into a double free.
