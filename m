@@ -1,53 +1,49 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7A4AE3BB13F;
-	Tue,  4 Aug 2026 00:47:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B56993ACA58;
+	Tue,  4 Aug 2026 01:06:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785804450; cv=none; b=nIZZ+rCRGU24tSfZXiOEkC2+n5qfz2c8e6HFEnCnXlveJ479DsnX1OO1gmhrAOKUrzLvkK2fzZvNhOZcJmJlMjQGnIJO/7TXwRvIo6kro8iErfqiMsl+6x4D0dsnL5zlTsQ3RaaUYs0DmScF3/rkjVJMI9GY6bnVhZmZjsZyPN8=
+	t=1785805593; cv=none; b=hIUXLZPsmWS2KEIp9pfr+uOzr49cGp5GpHU2P9ASMTOtA4gXwseZvpnXre5v/69A9KhQR7/h63WGwSqt4DYwR8pWM3t7eQbbjVmhY+RlDV283cQFhtFmR8M+Mk80ODUcmybF6nAG0Iuv7q/g5pauRmtyD2YHHtWn6lOUkpmWurk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785804450; c=relaxed/simple;
-	bh=gS/o7zThbJQOCe9OudjQMENmSmFF4opRlQ8azxJbJKk=;
+	s=arc-20240116; t=1785805593; c=relaxed/simple;
+	bh=IuyBCeH1qGLR61B+rXPybdwA5+ZgwrWXMAFRgR8iZYE=;
 	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=CfREiEg3O4q5wZZCdJgwZLJK0CkaeFRjLLSbAvRUAg+Hos2VlvUnycuBaTfIAb6HtEpEyUwtE6Sm2FJnnHV8v1t2czE5wgHFsrREC0pGkh5O0Gh/JuTKm2nDy/kQLd6hTEAVEksQBAl6fl3TgBrnqcQXPnq157IF2QiJirsnvx4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Zmg6eV74; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=ATFUWMdMDEBNwnGXYkcKy3rkH7trFKBw0aCMZzub/w72dttF28CFBakyYzUCqZMT1tlBuhQgix9/OsMbbB+MmDcho78u+NXKEomge2C7ZVNE+t/Z/D86+cfiWQzbBd1aZtIm/c6+CzC3yH8ADKBNVjQCVz1HttTSSQwq9C8ko3o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=JU4hyO5r; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Zmg6eV74"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DD0E31F000E9;
-	Tue,  4 Aug 2026 00:47:27 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="JU4hyO5r"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 189121F00A3D;
+	Tue,  4 Aug 2026 01:06:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1785804449;
-	bh=u4xwT9wFc5is/zo2LuqtmC3eq1JMh0EZpaYm3ysz+GI=;
+	s=k20260515; t=1785805592;
+	bh=4ggcyklPNP/Ka92ERqUUXKmfaNifZ6wrBDocR5GKTJo=;
 	h=Date:From:To:Cc:Subject:In-Reply-To:References;
-	b=Zmg6eV74RIaq7FfDVG8XRLksMiod//2XICtjFva71lm87iCzKLeIVXfScktFqEsAz
-	 44sEoPRAGtJjUO6nuc1s/8ZWcO678gfIw7/GdtWZZKljm/9MDeWqASGm03TGS0/KwB
-	 ctrVZsLeW2g32o4nk4lu8LM8DS64PTsQrLMkHtruPDst7XyttyJwkD8Ewbp5GbL76s
-	 nHphQEzF624mbXNHBxxL3JoUhMvmsh90SBSYQwGOdHGDSr0qCTVW/6yqc/cchVZF+v
-	 yYOUYeJf8eMNMvXBpT/ur2JGYUG0jBFB2Ln/4CxLKgOJUNJthGEHuYTOzKvXsroKbd
-	 SGgTZEyqQRHlg==
-Date: Mon, 3 Aug 2026 17:47:26 -0700
+	b=JU4hyO5ryF1FFS44LOl1SW5BbijGrwpsGGy/UYK7qzqXLIyCtZNFmg5WcAOjjWSBN
+	 WBvHU1XDykWk1WfL8JsccccL0dJI7AECoi0PB4TVS3ET4Xq8rdboNBI933+r+7sox+
+	 ep/E6rb09L5HcP0PZOL888exqMUTQOyJb5BE1zWNpgeMkdimOpOVWS0BcN0UkJqJ+7
+	 Wy127/Q8sFDf7hDeyr/Ykeelt3EUs11XA4UKynDZFeWdXN4sLju24es8d+ieATjL4d
+	 C4JrG1oTZU1nRw811PkI9EcWkIo1bydnI6R7YOUYkJoHlYdemCC9/y8TN8bXso6tEt
+	 HSmiak0KmV0fg==
+Date: Mon, 3 Aug 2026 18:06:31 -0700
 From: Jakub Kicinski <kuba@kernel.org>
-To: chia-yu.chang@nokia-bell-labs.com
-Cc: linux-rdma@vger.kernel.org, eperezma@redhat.com, jasowang@redhat.com,
- virtualization@lists.linux.dev, mst@redhat.com, xuanzhuo@linux.alibaba.com,
- pabeni@redhat.com, edumazet@google.com, linux-doc@vger.kernel.org,
- corbet@lwn.net, horms@kernel.org, dsahern@kernel.org, kuniyu@google.com,
- bpf@vger.kernel.org, netdev@vger.kernel.org, dave.taht@gmail.com,
- jhs@mojatatu.com, stephen@networkplumber.org, xiyou.wangcong@gmail.com,
- jiri@resnulli.us, davem@davemloft.net, andrew+netdev@lunn.ch,
- donald.hunter@gmail.com, ast@fiberby.net, liuhangbin@gmail.com,
- shuah@kernel.org, linux-kselftest@vger.kernel.org, ij@kernel.org,
- ncardwell@google.com, koen.de_schepper@nokia-bell-labs.com,
- g.white@cablelabs.com, ingemar.s.johansson@ericsson.com,
- mirja.kuehlewind@ericsson.com, cheshire@apple.com, rs.ietf@gmx.at,
- Jason_Livingood@comcast.com, vidhi_goel@apple.com, Parav Pandit
- <parav@nvidia.com>
-Subject: Re: [PATCH v4 net-next 1/1] net: update comments for
- SKB_GSO_TCP_ECN and SKB_GSO_TCP_ACCECN
-Message-ID: <20260803174726.585aed45@kernel.org>
-In-Reply-To: <20260728161007.650717-1-chia-yu.chang@nokia-bell-labs.com>
-References: <20260728161007.650717-1-chia-yu.chang@nokia-bell-labs.com>
+To: Tariq Toukan <tariqt@nvidia.com>
+Cc: Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller"
+ <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
+ <netdev@vger.kernel.org>, Paolo Abeni <pabeni@redhat.com>, Boris Pismenny
+ <borisp@nvidia.com>, Carolina Jubran <cjubran@nvidia.com>, Cosmin Ratiu
+ <cratiu@nvidia.com>, Daniel Zahka <daniel.zahka@gmail.com>, Dragos Tatulea
+ <dtatulea@nvidia.com>, Gal Pressman <gal@nvidia.com>, "Kees Cook"
+ <kees@kernel.org>, Leon Romanovsky <leon@kernel.org>,
+ <linux-kernel@vger.kernel.org>, <linux-rdma@vger.kernel.org>, Mark Bloch
+ <mbloch@nvidia.com>, Raed Salem <raeds@nvidia.com>, Rahul Rameshbabu
+ <rrameshbabu@nvidia.com>, Saeed Mahameed <saeedm@nvidia.com>
+Subject: Re: [PATCH net] net/mlx5e: Add mutual exclusion between PSP and PTP
+ TX port timestamping
+Message-ID: <20260803180631.5813f758@kernel.org>
+In-Reply-To: <20260729065137.2420679-1-tariqt@nvidia.com>
+References: <20260729065137.2420679-1-tariqt@nvidia.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -57,12 +53,32 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 
-On Tue, 28 Jul 2026 18:10:07 +0200 chia-yu.chang@nokia-bell-labs.com
-wrote:
-> For RX, SKB_GSO_TCP_ECN shall NOT be used
+On Wed, 29 Jul 2026 09:51:37 +0300 Tariq Toukan wrote:
+> The WQE flow_table_metadata field is shared by multiple TX offloads:
+> IPsec, MACsec, PTP timestamping and PSP each write to it.
+> 
+> Commit [1] resolved the conflicts between IPsec/MACsec and PTP
+> by shifting their markers to bits [8+], leaving PTP's 8-bit metadata
+> index in bits [7:0] without overlap.
+> But then PSP support was added in commit [2], which writes a 32-bit
+> keyid across all bits of flow_table_metadata. Unlike IPsec and MACsec,
+> PTP timestamping applies independently of encryption -- a PSP-encrypted
+> packet can also require a HW timestamp. When both write to the same
+> WQE, the values corrupt each other, leading to wrong PTP timestamp
+> tracking and potentially wrong PSP encryption keys.
 
-but it _is_ still used in hns3, what's your plan there?
-Documenting something we adhere to at the outset seems like a red flag.
+Is the concern about Tx? (please clarify)
+If so, Tx HW timestamps are never guaranteed, why can't we just
+skip timestamping for PSP packets? Only TCP supports PSP, and
+upstream TCP and HW timestamps are pretty much mutually exclusive.
+
+> Prevent the conflict at configuration time by blocking:
+> - Enabling TX-port-TS when PSP has active TX keys.
+> - Adding PSP TX keys when TX-port-TS is already enabled.
+
+Why catch PSP at the Tx key programming? PSP docs very explicitly
+require drivers to _not_ enable the feature by default. And tx
+keys can't be added if it's disabled. So it would make much more
+sense to catch the enable / config callback of PSP?
 -- 
-I'm expecting at least a commit msg update at the of the discussion so:
 pw-bot: cr
