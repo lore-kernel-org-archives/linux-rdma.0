@@ -1,377 +1,199 @@
-Received: from mail-pl1-f176.google.com (mail-pl1-f176.google.com [209.85.214.176])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from DU2PR03CU002.outbound.protection.outlook.com (mail-northeuropeazon11011041.outbound.protection.outlook.com [52.101.65.41])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 57178382F08
-	for <linux-rdma@vger.kernel.org>; Tue,  4 Aug 2026 12:34:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.176
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785846899; cv=none; b=kam3ff4M6AlK38FuYxUOmzIL+n7Rq/OYWIl7RjRdHXPvirjLo/h/yiuPOHUD6JXcXKAgnnCLd/H9yhwrHzMCtnclg+pZLz6SYvkckpD4ggRFnSTA9jVG2nl+SkpboyflKxmxllw2F5Dft/4p7dJ8IAMAEviaLn3ZDrMY3R+7Evk=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785846899; c=relaxed/simple;
-	bh=xvzx6jNSlsMnElj3JdiPx7NYYZ80ry82gdfZdzM/6/E=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=j7kUr6Ua0/31rWj3iw/Px1DdOWpmd1vNo09AC22nGRx4CHJBxNSgWClc5xb3OX/nwk7YWUxTv+HMlskT4QXV7o/6XIHqVdcErzphhapUoJYLpJkJdjfbxUQxB0f4r1/pFYjD7u5NE80fl/55qRAju81aBUOb28ecUFLN7r7/i2s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=TgsAtjym; arc=none smtp.client-ip=209.85.214.176
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0E75835C1A1;
+	Tue,  4 Aug 2026 12:38:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.65.41
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1785847097; cv=fail; b=CnL5K9Kft2fGRIKDBvdm4GJ48YtziaDXK6woo7VtqJx9GNL41CObLgr4Khgf+SHHrZBBirUPL1T2PZ3nxQOfQdiiGOKQ89ZuMtlSclhQLhklS8zyp5AasR310KaJcMehGj5y7v2RRJAaeB5kgH59QF8f1wTIB9fnBDkMe0FTUiI=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1785847097; c=relaxed/simple;
+	bh=vgAq+KJgLccFNcJBy6CDHgu8lc7fgjgoI0iRn5SzaDQ=;
+	h=From:To:CC:Subject:Date:Message-ID:References:In-Reply-To:
+	 Content-Type:MIME-Version; b=VCP08dGfGdsFPmVfakL9YgsAyUYBNCnfhx/S3C1gFBRETLHZN1eZvtmYheiJl207smMO+DyRZ42H08odBfBaS2E7AeBD5p3PTYi7/yRx3gbYyVva505IybLzDp/oSBaGICA637aulifcCnH526N86oKwtkpkJhbpZtjKcOq8iKY=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nokia-bell-labs.com; spf=fail smtp.mailfrom=nokia-bell-labs.com; dkim=pass (2048-bit key) header.d=nokia-bell-labs.com header.i=@nokia-bell-labs.com header.b=phE3H37k; arc=fail smtp.client-ip=52.101.65.41
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nokia-bell-labs.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nokia-bell-labs.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="TgsAtjym"
-Received: by mail-pl1-f176.google.com with SMTP id d9443c01a7336-2caced6038eso11881075ad.0
-        for <linux-rdma@vger.kernel.org>; Tue, 04 Aug 2026 05:34:57 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1785846896; x=1786451696; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=CB1U22h59ehvXfT2urrNAh9x6cLRqc+DhUPBJEXZPtY=;
-        b=TgsAtjym+JauGZITblkq2/wv8Rt71NgbklCUFYV7f6fJ42+CY36ESviPPPJhlMChfT
-         s83gYQ1rda7PS8CWkAhR9iwdwwMPN79TZOxOznHRt7ziCtRAjf1xaS4uzc+Qn8/meD3b
-         utmCmwnZmJEOtx1ZNsqZgso4KFjaQzSjhP65Yr0NufcUsTBwtnl9fXbGoXzJMB2l9Gcc
-         2aBon0QoKkYPYqn9uY63JRAuccukPP7fTSsyQc3W5xT0nmzFx3BAuIqgejZpGlS0WfVR
-         Y5EN/znE+/NGvY2XyQNTnvr/UZwwGVCp3uQEX4/K18uIGPpvABiO2sAUVWSkXYfjS+MH
-         B4Ag==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1785846896; x=1786451696;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=CB1U22h59ehvXfT2urrNAh9x6cLRqc+DhUPBJEXZPtY=;
-        b=ffTJmQVU2qgS70mAvwKWuWwaVf3Ey7bbn0ABco7H/My2Zs1RVs8/4OFk61h0cYErh1
-         KSwIJHgvGS/l9LNnjL/XNj0g23isUnb6Hzg4OkR5sOxpaZbIPPyGLjc3NdyKwtMALLSs
-         Th8FsoLkWBoI5VixbeMzxE2mleCWAdgpCfQpXwqbY0prp2/oMjkcgSGmJy9/Gr0xU/E3
-         0no5XGmLLskK7J4zZCQJDopV3E4Ia+505/V97H5UlAfQ5AuWouTlpg/x820jComgVs2P
-         d7rylsYuc7i3IrbWljCb7kl1uhrEYBBS6qoUTGwy0Fo0OaHC06oRBiTgPDuKiDizl4lW
-         e2aQ==
-X-Gm-Message-State: AOJu0Yw3wLYmGmVfVXGGlHWvPgQtdNT8P5xdyoZpK7XcgDChMedTFDm5
-	nWqPACS+AOcWBxL/RHCyLQ9LU0w52FXoL6z5fhtywh3NiC7Xt2goNh3p
-X-Gm-Gg: AR+sD12lYQ0ISavj1PvqCI//kBEnH1wBwQTPjepvy1ybVMKQxHqGxRB6nEMZbYOB02H
-	1b7FR3gaDt6FQbaljlnfd2vIu7YdDR/DsKr5nC6j96aGEb/Yey0uRO+Wjktf356x162ecD/ZqSb
-	YcAQrqiPzsKFR64NpXug/Ix70DFymj1iBtgCaKylHb54GO16EZuJD6R4P5SRVPMEDNxmwLhMLzT
-	IpHS+cv/lhUmRdkT+OyvBOwc/0JNXkXDhqQknpJZcRRbFiMO79eFpIasRooeRyPKuqML1HNEuU0
-	QcEQBF5R4yB/1WCQgMEfvU2N8vudqJCTqbhxk8oewLTxoN79X5HAKLsQZKv762N14y82acDC2/B
-	dEeoGMSUmQ5I8SU2vZxAGTooX5bqaDPUVeyHCE4M2bja7Q2b/+VEQKdiWze5dWwJkJfZQYdPcQB
-	8Z4n/Ct3hLUkR4rTUjPwpqZnG3jQg9oC07pCdrAqNAc/DREWiGcCqQj6XwdEaDZ0SCVg326x/Rf
-	j7Q91eYV2b16BG2WGEM6WFwRqthmQG+fH7uJ7pd8eaocA==
-X-Received: by 2002:a17:903:2ecb:b0:2cf:70d2:da7c with SMTP id d9443c01a7336-2d08aa7fdddmr31872815ad.12.1785846896392;
-        Tue, 04 Aug 2026 05:34:56 -0700 (PDT)
-Received: from chcpu15.cse.ust.hk (191host116.mobilenet.cse.ust.hk. [143.89.191.116])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2d0a9f9370esm7101365ad.8.2026.08.04.05.34.52
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 04 Aug 2026 05:34:55 -0700 (PDT)
-From: Qi Zhang <marsy12010123@gmail.com>
-To: "D. Wythe" <alibuda@linux.alibaba.com>,
-	Dust Li <dust.li@linux.alibaba.com>,
-	Sidraya Jayagond <sidraya@linux.ibm.com>,
-	Wenjia Zhang <wenjia@linux.ibm.com>,
-	Mahanta Jambigi <mjambigi@linux.ibm.com>,
-	Tony Lu <tonylu@linux.alibaba.com>,
-	Wen Gu <guwen@linux.alibaba.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>,
-	Ursula Braun <ubraun@linux.vnet.ibm.com>
-Cc: linux-rdma@vger.kernel.org,
-	linux-s390@vger.kernel.org,
-	netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Chengfeng Ye <nicoyip.dev@gmail.com>,
-	stable@vger.kernel.org,
-	Qi Zhang <marsy12010123@gmail.com>
-Subject: [PATCH net] net/smc: prevent device removal during connection setup
-Date: Tue,  4 Aug 2026 20:34:18 +0800
-Message-Id: <20260804123418.2214979-1-marsy12010123@gmail.com>
-X-Mailer: git-send-email 2.25.1
+	dkim=pass (2048-bit key) header.d=nokia-bell-labs.com header.i=@nokia-bell-labs.com header.b="phE3H37k"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=W6uviyp5YfWQ0da2NWkAfK65Wqf+kEx+/304KncI2J6nMlduU+9df/KYZppkzfsdjKxLBZ8aNPvnEK3ELUlnzXGEtxxEBPyBqttmXpdqgdoD+t6qlld4XmagQDxIjYgx0P9LiZitbwuP7036LJIxD6kqJfv7ZpiznsyrXPDm0vF/EApuL4Kl54CbAdCejlXtG9+CcruU0NLQ/yuZZJC+GYFpJfy7nw/e9sB1Q4FZ8SM8R/o39+4vFc4BoqhBnNsI2WV27+HBcrpI3MY+xLXn6UUI2mITmfiyQv9/h2Wy+LgLPw07YChYEAKWKlAY6IYkIdhDLaqhNstM4E9Qlpvr2g==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=vgAq+KJgLccFNcJBy6CDHgu8lc7fgjgoI0iRn5SzaDQ=;
+ b=V4xrFPGKzb14n9t+7IEQlsOeambuTfMCIMG+LAJ76pFSCtw18cOyw/+h6G3cSz5+5m/db378/6OjRW35isjTSGHmr29y8rQRZmbh9IPixfgzLBxOOl7ndWLak9Wj+GsRKs1ALcezlR/+Eg9YXDAvY8z0cjjLjbYm1YEnIZd0drVqxTFiYF6+PiSz1mpC1EPZG3swnq9z9mIcww1MX3/rvNp5lBsF4IwxjJQKS/ntu6WrqMA4lDbAQM9ADFA/N4rT7/kPkhu6cRX44IdGqo/jZ3DKnYzdQHR7UEOdp6ADIPeCrwk/5k/CulZr7FWst/84D9A1MXE3Y0BGgyy/WwzdSg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nokia-bell-labs.com; dmarc=pass action=none
+ header.from=nokia-bell-labs.com; dkim=pass header.d=nokia-bell-labs.com;
+ arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nokia-bell-labs.com;
+ s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=vgAq+KJgLccFNcJBy6CDHgu8lc7fgjgoI0iRn5SzaDQ=;
+ b=phE3H37kCyV/HKR7+EPBA6pGX7G/pdfrOqPW1+tA6Id5yIafme+5UNAjogb7JkEByUW9CCVYEkUqnLm/h0/1t8ZSlViFke9gnCDdvlg8emWWTFb+9Zd9GnfVZHIK6Vg2+zZGecbcqys230p7RchoSXKVbx1CNIHESYBDn+5vKTteu/UIeNCsrETCls41vif2UWxeoAyNSC9gMuxWUb1hZ9BcCrteEk6YpZzMtPdt197ea4Nm+6slnfNmnhouJZFYYSTrUf7BZPHBcuvxW6Dz8Y8rLQgv01+V8s7vEzwyg61y8o5FZ959dLnxIeNDr6yhikRiVmUS7AUKNIDt5liDqQ==
+Received: from PAXPR07MB7984.eurprd07.prod.outlook.com (2603:10a6:102:133::12)
+ by PA4PR07MB7695.eurprd07.prod.outlook.com (2603:10a6:102:fb::9) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.292.15; Tue, 4 Aug
+ 2026 12:38:10 +0000
+Received: from PAXPR07MB7984.eurprd07.prod.outlook.com
+ ([fe80::f708:4bd3:9987:b9e5]) by PAXPR07MB7984.eurprd07.prod.outlook.com
+ ([fe80::f708:4bd3:9987:b9e5%2]) with mapi id 15.21.0292.013; Tue, 4 Aug 2026
+ 12:38:10 +0000
+From: "Chia-Yu Chang (Nokia)" <chia-yu.chang@nokia-bell-labs.com>
+To: Jakub Kicinski <kuba@kernel.org>
+CC: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+	"eperezma@redhat.com" <eperezma@redhat.com>, "jasowang@redhat.com"
+	<jasowang@redhat.com>, "virtualization@lists.linux.dev"
+	<virtualization@lists.linux.dev>, "mst@redhat.com" <mst@redhat.com>,
+	"xuanzhuo@linux.alibaba.com" <xuanzhuo@linux.alibaba.com>,
+	"pabeni@redhat.com" <pabeni@redhat.com>, "edumazet@google.com"
+	<edumazet@google.com>, "linux-doc@vger.kernel.org"
+	<linux-doc@vger.kernel.org>, "corbet@lwn.net" <corbet@lwn.net>,
+	"horms@kernel.org" <horms@kernel.org>, "dsahern@kernel.org"
+	<dsahern@kernel.org>, "kuniyu@google.com" <kuniyu@google.com>,
+	"bpf@vger.kernel.org" <bpf@vger.kernel.org>, "netdev@vger.kernel.org"
+	<netdev@vger.kernel.org>, "dave.taht@gmail.com" <dave.taht@gmail.com>,
+	"jhs@mojatatu.com" <jhs@mojatatu.com>, "stephen@networkplumber.org"
+	<stephen@networkplumber.org>, "xiyou.wangcong@gmail.com"
+	<xiyou.wangcong@gmail.com>, "jiri@resnulli.us" <jiri@resnulli.us>,
+	"davem@davemloft.net" <davem@davemloft.net>, "andrew+netdev@lunn.ch"
+	<andrew+netdev@lunn.ch>, "donald.hunter@gmail.com" <donald.hunter@gmail.com>,
+	"ast@fiberby.net" <ast@fiberby.net>, "liuhangbin@gmail.com"
+	<liuhangbin@gmail.com>, "shuah@kernel.org" <shuah@kernel.org>,
+	"linux-kselftest@vger.kernel.org" <linux-kselftest@vger.kernel.org>,
+	"ij@kernel.org" <ij@kernel.org>, "ncardwell@google.com"
+	<ncardwell@google.com>, "Koen De Schepper (Nokia)"
+	<koen.de_schepper@nokia-bell-labs.com>, "g.white@cablelabs.com"
+	<g.white@cablelabs.com>, "ingemar.s.johansson@ericsson.com"
+	<ingemar.s.johansson@ericsson.com>, "mirja.kuehlewind@ericsson.com"
+	<mirja.kuehlewind@ericsson.com>, "cheshire@apple.com" <cheshire@apple.com>,
+	"rs.ietf@gmx.at" <rs.ietf@gmx.at>, "Jason_Livingood@comcast.com"
+	<Jason_Livingood@comcast.com>, "vidhi_goel@apple.com" <vidhi_goel@apple.com>,
+	Parav Pandit <parav@nvidia.com>
+Subject: RE: [PATCH v4 net-next 1/1] net: update comments for SKB_GSO_TCP_ECN
+ and SKB_GSO_TCP_ACCECN
+Thread-Topic: [PATCH v4 net-next 1/1] net: update comments for SKB_GSO_TCP_ECN
+ and SKB_GSO_TCP_ACCECN
+Thread-Index: AQHdHquky4Lusn6ys0yW+D1m17BB47aNGEwAgADE2PA=
+Date: Tue, 4 Aug 2026 12:38:10 +0000
+Message-ID:
+ <PAXPR07MB798489DFC97547F586618BEEA3D42@PAXPR07MB7984.eurprd07.prod.outlook.com>
+References: <20260728161007.650717-1-chia-yu.chang@nokia-bell-labs.com>
+ <20260803174726.585aed45@kernel.org>
+In-Reply-To: <20260803174726.585aed45@kernel.org>
+Accept-Language: en-GB, en-US
+Content-Language: en-US
+X-MS-Has-Attach:
+X-MS-TNEF-Correlator:
+authentication-results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nokia-bell-labs.com;
+x-ms-publictraffictype: Email
+x-ms-traffictypediagnostic: PAXPR07MB7984:EE_|PA4PR07MB7695:EE_
+x-ms-office365-filtering-correlation-id: d269d89d-c1f4-4e4e-0782-08def2253e62
+x-ms-exchange-senderadcheck: 1
+x-ms-exchange-antispam-relay: 0
+x-microsoft-antispam:
+ BCL:0;ARA:13230040|366016|23010399003|1800799024|7416014|376014|10067099003|11063799006|4143699003|56012099006|22082099003|18002099003|38070700021;
+x-microsoft-antispam-message-info:
+ rElUnhzrUO8uQs5GmMKhg6Byq6dcmp88z0oiwFP8c3sCekNIrsrrwnn7BPP647GtzMFADM8ZJwQ/UctEttxNH4yK+EEkx2HLvWONEXU8BrXhpTg9s80ICfFlGmSE7MB7TUcTKEpANys2oH+7J8mWvewrp9qdUv8d59KgL8OZzcycp161aivPSiWNT1UvXrkfxw2DRZxTRodBFlhEJNIFWlpO1d8faqiMofwX44IeUhNoTYmEbg1vz7+//roiXo0Qu62Q+7Dtqz24cAZ8B1S0P0CKjlgYnKFNPRChsCfAB+BhO4uosvyrOsqCzT1vibMwB7D7N6eGbCZp9QiotSs4hbaDSkZxvEfPmbyrLnp/21VjTZlkD9SXj++7m4aG2oxW2WiW/kz24fP3XD7zBXyAX6KUSSS+QLS4VfRt5/L/w97WFd1diBtsNLW2VrYQWIShQqLszm/1juiiUO8MJovmOwC1VeN8SKB9j1SKb1OSH3/kJFBH253pyNh0pn6IMe4uTc3CCU66Wfa2cReq5HcMJZ2ahLENCBlBppc/SfP8nVItGh5cCa0ee0UYV+w1NG34oYCH9LVTcJ6+0rMNwWfwsNPh89jkT5BHD8kTcQOD/sPgxoarskOqs86kn5ELy5d3z5WYuhMBKHDJlLJgWHgIDg5/hxCABU6nZFa/2mOFG04=
+x-forefront-antispam-report:
+ CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PAXPR07MB7984.eurprd07.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(23010399003)(1800799024)(7416014)(376014)(10067099003)(11063799006)(4143699003)(56012099006)(22082099003)(18002099003)(38070700021);DIR:OUT;SFP:1101;
+x-ms-exchange-antispam-messagedata-chunkcount: 1
+x-ms-exchange-antispam-messagedata-0:
+ =?us-ascii?Q?z+NRBkvEbfb2Jzv1B7xaIXNdqZfD4q3hE3wY4X6c4Gv+seoiXcR8vNL7vTal?=
+ =?us-ascii?Q?kKREFCafuIZbnR6v05hV0MpwirT9jbqi9ZcNLw8BsBghABYvYd1W3MRzIr4c?=
+ =?us-ascii?Q?Q99LGL7Vap5aWjI/LUXEra4RnPEQP4xxrD2YchcATEoBKGnUjLvu+SdlZebs?=
+ =?us-ascii?Q?zMjLJJhAWPOqBdsq9Tdizy4R76+7XolnZIeEw/ExPuISWDU6JsJ5+BkuIv5i?=
+ =?us-ascii?Q?vuhX2tXEEp3G/SPYe6XEUTlgtJzi7rsnYm80WbvrUELlOLKa9vBOleip60xN?=
+ =?us-ascii?Q?eOnIE0QwB2oPUVgyA8IohTYeTI1YzwyP7lnn40SSXDbXzNeJ8j1MqfiK6oLO?=
+ =?us-ascii?Q?R//In4Sw2lVdtk+Z2mIRlxT+HU2sj3ccelkmhG4WYMqMQCTM2frI0OeomTuS?=
+ =?us-ascii?Q?Wv7AU1z6f1ISSM9HYb9gYetFpHtV2nUvfQesH/B38ASKfGpN5vuDlYQa5cn1?=
+ =?us-ascii?Q?aTAdgU6UUEYmex9NCdmCuOBEZMzIKQWcCSU7Xwu26j9MOTuVHGm3OpzaxYXR?=
+ =?us-ascii?Q?CWCdbfbhl5Z+TMtkv61mC+pWBFXrBisxGbhr/Ra8ckLA8Aa3130WvCfDY4Gs?=
+ =?us-ascii?Q?MN3POvC7lssF0sNuaCtd9RPwyR8dThEjbUUGRT2JQLzHGmp9/uTOprgepJCF?=
+ =?us-ascii?Q?mEcgSgat5Mk4yPdcMlRACh22hnjjHDANDvc0hI/BBw0P+g/KAAGFPSbvWTVZ?=
+ =?us-ascii?Q?WG8KtJDZREz1xWdlGqVmMo/9azek6rrYjGFdCe9HtvQgR87vzcDpyhRXytD0?=
+ =?us-ascii?Q?S4brBuQZVqALrsWJaafevELL5jHqAzPfQBA0uVZN1aMdLiNM/T4HJ2bXuSNW?=
+ =?us-ascii?Q?Bnz1HU3BK1KEkO0728m4QsyS2scW2PBqpR+lG/emOQKRHEIjvVY/SNdjSIRJ?=
+ =?us-ascii?Q?ccPNdkj1dCAAEjWvlPxkralHthqk0bEW6nPZzHmPUbYOFXDwoFuX5rwFGZ+g?=
+ =?us-ascii?Q?lOHAU1P4kgVQj8m4v3GQB0+FyzqM0jgzeeRMx16XBRhfckfPzMTT8TKOoie+?=
+ =?us-ascii?Q?FigAEjmvqbkCQqYAW8r/Rk9i14yZJowIyboXlTnlHgDZy3xk/CD0oFdmuBf1?=
+ =?us-ascii?Q?FuJGdE4cRAojdneEk7VayqNuDWplUv9JJ178vgWsJ1PViSOeLFrgAbgT8ak2?=
+ =?us-ascii?Q?jNdf+5aTniXC65fR7P3CfY1oNoUR+2WeGLAqoh00ok/EeMFr1aAm/Km+2JA7?=
+ =?us-ascii?Q?DRLFKk7Yx6wEbVrIbIKqd9Zot6yBiHcKAsVP7c0zcmpSY0/t02C88W2g8qVN?=
+ =?us-ascii?Q?PhX98NnV0gxjjlC3nmKnafC7HFsfUzXDHyRhfwgJNbK0U3vAcifnEqTVaucd?=
+ =?us-ascii?Q?XYDzrO8t44TusxZwkb2Mt2h8cd7QXQKrnReKcCCSdaB4PrrWjhwXzz/cvmkh?=
+ =?us-ascii?Q?yASJeHhP3Wjd74BIxoFVtQYOSUfPaefSgvvXNxbHsOIeLQLuugwXRNl5av4J?=
+ =?us-ascii?Q?yBVE90FNCngnu9zVNHNxyQVlzCQ/tNoqsBwCbxwy5GRWXHMtYD99O8XAuSDR?=
+ =?us-ascii?Q?zzF1kuNYhAGmk07Af2cdjWIDrVxJCtKrD75OFxMgDJcFY5F+4E5kH62enfY4?=
+ =?us-ascii?Q?GHHUj7+/LFgHJ3OUhkP96UIjyicVcBhFp25VqorXVYDMOJku15/6bMCXOF1h?=
+ =?us-ascii?Q?i3NkS1M2x+TYWR8QT72pD5mkAlzbHyek7zkyYyJLlb9Bs69//V9IKtU6CVUK?=
+ =?us-ascii?Q?QqZ+cy/hQEsaOM1qOk1zNbE01V3uGo2EzhGxzsLckwdfSkxHX8uVojo1gY5P?=
+ =?us-ascii?Q?KWnm/Uzb62TtajA2JwZZTgat4Y5OY3U=3D?=
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-OriginatorOrg: nokia-bell-labs.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-AuthSource: PAXPR07MB7984.eurprd07.prod.outlook.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: d269d89d-c1f4-4e4e-0782-08def2253e62
+X-MS-Exchange-CrossTenant-originalarrivaltime: 04 Aug 2026 12:38:10.6901
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: 5d471751-9675-428d-917b-70f44f9630b0
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: PBzitiicG6ke6GSN4r7chRk8ZsDshbX7rTKjNVZBV160XTlEDGVIjrRJa+wd0Sueqw6NdpNoPNfNh+GxqVdE3st+lyBAhpJkeAou4feZGbT0GXXx/UcDaW3iNsQ9vqL3
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: PA4PR07MB7695
 
-From: Chengfeng Ye <nicoyip.dev@gmail.com>
+> -----Original Message-----
+> From: Jakub Kicinski <kuba@kernel.org>=20
+> Sent: Tuesday, August 4, 2026 2:47 AM
+> To: Chia-Yu Chang (Nokia) <chia-yu.chang@nokia-bell-labs.com>
+> Cc: linux-rdma@vger.kernel.org; eperezma@redhat.com; jasowang@redhat.com;=
+ virtualization@lists.linux.dev; mst@redhat.com; xuanzhuo@linux.alibaba.com=
+; pabeni@redhat.com; edumazet@google.com; linux-doc@vger.kernel.org; corbet=
+@lwn.net; horms@kernel.org; dsahern@kernel.org; kuniyu@google.com; bpf@vger=
+.kernel.org; netdev@vger.kernel.org; dave.taht@gmail.com; jhs@mojatatu.com;=
+ stephen@networkplumber.org; xiyou.wangcong@gmail.com; jiri@resnulli.us; da=
+vem@davemloft.net; andrew+netdev@lunn.ch; donald.hunter@gmail.com; ast@fibe=
+rby.net; liuhangbin@gmail.com; shuah@kernel.org; linux-kselftest@vger.kerne=
+l.org; ij@kernel.org; ncardwell@google.com; Koen De Schepper (Nokia) <koen.=
+de_schepper@nokia-bell-labs.com>; g.white@cablelabs.com; ingemar.s.johansso=
+n@ericsson.com; mirja.kuehlewind@ericsson.com; cheshire@apple.com; rs.ietf@=
+gmx.at; Jason_Livingood@comcast.com; vidhi_goel@apple.com; Parav Pandit <pa=
+rav@nvidia.com>
+> Subject: Re: [PATCH v4 net-next 1/1] net: update comments for SKB_GSO_TCP=
+_ECN and SKB_GSO_TCP_ACCECN
+>=20
+>=20
+> CAUTION: This is an external email. Please be very careful when clicking =
+links or opening attachments. See the URL nok.it/ext for additional informa=
+tion.
+>=20
+>=20
+>=20
+> On Tue, 28 Jul 2026 18:10:07 +0200 chia-yu.chang@nokia-bell-labs.com
+> wrote:
+> > For RX, SKB_GSO_TCP_ECN shall NOT be used
+>=20
+> but it _is_ still used in hns3, what's your plan there?
+> Documenting something we adhere to at the outset seems like a red flag.
+>=20
+Hello,
 
-smc_pnet_determine_gid() stores an smc_ib_device pointer in connection
-initialization data while holding smc_ib_devices.mutex. Connection setup
-keeps using the pointer after releasing the mutex, but device removal only
-waits for links which have already incremented lnk_cnt.
+I would think to remove the SKB_GSO_TCP_ECN in hns3.
+Because hns3 will break the whole TOS byte based on Jijie's email: https://=
+lore.kernel.org/all/47530dd8-cba6-4282-ae80-4cabd52b08bc@huawei.com/#t
 
-This permits the following interleaving:
+Also, the virtio related changes will be submitted only after the approval =
+from virtio-spec.
 
-  connection setup                 device removal
-  ----------------                 --------------
-  select smcibdev
-  store ini->smcrv2.ib_dev_v2
-  mutex_unlock()
-                                   remove smcibdev from the device list
-                                   observe lnk_cnt == 0
-                                   return from the remove callback
-                                   kfree(smcibdev)
-  copy smcibdev->pnetid
-
-KASAN reported:
-
-  BUG: KASAN: slab-use-after-free in smc_conn_create+0x1330/0x2680
-  Read of size 16 at addr ffff888112dbd934 by task smc_bug86/97
-  Call Trace:
-   __asan_memcpy
-   smc_conn_create
-   __smc_connect
-   smc_connect
-   __sys_connect
-  Allocated by task 93:
-   smc_ib_add_dev
-   add_client_context
-   ib_register_device
-   nldev_newlink
-  Freed by task 98:
-   kfree
-   remove_client_context
-   __ib_unregister_device
-   nldev_dellink
-
-Track selected-device users separately from established links. Acquire a
-selection reference while smc_ib_devices.mutex protects the device list,
-and release it when the connection initialization data is discarded. After
-delisting a device, wait for these users before terminating its links. This
-lets in-flight setup either fail or make any newly created link visible to
-the termination pass, while delisting prevents new users.
-
-Fixes: a046d57da19f ("smc: CLC handshake (incl. preparation steps)")
-Cc: stable@vger.kernel.org
-Signed-off-by: Chengfeng Ye <nicoyip.dev@gmail.com>
-Signed-off-by: Qi Zhang <marsy12010123@gmail.com>
----
- net/smc/af_smc.c   | 11 +++++++----
- net/smc/smc_core.c | 11 +++++++++++
- net/smc/smc_core.h |  3 +++
- net/smc/smc_ib.c   |  5 +++++
- net/smc/smc_ib.h   | 13 +++++++++++++
- net/smc/smc_llc.c  |  8 ++++----
- net/smc/smc_pnet.c |  8 ++++++++
- 7 files changed, 51 insertions(+), 8 deletions(-)
-
-diff --git a/net/smc/af_smc.c b/net/smc/af_smc.c
-index b5db69073e20..160271464305 100644
---- a/net/smc/af_smc.c
-+++ b/net/smc/af_smc.c
-@@ -1225,7 +1225,7 @@ void smc_fill_gid_list(struct smc_link_group *lgr,
- 	       SMC_GID_SIZE);
- 
- out:
--	kfree(alt_ini);
-+	smc_init_info_free(alt_ini);
- }
- 
- static int smc_connect_rdma_v2_prepare(struct smc_sock *smc,
-@@ -1596,14 +1596,14 @@ static int __smc_connect(struct smc_sock *smc)
- 	SMC_STAT_CLNT_SUCC_INC(sock_net(smc->clcsock->sk), aclc);
- 	smc_connect_ism_vlan_cleanup(ini);
- 	kfree(buf);
--	kfree(ini);
-+	smc_init_info_free(ini);
- 	return 0;
- 
- vlan_cleanup:
- 	smc_connect_ism_vlan_cleanup(ini);
- 	kfree(buf);
- fallback:
--	kfree(ini);
-+	smc_init_info_free(ini);
- 	return smc_connect_decline_fallback(smc, rc, version);
- }
- 
-@@ -2343,7 +2343,10 @@ static void smc_find_rdma_v2_device_serv(struct smc_sock *new_smc,
- 
- not_found:
- 	ini->smcr_version &= ~SMC_V2;
-+	if (ini->smcrv2.ib_dev_v2_ref)
-+		smc_ibdev_init_put(ini->smcrv2.ib_dev_v2);
- 	ini->smcrv2.ib_dev_v2 = NULL;
-+	ini->smcrv2.ib_dev_v2_ref = false;
- 	ini->check_smcrv2 = false;
- }
- 
-@@ -2587,7 +2590,7 @@ static void smc_listen_work(struct work_struct *work)
- 	smc_listen_decline(new_smc, rc, ini ? ini->first_contact_local : 0,
- 			   proposal_version);
- out_free:
--	kfree(ini);
-+	smc_init_info_free(ini);
- 	kfree(buf);
- }
- 
-diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
-index cf6b620fef05..e59f327f294c 100644
---- a/net/smc/smc_core.c
-+++ b/net/smc/smc_core.c
-@@ -55,6 +55,17 @@ static void __smc_lgr_terminate(struct smc_link_group *lgr, bool soft);
- 
- static void smc_link_down_work(struct work_struct *work);
- 
-+void smc_init_info_free(struct smc_init_info *ini)
-+{
-+	if (!ini)
-+		return;
-+	if (ini->ib_dev_ref)
-+		smc_ibdev_init_put(ini->ib_dev);
-+	if (ini->smcrv2.ib_dev_v2_ref)
-+		smc_ibdev_init_put(ini->smcrv2.ib_dev_v2);
-+	kfree(ini);
-+}
-+
- /* return head of link group list and its lock for a given link group */
- static inline struct list_head *smc_lgr_list_head(struct smc_link_group *lgr,
- 						  spinlock_t **lgr_lock)
-diff --git a/net/smc/smc_core.h b/net/smc/smc_core.h
-index 5c18f08a4c8a..385f16cc5368 100644
---- a/net/smc/smc_core.h
-+++ b/net/smc/smc_core.h
-@@ -403,6 +403,7 @@ struct smc_init_info_smcrv2 {
- 
- 	/* Output fields when saddr is set */
- 	struct smc_ib_device	*ib_dev_v2;
-+	bool			ib_dev_v2_ref;
- 	u8			ib_port_v2;
- 	u8			ib_gid_v2[SMC_GID_SIZE];
- 
-@@ -438,6 +439,7 @@ struct smc_init_info {
- 	u8			peer_mac[ETH_ALEN];
- 	u8			peer_systemid[SMC_SYSTEMID_LEN];
- 	struct smc_ib_device	*ib_dev;
-+	bool			ib_dev_ref;
- 	u8			ib_gid[SMC_GID_SIZE];
- 	u8			ib_port;
- 	u32			ib_clcqpn;
-@@ -594,6 +596,7 @@ void smc_rtoken_set2(struct smc_link_group *lgr, int rtok_idx, int link_id,
- void smc_sndbuf_sync_sg_for_device(struct smc_connection *conn);
- void smc_rmb_sync_sg_for_cpu(struct smc_connection *conn);
- int smc_vlan_by_tcpsk(struct socket *clcsock, struct smc_init_info *ini);
-+void smc_init_info_free(struct smc_init_info *ini);
- 
- void smc_conn_free(struct smc_connection *conn);
- int smc_conn_create(struct smc_sock *smc, struct smc_init_info *ini);
-diff --git a/net/smc/smc_ib.c b/net/smc/smc_ib.c
-index 9bb495707445..01c9b5c62df7 100644
---- a/net/smc/smc_ib.c
-+++ b/net/smc/smc_ib.c
-@@ -950,6 +950,8 @@ static int smc_ib_add_dev(struct ib_device *ibdev)
- 
- 	smcibdev->ibdev = ibdev;
- 	INIT_WORK(&smcibdev->port_event_work, smc_ib_port_event_work);
-+	atomic_set(&smcibdev->init_cnt, 0);
-+	init_waitqueue_head(&smcibdev->init_wait);
- 	atomic_set(&smcibdev->lnk_cnt, 0);
- 	init_waitqueue_head(&smcibdev->lnks_deleted);
- 	mutex_init(&smcibdev->mutex);
-@@ -1000,6 +1002,9 @@ static void smc_ib_remove_dev(struct ib_device *ibdev, void *client_data)
- 	mutex_unlock(&smc_ib_devices.mutex);
- 	pr_warn_ratelimited("smc: removing ib device %s\n",
- 			    smcibdev->ibdev->name);
-+	if (atomic_read(&smcibdev->init_cnt))
-+		wait_event(smcibdev->init_wait,
-+			   !atomic_read(&smcibdev->init_cnt));
- 	smc_smcr_terminate_all(smcibdev);
- 	smc_ib_cleanup_per_ibdev(smcibdev);
- 	ib_unregister_event_handler(&smcibdev->event_handler);
-diff --git a/net/smc/smc_ib.h b/net/smc/smc_ib.h
-index ef8ac2b7546d..8e9fd5a200a2 100644
---- a/net/smc/smc_ib.h
-+++ b/net/smc/smc_ib.h
-@@ -51,6 +51,8 @@ struct smc_ib_device {				/* ib-device infos for smc */
- 	struct work_struct	port_event_work;
- 	unsigned long		port_event_mask;
- 	DECLARE_BITMAP(ports_going_away, SMC_MAX_PORTS);
-+	atomic_t		init_cnt;	/* number of device selections */
-+	wait_queue_head_t	init_wait;	/* wait for selections to end */
- 	atomic_t		lnk_cnt;	/* number of links on ibdev */
- 	wait_queue_head_t	lnks_deleted;	/* wait 4 removal of all links*/
- 	struct mutex		mutex;		/* protect dev setup+cleanup */
-@@ -59,6 +61,17 @@ struct smc_ib_device {				/* ib-device infos for smc */
- 	int			ndev_ifidx[SMC_MAX_PORTS]; /* ndev if indexes */
- };
- 
-+static inline void smc_ibdev_init_get(struct smc_ib_device *smcibdev)
-+{
-+	atomic_inc(&smcibdev->init_cnt);
-+}
-+
-+static inline void smc_ibdev_init_put(struct smc_ib_device *smcibdev)
-+{
-+	if (atomic_dec_and_test(&smcibdev->init_cnt))
-+		wake_up(&smcibdev->init_wait);
-+}
-+
- static inline __be32 smc_ib_gid_to_ipv4(u8 gid[SMC_GID_SIZE])
- {
- 	struct in6_addr *addr6 = (struct in6_addr *)gid;
-diff --git a/net/smc/smc_llc.c b/net/smc/smc_llc.c
-index 954b2ff1815c..15ae19a9db07 100644
---- a/net/smc/smc_llc.c
-+++ b/net/smc/smc_llc.c
-@@ -1118,7 +1118,7 @@ int smc_llc_cli_add_link(struct smc_link *link, struct smc_llc_qentry *qentry)
- out_reject:
- 	smc_llc_cli_add_link_reject(qentry);
- out:
--	kfree(ini);
-+	smc_init_info_free(ini);
- 	kfree(qentry);
- 	return rc;
- }
-@@ -1192,7 +1192,7 @@ static void smc_llc_cli_add_link_invite(struct smc_link *link,
- 	smc_llc_send_add_link(link, ini->ib_dev->mac[ini->ib_port - 1],
- 			      ini->ib_gid, NULL, SMC_LLC_REQ);
- out:
--	kfree(ini);
-+	smc_init_info_free(ini);
- 	kfree(qentry);
- }
- 
-@@ -1512,7 +1512,7 @@ int smc_llc_srv_add_link(struct smc_link *link,
- 	rc = smc_llc_srv_conf_link(link, link_new, lgr_new_t);
- 	if (rc)
- 		goto out_err;
--	kfree(ini);
-+	smc_init_info_free(ini);
- 	return 0;
- out_err:
- 	if (link_new) {
-@@ -1520,7 +1520,7 @@ int smc_llc_srv_add_link(struct smc_link *link,
- 		smcr_link_clear(link_new, false);
- 	}
- out:
--	kfree(ini);
-+	smc_init_info_free(ini);
- 	if (send_req_add_link_resp)
- 		smc_llc_send_req_add_link_response(req_qentry);
- 	return rc;
-diff --git a/net/smc/smc_pnet.c b/net/smc/smc_pnet.c
-index 63e286e2dfaa..7e01e01a522b 100644
---- a/net/smc/smc_pnet.c
-+++ b/net/smc/smc_pnet.c
-@@ -980,14 +980,22 @@ static int smc_pnet_determine_gid(struct smc_ib_device *ibdev, int i,
- 	if (!ini->check_smcrv2 &&
- 	    !smc_ib_determine_gid(ibdev, i, ini->vlan_id, ini->ib_gid, NULL,
- 				  NULL)) {
-+		if (ini->ib_dev_ref)
-+			smc_ibdev_init_put(ini->ib_dev);
-+		smc_ibdev_init_get(ibdev);
- 		ini->ib_dev = ibdev;
-+		ini->ib_dev_ref = true;
- 		ini->ib_port = i;
- 		return 0;
- 	}
- 	if (ini->check_smcrv2 &&
- 	    !smc_ib_determine_gid(ibdev, i, ini->vlan_id, ini->smcrv2.ib_gid_v2,
- 				  NULL, &ini->smcrv2)) {
-+		if (ini->smcrv2.ib_dev_v2_ref)
-+			smc_ibdev_init_put(ini->smcrv2.ib_dev_v2);
-+		smc_ibdev_init_get(ibdev);
- 		ini->smcrv2.ib_dev_v2 = ibdev;
-+		ini->smcrv2.ib_dev_v2_ref = true;
- 		ini->smcrv2.ib_port_v2 = i;
- 		return 0;
- 	}
--- 
-2.43.0
-
+Thanks.
+Chia-Yu
