@@ -1,163 +1,149 @@
-Received: from mail-pf1-f176.google.com (mail-pf1-f176.google.com [209.85.210.176])
+Received: from mail-qk1-f179.google.com (mail-qk1-f179.google.com [209.85.222.179])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CE53D480949
-	for <linux-rdma@vger.kernel.org>; Tue,  4 Aug 2026 17:14:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.176
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D04094908B4
+	for <linux-rdma@vger.kernel.org>; Tue,  4 Aug 2026 17:20:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.179
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785863708; cv=none; b=ReI/yM1fKDmdqQnmink943KcmJ9j0ZhMk0+nYOWcOuIYYmEQibi2kTKhaiSvN2j7kqhU+mn2Bzr+bj4SzCGoTszoc2HVKMawKjkt0gA+qmQ3zDDbvFLRt/gWsU8KPOvXRTUvpHI6+OwPAAthlAJ02x1WIGHK9wI5FlZYL+rFIuc=
+	t=1785864017; cv=none; b=rCxVsx9R6Yr6dzar8hsT6f0nbrQIg4B7TEoGUypnPh1+rL+pHPmtWtx+g6iHXCJfAm6vYBQC5y+Wp1lXIrtlfnMs8u9HNhnqUOBLOcZtwjh4vghcpvXH9lAGLuPJHtR21s/GuLVQTf7nF2rCx7G6UKxJ9L9kSkrxkdNDmjVmtcE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785863708; c=relaxed/simple;
-	bh=CDg7R4z19rm3HhNKcpDry/8FXJmNNTW/k1bNkbouDnA=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=op6VhvRS/Z5gskLW48jb14vZHuHEKSg8JchyDqfefc7RSQ4RMFvpfGJq9tG3zpWANe1E1fyLoildZPtr5heY1BMemKU3tM2gHRvKYqQoaV8cr3wKHlt8SSQx2ay4h/cYF321orp0qwRAJeR1+DVaY93Q3jyO21nU1dBgugp8gm4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Tmc0909F; arc=none smtp.client-ip=209.85.210.176
+	s=arc-20240116; t=1785864017; c=relaxed/simple;
+	bh=tn37vxDktpDeGNGM/rBHg3ypjb94/j/pKijNf4Af2V4=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=iaQd3t0YQyYg3vxP4TaidLRzM9G2xDt4cpIcxCwkzFO061VZFiEbvBKVQinMVKdkWMdOpWJEo9ezb0x1NQt1GTsglRt+QkaRAaTvjqnIsSis6jHeGjstnckd1FyhyxWV+w79uM0FLETlbGVya/5V9t8xX9W+K9RHYj5qwwk/zfg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=G0bQfcky; arc=none smtp.client-ip=209.85.222.179
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Tmc0909F"
-Received: by mail-pf1-f176.google.com with SMTP id d2e1a72fcca58-84e84a6c4bfso208842b3a.1
-        for <linux-rdma@vger.kernel.org>; Tue, 04 Aug 2026 10:14:55 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="G0bQfcky"
+Received: by mail-qk1-f179.google.com with SMTP id af79cd13be357-92e5b048375so6061085a.1
+        for <linux-rdma@vger.kernel.org>; Tue, 04 Aug 2026 10:20:06 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1785863693; x=1786468493; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=+FyhIVgwr2eNJZrKd4apq3PGwedIYUrqhXnEIT+9gD0=;
-        b=Tmc0909Fbx4wvfuc8YQaau8WA430Z0l5R23o64tJN0MXXVaNqEr/lEgTnvwwM0p/YN
-         5PhTICdctolgRCT+oid4JmxUEtJiS1c5Zu+m7haLWGeXWc/ryZXOzDkfj2vfcG1tDUtI
-         1tSB0Sx+hLPHTC63EkJ/O6/DdN+aRno8s2kSCfzPWrlgmX1Ozpk7tW4sH2CX6huUhwn3
-         P8X01kMYx06vJzxJt0qEvvd8n817HdLOgQXbYdCIYaOmH/k7uzEMbYeIcU2mdbFL3uUX
-         Zzftbi0Q8Ak4mw/G4IiaT1hXx4BhFEJ8Wy3tAKkIt6Zs3fK+YhzQc4YYdQ79QjuS7Jc3
-         awyg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1785863693; x=1786468493;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+        d=gmail.com; s=20251104; t=1785864001; x=1786468801; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:in-reply-to:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=+FyhIVgwr2eNJZrKd4apq3PGwedIYUrqhXnEIT+9gD0=;
-        b=Ao7VTFmdePTFlB306CPZTNwExap2AzdyCjM3SPqn+I2mgqjYcEAYIa54kYmcMAX/Gv
-         KqTAFF9PG9piRFCGOg6LOohRSj0suRFKyCaz0g2IKNNxGoNXOeBhm1iLOO5OUW5yt+gN
-         aziRWrgTjxZiBp4KJlMIRx12vP1RyHRB736LdU1Y4Jw+y3m/0ETdUIpDpGp51dJzEJQb
-         A0fC4EF6dn9vMlWXPdzIqjbjtRwbr//OTcmTR+J7+Cm2yJcSXK+Q3F9qRqgrkyZnZqtj
-         3aQPWib9e66+zKd1Cn61ya6bJ6qbH/qAvs0bv4FYWcg2F4KgyWxGAb+iOCIzYc+DBBXF
-         ndMQ==
-X-Forwarded-Encrypted: i=1; AHgh+RreIsc1V6jLQainqJlfcvjlMKnlnWgFr4OR8Y25Klido3ZzKx1YRuU5JnUk27n3q43DON90KR9iLvLj@vger.kernel.org
-X-Gm-Message-State: AOJu0YxHZ9WxW3Teb1t+nVM60CXgIaQ/Og8ewuwIGrufkHSJoZG8yr2w
-	vcRRrOJguVW5S8tB6+iOse/xlOCN7Slj+6PdrTicgAIiB+auL8hVwIPs
-X-Gm-Gg: AR+sD12NgHewOnc/9lEIjXTFoul3T5zUPC13ot3C78ZgZLRYQR4EqelSitfRw1SBVUn
-	AXGZnpLVHojeBtzC36BzPmjDIiyd0lB9ale5BAVl5N+36Ty8PdkB8xbH4jMfa+U/8NEZlp018tH
-	hVFINe2dY9S1xNcsK5z3r5zXAf7QVtBkCIRJwZSS/O3pkWy3WCKm5Iso8IUC5PQhKhwmoDULNHV
-	2THJ7Lsz/aiddqtl+zn/mKK1xq70kXSAVNmAhn9sYN5fFUM3syFPyTpLdhkYZZQ7K2TrM/cUhUY
-	FNa6/im6AEGwuEnU8/nudcsCCS0M6KvDmyfoLTo2dgJyKQz3HCU7G9lRsAqCEwe1H3oSGTmAupe
-	eu5nrvFG125qT4dVyfx+KoznlEVcvCbtzw9SQLxtrf+vP7GYu0qvOXKTnmsoB6JQvjDO8yq7RyC
-	z0+NCBBssLD6MVISBvff6acZX0NFlS0GbZPsdqp67AAkyK7AJibGMcJoQ7jwxg1jMoSlrZI42eE
-	5qHQdztIA==
-X-Received: by 2002:a05:6a00:12c9:b0:848:50ef:4157 with SMTP id d2e1a72fcca58-84f1cb966c9mr4481009b3a.27.1785863692576;
-        Tue, 04 Aug 2026 10:14:52 -0700 (PDT)
-Received: from devvm29614.prn0.facebook.com ([2a03:2880:ff:4a::])
-        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-cbe707c9970sm77984a12.6.2026.08.04.10.14.50
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 04 Aug 2026 10:14:51 -0700 (PDT)
-Date: Tue, 4 Aug 2026 10:14:49 -0700
-From: Bobby Eshleman <bobbyeshleman@gmail.com>
-To: Tariq Toukan <tariqt@nvidia.com>
-Cc: Saeed Mahameed <saeedm@nvidia.com>, Mark Bloch <mbloch@nvidia.com>,
-	Leon Romanovsky <leon@kernel.org>,
-	Andrew Lunn <andrew+netdev@lunn.ch>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Dragos Tatulea <dtatulea@nvidia.com>,
-	Mina Almasry <almasrymina@google.com>, netdev@vger.kernel.org,
-	linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Bobby Eshleman <bobbyeshleman@meta.com>
-Subject: Re: [PATCH net v3] net/mlx5e: fix BQL reset on SQ re-activation
-Message-ID: <anIeCTh6IUJaP2mz@devvm29614.prn0.facebook.com>
-References: <20260803-mlx5-bql-v3-1-a30d4c66fe1d@meta.com>
- <6ac643bf-c6f4-4ff2-ba57-964a645d9323@nvidia.com>
+        bh=7OCTjJNAS4rOdu/mpclXfbvVSReH6ouoLdPqO+Ho98Y=;
+        b=G0bQfcky/kqtsFltIMez8SJRfkbHcNAMtu6Xl7ZmXizeEYASwSEnpTFISmu3mo65y1
+         Y1MIxjSRKkamTrT9V4TNzKz3XoHsQOIcMxxAdSoYUKbCiUIROtCT0QEeDkQ3Xc04CKPG
+         ShZjbmKmFFF3WOfIqt/18PpjsHqHQ/sfvmglC0YJbj6zUNkDlP2/UL8QHhe5CXavsvQC
+         eOOUlH7R91V+av0Yn3KkCEhhDa8fSfs72WNsBsh5KeFURdLuP10dYQKxo7UWFc9+NVY4
+         GqbQVXx0pjvmDpFa80nxmG9rrIQ0iuRpU+Hg//TWP0rtDWYUnMa42ax12kNoFW+4PkUQ
+         oUMA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1785864001; x=1786468801;
+        h=content-transfer-encoding:content-type:in-reply-to:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=7OCTjJNAS4rOdu/mpclXfbvVSReH6ouoLdPqO+Ho98Y=;
+        b=deHW3kJ29RVRbWMfR0MHX9oP8HJPR7Ox4wtlsS6LOrwWblHAExAcjfpY2LL1DwZPG4
+         uPo4uO+M6ot2tnq6vnquQVQ7GdsGhncwujQjL2H41gzd8Pr7+1Cu1VbxyG7rb2Agy5+V
+         2mGInPzv0MZrs7Xg0EDCxd9xe3OhasWCUcZra8I+O/6hiWnvpIjwX1UxtNRfmf+Cqrir
+         /9JYZAj8L24fxHO3OFN0NiJ9seP7excx+3UqhoqdUT1azYb8sLjQmFzvOsPlu51vgliD
+         WodXjXuf1q1RMmHL6+EvBZ290B3v2mbrElBGUKfRcpO0Trq87ItlIQrznnESyWStS15b
+         loDg==
+X-Forwarded-Encrypted: i=1; AHgh+Rpa4RHZltHFaPrBjx64dvbNJPN2zlEWxVFSdS4Xw24IFS+1+zTPeOJYX/nkxjfT/74KTWrHrTRTeD2F@vger.kernel.org
+X-Gm-Message-State: AOJu0YziF7YIe+oH2PJzI1STOM2qZXVLigC0y4/5QDmc3p072dLQUyrV
+	9zdZqlg4q+ir7oKxbUnBdxarrMDs0fCCrlFEiNyD25Y+9IIzRPpWubIx
+X-Gm-Gg: AR+sD11KLaZgz/ECUAkhOZPbADdH16ZM/ISdpNV2IWmCrcYRTVHYlX5wKtJhjYC+hHw
+	plEHQiMc0/mUVksATRT09d8/S9nHr7Xejj8u1Sqepp5N7UcCXE04kewYiSm7b1OOA/Oxc0wnWh9
+	hq4vumZjjOo/uLlomGnHp/SvyNqr9+gUY1MYgI0s++499mIdy2KSaqpNWrx18ph50nVBOAUfyMf
+	vu2qpinudExBkJJM8K2GVf3FtBtKhlQMAIFdKfIzRUatnW7Vq7J9Rf/k3caIDeEPOrSyTPsDR51
+	Xw4iYbzdCgsHnlIgOLlpHabvfN02PYe7HBtgbHi1vfrrjYFIaOw84NJ7W901+DJpdzwdykxLXoS
+	Z5iTtrfvxuajyNs/F6hgv4e/Lz4jxxSUVdp99p5C9qY/DXMP8XuQcC1tq9bNUao1l6PbhRuMdjR
+	2SImPUnzplVj7ya7R2sgXDY6N9+MIPr6KwcFpZFu7yE1K0Uh1Nh/b9HX8HsLhBjbY8dH4XM+swy
+	CgHhm3bxC3Vb5yq9KNuiyjo735+ngIc8iFXU3OJ//YLXcoKs3+fkw==
+X-Received: by 2002:a05:620a:8bc7:b0:930:a631:68bf with SMTP id af79cd13be357-934a0955e3amr2166079185a.22.1785864000974;
+        Tue, 04 Aug 2026 10:20:00 -0700 (PDT)
+Received: from ?IPV6:2600:4040:9399:4000:e553:72e5:7d37:c7ef? ([2600:4040:9399:4000:e553:72e5:7d37:c7ef])
+        by smtp.gmail.com with ESMTPSA id af79cd13be357-93641702c6asm126843985a.3.2026.08.04.10.19.59
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 04 Aug 2026 10:20:00 -0700 (PDT)
+Message-ID: <3a936f25-95b1-4b85-9d8d-d5ef9949b7d6@gmail.com>
+Date: Tue, 4 Aug 2026 13:19:59 -0400
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <6ac643bf-c6f4-4ff2-ba57-964a645d9323@nvidia.com>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH net-next V2 09/13] net/mlx5e: psp: Add an rx_decap
+ steering table
+To: Tariq Toukan <tariqt@nvidia.com>, Andrew Lunn <andrew+netdev@lunn.ch>,
+ "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
+ Jakub Kicinski <kuba@kernel.org>, netdev@vger.kernel.org,
+ Paolo Abeni <pabeni@redhat.com>, Sabrina Dubroca <sd@queasysnail.net>
+Cc: Aleksandr Loktionov <aleksandr.loktionov@intel.com>,
+ Alexei Lazar <alazar@nvidia.com>, Boris Pismenny <borisp@nvidia.com>,
+ Carolina Jubran <cjubran@nvidia.com>, Chris Mi <cmi@nvidia.com>,
+ Cosmin Ratiu <cratiu@nvidia.com>, Doruk Tan Ozturk <doruk@0sec.ai>,
+ Dragos Tatulea <dtatulea@nvidia.com>, Gal Pressman <gal@nvidia.com>,
+ Jacob Keller <Jacob.e.keller@intel.com>, Jianbo Liu <jianbol@nvidia.com>,
+ Kees Cook <kees@kernel.org>, Lama Kayal <lkayal@nvidia.com>,
+ Leon Romanovsky <leon@kernel.org>, linux-kernel@vger.kernel.org,
+ linux-kselftest@vger.kernel.org, linux-rdma@vger.kernel.org,
+ Mark Bloch <mbloch@nvidia.com>, Patrisious Haddad <phaddad@nvidia.com>,
+ Raed Salem <raeds@nvidia.com>, Rahul Rameshbabu <rrameshbabu@nvidia.com>,
+ Saeed Mahameed <saeedm@nvidia.com>, Shuah Khan <shuah@kernel.org>,
+ Shuah Khan <skhan@linuxfoundation.org>, Simon Horman <horms@kernel.org>,
+ Stanislav Fomichev <sdf@fomichev.me>,
+ Stanislav Fomichev <sdf.kernel@gmail.com>
+References: <20260804083535.2946459-1-tariqt@nvidia.com>
+ <20260804083535.2946459-10-tariqt@nvidia.com>
+Content-Language: en-US
+From: Daniel Zahka <daniel.zahka@gmail.com>
+In-Reply-To: <20260804083535.2946459-10-tariqt@nvidia.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-On Tue, Aug 04, 2026 at 11:23:53AM +0300, Tariq Toukan wrote:
-> 
-> 
-> On 04/08/2026 2:47, Bobby Eshleman wrote:
-> > From: Bobby Eshleman <bobbyeshleman@meta.com>
-> > 
-> > mlx5e_queue_start() deactivates and re-activates all channels but closes
-> > only the queue being restarted. mlx5e_activate_txqsq() then
-> > unconditionally calls netdev_tx_reset_queue(), zeroing the BQL counters
-> > of channels that kept their in-flight TX WQEs. The next completion then
-> > over-charges and trips the BUG_ON() in dql_completed():
-> > 
-> >    kernel BUG at lib/dynamic_queue_limits.c:99!
-> >    RIP: 0010:dql_completed+0x23d/0x280
-> >    Call Trace:
-> >     <IRQ>
-> >     mlx5e_poll_tx_cq+0x668/0xa60
-> >     mlx5e_napi_poll+0x5b/0x7b0
-> >     net_rx_action+0x15a/0x580
-> > 
-> > Reset BQL only when the SQ has no bytes in flight (sq->cc == sq->pc).
-> > 
-> > In the case that reset is skipped, the outstanding WQEs will eventually
-> > complete and rebalance the dql. The dql->limit is carried across the
-> > reset.
-> > 
-> > Fixes: b2588ea40ec9 ("net/mlx5e: Implement queue mgmt ops and single channel swap")
-> > Signed-off-by: Bobby Eshleman <bobbyeshleman@meta.com>
-> 
-> Reviewed-by: Tariq Toukan <tariqt@nvidia.com>
-> 
-> Thanks.
 
-Thanks Tariq, and my apologies for forgetting to carry the R-b forward.
 
+On 8/4/26 4:35 AM, Tariq Toukan wrote:
+> From: Cosmin Ratiu <cratiu@nvidia.com>
 > 
-> > ---
-> > Changes in v3:
-> > - Sample sq->cc/sq->pc before setting MLX5E_SQ_STATE_ENABLED, so a
-> >    concurrent mlx5e_poll_tx_cq() cannot un-charge BQL between the check
-> >    and netdev_tx_reset_queue() (Sashiko:
-> >    https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260729-mlx5-bql-v2-1-cdf285e586df@meta.com)
-> > - Link to v2: https://lore.kernel.org/r/20260729-mlx5-bql-v2-1-cdf285e586df@meta.com
-> > 
-> > Changes in v2:
-> > - remove misleading comment (Tariq)
-> > - Link to v1: https://lore.kernel.org/r/20260728-mlx5-bql-v1-1-99a0ab77ede7@meta.com
-> > ---
-> >   drivers/net/ethernet/mellanox/mlx5/core/en_main.c | 4 +++-
-> >   1 file changed, 3 insertions(+), 1 deletion(-)
-> > 
-> > diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-> > index 7d47a1da8b6b..f0407a850ea8 100644
-> > --- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-> > +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-> > @@ -1939,8 +1939,10 @@ int mlx5e_open_txqsq(struct mlx5e_channel *c, u32 tisn, int txq_ix,
-> >   void mlx5e_activate_txqsq(struct mlx5e_txqsq *sq)
-> >   {
-> >   	sq->txq = netdev_get_tx_queue(sq->netdev, sq->txq_ix);
-> > +	/* Reset BQL only when the SQ has no bytes in flight. */
-> > +	if (sq->cc == sq->pc)
-> > +		netdev_tx_reset_queue(sq->txq);
-> >   	set_bit(MLX5E_SQ_STATE_ENABLED, &sq->state);
-> > -	netdev_tx_reset_queue(sq->txq);
-> >   	netif_tx_start_queue(sq->txq);
-> >   	netif_queue_set_napi(sq->netdev, sq->txq_ix, NETDEV_QUEUE_TYPE_TX, sq->cq.napi);
-> >   }
-> > 
-> > ---
-> > base-commit: d1000fd7995e51deec872d154e0a40d82f7a539f
-> > change-id: 20260728-mlx5-bql-84e02a5a46c8
-> > 
-> > Best regards,
+> Introduce an additional steering table for PSP transport mode
+> decapsulation, containing:
+> - one rule per supported PSP version which does:
+>    - transport mode decap (removes UDP+PSP headers and PSP trailer)
+>      - recomputes iph->tot_len
+>      - recomputes IP checksum
+>      - reparses packet headers
+>    - copy SPI into reg_b (which ends up as cqe.ft_metadata)
+>    - set a decap marker and the PSP version in the flow_tag, so the RX
+>      handler can make sense of the packet
+> - default drop rule for unsupported PSP versions (per PSP spec).
 > 
+> Packets are forwarded to the previously added rx table, where:
+> - one rule forwards UDP traffic to the UDP default destination.
+> - default rule forwards traffic to the TTC table.
+> 
+> The reason is to avoid steering loops. If packets were to be injected
+> into the TTC directly after rx_decap, it may be possible to create a
+> steering loop with RX packets of the form IP|UDP|PSP|UDP|PSP...
+> The rx flow table guarantees that packets go through PSP steering at
+> most once.
+> 
+> The steering mode is saved in a new field 'fs.decap_enabled'.
+> Updating the mode is done through accel_psp_fs_rx_reconfigure(), which
+> creates the decap steering table if needed and possible. It then uses an
+> atomic rule update to redirect traffic to the new table.
+> This is now invoked with decap_wanted == false.
+> The intention is for failures creating the new table to not block feature
+> reconfig. A message is logged when table creation failed and PSP for HW
+> GRO will not work in that case.
+> Nothing happens on HW without the ability to decapsulate PSP transport.
+> 
+> An upcoming patch will add dynamic reconfiguration of PSP steering based
+> on HW GRO.
+> 
+> Signed-off-by: Cosmin Ratiu <cratiu@nvidia.com>
+> Reviewed-by: Dragos Tatulea <dtatulea@nvidia.com>
+> Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
+Cosmin, can you TAL at 
+https://lore.kernel.org/all/0d72c5b2-6d4c-40d4-8cbe-8cd95d61a230@gmail.com/ 
+and let me know if this is an issue or not? I see the patch looks the 
+same, but wasn't sure if you didn't see my message or if it is a false 
+positive.
