@@ -1,28 +1,28 @@
-Received: from CY3PR05CU001.outbound.protection.outlook.com (mail-westcentralusazon11013021.outbound.protection.outlook.com [40.93.201.21])
+Received: from MW6PR02CU001.outbound.protection.outlook.com (mail-westus2azon11012061.outbound.protection.outlook.com [52.101.48.61])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 63EE943CE5A;
-	Tue,  4 Aug 2026 08:37:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.201.21
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB29A43F0A2;
+	Tue,  4 Aug 2026 08:37:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.48.61
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785832669; cv=fail; b=NZCa0yosSFw+Y9swluoVPugHEKF21qPr/oeXh6I88tryENB4BGktlkQwoLl29x144Uz6Nwk7ly5yh8kU0eVUhXpMJvmR4PczcaWTTc83J1AHGdn/VVFENqcu4SNiY0WyZEopu8Aq55RA77fwDXex2lZcKOSmszaZI2KWyhngw/8=
+	t=1785832672; cv=fail; b=VL0NXdOFJMxVp5JDJYPFlVRI/oJ2VpIMaeZQ+wKrWiSuocivEs6r4rUFQVlnvURVlR8NQ1gf6bXKv6E/SPaACSOhN+X5Mn+BAfKyWXQORmHH3DLllDfqRuj7T77tuGRwTuBlT+NqWgqCWAIo72deVIJr8PT+Pkk7yu/aRmM8yOQ=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785832669; c=relaxed/simple;
-	bh=QMQ6SgZtjcAEDVTjNWx0BF7ZyeuPaaJ3iRHfn+zY/zg=;
+	s=arc-20240116; t=1785832672; c=relaxed/simple;
+	bh=iTXGvFPY4pfd9ioud/hs3HFb60fPoeKTgcA64diBHgI=;
 	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=D2wH4+UIAdFW8vZieXWV2dX5C0LYyZSVKYJZLvNRenwuE2GSy64q1Vl4Dl45jWm31vPr/1KeXbW8RN5qKRc1FG8wxrvoP/e+lW+qu5Iu1jg6xK9KM1iogdl4kEGMNRyHBIdMkm34oyjY/b7VoqbjdCFQL508d7idYhc5TSYO3dw=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=ieGHE6wu; arc=fail smtp.client-ip=40.93.201.21
+	 MIME-Version:Content-Type; b=pu4vzeJK2ZdXE3jlUaJyymrDKBnoyrpwWQ3fAfXFp7CTURGDJ9pcbW6cig1cm+E9ejMvHumZzlG0uY6uk1A2Q9yFxc+tMP36hJjatWlbsQms5hEZCSnc0uuiI4Jx8ol0R8Ht+eNF2J0BHrzWjBbC6Pmu3pabLZE0YNJk0LnjzYg=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=ZIgM0kdw; arc=fail smtp.client-ip=52.101.48.61
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="ieGHE6wu"
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="ZIgM0kdw"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=YsydT5zFjvMNCKdHfRwzODwDtzNdGTHzR6FsYV0SbvvsvpsvPxnCCPTAjcGzqNr4XWE2jG6gQLtSLss9TJ0+yZyPU5WAdD7OsJ7r/o4SlyRwcfyL1pgWR2X1tqA8ar/geDUy8YL9SyEvmMrRDmTRpaEkrDa9IBNwuNBQ9HD1MDN2IwWgvkwtx6meWEnBQce+SOQ7vbdl80/Vhv+bHqcXSPMNzg44prM+mlDNEom6CckrqKmhAJ0xNwga9v4gtO6s6ieW9WYNZtk2NiI9i92NOyW/1t/nU33ZrYOXUAFN3bogYlJACOBlBkmvV4BaP0D8T0bonjmGa0BjCK7BceV5NQ==
+ b=PhlV94ututl34kX5vzmRFu5l0Z8q1WyzCjLSmgPfSuHGrUjBfi0J7+PFkwNNdHVwpDcjXegFW3ayLvFgIrxWmv6i8kBqDY+8ILbqCGbcicgdpOKo13qwJ2wOU+HUaV5jTncpyyUXqvqG0iT5svxnpavjrfu3zDKh9uJd96J+YDkUcu63/adnhXu2+Px6cdYpEaYdOl02r/MCSzzmUGBbouryoHpwEAD0ARPEs3yM2XbiflK/q0QbcUf3d2R3paJJIPtIG+T8Ne0N8jP30mjrv8ewz4lllxhRc/HWTpjide+1nOFo8LgdwKeFfRGh7V+NHv2YhORv4idZTf+EzUBtIg==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=0T3kHu5Dxp8P1gSH1YIztIlTioNvLdwxtGqJt+SeVos=;
- b=m14T7Tg1LsZPtuDctX+v5h7vh2D2sqO5DZHfZsYW9RLNFMU0QgdhyGMBr52MyYZNvuOaSCuLaXgqu5yzffr2MsmzHtpGKS5/avlGmtcFdzkty4ZxrNsQypRdIHztBVNZfu/0h9TtpIxVPAzFlhRJ1U82s46pZ4RZ3mRtn26DIc0Ev+bH5GIAdqhgvRB/bvc6ueox63URyoMj+mfFVWC2LigB29CuMxd2izLlGDqbdSp7M9GjvjQiG6oD9TdWYtFYbZ8OB/i1k5YIyMziTx8l6xi4h5o5wORz2l9W0qhqIDwvCP8Ks2Erlxsv6SOA9mby03h0JjbDy8WqRhIm5wOHRA==
+ bh=svE5la3NzrcnVi5xhNIJXanR8uk+OS8Uz3eYI8eLJw0=;
+ b=ul+BYdjNoPPq+rPHAWlgCwNOflF+JRpashIFGPLlT7WhSEcISvHQ40qFk8IPYmAWZaAvdcWs702G5EbsMeQy8EPSsiBKXvq7aB/CF2YULnliy1qLe+KOrEpH83Hw0sSUUApVzt7K6ykUxu+Nquebep2iSCFR/vTmJKQF6jvwpf6i8Q2lIwTegQGiraK4sn0p9/Ia6eYEGwiMIsTSkQKSnzY4uzHF90OTHWRR0mXRBbDqeN/RhHvEo/JUA78AotVVWp7IvwWUbWlIax7wmFUPtXHU8bMOWypG4GqGKx0B5hFJINV9ofW3CYSYGKvPoJ11+gEChfzQqpf9VqnSCq16xw==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
  216.228.118.233) smtp.rcpttodomain=lunn.ch smtp.mailfrom=nvidia.com;
  dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
@@ -30,18 +30,18 @@ ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=0T3kHu5Dxp8P1gSH1YIztIlTioNvLdwxtGqJt+SeVos=;
- b=ieGHE6wu5Knb0RHwKW/Cm9L8A0rdMd0UxsQpazbj9DZSCfzf/e4gHFlCTdOEHWWWz4x2zob6s6UInQkLG0USW6tbTLAVKViJuSjzmR4LJKC996VvnoWRxiYoYW7tNefGtQdrxJl4VDDyJFW4X4XjGzReFnpJQM6XEk/P9e+fDyyvtw7GdqtHiyCOeG5CdynpQcUMZsG7RxMVvcBvI4vvTwCWd7RgY035YV1PU4rKwZyF5aaRrtg6MV6neLZUimu0M2H1XzAbxZYd+0PDPPdf77CMxvbuVdzou93u1q0SzB2IfqBjkGAbYhUstA1k1vgmMFJ2mJsdZTLwfri34CWNeQ==
-Received: from BL1PR13CA0378.namprd13.prod.outlook.com (2603:10b6:208:2c0::23)
- by SA1PR12MB8163.namprd12.prod.outlook.com (2603:10b6:806:332::17) with
+ bh=svE5la3NzrcnVi5xhNIJXanR8uk+OS8Uz3eYI8eLJw0=;
+ b=ZIgM0kdw+1vMjhguXdCwGCbZhsZd3qZ5/3QOIxqXtzZRPH3+GAWTI7G5yIWD1LExM9SAZdTKlA2tMzDNP0Q7yNwwQTSx2Cl8YXuFszUobSTkY4IkFNdt0rgwf02q5xwBkzRCMVCWbAo69jpajcduVzHdoVLNmEZv+m/EJdho1vTLr2e3w1SDtzegJ9yye33b2h1+Fp2lau1y5zKCuV5dLYImurRsqefqcE5W69sLws/60Jz/AxFO4Wy4GvNe5/LrN+7lKkK1r8WstP66aRS21FG57mIr52aV26qhKbuI/FqD7Rnf3qy4Oa0SDARbduh6RfUitjwwHhFhl+nWc05iJg==
+Received: from BL1PR13CA0125.namprd13.prod.outlook.com (2603:10b6:208:2bb::10)
+ by CY3PR12MB9656.namprd12.prod.outlook.com (2603:10b6:930:101::20) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.270.18; Tue, 4 Aug
- 2026 08:37:40 +0000
-Received: from BL6PEPF00020E65.namprd04.prod.outlook.com
- (2603:10b6:208:2c0:cafe::73) by BL1PR13CA0378.outlook.office365.com
- (2603:10b6:208:2c0::23) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.292.13 via Frontend Transport; Tue, 4
- Aug 2026 08:37:40 +0000
+ 2026 08:37:45 +0000
+Received: from BL6PEPF00020E60.namprd04.prod.outlook.com
+ (2603:10b6:208:2bb:cafe::12) by BL1PR13CA0125.outlook.office365.com
+ (2603:10b6:208:2bb::10) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.21.292.15 via Frontend Transport; Tue, 4
+ Aug 2026 08:37:44 +0000
 X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.118.233)
  smtp.mailfrom=nvidia.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=nvidia.com;
@@ -49,20 +49,20 @@ Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
  216.228.118.233 as permitted sender) receiver=protection.outlook.com;
  client-ip=216.228.118.233; helo=mail.nvidia.com; pr=C
 Received: from mail.nvidia.com (216.228.118.233) by
- BL6PEPF00020E65.mail.protection.outlook.com (10.167.249.26) with Microsoft
+ BL6PEPF00020E60.mail.protection.outlook.com (10.167.249.21) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.292.8 via Frontend Transport; Tue, 4 Aug 2026 08:37:40 +0000
+ 15.21.292.8 via Frontend Transport; Tue, 4 Aug 2026 08:37:44 +0000
 Received: from drhqmail201.nvidia.com (10.126.190.180) by mail.nvidia.com
  (10.127.129.6) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Tue, 4 Aug
- 2026 01:37:26 -0700
+ 2026 01:37:35 -0700
 Received: from drhqmail202.nvidia.com (10.126.190.181) by
  drhqmail201.nvidia.com (10.126.190.180) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.20; Tue, 4 Aug 2026 01:37:26 -0700
+ 15.2.2562.20; Tue, 4 Aug 2026 01:37:34 -0700
 Received: from vdi.nvidia.com (10.127.8.10) by mail.nvidia.com
  (10.126.190.181) with Microsoft SMTP Server id 15.2.2562.20 via Frontend
- Transport; Tue, 4 Aug 2026 01:37:18 -0700
+ Transport; Tue, 4 Aug 2026 01:37:26 -0700
 From: Tariq Toukan <tariqt@nvidia.com>
 To: Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller"
 	<davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, Jakub Kicinski
@@ -83,9 +83,9 @@ CC: Aleksandr Loktionov <aleksandr.loktionov@intel.com>, Alexei Lazar
 	<shuah@kernel.org>, Shuah Khan <skhan@linuxfoundation.org>, Simon Horman
 	<horms@kernel.org>, Stanislav Fomichev <sdf@fomichev.me>, Stanislav Fomichev
 	<sdf.kernel@gmail.com>, Tariq Toukan <tariqt@nvidia.com>
-Subject: [PATCH net-next V2 05/13] net/mlx5e: psp: Move RX marker from ft_metadata to flow_tag
-Date: Tue, 4 Aug 2026 11:35:27 +0300
-Message-ID: <20260804083535.2946459-6-tariqt@nvidia.com>
+Subject: [PATCH net-next V2 06/13] net/mlx5e: ipsec: Move RX marker from ft_metadata to flow_tag
+Date: Tue, 4 Aug 2026 11:35:28 +0300
+Message-ID: <20260804083535.2946459-7-tariqt@nvidia.com>
 X-Mailer: git-send-email 2.44.0
 In-Reply-To: <20260804083535.2946459-1-tariqt@nvidia.com>
 References: <20260804083535.2946459-1-tariqt@nvidia.com>
@@ -100,195 +100,184 @@ Content-Type: text/plain
 X-NV-OnPremToCloud: ExternallySecured
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: BL6PEPF00020E65:EE_|SA1PR12MB8163:EE_
-X-MS-Office365-Filtering-Correlation-Id: cb68771e-6e9e-4e94-490b-08def203a535
+X-MS-TrafficTypeDiagnostic: BL6PEPF00020E60:EE_|CY3PR12MB9656:EE_
+X-MS-Office365-Filtering-Correlation-Id: d5154110-e9ce-4901-3a3a-08def203a7d3
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|1800799024|82310400026|36860700016|23010399003|376014|7416014|18002099003|22082099003|11063799006|56012099006|3023799007|10067099003;
+	BCL:0;ARA:13230040|1800799024|82310400026|36860700016|23010399003|7416014|376014|6133799003|56012099006|11063799006|10067099003|3023799007|18002099003|22082099003;
 X-Microsoft-Antispam-Message-Info:
-	Ts2MAj/5lJwBu8CVboPEccMHaGI34/gL9+UsPyMqrbyyU0dz+utxonvq2vTS1I9EfLjbqrfoq3RkImA6HQAPgwryNIxAIqhr2s5y9KEoGb43Ac7vCqmsRjE5qSzqmq4j0cqzyQaZ8A+qwmpHGVMxFNVNUZZlyEzgEOeb+GCcq0sUqFpjAk3AvcbGAInVNiyMt8eNVagkSDg4XG+dd5HiDThFjKMYLrF2JESmjIzaLShX/80LVAbUSRMkUVsVxBaG0lN5OEJOCh6AGSm899+xB2flANRCv8O44pbK4fO6050WmUsM7HqxPZpBeiHByByBvKLXEXNzmkWRoWzsWqGRXCIwVXOPX7vrSjgnz4w24C7raHCqqMdAEe0rQ22YjuJ/dQEML0ZzwPSCJzq6oq8j6shCtGsE/X97zaDBjDCQoVBs0v30ZFc24JHBjAJqHC4WEnMatHjemMaf328uBQA5Gjgo7h/aeDBUAHk9ECXw2rro5WaEMWhHOoXi05uAJRab4Mo0xgGe/CfijiKHSiGbMmaSulblOOdpXc5kiyLzw1s5quVRdnXiq2INcAvYFjyak8yKnfI+o7ZGQ9ZmoSn9kwFqVP/nBIw8py4CLkq5Qf8MxptcR2xZ3+ZN70WOdjX/GHkHbqYn4iVZw5PiB+sfojEKETJm/76yNKLEdKf+pmQwKK7FgMXtuwnGRP7mRi1sLhgaxuHui8lSue/QQIXOeA==
+	VAfJdv36InQxyMZ69hbjeFE7fohGzgsFyQPiaSzOrOu4zIdAW2d9rh70FlLkr3QZcM+XIYRYQFHvmVbRWTrfo3T/ZDY/cWKqmfsK1M/RLuPtFUqVo5olcv8we1JXRDKRXwPc0td1ZNtWsnlMZF9ShPWkUP9EiX54KneEYlqYNl9xSzXdyAAnmvMLvzYECHOEGFaeISA5cRQwEPNBQsE3EOwZwkp3RATuOmOK8FVJQ02+Gmy7EqYKu8aGaxB9kEIZlNLVi+etP3U/BoCO6RUTZ13eEUIDo1wVWbyPjYcuvCemy86znZxT27SyeyHi0GMYeqyDOXUUo8qJik/YFkgUxJ1rNExsQ0v7QRQ4LDaLC/WC0MuxZS3uXDBUUT+xGMgmPcabaE0Rg3lXNtaRm7sYfAnPxx0Akxvr0pYIYthfCVXc2Bv22mAR6fkSl7GWafhJ/AvaDu+eOyPCZDsrDu4GVg+nxI+5kTlkpQRxEW0EaPqfBM0CEIdNKoXv3BxLTuFH8HQ8cbVr3zmn18oGFVloYg13JAzJiGoA7B+S7CjtaNkXwB4IvDm7dRTUie9hVTXRLcj9GDL0cXp5O28FjaH+goI1B7qbQeLCVfjNOJnTsWAHKhw/X/PPAsog7RxE3QFvgSL9jTdsp3ID0aWG5BPp8/L+mYm8qZLYZ+pDtNoIjzgOiwWyLDEJp+8K49u6uc/4jPRfh06KoM3UI+pJA4nkKw==
 X-Forefront-Antispam-Report:
-	CIP:216.228.118.233;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc7edge2.nvidia.com;CAT:NONE;SFS:(13230040)(1800799024)(82310400026)(36860700016)(23010399003)(376014)(7416014)(18002099003)(22082099003)(11063799006)(56012099006)(3023799007)(10067099003);DIR:OUT;SFP:1101;
+	CIP:216.228.118.233;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc7edge2.nvidia.com;CAT:NONE;SFS:(13230040)(1800799024)(82310400026)(36860700016)(23010399003)(7416014)(376014)(6133799003)(56012099006)(11063799006)(10067099003)(3023799007)(18002099003)(22082099003);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	ED2hA1gh8TiNrJ7ThARuSIKyIssl3AsPYY9U2DyguQMd2tVg6HOKdZu6gM8fKk0wIMsZngBU2p/sCDErQuUueGgUn8fp1++jWt2E8E1QPZWlORunqwIe7fjv/LbJu6B6mUZ7f7Q4t3LlfcIiEPXBWvCtJkIuntmaTmBpjO7vK3zxbO51fORYCcZB7Cj83eRVx38JG/lmYthcDXXA5a9KMI61iQArgHJm2ivx09DKZk9yqr9X5DAb9C1w7Y7r+MQGI22Qe5mlHryDeFjFuJCcM8ve+XR7SmUE1EXwG//vqptYhZ0PsrcgW+o9kwGPRVxtpd6wChNTm+Hy+C8XFcSRCvzR5kao4smPKiN4gw1gWwwd+aOxZLseDxekVfNWqgokmiuL0sMNJh7Fa/ECqh0SnO2fFUb29RBmSq+NEEFkAmUmehYGc9PGFLek+hPZsY4S
+	Je7PNuQ3oT5E8keSIjU38mIqAz9VvyaBs6hZVx3hwBOGKAo4AtTk5E6hAN9h/cWi/yJQXHpDa6mxjvQObYK7RxGtfr9QCg15Q3JKOTUAitPAnVnoJZe9k6M+idgHeUe8suZfgRekDZcna/40MErWVt53NeOjwPlBxxCbuht/00OuZzhONA1e6xwNt5xRB3EMwOYW7Sfn7xXSZ+P/IP/OeBAXU9skSbD6BolEclH6BvTepCOfwuzOZJ8DaXbFOzHAm1pm65QtH+03gln+UlfLXvcACF1TlyVsziCHc98cvp+otNtq9mNzpsqCPUhn0tfQfZc5U8IjFi1/25JxnfGsaNDsftXlT2wpmxZj4U2eGNpnMRl5qv6NRsrO3OFwbRa08Vz6sq0dI+OcRissw6XBhaxNvcQJVKycdPoLeAZyj6TGkwJ7/Bj1p7FWDJCMortm
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 04 Aug 2026 08:37:40.1844
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 04 Aug 2026 08:37:44.5465
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: cb68771e-6e9e-4e94-490b-08def203a535
+X-MS-Exchange-CrossTenant-Network-Message-Id: d5154110-e9ce-4901-3a3a-08def203a7d3
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.118.233];Helo=[mail.nvidia.com]
 X-MS-Exchange-CrossTenant-AuthSource:
-	BL6PEPF00020E65.namprd04.prod.outlook.com
+	BL6PEPF00020E60.namprd04.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA1PR12MB8163
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CY3PR12MB9656
 
 From: Cosmin Ratiu <cratiu@nvidia.com>
 
-Move PSP RX marker from ft_metadata (set via modify_hdr action) to
-flow_tag (set via flow_context). This frees ft_metadata for storing
-SPI for future decapsulated PSP packets.
+IPsec used BIT(31) in cqe.ft_metadata as a marker for ingress
+IPsec-decrypted packets. This will conflict with PSP which stores SPI
+in ft_metadata - an SPI with bit 31 set would falsely trigger
+mlx5_ipsec_is_rx_flow().
 
-All mlx5e accel protos have to move to avoid misinterpreting packets
-with high bits of ft_metadata as IPsec or Macsec. This patch is the
-first step, defining a new header, bit layout and macros.
+Define a new marker for IPsec in flow_tag and use it in steering rules.
+The obj_id stays in ft_metadata bits[23:0].
+Remove the unused MARKER and SYNDROM (sic) macros.
+
+This is only done for IPsec NIC RX flows. The esw path uses a different
+mechanism and is unaffected: RX handling in mlx5e_rep_tc_receive() makes
+use of a few bits in ft_metadata to detect and hand off IPsec packets to
+mlx5e_ipsec_offload_handle_rx_skb().
+
+An additional complication is that mlx5e_cqe_regb_chain() used the high
+order bits of ft_metadata to differentiate between TC chains and
+protocol markers. With the IPSec marker moving to flow_tag, this would
+falsely trigger mlx5e_cqe_regb_chain() to believe the chain is set, when
+in fact, ft_metadata is something completely different. Solve that by
+requiring that the new flow_tag proto is NONE, since only those packets
+can carry a chain id in ft_metadata.
 
 Signed-off-by: Cosmin Ratiu <cratiu@nvidia.com>
 Reviewed-by: Dragos Tatulea <dtatulea@nvidia.com>
+Reviewed-by: Carolina Jubran <cjubran@nvidia.com>
 Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
 ---
- .../mellanox/mlx5/core/en_accel/flow_tag.h    | 35 +++++++++++++++++++
- .../mellanox/mlx5/core/en_accel/psp.c         | 34 ++++--------------
- .../mellanox/mlx5/core/en_accel/psp_rxtx.h    | 10 +++---
- 3 files changed, 47 insertions(+), 32 deletions(-)
- create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/en_accel/flow_tag.h
+ .../net/ethernet/mellanox/mlx5/core/en_accel/flow_tag.h  | 4 +++-
+ .../net/ethernet/mellanox/mlx5/core/en_accel/ipsec_fs.c  | 9 +++++++--
+ .../ethernet/mellanox/mlx5/core/en_accel/ipsec_rxtx.h    | 9 +++++----
+ drivers/net/ethernet/mellanox/mlx5/core/en_tc.h          | 7 +++++--
+ 4 files changed, 20 insertions(+), 9 deletions(-)
 
 diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/flow_tag.h b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/flow_tag.h
-new file mode 100644
-index 000000000000..67f048ff7afe
---- /dev/null
+index 67f048ff7afe..8a02e8e9713d 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/flow_tag.h
 +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/flow_tag.h
-@@ -0,0 +1,35 @@
-+/* SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB */
-+/* Copyright (c) 2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved. */
-+
-+#ifndef __MLX5E_FLOW_TAG_H__
-+#define __MLX5E_FLOW_TAG_H__
-+
-+#include <linux/bits.h>
-+#include <linux/kernel.h>
-+#include <linux/types.h>
-+#include <linux/mlx5/device.h>
-+
-+/* Unified accel flow_tag layout in CQE sop_drop_qpn [23:0]:
-+ *
-+ *   [23:21] = protocol ID (3 bits):
-+ *              0 = none (default)
-+ *              3 = PSP (HW decrypted, PSP header present)
-+ *              1,2,4-7 = reserved
-+ *   [20:16] = reserved
-+ *   [15:0]  = used by other subsystems (e.g. TC).
-+ */
-+#define MLX5E_ACCEL_FLOW_TAG_PROTO_MASK		GENMASK(23, 21)
-+#define MLX5E_ACCEL_FLOW_TAG_PROTO_NONE		(0 << 21)
-+#define MLX5E_ACCEL_FLOW_TAG_PROTO_PSP		(3 << 21)
-+
-+static inline u32 mlx5e_accel_flow_tag(struct mlx5_cqe64 *cqe)
-+{
-+	return be32_to_cpu(cqe->sop_drop_qpn) & 0xFFFFFF;
-+}
-+
-+static inline u32 mlx5e_accel_flow_tag_proto(struct mlx5_cqe64 *cqe)
-+{
-+	return mlx5e_accel_flow_tag(cqe) & MLX5E_ACCEL_FLOW_TAG_PROTO_MASK;
-+}
-+
-+#endif /* __MLX5E_FLOW_TAG_H__ */
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/psp.c b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/psp.c
-index 6cc4b9d54f6e..ca5bb60f6d16 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/psp.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/psp.c
-@@ -8,6 +8,7 @@
- #include "lib/crypto.h"
+@@ -13,13 +13,15 @@
+  *
+  *   [23:21] = protocol ID (3 bits):
+  *              0 = none (default)
++ *              1 = IPsec
+  *              3 = PSP (HW decrypted, PSP header present)
+- *              1,2,4-7 = reserved
++ *              2,4-7 = reserved
+  *   [20:16] = reserved
+  *   [15:0]  = used by other subsystems (e.g. TC).
+  */
+ #define MLX5E_ACCEL_FLOW_TAG_PROTO_MASK		GENMASK(23, 21)
+ #define MLX5E_ACCEL_FLOW_TAG_PROTO_NONE		(0 << 21)
++#define MLX5E_ACCEL_FLOW_TAG_PROTO_IPSEC	(1 << 21)
+ #define MLX5E_ACCEL_FLOW_TAG_PROTO_PSP		(3 << 21)
+ 
+ static inline u32 mlx5e_accel_flow_tag(struct mlx5_cqe64 *cqe)
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_fs.c b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_fs.c
+index f236672d3a2a..081cb2f31be0 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_fs.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_fs.c
+@@ -5,6 +5,7 @@
+ #include "en.h"
+ #include "en/fs.h"
  #include "en_accel/en_accel.h"
- #include "en_accel/psp.h"
-+#include "en_accel/psp_rxtx.h"
++#include "en_accel/flow_tag.h"
+ #include "eswitch.h"
+ #include "ipsec.h"
  #include "fs_core.h"
+@@ -190,7 +191,7 @@ static void ipsec_rx_rule_add_match_obj(struct mlx5e_ipsec_sa_entry *sa_entry,
+ 				 misc_parameters_2.metadata_reg_c_2);
+ 		MLX5_SET(fte_match_param, spec->match_value,
+ 			 misc_parameters_2.metadata_reg_c_2,
+-			 sa_entry->ipsec_obj_id | BIT(31));
++			 sa_entry->ipsec_obj_id);
  
- enum accel_fs_psp_type {
-@@ -42,7 +43,6 @@ struct mlx5e_psp_rx_decrypt_table {
- 	struct mlx5_flow_table *ft;
- 	struct mlx5_flow_group *miss_group;
- 	struct mlx5_flow_handle *miss_rule;
--	struct mlx5_modify_hdr *rx_modify_hdr;
- 	struct mlx5_flow_handle *rule;
- };
- 
-@@ -408,10 +408,6 @@ accel_psp_fs_rx_decrypt_ft_destroy(struct mlx5e_psp_fs *fs,
- 				   struct mlx5e_psp_rx_decrypt_table *decrypt)
- {
- 	accel_psp_fs_del_flow_rule(&decrypt->rule);
--	if (decrypt->rx_modify_hdr) {
--		mlx5_modify_header_dealloc(fs->mdev, decrypt->rx_modify_hdr);
--		decrypt->rx_modify_hdr = NULL;
--	}
- 	accel_psp_fs_del_flow_rule(&decrypt->miss_rule);
- 	accel_psp_fs_destroy_flow_group(&decrypt->miss_group);
- 	accel_psp_fs_destroy_ft(&decrypt->ft);
-@@ -431,8 +427,6 @@ accel_psp_fs_rx_decrypt_ft_create(struct mlx5e_psp_fs *fs,
- 				  struct mlx5e_psp_rx_decrypt_table *decrypt,
- 				  struct mlx5_flow_destination *default_dest)
- {
--	u8 action[MLX5_UN_SZ_BYTES(set_add_copy_action_in_auto)] = {};
--	struct mlx5_modify_hdr *modify_hdr = NULL;
- 	struct mlx5_flow_table_attr ft_attr = {};
- 	struct mlx5_flow_destination dest = {};
- 	struct mlx5_core_dev *mdev = fs->mdev;
-@@ -482,28 +476,14 @@ accel_psp_fs_rx_decrypt_ft_create(struct mlx5e_psp_fs *fs,
- 
- 	/* Add PSP RX decrypt rule */
- 	setup_fte_udp_psp(spec, PSP_DEFAULT_UDP_PORT);
--	flow_act.crypto.type = MLX5_FLOW_CONTEXT_ENCRYPT_DECRYPT_TYPE_PSP;
--	/* Set bit[31, 30] PSP marker */
--#define MLX5E_PSP_MARKER_BIT (BIT(30) | BIT(31))
--	MLX5_SET(set_action_in, action, action_type, MLX5_ACTION_TYPE_SET);
--	MLX5_SET(set_action_in, action, field, MLX5_ACTION_IN_FIELD_METADATA_REG_B);
--	MLX5_SET(set_action_in, action, data, MLX5E_PSP_MARKER_BIT);
--	MLX5_SET(set_action_in, action, offset, 0);
--	MLX5_SET(set_action_in, action, length, 32);
--
--	modify_hdr = mlx5_modify_header_alloc(mdev, MLX5_FLOW_NAMESPACE_KERNEL, 1, action);
--	if (IS_ERR(modify_hdr)) {
--		err = PTR_ERR(modify_hdr);
--		mlx5_core_err(mdev, "fail to alloc psp set modify_header_id err=%d\n", err);
--		modify_hdr = NULL;
--		goto out_err;
--	}
--	decrypt->rx_modify_hdr = modify_hdr;
- 
-+	/* Set PSP marker via flow_tag */
-+	spec->flow_context.flags = FLOW_CONTEXT_HAS_TAG;
-+	spec->flow_context.flow_tag = MLX5E_ACCEL_FLOW_TAG_PROTO_PSP;
-+
-+	flow_act.crypto.type = MLX5_FLOW_CONTEXT_ENCRYPT_DECRYPT_TYPE_PSP;
- 	flow_act.action = MLX5_FLOW_CONTEXT_ACTION_FWD_DEST |
--			  MLX5_FLOW_CONTEXT_ACTION_CRYPTO_DECRYPT |
--			  MLX5_FLOW_CONTEXT_ACTION_MOD_HDR;
--	flow_act.modify_hdr = modify_hdr;
-+			  MLX5_FLOW_CONTEXT_ACTION_CRYPTO_DECRYPT;
- 	dest.type = MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE;
- 	dest.ft = fs->check.ft;
- 	rule = mlx5_add_flow_rules(decrypt->ft, spec, &flow_act, &dest, 1);
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/psp_rxtx.h b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/psp_rxtx.h
-index 2b080c39cc37..a26faf7cfc27 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/psp_rxtx.h
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/psp_rxtx.h
-@@ -9,10 +9,7 @@
- #include <net/psp.h>
+ 		spec->match_criteria_enable |= MLX5_MATCH_MISC_PARAMETERS_2;
+ 	}
+@@ -2066,7 +2067,7 @@ static int rx_add_rule(struct mlx5e_ipsec_sa_entry *sa_entry)
+ 	if (!attrs->drop) {
+ 		if (rx != ipsec->rx_esw)
+ 			err = setup_modify_header(ipsec, attrs->type,
+-						  sa_entry->ipsec_obj_id | BIT(31),
++						  sa_entry->ipsec_obj_id,
+ 						  XFRM_DEV_OFFLOAD_IN, &flow_act);
+ 		else
+ 			err = mlx5_esw_ipsec_rx_setup_modify_header(sa_entry, &flow_act);
+@@ -2099,6 +2100,10 @@ static int rx_add_rule(struct mlx5e_ipsec_sa_entry *sa_entry)
+ 		flow_act.action |= MLX5_FLOW_CONTEXT_ACTION_DROP;
+ 	else
+ 		flow_act.action |= MLX5_FLOW_CONTEXT_ACTION_FWD_DEST;
++	if (!attrs->drop && rx != ipsec->rx_esw) {
++		spec->flow_context.flags |= FLOW_CONTEXT_HAS_TAG;
++		spec->flow_context.flow_tag = MLX5E_ACCEL_FLOW_TAG_PROTO_IPSEC;
++	}
+ 	dest[0].type = MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE;
+ 	dest[0].ft = rx->ft.status;
+ 	dest[1].type = MLX5_FLOW_DESTINATION_TYPE_COUNTER;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_rxtx.h b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_rxtx.h
+index 45b0d19e735c..6dea5978a40e 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_rxtx.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_rxtx.h
+@@ -38,10 +38,9 @@
+ #include <net/xfrm.h>
  #include "en.h"
  #include "en/txrx.h"
--
--/* Bit30: PSP marker, Bit22-0: PSP obj id */
--#define MLX5_PSP_METADATA_MARKER(metadata)  ((((metadata) >> 30) & 0x3) == 0x3)
--#define MLX5_PSP_METADATA_HANDLE(metadata)  ((metadata) & GENMASK(22, 0))
 +#include "en_accel/flow_tag.h"
  
- struct mlx5e_accel_tx_psp_state {
- 	u32 tailen;
-@@ -82,7 +79,10 @@ static inline unsigned int mlx5e_psp_tx_ids_len(struct mlx5e_accel_tx_psp_state
+-/* Bit31: IPsec marker, Bit30: reserved, Bit29-24: IPsec syndrome, Bit23-0: IPsec obj id */
+-#define MLX5_IPSEC_METADATA_MARKER(metadata)  ((((metadata) >> 30) & 0x3) == 0x2)
+-#define MLX5_IPSEC_METADATA_SYNDROM(metadata) (((metadata) >> 24) & GENMASK(5, 0))
++/* IPsec obj id in ft_metadata bits[23:0] */
+ #define MLX5_IPSEC_METADATA_HANDLE(metadata)  ((metadata) & GENMASK(23, 0))
  
- static inline bool mlx5e_psp_is_rx_flow(struct mlx5_cqe64 *cqe)
+ struct mlx5e_accel_tx_ipsec_state {
+@@ -74,7 +73,9 @@ static inline unsigned int mlx5e_ipsec_tx_ids_len(struct mlx5e_accel_tx_ipsec_st
+ 
+ static inline bool mlx5_ipsec_is_rx_flow(struct mlx5_cqe64 *cqe)
  {
--	return MLX5_PSP_METADATA_MARKER(be32_to_cpu(cqe->ft_metadata));
+-	return MLX5_IPSEC_METADATA_MARKER(be32_to_cpu(cqe->ft_metadata));
 +	u32 proto = mlx5e_accel_flow_tag_proto(cqe);
 +
-+	return proto == MLX5E_ACCEL_FLOW_TAG_PROTO_PSP;
-+
++	return proto == MLX5E_ACCEL_FLOW_TAG_PROTO_IPSEC;
  }
  
- bool mlx5e_psp_offload_handle_rx_skb(struct net_device *netdev, struct sk_buff *skb,
+ static inline bool mlx5e_ipsec_eseg_meta(struct mlx5_wqe_eth_seg *eseg)
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.h b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.h
+index e1b8cb78369f..53b6043e33d2 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.h
+@@ -36,6 +36,7 @@
+ #include <net/pkt_cls.h>
+ #include "en.h"
+ #include "eswitch.h"
++#include "en_accel/flow_tag.h"
+ #include "en/tc_ct.h"
+ #include "en/tc_tun.h"
+ #include "en/tc/int_port.h"
+@@ -370,11 +371,13 @@ struct mlx5e_tc_table *mlx5e_tc_table_alloc(void);
+ void mlx5e_tc_table_free(struct mlx5e_tc_table *tc);
+ static inline bool mlx5e_cqe_regb_chain(struct mlx5_cqe64 *cqe)
+ {
+-	u32 chain, reg_b;
++	u32 flow_tag, reg_b, chain;
+ 
++	flow_tag = mlx5e_accel_flow_tag_proto(cqe);
+ 	reg_b = be32_to_cpu(cqe->ft_metadata);
+ 
+-	if (reg_b >> (MLX5E_TC_TABLE_CHAIN_TAG_BITS + ESW_ZONE_ID_BITS))
++	if (flow_tag != MLX5E_ACCEL_FLOW_TAG_PROTO_NONE ||
++	    (reg_b >> (MLX5E_TC_TABLE_CHAIN_TAG_BITS + ESW_ZONE_ID_BITS)))
+ 		return false;
+ 
+ 	chain = reg_b & MLX5E_TC_TABLE_CHAIN_TAG_MASK;
 -- 
 2.44.0
 
