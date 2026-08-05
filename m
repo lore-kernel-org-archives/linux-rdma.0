@@ -1,41 +1,40 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6FE25389114
-	for <linux-rdma@vger.kernel.org>; Wed,  5 Aug 2026 14:37:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24C1F352008;
+	Wed,  5 Aug 2026 14:44:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785940624; cv=none; b=hLazJ7sYTEGXWqmxl22pklsdEbBmqatTH7suhOqGsYGG+KtB9BBE6fT5g4eU7z8lurlhE4foyffoInFSjo0LzrJ3Seo1cnt3cnZa8m54s9iB+TFQ7//pR8ZT8KErjgenW4lSW9XJDL6p0Qs3UKz8Aa8MHYWl3PlL2ZqLOd72DN4=
+	t=1785941083; cv=none; b=uGF1BDYT/qakdC1GfoDCrIVhnlWR09ogT1v5oRKcksmUuYktrY1W5aV4/mncRtFWsxE6a/eiFzoUcvQB6GBBtTyzayeopdRB9KpQD35qN7Yy2UciXvD1rd5chtDbB9w1Xw2P6S45fCRcXwdU/31PSF9fXtrDyAX1rvrDTi0u+wA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785940624; c=relaxed/simple;
-	bh=BD+8KnA5BZyOtahL2bpnQME1e0z7Lkyr4d+qHN4wp04=;
+	s=arc-20240116; t=1785941083; c=relaxed/simple;
+	bh=jbBcDu4Ar2bW0EIMlS6qARnXHzrozmefu0LnrF+Ogg4=;
 	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
-	 MIME-Version:Content-Type; b=AqLgUFL2X54xU6N7sqbriI54BfrPJUY9sat1WMzJCU9ybeJz50IxfTl8Y9AZTDuJQ0aoyYqBSMW5TaPj97qhofZ3iYwA8rF3EbcXkxt5ONaTJaME86oviHRyA67oFHq6YQCN3Ts8tjmIvPSOV6nfGuf2dJajZTKDG4aUFj+60bc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=YEKHWABr; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=GmTB/i4XJvNp4UeBAEtJioxd2cGnM0hHrOUOgLEPHlBkgABPBNQlDfRoTl330s3sGCzo9rcZToKxC5zbp8wpUrWci+4xR3eAHyv5KUYev6Ev3yRBuSsshCp6Xgj3zE++2g3hKV13oJf78BTloJ0GbV2NP25RL7sx6AtZFYViqHo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=nWfP30tn; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="YEKHWABr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 122D11F00A3F;
-	Wed,  5 Aug 2026 14:36:55 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="nWfP30tn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6C4E21F000E9;
+	Wed,  5 Aug 2026 14:44:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1785940616;
-	bh=reCtzq/MsuQ76L79y0eW72jp+YuH4HeclNhKgWE/kgQ=;
+	s=k20260515; t=1785941082;
+	bh=+HrhtE/rRNYewk6OV4ENi8ayLsALJwKlM7/v0cfQFpU=;
 	h=From:To:Cc:In-Reply-To:References:Subject:Date;
-	b=YEKHWABrLXSPRjDmy9nsAXBeh+0tbogVI0WnWSvgHCERofoMTNz0KPyuQljvLNxy4
-	 3pwNlT+DgQVZSEbYDIUIxMbOOnRyTQ6GsO0ADwA/rdDl7M6vsP8HgkUJ+jQVJe8Hvy
-	 yLow860Ed5mx2Phm7rNVIolvoMz+edqYnBQANzn8BRmg543Ft7mAyQt0asUuhBS3Bm
-	 WsC7usw4T7TD+2vvSkH/BaZ2bN7cpSwDG9MO5jLepoJ05nZinrxe5PLDYZ+Uf2ZVXJ
-	 rlPF1orpy3WEoIEmf+BL+4zNz7UXSjHja6S1A+Op12XvZxoUv9GrKWEv0jmUQZIFYf
-	 R2coehLyh3dIA==
+	b=nWfP30tnbkjsTC1h6+LaXkmy0sEYuF2el2fbw3bWbdRAZ+H7axbRkPrRlX9w3DOmV
+	 EseGoCXjnLx50/iJVn9584QsTUtcOl3uFH0igQjDfbGYgOYwarOlWZRly6doWc+HA+
+	 Icmpapx3dM3XNK/hMoQpMpv/BpEukofYvuWAKxRaoa5HS81JbidrsiXeofbJykZlx2
+	 mIg3Jk2K/GVzX0EjBdqZAYDF9NIZl18t8vnrNsWfK0kl2K0IiQ21jE261u4xFdKILd
+	 R9Nyx692W+g5cVIwp3T4Y8/6cF7g6V7vMRodxdhR8DUQQWyZUql3HLw8WNrenIiqrW
+	 oiZZc3VNAmfHA==
 From: Leon Romanovsky <leon@kernel.org>
-To: tatyana.e.nikolova@intel.com, jgg@ziepe.ca, 
- Jacob Moroni <jmoroni@google.com>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20260728141501.1425737-1-jmoroni@google.com>
-References: <20260728141501.1425737-1-jmoroni@google.com>
-Subject: Re: [PATCH rdma-next 1/2] RDMA/core: Prevent rereg_mr for dmabuf
- umems
-Message-Id: <178594061374.4130143.14955655427689493937.b4-ty@kernel.org>
-Date: Wed, 05 Aug 2026 10:36:53 -0400
+To: kotaranov@microsoft.com, longli@microsoft.com, jgg@ziepe.ca, 
+ Konstantin Taranov <kotaranov@linux.microsoft.com>
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <20260723115955.1859519-1-kotaranov@linux.microsoft.com>
+References: <20260723115955.1859519-1-kotaranov@linux.microsoft.com>
+Subject: Re: [PATCH rdma-next v5 0/2] RDMA/mana_ib: UC QP support
+Message-Id: <178594107921.4133396.13917915555927637465.b4-ty@kernel.org>
+Date: Wed, 05 Aug 2026 10:44:39 -0400
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -47,26 +46,27 @@ Content-Transfer-Encoding: 7bit
 X-Mailer: b4 0.15-dev-18f8f
 
 
-On Tue, 28 Jul 2026 14:15:00 +0000, Jacob Moroni wrote:
-> The rereg_mr method has always been explicitly blocked in
-> rdma-core for dmabuf MRs anyway, so add a check to the
-> ib_umem_check_rereg helper so that each driver doesn't need
-> to handle it.
+On Thu, 23 Jul 2026 04:59:53 -0700, Konstantin Taranov wrote:
+> From: Konstantin Taranov <kotaranov@microsoft.com>
 > 
-> Depending on how the driver handled rereg_mr, this also
-> has the benefit of preventing rereg_mr from being used
-> to add the IB_ACCESS_MW_BIND flag to a dmabuf MR. This
-> flag is not allowed during registration, so it seems
-> sensible to prevent it from being added back with rereg_mr.
+> Implement UC QP creation in the RNIC HW for user API.
+> 
+> v5: revised 1/2 to incorporate the drain fix from Leon
+> v4: renamed rc_qp destroy helper to rnic_qp. Use the latest robust udata API.
+> Unified QP lookup table to simplify code for inserting UC QPs.
+> That is why the changes were split into 2 patches. The first patch is about
+> the changes related to qp lookup/store.
+> v3: use new udata helpers
+> v2: removed udata check and removed enum from mana-abi.h
 > 
 > [...]
 
 Applied, thanks!
 
-[1/2] RDMA/core: Prevent rereg_mr for dmabuf umems
-      https://git.kernel.org/rdma/rdma/c/09d09e5d79f317
-[2/2] RDMA/irdma: Remove dmabuf checks in rereg_mr
-      https://git.kernel.org/rdma/rdma/c/d24ce259185e76
+[1/2] RDMA/mana_ib: unify QP lookup table
+      https://git.kernel.org/rdma/rdma/c/a489ab44ab73a6
+[2/2] RDMA/mana_ib: UC QP support for UAPI
+      https://git.kernel.org/rdma/rdma/c/6aad80a1d4e70c
 
 Best regards,
 -- 
