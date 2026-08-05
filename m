@@ -1,104 +1,576 @@
-Received: from mail-qv1-f42.google.com (mail-qv1-f42.google.com [209.85.219.42])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 34C773CB8F1
-	for <linux-rdma@vger.kernel.org>; Wed,  5 Aug 2026 18:37:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.42
+Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id A5DAB3D6478;
+	Wed,  5 Aug 2026 18:55:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785955026; cv=none; b=k1Zx/ZHNwVVtltY7Qqco7TVRmpP3OCOEDWcpbcN1fIDpnAzQJNq1OkS26UgbmjHfzN1LkiBo4MZ6iR5hJ40pyt52ZSIX3cH5XESYn4p3woNLpvR3UfookWgbXP57fDK4iX9rLTIIArFDhMzYOVL5nWVURrIyCIqu6cB0ixWOtdQ=
+	t=1785956128; cv=none; b=jRMTUFgzbp0cdJucMEK1ogr6XtHLWAa7R9ypb0wNi50rkIMNJq3BPObunLSs0eRpqcncTKqIopsQZh4em26J6KkWm0UuvXjque91gWkYDuL7ZIIepbR1OiJO487hAVXiuGIRcXH9fFIr004aV6UYNKt+fgstdxCmtJEjbRvdoXA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785955026; c=relaxed/simple;
-	bh=Tf9syscAZW5PE8qDFT2Yh4y+Oi/xeH7ih1X/P3PhvsY=;
-	h=From:Date:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=PKRCLFE6XuUTTm+PiXg568zfTHwTFC643IvEANCAocWE5YDFKXtjxry2SpGIWdC+pj+9W3YGx5yKr4yXRdPfRPWNvMhEuICA/Ww3yYBZMOq/BSb4gjUP/Jsj0rGsZYPiDmMLZ5Pltfs8cKKdWvBrG05jvla1evjgjkEkXuzpfpE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca; spf=pass smtp.mailfrom=ziepe.ca; dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b=jhNQd57d; arc=none smtp.client-ip=209.85.219.42
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ziepe.ca
+	s=arc-20240116; t=1785956128; c=relaxed/simple;
+	bh=MywNjJhLRsyTYYIoeioYAgPCqNDrHPX2dCd9msdLShA=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=YvMdI9+WXbLD+N+Eg7XC/beAmVkDddjxO8XQW+FnUx8Hgxl5sTYGylW4RXnevLTjyIzkYxOvWZ9ZK3nUya0KlBFT5FJF3UpODRGHTedn8A21S9NOGyM7P6V7xtV95YLTbew816W8kO7MoUe9TDQ1ysBcVYEbAH1ns9mDWRvgX8o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=G0KCqlDL; arc=none smtp.client-ip=13.77.154.182
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="jhNQd57d"
-Received: by mail-qv1-f42.google.com with SMTP id 6a1803df08f44-9061a795d76so13475986d6.3
-        for <linux-rdma@vger.kernel.org>; Wed, 05 Aug 2026 11:37:04 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google; t=1785955024; x=1786559824; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:date:from:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=Tf9syscAZW5PE8qDFT2Yh4y+Oi/xeH7ih1X/P3PhvsY=;
-        b=jhNQd57d/5RFTMm/Uy5rP7pgx/NBI9hYroqjEZoK19E6AEzW57ciTbO5EiR78dzu4+
-         lz8r/LlG+IIoVcIPiFPRu9jRl8lK31e7EAMs4nqrvkdFxP/26x3ST8kEldHGuYzAzLpN
-         ZHuQgq633y3Y/NICC5s3XWYQwQEfuwGE44+76X9OXwU1Eljwg3wi1/nwV1rAmovQNjtz
-         Pyj/CxyD5gUAgactg9sXYlMDe3G6+zo9YjDxUr2sCMHTObxDpNQkGx7+5R3WDuwWlRAc
-         4ter0qS6r+znnJuy0ethP9gUPinBfq5fBYxddMvFwuSosm0jSbPOuYR2vkDOevPaqz5j
-         0YJA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1785955024; x=1786559824;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:date:from:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=Tf9syscAZW5PE8qDFT2Yh4y+Oi/xeH7ih1X/P3PhvsY=;
-        b=opw4sg7QYv9kjfNDVEYYVeoH+/61irajdO5m/2cF8rZyq+yf9007TZojU94UN/73qY
-         50UoFh7N42QPYJDcLgFVQ5/60zADCHVwc2rLyEDXiJPXsaTSTIuj7EdswMDvm7Jidypt
-         zmah/aEFp+6z/wTPc1j2Eqqickd8fYjfYbtDXICZ97xFzOjDAcHBBEOFH1kZnsqwYnYI
-         jcobOkNB7PcqkN3DT3a0JfYAyglSiS1gEefY4S6JkiAvyY3la1SmzBW4fh8LjGy5WZ7r
-         bfS1UgMKwAi1IYWDPqCHDORKCm5lklZ64T67gOx5GwExYnwKyv/HU0HB4xkOytjygLkl
-         CGdw==
-X-Forwarded-Encrypted: i=1; AHgh+RpC+MAN2KBL6+TloYrvx+OyI4Ko+vhKMH0Zrm7vpYrHSUBh0kKEaQLC2mgqIcOGUne9KEGFKLuKczxZ@vger.kernel.org
-X-Gm-Message-State: AOJu0YzLjzEV9futKB7/Ewkt4DO728ZJM+jeQcgjVNX0afNE4cvdZGd/
-	ooahkr8im4Onl+FPAjFoHO+USCUXYHbWGJwq0X/eN0sfyswYim96+TIm9S2KOGjxUcY=
-X-Gm-Gg: AR+sD113R9UJJgdq/rQQNytJero86WBeDaPkowtDn+e9GF2DvezlEx5nirUaqfpbcTd
-	3JsYBVK9Eop9XHld9xuS63gph+9AnUB3jcdGmyDDRuNqU0bUZgFQajxj/HhNPhFXbncpELLy1FM
-	xX4e+CwmfAFqU0oJ/srxK6HKQtcwnhBiJn5q5l/beWJ062wZqkEdGz/zEi/epZWt2FqW96HvQJa
-	e8U8Kik311rYSd9K2Vq7zY3Uq9BzOGiE7LoTc39H9xvJLe7hygM6NSUScIfWjsDFJ3naND7VxEp
-	dzr3hOMMZXyO5rlYzX010/2XA9zm4l4IAjmtXusg5//OP7UnCBFtbDEi8fQMhbLO4rTnl7ZpRu+
-	fIh+LCNQF8deiKg6pw3rkmEZ6xZkJ1a2QieWQeXK3gsT9cwXQiN2HWMwqfBd9jDX1VW/y5kurJ0
-	xW+OUOLJAdOqghCmf3I/b+cRqAwtPH+51El6suHA==
-X-Received: by 2002:a05:6214:f08:b0:8f0:a849:f392 with SMTP id 6a1803df08f44-90881203d0cmr103220766d6.14.1785955024046;
-        Wed, 05 Aug 2026 11:37:04 -0700 (PDT)
-Received: from ziepe.ca ([142.166.156.215])
-        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-9087ff9d807sm31895686d6.2.2026.08.05.11.37.03
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 05 Aug 2026 11:37:03 -0700 (PDT)
-From: jgg@ziepe.ca
-X-Google-Original-From: Jason Gunthorpe <jgg@nvidia.com>, David Matlack <dmatlack@google.com>
-Received: from jgg by wakko with local (Exim 4.97)
-	(envelope-from <jgg@ziepe.ca>)
-	id 1wrgUA-00000000Iyd-2zvD;
-	Wed, 05 Aug 2026 15:37:02 -0300
-Date: Wed, 5 Aug 2026 15:37:02 -0300
-To: Alex Williamson <alex@shazbot.org>,
-	Justin Stitt <justinstitt@google.com>, kvm@vger.kernel.org,
-	Leon Romanovsky <leon@kernel.org>, linux-kselftest@vger.kernel.org,
-	linux-rdma@vger.kernel.org, llvm@lists.linux.dev,
-	Mark Bloch <mbloch@nvidia.com>, Bill Wendling <morbo@google.com>,
-	Nathan Chancellor <nathan@kernel.org>,
-	Nick Desaulniers <ndesaulniers@google.com>, netdev@vger.kernel.org,
-	Saeed Mahameed <saeedm@nvidia.com>, Shuah Khan <shuah@kernel.org>,
-	Tariq Toukan <tariqt@nvidia.com>
-Cc: patches@lists.linux.dev
-Subject: Re: [PATCH v3 00/11] mlx5 support for VFIO self test
-Message-ID: <20260805183702.GA72896@nvidia.com>
-References: <0-v3-76f117ad04f1+28a90-mlx5st_jgg@nvidia.com>
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="G0KCqlDL"
+Received: by linux.microsoft.com (Postfix, from userid 1006)
+	id 0F43720B716A; Wed,  5 Aug 2026 11:55:03 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 0F43720B716A
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
+	s=default; t=1785956103;
+	bh=ggaXuOQEhgf908uoCGEiOrAeqGDzzeB1j10NYhFNiSI=;
+	h=From:To:Cc:Subject:Date:From;
+	b=G0KCqlDLHCd+JOpxMn+b98sy4fNHUBb//+aQ84qTYAM1ADs+gFhp/vfZJqzKc93Nx
+	 Gau6oH38BMQp4mAqQaALzXGan41ERaiWx5hJhljHQredjHm/ilnKsnb+1JT5jqt4HP
+	 evknnEFxWWAjo9SVzYalhMu9Vy5iecPMtuzbedzE=
+From: Haiyang Zhang <haiyangz@linux.microsoft.com>
+To: linux-hyperv@vger.kernel.org,
+	netdev@vger.kernel.org,
+	"K. Y. Srinivasan" <kys@microsoft.com>,
+	Haiyang Zhang <haiyangz@microsoft.com>,
+	Wei Liu <wei.liu@kernel.org>,
+	Dexuan Cui <decui@microsoft.com>,
+	Long Li <longli@microsoft.com>,
+	Andrew Lunn <andrew+netdev@lunn.ch>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>,
+	Konstantin Taranov <kotaranov@microsoft.com>,
+	Simon Horman <horms@kernel.org>,
+	Erni Sri Satya Vennela <ernis@linux.microsoft.com>,
+	Dipayaan Roy <dipayanroy@linux.microsoft.com>,
+	Aditya Garg <gargaditya@linux.microsoft.com>,
+	Jacob Keller <jacob.e.keller@intel.com>,
+	Breno Leitao <leitao@debian.org>,
+	linux-kernel@vger.kernel.org,
+	linux-rdma@vger.kernel.org
+Cc: paulros@microsoft.com
+Subject: [PATCH net-next v3] net: mana: Extend RX CQE coalescing up to 8 packets
+Date: Wed,  5 Aug 2026 11:53:51 -0700
+Message-ID: <20260805185404.1052177-1-haiyangz@linux.microsoft.com>
+X-Mailer: git-send-email 2.43.7
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <0-v3-76f117ad04f1+28a90-mlx5st_jgg@nvidia.com>
+Content-Transfer-Encoding: 8bit
 
-On Thu, Jul 16, 2026 at 02:03:16PM -0300, Jason Gunthorpe wrote:
-> Add an mlx5 driver to VFIO self test. This is largely a remix of the
-> existing VFIO mlx5 driver in rdma-core. It uses an RDMA loopback QP
-> to issue RDMA WRITE operations which effectively perform memory
-> copies using DMA. Since mlx5 has a stable programming ABI this
-> should work on devices from CX5 to current HW. The device FW must
-> support the QP loopback configuration.
+From: Haiyang Zhang <haiyangz@microsoft.com>
 
-David I was going to respin this to fix the minor nits, do you have
-any more feedback or are we good to merge it ?
+To support up to 8 packets per CQE, update related CQE processing
+code and structures.
+Update ethtool handlers to set this feature.
+Update per queue stat to show the coalesced CQE counters.
+This feature is supported on NIC hardware showing the relevant
+PF flag.
 
-Thanks,
-Jason
+Signed-off-by: Haiyang Zhang <haiyangz@microsoft.com>
+Reviewed-by: Simon Horman <horms@kernel.org>
+Reviewed-by: Breno Leitao <leitao@debian.org>
+---
+v3:
+  Rebased to latest net-next.
+
+v2:
+  Updated PF flag hanlding, and comments based on AI review.
+
+---
+ drivers/net/ethernet/microsoft/mana/mana_en.c | 137 ++++++++++++------
+ .../ethernet/microsoft/mana/mana_ethtool.c    |  29 +++-
+ include/net/mana/gdma.h                       |   4 +
+ include/net/mana/mana.h                       |  44 ++++--
+ 4 files changed, 150 insertions(+), 64 deletions(-)
+
+diff --git a/drivers/net/ethernet/microsoft/mana/mana_en.c b/drivers/net/ethernet/microsoft/mana/mana_en.c
+index 2519a98ad00b..3c96e6fc3d81 100644
+--- a/drivers/net/ethernet/microsoft/mana/mana_en.c
++++ b/drivers/net/ethernet/microsoft/mana/mana_en.c
+@@ -1259,6 +1259,9 @@ int mana_gd_query_device_cfg(struct gdma_context *gc, u32 proto_major_ver,
+ 		return err;
+ 	}
+ 
++	gc->cqe8_coalescing_sup = !!(resp.pf_cap_flags1 &
++				     MANA_PF_FLAG_1_CQE_8_COALESCING_SUPPORTED);
++
+ 	*max_num_vports = resp.max_num_vports;
+ 
+ 	if (resp.hdr.response.msg_version >= GDMA_MESSAGE_V2) {
+@@ -1444,7 +1447,11 @@ static int mana_cfg_vport_steering(struct mana_port_context *apc,
+ 	mana_gd_init_req_hdr(&req->hdr, MANA_CONFIG_VPORT_RX, req_buf_size,
+ 			     sizeof(resp));
+ 
+-	req->hdr.req.msg_version = GDMA_MESSAGE_V2;
++	/* Request & response versions can be different.
++	 * HW can handle newer msg versions, by skipping
++	 * new fields.
++	 */
++	req->hdr.req.msg_version = GDMA_MESSAGE_V5;
+ 	req->hdr.resp.msg_version = GDMA_MESSAGE_V2;
+ 
+ 	req->vport = apc->port_handle;
+@@ -1458,8 +1465,13 @@ static int mana_cfg_vport_steering(struct mana_port_context *apc,
+ 	req->update_indir_tab = update_tab;
+ 	req->default_rxobj = apc->default_rxobj;
+ 
+-	if (rx != TRI_STATE_FALSE)
++	/* Request-msg v5 requires this field */
++	req->rss_hash_types = MANA_HASH_ENABLE_SUPPORTED;
++
++	if (rx != TRI_STATE_FALSE) {
+ 		req->cqe_coalescing_enable = apc->cqe_coalescing_enable;
++		req->cqe8_coalescing_enable = apc->cqe8_coalescing_enable;
++	}
+ 
+ 	if (update_key)
+ 		memcpy(&req->hashkey, apc->hashkey, MANA_HASH_KEY_SIZE);
+@@ -2064,16 +2076,14 @@ static struct sk_buff *mana_build_skb(struct mana_rxq *rxq, void *buf_va,
+ 
+ static void mana_rx_skb(void *buf_va, bool from_pool,
+ 			struct mana_rxcomp_oob *cqe, struct mana_rxq *rxq,
+-			int i)
++			u32 pkt_len, u32 pkt_hash)
+ {
+ 	struct mana_stats_rx *rx_stats = &rxq->stats;
+ 	struct net_device *ndev = rxq->ndev;
+-	uint pkt_len = cqe->ppi[i].pkt_len;
+ 	u16 rxq_idx = rxq->rxq_idx;
+ 	struct napi_struct *napi;
+ 	struct xdp_buff xdp = {};
+ 	struct sk_buff *skb;
+-	u32 hash_value;
+ 	u32 act;
+ 
+ 	rxq->rx_cq.work_done++;
+@@ -2112,12 +2122,10 @@ static void mana_rx_skb(void *buf_va, bool from_pool,
+ 	}
+ 
+ 	if (cqe->rx_hashtype != 0 && (ndev->features & NETIF_F_RXHASH)) {
+-		hash_value = cqe->ppi[i].pkt_hash;
+-
+ 		if (cqe->rx_hashtype & MANA_HASH_L4)
+-			skb_set_hash(skb, hash_value, PKT_HASH_TYPE_L4);
++			skb_set_hash(skb, pkt_hash, PKT_HASH_TYPE_L4);
+ 		else
+-			skb_set_hash(skb, hash_value, PKT_HASH_TYPE_L3);
++			skb_set_hash(skb, pkt_hash, PKT_HASH_TYPE_L3);
+ 	}
+ 
+ 	if (cqe->rx_vlantag_present) {
+@@ -2258,6 +2266,43 @@ static void mana_refill_rx_oob(struct device *dev, struct mana_rxq *rxq,
+ 	rxoob->dma_sync_offset = dma_sync_offset;
+ }
+ 
++static void mana_process_one_rx_pkt(struct device *dev, struct mana_rxq *rxq,
++				    struct mana_rxcomp_oob *oob,
++				    u32 pktlen, u32 pkt_hash)
++{
++	struct mana_recv_buf_oob *rxbuf_oob;
++	struct net_device *ndev = rxq->ndev;
++	void *old_buf = NULL;
++	bool old_fp;
++
++	rxbuf_oob = &rxq->rx_oobs[rxq->buf_index];
++	WARN_ON_ONCE(rxbuf_oob->wqe_inf.wqe_size_in_bu != 1);
++
++	if (unlikely(pktlen > rxq->datasize)) {
++		/* Increase it even if mana_rx_skb() isn't called. */
++		rxq->rx_cq.work_done++;
++
++		++ndev->stats.rx_dropped;
++		netdev_warn_once(ndev,
++				 "Dropped oversized RX packet: len=%u, datasize=%u\n",
++				 pktlen, rxq->datasize);
++
++		/* Reuse the RX buffer since rxbuf_oob is unchanged. */
++	} else {
++		mana_refill_rx_oob(dev, rxq, rxbuf_oob, pktlen,
++				   &old_buf, &old_fp);
++
++		/* Unsuccessful refill will have old_buf == NULL.
++		 * In this case, mana_rx_skb() will drop the packet.
++		 */
++		mana_rx_skb(old_buf, old_fp, oob, rxq, pktlen, pkt_hash);
++	}
++
++	mana_move_wq_tail(rxq->gdma_rq, rxbuf_oob->wqe_inf.wqe_size_in_bu);
++
++	mana_post_pkt_rxq(rxq);
++}
++
+ static void mana_process_rx_cqe(struct mana_rxq *rxq, struct mana_cq *cq,
+ 				struct gdma_comp *cqe)
+ {
+@@ -2267,10 +2312,10 @@ static void mana_process_rx_cqe(struct mana_rxq *rxq, struct mana_cq *cq,
+ 	struct mana_recv_buf_oob *rxbuf_oob;
+ 	struct mana_port_context *apc;
+ 	struct device *dev = gc->dev;
++	bool coalesced_8 = false;
+ 	bool coalesced = false;
+-	void *old_buf = NULL;
+-	u32 curr, pktlen;
+-	bool old_fp;
++	u32 pktlen;
++	int pkt_i;
+ 	int i;
+ 
+ 	apc = netdev_priv(ndev);
+@@ -2293,6 +2338,11 @@ static void mana_process_rx_cqe(struct mana_rxq *rxq, struct mana_cq *cq,
+ 		coalesced = true;
+ 		break;
+ 
++	case CQE_RX_COALESCED_8:
++		coalesced = true;
++		coalesced_8 = true;
++		break;
++
+ 	case CQE_RX_OBJECT_FENCE:
+ 		complete(&rxq->fence_event);
+ 		return;
+@@ -2304,54 +2354,48 @@ static void mana_process_rx_cqe(struct mana_rxq *rxq, struct mana_cq *cq,
+ 		return;
+ 	}
+ 
++	pkt_i = 0;
+ 	for (i = 0; i < MANA_RXCOMP_OOB_NUM_PPI; i++) {
+-		old_buf = NULL;
+-		pktlen = oob->ppi[i].pkt_len;
+-		if (pktlen == 0)
+-			break;
+-
+-		curr = rxq->buf_index;
+-		rxbuf_oob = &rxq->rx_oobs[curr];
+-		WARN_ON_ONCE(rxbuf_oob->wqe_inf.wqe_size_in_bu != 1);
+-
+-		if (unlikely(pktlen > rxq->datasize)) {
+-			/* Increase it even if mana_rx_skb() isn't called. */
+-			rxq->rx_cq.work_done++;
++		u32 pkt_hash;
+ 
+-			++ndev->stats.rx_dropped;
+-			netdev_warn_once(ndev,
+-				"Dropped oversized RX packet: len=%u, datasize=%u\n",
+-				pktlen, rxq->datasize);
+-
+-			/* Reuse the RX buffer since rxbuf_oob is unchanged. */
++		if (coalesced_8) {
++			/* 8-pkt mode: 2 packets per PPI entry */
++			pktlen = oob->ppi[i].pkt_len0;
++			pkt_hash = oob->ppi[i].pkt_hash0;
+ 		} else {
+-
+-			mana_refill_rx_oob(dev, rxq, rxbuf_oob, pktlen,
+-					   &old_buf, &old_fp);
+-
+-			/* Unsuccessful refill will have old_buf == NULL.
+-			 * In this case, mana_rx_skb() will drop the packet.
+-			 */
+-			mana_rx_skb(old_buf, old_fp, oob, rxq, i);
++			pktlen = oob->ppi[i].pkt_len;
++			pkt_hash = oob->ppi[i].pkt_hash;
+ 		}
++		if (pktlen == 0)
++			break;
+ 
+-		mana_move_wq_tail(rxq->gdma_rq,
+-				  rxbuf_oob->wqe_inf.wqe_size_in_bu);
+-
+-		mana_post_pkt_rxq(rxq);
++		mana_process_one_rx_pkt(dev, rxq, oob, pktlen, pkt_hash);
++		pkt_i++;
+ 
+ 		if (!coalesced)
+ 			break;
++
++		/* Process 2nd packet from the same PPI in 8-pkt mode */
++		if (coalesced_8) {
++			pktlen = oob->ppi[i].pkt_len1;
++			pkt_hash = oob->ppi[i].pkt_hash1;
++			if (pktlen == 0)
++				break;
++
++			mana_process_one_rx_pkt(dev, rxq, oob, pktlen,
++						pkt_hash);
++			pkt_i++;
++		}
+ 	}
+ 
+ 	/* Collect coalesced CQE count based on packets processed.
+-	 * Coalesced CQEs have at least 2 packets, so index is i - 2.
++	 * Coalesced CQEs have at least 2 packets, so index is pkt_i - 2.
+ 	 */
+-	if (i > 1) {
++	if (pkt_i > 1) {
+ 		u64_stats_update_begin(&rxq->stats.syncp);
+-		rxq->stats.coalesced_cqe[i - 2]++;
++		rxq->stats.coalesced_cqe[pkt_i - 2]++;
+ 		u64_stats_update_end(&rxq->stats.syncp);
+-	} else if (!i && !pktlen) {
++	} else if (!pkt_i && !pktlen) {
+ 		u64_stats_update_begin(&rxq->stats.syncp);
+ 		rxq->stats.pkt_len0_err++;
+ 		u64_stats_update_end(&rxq->stats.syncp);
+@@ -3781,6 +3825,7 @@ static int mana_probe_port(struct mana_context *ac, int port_idx,
+ 	apc->port_idx = port_idx;
+ 	apc->link_cfg_error = 1;
+ 	apc->cqe_coalescing_enable = 0;
++	apc->cqe8_coalescing_enable = 0;
+ 
+ 	/* Initialize interrupt moderation settings if supported by HW */
+ 	if (gc->pf_cap_flags1 & GDMA_PF_CAP_FLAG_1_DYN_INTERRUPT_MODERATION) {
+diff --git a/drivers/net/ethernet/microsoft/mana/mana_ethtool.c b/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
+index 7e441d6ae5dc..ece7ff9cc409 100644
+--- a/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
++++ b/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
+@@ -178,7 +178,7 @@ static void mana_get_strings_stats(struct mana_port_context *apc, u8 **data)
+ 		ethtool_sprintf(data, "rx_%d_xdp_tx", i);
+ 		ethtool_sprintf(data, "rx_%d_xdp_redirect", i);
+ 		ethtool_sprintf(data, "rx_%d_pkt_len0_err", i);
+-		for (j = 0; j < MANA_RXCOMP_OOB_NUM_PPI - 1; j++)
++		for (j = 0; j < MANA_CQE_COAL_PKTS_8 - 1; j++)
+ 			ethtool_sprintf(data,
+ 					"rx_%d_coalesced_cqe_%d",
+ 					i,
+@@ -241,7 +241,7 @@ static void mana_get_ethtool_stats(struct net_device *ndev,
+ 	u64 xdp_drop;
+ 	u64 xdp_tx;
+ 	u64 pkt_len0_err;
+-	u64 coalesced_cqe[MANA_RXCOMP_OOB_NUM_PPI - 1];
++	u64 coalesced_cqe[MANA_CQE_COAL_PKTS_8 - 1];
+ 	u64 tso_packets;
+ 	u64 tso_bytes;
+ 	u64 tso_inner_packets;
+@@ -281,7 +281,7 @@ static void mana_get_ethtool_stats(struct net_device *ndev,
+ 			xdp_tx = rx_stats->xdp_tx;
+ 			xdp_redirect = rx_stats->xdp_redirect;
+ 			pkt_len0_err = rx_stats->pkt_len0_err;
+-			for (j = 0; j < MANA_RXCOMP_OOB_NUM_PPI - 1; j++)
++			for (j = 0; j < MANA_CQE_COAL_PKTS_8 - 1; j++)
+ 				coalesced_cqe[j] = rx_stats->coalesced_cqe[j];
+ 		} while (u64_stats_fetch_retry(&rx_stats->syncp, start));
+ 
+@@ -291,7 +291,7 @@ static void mana_get_ethtool_stats(struct net_device *ndev,
+ 		data[i++] = xdp_tx;
+ 		data[i++] = xdp_redirect;
+ 		data[i++] = pkt_len0_err;
+-		for (j = 0; j < MANA_RXCOMP_OOB_NUM_PPI - 1; j++)
++		for (j = 0; j < MANA_CQE_COAL_PKTS_8 - 1; j++)
+ 			data[i++] = coalesced_cqe[j];
+ 	}
+ 
+@@ -444,6 +444,7 @@ static int mana_get_coalesce(struct net_device *ndev,
+ 	struct mana_port_context *apc = netdev_priv(ndev);
+ 
+ 	kernel_coal->rx_cqe_frames =
++		apc->cqe8_coalescing_enable ? MANA_CQE_COAL_PKTS_8 :
+ 		apc->cqe_coalescing_enable ? MANA_RXCOMP_OOB_NUM_PPI : 1;
+ 
+ 	kernel_coal->rx_cqe_nsecs = apc->cqe_coalescing_timeout_ns;
+@@ -479,15 +480,19 @@ static int mana_set_coalesce(struct net_device *ndev,
+ 		u16 intr_modr_tx_usec;
+ 		u16 intr_modr_tx_comp;
+ 		u8 cqe_coalescing_enable;
++		u8 cqe8_coalescing_enable;
+ 		bool rx_dim_enabled;
+ 		bool tx_dim_enabled;
+ 	} saved;
+ 	bool modr_changed = false;
+ 	bool dim_changed = false;
+ 	struct gdma_context *gc;
++	u32 max_cqe_frames;
+ 	int err;
+ 
+ 	gc = apc->ac->gdma_dev->gdma_context;
++	max_cqe_frames = gc->cqe8_coalescing_sup ? MANA_CQE_COAL_PKTS_8 :
++						   MANA_RXCOMP_OOB_NUM_PPI;
+ 
+ 	/* Both static and dynamic interrupt moderation (DIM) rely on the
+ 	 * same HW capability advertised by the PF.
+@@ -502,10 +507,12 @@ static int mana_set_coalesce(struct net_device *ndev,
+ 	}
+ 
+ 	if (kernel_coal->rx_cqe_frames != 1 &&
+-	    kernel_coal->rx_cqe_frames != MANA_RXCOMP_OOB_NUM_PPI) {
++	    kernel_coal->rx_cqe_frames != MANA_RXCOMP_OOB_NUM_PPI &&
++	    kernel_coal->rx_cqe_frames != max_cqe_frames) {
+ 		NL_SET_ERR_MSG_FMT(extack,
+-				   "rx-frames must be 1 or %u, got %u",
++				   "rx-frames must be 1 or %u%s, got %u",
+ 				   MANA_RXCOMP_OOB_NUM_PPI,
++				   gc->cqe8_coalescing_sup ? " or 8" : "",
+ 				   kernel_coal->rx_cqe_frames);
+ 		return -EINVAL;
+ 	}
+@@ -550,8 +557,11 @@ static int mana_set_coalesce(struct net_device *ndev,
+ 	saved.tx_dim_enabled = apc->tx_dim_enabled;
+ 
+ 	saved.cqe_coalescing_enable = apc->cqe_coalescing_enable;
++	saved.cqe8_coalescing_enable = apc->cqe8_coalescing_enable;
+ 	apc->cqe_coalescing_enable =
+-		kernel_coal->rx_cqe_frames == MANA_RXCOMP_OOB_NUM_PPI;
++		kernel_coal->rx_cqe_frames >= MANA_RXCOMP_OOB_NUM_PPI;
++	apc->cqe8_coalescing_enable =
++		kernel_coal->rx_cqe_frames == MANA_CQE_COAL_PKTS_8;
+ 
+ 	if (!apc->port_is_up) {
+ 		WRITE_ONCE(apc->rx_dim_enabled, !!ec->use_adaptive_rx_coalesce);
+@@ -559,7 +569,8 @@ static int mana_set_coalesce(struct net_device *ndev,
+ 		return 0;
+ 	}
+ 
+-	if (apc->cqe_coalescing_enable != saved.cqe_coalescing_enable) {
++	if (apc->cqe_coalescing_enable != saved.cqe_coalescing_enable ||
++	    apc->cqe8_coalescing_enable != saved.cqe8_coalescing_enable) {
+ 		/* CQE coalescing setting is applied via RSS configuration. */
+ 		err = mana_config_rss(apc, TRI_STATE_TRUE, false, false);
+ 		if (err) {
+@@ -567,6 +578,8 @@ static int mana_set_coalesce(struct net_device *ndev,
+ 				   err);
+ 			apc->cqe_coalescing_enable =
+ 				saved.cqe_coalescing_enable;
++			apc->cqe8_coalescing_enable =
++				saved.cqe8_coalescing_enable;
+ 			apc->intr_modr_rx_usec = saved.intr_modr_rx_usec;
+ 			apc->intr_modr_rx_comp = saved.intr_modr_rx_comp;
+ 			apc->intr_modr_tx_usec = saved.intr_modr_tx_usec;
+diff --git a/include/net/mana/gdma.h b/include/net/mana/gdma.h
+index 8529cef0d7c4..70a7f1fee5d3 100644
+--- a/include/net/mana/gdma.h
++++ b/include/net/mana/gdma.h
+@@ -182,6 +182,7 @@ struct gdma_general_req {
+ #define GDMA_MESSAGE_V2 2
+ #define GDMA_MESSAGE_V3 3
+ #define GDMA_MESSAGE_V4 4
++#define GDMA_MESSAGE_V5 5
+ 
+ struct gdma_general_resp {
+ 	struct gdma_resp_hdr hdr;
+@@ -428,6 +429,9 @@ struct gdma_context {
+ 	/* L2 MTU */
+ 	u16 adapter_mtu;
+ 
++	/* NIC supports CQE x8 coalescing */
++	bool cqe8_coalescing_sup;
++
+ 	/* This maps a CQ index to the queue structure. */
+ 	unsigned int		max_num_cqs;
+ 	struct gdma_queue	**cq_table;
+diff --git a/include/net/mana/mana.h b/include/net/mana/mana.h
+index 9ffbdff5746f..83b7eff4646e 100644
+--- a/include/net/mana/mana.h
++++ b/include/net/mana/mana.h
+@@ -68,9 +68,12 @@ enum mana_priv_flag_bits {
+ 
+ #define MAX_PORTS_IN_MANA_DEV 256
+ 
+-/* Maximum number of packets per coalesced CQE */
++/* Maximum number of PPIs per coalesced CQE */
+ #define MANA_RXCOMP_OOB_NUM_PPI 4
+ 
++/* 8-pkt mode packs up to 2 packets per PPI entry */
++#define MANA_CQE_COAL_PKTS_8 8
++
+ /* Default/max interrupt moderation settings */
+ #define MANA_INTR_MODR_USEC_DEF 0
+ #define MANA_INTR_MODR_COMP_DEF 0
+@@ -85,7 +88,7 @@ enum mana_priv_flag_bits {
+ #define MANA_INTR_MODR_COMP_MASK   GENMASK(23, 16)
+ 
+ /* Update this count whenever the respective structures are changed */
+-#define MANA_STATS_RX_COUNT (6 + MANA_RXCOMP_OOB_NUM_PPI - 1)
++#define MANA_STATS_RX_COUNT (6 + MANA_CQE_COAL_PKTS_8 - 1)
+ #define MANA_STATS_TX_COUNT 11
+ 
+ #define MANA_RX_FRAG_ALIGNMENT 64
+@@ -97,7 +100,7 @@ struct mana_stats_rx {
+ 	u64 xdp_tx;
+ 	u64 xdp_redirect;
+ 	u64 pkt_len0_err;
+-	u64 coalesced_cqe[MANA_RXCOMP_OOB_NUM_PPI - 1];
++	u64 coalesced_cqe[MANA_CQE_COAL_PKTS_8 - 1];
+ 	struct u64_stats_sync syncp;
+ };
+ 
+@@ -208,6 +211,7 @@ enum mana_cqe_type {
+ 	CQE_RX_COALESCED_4		= 2,
+ 	CQE_RX_OBJECT_FENCE		= 3,
+ 	CQE_RX_TRUNCATED		= 4,
++	CQE_RX_COALESCED_8		= 7,
+ 
+ 	CQE_TX_OKAY			= 32,
+ 	CQE_TX_SA_DROP			= 33,
+@@ -244,12 +248,26 @@ struct mana_cqe_header {
+ #define MANA_HASH_L4                                                         \
+ 	(NDIS_HASH_TCP_IPV4 | NDIS_HASH_UDP_IPV4 | NDIS_HASH_TCP_IPV6 |      \
+ 	 NDIS_HASH_UDP_IPV6 | NDIS_HASH_TCP_IPV6_EX | NDIS_HASH_UDP_IPV6_EX)
++#define MANA_HASH_ENABLE_SUPPORTED \
++	(NDIS_HASH_IPV4 | NDIS_HASH_TCP_IPV4 | NDIS_HASH_UDP_IPV4 | \
++	 NDIS_HASH_IPV6 | NDIS_HASH_TCP_IPV6 | NDIS_HASH_UDP_IPV6)
++
++/* Read PPI in two different layouts based on cqe_type */
++union mana_rxcomp_perpkt_info {
++	struct {
++		u32 pkt_len : 16;
++		u32 reserved1 : 16;
++		u32 reserved2;
++		u32 pkt_hash;
++	};
+ 
+-struct mana_rxcomp_perpkt_info {
+-	u32 pkt_len	: 16;
+-	u32 reserved1	: 16;
+-	u32 reserved2;
+-	u32 pkt_hash;
++	/* Up to two pkts per PPI entry */
++	struct {
++		u32 pkt_hash0;
++		u16 pkt_len0;
++		u16 pkt_len1;
++		u32 pkt_hash1;
++	};
+ }; /* HW DATA */
+ 
+ /* Receive completion OOB */
+@@ -270,7 +288,7 @@ struct mana_rxcomp_oob {
+ 	u32 rx_udp_csum_fail		: 1;
+ 	u32 reserved2			: 1;
+ 
+-	struct mana_rxcomp_perpkt_info ppi[MANA_RXCOMP_OOB_NUM_PPI];
++	union mana_rxcomp_perpkt_info ppi[MANA_RXCOMP_OOB_NUM_PPI];
+ 
+ 	u32 rx_wqe_offset;
+ }; /* HW DATA */
+@@ -615,6 +633,7 @@ struct mana_port_context {
+ 	bool port_st_save; /* Saved port state */
+ 
+ 	u8 cqe_coalescing_enable;
++	u8 cqe8_coalescing_enable;
+ 	u32 cqe_coalescing_timeout_ns;
+ 
+ 	/* Interrupt moderation settings */
+@@ -759,6 +778,8 @@ struct mana_query_device_cfg_req {
+ 	u32 reserved;
+ }; /* HW DATA */
+ 
++#define MANA_PF_FLAG_1_CQE_8_COALESCING_SUPPORTED BIT(5)
++
+ struct mana_query_device_cfg_resp {
+ 	struct gdma_resp_hdr hdr;
+ 
+@@ -994,7 +1015,10 @@ struct mana_cfg_rx_steer_req_v2 {
+ 	mana_handle_t default_rxobj;
+ 	u8 hashkey[MANA_HASH_KEY_SIZE];
+ 	u8 cqe_coalescing_enable;
+-	u8 reserved2[7];
++	u8 reserved2[3];
++	u16 rss_hash_types;
++	u8 cqe8_coalescing_enable; /* v5 message */
++	u8 reserved3;
+ 	mana_handle_t indir_tab[] __counted_by(num_indir_entries);
+ }; /* HW DATA */
+ 
+-- 
+2.34.1
+
