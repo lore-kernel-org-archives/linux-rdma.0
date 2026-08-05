@@ -1,349 +1,277 @@
-Received: from DM5PR21CU001.outbound.protection.outlook.com (mail-centralusazon11011006.outbound.protection.outlook.com [52.101.62.6])
+Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8282B30D411;
-	Wed,  5 Aug 2026 05:34:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.62.6
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785908062; cv=fail; b=XWQ5bYDSPC1u9gVUSAOxQhi+hT9RmaCzvQncCGpzyfTdobbOD49wPH/NnZy6Th3FH6lQxIqjGluzvhv+pM9I9Y+29QFXh88ls9s7qTJrDjOuiwrDxux/mwzF7lHO4elFJ6rRz0vR5nB1O1Eh+xWtrtf6B6FMvkwE1n+R7uQTsBU=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785908062; c=relaxed/simple;
-	bh=sQ9M2SSOWMS+imgfE0U4cHleALcCEcL3qco/HqqXTMQ=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=tXkpsW+7t+vDvepus4Xm5zc0FdHgIr6Tl+s1prfLZcoHriLShnJ0by++IgmessuMmQHrtC54qYAVPOnQkQmYDUnac+AUQz4w+4QsI7bDTVCBpQXtFBfJFzOUvThYD4kjoIPRyKPbc+icu4BCaJ7hUo1RH+CzdW00X4QAyqwlzLw=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=cJmcMVmT; arc=fail smtp.client-ip=52.101.62.6
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 73CE2352000;
+	Wed,  5 Aug 2026 06:20:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.158.5
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1785910861; cv=none; b=lmuhbJgRF2yDks4uUfQ5hbts9D5TP1Dsc3hClpgkoH9JgR0yE3u6IT81yNz8Gk25GRpvgIvRt7NB0NJmd0kSBuEqx9mpJ9ToPZRZlrR0ZGhb0DRZyp1GpuNh1S8sd/ZgXaRRsYwCJhaBwipoZ4eqbHV/GlmG4kXQSb14Ghwu7Ew=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1785910861; c=relaxed/simple;
+	bh=Y5YHJTXwYMgw2m3rBql18Bkwey74ZBrdvAUgNY7I8mc=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=XfcadD+Rl6NAkLoLYT7Jz2h+cM3q0yOUqPWbDOqs3aL2f8MxQfo6zVkfb+hXE0OAwnN9d1Y8bAQY+zePnyHajNy7veeR5660yqw+a+csc7VjVNgfG67eqTVEYGe3pRpRIODYZ4x/HlCMTnJXHjUcA9E9nK/FcqJM8cFlfqee/nc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=TQvmNCO9; arc=none smtp.client-ip=148.163.158.5
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="cJmcMVmT"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=py2wiplvhekVeK1YUvf74EqVJOoiNFD9FOht9uaWNXdcj2HeJ4nZGqBB/IhFRA9hEnXjdbizaJHzUIbdWiRE85+gjZ7JnsMvVA/JqOuybtkhZyxrnxRAfRv0562F7DLCmBdgUZOd+ynAG9nN5JsrQbdsoL7NVKOu6jgIFyHXICoYNYHaBhXPw3HVduv78toea54uRaGhvgfsQjeiRorle+MXfon0wnwBIgKi3x5r+4IXf3NcFLTGp1MnPuR3boNyEVjk/ctHC6mJa+RJO7vYgs2D5FsFcBmbrBDMC0sXb+jMR9eCwTusxeEdsB+0dYC0ReKdITt9YJyrrvde7gM1dQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=60GzUSFp06nmRtiZBk3iW0BAEUbUIRUyp6rPtVQQ65A=;
- b=aW0fBAAmI0ZNO1SpptiVW9M4UERckkGFtECnHeRxcWkCgTWe1tZGUemSi9RZpindm1oGaXZMQVhru01kzpNGQii/6B0UTOL3wbQsPpqA35tVGs4NMglbPDmrpmLL3R7j0HAFUdY15gN4/bimIg5SymXpEfw4J/7By4Z17rFF1Acx9zN1l4vqteuK9v5tH7mklbiw4bigmrq1bIiwOlJlWFjsllMdPW5di76sSKu5tc41jpIQWwO9pL3PYjWMx0dl3lOx+DaDn8dyzEBVQ2NTRUYT8/0iTDjcjPlLY/N29At9Bsd89RC0JUvZ0/MDMTAcKMySQNRAjr+T/fnwD8qnkw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 165.204.84.17) smtp.rcpttodomain=ziepe.ca smtp.mailfrom=amd.com; dmarc=pass
- (p=quarantine sp=quarantine pct=100) action=none header.from=amd.com;
- dkim=none (message not signed); arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=60GzUSFp06nmRtiZBk3iW0BAEUbUIRUyp6rPtVQQ65A=;
- b=cJmcMVmTMJEOsbLOjVATJsvFbeGYBHeyG+h3VxOfaX+fe/Qfvea3a/7RtiLvVPXHPxObIhJ5bbKYjZIvdsuxMOm9wzonrEqV+tz97jwx8O16tUTxrHfASvqKHOfif9kT4MNvegBbaYi0Vuv8JeU0ZeQH/LSLu2zFMWtcy80Pp8o=
-Received: from CH2PR12CA0030.namprd12.prod.outlook.com (2603:10b6:610:57::40)
- by CH3PR12MB9146.namprd12.prod.outlook.com (2603:10b6:610:19c::18) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.292.16; Wed, 5 Aug
- 2026 05:34:16 +0000
-Received: from CH1PEPF0000AD7B.namprd04.prod.outlook.com
- (2603:10b6:610:57:cafe::1f) by CH2PR12CA0030.outlook.office365.com
- (2603:10b6:610:57::40) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.292.16 via Frontend Transport; Wed, 5
- Aug 2026 05:34:15 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
- smtp.mailfrom=amd.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=amd.com;
-Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
- 165.204.84.17 as permitted sender) receiver=protection.outlook.com;
- client-ip=165.204.84.17; helo=satlexmb08.amd.com; pr=C
-Received: from satlexmb08.amd.com (165.204.84.17) by
- CH1PEPF0000AD7B.mail.protection.outlook.com (10.167.244.58) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.292.8 via Frontend Transport; Wed, 5 Aug 2026 05:34:15 +0000
-Received: from satlexmb07.amd.com (10.181.42.216) by satlexmb08.amd.com
- (10.181.42.217) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.41; Wed, 5 Aug
- 2026 00:34:15 -0500
-Received: from xhdipdslab46.xilinx.com (10.180.168.240) by satlexmb07.amd.com
- (10.181.42.216) with Microsoft SMTP Server id 15.2.2562.41 via Frontend
- Transport; Wed, 5 Aug 2026 00:34:13 -0500
-From: Abhijit Gangurde <abhijit.gangurde@amd.com>
-To: <jgg@ziepe.ca>, <leon@kernel.org>
-CC: <allen.hubbe@amd.com>, <nikhil.agarwal@amd.com>,
-	<linux-rdma@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<stable@vger.kernel.org>, Abhijit Gangurde <abhijit.gangurde@amd.com>
-Subject: [PATCH 2/2] RDMA/ionic: Embed counter driver data in rdma_counter allocation
-Date: Wed, 5 Aug 2026 11:02:54 +0530
-Message-ID: <20260805053254.4023262-2-abhijit.gangurde@amd.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20260805053254.4023262-1-abhijit.gangurde@amd.com>
-References: <20260805053254.4023262-1-abhijit.gangurde@amd.com>
+	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="TQvmNCO9"
+Received: from pps.filterd (m0353725.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 6755mn4C2911067;
+	Wed, 5 Aug 2026 06:20:50 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
+	:content-transfer-encoding:content-type:date:from:in-reply-to
+	:message-id:mime-version:references:subject:to; s=pp1; bh=8lsoYN
+	Il1osl+w8vUhovpDMRwV6cG/yO8VTKdza3zic=; b=TQvmNCO9CTLif4gPFFdd6z
+	Z/xUBXFDPP+isukispSlP58G4lQ4P/7fWWyv8rj0TGx9TpI06I2wpULRBBIHW0Rh
+	zAACBTAblPEbRKcz/k1k+Ruinr/5691qOafn3+pUl0Es0QW9x0zMqw1FKwLd9fdJ
+	VsQUMy8rDWbDefIAsicCLb5uZvSbt64Cq+/Hcj1mc7oVmSOchXpb1Fw0qCsVK/wR
+	n8iQp6qXafrTZfCjxzT8zikDYiL5ZnwdfDu5d0RjljFooR43ITN41KRNXVe/iIoy
+	5k9ePX0i9mKwJrcuQVlwZ9n6tqHSqzmstjWuCgwbRPE6uCFaSZ2U4je6rZUSKJIw
+	==
+Received: from ppma13.dal12v.mail.ibm.com (dd.9e.1632.ip4.static.sl-reverse.com [50.22.158.221])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 4fs77g98jq-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Wed, 05 Aug 2026 06:20:49 +0000 (GMT)
+Received: from pps.filterd (ppma13.dal12v.mail.ibm.com [127.0.0.1])
+	by ppma13.dal12v.mail.ibm.com (8.18.1.7/8.18.1.7) with ESMTP id 6756BH68009135;
+	Wed, 5 Aug 2026 06:20:49 GMT
+Received: from smtprelay02.wdc07v.mail.ibm.com ([172.16.1.69])
+	by ppma13.dal12v.mail.ibm.com (PPS) with ESMTPS id 4fswbgd3sv-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Wed, 05 Aug 2026 06:20:49 +0000 (GMT)
+Received: from smtpav02.dal12v.mail.ibm.com (smtpav02.dal12v.mail.ibm.com [10.241.53.101])
+	by smtprelay02.wdc07v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 6756Kjr027198144
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Wed, 5 Aug 2026 06:20:47 GMT
+Received: from smtpav02.dal12v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 4955A5805C;
+	Wed,  5 Aug 2026 06:20:45 +0000 (GMT)
+Received: from smtpav02.dal12v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id C7E9258060;
+	Wed,  5 Aug 2026 06:20:37 +0000 (GMT)
+Received: from [9.123.4.72] (unknown [9.123.4.72])
+	by smtpav02.dal12v.mail.ibm.com (Postfix) with ESMTP;
+	Wed,  5 Aug 2026 06:20:37 +0000 (GMT)
+Message-ID: <079113de-89a4-4727-b381-5072b55faf1a@linux.ibm.com>
+Date: Wed, 5 Aug 2026 11:50:36 +0530
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: CH1PEPF0000AD7B:EE_|CH3PR12MB9146:EE_
-X-MS-Office365-Filtering-Correlation-Id: fe8ca4c9-0a06-458c-7977-08def2b33076
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|23010399003|82310400026|1800799024|36860700016|376014|18002099003|22082099003|11063799006|10067099003|56012099006;
-X-Microsoft-Antispam-Message-Info:
-	G/qF9kUH9VHyqsfkeYSTyRVeDLHZjuWS8/1L4l+PE9HogJMI0FbbtNr+jElxevKzjFX+iFdZ8N7zrWabfYTaULheyUjEaBRN7d9NILui9TzzJ/a5P2lGFqahs0Ig10pkgc9c8CBmKXeO+Pf+fWynUvYknzkmTDseq9t7JeTCD8fiSZjQsHjKDJ8vUUdC0tmb4HoLKZgXDIfVW73Hfbs+5ebb/Dc41b9iVUv6Xov5fAdnPEY1qSYvcIOC/XHU8J7UI8lUxxiRdqcbWEfPZ9lpE03fi37ACvwnRN0HnUzkOESidmyXq8WW6I57S1uEuFMCWzF46CurDFOF7Oa/JIh5aeDNlJICmsiEe3w7jOISmT9kKmvEpycIr1jBUTGPdIxJnXMisYMeh9zv1GqHHm/47+Kg0Y2m7FJWq/hPFImJas2Cg5QiNWAyljCMqbt3BE1c6ZLaVA+rro4jBrKRHFUsxmnhVqFbCd+XEmi/IJY5iVfmXObW4VK7zBOs+aqxmesPxfQhb59PAWh/wiCRTIYVZhh+SSOl2ygG+OKgQCmB9eDDKHcpUFNudITyEtMdhwf/oqg5IJ9+suWav7onp5EDhTLlxqUx4CgQ3ODGiOcNiyrr/5vqpHmrPgnkcgLeU4DHFepjFHKfT9iNCxvIFEEAAhdtgAVX2fU6VG5No97DlFOd+z0lg+ynZWf9CXbfWMIDIf8Q1GkfaOBTdgYpltDF/Q==
-X-Forefront-Antispam-Report:
-	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:satlexmb08.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(23010399003)(82310400026)(1800799024)(36860700016)(376014)(18002099003)(22082099003)(11063799006)(10067099003)(56012099006);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	+ATGdcsp3KMBiIGGvnd9IfcAf4rH7/1PaKDPJ5hOcw2hEQRRJte+U/Ukl63Kd0yxE32eDWyGpwHHacv+VK1G5Z6R3PP6dsedZEioFwkP1ZNvaaOzfnrfS/X1MAGEVOKjWcipV/vHyJI5Rci2UhQJNdoDGXEKI5VoqAef0Gv4CfLAMsR8yQba72rvP32aN7chA05dDcqQZ0N8MTB90QpmLfDQ57s3CJH4BpdOANejSoVNkA0Ah9iz0SYRXDy6QFiSntqXwmPM/OH5ZGwCJJHYfSNcngnNL0K9jJ8hlxJMLXDdkm7Q1DaiON14kmMX7RzjA/4AVd8hpKWMO2WrZWlBM5ATfMJLoLw4KSVwg61ruzosM55uw3au9twG4zUNymrHbPNaZben86P9Gi7oOE8r/SKpBkNHP7mzwW7r9Px4KlfTCSMKlUgqyigH5lKOF/XZ
-X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 05 Aug 2026 05:34:15.8768
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: fe8ca4c9-0a06-458c-7977-08def2b33076
-X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[satlexmb08.amd.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	CH1PEPF0000AD7B.namprd04.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CH3PR12MB9146
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH net] dibs: initialise dibs->lock in dibs_dev_alloc()
+To: Simon Horman <horms@kernel.org>
+Cc: davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
+        pabeni@redhat.com, wintera@linux.ibm.com, alibuda@linux.alibaba.com,
+        dust.li@linux.alibaba.com, sidraya@linux.ibm.com, wenjia@linux.ibm.com,
+        mjambigi@linux.ibm.com, tonylu@linux.alibaba.com,
+        guwen@linux.alibaba.com, hca@linux.ibm.com, gor@linux.ibm.com,
+        agordeev@linux.ibm.com, borntraeger@linux.ibm.com, svens@linux.ibm.com,
+        pasic@linux.ibm.com, gbayer@linux.ibm.com, andrew+netdev@lunn.ch,
+        netdev@vger.kernel.org, linux-s390@vger.kernel.org,
+        linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <20260730124227.167829-1-hidayath@linux.ibm.com>
+ <20260804170206.526356-1-horms@kernel.org>
+Content-Language: en-GB
+From: Hidayathulla Khan I <hidayath@linux.ibm.com>
+In-Reply-To: <20260804170206.526356-1-horms@kernel.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-TM-AS-GCONF: 00
+X-Proofpoint-Reinject: loops=2 maxloops=12
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwODA1MDA0NyBTYWx0ZWRfX5/TnYCXAfIEz
+ bLahlhE7YxDCcLe10epKv87nk2I7iJuMNSgcL0qV3plMdnMCRgeVLMRHhEjxFW6pjJpXvf8YzOc
+ OI1yVf/cKdjnJi2sHOwtoaaKAciQ+o2/L0OmvMamh2mFHtM7x7gJMuitpYRHF2FbV3xKgyg2ANU
+ wGkFrD5c6OTX8fdb5QSZe0hmWHhQSmXAaU5jVYBF9f9mibxwCst6zt/qip450qQvZq7hBQ2Shov
+ X7pLed/ojJJwEbOpu290uy0l4/MvHtY5Ee0q6OgPo/oVLbckk/FY40HlL2kwHJmGe94KDu+nuSr
+ cMJKqVqhB1WvcREgTYVHG2iLHlzTnHNRFF3YNnCz30TaGOT7WyREH/eZZjPU2JXbLg4HH8hdWPL
+ 8oldsA8ZsZGejx1fse4KWY2La4D9kCHcByfIZnhDcU82Oc0reI1Q5EWMF3PHs66XHaTY/EWUDUA
+ L4tydqbf6HRTj+ROsGg==
+X-Authority-Analysis: v=2.4 cv=WIFPmHsR c=1 sm=1 tr=0 ts=6a72d642 cx=c_pps
+ a=AfN7/Ok6k8XGzOShvHwTGQ==:117 a=AfN7/Ok6k8XGzOShvHwTGQ==:17
+ a=IkcTkHD0fZMA:10 a=Sv0fKeRqtYgA:10 a=VkNPw1HP01LnGYTKEx00:22
+ a=RnoormkPH1_aCDwRdu11:22 a=V8glGbnc2Ofi9Qvn3v5h:22 a=9R54UkLUAAAA:8
+ a=VnNF1IyMAAAA:8 a=b25_ZEiJ2tfv91LfQsQA:9 a=QEXdDO2ut3YA:10
+ a=YTcpBFlVQWkNscrzJ_Dz:22
+X-Proofpoint-GUID: vi4j5HFivX1U5a08-sjxJcMmhbMhGrO8
+X-Proofpoint-ORIG-GUID: spb2l6T_3BIq2LTrcbz3TmmWRE_7RGO5
+X-Proofpoint-Spam-Info: AW1haW4tMjYwODA1MDA0NyBTYWx0ZWRfX1OhKP+4+doDV
+ m1zIOk0uFAeb3o5SSUBSPXDSwxdv6dNf6W2zzZOJIwGTBtFWZWYN8pLNEkn5Dl4zNBg+ukpO1u/
+ 7MVb503NQodCq8xwUH4FpG6VAmnaP8c=
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.134,FMLib:17.12.100.49
+ definitions=2026-08-05_02,2026-08-04_02,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ spamscore=0 lowpriorityscore=0 priorityscore=1501 phishscore=0 malwarescore=0
+ suspectscore=0 clxscore=1015 impostorscore=0 bulkscore=0 adultscore=0
+ classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
+ reason=mlx scancount=1 engine=8.22.0-2606150000 definitions=main-2608050047
 
-Commit 7e53b31acc7f ("RDMA/core: Create and destroy rdma_counter using
-rdma_zalloc_drv_obj()") requires drivers implementing counter ops to
-embed struct rdma_counter in a driver-specific struct, register its size
-via INIT_RDMA_OBJ_SIZE, and provide a counter_init callback.
+Thanks for the review.
 
-The ionic driver was merged without this adaptation, causing a NULL
-pointer dereference in alloc_and_bind() since rdma_zalloc_drv_obj()
-allocates zero bytes when size_rdma_counter is unset.
+Finding: main-3-1: Confirmed. This issue is already being addressed by 
+Alexandra Winter in a separate patch.
 
-Consolidate struct ionic_counter into a new struct ionic_rdma_counter
-that embeds struct rdma_counter, replace the xarray with a lightweight
-ida for ID allocation, and add the required counter_init and
-INIT_RDMA_OBJ_SIZE declarations.
+Finding: main-3-0: Already addressed by the following patches on the 
+netdev mailing list.
 
-Fixes: ea4c399642b8 ("RDMA/ionic: Implement device stats ops")
-Cc: stable@vger.kernel.org # 6.18
-Signed-off-by: Abhijit Gangurde <abhijit.gangurde@amd.com>
----
- drivers/infiniband/hw/ionic/ionic_hw_stats.c | 95 +++++++++-----------
- drivers/infiniband/hw/ionic/ionic_ibdev.h    | 11 ++-
- 2 files changed, 51 insertions(+), 55 deletions(-)
+[PATCH net] dibs: fix double free of dmb_clientid_arr
+[PATCH net] net/dibs: Fix UAF of dmb_clientid_arr after dibs_dev_del()
 
-diff --git a/drivers/infiniband/hw/ionic/ionic_hw_stats.c b/drivers/infiniband/hw/ionic/ionic_hw_stats.c
-index f72c9837e135..4f0a2dedbdfe 100644
---- a/drivers/infiniband/hw/ionic/ionic_hw_stats.c
-+++ b/drivers/infiniband/hw/ionic/ionic_hw_stats.c
-@@ -235,35 +235,34 @@ static int ionic_get_hw_stats(struct ib_device *ibdev,
- static struct rdma_hw_stats *
- ionic_counter_alloc_stats(struct rdma_counter *counter)
- {
-+	struct ionic_rdma_counter *cntr = to_ionic_rdma_counter(counter);
- 	struct ionic_ibdev *dev = to_ionic_ibdev(counter->device);
--	struct ionic_counter *cntr;
--	int err;
-+	struct rdma_hw_stats *stats;
-+	int id;
- 
--	cntr = kzalloc_obj(*cntr);
--	if (!cntr)
--		return NULL;
--
--	/* buffer for current values from the device */
- 	cntr->vals = kzalloc(PAGE_SIZE, GFP_KERNEL);
- 	if (!cntr->vals)
--		goto err_vals;
-+		return NULL;
- 
--	err = xa_alloc(&dev->counter_stats->xa_counters, &counter->id,
--		       cntr,
--		       XA_LIMIT(0, IONIC_MAX_QPID),
--		       GFP_KERNEL);
--	if (err)
--		goto err_xa;
-+	id = ida_alloc_max(&dev->counter_stats->counter_ida,
-+			   IONIC_MAX_QPID, GFP_KERNEL);
-+	if (id < 0)
-+		goto err_ida;
- 
--	INIT_LIST_HEAD(&cntr->qp_list);
-+	counter->id = id;
-+
-+	stats = rdma_alloc_hw_stats_struct(dev->counter_stats->stats_hdrs,
-+					   dev->counter_stats->queue_stats_count,
-+					   RDMA_HW_STATS_DEFAULT_LIFESPAN);
-+	if (!stats)
-+		goto err_hw_stats;
-+
-+	return stats;
- 
--	return rdma_alloc_hw_stats_struct(dev->counter_stats->stats_hdrs,
--					 dev->counter_stats->queue_stats_count,
--					 RDMA_HW_STATS_DEFAULT_LIFESPAN);
--err_xa:
-+err_hw_stats:
-+	ida_free(&dev->counter_stats->counter_ida, id);
-+err_ida:
- 	kfree(cntr->vals);
--err_vals:
--	kfree(cntr);
- 
- 	return NULL;
- }
-@@ -271,14 +270,10 @@ ionic_counter_alloc_stats(struct rdma_counter *counter)
- static int ionic_counter_dealloc(struct rdma_counter *counter)
- {
- 	struct ionic_ibdev *dev = to_ionic_ibdev(counter->device);
--	struct ionic_counter *cntr;
--
--	cntr = xa_erase(&dev->counter_stats->xa_counters, counter->id);
--	if (!cntr)
--		return -EINVAL;
-+	struct ionic_rdma_counter *cntr = to_ionic_rdma_counter(counter);
- 
-+	ida_free(&dev->counter_stats->counter_ida, counter->id);
- 	kfree(cntr->vals);
--	kfree(cntr);
- 
- 	return 0;
- }
-@@ -287,13 +282,8 @@ static int ionic_counter_bind_qp(struct rdma_counter *counter,
- 				 struct ib_qp *ibqp,
- 				 u32 port)
- {
--	struct ionic_ibdev *dev = to_ionic_ibdev(counter->device);
-+	struct ionic_rdma_counter *cntr = to_ionic_rdma_counter(counter);
- 	struct ionic_qp *qp = to_ionic_qp(ibqp);
--	struct ionic_counter *cntr;
--
--	cntr = xa_load(&dev->counter_stats->xa_counters, counter->id);
--	if (!cntr)
--		return -EINVAL;
- 
- 	list_add_tail(&qp->qp_list_counter, &cntr->qp_list);
- 	ibqp->counter = counter;
-@@ -313,29 +303,23 @@ static int ionic_counter_unbind_qp(struct ib_qp *ibqp, u32 port)
- 	return 0;
- }
- 
--static int ionic_get_qp_stats(struct ib_device *ibdev,
--			      struct rdma_hw_stats *hw_stats,
--			      u32 counter_id)
-+static int ionic_counter_update_stats(struct rdma_counter *counter)
- {
--	struct ionic_ibdev *dev = to_ionic_ibdev(ibdev);
--	struct ionic_counter_stats *cs;
--	struct ionic_counter *cntr;
-+	struct ionic_rdma_counter *cntr = to_ionic_rdma_counter(counter);
-+	struct ionic_ibdev *dev = to_ionic_ibdev(counter->device);
-+	struct ionic_counter_stats *cs = dev->counter_stats;
- 	dma_addr_t hw_stats_dma;
- 	struct ionic_qp *qp;
- 	int rc, stat_i = 0;
- 
--	cs = dev->counter_stats;
--	cntr = xa_load(&cs->xa_counters, counter_id);
--	if (!cntr)
--		return -EINVAL;
--
- 	hw_stats_dma = dma_map_single(dev->lif_cfg.hwdev, cntr->vals,
- 				      PAGE_SIZE, DMA_FROM_DEVICE);
- 	rc = dma_mapping_error(dev->lif_cfg.hwdev, hw_stats_dma);
- 	if (rc)
- 		return rc;
- 
--	memset(hw_stats->value, 0, sizeof(u64) * hw_stats->num_counters);
-+	memset(counter->stats->value, 0,
-+	       sizeof(u64) * counter->stats->num_counters);
- 
- 	list_for_each_entry(qp, &cntr->qp_list, qp_list_counter) {
- 		rc = ionic_hw_stats_cmd(dev, hw_stats_dma, PAGE_SIZE,
-@@ -345,7 +329,7 @@ static int ionic_get_qp_stats(struct ib_device *ibdev,
- 			goto err_cmd;
- 
- 		for (stat_i = 0; stat_i < cs->queue_stats_count; ++stat_i)
--			hw_stats->value[stat_i] +=
-+			counter->stats->value[stat_i] +=
- 				ionic_v1_stat_val(&cs->hdr[stat_i],
- 						  cntr->vals,
- 						  PAGE_SIZE);
-@@ -360,11 +344,6 @@ static int ionic_get_qp_stats(struct ib_device *ibdev,
- 	return rc;
- }
- 
--static int ionic_counter_update_stats(struct rdma_counter *counter)
--{
--	return ionic_get_qp_stats(counter->device, counter->stats, counter->id);
--}
--
- static int ionic_alloc_counters(struct ionic_ibdev *dev)
- {
- 	struct ionic_counter_stats *cs = dev->counter_stats;
-@@ -424,12 +403,22 @@ static const struct ib_device_ops ionic_hw_stats_ops = {
- 	.get_hw_stats = ionic_get_hw_stats,
- };
- 
-+static void ionic_counter_init(struct rdma_counter *counter)
-+{
-+	struct ionic_rdma_counter *cntr = to_ionic_rdma_counter(counter);
-+
-+	INIT_LIST_HEAD(&cntr->qp_list);
-+}
-+
- static const struct ib_device_ops ionic_counter_stats_ops = {
- 	.counter_alloc_stats = ionic_counter_alloc_stats,
- 	.counter_dealloc = ionic_counter_dealloc,
- 	.counter_bind_qp = ionic_counter_bind_qp,
- 	.counter_unbind_qp = ionic_counter_unbind_qp,
- 	.counter_update_stats = ionic_counter_update_stats,
-+	.counter_init = ionic_counter_init,
-+
-+	INIT_RDMA_OBJ_SIZE(rdma_counter, ionic_rdma_counter, rdma_counter),
- };
- 
- void ionic_stats_init(struct ionic_ibdev *dev)
-@@ -458,7 +447,7 @@ void ionic_stats_init(struct ionic_ibdev *dev)
- 			return;
- 		}
- 
--		xa_init_flags(&dev->counter_stats->xa_counters, XA_FLAGS_ALLOC);
-+		ida_init(&dev->counter_stats->counter_ida);
- 
- 		ib_set_device_ops(&dev->ibdev, &ionic_counter_stats_ops);
- 	}
-@@ -467,7 +456,7 @@ void ionic_stats_init(struct ionic_ibdev *dev)
- void ionic_stats_cleanup(struct ionic_ibdev *dev)
- {
- 	if (dev->counter_stats) {
--		xa_destroy(&dev->counter_stats->xa_counters);
-+		ida_destroy(&dev->counter_stats->counter_ida);
- 		kfree(dev->counter_stats->hdr);
- 		kfree(dev->counter_stats->stats_hdrs);
- 		kfree(dev->counter_stats);
-diff --git a/drivers/infiniband/hw/ionic/ionic_ibdev.h b/drivers/infiniband/hw/ionic/ionic_ibdev.h
-index 63828240d659..1c43344ec93c 100644
---- a/drivers/infiniband/hw/ionic/ionic_ibdev.h
-+++ b/drivers/infiniband/hw/ionic/ionic_ibdev.h
-@@ -331,14 +331,21 @@ struct ionic_counter_stats {
- 	int queue_stats_count;
- 	struct ionic_v1_stat *hdr;
- 	struct rdma_stat_desc *stats_hdrs;
--	struct xarray xa_counters;
-+	struct ida counter_ida;
- };
- 
--struct ionic_counter {
-+struct ionic_rdma_counter {
-+	struct rdma_counter rdma_counter;
- 	void *vals;
- 	struct list_head qp_list;
- };
- 
-+static inline struct ionic_rdma_counter *
-+to_ionic_rdma_counter(struct rdma_counter *counter)
-+{
-+	return container_of(counter, struct ionic_rdma_counter, rdma_counter);
-+}
-+
- static inline struct ionic_ibdev *to_ionic_ibdev(struct ib_device *ibdev)
- {
- 	return container_of(ibdev, struct ionic_ibdev, ibdev);
--- 
-2.43.0
+Neither issue is introduced by this patch.
 
+On 04/08/26 10:32 pm, Simon Horman wrote:
+> This is an AI-generated review of your patch. The human sending this
+> email has considered the AI review valid, or at least plausible.
+> Full review at: https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260730124227.167829-1-hidayath@linux.ibm.com?part=1
+> ---
+> --- Patch [1]: [PATCH net] dibs: initialise dibs->lock in dibs_dev_alloc() ---
+> commit d5daf0b54be512c77adffebc7ed60dee0c5e8e74
+> Author: Hidayath Khan <hidayath@linux.ibm.com>
+>
+> dibs: initialise dibs->lock in dibs_dev_alloc()
+>
+> This moves spin_lock_init(&dibs->lock) from dibs_dev_add() into
+> dibs_dev_alloc(), so the lock is valid as soon as a driver can hand the
+> device to its interrupt handler, and updates the dibs_dev_alloc()
+> kerneldoc accordingly.
+>
+> While looking at the surrounding lifetime rules for struct dibs_dev, two
+> questions came up about pre-existing behaviour in the same area.
+>
+>> diff --git a/drivers/dibs/dibs_main.c b/drivers/dibs/dibs_main.c
+>> index 14c3e2d84902e..4c26fd06973f7 100644
+>> --- a/drivers/dibs/dibs_main.c
+>> +++ b/drivers/dibs/dibs_main.c
+>> @@ -138,6 +138,7 @@ struct dibs_dev *dibs_dev_alloc(void)
+>>   	dibs = kzalloc_obj(*dibs);
+>>   	if (!dibs)
+>>   		return dibs;
+>> +	spin_lock_init(&dibs->lock);
+>>   	dibs->dev.release = dibs_dev_release;
+>>   	dibs->dev.class = &dibs_class;
+>>   	device_initialize(&dibs->dev);
+> [Severity: High]
+> [Finding: main-3-1]
+> [Sources: opus-5]
+> This isn't a bug introduced by this patch, but since the commit message
+> argues about ism_handle_irq() running before dibs_dev_add(), does the
+> mirror-image window at teardown need the same attention?
+>
+> ism_remove() tears things down in this order:
+>
+> drivers/s390/net/ism_drv.c:ism_remove() {
+> 	...
+> 	dibs_dev_del(dibs);
+> 	ism_dev_exit(ism);
+> 	/* pairs with dibs_dev_alloc() */
+> 	put_device(&dibs->dev);
+> }
+>
+> and ism_dev_exit() only disarms the interrupt as its last step:
+>
+> drivers/s390/net/ism_drv.c:ism_dev_exit() {
+> 	...
+> 	unregister_ieq(ism);
+> 	unregister_sba(ism);
+> 	free_irq(pci_irq_vector(pdev, 0), ism);
+> }
+>
+> unregister_sba() frees the SBA and sets ism->sba = NULL, but the handler
+> writes through it unconditionally on entry:
+>
+> drivers/s390/net/ism_drv.c:ism_handle_irq() {
+> 	spin_lock(&dibs->lock);
+> 	ism->sba->s = 0;
+> 	...
+> }
+>
+> Likewise unregister_ieq() frees the IEQ buffer and NULLs ism->ieq, while
+> ism_handle_event() dereferences it in the loop condition:
+>
+> 	while ((ism->ieq_idx + 1) != READ_ONCE(ism->ieq->header.idx)) {
+>
+> Is there anything that serializes ism_handle_irq() against those frees?
+> dibs->lock is the only lock the handler takes, and unregister_ieq() /
+> unregister_sba() never take it, so an MSI serviced on another CPU during
+> ism_remove() looks like it can write to a freed/NULL sba and read a freed
+> ieq in hardirq context. Would calling free_irq() (or synchronize_irq())
+> before releasing the structures the handler consumes close this?
+>
+> The same ordering shows up on the probe error path: dibs_dev_add() failure
+> frees dmb_clientid_arr and returns to ism_probe(), which only reaches
+> ism_dev_exit() (and thus free_irq()) afterwards.
+>
+>> @@ -186,7 +187,6 @@ int dibs_dev_add(struct dibs_dev *dibs)
+>>   	int i, ret;
+>>   
+>>   	max_dmbs = dibs->ops->max_dmbs();
+>> -	spin_lock_init(&dibs->lock);
+>>   	dibs->dmb_clientid_arr = kzalloc(max_dmbs, GFP_KERNEL);
+>>   	if (!dibs->dmb_clientid_arr)
+>>   		return -ENOMEM;
+> [Severity: High]
+> [Finding: main-3-0]
+> [Sources: opus-5]
+> This is a pre-existing issue and not something this patch changes, but
+> while the ownership rules of dibs_dev_add() are in view: can
+> dmb_clientid_arr be freed twice on the loopback probe error path?
+>
+> dibs_dev_add() frees the array on every failure after the allocation and
+> leaves the pointer in place:
+>
+> drivers/dibs/dibs_main.c:dibs_dev_add() {
+> 	...
+> 	ret = device_add(&dibs->dev);
+> 	if (ret)
+> 		goto free_client_arr;
+> 	...
+> err_device_del:
+> 	device_del(&dibs->dev);
+> free_client_arr:
+> 	kfree(dibs->dmb_clientid_arr);
+> 	return ret;
+> }
+>
+> and dibs_lo_dev_probe() frees it again:
+>
+> drivers/dibs/dibs_loopback.c:dibs_lo_dev_probe() {
+> 	ret = dibs_dev_add(dibs);
+> 	if (ret)
+> 		goto err_reg;
+> 	...
+> err_reg:
+> 	kfree(dibs->dmb_clientid_arr);
+> 	/* pairs with dibs_dev_alloc() */
+> 	put_device(&dibs->dev);
+> 	kfree(ldev);
+> }
+>
+> The early -ENOMEM return is harmless because the pointer is still NULL,
+> but a device_add() or sysfs_create_group() failure would reach the same
+> slab object twice. The two callers also disagree here: ism_probe()'s
+> err_ism / err_dibs paths do not repeat the kfree(). Would setting
+> dibs->dmb_clientid_arr = NULL after the kfree() in dibs_dev_add(), or
+> documenting who owns the array on failure, resolve the mismatch?
+>
+> Also, dibs_dev_del() ends with kfree(dibs->dmb_clientid_arr) without
+> clearing the pointer, while ism_handle_irq() reads it for any set DMB bit:
+>
+> drivers/s390/net/ism_drv.c:ism_handle_irq() {
+> 	...
+> 	client_id = dibs->dmb_clientid_arr[bit];
+> 	if (unlikely(client_id == NO_DIBS_CLIENT ||
+> 		     !dibs->subs[client_id]))
+> 	...
+> }
+>
+> Since client_id comes straight from that buffer and is used unchecked as
+> an index into the 8-entry subs[] array before an indirect call, does a
+> post-free interrupt here read freed memory and potentially index past the
+> end of struct dibs_dev?
+>
+> [ ... ]
+>
