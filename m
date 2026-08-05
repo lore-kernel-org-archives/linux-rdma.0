@@ -1,40 +1,40 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24C1F352008;
-	Wed,  5 Aug 2026 14:44:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8232B3B6356
+	for <linux-rdma@vger.kernel.org>; Wed,  5 Aug 2026 15:00:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785941083; cv=none; b=uGF1BDYT/qakdC1GfoDCrIVhnlWR09ogT1v5oRKcksmUuYktrY1W5aV4/mncRtFWsxE6a/eiFzoUcvQB6GBBtTyzayeopdRB9KpQD35qN7Yy2UciXvD1rd5chtDbB9w1Xw2P6S45fCRcXwdU/31PSF9fXtrDyAX1rvrDTi0u+wA=
+	t=1785942048; cv=none; b=IQ0EO83KRxYAyqqqVOBsOQkMQXjmrKPaK4mGgtz+dvfblPVFMoK6h5c/sX6F1NYQ1Il0dkmhKU5JZ+yWAVhV7s7KbMhgCtM9NJHaBteymyVNCun532ibXrmF2qwoS5RUYJd50lEG96sSqOHSNvQpIV5+i+s0StQYtQUYYuCSKcw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785941083; c=relaxed/simple;
-	bh=jbBcDu4Ar2bW0EIMlS6qARnXHzrozmefu0LnrF+Ogg4=;
+	s=arc-20240116; t=1785942048; c=relaxed/simple;
+	bh=aeAFRnKDWkuCy1iCZdYLszzYvjvbOvBGEIE0y95BMUI=;
 	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
-	 MIME-Version:Content-Type; b=GmTB/i4XJvNp4UeBAEtJioxd2cGnM0hHrOUOgLEPHlBkgABPBNQlDfRoTl330s3sGCzo9rcZToKxC5zbp8wpUrWci+4xR3eAHyv5KUYev6Ev3yRBuSsshCp6Xgj3zE++2g3hKV13oJf78BTloJ0GbV2NP25RL7sx6AtZFYViqHo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=nWfP30tn; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=EBrx/cBYoR/RZKTel0+g+LDaA1R52Mp+FmcyAkTAa6WSrgKF1rBEl71wJwX0tC82W+2nYGavsfn3+j8OFrupPm9DM7d78nkqXQF5U/XnKs7w3zVSFQuUcdTZRwZ6ZAfTNgMWmuwUXR2r2w0PPYKixqG4ma1Bpk3eBKNbO4WhLLc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=hrwVbN5p; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="nWfP30tn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6C4E21F000E9;
-	Wed,  5 Aug 2026 14:44:41 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="hrwVbN5p"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 27E9F1F000E9;
+	Wed,  5 Aug 2026 15:00:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1785941082;
-	bh=+HrhtE/rRNYewk6OV4ENi8ayLsALJwKlM7/v0cfQFpU=;
+	s=k20260515; t=1785942045;
+	bh=htrydqL49MOmkhv4g44vMe8zYius4v1wZkAqM+p5GfQ=;
 	h=From:To:Cc:In-Reply-To:References:Subject:Date;
-	b=nWfP30tnbkjsTC1h6+LaXkmy0sEYuF2el2fbw3bWbdRAZ+H7axbRkPrRlX9w3DOmV
-	 EseGoCXjnLx50/iJVn9584QsTUtcOl3uFH0igQjDfbGYgOYwarOlWZRly6doWc+HA+
-	 Icmpapx3dM3XNK/hMoQpMpv/BpEukofYvuWAKxRaoa5HS81JbidrsiXeofbJykZlx2
-	 mIg3Jk2K/GVzX0EjBdqZAYDF9NIZl18t8vnrNsWfK0kl2K0IiQ21jE261u4xFdKILd
-	 R9Nyx692W+g5cVIwp3T4Y8/6cF7g6V7vMRodxdhR8DUQQWyZUql3HLw8WNrenIiqrW
-	 oiZZc3VNAmfHA==
+	b=hrwVbN5pLR7VWUC5m6PahjPZ1BwjJrHx7EZW93iV+kAb7oBw3e4vShKY98oibs6Ko
+	 11vep1Ayev/C/FAJ+mvQFxdh97qprT5FU7dYRgKBiOHbJRuJpTvmiIecNae5ydW49K
+	 lhkzqnssjOX7+k4E1zXZ8hFDigBYZ0/nyE/P8gKYvvrj4g30imVJhSI0IZ8ev5OMLb
+	 mLqukGA0sdy4OrkL6qq8ghwB85vTHKDiD0TTmIZ4VVUt/du1IO28L0l84CBfiydL3L
+	 bGzMI7nAbj0f4qwpTCveGWkDQY20aC+NXP6gQh/Qx7eeQFfJzRi2Vl5bfylpmMztdW
+	 Y/5qkKVghaYSg==
 From: Leon Romanovsky <leon@kernel.org>
-To: kotaranov@microsoft.com, longli@microsoft.com, jgg@ziepe.ca, 
- Konstantin Taranov <kotaranov@linux.microsoft.com>
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
-In-Reply-To: <20260723115955.1859519-1-kotaranov@linux.microsoft.com>
-References: <20260723115955.1859519-1-kotaranov@linux.microsoft.com>
-Subject: Re: [PATCH rdma-next v5 0/2] RDMA/mana_ib: UC QP support
-Message-Id: <178594107921.4133396.13917915555927637465.b4-ty@kernel.org>
-Date: Wed, 05 Aug 2026 10:44:39 -0400
+To: jgg@ziepe.ca, Cheng Xu <chengyou@linux.alibaba.com>
+Cc: linux-rdma@vger.kernel.org, KaiShen@linux.alibaba.com
+In-Reply-To: <20260730124357.12976-1-chengyou@linux.alibaba.com>
+References: <20260730124357.12976-1-chengyou@linux.alibaba.com>
+Subject: Re: [PATCH 1/2] RDMA/erdma: Hold CQ references when processing EQ
+ events
+Message-Id: <178594204272.4141286.8986915439047065650.b4-ty@kernel.org>
+Date: Wed, 05 Aug 2026 11:00:42 -0400
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -46,27 +46,25 @@ Content-Transfer-Encoding: 7bit
 X-Mailer: b4 0.15-dev-18f8f
 
 
-On Thu, 23 Jul 2026 04:59:53 -0700, Konstantin Taranov wrote:
-> From: Konstantin Taranov <kotaranov@microsoft.com>
+On Thu, 30 Jul 2026 20:43:53 +0800, Cheng Xu wrote:
+> EQ handlers look up CQs from dev->cq_xa and invoke CQ completion or
+> error callbacks outside the xarray lock. erdma_destroy_cq() can erase the
+> CQ from the xarray and free its queue buffer and doorbell record while a
+> previously scheduled EQ handler is still using the CQ.
 > 
-> Implement UC QP creation in the RNIC HW for user API.
-> 
-> v5: revised 1/2 to incorporate the drain fix from Leon
-> v4: renamed rc_qp destroy helper to rnic_qp. Use the latest robust udata API.
-> Unified QP lookup table to simplify code for inserting UC QPs.
-> That is why the changes were split into 2 patches. The first patch is about
-> the changes related to qp lookup/store.
-> v3: use new udata helpers
-> v2: removed udata check and removed enum from mana-abi.h
+> Add a CQ refcount and take a reference under the xarray lock with
+> refcount_inc_not_zero(). Remove the CQ from the xarray before dropping
+> the destroy-path reference, then wait for in-flight EQ users before
+> releasing CQ resources.
 > 
 > [...]
 
 Applied, thanks!
 
-[1/2] RDMA/mana_ib: unify QP lookup table
-      https://git.kernel.org/rdma/rdma/c/a489ab44ab73a6
-[2/2] RDMA/mana_ib: UC QP support for UAPI
-      https://git.kernel.org/rdma/rdma/c/6aad80a1d4e70c
+[1/2] RDMA/erdma: Hold CQ references when processing EQ events
+      https://git.kernel.org/rdma/rdma/c/98df2aee1459ee
+[2/2] RDMA/erdma: Hold QP references for AE and CM processing
+      https://git.kernel.org/rdma/rdma/c/a52eeff32024f1
 
 Best regards,
 -- 
