@@ -1,360 +1,191 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from PH7PR06CU001.outbound.protection.outlook.com (mail-westus3azon11020136.outbound.protection.outlook.com [52.101.201.136])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A27523BBFD2;
-	Wed,  5 Aug 2026 15:10:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785942659; cv=none; b=GU2ETfo8OsB+QTrvdtlhHwZ6twcJcjbRJqtTmCjS2/PkPPj1rxlmONaNiWJGUtY4LfBQT5lqosKkctWpYgXsNTfmy8YL6/78VxruKXLmKERf8p8y842MY17NSxjYXJVa16Ak6DD0yp/Ajl2MefGcr2iNfZ3YrOXFoEPsm71ZqCE=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785942659; c=relaxed/simple;
-	bh=Dx/t/a6d74/ovyCKyuC7mZ9HUVIRb1okR0V/i/X4cnw=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=fsxTljwHBM0y2BUWV4beCQZ+12HrkBZRsRf8dYFYa628BvCuznmq2b3V8lRKxMQAG8EeWoMaoozPP+aBhS9iHaeix1D8zcNLFbOL+57MRg1O1zX5ZGrQgdbKon7/HOhNqHaovlpk2qnsH1EG6cN2kRf4/KnuAQ44fQRF8GbgPOw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=onU8eCWY; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CCCBE47AF6F;
+	Wed,  5 Aug 2026 15:25:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.201.136
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1785943536; cv=fail; b=NeVkXIgnn8QJik+XLU38wZyHVhdbtWpl+WiUjUQA3QV8bRH1MrQPLRL4k+FNEhnaHUQYJdl1c/qotlKCU8J97nLSlw06frMA1CSOT+PnyzsXYNT4pxv4Apof0vZxkVNWXyAFxSC/7BlvcWtw6rUCsqH79hclP315kQgXsfT1Ruo=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1785943536; c=relaxed/simple;
+	bh=5DioBRVaJVF1CaYektuFxYBLKaJqTH8saJnsR8Uqcmk=;
+	h=From:To:CC:Subject:Date:Message-ID:References:In-Reply-To:
+	 Content-Type:MIME-Version; b=p4x6QLyePYbf0UEVU+u3b02uXuEmULVSSvnq02M3DNb/j2szy2BOyLxPqBJ+MoRPQTTO6FJ3ikZ3KPbyev2/nTLArajb9XnYhuyAcDYTjTpyojAmcaOLXw5MIYTstI4cSn95GgZvfksh5XpzRsotnn1EGVNuM8cD0L/J6D3ZbxU=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com; spf=pass smtp.mailfrom=microsoft.com; dkim=pass (1024-bit key) header.d=microsoft.com header.i=@microsoft.com header.b=XPZcNDAu; arc=fail smtp.client-ip=52.101.201.136
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="onU8eCWY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0BD6F1F00A3A;
-	Wed,  5 Aug 2026 15:10:53 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1785942657;
-	bh=2r2CpJZz0a88GOElGck54XFNa4Wif2zWHfs+PoE1+3A=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=onU8eCWYkDDZ2GMPNrMu0l4QtkXrdnHnVK0ca5PjrT6OPIyvJN3Qa1llu//JSZJnJ
-	 zqrwA7BAIMgyUT18xD9aA0aXMjvrQIruu1RQ7GbaSm8MTsg1J8cogKB3IpzUW2J7nY
-	 gszxluxeGpzVzDDOd7h3vWX4RwBwMPyE8zOcMVPL9zxVyp69wERbcT6ZKw040taErZ
-	 xH+MPEF935kzSYFrQj0VwhrS0+mIAAkZzjEdUAgybWqxW1QRhcBjD4qCWE/taIrEIG
-	 /WxTmEaqRw4tqnn+2SgJQsWmCYfKxTWoy06GZe8BLNUkSZaiihVdl8R85sxiItlcQt
-	 gXJAH/caIjUVw==
-Date: Wed, 5 Aug 2026 16:10:51 +0100
-From: Simon Horman <horms@kernel.org>
-To: Qi Zhang <marsy12010123@gmail.com>
-Cc: "D. Wythe" <alibuda@linux.alibaba.com>,
-	Dust Li <dust.li@linux.alibaba.com>,
-	Sidraya Jayagond <sidraya@linux.ibm.com>,
-	Wenjia Zhang <wenjia@linux.ibm.com>,
-	Mahanta Jambigi <mjambigi@linux.ibm.com>,
-	Tony Lu <tonylu@linux.alibaba.com>,
-	Wen Gu <guwen@linux.alibaba.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Ursula Braun <ubraun@linux.vnet.ibm.com>,
-	linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Chengfeng Ye <nicoyip.dev@gmail.com>, stable@vger.kernel.org
-Subject: Re: [PATCH net] net/smc: prevent device removal during connection
- setup
-Message-ID: <20260805151051.GV51943@horms.kernel.org>
-References: <20260804123418.2214979-1-marsy12010123@gmail.com>
+	dkim=pass (1024-bit key) header.d=microsoft.com header.i=@microsoft.com header.b="XPZcNDAu"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=OycDuvnvoFCCDQQB4QNGdMFnR52zwJ+IpI1Fc3SrsEeuoinsN/mMBNL9/rahO35WufKtWqR5fzd8HINIjB8vcGSYi1vRupUskn8VjycD2RohUGJ2qeL8oWNHmoFc5Zuq/IogHsR9T6g2yGWUib1LiHU+n5IRiXZTdJz/Pf26m55pJg0mWuBE/A6YyDY8ZAO3OmCVPjvq5z6PUbXMO+XV9FcKr6NO9CXty02ccXUEZ3sWz427SafUyGr+qZxXLXn3fEKI2o3c0jGiP48k8QgALBvOLorCXEevejiFrrhxDxIgNOs4vwuxQ5k2kGC/ScBjcUdaD+j8g4euS4c7u60mxA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=LRF8jspBYq1iLuY2eqD8se0ygmr9+Y4yRYdqTc+z0/c=;
+ b=CgQ3UYZe3CFdxECvoZWtY8F7XuSqDqwxSbEQR9S+olTkFM7ZmCIP3Xi10GkYXZNbJvvyu1Ctd85O6f88y2K8kyvLyCn9kS9N9Uxkm3ffrHDLtof9SB+OwsTCzfXARVMpgCYS/kT52vvGBnFhgrgrTwuETiP4tA8yM93HIZewA55v8t5dHHA4EXFWy5/jcZnophfWVGl8klFIn9YcvMCpo9ooGV2I8sDLzOnFhf2rXv6VMKp52VX7uSvx6qfDEkvmwYPYHR/6GJPwGEsdHxfkW305s12qmtLjgympgVvhuh4v7il5uBd6WleLXJ98NP651Q3DP5wOdvealxYoc1CjKQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=microsoft.com; dmarc=pass action=none
+ header.from=microsoft.com; dkim=pass header.d=microsoft.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=LRF8jspBYq1iLuY2eqD8se0ygmr9+Y4yRYdqTc+z0/c=;
+ b=XPZcNDAupBU7HXm9jKDeyFoMcM1cwz2x4VQ5Bm/Gvo6UUafhLgiNw7ch5f3vKOwPZC4cFxuwpv8u9krMC+X4ryWMNQ7/xnr5wBeIeVHnrPitDZyoZZDd+xAcXrbaI2Bi8IjdA8KuFIOdUX4ntRxE4/fdr462nB6wjs233zS21Xs=
+Received: from LV5PR21MB4704.namprd21.prod.outlook.com (2603:10b6:408:307::7)
+ by LV4PR21MB6293.namprd21.prod.outlook.com (2603:10b6:408:356::23) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.315.6; Wed, 5 Aug 2026
+ 15:25:18 +0000
+Received: from LV5PR21MB4704.namprd21.prod.outlook.com
+ ([fe80::144b:98da:1262:2ebb]) by LV5PR21MB4704.namprd21.prod.outlook.com
+ ([fe80::144b:98da:1262:2ebb%6]) with mapi id 15.21.0315.001; Wed, 5 Aug 2026
+ 15:25:18 +0000
+From: Haiyang Zhang <haiyangz@microsoft.com>
+To: Breno Leitao <leitao@debian.org>, Haiyang Zhang
+	<haiyangz@linux.microsoft.com>
+CC: "linux-hyperv@vger.kernel.org" <linux-hyperv@vger.kernel.org>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>, KY Srinivasan
+	<kys@microsoft.com>, Wei Liu <wei.liu@kernel.org>, Dexuan Cui
+	<DECUI@microsoft.com>, Long Li <longli@microsoft.com>, Andrew Lunn
+	<andrew+netdev@lunn.ch>, "David S. Miller" <davem@davemloft.net>, Eric
+ Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, Paolo Abeni
+	<pabeni@redhat.com>, Konstantin Taranov <kotaranov@microsoft.com>, Simon
+ Horman <horms@kernel.org>, Erni Sri Satya Vennela
+	<ernis@linux.microsoft.com>, Dipayaan Roy <dipayanroy@linux.microsoft.com>,
+	Aditya Garg <gargaditya@linux.microsoft.com>, "linux-kernel@vger.kernel.org"
+	<linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org"
+	<linux-rdma@vger.kernel.org>, Paul Rosswurm <paulros@microsoft.com>
+Subject: RE: [EXTERNAL] Re: [PATCH net-next v2] net: mana: Extend RX CQE
+ coalescing up to 8 packets
+Thread-Topic: [EXTERNAL] Re: [PATCH net-next v2] net: mana: Extend RX CQE
+ coalescing up to 8 packets
+Thread-Index: AQHdITLarjnyHDTDWEaw7yPPrfhHaraPXiYAgAA54HA=
+Date: Wed, 5 Aug 2026 15:25:18 +0000
+Message-ID:
+ <LV5PR21MB47047F0C806C38AE8551AFF9CAD32@LV5PR21MB4704.namprd21.prod.outlook.com>
+References: <20260731212306.4098773-1-haiyangz@linux.microsoft.com>
+ <anMikirGHvq7ne_q@gmail.com>
+In-Reply-To: <anMikirGHvq7ne_q@gmail.com>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach:
+X-MS-TNEF-Correlator:
+msip_labels:
+ MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_ActionId=0e4f7082-9c46-4fdc-96ad-3c4bb3208000;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_ContentBits=0;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_Enabled=true;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_Method=Standard;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_Name=Internal;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_SetDate=2026-08-05T15:15:12Z;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_SiteId=72f988bf-86f1-41af-91ab-2d7cd011db47;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_Tag=10,
+ 3, 0, 1;
+authentication-results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=microsoft.com;
+x-ms-publictraffictype: Email
+x-ms-traffictypediagnostic: LV5PR21MB4704:EE_|LV4PR21MB6293:EE_
+x-ms-office365-filtering-correlation-id: db3c33c5-71e9-4f66-7d1d-08def305c19c
+x-ms-exchange-senderadcheck: 1
+x-ms-exchange-antispam-relay: 0
+x-microsoft-antispam:
+ BCL:0;ARA:13230040|366016|7416014|376014|1800799024|23010399003|22082099003|18002099003|11063799006|4143699003|56012099006|38070700021|7146999003|10067099003;
+x-microsoft-antispam-message-info:
+ Mr+XAO0eqiMUhZ2vLENayTXxLbN4pM4qvEIOhC3ekbpZR3GE5sLnh+9PCsgXl7qzrmIj3Q0N6nM6duLWJrCTTsq2KAf+cETtMbxscWv0OzruqssMG9fS73d5GePd/SPHl2bvNppza7gRVyqBzTvBN7gMEXu1/W+bxRqQakWNAUF3MjVyVXAqk6JyPtZMYiML+7c9dBB9TtnUrkslnkjJ2ty1ymaHXHN8U4Ski9nP5/DfS7Gv27N6Dix7ptYKxuekZubWhaPXxRLWKushcmYihJgtGJV0P0gmtZyTTNkOnHPw6zVx4ntXUT+z9DcUIXf4rSqemFaTanPNphi1hiw7aPvNgTmGLUEuPjSR89B6hxGnGjLjSiStlCEk+eb8n0JrjsK99EFPQuyu7JdFSP0bA3KPyd15/AlL/X01Oa68dn/SNumSGEE//w4EQBjmAu1HWM6kHP39zZbfc8jewSz+JiO75VZw8D80jymTj7pSvuT51M6AylowSmtIKG7vgd2i2fM1b7jgejmbeWp8Ovg4z4tU/BwdnSKx1++x2QU6RxC/XPDU/3Mhp7VF6sXVydBIB0p+tJLf2gZPrg20Q/QSkZbj6EvX4p1J7bkJ4cczIw1TkPMKgeG8MCjNwkYzjBM0qvxsR23QQoYtWELI/zfZPQhcC4wS18y4IFrT32vFKuA5bnz09lRnuMGsDnzUMcUEtEsJ0pXw7URsHOFEr6iPi22GA7k7ukVX4gj3qqOq2qY=
+x-forefront-antispam-report:
+ CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:LV5PR21MB4704.namprd21.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(7416014)(376014)(1800799024)(23010399003)(22082099003)(18002099003)(11063799006)(4143699003)(56012099006)(38070700021)(7146999003)(10067099003);DIR:OUT;SFP:1102;
+x-ms-exchange-antispam-messagedata-chunkcount: 1
+x-ms-exchange-antispam-messagedata-0:
+ =?us-ascii?Q?D7FNSeAjL7Eu/g763NKOBuRyI8ZRfQMTWvT0W2kn3t9SWHiUYPsiVmvxHIN9?=
+ =?us-ascii?Q?USqKdSCktkkkY0iRO/cZorlArQw5Fz1uUgiPmwhK2Wx5ugX3BfdVCoyg+wX8?=
+ =?us-ascii?Q?snTI1srYkMHFOEAh0weeAGYR5SofNTWYlBs4IV2xlYoZV5czHX6GHLsz9+zA?=
+ =?us-ascii?Q?BptNTFHDxcvYJAwKWrA1p5hA3nYSR6UxnNtAwYuSje8amnR718LuwFQgp4Kx?=
+ =?us-ascii?Q?4gSdE1BocrqUd9btN5B6glGZpyPhOY4MJiIeub9alQCFQDmMtgn1oGaLCEzD?=
+ =?us-ascii?Q?rQHO+FcHgzEFU/H/2SLYT5p1m6kfefgLuFLi2mFgRdxUgKTnMSQlNSDlsQ6q?=
+ =?us-ascii?Q?oFL1OVpFGDqUUoimb8SYIurIo03Rg13k4kv1iDVqAY0voVMCTrdipa2FrxFA?=
+ =?us-ascii?Q?xYtSB4oWe1cr9b6uSbWuNiMbXIksGIVFI3RDP7TUBm/tpa1FIIUlPXLXIzpr?=
+ =?us-ascii?Q?81PK2CKq4HIr8Y3D/4BugnGhfQwY8sXN04G8VfFAo0z2bLECg4n2AXqE7zEH?=
+ =?us-ascii?Q?FPejsuOrVyMowosWK8yM6C8SaLJ+NHPydMMG3mBjYjwf6CGdHmGZ3pIvJl5Q?=
+ =?us-ascii?Q?JFkroj5Y8t6Yvp4Ndxayk6zJM8mXevKWAmnbUZRbDipMUpnHGmSUDyWjJd05?=
+ =?us-ascii?Q?cShsuorrhleSInRWGI16AshfSewukSEX3kN5cODdXGgeLHZNLEco40+T/1qZ?=
+ =?us-ascii?Q?4gHCrnp7+aUuIXxZXSZmm9oh6tqw6w/UQkXthyRRO/QQiL/9G9kqIxwOor4k?=
+ =?us-ascii?Q?lzwHnm6HAVqjKY4wdWn5KMthO0jxZh3Fujuu9DzZ3NznLnHP08zHyG7zbvni?=
+ =?us-ascii?Q?HzEEVGJnPPe1ZVAcPu5qpdb82NZBqaOOz+maem4qdRz6kYT85uz5srFf/Fx/?=
+ =?us-ascii?Q?z41nc732TAHYZq1zMM48lpY8KlAGSG/Gda2+dABY0qUQXtqGPXFwRBqTSDhA?=
+ =?us-ascii?Q?ePbkfue3b8YcvMgR0+ZvMLL9ADeEmnQYq5pZyQaMtBMc3hCSyMTy5YTynKs3?=
+ =?us-ascii?Q?z1kXxK7f1bNG9V0S7x7UYYcsyXNifFOYwQN8uXxgVKJlw9PM2UrQSJiXZC7G?=
+ =?us-ascii?Q?yK/hx7QKJUxpmMawAYmin6lhjypKhKYVRNAxWgUS9s1vtrzWXJ3GGi5odyKl?=
+ =?us-ascii?Q?9Fwd/okL917QcvtI4XEGLlZQX+N8WA6G+on3HWZL3VexTg4iWsttZUB9aT14?=
+ =?us-ascii?Q?PqMsU11VH+Xc3cC2uRhUr4GtIdlbZ9O7c3ZC1yhpjoUQugoJx+31ajaaX7E8?=
+ =?us-ascii?Q?VctQZxkAZQ9XNx8CnydFecTVnq10ocsI03Qgb+LLmQjuoAhttfJttqfKioLj?=
+ =?us-ascii?Q?THlDGyGwbdREx92tv0q3lzC/W/SW/1yoDQufA+/5DDApYvXUqL++rphQ6v0m?=
+ =?us-ascii?Q?UAV5IeVE6BT1mmVJ3tAroP4jRlnAgo+GOeNtwgG/xMzgswsx26hE+llLWAbK?=
+ =?us-ascii?Q?iEERNaRjOOx7r4naCMDzjbQ9dOPFu58zkC76QPwfrEOo8cu+zx8x3w0BeqWn?=
+ =?us-ascii?Q?+Mkv43XGnNR47hMjV4/Q3ONH/i0d2ZlmosUjEnyA2enlxNx1VZdxVU7mUkxw?=
+ =?us-ascii?Q?yWHhbE5P5nY7evcpu1HB0HcpXPfy/e5VuanTKs6TVhe7Tj0dVxR2wM486kVy?=
+ =?us-ascii?Q?PUwuofTwAE5aYm9me9WWXqStE1mETYv4aqqXtkMxbjcpzbd97i24na3q3VdM?=
+ =?us-ascii?Q?S/SUoPS4I3tw/twHH5Duwq5gLG6JP1zUtRCzirhI5pl6v4NeR3ZbDF2EM5B3?=
+ =?us-ascii?Q?sjChHBIwsg=3D=3D?=
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260804123418.2214979-1-marsy12010123@gmail.com>
+X-OriginatorOrg: microsoft.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-AuthSource: LV5PR21MB4704.namprd21.prod.outlook.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: db3c33c5-71e9-4f66-7d1d-08def305c19c
+X-MS-Exchange-CrossTenant-originalarrivaltime: 05 Aug 2026 15:25:18.1547
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: 72f988bf-86f1-41af-91ab-2d7cd011db47
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: J31QPzRRTW+pQYRxVMOYoyy0qvVnQqqzToo95wShrZVltt+hr4CrmhfByCUaJb/+/Y1OciKYATuAaTZLpSEcJA==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: LV4PR21MB6293
 
-This is an AI-generated review of your patch. The human sending this
-email has considered the AI review valid, or at least plausible.
-Full review at: https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260804123418.2214979-1-marsy12010123@gmail.com?part=1
----
---- Patch [1]: [PATCH net] net/smc: prevent device removal during connection setup ---
-commit 4fbebcb75cff20404187c33315169e87737af9b3
-Author: Chengfeng Ye <nicoyip.dev@gmail.com>
 
-net/smc: prevent device removal during connection setup
 
-This adds a new init_cnt/init_wait pair to struct smc_ib_device, takes a
-"selection reference" in smc_pnet_determine_gid() while
-smc_ib_devices.mutex is held, releases it from a new smc_init_info_free()
-helper, and makes smc_ib_remove_dev() wait for those references before
-terminating links.
+> -----Original Message-----
+> From: Breno Leitao <leitao@debian.org>
+> Sent: Wednesday, August 5, 2026 7:48 AM
+> To: Haiyang Zhang <haiyangz@linux.microsoft.com>
+> Cc: linux-hyperv@vger.kernel.org; netdev@vger.kernel.org; KY Srinivasan
+> <kys@microsoft.com>; Haiyang Zhang <haiyangz@microsoft.com>; Wei Liu
+> <wei.liu@kernel.org>; Dexuan Cui <DECUI@microsoft.com>; Long Li
+> <longli@microsoft.com>; Andrew Lunn <andrew+netdev@lunn.ch>; David S.
+> Miller <davem@davemloft.net>; Eric Dumazet <edumazet@google.com>; Jakub
+> Kicinski <kuba@kernel.org>; Paolo Abeni <pabeni@redhat.com>; Konstantin
+> Taranov <kotaranov@microsoft.com>; Simon Horman <horms@kernel.org>; Erni
+> Sri Satya Vennela <ernis@linux.microsoft.com>; Dipayaan Roy
+> <dipayanroy@linux.microsoft.com>; Aditya Garg
+> <gargaditya@linux.microsoft.com>; linux-kernel@vger.kernel.org; linux-
+> rdma@vger.kernel.org; Paul Rosswurm <paulros@microsoft.com>
+> Subject: [EXTERNAL] Re: [PATCH net-next v2] net: mana: Extend RX CQE
+> coalescing up to 8 packets
+>=20
+> On Fri, Jul 31, 2026 at 02:22:53PM -0700, Haiyang Zhang wrote:
+> > From: Haiyang Zhang <haiyangz@microsoft.com>
+> >
+> > To support up to 8 packets per CQE, update related CQE processing
+> > code and structures.
+> > Update ethtool handlers to set this feature.
+> > Update per queue stat to show the coalesced CQE counters.
+> > This feature is supported on NIC hardware showing the relevant
+> > PF flag.
+> >
+> > Signed-off-by: Haiyang Zhang <haiyangz@microsoft.com>
+>=20
+> Reviewed-by: Breno Leitao <leitao@debian.org>
+>=20
+>=20
+> > +/* 8-pkt mode packs up to 2 packets per PPI entry */
+> > +#define MANA_CQE_COAL_PKTS_8 8
+>=20
+> nit: The name encodes the value, so a future 16-packet mode would need
+> a second macro with the same role.  Wouldn't something like
+> MANA_RXCOMP_MAX_COAL_PKTS age better?
 
-> diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
-> index b4208cb186c5e..d2f2d4e2e91c1 100644
-> --- a/net/smc/smc_core.c
-> +++ b/net/smc/smc_core.c
-> @@ -55,6 +55,17 @@ static void __smc_lgr_terminate(struct smc_link_group *lgr, bool soft);
->  
->  static void smc_link_down_work(struct work_struct *work);
->  
-> +void smc_init_info_free(struct smc_init_info *ini)
-> +{
-> +	if (!ini)
-> +		return;
-> +	if (ini->ib_dev_ref)
-> +		smc_ibdev_init_put(ini->ib_dev);
-> +	if (ini->smcrv2.ib_dev_v2_ref)
-> +		smc_ibdev_init_put(ini->smcrv2.ib_dev_v2);
-> +	kfree(ini);
-> +}
-> +
+The FW API uses mana_cqe_type like CQE_RX_COALESCED_8 for the CQE coalescin=
+g
+x8, so I followed the same convention for the naming here.
+When it supports 16pkt mode, we will decide if we rename this one or add a
+new name based on the future API.
 
-[ ... ]
+Thanks,
+- Haiyang
 
-> diff --git a/net/smc/smc_ib.c b/net/smc/smc_ib.c
-> index 9bb495707445e..01c9b5c62df76 100644
-> --- a/net/smc/smc_ib.c
-> +++ b/net/smc/smc_ib.c
-> @@ -950,6 +950,8 @@ static int smc_ib_add_dev(struct ib_device *ibdev)
->  
->  	smcibdev->ibdev = ibdev;
->  	INIT_WORK(&smcibdev->port_event_work, smc_ib_port_event_work);
-> +	atomic_set(&smcibdev->init_cnt, 0);
-> +	init_waitqueue_head(&smcibdev->init_wait);
->  	atomic_set(&smcibdev->lnk_cnt, 0);
->  	init_waitqueue_head(&smcibdev->lnks_deleted);
->  	mutex_init(&smcibdev->mutex);
-> @@ -1000,6 +1002,9 @@ static void smc_ib_remove_dev(struct ib_device *ibdev, void *client_data)
->  	mutex_unlock(&smc_ib_devices.mutex);
->  	pr_warn_ratelimited("smc: removing ib device %s\n",
->  			    smcibdev->ibdev->name);
-> +	if (atomic_read(&smcibdev->init_cnt))
-> +		wait_event(smcibdev->init_wait,
-> +			   !atomic_read(&smcibdev->init_cnt));
-
-[Severity: High]
-[Finding: main-1-0]
-[Sources: opus-5]
-Can a remote peer stall this wait_event() indefinitely?  It is
-uninterruptible and has no timeout, and the reference it waits for is held
-across peer-controlled blocking TCP I/O on the clcsock.
-
-On the client side:
-
-net/smc/af_smc.c:__smc_connect() {
-	rc = smc_find_proposal_devices(smc, ini);   /* takes init_cnt via
-						      smc_pnet_determine_gid() */
-	...
-	rc = smc_connect_clc(smc, aclc, ini);       /* send proposal,
-						      wait for accept */
-	...
-	smc_init_info_free(ini);                    /* drops init_cnt */
-}
-
-smc_connect_clc() -> smc_clc_send_proposal() does a blocking kernel_sendmsg()
-on the kernel clcsock whose sk_sndtimeo is MAX_SCHEDULE_TIMEOUT, so a peer
-that stops reading holds the sender until TCP gives up.  The receive side is
-chunked:
-
-net/smc/smc_clc.c:smc_clc_wait_msg() {
-	while (datlen) {
-		u8 tmp[SMC_CLC_RECV_BUF_LEN];
-		...
-		len = sock_recvmsg(smc->clcsock, &msg, krflags);
-	}
-}
-
-sk_rcvtimeo is re-armed to CLC_WAIT_TIME for every 100 byte chunk, and datlen
-comes from the peer, so the total time is peer controlled rather than bounded
-by CLC_WAIT_TIME.
-
-The server side holds the same reference even longer: smc_listen_work() takes
-it in smc_listen_find_device() under the global smc_server_lgr_pending mutex
-and only releases it at out_free, after the CONFIRM smc_clc_wait_msg() and
-smc_listen_rdma_finish().
-
-Should something also prod the in-flight setup to give up?  The new wait runs
-before smc_smcr_terminate_all(), and smc_ib_remove_dev() does not set
-ports_going_away or inject an error, so nothing makes the handshake abort
-early.  The existing lnk_cnt wait in smc_smcr_terminate_all() runs after
-smcr_link_down_cond_sched() has actively driven the links down, so it is
-bounded by local teardown.
-
-As written, ib_unregister_device() (rdma link delete, driver unbind, hot
-unplug, module unload) can block long past the hung task timeout.
-
->  	smc_smcr_terminate_all(smcibdev);
->  	smc_ib_cleanup_per_ibdev(smcibdev);
->  	ib_unregister_event_handler(&smcibdev->event_handler);
-> diff --git a/net/smc/smc_ib.h b/net/smc/smc_ib.h
-> index ef8ac2b7546df..8e9fd5a200a2b 100644
-> --- a/net/smc/smc_ib.h
-> +++ b/net/smc/smc_ib.h
-> @@ -51,6 +51,8 @@ struct smc_ib_device {				/* ib-device infos for smc */
->  	struct work_struct	port_event_work;
->  	unsigned long		port_event_mask;
->  	DECLARE_BITMAP(ports_going_away, SMC_MAX_PORTS);
-> +	atomic_t		init_cnt;	/* number of device selections */
-> +	wait_queue_head_t	init_wait;	/* wait for selections to end */
->  	atomic_t		lnk_cnt;	/* number of links on ibdev */
->  	wait_queue_head_t	lnks_deleted;	/* wait 4 removal of all links*/
->  	struct mutex		mutex;		/* protect dev setup+cleanup */
-> @@ -59,6 +61,17 @@ struct smc_ib_device {				/* ib-device infos for smc */
->  	int			ndev_ifidx[SMC_MAX_PORTS]; /* ndev if indexes */
->  };
->  
-> +static inline void smc_ibdev_init_get(struct smc_ib_device *smcibdev)
-> +{
-> +	atomic_inc(&smcibdev->init_cnt);
-> +}
-> +
-> +static inline void smc_ibdev_init_put(struct smc_ib_device *smcibdev)
-> +{
-> +	if (atomic_dec_and_test(&smcibdev->init_cnt))
-> +		wake_up(&smcibdev->init_wait);
-> +}
-
-[Severity: High]
-[Finding: main-5-5]
-[Sources: opus-5]
-Is this wake_up() safe?  It touches smcibdev after the last reference on it
-has already been dropped.
-
-wait_event() checks its condition before sleeping and again inside
-___wait_event() after prepare_to_wait_event(), so the waiter can leave the
-wait purely because init_cnt is already zero, without any wakeup:
-
-include/linux/wait.h
-	#define wait_event(wq_head, condition)		\
-	do {						\
-		might_sleep();				\
-		if (condition)				\
-			break;				\
-		__wait_event(wq_head, condition);	\
-	} while (0)
-
-So the following interleaving looks possible:
-
-  connection setup                     device removal
-  ----------------                     --------------
-  smc_init_info_free()
-    smc_ibdev_init_put()
-      atomic_dec_and_test() == true
-  <preempted>
-                                       wait_event() sees init_cnt == 0
-                                       smc_smcr_terminate_all()
-                                       smc_ib_cleanup_per_ibdev()
-                                       cancel_work_sync()
-                                       kfree(smcibdev)
-  wake_up(&smcibdev->init_wait)
-
-The final wake_up() would then take a freed spinlock and walk a freed wait
-list.  Would a completion, or a refcount whose release callback performs the
-free, close this window?  The existing lnk_cnt/lnks_deleted code has the same
-shape, but this patch adds a second independent instance of it.
-
->  static inline __be32 smc_ib_gid_to_ipv4(u8 gid[SMC_GID_SIZE])
->  {
->  	struct in6_addr *addr6 = (struct in6_addr *)gid;
-> diff --git a/net/smc/smc_llc.c b/net/smc/smc_llc.c
-> index aa6d83af55eda..a8f8876aea563 100644
-> --- a/net/smc/smc_llc.c
-> +++ b/net/smc/smc_llc.c
-> @@ -1118,7 +1118,7 @@ int smc_llc_cli_add_link(struct smc_link *link, struct smc_llc_qentry *qentry)
->  out_reject:
->  	smc_llc_cli_add_link_reject(qentry);
->  out:
-> -	kfree(ini);
-> +	smc_init_info_free(ini);
->  	kfree(qentry);
->  	return rc;
->  }
-
-[Severity: Low]
-[Finding: main-2-2]
-[Sources: opus-5]
-This isn't a bug, but the ownership rule for ini->ib_dev and
-ini->smcrv2.ib_dev_v2 becomes non-uniform.  Earlier in this same function,
-and in smc_llc_srv_add_link(), the fields are filled in with a borrowed
-pointer and no smc_ibdev_init_get():
-
-net/smc/smc_llc.c:smc_llc_cli_add_link() {
-	if (lgr->smc_version == SMC_V2 && !ini->smcrv2.ib_dev_v2) {
-		lgr_new_t = SMC_LGR_ASYMMETRIC_LOCAL;
-		ini->smcrv2.ib_dev_v2 = link->smcibdev;
-		ini->smcrv2.ib_port_v2 = link->ibport;
-	} else if (lgr->smc_version < SMC_V2 && !ini->ib_dev) {
-		ini->ib_dev = link->smcibdev;
-	...
-}
-
-No reference is leaked or over-released, since both assignments are guarded
-by the pointer still being NULL and smc_init_info_free() keys purely on the
-new flags, and the borrowed device is kept alive by the parent link's
-lnk_cnt.  Could a comment next to ib_dev_ref/ib_dev_v2_ref state which
-writers own a selection reference, so future callers storing into these
-fields know which convention applies?
-
-[ ... ]
-
-> diff --git a/net/smc/smc_pnet.c b/net/smc/smc_pnet.c
-> index 63e286e2dfaa8..7e01e01a522b7 100644
-> --- a/net/smc/smc_pnet.c
-> +++ b/net/smc/smc_pnet.c
-> @@ -980,14 +980,22 @@ static int smc_pnet_determine_gid(struct smc_ib_device *ibdev, int i,
->  	if (!ini->check_smcrv2 &&
->  	    !smc_ib_determine_gid(ibdev, i, ini->vlan_id, ini->ib_gid, NULL,
->  				  NULL)) {
-> +		if (ini->ib_dev_ref)
-> +			smc_ibdev_init_put(ini->ib_dev);
-> +		smc_ibdev_init_get(ibdev);
->  		ini->ib_dev = ibdev;
-> +		ini->ib_dev_ref = true;
->  		ini->ib_port = i;
->  		return 0;
->  	}
-
-[Severity: High]
-[Finding: main-1-1]
-[Sources: opus-5]
-This isn't a bug introduced by this patch, but the same "publish device
-pointer under a list mutex, use it after unlock, device kfree()d by the
-removal callback" pattern still exists for SMC-D/ISM, and the commit message
-reads as if the class is now covered ("prevent device removal during
-connection setup", "Track selected-device users separately from established
-links").
-
-The ISM selection is the sibling of the code being fixed here:
-
-net/smc/smc_pnet.c:smc_pnet_find_ism_by_pnetid() {
-	mutex_lock(&smcd_dev_list.mutex);
-	list_for_each_entry(ismdev, &smcd_dev_list.list, list) {
-		if (smc_pnet_match(...) &&
-		    !ismdev->going_away && ...) {
-			ini->ism_dev[0] = ismdev;
-			break;
-		}
-	}
-	mutex_unlock(&smcd_dev_list.mutex);
-}
-
-The pointer is dereferenced after the unlock, for example in
-smc_clc_send_proposal():
-
-	if (ini->ism_dev[0]) {
-		smcd = ini->ism_dev[0];
-		copy_to_smcdgid(&smcd_gid, &smcd->dibs->gid);
-
-while removal frees the device with no counter or wait matching the new
-init_cnt, and struct smcd_dev has no refcount:
-
-net/smc/smc_ism.c:smcd_unregister_dev() {
-	smcd->going_away = 1;
-	smc_smcd_terminate_all(smcd);
-	mutex_lock(&smcd_dev_list.mutex);
-	list_del_init(&smcd->list);
-	mutex_unlock(&smcd_dev_list.mutex);
-	destroy_workqueue(smcd->event_wq);
-	kfree(smcd);
-}
-
-going_away is only sampled before the mutex is dropped, so it does not cover
-the post-unlock window, which is the same argument the commit message makes
-for the RoCE case.  Could the changelog say that only the smc_ib_device half
-is addressed, or could the ISM path be handled too?
-
->  	if (ini->check_smcrv2 &&
->  	    !smc_ib_determine_gid(ibdev, i, ini->vlan_id, ini->smcrv2.ib_gid_v2,
->  				  NULL, &ini->smcrv2)) {
-> +		if (ini->smcrv2.ib_dev_v2_ref)
-> +			smc_ibdev_init_put(ini->smcrv2.ib_dev_v2);
-> +		smc_ibdev_init_get(ibdev);
->  		ini->smcrv2.ib_dev_v2 = ibdev;
-> +		ini->smcrv2.ib_dev_v2_ref = true;
->  		ini->smcrv2.ib_port_v2 = i;
->  		return 0;
->  	}
