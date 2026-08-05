@@ -1,160 +1,214 @@
-Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
+Received: from CH5PR02CU005.outbound.protection.outlook.com (mail-northcentralusazon11012028.outbound.protection.outlook.com [40.107.200.28])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E48830D411;
-	Wed,  5 Aug 2026 06:26:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.156.1
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785911188; cv=none; b=DkrDbNxEBw+1WGmDBjlKec9Yc2wAIjtwU23Mtz/vT2RTCAOTTTjNG5hcvJHIT7pkmfC5xmDc1UXhBEuBzQC89zUd5QKik8Y/0t5fVC/8a5yl/UbWmThUTqGcKUf/sEHqhQCG9TtemvJnsNii3w/b5n1H9zH7maWbsxPHz+MSj0I=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785911188; c=relaxed/simple;
-	bh=PNsMA9R42MmvA5cRDbfTSqilYpttCRmEzXJmYfqGKxA=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=Mdz61BWWrDekyvmB7jap9FMZOLWQZMEFI3I4XhKBZ2GEJnD3MVxoU80kqWGLJC6KLlxhpfzLT/aNj50PRpJfYEghTzWK3yic4P8R2bxgS6ph+HWjrfXUH2PD/swwhX6P+nKHjX119k6F0bG1E8kCt6zVolBhvSif15tQxXokGNE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=OEOn6US7; arc=none smtp.client-ip=148.163.156.1
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E1F3331A57;
+	Wed,  5 Aug 2026 06:50:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.200.28
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1785912612; cv=fail; b=Hrq9pUJDArGofNbuVA3WeaGvxYqU3+iXC1CmQcH8kNSzgsktKi0j8sLCFNAcPRXU+JYf9Me96qEqZ1oveSvKJb5Xc6pfl3kwCEpK26iSQ69Vs0+daWJBuuN/iWS8UV3DF6IuuijjbUdeDQBB7uE+ot6YlhvmzlbO+BxZErSY65s=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1785912612; c=relaxed/simple;
+	bh=MN2kJi5o1r50E4NvAamS985lMZoW3616WBBYmRdGupc=;
+	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
+	 Content-Type:MIME-Version; b=stQz6OC4e1djoSWXtFiPNWUUU57fGtDM3iqXRM8RbusuzEuGCccx5C2mPLbCmwpsZ5/TEs5hfSFzySwdPvSZXN2vGO8eX/9xkM97ly5zxS80XuN37tXdgQBLV6YpfwbpqIe6COsq+XpE8VDK5+SYYNZrxXv/UFF0TPXWKuPoJYI=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=HzeBlX7u; arc=fail smtp.client-ip=40.107.200.28
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="OEOn6US7"
-Received: from pps.filterd (m0356517.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 6755m4aw3005713;
-	Wed, 5 Aug 2026 06:26:26 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
-	:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to; s=pp1; bh=j6PbpK
-	L3xhLCleMb6lUTk/vq9RjH1F8YA16D3eRYEA0=; b=OEOn6US77Wyb5iDxXDte1G
-	2pmq3FCspueNnZg7k/+/DWcuqvmhaxGzE8ZoWCnBC6m5tUsmYA1rALytd6K3oIMT
-	F/p4oCAujcBt0jpWt4OA2+TiE/3HEXDby8YylaSPuIdI6LaDZRxBUHDRFllLtfiW
-	GYFUym7mRk8eOOA3GL/GxgIUvvRbCQjkqrEjGLanAXIdNZnCvQVMxxrnEiOxrTZn
-	kPfeRomtvn+V/rc2iPIs0baQ0Uld/CHy47WMTmkahNwznth9OvdEe9cpSAN31kgT
-	a1HvrWD41ZScppfOgbDnaY1nybYYw9x2YF4j+q+qwppEivT86kf7+Z3EYCl25YKA
-	==
-Received: from ppma22.wdc07v.mail.ibm.com (5c.69.3da9.ip4.static.sl-reverse.com [169.61.105.92])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 4fs8h51mr0-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Wed, 05 Aug 2026 06:26:26 +0000 (GMT)
-Received: from pps.filterd (ppma22.wdc07v.mail.ibm.com [127.0.0.1])
-	by ppma22.wdc07v.mail.ibm.com (8.18.1.7/8.18.1.7) with ESMTP id 6756QPkH010728;
-	Wed, 5 Aug 2026 06:26:25 GMT
-Received: from smtprelay01.wdc07v.mail.ibm.com ([172.16.1.68])
-	by ppma22.wdc07v.mail.ibm.com (PPS) with ESMTPS id 4fsugw5e54-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Wed, 05 Aug 2026 06:26:25 +0000 (GMT)
-Received: from smtpav02.dal12v.mail.ibm.com (smtpav02.dal12v.mail.ibm.com [10.241.53.101])
-	by smtprelay01.wdc07v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 6756QMW564946574
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Wed, 5 Aug 2026 06:26:23 GMT
-Received: from smtpav02.dal12v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 92FA25805A;
-	Wed,  5 Aug 2026 06:26:22 +0000 (GMT)
-Received: from smtpav02.dal12v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id CEC9058051;
-	Wed,  5 Aug 2026 06:26:17 +0000 (GMT)
-Received: from [9.123.4.72] (unknown [9.123.4.72])
-	by smtpav02.dal12v.mail.ibm.com (Postfix) with ESMTP;
-	Wed,  5 Aug 2026 06:26:17 +0000 (GMT)
-Message-ID: <905fe2d9-a8c9-4047-82af-6f530d024ba2@linux.ibm.com>
-Date: Wed, 5 Aug 2026 11:56:16 +0530
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="HzeBlX7u"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=oPTc9tUnGRY1zs2SKtBXzN3UhZrwcabcuYUts4Tct4XQbDjaIgzIxkBjRXx3J7psG8AnqrRHsH59GriyFYxo1YuTpGKg4EUANjM7iOg4nIYFyrREqK8LCEXYdLyMKuW8qRlsAazQW47ndQOWf1hZresXgu/8tjbwHPnsPpHRCeI144liYOs62tqD9h09YNurFY3ts0f639+6cs7+8nX89GrHLH8dE0USiFhiofzqUXLESOkM0ZT5nTuG2THTanUOb+W1iNNTnvhvtIhys5BZ+V8RYz8Arv58TFtLaWAEDgX5dgnPDFcJPCp7DWYUBi8LzAa8BxZF4Kw0isjE/eP5mQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=9t/Ka6TcLDwq8A97156+S/NOHzIUVpS2+yqyDBLCCqA=;
+ b=Sp+E1b/jxzsRKTRgQV1yxwmAjcA3KEnCY6QNOSprmun7wnpPSY6M8gAxx9okQd+Z3Islylo4Ck5eDEHTo7JRUwSH+qxu+u2cXDVUVGPZoEorqTV+yGduTKe3uKnUYWJPvTEwcD+XvPN3qK5+Ui/hEwntiWPwKAetrtN2ygPT/4/e9pmai0KCxgzgiFRd4VvhXqyX7l8OxbDTYy/1QWejhJEoS0YtHECaFZCNETUz5SUt5lCy5FHNfUmwlq5MovYUHYgt1yDyASrPglILjLD/h5nSX34XMfEHJKOj2J1rnHlDjbbN/5YMHQa9EsCtBT4waHUiwp21IsitH3QgUbzz/w==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=9t/Ka6TcLDwq8A97156+S/NOHzIUVpS2+yqyDBLCCqA=;
+ b=HzeBlX7uKHlIIFxZY0RMUTW10nlBZHYLy4WJVlPjwz5YzvZhQZcCCKzqMwUeRClWxpK5Oe1fMQb/v9IyWuh5Xe/au24GGTmZku+ucFRWSq0fH95vT68XMk/6n/LR0IFdsF7fV7YajmDAC2RFYLnDidaQW9AUQonDRCCyGoJYlSOmx6wh5RVcEz/XHVL0U8yrs24ffbQTU8lWywU7UdkeDRcbP4V/JlPfnW6KA2tSHn0t4WfpxFJZBuxiF/nwerDetajxYRqVqkCeUeiQMOuCbM/oK8qvK7lnaYweEpcY5d/UDQhNdVXX9Fq5JMFew0D3gktVva1fz7V9Din/Ag6DUQ==
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from MW6PR12MB7086.namprd12.prod.outlook.com (2603:10b6:303:238::20)
+ by MN6PR12MB8470.namprd12.prod.outlook.com (2603:10b6:208:46d::17) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.292.15; Wed, 5 Aug
+ 2026 06:50:05 +0000
+Received: from MW6PR12MB7086.namprd12.prod.outlook.com
+ ([fe80::4eb8:7fcb:fe8d:e95e]) by MW6PR12MB7086.namprd12.prod.outlook.com
+ ([fe80::4eb8:7fcb:fe8d:e95e%6]) with mapi id 15.21.0292.018; Wed, 5 Aug 2026
+ 06:50:04 +0000
+Message-ID: <7a4af8c9-b5d0-4354-9eb3-8b9ddeafa103@nvidia.com>
+Date: Wed, 5 Aug 2026 09:49:56 +0300
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH net] net/mlx5e: SHAMPO, Fix IP length overflow on large HW
+ GRO sessions
+To: Tianyu Zuo <cosmosocket@gmail.com>, Saeed Mahameed <saeedm@nvidia.com>,
+ Tariq Toukan <tariqt@nvidia.com>, Mark Bloch <mbloch@nvidia.com>,
+ Leon Romanovsky <leon@kernel.org>, Andrew Lunn <andrew+netdev@lunn.ch>,
+ "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
+ Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+ Khalid Manaa <khalidm@nvidia.com>, Ben Ben-Ishay <benishay@nvidia.com>
+Cc: dtatulea@nvidia.com, horms@kernel.org, netdev@vger.kernel.org,
+ linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <20260729204745.166584-1-cosmosocket@gmail.com>
+Content-Language: en-US
+From: Tariq Toukan <tariqt@nvidia.com>
+In-Reply-To: <20260729204745.166584-1-cosmosocket@gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: FR0P281CA0080.DEUP281.PROD.OUTLOOK.COM
+ (2603:10a6:d10:1e::14) To MW6PR12MB7086.namprd12.prod.outlook.com
+ (2603:10b6:303:238::20)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] net/smc: fix sock refcount leak in smc_switch_conns()
- error path
-To: Yifei Gao <gyf161023@gmail.com>, "D . Wythe" <alibuda@linux.alibaba.com>,
-        Dust Li <dust.li@linux.alibaba.com>,
-        Sidraya Jayagond
- <sidraya@linux.ibm.com>,
-        Mahanta Jambigi <mjambigi@linux.ibm.com>, linux-rdma@vger.kernel.org,
-        linux-s390@vger.kernel.org, netdev@vger.kernel.org
-Cc: Tony Lu <tonylu@linux.alibaba.com>, Wen Gu <guwen@linux.alibaba.com>,
-        Karsten Graul <kgraul@linux.ibm.com>,
-        Ursula Braun <ubraun@linux.ibm.com>,
-        Wenjia Zhang <wenjia@linux.ibm.com>, linux-kernel@vger.kernel.org,
-        stable@vger.kernel.org
-References: <20260804213917.3413525-1-gyf161023@gmail.com>
-Content-Language: en-GB
-From: Hidayathulla Khan I <hidayath@linux.ibm.com>
-In-Reply-To: <20260804213917.3413525-1-gyf161023@gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-TM-AS-GCONF: 00
-X-Proofpoint-Reinject: loops=2 maxloops=12
-X-Proofpoint-Spam-Info: AW1haW4tMjYwODA1MDA0NyBTYWx0ZWRfXw40AjIgpsswE
- DKZ9jxK2i/2S1mWl9Pytm1dAADrpJGRN9UXejrGEqoocKkjs69QChBSKDPU8Il7oTKQ7mn03TEW
- OToKKrT7tqOLHoub1maSn2z4QNJUqq4=
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwODA1MDA0NyBTYWx0ZWRfX1SlNoHYxe1ok
- ckeAY6LdsH60nZuku9U3GLiNp6hcpqLqq/UVxq50Q+uTJu1U3Psmhi8chap2ypKXLCBlCkqmrvW
- C/d+88kxkssGPcg210HHFBaJPvhV9rRrqxtLkAUwT948fiVqs09Xgb5oixtN9AvX/oAdTxww+2D
- UPxNdGkUnXx/tM+/gTe9aDAisQV9kTd2LhMIpWiMjIWpFed7xMpnNv2h2WgoNo8gIkxv+VCPN0T
- 5KBLF3l7ulMwdAlYaH+n4xyvl/Ta1Oa0A0Sw2yN0ZgWO3Zawks8JXZ34VzAwvw+ktI9otcxwq0r
- YDKGR4mE87i+DfXEg+AUSFYVhaRm4ZL8HSfielg5DHFeer4SyUOUki3BX8eBxjKPmI5J/i7hg0U
- oHDHnzZrUK/t/DG41JdJlEWEqVvUxUzhABn45ulKPaBW1muYFV83sf5GCtoh5KQsvfqiJIHSRPY
- FqUUGbqK5Cr8dtl5IvA==
-X-Authority-Analysis: v=2.4 cv=SI1ykuvH c=1 sm=1 tr=0 ts=6a72d792 cx=c_pps
- a=5BHTudwdYE3Te8bg5FgnPg==:117 a=5BHTudwdYE3Te8bg5FgnPg==:17
- a=IkcTkHD0fZMA:10 a=Sv0fKeRqtYgA:10 a=VkNPw1HP01LnGYTKEx00:22
- a=RnoormkPH1_aCDwRdu11:22 a=U7nrCbtTmkRpXpFmAIza:22 a=VwQbUJbxAAAA:8
- a=VnNF1IyMAAAA:8 a=pGLkceISAAAA:8 a=h0Cf4ckhx-fnnXdm7CAA:9 a=QEXdDO2ut3YA:10
-X-Proofpoint-ORIG-GUID: hm7exjQLvOy1koeT6yIdPd4NvjDhjvs3
-X-Proofpoint-GUID: LP8eRiaH7bek0YrRrjxMggDB2oLXQIqi
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.134,FMLib:17.12.100.49
- definitions=2026-08-05_02,2026-08-04_02,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- clxscore=1015 bulkscore=0 suspectscore=0 impostorscore=0 spamscore=0
- phishscore=0 priorityscore=1501 lowpriorityscore=0 adultscore=0
- malwarescore=0 classifier=typeunknown authscore=0 authtc= authcc=
- route=outbound adjust=0 reason=mlx scancount=1 engine=8.22.0-2606150000
- definitions=main-2608050047
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: MW6PR12MB7086:EE_|MN6PR12MB8470:EE_
+X-MS-Office365-Filtering-Correlation-Id: 36386571-358e-4afa-ec95-08def2bdc6e2
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|366016|1800799024|7416014|376014|23010399003|5023799004|11063799006|10067099003|6133799003|56012099006|22082099003|18002099003|921020;
+X-Microsoft-Antispam-Message-Info:
+	0YN77HY8SIuTd5aEwGK+DKTMunG3s8XW+qY6R3sNvzUEKcKysmQ5jZEyH7eEvmlqqofB1WDMy77vGt7EHildBCTZaB1j5LHx9hDIMsqtohNEzQ6C5zchR/wcURYkjkvVPVz5L/gHc9DbuKk4b8qGP6eFqhcRke/Ae6mkWI2bkB6sPg5C6DaV9Vw3X1wp/XAm1vFBRarM81W+V3Fld0YG8px2Fbin9JCYCSUKGFcJan1wZrApJpLv1FBPE1X5tAodxh0genO/19YuN75rd7fj8ubWLECBBXS/jTQ2b0wYTJ8j9kawNB/qv21gIb/j8TbQ91P9xPT58qmJqB3nqy4sQT0VygNA5bk393bidu/0XDNPLj/atlwQoL3n6DRPoBEPmbnXxHe6mv83b5sOVDCr0pXjlRzmm8DxWIr2AtQxSQNbpCkuw6VTgcMhP8D4tOHZ2k58ZzPPY8r9YKykrAntai7zG16RxIdXo6P+ajJlC4qvfaexlUi3KV0phlHY+5aQ3Gg9bHqP/sW1FkKsSL51dNdPIYh9d531s03TI/RMrFXzekhDlY0P+dJY9cmBLVnOr2LXTMslOp/CLMH96qMC6BU7Mz7aEb9SYZwkqfVHNEUb+vMjf9nPGnIT5SNAjHxz0Zm/o7OKc1Way5yPaA1LT60bDq4VwJcgRCJVTNoWhB0WWdexKG/UHwKUwa2ESzUCyiPdV2JcvL4e6evWXHthfg==
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MW6PR12MB7086.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(1800799024)(7416014)(376014)(23010399003)(5023799004)(11063799006)(10067099003)(6133799003)(56012099006)(22082099003)(18002099003)(921020);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?utf-8?B?K1JPSzVSUmI0a2RUczZIbS9nU2NFZGFHWmI4aUJwVDdFWjZrMmZVNXNsS2V6?=
+ =?utf-8?B?ZXo1MTg5TTVQM3IzaGMxT0R2cGVxcWZzYUxyQVYraDUzVHV5dW1EcVRGM01D?=
+ =?utf-8?B?RU54cVNVcVpBQlcrYXlKVGFOMFlYS1FsT1BlRUo0TTBCZHNNRjhvTk45VFRJ?=
+ =?utf-8?B?a2tHY3Y5TFNvanhlRWR2OVVpeVlHSUNKY09LVmFac3VsYXNqLyticUpZRmhN?=
+ =?utf-8?B?T25yeGx1T1NzVW9vd05YRm1oc0Y5ZldTYUpQOWRRaE5JSjhzSHVibStqTjgy?=
+ =?utf-8?B?YXJlT05DVEk3MG1TSEJOMXFNZ0lsVU1ZZUpTSTd1T0FTcGVIU3pUbVBWLysy?=
+ =?utf-8?B?WUNpMGxXcGlaNFF3bFBkUnp2aE9SaDA0aTJwaFpEWXd4V1JOQnpCaFg1ZUYx?=
+ =?utf-8?B?RGZ5Ti9XLzc2dUNVcUdDQnlQR1pib0J6VFQxN0xJMWdsQ0tpc3NUVkVzdWpI?=
+ =?utf-8?B?V091QVB5UE9WZnQwcENMeU1GdlVMa2V4U0FuclA5Y2F1NnJPdmJhLzMzUFBq?=
+ =?utf-8?B?Q2Q0Yytaam9jMXA0K2tXdnZNTjJpcGJRN0lpMHF4SGs5LzZJdlFqN2xtOWdh?=
+ =?utf-8?B?d3J5cDg4SGhiaHRVb2hFc1M1WklHSmticjBEbmhUcC80YlVUcWM4UHJjRXha?=
+ =?utf-8?B?WWhIVFpiNDhHTTdObms4MlBZNWIzS0RrVlo4S2U4NkxuZjRCT2JIaDBGQ1ZZ?=
+ =?utf-8?B?YlBpN2xPdy9NNGxYbWFkbjkxdVQrOWhxeE9PZTJRRkpuVzd3bkhxRFNLUVhJ?=
+ =?utf-8?B?b2N6eHA4cWVrOStBZVdXTzZMTUdMdStQTmFSMnFrbm9oUnd2bDFjUE8xTGJF?=
+ =?utf-8?B?dXhyV2ZjRkgrbS9vYnJIOHlaRDlxNTF5bVVnVjVOWFU0bmZDUkQxQnoxNExt?=
+ =?utf-8?B?OGg4aExCdkY2Zlc2V01oYXJTM25kZ3lmMkRMSjFYbVQ4ZWJWQnVMQkIvUktZ?=
+ =?utf-8?B?d1JaMTZVNElWakF1aUtmdC9JeHNqaHQ3bkR0c0NoZklyV2JsU0NOWmdERG5D?=
+ =?utf-8?B?U3NTbVhGRm4rZWNPOC9uazRLaVd5aDV2clNCa1VmdTVUNDV2cGFqTVhDSFNN?=
+ =?utf-8?B?V3U3Q3pncHZSM2tidFhLYmtJa29yZ3U1bkN2SXRSK1pUdE1tYzJkZWZ3a08y?=
+ =?utf-8?B?UHpqZGpXdFIwTXo4QjN2Tm96clVYR0cvNFdpODhRSXZ1LzFkZkhIYWJpY0J4?=
+ =?utf-8?B?SnBoZmxqVkxuS3M2WW9Va0lCQlA5SEM0dEdRKzg2eG53bzFKR2hLa3VNMFFO?=
+ =?utf-8?B?V1A4VkxZNmhMUE8rSmZPRjFic0xCTFI5aEdCK3JVc1Z1bWhGaDhHUVJpSGlK?=
+ =?utf-8?B?b2xqdU1QdVlnNitOOE1IZG04cmM1cDZOUzM0aVduVGpweHhKK1NiQnptenpz?=
+ =?utf-8?B?SnhQWXoxNDM0QXFQT01iaTZjYUF0aEg5S0pzajNoS1RLN1hML29RUE1QeC9F?=
+ =?utf-8?B?Zkx2NWZSbHhYNkd3UVdOUlorWUdKMThDTk1QVXEwVnN5WUdwSUVkTm9XWXhK?=
+ =?utf-8?B?M1ZHMXZraDJKVkNLOEJucmhBWmw4aU9JT28zWUl1U2RsMWs5TnF0NE9YYkp6?=
+ =?utf-8?B?eVNrN0srekQrMWpNUnhmNGtCRXpBcnN1WWJQblgyc0tDd1BkUUpibGUwbG9K?=
+ =?utf-8?B?MjdXeG9EZ0pLNUVEZHpIVU9qanFKK3RFV3QrbHFIVkpuUlpEcnFCRDZDVnIx?=
+ =?utf-8?B?bjc5TmRlbUt4UzVyTnlYaFd4Z0NueGNkLzhyRHlaSHMxYUs3dWNSVkMrNjNH?=
+ =?utf-8?B?Q0VwN01ldEpVUG1sUTRTakZjU0ZyWHZ5bUFIaHZEbGJPdlZ5UnIvaFhGcUJ5?=
+ =?utf-8?B?UWlVcU5aZDZPTDZwSEN3NUg5RFhVb1BRdlhsc1ZtMStXQ242cVRobjRVYVVp?=
+ =?utf-8?B?SWIrbHVUbFV0eTNQYkdwMFBWakxaZjloYU5MWjZoRUdtOHRoMjVwNmx0N2t3?=
+ =?utf-8?B?Vy8xWVROT3FoY25xTmU1d1ZPYlhZNEE4MnRObGZHTm1vWmEzRkVmQnR2eGd1?=
+ =?utf-8?B?Y0RGL2hlenc2VGhBdVdlZm1kZjR3cEVTTTc4WjF3TnQyM3luaXQveVNkZzIy?=
+ =?utf-8?B?dTh4N29qZXZ2WkIvY1NIYWRLQnhCQmRuNUo3RE9DYUFvVUJNdzNnYWFJOEdh?=
+ =?utf-8?B?T2EvWGhORGlhN1BtdUEvMTZZbi9BVHI0b1Y5YWQxaWErTDBPQ1kvVjM3aFNJ?=
+ =?utf-8?B?bDFldGdkUTZLS054S29Ub3NYTnduK2dmSUdsUEFsMDBwUnhaaVgveUE1RzRN?=
+ =?utf-8?B?N2ptSjRkcHNESHRtRTVnZFpkbEhMWTBjdW1UNjNXSXFRT3N0dWJIZkxnZ2ty?=
+ =?utf-8?Q?V6RecXCuk3CYNsk+h/?=
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 36386571-358e-4afa-ec95-08def2bdc6e2
+X-MS-Exchange-CrossTenant-AuthSource: MW6PR12MB7086.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 05 Aug 2026 06:50:03.8958
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: BzJvgixl9EgcIrhGYdzgYN1vsSD8R/tbxYy9r4geEmJpG1j87Cw0m9xoeXMwHAGtMcI981OJi08qUjWz//jfmw==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: MN6PR12MB8470
 
-Hi Yifei,
 
-Thanks for looking into this.
 
-Yes I have submitted a patch for the same issue.
-https://lore.kernel.org/netdev/20260804082800.498672-1-hidayath@linux.ibm.com/
-
-Hidayath
-
-On 05/08/26 3:09 am, Yifei Gao wrote:
-> smc_switch_conns() takes a reference on the socket with sock_hold() before
-> dropping conns_lock to prefetch a tx slot. On success the reference is
-> released by the sock_put() after smc_switch_cursor(). When
-> smc_cdc_get_free_slot() fails, however, the function jumps straight to
-> err_out without a sock_put(), leaking the reference and leaving the socket
-> unreclaimable. During SMC-R link failover with an exhausted backup link
-> this leaks one reference per failing connection switch.
->
-> Release the reference before jumping to err_out. The err_out label is also
-> reached from the smc_switch_cursor() failure path, which has already done
-> its own sock_put(), so the put must stay at the get_free_slot failure site
-> rather than at the label.
->
-> Fixes: c6f02ebeea3a ("net/smc: switch connections to alternate link")
-> Cc: stable@vger.kernel.org
-> Assisted-by: Claude:claude-opus-4-8
-> Signed-off-by: Yifei Gao <gyf161023@gmail.com>
+On 29/07/2026 23:47, Tianyu Zuo wrote:
+> mlx5e_hw_gro_skb_has_enough_space() bounds a HW GRO session by the
+> payload held in the skb fragments only. The L3/L4 headers that
+> header-data split placed in the linear area are not accounted for, and
+> the limit is inclusive of GRO_LEGACY_MAX_SIZE.
+> 
+> On a 4K page system a session can therefore grow to 16 full page
+> fragments (65536 bytes) plus the 40 bytes of IPv4/TCP headers in the
+> linear part, giving skb->len = 65576.
+> 
+> mlx5e_shampo_update_hdr() writes the IP length itself:
+> 
+> 	__be16 newlen = htons(skb->len - nhoff);
+> 	csum_replace2(&ipv4->check, ipv4->tot_len, newlen);
+> 	ipv4->tot_len = newlen;
+> 
+> With nhoff == 0 this stores tot_len = 40 and updates the header checksum
+> to match, so the corruption is self-consistent. The GRO stack does not
+> repair it: the header is written before napi_gro_receive(), and
+> inet_gro_complete() only runs for skbs that the GRO engine holds on its
+> gro_list. HW GRO sessions are typically flushed on TCP_FLAG_PSH, which
+> makes tcp_gro_receive() set NAPI_GRO_CB(skb)->flush, so dev_gro_receive()
+> hands the skb over via GRO_NORMAL and the gro_complete() callbacks are
+> never invoked. The length check in inet_gro_receive() cannot catch it
+> either, since tot_len and skb_gro_len() are compared modulo 64K.
+> 
+> ip_rcv_core() then trims the 64KB skb down to the wrapped tot_len,
+> silently dropping the payload. The IPv6 path wraps identically in
+> ipv6hdr->payload_len.
+> 
+> Triggering this requires the payload of the aggregated session to reach
+> GRO_LEGACY_MAX_SIZE with every fragment fully populated, since
+> page_size * nr_frags otherwise overestimates the data actually present
+> and the session is flushed earlier. In practice this needs an MSS that
+> is a multiple of the page size (for example 8192 on a 4K page host with
+> jumbo frames) together with a page aligned start of the session.
+> 
+> Account for skb_headlen() and make both checks strictly less than
+> GRO_LEGACY_MAX_SIZE so that skb->len can never exceed 65535.
+> 
+> The check is strictly more conservative than before, so the implicit
+> bound on the fragment count is preserved: page_size * nr_frags +
+> data_bcnt <= 65535 gives nr_frags + data_bcnt / page_size <=
+> 65536 / page_size - 1, and a single CQE adds at most
+> data_bcnt / page_size + 1 fragments, for a total of at most
+> 65536 / page_size (16 on 4K pages), well below MAX_SKB_FRAGS.
+> 
+> Fixes: 92552d3abd32 ("net/mlx5e: HW_GRO cqe handler implementation")
+> Signed-off-by: Tianyu Zuo <cosmosocket@gmail.com>
 > ---
->   net/smc/smc_core.c | 4 +++-
->   1 file changed, 3 insertions(+), 1 deletion(-)
->
-> diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
-> index cf6b620fef05..04c6ce608ec7 100644
-> --- a/net/smc/smc_core.c
-> +++ b/net/smc/smc_core.c
-> @@ -1148,8 +1148,10 @@ struct smc_link *smc_switch_conns(struct smc_link_group *lgr,
->   		read_unlock_bh(&lgr->conns_lock);
->   		/* pre-fetch buffer outside of send_lock, might sleep */
->   		rc = smc_cdc_get_free_slot(conn, to_lnk, &wr_buf, NULL, &pend);
-> -		if (rc)
-> +		if (rc) {
-> +			sock_put(&smc->sk);
->   			goto err_out;
-> +		}
->   		/* avoid race with smcr_tx_sndbuf_nonempty() */
->   		spin_lock_bh(&conn->send_lock);
->   		smc_switch_link_and_count(conn, to_lnk);
+>   drivers/net/ethernet/mellanox/mlx5/core/en_rx.c | 5 +++--
+>   1 file changed, 3 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c b/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
+> index 6fbc0441c4b8..2e9676305439 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
+> @@ -2222,9 +2222,10 @@ static bool mlx5e_hw_gro_skb_has_enough_space(struct sk_buff *skb,
+>   	int nr_frags = skb_shinfo(skb)->nr_frags;
+>   
+>   	if (page_size >= GRO_LEGACY_MAX_SIZE)
+> -		return skb->len + data_bcnt <= GRO_LEGACY_MAX_SIZE;
+> +		return skb->len + data_bcnt < GRO_LEGACY_MAX_SIZE;
+
+Please add a sentence in commit message covering this branch as well.
+
+>   	else
+> -		return page_size * nr_frags + data_bcnt <= GRO_LEGACY_MAX_SIZE;
+> +		return skb_headlen(skb) + page_size * nr_frags + data_bcnt <
+> +			GRO_LEGACY_MAX_SIZE;
+>   }
+>   
+>   static void mlx5e_handle_rx_cqe_mpwrq_shampo(struct mlx5e_rq *rq, struct mlx5_cqe64 *cqe)
+> 
+> base-commit: 51b093a7ba27476e1f639455f005e8d2e75390e4
+
