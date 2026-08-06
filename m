@@ -1,90 +1,72 @@
-Received: from mail-vk1-f228.google.com (mail-vk1-f228.google.com [209.85.221.228])
+Received: from mail-wr2-f0.google.com (mail-wr2-f0.google.com [74.125.225.64])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C81193D6CDD
-	for <linux-rdma@vger.kernel.org>; Thu,  6 Aug 2026 19:30:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.228
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 41638494823
+	for <linux-rdma@vger.kernel.org>; Thu,  6 Aug 2026 20:14:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.225.64
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786044602; cv=none; b=stCMvUlRxdV5jDdejvQDFAamqeVAXaWMvjrk6zdbpeUxo/Os3vFnOsVRuJrO8V0Ql03nlwDZTffOg/UgTOBqwTsjDjuGa+2wm57KA5a28FCjyNkXVR2u9SY4TsZVn1TJLUwGhnbSGVs8TNCrMou5cM0l3WsLGiw/EV8sTI8ZLzI=
+	t=1786047283; cv=none; b=JEduZDXOMnbUUgzNTaNMddW0jvk2EqO/R0QR71GvEgcULauvil+8ELjK5FmE+02LAb33Fiz8IgnocjaVUjxGPvVXf/ZeQv2vxs+uPcMFdWpnNhHipSZmvj3diWffIOY1SDuunl2GqxEBS25BDK5De/7bKO6pYRHhJldwnXcpryo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786044602; c=relaxed/simple;
-	bh=kH2BdwdC2VnPNHSwN9gVlL7kbkWIln7fwObl9Mij53U=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=j7v5lFlKNDjKE9dH2PUfYyYTIWpaiCeF9L9TxmrwZdjFRujV00wciGDjQFEIxe2qjwTdxUUdiVknYwrl9iiBE7dBRllQzCXykVEHMCjNXn1ITTclGrEm6YimOc3Kg7k0R58y1mWoRBrWwXVqomLi4Z5WIEtm/++F/1mI14TUYZQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com; spf=fail smtp.mailfrom=broadcom.com; dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b=ehgdwo9/; arc=none smtp.client-ip=209.85.221.228
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=broadcom.com
+	s=arc-20240116; t=1786047283; c=relaxed/simple;
+	bh=o2btizAO+Ks/0UvqaH7GZKydxvAy1OgOWVYRpiO6bo0=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=nTRWeGH548pCLjinAUIgzRqqfw92Objh4Fd1m6X/SguGBGHvFkauENUvgjVLvD10u4ArTIIFHrGLVCCoKLFuYYQfskjQlGe5rOkNijMq3RsgjCv5xf4JtsvPFnGowyQIiMTF5XuLKGTVWG3wYtt6dLrpq7NPif4sNnaUj14vVnY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=i7UQ7gm1; arc=none smtp.client-ip=74.125.225.64
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b="ehgdwo9/"
-Received: by mail-vk1-f228.google.com with SMTP id 71dfb90a1353d-5c2c0df0b45so880272e0c.1
-        for <linux-rdma@vger.kernel.org>; Thu, 06 Aug 2026 12:30:00 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1786044599; x=1786649399;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:dkim-signature:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=0T+fJOaRtQwKYzPWhLYqkOXp6DYAUNRLscX8XontZ2s=;
-        b=QW+QoBEFi9cWpCu8h8Jg0Dpc5d+3jEKB/4R4Yw0E9ydZLx73yF2m+PUredxyEB5Kdg
-         NIX+1Rn38VHe/VdpkOfcZMyF9i5Y8E68DWWQ/7/ZFPVx66xdjSv7It5Bk0RHepBQwcFp
-         05/vGRKTa6oYZYrdyLZ4yeL12qS/JdN7ITgCiqX1BlarrudeLe8K3TTdCsGDktrukYKM
-         xSYiI61u6AnJRe+ld4v+1g+VLRFhPvngmYkhPNl2//tYT5zqDGqjEAw5jE6VFk+8V4l3
-         7ftycrlxRPk7CjttJgBU6EhgfudE9eFLZ0IlS+dZtZCwBK7am7EBRbgTEICCpIRQzXMr
-         Z1kw==
-X-Gm-Message-State: AOJu0Yy/pCJZb0iyN1Zc50ahQUTr2w4A9QuwfzHYPFh0IApy9KjcQskR
-	iTjnUGO949+6xMys+ZcxWSe9fE+6zOrcgd+xRr7pfGbbOdnM/1tBpO95DSLm8bNBWvtytK7v5hK
-	VL+VgFgV5RrQvADpueY3gDKtS4A0UhxR8oSecC9Sg2SfnGsp6eSjKlQNNdLxZcdffaX95mL9hwy
-	Xyqj6f7RdSPQlG5xSV4i3QrTLtYvLThgNvpE1DHDGerW18veg4DtsitaWvRrUs33zBHZGTlD+c2
-	xMm0pFZ/IGC73ZhGw==
-X-Gm-Gg: AR+sD13R8ftBuua//SU6jGw1ds61MWJqC17+D9Oi/g//jp1KxLbaLHBPJ2bmXiVWe7L
-	AKQRv9THP3afX+YqwJQ8RyDAh+1VqNzID+zCwlgJQ8qlYxPHtcivKCxbAfkpyMoENcoMveoH9+B
-	ukG52XEpkXRjhqYpSDAYXNZVqoS1Yy0ZObBmk/P3QERVVq/bjXL0p6zYpkckn/3e3oY0ei/9Pnn
-	LaeEGGVH3hakMHceaAI8BGA0v31yt/ZeE1Rl1hr4uDjf4b0GSC4lS+PygqDOa8968LJuNChwHpK
-	5EGck5FPX3bjZU+ndxAcn6FDp7UFI478XnTesSGUBF1v6zftv3OFa2PxaUtZLgO93zNwZ63PlnO
-	RZkVJttZPEH8+77QQvJ68EXLvFPqJF/q8xHCuU7HjKy1djZfKawEgMxr1qbVFuWqlrQMlAxZJcE
-	U9J457rmHnYACcAPJm1UcgAtzP1tlvRJBaSQ==
-X-Received: by 2002:a05:6122:2492:b0:5c1:781:7122 with SMTP id 71dfb90a1353d-5c3d907e08amr2070498e0c.3.1786044599266;
-        Thu, 06 Aug 2026 12:29:59 -0700 (PDT)
-Received: from smtp-us-east1-p01-i01-si01.dlp.protect.broadcom.com (address-144-49-247-0.dlp.protect.broadcom.com. [144.49.247.0])
-        by smtp-relay.gmail.com with ESMTPS id 71dfb90a1353d-5c3d04d7310sm1839746e0c.2.2026.08.06.12.29.59
-        for <linux-rdma@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 06 Aug 2026 12:29:59 -0700 (PDT)
-X-Relaying-Domain: broadcom.com
-X-CFilter-Loop: Reflected
-Received: by mail-pg1-f197.google.com with SMTP id 41be03b00d2f7-ca8aee88725so3625317a12.3
-        for <linux-rdma@vger.kernel.org>; Thu, 06 Aug 2026 12:29:58 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="i7UQ7gm1"
+Received: by mail-wr2-f0.google.com with SMTP id ffacd0b85a97d-4784b41f3aeso624582f8f.1
+        for <linux-rdma@vger.kernel.org>; Thu, 06 Aug 2026 13:14:34 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=broadcom.com; s=google; t=1786044598; x=1786649398; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+        d=gmail.com; s=20251104; t=1786047269; x=1786652069; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=KptR6YR3bhzGgXjfr9mIisFou0Y2tXrBhy7YKqZAMeo=;
+        b=i7UQ7gm1y43GxtfulJeQUPvx85Q+lFILxtnFI6x0DuMPKcB54Lasc3CcfX9Jyd97ps
+         FyjOxHPgwLQhhuwpu10/9qHGmae6xH3T/2I6N8MCKXFqUvfrrOgMK+y291db/dWGonCB
+         qo9cBU13FQHBi9PmEfA2dfhfZi7gudOtQ62wWESj1K1rcin0SERmdL8I+lkmQ+EgGvjU
+         mH3H2yJDzMPXYbvrHJNcRq0ssqaQpA+fI5Lp0Zf6ZRldoG/O9xp/EEvMNMJADtqVVDOo
+         daVAf6BZLreQ2+cz/eymLvnSi20pNoNNx6ICe3I/J2ZDGF80DwB22LW+sLAcdyKWB0+h
+         xzmQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1786047269; x=1786652069;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=0T+fJOaRtQwKYzPWhLYqkOXp6DYAUNRLscX8XontZ2s=;
-        b=ehgdwo9/ljtC1Jc2n7fJl4B9PPYxQk/xme2rsb7KUQ8RDNf0aOAuSlNBzBzfK7K700
-         ZXB0vebb1OhYIljn2qZ4PwMNKpcrDKyptjtEMV1yKyDOQUwplFvmPdz2ae5MR38d+WMv
-         3O6Mr8ewAlsfAe94nMo0ICNBQz7MaSFjmPQQM=
-X-Received: by 2002:a05:6a20:4321:b0:3c3:b57b:6291 with SMTP id adf61e73a8af0-3cb85e6689fmr18884563637.18.1786044598118;
-        Thu, 06 Aug 2026 12:29:58 -0700 (PDT)
-X-Received: by 2002:a05:6a20:4321:b0:3c3:b57b:6291 with SMTP id adf61e73a8af0-3cb85e6689fmr18884530637.18.1786044597669;
-        Thu, 06 Aug 2026 12:29:57 -0700 (PDT)
-Received: from dhcp-10-123-156-114.dhcp.broadcom.net ([192.19.234.250])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-3158644a195sm28484575eec.13.2026.08.06.12.29.54
+        bh=KptR6YR3bhzGgXjfr9mIisFou0Y2tXrBhy7YKqZAMeo=;
+        b=fOUz+q5QXpsc738Is3AWL0e+Qr1lEIH3gbi8ZgTZ5I7iy8vKSTmAr6mcimOASyHRPB
+         NWq5SNPSfpOC9nSXbefx/ElxvJ6W2+2UMYPlMC2OV2X+QkKMzO/llQEmkGITjOByEla2
+         5JL5tEbK60L7MsNdsFJv0uMPYFffZ5fZZlhiQGmDQOSftRt02Is6/uBbm8sQKT5VrhEZ
+         VjC9SE2DSnjzgNFoMEAT7IIz0R68vBn4o0kKKfxFK8Sd57m1df7VTbkcrilVYNyT3+Zo
+         uqR2D85nbwR/1JIovFz5TKzjNkqgmhqe6Di1BEz5Uy3Hnu/gZRvIyJ4KkRbg+slqXiP8
+         PLKA==
+X-Forwarded-Encrypted: i=1; AHgh+RoPNg8DLWOFO9zaWxy/8abgA74elGP1gCUNqk4saDpcGGP5lOT35jkZr41fmLM52MSg2+fCuHtFvTfX@vger.kernel.org
+X-Gm-Message-State: AOJu0Ywnm1HbH3XeRR5C2ObunXVk4+NLSdZTbRjNIiPLYdmfIPr1FBSS
+	rpN/Sa/C8qByNrc0WwKKwQAzOFnKzFFTUitT/+ijhMte7KeTImsNpJcM
+X-Gm-Gg: AR+sD11bVeYPhpZRaO5G5jOcXo3sIEUxvNldnUfJ0dUZRD5JPAXMzYEXK+5wRd5yDgJ
+	RyS0XESiVGFecsUxC0wNawI2BtSx5AcVDMVWBUF0V8Hc4PDVEjim3afaGXMMrC0cTbheS3qg3d+
+	DpCxFmFEw8rP+020j4p7FpY4Qy68GWUohQXc7jCTDBRTFuZEepjwOlzkI4JQlCEaVusa++lCUYl
+	39hXP/tKNe8N1qRIHAtvsW60ZyTUC60LOobad+fy5TUTjgmLTsHNnPdD4qhSvl1nBRSo5mAuXse
+	dhSIK52oJ2NfG7kC4o+qhsSfc7tUznKPTfs8WiA9pAKmZS2MxvCAZnoUlrwllrnClOAWtehZzp0
+	JGFzYwZAraMLmE02CAQjg3Rai/KeE947Nybp2XL0h0xGcLa9+gV45pFO5r71a7reXAiiXksPeBm
+	BtsqCor+Ow2csaxD/sxNLgSRRs69bEpoumoe6CfYoOBJOGC3vV/QxshzHURsHr
+X-Received: by 2002:a05:600c:8b55:b0:495:3de8:33a6 with SMTP id 5b1f17b1804b1-4994e7cdd39mr266039855e9.16.1786047268974;
+        Thu, 06 Aug 2026 13:14:28 -0700 (PDT)
+Received: from fedora ([212.253.220.176])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4995422016fsm70069855e9.8.2026.08.06.13.14.27
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 06 Aug 2026 12:29:57 -0700 (PDT)
-From: Selvin Xavier <selvin.xavier@broadcom.com>
-To: leon@kernel.org,
-	jgg@ziepe.ca
-Cc: linux-rdma@vger.kernel.org,
-	andrew.gospodarek@broadcom.com,
-	kalesh-anakkur.purayil@broadcom.com,
-	saravanan.vajravel@broadcom.com,
-	Selvin Xavier <selvin.xavier@broadcom.com>
-Subject: [PATCH for-next 4/4] RDMA/bnxt_re: Add support for larger PBL pages for QP
-Date: Thu,  6 Aug 2026 17:51:38 -0700
-Message-Id: <20260807005138.771669-5-selvin.xavier@broadcom.com>
-X-Mailer: git-send-email 2.39.3
-In-Reply-To: <20260807005138.771669-1-selvin.xavier@broadcom.com>
-References: <20260807005138.771669-1-selvin.xavier@broadcom.com>
+        Thu, 06 Aug 2026 13:14:28 -0700 (PDT)
+From: Serhat Kumral <serhatkumral1@gmail.com>
+To: Jason Gunthorpe <jgg@ziepe.ca>,
+	Leon Romanovsky <leon@kernel.org>
+Cc: Sean Hefty <shefty@nvidia.com>,
+	linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Serhat Kumral <serhatkumral1@gmail.com>
+Subject: [PATCH] RDMA/ucma: Allow path records to exactly fit the output buffer
+Date: Thu,  6 Aug 2026 23:13:58 +0300
+Message-ID: <20260806201358.147478-1-serhatkumral1@gmail.com>
+X-Mailer: git-send-email 2.55.0
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -92,103 +74,72 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-DetectorID-Processed: b00c1d49-9d2e-4205-b15f-d015386d3d5e
 
-Advertise the PBL page size and first-word offset (FWO) for SQ/RQ
-in CREATE_QP so the firmware can use huge-page QP buffers.
+ucma_query_path() emits a path record only when the remaining output
+buffer is strictly larger than struct ib_path_rec_data. A buffer sized
+exactly for the response header and N complete records therefore gets
+only N - 1 records, while resp->num_paths still advertises N. A caller
+sizing its buffer for a single record gets a header claiming one path
+and no path data at all.
 
-Signed-off-by: Saravanan Vajravel <saravanan.vajravel@broadcom.com>
-Signed-off-by: Selvin Xavier <selvin.xavier@broadcom.com>
+ucma_query_ib_service() in the same file computes the record count with
+a plain division and so accepts an exact fit; make ucma_query_path()
+behave the same way.
+
+Current librdmacm is unaffected because it always sizes the response for
+six records while the kernel currently reports at most two paths. Other
+users of the UAPI that provide an exactly sized buffer can observe the
+truncated response.
+
+Fixes: ac53b264b2f3 ("RDMA/ucma: Support querying when IB paths are not reversible")
+Signed-off-by: Serhat Kumral <serhatkumral1@gmail.com>
 ---
- drivers/infiniband/hw/bnxt_re/qplib_fp.c | 19 +++++++++++++-----
- drivers/infiniband/hw/bnxt_re/roce_hsi.h | 25 ++++++++++++++++++++++--
- 2 files changed, 37 insertions(+), 7 deletions(-)
+Reproduced with soft-RoCE (rxe) under qemu, on two 7.2.0-rc3 kernels that
+differ only in this patch; the kernel config, the test program and the VM
+were identical across both runs.  The test program drives
+/dev/infiniband/rdma_cm directly so that hdr.out can be set to exactly
 
-diff --git a/drivers/infiniband/hw/bnxt_re/qplib_fp.c b/drivers/infiniband/hw/bnxt_re/qplib_fp.c
-index 0319fe76c634..2fb06abda552 100644
---- a/drivers/infiniband/hw/bnxt_re/qplib_fp.c
-+++ b/drivers/infiniband/hw/bnxt_re/qplib_fp.c
-@@ -985,9 +985,14 @@ int bnxt_qplib_create_qp(struct bnxt_qplib_res *res, struct bnxt_qplib_qp *qp)
- 	pbl = &sq->hwq.pbl[PBL_LVL_0];
- 	req.sq_pbl = cpu_to_le64(pbl->pg_map_arr[0]);
- 	req.sq_pg_size_sq_lvl = sq->hwq.pg_sz_lvl;
-+	if (bnxt_re_pbl_size_supported(res->dattr->dev_cap_ext_flags_1)) {
-+		qp_flags |= CMDQ_CREATE_QP_QP_FLAGS_SQ_PBL_PG_SIZE_VALID;
-+		req.sq_pbl_pg_size = bnxt_qplib_get_pbl_page_size(&sq->sg_info);
-+	}
- 	req.sq_fwo_sq_sge =
--		cpu_to_le16(((sq->max_sge & CMDQ_CREATE_QP_SQ_SGE_MASK) <<
--			     CMDQ_CREATE_QP_SQ_SGE_SFT) | 0);
-+		cpu_to_le16((((sq->sg_info.fwo_offset >> BNXT_QPLIB_QP_FWO_SHIFT) <<
-+			      CMDQ_CREATE_QP_SQ_FWO_SFT) & CMDQ_CREATE_QP_SQ_FWO_MASK) |
-+			    (sq->max_sge & CMDQ_CREATE_QP_SQ_SGE_MASK));
- 	req.scq_cid = cpu_to_le32(qp->scq->id);
+	sizeof(struct rdma_ucm_query_path_resp) +
+	sizeof(struct ib_path_rec_data)		= 8 + 72 = 80
+
+and poisons the response buffer first, so a record slot the kernel never
+wrote stays recognisable afterwards.
+
+Before:
+
+	requesting room for 1 record(s): hdr.out = 80
+	resp->num_paths (advertised by kernel) = 1
+	record slot 0: UNTOUCHED (still poison)
+	records that fit in the buffer and should have been copied: 1
+	records actually copied:                                   0
+
+After:
+
+	requesting room for 1 record(s): hdr.out = 80
+	resp->num_paths (advertised by kernel) = 1
+	record slot 0: written by kernel   flags=0x0000002b
+	records that fit in the buffer and should have been copied: 1
+	records actually copied:                                   1
+
+flags 0x2b is IB_PATH_GMP | IB_PATH_PRIMARY | IB_PATH_BIDIRECTIONAL, i.e.
+exactly what ucma_query_path() writes into the record.
+
+ drivers/infiniband/core/ucma.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
+index 878561fa1cb5..cfd202325458 100644
+--- a/drivers/infiniband/core/ucma.c
++++ b/drivers/infiniband/core/ucma.c
+@@ -951,7 +951,7 @@ static ssize_t ucma_query_path(struct ucma_context *ctx,
  
- 	/* RQ */
-@@ -997,12 +1002,16 @@ int bnxt_qplib_create_qp(struct bnxt_qplib_res *res, struct bnxt_qplib_qp *qp)
- 		pbl = &rq->hwq.pbl[PBL_LVL_0];
- 		req.rq_pbl = cpu_to_le64(pbl->pg_map_arr[0]);
- 		req.rq_pg_size_rq_lvl = rq->hwq.pg_sz_lvl;
-+		if (bnxt_re_pbl_size_supported(res->dattr->dev_cap_ext_flags_1)) {
-+			qp_flags |= CMDQ_CREATE_QP_QP_FLAGS_RQ_PBL_PG_SIZE_VALID;
-+			req.rq_pbl_pg_size = bnxt_qplib_get_pbl_page_size(&rq->sg_info);
-+		}
- 		nsge = (qp->wqe_mode == BNXT_QPLIB_WQE_MODE_STATIC) ?
- 			6 : rq->max_sge;
- 		req.rq_fwo_rq_sge =
--			cpu_to_le16(((nsge &
--				      CMDQ_CREATE_QP_RQ_SGE_MASK) <<
--				     CMDQ_CREATE_QP_RQ_SGE_SFT) | 0);
-+			cpu_to_le16((((rq->sg_info.fwo_offset >> BNXT_QPLIB_QP_FWO_SHIFT) <<
-+				      CMDQ_CREATE_QP_RQ_FWO_SFT) & CMDQ_CREATE_QP_RQ_FWO_MASK) |
-+				    (nsge & CMDQ_CREATE_QP_RQ_SGE_MASK));
- 	} else {
- 		/* SRQ */
- 		qp_flags |= CMDQ_CREATE_QP_QP_FLAGS_SRQ_USED;
-diff --git a/drivers/infiniband/hw/bnxt_re/roce_hsi.h b/drivers/infiniband/hw/bnxt_re/roce_hsi.h
-index bbcd723cd2b5..aa85cd379e48 100644
---- a/drivers/infiniband/hw/bnxt_re/roce_hsi.h
-+++ b/drivers/infiniband/hw/bnxt_re/roce_hsi.h
-@@ -437,8 +437,10 @@ struct cmdq_create_qp {
- 	#define CMDQ_CREATE_QP_QP_FLAGS_EXPRESS_MODE_ENABLED       0x100UL
- 	#define CMDQ_CREATE_QP_QP_FLAGS_STEERING_TAG_VALID         0x200UL
- 	#define CMDQ_CREATE_QP_QP_FLAGS_RDMA_READ_OR_ATOMICS_USED  0x400UL
-+	#define CMDQ_CREATE_QP_QP_FLAGS_RQ_PBL_PG_SIZE_VALID       0x2000UL
-+	#define CMDQ_CREATE_QP_QP_FLAGS_SQ_PBL_PG_SIZE_VALID       0x4000UL
- 	#define CMDQ_CREATE_QP_QP_FLAGS_LAST                      \
--		CMDQ_CREATE_QP_QP_FLAGS_RDMA_READ_OR_ATOMICS_USED
-+		CMDQ_CREATE_QP_QP_FLAGS_SQ_PBL_PG_SIZE_VALID
- 	u8	type;
- 	#define CMDQ_CREATE_QP_TYPE_RC            0x2UL
- 	#define CMDQ_CREATE_QP_TYPE_UD            0x4UL
-@@ -501,7 +503,26 @@ struct cmdq_create_qp {
- 	__le64	orrq_addr;
- 	__le32	request_xid;
- 	__le16	steering_tag;
--	__le16	reserved16;
-+	u8	sq_pbl_pg_size;
-+	#define CMDQ_CREATE_QP_SQ_PBL_PG_SIZE_MASK  0xfUL
-+	#define CMDQ_CREATE_QP_SQ_PBL_PG_SIZE_SFT   0
-+	#define CMDQ_CREATE_QP_SQ_PBL_PG_SIZE_PG_4K   0x0UL
-+	#define CMDQ_CREATE_QP_SQ_PBL_PG_SIZE_PG_8K   0x1UL
-+	#define CMDQ_CREATE_QP_SQ_PBL_PG_SIZE_PG_64K  0x2UL
-+	#define CMDQ_CREATE_QP_SQ_PBL_PG_SIZE_PG_2M   0x3UL
-+	#define CMDQ_CREATE_QP_SQ_PBL_PG_SIZE_PG_8M   0x4UL
-+	#define CMDQ_CREATE_QP_SQ_PBL_PG_SIZE_PG_1G   0x5UL
-+	#define CMDQ_CREATE_QP_SQ_PBL_PG_SIZE_LAST   CMDQ_CREATE_QP_SQ_PBL_PG_SIZE_PG_1G
-+	u8	rq_pbl_pg_size;
-+	#define CMDQ_CREATE_QP_RQ_PBL_PG_SIZE_MASK  0xfUL
-+	#define CMDQ_CREATE_QP_RQ_PBL_PG_SIZE_SFT   0
-+	#define CMDQ_CREATE_QP_RQ_PBL_PG_SIZE_PG_4K   0x0UL
-+	#define CMDQ_CREATE_QP_RQ_PBL_PG_SIZE_PG_8K   0x1UL
-+	#define CMDQ_CREATE_QP_RQ_PBL_PG_SIZE_PG_64K  0x2UL
-+	#define CMDQ_CREATE_QP_RQ_PBL_PG_SIZE_PG_2M   0x3UL
-+	#define CMDQ_CREATE_QP_RQ_PBL_PG_SIZE_PG_8M   0x4UL
-+	#define CMDQ_CREATE_QP_RQ_PBL_PG_SIZE_PG_1G   0x5UL
-+	#define CMDQ_CREATE_QP_RQ_PBL_PG_SIZE_LAST   CMDQ_CREATE_QP_RQ_PBL_PG_SIZE_PG_1G
- };
+ 	resp->num_paths = ctx->cm_id->route.num_pri_alt_paths;
+ 	for (i = 0, out_len -= sizeof(*resp);
+-	     i < resp->num_paths && out_len > sizeof(struct ib_path_rec_data);
++	     i < resp->num_paths && out_len >= sizeof(struct ib_path_rec_data);
+ 	     i++, out_len -= sizeof(struct ib_path_rec_data)) {
+ 		struct sa_path_rec *rec = &ctx->cm_id->route.path_rec[i];
  
- /* creq_create_qp_resp (size:128b/16B) */
 -- 
-2.39.3
+2.55.0
 
