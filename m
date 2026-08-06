@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E3B73486654;
-	Thu,  6 Aug 2026 17:24:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B23D448664C;
+	Thu,  6 Aug 2026 17:24:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786037042; cv=none; b=TX9dcgCrgTLD6TIHHldiJsxNTxN3lm/VLJ1/+wQfwvZFVEKHknDpLlm3Itornn2G/rZVr1tLMI1iD+viEAR+RO7poWKeBT/A9MKoEUb/Z1Jr145tuXlHaIWdybDv0kthUaWUBC/oHcizhE7ZdgcamvOim5DdjtwfILc1rKKTX40=
+	t=1786037047; cv=none; b=jfnXz9AHhHc21CyE7emQaMAAfMTKGV5BPsP9c+cJBNbrObmEkHdVKuzE1Rh6qhFhoz3K3VgPpaCyR1saT9xF5DfhpwgxZLHhjdL2iJZg/qlg3XGZyNZo0KVoFLO9xbYHoC7TcmEu29gQFxWKKUse//2JJonUn+9GhaheyHjYMkU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786037042; c=relaxed/simple;
-	bh=LLCMlGp/dNU4/YXJOKYjeDbFMIQ/4YN0i8V9/lxy3/0=;
+	s=arc-20240116; t=1786037047; c=relaxed/simple;
+	bh=8q8rlRYVs4R8BborX7SZeHUIU+MeOWusgBftVz4oJ30=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=tiJas8W9XLrI7nluyLKhFhWAaugJfYFnSd3+N/DNgsb28yPKdvw9aAdhcB9OjVk0l9tPzJ5sHCaGI/x/PXBknPN8NlYTD8iVedbOUq5sfok/Cma2wGFDYVo0nUqyapnsIPawtjdvmyRnbs5X8OHKKxOrP5+PKFCzy+dI/2nxSeE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=RbZqzc0M; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version; b=N9ybAjgFC7LLz7CVhgEOVWySPHGT45JcsszGfFRTn2ZpsnsMCFyUSSlUmaWtAovR/6JIXEpHnhv9rpvdbDQhuF92mMdgh0tK5VrQhTtBqCVfxeCflDtThsJrMpNU79F4n6jTWaYBr1iHb9oCdSWAsqbkEmiNcV+s2nPp/hoyec4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=NCYRBl5J; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="RbZqzc0M"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D8C931F000E9;
-	Thu,  6 Aug 2026 17:23:59 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="NCYRBl5J"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7EFF21F00A3A;
+	Thu,  6 Aug 2026 17:24:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1786037040;
-	bh=arL3uPMxzvHke73EKxi+k5ULmMVjqiDhfvCDbx5wLFA=;
+	s=k20260515; t=1786037042;
+	bh=lhssVueom1f94LhhPSz3iyfZrONCW9T8Dm3jZrxY83U=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=RbZqzc0MWZuwtWCtOhOvhgr0z0FAnv40765lQgye3YWTt7jeLdlw0KPvokEILYj1h
-	 Kq1EbC/gvcvq/D2dK/ZXYPDyALl0/P11OTLqYBoiApXY0YQia4aJEQ/WMGpWlHKx6h
-	 fTzs6z2fPazfI6LkRM7Lkb65I4SNYI6MKcN704HFsfp+EuNZNmHb94yEF85SBGDB1z
-	 6PSZrbd0TsON6BJFgHXd8xxqyx54UFcBEPZgRYqKNG0EjNDco+RjFj0zORrYtZ7ekn
-	 qtanDR9jDbwyJCxO+wk5DnJUkf2BhlhhuLU1scX0qV+z6ROelNotQTszBTFv2Zhibm
-	 jrRQ3dIseh8ZQ==
+	b=NCYRBl5JbS5cdh5/fy24kVGfdbqUfBbsx8pplMkrT5/pbviptFv/p0NO8/XYcEgS0
+	 5AssZbtAqxTv756vrAeBjoNyJhohV51vHMteSrYZCGpMX2YcCPx+YEBUGL0dkDPz7O
+	 Fvyujtr/8S2FShR1aRbjG4Y60k5ZRBxYQbahWpNBClAh5BhWXxg9McEHNktsxibe2F
+	 mUIpVEtkecXL1m19qMT4+sKr2WLHVZTb4gNjGTiviwrKcPqa+zYU8bU+H8uofWbiUz
+	 fiWOBrdde0VwTb0vCkqkQaHiYLTNA8SRTzPEUhJmV4+bazn5P+TPmuvZ2rw9gWaoLY
+	 LT2hP2QXnFIiQ==
 From: Jakub Kicinski <kuba@kernel.org>
 To: longli@microsoft.com
 Cc: Jakub Kicinski <kuba@kernel.org>,
@@ -48,12 +48,12 @@ Cc: Jakub Kicinski <kuba@kernel.org>,
 	linux-rdma@vger.kernel.org,
 	linux-hyperv@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH net v3 3/6] net: mana: free HWC comp_buf after destroying the EQ
-Date: Thu,  6 Aug 2026 10:23:59 -0700
-Message-ID: <20260806172359.2945799-1-kuba@kernel.org>
+Subject: Re: [PATCH net v3 4/6] net: mana: validate hardware-supplied values in the HWC RX path
+Date: Thu,  6 Aug 2026 10:24:00 -0700
+Message-ID: <20260806172400.2945922-1-kuba@kernel.org>
 X-Mailer: git-send-email 2.55.0
-In-Reply-To: <20260803234355.636038-4-longli@microsoft.com>
-References: <20260803234355.636038-4-longli@microsoft.com>
+In-Reply-To: <20260803234355.636038-5-longli@microsoft.com>
+References: <20260803234355.636038-5-longli@microsoft.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -65,146 +65,280 @@ Content-Transfer-Encoding: 8bit
 This is an AI-generated review of your patch. The human sending this
 email has considered the AI review valid, or at least plausible.
 ---
-net: mana: free HWC comp_buf after destroying the EQ
+net: mana: validate hardware-supplied values in the HWC RX path
 
-This moves the kfree(hwc_cq->comp_buf) in mana_hwc_destroy_cq() to after
-the CQ and EQ have been destroyed, so a late EQ handler calling
-mana_hwc_comp_event() cannot dereference freed memory.  A comment is
-added describing the fencing that makes the new order safe.
+This adds validation of device-supplied lengths and indices in the HWC
+receive path: the SGE pointer derived from inline_oob_size_div4 is bounds
+checked, the SGE address must match the address posted for the slot, short
+responses are rejected before hwc_msg_id is read, and hwc_msg_id and
+resp_len are range checked in mana_hwc_handle_resp().  Most validation
+early-returns now repost the RX WQE.
 
 > diff --git a/drivers/net/ethernet/microsoft/mana/hw_channel.c b/drivers/net/ethernet/microsoft/mana/hw_channel.c
-> index cbb56c7647876..d701c427fe47b 100644
+> index d701c427fe47b..e378b8ec97c9a 100644
 > --- a/drivers/net/ethernet/microsoft/mana/hw_channel.c
 > +++ b/drivers/net/ethernet/microsoft/mana/hw_channel.c
-> @@ -384,14 +384,20 @@ static void mana_hwc_comp_event(void *ctx, struct gdma_queue *q_self)
+> @@ -83,6 +83,17 @@ static void mana_hwc_handle_resp(struct hw_channel_context *hwc, u32 resp_len,
+>  	struct hwc_caller_ctx *ctx;
+>  	int err;
 >  
->  static void mana_hwc_destroy_cq(struct gdma_context *gc, struct hwc_cq *hwc_cq)
->  {
-> -	kfree(hwc_cq->comp_buf);
-> -
->  	if (hwc_cq->gdma_cq)
->  		mana_gd_destroy_queue(gc, hwc_cq->gdma_cq);
->  
-> +	/* comp_buf is reached only by mana_hwc_comp_event(), which the
-> +	 * EQ handler invokes via cq_table[id].  The CQ destroy above
-> +	 * already cleared that slot and ran synchronize_rcu(), so no
-> +	 * handler can reach comp_buf once it returns.  Destroying the EQ
-> +	 * here additionally tears down the IRQ (defense in depth) before
-> +	 * comp_buf and hwc_cq are freed below.
+> +	/* Validate msg_id is in range before using it to index bitmap
+> +	 * and caller_ctx array.  Malicious firmware could send
+> +	 * out-of-range msg_id causing out-of-bounds access.
 > +	 */
+> +	if (msg_id >= hwc->num_inflight_msg) {
+> +		dev_err(hwc->dev, "hwc_rx: msg_id %u >= max %u\n",
+> +			msg_id, hwc->num_inflight_msg);
+> +		mana_hwc_post_rx_wqe(hwc->rxq, rx_req);
+> +		return;
+> +	}
+> +
 
 [Severity: Low]
-Does the EQ destroy really tear down the IRQ here?
+Is this branch reachable?  mana_hwc_handle_resp() has a single caller,
+mana_hwc_rx_event_handler(), which already rejects the same condition
+immediately before the call (unchanged context in the last hunk of this
+patch):
 
-mana_gd_destroy_queue() for GDMA_EQ calls mana_gd_destroy_eq(), whose whole
-body is:
-
-	if (flush_evenets) {
-		err = mana_gd_test_eq(gc, queue);
-		...
+	msg_id = READ_ONCE(resp->response.hwc_msg_id);
+	if (msg_id >= hwc->num_inflight_msg) {
+		dev_err(hwc->dev, "HWC RX: wrong msg_id=%u\n", msg_id);
+		return;
 	}
 
-	mana_gd_deregister_irq(queue);
+	mana_hwc_handle_resp(hwc, rx_oob->tx_oob_data_size, rx_req, msg_id);
 
-	if (queue->eq.disable_needed)
-		mana_gd_disable_queue(queue);
+msg_id is passed by value, so there is no second read from DMA memory and
+the bound tested is the same hwc->num_inflight_msg.
 
-and mana_gd_deregister_irq() only unlinks the EQ from the shared IRQ's
-list:
+The changelog says mana_hwc_handle_resp() "consumed lengths and indices
+taken straight from device DMA without validation" and could "index out of
+bounds", and lists "bounds-check hwc_msg_id in mana_hwc_handle_resp()
+before indexing the inflight bitmap and caller_ctx" as one of the fixes.
 
-	spin_lock_irqsave(&gic->lock, flags);
-	list_for_each_entry_rcu(eq, &gic->eq_list, entry) {
-		if (queue == eq) {
-			list_del_rcu(&eq->entry);
-			break;
-		}
+Given the caller's pre-existing check, could hwc->inflight_msg_res.map or
+hwc->caller_ctx actually be indexed out of bounds before this patch?  If
+not, could the changelog describe this hunk as defence in depth instead,
+since the Fixes: tag makes it a backport candidate?
+
+[ ... ]
+
+> @@ -261,19 +284,69 @@ static void mana_hwc_rx_event_handler(void *ctx, u32 gdma_rxq_id,
+>  
+>  	sge = (struct gdma_sge *)(wqe + 8 + dma_oob->inline_oob_size_div4 * 4);
+>  
+> -	/* Select the RX work request for virtual address and for reposting. */
+> +	/* inline_oob_size_div4 is read from the WQE in device-accessible RQ
+> +	 * memory, so a malicious host in a CVM (or buggy firmware) could set
+> +	 * it to push the SGE past the RQ buffer.  Bounds-check the SGE it
+> +	 * locates before dereferencing sge->address below.  A validly posted
+> +	 * WQE keeps the SGE inside the ring (worst case ends exactly at the
+> +	 * buffer boundary); reject anything that would read past it.  The
+> +	 * slot cannot be trusted here, so leak this RX WQE rather than repost
+> +	 * the wrong one -- as in the SGE-address mismatch path below.
+> +	 */
+> +	if ((u8 *)(sge + 1) > (u8 *)rq->queue_mem_ptr + rq->queue_size) {
+> +		dev_err(hwc->dev, "HWC RX: SGE past RQ buffer, oob_div4=%u\n",
+> +			dma_oob->inline_oob_size_div4);
+> +		return;
+> +	}
+
+[Severity: Low]
+Does this check assert the invariant the driver actually programs?  For
+every HWC RQ WQE, mana_gd_post_work_request() in gdma_main.c forces the
+layout:
+
+	if (wq->type == GDMA_RQ) {
+		if (client_oob_size != 0)
+			return -EINVAL;
+
+		client_oob_size = INLINE_OOB_SMALL_SIZE;
+
+		max_wqe_size = GDMA_MAX_RQE_SIZE;
 	}
-	spin_unlock_irqrestore(&gic->lock, flags);
 
-	synchronize_rcu();
+so inline_oob_size_div4 is always 2 and the SGE always sits at wqe + 16
+inside a single 32-byte GDMA_WQE_BU_SIZE WQE.
 
-There is no free_irq() and no mana_gd_put_gic() on this path; the only
-free_irq() in gdma_main.c lives in mana_gd_put_gic(), which the HWC path
-reaches from mana_gd_remove_irqs() instead.  The MSI-X line stays
-registered and keeps firing for the other EQs sharing it.
+Since mana_gd_get_wqe_ptr() masks the offset into the ring, a WQE starts at
+most at queue_size - 32, so the ring-wide comparison only rejects a
+corrupted inline_oob_size_div4 when the completed WQE happens to be the
+last BU of the ring.  For every other WQE all eight 3-bit values pass, and
+sge->address is then read from somewhere in wqe + 8 ... wqe + 36, i.e. the
+client OOB area, the real SGE's mem_key/size words, or the next WQE's
+header.
 
-So the actual fence appears to be RCU in both steps (the cq_table slot
-clear plus synchronize_rcu() in mana_gd_destroy_cq(), and the list_del_rcu()
-plus synchronize_rcu() above), not IRQ teardown.
+Those bytes are then rejected by the index and address checks below, so the
+visible effect is the leaked WQE discussed further down rather than
+corruption.  Would checking inline_oob_size_div4 == 2 (or that the SGE lies
+within this WQE's own 32-byte BU) be both stricter and cheaper here?
 
-The same wording appears in the commit message:
+[Severity: Low]
+Is the pointer that gets dereferenced provably the pointer that was
+checked?  sge is computed from a plain load of dma_oob->inline_oob_size_div4,
+and both dma_oob and sge point into the DMA-mapped RQ ring
+(rq->queue_mem_ptr), which is shared host memory in a CVM.
 
-    Destroy the CQ and EQ first -- the EQ teardown deregisters the IRQ and
-    fences in-flight handlers -- then free comp_buf and hwc_cq.
+The load is neither volatile nor barriered, and the field is already read a
+second time for the dev_err() argument, so the compiler may rematerialize
+the address computation at the later sge->address dereferences.  If the
+host changed the field in between, the dereferenced SGE can sit past
+queue_mem_ptr + queue_size, which is what the check was added to prevent.
 
-Could the comment and the changelog be reworded to say the EQ is
-deregistered from the shared IRQ's RCU list, rather than that the IRQ is
-torn down?  The comment and the changelog also disagree on which step is
-load bearing: the comment treats the EQ destroy as "defense in depth"
-while the changelog presents it as the mechanism that fences handlers.
+sge->address is likewise loaded up to three times: for the rx_req_idx
+computation, for the equality test, and for the dev_err().
+
+A few lines below, the same function applies the opposite discipline to the
+response header with an explicit comment about CVM TOCTOU:
+
+	msg_id = READ_ONCE(resp->response.hwc_msg_id);
+
+Would snapshotting inline_oob_size_div4 and sge->address once with
+READ_ONCE() into locals, and checking and using only the locals, make the
+two new checks consistent with that?
+
+For the record, the index/address binding itself does look sound: since
+mana_hwc_alloc_dma_buf() sets buf_sge_addr[i] == dma_handle +
+i * max_resp_msg_size, the equality test can only pass for the slot that
+matches the second load, so the double fetch cannot produce a mismatched
+index/address pair.
 
 > +
->  	if (hwc_cq->gdma_eq)
->  		mana_gd_destroy_queue(gc, hwc_cq->gdma_eq);
+> +	/* Recover the originating RX slot from the SGE address.  Of the three
+> +	 * terms here only sge->address lives in device-accessible RQ memory;
+> +	 * rq_base_addr and max_resp_msg_size are driver-private constants.  An
+> +	 * in-range but wrong/unaligned SGE (corrupted WQE, or a malicious host
+> +	 * in a CVM) would otherwise truncate onto a neighbouring slot, letting
+> +	 * us read a stale response that could complete the wrong, reused
+> +	 * in-flight request.  Require the index to be in range AND the address
+> +	 * to exactly match the value the driver posted for that slot.
+> +	 */
+>  	rq_base_addr = hwc_rxq->msg_buf->mem_info.dma_handle;
+>  	rx_req_idx = (sge->address - rq_base_addr) / hwc->max_resp_msg_size;
 >  
-> +	kfree(hwc_cq->comp_buf);
->  	kfree(hwc_cq);
->  }
+> -	if (rx_req_idx >= hwc_rxq->msg_buf->num_reqs) {
+> -		dev_err(hwc->dev, "HWC RX: wrong rx_req_idx=%llu, num_reqs=%u\n",
+> -			rx_req_idx, hwc_rxq->msg_buf->num_reqs);
+> +	if (rx_req_idx >= hwc_rxq->queue_depth) {
+> +		/* Cannot trust which WQE this is, so we cannot safely repost
+> +		 * it; leak one RX WQE and bail.  An out-of-range index means
+> +		 * a corrupted SGE from hardware (or host tampering), an
+> +		 * unrecoverable device error.
+> +		 */
+> +		dev_err(hwc->dev, "HWC RX: SGE idx %llu out of range\n",
+> +			rx_req_idx);
+>  		return;
+>  	}
 >  
+>  	rx_req = &hwc_rxq->msg_buf->reqs[rx_req_idx];
+> +	if (sge->address != (u64)rx_req->buf_sge_addr) {
+> +		/* In-range index but the address does not match what the
+> +		 * driver posted for that slot; the same unrecoverable case,
+> +		 * so leak this WQE rather than repost the wrong one.
+> +		 */
+> +		dev_err(hwc->dev, "HWC RX: invalid SGE address %llx (idx=%llu)\n",
+> +			sge->address, rx_req_idx);
+> +		return;
+> +	}
+> +
 
 [Severity: Medium]
-This isn't a bug introduced by this patch, but the same window the patch
-closes for comp_buf still exists for hwc->rxq and hwc->txq, so the fix
-looks asymmetric.  In mana_hwc_destroy_channel() the work queues are
-freed before the CQ/EQ teardown that does the cq_table clear and the
-synchronize_rcu() calls:
+Can these two new returns drain the RQ credits to zero?
 
-	if (hwc->txq)
-		mana_hwc_destroy_wq(hwc, hwc->txq);
+The comments describe them as leaking "one RX WQE", but nothing bounds how
+often they can be taken, and the trigger values
+(dma_oob->inline_oob_size_div4, sge->address) live in device-accessible RQ
+memory, which the changelog itself treats as host-writable in a CVM.
 
-	if (hwc->rxq)
-		mana_hwc_destroy_wq(hwc, hwc->rxq);
+The HWC WQs are created with spec.monitor_avl_buf = false, and nothing ever
+advances rq->tail for HWC queues (queue->tail is only initialised to 0 in
+mana_gd_create_hwc_queue(); the only wq->tail += num_units in the driver is
+the ethernet path in mana_en.c).  The device's view of posted RQ buffers
+therefore follows wq->head, which only advances through
+mana_hwc_post_rx_wqe() -> mana_gd_post_and_ring():
 
-	if (hwc->cq)
-		mana_hwc_destroy_cq(hwc->gdma_dev->gdma_context, hwc->cq);
+	wq->head += wqe_size / GDMA_WQE_BU_SIZE;
 
-mana_hwc_destroy_wq() releases the DMA buffer and the hwc_wq itself with
-no fencing, and the GDMA_RQ/GDMA_SQ cases of mana_gd_destroy_queue() are
-empty:
+So each early return without a repost permanently reduces the posted depth,
+while hwc_rxq->queue_depth and msg_buf->num_reqs keep reporting the full
+depth.
 
-	mana_hwc_dealloc_dma_buf(hwc, hwc_wq->msg_buf);
+The out-of-range-index path already behaved this way before the patch; this
+adds two more such paths.  After HW_CHANNEL_VF_BOOTSTRAP_QUEUE_DEPTH
+occurrences the RQ is empty, no HWC response can be received, and every
+command times out.  Since the timeout path in mana_hwc_send_request()
+latches hwc->hwc_timeout = 1 and there is no HWC re-arm or reset path, is
+there any way out of that state?
 
-	if (hwc_wq->gdma_wq)
-		mana_gd_destroy_queue(hwc->gdma_dev->gdma_context,
-				      hwc_wq->gdma_wq);
+Would it be reasonable to count the leaked WQEs and signal the device as
+unusable (or reset the channel) once the posted depth drops, rather than
+silently continuing?
 
-	kfree(hwc_wq);
+>  	resp = (struct gdma_resp_hdr *)rx_req->buf_va;
+>  
+> +	/* Validate resp_len covers the response header before reading
+> +	 * hwc_msg_id.  A short response leaves stale data from the
+> +	 * previous buffer occupant, which could match a live slot and
+> +	 * complete the wrong request.
+> +	 */
+> +	if (rx_oob->tx_oob_data_size < sizeof(*resp)) {
+> +		dev_err(hwc->dev, "HWC RX: short resp_len=%u\n",
+> +			rx_oob->tx_oob_data_size);
+> +		mana_hwc_post_rx_wqe(hwc_rxq, rx_req);
+> +		return;
+> +	}
+> +
 
-In that window mana_hwc_comp_event() is still published in cq_table[id]
-and reaches the event handlers with ctx == hwc:
+[Severity: High]
+Does this early return leave the waiting sender uncompleted?
 
-		if (completions[i].is_sq)
-			hwc_cq->tx_event_handler(hwc_cq->tx_event_ctx, ...);
-		else
-			hwc_cq->rx_event_handler(hwc_cq->rx_event_ctx, ...);
+At this point the slot has been positively identified (sge->address was
+matched exactly against rx_req->buf_sge_addr), but the function returns
+before hwc_msg_id is read, so no hwc_caller_ctx is completed.
 
-and mana_hwc_rx_event_handler() then dereferences the freed rxq:
+Before this patch the same completion reached mana_hwc_handle_resp(), which
+applies the identical predicate through mana_hwc_verify_resp_msg():
 
-	if (WARN_ON_ONCE(hwc_rxq->gdma_wq->id != gdma_rxq_id))
-		return;
+	if (resp_len < sizeof(*resp_msg))
+		return -EPROTO;
 
-	rq = hwc_rxq->gdma_wq;
+and then failed and woke the sender:
+
+	err = mana_hwc_verify_resp_msg(ctx, resp_msg, resp_len);
+	if (err)
+		goto out;
 	...
-	rq_base_addr = hwc_rxq->msg_buf->mem_info.dma_handle;
+out:
+	ctx->error = err;
+	mana_hwc_post_rx_wqe(hwc->rxq, rx_req);
+	complete(&ctx->comp_event);
 
-Can a completion delivered in that window read freed hwc_wq/hwc_dma_buf
-memory, and repost into the already dma-unmapped RQ ring via
-mana_hwc_post_rx_wqe()?  hwc->rxq and hwc->txq are also left set after
-being freed.
+Post-patch the sender instead sits in mana_hwc_send_request() for the whole
+hwc->hwc_timeout and then latches the channel:
 
-For the record, this ordering does get corrected later in the same series
-by "net: mana: fix HWC teardown safety with setup_active flag and destroy
-ordering", where mana_hwc_destroy_channel() destroys the CQ before the
-work queues.  Would it make sense to fold that reordering in here, or note
-the dependency, so this patch does not land with only half of the window
-closed?
+	if (!wait_for_completion_timeout(&ctx->comp_event,
+					 (msecs_to_jiffies(hwc->hwc_timeout)))) {
+		...
+		/* Reduce further waiting if HWC no response */
+		if (hwc->hwc_timeout > 1)
+			hwc->hwc_timeout = 1;
+
+		err = -ETIMEDOUT;
+
+hwc_timeout is only assigned at channel creation, by an
+HWC_DATA_CFG_HWC_TIMEOUT reconfig event, or to 0 on destroy, so it is never
+restored and every later command waits 1 ms.  At the end of this series the
+same branch also sets hwc->hwc_timed_out = true, after which
+mana_hwc_get_msg_index() fails all future commands with -ETIMEDOUT.
+
+Would it be better to hand the short response to mana_hwc_handle_resp()
+(or otherwise complete the identified slot with -EPROTO) so a single
+malformed response does not convert into a channel-wide failure?
+
+Also, the comment says a short response "could match a live slot and
+complete the wrong request".  Is that accurate for the pre-patch code?
+mana_hwc_verify_resp_msg() rejected the length before the memcpy(), so no
+stale bytes were copied into a caller buffer; the pre-patch outcome looks
+like a spurious -EPROTO on one command.
+
+[ ... ]
