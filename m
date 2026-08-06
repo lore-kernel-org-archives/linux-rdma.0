@@ -1,27 +1,28 @@
-Received: from PH8PR06CU001.outbound.protection.outlook.com (mail-westus3azon11012057.outbound.protection.outlook.com [40.107.209.57])
+Received: from SN4PR0501CU005.outbound.protection.outlook.com (mail-southcentralusazon11011010.outbound.protection.outlook.com [40.93.194.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7F7643822AA;
-	Thu,  6 Aug 2026 07:31:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.209.57
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 539063CB8F1;
+	Thu,  6 Aug 2026 07:31:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.194.10
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786001501; cv=fail; b=j2Rs6ZjAoILrcfvpAOCKALhieGR/9HrkXFWM90cXnRw1gx8l3QdF8AT4o/Em8sfP/Lg6huWJJ8PcOBOgq0ZxZ3t33D1FAg3kROydQq9F57X0QOHKR7uDriR/hngIdOQYaPVDeOZldPwnDdXB4L2ek22K3gqdyD5Id74fkdxkiko=
+	t=1786001507; cv=fail; b=mIz1rC2tbaR6oWzKZzuEZrWDRECsXzvRco+mKEybwTrk6SYuOeXgJI4ioqV3/t/SVgHUk09uh8bVgTPow8jIN/f9VwvxLMHFgIoiCvHhlQPIYNTlaG1jUQ4rHSEf/ndH09uC963u9/WX9DFtg6kOjxShNhrh5PhYLar639nZU3Y=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786001501; c=relaxed/simple;
-	bh=+qrGhZIxr2PWcKVT8KWzRKp2s+Z6SEXVXun3XoTOnl0=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=kRQceEd+gJVskK/R7LuRFwo70RZQlfsdhVgS0E98bf7ORnw2VeAYHocIyLgCvve7XtVChWdu/3+9i5orK9+7gbhy+kNzFXnnr6Pd3r21+7L/q5ukAAV4G0CVMMslvdH2m+21Aej+d5LP77IiXgdB8xQcH/FgPOSuIptQ82kOR3E=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=Gehqnicj; arc=fail smtp.client-ip=40.107.209.57
+	s=arc-20240116; t=1786001507; c=relaxed/simple;
+	bh=3PJZJ5n5dQ6gsJHxtZ2Ls4rZFlGB4AtPGL1GCAxepAw=;
+	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=qXU6YvMptKI7L88ICr8gztF8IGKOdoDnav+rXiQhNh4xHYsQQec8mzTfEPGd7xoNnM6e4YZibr2yuGY+eW9kLjqQvMHwRy3QGVNAFuqaVQEFBSacu24ENB1Oxr/iAm+nOSxTjgEbso2S7YEck3kiHWAgqLfK8hTS2OAfbiF9e4s=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=ElIYj0c1; arc=fail smtp.client-ip=40.93.194.10
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="Gehqnicj"
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="ElIYj0c1"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=JNi1TaZi8eeCmctdzwn6ZMLKZrI61/FAMrg5KQ33lJ12qL9emXCkj49hIDuejBI7zBjYMXdtE7h1BJcQ3MkJIJ2Tp5BnTPKVqfejdVmw0NMGiaf0o+UxPEi/LWGd1kvH/sqes/WBrAM/O0BqDhtIM7W/j/S6Wah3p4VPLoobK3HaCKkg/iLL2loVDV0ug0LK5X6yIbg6Bif5AMT/CQ1TIABSPKjBIp3B8lSIoNTgRwdGPmZ/IpNX6k7u7Zt733BmZ54rkwWYc0IInUWnjvSh0Xx5LSDxGZkgfl4i+T49t8gNCkYpvAS4MnYt32ivovJYJjZWyGSvN2MM7bsEaJfW/g==
+ b=hB/vqRI7B4iEjFlmBQ3IZTlOLyrL4DEZg9x3KQE6NCTlh8pvj3O/wYt54FdRhdcbofCWJJkfgR7XMGWvm9t7mz+6GJh/LP+5PHFH4fx4Rpg9G7kJ0ltn2EBD7UwY8vQv1A1QZcQHiSu+pUMGIMFk3kA013xjeZQ1OIXX0LDT75BqNfJKPsUOKNT3xKEyuiN0xfWQK2Qz8TyzFpjWF4pS050hBzbfgv5Zgnjsr4Wu7SET5y6PKkWmBqZFj4f4Ux3lb63Uhvex3p9iCbXGwc4lVD14+Mw/2bUTT+KRMzYDnzGs5cKou/FK90elB0S06vQU/iUYcj6/uE0xYWoJI0KgqQ==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=pwqtyR4AFEt34cmHK8Ee9FJcph73wuLOGkx5QI+45us=;
- b=dEcg7srnn3xPZwwpceY4JqvkgP7vlRWig0BvvEHnpA0f1OQXd0QEohXuiiGsZ1C7KGf8L3PpGrgG2pGA/KOwhWbIYXpN5FQXTleyYVYv58boOyqJLnz3SmYN96d6r9PLg2dtgH6R6jLghasIdrCj/OpY5mN7hfKSmdRvrO6Gg6XYjlnE6KRR4lev2w74npV/G2WY7guwYg9gJr/7jpQoV9s/4hGPvEVniHUFliVVvhMPJXonsuUYeDIMXcOkTQrTrPaotFq00xBjm7fFVv+XNXpZs+JNxm2lHUHhKCR5ZM+VaCGQgA0hEgqhfiGEku/MOLH1T6k2ZGmtpE5CHyKyCA==
+ bh=IIzyOFZpJaYQtlcJKTIobJC9CNCGotPvLHI/gqy5Atw=;
+ b=tSrZ5yDLSCTRaBbOPvXNmkEV6H+X8qID8Ve8iXWm5lC9lUvPLj3ofDYCPgctY3e6xcJIUsGLEC03sRYRta3LK31oR7RJlWUr4RGaGIQTdfVt5pc80d+4/mxuHSQ3zd1+5zVsM7o6HMwqivS5kHdZbvezdPSAipQuvCa6LbtslqdndoEOvYtGejVbwR+3MjsBaTEdHKrvD2VpSXi/MPhkyItLHdV9AgaSjHkg9x7Hsq24jzsLRhVtubP2j99HsLm4+V55VhaZZEE9E8UoWsnEU6TMeKEM5M9Mdhsf1eTTCbqPlhEHcdktdTXaHrsv4Ftv2NC/qZgc4mjUXYp7WG4+Ww==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
  216.228.118.232) smtp.rcpttodomain=lunn.ch smtp.mailfrom=nvidia.com;
  dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
@@ -29,18 +30,18 @@ ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=pwqtyR4AFEt34cmHK8Ee9FJcph73wuLOGkx5QI+45us=;
- b=Gehqnicjn7hOtAangV0+Ipo0mqYG0I6glcMRF3F9XPFOMJWZpELRg5wm9MMgMawB71Sh+hA+90iDVcxOFdrB0P/o4Z2EZk0gu5ugW1ce+j/imTe4T9OR7ZwBpA2deiFwXEGR+TAILBT+xSN0KlLvEWOURnnnOsBK0bugryfmdOevW1jBBzabVg1/CzXUH2TvhxgUIIngxXEB3jeGWgQG8mqygUEd1QMf8DFFWR7eqRl51dw9wdgO8c6gDhES9Ll93lzsO3g7EKt9d6PEvpDiId6H2tIa1PqYtFr3q9J45T6O2dFE1CzJo1q99CTbnf4hYVG+UHk+acPzPNMd1FBGSA==
-Received: from SA1P222CA0062.NAMP222.PROD.OUTLOOK.COM (2603:10b6:806:2c1::13)
- by DM4PR12MB8570.namprd12.prod.outlook.com (2603:10b6:8:18b::14) with
+ bh=IIzyOFZpJaYQtlcJKTIobJC9CNCGotPvLHI/gqy5Atw=;
+ b=ElIYj0c1XboQJI/fKFU+U4LRx3N9pyRtdS0RWYWXh/goRGocQ7+aLxsCV6aav1X0JjpP3nDD8wO1RsUWeLFI/vQlQzoUT/ceK/hYHiZgvMUjgzwWAejEpu+8KQDYx33+rvDK/zujKa60mXxSnqiVQ4lHmL5vNLmOsbgTqkco9OVyVHdvqZiolseIx/Xriy5wtbtrC3zYrkmW7Ky5cVj25fMhsc6Lf+WuTjP4YDpfhJb8cxeTvmPFCvop57+fG2K0HrohNeQnDCFSe8pha92pwxdSlyJa4usYoPnT6bPn4XTnCvbqvlUpZLFOFRRs/p1rwer4oEHRoO15r2hn1VtzJw==
+Received: from PH8P221CA0027.NAMP221.PROD.OUTLOOK.COM (2603:10b6:510:2d8::6)
+ by DM4PR12MB5771.namprd12.prod.outlook.com (2603:10b6:8:62::16) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.292.19; Thu, 6 Aug
- 2026 07:31:28 +0000
-Received: from SA2PEPF00003F64.namprd04.prod.outlook.com
- (2603:10b6:806:2c1:cafe::68) by SA1P222CA0062.outlook.office365.com
- (2603:10b6:806:2c1::13) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.292.19 via Frontend Transport; Thu, 6
- Aug 2026 07:31:27 +0000
+ 2026 07:31:34 +0000
+Received: from SA2PEPF00003F67.namprd04.prod.outlook.com
+ (2603:10b6:510:2d8:cafe::21) by PH8P221CA0027.outlook.office365.com
+ (2603:10b6:510:2d8::6) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.21.292.21 via Frontend Transport; Thu, 6
+ Aug 2026 07:31:33 +0000
 X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.118.232)
  smtp.mailfrom=nvidia.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=nvidia.com;
@@ -48,20 +49,20 @@ Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
  216.228.118.232 as permitted sender) receiver=protection.outlook.com;
  client-ip=216.228.118.232; helo=mail.nvidia.com; pr=C
 Received: from mail.nvidia.com (216.228.118.232) by
- SA2PEPF00003F64.mail.protection.outlook.com (10.167.248.39) with Microsoft
+ SA2PEPF00003F67.mail.protection.outlook.com (10.167.248.42) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.315.6 via Frontend Transport; Thu, 6 Aug 2026 07:31:26 +0000
-Received: from drhqmail202.nvidia.com (10.126.190.181) by mail.nvidia.com
+ 15.21.315.6 via Frontend Transport; Thu, 6 Aug 2026 07:31:33 +0000
+Received: from drhqmail203.nvidia.com (10.126.190.182) by mail.nvidia.com
  (10.127.129.5) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.45; Thu, 6 Aug
- 2026 00:31:05 -0700
+ 2026 00:31:13 -0700
 Received: from drhqmail203.nvidia.com (10.126.190.182) by
- drhqmail202.nvidia.com (10.126.190.181) with Microsoft SMTP Server
+ drhqmail203.nvidia.com (10.126.190.182) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.20; Thu, 6 Aug 2026 00:31:05 -0700
+ 15.2.2562.20; Thu, 6 Aug 2026 00:31:12 -0700
 Received: from vdi.nvidia.com (10.127.8.10) by mail.nvidia.com
  (10.126.190.182) with Microsoft SMTP Server id 15.2.2562.20 via Frontend
- Transport; Thu, 6 Aug 2026 00:30:59 -0700
+ Transport; Thu, 6 Aug 2026 00:31:06 -0700
 From: Tariq Toukan <tariqt@nvidia.com>
 To: Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller"
 	<davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, Jakub Kicinski
@@ -79,10 +80,12 @@ CC: Aleksandr Loktionov <aleksandr.loktionov@intel.com>, Alexander Lobakin
 	<rkannoth@marvell.com>, Saeed Mahameed <saeedm@nvidia.com>, Shuah Khan
 	<skhan@linuxfoundation.org>, Simon Horman <horms@kernel.org>, Tariq Toukan
 	<tariqt@nvidia.com>, Vlad Dumitrescu <vdumitrescu@nvidia.com>
-Subject: [PATCH net-next V5 0/2] devlink: add generic device max_sfs parameter
-Date: Thu, 6 Aug 2026 10:30:35 +0300
-Message-ID: <20260806073037.3001886-1-tariqt@nvidia.com>
+Subject: [PATCH net-next V5 1/2] devlink: add generic device max_sfs parameter
+Date: Thu, 6 Aug 2026 10:30:36 +0300
+Message-ID: <20260806073037.3001886-2-tariqt@nvidia.com>
 X-Mailer: git-send-email 2.44.0
+In-Reply-To: <20260806073037.3001886-1-tariqt@nvidia.com>
+References: <20260806073037.3001886-1-tariqt@nvidia.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -94,142 +97,106 @@ Content-Type: text/plain
 X-NV-OnPremToCloud: ExternallySecured
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: SA2PEPF00003F64:EE_|DM4PR12MB8570:EE_
-X-MS-Office365-Filtering-Correlation-Id: 7e973edd-771c-43e3-e0ee-08def38cb9b3
+X-MS-TrafficTypeDiagnostic: SA2PEPF00003F67:EE_|DM4PR12MB5771:EE_
+X-MS-Office365-Filtering-Correlation-Id: 4a002d63-8c24-480e-0ae9-08def38cbd7e
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|376014|7416014|36860700016|1800799024|23010399003|82310400026|18002099003|11063799006|56012099006|3023799007|13003099007|10067099003|6133799003;
+	BCL:0;ARA:13230040|23010399003|82310400026|1800799024|36860700016|376014|7416014|18002099003|22082099003|11063799006|6133799003|10067099003|56012099006;
 X-Microsoft-Antispam-Message-Info:
-	j3KON7ssvvOVn3sjykfKWTHg9G0wTFMIG4ax98GBjgywof9rmTG+UJLRFmn/A8iccFHUOfQKEB4PgodUCrO/sLNKTiVtIEjOx9EG9Sct2eqXzM5klbLSgGSk9uCaBlsLkphnJv+Aa0U3WQCM7JVtJIevnNKE7GCsfAYtg6P90OnM0l5V/T30Cx2EQOMjxUFRhWUdPNkY9GKiHqs9gMnW6pUuBydFuJv43H439wxtS3MMAj+/FIdY/JZCTqQ/2dqqM4vKozDA3usQP4GxTCdER4U4kiX+SeFiP/YLO/Knbdfp7l0lErWda1qT3ups5aJWqA0c0r/kgxCBe5fdi6+pSCmDmo6a8OsXbgG2jR3qutp78j4g9JkaCpEeM/6c2bYX1wPojzZ6NfGHmkgMX5EojrjmrehwWOzG9Qsuq1Sjv0yhev3P0P544dOoRWxEwtWl7WOhhD6iy9o7wloa1CW2NV3bpv4XRTpGFTbxlL9hHbPA7XVl6Se9KW2efF3o0lcVvWAw8mhBTHVEyAvs3U9xXAKtYMEXxkrhfOzNaWZFdpJ6s1YcIbiVUrlyZmoNEYv0LabJzu1rbt8UvoM0tGTfB9Jid47vt29aybPaW3HIO8Uh75xaMcWIKE91lzqIJonoL+GGt04PYU0vU5QcdzN//9r5yXYtq3lKtqG+iHSR/y/GWhQ07OwFOvwPXvf2rsRwjDHtYTMi7a0QJ3KdsSnsHw==
+	bPE3r9mMAm7Z+X1bpzNACEeZlRHF5sRtn8d4YUnb1K3l0LmpZAPhIzCrTTKHmzJLnvNo8/YuG4Y6EXp927/rAD7z52EMW8jmJkV/Ps1j+Ydn/XDhaPw+1JZTOdNasEyQ9l2MXxrqDGqE9CajRTEsJgmX1HuJ5L9s/gN20lj5NHCDnq6tzVOotCWn+zo1fmMYimK8ElX67bRXEiF8uVd94BlAKSrdK8XEAjMwlhcPKOpQh7iaPaymtyFckAePyMLYQTW2mcIAyf0j+Yx98NDikO0e1kR0+R+hqJwcpF+8/ecZF2lDK2Cg2SXWx9tgOnMSCy69sNCcYAjWAauojgSPH+JVlrMqXxiMZHT7uI57xBWJN2s+KPky6x8l+BjWeKYHgBoZ4pS3SLvrtdbznxZOkeBZPNq5EqzdORRV9RkuuvBex30hzgf7iAA5O1Uq3n5FoOixdR/bz3ZH4dS9YuKqQdhkgd9u9HhfEwrsOMdier37812flH3DiAPp79YyuGLcdf2BIb65du0ALirRdV2WZYRpYGD8ySFJXuSZbO2rdnaIrIWFWo8TU+0Zr6PJIuksD67M2q/zBj4aE3TZ2dZfvO4oJ4xAhUFAGVrM1NVbRBMVwgMkWT8JwVQCunNB1+1vdI5Qf92Ma+fM2sPFNSf3JKUKgNY/0VsG4JLaILruOmC4QEr32RQu/U0zsPQKjuwML0mXoqLbzQXSm6nJvarfmw==
 X-Forefront-Antispam-Report:
-	CIP:216.228.118.232;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc7edge1.nvidia.com;CAT:NONE;SFS:(13230040)(376014)(7416014)(36860700016)(1800799024)(23010399003)(82310400026)(18002099003)(11063799006)(56012099006)(3023799007)(13003099007)(10067099003)(6133799003);DIR:OUT;SFP:1101;
+	CIP:216.228.118.232;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc7edge1.nvidia.com;CAT:NONE;SFS:(13230040)(23010399003)(82310400026)(1800799024)(36860700016)(376014)(7416014)(18002099003)(22082099003)(11063799006)(6133799003)(10067099003)(56012099006);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	awtpq20Gv4ESz9TeUv2XLOjB+2lKTqwvVzRKFiRomL7ALnSHt4+T2PSV3jTigvT+v1JKtz+SE0yc0FYyy54Gg0C3/w8XT4eVeY1HnU/ZCkbIjprxfy8HMCgTy9o38eaOrELrlZe0ihaVYNz6mWv8erQV0iiHyXtGmOkUPDeO2ORC7kR8xR+tMIFn7Ha/WB81KCG1FNOC6ELCPKq1XgaebGbj0sDb6a1zhSMy9oo0oeH+9Scvdrt7oSy1dq+ozfcSZ/qhp9DUJiwyLWdI6yJv0Fz9mxpfZm8s+Cixqq8Vxb7wCpTsuTCaKPgXR8ZkExrq9X7w4vTlzk2Ta5G7dG0ZkCUBwvYxwGILXHs4vS+LNRYAS1xqsSiPf6NYw5b1bo/lQ/l4w6K4iwXK7Gi30zMZL5jFd37o60W5k7jOW5Bf8iNXkIbaE9qG8HrSrXX7xRj+
+	vItmtIluCpyk55KXo+kBbedz2N3By4LUVM59jmEwuSm2wmkT+zzDLlgnDqKlqNgWol6SMAMdtPaE5YxREHuqqmOG6HDCkLE5n/DJpIZeGp19thy6o3085ehgPR3zUnstJqEXS0cU351hT/aWuYXHJqK42Dn9H7oOdB7/KgIFyvCv/6p5hz7x2ccWP9fYAOQ1qdkKOIBomqFMKK6la9/zpHoh45I6NZ7Pe/LaoT4cQGefPWNRcyv28NKLCvQbyLZNmR879rG1XG6i9UQFr1z/0EenukxHXoUbbXar12Mav5zGt/hGNMEwPlycHFQn/WIPb7+P0BSA9qB1kE8VSiyvlxyLWIcwtvoY323zUlFmmB9LSnV1gG20VHF7jhsV7+SxeE4yeYGJ5rl6694Y3wcpBwhFqZwymXN+HriTQGKonSgR3PK9KAK9tKjL3lRV6C5Z
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 06 Aug 2026 07:31:26.8403
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 06 Aug 2026 07:31:33.2499
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 7e973edd-771c-43e3-e0ee-08def38cb9b3
+X-MS-Exchange-CrossTenant-Network-Message-Id: 4a002d63-8c24-480e-0ae9-08def38cbd7e
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.118.232];Helo=[mail.nvidia.com]
 X-MS-Exchange-CrossTenant-AuthSource:
-	SA2PEPF00003F64.namprd04.prod.outlook.com
+	SA2PEPF00003F67.namprd04.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM4PR12MB8570
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM4PR12MB5771
 
-Hi,
+From: Nikolay Aleksandrov <nikolay@nvidia.com>
 
-This series by Nikolay introduces a new generic devlink device
-parameter, max_sfs, to control the number of light-weight NIC
-subfunctions (SFs) that can be created on a device.
+Add a new generic devlink device parameter (max_sfs) to control if and
+how many light-weight NIC subfunctions can be created. Subfunctions are
+a light-weight network functions backed by an underlying PCI function.
+Their lifecycle can already be managed by devlink, but currently users
+cannot enable them in the device. They can be enabled/disabled only via
+external vendor tools. This parameter allows subfunctions to be enabled
+(>0) or disabled (0) via devlink. A subsequent patch will add support
+for max_sfs to the mlx5 driver.
 
-The first patch adds the generic devlink parameter and infrastructure
-support.
-The second patch implements support for the parameter in the mlx5
-driver.
+Signed-off-by: Nikolay Aleksandrov <nikolay@nvidia.com>
+Reviewed-by: David Ahern <dsahern@kernel.org>
+Reviewed-by: Jiri Pirko <jiri@nvidia.com>
+Reviewed-by: Aleksandr Loktionov <aleksandr.loktionov@intel.com>
+Reviewed-by: Alexander Lobakin <aleksander.lobakin@intel.com>
+Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
+---
+ Documentation/networking/devlink/devlink-params.rst | 6 ++++++
+ include/net/devlink.h                               | 4 ++++
+ net/devlink/param.c                                 | 5 +++++
+ 3 files changed, 15 insertions(+)
 
-With this addition, users can enable or disable SF creation directly via
-devlink, without relying on external vendor-specific tools.
-
-Regards,
-Tariq
-
-Notes about a few items from a previous Sashiko review:
- > Should there be a validate callback analogous to
- > mlx5_devlink_total_vfs_validate() that reads the cap and rejects values
- > above the device-reported maximum, so the documented "device-specific
- > max" is actually enforced?
-
- N: I don't know of such cap, if there was I'd have added it.
-
- > mlx5_devlink_total_vfs_set() rejects with -EOPNOTSUPP and an extack
- > "SRIOV is not per PF on this device" when sriov_support or
- > per_pf_total_vf_supported is clear, but no equivalent
- > per_pf_num_sf_supported (or any SF-related) capability bit is added to
- > nv_global_pci_cap_bits or queried here.  On hardware that lacks the
- > feature, the user only sees the generic firmware error "Failed to
- > change ... global PCI configuration".
-
- N: I don't know of such bit, if there was such bit I'd have added it.
-
- > At this point, a successful write of per_pf_num_sf has already been
- > committed to non-volatile firmware storage.  If the subsequent
- > mlx5_nv_param_read_per_host_pf_conf() or the second mlx5_nv_param_write()
- > fails (for example, transient firmware/PCIe issue), is there a path that
- > rolls back per_pf_num_sf?
- >
- > Because these are permanent parameters that "require a reboot to take
- > effect", a half-applied state (e.g., per_pf_num_sf=1 but
- > pf_total_sf_en=0/total_sf=0) appears to persist across reboots until
- > the user issues another successful set.
-
- N: That is expected and in line with the rest of the code.
-
- > The commit message says max_sfs is to "control the total light-weight
- > NIC subfunctions"; the BAR-size side-effect is not mentioned, and any
- > previously configured log_sf_bar_size is overwritten on every
- > max_sfs set.  Should that behavior be documented or split out from the
- > count knob?
-
- N: It should be documented when it is split out, at present time - no.
-
- > Does this unconditionally overwrite any existing configuration for the
- > SubFunction BAR size?
- > When a user configures a custom log_sf_bar_size via firmware tools like
- > mlxconfig, and then later uses devlink to change max_sfs, it appears this
- > line discards any non-zero value already present in the configuration data
- > and forcibly replaces it with MLX5_DEFAULT_LOG_SF_BAR_SIZE.
- > Should this code preserve the existing log_sf_bar_size if it was already
- > configured?
-
- N: Yes, it does and it is expected and intentional.
-
-V5:
-- rebase again
-- patch 02: always enable per_pf_num_sf when setting SFs > 0 because other
-  PFs might be using SFs as well (sashiko)
-- patch 02: use NL_SET_ERR_MSG_MOD in max_sfs set
-
-V4:
-https://lore.kernel.org/netdev/20260723082643.1870844-1-tariqt@nvidia.com/
-- rebase due to build failure because of commit:
-  d603517771d8 ("devlink: pass param values by pointer")
-  fixed in patch 02
-- added Alexander Lobakin's reviewed-by tags (please let me know
-  if that is not ok, the change in patch 02 is minor and mechanical
-  due to the commit above)
-
-V3, all changes are in patch 02 (mlx5 implementation):
-https://lore.kernel.org/netdev/b087dc20-7398-4ad3-9787-efef883d81b1@blackwall.org
-- Cap max_sfs at U16_MAX using a validate callback (sashiko)
-- Change the warning message to match the docs (sashiko)
-- On get verify that per_pf_num_sf & pf_total_sf_en are set
-  otherwise return 0 since it means SFs are not properly enabled (sashiko)
-- Define the default log bar size and use it instead of raw value (sashiko)
-
-V2:
-https://lore.kernel.org/netdev/20260519200436.353249-1-tariqt@nvidia.com/
-- Add missing ` (Aleksandr Loktionov).
-- Add review tag to patch 1.
-
-V1:
-https://lore.kernel.org/all/20260517112700.343575-1-tariqt@nvidia.com/
-
-Nikolay Aleksandrov (2):
-  devlink: add generic device max_sfs parameter
-  net/mlx5: implement max_sfs parameter
-
- .../networking/devlink/devlink-params.rst     |   6 +
- Documentation/networking/devlink/mlx5.rst     |   7 +-
- .../mellanox/mlx5/core/lib/nv_param.c         | 125 +++++++++++++++++-
- include/net/devlink.h                         |   4 +
- net/devlink/param.c                           |   5 +
- 5 files changed, 143 insertions(+), 4 deletions(-)
-
-
-base-commit: b0057c68df711bf6a62033c072ac61c4f9d3cbc1
+diff --git a/Documentation/networking/devlink/devlink-params.rst b/Documentation/networking/devlink/devlink-params.rst
+index ca19ee3e63c8..13eb8aa84c38 100644
+--- a/Documentation/networking/devlink/devlink-params.rst
++++ b/Documentation/networking/devlink/devlink-params.rst
+@@ -165,3 +165,9 @@ own name.
+      - u32
+      - Controls the maximum number of MAC address filters that can be assigned
+        to a Virtual Function (VF).
++   * - ``max_sfs``
++     - u32
++     - The maximum number of subfunctions which can be created on the device.
++       Modifying this parameter may require a device restart and PCI bus
++       rescanning because the BAR layout may change. A value of 0 disables
++       subfunction creation.
+diff --git a/include/net/devlink.h b/include/net/devlink.h
+index 4830aba4087a..7abd23376319 100644
+--- a/include/net/devlink.h
++++ b/include/net/devlink.h
+@@ -554,6 +554,7 @@ enum devlink_param_generic_id {
+ 	DEVLINK_PARAM_GENERIC_ID_TOTAL_VFS,
+ 	DEVLINK_PARAM_GENERIC_ID_NUM_DOORBELLS,
+ 	DEVLINK_PARAM_GENERIC_ID_MAX_MAC_PER_VF,
++	DEVLINK_PARAM_GENERIC_ID_MAX_SFS,
+ 
+ 	/* add new param generic ids above here*/
+ 	__DEVLINK_PARAM_GENERIC_ID_MAX,
+@@ -627,6 +628,9 @@ enum devlink_param_generic_id {
+ #define DEVLINK_PARAM_GENERIC_MAX_MAC_PER_VF_NAME "max_mac_per_vf"
+ #define DEVLINK_PARAM_GENERIC_MAX_MAC_PER_VF_TYPE DEVLINK_PARAM_TYPE_U32
+ 
++#define DEVLINK_PARAM_GENERIC_MAX_SFS_NAME "max_sfs"
++#define DEVLINK_PARAM_GENERIC_MAX_SFS_TYPE DEVLINK_PARAM_TYPE_U32
++
+ #define DEVLINK_PARAM_GENERIC(_id, _cmodes, _get, _set, _validate)	\
+ {									\
+ 	.id = DEVLINK_PARAM_GENERIC_ID_##_id,				\
+diff --git a/net/devlink/param.c b/net/devlink/param.c
+index 1cc562a6ebfd..8ca0f3ed646c 100644
+--- a/net/devlink/param.c
++++ b/net/devlink/param.c
+@@ -117,6 +117,11 @@ static const struct devlink_param devlink_param_generic[] = {
+ 		.name = DEVLINK_PARAM_GENERIC_MAX_MAC_PER_VF_NAME,
+ 		.type = DEVLINK_PARAM_GENERIC_MAX_MAC_PER_VF_TYPE,
+ 	},
++	{
++		.id = DEVLINK_PARAM_GENERIC_ID_MAX_SFS,
++		.name = DEVLINK_PARAM_GENERIC_MAX_SFS_NAME,
++		.type = DEVLINK_PARAM_GENERIC_MAX_SFS_TYPE,
++	},
+ };
+ 
+ static int devlink_param_generic_verify(const struct devlink_param *param)
 -- 
 2.44.0
 
