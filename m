@@ -1,57 +1,103 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from canpmsgout07.his.huawei.com (canpmsgout07.his.huawei.com [113.46.200.222])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D837544E65F;
-	Thu,  6 Aug 2026 11:34:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D547A3F825A;
+	Thu,  6 Aug 2026 11:47:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.222
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786016076; cv=none; b=eOf7rJH+bxlmq7VkO/79bnZNB/thEYYQ/8vm8GxDFtCLlyGZFdFj8jVvecN99wRzjGOH7BxcGDZ8ghtQLqJW/6obYPGUVGgF+z/b5iyj+pSNZQOhP2tkvQO3bpnh9ciRf9RAMVfrrnUzjouk9/ckDbhZXWelzQnCWHLjH0uavDc=
+	t=1786016835; cv=none; b=ioPxrIoY6jlSi7ugyjobBJssbGPLQex2stj+qRqQ5Ry5VTvZ7dsjVyj5byqxrTMHuHI5QPqVcL57FW6YJs3uyRWwhfQTStOVg2+e5odHjK7TmsyNmCpY8NWd/NIyyz2wLVRjnJKpUI3vxELh+vSXnKHwZ+in+4ksQodXL7W3gNQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786016076; c=relaxed/simple;
-	bh=ay8j/3IOwqwVVELuAcUshCc86uiFXZxrNNMg16qAHoA=;
-	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
-	 MIME-Version:Content-Type; b=Rp0SfWp6iwTlJEsGKmrwnsArsh7xaMr1dfL2iCq57LZwrxdSKS9aDf+C4lZXhkFR8wS/3fB6dpNTKP8dkPXpgweODW5TYK/CYlAEW4prUCe6t4Zgi+3Py3dLiNFujhhXYnlhWTI+Avzz8Gg7duddrkh7LEMFmnlsyK7mW8mLUtg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C68B21F000E9;
-	Thu,  6 Aug 2026 11:34:33 +0000 (UTC)
-From: Leon Romanovsky <leonro@nvidia.com>
-To: Cheng Xu <chengyou@linux.alibaba.com>, 
- Kai Shen <kaishen@linux.alibaba.com>, Jason Gunthorpe <jgg@ziepe.ca>, 
- Leon Romanovsky <leon@kernel.org>
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
-In-Reply-To: <20260806-missing-endianness-conversion-for-64-v1-1-896327c1aff1@nvidia.com>
-References: <20260806-missing-endianness-conversion-for-64-v1-1-896327c1aff1@nvidia.com>
-Subject: Re: [PATCH rdma-next] RDMA/erdma: restrict the driver to
- little-endian systems
-Message-Id: <178601607144.523410.1759876990282209997.b4-ty@nvidia.com>
-Date: Thu, 06 Aug 2026 07:34:31 -0400
+	s=arc-20240116; t=1786016835; c=relaxed/simple;
+	bh=fdc5I/dA1nqBQdw+Khjbswi+ogkkUJq35gfyiNviWk0=;
+	h=Message-ID:Date:MIME-Version:CC:Subject:To:References:From:
+	 In-Reply-To:Content-Type; b=eXuHAvMJ/67g6G8QJ/9GHoYZulRpAhIZwJhNfrwESS4YR+w9GTquUgRxDPIFmAiBpTvlVH5SIse/7Mk/t/8JfDouOlzo7Lk80IiKpihEqIz1t2BSTvOftqMstw22AgO7kENe/ZRLWGS+aC7Dmg/JKy0zAhh4VNGQ2dHPNKYKJsw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b=lljNPPOj; arc=none smtp.client-ip=113.46.200.222
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b="lljNPPOj"
+dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
+	c=relaxed/relaxed; q=dns/txt;
+	h=From;
+	bh=fdc5I/dA1nqBQdw+Khjbswi+ogkkUJq35gfyiNviWk0=;
+	b=lljNPPOjwihvLNXNkomfvwIJ2aT3JrR9zX4iO8JmLfCfs0AeVhfIggM5EeYG8gkCXpB95R1el
+	OsDybiQqwDZkG2zcdM8/ashc+PW1MY24PXpCpj1HY7ceD0yXtZJR/vB22qDeVkzbBGWCCiDwvon
+	Kloe7IEbytFWhvXDfL6Ns1A=
+Received: from mail.maildlp.com (unknown [172.19.163.200])
+	by canpmsgout07.his.huawei.com (SkyGuard) with ESMTPS id 4hG4yL5yJSzLlTg;
+	Thu,  6 Aug 2026 19:37:30 +0800 (CST)
+Received: from kwepemo500018.china.huawei.com (unknown [7.202.195.199])
+	by mail.maildlp.com (Postfix) with ESMTPS id D2D2A4055B;
+	Thu,  6 Aug 2026 19:47:02 +0800 (CST)
+Received: from [10.67.120.192] (10.67.120.192) by
+ kwepemo500018.china.huawei.com (7.202.195.199) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.45; Thu, 6 Aug 2026 19:47:01 +0800
+Message-ID: <169d0d62-2296-476f-95f9-5916d777090e@huawei.com>
+Date: Thu, 6 Aug 2026 19:47:00 +0800
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+User-Agent: Mozilla Thunderbird
+CC: <shaojijie@huawei.com>
+Subject: Re: [PATCH v5 net-next 2/2] net: hns3: fix GSO_ECN flag setting in
+ the RX path
+To: <chia-yu.chang@nokia-bell-labs.com>, <shenjian15@huawei.com>,
+	<linux-rdma@vger.kernel.org>, <eperezma@redhat.com>, <jasowang@redhat.com>,
+	<virtualization@lists.linux.dev>, <mst@redhat.com>,
+	<xuanzhuo@linux.alibaba.com>, <pabeni@redhat.com>, <edumazet@google.com>,
+	<linux-doc@vger.kernel.org>, <corbet@lwn.net>, <horms@kernel.org>,
+	<dsahern@kernel.org>, <kuniyu@google.com>, <bpf@vger.kernel.org>,
+	<netdev@vger.kernel.org>, <dave.taht@gmail.com>, <jhs@mojatatu.com>,
+	<kuba@kernel.org>, <stephen@networkplumber.org>, <xiyou.wangcong@gmail.com>,
+	<jiri@resnulli.us>, <davem@davemloft.net>, <andrew+netdev@lunn.ch>,
+	<donald.hunter@gmail.com>, <ast@fiberby.net>, <liuhangbin@gmail.com>,
+	<shuah@kernel.org>, <linux-kselftest@vger.kernel.org>, <ij@kernel.org>,
+	<ncardwell@google.com>, <koen.de_schepper@nokia-bell-labs.com>,
+	<g.white@cablelabs.com>, <ingemar.s.johansson@ericsson.com>,
+	<mirja.kuehlewind@ericsson.com>, <cheshire@apple.com>, <rs.ietf@gmx.at>,
+	<Jason_Livingood@comcast.com>, <vidhi_goel@apple.com>
+References: <20260804213510.673084-1-chia-yu.chang@nokia-bell-labs.com>
+ <20260804213510.673084-3-chia-yu.chang@nokia-bell-labs.com>
+From: Jijie Shao <shaojijie@huawei.com>
+In-Reply-To: <20260804213510.673084-3-chia-yu.chang@nokia-bell-labs.com>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 7bit
-X-Mailer: b4 0.15-dev-18f8f
+X-ClientProxiedBy: kwepems200002.china.huawei.com (7.221.188.68) To
+ kwepemo500018.china.huawei.com (7.202.195.199)
 
 
-On Thu, 06 Aug 2026 11:48:56 +0300, Leon Romanovsky wrote:
-> The eRDMA device interface requires explicit byte ordering, but several
-> DMA-visible values that should be little-endian remain native-endian.
-> Command request payloads are copied verbatim, data-path SQE headers are
-> written without cpu_to_le64(), and kernel doorbell records are assigned
-> plain u64 values. The command completion path also reads a little-endian
-> SQE header without conversion.
-> 
-> [...]
+on 2026/8/5 5:35, chia-yu.chang@nokia-bell-labs.com wrote:
+> From: Chia-Yu Chang <chia-yu.chang@nokia-bell-labs.com>
+>
+> Currently, the hns3 Rx path sets the SKB_GSO_TCP_ECN flag when a TCP
+> segment with the CWR flag set is received. This is incorrect because
+> the hns3 hardware GRO resets the IP ToS byte to 0 during packet
+> aggregation. Consequently, no valid ECN signals are carreid, meaning
+> that it cannot support RFC3168 ECN or Accurate ECN protocols. Setting
+> SKB_GSO_TCP_ECN or SKB_GSO_TCP_ACCECN under these conditions misleads
+> the upper network stack.
+>
+> Fix this by removing the incorrect SKB_GSO_TCP_ECN flag assignment
+> in hns3_gro_complete().
+>
+> Fixes: d474d88f88261 ("net: hns3: add hns3_gro_complete for HW GRO process")
 
-Applied, thanks!
+One note:
+since this patch fixes a bug (incorrect SKB_GSO_TCP_ECN flag set in hns3_gro_complete),
+it should target net instead of net-next.
 
-[1/1] RDMA/erdma: restrict the driver to little-endian systems
-      https://git.kernel.org/rdma/rdma/c/a12d9145145b21
+I'm running HW tests on hns3 to verify the fix. Will share results
+based on what I observe.
 
-Best regards,
--- 
-Leon Romanovsky <leonro@nvidia.com>
+Thanks,
+Jijie Shao
+
+
+
+
+
 
