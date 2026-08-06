@@ -1,105 +1,168 @@
-Received: from azure-sdnproxy.icoremail.net (azure-sdnproxy.icoremail.net [52.187.6.220])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id A097B2EC54A;
-	Thu,  6 Aug 2026 13:02:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=52.187.6.220
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786021357; cv=none; b=hHgL2PjsJaxfNBw7umnKBwgOaEQzHik8kYYXHGy+915jdJZvnbpOZ7HeXZOwooL1I0enEKB4slrMC2o+48gbiQow2nBwLX4CdhiTbc0X207Qu9/nQqFx+yCu1BrMpkfq1R4FEBPsdxr7rCIRkGCXqHekj223Mw12cOc2Oi+ck20=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786021357; c=relaxed/simple;
-	bh=F25siPCB1EycjIg58hicpHX+JlEYXay+ynRdA9RsiSU=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=oUsgsDUDxz01uMYHwpsGP+bj3Ie8KWqQiLRUieDnXzkZWvPqhtCYTIhSAkv71mLY9jGfMhj7HPs06PXMT6+GK0kpZLYd+pSfiamZ2psP1eO5Er+yTFO3IECXbOnWYPNm7KxqpWBZHvPA+kEp4YkW79OAU/Kjp4Lk4NF0ucUGZRM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=zju.edu.cn; spf=pass smtp.mailfrom=zju.edu.cn; arc=none smtp.client-ip=52.187.6.220
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=zju.edu.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zju.edu.cn
-Received: from zju.edu.cn (unknown [10.98.66.117])
-	by mtasvr (Coremail) with SMTP id _____wDHz3_ghXRqETZuAA--.5655S3;
-	Thu, 06 Aug 2026 21:02:24 +0800 (CST)
-Received: from localhost.localdomain (unknown [10.98.66.117])
-	by mail-app2 (Coremail) with SMTP id zC_KCgAnl8zghXRqKF+cAw--.10149S3;
-	Thu, 06 Aug 2026 21:02:24 +0800 (CST)
-From: Fan Wu <fanwu01@zju.edu.cn>
-To: linux-rdma@vger.kernel.org
-Cc: bharat@chelsio.com,
-	larrystevenwise@gmail.com,
-	jgg@ziepe.ca,
-	leon@kernel.org,
-	dledford@redhat.com,
-	linux-kernel@vger.kernel.org,
-	Fan Wu <fanwu01@zju.edu.cn>
-Subject: [PATCH 2/2] RDMA/cxgb4: Free debugfs on registration failure
-Date: Thu,  6 Aug 2026 13:01:28 +0000
-Message-Id: <20260806130128.465460-2-fanwu01@zju.edu.cn>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20260806130128.465460-1-fanwu01@zju.edu.cn>
-References: <20260806130128.465460-1-fanwu01@zju.edu.cn>
+Received: from mail-wr1-f46.google.com (mail-wr1-f46.google.com [209.85.221.46])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B584647A874
+	for <linux-rdma@vger.kernel.org>; Thu,  6 Aug 2026 15:00:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.221.46
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1786028439; cv=pass; b=gOj6gn/OyNgkgsefncDb9M4W3/QKPlHRZuwcwM4pSV/UZrUZVjrLkyNaefkZmy7rpOqwY1VADQ/FrED93zfLwz9jPXNESUdkfu47QIYnPTINeSlCSlrLgGFCUungAFt4VPI51GkAUuegJQFRuTAjWtzxXbIEbkD6ib/Qoo+yW7Y=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1786028439; c=relaxed/simple;
+	bh=xHWfrtbUKzJn60DpMzTvrgdZeVM3KtRHSI8GmZl6zPU=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=pbTw9+pDTSRLfv/Ca/LGlk2fO4oNPlaHPQEkkDFFhig88u0pQcuOnXTA7X8vGgpfSPmr35NP6364PLjTNX3MN1afT8IKJGEEQwCQhitcLzgfIJRHBVn7RpAd3Uj7rDl7io2aPc+kHVsBSvKcl9jqFiQQ6jJTPUp9Fd7Q1mowB2g=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=BKSxu1Ra; arc=pass smtp.client-ip=209.85.221.46
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="BKSxu1Ra"
+Received: by mail-wr1-f46.google.com with SMTP id ffacd0b85a97d-47c6e9a694bso1477635f8f.1
+        for <linux-rdma@vger.kernel.org>; Thu, 06 Aug 2026 08:00:36 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1786028433; cv=none;
+        d=google.com; s=arc-20260327;
+        b=Q7iC8+WyQCeSNNV2F3vde19EojuVeTYzh8Ksnstle4gNMMpHAqD7YooY+X8zuq7F9T
+         1myx4qQ50brd3efewyA89I4m702upY6ERjoWPnwbeYyrZ0xjLt4WqTL0wUF8P8ZCIbOP
+         XuhRMvYEpzptJsTGgFhwr1MO3jChOmjKUZ6oaL8mFDyeaYlGAsrgIdAAyEWRZIyxcVoQ
+         edKqCX5RBW+uXWkXK6n8hUlO4rchMbVNaQ58eCBuXzUjfBHQmX2gpAzfScwlQ4mMXdPK
+         zrfOi0ct8iCAKK0B850AdWEMpYntkJ6l5adpg4PIEXDCkgZSv5Rg8K3YyUArwZQpQ6Ae
+         EZgw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=bLCroHoGf0o5ghe7Jl8U/e3ej3D31Q4DTDci56rDNSM=;
+        fh=jfKuL0kc+GRuUbINysbGc94Sz+MZEortQGWblBONecg=;
+        b=X84qQSQ75Tu2g3hvsVpGDDE/NJHL2xh73Hi5x1rEnRWF41zyOggHeb8GtI/bkvUal6
+         7a7CGjI1fpSwK/KfSmC5bDNtJ5E4f1IrUoIa0dzFRWz+DRGGk19+r+i4U4k8O3DMfvvn
+         hDrQ/M+4pjezk+8sqHxmpIz7AkRfdp7/8S2Qqn/WoIr/GyI7xnqe2cPCYu0wOxmHlemZ
+         z+kWnlfick14yG8KCP68xEyDZLX7zjJbg9o9O1sDGm4dFP6UaZ+9lbEN5fGGGF8cLFdE
+         EmjnrwdkpCAn/GZ1sslcsjtHQTg92PcrSiiCFO7CCfDGeJ/eX+Kc4vPhVt9rL9jRCPpq
+         Hf5A==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1786028433; x=1786633233; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=bLCroHoGf0o5ghe7Jl8U/e3ej3D31Q4DTDci56rDNSM=;
+        b=BKSxu1Raq6JT3Ik0gqq5iBH5cROw+YPM2+EG5MwCXqCZ2JpqHTJyqFznlT9ikO6dZN
+         +d6pDajoVcRTZ5sDWVeZxBRgNaIAieqhHV/yzu4lP+bidE+ORLMqgvrWHhxFcfRF94S9
+         +EtudeYin7bNjC2etIxahk/Jx57p6j6g3Wl74oh87FioCifGvjLqxQj1BC3phTOCap1h
+         BblC2Qq2UzLABLvhtIzrGkhrxiNdVns9ehxCmfWqiNROy4NS/e0rTfey0Cm2zNxUDlLv
+         j2TFzagrmemJ71oo4NRoT/yUweoOCc1b/edb7NuFzXqBC07Ce3Je5RMl3/JLgWa5Gt6l
+         krpQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1786028433; x=1786633233;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=bLCroHoGf0o5ghe7Jl8U/e3ej3D31Q4DTDci56rDNSM=;
+        b=rdK5kkwvI+qYHCrWwY6fok8dlxvwIuif6CMBO/RG5kZCP/RNZRuwBnGJoc24vX0U2N
+         Dj4Z2Vn5fyvqVngF+uGiuuWKv0Qt6m/4XR51SckuGRYNq2ayhTpYNpGLIL1H70yb0Z0e
+         ndUvivv61mDTpUkjFavbeTASSRkaALyjpSPX3I3Ridd8kyotDSRKIzn6ke6xr6HVQ6na
+         YuF3thWLPe7cOJAsSRZaMS+S5ppdQZ+3eLRbvI4rXq1cxmzSwK7357sA8/V/OK0zrdzU
+         1AEHg2PBnzDm4VANVcbRtnIxgjgbWHMiDjJ6KGxPopkp510ciRDDrt42b3jA/kIvfMNA
+         VdKA==
+X-Forwarded-Encrypted: i=1; AHgh+RpmSNjGwrIG/3CgKirHXTdL59Mzn9+GKVh5p4Fci5568qQPFK1zlSuIJrZLhcOmYGvxJegDdDD1DFBw@vger.kernel.org
+X-Gm-Message-State: AOJu0Yy2J2dJaYxsrhLRyQOxXkvM9+r31thtPB5dJObLfhLEJ+qIxjZ1
+	0WeLRXraJ3EzEQp0UxGq6hi4neoOxUY718lbBwU9OdR/wzzhcp1fter8rBejF84L0qHXtNq+bRD
+	ErkpI73bh2svvArspcSvOMe6bI3KeC9Q=
+X-Gm-Gg: AR+sD109yVHRhJPr0r0cH4Xg54DxugsbJ09SkV7FidXyGkJ/F5T+QRar5Huo4fKUFdf
+	+80HeU3ULnc3qcYK4O/yJ/JvLxrWNgtLRbZtY7KKmzZ/d8Vt6UJvwgMkcIhwEqC9IK6iDqDi1Dv
+	gISKW6vpNIHR16QFM+rdzAiN5F6eBFlquVDowZq3k2WMhLDORYiPo7SsSS6HA76gGccIYwvXvwO
+	pQJRK7RihTh0VeZNbKypNwXjgTcaJ09CMheaS2YRsCrCErQv/JAmS0Crmk6hBwM7eTFtiDwP16T
+	j6DzzU316MhdLTIzB25+ilETutuV9FKIxkqUWGpujY8zgA==
+X-Received: by 2002:adf:e005:0:10b0:47f:8b9e:f44e with SMTP id
+ ffacd0b85a97d-47fec52828bmr21215134f8f.12.1786028432410; Thu, 06 Aug 2026
+ 08:00:32 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:zC_KCgAnl8zghXRqKF+cAw--.10149S3
-X-CM-SenderInfo: qrstjiaswqq6lmxovvfxof0/
-X-CM-DELIVERINFO: =?B?IlwfHwXKKxbFmtjJiESix3B1w3vZ3A9ovKVTomAyoQazvoRs/NHSP8GI2EvgeEEW7R
-	sfncGSG+szpQCInt5Y8rbJUI24vMhiNxFE0fHjoDDcOWuotbkHEl+rH9gfyjgGr/KEhoVN
-	9gjUrjLiOiK1yQO4/+0LIhxzXNofqOCaDuI+aMKH
-X-Coremail-Antispam: 1Uk129KBj93XoW7urWDJw4fKry3uF1fCFy7CFX_yoW8XFWDp3
-	y8WFy3Kry5JF47Ga4Svw4xAFyfG397Xay3ua42939F9rs5Zr1SgryqkFWUZrW8Z34vvF4U
-	ZrZ5tr4Ykr409abCm3ZEXasCq-sJn29KB7ZKAUJUUUUU529EdanIXcx71UUUUU7KY7ZEXa
-	sCq-sGcSsGvfJ3Ic02F40EFcxC0VAKzVAqx4xG6I80ebIjqfuFe4nvWSU5nxnvy29KBjDU
-	0xBIdaVrnRJUUU9Gb4IE77IF4wAFF20E14v26r4j6ryUM7CY07I20VC2zVCF04k26cxKx2
-	IYs7xG6rWj6s0DM7CIcVAFz4kK6r106r15M28lY4IEw2IIxxk0rwA2F7IY1VAKz4vEj48v
-	e4kI8wA2z4x0Y4vE2Ix0cI8IcVAFwI0_tr0E3s1l84ACjcxK6xIIjxv20xvEc7CjxVAFwI
-	0_Gr1j6F4UJwA2z4x0Y4vEx4A2jsIE14v26rxl6s0DM28EF7xvwVC2z280aVCY1x0267AK
-	xVW0oVCq3wAac4AC62xK8xCEY4vEwIxC4wAS0I0E0xvYzxvE52x082IY62kv0487Mc804V
-	CY07AIYIkI8VC2zVCFFI0UMc02F40EFcxC0VAKzVAqx4xG6I80ewAv7VC0I7IYx2IY67AK
-	xVWUJVWUGwAv7VC2z280aVAFwI0_Jr0_Gr1lOx8S6xCaFVCjc4AY6r1j6r4UM4x0Y48Icx
-	kI7VAKI48JM4x0Y48IcxkI7VAKI48G6xCjnVAKz4kxMxAIw28IcxkI7VAKI48JMxC20s02
-	6xCaFVCjc4AY6r1j6r4UMI8I3I0E5I8CrVAFwI0_Jr0_Jr4lx2IqxVCjr7xvwVAFwI0_Jr
-	I_JrWlx4CE17CEb7AF67AKxVWUtVW8ZwCIc40Y0x0EwIxGrwCI42IY6xIIjxv20xvE14v2
-	6r1j6r1xMIIF0xvE2Ix0cI8IcVCY1x0267AKxVWUJVW8JwCI42IY6xAIw20EY4v20xvaj4
-	0_Jr0_JF4lIxAIcVC2z280aVAFwI0_Jr0_Gr1lIxAIcVC2z280aVCY1x0267AKxVW8JVW8
-	JrUvcSsGvfC2KfnxnUUI43ZEXa7IU8D5r7UUUUU==
+References: <20260804213917.3413525-1-gyf161023@gmail.com> <905fe2d9-a8c9-4047-82af-6f530d024ba2@linux.ibm.com>
+In-Reply-To: <905fe2d9-a8c9-4047-82af-6f530d024ba2@linux.ibm.com>
+From: =?UTF-8?B?6auY6YC46aOe?= <gyf161023@gmail.com>
+Date: Thu, 6 Aug 2026 11:00:17 -0400
+X-Gm-Features: AUfX_myepY0Ow5BHeLBg3UOI6iMPPgT6p_3js1Gm3-IOdv6gZ05ymxdaZ7gYMsQ
+Message-ID: <CAB665WCeZ2bTxCduGqKb_xeaoDb1Ty9wJ+vZ2be_jwj5osHYrQ@mail.gmail.com>
+Subject: Re: [PATCH] net/smc: fix sock refcount leak in smc_switch_conns()
+ error path
+To: Hidayathulla Khan I <hidayath@linux.ibm.com>
+Cc: "D . Wythe" <alibuda@linux.alibaba.com>, Dust Li <dust.li@linux.alibaba.com>, 
+	Sidraya Jayagond <sidraya@linux.ibm.com>, Mahanta Jambigi <mjambigi@linux.ibm.com>, 
+	linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org, 
+	netdev@vger.kernel.org, Tony Lu <tonylu@linux.alibaba.com>, 
+	Wen Gu <guwen@linux.alibaba.com>, Karsten Graul <kgraul@linux.ibm.com>, 
+	Ursula Braun <ubraun@linux.ibm.com>, Wenjia Zhang <wenjia@linux.ibm.com>, 
+	linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-c4iw_alloc() creates the per-device debugfs tree (dev->debugfs_root via
-setup_debugfs()), but it is removed only in c4iw_remove(), not in
-c4iw_dealloc().  When RDMA device registration fails, the registration
-worker's err_dealloc_ctx path calls c4iw_dealloc() directly, bypassing
-c4iw_remove(), so the debugfs dentries leak and outlive the freed
-c4iw_dev.
+Hi Hidayath,
 
-Move debugfs_remove_recursive() into c4iw_dealloc() so every path that
-frees ctx->dev also removes its debugfs tree.
+Thanks for the fix =E2=80=94 I see yours covers the same issue and was post=
+ed
+first. Please disregard my duplicate.
 
-Fixes: 49ea0c036ede ("RDMA/iw_cxgb4: cleanup device debugfs entries on ULD remove")
-Assisted-by: Codex:gpt-5.6
-Signed-off-by: Fan Wu <fanwu01@zju.edu.cn>
----
- drivers/infiniband/hw/cxgb4/device.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/cxgb4/device.c b/drivers/infiniband/hw/cxgb4/device.c
-index c1815972a..24ac9871c 100644
---- a/drivers/infiniband/hw/cxgb4/device.c
-+++ b/drivers/infiniband/hw/cxgb4/device.c
-@@ -933,6 +933,7 @@ static void c4iw_rdev_close(struct c4iw_rdev *rdev)
- 
- void c4iw_dealloc(struct uld_ctx *ctx)
- {
-+	debugfs_remove_recursive(ctx->dev->debugfs_root);
- 	c4iw_rdev_close(&ctx->dev->rdev);
- 	WARN_ON(!xa_empty(&ctx->dev->cqs));
- 	WARN_ON(!xa_empty(&ctx->dev->qps));
-@@ -957,7 +958,6 @@ static void c4iw_remove(struct uld_ctx *ctx)
- 	if (!ctx->dev)
- 		return;
- 
--	debugfs_remove_recursive(ctx->dev->debugfs_root);
- 	c4iw_unregister_device(ctx->dev);
- 	c4iw_dealloc(ctx);
- }
--- 
-2.34.1
-
+Hidayathulla Khan I <hidayath@linux.ibm.com> =E4=BA=8E2026=E5=B9=B48=E6=9C=
+=885=E6=97=A5=E5=91=A8=E4=B8=89 02:26=E5=86=99=E9=81=93=EF=BC=9A
+>
+> Hi Yifei,
+>
+> Thanks for looking into this.
+>
+> Yes I have submitted a patch for the same issue.
+> https://lore.kernel.org/netdev/20260804082800.498672-1-hidayath@linux.ibm=
+.com/
+>
+> Hidayath
+>
+> On 05/08/26 3:09 am, Yifei Gao wrote:
+> > smc_switch_conns() takes a reference on the socket with sock_hold() bef=
+ore
+> > dropping conns_lock to prefetch a tx slot. On success the reference is
+> > released by the sock_put() after smc_switch_cursor(). When
+> > smc_cdc_get_free_slot() fails, however, the function jumps straight to
+> > err_out without a sock_put(), leaking the reference and leaving the soc=
+ket
+> > unreclaimable. During SMC-R link failover with an exhausted backup link
+> > this leaks one reference per failing connection switch.
+> >
+> > Release the reference before jumping to err_out. The err_out label is a=
+lso
+> > reached from the smc_switch_cursor() failure path, which has already do=
+ne
+> > its own sock_put(), so the put must stay at the get_free_slot failure s=
+ite
+> > rather than at the label.
+> >
+> > Fixes: c6f02ebeea3a ("net/smc: switch connections to alternate link")
+> > Cc: stable@vger.kernel.org
+> > Assisted-by: Claude:claude-opus-4-8
+> > Signed-off-by: Yifei Gao <gyf161023@gmail.com>
+> > ---
+> >   net/smc/smc_core.c | 4 +++-
+> >   1 file changed, 3 insertions(+), 1 deletion(-)
+> >
+> > diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
+> > index cf6b620fef05..04c6ce608ec7 100644
+> > --- a/net/smc/smc_core.c
+> > +++ b/net/smc/smc_core.c
+> > @@ -1148,8 +1148,10 @@ struct smc_link *smc_switch_conns(struct smc_lin=
+k_group *lgr,
+> >               read_unlock_bh(&lgr->conns_lock);
+> >               /* pre-fetch buffer outside of send_lock, might sleep */
+> >               rc =3D smc_cdc_get_free_slot(conn, to_lnk, &wr_buf, NULL,=
+ &pend);
+> > -             if (rc)
+> > +             if (rc) {
+> > +                     sock_put(&smc->sk);
+> >                       goto err_out;
+> > +             }
+> >               /* avoid race with smcr_tx_sndbuf_nonempty() */
+> >               spin_lock_bh(&conn->send_lock);
+> >               smc_switch_link_and_count(conn, to_lnk);
