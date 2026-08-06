@@ -1,61 +1,61 @@
-Received: from pdx-out-007.esa.us-west-2.outbound.mail-perimeter.amazon.com (pdx-out-007.esa.us-west-2.outbound.mail-perimeter.amazon.com [52.34.181.151])
+Received: from pdx-out-003.esa.us-west-2.outbound.mail-perimeter.amazon.com (pdx-out-003.esa.us-west-2.outbound.mail-perimeter.amazon.com [44.246.68.102])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C5A6A3D16F0
-	for <linux-rdma@vger.kernel.org>; Thu,  6 Aug 2026 07:58:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=52.34.181.151
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B31C03DDB0B
+	for <linux-rdma@vger.kernel.org>; Thu,  6 Aug 2026 07:58:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=44.246.68.102
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786003103; cv=none; b=evb3ar4e3SOvAFO1WOjWuHm3j/B/IEWtiCRc7hdihH6E1VaaKHLgOvpOK+4A4C4YJrRLkFnVjKlPM/pv0ryNvCRDMfAw7mMcRExDHi03zJ9HcuxxBc4YRU2V36rAnFFuMNyQHHvSeYOSTRqF/VZ4IP1tTZYoUD3AhpDAObSZsQc=
+	t=1786003106; cv=none; b=G/0BoIvwExS7ffHCbBNPbtfKTTePYkVsvwaW2gIS1mcQFtR0fB5o3bijAdZCrH92As7IzS5jZYJq6xrG3KL9lJLdtadNx0RFebg//DYeRNPMDPoa1UzwezKHLdycMPRB3EFkWu4U4o5EP8SRqPpsoyoo1N5RFCDJ9oitvJ7bagA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786003103; c=relaxed/simple;
-	bh=rsDhCfRebURYXNVQyQLwyKO7Qvq0wwb6t+IFWbnhDrM=;
+	s=arc-20240116; t=1786003106; c=relaxed/simple;
+	bh=9rfXeUT3yjIJkM323nOo5B8G5y5kINnSVnEgPq8VzrE=;
 	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=odlax4BSStCB/0zaNb/umDUK//kbK+T9N7SXXILgsMV0O18gaKYj5GKqGBXoYhlBUA1UsM9j5pXCER5Fgr9VxQWCfjen2Snix5VBBuczGP64TA3jl03gwHn9HRGrrrntt4mjU2JumSV6zmCN2GhD8+t6rS3Q8lwmxEduzWw4AtI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com; spf=pass smtp.mailfrom=amazon.com; dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.b=D5HcagBG; arc=none smtp.client-ip=52.34.181.151
+	 MIME-Version:Content-Type; b=FSHtRDZvnxo0ojym7M0LnrjJYP2DJvyvRGxw7+eHqe9oBxMhtkF2acaJmatGgRXGz4xdSq10+PUjTcmyuhEdZbiGeyUUaT30KrNW4Il+VSvLwZ13EBpD9TnYXf2hBLJExfP8ETui2aSjXuxV/9CKiks8kQbO/SBk8Jt1gu75ba8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com; spf=pass smtp.mailfrom=amazon.com; dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.b=aaxeD9Et; arc=none smtp.client-ip=44.246.68.102
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazon.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.b="D5HcagBG"
+	dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.b="aaxeD9Et"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
   d=amazon.com; i=@amazon.com; q=dns/txt; s=amazoncorp2;
-  t=1786003101; x=1817539101;
+  t=1786003104; x=1817539104;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=FUqRfHzRZdfc5zhW6mOf1yU53uFL5oEPHvSxC88uX1Q=;
-  b=D5HcagBG1lPUsA6ps1LdkmxpZEG8GASQuaibB8XfdopefgStEoDFHo4U
-   Mtds4OIqOYIoCnO9cHdF2Dys4E3Dmsu2T21zz62/QMsZTpXIP9gUIsF3W
-   2vfUKaz2tsJYbS3yr5MYzAGvMVzbJOw6uGcK1V9Y/UQacM6lFmPpRJDsA
-   IfU7b9L98XEGd//XKTNRVIUzcRoDwTCyhCm8MMy7H1hLOnZHIclufJ3XT
-   ihBeI5IU1MmIbGOAR6WrHTKuLl2n0ArcPVaUazf3z4vHo9bHqFZKgGO+g
-   3XqDRL51EYqM0h7XPqWoc+4ycOj8Trd/D12DAHuCGhCZESSiYhUTXWe3u
-   A==;
-X-CSE-ConnectionGUID: IRRV2JX3SWOFjVW+wT1l0g==
-X-CSE-MsgGUID: ceNOXFo5TUeIn8Xx5yDpYg==
+  bh=lMM67NITOcu2GRbXyjagqUVTLy1FtkA5UCL4SMTGXGo=;
+  b=aaxeD9EtFWKcY4+o7vq5trmBZarIVFT2NULUjO+mTqoe+ZcOHMpwm3yS
+   WxXOkA8ajVShSY16ULS6G2vrVe+eV6goXGLkeGcEzaKMygb/vtldoRWcQ
+   vd0YVeETw9Cmyu+MmhgKBF+Igd2eNwcIfWOcnvry1DZnC0RzNLwzsTYsq
+   ybWb7P30bnYHj5lJAa1zmKo3LSmhvJ5nNTut85fd5QkC8l8v5ob1AQCwj
+   /6/oKjZXyNNyOMulxc54beRdHpXHqFK0XZtJL5y0Q5qRdsfCT+5qeoQ9i
+   KUTYIhyhWWNEaNDZQ82/rO/VsRIP6CMlylacsrmLe8Xa3JgFgTG3prGuR
+   Q==;
+X-CSE-ConnectionGUID: 8KMSjcafSiS1PQXN8XKLdw==
+X-CSE-MsgGUID: lT1jahhiQ/KmZu5rw6edmw==
 X-IronPort-AV: E=Sophos;i="6.25,208,1779148800"; 
-   d="scan'208";a="25238870"
-Received: from ip-10-5-9-48.us-west-2.compute.internal (HELO smtpout.naws.us-west-2.prod.farcaster.email.amazon.dev) ([10.5.9.48])
-  by internal-pdx-out-007.esa.us-west-2.outbound.mail-perimeter.amazon.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Aug 2026 07:58:19 +0000
-Received: from EX19MTAUWA001.ant.amazon.com [205.251.233.182:19845]
- by smtpin.naws.us-west-2.prod.farcaster.email.amazon.dev [10.0.28.136:2525] with esmtp (Farcaster)
- id 06f660cd-68e8-4f1c-8b81-19d1be3b0713; Thu, 6 Aug 2026 07:58:19 +0000 (UTC)
-X-Farcaster-Flow-ID: 06f660cd-68e8-4f1c-8b81-19d1be3b0713
+   d="scan'208";a="25274283"
+Received: from ip-10-5-0-115.us-west-2.compute.internal (HELO smtpout.naws.us-west-2.prod.farcaster.email.amazon.dev) ([10.5.0.115])
+  by internal-pdx-out-003.esa.us-west-2.outbound.mail-perimeter.amazon.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Aug 2026 07:58:21 +0000
+Received: from EX19MTAUWC001.ant.amazon.com [205.251.233.53:5356]
+ by smtpin.naws.us-west-2.prod.farcaster.email.amazon.dev [10.0.4.11:2525] with esmtp (Farcaster)
+ id a44f9a41-cb26-439d-af92-6580b1c4656f; Thu, 6 Aug 2026 07:58:21 +0000 (UTC)
+X-Farcaster-Flow-ID: a44f9a41-cb26-439d-af92-6580b1c4656f
 Received: from EX19D001UWA001.ant.amazon.com (10.13.138.214) by
- EX19MTAUWA001.ant.amazon.com (10.250.64.217) with Microsoft SMTP Server
+ EX19MTAUWC001.ant.amazon.com (10.250.64.174) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.45;
- Thu, 6 Aug 2026 07:58:18 +0000
+ Thu, 6 Aug 2026 07:58:21 +0000
 Received: from dev-dsk-ynachum-1b-0ecf7b87.eu-west-1.amazon.com
  (10.13.226.176) by EX19D001UWA001.ant.amazon.com (10.13.138.214) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.45; Thu, 6 Aug 2026
- 07:58:17 +0000
+ 07:58:19 +0000
 From: Yonatan Nachum <ynachum@amazon.com>
 To: <jgg@nvidia.com>, <leon@kernel.org>, <linux-rdma@vger.kernel.org>
 CC: <mrgolin@amazon.com>, <sleybo@amazon.com>, <matua@amazon.com>,
 	<gal.pressman@linux.dev>, <danamala@amazon.com>, Chen Brasch
 	<cbrasch@amazon.com>, Yonatan Nachum <ynachum@amazon.com>
-Subject: [PATCH for-next 1/2] RDMA/efa: Use device ABI MR permissions instead of verbs flags
-Date: Thu, 6 Aug 2026 07:57:57 +0000
-Message-ID: <20260806075758.3476667-2-ynachum@amazon.com>
+Subject: [PATCH for-next 2/2] RDMA/efa: Pass relaxed ordering flag to device
+Date: Thu, 6 Aug 2026 07:57:58 +0000
+Message-ID: <20260806075758.3476667-3-ynachum@amazon.com>
 X-Mailer: git-send-email 2.50.1
 In-Reply-To: <20260806075758.3476667-1-ynachum@amazon.com>
 References: <20260806075758.3476667-1-ynachum@amazon.com>
@@ -72,71 +72,133 @@ X-ClientProxiedBy: EX19D031UWA001.ant.amazon.com (10.13.139.88) To
 
 From: Dana Malachi <danamala@amazon.com>
 
-Set MR permissions explicitly using device interface definitions rather
-than copying raw verbs access flags.  This is needed for the next
-commit, to allow access flag bits that are not in the permissions field.
+Accept the relaxed ordering access flag during memory region
+registration and forward it to the device firmware via the admin command
+path.
 
 Reviewed-by: Chen Brasch <cbrasch@amazon.com>
 Reviewed-by: Michael Margolin <mrgolin@amazon.com>
 Signed-off-by: Dana Malachi <danamala@amazon.com>
 Signed-off-by: Yonatan Nachum <ynachum@amazon.com>
 ---
- drivers/infiniband/hw/efa/efa_com_cmd.c | 7 ++++++-
- drivers/infiniband/hw/efa/efa_com_cmd.h | 7 +++++--
- drivers/infiniband/hw/efa/efa_verbs.c   | 4 +++-
- 3 files changed, 14 insertions(+), 4 deletions(-)
+ drivers/infiniband/hw/efa/efa_admin_cmds_defs.h | 10 +++++++---
+ drivers/infiniband/hw/efa/efa_com_cmd.c         |  2 ++
+ drivers/infiniband/hw/efa/efa_com_cmd.h         |  1 +
+ drivers/infiniband/hw/efa/efa_verbs.c           |  7 +++++++
+ include/uapi/rdma/efa-abi.h                     |  1 +
+ 5 files changed, 18 insertions(+), 3 deletions(-)
 
+diff --git a/drivers/infiniband/hw/efa/efa_admin_cmds_defs.h b/drivers/infiniband/hw/efa/efa_admin_cmds_defs.h
+index ab830764e3b4..eec660a32061 100644
+--- a/drivers/infiniband/hw/efa/efa_admin_cmds_defs.h
++++ b/drivers/infiniband/hw/efa/efa_admin_cmds_defs.h
+@@ -358,7 +358,8 @@ struct efa_admin_reg_mr_cmd {
+ 	 * 5:0 : phys_page_size_shift - page size is (1 <<
+ 	 *    phys_page_size_shift). Page size is used for
+ 	 *    building the Virtual to Physical address mapping
+-	 * 6 : reserved - MBZ
++	 * 6 : relaxed_ordering_enable - Enable PCIe relaxed
++	 *    ordering for this memory region
+ 	 * 7 : mem_addr_phy_mode_en - Enable bit for physical
+ 	 *    memory registration (no translation), can be used
+ 	 *    only by privileged clients. If set, PBL must
+@@ -697,7 +698,9 @@ struct efa_admin_feature_device_attr_desc {
+ 	 *    write with imm. receive is supported
+ 	 * 5 : event_counters - If set, event counters are
+ 	 *    supported
+-	 * 9:6 : reserved1 - MBZ
++	 * 8:6 : reserved1 - MBZ
++	 * 9 : mr_relaxed_ordering - If set, MR PCIe relaxed
++	 *    ordering is supported
+ 	 * 10 : sq_64_bit_req_id - If set, SQ can use 64-bit
+ 	 *    work request ids
+ 	 * 31:11 : reserved2 - MBZ
+@@ -1203,6 +1206,7 @@ struct efa_admin_modify_event_counter_resp {
+ 
+ /* reg_mr_cmd */
+ #define EFA_ADMIN_REG_MR_CMD_PHYS_PAGE_SIZE_SHIFT_MASK      GENMASK(5, 0)
++#define EFA_ADMIN_REG_MR_CMD_RELAXED_ORDERING_ENABLE_MASK   BIT(6)
+ #define EFA_ADMIN_REG_MR_CMD_MEM_ADDR_PHY_MODE_EN_MASK      BIT(7)
+ #define EFA_ADMIN_REG_MR_CMD_LOCAL_WRITE_ENABLE_MASK        BIT(0)
+ #define EFA_ADMIN_REG_MR_CMD_REMOTE_WRITE_ENABLE_MASK       BIT(1)
+@@ -1231,7 +1235,7 @@ struct efa_admin_modify_event_counter_resp {
+ #define EFA_ADMIN_FEATURE_DEVICE_ATTR_DESC_RDMA_WRITE_MASK  BIT(3)
+ #define EFA_ADMIN_FEATURE_DEVICE_ATTR_DESC_UNSOLICITED_WRITE_RECV_MASK BIT(4)
+ #define EFA_ADMIN_FEATURE_DEVICE_ATTR_DESC_EVENT_COUNTERS_MASK BIT(5)
+-#define EFA_ADMIN_FEATURE_DEVICE_ATTR_DESC_SQ_64_BIT_REQ_ID_SHIFT 10
++#define EFA_ADMIN_FEATURE_DEVICE_ATTR_DESC_MR_RELAXED_ORDERING_MASK BIT(9)
+ #define EFA_ADMIN_FEATURE_DEVICE_ATTR_DESC_SQ_64_BIT_REQ_ID_MASK BIT(10)
+ 
+ /* feature_queue_attr_desc_2 */
 diff --git a/drivers/infiniband/hw/efa/efa_com_cmd.c b/drivers/infiniband/hw/efa/efa_com_cmd.c
-index 1b00f16b8ea8..aac0e936601a 100644
+index aac0e936601a..07bfcb093df8 100644
 --- a/drivers/infiniband/hw/efa/efa_com_cmd.c
 +++ b/drivers/infiniband/hw/efa/efa_com_cmd.c
-@@ -237,7 +237,12 @@ int efa_com_register_mr(struct efa_com_dev *edev,
+@@ -236,6 +236,8 @@ int efa_com_register_mr(struct efa_com_dev *edev,
+ 	mr_cmd.mr_length = params->mr_length_in_bytes;
  	EFA_SET(&mr_cmd.flags, EFA_ADMIN_REG_MR_CMD_PHYS_PAGE_SIZE_SHIFT,
  		params->page_shift);
++	if (params->relaxed_ordering)
++		EFA_SET(&mr_cmd.flags, EFA_ADMIN_REG_MR_CMD_RELAXED_ORDERING_ENABLE, 1);
  	mr_cmd.iova = params->iova;
--	mr_cmd.permissions = params->permissions;
-+	if (params->permissions.local_write)
-+		EFA_SET(&mr_cmd.permissions, EFA_ADMIN_REG_MR_CMD_LOCAL_WRITE_ENABLE, 1);
-+	if (params->permissions.remote_write)
-+		EFA_SET(&mr_cmd.permissions, EFA_ADMIN_REG_MR_CMD_REMOTE_WRITE_ENABLE, 1);
-+	if (params->permissions.remote_read)
-+		EFA_SET(&mr_cmd.permissions, EFA_ADMIN_REG_MR_CMD_REMOTE_READ_ENABLE, 1);
- 
- 	if (params->inline_pbl) {
- 		memcpy(mr_cmd.pbl.inline_pbl_array,
+ 	if (params->permissions.local_write)
+ 		EFA_SET(&mr_cmd.permissions, EFA_ADMIN_REG_MR_CMD_LOCAL_WRITE_ENABLE, 1);
 diff --git a/drivers/infiniband/hw/efa/efa_com_cmd.h b/drivers/infiniband/hw/efa/efa_com_cmd.h
-index bca722f021ea..7b0399811cfd 100644
+index 7b0399811cfd..524407f36d43 100644
 --- a/drivers/infiniband/hw/efa/efa_com_cmd.h
 +++ b/drivers/infiniband/hw/efa/efa_com_cmd.h
-@@ -204,8 +204,11 @@ struct efa_com_reg_mr_params {
- 	 * address mapping
- 	 */
- 	u8 page_shift;
--	/* see permissions field of struct efa_admin_reg_mr_cmd */
--	u8 permissions;
-+	struct {
-+		u8 local_write : 1;
-+		u8 remote_write : 1;
-+		u8 remote_read : 1;
-+	} permissions;
+@@ -209,6 +209,7 @@ struct efa_com_reg_mr_params {
+ 		u8 remote_write : 1;
+ 		u8 remote_read : 1;
+ 	} permissions;
++	u8 relaxed_ordering;
  	u8 inline_pbl;
  	u8 indirect;
  };
 diff --git a/drivers/infiniband/hw/efa/efa_verbs.c b/drivers/infiniband/hw/efa/efa_verbs.c
-index 2d28d68efe77..635687275350 100644
+index 635687275350..a91d02158a6a 100644
 --- a/drivers/infiniband/hw/efa/efa_verbs.c
 +++ b/drivers/infiniband/hw/efa/efa_verbs.c
-@@ -1676,7 +1676,9 @@ static int efa_register_mr(struct ib_pd *ibpd, struct efa_mr *mr, u64 start,
- 	params.pd = to_epd(ibpd)->pdn;
- 	params.iova = virt_addr;
- 	params.mr_length_in_bytes = length;
--	params.permissions = access_flags;
-+	params.permissions.local_write = !!(access_flags & IB_ACCESS_LOCAL_WRITE);
-+	params.permissions.remote_write = !!(access_flags & IB_ACCESS_REMOTE_WRITE);
-+	params.permissions.remote_read = !!(access_flags & IB_ACCESS_REMOTE_READ);
+@@ -272,6 +272,9 @@ int efa_query_device(struct ib_device *ibdev,
+ 		if (EFA_DEV_CAP(dev, EVENT_COUNTERS))
+ 			resp.device_caps |= EFA_QUERY_DEVICE_CAPS_COMP_CNTR;
+ 
++		if (EFA_DEV_CAP(dev, MR_RELAXED_ORDERING))
++			resp.device_caps |= EFA_QUERY_DEVICE_CAPS_MR_RELAXED_ORDERING;
++
+ 		if (EFA_DEV_CAP(dev, SQ_64_BIT_REQ_ID))
+ 			resp.device_caps |= EFA_QUERY_DEVICE_CAPS_SQ_64_BIT_REQ_ID;
+ 
+@@ -1647,6 +1650,9 @@ static struct efa_mr *efa_alloc_mr(struct ib_pd *ibpd, int access_flags,
+ 		(EFA_DEV_CAP(dev, RDMA_READ) ? IB_ACCESS_REMOTE_READ : 0) |
+ 		(EFA_DEV_CAP(dev, RDMA_WRITE) ? IB_ACCESS_REMOTE_WRITE : 0);
+ 
++	if (EFA_DEV_CAP(dev, MR_RELAXED_ORDERING))
++		supp_access_flags |= IB_ACCESS_RELAXED_ORDERING;
++
+ 	access_flags &= ~IB_ACCESS_OPTIONAL;
+ 	if (access_flags & ~supp_access_flags) {
+ 		ibdev_dbg(&dev->ibdev,
+@@ -1679,6 +1685,7 @@ static int efa_register_mr(struct ib_pd *ibpd, struct efa_mr *mr, u64 start,
+ 	params.permissions.local_write = !!(access_flags & IB_ACCESS_LOCAL_WRITE);
+ 	params.permissions.remote_write = !!(access_flags & IB_ACCESS_REMOTE_WRITE);
+ 	params.permissions.remote_read = !!(access_flags & IB_ACCESS_REMOTE_READ);
++	params.relaxed_ordering = !!(access_flags & IB_ACCESS_RELAXED_ORDERING);
  
  	pg_sz = ib_umem_find_best_pgsz(mr->umem,
  				       dev->dev_attr.page_size_cap,
+diff --git a/include/uapi/rdma/efa-abi.h b/include/uapi/rdma/efa-abi.h
+index 2094b4bcc5cf..675aca45e697 100644
+--- a/include/uapi/rdma/efa-abi.h
++++ b/include/uapi/rdma/efa-abi.h
+@@ -137,6 +137,7 @@ enum {
+ 	EFA_QUERY_DEVICE_CAPS_CQ_WITH_EXT_MEM = 1 << 7,
+ 	EFA_QUERY_DEVICE_CAPS_COMP_CNTR = 1 << 8,
+ 	EFA_QUERY_DEVICE_CAPS_SQ_64_BIT_REQ_ID = 1 << 9,
++	EFA_QUERY_DEVICE_CAPS_MR_RELAXED_ORDERING = 1 << 10,
+ };
+ 
+ struct efa_ibv_ex_query_device_resp {
 -- 
 2.50.1
 
