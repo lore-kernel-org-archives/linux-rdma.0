@@ -1,30 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C556C1F2B88;
-	Thu,  6 Aug 2026 07:20:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6412838BF9C;
+	Thu,  6 Aug 2026 07:20:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786000847; cv=none; b=ucEROFFjNBX3xVEQVIJFQFD10WEYw/L82npCLIXR/SKuZUBH+GGWQ691mPgLK4cJZsV+bD8s9ZpZvqeDdNuyumsBKNvhhosxh4LFeKPQIlNsbt4aaUgdLsIP3CkLEN0dS+Ywe6c82lxK0gzHtwBfOWRU9gKO0ZW+erLxL5wVhgk=
+	t=1786000848; cv=none; b=bqXj9+0ZighLEp95zQZ70WI6H49fEsLVjNpxByKNYso7jfauPMJUt6Zffh77/R9XPmq7TOmgi1PC9Y4KJBgk13HHLR7XVLbAd99LKNuW2vgfOBYJ41s67WuhL7pNbDdeLEyFmJXP3nqUCgVISiH+JikTV2HUKnDkVyRduKfFjEU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786000847; c=relaxed/simple;
-	bh=C765vW/NymtNTCg1/ZiXQVE7LNPtnsLLio+eH2vGyE4=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version:Content-Type; b=sewhOKmkcDdhfFHOTUQ1WWPbbre7bO70tdyybqPf8gPsTxk5nRxx0KZT04FmogGu6/mcQV0icOAfCh5FI1KVW9odK+/9PCyOcJO5mn6WCRX/CbamYuR7rzZ+tSTqAcugv5nUsC+dMdTfbrgiPZbFn4kR3yVi7FNgCJoYq0yh468=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=WhFnlXRX; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1786000848; c=relaxed/simple;
+	bh=D9kYkpuz9FQqbftpeScA2Y16jY65ddz23OE9KLlf4sU=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=K84Srr2oZDZasD4fL00IYZmuFjgL5thXtc51o5DeBZz+KSBrc85eHB/2sUE49dyhkVtr8YZr8WQbD0V1LsykUyvYxnQE7Bh6M1rnre1/aL+cPEp14bZ5TMCtJBtlRyGppEEUulTaW6QaWK5cuJVNNlNzNklhlSQz6d5A3yX9ApM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Pu83bTru; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="WhFnlXRX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F23D51F000E9;
-	Thu,  6 Aug 2026 07:20:45 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Pu83bTru"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 93D801F00A3E;
+	Thu,  6 Aug 2026 07:20:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1786000846;
-	bh=iHIqpI9jTYrzQGObPhJiEG+Jyvj+Wd21PXh4r6QgcxY=;
-	h=From:To:Cc:Subject:Date;
-	b=WhFnlXRXvq2FkG8MO4VNvMUhRAngBBgRYeS6nswXZ4a5FxQURKZ6op7mTEggBsA2n
-	 WY+6nX1hYhpg3ZHJggla7O3ng3JJRgn4W45JXDfn9smqzIqO5kMDp9+sfaAKs9L/ad
-	 mOIaiIjVSlVbJa3Ah+sh9n/hGCNRl6Dp+5ufOAg3WFdJDVnkpbAjaQqsStYg2M58bT
-	 VmW3zbLGQJlZK4h4XYEGucBUC5fzv+Z1PPP5QTRMUWOgrrImDG1GdMqdxg2DPMpzka
-	 LC7ZtkzJZaTmLkv8NmEmA/caiFgrobzygcu/glXYA/bMkga4ty2HxK2PAAclGaVRCB
-	 iKZhBoYYFHpAw==
+	s=k20260515; t=1786000847;
+	bh=KnqA/+TYrcQqJRt48pgloBtLNC6nI5M3hNRKvct21f0=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=Pu83bTrup5O213Syj2A+cAVU5C1+KQaJCY3FtG7sKRy6Fx2VBpA/uoxf/dFS21krX
+	 SgaQl1eaCCNJqtCpwfS0mgfcW2LeUewG26rcj+Tdz0KrMZyX3DN3RsYP/RCE/3q42j
+	 QNDvqMswWFuRD2ZkMWKudSUADD3p+W1XC0NzcL/sp4gDE4nltYvuJIiliVad7z/yL2
+	 kKxSf3GUxeSGYTvUdR/Z1j1IITg2hYLxCSke63i5UHUO5+sHS6Og3r9mNDGBzzmWHc
+	 cNnUqiZhQ7pfZYE+xjTkzR69fbg1q3ggLkU9G25RhdVvtV/r8pGIDSwis2/9TKMHPF
+	 eupZjRh9jUYTQ==
 From: Allison Henderson <achender@kernel.org>
 To: netdev@vger.kernel.org,
 	linux-rdma@vger.kernel.org,
@@ -35,85 +36,63 @@ To: netdev@vger.kernel.org,
 Cc: achender@kernel.org,
 	jhubbard@nvidia.com,
 	leon@kernel.org
-Subject: [PATCH net-next 0/4] net/rds: Bug fix ports, part 2
-Date: Thu,  6 Aug 2026 00:20:41 -0700
-Message-Id: <20260806072045.1092968-1-achender@kernel.org>
+Subject: [PATCH net-next 1/4] net/rds: reinitialize to_be_dropped on rds_send_xmit() restart
+Date: Thu,  6 Aug 2026 00:20:42 -0700
+Message-Id: <20260806072045.1092968-2-achender@kernel.org>
 X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20260806072045.1092968-1-achender@kernel.org>
+References: <20260806072045.1092968-1-achender@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-Hi all,
+From: Sharath Srinivasan <sharath.srinivasan@oracle.com>
 
-This is the next batch of net/rds fixes ported from the Oracle UEK
-kernel, following up on the first set now in net-next [1].  As
-discussed on the previous series, these target net-next since the
-bugs are pretty old and could probably use the longer cycle.
+The to_be_dropped list is declared once at the top of rds_send_xmit()
+but the function can loop via "goto restart" after each batch.  The
+code currently relies on rds_send_remove_from_sock() having emptied
+the list entry by entry (via list_del_init()) at the end of the
+previous batch; nothing in rds_send_xmit() itself guarantees the list
+head is empty when a new batch starts.
 
-Patches 3 and 4 close a teardown race that UEK fixed after a long
-tail of failover crashes: quiescing the transmit path by *sampling*
-the RDS_IN_XMIT/RDS_RECV_REFILL bits clear instead of acquiring them
-is a store-buffering pattern.  So on weakly ordered arches,
-rds_send_xmit() can run concurrently with connection teardown
-resetting the transmit state under it. Patch 3 makes
-rds_conn_shutdown() take the bit locks.  Patch 4 does the same for
-the only other rds_send_path_reset() call site in
-rds_tcp_reset_callbacks().
+Re-initialize the list on every restart so a change in the callee's
+behavior cannot turn into list corruption and double-puts.  This is
+hardening: no user-visible bug is known in the current code.
 
-Patches 1 and 2 are small initialization hardening ports from the
-same UEK series. re-initialize rds_send_xmit()'s to_be_dropped
-list on its restart path, and initialize i_conn_path in
-rds_inc_init() so both inc init helpers leave an equivalent,
-fully-initialized structure.  Neither has a known user-visible bug
-upstream.
+This mirrors Oracle UEK commit "net/rds: rds_send_xmit should
+INIT_LIST_HEAD(&to_be_dropped) on restart".
 
-[PATCH net 1/4] net/rds: reinitialize to_be_dropped on rds_send_xmit() restart
-  Port commit 7f52b9968d79 ("net/rds: rds_send_xmit should INIT_LIST_HEAD (&to_be_dropped) on restart")
-  https://github.com/oracle/linux-uek/commit/7f52b9968d79 
+Signed-off-by: Gerd Rausch <gerd.rausch@oracle.com>
+Signed-off-by: Sharath Srinivasan <sharath.srinivasan@oracle.com>
+[achender: port to net-next (keep the existing LIST_HEAD declaration and
+ add only the restart re-init); update commit message]
+Assisted-by: Claude-Code:claude-fable-5
+Signed-off-by: Allison Henderson <achender@kernel.org>
+---
+ net/rds/send.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-[PATCH net 2/4] net/rds: initialize i_conn_path in rds_inc_init()
-  Port commit 0ec6a520da4f ("rds: rds_inc_init() should initialize the inc->i_conn_path field")
-  https://github.com/oracle/linux-uek/commit/0ec6a520da4f
+diff --git a/net/rds/send.c b/net/rds/send.c
+index 309021e0cc9bc..c28dc9f820af0 100644
+--- a/net/rds/send.c
++++ b/net/rds/send.c
+@@ -200,6 +200,12 @@ int rds_send_xmit(struct rds_conn_path *cp)
+ restart:
+ 	batch_count = 0;
  
-[PATCH net 3/4] net/rds: acquire the fastpath locks in rds_conn_shutdown()
-  Port commit 2b8aaa4f163b ("rds: Make sure transmit path and connection tear-down does not run concurrently")
-  https://github.com/oracle/linux-uek/commit/2b8aaa4f163b 
-
-[PATCH net 4/4] net/rds: acquire RDS_IN_XMIT in rds_tcp_reset_callbacks()
-  Extend the last port to cover extra call sites in rds_tcp_reset_callbacks()
-
-Questions and comments appreciated!
-
-Thanks,
-Allison
-
-[1] https://lore.kernel.org/netdev/20260730041629.3512480-1-achender@kernel.org/
-
-Allison Henderson (1):
-  net/rds: acquire RDS_IN_XMIT in rds_tcp_reset_callbacks()
-
-Håkon Bugge (1):
-  net/rds: acquire the fastpath locks in rds_conn_shutdown()
-
-Sharath Srinivasan (1):
-  net/rds: reinitialize to_be_dropped on rds_send_xmit() restart
-
-William Kucharski (1):
-  net/rds: initialize i_conn_path in rds_inc_init()
-
- net/rds/connection.c | 22 ++++++++++++++++++++--
- net/rds/recv.c       |  1 +
- net/rds/send.c       |  6 ++++++
- net/rds/tcp.c        | 15 ++++++++++++++-
- 4 files changed, 41 insertions(+), 3 deletions(-)
-
-
-base-commit: b0057c68df711bf6a62033c072ac61c4f9d3cbc1
++	/* The drop processing after over_batch relies on the callees
++	 * emptying to_be_dropped entry by entry; re-initialize it here
++	 * rather than depending on that implicit behavior.
++	 */
++	INIT_LIST_HEAD(&to_be_dropped);
++
+ 	/*
+ 	 * sendmsg calls here after having queued its message on the send
+ 	 * queue.  We only have one task feeding the connection at a time.  If
 -- 
 2.25.1
 
